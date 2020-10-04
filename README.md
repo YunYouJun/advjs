@@ -9,3 +9,13 @@
 还很简易，日后再整理。
 
 ## [parser](./docs/parser.md) | 剧本解析器
+
+目前使用 monorepo 的方式进行管理。
+
+> [advjs/paraser](https://github.com/advjs/parser) 可能会被废弃，而直接使用 [packages/parser] 的方式进行管理。
+
+## FAQ
+
+### Fetch or axios
+
+面向未来，不如直接试试只用 fetch。

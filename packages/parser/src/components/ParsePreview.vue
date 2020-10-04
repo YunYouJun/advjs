@@ -1,6 +1,6 @@
 <template>
   <div id="main">
-    <span class="zi-loading-shim" title="Loading" ref="loadingDot">
+    <span v-show="loading" class="zi-loading-shim" title="Loading">
       <i></i><i></i><i></i>
     </span>
 
@@ -22,6 +22,13 @@
           class="zi-input md-input"
           v-model="inputText"
           @input="handleInputText(inputText)"
+          @compositionstart="isInputZh = true"
+          @compositionend="
+            () => {
+              isInputZh = false;
+              handleInputText(inputText);
+            }
+          "
         ></textarea>
       </div>
 
@@ -60,30 +67,34 @@
   </div>
 </template>
 
-<script lang="ts">
+<script>
 import marked from 'marked';
+import Prism from 'prismjs';
 import advParser from '../../lib/index';
 export default {
   data() {
     return {
+      path: './md/test.md',
+      // loading status
+      loading: true,
+      isInputZh: false,
+      // 输出类型
       outputType: 'adv',
-      /**
-       * 文本
-       */
+      // 输入的 markdown 文本
       inputText: '',
       delayTime: 0,
       highlightAdv: '',
       highlightLexer: '',
       html: '',
-
+      // 输出的内容
       outputContent: '',
       noPadding: true,
     };
   },
   async mounted() {
-    const markdown = await this.getTestMarkdown('./test.md');
+    const markdown = await this.getTestMarkdown(this.path);
     if (markdown) {
-      this.$refs.loadingDot.style.display = 'none';
+      this.loading = false;
       this.handleInputText(markdown);
     }
   },
@@ -101,7 +112,10 @@ export default {
         });
     },
     handleInputText(markdown) {
-      const startTime: number = new Date().valueOf();
+      // 中文输入法时不获取值，输入完再执行
+      if (this.isInputZh) return;
+
+      const startTime = new Date().valueOf();
       const lexed = marked.lexer(markdown);
 
       this.highlightLexer = this.highlight(lexed);
@@ -115,8 +129,18 @@ export default {
       return this.delayTime;
     },
     highlight(json) {
+      Prism.languages.json = {
+        property: { pattern: /"(?:\\.|[^\\"\r\n])*"(?=\s*:)/, greedy: !0 },
+        string: { pattern: /"(?:\\.|[^\\"\r\n])*"(?!\s*:)/, greedy: !0 },
+        comment: { pattern: /\/\/.*|\/\*[\s\S]*?(?:\*\/|$)/, greedy: !0 },
+        number: /-?\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b/i,
+        punctuation: /[{}[\],]/,
+        operator: /:/,
+        boolean: /\b(?:true|false)\b/,
+        null: { pattern: /\bnull\b/, alias: 'keyword' },
+      };
       /*global Prism*/
-      const highlightCode = (Prism as any).highlight(
+      const highlightCode = Prism.highlight(
         JSON.stringify(json, null, 2),
         Prism.languages.json,
         'json'

@@ -1,4 +1,5 @@
 export default {
-  base: "/parser/",
-  outDir: "demo"
+  optimizeDeps: {
+    include: ['prismjs'],
+  },
 };

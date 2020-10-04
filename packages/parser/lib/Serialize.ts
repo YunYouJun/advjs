@@ -1,19 +1,40 @@
 import { Tokens } from 'marked';
 
-interface Paragraph {
+export type AdvItem =
+  | Unknown
+  | Paragraph
+  | Line
+  | Narration
+  | Character
+  | Words;
+
+export interface Unknown {
+  type: 'unknown';
+}
+
+export interface Paragraph {
   type: 'paragraph';
   children: Line[];
 }
 
-interface Line {
+export interface Line {
   type: 'line';
-  children: (Character | Words)[];
+  character: Character;
+  words: Words;
+}
+
+/**
+ * 旁白
+ */
+export interface Narration {
+  type: 'narration';
+  text: string;
 }
 
 /**
  * 人物信息
  */
-interface Character {
+export interface Character {
   type: 'character';
   name: string;
   status: string;
@@ -22,7 +43,7 @@ interface Character {
 /**
  * 人物对话
  */
-interface Words {
+export interface Words {
   type: 'words';
   text: string;
 }
@@ -49,7 +70,7 @@ export default class Serialize {
    * @param text
    */
   blockquote(text: string) {
-    const info = {
+    const info: Narration = {
       type: 'narration',
       text,
     };
@@ -83,7 +104,15 @@ export default class Serialize {
   line(text: string) {
     const info: Line = {
       type: 'line',
-      children: [],
+      character: {
+        type: 'character',
+        name: '',
+        status: '',
+      },
+      words: {
+        type: 'words',
+        text: '',
+      },
     };
     const delimiters = [':', '：'];
     let pos = 0;
@@ -95,11 +124,10 @@ export default class Serialize {
     });
 
     const characterInfo = text.slice(0, pos);
-    const character = this.character(characterInfo);
-    info.children.push(character);
+    info.character = this.character(characterInfo);
 
     const words = text.slice(pos + 1);
-    info.children.push(this.words(words));
+    info.words = this.words(words);
 
     return info;
   }

@@ -6,17 +6,13 @@
     <h3 class="my-5">...</h3>
     <p>愿在未来的冒险中与你相遇<br /></p>
 
-    <a
-      class="block my-5"
-      target="_blank"
-      href="https://github.com/YunYouJun/adv"
-    >
+    <router-link class="block my-5" to="/demo">
       <button
         class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded"
       >
         开始游戏
       </button>
-    </a>
+    </router-link>
 
     <h3 class="mt-8">Other Links</h3>
     <ul>

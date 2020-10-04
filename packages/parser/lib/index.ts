@@ -1,19 +1,19 @@
 import { TokensList } from 'marked';
-import Serialize from './Serialize';
+import Serialize, { AdvItem } from './Serialize';
 
 /**
  * 基于 Markdown 解析
  * @param {*} lexer
  */
-function parse(tokensList: TokensList) {
-  const advTokens = [];
+function parse(tokensList: TokensList): AdvItem[] {
+  const advTokens: AdvItem[] = [];
   const serialize = new Serialize();
   for (let i = 0; i < tokensList.length; i++) {
     const token = tokensList[i] as any;
     if (token.text) {
       token['text'] = token['text'].trim();
     }
-    let advObject = {};
+    let advObject;
     switch (token['type']) {
       case 'blockquote':
         advObject = serialize.blockquote(token['text']);
