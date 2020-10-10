@@ -23,6 +23,12 @@ export interface Line {
   words: Words;
 }
 
+export interface Heading {
+  type: 'heading';
+  depth: number;
+  text: string;
+}
+
 /**
  * 旁白
  */
@@ -56,8 +62,8 @@ export default class Serialize {
    * 处理标题
    * @param text
    */
-  heading(token: Tokens.Heading) {
-    const info = {
+  heading(token: Tokens.Heading): Heading {
+    const info: Heading = {
       type: 'heading',
       depth: token['depth'],
       text: token['text'],
@@ -69,7 +75,7 @@ export default class Serialize {
    * 处理引用块
    * @param text
    */
-  blockquote(text: string) {
+  blockquote(text: string): Narration {
     const info: Narration = {
       type: 'narration',
       text,
@@ -81,14 +87,14 @@ export default class Serialize {
    * 处理段落
    * @param text
    */
-  paragraph(text: string) {
+  paragraph(text: string): Paragraph {
     const info: Paragraph = {
       type: 'paragraph',
       children: [],
     };
     const lines = text.split('\n');
     if (Array.isArray(lines)) {
-      lines.forEach(line => {
+      lines.forEach((line) => {
         if (line) {
           info.children.push(this.line(line));
         }
@@ -101,7 +107,7 @@ export default class Serialize {
    * 处理单行文本
    * @param text
    */
-  line(text: string) {
+  line(text: string): Line {
     const info: Line = {
       type: 'line',
       character: {
@@ -116,7 +122,7 @@ export default class Serialize {
     };
     const delimiters = [':', '：'];
     let pos = 0;
-    delimiters.some(delimiter => {
+    delimiters.some((delimiter) => {
       pos = text.indexOf(delimiter);
       if (pos > -1) {
         return true;

@@ -14,10 +14,24 @@ interface Dialog {
   words: string;
 }
 
+import { speak } from '../../../lib/speech';
+
 export default {
   props: {
     dialog: {
       type: Object as PropType<Dialog>,
+    },
+  },
+  watch: {
+    'dialog.words'(val: string) {
+      // 若开启了语音合成
+      if ((this as any).$store.state.settings.speechSynthesis.enable) {
+        speechSynthesis.cancel();
+        speak(
+          val,
+          (this as any).$store.state.settings.speechSynthesis.language
+        );
+      }
     },
   },
 };

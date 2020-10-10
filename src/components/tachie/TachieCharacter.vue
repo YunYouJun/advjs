@@ -16,7 +16,7 @@ interface Character {
   path: string;
   active?: boolean;
   class?: string[];
-  style?: object;
+  style?: any;
 }
 
 export default {

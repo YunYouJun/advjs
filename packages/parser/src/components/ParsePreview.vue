@@ -101,10 +101,10 @@ export default {
   methods: {
     getTestMarkdown(path) {
       return fetch(path)
-        .then(res => {
+        .then((res) => {
           return res.text();
         })
-        .then(text => {
+        .then((text) => {
           if (!this.inputText) {
             this.inputText = text;
           }
@@ -139,7 +139,6 @@ export default {
         boolean: /\b(?:true|false)\b/,
         null: { pattern: /\bnull\b/, alias: 'keyword' },
       };
-      /*global Prism*/
       const highlightCode = Prism.highlight(
         JSON.stringify(json, null, 2),
         Prism.languages.json,

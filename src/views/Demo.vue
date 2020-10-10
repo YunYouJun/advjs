@@ -2,14 +2,14 @@
   <div class="adv-game h-screen bg-black" v-bind:style="advGameStyle">
     <tachie-box :characters="characters" />
     <dialog-box :dialog="dialog" @click="nextDialog" />
-    <!-- <user-interface /> -->
+    <user-interface />
   </div>
 </template>
 
 <script lang="ts">
 import DialogBox from '../components/dialog/DialogBox.vue';
 import TachieBox from '../components/tachie/TachieBox.vue';
-// import UserInterface from '../components/ui/UserInterface.vue';
+import UserInterface from '../components/ui/UserInterface.vue';
 import marked from 'marked';
 import advParser from '../../packages/parser/lib';
 import { AdvItem, Character, Line } from '../../packages/parser/lib/Serialize';
@@ -19,7 +19,7 @@ export default {
   components: {
     DialogBox,
     TachieBox,
-    // UserInterface,
+    UserInterface,
   },
   data() {
     return {
@@ -68,7 +68,7 @@ export default {
     };
   },
   async mounted() {
-    const mdText = await fetch(this.path).then(res => {
+    const mdText = await fetch(this.path).then((res) => {
       return res.text();
     });
     const lexed = marked.lexer(mdText);
@@ -111,7 +111,7 @@ export default {
       }
     },
     updateTachieStatus(character?: Character) {
-      this.characters.forEach(curCharacter => {
+      this.characters.forEach((curCharacter) => {
         if (character) {
           if (character.name === curCharacter.name) {
             curCharacter.active = true;

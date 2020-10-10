@@ -20,5 +20,6 @@ module.exports = {
     'comma-dangle': ['error', 'only-multiline'],
     'vue/valid-template-root': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
   },
 };
