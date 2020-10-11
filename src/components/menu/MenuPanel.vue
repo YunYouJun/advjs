@@ -3,26 +3,23 @@
     <div class="col-span-12">
       <h1 class="adv-font-serif text-4xl font-black">{{ title }}</h1>
     </div>
+    <full-screen />
     <speech-synthesis />
   </div>
 </template>
 
 <script>
+import FullScreen from './FullScreen.vue';
 import SpeechSynthesis from './speech/SpeechSynthesis.vue';
 export default {
   components: {
+    FullScreen,
     SpeechSynthesis,
   },
   data() {
     return {
       title: '设置',
     };
-  },
-  mounted() {
-    const synth = window.speechSynthesis;
-    setTimeout(() => {
-      this.voices = synth.getVoices();
-    }, 1000);
   },
 };
 </script>
