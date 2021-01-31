@@ -33,7 +33,7 @@
 </template>
 
 <script>
-import { speak } from '../../../../lib/speech';
+import { speak } from '@advjs/shared/speech';
 export default {
   data() {
     return {

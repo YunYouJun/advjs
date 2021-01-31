@@ -1,8 +1,10 @@
 # @advjs/parser
 
-> A parser for @advjs.
+> A parser for [@advjs](https://github.com/YunYouJun/advjs).
 
 ADV 剧本文本解析器
+
+准备迁移至 [markdown-it](https://github.com/markdown-it/markdown-it)
 
 ## 相关
 

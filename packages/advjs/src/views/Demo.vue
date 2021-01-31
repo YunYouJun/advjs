@@ -1,22 +1,32 @@
 <template>
   <div class="adv-game h-screen bg-black" v-bind:style="advGameStyle">
+    <base-layer v-show="!$store.state.showUi" />
     <tachie-box :characters="characters" />
-    <dialog-box :dialog="dialog" @click="nextDialog" />
-    <user-interface />
+    <dialog-box
+      v-show="$store.state.showUi"
+      :dialog="dialog"
+      @click="nextDialog"
+    />
+    <user-interface v-show="$store.state.showUi" />
   </div>
 </template>
 
 <script lang="ts">
+import BaseLayer from '../components/base/BaseLayer.vue';
 import DialogBox from '../components/dialog/DialogBox.vue';
 import TachieBox from '../components/tachie/TachieBox.vue';
 import UserInterface from '../components/ui/UserInterface.vue';
+
 import marked from 'marked';
-import advParser from '../../packages/parser/lib';
-import { AdvItem, Character, Line } from '../../packages/parser/lib/Serialize';
+import advParser from '@advjs/parser';
+import { AdvItem, Character, Line } from '@advjs/parser/src/Serialize';
+
+import characters from '../data/characters';
 
 export default {
   name: 'Home',
   components: {
+    BaseLayer,
     DialogBox,
     TachieBox,
     UserInterface,
@@ -39,29 +49,7 @@ export default {
         name: '',
         words: '',
       },
-      characters: [
-        {
-          name: '我',
-          status: 'default',
-          tachies: {
-            default: '/img/characters/she/she.png',
-          },
-          active: false,
-          style: {
-            transform: 'scale(1.2)',
-          },
-        },
-        {
-          name: '他',
-          status: 'default',
-          tachies: {
-            default: '/img/characters/he/he.png',
-            笑: '/img/characters/he/he-smile.png',
-          },
-          class: ['-translate-y-20', 'scale-110'],
-          active: false,
-        },
-      ],
+      characters: characters,
       // 顺序，待优化
       order: 0,
       dialogIndex: 0,

@@ -1,6 +1,11 @@
 <template>
   <div class="ui fixed w-screen top-0 z-10">
-    <menu-setting class="menu-setting-button" @click="showMenu = true" />
+    <div class="flex flex-row p-4">
+      <display-history class="mr-4" />
+      <hide-ui />
+    </div>
+
+    <menu-setting @click="showMenu = true" />
     <base-modal v-show="showMenu" @close="showMenu = false">
       <template v-slot:body>
         <menu-panel />
@@ -11,29 +16,39 @@
 
 <script>
 import BaseModal from '../base/BaseModal.vue';
+import DisplayHistory from './DisplayHistory.vue';
+import HideUi from './HideUi.vue';
 import MenuSetting from './MenuSetting.vue';
 import MenuPanel from '../menu/MenuPanel.vue';
 export default {
   components: {
     BaseModal,
+    DisplayHistory,
+    HideUi,
     MenuPanel,
     MenuSetting,
   },
   data() {
     return {
       showMenu: false,
+      showUi: true,
     };
   },
 };
 </script>
 
-<style>
+<style lang="scss">
 .ui {
   position: relative;
 }
-.menu-setting-button {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
+
+.adv-icon-button {
+  display: inline-block;
+  border-radius: 50%;
+  padding: 0.6rem;
+  cursor: pointer;
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
 }
 </style>

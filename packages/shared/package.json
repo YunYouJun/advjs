@@ -1,0 +1,10 @@
+{
+  "name": "@advjs/shared",
+  "version": "0.0.1",
+  "author": {
+    "name": "YunYouJun",
+    "email": "me@yunyoujun.cn",
+    "url": "https://www.yunyoujun.cn"
+  },
+  "license": "MPL-2.0"
+}

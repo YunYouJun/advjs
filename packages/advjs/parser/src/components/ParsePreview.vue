@@ -70,11 +70,11 @@
 <script>
 import marked from 'marked';
 import Prism from 'prismjs';
-import advParser from '../../lib/index';
+import advParser from '@advjs/parser';
 export default {
   data() {
     return {
-      path: './md/test.md',
+      path: '/md/test.md',
       // loading status
       loading: true,
       isInputZh: false,

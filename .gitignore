@@ -1,9 +1,9 @@
 # custom
-demo/
 package-lock.json
 yarn.lock
 
 dist/
+dist-ssr
 *.local
 
 # local env files
