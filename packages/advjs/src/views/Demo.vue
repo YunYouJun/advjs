@@ -33,7 +33,7 @@ export default {
   },
   data() {
     return {
-      path: './md/test.md',
+      path: './md/test.adv.md',
       advGameStyle: {
         color: 'black',
         backgroundImage: 'url("/img/bg/night.jpg")',

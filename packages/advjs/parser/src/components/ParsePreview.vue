@@ -49,9 +49,13 @@
               v-model="outputType"
               @change="setOutputContent(outputType)"
             >
-              <option value="adv">ADV Lexer</option>
-              <option value="html">Markdown Preview</option>
-              <option value="lexer">Markdown Lexer</option>
+              <option
+                v-for="(parser, i) in parserItems"
+                :key="i"
+                :value="parser.value"
+              >
+                {{ parser.name }}
+              </option>
             </select>
             <i class="arrow zi-icon-up"></i>
           </div>
@@ -72,9 +76,33 @@ import marked from 'marked';
 import Prism from 'prismjs';
 import advParser from '@advjs/parser';
 export default {
+  setup() {
+    const parserItems = [
+      {
+        name: 'ADV Lexer',
+        value: 'adv',
+      },
+      {
+        name: 'Markdown Preview',
+        value: 'html',
+      },
+      {
+        name: 'marked',
+        value: 'marked',
+      },
+      {
+        name: 'markdown-it',
+        value: 'markdown-it',
+      },
+    ];
+
+    return {
+      parserItems,
+    };
+  },
   data() {
     return {
-      path: '/md/test.md',
+      path: '/md/test.adv.md',
       // loading status
       loading: true,
       isInputZh: false,

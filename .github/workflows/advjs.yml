@@ -1,4 +1,4 @@
-name: Node.js CI
+name: ADV.JS CI
 
 on: [push]
 
@@ -8,15 +8,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v2
         with:
-          node-version: "12"
-      - run: npm install
-      - run: npm run lint --if-present
-      - run: npm run build --if-present
+          node-version: "14"
+      - run: yarn
+      - run: yarn lint --if-present
+      - run: yarn build --if-present
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+          publish_dir: ./packages/advjs/dist
           force_orphan: true

@@ -1,8 +1,5 @@
 <template>
-  <a
-    href="https://github.com/advjs/parser"
-    class="github-corner"
-    aria-label="View source on GitHub"
+  <a :href="url" class="github-corner" aria-label="View source on GitHub"
     ><svg
       width="80"
       height="80"
@@ -39,6 +36,10 @@ export default {
     color: {
       type: String,
       default: '#151513',
+    },
+    url: {
+      type: String,
+      default: 'https://github.com/YunYouJun/advjs/tree/master/packages/parser',
     },
   },
 };

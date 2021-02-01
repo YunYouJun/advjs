@@ -1,5 +1,5 @@
 {
-  "name": "advjs-monorepo",
+  "name": "advjs",
   "version": "0.0.1",
   "description": "A parser for @advjs.",
   "main": "dist/index.js",
@@ -13,7 +13,7 @@
     "lint": "eslint . --ext .vue,.ts,.tsx"
   },
   "devDependencies": {
-    "@types/marked": "^1.2.1",
+    "@types/marked": "^1.2.2",
     "@types/node": "^14.14.22",
     "@types/prismjs": "^1.16.2",
     "@typescript-eslint/eslint-plugin": "^4.14.1",

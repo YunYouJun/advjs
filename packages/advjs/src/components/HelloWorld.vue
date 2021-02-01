@@ -27,19 +27,6 @@
       <li>
         <a href="https://adv.js.org" target="_blank" rel="noopener">HomePage</a>
       </li>
-      <li>
-        <a href="https://adv.yunyoujun.cn/docs/" target="_blank" rel="noopener"
-          >Docs</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://adv.yunyoujun.cn/parser/"
-          target="_blank"
-          rel="noopener"
-          >Parser</a
-        >
-      </li>
     </ul>
   </div>
 </template>

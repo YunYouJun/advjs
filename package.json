@@ -6,9 +6,14 @@
     "packages/*"
   ],
   "repository": "https://github.com/YunYouJun/adv",
-  "author": "YunYouJun <me@yunyoujun.cn>",
-  "license": "MIT",
+  "author": {
+    "name": "YunYouJun",
+    "email": "me@yunyoujun.cn",
+    "url": "https://www.yunyoujun.cn"
+  },
+  "license": "MPL-2.0",
   "scripts": {
-    "dev": "cd packages/advjs && yarn dev"
+    "dev": "cd packages/advjs && yarn dev",
+    "build": "cd packages/advjs && yarn build"
   }
 }

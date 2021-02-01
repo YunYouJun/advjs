@@ -1,0 +1,11 @@
+{
+  "name": "@advjs/editor",
+  "version": "0.0.1",
+  "homepage": "https://github.com/YunYouJun/advjs/tree/master/packages/editor#readme",
+  "license": "MPL-2.0",
+  "author": {
+    "name": "YunYouJun",
+    "email": "me@yunyoujun.cn",
+    "url": "https://www.yunyoujun.cn"
+  }
+}

@@ -1,11 +1,11 @@
 <template>
   <div id="nav">
-    <router-link to="/">Home</router-link> |
+    <router-link to="/">Home</router-link> | <a href="/parser/">Parser</a> |
     <router-link to="/demo">Demo</router-link> |
     <a href="https://www.yunyoujun.cn/posts/make-an-avg-engine/">About</a>
   </div>
   <img class="adv-logo" alt="ADV logo" src="../assets/logo.svg" />
-  <HelloWorld msg="Welcome to ADV.js" />
+  <HelloWorld msg="Welcome to Adv.js" />
 </template>
 
 <script lang="ts">

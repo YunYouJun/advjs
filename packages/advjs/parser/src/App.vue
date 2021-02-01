@@ -2,9 +2,7 @@
   <header>
     <h1>
       Demo for
-      <a href="https://github.com/advjs/parser" target="_blank"
-        >@advjs/parser</a
-      >
+      <a :href="pkg.homepage" target="_blank">@advjs/parser</a>
     </h1>
   </header>
   <GithubCorner />
@@ -12,6 +10,7 @@
 </template>
 
 <script>
+import pkg from '@advjs/parser/package.json';
 import GithubCorner from './components/GithubCorner.vue';
 import ParsePreview from './components/ParsePreview.vue';
 
@@ -20,6 +19,14 @@ export default {
   components: {
     GithubCorner,
     ParsePreview,
+  },
+  setup() {
+    return {
+      pkg,
+    };
+  },
+  mounted() {
+    console.log(pkg);
   },
 };
 </script>
