@@ -39,7 +39,7 @@ export default {
     },
     url: {
       type: String,
-      default: 'https://github.com/YunYouJun/advjs/tree/master/packages/parser',
+      default: 'https://github.com/YunYouJun/advjs/tree/main/packages/parser',
     },
   },
 };

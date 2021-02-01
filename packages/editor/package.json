@@ -1,11 +1,21 @@
 {
   "name": "@advjs/editor",
   "version": "0.0.1",
-  "homepage": "https://github.com/YunYouJun/advjs/tree/master/packages/editor#readme",
+  "homepage": "https://github.com/YunYouJun/advjs/tree/main/packages/editor#readme",
   "license": "MPL-2.0",
   "author": {
     "name": "YunYouJun",
     "email": "me@yunyoujun.cn",
     "url": "https://www.yunyoujun.cn"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "monaco-editor": "^0.22.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^1.1.4"
   }
 }

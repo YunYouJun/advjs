@@ -1,19 +1,18 @@
-const defaultTheme = require('tailwindcss/defaultTheme');
-
 module.exports = {
   purge: {
     enabled: process.env.NODE_ENV === 'production',
-    content: ['./index.html', './src/**/*.vue', './src/**/*.ts'],
+    content: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}']
   },
+  darkMode: false,
   theme: {
-    extend: {
-      fontFamily: {
-        sans: [...defaultTheme.fontFamily.sans],
-      },
-    },
+    extend: {}
   },
+  variants: {
+    extend: {}
+  },
+  plugins: [],
   future: {
     removeDeprecatedGapUtilities: true,
-    purgeLayersByDefault: true,
-  },
+    purgeLayersByDefault: true
+  }
 };

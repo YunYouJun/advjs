@@ -74,6 +74,7 @@
 <script>
 import marked from 'marked';
 import Prism from 'prismjs';
+import 'prismjs/components/prism-json';
 import advParser from '@advjs/parser';
 export default {
   setup() {
@@ -157,16 +158,6 @@ export default {
       return this.delayTime;
     },
     highlight(json) {
-      Prism.languages.json = {
-        property: { pattern: /"(?:\\.|[^\\"\r\n])*"(?=\s*:)/, greedy: !0 },
-        string: { pattern: /"(?:\\.|[^\\"\r\n])*"(?!\s*:)/, greedy: !0 },
-        comment: { pattern: /\/\/.*|\/\*[\s\S]*?(?:\*\/|$)/, greedy: !0 },
-        number: /-?\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b/i,
-        punctuation: /[{}[\],]/,
-        operator: /:/,
-        boolean: /\b(?:true|false)\b/,
-        null: { pattern: /\bnull\b/, alias: 'keyword' },
-      };
       const highlightCode = Prism.highlight(
         JSON.stringify(json, null, 2),
         Prism.languages.json,
@@ -184,7 +175,7 @@ export default {
           this.outputContent = this.html;
           this.noPadding = false;
           break;
-        case 'lexer':
+        case 'marked':
           this.outputContent = this.highlightLexer;
           this.noPadding = true;
           break;
@@ -197,6 +188,10 @@ export default {
 </script>
 
 <style>
+#main {
+  padding: 0 1rem;
+}
+
 /* helper */
 .no-padding {
   padding: 0;
@@ -214,7 +209,7 @@ pre {
 /* for layout */
 .containers {
   display: flex;
-  height: calc(100vh - 85px);
+  height: calc(100vh - 150px);
 }
 
 .container {

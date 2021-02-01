@@ -1,6 +1,9 @@
 name: ADV.JS CI
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   build:
@@ -12,8 +15,7 @@ jobs:
         with:
           node-version: "14"
       - run: yarn
-      - run: yarn lint --if-present
-      - run: yarn build --if-present
+      - run: yarn build
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:

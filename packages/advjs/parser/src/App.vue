@@ -2,7 +2,9 @@
   <header>
     <h1>
       Demo for
-      <a :href="pkg.homepage" target="_blank">@advjs/parser</a>
+      <a :href="pkg.homepage" target="_blank">{{ pkg.name }}</a>
+      <br />
+      <span class="zi-tag success">{{ pkg.version }}</span>
     </h1>
   </header>
   <GithubCorner />
@@ -24,9 +26,6 @@ export default {
     return {
       pkg,
     };
-  },
-  mounted() {
-    console.log(pkg);
   },
 };
 </script>
