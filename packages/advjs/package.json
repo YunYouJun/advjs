@@ -12,15 +12,15 @@
     "lint": "eslint . --ext .vue,.ts,.tsx"
   },
   "devDependencies": {
-    "@types/node": "^14.14.22",
-    "@types/prismjs": "^1.16.2",
+    "@types/node": "^14.14.30",
+    "@types/prismjs": "^1.16.3",
     "@vitejs/plugin-vue": "^1.1.4",
     "@vue/compiler-sfc": "^3.0.5",
     "autoprefixer": "^10.2.4",
-    "postcss": "^8.2.4",
-    "sass": "^1.32.5",
-    "tailwindcss": "^2.0.2",
-    "vite": "^2.0.0-beta.60"
+    "postcss": "^8.2.6",
+    "sass": "^1.32.8",
+    "tailwindcss": "^2.0.3",
+    "vite": "^2.0.1"
   },
   "author": {
     "name": "YunYouJun",
@@ -29,12 +29,12 @@
   },
   "license": "MPL-2.0",
   "dependencies": {
-    "marked": "^1.2.8",
+    "marked": "^2.0.0",
     "prismjs": "^1.23.0",
     "register-service-worker": "^1.7.2",
     "typed.js": "^2.0.11",
     "vue": "^3.0.5",
     "vue-router": "^4.0.3",
-    "vuex": "^4.0.0-rc.2"
+    "vuex": "^4.0.0"
   }
 }

@@ -24,6 +24,7 @@ ADV 剧本文本解析器
 
 - 使用 UTF-8 作为编码
 - 使用 LF 换行，而非 Windows 的 CRLF
+- 文件后缀名为 `.adv.md`，例如：`start.adv.md`，`.adv` 使其可被识别为本引擎脚本，`.md` 使其可被普通的 Markdown 编辑器解析并预览。
 
 ### 推荐
 
