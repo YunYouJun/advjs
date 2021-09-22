@@ -1,8 +1,8 @@
 <template>
   <div class="adv-game w-screen h-screen bg-black" :style="advGameStyle">
-    <base-layer v-show="!app.showUi" />
-    <tachie-box :characters="characters" />
-    <dialog-box
+    <BaseLayer v-show="!app.showUi" />
+    <TachieBox :characters="characters" />
+    <DialogBox
       v-show="app.showUi"
       :dialog="dialog"
       @click="nextDialog"
@@ -16,7 +16,7 @@ import marked from 'marked'
 import advParser from '@advjs/parser'
 import { AdvItem, Character, Line } from '@advjs/parser/src/Serialize'
 
-import characters from '../data/characters'
+import { characters } from '../data/characters'
 import { useAppStore } from '~/stores/app'
 
 const app = useAppStore()

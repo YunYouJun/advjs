@@ -1,6 +1,6 @@
 <template>
   <a
-    :href="url"
+    :href="props.url"
     class="github-corner"
     aria-label="View source on GitHub"
   ><svg
@@ -8,7 +8,7 @@
     height="80"
     viewBox="0 0 250 250"
     :style="`
-        fill: ${color};
+        fill: ${props.color};
         color: #fff;
         position: absolute;
         top: 0;
@@ -31,20 +31,14 @@
     ></path></svg></a>
 </template>
 
-<script>
-export default {
-  name: 'GithubCorner',
-  props: {
-    color: {
-      type: String,
-      default: '#151513',
-    },
-    url: {
-      type: String,
-      default: 'https://github.com/YunYouJun/advjs/tree/main/packages/parser',
-    },
-  },
-}
+<script setup lang="ts">
+const props = withDefaults(defineProps<{
+  color: string
+  url: string
+}>(), {
+  color: '#151513',
+  url: 'https://github.com/YunYouJun/advjs/tree/main/packages/parser',
+})
 </script>
 
 <style>

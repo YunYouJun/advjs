@@ -9,8 +9,9 @@
 </template>
 
 <script setup lang="ts">
+import type { Character } from '~/data/characters'
 const props = defineProps<{
-  characters: []
+  characters: Character[]
 }>()
 </script>
 

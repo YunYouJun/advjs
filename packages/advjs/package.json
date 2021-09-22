@@ -6,7 +6,7 @@
   "scripts": {
     "build": "cross-env NODE_ENV=production vite-ssg build",
     "dev": "vite",
-    "prepublishOnly": "yarn build",
+    "prepublishOnly": "npm run build",
     "preview": "vite preview",
     "preview-https": "serve dist",
     "start": "yarn dev",
@@ -19,7 +19,6 @@
     "nprogress": "^0.2.0",
     "pinia": "^2.0.0-rc.9",
     "prismjs": "^1.25.0",
-    "register-service-worker": "^1.7.2",
     "typed.js": "^2.0.12",
     "vue": "^3.2.13",
     "vue-i18n": "^9.1.7",

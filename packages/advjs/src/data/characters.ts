@@ -1,4 +1,13 @@
-export default [
+export interface Character {
+  name: string
+  active?: boolean
+  class?: string[]
+  style?: any
+  tachies?: any
+  status: string
+}
+
+export const characters: Character[] = [
   {
     name: '我',
     status: 'default',

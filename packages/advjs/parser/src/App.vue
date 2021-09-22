@@ -11,23 +11,10 @@
   <parse-preview />
 </template>
 
-<script>
+<script setup lang="ts">
 import pkg from '@advjs/parser/package.json'
 import GithubCorner from './components/GithubCorner.vue'
 import ParsePreview from './components/ParsePreview.vue'
-
-export default {
-  name: 'App',
-  components: {
-    GithubCorner,
-    ParsePreview,
-  },
-  setup() {
-    return {
-      pkg,
-    }
-  },
-}
 </script>
 
 <style>

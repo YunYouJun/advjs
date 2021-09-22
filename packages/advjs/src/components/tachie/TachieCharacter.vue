@@ -9,17 +9,8 @@
   </div>
 </template>
 
-<script  setup lang="ts">
-interface Character {
-  name: string
-  path: string
-  active?: boolean
-  class?: string[]
-  style?: any
-  tachies?: any
-  status: string
-}
-
+<script setup lang="ts">
+import type { Character } from '~/data/characters'
 const props = defineProps<{character: Character}>()
 
 const characterClass = computed(() => {
