@@ -1,5 +1,5 @@
 <template>
-  <div class="ui fixed w-screen top-0 z-10">
+  <div class="adv-ui fixed w-screen top-0 z-10">
     <div class="flex flex-row p-4">
       <DisplayHistory class="mr-4" />
       <HideUi />
@@ -19,10 +19,6 @@ const showMenu = ref(false)
 </script>
 
 <style lang="scss">
-.ui {
-  position: relative;
-}
-
 .adv-icon-button {
   display: inline-block;
   border-radius: 50%;

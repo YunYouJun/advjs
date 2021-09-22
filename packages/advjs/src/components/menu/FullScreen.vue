@@ -3,11 +3,7 @@
     <label for="speechSynthesisSwitch">是否全屏</label>
   </div>
   <div class="col-span-8 text-left">
-    <!-- 3rem -->
-    <span @click="settings.toggleFullScreen">
-      <ri-checkbox-line v-if="settings.fullScreen" />
-      <ri-checkbox-blank-line v-else />
-    </span>
+    <AdvCheckbox :check="settings.fullScreen" @click="settings.toggleFullScreen" />
   </div>
 </template>
 

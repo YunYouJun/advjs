@@ -1,5 +1,5 @@
 <template>
-  <div class="adv-game h-screen bg-black" :style="advGameStyle">
+  <div class="adv-game w-screen h-screen bg-black" :style="advGameStyle">
     <base-layer v-show="!app.showUi" />
     <tachie-box :characters="characters" />
     <dialog-box
@@ -7,7 +7,7 @@
       :dialog="dialog"
       @click="nextDialog"
     />
-    <user-interface v-show="app.showUi" />
+    <UserInterface v-show="app.showUi" />
   </div>
 </template>
 
@@ -15,10 +15,6 @@
 import marked from 'marked'
 import advParser from '@advjs/parser'
 import { AdvItem, Character, Line } from '@advjs/parser/src/Serialize'
-import BaseLayer from '../components/base/BaseLayer.vue'
-import DialogBox from '../components/dialog/DialogBox.vue'
-import TachieBox from '../components/tachie/TachieBox.vue'
-import UserInterface from '../components/ui/UserInterface.vue'
 
 import characters from '../data/characters'
 import { useAppStore } from '~/stores/app'
@@ -28,13 +24,10 @@ const app = useAppStore()
 const path = ref('./md/test.adv.md')
 const advGameStyle = computed(() => {
   return {
-    color: 'black',
     backgroundImage: 'url("/img/bg/night.jpg")',
     backgroundSize: 'cover',
     backgroundPosition: 'center',
     backgroundRepeat: 'no-repeat',
-    padding: 0,
-    margin: 0,
   }
 })
 
@@ -112,8 +105,11 @@ function updateTachieStatus(character?: Character) {
 }
 </script>
 
-<style>
-.adv-game {
-  color: white;
-}
+<style lang="scss">
+@import '~/styles/adv.scss';
 </style>
+
+<route lang="yaml">
+meta:
+  layout: adv
+</route>

@@ -12,10 +12,7 @@
       size="3rem"
       @click="settings.speech.toggleStatus"
     /> -->
-    <span @click="settings.speech.toggleStatus">
-      <ri-checkbox-line v-if="settings.speech.options.enable" />
-      <ri-checkbox-blank-line v-else />
-    </span>
+    <AdvCheckbox :check="settings.speech.options.enable" @click="settings.speech.toggleStatus" />
   </div>
 
   <template v-if="settings.speech.options.enable">

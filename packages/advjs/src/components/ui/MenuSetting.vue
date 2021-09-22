@@ -1,7 +1,6 @@
 <template>
   <div class="adv-icon-button menu-setting-button">
-    <!-- <icon-font name="settings-3-line" color="white" size="3rem"></icon-font> -->
-    <ri-settings-3-line />
+    <AdvIcon><ri-settings-3-line /></AdvIcon>
   </div>
 </template>
 

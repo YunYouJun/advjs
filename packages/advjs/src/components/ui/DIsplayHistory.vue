@@ -3,8 +3,7 @@
     class="adv-icon-button display-history-button"
     @click="app.toggleHistory"
   >
-    <!-- <icon-font name="message-2-line" color="white" size="3rem"></icon-font> -->
-    <ri-message-2-line />
+    <AdvIcon><ri-message-2-line /></AdvIcon>
   </div>
 </template>
 
