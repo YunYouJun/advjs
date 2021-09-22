@@ -3,14 +3,15 @@
     <label for="speechSynthesisSwitch">是否全屏</label>
   </div>
   <div class="col-span-8 text-left">
-    <icon-font
-      :name="
-        $store.state.settings.fullScreen
-          ? 'checkbox-line'
-          : 'checkbox-blank-line'
-      "
-      size="3rem"
-      @click="$store.commit('settings/toggleFullScreen')"
-    />
+    <!-- 3rem -->
+    <span @click="settings.toggleFullScreen">
+      <ri-checkbox-line v-if="settings.fullScreen" />
+      <ri-checkbox-blank-line v-else />
+    </span>
   </div>
 </template>
+
+<script setup lang="ts">
+import { useSettingsStore } from '~/stores/settings'
+const settings = useSettingsStore()
+</script>

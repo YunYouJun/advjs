@@ -1,6 +1,11 @@
 <template>
-  <div class="hide-ui-layer" @click="$store.commit('toggleUi')"></div>
+  <div class="hide-ui-layer" @click="app.toggleUi"></div>
 </template>
+
+<script setup lang="ts">
+import { useAppStore } from '~/stores/app'
+const app = useAppStore()
+</script>
 
 <style>
 .hide-ui-layer {

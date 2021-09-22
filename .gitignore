@@ -3,6 +3,13 @@ package-lock.json
 pnpm-lock.yaml
 yarn.lock
 
+# vite plugin
+components.d.ts
+auto-imports.d.ts
+
+.vite-ssg-dist
+.vite-ssg-temp
+
 dist/
 dist-ssr
 *.local
@@ -21,7 +28,6 @@ pnpm-debug.log*
 
 # Editor directories and files
 .idea
-.vscode
 *.suo
 *.ntvs*
 *.njsproj
@@ -36,10 +42,6 @@ coverage
 
 # Transpiled files
 build/
-
-# VS Code
-.vscode
-!.vscode/tasks.js
 
 # JetBrains IDEs
 .idea/

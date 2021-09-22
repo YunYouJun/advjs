@@ -14,7 +14,7 @@
     "resolveJsonModule": true,
     "paths": {
       "@advjs/parser": ["packages/parser/*"],
-      "@advjs/shared": ["packages/shared/*"],
+      "@advjs/shared": ["packages/shared/*"]
     }
   },
   "include": ["packages/global.d.ts", "packages/**/*/src"]

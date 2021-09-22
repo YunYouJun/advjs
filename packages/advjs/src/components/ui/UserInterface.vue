@@ -7,34 +7,15 @@
 
     <menu-setting @click="showMenu = true" />
     <base-modal v-show="showMenu" @close="showMenu = false">
-      <template v-slot:body>
+      <template #body>
         <menu-panel />
       </template>
     </base-modal>
   </div>
 </template>
 
-<script>
-import BaseModal from '../base/BaseModal.vue';
-import DisplayHistory from './DisplayHistory.vue';
-import HideUi from './HideUi.vue';
-import MenuSetting from './MenuSetting.vue';
-import MenuPanel from '../menu/MenuPanel.vue';
-export default {
-  components: {
-    BaseModal,
-    DisplayHistory,
-    HideUi,
-    MenuPanel,
-    MenuSetting,
-  },
-  data() {
-    return {
-      showMenu: false,
-      showUi: true,
-    };
-  },
-};
+<script setup lang="ts">
+const showMenu = ref(false)
 </script>
 
 <style lang="scss">

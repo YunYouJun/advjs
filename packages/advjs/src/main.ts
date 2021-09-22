@@ -1,16 +1,28 @@
-import { createApp } from 'vue';
+// register vue composition api globally
+import { ViteSSG } from 'vite-ssg';
+import generatedRoutes from 'virtual:generated-pages';
+import { setupLayouts } from 'virtual:generated-layouts';
 import App from './App.vue';
-import './registerServiceWorker';
-import router from './router';
-import store from './store';
 
-import './assets/css/index.css';
-import './assets/scss/index.scss';
+// windicss layers
+import 'virtual:windi-base.css';
+import 'virtual:windi-components.css';
 
-const app = createApp(App);
+// your custom styles here
+import './styles/index.scss';
+import './styles/main.scss';
 
-// Global Registration
-import IconFont from './components/common/IconFont.vue';
-app.component('IconFont', IconFont);
+// windicss utilities should be the last style import
+import 'virtual:windi-utilities.css';
+// windicss devtools support (dev only)
+import 'virtual:windi-devtools';
 
-app.use(store).use(router).mount('#app');
+const routes = setupLayouts(generatedRoutes);
+
+// https://github.com/antfu/vite-ssg
+export const createApp = ViteSSG(App, { routes }, (ctx) => {
+  // install all modules under `modules/`
+  Object.values(import.meta.globEager('./modules/*.ts')).map((i) =>
+    i.install?.(ctx)
+  );
+});

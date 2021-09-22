@@ -1,49 +1,40 @@
 <template>
   <div class="dialog-box w-screen h-64 fixed bottom-0 grid grid-cols-12 gap-16">
-    <div class="dialog-name col-span-3 text-right">{{ dialog.name }}</div>
+    <div class="dialog-name col-span-3 text-right">
+      {{ dialog.name }}
+    </div>
     <div class="dialog-content col-span-9 text-left pr-24">
       <typed-words :words="dialog.words" />
     </div>
   </div>
 </template>
 
-<script lang="ts">
-import TypedWords from '../animation/TypedWords.vue';
-import { PropType } from 'vue';
+<script setup lang="ts">
+import { speak } from '@advjs/shared/speech'
+import { useSettingsStore } from '~/stores/settings'
+
 interface Dialog {
-  name?: string;
-  words: string;
+  name?: string
+  words: string
 }
 
-import { speak } from '@advjs/shared/speech';
+const props = defineProps<{
+  dialog: Dialog
+}>()
 
-export default {
-  components: {
-    TypedWords,
-  },
-  props: {
-    dialog: {
-      type: Object as PropType<Dialog>,
-    },
-  },
-  data() {
-    return {
-      typedObj: null,
-    };
-  },
-  watch: {
-    'dialog.words'(val: string) {
-      // 若开启了语音合成
-      if ((this as any).$store.state.settings.speechSynthesis.enable) {
-        speechSynthesis.cancel();
-        speak(
-          val,
-          (this as any).$store.state.settings.speechSynthesis.language
-        );
-      }
-    },
-  },
-};
+const settings = useSettingsStore()
+
+watch(() => props.dialog.words, (val) => {
+  // 若开启了语音合成
+  if (settings.speech.options.enable) {
+    speechSynthesis.cancel()
+    speak(
+      val,
+      settings.speech.options.language,
+    )
+  }
+})
+
 </script>
 
 <style lang="scss">

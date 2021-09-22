@@ -3,23 +3,27 @@
     <label for="speechSynthesisSwitch">语音合成</label>
   </div>
   <div class="col-span-8 text-left">
-    <icon-font
+    <!-- <icon-font
       :name="
-        $store.state.settings.speechSynthesis.enable
+        settings.speech.options.enable
           ? 'checkbox-line'
           : 'checkbox-blank-line'
       "
       size="3rem"
-      @click="$store.commit('settings/speechSynthesis/toggleStatus')"
-    />
+      @click="settings.speech.toggleStatus"
+    /> -->
+    <span @click="settings.speech.toggleStatus">
+      <ri-checkbox-line v-if="settings.speech.options.enable" />
+      <ri-checkbox-blank-line v-else />
+    </span>
   </div>
 
-  <template v-if="$store.state.settings.speechSynthesis.enable">
+  <template v-if="settings.speech.options.enable">
     <div class="col-span-4 text-right adv-menu-item">
       <label for="speechSynthesisLanguage">语言种类</label>
     </div>
     <div class="col-span-8 text-left">
-      <select class="adv-select" v-model="speechLanguage" @change="speakTest">
+      <select v-model="settings.speech.options.language" class="adv-select" @change="speakTest">
         <option
           v-for="voice in voiceOptions"
           :key="voice.lang"
@@ -32,47 +36,35 @@
   </template>
 </template>
 
-<script>
-import { speak } from '@advjs/shared/speech';
-export default {
-  data() {
-    return {
-      voiceOptions: [
-        {
-          name: '普通话（中国大陆）',
-          lang: 'zh-CN',
-        },
-        {
-          name: '粤语（中国香港）',
-          lang: 'zh-HK',
-        },
-        {
-          name: '國語（中國臺灣）',
-          lang: 'zh-TW',
-        },
-      ],
-    };
+<script setup lang="ts">
+import { speak } from '@advjs/shared/speech'
+import { useSettingsStore } from '~/stores/settings'
+
+const settings = useSettingsStore()
+
+const voiceOptions = ref([
+  {
+    name: '普通话（中国大陆）',
+    lang: 'zh-CN',
   },
-  computed: {
-    speechLanguage: {
-      get() {
-        return this.$store.state.settings.speechSynthesis.language;
-      },
-      set(value) {
-        this.$store.commit('settings/speechSynthesis/setLanguage', value);
-      },
-    },
+  {
+    name: '粤语（中国香港）',
+    lang: 'zh-HK',
   },
-  methods: {
-    speakTest() {
-      speak('大家好，我是渣渣辉。', this.speechLanguage);
-    },
+  {
+    name: '國語（中國臺灣）',
+    lang: 'zh-TW',
   },
-  mounted() {
-    const synth = window.speechSynthesis;
-    setTimeout(() => {
-      this.voices = synth.getVoices();
-    }, 1000);
-  },
-};
+])
+
+function speakTest() {
+  speak('大家好，我是渣渣辉。', settings.speech.options.language)
+}
+
+onMounted(() => {
+  const synth = window.speechSynthesis
+  setTimeout(() => {
+    voiceOptions.value = synth.getVoices()
+  }, 1000)
+})
 </script>
