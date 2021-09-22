@@ -1,6 +1,6 @@
 <template>
   <div class="adv-icon-button menu-setting-button">
-    <AdvIcon><ri-settings-3-line /></AdvIcon>
+    <AdvIcon><i-ri-settings-3-line /></AdvIcon>
   </div>
 </template>
 

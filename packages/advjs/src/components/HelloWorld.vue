@@ -12,15 +12,19 @@
     <h3 class="my-5">
       ...
     </h3>
-    <p>{{ t('intro.hi') }}<br /></p>
+    <p class="text-2xl gradient-text from-blue-600 to-green-500 bg-gradient-to-r">
+      {{ t('intro.hi') }}<br />
+    </p>
 
-    <router-link class="block my-5" to="/demo">
-      <button
-        class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded"
-      >
-        {{ t('button.start') }}
-      </button>
-    </router-link>
+    <div class="my-10">
+      <router-link to="/demo">
+        <button
+          class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded"
+        >
+          {{ t('button.start') }}
+        </button>
+      </router-link>
+    </div>
   </div>
 </template>
 
@@ -28,14 +32,3 @@
 const { t } = useI18n()
 const props = defineProps<{msg: string}>()
 </script>
-
-<style>
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-</style>

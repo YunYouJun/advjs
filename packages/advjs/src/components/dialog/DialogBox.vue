@@ -34,7 +34,6 @@ watch(() => props.dialog.words, (val) => {
     )
   }
 })
-
 </script>
 
 <style lang="scss">

@@ -3,7 +3,7 @@
     class="adv-icon-button hide-ui-button"
     @click="app.toggleUi"
   >
-    <AdvIcon><ri-eye-close-line /></AdvIcon>
+    <AdvIcon><i-ri-eye-close-line /></AdvIcon>
   </div>
 </template>
 
