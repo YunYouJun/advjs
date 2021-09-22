@@ -33,8 +33,8 @@
 
 <script setup lang="ts">
 const props = withDefaults(defineProps<{
-  color: string
-  url: string
+  color?: string
+  url?: string
 }>(), {
   color: '#151513',
   url: 'https://github.com/YunYouJun/advjs/tree/main/packages/parser',

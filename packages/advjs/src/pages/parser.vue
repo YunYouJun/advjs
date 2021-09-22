@@ -1,6 +1,6 @@
 <template>
   <header>
-    <h1>
+    <h1 class="text-center">
       Demo for
       <a :href="pkg.homepage" target="_blank">{{ pkg.name }}</a>
       <br />
@@ -8,17 +8,9 @@
     </h1>
   </header>
   <GithubCorner />
-  <parse-preview />
+  <ParsePreview />
 </template>
 
 <script setup lang="ts">
 import pkg from '@advjs/parser/package.json'
-import GithubCorner from './components/GithubCorner.vue'
-import ParsePreview from './components/ParsePreview.vue'
 </script>
-
-<style>
-header h1 {
-  text-align: center;
-}
-</style>

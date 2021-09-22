@@ -1,3 +1,6 @@
+@import './main.scss';
+
+
 button {
   &:focus {
     outline: none;
@@ -8,8 +11,7 @@ $adv-font-serif: 'Songti SC', 'Noto Serif SC', STZhongsong, STKaiti, KaiTi,
   Roboto, serif;
 
 .adv-font-serif {
-  font-family: 'Songti SC', 'Noto Serif SC', STZhongsong, STKaiti, KaiTi, Roboto,
-    serif;
+  font-family: $adv-font-serif;
 }
 
 .adv-menu-item {

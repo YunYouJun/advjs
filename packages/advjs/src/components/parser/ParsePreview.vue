@@ -65,7 +65,7 @@
 
         <div
           id="outputContent"
-          :class="['zi-note', 'md-input', noPadding ? 'no-padding' : '']"
+          :class="['text-left', 'border', 'border-solid', 'md-input', noPadding ? 'no-padding' : '']"
           v-html="outputContent"
         ></div>
       </div>
@@ -73,119 +73,114 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 import marked from 'marked'
 import Prism from 'prismjs'
 import 'prismjs/components/prism-json'
 import advParser from '@advjs/parser'
-export default {
-  setup() {
-    const parserItems = [
-      {
-        name: 'ADV Lexer',
-        value: 'adv',
-      },
-      {
-        name: 'Markdown Preview',
-        value: 'html',
-      },
-      {
-        name: 'marked',
-        value: 'marked',
-      },
-      {
-        name: 'markdown-it',
-        value: 'markdown-it',
-      },
-    ]
 
-    return {
-      parserItems,
-    }
+type OutputType = 'adv' | 'html' |'marked'
+
+const parserItems = [
+  {
+    name: 'ADV Lexer',
+    value: 'adv',
   },
-  data() {
-    return {
-      path: '/md/test.adv.md',
-      // loading status
-      loading: true,
-      isInputZh: false,
-      // 输出类型
-      outputType: 'adv',
-      // 输入的 markdown 文本
-      inputText: '',
-      delayTime: 0,
-      highlightAdv: '',
-      highlightLexer: '',
-      html: '',
-      // 输出的内容
-      outputContent: '',
-      noPadding: true,
-    }
+  {
+    name: 'Markdown Preview',
+    value: 'html',
   },
-  async mounted() {
-    const markdown = await this.getTestMarkdown(this.path)
-    if (markdown) {
-      this.loading = false
-      this.handleInputText(markdown)
-    }
+  {
+    name: 'marked',
+    value: 'marked',
   },
-  methods: {
-    getTestMarkdown(path) {
-      return fetch(path)
-        .then((res) => {
-          return res.text()
-        })
-        .then((text) => {
-          if (!this.inputText)
-            this.inputText = text
-
-          return text
-        })
-    },
-    handleInputText(markdown) {
-      // 中文输入法时不获取值，输入完再执行
-      if (this.isInputZh) return
-
-      const startTime = new Date().valueOf()
-      const lexed = marked.lexer(markdown)
-
-      this.highlightLexer = this.highlight(lexed)
-      this.highlightAdv = this.highlight(advParser.parse(lexed))
-      this.html = marked.parse(markdown)
-
-      this.setOutputContent(this.outputType)
-
-      const endTime = new Date().valueOf()
-      this.delayTime = endTime - startTime
-      return this.delayTime
-    },
-    highlight(json) {
-      const highlightCode = Prism.highlight(
-        JSON.stringify(json, null, 2),
-        Prism.languages.json,
-        'json',
-      )
-      return `<pre class="language-json"><code>${highlightCode}</code></pre>`
-    },
-    setOutputContent(type) {
-      switch (type) {
-        case 'adv':
-          this.outputContent = this.highlightAdv
-          this.noPadding = true
-          break
-        case 'html':
-          this.outputContent = this.html
-          this.noPadding = false
-          break
-        case 'marked':
-          this.outputContent = this.highlightLexer
-          this.noPadding = true
-          break
-        default:
-          break
-      }
-    },
+  {
+    name: 'markdown-it',
+    value: 'markdown-it',
   },
+]
+
+const path = ref('/md/test.adv.md')
+// loading status
+const loading = ref(true)
+const isInputZh = ref(false)
+// 输出类型
+const outputType = ref<OutputType>('adv')
+// 输入的 markdown 文本
+const inputText = ref('')
+const delayTime = ref(0)
+const highlightAdv = ref('')
+const highlightLexer = ref('')
+const html = ref('')
+// 输出的内容
+const outputContent = ref('')
+const noPadding = ref(true)
+
+onMounted(async() => {
+  const markdown = await getTestMarkdown(path.value)
+  if (markdown) {
+    loading.value = false
+    handleInputText(markdown)
+  }
+})
+
+function getTestMarkdown(path: string) {
+  return fetch(path)
+    .then((res) => {
+      return res.text()
+    })
+    .then((text) => {
+      if (!inputText.value)
+        inputText.value = text
+
+      return text
+    })
+}
+
+function handleInputText(markdown: string) {
+  // 中文输入法时不获取值，输入完再执行
+  if (isInputZh.value) return
+
+  const startTime = new Date().valueOf()
+  const lexed = marked.lexer(markdown)
+
+  highlightLexer.value = highlight(lexed)
+  highlightAdv.value = highlight(advParser.parse(lexed))
+  html.value = marked.parse(markdown)
+
+  setOutputContent(outputType.value)
+
+  const endTime = new Date().valueOf()
+  delayTime.value = endTime - startTime
+  return delayTime.value
+}
+
+function highlight(json: any) {
+  const highlightCode = Prism.highlight(
+    JSON.stringify(json, null, 2),
+    Prism.languages.json,
+    'json',
+  )
+  return `<pre class="language-json"><code>${highlightCode}</code></pre>`
+}
+
+function setOutputContent(type: OutputType) {
+  switch (type) {
+    case 'adv':
+      outputContent.value = highlightAdv.value
+      noPadding.value = true
+      break
+    case 'html':
+      outputContent.value = html.value
+      noPadding.value = false
+      break
+    case 'marked':
+      outputContent.value = highlightLexer.value
+      noPadding.value = true
+      break
+    default:
+      break
+  }
 }
 </script>
 
