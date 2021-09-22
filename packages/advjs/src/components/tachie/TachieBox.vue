@@ -1,23 +1,17 @@
 <template>
   <div class="tachie-box h-screen grid grid-cols-2">
-    <tachie-character
-      v-for="(character, i) in characters"
+    <TachieCharacter
+      v-for="(character, i) in props.characters"
       :key="i"
       :character="character"
     />
   </div>
 </template>
 
-<script lang="ts">
-import TachieCharacter from './TachieCharacter.vue'
-export default {
-  components: {
-    TachieCharacter,
-  },
-  props: {
-    characters: Array,
-  },
-}
+<script setup lang="ts">
+const props = defineProps<{
+  characters: []
+}>()
 </script>
 
 <style lang="scss">

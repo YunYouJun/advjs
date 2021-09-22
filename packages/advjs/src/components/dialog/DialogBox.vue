@@ -4,7 +4,7 @@
       {{ dialog.name }}
     </div>
     <div class="dialog-content col-span-9 text-left pr-24">
-      <typed-words :words="dialog.words" />
+      <TypedWords :words="dialog.words" />
     </div>
   </div>
 </template>

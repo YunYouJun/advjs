@@ -3,15 +3,6 @@
     <label for="speechSynthesisSwitch">语音合成</label>
   </div>
   <div class="col-span-8 text-left">
-    <!-- <icon-font
-      :name="
-        settings.speech.options.enable
-          ? 'checkbox-line'
-          : 'checkbox-blank-line'
-      "
-      size="3rem"
-      @click="settings.speech.toggleStatus"
-    /> -->
     <AdvCheckbox :check="settings.speech.options.enable" @click="settings.speech.toggleStatus" />
   </div>
 

@@ -6,8 +6,7 @@
           class="adv-icon-button modal-close-button"
           @click="$emit('close')"
         >
-          <!-- <icon-font name="close-line"></icon-font> -->
-          <ri-close-line />
+          <AdvIcon><ri-close-line /></AdvIcon>
         </button>
         <div class="modal-body">
           <slot name="body"></slot>

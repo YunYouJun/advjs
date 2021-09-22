@@ -2,41 +2,32 @@
   <div class="typed-words"></div>
 </template>
 
-<script>
+<script setup lang="ts">
 import Typed from 'typed.js'
-export default {
-  props: {
-    words: {
-      type: String,
-      default: '',
-    },
-    typeSpeed: {
-      type: Number,
-      default: 20,
-    },
-  },
-  data() {
-    return {
-      typedObj: null,
-    }
-  },
-  watch: {
-    words() {
-      if (this.typedObj)
-        this.typedObj.destroy()
 
-      this.initTypedJs()
-    },
-  },
-  methods: {
-    initTypedJs() {
-      this.typedObj = new Typed('.typed-words', {
-        strings: [this.words],
-        typeSpeed: this.typeSpeed,
-        cursorChar: '▼',
-      })
-    },
-  },
+const props = withDefaults(defineProps<{
+  words: string
+  typeSpeed: number
+}>(), {
+  words: '',
+  typeSpeed: 20,
+})
+
+const typedObj = ref()
+
+watch(() => props.words, () => {
+  if (typedObj.value)
+    typedObj.value.destroy()
+
+  initTypedJs()
+})
+
+function initTypedJs() {
+  typedObj.value = new Typed('.typed-words', {
+    strings: [props.words],
+    typeSpeed: props.typeSpeed,
+    cursorChar: '▼',
+  })
 }
 </script>
 

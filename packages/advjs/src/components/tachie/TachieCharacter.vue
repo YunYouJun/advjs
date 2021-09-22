@@ -9,37 +9,31 @@
   </div>
 </template>
 
-<script lang="ts">
-import { PropType } from 'vue'
+<script  setup lang="ts">
 interface Character {
   name: string
   path: string
   active?: boolean
   class?: string[]
   style?: any
+  tachies?: any
+  status: string
 }
 
-export default {
-  props: {
-    character: {
-      type: Object as PropType<Character>,
-    },
-  },
-  computed: {
-    characterClass(): string[] {
-      const defaultClass = ['tachie-character', 'inline-block', 'transform']
-      let resultClass = defaultClass
-      if (this.character) {
-        if (this.character.class)
-          resultClass = defaultClass.concat(this.character.class)
+const props = defineProps<{character: Character}>()
 
-        if (!this.character.active)
-          resultClass.push('inactive-character')
-      }
-      return resultClass
-    },
-  },
-}
+const characterClass = computed(() => {
+  const defaultClass = ['tachie-character', 'inline-block', 'transform']
+  let resultClass = defaultClass
+  if (props.character) {
+    if (props.character.class)
+      resultClass = defaultClass.concat(props.character.class)
+
+    if (!props.character.active)
+      resultClass.push('inactive-character')
+  }
+  return resultClass
+})
 </script>
 
 <style lang="scss">
