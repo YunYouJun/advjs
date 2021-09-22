@@ -15,34 +15,23 @@
   "scripts": {
     "dev": "cd packages/advjs && yarn dev",
     "build": "cd packages/advjs && yarn build",
-    "lint": "eslint . --ext .js,.ts",
-    "release": "ts-node-script release.ts"
+    "lint": "eslint \"**/*.{vue,ts,js}\" --fix",
+    "release": "ts-node-script release.ts",
+    "prepare": "husky install"
   },
   "devDependencies": {
+    "@antfu/eslint-config": "^0.9.0",
     "@types/node": "^16.9.6",
-    "@typescript-eslint/eslint-plugin": "^4.31.2",
-    "@typescript-eslint/parser": "^4.31.2",
-    "@vuedx/typescript-plugin-vue": "^0.7.4",
     "cross-env": "^7.0.3",
     "eslint": "^7.32.0",
+    "husky": "^7.0.2",
     "lint-staged": "^11.1.2",
     "ts-node": "^10.2.1",
-    "typescript": "^4.4.3",
-    "yorkie": "^2.0.0"
-  },
-  "gitHooks": {
-    "pre-commit": "lint-staged"
+    "typescript": "^4.4.3"
   },
   "lint-staged": {
-    "*.js": [
-      "prettier --write"
-    ],
-    "*.ts": [
-      "eslint",
-      "prettier --parser=typescript --write"
-    ],
-    "*.html": [
-      "prettier --write"
+    "*.{js,ts,html}": [
+      "npm run lint"
     ]
   }
 }

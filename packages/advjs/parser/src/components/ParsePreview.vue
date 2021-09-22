@@ -7,7 +7,9 @@
     <div class="containers">
       <div class="container">
         <div class="toolbar">
-          <button id="permalink" class="zi-btn success small">Permalink</button>
+          <button id="permalink" class="zi-btn success small">
+            Permalink
+          </button>
           <button
             id="clear"
             class="zi-btn danger small"
@@ -19,8 +21,8 @@
 
         <textarea
           id="inputMarkdown"
-          class="zi-input md-input"
           v-model="inputText"
+          class="zi-input md-input"
           @input="handleInputText(inputText)"
           @compositionstart="isInputZh = true"
           @compositionend="
@@ -45,8 +47,8 @@
           <div class="zi-select-container mini">
             <select
               id="outputType"
-              class="zi-select"
               v-model="outputType"
+              class="zi-select"
               @change="setOutputContent(outputType)"
             >
               <option
@@ -72,10 +74,10 @@
 </template>
 
 <script>
-import marked from 'marked';
-import Prism from 'prismjs';
-import 'prismjs/components/prism-json';
-import advParser from '@advjs/parser';
+import marked from 'marked'
+import Prism from 'prismjs'
+import 'prismjs/components/prism-json'
+import advParser from '@advjs/parser'
 export default {
   setup() {
     const parserItems = [
@@ -95,11 +97,11 @@ export default {
         name: 'markdown-it',
         value: 'markdown-it',
       },
-    ];
+    ]
 
     return {
       parserItems,
-    };
+    }
   },
   data() {
     return {
@@ -118,73 +120,73 @@ export default {
       // 输出的内容
       outputContent: '',
       noPadding: true,
-    };
+    }
   },
   async mounted() {
-    const markdown = await this.getTestMarkdown(this.path);
+    const markdown = await this.getTestMarkdown(this.path)
     if (markdown) {
-      this.loading = false;
-      this.handleInputText(markdown);
+      this.loading = false
+      this.handleInputText(markdown)
     }
   },
   methods: {
     getTestMarkdown(path) {
       return fetch(path)
         .then((res) => {
-          return res.text();
+          return res.text()
         })
         .then((text) => {
-          if (!this.inputText) {
-            this.inputText = text;
-          }
-          return text;
-        });
+          if (!this.inputText)
+            this.inputText = text
+
+          return text
+        })
     },
     handleInputText(markdown) {
       // 中文输入法时不获取值，输入完再执行
-      if (this.isInputZh) return;
+      if (this.isInputZh) return
 
-      const startTime = new Date().valueOf();
-      const lexed = marked.lexer(markdown);
+      const startTime = new Date().valueOf()
+      const lexed = marked.lexer(markdown)
 
-      this.highlightLexer = this.highlight(lexed);
-      this.highlightAdv = this.highlight(advParser.parse(lexed));
-      this.html = marked.parse(markdown);
+      this.highlightLexer = this.highlight(lexed)
+      this.highlightAdv = this.highlight(advParser.parse(lexed))
+      this.html = marked.parse(markdown)
 
-      this.setOutputContent(this.outputType);
+      this.setOutputContent(this.outputType)
 
-      const endTime = new Date().valueOf();
-      this.delayTime = endTime - startTime;
-      return this.delayTime;
+      const endTime = new Date().valueOf()
+      this.delayTime = endTime - startTime
+      return this.delayTime
     },
     highlight(json) {
       const highlightCode = Prism.highlight(
         JSON.stringify(json, null, 2),
         Prism.languages.json,
-        'json'
-      );
-      return `<pre class="language-json"><code>${highlightCode}</code></pre>`;
+        'json',
+      )
+      return `<pre class="language-json"><code>${highlightCode}</code></pre>`
     },
     setOutputContent(type) {
       switch (type) {
         case 'adv':
-          this.outputContent = this.highlightAdv;
-          this.noPadding = true;
-          break;
+          this.outputContent = this.highlightAdv
+          this.noPadding = true
+          break
         case 'html':
-          this.outputContent = this.html;
-          this.noPadding = false;
-          break;
+          this.outputContent = this.html
+          this.noPadding = false
+          break
         case 'marked':
-          this.outputContent = this.highlightLexer;
-          this.noPadding = true;
-          break;
+          this.outputContent = this.highlightLexer
+          this.noPadding = true
+          break
         default:
-          break;
+          break
       }
     },
   },
-};
+}
 </script>
 
 <style>

@@ -1,57 +1,49 @@
-import { Tokens } from 'marked';
-
-export type AdvItem =
-  | Unknown
-  | Paragraph
-  | Line
-  | Narration
-  | Character
-  | Words;
+import { Tokens } from 'marked'
 
 export interface Unknown {
-  type: 'unknown';
-}
-
-export interface Paragraph {
-  type: 'paragraph';
-  children: Line[];
-}
-
-export interface Line {
-  type: 'line';
-  character: Character;
-  words: Words;
-}
-
-export interface Heading {
-  type: 'heading';
-  depth: number;
-  text: string;
-}
-
-/**
- * 旁白
- */
-export interface Narration {
-  type: 'narration';
-  text: string;
+  type: 'unknown'
 }
 
 /**
  * 人物信息
  */
 export interface Character {
-  type: 'character';
-  name: string;
-  status: string;
+  type: 'character'
+  name: string
+  status: string
 }
 
 /**
  * 人物对话
  */
 export interface Words {
-  type: 'words';
-  text: string;
+  type: 'words'
+  text: string
+}
+
+export interface Line {
+  type: 'line'
+  character: Character
+  words: Words
+}
+
+export interface Paragraph {
+  type: 'paragraph'
+  children: Line[]
+}
+
+export interface Heading {
+  type: 'heading'
+  depth: number
+  text: string
+}
+
+/**
+ * 旁白
+ */
+export interface Narration {
+  type: 'narration'
+  text: string
 }
 
 /**
@@ -65,10 +57,10 @@ export default class Serialize {
   heading(token: Tokens.Heading): Heading {
     const info: Heading = {
       type: 'heading',
-      depth: token['depth'],
-      text: token['text'],
-    };
-    return info;
+      depth: token.depth,
+      text: token.text,
+    }
+    return info
   }
 
   /**
@@ -79,8 +71,8 @@ export default class Serialize {
     const info: Narration = {
       type: 'narration',
       text,
-    };
-    return info;
+    }
+    return info
   }
 
   /**
@@ -91,16 +83,14 @@ export default class Serialize {
     const info: Paragraph = {
       type: 'paragraph',
       children: [],
-    };
-    const lines = text.split('\n');
+    }
+    const lines = text.split('\n')
     if (Array.isArray(lines)) {
       lines.forEach((line) => {
-        if (line) {
-          info.children.push(this.line(line));
-        }
-      });
+        if (line) info.children.push(this.line(line))
+      })
     }
-    return info;
+    return info
   }
 
   /**
@@ -119,23 +109,21 @@ export default class Serialize {
         type: 'words',
         text: '',
       },
-    };
-    const delimiters = [':', '：'];
-    let pos = 0;
+    }
+    const delimiters = [':', '：']
+    let pos = 0
     delimiters.some((delimiter) => {
-      pos = text.indexOf(delimiter);
-      if (pos > -1) {
-        return true;
-      }
-    });
+      pos = text.indexOf(delimiter)
+      return pos > -1
+    })
 
-    const characterInfo = text.slice(0, pos);
-    info.character = this.character(characterInfo);
+    const characterInfo = text.slice(0, pos)
+    info.character = this.character(characterInfo)
 
-    const words = text.slice(pos + 1);
-    info.words = this.words(words);
+    const words = text.slice(pos + 1)
+    info.words = this.words(words)
 
-    return info;
+    return info
   }
 
   // special for advjs
@@ -144,32 +132,30 @@ export default class Serialize {
    * 人物信息
    */
   character(text: string) {
-    const leftBracket = ['(', '（'];
-    const rightBracket = [')', '）'];
+    const leftBracket = ['(', '（']
+    const rightBracket = [')', '）']
 
     const info: Character = {
       type: 'character',
       name: '',
       status: '',
-    };
+    }
 
     for (let i = 0; i < leftBracket.length; i++) {
-      if (text.indexOf(leftBracket[i]) === -1) {
-        continue;
-      }
+      if (!text.includes(leftBracket[i])) continue
 
-      const re = new RegExp(`(.*)${leftBracket[i]}(.*?)${rightBracket[i]}`);
-      const r = text.match(re);
+      const re = new RegExp(`(.*)${leftBracket[i]}(.*?)${rightBracket[i]}`)
+      const r = text.match(re)
 
       if (r) {
-        info.name = r[1];
-        info.status = r[2];
+        info.name = r[1]
+        info.status = r[2]
       }
     }
 
-    if (!info.name) info.name = text;
+    if (!info.name) info.name = text
 
-    return info;
+    return info
   }
 
   /**
@@ -180,7 +166,9 @@ export default class Serialize {
     const info: Words = {
       type: 'words',
       text,
-    };
-    return info;
+    }
+    return info
   }
 }
+
+export type AdvItem = Unknown | Paragraph | Line | Narration | Character | Words

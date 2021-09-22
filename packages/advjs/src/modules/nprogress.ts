@@ -1,13 +1,13 @@
-import NProgress from 'nprogress';
-import { UserModule } from '~/types';
+import NProgress from 'nprogress'
+import { UserModule } from '~/types'
 
 export const install: UserModule = ({ isClient, router }) => {
   if (isClient) {
     router.beforeEach(() => {
-      NProgress.start();
-    });
+      NProgress.start()
+    })
     router.afterEach(() => {
-      NProgress.done();
-    });
+      NProgress.done()
+    })
   }
-};
+}

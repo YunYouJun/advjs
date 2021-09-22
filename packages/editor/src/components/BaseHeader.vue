@@ -3,10 +3,10 @@
 </template>
 
 <script>
-import { initOptions } from '../options';
+import { initOptions } from '../options'
 export default {
   mounted() {
-    initOptions();
+    initOptions()
   },
-};
+}
 </script>

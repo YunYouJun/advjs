@@ -1,16 +1,16 @@
 <template>
   <div class="ui fixed w-screen top-0 z-10">
     <div class="flex flex-row p-4">
-      <display-history class="mr-4" />
-      <hide-ui />
+      <DisplayHistory class="mr-4" />
+      <HideUi />
     </div>
 
-    <menu-setting @click="showMenu = true" />
-    <base-modal v-show="showMenu" @close="showMenu = false">
+    <MenuSetting @click="showMenu = true" />
+    <BaseModal v-show="showMenu" @close="showMenu = false">
       <template #body>
-        <menu-panel />
+        <MenuPanel />
       </template>
-    </base-modal>
+    </BaseModal>
   </div>
 </template>
 

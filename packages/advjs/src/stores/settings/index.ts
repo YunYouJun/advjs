@@ -1,26 +1,26 @@
-import { acceptHMRUpdate, defineStore } from 'pinia';
-import { useSpeech } from './useSpeech';
+import { acceptHMRUpdate, defineStore } from 'pinia'
+import { useSpeech } from './useSpeech'
 
 export const useSettingsStore = defineStore('settings', () => {
-  const fullScreen = ref(false);
-  const speech = useSpeech();
+  const fullScreen = ref(false)
+  const speech = useSpeech()
 
   /**
    * 切换全屏
    */
   function toggleFullScreen() {
-    fullScreen.value = !fullScreen.value;
+    fullScreen.value = !fullScreen.value
 
-    if (fullScreen.value) document.documentElement.requestFullscreen();
-    else document.exitFullscreen();
+    if (fullScreen.value) document.documentElement.requestFullscreen()
+    else document.exitFullscreen()
   }
 
   return {
     fullScreen,
     speech,
     toggleFullScreen,
-  };
-});
+  }
+})
 
 if (import.meta.hot)
-  import.meta.hot.accept(acceptHMRUpdate(useSettingsStore, import.meta.hot));
+  import.meta.hot.accept(acceptHMRUpdate(useSettingsStore, import.meta.hot))

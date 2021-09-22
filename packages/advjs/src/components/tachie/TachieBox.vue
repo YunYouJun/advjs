@@ -9,7 +9,7 @@
 </template>
 
 <script lang="ts">
-import TachieCharacter from './TachieCharacter.vue';
+import TachieCharacter from './TachieCharacter.vue'
 export default {
   components: {
     TachieCharacter,
@@ -17,7 +17,7 @@ export default {
   props: {
     characters: Array,
   },
-};
+}
 </script>
 
 <style lang="scss">

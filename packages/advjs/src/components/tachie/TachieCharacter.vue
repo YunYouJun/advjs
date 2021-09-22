@@ -10,13 +10,13 @@
 </template>
 
 <script lang="ts">
-import { PropType } from 'vue';
+import { PropType } from 'vue'
 interface Character {
-  name: string;
-  path: string;
-  active?: boolean;
-  class?: string[];
-  style?: any;
+  name: string
+  path: string
+  active?: boolean
+  class?: string[]
+  style?: any
 }
 
 export default {
@@ -27,20 +27,19 @@ export default {
   },
   computed: {
     characterClass(): string[] {
-      const defaultClass = ['tachie-character', 'inline-block', 'transform'];
-      let resultClass = defaultClass;
+      const defaultClass = ['tachie-character', 'inline-block', 'transform']
+      let resultClass = defaultClass
       if (this.character) {
-        if (this.character.class) {
-          resultClass = defaultClass.concat(this.character.class);
-        }
-        if (!this.character.active) {
-          resultClass.push('inactive-character');
-        }
+        if (this.character.class)
+          resultClass = defaultClass.concat(this.character.class)
+
+        if (!this.character.active)
+          resultClass.push('inactive-character')
       }
-      return resultClass;
+      return resultClass
     },
   },
-};
+}
 </script>
 
 <style lang="scss">

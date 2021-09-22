@@ -1,6 +1,6 @@
-import { h, reactive, createApp } from 'vue';
-import { CompilerOptions } from '@vue/compiler-dom';
-import pkg from '../package.json';
+import { h, reactive, createApp } from 'vue'
+import { CompilerOptions } from '@vue/compiler-dom'
+import pkg from '../package.json'
 
 export const compilerOptions: CompilerOptions = reactive({
   mode: 'module',
@@ -9,16 +9,16 @@ export const compilerOptions: CompilerOptions = reactive({
   hoistStatic: false,
   cacheHandlers: false,
   scopeId: null,
-  inline: false
-});
+  inline: false,
+})
 
 const App = {
   setup() {
     return () => {
-      const isModule = compilerOptions.mode === 'module';
+      const isModule = compilerOptions.mode === 'module'
 
       return [
-        h('h1', `Advjs Editor`),
+        h('h1', 'Advjs Editor'),
         h('span', { id: 'editor-version' }, pkg.version),
 
         h('div', { id: 'options-wrapper' }, [
@@ -33,8 +33,8 @@ const App = {
                 name: 'mode',
                 checked: isModule,
                 onChange() {
-                  compilerOptions.mode = 'module';
-                }
+                  compilerOptions.mode = 'module'
+                },
               }),
               h('label', { for: 'mode-module' }, 'module'),
               ' ',
@@ -44,10 +44,10 @@ const App = {
                 name: 'mode',
                 checked: !isModule,
                 onChange() {
-                  compilerOptions.mode = 'function';
-                }
+                  compilerOptions.mode = 'function'
+                },
               }),
-              h('label', { for: 'mode-function' }, 'function')
+              h('label', { for: 'mode-function' }, 'function'),
             ]),
 
             // toggle scopeId
@@ -58,13 +58,13 @@ const App = {
                 disabled: !isModule,
                 checked: isModule && compilerOptions.scopeId,
                 onChange(e: Event) {
-                  compilerOptions.scopeId =
-                    isModule && (e.target as HTMLInputElement).checked
+                  compilerOptions.scopeId
+                    = isModule && (e.target as HTMLInputElement).checked
                       ? 'scope-id'
-                      : null;
-                }
+                      : null
+                },
               }),
-              h('label', { for: 'scope-id' }, 'scopeId')
+              h('label', { for: 'scope-id' }, 'scopeId'),
             ]),
 
             // inline mode
@@ -74,18 +74,18 @@ const App = {
                 id: 'inline',
                 checked: compilerOptions.inline,
                 onChange(e: Event) {
-                  compilerOptions.inline = (e.target as HTMLInputElement).checked;
-                }
+                  compilerOptions.inline = (e.target as HTMLInputElement).checked
+                },
               }),
-              h('label', { for: 'inline' }, 'inline')
-            ])
-          ])
-        ])
-      ];
-    };
-  }
-};
+              h('label', { for: 'inline' }, 'inline'),
+            ]),
+          ]),
+        ]),
+      ]
+    }
+  },
+}
 
 export function initOptions() {
-  createApp(App).mount(document.getElementById('header')!);
+  createApp(App).mount(document.getElementById('header')!)
 }

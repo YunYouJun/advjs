@@ -1,15 +1,15 @@
-import { acceptHMRUpdate, defineStore } from 'pinia';
+import { acceptHMRUpdate, defineStore } from 'pinia'
 
 export const useAppStore = defineStore('app', () => {
-  const showUi = ref(true);
-  const showHistory = ref(false);
+  const showUi = ref(true)
+  const showHistory = ref(false)
 
   function toggleUi() {
-    showUi.value = !showUi.value;
+    showUi.value = !showUi.value
   }
 
   function toggleHistory() {
-    showHistory.value = !showHistory.value;
+    showHistory.value = !showHistory.value
   }
 
   return {
@@ -18,8 +18,8 @@ export const useAppStore = defineStore('app', () => {
 
     toggleUi,
     toggleHistory,
-  };
-});
+  }
+})
 
 if (import.meta.hot)
-  import.meta.hot.accept(acceptHMRUpdate(useAppStore, import.meta.hot));
+  import.meta.hot.accept(acceptHMRUpdate(useAppStore, import.meta.hot))

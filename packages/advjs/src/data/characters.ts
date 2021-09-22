@@ -20,4 +20,4 @@ export default [
     class: ['-translate-y-20', 'scale-110'],
     active: false,
   },
-];
+]

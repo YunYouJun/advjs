@@ -4,7 +4,7 @@
  * @param lang
  */
 export function speak(text: string, lang: string): void {
-  const speechInstance = new SpeechSynthesisUtterance(text);
-  speechInstance.lang = lang;
-  speechSynthesis.speak(speechInstance);
+  const speechInstance = new SpeechSynthesisUtterance(text)
+  speechInstance.lang = lang
+  speechSynthesis.speak(speechInstance)
 }

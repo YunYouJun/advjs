@@ -12,9 +12,9 @@
 </template>
 
 <script>
-import pkg from '@advjs/parser/package.json';
-import GithubCorner from './components/GithubCorner.vue';
-import ParsePreview from './components/ParsePreview.vue';
+import pkg from '@advjs/parser/package.json'
+import GithubCorner from './components/GithubCorner.vue'
+import ParsePreview from './components/ParsePreview.vue'
 
 export default {
   name: 'App',
@@ -25,9 +25,9 @@ export default {
   setup() {
     return {
       pkg,
-    };
+    }
   },
-};
+}
 </script>
 
 <style>

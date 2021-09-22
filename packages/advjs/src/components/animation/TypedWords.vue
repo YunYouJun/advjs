@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import Typed from 'typed.js';
+import Typed from 'typed.js'
 export default {
   props: {
     words: {
@@ -18,7 +18,15 @@ export default {
   data() {
     return {
       typedObj: null,
-    };
+    }
+  },
+  watch: {
+    words() {
+      if (this.typedObj)
+        this.typedObj.destroy()
+
+      this.initTypedJs()
+    },
   },
   methods: {
     initTypedJs() {
@@ -26,18 +34,10 @@ export default {
         strings: [this.words],
         typeSpeed: this.typeSpeed,
         cursorChar: '▼',
-      });
+      })
     },
   },
-  watch: {
-    words() {
-      if (this.typedObj) {
-        this.typedObj.destroy();
-      }
-      this.initTypedJs();
-    },
-  },
-};
+}
 </script>
 
 <style>

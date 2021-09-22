@@ -1,7 +1,9 @@
 <template>
   <div class="menu-panel grid grid-cols-12 gap-16">
     <div class="col-span-12">
-      <h1 class="adv-font-serif text-4xl font-black">{{ title }}</h1>
+      <h1 class="adv-font-serif text-4xl font-black">
+        {{ title }}
+      </h1>
     </div>
     <full-screen />
     <speech-synthesis />
@@ -9,8 +11,8 @@
 </template>
 
 <script>
-import FullScreen from './FullScreen.vue';
-import SpeechSynthesis from './speech/SpeechSynthesis.vue';
+import FullScreen from './FullScreen.vue'
+import SpeechSynthesis from './speech/SpeechSynthesis.vue'
 export default {
   components: {
     FullScreen,
@@ -19,9 +21,9 @@ export default {
   data() {
     return {
       title: '设置',
-    };
+    }
   },
-};
+}
 </script>
 
 <style lang="scss">

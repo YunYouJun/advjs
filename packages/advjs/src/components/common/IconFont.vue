@@ -24,7 +24,7 @@ export default {
       default: '3rem',
     },
   },
-};
+}
 </script>
 
 <style>

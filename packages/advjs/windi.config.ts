@@ -1,6 +1,6 @@
-import { defineConfig } from 'windicss/helpers';
-import colors from 'windicss/colors';
-import typography from 'windicss/plugin/typography';
+import { defineConfig } from 'windicss/helpers'
+import colors from 'windicss/colors'
+import typography from 'windicss/plugin/typography'
 
 export default defineConfig({
   darkMode: 'class',
@@ -16,10 +16,10 @@ export default defineConfig({
             maxWidth: '65ch',
             color: 'inherit',
             a: {
-              color: 'inherit',
-              opacity: 0.75,
-              fontWeight: '500',
-              textDecoration: 'underline',
+              'color': 'inherit',
+              'opacity': 0.75,
+              'fontWeight': '500',
+              'textDecoration': 'underline',
               '&:hover': {
                 opacity: 1,
                 color: colors.teal[600],
@@ -38,4 +38,4 @@ export default defineConfig({
       },
     },
   },
-});
+})

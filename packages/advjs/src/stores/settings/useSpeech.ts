@@ -1,22 +1,22 @@
 interface SpeechSynthesis {
-  enable: boolean;
-  language: string;
+  enable: boolean
+  language: string
 }
 
 export const useSpeech = (
   options: SpeechSynthesis = {
     enable: true,
     language: 'zh-HK',
-  }
+  },
 ) => {
-  const state = reactive(options);
+  const state = reactive(options)
 
   /**
    * 切换语音合成开关
    * @param state
    */
   function toggleStatus() {
-    state.enable = !state.enable;
+    state.enable = !state.enable
   }
 
   /**
@@ -25,12 +25,12 @@ export const useSpeech = (
    * @param language
    */
   function setLanguage(language: string) {
-    state.language = language;
+    state.language = language
   }
 
   return {
     options: state,
     toggleStatus,
     setLanguage,
-  };
-};
+  }
+}

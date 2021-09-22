@@ -5,14 +5,14 @@
 </template>
 
 <script>
-import { init } from './index';
-import BaseHeader from './components/BaseHeader.vue';
+import BaseHeader from './components/BaseHeader.vue'
+import { init } from './index'
 export default {
   components: {
     BaseHeader,
   },
   mounted() {
-    init();
+    init()
   },
-};
+}
 </script>
