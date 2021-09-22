@@ -6,8 +6,11 @@ import path from 'path';
 export default defineConfig({
   plugins: [vue()],
   // for '~/components'
-  alias: {
-    '~': path.resolve(__dirname, './src')
+  resolve: {
+    alias: {
+      '~': path.resolve(__dirname, './src'),
+      '@advjs': path.resolve(__dirname, '..')
+    }
   },
   build: {
     rollupOptions: {

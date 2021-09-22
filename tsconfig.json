@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "target": "esnext",
     "module": "esnext",
     "moduleResolution": "node",
@@ -10,7 +11,11 @@
     "types": ["vite/client", "node"],
     "plugins": [{ "name": "@vuedx/typescript-plugin-vue" }],
     "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "paths": {
+      "@advjs/parser": ["packages/parser/*"],
+      "@advjs/shared": ["packages/shared/*"],
+    }
   },
   "include": ["packages/global.d.ts", "packages/**/*/src"]
 }
