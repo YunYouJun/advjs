@@ -14,7 +14,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: "14"
-      - run: npm install && pnpm i
+      - run: npm install && npx pnpm i
       - run: npm run build
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
