@@ -5,10 +5,9 @@ button:
   home: Home
   toggle_dark: Toggle dark mode
   toggle_langs: Change languages
+  start: Link Start
 intro:
-  desc: Opinionated Vite Starter Template
-  dynamic-route: Demo of dynamic route
-  hi: Hi, {name}!
-  aka: Also known as
-  whats-your-name: What's your name?
+  desc: Future-oriented and front-end ADV text adventure game engine
+  progress: Under development, stay tuned
+  hi: Wish to meet you in future adventures!
 not-found: Not found

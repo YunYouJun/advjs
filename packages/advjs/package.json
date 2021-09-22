@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "description": "A parser for @advjs.",
   "main": "dist/index.js",
+  "repository": {
+    "url": "https://github.com/YunYouJun/advjs"
+  },
   "scripts": {
     "build": "cross-env NODE_ENV=production vite-ssg build",
     "dev": "vite",

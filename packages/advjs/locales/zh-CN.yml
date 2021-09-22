@@ -5,10 +5,10 @@ button:
   home: 首页
   toggle_dark: 切换深色模式
   toggle_langs: 切换语言
+  start: 开始游戏
+
 intro:
-  desc: 固执己见的 Vite 项目模板
-  dynamic-route: 动态路由演示
-  hi: 你好，{name}
-  aka: 也叫
-  whats-your-name: 输入你的名字
+  desc: 面向未来与前端的 ADV 文字冒险游戏引擎
+  progress: 开发中，敬请期待
+  hi: 愿在未来的冒险中与你相遇
 not-found: 未找到页面

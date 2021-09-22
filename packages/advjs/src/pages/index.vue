@@ -1,6 +1,6 @@
 <template>
   <ri-video-chat-line class="adv-logo text-8xl" alt="ADV logo" />
-  <HelloWorld msg="Welcome to Adv.js" />
+  <HelloWorld msg="Welcome to ADV.JS" />
 </template>
 
 <style>

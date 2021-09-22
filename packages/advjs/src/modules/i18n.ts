@@ -17,7 +17,7 @@ const messages = Object.fromEntries(
 export const install: UserModule = ({ app }) => {
   const i18n = createI18n({
     legacy: false,
-    locale: 'en',
+    locale: 'zh-CN',
     messages,
   })
 

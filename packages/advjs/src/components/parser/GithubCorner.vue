@@ -3,6 +3,7 @@
     :href="props.url"
     class="github-corner"
     aria-label="View source on GitHub"
+    target="_blank"
   ><svg
     width="80"
     height="80"
