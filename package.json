@@ -15,7 +15,8 @@
   "scripts": {
     "dev": "cd packages/advjs && yarn dev",
     "build": "cd packages/advjs && npm run build",
-    "lint": "eslint \"**/*.{vue,ts,js}\" --fix",
+    "lint": "eslint \"**/*.{vue,ts,js}\"",
+    "lint:fix": "eslint \"**/*.{vue,ts,js}\" --fix",
     "release": "ts-node-script release.ts",
     "prepare": "husky install"
   },
