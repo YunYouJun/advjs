@@ -8,11 +8,13 @@ const themeConfig: DefaultTheme.Config = {
   //   apiKey: "",
   //   indexName: "",
   // },
-  repo: 'YunYouJun/element-theme-ink',
+  repo: 'YunYouJun/advjs',
   logo: '/favicon.svg',
-  docsDir: '.',
+
+  docsDir: 'docs',
   docsBranch: 'main',
-  docsRepo: 'YunYouJun/element-theme-ink',
+  docsRepo: 'YunYouJun/advjs',
+
   editLinks: true,
   editLinkText: '✍️ Suggest changes to this page',
   nav,

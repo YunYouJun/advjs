@@ -26,10 +26,18 @@ importers:
 
   docs:
     specifiers:
+      '@iconify/json': ^1.1.405
       esbuild-register: ^3.0.0
+      unplugin-icons: ^0.11.3
+      unplugin-vue-components: ^0.15.2
+      vite-plugin-windicss: ^1.4.4
       vitepress: ^0.19.2
     devDependencies:
+      '@iconify/json': 1.1.405
       esbuild-register: 3.0.0
+      unplugin-icons: 0.11.3_@iconify+json@1.1.405
+      unplugin-vue-components: 0.15.2
+      vite-plugin-windicss: 1.4.4_ts-node@10.2.1+typescript@4.4.3
       vitepress: 0.19.2
 
   packages/advjs:
@@ -2511,7 +2519,7 @@ packages:
       braces: 3.0.2
       glob-parent: 5.1.2
       is-binary-path: 2.1.0
-      is-glob: 4.0.1
+      is-glob: 4.0.3
       normalize-path: 3.0.0
       readdirp: 3.6.0
     optionalDependencies:
@@ -4079,12 +4087,6 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /is-glob/4.0.1:
-    resolution: {integrity: sha512-5G0tKtBTFImOqDnLB2hG6Bp2qcKEFduo4tZu9MT/H6NQv/ghhy30o55ufafxJ/LdH79LLs2Kfrn85TLKyA7BUg==}
-    engines: {node: '>=0.10.0'}
-    dependencies:
-      is-extglob: 2.1.1
-
   /is-glob/4.0.3:
     resolution: {integrity: sha512-xelSayHH36ZgE7ZWhli7pW34hNbNl8Ojv5KVmkJD4hBdD3th8Tfk9vYasLM+mXWOZhFkgZfxhLSnrwRr4elSSg==}
     engines: {node: '>=0.10.0'}
@@ -5080,7 +5082,7 @@ packages:
     dependencies:
       import-cwd: 3.0.0
       lilconfig: 2.0.3
-      ts-node: 10.2.1_48cf0e1f5c27c5317da4120390b4c470
+      ts-node: 10.2.1_0088345bf6ed8e5566f4f4a984ba8f5e
       yaml: 1.10.2
     dev: true
 
@@ -6183,6 +6185,57 @@ packages:
       - webpack
     dev: true
 
+  /unplugin-icons/0.11.3_@iconify+json@1.1.405:
+    resolution: {integrity: sha512-qJMi1YBv6QN2R6lu+l7dR+W3LXmen09/h2OzD9324YOvRM6ElsmaCWvc5uuvAVUSpSuuAKfb+Ay1lCIfpb34RA==}
+    peerDependencies:
+      '@iconify/json': '*'
+      '@svgr/core': ^5.5.0
+      '@vue/compiler-sfc': ^3.0.2
+      vue-template-compiler: ^2.6.12
+      vue-template-es2015-compiler: ^1.9.0
+    peerDependenciesMeta:
+      '@svgr/core':
+        optional: true
+      '@vue/compiler-sfc':
+        optional: true
+      vue-template-compiler:
+        optional: true
+      vue-template-es2015-compiler:
+        optional: true
+    dependencies:
+      '@antfu/utils': 0.3.0
+      '@iconify/json': 1.1.405
+      '@iconify/json-tools': 1.0.10
+      has-pkg: 0.0.1
+      unplugin: 0.2.13
+    transitivePeerDependencies:
+      - rollup
+      - vite
+      - webpack
+    dev: true
+
+  /unplugin-vue-components/0.15.2:
+    resolution: {integrity: sha512-g9IUvBzRTJw2TniXVVtzkxs+VNJ5buzzsG7vIQdwh28830AYo052l//hCTv/4tvT4wPGJiCCZQdJ8O5MREDbuQ==}
+    engines: {node: '>=14'}
+    peerDependencies:
+      vue: 2 || 3
+    dependencies:
+      '@rollup/pluginutils': 4.1.1
+      chokidar: 3.5.2
+      debug: 4.3.2
+      fast-glob: 3.2.7
+      has-pkg: 0.0.1
+      magic-string: 0.25.7
+      minimatch: 3.0.4
+      resolve: 1.20.0
+      unplugin: 0.2.13
+    transitivePeerDependencies:
+      - rollup
+      - supports-color
+      - vite
+      - webpack
+    dev: true
+
   /unplugin-vue-components/0.15.2_vite@2.5.10+vue@3.2.13:
     resolution: {integrity: sha512-g9IUvBzRTJw2TniXVVtzkxs+VNJ5buzzsG7vIQdwh28830AYo052l//hCTv/4tvT4wPGJiCCZQdJ8O5MREDbuQ==}
     engines: {node: '>=14'}
@@ -6204,6 +6257,24 @@ packages:
       - supports-color
       - vite
       - webpack
+    dev: true
+
+  /unplugin/0.2.13:
+    resolution: {integrity: sha512-GR7opeDHi26Gle4UfjanQYBnR3FJhdwYt7Hs4Kp1MTkK5a/L/u/wEEjXMPeZsTmWroRalr9gYKISb5JoN2reNA==}
+    peerDependencies:
+      rollup: ^2.50.0
+      vite: ^2.3.0
+      webpack: 4 || 5
+    peerDependenciesMeta:
+      rollup:
+        optional: true
+      vite:
+        optional: true
+      webpack:
+        optional: true
+    dependencies:
+      upath: 2.0.1
+      webpack-virtual-modules: 0.4.3
     dev: true
 
   /unplugin/0.2.13_vite@2.5.10:
@@ -6358,6 +6429,21 @@ packages:
       chalk: 4.1.2
       debug: 4.3.2
       vite: 2.5.10
+      windicss: 3.1.7
+    transitivePeerDependencies:
+      - supports-color
+      - ts-node
+      - typescript
+    dev: true
+
+  /vite-plugin-windicss/1.4.4_ts-node@10.2.1+typescript@4.4.3:
+    resolution: {integrity: sha512-EYazv3+qRj7pv1F7RxKSHicCgEEIEARV9GT1iWvIMnSeWYXfmn2BGnzkdojEUW4o9NDq3VGKd4D/lVuL8I2v3w==}
+    peerDependencies:
+      vite: ^2.0.1
+    dependencies:
+      '@windicss/plugin-utils': 1.4.4_ts-node@10.2.1+typescript@4.4.3
+      chalk: 4.1.2
+      debug: 4.3.2
       windicss: 3.1.7
     transitivePeerDependencies:
       - supports-color

@@ -1,7 +1,4 @@
----
-title: 存储系统
-enTitle: Storage System
----
+# 存储系统 Storage System
 
 Galgame 的存储系统主要用于存储游戏的全局配置与游戏的进度。
 
