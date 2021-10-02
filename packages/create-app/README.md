@@ -1,17 +1,7 @@
 # @advjs/create-app
 
-Scaffolding Your First Adv Project
+## DEPRECATED
 
-With NPM:
+Use `npm init advjs` instead.
 
-```sh
-npm init @advjs/app
-```
-
-With Yarn:
-
-```sh
-yarn create @advjs/app
-```
-
-Then follow the prompts!
+See [create-advjs](../create-app/README.md).

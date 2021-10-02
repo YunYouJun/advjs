@@ -1,5 +1,5 @@
-# ADV.JS
+# ADV.JS Docs
 
-面向未来与前端的 ADV 文字冒险游戏引擎。
+> @advjs/docs
 
-开发进行中...
+使用文档与设计理念

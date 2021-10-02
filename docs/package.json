@@ -1,0 +1,21 @@
+{
+  "name": "@advjs/docs",
+  "private": true,
+  "description": "面向未来与前端的 ADV 文字冒险游戏引擎。",
+  "scripts": {
+    "dev": "vitepress dev .",
+    "build": "vitepress build .",
+    "serve": "vitepress serve ."
+  },
+  "author": {
+    "name": "YunYouJun",
+    "email": "me@yunyoujun.cn",
+    "url": "https://www.yunyoujun.cn"
+  },
+  "license": "ISC",
+  "homepage": "https://docs.advjs.org",
+  "devDependencies": {
+    "esbuild-register": "^3.0.0",
+    "vitepress": "^0.19.2"
+  }
+}

@@ -1,0 +1,24 @@
+.nav-bar-title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.home-hero {
+  .image {
+    height: 200px;
+  }
+
+  .title,
+  .tagline {
+    font-weight: 300;
+  }
+}
+
+.theme {
+  .page {
+    .container {
+      max-width: 72rem;
+    }
+  }
+}
