@@ -7,9 +7,21 @@ const { frontmatter } = useData()
 <template>
   <footer v-if="frontmatter.footer" class="footer m-auto mt-10">
     <div class="container text">
-      <a v-if="frontmatter.footer.license" href="https://github.com/YunYouJun/advjs/blob/main/LICENSE" target="_blank"><span>{{ frontmatter.footer.license }}</span></a>
-      <span class="mx-2">Copyright © {{frontmatter.footer.since + ' - ' + new Date().getFullYear()}}</span>
-      <a v-if="frontmatter.footer.author" href="https://yunyoujun.cn/" target="_blank" v-html="frontmatter.footer.author"></a>
+      <a
+        v-if="frontmatter.footer.license"
+        href="https://github.com/YunYouJun/advjs/blob/main/LICENSE"
+        target="_blank"
+      ><span>{{ frontmatter.footer.license }}</span></a>
+      <span
+        class="mx-2 inline-block"
+      >Copyright ©
+        {{ frontmatter.footer.since + ' - ' + new Date().getFullYear() }}</span>
+      <a
+        v-if="frontmatter.footer.author"
+        href="https://yunyoujun.cn/"
+        target="_blank"
+        v-html="frontmatter.footer.author"
+      ></a>
     </div>
   </footer>
 </template>

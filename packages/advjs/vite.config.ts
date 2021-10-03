@@ -17,15 +17,15 @@ import LinkAttributes from 'markdown-it-link-attributes'
 
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
 
-// const defaultThemeFolder = path.resolve(__dirname, './client/theme-default/')
+// const defaultThemeFolder = path.resolve(__dirname, './src/client/theme-default/')
 
 // https://vitejs.dev/config/
 export default defineConfig({
   resolve: {
     alias: {
       '~/': `${path.resolve(__dirname, 'src')}/`,
-      '@advjs/client': `${path.resolve(__dirname, 'client')}/`,
-      '@advjs/': `${path.resolve(__dirname, '..')}/`,
+      '@advjs/parser/': `${path.resolve(__dirname, '../parser/src')}/`,
+      '@advjs/shared/': `${path.resolve(__dirname, '../shared/src')}/`,
     },
   },
   plugins: [
@@ -40,7 +40,7 @@ export default defineConfig({
 
     // https://github.com/JohnCampionJr/vite-plugin-vue-layouts
     Layouts({
-      layoutsDir: './client/theme-default/layouts',
+      layoutsDir: './src/client/theme-default/layouts',
     }),
 
     // https://github.com/antfu/unplugin-auto-import
@@ -57,6 +57,11 @@ export default defineConfig({
 
     // https://github.com/antfu/unplugin-vue-components
     Components({
+      dirs: [
+        'src/components',
+        'src/client/app/components',
+        'src/client/theme-default/componnets',
+      ],
       // allow auto load markdown components under `./src/components/`
       extensions: ['vue', 'md'],
 
@@ -158,7 +163,13 @@ export default defineConfig({
   },
 
   optimizeDeps: {
-    include: ['vue', 'vue-router', '@vueuse/core', '@vueuse/head'],
+    include: [
+      'vue',
+      'vue-router',
+      '@vueuse/core',
+      '@vueuse/head',
+      '@vueuse/motion',
+    ],
     exclude: ['vue-demi'],
   },
 

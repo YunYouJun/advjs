@@ -5,13 +5,12 @@ import Serialize, { AdvItem } from './Serialize'
  * 基于 Markdown 解析
  * @param {*} lexer
  */
-function parse(tokensList: TokensList): AdvItem[] {
+export function parse(tokensList: TokensList): AdvItem[] {
   const advTokens: AdvItem[] = []
   const serialize = new Serialize()
   for (let i = 0; i < tokensList.length; i++) {
     const token = tokensList[i] as any
-    if (token.text)
-      token.text = token.text.trim()
+    if (token.text) token.text = token.text.trim()
 
     let advObject
     switch (token.type) {
@@ -33,8 +32,4 @@ function parse(tokensList: TokensList): AdvItem[] {
   }
 
   return advTokens
-}
-
-export default {
-  parse,
 }

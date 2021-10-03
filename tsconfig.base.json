@@ -3,7 +3,9 @@
     "baseUrl": ".",
     "paths": {
       "~/*": ["src/*"],
-      "@advjs/client/*": ["./client/*"],
+      "advjs/*": ["./src/*"],
+      "@advjs/parser/*": ["../parser/src/*"],
+      "@advjs/shared/*": ["../shared/src/*"],
       "@advjs/*": ["../*"]
     }
   }

@@ -9,6 +9,7 @@ import 'virtual:windi-base.css'
 import 'virtual:windi-components.css'
 
 // your custom styles here
+import './styles/adv.scss'
 import './styles/theme-default/index.scss'
 import './styles/index.scss'
 

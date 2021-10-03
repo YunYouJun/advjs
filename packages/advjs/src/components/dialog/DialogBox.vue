@@ -24,16 +24,16 @@ const props = defineProps<{
 
 const settings = useSettingsStore()
 
-watch(() => props.dialog.words, (val) => {
-  // 若开启了语音合成
-  if (settings.speech.options.enable) {
-    speechSynthesis.cancel()
-    speak(
-      val,
-      settings.speech.options.language,
-    )
-  }
-})
+watch(
+  () => props.dialog.words,
+  (val) => {
+    // 若开启了语音合成
+    if (settings.speech.options.enable) {
+      speechSynthesis.cancel()
+      speak(val, settings.speech.options.language)
+    }
+  },
+)
 </script>
 
 <style lang="scss">

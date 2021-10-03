@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "target": "esnext",
     "module": "esnext",
     "lib": ["ESNext", "DOM", "DOM.Iterable", "webworker"],
@@ -12,7 +13,8 @@
     "skipLibCheck": true,
     "noUnusedLocals": true,
     "paths": {
-      "@/*": ["./.vitepress/theme/*"]
+      "@/*": ["./.vitepress/theme/*"],
+      "advjs/*": ["../packages/advjs/src/*"]
     }
   },
   "include": [

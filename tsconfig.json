@@ -13,9 +13,10 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "paths": {
-      "@advjs/client/*": ["packages/advjs/client/*"],
-      "@advjs/parser": ["packages/parser/*"],
-      "@advjs/shared": ["packages/shared/*"]
+      "@advjs/core/*": ["packages/advjs/*"],
+      "@advjs/parser/*": ["packages/parser/src/*"],
+      "@advjs/shared/*": ["packages/shared/src/*"],
+      "advjs/*": ["packages/advjs/src/*"]
     }
   },
   "include": ["packages/global.d.ts", "packages/**/*/src"]

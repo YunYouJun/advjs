@@ -11,3 +11,10 @@ intro:
   progress: Under development, stay tuned
   hi: Wish to meet you in future adventures!
 not-found: Not found
+
+start-menu:
+  new-game: New Game
+  load-game: Load Game
+  settings: Settings
+  help: Help
+  quit: Quit

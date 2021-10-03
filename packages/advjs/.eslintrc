@@ -1,5 +1,6 @@
 {
-  "extends": [
-    "@antfu"
-  ]
+  "extends": ["@antfu"],
+  "rules": {
+    "no-alert": "off"
+  }
 }

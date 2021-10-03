@@ -1,22 +1,26 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useData, withBase } from 'vitepress'
-import NavLink from 'vitepress/dist/client/theme-default/components/NavLink.vue'
+// import NavLink from 'vitepress/dist/client/theme-default/components/NavLink.vue'
+import PressButton from 'advjs/client/app/components/global/PressButton.vue'
 
-const { site, frontmatter, theme } = useData()
+const { site, frontmatter } = useData()
 
 const showHero = computed(() => {
-  const { heroImage, heroText, tagline, actionLink, actionText } =
-    frontmatter.value
+  const { heroImage, heroText, tagline, actionLink, actionText }
+    = frontmatter.value
   return heroImage || heroText || tagline || (actionLink && actionText)
 })
 
 const heroText = computed(() => frontmatter.value.heroText || site.value.title)
 const tagline = computed(
-  () => frontmatter.value.tagline || site.value.description
+  () => frontmatter.value.tagline || site.value.description,
 )
 
-const badgeUrl = computed(() => `https://img.shields.io/github/stars/${theme.value.repo}?style=social`)
+// const { theme } = useData()
+// const badgeUrl = computed(
+//   () => `https://img.shields.io/github/stars/${theme.value.repo}?style=social`,
+// )
 </script>
 
 <template>
@@ -29,17 +33,35 @@ const badgeUrl = computed(() => `https://img.shields.io/github/stars/${theme.val
       />
     </figure>
 
-    <h1 v-if="heroText" id="main-title" class="title font-thin" v-html="heroText"></h1>
+    <h1
+      v-if="heroText"
+      id="main-title"
+      class="title font-thin"
+      v-html="heroText"
+    ></h1>
     <template v-if="tagline">
       <template v-if="typeof tagline === 'string'">
-        <p class="tagline gradient-text from-blue-600 to-red-500 bg-gradient-to-r font-light">{{ tagline }}</p>
+        <p
+          class="
+            tagline
+            gradient-text
+            from-blue-600
+            to-red-500
+            bg-gradient-to-r
+            font-light
+          "
+        >
+          {{ tagline }}
+        </p>
       </template>
       <template v-else>
-        <p v-for="line in tagline" class="tagline">{{line}}</p>
+        <p v-for="line in tagline" class="tagline">
+          {{ line }}
+        </p>
       </template>
     </template>
 
-    <NavLink
+    <!-- <NavLink
       v-if="frontmatter.actionLink && frontmatter.actionText"
       :item="{ link: frontmatter.actionLink, text: frontmatter.actionText }"
       class="action mx-2"
@@ -49,10 +71,51 @@ const badgeUrl = computed(() => `https://img.shields.io/github/stars/${theme.val
       v-if="frontmatter.altActionLink && frontmatter.altActionText"
       :item="{
         link: frontmatter.altActionLink,
-        text: frontmatter.altActionText
+        text: frontmatter.altActionText,
       }"
       class="action alt mx-2"
-    />
+    /> -->
+
+    <div class="flex justify-center mt-8">
+      <PressButton
+        v-if="frontmatter.actionLink && frontmatter.actionText"
+        :link="frontmatter.actionLink"
+        class="
+          mx-2
+          !bg-gray-700
+          !hover:bg-gray-500
+          !border-dark-900
+          !hover:border-dark-500
+        "
+        blank
+      >
+        <i-ri-github-line class="text-white mr-1" />
+        {{ frontmatter.actionText }}
+      </PressButton>
+
+      <PressButton
+        v-if="frontmatter.altActionLink && frontmatter.altActionText"
+        :link="frontmatter.altActionLink"
+        class="
+          mx-2
+          !bg-green-500
+          !hover:bg-green-400
+          !border-green-600
+          !hover:border-green-500
+        "
+        blank
+      >
+        <i-ri-game-line class="text-white mr-1" />
+        {{ frontmatter.altActionText }}
+      </PressButton>
+    </div>
+
+    <br />
+
+    <PressButton class="mx-2" :link="frontmatter.startLink">
+      <i-ri-links-line class="text-white mr-1" />
+      Link Start
+    </PressButton>
   </header>
 </template>
 
@@ -134,7 +197,7 @@ const badgeUrl = computed(() => `https://img.shields.io/github/stars/${theme.val
 .action :deep(.item) {
   display: inline-block;
   border-radius: 2rem;
-  padding: 0 1.5rem;
+  padding: 0.2rem 1.5rem;
   line-height: 2.5rem;
   font-size: 1.1rem;
   font-weight: 500;

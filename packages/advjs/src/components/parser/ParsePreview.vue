@@ -27,8 +27,8 @@
           @compositionstart="isInputZh = true"
           @compositionend="
             () => {
-              isInputZh = false;
-              handleInputText(inputText);
+              isInputZh = false
+              handleInputText(inputText)
             }
           "
         ></textarea>
@@ -65,7 +65,13 @@
 
         <div
           id="outputContent"
-          :class="['text-left', 'border', 'border-solid', 'md-input', noPadding ? 'no-padding' : '']"
+          :class="[
+            'text-left',
+            'border',
+            'border-solid',
+            'md-input',
+            noPadding ? 'no-padding' : '',
+          ]"
           v-html="outputContent"
         ></div>
       </div>
@@ -77,9 +83,9 @@
 import marked from 'marked'
 import Prism from 'prismjs'
 import 'prismjs/components/prism-json'
-import advParser from '@advjs/parser'
+import * as advParser from '@advjs/parser'
 
-type OutputType = 'adv' | 'html' |'marked'
+type OutputType = 'adv' | 'html' | 'marked'
 
 const parserItems = [
   {
@@ -130,8 +136,7 @@ function getTestMarkdown(path: string) {
       return res.text()
     })
     .then((text) => {
-      if (!inputText.value)
-        inputText.value = text
+      if (!inputText.value) inputText.value = text
 
       return text
     })

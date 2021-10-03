@@ -7,7 +7,12 @@ export default defineConfig({
   // https://windicss.org/posts/v30.html#attributify-mode
   attributify: true,
 
+  extract: {
+    include: ['**/*.md', 'client/**/*.{md,vue}', 'src/**/*.{md,vue}'],
+  },
+
   plugins: [typography()],
+
   theme: {
     extend: {
       typography: {

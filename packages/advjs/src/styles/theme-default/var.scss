@@ -1,2 +1,6 @@
-$--adv-colors: () !default;
-$--adv-colors: ();
+@use "sass:map";
+
+$adv-colors: () !default;
+$adv-colors: (
+  primary: #0078E7
+);

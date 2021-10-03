@@ -1,4 +1,4 @@
-import { resolve } from 'path'
+import path from 'path'
 import { defineConfig } from 'vite'
 
 import Components from 'unplugin-vue-components/vite'
@@ -10,7 +10,8 @@ import { VitePWA } from 'vite-plugin-pwa'
 export default defineConfig({
   resolve: {
     alias: {
-      '@/': `${resolve(__dirname, '.vitepress/theme')}/`,
+      '@/': `${path.resolve(__dirname, '.vitepress/theme')}/`,
+      'advjs/': `${path.resolve(__dirname, '../packages/advjs/src')}/`,
     },
   },
   build: {
@@ -65,4 +66,11 @@ export default defineConfig({
       },
     }),
   ],
+
+  server: {
+    fs: {
+      // Allow serving files from one level up to the project root
+      allow: ['..'],
+    },
+  },
 })

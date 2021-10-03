@@ -1,2 +1,5 @@
-@import './var.scss';
-@import './helper.scss';
+@use './var.scss';
+@use './helper.scss';
+@use './typography.scss';
+
+@use 'layouts/index.scss';

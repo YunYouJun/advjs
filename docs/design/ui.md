@@ -9,3 +9,7 @@ advjs 将会内置默认主题 `@advjs/theme-defaults`。
 ## 亮暗模式
 
 提供亮暗模式也是 Feature！
+
+## 适配
+
+等比例 Fit 高/宽，居中。

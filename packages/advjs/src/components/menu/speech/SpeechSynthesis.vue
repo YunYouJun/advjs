@@ -3,7 +3,10 @@
     <label for="speechSynthesisSwitch">语音合成</label>
   </div>
   <div class="col-span-8 text-left">
-    <AdvCheckbox :check="settings.speech.options.enable" @click="settings.speech.toggleStatus" />
+    <AdvCheckbox
+      :check="settings.speech.options.enable"
+      @click="settings.speech.toggleStatus"
+    />
   </div>
 
   <template v-if="settings.speech.options.enable">
@@ -11,7 +14,11 @@
       <label for="speechSynthesisLanguage">语言种类</label>
     </div>
     <div class="col-span-8 text-left">
-      <select v-model="settings.speech.options.language" class="adv-select" @change="speakTest">
+      <select
+        v-model="settings.speech.options.language"
+        class="adv-select"
+        @change="speakTest"
+      >
         <option
           v-for="voice in voiceOptions"
           :key="voice.lang"

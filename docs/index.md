@@ -5,18 +5,20 @@ heroImage: /favicon.svg
 heroText: <b class="font-black">ADV</b>.JS
 tagline: 面向未来与前端的 ADV 文字冒险游戏引擎
 
-actionText: 📖 Link Start →
-actionLink: /guide/
+startLink: /guide/
 
-altActionText: 🪀 Demo
+actionText: GitHub
+actionLink: https://github.com/YunYouJun/advjs
+
+altActionText: DEMO
 altActionLink: https://demo.advjs.org
 
 features:
-  - title: 简洁
+  - title: ✍️ 简洁
     details: 像写小说一样制作 ADV 游戏
-  - title: 跨平台
-    details: 随时随地开始你的冒险吧
-  - title: 灵活
+  - title: 💻 跨平台
+    details: 随时随地开始你的冒险
+  - title: 🎨 灵活
     details: 任意自定义你的 UI 主题
   # - title: 实时
   #   details: 实时解析运行你的剧本

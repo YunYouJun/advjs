@@ -2,6 +2,11 @@
 title: About
 ---
 
+<route lang="yaml">
+meta:
+  layout: text
+</route>
+
 <div class="text-center">
   <!-- You can use Vue components inside markdown -->
   <i-carbon-dicom-overlay class="text-4xl -mb-6 m-auto" />

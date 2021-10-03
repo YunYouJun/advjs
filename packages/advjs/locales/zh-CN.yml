@@ -12,3 +12,11 @@ intro:
   progress: 开发中，敬请期待
   hi: 愿能在未来的冒险中与你相遇
 not-found: 未找到页面
+
+# 开始菜单
+start-menu:
+  new-game: 开始游戏
+  load-game: 加载存档
+  settings: 设置
+  help: 帮助
+  quit: 退出

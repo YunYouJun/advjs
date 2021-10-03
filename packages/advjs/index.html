@@ -9,15 +9,19 @@
     <meta name="msapplication-TileColor" content="#00aba9" />
     <meta name="theme-color" content="#ffffff" />
     <title>Adv.js</title>
+
+    <!-- google font -->
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+
     <script>
-      (function () {
-        const prefersDark =
-          window.matchMedia &&
-          window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const setting = localStorage.getItem('vueuse-color-scheme') || 'auto';
-        if (setting === 'dark' || (prefersDark && setting !== 'light'))
-          document.documentElement.classList.toggle('dark', true);
-      })();
+      (function() {
+        const prefersDark
+    = window.matchMedia
+    && window.matchMedia('(prefers-color-scheme: dark)').matches
+  const setting = localStorage.getItem('vueuse-color-scheme') || 'auto'
+  if (setting === 'dark' || (prefersDark && setting !== 'light'))
+          document.documentElement.classList.toggle('dark', true)
+})()
     </script>
   </head>
   <body>
