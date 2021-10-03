@@ -18,7 +18,19 @@ const GuideSidebar: DefaultTheme.SideBarItem[] = [
   },
 ]
 
+const DevSidebar: DefaultTheme.SideBarItem[] = [
+  {
+    text: '📖 开发',
+    link: '/dev/',
+  },
+  {
+    text: '📖 开发规范',
+    link: '/dev/standard',
+  },
+]
+
 export const sidebar: DefaultTheme.Config['sidebar'] = {
   '/guide': GuideSidebar,
   '/design': DesignSidebar,
+  '/dev': DevSidebar,
 }

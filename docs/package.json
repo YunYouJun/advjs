@@ -19,6 +19,7 @@
     "esbuild-register": "^3.0.0",
     "unplugin-icons": "^0.11.3",
     "unplugin-vue-components": "^0.15.2",
+    "vite-plugin-pwa": "^0.11.2",
     "vite-plugin-windicss": "^1.4.4",
     "vitepress": "^0.19.2"
   }

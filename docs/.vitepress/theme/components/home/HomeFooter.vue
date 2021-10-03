@@ -5,7 +5,7 @@ const { frontmatter } = useData()
 </script>
 
 <template>
-  <footer v-if="frontmatter.footer" class="footer">
+  <footer v-if="frontmatter.footer" class="footer m-auto mt-10">
     <div class="container text">
       <a v-if="frontmatter.footer.license" href="https://github.com/YunYouJun/advjs/blob/main/LICENSE" target="_blank"><span>{{ frontmatter.footer.license }}</span></a>
       <span class="mx-2">Copyright © {{frontmatter.footer.since + ' - ' + new Date().getFullYear()}}</span>
@@ -16,7 +16,6 @@ const { frontmatter } = useData()
 
 <style scoped>
 .footer {
-  margin: 0 auto;
   max-width: 960px;
 }
 

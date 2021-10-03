@@ -1,7 +1,3 @@
-<script setup lang="ts">
-import HomeFeatures from 'vitepress/dist/client/theme-default/components/HomeFeatures.vue'
-</script>
-
 <template>
   <main class="home" aria-labelledby="main-title">
     <HomeHero />

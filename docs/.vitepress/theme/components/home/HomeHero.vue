@@ -29,10 +29,10 @@ const badgeUrl = computed(() => `https://img.shields.io/github/stars/${theme.val
       />
     </figure>
 
-    <h1 v-if="heroText" id="main-title" class="title" v-html="heroText"></h1>
+    <h1 v-if="heroText" id="main-title" class="title font-thin" v-html="heroText"></h1>
     <template v-if="tagline">
       <template v-if="typeof tagline === 'string'">
-        <p class="tagline">{{ tagline }}</p>
+        <p class="tagline gradient-text from-blue-600 to-red-500 bg-gradient-to-r font-light">{{ tagline }}</p>
       </template>
       <template v-else>
         <p v-for="line in tagline" class="tagline">{{line}}</p>
@@ -140,7 +140,7 @@ const badgeUrl = computed(() => `https://img.shields.io/github/stars/${theme.val
   font-weight: 500;
   color: var(--c-bg);
   background-color: var(--c-brand);
-  border: 2px solid var(--c-brand);
+  border: 1px solid var(--c-brand);
   transition: background-color 0.1s ease;
 }
 

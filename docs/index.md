@@ -2,10 +2,8 @@
 title: ADV.JS
 home: true
 heroImage: /favicon.svg
-heroText: <b>ADV</b>.JS
-tagline:
-  - 面向未来与前端的 ADV 文字冒险游戏引擎
-  - 像写小说一样制作 ADV
+heroText: <b class="font-black">ADV</b>.JS
+tagline: 面向未来与前端的 ADV 文字冒险游戏引擎
 
 actionText: 📖 Link Start →
 actionLink: /guide/
@@ -13,13 +11,13 @@ actionLink: /guide/
 altActionText: 🪀 Demo
 altActionLink: https://demo.advjs.org
 
-# features:
-#   - title: Element
-#     details: 基于 Element Plus 强大的变量系统
-#   - title: Theme
-#     details: 定制化的 Element 主题
-#   - title: Ink
-#     details: 一行引入 Element 极简风格
+features:
+  - title: 简洁
+    details: 像写小说一样制作 ADV 游戏
+  - title: 灵活
+    details: 任意自定义你的 UI 主题
+  - title: 实时
+    details: 实时解析运行你的剧本
 
 footer:
   license: MPL-2.0 Licensed
@@ -37,9 +35,10 @@ footer:
 
 开发中，敬请期待
 
-```bash
-# 🎮 初始化
-npm init advjs
-```
+<div class="text-2xl font-black">
+
+Thanks for all [Sponsors](https://sponsors.yunyoujun.cn).
+
+</div>
 
 </div>
