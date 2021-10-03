@@ -24,7 +24,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '~/': `${path.resolve(__dirname, 'src')}/`,
-      '@advjs/app/*': `${path.resolve(__dirname, 'client/app')}/`,
+      '@advjs/client': `${path.resolve(__dirname, 'client')}/`,
       '@advjs/': `${path.resolve(__dirname, '..')}/`,
     },
   },
@@ -158,7 +158,7 @@ export default defineConfig({
   },
 
   optimizeDeps: {
-    include: ['vue', 'vue-router', '@vueuse/core'],
+    include: ['vue', 'vue-router', '@vueuse/core', '@vueuse/head'],
     exclude: ['vue-demi'],
   },
 

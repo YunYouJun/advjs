@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production vite-ssg build",
-    "dev": "vite",
+    "dev": "vite --host",
     "prepublishOnly": "npm run build",
     "preview": "vite preview",
     "preview-https": "serve dist",
