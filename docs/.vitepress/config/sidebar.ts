@@ -9,6 +9,10 @@ const DesignSidebar: DefaultTheme.SideBarItem[] = [
     text: '存储系统',
     link: '/design/storage',
   },
+  {
+    text: '国际化',
+    link: '/design/i18n',
+  },
 ]
 
 const GuideSidebar: DefaultTheme.SideBarItem[] = [
