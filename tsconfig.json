@@ -13,6 +13,7 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "paths": {
+      "@advjs/client/*": ["packages/advjs/client/*"],
       "@advjs/parser": ["packages/parser/*"],
       "@advjs/shared": ["packages/shared/*"]
     }

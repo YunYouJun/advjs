@@ -31,10 +31,30 @@ const DevSidebar: DefaultTheme.SideBarItem[] = [
     text: '📖 开发规范',
     link: '/dev/standard',
   },
+  {
+    text: '❓ FAQ',
+    link: '/dev/faq',
+  },
+  {
+    text: '🔍 参考',
+    link: '/dev/ref',
+  },
+]
+
+const ContributingSidebar: DefaultTheme.SideBarItem[] = [
+  {
+    text: '❤️ 参与贡献',
+    link: '/contributing/',
+  },
+  {
+    text: '✍️ 文档写作指南',
+    link: '/contributing/writing-guide',
+  },
 ]
 
 export const sidebar: DefaultTheme.Config['sidebar'] = {
   '/guide': GuideSidebar,
   '/design': DesignSidebar,
   '/dev': DevSidebar,
+  '/contributing': ContributingSidebar,
 }

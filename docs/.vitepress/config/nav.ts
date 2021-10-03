@@ -10,6 +10,10 @@ export const nav: DefaultTheme.NavItem[] = [
         text: '💻 开发',
         link: '/dev/',
       },
+      {
+        text: '✍️ 贡献',
+        link: '/contributing/',
+      },
     ],
   },
 ]

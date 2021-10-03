@@ -17,11 +17,14 @@ import LinkAttributes from 'markdown-it-link-attributes'
 
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
 
+// const defaultThemeFolder = path.resolve(__dirname, './client/theme-default/')
+
 // https://vitejs.dev/config/
 export default defineConfig({
   resolve: {
     alias: {
       '~/': `${path.resolve(__dirname, 'src')}/`,
+      '@advjs/app/*': `${path.resolve(__dirname, 'client/app')}/`,
       '@advjs/': `${path.resolve(__dirname, '..')}/`,
     },
   },
@@ -36,7 +39,9 @@ export default defineConfig({
     }),
 
     // https://github.com/JohnCampionJr/vite-plugin-vue-layouts
-    Layouts(),
+    Layouts({
+      layoutsDir: './client/theme-default/layouts',
+    }),
 
     // https://github.com/antfu/unplugin-auto-import
     AutoImport({

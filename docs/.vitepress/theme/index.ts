@@ -8,6 +8,8 @@ import 'vitepress/dist/client/theme-default/styles/code.css'
 import 'vitepress/dist/client/theme-default/styles/custom-blocks.css'
 import 'vitepress/dist/client/theme-default/styles/sidebar-links.css'
 
+// custom
+import './styles/vitepress/index.scss'
 import './styles/vars.scss'
 import './styles/index.scss'
 

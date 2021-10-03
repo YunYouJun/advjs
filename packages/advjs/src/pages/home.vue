@@ -5,5 +5,5 @@
 
 <route lang="yaml">
 meta:
-  layout: start
+  layout: home
 </route>

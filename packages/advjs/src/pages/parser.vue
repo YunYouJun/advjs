@@ -7,7 +7,7 @@
       <span class="zi-tag success">{{ pkg.version }}</span>
     </h1>
   </header>
-  <GithubCorner />
+  <!-- <github-corners></github-corners> -->
   <ParsePreview />
 </template>
 

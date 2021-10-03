@@ -21,12 +21,13 @@
       <i-ri-github-line />
     </a>
 
-    <GithubCorner :url="pkg.repository.url" />
+    <!-- wc-github-corners -->
+    <!-- <github-corners color="#151513" :repo="pkg.repository.url"></github-corners> -->
   </nav>
 </template>
 
 <script setup lang="ts">
-import * as pkg from '~/../package.json'
+// import * as pkg from '~/../package.json'
 import { isDark, toggleDark } from '~/logic'
 
 const { t, availableLocales, locale } = useI18n()

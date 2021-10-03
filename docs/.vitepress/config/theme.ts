@@ -16,7 +16,9 @@ const themeConfig: DefaultTheme.Config = {
   docsRepo: 'YunYouJun/advjs',
 
   editLinks: true,
-  editLinkText: '✍️ Suggest changes to this page',
+  editLinkText: '✍️ 帮助改善此页面',
+  lastUpdated: '🕙 上次更新',
+
   nav,
   sidebar,
 }
