@@ -1,5 +1,5 @@
 <template>
-  <div class="adv-game w-screen h-screen bg-black" :style="advGameStyle">
+  <div class="adv-game w-full h-full bg-black" :style="advGameStyle">
     <BaseLayer v-show="!app.showUi" />
     <TachieBox :characters="characters" />
     <DialogBox v-show="app.showUi" :dialog="dialog" @click="nextDialog" />
@@ -100,10 +100,6 @@ function updateTachieStatus(character?: Character) {
   })
 }
 </script>
-
-<style lang="scss">
-@import '~/styles/adv.scss';
-</style>
 
 <route lang="yaml">
 meta:

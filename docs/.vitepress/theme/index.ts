@@ -20,8 +20,9 @@ import 'virtual:windi-devtools'
 
 import { Theme } from 'vitepress'
 // import Layout from 'vitepress/dist/client/theme-default/Layout.vue'
-import NotFound from 'vitepress/dist/client/theme-default/NotFound.vue'
+// import NotFound from 'vitepress/dist/client/theme-default/NotFound.vue'
 import Layout from './Layout.vue'
+import NotFound from './NotFound.vue'
 
 if (typeof window !== 'undefined') import('./modules/pwa')
 

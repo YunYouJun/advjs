@@ -1,10 +1,7 @@
 <template>
-  <div
-    class="adv-icon-button hide-ui-button"
-    @click="app.toggleUi"
-  >
-    <AdvIcon><i-ri-eye-close-line /></AdvIcon>
-  </div>
+  <AdvIconButton class="hide-ui-button" @click="app.toggleUi">
+    <i-ri-eye-close-line />
+  </AdvIconButton>
 </template>
 
 <script setup lang="ts">

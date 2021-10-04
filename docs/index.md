@@ -2,7 +2,7 @@
 title: ADV.JS
 home: true
 heroImage: /favicon.svg
-heroText: <b class="font-black">ADV</b>.JS
+# heroText: <b class="font-black">ADV</b>.JS
 tagline: 面向未来与前端的 ADV 文字冒险游戏引擎
 
 startLink: /guide/

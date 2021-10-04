@@ -13,3 +13,11 @@ advjs 将会内置默认主题 `@advjs/theme-defaults`。
 ## 适配
 
 等比例 Fit 高/宽，居中。
+
+```html
+<AdvContainer></AdvContainer>
+```
+
+## 复杂动画
+
+- [pixijs](https://github.com/pixijs/pixijs)

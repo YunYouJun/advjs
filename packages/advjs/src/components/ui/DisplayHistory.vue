@@ -1,10 +1,7 @@
 <template>
-  <div
-    class="adv-icon-button display-history-button"
-    @click="app.toggleHistory"
-  >
-    <AdvIcon><i-ri-message-2-line /></AdvIcon>
-  </div>
+  <AdvIconButton class="display-history-button" @click="app.toggleHistory">
+    <i-ri-message-2-line />
+  </AdvIconButton>
 </template>
 
 <script setup lang="ts">

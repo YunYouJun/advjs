@@ -1,5 +1,5 @@
 <template>
-  <div class="dialog-box w-screen h-64 fixed bottom-0 grid grid-cols-12 gap-16">
+  <div class="dialog-box grid grid-cols-12 gap-16">
     <div class="dialog-name col-span-3 text-right">
       {{ dialog.name }}
     </div>
@@ -38,6 +38,14 @@ watch(
 
 <style lang="scss">
 .dialog-box {
+  width: 100%;
+  height: 40%;
+
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
   background-image: linear-gradient(
     rgba(0, 0, 0, 0) 0%,
     rgba(0, 0, 0, 0.9) 30%,

@@ -1,14 +1,17 @@
 <template>
   <!-- 启动界面 -->
-  <main
-    class="page-start w-full h-screen text-gray-900 dark:text-gray-200"
-    :style="pageStartStyles"
-  >
-    <router-view />
-  </main>
+  <AdvContainer class="w-full h-full">
+    <main
+      class="page-start w-full h-full text-gray-900 dark:text-gray-200"
+      :style="pageStartStyles"
+    >
+      <router-view />
+    </main>
+  </AdvContainer>
 </template>
 
 <script setup lang="ts">
+import AdvContainer from '~/client/app/components/internals/AdvContainer.vue'
 const pageStartStyles = computed(() => {
   return {
     backgroundPosition: 'center',

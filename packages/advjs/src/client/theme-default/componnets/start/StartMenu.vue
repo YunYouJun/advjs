@@ -6,7 +6,7 @@
     <button @click="screenLock">
       Go Fullscreen
     </button> -->
-    <ul class="start-menu flex flex-col items-end absolute bottom-40 right-40">
+    <ul class="start-menu flex flex-col items-end absolute">
       <li
         v-for="(item, i) in menuItems"
         :key="i"
@@ -71,10 +71,11 @@ const menuItems: StartMenuItem[] = [
 
 <style lang="scss">
 @use 'sass:map';
-@use '~/styles/theme-default/var.scss' as *;
-
 .start-menu {
-  font-size: 3rem;
+  font-size: 2.5rem;
+
+  right: 4rem;
+  bottom: 3rem;
 }
 
 .start-menu-item {

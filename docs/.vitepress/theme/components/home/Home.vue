@@ -1,6 +1,14 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useParallax } from '@vueuse/core'
+
+const target = ref(null)
+const parallax = useParallax(target)
+</script>
+
 <template>
-  <main class="home" aria-labelledby="main-title">
-    <HomeHero />
+  <main ref="target" class="home" aria-labelledby="main-title">
+    <HomeHero :parallax="parallax" />
     <slot name="hero" />
     <HomeFeatures />
     <div class="home-content">

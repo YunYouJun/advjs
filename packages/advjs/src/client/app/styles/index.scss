@@ -5,3 +5,8 @@ button {
     outline: none;
   }
 }
+
+// avoid img events
+img {
+  pointer-events: none;
+}

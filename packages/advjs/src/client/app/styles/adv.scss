@@ -1,15 +1,18 @@
-.adv-game {
-  color: white;
-}
-
-.adv-input-checkbox {
-  &:checked {
-    display: block;
-    content: '\2714';
-    text-align: center;
+.adv {
+  &-game {
     color: white;
   }
+
+  &-input-checkbox {
+    &:checked {
+      display: block;
+      content: '\2714';
+      text-align: center;
+      color: white;
+    }
+  }
 }
+
 .adv-select {
   background-color: transparent;
   font-size: 2rem;
@@ -17,15 +20,7 @@
   outline: none;
 }
 
-.adv-icon-button {
-  display: inline-block;
-  border-radius: 50%;
-  padding: 0.6rem;
-  cursor: pointer;
-  &:hover {
-    background: rgba(255, 255, 255, 0.1);
-  }
-}
+
 
 $adv-font-serif: 'Songti SC', 'Noto Serif SC', STZhongsong, STKaiti, KaiTi,
 Roboto, serif;

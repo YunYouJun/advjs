@@ -1,5 +1,5 @@
 <template>
-  <span class="text-5xl">
+  <span class="text-3xl inline-flex">
     <slot></slot>
   </span>
 </template>

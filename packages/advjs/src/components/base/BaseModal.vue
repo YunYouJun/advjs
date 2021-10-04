@@ -2,12 +2,9 @@
   <transition name="modal">
     <div class="modal-mask">
       <div class="modal-container">
-        <button
-          class="adv-icon-button modal-close-button"
-          @click="$emit('close')"
-        >
-          <AdvIcon><i-ri-close-line /></AdvIcon>
-        </button>
+        <AdvIconButton class="modal-close-button" @click="$emit('close')">
+          <i-ri-close-line />
+        </AdvIconButton>
         <div class="modal-body">
           <slot name="body"></slot>
         </div>
