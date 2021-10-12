@@ -1,3 +1,6 @@
+// useSpeechSynthesis
+// https://github.com/vueuse/vueuse/pull/837
+
 /**
  * 语音合成
  * @param text

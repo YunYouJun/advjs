@@ -20,3 +20,8 @@ start-menu:
   settings: 设置
   help: 帮助
   quit: 退出
+
+# settings
+settings:
+  title: 设置
+  fullscreen: 是否全屏

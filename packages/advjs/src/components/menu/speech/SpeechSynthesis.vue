@@ -4,8 +4,8 @@
   </div>
   <div class="col-span-8 text-left">
     <AdvCheckbox
-      :check="settings.speech.options.enable"
-      @click="settings.speech.toggleStatus"
+      v-model="settings.speech.options.enable"
+      @update:modelValue="settings.speech.toggleStatus"
     />
   </div>
 
@@ -14,16 +14,8 @@
       <label for="speechSynthesisLanguage">语言种类</label>
     </div>
     <div class="col-span-8 text-left">
-      <select
-        v-model="settings.speech.options.language"
-        class="adv-select"
-        @change="speakTest"
-      >
-        <option
-          v-for="voice in voiceOptions"
-          :key="voice.lang"
-          :value="voice.lang"
-        >
+      <select v-model="settings.speech.options.language" class="adv-select" @change="speakTest">
+        <option v-for="voice in voiceOptions" :key="voice.lang" :value="voice.lang">
           {{ voice.name }}
         </option>
       </select>

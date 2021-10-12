@@ -18,3 +18,7 @@ start-menu:
   settings: Settings
   help: Help
   quit: Quit
+
+settings:
+  title: Settings
+  fullscreen: Full Screen

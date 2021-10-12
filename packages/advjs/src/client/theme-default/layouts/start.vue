@@ -11,7 +11,6 @@
 </template>
 
 <script setup lang="ts">
-import AdvContainer from '~/client/app/components/internals/AdvContainer.vue'
 const pageStartStyles = computed(() => {
   return {
     backgroundPosition: 'center',
