@@ -2,6 +2,14 @@
 title: 帮助
 ---
 
+<router-link to="/">
+  <AdvIconButton class="absolute left-5 top-5 cursor-pointer" @click="">
+    <AdvIcon >
+      <i-ri-arrow-left-line />
+    </AdvIcon>
+  </AdvIconButton>
+</router-link>
+
 <route lang="yaml">
 meta:
   layout: text

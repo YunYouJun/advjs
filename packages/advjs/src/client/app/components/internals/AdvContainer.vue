@@ -63,7 +63,7 @@ const className = computed(() => ({
 #adv-container {
   @apply relative overflow-hidden;
 
-  background: var(--adv-container-bg, rgba(0, 0, 0, 0.9));
+  background: var(--adv-container-bg, var(--adv-bg-color));
 }
 
 #adv-content {

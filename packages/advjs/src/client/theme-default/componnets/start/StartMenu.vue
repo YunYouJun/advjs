@@ -1,16 +1,10 @@
 <template>
   <div>
-    <!-- <button @click="settings.toggleFullScreen">
-      Go Fullscreen
-    </button>
-    <button @click="screenLock">
-      Go Fullscreen
-    </button> -->
     <ul class="start-menu flex flex-col items-end absolute">
       <li
         v-for="(item, i) in menuItems"
         :key="i"
-        class="start-menu-item adv-font-serif transition scale-50"
+        class="start-menu-item font-serif transition scale-50"
         @click="item.do"
       >
         {{ item.title }}
@@ -20,13 +14,6 @@
 </template>
 
 <script setup lang="ts">
-// import { useSettingsStore } from '~/stores/settings'
-// const settings = useSettingsStore()
-
-// const screenLock = async() => {
-//   await screen.orientation.lock('landscape').catch(e => alert(e.message))
-// }
-
 const { t } = useI18n()
 const router = useRouter()
 
@@ -72,27 +59,28 @@ const menuItems: StartMenuItem[] = [
 <style lang="scss">
 @use 'sass:map';
 .start-menu {
-  font-size: 2.5rem;
+  font-size: 2rem;
 
-  right: 4rem;
+  right: 3rem;
   bottom: 3rem;
 }
 
 .start-menu-item {
   cursor: pointer;
-  color: white;
-  font-weight: bold;
-  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.8);
+  font-weight: 900;
+  background-color: rgba(255, 255, 255, 0.1);
+  line-height: 1;
+
+  margin: 0.5rem;
+  padding: 0.5rem 1.25rem;
+
+  transition: all 0.2s;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
 
   &:hover {
-    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-    background-size: 100%;
-    background-clip: text;
-    -webkit-background-clip: text;
-    -moz-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    -moz-text-fill-color: transparent;
-    @apply transition transform scale-110 -translate-x-2 from-blue-500 to-green-500 bg-gradient-to-r;
+    color: white;
+    box-shadow: 5px 5px 24px rgba(0, 0, 0, 0.3);
+    background-color: rgba(0, 0, 0, 0.9);
   }
 }
 </style>

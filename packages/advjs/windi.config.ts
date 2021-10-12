@@ -1,6 +1,7 @@
 import { defineConfig } from 'windicss/helpers'
 import colors from 'windicss/colors'
 import typography from 'windicss/plugin/typography'
+import animations from '@windicss/plugin-animations'
 
 export default defineConfig({
   darkMode: 'class',
@@ -11,7 +12,22 @@ export default defineConfig({
     include: ['**/*.md', 'client/**/*.{md,vue}', 'src/**/*.{md,vue}'],
   },
 
-  plugins: [typography()],
+  plugins: [
+    typography(),
+    animations({
+      settings: {
+        animatedSpeed: 1000,
+        heartBeatSpeed: 1000,
+        hingeSpeed: 2000,
+        bounceInSpeed: 750,
+        bounceOutSpeed: 750,
+        animationDelaySpeed: 1000,
+      },
+    })],
+
+  shortcuts: {
+    'bg-main': 'bg-white text-[#181818] dark:(bg-[#121212] text-[#ddd])',
+  },
 
   theme: {
     extend: {

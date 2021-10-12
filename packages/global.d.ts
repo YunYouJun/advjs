@@ -5,3 +5,5 @@ declare module '*.vue' {
 }
 
 declare let Prism: any
+
+declare module '@windicss/plugin-animations'

@@ -1,6 +1,6 @@
 <template>
-  <!-- 启动界面 -->
-  <AdvContainer class="w-full h-full">
+  <!-- 开始菜单 -->
+  <AdvContainer class="w-full h-full animate-slow animate-fadeIn">
     <main
       class="page-start w-full h-full text-gray-900 dark:text-gray-200"
       :style="pageStartStyles"
