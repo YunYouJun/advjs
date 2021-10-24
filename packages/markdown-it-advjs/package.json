@@ -1,0 +1,24 @@
+{
+  "name": "markdown-it-advjs",
+  "version": "0.0.1",
+  "description": "A parser based on markdown-it for advjs.",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "esno src/index.ts"
+  },
+  "dependencies": {
+    "markdown-it": "^12.0.6",
+    "markdown-it-table-of-contents": "^0.5.2"
+  },
+  "author": {
+    "name": "YunYouJun",
+    "email": "me@yunyoujun.cn",
+    "url": "https://www.yunyoujun.cn"
+  },
+  "license": "MPL-2.0",
+  "homepage": "https://github.com/YunYouJun/advjs/tree/main/packages/markdown-it-advjs",
+  "devDependencies": {
+    "@types/markdown-it": "^12.0.1",
+    "@types/node": "^15.0.1"
+  }
+}

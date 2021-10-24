@@ -15,13 +15,12 @@
   "license": "ISC",
   "homepage": "https://docs.advjs.org",
   "devDependencies": {
-    "@iconify/json": "^1.1.409",
-    "@vueuse/core": "^6.4.1",
-    "esbuild-register": "^3.0.0",
-    "unplugin-icons": "^0.12.7",
-    "unplugin-vue-components": "^0.15.6",
+    "@iconify/json": "^1.1.417",
+    "@vueuse/core": "^6.7.3",
+    "unplugin-icons": "^0.12.16",
+    "unplugin-vue-components": "^0.16.0",
     "vite-plugin-pwa": "^0.11.3",
-    "vite-plugin-windicss": "^1.4.9",
-    "vitepress": "^0.19.2"
+    "vite-plugin-windicss": "^1.4.12",
+    "vitepress": "^0.20.0"
   }
 }

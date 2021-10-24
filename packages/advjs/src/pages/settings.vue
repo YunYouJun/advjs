@@ -1,5 +1,5 @@
 <template>
-  <router-link to="/">
+  <router-link to="/start">
     <AdvIconButton class="absolute left-5 top-5 cursor-pointer">
       <AdvIcon>
         <i-ri-arrow-left-line />
