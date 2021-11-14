@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import VueAboutMe from 'vue-about-me'
 import pkg from '~/../package.json'
-import { isDark } from '~/logic'
+import { isDark } from '~/composables'
 
 import 'vue-about-me/style.css'
 

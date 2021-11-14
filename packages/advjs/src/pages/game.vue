@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
-import marked from 'marked'
+import { lexer } from 'marked'
 import { parse } from '@advjs/parser'
 import { AdvItem, Character, Line } from '@advjs/parser/Serialize'
 

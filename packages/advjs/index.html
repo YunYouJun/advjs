@@ -1,31 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="/pwa-192x192.png" />
-    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#00aba9" />
-    <meta name="msapplication-TileColor" content="#00aba9" />
-    <meta name="theme-color" content="#ffffff" />
-    <title>Adv.js</title>
 
-    <!-- google font -->
-    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/pwa-192x192.png" />
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#00aba9" />
+  <meta name="msapplication-TileColor" content="#00aba9" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>Adv.js</title>
 
-    <script>
-      (function() {
-        const prefersDark
-    = window.matchMedia
-    && window.matchMedia('(prefers-color-scheme: dark)').matches
-  const setting = localStorage.getItem('vueuse-color-scheme') || 'auto'
-  if (setting === 'dark' || (prefersDark && setting !== 'light'))
-          document.documentElement.classList.toggle('dark', true)
-})()
-    </script>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+  <!-- google font -->
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+
+  <script>
+    (function () {
+      const prefersDark
+        = window.matchMedia
+        && window.matchMedia('(prefers-color-scheme: dark)').matches
+      const setting = localStorage.getItem('vueuse-color-scheme') || 'auto'
+      if (setting === 'dark' || (prefersDark && setting !== 'light'))
+        document.documentElement.classList.toggle('dark', true)
+    })()
+  </script>
+
+  <script type="module" src="https://cdn.jsdelivr.net/npm/wc-github-corners@latest"></script>
+</head>
+
+<body>
+  <div id="app"></div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
 </html>

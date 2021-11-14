@@ -1,3 +1,4 @@
 workspace:
   - packages/*
   - docs
+  - packages/unplugin-adv/playground

@@ -1,10 +1,14 @@
 <template>
-  <nav class="text-xl my-5">
+  <nav class="text-xl pt-4">
     <router-link class="icon-btn mx-2" to="/" :title="t('button.home')">
       <i-ri-home-2-line />
     </router-link>
 
-    <button class="icon-btn mx-2 !outline-none" :title="t('button.toggle_dark')" @click="toggleDark()">
+    <button
+      class="icon-btn mx-2 !outline-none"
+      :title="t('button.toggle_dark')"
+      @click="toggleDark()"
+    >
       <i-ri-moon-line v-if="isDark" />
       <i-ri-sun-line v-else />
     </button>
@@ -13,11 +17,22 @@
       <i-ri-translate-2 />
     </a>
 
-    <a class="icon-btn mx-2" href="https://www.yunyoujun.cn/posts/make-an-avg-engine/" target="_blank" :title="t('button.about')">
+    <a
+      class="icon-btn mx-2"
+      href="https://www.yunyoujun.cn/posts/make-an-avg-engine/"
+      target="_blank"
+      :title="t('button.about')"
+    >
       <i-carbon-dicom-overlay />
     </a>
 
-    <a class="icon-btn mx-2" rel="noreferrer" href="https://github.com/YunYouJun/advjs" target="_blank" title="GitHub">
+    <a
+      class="icon-btn mx-2"
+      rel="noreferrer"
+      href="https://github.com/YunYouJun/advjs"
+      target="_blank"
+      title="GitHub"
+    >
       <i-ri-github-line />
     </a>
 
@@ -28,7 +43,7 @@
 
 <script setup lang="ts">
 // import * as pkg from '~/../package.json'
-import { isDark, toggleDark } from '~/logic'
+import { isDark, toggleDark } from '~/composables'
 
 const { t, availableLocales, locale } = useI18n()
 

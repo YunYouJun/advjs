@@ -12,8 +12,11 @@ import WindiCSS from 'vite-plugin-windicss'
 import { VitePWA } from 'vite-plugin-pwa'
 import VueI18n from '@intlify/vite-plugin-vue-i18n'
 import Inspect from 'vite-plugin-inspect'
+
 import Prism from 'markdown-it-prism'
 import LinkAttributes from 'markdown-it-link-attributes'
+
+import Adv from '../unplugin-adv/src/vite'
 
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
 
@@ -31,6 +34,13 @@ export default defineConfig({
   plugins: [
     Vue({
       include: [/\.vue$/, /\.md$/],
+      template: {
+        compilerOptions: {
+          isCustomElement: (tag) => {
+            return ['github-corners'].includes(tag)
+          },
+        },
+      },
     }),
 
     // https://github.com/hannoeru/vite-plugin-pages
@@ -60,7 +70,7 @@ export default defineConfig({
       dirs: [
         'src/components',
         'src/client/app/components',
-        'src/client/theme-default/componnets',
+        'src/client/theme-default/components',
       ],
       // allow auto load markdown components under `./src/components/`
       extensions: ['vue', 'md'],
@@ -82,7 +92,9 @@ export default defineConfig({
     }),
 
     // https://github.com/antfu/unplugin-icons
-    Icons(),
+    Icons({
+      autoInstall: true,
+    }),
 
     // https://github.com/antfu/vite-plugin-windicss
     WindiCSS({
@@ -148,6 +160,8 @@ export default defineConfig({
       // change this to enable inspect for debugging
       enabled: false,
     }),
+
+    Adv(),
   ],
 
   server: {
@@ -181,4 +195,5 @@ export default defineConfig({
   //     },
   //   },
   // },
+
 })
