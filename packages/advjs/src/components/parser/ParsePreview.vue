@@ -1,10 +1,17 @@
 <template>
   <div class="containers flex" grid="~ cols-2 gap-1">
     <div class="container flex flex-col" p="1">
-      <div class="toolbar flex justify-between" m="b-2">
+      <div class="toolbar flex justify-between items-center" m="b-2">
         <button id="permalink" class="btn" text="sm">
-          Permalink
+          {{ t('parser.permalink') }}
         </button>
+        <span class="text-sm shadow flex justify-center items-center" p="x-2 y-1">
+          <span class="inline-flex">
+            <i-ri-loader-line v-if="loading" class="animate-spin" />
+            <i-ri-check-line v-else text="green-500" class="cursor-pointer" @click="fetchMarkdown" />
+          </span>
+          <span class="inline-flex" text="gray-500" m="l-2">{{ mdPath }}</span>
+        </span>
         <button
           id="clear"
           class="btn"
@@ -12,7 +19,7 @@
           text="sm"
           @click="inputText = ''"
         >
-          Clear
+          {{ t('parser.clear') }}
         </button>
       </div>
 
@@ -41,7 +48,7 @@
           class="shadow"
           text="sm"
           p="x-2 y-1"
-        >Response Time: {{ delayTime }} ms</span>
+        >{{ t('parser.response_time') }}: {{ delayTime }} ms</span>
 
         <select
           id="outputType"
@@ -59,19 +66,25 @@
         </select>
       </div>
 
-      <div id="outputContent" class="border rounded" text="left" h="full" v-html="outputContent"></div>
+      <div id="outputContent" class="border rounded overflow-auto" text="left" h="full">
+        <div v-show="outputType === 'html'" class="prose p-4" v-html="outputContent"></div>
+        <MonacoEditor v-show="outputType === 'markdown-it'" :content="tokens" />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import MarkdownIt from 'markdown-it'
+
+const { t } = useI18n()
+const md = new MarkdownIt()
+
 // import marked from 'marked'
-// import Prism from 'prismjs'
-// import 'prismjs/components/prism-json'
 // import * as advParser from '@advjs/parser'
 // use markdown-it-adv replace
 
-export type OutputType = 'adv' | 'html' | 'marked'
+export type OutputType = 'adv' | 'html' | 'markdown-it'
 
 const parserItems = [
   {
@@ -83,65 +96,66 @@ const parserItems = [
     value: 'html',
   },
   {
-    name: 'marked',
-    value: 'marked',
-  },
-  {
     name: 'markdown-it',
     value: 'markdown-it',
   },
 ]
 
-// const path = ref('/md/test.adv.md')
-// // loading status
-// const loading = ref(true)
+const mdPath = ref('/md/test.adv.md')
+// loading status
+const loading = ref(true)
 
 // 是否正在输入中文
 const isInputZh = ref(false)
 // 输出类型
-const outputType = ref<OutputType>('adv')
+const outputType = ref<OutputType>('markdown-it')
 
 // 输入的 markdown 文本
 const inputText = ref('')
+
 const delayTime = ref(0)
 const highlightAdv = ref('')
 const highlightLexer = ref('')
 const html = ref('')
+const tokens = ref<any[]>([])
 
 // 输出的内容
 const outputContent = ref('')
 const noPadding = ref(true)
 
-// onMounted(async () => {
-//   const markdown = await getTestMarkdown(path.value)
-//   if (markdown) {
-//     loading.value = false
-//     handleInputText(markdown)
-//   }
-// })
+async function fetchMarkdown() {
+  loading.value = true
+  const text = await fetch(mdPath.value)
+    .then((res) => {
+      return res.text()
+    })
 
-// function getTestMarkdown(path: string) {
-//   return fetch(path)
-//     .then((res) => {
-//       return res.text()
-//     })
-//     .then((text) => {
-//       if (!inputText.value) inputText.value = text
+  if (!inputText.value) inputText.value = text
 
-//       return text
-//     })
-// }
+  if (text) {
+    loading.value = false
+    handleInputText(text)
+  }
+}
 
+onMounted(async() => {
+  fetchMarkdown()
+})
+
+/**
+ * 处理输入文本
+ */
 function handleInputText(markdown: string) {
   // 中文输入法时不获取值，输入完再执行
   if (isInputZh.value) return
 
   const startTime = new Date().valueOf()
-  const lexed = marked.lexer(markdown)
+  // const lexed = marked.lexer(markdown)
 
-  highlightLexer.value = highlight(lexed)
-  highlightAdv.value = highlight(advParser.parse(lexed))
-  html.value = marked.parse(markdown)
+  // highlightLexer.value = highlight(lexed)
+  // highlightAdv.value = highlight(advParser.parse(lexed))
+  html.value = md.render(markdown)
+  tokens.value = md.parse(markdown, {})
 
   setOutputContent(outputType.value)
 
@@ -150,15 +164,9 @@ function handleInputText(markdown: string) {
   return delayTime.value
 }
 
-// function highlight(json: any) {
-//   const highlightCode = Prism.highlight(
-//     JSON.stringify(json, null, 2),
-//     Prism.languages.json,
-//     'json',
-//   )
-//   return `<pre class="language-json"><code>${highlightCode}</code></pre>`
-// }
-
+/**
+ * 设置输出内容
+ */
 function setOutputContent(type: OutputType) {
   switch (type) {
     case 'adv':
@@ -169,7 +177,7 @@ function setOutputContent(type: OutputType) {
       outputContent.value = html.value
       noPadding.value = false
       break
-    case 'marked':
+    case 'markdown-it':
       outputContent.value = highlightLexer.value
       noPadding.value = true
       break
@@ -182,11 +190,12 @@ function setOutputContent(type: OutputType) {
 <style>
 /* for demo html */
 pre {
-  overflow: scroll;
+  overflow: auto;
+  white-space: pre-wrap;
 }
 
 /* for layout */
-.containers {
+.container {
   height: calc(100vh - 100px);
 }
 

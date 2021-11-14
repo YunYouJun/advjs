@@ -22,3 +22,8 @@ start-menu:
 settings:
   title: Settings
   fullscreen: Full Screen
+
+parser:
+  permalink: Permalink
+  clear: Clear
+  response_time: Response Time

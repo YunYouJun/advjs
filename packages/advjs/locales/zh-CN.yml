@@ -25,3 +25,8 @@ start-menu:
 settings:
   title: 设置
   fullscreen: 是否全屏
+
+parser:
+  permalink: 永久链接
+  clear: 清除
+  response_time: 响应时间

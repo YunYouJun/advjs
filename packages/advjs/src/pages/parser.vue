@@ -3,16 +3,17 @@
     <h1 class="text-center">
       Demo for
       <a font="black" hover="underline" :href="pkg.homepage" target="_blank">{{ pkg.name }}</a>
-      <span
-        class="border rounded shadow"
+      <a
+        class="border rounded shadow text-white text-xs"
         bg="gray-800"
-        text="white xs"
         m="l-2"
         p="x-2 y-1"
-      >v{{ pkg.version }}</span>
+        href="https://www.npmjs.com/package/@advjs/parser"
+        target="_blank"
+      >v{{ pkg.version }}</a>
     </h1>
   </header>
-  <github-corners></github-corners>
+  <github-corners repo="YunYouJun/advjs/tree/main/packages/parser" blank></github-corners>
   <ParsePreview />
 </template>
 

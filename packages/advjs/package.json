@@ -9,6 +9,7 @@
   "scripts": {
     "build": "cross-env NODE_ENV=production vite-ssg build",
     "dev": "vite --host",
+    "dev:parser": "vite --open /parser",
     "prepublishOnly": "npm run build",
     "preview": "vite preview",
     "preview-https": "serve dist",
@@ -32,6 +33,7 @@
   "devDependencies": {
     "@iconify-json/ri": "^1.0.1",
     "@intlify/vite-plugin-vue-i18n": "^3.1.0",
+    "@types/escape-html": "^1.0.1",
     "@types/markdown-it-link-attributes": "^3.0.1",
     "@types/marked": "^4.0.0",
     "@types/node": "^16.11.7",
@@ -43,6 +45,7 @@
     "@windicss/plugin-animations": "^1.0.9",
     "critters": "^0.0.14",
     "cross-env": "^7.0.3",
+    "escape-html": "^1.0.3",
     "https-localhost": "^4.7.0",
     "markdown-it-link-attributes": "^3.0.0",
     "markdown-it-prism": "^2.2.1",

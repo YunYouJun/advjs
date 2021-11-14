@@ -27,7 +27,8 @@
     "prepare": "husky install",
     "docs:dev": "pnpm -C docs dev",
     "docs:build": "pnpm -C docs build",
-    "docs:serve": "pnpm -C docs serve"
+    "docs:serve": "pnpm -C docs serve",
+    "dev:parser": "pnpm dev:parser -C packages/advjs"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^0.10.0",
