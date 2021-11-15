@@ -34,13 +34,6 @@ export default defineConfig({
   plugins: [
     Vue({
       include: [/\.vue$/, /\.md$/],
-      template: {
-        compilerOptions: {
-          isCustomElement: (tag) => {
-            return ['github-corners'].includes(tag)
-          },
-        },
-      },
     }),
 
     // https://github.com/hannoeru/vite-plugin-pages
@@ -186,14 +179,4 @@ export default defineConfig({
     ],
     exclude: ['vue-demi'],
   },
-
-  // build: {
-  //   rollupOptions: {
-  //     input: {
-  //       main: path.resolve(__dirname, 'index.html'),
-  //       parser: path.resolve(__dirname, '/parser/index.html'),
-  //     },
-  //   },
-  // },
-
 })

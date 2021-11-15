@@ -1,16 +1,16 @@
 import { getCurrentInstance, onMounted } from 'vue'
-import * as monaco from 'monaco-editor'
-/* __imports__ */
+import type * as m from 'monaco-editor'
+import { isDark } from '../composables'
+
+const sharedEditorOptions: m.editor.IStandaloneEditorConstructionOptions = {
+  theme: isDark.value ? 'vs-dark' : 'vs',
+  tabSize: 2,
+  fontSize: 14,
+  wordWrap: 'on',
+}
 
 const setup = async() => {
-  monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
-    ...monaco.languages.typescript.typescriptDefaults.getCompilerOptions(),
-    noUnusedLocals: false,
-    noUnusedParameters: false,
-    allowUnreachableCode: true,
-    allowUnusedLabels: true,
-    strict: true,
-  })
+  const monaco = await import('monaco-editor')
 
   await Promise.all([
     // load workers
@@ -49,8 +49,62 @@ const setup = async() => {
   if (getCurrentInstance())
     await new Promise<void>(resolve => onMounted(resolve))
 
+  // init editors
+
+  /**
+   * 输入编辑器 Markdown
+   * @param container
+   * @param options
+   */
+  function initInputEditor(
+    container: HTMLElement,
+    options?: m.editor.IStandaloneEditorConstructionOptions,
+  ) {
+    const editor = monaco.editor.create(container, {
+      language: 'markdown',
+      ...sharedEditorOptions,
+      ...options,
+    })
+
+    // add resize for editor
+    self.addEventListener('resize', () => {
+      editor.layout()
+    })
+    return editor
+  }
+
+  /**
+   * 输出编辑器 JSON Preview
+   * @param container
+   * @param options
+   */
+  function initOutputEditor(
+    container: HTMLElement,
+    options?: m.editor.IStandaloneEditorConstructionOptions,
+  ) {
+    const editor = monaco.editor.create(container, {
+      language: 'json',
+      readOnly: true,
+      ...sharedEditorOptions,
+      ...options,
+    })
+
+    // add resize for editor
+    self.addEventListener('resize', () => {
+      editor.layout()
+    })
+    return editor
+  }
+
+  watch(isDark, (val) => {
+    monaco.editor.setTheme(val ? 'vs-dark' : 'vs')
+  })
+
   return {
     monaco,
+
+    initInputEditor,
+    initOutputEditor,
   }
 }
 

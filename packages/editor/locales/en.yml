@@ -1,0 +1,12 @@
+button:
+  about: About
+  back: Back
+  go: GO
+  home: Home
+  toggle_dark: Toggle dark mode
+  toggle_langs: Change languages
+
+parser:
+  permalink: Permalink
+  clear: Clear
+  response_time: Response Time
