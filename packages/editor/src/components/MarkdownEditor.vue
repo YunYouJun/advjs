@@ -32,30 +32,13 @@
     h="full"
     text="left"
   ></div>
-  <!-- <textarea
-        id="inputMarkdown"
-        v-model="inputText"
-        class="border outline-none rounded bg-transparent focus:border-black"
-
-        @input="handleInputText(inputText)"
-        @compositionstart="isInputZh = true"
-        @compositionend="
-          () => {
-            isInputZh = false
-            handleInputText(inputText)
-          }
-        "
-  ></textarea>-->
 </template>
 
 <script lang="ts" setup>
 import type * as m from 'monaco-editor'
 import { isClient } from '@vueuse/core'
-import MarkdownIt from 'markdown-it'
 import setupMonaco from '../setup/monaco'
 import { useEditorStore } from '../stores/editor'
-
-const md = new MarkdownIt()
 
 const { t } = useI18n()
 
@@ -68,29 +51,6 @@ const loading = ref(true)
 const inputEditor = ref<HTMLElement | null>()
 let editor: m.editor.IStandaloneCodeEditor
 
-// 输出的内容
-const outputContent = ref('')
-const noPadding = ref(true)
-
-// 是否正在输入中文
-// const isInputZh = ref(false)
-
-/**
- * 处理输入文本
- */
-function handleInputText(markdown: string) {
-  const startTime = new Date().valueOf()
-
-  editorStore.parsedHtml = md.render(markdown)
-  editorStore.parsedTokens = md.parse(markdown, {})
-
-  // setOutputContent(outputType.value)
-
-  const endTime = new Date().valueOf()
-  editorStore.delayTime = endTime - startTime
-  return editorStore.delayTime
-}
-
 async function fetchMarkdown() {
   loading.value = true
 
@@ -99,13 +59,11 @@ async function fetchMarkdown() {
       return res.text()
     })
 
-  if (!editor.getValue())
+  if (!editor.getValue() && text)
     editor.setValue(text)
+    // editorStore.handleInputText(text)
 
   loading.value = false
-
-  if (text)
-    handleInputText(text)
 }
 
 /**
@@ -119,8 +77,13 @@ async function init() {
   const { initInputEditor } = await setupMonaco()
 
   nextTick(() => {
-    if (inputEditor.value)
+    if (inputEditor.value) {
       editor = initInputEditor(inputEditor.value)
+      editor.onDidChangeModelContent(() => {
+        const inputText = editor.getValue()
+        editorStore.setInputText(inputText)
+      })
+    }
 
     fetchMarkdown()
   })
@@ -128,5 +91,4 @@ async function init() {
 
 if (isClient)
   init()
-
 </script>

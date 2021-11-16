@@ -17,14 +17,9 @@
       <i-ri-translate-2 />
     </a>
 
-    <a
-      class="icon-btn mx-2"
-      href="https://www.yunyoujun.cn/posts/make-an-avg-engine/"
-      target="_blank"
-      :title="t('button.about')"
-    >
+    <router-link class="icon-btn mx-2" href to="/about" :title="t('button.about')">
       <i-carbon-dicom-overlay />
-    </a>
+    </router-link>
 
     <a
       class="icon-btn mx-2"

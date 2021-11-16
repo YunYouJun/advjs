@@ -24,3 +24,10 @@ body {
   --border: #333;
   overflow: hidden;
 }
+
+.icon-btn {
+  @apply inline-flex justify-center items-center cursor-pointer select-none
+    opacity-75 transition duration-200 ease-in-out
+    hover:opacity-100;
+  font-size: 0.9em;
+}

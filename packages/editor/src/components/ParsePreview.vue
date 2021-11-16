@@ -17,20 +17,19 @@
           : {{ editorStore.delayTime }} ms
         </span>
 
-        <select id="outputType" v-model="outputType" class="text-sm shadow bg-transparent">
-          <option
-            v-for="(parser, i) in parserItems"
-            :key="i"
-            :value="parser.value"
-          >
-            {{ parser.name }}
-          </option>
-        </select>
+        <ToggleViewToolbar />
       </div>
 
       <div id="outputContent" class="border rounded" text="left" h="full">
-        <div v-show="outputType === 'html'" class="prose p-4" v-html="editorStore.parsedHtml"></div>
-        <PreviewEditor v-show="outputType === 'markdown-it'" :content="editorStore.parsedTokens" />
+        <div
+          v-show="editorStore.outputType === 'preview'"
+          class="prose p-4"
+          v-html="editorStore.parsedHtml"
+        ></div>
+        <PreviewEditor
+          v-show="['markdown-it', 'adv', 'html'].includes(editorStore.outputType)"
+          :content="editorStore.parsedTokens"
+        />
       </div>
     </div>
   </div>
@@ -40,28 +39,6 @@
 import { useEditorStore } from '../stores/editor'
 const { t } = useI18n()
 const editorStore = useEditorStore()
-
-// import * as advParser from '@advjs/parser'
-// use markdown-it-adv replace
-export type OutputType = 'adv' | 'html' | 'markdown-it'
-
-const parserItems = [
-  {
-    name: 'ADV Lexer',
-    value: 'adv',
-  },
-  {
-    name: 'Markdown Preview',
-    value: 'html',
-  },
-  {
-    name: 'markdown-it',
-    value: 'markdown-it',
-  },
-]
-
-// 输出类型
-const outputType = ref<OutputType>('markdown-it')
 </script>
 
 <style>

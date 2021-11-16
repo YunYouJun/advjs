@@ -3,13 +3,14 @@
 </template>
 
 <script lang="ts" setup>
-import type * as m from 'monaco-editor'
 import { isClient } from '@vueuse/core'
+import type * as m from 'monaco-editor'
 import setupMonaco from '../setup/monaco'
 
 const container = ref<HTMLElement | null>()
-let editor: m.editor.IStandaloneCodeEditor
 
+// ref store is slow, and stuck
+let editor: m.editor.IStandaloneCodeEditor
 const props = defineProps<{ content: Object }>()
 
 async function init() {
@@ -18,6 +19,7 @@ async function init() {
   nextTick(() => {
     if (container.value) {
       editor = initOutputEditor(container.value)
+      self.outputEditor = editor
       editor.setValue(JSON.stringify(props.content, null, 2))
     }
   })
@@ -29,5 +31,4 @@ async function init() {
 
 if (isClient)
   init()
-
 </script>
