@@ -28,7 +28,8 @@
     "docs:dev": "pnpm -C docs dev",
     "docs:build": "pnpm -C docs build",
     "docs:serve": "pnpm -C docs serve",
-    "dev:parser": "pnpm dev:parser -C packages/editor"
+    "dev:parser": "pnpm dev:parser -C packages/editor",
+    "build:editor": "pnpm build -C packages/editor"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^0.10.0",
@@ -38,7 +39,7 @@
     "esno": "^0.12.0",
     "husky": "^7.0.4",
     "lint-staged": "^12.0.2",
-    "pnpm": "^6.22.0",
+    "pnpm": "^6.22.2",
     "ts-node": "^10.4.0",
     "typescript": "^4.4.4"
   },

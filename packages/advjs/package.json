@@ -16,7 +16,7 @@
     "lint": "eslint \"**/*.{vue,ts,js}\""
   },
   "dependencies": {
-    "@vueuse/core": "^6.8.0",
+    "@vueuse/core": "^6.9.1",
     "@vueuse/head": "^0.6.0",
     "@vueuse/motion": "^2.0.0-beta.4",
     "marked": "^4.0.3",
@@ -24,7 +24,7 @@
     "pinia": "^2.0.3",
     "prismjs": "^1.25.0",
     "typed.js": "^2.0.12",
-    "vue": "^3.2.21",
+    "vue": "^3.2.22",
     "vue-about-me": "^1.2.0",
     "vue-i18n": "^9.1.9",
     "vue-router": "^4.0.11"
@@ -39,8 +39,8 @@
     "@types/nprogress": "^0.2.0",
     "@types/prismjs": "^1.16.6",
     "@vitejs/plugin-vue": "^1.9.4",
-    "@vue/compiler-sfc": "^3.2.21",
-    "@vue/server-renderer": "^3.2.21",
+    "@vue/compiler-sfc": "^3.2.22",
+    "@vue/server-renderer": "^3.2.22",
     "@windicss/plugin-animations": "^1.0.9",
     "critters": "^0.0.14",
     "cross-env": "^7.0.3",

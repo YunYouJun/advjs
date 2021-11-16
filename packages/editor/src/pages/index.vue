@@ -1,5 +1,4 @@
 <template>
-  <BaseHeader />
   <header p="2">
     <h1 class="text-center">
       Demo for
@@ -22,9 +21,8 @@
 import { getScript } from '@advjs/shared'
 import { isClient } from '@vueuse/core'
 import { isDark } from '@advjs/editor/composables'
-import pkg from '../../package.json'
+import pkg from '@advjs/parser/../package.json'
 
 if (isClient)
   getScript('https://cdn.jsdelivr.net/npm/wc-github-corners@latest')
-
 </script>

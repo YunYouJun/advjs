@@ -13,10 +13,10 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@vueuse/core": "^6.9.0",
+    "@vueuse/core": "^6.9.1",
     "@vueuse/head": "^0.6.0",
     "monaco-editor": "^0.30.1",
-    "pinia": "^2.0.0-rc.10",
+    "pinia": "^2.0.3",
     "vue-router": "^4.0.12"
   },
   "devDependencies": {
@@ -33,6 +33,7 @@
     "vite-plugin-md": "^0.11.4",
     "vite-plugin-pages": "^0.18.2",
     "vite-plugin-pwa": "^0.11.5",
+    "vite-plugin-vue-layouts": "^0.5.0",
     "vite-plugin-windicss": "^1.5.1"
   }
 }

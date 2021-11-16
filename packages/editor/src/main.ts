@@ -1,4 +1,5 @@
 import generatedRoutes from 'virtual:generated-pages'
+import { setupLayouts } from 'virtual:generated-layouts'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { createHead } from '@vueuse/head'
 
@@ -17,7 +18,7 @@ import 'virtual:windi-utilities.css'
 // windicss devtools support (dev only)
 import 'virtual:windi-devtools'
 
-const routes = generatedRoutes
+const routes = setupLayouts(generatedRoutes)
 const router = createRouter({
   history: createWebHashHistory(),
   routes,

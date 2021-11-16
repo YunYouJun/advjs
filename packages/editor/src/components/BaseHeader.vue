@@ -1,6 +1,11 @@
 <template>
   <nav class="text-xl pt-4">
-    <router-link class="icon-btn mx-2" to="/" :title="t('button.home')">
+    <router-link
+      active-class="text-blue-500"
+      class="icon-btn mx-2"
+      to="/"
+      :title="t('button.home')"
+    >
       <i-ri-home-2-line />
     </router-link>
 
@@ -13,11 +18,17 @@
       <i-ri-sun-line v-else />
     </button>
 
-    <a class="icon-btn mx-2" :title="t('button.toggle_langs')" @click="toggleLocales">
+    <!-- <a class="icon-btn mx-2" :title="t('button.toggle_langs')" @click="toggleLocales">
       <i-ri-translate-2 />
-    </a>
+    </a>-->
 
-    <router-link class="icon-btn mx-2" href to="/about" :title="t('button.about')">
+    <router-link
+      class="icon-btn mx-2"
+      href
+      to="/about"
+      :title="t('button.about')"
+      active-class="text-blue-500"
+    >
       <i-carbon-dicom-overlay />
     </router-link>
 
@@ -30,9 +41,6 @@
     >
       <i-ri-github-line />
     </a>
-
-    <!-- wc-github-corners -->
-    <!-- <github-corners color="#151513" :repo="pkg.repository.url"></github-corners> -->
   </nav>
 </template>
 
@@ -42,11 +50,11 @@ import { isDark, toggleDark } from '../composables'
 
 const { t, availableLocales, locale } = useI18n()
 
-const toggleLocales = () => {
-  // change to some real logic
-  const locales = availableLocales
-  locale.value = locales[(locales.indexOf(locale.value) + 1) % locales.length]
-}
+// const toggleLocales = () => {
+//   // change to some real logic
+//   const locales = availableLocales
+//   locale.value = locales[(locales.indexOf(locale.value) + 1) % locales.length]
+// }
 
 // initoptions
 </script>
