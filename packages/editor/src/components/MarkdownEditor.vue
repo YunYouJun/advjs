@@ -4,16 +4,30 @@
       <i-ri-link />
     </button>
     <VMenu placement="top">
-      <span class="text-sm shadow flex justify-center items-center" p="x-2 y-1">
+      <span class="icon-btn shadow rounded-full transition" hover="shadow-md" p="1">
         <span class="inline-flex">
           <i-ri-loader-line v-if="loading" class="animate-spin" />
           <i-ri-check-line v-else text="green-500" class="cursor-pointer" @click="fetchMarkdown" />
         </span>
       </span>
       <template #popper>
-        <span class="inline-flex" text="black xs" :title="mdPath">{{ mdPath }}</span>
+        <span class="inline-flex" text="black xs" :title="mdUrl">{{ mdUrl }}</span>
       </template>
     </VMenu>
+
+    <select
+      v-model="mdUrl"
+      class="text-sm shadow bg-transparent outline-none"
+      p="1"
+      @change="fetchMarkdown"
+    >
+      <optgroup label="选择测试 Markdown">
+        <option v-for="(item, i) in mdItems" :key="i" :value="item.url">
+          {{ item.name }}
+        </option>
+      </optgroup>
+    </select>
+
     <button
       id="clear"
       class="btn"
@@ -44,7 +58,17 @@ const { t } = useI18n()
 
 const editorStore = useEditorStore()
 
-const mdPath = ref('https://raw.githubusercontent.com/YunYouJun/advjs/main/packages/advjs/public/md/test.adv.md')
+const mdItems = [
+  {
+    name: 'test.adv.md',
+    url: 'https://raw.githubusercontent.com/YunYouJun/advjs/main/packages/advjs/public/md/test.adv.md',
+  }, {
+    name: '小城之春.fountain',
+    url: 'https://raw.githubusercontent.com/YunYouJun/advjs/main/packages/shared/examples/%E5%B0%8F%E5%9F%8E%E4%B9%8B%E6%98%A5.fountain',
+  },
+]
+
+const mdUrl = ref('https://raw.githubusercontent.com/YunYouJun/advjs/main/packages/advjs/public/md/test.adv.md')
 // loading status
 const loading = ref(true)
 
@@ -54,14 +78,13 @@ let editor: m.editor.IStandaloneCodeEditor
 async function fetchMarkdown() {
   loading.value = true
 
-  const text = await fetch(mdPath.value)
+  const text = await fetch(mdUrl.value)
     .then((res) => {
       return res.text()
     })
 
-  if (!editor.getValue() && text)
+  if (editor.getValue() !== text)
     editor.setValue(text)
-    // editorStore.handleInputText(text)
 
   loading.value = false
 }

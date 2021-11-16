@@ -17,6 +17,7 @@ import Prism from 'markdown-it-prism'
 import LinkAttributes from 'markdown-it-link-attributes'
 
 import Adv from '../unplugin-adv/src/vite'
+import { commonAlias } from '../shared/config/vite'
 
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
 
@@ -25,11 +26,9 @@ const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
 // https://vitejs.dev/config/
 export default defineConfig({
   resolve: {
-    alias: {
+    alias: Object.assign({
       '~/': `${path.resolve(__dirname, 'src')}/`,
-      '@advjs/parser/': `${path.resolve(__dirname, '../parser/src')}/`,
-      '@advjs/shared/': `${path.resolve(__dirname, '../shared/src')}/`,
-    },
+    }, commonAlias),
   },
   plugins: [
     Vue({

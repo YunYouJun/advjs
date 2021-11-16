@@ -1,6 +1,8 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import MarkdownIt from 'markdown-it'
 import type * as m from 'monaco-editor'
+import { convertToAdv } from 'markdown-it-adv'
+import type Token from 'markdown-it/lib/token'
 
 const md = new MarkdownIt()
 
@@ -18,7 +20,9 @@ export const useEditorStore = defineStore('editor', () => {
   // 被解析后的 HTML
   const parsedHtml = ref('')
   // 被解析后的语法树
-  const parsedTokens = ref<any[]>([])
+  const parsedTokens = ref<Token[]>([])
+  // 被解析后的 AdvScript 语法树
+  const parsedAdv = ref<any[]>([])
 
   /**
    * 处理输入文本
@@ -28,6 +32,7 @@ export const useEditorStore = defineStore('editor', () => {
 
     parsedHtml.value = md.render(markdown)
     parsedTokens.value = md.parse(markdown, {})
+    parsedAdv.value = convertToAdv(parsedTokens.value)
 
     // setOutputContent(outputType.value)
     // set output value
@@ -38,7 +43,7 @@ export const useEditorStore = defineStore('editor', () => {
   }
 
   // 防抖
-  const debouncedFn = useDebounceFn((value) => {
+  const debouncedHandleFn = useDebounceFn((value) => {
     handleInputText(value)
   }, 200)
 
@@ -48,7 +53,7 @@ export const useEditorStore = defineStore('editor', () => {
    */
   function setInputText(value: string) {
     inputText.value = value
-    debouncedFn(value)
+    debouncedHandleFn(value)
   }
 
   /**
@@ -73,7 +78,7 @@ export const useEditorStore = defineStore('editor', () => {
         monaco.editor.setModelLanguage(model, 'json')
     }
     else if (type === 'adv') {
-      content = JSON.stringify(parsedTokens.value, null, 2)
+      content = JSON.stringify(parsedAdv.value, null, 2)
       if (model)
         monaco.editor.setModelLanguage(model, 'json')
     }
