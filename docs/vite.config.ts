@@ -35,7 +35,11 @@ export default defineConfig({
       ],
       dts: true,
     }),
-    Icons(),
+
+    Icons({
+      autoInstall: true,
+    }),
+
     WindiCSS(),
     // https://github.com/antfu/vite-plugin-pwa
     VitePWA({

@@ -9,7 +9,7 @@
     "url": "https://www.yunyoujun.cn"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --port 3456 --open",
     "build": "vite build"
   },
   "dependencies": {
