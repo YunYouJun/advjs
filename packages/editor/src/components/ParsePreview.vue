@@ -1,5 +1,5 @@
 <template>
-  <div class="containers" grid="~ cols-2 gap-1">
+  <div grid="~ cols-2 gap-1 <sm:cols-1">
     <div class="container flex flex-col" p="1">
       <MarkdownEditor />
     </div>
@@ -50,6 +50,6 @@ pre {
 
 /* for layout */
 .container {
-  height: calc(100vh - 100px);
+  min-height: calc(100vh - 100px);
 }
 </style>
