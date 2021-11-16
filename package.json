@@ -20,7 +20,6 @@
   "scripts": {
     "dev": "pnpm dev -C packages/advjs",
     "build": "pnpm build -C packages/advjs",
-    "build:editor": "pnpm build -C packages/editor",
     "preview": "pnpm preview -C packages/advjs",
     "lint": "eslint \"**/*.{vue,ts,js}\"",
     "lint:fix": "eslint \"**/*.{vue,ts,js}\" --fix",
@@ -29,7 +28,8 @@
     "docs:dev": "pnpm -C docs dev",
     "docs:build": "pnpm -C docs build",
     "docs:serve": "pnpm -C docs serve",
-    "dev:parser": "pnpm dev -C packages/editor"
+    "editor:dev": "pnpm dev -C packages/editor",
+    "editor:build": "pnpm build -C packages/editor"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^0.10.0",

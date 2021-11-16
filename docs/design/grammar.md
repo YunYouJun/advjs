@@ -44,7 +44,7 @@
 - [betterfountain](https://github.com/piersdeseilligny/betterfountain)
 - fountain 示例
   - [Big Fish](https://fountain.io/_downloads/Big-Fish.fountain)
-  - [小城之春](../../packages/parser/examples/小城之春.fountain)
+  - [小城之春](https://github.com/YunYouJun/advjs/blob/main/packages/shared/examples/小城之春.fountain)
 
 ### Fountain FAQ
 
