@@ -12,6 +12,21 @@
     <button
       class="icon-btn mx-2 !outline-none"
       :title="t('button.toggle_dark')"
+      @click="appStore.toggleLeftRight"
+    >
+      <i-ri-arrow-left-right-line
+        class="transition transform <sm:hidden"
+        :class="appStore.isPositive ? '-rotate-y-180' : 0"
+      />
+      <i-ri-arrow-up-down-line
+        class="transition transform sm:hidden"
+        :class="appStore.isPositive ? '-rotate-x-180' : 0"
+      />
+    </button>
+
+    <button
+      class="icon-btn mx-2 !outline-none"
+      :title="t('button.toggle_dark')"
       @click="toggleDark()"
     >
       <i-ri-moon-line v-if="isDark" />
@@ -46,7 +61,10 @@
 
 <script setup lang="ts">
 // import * as pkg from '~/../package.json'
+import { useAppStore } from '../stores/app'
 import { isDark, toggleDark } from '../composables'
+
+const appStore = useAppStore()
 
 const { t, availableLocales, locale } = useI18n()
 

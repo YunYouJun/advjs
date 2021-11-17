@@ -1,10 +1,10 @@
 <template>
   <div grid="~ cols-2 gap-1 <sm:cols-1">
-    <div class="container flex flex-col" p="1">
+    <div class="container flex flex-col" p="1" :style="`order: ${appStore.leftOrder};`">
       <MarkdownEditor />
     </div>
 
-    <div class="container flex flex-col" p="1">
+    <div class="container flex flex-col" p="1" :style="`order: ${appStore.rightOrder};`">
       <div class="toolbar flex justify-between" m="b-2">
         <span
           id="responseTime"
@@ -36,8 +36,10 @@
 </template>
 
 <script setup lang="ts">
+import { useAppStore } from '../stores/app'
 import { useEditorStore } from '../stores/editor'
 const { t } = useI18n()
+const appStore = useAppStore()
 const editorStore = useEditorStore()
 </script>
 
