@@ -1,5 +1,5 @@
 <template>
-  <nav class="text-xl pt-4">
+  <nav class="text-xl pt-2">
     <router-link
       active-class="text-blue-500"
       class="icon-btn mx-2"

@@ -11,12 +11,12 @@
         </span>
       </span>
       <template #popper>
-        <span class="inline-flex" text="black xs" :title="mdUrl">{{ mdUrl }}</span>
+        <span class="inline-flex" text="black xs" :title="editorStore.mdUrl">{{ editorStore.mdUrl }}</span>
       </template>
     </VMenu>
 
     <select
-      v-model="mdUrl"
+      v-model="editorStore.mdUrl"
       class="text-sm shadow bg-transparent outline-none"
       p="1"
       @change="fetchMarkdown"
@@ -68,7 +68,6 @@ const mdItems = [
   },
 ]
 
-const mdUrl = ref('https://raw.githubusercontent.com/YunYouJun/advjs/main/packages/advjs/public/md/test.adv.md')
 // loading status
 const loading = ref(true)
 
@@ -78,7 +77,7 @@ let editor: m.editor.IStandaloneCodeEditor
 async function fetchMarkdown() {
   loading.value = true
 
-  const text = await fetch(mdUrl.value)
+  const text = await fetch(editorStore.mdUrl)
     .then((res) => {
       return res.text()
     })

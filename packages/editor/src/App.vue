@@ -11,7 +11,5 @@ useHead({
 </script>
 
 <template>
-  <main class="px-2 text-center text-gray-700 dark:text-gray-200">
-    <router-view />
-  </main>
+  <router-view />
 </template>

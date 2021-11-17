@@ -3,6 +3,8 @@ body,
 #app {
   margin: 0;
   padding: 0;
+
+  @apply sm:(h-full overflow-hidden);
 }
 
 html.dark {

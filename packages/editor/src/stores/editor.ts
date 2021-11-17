@@ -8,11 +8,15 @@ const md = new MarkdownIt()
 
 export type OutputType = 'adv' | 'preview' | 'html' | 'markdown-it'
 
+const namespace = 'advjs-editor'
+
 export const useEditorStore = defineStore('editor', () => {
   const delayTime = ref(0)
 
+  const mdUrl = useStorage(`${namespace}-mdUrl`, 'https://raw.githubusercontent.com/YunYouJun/advjs/main/packages/advjs/public/md/test.adv.md')
+
   // 输出类型
-  const outputType = ref<OutputType>('markdown-it')
+  const outputType = useStorage<OutputType>(`${namespace}-outputType`, 'markdown-it')
 
   // 输入文本
   const inputText = ref('')
@@ -87,6 +91,8 @@ export const useEditorStore = defineStore('editor', () => {
   }
 
   return {
+    mdUrl,
+
     delayTime,
 
     inputText,

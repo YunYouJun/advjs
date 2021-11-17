@@ -20,12 +20,16 @@
         <ToggleViewToolbar />
       </div>
 
-      <div id="outputContent" class="border rounded" text="left" h="full">
-        <div
-          v-show="editorStore.outputType === 'preview'"
-          class="prose p-4"
-          v-html="editorStore.parsedHtml"
-        ></div>
+      <div
+        id="outputContent"
+        class="border rounded"
+        :class="[editorStore.outputType === 'preview' ? 'overflow-auto' : '']"
+        text="left"
+        h="full"
+      >
+        <div v-show="editorStore.outputType === 'preview'" class="prose" h="full">
+          <div class="p-4" v-html="editorStore.parsedHtml"></div>
+        </div>
         <PreviewEditor
           v-show="['markdown-it', 'adv', 'html'].includes(editorStore.outputType)"
           :content="editorStore.parsedTokens"
@@ -52,6 +56,6 @@ pre {
 
 /* for layout */
 .container {
-  min-height: calc(100vh - 100px);
+  height: calc(100vh - 100px);
 }
 </style>
