@@ -1,8 +1,8 @@
 {
-  "name": "@advjs/create-app",
+  "name": "create-adv",
   "version": "0.0.1",
   "bin": {
-    "create-app": "index.js",
+    "create-adv": "index.js",
     "caa": "index.js"
   },
   "files": [
@@ -14,7 +14,7 @@
     "type": "git",
     "url": "git+https://github.com/YunYouJun/advjs.git"
   },
-  "homepage": "https://github.com/YunYouJun/advjs/tree/main/packages/create-app#readme",
+  "homepage": "https://github.com/YunYouJun/advjs/tree/main/packages/create-adv#readme",
   "license": "MPL-2.0",
   "author": {
     "name": "YunYouJun",
