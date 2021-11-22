@@ -8,9 +8,8 @@
 </template>
 
 <script setup lang="ts">
-import { lexer } from 'marked'
 import { parse } from '@advjs/parser'
-import { AdvItem, Character, Line } from '@advjs/parser/Serialize'
+import { AdvItem } from '@advjs/parser/adv-ast'
 
 import { characters } from '../data/characters'
 import { useAppStore } from '~/stores/app'
@@ -68,6 +67,9 @@ function nextParagraph() {
   }
 }
 
+/**
+ * 展示下个对话
+ */
 function nextDialog() {
   if (dialogIndex.value === curDialogs.value.length) {
     dialogIndex.value = 0

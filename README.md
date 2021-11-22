@@ -31,7 +31,9 @@
 
 ### [@advjs/editor](./packages/editor) 编辑器
 
-可在线编辑脚本的编辑器。
+- [Demo]: <https://editor.advjs.org>
+- 目标：可在线编辑脚本的编辑器。（后续会有更多的功能吗？）
+- 当前：编辑 Markdown 并在线预览解析的语法树
 
 ### [@advjs/vscode](./packages/vscode) VSCode 插件
 

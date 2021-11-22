@@ -2,7 +2,9 @@ import type * as m from 'monaco-editor'
 
 declare module 'v-tooltip';
 
-declare interface Window {
+declare global {
   // extend the window
-  outputEditor: m.editor.IStandaloneCodeEditor
+  interface Window {
+    outputEditor: m.editor.IStandaloneCodeEditor
+  }
 }

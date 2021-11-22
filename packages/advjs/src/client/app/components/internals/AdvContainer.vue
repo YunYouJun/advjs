@@ -2,17 +2,11 @@
 import { advWidth, advHeight, advAspect } from '~/client/env'
 import config from '~/config'
 
-const props = defineProps({
-  width: {
-    type: Number,
-  },
-  meta: {
-    default: () => ({} as any),
-  },
-  scale: {
-    type: [Number, String],
-  },
-})
+const props = defineProps<{
+  width: number
+  meta: any
+  scale: number | string
+}>()
 
 const root = ref<HTMLDivElement>()
 const element = useElementSize(root)

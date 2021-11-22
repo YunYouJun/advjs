@@ -32,7 +32,8 @@
         </div>
         <PreviewEditor
           v-show="['markdown-it', 'adv', 'html'].includes(editorStore.outputType)"
-          :content="editorStore.parsedTokens"
+          :content="content"
+          :type="type"
         />
       </div>
     </div>
@@ -45,6 +46,26 @@ import { useEditorStore } from '../stores/editor'
 const { t } = useI18n()
 const appStore = useAppStore()
 const editorStore = useEditorStore()
+
+const type = ref<'html' | 'json'>('json')
+const content = computed(() => {
+  let txt = ''
+  switch (editorStore.outputType) {
+    case 'markdown-it':
+      txt = JSON.stringify(editorStore.parsedTokens, null, 2)
+      type.value = 'json'
+      break
+    case 'adv':
+      txt = JSON.stringify(editorStore.parsedAdv, null, 2)
+      type.value = 'json'
+      break
+    case 'html':
+      txt = editorStore.parsedHtml
+      type.value = 'html'
+      break
+  }
+  return txt
+})
 </script>
 
 <style>

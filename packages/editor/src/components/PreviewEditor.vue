@@ -11,21 +11,31 @@ const container = ref<HTMLElement | null>()
 
 // ref store is slow, and stuck
 let editor: m.editor.IStandaloneCodeEditor
-const props = defineProps<{ content: Object }>()
+const props = defineProps<{ content?: string; type: 'html' | 'json' }>()
 
 async function init() {
-  const { initOutputEditor } = await setupMonaco()
+  const { monaco, initOutputEditor } = await setupMonaco()
 
   nextTick(() => {
     if (container.value) {
       editor = initOutputEditor(container.value)
       self.outputEditor = editor
-      editor.setValue(JSON.stringify(props.content, null, 2))
+      if (props.content)
+        editor.setValue(props.content)
     }
   })
 
   watch(() => props.content, () => {
-    editor.setValue(JSON.stringify(props.content, null, 2))
+    if (props.content)
+      editor.setValue(props.content)
+  })
+
+  watch(() => props.type, () => {
+    if (props.type) {
+      const model = editor.getModel()
+      if (model)
+        monaco.editor.setModelLanguage(model, props.type)
+    }
   })
 }
 

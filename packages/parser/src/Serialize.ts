@@ -1,61 +1,15 @@
-import { Tokens } from 'marked'
-
-export interface Unknown {
-  type: 'unknown'
-}
+import * as Adv from '../../types/src/ast'
 
 /**
- * 人物信息
+ * 序列化类
  */
-export interface Character {
-  type: 'character'
-  name: string
-  status: string
-}
-
-/**
- * 人物对话
- */
-export interface Words {
-  type: 'words'
-  text: string
-}
-
-export interface Line {
-  type: 'line'
-  character: Character
-  words: Words
-}
-
-export interface Paragraph {
-  type: 'paragraph'
-  children: Line[]
-}
-
-export interface Heading {
-  type: 'heading'
-  depth: number
-  text: string
-}
-
-/**
- * 旁白
- */
-export interface Narration {
-  type: 'narration'
-  text: string
-}
-
-/**
- * 序列化
- */
-export default class Serialize {
+export class Serialize {
   /**
    * 处理标题
    * @param text
    */
-  heading(token: Tokens.Heading): Heading {
-    const info: Heading = {
+  heading(token: Tokens.Heading): Adv.Heading {
+    const info: Adv.Heading = {
       type: 'heading',
       depth: token.depth,
       text: token.text,
@@ -67,7 +21,7 @@ export default class Serialize {
    * 处理引用块
    * @param text
    */
-  blockquote(text: string): Narration {
+  blockquote(text: string): Adv.Narration {
     const info: Narration = {
       type: 'narration',
       text,
@@ -79,8 +33,8 @@ export default class Serialize {
    * 处理段落
    * @param text
    */
-  paragraph(text: string): Paragraph {
-    const info: Paragraph = {
+  paragraph(text: string): Adv.Paragraph {
+    const info: Adv.Paragraph = {
       type: 'paragraph',
       children: [],
     }
@@ -97,8 +51,8 @@ export default class Serialize {
    * 处理单行文本
    * @param text
    */
-  line(text: string): Line {
-    const info: Line = {
+  line(text: string): Adv.Line {
+    const info: Adv.Line = {
       type: 'line',
       character: {
         type: 'character',
@@ -135,7 +89,7 @@ export default class Serialize {
     const leftBracket = ['(', '（']
     const rightBracket = [')', '）']
 
-    const info: Character = {
+    const info: Adv.Character = {
       type: 'character',
       name: '',
       status: '',
@@ -170,5 +124,3 @@ export default class Serialize {
     return info
   }
 }
-
-export type AdvItem = Unknown | Paragraph | Line | Narration | Character | Words
