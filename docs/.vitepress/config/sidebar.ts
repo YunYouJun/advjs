@@ -32,6 +32,22 @@ const DevSidebar: DefaultTheme.SideBarItem[] = [
     link: '/dev/standard',
   },
   {
+    text: '图标 Icons',
+    link: '/dev/icons',
+  },
+  {
+    text: '解析器 Parser',
+    link: '/dev/parser',
+  },
+  {
+    text: '状态管理 Stores',
+    link: '/dev/stores',
+  },
+  {
+    text: '依赖',
+    link: '/dev/dependencies',
+  },
+  {
     text: '❓ FAQ',
     link: '/dev/faq',
   },

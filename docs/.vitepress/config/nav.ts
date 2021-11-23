@@ -5,16 +5,24 @@ export const nav: DefaultTheme.NavItem[] = [
   { text: '🎨 设计', link: '/design/' },
   { text: '✏️ AdvScript', link: '/advscript/' },
   {
-    text: '其他',
+    text: '💻 开发',
+    link: '/dev/',
+  },
+  {
+    text: '✍️ 贡献',
+    link: '/contributing/',
+  },
+  {
+    text: '资源',
     items: [
       {
-        text: '💻 开发',
-        link: '/dev/',
+        text: '案例',
+        link: '/resources/showcases',
       },
       {
-        text: '✍️ 贡献',
-        link: '/contributing/',
-      },
-    ],
-  },
+        text: '学习资源',
+        link: '/resources/learning',
+      }
+    ]
+  }
 ]

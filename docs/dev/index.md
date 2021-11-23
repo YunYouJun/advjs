@@ -2,6 +2,8 @@
 
 介绍开发过程中的相关内容。如果您想要参与开发，也许这会对你有所帮助。
 
+这里也会是开发过程中的开发笔记，解释一些对应内容为何这么写。
+
 ## Written By
 
 <Technology title="VSCode" link="https://code.visualstudio.com/"><template #icon><i-logos-visual-studio-code /></template></Technology>

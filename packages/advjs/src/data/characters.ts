@@ -31,6 +31,6 @@ export const characters: CharacterInfo[] = [
       default: '/img/characters/he/he.png',
       笑: '/img/characters/he/he-smile.png',
     },
-    class: ['-translate-y-10', 'scale-120'],
+    class: ['scale-120'],
   },
 ]
