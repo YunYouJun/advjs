@@ -2,20 +2,20 @@
   <div class="adv-game w-full h-full bg-black" :style="advGameStyle">
     <BaseLayer v-show="!app.showUi" />
     <TachieBox :characters="characters" />
-    <DialogBox v-show="app.showUi" :dialog="dialog" @click="nextDialog" />
+    <DialogBox v-show="app.showUi" />
     <UserInterface v-show="app.showUi" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { parse } from '@advjs/parser'
-import type { AdvRoot } from '@advjs/types'
-
-import { characters } from '../data/characters'
+import { characters } from '~/data/characters'
 import { useAppStore } from '~/stores/app'
 
 import { useBeforeUnload } from '~/client/app/composables'
-useBeforeUnload()
+import { adv } from '~/setup/adv'
+
+// 添加提示，防止意外退出
+if (import.meta.env.PROD) useBeforeUnload()
 
 const app = useAppStore()
 
@@ -29,77 +29,31 @@ const advGameStyle = computed(() => {
   }
 })
 
-const advAst = ref<AdvRoot>()
-const curDialogs = ref<Line[]>([])
-const dialog = reactive({
-  name: '',
-  words: '',
-})
-
-// 顺序，待优化
-const order = ref(0)
-const dialogIndex = ref(0)
-
-onMounted(async() => {
+onBeforeMount(async() => {
   const mdText = await fetch(path.value).then((res) => {
     return res.text()
   })
-  advAst.value = parse(mdText)
-  nextParagraph()
+
+  adv.read(mdText)
 })
 
-function nextParagraph() {
-  while (order.value < advTextData.value.length) {
-    const item = advTextData.value[order.value] as AdvItem
-    order.value++
-    if (item.type === 'narration') {
-      dialog.name = ''
-      dialog.words = item.text
-      updateTachieStatus()
-      break
-    }
-    if (item.type === 'paragraph') {
-      curDialogs.value = item.children
-      nextDialog()
-      break
-    }
-  }
-}
-
 /**
- * 展示 个对话
+ * 展示下个对话
  */
-function nextDialog() {
-  if (dialogIndex.value === curDialogs.value.length) {
-    dialogIndex.value = 0
-    curDialogs.value = []
-    nextParagraph()
-  }
-  else if (dialogIndex.value < curDialogs.value.length) {
-    const line = curDialogs.value[dialogIndex.value] as Line
-    dialog.name = line.character.name
-    dialog.words = line.words.text
-    updateTachieStatus(line.character)
-    dialogIndex.value++
-  }
-}
-
-function updateTachieStatus(character?: Character) {
-  characters.forEach((curCharacter) => {
-    if (character) {
-      if (character.name === curCharacter.name) {
-        curCharacter.active = true
-        curCharacter.status = character.status ? character.status : 'default'
-      }
-      else {
-        curCharacter.active = false
-      }
-    }
-    else {
-      curCharacter.active = false
-    }
-  })
-}
+// function nextDialog() {
+//   if (dialogIndex.value === curDialogs.value.length) {
+//     dialogIndex.value = 0
+//     curDialogs.value = []
+//     nextParagraph()
+//   }
+//   else if (dialogIndex.value < curDialogs.value.length) {
+//     const line = curDialogs.value[dialogIndex.value] as Line
+//     dialog.name = line.character.name
+//     dialog.words = line.words.text
+//     updateTachieStatus(line.character)
+//     dialogIndex.value++
+//   }
+// }
 </script>
 
 <route lang="yaml">

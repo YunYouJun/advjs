@@ -39,7 +39,7 @@ export interface Words extends AdvNode {
 export interface Dialog {
   type: 'dialog'
   character: Character
-  children: Words[]
+  children: Text[]
 }
 
 export interface Paragraph extends AdvNode {

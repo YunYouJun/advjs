@@ -1,13 +1,14 @@
 <template>
-  <div class="adv-ui relative">
-    <div class="inline-flex absolute left-5 top-5">
+  <div class="adv-ui flex absolute top-5 justify-between w-full" p="x-5">
+    <div class="inline-flex">
       <DisplayHistory class="mr-4" />
       <HideUi />
     </div>
 
-    <div class="inline-flex absolute top-5 right-5">
-      <MenuSetting @click="showMenu = true" />
-    </div>
+    <MenuSetting @click="showMenu = true" />
+
+    <!-- <div class="inline-flex absolute top-5 right-5">
+    </div> -->
     <BaseModal v-show="showMenu" @close="showMenu = false">
       <template #body>
         <MenuPanel />
@@ -19,17 +20,3 @@
 <script setup lang="ts">
 const showMenu = ref(false)
 </script>
-
-<style lang="scss">
-.adv-ui {
-  display: flex;
-  position: absolute;
-
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-
-  z-index: 10;
-}
-</style>

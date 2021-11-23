@@ -1,32 +1,36 @@
-export interface Character {
+/**
+ * 人物完整信息
+ */
+export interface CharacterInfo {
   name: string
   active?: boolean
   class?: string[]
   style?: any
   tachies?: any
-  status: string
+  /**
+   * 初始状态
+   */
+  initStatus: string
 }
 
-export const characters: Character[] = [
+export const characters: CharacterInfo[] = [
   {
     name: '我',
-    status: 'default',
+    initStatus: 'default',
     tachies: {
       default: '/img/characters/she/she.png',
     },
-    active: false,
     style: {
       transform: 'scale(1.2)',
     },
   },
   {
     name: '他',
-    status: 'default',
+    initStatus: 'default',
     tachies: {
       default: '/img/characters/he/he.png',
       笑: '/img/characters/he/he-smile.png',
     },
-    class: ['-translate-y-20', 'scale-110'],
-    active: false,
+    class: ['-translate-y-10', 'scale-120'],
   },
 ]

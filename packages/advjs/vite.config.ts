@@ -175,6 +175,8 @@ export default defineConfig({
       '@vueuse/core',
       '@vueuse/head',
       '@vueuse/motion',
+      'typed.js',
+      'unified',
     ],
     exclude: ['vue-demi'],
   },

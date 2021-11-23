@@ -16,7 +16,7 @@ export interface AdvConfig {
   /**
    * Controls whether texts in slides are selectable
    *
-   * @default false
+   * @default false when debug is true
    */
   selectable: boolean
 }

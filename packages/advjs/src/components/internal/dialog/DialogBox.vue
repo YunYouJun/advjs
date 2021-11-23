@@ -1,31 +1,32 @@
 <template>
-  <div class="dialog-box grid grid-cols-12 gap-16">
+  <div class="dialog-box grid grid-cols-12 gap-16" @click="next">
     <div class="dialog-name col-span-3 text-right">
-      {{ dialog.name }}
+      <span v-if="curDialog.character">{{ curDialog.character.name }}</span>
     </div>
     <div class="dialog-content col-span-9 text-left pr-24">
-      <TypedWords :words="dialog.words" />
+      <TypedWords :words="curDialog.children[order].value" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { speak } from '@advjs/shared/speech'
+import { adv } from '~/setup/adv'
 import { useSettingsStore } from '~/stores/settings'
 
-interface Dialog {
-  name?: string
-  words: string
-}
-
-const props = defineProps<{
-  dialog: Dialog
-}>()
+const advStore = adv.store
 
 const settings = useSettingsStore()
 
+const curDialog = computed(() => {
+  return advStore.cur.dialog.value
+})
+
+// 局部 words order
+const order = ref(0)
+
 watch(
-  () => props.dialog.words,
+  () => curDialog.value.children[order.value].value,
   (val) => {
     // 若开启了语音合成
     if (settings.speech.options.enable) {
@@ -34,6 +35,20 @@ watch(
     }
   },
 )
+
+const next = () => {
+  if (curDialog.value.children) {
+    const length = curDialog.value.children.length
+
+    if (order.value + 1 > length - 1) {
+      if (adv.next())
+        order.value = 0
+    }
+    else {
+      order.value++
+    }
+  }
+}
 </script>
 
 <style lang="scss">
@@ -42,9 +57,8 @@ watch(
   height: 40%;
 
   position: absolute;
-  left: 0;
   right: 0;
-  bottom: 0;
+  bottom: -1px;
 
   background-image: linear-gradient(
     rgba(0, 0, 0, 0) 0%,
@@ -52,7 +66,6 @@ watch(
     black 100%
   );
   padding-top: 4rem;
-  border: none;
 }
 
 .dialog-name {

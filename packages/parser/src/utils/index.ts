@@ -1,4 +1,5 @@
 import type * as Adv from '@advjs/types'
+import type * as Mdast from 'mdast'
 
 /**
  * 人物信息
@@ -32,12 +33,12 @@ function toCharacter(text: string) {
 
 /**
  * 话语
- * @param words
+ * @param text
  */
-function toWords(text: string) {
-  const info: Adv.Words = {
-    type: 'words',
-    text,
+function toText(text: string) {
+  const info: Mdast.Text = {
+    type: 'text',
+    value: text,
   }
   return info
 }
@@ -69,7 +70,7 @@ export function toDialog(text: string): Adv.Dialog | false {
     info.character = toCharacter(characterInfo)
 
     const words = text.slice(pos + 1)
-    info.children.push(toWords(words))
+    info.children.push(toText(words))
 
     return info
   }

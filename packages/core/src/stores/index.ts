@@ -1,10 +1,33 @@
-import { acceptHMRUpdate, defineStore } from 'pinia'
+export const createAdvStore = () => {
+  /**
+   * 顺序
+   */
+  const order = ref(0)
 
-export const useAdvStore = defineStore('adv', () => {
+  /**
+   * 当前对话
+   */
+  const dialog = ref({
+    character: {
+      name: '',
+      status: 'default',
+    },
+    children: [{
+      type: 'text',
+      value: '',
+    }],
+  })
+
   return {
-
+    /**
+     * 当前
+     */
+    cur: {
+      order,
+      /**
+       * 会话
+       */
+      dialog,
+    },
   }
-})
-
-if (import.meta.hot)
-  import.meta.hot.accept(acceptHMRUpdate(useAdvStore, import.meta.hot))
+}
