@@ -69,20 +69,19 @@
     "unplugin": "^0.2.21"
   },
   "devDependencies": {
-    "@types/jest": "^27.0.2",
-    "@types/node": "^16.11.7",
+    "@types/jest": "^27.0.3",
+    "@types/node": "^16.11.9",
     "bumpp": "^7.1.1",
-    "eslint-plugin-jest": "^25.2.4",
-    "esno": "^0.12.0",
+    "esno": "^0.12.1",
     "fast-glob": "^3.2.7",
     "jest": "^27.3.1",
     "nodemon": "^2.0.15",
     "rimraf": "^3.0.2",
-    "rollup": "^2.60.0",
+    "rollup": "^2.60.1",
     "ts-jest": "^27.0.7",
-    "tsup": "^5.7.0",
-    "typescript": "^4.4.4",
+    "tsup": "^5.8.1",
+    "typescript": "^4.5.2",
     "vite": "^2.6.14",
-    "webpack": "^5.64.0"
+    "webpack": "^5.64.2"
   }
 }

@@ -36,10 +36,11 @@
     "@types/node": "^16.11.9",
     "consola": "^2.15.3",
     "cross-env": "^7.0.3",
+    "eslint": "8.3.0",
     "esno": "^0.12.1",
     "husky": "^7.0.4",
     "lint-staged": "^12.1.2",
-    "pnpm": "^6.22.2",
+    "pnpm": "^6.23.1",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.2"
   },
@@ -47,8 +48,5 @@
     "*.{js,ts,vue}": [
       "eslint --fix"
     ]
-  },
-  "dependencies": {
-    "eslint": "8.3.0"
   }
 }

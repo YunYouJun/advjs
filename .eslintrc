@@ -5,7 +5,9 @@
   "globals": {
     "__DEV__": true
   },
-  "extends": "@antfu",
+  "extends": [
+    "@antfu"
+  ],
   "rules": {
     "vue/no-lone-template": "off",
     "vue/require-prop-types": "off",

@@ -1,7 +1,7 @@
 {
   "name": "@advjs/types",
   "version": "0.0.1",
-  "description": "Shared types declerations for AdvJS",
+  "description": "Shared types declaration for AdvJS",
   "homepage": "https://advjs.org",
   "bugs": "https://github.com/YunYouJun/advjs/issues",
   "license": "MPL-2.0",
