@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-withDefaults(defineProps<{checked: boolean}>(), {
+withDefaults(defineProps<{ checked?: boolean }>(), {
   checked: false,
 })
 </script>

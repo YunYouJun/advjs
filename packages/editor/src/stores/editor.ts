@@ -33,13 +33,9 @@ export const useEditorStore = defineStore('editor', () => {
     const startTime = new Date().valueOf()
 
     // parsedHtml.value = md.render(markdown)
-    parsedHtml.value = await mdRender(markdown)
     parsedTokens.value = mdParse(markdown)
     parsedAdv.value = convertMdToAdv(parsedTokens.value)
-
-    // setOutputContent(outputType.value)
-    // set output value
-    self.outputEditor.setValue(JSON.stringify(parsedTokens.value))
+    parsedHtml.value = await mdRender(markdown)
 
     const endTime = new Date().valueOf()
     delayTime.value = endTime - startTime

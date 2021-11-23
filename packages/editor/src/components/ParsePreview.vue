@@ -47,7 +47,7 @@ const { t } = useI18n()
 const appStore = useAppStore()
 const editorStore = useEditorStore()
 
-const type = ref<'html' | 'json'>('json')
+const type = ref<'html' | 'json'>(editorStore.outputType === 'html' ? 'html' : 'json')
 const content = computed(() => {
   let txt = ''
   switch (editorStore.outputType) {

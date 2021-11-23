@@ -18,7 +18,7 @@ const props = withDefaults(defineProps<{
   label: string
   item: {
     type: string
-    checked: MaybeRef<boolean>
+    checked?: MaybeRef<boolean>
     click?: () => void
   }
 }>(), {

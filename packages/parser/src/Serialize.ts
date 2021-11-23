@@ -1,18 +1,40 @@
-import * as Adv from '../../types/src/ast'
+import * as Adv from '@advjs/types'
+import * as Mdast from 'mdast'
+import { toDialog } from './utils'
 
 /**
  * 序列化类
  */
 export class Serialize {
   /**
+   * 解析
+   */
+  parse(child: Mdast.Content): Adv.AdvItem | undefined {
+    let node: Adv.AdvItem | undefined
+    switch (child.type) {
+      case 'blockquote':
+        node = this.blockquote(child)
+        break
+      case 'paragraph':
+        node = this.paragraph(child)
+        break
+      case 'text':
+        node = this.text(child)
+        break
+
+      default:
+        break
+    }
+    return node
+  }
+
+  /**
    * 处理标题
    * @param text
    */
-  heading(token: Tokens.Heading): Adv.Heading {
+  heading(node: Mdast.Heading): Adv.Heading {
     const info: Adv.Heading = {
-      type: 'heading',
-      depth: token.depth,
-      text: token.text,
+      ...node,
     }
     return info
   }
@@ -21,10 +43,10 @@ export class Serialize {
    * 处理引用块
    * @param text
    */
-  blockquote(text: string): Adv.Narration {
-    const info: Narration = {
+  blockquote(node: Mdast.Blockquote): Adv.Narration {
+    const info: Adv.Narration = {
       type: 'narration',
-      text,
+      children: node.children.map(item => this.parse(item)),
     }
     return info
   }
@@ -33,94 +55,37 @@ export class Serialize {
    * 处理段落
    * @param text
    */
-  paragraph(text: string): Adv.Paragraph {
+  paragraph(node: Mdast.Paragraph): Adv.Paragraph {
     const info: Adv.Paragraph = {
       type: 'paragraph',
-      children: [],
-    }
-    const lines = text.split('\n')
-    if (Array.isArray(lines)) {
-      lines.forEach((line) => {
-        if (line) info.children.push(this.line(line))
-      })
+      children: node.children.map((child) => {
+        const item: any = {
+          type: child.type,
+        }
+        if (child.type === 'text')
+          return this.text(child)
+
+        return item
+      }),
     }
     return info
   }
 
   /**
-   * 处理单行文本
+   * 处理文本
    * @param text
+   * @returns
    */
-  line(text: string): Adv.Line {
-    const info: Adv.Line = {
-      type: 'line',
-      character: {
-        type: 'character',
-        name: '',
-        status: '',
-      },
-      words: {
-        type: 'words',
-        text: '',
-      },
-    }
-    const delimiters = [':', '：']
-    let pos = 0
-    delimiters.some((delimiter) => {
-      pos = text.indexOf(delimiter)
-      return pos > -1
-    })
-
-    const characterInfo = text.slice(0, pos)
-    info.character = this.character(characterInfo)
-
-    const words = text.slice(pos + 1)
-    info.words = this.words(words)
-
-    return info
-  }
-
-  // special for advjs
-
-  /**
-   * 人物信息
-   */
-  character(text: string) {
-    const leftBracket = ['(', '（']
-    const rightBracket = [')', '）']
-
-    const info: Adv.Character = {
-      type: 'character',
-      name: '',
-      status: '',
+  text(node: Mdast.Text): Adv.Text | Adv.Dialog {
+    const info: Adv.Text = {
+      type: 'text',
+      value: node.value,
     }
 
-    for (let i = 0; i < leftBracket.length; i++) {
-      if (!text.includes(leftBracket[i])) continue
-
-      const re = new RegExp(`(.*)${leftBracket[i]}(.*?)${rightBracket[i]}`)
-      const r = text.match(re)
-
-      if (r) {
-        info.name = r[1]
-        info.status = r[2]
-      }
-    }
-
-    if (!info.name) info.name = text
-
-    return info
-  }
-
-  /**
-   * 话语
-   * @param words
-   */
-  words(text: string) {
-    const info: Words = {
-      type: 'words',
-      text,
-    }
-    return info
+    const dialog = toDialog(info.value)
+    if (dialog)
+      return dialog
+    else
+      return info
   }
 }

@@ -9,7 +9,7 @@
 
 <script setup lang="ts">
 import { parse } from '@advjs/parser'
-import { AdvItem } from '@advjs/parser/adv-ast'
+import type { AdvRoot } from '@advjs/types'
 
 import { characters } from '../data/characters'
 import { useAppStore } from '~/stores/app'
@@ -29,7 +29,7 @@ const advGameStyle = computed(() => {
   }
 })
 
-const advTextData = ref<AdvItem[]>([])
+const advAst = ref<AdvRoot>()
 const curDialogs = ref<Line[]>([])
 const dialog = reactive({
   name: '',
@@ -44,8 +44,7 @@ onMounted(async() => {
   const mdText = await fetch(path.value).then((res) => {
     return res.text()
   })
-  const lexed = marked.lexer(mdText)
-  advTextData.value = parse(lexed)
+  advAst.value = parse(mdText)
   nextParagraph()
 })
 
@@ -68,7 +67,7 @@ function nextParagraph() {
 }
 
 /**
- * 展示下个对话
+ * 展示 个对话
  */
 function nextDialog() {
   if (dialogIndex.value === curDialogs.value.length) {

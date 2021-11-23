@@ -22,6 +22,11 @@ async function init() {
       self.outputEditor = editor
       if (props.content)
         editor.setValue(props.content)
+      if (props.type) {
+        const model = editor.getModel()
+        if (model)
+          monaco.editor.setModelLanguage(model, props.type)
+      }
     }
   })
 

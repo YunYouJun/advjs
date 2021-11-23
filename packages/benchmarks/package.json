@@ -1,0 +1,7 @@
+{
+  "name": "@advjs/benchmarks",
+  "private": true,
+  "scripts": {
+    "start": "esno src/index.ts"
+  }
+}

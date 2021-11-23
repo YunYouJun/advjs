@@ -1,8 +1,11 @@
-import { Root } from 'mdast'
-import { AdvRoot } from '@advjs/types'
+import type { Content, Root } from 'mdast'
+import type { AdvRoot } from '@advjs/types'
 import { mdParse } from './markdown'
+import { Serialize } from './Serialize'
 
 // import { AdvItem } from '@advjs/types'
+
+const serialize = new Serialize()
 
 /**
  * 将 Markdown 语法树转译为 AdvScript
@@ -13,31 +16,19 @@ export function convertMdToAdv(mdAst: Root) {
     children: [],
   }
 
-  // const serialize = new Serialize()
-  for (let i = 0; i < mdAst.length; i++) {
-    const node = mdAst[i]
-    advAst.children?.push(node)
-    //   //   if (token.text) token.text = token.text.trim()
+  // 深度优先
+  mdAst.children.map((child) => {
+    const advItem = parseChild(child)
+    if (advItem) advAst.children.push(advItem)
+    return advItem
+  })
 
-    //   //   let advObject
-    //   //   switch (token.type) {
-    //   //     case 'blockquote':
-    //   //       advObject = serialize.blockquote(token.text)
-    //   //       break
-    //   //     case 'heading':
-    //   //       advObject = serialize.heading(token)
-    //   //       break
-    //   //     case 'paragraph':
-    //   //       advObject = serialize.paragraph(token.text)
-    //   //       break
-
-    //   //     default:
-    //   //       advObject = token
-    //   //       break
-    //   //   }
-    //   //   advTokens.push(advObject)
-  }
   return advAst
+}
+
+export function parseChild(child: Content) {
+  const node = serialize.parse(child)
+  return node
 }
 
 /**

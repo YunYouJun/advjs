@@ -3,9 +3,9 @@ import { advWidth, advHeight, advAspect } from '~/client/env'
 import config from '~/config'
 
 const props = defineProps<{
-  width: number
-  meta: any
-  scale: number | string
+  width?: number
+  meta?: any
+  scale?: number | string
 }>()
 
 const root = ref<HTMLDivElement>()

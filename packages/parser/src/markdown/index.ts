@@ -5,13 +5,17 @@ import remarkGfm from 'remark-gfm'
 import remarkRehype from 'remark-rehype'
 import rehypeStringify from 'rehype-stringify'
 
-const commonUnified = unified()
-  .use(remarkParse)
-  .use(remarkFrontmatter)
-  .use(remarkGfm)
+// it will be frozen because use same processor.
+// const commonUnified = unified()
+//   .use(remarkParse)
+//   .use(remarkFrontmatter)
+//   .use(remarkGfm)
 
 export async function mdRender(content: string) {
-  const file = await commonUnified
+  const file = await unified()
+    .use(remarkParse)
+    .use(remarkFrontmatter)
+    .use(remarkGfm)
     .use(remarkRehype)
     .use(rehypeStringify)
     .process(content)
@@ -24,7 +28,10 @@ export async function mdRender(content: string) {
  * @returns
  */
 export function mdParse(content: string) {
-  const mdAst = commonUnified
+  const mdAst = unified()
+    .use(remarkParse)
+    .use(remarkFrontmatter)
+    .use(remarkGfm)
     .parse(content)
   return mdAst
 }

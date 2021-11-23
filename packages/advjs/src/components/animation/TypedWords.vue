@@ -6,8 +6,8 @@
 import Typed from 'typed.js'
 
 const props = withDefaults(defineProps<{
-  words: string
-  typeSpeed: number
+  words?: string
+  typeSpeed?: number
 }>(), {
   words: '',
   typeSpeed: 20,

@@ -63,8 +63,12 @@ const mdItems = [
     name: 'test.adv.md',
     url: 'https://raw.githubusercontent.com/YunYouJun/advjs/main/packages/advjs/public/md/test.adv.md',
   }, {
-    name: '小城之春.fountain',
+    name: '小城之春.fountain（节选）',
     url: 'https://raw.githubusercontent.com/YunYouJun/advjs/main/packages/shared/examples/%E5%B0%8F%E5%9F%8E%E4%B9%8B%E6%98%A5.fountain',
+  },
+  {
+    name: '雷雨（节选）',
+    url: 'https://cdn.jsdelivr.net/gh/YunYouJun/advjs/packages/shared/examples/%E9%9B%B7%E9%9B%A8.adv.md',
   },
 ]
 

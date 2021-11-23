@@ -22,7 +22,7 @@
     ],
     "paths": {
       "~/*": ["packages/advjs/src/*"],
-      "@advjs/core/*": ["packages/advjs/*"],
+      "@advjs/core": ["packages/core/src/index.ts"],
       "@advjs/editor/*": ["packages/editor/src/*"],
       "@advjs/parser": ["packages/parser/src/index.ts"],
       "@advjs/parser/*": ["packages/parser/src/*"],
