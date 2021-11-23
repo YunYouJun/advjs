@@ -30,7 +30,6 @@
       "@advjs/shared/*": ["packages/shared/src/*"],
       "@advjs/types": ["./packages/types/src/index.ts"],
       "advjs/*": ["packages/advjs/src/*"],
-      "markdown-it-adv": ["packages/markdown-it-adv/src/index.ts"],
     }
   },
   "include": ["packages/global.d.ts", "packages/**/*"],

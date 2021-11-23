@@ -15,11 +15,10 @@
   "license": "ISC",
   "homepage": "https://docs.advjs.org",
   "devDependencies": {
-    "@iconify/json": "^1.1.417",
-    "@vueuse/core": "^6.7.3",
+    "@vueuse/core": "^7.0.1",
     "unplugin-icons": "^0.12.16",
     "unplugin-vue-components": "^0.17.2",
-    "vite-plugin-pwa": "^0.11.3",
+    "vite-plugin-pwa": "^0.11.6",
     "vite-plugin-windicss": "^1.4.12",
     "vitepress": "^0.20.0"
   }
