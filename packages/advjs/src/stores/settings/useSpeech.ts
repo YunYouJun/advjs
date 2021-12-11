@@ -1,3 +1,5 @@
+import { namespace } from '~/utils'
+
 interface SpeechSynthesis {
   enable: boolean
   language: string
@@ -9,14 +11,16 @@ export const useSpeech = (
     language: 'zh-HK',
   },
 ) => {
-  const state = reactive(options)
+  const state = useStorage<SpeechSynthesis>(`${namespace}-speech-options`, options || {
+    enable: true,
+    language: 'zh-HK',
+  })
 
   /**
    * 切换语音合成开关
-   * @param state
    */
-  function toggleStatus() {
-    state.enable = !state.enable
+  const toggleStatus = () => {
+    state.value.enable = !state.value.enable
   }
 
   /**
@@ -25,11 +29,12 @@ export const useSpeech = (
    * @param language
    */
   function setLanguage(language: string) {
-    state.language = language
+    state.value.language = language
   }
 
   return {
     options: state,
+
     toggleStatus,
     setLanguage,
   }

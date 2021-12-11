@@ -5,11 +5,11 @@
       <HideUi />
     </div>
 
-    <MenuSetting @click="showMenu = true" />
+    <MenuSetting @click="app.toggleShowMenu()" />
 
     <!-- <div class="inline-flex absolute top-5 right-5">
     </div> -->
-    <BaseModal v-show="showMenu" @close="showMenu = false">
+    <BaseModal v-show="app.showMenu" @close="app.toggleShowMenu">
       <template #body>
         <MenuPanel />
       </template>
@@ -18,5 +18,7 @@
 </template>
 
 <script setup lang="ts">
-const showMenu = ref(false)
+import { useAppStore } from '~/stores/app'
+
+const app = useAppStore()
 </script>

@@ -1,25 +1,8 @@
 <template>
-  <div class="col-span-4 text-right adv-menu-item">
-    <label for="speechSynthesisSwitch">语音合成</label>
-  </div>
-  <div class="col-span-8 text-left">
-    <AdvCheckbox
-      v-model="settings.speech.options.enable"
-      @update:modelValue="settings.speech.toggleStatus"
-    />
-  </div>
+  <MenuItem :item="speechItem" />
 
   <template v-if="settings.speech.options.enable">
-    <div class="col-span-4 text-right adv-menu-item">
-      <label for="speechSynthesisLanguage">语言种类</label>
-    </div>
-    <div class="col-span-8 text-left">
-      <select v-model="settings.speech.options.language" class="adv-select" @change="speakTest">
-        <option v-for="voice in voiceOptions" :key="voice.lang" :value="voice.lang">
-          {{ voice.name }}
-        </option>
-      </select>
-    </div>
+    <MenuItem :item="speechLanguageItem" />
   </template>
 </template>
 
@@ -28,6 +11,17 @@ import { speak } from '@advjs/shared/speech'
 import { useSettingsStore } from '~/stores/settings'
 
 const settings = useSettingsStore()
+
+const speechItem = computed(
+  () => ({
+    label: '语音合成',
+    type: 'checkbox',
+    checked: settings.speech.options.enable,
+    click: () => {
+      settings.speech.toggleStatus()
+    },
+  }),
+)
 
 const voiceOptions = ref([
   {
@@ -44,9 +38,19 @@ const voiceOptions = ref([
   },
 ])
 
-function speakTest() {
-  speak('大家好，我是渣渣辉。', settings.speech.options.language)
-}
+const speechLanguageItem = computed(() => ({
+  label: '语言种类',
+  type: 'select',
+  selected: settings.speech.options.language,
+  options: voiceOptions.value.map(item => ({
+    label: item.name,
+    value: item.lang,
+  })),
+  change: (val) => {
+    settings.speech.options.language = val.target.value
+    speak('大家好，我是渣渣辉。', settings.speech.options.language)
+  },
+}))
 
 onMounted(() => {
   const synth = window.speechSynthesis

@@ -1,9 +1,10 @@
 <template>
-  <div class="col-span-4 text-right adv-menu-item">
-    <label for="speechSynthesisSwitch">{{ props.label }}</label>
+  <div col="span-6" class="adv-menu-item" text="2xl">
+    <label :for="item.label">{{ item.label }}</label>
   </div>
-  <div class="col-span-8 text-left flex items-center">
-    <AdvCheckbox v-if="props.item.type === 'checkbox'" :checked="checked" @click="item.click"></AdvCheckbox>
+  <div col="span-6" class="flex items-center">
+    <AdvCheckbox v-if="item.type === 'checkbox'" :checked="checked" @click="item.click" />
+    <AdvSelect v-else-if="item.type === 'select'" :selected="item.selected" :options="item.options" :checked="checked" @change="item.change" />
   </div>
 </template>
 
@@ -14,22 +15,40 @@ import { MaybeRef } from '@vueuse/core'
 
 // type SettingsMenuItem = AdvCheckbox | AdvSelect
 
-const props = withDefaults(defineProps<{
+export interface MenuItem {
   label: string
-  item: {
-    type: string
-    checked?: MaybeRef<boolean>
-    click?: () => void
-  }
+  type: string
+}
+
+export interface AdvCheckbox {
+  type: 'checkbox'
+  checked?: MaybeRef<boolean>
+  click?: () => void
+}
+
+export interface AdvSelect {
+  type: 'select'
+  selected: string
+  options: []
+  change: () => void
+}
+
+const props = withDefaults(defineProps<{
+  item: MenuItem & (AdvCheckbox | AdvSelect)
 }>(), {
-  label: 'Label',
   item: () => {
     return {
+      label: 'Label',
       type: 'checkbox',
       checked: false,
     }
   },
 })
 
-const checked = ref(props.item.checked)
+const checked = computed(() => {
+  if (props.item.type === 'checkbox')
+    return props.item.checked
+  else
+    return false
+})
 </script>

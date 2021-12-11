@@ -17,11 +17,11 @@
   "devDependencies": {
     "@iconify-json/file-icons": "^1.0.1",
     "@iconify-json/logos": "^1.0.1",
-    "@vueuse/core": "^7.0.3",
-    "unplugin-icons": "^0.12.16",
-    "unplugin-vue-components": "^0.17.2",
-    "vite-plugin-pwa": "^0.11.7",
-    "vite-plugin-windicss": "^1.4.12",
-    "vitepress": "^0.20.0"
+    "@vueuse/core": "^7.2.2",
+    "unplugin-icons": "^0.12.23",
+    "unplugin-vue-components": "^0.17.8",
+    "vite-plugin-pwa": "^0.11.11",
+    "vite-plugin-windicss": "^1.5.4",
+    "vitepress": "^0.20.4"
   }
 }

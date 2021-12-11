@@ -3,13 +3,13 @@ import { useSpeech } from './useSpeech'
 
 export const useSettingsStore = defineStore('settings', () => {
   const speech = useSpeech()
-  const { isFullscreen, toggle } = useFullscreen()
+  const { isFullscreen, toggle: toggleFullScreen } = useFullscreen()
 
   return {
     isFullscreen,
 
     speech,
-    toggleFullScreen: toggle,
+    toggleFullScreen,
   }
 })
 

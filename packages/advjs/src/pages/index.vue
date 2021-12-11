@@ -10,7 +10,7 @@
       animate-slow animate-fadeIn
     "
   >
-    <YunLogo class="w-40 h-40" />
+    <NewYunLogo class="w-40 h-40" />
     <div class="font-bold">
       @YunYouJun
     </div>
@@ -18,8 +18,6 @@
 </template>
 
 <script setup lang="ts">
-import YunLogo from '~/client/app/components/internals/YunLogo.vue'
-
 const props = withDefaults(defineProps<{ duration?: number }>(), {
   duration: 3000,
 })

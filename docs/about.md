@@ -12,3 +12,15 @@
 ## Why ADV.JS?
 
 More info [https://www.yunyoujun.cn/posts/make-an-avg-engine/](https://www.yunyoujun.cn/posts/make-an-avg-engine/).
+
+## Why not ...?
+
+### [Ink](https://github.com/inkle/ink)
+
+ink 是一种开源脚本语言，用于编写交互式叙述。
+看起来这和我们想要的内容非常相似，且可用于开发文字冒险游戏。
+
+但它的语法是嵌套的，且本身与剧本格式相差甚远。
+我们希望能有一种更贴近 Markdown 的语法，更平易近人。
+
+ink 的许多逻辑语法，完全可直接使用 JS/TS 实现，且更为友好，降低学习成本。

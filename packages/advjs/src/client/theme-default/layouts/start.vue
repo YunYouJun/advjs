@@ -3,7 +3,8 @@
   <AdvContainer class="w-full h-full animate-slow animate-fadeIn">
     <main
       class="page-start w-full h-full text-gray-900 dark:text-gray-200"
-      :style="pageStartStyles"
+      bg="cover no-repeat center"
+      :style="{ backgroundImage: 'url(' + bgImageUrl + ')' }"
     >
       <router-view />
     </main>
@@ -11,13 +12,6 @@
 </template>
 
 <script setup lang="ts">
-const pageStartStyles = computed(() => {
-  return {
-    backgroundPosition: 'center',
-    backgroundRepeat: 'no-repeat',
-    backgroundSize: 'cover',
-    backgroundImage:
-      'url("https://cdn.jsdelivr.net/gh/YunYouJun/cdn/img/bg/stars-timing-0-blur-30px.jpg")',
-  }
-})
+import { isDark } from '~/composables'
+const bgImageUrl = computed(() => isDark.value ? '' : 'https://cdn.jsdelivr.net/gh/YunYouJun/cdn/img/bg/stars-timing-0-blur-30px.jpg')
 </script>

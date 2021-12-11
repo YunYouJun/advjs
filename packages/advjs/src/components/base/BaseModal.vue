@@ -5,8 +5,8 @@
         <AdvIconButton class="modal-close-button" @click="$emit('close')">
           <i-ri-close-line />
         </AdvIconButton>
-        <div class="modal-body">
-          <slot name="body"></slot>
+        <div class="modal-body h-full">
+          <slot name="body" />
         </div>
       </div>
     </div>
@@ -15,6 +15,7 @@
 
 <style>
 .modal-mask {
+  color: var(--adv-text-color);
   position: fixed;
   z-index: 1000;
   top: 0;
@@ -22,7 +23,7 @@
   right: 0;
   bottom: 0;
   backdrop-filter: blur(30px);
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: var(--adv-modal-bg-color);
   transition: all 0.2s ease;
 }
 
@@ -31,10 +32,6 @@
   height: 100%;
   padding: 1rem;
   transition: all 0.2s ease;
-}
-
-.modal-body {
-  color: white;
 }
 
 .modal-close-button {

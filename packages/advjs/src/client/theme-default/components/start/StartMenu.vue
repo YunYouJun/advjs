@@ -13,7 +13,8 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts">import { useAppStore } from '~/stores/app'
+
 const { t } = useI18n()
 const router = useRouter()
 
@@ -21,6 +22,8 @@ interface StartMenuItem {
   title: string
   do?: () => void
 }
+
+const app = useAppStore()
 
 const menuItems: StartMenuItem[] = [
   {
@@ -38,7 +41,7 @@ const menuItems: StartMenuItem[] = [
   {
     title: t('start-menu.settings'),
     do: () => {
-      router.push('/settings')
+      app.toggleShowMenu()
     },
   },
   {

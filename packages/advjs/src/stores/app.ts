@@ -3,6 +3,7 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 export const useAppStore = defineStore('app', () => {
   const showUi = ref(true)
   const showHistory = ref(false)
+  const [showMenu, toggleShowMenu] = useToggle(false)
 
   function toggleUi() {
     showUi.value = !showUi.value
@@ -15,9 +16,11 @@ export const useAppStore = defineStore('app', () => {
   return {
     showUi,
     showHistory,
+    showMenu,
 
     toggleUi,
     toggleHistory,
+    toggleShowMenu,
   }
 })
 

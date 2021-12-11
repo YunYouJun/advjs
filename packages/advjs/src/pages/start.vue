@@ -10,8 +10,7 @@
         items-center
       "
     >
-      <img class="w-40 z-1" src="https://www.yunyoujun.cn/yun.svg" />
-      <i-ri-video-chat-line class="adv-logo text-5xl" alt="ADV logo" />
+      <NewYunLogo class="text-8xl" alt="YunYouJun Logo" />
       <h1 class="text-4xl mt-10 z-1">
         Doki Doki ADV.JS
       </h1>
@@ -21,16 +20,22 @@
           class="h-80 absolute left-5 bottom-0 h-full animate-bounce"
           src="/img/characters/he/he.png"
           style="animation-delay: 0.5s"
-        />
+        >
         <img
           class="h-80 absolute right-5 bottom-0 h-full animate-bounce"
           src="/img/characters/she/she.png"
-        />
+        >
       </div>
     </div>
     <div>
-      <StartMenu></StartMenu>
+      <StartMenu />
     </div>
+
+    <BaseModal v-show="app.showMenu" @close="app.toggleShowMenu">
+      <template #body>
+        <MenuPanel />
+      </template>
+    </BaseModal>
   </div>
 </template>
 
@@ -38,3 +43,9 @@
 meta:
   layout: start
 </route>
+
+<script lang="ts" setup>
+import { useAppStore } from '~/stores/app'
+import NewYunLogo from '~/client/app/components/icons/NewYunLogo.vue'
+const app = useAppStore()
+</script>

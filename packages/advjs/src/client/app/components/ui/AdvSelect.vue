@@ -1,10 +1,30 @@
 <template>
-  <select v-model="settings.speech.options.language" class="adv-select" @change="speakTest">
-    <option v-for="voice in voiceOptions" :key="voice.lang" :value="voice.lang">
-      {{ voice.name }}
+  <!-- eslint-disable vue/no-mutating-props -->
+  <select
+    v-model="selected"
+    class="adv-select w-full rounded"
+    border="~ 1"
+    p="x-2"
+    text="lg"
+    @change="change"
+  >
+    <option v-for="item in options" :key="item.value" :value="item.value">
+      {{ item.label }}
     </option>
   </select>
 </template>
 
 <script setup lang="ts">
+withDefaults(defineProps<{
+  selected: string
+  change?: () => void
+  options?: {
+    label: string
+    value: string
+  }[]
+}>(), {
+  selected: '',
+  options: () => [],
+  change: () => {},
+})
 </script>

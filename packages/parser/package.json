@@ -8,12 +8,12 @@
     "jest": "jest"
   },
   "dependencies": {
-    "mdast-util-to-hast": "^12.0.0",
+    "mdast-util-to-hast": "^12.1.0",
     "rehype-stringify": "^9.0.2",
     "remark-frontmatter": "^4.0.1",
     "remark-gfm": "^3.0.1",
     "remark-parse": "^10.0.1",
-    "remark-rehype": "^10.0.1",
+    "remark-rehype": "^10.1.0",
     "unified": "^10.1.1"
   },
   "author": {
@@ -29,10 +29,10 @@
     "@babel/preset-typescript": "^7.16.0",
     "@types/jest": "^27.0.3",
     "@types/mdast": "^3.0.10",
-    "@types/node": "^16.11.10",
-    "babel-jest": "^27.3.1",
+    "@types/node": "^16.11.12",
+    "babel-jest": "^27.4.4",
     "consola": "^2.15.3",
-    "jest": "^27.3.1",
-    "typescript": "^4.5.2"
+    "jest": "^27.4.4",
+    "typescript": "^4.5.3"
   }
 }
