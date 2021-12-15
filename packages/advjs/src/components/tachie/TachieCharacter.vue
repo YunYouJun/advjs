@@ -6,7 +6,7 @@
       :style="character.style"
       :src="statusSrc"
       :alt="character.name"
-    />
+    >
   </div>
 </template>
 

@@ -28,7 +28,7 @@
         h="full"
       >
         <div v-show="editorStore.outputType === 'preview'" class="prose" h="full">
-          <div class="p-4" v-html="editorStore.parsedHtml"></div>
+          <div class="p-4" v-html="editorStore.parsedHtml" />
         </div>
         <PreviewEditor
           v-show="['markdown-it', 'adv', 'html'].includes(editorStore.outputType)"

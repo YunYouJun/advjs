@@ -1,5 +1,5 @@
 <template>
-  <div id="preview-container" ref="container" class="w-full h-full" text="sm"></div>
+  <div id="preview-container" ref="container" class="w-full h-full" text="sm" />
 </template>
 
 <script lang="ts" setup>

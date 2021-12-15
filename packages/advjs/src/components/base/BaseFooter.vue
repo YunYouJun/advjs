@@ -1,5 +1,5 @@
 <template>
-  <vue-about-me :is-dark="isDark" :copyright="copyright"></vue-about-me>
+  <vue-about-me :is-dark="isDark" :copyright="copyright" />
 </template>
 
 <script setup lang="ts">

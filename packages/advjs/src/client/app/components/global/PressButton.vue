@@ -24,7 +24,7 @@ defineProps<{
     :href="link"
     :target="blank ? '_target' : undefined"
   >
-    <slot></slot>
+    <slot />
   </a>
 </template>
 

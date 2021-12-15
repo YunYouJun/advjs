@@ -13,7 +13,7 @@
       >v{{ pkg.version }}</a>
     </h1>
   </header>
-  <github-corners repo="YunYouJun/advjs/tree/main/packages/parser" blank :reverse="isDark"></github-corners>
+  <github-corners repo="YunYouJun/advjs/tree/main/packages/parser" blank :reverse="isDark" />
   <ParsePreview />
 </template>
 

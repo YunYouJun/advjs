@@ -31,11 +31,9 @@
       <StartMenu />
     </div>
 
-    <BaseModal v-show="app.showMenu" @close="app.toggleShowMenu">
-      <template #body>
-        <MenuPanel />
-      </template>
-    </BaseModal>
+    <AdvModal v-show="app.showMenu" @close="app.toggleShowMenu">
+      <MenuPanel />
+    </AdvModal>
   </div>
 </template>
 

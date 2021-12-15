@@ -5,6 +5,7 @@
       <TachieBox :characters="characters" />
       <DialogBox v-show="app.showUi" />
       <UserInterface v-show="app.showUi" />
+      <AdvHistory />
       <slot />
     </div>
   </AdvContainer>

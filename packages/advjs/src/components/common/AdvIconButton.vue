@@ -1,7 +1,7 @@
 <template>
   <div class="adv-icon-button">
     <AdvIcon>
-      <slot></slot>
+      <slot />
     </AdvIcon>
   </div>
 </template>

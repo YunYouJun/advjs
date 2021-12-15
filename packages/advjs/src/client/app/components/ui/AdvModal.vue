@@ -6,7 +6,7 @@
           <i-ri-close-line />
         </AdvIconButton>
         <div class="modal-body h-full">
-          <slot name="body" />
+          <slot />
         </div>
       </div>
     </div>

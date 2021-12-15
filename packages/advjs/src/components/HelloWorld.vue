@@ -15,7 +15,7 @@
     <p
       class="text-2xl gradient-text from-blue-600 to-green-500 bg-gradient-to-r"
     >
-      {{ t('intro.hi') }}<br />
+      {{ t('intro.hi') }}<br>
     </p>
 
     <div class="my-10">
