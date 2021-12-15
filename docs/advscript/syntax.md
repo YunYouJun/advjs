@@ -1,7 +1,23 @@
 # 语法
 
-基于 Fountain 的语法扩展
+参考 Fountain 的语法扩展，针对中文与文字冒险游戏进行更多语法定义。
 
 ## 注释
 
 相比 Fountain 使用 `[[]]` 进行注释，AdvScript 支持使用 `<!-- -->` 来对剧本进行注释。
+
+## 场景
+
+使用 `【】` 来包括场景，`，`进行分割。
+
+顺序为，`地点`、`时间`、`内外景(可选)`。
+
+如：
+
+```md
+【门口，夜】
+```
+
+## 参考
+
+- [正则表达式 | MDN](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Regular_Expressions)

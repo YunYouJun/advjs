@@ -2,7 +2,7 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { mdParse, convertMdToAdv } from '@advjs/parser'
 import type { Root } from 'mdast'
 import { mdRender } from '@advjs/parser/markdown'
-import { AdvRoot } from '@advjs/types'
+import type { AdvRoot } from '@advjs/types'
 
 export type OutputType = 'adv' | 'preview' | 'html' | 'markdown-it'
 
@@ -17,7 +17,7 @@ export const useEditorStore = defineStore('editor', () => {
   const outputType = useStorage<OutputType>(`${namespace}-outputType`, 'markdown-it')
 
   // 输入文本
-  const inputText = ref('')
+  const inputText = useStorage(`${namespace}-input-text`, '')
 
   // 被解析后的 HTML
   const parsedHtml = ref('')

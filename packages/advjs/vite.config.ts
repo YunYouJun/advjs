@@ -26,9 +26,12 @@ const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
 // https://vitejs.dev/config/
 export default defineConfig({
   resolve: {
-    alias: Object.assign({
-      '~/': `${path.resolve(__dirname, 'src')}/`,
-    }, commonAlias),
+    alias: Object.assign(
+      {
+        '~/': `${path.resolve(__dirname, 'src')}/`,
+      },
+      commonAlias,
+    ),
   },
   plugins: [
     Vue({
@@ -109,6 +112,7 @@ export default defineConfig({
           },
         })
       },
+      exclude: [path.resolve(__dirname, '../examples/*.md')],
     }),
 
     // https://github.com/antfu/vite-plugin-pwa

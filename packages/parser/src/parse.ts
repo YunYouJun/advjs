@@ -34,10 +34,10 @@ export function parseChild(child: Content) {
  * 将纯文本内容解析为语法树
  * @param content 文本内容
  */
-export function parse(content: string) {
+export async function parse(content: string) {
   // const mdAst = md.parse(content, {})
   // return convertMdToAdv(mdAst)
-  const mdAst = mdParse(content)
+  const mdAst = await mdParse(content)
   const advAst = convertMdToAdv(mdAst)
   return advAst
 }

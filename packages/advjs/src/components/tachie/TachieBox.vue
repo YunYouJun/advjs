@@ -1,5 +1,5 @@
 <template>
-  <div class="tachie-box grid grid-cols-2">
+  <div class="tachie-box grid grid-cols-2" w="full" h="full">
     <TachieCharacter
       v-for="(character, i) in props.characters"
       :key="i"
@@ -17,8 +17,6 @@ const props = defineProps<{
 
 <style lang="scss">
 .tachie-box {
-  width: 100%;
-  height: 100%;
   position: relative;
 
   overflow: hidden;

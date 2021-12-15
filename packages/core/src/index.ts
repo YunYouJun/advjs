@@ -33,8 +33,8 @@ export function createAdv(options?: Partial<AdvOptions>) {
    * 理解文本
    * @param text
    */
-  function read(text: string) {
-    advAst.value = parse(text)
+  async function read(text: string) {
+    advAst.value = await parse(text)
 
     if (advAst.value.children.length) {
       const firstChild = advAst.value.children[0]
@@ -82,6 +82,11 @@ export function createAdv(options?: Partial<AdvOptions>) {
      */
     ast: advAst,
     store,
+
+    loadAst(ast: AdvRoot) {
+      advAst.value = ast
+    },
+
     read,
 
     play,

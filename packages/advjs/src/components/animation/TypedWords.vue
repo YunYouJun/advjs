@@ -1,5 +1,5 @@
 <template>
-  <div class="typed-words"></div>
+  <div class="typed-words" />
 </template>
 
 <script setup lang="ts">

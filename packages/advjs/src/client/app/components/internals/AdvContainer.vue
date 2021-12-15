@@ -47,7 +47,7 @@ const className = computed(() => ({
 <template>
   <div id="adv-container" ref="root" :class="className">
     <div id="adv-content" :style="style">
-      <slot></slot>
+      <slot />
     </div>
     <slot name="controls" />
   </div>

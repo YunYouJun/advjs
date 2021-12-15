@@ -1,6 +1,6 @@
 <template>
-  <div class="menu-panel grid grid-cols-12" gap="15" h="full" text="2xl">
-    <div class="col-span-8">
+  <div class="menu-panel grid grid-cols-12" gap="4" h="full" text="2xl">
+    <div col="span-8" p="x-2">
       <div grid="~ cols-12 gap-5">
         <h1
           col="span-12"
@@ -10,12 +10,22 @@
           {{ t('settings.title') }}
         </h1>
 
+        <HorizontalDivider />
+
         <MenuItem v-for="item, i in items" :key="i" :item="item" />
         <SpeechSynthesis />
+
+        <HorizontalDivider />
+
+        <ToggleSourceMd />
       </div>
     </div>
 
-    <div class="col-span-4 flex flex-col justify-center items-center" p="5" h="full" border="gray left-2">
+    <div col="span-1" class="flex justify-center items-center">
+      <div h="full" border="gray left-2" />
+    </div>
+
+    <div col="span-3" class="flex flex-col justify-center items-start" h="full">
       <AdvButton v-for="item,i in menuItems" :key="i" class="flex" @click="item.do">
         {{ item.title }}
       </AdvButton>
@@ -44,7 +54,7 @@ import { useScreenLock } from '@advjs/shared'
 import { isDark, toggleDark } from '~/composables'
 import { useSettingsStore } from '~/stores/settings'
 import { useAppStore } from '~/stores/app'
-import { MenuButtonItem } from '~/types/menu'
+import type { MenuButtonItem } from '~/types/menu'
 const { t } = useI18n()
 
 const { orientation, toggle } = useScreenLock()
@@ -96,7 +106,7 @@ const menuItems: MenuButtonItem[] = [
     },
   },
   {
-    title: '回到主菜单',
+    title: '回主菜单',
     do: () => {
       app.toggleShowMenu()
       router.push('/start')

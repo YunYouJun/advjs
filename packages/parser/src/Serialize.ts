@@ -1,6 +1,6 @@
-import * as Adv from '@advjs/types'
-import * as Mdast from 'mdast'
-import { toDialog } from './utils'
+import type * as Adv from '@advjs/types'
+import type * as Mdast from 'mdast'
+import { parseText } from './syntax'
 
 /**
  * 序列化类
@@ -73,19 +73,11 @@ export class Serialize {
 
   /**
    * 处理文本
+   * 更多的扩展语法在此实现（从普通的段落文本中进行解析）
    * @param text
    * @returns
    */
   text(node: Mdast.Text): Adv.Text | Adv.Dialog {
-    const info: Adv.Text = {
-      type: 'text',
-      value: node.value,
-    }
-
-    const dialog = toDialog(info.value)
-    if (dialog)
-      return dialog
-    else
-      return info
+    return parseText(node)
   }
 }

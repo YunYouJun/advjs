@@ -2,12 +2,15 @@
   "name": "@advjs/parser",
   "version": "0.0.1",
   "description": "A parser for advjs.",
+  "type": "module",
   "main": "src/index.ts",
   "scripts": {
+    "build": "tsup",
     "test": "esno test/index.ts",
     "jest": "jest"
   },
   "dependencies": {
+    "@advjs/types": "workspace:^",
     "mdast-util-to-hast": "^12.1.0",
     "rehype-stringify": "^9.0.2",
     "remark-frontmatter": "^4.0.1",
@@ -24,15 +27,16 @@
   "license": "MPL-2.0",
   "homepage": "https://github.com/YunYouJun/advjs/tree/main/packages/parser#readme",
   "devDependencies": {
-    "@babel/core": "^7.16.0",
-    "@babel/preset-env": "^7.16.4",
-    "@babel/preset-typescript": "^7.16.0",
+    "@babel/core": "^7.16.5",
+    "@babel/preset-env": "^7.16.5",
+    "@babel/preset-typescript": "^7.16.5",
     "@types/jest": "^27.0.3",
     "@types/mdast": "^3.0.10",
-    "@types/node": "^16.11.12",
-    "babel-jest": "^27.4.4",
+    "@types/node": "^16.11.13",
+    "babel-jest": "^27.4.5",
     "consola": "^2.15.3",
-    "jest": "^27.4.4",
-    "typescript": "^4.5.3"
+    "jest": "^27.4.5",
+    "tsup": "^5.11.6",
+    "typescript": "^4.5.4"
   }
 }

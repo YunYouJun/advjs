@@ -50,3 +50,7 @@
 
 - 状态：Todo
 - 目标：实现 VS Code 中对 `.adv.md` 文件的语法高亮与提示。
+
+### [unplugin-adv](./packages/unplugin-adv) Adv 通用插件
+
+- 功能：可用于 Vite（推荐）、Webpack、Rollup 等工具插件，预先对 `.adv`, `.adv.md` 结尾的文件进行转译以便预编译。

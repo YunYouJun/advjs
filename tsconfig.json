@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "module": "ESNext",
-    "target": "es2016",
+    "target": "es2017",
     "lib": ["DOM", "ESNext"],
     "strict": true,
     "esModuleInterop": true,
@@ -24,13 +24,14 @@
       "~/*": ["packages/advjs/src/*"],
       "@advjs/core": ["packages/core/src/index.ts"],
       "@advjs/editor/*": ["packages/editor/src/*"],
+      "@advjs/examples/*": ["packages/examples/*"],
       "@advjs/parser": ["packages/parser/src/index.ts"],
       "@advjs/parser/*": ["packages/parser/src/*"],
       "@advjs/shared": ["packages/shared/src/index.ts"],
       "@advjs/shared/*": ["packages/shared/src/*"],
       "@advjs/types": ["./packages/types/src/index.ts"],
-      "advjs/*": ["packages/advjs/src/*"],
+      "advjs/*": ["packages/advjs/src/*"]
     }
   },
-  "include": ["packages/global.d.ts", "packages/**/*"],
+  "include": ["packages/global.d.ts", "packages/**/*"]
 }

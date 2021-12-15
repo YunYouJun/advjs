@@ -45,7 +45,7 @@
     dark="border-white"
     h="full"
     text="left"
-  ></div>
+  />
 </template>
 
 <script lang="ts" setup>
@@ -73,7 +73,7 @@ const mdItems = [
 ]
 
 // loading status
-const loading = ref(true)
+const loading = ref(false)
 
 const inputEditor = ref<HTMLElement | null>()
 let editor: m.editor.IStandaloneCodeEditor
@@ -111,7 +111,10 @@ async function init() {
       })
     }
 
-    fetchMarkdown()
+    if (!editorStore.inputText)
+      fetchMarkdown()
+    else
+      editor.setValue(editorStore.inputText)
   })
 }
 

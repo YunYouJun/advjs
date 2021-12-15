@@ -46,8 +46,8 @@ const speechLanguageItem = computed(() => ({
     label: item.name,
     value: item.lang,
   })),
-  change: (val) => {
-    settings.speech.options.language = val.target.value
+  change: (value: string) => {
+    settings.speech.options.language = value
     speak('大家好，我是渣渣辉。', settings.speech.options.language)
   },
 }))

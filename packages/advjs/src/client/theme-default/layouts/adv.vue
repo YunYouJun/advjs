@@ -1,5 +1,3 @@
 <template>
-  <AdvContainer class="w-full h-full">
-    <router-view />
-  </AdvContainer>
+  <router-view />
 </template>

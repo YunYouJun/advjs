@@ -6,7 +6,7 @@
     border="~ 1"
     p="x-2"
     text="lg"
-    @change="change"
+    @change="onChange"
   >
     <option v-for="item in options" :key="item.value" :value="item.value">
       {{ item.label }}
@@ -15,9 +15,9 @@
 </template>
 
 <script setup lang="ts">
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   selected: string
-  change?: () => void
+  change?: (value: string) => void
   options?: {
     label: string
     value: string
@@ -25,6 +25,11 @@ withDefaults(defineProps<{
 }>(), {
   selected: '',
   options: () => [],
-  change: () => {},
+  change: (value) => {},
 })
+
+const onChange = (val: Event | any) => {
+  if (val.target && val.target.value)
+    props.change(val.target.value)
+}
 </script>

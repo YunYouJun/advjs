@@ -1,5 +1,5 @@
 <template>
-  <div class="dialog-box grid grid-cols-12 gap-16" @click="next">
+  <div class="dialog-box select-none" grid="~ cols-12" gap="12" @click="next">
     <div class="dialog-name col-span-3 text-right">
       <span v-if="curDialog.character">{{ curDialog.character.name }}</span>
     </div>
