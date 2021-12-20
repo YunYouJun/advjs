@@ -1,5 +1,5 @@
 import type { Ref } from 'vue'
-import { ref, watch, shallowRef } from 'vue'
+import { ref, shallowRef, watch } from 'vue'
 
 /**
  * https://developer.mozilla.org/en-US/docs/Web/API/ScreenOrientation/lock

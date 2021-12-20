@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { advWidth, advHeight, advAspect } from '~/client/env'
+import { advAspect, advHeight, advWidth } from '~/client/env'
 import config from '~/config'
 
 const props = defineProps<{

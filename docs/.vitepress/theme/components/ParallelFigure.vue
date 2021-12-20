@@ -25,12 +25,10 @@ const containerStyle: CSSProperties = {
 }
 
 const cardStyle = computed(() => ({
-  background: '#fff',
   height: '20rem',
   width: '15rem',
   borderRadius: '5px',
   transition: '.3s ease-out all',
-  boxShadow: '0 0 20px 0 rgba(255, 255, 255, 0.25)',
   transform: `rotateX(${parallax.roll * 20}deg) rotateY(${
     parallax.tilt * 20
   }deg)`,

@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { mdParse, convertMdToAdv } from '@advjs/parser'
+import { convertMdToAdv, mdParse } from '@advjs/parser'
 import type { Root } from 'mdast'
 import { mdRender } from '@advjs/parser/markdown'
 import type { AdvRoot } from '@advjs/types'

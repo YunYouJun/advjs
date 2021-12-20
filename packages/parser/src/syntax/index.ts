@@ -1,6 +1,6 @@
 import type * as Mdast from 'mdast'
 import { toDialog } from '../utils'
-import { parseScene, parseNarration } from './parse'
+import { parseNarration, parseScene } from './parse'
 
 /**
  * 解析纯文本，实现扩展语法
