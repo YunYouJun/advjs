@@ -1,13 +1,15 @@
-import type { DefaultTheme } from '../theme/config'
+import type { YouTheme } from 'vitepress-theme-you'
 import { sidebar } from './sidebar'
 import { nav } from './nav'
 
-const themeConfig: DefaultTheme.Config = {
+const themeConfig: YouTheme.Config = {
   // algolia: {
   //   appId: "",
   //   apiKey: "",
   //   indexName: "",
   // },
+  iconClass: 'i-ri-video-chat-line',
+
   repo: 'YunYouJun/advjs',
   logo: '/favicon.svg',
 

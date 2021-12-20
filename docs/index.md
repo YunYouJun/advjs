@@ -1,17 +1,20 @@
 ---
 title: ADV.JS
 home: true
-heroImage: /favicon.svg
+heroText: false
+# heroImage: /favicon.svg
+# heroIconClass: i-ri-video-chat-line
 # heroText: <b class="font-black">ADV</b>.JS
 tagline: 面向未来与前端的 ADV 文字冒险游戏引擎
 
-startLink: /guide/
-
-actionText: GitHub
-actionLink: https://github.com/YunYouJun/advjs
-
-altActionText: DEMO
-altActionLink: https://demo.advjs.org
+actions:
+  - text: Link Start
+    icon: i-ri-links-line
+    link: /guide/
+  - text: DEMO
+    link: https://demo.advjs.org
+    icon: i-ri-game-line
+    color: green
 
 features:
   - title: ✍️ 简洁
@@ -26,7 +29,9 @@ features:
 footer:
   license: MPL-2.0 Licensed
   since: 2020
-  author: YunYouJun
+  author:
+    name: YunYouJun
+    url: https://www.yunyoujun.cn
 ---
 
 <div class="text-center font-light text-2xl">
@@ -41,7 +46,7 @@ footer:
 
 <div class="text-2xl font-black">
 
-Thanks for all [Sponsors](https://sponsors.yunyoujun.cn).
+So Long, and Thanks for All the [Sponsors](https://sponsors.yunyoujun.cn).
 
 </div>
 

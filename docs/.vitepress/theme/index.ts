@@ -1,35 +1,22 @@
-// windicss layers
-import 'virtual:windi-base.css'
-import 'virtual:windi-components.css'
-
-import 'vitepress/dist/client/theme-default/styles/vars.css'
-import 'vitepress/dist/client/theme-default/styles/layout.css'
-import 'vitepress/dist/client/theme-default/styles/code.css'
-import 'vitepress/dist/client/theme-default/styles/custom-blocks.css'
-import 'vitepress/dist/client/theme-default/styles/sidebar-links.css'
-
 // custom
-import './styles/vitepress/index.scss'
 import './styles/vars.scss'
 import './styles/index.scss'
 
-// windicss utilities should be the last style import
-import 'virtual:windi-utilities.css'
-// windicss devtools support (dev only)
-import 'virtual:windi-devtools'
-
-import { Theme } from 'vitepress'
-// import Layout from 'vitepress/dist/client/theme-default/Layout.vue'
-// import NotFound from 'vitepress/dist/client/theme-default/NotFound.vue'
+import type { Theme } from 'vitepress'
 import Layout from './Layout.vue'
-import NotFound from './NotFound.vue'
+// import NotFound from './NotFound.vue'
 
-if (typeof window !== 'undefined') import('./modules/pwa')
+import 'uno.css'
+
+import 'vitepress-theme-you/css'
+import YouTheme from 'vitepress-theme-you';
 
 const theme: Theme = {
   Layout,
-  NotFound,
-  enhanceApp: ({ app }) => {},
-}
+  NotFound: YouTheme.NotFound,
+  enhanceApp: ({ app }) => {
+    // if (typeof window !== 'undefined') import('./modules/pwa');
+  },
+};
 
 export default theme

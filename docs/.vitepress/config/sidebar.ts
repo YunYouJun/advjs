@@ -1,6 +1,6 @@
-import type { DefaultTheme } from '../theme/config'
+import type { YouTheme } from 'vitepress-theme-you'
 
-const DesignSidebar: DefaultTheme.SideBarItem[] = [
+const DesignSidebar: YouTheme.SideBarItem[] = [
   {
     text: '设计理念',
     link: '/design/index',
@@ -15,14 +15,14 @@ const DesignSidebar: DefaultTheme.SideBarItem[] = [
   },
 ]
 
-const GuideSidebar: DefaultTheme.SideBarItem[] = [
+const GuideSidebar: YouTheme.SideBarItem[] = [
   {
     text: '📖 指南',
     link: '/guide/',
   },
 ]
 
-const DevSidebar: DefaultTheme.SideBarItem[] = [
+const DevSidebar: YouTheme.SideBarItem[] = [
   {
     text: '📖 开发',
     link: '/dev/',
@@ -57,7 +57,7 @@ const DevSidebar: DefaultTheme.SideBarItem[] = [
   },
 ]
 
-const ContributingSidebar: DefaultTheme.SideBarItem[] = [
+const ContributingSidebar: YouTheme.SideBarItem[] = [
   {
     text: '❤️ 参与贡献',
     link: '/contributing/',
@@ -68,7 +68,7 @@ const ContributingSidebar: DefaultTheme.SideBarItem[] = [
   },
 ]
 
-export const sidebar: DefaultTheme.Config['sidebar'] = {
+export const sidebar: YouTheme.Config['sidebar'] = {
   '/guide': GuideSidebar,
   '/design': DesignSidebar,
   '/dev': DevSidebar,

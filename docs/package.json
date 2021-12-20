@@ -17,11 +17,15 @@
   "devDependencies": {
     "@iconify-json/file-icons": "^1.0.1",
     "@iconify-json/logos": "^1.0.2",
-    "@vueuse/core": "^7.3.0",
+    "@iconify-json/vscode-icons": "^1.0.3",
+    "@vueuse/core": "^7.4.0",
     "unplugin-icons": "^0.12.23",
     "unplugin-vue-components": "^0.17.9",
-    "vite-plugin-pwa": "^0.11.11",
+    "vite-plugin-pwa": "^0.11.12",
     "vite-plugin-windicss": "^1.5.4",
     "vitepress": "^0.20.9"
+  },
+  "dependencies": {
+    "vitepress-theme-you": "^0.0.17"
   }
 }

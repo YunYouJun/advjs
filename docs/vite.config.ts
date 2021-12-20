@@ -4,8 +4,9 @@ import { defineConfig } from 'vite'
 import Components from 'unplugin-vue-components/vite'
 import Icons from 'unplugin-icons/vite'
 import IconsResolver from 'unplugin-icons/resolver'
-import WindiCSS from 'vite-plugin-windicss'
 import { VitePWA } from 'vite-plugin-pwa'
+
+import { defaultConfig } from './node_modules/vitepress-theme-you/src/config'
 
 export default defineConfig({
   resolve: {
@@ -14,16 +15,8 @@ export default defineConfig({
       'advjs/': `${path.resolve(__dirname, '../packages/advjs/src')}/`,
     },
   },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          windicss: ['windicss'],
-        },
-      },
-    },
-  },
   plugins: [
+    ...defaultConfig.plugins,
     Components({
       dirs: ['.vitepress/theme/components'],
       extensions: ['vue', 'ts'],
@@ -40,7 +33,6 @@ export default defineConfig({
       autoInstall: true,
     }),
 
-    WindiCSS(),
     // https://github.com/antfu/vite-plugin-pwa
     VitePWA({
       registerType: 'autoUpdate',
@@ -76,5 +68,9 @@ export default defineConfig({
       // Allow serving files from one level up to the project root
       allow: ['..'],
     },
+  },
+
+  optimizeDeps: {
+    include: ['dayjs'],
   },
 })
