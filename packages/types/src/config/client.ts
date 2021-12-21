@@ -1,4 +1,4 @@
-export interface AdvConfig {
+export interface ClientConfig {
   /**
    * Aspect ratio for game
    * should be like `16/9` or `1:1`

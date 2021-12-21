@@ -12,16 +12,18 @@
 </template>
 
 <script lang="ts" setup>
-import type { AdvRoot } from '@advjs/types'
+import type { AdvConfig, AdvRoot } from '@advjs/types'
 
 import { characters } from '~/data/characters'
 import { useAppStore } from '~/stores/app'
 
 import { useBeforeUnload } from '~/client/app/composables'
 import { adv } from '~/setup/adv'
+import { GameConfigKey } from '~/utils'
+import { defaultGameConfig } from '~/config/game'
 
 const props = defineProps<{
-  frontmatter?: any
+  frontmatter?: AdvConfig.GameConfig
   ast: AdvRoot
 }>()
 
@@ -40,6 +42,12 @@ const advGameStyle = computed(() => {
     backgroundRepeat: 'no-repeat',
   }
 })
+
+/**
+ * provide game config
+ */
+provide(GameConfigKey, props.frontmatter || defaultGameConfig)
+
 /**
  * 展示下个对话
  */

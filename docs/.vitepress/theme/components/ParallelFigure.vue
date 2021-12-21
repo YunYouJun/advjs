@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import type { CSSProperties } from 'vue'
-import { computed, reactive } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useData } from 'vitepress'
 
 import { useParallax } from '@vueuse/core'
 
-
-// const target = ref()
-const parallax = reactive(useParallax(document.body))
+const target = ref(globalThis.document && globalThis.document.body)
+const parallax = reactive(useParallax(target))
 
 const { site, frontmatter } = useData()
 

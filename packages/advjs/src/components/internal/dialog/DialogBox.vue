@@ -1,7 +1,15 @@
 <template>
   <div class="dialog-box select-none" grid="~ cols-12" gap="12" @click="next">
-    <div class="dialog-name col-span-3 text-right">
-      <span v-if="curDialog.character">{{ curDialog.character.name }}</span>
+    <div class=" col-span-3 text-right">
+      <template v-if="gameConfig.showCharacterAvatar && characterAvatar">
+        <div flex="~ col" class="justify-center items-end">
+          <img class="w-25 h-25 shadow rounded" object="cover top" :src="characterAvatar">
+          <span class="w-25" m="t-2" text="center gray-400">{{ curDialog.character.name }}</span>
+        </div>
+      </template>
+      <template v-else>
+        <span v-if="curDialog.character" class="dialog-name">{{ curDialog.character.name }}</span>
+      </template>
     </div>
     <div class="dialog-content col-span-9 text-left pr-24">
       <TypedWords :words="curDialog.children[order].value" />
@@ -11,8 +19,12 @@
 
 <script setup lang="ts">
 import { speak } from '@advjs/shared/speech'
+import type { AdvConfig } from '@advjs/types'
 import { adv } from '~/setup/adv'
 import { useSettingsStore } from '~/stores/settings'
+import { GameConfigKey } from '~/utils'
+
+const gameConfig = inject<AdvConfig.GameConfig>(GameConfigKey)!
 
 const advStore = adv.store
 
@@ -49,6 +61,13 @@ const next = () => {
     }
   }
 }
+
+const characterAvatar = computed(() => {
+  const curName = curDialog.value.character.name
+  const avatar = gameConfig.characters.find(item => item.name === curName || item.alias === curName || (Array.isArray(item.alias) && item.alias.includes(curName)))?.avatar
+  const prefix = gameConfig.cdn.enable ? gameConfig.cdn.prefix || '' : ''
+  return avatar ? prefix + avatar : ''
+})
 </script>
 
 <style lang="scss">

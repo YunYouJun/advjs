@@ -2,6 +2,8 @@
 package-lock.json
 yarn.lock
 
+pnpm-global
+
 # vite plugin
 components.d.ts
 auto-imports.d.ts
@@ -53,3 +55,6 @@ build/
 
 # Misc
 .DS_Store
+
+# plugins
+.VSCodeCounter

@@ -2,22 +2,41 @@
 title: 郭女侠怒砸同福店 佟掌柜妙点迷路人
 from: 武林外传
 chapter: 1
+showCharacterAvatar: true
+cdn:
+  enable: true
+  prefix: https://cdn.jsdelivr.net/gh/advjs/my-own-swordsman@main
 characters:
   - name: 佟湘玉
     actor: 闫妮
+    alias: 掌柜
+    avatar: /assets/images/characters/txy/1.webp
   - name: 郭芙蓉
+    alias: 小郭
+    avatar: /assets/images/characters/gfr/1.webp
     actor: 姚晨
   - name: 莫小贝
+    alias: 小贝
     actor: 王莎莎
+    avatar: /assets/images/characters/mxb/1.webp
   - name: 白展堂
+    alias: 老白
+    avatar: /assets/images/characters/bzt/1.webp
     actor: 沙溢
   - name: 吕秀才
+    alias: 秀才
+    avatar: /assets/images/characters/lqh/1.webp
     actor: 喻恩泰
   - name: 李大嘴
+    alias: 大嘴
+    avatar: /assets/images/characters/ldz/1.webp
     actor: 姜超
   - name: 邢育森
+    alias: 老邢
     actor: 范明
+    avatar: /assets/images/characters/xys/1.webp
   - name: 小青
+    avatar: /assets/images/characters/xq/1.jpg
     actor: 张歆艺
 ---
 
@@ -1043,7 +1062,7 @@ characters:
 
 小郭：吓死我了
 
-打嘴：大晚上的你跑这儿来干啥呀
+大嘴：大晚上的你跑这儿来干啥呀
 
 小郭：调查研究不可以啊
 

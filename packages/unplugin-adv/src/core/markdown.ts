@@ -33,6 +33,8 @@ function extractCustomBlock(html: string, options: ResolvedOptions) {
 export function createMarkdown(options: ResolvedOptions) {
   const {
     transforms,
+    headEnabled,
+    frontmatterPreprocess,
   } = options
 
   return async(id: string, raw: string) => {
@@ -61,13 +63,14 @@ export function createMarkdown(options: ResolvedOptions) {
     scriptLines.push(`const advAst = ${JSON.stringify(advAst)}`)
 
     if (options.frontmatter) {
-      const { head, frontmatter } = data || {}
+      const { head, frontmatter } = frontmatterPreprocess(data || {}, options)
+      // to delete
       scriptLines.push(`const frontmatter = ${JSON.stringify(frontmatter)}`)
 
       if (!defineExposeRE.test(hoistScripts.scripts.join('')))
         scriptLines.push('defineExpose({ frontmatter })')
 
-      if (head) {
+      if (headEnabled && head) {
         scriptLines.push(`const head = ${JSON.stringify(head)}`)
         scriptLines.unshift('import { useHead } from "@vueuse/head"')
         scriptLines.push('useHead(head)')

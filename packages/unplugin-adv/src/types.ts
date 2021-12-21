@@ -4,6 +4,22 @@ export interface Options {
   // define your plugin options here
 
   /**
+   * Enable head support, need to install @vueuse/head and register to App in main.js
+   *
+   * @default false
+   */
+  headEnabled?: boolean
+
+  /**
+   * The head field in frontmatter used to be used for @vueuse/head
+   *
+   * When an empty string is passed, it will use the root properties of the frontmatter
+   *
+   * @default ''
+   */
+  headField?: string
+
+  /**
    * Custom tranformations apply before and after the markdown transformation
    */
   transforms?: {
@@ -24,6 +40,11 @@ export interface Options {
    * @default ['route', 'i18n']
    */
   customSfcBlocks?: string[]
+
+  /**
+   * Custom function to process the frontmatter
+   */
+  frontmatterPreprocess?: (frontmatter: Record<string, unknown>, options: ResolvedOptions) => any
 
   include?: FilterPattern
   exclude?: FilterPattern

@@ -15,8 +15,8 @@
     "forceConsistentCasingInFileNames": true,
     "types": [
       "jest",
-      "vite/client",
       "node",
+      "vite/client",
       "vite-plugin-pages/client",
       "vite-plugin-vue-layouts/client"
     ],
