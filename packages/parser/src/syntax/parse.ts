@@ -1,27 +1,13 @@
 import type * as Adv from '@advjs/types'
 
-export interface SceneInfo {
-  /**
-   * 地点
-   */
-  place: string
-  /**
-   * 时间
-   */
-  time: string
-  /**
-   * 内/外景
-   */
-  inOrOut: string
-}
-
 export function parseScene(text: string) {
   // 匹配场景
   // 以 【】开头结尾，且至少存在一个字段
   const re = /^【(.+)】$/
   const separator = '，'
   if (re.test(text)) {
-    const metaInfo = {
+    const metaInfo: Adv.SceneInfo = {
+      type: 'scene',
       place: '',
       time: '',
       inOrOut: '',

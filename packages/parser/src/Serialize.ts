@@ -55,7 +55,10 @@ export class Serialize {
    * 处理段落
    * @param text
    */
-  paragraph(node: Mdast.Paragraph): Adv.Paragraph {
+  paragraph(node: Mdast.Paragraph): Adv.Paragraph | Adv.Text | Adv.Dialog {
+    if (node.children.length === 1 && node.children[0].type === 'text')
+      return this.text(node.children[0])
+
     const info: Adv.Paragraph = {
       type: 'paragraph',
       children: node.children.map((child) => {

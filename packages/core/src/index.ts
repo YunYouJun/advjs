@@ -1,5 +1,5 @@
 import { parse } from '@advjs/parser'
-import type { AdvRoot, Dialog } from '@advjs/types'
+import type { AdvRoot } from '@advjs/types'
 import { createAdvStore } from './stores'
 export * from './stores'
 
@@ -19,7 +19,6 @@ export function createAdv(options?: Partial<AdvOptions>) {
   if (options)
     options = { ...options }
 
-  const advAst = ref<AdvRoot>()
   const store = createAdvStore()
 
   /**
@@ -34,18 +33,27 @@ export function createAdv(options?: Partial<AdvOptions>) {
    * @param text
    */
   async function read(text: string) {
-    advAst.value = await parse(text)
-
-    if (advAst.value.children.length) {
-      const firstChild = advAst.value.children[0]
-      if (firstChild.type === 'paragraph') store.cur.dialog.value = firstChild.children[0] as Dialog
-    }
+    store.ast.value = await parse(text)
   }
 
   /**
    * 下一部分
    */
   function next() {
+    if (!store.ast.value) return false
+
+    const nodeLen = store.ast.value.children.length
+    const curOrder = store.cur.order.value
+    if (curOrder >= nodeLen) return
+
+    store.cur.order.value++
+
+    const skippedTypes = ['scene']
+    if (skippedTypes.includes(store.cur.node.value?.type || '')) {
+      next()
+      return
+    }
+
     const result = nextParagraph()
     return result
   }
@@ -55,36 +63,42 @@ export function createAdv(options?: Partial<AdvOptions>) {
    * @returns
    */
   function nextParagraph() {
-    if (!advAst.value) return false
+    // if (store.cur.order.value < store.ast.value.children.length - 1) {
+    // store.cur.order.value++
 
-    if (store.cur.order.value < advAst.value.children.length - 1) {
-      store.cur.order.value++
+    const item = store.cur.node.value
+    if (!item) return
 
-      const item = advAst.value.children[store.cur.order.value]
-      if (item.type === 'narration' && item.children.length && item.children[0].type === 'paragraph') {
-        store.cur.dialog.value = item.children[0]
-        return true
-      }
+    // if (item.type === 'narration' && item.children.length && item.children[0].type === 'paragraph') {
+    //   store.cur.dialog.value = item.children[0]
+    //   return true
+    // }
 
-      if (item.type === 'paragraph' && item.children[0].type === 'dialog') {
-        store.cur.dialog.value = item.children[0]
-        return true
-      }
-
-      nextParagraph()
+    const childType = item.type
+    if (childType === 'dialog') {
+      store.cur.dialog.value = item
+      return true
     }
-    else { return false }
+    else if (childType === 'text') {
+      store.cur.dialog.value = {
+        character: {
+          name: '',
+          status: '',
+        },
+        children: [item],
+      }
+    }
+
+    // nextParagraph()
+    // }
+    // else { return false }
   }
 
   return {
-    /**
-     * 语法树
-     */
-    ast: advAst,
     store,
 
     loadAst(ast: AdvRoot) {
-      advAst.value = ast
+      store.ast.value = ast
     },
 
     read,

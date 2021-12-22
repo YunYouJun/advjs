@@ -33,7 +33,7 @@ export const useEditorStore = defineStore('editor', () => {
     const startTime = new Date().valueOf()
 
     // parsedHtml.value = md.render(markdown)
-    parsedTokens.value = mdParse(markdown)
+    parsedTokens.value = await mdParse(markdown)
     parsedAdv.value = convertMdToAdv(parsedTokens.value)
     parsedHtml.value = await mdRender(markdown)
 

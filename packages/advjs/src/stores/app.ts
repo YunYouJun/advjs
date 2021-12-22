@@ -4,15 +4,18 @@ export const useAppStore = defineStore('app', () => {
   const [showUi, toggleUi] = useToggle(true)
   const [showMenu, toggleShowMenu] = useToggle(false)
   const [showHistory, toggleHistory] = useToggle(false)
+  const [showBlack, toggleBlack] = useToggle(false)
 
   return {
     showUi,
     showHistory,
     showMenu,
+    showBlack,
 
     toggleUi,
     toggleShowMenu,
     toggleHistory,
+    toggleBlack,
   }
 })
 

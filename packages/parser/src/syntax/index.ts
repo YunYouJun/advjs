@@ -17,5 +17,8 @@ export function parseText(node: Mdast.Text) {
   const dialog = toDialog(textValue)
   if (dialog) return dialog
 
-  return node
+  return {
+    type: 'text',
+    value: node.value,
+  }
 }

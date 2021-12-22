@@ -1,11 +1,14 @@
 <template>
   <AdvContainer class="w-full h-full">
-    <div class="adv-game w-full h-full bg-black" :style="advGameStyle">
+    <div class="adv-game w-full h-full bg-black relative" :style="advGameStyle">
       <BaseLayer v-show="!app.showUi" />
       <TachieBox :characters="characters" />
       <DialogBox v-show="app.showUi" />
       <UserInterface v-show="app.showUi" />
       <AdvHistory />
+
+      <AdvBlack v-if="curNode && curNode.type === 'narration'" :content="curNode" />
+
       <slot />
     </div>
   </AdvContainer>
@@ -19,7 +22,7 @@ import { useAppStore } from '~/stores/app'
 
 import { useBeforeUnload } from '~/client/app/composables'
 import { adv } from '~/setup/adv'
-import { GameConfigKey } from '~/utils'
+import { GameConfigKey, isDev } from '~/utils'
 import { defaultGameConfig } from '~/config/game'
 
 const props = defineProps<{
@@ -29,8 +32,12 @@ const props = defineProps<{
 
 adv.loadAst(props.ast)
 
+const curNode = computed(() => {
+  return adv.store.cur.node.value
+})
+
 // 添加提示，防止意外退出
-if (import.meta.env.PROD) useBeforeUnload()
+if (!isDev) useBeforeUnload()
 
 const app = useAppStore()
 

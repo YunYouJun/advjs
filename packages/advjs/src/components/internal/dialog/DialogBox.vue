@@ -1,14 +1,14 @@
 <template>
   <div class="dialog-box select-none" grid="~ cols-12" gap="12" @click="next">
-    <div class=" col-span-3 text-right">
+    <div v-if="curCharacter" class=" col-span-3 text-right">
       <template v-if="gameConfig.showCharacterAvatar && characterAvatar">
         <div flex="~ col" class="justify-center items-end">
           <img class="w-25 h-25 shadow rounded" object="cover top" :src="characterAvatar">
-          <span class="w-25" m="t-2" text="center gray-400">{{ curDialog.character.name }}</span>
+          <span class="w-25" m="t-2" text="center gray-400">{{ curCharacter.name }}</span>
         </div>
       </template>
       <template v-else>
-        <span v-if="curDialog.character" class="dialog-name">{{ curDialog.character.name }}</span>
+        <span class="dialog-name">{{ curCharacter.name }}</span>
       </template>
     </div>
     <div class="dialog-content col-span-9 text-left pr-24">
@@ -30,11 +30,9 @@ const advStore = adv.store
 
 const settings = useSettingsStore()
 
-const curDialog = computed(() => {
-  return advStore.cur.dialog.value
-})
+const curDialog = computed(() => advStore.cur.dialog.value)
 
-// 局部 words order
+// 局部 words order，与全局 order 相区别
 const order = ref(0)
 
 watch(
@@ -62,8 +60,10 @@ const next = () => {
   }
 }
 
+const curCharacter = computed(() => curDialog.value.character)
+
 const characterAvatar = computed(() => {
-  const curName = curDialog.value.character.name
+  const curName = curCharacter.value ? curCharacter.value.name : ''
   const avatar = gameConfig.characters.find(item => item.name === curName || item.alias === curName || (Array.isArray(item.alias) && item.alias.includes(curName)))?.avatar
   const prefix = gameConfig.cdn.enable ? gameConfig.cdn.prefix || '' : ''
   return avatar ? prefix + avatar : ''
