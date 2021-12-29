@@ -10,7 +10,7 @@
     "build": "cross-env NODE_ENV=production vite-ssg build",
     "dev": "vite --host",
     "prepublishOnly": "npm run build",
-    "preview": "vite preview",
+    "preview": "vite preview --host",
     "preview-https": "serve dist",
     "start": "npm run dev",
     "lint": "eslint \"**/*.{vue,ts,js}\""

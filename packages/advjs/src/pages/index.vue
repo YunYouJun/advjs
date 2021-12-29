@@ -10,7 +10,7 @@
       animate-slow animate-fadeIn
     "
   >
-    <NewYunLogo class="w-40 h-40" />
+    <!-- <NewYunLogo class="w-40 h-40" /> -->
     <div class="font-bold">
       @YunYouJun
     </div>
