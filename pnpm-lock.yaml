@@ -73,6 +73,8 @@ importers:
       '@vueuse/head': ^0.7.4
       '@vueuse/motion': ^2.0.0-beta.4
       '@windicss/plugin-animations': ^1.0.9
+      babylonjs: ^4.2.0
+      babylonjs-loaders: ^4.2.0
       critters: ^0.0.15
       cross-env: ^7.0.3
       escape-html: ^1.0.3
@@ -107,6 +109,8 @@ importers:
       '@vueuse/core': 7.4.1_vue@3.2.22
       '@vueuse/head': 0.7.4_vue@3.2.22
       '@vueuse/motion': 2.0.0-beta.4_vue@3.2.22
+      babylonjs: 4.2.0
+      babylonjs-loaders: 4.2.0
       nprogress: 0.2.0
       pinia: 2.0.9_typescript@4.5.4+vue@3.2.22
       prismjs: 1.25.0
@@ -3784,6 +3788,21 @@ packages:
       babel-plugin-jest-hoist: 27.4.0
       babel-preset-current-node-syntax: 1.0.1_@babel+core@7.16.5
     dev: true
+
+  /babylonjs-gltf2interface/4.2.0:
+    resolution: {integrity: sha512-Fn/ThxwZWP9kEAqk+9FX9CAeF4ah/I0/8wzAZR8MQuYqlYpEfM+E/IztJ+4LoOOxQYMWNs5lgj8OXSkX0tqc4g==}
+    dev: false
+
+  /babylonjs-loaders/4.2.0:
+    resolution: {integrity: sha512-GGLvo4ibbSHMY0Kj/DBu4827NBWeDT0NOBi/UuifXltzqPJtJRi3PCEcELj4Ga8cRxkfYi/7PMKcce2zVnpLZA==}
+    dependencies:
+      babylonjs: 4.2.0
+      babylonjs-gltf2interface: 4.2.0
+    dev: false
+
+  /babylonjs/4.2.0:
+    resolution: {integrity: sha512-4hniJzWRkV0tDTTYGEHPk1lnfWn0HIw7HOvNWPK0rpUIbJooyeD9E5uVyHnslDedt0mtrA7QZu4i2Cz1DEmSsA==}
+    dev: false
 
   /bail/2.0.2:
     resolution: {integrity: sha512-0xO6mYd7JB2YesxDKplafRpsiOzPt9V02ddPCLbY1xYGPOX24NTyN50qnUxgCPcSoYMhKpAuBTjQoRZCAkUDRw==}

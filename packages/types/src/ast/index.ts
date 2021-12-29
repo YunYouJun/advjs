@@ -76,7 +76,22 @@ export interface Narration extends AdvNode {
   children: any[]
 }
 
-export type AdvItem = Unknown | Paragraph | Narration | Character | Words | Text | SceneInfo | Dialog
+// export interface Code extends AdvNode {
+//   type: 'code',
+// }
+
+export interface Camera extends AdvNode {
+  type: 'camera'
+  target?: {
+    x: number
+    y: number
+    z: number
+  }
+  alpha?: number
+  beta?: number
+}
+
+export type AdvItem = Unknown | Paragraph | Narration | Character | Words | Text | SceneInfo | Dialog | Camera
 
 export type AdvChild = AdvItem | Content
 

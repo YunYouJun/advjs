@@ -1,14 +1,17 @@
 <template>
   <AdvContainer class="w-full h-full">
     <div class="adv-game w-full h-full bg-black relative" :style="advGameStyle">
-      <BaseLayer v-show="!app.showUi" />
       <TachieBox :characters="characters" />
+
+      <BaseLayer v-show="!app.showUi" />
       <DialogBox v-show="app.showUi" />
       <UserInterface v-show="app.showUi" />
+
       <AdvHistory />
 
       <AdvBlack v-if="curNode && curNode.type === 'narration'" :content="curNode" />
 
+      <AdvCanvas />
       <slot />
     </div>
   </AdvContainer>
@@ -54,22 +57,4 @@ const advGameStyle = computed(() => {
  * provide game config
  */
 provide(GameConfigKey, props.frontmatter || defaultGameConfig)
-
-/**
- * 展示下个对话
- */
-// function nextDialog() {
-//   if (dialogIndex.value === curDialogs.value.length) {
-//     dialogIndex.value = 0
-//     curDialogs.value = []
-//     nextParagraph()
-//   }
-//   else if (dialogIndex.value < curDialogs.value.length) {
-//     const line = curDialogs.value[dialogIndex.value] as Line
-//     dialog.name = line.character.name
-//     dialog.words = line.words.text
-//     updateTachieStatus(line.character)
-//     dialogIndex.value++
-//   }
-// }
 </script>

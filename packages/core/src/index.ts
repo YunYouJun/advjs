@@ -1,6 +1,8 @@
 import { parse } from '@advjs/parser'
 import type { AdvRoot } from '@advjs/types'
+import consola from 'consola'
 import { createAdvStore } from './stores'
+
 export * from './stores'
 
 export interface AdvOptions {
@@ -8,6 +10,11 @@ export interface AdvOptions {
    * 文本
    */
   text: string
+
+  /**
+   * 调试模式
+   */
+  debug?: boolean
 }
 
 /**
@@ -16,8 +23,14 @@ export interface AdvOptions {
  * @returns
  */
 export function createAdv(options?: Partial<AdvOptions>) {
-  if (options)
-    options = { ...options }
+  const defaultOptions = {
+    debug: false,
+  }
+
+  options = {
+    ...defaultOptions,
+    ...options,
+  }
 
   const store = createAdvStore()
 
@@ -47,6 +60,8 @@ export function createAdv(options?: Partial<AdvOptions>) {
     if (curOrder >= nodeLen) return
 
     store.cur.order.value++
+
+    if (options?.debug) consola.info(store.cur.node.value)
 
     const skippedTypes = ['scene']
     if (skippedTypes.includes(store.cur.node.value?.type || '')) {

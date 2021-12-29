@@ -21,6 +21,9 @@ export class Serialize {
       case 'text':
         node = this.text(child)
         break
+      case 'code':
+        node = this.code(child)
+        break
 
       default:
         break
@@ -49,6 +52,16 @@ export class Serialize {
       children: node.children.map(item => this.parse(item)),
     }
     return info
+  }
+
+  /**
+   * 处理代码块
+   * @param node
+   */
+  code(node: Mdast.Code) {
+    const langs = ['adv', 'advscript', 'json']
+    if (node.lang && langs.includes(node.lang))
+      return JSON.parse(node.value)
   }
 
   /**

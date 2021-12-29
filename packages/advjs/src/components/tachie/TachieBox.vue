@@ -1,5 +1,5 @@
 <template>
-  <div class="tachie-box grid grid-cols-2 absolute" w="full" h="full">
+  <div class="tachie-box grid grid-cols-2 absolute pointer-events-none" w="full" h="full">
     <TachieCharacter
       v-for="(character, i) in props.characters"
       :key="i"
