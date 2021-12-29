@@ -8,6 +8,9 @@
 import * as BABYLON from 'babylonjs'
 import { setup } from '~/setup/babylon'
 import { adv } from '~/setup/adv'
+import { useBabylonStore } from '~/stores/babylon'
+
+const bStore = useBabylonStore()
 
 const babylonCanvas = ref()
 
@@ -16,7 +19,8 @@ let babylon: {
 } | undefined
 
 onMounted(() => {
-  babylon = setup(babylonCanvas.value)
+  const { scene } = setup(babylonCanvas.value)
+  bStore.setScene(scene)
 })
 
 const curNode = computed(() => {
@@ -53,8 +57,14 @@ watch(() => curNode.value, () => {
       generateCameraAnimation('target', BABYLON.Animation.ANIMATIONTYPE_VECTOR3, new BABYLON.Vector3(targetPosition.x, targetPosition.y, targetPosition.z))
     }
 
+    if (curNode.value.alpha)
+      generateCameraAnimation('alpha', BABYLON.Animation.ANIMATIONTYPE_FLOAT, curNode.value.alpha)
+
     if (curNode.value.beta)
       generateCameraAnimation('beta', BABYLON.Animation.ANIMATIONTYPE_FLOAT, curNode.value.beta)
+
+    if (curNode.value.radius)
+      generateCameraAnimation('radius', BABYLON.Animation.ANIMATIONTYPE_FLOAT, curNode.value.radius)
 
     scene.beginAnimation(camera, 0, frameRate, false)
   }

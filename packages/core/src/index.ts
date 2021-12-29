@@ -61,12 +61,26 @@ export function createAdv(options?: Partial<AdvOptions>) {
 
     store.cur.order.value++
 
-    if (options?.debug) consola.info(store.cur.node.value)
+    const curNode = store.cur.node.value
+    if (options?.debug) consola.info(curNode)
 
     const skippedTypes = ['scene']
-    if (skippedTypes.includes(store.cur.node.value?.type || '')) {
+    if (skippedTypes.includes(curNode?.type || '')) {
       next()
       return
+    }
+
+    if (curNode?.type === 'camera') {
+      store.cur.dialog.value = {
+        character: {
+          name: '',
+          status: '',
+        },
+        children: [{
+          type: 'text',
+          value: '（镜头动画）',
+        }],
+      }
     }
 
     const result = nextParagraph()

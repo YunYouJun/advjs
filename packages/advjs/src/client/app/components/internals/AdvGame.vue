@@ -1,7 +1,7 @@
 <template>
   <AdvContainer class="w-full h-full">
     <div class="adv-game w-full h-full bg-black relative" :style="advGameStyle">
-      <TachieBox :characters="characters" />
+      <TachieBox v-show="app.showTachie" :characters="characters" />
 
       <BaseLayer v-show="!app.showUi" />
       <DialogBox v-show="app.showUi" />

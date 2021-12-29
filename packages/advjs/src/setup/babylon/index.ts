@@ -4,7 +4,6 @@ import 'babylonjs-loaders'
 
 // todo: extract canvas element
 export function setup(canvas: HTMLCanvasElement) {
-  if (!canvas) return
   // Load the 3D engine
   const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true })
 
@@ -16,7 +15,7 @@ export function setup(canvas: HTMLCanvasElement) {
     const camera = new BABYLON.ArcRotateCamera('camera', Math.PI / 4, Math.PI / 2.5, 15, BABYLON.Vector3.Zero(), scene)
     camera.attachControl(canvas, true)
 
-    camera.lowerRadiusLimit = 5
+    camera.lowerRadiusLimit = 2
     camera.upperRadiusLimit = 25
 
     // @ts-ignore

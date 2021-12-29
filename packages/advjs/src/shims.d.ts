@@ -2,6 +2,9 @@
 
 declare interface Window {
   // extend the window
+  babylon: {
+    scene: BABYLON.Scene
+  }
 }
 
 // with vite-plugin-md, markdowns can be treat as Vue components

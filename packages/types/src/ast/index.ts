@@ -89,6 +89,7 @@ export interface Camera extends AdvNode {
   }
   alpha?: number
   beta?: number
+  radius?: number
 }
 
 export type AdvItem = Unknown | Paragraph | Narration | Character | Words | Text | SceneInfo | Dialog | Camera

@@ -1,5 +1,6 @@
 <template>
   <Wlwz />
+  <AdvDebug />
 </template>
 
 <script setup lang="ts">
