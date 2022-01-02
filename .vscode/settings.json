@@ -1,5 +1,14 @@
 {
-  "cSpell.words": ["advjs", "advscript", "babylonjs", "mdast", "tachie"],
+  "cSpell.words": [
+    "advjs",
+    "advscript",
+    "ANIMATIONTYPE",
+    "babylonjs",
+    "mdast",
+    "Prefiltered",
+    "Skybox",
+    "tachie"
+  ],
   "i18n-ally.keystyle": "nested",
   "i18n-ally.localesPaths": "locales",
   "i18n-ally.sortKeys": true,

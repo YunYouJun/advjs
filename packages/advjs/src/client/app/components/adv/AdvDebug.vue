@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import type * as BABYLON from 'babylonjs'
+import type * as BABYLON from '@babylonjs/core'
 import { useBabylonStore } from '~/stores/babylon'
 
 const el = ref<HTMLElement | null>(null)
@@ -24,8 +24,8 @@ watch(open, (value) => {
     el.value!.scrollTop = 0
 })
 
-const captureCameraInfo = () => {
-  const camera = bStore.activeScene?.activeCamera as BABYLON.ArcRotateCamera
+const captureCameraInfo = (camera: BABYLON.ArcRotateCamera) => {
+  if (!camera) return
   cameraInfo.target.x = camera.target.x
   cameraInfo.target.y = camera.target.y
   cameraInfo.target.z = camera.target.z
@@ -34,6 +34,9 @@ const captureCameraInfo = () => {
   cameraInfo.beta = camera.beta
   cameraInfo.radius = camera.radius
 }
+
+const sceneCamera = computed(() => bStore.instance?.scene?.activeCamera as BABYLON.ArcRotateCamera)
+const vrmCamera = computed(() => bStore.instance?.vrmScene?.activeCamera as BABYLON.ArcRotateCamera)
 </script>
 
 <template>
@@ -43,8 +46,11 @@ const captureCameraInfo = () => {
     </AdvIconButton>
 
     <div v-show="open" p="2">
-      <AdvIconButton @click="captureCameraInfo">
+      <AdvIconButton @click="captureCameraInfo(sceneCamera)">
         <i-ri-camera-line />
+      </AdvIconButton>
+      <AdvIconButton @click="captureCameraInfo(vrmCamera)">
+        <i-ri-shield-user-line />
       </AdvIconButton>
       <pre class="block text-left">{{ JSON.stringify(cameraInfo, null, 2) }}</pre>
     </div>

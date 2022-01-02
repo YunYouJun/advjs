@@ -3,10 +3,10 @@
  * @param url 脚本链接
  * @returns
  */
-export async function getScript(url: string) {
+export async function getScript(url: string, type = 'module') {
   return new Promise((resolve, reject) => {
     const script = document.createElement('script')
-    script.type = 'module'
+    if (type) script.type = type
     script.onload = () => {
       resolve(true)
     }

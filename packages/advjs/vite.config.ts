@@ -186,7 +186,13 @@ export default defineConfig({
       'remark-gfm',
       'remark-rehype',
       'rehype-stringify',
+      'consola',
+      '@babylonjs/core',
+      '@babylonjs/loaders',
+      'babylon-vrm-loader',
     ],
-    exclude: ['vue-demi'],
+    exclude: [
+      'vue-demi',
+    ],
   },
 })

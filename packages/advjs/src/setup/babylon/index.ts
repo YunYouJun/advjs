@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import * as BABYLON from 'babylonjs'
-import 'babylonjs-loaders'
+import * as BABYLON from '@babylonjs/core'
+import '@babylonjs/loaders'
+import { createVRMScene } from './vrm'
 
 // todo: extract canvas element
 export function setup(canvas: HTMLCanvasElement) {
@@ -11,12 +12,15 @@ export function setup(canvas: HTMLCanvasElement) {
   const createScene = function() {
     // Create a basic BJS Scene object
     const scene = new BABYLON.Scene(engine)
+    scene.clearColor = new BABYLON.Color4(0, 0, 0, 0)
 
     const camera = new BABYLON.ArcRotateCamera('camera', Math.PI / 4, Math.PI / 2.5, 15, BABYLON.Vector3.Zero(), scene)
     camera.attachControl(canvas, true)
 
     camera.lowerRadiusLimit = 2
     camera.upperRadiusLimit = 25
+
+    scene.activeCameras?.push(camera)
 
     // @ts-ignore
     const light = new BABYLON.HemisphericLight('light', new BABYLON.Vector3(0, 1, 0), scene)
@@ -29,8 +33,10 @@ export function setup(canvas: HTMLCanvasElement) {
     // @ts-ignore
     const currentSkybox = scene.createDefaultSkybox(hdrTexture, true)
 
-    // BABYLON.SceneLoader.Append('/models/low_poly_winter_scene/', 'scene.gltf', scene)
-    BABYLON.SceneLoader.Append('/assets/scenes/low_poly_medieval_island/', 'scene.gltf', scene)
+    BABYLON.SceneLoader.Append('/assets/scenes/low_poly_medieval_island/', 'scene.gltf', scene, (scene) => {
+      // Convert to physics object and position
+
+    })
 
     // Return the created scene
     return scene
@@ -38,9 +44,14 @@ export function setup(canvas: HTMLCanvasElement) {
   // call the createScene function
   const scene = createScene()
 
+  // a new scene for vrm
+  const vrmScene = createVRMScene(engine)
+
   // run the render loop
   engine.runRenderLoop(() => {
     scene.render()
+
+    vrmScene.render()
   })
 
   // the canvas/window resize event handler
@@ -50,5 +61,6 @@ export function setup(canvas: HTMLCanvasElement) {
 
   return {
     scene,
+    vrmScene,
   }
 }

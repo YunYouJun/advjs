@@ -45,7 +45,7 @@ const className = computed(() => ({
 </script>
 
 <template>
-  <div id="adv-container" ref="root" :class="className">
+  <div ref="root" class="adv-container relative overflow-hidden" :class="className">
     <div id="adv-content" :style="style">
       <slot />
     </div>
@@ -54,9 +54,8 @@ const className = computed(() => ({
 </template>
 
 <style lang="scss">
-#adv-container {
-  @apply relative overflow-hidden;
-
+// #adv-container will be hidden by adblock plugin
+.adv-container {
   background: var(--adv-container-bg, var(--adv-bg-color));
 }
 

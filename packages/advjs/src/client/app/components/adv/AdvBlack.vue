@@ -40,7 +40,7 @@ const displaySentences = ref(new Array(props.content.children.length).fill(''))
 //   return props.content.children.map((item: any) => item.children[0].value)
 // })
 
-const typeInterval = 150
+const typeInterval = 50
 
 const next = () => {
   adv.next()

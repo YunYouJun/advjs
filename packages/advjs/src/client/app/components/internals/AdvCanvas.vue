@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts" setup>
-import * as BABYLON from 'babylonjs'
+import * as BABYLON from '@babylonjs/core'
 import { setup } from '~/setup/babylon'
 import { adv } from '~/setup/adv'
 import { useBabylonStore } from '~/stores/babylon'
@@ -14,13 +14,9 @@ const bStore = useBabylonStore()
 
 const babylonCanvas = ref()
 
-let babylon: {
-  scene: BABYLON.Scene
-} | undefined
-
 onMounted(() => {
-  const { scene } = setup(babylonCanvas.value)
-  bStore.setScene(scene)
+  const instance = setup(babylonCanvas.value)
+  bStore.setInstance(instance)
 })
 
 const curNode = computed(() => {
@@ -28,13 +24,13 @@ const curNode = computed(() => {
 })
 
 watch(() => curNode.value, () => {
-  if (curNode.value && curNode.value.type === 'camera' && babylon) {
-    const scene = babylon.scene
-    const camera = (babylon.scene.activeCamera as BABYLON.ArcRotateCamera)
+  if (curNode.value && curNode.value.type === 'camera' && bStore.instance) {
+    const scene = bStore.instance.scene
+    const camera = (scene.activeCamera as BABYLON.ArcRotateCamera)
 
     const frameRate = 30
 
-    function generateCameraAnimation(name: 'alpha' | 'beta' | 'target', dataType: number, to: number | BABYLON.Vector3) {
+    function generateCameraAnimation(name: 'alpha' | 'beta' | 'target' | 'radius', dataType: number, to: number | BABYLON.Vector3) {
       const animation = new BABYLON.Animation(`${name}Animation`, name, frameRate, dataType, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT)
       const keyFrames = []
       // const isVector3 = dataType === BABYLON.Animation.ANIMATIONTYPE_VECTOR3

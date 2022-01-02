@@ -20,8 +20,10 @@ const displayWords = ref('')
 
 const len = ref(0)
 
+const intervalId = ref()
+
 const playWordsAnimation = () => {
-  const intervalId = setInterval(() => {
+  intervalId.value = setInterval(() => {
     displayWords.value = props.words.slice(0, len.value)
     if (len.value === props.words.length)
       clearInterval(intervalId)
@@ -34,6 +36,8 @@ onMounted(() => {
 })
 
 watch(() => props.words, () => {
+  if (intervalId.value)
+    clearInterval(intervalId.value)
   playWordsAnimation()
 })
 

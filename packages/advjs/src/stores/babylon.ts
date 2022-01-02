@@ -1,18 +1,26 @@
-import type * as BABYLON from 'babylonjs'
+import type * as BABYLON from '@babylonjs/core'
 
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
-export const useBabylonStore = defineStore('babylon', () => {
-  const activeScene = ref<BABYLON.Scene>()
+interface BabylonSetupReturn {
+  scene: BABYLON.Scene
+  vrmScene: BABYLON.Scene
+}
 
-  function setScene(scene: BABYLON.Scene) {
-    activeScene.value = scene
+// https://doc.babylonjs.com/extensions/Babylon.js+ExternalLibraries/BabylonJS_and_Vue/BabylonJS_and_Vue_1#vue-reflectivity-friend-or-foe
+export const useBabylonStore = defineStore('babylon', () => {
+  // should not child reactive
+  const instance = shallowRef<BabylonSetupReturn>()
+
+  function setInstance(babylon: BabylonSetupReturn) {
+    instance.value = babylon
   }
 
   return {
-    activeScene,
+    instance,
 
-    setScene,
+    setInstance,
+
   }
 })
 

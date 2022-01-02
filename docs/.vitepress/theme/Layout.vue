@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import Layout from 'vitepress-theme-you/Layout.vue'
+import Layout from '../../node_modules/vitepress-theme-you/src/vitepress/components/VPApp.vue'
 import ParallelFigure from './components/ParallelFigure.vue';
 </script>
 
