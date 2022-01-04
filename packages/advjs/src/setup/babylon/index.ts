@@ -4,7 +4,9 @@ import '@babylonjs/loaders'
 import { createVRMScene } from './vrm'
 
 // todo: extract canvas element
-export function setup(canvas: HTMLCanvasElement) {
+export async function setup(canvas: HTMLCanvasElement) {
+  await import('babylon-vrm-loader')
+
   // Load the 3D engine
   const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true })
 

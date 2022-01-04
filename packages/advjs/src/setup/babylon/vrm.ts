@@ -1,5 +1,4 @@
 import * as BABYLON from '@babylonjs/core'
-import 'babylon-vrm-loader'
 import type { HumanBoneName, VRMManager } from 'babylon-vrm-loader'
 // import * as GUI from '@babylonjs/gui'
 

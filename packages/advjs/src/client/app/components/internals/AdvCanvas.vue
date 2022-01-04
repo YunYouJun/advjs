@@ -9,13 +9,15 @@ import * as BABYLON from '@babylonjs/core'
 import { setup } from '~/setup/babylon'
 import { adv } from '~/setup/adv'
 import { useBabylonStore } from '~/stores/babylon'
+import { isClient } from '~/utils'
 
 const bStore = useBabylonStore()
 
 const babylonCanvas = ref()
 
-onMounted(() => {
-  const instance = setup(babylonCanvas.value)
+onMounted(async() => {
+  if (!isClient) return
+  const instance = await setup(babylonCanvas.value)
   bStore.setInstance(instance)
 })
 
