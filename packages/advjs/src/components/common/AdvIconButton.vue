@@ -16,7 +16,7 @@
   padding: 0.6rem;
   cursor: pointer;
   &:hover {
-    background: rgba(123, 123, 123, 0.1);
+    background: rgba(123, 123, 123, 0.2);
   }
 }
 </style>

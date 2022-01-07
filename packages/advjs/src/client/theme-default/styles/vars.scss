@@ -1,0 +1,12 @@
+@use 'sass:map';
+
+$adv-font-serif: 'Songti SC', 'Noto Serif SC', STZhongsong, STKaiti, KaiTi,
+  Roboto, serif;
+
+$adv-colors: () !default;
+$adv-colors: map.merge(
+  (
+    'primary': #0078e7,
+  ),
+  $adv-colors
+);

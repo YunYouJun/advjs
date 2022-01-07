@@ -1,42 +1,13 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import type * as BABYLON from '@babylonjs/core'
-import { useBabylonStore } from '~/stores/babylon'
 
 const el = ref<HTMLElement | null>(null)
 const open = ref(false)
-
-const bStore = useBabylonStore()
-
-const cameraInfo = reactive({
-  target: {
-    x: 0,
-    y: 0,
-    z: 0,
-  },
-  alpha: 0,
-  beta: 0,
-  radius: 0,
-})
 
 watch(open, (value) => {
   if (!value)
     el.value!.scrollTop = 0
 })
-
-const captureCameraInfo = (camera: BABYLON.ArcRotateCamera) => {
-  if (!camera) return
-  cameraInfo.target.x = camera.target.x
-  cameraInfo.target.y = camera.target.y
-  cameraInfo.target.z = camera.target.z
-
-  cameraInfo.alpha = camera.alpha
-  cameraInfo.beta = camera.beta
-  cameraInfo.radius = camera.radius
-}
-
-const sceneCamera = computed(() => bStore.instance?.scene?.activeCamera as BABYLON.ArcRotateCamera)
-const vrmCamera = computed(() => bStore.instance?.vrmScene?.activeCamera as BABYLON.ArcRotateCamera)
 </script>
 
 <template>
@@ -44,15 +15,8 @@ const vrmCamera = computed(() => bStore.instance?.vrmScene?.activeCamera as BABY
     <AdvIconButton class="fixed bottom-5 right-5" @click="open = !open">
       <i-ri-bug-line color="white" />
     </AdvIconButton>
-
     <div v-show="open" p="2">
-      <AdvIconButton @click="captureCameraInfo(sceneCamera)">
-        <i-ri-camera-line />
-      </AdvIconButton>
-      <AdvIconButton @click="captureCameraInfo(vrmCamera)">
-        <i-ri-shield-user-line />
-      </AdvIconButton>
-      <pre class="block text-left">{{ JSON.stringify(cameraInfo, null, 2) }}</pre>
+      <slot />
     </div>
   </div>
 </template>
