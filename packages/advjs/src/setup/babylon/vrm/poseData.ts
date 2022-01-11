@@ -1,6 +1,6 @@
 import type { RawPoseData } from '~/setup/babylon/types'
 
-export const vRawPoseData: RawPoseData = {
+export const vRawPoseData: Partial<RawPoseData> = {
   spine: {
     x: -Math.PI / 20,
     y: Math.PI / 20,
@@ -79,7 +79,7 @@ export const vRawPoseData: RawPoseData = {
   },
 }
 
-export const v2RawPoseData: RawPoseData = {
+export const v2RawPoseData: Partial<RawPoseData> = {
   spine: {
     x: -Math.PI / 20,
     y: Math.PI / 20,

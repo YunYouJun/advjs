@@ -13,7 +13,7 @@
 <script setup lang="ts">
 import type { CharacterInfo } from '~/data/characters'
 import { adv } from '~/setup/adv'
-const props = defineProps<{character: CharacterInfo}>()
+const props = defineProps<{ character: CharacterInfo }>()
 
 const advStore = adv.store
 

@@ -29,7 +29,6 @@ const setup = async() => {
         import('monaco-editor/esm/vs/language/typescript/ts.worker?worker'),
       ])
 
-      // @ts-expect-error
       window.MonacoEnvironment = {
         getWorker(_: any, label: string) {
           if (label === 'json')

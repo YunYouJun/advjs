@@ -24,15 +24,14 @@ export async function setup(canvas: HTMLCanvasElement) {
 
     scene.activeCameras?.push(camera)
 
-    // @ts-ignore
+    // @ts-expect-error do not need used
     const light = new BABYLON.HemisphericLight('light', new BABYLON.Vector3(0, 1, 0), scene)
 
-    // @ts-ignore
     // const box = BABYLON.MeshBuilder.CreateBox('box', {})
 
     // Create a default skybox with an environment.
     const hdrTexture = BABYLON.CubeTexture.CreateFromPrefilteredData('/assets/textures/environment.dds', scene)
-    // @ts-ignore
+    // @ts-expect-error do not need used
     const currentSkybox = scene.createDefaultSkybox(hdrTexture, true)
 
     BABYLON.SceneLoader.Append('/assets/scenes/low_poly_medieval_island/', 'scene.gltf', scene, (scene) => {

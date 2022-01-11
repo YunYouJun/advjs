@@ -22,7 +22,7 @@ export async function setup(canvas: HTMLCanvasElement, onVRMLoaded?: (vrmManager
 
   // Create a default skybox with an environment.
   const hdrTexture = BABYLON.CubeTexture.CreateFromPrefilteredData('/assets/textures/environment.dds', scene)
-  // @ts-ignore
+  // @ts-expect-error do not need used
   const currentSkybox = scene.createDefaultSkybox(hdrTexture, true)
 
   // run the render loop

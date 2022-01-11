@@ -1,18 +1,14 @@
 import type * as BABYLON from '@babylonjs/core'
-import type { HumanBoneName } from 'babylon-vrm-loader'
+import type { HumanBonesType } from '../vrm/poses'
 import type { MorphingPresetType } from '../vrm/ui'
 
-export interface RawPoseData {
-  [key: HumanBoneName]: {
-    x: number
-    y: number
-    z: number
-  }
-}
+export type RawPoseData = Record<HumanBonesType, {
+  x: number
+  y: number
+  z: number
+}>
 
-export interface PoseQuaternion {
-  [key: HumanBoneName]: BABYLON.Quaternion
-}
+export type PoseQuaternion = Record<HumanBonesType, BABYLON.Quaternion>
 
 export type MorphingPresetData = {
   [key in MorphingPresetType]: number

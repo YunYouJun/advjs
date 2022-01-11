@@ -67,10 +67,10 @@ export const HumanBones = [
 
 export type HumanBonesType = typeof HumanBones[number]
 
-const defaultPoseQuaternion: PoseQuaternion = {}
+const initPoseQuaternion: Partial<PoseQuaternion> = {}
 // set every bone to zero quaternion
 HumanBones.forEach((bone) => {
-  defaultPoseQuaternion[bone] = ZeroQuaternion
+  initPoseQuaternion[bone] = ZeroQuaternion
 })
 
-export { defaultPoseQuaternion }
+export const defaultPoseQuaternion = initPoseQuaternion as PoseQuaternion

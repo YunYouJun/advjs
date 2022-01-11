@@ -90,9 +90,7 @@ HumanBones.forEach((bone) => {
   }
 })
 
-const vrmMorphingList = ref<{
-  [key: string]: number
-}>({})
+const vrmMorphingList = ref<Record<string, number>>({})
 
 watch(() => props.vrmManager, (manager) => {
   if (manager) {
