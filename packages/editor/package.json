@@ -13,7 +13,7 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@vueuse/core": "^7.5.1",
+    "@vueuse/core": "^7.5.3",
     "@vueuse/head": "^0.7.4",
     "monaco-editor": "^0.31.1",
     "pinia": "^2.0.9",
@@ -24,8 +24,8 @@
     "@types/mdast": "^3.0.10",
     "@vitejs/plugin-vue": "^2.0.1",
     "markdown-it-link-attributes": "^4.0.0",
-    "markdown-it-prism": "^2.2.1",
-    "unplugin-auto-import": "^0.5.5",
+    "markdown-it-prism": "^2.2.2",
+    "unplugin-auto-import": "^0.5.9",
     "unplugin-icons": "^0.13.0",
     "unplugin-vue-components": "^0.17.11",
     "v-tooltip": "^4.0.0-beta.2",
@@ -35,6 +35,6 @@
     "vite-plugin-pages": "^0.19.9",
     "vite-plugin-pwa": "^0.11.12",
     "vite-plugin-vue-layouts": "^0.5.0",
-    "vite-plugin-windicss": "^1.6.1"
+    "vite-plugin-windicss": "^1.6.2"
   }
 }
