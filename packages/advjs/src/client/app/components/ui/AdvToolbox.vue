@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   position?: 'left' | 'right'
+  defaultStatus?: boolean
 }>(), {
   position: 'left',
+  defaultStatus: false,
 })
 
 const el = ref<HTMLElement | null>(null)
-const open = ref(false)
+const open = ref(props.defaultStatus)
 
 watch(open, (value) => {
   if (!value)

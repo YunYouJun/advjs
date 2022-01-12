@@ -16,10 +16,11 @@
     "types": [
       "jest",
       "node",
-      "@babylonjs/core",
-      "@babylonjs/loaders",
-      "@babylonjs/gui",
-      "babylon-vrm-loader",
+      // "@babylonjs/core",
+      // "@babylonjs/loaders",
+      // "@babylonjs/gui",
+      // "@babylonjs/materials",
+      // "babylon-vrm-loader",
       "vite/client",
       "vite-plugin-pages/client",
       "vite-plugin-vue-layouts/client"

@@ -1,5 +1,6 @@
 import * as BABYLON from '@babylonjs/core'
 import type { VRMManager } from 'babylon-vrm-loader'
+import { GridMaterial } from '@babylonjs/materials/Grid'
 import type { RawPoseData } from '../types'
 import type { HumanBonesType } from './poses'
 import { defaultPoseQuaternion } from './poses'
@@ -18,17 +19,50 @@ export function createVRMScene(engine: BABYLON.Engine, onVRMLoaded?: () => void)
 
   // const camera = new BABYLON.ArcRotateCamera('camera', -1.6, 1.5, 2, new BABYLON.Vector3(0.4, 3.2, 0.75), scene)
   const camera = new BABYLON.ArcRotateCamera('camera', -Math.PI / 2, Math.PI / 2, 2, new BABYLON.Vector3(0, 1, 0), scene)
-  // todo: add dev
   camera.attachControl(engine.getRenderingCanvas, true)
+
+  camera.viewport = new BABYLON.Viewport(0, 0, 1, 1)
+  scene.activeCameras?.push(camera)
+
+  camera.wheelDeltaPercentage = 0.01
+  // todo: add dev
   camera.minZ = 0.1
   camera.lowerRadiusLimit = 1
   camera.upperRadiusLimit = 10
 
-  // @ts-expect-error do not need used
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const light = new BABYLON.HemisphericLight('light', new BABYLON.Vector3(0, 1, 0), scene)
-
   // BABYLON.SceneLoader.Append('/assets/scenes/low_poly_winter_scene/', 'scene.gltf', scene)
+
+  // Material
+  const groundMaterial = new GridMaterial('groundMaterial', scene)
+  groundMaterial.majorUnitFrequency = 5
+  groundMaterial.minorUnitVisibility = 0.45
+  groundMaterial.gridRatio = 0.5
+  groundMaterial.backFaceCulling = false
+  groundMaterial.mainColor = new BABYLON.Color3(1, 1, 1)
+  groundMaterial.lineColor = new BABYLON.Color3(1.0, 1.0, 1.0)
+  groundMaterial.opacity = 0.98
+
+  // Ground
+  const ground = BABYLON.MeshBuilder.CreatePlane('ground', {
+    size: 10,
+  }, scene)
+  ground.position = new BABYLON.Vector3(0, 0, 0)
+  ground.rotation = new BABYLON.Vector3(Math.PI / 2, 0, 0)
+  ground.material = groundMaterial
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // const light = new BABYLON.HemisphericLight('light', new BABYLON.Vector3(0, 1, 0), scene)
+
+  // Lights
+  const pointLight = new BABYLON.PointLight('pointLight', new BABYLON.Vector3(0, 2, 0), scene)
+  pointLight.intensity = 1
+  // pointLight.includedOnlyMeshes.push(ground)
+
+  // Tone mapping
+  // https://zhuanlan.zhihu.com/p/21983679
+  scene.imageProcessingConfiguration.toneMappingEnabled = true
+  scene.imageProcessingConfiguration.toneMappingType = BABYLON.ImageProcessingConfiguration.TONEMAPPING_ACES
+  scene.imageProcessingConfiguration.exposure = 3
 
   createVRM(scene, onVRMLoaded)
 
@@ -47,12 +81,29 @@ export function createVRM(scene: BABYLON.Scene, onLoaded?: () => void) {
     )
   }
 
+  // for vrm rotation
+  // Create utility layer the gizmo will be rendered on
+  const utilLayer = new BABYLON.UtilityLayerRenderer(scene)
+  const gizmo = new BABYLON.RotationGizmo(utilLayer)
+
+  // pick mesh by light cast
+  // https://doc.babylonjs.com/divingDeeper/mesh/interactions/picking_collisions
+
   function onVRMLoaded() {
     const vrmManager = getVrmManager(scene)
     // scene.registerBeforeRender(() => {
     //   // Update SpringBone
     //   vrmManager.update(scene.getEngine().getDeltaTime())
     // })
+
+    // Create the gizmo and attach to the box
+    gizmo.attachedMesh = vrmManager.rootMesh
+    // console.log(vrmManager.rootMesh)
+    // console.log(vrmManager.humanoidBone.leftFoot.parent)
+
+    // Keep the gizmo fixed to world rotation
+    gizmo.updateGizmoRotationToMatchAttachedMesh = false
+    gizmo.updateGizmoPositionToMatchAttachedMesh = true
 
     if (onLoaded) onLoaded()
 
@@ -77,6 +128,8 @@ export function createVRM(scene: BABYLON.Scene, onLoaded?: () => void) {
       const boneName = name as HumanBonesType
       if (manager.humanoidBone[boneName])
         manager.humanoidBone[boneName]!.rotationQuaternion = poseData[boneName]
+
+      // gizmo.attachedMesh = manager.humanoidBone[boneName].parent
     })
   }
 

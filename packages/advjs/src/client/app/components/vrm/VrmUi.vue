@@ -1,5 +1,5 @@
 <template>
-  <AdvToolbox>
+  <AdvToolbox :default-status="true">
     <template #icon>
       <AdvIconButton class="fixed right-35 bottom-5">
         <i-ri-edit-line />
@@ -45,13 +45,13 @@
     </div>
   </AdvToolbox>
 
-  <AdvToolbox position="right">
+  <AdvToolbox position="right" :default-status="true">
     <template #icon>
       <AdvIconButton class="fixed right-20 bottom-5">
         <i-ri-emotion-line />
       </AdvIconButton>
     </template>
-    <div text="left" p="2">
+    <div v-show="Object.keys(vrmMorphingList).length" text="left" p="2">
       <h2 text="lg center">
         预设编辑
       </h2>
@@ -81,14 +81,15 @@ const props = defineProps<{
   vrmManager?: VRMManager
 }>()
 
-const bonesRotation = ref<RawPoseData>({})
+const defaultBonesRotation: Partial<RawPoseData> = {}
 HumanBones.forEach((bone) => {
-  bonesRotation.value[bone] = {
+  defaultBonesRotation[bone] = {
     x: 0,
     y: 0,
     z: 0,
   }
 })
+const bonesRotation = ref<RawPoseData>(defaultBonesRotation as RawPoseData)
 
 const vrmMorphingList = ref<Record<string, number>>({})
 

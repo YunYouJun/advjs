@@ -61,6 +61,7 @@ importers:
       '@babylonjs/core': ^4.2.1
       '@babylonjs/gui': ^4.2.1
       '@babylonjs/loaders': ^4.2.1
+      '@babylonjs/materials': ^4.2.1
       '@iconify-json/carbon': ^1.0.12
       '@iconify-json/ri': ^1.0.2
       '@intlify/vite-plugin-vue-i18n': ^3.2.1
@@ -124,6 +125,7 @@ importers:
       vue-i18n: 9.1.9_vue@3.2.26
       vue-router: 4.0.12_vue@3.2.26
     devDependencies:
+      '@babylonjs/materials': 4.2.1
       '@iconify-json/carbon': 1.0.12
       '@iconify-json/ri': 1.0.2
       '@intlify/vite-plugin-vue-i18n': 3.2.1_vite@2.7.10+vue-i18n@9.1.9
@@ -3010,7 +3012,6 @@ packages:
     resolution: {integrity: sha512-Z2ZVNRKPB1UvmMeqQtxCJKrQtQ/hb5FcAZi66YEEE0MKBQlLmf6oZEM9vS1RljPK7NZoV/dZSdwjJgiQlGsuhA==}
     dependencies:
       tslib: 2.3.1
-    dev: false
 
   /@babylonjs/gui/4.2.1:
     resolution: {integrity: sha512-6gOolbWYFO5lrRWKunawYWQkX4a47dvuiIBrEmY6eKRN97e4f7YrR7oYolqeWFHLXzbn0JR0blOYQyUB5jQqmg==}
@@ -3026,6 +3027,13 @@ packages:
       babylonjs-gltf2interface: 4.2.1
       tslib: 2.3.1
     dev: false
+
+  /@babylonjs/materials/4.2.1:
+    resolution: {integrity: sha512-G4mfmixt2BnATaa2/uhf7xfZv4fqD6bGHocbEWT1Iu0KOJcpU7Q0EYjN8bqx78hVFjd94e4g0/7Bey2JaGrakA==}
+    dependencies:
+      '@babylonjs/core': 4.2.1
+      tslib: 2.3.1
+    dev: true
 
   /@bcoe/v8-coverage/0.2.3:
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
@@ -7326,6 +7334,7 @@ packages:
 
   /graceful-fs/4.2.9:
     resolution: {integrity: sha512-NtNxqUcXgpW2iMrfqSfR73Glt39K+BLwWsPs94yR63v45T0Wbej7eRmL5cWfwEgqXnmjQp3zaJTshdRW/qC2ZQ==}
+    requiresBuild: true
     dev: true
 
   /gray-matter/4.0.3:
@@ -8665,7 +8674,7 @@ packages:
     dependencies:
       universalify: 2.0.0
     optionalDependencies:
-      graceful-fs: 4.2.8
+      graceful-fs: 4.2.9
     dev: true
 
   /jsonpointer/5.0.0:
