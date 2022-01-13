@@ -1,4 +1,4 @@
-import { namespace } from '~/utils'
+import { namespace } from '@advjs/shared/utils'
 
 interface SpeechSynthesis {
   enable: boolean
