@@ -151,7 +151,7 @@ export default defineConfig({
       '@vueuse/head',
       '@babylonjs/core',
       '@babylonjs/loaders',
-      '@babylonjs/materials/Grid',
+      '@babylonjs/materials/grid',
       'babylon-vrm-loader',
     ],
     exclude: [
