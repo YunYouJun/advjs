@@ -2,9 +2,13 @@
 import * as BABYLON from '@babylonjs/core'
 import '@babylonjs/loaders'
 import type { VRMManager } from 'babylon-vrm-loader'
-import { GridMaterial } from '@babylonjs/materials/Grid'
-import { createVRMScene, getVrmManager } from '@advjs/core/babylon/vrm'
+
+import { HumanBones, createVRM, createVRMScene, getVrmManager } from '@advjs/core/babylon/vrm'
 import { createGridGround } from '@advjs/core/babylon/scene'
+import { createRotatePointLight } from '@advjs/core/babylon/light'
+import { createArcRotateCamera } from '@advjs/core/babylon/camera'
+import { createSkybox } from './scene'
+import { createGizmoManager } from './utils'
 
 // https://doc.babylonjs.com/divingDeeper/cameras/multiViewsPart2
 /**
@@ -33,8 +37,10 @@ export async function setup(canvas: HTMLCanvasElement, onVRMLoaded?: (vrmManager
   // Load the 3D engine
   const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true })
 
-  // a new scene for vrm
-  const scene = createVRMScene(engine, () => {
+  const scene = createVRMScene(engine)
+  const gizmoManager = createGizmoManager(scene)
+
+  createVRM(scene, () => {
     // on vrm loaded
     const vrmManager = getVrmManager(scene)
 
@@ -43,35 +49,32 @@ export async function setup(canvas: HTMLCanvasElement, onVRMLoaded?: (vrmManager
 
     // create axes for sce
     // createAxes(scene, 1, vrmManager.rootMesh)
+    // const boneMeshes: BABYLON.AbstractMesh[] = HumanBones.map((boneName) => {
+    //   const bone = vrmManager.humanoidBone[boneName] as BABYLON.AbstractMesh
+    //   bone.showBoundingBox = true
+    //   return bone as BABYLON.AbstractMesh
+    // })
+    // Restrict gizmos to only bones
+    // gizmoManager.attachableMeshes = boneMeshes
+    // createPickMesh(scene)
   })
+
+  createArcRotateCamera(scene)
 
   // axes camera
   // const camera = new BABYLON.ArcRotateCamera('helper-camera', -Math.PI / 2, Math.PI / 2, 3, new BABYLON.Vector3(0, 1, 0), scene)
-  // camera.attachControl(engine.getRenderingCanvas, true)
+  // camera.attachControl(null, true)
   // camera.viewport = new BABYLON.Viewport(0.85, 0.1, 0.15, 0.2)
   // scene.activeCameras?.push(camera)
 
   // create world axes
-  createAxes(scene, 0.5)
+  // createAxes(scene, 0.5)
 
   createGridGround(scene)
+  createRotatePointLight(scene)
+  createSkybox(scene)
 
-  // Create a skybox
-  const skyMaterial = new GridMaterial('skyMaterial', scene)
-  skyMaterial.majorUnitFrequency = 6
-  skyMaterial.minorUnitVisibility = 0.43
-  skyMaterial.gridRatio = 0.5
-  skyMaterial.mainColor = new BABYLON.Color3(0, 0.05, 0.2)
-  skyMaterial.lineColor = new BABYLON.Color3(0, 1.0, 1.0)
-  skyMaterial.backFaceCulling = false
-
-  const skySphere = BABYLON.MeshBuilder.CreateSphere('skySphere', {
-    segments: 20,
-    diameter: 100,
-  }, scene)
-  skySphere.material = skyMaterial
-
-  let autoRotate = true
+  let autoRotate = false
 
   // run the render loop
   engine.runRenderLoop(() => {
@@ -93,5 +96,6 @@ export async function setup(canvas: HTMLCanvasElement, onVRMLoaded?: (vrmManager
   return {
     engine,
     scene,
+    gizmoManager,
   }
 }

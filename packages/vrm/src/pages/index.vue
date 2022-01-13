@@ -42,25 +42,21 @@ const cameraInfo = ref<CameraInfo>({
 
 const babylonCanvas = ref()
 
-let babylon: {
-  scene: BABYLON.Scene
-  engine: BABYLON.Engine
-}
-
 const vrmManager = ref<VRMManager>()
 
 onMounted(async() => {
   if (!isClient) return
-  babylon = await setup(babylonCanvas.value, (manager) => {
+  const babylon = await setup(babylonCanvas.value, (manager) => {
     vrmManager.value = manager
   })
   babylon.scene.autoClear = true
+  window.babylon = babylon
 })
 
 /**
  * 记录镜头信息
  */
 const recordCameraInfo = () => {
-  cameraInfo.value = captureCameraInfo(babylon.scene.activeCamera as BABYLON.ArcRotateCamera)
+  cameraInfo.value = captureCameraInfo(window.babylon.scene.activeCamera as BABYLON.ArcRotateCamera)
 }
 </script>

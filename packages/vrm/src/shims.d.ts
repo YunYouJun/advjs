@@ -1,5 +1,10 @@
+import type * as BABYLON from '@babylonjs/core'
+
 declare interface Window {
   // extend the window
+  scene: BABYLON.Scene
+  engine: BABYLON.Engine
+  gizmoManager: BABYLON.GizmoManager
 }
 
 // with vite-plugin-md, markdowns can be treat as Vue components

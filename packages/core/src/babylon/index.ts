@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import * as BABYLON from '@babylonjs/core'
 import '@babylonjs/loaders'
-import { createVRMScene } from './vrm'
+import { createVRM, createVRMScene } from './vrm'
 
 // todo: extract canvas element
 export async function setup(canvas: HTMLCanvasElement) {
@@ -47,6 +47,7 @@ export async function setup(canvas: HTMLCanvasElement) {
 
   // a new scene for vrm
   const vrmScene = createVRMScene(engine)
+  createVRM(scene)
 
   // run the render loop
   engine.runRenderLoop(() => {

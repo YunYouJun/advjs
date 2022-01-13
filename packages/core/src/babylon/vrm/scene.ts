@@ -11,30 +11,17 @@ export function getVrmManager(scene: BABYLON.Scene) {
 }
 
 // https://doc.babylonjs.com/divingDeeper/scene/multiScenes
-export function createVRMScene(engine: BABYLON.Engine, onVRMLoaded?: () => void) {
+export function createVRMScene(engine: BABYLON.Engine) {
   const scene = new BABYLON.Scene(engine)
   scene.clearColor = new BABYLON.Color4(0, 0, 0, 0)
   scene.autoClear = false
-
-  // const camera = new BABYLON.ArcRotateCamera('camera', -1.6, 1.5, 2, new BABYLON.Vector3(0.4, 3.2, 0.75), scene)
-  const camera = new BABYLON.ArcRotateCamera('camera', -Math.PI / 2, Math.PI / 2, 2, new BABYLON.Vector3(0, 1, 0), scene)
-  camera.attachControl(engine.getRenderingCanvas, true)
-
-  camera.viewport = new BABYLON.Viewport(0, 0, 1, 1)
-  scene.activeCameras?.push(camera)
-
-  camera.wheelDeltaPercentage = 0.01
-  // todo: add dev
-  camera.minZ = 0.1
-  camera.lowerRadiusLimit = 0.5
-  camera.upperRadiusLimit = 10
 
   // BABYLON.SceneLoader.Append('/assets/scenes/low_poly_winter_scene/', 'scene.gltf', scene)
 
   // Lights
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const lightHemi = new BABYLON.HemisphericLight('light', new BABYLON.Vector3(0, 2, 0), scene)
-  lightHemi.intensity = 0.5
+  // const lightHemi = new BABYLON.HemisphericLight('light', new BABYLON.Vector3(0, 2, 0), scene)
+  // lightHemi.intensity = 0.5
 
   // Tone mapping
   // https://zhuanlan.zhihu.com/p/21983679
@@ -42,53 +29,21 @@ export function createVRMScene(engine: BABYLON.Engine, onVRMLoaded?: () => void)
   scene.imageProcessingConfiguration.toneMappingType = BABYLON.ImageProcessingConfiguration.TONEMAPPING_ACES
   scene.imageProcessingConfiguration.exposure = 3
 
-  createVRM(scene, onVRMLoaded)
-
   // Return the created scene
   return scene
 }
 
 export function createVRM(scene: BABYLON.Scene, onLoaded?: () => void) {
-  const cdnPrefix = 'https://upyun.yunyoujun.cn/'
+  // const cdnPrefix = 'https://upyun.yunyoujun.cn'
+  const cdnPrefix = 'https://v.yyj.moe'
   function loadVRM(callback: () => void) {
     BABYLON.SceneLoader.Append(
-      `${isDev ? '' : cdnPrefix}models/vrm/`,
-      // 'alicia-solid.vrm',
-      'xiao-yun.vrm',
+      `${isDev ? '' : cdnPrefix}/models/vrm/`,
+      'alicia-solid.vrm',
+      // 'xiao-yun.vrm', // 模型载入有点问题
       scene,
       callback,
     )
-  }
-
-  // for vrm rotation
-  // Create utility layer the gizmo will be rendered on
-  const utilLayer = new BABYLON.UtilityLayerRenderer(scene)
-  const gizmo = new BABYLON.RotationGizmo(utilLayer)
-
-  // pick mesh by light cast
-  // https://doc.babylonjs.com/divingDeeper/mesh/interactions/picking_collisions
-
-  function onVRMLoaded() {
-    const vrmManager = getVrmManager(scene)
-    // scene.registerBeforeRender(() => {
-    //   // Update SpringBone
-    //   vrmManager.update(scene.getEngine().getDeltaTime())
-    // })
-
-    // Create the gizmo and attach to the box
-    gizmo.attachedMesh = vrmManager.rootMesh
-    // console.log(vrmManager.rootMesh)
-    // console.log(vrmManager.humanoidBone.leftFoot.parent)
-
-    // Keep the gizmo fixed to world rotation
-    gizmo.updateGizmoRotationToMatchAttachedMesh = false
-    gizmo.updateGizmoPositionToMatchAttachedMesh = true
-
-    if (onLoaded) onLoaded()
-
-    // Model Transformation
-    // vrmManager.rootMesh.translate(new BABYLON.Vector3(0, 1, 0), 2)
-    makePose(vrmManager)
   }
 
   function makePose(manager: VRMManager) {
@@ -107,10 +62,20 @@ export function createVRM(scene: BABYLON.Scene, onLoaded?: () => void) {
       const boneName = name as HumanBonesType
       if (manager.humanoidBone[boneName])
         manager.humanoidBone[boneName]!.rotationQuaternion = poseData[boneName]
-
-      // gizmo.attachedMesh = manager.humanoidBone[boneName].parent
     })
   }
 
-  loadVRM(onVRMLoaded)
+  loadVRM(() => {
+    const vrmManager = getVrmManager(scene)
+    // scene.registerBeforeRender(() => {
+    //   // Update SpringBone
+    //   vrmManager.update(scene.getEngine().getDeltaTime())
+    // })
+
+    if (onLoaded) onLoaded()
+
+    // Model Transformation
+    // vrmManager.rootMesh.translate(new BABYLON.Vector3(0, 1, 0), 2)
+    makePose(vrmManager)
+  })
 }

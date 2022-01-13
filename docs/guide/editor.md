@@ -20,6 +20,14 @@ Todo:
 
 与其他动画 fbx 格式的不同
 
+### 与 VRoid 的区别？
+
+VRoid 是官方的 VRM 模型制作客户端，但其并未提供动作数据导出功能。
+
+该编辑器可在网页端运行，并希望可以通过 JSON 数据来导出记录动作。
+
+<!-- https://pixiv.github.io/three-vrm/docs/interfaces/vrmpose.html -->
+
 ## Useful Links
 
 - [Mixamo](https://www.mixamo.com/): Adobe 出品，可下载动作数据

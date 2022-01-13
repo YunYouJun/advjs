@@ -40,5 +40,12 @@
       "advjs/*": ["packages/advjs/src/*"]
     }
   },
-  "include": ["packages/global.d.ts", "packages/**/*"]
+  "include": [
+    "packages/global.d.ts",
+    "./docs/.vitepress/**/*.ts",
+    "./docs/.vitepress/**/*.vue",
+    "packages/**/*.ts",
+    "packages/**/*.vue"
+  ],
+  "exclude": ["**/dist/**", "node_modules"]
 }

@@ -26,7 +26,7 @@
 
 - 状态：开发中
 - 包括默认的 UI 样式与解析文本生成演出内容
-- Todo: 划分 `@advjs/ui` 与 `@advjs/core`
+- Todo: 划分 `@advjs/theme-default` 与 `@advjs/core`
 
 ### [create-adv](./packages/create-adv) 脚手架
 
@@ -54,3 +54,8 @@
 ### [unplugin-adv](./packages/unplugin-adv) Adv 通用插件
 
 - 功能：可用于 Vite（推荐）、Webpack、Rollup 等工具插件，预先对 `.adv`, `.adv.md` 结尾的文件进行转译以便预编译。
+
+### [@advjs/vrm](./packages/vrm) VRM 模型在线编辑器
+
+- Demo: <https://vrm.advjs.org>
+- 功能：可用于 VRM 模型动作、表情的在线编辑

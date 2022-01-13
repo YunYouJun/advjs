@@ -13,7 +13,7 @@
         <div v-for="(bone, i) in HumanBones" :key="i" m="y-1">
           <details>
             <summary>
-              <h3 text="xs" class="inline-block cursor-pointer">
+              <h3 text="xs" class="inline-block cursor-pointer" @click="toggleBone(bone)">
                 {{ bone }} <small text="xs">{{ t('bones.' + bone) }}</small>
               </h3>
             </summary>
@@ -123,5 +123,39 @@ const update = (boneName: HumanBonesType) => {
 const updateMorphing = (name: string) => {
   if (!props.vrmManager) return
   props.vrmManager.morphingPreset(name.toLowerCase(), vrmMorphingList.value[name])
+}
+
+/**
+ * 切换 Bone
+ */
+const toggleBone = (bone: HumanBonesType) => {
+  // @ts-expect-error window.babylon
+  const gizmoManager = globalThis.babylon.gizmoManager as BABYLON.GizmoManager
+  const boneNode = props.vrmManager?.humanoidBone[bone]
+  gizmoManager.attachToMesh((boneNode as BABYLON.AbstractMesh))
+
+  const rotationGizmo = gizmoManager.gizmos.rotationGizmo
+  if (!rotationGizmo) return
+
+  const setX = () => {
+    const angles = boneNode?.rotationQuaternion?.toEulerAngles()
+    bonesRotation.value[bone].x = angles?.x || 0
+  }
+  const setY = () => {
+    const angles = boneNode?.rotationQuaternion?.toEulerAngles()
+    bonesRotation.value[bone].y = angles?.y || 0
+  }
+  const setZ = () => {
+    const angles = boneNode?.rotationQuaternion?.toEulerAngles()
+    bonesRotation.value[bone].z = angles?.z || 0
+  }
+
+  rotationGizmo.xGizmo.dragBehavior.onDragObservable.add(setX)
+  rotationGizmo.yGizmo.dragBehavior.onDragObservable.add(setY)
+  rotationGizmo.zGizmo.dragBehavior.onDragObservable.add(setZ)
+
+  rotationGizmo.xGizmo.dragBehavior.onDragEndObservable.clear()
+  rotationGizmo.yGizmo.dragBehavior.onDragEndObservable.clear()
+  rotationGizmo.zGizmo.dragBehavior.onDragEndObservable.clear()
 }
 </script>

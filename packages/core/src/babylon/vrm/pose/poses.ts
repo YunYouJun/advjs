@@ -2,8 +2,6 @@ import * as BABYLON from '@babylonjs/core'
 // import type { HumanBoneName } from 'babylon-vrm-loader'
 import type { PoseQuaternion } from '../../types'
 
-export const ZeroQuaternion = BABYLON.Quaternion.FromEulerAngles(0, 0, 0)
-
 // extra is jaw?
 // https://docs.unity.cn/550/Documentation/ScriptReference/HumanBodyBones.html
 // 人体骨骼
@@ -70,7 +68,7 @@ export type HumanBonesType = typeof HumanBones[number]
 const initPoseQuaternion: Partial<PoseQuaternion> = {}
 // set every bone to zero quaternion
 HumanBones.forEach((bone) => {
-  initPoseQuaternion[bone] = ZeroQuaternion
+  initPoseQuaternion[bone] = BABYLON.Quaternion.FromEulerAngles(0, 0, 0)
 })
 
 export const defaultPoseQuaternion = initPoseQuaternion as PoseQuaternion

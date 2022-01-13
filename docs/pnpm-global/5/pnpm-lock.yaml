@@ -1,7 +1,0 @@
-lockfileVersion: 5.3
-
-specifiers:
-  vitepress-theme-you: ^0.0.16
-
-dependencies:
-  vitepress-theme-you: link:../../../../../../../.asdf/installs/nodejs/lts/.npm/pnpm-global/5/node_modules/vitepress-theme-you
