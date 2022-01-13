@@ -1,4 +1,4 @@
-import { GridMaterial } from '@babylonjs/materials/Grid'
+import { GridMaterial } from '@babylonjs/materials/grid'
 import * as BABYLON from '@babylonjs/core'
 
 /**
