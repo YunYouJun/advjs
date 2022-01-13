@@ -9,7 +9,7 @@ export default defineConfig({
   attributify: true,
 
   extract: {
-    include: ['**/*.md', 'client/**/*.{md,vue}', 'src/**/*.{md,vue}'],
+    include: ['**/*.md', 'client/**/*.{md,vue}', 'src/**/*.{md,vue}', '../theme-default/**/*.{md,vue}'],
   },
 
   plugins: [

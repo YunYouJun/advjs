@@ -9,9 +9,9 @@ import 'virtual:windi-base.css'
 import 'virtual:windi-components.css'
 
 // your custom styles here
-import './client/app/styles/vars.scss'
-import './client/theme-default/styles/index.scss'
-import './client/app/styles/index.scss'
+import './client/styles/vars.scss'
+import '../../theme-default/styles/index.scss'
+import './client/styles/index.scss'
 
 // windicss utilities should be the last style import
 import 'virtual:windi-utilities.css'

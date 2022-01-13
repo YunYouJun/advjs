@@ -17,3 +17,9 @@ Todo:
   - 两种方式切换（只保留非零数值和保留所有数值）
 
 > [Unity 中的旋转和方向 | 欧拉角和四元数](https://docs.unity3d.com/cn/2019.4/Manual/QuaternionAndEulerRotationsInUnity.html)
+
+与其他动画 fbx 格式的不同
+
+## Useful Links
+
+- [Mixamo](https://www.mixamo.com/): Adobe 出品，可下载动作数据

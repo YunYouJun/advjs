@@ -2,6 +2,11 @@
   "name": "unplugin-starter",
   "version": "0.1.0",
   "description": "Register global imports on demand for Vite and Webpack",
+  "author": {
+    "name": "YunYouJun",
+    "email": "me@yunyoujun.cn",
+    "url": "https://www.yunyoujun.cn"
+  },
   "keywords": [
     "unplugin",
     "vite",
@@ -9,13 +14,13 @@
     "rollup",
     "transform"
   ],
-  "homepage": "https://github.com/antfu/unplugin-starter#readme",
+  "homepage": "https://github.com/YunYouJun/advjs/tree/main/packages/unplugin-adv#readme",
   "bugs": {
-    "url": "https://github.com/antfu/unplugin-starter/issues"
+    "url": "https://github.com/YunYouJun/advjs/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/antfu/unplugin-starter.git"
+    "url": "git+https://github.com/YunYouJun/advjs.git"
   },
   "license": "MIT",
   "exports": {
@@ -86,6 +91,6 @@
     "tsup": "^5.11.11",
     "typescript": "^4.5.4",
     "vite": "^2.7.10",
-    "webpack": "^5.65.0"
+    "webpack": "^5.66.0"
   }
 }

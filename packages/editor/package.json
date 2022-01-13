@@ -25,7 +25,7 @@
     "@vitejs/plugin-vue": "^2.0.1",
     "markdown-it-link-attributes": "^4.0.0",
     "markdown-it-prism": "^2.2.2",
-    "unplugin-auto-import": "^0.5.9",
+    "unplugin-auto-import": "^0.5.10",
     "unplugin-icons": "^0.13.0",
     "unplugin-vue-components": "^0.17.11",
     "v-tooltip": "^4.0.0-beta.2",
@@ -33,7 +33,7 @@
     "vite-plugin-inspect": "^0.3.13",
     "vite-plugin-md": "^0.11.7",
     "vite-plugin-pages": "^0.19.9",
-    "vite-plugin-pwa": "^0.11.12",
+    "vite-plugin-pwa": "^0.11.13",
     "vite-plugin-vue-layouts": "^0.5.0",
     "vite-plugin-windicss": "^1.6.2"
   }

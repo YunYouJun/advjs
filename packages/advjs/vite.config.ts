@@ -45,7 +45,7 @@ export default defineConfig({
 
     // https://github.com/JohnCampionJr/vite-plugin-vue-layouts
     Layouts({
-      layoutsDir: './src/client/theme-default/layouts',
+      layoutsDir: '../theme-default/layouts',
     }),
 
     // https://github.com/antfu/unplugin-auto-import
@@ -64,8 +64,8 @@ export default defineConfig({
     Components({
       dirs: [
         'src/components',
-        'src/client/app/components',
-        'src/client/theme-default/components',
+        'src/client/components',
+        '../theme-default/components',
       ],
       // allow auto load markdown components under `./src/components/`
       extensions: ['vue', 'md'],
@@ -123,24 +123,6 @@ export default defineConfig({
         name: 'ADV.JS',
         short_name: 'ADV',
         theme_color: '#000',
-        icons: [
-          {
-            src: '/icons/pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png',
-          },
-          {
-            src: '/icons/pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-          },
-          {
-            src: '/icons/pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable',
-          },
-        ],
       },
     }),
 
@@ -189,6 +171,7 @@ export default defineConfig({
       'consola',
       '@babylonjs/core',
       '@babylonjs/loaders',
+      // '@babylonjs/materials',
       'babylon-vrm-loader',
     ],
     exclude: [

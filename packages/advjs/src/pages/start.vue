@@ -28,7 +28,7 @@
       </div>
     </div>
     <div>
-      <StartMenu />
+      <StartMenu :menu-items="menuItems" />
     </div>
 
     <AdvModal v-show="app.showMenu" @close="app.toggleShowMenu">
@@ -43,7 +43,43 @@ meta:
 </route>
 
 <script lang="ts" setup>
+import type { StartMenuItem } from '@advjs/theme-default'
 import { useAppStore } from '~/stores/app'
-import NewYunLogo from '~/client/app/components/icons/NewYunLogo.vue'
 const app = useAppStore()
+
+const { t } = useI18n()
+const router = useRouter()
+
+const menuItems: StartMenuItem[] = [
+  {
+    title: t('start-menu.new-game'),
+    do: () => {
+      router.push('/game')
+    },
+  },
+  {
+    title: t('start-menu.load-game'),
+    do: () => {
+      window.alert('存档？不存在的 ╮(￣▽￣"")╭')
+    },
+  },
+  {
+    title: t('start-menu.settings'),
+    do: () => {
+      app.toggleShowMenu()
+    },
+  },
+  {
+    title: t('start-menu.help'),
+    do: () => {
+      router.push('/help')
+    },
+  },
+  {
+    title: t('start-menu.quit'),
+    do: () => {
+      window.alert('为什么不直接关浏览器窗口呢？╮(￣▽￣"")╭')
+    },
+  },
+]
 </script>

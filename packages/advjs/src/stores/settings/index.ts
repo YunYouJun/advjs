@@ -1,6 +1,6 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
+import { namespace } from '@advjs/shared/utils'
 import { useSpeech } from './useSpeech'
-import { namespace } from '~/utils'
 
 export const useSettingsStore = defineStore('settings', () => {
   const speech = useSpeech()

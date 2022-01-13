@@ -1,0 +1,67 @@
+button:
+  about: About
+  back: Back
+  go: GO
+  home: Home
+  toggle_dark: Toggle dark mode
+  toggle_langs: Change languages
+not-found: Not found
+
+# https://docs.unity.cn/550/Documentation/ScriptReference/HumanBodyBones.html
+bones:
+  hips: Hips
+  leftUpperLeg: Left Upper Leg
+  rightUpperLeg: Right Upper Leg
+  leftLowerLeg: Left Lower Leg
+  rightLowerLeg: Right Lower Leg
+  leftFoot: Left Foot
+  rightFoot: Right Foot
+  spine: Spine
+  chest: Chest
+  neck: Neck
+  head: Head
+  leftShoulder: Left Shoulder
+  rightShoulder: Right Shoulder
+  leftUpperArm: Left Upper Arm
+  rightUpperArm: Right Upper Arm
+  leftLowerArm: Left Lower Arm
+  rightLowerArm: Right Lower Arm
+  leftHand: Left Hand
+  rightHand: Right Hand
+  leftToes: Left Toes
+  rightToes: Right Toes
+  leftEye: Left Eye
+  rightEye: Right Eye
+  jaw: Jaw
+  leftThumbProximal: leftThumbProximal
+  leftThumbIntermediate: leftThumbIntermediate
+  leftThumbDistal: leftThumbDistal
+  leftIndexProximal: leftIndexProximal
+  leftIndexIntermediate: leftIndexIntermediate
+  leftIndexDistal: leftIndexDistal
+  leftMiddleProximal: leftMiddleProximal
+  leftMiddleIntermediate: 左中指中部骨骼
+  leftMiddleDistal: leftMiddleDistal
+  leftRingProximal: leftRingProximal
+  leftRingIntermediate: leftRingIntermediate
+  leftRingDistal: leftRingDistal
+  leftLittleProximal: leftLittleProximal
+  leftLittleIntermediate: leftLittleIntermediate
+  leftLittleDistal: leftLittleDistal
+  rightThumbProximal: rightThumbProximal
+  rightThumbIntermediate: rightThumbIntermediate
+  rightThumbDistal: rightThumbDistal
+  rightIndexProximal: rightIndexProximal
+  rightIndexIntermediate: rightIndexIntermediate
+  rightIndexDistal: rightIndexDistal
+  rightMiddleProximal: rightMiddleProximal
+  rightMiddleIntermediate: rightMiddleIntermediate
+  rightMiddleDistal: rightMiddleDistal
+  rightRingProximal: rightRingProximal
+  rightRingIntermediate: rightRingIntermediate
+  rightRingDistal: rightRingDistal
+  rightLittleProximal: rightLittleProximal
+  rightLittleIntermediate: rightLittleIntermediate
+  rightLittleDistal: rightLittleDistal
+  lastBone: Last Bone
+  upperChest: Upper Chest
