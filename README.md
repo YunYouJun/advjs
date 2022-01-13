@@ -57,5 +57,7 @@
 
 ### [@advjs/vrm](./packages/vrm) VRM 模型在线编辑器
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/33595ad5-4006-460e-a826-d7fd98a20638/deploy-status)](https://app.netlify.com/sites/gallant-goodall-b4101f/deploys)
+
 - Demo: <https://vrm.advjs.org>
 - 功能：可用于 VRM 模型动作、表情的在线编辑
