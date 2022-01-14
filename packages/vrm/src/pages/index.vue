@@ -7,6 +7,11 @@
     <pre class="block text-left">{{ JSON.stringify(cameraInfo, null, 2) }}</pre>
   </AdvDebug>
   <VrmUi :vrm-manager="vrmManager" />
+  <a target="_blank" href="https://github.com/YunYouJun/advjs">
+    <AdvIconButton class="fixed right-50 bottom-5">
+      <i-ri-github-line />
+    </AdvIconButton>
+  </a>
 </template>
 
 <route lang="yaml">

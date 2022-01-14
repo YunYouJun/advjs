@@ -26,7 +26,7 @@ const config: UserConfig<YouTheme.Config> = {
     },
     plugins: [
       Components({
-        dirs: ['theme/components'],
+        dirs: [path.resolve(__dirname, './theme/components')],
         extensions: ['vue', 'ts'],
         include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
         resolvers: [
