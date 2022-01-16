@@ -5,7 +5,7 @@
         <i-ri-edit-line />
       </AdvIconButton>
     </template>
-    <div v-show="vrmManager" class="overflow-y-auto" p="2" h="screen">
+    <div v-show="vrmStore.vrmManager" class="overflow-y-auto" p="2" h="screen">
       <h2 text="lg">
         骨骼编辑
       </h2>
@@ -59,17 +59,15 @@
 </template>
 
 <script lang="ts" setup>
-import type { VRMManager } from 'babylon-vrm-loader'
 import * as BABYLON from '@babylonjs/core'
 import type { HumanBonesType } from '@advjs/core/babylon/vrm/pose'
 import { HumanBones } from '@advjs/core/babylon/vrm/pose'
 import type { PoseEulerType } from '@advjs/core/babylon/types'
+import { useVrmStore } from '../stores/vrm'
 
 const { t } = useI18n()
 
-const props = defineProps<{
-  vrmManager?: VRMManager
-}>()
+const vrmStore = useVrmStore()
 
 const curBone = ref<HumanBonesType>()
 
@@ -85,7 +83,7 @@ const bonesRotation = ref<PoseEulerType>(defaultBonesRotation as PoseEulerType)
 
 const vrmMorphingList = ref<Record<string, number>>({})
 
-watch(() => props.vrmManager, (manager) => {
+watch(() => vrmStore.vrmManager, (manager) => {
   if (manager) {
     HumanBones.forEach((bone) => {
       if (!manager.humanoidBone[bone]) return
@@ -102,12 +100,12 @@ watch(() => props.vrmManager, (manager) => {
 
     const setAxis = (axis: 'x' | 'y' | 'z') => {
       if (!curBone.value) return
-      const boneNode = props.vrmManager?.humanoidBone[curBone.value]
+      const boneNode = vrmStore.vrmManager?.humanoidBone[curBone.value]
       const angles = boneNode?.rotationQuaternion?.toEulerAngles()
       bonesRotation.value[curBone.value][axis] = BABYLON.Angle.FromRadians(angles?.[axis] || 0).degrees()
     }
     // @ts-expect-error window.babylon
-    const gizmoManager = globalThis.babylon.gizmoManager as BABYLON.GizmoManager
+    const gizmoManager = vrmStore.babylon.gizmoManager as BABYLON.GizmoManager
     const rotationGizmo = gizmoManager.gizmos.rotationGizmo
     if (!rotationGizmo) return
     rotationGizmo.xGizmo.dragBehavior.onDragObservable.add(() => setAxis('x'))
@@ -123,10 +121,10 @@ watch(() => props.vrmManager, (manager) => {
  * @param rotation degree
  */
 const updateBoneRotation = (boneName: HumanBonesType, axis: 'x' | 'y' | 'z', rotation: number) => {
-  if (!props.vrmManager) return
-  const boneRotation = props.vrmManager.humanoidBone[boneName]!.rotation
+  if (!vrmStore.vrmManager) return
+  const boneRotation = vrmStore.vrmManager.humanoidBone[boneName]!.rotation
   const radian = BABYLON.Angle.FromDegrees(rotation).radians()
-  props.vrmManager.humanoidBone[boneName]!.rotation = new BABYLON.Vector3(
+  vrmStore.vrmManager.humanoidBone[boneName]!.rotation = new BABYLON.Vector3(
     axis === 'x' ? radian : boneRotation.x,
     axis === 'y' ? radian : boneRotation.y,
     axis === 'z' ? radian : boneRotation.z,
@@ -137,8 +135,8 @@ const updateBoneRotation = (boneName: HumanBonesType, axis: 'x' | 'y' | 'z', rot
  * 更新 Morphing
  */
 const updateMorphing = (name: string) => {
-  if (!props.vrmManager) return
-  props.vrmManager.morphingPreset(name.toLowerCase(), vrmMorphingList.value[name])
+  if (!vrmStore.vrmManager) return
+  vrmStore.vrmManager.morphingPreset(name.toLowerCase(), vrmMorphingList.value[name])
 }
 
 /**
@@ -146,7 +144,7 @@ const updateMorphing = (name: string) => {
  */
 const toggleBone = (bone: HumanBonesType) => {
   // @ts-expect-error window.babylon
-  const gizmoManager = globalThis.babylon.gizmoManager as BABYLON.GizmoManager
+  const gizmoManager = vrmStore.babylon.gizmoManager as BABYLON.GizmoManager
   if (curBone.value === bone) {
     curBone.value = undefined
     gizmoManager.rotationGizmoEnabled = false
@@ -155,7 +153,7 @@ const toggleBone = (bone: HumanBonesType) => {
     curBone.value = bone
 
     gizmoManager.rotationGizmoEnabled = true
-    const boneNode = props.vrmManager?.humanoidBone[bone]
+    const boneNode = vrmStore.vrmManager?.humanoidBone[bone]
     gizmoManager.attachToMesh((boneNode as BABYLON.AbstractMesh))
   }
 }

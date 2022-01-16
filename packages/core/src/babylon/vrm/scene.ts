@@ -1,11 +1,11 @@
-import { isDev } from '@advjs/shared/utils'
 import * as BABYLON from '@babylonjs/core'
 import type { VRMManager } from 'babylon-vrm-loader'
 import type { HumanBonesType } from './pose'
 import { HumanBones, vRawPoseData } from './pose'
 
-export function getVrmManager(scene: BABYLON.Scene) {
-  const vrmManager = scene.metadata.vrmManagers[0] as VRMManager
+export function getVrmManager(scene?: BABYLON.Scene) {
+  if (!scene?.metadata) return
+  const vrmManager = scene?.metadata.vrmManagers[scene?.metadata.vrmManagers.length - 1] as VRMManager
   return vrmManager
 }
 
@@ -32,42 +32,41 @@ export function createVRMScene(engine: BABYLON.Engine) {
   return scene
 }
 
-export function createVRM(scene: BABYLON.Scene, onLoaded?: () => void) {
-  // const cdnPrefix = 'https://upyun.yunyoujun.cn'
-  const cdnPrefix = 'https://v.yyj.moe'
-  function loadVRM(callback: () => void) {
-    BABYLON.SceneLoader.Append(
-      `${isDev ? '' : cdnPrefix}/models/vrm/`,
-      'alicia-solid.vrm',
-      // 'xiao-yun.vrm', // 模型载入有点问题
-      scene,
-      callback,
-    )
-  }
-
-  function makePose(manager: VRMManager) {
-    const poseData = vRawPoseData
-    HumanBones.forEach((name) => {
-      const boneName = name as HumanBonesType
-      if (manager.humanoidBone[boneName]) {
-        manager.humanoidBone[boneName]!.rotationQuaternion = (
-          poseData[boneName] ? BABYLON.Quaternion.FromArray(poseData[boneName]!.rotation!) : BABYLON.Quaternion.FromEulerAngles(0, 0, 0)
-        )
-      }
-    })
-  }
-
-  loadVRM(() => {
-    const vrmManager = getVrmManager(scene)
-    // scene.registerBeforeRender(() => {
-    //   // Update SpringBone
-    //   vrmManager.update(scene.getEngine().getDeltaTime())
-    // })
-
-    if (onLoaded) onLoaded()
-
-    // Model Transformation
-    // vrmManager.rootMesh.translate(new BABYLON.Vector3(0, 1, 0), 2)
-    makePose(vrmManager)
+/**
+ * 摆姿势
+ * @param manager
+ */
+function makePose(manager: VRMManager) {
+  const poseData = vRawPoseData
+  HumanBones.forEach((name) => {
+    const boneName = name as HumanBonesType
+    if (manager.humanoidBone[boneName]) {
+      manager.humanoidBone[boneName]!.rotationQuaternion = (
+        poseData[boneName] ? BABYLON.Quaternion.FromArray(poseData[boneName]!.rotation!) : BABYLON.Quaternion.FromEulerAngles(0, 0, 0)
+      )
+    }
   })
+}
+
+export function createVRM(scene: BABYLON.Scene, rootUrl: string, vrmFilename: string | File, onLoaded?: () => void) {
+  BABYLON.SceneLoader.Append(
+    rootUrl,
+    vrmFilename,
+    scene,
+    () => {
+      const vrmManager = getVrmManager(scene)
+      if (!vrmManager) return
+
+      // scene.registerBeforeRender(() => {
+      //   // Update SpringBone
+      //   vrmManager.update(scene.getEngine().getDeltaTime())
+      // })
+
+      if (onLoaded) onLoaded()
+
+      // Model Transformation
+      // vrmManager.rootMesh.translate(new BABYLON.Vector3(0, 1, 0), 2)
+      makePose(vrmManager)
+    },
+  )
 }

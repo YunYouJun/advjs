@@ -20,12 +20,12 @@
     "@iconify-json/vscode-icons": "^1.0.3",
     "@vueuse/core": "^7.5.3",
     "unplugin-icons": "^0.13.0",
-    "unplugin-vue-components": "^0.17.11",
+    "unplugin-vue-components": "^0.17.13",
     "vite-plugin-pwa": "^0.11.13",
     "vite-plugin-windicss": "^1.6.2",
     "vitepress": "^0.21.4"
   },
   "dependencies": {
-    "vitepress-theme-you": "^0.0.29"
+    "vitepress-theme-you": "^0.0.31"
   }
 }

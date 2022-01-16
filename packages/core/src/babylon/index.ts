@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import * as BABYLON from '@babylonjs/core'
 import '@babylonjs/loaders'
+import { demoVrm } from '@advjs/shared'
 import { createVRM, createVRMScene } from './vrm'
 
 // todo: extract canvas element
@@ -47,7 +48,9 @@ export async function setup(canvas: HTMLCanvasElement) {
 
   // a new scene for vrm
   const vrmScene = createVRMScene(engine)
-  createVRM(scene)
+
+  createVRM(scene, demoVrm.rootUrl, demoVrm.name)
+  // 'xiao-yun.vrm', // 模型载入有点问题
 
   // run the render loop
   engine.runRenderLoop(() => {

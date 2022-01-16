@@ -1,17 +1,21 @@
 <template>
   <canvas ref="babylonCanvas" class="absolute inset-0 w-full h-full outline-none" />
+
+  <VrmUi />
+
+  <UploadVrm />
+
+  <a target="_blank" href="https://github.com/YunYouJun/advjs">
+    <AdvIconButton class="fixed right-50 bottom-5">
+      <i-ri-github-line text="white" />
+    </AdvIconButton>
+  </a>
   <AdvDebug>
     <AdvIconButton title="记录当前镜头位置" @click="recordCameraInfo()">
       <i-ri-camera-line />
     </AdvIconButton>
     <pre class="block text-left">{{ JSON.stringify(cameraInfo, null, 2) }}</pre>
   </AdvDebug>
-  <VrmUi :vrm-manager="vrmManager" />
-  <a target="_blank" href="https://github.com/YunYouJun/advjs">
-    <AdvIconButton class="fixed right-50 bottom-5">
-      <i-ri-github-line text="white" />
-    </AdvIconButton>
-  </a>
 </template>
 
 <route lang="yaml">
@@ -26,6 +30,7 @@ import type { CameraInfo } from '@advjs/shared/debug'
 import { captureCameraInfo } from '@advjs/shared/debug'
 import { isClient } from '@advjs/shared/utils'
 import { setup } from '../setup'
+import { useVrmStore } from '../stores/vrm'
 
 useHead({
   title: 'ADV.JS VRM 模型调试工具',
@@ -49,19 +54,21 @@ const babylonCanvas = ref()
 
 const vrmManager = ref<VRMManager>()
 
+const vrmStore = useVrmStore()
+
 onMounted(async() => {
   if (!isClient) return
   const babylon = await setup(babylonCanvas.value, (manager) => {
     vrmManager.value = manager
   })
   babylon.scene.autoClear = true
-  window.babylon = babylon
+  vrmStore.setBabylon(babylon)
 })
 
 /**
  * 记录镜头信息
  */
 const recordCameraInfo = () => {
-  cameraInfo.value = captureCameraInfo(window.babylon.scene.activeCamera as BABYLON.ArcRotateCamera)
+  cameraInfo.value = captureCameraInfo(vrmStore.babylon?.scene.activeCamera as BABYLON.ArcRotateCamera)
 }
 </script>

@@ -1,0 +1,36 @@
+import { acceptHMRUpdate, defineStore } from 'pinia'
+import type * as BABYLON from '@babylonjs/core'
+
+import type { AsyncReturnType } from '@advjs/shared/types'
+import type { VRMManager } from 'babylon-vrm-loader'
+import type { setup } from '../setup'
+
+type SetupBabylonReturnType = AsyncReturnType<typeof setup>
+
+export const useVrmStore = defineStore('vrm', () => {
+  const babylon = shallowRef<{
+    scene: BABYLON.Scene
+  }>()
+  const scene = computed(() => babylon.value?.scene)
+  const vrmManager = shallowRef<VRMManager>()
+
+  const setBabylon = (val: SetupBabylonReturnType) => {
+    babylon.value = val
+  }
+
+  const setVrmManager = (val: VRMManager) => {
+    vrmManager.value = val
+  }
+
+  return {
+    babylon,
+    scene,
+    vrmManager,
+
+    setBabylon,
+    setVrmManager,
+  }
+})
+
+if (import.meta.hot)
+  import.meta.hot.accept(acceptHMRUpdate(useVrmStore, import.meta.hot))

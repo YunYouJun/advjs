@@ -3,10 +3,12 @@ import * as BABYLON from '@babylonjs/core'
 import '@babylonjs/loaders'
 import type { VRMManager } from 'babylon-vrm-loader'
 
-import { HumanBones, createVRM, createVRMScene, getVrmManager } from '@advjs/core/babylon/vrm'
+import { createVRM, createVRMScene, getVrmManager } from '@advjs/core/babylon/vrm'
 import { createGridGround } from '@advjs/core/babylon/scene'
 import { createRotatePointLight } from '@advjs/core/babylon/light'
 import { createArcRotateCamera } from '@advjs/core/babylon/camera'
+import { demoVrm } from '@advjs/shared'
+import { useVrmStore } from '../stores/vrm'
 import { createSkybox } from './scene'
 import { createGizmoManager } from './utils'
 
@@ -34,19 +36,26 @@ export const createAxes = (scene: BABYLON.Scene, length: number, parent?: BABYLO
 export async function setup(canvas: HTMLCanvasElement, onVRMLoaded?: (vrmManager: VRMManager) => void) {
   await import('babylon-vrm-loader')
 
+  const vrmStore = useVrmStore()
+
   // Load the 3D engine
   const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true })
 
   const scene = createVRMScene(engine)
   const gizmoManager = createGizmoManager(scene)
 
-  createVRM(scene, () => {
+  createVRM(scene, demoVrm.rootUrl, demoVrm.name, () => {
     // on vrm loaded
     const vrmManager = getVrmManager(scene)
+
+    if (!vrmManager) return
+
+    vrmStore.setVrmManager(vrmManager)
 
     if (onVRMLoaded)
       onVRMLoaded(vrmManager)
 
+    // console.log(scene.metadata.vrmManagers)
     // create axes for sce
     // createAxes(scene, 1, vrmManager.rootMesh)
     // const boneMeshes: BABYLON.AbstractMesh[] = HumanBones.map((boneName) => {

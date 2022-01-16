@@ -26,6 +26,7 @@ export const createGizmoManager = (scene: BABYLON.Scene) => {
   // gizmoManager.positionGizmoEnabled = true
   gizmoManager.rotationGizmoEnabled = true
   gizmoManager.usePointerToAttachGizmos = false
+  gizmoManager.attachToMesh(null)
 
   // gizmoManager.boundingBoxGizmoEnabled = true
 

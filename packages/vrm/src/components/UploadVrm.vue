@@ -1,0 +1,65 @@
+<template>
+  <div
+    class="absolute top-0 h-full w-full flex justify-center items-center z-10 pointer-events-none" :class="showDragStyle ? ['bg-black bg-opacity-50 border border-4 border-black border-dashed'] : ''" text="2xl white"
+  >
+    <span v-show="showDragStyle">Drag .vrm file</span>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import { createVRM, getVrmManager } from '@advjs/core/babylon/vrm'
+import { checkModelFormat } from '@advjs/shared/utils/vrm'
+import type * as BABYLON from '@babylonjs/core'
+import { useVrmStore } from '../stores/vrm'
+
+const vrmStore = useVrmStore()
+
+const showDragStyle = ref(false)
+
+/**
+ * 拖拽
+ */
+const onDragEnter = (e: DragEvent) => {
+  e.preventDefault()
+  showDragStyle.value = true
+}
+
+const onDragOver = (e: DragEvent) => {
+  e.preventDefault()
+}
+
+const onDragLeave = (e: DragEvent) => {
+  e.preventDefault()
+  showDragStyle.value = false
+}
+
+const onDrop = (e: DragEvent) => {
+  e.preventDefault()
+  showDragStyle.value = false
+
+  const fileList = e.dataTransfer?.files
+  if (!fileList?.length) return
+  if (checkModelFormat(fileList[0])) {
+    const scene = vrmStore.scene as BABYLON.Scene
+
+    // dispose old vrmManager
+    const manager = getVrmManager(scene)
+    if (!manager) return
+    manager.rootMesh.dispose()
+    manager.dispose()
+
+    createVRM(scene, 'file:', fileList[0], () => {
+      const manager = getVrmManager(scene)
+      if (!manager) return
+      vrmStore.setVrmManager(getVrmManager(scene))
+    })
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('dragenter', onDragEnter)
+  document.addEventListener('dragover', onDragOver)
+  document.addEventListener('dragleave', onDragLeave)
+  document.addEventListener('drop', onDrop)
+})
+</script>
