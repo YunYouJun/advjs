@@ -13,31 +13,21 @@
         <div v-for="(bone, i) in HumanBones" :key="i" m="y-1">
           <details>
             <summary>
-              <h3 text="xs" class="inline-block cursor-pointer" @click="toggleBone(bone)">
-                {{ bone }} <small text="xs">{{ t('bones.' + bone) }}</small>
+              <h3
+                text="xs" class="inline-flex cursor-pointer justify-center items-center" :class="bone === curBone ? 'font-bold text-blue-300' : ''" @click="(event)=>{
+                  toggleBone(bone);event.preventDefault()
+                }"
+              >
+                <span class="mr-1 inline-flex">
+                  <i-ri-checkbox-line v-if="bone === curBone" />
+                  <i-ri-checkbox-blank-line v-else />
+                </span>
+                {{ t('bones.' + bone) }} <small text="xs" opacity="80" class="transform scale-90">({{ bone }})</small>
               </h3>
             </summary>
 
-            <div class="flex justify-center items-center">
-              <span class="mr-2">x:</span>
-              <div class="inline-flex adv-slider-container">
-                <input v-model="bonesRotation[bone].x" class="adv-slider w-40" type="range" min="0" :max="Math.PI * 2" step="0.01" text="black" @input="update(bone)">
-              </div>
-              <input v-model="bonesRotation[bone].x" class="adv-slider-input" step="0.1" @input="update(bone)">
-            </div>
-            <div class="flex justify-center items-center">
-              <span class="mr-2">y:</span>
-              <div class="inline-flex">
-                <input v-model="bonesRotation[bone].y" class="adv-slider w-40" type="range" min="0" :max="Math.PI * 2" step="0.01" text="black" @input="update(bone)">
-              </div>
-              <input v-model="bonesRotation[bone].y" class="adv-slider-input" step="0.1" @input="update(bone)">
-            </div>
-            <div class="flex justify-center items-center">
-              <span class="mr-2">z:</span>
-              <div class="inline-flex">
-                <input v-model="bonesRotation[bone].z" class="adv-slider w-40" type="range" min="0" :max="Math.PI * 2" step="0.01" text="black" @input="update(bone)">
-              </div>
-              <input v-model="bonesRotation[bone].z" class="adv-slider-input" step="0.1" @input="update(bone)">
+            <div v-for="axis in (['x', 'y', 'z'] as const)" :key="axis" class="flex justify-center items-center">
+              <AdvSlider v-model="bonesRotation[bone][axis]" :label="axis+':'" @input="(degree)=>{updateBoneRotation(bone, axis, degree)}" />
             </div>
           </details>
         </div>
@@ -73,7 +63,7 @@ import type { VRMManager } from 'babylon-vrm-loader'
 import * as BABYLON from '@babylonjs/core'
 import type { HumanBonesType } from '@advjs/core/babylon/vrm/pose'
 import { HumanBones } from '@advjs/core/babylon/vrm/pose'
-import type { RawPoseData } from '@advjs/core/babylon/types'
+import type { PoseEulerType } from '@advjs/core/babylon/types'
 
 const { t } = useI18n()
 
@@ -81,7 +71,9 @@ const props = defineProps<{
   vrmManager?: VRMManager
 }>()
 
-const defaultBonesRotation: Partial<RawPoseData> = {}
+const curBone = ref<HumanBonesType>()
+
+const defaultBonesRotation: Partial<PoseEulerType> = {}
 HumanBones.forEach((bone) => {
   defaultBonesRotation[bone] = {
     x: 0,
@@ -89,7 +81,7 @@ HumanBones.forEach((bone) => {
     z: 0,
   }
 })
-const bonesRotation = ref<RawPoseData>(defaultBonesRotation as RawPoseData)
+const bonesRotation = ref<PoseEulerType>(defaultBonesRotation as PoseEulerType)
 
 const vrmMorphingList = ref<Record<string, number>>({})
 
@@ -98,23 +90,47 @@ watch(() => props.vrmManager, (manager) => {
     HumanBones.forEach((bone) => {
       if (!manager.humanoidBone[bone]) return
       const angles = manager.humanoidBone[bone]!.rotationQuaternion?.toEulerAngles()
-      bonesRotation.value[bone].x = angles?.x || 0
-      bonesRotation.value[bone].y = angles?.y || 0
-      bonesRotation.value[bone].z = angles?.z || 0
+      bonesRotation.value[bone].x = BABYLON.Angle.FromRadians(angles?.x || 0).degrees()
+      bonesRotation.value[bone].y = BABYLON.Angle.FromRadians(angles?.y || 0).degrees()
+      bonesRotation.value[bone].z = BABYLON.Angle.FromRadians(angles?.z || 0).degrees()
     })
 
     const list = manager.getMorphingList()
     list.forEach((name) => {
       vrmMorphingList.value[name] = 0
     })
+
+    const setAxis = (axis: 'x' | 'y' | 'z') => {
+      if (!curBone.value) return
+      const boneNode = props.vrmManager?.humanoidBone[curBone.value]
+      const angles = boneNode?.rotationQuaternion?.toEulerAngles()
+      bonesRotation.value[curBone.value][axis] = BABYLON.Angle.FromRadians(angles?.[axis] || 0).degrees()
+    }
+    // @ts-expect-error window.babylon
+    const gizmoManager = globalThis.babylon.gizmoManager as BABYLON.GizmoManager
+    const rotationGizmo = gizmoManager.gizmos.rotationGizmo
+    if (!rotationGizmo) return
+    rotationGizmo.xGizmo.dragBehavior.onDragObservable.add(() => setAxis('x'))
+    rotationGizmo.yGizmo.dragBehavior.onDragObservable.add(() => setAxis('y'))
+    rotationGizmo.zGizmo.dragBehavior.onDragObservable.add(() => setAxis('z'))
   }
 })
 
-const update = (boneName: HumanBonesType) => {
+/**
+ *
+ * @param boneName
+ * @param axis
+ * @param rotation degree
+ */
+const updateBoneRotation = (boneName: HumanBonesType, axis: 'x' | 'y' | 'z', rotation: number) => {
   if (!props.vrmManager) return
-  const boneRotation = bonesRotation.value[boneName]
-  if (boneRotation)
-    props.vrmManager.humanoidBone[boneName]!.rotationQuaternion = BABYLON.Quaternion.FromEulerAngles(boneRotation.x, boneRotation.y, boneRotation.z)
+  const boneRotation = props.vrmManager.humanoidBone[boneName]!.rotation
+  const radian = BABYLON.Angle.FromDegrees(rotation).radians()
+  props.vrmManager.humanoidBone[boneName]!.rotation = new BABYLON.Vector3(
+    axis === 'x' ? radian : boneRotation.x,
+    axis === 'y' ? radian : boneRotation.y,
+    axis === 'z' ? radian : boneRotation.z,
+  )
 }
 
 /**
@@ -131,31 +147,16 @@ const updateMorphing = (name: string) => {
 const toggleBone = (bone: HumanBonesType) => {
   // @ts-expect-error window.babylon
   const gizmoManager = globalThis.babylon.gizmoManager as BABYLON.GizmoManager
-  const boneNode = props.vrmManager?.humanoidBone[bone]
-  gizmoManager.attachToMesh((boneNode as BABYLON.AbstractMesh))
-
-  const rotationGizmo = gizmoManager.gizmos.rotationGizmo
-  if (!rotationGizmo) return
-
-  const setX = () => {
-    const angles = boneNode?.rotationQuaternion?.toEulerAngles()
-    bonesRotation.value[bone].x = angles?.x || 0
+  if (curBone.value === bone) {
+    curBone.value = undefined
+    gizmoManager.rotationGizmoEnabled = false
   }
-  const setY = () => {
-    const angles = boneNode?.rotationQuaternion?.toEulerAngles()
-    bonesRotation.value[bone].y = angles?.y || 0
-  }
-  const setZ = () => {
-    const angles = boneNode?.rotationQuaternion?.toEulerAngles()
-    bonesRotation.value[bone].z = angles?.z || 0
-  }
+  else {
+    curBone.value = bone
 
-  rotationGizmo.xGizmo.dragBehavior.onDragObservable.add(setX)
-  rotationGizmo.yGizmo.dragBehavior.onDragObservable.add(setY)
-  rotationGizmo.zGizmo.dragBehavior.onDragObservable.add(setZ)
-
-  rotationGizmo.xGizmo.dragBehavior.onDragEndObservable.clear()
-  rotationGizmo.yGizmo.dragBehavior.onDragEndObservable.clear()
-  rotationGizmo.zGizmo.dragBehavior.onDragEndObservable.clear()
+    gizmoManager.rotationGizmoEnabled = true
+    const boneNode = props.vrmManager?.humanoidBone[bone]
+    gizmoManager.attachToMesh((boneNode as BABYLON.AbstractMesh))
+  }
 }
 </script>

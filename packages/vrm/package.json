@@ -34,6 +34,7 @@
     "@babylonjs/materials": "^4.2.1",
     "@iconify-json/carbon": "^1.0.13",
     "@intlify/vite-plugin-vue-i18n": "^3.2.1",
+    "@pixiv/three-vrm": "^0.6.7",
     "@types/markdown-it-link-attributes": "^3.0.1",
     "@types/nprogress": "^0.2.0",
     "@vitejs/plugin-vue": "^2.0.1",

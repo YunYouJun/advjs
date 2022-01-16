@@ -25,6 +25,6 @@
 ## Deployed By
 
 <Technology title="GitHub" link="https://github.com/"><template #icon><i-logos-github-icon /></template></Technology>
-<Technology title="Cloudfalre" link="https://pages.cloudflare.com/"><template #icon><i-logos-cloudflare /></template></Technology>
+<Technology title="Cloudflare" link="https://pages.cloudflare.com/"><template #icon><i-logos-cloudflare /></template></Technology>
 <Technology title="Vercel" link="https://vercel.com/"><template #icon><i-logos-vercel-icon /></template></Technology>
 <Technology title="Netlify" link="https://www.netlify.com/"><template #icon><i-logos-netlify /></template></Technology>

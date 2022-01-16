@@ -35,10 +35,10 @@ export const createGizmoManager = (scene: BABYLON.Scene) => {
 
   // Toggle gizmos with keyboard buttons
   document.onkeydown = (e) => {
-    if (e.key === 'p')
+    if (e.key === 'w')
       gizmoManager.positionGizmoEnabled = !gizmoManager.positionGizmoEnabled
 
-    if (e.key === 'r')
+    if (e.key === 'e')
       gizmoManager.rotationGizmoEnabled = !gizmoManager.rotationGizmoEnabled
   }
 

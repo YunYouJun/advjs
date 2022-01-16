@@ -1,16 +1,24 @@
 <template>
   <div class="flex justify-center items-center">
-    <span class="mr-2">x:</span>
+    <span class="mr-2">{{ label }}</span>
     <div class="inline-flex adv-slider-container">
-      <input v-model="bonesRotation[bone].x" class="adv-slider w-40" type="range" min="0" :max="Math.PI * 2" step="0.01" text="black" @input="update(bone)">
+      <input :value="modelValue" class="adv-slider w-40" type="range" min="0" :max="360" step="0.01" text="black" @input="input">
     </div>
-    <input v-model="bonesRotation[bone].x" class="adv-slider-input" step="0.1" @input="update(bone)">
+    <input :value="modelValue" class="adv-slider-input" step="0.1" @input="input">°
   </div>
 </template>
 
 <script lang="ts" setup>
 defineProps<{
+  label: string
   modelValue: number
-  onInput: () => void
 }>()
+
+const emit = defineEmits(['update:modelValue', 'input'])
+
+const input = (event: any) => {
+  const val = event.target?.valueAsNumber || 0
+  emit('update:modelValue', val)
+  emit('input', val)
+}
 </script>

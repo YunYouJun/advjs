@@ -52,6 +52,6 @@
     ]
   },
   "dependencies": {
-    "vitepress-theme-you": "^0.0.29"
+    "vitepress-theme-you": "^0.0.31"
   }
 }

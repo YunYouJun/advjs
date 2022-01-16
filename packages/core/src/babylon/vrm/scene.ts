@@ -1,9 +1,8 @@
 import { isDev } from '@advjs/shared/utils'
 import * as BABYLON from '@babylonjs/core'
 import type { VRMManager } from 'babylon-vrm-loader'
-import type { RawPoseData } from '../types'
 import type { HumanBonesType } from './pose'
-import { defaultPoseQuaternion, v2RawPoseData } from './pose'
+import { HumanBones, vRawPoseData } from './pose'
 
 export function getVrmManager(scene: BABYLON.Scene) {
   const vrmManager = scene.metadata.vrmManagers[0] as VRMManager
@@ -47,21 +46,14 @@ export function createVRM(scene: BABYLON.Scene, onLoaded?: () => void) {
   }
 
   function makePose(manager: VRMManager) {
-    const vPoseData: Partial<RawPoseData> = {}
-    const rawPoseData = v2RawPoseData
-    // eslint-disable-next-line no-restricted-syntax
-    for (const key in rawPoseData) {
-      const bone = rawPoseData[key as HumanBonesType]
-      if (bone)
-        vPoseData[key as HumanBonesType] = BABYLON.Quaternion.FromEulerAngles(bone.x, bone.y, bone.z)
-    }
-
-    const poseData = Object.assign(defaultPoseQuaternion, vPoseData)
-
-    Object.keys(poseData).forEach((name) => {
+    const poseData = vRawPoseData
+    HumanBones.forEach((name) => {
       const boneName = name as HumanBonesType
-      if (manager.humanoidBone[boneName])
-        manager.humanoidBone[boneName]!.rotationQuaternion = poseData[boneName]
+      if (manager.humanoidBone[boneName]) {
+        manager.humanoidBone[boneName]!.rotationQuaternion = (
+          poseData[boneName] ? BABYLON.Quaternion.FromArray(poseData[boneName]!.rotation!) : BABYLON.Quaternion.FromEulerAngles(0, 0, 0)
+        )
+      }
     })
   }
 
