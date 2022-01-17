@@ -13,16 +13,9 @@
       >v{{ pkg.version }}</a>
     </h1>
   </header>
-  <github-corners repo="YunYouJun/advjs/tree/main/packages/parser" blank :reverse="isDark" />
   <ParsePreview />
 </template>
 
 <script setup lang="ts">
-import { getScript } from '@advjs/shared'
-import { isClient } from '@vueuse/core'
-import { isDark } from '@advjs/editor/composables'
 import pkg from '@advjs/parser/../package.json'
-
-if (isClient)
-  getScript('https://cdn.jsdelivr.net/npm/wc-github-corners@latest')
 </script>

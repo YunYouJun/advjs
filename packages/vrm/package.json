@@ -38,8 +38,8 @@
     "@types/markdown-it-link-attributes": "^3.0.1",
     "@types/nprogress": "^0.2.0",
     "@vitejs/plugin-vue": "^2.0.1",
-    "@vue/compiler-sfc": "^3.2.26",
-    "@vue/server-renderer": "^3.2.26",
+    "@vue/compiler-sfc": "^3.2.27",
+    "@vue/server-renderer": "^3.2.27",
     "critters": "^0.0.16",
     "cross-env": "^7.0.3",
     "eslint": "^8.7.0",
@@ -59,6 +59,6 @@
     "vite-plugin-vue-layouts": "^0.5.0",
     "vite-plugin-windicss": "^1.6.2",
     "vite-ssg": "0.17.5",
-    "vue-tsc": "^0.30.2"
+    "vue-tsc": "^0.30.5"
   }
 }
