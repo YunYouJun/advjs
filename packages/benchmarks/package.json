@@ -2,11 +2,17 @@
   "name": "@advjs/benchmarks",
   "private": true,
   "scripts": {
-    "start": "esno src/index.ts"
+    "start:visit": "esno src/visit/index.ts",
+    "start:json-xml": "esno src/json-xml/index.ts",
+    "generate:json-xml": "esno src/json-xml/generate.ts --generate"
   },
   "devDependencies": {
+    "@faker-js/faker": "^6.0.0-alpha.3",
+    "@types/xml2js": "^0.4.9",
+    "benny": "^3.7.1",
     "consola": "^2.15.3",
     "unist-builder": "^3.0.0",
-    "unist-util-visit": "^4.1.0"
+    "unist-util-visit": "^4.1.0",
+    "xml2js": "^0.4.23"
   }
 }

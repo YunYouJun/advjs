@@ -15,6 +15,7 @@
 我建立了一个 Fountain 的中文站点。用来翻译 Fountain 官网的语法及相关介绍、资源等。
 
 > [fountain-cn](https://github.com/advjs/fountain-cn)
+> Preview: [fountain.advjs.org](https://fountain.advjs.org)
 
 当然，对于交互式视觉小说来说，面向剧本的 Fountain 必然无法覆盖全部的情景，因此我们仍然需要对其进行一部分扩展。
 
