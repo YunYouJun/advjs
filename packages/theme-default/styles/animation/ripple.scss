@@ -1,0 +1,37 @@
+.adv-ripple {
+  --ripple-size: 20rem;
+  width: var(--ripple-size);
+  height: var(--ripple-size);
+  border-radius: 50%;
+  background-color: dodgerblue;
+
+  animation: rippleFadeOut var(--adv-animation-duration) ease-out 0.1s 1 normal
+    forwards;
+}
+
+.adv-bubble-breath {
+  animation: bubbleBreath 3s ease-in-out;
+  animation-direction: alternate-reverse;
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+}
+
+@keyframes rippleFadeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(8);
+  }
+}
+
+@keyframes bubbleBreath {
+  0% {
+    transform: scale(0.6);
+  }
+  100% {
+    transform: scale(1.1);
+  }
+}

@@ -16,6 +16,20 @@ export interface Character {
 }
 
 export interface GameConfig {
+  pages: {
+    // 开始页面
+    start: {
+      /**
+       * 背景
+       */
+      bg: string
+      /**
+       * 暗色模式
+       */
+      darkBg?: string
+    }
+  }
+
   /**
    * 是否显示人物头像
    * @default false

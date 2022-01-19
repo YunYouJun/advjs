@@ -1,14 +1,3 @@
-:root {
-  --adv-animation-duration: 1s;
-}
-
-@keyframes advFadeIn {
-  0% {
-    transform: translate(0, -1rem);
-    opacity: 0.2;
-  }
-
-  100% {
-    opacity: 1;
-  }
-}
+@use './vars.scss';
+@use './common.scss';
+@use './ripple.scss';

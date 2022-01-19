@@ -1,17 +1,15 @@
 <template>
-  <div>
-    <ul class="start-menu flex flex-col items-end absolute">
-      <li
-        v-for="(item, i) in menuItems"
-        :key="i"
-        class="start-menu-item font-serif transition animate-animated animate-fadeInRight"
-        :style="`animation-delay: ${i * 0.1}s`"
-        @click="item.do"
-      >
-        {{ item.title }}
-      </li>
-    </ul>
-  </div>
+  <ul class="start-menu flex flex-col items-end absolute">
+    <li
+      v-for="(item, i) in menuItems"
+      :key="i"
+      class="start-menu-item font-serif transition animate-animated animate-fadeInRight"
+      :style="`animation-delay: ${0.4 + i * 0.1}s`"
+      @click="item.do"
+    >
+      {{ item.title }}
+    </li>
+  </ul>
 </template>
 
 <script setup lang="ts">
