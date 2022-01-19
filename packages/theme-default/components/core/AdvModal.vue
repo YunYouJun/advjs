@@ -1,6 +1,6 @@
 <template>
   <transition name="modal">
-    <div class="modal-mask">
+    <div v-if="show" class="modal-mask">
       <div class="modal-container">
         <AdvIconButton class="modal-close-button" @click="$emit('close')">
           <i-ri-close-line />
@@ -12,6 +12,14 @@
     </div>
   </transition>
 </template>
+
+<script lang="ts" setup>
+withDefaults(defineProps<{
+  show?: boolean
+}>(), {
+  show: false,
+})
+</script>
 
 <style>
 .modal-mask {
@@ -50,10 +58,7 @@
  * these styles.
  */
 
-.modal-enter-active {
-  opacity: 0;
-}
-
+.modal-enter-active,
 .modal-leave-active {
   opacity: 0;
 }

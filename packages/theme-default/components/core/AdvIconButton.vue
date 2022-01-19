@@ -15,6 +15,8 @@
   border-radius: 50%;
   padding: 0.6rem;
   cursor: pointer;
+
+  transition: 0.2s;
   &:hover {
     background: rgba(123, 123, 123, 0.2);
   }

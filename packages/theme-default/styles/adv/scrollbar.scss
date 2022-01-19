@@ -2,32 +2,24 @@
 
 // scrollbar
 $scrollbar: (
-  color: #0078e7,
+  color: #333,
 );
 
+:root {
+  --adv-scrollbar-thumb-bg-color: #333;
+}
+
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  border-radius: 2px;
-  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  background-color: rgba(123, 123, 123, 0.1);
 }
 
 ::-webkit-scrollbar-thumb {
-  border-radius: 2px;
-  background-color: opacify(map.get($scrollbar, 'color'), 0.5);
-
-  &:window-inactive {
-    background-color: opacify(map.get($scrollbar, 'color'), 0.6);
-  }
-
-  &:hover {
-    background-color: opacify(map.get($scrollbar, 'color'), 0.6);
-  }
-
-  &:active {
-    background-color: opacify(map.get($scrollbar, 'color'), 0.8);
-  }
+  border-radius: 4px;
+  background-color: var(--adv-scrollbar-thumb-bg-color);
 }

@@ -1,7 +1,7 @@
 <template>
-  <div class="menu-panel grid grid-cols-12" gap="4" h="full" text="2xl">
-    <div col="span-8" p="x-2">
-      <div grid="~ cols-12 gap-5">
+  <div class="menu-panel grid grid-cols-24" gap="0" h="full" text="2xl">
+    <div col="span-18" class="overflow-y-scroll">
+      <div grid="~ cols-12 gap-5" p="4">
         <h1
           col="span-12"
           class="adv-font-serif font-black mt-6"
@@ -12,20 +12,26 @@
 
         <HorizontalDivider />
 
+        <TextPlayPreview />
+
+        <HorizontalDivider />
+
         <MenuItem v-for="item, i in items" :key="i" :item="item" />
         <SpeechSynthesis />
 
         <HorizontalDivider />
 
         <ToggleSourceMd />
+
+        <HorizontalDivider />
       </div>
+
+      <!-- <div h="full" border="gray right-2" /> -->
     </div>
 
-    <div col="span-1" class="flex justify-center items-center">
-      <div h="full" border="gray left-2" />
-    </div>
+    <!-- <div col="span-1" class="flex justify-center items-center" /> -->
 
-    <div col="span-3" class="flex flex-col justify-center items-start" h="full">
+    <div col="span-6" class="flex flex-col justify-center items-start" h="full" m="l-4">
       <AdvButton v-for="item,i in menuItems" :key="i" class="flex" @click="item.do">
         {{ item.title }}
       </AdvButton>

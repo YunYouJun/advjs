@@ -19,7 +19,7 @@
   >
 
   <img
-    class="h-200 absolute top-5 -left-5 h-full animate-animated animate-slideInRight animate-delay-200 animate-fadeIn z-2 filter drop-shadow-lg"
+    class="h-200 absolute top-5 -left-5 h-full animate-animated  animate-slideInRight animate-delay-200 animate-fadeIn z-2 filter drop-shadow-lg"
     :src="yunAlphaUrl"
   >
   <img
@@ -34,12 +34,19 @@
   <div class="adv-bubble-breath circle-pattern absolute right-50 bottom-15 shadow-lg opacity-5" bg="red-500" />
   <div class="adv-bubble-breath circle-pattern absolute left-20 top-20 shadow-lg opacity-10" bg="blue-500" style="--circle-size: 20rem;" />
 
-  <div class="adv-ripple absolute top-0" />
-  <div class="adv-ripple bg-orange-400 absolute top-0 right-0 animate-delay-300" />
+  <transition>
+    <div v-if="rippleAnimation" class="adv-ripple absolute top-0" />
+  </transition>
+  <transition
+    :duration="{enter: 300, leave: 1300}"
+    @leave="rippleAnimation = false"
+  >
+    <div v-if="rippleAnimation" class="adv-ripple bg-orange-400 absolute top-0 right-0 animate-delay-200" />
+  </transition>
 
   <StartMenu :menu-items="menuItems" />
 
-  <AdvModal v-show="app.showMenu" @close="app.toggleShowMenu">
+  <AdvModal :show="app.showMenu" @close="app.toggleShowMenu">
     <MenuPanel />
   </AdvModal>
 </template>
@@ -57,6 +64,9 @@ const app = useAppStore()
 
 const { t } = useI18n()
 const router = useRouter()
+
+const rippleAnimation = ref(false)
+rippleAnimation.value = true
 
 const menuItems: StartMenuItem[] = [
   {

@@ -27,7 +27,7 @@
             </summary>
 
             <div v-for="axis in (['x', 'y', 'z'] as const)" :key="axis" class="flex justify-center items-center">
-              <AdvSlider v-model="bonesRotation[bone][axis]" :label="axis+':'" @input="(degree)=>{updateBoneRotation(bone, axis, degree)}" />
+              <AdvSlider v-model="bonesRotation[bone][axis]" :label="axis+':'" unit="°" @input="(degree)=>{updateBoneRotation(bone, axis, degree)}" />
             </div>
           </details>
         </div>

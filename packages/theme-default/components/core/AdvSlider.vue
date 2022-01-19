@@ -2,9 +2,9 @@
   <div class="flex justify-center items-center">
     <span class="mr-2">{{ label }}</span>
     <div class="inline-flex adv-slider-container">
-      <input :value="modelValue" class="adv-slider w-40" type="range" min="0" :max="360" step="0.01" text="black" @input="input">
+      <input :value="modelValue" class="adv-slider w-40" type="range" :min="min || 0" :max="max || 360" :step="step" text="black" @input="input">
     </div>
-    <input :value="modelValue" class="adv-slider-input" step="0.1" @input="input">°
+    <input :value="modelValue" class="adv-slider-input" :step="step" @input="input">{{ unit }}
   </div>
 </template>
 
@@ -12,6 +12,13 @@
 defineProps<{
   label: string
   modelValue: number
+  /**
+   * 单位
+   */
+  unit?: string
+  step?: number
+  min?: number
+  max?: number
 }>()
 
 const emit = defineEmits(['update:modelValue', 'input'])

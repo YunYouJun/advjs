@@ -1,6 +1,6 @@
 <template>
   <div class="print-words">
-    {{ displayWords }}
+    <span v-for="word, i in displayWords" :key="i" class="animate-animated animate-fadeIn">{{ word }}</span>
   </div>
 </template>
 
@@ -22,11 +22,16 @@ const len = ref(0)
 
 const intervalId = ref()
 
+const emit = defineEmits(['end'])
+
 const playWordsAnimation = () => {
   intervalId.value = setInterval(() => {
     displayWords.value = props.words.slice(0, len.value)
-    if (len.value === props.words.length)
-      clearInterval(intervalId)
+    if (len.value === props.words.length) {
+      clearInterval(intervalId.value)
+      emit('end')
+    }
+
     len.value++
   }, props.typeInterval)
 }
@@ -38,6 +43,8 @@ onMounted(() => {
 watch(() => props.words, () => {
   if (intervalId.value)
     clearInterval(intervalId.value)
+
+  len.value = 0
   playWordsAnimation()
 })
 
