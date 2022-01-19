@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@vueuse/core": "^7.5.3",
-    "@vueuse/head": "^0.7.4",
+    "@vueuse/head": "^0.7.5",
     "monaco-editor": "^0.31.1",
     "pinia": "^2.0.9",
     "vue-router": "^4.0.12"
@@ -29,12 +29,12 @@
     "unplugin-icons": "^0.13.0",
     "unplugin-vue-components": "^0.17.13",
     "v-tooltip": "^4.0.0-beta.2",
-    "vite": "^2.7.12",
+    "vite": "^2.7.13",
     "vite-plugin-inspect": "^0.3.13",
     "vite-plugin-md": "^0.11.7",
     "vite-plugin-pages": "^0.20.0",
     "vite-plugin-pwa": "^0.11.13",
     "vite-plugin-vue-layouts": "^0.5.0",
-    "vite-plugin-windicss": "^1.6.2"
+    "vite-plugin-windicss": "^1.6.3"
   }
 }

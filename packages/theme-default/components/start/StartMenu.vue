@@ -4,7 +4,8 @@
       <li
         v-for="(item, i) in menuItems"
         :key="i"
-        class="start-menu-item font-serif transition"
+        class="start-menu-item font-serif transition animate-animated animate-fadeInRight"
+        :style="`animation-delay: ${i * 0.1}s`"
         @click="item.do"
       >
         {{ item.title }}
@@ -50,5 +51,6 @@ defineProps<{
     box-shadow: 5px 5px 24px rgba(0, 0, 0, 0.3);
     background-color: rgba(0, 0, 0, 0.9);
   }
+
 }
 </style>

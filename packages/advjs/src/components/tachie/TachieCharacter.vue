@@ -1,5 +1,5 @@
 <template>
-  <div class="col-span-1 flex flex-col justify-end items-center animate animate-fade-in-left">
+  <div class="col-span-1 flex flex-col justify-end items-center animate-animated animate-fadeInLeft">
     <img
       class="tachie-character inline-block transform"
       :class="characterClass"

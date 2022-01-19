@@ -2,6 +2,8 @@
 
 对比语法树中 [unist-util-visit](https://github.com/syntax-tree/unist-util-visit) 与 DFS（深度优先遍历）访问节点效率。
 
+> unist-util-visit 使用的是一种改进的深度优先搜索，算法原理可见 [unist-util-visit-parents](https://www.npmjs.com/package/unist-util-visit-parents)。
+
 ## Usage
 
 ```ts
@@ -51,10 +53,10 @@ map vs forEach vs for
 
 对于创建新数组来说，在 jsPerf 上的表现，map 要优于 forEach。
 
-> https://blog.fundebug.com/2018/02/05/map_vs_foreach/
+> [JavaScript — Map vs. ForEach](https://codeburst.io/javascript-map-vs-foreach-f38111822c0f)
 
 而单纯循环来说，在下面这篇文中中，forEach 又优于 map。
 
-> https://leanylabs.com/blog/js-forEach-map-reduce-vs-for-for_of/
+> [Performance of JavaScript .forEach, .map and .reduce vs for and for..of](https://leanylabs.com/blog/js-forEach-map-reduce-vs-for-for_of/)
 
 我自己的测试（普通的循环）中，forEach 也的确略优于 map。

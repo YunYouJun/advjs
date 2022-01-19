@@ -7,7 +7,7 @@
       flex flex-col
       justify-center
       items-center
-      animate-slow animate-fadeIn
+      animate-animated animate-fadeIn
     "
   >
     <NewYunLogo class="w-40 h-40" />
@@ -19,7 +19,7 @@
 
 <script setup lang="ts">
 const props = withDefaults(defineProps<{ duration?: number }>(), {
-  duration: 3000,
+  duration: 2000,
 })
 
 const router = useRouter()
