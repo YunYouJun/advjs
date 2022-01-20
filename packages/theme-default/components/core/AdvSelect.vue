@@ -15,17 +15,19 @@
 </template>
 
 <script setup lang="ts">
-const props = withDefaults(defineProps<{
+// import type { AdvSelectProps } from '@advjs/theme-default'
+import type { AdvItemOption } from '@advjs/theme-default'
+
+export interface AdvSelectProps {
   selected: string
   change?: (value: string) => void
-  options?: {
-    label: string
-    value: string
-  }[]
-}>(), {
+  options?: AdvItemOption[]
+}
+
+const props = withDefaults(defineProps<AdvSelectProps>(), {
   selected: '',
   options: () => [],
-  change: (value) => {},
+  change: () => {},
 })
 
 const onChange = (val: Event | any) => {

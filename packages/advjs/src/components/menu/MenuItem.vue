@@ -3,54 +3,31 @@
     <label :for="item.label" font="bold serif">{{ item.label }}</label>
   </div>
   <div col="span-7" class="adv-menu-item--container flex items-center" p="x-2">
-    <AdvCheckbox v-if="item.type === 'checkbox'" :checked="checked" @click="item.click" />
-    <AdvSelect v-else-if="item.type === 'select'" :selected="item.selected" :options="item.options" :checked="checked" :change="item.change" />
-    <slot />
+    <template v-if="item.type">
+      <AdvCheckbox v-if="item.type === 'Checkbox'" :checked="item.props.checked" @click="item.props.click" />
+      <AdvRadioGroup v-if="item.type === 'RadioGroup'" :checked="item.props.checked" :options="item.props.options" :on-click="item.props.onClick" />
+      <AdvSelect v-else-if="item.type === 'Select'" :selected="item.props.selected" :options="item.props.options" :change="item.props.change" />
+    </template>
+    <slot v-else />
   </div>
 </template>
 
 <script setup lang="ts">
-// import type { AdvCheckbox, AdvSelect } from 'advjs/types/ui'
+import type { AdvMenuItemProps } from '@advjs/theme-default'
 
-import type { MaybeRef } from '@vueuse/core'
-
-// type SettingsMenuItem = AdvCheckbox | AdvSelect
-
-export interface MenuItem {
-  label: string
-  type: string
-}
-
-export interface AdvCheckbox {
-  type: 'checkbox'
-  checked?: MaybeRef<boolean>
-  click?: () => void
-}
-
-export interface AdvSelect {
-  type: 'select'
-  selected: string
-  options: []
-  change: () => void
-}
-
-const props = withDefaults(defineProps<{
-  item: MenuItem & (AdvCheckbox | AdvSelect | {})
+withDefaults(defineProps<{
+  item: AdvMenuItemProps
 }>(), {
   item: () => {
-    return {
+    const defaultMenuItemProps: AdvMenuItemProps = {
       label: 'Label',
-      type: 'checkbox',
-      checked: false,
+      type: 'Checkbox',
+      props: {
+        checked: false,
+      },
     }
+    return defaultMenuItemProps
   },
-})
-
-const checked = computed(() => {
-  if (props.item.type === 'checkbox')
-    return props.item.checked
-  else
-    return false
 })
 </script>
 

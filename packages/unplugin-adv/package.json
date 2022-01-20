@@ -89,7 +89,7 @@
     "rollup": "^2.64.0",
     "ts-jest": "^27.1.3",
     "tsup": "^5.11.11",
-    "typescript": "^4.5.4",
+    "typescript": "^4.5.5",
     "vite": "^2.7.13",
     "webpack": "^5.66.0"
   }

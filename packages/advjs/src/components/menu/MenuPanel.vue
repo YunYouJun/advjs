@@ -57,10 +57,12 @@ import { useFullscreen } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 
 import { useScreenLock } from '@advjs/shared'
+import type { AdvMenuItemProps } from '@advjs/theme-default'
 import { isDark, toggleDark } from '~/composables'
 import { useSettingsStore } from '~/stores/settings'
 import { useAppStore } from '~/stores/app'
 import type { MenuButtonItem } from '~/types/menu'
+
 const { t } = useI18n()
 
 const { orientation, toggle } = useScreenLock()
@@ -72,27 +74,31 @@ const settings = useSettingsStore()
 const items = computed(() => {
   return [
     {
-      type: 'checkbox',
+      type: 'Checkbox',
       label: '是否横屏',
-      checked: orientation.value === 'landscape',
-      click: async() => {
-        if (isFullscreen.value) {
-          await exit()
-          toggle('portrait')
-        }
-        else {
-          await enter()
-          toggle('landscape')
-        }
+      props: {
+        checked: orientation.value === 'landscape',
+        click: async() => {
+          if (isFullscreen.value) {
+            await exit()
+            toggle('portrait')
+          }
+          else {
+            await enter()
+            toggle('landscape')
+          }
+        },
       },
     },
     {
       label: t('settings.fullscreen'),
-      type: 'checkbox',
-      checked: settings.isFullscreen,
-      click: settings.toggleFullScreen,
+      type: 'Checkbox',
+      props: {
+        checked: settings.isFullscreen,
+        click: settings.toggleFullScreen,
+      },
     },
-  ]
+  ] as AdvMenuItemProps[]
 })
 
 const router = useRouter()

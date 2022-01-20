@@ -16,6 +16,8 @@ import Inspect from 'vite-plugin-inspect'
 import Prism from 'markdown-it-prism'
 import LinkAttributes from 'markdown-it-link-attributes'
 
+import VueTypeImports from 'vite-plugin-vue-type-imports'
+
 import Adv from '../unplugin-adv/src/vite'
 import { commonAlias } from '../shared/config/vite'
 
@@ -37,6 +39,7 @@ export default defineConfig({
     Vue({
       include: [/\.vue$/, /\.md$/],
     }),
+    VueTypeImports(),
 
     // https://github.com/hannoeru/vite-plugin-pages
     Pages({

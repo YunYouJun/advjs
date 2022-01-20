@@ -8,6 +8,7 @@
 
 <script setup lang="ts">
 import { speak } from '@advjs/shared/speech'
+import type { AdvMenuItemProps } from '@advjs/theme-default'
 import { useSettingsStore } from '~/stores/settings'
 
 const settings = useSettingsStore()
@@ -15,12 +16,14 @@ const settings = useSettingsStore()
 const speechItem = computed(
   () => ({
     label: '语音合成',
-    type: 'checkbox',
-    checked: settings.speech.options.enable,
-    click: () => {
-      settings.speech.toggleStatus()
+    type: 'Checkbox',
+    props: {
+      checked: settings.speech.options.enable,
+      click: () => {
+        settings.speech.toggleStatus()
+      },
     },
-  }),
+  } as AdvMenuItemProps),
 )
 
 const voiceOptions = ref([
@@ -38,17 +41,19 @@ const voiceOptions = ref([
   },
 ])
 
-const speechLanguageItem = computed(() => ({
+const speechLanguageItem = computed<AdvMenuItemProps>(() => ({
   label: '语言种类',
-  type: 'select',
-  selected: settings.speech.options.language,
-  options: voiceOptions.value.map(item => ({
-    label: item.name,
-    value: item.lang,
-  })),
-  change: (value: string) => {
-    settings.speech.options.language = value
-    speak('大家好，我是渣渣辉。', settings.speech.options.language)
+  type: 'Select',
+  props: {
+    selected: settings.speech.options.language,
+    options: voiceOptions.value.map(item => ({
+      label: item.name,
+      value: item.lang,
+    })),
+    change: (value: string) => {
+      settings.speech.options.language = value
+      speak('大家好，我是渣渣辉。', settings.speech.options.language)
+    },
   },
 }))
 
