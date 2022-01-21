@@ -1,19 +1,19 @@
 <template>
   <div class="adv-radio">
-    <span v-for="(item, i) in options" :key="i" m="r-8" class="adv-text-button" :class="checked === item.value ? 'active' : ''" @click="onClick && onClick(item.value)">
+    <AdvTextButton v-for="(item, i) in options" :key="i" :class="checked === item.value ? 'active' : ''" m="r-8" @click="onClick && onClick(item)">
       {{ item.label }}
-    </span>
+    </AdvTextButton>
   </div>
 </template>
 
 <script lang="ts" setup>
-// import type { AdvRadioGroupProps } from '@advjs/theme-default'
 import type { AdvItemOption } from '@advjs/theme-default'
 
-export interface AdvRadioGroupProps {
-  checked: string
-  options: AdvItemOption[]
-  onClick?: (val: string) => void
+// todo import
+export interface AdvRadioGroupProps<T extends AdvItemOption = AdvItemOption> {
+  checked: T['value']
+  options: T[]
+  onClick?: (value: T) => void
 }
 
 defineProps<AdvRadioGroupProps>()

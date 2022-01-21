@@ -13,10 +13,11 @@
 </template>
 
 <script setup lang="ts">
-import type { AdvMenuItemProps } from '@advjs/theme-default'
+import type { AdvMenuItemKeys, AdvMenuItemProps } from '@advjs/theme-default'
 
 withDefaults(defineProps<{
-  item: AdvMenuItemProps
+  // todo optimize
+  item: AdvMenuItemProps<AdvMenuItemKeys, any>
 }>(), {
   item: () => {
     const defaultMenuItemProps: AdvMenuItemProps = {

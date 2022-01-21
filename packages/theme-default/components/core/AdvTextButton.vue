@@ -21,7 +21,7 @@ const onClick = (event: Event) => {
 @use "@advjs/theme-default/styles/vars.scss" as *;
 
 .adv-text-button {
-  padding: 0.375rem 0.6rem 0.2rem 0.6rem;
+  padding: 0.35rem 0.6rem 0.2rem 0.6rem;
   transition: 0.2s;
   border-bottom: 2px solid transparent;
   @apply text-xl;

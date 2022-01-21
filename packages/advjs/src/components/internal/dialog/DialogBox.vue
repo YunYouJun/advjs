@@ -11,8 +11,8 @@
         <span class="dialog-name">{{ curCharacter.name }}</span>
       </template>
     </div>
-    <div class="dialog-content col-span-9 text-left pr-24">
-      <PrintWords :words="curDialog.children[order].value" />
+    <div class="dialog-content col-span-9 text-left pr-24" :text="settings.storage.text.curFontSize">
+      <PrintWords :speed="settings.storage.text.curSpeed" :words="curDialog.children[order].value" />
       <span class="typed-cursor">
         ▼
       </span>
@@ -42,9 +42,9 @@ watch(
   () => curDialog.value.children[order.value].value,
   (val) => {
     // 若开启了语音合成
-    if (settings.speech.options.enable) {
+    if (settings.storage.speech.enable) {
       speechSynthesis.cancel()
-      speak(val, settings.speech.options.language)
+      speak(val, settings.storage.speech.language)
     }
   },
 )
@@ -97,6 +97,5 @@ const characterAvatar = computed(() => {
 .dialog-content {
   color: white;
   margin-top: 0.3rem;
-  @apply text-xl;
 }
 </style>

@@ -15,13 +15,6 @@ export function createVRMScene(engine: BABYLON.Engine) {
   scene.clearColor = new BABYLON.Color4(0, 0, 0, 0)
   scene.autoClear = false
 
-  // BABYLON.SceneLoader.Append('/assets/scenes/low_poly_winter_scene/', 'scene.gltf', scene)
-
-  // Lights
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  // const lightHemi = new BABYLON.HemisphericLight('light', new BABYLON.Vector3(0, 2, 0), scene)
-  // lightHemi.intensity = 0.5
-
   // Tone mapping
   // https://zhuanlan.zhihu.com/p/21983679
   scene.imageProcessingConfiguration.toneMappingEnabled = true
@@ -48,7 +41,8 @@ function makePose(manager: VRMManager) {
   })
 }
 
-export function createVRM(scene: BABYLON.Scene, rootUrl: string, vrmFilename: string | File, onLoaded?: () => void) {
+export async function createVRM(scene: BABYLON.Scene, rootUrl: string, vrmFilename: string | File, onLoaded?: () => void) {
+  await import('babylon-vrm-loader')
   BABYLON.SceneLoader.Append(
     rootUrl,
     vrmFilename,

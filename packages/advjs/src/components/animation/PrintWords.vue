@@ -8,6 +8,7 @@
 export type DisplayMode = 'type' | 'soft'
 
 const props = withDefaults(defineProps<{
+  speed?: 'normal' | 'fast' | 'slow'
   words?: string
   /**
    * 打印间隔
@@ -16,9 +17,15 @@ const props = withDefaults(defineProps<{
   mode?: DisplayMode
 }>(), {
   words: '',
-  typeInterval: 25,
   mode: 'soft',
+  speed: 'normal',
 })
+
+const speedMap = {
+  slow: 100,
+  normal: 50,
+  fast: 25,
+}
 
 const displayWords = ref('')
 
@@ -37,7 +44,7 @@ const playWordsAnimation = () => {
     }
 
     len.value++
-  }, props.typeInterval)
+  }, props.typeInterval || speedMap[props.speed])
 }
 
 onMounted(() => {
