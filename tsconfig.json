@@ -37,6 +37,7 @@
       "@advjs/shared/*": ["packages/shared/src/*"],
       "@advjs/types": ["./packages/types/src/index.ts"],
       "@advjs/theme-default": ["./packages/theme-default/index.ts"],
+      "@advjs/theme-default/*": ["./packages/theme-default/*"],
       "advjs/*": ["packages/advjs/src/*"]
     }
   },

@@ -93,7 +93,7 @@ const characterAvatar = computed(() => {
 }
 .dialog-content {
   color: white;
-  font-size: 1.5rem;
   margin-top: 0.3rem;
+  @apply text-xl;
 }
 </style>

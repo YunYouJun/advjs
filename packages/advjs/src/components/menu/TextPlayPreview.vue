@@ -1,10 +1,9 @@
 <template>
-  <MenuItem :item="playSpeedItem">
-    <!-- <AdvRadioGroup v-model:checked="curSpeed" :options="playSpeedItem.props.options" /> -->
-  </MenuItem>
+  <MenuItem :item="playSpeedItem" />
+  <MenuItem :item="fontSizeItem" />
 
   <div col="span-12" class="animate-animated animate-slideInDown">
-    <div class="h-24" text="left" bg="gray-500 opacity-20" p="4">
+    <div class="h-26" :class="`text-${curFontSize}`" text="left" bg="gray-500 opacity-20" p="4">
       <PrintWords :type-interval="interval" :words="words" @end="onEnd" />
     </div>
   </div>
@@ -79,25 +78,30 @@ const playSpeedItem = computed<AdvMenuItemProps<'RadioGroup'>>(() => ({
   },
 }))
 
+const curFontSize = ref('xl')
+const fontSizeItem = computed<AdvMenuItemProps<'RadioGroup'>>(() => ({
+  label: '字体大小',
+  type: 'RadioGroup',
+  props: {
+    checked: curFontSize.value,
+    options: [
+      {
+        label: '小',
+        value: 'xl',
+      },
+      {
+        label: '中',
+        value: '2xl',
+      },
+      {
+        label: '大',
+        value: '3xl',
+      },
+    ],
+    onClick(val: 'sm' | 'lg' | 'xl') {
+      curFontSize.value = val
+    },
+  },
+}))
+
 </script>
-
-<style lang="scss">
-@use "sass:map";
-@use "@advjs/theme-default/styles/vars.scss" as *;
-
-.adv-text-button {
-  padding: 0.2rem 0.5rem;
-  border: 2px solid transparent;
-  transition: 0.2s;
-
-  &:hover {
-    cursor: pointer;
-    border-bottom: 2px solid map.get($adv-colors, 'primary');
-  }
-
-  &.active {
-    border-bottom: 2px solid map.get($adv-colors, 'primary');
-    background-color: rgba(map.get($adv-colors, 'primary'), 0.1);
-  }
-}
-</style>

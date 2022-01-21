@@ -16,12 +16,12 @@ import Inspect from 'vite-plugin-inspect'
 import Prism from 'markdown-it-prism'
 import LinkAttributes from 'markdown-it-link-attributes'
 
-import VueTypeImports from 'vite-plugin-vue-type-imports'
-
 import Adv from '../unplugin-adv/src/vite'
 import { commonAlias } from '../shared/config/vite'
 
-const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
+const markdownWrapperClasses = ['prose', 'prose-sm', 'm-auto', 'text-left']
+
+const safelist = ['text-md']
 
 // const defaultThemeFolder = path.resolve(__dirname, './src/client/theme-default/')
 
@@ -39,7 +39,6 @@ export default defineConfig({
     Vue({
       include: [/\.vue$/, /\.md$/],
     }),
-    VueTypeImports(),
 
     // https://github.com/hannoeru/vite-plugin-pages
     Pages({
@@ -96,7 +95,7 @@ export default defineConfig({
 
     // https://github.com/antfu/vite-plugin-windicss
     WindiCSS({
-      safelist: markdownWrapperClasses,
+      safelist: markdownWrapperClasses.concat(safelist),
     }),
 
     // https://github.com/antfu/vite-plugin-md

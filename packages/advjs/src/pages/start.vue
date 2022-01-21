@@ -39,12 +39,15 @@
   </transition>
   <transition
     :duration="{enter: 300, leave: 1300}"
-    @leave="rippleAnimation = false"
   >
     <div v-if="rippleAnimation" class="adv-ripple bg-orange-400 absolute top-0 right-0 animate-delay-200" />
   </transition>
 
   <StartMenu :menu-items="menuItems" />
+
+  <AdvModal :show="app.showLoadMenu" @close="app.toggleShowLoadMenu">
+    <LoadMenu />
+  </AdvModal>
 
   <AdvModal :show="app.showMenu" @close="app.toggleShowMenu">
     <MenuPanel />
@@ -65,8 +68,10 @@ const app = useAppStore()
 const { t } = useI18n()
 const router = useRouter()
 
-const rippleAnimation = ref(false)
-rippleAnimation.value = true
+const rippleAnimation = ref(true)
+onMounted(() => {
+  rippleAnimation.value = false
+})
 
 const menuItems: StartMenuItem[] = [
   {
@@ -78,7 +83,7 @@ const menuItems: StartMenuItem[] = [
   {
     title: t('start-menu.load-game'),
     do: () => {
-      window.alert('存档？不存在的 ╮(￣▽￣"")╭')
+      app.toggleShowLoadMenu()
     },
   },
   {

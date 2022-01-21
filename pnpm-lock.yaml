@@ -101,7 +101,6 @@ importers:
       vite-plugin-pages: ^0.20.0
       vite-plugin-pwa: ^0.11.13
       vite-plugin-vue-layouts: ^0.5.0
-      vite-plugin-vue-type-imports: ^0.1.3
       vite-plugin-windicss: ^1.6.3
       vite-ssg: ^0.16.2
       vue: ^3.2.27
@@ -158,7 +157,6 @@ importers:
       vite-plugin-pages: 0.20.0_8dd891b5b0d7eabae29a1a7155115bc6
       vite-plugin-pwa: 0.11.13_vite@2.7.13
       vite-plugin-vue-layouts: 0.5.0_f52c5323d18918861dd657b24313d67b
-      vite-plugin-vue-type-imports: 0.1.3_1d3c0f59c01af099101b44516eefc99f
       vite-plugin-windicss: 1.6.3_vite@2.7.13
       vite-ssg: 0.16.2_2f16f238cc6c464220fe1405a8dde575
       wc-github-corners: 0.1.5
@@ -11981,16 +11979,6 @@ packages:
       vue-router: 4.0.12
     transitivePeerDependencies:
       - supports-color
-    dev: true
-
-  /vite-plugin-vue-type-imports/0.1.3_1d3c0f59c01af099101b44516eefc99f:
-    resolution: {integrity: sha512-iF5NgeQc2MZ6wDUS1tnN7rglkWmm+WhK9rCQb3FudsrMTqLazbtN6shyrEcsGBdqYAqH9c5HhiwU3gOIrFcVHA==}
-    peerDependencies:
-      '@vue/compiler-sfc': ^3.2.24
-      vue: ^3.2.24
-    dependencies:
-      '@vue/compiler-sfc': 3.2.27
-      vue: 3.2.27
     dev: true
 
   /vite-plugin-windicss/1.6.3:

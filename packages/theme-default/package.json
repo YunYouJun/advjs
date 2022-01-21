@@ -5,5 +5,8 @@
     "name": "YunYouJun",
     "email": "me@yunyoujun.cn",
     "url": "https://www.yunyoujun.cn"
+  },
+  "exports": {
+    ".": "./index.ts"
   }
 }

@@ -8,4 +8,5 @@ export const commonAlias: AliasOptions = {
   '@advjs/parser/': `${path.resolve(__dirname, '../', '../parser/src')}/`,
   '@advjs/shared/': `${path.resolve(__dirname, '../', '../shared/src')}/`,
   '@advjs/theme-default': `${path.resolve(__dirname, '../', '../theme-default')}`,
+  '@advjs/theme-default/': `${path.resolve(__dirname, '../', '../theme-default')}/`,
 }
