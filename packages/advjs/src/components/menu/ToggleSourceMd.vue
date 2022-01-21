@@ -12,7 +12,7 @@ const item = computed<AdvMenuItemProps>(() => ({
   label: '剧本路径',
   type: 'Select',
   props: {
-    selected: settings.advMdUrl,
+    selected: settings.storage.play.mdUrl,
     options: [
       {
         label: '仓鼠（测试）',
@@ -27,7 +27,7 @@ const item = computed<AdvMenuItemProps>(() => ({
       value: item.value,
     })),
     change: (value: string) => {
-      settings.advMdUrl = value
+      settings.storage.play.mdUrl = value
     },
   },
 }))

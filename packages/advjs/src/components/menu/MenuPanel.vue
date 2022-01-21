@@ -78,7 +78,7 @@ const items = computed(() => {
       label: '是否横屏',
       props: {
         checked: orientation.value === 'landscape',
-        click: async() => {
+        onClick: async() => {
           if (isFullscreen.value) {
             await exit()
             toggle('portrait')
@@ -94,8 +94,8 @@ const items = computed(() => {
       label: t('settings.fullscreen'),
       type: 'Checkbox',
       props: {
-        checked: settings.isFullscreen,
-        click: settings.toggleFullScreen,
+        checked: settings.storage.isFullscreen,
+        onClick: settings.toggleFullScreen,
       },
     },
   ] as AdvMenuItemProps[]
@@ -122,6 +122,12 @@ const menuItems: MenuButtonItem[] = [
     do: () => {
       app.toggleShowMenu()
       router.push('/start')
+    },
+  },
+  {
+    title: '重置设置',
+    do: () => {
+      settings.resetSettings()
     },
   },
   {

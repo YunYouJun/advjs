@@ -1,5 +1,5 @@
 <template>
-  <span class="inline-flex cursor-pointer">
+  <span class="inline-flex cursor-pointer" @click="onClick">
     <AdvIcon v-if="checked">
       <i-ri-checkbox-line />
     </AdvIcon>
@@ -14,7 +14,7 @@
 
 export interface AdvCheckboxProps {
   checked: boolean
-  click?: () => void
+  onClick?: (val: string) => void
 }
 
 withDefaults(defineProps<AdvCheckboxProps>(), {

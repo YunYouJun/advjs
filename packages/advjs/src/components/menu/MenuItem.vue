@@ -4,7 +4,7 @@
   </div>
   <div col="span-7" class="adv-menu-item--container flex items-center" p="x-2">
     <template v-if="item.type">
-      <AdvCheckbox v-if="item.type === 'Checkbox'" :checked="item.props.checked" @click="item.props.click" />
+      <AdvCheckbox v-if="item.type === 'Checkbox'" :checked="item.props.checked" :on-click="item.props.onClick" />
       <AdvRadioGroup v-if="item.type === 'RadioGroup'" :checked="item.props.checked" :options="item.props.options" :on-click="item.props.onClick" />
       <AdvSelect v-else-if="item.type === 'Select'" v-bind="item.props" />
     </template>

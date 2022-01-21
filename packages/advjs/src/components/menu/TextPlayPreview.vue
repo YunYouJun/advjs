@@ -4,8 +4,8 @@
   <MenuItem :item="displayModeItem" />
 
   <div col="span-12" class="animate-animated animate-slideInDown">
-    <div class="h-26" :class="`text-${curFontSize}`" text="left" bg="gray-500 opacity-20" p="4">
-      <PrintWords :type-interval="interval" :mode="curDisplayMode" :words="words" @end="onEnd" />
+    <div class="h-26" :class="`text-${settings.storage.text.curFontSize}`" text="left" bg="gray-500 opacity-20" p="4">
+      <PrintWords :type-interval="interval" :mode="settings.storage.text.curDisplayMode" :words="words" @end="onEnd" />
     </div>
   </div>
 </template>
@@ -13,10 +13,10 @@
 <script lang="ts" setup>
 // 文字播放预览
 import type { AdvMenuItemProps } from '@advjs/theme-default'
-import type { DisplayMode } from '~/components/animation/PrintWords.vue'
+import { useSettingsStore } from '~/stores/settings'
+import type { DisplayFontSize, DisplayMode, DisplaySpeed } from '~/stores/settings'
 
-export type DisplaySpeed = 'normal' | 'fast' | 'slow'
-const curSpeed = ref<DisplaySpeed>('normal')
+const settings = useSettingsStore()
 
 const exampleText = '这里是一大段长长的预览文本～您可以通过上述选项对其进行调节。'
 const words = ref(exampleText)
@@ -63,16 +63,16 @@ const speedOptions = [
   },
 ]
 
-const interval = ref((speedOptions.find(item => item.value === curSpeed.value) || { interval: 50 }).interval)
+const interval = ref((speedOptions.find(item => item.value === settings.storage.text.curSpeed) || { interval: 50 }).interval)
 
 const playSpeedItem = computed<AdvMenuItemProps<'RadioGroup'>>(() => ({
   label: '播放速度',
   type: 'RadioGroup',
   props: {
-    checked: curSpeed.value,
+    checked: settings.storage.text.curSpeed,
     options: speedOptions,
     onClick(val: DisplaySpeed) {
-      curSpeed.value = val
+      settings.storage.text.curSpeed = val
       interval.value = speedOptions.find(item => item.value === val)?.interval || 50
 
       triggerPrintWords()
@@ -80,13 +80,11 @@ const playSpeedItem = computed<AdvMenuItemProps<'RadioGroup'>>(() => ({
   },
 }))
 
-export type DiplayFontSize = 'xl' | '2xl' | '3xl'
-const curFontSize = ref<DiplayFontSize>('xl')
 const fontSizeItem = computed<AdvMenuItemProps<'RadioGroup'>>(() => ({
   label: '字体大小',
   type: 'RadioGroup',
   props: {
-    checked: curFontSize.value,
+    checked: settings.storage.text.curFontSize,
     options: [
       {
         label: '小',
@@ -101,18 +99,17 @@ const fontSizeItem = computed<AdvMenuItemProps<'RadioGroup'>>(() => ({
         value: '3xl',
       },
     ],
-    onClick(val: DiplayFontSize) {
-      curFontSize.value = val
+    onClick(val: DisplayFontSize) {
+      settings.storage.text.curFontSize = val
     },
   },
 }))
 
-const curDisplayMode = ref<DisplayMode>('soft')
 const displayModeItem = computed<AdvMenuItemProps<'RadioGroup'>>(() => ({
   label: '显示模式',
   type: 'RadioGroup',
   props: {
-    checked: curDisplayMode.value,
+    checked: settings.storage.text.curDisplayMode,
     options: [
       {
         label: '打字模式',
@@ -124,7 +121,7 @@ const displayModeItem = computed<AdvMenuItemProps<'RadioGroup'>>(() => ({
       },
     ],
     onClick(val: DisplayMode) {
-      curDisplayMode.value = val
+      settings.storage.text.curDisplayMode = val
     },
   },
 }))

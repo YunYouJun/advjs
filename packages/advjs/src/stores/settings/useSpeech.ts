@@ -1,26 +1,19 @@
-import { namespace } from '@advjs/shared/utils'
+import type { Ref } from 'vue'
+import type { SettingOptions } from './types'
 
-interface SpeechSynthesis {
+export interface SpeechSynthesisOptions {
   enable: boolean
   language: string
 }
 
 export const useSpeech = (
-  options: SpeechSynthesis = {
-    enable: true,
-    language: 'zh-HK',
-  },
+  settings: Ref<SettingOptions>,
 ) => {
-  const state = useStorage<SpeechSynthesis>(`${namespace}-speech-options`, options || {
-    enable: true,
-    language: 'zh-HK',
-  })
-
   /**
    * 切换语音合成开关
    */
   const toggleStatus = () => {
-    state.value.enable = !state.value.enable
+    settings.value.speech.enable = !settings.value.speech.enable
   }
 
   /**
@@ -29,12 +22,10 @@ export const useSpeech = (
    * @param language
    */
   function setLanguage(language: string) {
-    state.value.language = language
+    settings.value.speech.language = language
   }
 
   return {
-    options: state,
-
     toggleStatus,
     setLanguage,
   }

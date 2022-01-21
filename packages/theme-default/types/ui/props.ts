@@ -8,13 +8,14 @@ export interface AdvItemOption {
 // export { AdvCheckboxProps } from '@advjs/theme-default/components/core/AdvCheckbox.vue'
 export interface AdvCheckboxProps {
   checked: boolean
-  click?: () => void
+  onClick?: () => void
 }
 // todo: import type from vue
 // export { AdvRadioGroupProps } from '@advjs/theme-default/components/core/AdvRadioGroup.vue'
 export interface AdvRadioGroupProps {
   checked: string
   options: AdvItemOption[]
+  onClick?: (value: string) => void
 }
 
 // todo: import type from vue

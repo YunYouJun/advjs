@@ -1,19 +1,47 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { namespace } from '@advjs/shared/utils'
+import type { Ref } from 'vue'
 import { useSpeech } from './useSpeech'
 
-export const useSettingsStore = defineStore('settings', () => {
-  const speech = useSpeech()
-  const { isFullscreen, toggle: toggleFullScreen } = useFullscreen()
+import type { SettingOptions } from './types'
 
-  // to be deprecated, because import prebuild
-  const advMdUrl = useStorage(`${namespace}-md-url`, '/md/test.adv.md')
+export * from './types'
+
+export const useSettingsStore = defineStore('settings', () => {
+  // userClientConfig
+  const { toggle: toggleFullScreen } = useFullscreen()
+
+  const getDefaultSettings = () => {
+    const defaultSettings: SettingOptions = {
+      isFullscreen: false,
+      text: {
+        curSpeed: 'fast',
+        curFontSize: 'xl',
+        curDisplayMode: 'soft',
+      },
+      play: {
+        mdUrl: '/md/test.adv.md',
+      },
+      speech: {
+        enable: true,
+        language: 'zh-HK',
+      },
+    }
+    return defaultSettings
+  }
+
+  const userClientSettings = useStorage(`${namespace}-settings`, getDefaultSettings())
+
+  const resetSettings = () => {
+    userClientSettings.value = getDefaultSettings()
+  }
 
   return {
-    isFullscreen,
-    advMdUrl,
+    storage: userClientSettings,
 
-    speech,
+    resetSettings,
+
+    speech: useSpeech(userClientSettings as Ref<SettingOptions>),
     toggleFullScreen,
   }
 })
