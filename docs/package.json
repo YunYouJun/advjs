@@ -18,9 +18,9 @@
     "@iconify-json/file-icons": "^1.0.1",
     "@iconify-json/logos": "^1.0.4",
     "@iconify-json/vscode-icons": "^1.0.3",
-    "@vueuse/core": "^7.5.3",
+    "@vueuse/core": "^7.5.4",
     "unplugin-icons": "^0.13.0",
-    "unplugin-vue-components": "^0.17.13",
+    "unplugin-vue-components": "^0.17.14",
     "vite-plugin-pwa": "^0.11.13",
     "vite-plugin-windicss": "^1.6.3",
     "vitepress": "^0.21.6"
