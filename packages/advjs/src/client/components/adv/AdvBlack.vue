@@ -8,8 +8,14 @@
     font="bold"
     @click="next"
   >
-    <div class="words-wrapper" text="left">
-      <PrintWords v-for="item,i in displaySentences" :key="i" :type-interval="typeInterval" m="2" :words="item" />
+    <div class="words-wrapper relative" text="left">
+      <template v-for="(item,i) in displaySentences" :key="i">
+        <PrintWords :type-interval="typeInterval" m="2" :words="item" />
+        <!-- 撑开宽度 -->
+        <div class="print-words invisible" m="x-2 -t-6">
+          <span v-for="word, j in item" :key="j">{{ word }}</span>
+        </div>
+      </template>
     </div>
   </div>
 </template>
@@ -69,7 +75,7 @@ watch(() => props.content, () => {
 
 <style lang="scss">
 .adv-black {
-  background-color: var(--adv-modal-bg-color);
+  background-color: rgba(0, 0, 0, 0.8);
 
   p {
     margin: 0.5rem;

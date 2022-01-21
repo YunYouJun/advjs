@@ -1,14 +1,14 @@
 <template>
-  <div class="saved-card shadow hover:shadow-lg" grid="~ cols-2" border="~ black dark:white" m="auto" w="100" h="26">
-    <div class="preview-image-container h-full overflow-hidden shadow">
+  <div class="saved-card shadow-md hover:shadow-lg" grid="~ cols-2" border="~ black dark:white" m="auto" w="100" h="26">
+    <div class="preview-image-container h-full overflow-hidden shadow" bg="white dark:black">
       <img class="w-full h-full object-cover" :src="defaultBgUrl">
     </div>
-    <div>
-      <h3 text="base" class="flex justify-between items-center">
-        <span p="x-2" bg="black" text="white"># {{ no }}</span>
-        <span p="x-2" text="sm dark-400 dark:white">{{ dayjs(time).format('YYYY/MM/DD HH:mm:ss') }}</span>
+    <div class="overflow-hidden" flex="~ col">
+      <h3 text="base" class="flex justify-between items-center" bg="white">
+        <span p="x-2" bg="black" font="mono" text="sm white "># {{ no }}</span>
+        <span p="x-2" text="xs dark-400 dark:white">{{ dayjs(time).format('YYYY/MM/DD HH:mm:ss') }}</span>
       </h3>
-      <p class="preview-narration">
+      <p class="preview-narration" flex="~ grow" bg="white">
         旁白
       </p>
     </div>

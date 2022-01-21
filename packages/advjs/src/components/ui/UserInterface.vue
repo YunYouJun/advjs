@@ -19,7 +19,7 @@
       <i-ri-settings-3-line />
     </AdvIconButton>
 
-    <AdvModal v-show="app.showMenu" @close="app.toggleShowMenu">
+    <AdvModal :show="app.showMenu" @close="app.toggleShowMenu">
       <MenuPanel />
     </AdvModal>
   </div>

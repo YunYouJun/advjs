@@ -1,5 +1,5 @@
 <template>
-  <div class="col-span-1 flex flex-col justify-end items-center animate-animated animate-fadeInLeft">
+  <div class="col-span-1 flex flex-col justify-end items-center ">
     <img
       class="tachie-character inline-block transform"
       :class="characterClass"
@@ -13,6 +13,7 @@
 <script setup lang="ts">
 import type { CharacterInfo } from '~/data/characters'
 import { adv } from '~/setup/adv'
+
 const props = defineProps<{ character: CharacterInfo }>()
 
 const advStore = adv.store

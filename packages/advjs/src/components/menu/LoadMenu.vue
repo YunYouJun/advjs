@@ -1,23 +1,36 @@
 <template>
-  <div class="menu-panel grid grid-cols-12" gap="x-2 y-0" h="full" text="2xl">
+  <div class="menu-panel flex flex-col justify-between" gap="x-2 y-0" h="full" text="2xl">
+    <h1
+      class="adv-font-serif font-black mt-2"
+      text="4xl"
+    >
+      加载存档
+    </h1>
+
+    <HorizontalDivider />
+
     <div col="span-12">
-      <h1
-        class="adv-font-serif font-black mt-2"
-        text="4xl"
+      <Swiper
+        effect="creative"
+        :grab-cursor="true"
+        :creative-effect="creativeEffect"
+        class="mySwiper"
+        @init="onInit"
+        @slide-change="onSlideChange"
       >
-        加载存档
-      </h1>
-      <HorizontalDivider />
+        <SwiperSlide v-for="i in 10" :key="i">
+          <div grid="~ cols-2 gap-4" p="2">
+            <div v-for="j in 6" :key="(i-1)*6+j">
+              <SavedCard class="animate-animated animate-fadeInDown" :style="{'animation-delay': j*50+'ms'}" :no="(i-1)*perPageNum+j" />
+            </div>
+          </div>
+        </SwiperSlide>
+      </swiper>
     </div>
-    <div v-for="i in 6" :key="i" col="span-6">
-      <transition :duration="{enter: 1000+i*50, leave: 100}" enter-active-class="animate-fadeInDown" leave-active-class="animate-fadeOut">
-        <SavedCard v-if="showCard" class="animate-animated" :style="{'animation-delay': i*50+'ms'}" :no="(curPage-1)*perPageNum+i" />
-      </transition>
-    </div>
-    <div col="span-12" class="justify-center items-center">
-      <HorizontalDivider />
-    </div>
-    <div col="span-12">
+
+    <HorizontalDivider />
+
+    <div class="adv-pagination-container">
       <AdvTextButton v-for="i in 10" :key="i" :active="curPage === i" class="mx-4 w-12 animate-animated animate-fadeInDown" :style="{'animation-delay': i*20+'ms'}" :font="(curPage === i) && 'bold'" bg="blue-500 opacity-5" @click="togglePage(i)">
         {{ i }}
       </AdvTextButton>
@@ -26,21 +39,40 @@
 </template>
 
 <script lang="ts" setup>
+import type { CreativeEffectOptions, Swiper } from 'swiper'
+const swiperRef = ref<Swiper>()
 const perPageNum = ref(6)
 
 const curPage = ref(1)
 
-const showCard = ref(false)
-
 const togglePage = (page: number) => {
-  showCard.value = false
-  setTimeout(() => {
-    curPage.value = page
-    showCard.value = true
-  }, 100)
+  if (!swiperRef.value) return
+  swiperRef.value.slideTo(page - 1)
 }
 
-onMounted(() => {
-  showCard.value = true
-})
+const onInit = (swiper: Swiper) => {
+  swiperRef.value = swiper
+}
+
+const onSlideChange = () => {
+  if (!swiperRef.value) return
+  curPage.value = swiperRef.value.activeIndex + 1
+}
+
+const creativeEffect: CreativeEffectOptions = {
+  prev: {
+    translate: [
+      0,
+      0,
+      -400,
+    ],
+  },
+  next: {
+    translate: [
+      '100%',
+      0,
+      0,
+    ],
+  },
+}
 </script>

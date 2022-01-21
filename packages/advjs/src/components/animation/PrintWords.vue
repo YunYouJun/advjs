@@ -51,13 +51,4 @@ watch(() => props.words, () => {
   len.value = 0
   playWordsAnimation()
 })
-
 </script>
-
-<style>
-.typed-cursor {
-  position: absolute;
-  right: 3rem;
-  bottom: 1.5rem;
-}
-</style>

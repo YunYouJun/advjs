@@ -6,7 +6,7 @@
     <template v-if="item.type">
       <AdvCheckbox v-if="item.type === 'Checkbox'" :checked="item.props.checked" @click="item.props.click" />
       <AdvRadioGroup v-if="item.type === 'RadioGroup'" :checked="item.props.checked" :options="item.props.options" :on-click="item.props.onClick" />
-      <AdvSelect v-else-if="item.type === 'Select'" :selected="item.props.selected" :options="item.props.options" :change="item.props.change" />
+      <AdvSelect v-else-if="item.type === 'Select'" v-bind="item.props" />
     </template>
     <slot v-else />
   </div>

@@ -1,11 +1,16 @@
 <template>
   <AdvContainer class="w-full h-full">
     <div class="adv-game w-full h-full bg-black relative" :style="advGameStyle">
-      <TachieBox v-show="app.showTachie" :characters="characters" />
+      <TachieBox :characters="characters" />
 
-      <BaseLayer v-show="!app.showUi" />
-      <DialogBox v-show="app.showUi" />
-      <UserInterface v-show="app.showUi" />
+      <BaseLayer v-if="!app.showUi" />
+
+      <transition enter-active-class="animate-fadeInUp" leave-active-class="animate-fadeOutDown">
+        <DialogBox v-show="app.showUi" class="animate-animated" />
+      </transition>
+      <transition enter-active-class="animate-fadeInDown" leave-active-class="animate-fadeOutUp">
+        <UserInterface v-show="app.showUi" class="animate-animated" />
+      </transition>
 
       <AdvHistory />
 
