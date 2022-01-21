@@ -163,7 +163,6 @@ export default defineConfig({
       '@vueuse/core',
       '@vueuse/head',
       '@vueuse/motion',
-      'typed.js',
       'unified',
       'remark-parse',
       'remark-frontmatter',

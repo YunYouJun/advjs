@@ -12,7 +12,10 @@
       </template>
     </div>
     <div class="dialog-content col-span-9 text-left pr-24">
-      <TypedWords :words="curDialog.children[order].value" />
+      <PrintWords :words="curDialog.children[order].value" />
+      <div class="typed-cursor">
+        ▼
+      </div>
     </div>
   </div>
 </template>
@@ -95,5 +98,11 @@ const characterAvatar = computed(() => {
   color: white;
   margin-top: 0.3rem;
   @apply text-xl;
+}
+
+.typed-cursor {
+  position: absolute;
+  right: 3rem;
+  bottom: 1.5rem;
 }
 </style>

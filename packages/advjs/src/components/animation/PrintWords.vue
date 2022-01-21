@@ -1,19 +1,23 @@
 <template>
   <div class="print-words">
-    <span v-for="word, i in displayWords" :key="i" class="animate-animated animate-fadeIn">{{ word }}</span>
+    <span v-for="word, i in displayWords" :key="i" :class="mode === 'soft' && ['animate-fast', 'animate-fadeIn']">{{ word }}</span>
   </div>
 </template>
 
 <script setup lang="ts">
+export type DisplayMode = 'type' | 'soft'
+
 const props = withDefaults(defineProps<{
   words?: string
   /**
    * 打印间隔
    */
   typeInterval?: number
+  mode?: DisplayMode
 }>(), {
   words: '',
-  typeInterval: 100,
+  typeInterval: 25,
+  mode: 'soft',
 })
 
 const displayWords = ref('')

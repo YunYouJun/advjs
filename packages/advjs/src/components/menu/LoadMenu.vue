@@ -9,8 +9,10 @@
       </h1>
       <HorizontalDivider />
     </div>
-    <div v-for="i in 6" :key="i" class="animate-animated animate-fadeInDown" :style="{'animation-delay': i*50+'ms'}" col="span-6">
-      <SavedCard />
+    <div v-for="i in 6" :key="i" col="span-6">
+      <transition :duration="{enter: 1000+i*50, leave: 100}" enter-active-class="animate-fadeInDown" leave-active-class="animate-fadeOut">
+        <SavedCard v-if="showCard" class="animate-animated" :style="{'animation-delay': i*50+'ms'}" :no="(curPage-1)*perPageNum+i" />
+      </transition>
     </div>
     <div col="span-12" class="justify-center items-center">
       <HorizontalDivider />
@@ -24,9 +26,21 @@
 </template>
 
 <script lang="ts" setup>
+const perPageNum = ref(6)
+
 const curPage = ref(1)
 
+const showCard = ref(false)
+
 const togglePage = (page: number) => {
-  curPage.value = page
+  showCard.value = false
+  setTimeout(() => {
+    curPage.value = page
+    showCard.value = true
+  }, 100)
 }
+
+onMounted(() => {
+  showCard.value = true
+})
 </script>

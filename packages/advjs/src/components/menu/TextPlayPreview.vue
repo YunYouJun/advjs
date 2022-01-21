@@ -1,20 +1,22 @@
 <template>
   <MenuItem :item="playSpeedItem" />
   <MenuItem :item="fontSizeItem" />
+  <MenuItem :item="displayModeItem" />
 
   <div col="span-12" class="animate-animated animate-slideInDown">
     <div class="h-26" :class="`text-${curFontSize}`" text="left" bg="gray-500 opacity-20" p="4">
-      <PrintWords :type-interval="interval" :words="words" @end="onEnd" />
+      <PrintWords :type-interval="interval" :mode="curDisplayMode" :words="words" @end="onEnd" />
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 // 文字播放预览
-
 import type { AdvMenuItemProps } from '@advjs/theme-default'
+import type { DisplayMode } from '~/components/animation/PrintWords.vue'
 
-const curSpeed = ref('normal')
+export type DisplaySpeed = 'normal' | 'fast' | 'slow'
+const curSpeed = ref<DisplaySpeed>('normal')
 
 const exampleText = '这里是一大段长长的预览文本～您可以通过上述选项对其进行调节。'
 const words = ref(exampleText)
@@ -69,7 +71,7 @@ const playSpeedItem = computed<AdvMenuItemProps<'RadioGroup'>>(() => ({
   props: {
     checked: curSpeed.value,
     options: speedOptions,
-    onClick(val: 'slow' | 'normal' | 'fast') {
+    onClick(val: DisplaySpeed) {
       curSpeed.value = val
       interval.value = speedOptions.find(item => item.value === val)?.interval || 50
 
@@ -78,7 +80,8 @@ const playSpeedItem = computed<AdvMenuItemProps<'RadioGroup'>>(() => ({
   },
 }))
 
-const curFontSize = ref('xl')
+export type DiplayFontSize = 'xl' | '2xl' | '3xl'
+const curFontSize = ref<DiplayFontSize>('xl')
 const fontSizeItem = computed<AdvMenuItemProps<'RadioGroup'>>(() => ({
   label: '字体大小',
   type: 'RadioGroup',
@@ -98,10 +101,31 @@ const fontSizeItem = computed<AdvMenuItemProps<'RadioGroup'>>(() => ({
         value: '3xl',
       },
     ],
-    onClick(val: 'sm' | 'lg' | 'xl') {
+    onClick(val: DiplayFontSize) {
       curFontSize.value = val
     },
   },
 }))
 
+const curDisplayMode = ref<DisplayMode>('soft')
+const displayModeItem = computed<AdvMenuItemProps<'RadioGroup'>>(() => ({
+  label: '显示模式',
+  type: 'RadioGroup',
+  props: {
+    checked: curDisplayMode.value,
+    options: [
+      {
+        label: '打字模式',
+        value: 'type',
+      },
+      {
+        label: '轻柔模式',
+        value: 'soft',
+      },
+    ],
+    onClick(val: DisplayMode) {
+      curDisplayMode.value = val
+    },
+  },
+}))
 </script>

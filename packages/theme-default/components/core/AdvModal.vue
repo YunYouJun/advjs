@@ -63,9 +63,12 @@ withDefaults(defineProps<{
   opacity: 0;
 }
 
-.modal-enter-active .modal-container,
-.modal-leave-active .modal-container {
+.modal-enter-active .modal-container{
   -webkit-transform: scale(0.9);
   transform: scale(0.9);
+}
+
+.modal-leave-active .modal-container {
+  transform: translate(0, 50px);
 }
 </style>

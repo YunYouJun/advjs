@@ -111,10 +111,10 @@ const menuItems: MenuButtonItem[] = [
     },
   },
   {
-    title: '加载游戏',
+    title: t('start-menu.load-game'),
     do: () => {
-      // todo load game
-      window.alert('存档？不存在的 ╮(￣▽￣"")╭')
+      app.toggleShowMenu()
+      app.toggleShowLoadMenu()
     },
   },
   {
@@ -127,8 +127,7 @@ const menuItems: MenuButtonItem[] = [
   {
     title: t('start-menu.help'),
     do: () => {
-      // todo
-      // help dialog
+      router.push('/help')
     },
   },
 ]
