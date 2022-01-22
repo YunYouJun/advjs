@@ -21,8 +21,10 @@ import dayjs from 'dayjs'
 import type { AdvGameRecord, AdvGameRecordMeta } from '@advjs/core'
 import { screenshotGameThumb } from '@advjs/core'
 import { useGameStore } from '~/stores/game'
-
+import { useAppStore } from '~/stores/app'
 import { adv } from '~/setup/adv'
+
+const app = useAppStore()
 
 const props = withDefaults(defineProps<{
   /**
@@ -71,6 +73,9 @@ const saveToCard = async() => {
 const loadFromCard = () => {
   if (!record.value) return
   adv.store.cur.value = record.value
+
+  // 关闭加载菜单
+  app.toggleShowLoadMenu()
 }
 
 const onCardClick = () => {

@@ -181,6 +181,8 @@ export default defineConfig({
       'rehype-stringify',
       'consola',
       'unstorage',
+      'unstorage/drivers/localstorage',
+      'html2canvas',
     ].concat(babylonDependencies),
     exclude: [
       'vue-demi',

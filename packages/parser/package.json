@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@advjs/types": "workspace:^",
-    "mdast-util-to-hast": "^12.1.0",
+    "mdast-util-to-hast": "^12.1.1",
     "rehype-stringify": "^9.0.2",
     "remark-frontmatter": "^4.0.1",
     "remark-gfm": "^3.0.1",

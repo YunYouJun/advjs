@@ -2,7 +2,7 @@
   <transition name="modal">
     <div v-if="show" class="modal-mask">
       <div class="modal-container">
-        <AdvIconButton class="modal-close-button" @click="$emit('close')">
+        <AdvIconButton class="modal-close-button" @click="emit('close')">
           <i-ri-close-line />
         </AdvIconButton>
         <div class="modal-body h-full">
@@ -19,6 +19,8 @@ withDefaults(defineProps<{
 }>(), {
   show: false,
 })
+
+const emit = defineEmits(['close'])
 </script>
 
 <style>

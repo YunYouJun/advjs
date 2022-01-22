@@ -22,4 +22,4 @@
 
 强调对某 monorepo 进行修改时，使用 (scope)。
 
-如对 parser 进行功能新增，`feat(parser): xxx`。
+> 例如对 parser 进行功能新增，`feat(parser): xxx`。

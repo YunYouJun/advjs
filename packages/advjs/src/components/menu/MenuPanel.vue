@@ -110,9 +110,10 @@ const menuItems = computed<MenuButtonItem[]>(() => {
     = route.path === '/game'
       ? [
         {
-          title: '保存游戏',
+          title: t('settings.save-game'),
           do: () => {
-            // todo
+            app.toggleShowMenu()
+            app.toggleShowSaveMenu()
           },
         },
       ]

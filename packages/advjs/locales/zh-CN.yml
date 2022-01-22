@@ -23,5 +23,6 @@ start-menu:
 
 # settings
 settings:
+  save-game: 存储存档
   title: 设置
   fullscreen: 是否全屏

@@ -73,4 +73,8 @@ export const sidebar: YouTheme.Config['sidebar'] = {
   '/design': DesignSidebar,
   '/dev': DevSidebar,
   '/contributing': ContributingSidebar,
+  '/advscript': [
+    { text: '什么是 AdvScript?', link: '/advscript/' },
+    { text: 'AdvScript 语法', link: '/advscript/syntax' },
+  ],
 }
