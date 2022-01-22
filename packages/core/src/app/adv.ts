@@ -54,10 +54,10 @@ export function createAdv(options?: Partial<AdvOptions>) {
     if (!store.ast.value) return false
 
     const nodeLen = store.ast.value.children.length
-    const curOrder = store.cur.order
+    const curOrder = store.cur.value.order
     if (curOrder >= nodeLen) return
 
-    store.cur.order++
+    store.cur.value.order++
 
     const curNode = store.curNode.value
     if (options?.debug) consola.info(curNode)
@@ -69,7 +69,7 @@ export function createAdv(options?: Partial<AdvOptions>) {
     }
 
     if (curNode?.type === 'camera') {
-      store.cur.dialog = {
+      store.cur.value.dialog = {
         character: {
           type: 'character',
           name: '',
@@ -91,30 +91,27 @@ export function createAdv(options?: Partial<AdvOptions>) {
    * @returns
    */
   function nextParagraph() {
-    // if (store.cur.order.value < store.ast.value.children.length - 1) {
-    // store.cur.order.value++
-
-    const item = store.curNode.value
-    if (!item) return
+    const curNode = store.curNode.value
+    if (!curNode) return
 
     // if (item.type === 'narration' && item.children.length && item.children[0].type === 'paragraph') {
-    //   store.cur.dialog.value = item.children[0]
+    //   store.cur.value.dialog.value = item.children[0]
     //   return true
     // }
 
-    const childType = item.type
+    const childType = curNode.type
     if (childType === 'dialog') {
-      store.cur.dialog = item
+      store.cur.value.dialog = curNode
       return true
     }
     else if (childType === 'text') {
-      store.cur.dialog = {
+      store.cur.value.dialog = {
         character: {
           type: 'character',
           name: '',
           status: '',
         },
-        children: [item],
+        children: [curNode],
       }
     }
 

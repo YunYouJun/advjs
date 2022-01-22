@@ -12,7 +12,7 @@
       </template>
     </div>
     <div class="dialog-content col-span-9 text-left pr-24" :text="settings.storage.text.curFontSize">
-      <PrintWords :speed="settings.storage.text.curSpeed" :words="curDialog.children[order].value" />
+      <PrintWords :speed="settings.storage.text.curSpeed" :words="curDialog.children[iOrder].value" />
       <span class="typed-cursor">
         ▼
       </span>
@@ -33,13 +33,13 @@ const advStore = adv.store
 
 const settings = useSettingsStore()
 
-const curDialog = computed(() => advStore.cur.dialog)
+const curDialog = computed(() => advStore.cur.value.dialog)
 
 // 局部 words order，与全局 order 相区别
-const order = ref(0)
+const iOrder = ref(0)
 
 watch(
-  () => curDialog.value.children[order.value].value,
+  () => curDialog.value.children[iOrder.value].value,
   (val) => {
     // 若开启了语音合成
     if (settings.storage.speech.enable) {
@@ -53,12 +53,12 @@ const next = () => {
   if (curDialog.value.children) {
     const length = curDialog.value.children.length
 
-    if (order.value + 1 > length - 1) {
+    if (iOrder.value + 1 > length - 1) {
       if (adv.next())
-        order.value = 0
+        iOrder.value = 0
     }
     else {
-      order.value++
+      iOrder.value++
     }
   }
 }

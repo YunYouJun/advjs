@@ -21,7 +21,7 @@
         <SwiperSlide v-for="i in 10" :key="i">
           <div grid="~ cols-2 gap-4" p="2">
             <div v-for="j in 6" :key="(i-1)*6+j">
-              <SavedCard class="animate-animated animate-fadeInDown" :style="{'animation-delay': j*50+'ms'}" :no="(i-1)*perPageNum+j" />
+              <SavedCard type="save" class="animate-animated animate-fadeInDown" :style="{'animation-delay': j*50+'ms'}" :no="(i-1)*perPageNum+j" />
             </div>
           </div>
         </SwiperSlide>
@@ -39,19 +39,12 @@
 </template>
 
 <script lang="ts" setup>
-import type { AdvGameRecord } from '@advjs/core'
-import { recordsKey, storage } from '@advjs/core'
-import { namespace } from '@advjs/shared/utils'
 import type { Swiper } from 'swiper'
 import type { CreativeEffectOptions } from 'swiper/types'
-import { useGameStore } from '~/stores/game'
 const swiperRef = ref<Swiper>()
 const perPageNum = ref(6)
 
-const game = useGameStore()
-
 const curPage = ref(1)
-const savedRecords = ref<(AdvGameRecord | null)[]>([])
 
 const togglePage = (page: number) => {
   if (!swiperRef.value) return
@@ -83,20 +76,4 @@ const creativeEffect: CreativeEffectOptions = {
     ],
   },
 }
-
-// const getStorageKeys = async() => {
-//   const base = `${namespace}::${recordsKey}`
-//   const keys = await storage.getKeys(base)
-//   if (keys.length) {
-//     keys.forEach(async(key) => {
-//       // +1 for ':'
-//       const index = parseInt(key.slice(base.length + 1))
-//       savedRecords.value[index] = await game.readRecord(index)
-//     })
-//   }
-// }
-
-onMounted(() => {
-  // getStorageKeys()
-})
 </script>

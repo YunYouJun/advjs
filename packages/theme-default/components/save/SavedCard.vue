@@ -1,12 +1,12 @@
 <template>
-  <div class="saved-card shadow-md hover:shadow-lg" grid="~ cols-2" border="~ black dark:white" m="auto" w="100" h="26" @click="saveToCard">
+  <div class="saved-card shadow-md hover:shadow-lg" grid="~ cols-2" border="~ black dark:white" m="auto" w="100" h="26" @click="onCardClick">
     <div class="preview-image-container h-full overflow-hidden shadow" bg="white dark:black">
       <img class="w-full h-full object-cover" :src="meta?.thumbnail || defaultBgUrl">
     </div>
     <div class="overflow-hidden" flex="~ col">
       <h3 text="base" class="flex justify-between items-center" bg="white">
         <span p="x-2" bg="black" font="mono" text="sm white "># {{ no }}</span>
-        <span p="x-2" text="xs dark-400 dark:white">{{ dayjs(meta?.createdAt || 0).format('YYYY/MM/DD HH:mm:ss') }}</span>
+        <span v-if="meta?.createdAt" p="x-2" text="xs dark-400 dark:white">{{ dayjs(meta?.createdAt).format('YYYY/MM/DD HH:mm:ss') }}</span>
       </h3>
       <p class="preview-narration" flex="~ grow" bg="white">
         <span v-if="record">{{ record.dialog?.children[0].value }}</span>
@@ -25,14 +25,19 @@ import { useGameStore } from '~/stores/game'
 import { adv } from '~/setup/adv'
 
 const props = withDefaults(defineProps<{
+  /**
+   * 类型
+   */
+  type?: 'save' | 'load'
   no?: number
 }>(), {
+  type: 'save',
   no: 1,
 })
 
 const game = useGameStore()
 
-const record = ref<Partial<AdvGameRecord>>({})
+const record = ref<AdvGameRecord>()
 const meta = ref<AdvGameRecordMeta>()
 
 onMounted(async() => {
@@ -47,7 +52,7 @@ onMounted(async() => {
  */
 const saveToCard = async() => {
   const dataUrl = await screenshotGameThumb()
-  const curRecord = adv.store.cur
+  const curRecord = adv.store.cur.value
   try {
     await game.saveRecord(props.no, curRecord)
     record.value = curRecord
@@ -61,6 +66,18 @@ const saveToCard = async() => {
   catch (e) {
     console.error(e)
   }
+}
+
+const loadFromCard = () => {
+  if (!record.value) return
+  adv.store.cur.value = record.value
+}
+
+const onCardClick = () => {
+  if (props.type === 'save')
+    saveToCard()
+  else
+    loadFromCard()
 }
 </script>
 

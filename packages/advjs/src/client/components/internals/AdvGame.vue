@@ -4,7 +4,7 @@
       <AdvScene />
       <TachieBox :characters="characters" />
 
-      <AdvBlack v-if="curNode && curNode.type === 'narration'" :content="curNode" />
+      <AdvBlack v-if="curNode && curNode.type === 'narration'" class="z-9" :content="curNode" />
 
       <AdvCanvas v-if="app.showCanvas" />
       <slot />
@@ -20,7 +20,7 @@
         <DialogControls v-show="app.showUi" class="animate-animated absolute left-0 right-0 bottom-0" />
       </transition>
       <transition enter-active-class="animate-fadeInDown" leave-active-class="animate-fadeOutUp">
-        <UserInterface v-show="app.showUi" class="animate-animated" />
+        <UserInterface v-show="app.showUi" class="animate-animated z-99" />
       </transition>
 
       <AdvHistory />

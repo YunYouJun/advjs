@@ -29,10 +29,15 @@ export const createAdvStore = () => {
   /**
    * 语法树
    */
-  const ast = ref<AdvRoot>()
+  const ast = ref<AdvRoot>({
+    type: 'adv-root',
+    children: [{
+      type: 'text',
+      value: 'test',
+    }],
+  })
 
-  const curState = reactive<CurStateType>({
-
+  const curState = ref<CurStateType>({
     order: 0,
     /**
      * 当前对话
@@ -50,7 +55,15 @@ export const createAdvStore = () => {
     },
   })
 
-  const curNode = computed(() => ast.value && ast.value.children[curState.order])
+  const curNode = computed(() => {
+    if (ast.value && ast.value.children.length > 0)
+      return ast.value.children[curState.value.order]
+    else
+      return null
+  })
+  // watch(() => curState.order, () => {
+  //   curNode =
+  // })
 
   return {
     ast,

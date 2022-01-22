@@ -21,7 +21,7 @@
         <SwiperSlide v-for="i in 10" :key="i">
           <div grid="~ cols-2 gap-4" p="2">
             <div v-for="j in 6" :key="(i-1)*6+j">
-              <SavedCard class="animate-animated animate-fadeInUp" :style="{'animation-delay': j*50+'ms'}" :no="(i-1)*perPageNum+j" />
+              <SavedCard type="load" class="animate-animated animate-fadeInUp" :style="{'animation-delay': j*50+'ms'}" :no="(i-1)*perPageNum+j" />
             </div>
           </div>
         </SwiperSlide>
