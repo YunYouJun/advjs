@@ -6,6 +6,7 @@ importers:
     specifiers:
       '@antfu/eslint-config': ^0.16.0
       '@types/node': ^17.0.10
+      '@yunyoujun/logger': ^0.1.4
       consola: ^2.15.3
       cross-env: ^7.0.3
       eslint: 8.7.0
@@ -21,6 +22,7 @@ importers:
     devDependencies:
       '@antfu/eslint-config': 0.16.0_eslint@8.7.0+typescript@4.5.5
       '@types/node': 17.0.10
+      '@yunyoujun/logger': 0.1.4
       consola: 2.15.3
       cross-env: 7.0.3
       eslint: 8.7.0
@@ -4419,6 +4421,12 @@ packages:
 
   /@xtuc/long/4.2.2:
     resolution: {integrity: sha512-NuHqBY1PB/D8xU6s/thBgOAiAP7HOYDQ32+BFZILJ8ivkUkAHQnWfn6WhL79Owj1qmUnoN/YPhktdIoucipkAQ==}
+    dev: true
+
+  /@yunyoujun/logger/0.1.4:
+    resolution: {integrity: sha512-B87xxYA9C02yCoL0M+0HM0RevBUkwbDgNFIoU0zQfgOWi3j4tdgSj5sMtdzxLUd63RP1PpsZmxgAVhLaERdtgA==}
+    dependencies:
+      chalk: 4.1.2
     dev: true
 
   /abab/2.0.5:

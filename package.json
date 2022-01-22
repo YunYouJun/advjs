@@ -19,6 +19,7 @@
   "license": "MPL-2.0",
   "scripts": {
     "build": "pnpm build -C packages/advjs",
+    "build:all": "esno scripts/build.ts",
     "dev": "pnpm dev -C packages/advjs",
     "lint": "eslint \"**/*.{vue,ts,js}\"",
     "lint:fix": "eslint \"**/*.{vue,ts,js}\" --fix",
@@ -36,6 +37,7 @@
   "devDependencies": {
     "@antfu/eslint-config": "^0.16.0",
     "@types/node": "^17.0.10",
+    "@yunyoujun/logger": "^0.1.4",
     "consola": "^2.15.3",
     "cross-env": "^7.0.3",
     "eslint": "8.7.0",
