@@ -1,4 +1,4 @@
-import type { AdvGameRecord } from '@advjs/core'
+import type { AdvGameRecord, AdvGameRecordMeta } from '@advjs/core'
 import { recordsStorage } from '@advjs/core/app'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
@@ -12,7 +12,14 @@ export const useGameStore = defineStore('game', () => {
    * @param data
    */
   const saveRecord = (index: number, data: AdvGameRecord) => {
-    return recordsStorage.setItem(index.toString(), data)
+    const key = index.toString()
+    recordsStorage.setMeta(key, { createdAt: (new Date()).valueOf() })
+    return recordsStorage.setItem(key, data)
+  }
+
+  const saveRecordMeta = async(index: number, meta: Partial<AdvGameRecordMeta>) => {
+    const key = index.toString()
+    return await recordsStorage.setMeta(key, Object.assign({ createdAt: (new Date()).valueOf() }, meta))
   }
 
   /**
@@ -20,7 +27,15 @@ export const useGameStore = defineStore('game', () => {
    * @param index
    */
   const readRecord = async(index: number) => {
-    return recordsStorage.getItem(index.toString()) as Promise<AdvGameRecord>
+    const key = index.toString()
+    const data = (await recordsStorage.getItem(key)) as AdvGameRecord
+    return data
+  }
+
+  const readRecordMeta = async(index: number) => {
+    const key = index.toString()
+    const meta = (await recordsStorage.getMeta(key)) as AdvGameRecordMeta
+    return meta
   }
 
   /**
@@ -28,12 +43,16 @@ export const useGameStore = defineStore('game', () => {
    * @param index
    */
   const deleteRecord = (index: number) => {
-    return recordsStorage.removeItem(index.toString())
+    const key = index.toString()
+    // default remove meta
+    return recordsStorage.removeItem(key)
   }
 
   return {
     readRecord,
+    readRecordMeta,
     saveRecord,
+    saveRecordMeta,
     deleteRecord,
   }
 })

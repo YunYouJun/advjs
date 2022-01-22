@@ -60,6 +60,6 @@ const className = computed(() => ({
 }
 
 #adv-content {
-  @apply relative overflow-hidden bg-main absolute left-1/2 top-1/2;
+  @apply relative overflow-hidden absolute left-1/2 top-1/2;
 }
 </style>

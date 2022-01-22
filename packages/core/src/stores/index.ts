@@ -1,4 +1,5 @@
 import type { AdvRoot, Character, Text } from '@advjs/types'
+import type { StorageMeta } from 'unstorage'
 
 export interface CurStateType {
   /**
@@ -15,6 +16,14 @@ export interface CurStateType {
  * 游戏存档类型格式
  */
 export type AdvGameRecord = CurStateType
+
+export interface AdvGameRecordMeta extends StorageMeta {
+  createdAt: number
+  /**
+   * 缩略图
+   */
+  thumbnail?: string
+}
 
 export const createAdvStore = () => {
   /**

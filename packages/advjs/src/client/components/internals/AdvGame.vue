@@ -1,8 +1,16 @@
 <template>
-  <AdvContainer class="w-full h-full">
-    <div class="adv-game w-full h-full bg-black relative" :style="advGameStyle">
+  <AdvContainer class="w-full h-full" text="white">
+    <div class="adv-game w-full h-full bg-black absolute">
+      <AdvScene />
       <TachieBox :characters="characters" />
 
+      <AdvBlack v-if="curNode && curNode.type === 'narration'" :content="curNode" />
+
+      <AdvCanvas v-if="app.showCanvas" />
+      <slot />
+    </div>
+
+    <div class="adv-ui absolute" w="full" h="full">
       <BaseLayer v-if="!app.showUi" />
 
       <transition enter-active-class="animate-fadeInUp" leave-active-class="animate-fadeOutDown">
@@ -16,11 +24,6 @@
       </transition>
 
       <AdvHistory />
-
-      <AdvBlack v-if="curNode && curNode.type === 'narration'" :content="curNode" />
-
-      <AdvCanvas v-if="app.showCanvas" />
-      <slot />
     </div>
   </AdvContainer>
 </template>
@@ -52,15 +55,6 @@ const curNode = computed(() => {
 if (!isDev) useBeforeUnload()
 
 const app = useAppStore()
-
-const advGameStyle = computed(() => {
-  return {
-    backgroundImage: 'url("/img/bg/night.jpg")',
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundRepeat: 'no-repeat',
-  }
-})
 
 /**
  * provide game config

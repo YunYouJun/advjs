@@ -1,5 +1,5 @@
 <template>
-  <div class="adv-ui flex absolute top-5 justify-between w-full" p="x-5">
+  <div class="flex absolute top-5 justify-between w-full" p="x-5">
     <div class="inline-flex">
       <AdvIconButton class="mr-4" @click="app.toggleHistory()">
         <i-ri-message-2-line />

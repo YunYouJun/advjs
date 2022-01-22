@@ -1,12 +1,12 @@
 <template>
   <div class="saved-card shadow-md hover:shadow-lg" grid="~ cols-2" border="~ black dark:white" m="auto" w="100" h="26" @click="saveToCard">
     <div class="preview-image-container h-full overflow-hidden shadow" bg="white dark:black">
-      <img class="w-full h-full object-cover" :src="defaultBgUrl">
+      <img class="w-full h-full object-cover" :src="meta?.thumbnail || defaultBgUrl">
     </div>
     <div class="overflow-hidden" flex="~ col">
       <h3 text="base" class="flex justify-between items-center" bg="white">
         <span p="x-2" bg="black" font="mono" text="sm white "># {{ no }}</span>
-        <span p="x-2" text="xs dark-400 dark:white">{{ dayjs(time).format('YYYY/MM/DD HH:mm:ss') }}</span>
+        <span p="x-2" text="xs dark-400 dark:white">{{ dayjs(meta?.createdAt || 0).format('YYYY/MM/DD HH:mm:ss') }}</span>
       </h3>
       <p class="preview-narration" flex="~ grow" bg="white">
         <span v-if="record">{{ record.dialog?.children[0].value }}</span>
@@ -18,36 +18,45 @@
 <script lang="ts" setup>
 import { defaultBgUrl } from '@advjs/theme-default'
 import dayjs from 'dayjs'
-import type { AdvGameRecord } from '@advjs/core'
+import type { AdvGameRecord, AdvGameRecordMeta } from '@advjs/core'
+import { screenshotGameThumb } from '@advjs/core'
 import { useGameStore } from '~/stores/game'
 
 import { adv } from '~/setup/adv'
 
 const props = withDefaults(defineProps<{
   no?: number
-  time?: number
 }>(), {
   no: 1,
-  time: 0,
 })
 
 const game = useGameStore()
 
 const record = ref<Partial<AdvGameRecord>>({})
+const meta = ref<AdvGameRecordMeta>()
 
 onMounted(async() => {
   const savedRecord = await game.readRecord(props.no)
   record.value = savedRecord
+  const savedMeta = await game.readRecordMeta(props.no)
+  meta.value = savedMeta
 })
 
 /**
  * 存储至该卡片
  */
 const saveToCard = async() => {
+  const dataUrl = await screenshotGameThumb()
   const curRecord = adv.store.cur
   try {
     await game.saveRecord(props.no, curRecord)
     record.value = curRecord
+
+    game.saveRecordMeta(props.no, {
+      thumbnail: dataUrl,
+    })
+
+    meta.value = await game.readRecordMeta(props.no)
   }
   catch (e) {
     console.error(e)

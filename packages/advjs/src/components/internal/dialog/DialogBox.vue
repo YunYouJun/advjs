@@ -1,5 +1,5 @@
 <template>
-  <div class="dialog-box select-none" grid="~ cols-12" gap="12" @click="next">
+  <div class="dialog-box select-none cursor-pointer" grid="~ cols-12" gap="12" @click="next">
     <div v-if="curCharacter" class=" col-span-3 text-right">
       <template v-if="gameConfig.showCharacterAvatar && characterAvatar">
         <div flex="~ col" class="justify-center items-end">

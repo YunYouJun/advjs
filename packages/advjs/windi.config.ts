@@ -25,10 +25,6 @@ export default defineConfig({
       },
     })],
 
-  shortcuts: {
-    'bg-main': 'bg-white text-[#181818] dark:(bg-[#121212] text-[#ddd])',
-  },
-
   theme: {
     extend: {
       typography: {

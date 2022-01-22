@@ -16,7 +16,7 @@
 
         <HorizontalDivider />
 
-        <MenuItem v-for="item, i in items" :key="i" :item="item" />
+        <MenuItem v-for="(item, i) in items" :key="i" :item="item" />
         <SpeechSynthesis />
 
         <HorizontalDivider />
@@ -32,15 +32,16 @@
     <!-- <div col="span-1" class="flex justify-center items-center" /> -->
 
     <div col="span-6" class="flex flex-col justify-center items-start" h="full" m="l-4">
-      <AdvButton v-for="item,i in menuItems" :key="i" class="flex" @click="item.do">
+      <AdvButton
+        v-for="(item, i) in menuItems"
+        :key="i"
+        class="flex"
+        @click="item.do"
+      >
         {{ item.title }}
       </AdvButton>
 
-      <AdvIconButton
-        :title="t('button.toggle_dark')"
-        m="x-2 y-5"
-        @click="toggleDark()"
-      >
+      <AdvIconButton :title="t('button.toggle_dark')" m="x-2 y-5" @click="toggleDark()">
         <i-ri-moon-line v-if="isDark" />
         <i-ri-sun-line v-else />
       </AdvIconButton>
@@ -102,39 +103,48 @@ const items = computed(() => {
 })
 
 const router = useRouter()
+const route = useRoute()
 
-const menuItems: MenuButtonItem[] = [
-  {
-    title: '保存游戏',
-    do: () => {
-      // todo
+const menuItems = computed<MenuButtonItem[]>(() => {
+  const items
+    = route.path === '/game'
+      ? [
+        {
+          title: '保存游戏',
+          do: () => {
+            // todo
+          },
+        },
+      ]
+      : []
+
+  return items.concat(
+    {
+      title: t('start-menu.load-game'),
+      do: () => {
+        app.toggleShowMenu()
+        app.toggleShowLoadMenu()
+      },
     },
-  },
-  {
-    title: t('start-menu.load-game'),
-    do: () => {
-      app.toggleShowMenu()
-      app.toggleShowLoadMenu()
+    {
+      title: '回主菜单',
+      do: () => {
+        app.toggleShowMenu()
+        router.push('/start')
+      },
     },
-  },
-  {
-    title: '回主菜单',
-    do: () => {
-      app.toggleShowMenu()
-      router.push('/start')
+    {
+      title: '重置设置',
+      do: () => {
+        settings.resetSettings()
+      },
     },
-  },
-  {
-    title: '重置设置',
-    do: () => {
-      settings.resetSettings()
+    {
+      title: t('start-menu.help'),
+      do: () => {
+        router.push('/help')
+      },
     },
-  },
-  {
-    title: t('start-menu.help'),
-    do: () => {
-      router.push('/help')
-    },
-  },
-]
+  )
+})
 </script>
