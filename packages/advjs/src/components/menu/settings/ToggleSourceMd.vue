@@ -26,8 +26,8 @@ const item = computed<AdvMenuItemProps>(() => ({
       label: item.label + item.value,
       value: item.value,
     })),
-    change: (value: string) => {
-      settings.storage.play.mdUrl = value
+    change: (option) => {
+      settings.storage.play.mdUrl = option.value
     },
   },
 }))

@@ -22,6 +22,14 @@
     <AdvModal :show="app.showMenu" @close="app.toggleShowMenu">
       <MenuPanel />
     </AdvModal>
+
+    <AdvModal :show="app.showSaveMenu" @close="app.toggleShowSaveMenu">
+      <SaveMenu />
+    </AdvModal>
+
+    <AdvModal :show="app.showLoadMenu" @close="app.toggleShowLoadMenu">
+      <LoadMenu />
+    </AdvModal>
   </div>
 </template>
 

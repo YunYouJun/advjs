@@ -22,7 +22,7 @@ onMounted(async() => {
 })
 
 const curNode = computed(() => {
-  return adv.store.cur.node.value
+  return adv.store.curNode.value
 })
 
 watch(() => curNode.value, () => {

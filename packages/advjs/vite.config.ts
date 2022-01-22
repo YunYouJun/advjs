@@ -25,6 +25,15 @@ const safelist = ['text-md']
 
 // const defaultThemeFolder = path.resolve(__dirname, './src/client/theme-default/')
 
+const babylonDependencies = [
+  '@babylonjs/core',
+  '@babylonjs/loaders',
+  // '@babylonjs/materials',
+  'babylon-vrm-loader',
+  '@babylonjs/materials/grid',
+  '@babylonjs/loaders/glTF',
+]
+
 // https://vitejs.dev/config/
 export default defineConfig({
   resolve: {
@@ -151,10 +160,10 @@ export default defineConfig({
   },
 
   // https://github.com/antfu/vite-ssg
-  ssgOptions: {
-    script: 'async',
-    formatting: 'minify',
-  },
+  // ssgOptions: {
+  //   script: 'async',
+  //   formatting: 'minify',
+  // },
 
   optimizeDeps: {
     include: [
@@ -163,6 +172,7 @@ export default defineConfig({
       '@vueuse/core',
       '@vueuse/head',
       '@vueuse/motion',
+      'dayjs',
       'unified',
       'remark-parse',
       'remark-frontmatter',
@@ -170,11 +180,8 @@ export default defineConfig({
       'remark-rehype',
       'rehype-stringify',
       'consola',
-      '@babylonjs/core',
-      '@babylonjs/loaders',
-      // '@babylonjs/materials',
-      'babylon-vrm-loader',
-    ],
+      'unstorage',
+    ].concat(babylonDependencies),
     exclude: [
       'vue-demi',
     ],

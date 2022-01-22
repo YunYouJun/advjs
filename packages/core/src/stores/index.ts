@@ -1,4 +1,20 @@
-import type { AdvRoot } from '@advjs/types'
+import type { AdvRoot, Character, Text } from '@advjs/types'
+
+export interface CurStateType {
+  /**
+     * 顺序
+     */
+  order: number
+  dialog: {
+    character: Character
+    children: Text[]
+  }
+}
+
+/**
+ * 游戏存档类型格式
+ */
+export type AdvGameRecord = CurStateType
 
 export const createAdvStore = () => {
   /**
@@ -6,39 +22,38 @@ export const createAdvStore = () => {
    */
   const ast = ref<AdvRoot>()
 
-  /**
-   * 顺序
-   */
-  const order = ref(0)
-  const node = computed(() => ast.value && ast.value.children[order.value])
+  const curState = reactive<CurStateType>({
 
-  /**
-   * 当前对话
-   */
-  const dialog = ref({
-    character: {
-      name: '',
-      status: '',
+    order: 0,
+    /**
+     * 当前对话
+     */
+    dialog: {
+      character: {
+        type: 'character',
+        name: '',
+        status: '',
+      },
+      children: [{
+        type: 'text',
+        value: '',
+      }],
     },
-    children: [{
-      type: 'text',
-      value: '',
-    }],
   })
+
+  const curNode = computed(() => ast.value && ast.value.children[curState.order])
 
   return {
     ast,
 
     /**
+     * 当前节点
+     */
+    curNode,
+
+    /**
      * 当前
      */
-    cur: {
-      node,
-      order,
-      /**
-       * 会话
-       */
-      dialog,
-    },
+    cur: curState,
   }
 }

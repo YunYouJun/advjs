@@ -31,4 +31,6 @@ ADV.JS 的定位是 Web 端，我们希望玩家直接通过浏览器即可快�
 
 > Comparing to similar solutions like localforage, unstorage core is almost 6x smaller (28.9 kB vs 4.7 kB), using modern ESM/Typescript/Async syntax and many more features to be used universally.
 
-最后发现响应式的 [useStorage | VueUse](https://vueuse.org/core/useStorage/) 用起来很方便，且暂时不需要额外的 API。
+响应式的 [useStorage | VueUse](https://vueuse.org/core/useStorage/) 用起来很方便，可以存储设置菜单之内的内容。
+
+unstorage 用于存储游戏存档，因为有日后同步云存档的可能。

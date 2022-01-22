@@ -30,7 +30,7 @@ export const useSettingsStore = defineStore('settings', () => {
     return defaultSettings
   }
 
-  const userClientSettings = useStorage(`${namespace}:settings`, getDefaultSettings())
+  const userClientSettings = useStorage(`${namespace}::settings`, getDefaultSettings())
 
   const resetSettings = () => {
     userClientSettings.value = getDefaultSettings()

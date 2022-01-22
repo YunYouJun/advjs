@@ -33,7 +33,7 @@ const advStore = adv.store
 
 const settings = useSettingsStore()
 
-const curDialog = computed(() => advStore.cur.dialog.value)
+const curDialog = computed(() => advStore.cur.dialog)
 
 // 局部 words order，与全局 order 相区别
 const order = ref(0)

@@ -19,13 +19,13 @@ const props = defineProps<{ character: CharacterInfo }>()
 const advStore = adv.store
 
 const active = computed(() => {
-  const curDialog = advStore.cur.dialog.value
+  const curDialog = advStore.cur.dialog
   return curDialog.character && (curDialog.character.name === props.character.name)
 })
 
 const statusSrc = computed(() => {
   let src = ''
-  const curDialog = advStore.cur.dialog.value
+  const curDialog = advStore.cur.dialog
   if (curDialog.character) {
     const status = curDialog.character.status
     src = props.character.tachies[status]
