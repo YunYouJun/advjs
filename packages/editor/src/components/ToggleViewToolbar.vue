@@ -9,9 +9,9 @@
       text="sm"
       :title="item.title"
       :class="[
-        editorStore.outputType === item.value ? 'bg-black text-white shadow' : ''
+        editorStore.options.outputType === item.value ? 'bg-black text-white shadow' : ''
       ]"
-      @click="editorStore.setOutputType(item.value)"
+      @click="editorStore.options.outputType = item.value"
     >
       <component :is="item.icon" />
     </button>

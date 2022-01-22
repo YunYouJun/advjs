@@ -28,7 +28,7 @@
     "pinia": "^2.0.9",
     "prismjs": "^1.26.0",
     "swiper": "^7.4.1",
-    "vue": "^3.2.27",
+    "vue": "^3.2.28",
     "vue-about-me": "^1.2.3",
     "vue-i18n": "^9.1.9",
     "vue-router": "^4.0.11"
@@ -44,8 +44,6 @@
     "@types/nprogress": "^0.2.0",
     "@types/prismjs": "^1.16.6",
     "@vitejs/plugin-vue": "^2.1.0",
-    "@vue/compiler-sfc": "^3.2.28",
-    "@vue/server-renderer": "^3.2.28",
     "@windicss/plugin-animations": "^1.0.9",
     "critters": "^0.0.16",
     "cross-env": "^7.0.3",

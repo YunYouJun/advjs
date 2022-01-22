@@ -23,15 +23,15 @@
       <div
         id="outputContent"
         class="border rounded"
-        :class="[editorStore.outputType === 'preview' ? 'overflow-auto' : '']"
+        :class="[editorStore.options.outputType === 'preview' ? 'overflow-auto' : '']"
         text="left"
         h="full"
       >
-        <div v-show="editorStore.outputType === 'preview'" class="prose" h="full">
+        <div v-show="editorStore.options.outputType === 'preview'" class="prose" h="full">
           <div class="p-4" v-html="editorStore.parsedHtml" />
         </div>
         <PreviewEditor
-          v-show="['markdown-it', 'adv', 'html'].includes(editorStore.outputType)"
+          v-show="['markdown-it', 'adv', 'html'].includes(editorStore.options.outputType)"
           :content="content"
           :type="type"
         />
@@ -47,10 +47,10 @@ const { t } = useI18n()
 const appStore = useAppStore()
 const editorStore = useEditorStore()
 
-const type = ref<'html' | 'json'>(editorStore.outputType === 'html' ? 'html' : 'json')
+const type = ref<'html' | 'json'>(editorStore.options.outputType === 'html' ? 'html' : 'json')
 const content = computed(() => {
   let txt = ''
-  switch (editorStore.outputType) {
+  switch (editorStore.options.outputType) {
     case 'markdown-it':
       txt = JSON.stringify(editorStore.parsedTokens, null, 2)
       type.value = 'json'

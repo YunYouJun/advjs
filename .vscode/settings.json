@@ -5,11 +5,12 @@
     "ANIMATIONTYPE",
     "babylonjs",
     "Doki",
+    "Galgame",
     "mdast",
     "Prefiltered",
-    "VRoid",
     "Skybox",
-    "tachie"
+    "tachie",
+    "VRoid"
   ],
   "i18n-ally.keystyle": "nested",
   "i18n-ally.localesPaths": "locales",

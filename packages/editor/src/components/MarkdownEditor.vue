@@ -11,12 +11,12 @@
         </span>
       </span>
       <template #popper>
-        <span class="inline-flex" text="black xs" :title="editorStore.mdUrl">{{ editorStore.mdUrl }}</span>
+        <span class="inline-flex" text="black xs" :title="editorStore.options.mdUrl">{{ editorStore.options.mdUrl }}</span>
       </template>
     </VMenu>
 
     <select
-      v-model="editorStore.mdUrl"
+      v-model="editorStore.options.mdUrl"
       class="text-sm shadow bg-transparent outline-none"
       p="1"
       @change="fetchMarkdown"
@@ -64,11 +64,11 @@ const mdItems = [
     url: 'https://raw.githubusercontent.com/YunYouJun/advjs/main/packages/advjs/public/md/test.adv.md',
   }, {
     name: '小城之春.fountain（节选）',
-    url: 'https://raw.githubusercontent.com/YunYouJun/advjs/main/packages/shared/examples/%E5%B0%8F%E5%9F%8E%E4%B9%8B%E6%98%A5.fountain',
+    url: 'https://raw.githubusercontent.com/YunYouJun/advjs/main/packages/examples/%E5%B0%8F%E5%9F%8E%E4%B9%8B%E6%98%A5.fountain',
   },
   {
     name: '雷雨（节选）',
-    url: 'https://cdn.jsdelivr.net/gh/YunYouJun/advjs/packages/shared/examples/%E9%9B%B7%E9%9B%A8.adv.md',
+    url: 'https://cdn.jsdelivr.net/gh/YunYouJun/advjs/packages/examples/%E9%9B%B7%E9%9B%A8.adv.md',
   },
 ]
 
@@ -81,7 +81,7 @@ let editor: m.editor.IStandaloneCodeEditor
 async function fetchMarkdown() {
   loading.value = true
 
-  const text = await fetch(editorStore.mdUrl)
+  const text = await fetch(editorStore.options.mdUrl)
     .then((res) => {
       return res.text()
     })
@@ -111,10 +111,10 @@ async function init() {
       })
     }
 
-    if (!editorStore.inputText)
+    if (!editorStore.options.inputText)
       fetchMarkdown()
     else
-      editor.setValue(editorStore.inputText)
+      editor.setValue(editorStore.options.inputText)
   })
 }
 

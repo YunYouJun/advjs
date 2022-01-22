@@ -10,14 +10,21 @@ const namespace = 'advjs-editor'
 
 export const useEditorStore = defineStore('editor', () => {
   const delayTime = ref(0)
-
-  const mdUrl = useStorage(`${namespace}-mdUrl`, 'https://raw.githubusercontent.com/YunYouJun/advjs/main/packages/advjs/public/md/test.adv.md')
-
-  // 输出类型
-  const outputType = useStorage<OutputType>(`${namespace}-outputType`, 'markdown-it')
-
-  // 输入文本
-  const inputText = useStorage(`${namespace}-input-text`, '')
+  const options = useStorage<{
+    mdUrl: string
+    outputType: OutputType
+    inputText: string
+  }>(`${namespace}:options`, {
+    mdUrl: 'https://raw.githubusercontent.com/YunYouJun/advjs/main/packages/advjs/public/md/test.adv.md',
+    /**
+     * 输出类型
+     */
+    outputType: 'markdown-it',
+    /**
+     * 输入文本
+     */
+    inputText: '',
+  })
 
   // 被解析后的 HTML
   const parsedHtml = ref('')
@@ -51,24 +58,14 @@ export const useEditorStore = defineStore('editor', () => {
    * @param value
    */
   function setInputText(value: string) {
-    inputText.value = value
+    options.value.inputText = value
     debouncedHandleFn(value)
   }
 
-  /**
-   * 设置输出类型
-   */
-  async function setOutputType(type: OutputType) {
-    outputType.value = type
-  }
-
   return {
-    mdUrl,
+    options,
 
     delayTime,
-
-    inputText,
-    outputType,
 
     parsedHtml,
     parsedTokens,
@@ -76,7 +73,6 @@ export const useEditorStore = defineStore('editor', () => {
 
     handleInputText,
     setInputText,
-    setOutputType,
   }
 })
 
