@@ -45,7 +45,7 @@
 
   <StartMenu :menu-items="menuItems" />
 
-  <AdvModal :show="app.showLoadMenu" @close="app.toggleShowLoadMenu">
+  <AdvModal header="加载存档" :show="app.showLoadMenu" @close="app.toggleShowLoadMenu">
     <LoadMenu />
   </AdvModal>
 

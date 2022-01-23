@@ -12,7 +12,7 @@ importers:
       eslint: 8.7.0
       esno: ^0.14.0
       husky: ^7.0.4
-      lint-staged: ^12.2.2
+      lint-staged: ^12.3.0
       pnpm: ^6.27.1
       ts-node: ^10.4.0
       typescript: ^4.5.5
@@ -28,7 +28,7 @@ importers:
       eslint: 8.7.0
       esno: 0.14.0_typescript@4.5.5
       husky: 7.0.4
-      lint-staged: 12.2.2
+      lint-staged: 12.3.0
       pnpm: 6.27.1
       ts-node: 10.4.0_9d6cd740eceb93d711351e2e9548d1bd
       typescript: 4.5.5
@@ -8798,8 +8798,8 @@ packages:
       uc.micro: 1.0.6
     dev: true
 
-  /lint-staged/12.2.2:
-    resolution: {integrity: sha512-bcHEoM1M/f+K1BYdHcEuIn8K+zMOSJR3mkny6PAuQiTgcSUcRbUWaUD6porAYypxF4k1vYZZ2HutZt1p94Z1jQ==}
+  /lint-staged/12.3.0:
+    resolution: {integrity: sha512-bk+jvy5H+12Srg8MGlSmBt78B9GEbMtd4BETHdHS1mMmbgt3Gw18d8KwrJXCcJmICMGQTCiKBUMZSZ3NlfQ8PQ==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     hasBin: true
     dependencies:

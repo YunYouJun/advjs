@@ -1,7 +1,6 @@
 <template>
   <!-- <Wlwz /> -->
   <LeiYu />
-  <AdvGameDebug />
 </template>
 
 <script setup lang="ts">

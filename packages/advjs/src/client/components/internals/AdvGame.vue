@@ -26,6 +26,7 @@
       <AdvHistory />
     </div>
   </AdvContainer>
+  <AdvGameDebug v-if="isDev" />
 </template>
 
 <script lang="ts" setup>

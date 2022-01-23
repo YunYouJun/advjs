@@ -26,7 +26,7 @@
 </template>
 
 <script lang="ts" setup>
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   show?: boolean
   header?: string
 }>(), {
@@ -35,6 +35,13 @@ withDefaults(defineProps<{
 })
 
 const emit = defineEmits(['close'])
+
+onMounted(() => {
+  onKeyStroke('Escape', (e) => {
+    if (props.show)
+      emit('close')
+  })
+})
 </script>
 
 <style>
