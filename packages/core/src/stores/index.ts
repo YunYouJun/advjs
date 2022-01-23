@@ -18,11 +18,18 @@ export interface CurStateType {
 export type AdvGameRecord = CurStateType
 
 export interface AdvGameRecordMeta extends StorageMeta {
+  /**
+   * 创建时间
+   */
   createdAt: number
   /**
    * 缩略图
    */
   thumbnail?: string
+  /**
+   * 备注
+   */
+  memo?: string
 }
 
 export const createAdvStore = () => {

@@ -1,14 +1,5 @@
 <template>
   <div class="menu-panel flex flex-col justify-between" gap="x-2 y-0" h="full" text="2xl">
-    <h1
-      class="adv-font-serif font-black mt-2"
-      text="4xl"
-    >
-      存储存档
-    </h1>
-
-    <HorizontalDivider />
-
     <div col="span-12">
       <Swiper
         effect="creative"

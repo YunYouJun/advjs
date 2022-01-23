@@ -1,14 +1,5 @@
 <template>
   <div class="menu-panel flex flex-col justify-between" gap="x-2 y-0" h="full" text="2xl">
-    <h1
-      class="adv-font-serif font-black mt-2"
-      text="4xl"
-    >
-      加载存档
-    </h1>
-
-    <HorizontalDivider />
-
     <div col="span-12">
       <Swiper
         effect="creative"
@@ -19,10 +10,8 @@
         @slide-change="onSlideChange"
       >
         <SwiperSlide v-for="i in 10" :key="i">
-          <div grid="~ cols-2 gap-4" p="2">
-            <div v-for="j in 6" :key="(i-1)*6+j">
-              <SavedCard type="load" class="animate-animated animate-fadeInUp" :style="{'animation-delay': j*50+'ms'}" :no="(i-1)*perPageNum+j" />
-            </div>
+          <div grid="~ cols-2 gap-4" p="2" class="items-center justify-center">
+            <SavedCard v-for="j in 6" :key="(i-1)*6+j" type="load" class="animate-animated animate-fadeInUp" :style="{'animation-delay': j*50+'ms'}" :no="(i-1)*perPageNum+j" />
           </div>
         </SwiperSlide>
       </swiper>

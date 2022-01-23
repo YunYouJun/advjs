@@ -73,39 +73,41 @@ onMounted(() => {
   rippleAnimation.value = false
 })
 
-const menuItems: StartMenuItem[] = [
-  {
-    title: t('menu.new_game'),
-    do: () => {
-      router.push('/game')
+const menuItems = computed<StartMenuItem[]>(() =>
+  [
+    {
+      title: t('menu.new_game'),
+      do: () => {
+        router.push('/game')
+      },
     },
-  },
-  {
-    title: t('menu.load_game'),
-    do: () => {
-      app.toggleShowLoadMenu()
+    {
+      title: t('menu.load_game'),
+      do: () => {
+        app.toggleShowLoadMenu()
+      },
     },
-  },
-  {
-    title: t('menu.settings'),
-    do: () => {
-      app.toggleShowMenu()
+    {
+      title: t('menu.settings'),
+      do: () => {
+        app.toggleShowMenu()
+      },
     },
-  },
-  {
-    title: t('menu.help'),
-    do: () => {
-      router.push('/help')
+    {
+      title: t('menu.help'),
+      do: () => {
+        router.push('/help')
+      },
     },
-  },
-  {
-    title: t('menu.quit'),
-    do: () => {
-      window.close()
-      window.alert('为什么不直接关浏览器窗口呢？╮(￣▽￣"")╭')
+    {
+      title: t('menu.quit'),
+      do: () => {
+        window.close()
+        window.alert('为什么不直接关浏览器窗口呢？╮(￣▽￣"")╭')
+      },
     },
-  },
-]
+  ],
+)
 </script>
 
 <style lang="scss">

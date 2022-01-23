@@ -5,7 +5,19 @@
         <AdvIconButton class="modal-close-button" @click="emit('close')">
           <i-ri-close-line />
         </AdvIconButton>
-        <div class="modal-body h-full">
+        <slot name="header">
+          <template v-if="header">
+            <h1
+              class="adv-font-serif font-black mt-2"
+              text="4xl"
+            >
+              {{ header }}
+            </h1>
+            <HorizontalDivider />
+          </template>
+        </slot>
+
+        <div class="modal-body" :h="header ? '15/17' : 'full'">
           <slot />
         </div>
       </div>
@@ -16,8 +28,10 @@
 <script lang="ts" setup>
 withDefaults(defineProps<{
   show?: boolean
+  header?: string
 }>(), {
   show: false,
+  header: '',
 })
 
 const emit = defineEmits(['close'])

@@ -7,6 +7,8 @@ button:
   toggle_dark: Toggle dark mode
   toggle_langs: Change languages
   start: Link Start
+  had_closed_adblock: I'm off now! Refresh this page!
+
 intro:
   desc: Future-oriented and front-end ADV text adventure game engine
   progress: Under development, stay tuned

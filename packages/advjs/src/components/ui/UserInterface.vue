@@ -23,11 +23,11 @@
       <MenuPanel />
     </AdvModal>
 
-    <AdvModal :show="app.showSaveMenu" @close="app.toggleShowSaveMenu">
+    <AdvModal header="存储存档" :show="app.showSaveMenu" @close="app.toggleShowSaveMenu">
       <SaveMenu />
     </AdvModal>
 
-    <AdvModal :show="app.showLoadMenu" @close="app.toggleShowLoadMenu">
+    <AdvModal header="加载存档" :show="app.showLoadMenu" @close="app.toggleShowLoadMenu">
       <LoadMenu />
     </AdvModal>
   </div>

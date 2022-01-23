@@ -7,6 +7,7 @@ button:
   toggle_dark: 切换深色模式
   toggle_langs: 切换语言
   start: 开始游戏
+  had_closed_adblock: 我现在关闭啦！刷新本页！
 
 intro:
   desc: 面向未来与前端的 ADV 文字冒险游戏引擎
