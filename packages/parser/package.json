@@ -27,7 +27,7 @@
   "license": "MPL-2.0",
   "homepage": "https://github.com/YunYouJun/advjs/tree/main/packages/parser#readme",
   "devDependencies": {
-    "@babel/core": "^7.16.10",
+    "@babel/core": "^7.16.12",
     "@babel/preset-env": "^7.16.11",
     "@babel/preset-typescript": "^7.16.7",
     "@types/jest": "^27.4.0",

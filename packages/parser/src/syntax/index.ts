@@ -1,3 +1,4 @@
+import type { Text } from '@advjs/types'
 import type * as Mdast from 'mdast'
 import { toDialog } from '../utils'
 import { parseNarration, parseScene } from './parse'
@@ -17,8 +18,9 @@ export function parseText(node: Mdast.Text) {
   const dialog = toDialog(textValue)
   if (dialog) return dialog
 
-  return {
+  const simpleNode: Text = {
     type: 'text',
     value: node.value,
   }
+  return simpleNode
 }

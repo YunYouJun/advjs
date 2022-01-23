@@ -68,7 +68,7 @@ export class Serialize {
    * 处理段落
    * @param text
    */
-  paragraph(node: Mdast.Paragraph): Adv.Paragraph | Adv.Text | Adv.Dialog {
+  paragraph(node: Mdast.Paragraph) {
     if (node.children.length === 1 && node.children[0].type === 'text')
       return this.text(node.children[0])
 
@@ -93,7 +93,7 @@ export class Serialize {
    * @param text
    * @returns
    */
-  text(node: Mdast.Text): Adv.Text | Adv.Dialog {
+  text(node: Mdast.Text) {
     return parseText(node)
   }
 }

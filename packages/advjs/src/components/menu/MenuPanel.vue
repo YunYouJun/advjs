@@ -4,7 +4,7 @@
       <div grid="~ cols-12 gap-5" p="4">
         <h1
           col="span-12"
-          class="adv-font-serif font-black mt-6"
+          class="adv-font-serif font-black"
           text="4xl"
         >
           {{ t('settings.title') }}
@@ -41,13 +41,19 @@
         {{ item.title }}
       </AdvButton>
 
-      <AdvIconButton :title="t('button.toggle_dark')" m="x-2 y-5" @click="toggleDark()">
-        <i-ri-moon-line v-if="isDark" />
-        <i-ri-sun-line v-else />
-      </AdvIconButton>
+      <div m="y-5">
+        <AdvIconButton :title="t('button.toggle_dark')" m="x-2" @click="toggleDark()">
+          <i-ri-moon-line v-if="isDark" />
+          <i-ri-sun-line v-else />
+        </AdvIconButton>
+
+        <AdvIconButton m="x-2" :title="t('button.toggle_langs')" @click="toggleLocales">
+          <i-ri-translate class="transition transform" :class="locale === 'en' ? 'rotate-y-180' : ''" />
+        </AdvIconButton>
+      </div>
 
       <AdvButton @click="app.toggleShowMenu()">
-        取消
+        {{ t('button.close') }}
       </AdvButton>
     </div>
   </div>
@@ -64,19 +70,25 @@ import { useSettingsStore } from '~/stores/settings'
 import { useAppStore } from '~/stores/app'
 import type { MenuButtonItem } from '~/types/menu'
 
-const { t } = useI18n()
+const { t, locale, availableLocales } = useI18n()
 
 const { orientation, toggle } = useScreenLock()
 const { isFullscreen, enter, exit } = useFullscreen()
 
 const app = useAppStore()
 
+const toggleLocales = () => {
+  // change to some real logic
+  const locales = availableLocales
+  locale.value = locales[(locales.indexOf(locale.value) + 1) % locales.length]
+}
+
 const settings = useSettingsStore()
 const items = computed(() => {
   return [
     {
       type: 'Checkbox',
-      label: '是否横屏',
+      label: t('settings.landscape'),
       props: {
         checked: orientation.value === 'landscape',
         onClick: async() => {
@@ -110,7 +122,7 @@ const menuItems = computed<MenuButtonItem[]>(() => {
     = route.path === '/game'
       ? [
         {
-          title: t('settings.save-game'),
+          title: t('menu.save_game'),
           do: () => {
             app.toggleShowMenu()
             app.toggleShowSaveMenu()
@@ -121,27 +133,27 @@ const menuItems = computed<MenuButtonItem[]>(() => {
 
   return items.concat(
     {
-      title: t('start-menu.load-game'),
+      title: t('menu.load_game'),
       do: () => {
         app.toggleShowMenu()
         app.toggleShowLoadMenu()
       },
     },
     {
-      title: '回主菜单',
+      title: t('menu.back_home'),
       do: () => {
         app.toggleShowMenu()
         router.push('/start')
       },
     },
     {
-      title: '重置设置',
+      title: t('menu.reset_settings'),
       do: () => {
         settings.resetSettings()
       },
     },
     {
-      title: t('start-menu.help'),
+      title: t('menu.help'),
       do: () => {
         router.push('/help')
       },

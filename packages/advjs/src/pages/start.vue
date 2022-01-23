@@ -75,31 +75,31 @@ onMounted(() => {
 
 const menuItems: StartMenuItem[] = [
   {
-    title: t('start-menu.new-game'),
+    title: t('menu.new_game'),
     do: () => {
       router.push('/game')
     },
   },
   {
-    title: t('start-menu.load-game'),
+    title: t('menu.load_game'),
     do: () => {
       app.toggleShowLoadMenu()
     },
   },
   {
-    title: t('start-menu.settings'),
+    title: t('menu.settings'),
     do: () => {
       app.toggleShowMenu()
     },
   },
   {
-    title: t('start-menu.help'),
+    title: t('menu.help'),
     do: () => {
       router.push('/help')
     },
   },
   {
-    title: t('start-menu.quit'),
+    title: t('menu.quit'),
     do: () => {
       window.close()
       window.alert('为什么不直接关浏览器窗口呢？╮(￣▽￣"")╭')

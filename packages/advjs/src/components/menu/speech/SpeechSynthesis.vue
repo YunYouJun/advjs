@@ -1,7 +1,7 @@
 <template>
   <MenuItem :item="speechItem" />
 
-  <template v-if="options.enable">
+  <template v-if="speechOptions.enable">
     <MenuItem :item="speechLanguageItem" />
   </template>
 </template>
@@ -12,16 +12,17 @@ import type { AdvMenuItemProps } from '@advjs/theme-default'
 import { useSettingsStore } from '~/stores/settings'
 
 const settings = useSettingsStore()
-const options = computed(() => {
+const speechOptions = computed(() => {
   return settings.storage.speech
 })
 
+const { t } = useI18n()
 const speechItem = computed(
   () => ({
-    label: '语音合成',
+    label: t('settings.speech_synthesis'),
     type: 'Checkbox',
     props: {
-      checked: options.value.enable,
+      checked: speechOptions.value.enable,
       onClick: () => {
         settings.speech.toggleStatus()
       },
@@ -45,17 +46,17 @@ const voiceOptions = ref([
 ])
 
 const speechLanguageItem = computed<AdvMenuItemProps>(() => ({
-  label: '语言种类',
+  label: t('settings.speech_language'),
   type: 'Select',
   props: {
-    selected: options.value.language,
+    selected: speechOptions.value.language,
     options: voiceOptions.value.map(item => ({
       label: item.name,
       value: item.lang,
     })),
-    change: (value: string) => {
-      options.value.language = value
-      speak('大家好，我是渣渣辉。', options.value.language)
+    change: (options) => {
+      speechOptions.value.language = options.value
+      speak('大家好，我是渣渣辉。', options.value)
     },
   },
 }))

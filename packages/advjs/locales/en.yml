@@ -1,6 +1,7 @@
 button:
   about: About
   back: Back
+  close: Close
   go: GO
   home: Home
   toggle_dark: Toggle dark mode
@@ -12,9 +13,12 @@ intro:
   hi: Wish to meet you in future adventures!
 not-found: Not found
 
-start-menu:
-  new-game: New Game
-  load-game: Load Game
+menu:
+  new_game: New Game
+  load_game: Load Game
+  save_game: Save Game
+  back_home: Back Home
+  reset_settings: Reset Settings
   settings: Settings
   help: Help
   quit: Quit
@@ -22,4 +26,25 @@ start-menu:
 settings:
   title: Settings
   fullscreen: Full Screen
-  save-game: Save Game
+  play_speed: Play Speed
+  font_size: Font Size
+  display_mode: Display Mode
+  example_text: Here's a long preview of the text ~ you can adjust it with the options above.
+  landscape: Landscape
+  speech_synthesis: Speech Synthesis
+  speech_language: Speech Language
+  script_path: Script Path
+
+play_speed:
+  slow: Slow
+  normal: Normal
+  fast: Fast
+
+font_size:
+  small: Small
+  normal: Normal
+  big: Big
+
+display_mode:
+  type: Type Mode
+  soft: Soft Mode

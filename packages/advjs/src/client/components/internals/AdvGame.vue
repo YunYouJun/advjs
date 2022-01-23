@@ -45,7 +45,9 @@ const props = defineProps<{
   ast: AdvRoot
 }>()
 
-adv.loadAst(props.ast)
+onBeforeMount(() => {
+  adv.loadAst(props.ast)
+})
 
 const curNode = computed(() => {
   return adv.store.curNode.value

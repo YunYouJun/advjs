@@ -70,12 +70,18 @@ const saveToCard = async() => {
   }
 }
 
+const route = useRoute()
+const router = useRouter()
+
 const loadFromCard = () => {
   if (!record.value) return
   adv.store.cur.value = record.value
 
   // 关闭加载菜单
   app.toggleShowLoadMenu()
+
+  if (route.path !== '/game')
+    router.push('/game')
 }
 
 const onCardClick = () => {

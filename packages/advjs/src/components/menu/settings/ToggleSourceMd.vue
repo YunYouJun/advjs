@@ -8,8 +8,9 @@ import { useSettingsStore } from '~/stores/settings'
 
 const settings = useSettingsStore()
 
+const { t } = useI18n()
 const item = computed<AdvMenuItemProps>(() => ({
-  label: '剧本路径',
+  label: t('settings.script_path'),
   type: 'Select',
   props: {
     selected: settings.storage.play.mdUrl,

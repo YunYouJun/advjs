@@ -12,7 +12,7 @@
       </template>
     </div>
     <div class="dialog-content col-span-9 text-left pr-24" :text="settings.storage.text.curFontSize">
-      <PrintWords :speed="settings.storage.text.curSpeed" :words="curDialog.children[iOrder].value" />
+      <PrintWords :speed="settings.storage.text.curSpeed" :words="curWords" />
       <span class="typed-cursor">
         ▼
       </span>
@@ -33,6 +33,7 @@ const advStore = adv.store
 
 const settings = useSettingsStore()
 
+const curNode = computed(() => advStore.curNode.value)
 const curDialog = computed(() => advStore.cur.value.dialog)
 
 // 局部 words order，与全局 order 相区别
@@ -70,6 +71,14 @@ const characterAvatar = computed(() => {
   const avatar = gameConfig.characters.find(item => item.name === curName || item.alias === curName || (Array.isArray(item.alias) && item.alias.includes(curName)))?.avatar
   const prefix = gameConfig.cdn.enable ? gameConfig.cdn.prefix || '' : ''
   return avatar ? prefix + avatar : ''
+})
+
+// 当前对话框中的台词
+const curWords = computed(() => {
+  if (curNode.value?.type === 'text')
+    return curNode.value.value
+
+  return curDialog.value.children[iOrder.value].value
 })
 </script>
 
