@@ -4,9 +4,9 @@
 
 ADV 剧本文本解析器
 
-准备迁移至 [markdown-it](https://github.com/markdown-it/markdown-it)
+语法树基于 [unist](https://github.com/syntax-tree/unist).
 
-More info see [docs/dev/parser.md].
+More info see [docs/dev/parser.md](../docs/dev/parser.md).
 
 ## 相关
 

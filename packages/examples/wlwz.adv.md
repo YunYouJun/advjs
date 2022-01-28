@@ -63,6 +63,11 @@ characters:
 }
 ```
 
+```yaml
+type: background
+url: https://s2.loli.net/2022/01/28/KV8lYS2PhkcQjCE.jpg
+```
+
 （老邢从大门出来，掌柜跟出）
 
 老邢：我得走

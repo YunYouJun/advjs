@@ -4,6 +4,8 @@ import type * as BABYLON from '@babylonjs/core'
 import type { CameraInfo } from '@advjs/shared/debug/camera'
 import { captureCameraInfo } from '@advjs/shared/debug/camera'
 import { useBabylonStore } from '~/stores/babylon'
+import { useAppStore } from '~/stores/app'
+const app = useAppStore()
 
 const el = ref<HTMLElement | null>(null)
 const open = ref(false)
@@ -44,6 +46,9 @@ const vrmCamera = computed(() => bStore.instance?.vrmScene?.activeCamera as BABY
     </AdvIconButton>
     <AdvIconButton @click="setCameraInfo(vrmCamera)">
       <i-ri-shield-user-line />
+    </AdvIconButton>
+    <AdvIconButton title="切换背景图" @click="app.toggleBg()">
+      <i-ri-image-line />
     </AdvIconButton>
     <pre class="block text-left">{{ JSON.stringify(cameraInfo, null, 2) }}</pre>
   </AdvDebug>

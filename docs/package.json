@@ -18,14 +18,14 @@
     "@iconify-json/file-icons": "^1.0.1",
     "@iconify-json/logos": "^1.0.4",
     "@iconify-json/vscode-icons": "^1.0.3",
-    "@vueuse/core": "^7.5.4",
+    "@vueuse/core": "^7.5.5",
     "unplugin-icons": "^0.13.0",
-    "unplugin-vue-components": "^0.17.14",
+    "unplugin-vue-components": "^0.17.15",
     "vite-plugin-pwa": "^0.11.13",
     "vite-plugin-windicss": "^1.6.3",
     "vitepress": "^0.21.6"
   },
   "dependencies": {
-    "vitepress-theme-you": "^0.0.31"
+    "vitepress-theme-you": "^0.0.32"
   }
 }

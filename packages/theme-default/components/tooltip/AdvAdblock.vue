@@ -6,7 +6,7 @@
           如果你可以看到这行字，就说明游戏<span text="red-500">没有加载成功</span>！
           <br>
           <br>
-          这主要是因为 ADV.JS 使用了 ADV 作为大部分 CSS 的命名空间，<br>而 ADV 的缩写和广告（advertisement）类似，导致被 <span text="red-500">Adblock</span> 等广告屏蔽插件<span text="red-500">误当作</span>广告给隐藏了。
+          这主要是因为 ADV.JS 使用了 ADV 作为大部分 CSS 的命名空间，<br>而 ADV 和广告（advertisement）的缩写类似，导致被 <span text="red-500">Adblock</span> 等广告屏蔽插件<span text="red-500">误当作</span>广告给隐藏了。
           <br>
           <br>
           即刻<span text="red-500">关闭</span>本页面的广告拦截插件以正常显示本页面吧！
@@ -14,7 +14,7 @@
         <hr m="4">
         <h2 text="xl left" font="black">
           ADV.JS uses ADV as the namespace for most CSS.
-          The abbreviation of ADV is similar to advertisement, resulting in hidden as ads by <span text="red-500">Adblock</span> or other ad blocking plugins.
+          ADV is similar to the abbreviation of advertisement, resulting in hidden as ads by <span text="red-500">Adblock</span> or other ad blocking plugins.
           <br>
           <br>
           <span text="red-500">Turn off</span> the ad blocking plugin on this page to display this page normally!

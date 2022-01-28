@@ -1,6 +1,8 @@
 import type * as Adv from '@advjs/types'
 import type * as Mdast from 'mdast'
+
 import { parseText } from './syntax'
+import { codeMap } from './syntax/code'
 
 /**
  * 序列化类
@@ -59,9 +61,27 @@ export class Serialize {
    * @param node
    */
   code(node: Mdast.Code) {
-    const langs = ['adv', 'advscript', 'json']
-    if (node.lang && langs.includes(node.lang))
+    const info: Adv.Code = {
+      type: 'code',
+      value: null,
+    }
+
+    if (!node.lang) return
+    const lang = node.lang.toLowerCase()
+
+    // 自定义的 AdvNode
+    if (['advnode', 'json'].includes(lang))
       return JSON.parse(node.value)
+
+    // 其他类型
+    for (const item of codeMap) {
+      if (item.suffix.includes(lang)) {
+        info.value = item.parse(node.value)
+        return info
+      }
+    }
+
+    return info
   }
 
   /**

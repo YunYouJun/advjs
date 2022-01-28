@@ -22,3 +22,4 @@ VRM 模型在线编辑器，您可以使用其来快速创建人物动作与表�
 - 编辑模型动作、表情
 - [ ] 下载 [VRMPose](https://pixiv.github.io/three-vrm/docs/interfaces/vrmpose.html) 数据
 - [ ] 上传 VRMPose 数据
+- 动作捕捉（将会与 [vtuber](https://github.com/YunYouJun/vtuber) 整合）

@@ -12,6 +12,8 @@ export const useAppStore = defineStore('app', () => {
   const [showHistory, toggleHistory] = useToggle(false)
   const [showBlack, toggleBlack] = useToggle(false)
   const [showTachie, toggleTachie] = useToggle(true)
+
+  const [showBg, toggleBg] = useToggle(true)
   // 3D 画布能力
   const [showCanvas, toggleCanvas] = useToggle(false)
 
@@ -24,6 +26,7 @@ export const useAppStore = defineStore('app', () => {
     showBlack,
     showTachie,
     showCanvas,
+    showBg,
 
     toggleUi,
     toggleShowMenu,
@@ -33,6 +36,7 @@ export const useAppStore = defineStore('app', () => {
     toggleBlack,
     toggleTachie,
     toggleCanvas,
+    toggleBg,
   }
 })
 

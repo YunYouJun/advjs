@@ -173,6 +173,7 @@ export default defineConfig({
       '@vueuse/head',
       '@vueuse/motion',
       'dayjs',
+      'js-yaml',
       'unified',
       'remark-parse',
       'remark-frontmatter',

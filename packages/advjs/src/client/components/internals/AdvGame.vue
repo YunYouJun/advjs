@@ -6,7 +6,6 @@
 
       <AdvBlack v-if="curNode && curNode.type === 'narration'" class="z-9" :content="curNode" />
 
-      <AdvCanvas v-if="app.showCanvas" />
       <slot />
     </div>
 

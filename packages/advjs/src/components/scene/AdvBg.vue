@@ -1,0 +1,28 @@
+<template>
+  <transition enter-active-class="animate-fadeIn" leave-active-class="animate-fadeOut">
+    <div v-if="app.showBg" h="full" w="full" class="absolute animate-animated" bg="cover center no-repeat" :style="advGameStyle" />
+  </transition>
+</template>
+
+<script lang="ts" setup>
+import { adv } from '~/setup/adv'
+import { useAppStore } from '~/stores/app'
+const app = useAppStore()
+
+const bgImage = ref('')
+const advGameStyle = computed(() => {
+  return {
+    backgroundImage: `url("${bgImage.value}")`,
+  }
+})
+
+watch(() => adv.store.curNode.value, (val) => {
+  if (val?.type === 'code') {
+    app.toggleBg()
+    setTimeout(() => {
+      bgImage.value = val.value.url
+      app.toggleBg()
+    }, 1000)
+  }
+})
+</script>
