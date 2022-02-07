@@ -56,7 +56,7 @@ export default defineConfig({
 
     // https://github.com/JohnCampionJr/vite-plugin-vue-layouts
     Layouts({
-      layoutsDir: '../theme-default/layouts',
+      layoutsDirs: '../theme-default/layouts',
     }),
 
     // https://github.com/antfu/unplugin-auto-import
@@ -68,7 +68,7 @@ export default defineConfig({
         '@vueuse/head',
         '@vueuse/core',
       ],
-      dts: true,
+      dts: 'src/auto-imports.d.ts',
     }),
 
     // https://github.com/antfu/unplugin-vue-components
@@ -80,8 +80,6 @@ export default defineConfig({
       ],
       // allow auto load markdown components under `./src/components/`
       extensions: ['vue', 'md'],
-
-      dts: true,
 
       // allow auto import and register components used in markdown
       include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
@@ -95,6 +93,8 @@ export default defineConfig({
           // enabledCollections: ['carbon']
         }),
       ],
+
+      dts: 'src/components.d.ts',
     }),
 
     // https://github.com/antfu/unplugin-icons

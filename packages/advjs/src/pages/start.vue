@@ -22,10 +22,12 @@
     class="h-200 absolute top-5 -left-5 h-full animate-animated  animate-slideInRight animate-delay-200 animate-fadeIn z-2 filter drop-shadow-lg"
     :src="yunAlphaUrl"
   >
-  <img
-    class="h-170 absolute left-70 top-20 h-full animate-animated animate-slideInRight animate-delay-400 animate-fadeIn z-1 filter drop-shadow"
-    :src="irisUrl"
-  >
+  <div class="animate-animated animate-slideInRight animate-delay-300 animate-fadeIn">
+    <img
+      class="h-200 absolute left-89 top-5 h-full  z-1 filter drop-shadow-lg hue-rotate-330 transform -rotate-y-180"
+      :src="yunAlphaUrl"
+    >
+  </div>
 
   <small class="mt-10 absolute bottom-3 right-13" text="xs">小云的恋💗爱物语，绝赞制作中！</small>
 
@@ -62,7 +64,7 @@ meta:
 <script lang="ts" setup>
 import type { StartMenuItem } from '@advjs/theme-default'
 import { useAppStore } from '~/stores/app'
-import { irisUrl, yunAlphaUrl, yunGoodAlphaUrl } from '~/utils'
+import { yunAlphaUrl, yunGoodAlphaUrl } from '~/utils'
 const app = useAppStore()
 
 const { t } = useI18n()
