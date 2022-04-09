@@ -1,5 +1,5 @@
 import * as BABYLON from '@babylonjs/core'
-import '@babylonjs/loaders/glTF'
+import '@babylonjs/loaders'
 
 // CreateScene function that creates and return the scene
 export const createScene = (engine: BABYLON.Engine) => {
