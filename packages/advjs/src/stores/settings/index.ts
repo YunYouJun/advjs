@@ -26,6 +26,9 @@ export const useSettingsStore = defineStore('settings', () => {
         enable: true,
         language: 'zh-HK',
       },
+      animation: {
+        duration: '1s',
+      },
     }
     return defaultSettings
   }

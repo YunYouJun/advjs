@@ -36,6 +36,7 @@ settings:
   speech_synthesis: Speech Synthesis
   speech_language: Speech Language
   script_path: Script Path
+  animation_duration: Animation Duration
 
 play_speed:
   slow: Slow

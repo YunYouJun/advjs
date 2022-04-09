@@ -27,7 +27,7 @@
             </summary>
 
             <div v-for="axis in (['x', 'y', 'z'] as const)" :key="axis" class="flex justify-center items-center">
-              <AdvSlider v-model="bonesRotation[bone][axis]" :label="axis+':'" unit="°" @input="(degree)=>{updateBoneRotation(bone, axis, degree)}" />
+              <AdvSlider v-model="bonesRotation[bone][axis].value" :label="axis+':'" unit="°" @input="(degree)=>{updateBoneRotation(bone, axis, degree)}" />
             </div>
           </details>
         </div>
@@ -63,6 +63,7 @@ import * as BABYLON from '@babylonjs/core'
 import type { HumanBonesType } from '@advjs/core/babylon/vrm/pose'
 import { HumanBones } from '@advjs/core/babylon/vrm/pose'
 import type { PoseEulerType } from '@advjs/core/babylon/types'
+import type { Ref } from 'vue'
 import { useVrmStore } from '../stores/vrm'
 
 const { t } = useI18n()
@@ -71,26 +72,42 @@ const vrmStore = useVrmStore()
 
 const curBone = ref<HumanBonesType>()
 
-const defaultBonesRotation: Partial<PoseEulerType> = {}
+const defaultBonesRotation: Record<keyof PoseEulerType, {
+  x: Ref<number>
+  y: Ref<number>
+  z: Ref<number>
+}>
+= Object.fromEntries(
+  HumanBones.map(bone => [bone as (keyof PoseEulerType), {
+    x: ref(0),
+    y: ref(0),
+    z: ref(0),
+  }]),
+) as Record<keyof PoseEulerType, {
+  x: Ref<number>
+  y: Ref<number>
+  z: Ref<number>
+}>
+
 HumanBones.forEach((bone) => {
   defaultBonesRotation[bone] = {
-    x: 0,
-    y: 0,
-    z: 0,
+    x: ref(0),
+    y: ref(0),
+    z: ref(0),
   }
 })
-const bonesRotation = ref<PoseEulerType>(defaultBonesRotation as PoseEulerType)
+const bonesRotation = defaultBonesRotation
 
 const vrmMorphingList = ref<Record<string, number>>({})
 
 watch(() => vrmStore.vrmManager, (manager) => {
   if (manager) {
-    HumanBones.forEach((bone) => {
+    HumanBones.forEach((bone: keyof PoseEulerType) => {
       if (!manager.humanoidBone[bone]) return
       const angles = manager.humanoidBone[bone]!.rotationQuaternion?.toEulerAngles()
-      bonesRotation.value[bone].x = BABYLON.Angle.FromRadians(angles?.x || 0).degrees()
-      bonesRotation.value[bone].y = BABYLON.Angle.FromRadians(angles?.y || 0).degrees()
-      bonesRotation.value[bone].z = BABYLON.Angle.FromRadians(angles?.z || 0).degrees()
+      bonesRotation[bone].x.value = BABYLON.Angle.FromRadians(angles?.x || 0).degrees()
+      bonesRotation[bone].y.value = BABYLON.Angle.FromRadians(angles?.y || 0).degrees()
+      bonesRotation[bone].z.value = BABYLON.Angle.FromRadians(angles?.z || 0).degrees()
     })
 
     const list = manager.getMorphingList()
@@ -102,7 +119,7 @@ watch(() => vrmStore.vrmManager, (manager) => {
       if (!curBone.value) return
       const boneNode = vrmStore.vrmManager?.humanoidBone[curBone.value]
       const angles = boneNode?.rotationQuaternion?.toEulerAngles()
-      bonesRotation.value[curBone.value][axis] = BABYLON.Angle.FromRadians(angles?.[axis] || 0).degrees()
+      bonesRotation[curBone.value][axis].value = BABYLON.Angle.FromRadians(angles?.[axis] || 0).degrees()
     }
     // @ts-expect-error window.babylon
     const gizmoManager = vrmStore.babylon.gizmoManager as BABYLON.GizmoManager

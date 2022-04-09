@@ -4,9 +4,11 @@
   </div>
   <div col="span-7" class="adv-menu-item--container flex items-center" p="x-2">
     <template v-if="item.type">
-      <AdvCheckbox v-if="item.type === 'Checkbox'" :checked="item.props.checked" :on-click="item.props.onClick" />
-      <AdvRadioGroup v-if="item.type === 'RadioGroup'" :checked="item.props.checked" :options="item.props.options" :on-click="item.props.onClick" />
-      <AdvSelect v-else-if="item.type === 'Select'" v-bind="item.props" />
+      <AdvCheckbox v-if="item.type === 'Checkbox'" :props="item.props" />
+      <AdvRadioGroup v-if="item.type === 'RadioGroup'" :props="item.props" />
+      <AdvSelect v-else-if="item.type === 'Select'" :props="item.props" />
+      <!-- eslint-disable-next-line vue/no-mutating-props -->
+      <AdvSlider v-else-if="item.type === 'Slider'" v-bind="item.props" v-model="item.props.modelValue.value" />
     </template>
     <slot v-else />
   </div>

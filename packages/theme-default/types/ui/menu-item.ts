@@ -5,6 +5,7 @@ export interface AdvMenuItemMap<T extends AdvItemOption = AdvItemOption> {
   Checkbox: AdvItem.AdvCheckboxProps
   Select: AdvItem.AdvSelectProps<T>
   RadioGroup: AdvItem.AdvRadioGroupProps<T>
+  Slider: AdvItem.AdvSliderProps
 }
 
 export type AdvMenuItemKeys = (keyof AdvMenuItemMap)

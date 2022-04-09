@@ -1,6 +1,6 @@
 <template>
-  <span class="inline-flex cursor-pointer" @click="onClick">
-    <AdvIcon v-if="checked">
+  <span class="inline-flex cursor-pointer" @click="props.onClick">
+    <AdvIcon v-if="props.checked">
       <i-ri-checkbox-line />
     </AdvIcon>
     <AdvIcon v-else>
@@ -10,15 +10,10 @@
 </template>
 
 <script setup lang="ts">
-// import type { AdvCheckboxProps } from '@advjs/theme-default'
+import type { AdvCheckboxProps } from '@advjs/theme-default'
 
-export interface AdvCheckboxProps {
-  checked: boolean
-  onClick?: (val: string) => void
-}
-
-withDefaults(defineProps<AdvCheckboxProps>(), {
-  checked: false,
+withDefaults(defineProps<{ props: AdvCheckboxProps }>(), {
+  props: () => ({ checked: false }),
 })
 
 // do not need emit update:checked, because it is controlled by parent

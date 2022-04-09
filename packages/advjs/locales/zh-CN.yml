@@ -38,6 +38,7 @@ settings:
   speech_synthesis: 语音合成
   speech_language: 语音语言
   script_path: 剧本路径
+  animation_duration: 过渡动画
 
 play_speed:
   slow: 慢

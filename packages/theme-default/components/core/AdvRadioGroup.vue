@@ -1,6 +1,6 @@
 <template>
   <div class="adv-radio">
-    <AdvTextButton v-for="(item, i) in options" :key="i" :class="checked === item.value ? 'active' : ''" m="r-8" @click="onClick && onClick(item)">
+    <AdvTextButton v-for="(item, i) in props.options" :key="i" :class="props.checked === item.value ? 'active' : ''" m="r-8" @click="props.onClick && props.onClick(item)">
       {{ item.label }}
     </AdvTextButton>
   </div>
@@ -16,5 +16,5 @@ export interface AdvRadioGroupProps<T extends AdvItemOption = AdvItemOption> {
   onClick?: (value: T) => void
 }
 
-defineProps<AdvRadioGroupProps>()
+defineProps<{ props: AdvRadioGroupProps }>()
 </script>

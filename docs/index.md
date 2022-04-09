@@ -17,6 +17,12 @@ actions:
     color: green
 
 features:
+  - title: 🧶 Adventure
+    details: 冒险
+  - title: 📃 Document
+    details: 文档
+  - title: 👴 Vtuber
+    details: 虚拟
   - title: ✍️ 简洁
     details: 像写小说一样制作 ADV 游戏
   - title: 💻 跨平台

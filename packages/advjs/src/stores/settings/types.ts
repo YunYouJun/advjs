@@ -7,6 +7,9 @@ export interface SettingOptions {
     mdUrl: string
   }
   speech: SpeechSynthesisOptions
+  animation: {
+    duration: number
+  }
 }
 
 export type DisplayMode = 'type' | 'soft'
