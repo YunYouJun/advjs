@@ -1,3 +1,18 @@
+<script lang="ts" setup>
+import { screenshotGame } from '@advjs/core'
+import { useAppStore } from '~/stores/app'
+
+const app = useAppStore()
+
+const doScreenshot = async() => {
+  screenshotGame()
+}
+
+const openLoadMenu = () => {
+  app.toggleShowLoadMenu()
+}
+</script>
+
 <template>
   <div class="dialog-controls">
     <AdvIconButton title="快速存档">
@@ -14,18 +29,3 @@
     </AdvIconButton>
   </div>
 </template>
-
-<script lang="ts" setup>
-import { screenshotGame } from '@advjs/core'
-import { useAppStore } from '~/stores/app'
-
-const app = useAppStore()
-
-const doScreenshot = async() => {
-  screenshotGame()
-}
-
-const openLoadMenu = () => {
-  app.toggleShowLoadMenu()
-}
-</script>

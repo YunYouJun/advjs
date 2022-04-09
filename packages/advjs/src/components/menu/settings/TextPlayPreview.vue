@@ -1,15 +1,3 @@
-<template>
-  <MenuItem :item="playSpeedItem" />
-  <MenuItem :item="fontSizeItem" />
-  <MenuItem :item="displayModeItem" />
-
-  <div col="span-12" class="animate-animated animate-slideInDown">
-    <div class="h-26" :class="`text-${settings.storage.text.curFontSize}`" text="left" bg="gray-500 opacity-20" p="4">
-      <PrintWords :speed="settings.storage.text.curSpeed" :mode="settings.storage.text.curDisplayMode" :words="words" @end="onEnd" />
-    </div>
-  </div>
-</template>
-
 <script lang="ts" setup>
 // 文字播放预览
 import type { AdvItemOption, AdvMenuItemProps } from '@advjs/theme-default'
@@ -130,3 +118,15 @@ const displayModeItem = computed<AdvMenuItemProps<'RadioGroup', DisplayModeOptio
   },
 }))
 </script>
+
+<template>
+  <MenuItem :item="playSpeedItem" />
+  <MenuItem :item="fontSizeItem" />
+  <MenuItem :item="displayModeItem" />
+
+  <div col="span-12" class="animate-animated animate-slideInDown">
+    <div class="h-26" :class="`text-${settings.storage.text.curFontSize}`" text="left" bg="gray-500 opacity-20" p="4">
+      <PrintWords :speed="settings.storage.text.curSpeed" :mode="settings.storage.text.curDisplayMode" :words="words" @end="onEnd" />
+    </div>
+  </div>
+</template>

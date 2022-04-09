@@ -6,7 +6,8 @@
 export async function getScript(url: string, type = 'module') {
   return new Promise((resolve, reject) => {
     const script = document.createElement('script')
-    if (type) script.type = type
+    if (type)
+      script.type = type
     script.onload = () => {
       resolve(true)
     }

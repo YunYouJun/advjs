@@ -29,7 +29,7 @@ defineProps<{
     target="_blank"
   >
     <div class="!m-auto text-2xl block inline-flex justify-center items-center">
-      <slot name="icon"></slot>
+      <slot name="icon" />
     </div>
     <div class="inline-flex mt-2 font-bold text-xs">
       {{ title }}

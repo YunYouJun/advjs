@@ -1,3 +1,9 @@
+<script setup lang="ts">
+// 开始菜单
+import { isDark } from '~/composables'
+const bgImageUrl = computed(() => 'https://cdn.jsdelivr.net/gh/YunYouJun/cdn/img/bg/stars-timing-0-blur-30px.jpg')
+</script>
+
 <template>
   <div class="w-full h-full animate-animated animate-fadeIn">
     <AdvAdblock />
@@ -11,9 +17,3 @@
     </AdvContainer>
   </div>
 </template>
-
-<script setup lang="ts">
-// 开始菜单
-import { isDark } from '~/composables'
-const bgImageUrl = computed(() => 'https://cdn.jsdelivr.net/gh/YunYouJun/cdn/img/bg/stars-timing-0-blur-30px.jpg')
-</script>

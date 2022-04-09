@@ -15,7 +15,8 @@ function toCharacter(text: string) {
   }
 
   for (let i = 0; i < leftBracket.length; i++) {
-    if (!text.includes(leftBracket[i])) continue
+    if (!text.includes(leftBracket[i]))
+      continue
 
     const re = new RegExp(`(.*)${leftBracket[i]}(.*?)${rightBracket[i]}`)
     const r = text.match(re)
@@ -26,7 +27,8 @@ function toCharacter(text: string) {
     }
   }
 
-  if (!info.name) info.name = text
+  if (!info.name)
+    info.name = text
 
   return info
 }

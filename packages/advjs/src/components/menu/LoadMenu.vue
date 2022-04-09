@@ -1,3 +1,45 @@
+<script lang="ts" setup>
+import type { Swiper } from 'swiper'
+import type { CreativeEffectOptions } from 'swiper/types'
+const swiperRef = ref<Swiper>()
+const perPageNum = ref(6)
+
+const curPage = ref(1)
+
+const togglePage = (page: number) => {
+  if (!swiperRef.value)
+    return
+  swiperRef.value.slideTo(page - 1)
+}
+
+const onInit = (swiper: Swiper) => {
+  swiperRef.value = swiper
+}
+
+const onSlideChange = () => {
+  if (!swiperRef.value)
+    return
+  curPage.value = swiperRef.value.activeIndex + 1
+}
+
+const creativeEffect: CreativeEffectOptions = {
+  prev: {
+    translate: [
+      0,
+      0,
+      -400,
+    ],
+  },
+  next: {
+    translate: [
+      '100%',
+      0,
+      0,
+    ],
+  },
+}
+</script>
+
 <template>
   <div class="menu-panel flex flex-col justify-between" gap="x-2 y-0" h="full" text="2xl">
     <div col="span-12">
@@ -26,43 +68,3 @@
     </div>
   </div>
 </template>
-
-<script lang="ts" setup>
-import type { Swiper } from 'swiper'
-import type { CreativeEffectOptions } from 'swiper/types'
-const swiperRef = ref<Swiper>()
-const perPageNum = ref(6)
-
-const curPage = ref(1)
-
-const togglePage = (page: number) => {
-  if (!swiperRef.value) return
-  swiperRef.value.slideTo(page - 1)
-}
-
-const onInit = (swiper: Swiper) => {
-  swiperRef.value = swiper
-}
-
-const onSlideChange = () => {
-  if (!swiperRef.value) return
-  curPage.value = swiperRef.value.activeIndex + 1
-}
-
-const creativeEffect: CreativeEffectOptions = {
-  prev: {
-    translate: [
-      0,
-      0,
-      -400,
-    ],
-  },
-  next: {
-    translate: [
-      '100%',
-      0,
-      0,
-    ],
-  },
-}
-</script>

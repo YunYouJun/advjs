@@ -1,28 +1,3 @@
-<template>
-  <canvas ref="babylonCanvas" class="absolute inset-0 w-full h-full outline-none" />
-
-  <VrmUi />
-
-  <UploadVrm />
-
-  <a target="_blank" href="https://github.com/YunYouJun/advjs">
-    <AdvIconButton class="fixed right-50 bottom-5">
-      <i-ri-github-line text="white" />
-    </AdvIconButton>
-  </a>
-  <AdvDebug>
-    <AdvIconButton title="记录当前镜头位置" @click="recordCameraInfo()">
-      <i-ri-camera-line />
-    </AdvIconButton>
-    <pre class="block text-left">{{ JSON.stringify(cameraInfo, null, 2) }}</pre>
-  </AdvDebug>
-</template>
-
-<route lang="yaml">
-meta:
-  layout: home
-</route>
-
 <script lang="ts" setup>
 import type * as BABYLON from '@babylonjs/core'
 import type { VRMManager } from 'babylon-vrm-loader'
@@ -57,7 +32,8 @@ const vrmManager = ref<VRMManager>()
 const vrmStore = useVrmStore()
 
 onMounted(async() => {
-  if (!isClient) return
+  if (!isClient)
+    return
   const babylon = await setup(babylonCanvas.value, (manager) => {
     vrmManager.value = manager
   })
@@ -72,3 +48,28 @@ const recordCameraInfo = () => {
   cameraInfo.value = captureCameraInfo(vrmStore.babylon?.scene.activeCamera as BABYLON.ArcRotateCamera)
 }
 </script>
+
+<template>
+  <canvas ref="babylonCanvas" class="absolute inset-0 w-full h-full outline-none" />
+
+  <VrmUi />
+
+  <UploadVrm />
+
+  <a target="_blank" href="https://github.com/YunYouJun/advjs">
+    <AdvIconButton class="fixed right-50 bottom-5">
+      <i-ri-github-line text="white" />
+    </AdvIconButton>
+  </a>
+  <AdvDebug>
+    <AdvIconButton title="记录当前镜头位置" @click="recordCameraInfo()">
+      <i-ri-camera-line />
+    </AdvIconButton>
+    <pre class="block text-left">{{ JSON.stringify(cameraInfo, null, 2) }}</pre>
+  </AdvDebug>
+</template>
+
+<route lang="yaml">
+meta:
+  layout: home
+</route>

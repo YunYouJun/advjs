@@ -1,9 +1,3 @@
-<template>
-  <transition enter-active-class="animate-fadeIn" leave-active-class="animate-fadeOut">
-    <div v-if="app.showBg" h="full" w="full" class="absolute animate-animated" bg="cover center no-repeat" :style="advGameStyle" />
-  </transition>
-</template>
-
 <script lang="ts" setup>
 import { adv } from '~/setup/adv'
 import { useAppStore } from '~/stores/app'
@@ -26,3 +20,9 @@ watch(() => adv.store.curNode.value, (val) => {
   }
 })
 </script>
+
+<template>
+  <transition enter-active-class="animate-fadeIn" leave-active-class="animate-fadeOut">
+    <div v-if="app.showBg" h="full" w="full" class="absolute animate-animated" bg="cover center no-repeat" :style="advGameStyle" />
+  </transition>
+</template>

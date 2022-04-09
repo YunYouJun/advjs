@@ -10,13 +10,16 @@ export function parseText(node: Mdast.Text) {
   const textValue = node.value
 
   const scene = parseScene(textValue)
-  if (scene) return scene
+  if (scene)
+    return scene
 
   const narration = parseNarration(textValue)
-  if (narration) return narration
+  if (narration)
+    return narration
 
   const dialog = toDialog(textValue)
-  if (dialog) return dialog
+  if (dialog)
+    return dialog
 
   const simpleNode: Text = {
     type: 'text',

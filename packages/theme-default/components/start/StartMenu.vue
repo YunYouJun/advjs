@@ -1,3 +1,14 @@
+<script setup lang="ts">
+export interface StartMenuItem {
+  title: string
+  do?: () => void
+}
+
+defineProps<{
+  menuItems: StartMenuItem[]
+}>()
+</script>
+
 <template>
   <ul class="start-menu flex flex-col items-end absolute">
     <li
@@ -11,17 +22,6 @@
     </li>
   </ul>
 </template>
-
-<script setup lang="ts">
-export interface StartMenuItem {
-  title: string
-  do?: () => void
-}
-
-defineProps<{
-  menuItems: StartMenuItem[]
-}>()
-</script>
 
 <style lang="scss">
 @use 'sass:map';

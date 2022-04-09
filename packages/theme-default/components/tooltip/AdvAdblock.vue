@@ -1,3 +1,21 @@
+<script lang="ts" setup>
+import { isClient } from '@advjs/shared/utils'
+
+const { t } = useI18n()
+const show = ref(false)
+
+onMounted(() => {
+  const container = document.querySelector('.adv-container') as HTMLElement
+  const hasAdblock = (getComputedStyle(container).display === 'none')
+  show.value = hasAdblock
+})
+
+const refresh = () => {
+  if (isClient)
+    window.location.reload()
+}
+</script>
+
 <template>
   <transition enter-active-class="animate-fadeIn" leave-active-class="animate-fadeOut">
     <div v-if="show" class="absolute h-screen w-screen flex flex-col justify-center items-center animate-animated">
@@ -28,21 +46,3 @@
     </div>
   </transition>
 </template>
-
-<script lang="ts" setup>
-import { isClient } from '@advjs/shared/utils'
-
-const { t } = useI18n()
-const show = ref(false)
-
-onMounted(() => {
-  const container = document.querySelector('.adv-container') as HTMLElement
-  const hasAdblock = (getComputedStyle(container).display === 'none')
-  show.value = hasAdblock
-})
-
-const refresh = () => {
-  if (isClient)
-    window.location.reload()
-}
-</script>

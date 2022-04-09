@@ -1,27 +1,3 @@
-<template>
-  <div class="saved-card shadow-md hover:shadow-lg" grid="~ cols-2" border="~ black dark:white" m="x-2 y-1" h="26">
-    <div class="preview-image-container h-full overflow-hidden shadow" bg="white dark:black" @click="onCardClick">
-      <img class="w-full h-full object-cover" :src="meta?.thumbnail || defaultBgUrl">
-    </div>
-    <div class="overflow-hidden" flex="~ col">
-      <h3 text="base" class="flex justify-between items-center" bg="white" @click="onCardClick">
-        <span p="x-2" bg="black" font="mono" text="sm white "># {{ no }}</span>
-        <span v-if="meta?.createdAt" p="x-2" text="xs dark-400 dark:white">{{ dayjs(meta?.createdAt).format('YYYY/MM/DD HH:mm:ss') }}</span>
-      </h3>
-      <p class="preview-narration" flex="~ col" h="full" bg="white" @click="onCardClick">
-        <template v-if="record">
-          <span class="flex truncate" text="xs" m="1">{{ record.dialog?.character.name }}</span>
-          <span class="truncate" m="x-1">{{ record.dialog?.children[0].value }}</span>
-        </template>
-      </p>
-      <h3 text="base" class="flex justify-between items-center" bg="white">
-        <input v-model="memo" p="x-1" class="adv-record-memo" text="xs dark-400 dark:white" @input="isEditing = true">
-        <span p="x-2" bg="black" font="mono" text="xs white" @click="saveCardMeta">{{ isEditing ? '保存' :'备注' }}</span>
-      </h3>
-    </div>
-  </div>
-</template>
-
 <script lang="ts" setup>
 import { defaultBgUrl } from '@advjs/theme-default'
 import dayjs from 'dayjs'
@@ -91,7 +67,8 @@ const route = useRoute()
 const router = useRouter()
 
 const loadFromCard = () => {
-  if (!record.value) return
+  if (!record.value)
+    return
   adv.store.cur.value = record.value
 
   // 关闭加载菜单
@@ -108,6 +85,30 @@ const onCardClick = () => {
     loadFromCard()
 }
 </script>
+
+<template>
+  <div class="saved-card shadow-md hover:shadow-lg" grid="~ cols-2" border="~ black dark:white" m="x-2 y-1" h="26">
+    <div class="preview-image-container h-full overflow-hidden shadow" bg="white dark:black" @click="onCardClick">
+      <img class="w-full h-full object-cover" :src="meta?.thumbnail || defaultBgUrl">
+    </div>
+    <div class="overflow-hidden" flex="~ col">
+      <h3 text="base" class="flex justify-between items-center" bg="white" @click="onCardClick">
+        <span p="x-2" bg="black" font="mono" text="sm white "># {{ no }}</span>
+        <span v-if="meta?.createdAt" p="x-2" text="xs dark-400 dark:white">{{ dayjs(meta?.createdAt).format('YYYY/MM/DD HH:mm:ss') }}</span>
+      </h3>
+      <p class="preview-narration" flex="~ col" h="full" bg="white" @click="onCardClick">
+        <template v-if="record">
+          <span class="flex truncate" text="xs" m="1">{{ record.dialog?.character.name }}</span>
+          <span class="truncate" m="x-1">{{ record.dialog?.children[0].value }}</span>
+        </template>
+      </p>
+      <h3 text="base" class="flex justify-between items-center" bg="white">
+        <input v-model="memo" p="x-1" class="adv-record-memo" text="xs dark-400 dark:white" @input="isEditing = true">
+        <span p="x-2" bg="black" font="mono" text="xs white" @click="saveCardMeta">{{ isEditing ? '保存' :'备注' }}</span>
+      </h3>
+    </div>
+  </div>
+</template>
 
 <style lang="scss">
 .saved-card {

@@ -28,8 +28,10 @@ if (props.width) {
 const screenAspect = computed(() => width.value / height.value)
 
 const scale = computed(() => {
-  if (props.scale) return props.scale
-  if (screenAspect.value < advAspect) return width.value / advWidth
+  if (props.scale)
+    return props.scale
+  if (screenAspect.value < advAspect)
+    return width.value / advWidth
   return (height.value * advAspect) / advWidth
 })
 

@@ -1,11 +1,11 @@
-<template>
-  <div class="hide-ui-layer" @click="()=>{app.toggleUi()}" />
-</template>
-
 <script setup lang="ts">
 import { useAppStore } from '~/stores/app'
 const app = useAppStore()
 </script>
+
+<template>
+  <div class="hide-ui-layer" @click="()=>{app.toggleUi()}" />
+</template>
 
 <style>
 .hide-ui-layer {

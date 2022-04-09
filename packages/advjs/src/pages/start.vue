@@ -1,3 +1,54 @@
+<script lang="ts" setup>
+import type { StartMenuItem } from '@advjs/theme-default'
+import { useAppStore } from '~/stores/app'
+import { yunAlphaUrl, yunGoodAlphaUrl } from '~/utils'
+const app = useAppStore()
+
+const { t } = useI18n()
+const router = useRouter()
+
+const rippleAnimation = ref(true)
+onMounted(() => {
+  rippleAnimation.value = false
+})
+
+const menuItems = computed<StartMenuItem[]>(() =>
+  [
+    {
+      title: t('menu.new_game'),
+      do: () => {
+        router.push('/game')
+      },
+    },
+    {
+      title: t('menu.load_game'),
+      do: () => {
+        app.toggleShowLoadMenu()
+      },
+    },
+    {
+      title: t('menu.settings'),
+      do: () => {
+        app.toggleShowMenu()
+      },
+    },
+    {
+      title: t('menu.help'),
+      do: () => {
+        router.push('/help')
+      },
+    },
+    {
+      title: t('menu.quit'),
+      do: () => {
+        window.close()
+        window.alert('为什么不直接关浏览器窗口呢？╮(￣▽￣"")╭')
+      },
+    },
+  ],
+)
+</script>
+
 <template>
   <div
     class="
@@ -60,57 +111,6 @@
 meta:
   layout: start
 </route>
-
-<script lang="ts" setup>
-import type { StartMenuItem } from '@advjs/theme-default'
-import { useAppStore } from '~/stores/app'
-import { yunAlphaUrl, yunGoodAlphaUrl } from '~/utils'
-const app = useAppStore()
-
-const { t } = useI18n()
-const router = useRouter()
-
-const rippleAnimation = ref(true)
-onMounted(() => {
-  rippleAnimation.value = false
-})
-
-const menuItems = computed<StartMenuItem[]>(() =>
-  [
-    {
-      title: t('menu.new_game'),
-      do: () => {
-        router.push('/game')
-      },
-    },
-    {
-      title: t('menu.load_game'),
-      do: () => {
-        app.toggleShowLoadMenu()
-      },
-    },
-    {
-      title: t('menu.settings'),
-      do: () => {
-        app.toggleShowMenu()
-      },
-    },
-    {
-      title: t('menu.help'),
-      do: () => {
-        router.push('/help')
-      },
-    },
-    {
-      title: t('menu.quit'),
-      do: () => {
-        window.close()
-        window.alert('为什么不直接关浏览器窗口呢？╮(￣▽￣"")╭')
-      },
-    },
-  ],
-)
-</script>
 
 <style lang="scss">
 .adv-start-game-logo {

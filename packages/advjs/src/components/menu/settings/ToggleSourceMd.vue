@@ -1,7 +1,3 @@
-<template>
-  <MenuItem :item="item" />
-</template>
-
 <script lang="ts" setup>
 import type { AdvMenuItemProps } from '@advjs/theme-default'
 import { useSettingsStore } from '~/stores/settings'
@@ -33,3 +29,7 @@ const item = computed<AdvMenuItemProps>(() => ({
   },
 }))
 </script>
+
+<template>
+  <MenuItem :item="item" />
+</template>

@@ -1,7 +1,3 @@
-<template>
-  <div id="preview-container" ref="container" class="w-full h-full" text="sm" />
-</template>
-
 <script lang="ts" setup>
 import { isClient } from '@vueuse/core'
 import type * as m from 'monaco-editor'
@@ -47,3 +43,7 @@ async function init() {
 if (isClient)
   init()
 </script>
+
+<template>
+  <div id="preview-container" ref="container" class="w-full h-full" text="sm" />
+</template>

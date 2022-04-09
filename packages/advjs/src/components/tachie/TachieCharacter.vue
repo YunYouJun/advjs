@@ -1,15 +1,3 @@
-<template>
-  <div class="col-span-1 flex flex-col justify-end items-center ">
-    <img
-      class="tachie-character inline-block transform"
-      :class="characterClass"
-      :style="character.style"
-      :src="statusSrc"
-      :alt="character.name"
-    >
-  </div>
-</template>
-
 <script setup lang="ts">
 import type { CharacterInfo } from '~/data/characters'
 import { adv } from '~/setup/adv'
@@ -46,6 +34,18 @@ const characterClass = computed(() => {
   return resultClass
 })
 </script>
+
+<template>
+  <div class="col-span-1 flex flex-col justify-end items-center ">
+    <img
+      class="tachie-character inline-block transform"
+      :class="characterClass"
+      :style="character.style"
+      :src="statusSrc"
+      :alt="character.name"
+    >
+  </div>
+</template>
 
 <style lang="scss">
 .tachie-character {

@@ -1,9 +1,3 @@
-<template>
-  <div class="print-words">
-    <span v-for="word, i in displayWords" :key="i" :class="mode === 'soft' && ['animate-fast', 'animate-fadeIn']">{{ word }}</span>
-  </div>
-</template>
-
 <script setup lang="ts">
 export type DisplayMode = 'type' | 'soft'
 
@@ -59,3 +53,9 @@ watch(() => props.words, () => {
   playWordsAnimation()
 })
 </script>
+
+<template>
+  <div class="print-words">
+    <span v-for="word, i in displayWords" :key="i" :class="mode === 'soft' && ['animate-fast', 'animate-fadeIn']">{{ word }}</span>
+  </div>
+</template>

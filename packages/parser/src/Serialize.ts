@@ -66,7 +66,8 @@ export class Serialize {
       value: null,
     }
 
-    if (!node.lang) return
+    if (!node.lang)
+      return
     const lang = node.lang.toLowerCase()
 
     // 自定义的 AdvNode

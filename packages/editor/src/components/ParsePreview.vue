@@ -1,3 +1,31 @@
+<script setup lang="ts">
+import { useAppStore } from '../stores/app'
+import { useEditorStore } from '../stores/editor'
+const { t } = useI18n()
+const appStore = useAppStore()
+const editorStore = useEditorStore()
+
+const type = ref<'html' | 'json'>(editorStore.options.outputType === 'html' ? 'html' : 'json')
+const content = computed(() => {
+  let txt = ''
+  switch (editorStore.options.outputType) {
+    case 'markdown-it':
+      txt = JSON.stringify(editorStore.parsedTokens, null, 2)
+      type.value = 'json'
+      break
+    case 'adv':
+      txt = JSON.stringify(editorStore.parsedAdv, null, 2)
+      type.value = 'json'
+      break
+    case 'html':
+      txt = editorStore.parsedHtml
+      type.value = 'html'
+      break
+  }
+  return txt
+})
+</script>
+
 <template>
   <div grid="~ cols-2 gap-1 <sm:cols-1">
     <div class="container flex flex-col" p="1" :style="`order: ${appStore.leftOrder};`">
@@ -39,34 +67,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { useAppStore } from '../stores/app'
-import { useEditorStore } from '../stores/editor'
-const { t } = useI18n()
-const appStore = useAppStore()
-const editorStore = useEditorStore()
-
-const type = ref<'html' | 'json'>(editorStore.options.outputType === 'html' ? 'html' : 'json')
-const content = computed(() => {
-  let txt = ''
-  switch (editorStore.options.outputType) {
-    case 'markdown-it':
-      txt = JSON.stringify(editorStore.parsedTokens, null, 2)
-      type.value = 'json'
-      break
-    case 'adv':
-      txt = JSON.stringify(editorStore.parsedAdv, null, 2)
-      type.value = 'json'
-      break
-    case 'html':
-      txt = editorStore.parsedHtml
-      type.value = 'html'
-      break
-  }
-  return txt
-})
-</script>
 
 <style>
 /* for demo html */

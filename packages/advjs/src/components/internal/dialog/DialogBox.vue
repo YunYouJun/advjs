@@ -1,25 +1,3 @@
-<template>
-  <div class="dialog-box select-none cursor-pointer" grid="~ cols-12" gap="12" @click="next">
-    <div v-if="curCharacter" class=" col-span-3 text-right">
-      <template v-if="gameConfig.showCharacterAvatar && characterAvatar">
-        <div flex="~ col" class="justify-center items-end">
-          <img class="w-25 h-25 shadow rounded" object="cover top" :src="characterAvatar">
-          <span class="w-25" m="t-2" text="center gray-400">{{ curCharacter.name }}</span>
-        </div>
-      </template>
-      <template v-else>
-        <span class="dialog-name">{{ curCharacter.name }}</span>
-      </template>
-    </div>
-    <div class="dialog-content col-span-9 text-left pr-24" :text="settings.storage.text.curFontSize">
-      <PrintWords :speed="settings.storage.text.curSpeed" :words="curWords" />
-      <span class="typed-cursor">
-        ▼
-      </span>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { speak } from '@advjs/shared/speech'
 import type { AdvConfig } from '@advjs/types'
@@ -81,6 +59,28 @@ const curWords = computed(() => {
   return curDialog.value.children[iOrder.value].value
 })
 </script>
+
+<template>
+  <div class="dialog-box select-none cursor-pointer" grid="~ cols-12" gap="12" @click="next">
+    <div v-if="curCharacter" class=" col-span-3 text-right">
+      <template v-if="gameConfig.showCharacterAvatar && characterAvatar">
+        <div flex="~ col" class="justify-center items-end">
+          <img class="w-25 h-25 shadow rounded" object="cover top" :src="characterAvatar">
+          <span class="w-25" m="t-2" text="center gray-400">{{ curCharacter.name }}</span>
+        </div>
+      </template>
+      <template v-else>
+        <span class="dialog-name">{{ curCharacter.name }}</span>
+      </template>
+    </div>
+    <div class="dialog-content col-span-9 text-left pr-24" :text="settings.storage.text.curFontSize">
+      <PrintWords :speed="settings.storage.text.curSpeed" :words="curWords" />
+      <span class="typed-cursor">
+        ▼
+      </span>
+    </div>
+  </div>
+</template>
 
 <style lang="scss">
 .dialog-box {

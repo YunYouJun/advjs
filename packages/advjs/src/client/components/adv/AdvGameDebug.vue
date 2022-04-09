@@ -29,7 +29,8 @@ watch(open, (value) => {
 })
 
 const setCameraInfo = (camera: BABYLON.ArcRotateCamera) => {
-  if (!camera) return
+  if (!camera)
+    return
   const info = captureCameraInfo(camera)
   if (info)
     cameraInfo.value = info

@@ -1,3 +1,22 @@
+<script lang="ts" setup>
+const props = withDefaults(defineProps<{
+  show?: boolean
+  header?: string
+}>(), {
+  show: false,
+  header: '',
+})
+
+const emit = defineEmits(['close'])
+
+onMounted(() => {
+  onKeyStroke('Escape', (e) => {
+    if (props.show)
+      emit('close')
+  })
+})
+</script>
+
 <template>
   <transition name="modal">
     <div v-if="show" class="modal-mask">
@@ -24,25 +43,6 @@
     </div>
   </transition>
 </template>
-
-<script lang="ts" setup>
-const props = withDefaults(defineProps<{
-  show?: boolean
-  header?: string
-}>(), {
-  show: false,
-  header: '',
-})
-
-const emit = defineEmits(['close'])
-
-onMounted(() => {
-  onKeyStroke('Escape', (e) => {
-    if (props.show)
-      emit('close')
-  })
-})
-</script>
 
 <style>
 .modal-mask {

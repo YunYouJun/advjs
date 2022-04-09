@@ -13,9 +13,12 @@ export function parseScene(text: string) {
       inOrOut: '',
     }
     const arr = text.slice(1, -1).split(separator)
-    if (arr[0]) metaInfo.place = arr[0]
-    if (arr[1]) metaInfo.time = arr[1]
-    if (arr[2]) metaInfo.inOrOut = arr[2]
+    if (arr[0])
+      metaInfo.place = arr[0]
+    if (arr[1])
+      metaInfo.time = arr[1]
+    if (arr[2])
+      metaInfo.inOrOut = arr[2]
     return metaInfo
   }
 }

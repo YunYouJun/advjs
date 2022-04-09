@@ -1,4 +1,4 @@
-import { HeadConfig } from 'vitepress'
+import type { HeadConfig } from 'vitepress'
 import * as pkg from '../../package.json'
 import { metaData } from './constants'
 

@@ -1,3 +1,7 @@
+<script setup lang="ts">
+import pkg from '@advjs/parser/../package.json'
+</script>
+
 <template>
   <header p="2">
     <h1 class="text-center">
@@ -15,7 +19,3 @@
   </header>
   <ParsePreview />
 </template>
-
-<script setup lang="ts">
-import pkg from '@advjs/parser/../package.json'
-</script>

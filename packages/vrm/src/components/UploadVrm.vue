@@ -1,11 +1,3 @@
-<template>
-  <div
-    class="absolute top-0 h-full w-full flex justify-center items-center z-10 pointer-events-none" :class="showDragStyle ? ['bg-black bg-opacity-50 border border-4 border-black border-dashed'] : ''" text="2xl white"
-  >
-    <span v-show="showDragStyle">Drag .vrm file</span>
-  </div>
-</template>
-
 <script lang="ts" setup>
 import { createVRM, getVrmManager } from '@advjs/core/babylon/vrm'
 import { checkModelFormat } from '@advjs/shared/utils/vrm'
@@ -38,19 +30,22 @@ const onDrop = (e: DragEvent) => {
   showDragStyle.value = false
 
   const fileList = e.dataTransfer?.files
-  if (!fileList?.length) return
+  if (!fileList?.length)
+    return
   if (checkModelFormat(fileList[0])) {
     const scene = vrmStore.scene as BABYLON.Scene
 
     // dispose old vrmManager
     const manager = getVrmManager(scene)
-    if (!manager) return
+    if (!manager)
+      return
     manager.rootMesh.dispose()
     manager.dispose()
 
     createVRM(scene, 'file:', fileList[0], () => {
       const manager = getVrmManager(scene)
-      if (!manager) return
+      if (!manager)
+        return
       vrmStore.setVrmManager(getVrmManager(scene))
     })
   }
@@ -63,3 +58,11 @@ onMounted(() => {
   document.addEventListener('drop', onDrop)
 })
 </script>
+
+<template>
+  <div
+    class="absolute top-0 h-full w-full flex justify-center items-center z-10 pointer-events-none" :class="showDragStyle ? ['bg-black bg-opacity-50 border border-4 border-black border-dashed'] : ''" text="2xl white"
+  >
+    <span v-show="showDragStyle">Drag .vrm file</span>
+  </div>
+</template>

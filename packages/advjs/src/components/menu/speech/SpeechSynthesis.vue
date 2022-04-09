@@ -1,11 +1,3 @@
-<template>
-  <MenuItem :item="speechItem" />
-
-  <template v-if="speechOptions.enable">
-    <MenuItem :item="speechLanguageItem" />
-  </template>
-</template>
-
 <script setup lang="ts">
 import { speak } from '@advjs/shared/speech'
 import type { AdvMenuItemProps } from '@advjs/theme-default'
@@ -68,3 +60,11 @@ onMounted(() => {
   }, 1000)
 })
 </script>
+
+<template>
+  <MenuItem :item="speechItem" />
+
+  <template v-if="speechOptions.enable">
+    <MenuItem :item="speechLanguageItem" />
+  </template>
+</template>

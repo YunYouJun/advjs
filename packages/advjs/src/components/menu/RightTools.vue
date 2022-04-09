@@ -1,31 +1,3 @@
-<template>
-  <div col="span-6" class="flex flex-col justify-center items-start" h="full" m="l-4">
-    <AdvButton
-      v-for="(item, i) in menuItems"
-      :key="i"
-      class="flex"
-      @click="item.do"
-    >
-      {{ item.title }}
-    </AdvButton>
-
-    <div m="y-5">
-      <AdvIconButton :title="t('button.toggle_dark')" m="x-2" @click="toggleDark()">
-        <i-ri-moon-line v-if="isDark" />
-        <i-ri-sun-line v-else />
-      </AdvIconButton>
-
-      <AdvIconButton m="x-2" :title="t('button.toggle_langs')" @click="toggleLocales">
-        <i-ri-translate class="transition transform" :class="locale === 'en' ? 'rotate-y-180' : ''" />
-      </AdvIconButton>
-    </div>
-
-    <AdvButton @click="app.toggleShowMenu()">
-      {{ t('button.close') }}
-    </AdvButton>
-  </div>
-</template>
-
 <script lang="ts" setup>
 import type { MenuButtonItem } from '~/types/menu'
 
@@ -91,3 +63,31 @@ const menuItems = computed<MenuButtonItem[]>(() => {
   )
 })
 </script>
+
+<template>
+  <div col="span-6" class="flex flex-col justify-center items-start" h="full" m="l-4">
+    <AdvButton
+      v-for="(item, i) in menuItems"
+      :key="i"
+      class="flex"
+      @click="item.do"
+    >
+      {{ item.title }}
+    </AdvButton>
+
+    <div m="y-5">
+      <AdvIconButton :title="t('button.toggle_dark')" m="x-2" @click="toggleDark()">
+        <i-ri-moon-line v-if="isDark" />
+        <i-ri-sun-line v-else />
+      </AdvIconButton>
+
+      <AdvIconButton m="x-2" :title="t('button.toggle_langs')" @click="toggleLocales">
+        <i-ri-translate class="transition transform" :class="locale === 'en' ? 'rotate-y-180' : ''" />
+      </AdvIconButton>
+    </div>
+
+    <AdvButton @click="app.toggleShowMenu()">
+      {{ t('button.close') }}
+    </AdvButton>
+  </div>
+</template>

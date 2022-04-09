@@ -23,7 +23,8 @@ export default createUnplugin<Options>((userOptions: Options = {}) => {
     },
 
     transform(raw, id) {
-      if (!filter(id)) return
+      if (!filter(id))
+        return
       try {
         return markdownToVue(id, raw)
       }
@@ -34,7 +35,8 @@ export default createUnplugin<Options>((userOptions: Options = {}) => {
 
     vite: {
       async handleHotUpdate(ctx) {
-        if (!filter(ctx.file)) return
+        if (!filter(ctx.file))
+          return
 
         const defaultRead = ctx.read
         ctx.read = async function() {

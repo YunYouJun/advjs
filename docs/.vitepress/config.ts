@@ -1,18 +1,17 @@
-import { UserConfig } from 'vitepress'
-import type { YouTheme } from 'vitepress-theme-you'
-import { metaData } from './config/constants'
-import head from './config/head'
-import themeConfig from './config/theme'
-
 import path from 'path'
+import type { YouTheme } from 'vitepress-theme-you'
+import type { UserConfig } from 'vitepress'
 
 import Components from 'unplugin-vue-components/vite'
 import Icons from 'unplugin-icons/vite'
 import IconsResolver from 'unplugin-icons/resolver'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// @ts-ignore
+// @ts-expect-error config type
 import baseConfig from 'vitepress-theme-you/config'
+import themeConfig from './config/theme'
+import head from './config/head'
+import { metaData } from './config/constants'
 
 const config: UserConfig<YouTheme.Config> = {
   extends: baseConfig,

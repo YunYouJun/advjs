@@ -1,7 +1,3 @@
-<template>
-  <vue-about-me :is-dark="isDark" :copyright="copyright" />
-</template>
-
 <script setup lang="ts">
 import VueAboutMe from 'vue-about-me'
 import pkg from '~/../package.json'
@@ -15,3 +11,7 @@ const copyright = {
   author: pkg.author.name,
 }
 </script>
+
+<template>
+  <vue-about-me :is-dark="isDark" :copyright="copyright" />
+</template>

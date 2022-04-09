@@ -1,3 +1,9 @@
+<script setup lang="ts">
+import { useAppStore } from '~/stores/app'
+
+const app = useAppStore()
+</script>
+
 <template>
   <div class="flex absolute top-5 justify-between w-full" p="x-5">
     <div class="inline-flex">
@@ -32,9 +38,3 @@
     </AdvModal>
   </div>
 </template>
-
-<script setup lang="ts">
-import { useAppStore } from '~/stores/app'
-
-const app = useAppStore()
-</script>

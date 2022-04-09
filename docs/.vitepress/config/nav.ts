@@ -22,7 +22,7 @@ export const nav: YouTheme.NavItem[] = [
       {
         text: '学习资源',
         link: '/resources/learning',
-      }
-    ]
-  }
+      },
+    ],
+  },
 ]

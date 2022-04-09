@@ -51,16 +51,19 @@ export function createAdv(options?: Partial<AdvOptions>) {
    * 下一部分
    */
   function next() {
-    if (!store.ast.value) return false
+    if (!store.ast.value)
+      return false
 
     const nodeLen = store.ast.value.children.length
     const curOrder = store.cur.value.order
-    if (curOrder >= nodeLen) return
+    if (curOrder >= nodeLen)
+      return
 
     store.cur.value.order++
 
     const curNode = store.curNode.value
-    if (options?.debug) consola.info(curNode)
+    if (options?.debug)
+      consola.info(curNode)
 
     const skippedTypes = ['scene']
     if (skippedTypes.includes(curNode?.type || '')) {
@@ -92,7 +95,8 @@ export function createAdv(options?: Partial<AdvOptions>) {
    */
   function nextParagraph() {
     const curNode = store.curNode.value
-    if (!curNode) return
+    if (!curNode)
+      return
 
     // if (item.type === 'narration' && item.children.length && item.children[0].type === 'paragraph') {
     //   store.cur.value.dialog.value = item.children[0]

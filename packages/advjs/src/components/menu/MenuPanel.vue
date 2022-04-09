@@ -1,42 +1,3 @@
-<template>
-  <div class="menu-panel grid grid-cols-24" gap="0" h="full" text="2xl">
-    <div col="span-18" class="overflow-y-scroll">
-      <div grid="~ cols-12 gap-5" p="4">
-        <h1
-          col="span-12"
-          class="adv-font-serif font-black"
-          text="4xl"
-        >
-          {{ t('settings.title') }}
-        </h1>
-
-        <HorizontalDivider />
-
-        <TextPlayPreview />
-
-        <HorizontalDivider />
-
-        <MenuItem v-for="(item, i) in items" :key="i" :item="item" />
-        <SpeechSynthesis />
-
-        <HorizontalDivider />
-
-        <ToggleSourceMd />
-
-        <HorizontalDivider />
-
-        <GameSettings />
-      </div>
-
-      <!-- <div h="full" border="gray right-2" /> -->
-    </div>
-
-    <RightTools />
-
-    <!-- <div col="span-1" class="flex justify-center items-center" /> -->
-  </div>
-</template>
-
 <script setup lang="ts">
 import { useFullscreen } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
@@ -82,3 +43,42 @@ const items = computed(() => {
   ] as AdvMenuItemProps[]
 })
 </script>
+
+<template>
+  <div class="menu-panel grid grid-cols-24" gap="0" h="full" text="2xl">
+    <div col="span-18" class="overflow-y-scroll">
+      <div grid="~ cols-12 gap-5" p="4">
+        <h1
+          col="span-12"
+          class="adv-font-serif font-black"
+          text="4xl"
+        >
+          {{ t('settings.title') }}
+        </h1>
+
+        <HorizontalDivider />
+
+        <TextPlayPreview />
+
+        <HorizontalDivider />
+
+        <MenuItem v-for="(item, i) in items" :key="i" :item="item" />
+        <SpeechSynthesis />
+
+        <HorizontalDivider />
+
+        <ToggleSourceMd />
+
+        <HorizontalDivider />
+
+        <GameSettings />
+      </div>
+
+      <!-- <div h="full" border="gray right-2" /> -->
+    </div>
+
+    <RightTools />
+
+    <!-- <div col="span-1" class="flex justify-center items-center" /> -->
+  </div>
+</template>

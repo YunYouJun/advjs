@@ -1,3 +1,20 @@
+<script lang="ts" setup>
+import { adv } from '~/setup/adv'
+import { useAppStore } from '~/stores/app'
+
+const app = useAppStore()
+
+const ast = computed(() => adv.store.ast.value)
+
+const containerRef = ref<HTMLDivElement>()
+
+watch(() => containerRef.value, (val) => {
+  if (!val)
+    return
+  val.scrollTop = val.scrollHeight
+})
+</script>
+
 <template>
   <AdvModal :show="app.showHistory" header="历史会话" @close="app.toggleHistory">
     <div ref="containerRef" h="max-full" grid="~ cols-4 gap-x-8 gap-y-4" m="x-16" p="4" class="adv-history-panel overflow-y-auto">
@@ -16,19 +33,3 @@
     </div>
   </AdvModal>
 </template>
-
-<script lang="ts" setup>
-import { adv } from '~/setup/adv'
-import { useAppStore } from '~/stores/app'
-
-const app = useAppStore()
-
-const ast = computed(() => adv.store.ast.value)
-
-const containerRef = ref<HTMLDivElement>()
-
-watch(() => containerRef.value, (val) => {
-  if (!val) return
-  val.scrollTop = val.scrollHeight
-})
-</script>

@@ -1,9 +1,3 @@
-<template>
-  <button class="adv-text-button" :class="active && 'active'" @click="onClick">
-    <slot />
-  </button>
-</template>
-
 <script lang="ts" setup>
 defineProps<{
   active?: boolean
@@ -15,6 +9,12 @@ const onClick = (event: Event) => {
   emit('click', event)
 }
 </script>
+
+<template>
+  <button class="adv-text-button" :class="active && 'active'" @click="onClick">
+    <slot />
+  </button>
+</template>
 
 <style lang="scss">
 @use "sass:map";

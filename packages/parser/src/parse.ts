@@ -19,7 +19,8 @@ export function convertMdToAdv(mdAst: Root) {
   // 深度优先
   mdAst.children.forEach((child) => {
     const advItem = parseChild(child)
-    if (advItem) advAst.children.push(advItem)
+    if (advItem)
+      advAst.children.push(advItem)
   })
 
   return advAst

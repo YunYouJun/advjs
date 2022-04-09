@@ -1,9 +1,3 @@
-<template>
-  <div class="w-full h-full">
-    <canvas ref="babylonCanvas" class="w-full h-full outline-none" />
-  </div>
-</template>
-
 <script lang="ts" setup>
 import * as BABYLON from '@babylonjs/core'
 import { isClient } from '@advjs/shared/utils'
@@ -16,7 +10,8 @@ const bStore = useBabylonStore()
 const babylonCanvas = ref()
 
 onMounted(async() => {
-  if (!isClient) return
+  if (!isClient)
+    return
   const instance = await setup(babylonCanvas.value)
   bStore.setInstance(instance)
 })
@@ -68,3 +63,9 @@ watch(() => curNode.value, () => {
   }
 })
 </script>
+
+<template>
+  <div class="w-full h-full">
+    <canvas ref="babylonCanvas" class="w-full h-full outline-none" />
+  </div>
+</template>

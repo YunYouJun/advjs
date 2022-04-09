@@ -1,3 +1,21 @@
+<script setup lang="ts">
+// import * as pkg from '~/../package.json'
+import { useAppStore } from '../stores/app'
+import { isDark, toggleDark } from '../composables'
+
+const appStore = useAppStore()
+
+const { t, availableLocales, locale } = useI18n()
+
+// const toggleLocales = () => {
+//   // change to some real logic
+//   const locales = availableLocales
+//   locale.value = locales[(locales.indexOf(locale.value) + 1) % locales.length]
+// }
+
+// initoptions
+</script>
+
 <template>
   <nav class="text-xl pt-2">
     <router-link
@@ -58,21 +76,3 @@
     </a>
   </nav>
 </template>
-
-<script setup lang="ts">
-// import * as pkg from '~/../package.json'
-import { useAppStore } from '../stores/app'
-import { isDark, toggleDark } from '../composables'
-
-const appStore = useAppStore()
-
-const { t, availableLocales, locale } = useI18n()
-
-// const toggleLocales = () => {
-//   // change to some real logic
-//   const locales = availableLocales
-//   locale.value = locales[(locales.indexOf(locale.value) + 1) % locales.length]
-// }
-
-// initoptions
-</script>

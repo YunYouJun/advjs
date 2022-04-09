@@ -1,3 +1,16 @@
+<script setup lang="ts">
+const props = withDefaults(defineProps<{ duration?: number }>(), {
+  duration: 2000,
+})
+
+const router = useRouter()
+onMounted(() => {
+  setTimeout(() => {
+    router.push('/start')
+  }, props.duration)
+})
+</script>
+
 <template>
   <main
     class="
@@ -16,19 +29,6 @@
     </div>
   </main>
 </template>
-
-<script setup lang="ts">
-const props = withDefaults(defineProps<{ duration?: number }>(), {
-  duration: 2000,
-})
-
-const router = useRouter()
-onMounted(() => {
-  setTimeout(() => {
-    router.push('/start')
-  }, props.duration)
-})
-</script>
 
 <route lang="yaml">
 meta:

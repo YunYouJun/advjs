@@ -48,7 +48,8 @@ export async function setup(canvas: HTMLCanvasElement, onVRMLoaded?: (vrmManager
     // on vrm loaded
     const vrmManager = getVrmManager(scene)
 
-    if (!vrmManager) return
+    if (!vrmManager)
+      return
 
     vrmStore.setVrmManager(vrmManager)
 
@@ -92,7 +93,8 @@ export async function setup(canvas: HTMLCanvasElement, onVRMLoaded?: (vrmManager
     window.addEventListener('click', () => {
       autoRotate = false
     })
-    if (autoRotate) camera.alpha += 0.003
+    if (autoRotate)
+      camera.alpha += 0.003
 
     scene.render()
   })

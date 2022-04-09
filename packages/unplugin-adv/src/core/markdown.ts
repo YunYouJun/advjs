@@ -40,7 +40,8 @@ export function createMarkdown(options: ResolvedOptions) {
   return async(id: string, raw: string) => {
     raw = raw.trimStart()
 
-    if (transforms.before) raw = transforms.before(raw, id)
+    if (transforms.before)
+      raw = transforms.before(raw, id)
 
     const { content: md, data } = matter(raw)
 
@@ -50,7 +51,8 @@ export function createMarkdown(options: ResolvedOptions) {
       options.frontmatter ? ' :frontmatter="frontmatter"' : ''
     } :ast="advAst">${html}</${wrapperComponent}>`
 
-    if (transforms.after) html = transforms.after(html, id)
+    if (transforms.after)
+      html = transforms.after(html, id)
 
     const hoistScripts = extractScriptSetup(html)
     html = hoistScripts.html
