@@ -75,7 +75,7 @@ const menuItems = computed<StartMenuItem[]>(() =>
   >
   <div class="animate-animated animate-slideInRight animate-delay-300 animate-fadeIn">
     <img
-      class="h-200 absolute left-89 top-5 h-full  z-1 filter drop-shadow-lg hue-rotate-330 transform -rotate-y-180"
+      class="h-200 absolute left-89 top-5 h-full  z-1 filter drop-shadow-lg transform -rotate-y-180"
       :src="yunAlphaUrl"
     >
   </div>
