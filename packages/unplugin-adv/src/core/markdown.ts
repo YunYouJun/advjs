@@ -37,7 +37,7 @@ export function createMarkdown(options: ResolvedOptions) {
     frontmatterPreprocess,
   } = options
 
-  return async(id: string, raw: string) => {
+  return async (id: string, raw: string) => {
     raw = raw.trimStart()
 
     if (transforms.before)

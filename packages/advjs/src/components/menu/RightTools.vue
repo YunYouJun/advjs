@@ -23,14 +23,14 @@ const menuItems = computed<MenuButtonItem[]>(() => {
   const items
     = route.path === '/game'
       ? [
-        {
-          title: t('menu.save_game'),
-          do: () => {
-            app.toggleShowMenu()
-            app.toggleShowSaveMenu()
+          {
+            title: t('menu.save_game'),
+            do: () => {
+              app.toggleShowMenu()
+              app.toggleShowSaveMenu()
+            },
           },
-        },
-      ]
+        ]
       : []
 
   return items.concat(

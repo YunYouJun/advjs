@@ -9,12 +9,12 @@ const sharedEditorOptions: m.editor.IStandaloneEditorConstructionOptions = {
   wordWrap: 'on',
 }
 
-const setup = async() => {
+const setup = async () => {
   const monaco = await import('monaco-editor')
 
   await Promise.all([
     // load workers
-    (async() => {
+    (async () => {
       const [
         { default: EditorWorker },
         { default: JsonWorker },

@@ -16,7 +16,7 @@ export const downloadDataUrlAsImage = (dataUrl: string, filename: string) => {
 /**
  * 截图
  */
-export const screenshot = async(el: HTMLElement, options: Partial<Options> = {}) => {
+export const screenshot = async (el: HTMLElement, options: Partial<Options> = {}) => {
   const canvas = await html2canvas(el, options)
   return canvas.toDataURL()
 }
@@ -33,7 +33,7 @@ export const getGameViewDom = () => {
 /**
  * 游戏截图并下载
  */
-export const screenshotGame = async(options: Partial<Options> = {}) => {
+export const screenshotGame = async (options: Partial<Options> = {}) => {
   const advContent = getGameViewDom()
   if (advContent) {
     const dataUrl = await screenshot(advContent, options)
@@ -45,7 +45,7 @@ export const screenshotGame = async(options: Partial<Options> = {}) => {
  * 获取游戏缩略图
  * @param options
  */
-export const screenshotGameThumb = async(options: Partial<Options> = {}) => {
+export const screenshotGameThumb = async (options: Partial<Options> = {}) => {
   const advContent = getGameViewDom()
   const dataUrl = await screenshot(advContent, Object.assign({ scale: 0.2 }, options))
   return dataUrl

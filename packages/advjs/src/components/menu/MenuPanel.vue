@@ -20,7 +20,7 @@ const items = computed(() => {
       label: t('settings.landscape'),
       props: {
         checked: orientation.value === 'landscape',
-        onClick: async() => {
+        onClick: async () => {
           if (isFullscreen.value) {
             await exit()
             toggle('portrait')

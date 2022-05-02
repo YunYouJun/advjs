@@ -17,7 +17,7 @@ export const useGameStore = defineStore('game', () => {
     return recordsStorage.setItem(key, data)
   }
 
-  const saveRecordMeta = async(index: number, meta: Partial<AdvGameRecordMeta>) => {
+  const saveRecordMeta = async (index: number, meta: Partial<AdvGameRecordMeta>) => {
     const key = index.toString()
     return await recordsStorage.setMeta(key, Object.assign({ createdAt: (new Date()).valueOf() }, meta))
   }
@@ -26,13 +26,13 @@ export const useGameStore = defineStore('game', () => {
    * 读取记录
    * @param index
    */
-  const readRecord = async(index: number) => {
+  const readRecord = async (index: number) => {
     const key = index.toString()
     const data = (await recordsStorage.getItem(key)) as AdvGameRecord
     return data
   }
 
-  const readRecordMeta = async(index: number) => {
+  const readRecordMeta = async (index: number) => {
     const key = index.toString()
     const meta = (await recordsStorage.getMeta(key)) as AdvGameRecordMeta
     return meta

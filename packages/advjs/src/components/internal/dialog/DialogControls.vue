@@ -4,7 +4,7 @@ import { useAppStore } from '~/stores/app'
 
 const app = useAppStore()
 
-const doScreenshot = async() => {
+const doScreenshot = async () => {
   screenshotGame()
 }
 

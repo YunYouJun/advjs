@@ -27,7 +27,7 @@ const meta = ref<AdvGameRecordMeta>()
 const memo = ref('')
 const isEditing = ref(false)
 
-onMounted(async() => {
+onMounted(async () => {
   const savedRecord = await game.readRecord(props.no)
   record.value = savedRecord
   const savedMeta = await game.readRecordMeta(props.no)
@@ -35,7 +35,7 @@ onMounted(async() => {
   memo.value = savedMeta.memo || ''
 })
 
-const saveCardMeta = async() => {
+const saveCardMeta = async () => {
   await game.saveRecordMeta(props.no, {
     memo: memo.value,
   })
@@ -45,7 +45,7 @@ const saveCardMeta = async() => {
 /**
  * 存储至该卡片
  */
-const saveToCard = async() => {
+const saveToCard = async () => {
   const dataUrl = await screenshotGameThumb()
   const curRecord = adv.store.cur.value
   try {

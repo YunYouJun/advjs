@@ -31,7 +31,7 @@ const vrmManager = ref<VRMManager>()
 
 const vrmStore = useVrmStore()
 
-onMounted(async() => {
+onMounted(async () => {
   if (!isClient)
     return
   const babylon = await setup(babylonCanvas.value, (manager) => {

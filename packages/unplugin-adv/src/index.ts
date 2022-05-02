@@ -39,7 +39,7 @@ export default createUnplugin<Options>((userOptions: Options = {}) => {
           return
 
         const defaultRead = ctx.read
-        ctx.read = async function() {
+        ctx.read = async function () {
           return markdownToVue(ctx.file, await defaultRead())
         }
       },

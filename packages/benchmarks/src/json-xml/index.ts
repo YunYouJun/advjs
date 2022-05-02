@@ -16,14 +16,14 @@ b.suite(
     }
   }),
 
-  b.add('Read and Parse XML by xml2js without promise', async() => {
+  b.add('Read and Parse XML by xml2js without promise', async () => {
     for (let i = 1; i <= dataLength; i++) {
       const xmlText = fs.readFileSync(path.resolve(xmlFolder, `${i}.xml`), 'utf-8')
       parseString(xmlText, () => {})
     }
   }),
 
-  b.add('Read and Parse XML by xml2js', async() => {
+  b.add('Read and Parse XML by xml2js', async () => {
     for (let i = 1; i <= dataLength; i++) {
       const xmlText = fs.readFileSync(path.resolve(xmlFolder, `${i}.xml`), 'utf-8')
       await parseStringPromise(xmlText, {

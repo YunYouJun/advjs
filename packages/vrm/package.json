@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "@babylonjs/materials": "^4.2.2",
-    "@iconify-json/carbon": "^1.1.3",
+    "@iconify-json/carbon": "^1.1.4",
     "@intlify/vite-plugin-vue-i18n": "^3.4.0",
     "@pixiv/three-vrm": "^1.0.0-beta.8",
     "@types/markdown-it-link-attributes": "^3.0.1",
@@ -46,7 +46,7 @@
     "unplugin-auto-import": "^0.7.1",
     "unplugin-icons": "^0.14.1",
     "unplugin-vue-components": "^0.19.3",
-    "vite": "^2.9.6",
+    "vite": "^2.9.7",
     "vite-plugin-inspect": "^0.5.0",
     "vite-plugin-md": "^0.13.0",
     "vite-plugin-pages": "^0.23.0",

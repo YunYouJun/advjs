@@ -25,7 +25,7 @@ export const createCharacterScene = (engine: BABYLON.Engine) => {
  * @param canvas
  * @returns
  */
-export const setup = async(canvas: HTMLCanvasElement) => {
+export const setup = async (canvas: HTMLCanvasElement) => {
   // Load the 3D engine
   const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true })
   const scene = createScene(engine)

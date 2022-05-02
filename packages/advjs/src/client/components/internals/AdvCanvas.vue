@@ -9,7 +9,7 @@ const bStore = useBabylonStore()
 
 const babylonCanvas = ref()
 
-onMounted(async() => {
+onMounted(async () => {
   if (!isClient)
     return
   const instance = await setup(babylonCanvas.value)
