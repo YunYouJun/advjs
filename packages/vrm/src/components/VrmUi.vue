@@ -137,7 +137,7 @@ const toggleBone = (bone: HumanBonesType) => {
           <details>
             <summary>
               <h3
-                text="xs" class="inline-flex cursor-pointer justify-center items-center" :class="bone === curBone ? 'font-bold text-blue-300' : ''" @click="(event)=>{
+                text="xs" class="inline-flex cursor-pointer justify-center items-center" :class="bone === curBone ? 'font-bold text-blue-300' : ''" @click="(event) => {
                   toggleBone(bone);event.preventDefault()
                 }"
               >
@@ -145,12 +145,12 @@ const toggleBone = (bone: HumanBonesType) => {
                   <i-ri-checkbox-line v-if="bone === curBone" />
                   <i-ri-checkbox-blank-line v-else />
                 </span>
-                {{ t('bones.' + bone) }} <small text="xs" opacity="80" class="transform scale-90">({{ bone }})</small>
+                {{ t(`bones.${bone}`) }} <small text="xs" opacity="80" class="transform scale-90">({{ bone }})</small>
               </h3>
             </summary>
 
             <div v-for="axis in (['x', 'y', 'z'] as const)" :key="axis" class="flex justify-center items-center">
-              <AdvSlider v-model="bonesRotation[bone][axis].value" :label="axis+':'" unit="°" @input="(degree)=>{updateBoneRotation(bone, axis, degree)}" />
+              <AdvSlider v-model="bonesRotation[bone][axis].value" :label="`${axis}:`" unit="°" @input="(degree) => { updateBoneRotation(bone, axis, degree) }" />
             </div>
           </details>
         </div>

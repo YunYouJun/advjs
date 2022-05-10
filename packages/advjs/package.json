@@ -2,10 +2,16 @@
   "name": "advjs",
   "version": "0.0.1",
   "description": "A parser for @advjs.",
-  "main": "dist/index.js",
+  "license": "MPL-2.0",
+  "author": {
+    "name": "YunYouJun",
+    "email": "me@yunyoujun.cn",
+    "url": "https://www.yunyoujun.cn"
+  },
   "repository": {
     "url": "https://github.com/YunYouJun/advjs"
   },
+  "main": "dist/index.js",
   "scripts": {
     "build": "cross-env NODE_ENV=production vite build",
     "dev": "vite --host",
@@ -67,11 +73,5 @@
     "vite-plugin-windicss": "^1.8.4",
     "vite-ssg": "^0.19.2",
     "wc-github-corners": "^0.1.5"
-  },
-  "author": {
-    "name": "YunYouJun",
-    "email": "me@yunyoujun.cn",
-    "url": "https://www.yunyoujun.cn"
-  },
-  "license": "MPL-2.0"
+  }
 }

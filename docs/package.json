@@ -2,18 +2,21 @@
   "name": "@advjs/docs",
   "private": true,
   "description": "面向未来与前端的 ADV 文字冒险游戏引擎。",
-  "scripts": {
-    "dev": "vitepress dev .",
-    "build": "vitepress build .",
-    "serve": "vitepress serve ."
-  },
+  "license": "ISC",
   "author": {
     "name": "YunYouJun",
     "email": "me@yunyoujun.cn",
     "url": "https://www.yunyoujun.cn"
   },
-  "license": "ISC",
+  "scripts": {
+    "dev": "vitepress dev .",
+    "build": "vitepress build .",
+    "serve": "vitepress serve ."
+  },
   "homepage": "https://docs.advjs.org",
+  "dependencies": {
+    "vitepress-theme-you": "^0.0.33"
+  },
   "devDependencies": {
     "@iconify-json/file-icons": "^1.1.1",
     "@iconify-json/logos": "^1.1.5",
@@ -24,8 +27,5 @@
     "vite-plugin-pwa": "^0.12.0",
     "vite-plugin-windicss": "^1.8.4",
     "vitepress": "^0.22.3"
-  },
-  "dependencies": {
-    "vitepress-theme-you": "^0.0.33"
   }
 }

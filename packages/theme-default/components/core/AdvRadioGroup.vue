@@ -1,14 +1,14 @@
 <script lang="ts" setup>
 import type { AdvItemOption } from '@advjs/theme-default'
 
+defineProps<{ props: AdvRadioGroupProps }>()
+
 // todo import
 export interface AdvRadioGroupProps<T extends AdvItemOption = AdvItemOption> {
   checked: T['value']
   options: T[]
   onClick?: (value: T) => void
 }
-
-defineProps<{ props: AdvRadioGroupProps }>()
 </script>
 
 <template>

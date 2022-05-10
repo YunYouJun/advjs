@@ -1,6 +1,4 @@
 <script setup lang="ts">
-export type DisplayMode = 'type' | 'soft'
-
 const props = withDefaults(defineProps<{
   speed?: 'normal' | 'fast' | 'slow'
   words?: string
@@ -14,6 +12,8 @@ const props = withDefaults(defineProps<{
   mode: 'soft',
   speed: 'normal',
 })
+const emit = defineEmits(['end'])
+export type DisplayMode = 'type' | 'soft'
 
 const speedMap = {
   slow: 100,
@@ -26,8 +26,6 @@ const displayWords = ref('')
 const len = ref(0)
 
 const intervalId = ref()
-
-const emit = defineEmits(['end'])
 
 const playWordsAnimation = () => {
   intervalId.value = setInterval(() => {

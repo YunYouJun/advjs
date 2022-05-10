@@ -23,7 +23,7 @@ npm i unplugin-adv
 
 ```ts
 // vite.config.ts
-import Adv from 'unplugin-adv/vite';
+import Adv from 'unplugin-adv/vite'
 
 export default defineConfig({
   plugins: [
@@ -31,7 +31,7 @@ export default defineConfig({
       /* options */
     }),
   ],
-});
+})
 ```
 
 Example: [`playground/`](./playground/)
@@ -43,7 +43,7 @@ Example: [`playground/`](./playground/)
 
 ```ts
 // rollup.config.js
-import Starter from 'unplugin-adv/rollup';
+import Starter from 'unplugin-adv/rollup'
 
 export default {
   plugins: [
@@ -51,7 +51,7 @@ export default {
       /* options */
     }),
   ],
-};
+}
 ```
 
 <br></details>
@@ -68,7 +68,7 @@ module.exports = {
       /* options */
     }),
   ],
-};
+}
 ```
 
 <br></details>
@@ -87,7 +87,7 @@ export default {
       },
     ],
   ],
-};
+}
 ```
 
 > This module works for both Nuxt 2 and [Nuxt Vite](https://github.com/nuxt/vite)
@@ -107,7 +107,7 @@ module.exports = {
       }),
     ],
   },
-};
+}
 ```
 
 <br></details>
@@ -130,5 +130,5 @@ export default defineConfig({
       // ...
     }),
   ],
-});
+})
 ```

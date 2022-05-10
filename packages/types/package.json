@@ -5,20 +5,20 @@
   "homepage": "https://advjs.org",
   "bugs": "https://github.com/YunYouJun/advjs/issues",
   "license": "MPL-2.0",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/YunYouJun/advjs"
-  },
   "author": {
     "name": "YunYouJun",
     "email": "me@yunyoujun.cn",
     "url": "https://www.yunyoujun.cn"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YunYouJun/advjs"
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
   "files": [
     "dist"
   ],
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
   "scripts": {
     "build": "pnpx tsup src/index.ts --format cjs,esm --dts --splitting",
     "dev": "nr build --watch",

@@ -91,7 +91,7 @@ const menuItems = computed<StartMenuItem[]>(() =>
     <div v-if="rippleAnimation" class="adv-ripple absolute top-0" />
   </transition>
   <transition
-    :duration="{enter: 300, leave: 1300}"
+    :duration="{ enter: 300, leave: 1300 }"
   >
     <div v-if="rippleAnimation" class="adv-ripple bg-orange-400 absolute top-0 right-0 animate-delay-200" />
   </transition>

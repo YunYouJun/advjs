@@ -1,12 +1,11 @@
 <script setup lang="ts">
+defineProps<{
+  menuItems: StartMenuItem[]
+}>()
 export interface StartMenuItem {
   title: string
   do?: () => void
 }
-
-defineProps<{
-  menuItems: StartMenuItem[]
-}>()
 </script>
 
 <template>

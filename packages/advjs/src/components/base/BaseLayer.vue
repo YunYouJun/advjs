@@ -4,7 +4,7 @@ const app = useAppStore()
 </script>
 
 <template>
-  <div class="hide-ui-layer" @click="()=>{app.toggleUi()}" />
+  <div class="hide-ui-layer" @click="() => { app.toggleUi() }" />
 </template>
 
 <style>

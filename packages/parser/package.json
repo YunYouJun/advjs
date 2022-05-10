@@ -1,8 +1,14 @@
 {
   "name": "@advjs/parser",
+  "type": "module",
   "version": "0.0.1",
   "description": "A parser for advjs.",
-  "type": "module",
+  "license": "MPL-2.0",
+  "author": {
+    "name": "YunYouJun",
+    "email": "me@yunyoujun.cn",
+    "url": "https://www.yunyoujun.cn"
+  },
   "main": "src/index.ts",
   "scripts": {
     "build": "tsup",
@@ -20,12 +26,6 @@
     "remark-rehype": "^10.1.0",
     "unified": "^10.1.2"
   },
-  "author": {
-    "name": "YunYouJun",
-    "email": "me@yunyoujun.cn",
-    "url": "https://www.yunyoujun.cn"
-  },
-  "license": "MPL-2.0",
   "homepage": "https://github.com/YunYouJun/advjs/tree/main/packages/parser#readme",
   "devDependencies": {
     "@babel/core": "^7.17.10",

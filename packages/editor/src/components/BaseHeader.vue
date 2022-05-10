@@ -53,7 +53,7 @@ const { t, availableLocales, locale } = useI18n()
 
     <!-- <a class="icon-btn mx-2" :title="t('button.toggle_langs')" @click="toggleLocales">
       <i-ri-translate-2 />
-    </a>-->
+    </a> -->
 
     <router-link
       class="icon-btn mx-2"

@@ -1,8 +1,11 @@
 {
   "name": "@advjs/vrm",
-  "private": true,
   "version": "0.0.1",
+  "private": true,
   "homepage": "https://vrm.advjs.org",
+  "repository": {
+    "url": "https://github.com/YunYouJun/advjs"
+  },
   "scripts": {
     "build": "vite-ssg build",
     "dev": "vite --port 3335 --open",
@@ -11,9 +14,6 @@
     "preview-https": "serve dist",
     "test": "vitest",
     "typecheck": "vue-tsc --noEmit"
-  },
-  "repository": {
-    "url": "https://github.com/YunYouJun/advjs"
   },
   "dependencies": {
     "@babylonjs/core": "^4.2.2",

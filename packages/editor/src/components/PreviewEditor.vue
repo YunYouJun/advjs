@@ -3,12 +3,12 @@ import { isClient } from '@vueuse/core'
 import type * as m from 'monaco-editor'
 import setupMonaco from '../setup/monaco'
 
+const props = defineProps<{ content?: string; type: 'html' | 'json' }>()
+
 const container = ref<HTMLElement | null>()
 
 // ref store is slow, and stuck
 let editor: m.editor.IStandaloneCodeEditor
-const props = defineProps<{ content?: string; type: 'html' | 'json' }>()
-
 async function init() {
   const { monaco, initOutputEditor } = await setupMonaco()
 

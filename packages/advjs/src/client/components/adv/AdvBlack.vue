@@ -62,7 +62,7 @@ watch(() => props.content, () => {
     @click="next"
   >
     <div class="words-wrapper relative" text="left">
-      <template v-for="(item,i) in displaySentences" :key="i">
+      <template v-for="(item, i) in displaySentences" :key="i">
         <PrintWords :type-interval="typeInterval" m="2" :words="item" />
         <!-- 撑开宽度 -->
         <div class="print-words invisible" m="x-2 -t-6">

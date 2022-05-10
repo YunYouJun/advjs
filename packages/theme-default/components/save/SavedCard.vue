@@ -7,8 +7,6 @@ import { useGameStore } from '~/stores/game'
 import { useAppStore } from '~/stores/app'
 import { adv } from '~/setup/adv'
 
-const app = useAppStore()
-
 const props = withDefaults(defineProps<{
   /**
    * 类型
@@ -19,6 +17,8 @@ const props = withDefaults(defineProps<{
   type: 'save',
   no: 1,
 })
+
+const app = useAppStore()
 
 const game = useGameStore()
 
@@ -104,7 +104,7 @@ const onCardClick = () => {
       </p>
       <h3 text="base" class="flex justify-between items-center" bg="white">
         <input v-model="memo" p="x-1" class="adv-record-memo" text="xs dark-400 dark:white" @input="isEditing = true">
-        <span p="x-2" bg="black" font="mono" text="xs white" @click="saveCardMeta">{{ isEditing ? '保存' :'备注' }}</span>
+        <span p="x-2" bg="black" font="mono" text="xs white" @click="saveCardMeta">{{ isEditing ? '保存' : '备注' }}</span>
       </h3>
     </div>
   </div>

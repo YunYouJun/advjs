@@ -1,24 +1,24 @@
 {
   "name": "create-adv",
   "version": "0.0.1",
-  "bin": {
-    "create-adv": "index.js",
-    "caa": "index.js"
-  },
-  "files": [
-    "index.js",
-    "template-*"
-  ],
-  "main": "index.js",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/YunYouJun/advjs.git"
-  },
-  "homepage": "https://github.com/YunYouJun/advjs/tree/main/packages/create-adv#readme",
   "license": "MPL-2.0",
   "author": {
     "name": "YunYouJun",
     "email": "me@yunyoujun.cn",
     "url": "https://www.yunyoujun.cn"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YunYouJun/advjs.git"
+  },
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "template-*"
+  ],
+  "bin": {
+    "create-adv": "index.js",
+    "caa": "index.js"
+  },
+  "homepage": "https://github.com/YunYouJun/advjs/tree/main/packages/create-adv#readme"
 }

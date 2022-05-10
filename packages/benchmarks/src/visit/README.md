@@ -6,7 +6,7 @@
 
 ## Usage
 
-```ts
+```bash
 pnpm start:visit
 ```
 

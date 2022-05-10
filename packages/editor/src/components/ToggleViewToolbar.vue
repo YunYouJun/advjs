@@ -43,7 +43,7 @@ const parserItems: { title: string; value: OutputType; icon: string }[] = [
       text="sm"
       :title="item.title"
       :class="[
-        editorStore.options.outputType === item.value ? 'bg-black text-white shadow' : ''
+        editorStore.options.outputType === item.value ? 'bg-black text-white shadow' : '',
       ]"
       @click="editorStore.options.outputType = item.value"
     >
