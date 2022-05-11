@@ -1,30 +1,58 @@
 export * from './client'
 
+export interface Tachie {
+  /**
+   * only one
+   * @example smile
+   */
+  id: string
+  /**
+   * @example 微笑
+   */
+  name?: string
+  description?: string
+  /**
+   * tachie path or url
+   */
+  src: string
+}
+
 export interface Character {
   /**
-   * 姓名
+   * @description:zh-CN 姓名
    */
   name: string
   /**
-   * 头像
+   * @description:zh-CN 头像
    */
   avatar: string
   /**
-   * 别名
+   * @description:zh-CN 别名
    */
   alias: string | string[]
+  /**
+   * @description:zh-CN 立绘们
+   */
+  tachies: Tachie[]
 }
 
+/**
+ * Global Game Config
+ */
 export interface GameConfig {
   pages: {
-    // 开始页面
+    /**
+     * Start Page
+     */
     start: {
       /**
-       * 背景
+       * Path or URL
+       * @description:zh-CN 背景
        */
       bg: string
       /**
-       * 暗色模式
+       * Path or URL
+       * @description:zh-CN 暗色模式背景
        */
       darkBg?: string
     }
@@ -40,7 +68,14 @@ export interface GameConfig {
     enable: boolean
     prefix?: string
   }
+
+  /**
+   * all characters appear in the game
+   */
   characters: Character[]
 }
 
+/**
+ * User Config Type for adv.config.ts
+ */
 export type UserGameConfig = Partial<GameConfig>

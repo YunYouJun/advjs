@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^0.23.0",
-    "@types/node": "^17.0.31",
+    "@types/node": "^17.0.32",
     "@yunyoujun/logger": "^0.2.3",
     "consola": "^2.15.3",
     "cross-env": "^7.0.3",

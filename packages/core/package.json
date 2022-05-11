@@ -2,6 +2,6 @@
   "name": "@advjs/core",
   "dependencies": {
     "html2canvas": "^1.4.1",
-    "unstorage": "^0.4.0"
+    "unstorage": "^0.4.1"
   }
 }
