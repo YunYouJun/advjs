@@ -15,8 +15,8 @@ export const useAppStore = defineStore('app', () => {
 
   const [showBg, toggleBg] = useToggle(true)
   // 3D 画布能力
-  // const [showCanvas, toggleCanvas] = useToggle(false)
-  const [showCanvas, toggleCanvas] = useToggle(true)
+  const [showCanvas, toggleCanvas] = useToggle(false)
+  // const [showCanvas, toggleCanvas] = useToggle(true)
 
   return {
     showUi,
