@@ -76,6 +76,7 @@ watch(() => props.content, () => {
 <style lang="scss">
 .adv-black {
   background-color: rgba(0, 0, 0, 0.8);
+
   p {
     margin: 0.5rem;
   }

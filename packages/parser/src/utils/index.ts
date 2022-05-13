@@ -83,7 +83,6 @@ export function toDialog(text: string): Adv.Dialog | false {
       pos = text.indexOf(delimiter)
       return pos > -1
     })
-    isDialog = (pos > 0)
     if (pos > 0) {
       isDialog = true
       syntaxType = 'delimiter'
