@@ -6,7 +6,7 @@ export const parseCode = () => {
 
 export const codeMap = [
   {
-    suffix: ['adv', 'advscript', 'json'],
+    suffix: ['adv', 'advscript'],
     parse(val: string) {
       return JSON.parse(val)
     },

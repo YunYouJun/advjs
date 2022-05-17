@@ -65,7 +65,7 @@ watch(() => curNode.value, () => {
 </script>
 
 <template>
-  <div class="w-full h-full">
+  <div class="w-full h-full absolute">
     <canvas ref="babylonCanvas" class="w-full h-full outline-none" />
   </div>
 </template>

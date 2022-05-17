@@ -29,6 +29,12 @@ if (!isDev)
 
 const app = useAppStore()
 
+const { space } = useMagicKeys()
+watch(space, (v) => {
+  if (v && !app.showHistory && !app.showSaveMenu && !app.showLoadMenu)
+    adv.next()
+})
+
 /**
  * provide game config
  */
