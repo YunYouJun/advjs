@@ -1,5 +1,10 @@
-import type { AdvRoot, Character, Text } from '@advjs/types'
+import type { AdvConfig, AdvRoot, Character, Text } from '@advjs/types'
 import type { StorageMeta } from 'unstorage'
+
+export interface TachieState extends AdvConfig.Tachie {
+  // 角色名
+  character: string
+}
 
 export interface CurStateType {
   /**
@@ -10,6 +15,7 @@ export interface CurStateType {
     character: Character
     children: Text[]
   }
+  tachies: Array<TachieState>
 }
 
 /**
@@ -60,6 +66,7 @@ export const createAdvStore = () => {
         value: '',
       }],
     },
+    tachies: [],
   })
 
   const curNode = computed(() => {

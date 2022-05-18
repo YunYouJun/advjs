@@ -17,6 +17,8 @@ export interface Tachie {
    * when 3d: pose json data url
    */
   src: string
+  class?: string[]
+  style?: any
 }
 
 export interface Character {

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { CharacterInfo } from '~/data/characters'
+import type { TachieState } from '@advjs/core'
 import { adv } from '~/setup/adv'
 
-const props = defineProps<{ character: CharacterInfo }>()
+const props = defineProps<{ character: TachieState }>()
 
 const advStore = adv.store
 
@@ -11,26 +11,14 @@ const active = computed(() => {
   return curDialog.character && (curDialog.character.name === props.character.name)
 })
 
-const statusSrc = computed(() => {
-  let src = ''
-  const curDialog = advStore.cur.value.dialog
-  if (curDialog.character) {
-    const status = curDialog.character.status
-    src = props.character.tachies[status]
-  }
-  return src || props.character.tachies[props.character.initStatus]
-})
-
 const characterClass = computed(() => {
   const defaultClass: string[] = []
   let resultClass: string[] = []
-  if (props.character) {
-    if (props.character.class)
-      resultClass = defaultClass.concat(props.character.class)
+  if (props.character.class)
+    resultClass = defaultClass.concat(props.character.class)
 
-    if (!active.value)
-      resultClass.push('inactive-character')
-  }
+  if (!active.value)
+    resultClass.push('inactive-character')
   return resultClass
 })
 </script>
@@ -41,7 +29,7 @@ const characterClass = computed(() => {
       class="tachie-character inline-block transform"
       :class="characterClass"
       :style="character.style"
-      :src="statusSrc"
+      :src="character.src"
       :alt="character.name"
     >
   </div>

@@ -2,7 +2,6 @@
 import type { AdvConfig, AdvRoot } from '@advjs/types'
 
 import { isDev } from '@advjs/shared/utils'
-import { characters } from '~/data/characters'
 import { useAppStore } from '~/stores/app'
 
 import { useBeforeUnload } from '~/client/composables'
@@ -42,7 +41,7 @@ provide(GameConfigKey, props.frontmatter || defaultGameConfig)
   <AdvContainer class="w-full h-full" text="white">
     <div class="adv-game w-full h-full bg-black absolute">
       <AdvScene />
-      <TachieBox :characters="characters" />
+      <TachieBox />
 
       <AdvBlack v-if="curNode && curNode.type === 'narration'" class="z-9" :content="curNode" />
 
