@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import os from 'os'
 import execa from 'execa'
-import { logger } from './logger'
+import consola from 'consola'
 
 async function build(target: string) {
   const pkgDir = path.resolve(`packages/${target}`)
@@ -18,10 +18,10 @@ async function build(target: string) {
       ],
       { stdio: 'inherit' },
     )
-    logger.success(`Build ${target} successfully.`)
+    consola.success(`Build ${target} successfully.`)
   }
   catch (e) {
-    logger.error(`Build ${target} error: ${e}`)
+    consola.error(`Build ${target} error: ${e}`)
   }
 }
 

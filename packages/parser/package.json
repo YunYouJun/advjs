@@ -12,8 +12,8 @@
   "main": "src/index.ts",
   "scripts": {
     "build": "tsup",
-    "test": "esno test/index.ts",
-    "jest": "jest"
+    "temp": "esno test/index.ts",
+    "test": "vitest"
   },
   "dependencies": {
     "@advjs/types": "workspace:^",
