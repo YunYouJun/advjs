@@ -11,6 +11,11 @@ characters:
     actor: 闫妮
     alias: 掌柜
     avatar: /assets/images/characters/txy/1.webp
+    tachies:
+      默认:
+        src: /img/characters/she/she.png
+        style:
+          transform: scale(1.2)
   - name: 郭芙蓉
     alias: 小郭
     avatar: /assets/images/characters/gfr/1.webp
@@ -23,6 +28,14 @@ characters:
     alias: 老白
     avatar: /assets/images/characters/bzt/1.webp
     actor: 沙溢
+    tachies:
+      默认:
+        src: /img/characters/he/he.png
+        class:
+          - scale-120
+      笑:
+        description: 笑
+        src: /img/characters/he/he-smile.png
   - name: 吕秀才
     alias: 秀才
     avatar: /assets/images/characters/lqh/1.webp

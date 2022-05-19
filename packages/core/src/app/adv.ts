@@ -1,7 +1,8 @@
 import { parse } from '@advjs/parser'
-import type { AdvRoot } from '@advjs/types'
+import type { AdvRoot, Dialog } from '@advjs/types'
 import consola from 'consola'
 import { createAdvStore } from '../stores'
+import { getCharacter } from '../utils'
 
 export interface AdvOptions {
   /**
@@ -35,9 +36,7 @@ export function createAdv(options?: Partial<AdvOptions>) {
   /**
    * 演出开始
    */
-  function play() {
-
-  }
+  function play() {}
 
   /**
    * 理解文本
@@ -78,10 +77,12 @@ export function createAdv(options?: Partial<AdvOptions>) {
           name: '',
           status: '',
         },
-        children: [{
-          type: 'text',
-          value: '（镜头动画）',
-        }],
+        children: [
+          {
+            type: 'text',
+            value: '（镜头动画）',
+          },
+        ],
       }
     }
 
@@ -106,6 +107,10 @@ export function createAdv(options?: Partial<AdvOptions>) {
     const childType = curNode.type
     if (childType === 'dialog') {
       store.cur.value.dialog = curNode
+      if (curNode.character.status !== '') {
+        // 需要切换立绘
+        updateTachie(curNode)
+      }
       return true
     }
     else if (childType === 'text') {
@@ -122,6 +127,20 @@ export function createAdv(options?: Partial<AdvOptions>) {
     // nextParagraph()
     // }
     // else { return false }
+  }
+
+  function updateTachie(curNode: Dialog) {
+    const character = getCharacter(
+      store.gameConfig.characters,
+      curNode.character.name,
+    )
+    if (!character)
+      return
+    const tachie = character.tachies[curNode.character.status]
+    if (!tachie)
+      return
+    if (store.cur.value.tachies.has(curNode.character.name))
+      store.cur.value.tachies.set(curNode.character.name, tachie)
   }
 
   return {

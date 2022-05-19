@@ -31,10 +31,8 @@ const app = useAppStore()
 
 useAdvKeys()
 
-/**
- * provide game config
- */
-provide(GameConfigKey, props.frontmatter || defaultGameConfig)
+if (props.frontmatter)
+  adv.store.gameConfig = props.frontmatter
 </script>
 
 <template>

@@ -1,10 +1,6 @@
 import type { AdvConfig, AdvRoot, Character, Text } from '@advjs/types'
 import type { StorageMeta } from 'unstorage'
-
-export interface TachieState extends AdvConfig.Tachie {
-  // 角色名
-  character: string
-}
+import { defaultGameConfig } from '~/config/game'
 
 export interface CurStateType {
   /**
@@ -15,7 +11,8 @@ export interface CurStateType {
     character: Character
     children: Text[]
   }
-  tachies: Array<TachieState>
+  // key为角色名
+  tachies: Map<string, AdvConfig.Tachie>
 }
 
 /**
@@ -66,7 +63,7 @@ export const createAdvStore = () => {
         value: '',
       }],
     },
-    tachies: [],
+    tachies: new Map(),
   })
 
   const curNode = computed(() => {
@@ -75,12 +72,13 @@ export const createAdvStore = () => {
     else
       return null
   })
-  // watch(() => curState.order, () => {
-  //   curNode =
-  // })
+
+  const gameConfig: AdvConfig.GameConfig = defaultGameConfig
 
   return {
     ast,
+
+    gameConfig,
 
     /**
      * 当前节点

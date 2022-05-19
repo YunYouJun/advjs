@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import type { TachieState } from '@advjs/core'
+import type { AdvConfig } from '@advjs/types'
 import { adv } from '~/setup/adv'
 
-const props = defineProps<{ character: TachieState }>()
+const props = defineProps<{ tachie: AdvConfig.Tachie;character: string }>()
 
 const advStore = adv.store
 
 const active = computed(() => {
   const curDialog = advStore.cur.value.dialog
-  return curDialog.character && (curDialog.character.name === props.character.name)
+  return curDialog.character && (curDialog.character.name === props.character)
 })
 
 const characterClass = computed(() => {
   const defaultClass: string[] = []
   let resultClass: string[] = []
-  if (props.character.class)
-    resultClass = defaultClass.concat(props.character.class)
+  if (props.tachie.class)
+    resultClass = defaultClass.concat(props.tachie.class)
 
   if (!active.value)
     resultClass.push('inactive-character')
@@ -28,9 +28,8 @@ const characterClass = computed(() => {
     <img
       class="tachie-character inline-block transform"
       :class="characterClass"
-      :style="character.style"
-      :src="character.src"
-      :alt="character.name"
+      :style="tachie.style"
+      :src="tachie.src"
     >
   </div>
 </template>
