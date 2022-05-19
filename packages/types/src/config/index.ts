@@ -13,6 +13,8 @@ export interface Tachie {
   description?: string
   /**
    * tachie path or url
+   * when 2d: img url
+   * when 3d: pose json data url
    */
   src: string
 }

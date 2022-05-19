@@ -13,11 +13,11 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@vueuse/core": "^8.4.2",
+    "@vueuse/core": "^8.5.0",
     "@vueuse/head": "^0.7.6",
     "monaco-editor": "^0.33.0",
     "pinia": "^2.0.14",
-    "vue": "^3.2.33",
+    "vue": "^3.2.34",
     "vue-router": "^4.0.15"
   },
   "devDependencies": {
@@ -26,7 +26,7 @@
     "@vitejs/plugin-vue": "^2.3.3",
     "markdown-it-link-attributes": "^4.0.0",
     "markdown-it-prism": "^2.2.4",
-    "unplugin-auto-import": "^0.7.1",
+    "unplugin-auto-import": "^0.7.2",
     "unplugin-icons": "^0.14.3",
     "unplugin-vue-components": "^0.19.5",
     "v-tooltip": "^4.0.0-beta.2",

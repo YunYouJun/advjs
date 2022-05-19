@@ -18,19 +18,19 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - uses: pnpm/action-setup@v2
+
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
 
-      - name: Setup
-        run: npm i -g pnpm @antfu/ni
-
-      - name: Install
-        run: nci
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Build
-        run: nr build
+        run: npm run build
 
   # Check lint
   lint:
@@ -40,16 +40,16 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Use Node.js 14.x
-        uses: actions/setup-node@v1
+      - uses: pnpm/action-setup@v2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
         with:
-          node-version: 14.x
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
 
-      - name: Setup
-        run: npm i -g pnpm @antfu/ni
-
-      - name: Install
-        run: nci
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Lint
-        run: nr lint --if-present
+        run: npm run lint --if-present
