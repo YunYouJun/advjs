@@ -70,10 +70,6 @@ export class Serialize {
       return
     const lang = node.lang.toLowerCase()
 
-    // 自定义的 AdvNode
-    if (['advnode', 'json'].includes(lang))
-      return JSON.parse(node.value)
-
     // 其他类型
     for (const item of codeMap) {
       if (item.suffix.includes(lang)) {

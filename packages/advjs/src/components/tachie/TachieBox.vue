@@ -12,9 +12,9 @@ const tachies = computed(() => advStore.cur.value.tachies)
   <transition enter-active-class="animate-fadeInLeft" leave-active-class="animate-fadeOutLeft">
     <div v-if="app.showTachie" grid="~ cols-2" class="tachie-box absolute pointer-events-none animate-animated" w="full" h="full">
       <TachieCharacter
-        v-for="(tachie, character) in tachies" :key="character"
-        :character="character"
-        :tachie="tachie"
+        v-for="value in tachies" :key="value[0]"
+        :character="value[0]"
+        :tachie="value[1]"
       />
     </div>
   </transition>

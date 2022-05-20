@@ -13,6 +13,7 @@ export interface CurStateType {
   }
   // key为角色名
   tachies: Map<string, AdvConfig.Tachie>
+  background: string
 }
 
 /**
@@ -64,6 +65,7 @@ export const createAdvStore = () => {
       }],
     },
     tachies: new Map(),
+    background: '',
   })
 
   const curNode = computed(() => {

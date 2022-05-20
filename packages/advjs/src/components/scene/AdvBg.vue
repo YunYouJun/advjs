@@ -10,14 +10,14 @@ const advGameStyle = computed(() => {
   }
 })
 
-watch(() => adv.store.curNode.value, (val) => {
-  if (val?.type === 'code') {
+watch(() => adv.store.cur.value.background, (val) => {
+  if (app.showBg)
     app.toggleBg()
-    setTimeout(() => {
-      bgImage.value = val.value.url
-      app.toggleBg()
-    }, 1000)
-  }
+
+  setTimeout(() => {
+    bgImage.value = val
+    app.toggleBg()
+  }, 1000)
 })
 </script>
 

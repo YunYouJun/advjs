@@ -18,7 +18,7 @@ function toCharacter(text: string) {
     if (!text.includes(leftBracket[i]))
       continue
 
-    const re = new RegExp(`(.*)${leftBracket[i]}(.*?)${rightBracket[i]}`)
+    const re = new RegExp(`(.*)\\${leftBracket[i]}(.*?)\\${rightBracket[i]}`)
     const r = text.match(re)
 
     if (r) {
