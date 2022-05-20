@@ -23,6 +23,7 @@ jobs:
       PULL_REQUEST_NUMBER: ${{ github.event.number }}
 
     steps:
+      - run: echo ${{ github.event.check_suite.conclusion }}
       # https://docs.github.com/en/graphql/reference/enums#checkconclusionstate
       - name: ci result
         if: github.event.check_suite.conclusion == 'success'
