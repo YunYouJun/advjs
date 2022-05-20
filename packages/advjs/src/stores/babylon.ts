@@ -1,11 +1,7 @@
-import type * as BABYLON from '@babylonjs/core'
-
 import { acceptHMRUpdate, defineStore } from 'pinia'
+import type { setup } from '~/setup/babylon'
 
-interface BabylonSetupReturn {
-  scene: BABYLON.Scene
-  vrmScene: BABYLON.Scene
-}
+type BabylonSetupReturn = Awaited<ReturnType<typeof setup>>
 
 // https://doc.babylonjs.com/extensions/Babylon.js+ExternalLibraries/BabylonJS_and_Vue/BabylonJS_and_Vue_1#vue-reflectivity-friend-or-foe
 export const useBabylonStore = defineStore('babylon', () => {

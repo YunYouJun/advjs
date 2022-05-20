@@ -16,6 +16,11 @@ onMounted(async () => {
   bStore.setInstance(instance)
 })
 
+onUnmounted(() => {
+  if (bStore.instance)
+    bStore.instance.dispose()
+})
+
 const curNode = computed(() => {
   return adv.store.curNode.value
 })

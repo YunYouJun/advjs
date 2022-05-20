@@ -9,6 +9,7 @@ import { useBeforeUnload } from '~/client/composables'
 import { adv } from '~/setup/adv'
 import { GameConfigKey } from '~/utils'
 import { defaultGameConfig } from '~/config/game'
+import { useAdvKeys } from '~/composables/key'
 
 const props = defineProps<{
   frontmatter?: AdvConfig.GameConfig
@@ -29,11 +30,7 @@ if (!isDev)
 
 const app = useAppStore()
 
-const { space } = useMagicKeys()
-watch(space, (v) => {
-  if (v && !app.showHistory && !app.showSaveMenu && !app.showLoadMenu)
-    adv.next()
-})
+useAdvKeys()
 
 /**
  * provide game config

@@ -47,5 +47,14 @@ export const setup = async (canvas: HTMLCanvasElement) => {
   return {
     scene,
     vrmScene,
+
+    /**
+     * dispose
+     */
+    dispose: () => {
+      scene.dispose()
+      vrmScene.dispose()
+      engine.dispose()
+    },
   }
 }
