@@ -2,7 +2,7 @@
 
 [![ADV.JS CI](https://github.com/YunYouJun/advjs/workflows/ADV.JS%20CI/badge.svg)](https://github.com/YunYouJun/advjs/actions)
 
-- Preview: [advjs.org](https://advjs.org)
+- Docs: [advjs.org](https://advjs.org)
 - Demo(WIP): [demo.advjs.org](https://demo.advjs.org)
 
 面向未来与前端的 ADV 文字冒险游戏引擎。基于 Vue3 + Vite + TypeScript。Deving...

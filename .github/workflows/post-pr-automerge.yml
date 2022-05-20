@@ -2,7 +2,7 @@ name: 🤖️ Post PR Automerge
 
 on:
   workflow_run:
-    workflows: ['PR Automerge']
+    workflows: [PR Automerge]
     types: [completed]
 
 jobs:
@@ -39,11 +39,11 @@ jobs:
     steps:
       - id: automerge
         name: automerge
-        uses: 'pascalgn/automerge-action@v0.15.3'
+        uses: pascalgn/automerge-action@v0.15.3
         env:
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
-          MERGE_LABELS: '🤖️ automerge'
-          MERGE_REMOVE_LABELS: '🤖️ automerge'
-          MERGE_METHOD: 'squash'
+          MERGE_LABELS: 🤖️ automerge
+          MERGE_REMOVE_LABELS: 🤖️ automerge
+          MERGE_METHOD: squash
           MERGE_REQUIRED_APPROVALS: 1
           PULL_REQUEST: ${{ needs.result.outputs.pr }}
