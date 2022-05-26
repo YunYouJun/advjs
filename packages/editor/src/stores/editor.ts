@@ -3,10 +3,9 @@ import { convertMdToAdv, mdParse } from '@advjs/parser'
 import type { Root } from 'mdast'
 import { mdRender } from '@advjs/parser/markdown'
 import type { AdvRoot } from '@advjs/types'
+import { ns } from '@advjs/shared/utils'
 
 export type OutputType = 'adv' | 'preview' | 'html' | 'markdown-it'
-
-const namespace = 'advjs-editor'
 
 export const useEditorStore = defineStore('editor', () => {
   const delayTime = ref(0)
@@ -14,7 +13,7 @@ export const useEditorStore = defineStore('editor', () => {
     mdUrl: string
     outputType: OutputType
     inputText: string
-  }>(`${namespace}:options`, {
+  }>(ns('editor:options'), {
     mdUrl: 'https://raw.githubusercontent.com/YunYouJun/advjs/main/packages/advjs/public/md/test.adv.md',
     /**
      * 输出类型

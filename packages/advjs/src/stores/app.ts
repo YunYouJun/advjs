@@ -1,3 +1,4 @@
+import { ns } from '@advjs/shared/utils'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
 export const useAppStore = defineStore('app', () => {
@@ -14,9 +15,10 @@ export const useAppStore = defineStore('app', () => {
   const [showTachie, toggleTachie] = useToggle(true)
 
   const [showBg, toggleBg] = useToggle(true)
-  // 3D 画布能力
-  const [showCanvas, toggleCanvas] = useToggle(false)
-  // const [showCanvas, toggleCanvas] = useToggle(true)
+
+  // 3D canvas flag
+  const showCanvas = useStorage(ns('canvas'), false)
+  const toggleCanvas = useToggle(showCanvas)
 
   return {
     showUi,

@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { namespace } from '@advjs/shared/utils'
+import { ns } from '@advjs/shared/utils'
 import type { Ref } from 'vue'
 import { useSpeech } from './useSpeech'
 
@@ -27,13 +27,13 @@ export const useSettingsStore = defineStore('settings', () => {
         language: 'zh-HK',
       },
       animation: {
-        duration: '1s',
+        duration: 1000,
       },
     }
     return defaultSettings
   }
 
-  const userClientSettings = useStorage(`${namespace}::settings`, getDefaultSettings())
+  const userClientSettings = useStorage(ns('settings'), getDefaultSettings())
 
   const resetSettings = () => {
     userClientSettings.value = getDefaultSettings()
