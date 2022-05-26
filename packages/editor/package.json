@@ -17,7 +17,7 @@
     "@vueuse/head": "^0.7.6",
     "monaco-editor": "^0.33.0",
     "pinia": "^2.0.14",
-    "vue": "^3.2.35",
+    "vue": "^3.2.36",
     "vue-router": "^4.0.15"
   },
   "devDependencies": {
@@ -26,7 +26,7 @@
     "@vitejs/plugin-vue": "^2.3.3",
     "markdown-it-link-attributes": "^4.0.0",
     "markdown-it-prism": "^2.2.4",
-    "unplugin-auto-import": "^0.7.2",
+    "unplugin-auto-import": "^0.8.5",
     "unplugin-icons": "^0.14.3",
     "unplugin-vue-components": "^0.19.5",
     "v-tooltip": "^4.0.0-beta.2",

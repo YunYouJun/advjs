@@ -20,7 +20,7 @@
   "devDependencies": {
     "@iconify-json/file-icons": "^1.1.1",
     "@iconify-json/logos": "^1.1.5",
-    "@iconify-json/vscode-icons": "^1.1.4",
+    "@iconify-json/vscode-icons": "^1.1.5",
     "@vueuse/core": "^8.5.0",
     "unplugin-icons": "^0.14.3",
     "unplugin-vue-components": "^0.19.5",

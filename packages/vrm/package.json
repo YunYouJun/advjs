@@ -24,7 +24,7 @@
     "nprogress": "^0.2.0",
     "pinia": "^2.0.14",
     "prism-theme-vars": "^0.2.3",
-    "vue": "^3.2.35",
+    "vue": "^3.2.36",
     "vue-demi": "^0.12.5",
     "vue-i18n": "^9.1.10",
     "vue-router": "^4.0.15"
@@ -42,8 +42,8 @@
     "https-localhost": "^4.7.1",
     "markdown-it-link-attributes": "^4.0.0",
     "markdown-it-prism": "^2.2.4",
-    "typescript": "^4.6.4",
-    "unplugin-auto-import": "^0.7.2",
+    "typescript": "^4.7.2",
+    "unplugin-auto-import": "^0.8.5",
     "unplugin-icons": "^0.14.3",
     "unplugin-vue-components": "^0.19.5",
     "vite": "^2.9.9",
@@ -54,6 +54,6 @@
     "vite-plugin-vue-layouts": "^0.6.0",
     "vite-plugin-windicss": "^1.8.4",
     "vite-ssg": "0.20.0",
-    "vue-tsc": "^0.34.15"
+    "vue-tsc": "^0.34.16"
   }
 }

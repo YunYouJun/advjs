@@ -2,11 +2,11 @@
   "compilerOptions": {
     "baseUrl": ".",
     "module": "ESNext",
-    "target": "es2017",
+    "target": "ESNext",
     "lib": ["DOM", "ESNext"],
     "strict": true,
     "esModuleInterop": true,
-    "incremental": false,
+    "jsx": "preserve",
     "skipLibCheck": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
@@ -21,6 +21,7 @@
       // "@babylonjs/materials",
       // "babylon-vrm-loader",
       "vite/client",
+      "vue/ref-macros",
       "vite-plugin-pages/client",
       "vite-plugin-vue-layouts/client"
     ],
@@ -41,9 +42,9 @@
     }
   },
   "include": [
-    "packages/global.d.ts",
     "./docs/.vitepress/**/*.ts",
     "./docs/.vitepress/**/*.vue",
+    "packages/global.d.ts",
     "packages/**/*.ts",
     "packages/**/*.vue"
   ],
