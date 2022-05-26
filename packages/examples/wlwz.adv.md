@@ -73,15 +73,15 @@ characters:
     "y": 3,
     "z": 0
   }
-},{
+}, {
   "type": "tachie",
-  "enter":[
+  "enter": [
     {
-      "character":"掌柜"
+      "character": "掌柜"
     },
     {
-      "character":"白展堂",
-      "status":"笑"
+      "character": "白展堂",
+      "status": "笑"
     }
   ]
 }]

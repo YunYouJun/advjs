@@ -6,8 +6,6 @@ import { useAppStore } from '~/stores/app'
 
 import { useBeforeUnload } from '~/client/composables'
 import { adv } from '~/setup/adv'
-import { GameConfigKey } from '~/utils'
-import { defaultGameConfig } from '~/config/game'
 import { useAdvKeys } from '~/composables/key'
 
 const props = defineProps<{
