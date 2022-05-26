@@ -21,7 +21,7 @@ import { commonAlias } from '../shared/config/vite'
 
 const markdownWrapperClasses = ['prose', 'prose-sm', 'm-auto', 'text-left']
 
-const safelist = ['text-md']
+const safelist = ['text-md', 'invisible', 'animate-fast', 'animate-fadeInd']
 
 // const defaultThemeFolder = path.resolve(__dirname, './src/client/theme-default/')
 

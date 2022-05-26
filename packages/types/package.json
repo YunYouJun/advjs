@@ -2,29 +2,29 @@
   "name": "@advjs/types",
   "version": "0.0.1",
   "description": "Shared types declaration for AdvJS",
-  "homepage": "https://advjs.org",
-  "bugs": "https://github.com/YunYouJun/advjs/issues",
-  "license": "MPL-2.0",
   "author": {
     "name": "YunYouJun",
     "email": "me@yunyoujun.cn",
     "url": "https://www.yunyoujun.cn"
   },
+  "license": "MPL-2.0",
+  "homepage": "https://advjs.org",
   "repository": {
     "type": "git",
     "url": "https://github.com/YunYouJun/advjs"
   },
+  "bugs": "https://github.com/YunYouJun/advjs/issues",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "files": [
     "dist"
   ],
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "scripts": {
     "build": "pnpx tsup src/index.ts --format cjs,esm --dts --splitting",
     "dev": "nr build --watch",
     "prepublishOnly": "npm run build"
-  },
-  "engines": {
-    "node": ">=14.0.0"
   }
 }

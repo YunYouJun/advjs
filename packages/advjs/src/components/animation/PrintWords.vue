@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { DisplayMode } from '~/stores/settings'
+
 const props = withDefaults(defineProps<{
   speed?: 'normal' | 'fast' | 'slow'
   words?: string
@@ -13,7 +15,6 @@ const props = withDefaults(defineProps<{
   speed: 'normal',
 })
 const emit = defineEmits(['end'])
-export type DisplayMode = 'type' | 'soft'
 
 const speedMap = {
   slow: 100,
@@ -21,15 +22,11 @@ const speedMap = {
   fast: 25,
 }
 
-const displayWords = ref('')
-
 const len = ref(0)
-
 const intervalId = ref()
 
 const playWordsAnimation = () => {
   intervalId.value = setInterval(() => {
-    displayWords.value = props.words.slice(0, len.value)
     if (len.value === props.words.length) {
       clearInterval(intervalId.value)
       emit('end')
@@ -50,10 +47,29 @@ watch(() => props.words, () => {
   len.value = 0
   playWordsAnimation()
 })
+
+const wordClasses = (i: number) => {
+  const classes: string[] = []
+
+  if (i > len.value) {
+    classes.push('invisible')
+  }
+  else {
+    if (props.mode === 'soft') {
+      classes.push('animate-fast')
+      classes.push('animate-fadeIn')
+    }
+  }
+
+  return classes
+}
 </script>
 
 <template>
   <div class="print-words">
-    <span v-for="word, i in displayWords" :key="i" :class="mode === 'soft' && ['animate-fast', 'animate-fadeIn']">{{ word }}</span>
+    <span
+      v-for="word, i in words" :key="i"
+      :class="wordClasses(i)"
+    >{{ word }}</span>
   </div>
 </template>

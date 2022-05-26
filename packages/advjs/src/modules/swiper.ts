@@ -16,6 +16,6 @@ import type { UserModule } from '~/types'
 
 export const install: UserModule = ({ app }) => {
   SwiperCore.use([EffectCreative])
-  app.component('Swiper', Swiper)
-  app.component('SwiperSlide', SwiperSlide)
+  app.component('VSwiper', Swiper)
+  app.component('VSwiperSlide', SwiperSlide)
 }

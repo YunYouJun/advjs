@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { Swiper } from 'swiper'
+
 import type { CreativeEffectOptions } from 'swiper/types'
 const swiperRef = ref<Swiper>()
 const perPageNum = ref(6)
@@ -43,7 +44,7 @@ const creativeEffect: CreativeEffectOptions = {
 <template>
   <div class="menu-panel flex flex-col justify-between" gap="x-2 y-0" h="full" text="2xl">
     <div col="span-12">
-      <Swiper
+      <VSwiper
         effect="creative"
         :grab-cursor="true"
         :creative-effect="creativeEffect"
@@ -51,12 +52,12 @@ const creativeEffect: CreativeEffectOptions = {
         @init="onInit"
         @slide-change="onSlideChange"
       >
-        <SwiperSlide v-for="i in 10" :key="i">
+        <VSwiperSlide v-for="i in 10" :key="i">
           <div grid="~ cols-2 gap-4" p="2" class="items-center justify-center">
             <SavedCard v-for="j in 6" :key="(i - 1) * 6 + j" type="load" class="animate-animated animate-fadeInUp" :style="{ 'animation-delay': `${j * 50}ms` }" :no="(i - 1) * perPageNum + j" />
           </div>
-        </SwiperSlide>
-      </swiper>
+        </VSwiperSlide>
+      </VSwiper>
     </div>
 
     <HorizontalDivider />

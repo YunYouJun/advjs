@@ -1,13 +1,13 @@
 {
   "name": "@advjs/editor",
   "version": "0.0.1",
-  "homepage": "https://github.com/YunYouJun/advjs/tree/main/packages/editor#readme",
-  "license": "MPL-2.0",
   "author": {
     "name": "YunYouJun",
     "email": "me@yunyoujun.cn",
     "url": "https://www.yunyoujun.cn"
   },
+  "license": "MPL-2.0",
+  "homepage": "https://github.com/YunYouJun/advjs/tree/main/packages/editor#readme",
   "scripts": {
     "dev": "vite --port 3456 --open --host",
     "build": "vite build"

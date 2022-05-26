@@ -2,6 +2,20 @@
   "name": "unplugin-starter",
   "version": "0.1.0",
   "description": "Register global imports on demand for Vite and Webpack",
+  "author": {
+    "name": "YunYouJun",
+    "email": "me@yunyoujun.cn",
+    "url": "https://www.yunyoujun.cn"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/YunYouJun/advjs/tree/main/packages/unplugin-adv#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YunYouJun/advjs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/YunYouJun/advjs/issues"
+  },
   "keywords": [
     "unplugin",
     "vite",
@@ -9,50 +23,36 @@
     "rollup",
     "transform"
   ],
-  "license": "MIT",
-  "author": {
-    "name": "YunYouJun",
-    "email": "me@yunyoujun.cn",
-    "url": "https://www.yunyoujun.cn"
-  },
-  "homepage": "https://github.com/YunYouJun/advjs/tree/main/packages/unplugin-adv#readme",
-  "bugs": {
-    "url": "https://github.com/YunYouJun/advjs/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/YunYouJun/advjs.git"
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./vite": {
+      "import": "./dist/vite.mjs",
+      "require": "./dist/vite.js"
+    },
+    "./webpack": {
+      "import": "./dist/webpack.mjs",
+      "require": "./dist/webpack.js"
+    },
+    "./rollup": {
+      "import": "./dist/rollup.mjs",
+      "require": "./dist/rollup.js"
+    },
+    "./nuxt": {
+      "import": "./dist/nuxt.mjs",
+      "require": "./dist/nuxt.js"
+    },
+    "./types": {
+      "import": "./dist/types.mjs",
+      "require": "./dist/types.js"
+    },
+    "./*": "./*"
   },
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "require": "./dist/index.js",
-      "import": "./dist/index.mjs"
-    },
-    "./vite": {
-      "require": "./dist/vite.js",
-      "import": "./dist/vite.mjs"
-    },
-    "./webpack": {
-      "require": "./dist/webpack.js",
-      "import": "./dist/webpack.mjs"
-    },
-    "./rollup": {
-      "require": "./dist/rollup.js",
-      "import": "./dist/rollup.mjs"
-    },
-    "./nuxt": {
-      "require": "./dist/nuxt.js",
-      "import": "./dist/nuxt.mjs"
-    },
-    "./types": {
-      "require": "./dist/types.js",
-      "import": "./dist/types.mjs"
-    },
-    "./*": "./*"
-  },
   "files": [
     "dist",
     "*.d.ts"
