@@ -1,18 +1,19 @@
 <script setup lang="ts">
+import type { AdvConfig } from '@advjs/types'
 import { useAppStore } from '~/stores/app'
-import { adv } from '~/setup/adv'
+
+const props = defineProps<{
+  tachies: Map<string, AdvConfig.Tachie>
+}>()
 
 const app = useAppStore()
-
-const advStore = adv.store
-const tachies = computed(() => advStore.cur.value.tachies)
 </script>
 
 <template>
   <transition enter-active-class="animate-fadeInLeft" leave-active-class="animate-fadeOutLeft">
     <div v-if="app.showTachie" grid="~ cols-2" class="tachie-box absolute pointer-events-none animate-animated" w="full" h="full">
       <TachieCharacter
-        v-for="value in tachies" :key="value[0]"
+        v-for="value in props.tachies" :key="value[0]"
         :character="value[0]"
         :tachie="value[1]"
       />

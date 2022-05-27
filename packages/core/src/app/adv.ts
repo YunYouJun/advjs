@@ -73,7 +73,7 @@ export function createAdv(options?: Partial<AdvOptions>) {
       return next()
 
     switch (curNode.type) {
-      case 'code':{
+      case 'code': {
         let time = 0
         if (Array.isArray(curNode.value)) {
           curNode.value.forEach((value) => {
@@ -86,7 +86,8 @@ export function createAdv(options?: Partial<AdvOptions>) {
         if (time === 0)
           return next()
 
-        break }
+        break
+      }
       case 'dialog':
         store.cur.value.dialog = curNode
         if (curNode.character.status !== '') {
@@ -104,7 +105,8 @@ export function createAdv(options?: Partial<AdvOptions>) {
           children: [curNode],
         }
         break
-
+      case 'narration':
+        break
       default:
         return next()
     }
@@ -131,11 +133,14 @@ export function createAdv(options?: Partial<AdvOptions>) {
    */
   function handleOprate(node: AdvItem): number {
     switch (node.type) {
-      case 'tachie':{
+      case 'tachie': {
         const tachies = store.cur.value.tachies
         if (node.enter) {
           node.enter.forEach((item) => {
-            const character = getCharacter(store.gameConfig.characters, item.character)
+            const character = getCharacter(
+              store.gameConfig.characters,
+              item.character,
+            )
             if (!character)
               return
             const tachie = character.tachies?.[item.status || '默认']

@@ -78,7 +78,7 @@ export interface SceneInfo extends AdvNode {
  */
 export interface Narration extends AdvNode {
   type: 'narration'
-  children: any[]
+  children: string[]
 }
 
 export interface Code extends AdvNode {

@@ -34,10 +34,7 @@ export function parseNarration(text: string) {
     const narration: Adv.Narration = {
       type: 'narration',
       children: [
-        {
-          type: 'text',
-          value: text.slice(1, -1),
-        },
+        text.slice(1, -1),
       ],
     }
     return narration

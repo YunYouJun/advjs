@@ -51,7 +51,9 @@ export class Serialize {
   blockquote(node: Mdast.Blockquote): Adv.Narration {
     const info: Adv.Narration = {
       type: 'narration',
-      children: node.children.map(item => this.parse(item)),
+      children: node.children.map((item) => {
+        return ((item as Mdast.Paragraph).children[0] as Mdast.Text).value
+      }),
     }
     return info
   }

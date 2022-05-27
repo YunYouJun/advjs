@@ -37,7 +37,7 @@ if (props.frontmatter)
   <AdvContainer class="w-full h-full" text="white">
     <div class="adv-game w-full h-full bg-black absolute">
       <AdvScene />
-      <TachieBox />
+      <TachieBox :tachies="adv.store.cur.value.tachies" />
 
       <AdvBlack v-if="curNode && curNode.type === 'narration'" class="z-9" :content="curNode" />
 
