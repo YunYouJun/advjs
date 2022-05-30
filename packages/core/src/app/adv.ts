@@ -77,7 +77,7 @@ export function createAdv(options?: Partial<AdvOptions>) {
         let time = 0
         if (Array.isArray(curNode.value)) {
           curNode.value.forEach((value) => {
-            time += handleOprate(value)
+            time += handleOperation(value)
           })
         }
         else {
@@ -131,7 +131,7 @@ export function createAdv(options?: Partial<AdvOptions>) {
    * @param node 执行的指令
    * @returns 需要执行的时间
    */
-  function handleOprate(node: AdvItem): number {
+  function handleOperation(node: AdvItem): number {
     switch (node.type) {
       case 'tachie': {
         const tachies = store.cur.value.tachies
@@ -142,11 +142,11 @@ export function createAdv(options?: Partial<AdvOptions>) {
               item.character,
             )
             if (!character)
-              return
+              return 0
             const tachie = character.tachies?.[item.status || '默认']
             if (!tachie) {
               consola.error(`找不到${item.character}的立绘${item.status}`)
-              return
+              return 0
             }
             tachies.set(character.name, tachie)
           })
