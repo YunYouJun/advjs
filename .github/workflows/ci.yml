@@ -1,4 +1,4 @@
-name: ADV.JS CI
+name: ADV.JS Docs
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
     strategy:
       matrix:
         node-version: [16.x]
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
       fail-fast: false
 
     steps:
@@ -35,26 +35,4 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build
-        run: npm run build
-
-  # Check lint
-  lint:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: pnpm/action-setup@v2
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: pnpm
-
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Lint
-        run: npm run lint --if-present
+        run: npm run docs:build
