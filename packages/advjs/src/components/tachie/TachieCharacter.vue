@@ -1,36 +1,24 @@
 <script setup lang="ts">
-import type { CharacterInfo } from '~/data/characters'
+import type { AdvConfig } from '@advjs/types'
 import { adv } from '~/setup/adv'
 
-const props = defineProps<{ character: CharacterInfo }>()
+const props = defineProps<{ tachie: AdvConfig.Tachie;character: string }>()
 
 const advStore = adv.store
 
 const active = computed(() => {
   const curDialog = advStore.cur.value.dialog
-  return curDialog.character && (curDialog.character.name === props.character.name)
-})
-
-const statusSrc = computed(() => {
-  let src = ''
-  const curDialog = advStore.cur.value.dialog
-  if (curDialog.character) {
-    const status = curDialog.character.status
-    src = props.character.tachies[status]
-  }
-  return src || props.character.tachies[props.character.initStatus]
+  return curDialog.character && (curDialog.character.name === props.character)
 })
 
 const characterClass = computed(() => {
   const defaultClass: string[] = []
   let resultClass: string[] = []
-  if (props.character) {
-    if (props.character.class)
-      resultClass = defaultClass.concat(props.character.class)
+  if (props.tachie.class)
+    resultClass = defaultClass.concat(props.tachie.class)
 
-    if (!active.value)
-      resultClass.push('inactive-character')
-  }
+  if (!active.value)
+    resultClass.push('inactive-character')
   return resultClass
 })
 </script>
@@ -40,9 +28,8 @@ const characterClass = computed(() => {
     <img
       class="tachie-character inline-block transform"
       :class="characterClass"
-      :style="character.style"
-      :src="statusSrc"
-      :alt="character.name"
+      :style="tachie.style"
+      :src="tachie.src"
     >
   </div>
 </template>

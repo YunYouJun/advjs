@@ -16,6 +16,11 @@ export interface Text {
   value: string
 }
 
+export interface Background {
+  type: 'background'
+  url: string
+}
+
 /**
  * 人物信息
  */
@@ -73,11 +78,13 @@ export interface SceneInfo extends AdvNode {
  */
 export interface Narration extends AdvNode {
   type: 'narration'
-  children: any[]
+  children: string[]
 }
 
 export interface Code extends AdvNode {
   type: 'code'
+  lang?: string
+  meta?: string
   value: any
 }
 
@@ -93,7 +100,16 @@ export interface Camera extends AdvNode {
   radius?: number
 }
 
-export type AdvItem = Unknown | Paragraph | Narration | Character | Words | Text | SceneInfo | Dialog | Camera | Code
+export interface Tachie extends AdvNode {
+  type: 'tachie'
+  enter: {
+    character: string
+    status: string
+  }[]
+  exit: string[]
+}
+
+export type AdvItem = Unknown | Paragraph | Narration | Character | Words | Text | SceneInfo | Dialog | Camera | Code | Tachie | Background
 
 export type AdvChild = AdvItem | Content
 

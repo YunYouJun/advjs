@@ -31,7 +31,7 @@ const next = () => {
 }
 
 const playSentencesAnimation = () => {
-  const sentences = props.content.children.map((item: any) => item.value)
+  const sentences = props.content.children
   let beforeLen = 0
   sentences.forEach((item, i) => {
     setTimeout(() => {

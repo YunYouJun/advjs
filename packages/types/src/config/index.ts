@@ -1,15 +1,6 @@
 export * from './client'
 
 export interface Tachie {
-  /**
-   * only one
-   * @example smile
-   */
-  id: string
-  /**
-   * @example 微笑
-   */
-  name?: string
   description?: string
   /**
    * tachie path or url
@@ -17,6 +8,8 @@ export interface Tachie {
    * when 3d: pose json data url
    */
   src: string
+  class?: string[]
+  style?: Record<string, string>
 }
 
 export interface Character {
@@ -33,9 +26,9 @@ export interface Character {
    */
   alias: string | string[]
   /**
-   * @description:zh-CN 立绘们
+   * @description:zh-CN 立绘们，key为立绘名称
    */
-  tachies: Tachie[]
+  tachies: Record<string, Tachie>
 }
 
 /**

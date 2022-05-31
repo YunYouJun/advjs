@@ -1,20 +1,28 @@
 import yaml from 'js-yaml'
 
-export const parseCode = () => {
+/**
+ * Parse AdvCode (js/ts)
+ */
+export const parseAdvCode = () => {
 
 }
 
+/**
+ * advnode suffix & parse
+ */
 export const codeMap = [
   {
-    suffix: ['adv', 'advscript'],
+    suffix: ['advnode', 'json'],
     parse(val: string) {
-      return JSON.parse(val)
+      const data = JSON.parse(val)
+      return Array.isArray(data) ? data : [data]
     },
   },
   {
     suffix: ['yml', 'yaml'],
     parse(val: string) {
-      return yaml.load(val)
+      const data = yaml.load(val)
+      return Array.isArray(data) ? data : [data]
     },
   },
 ]

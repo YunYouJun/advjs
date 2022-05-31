@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import { speak } from '@advjs/shared/speech'
-import type { AdvConfig } from '@advjs/types'
 import { adv } from '~/setup/adv'
 import { useSettingsStore } from '~/stores/settings'
-import { GameConfigKey } from '~/utils'
-
-const gameConfig = inject<AdvConfig.GameConfig>(GameConfigKey)!
 
 const advStore = adv.store
+const gameConfig = advStore.gameConfig
 
 const settings = useSettingsStore()
 

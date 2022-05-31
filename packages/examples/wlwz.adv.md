@@ -11,6 +11,11 @@ characters:
     actor: 闫妮
     alias: 掌柜
     avatar: /assets/images/characters/txy/1.webp
+    tachies:
+      默认:
+        src: /img/characters/she/she.png
+        style:
+          transform: scale(1.2)
   - name: 郭芙蓉
     alias: 小郭
     avatar: /assets/images/characters/gfr/1.webp
@@ -23,6 +28,14 @@ characters:
     alias: 老白
     avatar: /assets/images/characters/bzt/1.webp
     actor: 沙溢
+    tachies:
+      默认:
+        src: /img/characters/he/he.png
+        class:
+          - scale-120
+      笑:
+        description: 笑
+        src: /img/characters/he/he-smile.png
   - name: 吕秀才
     alias: 秀才
     avatar: /assets/images/characters/lqh/1.webp
@@ -53,14 +66,28 @@ characters:
 <!-- “同福客栈”匾额特写，镜头下拉，到大门口 -->
 
 ```json
-{
-  "type": "camera",
-  "target": {
-    "x": 0,
-    "y": 3,
-    "z": 0
+[
+  {
+    "type": "camera",
+    "target": {
+      "x": 0,
+      "y": 3,
+      "z": 0
+    }
+  },
+  {
+    "type": "tachie",
+    "enter": [
+      {
+        "character": "掌柜"
+      },
+      {
+        "character": "白展堂",
+        "status": "笑"
+      }
+    ]
   }
-}
+]
 ```
 
 ```yaml
@@ -68,7 +95,7 @@ type: background
 url: https://s2.loli.net/2022/01/28/KV8lYS2PhkcQjCE.jpg
 ```
 
-（老邢从大门出来，掌柜跟出）
+> （老邢从大门出来，掌柜跟出）
 
 老邢：我得走
 
@@ -96,7 +123,7 @@ url: https://s2.loli.net/2022/01/28/KV8lYS2PhkcQjCE.jpg
 
 （传算盘顺序： 秀才 小贝 大嘴 老白 掌柜）
 
-掌柜（打算盘）：汾酒七两 七八五十六
+掌柜：（打算盘）  汾酒七两 七八五十六
 
 老邢：佟掌柜 咱总得讲点道理吧
 
@@ -150,9 +177,9 @@ url: https://s2.loli.net/2022/01/28/KV8lYS2PhkcQjCE.jpg
 
 老邢：感觉啊 小贼哪里逃（以机车的速度冲走）
 
-掌柜（对众人向客栈里招呼）：开会 开会
+掌柜：（对众人向客栈里招呼） 开会 开会
 
-（同福客栈内）
+> （同福客栈内）
 
 ```json
 {
@@ -172,15 +199,15 @@ url: https://s2.loli.net/2022/01/28/KV8lYS2PhkcQjCE.jpg
 
 秀才、大嘴：不会的 不会的
 
-老白：不会什么 就你俩那胆儿 一害怕肯定要说吐噜嘴 都听掌柜的话 嘴一定要严
+老白(默认)：不会什么 就你俩那胆儿 一害怕肯定要说吐噜嘴 都听掌柜的话 嘴一定要严
 
-秀才（大嘴）：是是是
+秀才、大嘴：是是是
 
 掌柜：你说咱们镇上 怎么就来了这两个魔头呢
 
-（客栈外 小郭和小青）
+> （客栈外 小郭和小青）
 
-老白：你指的是雌雄双煞吧
+老白(笑)：你指的是雌雄双煞吧
 
 秀才：什么煞
 
@@ -188,7 +215,7 @@ url: https://s2.loli.net/2022/01/28/KV8lYS2PhkcQjCE.jpg
 
 掌柜：你不要命咧 又胡说
 
-老白：不至于 两个小毛贼 想当年 我闯荡江湖哪会儿
+老白(默认)：不至于 两个小毛贼 想当年 我闯荡江湖哪会儿
 
 （门外穿来响声）
 

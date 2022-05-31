@@ -2,13 +2,10 @@
 import type { AdvConfig, AdvRoot } from '@advjs/types'
 
 import { isDev } from '@advjs/shared/utils'
-import { characters } from '~/data/characters'
 import { useAppStore } from '~/stores/app'
 
 import { useBeforeUnload } from '~/client/composables'
 import { adv } from '~/setup/adv'
-import { GameConfigKey } from '~/utils'
-import { defaultGameConfig } from '~/config/game'
 import { useAdvKeys } from '~/composables/key'
 
 const props = defineProps<{
@@ -32,17 +29,15 @@ const app = useAppStore()
 
 useAdvKeys()
 
-/**
- * provide game config
- */
-provide(GameConfigKey, props.frontmatter || defaultGameConfig)
+if (props.frontmatter)
+  adv.store.gameConfig = props.frontmatter
 </script>
 
 <template>
   <AdvContainer class="w-full h-full" text="white">
     <div class="adv-game w-full h-full bg-black absolute">
       <AdvScene />
-      <TachieBox :characters="characters" />
+      <TachieBox :tachies="adv.store.cur.value.tachies" />
 
       <AdvBlack v-if="curNode && curNode.type === 'narration'" class="z-9" :content="curNode" />
 
