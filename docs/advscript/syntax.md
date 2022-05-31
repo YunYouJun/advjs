@@ -30,6 +30,37 @@ Front Matter 用户配置剧本文件内容。
 【门口，夜】
 ```
 
-## 参考
+## Code
 
-- [正则表达式 | MDN](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Regular_Expressions)
+代码块是用户插入脚本逻辑的方案。
+
+其中可主要分为两种，一种为 `JavaScript/TypeScript` 脚本语言作为 AdvScript 脚本能力扩展，一种为插入特定类型 AdvNode 节点。
+
+譬如插入脚本：
+
+````md
+```ts
+{
+  "type": "xxx"
+}
+```
+````
+
+插入 AdvNode:
+
+> 镜头位置变换
+
+````md
+
+```json
+{
+  "type": "camera",
+  "target": {
+    "x": 1,
+    "y": 3,
+    "z": 0
+  },
+  "beta": 1
+}
+```
+````

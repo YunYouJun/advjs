@@ -23,3 +23,11 @@ AdvScript 是参照 Fountain 语法进行设计，并基于 Markdown 语法规�
 剧本内容从大到小分为 `Act（表演）` `Sequence（序列）` `Scene（场景）` `Dialog（会话）`。
 
 `Dialog` 中包括 `Character（人物）` 与 `Words（所说的话）`。
+
+## Ref
+
+参考内容：
+
+- [Fountain 剧本标记语言](https://fountain.advjs.org/)
+- [Liber 语言文档](https://doc.librian.net/site/%E9%80%B2%E9%9A%8E/Liber%E8%AA%9E%E8%A8%80%E6%96%87%E6%AA%94.html)。
+- [正则表达式 | MDN](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Guide/Regular_Expressions)
