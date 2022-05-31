@@ -1,4 +1,3 @@
-/* eslint-disable import/no-duplicates */
 import type * as BABYLON from '@babylonjs/core'
 
 declare interface Window {

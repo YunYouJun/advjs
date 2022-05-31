@@ -14,7 +14,7 @@ export const createCharacterScene = (engine: BABYLON.Engine) => {
   createArcRotateCamera(scene)
   createVRM(scene, (isDev ? '/assets' : '') + demoVrm.rootUrl, demoVrm.name, () => { })
   // Lights
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   // eslint-disable-next-line no-new
   new BABYLON.DirectionalLight('light', new BABYLON.Vector3(0, 2, 0), scene)
   return scene

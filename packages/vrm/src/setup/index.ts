@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as BABYLON from '@babylonjs/core'
 import '@babylonjs/loaders'
 import type { VRMManager } from 'babylon-vrm-loader'

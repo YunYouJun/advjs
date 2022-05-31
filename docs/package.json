@@ -20,10 +20,10 @@
   "devDependencies": {
     "@iconify-json/file-icons": "^1.1.1",
     "@iconify-json/logos": "^1.1.5",
-    "@iconify-json/vscode-icons": "^1.1.5",
-    "@vueuse/core": "^8.5.0",
+    "@iconify-json/vscode-icons": "^1.1.6",
+    "@vueuse/core": "^8.6.0",
     "unplugin-icons": "^0.14.3",
-    "unplugin-vue-components": "^0.19.5",
+    "unplugin-vue-components": "^0.19.6",
     "vite-plugin-pwa": "^0.12.0",
     "vite-plugin-windicss": "^1.8.4",
     "vitepress": "^0.22.4"
