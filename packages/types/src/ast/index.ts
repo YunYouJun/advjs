@@ -83,6 +83,8 @@ export interface Narration extends AdvNode {
 
 export interface Code extends AdvNode {
   type: 'code'
+  lang?: string
+  meta?: string
   value: any
 }
 

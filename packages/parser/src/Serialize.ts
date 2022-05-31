@@ -2,7 +2,7 @@ import type * as Adv from '@advjs/types'
 import type * as Mdast from 'mdast'
 
 import { parseText } from './syntax'
-import { codeMap } from './syntax/code'
+import { codeMap, parseAdvCode } from './syntax/code'
 
 /**
  * 序列化类
@@ -65,19 +65,29 @@ export class Serialize {
   code(node: Mdast.Code) {
     const info: Adv.Code = {
       type: 'code',
+      lang: node.lang || '',
+      meta: node.meta || '',
       value: null,
     }
 
     if (!node.lang)
       return
+
     const lang = node.lang.toLowerCase()
 
-    // 其他类型
+    // advnode suffix
     for (const item of codeMap) {
       if (item.suffix.includes(lang)) {
+        info.lang = 'advnode'
         info.value = item.parse(node.value)
         return info
       }
+    }
+
+    const advSuffix = ['adv', 'advscript']
+    if (advSuffix.includes(lang)) {
+      // handle script
+      parseAdvCode()
     }
 
     return info

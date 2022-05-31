@@ -1,5 +1,5 @@
 import { parse } from '@advjs/parser'
-import type { AdvItem, AdvRoot, Dialog } from '@advjs/types'
+import type { AdvItem, AdvRoot, Code, Dialog } from '@advjs/types'
 import consola from 'consola'
 import { createAdvStore } from '../stores'
 import { getCharacter } from '../utils'
@@ -47,9 +47,81 @@ export function createAdv(options?: Partial<AdvOptions>) {
   }
 
   /**
+   * handle code block
+   * @param node
+   */
+  async function handleCode(node: Code) {
+    if (node.lang === 'ts') {
+    // await node.do()
+    }
+    else if (node.lang === 'advnode') {
+      // node.value is an array
+      for (const advNode of node.value)
+        await handleAdvNode(advNode)
+    }
+  }
+
+  /**
+   * run predefined
+   * @param node Adv Node
+   */
+  async function handleAdvNode(node: AdvItem) {
+    switch (node.type) {
+      case 'tachie': {
+        const tachies = store.cur.value.tachies
+        if (node.enter) {
+          node.enter.forEach((item) => {
+            const character = getCharacter(
+              store.gameConfig.characters,
+              item.character,
+            )
+            if (!character)
+              return 0
+            const tachie = character.tachies?.[item.status || '默认']
+            if (!tachie) {
+              consola.error(`Can not find ${item.character}'s tachie: ${item.status}`)
+              return 0
+            }
+            tachies.set(character.name, tachie)
+          })
+        }
+        if (node.exit) {
+          node.exit.forEach((item) => {
+            tachies.delete(item)
+          })
+        }
+
+        // toggle tachie & show next text
+        next()
+        break
+      }
+      case 'camera':
+        store.cur.value.dialog = {
+          character: {
+            type: 'character',
+            name: '',
+            status: '',
+          },
+          children: [
+            {
+              type: 'text',
+              value: '（镜头动画）',
+            },
+          ],
+        }
+        break
+      case 'background':
+        store.cur.value.background = node.url
+        break
+      default:
+        break
+    }
+  }
+
+  /**
    * 下一部分
    */
-  function next(): void {
+  async function next(): void {
     if (!store.ast.value)
       return
 
@@ -74,18 +146,7 @@ export function createAdv(options?: Partial<AdvOptions>) {
 
     switch (curNode.type) {
       case 'code': {
-        let time = 0
-        if (Array.isArray(curNode.value)) {
-          curNode.value.forEach((value) => {
-            time += handleOperation(value)
-          })
-        }
-        else {
-          // TODO 执行普通代码
-        }
-        if (time === 0)
-          return next()
-
+        await handleCode(curNode)
         break
       }
       case 'dialog':
@@ -124,61 +185,6 @@ export function createAdv(options?: Partial<AdvOptions>) {
       return
     if (store.cur.value.tachies.has(character.name))
       store.cur.value.tachies.set(character.name, tachie)
-  }
-
-  /**
-   * 执行预定义命令
-   * @param node 执行的指令
-   * @returns 需要执行的时间
-   */
-  function handleOperation(node: AdvItem): number {
-    switch (node.type) {
-      case 'tachie': {
-        const tachies = store.cur.value.tachies
-        if (node.enter) {
-          node.enter.forEach((item) => {
-            const character = getCharacter(
-              store.gameConfig.characters,
-              item.character,
-            )
-            if (!character)
-              return 0
-            const tachie = character.tachies?.[item.status || '默认']
-            if (!tachie) {
-              consola.error(`找不到${item.character}的立绘${item.status}`)
-              return 0
-            }
-            tachies.set(character.name, tachie)
-          })
-        }
-        if (node.exit) {
-          node.exit.forEach((item) => {
-            tachies.delete(item)
-          })
-        }
-        return 0
-      }
-      case 'camera':
-        store.cur.value.dialog = {
-          character: {
-            type: 'character',
-            name: '',
-            status: '',
-          },
-          children: [
-            {
-              type: 'text',
-              value: '（镜头动画）',
-            },
-          ],
-        }
-        return 3
-      case 'background':
-        store.cur.value.background = node.url
-        return 0
-      default:
-        return 0
-    }
   }
 
   return {

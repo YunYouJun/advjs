@@ -66,25 +66,28 @@ characters:
 <!-- “同福客栈”匾额特写，镜头下拉，到大门口 -->
 
 ```json
-[{
-  "type": "camera",
-  "target": {
-    "x": 0,
-    "y": 3,
-    "z": 0
-  }
-}, {
-  "type": "tachie",
-  "enter": [
-    {
-      "character": "掌柜"
-    },
-    {
-      "character": "白展堂",
-      "status": "笑"
+[
+  {
+    "type": "camera",
+    "target": {
+      "x": 0,
+      "y": 3,
+      "z": 0
     }
-  ]
-}]
+  },
+  {
+    "type": "tachie",
+    "enter": [
+      {
+        "character": "掌柜"
+      },
+      {
+        "character": "白展堂",
+        "status": "笑"
+      }
+    ]
+  }
+]
 ```
 
 ```yaml
