@@ -40,9 +40,7 @@ Front Matter 用户配置剧本文件内容。
 
 ````md
 ```ts
-{
-  "type": "xxx"
-}
+const a = 1
 ```
 ````
 

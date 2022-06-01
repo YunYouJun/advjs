@@ -3,8 +3,6 @@ import type { YouTheme } from 'vitepress-theme-you'
 import type { UserConfig } from 'vitepress'
 
 import Components from 'unplugin-vue-components/vite'
-import Icons from 'unplugin-icons/vite'
-import IconsResolver from 'unplugin-icons/resolver'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // @ts-expect-error config type
@@ -28,16 +26,7 @@ const config: UserConfig<YouTheme.Config> = {
         dirs: [path.resolve(__dirname, './theme/components')],
         extensions: ['vue', 'ts'],
         include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
-        resolvers: [
-          IconsResolver({
-            // componentPrefix: '',
-          }),
-        ],
         dts: true,
-      }),
-
-      Icons({
-        autoInstall: true,
       }),
 
       // https://github.com/antfu/vite-plugin-pwa
