@@ -1,10 +1,6 @@
 <script lang="ts" setup>
 import type { OutputType } from '../stores/editor'
 import { useEditorStore } from '../stores/editor'
-import IconVideoChatLine from '~icons/ri/video-chat-line'
-import IconHtml5Line from '~icons/ri/html5-line'
-import IconFileTextLine from '~icons/ri/file-text-line'
-import IconMarkdownLine from '~icons/ri/markdown-line'
 
 const editorStore = useEditorStore()
 
@@ -12,22 +8,22 @@ const parserItems: { title: string; value: OutputType; icon: string }[] = [
   {
     title: 'Markdown Preview',
     value: 'preview',
-    icon: IconFileTextLine,
+    icon: 'i-ri-file-text-line',
   },
   {
     title: 'ADV Lexer',
     value: 'adv',
-    icon: IconVideoChatLine,
+    icon: 'i-ri-video-chat-line',
   },
   {
     title: 'HTML Source',
     value: 'html',
-    icon: IconHtml5Line,
+    icon: 'i-ri-html5-line',
   },
   {
     title: 'markdown-it AST',
     value: 'markdown-it',
-    icon: IconMarkdownLine,
+    icon: 'i-ri-markdown-line',
   },
 ]
 </script>
@@ -47,7 +43,7 @@ const parserItems: { title: string; value: OutputType; icon: string }[] = [
       ]"
       @click="editorStore.options.outputType = item.value"
     >
-      <component :is="item.icon" />
+      <div :class="item.icon" />
     </button>
   </div>
 </template>

@@ -6,17 +6,10 @@ import { createHead } from '@vueuse/head'
 import { createApp } from 'vue'
 import App from './App.vue'
 
-// windicss layers
-import 'virtual:windi-base.css'
-import 'virtual:windi-components.css'
-
+import '@unocss/reset/tailwind.css'
 // your custom styles here
 import './styles/index.css'
-
-// windicss utilities should be the last style import
-import 'virtual:windi-utilities.css'
-// windicss devtools support (dev only)
-import 'virtual:windi-devtools'
+import 'uno.css'
 
 const routes = setupLayouts(generatedRoutes)
 const router = createRouter({

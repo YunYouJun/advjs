@@ -75,13 +75,13 @@ if (isClient)
 <template>
   <div class="toolbar flex justify-between items-center" m="b-2">
     <button id="permalink" class="btn" text="sm" :title="t('parser.permalink')">
-      <i-ri-link />
+      <div i-ri-link />
     </button>
     <VMenu placement="top">
       <span class="icon-btn shadow rounded-full transition" hover="shadow-md" p="1">
         <span class="inline-flex">
-          <i-ri-loader-line v-if="loading" class="animate-spin" />
-          <i-ri-check-line v-else text="green-500" class="cursor-pointer" @click="fetchMarkdown" />
+          <div v-if="loading" i-ri-loader-line class="animate-spin" />
+          <div v-else i-ri-check-line text="green-500" class="cursor-pointer" @click="fetchMarkdown" />
         </span>
       </span>
       <template #popper>
@@ -110,7 +110,7 @@ if (isClient)
       :title="t('parser.clear')"
       @click="clearEditorValue"
     >
-      <i-ri-delete-bin-2-line />
+      <div i-ri-delete-bin-2-line />
     </button>
   </div>
   <div

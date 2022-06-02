@@ -41,7 +41,7 @@ const content = computed(() => {
           p="x-2 y-1"
           :title="t('parser.response_time')"
         >
-          <i-ri-timer-line />
+          <div i-ri-timer-line />
           : {{ editorStore.delayTime }} ms
         </span>
 

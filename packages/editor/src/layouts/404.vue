@@ -5,10 +5,8 @@ const { t } = useI18n()
 
 <template>
   <main class="px-4 py-10 text-center text-blue-700 dark:text-gray-200">
-    <div>
-      <p class="text-4xl">
-        <i-carbon-warning class="inline-block" />
-      </p>
+    <div text-4xl>
+      <div i-carbon-warning class="inline-block" />
     </div>
     <router-view />
     <div>

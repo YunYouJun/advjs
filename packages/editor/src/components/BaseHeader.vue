@@ -22,7 +22,7 @@ const toggleLocales = () => {
       to="/"
       :title="t('button.home')"
     >
-      <i-ri-home-2-line />
+      <div i-ri-home-2-line />
     </router-link>
 
     <button
@@ -30,11 +30,13 @@ const toggleLocales = () => {
       :title="t('button.toggle_dark')"
       @click="appStore.toggleLeftRight"
     >
-      <i-ri-arrow-left-right-line
+      <div
+        i-ri-arrow-left-right-line
         class="transition transform <sm:hidden"
         :class="appStore.isPositive ? '-rotate-y-180' : 0"
       />
-      <i-ri-arrow-up-down-line
+      <div
+        i-ri-arrow-up-down-line
         class="transition transform sm:hidden"
         :class="appStore.isPositive ? '-rotate-x-180' : 0"
       />
@@ -45,12 +47,12 @@ const toggleLocales = () => {
       :title="t('button.toggle_dark')"
       @click="toggleDark()"
     >
-      <i-ri-moon-line v-if="isDark" />
-      <i-ri-sun-line v-else />
+      <div v-if="isDark" i-ri-moon-line />
+      <div v-else i-ri-sun-line />
     </button>
 
     <a class="icon-btn mx-2 transition transform" :class="{ '-rotate-y-180': locale === 'zh-CN' }" :title="t('button.toggle_langs')" @click="toggleLocales">
-      <i-ri-translate />
+      <div i-ri-translate />
     </a>
 
     <router-link
@@ -60,7 +62,7 @@ const toggleLocales = () => {
       :title="t('button.about')"
       active-class="text-blue-500"
     >
-      <i-carbon-dicom-overlay />
+      <div i-carbon-dicom-overlay />
     </router-link>
 
     <a
@@ -70,7 +72,7 @@ const toggleLocales = () => {
       target="_blank"
       title="GitHub"
     >
-      <i-ri-github-line />
+      <div i-ri-github-line />
     </a>
   </nav>
 </template>
