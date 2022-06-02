@@ -12,7 +12,7 @@ export function dfs(tree: Tree, callback: Function) {
       tree.children.map(child => dfs(child, (node: Tree) => callback(node)))
   }
   catch (e) {
-    consola.error(e.message)
+    consola.error(e)
   }
   return null
 }

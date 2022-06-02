@@ -29,7 +29,8 @@
     "editor:build": "pnpm -C packages/editor build",
     "editor:dev": "pnpm -C packages/editor dev",
     "vrm:build": "pnpm -C packages/vrm build",
-    "vrm:dev": "pnpm -C packages/vrm dev"
+    "vrm:dev": "pnpm -C packages/vrm dev",
+    "typecheck": "vue-tsc --noEmit --skipLibCheck"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^0.25.0",

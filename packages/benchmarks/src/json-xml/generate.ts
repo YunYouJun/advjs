@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import faker from '@faker-js/faker'
+import { faker } from '@faker-js/faker'
 import { Builder } from 'xml2js'
 import { jsonFolder, xmlFolder } from './common'
 

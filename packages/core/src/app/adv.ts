@@ -1,5 +1,6 @@
 import { parse } from '@advjs/parser'
 import type { AdvItem, AdvRoot, Code, Dialog } from '@advjs/types'
+import type { Code as MdCode } from 'mdast'
 import consola from 'consola'
 import { createAdvStore } from '../stores'
 import { getCharacter } from '../utils'
@@ -50,7 +51,7 @@ export function createAdv(options?: Partial<AdvOptions>) {
    * handle code block
    * @param node
    */
-  async function handleCode(node: Code) {
+  async function handleCode(node: Code | MdCode) {
     if (node.lang === 'ts') {
     // await node.do()
     }
@@ -121,7 +122,7 @@ export function createAdv(options?: Partial<AdvOptions>) {
   /**
    * 下一部分
    */
-  async function next(): void {
+  async function next(): Promise<void> {
     if (!store.ast.value)
       return
 

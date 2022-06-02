@@ -25,13 +25,13 @@ watch(
   },
 )
 
-const next = () => {
+const next = async () => {
   if (curDialog.value.children) {
     const length = curDialog.value.children.length
 
     if (iOrder.value + 1 > length - 1) {
-      if (adv.next())
-        iOrder.value = 0
+      await adv.next()
+      iOrder.value = 0
     }
     else {
       iOrder.value++

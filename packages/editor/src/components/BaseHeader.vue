@@ -7,13 +7,11 @@ const appStore = useAppStore()
 
 const { t, availableLocales, locale } = useI18n()
 
-// const toggleLocales = () => {
-//   // change to some real logic
-//   const locales = availableLocales
-//   locale.value = locales[(locales.indexOf(locale.value) + 1) % locales.length]
-// }
-
-// initoptions
+const toggleLocales = () => {
+  // change to some real logic
+  const locales = availableLocales
+  locale.value = locales[(locales.indexOf(locale.value) + 1) % locales.length]
+}
 </script>
 
 <template>
@@ -51,9 +49,9 @@ const { t, availableLocales, locale } = useI18n()
       <i-ri-sun-line v-else />
     </button>
 
-    <!-- <a class="icon-btn mx-2" :title="t('button.toggle_langs')" @click="toggleLocales">
-      <i-ri-translate-2 />
-    </a> -->
+    <a class="icon-btn mx-2 transition transform" :class="{ '-rotate-y-180': locale === 'zh-CN' }" :title="t('button.toggle_langs')" @click="toggleLocales">
+      <i-ri-translate />
+    </a>
 
     <router-link
       class="icon-btn mx-2"

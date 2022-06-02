@@ -13,13 +13,13 @@ export interface AdvCheckboxProps {
 export interface AdvRadioGroupProps<T extends AdvItemOption = AdvItemOption> {
   checked: T['value']
   options: T[]
-  onClick?: (value?: T) => void
+  onClick?: (value: T) => void
 }
 
 export interface AdvSelectProps<T extends AdvItemOption = AdvItemOption> {
   selected: T['value']
   options?: T[]
-  change?: (value?: T) => void
+  change?: (value: T) => void
 }
 
 export interface AdvSliderProps {

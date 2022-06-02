@@ -11,50 +11,71 @@ on:
 
 jobs:
   build:
-    timeout-minutes: 10
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        node-version: [16.x]
-        os: [ubuntu-latest, windows-latest, macos-latest]
-      fail-fast: false
-
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-
+      - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 16.x
           cache: pnpm
 
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Install
+        run: pnpm install
 
       - name: Build
         run: npm run build
 
-  # Check lint
   lint:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-
     steps:
-      - uses: actions/checkout@v2
-
+      - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 16.x
           cache: pnpm
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Lint
-        run: npm run lint --if-present
+        run: pnpm run lint --if-present
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+  # test:
+  #   runs-on: ${{ matrix.os }}
+
+  #   strategy:
+  #     matrix:
+  #       node-version: [14.x, 16.x]
+  #       os: [ubuntu-latest]
+  #     fail-fast: false
+
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: pnpm/action-setup@v2
+  #     - name: Use Node.js ${{ matrix.node-version }}
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: ${{ matrix.node-version }}
+  #         registry-url: https://registry.npmjs.org/
+  #         cache: pnpm
+
+  #     - run: pnpm install
+  #     - run: pnpm run test:unit --if-present
