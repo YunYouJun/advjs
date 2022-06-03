@@ -1,20 +1,20 @@
 ---
 title: ADV.JS
-home: true
-heroText: false
+layout: home
 # heroImage: /favicon.svg
 # heroIconClass: i-ri-video-chat-line
 # heroText: <b class="font-black">ADV</b>.JS
-tagline: 面向未来与前端的 ADV 文字冒险游戏引擎
 
-actions:
-  - text: Link Start
-    icon: i-ri-links-line
-    link: /guide/
-  - text: DEMO
-    link: https://demo.advjs.org
-    icon: i-ri-game-line
-    color: green
+hero:
+  tagline: 面向未来与前端的 ADV 文字冒险游戏引擎
+  actions:
+    - text: Link Start
+      icon: i-ri-links-line
+      link: /guide/
+    - text: DEMO
+      link: https://demo.advjs.org
+      icon: i-ri-game-line
+      color: green
 
 features:
   - title: 🧶 Adventure
