@@ -18,7 +18,7 @@ const mdItems = [
   },
   {
     name: '雷雨（节选）',
-    url: 'https://cdn.jsdelivr.net/gh/YunYouJun/advjs/packages/examples/%E9%9B%B7%E9%9B%A8.adv.md',
+    url: 'https://fastly.jsdelivr.net/gh/YunYouJun/advjs/packages/examples/%E9%9B%B7%E9%9B%A8.adv.md',
   },
 ]
 

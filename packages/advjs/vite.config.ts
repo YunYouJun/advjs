@@ -35,158 +35,164 @@ const babylonDependencies = [
 ]
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  resolve: {
-    alias: Object.assign(
-      {
-        '~/': `${path.resolve(__dirname, 'src')}/`,
+export default defineConfig((options) => {
+  return {
+    define: {
+      __DEV__: options.mode === 'development' ? 'true' : 'false',
+    },
+
+    resolve: {
+      alias: Object.assign(
+        {
+          '~/': `${path.resolve(__dirname, 'src')}/`,
+        },
+        commonAlias,
+      ),
+    },
+    plugins: [
+      Vue({
+        include: [/\.vue$/, /\.md$/],
+      }),
+
+      // https://github.com/hannoeru/vite-plugin-pages
+      Pages({
+        extensions: ['vue', 'md'],
+      }),
+
+      // https://github.com/JohnCampionJr/vite-plugin-vue-layouts
+      Layouts({
+        layoutsDirs: '../theme-default/layouts',
+      }),
+
+      // https://github.com/antfu/unplugin-auto-import
+      AutoImport({
+        imports: [
+          'vue',
+          'vue-router',
+          'vue-i18n',
+          '@vueuse/head',
+          '@vueuse/core',
+        ],
+        dts: 'src/auto-imports.d.ts',
+      }),
+
+      // https://github.com/antfu/unplugin-vue-components
+      Components({
+        dirs: [
+          'src/components',
+          'src/client/components',
+          '../theme-default/components',
+        ],
+        // allow auto load markdown components under `./src/components/`
+        extensions: ['vue', 'md'],
+
+        // allow auto import and register components used in markdown
+        include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
+
+        // custom resolvers
+        resolvers: [
+          // auto import icons
+          // https://github.com/antfu/unplugin-icons
+          IconsResolver({
+            // componentPrefix: '',
+            // enabledCollections: ['carbon']
+          }),
+        ],
+
+        dts: 'src/components.d.ts',
+      }),
+
+      // https://github.com/antfu/unplugin-icons
+      Icons({
+        autoInstall: true,
+      }),
+
+      // https://github.com/antfu/vite-plugin-windicss
+      WindiCSS({
+        safelist: markdownWrapperClasses.concat(safelist),
+      }),
+
+      // https://github.com/antfu/vite-plugin-md
+      // Don't need this? Try vitesse-lite: https://github.com/antfu/vitesse-lite
+      Markdown({
+        wrapperClasses: markdownWrapperClasses,
+        headEnabled: true,
+        markdownItSetup(md) {
+          // https://prismjs.com/
+          md.use(Prism)
+          md.use(LinkAttributes, {
+            pattern: /^https?:\/\//,
+            attrs: {
+              target: '_blank',
+              rel: 'noopener',
+            },
+          })
+        },
+        exclude: [path.resolve(__dirname, '../examples/*.md')],
+      }),
+
+      // https://github.com/antfu/vite-plugin-pwa
+      VitePWA({
+        registerType: 'autoUpdate',
+        includeAssets: ['favicon.svg', 'robots.txt', 'safari-pinned-tab.svg'],
+        manifest: {
+          name: 'ADV.JS',
+          short_name: 'ADV',
+          theme_color: '#000',
+        },
+      }),
+
+      // https://github.com/intlify/bundle-tools/tree/main/packages/vite-plugin-vue-i18n
+      VueI18n({
+        runtimeOnly: true,
+        compositionOnly: true,
+        include: [path.resolve(__dirname, 'locales/**')],
+      }),
+
+      // https://github.com/antfu/vite-plugin-inspect
+      Inspect({
+        // change this to enable inspect for debugging
+        enabled: false,
+      }),
+
+      Adv(),
+    ],
+
+    server: {
+      fs: {
+        strict: true,
       },
-      commonAlias,
-    ),
-  },
-  plugins: [
-    Vue({
-      include: [/\.vue$/, /\.md$/],
-    }),
+    },
 
-    // https://github.com/hannoeru/vite-plugin-pages
-    Pages({
-      extensions: ['vue', 'md'],
-    }),
+    // https://github.com/antfu/vite-ssg
+    // ssgOptions: {
+    //   script: 'async',
+    //   formatting: 'minify',
+    // },
 
-    // https://github.com/JohnCampionJr/vite-plugin-vue-layouts
-    Layouts({
-      layoutsDirs: '../theme-default/layouts',
-    }),
-
-    // https://github.com/antfu/unplugin-auto-import
-    AutoImport({
-      imports: [
+    optimizeDeps: {
+      include: [
         'vue',
         'vue-router',
-        'vue-i18n',
-        '@vueuse/head',
         '@vueuse/core',
+        '@vueuse/head',
+        '@vueuse/motion',
+        'dayjs',
+        'js-yaml',
+        'unified',
+        'remark-parse',
+        'remark-frontmatter',
+        'remark-gfm',
+        'remark-rehype',
+        'rehype-stringify',
+        'consola',
+        'unstorage',
+        'unstorage/drivers/localstorage',
+        'html2canvas',
+      ].concat(babylonDependencies),
+      exclude: [
+        'vue-demi',
       ],
-      dts: 'src/auto-imports.d.ts',
-    }),
-
-    // https://github.com/antfu/unplugin-vue-components
-    Components({
-      dirs: [
-        'src/components',
-        'src/client/components',
-        '../theme-default/components',
-      ],
-      // allow auto load markdown components under `./src/components/`
-      extensions: ['vue', 'md'],
-
-      // allow auto import and register components used in markdown
-      include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
-
-      // custom resolvers
-      resolvers: [
-        // auto import icons
-        // https://github.com/antfu/unplugin-icons
-        IconsResolver({
-          // componentPrefix: '',
-          // enabledCollections: ['carbon']
-        }),
-      ],
-
-      dts: 'src/components.d.ts',
-    }),
-
-    // https://github.com/antfu/unplugin-icons
-    Icons({
-      autoInstall: true,
-    }),
-
-    // https://github.com/antfu/vite-plugin-windicss
-    WindiCSS({
-      safelist: markdownWrapperClasses.concat(safelist),
-    }),
-
-    // https://github.com/antfu/vite-plugin-md
-    // Don't need this? Try vitesse-lite: https://github.com/antfu/vitesse-lite
-    Markdown({
-      wrapperClasses: markdownWrapperClasses,
-      headEnabled: true,
-      markdownItSetup(md) {
-        // https://prismjs.com/
-        md.use(Prism)
-        md.use(LinkAttributes, {
-          pattern: /^https?:\/\//,
-          attrs: {
-            target: '_blank',
-            rel: 'noopener',
-          },
-        })
-      },
-      exclude: [path.resolve(__dirname, '../examples/*.md')],
-    }),
-
-    // https://github.com/antfu/vite-plugin-pwa
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'robots.txt', 'safari-pinned-tab.svg'],
-      manifest: {
-        name: 'ADV.JS',
-        short_name: 'ADV',
-        theme_color: '#000',
-      },
-    }),
-
-    // https://github.com/intlify/bundle-tools/tree/main/packages/vite-plugin-vue-i18n
-    VueI18n({
-      runtimeOnly: true,
-      compositionOnly: true,
-      include: [path.resolve(__dirname, 'locales/**')],
-    }),
-
-    // https://github.com/antfu/vite-plugin-inspect
-    Inspect({
-      // change this to enable inspect for debugging
-      enabled: false,
-    }),
-
-    Adv(),
-  ],
-
-  server: {
-    fs: {
-      strict: true,
     },
-  },
-
-  // https://github.com/antfu/vite-ssg
-  // ssgOptions: {
-  //   script: 'async',
-  //   formatting: 'minify',
-  // },
-
-  optimizeDeps: {
-    include: [
-      'vue',
-      'vue-router',
-      '@vueuse/core',
-      '@vueuse/head',
-      '@vueuse/motion',
-      'dayjs',
-      'js-yaml',
-      'unified',
-      'remark-parse',
-      'remark-frontmatter',
-      'remark-gfm',
-      'remark-rehype',
-      'rehype-stringify',
-      'consola',
-      'unstorage',
-      'unstorage/drivers/localstorage',
-      'html2canvas',
-    ].concat(babylonDependencies),
-    exclude: [
-      'vue-demi',
-    ],
-  },
+  }
 })

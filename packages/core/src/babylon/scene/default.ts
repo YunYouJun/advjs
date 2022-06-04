@@ -1,6 +1,8 @@
 import * as BABYLON from '@babylonjs/core'
 import '@babylonjs/loaders'
 
+const assetsPrefix = __DEV__ ? '/assets' : 'https://playground.babylonjs.com'
+
 // CreateScene function that creates and return the scene
 export const createScene = (engine: BABYLON.Engine) => {
   // Create a basic BJS Scene object
@@ -22,12 +24,14 @@ export const createScene = (engine: BABYLON.Engine) => {
   // const box = BABYLON.MeshBuilder.CreateBox('box', {})
 
   // Create a default skybox with an environment.
-  const hdrTexture = BABYLON.CubeTexture.CreateFromPrefilteredData('/assets/textures/environment.dds', scene)
+  const hdrTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(
+    `${assetsPrefix}/textures/environment.dds`, scene,
+  )
   // @ts-expect-error do not need used
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const currentSkybox = scene.createDefaultSkybox(hdrTexture, true)
 
-  BABYLON.SceneLoader.Append('/assets/scenes/low_poly_medieval_island/', 'scene.gltf', scene, () => {
+  BABYLON.SceneLoader.Append(`${assetsPrefix}/scenes/low_poly_medieval_island/`, 'scene.gltf', scene, () => {
     // Convert to physics object and position
   })
 

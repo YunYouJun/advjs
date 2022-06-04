@@ -3,7 +3,7 @@ import type { AdvConfig } from '@advjs/types'
 export const defaultGameConfig: AdvConfig.GameConfig = {
   pages: {
     start: {
-      bg: 'https://cdn.jsdelivr.net/gh/YunYouJun/cdn/img/bg/stars-timing-0-blur-30px.jpg',
+      bg: 'https://fastly.jsdelivr.net/gh/YunYouJun/cdn/img/bg/stars-timing-0-blur-30px.jpg',
     },
   },
   showCharacterAvatar: false,

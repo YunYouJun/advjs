@@ -11,7 +11,7 @@ useHead({
     { name: 'description', content: 'ADV.JS 在线编辑器' },
   ],
   script: [
-    { src: 'https://cdn.jsdelivr.net/npm/wc-github-corners@latest', async: true, type: 'module' },
+    { src: 'https://fastly.jsdelivr.net/npm/wc-github-corners@latest', async: true, type: 'module' },
   ],
 })
 </script>

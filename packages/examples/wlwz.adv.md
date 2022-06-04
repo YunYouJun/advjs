@@ -5,7 +5,7 @@ chapter: 1
 showCharacterAvatar: true
 cdn:
   enable: true
-  prefix: https://cdn.jsdelivr.net/gh/advjs/my-own-swordsman@main
+  prefix: https://fastly.jsdelivr.net/gh/advjs/my-own-swordsman@main
 characters:
   - name: 佟湘玉
     actor: 闫妮
