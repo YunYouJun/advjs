@@ -9,20 +9,33 @@ export namespace AdvAst {
     type: 'unknown'
   }
 
-  /**
-   * 普通文本
-   */
-  export interface Text {
-    type: 'text'
-    value: string
-  }
+/**
+ * 普通文本
+ */
+export interface Text {
+  type: 'text'
+  value: string
+}
 
-  export interface Background {
-    type: 'background'
-    url: string
-  }
+export interface Background {
+  type: 'background'
+  url: string
+}
 
-  /**
+export interface Jump extends Node {
+  type: 'jump'
+  target: string
+}
+
+export interface Choose extends Node {
+  type: 'choose'
+  choose: {
+    text: string
+    jump?: string
+  }[]
+}
+
+/**
  * 人物信息
  */
   export interface Character extends Node {
@@ -108,7 +121,8 @@ export namespace AdvAst {
     exit: string[]
   }
 
-  export type Item = Unknown | Paragraph | Narration | Character | Words | Text | SceneInfo | Dialog | Camera | Code | Tachie | Background
+export type AdvCodeOperate=Camera | Code | Tachie | Background | Jump | Choose
+export type Item = Unknown | Paragraph | Narration | Character | Words | Text | SceneInfo | Dialog | AdvCodeOperate
 
   export type Child = Item | MdAst.Content
 
@@ -119,3 +133,4 @@ export namespace AdvAst {
 
 }
 
+export interface AdvInfo { scene: Record<string, number> }

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { AdvAst, AdvConfig } from '@advjs/types'
+import type { AdvAst, AdvConfig, AdvInfo } from '@advjs/types'
 
 import { useBeforeUnload } from '@advjs/client/composables'
 import { computed, onBeforeMount, ref } from 'vue'
@@ -11,6 +11,7 @@ import { useAdvKeys } from '~/composables'
 const props = defineProps<{
   frontmatter?: AdvConfig
   ast: AdvAst.Root
+  info: AdvInfo
 }>()
 
 const $adv = useAdvCtx()
@@ -24,13 +25,25 @@ onBeforeMount(() => {
 const curNode = computed(() => {
   return $adv.store.curNode
 })
+const cur = computed(() => {
+  return $adv.store.cur
+})
 
 // 添加提示，防止意外退出
 if (!__DEV__)
   useBeforeUnload()
 
 const app = useAppStore()
+$adv.store.gameInfo = props.info
 
+const chooseOption = (index: number) => {
+  const chosen = cur.value.choose.options!.choose[index]!
+  cur.value.choose.options = undefined
+  if (chosen.jump)
+    $adv.nav.jump(chosen.jump)
+  else
+    $adv.nav.next()
+}
 useAdvKeys()
 </script>
 
@@ -47,6 +60,7 @@ useAdvKeys()
 
     <div class="adv-ui absolute" w="full" h="full">
       <BaseLayer v-if="!app.showUi" />
+      <OptionsBox v-if="cur.choose.options" :data="cur.choose.options" @choose="chooseOption" />
 
       <transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
         <DialogBox v-show="app.showUi" class="animate__animated" />

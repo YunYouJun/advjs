@@ -1,4 +1,4 @@
-import type { AdvAst, Tachie } from '@advjs/types'
+import type { AdvAst, AdvInfo, ChooseData, Tachie } from '@advjs/types'
 import type { StorageMeta } from 'unstorage'
 import { computed, ref, shallowRef } from 'vue'
 
@@ -16,6 +16,7 @@ export interface CurStateType {
   // key为角色名
   tachies: Map<string, Tachie>
   background: string
+  choose: ChooseData
 }
 
 /**
@@ -68,6 +69,9 @@ export const useAdvStore = defineStore('adv', () => {
     },
     tachies: new Map(),
     background: '',
+    choose: {
+      chosen: {},
+    },
   })
 
   const curNode = computed(() => {
@@ -77,8 +81,13 @@ export const useAdvStore = defineStore('adv', () => {
       return null
   })
 
+  const gameInfo: AdvInfo={
+    scene: {},
+  }
+
   return {
     ast,
+    gameInfo,
 
     /**
      * 当前节点

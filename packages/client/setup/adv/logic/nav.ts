@@ -1,7 +1,7 @@
+import type { AdvAst } from '@advjs/types'
 import consola from 'consola'
 
 import { getCharacter } from '@advjs/core'
-import type { AdvAst } from '@advjs/types'
 import { useAdvStore } from '../store'
 import { advConfig } from '~/env'
 
@@ -12,7 +12,7 @@ export const useNav = () => {
    * run predefined
    * @param node Adv Node
    */
-  async function handleAdvNode(node: AdvAst.Item) {
+  async function handleAdvNode(node: AdvAst.AdvCodeOperate) {
     switch (node.type) {
       case 'tachie': {
         const tachies = store.cur.tachies
@@ -23,11 +23,11 @@ export const useNav = () => {
               item.character,
             )
             if (!character)
-              return 0
+              return
             const tachie = character.tachies?.[item.status || '默认']
             if (!tachie) {
               consola.error(`Can not find ${item.character}'s tachie: ${item.status}`)
-              return 0
+              return
             }
             tachies.set(character.name, tachie)
           })
@@ -57,8 +57,14 @@ export const useNav = () => {
           ],
         }
         break
+      case 'jump':
+        jump(node.target)
+        break
       case 'background':
         store.cur.background = node.url
+        break
+      case 'choose':
+        store.cur.choose.options=node
         break
       default:
         break
@@ -77,6 +83,16 @@ export const useNav = () => {
       return
     if (store.cur.tachies.has(character.name))
       store.cur.tachies.set(character.name, tachie)
+  }
+
+  function jump(target: string) {
+    const order=store.gameInfo.scene[target]
+    if (isNaN(order))
+      consola.error(`Can not find screen ${target}`)
+    else
+      store.cur.order = order
+
+    next()
   }
 
   /**
@@ -99,6 +115,9 @@ export const useNav = () => {
    */
   async function next(): Promise<void> {
     if (!store.ast)
+      return
+    // 选择界面，不能跳
+    if (store.cur.choose.options)
       return
 
     const nodeLen = store.ast.children.length
@@ -151,5 +170,6 @@ export const useNav = () => {
 
   return {
     next,
+    jump,
   }
 }

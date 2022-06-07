@@ -1,5 +1,5 @@
 import type * as MdAst from 'mdast'
-import type { AdvAst, AdvMarkdown } from '@advjs/types'
+import type { AdvAst, AdvInfo, AdvMarkdown } from '@advjs/types'
 import matter from 'gray-matter'
 import { mdParse } from './markdown'
 import { Serialize } from './Serialize'
@@ -12,20 +12,29 @@ const serialize = new Serialize()
 /**
  * 将 Markdown 语法树转译为 AdvScript
  */
-export function convertMdToAdv(mdAst: MdAst.Root) {
+export function convertMdToAdv(mdAst: MdAst.Root): {
+  advAst: AdvAst.Root
+  info: AdvInfo
+} {
   const advAst: AdvAst.Root = {
     type: 'adv-root',
     children: [],
+  }
+  const info: AdvInfo = {
+    scene: {},
   }
 
   // 深度优先
   mdAst.children.forEach((child) => {
     const advItem = parseChild(child)
-    if (advItem)
+    if (advItem) {
       advAst.children.push(advItem)
+      if (advItem.type === 'scene')
+        info.scene[advItem.place] = advAst.children.length - 1
+    }
   })
 
-  return advAst
+  return { advAst, info }
 }
 
 export function parseChild(child: MdAst.Content) {

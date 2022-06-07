@@ -1,3 +1,4 @@
+import type { AdvAst } from './ast'
 export interface AdvConfig {
   /**
    * @default 'ADV.JS'
@@ -79,6 +80,11 @@ export interface AdvConfig {
   characters: Character[]
 
   // -------------------------------------------------
+}
+
+export interface ChooseData {
+  chosen: Record<string, boolean>
+  options?: AdvAst.Choose
 }
 
 export interface Tachie {
