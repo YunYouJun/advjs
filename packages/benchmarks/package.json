@@ -7,7 +7,7 @@
     "generate:json-xml": "esno src/json-xml/generate.ts --generate"
   },
   "devDependencies": {
-    "@faker-js/faker": "^7.1.0",
+    "@faker-js/faker": "^7.2.0",
     "@types/xml2js": "^0.4.11",
     "benny": "^3.7.1",
     "consola": "^2.15.3",

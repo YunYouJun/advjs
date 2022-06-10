@@ -73,19 +73,17 @@
     "@advjs/parser": "workspace:^",
     "@rollup/pluginutils": "^4.2.1",
     "gray-matter": "^4.0.3",
-    "unplugin": "^0.6.3"
+    "unplugin": "^0.7.0"
   },
   "devDependencies": {
-    "@types/node": "^17.0.38",
     "bumpp": "^7.1.1",
     "esno": "^0.16.3",
     "fast-glob": "^3.2.11",
     "nodemon": "^2.0.16",
     "rimraf": "^3.0.2",
-    "rollup": "^2.75.5",
-    "tsup": "^6.0.1",
-    "typescript": "^4.7.2",
-    "vite": "^2.9.9",
+    "rollup": "^2.75.6",
+    "tsup": "^6.1.2",
+    "vite": "^2.9.12",
     "webpack": "^5.73.0"
   }
 }
