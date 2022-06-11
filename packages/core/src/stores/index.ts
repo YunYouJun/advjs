@@ -1,6 +1,6 @@
-import type { AdvConfig, AdvRoot, Character, Text } from '@advjs/types'
+import type { AdvAst, Character, GameConfig, Tachie } from '@advjs/types'
 import type { StorageMeta } from 'unstorage'
-import { defaultGameConfig } from '~/config/game'
+import { defaultGameConfig } from 'advjs'
 
 export interface CurStateType {
   /**
@@ -9,10 +9,10 @@ export interface CurStateType {
   order: number
   dialog: {
     character: Character
-    children: Text[]
+    children: AdvAst.Text[]
   }
   // key为角色名
-  tachies: Map<string, AdvConfig.Tachie>
+  tachies: Map<string, Tachie>
   background: string
 }
 
@@ -40,7 +40,7 @@ export const createAdvStore = () => {
   /**
    * 语法树
    */
-  const ast = ref<AdvRoot>({
+  const ast = ref<AdvAst.Root>({
     type: 'adv-root',
     children: [{
       type: 'text',
@@ -75,7 +75,7 @@ export const createAdvStore = () => {
       return null
   })
 
-  const gameConfig: AdvConfig.GameConfig = defaultGameConfig
+  const gameConfig: GameConfig = defaultGameConfig
 
   return {
     ast,

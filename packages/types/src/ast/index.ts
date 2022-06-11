@@ -1,10 +1,10 @@
 import type { Content } from 'mdast'
 
-export interface AdvNode {
+export interface Node {
   type: string
 }
 
-export interface Unknown extends AdvNode {
+export interface Unknown extends Node {
   type: 'unknown'
 }
 
@@ -24,7 +24,7 @@ export interface Background {
 /**
  * 人物信息
  */
-export interface Character extends AdvNode {
+export interface Character extends Node {
   type: 'character'
   name: string
   status: string
@@ -33,7 +33,7 @@ export interface Character extends AdvNode {
 /**
  * 人物对话（单次发言话语）
  */
-export interface Words extends AdvNode {
+export interface Words extends Node {
   type: 'words'
   text: string
 }
@@ -41,23 +41,23 @@ export interface Words extends AdvNode {
 /**
  * 文本可能被解析为会话
  */
-export interface Dialog extends AdvNode {
+export interface Dialog extends Node {
   type: 'dialog'
   character: Character
   children: Text[]
 }
 
-export interface Paragraph extends AdvNode {
+export interface Paragraph extends Node {
   type: 'paragraph'
   children: (Text | Dialog)[]
 }
 
-export interface Heading extends AdvNode {
+export interface Heading extends Node {
   type: 'heading'
   depth: number
 }
 
-export interface SceneInfo extends AdvNode {
+export interface SceneInfo extends Node {
   type: 'scene'
   /**
    * 地点
@@ -76,19 +76,19 @@ export interface SceneInfo extends AdvNode {
 /**
  * 旁白
  */
-export interface Narration extends AdvNode {
+export interface Narration extends Node {
   type: 'narration'
   children: string[]
 }
 
-export interface Code extends AdvNode {
+export interface Code extends Node {
   type: 'code'
   lang?: string
   meta?: string
   value: any
 }
 
-export interface Camera extends AdvNode {
+export interface Camera extends Node {
   type: 'camera'
   target?: {
     x: number
@@ -100,7 +100,7 @@ export interface Camera extends AdvNode {
   radius?: number
 }
 
-export interface Tachie extends AdvNode {
+export interface Tachie extends Node {
   type: 'tachie'
   enter: {
     character: string
@@ -109,11 +109,11 @@ export interface Tachie extends AdvNode {
   exit: string[]
 }
 
-export type AdvItem = Unknown | Paragraph | Narration | Character | Words | Text | SceneInfo | Dialog | Camera | Code | Tachie | Background
+export type Item = Unknown | Paragraph | Narration | Character | Words | Text | SceneInfo | Dialog | Camera | Code | Tachie | Background
 
-export type AdvChild = AdvItem | Content
+export type Child = Item | Content
 
-export interface AdvRoot {
+export interface Root {
   type: 'adv-root'
-  children: AdvChild[]
+  children: Child[]
 }

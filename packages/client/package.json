@@ -1,0 +1,33 @@
+{
+  "name": "@advjs/client",
+  "version": "0.0.1",
+  "description": "ADV.JS Client",
+  "author": {
+    "email": "me@yunyoujun.cn",
+    "name": "YunYouJun",
+    "url": "https://www.yunyoujun.cn"
+  },
+  "license": "MPL-2.0",
+  "funding": "https://github.com/sponsors/YunYouJun",
+  "homepage": "https://advjs.org",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YunYouJun/advjs"
+  },
+  "bugs": "https://github.com/YunYouJun/advjs/issues",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "@advjs/parser": "workspace:*",
+    "@advjs/types": "workspace:*",
+    "@antfu/utils": "^0.5.2",
+    "@vueuse/core": "^8.6.0",
+    "@vueuse/head": "^0.7.6",
+    "@vueuse/motion": "^2.0.0-beta.18",
+    "defu": "^6.0.0",
+    "sass": "^1.52.3",
+    "vue": "^3.2.36",
+    "vue-router": "^4.0.15"
+  }
+}

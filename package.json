@@ -2,7 +2,7 @@
   "name": "@advjs/monorepo",
   "version": "0.0.1",
   "private": true,
-  "packageManager": "pnpm@7.1.2",
+  "packageManager": "pnpm@7.2.0",
   "description": "面向未来与前端的 ADV 文字冒险游戏引擎。",
   "author": {
     "name": "YunYouJun",
@@ -18,7 +18,8 @@
   "scripts": {
     "build": "pnpm -C packages/advjs build",
     "build:all": "esno scripts/build.ts",
-    "dev": "pnpm -C packages/advjs dev",
+    "demo": "pnpm -C demo/starter run dev",
+    "dev": "pnpm -r --filter=./packages/** --parallel run dev",
     "lint": "eslint .",
     "release": "esno release.ts",
     "prepare": "husky install",
@@ -34,7 +35,12 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^0.25.1",
-    "@types/node": "^17.0.41",
+    "@antfu/ni": "^0.16.2",
+    "@types/fs-extra": "^9.0.13",
+    "@types/node": "^17.0.42",
+    "@types/prompts": "^2.0.14",
+    "@types/semver": "^7.3.9",
+    "@types/yargs": "^17.0.10",
     "consola": "^2.15.3",
     "cross-env": "^7.0.3",
     "eslint": "8.17.0",

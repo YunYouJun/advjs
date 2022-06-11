@@ -1,4 +1,4 @@
-import type { UserModule } from '~/types'
+import type { UserModule } from '@advjs/client/types'
 import * as pkg from '~/../package.json'
 
 export const install: UserModule = () => {

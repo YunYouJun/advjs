@@ -1,5 +1,25 @@
 export * from './client'
 
+export interface AdvConfig {
+  /**
+   * @default 'ADV.JS'
+   */
+  title: string
+  /**
+   * @default '/favicon.svg'
+   */
+  favicon: string
+  /**
+   * Theme to use for the advjs
+   * @default 'default'
+   */
+  theme: string
+  /**
+   * @default {}
+   */
+  themeConfig: any
+}
+
 export interface Tachie {
   description?: string
   /**

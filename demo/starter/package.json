@@ -1,0 +1,14 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "adv build",
+    "dev": "nodemon -w '../../packages/advjs/dist/*.js' --exec \"advjs ./wlwz.adv.md --open=false --log=info\""
+  },
+  "devDependencies": {
+    "@advjs/theme-default": "workspace:*",
+    "advjs": "workspace:*",
+    "https-localhost": "^4.7.1",
+    "nodemon": "^2.0.16",
+    "vite-plugin-inspect": "^0.5.0"
+  }
+}

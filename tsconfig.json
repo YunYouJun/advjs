@@ -26,27 +26,29 @@
       "vite-plugin-vue-layouts/client"
     ],
     "paths": {
-      "~/*": ["packages/advjs/src/*"],
-      "@advjs/core": ["packages/core/src/index.ts"],
-      "@advjs/core/*": ["packages/core/src/*"],
-      "@advjs/editor/*": ["packages/editor/src/*"],
-      "@advjs/examples/*": ["packages/examples/*"],
-      "@advjs/parser": ["packages/parser/src/index.ts"],
-      "@advjs/parser/*": ["packages/parser/src/*"],
-      "@advjs/shared": ["packages/shared/src/index.ts"],
-      "@advjs/shared/*": ["packages/shared/src/*"],
+      "~/*": ["./packages/advjs/src/*"],
+      "advjs": ["./packages/advjs/node/index.ts"],
+      "@advjs/core": ["./packages/core/src/index.ts"],
+      "@advjs/core/*": ["./packages/core/src/*"],
+      "@advjs/client/*": ["./packages/client/*"],
+      "@advjs/editor/*": ["./packages/editor/src/*"],
+      "@advjs/examples/*": ["./packages/examples/*"],
+      "@advjs/parser": ["./packages/parser/src/index.ts"],
+      "@advjs/parser/*": ["./packages/parser/src/*"],
+      "@advjs/shared": ["./packages/shared/src/index.ts"],
+      "@advjs/shared/*": ["./packages/shared/src/*"],
       "@advjs/types": ["./packages/types/src/index.ts"],
       "@advjs/theme-default": ["./packages/theme-default/index.ts"],
       "@advjs/theme-default/*": ["./packages/theme-default/*"],
-      "advjs/*": ["packages/advjs/src/*"]
+      "advjs/*": ["./packages/advjs/src/*"]
     }
   },
   "include": [
     "./docs/.vitepress/**/*.ts",
     "./docs/.vitepress/**/*.vue",
-    "packages/global.d.ts",
-    "packages/**/*.ts",
-    "packages/**/*.vue"
+    "./packages/global.d.ts",
+    "./packages/**/*.ts",
+    "./packages/**/*.vue"
   ],
   "exclude": ["**/dist/**", "node_modules"]
 }

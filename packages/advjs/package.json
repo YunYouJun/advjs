@@ -8,12 +8,30 @@
     "url": "https://www.yunyoujun.cn"
   },
   "license": "MPL-2.0",
+  "funding": "https://github.com/sponsors/YunYouJun",
   "repository": {
     "url": "https://github.com/YunYouJun/advjs"
   },
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    },
+    "./*": "./*"
+  },
   "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "adv": "./bin/adv.js",
+    "advjs": "./bin/adv.js"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "scripts": {
-    "build": "cross-env NODE_ENV=production vite build",
+    "build": "rimraf dist && tsup src/node/index.ts src/node/cli.ts --dts --format cjs,esm --splitting --external @advjs/client/package.json",
+    "build:client": "cross-env NODE_ENV=production vite build",
     "dev": "vite --host",
     "generate": "cross-env NODE_ENV=production vite-ssg build",
     "prepublishOnly": "npm run build",
@@ -26,18 +44,22 @@
     "@babylonjs/core": "^4.2.2",
     "@babylonjs/gui": "^4.2.2",
     "@babylonjs/loaders": "^4.2.2",
-    "@vueuse/core": "^8.6.0",
-    "@vueuse/head": "^0.7.6",
-    "@vueuse/motion": "^2.0.0-beta.12",
+    "@vitejs/plugin-vue": "^2.3.3",
     "babylon-vrm-loader": "^1.6.0",
+    "fs-extra": "^10.1.0",
     "nprogress": "^0.2.0",
+    "open": "^8.4.0",
     "pinia": "^2.0.14",
     "prismjs": "^1.28.0",
+    "prompts": "^2.4.2",
     "swiper": "^8.2.3",
+    "unplugin-vue-components": "^0.19.6",
+    "vite": "^2.9.12",
     "vue": "^3.2.37",
     "vue-about-me": "^1.2.7",
     "vue-i18n": "^9.1.10",
-    "vue-router": "^4.0.16"
+    "vue-router": "^4.0.16",
+    "yargs": "^17.5.1"
   },
   "devDependencies": {
     "@babylonjs/materials": "^4.2.2",
@@ -48,21 +70,15 @@
     "@types/markdown-it-link-attributes": "^3.0.1",
     "@types/nprogress": "^0.2.0",
     "@types/prismjs": "^1.26.0",
-    "@vitejs/plugin-vue": "^2.3.3",
     "@windicss/plugin-animations": "^1.0.9",
-    "critters": "^0.0.16",
-    "cross-env": "^7.0.3",
     "escape-html": "^1.0.3",
     "hast-util-to-html": "^8.0.3",
-    "https-localhost": "^4.7.1",
     "markdown-it-link-attributes": "^4.0.0",
     "markdown-it-prism": "^2.2.4",
     "mdast-util-to-hast": "^12.1.1",
     "sass": "^1.52.3",
     "unplugin-auto-import": "^0.8.6",
     "unplugin-icons": "^0.14.3",
-    "unplugin-vue-components": "^0.19.6",
-    "vite": "^2.9.12",
     "vite-plugin-inspect": "^0.5.0",
     "vite-plugin-md": "^0.14.1",
     "vite-plugin-pages": "^0.23.0",
