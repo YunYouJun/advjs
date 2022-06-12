@@ -19,7 +19,8 @@
     "build": "pnpm -C packages/advjs build",
     "build:all": "esno scripts/build.ts",
     "demo": "pnpm -C demo/starter run dev",
-    "dev": "pnpm -r --filter=./packages/** --parallel run dev",
+    "start": "pnpm -C packages/advjs run start",
+    "dev": "pnpm -C packages/advjs run dev",
     "lint": "eslint .",
     "release": "esno release.ts",
     "prepare": "husky install",
@@ -29,6 +30,7 @@
     "docs:serve": "pnpm -C docs serve",
     "editor:build": "pnpm -C packages/editor build",
     "editor:dev": "pnpm -C packages/editor dev",
+    "parser:build": "pnpm -C packages/parser build",
     "vrm:build": "pnpm -C packages/vrm build",
     "vrm:dev": "pnpm -C packages/vrm dev",
     "typecheck": "vue-tsc --noEmit --skipLibCheck"

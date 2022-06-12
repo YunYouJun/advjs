@@ -18,6 +18,7 @@ import { createConfigPlugin } from './extendConfig'
 // import { createAdvLoader } from './loaders'
 // import { createClientSetupPlugin } from './setupClient'
 import { createWindiCSSPlugin } from './windicss'
+import { createAdvLoader } from './loaders'
 
 const customElements = new Set([
   '',
@@ -65,6 +66,8 @@ export async function ViteAdvPlugin(
     Layouts({
       layoutsDirs: '../theme-default/layouts',
     }),
+
+    createAdvLoader(),
 
     // https://github.com/antfu/unplugin-auto-import
     AutoImport({

@@ -12,12 +12,13 @@ import { blue, bold, cyan, dim, gray, green, underline, yellow } from 'kolorist'
 import type { LogLevel, ViteDevServer } from 'vite'
 import isInstalledGlobally from 'is-installed-globally'
 import equal from 'fast-deep-equal'
+import type { AdvConfig } from '@advjs/types'
 import { version } from '../package.json'
 import { createServer } from './server'
 import type { ResolvedAdvOptions } from './options'
-import { getThemeRoots, isPath, resolveOptions } from './options'
+import { resolveOptions } from './options'
 import { resolveThemeName } from './themes'
-import { parser } from './parser'
+// import { parser } from './parser'
 
 const CONFIG_RESTART_FIELDS: (keyof AdvConfig)[] = [
   // null
@@ -216,153 +217,6 @@ cli.command(
         outDir: out,
       },
     })
-  },
-)
-
-cli.command(
-  'format [entry]',
-  'Format the markdown file',
-  args => commonOptions(args)
-    .strict()
-    .help(),
-  async ({ entry }) => {
-    const data = await parser.load(entry)
-    parser.prettify(data)
-    await parser.save(data)
-  },
-)
-
-cli.command(
-  'theme [subcommand]',
-  'Theme related operations',
-  (command) => {
-    return command
-      .command(
-        'eject',
-        'Eject current theme into local file system',
-        args => commonOptions(args)
-          .option('dir', {
-            type: 'string',
-            default: 'theme',
-          }),
-        async ({ entry, dir, theme: themeInput }) => {
-          const data = await parser.load(entry)
-          const theme = resolveThemeName(themeInput || data.config.theme)
-          if (theme === 'none') {
-            console.error('Can not eject theme "none"')
-            process.exit(1)
-          }
-          if (isPath(theme)) {
-            console.error('Theme is already ejected')
-            process.exit(1)
-          }
-          const roots = getThemeRoots(theme, entry)
-          if (!roots.length) {
-            console.error(`Does not found theme "${theme}"`)
-            process.exit(1)
-          }
-          const root = roots[0]
-
-          await fs.copy(root, path.resolve(dir), {
-            filter: i => !/node_modules|.git/.test(path.relative(root, i)),
-          })
-
-          const dirPath = `./${dir}`
-          data.slides[0].frontmatter.theme = dirPath
-          // @ts-expect-error remove the value
-          data.slides[0].raw = null
-          await parser.save(data)
-
-          console.log(`Theme "${theme}" ejected successfully to "${dirPath}"`)
-        },
-      )
-  },
-  () => {
-    cli.showHelp()
-    process.exit(1)
-  },
-)
-
-cli.command(
-  'export [entry]',
-  'Export slides to PDF',
-  args => commonOptions(args)
-    .option('output', {
-      type: 'string',
-      describe: 'path to the output',
-    })
-    .option('format', {
-      default: 'pdf',
-      type: 'string',
-      choices: ['pdf', 'png', 'md'],
-      describe: 'output format',
-    })
-    .option('timeout', {
-      default: 30000,
-      type: 'number',
-      describe: 'timeout for rendering the print page',
-    })
-    .option('range', {
-      type: 'string',
-      describe: 'page ranges to export, for example "1,4-5,6"',
-    })
-    .option('dark', {
-      default: false,
-      type: 'boolean',
-      describe: 'export as dark theme',
-    })
-    .option('with-clicks', {
-      alias: 'c',
-      default: false,
-      type: 'boolean',
-      describe: 'export pages for every clicks',
-    })
-    .strict()
-    .help(),
-  async ({
-    entry,
-    theme,
-    output,
-    format,
-    timeout,
-    range,
-    dark,
-    'with-clicks': withClicks,
-  }) => {
-    process.env.NODE_ENV = 'production'
-    const { exportSlides } = await import('./export')
-    const port = await findFreePort(12445)
-    const options = await resolveOptions({ entry, theme }, 'build')
-    output = output || options.data.config.exportFilename || `${path.basename(entry, '.md')}-export`
-    const server = await createServer(
-      options,
-      {
-        server: { port },
-        clearScreen: false,
-      },
-    )
-    await server.listen(port)
-    printInfo(options)
-    parser.filterDisabled(options.data)
-    const width = options.data.config.canvasWidth
-    const height = Math.round(width / options.data.config.aspectRatio)
-    output = await exportSlides({
-      port,
-      slides: options.data.slides,
-      total: options.data.slides.length,
-      range,
-      format: format as any,
-      output,
-      timeout,
-      dark,
-      routerMode: options.data.config.routerMode,
-      width,
-      height,
-      withClicks,
-    })
-    console.log(`${green('  ✓ ')}${dim('exported to ')}./${output}\n`)
-    server.close()
-    process.exit(0)
   },
 )
 

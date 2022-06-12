@@ -1,5 +1,5 @@
 import matter from 'gray-matter'
-import { parse } from '../../../parser'
+import { parseAst } from '../../../parser'
 import type { ResolvedOptions } from '../types'
 
 const scriptSetupRE = /<\s*script[^>]*\bsetup\b[^>]*>([\s\S]*)<\/script>/gm
@@ -61,7 +61,7 @@ export function createMarkdown(options: ResolvedOptions) {
 
     const scriptLines: string[] = []
 
-    const advAst = await parse(md)
+    const advAst = await parseAst(md)
     scriptLines.push(`const advAst = ${JSON.stringify(advAst)}`)
 
     if (options.frontmatter) {

@@ -40,11 +40,11 @@ export interface Character {
   /**
    * @description:zh-CN 头像
    */
-  avatar: string
+  avatar?: string
   /**
    * @description:zh-CN 别名
    */
-  alias: string | string[]
+  alias?: string | string[]
   /**
    * @description:zh-CN 立绘们，key为立绘名称
    */

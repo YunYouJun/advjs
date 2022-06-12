@@ -26,7 +26,7 @@
       "vite-plugin-vue-layouts/client"
     ],
     "paths": {
-      "~/*": ["./packages/advjs/src/*"],
+      "~/*": ["./packages/client/*"],
       "advjs": ["./packages/advjs/node/index.ts"],
       "@advjs/core": ["./packages/core/src/index.ts"],
       "@advjs/core/*": ["./packages/core/src/*"],
@@ -34,7 +34,7 @@
       "@advjs/editor/*": ["./packages/editor/src/*"],
       "@advjs/examples/*": ["./packages/examples/*"],
       "@advjs/parser": ["./packages/parser/src/index.ts"],
-      "@advjs/parser/*": ["./packages/parser/src/*"],
+      "@advjs/parser/fs": ["./packages/parser/src/fs.ts"],
       "@advjs/shared": ["./packages/shared/src/index.ts"],
       "@advjs/shared/*": ["./packages/shared/src/*"],
       "@advjs/types": ["./packages/types/src/index.ts"],

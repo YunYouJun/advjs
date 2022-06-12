@@ -1,5 +1,5 @@
-import { parse } from '@advjs/parser'
-import type { AdvItem, AdvRoot, Code, Dialog } from '@advjs/types'
+import { parseAst } from '@advjs/parser'
+import type { AdvAst } from '@advjs/types'
 import type { Code as MdCode } from 'mdast'
 import consola from 'consola'
 import { createAdvStore } from '../stores'
@@ -44,14 +44,14 @@ export function createAdv(options?: Partial<AdvOptions>) {
    * @param text
    */
   async function read(text: string) {
-    store.ast.value = await parse(text)
+    store.ast.value = await parseAst(text)
   }
 
   /**
    * handle code block
    * @param node
    */
-  async function handleCode(node: Code | MdCode) {
+  async function handleCode(node: AdvAst.Code | MdCode) {
     if (node.lang === 'ts') {
     // await node.do()
     }
@@ -66,7 +66,7 @@ export function createAdv(options?: Partial<AdvOptions>) {
    * run predefined
    * @param node Adv Node
    */
-  async function handleAdvNode(node: AdvItem) {
+  async function handleAdvNode(node: AdvAst.Item) {
     switch (node.type) {
       case 'tachie': {
         const tachies = store.cur.value.tachies
@@ -99,9 +99,10 @@ export function createAdv(options?: Partial<AdvOptions>) {
       case 'camera':
         store.cur.value.dialog = {
           character: {
-            type: 'character',
             name: '',
-            status: '',
+            avatar: '',
+            alias: '',
+            tachies: {},
           },
           children: [
             {
@@ -174,7 +175,7 @@ export function createAdv(options?: Partial<AdvOptions>) {
     }
   }
 
-  function updateTachie(curNode: Dialog) {
+  function updateTachie(curNode: AdvAst.Dialog) {
     const character = getCharacter(
       store.gameConfig.characters,
       curNode.character.name,
@@ -191,7 +192,7 @@ export function createAdv(options?: Partial<AdvOptions>) {
   return {
     store,
 
-    loadAst(ast: AdvRoot) {
+    loadAst(ast: AdvAst.Root) {
       store.ast.value = ast
     },
 

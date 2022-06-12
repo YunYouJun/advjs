@@ -1,3 +1,5 @@
+import type { AdvConfig } from './config'
+
 /**
  * Metadata for "advjs" field in themes' package.json
  */

@@ -1,8 +1,13 @@
 import type { Options } from 'tsup'
 
 export default <Options>{
-  entry: ['src/index.ts'],
+  entry: [
+    'src/index.ts',
+    'src/core.ts',
+    'src/fs.ts',
+  ],
   clean: true,
-  format: ['esm'],
+  splitting: true,
+  format: ['cjs', 'esm'],
   dts: true,
 }
