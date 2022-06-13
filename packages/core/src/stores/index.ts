@@ -1,14 +1,17 @@
-import type { AdvAst, Character, GameConfig, Tachie } from '@advjs/types'
+import type { AdvAst, GameConfig, Tachie } from '@advjs/types'
 import type { StorageMeta } from 'unstorage'
 import { defaultGameConfig } from 'advjs'
+import { computed, ref } from 'vue'
+
+import { acceptHMRUpdate, defineStore } from 'pinia'
 
 export interface CurStateType {
   /**
-     * 顺序
-     */
+   * 顺序
+   */
   order: number
   dialog: {
-    character: Character
+    character: AdvAst.Character
     children: AdvAst.Text[]
   }
   // key为角色名
@@ -36,7 +39,7 @@ export interface AdvGameRecordMeta extends StorageMeta {
   memo?: string
 }
 
-export const createAdvStore = () => {
+export const useAdvStore = defineStore('adv', () => {
   /**
    * 语法树
    */
@@ -92,4 +95,7 @@ export const createAdvStore = () => {
      */
     cur: curState,
   }
-}
+})
+
+if (import.meta.hot)
+  import.meta.hot.accept(acceptHMRUpdate(useAdvStore, import.meta.hot))

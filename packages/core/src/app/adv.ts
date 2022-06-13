@@ -2,7 +2,7 @@ import { parseAst } from '@advjs/parser'
 import type { AdvAst } from '@advjs/types'
 import type { Code as MdCode } from 'mdast'
 import consola from 'consola'
-import { createAdvStore } from '../stores'
+import { useAdvStore } from '../stores'
 import { getCharacter } from '../utils'
 
 export interface AdvOptions {
@@ -32,7 +32,7 @@ export function createAdv(options?: Partial<AdvOptions>) {
     ...options,
   }
 
-  const store = createAdvStore()
+  const store = useAdvStore()
 
   /**
    * 演出开始
@@ -44,7 +44,7 @@ export function createAdv(options?: Partial<AdvOptions>) {
    * @param text
    */
   async function read(text: string) {
-    store.ast.value = await parseAst(text)
+    store.ast = await parseAst(text)
   }
 
   /**
@@ -69,7 +69,7 @@ export function createAdv(options?: Partial<AdvOptions>) {
   async function handleAdvNode(node: AdvAst.Item) {
     switch (node.type) {
       case 'tachie': {
-        const tachies = store.cur.value.tachies
+        const tachies = store.cur.tachies
         if (node.enter) {
           node.enter.forEach((item) => {
             const character = getCharacter(
@@ -97,12 +97,11 @@ export function createAdv(options?: Partial<AdvOptions>) {
         break
       }
       case 'camera':
-        store.cur.value.dialog = {
+        store.cur.dialog = {
           character: {
+            type: 'character',
             name: '',
-            avatar: '',
-            alias: '',
-            tachies: {},
+            status: '',
           },
           children: [
             {
@@ -113,7 +112,7 @@ export function createAdv(options?: Partial<AdvOptions>) {
         }
         break
       case 'background':
-        store.cur.value.background = node.url
+        store.cur.background = node.url
         break
       default:
         break
@@ -124,17 +123,17 @@ export function createAdv(options?: Partial<AdvOptions>) {
    * 下一部分
    */
   async function next(): Promise<void> {
-    if (!store.ast.value)
+    if (!store.ast)
       return
 
-    const nodeLen = store.ast.value.children.length
-    const curOrder = store.cur.value.order
+    const nodeLen = store.ast.children.length
+    const curOrder = store.cur.order
     if (curOrder >= nodeLen)
       return
 
-    store.cur.value.order++
+    store.cur.order++
 
-    const curNode = store.curNode.value
+    const curNode = store.curNode
     // 跳过无效节点（虽然应该不会有）
     if (!curNode)
       return next()
@@ -152,14 +151,14 @@ export function createAdv(options?: Partial<AdvOptions>) {
         break
       }
       case 'dialog':
-        store.cur.value.dialog = curNode
+        store.cur.dialog = curNode
         if (curNode.character.status !== '') {
           // 需要切换立绘
           updateTachie(curNode)
         }
         break
       case 'text':
-        store.cur.value.dialog = {
+        store.cur.dialog = {
           character: {
             type: 'character',
             name: '',
@@ -185,15 +184,15 @@ export function createAdv(options?: Partial<AdvOptions>) {
     const tachie = character.tachies?.[curNode.character.status]
     if (!tachie)
       return
-    if (store.cur.value.tachies.has(character.name))
-      store.cur.value.tachies.set(character.name, tachie)
+    if (store.cur.tachies.has(character.name))
+      store.cur.tachies.set(character.name, tachie)
   }
 
   return {
     store,
 
     loadAst(ast: AdvAst.Root) {
-      store.ast.value = ast
+      store.ast = ast
     },
 
     read,

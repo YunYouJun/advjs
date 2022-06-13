@@ -1,6 +1,5 @@
 {
   "name": "@advjs/parser",
-  "type": "module",
   "version": "0.0.1",
   "description": "A parser for advjs.",
   "author": {
@@ -38,7 +37,7 @@
     "node": ">=14.0.0"
   },
   "scripts": {
-    "build": "rimraf dist && tsup",
+    "build": "rimraf dist && tsup src/index.ts src/core.ts src/fs.ts --format cjs,esm --dts --splitting --no-shims",
     "dev": "nr build --watch",
     "temp": "esno test/index.ts",
     "test": "vitest",

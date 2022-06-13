@@ -3,7 +3,7 @@ import type * as BABYLON from '@babylonjs/core'
 import type { VRMManager } from 'babylon-vrm-loader'
 import type { CameraInfo } from '@advjs/shared/debug'
 import { captureCameraInfo } from '@advjs/shared/debug'
-import { isClient } from '@advjs/shared/utils'
+import { isClient } from '@vueuse/core'
 import { setup } from '../setup'
 import { useVrmStore } from '../stores/vrm'
 

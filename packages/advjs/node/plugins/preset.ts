@@ -7,12 +7,11 @@ import { notNullish } from '@antfu/utils'
 import Pages from 'vite-plugin-pages'
 import Layouts from 'vite-plugin-vue-layouts'
 import AutoImport from 'unplugin-auto-import/vite'
-import Prism from 'markdown-it-prism'
-import LinkAttributes from 'markdown-it-link-attributes'
+// import LinkAttributes from 'markdown-it-link-attributes'
 import Icons from 'unplugin-icons/vite'
-import Markdown from 'vite-plugin-md'
+// import Markdown from 'vite-plugin-md'
 import VueI18n from '@intlify/vite-plugin-vue-i18n'
-import type { AdvPluginOptions, ResolvedAdvOptions } from '../options'
+import type { AdvPluginOptions, AdvServerOptions, ResolvedAdvOptions } from '../options'
 import Adv from '../../../unplugin-adv/src/vite'
 import { createConfigPlugin } from './extendConfig'
 // import { createAdvLoader } from './loaders'
@@ -27,7 +26,8 @@ const customElements = new Set([
 export async function ViteAdvPlugin(
   options: ResolvedAdvOptions,
   pluginOptions: AdvPluginOptions,
-  // serverOptions: AdvServerOptions = {},
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  serverOptions: AdvServerOptions = {},
 ): Promise<PluginOption[]> {
   const {
     vue: vueOptions = {},
@@ -67,7 +67,7 @@ export async function ViteAdvPlugin(
       layoutsDirs: '../theme-default/layouts',
     }),
 
-    createAdvLoader(),
+    createAdvLoader(options),
 
     // https://github.com/antfu/unplugin-auto-import
     AutoImport({
@@ -78,7 +78,6 @@ export async function ViteAdvPlugin(
         '@vueuse/head',
         '@vueuse/core',
       ],
-      dts: 'src/auto-imports.d.ts',
     }),
 
     // createSlidesLoader(options, pluginOptions, serverOptions, VuePlugin, MarkdownPlugin),
@@ -112,23 +111,20 @@ export async function ViteAdvPlugin(
       autoInstall: true,
     }),
 
-    // https://github.com/antfu/vite-plugin-md
-    Markdown({
-      wrapperClasses: markdownWrapperClasses,
-      headEnabled: true,
-      markdownItSetup(md) {
-        // https://prismjs.com/
-        md.use(Prism)
-        md.use(LinkAttributes, {
-          pattern: /^https?:\/\//,
-          attrs: {
-            target: '_blank',
-            rel: 'noopener',
-          },
-        })
-      },
-      exclude: [path.resolve(__dirname, '../examples/*.md')],
-    }),
+    // // https://github.com/antfu/vite-plugin-md
+    // Markdown({
+    //   wrapperClasses: 'markdown-body',
+    //   headEnabled: true,
+    //   markdownItSetup(md) {
+    //     md.use(LinkAttributes, {
+    //       pattern: /^https?:\/\//,
+    //       attrs: {
+    //         target: '_blank',
+    //         rel: 'noopener',
+    //       },
+    //     })
+    //   },
+    // }),
 
     // https://github.com/intlify/bundle-tools/tree/main/packages/vite-plugin-vue-i18n
     VueI18n({

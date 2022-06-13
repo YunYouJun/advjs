@@ -1,4 +1,4 @@
-import { ns } from '@advjs/shared/utils'
+import { ns } from '@advjs/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
 export const useAppStore = defineStore('app', () => {

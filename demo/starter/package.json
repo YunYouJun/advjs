@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "build": "adv build",
-    "dev": "nodemon -w '../../packages/advjs/dist/*.js' --exec \"advjs ./wlwz.adv.md --open=false --log=info\"",
+    "dev": "nodemon -w '../../packages/advjs/dist/*.js' --exec \"adv ./wlwz.adv.md --open=false --log=info\"",
     "preview": "vite preview --host",
     "preview-https": "serve dist"
   },

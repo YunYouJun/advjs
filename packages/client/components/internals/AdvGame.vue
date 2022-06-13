@@ -1,10 +1,9 @@
 <script lang="ts" setup>
 import type { AdvAst, GameConfig } from '@advjs/types'
 
-import { isDev } from '@advjs/shared/utils'
+import { useBeforeUnload } from '@advjs/client/composables'
 import { useAppStore } from '~/stores/app'
 
-import { useBeforeUnload } from '~/client/composables'
 import { adv } from '~/setup/adv'
 import { useAdvKeys } from '~/composables/key'
 
@@ -22,7 +21,7 @@ const curNode = computed(() => {
 })
 
 // 添加提示，防止意外退出
-if (!isDev)
+if (!__DEV__)
   useBeforeUnload()
 
 const app = useAppStore()

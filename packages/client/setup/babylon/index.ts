@@ -1,6 +1,5 @@
 import * as BABYLON from '@babylonjs/core'
 import { demoVrm } from '@advjs/shared'
-import { isDev } from '@advjs/shared/utils'
 import { createArcRotateCamera, createScene, createVRM, createVRMScene } from '@advjs/core/babylon'
 
 /**
@@ -12,7 +11,7 @@ export const createCharacterScene = (engine: BABYLON.Engine) => {
   // a new scene for vrm
   const scene = createVRMScene(engine)
   createArcRotateCamera(scene)
-  createVRM(scene, (isDev ? '/assets' : '') + demoVrm.rootUrl, demoVrm.name, () => { })
+  createVRM(scene, (__DEV__ ? '/assets' : '') + demoVrm.rootUrl, demoVrm.name, () => { })
   // Lights
 
   // eslint-disable-next-line no-new
@@ -28,7 +27,7 @@ export const createCharacterScene = (engine: BABYLON.Engine) => {
 export const setup = async (canvas: HTMLCanvasElement) => {
   // Load the 3D engine
   const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true })
-  const scene = createScene(engine)
+  const { scene } = createScene(engine)
 
   const vrmScene = createCharacterScene(engine)
 

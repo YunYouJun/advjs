@@ -30,7 +30,11 @@
     "dev": "nr build --watch",
     "prepublishOnly": "npm run build"
   },
+  "dependencies": {
+    "@types/mdast": "^3.0.10",
+    "@types/unist": "^2.0.6"
+  },
   "devDependencies": {
-    "tsup": "^5.12.7"
+    "tsup": "^6.1.2"
   }
 }

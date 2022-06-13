@@ -50,7 +50,8 @@ cli.command(
       describe: 'open in browser',
     })
     .option('remote', {
-      type: 'string',
+      default: true,
+      type: 'boolean',
       describe: 'listen public host and enable remote control',
     })
     .option('log', {
@@ -195,19 +196,12 @@ cli.command(
       type: 'string',
       describe: 'output base',
     })
-    .option('download', {
-      alias: 'd',
-      type: 'boolean',
-      describe: 'allow download as PDF',
-    })
     .strict()
     .help(),
-  async ({ entry, theme, watch, base, download, out }) => {
+  async ({ entry, theme, watch, base, out }) => {
     const { build } = await import('./build')
 
     const options = await resolveOptions({ entry, theme }, 'build')
-    if (download && !options.data.config.download)
-      options.data.config.download = download
 
     printInfo(options)
     await build(options, {
@@ -238,38 +232,29 @@ function commonOptions(args: Argv<{}>) {
     })
 }
 
-function printInfo(options: ResolvedAdvOptions, port?: number, remote?: string) {
+function printInfo(options: ResolvedAdvOptions, port?: number, remote?: boolean) {
   console.log()
   console.log()
-  console.log(`  ${cyan('●') + blue('■') + yellow('▲')}`)
-  console.log(`${bold('  ADV.JS')}  ${blue(`v${version}`)} ${isInstalledGlobally ? yellow('(global)') : ''}`)
+  console.log(`${bold('  🎮 ADV.JS')}  ${blue(`v${version}`)} ${isInstalledGlobally ? yellow('(global)') : ''}`)
   console.log()
   console.log(dim('  theme   ') + (options.theme ? green(options.theme) : gray('none')))
   console.log(dim('  entry   ') + dim(path.dirname(options.entry) + path.sep) + path.basename(options.entry))
   if (port) {
-    const query = remote ? `?password=${remote}` : ''
-    const presenterPath = `${options.data.config.routerMode === 'hash' ? '/#/' : '/'}presenter/${query}`
     console.log()
-    console.log(`${dim('  public slide show ')}  > ${cyan(`http://localhost:${bold(port)}/`)}`)
-    if (query)
-      console.log(`${dim('  private slide show ')} > ${cyan(`http://localhost:${bold(port)}/${query}`)}`)
-    console.log(`${dim('  presenter mode ')}     > ${blue(`http://localhost:${bold(port)}${presenterPath}`)}`)
+    console.log(`${dim('  Preview    ')}  > ${cyan(`http://localhost:${bold(port)}/`)}`)
 
-    if (remote !== undefined) {
+    if (remote) {
       Object.values(os.networkInterfaces())
         .forEach(v => (v || [])
-          .filter(details => String(details.family).slice(-1) === '4' && !details.address.includes('127.0.0.1'))
+          .filter(details => details.family === 'IPv4' && !details.address.includes('127.0.0.1'))
           .forEach(({ address }) => {
-            console.log(`${dim('  remote control ')}     > ${blue(`http://${address}:${port}${presenterPath}`)}`)
+            console.log(`${dim('  Network     ')} > ${blue(`http://${address}:${bold(port)}/`)}`)
           }),
         )
     }
-    else {
-      console.log(`${dim('  remote control ')}     > ${dim('pass --remote to enable')}`)
-    }
 
     console.log()
-    console.log(`${dim('  shortcuts ')}          > ${underline('r')}${dim('estart | ')}${underline('o')}${dim('pen | ')}${underline('e')}${dim('dit')}`)
+    console.log(`${dim('  shortcuts ')}   > ${underline('r')}${dim('estart | ')}${underline('o')}${dim('pen | ')}${underline('e')}${dim('dit')}`)
   }
   console.log()
   console.log()

@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "module": "ESNext",
-    "target": "ESNext",
+    "target": "es2016",
     "lib": ["DOM", "ESNext"],
     "strict": true,
     "esModuleInterop": true,
@@ -29,7 +29,7 @@
       "~/*": ["./packages/client/*"],
       "advjs": ["./packages/advjs/node/index.ts"],
       "@advjs/core": ["./packages/core/src/index.ts"],
-      "@advjs/core/*": ["./packages/core/src/*"],
+      "@advjs/core/babylon": ["./packages/core/src/babylon/index.ts"],
       "@advjs/client/*": ["./packages/client/*"],
       "@advjs/editor/*": ["./packages/editor/src/*"],
       "@advjs/examples/*": ["./packages/examples/*"],

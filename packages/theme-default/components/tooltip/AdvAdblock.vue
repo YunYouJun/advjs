@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { isClient } from '@advjs/shared/utils'
+import { isClient } from '@vueuse/core'
 
 const { t } = useI18n()
 const show = ref(false)

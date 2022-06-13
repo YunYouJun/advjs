@@ -1,5 +1,5 @@
 import type { AdvGameRecord, AdvGameRecordMeta } from '@advjs/core'
-import { recordsStorage } from '@advjs/core/app'
+import { recordsStorage } from '@advjs/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
 export const useGameStore = defineStore('game', () => {

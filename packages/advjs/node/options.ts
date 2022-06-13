@@ -12,7 +12,7 @@ import type { AdvMarkdown } from '@advjs/types'
 import _debug from 'debug'
 import { parser } from './parser'
 import { packageExists, resolveImportPath } from './utils'
-import { getThemeMeta, promptForThemeInstallation, resolveThemeName } from './themes'
+import { getThemeMeta, resolveThemeName } from './themes'
 
 const debug = _debug('adv:options')
 
@@ -29,10 +29,7 @@ export interface AdvEntryOptions {
    */
   theme?: string
 
-  /**
-   * Remote password
-   */
-  remote?: string
+  remote?: boolean
 
   /**
    * Root path
@@ -52,7 +49,7 @@ export interface ResolvedAdvOptions {
   themeRoots: string[]
   roots: string[]
   mode: 'dev' | 'build'
-  remote?: string
+  remote?: boolean
 }
 
 export interface AdvPluginOptions extends AdvEntryOptions {
@@ -104,7 +101,6 @@ export function getUserRoot(options: AdvEntryOptions) {
 export async function resolveOptions(
   options: AdvEntryOptions,
   mode: ResolvedAdvOptions['mode'],
-  promptForInstallation = true,
 ): Promise<ResolvedAdvOptions> {
   const { remote } = options
   const {
@@ -114,15 +110,9 @@ export async function resolveOptions(
   const data = await parser.load(entry)
   const theme = resolveThemeName(options.theme || data.config.theme)
 
-  if (promptForInstallation) {
-    if (await promptForThemeInstallation(theme) === false)
-      process.exit(1)
-  }
-  else {
-    if (!packageExists(theme)) {
-      console.error(`Theme "${theme}" not found, have you installed it?`)
-      process.exit(1)
-    }
+  if (!packageExists(theme)) {
+    console.error(`Theme "${theme}" not found, have you installed it?`)
+    process.exit(1)
   }
 
   const clientRoot = getClientRoot()

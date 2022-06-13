@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import * as BABYLON from '@babylonjs/core'
-import { isClient } from '@advjs/shared/utils'
+import { isClient } from '@vueuse/core'
 import { setup } from '~/setup/babylon'
 import { adv } from '~/setup/adv'
 import { useBabylonStore } from '~/stores/babylon'

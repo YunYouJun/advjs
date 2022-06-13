@@ -1,4 +1,4 @@
-import type { Content } from 'mdast'
+import type * as MdAst from 'mdast'
 
 export namespace AdvAst {
   export interface Node {
@@ -112,7 +112,7 @@ export namespace AdvAst {
 
   export type Item = Unknown | Paragraph | Narration | Character | Words | Text | SceneInfo | Dialog | Camera | Code | Tachie | Background
 
-  export type Child = Item | Content
+  export type Child = Item | MdAst.Content
 
   export interface Root {
     type: 'adv-root'

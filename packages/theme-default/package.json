@@ -1,12 +1,23 @@
 {
   "name": "@advjs/theme-default",
-  "version": "0.0.0",
+  "version": "0.0.1",
+  "description": "Default Theme for ADV.JS",
   "author": {
     "name": "YunYouJun",
     "email": "me@yunyoujun.cn",
     "url": "https://www.yunyoujun.cn"
   },
-  "exports": {
-    ".": "./index.ts"
+  "license": "MPL-2.0",
+  "keywords": [
+    "advjs-theme",
+    "advjs"
+  ],
+  "main": "index.ts",
+  "engines": {
+    "node": ">=14.0.0",
+    "advjs": ">=0.0.1"
+  },
+  "advjs": {
+    "colorSchema": "both"
   }
 }

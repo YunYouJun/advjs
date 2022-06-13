@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { ns } from '@advjs/shared/utils'
+import { ns } from '@advjs/core'
 import type { Ref } from 'vue'
 import { useSpeech } from './useSpeech'
 

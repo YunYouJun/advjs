@@ -40,3 +40,7 @@ GitHub Pages 固然方便，但相对它们也有一些缺点。
 
 - 首页（文档）：托管与 Vercel（托管于 Netlify 站点国内用户无法访问）
 - demo 托管于 Cloudflare Pages：尚未支持 monorepo 部署，一个站点只能一个 Pages
+
+## tsup@5
+
+Lock tsup@5 to fix esm build shim.

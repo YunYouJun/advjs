@@ -1,4 +1,4 @@
-import { dirname, join } from 'path'
+import { dirname, join, resolve } from 'path'
 import type { InlineConfig, Plugin } from 'vite'
 import { mergeConfig } from 'vite'
 import isInstalledGlobally from 'is-installed-globally'
@@ -8,6 +8,8 @@ import { dependencies } from '../../../client/package.json'
 import type { ResolvedAdvOptions } from '../options'
 import { resolveGlobalImportPath, resolveImportPath, toAtFS } from '../utils'
 import { searchForWorkspaceRoot } from '../vite/searchRoot'
+
+// import { commonAlias } from '../../../shared/config/vite'
 
 const EXCLUDE = [
   '@advjs/shared',
@@ -26,6 +28,10 @@ export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
         define: getDefine(options),
         resolve: {
           alias: {
+            // '@advjs/core': `${toAtFS(resolve(__dirname, '../../core/src'))}/index.ts`,
+            '@advjs/core': `${resolve(__dirname, '../../core/src')}/index.ts`,
+            '@advjs/core/babylon': `${resolve(__dirname, '../../core/src')}/babylon/index.ts`,
+            // '@advjs/parser': `${toAtFS(resolve(__dirname, '../../parser/src'))}/index.ts`,
             '@advjs/client/': `${toAtFS(options.clientRoot)}/`,
           },
         },

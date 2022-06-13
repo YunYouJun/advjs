@@ -3,8 +3,7 @@ import { defineConfig } from 'tsup'
 export default defineConfig({
   entry: [
     'src/index.ts',
-    'src/core.ts',
-    'src/fs.ts',
+    'src/babylon/index.ts',
   ],
   clean: true,
   splitting: true,

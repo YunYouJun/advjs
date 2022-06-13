@@ -1,9 +1,8 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { convertMdToAdv, mdParse } from '@advjs/parser'
+import { convertMdToAdv, mdParse, mdRender } from '@advjs/parser'
 import type { Root as MdRoot } from 'mdast'
-import { mdRender } from '@advjs/parser/markdown'
 import type { AdvAst } from '@advjs/types'
-import { ns } from '@advjs/shared/utils'
+import { ns } from '@advjs/core'
 
 export type OutputType = 'adv' | 'preview' | 'html' | 'markdown-it'
 
