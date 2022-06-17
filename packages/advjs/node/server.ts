@@ -23,9 +23,23 @@ export async function createServer(
       options,
       viteConfig,
       <InlineConfig>({
+        resolve: {
+          alias: {
+            'node:fs': 'fs',
+          },
+        },
         optimizeDeps: {
           entries: [
             join(options.clientRoot, 'main.ts'),
+          ],
+          exclude: [
+            'fsevents',
+            'path',
+            'fs',
+            'os',
+            'node:fs',
+            'module',
+            'url',
           ],
         },
         plugins: [

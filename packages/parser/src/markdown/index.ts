@@ -18,6 +18,8 @@
 //   .use(remarkFrontmatter)
 //   .use(remarkGfm)
 
+import type { Root } from 'mdast'
+
 export async function mdRender(content: string) {
   const { unified } = await import('unified')
   const { default: remarkParse } = await import('remark-parse')
@@ -41,7 +43,7 @@ export async function mdRender(content: string) {
  * @param content
  * @returns
  */
-export async function mdParse(content: string) {
+export async function mdParse(content: string): Promise<Root> {
   const { unified } = await import('unified')
   const { default: remarkParse } = await import('remark-parse')
   const { default: remarkFrontmatter } = await import('remark-frontmatter')

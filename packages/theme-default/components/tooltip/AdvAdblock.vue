@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import { isClient } from '@vueuse/core'
+import { onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 const show = ref(false)

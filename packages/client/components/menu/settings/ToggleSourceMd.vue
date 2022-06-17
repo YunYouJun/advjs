@@ -1,5 +1,8 @@
 <script lang="ts" setup>
 import type { AdvMenuItemProps } from '@advjs/theme-default'
+
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useSettingsStore } from '~/stores/settings'
 
 const settings = useSettingsStore()

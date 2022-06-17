@@ -4,6 +4,8 @@ import type { VRMManager } from 'babylon-vrm-loader'
 import type { CameraInfo } from '@advjs/shared/debug'
 import { captureCameraInfo } from '@advjs/shared/debug'
 import { isClient } from '@vueuse/core'
+import { useHead } from '@vueuse/head'
+import { onMounted, ref } from 'vue'
 import { setup } from '../setup'
 import { useVrmStore } from '../stores/vrm'
 

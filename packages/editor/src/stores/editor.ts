@@ -4,6 +4,9 @@ import type { Root as MdRoot } from 'mdast'
 import type { AdvAst } from '@advjs/types'
 import { ns } from '@advjs/core'
 
+import { ref } from 'vue'
+import { useDebounceFn, useStorage } from '@vueuse/core'
+
 export type OutputType = 'adv' | 'preview' | 'html' | 'markdown-it'
 
 export const useEditorStore = defineStore('editor', () => {

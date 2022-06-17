@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useScreenLock } from '@advjs/shared'
 import type { AdvMenuItemProps } from '@advjs/theme-default'
 
+import { computed } from 'vue'
 import { useSettingsStore } from '~/stores/settings'
 
 const { t } = useI18n()

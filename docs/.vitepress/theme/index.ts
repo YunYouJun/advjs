@@ -2,18 +2,17 @@
 import './styles/vars.scss'
 import './styles/index.scss'
 
-import type { Theme } from 'vitepress'
-import { VPTheme } from 'vitepress-theme-you'
-import CustomLayout from './Layout.vue'
-
 import 'uno.css'
 
-const theme: Theme = Object.assign({}, VPTheme, {
-  Layout: CustomLayout,
-  NotFound: VPTheme.NotFound,
-  // enhanceApp: () => {
-  //   if (typeof window !== 'undefined') import('./modules/pwa');
-  // },
-} as Theme)
+import { h } from 'vue'
+import Theme from 'vitepress/theme'
+import HomePage from '../components/HomePage.vue'
 
-export default theme
+export default {
+  ...Theme,
+  Layout() {
+    return h(Theme.Layout, null, {
+      'home-features-after': () => h(HomePage),
+    })
+  },
+}

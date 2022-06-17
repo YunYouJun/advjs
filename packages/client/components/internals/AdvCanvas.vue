@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import * as BABYLON from '@babylonjs/core'
 import { isClient } from '@vueuse/core'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { setup } from '~/setup/babylon'
 import { adv } from '~/setup/adv'
 import { useBabylonStore } from '~/stores/babylon'
@@ -22,7 +23,7 @@ onUnmounted(() => {
 })
 
 const curNode = computed(() => {
-  return adv.store.curNode.value
+  return adv.store.curNode
 })
 
 watch(() => curNode.value, () => {

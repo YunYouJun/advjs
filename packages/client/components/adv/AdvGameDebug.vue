@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type * as BABYLON from '@babylonjs/core'
 import type { CameraInfo } from '@advjs/shared/debug/camera'
 import { captureCameraInfo } from '@advjs/shared/debug/camera'

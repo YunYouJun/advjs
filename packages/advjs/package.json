@@ -9,6 +9,7 @@
   },
   "license": "MPL-2.0",
   "funding": "https://github.com/sponsors/YunYouJun",
+  "homepage": "https://advjs.org",
   "repository": {
     "url": "https://github.com/YunYouJun/advjs"
   },
@@ -49,10 +50,10 @@
     "@iconify-json/carbon": "^1.1.5",
     "@iconify-json/ri": "^1.1.2",
     "@intlify/vite-plugin-vue-i18n": "^3.4.0",
+    "@types/mdast": "^3.0.10",
     "@vitejs/plugin-vue": "^2.3.3",
     "@vueuse/core": "^8.7.3",
     "@windicss/plugin-animations": "^1.0.9",
-    "babylon-vrm-loader": "^1.6.0",
     "debug": "^4.3.4",
     "defu": "^6.0.0",
     "fs-extra": "^10.1.0",
@@ -87,6 +88,7 @@
     "@types/markdown-it-link-attributes": "^3.0.1",
     "fast-deep-equal": "^3.1.3",
     "hast-util-to-html": "^8.0.3",
-    "mdast-util-to-hast": "^12.1.1"
+    "mdast-util-to-hast": "^12.1.1",
+    "semver": "^7.3.7"
   }
 }

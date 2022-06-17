@@ -1,6 +1,8 @@
 <script lang="ts" setup>
+import { computed, ref, watch } from 'vue'
 import { adv } from '~/setup/adv'
 import { useAppStore } from '~/stores/app'
+
 const app = useAppStore()
 
 const bgImage = ref('')
@@ -10,7 +12,7 @@ const advGameStyle = computed(() => {
   }
 })
 
-watch(() => adv.store.cur.value.background, (val) => {
+watch(() => adv.store.cur.background, (val) => {
   if (app.showBg)
     app.toggleBg()
 

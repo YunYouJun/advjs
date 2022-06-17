@@ -1,5 +1,6 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { ns } from '@advjs/core'
+import { useFullscreen, useStorage } from '@vueuse/core'
 import type { Ref } from 'vue'
 import { useSpeech } from './useSpeech'
 

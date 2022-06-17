@@ -1,5 +1,5 @@
-import type * as Adv from '@advjs/types'
 import type * as Mdast from 'mdast'
+import type { AdvAst } from '@advjs/types'
 
 /**
  * 人物信息
@@ -8,7 +8,7 @@ function toCharacter(text: string) {
   const leftBracket = ['(', '（']
   const rightBracket = [')', '）']
 
-  const info: Adv.Character = {
+  const info: AdvAst.Character = {
     type: 'character',
     name: '',
     status: '',
@@ -49,8 +49,8 @@ function toText(text: string) {
  * 是否为对话
  * @param text
  */
-export function toDialog(text: string): Adv.Dialog | false {
-  const info: Adv.Dialog = {
+export function toDialog(text: string): AdvAst.Dialog | false {
+  const info: AdvAst.Dialog = {
     type: 'dialog',
     character: {
       type: 'character',

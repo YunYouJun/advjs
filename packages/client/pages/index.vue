@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+
 const props = withDefaults(defineProps<{ duration?: number }>(), {
   duration: 2000,
 })

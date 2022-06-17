@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import type * as m from 'monaco-editor'
 import { isClient } from '@vueuse/core'
+import { useI18n } from 'vue-i18n'
+import { nextTick, ref } from 'vue'
 import setupMonaco from '../setup/monaco'
 import { useEditorStore } from '../stores/editor'
 

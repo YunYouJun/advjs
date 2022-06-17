@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 // 文字播放预览
 import type { AdvItemOption, AdvMenuItemProps } from '@advjs/theme-default'
 import { useSettingsStore } from '~/stores/settings'

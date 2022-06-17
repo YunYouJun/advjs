@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { speak } from '@advjs/shared/speech'
-import { adv } from '~/setup/adv'
+import { computed, ref, watch } from 'vue'
+import { adv } from '~/setup'
 import { useSettingsStore } from '~/stores/settings'
 
 const advStore = adv.store
@@ -8,8 +9,8 @@ const gameConfig = advStore.gameConfig
 
 const settings = useSettingsStore()
 
-const curNode = computed(() => advStore.curNode.value)
-const curDialog = computed(() => advStore.cur.value.dialog)
+const curNode = computed(() => advStore.curNode)
+const curDialog = computed(() => advStore.cur.dialog)
 
 // 局部 words order，与全局 order 相区别
 const iOrder = ref(0)

@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import { createVRM, getVrmManager } from '@advjs/core/babylon/vrm'
+import { createVRM, getVrmManager } from '@advjs/core/babylon'
 import { checkModelFormat } from '@advjs/shared/utils/vrm'
 import type * as BABYLON from '@babylonjs/core'
+import { onMounted, ref } from 'vue'
 import { useVrmStore } from '../stores/vrm'
 
 const vrmStore = useVrmStore()
@@ -42,12 +43,16 @@ const onDrop = (e: DragEvent) => {
     manager.rootMesh.dispose()
     manager.dispose()
 
-    createVRM(scene, 'file:', fileList[0], () => {
-      const manager = getVrmManager(scene)
-      if (!manager)
-        return
-      vrmStore.setVrmManager(getVrmManager(scene))
-    })
+    if (scene) {
+      createVRM(scene, 'file:', fileList[0], () => {
+        const manager = getVrmManager(scene)
+        if (!manager)
+          return
+
+        const vrmManager =getVrmManager(scene)
+        vrmStore.setVrmManager(vrmManager)
+      })
+    }
   }
 }
 

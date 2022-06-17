@@ -1,3 +1,5 @@
+import { onBeforeMount } from 'vue'
+
 /**
  * 关闭页面前提示
  */

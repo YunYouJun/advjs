@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Tachie } from '@advjs/types'
+import { computed } from 'vue'
 import { adv } from '~/setup/adv'
 
 const props = defineProps<{ tachie: Tachie;character: string }>()
@@ -7,7 +8,7 @@ const props = defineProps<{ tachie: Tachie;character: string }>()
 const advStore = adv.store
 
 const active = computed(() => {
-  const curDialog = advStore.cur.value.dialog
+  const curDialog = advStore.cur.dialog
   return curDialog.character && (curDialog.character.name === props.character)
 })
 

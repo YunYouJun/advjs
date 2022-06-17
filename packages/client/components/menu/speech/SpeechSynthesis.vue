@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { speak } from '@advjs/shared/speech'
 import type { AdvMenuItemProps } from '@advjs/theme-default'
+
+import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useSettingsStore } from '~/stores/settings'
 
 const settings = useSettingsStore()

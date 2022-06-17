@@ -1,6 +1,8 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type * as BABYLON from '@babylonjs/core'
 
+import { computed, shallowRef } from 'vue'
+
 import type { AsyncReturnType } from '@advjs/shared/types'
 import type { VRMManager } from 'babylon-vrm-loader'
 import type { setup } from '../setup'
@@ -18,7 +20,7 @@ export const useVrmStore = defineStore('vrm', () => {
     babylon.value = val
   }
 
-  const setVrmManager = (val: VRMManager) => {
+  const setVrmManager = (val: VRMManager | undefined) => {
     vrmManager.value = val
   }
 

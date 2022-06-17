@@ -2,7 +2,7 @@ import { join } from 'path'
 import { uniq } from '@antfu/utils'
 import type { Plugin } from 'vite'
 import { existsSync } from 'fs-extra'
-import type { AdvMarkdown } from 'packages/types'
+import type { AdvMarkdown } from '@advjs/types'
 import type { ResolvedAdvOptions } from '../options'
 import { toAtFS } from '../utils'
 

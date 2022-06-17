@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 import * as BABYLON from '@babylonjs/core'
-import type { HumanBonesType } from '@advjs/core/babylon/vrm/pose'
-import { HumanBones } from '@advjs/core/babylon/vrm/pose'
-import type { PoseEulerType } from '@advjs/core/babylon/types'
+import type { HumanBonesType, PoseEulerType } from '@advjs/core/babylon'
+import { HumanBones } from '@advjs/core/babylon'
 import type { Ref } from 'vue'
+import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useVrmStore } from '../stores/vrm'
 
 const { t } = useI18n()

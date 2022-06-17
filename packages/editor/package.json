@@ -27,7 +27,6 @@
     "markdown-it-link-attributes": "^4.0.0",
     "markdown-it-prism": "^2.2.4",
     "unocss": "^0.39.0",
-    "unplugin-auto-import": "^0.8.6",
     "unplugin-vue-components": "^0.19.6",
     "v-tooltip": "^4.0.0-beta.2",
     "vite": "^2.9.12",

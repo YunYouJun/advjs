@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted, ref, watch } from 'vue'
 import type { DisplayMode } from '~/stores/settings'
 
 const props = withDefaults(defineProps<{

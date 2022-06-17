@@ -1,4 +1,4 @@
-import { existsSync, promises as fs } from 'fs'
+import fs from 'fs'
 import { join } from 'path'
 import { uniq } from '@antfu/utils'
 import { loadConfigFromFile, mergeConfig } from 'vite'
@@ -7,7 +7,7 @@ import type { ResolvedAdvOptions } from './options'
 import { toAtFS } from './utils'
 
 export async function getIndexHtml({ clientRoot, themeRoots, data, userRoot }: ResolvedAdvOptions): Promise<string> {
-  let main = await fs.readFile(join(clientRoot, 'index.html'), 'utf-8')
+  let main = fs.readFileSync(join(clientRoot, 'index.html'), 'utf-8')
   let head = ''
   let body = ''
 
@@ -20,10 +20,10 @@ export async function getIndexHtml({ clientRoot, themeRoots, data, userRoot }: R
 
   for (const root of roots) {
     const path = join(root, 'index.html')
-    if (!existsSync(path))
+    if (!fs.existsSync(path))
       continue
 
-    const index = await fs.readFile(path, 'utf-8')
+    const index = fs.readFileSync(path, 'utf-8')
 
     head += `\n${(index.match(/<head>([\s\S]*?)<\/head>/im)?.[1] || '').trim()}`
     body += `\n${(index.match(/<body>([\s\S]*?)<\/body>/im)?.[1] || '').trim()}`
@@ -48,7 +48,7 @@ export async function mergeViteConfigs({ themeRoots }: ResolvedAdvOptions, viteC
   ]).map(i => join(i, 'vite.config.ts'))
 
   for await (const file of files) {
-    if (!existsSync(file))
+    if (!fs.existsSync(file))
       continue
     const viteConfig = await loadConfigFromFile(configEnv, file)
     if (!viteConfig?.config)

@@ -1,7 +1,7 @@
 import type { AdvAst, GameConfig, Tachie } from '@advjs/types'
 import type { StorageMeta } from 'unstorage'
 import { defaultGameConfig } from 'advjs'
-import { computed, ref } from 'vue'
+import { computed, ref, shallowRef } from 'vue'
 
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
@@ -43,7 +43,7 @@ export const useAdvStore = defineStore('adv', () => {
   /**
    * 语法树
    */
-  const ast = ref<AdvAst.Root>({
+  const ast = shallowRef<AdvAst.Root>({
     type: 'adv-root',
     children: [{
       type: 'text',

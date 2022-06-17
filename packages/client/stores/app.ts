@@ -1,5 +1,6 @@
 import { ns } from '@advjs/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
+import { useStorage, useToggle } from '@vueuse/core'
 
 export const useAppStore = defineStore('app', () => {
   const [showUi, toggleUi] = useToggle(true)

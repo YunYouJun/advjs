@@ -9,6 +9,9 @@ try {
   // use local cli if exists
   modulePath = path.join(path.dirname(resolveFrom(process.cwd(), 'advjs')), 'cli.js')
 }
-catch {}
+catch (e) {
+  // eslint-disable-next-line no-console
+  console.log(e)
+}
 
 require(modulePath)

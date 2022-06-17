@@ -1,6 +1,23 @@
 import * as BABYLON from '@babylonjs/core'
-// just use three-vrm type
-import type { RawVector4, VRMPose } from '@pixiv/three-vrm'
+
+export type RawVector3 = [number, number, number]
+export type RawVector4 = [number, number, number, number]
+
+export interface VRMPoseTransform {
+  /**
+     * Position of the transform.
+     */
+  position?: RawVector3
+  /**
+     * Rotation of the transform.
+     * Note that it's a quaternion.
+     */
+  rotation?: RawVector4
+}
+
+export interface VRMPose {
+  [boneName: string]: VRMPoseTransform | undefined
+}
 
 //
 export const vRawPoseData: VRMPose = {

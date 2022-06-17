@@ -10,7 +10,7 @@ import type { ArgumentsType } from '@antfu/utils'
 import { uniq } from '@antfu/utils'
 import type { AdvMarkdown } from '@advjs/types'
 import _debug from 'debug'
-import { parser } from './parser'
+import { load } from '@advjs/parser/fs'
 import { packageExists, resolveImportPath } from './utils'
 import { getThemeMeta, resolveThemeName } from './themes'
 
@@ -107,7 +107,7 @@ export async function resolveOptions(
     entry,
     userRoot,
   } = getUserRoot(options)
-  const data = await parser.load(entry)
+  const data = await load(entry)
   const theme = resolveThemeName(options.theme || data.config.theme)
 
   if (!packageExists(theme)) {

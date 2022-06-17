@@ -1,4 +1,4 @@
-import type * as MdAst from 'mdast'
+import type MdAst from 'mdast'
 
 export namespace AdvAst {
   export interface Node {
@@ -82,10 +82,8 @@ export namespace AdvAst {
     children: string[]
   }
 
-  export interface Code extends Node {
+  export interface Code extends MdAst.Code {
     type: 'code'
-    lang?: string
-    meta?: string
     value: any
   }
 

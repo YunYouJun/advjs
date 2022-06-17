@@ -1,5 +1,5 @@
 import type { UserModule } from '@advjs/client/types'
-import * as pkg from '~/../package.json'
+import * as pkg from '../../package.json'
 
 export const install: UserModule = () => {
   // eslint-disable-next-line no-console

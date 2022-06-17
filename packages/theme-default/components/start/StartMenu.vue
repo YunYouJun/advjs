@@ -1,11 +1,9 @@
 <script setup lang="ts">
+import type { StartMenuItem } from '@advjs/theme-default'
+
 defineProps<{
   menuItems: StartMenuItem[]
 }>()
-export interface StartMenuItem {
-  title: string
-  do?: () => void
-}
 </script>
 
 <template>

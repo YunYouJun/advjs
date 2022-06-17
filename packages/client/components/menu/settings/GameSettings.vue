@@ -4,6 +4,9 @@ import type { AdvMenuItemProps } from '@advjs/theme-default'
 
 // const settings = useSettingsStore()
 
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+
 const { t } = useI18n()
 
 const item = computed<AdvMenuItemProps<'Slider'>>(() => ({

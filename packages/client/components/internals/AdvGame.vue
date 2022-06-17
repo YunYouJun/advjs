@@ -2,6 +2,7 @@
 import type { AdvAst, GameConfig } from '@advjs/types'
 
 import { useBeforeUnload } from '@advjs/client/composables'
+import { computed, onBeforeMount, ref } from 'vue'
 import { useAppStore } from '~/stores/app'
 
 import { adv } from '~/setup/adv'
@@ -12,12 +13,14 @@ const props = defineProps<{
   ast: AdvAst.Root
 }>()
 
+const isDev = ref(__DEV__)
+
 onBeforeMount(() => {
   adv.loadAst(props.ast)
 })
 
 const curNode = computed(() => {
-  return adv.store.curNode.value
+  return adv.store.curNode
 })
 
 // 添加提示，防止意外退出
@@ -36,7 +39,7 @@ if (props.frontmatter)
   <AdvContainer class="w-full h-full" text="white">
     <div class="adv-game w-full h-full bg-black absolute">
       <AdvScene />
-      <TachieBox :tachies="adv.store.cur.value.tachies" />
+      <TachieBox :tachies="adv.store.cur.tachies" />
 
       <AdvBlack v-if="curNode && curNode.type === 'narration'" class="z-9" :content="curNode" />
 

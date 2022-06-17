@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed, ref, watchEffect } from 'vue'
+import { useElementSize } from '@vueuse/core'
 import { advAspect, advHeight, advWidth } from '~/client/env'
 import config from '~/config'
 

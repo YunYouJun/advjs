@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import { useRoute, useRouter } from 'vue-router'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { MenuButtonItem } from '~/types/menu'
 
 import { isDark, toggleDark } from '~/composables'

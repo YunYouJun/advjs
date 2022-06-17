@@ -2,11 +2,12 @@
 // import { toHast } from 'mdast-util-to-hast'
 // import { toHtml } from 'hast-util-to-html'
 
-import type { Narration } from '@advjs/types'
+import type { AdvAst } from '@advjs/types'
+import { onMounted, ref, watch } from 'vue'
 import { adv } from '~/setup/adv'
 
 const props = defineProps<{
-  content: Narration
+  content: AdvAst.Narration
 }>()
 
 // const blackHtml = computed(() => {

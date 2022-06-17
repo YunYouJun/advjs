@@ -14,7 +14,6 @@
     "url": "https://github.com/YunYouJun/advjs"
   },
   "bugs": "https://github.com/YunYouJun/advjs/issues",
-  "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "index.d.ts",
   "files": [
@@ -26,12 +25,15 @@
     "node": ">=14.0.0"
   },
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts --splitting",
-    "dev": "nr build --watch",
+    "build": "rimraf dist && unbuild",
+    "dev": "unbuild --stub",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@types/mdast": "^3.0.10",
     "@types/unist": "^2.0.6"
+  },
+  "devDependencies": {
+    "tsup": "^6.1.2"
   }
 }

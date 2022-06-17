@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import type { Swiper } from 'swiper'
 
+import { ref } from 'vue'
+
 import type { CreativeEffectOptions } from 'swiper/types'
 const swiperRef = ref<Swiper>()
 const perPageNum = ref(6)

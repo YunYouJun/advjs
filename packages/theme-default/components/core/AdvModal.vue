@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import { onMounted } from 'vue'
+import { onKeyStroke } from '@vueuse/core'
+
 const props = withDefaults(defineProps<{
   show?: boolean
   header?: string

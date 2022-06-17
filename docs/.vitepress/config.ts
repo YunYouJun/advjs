@@ -1,18 +1,18 @@
 import path from 'path'
-import type { YouTheme } from 'vitepress-theme-you'
-import type { UserConfig } from 'vitepress'
+// import type { YouTheme } from 'vitepress-theme-you'
+// import baseConfig from 'vitepress-theme-you/config'
+import { defineConfig } from 'vitepress'
+// import type { DefaultTheme, UserConfig } from 'vitepress'
 
 import Components from 'unplugin-vue-components/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// @ts-expect-error config type
-import baseConfig from 'vitepress-theme-you/config'
 import themeConfig from './config/theme'
 import head from './config/head'
 import { metaData } from './config/constants'
 
-const config: UserConfig<YouTheme.Config> = {
-  extends: baseConfig,
+export default defineConfig({
+  // extends: baseConfig,
 
   vite: {
     resolve: {
@@ -54,6 +54,4 @@ const config: UserConfig<YouTheme.Config> = {
   head,
   themeConfig,
   srcExclude: ['README.md'],
-}
-
-export default config
+})

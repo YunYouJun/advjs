@@ -1,9 +1,8 @@
 import { parseAst } from '@advjs/parser'
 import type { AdvAst } from '@advjs/types'
-import type { Code as MdCode } from 'mdast'
 import consola from 'consola'
-import { useAdvStore } from '../stores'
-import { getCharacter } from '../utils'
+import { getCharacter } from '@advjs/core'
+import { useAdvStore } from './store'
 
 export interface AdvOptions {
   /**
@@ -51,7 +50,7 @@ export function createAdv(options?: Partial<AdvOptions>) {
    * handle code block
    * @param node
    */
-  async function handleCode(node: AdvAst.Code | MdCode) {
+  async function handleCode(node: AdvAst.Code) {
     if (node.lang === 'ts') {
     // await node.do()
     }

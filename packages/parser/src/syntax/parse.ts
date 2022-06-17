@@ -1,4 +1,4 @@
-import type * as Adv from '@advjs/types'
+import type { AdvAst } from '@advjs/types'
 
 export function parseScene(text: string) {
   // 匹配场景
@@ -6,7 +6,7 @@ export function parseScene(text: string) {
   const re = /^【(.+)】$/
   const separator = '，'
   if (re.test(text)) {
-    const metaInfo: Adv.SceneInfo = {
+    const metaInfo: AdvAst.SceneInfo = {
       type: 'scene',
       place: '',
       time: '',
@@ -31,7 +31,7 @@ export function parseNarration(text: string) {
   // 以 （） 开头结尾
   const re = /^（.+）$/
   if (re.test(text)) {
-    const narration: Adv.Narration = {
+    const narration: AdvAst.Narration = {
       type: 'narration',
       children: [
         text.slice(1, -1),

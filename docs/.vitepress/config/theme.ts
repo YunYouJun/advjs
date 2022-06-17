@@ -1,8 +1,9 @@
-import type { YouTheme } from 'vitepress-theme-you'
+// import type { YouTheme } from 'vitepress-theme-you'
+import type { DefaultTheme } from 'vitepress'
 import { sidebar } from './sidebar'
 import { nav } from './nav'
 
-const themeConfig: YouTheme.Config = {
+const themeConfig: DefaultTheme.Config = {
   // algolia: {
   //   appId: "",
   //   apiKey: "",

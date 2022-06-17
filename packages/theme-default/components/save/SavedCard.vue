@@ -1,11 +1,14 @@
 <script lang="ts" setup>
 import { defaultBgUrl } from '@advjs/theme-default'
 import dayjs from 'dayjs'
-import type { AdvGameRecord, AdvGameRecordMeta } from '@advjs/core'
 import { screenshotGameThumb } from '@advjs/core'
+import { onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+
+import type { AdvGameRecord, AdvGameRecordMeta } from '~/setup'
 import { useGameStore } from '~/stores/game'
 import { useAppStore } from '~/stores/app'
-import { adv } from '~/setup/adv'
+import { adv } from '~/setup'
 
 const props = withDefaults(defineProps<{
   /**
@@ -47,7 +50,7 @@ const saveCardMeta = async () => {
  */
 const saveToCard = async () => {
   const dataUrl = await screenshotGameThumb()
-  const curRecord = adv.store.cur.value
+  const curRecord = adv.store.cur
   try {
     await game.saveRecord(props.no, curRecord)
     record.value = curRecord
@@ -69,7 +72,7 @@ const router = useRouter()
 const loadFromCard = () => {
   if (!record.value)
     return
-  adv.store.cur.value = record.value
+  adv.store.cur = record.value
 
   // 关闭加载菜单
   app.toggleShowLoadMenu()
