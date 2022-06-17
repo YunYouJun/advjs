@@ -5,7 +5,7 @@ import { useBeforeUnload } from '@advjs/client/composables'
 import { useAppStore } from '~/stores/app'
 
 import { adv } from '~/setup/adv'
-import { useAdvKeys } from '~/composables/key'
+import { useAdvKeys } from '~/composables'
 
 const props = defineProps<{
   frontmatter?: GameConfig

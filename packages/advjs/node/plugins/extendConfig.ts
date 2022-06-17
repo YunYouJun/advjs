@@ -3,8 +3,8 @@ import type { InlineConfig, Plugin } from 'vite'
 import { mergeConfig } from 'vite'
 import isInstalledGlobally from 'is-installed-globally'
 import { uniq } from '@antfu/utils'
-import { getIndexHtml } from '../common'
 import { dependencies } from '../../../client/package.json'
+import { getIndexHtml } from '../common'
 import type { ResolvedAdvOptions } from '../options'
 import { resolveGlobalImportPath, resolveImportPath, toAtFS } from '../utils'
 import { searchForWorkspaceRoot } from '../vite/searchRoot'
@@ -32,6 +32,7 @@ export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
             '@advjs/core': `${resolve(__dirname, '../../core/src')}/index.ts`,
             '@advjs/core/babylon': `${resolve(__dirname, '../../core/src')}/babylon/index.ts`,
             // '@advjs/parser': `${toAtFS(resolve(__dirname, '../../parser/src'))}/index.ts`,
+            '~/': `${toAtFS(options.clientRoot)}/`,
             '@advjs/client/': `${toAtFS(options.clientRoot)}/`,
           },
         },

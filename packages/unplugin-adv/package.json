@@ -76,7 +76,7 @@
     "unplugin": "^0.7.0"
   },
   "devDependencies": {
-    "bumpp": "^7.1.1",
+    "bumpp": "^8.2.0",
     "esno": "^0.16.3",
     "fast-glob": "^3.2.11",
     "nodemon": "^2.0.16",

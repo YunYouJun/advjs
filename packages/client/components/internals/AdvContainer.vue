@@ -58,7 +58,7 @@ const className = computed(() => ({
 <style lang="scss">
 // #adv-container will be hidden by adblock plugin
 .adv-container {
-  background: var(--adv-container-bg, var(--adv-bg-color));
+  background: var(--adv-container-bg, var(--adv-c-bg));
 }
 
 #adv-content {

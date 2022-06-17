@@ -122,7 +122,7 @@ const onCardClick = () => {
 }
 
 .preview-image-container {
-  border-right: 1px solid var(--adv-text-color);
+  border-right: 1px solid var(--adv-c-text);
   transition: 0.2s;
 
   &:hover {
@@ -133,8 +133,8 @@ const onCardClick = () => {
 .preview-narration {
   text-align: left;
 
-  border-top: 1px solid var(--adv-text-color);
-  border-bottom: 1px solid var(--adv-text-color);
+  border-top: 1px solid var(--adv-c-text);
+  border-bottom: 1px solid var(--adv-c-text);
   @apply text-sm;
 }
 

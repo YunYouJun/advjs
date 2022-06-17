@@ -1,5 +1,5 @@
 import matter from 'gray-matter'
-import { parseAst } from '../../../parser'
+import { parseAst } from '@advjs/parser'
 import type { ResolvedOptions } from '../types'
 
 const scriptSetupRE = /<\s*script[^>]*\bsetup\b[^>]*>([\s\S]*)<\/script>/gm

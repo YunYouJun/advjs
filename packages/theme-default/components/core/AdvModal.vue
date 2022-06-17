@@ -46,7 +46,7 @@ onMounted(() => {
 
 <style>
 .modal-mask {
-  color: var(--adv-text-color);
+  color: var(--adv-c-text);
   position: fixed;
   z-index: 1000;
   top: 0;

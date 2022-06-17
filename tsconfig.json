@@ -14,13 +14,13 @@
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
     "types": [
-      "node",
       // "@babylonjs/core",
       // "@babylonjs/loaders",
       // "@babylonjs/gui",
       // "@babylonjs/materials",
       // "babylon-vrm-loader",
       "vite/client",
+      "node",
       "vue/ref-macros",
       "vite-plugin-pages/client",
       "vite-plugin-vue-layouts/client"
@@ -44,6 +44,7 @@
     }
   },
   "include": [
+    "./*.ts",
     "./docs/.vitepress/**/*.ts",
     "./docs/.vitepress/**/*.vue",
     "./packages/global.d.ts",

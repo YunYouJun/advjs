@@ -2,11 +2,12 @@ import { join } from 'path'
 import { uniq } from '@antfu/utils'
 import type { Plugin } from 'vite'
 import { existsSync } from 'fs-extra'
+import type { AdvMarkdown } from 'packages/types'
 import type { ResolvedAdvOptions } from '../options'
 import { toAtFS } from '../utils'
 
 export function createAdvLoader(
-  { clientRoot, themeRoots, userRoot }: ResolvedAdvOptions,
+  { data, clientRoot, themeRoots, userRoot }: ResolvedAdvOptions,
 ): Plugin[] {
   const advPrefix = '/@advjs/drama/'
 
@@ -41,6 +42,17 @@ export function createAdvLoader(
     return imports.join('\n')
   }
 
+  async function transformMarkdown(code: string, data: AdvMarkdown) {
+    // const imports = [
+    //   `import EntryMd from "${entry}"`,
+    // ]
+
+    // eslint-disable-next-line no-console
+    console.log(data)
+
+    return code
+  }
+
   return [
     {
       name: 'advjs:loader',
@@ -55,6 +67,15 @@ export function createAdvLoader(
         // styles
         if (id === '/@advjs/styles')
           return generateUserStyles()
+      },
+    },
+    {
+      name: 'advjs:layout-transform:pre',
+      enforce: 'pre',
+      async transform(code, id) {
+        if (!id.startsWith(advPrefix) || !id.endsWith('.md'))
+          return
+        return transformMarkdown(code, data)
       },
     },
   ]

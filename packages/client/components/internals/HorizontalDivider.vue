@@ -9,6 +9,6 @@
   display: inline-flex;
   width: 100%;
   height: 1px;
-  background: var(--adv-text-color);
+  background: var(--adv-c-text);
 }
 </style>

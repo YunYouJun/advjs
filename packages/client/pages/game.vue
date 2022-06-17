@@ -1,14 +1,9 @@
 <script setup lang="ts">
-// 武林外传
-import Wlwz from '@advjs/examples/wlwz.adv.md'
-
-// 雷雨
-// import LeiYu from '@advjs/examples/雷雨.adv.md'
+import Drama from '/@advjs/drama'
 </script>
 
 <template>
-  <Wlwz />
-  <!-- <LeiYu /> -->
+  <Drama />
 </template>
 
 <route lang="yaml">

@@ -2,6 +2,7 @@
 // https://github.com/vueuse/head
 // you can use this to manipulate the document head in any components,
 // they will be rendered correctly in the html results with vite-ssg
+import { useHead } from '@vueuse/head'
 useHead({
   title: 'ADV.JS',
   meta: [
@@ -13,22 +14,3 @@ useHead({
 <template>
   <router-view />
 </template>
-
-<style lang="scss">
-#app {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
-
-#nav {
-  padding: 30px;
-
-  a {
-    &.router-link-exact-active {
-      color: steelblue;
-    }
-  }
-}
-</style>

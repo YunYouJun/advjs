@@ -7,6 +7,7 @@
     "name": "YunYouJun",
     "url": "https://www.yunyoujun.cn"
   },
+  "types": "types/index.ts",
   "license": "MPL-2.0",
   "funding": "https://github.com/sponsors/YunYouJun",
   "homepage": "https://advjs.org",
@@ -23,14 +24,18 @@
     "@advjs/parser": "workspace:*",
     "@advjs/types": "workspace:*",
     "@antfu/utils": "^0.5.2",
-    "@vueuse/core": "^8.6.0",
+    "@vueuse/core": "^8.7.3",
     "@vueuse/head": "^0.7.6",
     "@vueuse/motion": "^2.0.0-beta.18",
-    "defu": "^6.0.0",
-    "sass": "^1.52.3",
-    "swiper": "^8.2.3",
+    "nprogress": "^0.2.0",
+    "pinia": "^2.0.14",
+    "resolve": "^1.22.0",
+    "swiper": "^8.2.4",
+    "vite-plugin-windicss": "^1.8.4",
     "vue": "^3.2.36",
-    "vue-about-me": "^1.2.7",
     "vue-router": "^4.0.15"
+  },
+  "devDependencies": {
+    "@types/nprogress": "^0.2.0"
   }
 }

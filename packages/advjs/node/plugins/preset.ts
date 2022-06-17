@@ -1,4 +1,3 @@
-import path from 'path'
 import type { PluginOption } from 'vite'
 import Vue from '@vitejs/plugin-vue'
 import IconsResolver from 'unplugin-icons/resolver'
@@ -6,7 +5,6 @@ import Components from 'unplugin-vue-components/vite'
 import { notNullish } from '@antfu/utils'
 import Pages from 'vite-plugin-pages'
 import Layouts from 'vite-plugin-vue-layouts'
-import AutoImport from 'unplugin-auto-import/vite'
 // import LinkAttributes from 'markdown-it-link-attributes'
 import Icons from 'unplugin-icons/vite'
 // import Markdown from 'vite-plugin-md'
@@ -38,6 +36,7 @@ export async function ViteAdvPlugin(
   const {
     themeRoots,
     clientRoot,
+    roots,
   } = options
 
   return [
@@ -60,25 +59,15 @@ export async function ViteAdvPlugin(
     // https://github.com/hannoeru/vite-plugin-pages
     Pages({
       extensions: ['vue', 'md'],
+      dirs: roots.map(root => `${root}/pages`),
     }),
 
     // https://github.com/JohnCampionJr/vite-plugin-vue-layouts
     Layouts({
-      layoutsDirs: '../theme-default/layouts',
+      layoutsDirs: roots.map(root => `${root}/layouts`),
     }),
 
     createAdvLoader(options),
-
-    // https://github.com/antfu/unplugin-auto-import
-    AutoImport({
-      imports: [
-        'vue',
-        'vue-router',
-        'vue-i18n',
-        '@vueuse/head',
-        '@vueuse/core',
-      ],
-    }),
 
     // createSlidesLoader(options, pluginOptions, serverOptions, VuePlugin, MarkdownPlugin),
 
@@ -130,7 +119,7 @@ export async function ViteAdvPlugin(
     VueI18n({
       runtimeOnly: true,
       compositionOnly: true,
-      include: [path.resolve(__dirname, 'locales/**')],
+      include: roots.map(root => `${root}/locales/**`),
     }),
 
     Adv(),

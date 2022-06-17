@@ -1,7 +1,8 @@
-// register vue composition api globally
-import { ViteSSG } from 'vite-ssg'
 import generatedRoutes from 'virtual:generated-pages'
 import { setupLayouts } from 'virtual:generated-layouts'
+import { createApp } from 'vue'
+import { createRouter, createWebHashHistory } from 'vue-router'
+import { MotionPlugin } from '@vueuse/motion'
 import App from './App.vue'
 
 // windicss layers
@@ -10,7 +11,7 @@ import 'virtual:windi-components.css'
 
 // your custom styles here
 import '@advjs/client/styles/vars.scss'
-// import '@advjs/theme-default/styles/index.scss'
+// load client & theme styles
 import '/@advjs/styles'
 import '@advjs/client/styles/index.scss'
 
@@ -21,10 +22,15 @@ import 'virtual:windi-devtools'
 
 const routes = setupLayouts(generatedRoutes)
 
-// https://github.com/antfu/vite-ssg
-export const createApp = ViteSSG(App, { routes }, (ctx) => {
-  // install all modules under `modules/`
-  Object.values(import.meta.globEager('./modules/*.ts')).map(i =>
-    i.install?.(ctx),
-  )
-})
+const app = createApp(App)
+app.use(createRouter({
+  history: createWebHashHistory(import.meta.env.BASE_URL),
+  routes,
+}))
+
+Object.values(import.meta.globEager('./modules/*.ts')).map(i =>
+  i.install?.(app),
+)
+
+app.use(MotionPlugin)
+app.mount('#app')

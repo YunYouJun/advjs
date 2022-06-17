@@ -7,6 +7,13 @@ body,
   height: 100vh;
   margin: 0;
   padding: 0;
+  color: var(--adv-c-text);
+}
+
+#app {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
 }
 
 html.dark {
