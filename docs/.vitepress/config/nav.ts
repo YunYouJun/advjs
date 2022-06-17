@@ -1,6 +1,7 @@
-import type { YouTheme } from 'vitepress-theme-you'
+// import type { YouTheme } from 'vitepress-theme-you'
+import type { DefaultTheme } from 'vitepress'
 
-export const nav: YouTheme.NavItem[] = [
+export const nav: DefaultTheme.Config['nav'] = [
   { text: '📖 指南', link: '/guide/' },
   { text: '🎨 设计', link: '/design/' },
   { text: '✏️ AdvScript', link: '/advscript/' },

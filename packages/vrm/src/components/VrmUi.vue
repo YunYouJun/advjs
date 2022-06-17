@@ -138,7 +138,8 @@ const toggleBone = (bone: HumanBonesType) => {
           <details>
             <summary>
               <h3
-                text="xs" class="inline-flex cursor-pointer justify-center items-center" :class="bone === curBone ? 'font-bold text-blue-300' : ''" @click="(event) => {
+                text="xs" class="inline-flex cursor-pointer justify-center items-center" :class="bone === curBone ? 'font-bold text-blue-300' : ''"
+                @click="(event: any) => {
                   toggleBone(bone);event.preventDefault()
                 }"
               >

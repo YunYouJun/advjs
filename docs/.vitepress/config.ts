@@ -5,11 +5,13 @@ import { defineConfig } from 'vitepress'
 // import type { DefaultTheme, UserConfig } from 'vitepress'
 
 import Components from 'unplugin-vue-components/vite'
-import { VitePWA } from 'vite-plugin-pwa'
+// import { VitePWA } from 'vite-plugin-pwa'
 
-import themeConfig from './config/theme'
 import head from './config/head'
 import { metaData } from './config/constants'
+
+import { sidebar } from './config/sidebar'
+import { nav } from './config/nav'
 
 export default defineConfig({
   // extends: baseConfig,
@@ -30,15 +32,15 @@ export default defineConfig({
       }),
 
       // https://github.com/antfu/vite-plugin-pwa
-      VitePWA({
-        registerType: 'autoUpdate',
-        includeAssets: ['favicon.svg', 'robots.txt', 'safari-pinned-tab.svg'],
-        manifest: {
-          name: 'ADV.JS',
-          short_name: 'ADV',
-          theme_color: '#000',
-        },
-      }),
+      // VitePWA({
+      //   registerType: 'autoUpdate',
+      //   includeAssets: ['favicon.svg', 'robots.txt', 'safari-pinned-tab.svg'],
+      //   manifest: {
+      //     name: 'ADV.JS',
+      //     short_name: 'ADV',
+      //     theme_color: '#000',
+      //   },
+      // }),
     ],
 
     server: {
@@ -52,6 +54,41 @@ export default defineConfig({
   ...metaData,
 
   head,
-  themeConfig,
+
+  // algolia: {
+  //   appId: "",
+  //   apiKey: "",
+  //   indexName: "",
+  // },
+  // iconClass: 'i-ri-video-chat-line',
+
+  lastUpdated: true,
+
+  themeConfig: {
+    logo: '/favicon.svg',
+
+    editLink: {
+      repo: 'YunYouJun/advjs',
+      branch: 'main',
+      dir: 'docs',
+      text: '✍️ 帮助改善此页面',
+    },
+
+    socialLinks: [
+      {
+        icon: 'github', link: 'https://github.com/YunYouJun/advjs',
+      },
+      {
+        icon: 'twitter', link: 'https://twitter.com/YunYouJun',
+      },
+      {
+        icon: 'discord', link: 'https://discord.gg/HNNPywcTxw',
+      },
+    ],
+
+    nav,
+    sidebar,
+  },
+
   srcExclude: ['README.md'],
 })
