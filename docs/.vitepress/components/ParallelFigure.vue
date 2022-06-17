@@ -1,16 +1,15 @@
 <script setup lang="ts">
 import type { CSSProperties } from 'vue'
 import { computed, reactive, ref } from 'vue'
-import { useData } from 'vitepress'
+// import { useData } from 'vitepress'
 
 import { useParallax } from '@vueuse/core'
 
-const target = ref(globalThis.document && globalThis.document.body)
+const target = ref(document && document.body)
 const parallax = reactive(useParallax(target))
 
-const { site, frontmatter } = useData()
-
-const heroText = computed(() => frontmatter.value.heroText || site.value.title)
+// const { site, frontmatter } = useData()
+// const heroText = computed(() => frontmatter.value.heroText || site.value.title)
 
 const containerStyle: CSSProperties = {
   display: 'flex',
@@ -67,11 +66,11 @@ const endColor = computed(
 </script>
 
 <template>
-  <div ref="target" :style="containerStyle">
+  <div ref="target" m="t-16" :style="containerStyle">
     <div :style="cardStyle">
       <figure class="figure" :style="layer0">
         <svg
-          class="image w-50 h-50"
+          class="w-50 h-50 m-auto"
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           width="24"
@@ -93,7 +92,7 @@ const endColor = computed(
         </svg>
       </figure>
 
-      <h1
+      <!-- <h1
         v-if="heroText"
         id="main-title"
         class="title font-thin"
@@ -109,7 +108,7 @@ const endColor = computed(
             "
         >ADV</b>
         <span>.JS</span>
-      </h1>
+      </h1> -->
     </div>
   </div>
 </template>

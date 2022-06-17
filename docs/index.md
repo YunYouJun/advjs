@@ -5,13 +5,16 @@ layout: home
 # heroIconClass: i-ri-video-chat-line
 # heroText: <b class="font-black">ADV</b>.JS
 
-hero:
+adv:
+  name: ADV.JS
+  text: Next AVG Engine
   tagline: 面向未来与前端的 ADV 文字冒险游戏引擎
   actions:
     - text: Link Start
       icon: i-ri-links-line
       link: /guide/
     - text: DEMO
+      theme: alt
       link: https://demo.advjs.org
       icon: i-ri-game-line
       color: green
@@ -40,15 +43,17 @@ footer:
     url: https://www.yunyoujun.cn
 ---
 
-<div class="text-center font-light text-2xl">
+<div class="text-center font-light text-2xl" m="t-10">
 
-<div class="text-2xl font-normal gradient-text from-blue-600 to-green-500 bg-gradient-to-r">
+<div m="b-4" class="text-2xl font-normal gradient-text from-blue-600 to-green-500 bg-gradient-to-r">
 
 愿能在未来的冒险中与你相遇
 
 </div>
 
+<p m="y-8">
 开发中，敬请期待
+</p>
 
 <div class="text-2xl font-black">
 

@@ -64,7 +64,7 @@
     "lint-staged": "^13.0.2",
     "npm-run-all": "^4.1.5",
     "tsup": "^5.12.7",
-    "typescript": "^4.7.3",
+    "typescript": "^4.7.4",
     "unbuild": "^0.7.4",
     "vitest": "^0.15.1",
     "vue-tsc": "^0.37.9"

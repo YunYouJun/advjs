@@ -1,27 +1,23 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
-    "target": "esnext",
     "module": "esnext",
-    "lib": ["ESNext", "DOM", "DOM.Iterable", "webworker"],
-    "moduleResolution": "node",
-    "esModuleInterop": true,
+    "target": "esnext",
+    "lib": ["DOM", "ESNext"],
     "strict": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "resolveJsonModule": true,
+    "jsx": "preserve",
+    "esModuleInterop": true,
     "skipLibCheck": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
     "noUnusedLocals": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["vite/client", "vitepress"],
     "paths": {
-      "@/*": ["./.vitepress/theme/*"],
-      "advjs/*": ["../packages/advjs/src/*"]
-    },
-    "types": ["vite-plugin-pwa/client"]
+      "~/*": ["src/*"]
+    }
   },
-  "include": [
-    ".vitepress/**/*.ts",
-    ".vitepress/**/*.d.ts",
-    ".vitepress/**/*.vue",
-    "components.d.ts"
-  ]
+  "include": ["./*.ts", "./.vitepress/**/*.ts", "./.vitepress/**/*.vue"],
+  "exclude": ["dist", "node_modules"]
 }

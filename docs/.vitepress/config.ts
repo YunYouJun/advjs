@@ -1,10 +1,6 @@
-import path from 'path'
-// import type { YouTheme } from 'vitepress-theme-you'
-// import baseConfig from 'vitepress-theme-you/config'
 import { defineConfig } from 'vitepress'
 // import type { DefaultTheme, UserConfig } from 'vitepress'
 
-import Components from 'unplugin-vue-components/vite'
 // import { VitePWA } from 'vite-plugin-pwa'
 
 import head from './config/head'
@@ -14,47 +10,11 @@ import { sidebar } from './config/sidebar'
 import { nav } from './config/nav'
 
 export default defineConfig({
-  // extends: baseConfig,
-
-  vite: {
-    resolve: {
-      alias: {
-        '@/': `${path.resolve(__dirname, 'theme')}/`,
-        'advjs/': `${path.resolve(__dirname, '../../packages/advjs/src')}/`,
-      },
-    },
-    plugins: [
-      Components({
-        dirs: [path.resolve(__dirname, './theme/components')],
-        extensions: ['vue', 'ts'],
-        include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
-        dts: true,
-      }),
-
-      // https://github.com/antfu/vite-plugin-pwa
-      // VitePWA({
-      //   registerType: 'autoUpdate',
-      //   includeAssets: ['favicon.svg', 'robots.txt', 'safari-pinned-tab.svg'],
-      //   manifest: {
-      //     name: 'ADV.JS',
-      //     short_name: 'ADV',
-      //     theme_color: '#000',
-      //   },
-      // }),
-    ],
-
-    server: {
-      fs: {
-        // Allow serving files from one level up to the project root
-        allow: ['..'],
-      },
-    },
-  },
-
   ...metaData,
 
   head,
 
+  // todo
   // algolia: {
   //   appId: "",
   //   apiKey: "",
@@ -68,9 +28,7 @@ export default defineConfig({
     logo: '/favicon.svg',
 
     editLink: {
-      repo: 'YunYouJun/advjs',
-      branch: 'main',
-      dir: 'docs',
+      pattern: 'https://github.com/YunYouJun/advjs/edit/main/docs/:path',
       text: '✍️ 帮助改善此页面',
     },
 
@@ -85,6 +43,10 @@ export default defineConfig({
         icon: 'discord', link: 'https://discord.gg/HNNPywcTxw',
       },
     ],
+
+    footer: {
+      copyright: 'Copyright © 2021-PRESENT YunYouJun',
+    },
 
     nav,
     sidebar,

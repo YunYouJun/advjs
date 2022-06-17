@@ -1,4 +1,22 @@
 :root {
-  --c-brand: #0078e7;
-  --c-brand-light: #{rgba(#0078e7, 0.9)};
+  --vp-c-brand: #0078e7;
+  --vp-c-brand-light: #{lighten(#0078e7, 5)};
+  --vp-c-brand-lighter: #{lighten(#0078e7, 10)};
+  --vp-c-brand-dark: #{darken(#0078e7, 5)};
+}
+
+// Home
+:root {
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: -webkit-linear-gradient(
+    120deg,
+    #3a76e5 30%,
+    #74f3e8
+  );
+  // --vp-home-hero-image-background-image: linear-gradient(
+  //   -45deg,
+  //   #548ee931 30%,
+  //   #74f3e860
+  // );
+  // --vp-home-hero-image-filter: blur(80px);
 }

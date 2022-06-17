@@ -74,7 +74,7 @@
     "unplugin-vue-components": "^0.19.6",
     "vite": "^2.9.12",
     "vite-plugin-md": "^0.15.0",
-    "vite-plugin-pages": "^0.24.1",
+    "vite-plugin-pages": "^0.24.2",
     "vite-plugin-vue-layouts": "^0.6.0",
     "vite-plugin-windicss": "^1.8.4",
     "vue": "^3.2.37",

@@ -109,4 +109,14 @@ export const sidebar: DefaultTheme.Config['sidebar'] = {
       ],
     },
   ],
+  '/resources/': [
+    {
+      text: 'Resources',
+      collapsible: true,
+      items: [
+        { text: '案例展示', link: '/resources/showcases' },
+        { text: '学习资源', link: '/resources/learning' },
+      ],
+    },
+  ],
 }
