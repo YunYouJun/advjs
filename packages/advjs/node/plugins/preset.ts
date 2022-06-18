@@ -14,7 +14,7 @@ import Adv from '../../../unplugin-adv/src/vite'
 import { createConfigPlugin } from './extendConfig'
 // import { createAdvLoader } from './loaders'
 // import { createClientSetupPlugin } from './setupClient'
-import { createWindiCSSPlugin } from './windicss'
+import { createUnocssPlugin } from './unocss'
 import { createAdvLoader } from './loaders'
 
 const customElements = new Set([
@@ -40,7 +40,7 @@ export async function ViteAdvPlugin(
   } = options
 
   return [
-    await createWindiCSSPlugin(options, pluginOptions),
+    await createUnocssPlugin(options, pluginOptions),
 
     Vue({
       include: [/\.vue$/, /\.md$/],

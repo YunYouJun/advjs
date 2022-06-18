@@ -6,17 +6,16 @@ import { MotionPlugin } from '@vueuse/motion'
 import { createHead } from '@vueuse/head'
 import App from './App.vue'
 
-// windicss layers
-import 'virtual:windi-base.css'
-import 'virtual:windi-components.css'
-
+// unocss
+import '@unocss/reset/tailwind.css'
+import 'uno.css'
 // load client & theme styles
 import '/@advjs/styles'
 
-// windicss utilities should be the last style import
-import 'virtual:windi-utilities.css'
-// windicss devtools support (dev only)
-import 'virtual:windi-devtools'
+// animate
+// unocss animate not work
+import 'animate.css'
+
 import { createAdv } from './setup'
 
 const routes = setupLayouts(generatedRoutes)

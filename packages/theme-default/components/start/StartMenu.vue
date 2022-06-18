@@ -11,7 +11,7 @@ defineProps<{
     <li
       v-for="(item, i) in menuItems"
       :key="i"
-      class="start-menu-item font-serif transition animate-animated animate-fadeInRight"
+      class="start-menu-item font-serif transition animate__animated animate__fadeInRight"
       :style="`animation-delay: ${0.4 + i * 0.1}s`"
       @click="item.do"
     >

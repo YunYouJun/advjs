@@ -24,7 +24,7 @@ watch(() => adv.store.cur.background, (val) => {
 </script>
 
 <template>
-  <transition enter-active-class="animate-fadeIn" leave-active-class="animate-fadeOut">
-    <div v-if="app.showBg" h="full" w="full" class="absolute animate-animated" bg="cover center no-repeat" :style="advGameStyle" />
+  <transition enter-active-class="animate__fadeIn" leave-active-class="animate__fadeOut">
+    <div v-if="app.showBg" h="full" w="full" class="absolute animate__animated" bg="cover center no-repeat" :style="advGameStyle" />
   </transition>
 </template>

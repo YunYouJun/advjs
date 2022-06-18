@@ -57,8 +57,8 @@ const wordClasses = (i: number) => {
   }
   else {
     if (props.mode === 'soft') {
-      classes.push('animate-fast')
-      classes.push('animate-fadeIn')
+      classes.push('animate__fast')
+      classes.push('animate__fadeIn')
     }
   }
 

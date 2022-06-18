@@ -12,22 +12,14 @@ import { searchForWorkspaceRoot } from '../vite/searchRoot'
 // import { commonAlias } from '../../../shared/config/vite'
 
 const EXCLUDE = [
+  // avoid css parse by vite
+  'animate.css',
+
   '@advjs/shared',
   '@advjs/types',
   '@vueuse/core',
   '@vueuse/shared',
-  'vite-plugin-windicss',
   'vue-demi',
-
-  // to fix
-  // 'vite',
-  // 'prompts',
-  // 'events',
-  // 'fs-extra',
-  // '@antfu/utils',
-  // 'is-installed-globally',
-  // 'resolve',
-  // 'vite-plugin-vue-i18n',
 ]
 
 export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {

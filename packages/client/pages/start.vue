@@ -59,7 +59,7 @@ const menuItems = computed<StartMenuItem[]>(() =>
         adv-start-game-logo
         inline-flex flex-col
         items-center
-        animate-animated animate-fadeIn animate-delay-600 mix-blend-hard-light
+        animate__animated animate__fadeIn animate-delay-600 mix-blend-hard-light
       "
   >
     <NewYunLogo class="text-8xl mix-blend-screen text-blue-600" m="t-20" alt="YunYouJun Logo" />
@@ -69,17 +69,20 @@ const menuItems = computed<StartMenuItem[]>(() =>
   </div>
 
   <img
-    class="h-15 absolute -right-2 bottom-0 h-full animate-animated animate-slideInUp animate-delay-500"
+    class="absolute -right-2 bottom-0 animate__animated animate__slideInUp animate-delay-500"
+    h="15"
+    w="15"
     :src="yunGoodAlphaUrl"
   >
 
   <img
-    class="h-200 absolute top-5 -left-5 h-full animate-animated  animate-slideInRight animate-delay-200 animate-fadeIn z-2 filter drop-shadow-lg"
+    class="h-200 absolute top-5 -left-5
+    animate__animated animate__fadeInRight z-2 filter drop-shadow-lg"
     :src="yunAlphaUrl"
   >
-  <div class="animate-animated animate-slideInRight animate-delay-300 animate-fadeIn">
+  <div class="animate__animated animate__fadeInRight animate-delay-200">
     <img
-      class="h-200 absolute left-89 top-5 h-full  z-1 filter drop-shadow-lg transform -rotate-y-180"
+      class="h-200 absolute left-89 top-5 z-1 filter drop-shadow-lg transform -rotate-y-180"
       :src="yunAlphaUrl"
     >
   </div>
@@ -92,12 +95,12 @@ const menuItems = computed<StartMenuItem[]>(() =>
   <div class="adv-bubble-breath circle-pattern absolute left-20 top-20 shadow-lg opacity-10" bg="blue-500" style="--circle-size: 20rem;" />
 
   <transition>
-    <div v-if="rippleAnimation" class="adv-ripple absolute top-0" />
+    <div v-if="rippleAnimation" bg="blue-400" class="adv-ripple absolute top-0" />
   </transition>
   <transition
-    :duration="{ enter: 300, leave: 1300 }"
+    :duration="{ enter: 200, leave: 1200 }"
   >
-    <div v-if="rippleAnimation" class="adv-ripple bg-orange-400 absolute top-0 right-0 animate-delay-200" />
+    <div v-if="rippleAnimation" bg="orange-400" class="adv-ripple absolute top-0 right-0 animate-delay-200" />
   </transition>
 
   <StartMenu :menu-items="menuItems" />

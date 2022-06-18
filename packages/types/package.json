@@ -25,15 +25,11 @@
     "node": ">=14.0.0"
   },
   "scripts": {
-    "build": "rimraf dist && unbuild",
-    "dev": "unbuild --stub",
+    "build": "rimraf dist && tsc",
+    "dev": "tsc --watch",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@types/mdast": "^3.0.10",
-    "@types/unist": "^2.0.6"
-  },
-  "devDependencies": {
-    "tsup": "^6.1.2"
+    "@types/mdast": "^3.0.10"
   }
 }

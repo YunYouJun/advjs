@@ -49,14 +49,14 @@ if (props.frontmatter)
     <div class="adv-ui absolute" w="full" h="full">
       <BaseLayer v-if="!app.showUi" />
 
-      <transition enter-active-class="animate-fadeInUp" leave-active-class="animate-fadeOutDown">
-        <DialogBox v-show="app.showUi" class="animate-animated" />
+      <transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
+        <DialogBox v-show="app.showUi" class="animate__animated" />
       </transition>
-      <transition enter-active-class="animate-fadeInUp" leave-active-class="animate-fadeOutDown">
-        <DialogControls v-show="app.showUi" class="animate-animated absolute left-0 right-0 bottom-0" />
+      <transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
+        <DialogControls v-show="app.showUi" class="animate__animated absolute left-0 right-0 bottom-0" />
       </transition>
-      <transition enter-active-class="animate-fadeInDown" leave-active-class="animate-fadeOutUp">
-        <UserInterface v-show="app.showUi" class="animate-animated z-99" />
+      <transition enter-active-class="animate__fadeInDown" leave-active-class="animate__fadeOutUp">
+        <UserInterface v-show="app.showUi" class="animate__animated z-99" />
       </transition>
 
       <AdvHistory />

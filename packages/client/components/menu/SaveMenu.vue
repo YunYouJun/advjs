@@ -56,7 +56,7 @@ const creativeEffect: CreativeEffectOptions = {
         <VSwiperSlide v-for="i in 10" :key="i">
           <div grid="~ cols-2 gap-4" p="2">
             <div v-for="j in 6" :key="(i - 1) * 6 + j">
-              <SavedCard type="save" class="animate-animated animate-fadeInDown" :style="{ 'animation-delay': `${j * 50}ms` }" :no="(i - 1) * perPageNum + j" />
+              <SavedCard type="save" class="animate__animated animate__fadeInDown" :style="{ 'animation-delay': `${j * 50}ms` }" :no="(i - 1) * perPageNum + j" />
             </div>
           </div>
         </VSwiperSlide>
@@ -66,7 +66,7 @@ const creativeEffect: CreativeEffectOptions = {
     <HorizontalDivider />
 
     <div class="adv-pagination-container">
-      <AdvTextButton v-for="i in 10" :key="i" :active="curPage === i" class="mx-4 w-12 animate-animated animate-fadeInDown" :style="{ 'animation-delay': `${i * 20}ms` }" :font="(curPage === i) && 'bold'" bg="blue-500 opacity-5" @click="togglePage(i)">
+      <AdvTextButton v-for="i in 10" :key="i" :active="curPage === i" class="mx-4 w-12 animate__animated animate__fadeInDown" :style="{ 'animation-delay': `${i * 20}ms` }" :font="(curPage === i) && 'bold'" bg="blue-500 opacity-5" @click="togglePage(i)">
         {{ i }}
       </AdvTextButton>
     </div>

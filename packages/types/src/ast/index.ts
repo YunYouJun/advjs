@@ -1,4 +1,4 @@
-import type MdAst from 'mdast'
+import type * as MdAst from 'mdast'
 
 export namespace AdvAst {
   export interface Node {
@@ -10,8 +10,8 @@ export namespace AdvAst {
   }
 
   /**
- * 普通文本
- */
+   * 普通文本
+   */
   export interface Text {
     type: 'text'
     value: string

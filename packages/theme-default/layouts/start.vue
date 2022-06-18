@@ -10,7 +10,7 @@ withDefaults(defineProps<{
 </script>
 
 <template>
-  <div class="w-full h-full animate-animated animate-fadeIn">
+  <div class="w-full h-full animate__animated animate__fadeIn">
     <AdvAdblock />
     <AdvContainer class="w-full h-full">
       <div class="adv-start-bg absolute w-full h-full -z-1" :class="isDark ? 'filter invert' : ''" bg="cover no-repeat center" :style="{ backgroundImage: `url(${bgImage})` }" />

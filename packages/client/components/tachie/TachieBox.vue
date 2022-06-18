@@ -10,8 +10,8 @@ const app = useAppStore()
 </script>
 
 <template>
-  <transition enter-active-class="animate-fadeInLeft" leave-active-class="animate-fadeOutLeft">
-    <div v-if="app.showTachie" grid="~ cols-2" class="tachie-box absolute pointer-events-none animate-animated" w="full" h="full">
+  <transition enter-active-class="animate__fadeInLeft" leave-active-class="animate__fadeOutLeft">
+    <div v-if="app.showTachie" grid="~ cols-2" class="tachie-box absolute pointer-events-none animate__animated" w="full" h="full">
       <TachieCharacter
         v-for="value in props.tachies" :key="value[0]"
         :character="value[0]"

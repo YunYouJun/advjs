@@ -23,7 +23,7 @@ onMounted(() => {
       flex flex-col
       justify-center
       items-center
-      animate-animated animate-fadeIn
+      animate__animated animate__fadeIn
     "
   >
     <NewYunLogo class="w-40 h-40" />

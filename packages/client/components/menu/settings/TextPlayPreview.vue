@@ -126,7 +126,7 @@ const displayModeItem = computed<AdvMenuItemProps<'RadioGroup', DisplayModeOptio
   <MenuItem :item="fontSizeItem" />
   <MenuItem :item="displayModeItem" />
 
-  <div col="span-12" class="animate-animated animate-slideInDown">
+  <div col="span-12" class="animate__animated animate__slideInDown">
     <div class="h-26" :class="`text-${settings.storage.text.curFontSize}`" text="left" bg="gray-500 opacity-20" p="4">
       <PrintWords :speed="settings.storage.text.curSpeed" :mode="settings.storage.text.curDisplayMode" :words="words" @end="onEnd" />
     </div>

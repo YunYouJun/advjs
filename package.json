@@ -20,7 +20,7 @@
     "build:all": "esno scripts/build.ts",
     "demo": "pnpm -C demo/starter run dev",
     "start": "pnpm -C packages/advjs run start",
-    "dev": "run-p advjs:dev parser:dev types:dev core:dev",
+    "dev": "npm run types:build && run-p advjs:dev parser:dev core:dev",
     "dev:advjs": "pnpm run parser:build && pnpm run advjs:dev",
     "lint": "eslint .",
     "release": "esno release.ts",
