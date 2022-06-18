@@ -4,7 +4,7 @@ import type { AdvThemeMeta } from '@advjs/types'
 import { parse } from './core'
 export * from './core'
 
-export async function load(filepath: string, themeMeta?: AdvThemeMeta, content?: string) {
+export function load(filepath: string, themeMeta?: AdvThemeMeta, content?: string) {
   // const dir = dirname(filepath)
   const markdown = content ?? fs.readFileSync(filepath, 'utf-8')
 

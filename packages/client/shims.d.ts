@@ -14,3 +14,8 @@ declare module '*.md' {
   const component: ComponentOptions
   export default component
 }
+
+declare module '/@advjs/configs' {
+  import { AdvConfig } from '@advjs/types'
+  export default AdvConfig
+}

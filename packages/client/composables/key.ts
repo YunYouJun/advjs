@@ -3,7 +3,7 @@ import { useAppStore } from '@advjs/client/stores/app'
 import { watch } from 'vue'
 import { useMagicKeys } from '@vueuse/core'
 
-import { adv } from '~/setup'
+import { useAdvCtx } from '~/setup'
 
 /**
  * register adv magic keys
@@ -12,6 +12,7 @@ import { adv } from '~/setup'
  */
 export function useAdvKeys() {
   const app = useAppStore()
+  const $adv = useAdvCtx()
 
   const keys = useMagicKeys()
   const { space } = keys
@@ -30,7 +31,7 @@ export function useAdvKeys() {
 
   watch(space, (v) => {
     if (v && !app.showHistory && !app.showSaveMenu && !app.showLoadMenu)
-      adv.next()
+      $adv.nav.next()
   })
 
   advKeys.forEach((item) => {

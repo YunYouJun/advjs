@@ -32,15 +32,6 @@ export async function createServer(
           entries: [
             join(options.clientRoot, 'main.ts'),
           ],
-          exclude: [
-            'fsevents',
-            'path',
-            'fs',
-            'os',
-            'node:fs',
-            'module',
-            'url',
-          ],
         },
         plugins: [
           await ViteAdvPlugin(options, pluginOptions, serverOptions),

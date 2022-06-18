@@ -7,9 +7,14 @@ import type { ResolvedAdvOptions } from '../options'
 import { toAtFS } from '../utils'
 
 export function createAdvLoader(
-  { data, clientRoot, themeRoots, userRoot }: ResolvedAdvOptions,
+  { data, clientRoot, themeRoots, userRoot, remote }: ResolvedAdvOptions,
 ): Plugin[] {
   const advPrefix = '/@advjs/drama/'
+
+  function generateConfigs() {
+    const config = { ...data.config, remote }
+    return `export default ${JSON.stringify(config)}`
+  }
 
   async function generateUserStyles() {
     const imports: string[] = [
@@ -64,6 +69,9 @@ export function createAdvLoader(
       },
 
       load(id) {
+        if (id === '/@advjs/configs')
+          return generateConfigs()
+
         // styles
         if (id === '/@advjs/styles')
           return generateUserStyles()

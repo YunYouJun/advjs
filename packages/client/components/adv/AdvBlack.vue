@@ -4,11 +4,13 @@
 
 import type { AdvAst } from '@advjs/types'
 import { onMounted, ref, watch } from 'vue'
-import { adv } from '~/setup/adv'
+import { useAdvCtx } from '~/setup'
 
 const props = defineProps<{
   content: AdvAst.Narration
 }>()
+
+const $adv = useAdvCtx()
 
 // const blackHtml = computed(() => {
 //   const content = Object.assign({}, props.content)
@@ -28,7 +30,7 @@ const displaySentences = ref(new Array(props.content.children.length).fill(''))
 const typeInterval = 50
 
 const next = () => {
-  adv.next()
+  $adv.nav.next()
 }
 
 const playSentencesAnimation = () => {

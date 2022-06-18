@@ -3,6 +3,7 @@ import { speak } from '@advjs/shared/speech'
 import { computed, ref, watch } from 'vue'
 import { adv } from '~/setup'
 import { useSettingsStore } from '~/stores/settings'
+import advConfig from '/@advjs/configs'
 
 const advStore = adv.store
 const gameConfig = advStore.gameConfig

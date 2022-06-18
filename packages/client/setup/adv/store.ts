@@ -1,6 +1,5 @@
-import type { AdvAst, GameConfig, Tachie } from '@advjs/types'
+import type { AdvAst, Tachie } from '@advjs/types'
 import type { StorageMeta } from 'unstorage'
-import { defaultGameConfig } from 'advjs'
 import { computed, ref, shallowRef } from 'vue'
 
 import { acceptHMRUpdate, defineStore } from 'pinia'
@@ -78,12 +77,8 @@ export const useAdvStore = defineStore('adv', () => {
       return null
   })
 
-  const gameConfig: GameConfig = defaultGameConfig
-
   return {
     ast,
-
-    gameConfig,
 
     /**
      * 当前节点

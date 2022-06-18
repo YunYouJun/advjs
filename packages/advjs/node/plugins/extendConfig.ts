@@ -18,6 +18,16 @@ const EXCLUDE = [
   '@vueuse/shared',
   'vite-plugin-windicss',
   'vue-demi',
+
+  // to fix
+  // 'vite',
+  // 'prompts',
+  // 'events',
+  // 'fs-extra',
+  // '@antfu/utils',
+  // 'is-installed-globally',
+  // 'resolve',
+  // 'vite-plugin-vue-i18n',
 ]
 
 export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
@@ -36,6 +46,7 @@ export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
         },
         optimizeDeps: {
           include: [
+            // ...Object.keys(dependencies),
             ...Object.keys(dependencies).filter(i => !EXCLUDE.includes(i)),
           ],
           exclude: EXCLUDE,
