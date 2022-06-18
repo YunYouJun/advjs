@@ -1,13 +1,12 @@
 import { join } from 'path'
-import { uniq } from '@antfu/utils'
 import type { Plugin } from 'vite'
-import { existsSync } from 'fs-extra'
+import { existsSync, readFileSync } from 'fs-extra'
 import type { AdvMarkdown } from '@advjs/types'
 import type { ResolvedAdvOptions } from '../options'
 import { toAtFS } from '../utils'
 
 export function createAdvLoader(
-  { data, clientRoot, themeRoots, userRoot, remote }: ResolvedAdvOptions,
+  { data, remote, roots }: ResolvedAdvOptions,
 ): Plugin[] {
   const advPrefix = '/@advjs/drama/'
 
@@ -16,15 +15,30 @@ export function createAdvLoader(
     return `export default ${JSON.stringify(config)}`
   }
 
-  async function generateUserStyles() {
+  function generateLocales(roots: string[]) {
     const imports: string[] = [
-      `import "${toAtFS(join(clientRoot, 'styles/vars.scss'))}"`,
-      `import "${toAtFS(join(clientRoot, 'styles/index.scss'))}"`,
+      'const messages = { "zh-CN": {}, en: {} }',
     ]
-    const roots = uniq([
-      ...themeRoots,
-      userRoot,
-    ])
+    const languages = ['zh-CN', 'en']
+
+    roots.forEach((root, i) => {
+      languages.forEach((lang) => {
+        const langYml = `${root}/locales/${lang}.yml`
+        // file not null
+        if (existsSync(langYml) && readFileSync(langYml, 'utf-8')) {
+          const varName = lang.replace('-', '') + i
+          imports.push(`import ${varName} from "${toAtFS(langYml)}"`)
+          imports.push(`Object.assign(messages['${lang}'], ${varName})`)
+        }
+      })
+    })
+
+    imports.push('export default messages')
+    return imports.join('\n')
+  }
+
+  async function generateUserStyles(roots: string[]) {
+    const imports = []
 
     for (const root of roots) {
       const styles = [
@@ -32,8 +46,8 @@ export function createAdvLoader(
         join(root, 'styles', 'index.js'),
         join(root, 'styles', 'index.css'),
         join(root, 'styles', 'index.scss'),
-        join(root, 'styles.css'),
-        join(root, 'style.css'),
+        join(root, 'styles', 'css-vars.css'),
+        join(root, 'styles', 'css-vars.scss'),
       ]
 
       for (const style of styles) {
@@ -47,13 +61,11 @@ export function createAdvLoader(
     return imports.join('\n')
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async function transformMarkdown(code: string, data: AdvMarkdown) {
     // const imports = [
     //   `import EntryMd from "${entry}"`,
     // ]
-
-    // eslint-disable-next-line no-console
-    console.log(data)
 
     return code
   }
@@ -72,9 +84,12 @@ export function createAdvLoader(
         if (id === '/@advjs/configs')
           return generateConfigs()
 
+        if (id === '/@advjs/locales')
+          return generateLocales(roots)
+
         // styles
         if (id === '/@advjs/styles')
-          return generateUserStyles()
+          return generateUserStyles(roots)
       },
     },
     {

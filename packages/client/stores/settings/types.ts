@@ -1,4 +1,4 @@
-import type { SpeechSynthesisOptions } from './useSpeech'
+import type { SpeechSynthesisOptions } from '@vueuse/core'
 
 export interface SettingOptions {
   isFullscreen: boolean
@@ -6,7 +6,8 @@ export interface SettingOptions {
   play: {
     mdUrl: string
   }
-  speech: SpeechSynthesisOptions
+  speech: boolean
+  speechOptions: SpeechSynthesisOptions
   animation: {
     duration: number
   }

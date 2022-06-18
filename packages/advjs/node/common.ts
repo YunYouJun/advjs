@@ -6,7 +6,7 @@ import type { ConfigEnv, InlineConfig } from 'vite'
 import type { ResolvedAdvOptions } from './options'
 import { toAtFS } from './utils'
 
-export async function getIndexHtml({ clientRoot, themeRoots, data, userRoot }: ResolvedAdvOptions): Promise<string> {
+export async function getIndexHtml({ clientRoot, themeRoot, data, userRoot }: ResolvedAdvOptions): Promise<string> {
   let main = fs.readFileSync(join(clientRoot, 'index.html'), 'utf-8')
   let head = ''
   let body = ''
@@ -14,7 +14,7 @@ export async function getIndexHtml({ clientRoot, themeRoots, data, userRoot }: R
   head += `<link rel="icon" href="${data.config.favicon}">`
 
   const roots = uniq([
-    ...themeRoots,
+    themeRoot,
     userRoot,
   ])
 
@@ -37,14 +37,14 @@ export async function getIndexHtml({ clientRoot, themeRoots, data, userRoot }: R
   return main
 }
 
-export async function mergeViteConfigs({ themeRoots }: ResolvedAdvOptions, viteConfig: InlineConfig, config: InlineConfig, command: 'serve' | 'build') {
+export async function mergeViteConfigs({ themeRoot }: ResolvedAdvOptions, viteConfig: InlineConfig, config: InlineConfig, command: 'serve' | 'build') {
   const configEnv: ConfigEnv = {
     mode: 'development',
     command,
   }
 
   const files = uniq([
-    ...themeRoots,
+    themeRoot,
   ]).map(i => join(i, 'vite.config.ts'))
 
   for await (const file of files) {

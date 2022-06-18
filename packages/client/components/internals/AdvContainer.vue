@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue'
 import { useElementSize } from '@vueuse/core'
-import { advAspect, advHeight, advWidth } from '~/client/env'
-import config from '~/config'
+import { advAspect, advHeight, advWidth, config } from '~/env'
 
 const props = defineProps<{
   width?: number

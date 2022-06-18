@@ -1,4 +1,5 @@
 import type { AdvConfig } from '@advjs/types'
+import type { useAdvStore } from './store'
 // @ts-expect-error missing types
 import _configs from '/@advjs/configs'
 
@@ -7,6 +8,7 @@ export interface AdvContext {
   nav: {
     next: () => void
   }
+  store: ReturnType<typeof useAdvStore>
   config: typeof configs
   themeConfig: typeof configs['themeConfig']
 }

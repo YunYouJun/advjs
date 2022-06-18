@@ -45,8 +45,8 @@ export interface ResolvedAdvOptions {
   userRoot: string
   cliRoot: string
   clientRoot: string
+  themeRoot: string
   theme: string
-  themeRoots: string[]
   roots: string[]
   mode: 'dev' | 'build'
   remote?: boolean
@@ -78,12 +78,12 @@ export function isPath(name: string) {
   return name.startsWith('/') || /^\.\.?[\/\\]/.test(name)
 }
 
-export function getThemeRoots(name: string, entry: string) {
+export function getThemeRoot(name: string, entry: string) {
   if (!name)
-    return []
+    return
 
   // TODO: handle theme inherit
-  return [getRoot(name, entry)]
+  return getRoot(name, entry)
 }
 
 export function getRoot(name: string, entry: string) {
@@ -117,13 +117,17 @@ export async function resolveOptions(
 
   const clientRoot = getClientRoot()
   const cliRoot = getCLIRoot()
-  const themeRoots = getThemeRoots(theme, entry)
-  const roots = uniq([clientRoot, ...themeRoots, userRoot])
+  const themeRoot = getThemeRoot(theme, entry)
 
-  if (themeRoots.length) {
-    const themeMeta = await getThemeMeta(theme, join(themeRoots[0], 'package.json'))
+  if (themeRoot) {
+    const themeMeta = await getThemeMeta(theme, join(themeRoot, 'package.json'))
     data.themeMeta = themeMeta
   }
+  else {
+    throw new Error('[ADV] Can not find your ADV.JS Theme')
+  }
+
+  const roots = uniq([clientRoot, themeRoot, userRoot])
 
   debug({
     config: data.config,
@@ -133,7 +137,7 @@ export async function resolveOptions(
     userRoot,
     clientRoot,
     cliRoot,
-    themeRoots,
+    themeRoot,
     roots,
     remote,
   })
@@ -146,7 +150,7 @@ export async function resolveOptions(
     userRoot,
     clientRoot,
     cliRoot,
-    themeRoots,
+    themeRoot,
     roots,
     remote,
   }

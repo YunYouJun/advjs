@@ -9,4 +9,19 @@ export default defineConfig({
   splitting: true,
   format: ['cjs', 'esm'],
   dts: true,
+  external: [
+    'advjs',
+    '@advjs/parser',
+    '@advjs/types',
+    'pinia',
+    'consola',
+    'dayjs',
+    'vue',
+    'html2canvas',
+
+    '@babylonjs/core',
+    '@babylonjs/loaders',
+    '@babylonjs/materials',
+    'babylon-vrm-loader',
+  ],
 })

@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { speak } from '@advjs/shared/speech'
+// import { speak } from '@advjs/shared/speech'
 import type { AdvMenuItemProps } from '@advjs/theme-default'
+import { useSpeechSynthesis } from '@vueuse/core'
+import { computed, onMounted, reactive, ref } from 'vue'
 
-import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSettingsStore } from '~/stores/settings'
 
 const settings = useSettingsStore()
-const speechOptions = computed(() => {
-  return settings.storage.speech
-})
+const sOptions = reactive(settings.storage.speechOptions)
+const speech = useSpeechSynthesis('', sOptions)
 
 const { t } = useI18n()
 const speechItem = computed(
@@ -17,9 +17,9 @@ const speechItem = computed(
     label: t('settings.speech_synthesis'),
     type: 'Checkbox',
     props: {
-      checked: speechOptions.value.enable,
+      checked: settings.storage.speech,
       onClick: () => {
-        settings.speech.toggleStatus()
+        settings.storage.speech = !settings.storage.speech
       },
     },
   } as AdvMenuItemProps),
@@ -44,14 +44,15 @@ const speechLanguageItem = computed<AdvMenuItemProps>(() => ({
   label: t('settings.speech_language'),
   type: 'Select',
   props: {
-    selected: speechOptions.value.language,
+    selected: sOptions.lang || 'zh-HK',
     options: voiceOptions.value.map(item => ({
       label: item.name,
       value: item.lang,
     })),
     change: (options) => {
-      speechOptions.value.language = options.value
-      speak('大家好，我是渣渣辉。', options.value)
+      settings.speechContent = options.value
+      sOptions.lang = options.value
+      speech.speak()
     },
   },
 }))
@@ -67,7 +68,7 @@ onMounted(() => {
 <template>
   <MenuItem :item="speechItem" />
 
-  <template v-if="speechOptions.enable">
+  <template v-if="settings.speech">
     <MenuItem :item="speechLanguageItem" />
   </template>
 </template>

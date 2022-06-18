@@ -1,9 +1,8 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { ns } from '@advjs/core'
-import { useFullscreen, useStorage } from '@vueuse/core'
-import type { Ref } from 'vue'
-import { useSpeech } from './useSpeech'
+import { useFullscreen, useSpeechSynthesis, useStorage } from '@vueuse/core'
 
+import { ref } from 'vue'
 import type { SettingOptions } from './types'
 
 export * from './types'
@@ -23,9 +22,9 @@ export const useSettingsStore = defineStore('settings', () => {
       play: {
         mdUrl: '/md/test.adv.md',
       },
-      speech: {
-        enable: true,
-        language: 'zh-HK',
+      speech: false,
+      speechOptions: {
+        lang: 'zh-HK',
       },
       animation: {
         duration: 1000,
@@ -40,12 +39,15 @@ export const useSettingsStore = defineStore('settings', () => {
     userClientSettings.value = getDefaultSettings()
   }
 
+  const speechContent = ref('大家好，我是渣渣辉！')
+
   return {
     storage: userClientSettings,
 
     resetSettings,
 
-    speech: useSpeech(userClientSettings as Ref<SettingOptions>),
+    speechContent,
+    speech: useSpeechSynthesis(speechContent, userClientSettings.value.speechOptions),
     toggleFullScreen,
   }
 })

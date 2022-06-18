@@ -46,6 +46,7 @@ export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
         },
         optimizeDeps: {
           include: [
+            '@advjs/theme-default',
             // ...Object.keys(dependencies),
             ...Object.keys(dependencies).filter(i => !EXCLUDE.includes(i)),
           ],
@@ -57,6 +58,7 @@ export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
             allow: uniq([
               searchForWorkspaceRoot(options.userRoot),
               searchForWorkspaceRoot(options.cliRoot),
+              searchForWorkspaceRoot(options.themeRoot),
               ...(
                 isInstalledGlobally
                   ? [dirname(resolveGlobalImportPath('@advjs/client/package.json'))]

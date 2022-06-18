@@ -34,7 +34,7 @@ export async function ViteAdvPlugin(
   } = pluginOptions
 
   const {
-    themeRoots,
+    themeRoot,
     clientRoot,
     roots,
   } = options
@@ -77,7 +77,7 @@ export async function ViteAdvPlugin(
       dirs: [
         `${clientRoot}/builtin`,
         `${clientRoot}/components`,
-        ...themeRoots.map(i => `${i}/components`),
+        `${themeRoot}/components`,
         'src/components',
         'components',
       ],

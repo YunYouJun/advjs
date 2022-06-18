@@ -10,11 +10,8 @@ import App from './App.vue'
 import 'virtual:windi-base.css'
 import 'virtual:windi-components.css'
 
-// your custom styles here
-import '@advjs/client/styles/vars.scss'
 // load client & theme styles
 import '/@advjs/styles'
-import '@advjs/client/styles/index.scss'
 
 // windicss utilities should be the last style import
 import 'virtual:windi-utilities.css'

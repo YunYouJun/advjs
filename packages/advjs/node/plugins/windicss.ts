@@ -9,12 +9,12 @@ import type { AdvPluginOptions, ResolvedAdvOptions } from '..'
 import { loadSetups } from './setupNode'
 
 export async function createWindiCSSPlugin(
-  { themeRoots, clientRoot, userRoot, roots }: ResolvedAdvOptions,
+  { themeRoot, clientRoot, userRoot, roots }: ResolvedAdvOptions,
   { windicss: windiOptions }: AdvPluginOptions,
 ) {
   const configFiles = uniq([
     // ...defaultConfigureFiles.map(i => resolve(userRoot, i)),
-    ...themeRoots.map(i => `${i}/windi.config.ts`),
+    resolve(themeRoot, 'vite.config.ts'),
     resolve(clientRoot, 'windi.config.ts'),
   ])
 
@@ -40,10 +40,8 @@ export async function createWindiCSSPlugin(
         return config
       },
       onOptionsResolved(config) {
-        themeRoots.forEach((i) => {
-          config.scanOptions.include.push(`${i}/components/**/*.{vue,ts}`)
-          config.scanOptions.include.push(`${i}/layouts/**/*.{vue,ts}`)
-        })
+        config.scanOptions.include.push(`${themeRoot}/components/**/*.{vue,ts}`)
+        config.scanOptions.include.push(`${themeRoot}/layouts/**/*.{vue,ts}`)
         config.scanOptions.include.push(`!${slash(resolve(userRoot, 'node_modules'))}`)
       },
       ...windiOptions,
