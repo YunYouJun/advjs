@@ -60,12 +60,12 @@ const recordCameraInfo = () => {
 
   <a target="_blank" href="https://github.com/YunYouJun/advjs">
     <AdvIconButton class="fixed right-50 bottom-5">
-      <i-ri-github-line text="white" />
+      <div i-ri-github-line text="white" />
     </AdvIconButton>
   </a>
   <AdvDebug>
     <AdvIconButton title="记录当前镜头位置" @click="recordCameraInfo()">
-      <i-ri-camera-line />
+      <div i-ri-camera-line />
     </AdvIconButton>
     <pre class="block text-left">{{ JSON.stringify(cameraInfo, null, 2) }}</pre>
   </AdvDebug>

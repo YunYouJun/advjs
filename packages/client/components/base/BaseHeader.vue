@@ -15,7 +15,7 @@ const toggleLocales = () => {
 <template>
   <nav class="text-xl pt-4">
     <router-link class="icon-btn mx-2" to="/" :title="t('button.home')">
-      <i-ri-home-2-line />
+      <div i-ri-home-2-line />
     </router-link>
 
     <button
@@ -23,12 +23,12 @@ const toggleLocales = () => {
       :title="t('button.toggle_dark')"
       @click="toggleDark()"
     >
-      <i-ri-moon-line v-if="isDark" />
-      <i-ri-sun-line v-else />
+      <div v-if="isDark" i-ri-moon-line />
+      <div v-else i-ri-sun-line />
     </button>
 
     <a class="icon-btn mx-2" :title="t('button.toggle_langs')" @click="toggleLocales">
-      <i-ri-translate-2 />
+      <div i-ri-translate-2 />
     </a>
 
     <a
@@ -37,7 +37,7 @@ const toggleLocales = () => {
       target="_blank"
       :title="t('button.about')"
     >
-      <i-carbon-dicom-overlay />
+      <div i-carbon-dicom-overlay />
     </a>
 
     <a
@@ -47,7 +47,7 @@ const toggleLocales = () => {
       target="_blank"
       title="GitHub"
     >
-      <i-ri-github-line />
+      <div i-ri-github-line />
     </a>
 
     <!-- wc-github-corners -->

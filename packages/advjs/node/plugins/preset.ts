@@ -1,18 +1,15 @@
 import type { PluginOption } from 'vite'
 import Vue from '@vitejs/plugin-vue'
-import IconsResolver from 'unplugin-icons/resolver'
 import Components from 'unplugin-vue-components/vite'
 import { notNullish } from '@antfu/utils'
 import Pages from 'vite-plugin-pages'
 import Layouts from 'vite-plugin-vue-layouts'
-// import LinkAttributes from 'markdown-it-link-attributes'
-import Icons from 'unplugin-icons/vite'
-// import Markdown from 'vite-plugin-md'
+import LinkAttributes from 'markdown-it-link-attributes'
+import Markdown from 'vite-plugin-md'
 import VueI18n from '@intlify/vite-plugin-vue-i18n'
 import type { AdvPluginOptions, AdvServerOptions, ResolvedAdvOptions } from '../options'
 import Adv from '../../../unplugin-adv/src/vite'
 import { createConfigPlugin } from './extendConfig'
-// import { createAdvLoader } from './loaders'
 // import { createClientSetupPlugin } from './setupClient'
 import { createUnocssPlugin } from './unocss'
 import { createAdvLoader } from './loaders'
@@ -30,7 +27,6 @@ export async function ViteAdvPlugin(
   const {
     vue: vueOptions = {},
     components: componentsOptions = {},
-    icons: iconsOptions = {},
   } = pluginOptions
 
   const {
@@ -85,35 +81,23 @@ export async function ViteAdvPlugin(
       include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
       exclude: [],
 
-      resolvers: [
-        IconsResolver({
-          // prefix: '',
-          customCollections: Object.keys(iconsOptions.customCollections || []),
-        }),
-      ],
-
       ...componentsOptions,
     }),
 
-    // https://github.com/antfu/unplugin-icons
-    Icons({
-      autoInstall: true,
+    // https://github.com/antfu/vite-plugin-md
+    Markdown({
+      wrapperClasses: 'markdown-body',
+      headEnabled: true,
+      markdownItSetup(md) {
+        md.use(LinkAttributes, {
+          pattern: /^https?:\/\//,
+          attrs: {
+            target: '_blank',
+            rel: 'noopener',
+          },
+        })
+      },
     }),
-
-    // // https://github.com/antfu/vite-plugin-md
-    // Markdown({
-    //   wrapperClasses: 'markdown-body',
-    //   headEnabled: true,
-    //   markdownItSetup(md) {
-    //     md.use(LinkAttributes, {
-    //       pattern: /^https?:\/\//,
-    //       attrs: {
-    //         target: '_blank',
-    //         rel: 'noopener',
-    //       },
-    //     })
-    //   },
-    // }),
 
     // https://github.com/intlify/bundle-tools/tree/main/packages/vite-plugin-vue-i18n
     VueI18n({

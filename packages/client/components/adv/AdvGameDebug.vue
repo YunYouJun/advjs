@@ -43,13 +43,13 @@ const vrmCamera = computed(() => bStore.instance?.vrmScene?.activeCamera as BABY
 <template>
   <AdvDebug>
     <AdvIconButton @click="setCameraInfo(sceneCamera)">
-      <i-ri-camera-line />
+      <div i-ri-camera-line />
     </AdvIconButton>
     <AdvIconButton @click="setCameraInfo(vrmCamera)">
-      <i-ri-shield-user-line />
+      <div i-ri-shield-user-line />
     </AdvIconButton>
     <AdvIconButton title="切换背景图" @click="app.toggleBg()">
-      <i-ri-image-line />
+      <div i-ri-image-line />
     </AdvIconButton>
     <pre class="block text-left">{{ JSON.stringify(cameraInfo, null, 2) }}</pre>
   </AdvDebug>

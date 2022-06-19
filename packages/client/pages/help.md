@@ -10,7 +10,7 @@ const router = useRouter()
 <div>
   <AdvIconButton class="absolute left-5 top-5 cursor-pointer" @click="router.go(-1)">
     <AdvIcon >
-      <i-ri-arrow-left-line />
+      <div i-ri-arrow-left-line />
     </AdvIcon>
   </AdvIconButton>
 </div>
@@ -21,7 +21,7 @@ meta:
 </route>
 
 <div class="text-center">
-  <i-ri-question-line class="text-4xl -mb-6 m-auto" />
+  <div i-ri-question-line class="text-4xl mb-6 m-auto" />
   <h3>帮助</h3>
 </div>
 

@@ -1,6 +1,5 @@
 import { dirname, join, resolve } from 'path'
 import type Vue from '@vitejs/plugin-vue'
-import type Icons from 'unplugin-icons/vite'
 import type Components from 'unplugin-vue-components/vite'
 import type Markdown from 'vite-plugin-md'
 import type UnoCSS from 'unocss/vite'
@@ -57,7 +56,6 @@ export interface AdvPluginOptions extends AdvEntryOptions {
   markdown?: ArgumentsType<typeof Markdown>[0]
   components?: ArgumentsType<typeof Components>[0]
   unocss?: ArgumentsType<typeof UnoCSS>[0]
-  icons?: ArgumentsType<typeof Icons>[0]
   // remoteAssets?: ArgumentsType<typeof RemoteAssets>[0]
   // serverRef?: ArgumentsType<typeof ServerRef>[0]
 }

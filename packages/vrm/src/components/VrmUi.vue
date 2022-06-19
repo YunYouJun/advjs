@@ -126,7 +126,7 @@ const toggleBone = (bone: HumanBonesType) => {
   <AdvToolbox :default-status="true">
     <template #icon>
       <AdvIconButton class="fixed right-35 bottom-5">
-        <i-ri-edit-line />
+        <div i-ri-edit-line />
       </AdvIconButton>
     </template>
     <div v-show="vrmStore.vrmManager" class="overflow-y-auto" p="2" h="screen">
@@ -144,8 +144,8 @@ const toggleBone = (bone: HumanBonesType) => {
                 }"
               >
                 <span class="mr-1 inline-flex">
-                  <i-ri-checkbox-line v-if="bone === curBone" />
-                  <i-ri-checkbox-blank-line v-else />
+                  <div v-if="bone === curBone" i-ri-checkbox-line />
+                  <div v-else i-ri-checkbox-blank-line />
                 </span>
                 {{ t(`bones.${bone}`) }} <small text="xs" opacity="80" class="transform scale-90">({{ bone }})</small>
               </h3>
@@ -163,7 +163,7 @@ const toggleBone = (bone: HumanBonesType) => {
   <AdvToolbox position="right" :default-status="true">
     <template #icon>
       <AdvIconButton class="fixed right-20 bottom-5">
-        <i-ri-emotion-line />
+        <div i-ri-emotion-line />
       </AdvIconButton>
     </template>
     <div v-show="Object.keys(vrmMorphingList).length" text="left" p="2">
