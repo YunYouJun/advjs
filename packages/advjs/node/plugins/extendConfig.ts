@@ -1,4 +1,4 @@
-import { dirname, join } from 'path'
+import { dirname, join, resolve } from 'path'
 import type { InlineConfig, Plugin } from 'vite'
 import { mergeConfig } from 'vite'
 import isInstalledGlobally from 'is-installed-globally'
@@ -30,8 +30,10 @@ export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
         define: getDefine(options),
         resolve: {
           alias: {
-            // '@advjs/core': `${toAtFS(resolve(__dirname, '../../core/src'))}/index.ts`,
-            // '@advjs/parser': `${toAtFS(resolve(__dirname, '../../parser/src'))}/index.ts`,
+            '@advjs/core/babylon': `${toAtFS(resolve(__dirname, '../../core/src/babylon'))}/index.ts`,
+            '@advjs/core': `${toAtFS(resolve(__dirname, '../../core/src'))}/index.ts`,
+            // '@advjs/parser': `${toAtFS(resolve(__dirname, '../../parser/src'))}/core.ts`,
+            '@advjs/shared/': `${toAtFS(resolve(__dirname, '../../shared/src'))}/`,
             '~/': `${toAtFS(options.clientRoot)}/`,
             '@advjs/client/': `${toAtFS(options.clientRoot)}/`,
           },

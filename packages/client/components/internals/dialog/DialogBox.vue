@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { speak } from '@advjs/shared/speech'
 import { computed, ref, watch } from 'vue'
-import { adv } from '~/setup'
+import { useAdvCtx } from '~/setup'
 import { useSettingsStore } from '~/stores/settings'
-import advConfig from '/@advjs/configs'
 
-const advStore = adv.store
-const gameConfig = advStore.gameConfig
+const $adv = useAdvCtx()
+
+const advStore = $adv.store
+const gameConfig = $adv.config.game
 
 const settings = useSettingsStore()
 
@@ -20,9 +21,9 @@ watch(
   () => curDialog.value.children[iOrder.value].value,
   (val) => {
     // 若开启了语音合成
-    if (settings.storage.speech.enable) {
+    if (settings.storage.speech) {
       speechSynthesis.cancel()
-      speak(val, settings.storage.speech.language)
+      speak(val, settings.storage.speechOptions.lang || 'zh-CN')
     }
   },
 )
@@ -32,7 +33,7 @@ const next = async () => {
     const length = curDialog.value.children.length
 
     if (iOrder.value + 1 > length - 1) {
-      await adv.next()
+      await $adv.nav.next()
       iOrder.value = 0
     }
     else {

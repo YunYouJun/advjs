@@ -7,7 +7,10 @@ export default defineConfig({
     'src/fs.ts',
   ],
   clean: true,
-  splitting: true,
+  // not use for dynamic 'import' in cjs
+  // splitting: true,
   format: ['cjs', 'esm'],
   dts: true,
+  target: 'node16',
+  shims: false,
 })

@@ -6,13 +6,21 @@ import type { ResolvedAdvOptions } from '../options'
 import { toAtFS } from '../utils'
 
 export function createAdvLoader(
-  { data, remote, roots }: ResolvedAdvOptions,
+  { data, remote, roots, entry }: ResolvedAdvOptions,
 ): Plugin[] {
   const advPrefix = '/@advjs/drama/'
 
   function generateConfigs() {
     const config = { ...data.config, remote }
     return `export default ${JSON.stringify(config)}`
+  }
+
+  function generateDrama() {
+    const scripts = [
+      `import _Drama from "${entry}"`,
+      'export default _Drama',
+    ]
+    return scripts.join('\n')
   }
 
   function generateLocales(roots: string[]) {
@@ -83,6 +91,9 @@ export function createAdvLoader(
       load(id) {
         if (id === '/@advjs/configs')
           return generateConfigs()
+
+        if (id === '/@advjs/drama')
+          return generateDrama()
 
         if (id === '/@advjs/locales')
           return generateLocales(roots)
