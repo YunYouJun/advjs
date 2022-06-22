@@ -5,10 +5,29 @@
 - Docs: [advjs.org](https://advjs.org)
 - Demo(WIP): [demo.advjs.org](https://demo.advjs.org)
 
-面向未来与前端的 ADV 文字冒险游戏引擎。基于 Vue3 + Vite + TypeScript。Deving...
+FE(Front-End of Future?) AVG Engine
+
+面向未来与前端的 ADV 文字冒险游戏引擎。
+
+<pre align="center">
+🧪 Working in Progress
+</pre>
 
 > 像写小说一样制作 ADV，愿能在未来的冒险中，与你相遇。
 > [进度（咕咕咕）一览](https://www.yunyoujun.cn/posts/make-an-avg-engine/)
+
+## Usage
+
+```bash
+# todo
+pnpm create advjs your-adv
+```
+
+```bash
+cd your-adv
+adv your.adv.md
+# dev your game
+```
 
 ## docs | 文档
 

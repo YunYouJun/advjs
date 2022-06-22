@@ -45,11 +45,11 @@ const layer0 = computed(() => ({
   }px) scale(1.33)`,
 }))
 
-const layer1 = computed(() => ({
-  ...layerBase,
-  marginTop: '16rem',
-  transform: `translateX(${parallax.tilt}px) translateY(${parallax.roll}px) scale(1.33)`,
-}))
+// const layer1 = computed(() => ({
+//   ...layerBase,
+//   marginTop: '16rem',
+//   transform: `translateX(${parallax.tilt}px) translateY(${parallax.roll}px) scale(1.33)`,
+// }))
 
 const startColor = computed(
   () =>

@@ -67,7 +67,7 @@ export const useNav = () => {
 
   function updateTachie(curNode: AdvAst.Dialog) {
     const character = getCharacter(
-      advConfig.game.characters,
+      advConfig.characters,
       curNode.character.name,
     )
     if (!character)

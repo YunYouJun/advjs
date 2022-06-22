@@ -16,8 +16,8 @@
     "url": "https://github.com/YunYouJun/advjs"
   },
   "scripts": {
-    "build": "pnpm -C packages/advjs build",
-    "build:all": "esno scripts/build.ts",
+    "build": "pnpm -r --filter=./packages/** run build",
+    "build:demo": "pnpm -C demo/starter run build",
     "demo": "pnpm -C demo/starter run dev",
     "start": "pnpm -C packages/advjs run start",
     "dev": "run-p types:dev advjs:dev parser:dev core:dev vite:dev",
