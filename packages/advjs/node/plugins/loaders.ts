@@ -15,6 +15,7 @@ export function createAdvLoader(
     return `export default ${JSON.stringify(config)}`
   }
 
+  // handle .adv.md in @advjs/plugin-vite
   function generateDrama() {
     const scripts = [
       `import _Drama from "${entry}"`,
@@ -107,7 +108,7 @@ export function createAdvLoader(
       name: 'advjs:layout-transform:pre',
       enforce: 'pre',
       async transform(code, id) {
-        if (!id.startsWith(advPrefix) || !id.endsWith('.md'))
+        if (!id.startsWith(advPrefix) || !id.endsWith('.adv.md'))
           return
         return transformMarkdown(code, data)
       },

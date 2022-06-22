@@ -22,7 +22,25 @@ const EXCLUDE = [
   'vue-demi',
 ]
 
+const babylonDeps = [
+  '@babylonjs/core',
+  '@babylonjs/loaders',
+  // '@babylonjs/materials',
+  'babylon-vrm-loader',
+  '@babylonjs/materials/grid',
+  '@babylonjs/loaders/glTF',
+]
+
+let INCLUDE = [
+  '@advjs/theme-default',
+  // ...Object.keys(dependencies),
+  ...Object.keys(dependencies).filter(i => !EXCLUDE.includes(i)),
+]
+
 export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
+  if (options.data.features.babylon)
+    INCLUDE = INCLUDE.concat(babylonDeps)
+
   return {
     name: 'advjs:config',
     config(config) {
@@ -39,11 +57,8 @@ export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
           },
         },
         optimizeDeps: {
-          include: [
-            '@advjs/theme-default',
-            // ...Object.keys(dependencies),
-            ...Object.keys(dependencies).filter(i => !EXCLUDE.includes(i)),
-          ],
+
+          include: INCLUDE,
           exclude: EXCLUDE,
         },
         server: {

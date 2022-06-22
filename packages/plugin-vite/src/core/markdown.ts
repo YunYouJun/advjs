@@ -1,6 +1,15 @@
 import matter from 'gray-matter'
 import { parseAst } from '@advjs/parser'
 import type { ResolvedOptions } from '../types'
+import { checkAdvMd } from './check'
+/**
+ * transform obj for vite code
+ * @param obj
+ * @returns
+ */
+export const transformObject = (obj: any) => {
+  return `JSON.parse(${JSON.stringify(JSON.stringify(obj))})`
+}
 
 const scriptSetupRE = /<\s*script[^>]*\bsetup\b[^>]*>([\s\S]*)<\/script>/gm
 const defineExposeRE = /defineExpose\s*\(/gm
@@ -40,10 +49,12 @@ export function createMarkdown(options: ResolvedOptions) {
   return async (id: string, raw: string) => {
     raw = raw.trimStart()
 
+    checkAdvMd(raw)
+
     if (transforms.before)
       raw = transforms.before(raw, id)
 
-    const { content: md, data } = matter(raw)
+    const { data } = matter(raw)
 
     let html = ''
     const wrapperComponent = 'AdvGame'
@@ -61,8 +72,8 @@ export function createMarkdown(options: ResolvedOptions) {
 
     const scriptLines: string[] = []
 
-    const advAst = await parseAst(md)
-    scriptLines.push(`const advAst = ${JSON.stringify(advAst)}`)
+    const advAst = await parseAst(raw)
+    scriptLines.push(`const advAst = ${transformObject(advAst)}`)
 
     if (options.frontmatter) {
       const { head, frontmatter } = frontmatterPreprocess(data || {}, options)

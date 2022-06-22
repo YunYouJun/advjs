@@ -1,10 +1,10 @@
-import { createUnplugin } from 'unplugin'
+import type { Plugin } from 'vite'
 import { createFilter } from '@rollup/pluginutils'
 import type { Options } from './types'
 import { resolveOptions } from './core/options'
 import { createMarkdown } from './core/markdown'
 
-export default createUnplugin<Options>((userOptions: Options = {}) => {
+const advPlugin = (userOptions: Options = {}): Plugin => {
   const options = resolveOptions(userOptions)
   const markdownToVue = createMarkdown(options)
 
@@ -15,12 +15,8 @@ export default createUnplugin<Options>((userOptions: Options = {}) => {
   )
 
   return {
-    name: 'unplugin-adv',
+    name: 'advjs:plugin',
     enforce: 'pre',
-
-    transformInclude(id) {
-      return filter(id)
-    },
 
     transform(raw, id) {
       if (!filter(id))
@@ -33,16 +29,16 @@ export default createUnplugin<Options>((userOptions: Options = {}) => {
       }
     },
 
-    vite: {
-      async handleHotUpdate(ctx) {
-        if (!filter(ctx.file))
-          return
+    async handleHotUpdate(ctx) {
+      if (!filter(ctx.file))
+        return
 
-        const defaultRead = ctx.read
-        ctx.read = async function () {
-          return markdownToVue(ctx.file, await defaultRead())
-        }
-      },
+      const defaultRead = ctx.read
+      ctx.read = async function () {
+        return markdownToVue(ctx.file, await defaultRead())
+      }
     },
   }
-})
+}
+
+export default advPlugin

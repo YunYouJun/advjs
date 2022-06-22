@@ -51,9 +51,9 @@
 - 状态：Todo
 - 目标：实现 VS Code 中对 `.adv.md` 文件的语法高亮与提示。
 
-### [unplugin-adv](./packages/unplugin-adv) Adv 通用插件
+### [@advjs/plugin-vite](./packages/plugin-vite) Vite Adv 插件
 
-- 功能：可用于 Vite（推荐）、Webpack、Rollup 等工具插件，预先对 `.adv`, `.adv.md` 结尾的文件进行转译以便预编译。
+- 功能：支持 Vite，可预先对 `.adv`, `.adv.md` 结尾的文件进行转译以便预编译。
 
 ### [@advjs/vrm](./packages/vrm) VRM 模型在线编辑器
 
@@ -70,6 +70,10 @@
 
 快关闭本页面的广告拦截以正常显示本页面吧！
 
+> 等待
+
 ## Thanks
 
+- [vue](https://github.com/vuejs/core)
+- [vite](https://github.com/vitejs/vite)
 - [slidev](https://github.com/slidevjs/slidev)

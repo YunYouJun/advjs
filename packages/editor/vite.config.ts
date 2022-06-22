@@ -13,7 +13,6 @@ import Unocss from 'unocss/vite'
 import Prism from 'markdown-it-prism'
 import LinkAttributes from 'markdown-it-link-attributes'
 
-import Adv from '../unplugin-adv/src/vite'
 import { commonAlias } from '../shared/config/vite'
 
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
@@ -78,6 +77,7 @@ export default defineConfig({
           },
         })
       },
+      exclude: ['**/*.adv.md'],
     }),
 
     // https://github.com/antfu/vite-plugin-pwa
@@ -103,8 +103,6 @@ export default defineConfig({
       // change this to enable inspect for debugging
       enabled: false,
     }),
-
-    Adv(),
   ],
 
   server: {

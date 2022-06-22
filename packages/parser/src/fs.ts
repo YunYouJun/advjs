@@ -13,10 +13,9 @@ export function load(filepath: string, themeMeta?: AdvThemeMeta, content?: strin
   const entries = new Set([
     filepath,
   ])
+  data.entries = Array.from(entries)
 
   // todo add 'src' for child frontmatter
-
-  data.entries = Array.from(entries)
 
   return data
 }

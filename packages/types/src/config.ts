@@ -41,8 +41,44 @@ export interface AdvConfig {
 
   /**
    * global game config
+   * -------------------------------------------------
    */
-  game: GameConfig
+
+  pages: {
+    /**
+     * Start Page
+     */
+    start: {
+      /**
+       * Path or URL
+       * @description:zh-CN 背景
+       */
+      bg: string
+      /**
+       * Path or URL
+       * @description:zh-CN 暗色模式背景
+       */
+      darkBg?: string
+    }
+  }
+
+  /**
+   * 是否显示人物头像
+   * @default false
+   */
+  showCharacterAvatar: boolean
+
+  cdn: {
+    enable: boolean
+    prefix?: string
+  }
+
+  /**
+   * all characters appear in the game
+   */
+  characters: Character[]
+
+  // -------------------------------------------------
 }
 
 export interface Tachie {
@@ -77,45 +113,6 @@ export interface Character {
 }
 
 /**
- * Global Game Config
- */
-export interface GameConfig {
-  pages: {
-    /**
-     * Start Page
-     */
-    start: {
-      /**
-       * Path or URL
-       * @description:zh-CN 背景
-       */
-      bg: string
-      /**
-       * Path or URL
-       * @description:zh-CN 暗色模式背景
-       */
-      darkBg?: string
-    }
-  }
-
-  /**
-   * 是否显示人物头像
-   * @default false
-   */
-  showCharacterAvatar: boolean
-
-  cdn: {
-    enable: boolean
-    prefix?: string
-  }
-
-  /**
-   * all characters appear in the game
-   */
-  characters: Character[]
-}
-
-/**
  * User Config Type for adv.config.ts
  */
-export type UserGameConfig = Partial<GameConfig>
+export type UserConfig = Partial<AdvConfig>

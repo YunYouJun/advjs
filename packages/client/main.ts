@@ -17,6 +17,7 @@ import '/@advjs/styles'
 import 'animate.css'
 
 import { createAdv } from './setup'
+import { statement } from './utils/statement'
 
 const routes = setupLayouts(generatedRoutes)
 
@@ -35,3 +36,5 @@ app.use(createAdv())
 
 app.use(MotionPlugin)
 app.mount('#app')
+
+statement()

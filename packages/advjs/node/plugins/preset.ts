@@ -7,8 +7,10 @@ import Layouts from 'vite-plugin-vue-layouts'
 import LinkAttributes from 'markdown-it-link-attributes'
 import Markdown from 'vite-plugin-md'
 import VueI18n from '@intlify/vite-plugin-vue-i18n'
+
+import Adv from '@advjs/plugin-vite'
+
 import type { AdvPluginOptions, AdvServerOptions, ResolvedAdvOptions } from '../options'
-import Adv from '../../../unplugin-adv/src/vite'
 import { createConfigPlugin } from './extendConfig'
 // import { createClientSetupPlugin } from './setupClient'
 import { createUnocssPlugin } from './unocss'
@@ -97,6 +99,7 @@ export async function ViteAdvPlugin(
           },
         })
       },
+      exclude: ['**/*.adv.md'],
     }),
 
     // https://github.com/intlify/bundle-tools/tree/main/packages/vite-plugin-vue-i18n

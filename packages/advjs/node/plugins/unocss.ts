@@ -26,6 +26,10 @@ export const createSafelist = async (config: AdvConfig) => {
 
   const safelist = [
     'm-auto',
+    // for cur font size
+    'text-xl',
+    'text-2xl',
+    'text-3xl',
   ].concat(safeIcons)
 
   return safelist

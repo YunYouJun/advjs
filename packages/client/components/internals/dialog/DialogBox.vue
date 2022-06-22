@@ -7,7 +7,7 @@ import { useSettingsStore } from '~/stores/settings'
 const $adv = useAdvCtx()
 
 const advStore = $adv.store
-const gameConfig = $adv.config.game
+const advConfig = $adv.config
 
 const settings = useSettingsStore()
 
@@ -46,8 +46,8 @@ const curCharacter = computed(() => curDialog.value.character)
 
 const characterAvatar = computed(() => {
   const curName = curCharacter.value ? curCharacter.value.name : ''
-  const avatar = gameConfig.characters.find(item => item.name === curName || item.alias === curName || (Array.isArray(item.alias) && item.alias.includes(curName)))?.avatar
-  const prefix = gameConfig.cdn.enable ? gameConfig.cdn.prefix || '' : ''
+  const avatar = advConfig.characters.find(item => item.name === curName || item.alias === curName || (Array.isArray(item.alias) && item.alias.includes(curName)))?.avatar
+  const prefix = advConfig.cdn.enable ? advConfig.cdn.prefix || '' : ''
   return avatar ? prefix + avatar : ''
 })
 
@@ -63,7 +63,7 @@ const curWords = computed(() => {
 <template>
   <div class="dialog-box select-none cursor-pointer" grid="~ cols-12" gap="12" @click="next">
     <div v-if="curCharacter" class=" col-span-3 text-right">
-      <template v-if="gameConfig.showCharacterAvatar && characterAvatar">
+      <template v-if="advConfig.showCharacterAvatar && characterAvatar">
         <div flex="~ col" class="justify-center items-end">
           <img class="w-25 h-25 shadow rounded" object="cover top" :src="characterAvatar">
           <span class="w-25" m="t-2" text="center gray-400">{{ curCharacter.name }}</span>
@@ -73,7 +73,7 @@ const curWords = computed(() => {
         <span class="dialog-name">{{ curCharacter.name }}</span>
       </template>
     </div>
-    <div class="dialog-content col-span-9 text-left pr-24" :text="settings.storage.text.curFontSize">
+    <div class="dialog-content col-span-9 text-left pr-24" :class="`text-${settings.storage.text.curFontSize}`">
       <PrintWords :speed="settings.storage.text.curSpeed" :words="curWords" />
       <span class="typed-cursor">
         ▼

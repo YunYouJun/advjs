@@ -19,7 +19,7 @@ export const useNav = () => {
         if (node.enter) {
           node.enter.forEach((item) => {
             const character = getCharacter(
-              advConfig.game.characters,
+              advConfig.characters,
               item.character,
             )
             if (!character)

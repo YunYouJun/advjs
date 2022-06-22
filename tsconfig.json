@@ -40,6 +40,7 @@
       "@advjs/types": ["./packages/types/src/index.ts"],
       "@advjs/theme-default": ["./packages/theme-default/index.ts"],
       "@advjs/theme-default/*": ["./packages/theme-default/*"],
+      "@advjs/plugin-vite": ["./packages/plugin-vite/src/index.ts"],
       "advjs/*": ["./packages/advjs/src/*"]
     }
   },

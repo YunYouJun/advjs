@@ -44,14 +44,6 @@ export async function createServer(
   return server
 }
 
-// const babylonDependencies = [
-//   '@babylonjs/core',
-//   '@babylonjs/loaders',
-//   // '@babylonjs/materials',
-//   'babylon-vrm-loader',
-//   '@babylonjs/materials/grid',
-//   '@babylonjs/loaders/glTF',
-// ]
 // optimizeDeps: {
 //   include: [
 //     'vue',

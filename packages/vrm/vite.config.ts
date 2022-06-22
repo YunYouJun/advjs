@@ -72,6 +72,7 @@ export default defineConfig({
           },
         })
       },
+      exclude: ['**/*.adv.md'],
     }),
 
     // https://github.com/antfu/vite-plugin-pwa

@@ -69,8 +69,8 @@ cli.command(
     .strict()
     .help(),
   async ({ entry, theme, port: userPort, open, log, remote, force }) => {
-    if (!fs.existsSync(entry) && !entry.endsWith('.md'))
-      entry = `${entry}.md`
+    if (!fs.existsSync(entry) && !entry.endsWith('.adv.md'))
+      entry = `${entry}.adv.md`
 
     if (!fs.existsSync(entry)) {
       const { create } = await prompts({
@@ -80,7 +80,7 @@ cli.command(
         message: `Entry file ${yellow(`"${entry}"`)} does not exist, do you want to create it?`,
       })
       if (create)
-        await fs.copyFile(path.resolve(__dirname, '../template.md'), entry)
+        await fs.copyFile(path.resolve(__dirname, '../template.adv.md'), entry)
       else
         process.exit(0)
     }

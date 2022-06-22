@@ -1,17 +1,4 @@
-import type { AdvConfig, GameConfig } from '@advjs/types'
-
-const defaultGameConfig: GameConfig = {
-  pages: {
-    start: {
-      bg: 'https://fastly.jsdelivr.net/gh/YunYouJun/cdn/img/bg/stars-timing-0-blur-30px.jpg',
-    },
-  },
-  showCharacterAvatar: false,
-  cdn: {
-    enable: false,
-  },
-  characters: [],
-}
+import type { AdvConfig } from '@advjs/types'
 
 const defaultConfig: AdvConfig = {
   title: 'ADV.JS',
@@ -23,7 +10,17 @@ const defaultConfig: AdvConfig = {
   // 开发模式下，可选中
   // import.meta.env.DEV
   selectable: false,
-  game: defaultGameConfig,
+  // game
+  pages: {
+    start: {
+      bg: 'https://fastly.jsdelivr.net/gh/YunYouJun/cdn/img/bg/stars-timing-0-blur-30px.jpg',
+    },
+  },
+  showCharacterAvatar: false,
+  cdn: {
+    enable: false,
+  },
+  characters: [],
 }
 
 export function resolveConfig(frontmatter: any) {

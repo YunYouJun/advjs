@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { AdvAst, GameConfig } from '@advjs/types'
+import type { AdvAst, AdvConfig } from '@advjs/types'
 
 import { useBeforeUnload } from '@advjs/client/composables'
 import { computed, onBeforeMount, ref } from 'vue'
@@ -9,7 +9,7 @@ import { useAdvCtx } from '~/setup/adv'
 import { useAdvKeys } from '~/composables'
 
 const props = defineProps<{
-  frontmatter?: GameConfig
+  frontmatter?: AdvConfig
   ast: AdvAst.Root
 }>()
 

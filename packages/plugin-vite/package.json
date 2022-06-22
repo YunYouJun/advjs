@@ -1,0 +1,56 @@
+{
+  "name": "@advjs/plugin-vite",
+  "version": "0.1.0",
+  "description": "Vite Plugin for ADV.JS",
+  "author": {
+    "name": "YunYouJun",
+    "email": "me@yunyoujun.cn",
+    "url": "https://www.yunyoujun.cn"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/YunYouJun/advjs/tree/main/packages/plugin-vite#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YunYouJun/advjs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/YunYouJun/advjs/issues"
+  },
+  "keywords": [
+    "advjs",
+    "vite",
+    "transform"
+  ],
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    },
+    "./*": "./*"
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "*.d.ts"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch src",
+    "prepublishOnly": "npm run build",
+    "start": "tsx src/index.ts",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@advjs/parser": "workspace:^",
+    "@rollup/pluginutils": "^4.2.1",
+    "gray-matter": "^4.0.3"
+  },
+  "devDependencies": {
+    "fast-glob": "^3.2.11",
+    "nodemon": "^2.0.16",
+    "rimraf": "^3.0.2",
+    "vite": "^2.9.12"
+  }
+}

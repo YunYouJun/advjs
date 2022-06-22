@@ -35,6 +35,7 @@ export function parseChild(child: MdAst.Content) {
 
 /**
  * parse markdown to ast
+ * recommended: .adv.md
  * 将纯文本内容解析为语法树
  * @param content 文本内容
  */
@@ -61,6 +62,9 @@ export function parse(markdown: string, filepath?: string): AdvMarkdown {
     raw: markdown,
     filepath,
     config,
+    features: {
+      babylon: data.type === '3d',
+    },
     headmatter: data,
   }
 }
