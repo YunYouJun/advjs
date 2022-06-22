@@ -2,7 +2,8 @@ import path from 'path'
 import type { AliasOptions } from 'vite'
 
 export const commonAlias: AliasOptions = {
-  '@advjs/core/': `${path.resolve(__dirname, '../', '../core/src')}/`,
+  '@advjs/core/babylon': `${path.resolve(__dirname, '../', '../core/src/babylon')}/index.ts`,
+  '@advjs/core': `${path.resolve(__dirname, '../', '../core/src')}/`,
   '@advjs/editor/': `${path.resolve(__dirname, '../', '../editor/src')}/`,
   '@advjs/examples/': `${path.resolve(__dirname, '../', '../examples')}/`,
   '@advjs/parser/': `${path.resolve(__dirname, '../', '../parser/src')}/`,

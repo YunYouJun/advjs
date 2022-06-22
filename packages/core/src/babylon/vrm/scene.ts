@@ -3,7 +3,7 @@ import type { VRMManager } from 'babylon-vrm-loader'
 import type { HumanBonesType } from './pose'
 import { HumanBones, vRawPoseData } from './pose'
 
-export function getVrmManager(scene?: BABYLON.Scene) {
+export function getVrmManager(scene: BABYLON.Scene) {
   if (!scene?.metadata)
     return
   const vrmManager = scene?.metadata.vrmManagers[scene?.metadata.vrmManagers.length - 1] as VRMManager

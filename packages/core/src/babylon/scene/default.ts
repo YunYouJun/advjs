@@ -19,8 +19,6 @@ export const createScene = (engine: BABYLON.Engine) => {
 
   scene.activeCameras?.push(camera)
 
-  // @ts-expect-error do not need used
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const light = new BABYLON.HemisphericLight('light', new BABYLON.Vector3(0, 1, 0), scene)
 
   // const box = BABYLON.MeshBuilder.CreateBox('box', {})
@@ -29,8 +27,7 @@ export const createScene = (engine: BABYLON.Engine) => {
   const hdrTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(
     `${getAssetsPrefix()}/textures/environment.dds`, scene,
   )
-  // @ts-expect-error do not need used
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   const currentSkybox = scene.createDefaultSkybox(hdrTexture, true)
 
   BABYLON.SceneLoader.Append(
@@ -40,5 +37,9 @@ export const createScene = (engine: BABYLON.Engine) => {
     })
 
   // Return the created scene
-  return scene
+  return {
+    light,
+    currentSkybox,
+    scene,
+  }
 }

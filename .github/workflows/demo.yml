@@ -1,0 +1,35 @@
+name: ADV.JS Demo
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: pnpm
+
+      - name: 📦 Install
+        run: pnpm install
+
+      - name: 🔧 Build ADV.JS Cli
+        run: pnpm run build:advjs
+
+      - name: 🎮 Build ADV.JS Demo
+        run: pnpm run build:demo

@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { isClient } from '@vueuse/core'
 import type * as m from 'monaco-editor'
+import { nextTick, ref, watch } from 'vue'
 import setupMonaco from '../setup/monaco'
 
 const props = defineProps<{ content?: string; type: 'html' | 'json' }>()

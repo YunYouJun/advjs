@@ -1,7 +1,7 @@
-import type { AdvConfig } from '@advjs/types'
+import type { Character } from '@advjs/types'
 
-export function getCharacter(characters: AdvConfig.Character[], name: string): AdvConfig.Character | undefined {
+export function getCharacter(characters: Character[], name: string): Character | undefined {
   return characters.find((value) => {
-    return value.name === name || (typeof value.alias == 'string' ? value.alias === name : value.alias.includes(name))
+    return value.name === name || (typeof value.alias == 'string' ? value.alias === name : value.alias?.includes(name))
   })
 }

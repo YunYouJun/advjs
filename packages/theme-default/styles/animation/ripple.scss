@@ -3,11 +3,14 @@
   width: var(--ripple-size);
   height: var(--ripple-size);
   border-radius: 50%;
-  background-color: dodgerblue;
   opacity: 0;
 
-  animation: rippleFadeOut var(--adv-animation-duration) ease-in-out 0s 1 normal
-    forwards;
+  animation-name: rippleFadeOut;
+  animation-duration: var(--adv-animation-duration);
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: 1;
+  animation-direction: normal;
+  animation-fill-mode: forwards;
 }
 
 .adv-bubble-breath {

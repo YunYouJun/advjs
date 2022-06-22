@@ -1,7 +1,29 @@
 {
   "name": "@advjs/core",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    },
+    "./babylon": {
+      "types": "./babylon.d.ts",
+      "require": "./dist/babylon.js",
+      "import": "./dist/babylon.mjs"
+    }
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rimraf dist && tsup",
+    "dev": "nr build --watch",
+    "prepublishOnly": "npm run build"
+  },
   "dependencies": {
+    "@advjs/parser": "workspace:*",
+    "@types/mdast": "^3.0.10",
     "html2canvas": "^1.4.1",
-    "unstorage": "^0.4.1"
+    "unstorage": "^0.5.1"
   }
 }

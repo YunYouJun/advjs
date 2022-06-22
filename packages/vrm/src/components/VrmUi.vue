@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 import * as BABYLON from '@babylonjs/core'
-import type { HumanBonesType } from '@advjs/core/babylon/vrm/pose'
-import { HumanBones } from '@advjs/core/babylon/vrm/pose'
-import type { PoseEulerType } from '@advjs/core/babylon/types'
+import type { HumanBonesType, PoseEulerType } from '@advjs/core/babylon'
+import { HumanBones } from '@advjs/core/babylon'
 import type { Ref } from 'vue'
+import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useVrmStore } from '../stores/vrm'
 
 const { t } = useI18n()
@@ -125,7 +126,7 @@ const toggleBone = (bone: HumanBonesType) => {
   <AdvToolbox :default-status="true">
     <template #icon>
       <AdvIconButton class="fixed right-35 bottom-5">
-        <i-ri-edit-line />
+        <div i-ri-edit-line />
       </AdvIconButton>
     </template>
     <div v-show="vrmStore.vrmManager" class="overflow-y-auto" p="2" h="screen">
@@ -137,20 +138,24 @@ const toggleBone = (bone: HumanBonesType) => {
           <details>
             <summary>
               <h3
-                text="xs" class="inline-flex cursor-pointer justify-center items-center" :class="bone === curBone ? 'font-bold text-blue-300' : ''" @click="(event) => {
+                text="xs" class="inline-flex cursor-pointer justify-center items-center" :class="bone === curBone ? 'font-bold text-blue-300' : ''"
+                @click="(event: any) => {
                   toggleBone(bone);event.preventDefault()
                 }"
               >
                 <span class="mr-1 inline-flex">
-                  <i-ri-checkbox-line v-if="bone === curBone" />
-                  <i-ri-checkbox-blank-line v-else />
+                  <div v-if="bone === curBone" i-ri-checkbox-line />
+                  <div v-else i-ri-checkbox-blank-line />
                 </span>
                 {{ t(`bones.${bone}`) }} <small text="xs" opacity="80" class="transform scale-90">({{ bone }})</small>
               </h3>
             </summary>
 
             <div v-for="axis in (['x', 'y', 'z'] as const)" :key="axis" class="flex justify-center items-center">
-              <AdvSlider v-model="bonesRotation[bone][axis].value" :label="`${axis}:`" unit="°" @input="(degree) => { updateBoneRotation(bone, axis, degree) }" />
+              <AdvSlider
+                v-model="bonesRotation[bone][axis].value" :label="`${axis}:`" unit="°"
+                @input="(degree: any) => { updateBoneRotation(bone, axis, degree) }"
+              />
             </div>
           </details>
         </div>
@@ -161,7 +166,7 @@ const toggleBone = (bone: HumanBonesType) => {
   <AdvToolbox position="right" :default-status="true">
     <template #icon>
       <AdvIconButton class="fixed right-20 bottom-5">
-        <i-ri-emotion-line />
+        <div i-ri-emotion-line />
       </AdvIconButton>
     </template>
     <div v-show="Object.keys(vrmMorphingList).length" text="left" p="2">

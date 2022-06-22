@@ -1,11 +1,9 @@
 <script setup lang="ts">
+import type { StartMenuItem } from '@advjs/theme-default'
+
 defineProps<{
   menuItems: StartMenuItem[]
 }>()
-export interface StartMenuItem {
-  title: string
-  do?: () => void
-}
 </script>
 
 <template>
@@ -13,7 +11,7 @@ export interface StartMenuItem {
     <li
       v-for="(item, i) in menuItems"
       :key="i"
-      class="start-menu-item font-serif transition animate-animated animate-fadeInRight"
+      class="start-menu-item font-serif transition animate__animated animate__fadeInRight"
       :style="`animation-delay: ${0.4 + i * 0.1}s`"
       @click="item.do"
     >

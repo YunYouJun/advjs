@@ -11,10 +11,10 @@ withDefaults(defineProps<{ props: AdvCheckboxProps }>(), {
 <template>
   <span class="inline-flex cursor-pointer" @click="props.onClick">
     <AdvIcon v-if="props.checked">
-      <i-ri-checkbox-line />
+      <div i-ri-checkbox-line />
     </AdvIcon>
     <AdvIcon v-else>
-      <i-ri-checkbox-blank-line />
+      <div i-ri-checkbox-blank-line />
     </AdvIcon>
   </span>
 </template>

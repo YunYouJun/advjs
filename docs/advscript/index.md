@@ -7,8 +7,8 @@
 AdvScript 的语法基于 Markdown，它会被解析器预解析为语法树。
 
 - [@advjs/parser](https://github.com/YunYouJun/advjs/tree/main/packages/parser): AdvScript 核心解析器
-- [unplugin-adv](https://github.com/YunYouJun/advjs/tree/main/packages/unplugin-adv): AdvScript Vite/Webpack/... 解析插件（基于 @advjs/parser）
-  - 通过 `unplugin-adv` 进行打包，允许以 `.adv.md` 或 `.adv` 为结尾的文件名称。
+- [@advjs/plugin-vite](https://github.com/YunYouJun/advjs/tree/main/packages/plugin-vite): AdvScript Vite 解析插件（基于 @advjs/parser）
+  - 通过 `@advjs/plugin-vite` 进行打包，允许以 `.adv.md` 或 `.adv` 为结尾的文件名称。
 - [@advjs/editor](https://github.com/YunYouJun/advjs/tree/main/packages/editor): 一个可在线预览编辑的解析器
   - 你可以在 [ADV.JS Editor](https://editor.advjs.org/) 中预览它的解析效果。
 

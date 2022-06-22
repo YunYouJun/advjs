@@ -1,0 +1,56 @@
+import { acceptHMRUpdate, defineStore } from 'pinia'
+import { ns } from '@advjs/core'
+import { useFullscreen, useSpeechSynthesis, useStorage } from '@vueuse/core'
+
+import { ref } from 'vue'
+import type { SettingOptions } from './types'
+
+export * from './types'
+
+export const useSettingsStore = defineStore('settings', () => {
+  // userClientConfig
+  const { toggle: toggleFullScreen } = useFullscreen()
+
+  const getDefaultSettings = () => {
+    const defaultSettings: SettingOptions = {
+      isFullscreen: false,
+      text: {
+        curSpeed: 'fast',
+        curFontSize: 'xl',
+        curDisplayMode: 'soft',
+      },
+      play: {
+        mdUrl: '/md/test.adv.md',
+      },
+      speech: false,
+      speechOptions: {
+        lang: 'zh-HK',
+      },
+      animation: {
+        duration: 1000,
+      },
+    }
+    return defaultSettings
+  }
+
+  const userClientSettings = useStorage(ns('settings'), getDefaultSettings())
+
+  const resetSettings = () => {
+    userClientSettings.value = getDefaultSettings()
+  }
+
+  const speechContent = ref('大家好，我是渣渣辉！')
+
+  return {
+    storage: userClientSettings,
+
+    resetSettings,
+
+    speechContent,
+    speech: useSpeechSynthesis(speechContent, userClientSettings.value.speechOptions),
+    toggleFullScreen,
+  }
+})
+
+if (import.meta.hot)
+  import.meta.hot.accept(acceptHMRUpdate(useSettingsStore, import.meta.hot))

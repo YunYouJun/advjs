@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import type * as m from 'monaco-editor'
 import { isClient } from '@vueuse/core'
+import { useI18n } from 'vue-i18n'
+import { nextTick, ref } from 'vue'
 import setupMonaco from '../setup/monaco'
 import { useEditorStore } from '../stores/editor'
 
@@ -80,7 +82,7 @@ if (isClient)
     <VMenu placement="top">
       <span class="icon-btn shadow rounded-full transition" hover="shadow-md" p="1">
         <span class="inline-flex">
-          <div v-if="loading" i-ri-loader-line class="animate-spin" />
+          <div v-if="loading" i-ri-loader-line class="animate__spin" />
           <div v-else i-ri-check-line text="green-500" class="cursor-pointer" @click="fetchMarkdown" />
         </span>
       </span>

@@ -1,6 +1,5 @@
 {
   "name": "@advjs/parser",
-  "type": "module",
   "version": "0.0.1",
   "description": "A parser for advjs.",
   "author": {
@@ -10,17 +9,47 @@
   },
   "license": "MPL-2.0",
   "homepage": "https://github.com/YunYouJun/advjs/tree/main/packages/parser#readme",
-  "main": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    },
+    "./core": {
+      "types": "./dist/core.d.ts",
+      "require": "./dist/core.js",
+      "import": "./dist/core.mjs"
+    },
+    "./fs": {
+      "types": "./fs.d.ts",
+      "require": "./dist/fs.js",
+      "import": "./dist/fs.mjs"
+    }
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "*.d.ts"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "scripts": {
-    "build": "tsup",
+    "build": "rimraf dist && tsup",
+    "dev": "nr build --watch",
     "temp": "esno test/index.ts",
-    "test": "vitest"
+    "test": "vitest",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@advjs/types": "workspace:^",
+    "@advjs/types": "workspace:*",
+    "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
     "mdast-util-to-hast": "^12.1.1",
     "rehype-stringify": "^9.0.3",
+    "remark": "^14.0.2",
     "remark-frontmatter": "^4.0.1",
     "remark-gfm": "^3.0.1",
     "remark-parse": "^10.0.1",

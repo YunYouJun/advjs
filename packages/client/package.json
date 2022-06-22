@@ -1,0 +1,46 @@
+{
+  "name": "@advjs/client",
+  "version": "0.0.1",
+  "description": "ADV.JS Client",
+  "author": {
+    "email": "me@yunyoujun.cn",
+    "name": "YunYouJun",
+    "url": "https://www.yunyoujun.cn"
+  },
+  "license": "MPL-2.0",
+  "funding": "https://github.com/sponsors/YunYouJun",
+  "homepage": "https://advjs.org",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YunYouJun/advjs"
+  },
+  "bugs": "https://github.com/YunYouJun/advjs/issues",
+  "exports": {
+    "./*": "./*"
+  },
+  "types": "types/index.ts",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "@advjs/core": "workspace:*",
+    "@advjs/parser": "workspace:*",
+    "@advjs/types": "workspace:*",
+    "@antfu/utils": "^0.5.2",
+    "@vueuse/core": "^8.7.5",
+    "@vueuse/head": "^0.7.6",
+    "@vueuse/motion": "^2.0.0-beta.18",
+    "animate.css": "^4.1.1",
+    "consola": "^2.15.3",
+    "dayjs": "^1.11.3",
+    "nprogress": "^0.2.0",
+    "pinia": "^2.0.14",
+    "resolve": "^1.22.1",
+    "swiper": "^8.2.4",
+    "vue": "^3.2.36",
+    "vue-router": "^4.0.15"
+  },
+  "devDependencies": {
+    "@types/nprogress": "^0.2.0"
+  }
+}

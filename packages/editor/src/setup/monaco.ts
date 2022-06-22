@@ -1,4 +1,4 @@
-import { getCurrentInstance, onMounted } from 'vue'
+import { getCurrentInstance, onMounted, watch } from 'vue'
 import type * as m from 'monaco-editor'
 import { isDark } from '../composables'
 

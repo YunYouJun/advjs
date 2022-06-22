@@ -1,2 +1,3 @@
 export * from './ast'
-export * as AdvConfig from './config'
+export * from './config'
+export * from './types'

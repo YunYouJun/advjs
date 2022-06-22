@@ -14,17 +14,22 @@
     "url": "https://github.com/YunYouJun/advjs"
   },
   "bugs": "https://github.com/YunYouJun/advjs/issues",
-  "main": "dist/index.js",
   "module": "dist/index.mjs",
+  "types": "index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "client.d.ts",
+    "index.d.ts"
   ],
   "engines": {
     "node": ">=14.0.0"
   },
   "scripts": {
-    "build": "pnpx tsup src/index.ts --format cjs,esm --dts --splitting",
-    "dev": "nr build --watch",
+    "build": "rimraf dist && tsc",
+    "dev": "tsc --watch",
     "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@types/mdast": "^3.0.10"
   }
 }

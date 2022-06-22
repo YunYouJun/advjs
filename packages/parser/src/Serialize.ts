@@ -1,4 +1,4 @@
-import type * as Adv from '@advjs/types'
+import type { AdvAst } from '@advjs/types'
 import type * as Mdast from 'mdast'
 
 import { parseText } from './syntax'
@@ -11,8 +11,8 @@ export class Serialize {
   /**
    * 解析
    */
-  parse(child: Mdast.Content): Adv.AdvItem | undefined {
-    let node: Adv.AdvItem | undefined
+  parse(child: Mdast.Content): AdvAst.Item | undefined {
+    let node: AdvAst.Item| undefined
     switch (child.type) {
       case 'blockquote':
         node = this.blockquote(child)
@@ -37,8 +37,8 @@ export class Serialize {
    * 处理标题
    * @param text
    */
-  heading(node: Mdast.Heading): Adv.Heading {
-    const info: Adv.Heading = {
+  heading(node: Mdast.Heading): AdvAst.Heading {
+    const info: AdvAst.Heading = {
       ...node,
     }
     return info
@@ -48,8 +48,8 @@ export class Serialize {
    * 处理引用块
    * @param text
    */
-  blockquote(node: Mdast.Blockquote): Adv.Narration {
-    const info: Adv.Narration = {
+  blockquote(node: Mdast.Blockquote): AdvAst.Narration {
+    const info: AdvAst.Narration = {
       type: 'narration',
       children: node.children.map((item) => {
         return ((item as Mdast.Paragraph).children[0] as Mdast.Text).value
@@ -63,7 +63,7 @@ export class Serialize {
    * @param node
    */
   code(node: Mdast.Code) {
-    const info: Adv.Code = {
+    const info: AdvAst.Code = {
       type: 'code',
       lang: node.lang || '',
       meta: node.meta || '',
@@ -101,7 +101,7 @@ export class Serialize {
     if (node.children.length === 1 && node.children[0].type === 'text')
       return this.text(node.children[0])
 
-    const info: Adv.Paragraph = {
+    const info: AdvAst.Paragraph = {
       type: 'paragraph',
       children: node.children.map((child) => {
         const item: any = {

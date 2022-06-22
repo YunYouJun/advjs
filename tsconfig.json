@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "module": "ESNext",
-    "target": "ESNext",
+    "target": "es2016",
     "lib": ["DOM", "ESNext"],
     "strict": true,
     "esModuleInterop": true,
@@ -14,39 +14,43 @@
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
     "types": [
-      "node",
       // "@babylonjs/core",
       // "@babylonjs/loaders",
       // "@babylonjs/gui",
       // "@babylonjs/materials",
       // "babylon-vrm-loader",
       "vite/client",
+      "node",
       "vue/ref-macros",
       "vite-plugin-pages/client",
       "vite-plugin-vue-layouts/client"
     ],
     "paths": {
-      "~/*": ["packages/advjs/src/*"],
-      "@advjs/core": ["packages/core/src/index.ts"],
-      "@advjs/core/*": ["packages/core/src/*"],
-      "@advjs/editor/*": ["packages/editor/src/*"],
-      "@advjs/examples/*": ["packages/examples/*"],
-      "@advjs/parser": ["packages/parser/src/index.ts"],
-      "@advjs/parser/*": ["packages/parser/src/*"],
-      "@advjs/shared": ["packages/shared/src/index.ts"],
-      "@advjs/shared/*": ["packages/shared/src/*"],
+      "~/*": ["./packages/client/*"],
+      "advjs": ["./packages/advjs/node/index.ts"],
+      "@advjs/core": ["./packages/core/src/index.ts"],
+      "@advjs/core/babylon": ["./packages/core/src/babylon/index.ts"],
+      "@advjs/client/*": ["./packages/client/*"],
+      "@advjs/editor/*": ["./packages/editor/src/*"],
+      "@advjs/examples/*": ["./packages/examples/*"],
+      "@advjs/parser": ["./packages/parser/src/index.ts"],
+      "@advjs/parser/fs": ["./packages/parser/src/fs.ts"],
+      "@advjs/shared": ["./packages/shared/src/index.ts"],
+      "@advjs/shared/*": ["./packages/shared/src/*"],
       "@advjs/types": ["./packages/types/src/index.ts"],
       "@advjs/theme-default": ["./packages/theme-default/index.ts"],
       "@advjs/theme-default/*": ["./packages/theme-default/*"],
-      "advjs/*": ["packages/advjs/src/*"]
+      "@advjs/plugin-vite": ["./packages/plugin-vite/src/index.ts"],
+      "advjs/*": ["./packages/advjs/src/*"]
     }
   },
   "include": [
+    "./*.ts",
     "./docs/.vitepress/**/*.ts",
     "./docs/.vitepress/**/*.vue",
-    "packages/global.d.ts",
-    "packages/**/*.ts",
-    "packages/**/*.vue"
+    "./packages/global.d.ts",
+    "./packages/**/*.ts",
+    "./packages/**/*.vue"
   ],
   "exclude": ["**/dist/**", "node_modules"]
 }

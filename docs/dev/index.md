@@ -16,7 +16,7 @@
 ## Powered By
 
 <Technology title="Vite" link="https://vitejs.dev/"><template #icon><div i-logos-vitejs /></template></Technology>
-<Technology title="WindiCSS" link="https://windicss.org/"><template #icon><div i-file-icons-windi /></template></Technology>
+<Technology title="UnoCSS" link="https://github.com/unocss/unocss"><template #icon><div i-logos-unocss /></template></Technology>
 <Technology title="pnpm" link="https://daringfireball.net/projects/markdown/"><template #icon><div i-vscode-icons:file-type-light-pnpm /></template></Technology>
 <Technology title="Git" link="https://git-scm.com/"><template #icon><div i-logos-git-icon /></template></Technology>
 <Technology title="Node" link="https://nodejs.dev/"><template #icon><div i-logos-nodejs-icon /></template></Technology>

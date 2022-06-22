@@ -1,3 +1,3 @@
-export * from './parse'
-export { mdParse } from './markdown'
-export { Serialize } from './Serialize'
+export * from './core'
+export * from './markdown'
+export * from './Serialize'

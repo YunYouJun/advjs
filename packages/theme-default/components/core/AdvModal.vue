@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import { onMounted } from 'vue'
+import { onKeyStroke } from '@vueuse/core'
+
 const props = withDefaults(defineProps<{
   show?: boolean
   header?: string
@@ -22,7 +25,7 @@ onMounted(() => {
     <div v-if="show" class="modal-mask">
       <div class="modal-container">
         <AdvIconButton class="modal-close-button" @click="emit('close')">
-          <i-ri-close-line />
+          <div i-ri-close-line />
         </AdvIconButton>
         <slot name="header">
           <template v-if="header">
@@ -46,7 +49,7 @@ onMounted(() => {
 
 <style>
 .modal-mask {
-  color: var(--adv-text-color);
+  color: var(--adv-c-text);
   position: fixed;
   z-index: 1000;
   top: 0;

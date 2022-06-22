@@ -5,10 +5,29 @@
 - Docs: [advjs.org](https://advjs.org)
 - Demo(WIP): [demo.advjs.org](https://demo.advjs.org)
 
-面向未来与前端的 ADV 文字冒险游戏引擎。基于 Vue3 + Vite + TypeScript。Deving...
+FE(Front-End of Future?) AVG Engine
+
+面向未来与前端的 ADV 文字冒险游戏引擎。
+
+<pre align="center">
+🧪 Working in Progress
+</pre>
 
 > 像写小说一样制作 ADV，愿能在未来的冒险中，与你相遇。
 > [进度（咕咕咕）一览](https://www.yunyoujun.cn/posts/make-an-avg-engine/)
+
+## Usage
+
+```bash
+# todo
+pnpm create advjs your-adv
+```
+
+```bash
+cd your-adv
+adv your.adv.md
+# dev your game
+```
 
 ## docs | 文档
 
@@ -51,9 +70,9 @@
 - 状态：Todo
 - 目标：实现 VS Code 中对 `.adv.md` 文件的语法高亮与提示。
 
-### [unplugin-adv](./packages/unplugin-adv) Adv 通用插件
+### [@advjs/plugin-vite](./packages/plugin-vite) Vite Adv 插件
 
-- 功能：可用于 Vite（推荐）、Webpack、Rollup 等工具插件，预先对 `.adv`, `.adv.md` 结尾的文件进行转译以便预编译。
+- 功能：支持 Vite，可预先对 `.adv`, `.adv.md` 结尾的文件进行转译以便预编译。
 
 ### [@advjs/vrm](./packages/vrm) VRM 模型在线编辑器
 
@@ -69,3 +88,11 @@
 因为 ADV 和广告（advertisement）的缩写很像，而本站点开发的类名都在 `adv` 命名空间下，所以页面会被 AdBlock 之类的广告屏蔽插件给屏蔽掉。
 
 快关闭本页面的广告拦截以正常显示本页面吧！
+
+> 等待
+
+## Thanks
+
+- [vue](https://github.com/vuejs/core)
+- [vite](https://github.com/vitejs/vite)
+- [slidev](https://github.com/slidevjs/slidev)

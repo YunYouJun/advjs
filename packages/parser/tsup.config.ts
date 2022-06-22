@@ -1,8 +1,16 @@
-import type { Options } from 'tsup'
+import { defineConfig } from 'tsup'
 
-export default <Options>{
-  entry: ['src/index.ts'],
+export default defineConfig({
+  entry: [
+    'src/index.ts',
+    'src/core.ts',
+    'src/fs.ts',
+  ],
   clean: true,
-  format: ['esm'],
+  // not use for dynamic 'import' in cjs
+  // splitting: true,
+  format: ['cjs', 'esm'],
   dts: true,
-}
+  target: 'node16',
+  shims: false,
+})

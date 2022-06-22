@@ -1,5 +1,7 @@
 <script lang="ts" setup>
-import { isClient } from '@advjs/shared/utils'
+import { isClient } from '@vueuse/core'
+import { onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 const show = ref(false)
@@ -17,8 +19,8 @@ const refresh = () => {
 </script>
 
 <template>
-  <transition enter-active-class="animate-fadeIn" leave-active-class="animate-fadeOut">
-    <div v-if="show" class="absolute h-screen w-screen flex flex-col justify-center items-center animate-animated">
+  <transition enter-active-class="animate__fadeIn" leave-active-class="animate__fadeOut">
+    <div v-if="show" class="absolute h-screen w-screen flex flex-col justify-center items-center animate__animated">
       <div class="text-gray-900 dark:text-gray-200 max-w-1000px transition shadow hover:shadow-md" p="4" m="4">
         <h2 text="xl left" font="black">
           如果你可以看到这行字，就说明游戏<span text="red-500">没有加载成功</span>！
