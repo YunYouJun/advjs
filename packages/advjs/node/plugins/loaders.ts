@@ -18,7 +18,7 @@ export function createAdvLoader(
   // handle .adv.md in @advjs/plugin-vite
   function generateDrama() {
     const scripts = [
-      `import _Drama from "${entry}"`,
+      `import _Drama from "${toAtFS(entry)}"`,
       'export default _Drama',
     ]
     return scripts.join('\n')
