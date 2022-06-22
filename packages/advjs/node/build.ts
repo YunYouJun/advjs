@@ -38,6 +38,14 @@ export async function build(
         ],
         build: {
           chunkSizeWarningLimit: 2000,
+          rollupOptions: {
+            output: {
+              manualChunks: {
+                babylonCode: ['@babylonjs/core'],
+                babylonLoader: ['@babylonjs/loaders', 'babylon-vrm-loader'],
+              },
+            },
+          },
         },
       }),
       'build',
