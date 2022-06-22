@@ -152,7 +152,10 @@ const toggleBone = (bone: HumanBonesType) => {
             </summary>
 
             <div v-for="axis in (['x', 'y', 'z'] as const)" :key="axis" class="flex justify-center items-center">
-              <AdvSlider v-model="bonesRotation[bone][axis].value" :label="`${axis}:`" unit="°" @input="(degree) => { updateBoneRotation(bone, axis, degree) }" />
+              <AdvSlider
+                v-model="bonesRotation[bone][axis].value" :label="`${axis}:`" unit="°"
+                @input="(degree: any) => { updateBoneRotation(bone, axis, degree) }"
+              />
             </div>
           </details>
         </div>
