@@ -16,7 +16,7 @@ export const useEditorStore = defineStore('editor', () => {
     outputType: OutputType
     inputText: string
   }>(ns('editor:options'), {
-    mdUrl: 'https://raw.githubusercontent.com/YunYouJun/advjs/main/packages/advjs/public/md/test.adv.md',
+    mdUrl: 'https://raw.githubusercontent.com/YunYouJun/advjs/main/packages/advjs/examples/test.adv.md',
     /**
      * 输出类型
      */
