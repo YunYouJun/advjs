@@ -22,16 +22,16 @@ export namespace AdvAst {
     url: string
   }
 
-  export interface Jump extends Node {
-    type: 'jump'
+  export interface Go extends Node {
+    type: 'go'
     target: string
   }
 
-  export interface Choose extends Node {
+  export interface Choice extends Node {
     type: 'choice'
     choices: {
       text: string
-      jump?: string
+      go?: string
     }[]
   }
 
@@ -97,7 +97,7 @@ export namespace AdvAst {
 
   export interface Code extends MdAst.Code {
     type: 'code'
-    value: any
+    value: CodeOperation[] | any
   }
 
   export interface Camera extends Node {
@@ -121,8 +121,8 @@ export namespace AdvAst {
     exit: string[]
   }
 
-  export type AdvCodeOperate=Camera | Code | Tachie | Background | Jump | Choose
-  export type Item = Unknown | Paragraph | Narration | Character | Words | Text | SceneInfo | Dialog | AdvCodeOperate
+  export type CodeOperation = Camera | Tachie | Background | Go | Choice
+  export type Item = Unknown | Paragraph | Narration | Character | Words | Text | SceneInfo | Dialog | Code
 
   export type Child = Item | MdAst.Content
 
@@ -130,7 +130,6 @@ export namespace AdvAst {
     type: 'adv-root'
     children: Child[]
   }
-
 }
 
 export interface AdvInfo { scene: Record<string, number> }

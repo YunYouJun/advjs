@@ -12,7 +12,7 @@ export const useNav = () => {
    * run predefined
    * @param node Adv Node
    */
-  async function handleAdvNode(node: AdvAst.AdvCodeOperate) {
+  async function handleAdvNode(node: AdvAst.CodeOperation) {
     switch (node.type) {
       case 'tachie': {
         const tachies = store.cur.tachies
@@ -57,8 +57,8 @@ export const useNav = () => {
           ],
         }
         break
-      case 'jump':
-        jump(node.target)
+      case 'go':
+        go(node.target)
         break
       case 'background':
         store.cur.background = node.url
@@ -85,7 +85,7 @@ export const useNav = () => {
       store.cur.tachies.set(character.name, tachie)
   }
 
-  function jump(target: string) {
+  function go(target: string) {
     const order=store.gameInfo.scene[target]
     if (isNaN(order))
       consola.error(`Can not find screen ${target}`)
@@ -170,6 +170,6 @@ export const useNav = () => {
 
   return {
     next,
-    jump,
+    go,
   }
 }

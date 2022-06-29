@@ -10,7 +10,7 @@ export interface AdvContext {
   }
   nav: {
     next: () => void
-    jump: (position: string) => void
+    go: (position: string) => void
   }
   store: ReturnType<typeof useAdvStore>
   config: typeof configs

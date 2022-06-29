@@ -39,8 +39,8 @@ $adv.store.gameInfo = props.info
 const chooseOption = (index: number) => {
   const chosen = cur.value.choose.options!.choices[index]!
   cur.value.choose.options = undefined
-  if (chosen.jump)
-    $adv.nav.jump(chosen.jump)
+  if (chosen.go)
+    $adv.nav.go(chosen.go)
   else
     $adv.nav.next()
 }

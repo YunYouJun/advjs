@@ -84,7 +84,7 @@ export interface AdvConfig {
 
 export interface ChooseData {
   chosen: Record<string, boolean>
-  options?: AdvAst.Choose
+  options?: AdvAst.Choice
 }
 
 export interface Tachie {
