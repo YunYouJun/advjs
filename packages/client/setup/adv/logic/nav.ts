@@ -63,7 +63,7 @@ export const useNav = () => {
       case 'background':
         store.cur.background = node.url
         break
-      case 'choose':
+      case 'choice':
         store.cur.choose.options=node
         break
       default:

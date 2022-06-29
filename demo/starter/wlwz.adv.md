@@ -167,8 +167,8 @@ url: https://s2.loli.net/2022/01/28/KV8lYS2PhkcQjCE.jpg
 ```
 ```json
 {
-  "type": "choose",
-  "choose": [
+  "type": "choice",
+  "choices": [
     {
       "text": "正常走"
     },

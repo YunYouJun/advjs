@@ -37,7 +37,7 @@ const app = useAppStore()
 $adv.store.gameInfo = props.info
 
 const chooseOption = (index: number) => {
-  const chosen = cur.value.choose.options!.choose[index]!
+  const chosen = cur.value.choose.options!.choices[index]!
   cur.value.choose.options = undefined
   if (chosen.jump)
     $adv.nav.jump(chosen.jump)

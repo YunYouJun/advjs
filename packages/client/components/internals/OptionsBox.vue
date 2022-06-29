@@ -17,7 +17,7 @@ const emits = defineEmits<{
     h="full"
     class="justify-center items-center"
   >
-    <div v-for="(item, i) in data.choose" :key="i" @click="emits('choose', i)">
+    <div v-for="(item, i) in data.choices" :key="i" @click="emits('choose', i)">
       {{ item.text }}
     </div>
   </div>
