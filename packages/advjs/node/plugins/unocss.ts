@@ -30,6 +30,10 @@ export const createSafelist = async (config: AdvConfig) => {
     'text-xl',
     'text-2xl',
     'text-3xl',
+
+    'grid-cols-1',
+    'grid-cols-2',
+    'grid-cols-3',
   ].concat(safeIcons)
 
   return safelist

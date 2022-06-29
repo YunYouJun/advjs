@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue'
 import { useElementSize } from '@vueuse/core'
-import { advAspect, advHeight, advWidth, config } from '~/env'
+import { advAspect, advHeight, advWidth, configs } from '~/env'
 
 const props = defineProps<{
   width?: number
@@ -43,7 +43,7 @@ const style = computed(() => ({
 }))
 
 const className = computed(() => ({
-  'select-none': !config.selectable,
+  'select-none': !configs.selectable,
 }))
 </script>
 

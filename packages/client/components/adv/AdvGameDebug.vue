@@ -5,6 +5,10 @@ import type { CameraInfo } from '@advjs/shared/debug/camera'
 import { captureCameraInfo } from '@advjs/shared/debug/camera'
 import { useBabylonStore } from '~/stores/babylon'
 import { useAppStore } from '~/stores/app'
+import { useAdvCtx } from '~/setup'
+
+const $adv = useAdvCtx()
+
 const app = useAppStore()
 
 const el = ref<HTMLElement | null>(null)
@@ -28,7 +32,11 @@ watch(open, (value) => {
     el.value!.scrollTop = 0
 })
 
+const type = ref('')
+
 const setCameraInfo = (camera: BABYLON.ArcRotateCamera) => {
+  type.value = 'camera'
+
   if (!camera)
     return
   const info = captureCameraInfo(camera)
@@ -38,10 +46,23 @@ const setCameraInfo = (camera: BABYLON.ArcRotateCamera) => {
 
 const sceneCamera = computed(() => bStore.instance?.scene?.activeCamera as BABYLON.ArcRotateCamera)
 const vrmCamera = computed(() => bStore.instance?.vrmScene?.activeCamera as BABYLON.ArcRotateCamera)
+
+const debugInfo = computed(() => {
+  let data = {}
+
+  if (type.value === 'store')
+    data = $adv.config
+  else if (type.value === 'camera')
+    data = cameraInfo
+  return JSON.stringify(data, null, 2)
+})
 </script>
 
 <template>
   <AdvDebug>
+    <AdvIconButton @click="type = 'store'">
+      <div i-ri-database-line />
+    </AdvIconButton>
     <AdvIconButton @click="setCameraInfo(sceneCamera)">
       <div i-ri-camera-line />
     </AdvIconButton>
@@ -51,7 +72,7 @@ const vrmCamera = computed(() => bStore.instance?.vrmScene?.activeCamera as BABY
     <AdvIconButton title="切换背景图" @click="app.toggleBg()">
       <div i-ri-image-line />
     </AdvIconButton>
-    <pre class="block text-left">{{ JSON.stringify(cameraInfo, null, 2) }}</pre>
+    <pre class="block text-left">{{ debugInfo }}</pre>
   </AdvDebug>
 </template>
 

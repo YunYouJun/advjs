@@ -1,4 +1,4 @@
-import type { AdvAst, Tachie } from '@advjs/types'
+import type { AdvAst } from '@advjs/types'
 import type { StorageMeta } from 'unstorage'
 import { computed, ref, shallowRef, watch } from 'vue'
 
@@ -10,8 +10,8 @@ export interface CurStateType {
    */
   order: number
   dialog: AdvAst.Dialog
-  // key为角色名
-  tachies: Map<string, Tachie>
+  // enter character name
+  tachies: Map<string, { status: string }>
   background: string
 }
 

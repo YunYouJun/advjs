@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Tachie } from '@advjs/types'
-import { watch } from 'vue'
+import { computed, watch } from 'vue'
 import { useAppStore } from '~/stores/app'
 import { useAdvCtx } from '~/setup'
 
@@ -24,15 +24,22 @@ watch(() => $adv.store.curNode, () => {
     }
   }
 })
+
+const classes = computed(() => {
+  const arr = []
+  if (props.tachies.size)
+    arr.push(`grid-cols-${props.tachies.size}`)
+  return arr
+})
 </script>
 
 <template>
   <transition enter-active-class="animate__fadeInLeft" leave-active-class="animate__fadeOutLeft">
-    <div v-if="app.showTachie" grid="~ cols-2" class="tachie-box absolute pointer-events-none animate__animated" w="full" h="full">
+    <div v-if="app.showTachie" grid="~" :class="classes" class="tachie-box absolute pointer-events-none animate__animated" w="full" h="full">
       <TachieCharacter
-        v-for="value in props.tachies" :key="value[0]"
-        :character="value[0]"
-        :tachie="value[1]"
+        v-for="tachie in props.tachies" :key="tachie[0]"
+        :character="tachie[0]"
+        :tachie="tachie[1]"
       />
     </div>
   </transition>

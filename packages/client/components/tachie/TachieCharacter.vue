@@ -3,7 +3,10 @@ import type { Tachie } from '@advjs/types'
 import { computed } from 'vue'
 import { useAdvCtx } from '~/setup/adv'
 
-const props = defineProps<{ tachie: Tachie;character: string }>()
+const props = defineProps<{
+  tachie: Tachie
+  character: string
+}>()
 
 const $adv = useAdvCtx()
 
@@ -39,7 +42,7 @@ const characterClass = computed(() => {
 
 <style lang="scss">
 .tachie-character {
-  max-width: 40%;
+  max-width: 40vw;
 }
 
 .inactive-character {

@@ -1,6 +1,8 @@
 import type { AdvFeatureFlags } from './types'
 
 export interface AdvConfig {
+  remote?: boolean
+
   /**
    * @default 'ADV.JS'
    */

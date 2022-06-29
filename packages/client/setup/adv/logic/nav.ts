@@ -3,7 +3,7 @@ import consola from 'consola'
 import { getCharacter } from '@advjs/core'
 import type { AdvAst } from '@advjs/types'
 import { useAdvStore } from '../store'
-import { advConfig } from '~/env'
+import { initConfig } from '~/env'
 
 /**
  * handle adv ast
@@ -64,6 +64,7 @@ async function handleCode(node: AdvAst.Code) {
    */
 async function handleCodeAdvNode(node: AdvAst.Item) {
   const store = useAdvStore()
+  const config = initConfig()
 
   switch (node.type) {
     case 'tachie': {
@@ -71,17 +72,22 @@ async function handleCodeAdvNode(node: AdvAst.Item) {
       if (node.enter) {
         node.enter.forEach((item) => {
           const character = getCharacter(
-            advConfig.characters,
-            item.character,
+            config.value.characters,
+            item.name,
           )
-          if (!character)
-            return 0
-          const tachie = character.tachies?.[item.status || '默认']
-          if (!tachie) {
-            consola.error(`Can not find ${item.character}'s tachie: ${item.status}`)
-            return 0
+          if (!character) {
+            consola.warn(`Can not find ${item.name}`)
+            return
           }
-          tachies.set(character.name, tachie)
+
+          const status = item.status || 'default'
+          const tachie = character.tachies?.[status]
+          if (!tachie) {
+            consola.error(`Can not find ${item.name}'s tachie: ${status}`)
+            return
+          }
+
+          tachies.set(character.name, { status })
         })
       }
       if (node.exit) {

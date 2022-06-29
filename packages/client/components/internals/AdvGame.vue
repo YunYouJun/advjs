@@ -1,8 +1,9 @@
 <script lang="ts" setup>
-import type { AdvAst, AdvConfig } from '@advjs/types'
+import type { AdvAst, AdvConfig, Tachie } from '@advjs/types'
 
 import { useBeforeUnload } from '@advjs/client/composables'
-import { computed, onBeforeMount, ref } from 'vue'
+import { computed, onBeforeMount, onMounted, ref, watch } from 'vue'
+import { getCharacter } from '@advjs/core'
 import { useAppStore } from '~/stores/app'
 
 import { useAdvCtx } from '~/setup/adv'
@@ -30,13 +31,26 @@ if (!__DEV__)
 const app = useAppStore()
 
 useAdvKeys()
+
+// tachies map by cur characters
+const tachies = computed(() => {
+  const tachiesMap = new Map<string, Tachie>()
+
+  $adv.store.cur.tachies.forEach((tachie, key) => {
+    const character = getCharacter($adv.config.characters, key)
+    if (character)
+      tachiesMap.set(key, character.tachies[tachie.status || 'default'])
+  })
+
+  return tachiesMap
+})
 </script>
 
 <template>
   <AdvContainer class="w-full h-full" text="white">
     <div class="adv-game w-full h-full bg-black absolute">
       <AdvScene />
-      <TachieBox :tachies="$adv.store.cur.tachies" />
+      <TachieBox :tachies="tachies" />
 
       <AdvBlack v-if="curNode && curNode.type === 'narration'" class="z-9" :content="curNode" />
 

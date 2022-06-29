@@ -8,7 +8,7 @@ import { getCharacter } from '@advjs/core'
 import type { AdvContext } from './types'
 import { useAdvStore } from './store'
 import { handleAdvNode, useNav } from './logic/nav'
-import { configs as config } from '~/env'
+import { config } from '~/env'
 
 export const injectionAdvContext: InjectionKey<AdvContext> = Symbol('advjs-context')
 
@@ -39,11 +39,25 @@ export const useCore = (store: ReturnType<typeof useAdvStore>) => {
       )
       if (!character)
         return
-      const tachie = character.tachies?.[curNode.character.status]
-      if (!tachie)
+
+      // tachie of this character is displayed
+      if (!store.cur.tachies.has(character.name))
         return
-      if (store.cur.tachies.has(character.name))
-        store.cur.tachies.set(character.name, tachie)
+
+      // const status = store.cur.tachies[isDisplayed]. || 'default'
+
+      store.cur.tachies.set(character.name, { status })
+
+      // store
+
+      // if ()
+      // if (!character || curNode.character.status === store.cur.tachies)
+      //   return
+      // const tachie = character.tachies?.[curNode.character.status]
+      // if (!tachie)
+      //   return
+      // if (store.cur.tachies.has(character.name))
+      //   store.cur.tachies.set(character.name, tachie)
     },
   }
 }

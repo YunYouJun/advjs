@@ -1,18 +1,16 @@
 import type { AdvConfig } from '@advjs/types'
+import type { ComputedRef } from 'vue'
 import type { useCore } from './context'
 import type { useAdvStore } from './store'
-// @ts-expect-error missing types
-import _configs from '/@advjs/configs'
 
-export const configs = _configs as AdvConfig
 export interface AdvContext {
   core: ReturnType<typeof useCore>
   nav: {
     next: () => void
   }
   store: ReturnType<typeof useAdvStore>
-  config: typeof configs
-  themeConfig: typeof configs['themeConfig']
+  config: AdvConfig['themeConfig']
+  themeConfig: ComputedRef<AdvConfig['themeConfig']>
 }
 
 export interface AdvOptions {
