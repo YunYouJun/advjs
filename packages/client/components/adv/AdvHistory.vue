@@ -22,9 +22,9 @@ watch(() => containerRef.value, (val) => {
 
 <template>
   <AdvModal :show="app.showHistory" header="历史会话" @close="app.toggleHistory">
-    <div ref="containerRef" h="full" m="x-16" p="4" class="adv-history-panel overflow-y-auto">
+    <div v-if="$adv.store.cur.order" ref="containerRef" h="full" m="x-16" p="4" class="adv-history-panel overflow-y-auto">
       <template v-for="i in $adv.store.cur.order" :key="i">
-        <div v-if="ast.children.length && ast.children[i].type === 'dialog'" class="flex" gap="8">
+        <div v-if="ast.children.length && ast.children[i] && ast.children[i].type === 'dialog'" class="flex" gap="8">
           <p class="flex justify-end" w="1/4" text="right">
             <span class="truncate" text="lg" m="1">
               {{ (ast.children[i] as AdvAst.Dialog).character.name }}

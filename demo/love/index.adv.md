@@ -11,6 +11,27 @@ characters:
           transform: scale(1.2)
 ---
 
+```json
+{
+  "type": "tachie",
+  "enter": [
+    {
+      "character": "小云"
+    }
+  ]
+}
+```
+
 小云：早
 
 我：早
+
+小云：早
+
+小云：早早早早2
+
+小云：早早早早3
+
+小云：早早早早4
+
+小云：早早早早5

@@ -1,13 +1,12 @@
-import type { AdvAst, AdvConfig } from '@advjs/types'
+import type { AdvConfig } from '@advjs/types'
+import type { useCore } from './context'
 import type { useAdvStore } from './store'
 // @ts-expect-error missing types
 import _configs from '/@advjs/configs'
 
 export const configs = _configs as AdvConfig
 export interface AdvContext {
-  core: {
-    loadAst: (ast: AdvAst.Root) => void
-  }
+  core: ReturnType<typeof useCore>
   nav: {
     next: () => void
   }

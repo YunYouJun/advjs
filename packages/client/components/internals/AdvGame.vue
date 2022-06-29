@@ -21,9 +21,7 @@ onBeforeMount(() => {
   $adv.core.loadAst(props.ast)
 })
 
-const curNode = computed(() => {
-  return $adv.store.curNode
-})
+const curNode = computed(() => $adv.store.curNode)
 
 // 添加提示，防止意外退出
 if (!__DEV__)
@@ -49,7 +47,7 @@ useAdvKeys()
       <BaseLayer v-if="!app.showUi" />
 
       <transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
-        <DialogBox v-show="app.showUi" class="animate__animated" />
+        <AdvDialogBox v-show="app.showUi" :node="curNode" class="animate__animated" />
       </transition>
       <transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
         <DialogControls v-show="app.showUi" class="animate__animated absolute left-0 right-0 bottom-0" />

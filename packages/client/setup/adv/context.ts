@@ -4,17 +4,15 @@ import type { InjectionKey } from 'vue'
 
 import { parseAst } from '@advjs/parser'
 
+import { getCharacter } from '@advjs/core'
 import type { AdvContext } from './types'
 import { useAdvStore } from './store'
-import { useNav } from './logic/nav'
-import { configs } from '~/env'
+import { handleAdvNode, useNav } from './logic/nav'
+import { configs as config } from '~/env'
 
 export const injectionAdvContext: InjectionKey<AdvContext> = Symbol('advjs-context')
 
-export const useContext = () => {
-  const store = useAdvStore()
-  const nav = useNav()
-
+export const useCore = (store: ReturnType<typeof useAdvStore>) => {
   /**
    * 理解文本
    * @param text
@@ -24,18 +22,44 @@ export const useContext = () => {
   }
 
   return {
-    core: {
-      read,
+    read,
 
-      loadAst(ast: AdvAst.Root) {
-        store.ast = ast
-      },
+    loadAst(ast: AdvAst.Root) {
+      store.ast = ast
+
+      // handle ast first node
+      if (store.cur.order === 0 && ast.children[0])
+        handleAdvNode(ast.children[0])
     },
 
+    updateTachie(curNode: AdvAst.Dialog) {
+      const character = getCharacter(
+        config.characters,
+        curNode.character.name,
+      )
+      if (!character)
+        return
+      const tachie = character.tachies?.[curNode.character.status]
+      if (!tachie)
+        return
+      if (store.cur.tachies.has(character.name))
+        store.cur.tachies.set(character.name, tachie)
+    },
+  }
+}
+
+export const useContext = () => {
+  const store = useAdvStore()
+  const nav = useNav()
+
+  const core = useCore(store)
+
+  return {
+    core,
     nav,
     store,
-    config: configs,
-    themeConfig: computed(() => configs.themeConfig),
+    config,
+    themeConfig: computed(() => config.themeConfig),
   }
 }
 

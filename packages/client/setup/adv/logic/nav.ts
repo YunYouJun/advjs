@@ -5,94 +5,120 @@ import type { AdvAst } from '@advjs/types'
 import { useAdvStore } from '../store'
 import { advConfig } from '~/env'
 
-export const useNav = () => {
+/**
+ * handle adv ast
+ * @param node
+ * @returns
+ */
+export async function handleAdvNode(node: AdvAst.Child) {
   const store = useAdvStore()
 
-  /**
+  switch (node.type) {
+    case 'code': {
+      if (await handleCode(node))
+        return true
+      break
+    }
+    case 'dialog':
+      // watch dialog in AdvDialogBox
+      // watch dialog in TachieBox to update Tachie
+      break
+    case 'text':
+      store.cur.dialog = {
+        type: 'dialog',
+        character: {
+          type: 'character',
+          name: '',
+          status: '',
+        },
+        children: [node],
+      }
+      break
+    case 'narration':
+      break
+    default:
+      return true
+  }
+}
+
+/**
+ * handle code block
+ * @param node
+ */
+async function handleCode(node: AdvAst.Code) {
+  if (node.lang === 'ts') {
+    // await node.do()
+  }
+  else if (node.lang === 'advnode') {
+    // node.value is an array
+    for (const advNode of node.value) {
+      if (await handleCodeAdvNode(advNode))
+        return true
+    }
+  }
+}
+
+/**
    * run predefined
    * @param node Adv Node
    */
-  async function handleAdvNode(node: AdvAst.Item) {
-    switch (node.type) {
-      case 'tachie': {
-        const tachies = store.cur.tachies
-        if (node.enter) {
-          node.enter.forEach((item) => {
-            const character = getCharacter(
-              advConfig.characters,
-              item.character,
-            )
-            if (!character)
-              return 0
-            const tachie = character.tachies?.[item.status || '默认']
-            if (!tachie) {
-              consola.error(`Can not find ${item.character}'s tachie: ${item.status}`)
-              return 0
-            }
-            tachies.set(character.name, tachie)
-          })
-        }
-        if (node.exit) {
-          node.exit.forEach((item) => {
-            tachies.delete(item)
-          })
-        }
+async function handleCodeAdvNode(node: AdvAst.Item) {
+  const store = useAdvStore()
 
-        // toggle tachie & show next text
-        next()
-        break
+  switch (node.type) {
+    case 'tachie': {
+      const tachies = store.cur.tachies
+      if (node.enter) {
+        node.enter.forEach((item) => {
+          const character = getCharacter(
+            advConfig.characters,
+            item.character,
+          )
+          if (!character)
+            return 0
+          const tachie = character.tachies?.[item.status || '默认']
+          if (!tachie) {
+            consola.error(`Can not find ${item.character}'s tachie: ${item.status}`)
+            return 0
+          }
+          tachies.set(character.name, tachie)
+        })
       }
-      case 'camera':
-        store.cur.dialog = {
-          character: {
-            type: 'character',
-            name: '',
-            status: '',
+      if (node.exit) {
+        node.exit.forEach((item) => {
+          tachies.delete(item)
+        })
+      }
+
+      // toggle tachie & show next text
+      return true
+    }
+    case 'camera':
+      store.cur.dialog = {
+        type: 'dialog',
+        character: {
+          type: 'character',
+          name: '',
+          status: '',
+        },
+        children: [
+          {
+            type: 'text',
+            value: '（镜头动画）',
           },
-          children: [
-            {
-              type: 'text',
-              value: '（镜头动画）',
-            },
-          ],
-        }
-        break
-      case 'background':
-        store.cur.background = node.url
-        break
-      default:
-        break
-    }
+        ],
+      }
+      break
+    case 'background':
+      store.cur.background = node.url
+      break
+    default:
+      break
   }
+}
 
-  function updateTachie(curNode: AdvAst.Dialog) {
-    const character = getCharacter(
-      advConfig.characters,
-      curNode.character.name,
-    )
-    if (!character)
-      return
-    const tachie = character.tachies?.[curNode.character.status]
-    if (!tachie)
-      return
-    if (store.cur.tachies.has(character.name))
-      store.cur.tachies.set(character.name, tachie)
-  }
-
-  /**
-   * handle code block
-   * @param node
-   */
-  async function handleCode(node: AdvAst.Code) {
-    if (node.lang === 'ts') {
-    // await node.do()
-    }
-    else if (node.lang === 'advnode') {
-      // node.value is an array
-      for (const advNode of node.value)
-        await handleAdvNode(advNode)
-    }
-  }
+export const useNav = () => {
+  const store = useAdvStore()
 
   /**
    * 下一部分
@@ -120,33 +146,8 @@ export const useNav = () => {
     if (skippedTypes.includes(curNode.type || ''))
       return next()
 
-    switch (curNode.type) {
-      case 'code': {
-        await handleCode(curNode)
-        break
-      }
-      case 'dialog':
-        store.cur.dialog = curNode
-        if (curNode.character.status !== '') {
-        // 需要切换立绘
-          updateTachie(curNode)
-        }
-        break
-      case 'text':
-        store.cur.dialog = {
-          character: {
-            type: 'character',
-            name: '',
-            status: '',
-          },
-          children: [curNode],
-        }
-        break
-      case 'narration':
-        break
-      default:
-        return next()
-    }
+    if (await handleAdvNode(curNode))
+      next()
   }
 
   return {

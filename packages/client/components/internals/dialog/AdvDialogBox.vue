@@ -1,8 +1,13 @@
 <script setup lang="ts">
 import { speak } from '@advjs/shared/speech'
 import { computed, ref, watch } from 'vue'
+import type { AdvAst } from '@advjs/types'
 import { useAdvCtx } from '~/setup'
 import { useSettingsStore } from '~/stores/settings'
+
+const props = defineProps<{
+  node: AdvAst.Child
+}>()
 
 const $adv = useAdvCtx()
 
@@ -11,7 +16,6 @@ const advConfig = $adv.config
 
 const settings = useSettingsStore()
 
-const curNode = computed(() => advStore.curNode)
 const curDialog = computed(() => advStore.cur.dialog)
 
 // 局部 words order，与全局 order 相区别
@@ -53,10 +57,19 @@ const characterAvatar = computed(() => {
 
 // 当前对话框中的台词
 const curWords = computed(() => {
-  if (curNode.value?.type === 'text')
-    return curNode.value.value
+  if (props.node && props.node.type === 'text')
+    return props.node.value
 
   return curDialog.value.children[iOrder.value].value
+})
+
+// trigger transition
+const transitionFlag = ref(true)
+watch(() => curCharacter.value.name, () => {
+  transitionFlag.value = false
+  setTimeout(() => {
+    transitionFlag.value = true
+  }, 1)
 })
 </script>
 
@@ -70,7 +83,9 @@ const curWords = computed(() => {
         </div>
       </template>
       <template v-else>
-        <span class="dialog-name">{{ curCharacter.name }}</span>
+        <Transition name="fade">
+          <span v-if="transitionFlag" class="dialog-name">{{ curCharacter.name }}</span>
+        </Transition>
       </template>
     </div>
     <div class="dialog-content col-span-9 text-left pr-24" :class="`text-${settings.storage.text.curFontSize}`">
@@ -97,14 +112,15 @@ const curWords = computed(() => {
     black 100%
   );
   padding-top: 4rem;
-}
 
-.dialog-name {
-  color: gray;
-  font-size: 2rem;
-}
-.dialog-content {
-  color: white;
-  margin-top: 0.3rem;
+  .dialog-name {
+    color: gray;
+    font-size: 2rem;
+  }
+
+  .dialog-content {
+    color: white;
+    margin-top: 0.3rem;
+  }
 }
 </style>
