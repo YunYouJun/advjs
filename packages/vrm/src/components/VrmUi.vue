@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import * as BABYLON from '@babylonjs/core'
-import type { HumanBonesType, PoseEulerType } from '@advjs/core/babylon'
-import { HumanBones } from '@advjs/core/babylon'
+import type { HumanBonesType, PoseEulerType } from '@advjs/plugin-babylon'
+import { HumanBones } from '@advjs/plugin-babylon'
 import type { Ref } from 'vue'
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'

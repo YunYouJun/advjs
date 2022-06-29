@@ -29,7 +29,6 @@
       "~/*": ["./packages/client/*"],
       "advjs": ["./packages/advjs/node/index.ts"],
       "@advjs/core": ["./packages/core/src/index.ts"],
-      "@advjs/core/babylon": ["./packages/core/src/babylon/index.ts"],
       "@advjs/client/*": ["./packages/client/*"],
       "@advjs/editor/*": ["./packages/editor/src/*"],
       "@advjs/examples/*": ["./packages/examples/*"],
@@ -40,7 +39,7 @@
       "@advjs/types": ["./packages/types/src/index.ts"],
       "@advjs/theme-default": ["./packages/theme-default/index.ts"],
       "@advjs/theme-default/*": ["./packages/theme-default/*"],
-      "@advjs/plugin-vite": ["./packages/plugin-vite/src/index.ts"],
+      "@advjs/*": ["./packages/*/src/index.ts"],
       "advjs/*": ["./packages/advjs/src/*"]
     }
   },

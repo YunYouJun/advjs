@@ -129,7 +129,7 @@ export async function resolveOptions(
   const roots = uniq([clientRoot, themeRoot, userRoot])
 
   debug({
-    config: data.config,
+    data,
     mode,
     entry,
     theme,

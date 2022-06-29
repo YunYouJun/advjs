@@ -1,3 +1,5 @@
+import type { AdvFeatureFlags } from './types'
+
 export interface AdvConfig {
   /**
    * @default 'ADV.JS'
@@ -16,6 +18,8 @@ export interface AdvConfig {
    * @default {}
    */
   themeConfig: any
+
+  features: AdvFeatureFlags
 
   // client
   /**

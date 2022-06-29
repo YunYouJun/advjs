@@ -23,10 +23,11 @@ const EXCLUDE = [
 ]
 
 const babylonDeps = [
+  'babylon-vrm-loader',
+
   '@babylonjs/core',
   '@babylonjs/loaders',
-  // '@babylonjs/materials',
-  'babylon-vrm-loader',
+  '@babylonjs/materials',
   '@babylonjs/materials/grid',
   '@babylonjs/loaders/glTF',
 ]
@@ -48,7 +49,6 @@ export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
         define: getDefine(options),
         resolve: {
           alias: {
-            '@advjs/core/babylon': `${toAtFS(resolve(__dirname, '../../core/src/babylon'))}/index.ts`,
             '@advjs/core': `${toAtFS(resolve(__dirname, '../../core/src'))}/index.ts`,
             // '@advjs/parser': `${toAtFS(resolve(__dirname, '../../parser/src'))}/core.ts`,
             '@advjs/shared/': `${toAtFS(resolve(__dirname, '../../shared/src'))}/`,

@@ -1,7 +1,7 @@
 import { join } from 'path'
 import type { Plugin } from 'vite'
 import { existsSync, readFileSync } from 'fs-extra'
-import type { AdvMarkdown } from '@advjs/types'
+import type { AdvConfig, AdvMarkdown } from '@advjs/types'
 import type { ResolvedAdvOptions } from '../options'
 import { toAtFS } from '../utils'
 
@@ -11,7 +11,7 @@ export function createAdvLoader(
   const advPrefix = '/@advjs/drama/'
 
   function generateConfigs() {
-    const config = { ...data.config, remote }
+    const config: AdvConfig = { ...data.config, remote, features: data.features }
     return `export default ${JSON.stringify(config)}`
   }
 

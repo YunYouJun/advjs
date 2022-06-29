@@ -1,7 +1,7 @@
 {
-  "name": "@advjs/plugin-vite",
+  "name": "@advjs/plugin-babylon",
   "version": "0.1.0",
-  "description": "Vite Plugin for ADV.JS",
+  "description": "Babylon Plugin for ADV.JS to support 3D",
   "author": {
     "name": "YunYouJun",
     "email": "me@yunyoujun.cn",
@@ -18,8 +18,8 @@
   },
   "keywords": [
     "advjs",
-    "vite",
-    "transform"
+    "babylon",
+    "vrm"
   ],
   "exports": {
     ".": {
@@ -43,14 +43,10 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@advjs/parser": "workspace:^",
-    "@rollup/pluginutils": "^4.2.1",
-    "gray-matter": "^4.0.3"
-  },
-  "devDependencies": {
-    "fast-glob": "^3.2.11",
-    "nodemon": "^2.0.18",
-    "rimraf": "^3.0.2",
-    "vite": "^2.9.13"
+    "@babylonjs/core": "^4.2.2",
+    "@babylonjs/gui": "^4.2.2",
+    "@babylonjs/loaders": "^4.2.2",
+    "@babylonjs/materials": "^4.2.2",
+    "babylon-vrm-loader": "^1.6.0"
   }
 }
