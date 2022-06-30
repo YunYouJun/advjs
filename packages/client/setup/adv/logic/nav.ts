@@ -13,7 +13,7 @@ export const useNav = () => {
    * @param node
    * @returns
    */
-  async function handleAdvNode(node: AdvAst.Child) {
+  async function handleAdvNode(node: AdvAst.Item) {
     const store = useAdvStore()
 
     switch (node.type) {
@@ -53,7 +53,10 @@ export const useNav = () => {
     // await node.do()
     }
     else if (node.lang === 'advnode') {
-    // node.value is an array
+      // node.value is an array
+      if (!node.value)
+        return
+
       for (const advNode of node.value) {
         if (await handleCodeOperation(advNode))
           return true

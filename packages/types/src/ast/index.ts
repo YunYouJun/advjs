@@ -103,9 +103,9 @@ export namespace AdvAst {
     children: string[]
   }
 
-  export interface Code extends MdAst.Code {
+  export interface Code extends Omit<MdAst.Code, 'value'> {
     type: 'code'
-    value: CodeOperation[] | any
+    value: CodeOperation[] | null
   }
 
   export interface Camera extends Node {
@@ -132,7 +132,8 @@ export namespace AdvAst {
   export type CodeOperation = Camera | Tachie | Background | Go
   export type Item = Unknown | Paragraph | Narration | Character | Words | Text | SceneInfo | Dialog | Choice | Code
 
-  export type Child = Item | MdAst.Content
+  export type Child = Item
+  export type ChildWithMd = Item | MdAst.Content
 
   export interface Root {
     type: 'adv-root'

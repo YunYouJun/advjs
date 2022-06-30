@@ -73,10 +73,11 @@ export const useAdvStore = defineStore('adv', () => {
     background: '',
   })
 
-  const curNode = computed(() => {
-    if (ast.value && ast.value.children.length > 0)
+  const curNode = computed((): AdvAst.Item | undefined => {
+    if (ast.value && ast.value.children.length > 0 && curState.value.order < ast.value.children.length)
       return ast.value.children[curState.value.order]
-    else return null
+
+    return undefined
   })
 
   // watch order, update dialog
