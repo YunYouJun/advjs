@@ -41,10 +41,13 @@ export const useAdvStore = defineStore('adv', () => {
    */
   const ast = shallowRef<AdvAst.Root>({
     type: 'adv-root',
-    children: [{
-      type: 'text',
-      value: 'test',
-    }],
+    scene: {},
+    children: [
+      {
+        type: 'text',
+        value: 'test',
+      },
+    ],
   })
 
   const curState = ref<CurStateType>({
@@ -59,10 +62,12 @@ export const useAdvStore = defineStore('adv', () => {
         name: '',
         status: '',
       },
-      children: [{
-        type: 'text',
-        value: '',
-      }],
+      children: [
+        {
+          type: 'text',
+          value: '',
+        },
+      ],
     },
     tachies: new Map(),
     background: '',
@@ -71,8 +76,7 @@ export const useAdvStore = defineStore('adv', () => {
   const curNode = computed(() => {
     if (ast.value && ast.value.children.length > 0)
       return ast.value.children[curState.value.order]
-    else
-      return null
+    else return null
   })
 
   // watch order, update dialog

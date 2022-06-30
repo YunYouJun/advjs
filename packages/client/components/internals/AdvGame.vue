@@ -63,6 +63,11 @@ const tachies = computed(() => {
       <transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
         <AdvDialogBox v-show="app.showUi" :node="curNode" class="animate__animated" />
       </transition>
+
+      <transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
+        <AdvChoice v-show="curNode?.type === 'choice'" :node="curNode" />
+      </transition>
+
       <transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
         <DialogControls v-show="app.showUi" class="animate__animated absolute left-0 right-0 bottom-0" />
       </transition>

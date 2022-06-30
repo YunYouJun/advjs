@@ -24,6 +24,10 @@ const defaultConfig: AdvConfig = {
     enable: false,
   },
   characters: [],
+  bgm: {
+    autoplay: false,
+    collection: [],
+  },
 }
 
 export function resolveConfig(frontmatter: any) {

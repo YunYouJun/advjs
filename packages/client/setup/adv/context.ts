@@ -7,12 +7,14 @@ import { parseAst } from '@advjs/parser'
 import { getCharacter } from '@advjs/core'
 import type { AdvContext } from './types'
 import { useAdvStore } from './store'
-import { handleAdvNode, useNav } from './logic/nav'
+import { useNav } from './logic/nav'
 import { config } from '~/env'
 
 export const injectionAdvContext: InjectionKey<AdvContext> = Symbol('advjs-context')
 
-export const useCore = (store: ReturnType<typeof useAdvStore>) => {
+export const useCore = (ctx: Pick<AdvContext, 'store' | 'nav'>) => {
+  const { store, nav } = ctx
+
   /**
    * 理解文本
    * @param text
@@ -29,7 +31,7 @@ export const useCore = (store: ReturnType<typeof useAdvStore>) => {
 
       // handle ast first node
       if (store.cur.order === 0 && ast.children[0])
-        handleAdvNode(ast.children[0])
+        nav.handleAdvNode(ast.children[0])
     },
 
     updateTachie(curNode: AdvAst.Dialog) {
@@ -41,7 +43,7 @@ export const useCore = (store: ReturnType<typeof useAdvStore>) => {
         return
 
       // tachie of this character is displayed
-      if (!store.cur.tachies.has(character.name))
+      if (!ctx.store.cur.tachies.has(character.name))
         return
 
       // const status = store.cur.tachies[isDisplayed]. || 'default'
@@ -66,7 +68,7 @@ export const useContext = () => {
   const store = useAdvStore()
   const nav = useNav()
 
-  const core = useCore(store)
+  const core = useCore({ store, nav })
 
   return {
     core,

@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@iconify-json/file-icons": "^1.1.2",
-    "@iconify-json/logos": "^1.1.6",
+    "@iconify-json/logos": "^1.1.7",
     "@iconify-json/vscode-icons": "^1.1.7",
     "unplugin-vue-components": "^0.20.1",
     "vite-plugin-pwa": "^0.12.0",

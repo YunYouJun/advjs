@@ -22,9 +22,30 @@ export namespace AdvAst {
     url: string
   }
 
+  export interface Go extends Node {
+    type: 'go'
+    target: string
+  }
+
+  export interface Choice extends Node {
+    type: 'choice'
+    /**
+     * checked item
+     */
+    default?: string
+    choices: {
+      text: string
+      /**
+       * onClick
+       * @default $adv.nav.next()
+       */
+      do?: string
+    }[]
+  }
+
   /**
- * 人物信息
- */
+   * 人物信息
+   */
   export interface Character extends Node {
     type: 'character'
     name: string
@@ -32,16 +53,16 @@ export namespace AdvAst {
   }
 
   /**
- * 人物对话（单次发言话语）
- */
+   * 人物对话（单次发言话语）
+   */
   export interface Words extends Node {
     type: 'words'
     text: string
   }
 
   /**
- * 文本可能被解析为会话
- */
+   * 文本可能被解析为会话
+   */
   export interface Dialog extends Node {
     type: 'dialog'
     character: Character
@@ -65,18 +86,18 @@ export namespace AdvAst {
    */
     place: string
     /**
-   * 时间
-   */
+     * 时间
+     */
     time: string
     /**
-   * 内/外景
-   */
+     * 内/外景
+     */
     inOrOut: string
   }
 
   /**
- * 旁白
- */
+   * 旁白
+   */
   export interface Narration extends Node {
     type: 'narration'
     children: string[]
@@ -84,7 +105,7 @@ export namespace AdvAst {
 
   export interface Code extends MdAst.Code {
     type: 'code'
-    value: any
+    value: CodeOperation[] | any
   }
 
   export interface Camera extends Node {
@@ -108,14 +129,14 @@ export namespace AdvAst {
     exit: string[]
   }
 
-  export type Item = Unknown | Paragraph | Narration | Character | Words | Text | SceneInfo | Dialog | Camera | Code | Tachie | Background
+  export type CodeOperation = Camera | Tachie | Background | Go
+  export type Item = Unknown | Paragraph | Narration | Character | Words | Text | SceneInfo | Dialog | Choice | Code
 
   export type Child = Item | MdAst.Content
 
   export interface Root {
     type: 'adv-root'
     children: Child[]
+    scene: Record<string, number>
   }
-
 }
-
