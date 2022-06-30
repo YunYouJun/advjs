@@ -10,8 +10,8 @@ export namespace AdvAst {
   }
 
   /**
- * 普通文本
- */
+   * 普通文本
+   */
   export interface Text {
     type: 'text'
     value: string
@@ -45,16 +45,16 @@ export namespace AdvAst {
   }
 
   /**
- * 人物对话（单次发言话语）
- */
+   * 人物对话（单次发言话语）
+   */
   export interface Words extends Node {
     type: 'words'
     text: string
   }
 
   /**
- * 文本可能被解析为会话
- */
+   * 文本可能被解析为会话
+   */
   export interface Dialog extends Node {
     type: 'dialog'
     character: Character
@@ -78,18 +78,18 @@ export namespace AdvAst {
    */
     place: string
     /**
-   * 时间
-   */
+     * 时间
+     */
     time: string
     /**
-   * 内/外景
-   */
+     * 内/外景
+     */
     inOrOut: string
   }
 
   /**
- * 旁白
- */
+   * 旁白
+   */
   export interface Narration extends Node {
     type: 'narration'
     children: string[]
