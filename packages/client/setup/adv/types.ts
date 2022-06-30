@@ -9,7 +9,7 @@ export interface AdvContext {
     next: () => void
   }
   store: ReturnType<typeof useAdvStore>
-  config: AdvConfig['themeConfig']
+  config: AdvConfig
   themeConfig: ComputedRef<AdvConfig['themeConfig']>
 }
 

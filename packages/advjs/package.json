@@ -35,7 +35,7 @@
     "build": "rimraf dist && tsup",
     "dev": "nr build --watch",
     "prepublishOnly": "npm run build",
-    "start": "esno node/cli.ts"
+    "start": "tsx node/cli.ts"
   },
   "dependencies": {
     "@advjs/client": "workspace:*",

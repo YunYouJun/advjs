@@ -1,4 +1,4 @@
-import type { PluginOption } from 'vite'
+import type { Plugin } from 'vite'
 import Vue from '@vitejs/plugin-vue'
 import Components from 'unplugin-vue-components/vite'
 import { notNullish } from '@antfu/utils'
@@ -25,7 +25,7 @@ export async function ViteAdvPlugin(
   pluginOptions: AdvPluginOptions,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   serverOptions: AdvServerOptions = {},
-): Promise<PluginOption[]> {
+): Promise<Plugin[]> {
   const {
     vue: vueOptions = {},
     components: componentsOptions = {},

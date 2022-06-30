@@ -22,9 +22,6 @@
   "engines": {
     "node": ">=14.0.0"
   },
-  "optionalDependencies": {
-    "@advjs/plugin-babylon": "workspace:*"
-  },
   "dependencies": {
     "@advjs/core": "workspace:*",
     "@advjs/parser": "workspace:*",
@@ -42,6 +39,9 @@
     "swiper": "^8.2.6",
     "vue": "^3.2.36",
     "vue-router": "^4.0.15"
+  },
+  "optionalDependencies": {
+    "@advjs/plugin-babylon": "workspace:*"
   },
   "devDependencies": {
     "@types/nprogress": "^0.2.0"

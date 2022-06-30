@@ -2,7 +2,7 @@
 import type { AdvAst, AdvConfig, Tachie } from '@advjs/types'
 
 import { useBeforeUnload } from '@advjs/client/composables'
-import { computed, onBeforeMount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeMount, ref } from 'vue'
 import { getCharacter } from '@advjs/core'
 import { useAppStore } from '~/stores/app'
 

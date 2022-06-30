@@ -8,7 +8,7 @@ characters:
       default:
         src: 'https://fastly.jsdelivr.net/gh/YunYouJun/yun/images/yun-alpha-compressed.webp'
         style:
-          transform: scale(1)
+          transform: scale(1) translateY(-10%)
 ---
 
 ```json
