@@ -30,6 +30,7 @@
     "@vueuse/core": "^8.7.5",
     "@vueuse/head": "^0.7.6",
     "@vueuse/motion": "^2.0.0-beta.18",
+    "@vueuse/sound": "^1.1.7",
     "animate.css": "^4.1.1",
     "consola": "^2.15.3",
     "dayjs": "^1.11.3",
@@ -44,6 +45,7 @@
     "@advjs/plugin-babylon": "workspace:*"
   },
   "devDependencies": {
+    "@iconify-json/mdi": "^1.1.24",
     "@types/nprogress": "^0.2.0"
   }
 }

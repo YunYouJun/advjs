@@ -84,7 +84,20 @@ export interface AdvConfig {
    */
   characters: Character[]
 
+  bgm: {
+    /**
+     * auto play first bgm
+     */
+    autoplay: boolean
+    collection: Music[]
+  }
+
   // -------------------------------------------------
+}
+
+export interface Music {
+  name: string
+  src: string
 }
 
 export interface Tachie {

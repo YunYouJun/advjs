@@ -9,6 +9,11 @@ characters:
         src: 'https://fastly.jsdelivr.net/gh/YunYouJun/yun/images/yun-alpha-compressed.webp'
         style:
           transform: scale(1) translateY(5%)
+bgm:
+  autoplay: true
+  collection:
+    - name: xxx
+      src: 'https://fastly.jsdelivr.net/gh/YunYouJun/cdn/audio/star-timer.mp3'
 ---
 
 小云：早
@@ -23,6 +28,8 @@ characters:
   ]
 }
 ```
+
+小云：嘿嘿嘿
 
 我：早
 
