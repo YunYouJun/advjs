@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue'
 import { useElementSize } from '@vueuse/core'
-import { advAspect, advHeight, advWidth, config } from '~/env'
+import { advAspect, advHeight, advWidth, configs } from '~/env'
 
 const props = defineProps<{
   width?: number
@@ -37,18 +37,23 @@ const scale = computed(() => {
 })
 
 const style = computed(() => ({
-  height: `${advHeight}px`,
-  width: `${advWidth}px`,
   transform: `translate(-50%, -50%) scale(${scale.value})`,
 }))
 
+const containerStyles = computed(() => {
+  return {
+    '--adv-container-width': `${advWidth}px`,
+    '--adv-container-height': `${advHeight}px`,
+  }
+})
+
 const className = computed(() => ({
-  'select-none': !config.selectable,
+  'select-none': !configs.selectable,
 }))
 </script>
 
 <template>
-  <div ref="root" class="adv-container relative overflow-hidden" :class="className">
+  <div ref="root" class="adv-container relative overflow-hidden" :class="className" :style="containerStyles">
     <div id="adv-content" :style="style">
       <slot />
     </div>
@@ -64,5 +69,8 @@ const className = computed(() => ({
 
 #adv-content {
   @apply relative overflow-hidden absolute left-1/2 top-1/2;
+
+  width: var(--adv-container-width);
+  height: var(--adv-container-height);
 }
 </style>

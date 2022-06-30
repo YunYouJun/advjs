@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { createVRM, getVrmManager } from '@advjs/core/babylon'
+import { createVRM, getVrmManager } from '@advjs/plugin-babylon'
 import { checkModelFormat } from '@advjs/shared/utils/vrm'
 import type * as BABYLON from '@babylonjs/core'
 import { onMounted, ref } from 'vue'
@@ -49,7 +49,7 @@ const onDrop = (e: DragEvent) => {
         if (!manager)
           return
 
-        const vrmManager =getVrmManager(scene)
+        const vrmManager = getVrmManager(scene)
         vrmStore.setVrmManager(vrmManager)
       })
     }

@@ -12,7 +12,7 @@ characters:
     alias: 掌柜
     avatar: /assets/images/characters/txy/1.webp
     tachies:
-      默认:
+      default:
         src: /img/characters/she/she.png
         style:
           transform: scale(1.2)
@@ -29,7 +29,7 @@ characters:
     avatar: /assets/images/characters/bzt/1.webp
     actor: 沙溢
     tachies:
-      默认:
+      default:
         src: /img/characters/he/he.png
         class:
           - scale-120
@@ -77,10 +77,10 @@ characters:
     "type": "tachie",
     "enter": [
       {
-        "character": "掌柜"
+        "name": "掌柜"
       },
       {
-        "character": "白展堂",
+        "name": "白展堂",
         "status": "笑"
       }
     ]
@@ -214,7 +214,7 @@ url: https://s2.loli.net/2022/01/28/KV8lYS2PhkcQjCE.jpg
 
 秀才、大嘴：不会的 不会的
 
-老白(默认)：不会什么 就你俩那胆儿 一害怕肯定要说吐噜嘴 都听掌柜的话 嘴一定要严
+老白(default)：不会什么 就你俩那胆儿 一害怕肯定要说吐噜嘴 都听掌柜的话 嘴一定要严
 
 秀才、大嘴：是是是
 
@@ -230,7 +230,7 @@ url: https://s2.loli.net/2022/01/28/KV8lYS2PhkcQjCE.jpg
 
 掌柜：你不要命咧 又胡说
 
-老白(默认)：不至于 两个小毛贼 想当年 我闯荡江湖哪会儿
+老白(default)：不至于 两个小毛贼 想当年 我闯荡江湖哪会儿
 
 （门外穿来响声）
 

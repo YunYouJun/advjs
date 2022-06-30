@@ -7,11 +7,6 @@
   },
   "extends": ["@antfu"],
   "rules": {
-    "vue/no-lone-template": "off",
-    "vue/require-prop-types": "off",
-    "vue/require-default-prop": "off",
-    "import/named": "off",
-    "@typescript-eslint/space-infix-ops": "off",
     "no-alert": "off"
   }
 }

@@ -1,0 +1,16 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "adv build",
+    "dev": "nodemon -w '../../packages/**/dist/*.js' --exec \"adv --open=false --log=info\"",
+    "preview": "vite preview --host",
+    "preview-https": "serve dist"
+  },
+  "devDependencies": {
+    "@advjs/theme-default": "workspace:*",
+    "advjs": "workspace:*",
+    "https-localhost": "^4.7.1",
+    "nodemon": "^2.0.18",
+    "vite-plugin-inspect": "^0.5.1"
+  }
+}

@@ -7,7 +7,7 @@
     "email": "me@yunyoujun.cn",
     "url": "https://www.yunyoujun.cn"
   },
-  "license": "MIT",
+  "license": "MPL-2.0",
   "homepage": "https://github.com/YunYouJun/advjs/tree/main/packages/plugin-vite#readme",
   "repository": {
     "type": "git",
@@ -49,8 +49,8 @@
   },
   "devDependencies": {
     "fast-glob": "^3.2.11",
-    "nodemon": "^2.0.16",
+    "nodemon": "^2.0.18",
     "rimraf": "^3.0.2",
-    "vite": "^2.9.12"
+    "vite": "^2.9.13"
   }
 }

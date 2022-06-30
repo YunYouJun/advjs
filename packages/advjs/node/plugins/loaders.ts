@@ -2,16 +2,27 @@ import { join } from 'path'
 import type { Plugin } from 'vite'
 import { existsSync, readFileSync } from 'fs-extra'
 import type { AdvMarkdown } from '@advjs/types'
+import * as parser from '@advjs/parser/fs'
+import equal from 'fast-deep-equal'
 import type { ResolvedAdvOptions } from '../options'
 import { toAtFS } from '../utils'
+
+interface AdvHmrPayload {
+  data: AdvMarkdown
+}
 
 export function createAdvLoader(
   { data, remote, roots, entry }: ResolvedAdvOptions,
 ): Plugin[] {
   const advPrefix = '/@advjs/drama/'
 
+  /**
+   * generate AdvConfig from frontmatter & meta
+   * @param data
+   * @returns
+   */
   function generateConfigs() {
-    const config = { ...data.config, remote }
+    const config = { ...data.config, remote, features: data.features }
     return `export default ${JSON.stringify(config)}`
   }
 
@@ -102,6 +113,47 @@ export function createAdvLoader(
         // styles
         if (id === '/@advjs/styles')
           return generateUserStyles(roots)
+      },
+
+      async handleHotUpdate(ctx) {
+        const { file, server } = ctx
+
+        // hot reload .md files as .vue files
+        if (file.endsWith('.md')) {
+          const newData = parser.load(entry, data.themeMeta)
+
+          const payload: AdvHmrPayload = {
+            data: newData,
+          }
+
+          const moduleIds = new Set<string>()
+
+          if (!equal(data.features, newData.features)) {
+            setTimeout(() => {
+              ctx.server.ws.send({ type: 'full-reload' })
+            }, 1)
+          }
+
+          if (!equal(data.config, newData.config))
+            moduleIds.add('/@advjs/configs')
+
+          moduleIds.add('/@advjs/drama')
+
+          Object.assign(data, newData)
+
+          // notify the client to update page data
+          server.ws.send({
+            type: 'custom',
+            event: 'advjs:update',
+            data: payload,
+          })
+
+          const moduleEntries = [
+            ...Array.from(moduleIds).map(id => server.moduleGraph.getModuleById(id)),
+          ].filter(<T>(item: T): item is NonNullable<T> => !!item)
+
+          return moduleEntries
+        }
       },
     },
     {

@@ -115,7 +115,7 @@ export namespace AdvAst {
   export interface Tachie extends Node {
     type: 'tachie'
     enter: {
-      character: string
+      name: string
       status: string
     }[]
     exit: string[]

@@ -1,6 +1,9 @@
 import type { AdvConfig } from '@advjs/types'
 
 const defaultConfig: AdvConfig = {
+  features: {
+    babylon: false,
+  },
   title: 'ADV.JS',
   favicon: '/favicon.svg',
   theme: 'default',
@@ -21,6 +24,10 @@ const defaultConfig: AdvConfig = {
     enable: false,
   },
   characters: [],
+  bgm: {
+    autoplay: false,
+    collection: [],
+  },
 }
 
 export function resolveConfig(frontmatter: any) {

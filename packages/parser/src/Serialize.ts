@@ -12,7 +12,7 @@ export class Serialize {
    * 解析
    */
   parse(child: Mdast.Content): AdvAst.Item | undefined {
-    let node: AdvAst.Item| undefined
+    let node: AdvAst.Item | undefined
     switch (child.type) {
       case 'blockquote':
         node = this.blockquote(child)

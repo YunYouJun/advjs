@@ -14,11 +14,9 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@babylonjs/core": "^4.2.2",
-    "@babylonjs/loaders": "^4.2.2",
+    "@advjs/plugin-babylon": "workspace:*",
     "@vueuse/core": "^8.7.5",
     "@vueuse/head": "^0.7.6",
-    "babylon-vrm-loader": "^1.6.0",
     "nprogress": "^0.2.0",
     "pinia": "^2.0.14",
     "prism-theme-vars": "^0.2.3",
@@ -28,8 +26,7 @@
     "vue-router": "^4.0.16"
   },
   "devDependencies": {
-    "@babylonjs/materials": "^4.2.2",
-    "@iconify-json/carbon": "^1.1.5",
+    "@iconify-json/carbon": "^1.1.6",
     "@intlify/vite-plugin-vue-i18n": "^3.4.0",
     "@types/markdown-it-link-attributes": "^3.0.1",
     "@types/nprogress": "^0.2.0",
@@ -37,14 +34,14 @@
     "critters": "^0.0.16",
     "markdown-it-link-attributes": "^4.0.0",
     "markdown-it-prism": "^2.2.4",
-    "unocss": "^0.39.3",
-    "unplugin-vue-components": "^0.19.6",
-    "vite": "^2.9.12",
-    "vite-plugin-inspect": "^0.5.0",
-    "vite-plugin-md": "^0.12.4",
-    "vite-plugin-pages": "^0.24.2",
+    "unocss": "^0.42.0",
+    "unplugin-vue-components": "^0.20.1",
+    "vite": "^2.9.13",
+    "vite-plugin-inspect": "^0.5.1",
+    "vite-plugin-pages": "^0.25.0",
     "vite-plugin-pwa": "^0.12.0",
     "vite-plugin-vue-layouts": "^0.6.0",
-    "vite-ssg": "0.20.1"
+    "vite-plugin-vue-markdown": "^0.20.1",
+    "vite-ssg": "0.20.2"
   }
 }

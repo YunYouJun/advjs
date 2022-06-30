@@ -1,5 +1,9 @@
 import type { AdvAst } from './ast'
+import type { AdvFeatureFlags } from './types'
+
 export interface AdvConfig {
+  remote?: boolean
+
   /**
    * @default 'ADV.JS'
    */
@@ -17,6 +21,8 @@ export interface AdvConfig {
    * @default {}
    */
   themeConfig: any
+
+  features: AdvFeatureFlags
 
   // client
   /**
@@ -79,12 +85,25 @@ export interface AdvConfig {
    */
   characters: Character[]
 
+  bgm: {
+    /**
+     * auto play first bgm
+     */
+    autoplay: boolean
+    collection: Music[]
+  }
+
   // -------------------------------------------------
 }
 
 export interface ChooseData {
   chosen: Record<string, boolean>
   options?: AdvAst.Choice
+}
+
+export interface Music {
+  name: string
+  src: string
 }
 
 export interface Tachie {

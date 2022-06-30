@@ -22,5 +22,5 @@ function consoleInfo(
 }
 
 export function statement() {
-  consoleInfo('ADV.JS', pkg.repository.url, 'black', '🎮')
+  consoleInfo(`ADV.JS v${pkg.version}`, pkg.repository.url, 'black', '🎮')
 }

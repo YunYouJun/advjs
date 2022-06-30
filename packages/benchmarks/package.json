@@ -2,9 +2,9 @@
   "name": "@advjs/benchmarks",
   "private": true,
   "scripts": {
-    "start:visit": "esno src/visit/index.ts",
-    "start:json-xml": "esno src/json-xml/index.ts",
-    "generate:json-xml": "esno src/json-xml/generate.ts --generate"
+    "start:visit": "tsx src/visit/index.ts",
+    "start:json-xml": "tsx src/json-xml/index.ts",
+    "generate:json-xml": "tsx src/json-xml/generate.ts --generate"
   },
   "devDependencies": {
     "@faker-js/faker": "^7.3.0",

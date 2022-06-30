@@ -1,0 +1,52 @@
+{
+  "name": "@advjs/plugin-babylon",
+  "version": "0.1.0",
+  "description": "Babylon Plugin for ADV.JS to support 3D",
+  "author": {
+    "name": "YunYouJun",
+    "email": "me@yunyoujun.cn",
+    "url": "https://www.yunyoujun.cn"
+  },
+  "license": "MPL-2.0",
+  "homepage": "https://github.com/YunYouJun/advjs/tree/main/packages/plugin-vite#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YunYouJun/advjs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/YunYouJun/advjs/issues"
+  },
+  "keywords": [
+    "advjs",
+    "babylon",
+    "vrm"
+  ],
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    },
+    "./*": "./*"
+  },
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "*.d.ts"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch src",
+    "prepublishOnly": "npm run build",
+    "start": "tsx src/index.ts",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@babylonjs/core": "^4.2.2",
+    "@babylonjs/gui": "^4.2.2",
+    "@babylonjs/loaders": "^4.2.2",
+    "@babylonjs/materials": "^4.2.2",
+    "babylon-vrm-loader": "^1.6.0"
+  }
+}

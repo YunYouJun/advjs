@@ -18,10 +18,5 @@ export default defineConfig({
     'dayjs',
     'vue',
     'html2canvas',
-
-    '@babylonjs/core',
-    '@babylonjs/loaders',
-    '@babylonjs/materials',
-    'babylon-vrm-loader',
   ],
 })

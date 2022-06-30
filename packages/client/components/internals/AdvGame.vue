@@ -1,8 +1,9 @@
 <script lang="ts" setup>
-import type { AdvAst, AdvConfig } from '@advjs/types'
+import type { AdvAst, AdvConfig, Tachie } from '@advjs/types'
 
 import { useBeforeUnload } from '@advjs/client/composables'
 import { computed, onBeforeMount, ref } from 'vue'
+import { getCharacter } from '@advjs/core'
 import { useAppStore } from '~/stores/app'
 
 import { useAdvCtx } from '~/setup/adv'
@@ -21,12 +22,7 @@ onBeforeMount(() => {
   $adv.core.loadAst(props.ast)
 })
 
-const curNode = computed(() => {
-  return $adv.store.curNode
-})
-const cur = computed(() => {
-  return $adv.store.cur
-})
+const curNode = computed(() => $adv.store.curNode)
 
 // 添加提示，防止意外退出
 if (!__DEV__)
@@ -35,21 +31,34 @@ if (!__DEV__)
 const app = useAppStore()
 
 const chooseOption = (index: number) => {
-  const chosen = cur.value.choose.options!.choices[index]!
-  cur.value.choose.options = undefined
+  const chosen = $adv.store.cur.choose.options!.choices[index]!
+  $adv.store.cur.choose.options = undefined
   if (chosen.go)
     $adv.nav.go(chosen.go)
   else
     $adv.nav.next()
 }
 useAdvKeys()
+
+// tachies map by cur characters
+const tachies = computed(() => {
+  const tachiesMap = new Map<string, Tachie>()
+
+  $adv.store.cur.tachies.forEach((tachie, key) => {
+    const character = getCharacter($adv.config.characters, key)
+    if (character)
+      tachiesMap.set(key, character.tachies[tachie.status || 'default'])
+  })
+
+  return tachiesMap
+})
 </script>
 
 <template>
   <AdvContainer class="w-full h-full" text="white">
     <div class="adv-game w-full h-full bg-black absolute">
       <AdvScene />
-      <TachieBox :tachies="$adv.store.cur.tachies" />
+      <TachieBox :tachies="tachies" />
 
       <AdvBlack v-if="curNode && curNode.type === 'narration'" class="z-9" :content="curNode" />
 
@@ -61,7 +70,7 @@ useAdvKeys()
       <OptionsBox v-if="cur.choose.options" :data="cur.choose.options" @choose="chooseOption" />
 
       <transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
-        <DialogBox v-show="app.showUi" class="animate__animated" />
+        <AdvDialogBox v-show="app.showUi" :node="curNode" class="animate__animated" />
       </transition>
       <transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
         <DialogControls v-show="app.showUi" class="animate__animated absolute left-0 right-0 bottom-0" />

@@ -39,7 +39,7 @@
   "scripts": {
     "build": "rimraf dist && tsup",
     "dev": "nr build --watch",
-    "temp": "esno test/index.ts",
+    "temp": "tsx test/index.ts",
     "test": "vitest",
     "prepublishOnly": "npm run build"
   },

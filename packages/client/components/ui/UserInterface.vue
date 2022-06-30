@@ -6,18 +6,23 @@ const app = useAppStore()
 
 <template>
   <div class="flex absolute top-5 justify-between w-full" p="x-5">
-    <div class="inline-flex">
-      <AdvIconButton class="mr-4" @click="app.toggleHistory()">
+    <div class="inline-flex" gap="4">
+      <AdvIconButton @click="app.toggleHistory()">
         <div i-ri-message-2-line />
       </AdvIconButton>
 
-      <AdvIconButton class="mr-4" @click="app.toggleUi()">
+      <AdvIconButton @click="app.toggleUi()">
         <div i-ri-eye-close-line />
       </AdvIconButton>
 
       <AdvIconButton @click="app.toggleTachie()">
         <div v-if="app.showTachie" i-ri-file-user-line />
         <div v-else i-ri-file-user-fill />
+      </AdvIconButton>
+
+      <AdvIconButton @click="app.toggleBgm()">
+        <div v-if="app.curBgm.isPlaying" i-mdi-music-note-outline />
+        <div v-else i-mdi-music-note-off-outline />
       </AdvIconButton>
     </div>
 

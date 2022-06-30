@@ -1,7 +1,7 @@
 import { dirname, join, resolve } from 'path'
 import type Vue from '@vitejs/plugin-vue'
 import type Components from 'unplugin-vue-components/vite'
-import type Markdown from 'vite-plugin-md'
+import type Markdown from 'vite-plugin-vue-markdown'
 import type UnoCSS from 'unocss/vite'
 // import type RemoteAssets from 'vite-plugin-remote-assets'
 // import type ServerRef from 'vite-plugin-vue-server-ref'
@@ -129,7 +129,7 @@ export async function resolveOptions(
   const roots = uniq([clientRoot, themeRoot, userRoot])
 
   debug({
-    config: data.config,
+    data,
     mode,
     entry,
     theme,

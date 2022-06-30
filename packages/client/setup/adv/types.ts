@@ -1,20 +1,15 @@
-import type { AdvAst, AdvConfig } from '@advjs/types'
+import type { AdvConfig } from '@advjs/types'
+import type { ComputedRef } from 'vue'
+import type { useCore } from './context'
+import type { useNav } from './logic/nav'
 import type { useAdvStore } from './store'
-// @ts-expect-error missing types
-import _configs from '/@advjs/configs'
 
-export const configs = _configs as AdvConfig
 export interface AdvContext {
-  core: {
-    loadAst: (ast: AdvAst.Root) => void
-  }
-  nav: {
-    next: () => void
-    go: (position: string) => void
-  }
+  core: ReturnType<typeof useCore>
+  nav: ReturnType<typeof useNav>
   store: ReturnType<typeof useAdvStore>
-  config: typeof configs
-  themeConfig: typeof configs['themeConfig']
+  config: AdvConfig
+  themeConfig: ComputedRef<AdvConfig['themeConfig']>
 }
 
 export interface AdvOptions {

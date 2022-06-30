@@ -1,6 +1,6 @@
-import type { AdvAst, ChooseData, Tachie } from '@advjs/types'
+import type { AdvAst, ChooseData } from '@advjs/types'
 import type { StorageMeta } from 'unstorage'
-import { computed, ref, shallowRef } from 'vue'
+import { computed, ref, shallowRef, watch } from 'vue'
 
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
@@ -9,12 +9,9 @@ export interface CurStateType {
    * 顺序
    */
   order: number
-  dialog: {
-    character: AdvAst.Character
-    children: AdvAst.Text[]
-  }
-  // key为角色名
-  tachies: Map<string, Tachie>
+  dialog: AdvAst.Dialog
+  // enter character name
+  tachies: Map<string, { status: string }>
   background: string
   choose: ChooseData
 }
@@ -60,6 +57,7 @@ export const useAdvStore = defineStore('adv', () => {
      * 当前对话
      */
     dialog: {
+      type: 'dialog',
       character: {
         type: 'character',
         name: '',
@@ -83,6 +81,12 @@ export const useAdvStore = defineStore('adv', () => {
     if (ast.value && ast.value.children.length > 0)
       return ast.value.children[curState.value.order]
     else return null
+  })
+
+  // watch order, update dialog
+  watch(() => curNode.value, () => {
+    if (curNode.value?.type === 'dialog')
+      curState.value.dialog = curNode.value
   })
 
   return {

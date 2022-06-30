@@ -1,0 +1,10 @@
+node_modules
+dist
+
+.vite-ssg-dist
+.vite-ssg-temp
+
+auto-imports.d.ts
+components.d.ts
+
+*.log
