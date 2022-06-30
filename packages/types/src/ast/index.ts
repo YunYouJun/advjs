@@ -129,7 +129,6 @@ export namespace AdvAst {
   export interface Root {
     type: 'adv-root'
     children: Child[]
+    scene: Record<string, number>
   }
 }
-
-export interface AdvInfo { scene: Record<string, number> }

@@ -18,15 +18,14 @@ export const useNav = () => {
         const tachies = store.cur.tachies
         if (node.enter) {
           node.enter.forEach((item) => {
-            const character = getCharacter(
-              advConfig.characters,
-              item.character,
-            )
+            const character = getCharacter(advConfig.characters, item.character)
             if (!character)
               return
             const tachie = character.tachies?.[item.status || '默认']
             if (!tachie) {
-              consola.error(`Can not find ${item.character}'s tachie: ${item.status}`)
+              consola.error(
+                `Can not find ${item.character}'s tachie: ${item.status}`,
+              )
               return
             }
             tachies.set(character.name, tachie)
@@ -64,7 +63,7 @@ export const useNav = () => {
         store.cur.background = node.url
         break
       case 'choice':
-        store.cur.choose.options=node
+        store.cur.choose.options = node
         break
       default:
         break
@@ -72,10 +71,7 @@ export const useNav = () => {
   }
 
   function updateTachie(curNode: AdvAst.Dialog) {
-    const character = getCharacter(
-      advConfig.characters,
-      curNode.character.name,
-    )
+    const character = getCharacter(advConfig.characters, curNode.character.name)
     if (!character)
       return
     const tachie = character.tachies?.[curNode.character.status]
@@ -86,11 +82,10 @@ export const useNav = () => {
   }
 
   function go(target: string) {
-    const order=store.gameInfo.scene[target]
+    const order = store.ast.scene[target]
     if (isNaN(order))
       consola.error(`Can not find screen ${target}`)
-    else
-      store.cur.order = order
+    else store.cur.order = order
 
     next()
   }
@@ -101,12 +96,11 @@ export const useNav = () => {
    */
   async function handleCode(node: AdvAst.Code) {
     if (node.lang === 'ts') {
-    // await node.do()
+      // await node.do()
     }
     else if (node.lang === 'advnode') {
       // node.value is an array
-      for (const advNode of node.value)
-        await handleAdvNode(advNode)
+      for (const advNode of node.value) await handleAdvNode(advNode)
     }
   }
 
@@ -147,7 +141,7 @@ export const useNav = () => {
       case 'dialog':
         store.cur.dialog = curNode
         if (curNode.character.status !== '') {
-        // 需要切换立绘
+          // 需要切换立绘
           updateTachie(curNode)
         }
         break

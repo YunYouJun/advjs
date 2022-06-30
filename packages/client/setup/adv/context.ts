@@ -21,7 +21,7 @@ export const useContext = () => {
    */
   async function read(text: string) {
     const data = await parseAst(text)
-    store.ast=data.advAst
+    store.ast=data.ast
   }
 
   return {

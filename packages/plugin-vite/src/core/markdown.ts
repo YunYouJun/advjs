@@ -60,7 +60,7 @@ export function createMarkdown(options: ResolvedOptions) {
     const wrapperComponent = 'AdvGame'
     html = `<${wrapperComponent}${
       options.frontmatter ? ' :frontmatter="frontmatter"' : ''
-    } :ast="advAst" :info="advInfo">${html}</${wrapperComponent}>`
+    } :ast="advAst">${html}</${wrapperComponent}>`
 
     if (transforms.after)
       html = transforms.after(html, id)
@@ -72,9 +72,8 @@ export function createMarkdown(options: ResolvedOptions) {
 
     const scriptLines: string[] = []
 
-    const { advAst, info } = await parseAst(raw)
+    const advAst = await parseAst(raw)
     scriptLines.push(`const advAst = ${transformObject(advAst)}`)
-    scriptLines.push(`const advInfo = ${JSON.stringify(info)}`)
 
     if (options.frontmatter) {
       const { head, frontmatter } = frontmatterPreprocess(data || {}, options)

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { AdvAst, AdvConfig, AdvInfo } from '@advjs/types'
+import type { AdvAst, AdvConfig } from '@advjs/types'
 
 import { useBeforeUnload } from '@advjs/client/composables'
 import { computed, onBeforeMount, ref } from 'vue'
@@ -11,7 +11,6 @@ import { useAdvKeys } from '~/composables'
 const props = defineProps<{
   frontmatter?: AdvConfig
   ast: AdvAst.Root
-  info: AdvInfo
 }>()
 
 const $adv = useAdvCtx()
@@ -34,7 +33,6 @@ if (!__DEV__)
   useBeforeUnload()
 
 const app = useAppStore()
-$adv.store.gameInfo = props.info
 
 const chooseOption = (index: number) => {
   const chosen = cur.value.choose.options!.choices[index]!
