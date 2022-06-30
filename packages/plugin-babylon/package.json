@@ -43,6 +43,7 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@advjs/types": "workspace:*",
     "@babylonjs/core": "^4.2.2",
     "@babylonjs/gui": "^4.2.2",
     "@babylonjs/loaders": "^4.2.2",

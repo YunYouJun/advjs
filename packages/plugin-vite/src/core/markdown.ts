@@ -1,7 +1,9 @@
 import matter from 'gray-matter'
 import { parseAst } from '@advjs/parser'
+import type { AdvAst } from '@advjs/types'
 import type { ResolvedOptions } from '../types'
 import { checkAdvMd } from './check'
+
 /**
  * transform obj for vite code
  * @param obj
@@ -22,6 +24,24 @@ function extractScriptSetup(html: string) {
   })
 
   return { html, scripts }
+}
+
+function extractAdvScriptSetup(ast: AdvAst.Root) {
+  const scripts: string[] = []
+
+  for (let i = 0; i < ast.children.length; i++) {
+    const child = ast.children[i]
+    if (child.type === 'code' && typeof child.value === 'string') {
+      const funcName = `codeFunc${i}`
+      scripts.push(`function ${funcName}(){
+        try { ${child.value} } catch(e) { console.log(e) }
+      }`)
+
+      scripts.push(`$adv.functions.${funcName} = ${funcName}`)
+    }
+  }
+
+  return scripts
 }
 
 function extractCustomBlock(html: string, options: ResolvedOptions) {
@@ -70,7 +90,10 @@ export function createMarkdown(options: ResolvedOptions) {
     const customBlocks = extractCustomBlock(html, options)
     html = customBlocks.html
 
-    const scriptLines: string[] = []
+    const scriptLines: string[] = [
+      'import { useAdvCtx } from "~/setup"',
+      'const $adv = useAdvCtx()',
+    ]
 
     const advAst = await parseAst(raw)
     scriptLines.push(`const advAst = ${transformObject(advAst)}`)
@@ -92,7 +115,13 @@ export function createMarkdown(options: ResolvedOptions) {
 
     scriptLines.push(...hoistScripts.scripts)
 
-    const scripts = `<script setup>\n${scriptLines.join('\n')}\n</script>`
+    // extract markdown code script
+    const hoistAdvScripts = extractAdvScriptSetup(advAst)
+    scriptLines.push(...hoistAdvScripts)
+
+    // todo: use ts file
+
+    const scripts = `<script setup lang="ts">\n${scriptLines.join('\n')}\n</script>`
 
     const sfc = `<template>${html}</template>\n${scripts}\n${customBlocks.blocks.join(
       '\n',

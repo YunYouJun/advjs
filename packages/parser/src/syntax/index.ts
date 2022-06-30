@@ -3,6 +3,8 @@ import type Mdast from 'mdast'
 import { toDialog } from '../utils'
 import { parseNarration, parseScene } from './parse'
 
+export * from './code'
+
 /**
  * 解析纯文本，实现扩展语法
  */

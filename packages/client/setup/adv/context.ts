@@ -65,8 +65,9 @@ export const useCore = (ctx: Pick<AdvContext, 'store' | 'nav'>) => {
 }
 
 export const useContext = () => {
+  const functions = {}
   const store = useAdvStore()
-  const nav = useNav()
+  const nav = useNav({ functions })
 
   const core = useCore({ store, nav })
 
@@ -76,6 +77,7 @@ export const useContext = () => {
     store,
     config,
     themeConfig: computed(() => config.themeConfig),
+    functions,
   }
 }
 

@@ -31,7 +31,7 @@ watch(() => $adv.store.curNode, (node) => {
     return
 
   const scene = bStore.instance?.scene
-  if (scene) {
+  if (scene && Array.isArray(node.value)) {
     node.value?.forEach((node: AdvAst.CodeOperation) => {
       if (node.type === 'camera')
         createCameraAnimation(scene as BABYLON.Scene, node)

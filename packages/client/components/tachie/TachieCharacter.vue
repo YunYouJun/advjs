@@ -47,7 +47,7 @@ const characterClass = computed(() => {
   max-width: calc(0.4 * var(--adv-container-width));
 
   filter: brightness(50%);
-  transition: var(--adv-animation-duration) all linear;
+  transition: var(--adv-animation-duration-fast) all linear;
 
   &.active {
     filter: brightness(100%);

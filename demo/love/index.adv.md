@@ -37,6 +37,10 @@ bgm:
 
 小云：我喜欢你
 
+```ts
+console.log('OHHHHHHH！')
+```
+
 - [ ] 好的！
 
   ```ts
@@ -57,3 +61,7 @@ url: /img/bg/stacked-steps-haikei.svg
 ```
 
 小云：哼哼哼
+
+小云：嘻嘻嘻
+
+未完待续

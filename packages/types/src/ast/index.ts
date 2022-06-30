@@ -105,7 +105,7 @@ export namespace AdvAst {
 
   export interface Code extends Omit<MdAst.Code, 'value'> {
     type: 'code'
-    value: CodeOperation[] | null
+    value: CodeOperation[] | string | null
   }
 
   export interface Camera extends Node {

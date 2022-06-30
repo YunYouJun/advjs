@@ -2,10 +2,11 @@ import type { AdvAst } from '@advjs/types'
 import consola from 'consola'
 
 import { getCharacter } from '@advjs/core'
+import { scriptSuffix } from '@advjs/parser'
 import { useAdvStore } from '../store'
 import { config } from '~/env'
 
-export const useNav = () => {
+export const useNav = ({ functions }: { functions: Record<string, () => void> }) => {
   const store = useAdvStore()
 
   /**
@@ -14,8 +15,6 @@ export const useNav = () => {
    * @returns
    */
   async function handleAdvNode(node: AdvAst.Item) {
-    const store = useAdvStore()
-
     switch (node.type) {
       case 'code': {
         if (await handleCode(node))
@@ -49,17 +48,20 @@ export const useNav = () => {
    * @param node
    */
   async function handleCode(node: AdvAst.Code) {
-    if (node.lang === 'ts') {
-    // await node.do()
+    const lang = node.lang?.toLowerCase() || ''
+    if (scriptSuffix.includes(lang)) {
+      functions[`codeFunc${store.cur.order}`]()
     }
-    else if (node.lang === 'advnode') {
+    else if (lang === 'advnode') {
       // node.value is an array
       if (!node.value)
         return
 
-      for (const advNode of node.value) {
-        if (await handleCodeOperation(advNode))
-          return true
+      if (Array.isArray(node.value)) {
+        for (const advNode of node.value) {
+          if (await handleCodeOperation(advNode))
+            return true
+        }
       }
     }
   }

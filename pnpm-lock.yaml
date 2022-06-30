@@ -360,12 +360,14 @@ importers:
 
   packages/plugin-babylon:
     specifiers:
+      '@advjs/types': workspace:*
       '@babylonjs/core': ^4.2.2
       '@babylonjs/gui': ^4.2.2
       '@babylonjs/loaders': ^4.2.2
       '@babylonjs/materials': ^4.2.2
       babylon-vrm-loader: ^1.6.0
     dependencies:
+      '@advjs/types': link:../types
       '@babylonjs/core': 4.2.2
       '@babylonjs/gui': 4.2.2
       '@babylonjs/loaders': 4.2.2

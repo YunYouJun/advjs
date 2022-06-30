@@ -10,6 +10,7 @@ export interface AdvContext {
   store: ReturnType<typeof useAdvStore>
   config: AdvConfig
   themeConfig: ComputedRef<AdvConfig['themeConfig']>
+  functions: Record<string, () => void>
 }
 
 export interface AdvOptions {
