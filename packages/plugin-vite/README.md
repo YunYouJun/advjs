@@ -36,7 +36,7 @@ export default defineConfig({
 
 ## FAQ
 
-为了避免后缀名为 `.md` 时与 `vite-plugin-md` 冲突，可以为其设置 `exclude`，并尽量使用 `.adv.md` 后缀名。
+为了避免后缀名为 `.md` 时与 `vite-plugin-vue-markdown` 冲突，可以为其设置 `exclude`，并尽量使用 `.adv.md` 后缀名。
 
 ```ts
 export default defineConfig({
