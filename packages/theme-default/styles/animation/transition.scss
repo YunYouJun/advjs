@@ -1,9 +1,12 @@
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.4s ease;
-}
+.v,
+.fade {
+  &-enter-active,
+  &-leave-active {
+    transition: opacity 0.4s ease;
+  }
 
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+  &-enter-from,
+  &-leave-to {
+    opacity: 0;
+  }
 }

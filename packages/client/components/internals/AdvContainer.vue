@@ -37,10 +37,15 @@ const scale = computed(() => {
 })
 
 const style = computed(() => ({
-  height: `${advHeight}px`,
-  width: `${advWidth}px`,
   transform: `translate(-50%, -50%) scale(${scale.value})`,
 }))
+
+const containerStyles = computed(() => {
+  return {
+    '--adv-container-width': `${advWidth}px`,
+    '--adv-container-height': `${advHeight}px`,
+  }
+})
 
 const className = computed(() => ({
   'select-none': !configs.selectable,
@@ -48,7 +53,7 @@ const className = computed(() => ({
 </script>
 
 <template>
-  <div ref="root" class="adv-container relative overflow-hidden" :class="className">
+  <div ref="root" class="adv-container relative overflow-hidden" :class="className" :style="containerStyles">
     <div id="adv-content" :style="style">
       <slot />
     </div>
@@ -64,5 +69,8 @@ const className = computed(() => ({
 
 #adv-content {
   @apply relative overflow-hidden absolute left-1/2 top-1/2;
+
+  width: var(--adv-container-width);
+  height: var(--adv-container-height);
 }
 </style>

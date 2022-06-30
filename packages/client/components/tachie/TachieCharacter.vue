@@ -23,29 +23,34 @@ const characterClass = computed(() => {
   if (props.tachie.class)
     resultClass = defaultClass.concat(props.tachie.class)
 
-  if (!active.value)
-    resultClass.push('inactive-character')
+  if (active.value)
+    resultClass.push('active')
   return resultClass
 })
 </script>
 
 <template>
-  <div class="col-span-1 flex flex-col justify-end items-center ">
-    <img
-      class="tachie-character inline-block transform"
-      :class="characterClass"
-      :style="tachie.style"
-      :src="tachie.src"
-    >
-  </div>
+  <Transition appear>
+    <div class="col-span-1 flex flex-col justify-end items-center ">
+      <img
+        class="tachie-character inline-block transform"
+        :class="characterClass"
+        :style="tachie.style"
+        :src="tachie.src"
+      >
+    </div>
+  </Transition>
 </template>
 
 <style lang="scss">
 .tachie-character {
-  max-width: 40vw;
-}
+  max-width: calc(0.4 * var(--adv-container-width));
 
-.inactive-character {
   filter: brightness(50%);
+  transition: var(--adv-animation-duration) all linear;
+
+  &.active {
+    filter: brightness(100%);
+  }
 }
 </style>
