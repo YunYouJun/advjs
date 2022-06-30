@@ -120,9 +120,6 @@ export const useNav = () => {
       case 'background':
         store.cur.background = node.url
         break
-      case 'choice':
-        store.cur.choose.options = node
-        break
       default:
         break
     }
@@ -146,9 +143,6 @@ export const useNav = () => {
    */
   async function next(): Promise<void> {
     if (!store.ast)
-      return
-    // 选择界面，不能跳
-    if (store.cur.choose.options)
       return
 
     const nodeLen = store.ast.children.length

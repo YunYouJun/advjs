@@ -1,4 +1,3 @@
-import type { AdvAst } from './ast'
 import type { AdvFeatureFlags } from './types'
 
 export interface AdvConfig {
@@ -94,11 +93,6 @@ export interface AdvConfig {
   }
 
   // -------------------------------------------------
-}
-
-export interface ChooseData {
-  chosen: Record<string, boolean>
-  options?: AdvAst.Choice
 }
 
 export interface Music {

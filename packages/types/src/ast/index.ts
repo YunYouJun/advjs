@@ -29,9 +29,17 @@ export namespace AdvAst {
 
   export interface Choice extends Node {
     type: 'choice'
+    /**
+     * checked item
+     */
+    default?: string
     choices: {
       text: string
-      go?: string
+      /**
+       * onClick
+       * @default $adv.nav.next()
+       */
+      do?: string
     }[]
   }
 
@@ -121,8 +129,8 @@ export namespace AdvAst {
     exit: string[]
   }
 
-  export type CodeOperation = Camera | Tachie | Background | Go | Choice
-  export type Item = Unknown | Paragraph | Narration | Character | Words | Text | SceneInfo | Dialog | Code
+  export type CodeOperation = Camera | Tachie | Background | Go
+  export type Item = Unknown | Paragraph | Narration | Character | Words | Text | SceneInfo | Dialog | Choice | Code
 
   export type Child = Item | MdAst.Content
 

@@ -37,4 +37,23 @@ bgm:
 
 小云：我喜欢你
 
+- [ ] 好的！
+
+  ```ts
+  $adv.nav.next()
+  ```
+
+- [ ] 抱歉…… `do2`
+
+  ```ts
+  $adv.nav.next()
+  ```
+
 小云：希望你每天都开心
+
+```yaml
+type: background
+url: /img/bg/stacked-steps-haikei.svg
+```
+
+小云：哼哼哼

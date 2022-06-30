@@ -1,4 +1,4 @@
-import type { AdvAst, ChooseData } from '@advjs/types'
+import type { AdvAst } from '@advjs/types'
 import type { StorageMeta } from 'unstorage'
 import { computed, ref, shallowRef, watch } from 'vue'
 
@@ -13,7 +13,6 @@ export interface CurStateType {
   // enter character name
   tachies: Map<string, { status: string }>
   background: string
-  choose: ChooseData
 }
 
 /**
@@ -72,9 +71,6 @@ export const useAdvStore = defineStore('adv', () => {
     },
     tachies: new Map(),
     background: '',
-    choose: {
-      chosen: {},
-    },
   })
 
   const curNode = computed(() => {

@@ -30,14 +30,6 @@ if (!__DEV__)
 
 const app = useAppStore()
 
-const chooseOption = (index: number) => {
-  const chosen = $adv.store.cur.choose.options!.choices[index]!
-  $adv.store.cur.choose.options = undefined
-  if (chosen.go)
-    $adv.nav.go(chosen.go)
-  else
-    $adv.nav.next()
-}
 useAdvKeys()
 
 // tachies map by cur characters
@@ -67,11 +59,15 @@ const tachies = computed(() => {
 
     <div class="adv-ui absolute" w="full" h="full">
       <BaseLayer v-if="!app.showUi" />
-      <OptionsBox v-if="cur.choose.options" :data="cur.choose.options" @choose="chooseOption" />
 
       <transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
         <AdvDialogBox v-show="app.showUi" :node="curNode" class="animate__animated" />
       </transition>
+
+      <transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
+        <AdvChoice v-show="curNode?.type === 'choice'" :node="curNode" />
+      </transition>
+
       <transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
         <DialogControls v-show="app.showUi" class="animate__animated absolute left-0 right-0 bottom-0" />
       </transition>

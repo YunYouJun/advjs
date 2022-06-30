@@ -165,20 +165,6 @@ url: https://s2.loli.net/2022/01/28/KV8lYS2PhkcQjCE.jpg
   "beta": 1
 }
 ```
-```json
-{
-  "type": "choice",
-  "choices": [
-    {
-      "text": "正常走"
-    },
-    {
-      "text": "跳到最后",
-      "jump": "融入"
-    }
-  ]
-}
-```
 
 （大嘴 秀才 老白 小贝冲到客栈门口）
 
