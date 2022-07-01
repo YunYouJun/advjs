@@ -6,6 +6,7 @@ import { useScreenLock } from '@advjs/core'
 import type { AdvMenuItemProps } from '@advjs/theme-default'
 
 import { computed } from 'vue'
+import AudioVolume from './settings/AudioVolume.vue'
 import { useSettingsStore } from '~/stores/settings'
 
 const { t } = useI18n()
@@ -64,6 +65,10 @@ const items = computed(() => {
         <HorizontalDivider />
 
         <MenuItem v-for="(item, i) in items" :key="i" :item="item" />
+
+        <HorizontalDivider />
+        <AudioVolume />
+
         <SpeechSynthesis />
 
         <HorizontalDivider />

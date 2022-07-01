@@ -6,7 +6,7 @@ import {
   presetIcons,
   presetTypography,
   presetUno,
-  presetWebFonts,
+  // presetWebFonts,
   transformerDirectives,
   transformerVariantGroup,
 } from 'unocss'
@@ -51,17 +51,18 @@ export const createUnocssConfig = async (options: ResolvedAdvOptions, unocssOpti
       }),
       presetTypography(),
       // todo, add unocss config it
-      presetWebFonts({
-        fonts: {
-          ZCOOL: 'ZCOOL XiaoWei',
-          serif: [
-            {
-              name: 'Noto Serif SC',
-              weights: [900],
-            },
-          ],
-        },
-      }),
+      // web font is too big
+      // presetWebFonts({
+      //   fonts: {
+      //     ZCOOL: 'ZCOOL XiaoWei',
+      //     serif: [
+      //       {
+      //         name: 'Noto Serif SC',
+      //         weights: [900],
+      //       },
+      //     ],
+      //   },
+      // }),
     ],
     rules: [
       // ['font-serif', {

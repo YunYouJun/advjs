@@ -37,6 +37,8 @@ settings:
   speech_language: Speech Language
   script_path: Script Path
   animation_duration: Animation Duration
+  sound_volume: Sound Volume
+  music_volume: Music Volume
 
 play_speed:
   slow: Slow

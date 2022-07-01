@@ -1,8 +1,19 @@
 <script setup lang="ts">
 import type { AdvCheckboxProps } from '@advjs/theme-default'
+import { watch } from 'vue'
+import { useAdvCtx } from '~/setup'
 
-withDefaults(defineProps<{ props: AdvCheckboxProps }>(), {
+const p = withDefaults(defineProps<{ props: AdvCheckboxProps }>(), {
   props: () => ({ checked: false }),
+})
+
+const $adv = useAdvCtx()
+
+watch(() => [p.props.checked], () => {
+  if (p.props.checked)
+    $adv.audio.popUpOn.play()
+  else
+    $adv.audio.popUpOff.play()
 })
 
 // do not need emit update:checked, because it is controlled by parent

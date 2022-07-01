@@ -6,7 +6,8 @@ import { useAdvCtx } from '~/setup'
 
 export const useAppStore = defineStore('app', () => {
   const $adv = useAdvCtx()
-  const curBgm = useSound($adv.config.bgm?.collection[0]?.src)
+  // @ts-expect-error wait https://github.com/vueuse/sound/pull/25
+  const curBgm = useSound($adv.config.bgm?.collection[0]?.src, { loop: true })
 
   const [showUi, toggleUi] = useToggle(true)
   // 加载菜单

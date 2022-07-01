@@ -8,6 +8,7 @@ import { getCharacter } from '@advjs/core'
 import type { AdvContext } from './types'
 import { useAdvStore } from './store'
 import { useNav } from './logic/nav'
+import { useAudio } from './audio'
 import { config } from '~/env'
 
 export const injectionAdvContext: InjectionKey<AdvContext> = Symbol('advjs-context')
@@ -64,7 +65,7 @@ export const useCore = (ctx: Pick<AdvContext, 'store' | 'nav'>) => {
   }
 }
 
-export const useContext = () => {
+export const useContext = (): AdvContext => {
   const functions = {}
   const store = useAdvStore()
   const nav = useNav({ functions })
@@ -72,6 +73,11 @@ export const useContext = () => {
   const core = useCore({ store, nav })
 
   return {
+    // @ts-expect-error init after mounted
+    audio: null,
+    onMounted() {
+      this.audio = useAudio()
+    },
     core,
     nav,
     store,

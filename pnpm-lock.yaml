@@ -99,14 +99,14 @@ importers:
       '@iconify-json/file-icons': ^1.1.2
       '@iconify-json/logos': ^1.1.7
       '@iconify-json/vscode-icons': ^1.1.7
-      unplugin-vue-components: ^0.20.1
+      unplugin-vue-components: ^0.21.0
       vite-plugin-pwa: ^0.12.0
       vitepress: 1.0.0-alpha.4
     devDependencies:
       '@iconify-json/file-icons': 1.1.2
       '@iconify-json/logos': 1.1.7
       '@iconify-json/vscode-icons': 1.1.7
-      unplugin-vue-components: 0.20.1
+      unplugin-vue-components: 0.21.0
       vite-plugin-pwa: 0.12.0
       vitepress: 1.0.0-alpha.4
 
@@ -148,7 +148,7 @@ importers:
       sass: ^1.53.0
       semver: ^7.3.7
       unocss: ^0.42.0
-      unplugin-vue-components: ^0.20.1
+      unplugin-vue-components: ^0.21.0
       vite: ^2.9.13
       vite-plugin-pages: ^0.25.0
       vite-plugin-vue-layouts: ^0.6.0
@@ -189,7 +189,7 @@ importers:
       resolve-global: 1.0.0
       sass: 1.53.0
       unocss: 0.42.0_vite@2.9.13
-      unplugin-vue-components: 0.20.1_vite@2.9.13+vue@3.2.37
+      unplugin-vue-components: 0.21.0_vite@2.9.13+vue@3.2.37
       vite: 2.9.13_sass@1.53.0
       vite-plugin-pages: 0.25.0_vite@2.9.13
       vite-plugin-vue-layouts: 0.6.0_evrllnkh5nrlwbwnbxhvh4u3v4
@@ -296,7 +296,7 @@ importers:
       monaco-editor: ^0.33.0
       pinia: ^2.0.14
       unocss: ^0.42.0
-      unplugin-vue-components: ^0.20.1
+      unplugin-vue-components: ^0.21.0
       v-tooltip: ^4.0.0-beta.2
       vite: ^2.9.13
       vite-plugin-inspect: ^0.5.1
@@ -320,7 +320,7 @@ importers:
       markdown-it-link-attributes: 4.0.0
       markdown-it-prism: 2.2.4
       unocss: 0.42.0_vite@2.9.13
-      unplugin-vue-components: 0.20.1_vite@2.9.13+vue@3.2.37
+      unplugin-vue-components: 0.21.0_vite@2.9.13+vue@3.2.37
       v-tooltip: 4.0.0-beta.17_vue@3.2.37
       vite: 2.9.13
       vite-plugin-inspect: 0.5.1_vite@2.9.13
@@ -424,7 +424,7 @@ importers:
       pinia: ^2.0.14
       prism-theme-vars: ^0.2.3
       unocss: ^0.42.0
-      unplugin-vue-components: ^0.20.1
+      unplugin-vue-components: ^0.21.0
       vite: ^2.9.13
       vite-plugin-inspect: ^0.5.1
       vite-plugin-pages: ^0.25.0
@@ -457,7 +457,7 @@ importers:
       markdown-it-link-attributes: 4.0.0
       markdown-it-prism: 2.2.4
       unocss: 0.42.0_vite@2.9.13
-      unplugin-vue-components: 0.20.1_vite@2.9.13+vue@3.2.37
+      unplugin-vue-components: 0.21.0_vite@2.9.13+vue@3.2.37
       vite: 2.9.13
       vite-plugin-inspect: 0.5.1_vite@2.9.13
       vite-plugin-pages: 0.25.0_vite@2.9.13
@@ -9043,8 +9043,8 @@ packages:
     engines: {node: '>= 0.8'}
     dev: true
 
-  /unplugin-vue-components/0.20.1:
-    resolution: {integrity: sha512-I70rKUvnJXxBvvTvKhjMV6jXh48BdiUNn2jcQiTdZjqBA3Xgkze31tdc4KBX46yryIy0y6pVaZ9gVBNPrF785g==}
+  /unplugin-vue-components/0.21.0:
+    resolution: {integrity: sha512-U7uOMNmRJ2eAv9CNjP8QRvxs6nAe3FVQUEIUphC1FGguBp3BWSLgGAcSHaX2nQy0gFoDY2mLF2M52W/t/eDaKg==}
     engines: {node: '>=14'}
     peerDependencies:
       '@babel/parser': ^7.15.8
@@ -9071,8 +9071,8 @@ packages:
       - webpack
     dev: true
 
-  /unplugin-vue-components/0.20.1_vite@2.9.13+vue@3.2.37:
-    resolution: {integrity: sha512-I70rKUvnJXxBvvTvKhjMV6jXh48BdiUNn2jcQiTdZjqBA3Xgkze31tdc4KBX46yryIy0y6pVaZ9gVBNPrF785g==}
+  /unplugin-vue-components/0.21.0_vite@2.9.13+vue@3.2.37:
+    resolution: {integrity: sha512-U7uOMNmRJ2eAv9CNjP8QRvxs6nAe3FVQUEIUphC1FGguBp3BWSLgGAcSHaX2nQy0gFoDY2mLF2M52W/t/eDaKg==}
     engines: {node: '>=14'}
     peerDependencies:
       '@babel/parser': ^7.15.8
