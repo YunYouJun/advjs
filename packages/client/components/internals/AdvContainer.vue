@@ -42,8 +42,8 @@ const style = computed(() => ({
 
 const containerStyles = computed(() => {
   return {
-    '--adv-container-width': `${advWidth}px`,
-    '--adv-container-height': `${advHeight}px`,
+    '--adv-screen-width': `${advWidth}px`,
+    '--adv-screen-height': `${advHeight}px`,
   }
 })
 
@@ -53,7 +53,7 @@ const className = computed(() => ({
 </script>
 
 <template>
-  <div ref="root" class="adv-container relative overflow-hidden" :class="className" :style="containerStyles">
+  <div ref="root" class="adv-screen relative overflow-hidden" :class="className" :style="containerStyles">
     <div id="adv-content" :style="style">
       <slot />
     </div>
@@ -63,14 +63,14 @@ const className = computed(() => ({
 
 <style lang="scss">
 // #adv-container will be hidden by adblock plugin
-.adv-container {
-  background: var(--adv-container-bg, var(--adv-c-bg));
+.adv-screen {
+  background: var(--adv-screen-bg, var(--adv-c-bg));
 }
 
 #adv-content {
   @apply relative overflow-hidden absolute left-1/2 top-1/2;
 
-  width: var(--adv-container-width);
-  height: var(--adv-container-height);
+  width: var(--adv-screen-width);
+  height: var(--adv-screen-height);
 }
 </style>

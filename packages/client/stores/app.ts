@@ -6,7 +6,7 @@ import { useAdvCtx } from '~/setup'
 
 export const useAppStore = defineStore('app', () => {
   const $adv = useAdvCtx()
-  const curBgm = useSound($adv.config.bgm?.collection[0].src)
+  const curBgm = useSound($adv.config.bgm?.collection[0]?.src)
 
   const [showUi, toggleUi] = useToggle(true)
   // 加载菜单

@@ -7,9 +7,12 @@ const { t } = useI18n()
 const show = ref(false)
 
 onMounted(() => {
-  const container = document.querySelector('.adv-container') as HTMLElement
-  const hasAdblock = (getComputedStyle(container).display === 'none')
-  show.value = hasAdblock
+  const containerName = '.adv-screen'
+  const container = document.querySelector(containerName) as HTMLElement
+  if (container) {
+    const hasAdblock = (getComputedStyle(container).display === 'none')
+    show.value = hasAdblock
+  }
 })
 
 const refresh = () => {

@@ -44,7 +44,7 @@ const characterClass = computed(() => {
 
 <style lang="scss">
 .tachie-character {
-  max-width: calc(0.4 * var(--adv-container-width));
+  max-width: calc(0.4 * var(--adv-screen-width));
 
   filter: brightness(50%);
   transition: var(--adv-animation-duration-fast) all linear;
