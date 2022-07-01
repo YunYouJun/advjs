@@ -4,6 +4,12 @@
 
 > 参考 Markdown 与 [Fountain](https://fountain.advjs.org/) 设计
 
+::: tip
+
+- [剧本解析器](https://editor.advjs.org): 你可以实时查看 AdvScript/Markdown 被解析的语法树形态
+- [剧本标记语言 Fountain 中文手册](https://fountain.advjs.org/)：[Fountain](https://fountain.advjs.org) - 好莱坞事实剧本格式之一
+:::
+
 AdvScript 的语法基于 Markdown，它会被解析器预解析为语法树。
 
 - [@advjs/parser](https://github.com/YunYouJun/advjs/tree/main/packages/parser): AdvScript 核心解析器
@@ -21,10 +27,3 @@ AdvScript 的语法基于 Markdown，它会被解析器预解析为语法树。
 ### 推荐
 
 - 建议使用 [VS Code](https://code.visualstudio.com/) 编辑器
-
-### 类型
-
-| 类型      | 说明     |
-| --------- | -------- |
-| paragraph | 段落     |
-| narration | 旁白叙述 |

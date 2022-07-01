@@ -1,25 +1,27 @@
 # 参与贡献
 
-- [文档写作指南](./writing-guide.md)
+::: tip
+很高兴你愿意打开这个页面。
 
-## Commit 规范
+如果你觉得这个项目不错，并且想要参与进来为其贡献。
+你可以加入右上角的 Discord 进行交流。
 
-对 [Angular Commit Message Format](https://github.com/angular/angular/blob/master/CONTRIBUTING.md#-commit-message-format) 的简化与扩展。
+接下来，我将简要说明一下贡献规范。
+:::
 
-- `build`：对构建系统或者外部依赖项进行了修改
-- `ci`：对 CI 配置文件或脚本进行了修改
-- `docs`：对文档进行了修改
-- `feat`：增加新的特征
-- `fix`：修复 bug
-- `pref`：提高性能的代码更改
-- `refactor`：既不是修复 bug 也不是添加特征的代码重构
-- `style`：不影响代码含义的修改，比如空格、格式化、缺失的分号等
-- `test`：增加确实的测试或者矫正已存在的测试
+## 贡献文档
 
-扩展
+> 出于便捷，目前优先以中文文档为主。
+> 未来，我们希望可以为其翻译多语言文档。
 
-- `ui`: 对 UI 部分的修改
+如果您想要对文档进行贡献，请先阅读 [文档写作指南](/contributing/writing-guide.md)。
 
-强调对某 monorepo 进行修改时，使用 (scope)。
+## 贡献代码
 
-> 例如对 parser 进行功能新增，`feat(parser): xxx`。
+如果您想要贡献代码，请遵循 [开发规范](/about/dev/standard)。
+
+## 贡献生态
+
+如果您想要制作一些示例和教程，这是相当欢迎的。
+
+您可以提交相关链接到 [资源](/resources/) 页面中。

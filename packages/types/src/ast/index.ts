@@ -49,7 +49,11 @@ export namespace AdvAst {
   export interface Character extends Node {
     type: 'character'
     name: string
-    status: string
+    /**
+     * status of character to adjust tachie
+     * @default '' as 'default'
+     */
+    status?: string
   }
 
   /**
@@ -122,10 +126,13 @@ export namespace AdvAst {
 
   export interface Tachie extends Node {
     type: 'tachie'
-    enter: {
-      name: string
-      status: string
-    }[]
+    /**
+     * enter character
+     */
+    enter: Omit<Character, 'type'>[]
+    /**
+     * exit character
+     */
     exit: string[]
   }
 

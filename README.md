@@ -20,7 +20,7 @@ FE(Front-End of Future?) AVG Engine
 
 ```bash
 # todo
-pnpm create advjs your-adv
+pnpm create adv your-adv
 ```
 
 ```bash
