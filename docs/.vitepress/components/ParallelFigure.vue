@@ -3,9 +3,9 @@ import type { CSSProperties } from 'vue'
 import { computed, reactive, ref } from 'vue'
 // import { useData } from 'vitepress'
 
-import { useParallax } from '@vueuse/core'
+import { isClient, useParallax } from '@vueuse/core'
 
-const target = ref(document && document.body)
+const target = ref(isClient ? document && document.body : null)
 const parallax = reactive(useParallax(target))
 
 // const { site, frontmatter } = useData()
@@ -66,7 +66,7 @@ const endColor = computed(
 </script>
 
 <template>
-  <div ref="target" m="t-16" :style="containerStyle">
+  <div m="t-16" :style="containerStyle">
     <div :style="cardStyle">
       <figure class="figure" :style="layer0">
         <svg

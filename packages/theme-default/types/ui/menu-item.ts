@@ -11,7 +11,7 @@ export interface AdvMenuItemMap<T extends AdvItemOption = AdvItemOption> {
 export type AdvMenuItemKeys = (keyof AdvMenuItemMap)
 
 // 基于联合类型的条件类型分发
-type UnionMenuItem<T, U extends AdvItemOption> = T extends AdvMenuItemKeys ? {
+export type UnionMenuItem<T, U extends AdvItemOption> = T extends AdvMenuItemKeys ? {
   type: T
   /**
    * 标签文本

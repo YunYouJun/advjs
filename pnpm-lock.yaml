@@ -27,6 +27,7 @@ importers:
       rimraf: ^3.0.2
       tsup: ^5.12.7
       tsx: ^3.6.0
+      typedoc: ^0.23.2
       typescript: ^4.7.4
       unbuild: ^0.7.4
       vite: ^2.9.13
@@ -56,6 +57,7 @@ importers:
       rimraf: 3.0.2
       tsup: 5.12.9_typescript@4.7.4
       tsx: 3.6.0
+      typedoc: 0.23.2_typescript@4.7.4
       typescript: 4.7.4
       unbuild: 0.7.4
       vite: 2.9.13
@@ -6357,6 +6359,10 @@ packages:
       yallist: 4.0.0
     dev: true
 
+  /lunr/2.3.9:
+    resolution: {integrity: sha512-zTU3DaZaF3Rt9rhN3uBMGQD3dD2/vFQqnvZCDv4dl5iOzq2IZQqTxu90r4E5J+nP70J3ilqVCrbho2eWaeW8Ow==}
+    dev: true
+
   /magic-string/0.25.9:
     resolution: {integrity: sha512-RmF0AsMzgt25qzqqLc1+MbHmhdx0ojF2Fvs4XnOqz2ZOBXzzkEwc/dJQZCYHAn7v1jbVOjAZfK8msRn4BxO4VQ==}
     dependencies:
@@ -6398,6 +6404,12 @@ packages:
   /markdown-table/3.0.2:
     resolution: {integrity: sha512-y8j3a5/DkJCmS5x4dMCQL+OR0+2EAq3DOtio1COSHsmW2BGXnNCK3v12hJt1LrUz5iZH5g0LmuYOjDdI+czghA==}
     dev: false
+
+  /marked/4.0.17:
+    resolution: {integrity: sha512-Wfk0ATOK5iPxM4ptrORkFemqroz0ZDxp5MWfYA7H/F+wO17NRWV5Ypxi6p3g2Xmw2bKeiYOl6oVnLHKxBA0VhA==}
+    engines: {node: '>= 12'}
+    hasBin: true
+    dev: true
 
   /mdast-util-definitions/5.1.1:
     resolution: {integrity: sha512-rQ+Gv7mHttxHOBx2dkF4HWTg+EE+UR78ptQWDylzPKaQuVGdG4HIoY3SrS/pCp80nZ04greFvXbVFHT+uf0JVQ==}
@@ -8814,6 +8826,20 @@ packages:
     resolution: {integrity: sha512-zdu8XMNEDepKKR+XYOXAVPtWui0ly0NtohUscw+UmaHiAWT8hrV1rr//H6V+0DvJ3OQ19S979M0laLfX8rm82Q==}
     dependencies:
       is-typedarray: 1.0.0
+    dev: true
+
+  /typedoc/0.23.2_typescript@4.7.4:
+    resolution: {integrity: sha512-THpC4vtb3wu1yck6YHzEc4ck6W4lScf8TD0Rg7XAetDih8BzP+ErYO0/6DtdzYcZyKkDwEoujkMeWW7CffCbrQ==}
+    engines: {node: '>= 14.14'}
+    hasBin: true
+    peerDependencies:
+      typescript: 4.6.x || 4.7.x
+    dependencies:
+      lunr: 2.3.9
+      marked: 4.0.17
+      minimatch: 5.1.0
+      shiki: 0.10.1
+      typescript: 4.7.4
     dev: true
 
   /typescript/4.7.4:
