@@ -1,7 +1,7 @@
-import type { Options, ResolvedOptions } from '../types'
+import type { Options, ResolvedOptions } from './types'
 import { preprocessHead } from './head'
 
-export function resolveOptions(userOptions: Options): ResolvedOptions {
+export function resolveOptions(userOptions: Options = {}): ResolvedOptions {
   const options = Object.assign(
     {
       headEnabled: false,

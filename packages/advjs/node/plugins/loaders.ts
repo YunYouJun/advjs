@@ -4,8 +4,10 @@ import { existsSync, readFileSync } from 'fs-extra'
 import type { AdvMarkdown } from '@advjs/types'
 import * as parser from '@advjs/parser/fs'
 import equal from 'fast-deep-equal'
+import type { LoadResult } from 'rollup'
 import type { ResolvedAdvOptions } from '../options'
 import { toAtFS } from '../utils'
+import { createMarkdown, resolveOptions } from './adv'
 
 interface AdvHmrPayload {
   data: AdvMarkdown
@@ -13,8 +15,21 @@ interface AdvHmrPayload {
 
 export function createAdvLoader(
   { data, remote, roots, entry }: ResolvedAdvOptions,
+  vuePlugin: Plugin,
 ): Plugin[] {
-  const advPrefix = '/@advjs/drama/'
+  const advPrefix = '/@advjs/drama'
+
+  const options = resolveOptions()
+  const markdownToVue = createMarkdown(options)
+
+  const transformMarkdown = async (id: string, raw: string) => {
+    // return markdownToVue(id, raw)
+    return '<template><div>asd</div></template>'
+  }
+
+  const filter = (name: string) => {
+    return name.endsWith('.adv.md') || name === '/@advjs/drama'
+  }
 
   /**
    * generate AdvConfig from frontmatter & meta
@@ -26,14 +41,14 @@ export function createAdvLoader(
     return `export default ${JSON.stringify(config)}`
   }
 
-  // handle .adv.md in @advjs/plugin-vite
-  function generateDrama() {
-    const scripts = [
-      `import _Drama from "${toAtFS(entry)}"`,
-      'export default _Drama',
-    ]
-    return scripts.join('\n')
-  }
+  // handle .adv.md in .adv.md
+  // function generateDrama() {
+  //   const scripts = [
+  //     `import _Drama from "${toAtFS(entry)}"`,
+  //     'export default _Drama',
+  //   ]
+  //   return scripts.join('\n')
+  // }
 
   function generateLocales(roots: string[]) {
     const imports: string[] = [
@@ -81,15 +96,6 @@ export function createAdvLoader(
     return imports.join('\n')
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async function transformMarkdown(code: string, data: AdvMarkdown) {
-    // const imports = [
-    //   `import EntryMd from "${entry}"`,
-    // ]
-
-    return code
-  }
-
   return [
     {
       name: 'advjs:loader',
@@ -100,12 +106,9 @@ export function createAdvLoader(
         return null
       },
 
-      load(id) {
+      load(id): LoadResult | Promise<LoadResult> {
         if (id === '/@advjs/configs')
           return generateConfigs()
-
-        if (id === '/@advjs/drama')
-          return generateDrama()
 
         if (id === '/@advjs/locales')
           return generateLocales(roots)
@@ -113,10 +116,25 @@ export function createAdvLoader(
         // styles
         if (id === '/@advjs/styles')
           return generateUserStyles(roots)
+
+        // if (id === '/@advjs/drama')
+        // return generateDrama()
+        if (id.startsWith(advPrefix)) {
+          console.log('data.raw', data.raw)
+          return {
+            code: data.raw,
+            map: {
+              mappings: '',
+            },
+          }
+        }
       },
 
       async handleHotUpdate(ctx) {
         const { file, server } = ctx
+
+        console.log(file)
+        console.log(ctx.modules)
 
         // hot reload .md files as .vue files
         if (file.endsWith('.md')) {
@@ -148,10 +166,40 @@ export function createAdvLoader(
             data: payload,
           })
 
+          // todo separate scene
+          const hmrPages = new Set<number>()
+          hmrPages.add(1)
+
+          const vueModules = ([
+            await (async () => {
+              const file = entry
+
+              try {
+                console.log('raw', newData.raw)
+                const md = await markdownToVue(entry, newData.raw)
+
+                console.log(md)
+
+                return await vuePlugin.handleHotUpdate!({
+                  ...ctx,
+                  modules: Array.from(ctx.server.moduleGraph.getModulesByFile(file) || []),
+                  file,
+                  read() { return md },
+                })
+              }
+              catch {}
+            })(),
+          ]).flatMap(i => i || [])
+
           const moduleEntries = [
-            ...Array.from(moduleIds).map(id => server.moduleGraph.getModuleById(id)),
+            ...vueModules,
+            ...Array.from(moduleIds).map((id) => {
+              console.log(id)
+              return server.moduleGraph.getModuleById(id)
+            }),
           ].filter(<T>(item: T): item is NonNullable<T> => !!item)
 
+          console.log(await ctx.read())
           return moduleEntries
         }
       },
@@ -160,9 +208,11 @@ export function createAdvLoader(
       name: 'advjs:layout-transform:pre',
       enforce: 'pre',
       async transform(code, id) {
-        if (!id.startsWith(advPrefix) || !id.endsWith('.adv.md'))
+        if (!filter(id))
           return
-        return transformMarkdown(code, data)
+
+        console.log(await transformMarkdown(entry, code))
+        return transformMarkdown(entry, code)
       },
     },
   ]

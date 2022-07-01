@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import type { AdvMenuItemProps } from '@advjs/theme-default'
 import { computed } from 'vue'
-
 import { useI18n } from 'vue-i18n'
-import { useAdvCtx } from '~/setup'
 
-const $adv = useAdvCtx()
+import { useAudioStore } from '~/stores/audio'
+const audio = useAudioStore()
 
 const { t } = useI18n()
 const soundVolumeItem = computed(
@@ -13,9 +12,9 @@ const soundVolumeItem = computed(
     label: t('settings.sound_volume'),
     type: 'Checkbox',
     props: {
-      checked: !$adv.audio.isSoundMuted.value,
+      checked: !audio.isSoundMuted,
       onClick: () => {
-        $adv.audio.toggleSoundMuted()
+        audio.toggleSoundMuted()
       },
     },
   } as AdvMenuItemProps),
@@ -26,9 +25,10 @@ const musicVolumeItem = computed(
     label: t('settings.music_volume'),
     type: 'Checkbox',
     props: {
-      checked: !$adv.audio.isMusicMuted.value,
+      checked: !audio.isMusicMuted,
       onClick: () => {
-        $adv.audio.toggleMusicMuted()
+        audio.toggleMusicMuted()
+        audio.curBgm.pause()
       },
     },
   } as AdvMenuItemProps),

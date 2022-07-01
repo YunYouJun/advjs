@@ -116,7 +116,6 @@ importers:
       '@advjs/core': workspace:*
       '@advjs/parser': workspace:*
       '@advjs/plugin-babylon': workspace:*
-      '@advjs/plugin-vite': workspace:*
       '@advjs/theme-default': workspace:*
       '@advjs/types': workspace:*
       '@antfu/utils': ^0.5.2
@@ -162,7 +161,6 @@ importers:
       '@advjs/core': link:../core
       '@advjs/parser': link:../parser
       '@advjs/plugin-babylon': link:../plugin-babylon
-      '@advjs/plugin-vite': link:../plugin-vite
       '@advjs/theme-default': link:../theme-default
       '@advjs/types': link:../types
       '@antfu/utils': 0.5.2
@@ -375,25 +373,6 @@ importers:
       '@babylonjs/loaders': 4.2.2
       '@babylonjs/materials': 4.2.2
       babylon-vrm-loader: 1.6.0_c4n5akfmdika6cyjumobz3bjye
-
-  packages/plugin-vite:
-    specifiers:
-      '@advjs/parser': workspace:^
-      '@rollup/pluginutils': ^4.2.1
-      fast-glob: ^3.2.11
-      gray-matter: ^4.0.3
-      nodemon: ^2.0.18
-      rimraf: ^3.0.2
-      vite: ^2.9.13
-    dependencies:
-      '@advjs/parser': link:../parser
-      '@rollup/pluginutils': 4.2.1
-      gray-matter: 4.0.3
-    devDependencies:
-      fast-glob: 3.2.11
-      nodemon: 2.0.18
-      rimraf: 3.0.2
-      vite: 2.9.13
 
   packages/shared:
     specifiers: {}

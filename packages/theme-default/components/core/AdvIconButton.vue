@@ -1,11 +1,10 @@
 <script lang="ts" setup>
-import { useAdvCtx } from '~/setup'
-
-const $adv = useAdvCtx()
+import { useAudioStore } from '~/stores/audio'
+const audio = useAudioStore()
 </script>
 
 <template>
-  <div class="adv-icon-button" @click="$adv.audio.popDown.play()">
+  <div class="adv-icon-button" @click="audio.popDown.play()">
     <AdvIcon>
       <slot />
     </AdvIcon>

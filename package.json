@@ -40,7 +40,6 @@
     "editor:dev": "pnpm -C packages/editor dev",
     "parser:build": "pnpm -C packages/parser build",
     "parser:dev": "pnpm -C packages/parser dev",
-    "vite:dev": "pnpm -C packages/plugin-vite dev",
     "vrm:build": "pnpm -C packages/vrm build",
     "vrm:dev": "pnpm -C packages/vrm dev",
     "types:build": "pnpm -C packages/types build",

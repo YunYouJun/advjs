@@ -8,8 +8,6 @@ import LinkAttributes from 'markdown-it-link-attributes'
 import Markdown from 'vite-plugin-vue-markdown'
 import VueI18n from '@intlify/vite-plugin-vue-i18n'
 
-import Adv from '@advjs/plugin-vite'
-
 import type { AdvPluginOptions, AdvServerOptions, ResolvedAdvOptions } from '../options'
 import { createConfigPlugin } from './extendConfig'
 // import { createClientSetupPlugin } from './setupClient'
@@ -37,22 +35,25 @@ export async function ViteAdvPlugin(
     roots,
   } = options
 
+  const vuePlugin = Vue({
+    include: [/\.vue$/, /\.md$/],
+    exclude: [],
+    template: {
+      compilerOptions: {
+        isCustomElement(tag) {
+          return customElements.has(tag)
+        },
+      },
+      ...vueOptions?.template,
+    },
+    ...vueOptions,
+  })
+
   return [
     await createUnocssPlugin(options, pluginOptions),
 
-    Vue({
-      include: [/\.vue$/, /\.md$/],
-      exclude: [],
-      template: {
-        compilerOptions: {
-          isCustomElement(tag) {
-            return customElements.has(tag)
-          },
-        },
-        ...vueOptions?.template,
-      },
-      ...vueOptions,
-    }),
+    vuePlugin,
+    createAdvLoader(options, vuePlugin),
 
     // https://github.com/hannoeru/vite-plugin-pages
     Pages({
@@ -64,8 +65,6 @@ export async function ViteAdvPlugin(
     Layouts({
       layoutsDirs: roots.map(root => `${root}/layouts`),
     }),
-
-    createAdvLoader(options),
 
     // createSlidesLoader(options, pluginOptions, serverOptions, VuePlugin, MarkdownPlugin),
 
@@ -99,6 +98,7 @@ export async function ViteAdvPlugin(
           },
         })
       },
+      // avoid conflict with adv
       exclude: ['**/*.adv.md'],
     }),
 
@@ -108,8 +108,6 @@ export async function ViteAdvPlugin(
       compositionOnly: true,
       include: roots.map(root => `${root}/locales/**`),
     }),
-
-    Adv(),
 
     // todo download remote assets
 

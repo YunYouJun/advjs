@@ -4,6 +4,8 @@ import type { Options } from './types'
 import { resolveOptions } from './core/options'
 import { createMarkdown } from './core/markdown'
 
+export * from './core/markdown'
+
 const advPlugin = (userOptions: Options = {}): Plugin => {
   const options = resolveOptions(userOptions)
   const markdownToVue = createMarkdown(options)
@@ -35,7 +37,7 @@ const advPlugin = (userOptions: Options = {}): Plugin => {
 
       const defaultRead = ctx.read
       ctx.read = async function () {
-        return markdownToVue(ctx.file, await defaultRead())
+        return await markdownToVue(ctx.file, await defaultRead())
       }
     },
   }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { speak } from '@advjs/shared/speech'
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import type { AdvAst } from '@advjs/types'
 import { useAdvCtx } from '~/setup'
 import { useSettingsStore } from '~/stores/settings'
@@ -11,12 +11,9 @@ const props = defineProps<{
 
 const $adv = useAdvCtx()
 
-const advStore = $adv.store
-const advConfig = $adv.config
-
 const settings = useSettingsStore()
 
-const curDialog = computed(() => advStore.cur.dialog)
+const curDialog = computed(() => $adv.store.cur.dialog)
 
 // 局部 words order，与全局 order 相区别
 const iOrder = ref(0)
@@ -49,6 +46,7 @@ const next = async () => {
 const curCharacter = computed(() => curDialog.value.character)
 
 const characterAvatar = computed(() => {
+  const advConfig = $adv.config
   const curName = curCharacter.value ? curCharacter.value.name : ''
   const avatar = advConfig.characters.find(item => item.name === curName || item.alias === curName || (Array.isArray(item.alias) && item.alias.includes(curName)))?.avatar
   const prefix = advConfig.cdn.enable ? advConfig.cdn.prefix || '' : ''
@@ -71,12 +69,16 @@ watch(() => curCharacter.value.name, () => {
     transitionFlag.value = true
   }, 1)
 })
+
+onMounted(() => {
+  console.info($adv.store.curNode)
+})
 </script>
 
 <template>
   <div class="dialog-box select-none cursor-pointer" grid="~ cols-12" gap="12" @click="next">
     <div v-if="curCharacter" class=" col-span-3 text-right">
-      <template v-if="advConfig.showCharacterAvatar && characterAvatar">
+      <template v-if="$adv.config.showCharacterAvatar && characterAvatar">
         <div flex="~ col" class="justify-center items-end">
           <img class="w-25 h-25 shadow rounded" object="cover top" :src="characterAvatar">
           <span class="w-25" m="t-2" text="center gray-400">{{ curCharacter.name }}</span>

@@ -42,7 +42,6 @@
     "@advjs/core": "workspace:*",
     "@advjs/parser": "workspace:*",
     "@advjs/plugin-babylon": "workspace:*",
-    "@advjs/plugin-vite": "workspace:*",
     "@advjs/theme-default": "workspace:*",
     "@advjs/types": "workspace:*",
     "@antfu/utils": "^0.5.2",

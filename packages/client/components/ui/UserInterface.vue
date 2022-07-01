@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { useAppStore } from '~/stores/app'
+import { useAudioStore } from '~/stores/audio'
 
 const app = useAppStore()
+const audio = useAudioStore()
 </script>
 
 <template>
@@ -20,8 +22,8 @@ const app = useAppStore()
         <div v-else i-ri-file-user-fill />
       </AdvIconButton>
 
-      <AdvIconButton @click="app.toggleBgm()">
-        <div v-if="app.curBgm.isPlaying" i-mdi-music-note-outline />
+      <AdvIconButton @click="audio.toggleBgm()">
+        <div v-if="audio.curBgm.isPlaying" i-mdi-music-note-outline />
         <div v-else i-mdi-music-note-off-outline />
       </AdvIconButton>
     </div>

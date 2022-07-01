@@ -8,8 +8,8 @@ import { getCharacter } from '@advjs/core'
 import type { AdvContext } from './types'
 import { useAdvStore } from './store'
 import { useNav } from './logic/nav'
-import { useAudio } from './audio'
 import { config } from '~/env'
+import { useAudioStore } from '~/stores/audio'
 
 export const injectionAdvContext: InjectionKey<AdvContext> = Symbol('advjs-context')
 
@@ -47,20 +47,7 @@ export const useCore = (ctx: Pick<AdvContext, 'store' | 'nav'>) => {
       if (!ctx.store.cur.tachies.has(character.name))
         return
 
-      // const status = store.cur.tachies[isDisplayed]. || 'default'
-
-      store.cur.tachies.set(character.name, { status })
-
-      // store
-
-      // if ()
-      // if (!character || curNode.character.status === store.cur.tachies)
-      //   return
-      // const tachie = character.tachies?.[curNode.character.status]
-      // if (!tachie)
-      //   return
-      // if (store.cur.tachies.has(character.name))
-      //   store.cur.tachies.set(character.name, tachie)
+      store.cur.tachies.set(character.name, { status: curNode.character.status || 'default' })
     },
   }
 }
@@ -73,11 +60,7 @@ export const useContext = (): AdvContext => {
   const core = useCore({ store, nav })
 
   return {
-    // @ts-expect-error init after mounted
-    audio: null,
-    onMounted() {
-      this.audio = useAudio()
-    },
+    onMounted() {},
     core,
     nav,
     store,
