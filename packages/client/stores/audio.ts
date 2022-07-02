@@ -4,7 +4,7 @@ import { useToggle } from '@vueuse/core'
 import { popDownUrl, popUpOffUrl, popUpOnUrl } from '@advjs/theme-default'
 import { computed, ref } from 'vue'
 // @vueuse/sound not reactive
-import { useSound } from '~/composables/sound'
+import { useSound } from '@advjs/client/composables/sound'
 
 /**
  * audio system store
