@@ -4,6 +4,7 @@ import matter from 'gray-matter'
 import { mdParse } from './markdown'
 import { Serialize } from './Serialize'
 import { resolveConfig } from './config'
+import { isScript } from './syntax'
 
 // import { AdvItem } from '@advjs/types'
 
@@ -15,17 +16,36 @@ const serialize = new Serialize()
 export function convertMdToAdv(mdAst: MdAst.Root): AdvAst.Root {
   const ast: AdvAst.Root = {
     type: 'adv-root',
+    functions: {},
     scene: {},
     children: [],
   }
 
   // 深度优先
+  let i = 0
   mdAst.children.forEach((child) => {
     const advItem = parseChild(child)
     if (advItem) {
       ast.children.push(advItem)
       if (advItem.type === 'scene')
         ast.scene[advItem.place] = ast.children.length - 1
+      // mount code function
+      if (isScript(advItem)) {
+        const name = `advFunc${i}`
+        ast.functions[`advFunc${i}`] = advItem.value
+        advItem.value = name
+        i += 1
+      }
+      if (advItem.type === 'choices') {
+        advItem.choices.forEach((choice) => {
+          if (isScript(choice.do)) {
+            const name = `advFunc${i}`
+            ast.functions[`advFunc${i}`] = choice.do.value
+            choice.do.value = name
+            i += 1
+          }
+        })
+      }
     }
   })
 

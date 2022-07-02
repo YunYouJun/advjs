@@ -1,18 +1,15 @@
 import type { AdvConfig } from '@advjs/types'
 import type { ComputedRef } from 'vue'
-import type { useCore } from './context'
-import type { useNav } from './logic/nav'
+import type { useLogic } from './logic'
 import type { useAdvStore } from './store'
 
-export interface AdvContext {
+export type AdvContext = {
   onMounted: () => void
-  core: ReturnType<typeof useCore>
-  nav: ReturnType<typeof useNav>
   store: ReturnType<typeof useAdvStore>
   config: AdvConfig
   themeConfig: ComputedRef<AdvConfig['themeConfig']>
   functions: Record<string, () => void>
-}
+} & ReturnType<typeof useLogic>
 
 export interface AdvOptions {
   /**

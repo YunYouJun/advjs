@@ -20,7 +20,7 @@ watch(() => $adv.store.curNode, () => {
   if (curNode && curNode.type === 'dialog') {
     if (curNode.character.status !== '') {
       // update tachies
-      $adv.core.updateTachie(curNode)
+      $adv.tachies.update(curNode)
     }
   }
 })

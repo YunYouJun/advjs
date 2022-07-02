@@ -29,15 +29,18 @@ function extractScriptSetup(html: string) {
 function extractAdvScriptSetup(ast: AdvAst.Root) {
   const scripts: string[] = []
 
-  for (let i = 0; i < ast.children.length; i++) {
-    const child = ast.children[i]
-    if (child.type === 'code' && typeof child.value === 'string') {
-      const funcName = `advFunc${i}`
-      scripts.push(`function ${funcName}(){${child.value}}`)
-
-      scripts.push(`$adv.functions.${funcName} = ${funcName}`)
-    }
+  /**
+   * mount func to $adv.functions
+   * @param name
+   * @param value
+   */
+  function mountFunc(name: string, value: string) {
+    scripts.push(`function ${name}(){${value}}`)
+    scripts.push(`$adv.functions.${name} = ${name}`)
   }
+
+  for (const funcName in ast.functions)
+    mountFunc(funcName, ast.functions[funcName])
 
   return scripts
 }
@@ -96,7 +99,6 @@ export function createMarkdown(options: ResolvedOptions) {
     const advAst = await parseAst(raw)
     scriptLines.push(`const advAst = ${transformObject(advAst)}`)
     scriptLines.push('$adv.core.loadAst(advAst)')
-    // scriptLines.push('console.log(advAst)')
 
     if (options.frontmatter) {
       const { head, frontmatter } = frontmatterPreprocess(data || {}, options)

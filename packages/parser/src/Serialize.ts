@@ -26,13 +26,14 @@ export class Serialize {
       case 'code':
         node = this.code(child)
         break
-      // case 'list':
-      //   node = this.list(child)
-      //   break
+      case 'list':
+        node = this.list(child)
+        break
       default:
         break
     }
-    return node
+    if (node)
+      return node
   }
 
   /**
@@ -136,8 +137,37 @@ export class Serialize {
    * handle list for choice
    * - [x] xxx
    */
-  list(node: Mdast.List) {
+  list(node: Mdast.List): AdvAst.Choices | undefined {
     // todo
-    return node
+    const advNode: AdvAst.Choices = {
+      type: 'choices',
+      choices: [],
+    }
+
+    for (const item of node.children) {
+      if (item.type !== 'listItem')
+        return
+      if (item.children.length) {
+        const choice: AdvAst.Choice = {
+          type: 'choice',
+          text: '',
+          do: {
+            type: 'code',
+            value: '',
+          },
+        }
+        if (item.children[0].type === 'paragraph') {
+          const text = (item.children[0].children[0] as Mdast.Text).value
+          // const do = 'advFunc'
+          choice.text = text
+        }
+        if (item.children[1]?.type === 'code')
+          choice.do = item.children[1]
+
+        advNode.choices.push(choice)
+      }
+    }
+
+    return advNode
   }
 }

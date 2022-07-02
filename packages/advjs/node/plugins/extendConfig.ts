@@ -16,6 +16,7 @@ const EXCLUDE = [
   'animate.css',
 
   '@advjs/theme-default',
+  '@advjs/parser',
   '@advjs/shared',
   '@advjs/types',
   '@vueuse/core',

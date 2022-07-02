@@ -1,14 +1,18 @@
 <script lang="ts" setup>
-const options = [
-  {
-    label: '确定',
-    value: 'ok',
-  },
-  {
-    label: '取消',
-    value: 'cancel',
-  },
-]
+import type { AdvAst } from '@advjs/types'
+import { useAdvCtx } from '~/setup'
+defineProps<{
+  node: AdvAst.Choices
+}>()
+
+const $adv = useAdvCtx()
+
+function onChoiceClick(choice: AdvAst.Choice) {
+  if (choice.do && choice.do.value)
+    $adv.core.handleCode(choice.do)
+  else
+    $adv.nav.next()
+}
 </script>
 
 <template>
@@ -21,8 +25,8 @@ const options = [
     font="bold"
   >
     <ul class="adv-options-container">
-      <li v-for="option, i in options" :key="i" class="adv-option">
-        {{ option.label }}
+      <li v-for="choice, i in node.choices" :key="i" class="adv-option" @click="onChoiceClick(choice)">
+        {{ choice.text }}
       </li>
     </ul>
     <slot />

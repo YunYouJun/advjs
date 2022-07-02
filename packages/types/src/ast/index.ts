@@ -29,18 +29,21 @@ export namespace AdvAst {
 
   export interface Choice extends Node {
     type: 'choice'
+    text: string
+    /**
+       * onClick
+       * @default $adv.nav.next()
+       */
+    do?: AdvAst.Code
+  }
+
+  export interface Choices extends Node {
+    type: 'choices'
     /**
      * checked item
      */
     default?: string
-    choices: {
-      text: string
-      /**
-       * onClick
-       * @default $adv.nav.next()
-       */
-      do?: string
-    }[]
+    choices: Choice[]
   }
 
   /**
@@ -112,6 +115,11 @@ export namespace AdvAst {
     value: CodeOperation[] | string | null
   }
 
+  export interface CodeFunction extends Code {
+    type: 'code'
+    value: string
+  }
+
   export interface Camera extends Node {
     type: 'camera'
     target?: {
@@ -137,7 +145,7 @@ export namespace AdvAst {
   }
 
   export type CodeOperation = Camera | Tachie | Background | Go
-  export type Item = Unknown | Paragraph | Narration | Character | Words | Text | SceneInfo | Dialog | Choice | Code
+  export type Item = Unknown | Paragraph | Narration | Character | Words | Text | SceneInfo | Dialog | Choices | Code
 
   export type Child = Item
   export type ChildWithMd = Item | MdAst.Content
@@ -146,5 +154,9 @@ export namespace AdvAst {
     type: 'adv-root'
     children: Child[]
     scene: Record<string, number>
+    /**
+     * global scripts functions
+     */
+    functions: Record<string, string>
   }
 }

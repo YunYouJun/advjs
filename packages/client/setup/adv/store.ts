@@ -41,6 +41,7 @@ export const useAdvStore = defineStore('adv', () => {
    */
   const ast = shallowRef<AdvAst.Root>({
     type: 'adv-root',
+    functions: {},
     scene: {},
     children: [
       {
