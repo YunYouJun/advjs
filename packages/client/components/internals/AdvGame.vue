@@ -2,7 +2,7 @@
 import type { AdvAst, AdvConfig, Tachie } from '@advjs/types'
 
 import { useBeforeUnload } from '@advjs/client/composables'
-import { computed, onBeforeMount, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { getCharacter } from '@advjs/core'
 import { useAppStore } from '~/stores/app'
 
@@ -18,9 +18,10 @@ const $adv = useAdvCtx()
 
 const isDev = ref(__DEV__)
 
-onBeforeMount(() => {
-  $adv.core.loadAst(props.ast)
-})
+// watch(() => props.ast, () => {
+//   console.log(props.ast)
+//   $adv.core.loadAst(props.ast)
+// }, { immediate: true })
 
 const curNode = computed(() => $adv.store.curNode)
 

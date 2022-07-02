@@ -5,6 +5,7 @@ import type { useNav } from './logic/nav'
 import type { useAdvStore } from './store'
 
 export interface AdvContext {
+  onMounted: () => void
   core: ReturnType<typeof useCore>
   nav: ReturnType<typeof useNav>
   store: ReturnType<typeof useAdvStore>

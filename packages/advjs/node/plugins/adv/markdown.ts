@@ -1,7 +1,7 @@
 import matter from 'gray-matter'
 import { parseAst } from '@advjs/parser'
 import type { AdvAst } from '@advjs/types'
-import type { ResolvedOptions } from '../types'
+import type { ResolvedOptions } from './types'
 import { checkAdvMd } from './check'
 
 /**
@@ -32,10 +32,8 @@ function extractAdvScriptSetup(ast: AdvAst.Root) {
   for (let i = 0; i < ast.children.length; i++) {
     const child = ast.children[i]
     if (child.type === 'code' && typeof child.value === 'string') {
-      const funcName = `codeFunc${i}`
-      scripts.push(`function ${funcName}(){
-        try { ${child.value} } catch(e) { console.log(e) }
-      }`)
+      const funcName = `advFunc${i}`
+      scripts.push(`function ${funcName}(){${child.value}}`)
 
       scripts.push(`$adv.functions.${funcName} = ${funcName}`)
     }
@@ -69,7 +67,7 @@ export function createMarkdown(options: ResolvedOptions) {
   return async (id: string, raw: string) => {
     raw = raw.trimStart()
 
-    checkAdvMd(raw)
+    checkAdvMd(raw, id)
 
     if (transforms.before)
       raw = transforms.before(raw, id)
@@ -97,6 +95,8 @@ export function createMarkdown(options: ResolvedOptions) {
 
     const advAst = await parseAst(raw)
     scriptLines.push(`const advAst = ${transformObject(advAst)}`)
+    scriptLines.push('$adv.core.loadAst(advAst)')
+    // scriptLines.push('console.log(advAst)')
 
     if (options.frontmatter) {
       const { head, frontmatter } = frontmatterPreprocess(data || {}, options)

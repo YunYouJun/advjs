@@ -5,11 +5,6 @@
       "types": "./dist/index.d.ts",
       "require": "./dist/index.js",
       "import": "./dist/index.mjs"
-    },
-    "./babylon": {
-      "types": "./babylon.d.ts",
-      "require": "./dist/babylon.js",
-      "import": "./dist/babylon.mjs"
     }
   },
   "main": "dist/index.js",

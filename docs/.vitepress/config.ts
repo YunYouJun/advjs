@@ -7,7 +7,7 @@ import { metaData } from './config/constants'
 
 const nav: DefaultTheme.Config['nav'] = [
   { text: '指南', link: '/guide/' },
-  { text: 'API', link: 'https://api.advjs.org' },
+  { text: 'API', link: 'https://api.docs.advjs.org' },
   {
     text: '贡献',
     link: '/contributing/',

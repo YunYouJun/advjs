@@ -15,6 +15,7 @@ const EXCLUDE = [
   // avoid css parse by vite
   'animate.css',
 
+  '@advjs/theme-default',
   '@advjs/shared',
   '@advjs/types',
   '@vueuse/core',
@@ -33,7 +34,6 @@ const babylonDeps = [
 ]
 
 let INCLUDE = [
-  '@advjs/theme-default',
   // ...Object.keys(dependencies),
   ...Object.keys(dependencies).filter(i => !EXCLUDE.includes(i)),
 ]
@@ -49,15 +49,15 @@ export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
         define: getDefine(options),
         resolve: {
           alias: {
-            '@advjs/core': `${toAtFS(resolve(__dirname, '../../core/src'))}/index.ts`,
+            // '@advjs/core': `${toAtFS(resolve(__dirname, '../../core/src'))}/index.ts`,
             // '@advjs/parser': `${toAtFS(resolve(__dirname, '../../parser/src'))}/core.ts`,
             '@advjs/shared/': `${toAtFS(resolve(__dirname, '../../shared/src'))}/`,
             '~/': `${toAtFS(options.clientRoot)}/`,
+            '@advjs/theme-default': `${toAtFS(resolve(__dirname, '../../theme-default'))}`,
             '@advjs/client/': `${toAtFS(options.clientRoot)}/`,
           },
         },
         optimizeDeps: {
-
           include: INCLUDE,
           exclude: EXCLUDE,
         },

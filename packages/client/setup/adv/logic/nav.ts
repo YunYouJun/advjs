@@ -50,7 +50,10 @@ export const useNav = ({ functions }: { functions: Record<string, () => void> })
   async function handleCode(node: AdvAst.Code) {
     const lang = node.lang?.toLowerCase() || ''
     if (scriptSuffix.includes(lang)) {
-      functions[`codeFunc${store.cur.order}`]()
+      try {
+        functions[`advFunc${store.cur.order}`]()
+      }
+      catch (e) { console.error(e) }
     }
     else if (lang === 'advnode') {
       // node.value is an array

@@ -1,13 +1,8 @@
 import { ns } from '@advjs/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { useStorage, useToggle } from '@vueuse/core'
-import { useSound } from '@vueuse/sound'
-import { useAdvCtx } from '~/setup'
 
 export const useAppStore = defineStore('app', () => {
-  const $adv = useAdvCtx()
-  const curBgm = useSound($adv.config.bgm?.collection[0]?.src)
-
   const [showUi, toggleUi] = useToggle(true)
   // 加载菜单
   const [showMenu, toggleShowMenu] = useToggle(false)
@@ -21,11 +16,6 @@ export const useAppStore = defineStore('app', () => {
   const [showTachie, toggleTachie] = useToggle(true)
 
   const [showBg, toggleBg] = useToggle(true)
-
-  // toggle background music
-  const toggleBgm = () => {
-    curBgm.isPlaying.value ? curBgm.pause() : curBgm.play()
-  }
 
   // 3D canvas flag
   const showCanvas = useStorage(ns('canvas'), false)
@@ -41,9 +31,6 @@ export const useAppStore = defineStore('app', () => {
     showTachie,
     showCanvas,
     showBg,
-
-    curBgm,
-    toggleBgm,
 
     toggleUi,
     toggleShowMenu,

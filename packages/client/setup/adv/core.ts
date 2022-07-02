@@ -1,5 +1,4 @@
 import type { App } from 'vue'
-import { reactive } from 'vue'
 import { injectionAdvContext, useContext } from './context'
 
 import type { AdvOptions } from './types'
@@ -24,7 +23,7 @@ export function createAdv(options?: Partial<AdvOptions>) {
   return {
     install(app: App) {
       app.config.globalProperties.$adv = $adv
-      app.provide(injectionAdvContext, reactive($adv))
+      app.provide(injectionAdvContext, $adv)
 
       if (__DEV__) {
         // @ts-expect-error expose global

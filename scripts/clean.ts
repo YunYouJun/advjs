@@ -14,7 +14,6 @@ async function run() {
     'client',
 
     'plugin-babylon',
-    'plugin-vite',
 
     'vrm',
     'editor',

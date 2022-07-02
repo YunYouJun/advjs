@@ -9,6 +9,13 @@ characters:
         src: 'https://fastly.jsdelivr.net/gh/YunYouJun/yun/images/yun-alpha-compressed.webp'
         style:
           transform: scale(1) translateY(5%)
+  - name: 云游君
+    actor: 云游君
+    tachies:
+      default:
+        src: 'https://fastly.jsdelivr.net/gh/advjs/assets@main/img/characters/he.png'
+        style:
+          transform: scale(0.7) translateY(-20%)
 bgm:
   autoplay: true
   collection:
@@ -16,7 +23,7 @@ bgm:
       src: 'https://fastly.jsdelivr.net/gh/YunYouJun/cdn/audio/star-timer.mp3'
 ---
 
-小云：早
+小云：Hello～hhhh
 
 ```json
 {
@@ -31,7 +38,18 @@ bgm:
 
 小云：嘿嘿嘿
 
-我：早
+```json
+{
+  "type": "tachie",
+  "enter": [
+    {
+      "name": "云游君"
+    }
+  ]
+}
+```
+
+我：早 可恶啊！
 
 小云：早
 

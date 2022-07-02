@@ -1,6 +1,6 @@
 <script setup lang="ts">
-// @ts-expect-error virtual module
-import Drama from '/@advjs/drama'
+// we need .adv.md
+import Drama from '/@advjs/drama.adv.md'
 </script>
 
 <template>

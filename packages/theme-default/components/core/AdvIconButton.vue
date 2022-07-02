@@ -1,5 +1,10 @@
+<script lang="ts" setup>
+import { useAudioStore } from '~/stores/audio'
+const audio = useAudioStore()
+</script>
+
 <template>
-  <div class="adv-icon-button">
+  <div class="adv-icon-button" @click="audio.popDown.play()">
     <AdvIcon>
       <slot />
     </AdvIcon>
