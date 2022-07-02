@@ -10,10 +10,15 @@ const props = withDefaults(defineProps<{
    */
   typeInterval?: number
   mode?: DisplayMode
+  /**
+   * show animation
+   */
+  animation: boolean
 }>(), {
   words: '',
   mode: 'soft',
   speed: 'normal',
+  animation: true,
 })
 const emit = defineEmits(['end'])
 
@@ -51,6 +56,9 @@ watch(() => props.words, () => {
 
 const wordClasses = (i: number) => {
   const classes: string[] = []
+
+  if (!props.animation)
+    return []
 
   if (i > len.value) {
     classes.push('invisible')

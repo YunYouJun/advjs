@@ -29,7 +29,19 @@ watch(
   },
 )
 
+const end = ref(false)
+const animation = ref(true)
+
 const next = async () => {
+  if (!end.value && animation.value) {
+    animation.value = false
+    return
+  }
+  else {
+    animation.value = true
+    end.value = false
+  }
+
   if (curDialog.value.children) {
     const length = curDialog.value.children.length
 
@@ -87,7 +99,11 @@ watch(() => curCharacter.value.name, () => {
       </template>
     </div>
     <div class="dialog-content col-span-9 text-left pr-24" :class="`text-${settings.storage.text.curFontSize}`">
-      <PrintWords :speed="settings.storage.text.curSpeed" :words="curWords" />
+      <PrintWords
+        :animation="animation"
+        :speed="settings.storage.text.curSpeed"
+        :words="curWords" @end="end = true"
+      />
       <span class="typed-cursor">
         ▼
       </span>
