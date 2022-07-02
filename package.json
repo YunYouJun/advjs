@@ -31,6 +31,8 @@
     "preview": "pnpm -C packages/advjs preview",
     "advjs:build": "pnpm -C packages/advjs run build",
     "advjs:dev": "pnpm -C packages/advjs run dev",
+    "babylon:build": "pnpm -C packages/plugin-babylon build",
+    "babylon:dev": "pnpm -C packages/plugin-babylon dev",
     "core:build": "pnpm -C packages/core build",
     "core:dev": "pnpm -C packages/core dev",
     "docs:build": "pnpm -C docs build",

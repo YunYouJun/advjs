@@ -49,5 +49,8 @@
     "@babylonjs/loaders": "^4.2.2",
     "@babylonjs/materials": "^4.2.2",
     "babylon-vrm-loader": "^1.6.0"
+  },
+  "devDependencies": {
+    "tsup": "6"
   }
 }
