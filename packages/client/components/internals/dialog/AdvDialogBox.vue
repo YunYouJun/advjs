@@ -33,11 +33,15 @@ const end = ref(false)
 const animation = ref(true)
 
 const next = async () => {
+  if ($adv.store.status.isEnd)
+    return
+
   if (!end.value && animation.value) {
     animation.value = false
     return
   }
   else {
+    // reset
     animation.value = true
     end.value = false
   }
@@ -104,7 +108,7 @@ watch(() => curCharacter.value.name, () => {
         :speed="settings.storage.text.curSpeed"
         :words="curWords" @end="end = true"
       />
-      <span class="typed-cursor">
+      <span v-if="!$adv.store.status.isEnd" class="typed-cursor">
         ▼
       </span>
     </div>

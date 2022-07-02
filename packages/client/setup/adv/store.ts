@@ -99,6 +99,10 @@ export const useAdvStore = defineStore('adv', () => {
      * 当前
      */
     cur: curState,
+
+    status: {
+      isEnd: computed(() => curState.value.order >= ast.value.children.length - 1),
+    },
   }
 })
 
