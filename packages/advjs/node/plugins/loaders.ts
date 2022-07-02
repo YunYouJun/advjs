@@ -22,13 +22,12 @@ export function createAdvLoader(
   const options = resolveOptions()
   const markdownToVue = createMarkdown(options)
 
-  const transformMarkdown = async (id: string, raw: string) => {
-    // return markdownToVue(id, raw)
-    return '<template><div>asd</div></template>'
+  const transformMarkdown = (id: string, raw: string) => {
+    return markdownToVue(id, raw)
   }
 
   const filter = (name: string) => {
-    return name.endsWith('.adv.md') || name === '/@advjs/drama'
+    return name.endsWith('.adv.md') || name.startsWith('/@advjs/drama')
   }
 
   /**
@@ -120,7 +119,6 @@ export function createAdvLoader(
         // if (id === '/@advjs/drama')
         // return generateDrama()
         if (id.startsWith(advPrefix)) {
-          console.log('data.raw', data.raw)
           return {
             code: data.raw,
             map: {
@@ -133,11 +131,8 @@ export function createAdvLoader(
       async handleHotUpdate(ctx) {
         const { file, server } = ctx
 
-        console.log(file)
-        console.log(ctx.modules)
-
         // hot reload .md files as .vue files
-        if (file.endsWith('.md')) {
+        if (filter(file)) {
           const newData = parser.load(entry, data.themeMeta)
 
           const payload: AdvHmrPayload = {
@@ -155,7 +150,7 @@ export function createAdvLoader(
           if (!equal(data.config, newData.config))
             moduleIds.add('/@advjs/configs')
 
-          moduleIds.add('/@advjs/drama')
+          moduleIds.add('/@advjs/drama.adv.md')
 
           Object.assign(data, newData)
 
@@ -175,10 +170,7 @@ export function createAdvLoader(
               const file = entry
 
               try {
-                console.log('raw', newData.raw)
                 const md = await markdownToVue(entry, newData.raw)
-
-                console.log(md)
 
                 return await vuePlugin.handleHotUpdate!({
                   ...ctx,
@@ -194,12 +186,10 @@ export function createAdvLoader(
           const moduleEntries = [
             ...vueModules,
             ...Array.from(moduleIds).map((id) => {
-              console.log(id)
               return server.moduleGraph.getModuleById(id)
             }),
           ].filter(<T>(item: T): item is NonNullable<T> => !!item)
 
-          console.log(await ctx.read())
           return moduleEntries
         }
       },
@@ -207,11 +197,10 @@ export function createAdvLoader(
     {
       name: 'advjs:layout-transform:pre',
       enforce: 'pre',
-      async transform(code, id) {
+      transform(code, id) {
         if (!filter(id))
           return
 
-        console.log(await transformMarkdown(entry, code))
         return transformMarkdown(entry, code)
       },
     },

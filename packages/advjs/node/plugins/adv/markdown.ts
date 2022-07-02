@@ -32,10 +32,8 @@ function extractAdvScriptSetup(ast: AdvAst.Root) {
   for (let i = 0; i < ast.children.length; i++) {
     const child = ast.children[i]
     if (child.type === 'code' && typeof child.value === 'string') {
-      const funcName = `codeFunc${i}`
-      scripts.push(`function ${funcName}(){
-        try { ${child.value} } catch(e) { console.log(e) }
-      }`)
+      const funcName = `advFunc${i}`
+      scripts.push(`function ${funcName}(){${child.value}}`)
 
       scripts.push(`$adv.functions.${funcName} = ${funcName}`)
     }
