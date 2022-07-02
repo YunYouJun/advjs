@@ -1,11 +1,10 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { useToggle } from '@vueuse/core'
-import { useSound } from '@vueuse/sound'
 
 import { popDownUrl, popUpOffUrl, popUpOnUrl } from '@advjs/theme-default'
 import { computed, ref } from 'vue'
-// @ts-expect-error virtual module
-import config from '/@advjs/configs'
+// @vueuse/sound not reactive
+import { useSound } from '~/composables/sound'
 
 /**
  * audio system store
@@ -22,8 +21,13 @@ export const useAudioStore = defineStore('audio', () => {
   const sVolume = computed(() => isSoundMuted.value ? 0 : soundVolume.value)
   const mVolume = computed(() => isMusicMuted.value ? 0 : musicVolume.value)
 
+  const bgmUrl = ref(popUpOnUrl)
   // @ts-expect-error wait https://github.com/vueuse/sound/pull/25
-  const curBgm = useSound(config.bgm?.collection[0]?.src, { loop: true, volume: mVolume })
+  const curBgm = useSound(bgmUrl, { loop: true, volume: mVolume })
+
+  const setBgm = (url: string) => {
+    bgmUrl.value = url
+  }
 
   // toggle background music
   const toggleBgm = () => {
@@ -48,6 +52,7 @@ export const useAudioStore = defineStore('audio', () => {
 
   return {
     curBgm,
+    setBgm,
     toggleBgm,
 
     isMusicMuted,

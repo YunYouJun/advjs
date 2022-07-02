@@ -1,9 +1,13 @@
 <script setup lang="ts">
+import { useAdvCtx } from '~/setup'
 import { useAppStore } from '~/stores/app'
 import { useAudioStore } from '~/stores/audio'
+const $adv = useAdvCtx()
 
 const app = useAppStore()
 const audio = useAudioStore()
+
+audio.setBgm($adv.config.bgm.collection[0]?.src)
 </script>
 
 <template>
