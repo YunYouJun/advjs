@@ -29,6 +29,12 @@ export default defineConfig((config) => {
       ),
     },
 
+    build: {
+      rollupOptions: {
+        external: ['/@advjs/configs'],
+      },
+    },
+
     plugins: [
       Vue({
         include: [/\.vue$/, /\.md$/],

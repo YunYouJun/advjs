@@ -1,9 +1,13 @@
 <script setup lang="ts">
+import { useAdvCtx } from '~/setup'
 import { useAppStore } from '~/stores/app'
 import { useAudioStore } from '~/stores/audio'
+const $adv = useAdvCtx()
 
 const app = useAppStore()
 const audio = useAudioStore()
+
+audio.setBgm($adv.config.bgm.collection[0]?.src)
 </script>
 
 <template>
@@ -23,7 +27,7 @@ const audio = useAudioStore()
       </AdvIconButton>
 
       <AdvIconButton @click="audio.toggleBgm()">
-        <div v-if="audio.curBgm.isPlaying" i-mdi-music-note-outline />
+        <div v-if="audio.curBgm?.isPlaying" i-mdi-music-note-outline />
         <div v-else i-mdi-music-note-off-outline />
       </AdvIconButton>
     </div>

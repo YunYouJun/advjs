@@ -9,7 +9,6 @@ import type { AdvContext } from './types'
 import { useAdvStore } from './store'
 import { useNav } from './logic/nav'
 import { config } from '~/env'
-import { useAudioStore } from '~/stores/audio'
 
 export const injectionAdvContext: InjectionKey<AdvContext> = Symbol('advjs-context')
 

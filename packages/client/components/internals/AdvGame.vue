@@ -2,14 +2,14 @@
 import type { AdvAst, AdvConfig, Tachie } from '@advjs/types'
 
 import { useBeforeUnload } from '@advjs/client/composables'
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { getCharacter } from '@advjs/core'
 import { useAppStore } from '~/stores/app'
 
 import { useAdvCtx } from '~/setup/adv'
 import { useAdvKeys } from '~/composables'
 
-const props = defineProps<{
+defineProps<{
   frontmatter?: AdvConfig
   ast: AdvAst.Root
 }>()
@@ -17,11 +17,6 @@ const props = defineProps<{
 const $adv = useAdvCtx()
 
 const isDev = ref(__DEV__)
-
-// watch(() => props.ast, () => {
-//   console.log(props.ast)
-//   $adv.core.loadAst(props.ast)
-// }, { immediate: true })
 
 const curNode = computed(() => $adv.store.curNode)
 

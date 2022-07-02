@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { speak } from '@advjs/shared/speech'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { AdvAst } from '@advjs/types'
 import { useAdvCtx } from '~/setup'
 import { useSettingsStore } from '~/stores/settings'
@@ -68,10 +68,6 @@ watch(() => curCharacter.value.name, () => {
   setTimeout(() => {
     transitionFlag.value = true
   }, 1)
-})
-
-onMounted(() => {
-  console.info($adv.store.curNode)
 })
 </script>
 
