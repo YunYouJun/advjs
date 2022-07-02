@@ -70,10 +70,6 @@ adv your.adv.md
 - 状态：Todo
 - 目标：实现 VS Code 中对 `.adv.md` 文件的语法高亮与提示。
 
-<!-- ### [@advjs/plugin-vite](./packages/plugin-vite) Vite Adv 插件 -->
-
-<!-- - 功能：支持 Vite，可预先对 `.adv`, `.adv.md` 结尾的文件进行转译以便预编译。 -->
-
 ### [@advjs/vrm](./packages/vrm) VRM 模型在线编辑器
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/33595ad5-4006-460e-a826-d7fd98a20638/deploy-status)](https://app.netlify.com/sites/gallant-goodall-b4101f/deploys)
