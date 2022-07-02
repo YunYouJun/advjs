@@ -23,7 +23,7 @@ bgm:
       src: 'https://fastly.jsdelivr.net/gh/YunYouJun/cdn/audio/star-timer.mp3'
 ---
 
-小云：Hello～
+小云：Hello～hhhh
 
 ```json
 {
