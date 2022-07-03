@@ -42,7 +42,7 @@ const tachies = computed(() => {
 </script>
 
 <template>
-  <AdvContainer class="w-full h-full" text="white">
+  <AdvContainer text="white" class="w-screen h-screen">
     <div class="adv-game w-full h-full bg-black absolute">
       <AdvScene />
       <TachieBox :tachies="tachies" />
@@ -73,5 +73,7 @@ const tachies = computed(() => {
       <AdvHistory />
     </div>
   </AdvContainer>
+
+  <AdvHelper />
   <AdvGameDebug v-if="isDev" />
 </template>

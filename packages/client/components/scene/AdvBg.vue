@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useAdvCtx } from '~/setup/adv'
 import { useAppStore } from '~/stores/app'
 
@@ -21,6 +21,12 @@ watch(() => $adv.store.cur.background, (val) => {
     bgImage.value = val
     app.toggleBg()
   }, 1000)
+})
+
+onMounted(() => {
+  const url = $adv.store.cur.background
+  if (url)
+    bgImage.value = url
 })
 </script>
 

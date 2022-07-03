@@ -30,6 +30,8 @@ audio.setBgm($adv.config.bgm.collection[0]?.src)
         <div v-if="audio.curBgm.isPlaying" i-mdi-music-note-outline />
         <div v-else i-mdi-music-note-off-outline />
       </AdvIconButton>
+
+      <AdvHelper />
     </div>
 
     <AdvIconButton class="menu-setting-button" @click="app.toggleShowMenu()">

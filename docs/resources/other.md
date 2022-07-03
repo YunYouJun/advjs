@@ -4,9 +4,13 @@
 一些可能对你制作 AVG 有帮助的资源链接。
 :::
 
-## 生成背景
+## 图片生成
+
+### 背景
 
 - [Haikei](https://app.haikei.app/): 背景生成器
+- [Free SVG Generator](https://fffuel.co/)
+  - [bbburst](https://fffuel.co/bbburst/): 形状爆炸
 
 ## 资源网站
 

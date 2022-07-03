@@ -156,7 +156,7 @@ export function useLogic(ctx: {
         break
       case 'background':
         store.cur.background = node.url
-        break
+        return true
       default:
         break
     }

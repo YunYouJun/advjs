@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue'
 import { useElementSize } from '@vueuse/core'
+import { is } from '@babel/types'
 import { advAspect, advHeight, advWidth, configs } from '~/env'
+import { useAppStore } from '~/stores/app'
 
 const props = defineProps<{
   width?: number
   meta?: any
   scale?: number | string
 }>()
+
+const app = useAppStore()
 
 const root = ref<HTMLDivElement>()
 const element = useElementSize(root)
@@ -26,26 +30,23 @@ if (props.width) {
   })
 }
 
-const screenAspect = computed(() => width.value / height.value)
+const screenAspect = computed(() => app.isHorizontal ? width.value / height.value : height.value / width.value)
 
 const scale = computed(() => {
   if (props.scale)
     return props.scale
+
   if (screenAspect.value < advAspect)
-    return width.value / advWidth
-  return (height.value * advAspect) / advWidth
+    return app.isHorizontal ? (width.value / advWidth) : (height.value / advWidth)
+
+  return app.isHorizontal ? (height.value * advAspect) / advWidth : (width.value / advHeight)
 })
 
 const style = computed(() => ({
-  transform: `translate(-50%, -50%) scale(${scale.value})`,
+  '--adv-screen-width': `${advWidth}px`,
+  '--adv-screen-height': `${advHeight}px`,
+  'transform': `translate(-50%, -50%) scale(${scale.value}) rotate(${app.rotation}deg)`,
 }))
-
-const containerStyles = computed(() => {
-  return {
-    '--adv-screen-width': `${advWidth}px`,
-    '--adv-screen-height': `${advHeight}px`,
-  }
-})
 
 const className = computed(() => ({
   'select-none': !configs.selectable,
@@ -53,7 +54,7 @@ const className = computed(() => ({
 </script>
 
 <template>
-  <div ref="root" class="adv-screen relative overflow-hidden" :class="className" :style="containerStyles">
+  <div ref="root" class="adv-screen relative overflow-hidden" :class="className">
     <div id="adv-content" :style="style">
       <slot />
     </div>
@@ -63,9 +64,6 @@ const className = computed(() => ({
 
 <style lang="scss">
 // #adv-container will be hidden by adblock plugin
-.adv-screen {
-  background: var(--adv-screen-bg, var(--adv-c-bg));
-}
 
 #adv-content {
   @apply relative overflow-hidden absolute left-1/2 top-1/2;

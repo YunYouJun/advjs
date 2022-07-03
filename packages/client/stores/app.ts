@@ -1,6 +1,7 @@
 import { ns } from '@advjs/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { useStorage, useToggle } from '@vueuse/core'
+import { computed, ref } from 'vue'
 
 export const useAppStore = defineStore('app', () => {
   const [showUi, toggleUi] = useToggle(true)
@@ -21,7 +22,17 @@ export const useAppStore = defineStore('app', () => {
   const showCanvas = useStorage(ns('canvas'), false)
   const toggleCanvas = useToggle(showCanvas)
 
+  const rotation = ref(0)
+  const rotate = () => {
+    rotation.value = (rotation.value + 90) % 360
+  }
+  const isHorizontal = computed(() => rotation.value % 180 === 0)
+
   return {
+    rotation,
+    isHorizontal,
+    rotate,
+
     showUi,
     showHistory,
     showMenu,

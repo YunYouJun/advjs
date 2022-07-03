@@ -5,7 +5,7 @@ import { isDark } from '~/composables'
 withDefaults(defineProps<{
   bgImage?: string
 }>(), {
-  bgImage: 'https://fastly.jsdelivr.net/gh/YunYouJun/cdn/img/bg/stars-timing-0-blur-30px.jpg',
+  bgImage: 'https://cdn.yunyoujun.cn/img/bg/stars-timing-0-blur-30px.jpg',
 })
 </script>
 

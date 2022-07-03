@@ -13,7 +13,7 @@ const props = withDefaults(defineProps<{
   /**
    * show animation
    */
-  animation: boolean
+  animation?: boolean
 }>(), {
   words: '',
   mode: 'soft',

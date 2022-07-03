@@ -16,7 +16,7 @@ const defaultConfig: AdvConfig = {
   // game
   pages: {
     start: {
-      bg: 'https://fastly.jsdelivr.net/gh/YunYouJun/cdn/img/bg/stars-timing-0-blur-30px.jpg',
+      bg: 'https://cdn.yunyoujun.cn/img/bg/stars-timing-0-blur-30px.jpg',
     },
   },
   showCharacterAvatar: false,

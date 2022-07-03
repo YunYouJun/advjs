@@ -11,6 +11,8 @@ import '@unocss/reset/tailwind.css'
 import './styles/index.css'
 import 'uno.css'
 
+import 'wc-github-corners'
+
 const routes = setupLayouts(generatedRoutes)
 const router = createRouter({
   history: createWebHashHistory(),

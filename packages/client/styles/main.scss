@@ -8,6 +8,12 @@ body,
   margin: 0;
   padding: 0;
   color: var(--adv-c-text);
+
+  background-color: var(--adv-c-bg);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 #app {
