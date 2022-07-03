@@ -74,6 +74,5 @@ const tachies = computed(() => {
     </div>
   </AdvContainer>
 
-  <AdvHelper />
   <AdvGameDebug v-if="isDev" />
 </template>

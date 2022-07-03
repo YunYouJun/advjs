@@ -10,6 +10,8 @@ withDefaults(defineProps<{
 </script>
 
 <template>
+  <AdvHelper class="z-1 fixed left-5 bottom-5" text="white" />
+
   <div class="w-full h-full animate__animated animate__fadeIn">
     <AdvAdblock />
     <AdvContainer class="w-full h-full">
