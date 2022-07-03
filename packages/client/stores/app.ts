@@ -24,7 +24,7 @@ export const useAppStore = defineStore('app', () => {
 
   const rotation = ref(0)
   const rotate = () => {
-    rotation.value = (rotation.value + 90) % 360
+    rotation.value = rotation.value + 90
   }
   const isHorizontal = computed(() => rotation.value % 180 === 0)
 

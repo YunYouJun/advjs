@@ -55,7 +55,7 @@ const className = computed(() => ({
 
 <template>
   <div ref="root" class="adv-screen relative overflow-hidden" :class="className">
-    <div id="adv-content" :style="style">
+    <div id="adv-content" class="transition" :style="style">
       <slot />
     </div>
     <slot name="controls" />

@@ -1,7 +1,6 @@
 import type { SpeechSynthesisOptions } from '@vueuse/core'
 
 export interface SettingOptions {
-  isFullscreen: boolean
   text: TextOptions
   play: {
     mdUrl: string

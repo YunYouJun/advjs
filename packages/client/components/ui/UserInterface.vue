@@ -31,7 +31,8 @@ audio.setBgm($adv.config.bgm.collection[0]?.src)
         <div v-else i-mdi-music-note-off-outline />
       </AdvIconButton>
 
-      <AdvHelper />
+      <AdvHelper text="white" />
+      <AdvFullscreenBtn />
     </div>
 
     <AdvIconButton class="menu-setting-button" @click="app.toggleShowMenu()">

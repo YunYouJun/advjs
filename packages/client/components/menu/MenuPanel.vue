@@ -38,7 +38,7 @@ const items = computed(() => {
       label: t('settings.fullscreen'),
       type: 'Checkbox',
       props: {
-        checked: settings.storage.isFullscreen,
+        checked: isFullscreen.value,
         onClick: settings.toggleFullScreen,
       },
     },

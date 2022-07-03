@@ -13,7 +13,6 @@ export const useSettingsStore = defineStore('settings', () => {
 
   const getDefaultSettings = () => {
     const defaultSettings: SettingOptions = {
-      isFullscreen: false,
       text: {
         curSpeed: 'fast',
         curFontSize: 'xl',

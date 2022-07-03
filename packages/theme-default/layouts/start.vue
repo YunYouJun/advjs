@@ -11,6 +11,7 @@ withDefaults(defineProps<{
 
 <template>
   <AdvHelper class="z-1 fixed left-5 bottom-5" text="white" />
+  <AdvFullscreenBtn class="z-1 fixed right-5 top-5" text="white" />
 
   <div class="w-full h-full animate__animated animate__fadeIn">
     <AdvAdblock />
