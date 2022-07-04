@@ -9,11 +9,13 @@ body,
   padding: 0;
   color: var(--adv-c-text);
 
-  background-color: var(--adv-c-bg);
-
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+body {
+  background-color: var(--adv-c-bg);
 }
 
 #app {
@@ -22,16 +24,13 @@ body,
   text-align: center;
 }
 
-html.dark {
-  background: #121212;
-}
-
 #nprogress {
   pointer-events: none;
 }
 
 #nprogress .bar {
-  @apply bg-blue-600 opacity-75;
+  background: var(--adv-c-primary);
+  opacity: 0.75;
 
   position: fixed;
   z-index: 1031;

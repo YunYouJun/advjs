@@ -19,7 +19,7 @@ const curDialog = computed(() => $adv.store.cur.dialog)
 const iOrder = ref(0)
 
 watch(
-  () => curDialog.value.children[iOrder.value].value,
+  () => curDialog.value.children[iOrder.value]?.value,
   (val) => {
     // 若开启了语音合成
     if (settings.storage.speech) {
@@ -74,7 +74,7 @@ const curWords = computed(() => {
   if (props.node && props.node.type === 'text')
     return props.node.value
 
-  return curDialog.value.children[iOrder.value].value
+  return curDialog.value.children[iOrder.value]?.value
 })
 
 // trigger transition

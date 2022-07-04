@@ -27,3 +27,11 @@ meta:
 
 ⁄(⁄ ⁄ ⁄ω⁄ ⁄ ⁄)⁄ 不可以看这里啦！
 人家还没准备好！
+
+<br />
+
+<a class="flex justify-center items-center" href="https://github.com/YunYouJun/advjs" target="_blank">
+<div i-ri-github-line />
+&nbsp;
+<span>advjs</span>
+</a>

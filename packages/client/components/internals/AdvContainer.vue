@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue'
 import { useElementSize } from '@vueuse/core'
-import { is } from '@babel/types'
 import { advAspect, advHeight, advWidth, configs } from '~/env'
 import { useAppStore } from '~/stores/app'
 
@@ -54,7 +53,7 @@ const className = computed(() => ({
 </script>
 
 <template>
-  <div ref="root" class="adv-screen relative overflow-hidden" :class="className">
+  <div ref="root" class="adv-screen relative overflow-hidden" bg="black" :class="className">
     <div id="adv-content" class="transition" :style="style">
       <slot />
     </div>

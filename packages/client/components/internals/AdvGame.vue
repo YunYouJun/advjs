@@ -31,11 +31,13 @@ useAdvKeys()
 const tachies = computed(() => {
   const tachiesMap = new Map<string, Tachie>()
 
-  $adv.store.cur.tachies.forEach((tachie, key) => {
-    const character = getCharacter($adv.config.characters, key)
-    if (character)
-      tachiesMap.set(key, character.tachies[tachie.status || 'default'])
-  })
+  if ($adv.store.cur.tachies.size) {
+    $adv.store.cur.tachies.forEach((tachie, key) => {
+      const character = getCharacter($adv.config.characters, key)
+      if (character)
+        tachiesMap.set(key, character.tachies[tachie.status || 'default'])
+    })
+  }
 
   return tachiesMap
 })
