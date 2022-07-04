@@ -19,7 +19,14 @@ export namespace AdvAst {
 
   export interface Background {
     type: 'background'
-    url: string
+    /**
+     * load from assets by name
+     */
+    name?: string
+    /**
+     * load by url
+     */
+    url?: string
   }
 
   export interface Go extends Node {
@@ -137,7 +144,7 @@ export namespace AdvAst {
     /**
      * enter character
      */
-    enter: Omit<Character, 'type'>[]
+    enter: (Omit<Character, 'type'> | string)[] | string
     /**
      * exit character
      */

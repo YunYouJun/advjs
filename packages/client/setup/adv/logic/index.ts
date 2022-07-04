@@ -5,6 +5,7 @@ import consola from 'consola'
 import { useAdvStore } from '../store'
 import { useCamera } from './operation'
 import { useTachies } from './tachies'
+import { config } from '~/env'
 
 export function useLogic(ctx: {
   functions: Record<string, () => void>
@@ -155,7 +156,12 @@ export function useLogic(ctx: {
         nav.go(node.target)
         break
       case 'background':
-        store.cur.background = node.url
+        if (node.name)
+          store.cur.background = config.assets.background[node.name]
+        else if (node.url)
+          store.cur.background = node.url
+        else
+          consola.warn('[adv] Can not find background')
         return true
       default:
         break

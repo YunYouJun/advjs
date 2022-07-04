@@ -28,6 +28,11 @@ const defaultConfig: AdvConfig = {
     autoplay: false,
     collection: [],
   },
+  assets: {
+    images: {},
+    background: {},
+    audio: {},
+  },
 }
 
 export function resolveConfig(frontmatter: any) {

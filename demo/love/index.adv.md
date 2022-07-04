@@ -21,21 +21,18 @@ bgm:
   collection:
     - name: xxx
       src: 'https://cdn.yunyoujun.cn/audio/star-timer.mp3'
+assets:
+  background:
+    love: /img/bg/bbburst-love.svg
 ---
 
 > 屏幕里似乎传来了些声音
 
 小云：Hello～
 
-```json
-{
-  "type": "tachie",
-  "enter": [
-    {
-      "name": "小云"
-    }
-  ]
-}
+```yaml
+type: tachie
+enter: 小云
 ```
 
 小云：很高兴见到你
@@ -71,15 +68,9 @@ url: /img/bg/stacked-steps-haikei.svg
 
 小云：旁边的这位是我的合作伙伴——云游君
 
-```json
-{
-  "type": "tachie",
-  "enter": [
-    {
-      "name": "云游君"
-    }
-  ]
-}
+```yaml
+type: tachie
+enter: 云游君
 ```
 
 云游君：烫烫烫烫烫烫！烫烫烫烫烫烫！
@@ -96,7 +87,7 @@ url: /img/bg/stacked-steps-haikei.svg
 
 ```yaml
 type: tachie
-exit: [云游君]
+exit: 云游君
 ```
 
 小云：为了方便起见，就用第一人称了
@@ -150,7 +141,7 @@ exit: [云游君]
 
 ```yaml
 type: background
-url: /img/bg/bbburst-love.svg
+name: love
 ```
 
 小云：我喜欢你
@@ -159,8 +150,7 @@ url: /img/bg/bbburst-love.svg
 
 ```yaml
 type: tachie
-enter:
-  - name: 云游君
+enter: 云游君
 ```
 
 云游君：�������
@@ -180,7 +170,7 @@ enter:
 
 ```yaml
 type: tachie
-exit: [云游君]
+exit: 云游君
 ```
 
 小云：他脸皮还是太薄了

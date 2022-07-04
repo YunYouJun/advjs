@@ -92,6 +92,21 @@ export interface AdvConfig {
     collection: Music[]
   }
 
+  assets: {
+    /**
+     * other images
+     */
+    images: Record<string, string>
+    /**
+     * background url
+     */
+    background: Record<string, string>
+    /**
+     * audio url
+     */
+    audio: Record<string, string>
+  }
+
   // -------------------------------------------------
 }
 

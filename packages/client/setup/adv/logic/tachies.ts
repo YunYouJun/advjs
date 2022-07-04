@@ -6,26 +6,41 @@ import { config } from '~/env'
 
 export function useTachies() {
   const store = useAdvStore()
+  const tachies = store.cur.tachies
+
+  function enterTachie(name: string, status = 'default') {
+    const character = getCharacter(config.characters, name)
+    if (!character) {
+      consola.warn(`Can not find ${name}`)
+      return
+    }
+
+    const tachie = character.tachies?.[status]
+    if (!tachie) {
+      consola.error(`Can not find ${name}'s tachie: ${status}`)
+      return
+    }
+
+    tachies.set(character.name, { status })
+  }
 
   function handle(node: AdvAst.Tachie) {
-    const tachies = store.cur.tachies
     if (node.enter) {
-      node.enter.forEach((item) => {
-        const character = getCharacter(config.characters, item.name)
-        if (!character) {
-          consola.warn(`Can not find ${item.name}`)
-          return
-        }
-
-        const status = item.status || 'default'
-        const tachie = character.tachies?.[status]
-        if (!tachie) {
-          consola.error(`Can not find ${item.name}'s tachie: ${status}`)
-          return
-        }
-
-        tachies.set(character.name, { status })
-      })
+      if (typeof node.enter === 'string') { enterTachie(node.enter) }
+      else {
+        node.enter.forEach((item) => {
+          let cName
+          let cStatus
+          if (typeof item === 'string') {
+            cName = item
+          }
+          else {
+            cName = item.name
+            cStatus = item.status
+          }
+          enterTachie(cName, cStatus || 'default')
+        })
+      }
     }
     if (node.exit) {
       node.exit.forEach((item) => {

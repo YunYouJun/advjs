@@ -4,6 +4,7 @@ import { mergeConfig } from 'vite'
 import isInstalledGlobally from 'is-installed-globally'
 import { uniq } from '@antfu/utils'
 import { dependencies } from '../../../client/package.json'
+import { dependencies as parserDeps } from '../../../parser/package.json'
 import { getIndexHtml } from '../common'
 import type { ResolvedAdvOptions } from '../options'
 import { resolveGlobalImportPath, resolveImportPath, toAtFS } from '../utils'
@@ -35,7 +36,7 @@ const babylonDeps = [
 ]
 
 let INCLUDE = [
-  // ...Object.keys(dependencies),
+  ...Object.keys(parserDeps).filter(i => !EXCLUDE.includes(i)),
   ...Object.keys(dependencies).filter(i => !EXCLUDE.includes(i)),
 ]
 
