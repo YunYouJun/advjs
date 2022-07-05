@@ -6,22 +6,11 @@ import { nextTick, ref } from 'vue'
 import setupMonaco from '../setup/monaco'
 import { useEditorStore } from '../stores/editor'
 
+import { mdItems } from '../config'
+
 const { t } = useI18n()
 
 const editorStore = useEditorStore()
-
-const mdItems = [
-  {
-    name: 'test.adv.md',
-    url: 'https://fastly.jsdelivr.net/gh/YunYouJun/advjs/main/packages/examples/test.adv.md',
-  }, {
-    name: '小城之春.fountain（节选）',
-    url: 'https://fastly.jsdelivr.net/gh/YunYouJun/advjs/main/packages/examples/%E5%B0%8F%E5%9F%8E%E4%B9%8B%E6%98%A5.fountain',
-  }, {
-    name: '雷雨（节选）',
-    url: 'https://fastly.jsdelivr.net/gh/YunYouJun/advjs/packages/examples/%E9%9B%B7%E9%9B%A8.adv.md',
-  },
-]
 
 // loading status
 const loading = ref(false)
@@ -79,12 +68,10 @@ if (isClient)
       <div i-ri-link />
     </button>
     <VMenu placement="top">
-      <span class="icon-btn shadow rounded-full transition" hover="shadow-md" p="1">
-        <span class="inline-flex">
-          <div v-if="loading" i-ri-loader-line class="animate__spin" />
-          <div v-else i-ri-check-line text="green-500" class="cursor-pointer" @click="fetchMarkdown" />
-        </span>
-      </span>
+      <button class="icon-btn shadow rounded-full transition" hover="shadow-md">
+        <div v-if="loading" i-ri-loader-line class="animate__spin" />
+        <div v-else i-ri-check-line text="green-500" class="cursor-pointer" @click="fetchMarkdown" />
+      </button>
       <template #popper>
         <span class="inline-flex" text="black xs" :title="editorStore.options.mdUrl">{{ editorStore.options.mdUrl }}</span>
       </template>
@@ -94,6 +81,7 @@ if (isClient)
       v-model="editorStore.options.mdUrl"
       class="text-sm shadow bg-transparent outline-none"
       p="1"
+      placeholder="选择测试 Markdown"
       @change="fetchMarkdown"
     >
       <optgroup label="选择测试 Markdown">

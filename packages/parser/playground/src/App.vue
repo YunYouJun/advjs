@@ -7,9 +7,9 @@ import { isDark } from './composables'
 // github corners is web component, use null to not render reverse attribute
 
 useHead({
-  title: 'ADV.JS Editor',
+  title: 'Playground | ADV.JS Parser',
   meta: [
-    { name: 'description', content: 'ADV.JS 在线编辑器' },
+    { name: 'description', content: 'Playground for ADV.JS Parser' },
   ],
 })
 </script>

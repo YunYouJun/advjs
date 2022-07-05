@@ -22,13 +22,13 @@ function toCharacter(text: string) {
     const r = text.match(re)
 
     if (r) {
-      info.name = r[1]
-      info.status = r[2]
+      info.name = r[1].trim()
+      info.status = r[2].trim()
     }
   }
 
   if (!info.name)
-    info.name = text
+    info.name = text.trim()
 
   return info
 }

@@ -6,7 +6,7 @@ import pkg from '../../../package.json'
   <header p="2">
     <h1 class="text-center">
       Demo for
-      <a font="black" hover="underline" :href="pkg.homepage" target="_blank">{{ pkg.name }}</a>
+      <a font="black" hover="underline" :href="pkg.readme" target="_blank">{{ pkg.name }}</a>
       <a
         class="border rounded shadow text-white text-xs"
         bg="gray-800"
