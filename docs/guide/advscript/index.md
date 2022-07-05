@@ -6,15 +6,13 @@
 
 ::: tip
 
-- [剧本解析器](https://editor.advjs.org): 你可以实时查看 AdvScript/Markdown 被解析的语法树形态
 - [剧本标记语言 Fountain 中文手册](https://fountain.advjs.org/)：[Fountain](https://fountain.advjs.org) - 好莱坞事实剧本格式之一
+- [@advjs/parser](https://github.com/YunYouJun/advjs/tree/main/packages/parser): AdvScript 核心解析器
+  - 你可以在 [Playground | ADV.JS Parser](https://parser.advjs.org/) 中实时预览 AdvScript/Markdown 被解析的语法树形态
+
 :::
 
 AdvScript 的语法基于 Markdown，它会被解析器预解析为语法树。
-
-- [@advjs/parser](https://github.com/YunYouJun/advjs/tree/main/packages/parser): AdvScript 核心解析器
-- [@advjs/editor](https://github.com/YunYouJun/advjs/tree/main/packages/editor): 一个可在线预览编辑的解析器
-  - 你可以在 [ADV.JS Editor](https://editor.advjs.org/) 中预览它的解析效果。
 
 ## 约定
 

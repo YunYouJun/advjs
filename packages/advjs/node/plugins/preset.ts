@@ -27,7 +27,6 @@ export async function ViteAdvPlugin(
   } = pluginOptions
 
   const {
-    themeRoot,
     clientRoot,
     roots,
   } = options
@@ -68,13 +67,9 @@ export async function ViteAdvPlugin(
     Components({
       extensions: ['vue', 'md', 'ts'],
 
-      dirs: [
+      dirs: roots.map(root => `${root}/components`).concat([
         `${clientRoot}/builtin`,
-        `${clientRoot}/components`,
-        `${themeRoot}/components`,
-        'src/components',
-        'components',
-      ],
+      ]),
 
       include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
       exclude: [],

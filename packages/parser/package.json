@@ -8,7 +8,13 @@
     "url": "https://www.yunyoujun.cn"
   },
   "license": "MPL-2.0",
-  "homepage": "https://github.com/YunYouJun/advjs/tree/main/packages/parser#readme",
+  "homepage": "https://parser.advjs.org",
+  "keywords": [
+    "advjs",
+    "parser",
+    "ast"
+  ],
+  "readme": "https://github.com/YunYouJun/advjs/tree/main/packages/parser#readme",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -39,6 +45,7 @@
   "scripts": {
     "build": "rimraf dist && tsup",
     "dev": "nr build --watch",
+    "play": "npm -C playground run dev",
     "temp": "tsx test/index.ts",
     "test": "vitest",
     "prepublishOnly": "npm run build"
@@ -47,7 +54,7 @@
     "@advjs/types": "workspace:*",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
-    "mdast-util-to-hast": "^12.1.1",
+    "mdast-util-to-hast": "^12.1.2",
     "rehype-stringify": "^9.0.3",
     "remark": "^14.0.2",
     "remark-frontmatter": "^4.0.1",

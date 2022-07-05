@@ -51,7 +51,7 @@ const nav: DefaultTheme.Config['nav'] = [
         items: [
           {
             text: '剧本解析器',
-            link: 'https://editor.advjs.org',
+            link: 'https://parser.advjs.org',
           },
           {
             text: 'VRM 模型编辑器',

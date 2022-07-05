@@ -54,16 +54,12 @@ adv your.adv.md
 
 ### [@advjs/parser](./packages/parser) | 剧本解析器
 
+[![GitHub deployments](https://img.shields.io/github/deployments/YunYouJun/advjs/Production%20%E2%80%93%20advjs-parser?label=vercel&logo=vercel&logoColor=white)](https://github.com/YunYouJun/advjs/deployments/activity_log?environment=Production+%E2%80%93+advjs-parser)
+
 - 状态：开发中
 - 目标：使用 markdown 及扩展语法进行脚本的编写。语法树基于 [unified](https://github.com/unifiedjs/unified) 与 [remark](https://github.com/remarkjs/remark)实现。
-
-### [@advjs/editor](./packages/editor) 编辑器
-
-[![GitHub deployments](https://img.shields.io/github/deployments/YunYouJun/advjs/Production%20%E2%80%93%20advjs-editor?label=vercel&logo=vercel&logoColor=white)](https://github.com/YunYouJun/advjs/deployments/activity_log?environment=Production+%E2%80%93+advjs-editor)
-
-- Demo: <https://editor.advjs.org>
-- 目标：可在线编辑脚本的编辑器。（后续会有更多的功能吗？）
-- 当前：编辑 Markdown 并在线预览解析的语法树（基于 @advjs/parser）
+- 预览：<https://parser.advjs.org>
+  - 编辑 Markdown 并在线预览解析的语法树
 
 ### [@advjs/vscode](./packages/vscode) VSCode 插件
 

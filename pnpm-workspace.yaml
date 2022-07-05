@@ -1,4 +1,5 @@
 workspace:
   - packages/*
+  - packages/*/playground
   - demo/*
   - docs

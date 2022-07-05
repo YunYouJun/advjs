@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import pkg from '../../../parser/package.json'
+import pkg from '../../../package.json'
 </script>
 
 <template>

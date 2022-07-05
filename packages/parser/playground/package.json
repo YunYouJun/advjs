@@ -1,13 +1,12 @@
 {
-  "name": "@advjs/editor",
-  "version": "0.0.1",
+  "private": true,
   "author": {
     "name": "YunYouJun",
     "email": "me@yunyoujun.cn",
     "url": "https://www.yunyoujun.cn"
   },
   "license": "MPL-2.0",
-  "homepage": "https://github.com/YunYouJun/advjs/tree/main/packages/editor#readme",
+  "homepage": "https://parser.advjs.org",
   "scripts": {
     "dev": "vite --port 3456 --open --host",
     "build": "vite build"
@@ -18,7 +17,7 @@
     "monaco-editor": "^0.33.0",
     "pinia": "^2.0.14",
     "vue": "^3.2.37",
-    "vue-router": "^4.0.16",
+    "vue-router": "^4.1.0",
     "wc-github-corners": "^0.1.5"
   },
   "devDependencies": {
