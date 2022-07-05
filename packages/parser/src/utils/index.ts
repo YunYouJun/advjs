@@ -60,40 +60,21 @@ export function toDialog(text: string): AdvAst.Dialog | false {
     children: [],
   }
 
-  // 语法类型
-  let syntaxType: 'at' | 'delimiter' | '' = ''
-
   // 是否符合会话格式
-  let isDialog = false
   let pos = 0
 
   // @ Fountain语法
 
   if (text.startsWith('@'))
-    pos = text.indexOf(' ')
+    pos = text.indexOf('\n')
+
   if (pos > 0) {
-    isDialog = true
-    syntaxType = 'at'
-  }
+    const characterInfo = text.slice(1, pos)
+    const content = text.slice(pos + 1)
 
-  // 分隔符语法，若已匹配 @ 语法，则跳过
-  if (!isDialog) {
-    const delimiters = [':', '：']
-    delimiters.some((delimiter) => {
-      pos = text.indexOf(delimiter)
-      return pos > -1
-    })
-    if (pos > 0) {
-      isDialog = true
-      syntaxType = 'delimiter'
-    }
-  }
-
-  if (isDialog) {
-    const characterInfo = text.slice((syntaxType === 'at') ? 1 : 0, pos)
     info.character = toCharacter(characterInfo)
 
-    const words = text.slice(pos + 1).split('\n')
+    const words = content.split('\n')
     info.children = words.map(item => toText(item))
 
     return info

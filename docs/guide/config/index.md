@@ -30,5 +30,6 @@ characters:
           transform: scale(1) translateY(5%)
 ---
 
-小云：你好呀！
+@小云
+你好呀！
 ```

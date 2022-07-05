@@ -80,7 +80,7 @@ export namespace AdvAst {
   export interface Dialog extends Node {
     type: 'dialog'
     character: Character
-    children: Text[]
+    children: PhrasingContent[]
   }
 
   export interface Paragraph extends Node {
@@ -150,6 +150,64 @@ export namespace AdvAst {
      */
     exit: string[]
   }
+
+  // content
+
+  export interface Emphasis extends Node {
+    type: 'emphasis'
+    children: PhrasingContent[]
+  }
+
+  export interface Strong extends Node {
+    type: 'strong'
+    children: PhrasingContent[]
+  }
+
+  export interface Delete extends Node {
+    type: 'delete'
+    children: PhrasingContent[]
+  }
+
+  export interface InlineCode extends Node {
+    type: 'inlineCode'
+  }
+
+  export interface Break extends Node {
+    type: 'break'
+  }
+
+  export interface Resource {
+    url: string
+    title?: string | null | undefined
+  }
+
+  export interface Link extends Node, Resource {
+    type: 'link'
+    children: PhrasingContent[]
+  }
+
+  export interface Image extends Node, Resource {
+    type: 'image'
+    alt?: string | null | undefined
+  }
+
+  export interface HTML extends Node {
+    type: 'link'
+    value: string
+  }
+
+  export interface PhrasingContentMap {
+    text: Text
+    emphasis: Emphasis
+    strong: Strong
+    delete: Delete
+    html: HTML
+    inlinecode: InlineCode
+    break: Break
+    image: Image
+  }
+
+  export type PhrasingContent = PhrasingContentMap[keyof PhrasingContentMap]
 
   export type CodeOperation = Camera | Tachie | Background | Go
   export type Item = Unknown | Paragraph | Narration | Character | Words | Text | SceneInfo | Dialog | Choices | Code

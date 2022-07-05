@@ -2,6 +2,7 @@ import type { DefaultTheme } from 'vitepress'
 import { defineConfig } from 'vitepress'
 // import { VitePWA } from 'vite-plugin-pwa'
 
+import { customElements } from '../../packages/advjs/node/constants'
 import head from './config/head'
 import { metaData } from './config/constants'
 
@@ -88,6 +89,10 @@ function sidebarGuide(): DefaultTheme.SidebarGroup[] {
         {
           text: '快速开始',
           link: '/guide/quick-start',
+        },
+        {
+          text: '功能',
+          link: '/guide/features',
         },
         {
           text: 'VRM 模型编辑器',
@@ -274,4 +279,15 @@ export default defineConfig({
   },
 
   srcExclude: ['README.md'],
+
+  vue: {
+    template: {
+      compilerOptions: {
+        isCustomElement(tag) {
+          return customElements.has(tag)
+        },
+      },
+    },
+  },
 })
+

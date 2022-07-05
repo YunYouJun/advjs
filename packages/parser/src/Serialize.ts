@@ -108,19 +108,20 @@ export class Serialize {
     if (node.children.length === 1 && node.children[0].type === 'text')
       return this.text(node.children[0])
 
-    const info: AdvAst.Paragraph = {
-      type: 'paragraph',
-      children: node.children.map((child) => {
-        const item: any = {
-          type: child.type,
-        }
-        if (child.type === 'text')
-          return this.text(child)
+    // parse 'character: some words'
+    let astNode: AdvAst.Child = { type: 'unknown' }
+    if (node.children[0].type === 'text')
+      astNode = this.text(node.children[0])
 
-        return item
-      }),
+    if (astNode.type === 'dialog') {
+      const dialogChildren = astNode.children
+      if (node.children.length > 1) {
+        node.children.slice(1).forEach((child) => {
+          dialogChildren.push(this.parse(child) as AdvAst.PhrasingContent)
+        })
+      }
     }
-    return info
+    return astNode
   }
 
   /**

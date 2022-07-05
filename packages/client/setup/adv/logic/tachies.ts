@@ -8,7 +8,7 @@ export function useTachies() {
   const store = useAdvStore()
   const tachies = store.cur.tachies
 
-  function enterTachie(name: string, status = 'default') {
+  function enter(name: string, status = 'default') {
     const character = getCharacter(config.characters, name)
     if (!character) {
       consola.warn(`Can not find ${name}`)
@@ -24,9 +24,13 @@ export function useTachies() {
     tachies.set(character.name, { status })
   }
 
+  function exit(name: string) {
+    tachies.delete(name)
+  }
+
   function handle(node: AdvAst.Tachie) {
     if (node.enter) {
-      if (typeof node.enter === 'string') { enterTachie(node.enter) }
+      if (typeof node.enter === 'string') { enter(node.enter) }
       else {
         node.enter.forEach((item) => {
           let cName
@@ -38,14 +42,17 @@ export function useTachies() {
             cName = item.name
             cStatus = item.status
           }
-          enterTachie(cName, cStatus || 'default')
+          enter(cName, cStatus || 'default')
         })
       }
     }
     if (node.exit) {
-      node.exit.forEach((item) => {
-        tachies.delete(item)
-      })
+      if (typeof node.exit === 'string') { exit(node.exit) }
+      else {
+        node.exit.forEach((item) => {
+          exit(item)
+        })
+      }
     }
 
     // toggle tachie & show next text
@@ -68,6 +75,14 @@ export function useTachies() {
   }
 
   return {
+    /**
+     * enter tachie
+     */
+    enter,
+    /**
+     * exit tachie
+     */
+    exit,
     handle,
     update,
   }

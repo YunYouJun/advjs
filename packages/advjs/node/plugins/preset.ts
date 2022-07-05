@@ -9,14 +9,11 @@ import Markdown from 'vite-plugin-vue-markdown'
 import VueI18n from '@intlify/vite-plugin-vue-i18n'
 
 import type { AdvPluginOptions, AdvServerOptions, ResolvedAdvOptions } from '../options'
+import { customElements } from '../constants'
 import { createConfigPlugin } from './extendConfig'
 // import { createClientSetupPlugin } from './setupClient'
 import { createUnocssPlugin } from './unocss'
 import { createAdvLoader } from './loaders'
-
-const customElements = new Set([
-  '',
-])
 
 export async function ViteAdvPlugin(
   options: ResolvedAdvOptions,
