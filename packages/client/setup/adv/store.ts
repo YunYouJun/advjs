@@ -18,7 +18,10 @@ export interface CurStateType {
 /**
  * 游戏存档类型格式
  */
-export type AdvGameRecord = CurStateType
+export interface AdvGameRecord {
+  cur: CurStateType
+  userData: any
+}
 
 export interface AdvGameRecordMeta extends StorageMeta {
   /**
@@ -33,6 +36,29 @@ export interface AdvGameRecordMeta extends StorageMeta {
    * 备注
    */
   memo?: string
+}
+
+const defaultState: CurStateType = {
+  order: 0,
+  /**
+   * 当前对话
+   */
+  dialog: {
+    type: 'dialog',
+    character: {
+      type: 'character',
+      name: '',
+      status: '',
+    },
+    children: [
+      {
+        type: 'text',
+        value: '',
+      },
+    ],
+  },
+  tachies: new Map(),
+  background: '',
 }
 
 export const useAdvStore = defineStore('adv', () => {
@@ -51,28 +77,7 @@ export const useAdvStore = defineStore('adv', () => {
     ],
   })
 
-  const curState = ref<CurStateType>({
-    order: 0,
-    /**
-     * 当前对话
-     */
-    dialog: {
-      type: 'dialog',
-      character: {
-        type: 'character',
-        name: '',
-        status: '',
-      },
-      children: [
-        {
-          type: 'text',
-          value: '',
-        },
-      ],
-    },
-    tachies: new Map(),
-    background: '',
-  })
+  const curState = ref<CurStateType>(defaultState)
 
   const curNode = computed((): AdvAst.Item | undefined => {
     if (ast.value && ast.value.children.length > 0 && curState.value.order < ast.value.children.length)
@@ -86,6 +91,9 @@ export const useAdvStore = defineStore('adv', () => {
     if (curNode.value?.type === 'dialog')
       curState.value.dialog = curNode.value
   })
+  const reset = () => {
+    curState.value = defaultState
+  }
 
   return {
     ast,
@@ -103,6 +111,8 @@ export const useAdvStore = defineStore('adv', () => {
     status: {
       isEnd: computed(() => curState.value.order >= ast.value.children.length - 1),
     },
+    reset,
+    userData: {},
   }
 })
 

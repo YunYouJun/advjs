@@ -52,7 +52,7 @@ const saveCardMeta = async () => {
  */
 const saveToCard = async () => {
   const dataUrl = await screenshotGameThumb()
-  const curRecord = $adv.store.cur
+  const curRecord = { cur: $adv.store.cur, userData: $adv.store.userData }
   try {
     await game.saveRecord(props.no, curRecord)
     record.value = curRecord
@@ -74,7 +74,8 @@ const router = useRouter()
 const loadFromCard = () => {
   if (!record.value)
     return
-  $adv.store.cur = record.value
+  $adv.store.cur = record.value.cur
+  $adv.store.userData = record.value.userData
 
   // 关闭加载菜单
   app.toggleShowLoadMenu()
@@ -103,8 +104,8 @@ const onCardClick = () => {
       </h3>
       <p class="preview-narration" flex="~ col" h="full" bg="white" @click="onCardClick">
         <template v-if="record">
-          <span class="flex truncate" text="xs" m="1">{{ record.dialog?.character.name }}</span>
-          <span class="truncate" m="x-1">{{ record.dialog?.children[0].value }}</span>
+          <span class="flex truncate" text="xs" m="1">{{ record.cur.dialog?.character.name }}</span>
+          <span class="truncate" m="x-1">{{ record.cur.dialog?.children[0].value }}</span>
         </template>
       </p>
       <h3 text="base" class="flex justify-between items-center" bg="white">
