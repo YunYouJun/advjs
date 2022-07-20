@@ -2,7 +2,7 @@
 import type { AdvAst, AdvConfig, Tachie } from '@advjs/types'
 
 import { useBeforeUnload } from '@advjs/client/composables'
-import { computed, ref } from 'vue'
+import { computed, onUnmounted, ref } from 'vue'
 import { getCharacter } from '@advjs/core'
 import { useAppStore } from '~/stores/app'
 
@@ -22,6 +22,9 @@ const curNode = computed(() => $adv.store.curNode)
 // 添加提示，防止意外退出
 if (!__DEV__)
   useBeforeUnload()
+// 初始化需要执行next，否则如果场景或脚本开头会黑屏
+if ($adv.store.cur.order === 0 && curNode.value?.type !== 'dialog')
+  $adv.nav.next()
 
 const app = useAppStore()
 
@@ -40,6 +43,9 @@ const tachies = computed(() => {
   }
 
   return tachiesMap
+})
+onUnmounted(() => {
+  $adv.store.reset()
 })
 </script>
 
@@ -62,7 +68,7 @@ const tachies = computed(() => {
       </transition>
 
       <transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
-        <AdvChoice v-show="curNode?.type === 'choices'" :node="curNode" class="z-2" />
+        <AdvChoice v-if="curNode?.type === 'choices'" :node="curNode" class="z-2" />
       </transition>
 
       <transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">

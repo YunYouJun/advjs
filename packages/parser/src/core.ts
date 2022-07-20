@@ -27,16 +27,15 @@ export function convertMdToAdv(mdAst: MdAst.Root): AdvAst.Root {
     const advItem = parseChild(child)
     if (advItem) {
       ast.children.push(advItem)
-      if (advItem.type === 'scene')
-        ast.scene[advItem.place] = ast.children.length - 1
+      if (advItem.type === 'scene') { ast.scene[advItem.place] = ast.children.length - 1 }
       // mount code function
-      if (isScript(advItem)) {
+      else if (isScript(advItem)) {
         const name = `advFunc${i}`
         ast.functions[`advFunc${i}`] = advItem.value
         advItem.value = name
         i += 1
       }
-      if (advItem.type === 'choices') {
+      else if (advItem.type === 'choices') {
         advItem.choices.forEach((choice) => {
           if (isScript(choice.do)) {
             const name = `advFunc${i}`

@@ -35,8 +35,10 @@ export function useLogic(ctx: {
 
       const nodeLen = store.ast.children.length
       const curOrder = store.cur.order
-      if (curOrder >= nodeLen)
+      if (curOrder >= nodeLen) {
+        location.replace('#/start')
         return
+      }
 
       store.cur.order++
 
@@ -130,10 +132,11 @@ export function useLogic(ctx: {
         return
 
       if (Array.isArray(node.value)) {
-        for (const advNode of node.value) {
-          if (await handleCodeOperation(advNode))
-            return true
-        }
+        let res = false
+        for (const advNode of node.value)
+          res = res || await handleCodeOperation(advNode)
+
+        return res
       }
     }
   }
@@ -144,7 +147,7 @@ export function useLogic(ctx: {
    * run predefined
    * @param node Adv Node
    */
-  async function handleCodeOperation(node: AdvAst.CodeOperation): Promise<boolean | void> {
+  async function handleCodeOperation(node: AdvAst.CodeOperation): Promise<boolean> {
     switch (node.type) {
       case 'tachie': {
         return tachies.handle(node)
@@ -166,6 +169,7 @@ export function useLogic(ctx: {
       default:
         break
     }
+    return false
   }
 
   return {

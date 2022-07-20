@@ -3,7 +3,7 @@ import type { AdvAst } from '@advjs/types'
 export function parseScene(text: string) {
   // 匹配场景
   // 以 【】开头结尾，且至少存在一个字段
-  const re = /^【(.+)】$/
+  const re = /^[【\[](.+)[】\]]$/
   const separator = '，'
   if (re.test(text)) {
     const metaInfo: AdvAst.SceneInfo = {

@@ -2,14 +2,19 @@
 import { speak } from '@advjs/shared/speech'
 import { computed, ref, watch } from 'vue'
 import type { AdvAst } from '@advjs/types'
+import { useMagicKeys } from '@vueuse/core'
 import { useAdvCtx } from '~/setup'
 import { useSettingsStore } from '~/stores/settings'
+import { useAppStore } from '~/stores/app'
 
 const props = defineProps<{
   node: AdvAst.Child
 }>()
 
 const $adv = useAdvCtx()
+const keys = useMagicKeys()
+const { space } = keys
+const app = useAppStore()
 
 const settings = useSettingsStore()
 
@@ -33,8 +38,9 @@ const end = ref(false)
 const animation = ref(true)
 
 const next = async () => {
+  // 该回首页了
   if ($adv.store.status.isEnd)
-    return
+    return $adv.nav.next()
 
   if (!end.value && animation.value) {
     animation.value = false
@@ -58,6 +64,11 @@ const next = async () => {
     }
   }
 }
+
+watch(space, (v) => {
+  if (v && !app.showHistory && !app.showSaveMenu && !app.showLoadMenu && $adv.store.curNode?.type !== 'choices')
+    next()
+})
 
 const curCharacter = computed(() => curDialog.value.character)
 
