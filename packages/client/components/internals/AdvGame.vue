@@ -2,7 +2,7 @@
 import type { AdvAst, AdvConfig, Tachie } from '@advjs/types'
 
 import { useBeforeUnload } from '@advjs/client/composables'
-import { computed, ref } from 'vue'
+import { computed, onUnmounted, ref } from 'vue'
 import { getCharacter } from '@advjs/core'
 import { useAppStore } from '~/stores/app'
 
@@ -43,6 +43,9 @@ const tachies = computed(() => {
   }
 
   return tachiesMap
+})
+onUnmounted(() => {
+  $adv.store.reset()
 })
 </script>
 

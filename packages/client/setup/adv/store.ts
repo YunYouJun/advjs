@@ -77,7 +77,7 @@ export const useAdvStore = defineStore('adv', () => {
     ],
   })
 
-  const curState = ref<CurStateType>(defaultState)
+  const curState = ref<CurStateType>(Object.assign({}, defaultState))
 
   const curNode = computed((): AdvAst.Item | undefined => {
     if (ast.value && ast.value.children.length > 0 && curState.value.order < ast.value.children.length)
@@ -92,7 +92,7 @@ export const useAdvStore = defineStore('adv', () => {
       curState.value.dialog = curNode.value
   })
   const reset = () => {
-    curState.value = defaultState
+    curState.value = Object.assign({}, defaultState)
   }
 
   return {
