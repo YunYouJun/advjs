@@ -198,12 +198,14 @@ export namespace AdvAst {
 
   export interface PhrasingContentMap {
     text: Text
-    emphasis: Emphasis
-    strong: Strong
-    delete: Delete
+    // emphasis: Emphasis
+    // strong: Strong
+    // delete: Delete
     html: HTML
-    inlinecode: InlineCode
-    break: Break
+    // inlinecode: InlineCode
+    // break: Break
+    // inlinecode: InlineCode
+    // break: Break
     // image: Image
   }
 

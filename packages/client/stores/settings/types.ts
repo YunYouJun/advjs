@@ -1,4 +1,4 @@
-import type { SpeechSynthesisOptions } from '@vueuse/core'
+import type { UseSpeechSynthesisOptions } from '@vueuse/core'
 
 export interface SettingOptions {
   text: TextOptions
@@ -6,7 +6,7 @@ export interface SettingOptions {
     mdUrl: string
   }
   speech: boolean
-  speechOptions: SpeechSynthesisOptions
+  speechOptions: UseSpeechSynthesisOptions
   animation: {
     duration: number
   }

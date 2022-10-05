@@ -2,8 +2,11 @@
   "compilerOptions": {
     "baseUrl": ".",
     "module": "ESNext",
-    "target": "es2016",
-    "lib": ["DOM", "ESNext"],
+    "target": "ESNext",
+    "lib": [
+      "DOM",
+      "ESNext"
+    ],
     "strict": true,
     "esModuleInterop": true,
     "jsx": "preserve",
@@ -12,6 +15,7 @@
     "resolveJsonModule": true,
     "noUnusedLocals": true,
     "strictNullChecks": true,
+    "allowJs": true,
     "forceConsistentCasingInFileNames": true,
     "types": [
       // "@babylonjs/core",
@@ -26,20 +30,48 @@
       "vite-plugin-vue-layouts/client"
     ],
     "paths": {
-      "~/*": ["./packages/client/*"],
-      "advjs": ["./packages/advjs/node/index.ts"],
-      "@advjs/core": ["./packages/core/src/index.ts"],
-      "@advjs/client/*": ["./packages/client/*"],
-      "@advjs/examples/*": ["./packages/examples/*"],
-      "@advjs/parser": ["./packages/parser/src/index.ts"],
-      "@advjs/parser/fs": ["./packages/parser/src/fs.ts"],
-      "@advjs/shared": ["./packages/shared/src/index.ts"],
-      "@advjs/shared/*": ["./packages/shared/src/*"],
-      "@advjs/types": ["./packages/types/src/index.ts"],
-      "@advjs/theme-default": ["./packages/theme-default/index.ts"],
-      "@advjs/theme-default/*": ["./packages/theme-default/*"],
-      "@advjs/*": ["./packages/*/src/index.ts"],
-      "advjs/*": ["./packages/advjs/src/*"]
+      "~/*": [
+        "./packages/client/*"
+      ],
+      "advjs": [
+        "./packages/advjs/node/index.ts"
+      ],
+      "@advjs/core": [
+        "./packages/core/src/index.ts"
+      ],
+      "@advjs/client/*": [
+        "./packages/client/*"
+      ],
+      "@advjs/examples/*": [
+        "./packages/examples/*"
+      ],
+      "@advjs/parser": [
+        "./packages/parser/src/index.ts"
+      ],
+      "@advjs/parser/fs": [
+        "./packages/parser/src/fs.ts"
+      ],
+      "@advjs/shared": [
+        "./packages/shared/src/index.ts"
+      ],
+      "@advjs/shared/*": [
+        "./packages/shared/src/*"
+      ],
+      "@advjs/types": [
+        "./packages/types/src/index.ts"
+      ],
+      "@advjs/theme-default": [
+        "./packages/theme-default/index.ts"
+      ],
+      "@advjs/theme-default/*": [
+        "./packages/theme-default/*"
+      ],
+      "@advjs/*": [
+        "./packages/*/src/index.ts"
+      ],
+      "advjs/*": [
+        "./packages/advjs/src/*"
+      ]
     }
   },
   "include": [
@@ -50,5 +82,8 @@
     "./packages/**/*.ts",
     "./packages/**/*.vue"
   ],
-  "exclude": ["**/dist/**", "node_modules"]
+  "exclude": [
+    "**/dist/**",
+    "node_modules"
+  ]
 }

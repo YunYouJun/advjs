@@ -55,7 +55,7 @@
     "@advjs/types": "workspace:*",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
-    "mdast-util-to-hast": "^12.1.2",
+    "mdast-util-to-hast": "^12.2.4",
     "rehype-stringify": "^9.0.3",
     "remark": "^14.0.2",
     "remark-frontmatter": "^4.0.1",

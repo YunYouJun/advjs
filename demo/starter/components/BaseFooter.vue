@@ -13,5 +13,5 @@ const copyright = {
 </script>
 
 <template>
-  <vue-about-me :is-dark="isDark" :copyright="copyright" />
+  <VueAboutMe :is-dark="isDark" :copyright="copyright" />
 </template>

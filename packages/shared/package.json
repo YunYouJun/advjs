@@ -6,5 +6,11 @@
     "email": "me@yunyoujun.cn",
     "url": "https://www.yunyoujun.cn"
   },
-  "license": "MPL-2.0"
+  "license": "MPL-2.0",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*"
+  },
+  "main": "src/index.ts",
+  "module": "src/index.ts"
 }

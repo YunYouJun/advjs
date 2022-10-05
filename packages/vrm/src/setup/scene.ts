@@ -1,4 +1,4 @@
-import { GridMaterial } from '@babylonjs/materials/grid'
+import { GridMaterial } from '@babylonjs/materials'
 import * as BABYLON from '@babylonjs/core'
 
 export const createSkybox = (scene: BABYLON.Scene) => {

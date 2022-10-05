@@ -1,11 +1,11 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { convertMdToAdv, mdParse, mdRender } from '@advjs/parser'
 import type { Root as MdRoot } from 'mdast'
 import type { AdvAst } from '@advjs/types'
 import { ns } from '@advjs/core'
 
 import { ref } from 'vue'
 import { useDebounceFn, useStorage } from '@vueuse/core'
+import { convertMdToAdv, mdParse, mdRender } from '@advjs/parser'
 
 export type OutputType = 'adv' | 'preview' | 'html' | 'markdown-it'
 
@@ -16,7 +16,8 @@ export const useEditorStore = defineStore('editor', () => {
     outputType: OutputType
     inputText: string
   }>(ns('editor:options'), {
-    mdUrl: 'https://raw.githubusercontent.com/YunYouJun/advjs/main/packages/advjs/examples/test.adv.md',
+    mdUrl:
+      'https://raw.githubusercontent.com/YunYouJun/advjs/main/packages/advjs/examples/test.adv.md',
     /**
      * 输出类型
      */

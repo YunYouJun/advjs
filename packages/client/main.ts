@@ -18,18 +18,22 @@ import 'animate.css'
 
 import { createAdv } from './setup'
 import { statement } from './utils/statement'
+import type { UserModule } from './types'
 
 const routes = setupLayouts(generatedRoutes)
+const router = createRouter({
+  history: createWebHashHistory(import.meta.env.BASE_URL),
+  routes,
+})
 
 const app = createApp(App)
 app.use(createHead())
-app.use(createRouter({
-  history: createWebHashHistory(import.meta.env.BASE_URL),
-  routes,
-}))
+app.use(router)
 
-Object.values(import.meta.globEager('./modules/*.ts')).map(i =>
-  i.install?.({ app }),
+Object.values(
+  import.meta.glob<{ install: UserModule }>('./modules/*.ts', { eager: true }),
+).map(i =>
+  i.install?.({ app, isClient: typeof window !== 'undefined', router }),
 )
 
 app.use(createAdv())

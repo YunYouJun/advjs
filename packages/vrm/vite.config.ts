@@ -12,7 +12,10 @@ import Prism from 'markdown-it-prism'
 import LinkAttributes from 'markdown-it-link-attributes'
 import Unocss from 'unocss/vite'
 
-import { commonAlias } from '../shared/config/vite'
+// https://github.com/vitejs/vite/issues/5370
+// wait released https://github.com/vitejs/vite/pull/10254
+// import { commonAlias } from '@advjs/shared/config/vite'
+const defaultThemeFolder = path.resolve(__dirname, '../theme-default')
 
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
 export default defineConfig((config) => {
@@ -25,7 +28,16 @@ export default defineConfig((config) => {
         {
           '~/': `${path.resolve(__dirname, 'src')}/`,
         },
-        commonAlias,
+        // commonAlias,
+        {
+          '@advjs/client/': `${path.resolve(__dirname, '../client')}/`,
+          '@advjs/core': `${path.resolve(__dirname, '../core/src')}/`,
+          '@advjs/examples/': `${path.resolve(__dirname, '../examples')}/`,
+          '@advjs/parser/': `${path.resolve(__dirname, '../parser/src')}/`,
+          '@advjs/shared/': `${path.resolve(__dirname, '../shared/src')}/`,
+          '@advjs/theme-default': defaultThemeFolder,
+          '@advjs/theme-default/': `${defaultThemeFolder}/`,
+        },
       ),
     },
 
@@ -50,10 +62,7 @@ export default defineConfig((config) => {
 
       // https://github.com/antfu/unplugin-vue-components
       Components({
-        dirs: [
-          'src/components',
-          '../theme-default/components',
-        ],
+        dirs: ['src/components', '../theme-default/components'],
         // allow auto load markdown components under `./src/components/`
         extensions: ['vue', 'md'],
 
@@ -71,7 +80,7 @@ export default defineConfig((config) => {
         wrapperClasses: markdownWrapperClasses,
         headEnabled: true,
         markdownItSetup(md) {
-        // https://prismjs.com/
+          // https://prismjs.com/
           md.use(Prism)
           md.use(LinkAttributes, {
             pattern: /^https?:\/\//,
@@ -104,14 +113,17 @@ export default defineConfig((config) => {
 
       // https://github.com/antfu/vite-plugin-inspect
       Inspect({
-      // change this to enable inspect for debugging
+        // change this to enable inspect for debugging
         enabled: false,
       }),
     ],
 
-    server: {
-      fs: {
-        strict: true,
+    // https://github.com/vitest-dev/vitest
+    test: {
+      include: ['test/**/*.test.ts'],
+      environment: 'jsdom',
+      deps: {
+        inline: ['@vue', '@vueuse', 'vue-demi'],
       },
     },
 
@@ -121,30 +133,9 @@ export default defineConfig((config) => {
       formatting: 'minify',
     },
 
-    optimizeDeps: {
-      include: [
-        'vue',
-        'vue-router',
-        '@vueuse/core',
-        '@vueuse/head',
-        // babylon
-        '@babylonjs/core',
-        '@babylonjs/loaders',
-        '@babylonjs/materials/grid',
-        'babylon-vrm-loader',
-      ],
-      exclude: [
-        'vue-demi',
-      ],
-    },
-
-    // https://github.com/vitest-dev/vitest
-    test: {
-      include: ['test/**/*.test.ts'],
-      environment: 'jsdom',
-      deps: {
-        inline: ['@vue', '@vueuse', 'vue-demi'],
-      },
+    ssr: {
+      // TODO: workaround until they support native ESM
+      noExternal: ['workbox-window', /vue-i18n/],
     },
   }
 })

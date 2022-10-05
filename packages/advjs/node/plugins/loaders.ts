@@ -171,8 +171,8 @@ export function createAdvLoader(
 
               try {
                 const md = await markdownToVue(entry, newData.raw)
-
-                return await vuePlugin.handleHotUpdate!({
+                const handleHotUpdate = 'handler' in vuePlugin.handleHotUpdate! ? vuePlugin.handleHotUpdate!.handler : vuePlugin.handleHotUpdate!
+                return await handleHotUpdate!({
                   ...ctx,
                   modules: Array.from(ctx.server.moduleGraph.getModulesByFile(file) || []),
                   file,
@@ -182,6 +182,7 @@ export function createAdvLoader(
               catch {}
             })(),
           ]).flatMap(i => i || [])
+          hmrPages.clear()
 
           const moduleEntries = [
             ...vueModules,

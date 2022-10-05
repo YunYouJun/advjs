@@ -13,17 +13,16 @@ import Unocss from 'unocss/vite'
 import Prism from 'markdown-it-prism'
 import LinkAttributes from 'markdown-it-link-attributes'
 
-import { commonAlias } from '../../shared/config/vite'
-
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
 const monacoPrefix = 'monaco-editor/esm/vs'
-
-// const defaultThemeFolder = path.resolve(__dirname, './src/client/theme-default/')
 
 // https://vitejs.dev/config/
 export default defineConfig({
   resolve: {
-    alias: commonAlias,
+    alias: {
+      '@advjs/core': `${path.resolve(__dirname, '../', '../core/src')}/`,
+      '@advjs/parser': `${path.resolve(__dirname, '../', '../parser/src')}/`,
+    },
   },
 
   plugins: [
@@ -103,17 +102,6 @@ export default defineConfig({
       enabled: false,
     }),
   ],
-
-  server: {
-    fs: {
-      strict: true,
-    },
-  },
-
-  optimizeDeps: {
-    include: ['vue', 'vue-router', '@vueuse/core', '@vueuse/head'],
-    exclude: ['vue-demi'],
-  },
 
   build: {
     rollupOptions: {

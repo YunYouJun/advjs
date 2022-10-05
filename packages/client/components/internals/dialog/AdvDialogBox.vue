@@ -21,10 +21,11 @@ const iOrder = ref(0)
 watch(
   () => curDialog.value.children[iOrder.value]?.value,
   (val) => {
+    const lang = settings.storage.speechOptions.lang
     // 若开启了语音合成
     if (settings.storage.speech) {
       speechSynthesis.cancel()
-      speak(val, settings.storage.speechOptions.lang || 'zh-CN')
+      speak(val, (typeof lang === 'function' ? lang() : lang) || 'zh-CN')
     }
   },
 )

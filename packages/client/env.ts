@@ -10,7 +10,7 @@ export const config = _configs as AdvConfig
 if (__DEV__) {
   if (import.meta.hot) {
     import.meta.hot.accept('/@advjs/configs', (m) => {
-      advConfigRef.value = m.default
+      advConfigRef.value = m?.default
     })
 
     import.meta.hot?.on('advjs:update', (payload) => {
