@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import VPButton from 'vitepress/client/theme-default/components/VPButton.vue'
+import VPButton from 'vitepress/dist/client/theme-default/components/VPButton.vue'
 
 defineProps<{
   name?: string

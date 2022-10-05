@@ -13,7 +13,7 @@ import LinkAttributes from 'markdown-it-link-attributes'
 import Unocss from 'unocss/vite'
 
 // https://github.com/vitejs/vite/issues/5370
-// wait released https://github.com/vitejs/vite/pull/10254
+// todo: wait released https://github.com/vitejs/vite/pull/10254
 // import { commonAlias } from '@advjs/shared/config/vite'
 const defaultThemeFolder = path.resolve(__dirname, '../theme-default')
 

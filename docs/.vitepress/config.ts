@@ -2,7 +2,8 @@ import type { DefaultTheme } from 'vitepress'
 import { defineConfig } from 'vitepress'
 // import { VitePWA } from 'vite-plugin-pwa'
 
-import { customElements } from '../../packages/advjs/node/constants'
+// todo: // wait released https://github.com/vitejs/vite/pull/10254
+// import { customElements } from '../../packages/advjs/node/constants'
 import head from './config/head'
 import { metaData } from './config/constants'
 
@@ -284,7 +285,8 @@ export default defineConfig({
     template: {
       compilerOptions: {
         isCustomElement(tag) {
-          return customElements.has(tag)
+          // return customElements.has(tag)
+          return new Set(['font']).has(tag)
         },
       },
     },
