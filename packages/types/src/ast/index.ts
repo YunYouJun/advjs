@@ -204,7 +204,7 @@ export namespace AdvAst {
     html: HTML
     inlinecode: InlineCode
     break: Break
-    image: Image
+    // image: Image
   }
 
   export type PhrasingContent = PhrasingContentMap[keyof PhrasingContentMap]

@@ -34,7 +34,7 @@ GitHub Pages 固然方便，但相对它们也有一些缺点。
 
 - 单个项目的 GitHub Pages 往往只能托管在一个 gh-pages 分支上
 - 且需要自定义 CNAME 其他灵活性相对不如第三方托管站点
-- 且 gh-pages 分支也会触发 vercel 等的自动构建，最后显示一个红 ❌
+- CDN 速度慢于 Vercel/Netlify/Cloudflare
 
 故我决定移除 gh-pages 分支，仅采用第三方托管平台。
 

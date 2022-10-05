@@ -6,6 +6,10 @@
 
 ## 图片生成
 
+## 人物
+
+- [NovelAI](https://novelai.net/image)（收费）: 生成人物
+
 ### 背景
 
 - [Haikei](https://app.haikei.app/): 背景生成器
