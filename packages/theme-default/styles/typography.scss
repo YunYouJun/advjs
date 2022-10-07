@@ -1,4 +1,6 @@
-.adv-font-serif {
-  font-family: 'ZCOOL XiaoWei', 'Songti SC', 'Noto Serif SC', STZhongsong, STKaiti, KaiTi,
-  Roboto, ui-serif,Georgia,Cambria,"Times New Roman",Times,serif;
+@use 'sass:map';
+@use './vars.scss' as *;
+
+:root {
+  --adv-font-serif: #{map.get($adv-font, 'serif')};
 }

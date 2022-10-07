@@ -58,18 +58,18 @@ const tachies = computed(() => {
       <BaseLayer v-if="!app.showUi" />
 
       <transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
-        <AdvDialogBox v-show="app.showUi" :node="curNode" class="animate__animated z-1" />
+        <AdvDialogBox v-show="app.showUi" :node="curNode" class="adv-animated z-1" />
       </transition>
 
       <transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
-        <AdvChoice v-show="curNode?.type === 'choices'" :node="curNode" class="z-2" />
+        <AdvChoice v-show="curNode?.type === 'choices'" :node="curNode" class="adv-animated z-2" />
       </transition>
 
       <transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
-        <DialogControls v-show="app.showUi" class="animate__animated absolute left-0 right-0 bottom-0 z-3" />
+        <DialogControls v-show="app.showUi" class="adv-animated absolute left-0 right-0 bottom-0 z-3" />
       </transition>
       <transition enter-active-class="animate__fadeInDown" leave-active-class="animate__fadeOutUp">
-        <UserInterface v-show="app.showUi" class="animate__animated z-99" />
+        <UserInterface v-show="app.showUi" class="adv-animated z-99" />
       </transition>
 
       <AdvHistory />

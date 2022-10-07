@@ -9,7 +9,7 @@
   "homepage": "https://parser.advjs.org",
   "scripts": {
     "dev": "vite --port 3456 --open --host",
-    "build": "npm run copy:examples && vite build"
+    "build": "vite build"
   },
   "dependencies": {
     "@vueuse/core": "^9.3.0",

@@ -1,7 +1,26 @@
 @use 'sass:map';
 
-$adv-font-serif: 'Songti SC', 'Noto Serif SC', STZhongsong, STKaiti, KaiTi,
-  Roboto, serif;
+$adv-font: () !default;
+$adv-font: map.merge(
+  (
+    'serif': (
+      'ZCOOL XiaoWei',
+      'Songti SC',
+      'Noto Serif SC',
+      STZhongsong,
+      STKaiti,
+      KaiTi,
+      Roboto,
+      ui-serif,
+      Georgia,
+      Cambria,
+      'Times New Roman',
+      Times,
+      serif,
+    ),
+  ),
+  $adv-font
+);
 
 $adv-colors: () !default;
 $adv-colors: map.merge(

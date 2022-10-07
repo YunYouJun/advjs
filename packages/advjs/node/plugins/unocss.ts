@@ -41,7 +41,27 @@ export const createSafelist = async (config: AdvConfig) => {
 
 export const createUnocssConfig = async (options: ResolvedAdvOptions, unocssOptions: AdvPluginOptions['unocss'] = {}) => {
   const unocssConfig: VitePluginConfig | string = {
-    shortcuts: [],
+    shortcuts: [
+      [
+        'adv-animated-faster',
+        'animate-fill-mode-both animate-duration-100',
+      ],
+      [
+        'adv-animated-fast',
+        'animate-fill-mode-both animate-duration-$adv-animation-duration-fast',
+      ],
+      [
+        'adv-animated',
+        'animate-fill-mode-both animate-duration-$adv-animation-duration',
+      ],
+      [
+        'adv-animated-slow',
+        'animate-fill-mode-both animate-duration-$adv-animation-duration-slow',
+      ],
+      ['font-serif', 'font-$adv-font-serif'],
+      ['font-sans', 'font-$adv-font-sans'],
+      ['font-mono', 'font-$adv-font-mono'],
+    ],
     presets: [
       presetUno(),
       presetAttributify(),
@@ -64,21 +84,7 @@ export const createUnocssConfig = async (options: ResolvedAdvOptions, unocssOpti
       //   },
       // }),
     ],
-    rules: [
-      // ['font-serif', {
-      //   'font-family': 'var(--adv-font-serif)',
-      // }],
-      // ['font-sans', {
-      //   'font-family': 'var(--adv-font-sans)',
-      // }],
-      // ['font-mono', {
-      //   'font-family': 'var(--adv-font-mono)',
-      // }],
-    ],
-    transformers: [
-      transformerDirectives(),
-      transformerVariantGroup(),
-    ],
+    transformers: [transformerDirectives(), transformerVariantGroup()],
     safelist: await createSafelist(options.data.config),
   }
 

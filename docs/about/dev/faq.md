@@ -43,4 +43,6 @@ GitHub Pages 固然方便，但相对它们也有一些缺点。
 
 ## tsup@5
 
+> Now, has upgraded to tsup@6.
+
 Lock tsup@5 to fix esm build shim.
