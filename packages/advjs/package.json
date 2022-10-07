@@ -18,6 +18,10 @@
       "require": "./dist/index.js",
       "import": "./dist/index.mjs"
     },
+    "./node": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    },
     "./*": "./*"
   },
   "main": "dist/index.js",

@@ -36,29 +36,17 @@
       "advjs": [
         "./packages/advjs/node/index.ts"
       ],
-      "@advjs/core": [
-        "./packages/core/src/index.ts"
-      ],
       "@advjs/client/*": [
         "./packages/client/*"
       ],
       "@advjs/examples/*": [
         "./packages/examples/*"
       ],
-      "@advjs/parser": [
-        "./packages/parser/src/index.ts"
-      ],
       "@advjs/parser/fs": [
         "./packages/parser/src/fs.ts"
       ],
-      "@advjs/shared": [
-        "./packages/shared/src/index.ts"
-      ],
       "@advjs/shared/*": [
         "./packages/shared/src/*"
-      ],
-      "@advjs/types": [
-        "./packages/types/src/index.ts"
       ],
       "@advjs/theme-default": [
         "./packages/theme-default/index.ts"

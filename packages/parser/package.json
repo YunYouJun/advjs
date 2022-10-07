@@ -52,7 +52,6 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@advjs/types": "workspace:*",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
     "mdast-util-to-hast": "^12.2.4",
@@ -65,6 +64,8 @@
     "unified": "^10.1.2"
   },
   "devDependencies": {
+    "@advjs/types": "workspace:*",
+    "@advjs/unocss": "workspace:*",
     "@types/js-yaml": "^4.0.5",
     "@types/mdast": "^3.0.10"
   }

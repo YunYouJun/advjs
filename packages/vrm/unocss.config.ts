@@ -7,7 +7,8 @@ import {
   transformerDirectives,
   transformerVariantGroup,
 } from 'unocss'
-import { presetAdv } from 'advjs'
+// @advjs/unocss
+import { presetAdv } from '../unocss/src'
 
 const safelist = 'm-auto text-left'.split(' ')
 

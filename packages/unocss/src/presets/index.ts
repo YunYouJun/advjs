@@ -16,7 +16,7 @@ export function presetAdv(options: PresetOptions = {}): Preset {
   const shortcuts = options.shortcutOverrides ? (defu(options.shortcutOverrides, themeShortcuts) as Preset['shortcuts']) : themeShortcuts
 
   return {
-    name: '@advjs/preset-core',
+    name: '@advjs/unocss',
     shortcuts,
     safelist: ['m-auto', 'text-left'],
   }

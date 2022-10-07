@@ -105,10 +105,6 @@ export default defineConfig({
 
   build: {
     rollupOptions: {
-      // input: {
-      //   main: path.resolve(__dirname, 'index.html'),
-      //   parser: path.resolve(__dirname, '/parser/index.html'),
-      // },
       output: {
         inlineDynamicImports: false,
         manualChunks: {
