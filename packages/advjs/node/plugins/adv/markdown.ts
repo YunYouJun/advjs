@@ -103,7 +103,7 @@ export function createMarkdown(options: ResolvedOptions) {
     if (options.frontmatter) {
       const { head, frontmatter } = frontmatterPreprocess(data || {}, options)
       // to delete
-      scriptLines.push(`const frontmatter = ${JSON.stringify(frontmatter)}`)
+      scriptLines.push(`const frontmatter = ${transformObject(frontmatter)}`)
 
       if (!defineExposeRE.test(hoistScripts.scripts.join('')))
         scriptLines.push('defineExpose({ frontmatter })')
@@ -115,20 +115,26 @@ export function createMarkdown(options: ResolvedOptions) {
       }
     }
 
-    scriptLines.push(...hoistScripts.scripts)
-
-    // extract markdown code script
-    const hoistAdvScripts = extractAdvScriptSetup(advAst)
-    scriptLines.push(...hoistAdvScripts)
-
     // todo: use ts file
 
-    const scripts = `<script setup lang="ts">\n${scriptLines.join('\n')}\n</script>`
+    const vueSrc = [
+      '<script setup lang="ts">',
+      ...scriptLines,
+      ...hoistScripts.scripts,
+      // extract adv.md code script
+      ...extractAdvScriptSetup(advAst),
+      '</script>',
+      '',
+      '<template>',
+      html,
+      '</template>',
+      '',
+      ...customBlocks.blocks,
+    ].join('\n')
 
-    const sfc = `<template>${html}</template>\n${scripts}\n${customBlocks.blocks.join(
-      '\n',
-    )}\n`
-
-    return sfc
+    return {
+      // code
+      vueSrc,
+    }
   }
 }

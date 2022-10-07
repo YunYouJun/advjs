@@ -46,3 +46,14 @@ GitHub Pages 固然方便，但相对它们也有一些缺点。
 > Now, has upgraded to tsup@6.
 
 Lock tsup@5 to fix esm build shim.
+
+## build:demo error
+
+```bash
+/@advjs/drama.adv.md?vue&type=script&setup=true&lang.ts:1:8: ERROR: Expected ">" but found "setup"
+```
+
+- Env `dev` is work. (`pnpm run demo`)
+- Build works when vite@2.
+
+Seems to be related with <https://github.com/vuejs/core/issues/5830>.

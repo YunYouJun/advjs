@@ -1,12 +1,12 @@
 {
   "name": "@advjs/unocss",
-  "main": "dist/index.js",
   "exports": {
     ".": {
       "require": "./dist/index.js",
       "import": "./dist/index.mjs"
     }
   },
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsup"
   }

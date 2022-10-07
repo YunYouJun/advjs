@@ -33,7 +33,6 @@ export async function ViteAdvPlugin(
 
   const vuePlugin = Vue({
     include: [/\.vue$/, /\.md$/],
-    exclude: [],
     template: {
       compilerOptions: {
         isCustomElement(tag) {
@@ -55,6 +54,7 @@ export async function ViteAdvPlugin(
     Pages({
       extensions: ['vue', 'md'],
       dirs: roots.map(root => `${root}/pages`),
+      exclude: ['**/*.adv.md'],
     }),
 
     // https://github.com/JohnCampionJr/vite-plugin-vue-layouts
@@ -62,17 +62,14 @@ export async function ViteAdvPlugin(
       layoutsDirs: roots.map(root => `${root}/layouts`),
     }),
 
-    // createSlidesLoader(options, pluginOptions, serverOptions, VuePlugin, MarkdownPlugin),
-
     Components({
-      extensions: ['vue', 'md', 'ts'],
+      extensions: ['vue', 'md'],
 
-      dirs: roots.map(root => `${root}/components`).concat([
-        `${clientRoot}/builtin`,
-      ]),
+      dirs: roots
+        .map(root => `${root}/components`)
+        .concat([`${clientRoot}/builtin`]),
 
       include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
-      exclude: [],
 
       ...componentsOptions,
     }),

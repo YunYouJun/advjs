@@ -17,6 +17,7 @@ function onChoiceClick(choice: AdvAst.Choice) {
 
 <template>
   <div
+    v-if="node && node.choices && node.choices.length"
     class="adv-choice absolute justify-center items-center"
     flex="~ col"
     w="full"
@@ -29,7 +30,6 @@ function onChoiceClick(choice: AdvAst.Choice) {
         {{ choice.text }}
       </li>
     </ul>
-    <slot />
   </div>
 </template>
 

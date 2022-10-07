@@ -25,7 +25,7 @@ export async function build(
     const inlineConfig = await mergeViteConfigs(
       options,
       viteConfig,
-      <InlineConfig>({
+      <InlineConfig>{
         root: options.userRoot,
         plugins: [
           await ViteAdvPlugin(options, pluginOptions),
@@ -47,7 +47,11 @@ export async function build(
             },
           },
         },
-      }),
+        ssr: {
+          // TODO: workaround until they support native ESM
+          noExternal: ['workbox-window', /vue-i18n/],
+        },
+      },
       'build',
     )
 

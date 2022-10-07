@@ -4,7 +4,7 @@ import { existsSync, readFileSync } from 'fs-extra'
 import type { AdvMarkdown } from '@advjs/types'
 import * as parser from '@advjs/parser/fs'
 import equal from 'fast-deep-equal'
-import type { LoadResult } from 'rollup'
+import { notNullish } from '@antfu/utils'
 import type { ResolvedAdvOptions } from '../options'
 import { toAtFS } from '../utils'
 import { createMarkdown, resolveOptions } from './adv'
@@ -27,7 +27,11 @@ export function createAdvLoader(
   }
 
   const filter = (name: string) => {
-    return name.endsWith('.adv.md') || name.startsWith('/@advjs/drama')
+    return (
+      name.endsWith('.adv.md')
+      || name.endsWith('.adv')
+      || name.startsWith('/@advjs/drama')
+    )
   }
 
   /**
@@ -39,15 +43,6 @@ export function createAdvLoader(
     const config = { ...data.config, remote, features: data.features }
     return `export default ${JSON.stringify(config)}`
   }
-
-  // handle .adv.md in .adv.md
-  // function generateDrama() {
-  //   const scripts = [
-  //     `import _Drama from "${toAtFS(entry)}"`,
-  //     'export default _Drama',
-  //   ]
-  //   return scripts.join('\n')
-  // }
 
   function generateLocales(roots: string[]) {
     const imports: string[] = [
@@ -97,6 +92,28 @@ export function createAdvLoader(
 
   return [
     {
+      name: 'advjs:adv-md:pre',
+      enforce: 'pre',
+      /**
+       * transform adv.md to vue for, next loader
+       * @param code
+       * @param id
+       * @returns
+       */
+      async transform(code, id) {
+        if (!filter(id))
+          return
+
+        try {
+          const { vueSrc } = await transformMarkdown(entry, code)
+          return vueSrc
+        }
+        catch (e: any) {
+          this.error(e)
+        }
+      },
+    },
+    {
       name: 'advjs:loader',
 
       resolveId(id) {
@@ -105,7 +122,7 @@ export function createAdvLoader(
         return null
       },
 
-      load(id): LoadResult | Promise<LoadResult> {
+      load(id) {
         if (id === '/@advjs/configs')
           return generateConfigs()
 
@@ -116,8 +133,6 @@ export function createAdvLoader(
         if (id === '/@advjs/styles')
           return generateUserStyles(roots)
 
-        // if (id === '/@advjs/drama')
-        // return generateDrama()
         if (id.startsWith(advPrefix)) {
           return {
             code: data.raw,
@@ -165,23 +180,28 @@ export function createAdvLoader(
           const hmrPages = new Set<number>()
           hmrPages.add(1)
 
-          const vueModules = ([
+          const vueModules = [
             await (async () => {
               const file = entry
 
               try {
-                const md = await markdownToVue(entry, newData.raw)
-                const handleHotUpdate = 'handler' in vuePlugin.handleHotUpdate! ? vuePlugin.handleHotUpdate!.handler : vuePlugin.handleHotUpdate!
+                const { vueSrc } = await markdownToVue(entry, newData.raw)
+                const handleHotUpdate
+                  = 'handler' in vuePlugin.handleHotUpdate!
+                    ? vuePlugin.handleHotUpdate!.handler
+                    : vuePlugin.handleHotUpdate!
                 return await handleHotUpdate!({
                   ...ctx,
-                  modules: Array.from(ctx.server.moduleGraph.getModulesByFile(file) || []),
+                  modules: Array.from(
+                    ctx.server.moduleGraph.getModulesByFile(file) || [],
+                  ),
                   file,
-                  read() { return md },
+                  read: () => vueSrc,
                 })
               }
               catch {}
             })(),
-          ]).flatMap(i => i || [])
+          ].flatMap(i => i || [])
           hmrPages.clear()
 
           const moduleEntries = [
@@ -189,20 +209,12 @@ export function createAdvLoader(
             ...Array.from(moduleIds).map((id) => {
               return server.moduleGraph.getModuleById(id)
             }),
-          ].filter(<T>(item: T): item is NonNullable<T> => !!item)
+          ]
+            .filter(notNullish)
+            .filter(i => !i.id?.startsWith('/@id/@vite-icons'))
 
           return moduleEntries
         }
-      },
-    },
-    {
-      name: 'advjs:layout-transform:pre',
-      enforce: 'pre',
-      transform(code, id) {
-        if (!filter(id))
-          return
-
-        return transformMarkdown(entry, code)
       },
     },
   ]

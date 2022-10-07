@@ -7,6 +7,8 @@ import { defineConfig } from 'vitepress'
 import head from './config/head'
 import { metaData } from './config/constants'
 
+const customElements = new Set(['font'])
+
 const nav: DefaultTheme.Config['nav'] = [
   { text: '指南', link: '/guide/' },
   { text: 'API', link: 'https://api.docs.advjs.org' },
@@ -285,8 +287,7 @@ export default defineConfig({
     template: {
       compilerOptions: {
         isCustomElement(tag) {
-          // return customElements.has(tag)
-          return new Set(['font']).has(tag)
+          return customElements.has(tag)
         },
       },
     },

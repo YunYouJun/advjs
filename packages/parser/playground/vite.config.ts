@@ -16,6 +16,8 @@ import LinkAttributes from 'markdown-it-link-attributes'
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
 const monacoPrefix = 'monaco-editor/esm/vs'
 
+const customElements = ['github-corners']
+
 // https://vitejs.dev/config/
 export default defineConfig({
   resolve: {
@@ -31,7 +33,7 @@ export default defineConfig({
       template: {
         compilerOptions: {
           isCustomElement: (tag) => {
-            return ['github-corners'].includes(tag)
+            return customElements.includes(tag)
           },
         },
       },
