@@ -43,10 +43,12 @@
     "node": ">=14.0.0"
   },
   "scripts": {
+    "postinstall": "npm run copy",
     "build": "rimraf dist && tsup",
+    "copy": "tsx scripts/copy.ts",
     "dev": "nr build --watch",
     "play": "npm -C playground run dev",
-    "play:build": "npm -C playground run build",
+    "play:build": "npm run copy && npm -C playground run build",
     "temp": "tsx test/index.ts",
     "test": "vitest",
     "prepublishOnly": "npm run build"

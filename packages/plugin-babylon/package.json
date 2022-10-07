@@ -51,6 +51,6 @@
     "babylon-vrm-loader": "^2.0.0-alpha.1"
   },
   "devDependencies": {
-    "tsup": "6"
+    "tsup": "^6.2.3"
   }
 }

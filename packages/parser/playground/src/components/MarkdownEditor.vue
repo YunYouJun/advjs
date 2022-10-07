@@ -69,7 +69,7 @@ if (isClient)
     </button>
     <VMenu placement="top">
       <button class="icon-btn shadow rounded-full transition" hover="shadow-md">
-        <div v-if="loading" i-ri-loader-line class="animate__spin" />
+        <div v-if="loading" i-ri-loader-line class="animate-spin" />
         <div v-else i-ri-check-line text="green-500" class="cursor-pointer" @click="fetchMarkdown" />
       </button>
       <template #popper>
