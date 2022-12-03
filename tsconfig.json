@@ -23,6 +23,7 @@
       // "@babylonjs/gui",
       // "@babylonjs/materials",
       // "babylon-vrm-loader",
+      "vitepress",
       "vite/client",
       "node",
       "vue/ref-macros",
@@ -72,6 +73,6 @@
   ],
   "exclude": [
     "**/dist/**",
-    "node_modules"
+    "**/node_modules/**"
   ]
 }
