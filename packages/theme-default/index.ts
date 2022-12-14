@@ -1,4 +1,3 @@
-export * from './config'
 export * from './types'
 
-export * from './assets'
+export * as assets from './assets'

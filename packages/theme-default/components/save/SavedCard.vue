@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { defaultBgUrl } from '@advjs/theme-default'
+import { images } from '@advjs/theme-default/assets'
 import dayjs from 'dayjs'
 import { screenshotGameThumb } from '@advjs/core'
 import { onMounted, ref } from 'vue'
@@ -94,7 +94,7 @@ const onCardClick = () => {
 <template>
   <div class="saved-card shadow-md hover:shadow-lg" grid="~ cols-2" border="~ black dark:white" m="x-2 y-1" h="26">
     <div class="preview-image-container h-full overflow-hidden shadow" bg="white dark:black" @click="onCardClick">
-      <img class="w-full h-full object-cover" :src="meta?.thumbnail || defaultBgUrl">
+      <img class="w-full h-full object-cover" :src="meta?.thumbnail || images.defaultBgUrl">
     </div>
     <div class="overflow-hidden" flex="~ col">
       <h3 text="base" class="flex justify-between items-center" bg="white" @click="onCardClick">

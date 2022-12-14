@@ -1,11 +1,12 @@
 <script setup lang="ts">
 // Game Start Menu Page Layout
+import { images } from '../assets'
 import { isDark } from '~/composables'
 
 withDefaults(defineProps<{
   bgImage?: string
 }>(), {
-  bgImage: 'https://cdn.yunyoujun.cn/img/bg/stars-timing-0-blur-30px.jpg',
+  bgImage: images.defaultBgUrl,
 })
 </script>
 

@@ -1,7 +1,7 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { useToggle } from '@vueuse/core'
 
-import { popDownUrl, popUpOffUrl, popUpOnUrl } from '@advjs/theme-default'
+import { assets } from '@advjs/theme-default'
 import { computed, ref } from 'vue'
 // @vueuse/sound not reactive
 import { useSound } from '@advjs/client/composables/sound'
@@ -21,7 +21,7 @@ export const useAudioStore = defineStore('audio', () => {
   const sVolume = computed(() => isSoundMuted.value ? 0 : soundVolume.value)
   const mVolume = computed(() => isMusicMuted.value ? 0 : musicVolume.value)
 
-  const bgmUrl = ref(popUpOnUrl)
+  const bgmUrl = ref(assets.audios.popUpOnUrl)
   // @ts-expect-error wait https://github.com/vueuse/sound/pull/25
   const curBgm = useSound(bgmUrl, { loop: true, volume: mVolume })
 
@@ -41,9 +41,9 @@ export const useAudioStore = defineStore('audio', () => {
     }
   }
 
-  const popDown = useSound(popDownUrl, { volume: sVolume })
-  const popUpOn = useSound(popUpOnUrl, { volume: sVolume })
-  const popUpOff = useSound(popUpOffUrl, { volume: sVolume })
+  const popDown = useSound(assets.audios.popDownUrl, { volume: sVolume })
+  const popUpOn = useSound(assets.audios.popUpOnUrl, { volume: sVolume })
+  const popUpOff = useSound(assets.audios.popUpOffUrl, { volume: sVolume })
 
   const reset = () => {
     soundVolume.value = defaultSoundVolume

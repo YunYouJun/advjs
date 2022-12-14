@@ -1,6 +1,6 @@
 import type { AdvConfig } from '@advjs/types'
 
-const defaultConfig: AdvConfig = {
+export const defaultConfig: AdvConfig = {
   features: {
     babylon: false,
   },

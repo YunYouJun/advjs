@@ -2,7 +2,7 @@
 import { useFullscreen } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 
-import { useScreenLock } from '@advjs/core'
+import { useScreenLock } from '@advjs/client/composables'
 import type { AdvMenuItemProps } from '@advjs/theme-default'
 
 import { computed } from 'vue'

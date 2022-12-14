@@ -7,11 +7,12 @@ import type UnoCSS from 'unocss/vite'
 // import type ServerRef from 'vite-plugin-vue-server-ref'
 import type { ArgumentsType } from '@antfu/utils'
 import { uniq } from '@antfu/utils'
-import type { AdvMarkdown } from '@advjs/types'
+import type { AdvConfig, AdvMarkdown } from '@advjs/types'
 import _debug from 'debug'
 import { parser } from './parser'
 import { packageExists, resolveImportPath } from './utils'
 import { getThemeMeta, resolveThemeName } from './themes'
+import { resolveAdvConfig } from './config'
 
 const debug = _debug('adv:options')
 
@@ -38,6 +39,8 @@ export interface AdvEntryOptions {
   userRoot?: string
 }
 
+export type AdvUserConfig = Partial<AdvConfig>
+
 export interface ResolvedAdvOptions {
   data: AdvMarkdown
   entry: string
@@ -49,6 +52,12 @@ export interface ResolvedAdvOptions {
   roots: string[]
   mode: 'dev' | 'build'
   remote?: boolean
+
+  /**
+   * Adv Config
+   */
+  config: AdvUserConfig
+  configFile: string
 }
 
 export interface AdvPluginOptions extends AdvEntryOptions {
@@ -128,20 +137,9 @@ export async function resolveOptions(
 
   const roots = uniq([clientRoot, themeRoot, userRoot])
 
-  debug({
-    data,
-    mode,
-    entry,
-    theme,
-    userRoot,
-    clientRoot,
-    cliRoot,
-    themeRoot,
-    roots,
-    remote,
-  })
+  const { config = {}, configFile = '' } = await resolveAdvConfig()
 
-  return {
+  const advOptions: ResolvedAdvOptions = {
     data,
     mode,
     entry,
@@ -152,5 +150,11 @@ export async function resolveOptions(
     themeRoot,
     roots,
     remote,
+
+    config: config || {},
+    configFile,
   }
+
+  debug(advOptions)
+  return advOptions
 }

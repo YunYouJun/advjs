@@ -1,17 +1,18 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
-const props = withDefaults(defineProps<{ duration?: number }>(), {
+import * as themeAssets from '@advjs/theme-default/assets'
+
+withDefaults(defineProps<{ duration?: number }>(), {
   duration: 2000,
 })
 
+const assets = { ...themeAssets }
+
 const router = useRouter()
-onMounted(() => {
-  setTimeout(() => {
-    router.push('/start')
-  }, props.duration)
-})
+const onLoaded = () => {
+  router.push('/start')
+}
 </script>
 
 <template>
@@ -30,6 +31,8 @@ onMounted(() => {
     <div class="font-bold">
       @YunYouJun
     </div>
+
+    <StartLoading :assets="assets" @loaded="onLoaded" />
   </main>
 </template>
 

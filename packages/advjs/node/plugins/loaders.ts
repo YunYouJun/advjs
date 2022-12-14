@@ -5,6 +5,7 @@ import type { AdvMarkdown } from '@advjs/types'
 import * as parser from '@advjs/parser/fs'
 import equal from 'fast-deep-equal'
 import { notNullish } from '@antfu/utils'
+import defu from 'defu'
 import type { ResolvedAdvOptions } from '../options'
 import { toAtFS } from '../utils'
 import { createMarkdown, resolveOptions } from './adv'
@@ -14,7 +15,7 @@ interface AdvHmrPayload {
 }
 
 export function createAdvLoader(
-  { data, remote, roots, entry }: ResolvedAdvOptions,
+  { data, remote, roots, entry, config: resolvedAdvConfig }: ResolvedAdvOptions,
   vuePlugin: Plugin,
 ): Plugin[] {
   const advPrefix = '/@advjs/drama'
@@ -40,7 +41,8 @@ export function createAdvLoader(
    * @returns
    */
   function generateConfigs() {
-    const config = { ...data.config, remote, features: data.features }
+    // front override latter
+    const config = defu({ ...data.config, remote, features: data.features }, resolvedAdvConfig)
     return `export default ${JSON.stringify(config)}`
   }
 

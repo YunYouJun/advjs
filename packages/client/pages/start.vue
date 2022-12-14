@@ -4,7 +4,9 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '~/stores/app'
-import { yunAlphaUrl, yunGoodAlphaUrl } from '~/utils'
+import { config } from '~/env'
+
+const images = computed(() => config.assets.images)
 
 const app = useAppStore()
 
@@ -72,18 +74,18 @@ const menuItems = computed<StartMenuItem[]>(() =>
     class="absolute -right-2 bottom-0 animate__animated animate__slideInUp animate-delay-500"
     h="15"
     w="15"
-    :src="yunGoodAlphaUrl"
+    :src="images.yunGoodAlphaUrl"
   >
 
   <img
     class="h-200 absolute top-5 -left-5
     animate__animated animate__fadeInRight z-2 filter drop-shadow-lg"
-    :src="yunAlphaUrl"
+    :src="images.yunAlphaUrl"
   >
   <div class="animate__animated animate__fadeInRight animate-delay-200">
     <img
       class="h-200 absolute left-89 top-5 z-1 filter drop-shadow-lg transform -rotate-y-180"
-      :src="yunAlphaUrl"
+      :src="images.yunAlphaUrl"
     >
   </div>
 
