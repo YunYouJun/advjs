@@ -8,12 +8,13 @@
     "Doki",
     "Galgame",
     "mdast",
+    "pixi",
     "Prefiltered",
     "Skybox",
     "tachie",
     "tachies",
-    "VRoid",
-    "unstorage"
+    "unstorage",
+    "VRoid"
   ],
   "i18n-ally.keystyle": "nested",
   "i18n-ally.localesPaths": "locales",

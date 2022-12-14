@@ -36,6 +36,7 @@
     "babylon:dev": "pnpm -C packages/plugin-babylon dev",
     "core:build": "pnpm -C packages/core build",
     "core:dev": "pnpm -C packages/core dev",
+    "docs": "pnpm -C docs dev",
     "docs:build": "pnpm -C docs build",
     "docs:dev": "pnpm -C docs dev",
     "docs:serve": "pnpm -C docs serve",

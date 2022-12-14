@@ -20,12 +20,20 @@ const nav: DefaultTheme.Config['nav'] = [
     text: '关于',
     items: [
       {
+        text: 'ADV.JS',
+        link: '/about/index',
+      },
+      {
         text: '设计',
         link: '/about/design/',
       },
       {
         text: '开发',
         link: '/about/dev/',
+      },
+      {
+        text: '设想',
+        link: '/about/future/',
       },
     ],
   },
@@ -139,6 +147,16 @@ function sidebarGuide(): DefaultTheme.SidebarGroup[] {
 function sidebarAbout(): DefaultTheme.SidebarGroup[] {
   return [
     {
+      text: '关于',
+      collapsible: true,
+      items: [
+        {
+          text: '关于 ADV.JS',
+          link: '/about/index',
+        },
+      ],
+    },
+    {
       text: '设计',
       collapsible: true,
       items: [
@@ -194,6 +212,16 @@ function sidebarAbout(): DefaultTheme.SidebarGroup[] {
         },
       ],
     },
+    {
+      text: '未来',
+      collapsible: true,
+      items: [
+        {
+          text: '设想',
+          link: '/about/future/index',
+        },
+      ],
+    },
   ]
 }
 
@@ -222,7 +250,6 @@ const sidebar: DefaultTheme.Config['sidebar'] = {
       collapsible: true,
       items: [
         { text: '相关资源', link: '/resources/' },
-        { text: '相关素材', link: '/resources/other' },
         { text: '案例展示', link: '/resources/showcases' },
         { text: '学习资源', link: '/resources/learning' },
       ],
@@ -293,4 +320,3 @@ export default defineConfig({
     },
   },
 })
-
