@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+// Game Instance
 import type { AdvAst, AdvConfig, Tachie } from '@advjs/types'
 
 import { useBeforeUnload } from '@advjs/client/composables'

@@ -1,3 +1,5 @@
-export const popDownUrl = 'https://r2.yunyoujun.cn/audio/pop-down.mp3'
-export const popUpOnUrl = 'https://r2.yunyoujun.cn/audio/pop-up-on.mp3'
-export const popUpOffUrl = 'https://r2.yunyoujun.cn/audio/pop-up-off.mp3'
+const cdnPrefix = 'https://assets.advjs.org'
+
+export const popDownUrl = `${cdnPrefix}/audio/pop-down.mp3`
+export const popUpOnUrl = `${cdnPrefix}/audio/pop-up-on.mp3`
+export const popUpOffUrl = `${cdnPrefix}/audio/pop-up-off.mp3`

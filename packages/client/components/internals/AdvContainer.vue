@@ -4,21 +4,19 @@ import { useElementSize } from '@vueuse/core'
 import { advAspect, advHeight, advWidth, configs } from '~/env'
 import { useAppStore } from '~/stores/app'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   width?: number
   meta?: any
   scale?: number | string
-}>()
+}>(), {})
 
 const app = useAppStore()
 
 const root = ref<HTMLDivElement>()
 const element = useElementSize(root)
 
-const width = computed(() => (props.width ? props.width : element.width.value))
-const height = computed(() =>
-  props.width ? props.width / advAspect : element.height.value,
-)
+const width = computed(() => props.width ? props.width : element.width.value)
+const height = computed(() => props.width ? props.width / advAspect : element.height.value)
 
 if (props.width) {
   watchEffect(() => {
@@ -31,7 +29,7 @@ if (props.width) {
 
 const screenAspect = computed(() => app.isHorizontal ? width.value / height.value : height.value / width.value)
 
-const scale = computed(() => {
+const containerScale = computed(() => {
   if (props.scale)
     return props.scale
 
@@ -44,7 +42,7 @@ const scale = computed(() => {
 const style = computed(() => ({
   '--adv-screen-width': `${advWidth}px`,
   '--adv-screen-height': `${advHeight}px`,
-  'transform': `translate(-50%, -50%) scale(${scale.value}) rotate(${app.rotation}deg)`,
+  'transform': `translate(-50%, -50%) scale(${containerScale.value}) rotate(${app.rotation}deg)`,
 }))
 
 const className = computed(() => ({
@@ -65,7 +63,10 @@ const className = computed(() => ({
 // #adv-container will be hidden by adblock plugin
 
 #adv-content {
-  @apply relative overflow-hidden absolute left-1/2 top-1/2;
+  @apply overflow-hidden left-1/2 top-1/2;
+
+  display: flex;
+  position: relative;
 
   width: var(--adv-screen-width);
   height: var(--adv-screen-height);

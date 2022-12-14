@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// 开始菜单
+// Game Start Menu Page Layout
 import { isDark } from '~/composables'
 
 withDefaults(defineProps<{
@@ -16,7 +16,11 @@ withDefaults(defineProps<{
   <div class="w-full h-full animate__animated animate__fadeIn">
     <AdvAdblock />
     <AdvContainer class="w-full h-full">
-      <div class="adv-start-bg absolute w-full h-full -z-1" :class="isDark ? 'filter invert' : ''" bg="cover no-repeat center" :style="{ backgroundImage: `url(${bgImage})` }" />
+      <div
+        class="adv-start-bg absolute w-full h-full -z-1" :class="isDark ? 'filter invert' : ''"
+        bg="cover no-repeat center"
+        :style="{ backgroundImage: `url(${bgImage})` }"
+      />
       <main
         class="page-start w-full h-full text-gray-900 dark:text-gray-200"
       >
