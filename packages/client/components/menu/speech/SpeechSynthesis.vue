@@ -41,10 +41,10 @@ const voiceOptions = ref([
 ])
 
 const speechLanguageItem = computed<AdvMenuItemProps>(() => ({
-  label: t('settings.speech_language'),
   type: 'Select',
+  label: t('settings.speech_language'),
   props: {
-    selected: sOptions.lang || 'zh-HK',
+    selected: sOptions.lang as string || 'zh-HK',
     options: voiceOptions.value.map(item => ({
       label: item.name,
       value: item.lang,

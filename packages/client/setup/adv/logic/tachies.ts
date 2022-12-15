@@ -30,7 +30,9 @@ export function useTachies() {
 
   function handle(node: AdvAst.Tachie) {
     if (node.enter) {
-      if (typeof node.enter === 'string') { enter(node.enter) }
+      if (typeof node.enter === 'string') {
+        enter(node.enter)
+      }
       else {
         node.enter.forEach((item) => {
           let cName
@@ -47,7 +49,9 @@ export function useTachies() {
       }
     }
     if (node.exit) {
-      if (typeof node.exit === 'string') { exit(node.exit) }
+      if (typeof node.exit === 'string') {
+        exit(node.exit)
+      }
       else {
         node.exit.forEach((item) => {
           exit(item)
@@ -87,4 +91,3 @@ export function useTachies() {
     update,
   }
 }
-

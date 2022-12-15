@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useRouter } from 'vue-router'
-import * as assets from '~/assets'
+import { config } from '~/env'
 
 const router = useRouter()
 
@@ -10,5 +10,5 @@ const onLoaded = () => {
 </script>
 
 <template>
-  <StartLoading :assets="assets" @loaded="onLoaded" />
+  <StartLoading :assets="config.assets" @loaded="onLoaded" />
 </template>
