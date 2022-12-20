@@ -1,4 +1,4 @@
-import type { Preset, PresetOptions } from '@unocss/core'
+import type { Preset, PresetOptions } from 'unocss'
 import { defu } from 'defu'
 
 const themeShortcuts: Exclude<Preset['shortcuts'], undefined> = [

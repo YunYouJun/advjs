@@ -16,9 +16,10 @@ export function useImages(options: MaybeComputedRef<UseImageOptions[]>) {
     if (img)
       imagesQueue.value.push(img)
   })
-  const isLoading = computed(() => imagesQueue.value.filter(item => !!item).reduce((left: any, right: any) => {
-    return left.isLoading || right.isLoading
-  }))
+  // isLoading is boolean
+  const isLoading = computed(() => imagesQueue.value.filter(item => !!item).reduce((acc, cur: any) => {
+    return acc || cur.isLoading
+  }, false))
 
   return {
     isLoading,

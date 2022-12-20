@@ -43,7 +43,7 @@ export default defineConfig((config) => {
 
     build: {
       rollupOptions: {
-        external: ['/@advjs/configs'],
+        external: ['/@advjs/configs', 'babylon-vrm-loader'],
       },
     },
 

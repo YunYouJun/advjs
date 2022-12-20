@@ -156,12 +156,15 @@ export function useLogic(ctx: {
         nav.go(node.target)
         break
       case 'background':
-        if (node.name)
-          store.cur.background = config.assets.background[node.name]
-        else if (node.url)
+        if (node.name) {
+          const bg = config.assets.background
+          if (bg && bg[node.name])
+            store.cur.background = bg[node.name]
+        }
+        else if (node.url) {
           store.cur.background = node.url
-        else
-          consola.warn('[adv] Can not find background')
+        }
+        else { consola.warn('[adv] Can not find background') }
         return true
       default:
         break

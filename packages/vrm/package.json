@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@advjs/plugin-babylon": "workspace:*",
-    "@vueuse/core": "^9.6.0",
+    "@vueuse/core": "^9.7.0",
     "@vueuse/head": "^1.0.22",
     "nprogress": "^0.2.0",
     "pinia": "^2.0.28",
@@ -41,7 +41,7 @@
     "unocss": "^0.47.6",
     "unplugin-vue-components": "^0.22.12",
     "vite": "3",
-    "vite-plugin-inspect": "^0.7.10",
+    "vite-plugin-inspect": "^0.7.11",
     "vite-plugin-pages": "^0.28.0",
     "vite-plugin-pwa": "^0.14.0",
     "vite-plugin-vue-layouts": "^0.7.0",

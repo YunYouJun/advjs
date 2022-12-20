@@ -5,7 +5,7 @@ import type { AdvMarkdown } from '@advjs/types'
 import * as parser from '@advjs/parser/fs'
 import equal from 'fast-deep-equal'
 import { notNullish } from '@antfu/utils'
-import defu from 'defu'
+import { defu } from 'defu'
 import type { ResolvedAdvOptions } from '../options'
 import { toAtFS } from '../utils'
 import { createMarkdown, resolveOptions } from './adv'
@@ -42,7 +42,8 @@ export function createAdvLoader(
    */
   function generateConfigs() {
     // front override latter
-    const config = defu({ ...data.config, remote, features: data.features }, resolvedAdvConfig)
+    const config = defu({ ...data.config, remote }, resolvedAdvConfig)
+
     return `export default ${JSON.stringify(config)}`
   }
 

@@ -18,7 +18,7 @@ export interface AdvMarkdown {
   raw: string
   config: AdvConfig
   features: AdvFeatureFlags
-  headmatter: Record<string, unknown>
+  frontmatter: Record<string, unknown>
 
   filepath?: string
   entries?: string[]

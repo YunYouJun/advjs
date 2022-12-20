@@ -86,9 +86,7 @@ export function parse(markdown: string, filepath?: string): AdvMarkdown {
     raw: markdown,
     filepath,
     config,
-    features: {
-      babylon: data.type === '3d',
-    },
-    headmatter: data,
+    features: config.features,
+    frontmatter: data,
   }
 }

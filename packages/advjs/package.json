@@ -33,11 +33,11 @@
     "advm": "./bin/adv.mjs"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": "^14.18.0 || >=16.0.0"
   },
   "scripts": {
-    "build": "rimraf dist && tsup",
-    "dev": "nr build --watch",
+    "build": "tsup",
+    "dev": "tsup --watch",
     "prepublishOnly": "npm run build",
     "start": "tsx node/cli.ts"
   },
@@ -60,6 +60,7 @@
     "defu": "^6.1.1",
     "fs-extra": "^11.1.0",
     "global-dirs": "^3.0.1",
+    "gray-matter": "^4.0.3",
     "import-from": "^4.0.0",
     "is-installed-globally": "^0.4.0",
     "jiti": "^1.16.0",
@@ -70,7 +71,7 @@
     "resolve": "^1.22.1",
     "resolve-from": "^5.0.0",
     "resolve-global": "^1.0.0",
-    "sass": "^1.56.2",
+    "sass": "^1.57.1",
     "unocss": "^0.47.6",
     "unplugin-vue-components": "^0.22.12",
     "vite": "3",

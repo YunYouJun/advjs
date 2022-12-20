@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "build": "adv build",
-    "dev": "nodemon -w '../../packages/**/dist/*.js' --exec \"adv --open=false --log=info\"",
+    "dev": "nodemon -w '../../packages/**/dist/*.js' --exec \"adv ./index.adv.md --open=false --log=info\"",
     "preview": "vite preview --host",
     "preview-https": "serve dist"
   },
@@ -11,6 +11,6 @@
     "advjs": "workspace:*",
     "https-localhost": "^4.7.1",
     "nodemon": "^2.0.20",
-    "vite-plugin-inspect": "^0.7.10"
+    "vite-plugin-inspect": "^0.7.11"
   }
 }

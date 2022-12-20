@@ -8,7 +8,8 @@
   },
   "scripts": {
     "build": "adv build ./wlwz.adv.md",
-    "dev": "nodemon -w '../../packages/**/dist/*.js' --exec \"adv ./wlwz.adv.md --open=false --log=info\"",
+    "dev": "nodemon -w '../../packages/**/dist/*.js' --exec \"adv --open=false --log=info\"",
+    "dev:wlwz": "nodemon -w '../../packages/**/dist/*.js' --exec \"adv ./wlwz.adv.md --open=false --log=info\"",
     "preview": "vite preview --host",
     "preview-https": "serve dist"
   },
@@ -18,6 +19,6 @@
     "advjs": "workspace:*",
     "https-localhost": "^4.7.1",
     "nodemon": "^2.0.20",
-    "vite-plugin-inspect": "^0.7.10"
+    "vite-plugin-inspect": "^0.7.11"
   }
 }

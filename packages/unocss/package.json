@@ -1,13 +1,20 @@
 {
   "name": "@advjs/unocss",
+  "version": "0.0.1",
   "exports": {
     ".": {
-      "require": "./dist/index.js",
+      "require": "./dist/index.cjs",
       "import": "./dist/index.mjs"
     }
   },
-  "main": "dist/index.js",
+  "main": "dist/index.cjs",
   "scripts": {
-    "build": "tsup"
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "defu": "^6.1.1",
+    "unocss": "^0.47.6"
   }
 }

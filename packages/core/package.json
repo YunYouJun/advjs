@@ -3,23 +3,23 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "require": "./dist/index.cjs",
+      "require": "./dist/index.js",
       "import": "./dist/index.mjs"
     }
   },
-  "main": "dist/index.cjs",
+  "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "unbuild",
-    "dev": "unbuild --stub",
+    "build": "tsup",
+    "dev": "tsup --stub",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@advjs/parser": "workspace:*",
     "@types/mdast": "^3.0.10",
     "html2canvas": "^1.4.1",
-    "unbuild": "^0.9.4",
+    "unbuild": "^1.0.2",
     "unstorage": "^1.0.1"
   }
 }

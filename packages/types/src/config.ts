@@ -100,11 +100,11 @@ export interface AdvConfig {
     /**
      * background url
      */
-    background: Record<string, string>
+    background?: Record<string, string>
     /**
      * audio url
      */
-    audio: Record<string, string>
+    audios: Record<string, string>
   }
 
   // -------------------------------------------------

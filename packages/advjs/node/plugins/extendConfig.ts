@@ -51,6 +51,7 @@ export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
         define: getDefine(options),
         resolve: {
           alias: {
+            '@advjs/core/': `${resolve(__dirname, '../../core/src')}/`,
             '@advjs/core': `${resolve(__dirname, '../../core/src')}/index.ts`,
             // '@advjs/parser': `${toAtFS(resolve(__dirname, '../../parser/src'))}/core.ts`,
             '@advjs/shared/': `${toAtFS(resolve(__dirname, '../../shared/src'))}/`,
