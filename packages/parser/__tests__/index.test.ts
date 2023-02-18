@@ -7,5 +7,8 @@ const testAdv = fs.readFileSync(path.resolve(__dirname, '../../shared/examples/t
 
 test('main', async () => {
   const advAst = await parseAst(testAdv)
-  expect(advAst).toContain('仓鼠')
+  expect(advAst.children).toContainEqual({
+    type: 'text',
+    value: '我：喂，你说世界上真的有外星人吗？',
+  })
 })
