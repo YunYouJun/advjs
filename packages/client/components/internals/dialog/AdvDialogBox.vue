@@ -66,7 +66,7 @@ const characterAvatar = computed(() => {
   const advConfig = $adv.config
   const curName = curCharacter.value ? curCharacter.value.name : ''
   const avatar = advConfig.characters.find(item => item.name === curName || item.alias === curName || (Array.isArray(item.alias) && item.alias.includes(curName)))?.avatar
-  const prefix = advConfig.cdn.enable ? advConfig.cdn.prefix || '' : ''
+  const prefix = advConfig.cdn.enable ? (advConfig.cdn.prefix || '') : ''
   return avatar ? prefix + avatar : ''
 })
 

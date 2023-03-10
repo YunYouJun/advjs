@@ -18,8 +18,8 @@ import { createAdvLoader } from './loaders'
 export async function ViteAdvPlugin(
   options: ResolvedAdvOptions,
   pluginOptions: AdvPluginOptions,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  serverOptions: AdvServerOptions = {},
+
+  _serverOptions: AdvServerOptions = {},
 ): Promise<Plugin[]> {
   const {
     vue: vueOptions = {},

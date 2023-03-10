@@ -10,7 +10,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['loaded'])
 
-const images = computed(() => Object.entries(props.assets.images).map(([key, img]) => ({ src: img })))
+const images = computed(() => Object.entries(props.assets.images).map(([_key, img]) => ({ src: img })))
 const preloadImgs = useImages(images)
 
 const percentage = computed(() => {

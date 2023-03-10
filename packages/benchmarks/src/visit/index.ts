@@ -8,8 +8,8 @@ export function testVisitAndDfs(type: 'breadth' | 'depth', count: number) {
   const tree = generateMockTree(type, count)
   const unistData = testPerformance(`unist-util-visit(${type})`, () => {
     let count = 0
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    visit(tree, (node) => {
+
+    visit(tree, (_node) => {
       count++
     })
     return count
@@ -17,8 +17,8 @@ export function testVisitAndDfs(type: 'breadth' | 'depth', count: number) {
 
   const dfsData = testPerformance('dfs(breadth)', () => {
     let count = 0
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    dfs(tree, (node: any) => {
+
+    dfs(tree, (_node: any) => {
       count++
     })
     return count

@@ -1,5 +1,5 @@
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 import { parseString, parseStringPromise } from 'xml2js'
 import b from 'benny'
 import { jsonFolder, xmlFolder } from './common'

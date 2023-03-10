@@ -16,7 +16,7 @@ export const scriptSuffix = ['ts', 'js', 'typescript', 'javascript']
  * @returns
  */
 export function isScript(node?: AdvAst.Child): node is AdvAst.CodeFunction {
-  return node ? node.type === 'code' && scriptSuffix.includes(node.lang || '') : false
+  return node ? (node.type === 'code' && scriptSuffix.includes(node.lang || '')) : false
 }
 
 /**

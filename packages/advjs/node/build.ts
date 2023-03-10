@@ -1,4 +1,4 @@
-import { resolve } from 'path'
+import { resolve } from 'node:path'
 import fs from 'fs-extra'
 import type { InlineConfig, ResolvedConfig } from 'vite'
 import { resolveConfig, build as viteBuild } from 'vite'

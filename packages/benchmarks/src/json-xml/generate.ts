@@ -1,5 +1,5 @@
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 import { faker } from '@faker-js/faker'
 import { Builder } from 'xml2js'
 import { jsonFolder, xmlFolder } from './common'

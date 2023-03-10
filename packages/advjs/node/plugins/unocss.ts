@@ -14,8 +14,7 @@ import type { VitePluginConfig } from 'unocss/vite'
 import type { AdvConfig } from '@advjs/types'
 import type { AdvPluginOptions, ResolvedAdvOptions } from '..'
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const createSafelist = async (config: AdvConfig) => {
+export const createSafelist = async (_config: AdvConfig) => {
   const safeIcons: string[] = [
     'i-ri-archive-line',
     'i-ri-folder-2-line',

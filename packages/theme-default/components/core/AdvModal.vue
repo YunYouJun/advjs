@@ -13,7 +13,7 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits(['close'])
 
 onMounted(() => {
-  onKeyStroke('Escape', (e) => {
+  onKeyStroke('Escape', (_e) => {
     if (props.show)
       emit('close')
   })

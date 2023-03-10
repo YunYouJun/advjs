@@ -1,6 +1,6 @@
 // ref slidev
-import fs from 'fs'
-import { dirname, join } from 'path'
+import fs from 'node:fs'
+import { dirname, join } from 'node:path'
 
 // https://github.com/vitejs/vite/issues/2820#issuecomment-812495079
 const ROOT_FILES = [

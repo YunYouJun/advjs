@@ -1,4 +1,4 @@
-import { dirname, join, resolve } from 'path'
+import { dirname, join, resolve } from 'node:path'
 import type Vue from '@vitejs/plugin-vue'
 import type Components from 'unplugin-vue-components/vite'
 import type Markdown from 'vite-plugin-vue-markdown'

@@ -1,4 +1,4 @@
-import path from 'path'
+import path from 'node:path'
 import type { AliasOptions } from 'vite'
 
 export const defaultThemeFolder = path.resolve(__dirname, '../../', '../theme-default')

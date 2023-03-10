@@ -5,7 +5,7 @@ import { computed, reactive, ref } from 'vue'
 
 import { isClient, useParallax } from '@vueuse/core'
 
-const target = ref(isClient ? document && document.body : null)
+const target = ref(isClient ? (document && document.body) : null)
 const parallax = reactive(useParallax(target))
 
 // const { site, frontmatter } = useData()

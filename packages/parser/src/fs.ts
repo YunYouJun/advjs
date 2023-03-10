@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from 'node:fs'
 // import { dirname } from 'path'
 import type { AdvThemeMeta } from '@advjs/types'
 import { parse } from './core'

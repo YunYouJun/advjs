@@ -15,7 +15,7 @@ export function preprocessHead(frontmatter: any, options: ResolvedOptions) {
   if (!options.headEnabled)
     return frontmatter
 
-  const head = options.headField ? frontmatter[options.headField] || {} : frontmatter
+  const head = options.headField ? (frontmatter[options.headField] || {}) : frontmatter
 
   const meta = head.meta = head.meta || []
 
