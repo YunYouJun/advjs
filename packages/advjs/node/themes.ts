@@ -37,7 +37,8 @@ export async function getThemeMeta(name: string, path: string) {
 
 export function resolveThemeName(name: string) {
   if (!name || name === 'none')
-    return ''
+    name = 'default'
+
   if (name.startsWith('@advjs/theme-') || name.startsWith('advjs-theme-'))
     return name
   if (isPath(name))

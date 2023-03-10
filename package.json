@@ -25,7 +25,7 @@
     "demo:love": "pnpm -C demo/love run dev",
     "start": "pnpm -C packages/advjs run start",
     "dev": "run-p types:dev advjs:dev parser:dev core:dev",
-    "dev:advjs": "pnpm run parser:build && pnpm run advjs:dev",
+    "dev:advjs": "pnpm run parser:build && run-p advjs:dev parser:dev",
     "lint": "eslint .",
     "release": "tsx release.ts",
     "prepare": "husky install",
