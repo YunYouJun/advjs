@@ -1,0 +1,3 @@
+[submodule "packages/client/public/assets"]
+	path = packages/client/public/assets
+	url = https://github.com/advjs/assets
