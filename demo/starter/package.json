@@ -18,7 +18,7 @@
     "@advjs/theme-default": "workspace:*",
     "advjs": "workspace:*",
     "https-localhost": "^4.7.1",
-    "nodemon": "^2.0.20",
+    "nodemon": "^2.0.21",
     "vite-plugin-inspect": "^0.7.11"
   }
 }

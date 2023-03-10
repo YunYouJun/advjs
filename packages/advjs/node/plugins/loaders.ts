@@ -1,10 +1,10 @@
-import { join } from 'path'
-import type { Plugin } from 'vite'
+import { join } from 'node:path'
+import type { Plugin, ViteDevServer } from 'vite'
 import { existsSync, readFileSync } from 'fs-extra'
 import type { AdvMarkdown } from '@advjs/types'
 import * as parser from '@advjs/parser/fs'
 import equal from 'fast-deep-equal'
-import { notNullish } from '@antfu/utils'
+import { notNullish, slash } from '@antfu/utils'
 import { defu } from 'defu'
 import type { ResolvedAdvOptions } from '../options'
 import { toAtFS } from '../utils'
@@ -21,11 +21,9 @@ export function createAdvLoader(
   const advPrefix = '/@advjs/drama'
 
   const options = resolveOptions()
-  const markdownToVue = createMarkdown(options)
+  const transformMarkdown = createMarkdown(options)
 
-  const transformMarkdown = (id: string, raw: string) => {
-    return markdownToVue(id, raw)
-  }
+  let server: ViteDevServer | undefined
 
   const filter = (name: string) => {
     return (
@@ -95,29 +93,12 @@ export function createAdvLoader(
 
   return [
     {
-      name: 'advjs:adv-md:pre',
-      enforce: 'pre',
-      /**
-       * transform adv.md to vue for, next loader
-       * @param code
-       * @param id
-       * @returns
-       */
-      async transform(code, id) {
-        if (!filter(id))
-          return
-
-        try {
-          const { vueSrc } = await transformMarkdown(entry, code)
-          return vueSrc
-        }
-        catch (e: any) {
-          this.error(e)
-        }
-      },
-    },
-    {
       name: 'advjs:loader',
+
+      configureServer(_server) {
+        server = _server
+        updateServerWatcher()
+      },
 
       resolveId(id) {
         if (id.startsWith(advPrefix) || id.startsWith('/@advjs/'))
@@ -147,52 +128,59 @@ export function createAdvLoader(
       },
 
       async handleHotUpdate(ctx) {
+        if (!data.entries!.some(i => slash(i) === ctx.file))
+          return
+
+        await ctx.read()
+
         const { file, server } = ctx
+        if (!filter(file))
+          return
 
-        // hot reload .md files as .vue files
-        if (filter(file)) {
-          const newData = parser.load(entry, data.themeMeta)
+        // only hot reload .md files as .vue files
+        const newData = parser.load(entry, data.themeMeta)
 
-          const payload: AdvHmrPayload = {
-            data: newData,
-          }
+        const payload: AdvHmrPayload = {
+          data: newData,
+        }
 
-          const moduleIds = new Set<string>()
+        const moduleIds = new Set<string>()
 
-          if (!equal(data.features, newData.features)) {
-            setTimeout(() => {
-              ctx.server.ws.send({ type: 'full-reload' })
-            }, 1)
-          }
+        if (!equal(data.features, newData.features)) {
+          setTimeout(() => {
+            ctx.server.ws.send({ type: 'full-reload' })
+          }, 1)
+        }
 
-          if (!equal(data.config, newData.config))
-            moduleIds.add('/@advjs/configs')
+        if (!equal(data.config, newData.config))
+          moduleIds.add('/@advjs/configs')
 
-          moduleIds.add('/@advjs/drama.adv.md')
+        moduleIds.add('/@advjs/drama.adv.md')
 
-          Object.assign(data, newData)
+        Object.assign(data, newData)
 
-          // notify the client to update page data
-          server.ws.send({
-            type: 'custom',
-            event: 'advjs:update',
-            data: payload,
-          })
+        // notify the client to update page data
+        server.ws.send({
+          type: 'custom',
+          event: 'advjs:update',
+          data: payload,
+        })
 
-          // todo separate scene
-          const hmrPages = new Set<number>()
-          hmrPages.add(1)
+        // todo separate scene
+        const hmrPages = new Set<number>()
+        hmrPages.add(1)
 
-          const vueModules = [
-            await (async () => {
+        const vueModules = (
+          await Promise.all(
+            Array.from(hmrPages).map(async (_page) => {
               const file = entry
 
               try {
-                const { vueSrc } = await markdownToVue(entry, newData.raw)
+                const { vueSrc } = await transformMarkdown(entry, newData.raw)
                 const handleHotUpdate
-                  = 'handler' in vuePlugin.handleHotUpdate!
-                    ? vuePlugin.handleHotUpdate!.handler
-                    : vuePlugin.handleHotUpdate!
+                      = 'handler' in vuePlugin.handleHotUpdate!
+                        ? vuePlugin.handleHotUpdate!.handler
+                        : vuePlugin.handleHotUpdate!
                 return await handleHotUpdate!({
                   ...ctx,
                   modules: Array.from(
@@ -203,22 +191,51 @@ export function createAdvLoader(
                 })
               }
               catch {}
-            })(),
-          ].flatMap(i => i || [])
-          hmrPages.clear()
-
-          const moduleEntries = [
-            ...vueModules,
-            ...Array.from(moduleIds).map((id) => {
-              return server.moduleGraph.getModuleById(id)
             }),
-          ]
-            .filter(notNullish)
-            .filter(i => !i.id?.startsWith('/@id/@vite-icons'))
+          )
+        ).flatMap(i => i || [])
+        hmrPages.clear()
 
-          return moduleEntries
+        const moduleEntries = [
+          ...vueModules,
+          ...Array.from(moduleIds).map((id) => {
+            return server.moduleGraph.getModuleById(id)
+          }),
+        ]
+          .filter(notNullish)
+          .filter(i => !i.id?.startsWith('/@id/@vite-icons'))
+
+        return moduleEntries
+      },
+    },
+
+    {
+      name: 'advjs:adv-md:pre',
+      enforce: 'pre',
+      /**
+       * transform adv.md to vue for, next loader
+       * @param code
+       * @param id
+       * @returns
+       */
+      async transform(code, id) {
+        if (!filter(id))
+          return
+
+        try {
+          const { vueSrc } = await transformMarkdown(entry, code)
+          return vueSrc
+        }
+        catch (e: any) {
+          this.error(e)
         }
       },
     },
   ]
+
+  function updateServerWatcher() {
+    if (!server)
+      return
+    server.watcher.add(data.entries?.map(slash) || [])
+  }
 }

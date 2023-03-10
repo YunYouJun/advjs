@@ -12,10 +12,10 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@vueuse/core": "^9.7.0",
-    "@vueuse/head": "^1.0.22",
-    "monaco-editor": "^0.34.1",
-    "pinia": "^2.0.28",
+    "@vueuse/core": "^9.13.0",
+    "@vueuse/head": "^1.1.19",
+    "monaco-editor": "^0.36.1",
+    "pinia": "^2.0.33",
     "vue": "^3.2.45",
     "vue-router": "^4.1.6",
     "wc-github-corners": "^0.1.5"
@@ -26,8 +26,8 @@
     "@vitejs/plugin-vue": "3",
     "markdown-it-link-attributes": "^4.0.1",
     "markdown-it-prism": "^2.3.0",
-    "unocss": "^0.47.6",
-    "unplugin-vue-components": "^0.22.12",
+    "unocss": "^0.50.4",
+    "unplugin-vue-components": "^0.24.1",
     "v-tooltip": "^4.0.0-beta.2",
     "vite": "3",
     "vite-plugin-inspect": "^0.7.11",

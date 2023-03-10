@@ -116,9 +116,8 @@ export function createMarkdown(options: ResolvedOptions) {
     }
 
     // todo: use ts file
-
     const vueSrc = [
-      '<script setup lang="ts">',
+      '<script setup>',
       ...scriptLines,
       ...hoistScripts.scripts,
       // extract adv.md code script
@@ -127,9 +126,8 @@ export function createMarkdown(options: ResolvedOptions) {
       '',
       '<template>',
       html,
-      '</template>',
-      '',
       ...customBlocks.blocks,
+      '</template>',
     ].join('\n')
 
     return {
