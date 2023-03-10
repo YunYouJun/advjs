@@ -44,10 +44,10 @@
   },
   "dependencies": {
     "@advjs/types": "workspace:*",
-    "@babylonjs/core": "^5.38.0",
-    "@babylonjs/gui": "^5.38.0",
-    "@babylonjs/loaders": "^5.38.0",
-    "@babylonjs/materials": "^5.38.0",
+    "@babylonjs/core": "^5.50.1",
+    "@babylonjs/gui": "^5.50.1",
+    "@babylonjs/loaders": "^5.50.1",
+    "@babylonjs/materials": "^5.50.1",
     "babylon-vrm-loader": "^2.0.0-alpha.3"
   },
   "devDependencies": {

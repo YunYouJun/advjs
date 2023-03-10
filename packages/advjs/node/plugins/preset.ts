@@ -6,7 +6,7 @@ import Pages from 'vite-plugin-pages'
 import Layouts from 'vite-plugin-vue-layouts'
 import LinkAttributes from 'markdown-it-link-attributes'
 import Markdown from 'vite-plugin-vue-markdown'
-import VueI18n from '@intlify/vite-plugin-vue-i18n'
+import VueI18n from '@intlify/unplugin-vue-i18n/vite'
 
 import type { AdvPluginOptions, AdvServerOptions, ResolvedAdvOptions } from '../options'
 import { customElements } from '../constants'
@@ -91,7 +91,7 @@ export async function ViteAdvPlugin(
       exclude: ['**/*.adv.md'],
     }),
 
-    // https://github.com/intlify/bundle-tools/tree/main/packages/vite-plugin-vue-i18n
+    // https://github.com/intlify/bundle-tools/tree/main/packages/unplugin-vue-i18n
     VueI18n({
       runtimeOnly: true,
       compositionOnly: true,

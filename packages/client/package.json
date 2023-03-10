@@ -30,7 +30,7 @@
     "@vueuse/core": "^9.13.0",
     "@vueuse/head": "^1.1.19",
     "@vueuse/motion": "^2.0.0-beta.18",
-    "@vueuse/sound": "^1.1.7",
+    "@vueuse/sound": "^2.0.1",
     "animate.css": "^4.1.1",
     "consola": "^2.15.3",
     "dayjs": "^1.11.7",
@@ -38,15 +38,15 @@
     "nprogress": "^0.2.0",
     "pinia": "^2.0.33",
     "resolve": "^1.22.1",
-    "swiper": "^8.4.5",
-    "vue": "^3.2.45",
+    "swiper": "^9.1.0",
+    "vue": "^3.2.47",
     "vue-router": "^4.1.6"
   },
   "optionalDependencies": {
     "@advjs/plugin-babylon": "workspace:*"
   },
   "devDependencies": {
-    "@iconify-json/mdi": "^1.1.49",
+    "@iconify-json/mdi": "^1.1.50",
     "@types/nprogress": "^0.2.0"
   }
 }

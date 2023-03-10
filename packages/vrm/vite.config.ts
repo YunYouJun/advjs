@@ -6,7 +6,7 @@ import Layouts from 'vite-plugin-vue-layouts'
 import Components from 'unplugin-vue-components/vite'
 import Markdown from 'vite-plugin-vue-markdown'
 import { VitePWA } from 'vite-plugin-pwa'
-import VueI18n from '@intlify/vite-plugin-vue-i18n'
+import VueI18n from '@intlify/unplugin-vue-i18n/vite'
 import Inspect from 'vite-plugin-inspect'
 import Prism from 'markdown-it-prism'
 import LinkAttributes from 'markdown-it-link-attributes'
@@ -104,7 +104,7 @@ export default defineConfig((config) => {
         },
       }),
 
-      // https://github.com/intlify/bundle-tools/tree/main/packages/vite-plugin-vue-i18n
+      // https://github.com/intlify/bundle-tools/tree/main/packages/unplugin-vue-i18n
       VueI18n({
         runtimeOnly: true,
         compositionOnly: true,

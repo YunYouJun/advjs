@@ -25,8 +25,8 @@
     "node": ">=14.0.0"
   },
   "scripts": {
-    "build": "rimraf dist && tsc",
-    "dev": "tsc --watch",
+    "build": "tsup",
+    "dev": "tsup --watch",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {

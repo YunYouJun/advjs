@@ -19,7 +19,6 @@
     "@advjs/parser": "workspace:*",
     "@types/mdast": "^3.0.10",
     "html2canvas": "^1.4.1",
-    "unbuild": "^1.1.2",
     "unstorage": "^1.4.0"
   }
 }
