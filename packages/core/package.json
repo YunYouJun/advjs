@@ -17,8 +17,8 @@
   },
   "dependencies": {
     "@advjs/parser": "workspace:*",
-    "@types/mdast": "^3.0.10",
+    "@types/mdast": "^3.0.11",
     "html2canvas": "^1.4.1",
-    "unstorage": "^1.4.0"
+    "unstorage": "^1.4.1"
   }
 }

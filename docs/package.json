@@ -19,7 +19,7 @@
     "@iconify-json/logos": "^1.1.23",
     "@iconify-json/vscode-icons": "^1.1.22",
     "unplugin-vue-components": "^0.24.1",
-    "vite-plugin-pwa": "^0.14.4",
-    "vitepress": "1.0.0-alpha.51"
+    "vite-plugin-pwa": "^0.14.6",
+    "vitepress": "1.0.0-alpha.61"
   }
 }

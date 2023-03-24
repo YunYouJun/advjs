@@ -69,6 +69,6 @@
     "@advjs/types": "workspace:*",
     "@advjs/unocss": "workspace:*",
     "@types/js-yaml": "^4.0.5",
-    "@types/mdast": "^3.0.10"
+    "@types/mdast": "^3.0.11"
   }
 }
