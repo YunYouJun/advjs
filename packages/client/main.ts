@@ -16,7 +16,7 @@ import '/@advjs/styles'
 // unocss animate not work
 import 'animate.css'
 
-import { createAdv } from './setup'
+import { createAdvVuePlugin } from './setup'
 import { statement } from './utils/statement'
 import type { UserModule } from './types'
 
@@ -36,7 +36,7 @@ Object.values(
   i.install?.({ app, isClient: typeof window !== 'undefined', router }),
 )
 
-app.use(createAdv())
+app.use(createAdvVuePlugin())
 
 app.use(MotionPlugin)
 app.mount('#app')

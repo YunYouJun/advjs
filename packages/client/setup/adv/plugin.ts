@@ -3,12 +3,14 @@ import { injectionAdvContext, useContext } from './context'
 
 import type { AdvOptions } from './types'
 
+export type AdvVueInstance = ReturnType<typeof createAdvVuePlugin>
+
 /**
  * 创建 ADV 实例
  * @param options
  * @returns
  */
-export function createAdv(options?: Partial<AdvOptions>) {
+export function createAdvVuePlugin(options?: Partial<AdvOptions>) {
   const defaultOptions = {
     debug: false,
   }
@@ -34,5 +36,3 @@ export function createAdv(options?: Partial<AdvOptions>) {
     options,
   }
 }
-
-export type AdvInstance = ReturnType<typeof createAdv>
