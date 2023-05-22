@@ -19,6 +19,10 @@
 
 ### 图片生成
 
+#### 游戏资源
+
+- [AI-generated game assets｜scenario](https://www.scenario.com/): Create high-quality, style-consistent, proprietary assets for your games
+
 #### 人物
 
 - [NovelAI](https://novelai.net/image)（收费）: 生成人物
