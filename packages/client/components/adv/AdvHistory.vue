@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue'
-import { AdvAst } from '@advjs/types'
+import type { AdvAst } from '@advjs/types'
 import { useAdvCtx } from '~/setup/adv'
 import { useAppStore } from '~/stores/app'
 

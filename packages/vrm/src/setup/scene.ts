@@ -1,7 +1,7 @@
 import { GridMaterial } from '@babylonjs/materials'
 import * as BABYLON from '@babylonjs/core'
 
-export const createSkybox = (scene: BABYLON.Scene) => {
+export function createSkybox(scene: BABYLON.Scene) {
   // Create a skybox
   const skyMaterial = new GridMaterial('skyMaterial', scene)
   skyMaterial.majorUnitFrequency = 6

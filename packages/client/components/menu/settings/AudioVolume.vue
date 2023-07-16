@@ -4,6 +4,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { useAudioStore } from '~/stores/audio'
+
 const audio = useAudioStore()
 
 const { t } = useI18n()

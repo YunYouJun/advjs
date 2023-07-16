@@ -1,8 +1,10 @@
 import { dirname, join, resolve } from 'node:path'
+import process from 'node:process'
 import type Vue from '@vitejs/plugin-vue'
 import type Components from 'unplugin-vue-components/vite'
 import type Markdown from 'vite-plugin-vue-markdown'
 import type UnoCSS from 'unocss/vite'
+
 // import type RemoteAssets from 'vite-plugin-remote-assets'
 // import type ServerRef from 'vite-plugin-vue-server-ref'
 import type { ArgumentsType } from '@antfu/utils'

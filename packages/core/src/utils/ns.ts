@@ -1,5 +1,5 @@
 export const namespace = 'advjs'
 
-export const ns = (name: string) => {
+export function ns(name: string) {
   return `${namespace}:${name}`
 }

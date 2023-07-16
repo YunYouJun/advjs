@@ -9,7 +9,7 @@ import { checkAdvMd } from './check'
  * @param obj
  * @returns
  */
-export const transformObject = (obj: any) => {
+export function transformObject(obj: any) {
   return `JSON.parse(${JSON.stringify(JSON.stringify(obj))})`
 }
 

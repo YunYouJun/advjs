@@ -1,17 +1,19 @@
 import * as BABYLON from '@babylonjs/core'
 import { demoVrm } from '@advjs/shared'
-import { createArcRotateCamera, createScene, createVRM, createVRMScene } from '@advjs/plugin-babylon'
+import { createArcRotateCamera, createScene, createVRM } from '@advjs/plugin-babylon'
 
 /**
  * 创建人物场景
  * @param engine
  * @returns
  */
-export const createCharacterScene = (engine: BABYLON.Engine) => {
+export async function createCharacterScene(scene: BABYLON.Scene) {
+  await createVRM(scene, (__DEV__ ? '/assets' : '') + demoVrm.rootUrl, demoVrm.name, () => { })
+  if (!scene)
+    throw new Error('createVRM failed')
+
   // a new scene for vrm
-  const scene = createVRMScene(engine)
   createArcRotateCamera(scene)
-  createVRM(scene, (__DEV__ ? '/assets' : '') + demoVrm.rootUrl, demoVrm.name, () => { })
   // Lights
 
   // eslint-disable-next-line no-new
@@ -24,12 +26,12 @@ export const createCharacterScene = (engine: BABYLON.Engine) => {
  * @param canvas
  * @returns
  */
-export const setup = async (canvas: HTMLCanvasElement) => {
+export async function setup(canvas: HTMLCanvasElement) {
   // Load the 3D engine
   const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true })
-  const { scene } = createScene(engine)
+  const { scene } = await createScene(engine)
 
-  const vrmScene = createCharacterScene(engine)
+  const vrmScene = createCharacterScene(scene)
 
   // run the render loop
   engine.runRenderLoop(() => {
@@ -44,6 +46,7 @@ export const setup = async (canvas: HTMLCanvasElement) => {
   })
 
   return {
+    engine,
     scene,
     vrmScene,
 

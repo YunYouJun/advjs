@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CSSProperties } from 'vue'
 import { computed, reactive, ref } from 'vue'
+
 // import { useData } from 'vitepress'
 
 import { isClient, useParallax } from '@vueuse/core'

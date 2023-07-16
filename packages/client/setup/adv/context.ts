@@ -8,7 +8,7 @@ import { config } from '~/env'
 
 export const injectionAdvContext: InjectionKey<AdvContext> = Symbol('advjs-context')
 
-export const useContext = (): AdvContext => {
+export function useContext(): AdvContext {
   const functions = {}
   const store = useAdvStore()
 

@@ -58,10 +58,10 @@
     "js-yaml": "^4.1.0",
     "mdast-util-to-hast": "^12.3.0",
     "rehype-stringify": "^9.0.3",
-    "remark": "^14.0.2",
+    "remark": "^14.0.3",
     "remark-frontmatter": "^4.0.1",
     "remark-gfm": "^3.0.1",
-    "remark-parse": "^10.0.1",
+    "remark-parse": "^10.0.2",
     "remark-rehype": "^10.1.0",
     "unified": "^10.1.2"
   },
@@ -69,6 +69,6 @@
     "@advjs/types": "workspace:*",
     "@advjs/unocss": "workspace:*",
     "@types/js-yaml": "^4.0.5",
-    "@types/mdast": "^3.0.11"
+    "@types/mdast": "3"
   }
 }

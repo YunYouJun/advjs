@@ -6,6 +6,7 @@ import App from './App.vue'
 import type { UserModule } from './types'
 
 import '@unocss/reset/tailwind.css'
+
 // your custom styles here
 import './styles/main.css'
 import './styles/index.scss'

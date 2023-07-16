@@ -16,7 +16,7 @@ async function init() {
   nextTick(() => {
     if (container.value) {
       editor = initOutputEditor(container.value)
-      self.outputEditor = editor
+      // globalThis.outputEditor = editor
       if (props.content)
         editor.setValue(props.content)
       if (props.type) {

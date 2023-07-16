@@ -7,6 +7,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 
 import '@unocss/reset/tailwind.css'
+
 // your custom styles here
 import './styles/index.css'
 import 'uno.css'

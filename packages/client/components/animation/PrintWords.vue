@@ -31,7 +31,7 @@ const speedMap = {
 const len = ref(0)
 const intervalId = ref()
 
-const playWordsAnimation = () => {
+function playWordsAnimation() {
   intervalId.value = setInterval(() => {
     if (len.value === props.words.length) {
       clearInterval(intervalId.value)
@@ -54,7 +54,7 @@ watch(() => props.words, () => {
   playWordsAnimation()
 })
 
-const wordClasses = (i: number) => {
+function wordClasses(i: number) {
   const classes: string[] = []
 
   if (!props.animation)

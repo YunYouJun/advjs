@@ -6,9 +6,14 @@ function getAssetsPrefix(online = 'https://playground.babylonjs.com', local = '/
 }
 
 // CreateScene function that creates and return the scene
-export const createScene = (engine: BABYLON.Engine) => {
+export async function createScene(engine: BABYLON.Engine) {
   // Create a basic BJS Scene object
-  const scene = new BABYLON.Scene(engine)
+  const scene = await BABYLON.SceneLoader.LoadAsync(
+    `${getAssetsPrefix('https://fastly.jsdelivr.net/gh/advjs/assets')}/scenes/low_poly_medieval_island/`,
+    'scene.gltf',
+    engine,
+  )
+
   scene.clearColor = new BABYLON.Color4(0, 0, 0, 0)
 
   const camera = new BABYLON.ArcRotateCamera('camera', Math.PI / 4, Math.PI / 2.5, 15, BABYLON.Vector3.Zero(), scene)
@@ -29,12 +34,6 @@ export const createScene = (engine: BABYLON.Engine) => {
   )
 
   const currentSkybox = scene.createDefaultSkybox(hdrTexture, true)
-
-  BABYLON.SceneLoader.Append(
-    `${getAssetsPrefix('https://fastly.jsdelivr.net/gh/advjs/assets')}/scenes/low_poly_medieval_island/`,
-    'scene.gltf', scene, () => {
-      // Convert to physics object and position
-    })
 
   // Return the created scene
   return {

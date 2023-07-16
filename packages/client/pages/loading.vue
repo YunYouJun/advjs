@@ -4,7 +4,7 @@ import { config } from '~/env'
 
 const router = useRouter()
 
-const onLoaded = () => {
+function onLoaded() {
   router.push('/start')
 }
 </script>

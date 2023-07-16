@@ -12,28 +12,28 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@vueuse/core": "^9.13.0",
-    "@vueuse/head": "^1.1.23",
-    "monaco-editor": "^0.36.1",
-    "pinia": "^2.0.33",
-    "vue": "^3.2.47",
-    "vue-router": "^4.1.6",
-    "wc-github-corners": "^0.1.5"
+    "@vueuse/core": "^10.2.1",
+    "@vueuse/head": "^1.1.26",
+    "monaco-editor": "^0.40.0",
+    "pinia": "^2.1.4",
+    "vue": "^3.3.4",
+    "vue-router": "^4.2.4",
+    "wc-github-corners": "^0.1.6"
   },
   "devDependencies": {
-    "@intlify/unplugin-vue-i18n": "^0.10.0",
-    "@types/mdast": "^3.0.11",
-    "@vitejs/plugin-vue": "^3",
+    "@intlify/unplugin-vue-i18n": "^0.12.2",
+    "@types/mdast": "3",
+    "@vitejs/plugin-vue": "^4.2.3",
     "markdown-it-link-attributes": "^4.0.1",
     "markdown-it-prism": "^2.3.0",
-    "unocss": "^0.50.6",
-    "unplugin-vue-components": "^0.24.1",
-    "v-tooltip": "^4.0.0-beta.2",
-    "vite": "^3",
-    "vite-plugin-inspect": "^0.7.18",
-    "vite-plugin-pages": "^0.29.0",
-    "vite-plugin-pwa": "^0.14.6",
+    "unocss": "^0.53.5",
+    "unplugin-vue-components": "^0.25.1",
+    "v-tooltip": "^4.0.0-beta.17",
+    "vite": "^4.4.4",
+    "vite-plugin-inspect": "^0.7.33",
+    "vite-plugin-pages": "^0.31.0",
+    "vite-plugin-pwa": "^0.16.4",
     "vite-plugin-vue-layouts": "^0.8.0",
-    "vite-plugin-vue-markdown": "^0.22.4"
+    "vite-plugin-vue-markdown": "^0.23.5"
   }
 }

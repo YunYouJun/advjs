@@ -20,7 +20,7 @@ const $adv = useAdvCtx()
 //   return toHtml(hast || [])
 // })
 
-const displaySentences = ref(new Array(props.content.children.length).fill(''))
+const displaySentences = ref(Array.from({ length: props.content.children.length }).fill(''))
 
 // const sentences = computed(() => {
 //   if (!props.content || props.content.type !== 'narration') return
@@ -29,11 +29,11 @@ const displaySentences = ref(new Array(props.content.children.length).fill(''))
 
 const typeInterval = 50
 
-const next = () => {
+function next() {
   $adv.nav.next()
 }
 
-const playSentencesAnimation = () => {
+function playSentencesAnimation() {
   const sentences = props.content.children
   let beforeLen = 0
   sentences.forEach((item, i) => {
@@ -49,7 +49,7 @@ onMounted(() => {
 })
 
 watch(() => props.content, () => {
-  displaySentences.value = new Array(props.content.children.length).fill('')
+  displaySentences.value = Array.from({ length: props.content.children.length }).fill('')
   playSentencesAnimation()
 })
 </script>

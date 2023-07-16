@@ -16,7 +16,7 @@ export interface CameraInfo {
  * @param camera
  * @returns
  */
-export const captureCameraInfo = (camera: BABYLON.ArcRotateCamera) => {
+export function captureCameraInfo(camera: BABYLON.ArcRotateCamera) {
   const cameraInfo: CameraInfo = {
     target: {
       x: 0,

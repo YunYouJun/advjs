@@ -1,4 +1,5 @@
 import type { AdvConfig } from '@advjs/types'
+
 // @ts-expect-error missing types
 import _configs from '/@advjs/configs'
 import { computed, shallowRef } from 'vue'

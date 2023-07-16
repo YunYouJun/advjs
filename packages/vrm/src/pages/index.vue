@@ -46,7 +46,7 @@ onMounted(async () => {
 /**
  * 记录镜头信息
  */
-const recordCameraInfo = () => {
+function recordCameraInfo() {
   cameraInfo.value = captureCameraInfo(vrmStore.babylon?.scene.activeCamera as BABYLON.ArcRotateCamera)
 }
 </script>

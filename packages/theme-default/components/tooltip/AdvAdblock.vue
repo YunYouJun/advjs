@@ -15,7 +15,7 @@ onMounted(() => {
   }
 })
 
-const refresh = () => {
+function refresh() {
   if (isClient)
     window.location.reload()
 }

@@ -9,7 +9,7 @@ const sharedEditorOptions: m.editor.IStandaloneEditorConstructionOptions = {
   wordWrap: 'on',
 }
 
-const setup = async () => {
+async function setup() {
   const monaco = await import('monaco-editor')
 
   await Promise.all([
@@ -66,7 +66,7 @@ const setup = async () => {
     })
 
     // add resize for editor
-    self.addEventListener('resize', () => {
+    globalThis.addEventListener('resize', () => {
       editor.layout()
     })
     return editor
@@ -89,7 +89,7 @@ const setup = async () => {
     })
 
     // add resize for editor
-    self.addEventListener('resize', () => {
+    globalThis.addEventListener('resize', () => {
       editor.layout()
     })
     return editor

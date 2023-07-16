@@ -1,5 +1,6 @@
 import type { DefaultTheme } from 'vitepress'
 import { defineConfig } from 'vitepress'
+
 // import { VitePWA } from 'vite-plugin-pwa'
 
 // todo: // wait released https://github.com/vitejs/vite/pull/10254

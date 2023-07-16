@@ -4,6 +4,7 @@
 // they will be rendered correctly in the html results with vite-ssg
 import { useHead } from '@vueuse/head'
 import { useAdvCtx } from './setup'
+
 useHead({
   title: 'ADV.JS',
   meta: [

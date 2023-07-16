@@ -1,4 +1,5 @@
 import type { AdvPluginOptions } from './options'
+
 // extend vite.config.ts
 declare module 'vite' {
   interface UserConfig {

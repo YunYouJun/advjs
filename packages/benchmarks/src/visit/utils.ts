@@ -4,7 +4,7 @@
  * @param callback 函数
  * @returns
  */
-export function testPerformance(name: string, callback: Function) {
+export function testPerformance(name: string, callback: () => void) {
   const startTime = performance.now()
   const count = callback()
   const endTime = performance.now()

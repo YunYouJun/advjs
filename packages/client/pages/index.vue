@@ -10,7 +10,7 @@ withDefaults(defineProps<{ duration?: number }>(), {
 const assets = { ...themeAssets }
 
 const router = useRouter()
-const onLoaded = () => {
+function onLoaded() {
   router.push('/start')
 }
 </script>

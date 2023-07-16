@@ -4,7 +4,7 @@ import type { AdvAst } from '@advjs/types'
 /**
  * Parse AdvCode (js/ts)
  */
-export const parseAdvCode = () => {
+export function parseAdvCode() {
 
 }
 

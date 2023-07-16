@@ -6,7 +6,7 @@ import * as BABYLON from '@babylonjs/core'
  * @param scene
  * @returns
  */
-export const createGridGround = (scene: BABYLON.Scene) => {
+export function createGridGround(scene: BABYLON.Scene) {
   // Material
   const groundMaterial = new GridMaterial('groundMaterial', scene)
   groundMaterial.majorUnitFrequency = 5

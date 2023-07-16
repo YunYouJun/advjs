@@ -1,4 +1,5 @@
 import path from 'node:path'
+import process from 'node:process'
 import net from 'node:net'
 import os from 'node:os'
 import { exec } from 'node:child_process'
@@ -18,6 +19,7 @@ import { createServer } from './server'
 import type { ResolvedAdvOptions } from './options'
 import { resolveOptions } from './options'
 import { resolveThemeName } from './themes'
+
 // import { parser } from './parser'
 
 const CONFIG_RESTART_FIELDS: (keyof AdvConfig)[] = [
@@ -218,7 +220,7 @@ cli
   .help()
   .parse()
 
-function commonOptions(args: Argv<{}>) {
+function commonOptions(args: Argv) {
   return args
     .positional('entry', {
       default: 'index.adv.md',

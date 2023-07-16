@@ -8,17 +8,17 @@ const perPageNum = ref(6)
 
 const curPage = ref(1)
 
-const togglePage = (page: number) => {
+function togglePage(page: number) {
   if (!swiperRef.value)
     return
   swiperRef.value.slideTo(page - 1)
 }
 
-const onInit = (swiper: Swiper) => {
+function onInit(swiper: Swiper) {
   swiperRef.value = swiper
 }
 
-const onSlideChange = () => {
+function onSlideChange() {
   if (!swiperRef.value)
     return
   curPage.value = swiperRef.value.activeIndex + 1

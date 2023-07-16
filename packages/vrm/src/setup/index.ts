@@ -16,7 +16,7 @@ import { createGizmoManager } from './utils'
  * @param parent
  * @returns
  */
-export const createAxes = (scene: BABYLON.Scene, length: number, parent?: BABYLON.Mesh) => {
+export function createAxes(scene: BABYLON.Scene, length: number, parent?: BABYLON.Mesh) {
   const axes = new BABYLON.AxesViewer(scene, length)
 
   if (parent) {

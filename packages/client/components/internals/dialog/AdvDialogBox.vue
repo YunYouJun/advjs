@@ -33,7 +33,7 @@ watch(
 const end = ref(false)
 const animation = ref(true)
 
-const next = async () => {
+async function next() {
   if ($adv.store.status.isEnd)
     return
 

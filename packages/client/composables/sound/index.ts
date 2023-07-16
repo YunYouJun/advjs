@@ -1,5 +1,5 @@
 /* eslint-disable new-cap */
-/* eslint-disable @typescript-eslint/no-use-before-define */
+
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck all file
 import type { Howl } from 'howler'
@@ -43,11 +43,10 @@ export function useSound(
     })
   })
 
-  const handleLoad = function () {
-    if (typeof onload === 'function') {
-      // @ts-expect-error this
+  function handleLoad() {
+    if (typeof onload === 'function')
+      // eslint-disable-next-line @typescript-eslint/no-invalid-this
       onload.call(this)
-    }
 
     duration.value = duration.value ? duration.value * 1000 : 0
   }

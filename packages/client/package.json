@@ -26,27 +26,27 @@
     "@advjs/core": "workspace:*",
     "@advjs/parser": "workspace:*",
     "@advjs/types": "workspace:*",
-    "@antfu/utils": "^0.7.2",
-    "@vueuse/core": "^9.13.0",
-    "@vueuse/head": "^1.1.23",
-    "@vueuse/motion": "^2.0.0-beta.18",
+    "@antfu/utils": "^0.7.5",
+    "@vueuse/core": "^10.2.1",
+    "@vueuse/head": "^1.1.26",
+    "@vueuse/motion": "^2.0.0",
     "@vueuse/sound": "^2.0.1",
     "animate.css": "^4.1.1",
-    "consola": "^2.15.3",
-    "dayjs": "^1.11.7",
+    "consola": "^3.2.3",
+    "dayjs": "^1.11.9",
     "howler": "^2.2.3",
     "nprogress": "^0.2.0",
-    "pinia": "^2.0.33",
-    "resolve": "^1.22.1",
-    "swiper": "^9.1.1",
-    "vue": "^3.2.47",
-    "vue-router": "^4.1.6"
+    "pinia": "^2.1.4",
+    "resolve": "^1.22.2",
+    "swiper": "^10.0.4",
+    "vue": "^3.3.4",
+    "vue-router": "^4.2.4"
   },
   "optionalDependencies": {
     "@advjs/plugin-babylon": "workspace:*"
   },
   "devDependencies": {
-    "@iconify-json/mdi": "^1.1.50",
+    "@iconify-json/mdi": "^1.1.53",
     "@types/nprogress": "^0.2.0"
   }
 }

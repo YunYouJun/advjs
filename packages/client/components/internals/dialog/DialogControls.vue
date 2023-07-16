@@ -4,11 +4,11 @@ import { useAppStore } from '~/stores/app'
 
 const app = useAppStore()
 
-const doScreenshot = async () => {
+async function doScreenshot() {
   screenshotGame()
 }
 
-const openLoadMenu = () => {
+function openLoadMenu() {
   app.toggleShowLoadMenu()
 }
 </script>

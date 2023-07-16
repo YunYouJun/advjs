@@ -1,6 +1,6 @@
 import * as BABYLON from '@babylonjs/core'
 
-export const createRotatePointLight = (scene: BABYLON.Scene) => {
+export function createRotatePointLight(scene: BABYLON.Scene) {
   // create a Center of Transformation
   const CoT = new BABYLON.TransformNode('root')
 

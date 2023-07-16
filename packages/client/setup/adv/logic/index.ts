@@ -19,7 +19,7 @@ export function useLogic(ctx: {
    */
     function go(target: string) {
       const order = store.ast.scene[target]
-      if (isNaN(order))
+      if (Number.isNaN(order))
         consola.error(`Can not find screen ${target}`)
       else store.cur.order = order
 

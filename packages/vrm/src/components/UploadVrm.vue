@@ -12,21 +12,21 @@ const showDragStyle = ref(false)
 /**
  * 拖拽
  */
-const onDragEnter = (e: DragEvent) => {
+function onDragEnter(e: DragEvent) {
   e.preventDefault()
   showDragStyle.value = true
 }
 
-const onDragOver = (e: DragEvent) => {
+function onDragOver(e: DragEvent) {
   e.preventDefault()
 }
 
-const onDragLeave = (e: DragEvent) => {
+function onDragLeave(e: DragEvent) {
   e.preventDefault()
   showDragStyle.value = false
 }
 
-const onDrop = (e: DragEvent) => {
+function onDrop(e: DragEvent) {
   e.preventDefault()
   showDragStyle.value = false
 

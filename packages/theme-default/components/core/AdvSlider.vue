@@ -13,7 +13,7 @@ defineProps<{
 
 const emit = defineEmits(['update:modelValue', 'input'])
 
-const input = (event: any) => {
+function input(event: any) {
   const val = event.target?.valueAsNumber || 0
   emit('update:modelValue', val)
   emit('input', val)

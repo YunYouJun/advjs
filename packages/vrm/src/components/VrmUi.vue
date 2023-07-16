@@ -81,7 +81,7 @@ watch(() => vrmStore.vrmManager, (manager) => {
  * @param axis
  * @param rotation degree
  */
-const updateBoneRotation = (boneName: HumanBonesType, axis: 'x' | 'y' | 'z', rotation: number) => {
+function updateBoneRotation(boneName: HumanBonesType, axis: 'x' | 'y' | 'z', rotation: number) {
   if (!vrmStore.vrmManager)
     return
   const boneRotation = vrmStore.vrmManager.humanoidBone[boneName]!.rotation
@@ -96,7 +96,7 @@ const updateBoneRotation = (boneName: HumanBonesType, axis: 'x' | 'y' | 'z', rot
 /**
  * 更新 Morphing
  */
-const updateMorphing = (name: string) => {
+function updateMorphing(name: string) {
   if (!vrmStore.vrmManager)
     return
   vrmStore.vrmManager.morphingPreset(name.toLowerCase(), vrmMorphingList.value[name])
@@ -105,7 +105,7 @@ const updateMorphing = (name: string) => {
 /**
  * 切换 Bone
  */
-const toggleBone = (bone: HumanBonesType) => {
+function toggleBone(bone: HumanBonesType) {
   // @ts-expect-error window.babylon
   const gizmoManager = vrmStore.babylon.gizmoManager as BABYLON.GizmoManager
   if (curBone.value === bone) {

@@ -2,6 +2,7 @@
 import { defineAsyncComponent } from 'vue'
 import { useAdvCtx } from '~/setup'
 import { useAppStore } from '~/stores/app'
+
 const app = useAppStore()
 
 const $adv = useAdvCtx()

@@ -34,7 +34,7 @@ watch(open, (value) => {
 
 const type = ref('')
 
-const setCameraInfo = (camera: BABYLON.ArcRotateCamera) => {
+function setCameraInfo(camera: BABYLON.ArcRotateCamera) {
   type.value = 'camera'
 
   if (!camera)

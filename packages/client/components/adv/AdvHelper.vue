@@ -3,7 +3,7 @@ import { useAppStore } from '~/stores/app'
 
 const app = useAppStore()
 
-const onClick = () => {
+function onClick() {
   app.rotate()
 }
 </script>

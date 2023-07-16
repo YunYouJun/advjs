@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { AdvAst } from '@advjs/types'
 import { useAdvCtx } from '~/setup'
+
 defineProps<{
   node: AdvAst.Choices
 }>()

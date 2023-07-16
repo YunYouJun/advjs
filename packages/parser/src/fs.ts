@@ -1,7 +1,9 @@
 import fs from 'node:fs'
+
 // import { dirname } from 'path'
 import type { AdvThemeMeta } from '@advjs/types'
 import { parse } from './core'
+
 export * from './core'
 
 export function load(filepath: string, themeMeta?: AdvThemeMeta, content?: string) {

@@ -11,8 +11,10 @@ type SetupBabylonReturnType = AsyncReturnType<typeof setup>
 
 export const useVrmStore = defineStore('vrm', () => {
   const babylon = shallowRef<{
+    engine: BABYLON.Engine
     scene: BABYLON.Scene
   }>()
+  const engine = computed(() => babylon.value?.engine)
   const scene = computed(() => babylon.value?.scene)
   const vrmManager = shallowRef<VRMManager>()
 
@@ -26,6 +28,7 @@ export const useVrmStore = defineStore('vrm', () => {
 
   return {
     babylon,
+    engine,
     scene,
     vrmManager,
 

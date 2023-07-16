@@ -13,7 +13,7 @@ const { t, locale, availableLocales } = useI18n()
 const app = useAppStore()
 const settings = useSettingsStore()
 
-const toggleLocales = () => {
+function toggleLocales() {
   // change to some real logic
   const locales = availableLocales
   locale.value = locales[(locales.indexOf(locale.value) + 1) % locales.length]

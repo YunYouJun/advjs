@@ -4,8 +4,9 @@ import type { HumanBonesType } from './pose'
 import { HumanBones, vRawPoseData } from './pose'
 
 export function getVrmManager(scene: BABYLON.Scene) {
-  if (!scene?.metadata)
+  if (!scene.metadata)
     return
+
   const vrmManager = scene?.metadata.vrmManagers[scene?.metadata.vrmManagers.length - 1] as VRMManager
   return vrmManager
 }
@@ -44,26 +45,21 @@ function makePose(manager: VRMManager) {
 
 export async function createVRM(scene: BABYLON.Scene, rootUrl: string, vrmFilename: string | File, onLoaded?: () => void) {
   await import('babylon-vrm-loader')
-  BABYLON.SceneLoader.Append(
-    rootUrl,
-    vrmFilename,
-    scene,
-    () => {
-      const vrmManager = getVrmManager(scene)
-      if (!vrmManager)
-        return
+  await BABYLON.SceneLoader.AppendAsync(rootUrl, vrmFilename, scene)
 
-      // scene.registerBeforeRender(() => {
-      //   // Update SpringBone
-      //   vrmManager.update(scene.getEngine().getDeltaTime())
-      // })
+  const vrmManager = getVrmManager(scene)
+  if (!vrmManager)
+    return
 
-      if (onLoaded)
-        onLoaded()
+  // scene.registerBeforeRender(() => {
+  //   // Update SpringBone
+  //   vrmManager.update(scene.getEngine().getDeltaTime())
+  // })
 
-      // Model Transformation
-      // vrmManager.rootMesh.translate(new BABYLON.Vector3(0, 1, 0), 2)
-      makePose(vrmManager)
-    },
-  )
+  if (onLoaded)
+    onLoaded()
+
+  // Model Transformation
+  // vrmManager.rootMesh.translate(new BABYLON.Vector3(0, 1, 0), 2)
+  makePose(vrmManager)
 }

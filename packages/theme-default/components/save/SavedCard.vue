@@ -40,7 +40,7 @@ onMounted(async () => {
   memo.value = savedMeta.memo || ''
 })
 
-const saveCardMeta = async () => {
+async function saveCardMeta() {
   await game.saveRecordMeta(props.no, {
     memo: memo.value,
   })
@@ -50,7 +50,7 @@ const saveCardMeta = async () => {
 /**
  * 存储至该卡片
  */
-const saveToCard = async () => {
+async function saveToCard() {
   const dataUrl = await screenshotGameThumb()
   const curRecord = $adv.store.cur
   try {
@@ -71,7 +71,7 @@ const saveToCard = async () => {
 const route = useRoute()
 const router = useRouter()
 
-const loadFromCard = () => {
+function loadFromCard() {
   if (!record.value)
     return
   $adv.store.cur = record.value
@@ -83,7 +83,7 @@ const loadFromCard = () => {
     router.push('/game')
 }
 
-const onCardClick = () => {
+function onCardClick() {
   if (props.type === 'save')
     saveToCard()
   else

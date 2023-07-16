@@ -14,7 +14,7 @@ import type { VitePluginConfig } from 'unocss/vite'
 import type { AdvConfig } from '@advjs/types'
 import type { AdvPluginOptions, ResolvedAdvOptions } from '..'
 
-export const createSafelist = async (_config: AdvConfig) => {
+export async function createSafelist(_config: AdvConfig) {
   const safeIcons: string[] = [
     'i-ri-archive-line',
     'i-ri-folder-2-line',
@@ -38,7 +38,7 @@ export const createSafelist = async (_config: AdvConfig) => {
   return safelist
 }
 
-export const createUnocssConfig = async (options: ResolvedAdvOptions, unocssOptions: AdvPluginOptions['unocss'] = {}) => {
+export async function createUnocssConfig(options: ResolvedAdvOptions, unocssOptions: AdvPluginOptions['unocss'] = {}) {
   const unocssConfig: VitePluginConfig | string = {
     shortcuts: [
       [
@@ -93,7 +93,7 @@ export const createUnocssConfig = async (options: ResolvedAdvOptions, unocssOpti
     return unocssOptions
 }
 
-export const createUnocssPlugin = async (options: ResolvedAdvOptions, pluginOptions: AdvPluginOptions) => {
+export async function createUnocssPlugin(options: ResolvedAdvOptions, pluginOptions: AdvPluginOptions) {
   const config = await createUnocssConfig(options, pluginOptions.unocss)
   return Unocss(config)
 }

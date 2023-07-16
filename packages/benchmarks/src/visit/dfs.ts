@@ -5,7 +5,7 @@ interface Tree {
   children?: Tree[]
 }
 
-export function dfs(tree: Tree, callback: Function) {
+export function dfs(tree: Tree, callback: (node: Tree) => void) {
   callback(tree)
   try {
     if (tree.children)

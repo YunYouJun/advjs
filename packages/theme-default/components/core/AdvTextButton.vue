@@ -5,7 +5,7 @@ defineProps<{
 
 const emit = defineEmits(['click'])
 
-const onClick = (event: Event) => {
+function onClick(event: Event) {
   emit('click', event)
 }
 </script>

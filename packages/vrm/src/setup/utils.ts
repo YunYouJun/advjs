@@ -6,7 +6,7 @@ import * as BABYLON from '@babylonjs/core'
  * pick mesh by light cast
  * https://doc.babylonjs.com/divingDeeper/mesh/interactions/picking_collisions
  */
-export const createPickMesh = (scene: BABYLON.Scene) => {
+export function createPickMesh(scene: BABYLON.Scene) {
   scene.onPointerDown = function castRay() {
     const ray = scene.createPickingRay(scene.pointerX, scene.pointerY, BABYLON.Matrix.Identity(), scene.activeCamera)
     const hit = scene.pickWithRay(ray)
@@ -15,7 +15,7 @@ export const createPickMesh = (scene: BABYLON.Scene) => {
   }
 }
 
-export const createGizmoManager = (scene: BABYLON.Scene) => {
+export function createGizmoManager(scene: BABYLON.Scene) {
   // for vrm rotation
   // Create utility layer the gizmo will be rendered on
   const utilLayer = new BABYLON.UtilityLayerRenderer(scene)

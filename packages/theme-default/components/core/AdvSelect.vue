@@ -9,7 +9,7 @@ const iProps = withDefaults(defineProps<{ props: AdvSelectProps }>(), {
   }),
 })
 
-const onChange = (val: Event | any) => {
+function onChange(val: Event | any) {
   if (iProps.props.change && val.target && val.target.value)
     iProps.props.change(val.target.value)
 }
