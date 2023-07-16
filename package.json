@@ -2,7 +2,7 @@
   "name": "@advjs/monorepo",
   "version": "0.0.1",
   "private": true,
-  "packageManager": "pnpm@7.33.3",
+  "packageManager": "pnpm@8.6.7",
   "description": "面向未来与前端的 ADV 文字冒险游戏引擎。",
   "author": {
     "name": "YunYouJun",
