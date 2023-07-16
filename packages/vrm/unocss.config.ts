@@ -14,7 +14,11 @@ import { presetAdv } from '../unocss/src'
 const safelist = 'm-auto text-left'.split(' ')
 
 export default defineConfig({
-  include: ['**/*.{md,vue}', '../theme-default/**/*.{md,vue}'],
+  content: {
+    pipeline: {
+      include: ['**/*.{md,vue}', '../theme-default/**/*.{md,vue}'],
+    },
+  },
 
   presets: [
     presetUno(),

@@ -8,7 +8,7 @@
     "url": "https://github.com/YunYouJun/advjs"
   },
   "scripts": {
-    "build": "vite-ssg build",
+    "build": "vite build",
     "dev": "vite --port 3335 --open --host",
     "preview": "vite preview",
     "preview-https": "serve dist",
