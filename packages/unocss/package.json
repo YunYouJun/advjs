@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "exports": {
     ".": {
-      "require": "./dist/index.cjs",
-      "import": "./dist/index.mjs"
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
     }
   },
   "main": "dist/index.cjs",
@@ -15,6 +15,6 @@
   },
   "devDependencies": {
     "defu": "^6.1.2",
-    "unocss": "^0.53.5"
+    "unocss": "^0.55.0"
   }
 }

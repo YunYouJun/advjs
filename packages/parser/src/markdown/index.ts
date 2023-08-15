@@ -19,15 +19,14 @@
 //   .use(remarkGfm)
 
 import type { Root } from 'mdast'
+import { unified } from 'unified'
+import remarkParse from 'remark-parse'
+import remarkFrontmatter from 'remark-frontmatter'
+import remarkGfm from 'remark-gfm'
+import remarkRehype from 'remark-rehype'
+import rehypeStringify from 'rehype-stringify'
 
 export async function mdRender(content: string) {
-  const { unified } = await import('unified')
-  const { default: remarkParse } = await import('remark-parse')
-  const { default: remarkFrontmatter } = await import('remark-frontmatter')
-  const { default: remarkGfm } = await import('remark-gfm')
-  const { default: remarkRehype } = await import('remark-rehype')
-  const { default: rehypeStringify } = await import('rehype-stringify')
-
   const file = await unified()
     .use(remarkParse)
     .use(remarkFrontmatter)
@@ -44,11 +43,6 @@ export async function mdRender(content: string) {
  * @returns
  */
 export async function mdParse(content: string): Promise<Root> {
-  const { unified } = await import('unified')
-  const { default: remarkParse } = await import('remark-parse')
-  const { default: remarkFrontmatter } = await import('remark-frontmatter')
-  const { default: remarkGfm } = await import('remark-gfm')
-
   const mdAst = unified()
     .use(remarkParse)
     .use(remarkFrontmatter)

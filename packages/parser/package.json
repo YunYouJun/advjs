@@ -1,5 +1,6 @@
 {
   "name": "@advjs/parser",
+  "type": "module",
   "version": "0.0.1",
   "description": "A parser for advjs.",
   "author": {
@@ -18,18 +19,18 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "require": "./dist/index.js",
-      "import": "./dist/index.mjs"
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
     },
     "./core": {
       "types": "./dist/core.d.ts",
-      "require": "./dist/core.js",
-      "import": "./dist/core.mjs"
+      "import": "./dist/core.mjs",
+      "require": "./dist/core.js"
     },
     "./fs": {
       "types": "./fs.d.ts",
-      "require": "./dist/fs.js",
-      "import": "./dist/fs.mjs"
+      "import": "./dist/fs.mjs",
+      "require": "./dist/fs.js"
     }
   },
   "main": "dist/index.js",
@@ -56,14 +57,14 @@
   "dependencies": {
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
-    "mdast-util-to-hast": "^12.3.0",
+    "mdast-util-to-hast": "^13.0.1",
     "rehype-stringify": "^9.0.3",
     "remark": "^14.0.3",
     "remark-frontmatter": "^4.0.1",
     "remark-gfm": "^3.0.1",
     "remark-parse": "^10.0.2",
     "remark-rehype": "^10.1.0",
-    "unified": "^10.1.2"
+    "unified": "^10.0.0"
   },
   "devDependencies": {
     "@advjs/types": "workspace:*",

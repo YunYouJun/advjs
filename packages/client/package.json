@@ -26,9 +26,9 @@
     "@advjs/core": "workspace:*",
     "@advjs/parser": "workspace:*",
     "@advjs/types": "workspace:*",
-    "@antfu/utils": "^0.7.5",
-    "@vueuse/core": "^10.2.1",
-    "@vueuse/head": "^1.1.26",
+    "@antfu/utils": "^0.7.6",
+    "@vueuse/core": "^10.3.0",
+    "@vueuse/head": "^1.3.1",
     "@vueuse/motion": "^2.0.0",
     "@vueuse/sound": "^2.0.1",
     "animate.css": "^4.1.1",
@@ -36,9 +36,9 @@
     "dayjs": "^1.11.9",
     "howler": "^2.2.3",
     "nprogress": "^0.2.0",
-    "pinia": "^2.1.4",
-    "resolve": "^1.22.2",
-    "swiper": "^10.0.4",
+    "pinia": "^2.1.6",
+    "resolve": "^1.22.4",
+    "swiper": "^10.1.0",
     "vue": "^3.3.4",
     "vue-router": "^4.2.4"
   },
@@ -46,7 +46,7 @@
     "@advjs/plugin-babylon": "workspace:*"
   },
   "devDependencies": {
-    "@iconify-json/mdi": "^1.1.53",
+    "@iconify-json/mdi": "^1.1.54",
     "@types/nprogress": "^0.2.0"
   }
 }

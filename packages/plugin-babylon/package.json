@@ -23,8 +23,8 @@
   ],
   "exports": {
     ".": {
-      "require": "./dist/index.js",
-      "import": "./dist/index.mjs"
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
     },
     "./*": "./*"
   },
@@ -51,6 +51,6 @@
     "babylon-vrm-loader": "^2.0.0"
   },
   "devDependencies": {
-    "tsup": "^6.7.0"
+    "tsup": "^7.2.0"
   }
 }

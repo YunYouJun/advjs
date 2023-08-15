@@ -1,5 +1,8 @@
-import path from 'node:path'
+import path, { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import fs from 'fs-extra'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const demoFolder = path.resolve(__dirname, '../../../demo')
 const examplesFolder = path.resolve(__dirname, '../../examples')
