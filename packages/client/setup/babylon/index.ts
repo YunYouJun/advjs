@@ -31,7 +31,7 @@ export async function setup(canvas: HTMLCanvasElement) {
   const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true })
   const { scene } = await createScene(engine)
 
-  const vrmScene = createCharacterScene(scene)
+  const vrmScene = await createCharacterScene(scene)
 
   // run the render loop
   engine.runRenderLoop(() => {

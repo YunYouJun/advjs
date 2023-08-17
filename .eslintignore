@@ -6,3 +6,6 @@ dist
 coverage
 
 public
+
+# vitepress
+docs/.vitepress/cache

@@ -7,10 +7,8 @@ import 'swiper/css/effect-creative'
 
 // import Swiper core and required modules
 // import 'swiper/css/navigation'
-import SwiperCore, {
-  EffectCreative,
-  // Navigation,
-} from 'swiper'
+import SwiperCore from 'swiper'
+import { EffectCreative } from 'swiper/modules'
 
 import type { UserModule } from '@advjs/client/types'
 

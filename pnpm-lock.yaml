@@ -429,6 +429,8 @@ importers:
 
   packages/create-adv: {}
 
+  packages/gui: {}
+
   packages/parser:
     dependencies:
       gray-matter:

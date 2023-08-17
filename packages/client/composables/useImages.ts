@@ -1,17 +1,17 @@
 import type { Ref } from 'vue'
-import { computed, ref } from 'vue'
-import type { MaybeComputedRef, UseImageOptions, UseImageReturn } from '@vueuse/core'
-import { resolveUnref, useImage } from '@vueuse/core'
+import { computed, ref, toValue } from 'vue'
+import type { MaybeRefOrGetter, UseImageOptions, UseImageReturn } from '@vueuse/core'
+import { useImage } from '@vueuse/core'
 
 /**
  * useImage Array for loading
  * @param images
  * @returns
  */
-export function useImages(options: MaybeComputedRef<UseImageOptions[]>) {
-  const images = resolveUnref(options)
+export function useImages(options: MaybeRefOrGetter<UseImageOptions[]>) {
+  const images = toValue(options)
   const imagesQueue: Ref<UseImageReturn[]> = ref([])
-  images.forEach((image) => {
+  images.forEach((image: UseImageOptions) => {
     const img: UseImageReturn = useImage(image)
     if (img)
       imagesQueue.value.push(img)

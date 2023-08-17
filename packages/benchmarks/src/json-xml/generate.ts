@@ -10,17 +10,17 @@ const builder = new Builder()
  * 生成随机 JSON
  */
 function generateRandomJson() {
-  const name = faker.name.findName()
+  const name = faker.person.fullName()
   return {
     scene: {
       characters: [
         {
-          avatar: faker.image.imageUrl(),
+          avatar: faker.image.url(),
           name,
         },
         {
-          avatar: faker.image.imageUrl(),
-          name: faker.name.findName(),
+          avatar: faker.image.url(),
+          name: faker.person.fullName(),
         },
       ],
       dialog: {

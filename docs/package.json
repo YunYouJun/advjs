@@ -1,7 +1,7 @@
 {
   "name": "@advjs/docs",
-  "private": true,
   "type": "module",
+  "private": true,
   "description": "面向未来与前端的 ADV 文字冒险游戏引擎。",
   "author": {
     "name": "YunYouJun",
