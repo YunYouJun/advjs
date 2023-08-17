@@ -3,6 +3,7 @@
     "advjs",
     "advnode",
     "advscript",
+    "AGUI",
     "ANIMATIONTYPE",
     "babylonjs",
     "defu",
@@ -14,6 +15,7 @@
     "Skybox",
     "tachie",
     "tachies",
+    "Tauri",
     "unstorage",
     "VRoid"
   ],

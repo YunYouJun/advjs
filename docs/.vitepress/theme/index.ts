@@ -9,6 +9,8 @@ import './styles/index.scss'
 
 import HomePage from '../components/HomePage.vue'
 
+import '../../../packages/gui/src/styles/index.scss'
+
 export default {
   ...Theme,
   Layout() {

@@ -1,0 +1,27 @@
+.agui-input {
+  color: var(--agui-c-label);
+  background-color: var(--agui-c-bg);
+  border: 1px solid var(--agui-c-border);
+
+  border-radius: 2px;
+  padding: 0 4px;
+  font-size: 13px;
+
+  width: 100%;
+  height: 20px;
+
+  box-sizing: border-box;
+  transition: border-color 0.2s ease-in-out;
+
+  &:focus {
+    outline: none;
+    border-color: var(--agui-c-focus);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+
+    color: var(--agui-c-text-3);
+    border-color: var(--agui-c-border);
+  }
+}

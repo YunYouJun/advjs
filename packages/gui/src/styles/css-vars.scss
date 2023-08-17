@@ -1,0 +1,105 @@
+// schema
+:root {
+  --agui-c-white: #ffffff;
+  --agui-c-white-soft: #f9f9f9;
+  --agui-c-white-mute: #f1f1f1;
+  --agui-c-black: #1a1a1a;
+  --agui-c-black-pure: #000000;
+  --agui-c-black-soft: #242424;
+  --agui-c-black-mute: #2f2f2f;
+  --agui-c-indigo: #213547;
+  --agui-c-indigo-soft: #476582;
+  --agui-c-indigo-light: #aac8e4;
+  --agui-c-gray: #8e8e8e;
+  --agui-c-gray-light-1: #aeaeae;
+  --agui-c-gray-light-2: #c7c7c7;
+  --agui-c-gray-light-3: #d1d1d1;
+  --agui-c-gray-light-4: #e5e5e5;
+  --agui-c-gray-light-5: #f2f2f2;
+  --agui-c-gray-dark-1: #636363;
+  --agui-c-gray-dark-2: #484848;
+  --agui-c-gray-dark-3: #3a3a3a;
+  --agui-c-gray-dark-4: #282828;
+  --agui-c-gray-dark-5: #202020;
+  --agui-c-divider-light-1: rgba(60, 60, 60, .29);
+  --agui-c-divider-light-2: rgba(60, 60, 60, .12);
+  --agui-c-divider-dark-1: rgba(84, 84, 84, .65);
+  --agui-c-divider-dark-2: rgba(84, 84, 84, .48);
+  --agui-c-text-light-1: var(-agui-c-indigo);
+  --agui-c-text-light-2: rgba(60, 60, 60, .7);
+  --agui-c-text-light-3: rgba(60, 60, 60, .33);
+  --agui-c-text-light-4: rgba(60, 60, 60, .18);
+  --agui-c-text-light-code: var(-agui-c-indigo-soft);
+  --agui-c-text-dark-1: rgba(255, 255, 255, .8);
+  --agui-c-text-dark-2: rgba(235,  235, 235, .6);
+  --agui-c-text-dark-3: rgba(235,  235, 235, .38);
+  --agui-c-text-dark-4: rgba(235,  235, 235, .18);
+  --agui-c-text-dark-code: var(-agui-c-indigo-light);
+  --agui-c-blue: #3b8eed;
+  --agui-c-blue-light: #549ced;
+  --agui-c-blue-lighter: #50a2ff;
+  --agui-c-blue-dark: #3468a3;
+  --agui-c-blue-darker: #255489;
+}
+
+// common
+:root {
+  --agui-c-label: var(--agui-c-text-dark-1);
+  --agui-c-text: var(--agui-c-text-dark-1);
+
+  --agui-c-bg-panel: rgba(56, 56, 56, 1);
+  --agui-c-bg-panel-title: rgba(70, 70, 70, 1);
+  --agui-c-border-hover: rgba(220, 220, 220, .3)
+}
+
+:root {
+  --agui-c-focus: var(--agui-c-blue);
+}
+
+// theme
+:root {
+  --agui-c-bg: var(--agui-c-white);
+  --agui-c-bg-soft: var(--agui-c-white-soft);
+  --agui-c-bg-mute: var(--agui-c-white-mute);
+
+  --agui-c-divider: var(--agui-c-divider-light-1);
+  --agui-c-divider-light: var(--agui-c-divider-light-2);
+  --agui-c-divider-inverse: var(--agui-c-divider-dark-1);
+  --agui-c-divider-inverse-light: var(--agui-c-divider-dark-2);
+
+  --agui-c-text-1: var(--agui-c-text-light-1);
+  --agui-c-text-2: var(--agui-c-text-light-2);
+  --agui-c-text-3: var(--agui-c-text-light-3);
+  --agui-c-text-4: var(--agui-c-text-light-4);
+  --agui-c-text-code: var(--agui-c-text-light-code);
+  --agui-c-text-inverse-1: var(--agui-c-text-dark-1);
+  --agui-c-text-inverse-2: var(--agui-c-text-dark-2);
+  --agui-c-text-inverse-3: var(--agui-c-text-dark-3);
+  --agui-c-text-inverse-4: var(--agui-c-text-dark-4);
+  --agui-c-brand: var(--agui-c-green);
+  --agui-c-brand-light: var(--agui-c-green-light);
+  --agui-c-brand-dark: var(--agui-c-green-dark);
+  --agui-c-brand-highlight: var(--agui-c-brand-dark)
+}
+
+.dark {
+  --agui-c-bg: var(--agui-c-black);
+  --agui-c-bg-soft: var(--agui-c-black-soft);
+  --agui-c-bg-mute: var(--agui-c-black-mute);
+
+  --agui-c-divider: var(--agui-c-divider-dark-1);
+  --agui-c-divider-light: var(--agui-c-divider-dark-2);
+  --agui-c-divider-inverse: var(--agui-c-divider-light-1);
+  --agui-c-divider-inverse-light: var(--agui-c-divider-light-2);
+
+  --agui-c-text-1: var(--agui-c-text-dark-1);
+  --agui-c-text-2: var(--agui-c-text-dark-2);
+  --agui-c-text-3: var(--agui-c-text-dark-3);
+  --agui-c-text-4: var(--agui-c-text-dark-4);
+  --agui-c-text-code: var(--agui-c-text-dark-code);
+  --agui-c-text-inverse-1: var(--agui-c-text-light-1);
+  --agui-c-text-inverse-2: var(--agui-c-text-light-2);
+  --agui-c-text-inverse-3: var(--agui-c-text-light-3);
+  --agui-c-text-inverse-4: var(--agui-c-text-light-4);
+  --agui-c-brand-highlight: var(--agui-c-brand-light)
+}

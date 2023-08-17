@@ -14,6 +14,10 @@ const nav: DefaultTheme.Config['nav'] = [
   { text: '指南', link: '/guide/' },
   { text: 'API', link: 'https://api.docs.advjs.org' },
   {
+    text: 'AGUI',
+    link: '/agui/',
+  },
+  {
     text: '贡献',
     link: '/contributing/',
   },

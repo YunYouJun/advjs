@@ -16,7 +16,10 @@ export default defineConfig({
   plugins: [
     Components({
       include: [/\.vue/, /\.md/],
-      dirs: '.vitepress/components',
+      dirs: [
+        '.vitepress/components',
+        '../packages/gui/src/components',
+      ],
       dts: '.vitepress/components.d.ts',
     }),
     Unocss({
