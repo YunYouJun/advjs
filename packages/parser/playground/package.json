@@ -21,12 +21,12 @@
     "wc-github-corners": "^0.1.6"
   },
   "devDependencies": {
-    "@intlify/unplugin-vue-i18n": "^0.12.2",
-    "@types/mdast": "3",
-    "@vitejs/plugin-vue": "^4.2.3",
+    "@intlify/unplugin-vue-i18n": "^0.12.3",
+    "@types/mdast": "3.0.12",
+    "@vitejs/plugin-vue": "^4.3.1",
     "markdown-it-link-attributes": "^4.0.1",
     "markdown-it-prism": "^2.3.0",
-    "unocss": "^0.55.0",
+    "unocss": "^0.55.2",
     "unplugin-vue-components": "^0.25.1",
     "v-tooltip": "^4.0.0-beta.17",
     "vite": "^4.4.9",
@@ -34,6 +34,6 @@
     "vite-plugin-pages": "^0.31.0",
     "vite-plugin-pwa": "^0.16.4",
     "vite-plugin-vue-layouts": "^0.8.0",
-    "vite-plugin-vue-markdown": "^0.23.8"
+    "unplugin-vue-markdown": "^0.24.2"
   }
 }

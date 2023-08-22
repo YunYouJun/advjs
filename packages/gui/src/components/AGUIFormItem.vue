@@ -1,16 +1,21 @@
 <script setup lang="ts">
-defineProps<{ label: string }>()
+defineProps<{
+  label: string
+  description?: string
+}>()
 </script>
 
 <template>
   <div
     class="agui-form-item flex"
     justify-center items-center h="6"
-    pr-1
   >
     <label
       class="agui-label w-1/3 text-$agui-c-label"
-    >{{ label }}</label>
+      :title="description"
+    >
+      {{ label }}
+    </label>
     <div class="flex flex-1" items-center>
       <slot />
     </div>

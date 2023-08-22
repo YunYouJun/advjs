@@ -9,7 +9,6 @@
 .agui-slider {
   &-container {
     width: 100%;
-    padding-right: 4px;
   }
 
   width: 100%;
@@ -28,19 +27,6 @@
 
   &:hover {
     opacity: 1;
-  }
-
-  &-input {
-    margin-left: 0.5rem;
-    background: transparent;
-    color: white;
-    width: 2rem;
-    font-size: 12px;
-    text-align: right;
-
-    &:focus {
-      outline: 1px solid white;
-    }
   }
 
   &::-moz-range-thumb {
@@ -65,5 +51,10 @@
     appearance: none;
     cursor: pointer;
     overflow: visible;
+  }
+
+  // slider input
+  &-input {
+    width: 100%;
   }
 }

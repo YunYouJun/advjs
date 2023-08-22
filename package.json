@@ -62,8 +62,8 @@
     "@antfu/eslint-config": "^0.40.2",
     "@antfu/ni": "^0.21.5",
     "@types/fs-extra": "^11.0.1",
-    "@types/howler": "^2.2.7",
-    "@types/node": "^20.5.0",
+    "@types/howler": "^2.2.8",
+    "@types/node": "^20.5.1",
     "@types/prompts": "^2.4.4",
     "@types/rimraf": "^4.0.5",
     "@types/semver": "^7.5.0",
@@ -82,7 +82,7 @@
     "typedoc": "^0.24.8",
     "typescript": "^5.1.6",
     "vite": "^4.4.9",
-    "vitest": "^0.34.1",
+    "vitest": "^0.34.2",
     "vue-tsc": "^1.8.8"
   },
   "lint-staged": {

@@ -20,7 +20,9 @@ withDefaults(defineProps<{
 
 <template>
   <div col="span-5" class="adv-menu-item--label justify-center" text="2xl">
-    <label :for="item.label" font="bold serif">{{ item.label }}</label>
+    <label :for="item.label" font="bold serif">
+      {{ item.label }}
+    </label>
   </div>
   <div col="span-7" class="adv-menu-item--container flex items-center" p="x-2">
     <template v-if="item.type">

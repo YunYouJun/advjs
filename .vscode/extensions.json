@@ -1,11 +1,12 @@
 {
   "recommendations": [
+    "antfu.iconify",
+    "antfu.unocss",
     "antfu.vite",
+    "csstools.postcss",
+    "dbaeumer.vscode-eslint",
     "vue.volar",
     "lokalise.i18n-ally",
-    "antfu.iconify",
-    "dbaeumer.vscode-eslint",
-    "voorjaar.windicss-intellisense",
-    "csstools.postcss"
+    "streetsidesoftware.code-spell-checker"
   ]
 }

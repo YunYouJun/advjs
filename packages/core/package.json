@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@advjs/parser": "workspace:*",
-    "@types/mdast": "3",
+    "@types/mdast": "3.0.12",
     "html2canvas": "^1.4.1",
     "unstorage": "^1.9.0"
   }

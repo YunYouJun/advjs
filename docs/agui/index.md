@@ -1,3 +1,7 @@
+---
+outline: deep
+---
+
 # AGUI - @advjs/gui
 
 GUI for Engine Editor.
@@ -12,48 +16,30 @@ pnpm add @advjs/gui
 
 ## Checkbox
 
-<AGUIDemoBlock title="Checkbox Demo">
+<CheckboxDemo />
 
-<AGUIForm>
-  <AGUIFormItem label="Default" >
-    <AGUICheckbox />
-  </AGUIFormItem>
-  <AGUIFormItem label="Checked" >
-    <AGUICheckbox checked />
-  </AGUIFormItem>
-  <AGUIFormItem label="Disabled" >
-    <AGUICheckbox disabled />
-  </AGUIFormItem>
-</AGUIForm>
-
-</AGUIDemoBlock>
+<<< @/.vitepress/components/demo/CheckboxDemo.vue
 
 ## Input
 
-<AGUIDemoBlock title="Input Demo" >
+<InputDemo />
 
-<AGUIForm>
-  <AGUIFormItem label="Default" >
-    <AGUIInput />
-  </AGUIFormItem>
-  <AGUIFormItem label="Disabled" >
-    <AGUIInput disabled />
-  </AGUIFormItem>
-</AGUIForm>
+<<< @/.vitepress/components/demo/InputDemo.vue
 
-</AGUIDemoBlock>
+### InputNumber
+
+<InputNumberDemo />
+
+<<< @/.vitepress/components/demo/InputNumberDemo.vue
 
 ## Slider
 
-<AGUIDemoBlock title="Slider Demo">
+<SliderDemo />
 
-<AGUIForm>
-  <AGUIFormItem label="Default" >
-    <AGUISlider />
-  </AGUIFormItem>
-  <AGUIFormItem label="With Input (Todo)" >
-    <AGUISlider disabled />
-  </AGUIFormItem>
-</AGUIForm>
+<<< @/.vitepress/components/demo/SliderDemo.vue
 
-</AGUIDemoBlock>
+## Select
+
+<SelectDemo />
+
+<<< @/.vitepress/components/demo/SelectDemo.vue
