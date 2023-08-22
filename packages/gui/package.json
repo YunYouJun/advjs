@@ -1,4 +1,7 @@
 {
   "name": "@advjs/gui",
-  "version": "0.0.1"
+  "version": "0.0.1",
+  "devDependencies": {
+    "@headlessui/vue": "^1.7.16"
+  }
 }

@@ -43,3 +43,9 @@ pnpm add @advjs/gui
 <SelectDemo />
 
 <<< @/.vitepress/components/demo/SelectDemo.vue
+
+## Tabs
+
+<TabsDemo />
+
+<<< @/.vitepress/components/demo/TabsDemo.vue

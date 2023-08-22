@@ -171,6 +171,9 @@ importers:
       '@iconify-json/vscode-icons':
         specifier: ^1.1.28
         version: 1.1.28
+      unocss:
+        specifier: '0.54'
+        version: 0.54.3(@unocss/webpack@0.54.3)(postcss@8.4.28)(rollup@2.79.1)(vite@4.4.9)
       unplugin-vue-components:
         specifier: ^0.25.1
         version: 0.25.1(rollup@2.79.1)(vue@3.3.4)
@@ -480,7 +483,11 @@ importers:
 
   packages/create-adv: {}
 
-  packages/gui: {}
+  packages/gui:
+    devDependencies:
+      '@headlessui/vue':
+        specifier: ^1.7.16
+        version: 1.7.16(vue@3.3.4)
 
   packages/parser:
     dependencies:
@@ -2855,6 +2862,15 @@ packages:
       '@hapi/hoek': 9.3.0
     dev: true
 
+  /@headlessui/vue@1.7.16(vue@3.3.4):
+    resolution: {integrity: sha512-nKT+nf/q6x198SsyK54mSszaQl/z+QxtASmgMEJtpxSX2Q0OPJX0upS/9daDyiECpeAsvjkoOrm2O/6PyBQ+Qg==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      vue: ^3.2.0
+    dependencies:
+      vue: 3.3.4
+    dev: true
+
   /@humanwhocodes/config-array@0.11.10:
     resolution: {integrity: sha512-KVVjQmNUepDVGXNuoRRdmmEjruj0KfiGSbS8LVc12LMsWDQzRXJ0qdhN8L8uUigKpfEHRhlaQFY0ib1tnUbNeQ==}
     engines: {node: '>=10.10.0'}
@@ -5173,7 +5189,7 @@ packages:
       '@vue/compiler-core': 3.3.4
       '@vue/shared': 3.3.4
       estree-walker: 2.0.2
-      magic-string: 0.30.1
+      magic-string: 0.30.2
 
   /@vue/reactivity@3.3.4:
     resolution: {integrity: sha512-kLTDLwd0B1jG08NBF3R5rqULtv/f8x3rOFByTDz4J53ttIQEDmALqKqXY0J+XQeN0aV2FBxY8nJDf88yvOPAqQ==}

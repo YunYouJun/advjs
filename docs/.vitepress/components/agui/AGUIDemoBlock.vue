@@ -3,8 +3,10 @@ import { ref } from 'vue'
 
 withDefaults(defineProps<{
   title: string
+  inPanel: boolean
 }>(), {
   title: 'Untitled',
+  inPanel: true,
 })
 
 const isDark = ref(true)
@@ -15,11 +17,13 @@ const isDark = ref(true)
     :class="isDark ? 'dark' : 'light'"
     relative
     class="agui-demo-block bg-$agui-c-bg-panel" shadow border="solid 1px $agui-c-divider-dark-2"
-    rounded
+    rounded-2px
   >
-    <AGUIDetails open :title="title">
+    <AGUIDetails v-if="inPanel" open :title="title">
       <slot />
     </AGUIDetails>
+    <slot v-else />
+
     <!-- <button
       :class="isDark ? 'i-ri-moon-line' : 'i-ri-sun-line'"
       class="absolute right-2 top-2 text-$agui-c-text-2"

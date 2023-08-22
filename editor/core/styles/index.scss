@@ -1,1 +1,6 @@
+@use '../../../packages/gui/src/styles/global.scss' as *;
 @use '../../../packages/gui/src/styles/index.scss' as *;
+
+body {
+  font-size: small;
+}

@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { ref } from 'vue'
+
 const tabList = ref([
   { title: 'Project', key: 'project', icon: 'i-ri-folder-line' },
   { title: 'Console', key: 'console', icon: 'i-ri-terminal-box-line' },
@@ -6,15 +8,19 @@ const tabList = ref([
 </script>
 
 <template>
-  <AGUIPanel absolute bottom-0 left-0 h="1/3" w="3/4">
+  <AGUIDemoBlock :in-panel="false">
     <AGUITabs :list="tabList">
       <AGUITabPanel>
-        Project
+        <div p="4">
+          Project
+        </div>
       </AGUITabPanel>
       <AGUITabPanel>
-        Console
+        <div p="4">
+          Console
+        </div>
       </AGUITabPanel>
       <slot />
     </AGUITabs>
-  </AGUIPanel>
+  </AGUIDemoBlock>
 </template>
