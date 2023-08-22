@@ -3,7 +3,7 @@ defineProps<{ title: string }>()
 </script>
 
 <template>
-  <details class="agui-details">
+  <details class="agui-details w-full">
     <slot name="summary">
       <summary
         class="agui-summary text-$agui-c-text-1" font-bold text-xs
