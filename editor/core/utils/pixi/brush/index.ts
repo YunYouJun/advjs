@@ -17,7 +17,7 @@ export function createBrush(app: PIXI.Application, options: BrushOptions = defau
 
   // prepare circle texture, that will be our brush
   const brush = new PIXI.Graphics()
-  brush.beginFill(0xFFFFFF)
+  brush.beginFill(brushStore.color)
 
   // Create a line that will interpolate the drawn points
   // const line = new PIXI.Graphics()
@@ -42,7 +42,8 @@ export function createBrush(app: PIXI.Application, options: BrushOptions = defau
         // newBrush.beginFill(0xFFFFFF)
         // brush.position.set(x, y)
         // brush.drawCircle(0, 0, radius)
-        brush.lineStyle({ width: 0, color: 0xFFFFFF })
+        brush.beginFill(brushStore.color)
+        brush.lineStyle({ width: 0, color: brushStore.color })
         brush.drawCircle(x, y, brushStore.size)
 
         // brush.endFill()
@@ -59,7 +60,7 @@ export function createBrush(app: PIXI.Application, options: BrushOptions = defau
         if (lastDrawnPoint) {
           brush
             // .clear()
-            .lineStyle({ width: brushStore.size * 2, color: 0xFFFFFF })
+            .lineStyle({ width: brushStore.size * 2, color: brushStore.color })
             .moveTo(lastDrawnPoint.x, lastDrawnPoint.y)
             .lineTo(x, y)
 

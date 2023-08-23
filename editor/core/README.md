@@ -19,3 +19,4 @@ Based on Nuxt.
       - [ ] 预览
     - [ ] Console 控制台
     - [ ] Animation 动画编辑器
+- [ ] Undo/Redo [useManualRefHistory](https://vueuse.org/core/useManualRefHistory/)
