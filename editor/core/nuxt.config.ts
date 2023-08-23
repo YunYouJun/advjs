@@ -1,7 +1,12 @@
+import { resolve } from 'node:path'
 import { pwa } from './config/pwa'
 import { appDescription } from './constants/index'
 
 export default defineNuxtConfig({
+  alias: {
+    '@advjs/editor': `${resolve(__dirname, '.')}`,
+  },
+
   modules: [
     '@vueuse/nuxt',
     '@unocss/nuxt',

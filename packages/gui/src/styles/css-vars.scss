@@ -58,6 +58,7 @@
 
 // theme
 :root {
+  // bg
   --agui-c-bg: var(--agui-c-white);
   --agui-c-bg-soft: var(--agui-c-white-soft);
   --agui-c-bg-mute: var(--agui-c-white-mute);
@@ -83,9 +84,15 @@
 }
 
 .dark {
+  --agui-c-active: var(--agui-c-blue-darker);
+
+  // bg
   --agui-c-bg: var(--agui-c-black);
   --agui-c-bg-soft: var(--agui-c-black-soft);
   --agui-c-bg-mute: var(--agui-c-black-mute);
+
+  --agui-c-bg-1: rgba(88, 88, 88, 1);
+  --agui-c-bg-2: rgba(99, 99, 99, 1);
 
   --agui-c-divider: var(--agui-c-divider-dark-1);
   --agui-c-divider-light: var(--agui-c-divider-dark-2);

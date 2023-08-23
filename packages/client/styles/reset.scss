@@ -1,3 +1,11 @@
 :root {
   -webkit-tap-highlight-color: transparent;
 }
+
+canvas {
+  outline: none;
+
+  &:focus {
+    outline: none;
+  }
+}

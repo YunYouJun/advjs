@@ -38,6 +38,9 @@
       "advjs": [
         "./packages/advjs/node/index.ts"
       ],
+      "@advjs/editor/*": [
+        "./editor/core/*"
+      ],
       "@advjs/client/*": [
         "./packages/client/*"
       ],
@@ -69,6 +72,7 @@
     // disable for VPHero.vue
     // "./docs/.vitepress/**/*.ts",
     // "./docs/.vitepress/**/*.vue",
+    "./editor/**/*.ts",
     "./packages/global.d.ts",
     "./packages/**/*.ts",
     "./packages/**/*.vue"

@@ -15,7 +15,7 @@ defineProps<{
 <template>
   <TabGroup as="div" class="agui-tab-group flex flex-col w-full">
     <TabList
-      class="agui-tab-list flex justify-start bg-$agui-c-bg"
+      class="agui-tab-list flex justify-start bg-$agui-c-bg-soft"
     >
       <Tab
         v-for="item in list"
@@ -37,7 +37,7 @@ defineProps<{
       </Tab>
     </TabList>
 
-    <TabPanels>
+    <TabPanels class="h-full">
       <slot />
     </TabPanels>
   </TabGroup>
