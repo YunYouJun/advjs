@@ -11,6 +11,6 @@
     "advjs": "workspace:*",
     "https-localhost": "^4.7.1",
     "nodemon": "^3.0.1",
-    "vite-plugin-inspect": "^0.7.38"
+    "vite-plugin-inspect": "^0.7.40"
   }
 }

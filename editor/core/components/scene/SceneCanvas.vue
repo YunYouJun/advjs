@@ -15,6 +15,7 @@ function createRuntime(options: {
     view: canvas,
     // resolution: window.devicePixelRatio || 1,
     resizeTo: container,
+    antialias: true,
   })
   // @ts-expect-error for pixi chrome plugin
   globalThis.__PIXI_APP__ = app

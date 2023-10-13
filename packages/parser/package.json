@@ -57,7 +57,7 @@
   "dependencies": {
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
-    "mdast-util-to-hast": "^13.0.1",
+    "mdast-util-to-hast": "^13.0.2",
     "rehype-stringify": "^9.0.4",
     "remark": "^14.0.3",
     "remark-frontmatter": "^4.0.1",
@@ -69,7 +69,7 @@
   "devDependencies": {
     "@advjs/types": "workspace:*",
     "@advjs/unocss": "workspace:*",
-    "@types/js-yaml": "^4.0.5",
+    "@types/js-yaml": "^4.0.7",
     "@types/mdast": "3.0.12"
   }
 }

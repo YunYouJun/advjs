@@ -3,6 +3,11 @@ import { pwa } from './config/pwa'
 import { appDescription } from './constants/index'
 
 export default defineNuxtConfig({
+  // ssr: false,
+  routeRules: {
+    '/': { ssr: false },
+  },
+
   alias: {
     '@advjs/editor': `${resolve(__dirname, '.')}`,
   },

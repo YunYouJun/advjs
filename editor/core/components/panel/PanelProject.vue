@@ -6,15 +6,17 @@ const tabList = ref([
 </script>
 
 <template>
-  <AGUIPanel absolute bottom-0 left-0 h="1/3" w="3/4">
-    <AGUITabs :list="tabList">
-      <AGUITabPanel>
-        Project
-      </AGUITabPanel>
-      <AGUITabPanel>
-        Console
-      </AGUITabPanel>
-      <slot />
-    </AGUITabs>
-  </AGUIPanel>
+  <div absolute bottom-0 left-0 h="1/3" w="3/4">
+    <AGUIPanel>
+      <AGUITabs :list="tabList">
+        <AGUITabPanel>
+          Project
+        </AGUITabPanel>
+        <AGUITabPanel>
+          Console
+        </AGUITabPanel>
+        <slot />
+      </AGUITabs>
+    </AGUIPanel>
+  </div>
 </template>

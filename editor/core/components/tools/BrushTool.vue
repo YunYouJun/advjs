@@ -19,5 +19,5 @@ function onClick() {
   </div>
   <!-- <AGUIColorPicker v-model="brush.color" mx-0.5 /> -->
   <input v-model="brush.color" type="color" mx-0.5>
-  <AGUIInputNumber v-model="brush.size" mx-0.5 w-16 />
+  <AGUIInputNumber v-model="brush.size" :min="1" mx-0.5 w-16 />
 </template>

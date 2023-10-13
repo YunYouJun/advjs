@@ -17,11 +17,11 @@
   },
   "devDependencies": {
     "@iconify-json/file-icons": "^1.1.5",
-    "@iconify-json/logos": "^1.1.34",
+    "@iconify-json/logos": "^1.1.37",
     "@iconify-json/vscode-icons": "^1.1.28",
-    "unocss": "0.54.3",
-    "unplugin-vue-components": "^0.25.1",
-    "vite-plugin-pwa": "^0.16.4",
-    "vitepress": "1.0.0-rc.4"
+    "unocss": "0.55.7",
+    "unplugin-vue-components": "^0.25.2",
+    "vite-plugin-pwa": "^0.16.5",
+    "vitepress": "1.0.0-rc.10"
   }
 }
