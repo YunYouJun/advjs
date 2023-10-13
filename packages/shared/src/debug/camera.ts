@@ -14,7 +14,6 @@ export interface CameraInfo {
 /**
  * 捕获相机信息
  * @param camera
- * @returns
  */
 export function captureCameraInfo(camera: BABYLON.ArcRotateCamera) {
   const cameraInfo: CameraInfo = {

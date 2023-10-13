@@ -1,36 +1,14 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
-    "module": "ESNext",
     "target": "ESNext",
+    "jsx": "preserve",
     "lib": [
       "DOM",
       "ESNext"
     ],
-    "strict": true,
-    "esModuleInterop": true,
-    "jsx": "preserve",
-    "skipLibCheck": true,
+    "baseUrl": ".",
+    "module": "ESNext",
     "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "noUnusedLocals": true,
-    "strictNullChecks": true,
-    "allowJs": true,
-    "forceConsistentCasingInFileNames": true,
-    "types": [
-      "@babylonjs/core",
-      "@babylonjs/loaders",
-      "@babylonjs/gui",
-      "@babylonjs/materials",
-      "babylon-vrm-loader",
-      "vitepress/client",
-      "vite/client",
-      "node",
-      "vue/ref-macros",
-      "vite-plugin-pages/client",
-      "vite-plugin-pwa/client",
-      "vite-plugin-vue-layouts/client"
-    ],
     "paths": {
       "~/*": [
         "./packages/client/*"
@@ -65,7 +43,29 @@
       "advjs/*": [
         "./packages/advjs/src/*"
       ]
-    }
+    },
+    "resolveJsonModule": true,
+    "types": [
+      "@babylonjs/core",
+      "@babylonjs/loaders",
+      "@babylonjs/gui",
+      "@babylonjs/materials",
+      "babylon-vrm-loader",
+      "vitepress/client",
+      "vite/client",
+      "node",
+      "vue/ref-macros",
+      "vite-plugin-pages/client",
+      "vite-plugin-pwa/client",
+      "vite-plugin-vue-layouts/client"
+    ],
+    "allowJs": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "noUnusedLocals": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
   },
   "include": [
     "./*.ts",

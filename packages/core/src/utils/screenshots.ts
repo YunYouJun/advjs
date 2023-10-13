@@ -23,7 +23,6 @@ export async function screenshot(el: HTMLElement, options: Partial<Options> = {}
 
 /**
  * 获取游戏视图窗口 DOM
- * @returns
  */
 export function getGameViewDom() {
   const advContent = document.querySelector('.adv-game') as HTMLElement

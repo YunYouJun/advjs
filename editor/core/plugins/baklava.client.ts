@@ -5,4 +5,4 @@ import '@baklavajs/themes/dist/classic.css'
 
 // https://github.com/uuidjs/uuid#getrandomvalues-not-supported
 
-export default defineNuxtPlugin((nuxtApp) => {})
+export default defineNuxtPlugin((_nuxtApp) => {})

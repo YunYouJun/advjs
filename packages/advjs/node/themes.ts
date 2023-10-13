@@ -18,7 +18,6 @@ const officialThemes: Record<string, string> = {
  * check version
  * @param name
  * @param path
- * @returns
  */
 export async function getThemeMeta(name: string, path: string) {
   if (!fs.existsSync(path))

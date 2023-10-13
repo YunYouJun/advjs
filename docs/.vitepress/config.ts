@@ -295,13 +295,16 @@ export default defineConfig({
 
     socialLinks: [
       {
-        icon: 'github', link: 'https://github.com/YunYouJun/advjs',
+        icon: 'github',
+        link: 'https://github.com/YunYouJun/advjs',
       },
       {
-        icon: 'twitter', link: 'https://twitter.com/YunYouJun',
+        icon: 'twitter',
+        link: 'https://twitter.com/YunYouJun',
       },
       {
-        icon: 'discord', link: 'https://discord.gg/HNNPywcTxw',
+        icon: 'discord',
+        link: 'https://discord.gg/HNNPywcTxw',
       },
     ],
 

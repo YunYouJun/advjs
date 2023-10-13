@@ -30,7 +30,8 @@ export async function createScene(engine: BABYLON.Engine) {
 
   // Create a default skybox with an environment.
   const hdrTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(
-    `${getAssetsPrefix()}/textures/environment.dds`, scene,
+    `${getAssetsPrefix()}/textures/environment.dds`,
+    scene,
   )
 
   const currentSkybox = scene.createDefaultSkybox(hdrTexture, true)

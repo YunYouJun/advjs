@@ -35,8 +35,6 @@ export function createAdvLoader(
 
   /**
    * generate AdvConfig from frontmatter & meta
-   * @param data
-   * @returns
    */
   function generateConfigs() {
     // front override latter
@@ -216,7 +214,6 @@ export function createAdvLoader(
        * transform adv.md to vue for, next loader
        * @param code
        * @param id
-       * @returns
        */
       async transform(code, id) {
         if (!filter(id))

@@ -1,7 +1,7 @@
 /* eslint-disable new-cap */
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-nocheck all file
+// eslint-disable-next-line ts/ban-ts-comment
+// @ts-nocheck
 import type { Howl } from 'howler'
 import { onMounted, ref, unref, watch } from 'vue-demi'
 import type { MaybeRef } from '@vueuse/core'
@@ -45,7 +45,7 @@ export function useSound(
 
   function handleLoad() {
     if (typeof onload === 'function')
-      // eslint-disable-next-line @typescript-eslint/no-invalid-this
+      // eslint-disable-next-line ts/no-invalid-this
       onload.call(this)
 
     duration.value = duration.value ? duration.value * 1000 : 0

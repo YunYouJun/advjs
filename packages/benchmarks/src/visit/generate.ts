@@ -12,7 +12,6 @@ export function generateSimpleTree() {
 
 /**
  * 生成广度大的语法树
- * @returns
  */
 export function generateMockBreadthTree(count = 10000) {
   const leafs = Array(count).fill(0).map((_, i) => u('leaf', i.toString()))
@@ -24,7 +23,6 @@ export function generateMockBreadthTree(count = 10000) {
  * 生成深度大的语法树
  * 大于 两千多 时，深度会超过堆栈限制
  * Maximum call stack size exceeded
- * @returns
  */
 export function generateMockDepthTree(count = 2127) {
   let node: any = u('leaf', '0')
@@ -39,10 +37,8 @@ export function generateMockTree(type: 'breadth' | 'depth', count: number) {
   switch (type) {
     case 'breadth':
       return generateMockBreadthTree(count)
-      break
     case 'depth':
       return generateMockDepthTree(count)
-      break
     default:
       break
   }

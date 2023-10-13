@@ -8,7 +8,6 @@ export type AdvVueInstance = ReturnType<typeof createAdvVuePlugin>
 /**
  * 创建 ADV 实例
  * @param options
- * @returns
  */
 export function createAdvVuePlugin(options?: Partial<AdvOptions>) {
   const defaultOptions = {

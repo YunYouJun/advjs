@@ -38,7 +38,6 @@ export class Serialize {
 
   /**
    * 处理标题
-   * @param text
    */
   heading(node: Mdast.Heading): AdvAst.Heading {
     const info: AdvAst.Heading = {
@@ -49,7 +48,6 @@ export class Serialize {
 
   /**
    * 处理引用块
-   * @param text
    */
   blockquote(node: Mdast.Blockquote): AdvAst.Narration {
     const info: AdvAst.Narration = {
@@ -102,7 +100,6 @@ export class Serialize {
 
   /**
    * 处理段落
-   * @param text
    */
   paragraph(node: Mdast.Paragraph) {
     if (node.children.length === 1 && node.children[0].type === 'text')
@@ -127,8 +124,6 @@ export class Serialize {
   /**
    * 处理文本
    * 更多的扩展语法在此实现（从普通的段落文本中进行解析）
-   * @param text
-   * @returns
    */
   text(node: Mdast.Text) {
     return parseText(node)

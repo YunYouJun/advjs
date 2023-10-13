@@ -21,7 +21,7 @@
     "wc-github-corners": "^0.1.6"
   },
   "devDependencies": {
-    "@intlify/unplugin-vue-i18n": "^0.13.0",
+    "@intlify/unplugin-vue-i18n": "^1.4.0",
     "@types/mdast": "3.0.12",
     "@vitejs/plugin-vue": "^4.4.0",
     "markdown-it-link-attributes": "^4.0.1",

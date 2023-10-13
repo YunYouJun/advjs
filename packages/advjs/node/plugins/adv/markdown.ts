@@ -7,7 +7,6 @@ import { checkAdvMd } from './check'
 /**
  * transform obj for vite code
  * @param obj
- * @returns
  */
 export function transformObject(obj: any) {
   return `JSON.parse(${JSON.stringify(JSON.stringify(obj))})`

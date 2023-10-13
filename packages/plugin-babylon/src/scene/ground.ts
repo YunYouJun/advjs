@@ -4,7 +4,6 @@ import * as BABYLON from '@babylonjs/core'
 /**
  * 创建网格地面
  * @param scene
- * @returns
  */
 export function createGridGround(scene: BABYLON.Scene) {
   // Material

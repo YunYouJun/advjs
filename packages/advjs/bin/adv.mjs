@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 'use strict'
 
-import path from 'path'
+import path from 'node:path'
+import process from 'node:process'
 import resolveFrom from 'resolve-from'
 
 let modulePath = '../dist/cli'

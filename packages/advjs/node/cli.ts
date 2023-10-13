@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import path from 'node:path'
 import process from 'node:process'
 import net from 'node:net'

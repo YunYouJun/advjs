@@ -4,8 +4,6 @@ import { createArcRotateCamera, createScene, createVRM } from '@advjs/plugin-bab
 
 /**
  * 创建人物场景
- * @param engine
- * @returns
  */
 export async function createCharacterScene(scene: BABYLON.Scene) {
   await createVRM(scene, (__DEV__ ? '/assets' : '') + demoVrm.rootUrl, demoVrm.name, () => { })
@@ -24,7 +22,6 @@ export async function createCharacterScene(scene: BABYLON.Scene) {
 /**
  * 初始化
  * @param canvas
- * @returns
  */
 export async function setup(canvas: HTMLCanvasElement) {
   // Load the 3D engine

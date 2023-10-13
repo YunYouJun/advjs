@@ -40,7 +40,6 @@ export async function mdRender(content: string) {
 /**
  * md 语法树
  * @param content
- * @returns
  */
 export async function mdParse(content: string): Promise<Root> {
   const mdAst = unified()

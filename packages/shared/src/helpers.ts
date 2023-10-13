@@ -1,7 +1,6 @@
 /**
  * 加载脚本
  * @param url 脚本链接
- * @returns
  */
 export async function getScript(url: string, type = 'module') {
   return new Promise((resolve, reject) => {

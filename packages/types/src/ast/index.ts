@@ -9,8 +9,8 @@ export interface Unknown extends Node {
 }
 
 /**
-   * 普通文本
-   */
+ * 普通文本
+ */
 export interface Text {
   type: 'text'
   value: string
@@ -19,12 +19,12 @@ export interface Text {
 export interface Background {
   type: 'background'
   /**
-     * load from assets by name
-     */
+   * load from assets by name
+   */
   name?: string
   /**
-     * load by url
-     */
+   * load by url
+   */
   url?: string
 }
 
@@ -37,45 +37,45 @@ export interface Choice extends Node {
   type: 'choice'
   text: string
   /**
-       * onClick
-       * @default $adv.nav.next()
-       */
+   * onClick
+   * @default $adv.nav.next()
+   */
   do?: Code
 }
 
 export interface Choices extends Node {
   type: 'choices'
   /**
-     * checked item
-     */
+   * checked item
+   */
   default?: string
   choices: Choice[]
 }
 
 /**
-   * 人物信息
-   */
+ * 人物信息
+ */
 export interface Character extends Node {
   type: 'character'
   name: string
   /**
-     * status of character to adjust tachie
-     * @default '' as 'default'
-     */
+   * status of character to adjust tachie
+   * @default '' as 'default'
+   */
   status?: string
 }
 
 /**
-   * 人物对话（单次发言话语）
-   */
+ * 人物对话（单次发言话语）
+ */
 export interface Words extends Node {
   type: 'words'
   text: string
 }
 
 /**
-   * 文本可能被解析为会话
-   */
+ * 文本可能被解析为会话
+ */
 export interface Dialog extends Node {
   type: 'dialog'
   character: Character
@@ -99,18 +99,18 @@ export interface SceneInfo extends Node {
    */
   place: string
   /**
-     * 时间
-     */
+   * 时间
+   */
   time: string
   /**
-     * 内/外景
-     */
+   * 内/外景
+   */
   inOrOut: string
 }
 
 /**
-   * 旁白
-   */
+ * 旁白
+ */
 export interface Narration extends Node {
   type: 'narration'
   children: string[]
@@ -141,12 +141,12 @@ export interface Camera extends Node {
 export interface Tachie extends Node {
   type: 'tachie'
   /**
-     * enter character
-     */
+   * enter character
+   */
   enter: (Omit<Character, 'type'> | string)[] | string
   /**
-     * exit character
-     */
+   * exit character
+   */
   exit: string[]
 }
 
@@ -221,7 +221,7 @@ export interface Root {
   children: Child[]
   scene: Record<string, number>
   /**
-     * global scripts functions
-     */
+   * global scripts functions
+   */
   functions: Record<string, string>
 }

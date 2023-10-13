@@ -1,3 +1,4 @@
+import { ref } from 'vue'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type * as PIXI from 'pixi.js'
 

@@ -5,13 +5,13 @@ export type RawVector4 = [number, number, number, number]
 
 export interface VRMPoseTransform {
   /**
-     * Position of the transform.
-     */
+   * Position of the transform.
+   */
   position?: RawVector3
   /**
-     * Rotation of the transform.
-     * Note that it's a quaternion.
-     */
+   * Rotation of the transform.
+   * Note that it's a quaternion.
+   */
   rotation?: RawVector4
 }
 

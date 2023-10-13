@@ -48,6 +48,7 @@ const menuItems = computed<StartMenuItem[]>(() =>
       title: t('menu.quit'),
       do: () => {
         window.close()
+        // eslint-disable-next-line no-alert
         window.alert('为什么不直接关浏览器窗口呢？╮(￣▽￣"")╭')
       },
     },

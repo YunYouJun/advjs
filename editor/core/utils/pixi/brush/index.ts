@@ -12,7 +12,7 @@ export const defaultBrushOptions = {
   renderTexture: PIXI.RenderTexture.create({ width: 1, height: 1 }),
 }
 
-export function createBrush(app: PIXI.Application, options: BrushOptions = defaultBrushOptions) {
+export function createBrush(app: PIXI.Application, _options: BrushOptions = defaultBrushOptions) {
   const brushStore = useBrushStore()
 
   // prepare circle texture, that will be our brush

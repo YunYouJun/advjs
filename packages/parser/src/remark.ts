@@ -6,9 +6,6 @@ import consola from 'consola'
 
 /**
  * remark plugin
- * @param node
- * @param file
- * @returns
  */
 export function remarkAdv(options = {}) {
   const defaultOptions = {}

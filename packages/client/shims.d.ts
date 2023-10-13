@@ -10,11 +10,13 @@ declare interface Window {
 
 declare module '*.md' {
   import type { ComponentOptions } from 'vue'
+
   const component: ComponentOptions
   export default component
 }
 
 declare module '/@advjs/configs' {
   import { AdvConfig } from '@advjs/types'
+
   export default AdvConfig
 }

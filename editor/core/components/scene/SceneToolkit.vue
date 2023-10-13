@@ -2,7 +2,7 @@
 const containerRef = ref<HTMLElement | null>(null)
 
 // `style` will be a helper computed for `left: ?px; top: ?px;`
-const { x, y, style } = useDraggable(containerRef, {
+const { x: _x, y: _y, style } = useDraggable(containerRef, {
   initialValue: { x: 40, y: 40 },
 })
 

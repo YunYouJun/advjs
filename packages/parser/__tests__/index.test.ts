@@ -1,11 +1,11 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { expect, test } from 'vitest'
+import { expect } from 'vitest'
 import { parseAst } from '../src'
 
 const testAdv = fs.readFileSync(path.resolve(__dirname, '../../shared/examples/test.adv'), 'utf-8')
 
-test('main', async () => {
+it('main', async () => {
   const advAst = await parseAst(testAdv)
   expect(advAst.children).toContainEqual({
     type: 'text',

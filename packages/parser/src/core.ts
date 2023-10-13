@@ -75,7 +75,6 @@ export async function parseAst(content: string) {
  * parse adv.md config
  * @param markdown
  * @param filepath
- * @returns
  */
 export function parse(markdown: string, filepath?: string): AdvMarkdown {
   const { data } = matter(markdown)

@@ -5,8 +5,6 @@ import { useImage } from '@vueuse/core'
 
 /**
  * useImage Array for loading
- * @param images
- * @returns
  */
 export function useImages(options: MaybeRefOrGetter<UseImageOptions[]>) {
   const images = toValue(options)

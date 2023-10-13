@@ -14,9 +14,9 @@ export function useLogic(ctx: {
 
   const useNav = () => {
     /**
-   * go to scene
-   * @param target
-   */
+     * go to scene
+     * @param target
+     */
     function go(target: string) {
       const order = store.ast.scene[target]
       if (Number.isNaN(order))
@@ -77,7 +77,6 @@ export function useLogic(ctx: {
   /**
    * handle adv ast
    * @param node
-   * @returns
    */
   async function handleAdvNode(node: AdvAst.Item) {
     switch (node.type) {
