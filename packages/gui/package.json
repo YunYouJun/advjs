@@ -1,7 +1,23 @@
 {
   "name": "@advjs/gui",
-  "version": "0.0.1",
-  "devDependencies": {
-    "@headlessui/vue": "^1.7.16"
+  "version": "0.0.2-beta.1",
+  "exports": {
+    "./components/*": "./src/components/*",
+    "./nuxt": "./nuxt.mjs",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./*": "./*"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "unbuild",
+    "prepublishOnly": "npm run build",
+    "release": "bumpp --no-commit --no-tag --no-push && npm publish",
+    "typecheck": "vue-tsc --noEmit"
   }
 }

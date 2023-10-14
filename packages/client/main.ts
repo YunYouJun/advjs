@@ -3,7 +3,7 @@ import { setupLayouts } from 'virtual:generated-layouts'
 import { createApp } from 'vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { MotionPlugin } from '@vueuse/motion'
-import { createHead } from '@vueuse/head'
+import { createHead } from '@unhead/vue'
 import App from './App.vue'
 
 // unocss

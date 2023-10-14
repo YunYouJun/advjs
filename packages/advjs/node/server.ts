@@ -50,7 +50,7 @@ export async function createServer(
 //     'vue',
 //     'vue-router',
 //     '@vueuse/core',
-//     '@vueuse/head',
+//     '@unhead/vue',
 //     '@vueuse/motion',
 //     'dayjs',
 //     'js-yaml',

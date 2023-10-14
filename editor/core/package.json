@@ -13,7 +13,7 @@
     "start:generate": "npx serve .output/public"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^0.41.4",
+    "@antfu/eslint-config": "1.0.0-beta.27",
     "@iconify-json/carbon": "^1.1.21",
     "@iconify-json/twemoji": "^1.1.12",
     "@nuxt/devtools": "^1.0.0-beta.1",
