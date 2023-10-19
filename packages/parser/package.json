@@ -69,7 +69,7 @@
   "devDependencies": {
     "@advjs/types": "workspace:*",
     "@advjs/unocss": "workspace:*",
-    "@types/js-yaml": "^4.0.7",
+    "@types/js-yaml": "^4.0.8",
     "@types/mdast": "3.0.12"
   }
 }
