@@ -2,7 +2,7 @@ import { ns } from '@advjs/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { useStorage, useToggle } from '@vueuse/core'
 import { computed, ref } from 'vue'
-import { config } from '~/env'
+import { config } from '@advjs/client'
 
 export const useAppStore = defineStore('app', () => {
   const [showUi, toggleUi] = useToggle(true)

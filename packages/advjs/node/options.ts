@@ -75,8 +75,9 @@ export interface AdvServerOptions {
   onDataReload?: (newData: AdvMarkdown, data: AdvMarkdown) => void
 }
 
-export function getClientRoot() {
-  return dirname(resolveImportPath('@advjs/client/package.json', true))
+export async function getClientRoot() {
+  const importPath = await resolveImportPath('@advjs/client/package.json', true)
+  return dirname(importPath)
 }
 
 export function getCLIRoot() {
@@ -87,7 +88,7 @@ export function isPath(name: string) {
   return name.startsWith('/') || /^\.\.?[\/\\]/.test(name)
 }
 
-export function getThemeRoot(name: string, entry: string) {
+export async function getThemeRoot(name: string, entry: string) {
   if (!name)
     return
 
@@ -95,10 +96,10 @@ export function getThemeRoot(name: string, entry: string) {
   return getRoot(name, entry)
 }
 
-export function getRoot(name: string, entry: string) {
+export async function getRoot(name: string, entry: string) {
   if (isPath(name))
     return resolve(dirname(entry), name)
-  return dirname(resolveImportPath(`${name}/package.json`, true))
+  return dirname(await resolveImportPath(`${name}/package.json`, true))
 }
 
 export function getUserRoot(options: AdvEntryOptions) {
@@ -126,9 +127,9 @@ export async function resolveOptions(
     process.exit(1)
   }
 
-  const clientRoot = getClientRoot()
+  const clientRoot = await getClientRoot()
   const cliRoot = getCLIRoot()
-  const themeRoot = getThemeRoot(theme, entry)
+  const themeRoot = await getThemeRoot(theme, entry)
 
   if (themeRoot) {
     const themeMeta = await getThemeMeta(theme, join(themeRoot, 'package.json'))

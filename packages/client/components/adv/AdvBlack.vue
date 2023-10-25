@@ -4,7 +4,7 @@
 
 import type { AdvAst } from '@advjs/types'
 import { onMounted, ref, watch } from 'vue'
-import { useAdvCtx } from '~/setup'
+import { useAdvCtx } from '@advjs/client'
 
 const props = defineProps<{
   content: AdvAst.Narration

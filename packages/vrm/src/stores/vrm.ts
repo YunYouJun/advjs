@@ -3,7 +3,7 @@ import type * as BABYLON from '@babylonjs/core'
 
 import { computed, shallowRef } from 'vue'
 
-import type { AsyncReturnType } from '@advjs/shared/types'
+import type { AsyncReturnType } from '@advjs/shared'
 import type { VRMManager } from 'babylon-vrm-loader'
 import type { setup } from '../setup'
 

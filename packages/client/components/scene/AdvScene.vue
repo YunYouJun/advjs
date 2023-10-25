@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { defineAsyncComponent } from 'vue'
-import { useAdvCtx } from '~/setup'
-import { useAppStore } from '~/stores/app'
+import { useAdvCtx, useAppStore } from '@advjs/client'
 
 const app = useAppStore()
 

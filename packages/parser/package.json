@@ -19,22 +19,18 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "default": "./dist/index.mjs"
     },
     "./core": {
       "types": "./dist/core.d.ts",
-      "import": "./dist/core.mjs",
-      "require": "./dist/core.js"
+      "default": "./dist/core.mjs"
     },
     "./fs": {
       "types": "./fs.d.ts",
-      "import": "./dist/fs.mjs",
-      "require": "./dist/fs.js"
+      "default": "./dist/fs.mjs"
     }
   },
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
+  "main": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "files": [
     "*.d.ts",
@@ -45,9 +41,9 @@
   },
   "scripts": {
     "postinstall": "npm run copy",
-    "build": "tsup",
+    "build": "unbuild",
     "copy": "tsx scripts/copy.ts",
-    "dev": "npm run build --watch",
+    "dev": "unbuild --stub",
     "play": "npm -C playground run dev",
     "play:build": "npm run copy && npm -C playground run build",
     "temp": "tsx test/index.ts",
@@ -55,6 +51,9 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
+    "@advjs/types": "workspace:*",
+    "@advjs/unocss": "workspace:*",
+    "@types/mdast": "3.0.12",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
     "mdast-util-to-hast": "^13.0.2",
@@ -67,9 +66,6 @@
     "unified": "^10.1.2"
   },
   "devDependencies": {
-    "@advjs/types": "workspace:*",
-    "@advjs/unocss": "workspace:*",
-    "@types/js-yaml": "^4.0.8",
-    "@types/mdast": "3.0.12"
+    "@types/js-yaml": "^4.0.8"
   }
 }

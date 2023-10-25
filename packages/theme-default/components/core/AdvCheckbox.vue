@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { AdvCheckboxProps } from '@advjs/theme-default'
 import { watch } from 'vue'
-import { useAudioStore } from '~/stores/audio'
+import { useAudioStore } from '@advjs/client'
 
 const p = withDefaults(defineProps<{ props: AdvCheckboxProps }>(), {
   props: () => ({ checked: false }),

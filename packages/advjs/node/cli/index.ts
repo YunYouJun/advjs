@@ -8,6 +8,7 @@ import * as readline from 'node:readline'
 import fs from 'fs-extra'
 import openBrowser from 'open'
 import type { Argv } from 'yargs'
+import { hideBin } from 'yargs/helpers'
 import yargs from 'yargs'
 import prompts from 'prompts'
 import { blue, bold, cyan, dim, gray, green, underline, yellow } from 'kolorist'
@@ -15,11 +16,11 @@ import type { LogLevel, ViteDevServer } from 'vite'
 import isInstalledGlobally from 'is-installed-globally'
 import equal from 'fast-deep-equal'
 import type { AdvConfig } from '@advjs/types'
-import { version } from '../package.json'
-import { createServer } from './server'
-import type { ResolvedAdvOptions } from './options'
-import { resolveOptions } from './options'
-import { resolveThemeName } from './themes'
+import { version } from '../../package.json'
+import { createServer } from '../server'
+import type { ResolvedAdvOptions } from '../options'
+import { resolveOptions } from '../options'
+import { resolveThemeName } from '../themes'
 
 // import { parser } from './parser'
 
@@ -28,7 +29,7 @@ const CONFIG_RESTART_FIELDS: (keyof AdvConfig)[] = [
 ]
 
 const namespace = 'adv'
-const cli = yargs
+const cli = yargs(hideBin(process.argv))
   .scriptName(namespace)
   .usage('$0 [args]')
   .version(version)
@@ -89,13 +90,13 @@ cli.command(
     }
 
     let server: ViteDevServer | undefined
-    let port = 3030
+    let port = 3333
 
     async function initServer() {
       if (server)
         await server.close()
       const options = await resolveOptions({ entry, remote, theme }, 'dev')
-      port = userPort || await findFreePort(3030)
+      port = userPort || await findFreePort(port)
       server = (await createServer(
         options,
         {
@@ -202,7 +203,7 @@ cli.command(
     .strict()
     .help(),
   async ({ entry, theme, watch, base, out }) => {
-    const { build } = await import('./build')
+    const { build } = await import('../build')
 
     const options = await resolveOptions({ entry, theme }, 'build')
 

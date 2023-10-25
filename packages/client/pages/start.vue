@@ -3,8 +3,7 @@ import type { StartMenuItem } from '@advjs/theme-default'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { useAppStore } from '~/stores/app'
-import { config } from '~/env'
+import { config, useAppStore } from '@advjs/client'
 
 const images = computed(() => config.assets.images)
 
@@ -97,14 +96,14 @@ const menuItems = computed<StartMenuItem[]>(() =>
   <div class="adv-bubble-breath circle-pattern absolute right-50 bottom-15 shadow-lg opacity-5" bg="red-500" />
   <div class="adv-bubble-breath circle-pattern absolute left-20 top-20 shadow-lg opacity-10" bg="blue-500" style="--circle-size: 20rem;" />
 
-  <transition>
+  <Transition>
     <div v-if="rippleAnimation" bg="blue-400" class="adv-ripple absolute top-0" />
-  </transition>
-  <transition
+  </Transition>
+  <Transition
     :duration="{ enter: 200, leave: 1200 }"
   >
     <div v-if="rippleAnimation" bg="orange-400" class="adv-ripple absolute top-0 right-0 animate-delay-200" />
-  </transition>
+  </Transition>
 
   <StartMenu :menu-items="menuItems" />
 

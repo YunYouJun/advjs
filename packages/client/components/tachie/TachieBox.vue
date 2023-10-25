@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import type { Tachie } from '@advjs/types'
 import { computed, watch } from 'vue'
-import { useAppStore } from '~/stores/app'
-import { useAdvCtx } from '~/setup'
+import { useAdvCtx, useAppStore } from '@advjs/client'
 
 const props = defineProps<{
   tachies: Map<string, Tachie>
@@ -34,7 +33,7 @@ const classes = computed(() => {
 </script>
 
 <template>
-  <transition enter-active-class="animate__fadeInLeft" leave-active-class="animate__fadeOutLeft">
+  <Transition enter-active-class="animate__fadeInLeft" leave-active-class="animate__fadeOutLeft">
     <div v-if="app.showTachie" grid="~" :class="classes" class="tachie-box absolute pointer-events-none adv-animated" w="full" h="full">
       <TachieCharacter
         v-for="tachie in props.tachies" :key="tachie[0]"
@@ -42,7 +41,7 @@ const classes = computed(() => {
         :tachie="tachie[1]"
       />
     </div>
-  </transition>
+  </Transition>
 </template>
 
 <style lang="scss">

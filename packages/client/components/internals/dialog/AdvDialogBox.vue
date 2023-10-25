@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { speak } from '@advjs/shared/speech'
+import { speak, useAdvCtx, useSettingsStore } from '@advjs/client'
 import { computed, ref, watch } from 'vue'
 import type { AdvAst } from '@advjs/types'
-import { useAdvCtx } from '~/setup'
-import { useSettingsStore } from '~/stores/settings'
 
 const props = defineProps<{
   node: AdvAst.Child

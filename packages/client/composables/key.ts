@@ -1,9 +1,7 @@
 import consola from 'consola'
-import { useAppStore } from '@advjs/client/stores/app'
+import { useAdvCtx, useAppStore } from '@advjs/client'
 import { watch } from 'vue'
 import { useMagicKeys } from '@vueuse/core'
-
-import { useAdvCtx } from '~/setup'
 
 /**
  * register adv magic keys

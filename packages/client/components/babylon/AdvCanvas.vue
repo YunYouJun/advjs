@@ -4,9 +4,7 @@ import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { createCameraAnimation } from '@advjs/plugin-babylon'
 import type * as BABYLON from '@babylonjs/core'
 import type { AdvAst } from '@advjs/types'
-import { setup } from '~/setup/babylon'
-import { useAdvCtx } from '~/setup/adv'
-import { useBabylonStore } from '~/stores/babylon'
+import { setup, useAdvCtx, useBabylonStore } from '@advjs/client'
 
 const $adv = useAdvCtx()
 

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { AdvMenuItemProps } from '@advjs/theme-default'
 
-// import { useSettingsStore } from '~/stores/settings'
+// import { useSettingsStore } from '@advjs/client'
 
 // const settings = useSettingsStore()
 

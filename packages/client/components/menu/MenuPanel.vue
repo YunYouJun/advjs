@@ -2,12 +2,11 @@
 import { useFullscreen } from '@vueuse/core'
 import { useI18n } from 'vue-i18n'
 
-import { useScreenLock } from '@advjs/client/composables'
+import { useScreenLock, useSettingsStore } from '@advjs/client'
 import type { AdvMenuItemProps } from '@advjs/theme-default'
 
 import { computed } from 'vue'
 import AudioVolume from './settings/AudioVolume.vue'
-import { useSettingsStore } from '~/stores/settings'
 
 const { t } = useI18n()
 

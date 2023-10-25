@@ -1,6 +1,6 @@
 import { createRecordsStorage } from '@advjs/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import type { AdvGameRecord, AdvGameRecordMeta } from '~/setup'
+import type { AdvGameRecord, AdvGameRecordMeta } from '@advjs/client'
 
 const recordsStorage = createRecordsStorage()
 

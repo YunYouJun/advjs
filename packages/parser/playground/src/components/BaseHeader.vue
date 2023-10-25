@@ -17,14 +17,14 @@ function toggleLocales() {
 
 <template>
   <nav class="text-xl pt-2">
-    <router-link
+    <RouterLink
       active-class="text-blue-500"
       class="icon-btn mx-2"
       to="/"
       :title="t('button.home')"
     >
       <div i-ri-home-2-line />
-    </router-link>
+    </RouterLink>
 
     <button
       class="icon-btn mx-2 !outline-none"
@@ -56,7 +56,7 @@ function toggleLocales() {
       <div i-ri-translate />
     </a>
 
-    <router-link
+    <RouterLink
       class="icon-btn mx-2"
       href
       to="/about"
@@ -64,7 +64,7 @@ function toggleLocales() {
       active-class="text-blue-500"
     >
       <div i-carbon-dicom-overlay />
-    </router-link>
+    </RouterLink>
 
     <a
       class="icon-btn mx-2"

@@ -4,15 +4,13 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
-    }
+      "require": "./dist/index.mjs"
+    },
+    "./package.json": "./package.json"
   },
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --stub",
+    "build": "unbuild",
+    "dev": "unbuild --stub",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {

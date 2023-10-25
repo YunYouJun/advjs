@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
-import { useImages } from '@advjs/client/composables'
+import { useImages } from '@advjs/client'
 
 const props = defineProps<{
   assets: {

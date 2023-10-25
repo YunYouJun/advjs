@@ -1,14 +1,12 @@
-import { defineConfig } from 'tsup'
+import { defineBuildConfig } from 'unbuild'
 
-export default defineConfig({
-  entry: [
-    'src/index.ts',
+export default defineBuildConfig({
+  declaration: true,
+  entries: [
+    'src/index',
   ],
   clean: true,
-  splitting: true,
-  format: ['cjs', 'esm'],
-  dts: true,
-  external: [
+  externals: [
     'advjs',
     '@advjs/parser',
     '@advjs/types',

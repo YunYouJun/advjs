@@ -28,7 +28,6 @@
 - ADV.JS 插件
   - @advjs/plugin-babylon: Babylon 插件
   - @advjs/plugin-live2d: Live2D 插件
-  - @advjs/plugin-pixi: Pixi 插件
 - ADV.JS 主题
   - @advjs/theme-default: 默认主题
 

@@ -2,10 +2,10 @@ import type { AdvAst } from '@advjs/types'
 import { isScript, parseAst } from '@advjs/parser'
 import consola from 'consola'
 
+import { config } from '@advjs/client'
 import { useAdvStore } from '../store'
 import { useCamera } from './operation'
 import { useTachies } from './tachies'
-import { config } from '~/env'
 
 export function useLogic(ctx: {
   functions: Record<string, () => void>

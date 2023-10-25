@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import type * as BABYLON from '@babylonjs/core'
-import type { CameraInfo } from '@advjs/shared/debug/camera'
-import { captureCameraInfo } from '@advjs/shared/debug/camera'
-import { useBabylonStore } from '~/stores/babylon'
-import { useAppStore } from '~/stores/app'
-import { useAdvCtx } from '~/setup'
+import type { CameraInfo } from '@advjs/client'
+import { captureCameraInfo, useAdvCtx, useAppStore, useBabylonStore } from '@advjs/client'
 
 const $adv = useAdvCtx()
 
@@ -89,3 +86,4 @@ const debugInfo = computed(() => {
   margin-top: 8px;
 }
 </style>
+~/utils/debug/camera~/utils/debug/camera

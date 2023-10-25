@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue'
 import { useElementSize } from '@vueuse/core'
-import { advAspect, advHeight, advWidth, configs } from '~/env'
-import { useAppStore } from '~/stores/app'
+import { advAspect, advHeight, advWidth, configs, useAppStore } from '@advjs/client'
 
 const props = withDefaults(defineProps<{
   width?: number

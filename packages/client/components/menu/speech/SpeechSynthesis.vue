@@ -1,11 +1,10 @@
 <script setup lang="ts">
-// import { speak } from '@advjs/shared/speech'
 import type { AdvMenuItemProps } from '@advjs/theme-default'
 import { useSpeechSynthesis } from '@vueuse/core'
 import { computed, onMounted, reactive, ref } from 'vue'
 
 import { useI18n } from 'vue-i18n'
-import { useSettingsStore } from '~/stores/settings'
+import { useSettingsStore } from '@advjs/client'
 
 const settings = useSettingsStore()
 const sOptions = reactive(settings.storage.speechOptions)

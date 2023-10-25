@@ -31,11 +31,14 @@
       "@advjs/shared/*": [
         "./packages/shared/src/*"
       ],
-      "@advjs/theme-default": [
-        "./packages/theme-default/index.ts"
-      ],
       "@advjs/theme-default/*": [
         "./packages/theme-default/*"
+      ],
+      "@advjs/client": [
+        "./packages/client/index.ts"
+      ],
+      "@advjs/theme-default": [
+        "packages/theme-default/index.ts"
       ],
       "@advjs/*": [
         "./packages/*/src/index.ts"

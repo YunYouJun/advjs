@@ -1,6 +1,6 @@
 import { join } from 'node:path'
+import { existsSync, readFileSync } from 'node:fs'
 import type { Plugin, ViteDevServer } from 'vite'
-import { existsSync, readFileSync } from 'fs-extra'
 import type { AdvMarkdown } from '@advjs/types'
 import * as parser from '@advjs/parser/fs'
 import equal from 'fast-deep-equal'

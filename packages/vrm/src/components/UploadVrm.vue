@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { createVRM, getVrmManager } from '@advjs/plugin-babylon'
-import { checkModelFormat } from '@advjs/shared/utils/vrm'
+import { checkModelFormat } from '@advjs/client'
 import type * as BABYLON from '@babylonjs/core'
 import { onMounted, ref } from 'vue'
 import { useVrmStore } from '../stores/vrm'
@@ -71,3 +71,4 @@ onMounted(() => {
     <span v-show="showDragStyle">Drag .vrm file</span>
   </div>
 </template>
+~/utils/vrm

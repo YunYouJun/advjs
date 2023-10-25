@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { useAdvCtx } from '~/setup'
-import { useAppStore } from '~/stores/app'
-import { useAudioStore } from '~/stores/audio'
+import { useAdvCtx, useAppStore, useAudioStore } from '@advjs/client'
 
 const $adv = useAdvCtx()
 

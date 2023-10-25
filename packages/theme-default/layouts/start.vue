@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Game Start Menu Page Layout
+import { isDark } from '@advjs/client'
 import { images } from '../assets'
-import { isDark } from '~/composables'
 
 withDefaults(defineProps<{
   bgImage?: string
@@ -25,7 +25,7 @@ withDefaults(defineProps<{
       <main
         class="page-start w-full h-full text-gray-900 dark:text-gray-200"
       >
-        <router-view />
+        <RouterView />
       </main>
     </AdvContainer>
   </div>

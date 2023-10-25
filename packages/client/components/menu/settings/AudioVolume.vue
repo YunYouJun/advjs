@@ -3,7 +3,7 @@ import type { AdvMenuItemProps } from '@advjs/theme-default'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import { useAudioStore } from '~/stores/audio'
+import { useAudioStore } from '@advjs/client'
 
 const audio = useAudioStore()
 

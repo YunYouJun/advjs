@@ -16,6 +16,6 @@ useHead({
 </script>
 
 <template>
-  <github-corners repo="YunYouJun/advjs/tree/main/packages/parser" blank :reverse="isDark || null" />
-  <router-view />
+  <GithubCorners repo="YunYouJun/advjs/tree/main/packages/parser" blank :reverse="isDark || null" />
+  <RouterView />
 </template>

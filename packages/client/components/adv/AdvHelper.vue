@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useAppStore } from '~/stores/app'
+import { useAppStore } from '@advjs/client'
 
 const app = useAppStore()
 

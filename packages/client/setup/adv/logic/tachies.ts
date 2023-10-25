@@ -1,8 +1,8 @@
 import { getCharacter } from '@advjs/core'
 import type { AdvAst } from '@advjs/types'
 import consola from 'consola'
+import { config } from '@advjs/client'
 import { useAdvStore } from '../store'
-import { config } from '~/env'
 
 export function useTachies() {
   const store = useAdvStore()

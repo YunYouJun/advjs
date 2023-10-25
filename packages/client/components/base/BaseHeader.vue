@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // import * as pkg from '~/../package.json'
 import { useI18n } from 'vue-i18n'
-import { isDark, toggleDark } from '~/composables'
+import { isDark, toggleDark } from '@advjs/client'
 
 const { t, availableLocales, locale } = useI18n()
 
@@ -14,9 +14,9 @@ function toggleLocales() {
 
 <template>
   <nav class="text-xl pt-4">
-    <router-link class="icon-btn mx-2" to="/" :title="t('button.home')">
+    <RouterLink class="icon-btn mx-2" to="/" :title="t('button.home')">
       <div i-ri-home-2-line />
-    </router-link>
+    </RouterLink>
 
     <button
       class="icon-btn mx-2 !outline-none"

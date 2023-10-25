@@ -1,14 +1,12 @@
 <script lang="ts" setup>
-import { images } from '@advjs/theme-default/assets'
+import { assets } from '@advjs/theme-default'
 import dayjs from 'dayjs'
 import { screenshotGameThumb } from '@advjs/core'
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import type { AdvGameRecord, AdvGameRecordMeta } from '~/setup'
-import { useAdvCtx } from '~/setup'
-import { useGameStore } from '~/stores/game'
-import { useAppStore } from '~/stores/app'
+import { useAdvCtx, useAppStore, useGameStore } from '@advjs/client'
+import type { AdvGameRecord, AdvGameRecordMeta } from '@advjs/client'
 
 const props = withDefaults(defineProps<{
   /**
@@ -20,6 +18,8 @@ const props = withDefaults(defineProps<{
   type: 'save',
   no: 1,
 })
+
+const images = assets.images
 
 const $adv = useAdvCtx()
 

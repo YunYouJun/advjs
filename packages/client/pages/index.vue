@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 
-import * as themeAssets from '@advjs/theme-default/assets'
+import { assets as themeAssets } from '@advjs/theme-default'
 
 withDefaults(defineProps<{ duration?: number }>(), {
   duration: 2000,

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useAudioStore } from '@advjs/client/stores/audio'
+import { useAudioStore } from '@advjs/client'
 
 const audio = useAudioStore()
 </script>

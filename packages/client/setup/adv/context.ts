@@ -1,10 +1,10 @@
 import { computed, inject } from 'vue'
 import type { InjectionKey } from 'vue'
 
+import { config } from '@advjs/client'
 import type { AdvContext } from './types'
 import { useAdvStore } from './store'
 import { useLogic } from './logic'
-import { config } from '~/env'
 
 export const injectionAdvContext: InjectionKey<AdvContext> = Symbol('advjs-context')
 

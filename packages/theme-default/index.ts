@@ -1,3 +1,1 @@
-export * from './types'
-
-export * as assets from './assets'
+export * from './client'

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useRouter } from 'vue-router'
-import { config } from '~/env'
+import { config } from '@advjs/client'
 
 const router = useRouter()
 

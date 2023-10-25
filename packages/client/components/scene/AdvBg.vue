@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref, watch } from 'vue'
+import { useAppStore } from '@advjs/client'
 import { useAdvCtx } from '~/setup/adv'
-import { useAppStore } from '~/stores/app'
 
 const $adv = useAdvCtx()
 const app = useAppStore()
@@ -31,7 +31,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <transition enter-active-class="animate__fadeIn" leave-active-class="animate__fadeOut">
+  <Transition enter-active-class="animate__fadeIn" leave-active-class="animate__fadeOut">
     <div v-if="app.showBg" h="full" w="full" class="absolute animate__animated" bg="cover center no-repeat" :style="advGameStyle" />
-  </transition>
+  </Transition>
 </template>

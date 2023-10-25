@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import VueAboutMe from 'vue-about-me'
-import { isDark } from '@advjs/client/composables'
+import { isDark } from '@advjs/client'
 import pkg from '~/../package.json'
 
 import 'vue-about-me/style.css'
