@@ -120,9 +120,9 @@ export async function resolveOptions(
   // avoid type error, type see packages/parser/fs
   const data = (parser as any).load(entry)
 
-  const theme = resolveThemeName(options.theme || data.config.theme)
+  const theme = await resolveThemeName(options.theme || data.config.theme)
 
-  if (!packageExists(theme)) {
+  if (!await packageExists(theme)) {
     console.error(`Theme "${theme}" not found, have you installed it?`)
     process.exit(1)
   }

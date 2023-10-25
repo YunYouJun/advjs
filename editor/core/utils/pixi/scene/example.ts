@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js'
 
 export async function createExampleScene(app: PIXI.Application) {
-  const manifest: PIXI.ResolverManifest = {
+  const manifest: PIXI.AssetsManifest = {
     bundles: [
       {
         name: 'example-brush-scene',

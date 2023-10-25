@@ -11,6 +11,7 @@ export function useScreenLock() {
   const error = shallowRef(undefined) as Ref<any>
 
   watch(orientation, () => {
+    // @ts-expect-error lock
     screen.orientation.lock('landscape').catch(e => (error.value = e))
   })
 

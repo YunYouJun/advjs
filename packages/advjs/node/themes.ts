@@ -34,7 +34,7 @@ export async function getThemeMeta(name: string, path: string) {
   return undefined
 }
 
-export function resolveThemeName(name: string) {
+export async function resolveThemeName(name: string) {
   if (!name || name === 'none')
     name = 'default'
 
@@ -44,11 +44,11 @@ export function resolveThemeName(name: string) {
     return name
 
   // search for local packages first
-  if (packageExists(`@advjs/theme-${name}`))
+  if (await packageExists(`@advjs/theme-${name}`))
     return `@advjs/theme-${name}`
-  if (packageExists(`advjs-theme-${name}`))
+  if (await packageExists(`advjs-theme-${name}`))
     return `advjs-theme-${name}`
-  if (packageExists(name))
+  if (await packageExists(name))
     return name
 
   // fallback to prompt install
@@ -60,11 +60,11 @@ export function resolveThemeName(name: string) {
 }
 
 export async function promptForThemeInstallation(name: string) {
-  name = resolveThemeName(name)
+  name = await resolveThemeName(name)
   if (!name)
     return name
 
-  if (isPath(name) || packageExists(name))
+  if (isPath(name) || await packageExists(name))
     return name
 
   const { confirm } = await prompts({

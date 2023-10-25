@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { expect } from 'vitest'
+import { expect, it } from 'vitest'
 import { parseAst } from '../src'
 
 const testAdv = fs.readFileSync(path.resolve(__dirname, '../../shared/examples/test.adv'), 'utf-8')

@@ -19,5 +19,8 @@
     "prepublishOnly": "npm run build",
     "release": "bumpp --no-commit --no-tag --no-push && npm publish",
     "typecheck": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "@headlessui/vue": "^1.7.16"
   }
 }
