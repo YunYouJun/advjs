@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { assets } from '@advjs/theme-default'
 import dayjs from 'dayjs'
 import { screenshotGameThumb } from '@advjs/core'
 import { onMounted, ref } from 'vue'
@@ -7,6 +6,7 @@ import { useRoute, useRouter } from 'vue-router'
 
 import { useAdvCtx, useAppStore, useGameStore } from '@advjs/client'
 import type { AdvGameRecord, AdvGameRecordMeta } from '@advjs/client'
+import { assets } from '@advjs/theme-default'
 
 const props = withDefaults(defineProps<{
   /**

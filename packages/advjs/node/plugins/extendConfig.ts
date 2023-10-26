@@ -1,32 +1,23 @@
-// import { dirname, join, resolve } from 'node:path'
-import { join, resolve } from 'node:path'
-import type { InlineConfig, Plugin } from 'vite'
+import { dirname, join, resolve } from 'node:path'
+import type { Alias, InlineConfig, Plugin } from 'vite'
 import { mergeConfig } from 'vite'
 import isInstalledGlobally from 'is-installed-globally'
 
-// import { uniq } from '@antfu/utils'
-import { dependencies } from '../../../client/package.json'
-import { dependencies as parserDeps } from '../../../parser/package.json'
+import { uniq } from '@antfu/utils'
+import { dependencies as parserDeps } from '@advjs/parser/package.json'
+import { dependencies } from '@advjs/client/package.json'
 import { getIndexHtml } from '../common'
 import type { ResolvedAdvOptions } from '../options'
 
-// import { resolveGlobalImportPath, resolveImportPath, toAtFS } from '../utils'
-import { resolveImportPath, toAtFS } from '../utils'
+import { resolveGlobalImportPath, resolveImportPath, toAtFS } from '../utils'
 
-// import { searchForWorkspaceRoot } from '../vite/searchRoot'
+import { searchForWorkspaceRoot } from '../vite/searchRoot'
 
 // import { commonAlias } from '../../../shared/config/vite'
 
 const EXCLUDE = [
   // avoid css parse by vite
   'animate.css',
-
-  '@advjs/core',
-  '@advjs/theme-default',
-  '@advjs/parser',
-  '@advjs/shared',
-  '@advjs/types',
-  '@advjs/unocss',
 
   '@vueuse/core',
   '@vueuse/shared',
@@ -46,13 +37,23 @@ const babylonDeps = [
 ]
 
 let INCLUDE = [
-  ...Object.keys(parserDeps).filter(i => !EXCLUDE.includes(i)),
-  ...Object.keys(dependencies).filter(i => !EXCLUDE.includes(i)),
+  ...Object.keys(parserDeps).filter(i => !EXCLUDE.includes(i) && !i.startsWith('@advjs/') && !i.startsWith('@types')),
+  ...Object.keys(dependencies).filter(i => !EXCLUDE.includes(i) && !i.startsWith('@advjs/') && !i.startsWith('@types')),
 ]
 
 export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
   if (options.data.features.babylon)
     INCLUDE = INCLUDE.concat(babylonDeps)
+
+  const themeDefaultRoot = resolve(__dirname, '../../../theme-default')
+  const alias: Alias[] = [
+    { find: '~/', replacement: `${toAtFS(options.clientRoot)}/` },
+    { find: '@advjs/core', replacement: `${resolve(__dirname, '../../../core/src')}/index.ts` },
+    { find: '@advjs/parser', replacement: `${toAtFS(resolve(__dirname, '../../../parser/src', 'index.ts'))}` },
+    { find: '@advjs/shared', replacement: `${toAtFS(resolve(__dirname, '../../../shared/src', 'index.ts'))}` },
+    { find: '@advjs/theme-default', replacement: `${toAtFS(themeDefaultRoot)}/index.ts` },
+    { find: '@advjs/client', replacement: `${toAtFS(options.clientRoot)}/index.ts` },
+  ]
 
   return {
     name: 'advjs:config',
@@ -60,16 +61,7 @@ export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
       const injection: InlineConfig = {
         define: getDefine(options),
         resolve: {
-          alias: {
-            '~/': `${toAtFS(options.clientRoot)}/`,
-            '@advjs/core/': `${resolve(__dirname, '../../../core/src')}/`,
-            '@advjs/core': `${resolve(__dirname, '../../../core/src')}/index.ts`,
-            '@advjs/parser': `${toAtFS(resolve(__dirname, '../../../parser/src', 'index.ts'))}`,
-            '@advjs/shared': `${toAtFS(resolve(__dirname, '../../../shared/src', 'index.ts'))}`,
-            '@advjs/theme-default/': `${toAtFS(resolve(__dirname, '../../../theme-default'))}/`,
-            '@advjs/theme-default': `${toAtFS(resolve(__dirname, '../../../theme-default', 'index.ts'))}`,
-            '@advjs/client': `${toAtFS(options.clientRoot)}/index.ts`,
-          },
+          alias,
         },
         optimizeDeps: {
           include: INCLUDE,
@@ -77,17 +69,17 @@ export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
         },
         server: {
           fs: {
-            strict: false,
-            // allow: uniq([
-            //   searchForWorkspaceRoot(options.userRoot),
-            //   searchForWorkspaceRoot(options.cliRoot),
-            //   searchForWorkspaceRoot(options.themeRoot),
-            //   ...(
-            //     isInstalledGlobally
-            //       ? [dirname(await resolveGlobalImportPath('@advjs/client/package.json'))]
-            //       : []
-            //   ),
-            // ]),
+            // strict: false,
+            allow: uniq([
+              searchForWorkspaceRoot(options.userRoot),
+              searchForWorkspaceRoot(options.cliRoot),
+              searchForWorkspaceRoot(options.themeRoot),
+              ...(
+                isInstalledGlobally
+                  ? [dirname(await resolveGlobalImportPath('@advjs/client/package.json'))]
+                  : []
+              ),
+            ]),
           },
         },
       }

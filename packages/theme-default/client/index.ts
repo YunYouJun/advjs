@@ -1,2 +1,1 @@
-export * from '../types'
-export * as assets from '../assets'
+export const themeName = 'theme-default'

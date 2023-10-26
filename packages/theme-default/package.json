@@ -12,7 +12,9 @@
     "advjs-theme",
     "advjs"
   ],
-  "main": "index.ts",
+  "exports": {
+    "./*": "./*"
+  },
   "engines": {
     "node": ">=14.0.0",
     "advjs": ">=0.0.1"

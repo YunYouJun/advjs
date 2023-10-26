@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 
-import { assets as themeAssets } from '@advjs/theme-default'
+import * as assets from '../assets'
 
 withDefaults(defineProps<{ duration?: number }>(), {
   duration: 2000,
 })
-
-const assets = { ...themeAssets }
 
 const router = useRouter()
 function onLoaded() {

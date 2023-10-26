@@ -28,7 +28,8 @@
     "./fs": {
       "types": "./fs.d.ts",
       "default": "./dist/fs.mjs"
-    }
+    },
+    "./*": "./*"
   },
   "main": "dist/index.mjs",
   "types": "dist/index.d.ts",

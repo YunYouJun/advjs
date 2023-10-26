@@ -9,12 +9,14 @@
   },
   "main": "dist/index.cjs",
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
+    "build": "unbuild",
+    "dev": "unbuild --stub",
     "prepublishOnly": "npm run build"
   },
+  "peerDependencies": {
+    "unocss": "*"
+  },
   "devDependencies": {
-    "defu": "^6.1.3",
-    "unocss": "^0.57.1"
+    "defu": "^6.1.3"
   }
 }

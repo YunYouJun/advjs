@@ -11,7 +11,7 @@ const { t } = useI18n()
     <div text-4xl>
       <div i-carbon-warning class="inline-block" />
     </div>
-    <router-view />
+    <RouterView />
     <div>
       <button
         class="btn m-3 text-sm mt-8"

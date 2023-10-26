@@ -36,8 +36,8 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch src",
+    "build": "unbuild",
+    "dev": "unbuild --stub",
     "prepublishOnly": "npm run build",
     "start": "tsx src/index.ts",
     "test": "vitest"

@@ -25,8 +25,8 @@
     "node": ">=14.0.0"
   },
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
+    "build": "unbuild",
+    "dev": "unbuild --stub",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {

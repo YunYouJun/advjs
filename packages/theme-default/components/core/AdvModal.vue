@@ -21,7 +21,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <transition name="modal">
+  <Transition name="modal">
     <div v-if="show" class="modal-mask">
       <div class="modal-container">
         <AdvIconButton class="modal-close-button" @click="emit('close')">
@@ -44,7 +44,7 @@ onMounted(() => {
         </div>
       </div>
     </div>
-  </transition>
+  </Transition>
 </template>
 
 <style>
