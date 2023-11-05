@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useImages } from '@advjs/client'
 
 const props = defineProps<{
@@ -28,11 +28,14 @@ const percentage = computed(() => {
     return total / queue.length
   }
 })
+
+const show = ref(true)
 </script>
 
 <template>
   <Transition name="fade">
     <div
+      v-if="show"
       w="full"
       flex="~ col" justify="center" items="center"
       p="x-8"

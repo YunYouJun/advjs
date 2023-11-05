@@ -8,7 +8,7 @@ import {
   transformerVariantGroup,
 } from 'unocss'
 
-import { presetAdv } from '@advjs/unocss'
+import { presetAdv } from '../../unocss/src'
 
 const safelist = [
   'i-ri-file-text-line',

@@ -1,6 +1,7 @@
 import * as BABYLON from '@babylonjs/core'
 
 export * from './animation'
+export * from './debug'
 
 export function createArcRotateCamera(scene: BABYLON.Scene) {
   const camera = new BABYLON.ArcRotateCamera('camera', -Math.PI / 2, Math.PI / 2, 2, new BABYLON.Vector3(0, 1, 0), scene)

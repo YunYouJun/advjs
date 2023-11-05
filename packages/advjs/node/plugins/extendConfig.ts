@@ -4,8 +4,11 @@ import { mergeConfig } from 'vite'
 import isInstalledGlobally from 'is-installed-globally'
 
 import { uniq } from '@antfu/utils'
+
 import { dependencies as parserDeps } from '@advjs/parser/package.json'
-import { dependencies } from '@advjs/client/package.json'
+import { dependencies as clientDeps } from '@advjs/client/package.json'
+import { dependencies as coreDeps } from '@advjs/core/package.json'
+
 import { getIndexHtml } from '../common'
 import type { ResolvedAdvOptions } from '../options'
 
@@ -36,9 +39,14 @@ const babylonDeps = [
   '@babylonjs/loaders/glTF',
 ]
 
+function filterDeps(deps: Record<string, string>) {
+  return Object.keys(deps).filter(i => !EXCLUDE.includes(i) && !i.startsWith('@advjs/') && !i.startsWith('@types'))
+}
+
 let INCLUDE = [
-  ...Object.keys(parserDeps).filter(i => !EXCLUDE.includes(i) && !i.startsWith('@advjs/') && !i.startsWith('@types')),
-  ...Object.keys(dependencies).filter(i => !EXCLUDE.includes(i) && !i.startsWith('@advjs/') && !i.startsWith('@types')),
+  ...filterDeps(parserDeps),
+  ...filterDeps(clientDeps),
+  ...filterDeps(coreDeps),
 ]
 
 export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {

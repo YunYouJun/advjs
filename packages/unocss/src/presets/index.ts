@@ -1,5 +1,4 @@
-import type { Preset, PresetOptions } from 'unocss'
-import { defu } from 'defu'
+import type { Preset } from 'unocss'
 
 const themeShortcuts: Exclude<Preset['shortcuts'], undefined> = [
   [
@@ -12,12 +11,18 @@ const themeShortcuts: Exclude<Preset['shortcuts'], undefined> = [
   ],
 ]
 
-export function presetAdv(options: PresetOptions = {}): Preset {
-  const shortcuts = options.shortcutOverrides ? (defu(options.shortcutOverrides, themeShortcuts) as Preset['shortcuts']) : themeShortcuts
+export interface PresetAdvOptions {
+  debug: boolean
+}
 
+export function presetAdv(options: Partial<PresetAdvOptions> = {}): Preset<object> {
+  if (options.debug) {
+    // eslint-disable-next-line no-console
+    console.info('DEBUG MODE')
+  }
   return {
     name: '@advjs/unocss',
-    shortcuts,
+    shortcuts: themeShortcuts,
     safelist: ['m-auto', 'text-left'],
   }
 }

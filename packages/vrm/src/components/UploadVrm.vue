@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { createVRM, getVrmManager } from '@advjs/plugin-babylon'
-import { checkModelFormat } from '@advjs/client'
+import { isVrmModel } from '@advjs/core'
 import type * as BABYLON from '@babylonjs/core'
 import { onMounted, ref } from 'vue'
 import { useVrmStore } from '../stores/vrm'
@@ -33,7 +33,7 @@ function onDrop(e: DragEvent) {
   const fileList = e.dataTransfer?.files
   if (!fileList?.length)
     return
-  if (checkModelFormat(fileList[0])) {
+  if (isVrmModel(fileList[0])) {
     const scene = vrmStore.scene as BABYLON.Scene
 
     // dispose old vrmManager

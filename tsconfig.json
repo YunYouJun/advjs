@@ -2,10 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "jsx": "preserve",
-    "lib": [
-      "DOM",
-      "ESNext"
-    ],
+    "lib": ["ESNext", "DOM", "WebWorker"],
     "baseUrl": ".",
     "module": "ESNext",
     "moduleResolution": "node",

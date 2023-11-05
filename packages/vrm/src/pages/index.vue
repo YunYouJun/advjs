@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import type * as BABYLON from '@babylonjs/core'
 import type { VRMManager } from 'babylon-vrm-loader'
-import type { CameraInfo } from '@advjs/client'
-import { captureCameraInfo } from '@advjs/client'
+import type { CameraInfo } from '@advjs/plugin-babylon'
+import { captureCameraInfo } from '@advjs/plugin-babylon'
 import { isClient } from '@vueuse/core'
 import { useHead } from '@unhead/vue'
 import { onMounted, ref } from 'vue'

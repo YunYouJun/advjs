@@ -5,3 +5,7 @@ export const audios = {
   popUpOnUrl: `${cdnPrefix}/audio/pop-up-on.mp3`,
   popUpOffUrl: `${cdnPrefix}/audio/pop-up-off.mp3`,
 }
+
+export const assets = {
+  audios,
+}
