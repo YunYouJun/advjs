@@ -16,8 +16,10 @@
   },
   "bugs": "https://github.com/YunYouJun/advjs/issues",
   "exports": {
+    ".": "./index.ts",
     "./*": "./*"
   },
+  "main": "index.ts",
   "types": "types/index.ts",
   "engines": {
     "node": ">=14.0.0"
