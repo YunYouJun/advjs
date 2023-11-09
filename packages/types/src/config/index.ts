@@ -1,4 +1,7 @@
-import type { AdvFeatureFlags } from './types'
+import type { AdvFeatureFlags } from '../types'
+
+export * from './app'
+export * from './theme'
 
 export interface AdvConfig {
   remote?: boolean

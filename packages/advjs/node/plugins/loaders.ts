@@ -36,7 +36,7 @@ export function createAdvLoader(
   /**
    * generate AdvConfig from frontmatter & meta
    */
-  function generateConfigs() {
+  function generateAdvConfig() {
     // front override latter
     const config = defu({ ...data.config, remote }, resolvedAdvConfig)
 
@@ -105,8 +105,12 @@ export function createAdvLoader(
       },
 
       load(id) {
-        if (id === '/@advjs/configs')
-          return generateConfigs()
+        if (id === '#advjs:adv.config')
+          return generateAdvConfig()
+        if (id === '#advjs:app.config')
+          return generateAdvConfig()
+        if (id === '#advjs:theme.config')
+          return generateAdvConfig()
 
         if (id === '/@advjs/locales')
           return generateLocales(roots)

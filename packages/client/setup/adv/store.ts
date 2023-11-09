@@ -106,5 +106,7 @@ export const useAdvStore = defineStore('adv', () => {
   }
 })
 
+export type AdvStore = ReturnType<typeof useAdvStore>
+
 if (import.meta.hot)
   import.meta.hot.accept(acceptHMRUpdate(useAdvStore, import.meta.hot))

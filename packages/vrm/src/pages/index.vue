@@ -63,6 +63,7 @@ function recordCameraInfo() {
       <div i-ri-github-line text="white" />
     </AdvIconButton>
   </a>
+
   <AdvDebug>
     <AdvIconButton title="记录当前镜头位置" @click="recordCameraInfo()">
       <div i-ri-camera-line />
@@ -75,4 +76,3 @@ function recordCameraInfo() {
 meta:
   layout: home
 </route>
-~/utils/debug~/utils/debug

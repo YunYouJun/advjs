@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Tachie } from '@advjs/types'
 import { computed } from 'vue'
-import { useAdvCtx } from '~/setup/adv'
+import { useAdvCtx } from '@advjs/client'
 
 const props = defineProps<{
   tachie: Tachie

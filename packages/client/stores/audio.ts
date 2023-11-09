@@ -2,8 +2,9 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { useToggle } from '@vueuse/core'
 
 // @vueuse/sound not reactive
-import { assets, useSound } from '@advjs/client'
 import { computed, ref } from 'vue'
+import { useSound } from '../composables'
+import { assets } from '../assets'
 
 /**
  * audio system store

@@ -3,7 +3,7 @@ import { ensurePrefix, slash } from '@antfu/utils'
 import isInstalledGlobally from 'is-installed-globally'
 
 // import { sync as resolve } from 'resolve'
-import globalDirs from 'global-dirs'
+import globalDirs from 'global-directory'
 
 export function toAtFS(path: string) {
   return `/@fs${ensurePrefix('/', slash(path))}`

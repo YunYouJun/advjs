@@ -2,14 +2,15 @@ import type { AdvAst } from '@advjs/types'
 import { isScript, parseAst } from '@advjs/parser'
 import consola from 'consola'
 
-import { config } from '@advjs/client'
 import { useAdvStore } from '../store'
+import { useAdvConfig } from '../../../composables'
 import { useCamera } from './operation'
 import { useTachies } from './tachies'
 
 export function useLogic(ctx: {
   functions: Record<string, () => void>
 }) {
+  const advConfig = useAdvConfig()
   const store = useAdvStore()
 
   const useNav = () => {
@@ -156,7 +157,7 @@ export function useLogic(ctx: {
         break
       case 'background':
         if (node.name) {
-          const bg = config.assets.background
+          const bg = advConfig.value.assets.background
           if (bg && bg[node.name])
             store.cur.background = bg[node.name]
         }
@@ -189,3 +190,5 @@ export function useLogic(ctx: {
     nav,
   }
 }
+
+export type AdvLogic = ReturnType<typeof useLogic>

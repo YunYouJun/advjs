@@ -17,7 +17,7 @@ import '/@advjs/styles'
 // unocss animate not work
 import 'animate.css'
 
-import { createAdvVuePlugin } from './setup'
+import { createAdvVuePlugin, install as installAdv } from './setup'
 import { statement } from './utils/statement'
 import type { UserModule } from './types'
 
@@ -31,10 +31,13 @@ const app = createApp(App)
 app.use(createHead())
 app.use(router)
 
+const ctx = { app, isClient: typeof window !== 'undefined', router }
+installAdv(ctx)
+
 Object.values(
   import.meta.glob<{ install: UserModule }>('./modules/*.ts', { eager: true }),
 ).map(i =>
-  i.install?.({ app, isClient: typeof window !== 'undefined', router }),
+  i.install?.(ctx),
 )
 
 app.use(createAdvVuePlugin())

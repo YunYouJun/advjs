@@ -1,15 +1,18 @@
 import { getCharacter } from '@advjs/core'
 import type { AdvAst } from '@advjs/types'
 import consola from 'consola'
-import { config } from '@advjs/client'
+import { useAdvConfig } from '../../../composables'
 import { useAdvStore } from '../store'
 
 export function useTachies() {
+  // const appConfig = useAppConfig()
+  const advConfig = useAdvConfig()
+
   const store = useAdvStore()
   const tachies = store.cur.tachies
 
   function enter(name: string, status = 'default') {
-    const character = getCharacter(config.characters, name)
+    const character = getCharacter(advConfig.value.characters, name)
     if (!character) {
       consola.warn(`Can not find ${name}`)
       return
@@ -65,7 +68,7 @@ export function useTachies() {
 
   function update(curNode: AdvAst.Dialog) {
     const character = getCharacter(
-      config.characters,
+      advConfig.value.characters,
       curNode.character.name,
     )
     if (!character)

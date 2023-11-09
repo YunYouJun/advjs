@@ -10,7 +10,7 @@ export function defineAdvConfig(config: AdvUserConfig) {
 /**
  * resolve adv.config.ts
  */
-export async function resolveAdvConfig() {
+export async function loadAdvConfig() {
   const { config, configFile } = await loadConfig<AdvConfig>({
     name: 'adv',
     defaultConfig,

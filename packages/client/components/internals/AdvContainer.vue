@@ -1,21 +1,21 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue'
 import { useElementSize } from '@vueuse/core'
-import { advAspect, advHeight, advWidth, configs, useAppStore } from '@advjs/client'
+import { advAspect, advHeight, advWidth, useAdvConfig, useAppStore } from '@advjs/client'
 
 const props = withDefaults(defineProps<{
   width?: number
   meta?: any
   scale?: number | string
 }>(), {})
-
+const advConfig = useAdvConfig()
 const app = useAppStore()
 
 const root = ref<HTMLDivElement>()
 const element = useElementSize(root)
 
 const width = computed(() => props.width ? props.width : element.width.value)
-const height = computed(() => props.width ? props.width / advAspect : element.height.value)
+const height = computed(() => props.width ? props.width / advAspect.value : element.height.value)
 
 if (props.width) {
   watchEffect(() => {
@@ -32,10 +32,10 @@ const containerScale = computed(() => {
   if (props.scale)
     return props.scale
 
-  if (screenAspect.value < advAspect)
-    return app.isHorizontal ? (width.value / advWidth) : (height.value / advWidth)
+  if (screenAspect.value < advAspect.value)
+    return app.isHorizontal ? (width.value / advWidth.value) : (height.value / advWidth.value)
 
-  return app.isHorizontal ? (height.value * advAspect) / advWidth : (width.value / advHeight)
+  return app.isHorizontal ? (height.value * advAspect.value) / advWidth.value : (width.value / advHeight.value)
 })
 
 const style = computed(() => ({
@@ -45,7 +45,7 @@ const style = computed(() => ({
 }))
 
 const className = computed(() => ({
-  'select-none': !configs.selectable,
+  'select-none': !advConfig.value.selectable,
 }))
 </script>
 

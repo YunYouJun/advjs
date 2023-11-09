@@ -1,7 +1,7 @@
-import { computed, inject } from 'vue'
+import { computed } from 'vue'
 import type { InjectionKey } from 'vue'
 
-import { config } from '@advjs/client'
+import { useAdvConfig } from '../../composables'
 import type { AdvContext } from './types'
 import { useAdvStore } from './store'
 import { useLogic } from './logic'
@@ -13,20 +13,14 @@ export function useContext(): AdvContext {
   const store = useAdvStore()
 
   const core = useLogic({ functions })
+  const advConfig = useAdvConfig()
 
   return {
     onMounted() {},
     ...core,
     store,
-    config,
-    themeConfig: computed(() => config.themeConfig),
+    config: advConfig.value,
+    themeConfig: computed(() => advConfig.value.themeConfig),
     functions,
   }
-}
-
-export function useAdvCtx() {
-  const ctx = inject(injectionAdvContext)
-  if (!ctx)
-    throw new Error('[ADV.JS] context not properly injected in app')
-  return ctx!
 }

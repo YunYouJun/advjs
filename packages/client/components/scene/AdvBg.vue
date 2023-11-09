@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import { useAppStore } from '@advjs/client'
-import { useAdvCtx } from '~/setup/adv'
+import { useAdvCtx, useAppStore } from '@advjs/client'
 
 const $adv = useAdvCtx()
 const app = useAppStore()

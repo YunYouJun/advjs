@@ -43,7 +43,11 @@ export default defineConfig((config) => {
 
     build: {
       rollupOptions: {
-        external: ['/@advjs/configs'],
+        external: [
+          '#advjs:adv.config',
+          '#advjs:app.config',
+          '#advjs:theme.config',
+        ],
       },
     },
 

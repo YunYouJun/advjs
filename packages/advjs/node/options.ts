@@ -14,7 +14,7 @@ import _debug from 'debug'
 import { parser } from './parser'
 import { packageExists, resolveImportPath } from './utils'
 import { getThemeMeta, resolveThemeName } from './themes'
-import { resolveAdvConfig } from './config'
+import { loadAdvConfig } from './config'
 
 const debug = _debug('adv:options')
 
@@ -141,7 +141,7 @@ export async function resolveOptions(
 
   const roots = uniq([clientRoot, themeRoot, userRoot])
 
-  const { config = {}, configFile = '' } = await resolveAdvConfig()
+  const { config = {}, configFile = '' } = await loadAdvConfig()
 
   const advOptions: ResolvedAdvOptions = {
     data,

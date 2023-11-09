@@ -8,7 +8,7 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^8.2.0",
-    "@types/xml2js": "^0.4.13",
+    "@types/xml2js": "^0.4.14",
     "benny": "^3.7.1",
     "consola": "^3.2.3",
     "unist-builder": "^4.0.0",
