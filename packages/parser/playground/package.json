@@ -12,7 +12,7 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@types/mdast": "3.0.12",
+    "@types/mdast": "4.0.3",
     "@unhead/vue": "^1.8.3",
     "@vueuse/core": "^10.5.0",
     "monaco-editor": "^0.44.0",
@@ -26,12 +26,12 @@
     "@vitejs/plugin-vue": "^4.4.1",
     "markdown-it-link-attributes": "^4.0.1",
     "markdown-it-prism": "^2.3.0",
-    "unocss": "^0.57.2",
+    "unocss": "^0.57.3",
     "unplugin-vue-components": "^0.25.2",
-    "unplugin-vue-markdown": "^0.24.3",
+    "unplugin-vue-markdown": "^0.25.0",
     "v-tooltip": "^4.0.0-beta.17",
     "vite": "^4.5.0",
-    "vite-plugin-inspect": "^0.7.41",
+    "vite-plugin-inspect": "^0.7.42",
     "vite-plugin-pages": "^0.31.0",
     "vite-plugin-pwa": "^0.16.7",
     "vite-plugin-vue-layouts": "^0.8.0"

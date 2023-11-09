@@ -1,7 +1,8 @@
 import { computed } from 'vue'
 import type { InjectionKey } from 'vue'
 
-import { useAdvConfig } from '../../composables'
+// import { useAdvConfig } from '../../composables'
+import advConfig from 'virtual:advjs/adv.config'
 import type { AdvContext } from './types'
 import { useAdvStore } from './store'
 import { useLogic } from './logic'
@@ -13,14 +14,13 @@ export function useContext(): AdvContext {
   const store = useAdvStore()
 
   const core = useLogic({ functions })
-  const advConfig = useAdvConfig()
 
   return {
     onMounted() {},
     ...core,
     store,
-    config: advConfig.value,
-    themeConfig: computed(() => advConfig.value.themeConfig),
+    config: advConfig,
+    themeConfig: computed(() => advConfig.themeConfig),
     functions,
   }
 }

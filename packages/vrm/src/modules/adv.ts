@@ -1,5 +1,5 @@
 import { computed } from 'vue'
-import { themeConfigSymbol } from '@advjs/client/constants'
+import { themeConfigSymbol } from '@advjs/core'
 import type { UserModule } from '../types'
 
 // https://github.com/antfu/vite-plugin-pwa#automatic-reload-when-new-content-available

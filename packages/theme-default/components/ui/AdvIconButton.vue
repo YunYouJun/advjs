@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useSound } from '@advjs/client/composables'
+import { useSound } from '@advjs/core'
 import { computed } from 'vue'
 import { useThemeConfig } from '../../composables'
 

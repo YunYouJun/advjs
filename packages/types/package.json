@@ -30,6 +30,6 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@types/mdast": "3.0.12"
+    "@types/mdast": "4.0.3"
   }
 }

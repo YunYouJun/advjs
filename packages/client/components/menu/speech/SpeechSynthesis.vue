@@ -4,7 +4,7 @@ import { useSpeechSynthesis } from '@vueuse/core'
 import { computed, onMounted, reactive, ref } from 'vue'
 
 import { useI18n } from 'vue-i18n'
-import { useSettingsStore } from '@advjs/client'
+import { useSettingsStore } from '../../../stores'
 
 const settings = useSettingsStore()
 const sOptions = reactive(settings.storage.speechOptions)

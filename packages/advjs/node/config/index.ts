@@ -3,6 +3,12 @@ import type { AdvConfig } from '@advjs/types'
 import { defaultConfig } from '@advjs/core'
 import type { AdvUserConfig } from '../options'
 
+export const ADV_VIRTUAL_MODULES = [
+  'virtual:advjs/adv.config',
+  'virtual:advjs/app.config',
+  'virtual:advjs/theme.config',
+]
+
 export function defineAdvConfig(config: AdvUserConfig) {
   return config
 }

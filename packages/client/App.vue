@@ -14,6 +14,11 @@ useHead({
 
 const $adv = useAdvCtx()
 $adv.onMounted()
+
+if (__DEV__) {
+  // @ts-expect-error expose global
+  window.__adv__ = $adv
+}
 </script>
 
 <template>

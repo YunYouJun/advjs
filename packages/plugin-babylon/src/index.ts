@@ -1,3 +1,5 @@
+export * from './setup'
+
 export * from './camera'
 export * from './scene'
 export * from './vrm'

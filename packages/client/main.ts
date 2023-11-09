@@ -17,7 +17,7 @@ import '/@advjs/styles'
 // unocss animate not work
 import 'animate.css'
 
-import { createAdvVuePlugin, install as installAdv } from './setup'
+import { install as installAdv } from './setup'
 import { statement } from './utils/statement'
 import type { UserModule } from './types'
 
@@ -39,8 +39,6 @@ Object.values(
 ).map(i =>
   i.install?.(ctx),
 )
-
-app.use(createAdvVuePlugin())
 
 app.use(MotionPlugin)
 app.mount('#app')

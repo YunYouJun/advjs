@@ -13,7 +13,11 @@ export default defineBuildConfig({
     'pinia',
     'consola',
     'dayjs',
+
     'vue',
+    'vue-demi',
+    'howler',
+
     'html2canvas',
     'unstorage',
   ],

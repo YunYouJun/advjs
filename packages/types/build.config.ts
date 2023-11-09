@@ -9,6 +9,12 @@ export default defineBuildConfig({
 
   externals: [
     'mdast',
+
+    'vue',
+    '@vueuse/core',
+    '@vueuse/shared',
+
     /@advjs/,
+    '@advjs/client',
   ],
 })

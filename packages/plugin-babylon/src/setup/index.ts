@@ -1,6 +1,8 @@
 import * as BABYLON from '@babylonjs/core'
 import { demoVrm } from '@advjs/shared'
-import { createArcRotateCamera, createScene, createVRM } from '@advjs/plugin-babylon'
+import { createScene } from '../scene'
+import { createArcRotateCamera } from '../camera'
+import { createVRM } from '../vrm'
 
 /**
  * 创建人物场景

@@ -15,6 +15,7 @@ import type { ResolvedAdvOptions } from '../options'
 import { resolveGlobalImportPath, resolveImportPath, toAtFS } from '../utils'
 
 import { searchForWorkspaceRoot } from '../vite/searchRoot'
+import { ADV_VIRTUAL_MODULES } from '../config'
 
 // import { commonAlias } from '../../../shared/config/vite'
 
@@ -27,6 +28,9 @@ const EXCLUDE = [
   'vue-demi',
 
   '@types/mdast',
+
+  // internal
+  ...ADV_VIRTUAL_MODULES,
 ]
 
 const babylonDeps = [
@@ -40,7 +44,7 @@ const babylonDeps = [
 ]
 
 function filterDeps(deps: Record<string, string>) {
-  return Object.keys(deps).filter(i => !EXCLUDE.includes(i) && !i.startsWith('@advjs/') && !i.startsWith('@types'))
+  return Object.keys(deps).filter(i => !EXCLUDE.includes(i) && !i.startsWith('@advjs/') && !i.startsWith('#advjs') && !i.startsWith('@types'))
 }
 
 let INCLUDE = [
@@ -56,11 +60,12 @@ export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
   const themeDefaultRoot = resolve(__dirname, '../../../theme-default')
   const alias: Alias[] = [
     { find: '~/', replacement: `${toAtFS(options.clientRoot)}/` },
+    { find: '@advjs/client', replacement: `${toAtFS(options.clientRoot)}/index.ts` },
+    { find: '@advjs/client/', replacement: `${toAtFS(options.clientRoot)}/` },
     { find: '@advjs/core', replacement: `${resolve(__dirname, '../../../core/src')}/index.ts` },
     { find: '@advjs/parser', replacement: `${toAtFS(resolve(__dirname, '../../../parser/src', 'index.ts'))}` },
     { find: '@advjs/shared', replacement: `${toAtFS(resolve(__dirname, '../../../shared/src', 'index.ts'))}` },
     { find: '@advjs/theme-default', replacement: `${toAtFS(themeDefaultRoot)}/index.ts` },
-    { find: '@advjs/client', replacement: `${toAtFS(options.clientRoot)}/index.ts` },
   ]
 
   return {
@@ -72,6 +77,8 @@ export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
           alias,
         },
         optimizeDeps: {
+          entries: [resolve(options.clientRoot, 'main.ts')],
+
           include: INCLUDE,
           exclude: EXCLUDE,
         },

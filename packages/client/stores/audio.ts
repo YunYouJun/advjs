@@ -3,7 +3,7 @@ import { useToggle } from '@vueuse/core'
 
 // @vueuse/sound not reactive
 import { computed, ref } from 'vue'
-import { useSound } from '../composables'
+import { useSound } from '@advjs/core'
 import { assets } from '../assets'
 
 /**

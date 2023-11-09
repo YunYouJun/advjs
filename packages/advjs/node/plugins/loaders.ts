@@ -99,17 +99,17 @@ export function createAdvLoader(
       },
 
       resolveId(id) {
-        if (id.startsWith(advPrefix) || id.startsWith('/@advjs/'))
+        if (id.startsWith('virtual:') || id.startsWith(advPrefix) || id.startsWith('/@advjs/'))
           return id
         return null
       },
 
       load(id) {
-        if (id === '#advjs:adv.config')
+        if (id === 'virtual:advjs/adv.config')
           return generateAdvConfig()
-        if (id === '#advjs:app.config')
+        if (id === 'virtual:advjs/app.config')
           return generateAdvConfig()
-        if (id === '#advjs:theme.config')
+        if (id === 'virtual:advjs/theme.config')
           return generateAdvConfig()
 
         if (id === '/@advjs/locales')
@@ -155,7 +155,7 @@ export function createAdvLoader(
         }
 
         if (!equal(data.config, newData.config))
-          moduleIds.add('/@advjs/configs')
+          moduleIds.add('virtual:advjs/adv.config')
 
         moduleIds.add('/@advjs/drama.adv.md')
 

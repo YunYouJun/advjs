@@ -1,3 +1,4 @@
 # @advjs/core
 
-Functions without Vue Composition API.
+- Vue Composition API Functions
+- Common Functions

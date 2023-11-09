@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue'
 import { useElementSize } from '@vueuse/core'
-import { advAspect, advHeight, advWidth, useAdvConfig, useAppStore } from '@advjs/client'
+import { advAspect, advHeight, advWidth } from '../../config'
+import { useAppStore } from '../../stores'
+import { useAdvConfig } from '../../composables'
 
 const props = withDefaults(defineProps<{
   width?: number
@@ -39,8 +41,8 @@ const containerScale = computed(() => {
 })
 
 const style = computed(() => ({
-  '--adv-screen-width': `${advWidth}px`,
-  '--adv-screen-height': `${advHeight}px`,
+  '--adv-screen-width': `${advWidth.value}px`,
+  '--adv-screen-height': `${advHeight.value}px`,
   'transform': `translate(-50%, -50%) scale(${containerScale.value}) rotate(${app.rotation}deg)`,
 }))
 
@@ -51,7 +53,11 @@ const className = computed(() => ({
 
 <template>
   <div ref="root" class="adv-screen relative overflow-hidden" bg="black" :class="className">
-    <div id="adv-content" class="transition" :style="style">
+    <div
+      id="adv-content"
+      class="flex relative transition w-$adv-screen-width h-$adv-screen-height"
+      :style="style"
+    >
       <slot />
     </div>
     <slot name="controls" />
@@ -63,11 +69,5 @@ const className = computed(() => ({
 
 #adv-content {
   @apply overflow-hidden left-1/2 top-1/2;
-
-  display: flex;
-  position: relative;
-
-  width: var(--adv-screen-width);
-  height: var(--adv-screen-height);
 }
 </style>

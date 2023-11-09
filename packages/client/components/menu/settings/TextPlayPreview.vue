@@ -4,8 +4,8 @@ import { useI18n } from 'vue-i18n'
 
 // 文字播放预览
 import type { AdvItemOption, AdvMenuItemProps } from '@advjs/theme-default'
-import { useSettingsStore } from '@advjs/client'
 import type { DisplayFontSize, DisplayMode, DisplaySpeed } from '@advjs/client'
+import { useSettingsStore } from '../../../stores'
 
 const settings = useSettingsStore()
 

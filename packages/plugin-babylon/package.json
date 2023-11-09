@@ -1,5 +1,6 @@
 {
   "name": "@advjs/plugin-babylon",
+  "type": "module",
   "version": "0.1.0",
   "description": "Babylon Plugin for ADV.JS to support 3D",
   "author": {
@@ -47,8 +48,5 @@
     "@babylonjs/loaders": "5.19.0",
     "@babylonjs/materials": "5.19.0",
     "babylon-vrm-loader": "^2.0.0"
-  },
-  "devDependencies": {
-    "tsup": "^7.2.0"
   }
 }

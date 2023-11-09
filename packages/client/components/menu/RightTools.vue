@@ -2,7 +2,8 @@
 import { useRoute, useRouter } from 'vue-router'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { isDark, toggleDark, useAppStore, useSettingsStore } from '@advjs/client'
+import { isDark, toggleDark } from '@advjs/core'
+import { useAppStore, useSettingsStore } from '../../stores'
 import type { MenuButtonItem } from '~/types/menu'
 
 const { t, locale, availableLocales } = useI18n()

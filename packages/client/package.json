@@ -1,5 +1,6 @@
 {
   "name": "@advjs/client",
+  "type": "module",
   "version": "0.0.1",
   "description": "ADV.JS Client",
   "author": {
@@ -40,7 +41,7 @@
     "nprogress": "^0.2.0",
     "pinia": "^2.1.7",
     "resolve": "^1.22.8",
-    "swiper": "^11.0.3",
+    "swiper": "^11.0.4",
     "vue": "^3.3.8",
     "vue-router": "^4.2.5"
   },

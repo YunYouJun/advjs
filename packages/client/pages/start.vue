@@ -3,7 +3,8 @@ import type { StartMenuItem } from '@advjs/theme-default'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { useAdvConfig, useAppStore } from '@advjs/client'
+import { useAppStore } from '../stores'
+import { useAdvConfig } from '../composables'
 
 const advConfig = useAdvConfig()
 const images = computed(() => advConfig.value.assets.images)

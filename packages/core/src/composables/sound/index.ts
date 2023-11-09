@@ -30,6 +30,9 @@ export function useSound(
   const sound = ref<Howl | null>(null)
 
   onMounted(() => {
+    if (!url)
+      return
+
     import('howler').then((mod) => {
       HowlConstructor.value = mod.Howl
 

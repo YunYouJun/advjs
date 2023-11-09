@@ -3,7 +3,7 @@ import type { AdvMenuItemProps } from '@advjs/theme-default'
 
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useSettingsStore } from '@advjs/client'
+import { useSettingsStore } from '../../../stores'
 
 const settings = useSettingsStore()
 

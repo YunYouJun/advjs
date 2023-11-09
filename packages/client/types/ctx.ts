@@ -1,6 +1,7 @@
-import type { AdvConfig } from '@advjs/types'
 import type { ComputedRef } from 'vue'
-import type { AdvLogic, AdvStore } from '@advjs/client'
+
+import type { AdvConfig } from '@advjs/types'
+import type { AdvLogic, AdvStore } from '../setup'
 
 export type AdvContext = {
   onMounted: () => void
