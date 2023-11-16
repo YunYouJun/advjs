@@ -23,9 +23,7 @@
     "vrm"
   ],
   "exports": {
-    ".": {
-      "import": "./dist/index.mjs"
-    },
+    ".": "./dist/index.mjs",
     "./*": "./*"
   },
   "main": "dist/index.mjs",
@@ -36,7 +34,8 @@
   ],
   "scripts": {
     "build": "unbuild",
-    "dev": "unbuild --stub",
+    "jiti-fix": "find ./dist -type f -exec sed -i '' 's|file://||g' {} \\;",
+    "dev": "unbuild --stub && npm run jiti-fix",
     "prepublishOnly": "npm run build",
     "start": "tsx src/index.ts",
     "test": "vitest"

@@ -8,3 +8,11 @@
   - @babylonjs/loaders
   - @babylonjs/gui
   - @babylonjs/materials
+
+## FAQ
+
+### `unbuild --stub` Failed to resolve import "file://..." but after build it works
+
+- [#248 | Failed to resolve import](https://github.com/unjs/unbuild/issues/248)
+
+Solution: Try use `vite` or `tsup` watch

@@ -19,9 +19,16 @@ const defaultThemeFolder = path.resolve(__dirname, '../theme-default')
 
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
 export default defineConfig((config) => {
+  const packageDir = path.resolve(__dirname, '../../packages')
+
   return {
     define: {
       __DEV__: config.mode === 'development',
+    },
+    server: {
+      fs: {
+        strict: false,
+      },
     },
     resolve: {
       alias: Object.assign(
@@ -30,13 +37,13 @@ export default defineConfig((config) => {
         },
         // commonAlias,
         {
-          '@advjs/client/': `${path.resolve(__dirname, '../client')}/`,
-          '@advjs/core': `${path.resolve(__dirname, '../core/src')}/`,
-          '@advjs/examples/': `${path.resolve(__dirname, '../examples')}/`,
-          '@advjs/parser/': `${path.resolve(__dirname, '../parser/src')}/`,
-          '@advjs/shared/': `${path.resolve(__dirname, '../shared/src')}/`,
-          '@advjs/theme-default': defaultThemeFolder,
+          '@advjs/client/': `${path.resolve(packageDir, 'client')}/`,
+          '@advjs/core': `${path.resolve(packageDir, 'core/src')}/`,
+          '@advjs/examples/': `${path.resolve(packageDir, 'examples')}/`,
+          '@advjs/parser/': `${path.resolve(packageDir, 'parser/src')}/`,
+          '@advjs/shared/': `${path.resolve(packageDir, 'shared/src')}/`,
           '@advjs/theme-default/': `${defaultThemeFolder}/`,
+          '@advjs/theme-default': defaultThemeFolder,
         },
       ),
     },
@@ -66,7 +73,7 @@ export default defineConfig((config) => {
 
       // https://github.com/antfu/unplugin-vue-components
       Components({
-        dirs: ['src/components', '../theme-default/components'],
+        dirs: ['src/components', '../../packages/theme-default/components'],
         // allow auto load markdown components under `./src/components/`
         extensions: ['vue', 'md'],
 

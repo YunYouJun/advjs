@@ -72,7 +72,7 @@
     "semver": "^7.5.4",
     "unocss": "^0.57.4",
     "unplugin-vue-components": "^0.25.2",
-    "unplugin-vue-markdown": "^0.25.1",
+    "unplugin-vue-markdown": "^0.25.2",
     "vite": "^5.0.0",
     "vite-plugin-pages": "^0.31.0",
     "vite-plugin-vue-layouts": "^0.8.0",

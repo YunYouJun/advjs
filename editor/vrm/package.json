@@ -41,7 +41,7 @@
     "markdown-it-prism": "^2.3.0",
     "unocss": "^0.57.4",
     "unplugin-vue-components": "^0.25.2",
-    "unplugin-vue-markdown": "^0.25.1",
+    "unplugin-vue-markdown": "^0.25.2",
     "vite": "^5.0.0",
     "vite-plugin-inspect": "^0.7.42",
     "vite-plugin-pages": "^0.31.0",

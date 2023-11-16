@@ -8,14 +8,14 @@ import {
   transformerVariantGroup,
 } from 'unocss'
 
-import { presetAdv } from '../unocss/src'
+import { presetAdv } from '../../packages/unocss/src'
 
 const safelist = 'm-auto text-left'.split(' ')
 
 export default defineConfig({
   content: {
     pipeline: {
-      include: ['**/*.{md,vue}', '../theme-default/**/*.{md,vue}'],
+      include: ['**/*.{md,vue}', '../../packages/theme-default/**/*.{md,vue}'],
     },
   },
 
