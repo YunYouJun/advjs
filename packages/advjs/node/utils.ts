@@ -1,24 +1,24 @@
 import { join } from 'node:path'
+import { createRequire } from 'node:module'
 import { ensurePrefix, slash } from '@antfu/utils'
 import isInstalledGlobally from 'is-installed-globally'
-
-// import { sync as resolve } from 'resolve'
 import globalDirs from 'global-directory'
 
 export function toAtFS(path: string) {
   return `/@fs${ensurePrefix('/', slash(path))}`
 }
 
+const require = createRequire(import.meta.url)
+
 export async function resolveImportPath(importName: string, ensure: true): Promise<string>
 export async function resolveImportPath(importName: string, ensure?: boolean): Promise<string | undefined>
 export async function resolveImportPath(importName: string, ensure = false) {
-  const { sync: resolve } = await import('resolve')
   try {
-    return resolve(importName, {
-      preserveSymlinks: false,
-    })
+    return require.resolve(importName)
   }
-  catch {}
+  catch (error) {
+    console.error(error)
+  }
 
   if (isInstalledGlobally) {
     try {
@@ -39,10 +39,8 @@ export async function resolveImportPath(importName: string, ensure = false) {
 }
 
 export async function resolveGlobalImportPath(importName: string): Promise<string> {
-  const { sync: resolve } = await import('resolve')
-
   try {
-    return resolve(importName, { preserveSymlinks: false, basedir: __dirname })
+    return require.resolve(importName)
   }
   catch {}
 

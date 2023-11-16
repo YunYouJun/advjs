@@ -57,7 +57,7 @@ export function useSound(
   watch(
     () => [url],
     () => {
-      if (HowlConstructor && HowlConstructor.value && sound && sound.value) {
+      if (url && HowlConstructor && HowlConstructor.value && sound && sound.value) {
         sound.value = new HowlConstructor.value({
           src: [unref(url)],
           volume: unref(volume),

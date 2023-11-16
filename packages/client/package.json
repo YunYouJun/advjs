@@ -17,6 +17,7 @@
   },
   "bugs": "https://github.com/YunYouJun/advjs/issues",
   "exports": {
+    "./package.json": "./package.json",
     ".": "./index.ts",
     "./*": "./*"
   },

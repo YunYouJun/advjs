@@ -8,7 +8,7 @@ const $adv = useAdvCtx()
 
 // dynamic import AdvCanvas
 const AdvBabylonCanvas = $adv.config.features.babylon
-  ? defineAsyncComponent(() => import('../babylon/AdvCanvas.vue'))
+  ? defineAsyncComponent(() => import('@advjs/plugin-babylon/components/AdvBabylonCanvas.vue'))
   : () => null
 </script>
 

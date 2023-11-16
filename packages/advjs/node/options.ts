@@ -1,5 +1,6 @@
 import { dirname, join, resolve } from 'node:path'
 import process from 'node:process'
+import { fileURLToPath } from 'node:url'
 import type Vue from '@vitejs/plugin-vue'
 import type Components from 'unplugin-vue-components/vite'
 import type Markdown from 'unplugin-vue-markdown'
@@ -15,6 +16,8 @@ import { parser } from './parser'
 import { packageExists, resolveImportPath } from './utils'
 import { getThemeMeta, resolveThemeName } from './themes'
 import { loadAdvConfig } from './config'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const debug = _debug('adv:options')
 

@@ -1,9 +1,11 @@
 import { dirname, join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import type { Alias, InlineConfig, Plugin } from 'vite'
 import { mergeConfig } from 'vite'
 import isInstalledGlobally from 'is-installed-globally'
 
 import { uniq } from '@antfu/utils'
+import { require } from '../env'
 
 import { getIndexHtml } from '../common'
 import type { ResolvedAdvOptions } from '../options'
@@ -14,6 +16,7 @@ import { searchForWorkspaceRoot } from '../vite/searchRoot'
 import { ADV_VIRTUAL_MODULES } from '../config'
 
 // import { commonAlias } from '../../../shared/config/vite'
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const EXCLUDE = [
   // avoid css parse by vite
@@ -44,12 +47,16 @@ function filterDeps(deps: Record<string, string>) {
 }
 
 export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<Plugin> {
-  // import { dependencies as parserDeps } from '@advjs/parser/package.json' assert { type: 'json' }
-  // import { dependencies as clientDeps } from '@advjs/client/package.json' assert { type: 'json' }
-  // import { dependencies as coreDeps } from '@advjs/core/package.json' assert { type: 'json' }
-  const { dependencies: parserDeps } = await import('@advjs/parser/package.json')
-  const { dependencies: clientDeps } = await import('@advjs/client/package.json')
-  const { dependencies: coreDeps } = await import('@advjs/core/package.json')
+  // const { dependencies: parserDeps } = await import('@advjs/parser/package.json', { assert: { type: 'json' } })
+  // const { dependencies: clientDeps } = await import('@advjs/client/package.json', { assert: { type: 'json' } })
+  // const { dependencies: coreDeps } = await import('@advjs/core/package.json', { assert: { type: 'json' } })
+  const parserPkg = require('@advjs/parser/package.json')
+  const clientPkg = require('@advjs/client/package.json')
+  const corePkg = require('@advjs/core/package.json')
+
+  const parserDeps = 'dependencies' in parserPkg ? parserPkg.dependencies : {}
+  const clientDeps = 'dependencies' in clientPkg ? clientPkg.dependencies : {}
+  const coreDeps = 'dependencies' in corePkg ? corePkg.dependencies : {}
 
   let INCLUDE = [
     ...filterDeps(parserDeps),
