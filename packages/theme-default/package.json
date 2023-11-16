@@ -1,5 +1,6 @@
 {
   "name": "@advjs/theme-default",
+  "type": "module",
   "version": "0.0.1",
   "description": "Default Theme for ADV.JS",
   "author": {
@@ -16,7 +17,7 @@
     "./*": "./*"
   },
   "engines": {
-    "node": ">=14.0.0",
+    "node": "^18.0.0 || >=20.0.0",
     "advjs": ">=0.0.1"
   },
   "advjs": {

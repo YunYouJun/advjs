@@ -2,10 +2,13 @@
   "compilerOptions": {
     "target": "ESNext",
     "jsx": "preserve",
-    "lib": ["ESNext", "DOM", "WebWorker"],
+    "lib": ["ESNext", "DOM", "DOM.Iterable", "WebWorker"],
     "baseUrl": ".",
     "module": "ESNext",
-    "moduleResolution": "node",
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+
     "paths": {
       "~/*": [
         "./packages/client/*"
@@ -41,30 +44,43 @@
         "./packages/*/src/index.ts"
       ],
       "advjs/*": [
-        "./packages/advjs/src/*"
+        "./packages/advjs/*"
       ]
     },
     "resolveJsonModule": true,
+    // https://github.com/JohnCampionJr/vite-plugin-vue-layouts/issues/111#issuecomment-1549482642
+    "resolvePackageJsonExports": false,
     "types": [
+      "@webgpu/types",
       "@babylonjs/core",
       "@babylonjs/loaders",
       "@babylonjs/gui",
       "@babylonjs/materials",
       "babylon-vrm-loader",
       "vitepress/client",
-      "vite/client",
       "node",
+      "vitest",
+      "vite/client",
       "vue/ref-macros",
-      "vite-plugin-pages/client",
+      // https://github.com/JohnCampionJr/vite-plugin-vue-layouts/issues/111#issuecomment-1549482642
+      "vite-plugin-vue-layouts/client.d.ts",
       "vite-plugin-pwa/client",
-      "vite-plugin-vue-layouts/client"
+      "vite-plugin-pages/client"
     ],
+    "allowImportingTsExtensions": true,
     "allowJs": true,
+
+    // lint
     "strict": true,
     "strictNullChecks": true,
+    "noFallthroughCasesInSwitch": true,
     "noUnusedLocals": true,
+    "noUnusedParameters": true,
+
+    "noEmit": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
     "skipLibCheck": true
   },
   "include": [
@@ -80,6 +96,6 @@
   "exclude": [
     "**/dist/**",
     "**/node_modules/**",
-    "editor"
+    "editor/**"
   ]
 }

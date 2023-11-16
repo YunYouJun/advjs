@@ -7,12 +7,12 @@ const app = useAppStore()
 const $adv = useAdvCtx()
 
 // dynamic import AdvCanvas
-const AdvCanvas = $adv.config.features.babylon
+const AdvBabylonCanvas = $adv.config.features.babylon
   ? defineAsyncComponent(() => import('../babylon/AdvCanvas.vue'))
   : () => null
 </script>
 
 <template>
   <AdvBg />
-  <AdvCanvas v-if="app.showCanvas" />
+  <AdvBabylonCanvas v-if="app.showCanvas" />
 </template>

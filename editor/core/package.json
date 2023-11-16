@@ -1,6 +1,9 @@
 {
+  "name": "@advjs/editor",
+  "version": "0.0.0",
   "private": true,
-  "packageManager": "pnpm@8.10.2",
+  "packageManager": "pnpm@8.10.5",
+  "description": "ADV.JS Editor",
   "scripts": {
     "build": "nuxi build",
     "dev": "nuxi dev",
@@ -13,22 +16,18 @@
     "start:generate": "npx serve .output/public"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "1.1.0",
     "@iconify-json/carbon": "^1.1.21",
     "@iconify-json/twemoji": "^1.1.12",
-    "@nuxt/devtools": "^1.0.0",
-    "@nuxtjs/color-mode": "^3.3.0",
+    "@nuxt/devtools": "^1.0.2",
+    "@nuxtjs/color-mode": "^3.3.2",
     "@pinia/nuxt": "^0.5.1",
-    "@unocss/eslint-config": "^0.57.3",
-    "@unocss/nuxt": "^0.57.3",
-    "@vite-pwa/nuxt": "^0.1.2",
-    "@vueuse/nuxt": "^10.5.0",
+    "@unocss/eslint-config": "^0.57.4",
+    "@unocss/nuxt": "^0.57.4",
+    "@vite-pwa/nuxt": "^0.2.3",
+    "@vueuse/nuxt": "^10.6.1",
     "baklavajs": "2.1.1",
     "consola": "^3.2.3",
-    "eslint": "^8.53.0",
     "nuxt": "^3.8.1",
-    "pinia": "^2.1.7",
-    "typescript": "^5.2.2",
-    "vue-tsc": "^1.8.22"
+    "pinia": "^2.1.7"
   }
 }

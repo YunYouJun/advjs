@@ -12,5 +12,8 @@ export default defineBuildConfig({
     '@advjs/client',
     '@advjs/shared',
     '@advjs/types',
+
+    'vue',
+    'pinia',
   ],
 })

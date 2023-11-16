@@ -1,5 +1,6 @@
 {
   "name": "advjs-starter",
+  "type": "module",
   "private": true,
   "author": {
     "url": "https://www.yunyoujun.cn",

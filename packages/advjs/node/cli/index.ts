@@ -64,15 +64,9 @@ cli.command(
       choices: ['error', 'warn', 'info', 'silent'],
       describe: 'log level',
     })
-    .option('force', {
-      alias: 'f',
-      default: false,
-      type: 'boolean',
-      describe: 'force the optimizer to ignore the cache and re-bundle  ',
-    })
     .strict()
     .help(),
-  async ({ entry, theme, port: userPort, open, log, remote, force }) => {
+  async ({ entry, theme, port: userPort, open, log, remote }) => {
     if (!fs.existsSync(entry) && !entry.endsWith('.adv.md'))
       entry = `${entry}.adv.md`
 
@@ -105,7 +99,6 @@ cli.command(
             strictPort: true,
             open,
             host: remote !== undefined ? '0.0.0.0' : 'localhost',
-            force,
           },
           logLevel: log as LogLevel,
         },

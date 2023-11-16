@@ -1,5 +1,6 @@
 {
   "name": "@advjs/types",
+  "type": "module",
   "version": "0.0.1",
   "description": "Shared types declaration for AdvJS",
   "author": {
@@ -22,7 +23,7 @@
     "index.d.ts"
   ],
   "engines": {
-    "node": ">=14.0.0"
+    "node": "^18.0.0 || >=20.0.0"
   },
   "scripts": {
     "build": "unbuild",

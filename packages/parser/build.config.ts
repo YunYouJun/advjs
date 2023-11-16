@@ -10,7 +10,10 @@ export default defineBuildConfig({
   ],
   clean: true,
   externals: [
+    // @types/mdast
     'mdast',
     ...Object.keys(pkg.dependencies),
+    ...Object.keys(pkg.peerDependencies),
+    'consola',
   ],
 })

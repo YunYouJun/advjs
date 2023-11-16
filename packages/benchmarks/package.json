@@ -7,7 +7,7 @@
     "generate:json-xml": "tsx src/json-xml/generate.ts --generate"
   },
   "devDependencies": {
-    "@faker-js/faker": "^8.2.0",
+    "@faker-js/faker": "^8.3.1",
     "@types/xml2js": "^0.4.14",
     "benny": "^3.7.1",
     "consola": "^3.2.3",

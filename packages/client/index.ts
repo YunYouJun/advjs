@@ -6,3 +6,5 @@ export * from './stores'
 export * from './utils'
 
 export * from './assets'
+
+export * from './pixi'

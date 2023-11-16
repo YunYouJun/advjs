@@ -5,10 +5,6 @@ import isInstalledGlobally from 'is-installed-globally'
 
 import { uniq } from '@antfu/utils'
 
-import { dependencies as parserDeps } from '@advjs/parser/package.json'
-import { dependencies as clientDeps } from '@advjs/client/package.json'
-import { dependencies as coreDeps } from '@advjs/core/package.json'
-
 import { getIndexHtml } from '../common'
 import type { ResolvedAdvOptions } from '../options'
 
@@ -47,13 +43,20 @@ function filterDeps(deps: Record<string, string>) {
   return Object.keys(deps).filter(i => !EXCLUDE.includes(i) && !i.startsWith('@advjs/') && !i.startsWith('#advjs') && !i.startsWith('@types'))
 }
 
-let INCLUDE = [
-  ...filterDeps(parserDeps),
-  ...filterDeps(clientDeps),
-  ...filterDeps(coreDeps),
-]
+export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<Plugin> {
+  // import { dependencies as parserDeps } from '@advjs/parser/package.json' assert { type: 'json' }
+  // import { dependencies as clientDeps } from '@advjs/client/package.json' assert { type: 'json' }
+  // import { dependencies as coreDeps } from '@advjs/core/package.json' assert { type: 'json' }
+  const { dependencies: parserDeps } = await import('@advjs/parser/package.json')
+  const { dependencies: clientDeps } = await import('@advjs/client/package.json')
+  const { dependencies: coreDeps } = await import('@advjs/core/package.json')
 
-export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
+  let INCLUDE = [
+    ...filterDeps(parserDeps),
+    ...filterDeps(clientDeps),
+    ...filterDeps(coreDeps),
+  ]
+
   if (options.data.features.babylon)
     INCLUDE = INCLUDE.concat(babylonDeps)
 

@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import { isClient } from '@vueuse/core'
 import { onMounted, onUnmounted, ref, watch } from 'vue'
-import { createCameraAnimation, setup } from '@advjs/plugin-babylon'
+import { createCameraAnimation, setup, useBabylonStore } from '@advjs/plugin-babylon'
 import type * as BABYLON from '@babylonjs/core'
 import type { AdvAst } from '@advjs/types'
-import { useAdvCtx, useBabylonStore } from '@advjs/client'
+import { useAdvCtx } from '@advjs/client'
 
 const $adv = useAdvCtx()
 

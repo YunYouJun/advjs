@@ -1,6 +1,6 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import type { setup } from '@advjs/client/setup/babylon'
 import { shallowRef } from 'vue'
+import type { setup } from '../setup'
 
 type BabylonSetupReturn = Awaited<ReturnType<typeof setup>>
 

@@ -14,8 +14,6 @@ import Prism from 'markdown-it-prism'
 import LinkAttributes from 'markdown-it-link-attributes'
 
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
-const monacoPrefix = 'monaco-editor/esm/vs'
-
 const customElements = ['github-corners']
 
 // https://vitejs.dev/config/
@@ -109,13 +107,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         inlineDynamicImports: false,
-        manualChunks: {
-          editorWorker: [`${monacoPrefix}/editor/editor.worker`],
-          jsonWorker: [`${monacoPrefix}/language/json/json.worker`],
-          // cssWorker: [`${monacoPrefix}/language/css/css.worker`],
-          // htmlWorker: [`${monacoPrefix}/language/html/html.worker`],
-          // tsWorker: [`${monacoPrefix}/language/typescript/ts.worker`],
-        },
+        minifyInternalExports: true,
       },
     },
   },

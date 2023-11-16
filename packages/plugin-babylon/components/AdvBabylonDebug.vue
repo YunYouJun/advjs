@@ -1,13 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import type * as BABYLON from '@babylonjs/core'
-import { useAdvCtx, useAppStore, useBabylonStore } from '@advjs/client'
+
 import type { CameraInfo } from '@advjs/plugin-babylon'
-import { captureCameraInfo } from '@advjs/plugin-babylon'
-
-const $adv = useAdvCtx()
-
-const app = useAppStore()
+import { captureCameraInfo, useBabylonStore } from '@advjs/plugin-babylon'
 
 const el = ref<HTMLElement | null>(null)
 const open = ref(false)
@@ -48,9 +44,7 @@ const vrmCamera = computed(() => bStore.instance?.vrmScene?.activeCamera as BABY
 const debugInfo = computed(() => {
   let data = {}
 
-  if (type.value === 'store')
-    data = $adv.config
-  else if (type.value === 'camera')
+  if (type.value === 'camera')
     data = cameraInfo
   return JSON.stringify(data, null, 2)
 })
@@ -66,9 +60,6 @@ const debugInfo = computed(() => {
     </AdvIconButton>
     <AdvIconButton @click="setCameraInfo(vrmCamera)">
       <div i-ri-shield-user-line />
-    </AdvIconButton>
-    <AdvIconButton title="切换背景图" @click="app.toggleBg()">
-      <div i-ri-image-line />
     </AdvIconButton>
     <pre class="block text-left">{{ debugInfo }}</pre>
   </AdvDebug>

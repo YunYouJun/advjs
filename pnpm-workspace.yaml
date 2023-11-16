@@ -1,6 +1,6 @@
-workspace:
+packages:
+  - docs
   - editor/*
   - packages/*
   - packages/*/playground
   - demo/*
-  - docs

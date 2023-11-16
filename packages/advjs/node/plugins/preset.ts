@@ -101,7 +101,7 @@ export async function ViteAdvPlugin(
 
     // todo download remote assets
 
-    createConfigPlugin(options),
+    await createConfigPlugin(options),
   ]
     .flat()
     .filter(notNullish)
