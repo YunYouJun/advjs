@@ -3,6 +3,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import consola from 'consola'
 
+// ESM
+const __dirname = path.dirname(new URL(import.meta.url).pathname)
 const directoryPath = path.join(__dirname, 'dist')
 
 // 递归遍历目录中的所有文件

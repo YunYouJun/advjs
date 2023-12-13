@@ -2,6 +2,7 @@ import { join } from 'node:path'
 import process from 'node:process'
 import type { InlineConfig } from 'vite'
 import { createServer as createViteServer, resolveConfig } from 'vite'
+import { VitePluginAdvDevTools } from '@advjs/devtools'
 import { mergeViteConfigs } from './common'
 import type { AdvServerOptions, ResolvedAdvOptions } from './options'
 import { ViteAdvPlugin } from './plugins/preset'
@@ -35,6 +36,7 @@ export async function createServer(
           ],
         },
         plugins: [
+          VitePluginAdvDevTools(),
           await ViteAdvPlugin(options, pluginOptions, serverOptions),
         ],
       }),

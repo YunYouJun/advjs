@@ -1,0 +1,24 @@
+{
+  "name": "@advjs/devtools",
+  "version": "0.0.1",
+  "description": "Devtools for ADV.JS",
+  "exports": {
+    ".": {
+      "types": "./dist/vite.d.ts",
+      "import": "./dist/vite.mjs"
+    },
+    "./*": "./*"
+  },
+  "module": "dist/vite.mjs",
+  "types": "./dist/vite.d.ts",
+  "scripts": {
+    "build": "unbuild",
+    "dev": "unbuild --stub"
+  },
+  "peerDependencies": {
+    "vite": "*"
+  },
+  "dependencies": {
+    "hookable": "^5.5.3"
+  }
+}

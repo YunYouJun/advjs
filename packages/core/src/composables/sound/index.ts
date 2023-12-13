@@ -48,7 +48,7 @@ export function useSound(
 
   function handleLoad() {
     if (typeof onload === 'function')
-      // eslint-disable-next-line ts/no-invalid-this
+
       onload.call(this)
 
     duration.value = duration.value ? duration.value * 1000 : 0

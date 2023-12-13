@@ -4,7 +4,7 @@ import { useEditorStore } from '../stores/editor'
 
 const editorStore = useEditorStore()
 
-const parserItems: { title: string; value: OutputType; icon: string }[] = [
+const parserItems: { title: string, value: OutputType, icon: string }[] = [
   {
     title: 'Markdown Preview',
     value: 'preview',
