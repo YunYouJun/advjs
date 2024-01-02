@@ -17,26 +17,26 @@
   "dependencies": {
     "@types/mdast": "4.0.3",
     "@unhead/vue": "^1.8.9",
-    "@vueuse/core": "^10.7.0",
-    "monaco-editor": "^0.44.0",
+    "@vueuse/core": "^10.7.1",
+    "monaco-editor": "^0.45.0",
     "pinia": "^2.1.7",
-    "vue": "^3.3.11",
+    "vue": "^3.4.3",
     "vue-router": "^4.2.5",
     "wc-github-corners": "^0.1.6"
   },
   "devDependencies": {
-    "@intlify/unplugin-vue-i18n": "^1.6.0",
-    "@vitejs/plugin-vue": "^4.5.2",
+    "@intlify/unplugin-vue-i18n": "^2.0.0",
+    "@vitejs/plugin-vue": "^5.0.2",
     "markdown-it-link-attributes": "^4.0.1",
     "markdown-it-prism": "^2.3.0",
-    "unocss": "^0.58.0",
+    "unocss": "^0.58.3",
     "unplugin-vue-components": "^0.26.0",
     "unplugin-vue-markdown": "^0.25.2",
     "v-tooltip": "^4.0.0-beta.17",
-    "vite": "^5.0.8",
+    "vite": "^5.0.10",
     "vite-plugin-inspect": "^0.8.1",
     "vite-plugin-pages": "^0.32.0",
     "vite-plugin-pwa": "^0.17.4",
-    "vite-plugin-vue-layouts": "^0.9.1"
+    "vite-plugin-vue-layouts": "^0.11.0"
   }
 }

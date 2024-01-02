@@ -15,7 +15,6 @@
       // "@babylonjs/materials",
       // "babylon-vrm-loader",
       "vite/client",
-      "vue/ref-macros",
       "vite-plugin-pages/client",
       "vite-plugin-vue-layouts/client",
       "advjs"

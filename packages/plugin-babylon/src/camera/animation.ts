@@ -7,7 +7,7 @@ import type { AdvAst } from '@advjs/types'
  * @param node
  */
 export function createCameraAnimation(scene: BABYLON.Scene, node: AdvAst.Camera) {
-  const camera = (scene.activeCamera as BABYLON.ArcRotateCamera)
+  const camera = scene.activeCamera as BABYLON.ArcRotateCamera
 
   const frameRate = 30
 

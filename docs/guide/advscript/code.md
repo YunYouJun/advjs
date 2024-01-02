@@ -60,7 +60,6 @@ url: /img/bg/stacked-steps-haikei.svg
 > 镜头位置变换
 
 ````md
-
 ```json
 {
   "type": "camera",

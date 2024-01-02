@@ -61,7 +61,6 @@
       "node",
       "vitest",
       "vite/client",
-      "vue/ref-macros",
       // https://github.com/JohnCampionJr/vite-plugin-vue-layouts/issues/111#issuecomment-1549482642
       "vite-plugin-vue-layouts/client.d.ts",
       "vite-plugin-pwa/client",
