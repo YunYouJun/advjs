@@ -1,8 +1,16 @@
 <template>
   <div
-    class="agui-form flex flex-col text-$agui-c-text-1"
-    pr-2
+    class="agui-form"
   >
     <slot />
   </div>
 </template>
+
+<style lang="scss">
+.agui-form {
+  display: flex;
+  flex-direction: column;
+
+  color: var(--agui-c-text-1);
+}
+</style>

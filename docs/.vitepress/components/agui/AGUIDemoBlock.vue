@@ -2,8 +2,8 @@
 import { ref } from 'vue'
 
 withDefaults(defineProps<{
+  inPanel?: boolean
   title: string
-  inPanel: boolean
 }>(), {
   title: 'Untitled',
   inPanel: true,
@@ -31,3 +31,10 @@ const isDark = ref(true)
     /> -->
   </div>
 </template>
+
+<style lang="scss">
+.agui-demo-block {
+  max-width: 420px;
+  margin: auto;
+}
+</style>

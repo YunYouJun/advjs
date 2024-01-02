@@ -1,1 +1,6 @@
 @use './helpers.scss';
+
+// override the default theme
+.vp-doc hr {
+  margin: 8px 0;
+}

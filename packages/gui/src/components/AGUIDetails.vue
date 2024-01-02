@@ -14,8 +14,19 @@ defineProps<{ title: string }>()
         </span>
       </summary>
     </slot>
-    <div pl="6" py-1.5>
+    <div class="content">
       <slot />
     </div>
   </details>
 </template>
+
+<style lang="scss">
+.agui-details {
+  .content {
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+}
+</style>

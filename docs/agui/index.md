@@ -4,48 +4,8 @@ outline: deep
 
 # AGUI - @advjs/gui
 
-GUI for Engine Editor.
+> GUI for Engine Editor.
 
-## Usage
+`@advjs/gui` 简称 AGUI，是一个基于 [Vue](https://vuejs.org/) 的 GUI 库，用于构建 [ADV.JS](https://advjs.org) 引擎编辑器。
 
-> Todo
-
-```bash
-pnpm add @advjs/gui
-```
-
-## Checkbox
-
-<CheckboxDemo />
-
-<<< @/.vitepress/components/demo/CheckboxDemo.vue
-
-## Input
-
-<InputDemo />
-
-<<< @/.vitepress/components/demo/InputDemo.vue
-
-### InputNumber
-
-<InputNumberDemo />
-
-<<< @/.vitepress/components/demo/InputNumberDemo.vue
-
-## Slider
-
-<SliderDemo />
-
-<<< @/.vitepress/components/demo/SliderDemo.vue
-
-## Select
-
-<SelectDemo />
-
-<<< @/.vitepress/components/demo/SelectDemo.vue
-
-## Tabs
-
-<TabsDemo />
-
-<<< @/.vitepress/components/demo/TabsDemo.vue
+它参考了 [Blender](https://www.blender.org/) 与 [Unity](https://unity.com/) 的 UI 设计，旨在提供一套简单易用的编辑器风格组件。

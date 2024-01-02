@@ -92,11 +92,74 @@ const nav: DefaultTheme.Config['nav'] = [
   },
 ]
 
-function sidebarGuide(): DefaultTheme.SidebarGroup[] {
+function sidebarAGUI(): DefaultTheme.SidebarItem[] {
+  const components = [
+    {
+      key: 'button',
+      name: 'Button 按钮',
+    },
+    {
+      key: 'checkbox',
+      name: 'Checkbox 复选框',
+    },
+    {
+      key: 'input',
+      name: 'Input 输入框',
+    },
+    {
+      key: 'input-number',
+      name: 'InputNumber 计数器',
+    },
+    {
+      key: 'radio',
+      name: 'Radio 单选框',
+    },
+    {
+      key: 'select',
+      name: 'Select 选择器',
+    },
+    {
+      key: 'switch',
+      name: 'Switch 开关',
+    },
+    {
+      key: 'tabs',
+      name: 'Tabs 标签页',
+    },
+  ]
+
+  return [
+    {
+      text: 'AGUI 指南',
+      collapsed: false,
+      items: [
+        {
+          text: '介绍',
+          link: '/agui/',
+        },
+        {
+          text: '快速开始',
+          link: '/agui/quick-start',
+        },
+      ],
+    },
+    {
+      text: 'AGUI Components',
+      collapsed: false,
+      items:
+        components.map(component => ({
+          text: component.name,
+          link: `/agui/components/${component.key}`,
+        })),
+    },
+  ]
+}
+
+function sidebarGuide(): DefaultTheme.SidebarItem[] {
   return [
     {
       text: 'Guide',
-      collapsible: true,
+      collapsed: false,
       items: [
         {
           text: '介绍',
@@ -118,7 +181,7 @@ function sidebarGuide(): DefaultTheme.SidebarGroup[] {
     },
     {
       text: '配置',
-      collapsible: true,
+      collapsed: false,
       items: [
         {
           text: '基础配置',
@@ -128,7 +191,7 @@ function sidebarGuide(): DefaultTheme.SidebarGroup[] {
     },
     {
       text: 'AdvScript',
-      collapsible: true,
+      collapsed: false,
       items: [
         { text: '什么是 AdvScript?', link: '/guide/advscript/' },
         { text: '基础语法', link: '/guide/advscript/syntax' },
@@ -138,7 +201,7 @@ function sidebarGuide(): DefaultTheme.SidebarGroup[] {
     },
     {
       text: 'TypeScript',
-      collapsible: true,
+      collapsed: false,
       items: [
         {
           text: '如何使用',
@@ -149,11 +212,11 @@ function sidebarGuide(): DefaultTheme.SidebarGroup[] {
   ]
 }
 
-function sidebarAbout(): DefaultTheme.SidebarGroup[] {
+function sidebarAbout(): DefaultTheme.SidebarItem[] {
   return [
     {
       text: '关于',
-      collapsible: true,
+      collapsed: false,
       items: [
         {
           text: '关于 ADV.JS',
@@ -163,7 +226,7 @@ function sidebarAbout(): DefaultTheme.SidebarGroup[] {
     },
     {
       text: '设计',
-      collapsible: true,
+      collapsed: false,
       items: [
         {
           text: '设计理念',
@@ -181,7 +244,7 @@ function sidebarAbout(): DefaultTheme.SidebarGroup[] {
     },
     {
       text: '开发',
-      collapsible: true,
+      collapsed: false,
       items: [
         {
           text: '这是什么？',
@@ -219,7 +282,7 @@ function sidebarAbout(): DefaultTheme.SidebarGroup[] {
     },
     {
       text: '未来',
-      collapsible: true,
+      collapsed: false,
       items: [
         {
           text: '设想',
@@ -230,7 +293,7 @@ function sidebarAbout(): DefaultTheme.SidebarGroup[] {
   ]
 }
 
-const ContributingSidebar: DefaultTheme.SidebarGroup[] = [
+const ContributingSidebar: DefaultTheme.SidebarItem[] = [
   {
     text: 'Contributing',
     items: [
@@ -248,11 +311,12 @@ const ContributingSidebar: DefaultTheme.SidebarGroup[] = [
 const sidebar: DefaultTheme.Config['sidebar'] = {
   '/guide/': sidebarGuide(),
   '/about/': sidebarAbout(),
+  '/agui/': sidebarAGUI(),
   '/contributing/': ContributingSidebar,
   '/resources/': [
     {
       text: 'Resources',
-      collapsible: true,
+      collapsed: true,
       items: [
         { text: '相关资源', link: '/resources/' },
         { text: '案例展示', link: '/resources/showcases' },
@@ -285,14 +349,6 @@ export default defineConfig({
       text: '✍️ 帮助改善此页面',
     },
 
-    localeLinks: {
-      text: '',
-      items: [
-        { text: 'English', link: '/en/guide/' },
-        { text: '简体中文', link: '/guide/' },
-      ],
-    },
-
     socialLinks: [
       {
         icon: 'github',
@@ -314,6 +370,15 @@ export default defineConfig({
 
     nav,
     sidebar,
+  },
+
+  locales: {
+    root: {
+      label: '简体中文',
+    },
+    en: {
+      label: 'English',
+    },
   },
 
   srcExclude: ['README.md'],

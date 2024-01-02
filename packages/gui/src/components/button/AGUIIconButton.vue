@@ -7,7 +7,7 @@ defineProps<{
 
 <template>
   <button
-    class="agui-button inline-flex rounded bg-$agui-c-bg-1 px-2 py-1 text-xs hover:bg-$agui-c-bg-2"
+    class="agui-icon-button inline-flex rounded bg-$agui-c-bg-1 text-xs hover:bg-$agui-c-bg-2"
     items-center justify-center
     :class="active ? 'active' : ''"
   >
@@ -17,10 +17,12 @@ defineProps<{
   </button>
 </template>
 
-<style>
-.agui-button {
+<style lang="scss">
+.agui-icon-button {
   &.active {
     background-color: var(--agui-c-active);
   }
+
+  padding: 6px;
 }
 </style>
