@@ -17,8 +17,8 @@ function onClick(event: Event) {
 </template>
 
 <style lang="scss">
-@use "sass:map";
-@use "../../styles/vars.scss" as *;
+@use 'sass:map';
+@use '../../styles/vars.scss' as *;
 
 .adv-text-button {
   padding: 0.35rem 0.6rem 0.2rem 0.6rem;

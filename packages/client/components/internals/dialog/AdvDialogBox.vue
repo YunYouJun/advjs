@@ -87,11 +87,11 @@ watch(() => curCharacter.value.name, () => {
 </script>
 
 <template>
-  <div class="dialog-box select-none cursor-pointer" grid="~ cols-12" gap="12" @click="next">
-    <div v-if="curCharacter" class=" col-span-3 text-right">
+  <div class="dialog-box cursor-pointer select-none" grid="~ cols-12" gap="12" @click="next">
+    <div v-if="curCharacter" class="col-span-3 text-right">
       <template v-if="$adv.config.showCharacterAvatar && characterAvatar">
-        <div flex="~ col" class="justify-center items-end">
-          <img class="w-25 h-25 shadow rounded" object="cover top" :src="characterAvatar">
+        <div flex="~ col" class="items-end justify-center">
+          <img class="h-25 w-25 rounded shadow" object="cover top" :src="characterAvatar">
           <span class="w-25" m="t-2" text="center gray-400">{{ curCharacter.name }}</span>
         </div>
       </template>
@@ -101,7 +101,7 @@ watch(() => curCharacter.value.name, () => {
         </Transition>
       </template>
     </div>
-    <div class="dialog-content col-span-9 text-left pr-24" :class="`text-${settings.storage.text.curFontSize}`">
+    <div class="dialog-content col-span-9 pr-24 text-left" :class="`text-${settings.storage.text.curFontSize}`">
       <PrintWords
         :animation="animation"
         :speed="settings.storage.text.curSpeed"

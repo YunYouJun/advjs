@@ -5,7 +5,7 @@ export default defineAdvConfig({
   theme: 'default',
 
   features: {
-    babylon: true,
+    babylon: false,
   },
 
   assets: {

@@ -6,8 +6,8 @@ defineProps<{ title: string }>()
   <details class="agui-details w-full">
     <slot name="summary">
       <summary
-        class="agui-summary text-$agui-c-text-1" font-bold text-xs
-        cursor-pointer
+        class="agui-summary text-$agui-c-text-1"
+        cursor-pointer text-xs font-bold
       >
         <span ml-1>
           {{ title }}

@@ -15,17 +15,9 @@ function onLoaded() {
 
 <template>
   <main
-    class="
-      w-screen
-      h-screen
-      opacity-90
-      flex flex-col
-      justify-center
-      items-center
-      animate__animated animate__fadeIn
-    "
+    class="animate__animated animate__fadeIn h-screen w-screen flex flex-col items-center justify-center opacity-90"
   >
-    <NewYunLogo class="w-40 h-40" />
+    <NewYunLogo class="h-40 w-40" />
     <div class="font-bold">
       @YunYouJun
     </div>

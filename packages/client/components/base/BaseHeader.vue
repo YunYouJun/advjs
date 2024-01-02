@@ -13,13 +13,13 @@ function toggleLocales() {
 </script>
 
 <template>
-  <nav class="text-xl pt-4">
-    <RouterLink class="icon-btn mx-2" to="/" :title="t('button.home')">
+  <nav class="pt-4 text-xl">
+    <RouterLink class="mx-2 icon-btn" to="/" :title="t('button.home')">
       <div i-ri-home-2-line />
     </RouterLink>
 
     <button
-      class="icon-btn mx-2 !outline-none"
+      class="mx-2 icon-btn !outline-none"
       :title="t('button.toggle_dark')"
       @click="toggleDark()"
     >
@@ -27,12 +27,12 @@ function toggleLocales() {
       <div v-else i-ri-sun-line />
     </button>
 
-    <a class="icon-btn mx-2" :title="t('button.toggle_langs')" @click="toggleLocales">
+    <a class="mx-2 icon-btn" :title="t('button.toggle_langs')" @click="toggleLocales">
       <div i-ri-translate-2 />
     </a>
 
     <a
-      class="icon-btn mx-2"
+      class="mx-2 icon-btn"
       href="https://www.yunyoujun.cn/posts/make-an-avg-engine/"
       target="_blank"
       :title="t('button.about')"
@@ -41,7 +41,7 @@ function toggleLocales() {
     </a>
 
     <a
-      class="icon-btn mx-2"
+      class="mx-2 icon-btn"
       rel="noreferrer"
       href="https://github.com/YunYouJun/advjs"
       target="_blank"

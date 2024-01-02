@@ -31,6 +31,6 @@ onMounted(() => {
 
 <template>
   <Transition enter-active-class="animate__fadeIn" leave-active-class="animate__fadeOut">
-    <div v-if="app.showBg" h="full" w="full" class="absolute animate__animated" bg="cover center no-repeat" :style="advGameStyle" />
+    <div v-if="app.showBg" h="full" w="full" class="animate__animated absolute" bg="cover center no-repeat" :style="advGameStyle" />
   </Transition>
 </template>

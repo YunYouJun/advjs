@@ -52,14 +52,14 @@ function recordCameraInfo() {
 </script>
 
 <template>
-  <canvas ref="babylonCanvas" class="absolute inset-0 w-full h-full outline-none" />
+  <canvas ref="babylonCanvas" class="absolute inset-0 h-full w-full outline-none" />
 
   <VrmUi />
 
   <UploadVrm />
 
   <a target="_blank" href="https://github.com/YunYouJun/advjs">
-    <AdvIconButton class="fixed right-50 bottom-5">
+    <AdvIconButton class="fixed bottom-5 right-50">
       <div i-ri-github-line text="white" />
     </AdvIconButton>
   </a>

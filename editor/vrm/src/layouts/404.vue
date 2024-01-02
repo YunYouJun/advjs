@@ -16,7 +16,7 @@ const { t } = useI18n()
     <RouterView />
     <div>
       <button
-        class="btn m-3 text-sm mt-8"
+        class="m-3 mt-8 text-sm btn"
         @click="router.back()"
       >
         {{ t('button.back') }}

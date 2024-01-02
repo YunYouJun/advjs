@@ -7,11 +7,11 @@ defineProps<{
 </script>
 
 <template>
-  <ul class="start-menu flex flex-col items-end absolute">
+  <ul class="start-menu absolute flex flex-col items-end">
     <li
       v-for="(item, i) in menuItems"
       :key="i"
-      class="start-menu-item font-serif transition animate__animated animate__fadeInRight"
+      class="animate__animated animate__fadeInRight start-menu-item font-serif transition"
       :style="`animation-delay: ${0.4 + i * 0.1}s`"
       @click="item.do"
     >
@@ -46,6 +46,5 @@ defineProps<{
     box-shadow: 5px 5px 24px rgba(0, 0, 0, 0.3);
     background-color: rgba(0, 0, 0, 0.9);
   }
-
 }
 </style>

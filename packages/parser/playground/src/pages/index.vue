@@ -8,7 +8,7 @@ import pkg from '../../../package.json'
       Demo for
       <a font="black" hover="underline" :href="pkg.readme" target="_blank">{{ pkg.name }}</a>
       <a
-        class="border rounded shadow text-white text-xs"
+        class="border rounded text-xs text-white shadow"
         bg="gray-800"
         m="l-2"
         p="x-2 y-1"

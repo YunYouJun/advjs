@@ -57,7 +57,7 @@ watch(() => props.content, () => {
 <template>
   <div
     flex="~ col"
-    class="adv-black absolute justify-center items-center"
+    class="adv-black absolute items-center justify-center"
     w="full"
     h="full"
     text="2xl"

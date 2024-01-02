@@ -10,7 +10,7 @@ audio.setBgm($adv.config.bgm.collection[0]?.src)
 </script>
 
 <template>
-  <div class="flex absolute top-5 justify-between w-full" p="x-5">
+  <div class="absolute top-5 w-full flex justify-between" p="x-5">
     <div class="inline-flex" gap="4">
       <AdvIconButton @click="app.toggleHistory()">
         <div i-ri-message-2-line />

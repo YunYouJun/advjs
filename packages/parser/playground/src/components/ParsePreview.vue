@@ -35,15 +35,15 @@ const content = computed(() => {
 
 <template>
   <div grid="~ cols-2 gap-1 <sm:cols-1">
-    <div class="container flex flex-col" p="1" :style="`order: ${appStore.leftOrder};`">
+    <div class="flex flex-col container" p="1" :style="`order: ${appStore.leftOrder};`">
       <MarkdownEditor />
     </div>
 
-    <div class="container flex flex-col" p="1" :style="`order: ${appStore.rightOrder};`">
+    <div class="flex flex-col container" p="1" :style="`order: ${appStore.rightOrder};`">
       <div class="toolbar flex justify-between" m="b-2">
         <span
           id="responseTime"
-          class="shadow flex justify-center items-center"
+          class="flex items-center justify-center shadow"
           text="sm"
           p="x-2 y-1"
           :title="t('parser.response_time')"

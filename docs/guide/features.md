@@ -9,8 +9,7 @@
 譬如：
 
 ```html
-<font color="red" size="40">你好</font>**鸭**
-早上**好**
+<font color="red" size="40">你好</font>**鸭** 早上**好**
 ```
 
 <font color="red" size="40">你好</font><strong>鸭</strong>

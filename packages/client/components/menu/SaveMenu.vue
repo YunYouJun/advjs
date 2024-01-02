@@ -66,7 +66,7 @@ const creativeEffect: CreativeEffectOptions = {
     <HorizontalDivider />
 
     <div class="adv-pagination-container">
-      <AdvTextButton v-for="i in 10" :key="i" :active="curPage === i" class="mx-4 w-12 animate__animated animate__fadeInDown" :style="{ 'animation-delay': `${i * 20}ms` }" :font="(curPage === i) && 'bold'" bg="blue-500 opacity-5" @click="togglePage(i)">
+      <AdvTextButton v-for="i in 10" :key="i" :active="curPage === i" class="animate__animated animate__fadeInDown mx-4 w-12" :style="{ 'animation-delay': `${i * 20}ms` }" :font="(curPage === i) && 'bold'" bg="blue-500 opacity-5" @click="togglePage(i)">
         {{ i }}
       </AdvTextButton>
     </div>

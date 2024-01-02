@@ -30,7 +30,7 @@ onMounted(() => {
         <slot name="header">
           <template v-if="header">
             <h1
-              class="adv-font-serif font-black mt-2"
+              class="adv-font-serif mt-2 font-black"
               text="4xl"
             >
               {{ header }}
@@ -89,7 +89,7 @@ onMounted(() => {
   opacity: 0;
 }
 
-.modal-enter-active .modal-container{
+.modal-enter-active .modal-container {
   -webkit-transform: scale(0.9);
   transform: scale(0.9);
 }

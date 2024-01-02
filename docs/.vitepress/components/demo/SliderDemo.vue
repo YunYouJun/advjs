@@ -11,7 +11,7 @@ const num = ref(0)
         <AGUISlider v-model="num" />
       </AGUIFormItem>
       <AGUIFormItem label="With Input (Todo)" description="Slider + Input">
-        <AGUISlider v-model="num" show-input disabled />
+        <AGUISlider v-model="num" disabled show-input />
       </AGUIFormItem>
     </AGUIForm>
   </AGUIDemoBlock>

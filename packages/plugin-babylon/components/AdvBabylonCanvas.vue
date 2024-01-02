@@ -39,7 +39,7 @@ watch(() => $adv.store.curNode, (node) => {
 </script>
 
 <template>
-  <div class="w-full h-full absolute">
-    <canvas ref="babylonCanvas" class="w-full h-full outline-none" />
+  <div class="absolute h-full w-full">
+    <canvas ref="babylonCanvas" class="h-full w-full outline-none" />
   </div>
 </template>

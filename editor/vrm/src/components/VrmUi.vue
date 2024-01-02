@@ -125,7 +125,7 @@ function toggleBone(bone: HumanBonesType) {
 <template>
   <AdvToolbox :default-status="true">
     <template #icon>
-      <AdvIconButton class="fixed right-35 bottom-5">
+      <AdvIconButton class="fixed bottom-5 right-35">
         <div i-ri-edit-line />
       </AdvIconButton>
     </template>
@@ -138,7 +138,7 @@ function toggleBone(bone: HumanBonesType) {
           <details>
             <summary>
               <h3
-                text="xs" class="inline-flex cursor-pointer justify-center items-center" :class="bone === curBone ? 'font-bold text-blue-300' : ''"
+                text="xs" class="inline-flex cursor-pointer items-center justify-center" :class="bone === curBone ? 'font-bold text-blue-300' : ''"
                 @click="(event: any) => {
                   toggleBone(bone);event.preventDefault()
                 }"
@@ -147,11 +147,11 @@ function toggleBone(bone: HumanBonesType) {
                   <div v-if="bone === curBone" i-ri-checkbox-line />
                   <div v-else i-ri-checkbox-blank-line />
                 </span>
-                {{ t(`bones.${bone}`) }} <small text="xs" opacity="80" class="transform scale-90">({{ bone }})</small>
+                {{ t(`bones.${bone}`) }} <small text="xs" opacity="80" class="scale-90 transform">({{ bone }})</small>
               </h3>
             </summary>
 
-            <div v-for="axis in (['x', 'y', 'z'] as const)" :key="axis" class="flex justify-center items-center">
+            <div v-for="axis in (['x', 'y', 'z'] as const)" :key="axis" class="flex items-center justify-center">
               <AdvSlider
                 v-model="bonesRotation[bone][axis].value" :label="`${axis}:`" unit="°"
                 @input="(degree: any) => { updateBoneRotation(bone, axis, degree) }"
@@ -165,7 +165,7 @@ function toggleBone(bone: HumanBonesType) {
 
   <AdvToolbox position="right" :default-status="true">
     <template #icon>
-      <AdvIconButton class="fixed right-20 bottom-5">
+      <AdvIconButton class="fixed bottom-5 right-20">
         <div i-ri-emotion-line />
       </AdvIconButton>
     </template>
@@ -174,9 +174,9 @@ function toggleBone(bone: HumanBonesType) {
         预设编辑
       </h2>
       <div v-for="(_, name) in vrmMorphingList" :key="name" m="y-1">
-        <div class="flex justify-center items-center">
+        <div class="flex items-center justify-center">
           <span class="mr-2 w-16" text="sm">{{ name }}:</span>
-          <div class="inline-flex adv-slider-container">
+          <div class="adv-slider-container inline-flex">
             <input v-model="vrmMorphingList[name]" class="adv-slider w-40" type="range" min="0" :max="1" step="0.01" text="black" @input="updateMorphing(name)">
           </div>
           <input v-model="vrmMorphingList[name]" class="adv-slider-input" min="0" :max="1" step="0.1" @input="updateMorphing(name)">

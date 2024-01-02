@@ -55,7 +55,7 @@ const className = computed(() => ({
   <div ref="root" class="adv-screen relative overflow-hidden" bg="black" :class="className">
     <div
       id="adv-content"
-      class="flex relative transition w-$adv-screen-width h-$adv-screen-height"
+      class="relative h-$adv-screen-height w-$adv-screen-width flex transition"
       :style="style"
     >
       <slot />

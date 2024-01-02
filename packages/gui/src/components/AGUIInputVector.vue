@@ -23,16 +23,16 @@ function updateModelValue(val: number, key: keyof Vector) {
 </script>
 
 <template>
-  <div flex="~ 1" gap="2" justify-center items-center>
+  <div flex="~ 1" gap="2" items-center justify-center>
     <div
       v-for="(_, key) in modelValue" :key="key"
       class="axis inline-flex text-left"
       :style="styles"
     >
       <label
-        inline-flex justify-start items-center :for="key"
-        class="text-xs text-$agui-c-text-1" mr-2
-        uppercase
+        :for="key"
+        class="text-xs text-$agui-c-text-1"
+        mr-2 inline-flex items-center justify-start uppercase
       >{{ key }}
       </label>
       <AGUIInputNumber

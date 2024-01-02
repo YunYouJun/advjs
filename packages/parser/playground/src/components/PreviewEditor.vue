@@ -46,5 +46,5 @@ if (isClient)
 </script>
 
 <template>
-  <div id="preview-container" ref="container" class="w-full h-full" text="sm" />
+  <div id="preview-container" ref="container" class="h-full w-full" text="sm" />
 </template>

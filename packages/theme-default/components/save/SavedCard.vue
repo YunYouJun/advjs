@@ -94,10 +94,10 @@ function onCardClick() {
 <template>
   <div class="saved-card shadow-md hover:shadow-lg" grid="~ cols-2" border="~ black dark:white" m="x-2 y-1" h="26">
     <div class="preview-image-container h-full overflow-hidden shadow" bg="white dark:black" @click="onCardClick">
-      <img class="w-full h-full object-cover" :src="meta?.thumbnail || images.defaultBgUrl">
+      <img class="h-full w-full object-cover" :src="meta?.thumbnail || images.defaultBgUrl">
     </div>
     <div class="overflow-hidden" flex="~ col">
-      <h3 text="base" class="flex justify-between items-center" bg="white" @click="onCardClick">
+      <h3 text="base" class="flex items-center justify-between" bg="white" @click="onCardClick">
         <span p="x-2" bg="black" font="mono" text="sm white "># {{ no }}</span>
         <span v-if="meta?.createdAt" p="x-2" text="xs dark-400 dark:white">{{ dayjs(meta?.createdAt).format('YYYY/MM/DD HH:mm:ss') }}</span>
       </h3>
@@ -107,7 +107,7 @@ function onCardClick() {
           <span class="truncate" m="x-1">{{ record.dialog?.children[0].value }}</span>
         </template>
       </p>
-      <h3 text="base" class="flex justify-between items-center" bg="white">
+      <h3 text="base" class="flex items-center justify-between" bg="white">
         <input v-model="memo" p="x-1" class="adv-record-memo" text="xs dark-400 dark:white" @input="isEditing = true">
         <span p="x-2" bg="black" font="mono" text="xs white" @click="saveCardMeta">{{ isEditing ? '保存' : '备注' }}</span>
       </h3>

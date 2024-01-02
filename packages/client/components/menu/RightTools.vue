@@ -66,7 +66,7 @@ const menuItems = computed<MenuButtonItem[]>(() => {
 </script>
 
 <template>
-  <div col="span-6" class="flex flex-col justify-center items-start" h="full" m="l-4">
+  <div col="span-6" class="flex flex-col items-start justify-center" h="full" m="l-4">
     <AdvButton
       v-for="(item, i) in menuItems"
       :key="i"
@@ -83,7 +83,7 @@ const menuItems = computed<MenuButtonItem[]>(() => {
       </AdvIconButton>
 
       <AdvIconButton m="x-2" :title="t('button.toggle_langs')" @click="toggleLocales">
-        <div i-ri-translate class="transition transform" :class="locale === 'en' ? 'rotate-y-180' : ''" />
+        <div i-ri-translate class="transform transition" :class="locale === 'en' ? 'rotate-y-180' : ''" />
       </AdvIconButton>
     </div>
 

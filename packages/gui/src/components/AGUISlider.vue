@@ -27,7 +27,7 @@ function updateModelValue(event: any) {
   <div
     class="agui-slider-container"
     :class="!showInput ? 'pr-3px' : ''"
-    flex justify-center items-center
+    flex items-center justify-center
   >
     <!-- eslint-disable-next-line vue/no-mutating-props -->
     <div :class="showInput ? 'w-4/5' : 'w-full'">
@@ -40,7 +40,7 @@ function updateModelValue(event: any) {
 
     <div v-if="showInput" class="w-1/5" pl-2>
       <input
-        class="agui-slider-input agui-input w-full"
+        class="agui-input agui-slider-input w-full"
         type="number" :min="min || 0" :max="max || 360" :step="step"
         :value="modelValue"
         @input="updateModelValue"

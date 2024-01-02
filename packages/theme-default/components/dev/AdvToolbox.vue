@@ -23,7 +23,7 @@ watch(open, (value) => {
     <span @click="open = !open">
       <slot name="icon" />
     </span>
-    <div v-show="open" class="fixed adv-toolbox-inner shadow top-0" :style="position === 'left' ? 'left:0' : 'right:0'">
+    <div v-show="open" class="adv-toolbox-inner fixed top-0 shadow" :style="position === 'left' ? 'left:0' : 'right:0'">
       <slot />
     </div>
   </div>

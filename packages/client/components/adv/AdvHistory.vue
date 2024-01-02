@@ -28,7 +28,7 @@ watch(() => containerRef.value, (val) => {
               {{ (ast.children[i] as AdvAst.Dialog).character.name }}
             </span>
           </p>
-          <p class="flex justify-start items-center" flex="~ grow" text="left" col="span-3">
+          <p class="flex items-center justify-start" flex="~ grow" text="left" col="span-3">
             <span v-for="item, j in (ast.children[i] as AdvAst.Dialog).children" :key="j">
               {{ item.value }}
             </span>

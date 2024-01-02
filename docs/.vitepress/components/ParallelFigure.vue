@@ -71,7 +71,7 @@ const endColor = computed(
     <div :style="cardStyle">
       <figure class="figure" :style="layer0">
         <svg
-          class="w-50 h-50 m-auto"
+          class="m-auto h-50 w-50"
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
           width="24"

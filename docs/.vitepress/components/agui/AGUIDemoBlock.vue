@@ -15,9 +15,9 @@ const isDark = ref(true)
 <template>
   <div
     :class="isDark ? 'dark' : 'light'"
-    relative
-    class="agui-demo-block bg-$agui-c-bg-panel" shadow border="solid 1px $agui-c-divider-dark-2"
-    rounded-2px
+
+    class="agui-demo-block bg-$agui-c-bg-panel" border="solid 1px $agui-c-divider-dark-2"
+    relative rounded-2px shadow
   >
     <AGUIDetails v-if="inPanel" open :title="title">
       <slot />

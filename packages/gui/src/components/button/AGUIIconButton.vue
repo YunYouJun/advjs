@@ -7,8 +7,8 @@ defineProps<{
 
 <template>
   <button
-    class="agui-button inline-flex py-1 px-2 bg-$agui-c-bg-1 text-xs rounded hover:bg-$agui-c-bg-2"
-    justify-center items-center
+    class="agui-button inline-flex rounded bg-$agui-c-bg-1 px-2 py-1 text-xs hover:bg-$agui-c-bg-2"
+    items-center justify-center
     :class="active ? 'active' : ''"
   >
     <slot>

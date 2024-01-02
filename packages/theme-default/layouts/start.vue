@@ -11,19 +11,19 @@ withDefaults(defineProps<{
 </script>
 
 <template>
-  <AdvHelper class="z-1 fixed left-5 bottom-5" text="white" />
-  <AdvFullscreenBtn class="z-1 fixed right-5 top-5" text="white" />
+  <AdvHelper class="fixed bottom-5 left-5 z-1" text="white" />
+  <AdvFullscreenBtn class="fixed right-5 top-5 z-1" text="white" />
 
-  <div class="w-full h-full animate__animated animate__fadeIn">
+  <div class="animate__animated animate__fadeIn h-full w-full">
     <AdvAdblock />
-    <AdvContainer class="w-full h-full">
+    <AdvContainer class="h-full w-full">
       <div
-        class="adv-start-bg absolute w-full h-full -z-1" :class="isDark ? 'filter invert' : ''"
+        class="adv-start-bg absolute h-full w-full -z-1" :class="isDark ? 'filter invert' : ''"
         bg="cover no-repeat center"
         :style="{ backgroundImage: `url(${bgImage})` }"
       />
       <main
-        class="page-start w-full h-full text-gray-900 dark:text-gray-200"
+        class="page-start h-full w-full text-gray-900 dark:text-gray-200"
       >
         <RouterView />
       </main>

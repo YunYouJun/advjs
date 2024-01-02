@@ -31,7 +31,7 @@ const characterClass = computed(() => {
 
 <template>
   <Transition appear>
-    <div class="col-span-1 flex flex-col justify-end items-center ">
+    <div class="col-span-1 flex flex-col items-center justify-end">
       <img
         class="tachie-character inline-block transform"
         :class="characterClass"

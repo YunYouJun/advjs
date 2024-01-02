@@ -21,19 +21,19 @@
   --agui-c-gray-dark-3: #3a3a3a;
   --agui-c-gray-dark-4: #282828;
   --agui-c-gray-dark-5: #202020;
-  --agui-c-divider-light-1: rgba(60, 60, 60, .29);
-  --agui-c-divider-light-2: rgba(60, 60, 60, .12);
-  --agui-c-divider-dark-1: rgba(84, 84, 84, .65);
-  --agui-c-divider-dark-2: rgba(84, 84, 84, .48);
+  --agui-c-divider-light-1: rgba(60, 60, 60, 0.29);
+  --agui-c-divider-light-2: rgba(60, 60, 60, 0.12);
+  --agui-c-divider-dark-1: rgba(84, 84, 84, 0.65);
+  --agui-c-divider-dark-2: rgba(84, 84, 84, 0.48);
   --agui-c-text-light-1: var(-agui-c-indigo);
-  --agui-c-text-light-2: rgba(60, 60, 60, .7);
-  --agui-c-text-light-3: rgba(60, 60, 60, .33);
-  --agui-c-text-light-4: rgba(60, 60, 60, .18);
+  --agui-c-text-light-2: rgba(60, 60, 60, 0.7);
+  --agui-c-text-light-3: rgba(60, 60, 60, 0.33);
+  --agui-c-text-light-4: rgba(60, 60, 60, 0.18);
   --agui-c-text-light-code: var(-agui-c-indigo-soft);
-  --agui-c-text-dark-1: rgba(255, 255, 255, .8);
-  --agui-c-text-dark-2: rgba(235,  235, 235, .6);
-  --agui-c-text-dark-3: rgba(235,  235, 235, .38);
-  --agui-c-text-dark-4: rgba(235,  235, 235, .18);
+  --agui-c-text-dark-1: rgba(255, 255, 255, 0.8);
+  --agui-c-text-dark-2: rgba(235, 235, 235, 0.6);
+  --agui-c-text-dark-3: rgba(235, 235, 235, 0.38);
+  --agui-c-text-dark-4: rgba(235, 235, 235, 0.18);
   --agui-c-text-dark-code: var(-agui-c-indigo-light);
   --agui-c-blue: #3b8eed;
   --agui-c-blue-light: #549ced;
@@ -49,7 +49,7 @@
 
   --agui-c-bg-panel: rgba(56, 56, 56, 1);
   --agui-c-bg-panel-title: rgba(70, 70, 70, 1);
-  --agui-c-border-hover: rgba(220, 220, 220, .3)
+  --agui-c-border-hover: rgba(220, 220, 220, 0.3);
 }
 
 :root {
@@ -80,7 +80,7 @@
   --agui-c-brand: var(--agui-c-green);
   --agui-c-brand-light: var(--agui-c-green-light);
   --agui-c-brand-dark: var(--agui-c-green-dark);
-  --agui-c-brand-highlight: var(--agui-c-brand-dark)
+  --agui-c-brand-highlight: var(--agui-c-brand-dark);
 }
 
 .dark {
@@ -108,5 +108,5 @@
   --agui-c-text-inverse-2: var(--agui-c-text-light-2);
   --agui-c-text-inverse-3: var(--agui-c-text-light-3);
   --agui-c-text-inverse-4: var(--agui-c-text-light-4);
-  --agui-c-brand-highlight: var(--agui-c-brand-light)
+  --agui-c-brand-highlight: var(--agui-c-brand-light);
 }

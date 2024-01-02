@@ -13,7 +13,7 @@ defineProps<{
 </script>
 
 <template>
-  <TabGroup as="div" class="agui-tab-group flex flex-col w-full">
+  <TabGroup as="div" class="agui-tab-group w-full flex flex-col">
     <TabList
       class="agui-tab-list flex justify-start bg-$agui-c-bg-soft"
     >
@@ -21,10 +21,10 @@ defineProps<{
         v-for="item in list"
         :key="item.title"
         v-slot="{ selected }"
-        class="outline-none border-none"
+        class="border-none outline-none"
       >
         <div
-          class="agui-tab-btn inline-flex h-full justify-center items-center text-xs cursor-pointer text-white" :class="[
+          class="agui-tab-btn h-full inline-flex cursor-pointer items-center justify-center text-xs text-white" :class="[
             selected
               ? 'active bg-$agui-c-bg-panel text-white'
               : 'op-80',

@@ -4,7 +4,7 @@
   >
     <div class="agui-panel__resize-bar" />
     <div class="agui-panel__resize-line" />
-    <div class="agui-panel__content absolute left-0 right-0 bottom-0 top-0">
+    <div class="agui-panel__content absolute bottom-0 left-0 right-0 top-0">
       <slot />
     </div>
   </div>
@@ -28,20 +28,24 @@
     overflow: scroll;
 
     background-color: red;
-
   }
 
   &::-webkit-scrollbar {
-      // width: 200px;
-      width: 100px;
-      height: inherit;
-      cursor: col-resize;
-      resize: horizontal;
-      overflow: scroll;
-    }
+    // width: 200px;
+    width: 100px;
+    height: inherit;
+    cursor: col-resize;
+    resize: horizontal;
+    overflow: scroll;
+  }
 
   &-resize-bar-btn {
-    height: 200px; width: 2px; background: #666; position: absolute; right: 0; top: 0;
+    height: 200px;
+    width: 2px;
+    background: #666;
+    position: absolute;
+    right: 0;
+    top: 0;
   }
 }
 </style>

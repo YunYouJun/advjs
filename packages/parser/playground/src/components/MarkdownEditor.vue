@@ -63,12 +63,12 @@ if (isClient)
 </script>
 
 <template>
-  <div class="toolbar flex justify-between items-center" m="b-2">
+  <div class="toolbar flex items-center justify-between" m="b-2">
     <button id="permalink" class="btn" text="sm" :title="t('parser.permalink')">
       <div i-ri-link />
     </button>
     <VMenu placement="top">
-      <button class="icon-btn shadow rounded-full transition" hover="shadow-md">
+      <button class="rounded-full shadow transition icon-btn" hover="shadow-md">
         <div v-if="loading" i-ri-loader-line class="animate-spin" />
         <div v-else i-ri-check-line text="green-500" class="cursor-pointer" @click="fetchMarkdown" />
       </button>
@@ -79,7 +79,7 @@ if (isClient)
 
     <select
       v-model="editorStore.options.mdUrl"
-      class="text-sm shadow bg-transparent outline-none"
+      class="bg-transparent text-sm shadow outline-none"
       p="1"
       placeholder="选择测试 Markdown"
       @change="fetchMarkdown"
@@ -104,7 +104,7 @@ if (isClient)
   </div>
   <div
     ref="inputEditor"
-    class="border outline-none rounded bg-transparent focus:border-black"
+    class="border rounded bg-transparent outline-none focus:border-black"
     dark="border-white"
     h="full"
     text="left"

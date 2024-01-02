@@ -1,5 +1,5 @@
 // @see https://moderncss.dev/pure-css-custom-checkbox-style/
-input[type="checkbox"],
+input[type='checkbox'],
 .agui-checkbox {
   cursor: pointer;
 
@@ -20,7 +20,7 @@ input[type="checkbox"],
 
   // checked style
   &::before {
-    content: "";
+    content: '';
     width: 8px;
     height: 8px;
     transform: scale(0);
