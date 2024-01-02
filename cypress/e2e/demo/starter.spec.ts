@@ -15,9 +15,21 @@ context('Demo Starter', () => {
     cy.get('.start-menu-item')
       .first()
       .click()
-      .wait(1000)
       .url()
       .should('include', '/#/game')
+
+    // first dialog
+    cy.contains('你说世界上真的有外星人吗？')
+      .should('exist')
+
+    // click settings
+    cy.get('.menu-setting-button')
+      .first()
+      .click()
+
+    cy
+      .contains('设置')
+      .should('exist')
   })
 
   // it('markdown', () => {
