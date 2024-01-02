@@ -11,9 +11,13 @@ import HomePage from '../components/HomePage.vue'
 
 import '../../../packages/gui/src/styles/index.scss'
 
+import { mountCssVarsRootStyle } from '../../../packages/gui/src/styles/icons'
+
 export default {
   ...Theme,
   Layout() {
+    mountCssVarsRootStyle()
+
     return h(Theme.Layout, null, {
       'home-hero-before': () => h(HomePage),
     })

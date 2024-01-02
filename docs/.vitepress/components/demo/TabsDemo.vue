@@ -8,7 +8,7 @@ const tabList = ref([
 </script>
 
 <template>
-  <AGUIDemoBlock :in-panel="false">
+  <AGUIDemoBlock :in-panel="false" title="Tabs Demo">
     <AGUITabs :list="tabList">
       <AGUITabPanel>
         <div p="4">

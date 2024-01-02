@@ -1,10 +1,10 @@
 <template>
   <div
-    class="agui-panel bg-$agui-c-bg-panel"
+    class="agui-panel"
   >
     <div class="agui-panel__resize-bar" />
     <div class="agui-panel__resize-line" />
-    <div class="agui-panel__content absolute bottom-0 left-0 right-0 top-0">
+    <div class="agui-panel__content">
       <slot />
     </div>
   </div>
@@ -16,7 +16,9 @@
 .agui-panel {
   // position: relative;
   display: flex;
-  border: 1px solid black;
+  // border: 1px solid black;
+
+  background-color: var(--agui-c-bg-panel);
   // overflow: auto;
 
   &-resize-bar {

@@ -95,6 +95,14 @@ const nav: DefaultTheme.Config['nav'] = [
 function sidebarAGUI(): DefaultTheme.SidebarItem[] {
   const components = [
     {
+      key: 'layout',
+      name: 'Layout 布局',
+    },
+    {
+      key: 'assets-explorer',
+      name: 'Assets Explorer 资源管理器',
+    },
+    {
       key: 'button',
       name: 'Button 按钮',
     },

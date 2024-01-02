@@ -21,6 +21,7 @@
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "@headlessui/vue": "^1.7.16"
+    "@headlessui/vue": "^1.7.16",
+    "@iconify-json/vscode-icons": "^1.1.32"
   }
 }
