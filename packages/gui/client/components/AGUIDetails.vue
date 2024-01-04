@@ -22,7 +22,7 @@ defineProps<{ title: string }>()
 
 <style lang="scss">
 .agui-details {
-  .content {
+  > .content {
     padding-left: 20px;
     padding-right: 20px;
     padding-top: 10px;

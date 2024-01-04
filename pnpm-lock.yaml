@@ -11,6 +11,9 @@ importers:
       '@advjs/core':
         specifier: workspace:*
         version: link:packages/core
+      '@advjs/gui':
+        specifier: workspace:*
+        version: link:packages/gui
       '@advjs/parser':
         specifier: workspace:*
         version: link:packages/parser
@@ -106,7 +109,7 @@ importers:
         version: 2.0.0(typescript@5.3.3)
       vite:
         specifier: ^5.0.10
-        version: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+        version: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
       vitest:
         specifier: ^1.1.1
         version: 1.1.1(@types/node@20.10.6)
@@ -170,7 +173,7 @@ importers:
         version: 5.0.2(vite@5.0.10)(vue@3.4.3)
       vite:
         specifier: ^5.0.10
-        version: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+        version: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
       vue-tsc:
         specifier: ^1.8.27
         version: 1.8.27(typescript@5.3.3)
@@ -321,7 +324,7 @@ importers:
         version: 0.25.2(rollup@2.79.1)(vite@5.0.10)
       vite:
         specifier: ^5.0.10
-        version: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+        version: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
       vite-plugin-inspect:
         specifier: ^0.8.1
         version: 0.8.1(@nuxt/kit@3.9.0)(rollup@2.79.1)(vite@5.0.10)
@@ -431,8 +434,8 @@ importers:
         specifier: ^2.0.0
         version: 2.0.0
       sass:
-        specifier: ^1.69.6
-        version: 1.69.6
+        specifier: ^1.69.7
+        version: 1.69.7
       semver:
         specifier: ^7.5.4
         version: 7.5.4
@@ -447,7 +450,7 @@ importers:
         version: 0.25.2(rollup@3.29.4)(vite@5.0.10)
       vite:
         specifier: ^5.0.10
-        version: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+        version: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
       vite-plugin-pages:
         specifier: ^0.32.0
         version: 0.32.0(@vue/compiler-sfc@3.4.3)(vite@5.0.10)
@@ -602,7 +605,7 @@ importers:
         version: 5.5.3
       vite:
         specifier: '*'
-        version: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+        version: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
 
   packages/gui:
     dependencies:
@@ -612,6 +615,13 @@ importers:
       '@iconify-json/vscode-icons':
         specifier: ^1.1.32
         version: 1.1.32
+    devDependencies:
+      vite-plugin-css-injected-by-js:
+        specifier: ^3.3.1
+        version: 3.3.1(vite@5.0.10)
+      vue-tsc:
+        specifier: ^1.8.27
+        version: 1.8.27(typescript@5.3.3)
 
   packages/parser:
     dependencies:
@@ -715,7 +725,7 @@ importers:
         version: 4.0.0-beta.17(vue@3.4.3)
       vite:
         specifier: ^5.0.10
-        version: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+        version: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
       vite-plugin-inspect:
         specifier: ^0.8.1
         version: 0.8.1(@nuxt/kit@3.9.0)(rollup@2.79.1)(vite@5.0.10)
@@ -3117,7 +3127,7 @@ packages:
       '@nuxt/schema': 3.9.0(rollup@2.79.1)
       execa: 7.2.0
       nuxt: 3.9.0(@types/node@20.10.6)(eslint@8.56.0)(rollup@2.79.1)(typescript@5.3.3)(vite@5.0.10)(vue-tsc@1.8.27)
-      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
     transitivePeerDependencies:
       - rollup
       - supports-color
@@ -3180,7 +3190,7 @@ packages:
       simple-git: 3.22.0
       sirv: 2.0.4
       unimport: 3.7.1(rollup@2.79.1)
-      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
       vite-plugin-inspect: 0.8.1(@nuxt/kit@3.9.0)(rollup@2.79.1)(vite@5.0.10)
       vite-plugin-vue-inspector: 4.0.2(vite@5.0.10)
       which: 3.0.1
@@ -3367,7 +3377,7 @@ packages:
       strip-literal: 1.3.0
       ufo: 1.3.2
       unplugin: 1.6.0
-      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
       vite-node: 1.1.1(@types/node@20.10.6)
       vite-plugin-checker: 0.6.2(eslint@8.56.0)(typescript@5.3.3)(vite@5.0.10)(vue-tsc@1.8.27)
       vue: 3.4.3(typescript@5.3.3)
@@ -4473,7 +4483,7 @@ packages:
       '@unocss/core': 0.58.3
       '@unocss/reset': 0.58.3
       '@unocss/vite': 0.58.3(rollup@2.79.1)(vite@5.0.10)
-      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
     transitivePeerDependencies:
       - rollup
     dev: true
@@ -4489,7 +4499,7 @@ packages:
       '@unocss/core': 0.58.3
       '@unocss/reset': 0.58.3
       '@unocss/vite': 0.58.3(rollup@3.29.4)(vite@5.0.10)
-      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
     transitivePeerDependencies:
       - rollup
     dev: false
@@ -4739,7 +4749,7 @@ packages:
       chokidar: 3.5.3
       fast-glob: 3.3.2
       magic-string: 0.30.5
-      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
     transitivePeerDependencies:
       - rollup
     dev: true
@@ -4759,7 +4769,7 @@ packages:
       chokidar: 3.5.3
       fast-glob: 3.3.2
       magic-string: 0.30.5
-      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
     transitivePeerDependencies:
       - rollup
     dev: false
@@ -4829,7 +4839,7 @@ packages:
       '@babel/core': 7.23.7
       '@babel/plugin-transform-typescript': 7.23.6(@babel/core@7.23.7)
       '@vue/babel-plugin-jsx': 1.1.5(@babel/core@7.23.7)
-      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
       vue: 3.4.3(typescript@5.3.3)
     transitivePeerDependencies:
       - supports-color
@@ -4842,7 +4852,7 @@ packages:
       vite: ^5.0.0
       vue: ^3.2.25
     dependencies:
-      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
       vue: 3.4.3(typescript@5.3.3)
 
   /@vitest/expect@1.1.1:
@@ -6568,7 +6578,7 @@ packages:
     dependencies:
       chokidar: 3.5.3
       debug: 4.3.4(supports-color@5.5.0)
-      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -12376,8 +12386,8 @@ packages:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
     dev: true
 
-  /sass@1.69.6:
-    resolution: {integrity: sha512-qbRr3k9JGHWXCvZU77SD2OTwUlC+gNT+61JOLcmLm+XqH4h/5D+p4IIsxvpkB89S9AwJOyb5+rWNpIucaFxSFQ==}
+  /sass@1.69.7:
+    resolution: {integrity: sha512-rzj2soDeZ8wtE2egyLXgOOHQvaC2iosZrkF6v3EUG+tBwEvhqUCzm0VP3k9gHF9LXbSrRhT5SksoI56Iw8NPnQ==}
     engines: {node: '>=14.0.0'}
     hasBin: true
     dependencies:
@@ -13826,7 +13836,7 @@ packages:
       '@unocss/transformer-variant-group': 0.58.3
       '@unocss/vite': 0.58.3(rollup@2.79.1)(vite@5.0.10)
       '@unocss/webpack': 0.58.3(rollup@2.79.1)(webpack@5.89.0)
-      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
     transitivePeerDependencies:
       - postcss
       - rollup
@@ -13865,7 +13875,7 @@ packages:
       '@unocss/transformer-directives': 0.58.3
       '@unocss/transformer-variant-group': 0.58.3
       '@unocss/vite': 0.58.3(rollup@3.29.4)(vite@5.0.10)
-      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
     transitivePeerDependencies:
       - postcss
       - rollup
@@ -13947,7 +13957,7 @@ packages:
       '@types/markdown-it': 13.0.7
       markdown-it: 13.0.2
       unplugin: 1.6.0
-      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
     transitivePeerDependencies:
       - rollup
     dev: true
@@ -13964,7 +13974,7 @@ packages:
       '@types/markdown-it': 13.0.7
       markdown-it: 13.0.2
       unplugin: 1.6.0
-      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
     transitivePeerDependencies:
       - rollup
     dev: false
@@ -14216,7 +14226,7 @@ packages:
       debug: 4.3.4(supports-color@5.5.0)
       pathe: 1.1.1
       picocolors: 1.0.0
-      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -14274,12 +14284,20 @@ packages:
       strip-ansi: 6.0.1
       tiny-invariant: 1.3.1
       typescript: 5.3.3
-      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
       vscode-languageclient: 7.0.0
       vscode-languageserver: 7.0.0
       vscode-languageserver-textdocument: 1.0.11
       vscode-uri: 3.0.8
       vue-tsc: 1.8.27(typescript@5.3.3)
+    dev: true
+
+  /vite-plugin-css-injected-by-js@3.3.1(vite@5.0.10):
+    resolution: {integrity: sha512-PjM/X45DR3/V1K1fTRs8HtZHEQ55kIfdrn+dzaqNBFrOYO073SeSNCxp4j7gSYhV9NffVHaEnOL4myoko0ePAg==}
+    peerDependencies:
+      vite: '>2.0.0-0'
+    dependencies:
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
     dev: true
 
   /vite-plugin-inspect@0.8.1(@nuxt/kit@3.9.0)(rollup@2.79.1)(vite@5.0.10):
@@ -14301,7 +14319,7 @@ packages:
       open: 9.1.0
       picocolors: 1.0.0
       sirv: 2.0.4
-      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
     transitivePeerDependencies:
       - rollup
       - supports-color
@@ -14325,7 +14343,7 @@ packages:
       open: 9.1.0
       picocolors: 1.0.0
       sirv: 2.0.4
-      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
     transitivePeerDependencies:
       - rollup
       - supports-color
@@ -14349,7 +14367,7 @@ packages:
       json5: 2.2.3
       local-pkg: 0.5.0
       picocolors: 1.0.0
-      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
       yaml: 2.3.4
     transitivePeerDependencies:
       - supports-color
@@ -14365,7 +14383,7 @@ packages:
       debug: 4.3.4(supports-color@5.5.0)
       fast-glob: 3.3.2
       pretty-bytes: 6.1.1
-      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
       workbox-build: 7.0.0
       workbox-window: 7.0.0
     transitivePeerDependencies:
@@ -14386,7 +14404,7 @@ packages:
       '@vue/compiler-dom': 3.4.3
       kolorist: 1.8.0
       magic-string: 0.30.5
-      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -14400,7 +14418,7 @@ packages:
     dependencies:
       debug: 4.3.4(supports-color@5.5.0)
       fast-glob: 3.3.2
-      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
       vue: 3.4.3(typescript@5.3.3)
       vue-router: 4.2.5(vue@3.4.3)
     transitivePeerDependencies:
@@ -14430,7 +14448,7 @@ packages:
       jsdom: 23.0.1
       kolorist: 1.8.0
       prettier: 3.1.1
-      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
       vue: 3.4.3(typescript@5.3.3)
       vue-router: 4.2.5(vue@3.4.3)
       yargs: 17.7.2
@@ -14441,7 +14459,7 @@ packages:
       - utf-8-validate
     dev: true
 
-  /vite@5.0.10(@types/node@20.10.6)(sass@1.69.6):
+  /vite@5.0.10(@types/node@20.10.6)(sass@1.69.7):
     resolution: {integrity: sha512-2P8J7WWgmc355HUMlFrwofacvr98DAjoE52BfdbwQtyLH06XKwaL/FMnmKM2crF0iX4MpmMKoDlNCB1ok7zHCw==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
@@ -14473,7 +14491,7 @@ packages:
       esbuild: 0.19.11
       postcss: 8.4.32
       rollup: 4.9.2
-      sass: 1.69.6
+      sass: 1.69.7
     optionalDependencies:
       fsevents: 2.3.3
 
@@ -14504,7 +14522,7 @@ packages:
       shikiji: 0.9.17
       shikiji-core: 0.9.17
       shikiji-transformers: 0.9.17
-      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
       vue: 3.4.3(typescript@5.3.3)
     transitivePeerDependencies:
       - '@algolia/client-search'
@@ -14578,7 +14596,7 @@ packages:
       strip-literal: 1.3.0
       tinybench: 2.5.1
       tinypool: 0.8.1
-      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.6)
+      vite: 5.0.10(@types/node@20.10.6)(sass@1.69.7)
       vite-node: 1.1.1(@types/node@20.10.6)
       why-is-node-running: 2.2.2
     transitivePeerDependencies:

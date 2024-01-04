@@ -134,6 +134,10 @@ function sidebarAGUI(): DefaultTheme.SidebarItem[] {
       key: 'tabs',
       name: 'Tabs 标签页',
     },
+    {
+      key: 'tree',
+      name: 'Tree 树形控件',
+    },
   ]
 
   return [

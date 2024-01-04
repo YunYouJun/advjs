@@ -2,16 +2,14 @@ import { defineBuildConfig } from 'unbuild'
 
 export default defineBuildConfig({
   entries: [
-    './src/index',
+    './client/types/index',
+    './node/index',
   ],
 
   declaration: true,
-  clean: true,
+  // clean: true,
+  clean: false,
   rollup: {
     emitCJS: true,
   },
-  externals: [
-    '@nuxt/kit',
-    '@nuxt/schema',
-  ],
 })

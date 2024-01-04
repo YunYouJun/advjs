@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.0.1",
   "private": true,
-  "packageManager": "pnpm@8.13.1",
+  "packageManager": "pnpm@8.14.0",
   "description": "面向未来与前端的 ADV 文字冒险游戏引擎。",
   "author": {
     "name": "YunYouJun",
@@ -22,7 +22,7 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "build": "pnpm --filter=./packages/** run build",
-    "build:advjs": "pnpm --filter=./packages/**",
+    "build:advjs": "pnpm -C packages/advjs run build",
     "build:demo": "pnpm -C demo/starter run build",
     "clean": "tsx scripts/clean.ts",
     "demo": "pnpm -C demo/starter run dev",
@@ -64,6 +64,7 @@
   },
   "devDependencies": {
     "@advjs/core": "workspace:*",
+    "@advjs/gui": "workspace:*",
     "@advjs/parser": "workspace:*",
     "@advjs/plugin-babylon": "workspace:*",
     "@advjs/theme-default": "workspace:*",

@@ -1,3 +1,6 @@
+export * from './panel'
+export * from '../components/tree/types'
+
 export interface Vector2 {
   x: number
   y: number

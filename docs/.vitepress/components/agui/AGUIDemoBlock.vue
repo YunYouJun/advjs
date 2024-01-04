@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
+import AGUIDetails from '@advjs/gui/client/components/AGUIDetails.vue'
 
 withDefaults(defineProps<{
   inPanel?: boolean

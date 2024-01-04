@@ -9,9 +9,8 @@ import './styles/index.scss'
 
 import HomePage from '../components/HomePage.vue'
 
-import '../../../packages/gui/src/styles/index.scss'
-
-import { mountCssVarsRootStyle } from '../../../packages/gui/src/styles/icons'
+import '../../../packages/gui/client/styles/index.scss'
+import { mountCssVarsRootStyle } from '../../../packages/gui/client/styles/icons'
 
 export default {
   ...Theme,

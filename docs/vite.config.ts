@@ -8,6 +8,8 @@ import Unocss from 'unocss/vite'
 export default defineConfig({
   resolve: {
     alias: {
+      '@advjs/gui/': `${path.resolve(__dirname, '../packages/gui')}/`,
+      '@advjs/gui': `${path.resolve(__dirname, '../packages/gui/client/index.ts')}`,
       '@/': `${path.resolve(__dirname, 'theme')}/`,
       'advjs/': `${path.resolve(__dirname, '../../packages/advjs/src')}/`,
     },
