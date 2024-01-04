@@ -7,7 +7,7 @@ const tabList = ref([
 </script>
 
 <template>
-  <AGUIPanel class="panel-scene flex-1" h="full" min-w="300px">
+  <AGUIPanel class="panel-scene flex-1" h="full" w="full">
     <AGUITabs :list="tabList" :default-index="2">
       <AGUITabPanel h="full" :unmount="false" relative>
         <SceneToolbar absolute top-0 w-full />
@@ -19,7 +19,7 @@ const tabList = ref([
         Console
       </AGUITabPanel>
 
-      <AGUITabPanel h="full">
+      <AGUITabPanel>
         <NodeEditor />
       </AGUITabPanel>
 

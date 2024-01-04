@@ -7,7 +7,7 @@ const props = defineProps<{
 </script>
 
 <template>
-  <TabPanel class="text-sm text-white" v-bind="props">
+  <TabPanel class="relative h-full text-sm text-white" v-bind="props">
     <slot />
   </TabPanel>
 </template>

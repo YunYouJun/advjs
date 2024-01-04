@@ -20,6 +20,7 @@ defineProps<{
 
 <style lang="scss">
 .agui-breadcrumb-container {
+  display: flex;
   background-color: var(--agui-c-bg-panel-title);
 
   .agui-breadcrumb {

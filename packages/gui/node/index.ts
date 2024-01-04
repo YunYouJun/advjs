@@ -1,8 +1,8 @@
 import { dirname, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { createRequire } from 'node:module'
 
-export const _dirname = typeof __dirname !== 'undefined'
-  ? __dirname
-  : dirname(fileURLToPath(import.meta.url))
+const require = createRequire(import.meta.url)
 
-export const componentsDir = resolve(_dirname, '../components')
+export const pkgRoot = dirname(require.resolve('@advjs/gui/package.json'))
+export const clientRoot = resolve(pkgRoot, 'client')
+export const componentsDir = resolve(clientRoot, 'components')

@@ -1,50 +1,146 @@
 <script lang="ts" setup>
 import { computed, ref } from 'vue'
+import { onClickOutside, useEventListener } from '@vueuse/core'
+import { getIconFromFileType } from '../../utils/fs'
 
-const props = defineProps<{
-  name: string
+import type { FileItem } from './types'
+
+const props = withDefaults(defineProps<{
+  item: FileItem
   icon?: string
   size?: number
-}>()
+}>(), {
+  size: 32,
+})
 
-const icon = ref(props.icon || 'i-vscode-icons:default-file')
+const active = ref(false)
+
+const fileItemRef = ref<HTMLElement>()
+onClickOutside(fileItemRef, () => {
+  active.value = false
+})
+
+const fontSize = computed(() => {
+  const min = 12
+  const max = 120
+  const percentage = (props.size - min) / (max - min)
+  return percentage * 8 + 8
+})
 
 const cssVars = computed(() => ({
   '--icon-size': `${props.size}px`,
+  '--font-size': `${fontSize.value}px`,
 }))
+
+function onDragStart(e: DragEvent) {
+  e.dataTransfer?.clearData()
+  e.dataTransfer?.setData('item', JSON.stringify(props.item))
+}
+
+useEventListener(fileItemRef, 'dragstart', onDragStart)
+
+const fileIcon = computed(() => {
+  const icon = getIconFromFileType(props.item.ext || '')
+  return props.icon || icon
+})
 </script>
 
 <template>
-  <div class="agui-file-item h-full flex flex-col" :style="cssVars">
-    <div class="flex flex-row">
+  <div
+    ref="fileItemRef"
+    class="agui-file-item"
+    :class="{
+      active,
+    }"
+    :style="cssVars"
+    draggable="true"
+    @click="active = true"
+    @blur="active = false"
+  >
+    <div class="agui-file-icon">
       <div
         class="icon"
-        :class="icon"
+        :class="fileIcon"
       />
     </div>
 
     <div class="agui-file-name">
-      {{ name }}
+      {{ item.filename }}
     </div>
   </div>
 </template>
 
 <style lang="scss">
+.with-thumbnail {
+  .agui-file-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .agui-file-name {
+      text-align: center;
+      justify-content: center;
+
+      font-size: var(--font-size, 12px);
+    }
+
+    &.active {
+      background-color: rgba(255, 255, 255, 0.1);
+      .agui-file-name {
+        color: white;
+        background-color: var(--agui-c-active);
+      }
+    }
+
+    .agui-file-icon {
+      width: var(--icon-size, 32px);
+      height: var(--icon-size, 32px);
+
+      font-size: calc(var(--icon-size, 32px) * 0.8);
+    }
+  }
+}
+
 .agui-file-item {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
+  height: 100%;
 
-  .icon {
-    font-size: var(--icon-size, 32px);
+  cursor: pointer;
+
+  font-size: 14px;
+
+  .agui-file-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 2px;
+
+    font-size: 12px;
   }
 
   .agui-file-name {
+    font-size: 12px;
+
+    display: flex;
+
+    line-height: 1;
+
+    width: 100%;
+
+    padding: 2px 3px;
+    border-radius: 2px;
+
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
 
-    font-size: 14px;
+  &.active {
+    border-radius: 4px;
+    background-color: var(--agui-c-active);
   }
 }
 </style>

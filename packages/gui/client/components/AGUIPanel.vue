@@ -49,5 +49,9 @@
     right: 0;
     top: 0;
   }
+
+  .agui-panel__content {
+    width: 100%;
+  }
 }
 </style>

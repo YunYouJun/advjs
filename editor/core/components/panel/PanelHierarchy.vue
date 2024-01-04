@@ -1,5 +1,5 @@
 <template>
-  <AGUIPanel h="full" w="1/3">
+  <AGUIPanel h="full" w="full">
     <AGUIDetails title="Hierarchy">
       <slot />
     </AGUIDetails>

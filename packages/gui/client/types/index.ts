@@ -1,5 +1,7 @@
 export * from './panel'
+
 export * from '../components/tree/types'
+export * from '../components/explorer/types'
 
 export interface Vector2 {
   x: number

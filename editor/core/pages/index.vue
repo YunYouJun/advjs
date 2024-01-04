@@ -5,12 +5,21 @@ definePageMeta({
 </script>
 
 <template>
-  <main>
-    <PanelInspector absolute right-0 />
-    <div absolute left-0 top-0 flex h="2/3" w="3/4">
-      <PanelHierarchy />
+  <main class="h-screen w-screen">
+    <AGUILayout>
+      <template #right>
+        <PanelInspector />
+      </template>
+
+      <template #left-top>
+        <PanelHierarchy />
+      </template>
+
       <PanelScene />
-    </div>
-    <PanelProject />
+
+      <template #left-bottom>
+        <PanelProject />
+      </template>
+    </AGUILayout>
   </main>
 </template>

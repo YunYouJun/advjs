@@ -11,14 +11,16 @@ function createRuntime(options: {
   canvas: HTMLCanvasElement
 }) {
   const { container, canvas } = options
-  const app = new PIXI.Application({
-    view: canvas,
+  const app = new PIXI.Application()
+  // @ts-expect-error for pixi chrome plugin
+  globalThis.__PIXI_APP__ = app
+
+  app.init({
+    canvas,
     // resolution: window.devicePixelRatio || 1,
     resizeTo: container,
     antialias: true,
   })
-  // @ts-expect-error for pixi chrome plugin
-  globalThis.__PIXI_APP__ = app
 
   return app
 }

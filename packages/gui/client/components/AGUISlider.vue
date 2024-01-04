@@ -30,7 +30,7 @@ function updateModelValue(event: any) {
     flex items-center justify-center
   >
     <!-- eslint-disable-next-line vue/no-mutating-props -->
-    <div :class="showInput ? 'w-4/5' : 'w-full'">
+    <div :class="showInput ? 'w-4/5' : 'w-full'" class="flex py-1">
       <input
         :value="modelValue" class="agui-slider inline-flex"
         type="range" :min="min || 0" :max="max || 360" :step="step"

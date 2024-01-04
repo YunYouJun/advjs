@@ -10,9 +10,11 @@ const { x: _x, y: _y, style } = useDraggable(containerRef, {
 </script>
 
 <template>
-  <div ref="containerRef" :style="style" fixed class="cursor-move select-none" touch-none>
-    <AGUIPanel>
-      <AGUIIconButton icon="i-ri-brush-line" />
-    </AGUIPanel>
+  <div
+    ref="containerRef" :style="style"
+    class="fixed cursor-move select-none"
+    touch-none
+  >
+    <AGUIIconButton icon="i-ri-brush-line" />
   </div>
 </template>
