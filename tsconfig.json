@@ -51,6 +51,7 @@
     // https://github.com/JohnCampionJr/vite-plugin-vue-layouts/issues/111#issuecomment-1549482642
     "resolvePackageJsonExports": false,
     "types": [
+      "@types/wicg-file-system-access",
       "@webgpu/types",
       "@babylonjs/core",
       "@babylonjs/loaders",

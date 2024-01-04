@@ -1,31 +1,104 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
+import { Pane, Splitpanes } from 'splitpanes'
+import AGUITree from '../tree/AGUITree.vue'
 import AGUIFileList from './AGUIFileList.vue'
 import AGUIBreadcrumb from './AGUIBreadcrumb.vue'
 import type { FileItem } from './types'
 
-defineProps<{
-  fileList: FileItem[]
-}>()
+const props = withDefaults(defineProps<{
+  fileList?: FileItem[]
+}>(), {
+  fileList: [] as any,
+})
 
 const items = ref([
   { text: 'Assets', href: '#' },
   { text: 'Textures', href: '#' },
 ])
 const size = ref(64)
+
+const curFileList = ref(props.fileList || [])
+
+const tree = ref(
+  {
+    id: '1',
+    name: 'Assets',
+    children: [
+      {
+        id: '1-1',
+        name: 'Textures',
+        children: [
+          {
+            id: '1-1-1',
+            name: 'Texture1',
+          },
+          {
+            id: '1-1-2',
+            name: 'Texture2',
+          },
+        ],
+      },
+      {
+        id: '1-2',
+        name: 'Materials',
+        children: [
+          {
+            id: '1-2-1',
+            name: 'Material1',
+          },
+          {
+            id: '1-2-2',
+            name: 'Material2',
+          },
+        ],
+      },
+    ],
+  },
+)
+
+async function onOpenDir() {
+  try {
+    const dir = await window.showDirectoryPicker()
+
+    // directory handle 转换为树结构
+    // console.log(dir.entries())
+    for await (const [name, _handle] of dir.entries()) {
+      curFileList.value.push({
+        filename: name,
+      })
+    }
+  }
+  catch (err) {
+    // console.log(err)
+  }
+}
 </script>
 
 <template>
   <div class="agui-assets-explorer">
-    <AGUIBreadcrumb :items="items" />
-    <div class="agui-explorer-content">
-      <div class="h-full p-2">
-        <AGUIFileList :size="size" :list="fileList" />
-      </div>
-    </div>
-    <div class="agui-explorer-footer">
-      <AGUISlider v-model="size" style="width:120px" :max="120" :min="12" />
-    </div>
+    <AGUIExplorerControls>
+      <AGUIIconButton icon="i-ri-folder-line" @click="onOpenDir" />
+    </AGUIExplorerControls>
+    <Splitpanes>
+      <Pane size="20">
+        <AGUITree class="h-full w-full" :data="tree" />
+      </Pane>
+
+      <Pane>
+        <div class="agui-assets-panel">
+          <AGUIBreadcrumb :items="items" />
+          <div class="agui-explorer-content">
+            <div class="h-full p-2">
+              <AGUIFileList :size="size" :list="curFileList" />
+            </div>
+          </div>
+          <div class="agui-explorer-footer">
+            <AGUISlider v-model="size" style="width:120px" :max="120" :min="12" />
+          </div>
+        </div>
+      </Pane>
+    </Splitpanes>
   </div>
 </template>
 
@@ -36,6 +109,14 @@ const size = ref(64)
   height: 100%;
 
   --agui-explorer-footer-height: 26px;
+
+  .agui-assets-panel {
+    display: flex;
+    flex-direction: column;
+
+    width: 100%;
+    height: 100%;
+  }
 
   .agui-explorer-content {
     position: relative;
