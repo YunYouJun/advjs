@@ -1,0 +1,12 @@
+{
+  "name": "@advjs/plugin-three",
+  "type": "module",
+  "version": "0.0.1",
+  "description": "Three Plugin for ADV.JS to support 3D",
+  "author": {
+    "name": "YunYouJun",
+    "email": "me@yunyoujun.cn",
+    "url": "https://www.yunyoujun.cn"
+  },
+  "license": "MPL-2.0"
+}

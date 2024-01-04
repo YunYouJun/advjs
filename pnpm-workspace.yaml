@@ -1,6 +1,6 @@
 packages:
+  - demo/*
   - docs
   - editor/*
   - packages/*
   - packages/*/playground
-  - demo/*

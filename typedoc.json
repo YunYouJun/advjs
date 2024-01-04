@@ -4,10 +4,11 @@
     "packages/node/index.ts",
     "packages/core/src/index.ts",
     "packages/parser/src/index.ts",
-    "packages/plugin-babylon/src/index.ts",
     // client
     "packages/client/composables/index.ts",
-    "packages/theme-default/index.ts"
+    "packages/theme-default/index.ts",
+    // plugins
+    "packages/plugin-babylon/src/index.ts"
   ],
   "out": "docs/api/dist"
 }

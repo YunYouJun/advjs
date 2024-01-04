@@ -20,7 +20,7 @@
     "@vueuse/core": "^10.7.1",
     "monaco-editor": "^0.45.0",
     "pinia": "^2.1.7",
-    "vue": "^3.4.3",
+    "vue": "^3.4.4",
     "vue-router": "^4.2.5",
     "wc-github-corners": "^0.1.6"
   },
