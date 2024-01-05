@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { Pane, Splitpanes } from 'splitpanes'
+import { useEventListener } from '@vueuse/core'
 import AGUITree from '../tree/AGUITree.vue'
 import AGUIFileList from './AGUIFileList.vue'
 import AGUIBreadcrumb from './AGUIBreadcrumb.vue'
 import type { FileItem } from './types'
+import { curFileList, listFilesInDirectory, onOpenDir, tree, vscodeFolderIcon } from './useAssetsExplorer'
 
 const props = withDefaults(defineProps<{
   fileList?: FileItem[]
@@ -18,81 +20,82 @@ const items = ref([
 ])
 const size = ref(64)
 
-const curFileList = ref(props.fileList || [])
+if (props.fileList)
+  curFileList.value = props.fileList
 
-const tree = ref(
-  {
-    id: '1',
-    name: 'Assets',
-    children: [
-      {
-        id: '1-1',
-        name: 'Textures',
-        children: [
-          {
-            id: '1-1-1',
-            name: 'Texture1',
-          },
-          {
-            id: '1-1-2',
-            name: 'Texture2',
-          },
-        ],
-      },
-      {
-        id: '1-2',
-        name: 'Materials',
-        children: [
-          {
-            id: '1-2-1',
-            name: 'Material1',
-          },
-          {
-            id: '1-2-2',
-            name: 'Material2',
-          },
-        ],
-      },
-    ],
-  },
-)
+async function onNodeActivated(node: FileItem) {
+  if (!node.handle)
+    return
 
-async function onOpenDir() {
-  try {
-    const dir = await window.showDirectoryPicker()
-
-    // directory handle 转换为树结构
-    // console.log(dir.entries())
-    for await (const [name, _handle] of dir.entries()) {
-      curFileList.value.push({
-        filename: name,
-      })
-    }
-  }
-  catch (err) {
-    // console.log(err)
-  }
+  const list = await listFilesInDirectory(node.handle, {
+    showFiles: true,
+  })
+  curFileList.value = list
 }
+
+const explorerContent = ref<HTMLDivElement>()
+
+const isDragging = ref(false)
+useEventListener(explorerContent, 'dragover', (e: DragEvent) => {
+  e.preventDefault()
+  e.stopPropagation()
+  isDragging.value = true
+})
+
+function onDragLeave() {
+  isDragging.value = false
+}
+useEventListener(explorerContent, 'dragleave', onDragLeave)
+useEventListener(explorerContent, 'dragend', onDragLeave)
+
+useEventListener(explorerContent, 'drop', (e) => {
+  isDragging.value = false
+  e.preventDefault()
+  e.stopPropagation()
+})
 </script>
 
 <template>
   <div class="agui-assets-explorer">
     <AGUIExplorerControls>
-      <AGUIIconButton icon="i-ri-folder-line" @click="onOpenDir" />
+      <!-- <div class="i-ri-folder-line" @click="onOpenDir" /> -->
     </AGUIExplorerControls>
-    <Splitpanes>
+    <Splitpanes style="height: calc(100% - var(--agui-explorer-controls-height, 32px));">
       <Pane size="20">
-        <AGUITree class="h-full w-full" :data="tree" />
+        <AGUITree
+          v-if="tree"
+          class="h-full w-full"
+          :data="tree"
+          @node-activate="onNodeActivated"
+        />
+
+        <div v-else class="h-full w-full flex flex-col items-center justify-center">
+          <div class="cursor-pointer text-6xl">
+            <div
+              :class="vscodeFolderIcon"
+              @click="onOpenDir"
+            />
+          </div>
+          <div class="text-base">
+            Open a directory to start
+          </div>
+        </div>
       </Pane>
 
       <Pane>
         <div class="agui-assets-panel">
           <AGUIBreadcrumb :items="items" />
-          <div class="agui-explorer-content">
-            <div class="h-full p-2">
+
+          <div ref="explorerContent" class="agui-explorer-content">
+            <div
+              class="h-full p-2" :class="{
+                'is-dragging': isDragging,
+              }"
+            >
               <AGUIFileList :size="size" :list="curFileList" />
             </div>
           </div>
+
           <div class="agui-explorer-footer">
             <AGUISlider v-model="size" style="width:120px" :max="120" :min="12" />
           </div>
@@ -108,6 +111,7 @@ async function onOpenDir() {
   flex-direction: column;
   height: 100%;
 
+  --agui-explorer-controls-height: 32px;
   --agui-explorer-footer-height: 26px;
 
   .agui-assets-panel {
@@ -120,9 +124,6 @@ async function onOpenDir() {
 
   .agui-explorer-content {
     position: relative;
-
-    max-height: calc(100% - 20px - var(--agui-explorer-footer-height));
-
     display: flex;
     flex-direction: column;
     flex-grow: 1;
@@ -131,6 +132,11 @@ async function onOpenDir() {
     overflow-x: hidden;
     overflow-y: auto;
     background-color: var(--agui-c-bg-panel);
+
+    .is-dragging {
+      opacity: 0.5;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
 
     /* 整个滚动条 */
     &::-webkit-scrollbar {

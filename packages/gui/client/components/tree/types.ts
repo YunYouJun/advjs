@@ -13,6 +13,7 @@ export interface TreeNode {
   muted?: boolean
   parentUnselectable?: boolean
   children?: TreeNode[]
+  [key: string]: any
 }
 
 export type Trees = TreeNode[]

@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { onClickOutside, useEventListener } from '@vueuse/core'
-import { getIconFromFileType } from '../../utils/fs'
+import { getFiletypeFromPath, getIconFromFileType } from '../../utils/fs'
+import { curFileList, listFilesInDirectory } from './useAssetsExplorer'
 
 import type { FileItem } from './types'
 
@@ -14,6 +15,9 @@ const props = withDefaults(defineProps<{
 })
 
 const active = ref(false)
+watch(() => props.item, () => {
+  active.value = false
+})
 
 const fileItemRef = ref<HTMLElement>()
 onClickOutside(fileItemRef, () => {
@@ -24,7 +28,7 @@ const fontSize = computed(() => {
   const min = 12
   const max = 120
   const percentage = (props.size - min) / (max - min)
-  return percentage * 8 + 8
+  return percentage * 6 + 8
 })
 
 const cssVars = computed(() => ({
@@ -38,9 +42,24 @@ function onDragStart(e: DragEvent) {
 }
 
 useEventListener(fileItemRef, 'dragstart', onDragStart)
+useEventListener(fileItemRef, 'dblclick', async () => {
+  if (props.item.kind === 'directory') {
+    if (props.item.handle) {
+      const handle = props.item.handle
+      const list = await listFilesInDirectory(handle, {
+        showFiles: true,
+      })
+      curFileList.value = list
+    }
+  }
+})
 
 const fileIcon = computed(() => {
-  const icon = getIconFromFileType(props.item.ext || '')
+  if (props.item.kind === 'directory')
+    return 'i-vscode-icons-default-folder'
+
+  const ext = getFiletypeFromPath(props.item.filename || props.item.name || '')
+  const icon = getIconFromFileType(ext)
   return props.icon || icon
 })
 </script>
@@ -65,7 +84,7 @@ const fileIcon = computed(() => {
     </div>
 
     <div class="agui-file-name">
-      {{ item.filename }}
+      {{ item.filename || item.name }}
     </div>
   </div>
 </template>
@@ -78,9 +97,8 @@ const fileIcon = computed(() => {
     align-items: center;
 
     .agui-file-name {
+      display: block;
       text-align: center;
-      justify-content: center;
-
       font-size: var(--font-size, 12px);
     }
 
@@ -130,7 +148,7 @@ const fileIcon = computed(() => {
 
     width: 100%;
 
-    padding: 2px 3px;
+    padding: 2px;
     border-radius: 2px;
 
     overflow: hidden;

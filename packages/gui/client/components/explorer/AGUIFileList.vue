@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
-import { getFiletypeFromPath } from '../../utils/fs'
 import type { FileItem } from './types'
 
 const props = withDefaults(defineProps<{
@@ -28,13 +27,7 @@ const classes = computed(() => {
 })
 
 const fileList = computed(() => {
-  return props.list?.map((item) => {
-    const ext = getFiletypeFromPath(item.filename)
-    return {
-      ...item,
-      ext,
-    }
-  })
+  return props.list
 })
 </script>
 
