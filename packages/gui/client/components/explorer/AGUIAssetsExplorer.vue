@@ -77,6 +77,9 @@ async function saveFile(file: File) {
 
   // close the file and write the contents to disk.
   await writableStream.close()
+  curFileList.value = await listFilesInDirectory(curDirHandle.value!, {
+    showFiles: true,
+  })
 }
 </script>
 

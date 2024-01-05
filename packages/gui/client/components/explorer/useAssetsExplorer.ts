@@ -37,7 +37,6 @@ export async function listFilesInDirectory(dirHandle: FileSystemDirectoryHandle,
     }
   }
 
-  curFileList.value = files
   return files
 }
 
@@ -47,9 +46,10 @@ export async function listFilesInDirectory(dirHandle: FileSystemDirectoryHandle,
 export async function setAssetsDirHandle(dirHandle: FileSystemDirectoryHandle) {
   const fileList = []
 
-  fileList.push(...await listFilesInDirectory(dirHandle, {
+  curFileList.value = await listFilesInDirectory(dirHandle, {
     showFiles: false,
-  }))
+  })
+  fileList.push(...curFileList.value)
 
   tree.value = {
     name: dirHandle.name,
