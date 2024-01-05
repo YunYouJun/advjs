@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
+import AGUIContextMenu from '../context-menu/AGUIContextMenu.vue'
 import type { FileItem } from './types'
 
 const props = withDefaults(defineProps<{
@@ -34,7 +35,11 @@ const fileList = computed(() => {
 <template>
   <div class="agui-file-list" :class="classes" :style="cssVars">
     <template v-if="list">
-      <AGUIFileItem v-for="(item, i) in fileList" :key="i" :size="size" :item="item" />
+      <AGUIContextMenu v-for="(item, i) in fileList" :key="i">
+        <template #trigger>
+          <AGUIFileItem :size="size" :item="item" />
+        </template>
+      </AGUIContextMenu>
     </template>
   </div>
 </template>

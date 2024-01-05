@@ -3,3 +3,8 @@
 body {
   font-size: small;
 }
+
+// Remove the outline on focus
+:focus-visible {
+  outline: none;
+}

@@ -6,7 +6,8 @@ import AGUITree from '../tree/AGUITree.vue'
 import AGUIFileList from './AGUIFileList.vue'
 import AGUIBreadcrumb from './AGUIBreadcrumb.vue'
 import type { FileItem } from './types'
-import { curFileList, listFilesInDirectory, onOpenDir, tree, vscodeFolderIcon } from './useAssetsExplorer'
+import { curDirHandle, curFileList, listFilesInDirectory, tree } from './useAssetsExplorer'
+import AGUIOpenDirectory from './AGUIOpenDirectory.vue'
 
 const props = withDefaults(defineProps<{
   fileList?: FileItem[]
@@ -30,6 +31,7 @@ async function onNodeActivated(node: FileItem) {
   const list = await listFilesInDirectory(node.handle, {
     showFiles: true,
   })
+  curDirHandle.value = node.handle
   curFileList.value = list
 }
 
@@ -48,11 +50,34 @@ function onDragLeave() {
 useEventListener(explorerContent, 'dragleave', onDragLeave)
 useEventListener(explorerContent, 'dragend', onDragLeave)
 
-useEventListener(explorerContent, 'drop', (e) => {
+useEventListener(explorerContent, 'drop', async (e) => {
   isDragging.value = false
   e.preventDefault()
   e.stopPropagation()
+
+  const files = e.dataTransfer?.files
+  if (!files)
+    return
+  // const handles = files.map(item => item.getAsFileSystemHandle())
+  for (const file of files)
+    await saveFile(file)
 })
+
+async function saveFile(file: File) {
+  // create a new handle
+  const newFileHandle = await curDirHandle.value?.getFileHandle(file.name, { create: true })
+  if (!newFileHandle)
+    return
+
+  // create a FileSystemWritableFileStream to write to
+  const writableStream = await newFileHandle.createWritable()
+
+  // write our file
+  await writableStream.write(file)
+
+  // close the file and write the contents to disk.
+  await writableStream.close()
+}
 </script>
 
 <template>
@@ -68,18 +93,7 @@ useEventListener(explorerContent, 'drop', (e) => {
           :data="tree"
           @node-activate="onNodeActivated"
         />
-
-        <div v-else class="h-full w-full flex flex-col items-center justify-center">
-          <div class="cursor-pointer text-6xl">
-            <div
-              :class="vscodeFolderIcon"
-              @click="onOpenDir"
-            />
-          </div>
-          <div class="text-base">
-            Open a directory to start
-          </div>
-        </div>
+        <AGUIOpenDirectory v-else />
       </Pane>
 
       <Pane>

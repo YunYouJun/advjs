@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import type { Trees } from '../..'
 import type { FileItem } from './types'
 
+export const curDirHandle = ref<FileSystemDirectoryHandle>()
 export const vscodeFolderIcon = 'i-vscode-icons-default-folder'
 export const curFileList = ref<FileItem[]>([])
 export const tree = ref()
@@ -40,22 +41,29 @@ export async function listFilesInDirectory(dirHandle: FileSystemDirectoryHandle,
   return files
 }
 
-export async function onOpenDir() {
+/**
+ * set assets dir handle
+ */
+export async function setAssetsDirHandle(dirHandle: FileSystemDirectoryHandle) {
   const fileList = []
+
+  fileList.push(...await listFilesInDirectory(dirHandle, {
+    showFiles: false,
+  }))
+
+  tree.value = {
+    name: dirHandle.name,
+    handle: dirHandle,
+    children: fileList,
+    expanded: true,
+  }
+}
+
+export async function onOpenDir() {
   try {
     const dirHandle = await window.showDirectoryPicker()
-
-    // directory handle 转换为树结构
-    // console.log(dir.entries())
-    fileList.push(...await listFilesInDirectory(dirHandle, {
-      showFiles: false,
-    }))
-    tree.value = {
-      name: dirHandle.name,
-      handle: dirHandle,
-      children: fileList,
-      expanded: true,
-    }
+    setAssetsDirHandle(dirHandle)
+    curDirHandle.value = dirHandle
   }
   catch (e) {
     // user abort

@@ -243,7 +243,7 @@ const el = ref<HTMLElement | null>(null)
     gap: 4px;
     padding: 2px;
 
-    align-items: start;
+    align-items: flex-start;
   }
 
   .legend {
