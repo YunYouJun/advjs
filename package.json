@@ -22,7 +22,7 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "build": "pnpm --filter=./packages/** run build",
-    "build:advjs": "pnpm types:build && pnpm core:build && pnpm advjs:build",
+    "build:advjs": "pnpm types:build && pnpm parser:build && pnpm core:build && pnpm advjs:build",
     "build:demo": "pnpm -C demo/starter run build",
     "clean": "tsx scripts/clean.ts",
     "demo": "pnpm -C demo/starter run dev",

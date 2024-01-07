@@ -793,6 +793,10 @@ importers:
       babylon-vrm-loader:
         specifier: ^2.0.0
         version: 2.0.0(@babylonjs/core@5.19.0)(@babylonjs/loaders@5.19.0)
+    devDependencies:
+      unbuild:
+        specifier: ^2.0.0
+        version: 2.0.0(sass@1.69.7)(typescript@5.3.3)
 
   packages/plugin-three: {}
 
