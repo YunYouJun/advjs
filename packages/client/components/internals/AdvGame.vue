@@ -3,7 +3,7 @@
 import type { AdvAst, AdvConfig, Tachie } from '@advjs/types'
 
 import { useAdvCtx, useAdvKeys, useAppStore, useBeforeUnload } from '@advjs/client'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { getCharacter } from '@advjs/core'
 
 defineProps<{
@@ -13,7 +13,6 @@ defineProps<{
 
 const $adv = useAdvCtx()
 
-const isDev = ref(__DEV__)
 const curNode = computed(() => $adv.store.curNode)
 
 // 添加提示，防止意外退出
@@ -56,11 +55,12 @@ const tachies = computed(() => {
       <BaseLayer v-if="!app.showUi" />
 
       <Transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
-        <AdvDialogBox v-show="app.showUi" :node="curNode" class="adv-animated z-1" />
+        <AdvDialogBox v-if="curNode" v-show="app.showUi" :node="curNode" class="adv-animated z-1" />
       </Transition>
 
       <Transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
-        <AdvChoice v-show="curNode?.type === 'choices'" :node="curNode" class="adv-animated z-2" />
+        <!-- todo: fix types -->
+        <AdvChoice v-if="curNode" v-show="curNode?.type === 'choices'" :node="curNode as any" class="adv-animated z-2" />
       </Transition>
 
       <Transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
@@ -73,6 +73,4 @@ const tachies = computed(() => {
       <AdvHistory />
     </div>
   </AdvContainer>
-
-  <AdvDevTools v-if="isDev" />
 </template>

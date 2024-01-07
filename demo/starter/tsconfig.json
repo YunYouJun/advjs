@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es2016",
+    "target": "ESNext",
     "jsx": "preserve",
     "lib": ["DOM", "ESNext"],
     "baseUrl": ".",
@@ -8,6 +8,7 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "types": [
+      "advjs/client",
       "node",
       // "@babylonjs/core",
       // "@babylonjs/loaders",
@@ -15,8 +16,7 @@
       // "@babylonjs/materials",
       // "babylon-vrm-loader",
       "vite/client",
-      "vite-plugin-vue-layouts/client",
-      "advjs"
+      "vite-plugin-vue-layouts/client"
     ],
     "strict": true,
     "strictNullChecks": true,

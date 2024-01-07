@@ -1,7 +1,9 @@
 <script setup lang="ts">
+// todo: fix type
+// @ts-expect-error vue-about-me
 import VueAboutMe from 'vue-about-me'
-import { isDark } from '@advjs/client'
-import pkg from '~/../package.json'
+import { isDark } from 'advjs'
+import pkg from '../package.json'
 
 import 'vue-about-me/style.css'
 

@@ -8,3 +8,6 @@ export * from './utils'
 export * from './assets'
 
 export * from './pixi'
+
+// type
+export * from './types'

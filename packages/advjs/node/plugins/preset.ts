@@ -1,4 +1,4 @@
-import type { Plugin } from 'vite'
+import type { PluginOption } from 'vite'
 import Vue from '@vitejs/plugin-vue'
 import Components from 'unplugin-vue-components/vite'
 import { notNullish } from '@antfu/utils'
@@ -21,7 +21,7 @@ export async function ViteAdvPlugin(
   pluginOptions: AdvPluginOptions,
 
   _serverOptions: AdvServerOptions = {},
-): Promise<Plugin[]> {
+): Promise<PluginOption[]> {
   const {
     vue: vueOptions = {},
     components: componentsOptions = {},
@@ -46,6 +46,7 @@ export async function ViteAdvPlugin(
   })
 
   return [
+    await createConfigPlugin(options),
     await createUnocssPlugin(options, pluginOptions),
 
     vuePlugin,
@@ -100,8 +101,6 @@ export async function ViteAdvPlugin(
     }),
 
     // todo download remote assets
-
-    await createConfigPlugin(options),
   ]
     .flat()
     .filter(notNullish)

@@ -7,7 +7,6 @@ import isInstalledGlobally from 'is-installed-globally'
 import { uniq } from '@antfu/utils'
 import { require } from '../env'
 
-import { getIndexHtml } from '../common'
 import type { ResolvedAdvOptions } from '../options'
 
 import { resolveGlobalImportPath, resolveImportPath, toAtFS } from '../utils'
@@ -80,8 +79,13 @@ export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<P
 
   return {
     name: 'advjs:config',
+    // before devtools
+    enforce: 'pre',
     async config(config) {
       const injection: InlineConfig = {
+        root: options.clientRoot,
+        publicDir: join(options.userRoot, 'public'),
+
         define: getDefine(options),
         resolve: {
           alias,
@@ -119,18 +123,36 @@ export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<P
 
       return mergeConfig(config, injection)
     },
-    configureServer(server) {
-      // serve our index.html after vite history fallback
-      return () => {
-        server.middlewares.use(async (req, res, next) => {
-          if (req.url!.endsWith('.html')) {
-            res.setHeader('Content-Type', 'text/html')
-            res.statusCode = 200
-            res.end(await getIndexHtml(options))
-            return
-          }
-          next()
-        })
+    // configureServer(server) {
+    //   console.log('config plugin configure server')
+    //   // serve our index.html after vite history fallback
+    //   return () => {
+    //     server.middlewares.use(async (req, res, next) => {
+    //       if (req.url!.endsWith('.html')) {
+    //         res.setHeader('Content-Type', 'text/html')
+    //         res.statusCode = 200
+    //         res.end(await getIndexHtml(options))
+    //         return
+    //       }
+    //       next()
+    //     })
+    //   }
+    // },
+
+    transformIndexHtml(html) {
+      // todo: adapt user/theme index.html by transformIndexHtml
+      return {
+        html,
+        tags: [
+          // {
+          //   tag: 'script',
+          //   attrs: {
+          //     type: 'module',
+          //     src: `${toAtFS(options.clientRoot)}/main.ts`,
+          //   },
+          //   injectTo: 'head-prepend',
+          // },
+        ],
       }
     },
   }

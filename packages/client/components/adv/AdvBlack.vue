@@ -65,7 +65,8 @@ watch(() => props.content, () => {
     @click="next"
   >
     <div class="words-wrapper relative" text="left">
-      <PrintWords v-for="(item, i) in displaySentences" :key="i" :type-interval="typeInterval" m="2" :words="item" />
+      <!-- todo: fix types -->
+      <PrintWords v-for="(item, i) in displaySentences" :key="i" :type-interval="typeInterval" m="2" :words="item as any" />
     </div>
   </div>
 </template>

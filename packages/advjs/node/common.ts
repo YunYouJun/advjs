@@ -37,7 +37,7 @@ export async function getIndexHtml({ clientRoot, themeRoot, data, userRoot }: Re
   return main
 }
 
-export async function mergeViteConfigs({ themeRoot }: ResolvedAdvOptions, viteConfig: InlineConfig, config: InlineConfig, command: 'serve' | 'build') {
+export async function mergeViteConfigs({ themeRoot, userRoot }: ResolvedAdvOptions, viteConfig: InlineConfig, config: InlineConfig, command: 'serve' | 'build') {
   const configEnv: ConfigEnv = {
     mode: 'development',
     command,
@@ -45,6 +45,7 @@ export async function mergeViteConfigs({ themeRoot }: ResolvedAdvOptions, viteCo
 
   const files = uniq([
     themeRoot,
+    userRoot,
   ]).map(i => join(i, 'vite.config.ts'))
 
   for await (const file of files) {
