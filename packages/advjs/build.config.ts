@@ -6,8 +6,8 @@ import { ADV_VIRTUAL_MODULES } from './node/config'
 export default defineBuildConfig({
   declaration: true,
   entries: [
-    'node/index',
-    'node/cli/index',
+    './node/index',
+    './node/cli/index',
   ],
   clean: true,
   externals: [
