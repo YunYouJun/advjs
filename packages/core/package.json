@@ -23,5 +23,8 @@
     "html2canvas": "^1.4.1",
     "pixi.js": "8.0.0-beta.8",
     "unstorage": "^1.10.1"
+  },
+  "devDependencies": {
+    "unbuild": "^2.0.0"
   }
 }

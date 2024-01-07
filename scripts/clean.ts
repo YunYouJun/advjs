@@ -1,10 +1,13 @@
 import { resolve } from 'node:path'
+import fs from 'node:fs'
 import { rimrafSync } from 'rimraf'
 
 const cleanDirs = [
-  'node_modules',
+  // 'node_modules',
   'dist',
 ]
+
+const packagesFolder = resolve('packages')
 
 function clean(target: string) {
   const folder = `packages/${target}`
@@ -19,17 +22,10 @@ async function run() {
     rimrafSync(dir)
   })
 
-  const targets = [
-    'advjs',
-    'client',
-
-    // plugins
-    'plugin-babylon',
-
-    // editor
-    'vrm',
-    'editor',
-  ]
+  const dirs = fs.readdirSync('packages')
+  const targets = dirs.filter(dir => !dir.startsWith('.') && fs.statSync(
+    resolve(packagesFolder, dir),
+  ).isDirectory())
   targets.forEach(target => clean(target))
 }
 
