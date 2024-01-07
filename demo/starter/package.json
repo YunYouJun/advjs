@@ -8,7 +8,7 @@
     "email": "me@yunyoujun.cn"
   },
   "scripts": {
-    "build": "adv build ./wlwz.adv.md",
+    "build": "npx adv build ./wlwz.adv.md",
     "dev": "nodemon -w '../../packages/**/*.ts' --exec \"adv --open=false --log=info\"",
     "dev:wlwz": "nodemon -w '../../packages/**/dist/*.js' --exec \"adv ./wlwz.adv.md --open=false --log=info\"",
     "preview": "vite preview --host",

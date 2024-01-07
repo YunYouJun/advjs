@@ -64,8 +64,7 @@
       "vite/client",
       // https://github.com/JohnCampionJr/vite-plugin-vue-layouts/issues/111#issuecomment-1549482642
       "vite-plugin-vue-layouts/client.d.ts",
-      "vite-plugin-pwa/client",
-      "vite-plugin-pages/client"
+      "vite-plugin-pwa/client"
     ],
     "allowImportingTsExtensions": true,
     "allowJs": true,

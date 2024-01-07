@@ -1,9 +1,9 @@
-import generatedRoutes from 'virtual:generated-pages'
 import { setupLayouts } from 'virtual:generated-layouts'
 import { createApp } from 'vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { MotionPlugin } from '@vueuse/motion'
 import { createHead } from '@unhead/vue'
+import { routes } from 'vue-router/auto/routes'
 import App from './App.vue'
 
 // unocss
@@ -21,10 +21,9 @@ import { install as installAdv } from './setup'
 import { statement } from './utils/statement'
 import type { UserModule } from './types'
 
-const routes = setupLayouts(generatedRoutes)
 const router = createRouter({
   history: createWebHashHistory(import.meta.env.BASE_URL),
-  routes,
+  routes: setupLayouts(routes),
 })
 
 const app = createApp(App)

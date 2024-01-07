@@ -1,7 +1,7 @@
 import { resolve } from 'node:path'
 import fs from 'fs-extra'
 import type { InlineConfig, ResolvedConfig } from 'vite'
-import { resolveConfig, build as viteBuild } from 'vite'
+import { resolveConfig, splitVendorChunkPlugin, build as viteBuild } from 'vite'
 import { ViteAdvPlugin } from './plugins/preset'
 import { getIndexHtml, mergeViteConfigs } from './common'
 import type { ResolvedAdvOptions } from './options'
@@ -28,6 +28,8 @@ export async function build(
       <InlineConfig>{
         root: options.userRoot,
         plugins: [
+          // https://vitejs.dev/guide/build.html#chunking-strategy
+          splitVendorChunkPlugin(),
           await ViteAdvPlugin(options, pluginOptions),
           {
             name: 'resolve-config',
@@ -41,8 +43,7 @@ export async function build(
           rollupOptions: {
             output: {
               manualChunks: {
-                babylonCode: ['@babylonjs/core'],
-                babylonLoader: ['@babylonjs/loaders', 'babylon-vrm-loader'],
+                html2canvas: ['html2canvas'],
               },
             },
           },

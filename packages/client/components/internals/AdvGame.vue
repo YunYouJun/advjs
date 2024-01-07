@@ -44,6 +44,7 @@ const tachies = computed(() => {
   <AdvContainer text="white" class="h-screen w-screen">
     <div class="adv-game absolute h-full w-full bg-black">
       <AdvScene />
+      <slot name="scene" />
       <TachieBox :tachies="tachies" />
 
       <AdvBlack v-if="curNode && curNode.type === 'narration'" class="z-9" :content="curNode" />

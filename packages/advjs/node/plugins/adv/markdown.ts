@@ -76,6 +76,7 @@ export function createMarkdown(options: ResolvedOptions) {
 
     const { data } = matter(raw)
 
+    // todo: judge to insert <AdvBabylonCanvas />
     let html = ''
     const wrapperComponent = 'AdvGame'
     html = `<${wrapperComponent}${

@@ -1,4 +1,4 @@
-import generatedRoutes from 'virtual:generated-pages'
+import { routes } from 'vue-router/auto/routes'
 import { setupLayouts } from 'virtual:generated-layouts'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { createHead } from '@unhead/vue'
@@ -15,10 +15,9 @@ import 'uno.css'
 import 'wc-github-corners'
 import type { UserModule } from './types'
 
-const routes = setupLayouts(generatedRoutes)
 const router = createRouter({
   history: createWebHashHistory(),
-  routes,
+  routes: setupLayouts(routes),
 })
 
 const app = createApp(App)

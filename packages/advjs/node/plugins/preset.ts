@@ -2,10 +2,10 @@ import type { Plugin } from 'vite'
 import Vue from '@vitejs/plugin-vue'
 import Components from 'unplugin-vue-components/vite'
 import { notNullish } from '@antfu/utils'
-import Pages from 'vite-plugin-pages'
 import Layouts from 'vite-plugin-vue-layouts'
 import LinkAttributes from 'markdown-it-link-attributes'
 import Markdown from 'unplugin-vue-markdown/vite'
+import VueRouter from 'unplugin-vue-router/vite'
 import VueI18n from '@intlify/unplugin-vue-i18n/vite'
 
 import type { AdvPluginOptions, AdvServerOptions, ResolvedAdvOptions } from '../options'
@@ -51,10 +51,10 @@ export async function ViteAdvPlugin(
     vuePlugin,
     createAdvLoader(options, vuePlugin),
 
-    // https://github.com/hannoeru/vite-plugin-pages
-    Pages({
-      extensions: ['vue', 'md'],
-      dirs: roots.map(root => `${root}/pages`),
+    // https://github.com/posva/unplugin-vue-router
+    VueRouter({
+      extensions: ['.vue', '.md'],
+      routesFolder: roots.map(root => `${root}/pages`),
       exclude: ['**/*.adv.md'],
     }),
 
