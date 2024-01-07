@@ -33,7 +33,7 @@
     "unplugin-vue-components": "^0.26.0",
     "unplugin-vue-markdown": "^0.25.2",
     "v-tooltip": "^4.0.0-beta.17",
-    "vite": "^5.0.10",
+    "vite": "^5.0.11",
     "vite-plugin-inspect": "^0.8.1",
     "vite-plugin-pages": "^0.32.0",
     "vite-plugin-pwa": "^0.17.4",

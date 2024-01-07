@@ -100,21 +100,23 @@ function onNodeActivated(node: TreeNode) {
       <span class="title">{{ node.name || `[${node.type}]` }}</span>
     </div>
 
-    <template v-if="node.selectable">
-      <Toggle
-        icon="selectable"
-        hint="Disable right-click selection"
-        :muted="node.parentUnselectable"
-        @click="onNodeUnselected([node])"
-      />
-    </template>
-    <template v-else>
-      <Toggle
-        icon="unselectable"
-        hint="Enable right-click selection"
-        :muted="node.parentUnselectable"
-        @click="onNodeSelected([node])"
-      />
+    <template v-if="(typeof node.selectable === 'boolean')">
+      <template v-if="node.selectable">
+        <Toggle
+          icon="selectable"
+          hint="Disable right-click selection"
+          :muted="node.parentUnselectable"
+          @click="onNodeUnselected([node])"
+        />
+      </template>
+      <template v-else>
+        <Toggle
+          icon="unselectable"
+          hint="Enable right-click selection"
+          :muted="node.parentUnselectable"
+          @click="onNodeSelected([node])"
+        />
+      </template>
     </template>
     <template v-if="typeof node.visible === 'boolean'">
       <Toggle
