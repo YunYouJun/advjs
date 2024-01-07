@@ -119,6 +119,10 @@ function sidebarAGUI(): DefaultTheme.SidebarItem[] {
       name: 'InputNumber 计数器',
     },
     {
+      key: 'number-slider',
+      name: 'NumberSlider 数字滑块',
+    },
+    {
       key: 'radio',
       name: 'Radio 单选框',
     },

@@ -62,8 +62,8 @@ const globalCSSVars = bCssVars()
 
 <style lang="scss">
 .gui-container {
-  color: var(--b-c-text, #fff);
-  background-color: var(--b-c-bg, #303030);
+  color: var(--agui-c-text, #fff);
+  background-color: var(--agui-c-bg, #303030);
 
   border-bottom-left-radius: 4px;
   border-bottom-right-radius: 4px;
