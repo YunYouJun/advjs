@@ -11,27 +11,17 @@ on:
 
 jobs:
   build:
-    timeout-minutes: 10
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        node-version: [lts/*]
-        os: [ubuntu-latest]
-      fail-fast: false
-
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: lts/*
           cache: pnpm
 
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Install
+        run: pnpm install
 
       - name: Build
         run: npm run docs:build
