@@ -3,6 +3,9 @@ import pkg from './package.json'
 
 import { ADV_VIRTUAL_MODULES } from './node/config'
 
+// eslint-disable-next-line no-console
+console.log('debugger entries')
+
 export default defineBuildConfig({
   declaration: true,
   entries: [
@@ -10,7 +13,6 @@ export default defineBuildConfig({
     'node/cli/index',
   ],
   clean: true,
-
   externals: [
     'mdast',
     ...Object.keys(pkg.dependencies),

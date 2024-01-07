@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
-import execa from 'execa'
+import { execa } from 'execa'
 import consola from 'consola'
 
 async function build(target: string) {

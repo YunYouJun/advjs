@@ -5,7 +5,9 @@ import Components from 'unplugin-vue-components/vite'
 import { presetAttributify, presetIcons, presetUno } from 'unocss'
 import Unocss from 'unocss/vite'
 
-import { componentsDir } from '@advjs/gui/node'
+// import { componentsDir } from '@advjs/gui/node'
+// no compile
+import { componentsDir } from '../packages/gui/node'
 
 export default defineConfig({
   resolve: {

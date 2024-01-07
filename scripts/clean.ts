@@ -1,20 +1,32 @@
 import { resolve } from 'node:path'
-import rimraf from 'rimraf'
+import { rimrafSync } from 'rimraf'
+
+const cleanDirs = [
+  'node_modules',
+  'dist',
+]
 
 function clean(target: string) {
   const folder = `packages/${target}`
-  rimraf(resolve(folder, 'node_modules'), () => null)
+
+  cleanDirs.forEach((dir) => {
+    rimrafSync(resolve(folder, dir))
+  })
 }
 
 async function run() {
-  rimraf('node_modules', () => null)
+  cleanDirs.forEach((dir) => {
+    rimrafSync(dir)
+  })
 
   const targets = [
     'advjs',
     'client',
 
+    // plugins
     'plugin-babylon',
 
+    // editor
     'vrm',
     'editor',
   ]
