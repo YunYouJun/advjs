@@ -88,7 +88,7 @@ const el = ref<HTMLElement | null>(null)
       left: expanded?.x === 'LEFT',
     }"
   >
-    <button class="value" @click="expand">
+    <button class="agui-select-value" @click="expand">
       <span v-if="typeof current === 'string'">{{ current }}</span>
       <template v-else-if="current">
         <span
@@ -131,13 +131,14 @@ const el = ref<HTMLElement | null>(null)
 .agui-select {
   position: relative;
 
-  flex-grow: 1;
   display: flex;
+  justify-content: center;
   flex-direction: column;
+  flex-grow: 1;
 
   outline: none;
 
-  .value {
+  .agui-select-value {
     font:
       12px system-ui,
       sans-serif;

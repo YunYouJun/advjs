@@ -8,7 +8,7 @@ import { createVRM } from '../vrm'
  * 创建人物场景
  */
 export async function createCharacterScene(scene: BABYLON.Scene) {
-  await createVRM(scene, (__DEV__ ? '/assets' : '') + demoVrm.rootUrl, demoVrm.name, () => { })
+  await createVRM(scene, (import.meta.env.DEV ? '/assets' : '') + demoVrm.rootUrl, demoVrm.name, () => { })
   if (!scene)
     throw new Error('createVRM failed')
 

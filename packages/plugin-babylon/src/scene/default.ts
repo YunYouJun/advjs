@@ -2,7 +2,7 @@ import * as BABYLON from '@babylonjs/core'
 import '@babylonjs/loaders'
 
 function getAssetsPrefix(online = 'https://playground.babylonjs.com', local = '/assets') {
-  return __DEV__ ? local : online
+  return import.meta.env.DEV ? local : online
 }
 
 // CreateScene function that creates and return the scene

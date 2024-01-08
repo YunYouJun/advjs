@@ -7,7 +7,7 @@ defineProps<{
 </script>
 
 <template>
-  <div :class="{ group }" class="agui-property text-xs">
+  <div :class="{ group }" class="agui-property">
     <div class="label" :title="hint">
       {{ label }}
     </div>
@@ -22,6 +22,8 @@ defineProps<{
   display: flex;
   gap: 8px;
   align-items: center;
+  font-size: 0.75rem;
+  line-height: 1rem;
 
   &:not(.group) {
     margin-bottom: 4px;
@@ -40,6 +42,8 @@ defineProps<{
     text-overflow: ellipsis;
   }
   .value {
+    // 0 for truncate text
+    width: 0;
     flex: 2;
   }
 }

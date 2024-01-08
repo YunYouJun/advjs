@@ -4,11 +4,13 @@
       ALONE
     </AGUIButton>
     <AGUIHr />
-    <AGUIButton data-location="LEFT">
-      LEFT
-    </AGUIButton>
-    <AGUIButton data-location="RIGHT">
-      RIGHT
-    </AGUIButton>
+    <div class="flex" gap="1px">
+      <AGUIButton data-location="LEFT">
+        LEFT
+      </AGUIButton>
+      <AGUIButton data-location="RIGHT">
+        RIGHT
+      </AGUIButton>
+    </div>
   </AGUIDemoBlock>
 </template>

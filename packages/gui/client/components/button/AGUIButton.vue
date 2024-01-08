@@ -6,30 +6,42 @@
 
 <style lang="scss">
 .agui-button {
-  font-size: 12px;
+  --border-radius: 2px;
+}
+
+.agui-button {
+  display: inline-flex;
+  font-size: 9px;
+  line-height: 2;
 
   appearance: none;
-  background: #545454 no-repeat center center;
+  background: rgba(88, 88, 88, 1) no-repeat center center;
   color: #e6e6e6;
-  border: 1px solid #3d3d3d;
   padding-inline: 8px;
   flex-shrink: 0;
   cursor: pointer;
 
+  border-radius: var(--border-radius);
+  box-shadow: 0 1px 1px rgba(black, 0.3);
+
   &[data-location='ALONE'] {
-    border-radius: 2px / 3px;
+    border-radius: var(--border-radius);
   }
   &[data-location='LEFT'] {
-    border-top-left-radius: 2px 3px;
-    border-bottom-left-radius: 2px 3px;
+    border-top-left-radius: var(--border-radius) var(--border-radius);
+    border-bottom-left-radius: var(--border-radius) var(--border-radius);
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
   }
   &[data-location='RIGHT'] {
-    border-top-right-radius: 2px 3px;
-    border-bottom-right-radius: 2px 3px;
+    border-top-right-radius: var(--border-radius) var(--border-radius);
+    border-bottom-right-radius: var(--border-radius) var(--border-radius);
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
   }
 
   &:hover {
-    background: #656565;
+    background: rgba(100, 100, 100, 1);
     color: #ffffff;
   }
   &.pressed,
