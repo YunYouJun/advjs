@@ -22,4 +22,12 @@ const checked2 = ref(true)
       </AGUIFormItem>
     </AGUIForm>
   </AGUIDemoBlock>
+  <AGUIDemoBlock title="Checkbox Label Demo">
+    <AGUIForm>
+      <AGUICheckbox v-model:checked="checked1" label="Label" />
+      <AGUICheckbox v-model:checked="checked2" label="Label (Checked)" />
+      <AGUICheckbox v-model:checked="checked1" disabled label="Label (Disabled)" />
+      <AGUICheckbox v-model:checked="checked2" disabled label="Label (Checked, Disabled)" />
+    </AGUIForm>
+  </AGUIDemoBlock>
 </template>
