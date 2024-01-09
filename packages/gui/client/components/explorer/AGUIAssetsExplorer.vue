@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { Pane, Splitpanes } from 'splitpanes'
 import { useEventListener } from '@vueuse/core'
 import AGUITree from '../tree/AGUITree.vue'
@@ -15,10 +15,6 @@ const props = withDefaults(defineProps<{
   fileList: [] as any,
 })
 
-const items = ref([
-  { text: 'Assets', href: '#' },
-  { text: 'Textures', href: '#' },
-])
 const size = ref(64)
 
 if (props.fileList)
@@ -34,6 +30,17 @@ async function onNodeActivated(node: FileItem) {
   curDirHandle.value = node.handle
   curFileList.value = list
 }
+
+const breadcrumbItems = computed(() => {
+  return curDirHandle.value?.name
+    ? [
+        {
+          label: curDirHandle.value.name,
+          handle: curDirHandle.value,
+        },
+      ]
+    : []
+})
 
 const explorerContent = ref<HTMLDivElement>()
 
@@ -101,7 +108,7 @@ async function saveFile(file: File) {
 
       <Pane>
         <div class="agui-assets-panel">
-          <AGUIBreadcrumb :items="items" />
+          <AGUIBreadcrumb :items="breadcrumbItems" />
 
           <div ref="explorerContent" class="agui-explorer-content">
             <div

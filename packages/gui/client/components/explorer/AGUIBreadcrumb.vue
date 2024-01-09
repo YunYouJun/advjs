@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 defineProps<{
   items: {
-    text: string
+    label: string
     href?: string
   }[]
 }>()
@@ -11,8 +11,8 @@ defineProps<{
   <nav class="agui-breadcrumb-container" aria-label="breadcrumb">
     <ol class="agui-breadcrumb">
       <li v-for="(item, index) in items" :key="index" class="agui-breadcrumb-item" :class="{ active: index === items.length - 1 }">
-        <a v-if="index < items.length - 1" :href="item.href">{{ item.text }}</a>
-        <span v-else>{{ item.text }}</span>
+        <a v-if="index < items.length - 1" :href="item.href">{{ item.label }}</a>
+        <span v-else>{{ item.label }}</span>
       </li>
     </ol>
   </nav>

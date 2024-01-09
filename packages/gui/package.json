@@ -1,7 +1,7 @@
 {
   "name": "@advjs/gui",
   "type": "module",
-  "version": "0.0.2",
+  "version": "0.0.3-beta.0",
   "repository": {
     "url": "https://github.com/YunYouJun/advjs/tree/main/packages/gui",
     "type": "git"
@@ -37,7 +37,7 @@
     "@iconify-json/vscode-icons": "^1.1.32",
     "@iconify/vue": "^4.1.1",
     "@radix-ui/colors": "^3.0.0",
-    "radix-vue": "^1.2.6",
+    "radix-vue": "^1.2.7",
     "splitpanes": "^3.1.5"
   },
   "devDependencies": {

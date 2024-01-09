@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { onClickOutside, useEventListener } from '@vueuse/core'
 import { getFiletypeFromPath, getIconFromFileType } from '../../utils/fs'
-import { curFileList, listFilesInDirectory } from './useAssetsExplorer'
+import { curDirHandle, curFileList, listFilesInDirectory } from './useAssetsExplorer'
 
 import type { FileItem } from './types'
 
@@ -49,6 +49,7 @@ useEventListener(fileItemRef, 'dblclick', async () => {
       const list = await listFilesInDirectory(handle, {
         showFiles: true,
       })
+      curDirHandle.value = handle
       curFileList.value = list
     }
   }
