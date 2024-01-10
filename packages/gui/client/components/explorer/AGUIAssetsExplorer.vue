@@ -5,13 +5,13 @@ import { useEventListener } from '@vueuse/core'
 
 import AGUITree from '../tree/AGUITree.vue'
 import AGUISlider from '../AGUISlider.vue'
+import { curDirHandle, curFileList, listFilesInDirectory, tree } from '../../composables'
 import AGUIFileList from './AGUIFileList.vue'
 import AGUIBreadcrumb from './AGUIBreadcrumb.vue'
 import AGUIOpenDirectory from './AGUIOpenDirectory.vue'
 import AGUIExplorerControls from './AGUIExplorerControls.vue'
 
 import type { FileItem } from './types'
-import { curDirHandle, curFileList, listFilesInDirectory, tree } from './useAssetsExplorer'
 
 const props = withDefaults(defineProps<{
   fileList?: FileItem[]
@@ -207,3 +207,4 @@ async function saveFile(file: File) {
   }
 }
 </style>
+../../composables/useAssetsExplorer

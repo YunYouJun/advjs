@@ -26,7 +26,7 @@
   },
   "devDependencies": {
     "@intlify/unplugin-vue-i18n": "^2.0.0",
-    "@vitejs/plugin-vue": "^5.0.2",
+    "@vitejs/plugin-vue": "^5.0.3",
     "markdown-it-link-attributes": "^4.0.1",
     "markdown-it-prism": "^2.3.0",
     "unocss": "^0.58.3",

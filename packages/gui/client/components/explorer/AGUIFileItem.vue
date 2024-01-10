@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { onClickOutside, useEventListener } from '@vueuse/core'
 import { getFiletypeFromPath, getIconFromFileType } from '../../utils/fs'
-import { curDirHandle, curFileList, listFilesInDirectory } from './useAssetsExplorer'
+import { curDirHandle, curFileList, listFilesInDirectory } from '../../composables'
 
 import type { FileItem } from './types'
 
@@ -163,3 +163,4 @@ const fileIcon = computed(() => {
   }
 }
 </style>
+../../composables/useAssetsExplorer

@@ -1,6 +1,6 @@
 import { ref } from 'vue'
-import type { Trees } from '../..'
-import type { FileItem } from './types'
+import type { Trees } from '..'
+import type { FileItem } from '../components/explorer/types'
 
 export const curDirHandle = ref<FileSystemDirectoryHandle>()
 export const vscodeFolderIcon = 'i-vscode-icons-default-folder'

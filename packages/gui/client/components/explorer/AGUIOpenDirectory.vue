@@ -2,7 +2,7 @@
 import { useEventListener } from '@vueuse/core'
 import { ref } from 'vue'
 import AGUIOverlay from '../AGUIOverlay.vue'
-import { curDirHandle, onOpenDir, setAssetsDirHandle, vscodeFolderIcon } from './useAssetsExplorer'
+import { curDirHandle, onOpenDir, setAssetsDirHandle, vscodeFolderIcon } from '../../composables'
 
 const isDragging = ref(false)
 
@@ -61,3 +61,4 @@ useEventListener(openDirectoryRef, 'drop', async (e) => {
   }
 }
 </style>
+../../composables/useAssetsExplorer
