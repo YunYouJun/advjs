@@ -72,8 +72,8 @@ const treeData = ref<Trees>([
   },
 ])
 
-function onSelect(nodes: Trees) {
-  console.log('onSelect', nodes)
+function onSelected(nodes: Trees) {
+  console.log('onSelected', nodes)
 }
 
 function onUnselected(nodes: Trees) {
@@ -107,7 +107,7 @@ function activate(node: TreeNode) {
   >
     <AGUITree
       :data="treeData"
-      @node-selected="onSelect"
+      @node-selected="onSelected"
       @node-unselected="onUnselected"
       @node-hide="hide"
       @node-show="show"

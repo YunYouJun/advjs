@@ -35,7 +35,7 @@ const isDark = ref(true)
 
 <style lang="scss">
 .agui-demo-block {
-  max-width: 420px;
+  max-width: 500px;
   margin: auto;
 }
 </style>

@@ -2,15 +2,20 @@
 import { computed, ref } from 'vue'
 import { Pane, Splitpanes } from 'splitpanes'
 import { useEventListener } from '@vueuse/core'
+
 import AGUITree from '../tree/AGUITree.vue'
+import AGUISlider from '../AGUISlider.vue'
 import AGUIFileList from './AGUIFileList.vue'
 import AGUIBreadcrumb from './AGUIBreadcrumb.vue'
+import AGUIOpenDirectory from './AGUIOpenDirectory.vue'
+import AGUIExplorerControls from './AGUIExplorerControls.vue'
+
 import type { FileItem } from './types'
 import { curDirHandle, curFileList, listFilesInDirectory, tree } from './useAssetsExplorer'
-import AGUIOpenDirectory from './AGUIOpenDirectory.vue'
 
 const props = withDefaults(defineProps<{
   fileList?: FileItem[]
+  onFileDrop?: (files: File[]) => void
 }>(), {
   fileList: [] as any,
 })
@@ -66,8 +71,14 @@ useEventListener(explorerContent, 'drop', async (e) => {
   if (!files)
     return
   // const handles = files.map(item => item.getAsFileSystemHandle())
-  for (const file of files)
-    await saveFile(file)
+
+  if (props.onFileDrop) {
+    props.onFileDrop([...files])
+  }
+  else {
+    for (const file of files)
+      await saveFile(file)
+  }
 })
 
 async function saveFile(file: File) {

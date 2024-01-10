@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { useEventListener } from '@vueuse/core'
 import { ref } from 'vue'
+import AGUIOverlay from '../AGUIOverlay.vue'
 import { curDirHandle, onOpenDir, setAssetsDirHandle, vscodeFolderIcon } from './useAssetsExplorer'
 
 const isDragging = ref(false)

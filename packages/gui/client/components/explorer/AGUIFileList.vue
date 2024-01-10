@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
 import AGUIContextMenu from '../context-menu/AGUIContextMenu.vue'
+import AGUIFileItem from './AGUIFileItem.vue'
 import type { FileItem } from './types'
 
 const props = withDefaults(defineProps<{

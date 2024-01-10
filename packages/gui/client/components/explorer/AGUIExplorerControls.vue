@@ -7,11 +7,11 @@ import { AGUIInput } from '..'
     <div />
     <div class="flex-grow" />
     <slot />
-    <AGUIInput class="w-30" />
+    <AGUIInput class="search-files-input" />
   </div>
 </template>
 
-<style>
+<style lang="scss">
 .agui-explorer-controls {
   display: flex;
   align-items: center;
@@ -19,5 +19,9 @@ import { AGUIInput } from '..'
   height: var(--agui-explorer-controls-height, 32px);
 
   border-bottom: 1px solid var(--agui-c-border, #222);
+
+  .search-files-input {
+    width: 7.5rem;
+  }
 }
 </style>

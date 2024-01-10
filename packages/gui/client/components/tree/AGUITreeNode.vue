@@ -176,7 +176,7 @@ function onNodeActivated(node: TreeNode) {
     color: #ffaf29;
   }
 
-  .content {
+  > .content {
     flex: 1;
 
     display: flex;

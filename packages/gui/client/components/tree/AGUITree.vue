@@ -78,7 +78,7 @@ function activate(node: TreeNode) {
 </script>
 
 <template>
-  <div class="b-tree">
+  <div class="agui-tree">
     <template v-if="Array.isArray(data)">
       <template v-for="(tree, _i) in data" :key="tree.id || tree.name || _i">
         <AGUITreeNode

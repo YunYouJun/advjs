@@ -1,259 +1,213 @@
 <script lang="ts" setup>
-import { computed, nextTick, ref } from 'vue'
-
-import Option from './AGUISelectOption.vue'
+import {
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectItemIndicator,
+  SelectItemText,
+  // SelectLabel,
+  SelectPortal,
+  SelectRoot,
+  SelectScrollDownButton,
+  SelectScrollUpButton,
+  // SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+  SelectViewport,
+} from 'radix-vue'
+import { Icon } from '@iconify/vue'
 
 type OptionType = string | { value: string, label?: string, icon?: string }
 
-const props = defineProps<{
+defineProps<{
   modelValue?: string
   options: OptionType[]
   legend?: string
+
+  placeholder?: string
 }>()
 
 // 使用 emits 定义组件发出的事件
 const emit = defineEmits(['change', 'update:modelValue'])
 
-const current = computed(() => {
-  return props.options?.find((option) => {
-    if (typeof option === 'string')
-      return option === props.modelValue
-
-    return option.value === props.modelValue
-  })
-})
-
-const expanded = ref<undefined | { x: 'LEFT' | 'RIGHT', y: 'UP' | 'DOWN' }>()
-let timer: number | undefined
-
-// 选择选项的逻辑
-function select(next: OptionType) {
-  const newValue = typeof next === 'string' ? next : next.value
-  emit('change', newValue)
-  emit('update:modelValue', newValue)
-  collapse()
+function onUpdateModelValue(value: string) {
+  emit('update:modelValue', value)
+  emit('change', value)
 }
-
-// 展开选项的逻辑
-function expand() {
-  expanded.value = {
-    x: 'LEFT',
-    y: 'DOWN',
-  }
-  nextTick().then(() => {
-    if (!expanded.value)
-      return
-
-    const el = ref<HTMLElement | null>(null)
-    const bounds = el.value?.getBoundingClientRect()
-    if (!bounds)
-      return
-    const { x, y, height } = bounds
-    const { innerHeight } = window
-    if (x < 0)
-      expanded.value.x = 'RIGHT'
-
-    if (y + height > innerHeight)
-      expanded.value.y = 'UP'
-  })
-}
-
-// 收起选项的逻辑
-function collapse() {
-  expanded.value = undefined
-}
-
-// 鼠标离开时的逻辑
-function onLeave() {
-  timer = window.setTimeout(collapse, 0)
-}
-
-// 鼠标进入时的逻辑
-function onEnter() {
-  clearTimeout(timer)
-  timer = undefined
-}
-
-const el = ref<HTMLElement | null>(null)
 </script>
 
 <template>
-  <div
-    class="search-field agui-select relative"
-    :class="{
-      expanded,
-      up: expanded?.y === 'UP',
-      right: expanded?.x === 'RIGHT',
-      down: expanded?.y === 'DOWN',
-      left: expanded?.x === 'LEFT',
-    }"
-  >
-    <button class="agui-select-value" @click="expand">
-      <span v-if="typeof current === 'string'">{{ current }}</span>
-      <template v-else-if="current">
-        <span
-          v-if="current.icon"
-          class="icon"
-          :style="`background-image: var(--b-icon-${current.icon})`"
-        />
-        <span>{{ current.label ?? current.value }}</span>
-      </template>
-    </button>
-    <div v-if="expanded" ref="el" class="popout">
-      <button class="detector" @mouseleave="onLeave" @click="collapse" />
-      <div class="options" @mouseenter="onEnter">
-        <template v-for="option in options">
-          <Option
-            v-if="typeof option === 'string'"
-            :key="option"
-            :value="option"
-            :label="option"
-            @click="() => select(option)"
-          />
-          <Option
-            v-else
-            :key="option.value"
-            :value="option.value"
-            :icon="option.icon"
-            :label="option.label ?? option.value"
-            @click="() => select(option)"
-          />
-        </template>
-      </div>
-      <div v-if="legend" class="legend" @mouseenter="onEnter">
-        {{ legend }}
-      </div>
-    </div>
-  </div>
+  <SelectRoot :model-value="modelValue" @update:model-value="onUpdateModelValue">
+    <SelectTrigger
+      class="agui-select-trigger"
+      :aria-label="placeholder"
+    >
+      <SelectValue :placeholder="placeholder" />
+      <Icon icon="radix-icons:chevron-down" op="60" />
+    </SelectTrigger>
+
+    <SelectPortal>
+      <SelectContent
+        class="agui-select-content"
+        side="bottom"
+      >
+        <SelectScrollUpButton class="SelectScrollButton">
+          <Icon icon="radix-icons:chevron-up" />
+        </SelectScrollUpButton>
+
+        <SelectViewport class="agui-select-viewport">
+          <!-- <SelectLabel class="SelectLabel">
+            Fruits
+          </SelectLabel> -->
+          <SelectGroup v-if="Array.isArray(options)">
+            <template
+              v-for="(option, index) in options"
+            >
+              <SelectItem
+                v-if="(typeof option === 'string')"
+                :key="index"
+                class="agui-select-item"
+                :value="option"
+              >
+                <SelectItemIndicator class="agui-select-item-indicator">
+                  <Icon icon="radix-icons:check" />
+                </SelectItemIndicator>
+                <SelectItemText>
+                  {{ option }}
+                </SelectItemText>
+              </SelectItem>
+              <SelectItem
+                v-else
+                :key="option.value"
+                class="agui-select-item"
+                :value="option.value"
+              >
+                <SelectItemIndicator class="agui-select-item-indicator">
+                  <Icon icon="radix-icons:check" />
+                </SelectItemIndicator>
+                <div mr-1 :class="option.icon" />
+                <SelectItemText>
+                  {{ option.label }}
+                </SelectItemText>
+              </SelectItem>
+            </template>
+          </SelectGroup>
+        </SelectViewport>
+
+        <SelectScrollDownButton class="SelectScrollButton agui-select-scroll-button">
+          <Icon icon="radix-icons:chevron-down" />
+        </SelectScrollDownButton>
+      </SelectContent>
+    </SelectPortal>
+  </SelectRoot>
 </template>
 
 <style lang="scss">
-.agui-select {
-  position: relative;
-
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-  flex-grow: 1;
-
+.agui-select-trigger {
+  font:
+    12px system-ui,
+    sans-serif;
+  appearance: none;
+  background-color: transparent;
+  box-sizing: border-box;
+  width: 100%;
+  color: #fdfdfd;
   outline: none;
 
-  .agui-select-value {
-    font:
-      12px system-ui,
-      sans-serif;
-    appearance: none;
-    background-color: transparent;
-    border: none;
-    box-sizing: border-box;
-    width: 100%;
-    color: #fdfdfd;
+  display: inline-flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 4px;
+  padding: 0 4px 0 4px;
+
+  background: #1d1d1d;
+  border: 1px solid #3d3d3d;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(black, 0.3);
+  border-radius: 4px;
+  text-align: left;
+  min-height: 20px;
+  cursor: pointer;
+
+  &:focus {
     outline: none;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 0 20px 0 4px;
-    background: #1d1d1d;
-    border: 1px solid #3d3d3d;
-    box-shadow: 0 1px 3px rgba(black, 0.3);
-    border-radius: 4px;
-    text-align: left;
-    min-height: 18px;
+  }
+
+  &:hover {
+    background-color: #232323;
+  }
+
+  &[data-placeholder] {
+    color: var(--grass-9);
+  }
+}
+
+.agui-select-content {
+  overflow: hidden;
+  background-color: #1d1d1d;
+  border-radius: 6px;
+  box-shadow:
+    0px 10px 38px -10px rgba(22, 23, 24, 0.35),
+    0px 10px 20px -15px rgba(22, 23, 24, 0.2);
+}
+
+.agui-select-viewport {
+  padding: 5px;
+}
+
+.agui-select-item {
+  font-size: 12px;
+  line-height: 1;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 35px 0 25px;
+  position: relative;
+  user-select: none;
+
+  &[data-disabled] {
+    color: #aaa;
+    pointer-events: none;
+  }
+  &[data-highlighted] {
+    outline: none;
+    background-color: var(--agui-c-active);
+    color: var(--grass-1);
     cursor: pointer;
-
-    &:hover {
-      background: #232323;
-      border-color: #414141;
-    }
-
-    &:after {
-      content: '';
-      position: absolute;
-      top: 1px;
-      right: 3px;
-      width: 16px;
-      height: 16px;
-      background: var(--b-icon-chevron-down) center center no-repeat;
-      opacity: 0.5;
-    }
-    .expanded & {
-      background: #446290;
-      color: #ffffff;
-    }
-    .expanded.up & {
-      border-top-left-radius: 0;
-      border-top-right-radius: 0;
-      border-top-color: #446290;
-    }
-    .expanded.down & {
-      border-bottom-left-radius: 0;
-      border-bottom-right-radius: 0;
-      border-bottom-color: #446290;
-    }
   }
-  .icon {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    background: no-repeat center center;
-    background-size: contain;
-  }
-  .popout {
+
+  &-indicator {
     position: absolute;
-    top: 100%;
-    z-index: 10;
-    box-sizing: border-box;
-    min-width: 100%;
-    background: #181818;
-    border: 1px solid #242424;
-    border-radius: 4px;
-
-    outline: none !important;
-
-    .up & {
-      border-top-left-radius: 0;
-      border-top-right-radius: 0;
-      bottom: 100%;
-    }
-    .right & {
-      left: 0;
-    }
-    .down & {
-      top: 100%;
-      border-bottom-left-radius: 4px;
-      border-bottom-right-radius: 4px;
-    }
-    .left & {
-      right: 0;
-    }
+    left: 0;
+    width: 25px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
-  .detector {
-    position: absolute;
-    top: -32px;
-    right: -32px;
-    bottom: -32px;
-    left: -32px;
-    background-color: transparent;
-    border: none;
-  }
+}
 
-  .options {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 2px;
+.SelectLabel {
+  padding: 0 8px;
+  font-size: 9px;
+  line-height: 25px;
+  color: #989898;
+}
 
-    align-items: flex-start;
-  }
+.SelectSeparator {
+  height: 1px;
+  background-color: var(--agui-c-divider);
+  margin: 5px;
+}
 
-  .legend {
-    position: relative;
-    color: #989898;
-    padding: 5px 8px 4px 8px;
-    .down & {
-      border-top: 1px solid #2f2f2f;
-    }
-  }
+.SelectScrollButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 25px;
+  background-color: white;
+  color: var(--grass-11);
+  cursor: default;
 }
 </style>
