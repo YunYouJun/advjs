@@ -6,9 +6,9 @@ GUI for ADV.JS Engine.
 
 ```ts
 // icons css vars
-import '@advjs/blender-ui/dist/icons.css'
+import '@advjs/gui/dist/icons.css'
 // common css
-import '@advjs/blender-ui/client/styles/index.scss'
+import '@advjs/gui/client/styles/index.scss'
 ```
 
 ### Nuxt
@@ -22,3 +22,7 @@ export default defineNuxtConfig({
   ],
 })
 ```
+
+## Thanks
+
+- [radix-vue](https://github.com/radix-vue/radix-vue)

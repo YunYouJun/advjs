@@ -6,6 +6,9 @@ definePageMeta({
 
 <template>
   <main class="h-screen w-screen">
+    <div>
+      <AGUIMenuBar />
+    </div>
     <AGUILayout>
       <template #right>
         <PanelInspector />

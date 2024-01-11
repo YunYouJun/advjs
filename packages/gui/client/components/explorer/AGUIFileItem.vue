@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue'
-import { onClickOutside, useEventListener } from '@vueuse/core'
-import { getFiletypeFromPath, getIconFromFileType } from '../../utils/fs'
+import { computedAsync, onClickOutside, useEventListener } from '@vueuse/core'
+import { getFiletypeFromPath, getIconFromFileType, isImage } from '../../utils/fs'
 import { curDirHandle, curFileList, listFilesInDirectory } from '../../composables'
 
 import type { FileItem } from './types'
@@ -43,25 +43,42 @@ function onDragStart(e: DragEvent) {
 
 useEventListener(fileItemRef, 'dragstart', onDragStart)
 useEventListener(fileItemRef, 'dblclick', async () => {
-  if (props.item.kind === 'directory') {
-    if (props.item.handle) {
-      const handle = props.item.handle
-      const list = await listFilesInDirectory(handle, {
-        showFiles: true,
-      })
-      curDirHandle.value = handle
-      curFileList.value = list
-    }
+  const handle = props.item.handle
+  if (!handle)
+    return
+
+  if (handle.kind === 'directory') {
+    const list = await listFilesInDirectory(handle, {
+      showFiles: true,
+    })
+    curDirHandle.value = handle
+
+    console.log(list)
+    curFileList.value = list
   }
 })
 
-const fileIcon = computed(() => {
-  if (props.item.kind === 'directory')
+const fileIcon = computedAsync(async () => {
+  if (props.icon)
+    return props.icon
+
+  const handle = props.item.handle
+  if (!handle)
+    return ''
+  if (handle.kind === 'directory')
     return 'i-vscode-icons-default-folder'
 
-  const ext = getFiletypeFromPath(props.item.filename || props.item.name || '')
+  const name = props.item.filename || props.item.name || ''
+  if (isImage(name)) {
+    // 从 handle 读取缩略图
+    const file = await handle.getFile()
+    const imageUrl = URL.createObjectURL(file)
+    return imageUrl
+  }
+
+  const ext = getFiletypeFromPath(name)
   const icon = getIconFromFileType(ext)
-  return props.icon || icon
+  return icon
 })
 </script>
 
@@ -79,9 +96,15 @@ const fileIcon = computed(() => {
   >
     <div class="agui-file-icon">
       <div
+        v-if="fileIcon?.startsWith('i-')"
         class="icon"
         :class="fileIcon"
       />
+      <img
+        v-else
+        class="icon h-full w-full object-contain"
+        :src="fileIcon"
+      >
     </div>
 
     <div class="agui-file-name">
@@ -163,4 +186,3 @@ const fileIcon = computed(() => {
   }
 }
 </style>
-../../composables/useAssetsExplorer

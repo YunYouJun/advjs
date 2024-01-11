@@ -4,6 +4,7 @@ export default defineBuildConfig({
   entries: [
     './client/types/index',
     './node/index',
+    './unocss/index',
   ],
 
   declaration: true,

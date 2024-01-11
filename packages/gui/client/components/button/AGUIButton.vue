@@ -12,7 +12,6 @@
 .agui-button {
   display: inline-flex;
   font-size: 9px;
-  line-height: 2;
 
   appearance: none;
   background: rgba(88, 88, 88, 1) no-repeat center center;

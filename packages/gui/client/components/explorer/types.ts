@@ -4,5 +4,6 @@ export interface FileItem {
   kind?: 'file' | 'directory'
   icon?: string
   ext?: string
-  handle?: FileSystemDirectoryHandle
+  handle?: FileSystemFileHandle | FileSystemDirectoryHandle
+  file?: File
 }

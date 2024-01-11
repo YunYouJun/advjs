@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { ref } from 'vue'
+
 const tabList = ref([
   { title: 'Project', key: 'project', icon: 'i-ri-folder-line' },
   { title: 'Console', key: 'console', icon: 'i-ri-terminal-box-line' },

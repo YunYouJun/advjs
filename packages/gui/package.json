@@ -14,6 +14,11 @@
       "import": "./dist/node/index.mjs",
       "require": "./dist/node/index.cjs"
     },
+    "./unocss": {
+      "types": "./dist/unocss/index.d.ts",
+      "import": "./dist/unocss/index.mjs",
+      "require": "./dist/unocss/index.cjs"
+    },
     ".": {
       "import": "./dist/agui.js",
       "require": "./dist/agui.umd.cjs"

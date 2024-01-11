@@ -5,7 +5,7 @@ import { useEventListener } from '@vueuse/core'
 
 import AGUITree from '../tree/AGUITree.vue'
 import AGUISlider from '../AGUISlider.vue'
-import { curDirHandle, curFileList, listFilesInDirectory, tree } from '../../composables'
+import { curDirHandle, curFileList, listFilesInDirectory, saveFile, tree } from '../../composables'
 import AGUIFileList from './AGUIFileList.vue'
 import AGUIBreadcrumb from './AGUIBreadcrumb.vue'
 import AGUIOpenDirectory from './AGUIOpenDirectory.vue'
@@ -15,7 +15,7 @@ import type { FileItem } from './types'
 
 const props = withDefaults(defineProps<{
   fileList?: FileItem[]
-  onFileDrop?: (files: File[]) => void
+  onFileDrop?: (files: FileItem[]) => void
 }>(), {
   fileList: [] as any,
 })
@@ -26,14 +26,17 @@ if (props.fileList)
   curFileList.value = props.fileList
 
 async function onNodeActivated(node: FileItem) {
-  if (!node.handle)
+  const handle = node.handle
+  if (!handle)
     return
 
-  const list = await listFilesInDirectory(node.handle, {
-    showFiles: true,
-  })
-  curDirHandle.value = node.handle
-  curFileList.value = list
+  if (handle.kind === 'directory') {
+    const list = await listFilesInDirectory(handle, {
+      showFiles: true,
+    })
+    curDirHandle.value = handle
+    curFileList.value = list
+  }
 }
 
 const breadcrumbItems = computed(() => {
@@ -72,33 +75,29 @@ useEventListener(explorerContent, 'drop', async (e) => {
     return
   // const handles = files.map(item => item.getAsFileSystemHandle())
 
+  const fileItems: FileItem[] = []
+  for (const file of files) {
+    fileItems.push({
+      name: file.name,
+      filename: file.name,
+      file,
+    })
+  }
+
   if (props.onFileDrop) {
-    props.onFileDrop([...files])
+    props.onFileDrop(fileItems)
   }
   else {
-    for (const file of files)
-      await saveFile(file)
+    for (const fileItem of fileItems) {
+      if (fileItem.file)
+        await saveFile(fileItem.file)
+    }
   }
-})
 
-async function saveFile(file: File) {
-  // create a new handle
-  const newFileHandle = await curDirHandle.value?.getFileHandle(file.name, { create: true })
-  if (!newFileHandle)
-    return
-
-  // create a FileSystemWritableFileStream to write to
-  const writableStream = await newFileHandle.createWritable()
-
-  // write our file
-  await writableStream.write(file)
-
-  // close the file and write the contents to disk.
-  await writableStream.close()
   curFileList.value = await listFilesInDirectory(curDirHandle.value!, {
     showFiles: true,
   })
-}
+})
 </script>
 
 <template>
@@ -167,11 +166,6 @@ async function saveFile(file: File) {
     overflow-x: hidden;
     overflow-y: auto;
     background-color: var(--agui-c-bg-panel);
-
-    .is-dragging {
-      opacity: 0.5;
-      background-color: rgba(0, 0, 0, 0.5);
-    }
 
     /* 整个滚动条 */
     &::-webkit-scrollbar {

@@ -81,7 +81,7 @@
     "vite": "^5.0.11",
     "vite-plugin-vue-devtools": "^7.0.7",
     "vite-plugin-vue-layouts": "^0.11.0",
-    "vue": "^3.4.7",
+    "vue": "^3.4.8",
     "vue-i18n": "^9.9.0",
     "vue-router": "^4.2.5",
     "yargs": "^17.7.2"

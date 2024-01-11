@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { ref } from 'vue'
+
 const tabList = ref([
   { title: 'Scene', key: 'scene', icon: 'i-ri-grid-line' },
   { title: 'Asset Store', key: 'asset-store', icon: 'i-ri-store-line' },
@@ -20,7 +22,7 @@ const tabList = ref([
       </AGUITabPanel>
 
       <AGUITabPanel>
-        <NodeEditor />
+        <!-- <NodeEditor /> -->
       </AGUITabPanel>
 
       <slot />
