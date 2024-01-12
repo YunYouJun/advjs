@@ -12,15 +12,10 @@ import Prism from 'markdown-it-prism'
 import LinkAttributes from 'markdown-it-link-attributes'
 import Unocss from 'unocss/vite'
 
-// https://github.com/vitejs/vite/issues/5370
-// todo: wait released https://github.com/vitejs/vite/pull/10254
-// import { commonAlias } from '@advjs/shared/config/vite'
-const defaultThemeFolder = path.resolve(__dirname, '../theme-default')
+import { commonAlias } from '../../packages/shared/node'
 
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
 export default defineConfig((config) => {
-  const packageDir = path.resolve(__dirname, '../../packages')
-
   return {
     define: {
       __DEV__: config.mode === 'development',
@@ -35,16 +30,7 @@ export default defineConfig((config) => {
         {
           '~/': `${path.resolve(__dirname, 'src')}/`,
         },
-        // commonAlias,
-        {
-          '@advjs/client/': `${path.resolve(packageDir, 'client')}/`,
-          '@advjs/core': `${path.resolve(packageDir, 'core/src')}/`,
-          '@advjs/examples/': `${path.resolve(packageDir, 'examples')}/`,
-          '@advjs/parser/': `${path.resolve(packageDir, 'parser/src')}/`,
-          '@advjs/shared/': `${path.resolve(packageDir, 'shared/src')}/`,
-          '@advjs/theme-default/': `${defaultThemeFolder}/`,
-          '@advjs/theme-default': defaultThemeFolder,
-        },
+        commonAlias,
       ),
     },
 

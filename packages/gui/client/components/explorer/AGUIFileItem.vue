@@ -1,14 +1,13 @@
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue'
-import { computedAsync, onClickOutside, useEventListener } from '@vueuse/core'
+import { computed, ref, watch, watchEffect } from 'vue'
+import { onClickOutside, useEventListener } from '@vueuse/core'
 import { getFiletypeFromPath, getIconFromFileType, isImage } from '../../utils/fs'
 import { curDir, curFileList, listFilesInDir } from '../../composables'
 
-import type { FSBaseItem, FSDirItem } from './types'
+import type { FSDirItem, FSItem } from './types'
 
 const props = withDefaults(defineProps<{
-  item: FSBaseItem
-  icon?: string
+  item: FSItem
   size?: number
 }>(), {
   size: 32,
@@ -62,27 +61,37 @@ useEventListener(fileItemRef, 'dblclick', async () => {
   }
 })
 
-const fileIcon = computedAsync(async () => {
-  if (props.icon)
-    return props.icon
+const fileIcon = ref(props.item.icon)
 
-  const handle = props.item.handle
-  if (!handle)
-    return ''
-  if (handle.kind === 'directory')
+/**
+ * get icon from fs item
+ */
+async function getIconFromFSItem(item: FSItem) {
+  if (item.icon)
+    return item.icon
+
+  const handle = item.handle
+  if (handle.kind === 'directory') {
     return 'i-vscode-icons-default-folder'
-
-  const name = props.item.filename || props.item.name || ''
-  if (isImage(name)) {
-    // 从 handle 读取缩略图
-    const file = await handle.getFile()
-    const imageUrl = URL.createObjectURL(file)
-    return imageUrl
+  }
+  else if (item.handle.kind === 'file') {
+    const { name = '', handle } = item
+    if (isImage(name)) {
+      // 从 handle 读取缩略图
+      const file = await handle.getFile()
+      const imageUrl = URL.createObjectURL(file)
+      return imageUrl
+    }
   }
 
+  const name = item.name || ''
   const ext = getFiletypeFromPath(name)
   const icon = getIconFromFileType(ext)
   return icon
+}
+
+watchEffect(async () => {
+  fileIcon.value = await getIconFromFSItem(props.item)
 })
 </script>
 
@@ -112,7 +121,7 @@ const fileIcon = computedAsync(async () => {
     </div>
 
     <div class="agui-file-name">
-      {{ item.filename || item.name }}
+      {{ item.name }}
     </div>
   </div>
 </template>

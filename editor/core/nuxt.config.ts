@@ -1,6 +1,9 @@
 import { resolve } from 'node:path'
+import { commonAlias } from '../../packages/shared/node'
 import { pwa } from './config/pwa'
 import { appDescription } from './constants/index'
+
+const alias = commonAlias as Record<string, string>
 
 export default defineNuxtConfig({
   // ssr: false,
@@ -10,6 +13,7 @@ export default defineNuxtConfig({
 
   alias: {
     '@advjs/editor': `${resolve(__dirname, '.')}`,
+    ...alias,
   },
 
   modules: [

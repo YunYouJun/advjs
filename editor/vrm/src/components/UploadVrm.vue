@@ -71,4 +71,3 @@ onMounted(() => {
     <span v-show="showDragStyle">Drag .vrm file</span>
   </div>
 </template>
-~/utils/vrm

@@ -1,5 +1,7 @@
 import pkg from '../../package.json'
 
+export * from './fs'
+
 export function createAGUI() {}
 
 /**

@@ -1,11 +1,12 @@
 import consola from 'consola'
+import type { FSItem } from '..'
 
 export function isVideo(path: string) {
   return /\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/.test(path)
 }
 
 export function isImage(path: string) {
-  return /\.(jpeg|jpg|gif|png|svg|webp)(\?.*)?$/.test(path.toLowerCase())
+  return /\.(jpeg|jpg|gif|png|svg|webp|avif)(\?.*)?$/.test(path.toLowerCase())
 }
 
 export function isAudio(path: string) {
@@ -123,4 +124,20 @@ export function getIconFromFileType(filetype: string) {
     default:
       return 'i-vscode-icons-default-file'
   }
+}
+
+/**
+ * sort fs items
+ * folder first, then sort by name
+ */
+export function sortFSItems(items: FSItem[]) {
+  return items.sort((a, b) => {
+    // folder first
+    if (a.kind === 'directory' && b.kind !== 'directory')
+      return -1
+    if (a.kind !== 'directory' && b.kind === 'directory')
+      return 1
+    // sort by name
+    return a.name.localeCompare(b.name)
+  })
 }

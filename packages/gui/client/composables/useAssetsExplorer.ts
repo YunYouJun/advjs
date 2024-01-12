@@ -1,11 +1,11 @@
 import { ref } from 'vue'
-import type { Trees } from '..'
-import type { FSBaseItem, FSDirItem } from '../components/explorer/types'
+import type { FSDirItem, FSItem } from '../components/explorer/types'
+import type { AGUIBreadcrumbItem } from '../components/breadcrumb/types'
 
 export const rootDir = ref<FSDirItem>()
 export const curDir = ref<FSDirItem>()
 export const vscodeFolderIcon = 'i-vscode-icons-default-folder'
-export const curFileList = ref<FSBaseItem[]>([])
+export const curFileList = ref<FSItem[]>([])
 export const tree = ref()
 
 export function getExplorerState() {
@@ -58,7 +58,7 @@ export async function saveFile(file: File, dirHandle?: FileSystemDirectoryHandle
 export async function listFilesInDir(dir: FSDirItem, options: {
   showFiles?: boolean
 }) {
-  const files: Trees = []
+  const files: FSItem[] = []
   const dirHandle = dir.handle
   for await (const entry of dirHandle.values()) {
     // exclude
@@ -135,4 +135,26 @@ export async function onOpenDir() {
     // user abort
     console.error(e)
   }
+}
+
+/**
+ * get breadcrumb items from curDir
+ */
+export function getBreadcrumbItems(dir?: FSDirItem) {
+  let tempDir = dir
+  const items: AGUIBreadcrumbItem[] = []
+  while (tempDir) {
+    const dir = tempDir
+    items.unshift({
+      label: dir.name || '',
+      onClick: async () => {
+        curDir.value = dir
+        curFileList.value = await listFilesInDir(dir, {
+          showFiles: true,
+        })
+      },
+    })
+    tempDir = tempDir.parent
+  }
+  return items
 }

@@ -2,10 +2,10 @@
 import { computed } from 'vue'
 import AGUIContextMenu from '../context-menu/AGUIContextMenu.vue'
 import AGUIFileItem from './AGUIFileItem.vue'
-import type { FileItem } from './types'
+import type { FSItem } from './types'
 
 const props = withDefaults(defineProps<{
-  list?: FileItem[]
+  list?: FSItem[]
   /**
    * The size of the icon.
    * @default 32
