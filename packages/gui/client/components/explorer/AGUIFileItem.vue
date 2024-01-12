@@ -1,10 +1,11 @@
 <script lang="ts" setup>
-import { computed, ref, watch, watchEffect } from 'vue'
+import { computed, inject, ref, watch, watchEffect } from 'vue'
 import { onClickOutside, useEventListener } from '@vueuse/core'
 import { getFiletypeFromPath, getIconFromFileType, isImage } from '../../utils/fs'
 import { curDir, curFileList, listFilesInDir } from '../../composables'
 
 import type { FSDirItem, FSItem } from './types'
+import { AGUIAssetsExplorerSymbol } from './index'
 
 const props = withDefaults(defineProps<{
   item: FSItem
@@ -12,6 +13,8 @@ const props = withDefaults(defineProps<{
 }>(), {
   size: 32,
 })
+
+const state = inject(AGUIAssetsExplorerSymbol)
 
 const active = ref(false)
 watch(() => props.item, () => {
@@ -45,6 +48,18 @@ useEventListener(fileItemRef, 'dblclick', async () => {
   const item = props.item
   if (!item.handle)
     return
+
+  // custom dblclick handler
+  // global
+  if (state?.onDblClick) {
+    await state.onDblClick(item)
+    return
+  }
+  // local
+  if (item.onDblClick) {
+    await item.onDblClick(item)
+    return
+  }
 
   if (item.handle.kind === 'directory') {
     const list = await listFilesInDir(item as FSDirItem, {

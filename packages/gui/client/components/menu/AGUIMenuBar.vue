@@ -28,11 +28,11 @@ const checkboxOne = ref(false)
 const checkboxTwo = ref(false)
 const person = ref('pedro')
 function handleClick() {
-  alert('hello!')
+  // alert('hello!')
 }
 
-const RADIO_ITEMS = ['Andy', 'Benoît', 'Luis']
-const CHECK_ITEMS = ['Always Show Bookmarks Bar', 'Always Show Full URLs']
+// const RADIO_ITEMS = ['Andy', 'Benoît', 'Luis']
+// const CHECK_ITEMS = ['Always Show Bookmarks Bar', 'Always Show Full URLs']
 
 export interface MenuItem {
   name: string

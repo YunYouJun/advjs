@@ -5,6 +5,7 @@ export interface FSBaseItem {
   ext?: string
   handle?: FileSystemFileHandle | FileSystemDirectoryHandle
   parent?: FSDirItem
+  onDblClick?: (item: FSItem) => void | Promise<void>
 }
 
 export interface FSFileItem extends FSBaseItem {

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import './explorer.scss'
 
-import { computed, ref } from 'vue'
+import { computed, provide, ref } from 'vue'
 import { Pane, Splitpanes } from 'splitpanes'
 import { useEventListener } from '@vueuse/core'
 
@@ -15,12 +15,20 @@ import AGUIOpenDirectory from './AGUIOpenDirectory.vue'
 import AGUIExplorerControls from './AGUIExplorerControls.vue'
 
 import type { FSDirItem, FSFileItem, FSItem } from './types'
+import { AGUIAssetsExplorerSymbol } from './index'
 
 const props = withDefaults(defineProps<{
   fileList?: FSItem[]
   onFileDrop?: (files: FSFileItem[]) => void | Promise<void>
+  onDblClick?: (item: FSItem) => void | Promise<void>
 }>(), {
   fileList: [] as any,
+})
+
+const emit = defineEmits(['treeNodeActivate'])
+
+provide(AGUIAssetsExplorerSymbol, {
+  onDblClick: props.onDblClick,
 })
 
 const size = ref(64)
@@ -41,6 +49,8 @@ async function onNodeActivated(node: FSItem) {
     curDir.value = node as FSDirItem
     curFileList.value = list
   }
+
+  emit('treeNodeActivate', node)
 }
 
 const breadcrumbItems = computed(() => {
@@ -143,9 +153,7 @@ useEventListener(explorerContent, 'drop', async (e) => {
 
 <template>
   <div class="agui-assets-explorer">
-    <AGUIExplorerControls>
-      <!-- <div class="i-ri-folder-line" @click="onOpenDir" /> -->
-    </AGUIExplorerControls>
+    <AGUIExplorerControls />
     <Splitpanes class="h-$agui-explorer-main-content-height!">
       <Pane size="20">
         <AGUITree
