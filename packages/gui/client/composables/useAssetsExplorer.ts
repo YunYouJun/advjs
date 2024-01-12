@@ -1,16 +1,43 @@
 import { ref } from 'vue'
 import type { Trees } from '..'
-import type { FileItem } from '../components/explorer/types'
+import type { FSBaseItem, FSDirItem } from '../components/explorer/types'
 
-export const rootDirHandle = ref<FileSystemDirectoryHandle>()
-export const curDirHandle = ref<FileSystemDirectoryHandle>()
+export const rootDir = ref<FSDirItem>()
+export const curDir = ref<FSDirItem>()
 export const vscodeFolderIcon = 'i-vscode-icons-default-folder'
-export const curFileList = ref<FileItem[]>([])
+export const curFileList = ref<FSBaseItem[]>([])
 export const tree = ref()
 
-export async function saveFile(file: File) {
+export function getExplorerState() {
+  return {
+    rootDir,
+    curDir,
+    curFileList,
+    tree,
+  }
+}
+
+/**
+ * set cur dir item by handle
+ */
+export function getDirItemFromHandle(handle: FileSystemDirectoryHandle): FSDirItem {
+  return {
+    name: handle.name,
+    kind: 'directory',
+    handle,
+  }
+}
+
+/**
+ * save file to dir handle
+ */
+export async function saveFile(file: File, dirHandle?: FileSystemDirectoryHandle) {
+  dirHandle = dirHandle || curDir.value?.handle
+  if (!dirHandle)
+    return
+
   // create a new handle
-  const newFileHandle = await curDirHandle.value?.getFileHandle(file.name, { create: true })
+  const newFileHandle = await dirHandle.getFileHandle(file.name, { create: true })
   if (!newFileHandle)
     return
 
@@ -22,12 +49,17 @@ export async function saveFile(file: File) {
 
   // close the file and write the contents to disk.
   await writableStream.close()
+  return newFileHandle
 }
 
-export async function listFilesInDirectory(dirHandle: FileSystemDirectoryHandle, options: {
+/**
+ * show files in dir
+ */
+export async function listFilesInDir(dir: FSDirItem, options: {
   showFiles?: boolean
 }) {
   const files: Trees = []
+  const dirHandle = dir.handle
   for await (const entry of dirHandle.values()) {
     // exclude
     if (entry.name.startsWith('.'))
@@ -38,7 +70,13 @@ export async function listFilesInDirectory(dirHandle: FileSystemDirectoryHandle,
         name: entry.name,
         kind: entry.kind,
         handle: entry,
-        children: await listFilesInDirectory(entry, options),
+        children: await listFilesInDir({
+          name: entry.name,
+          kind: entry.kind,
+          handle: entry,
+          parent: dir,
+        }, options),
+        parent: dir,
       })
     }
 
@@ -49,6 +87,7 @@ export async function listFilesInDirectory(dirHandle: FileSystemDirectoryHandle,
           name: entry.name,
           kind: entry.kind,
           handle: entry,
+          parent: dir,
         })
       }
     }
@@ -58,32 +97,36 @@ export async function listFilesInDirectory(dirHandle: FileSystemDirectoryHandle,
 }
 
 /**
- * set assets dir handle
+ * set dir as assets dir
  */
-export async function setAssetsDirHandle(dirHandle: FileSystemDirectoryHandle) {
+export async function setAssetsDir(dir: FSDirItem) {
   const fileList = []
 
-  curFileList.value = await listFilesInDirectory(dirHandle, {
+  curFileList.value = await listFilesInDir(dir, {
     showFiles: false,
   })
   fileList.push(...curFileList.value)
 
   tree.value = {
-    name: dirHandle.name,
-    handle: dirHandle,
+    name: dir.name,
+    handle: dir.handle,
     children: fileList,
     expanded: true,
   }
 }
 
+/**
+ * click icon to open root dir
+ */
 export async function onOpenDir() {
   try {
     const dirHandle = await window.showDirectoryPicker()
-    setAssetsDirHandle(dirHandle)
-    curDirHandle.value = dirHandle
-    rootDirHandle.value = dirHandle
+    curDir.value = getDirItemFromHandle(dirHandle)
+    rootDir.value = curDir.value
+    setAssetsDir(rootDir.value)
 
-    const list = await listFilesInDirectory(dirHandle, {
+    const dir = rootDir.value
+    const list = await listFilesInDir(dir, {
       showFiles: true,
     })
     curFileList.value = list

@@ -5,17 +5,18 @@ import { useEventListener } from '@vueuse/core'
 
 import AGUITree from '../tree/AGUITree.vue'
 import AGUISlider from '../AGUISlider.vue'
-import { curDirHandle, curFileList, listFilesInDirectory, saveFile, tree } from '../../composables'
+import { curDir, curFileList, listFilesInDir, saveFile, tree } from '../../composables'
+import AGUIBreadcrumb from '../breadcrumb/AGUIBreadcrumb.vue'
+import type { AGUIBreadcrumbItem } from '../..'
 import AGUIFileList from './AGUIFileList.vue'
-import AGUIBreadcrumb from './AGUIBreadcrumb.vue'
 import AGUIOpenDirectory from './AGUIOpenDirectory.vue'
 import AGUIExplorerControls from './AGUIExplorerControls.vue'
 
-import type { FileItem } from './types'
+import type { FSBaseItem, FSDirItem, FSFileItem } from './types'
 
 const props = withDefaults(defineProps<{
-  fileList?: FileItem[]
-  onFileDrop?: (files: FileItem[]) => void
+  fileList?: FSBaseItem[]
+  onFileDrop?: (files: FSFileItem[]) => void
 }>(), {
   fileList: [] as any,
 })
@@ -25,29 +26,39 @@ const size = ref(64)
 if (props.fileList)
   curFileList.value = props.fileList
 
-async function onNodeActivated(node: FileItem) {
-  const handle = node.handle
-  if (!handle)
+/**
+ * click dir in tree
+ */
+async function onNodeActivated(node: FSBaseItem) {
+  if (!node.handle)
     return
 
-  if (handle.kind === 'directory') {
-    const list = await listFilesInDirectory(handle, {
+  if (node.handle.kind === 'directory') {
+    const list = await listFilesInDir(node as FSDirItem, {
       showFiles: true,
     })
-    curDirHandle.value = handle
+    curDir.value = node as FSDirItem
     curFileList.value = list
   }
 }
 
 const breadcrumbItems = computed(() => {
-  return curDirHandle.value?.name
-    ? [
-        {
-          label: curDirHandle.value.name,
-          handle: curDirHandle.value,
-        },
-      ]
-    : []
+  let tempDir = curDir.value
+  const items: AGUIBreadcrumbItem[] = []
+  while (tempDir) {
+    const dir = tempDir
+    items.unshift({
+      label: dir.name || '',
+      onClick: async () => {
+        curDir.value = dir
+        curFileList.value = await listFilesInDir(dir, {
+          showFiles: true,
+        })
+      },
+    })
+    tempDir = tempDir.parent
+  }
+  return items
 })
 
 const explorerContent = ref<HTMLDivElement>()
@@ -73,14 +84,22 @@ useEventListener(explorerContent, 'drop', async (e) => {
   const files = e.dataTransfer?.files
   if (!files)
     return
-  // const handles = files.map(item => item.getAsFileSystemHandle())
 
-  const fileItems: FileItem[] = []
+  const curDirHandle = curDir.value?.handle
+  if (!curDirHandle)
+    return
+
+  const fileItems: FSFileItem[] = []
   for (const file of files) {
+    const handle = await curDirHandle.getFileHandle(file.name, {
+      create: true,
+    })
     fileItems.push({
       name: file.name,
-      filename: file.name,
+      kind: 'file',
       file,
+      handle,
+      parent: curDir.value,
     })
   }
 
@@ -94,7 +113,10 @@ useEventListener(explorerContent, 'drop', async (e) => {
     }
   }
 
-  curFileList.value = await listFilesInDirectory(curDirHandle.value!, {
+  const dir = curDir.value
+  if (!dir)
+    return
+  curFileList.value = await listFilesInDir(dir, {
     showFiles: true,
   })
 })
@@ -105,7 +127,7 @@ useEventListener(explorerContent, 'drop', async (e) => {
     <AGUIExplorerControls>
       <!-- <div class="i-ri-folder-line" @click="onOpenDir" /> -->
     </AGUIExplorerControls>
-    <Splitpanes style="height: calc(100% - var(--agui-explorer-controls-height, 32px));">
+    <Splitpanes class="h-$agui-explorer-main-content-height!">
       <Pane size="20">
         <AGUITree
           v-if="tree"
@@ -147,6 +169,12 @@ useEventListener(explorerContent, 'drop', async (e) => {
 
   --agui-explorer-controls-height: 32px;
   --agui-explorer-footer-height: 26px;
+
+  --agui-explorer-main-content-height: calc(
+    100% - var(--agui-explorer-controls-height, 32px) - var(
+        --agui-explorer-footer-height
+      )
+  );
 
   .agui-assets-panel {
     display: flex;
@@ -201,4 +229,3 @@ useEventListener(explorerContent, 'drop', async (e) => {
   }
 }
 </style>
-../../composables/useAssetsExplorer

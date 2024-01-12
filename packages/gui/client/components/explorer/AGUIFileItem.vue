@@ -2,12 +2,12 @@
 import { computed, ref, watch } from 'vue'
 import { computedAsync, onClickOutside, useEventListener } from '@vueuse/core'
 import { getFiletypeFromPath, getIconFromFileType, isImage } from '../../utils/fs'
-import { curDirHandle, curFileList, listFilesInDirectory } from '../../composables'
+import { curDir, curFileList, listFilesInDir } from '../../composables'
 
-import type { FileItem } from './types'
+import type { FSBaseItem, FSDirItem } from './types'
 
 const props = withDefaults(defineProps<{
-  item: FileItem
+  item: FSBaseItem
   icon?: string
   size?: number
 }>(), {
@@ -43,18 +43,22 @@ function onDragStart(e: DragEvent) {
 
 useEventListener(fileItemRef, 'dragstart', onDragStart)
 useEventListener(fileItemRef, 'dblclick', async () => {
-  const handle = props.item.handle
-  if (!handle)
+  const item = props.item
+  if (!item.handle)
     return
 
-  if (handle.kind === 'directory') {
-    const list = await listFilesInDirectory(handle, {
+  if (item.handle.kind === 'directory') {
+    const list = await listFilesInDir(item as FSDirItem, {
       showFiles: true,
     })
-    curDirHandle.value = handle
-
-    console.log(list)
+    curDir.value = item as FSDirItem
     curFileList.value = list
+  }
+  else if (item.handle.kind === 'file') {
+    // open
+    const file = await item.handle.getFile()
+    const url = URL.createObjectURL(file)
+    window.open(url)
   }
 })
 
@@ -161,6 +165,9 @@ const fileIcon = computedAsync(async () => {
     padding: 2px;
 
     font-size: 12px;
+
+    width: var(--icon-size, 32px);
+    height: var(--icon-size, 32px);
   }
 
   .agui-file-name {

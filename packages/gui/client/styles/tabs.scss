@@ -1,4 +1,5 @@
 .agui-tab-list {
+  height: var(--agui-tab-list-height, 20px);
   line-height: 1.4;
 
   .active {
