@@ -5,10 +5,26 @@ GUI for ADV.JS Engine.
 ## Usage
 
 ```ts
-// icons css vars
-import '@advjs/gui/dist/icons.css'
 // common css
 import '@advjs/gui/client/styles/index.scss'
+```
+
+### Import Icon CSS
+
+```ts
+import '@advjs/gui/dist/icons.css'
+// or
+```
+
+Or you also can import icons by TypeScript:
+
+```ts
+import { mountCssVarsRootStyle } from '@advjs/gui/client'
+import { onMounted } from 'vue'
+
+onMounted(() => {
+  mountCssVarsRootStyle()
+})
 ```
 
 ### Nuxt

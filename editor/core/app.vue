@@ -1,8 +1,13 @@
 <script setup lang="ts">
+import { mountCssVarsRootStyle } from '@advjs/gui/client/styles/icons'
 import { appName } from '~/constants'
 
 useHead({
   title: appName,
+})
+
+onMounted(() => {
+  mountCssVarsRootStyle()
 })
 </script>
 
