@@ -115,21 +115,25 @@ export async function setAssetsDir(dir: FSDirItem) {
   }
 }
 
+export async function openRootDir(dirHandle: FileSystemDirectoryHandle) {
+  curDir.value = getDirItemFromHandle(dirHandle)
+  rootDir.value = curDir.value
+  setAssetsDir(rootDir.value)
+
+  const dir = rootDir.value
+  const list = await listFilesInDir(dir, {
+    showFiles: true,
+  })
+  curFileList.value = list
+}
+
 /**
  * click icon to open root dir
  */
 export async function onOpenDir() {
   try {
     const dirHandle = await window.showDirectoryPicker()
-    curDir.value = getDirItemFromHandle(dirHandle)
-    rootDir.value = curDir.value
-    setAssetsDir(rootDir.value)
-
-    const dir = rootDir.value
-    const list = await listFilesInDir(dir, {
-      showFiles: true,
-    })
-    curFileList.value = list
+    await openRootDir(dirHandle)
   }
   catch (e) {
     // user abort

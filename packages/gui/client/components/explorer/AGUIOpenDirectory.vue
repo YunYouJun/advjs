@@ -2,7 +2,11 @@
 import { useEventListener } from '@vueuse/core'
 import { ref } from 'vue'
 import AGUIOverlay from '../AGUIOverlay.vue'
-import { curDir, getDirItemFromHandle, onOpenDir, setAssetsDir, vscodeFolderIcon } from '../../composables'
+import { onOpenDir, openRootDir, rootDir, vscodeFolderIcon } from '../../composables'
+
+const emit = defineEmits([
+  'openRootDir',
+])
 
 const isDragging = ref(false)
 
@@ -27,8 +31,9 @@ useEventListener(openDirectoryRef, 'drop', async (e) => {
   const dirHandle = await e.dataTransfer?.items[0].getAsFileSystemHandle()
   if (dirHandle?.kind === 'directory') {
     const handle = dirHandle as FileSystemDirectoryHandle
-    curDir.value = getDirItemFromHandle(handle)
-    setAssetsDir(curDir.value)
+    await openRootDir(handle)
+
+    emit('openRootDir', rootDir)
   }
 })
 </script>

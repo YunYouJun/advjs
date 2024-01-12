@@ -1,6 +1,7 @@
 import path, { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
+import dts from 'vite-plugin-dts'
 
 import vue from '@vitejs/plugin-vue'
 import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js'
@@ -13,6 +14,8 @@ export default defineConfig({
 
     // css in js
     cssInjectedByJsPlugin(),
+
+    dts(),
   ],
 
   build: {

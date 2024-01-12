@@ -1,14 +1,16 @@
 {
   "name": "@advjs/gui",
   "type": "module",
-  "version": "0.0.3-beta.8",
+  "version": "0.0.3-beta.9",
   "repository": {
     "url": "https://github.com/YunYouJun/advjs/tree/main/packages/gui",
     "type": "git"
   },
   "exports": {
+    "./client/*": "./client/*",
     "./components/*": "./client/components/*",
     "./nuxt": "./nuxt.mjs",
+    "./runtime": "./index.ts",
     "./node": {
       "types": "./dist/node/index.d.ts",
       "import": "./dist/node/index.mjs",
@@ -19,15 +21,15 @@
       "import": "./dist/unocss/index.mjs",
       "require": "./dist/unocss/index.cjs"
     },
+    "./*": "./*",
     ".": {
       "import": "./dist/agui.js",
       "require": "./dist/agui.umd.cjs"
-    },
-    "./*": "./*"
+    }
   },
   "main": "./dist/agui.umd.cjs",
   "module": "./dist/agui.js",
-  "types": "./dist/client/types/index.d.ts",
+  "types": "./dist/client/index.d.ts",
   "scripts": {
     "build": "npm run build:lib && npm run build:icons && npm run build:node",
     "build:node": "unbuild",
@@ -50,6 +52,7 @@
   },
   "devDependencies": {
     "vite-plugin-css-injected-by-js": "^3.3.1",
+    "vite-plugin-dts": "^3.7.0",
     "vue-tsc": "^1.8.27"
   }
 }

@@ -7,7 +7,7 @@ import { useEventListener } from '@vueuse/core'
 
 import AGUITree from '../tree/AGUITree.vue'
 import AGUISlider from '../AGUISlider.vue'
-import { curDir, curFileList, getBreadcrumbItems, listFilesInDir, saveFile, tree } from '../../composables'
+import { curDir, curFileList, getBreadcrumbItems, listFilesInDir, rootDir, saveFile, tree } from '../../composables'
 import AGUIBreadcrumb from '../breadcrumb/AGUIBreadcrumb.vue'
 import { sortFSItems } from '../../utils'
 import AGUIFileList from './AGUIFileList.vue'
@@ -25,7 +25,10 @@ const props = withDefaults(defineProps<{
   fileList: [] as any,
 })
 
-const emit = defineEmits(['treeNodeActivate'])
+const emit = defineEmits([
+  'treeNodeActivate',
+  'openRootDir',
+])
 
 provide(AGUIAssetsExplorerSymbol, {
   onDblClick: props.onDblClick,
@@ -85,7 +88,8 @@ useEventListener(explorerContent, 'drop', async (e) => {
     return
 
   const fileItems: FSFileItem[] = []
-  for (const file of files) {
+  const filesArray = Array.from(files)
+  for (const file of filesArray) {
     const handle = await curDirHandle.getFileHandle(file.name, {
       create: true,
     })
@@ -149,6 +153,10 @@ useEventListener(explorerContent, 'drop', async (e) => {
     })
   }
 })
+
+function onOpenRootDir() {
+  emit('openRootDir', rootDir)
+}
 </script>
 
 <template>
@@ -162,7 +170,7 @@ useEventListener(explorerContent, 'drop', async (e) => {
           :data="tree"
           @node-activate="onNodeActivated"
         />
-        <AGUIOpenDirectory v-else />
+        <AGUIOpenDirectory v-else @open-root-dir="onOpenRootDir" />
       </Pane>
 
       <Pane>
