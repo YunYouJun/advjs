@@ -24,3 +24,5 @@ export const safelist: string[] = [
   'i-vscode-icons-file-type-html',
   'i-vscode-icons-file-type-yaml',
 ]
+
+export const vscodeFolderIcon = 'i-vscode-icons-default-folder'

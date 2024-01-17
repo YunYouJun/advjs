@@ -24,7 +24,8 @@ defineProps<{
         class="border-none outline-none"
       >
         <div
-          class="agui-tab-btn h-full inline-flex cursor-pointer items-center justify-center text-xs text-white" :class="[
+          class="agui-tab-btn h-full inline-flex cursor-pointer items-center justify-center text-xs text-white"
+          :class="[
             selected
               ? 'active bg-$agui-c-bg-panel text-white'
               : 'op-80',
@@ -42,3 +43,15 @@ defineProps<{
     </TabPanels>
   </TabGroup>
 </template>
+
+<style lang="scss">
+.agui-tab-list {
+  height: var(--agui-tab-list-height, 20px);
+  line-height: 1.4;
+
+  .active {
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+  }
+}
+</style>

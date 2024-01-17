@@ -1,11 +1,10 @@
 <script lang="ts" setup>
-import { computed, inject, ref, watch, watchEffect } from 'vue'
+import { computed, ref, watch, watchEffect } from 'vue'
 import { onClickOutside, useEventListener } from '@vueuse/core'
 import { getFiletypeFromPath, getIconFromFileType, isImage } from '../../utils/fs'
-import { curDir, curFileList, listFilesInDir } from '../../composables'
+import { listFilesInDir, useAGUIAssetsExplorerState } from '../../composables'
 
 import type { FSDirItem, FSItem } from './types'
-import { AGUIAssetsExplorerSymbol } from './index'
 
 const props = withDefaults(defineProps<{
   item: FSItem
@@ -14,8 +13,7 @@ const props = withDefaults(defineProps<{
   size: 32,
 })
 
-const state = inject(AGUIAssetsExplorerSymbol)
-
+const state = useAGUIAssetsExplorerState()
 const active = ref(false)
 watch(() => props.item, () => {
   active.value = false
@@ -43,6 +41,7 @@ function onDragStart(e: DragEvent) {
   e.dataTransfer?.setData('item', JSON.stringify(props.item))
 }
 
+const { curDir, curFileList } = useAGUIAssetsExplorerState()
 useEventListener(fileItemRef, 'dragstart', onDragStart)
 useEventListener(fileItemRef, 'dblclick', async () => {
   const item = props.item
@@ -86,11 +85,14 @@ async function getIconFromFSItem(item: FSItem) {
     return item.icon
 
   const handle = item.handle
+  if (!handle)
+    return
+
   if (handle.kind === 'directory') {
     return 'i-vscode-icons-default-folder'
   }
-  else if (item.handle.kind === 'file') {
-    const { name = '', handle } = item
+  else if (handle.kind === 'file') {
+    const { name = '' } = item
     if (isImage(name)) {
       // 从 handle 读取缩略图
       const file = await handle.getFile()

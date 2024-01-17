@@ -11,7 +11,7 @@ export interface FSBaseItem {
 export interface FSFileItem extends FSBaseItem {
   kind: 'file'
   file?: File
-  handle: FileSystemFileHandle
+  handle?: FileSystemFileHandle
 }
 
 export interface FSDirItem extends FSBaseItem {

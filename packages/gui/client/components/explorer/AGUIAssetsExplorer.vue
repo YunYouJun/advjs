@@ -7,7 +7,7 @@ import { useEventListener } from '@vueuse/core'
 
 import AGUITree from '../tree/AGUITree.vue'
 import AGUISlider from '../AGUISlider.vue'
-import { curDir, curFileList, getBreadcrumbItems, listFilesInDir, rootDir, saveFile, tree } from '../../composables'
+import { AGUIAssetsExplorerSymbol, curDir, curFileList, getBreadcrumbItems, listFilesInDir, rootDir, saveFile, tree } from '../../composables'
 import AGUIBreadcrumb from '../breadcrumb/AGUIBreadcrumb.vue'
 import { sortFSItems } from '../../utils'
 import AGUIFileList from './AGUIFileList.vue'
@@ -15,11 +15,10 @@ import AGUIOpenDirectory from './AGUIOpenDirectory.vue'
 import AGUIExplorerControls from './AGUIExplorerControls.vue'
 
 import type { FSDirItem, FSFileItem, FSItem } from './types'
-import { AGUIAssetsExplorerSymbol } from './index'
 
 const props = withDefaults(defineProps<{
   fileList?: FSItem[]
-  onFileDrop?: (files: FSFileItem[]) => void | Promise<void>
+  onFileDrop?: (files: FSFileItem[]) => (FSFileItem[] | Promise<FSFileItem[]>)
   onDblClick?: (item: FSItem) => void | Promise<void>
 }>(), {
   fileList: [] as any,
@@ -30,9 +29,16 @@ const emit = defineEmits([
   'openRootDir',
 ])
 
-provide(AGUIAssetsExplorerSymbol, {
+const state = {
+  rootDir,
+  curDir,
+  curFileList,
+  tree,
+
   onDblClick: props.onDblClick,
-})
+}
+provide(AGUIAssetsExplorerSymbol, state)
+defineExpose(state)
 
 const size = ref(64)
 if (props.fileList)
@@ -57,7 +63,7 @@ async function onNodeActivated(node: FSItem) {
 }
 
 const breadcrumbItems = computed(() => {
-  return getBreadcrumbItems(curDir.value)
+  return getBreadcrumbItems(curDir, curFileList)
 })
 const explorerContent = ref<HTMLDivElement>()
 
@@ -87,17 +93,13 @@ useEventListener(explorerContent, 'drop', async (e) => {
   if (!curDirHandle)
     return
 
-  const fileItems: FSFileItem[] = []
+  let fileItems: FSFileItem[] = []
   const filesArray = Array.from(files)
   for (const file of filesArray) {
-    const handle = await curDirHandle.getFileHandle(file.name, {
-      create: true,
-    })
     fileItems.push({
       name: file.name,
       kind: 'file',
       file,
-      handle,
       parent: curDir.value,
     })
   }
@@ -107,7 +109,7 @@ useEventListener(explorerContent, 'drop', async (e) => {
     return
 
   if (props.onFileDrop) {
-    await props.onFileDrop(fileItems)
+    fileItems = await props.onFileDrop(fileItems)
 
     // solve file name conflict
     const sameNameItems = fileItems.filter((fi) => {
@@ -115,6 +117,7 @@ useEventListener(explorerContent, 'drop', async (e) => {
         return fi.name === ci.name
       })
     })
+
     // index++
     sameNameItems.forEach((item) => {
       let name = item.name
@@ -145,7 +148,7 @@ useEventListener(explorerContent, 'drop', async (e) => {
   else {
     for (const fileItem of fileItems) {
       if (fileItem.file)
-        await saveFile(fileItem.file)
+        await saveFile(fileItem.file, curDirHandle)
     }
 
     curFileList.value = await listFilesInDir(dir, {
