@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { AGUIInput } from '..'
+import AGUIInput from '../AGUIInput.vue'
 </script>
 
 <template>

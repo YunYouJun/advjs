@@ -31,7 +31,7 @@ const defaultLayout: AGUILayoutType = {
           ],
         },
         {
-          name: 'left-bottom',
+          name: 'project',
           size: 36,
         },
       ],

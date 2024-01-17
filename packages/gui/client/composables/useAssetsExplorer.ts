@@ -1,14 +1,9 @@
 import type { InjectionKey, Ref } from 'vue'
-import { inject, ref } from 'vue'
-import { sortFSItems } from '../utils'
-import type { FSDirItem, FSItem } from '../components/explorer/types'
+import { computed, inject } from 'vue'
+import type { FSDirItem, FSFileItem, FSItem } from '../components/explorer/types'
 import type { AGUIBreadcrumbItem } from '../components/breadcrumb/types'
 import type { TreeNode } from '../components/tree/types'
-
-export const rootDir = ref<FSDirItem>()
-export const curDir = ref<FSDirItem>()
-export const curFileList = ref<FSItem[]>([])
-export const tree = ref()
+import { sortFSItems } from '../utils'
 
 export const AGUIAssetsExplorerSymbol: InjectionKey<{
   rootDir: Ref<FSDirItem | undefined>
@@ -17,6 +12,16 @@ export const AGUIAssetsExplorerSymbol: InjectionKey<{
   tree: Ref<TreeNode>
 
   onDblClick?: (item: FSItem) => void | Promise<void>
+  onFileDblClick?: (item: FSFileItem) => void | Promise<void>
+  onDirDblClick?: (item: FSDirItem) => void | Promise<void>
+
+  // ctx
+  emit: (event: 'update:curDir' | 'update:rootDir' | 'update:tree', value: FSDirItem) => void
+  | ((event: 'update:curFileList', value: FSItem[]) => void)
+
+  setCurDir: (dir: FSDirItem) => void
+  setCurFileList: (list: FSItem[]) => void
+  setRootDir: (dir: FSDirItem) => void
 }> = Symbol('AGUIAssetsExplorer')
 
 export function useAGUIAssetsExplorerState() {
@@ -101,48 +106,36 @@ export async function listFilesInDir(dir: FSDirItem, options: {
     }
   }
 
-  return files
+  return sortFSItems(files)
 }
 
-export async function openRootDir(dirHandle: FileSystemDirectoryHandle) {
-  // const { curDir, curFileList, rootDir, tree } = useAGUIAssetsExplorerState()
+export async function openRootDir(dirHandle: FileSystemDirectoryHandle, state: ReturnType<typeof useAGUIAssetsExplorerState>) {
+  const { curFileList, tree, setCurFileList, setCurDir, setRootDir } = state
   const dir = getDirItemFromHandle(dirHandle)
   if (!dir)
     return
-  curDir.value = dir
-  rootDir.value = dir
+
+  setCurDir(dir)
+  setRootDir(dir)
 
   const list = await listFilesInDir(dir, {
     showFiles: true,
   })
+  setCurFileList(list)
 
-  curFileList.value = sortFSItems(list)
   tree.value = {
     name: dir.name,
     handle: dir.handle,
-    children: curFileList,
+    children: curFileList.value,
     expanded: true,
-  }
-}
-
-/**
- * click icon to open root dir
- */
-export async function onOpenDir() {
-  try {
-    const dirHandle = await window.showDirectoryPicker()
-    await openRootDir(dirHandle)
-  }
-  catch (e) {
-    // user abort
-    console.error(e)
   }
 }
 
 /**
  * get breadcrumb items from curDir
  */
-export function getBreadcrumbItems(curDir: Ref<FSDirItem | undefined>, curFileList: Ref<FSItem[]>) {
+export function getBreadcrumbItems(state: ReturnType<typeof useAGUIAssetsExplorerState>) {
+  const { curDir, setCurDir, setCurFileList } = state
   let tempDir = curDir.value
   const items: AGUIBreadcrumbItem[] = []
   while (tempDir) {
@@ -150,13 +143,21 @@ export function getBreadcrumbItems(curDir: Ref<FSDirItem | undefined>, curFileLi
     items.unshift({
       label: dir.name || '',
       onClick: async () => {
-        curDir.value = dir
-        curFileList.value = await listFilesInDir(dir, {
+        setCurDir(dir)
+        setCurFileList(await listFilesInDir(dir, {
           showFiles: true,
-        })
+        }))
       },
     })
     tempDir = tempDir.parent
   }
   return items
+}
+
+export function useAGUIAssetsExplorer(state: ReturnType<typeof useAGUIAssetsExplorerState>) {
+  const breadcrumbItems = computed(() => getBreadcrumbItems(state))
+
+  return {
+    breadcrumbItems,
+  }
 }

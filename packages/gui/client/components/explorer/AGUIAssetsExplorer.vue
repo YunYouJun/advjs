@@ -1,13 +1,13 @@
 <script lang="ts" setup>
 import './explorer.scss'
 
-import { computed, provide, ref } from 'vue'
+import { provide, ref } from 'vue'
 import { Pane, Splitpanes } from 'splitpanes'
 import { useEventListener } from '@vueuse/core'
 
 import AGUITree from '../tree/AGUITree.vue'
 import AGUISlider from '../AGUISlider.vue'
-import { AGUIAssetsExplorerSymbol, curDir, curFileList, getBreadcrumbItems, listFilesInDir, rootDir, saveFile, tree } from '../../composables'
+import { AGUIAssetsExplorerSymbol, listFilesInDir, saveFile, useAGUIAssetsExplorer } from '../../composables'
 import AGUIBreadcrumb from '../breadcrumb/AGUIBreadcrumb.vue'
 import { sortFSItems } from '../../utils'
 import AGUIFileList from './AGUIFileList.vue'
@@ -16,18 +16,62 @@ import AGUIExplorerControls from './AGUIExplorerControls.vue'
 
 import type { FSDirItem, FSFileItem, FSItem } from './types'
 
-const props = withDefaults(defineProps<{
-  fileList?: FSItem[]
+const props = defineProps<{
+  /**
+   * init folder
+   */
+  rootDir?: FSDirItem
+  curDir?: FSDirItem
+  /**
+   * current file list
+   */
+  curFileList?: FSItem[]
+  tree?: any
+  /**
+   * when open root dir
+   */
+  onOpenRootDir?: (dir: FSDirItem) => void | Promise<void>
   onFileDrop?: (files: FSFileItem[]) => (FSFileItem[] | Promise<FSFileItem[]>)
   onDblClick?: (item: FSItem) => void | Promise<void>
-}>(), {
-  fileList: [] as any,
-})
+  /**
+   * dblclick file in file list
+   */
+  onFileDblClick?: (item: FSFileItem) => void | Promise<void>
+  /**
+   * dblclick dir in file list
+   */
+  onDirDblClick?: (item: FSDirItem) => void | Promise<void>
+}>()
 
 const emit = defineEmits([
   'treeNodeActivate',
   'openRootDir',
+
+  'update:rootDir',
+  'update:curDir',
+  'update:curFileList',
+  'update:tree',
 ])
+
+const rootDir = ref<FSDirItem | undefined>(props.rootDir)
+const curDir = ref<FSDirItem | undefined>(props.curDir)
+const curFileList = ref<FSItem[]>(props.curFileList || [])
+const tree = ref(props.tree || {})
+
+function setRootDir(dir: FSDirItem) {
+  rootDir.value = dir
+  emit('update:rootDir', dir)
+}
+
+function setCurDir(dir: FSDirItem) {
+  curDir.value = dir
+  emit('update:curDir', dir)
+}
+
+function setCurFileList(list: FSItem[]) {
+  curFileList.value = list
+  emit('update:curFileList', list)
+}
 
 const state = {
   rootDir,
@@ -36,13 +80,19 @@ const state = {
   tree,
 
   onDblClick: props.onDblClick,
+  onFileDblClick: props.onFileDblClick,
+  onDirDblClick: props.onDirDblClick,
+
+  emit,
+
+  setCurDir,
+  setCurFileList,
+  setRootDir,
 }
 provide(AGUIAssetsExplorerSymbol, state)
 defineExpose(state)
 
 const size = ref(64)
-if (props.fileList)
-  curFileList.value = props.fileList
 
 /**
  * click dir in tree
@@ -55,16 +105,15 @@ async function onNodeActivated(node: FSItem) {
     const list = await listFilesInDir(node as FSDirItem, {
       showFiles: true,
     })
-    curDir.value = node as FSDirItem
-    curFileList.value = list
+
+    setCurDir(node as FSDirItem)
+    setCurFileList(list)
   }
 
   emit('treeNodeActivate', node)
 }
 
-const breadcrumbItems = computed(() => {
-  return getBreadcrumbItems(curDir, curFileList)
-})
+const { breadcrumbItems } = useAGUIAssetsExplorer(state)
 const explorerContent = ref<HTMLDivElement>()
 
 const isDragging = ref(false)
@@ -141,9 +190,9 @@ useEventListener(explorerContent, 'drop', async (e) => {
       item.name = name
     })
 
-    curFileList.value = sortFSItems(
+    setCurFileList(sortFSItems(
       curFileList.value.concat(fileItems),
-    )
+    ))
   }
   else {
     for (const fileItem of fileItems) {
@@ -151,29 +200,27 @@ useEventListener(explorerContent, 'drop', async (e) => {
         await saveFile(fileItem.file, curDirHandle)
     }
 
-    curFileList.value = await listFilesInDir(dir, {
+    setCurFileList(await listFilesInDir(dir, {
       showFiles: true,
-    })
+    }))
   }
 })
-
-function onOpenRootDir() {
-  emit('openRootDir', rootDir)
-}
 </script>
 
 <template>
   <div class="agui-assets-explorer">
     <AGUIExplorerControls />
-    <Splitpanes class="h-$agui-explorer-main-content-height!">
-      <Pane size="20">
-        <AGUITree
-          v-if="tree"
-          class="h-full w-full"
-          :data="tree"
-          @node-activate="onNodeActivated"
-        />
-        <AGUIOpenDirectory v-else @open-root-dir="onOpenRootDir" />
+    <Splitpanes style="height: calc(100% - var(--agui-explorer-controls-height));">
+      <Pane size="24">
+        <div class="tree-container h-full w-full overflow-auto">
+          <AGUITree
+            v-if="tree && rootDir"
+            class="h-full w-full"
+            :data="tree"
+            @node-activate="onNodeActivated"
+          />
+          <AGUIOpenDirectory v-else :on-open-root-dir="onOpenRootDir" />
+        </div>
       </Pane>
 
       <Pane>

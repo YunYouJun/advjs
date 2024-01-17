@@ -1,0 +1,21 @@
+/* 整个滚动条 */
+::-webkit-scrollbar {
+  width: 10px; /* 滚动条的宽度 */
+  height: 10px; /* 滚动条的高度，水平滚动条时使用 */
+}
+
+/* 滚动条轨道 */
+::-webkit-scrollbar-track {
+  background: #333; /* 轨道的颜色 */
+}
+
+/* 滚动条的滑块 */
+::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background: #888; /* 滑块的颜色 */
+}
+
+/* 滑块hover效果 */
+::-webkit-scrollbar-thumb:hover {
+  background: #555; /* 滑块hover时的颜色 */
+}

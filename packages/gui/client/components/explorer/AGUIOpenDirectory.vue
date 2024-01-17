@@ -2,14 +2,16 @@
 import { useEventListener } from '@vueuse/core'
 import { ref } from 'vue'
 import AGUIOverlay from '../AGUIOverlay.vue'
-import { onOpenDir, openRootDir, useAGUIAssetsExplorerState } from '../../composables'
+import { openRootDir, useAGUIAssetsExplorerState } from '../../composables'
 import { vscodeFolderIcon } from '../../../unocss'
+import type { FSDirItem } from './types'
 
-const emit = defineEmits([
-  'openRootDir',
-])
+const props = defineProps<{
+  onOpenRootDir?: (dir?: FSDirItem) => void | Promise<void>
+}>()
 
-const { rootDir } = useAGUIAssetsExplorerState()
+const state = useAGUIAssetsExplorerState()
+const { rootDir } = state
 const isDragging = ref(false)
 
 const openDirectoryRef = ref<HTMLDivElement>()
@@ -33,10 +35,26 @@ useEventListener(openDirectoryRef, 'drop', async (e) => {
   const dirHandle = await e.dataTransfer?.items[0].getAsFileSystemHandle()
   if (dirHandle?.kind === 'directory') {
     const handle = dirHandle as FileSystemDirectoryHandle
-    await openRootDir(handle)
-    emit('openRootDir', rootDir)
+    // emit before set curDir to before open-directory component unmount
+    await openRootDir(handle, state)
+    props.onOpenRootDir?.(rootDir.value)
   }
 })
+
+/**
+ * click icon to open root dir
+ */
+async function onOpenDir(state: ReturnType<typeof useAGUIAssetsExplorerState>) {
+  try {
+    const dirHandle = await window.showDirectoryPicker()
+    await openRootDir(dirHandle, state)
+    props.onOpenRootDir?.(rootDir.value)
+  }
+  catch (e) {
+    // user abort
+    console.error(e)
+  }
+}
 </script>
 
 <template>
@@ -44,7 +62,7 @@ useEventListener(openDirectoryRef, 'drop', async (e) => {
     <div class="icon cursor-pointer text-6xl">
       <div
         :class="vscodeFolderIcon"
-        @click="onOpenDir"
+        @click="onOpenDir(state)"
       />
     </div>
     <div class="text-base">

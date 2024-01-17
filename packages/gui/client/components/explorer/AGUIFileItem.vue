@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import { computed, ref, watch, watchEffect } from 'vue'
 import { onClickOutside, useEventListener } from '@vueuse/core'
-import { getFiletypeFromPath, getIconFromFileType, isImage } from '../../utils/fs'
 import { listFilesInDir, useAGUIAssetsExplorerState } from '../../composables'
+import { getIconFromFSItem } from './utils'
 
-import type { FSDirItem, FSItem } from './types'
+import type { FSDirItem, FSFileItem, FSItem } from './types'
 
 const props = withDefaults(defineProps<{
   item: FSItem
@@ -41,7 +41,6 @@ function onDragStart(e: DragEvent) {
   e.dataTransfer?.setData('item', JSON.stringify(props.item))
 }
 
-const { curDir, curFileList } = useAGUIAssetsExplorerState()
 useEventListener(fileItemRef, 'dragstart', onDragStart)
 useEventListener(fileItemRef, 'dblclick', async () => {
   const item = props.item
@@ -61,52 +60,35 @@ useEventListener(fileItemRef, 'dblclick', async () => {
   }
 
   if (item.handle.kind === 'directory') {
-    const list = await listFilesInDir(item as FSDirItem, {
-      showFiles: true,
-    })
-    curDir.value = item as FSDirItem
-    curFileList.value = list
+    const dir = item as FSDirItem
+    if (state.onDirDblClick) {
+      await state.onDirDblClick?.(dir)
+    }
+    else {
+      const list = await listFilesInDir(dir, {
+        showFiles: true,
+      })
+      state.setCurDir(dir)
+      state.setCurFileList(list)
+    }
   }
   else if (item.handle.kind === 'file') {
-    // open
-    const file = await item.handle.getFile()
-    const url = URL.createObjectURL(file)
-    window.open(url)
+    const fileItem = item as FSFileItem
+    if (state.onFileDblClick) {
+      await state.onFileDblClick?.(fileItem)
+    }
+    else {
+      // open
+      const file = await fileItem.handle?.getFile()
+      if (!file)
+        return
+      const url = URL.createObjectURL(file)
+      window.open(url)
+    }
   }
 })
 
 const fileIcon = ref(props.item.icon)
-
-/**
- * get icon from fs item
- */
-async function getIconFromFSItem(item: FSItem) {
-  if (item.icon)
-    return item.icon
-
-  const handle = item.handle
-  if (!handle)
-    return
-
-  if (handle.kind === 'directory') {
-    return 'i-vscode-icons-default-folder'
-  }
-  else if (handle.kind === 'file') {
-    const { name = '' } = item
-    if (isImage(name)) {
-      // 从 handle 读取缩略图
-      const file = await handle.getFile()
-      const imageUrl = URL.createObjectURL(file)
-      return imageUrl
-    }
-  }
-
-  const name = item.name || ''
-  const ext = getFiletypeFromPath(name)
-  const icon = getIconFromFileType(ext)
-  return icon
-}
-
 watchEffect(async () => {
   fileIcon.value = await getIconFromFSItem(props.item)
 })

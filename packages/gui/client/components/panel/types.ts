@@ -1,4 +1,4 @@
-import type { Vector } from 'client/types'
+import type { Vector } from '../../types'
 import type { AGUIAccordionProps } from '../accordion/types'
 
 export interface AGUIPanelPropertyProps {

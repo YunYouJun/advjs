@@ -9,14 +9,11 @@ const app = useAppStore()
 </script>
 
 <template>
-  <main class="h-screen w-screen">
-    <div>
-      <AGUIMenubar />
-    </div>
-
+  <main class="h-screen w-screen flex flex-col">
+    <AGUIMenubar />
     <EditorToolbar />
 
-    <AGUILayout v-model:layout="app.layout">
+    <AGUILayout v-model:layout="app.layout" class="flex">
       <template #right>
         <PanelInspector />
       </template>
@@ -29,7 +26,7 @@ const app = useAppStore()
         <PanelScene />
       </template>
 
-      <template #left-bottom>
+      <template #project>
         <PanelProject />
       </template>
     </AGUILayout>

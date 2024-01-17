@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type FSFileItem, saveFile } from '@advjs/gui'
+import type { FSDirItem, FSFileItem } from '@advjs/gui'
 import { ref } from 'vue'
 
 const tabList = ref([
@@ -8,20 +8,30 @@ const tabList = ref([
 ])
 
 async function onFileDrop(files: FSFileItem[]) {
-  // console.log(files)
-  for (const file of files) {
-    if (file.file)
-      await saveFile(file.file, curDir.value?.handle)
-  }
+  // const curDir = explorerRef.value?.curDir
+  // console.log(curDir)
+  // console.log(curDir.value?.handle)
+
+  // for (const file of files) {
+  //   if (file.file)
+  //     await saveFile(file.file, curDir.value.handle)
+  // }
   return files
 }
+
+const curDir = ref<FSDirItem>()
+const rootDir = ref<FSDirItem>()
 </script>
 
 <template>
   <AGUIPanel w="full" h="full">
     <AGUITabs :list="tabList">
       <AGUITabPanel>
-        <AGUIAssetsExplorer :on-file-drop="onFileDrop" />
+        <AGUIAssetsExplorer
+          v-model:cur-dir="curDir"
+          v-model:root-dir="rootDir"
+          :on-file-drop="onFileDrop"
+        />
         <slot name="project" />
       </AGUITabPanel>
       <AGUITabPanel>
