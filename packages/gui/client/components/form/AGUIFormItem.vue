@@ -16,8 +16,14 @@ defineProps<{
     >
       {{ label }}
     </label>
-    <div class="flex flex-1" items-center>
+    <div class="w-2/3 flex flex-1" items-center>
       <slot />
     </div>
   </div>
 </template>
+
+<style lang="scss">
+.agui-label {
+  font-size: 12px;
+}
+</style>

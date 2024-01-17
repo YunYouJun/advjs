@@ -16,11 +16,11 @@
   },
   "dependencies": {
     "@types/mdast": "4.0.3",
-    "@unhead/vue": "^1.8.9",
-    "@vueuse/core": "^10.7.1",
+    "@unhead/vue": "^1.8.10",
+    "@vueuse/core": "^10.7.2",
     "monaco-editor": "^0.45.0",
     "pinia": "^2.1.7",
-    "vue": "^3.4.10",
+    "vue": "^3.4.14",
     "vue-router": "^4.2.5",
     "wc-github-corners": "^0.1.6"
   },

@@ -2,8 +2,8 @@
 import { ref } from 'vue'
 
 const tabList = ref([
-  { title: 'Project', key: 'project', icon: 'i-ri-folder-line' },
-  { title: 'Console', key: 'console', icon: 'i-ri-terminal-box-line' },
+  { title: 'Project', key: 'project', icon: 'i-ri-folder-fill' },
+  { title: 'Console', key: 'console', icon: 'i-ri-terminal-box-fill' },
 ])
 </script>
 

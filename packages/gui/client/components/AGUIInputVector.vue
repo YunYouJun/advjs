@@ -12,7 +12,7 @@ const emit = defineEmits<{
 
 const length = computed(() => Object.keys(props.modelValue || {}).length)
 const styles = computed(() => ({
-  width: `${1 / length.value * 100}%`,
+  'grid-template-columns': `repeat(${length.value}, minmax(0, 1fr))`,
 }))
 
 function updateModelValue(val: number, key: keyof Vector) {
@@ -23,19 +23,20 @@ function updateModelValue(val: number, key: keyof Vector) {
 </script>
 
 <template>
-  <div flex="~ 1" gap="2" items-center justify-center>
+  <div class="agui-input-vector grid" :style="styles" items-center justify-center>
     <div
       v-for="(_, key) in modelValue" :key="key"
       class="axis inline-flex text-left"
-      :style="styles"
     >
       <label
         :for="key"
-        class="text-xs text-$agui-c-text-1"
-        mr-2 inline-flex items-center justify-start uppercase
+        class="ml-3px w-1rem text-xs text-$agui-c-text-1"
+        inline-flex items-center justify-start uppercase
       >{{ key }}
       </label>
       <AGUIInputNumber
+        class="flex-grow"
+        style="width:calc(100% - 30px)"
         :name="key"
         :label="`${key}`"
         :model-value="modelValue![key]"
@@ -44,3 +45,18 @@ function updateModelValue(val: number, key: keyof Vector) {
     </div>
   </div>
 </template>
+
+<style lang="scss">
+.agui-input-vector {
+  .axis {
+    .agui-input {
+      margin-right: 4px;
+    }
+    &:last-child {
+      .agui-input {
+        margin-right: 0;
+      }
+    }
+  }
+}
+</style>

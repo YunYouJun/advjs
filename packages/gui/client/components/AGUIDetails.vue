@@ -1,15 +1,20 @@
 <script lang="ts" setup>
-defineProps<{ title: string }>()
+defineProps<{
+  icon?: string
+  title: string
+}>()
 </script>
 
 <template>
   <details class="agui-details w-full">
     <slot name="summary">
       <summary
-        class="agui-summary text-$agui-c-text-1"
-        cursor-pointer text-xs font-bold
+        class="agui-summary text-$agui-c-text-1 leading-3 shadow-sm"
+        cursor-pointer text-xs
       >
-        <span ml-1>
+        <!-- <div :class="collapse" /> -->
+        <div v-if="icon" class="mx-1 inline-block" :class="icon" />
+        <span ml-1 class="title">
           {{ title }}
         </span>
       </summary>
@@ -22,6 +27,34 @@ defineProps<{ title: string }>()
 
 <style lang="scss">
 .agui-details {
+  border-top: 1px solid var(--agui-c-border);
+
+  .agui-summary {
+    // display: flex;
+    align-items: center;
+
+    // list-style: inside disclosure-closed;
+
+    margin: 0;
+    padding: 2px;
+    padding-left: 8px;
+    user-select: none;
+    background-color: var(--agui-c-bg-summary, rgba(62, 62, 62, 1));
+    &:hover {
+      background-color: var(--agui-c-bg-hover);
+    }
+
+    .title {
+      display: inline-flex;
+      line-height: 1.5;
+    }
+
+    &::-webkit-details-marker {
+      color: red;
+      background: white;
+    }
+  }
+
   > .content {
     padding-left: 20px;
     padding-right: 20px;

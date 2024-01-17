@@ -2,26 +2,3 @@ button {
   border: none;
   outline: none;
 }
-
-.agui-label {
-  font-size: 13px;
-}
-
-.agui-details {
-  &[open] summary {
-    background-color: var(--agui-c-bg-panel-title);
-
-    border-bottom: 1px solid var(--agui-c-border);
-  }
-
-  .agui-summary {
-    margin: 0;
-    padding: 4px;
-    padding-left: 8px;
-
-    &::-webkit-details-marker {
-      color: red;
-      background: white;
-    }
-  }
-}

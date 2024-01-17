@@ -90,6 +90,7 @@ function onNodeActivated(node: TreeNode) {
     <div class="content" :class="{ invisible: node.visible === false || visible === false }">
       <template v-if="node.children && node.children.length > 0">
         <Toggle
+          class="cursor-pointer text-xl"
           :icon="node.expanded ? 'expanded' : 'collapsed'"
           @click="node.expanded ? collapse([node]) : expand([node])"
         />
@@ -150,6 +151,11 @@ function onNodeActivated(node: TreeNode) {
 
 <style lang="scss">
 .agui-tree-node {
+  --agui-tree-node-c-bg: #282828;
+  --agui-tree-node-c-bg-hover: #333;
+}
+
+.agui-tree-node {
   display: flex;
   align-items: center;
   background: #282828;
@@ -158,6 +164,15 @@ function onNodeActivated(node: TreeNode) {
   padding-left: calc(var(--depth) * 15px);
   outline: none;
   padding-right: 4px;
+
+  &:hover {
+    background-color: var(--agui-tree-node-c-bg-hover);
+  }
+  &:nth-child(even) {
+    &:hover {
+      background-color: var(--agui-tree-node-c-bg-hover);
+    }
+  }
 
   &:nth-child(even) {
     background-color: #2b2b2b;

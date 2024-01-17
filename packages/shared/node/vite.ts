@@ -14,6 +14,7 @@ export const commonAlias: AliasOptions = {
   '@advjs/examples/': `${path.resolve(packagesFolder, 'examples')}/`,
 
   '@advjs/gui/': `${path.resolve(packagesFolder, 'gui')}/`,
+  '@advjs/gui': `${path.resolve(packagesFolder, 'gui/client/index.ts')}`,
 
   '@advjs/core': `${path.resolve(packagesFolder, 'core/src')}/`,
   '@advjs/parser/': `${path.resolve(packagesFolder, 'parser/src')}/`,
