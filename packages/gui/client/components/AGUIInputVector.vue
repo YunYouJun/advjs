@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { computed } from 'vue'
-import type { Vector } from '../types'
+import { computed, ref } from 'vue'
+import type { Vector, VectorKey } from '../types'
 
 const props = defineProps<{
   modelValue?: Vector
@@ -20,6 +20,23 @@ function updateModelValue(val: number, key: keyof Vector) {
   modelValue[key] = val
   emit('update:modelValue', modelValue)
 }
+
+function getBorderColor(key: VectorKey) {
+  switch (key) {
+    case 'x':
+      return 'border-l-red'
+    case 'y':
+      return 'border-l-green'
+    case 'z':
+      return 'border-l-blue'
+    case 'w':
+      return 'border-l-yellow'
+    default:
+      return ''
+  }
+}
+
+const active = ref('')
 </script>
 
 <template>
@@ -29,6 +46,9 @@ function updateModelValue(val: number, key: keyof Vector) {
       class="axis inline-flex text-left"
     >
       <label
+        :class="{
+          active: active === key,
+        }"
         :for="key"
         class="ml-3px w-1rem text-xs text-$agui-c-text-1"
         inline-flex items-center justify-start uppercase
@@ -36,11 +56,14 @@ function updateModelValue(val: number, key: keyof Vector) {
       </label>
       <AGUIInputNumber
         class="flex-grow"
+        :class="getBorderColor(key)"
         style="width:calc(100% - 30px)"
         :name="key"
         :label="`${key}`"
         :model-value="modelValue![key]"
         @update:model-value="updateModelValue($event, key)"
+        @click="active = key"
+        @blur="active = ''"
       />
     </div>
   </div>
@@ -49,6 +72,12 @@ function updateModelValue(val: number, key: keyof Vector) {
 <style lang="scss">
 .agui-input-vector {
   .axis {
+    label {
+      &.active {
+        color: var(--agui-c-focus);
+      }
+    }
+
     .agui-input {
       margin-right: 4px;
     }

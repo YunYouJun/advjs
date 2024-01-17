@@ -12,3 +12,4 @@ export interface Vector4 extends Vector3 {
 }
 
 export type Vector = Vector2 | Vector3 | Vector4
+export type VectorKey = 'x' | 'y' | 'z' | 'w'
