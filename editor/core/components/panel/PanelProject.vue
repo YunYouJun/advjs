@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type FSFileItem, curDir, saveFile } from '@advjs/gui/client'
+import type { FSFileItem } from '@advjs/gui/client'
 import { ref } from 'vue'
 
 const tabList = ref([
@@ -7,11 +7,12 @@ const tabList = ref([
   { title: 'Console', key: 'console', icon: 'i-ri-terminal-box-fill' },
 ])
 
-async function onFileDrop(files: FSFileItem[]) {
-  for (const file of files) {
-    if (file.file)
-      await saveFile(file.file, curDir.value?.handle)
-  }
+async function onFileDrop(_files: FSFileItem[]) {
+  // console.log(files)
+  // for (const file of files) {
+  //   if (file.file)
+  //     await saveFile(file.file, curDir.value?.handle)
+  // }
 }
 </script>
 

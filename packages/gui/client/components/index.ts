@@ -5,7 +5,9 @@ import AGUIDetails from './AGUIDetails.vue'
 import AGUIInput from './AGUIInput.vue'
 import AGUIInputNumber from './AGUIInputNumber.vue'
 import AGUIInputVector from './AGUIInputVector.vue'
-import AGUILayout from './AGUILayout.vue'
+
+import AGUILayout from './layout/AGUILayout.vue'
+
 import AGUINumberField from './AGUINumberField.vue'
 import AGUIPanel from './AGUIPanel.vue'
 import AGUIProperty from './AGUIProperty.vue'

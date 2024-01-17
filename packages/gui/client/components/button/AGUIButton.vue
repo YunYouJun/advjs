@@ -1,5 +1,20 @@
+<script lang="ts" setup>
+import { computed } from 'vue'
+
+const props = defineProps<{
+  size?: 'mini' | '' | 'large'
+}>()
+
+const classes = computed(() => {
+  const cls = []
+  if (props.size)
+    cls.push(props.size)
+  return cls
+})
+</script>
+
 <template>
-  <button class="agui-button">
+  <button :class="classes" class="agui-button">
     <slot />
   </button>
 </template>
@@ -11,7 +26,7 @@
 
 .agui-button {
   display: inline-flex;
-  font-size: 9px;
+  font-size: 12px;
 
   appearance: none;
   background: rgba(88, 88, 88, 1) no-repeat center center;
@@ -47,6 +62,10 @@
   &:active {
     background-color: #4772b3;
     color: #ffffff;
+  }
+
+  &.mini {
+    font-size: 9px;
   }
 }
 </style>

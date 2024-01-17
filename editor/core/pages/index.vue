@@ -1,24 +1,33 @@
 <script setup lang="ts">
+import { useAppStore } from '~/composables'
+
 definePageMeta({
   layout: 'editor',
 })
+
+const app = useAppStore()
 </script>
 
 <template>
   <main class="h-screen w-screen">
     <div>
-      <AGUIMenuBar />
+      <AGUIMenubar />
     </div>
-    <AGUILayout>
+
+    <EditorToolbar />
+
+    <AGUILayout v-model:layout="app.layout">
       <template #right>
         <PanelInspector />
       </template>
 
-      <template #left-top>
+      <template #hierarchy>
         <PanelHierarchy />
       </template>
 
-      <PanelScene />
+      <template #scene>
+        <PanelScene />
+      </template>
 
       <template #left-bottom>
         <PanelProject />
