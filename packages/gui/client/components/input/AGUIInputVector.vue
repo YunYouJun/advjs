@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, ref } from 'vue'
-import type { Vector, VectorKey } from '../types'
+import type { Vector, VectorKey } from '../../types'
 
 const props = defineProps<{
   modelValue?: Vector
@@ -40,7 +40,10 @@ const active = ref('')
 </script>
 
 <template>
-  <div class="agui-input-vector grid" :style="styles" items-center justify-center>
+  <div
+    class="agui-input-vector grid w-full" :style="styles"
+    items-center justify-between
+  >
     <div
       v-for="(_, key) in modelValue" :key="key"
       class="axis inline-flex text-left"

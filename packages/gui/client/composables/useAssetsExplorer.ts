@@ -14,6 +14,7 @@ export const AGUIAssetsExplorerSymbol: InjectionKey<{
   onDblClick?: (item: FSItem) => void | Promise<void>
   onFileDblClick?: (item: FSFileItem) => void | Promise<void>
   onDirDblClick?: (item: FSDirItem) => void | Promise<void>
+  onOpenRootDir?: (dir: FSDirItem) => void | Promise<void>
 
   // ctx
   emit: (event: 'update:curDir' | 'update:rootDir' | 'update:tree', value: FSDirItem) => void
@@ -159,5 +160,22 @@ export function useAGUIAssetsExplorer(state: ReturnType<typeof useAGUIAssetsExpl
 
   return {
     breadcrumbItems,
+  }
+}
+
+/**
+ * click icon to open root dir
+ */
+export async function onOpenDir(state: ReturnType<typeof useAGUIAssetsExplorerState>) {
+  try {
+    const dirHandle = await window.showDirectoryPicker()
+    await openRootDir(dirHandle, state)
+    const { rootDir } = state
+    if (state.onOpenRootDir && rootDir.value)
+      state.onOpenRootDir?.(rootDir.value)
+  }
+  catch (e) {
+    // user abort
+    console.error(e)
   }
 }

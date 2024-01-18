@@ -168,11 +168,6 @@ function onNodeActivated(node: TreeNode) {
   &:hover {
     background-color: var(--agui-tree-node-c-bg-hover);
   }
-  &:nth-child(even) {
-    &:hover {
-      background-color: var(--agui-tree-node-c-bg-hover);
-    }
-  }
 
   &:nth-child(even) {
     background-color: #2b2b2b;

@@ -15,6 +15,9 @@
     "generate": "nuxi generate",
     "start:generate": "npx serve .output/public"
   },
+  "dependencies": {
+    "@google/model-viewer": "^3.4.0"
+  },
   "devDependencies": {
     "@advjs/gui": "workspace:*",
     "@iconify-json/carbon": "^1.1.27",
@@ -30,7 +33,8 @@
     "@vueuse/nuxt": "^10.7.2",
     "baklavajs": "2.3.0",
     "consola": "^3.2.3",
-    "nuxt": "^3.9.2",
+    "nuxt": "^3.9.3",
+    "nuxt-monaco-editor": "git+https://github.com/jontybrook/nuxt-monaco-editor.git#patch1",
     "pinia": "^2.1.7"
   }
 }

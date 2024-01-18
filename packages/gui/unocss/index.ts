@@ -1,10 +1,12 @@
+export const vscodeFolderIcon = 'i-vscode-icons-default-folder'
+
 /**
  * vscode file icons
  * `pnpm add -D @iconify-json/vscode-icons`
  */
 export const safelist: string[] = [
   'i-vscode-icons-default-file',
-  'i-vscode-icons-default-folder',
+  vscodeFolderIcon,
   'i-vscode-icons-file-type-image',
   'i-vscode-icons-file-type-video',
   'i-vscode-icons-file-type-audio',
@@ -15,7 +17,10 @@ export const safelist: string[] = [
   'i-vscode-icons-file-type-zip',
   'i-vscode-icons-file-type-markdown',
   'i-vscode-icons-file-type-json',
+  'i-vscode-icons-file-type-binary',
   'i-vscode-icons-file-type-text',
+
+  'i-vscode-icons-file-type-fbx',
 
   'i-vscode-icons-file-type-vue',
   'i-vscode-icons-file-type-js',
@@ -24,5 +29,3 @@ export const safelist: string[] = [
   'i-vscode-icons-file-type-html',
   'i-vscode-icons-file-type-yaml',
 ]
-
-export const vscodeFolderIcon = 'i-vscode-icons-default-folder'

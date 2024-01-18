@@ -2,7 +2,7 @@
 import { useEventListener } from '@vueuse/core'
 import { ref } from 'vue'
 import AGUIOverlay from '../AGUIOverlay.vue'
-import { openRootDir, useAGUIAssetsExplorerState } from '../../composables'
+import { onOpenDir, openRootDir, useAGUIAssetsExplorerState } from '../../composables'
 import { vscodeFolderIcon } from '../../../unocss'
 import type { FSDirItem } from './types'
 
@@ -40,21 +40,6 @@ useEventListener(openDirectoryRef, 'drop', async (e) => {
     props.onOpenRootDir?.(rootDir.value)
   }
 })
-
-/**
- * click icon to open root dir
- */
-async function onOpenDir(state: ReturnType<typeof useAGUIAssetsExplorerState>) {
-  try {
-    const dirHandle = await window.showDirectoryPicker()
-    await openRootDir(dirHandle, state)
-    props.onOpenRootDir?.(rootDir.value)
-  }
-  catch (e) {
-    // user abort
-    console.error(e)
-  }
-}
 </script>
 
 <template>
@@ -66,7 +51,7 @@ async function onOpenDir(state: ReturnType<typeof useAGUIAssetsExplorerState>) {
       />
     </div>
     <div class="text-base">
-      Open a directory to start
+      Open a directory
     </div>
 
     <AGUIOverlay v-if="isDragging" class="pointer-events-none" />

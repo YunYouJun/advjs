@@ -2,9 +2,9 @@ import AGUICheckbox from './AGUICheckbox.vue'
 import AGUIColorPicker from './AGUIColorPicker.vue'
 import AGUIDetails from './AGUIDetails.vue'
 
-import AGUIInput from './AGUIInput.vue'
-import AGUIInputNumber from './AGUIInputNumber.vue'
-import AGUIInputVector from './AGUIInputVector.vue'
+import AGUIInput from './input/AGUIInput.vue'
+import AGUIInputNumber from './input/AGUIInputNumber.vue'
+import AGUIInputVector from './input/AGUIInputVector.vue'
 
 import AGUILayout from './layout/AGUILayout.vue'
 
@@ -33,9 +33,11 @@ export {
   AGUICheckbox,
   AGUIColorPicker,
   AGUIDetails,
+
   AGUIInput,
   AGUIInputNumber,
   AGUIInputVector,
+
   AGUILayout,
   AGUINumberField,
   AGUIPanel,

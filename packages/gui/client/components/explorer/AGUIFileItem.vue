@@ -82,8 +82,18 @@ useEventListener(fileItemRef, 'dblclick', async () => {
       const file = await fileItem.handle?.getFile()
       if (!file)
         return
+
       const url = URL.createObjectURL(file)
-      window.open(url)
+      // model
+      if (file.name.endsWith('gltf') || file.name.endsWith('glb')) {
+        const params = new URLSearchParams()
+        params.set('fileUrl', url)
+        params.set('type', 'gltf')
+        window.open(`/preview?${params.toString()}`)
+      }
+      else {
+        window.open(url)
+      }
     }
   }
 })

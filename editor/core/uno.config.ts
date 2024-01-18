@@ -7,7 +7,7 @@ import {
   transformerDirectives,
   transformerVariantGroup,
 } from 'unocss'
-import { safelist } from '@advjs/gui/unocss'
+import { safelist } from '../../packages/gui/unocss'
 
 export default defineConfig({
   shortcuts: [

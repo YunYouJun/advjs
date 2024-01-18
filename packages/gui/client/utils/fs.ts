@@ -49,6 +49,14 @@ export function isJSON(path: string) {
   return /\.(json)(\?.*)?$/.test(path.toLowerCase())
 }
 
+export function isGltf(path: string) {
+  return /\.(gltf)(\?.*)?$/.test(path.toLowerCase())
+}
+
+export function isGlb(path: string) {
+  return /\.(glb)(\?.*)?$/.test(path.toLowerCase())
+}
+
 /**
  * get file type from path
  */
@@ -68,7 +76,15 @@ export function getFiletypeFromPath(path: string) {
   if (isJSON(path))
     return 'json'
 
-  consola.warn('unknown file type:', path)
+  if (isGlb(path) || ['bin'].includes(ext))
+    return 'binary'
+
+  const knownExt = [
+    'fbx',
+    'gltf',
+  ]
+  if (!knownExt.includes(ext))
+    consola.warn('unknown file type:', path)
   return ext
 }
 
@@ -98,6 +114,7 @@ export function getIconFromFileType(filetype: string) {
       return 'i-vscode-icons-file-type-zip'
     case 'md':
       return 'i-vscode-icons-file-type-markdown'
+    case 'gltf':
     case 'json':
       return 'i-vscode-icons-file-type-json'
     case 'vue':
@@ -119,6 +136,11 @@ export function getIconFromFileType(filetype: string) {
     case 'yml':
       return 'i-vscode-icons-file-type-yaml'
 
+    case 'fbx':
+      return 'i-vscode-icons-file-type-fbx'
+
+    case 'binary':
+      return 'i-vscode-icons-file-type-binary'
     case 'text':
       return 'i-vscode-icons-file-type-text'
     default:

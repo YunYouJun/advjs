@@ -19,7 +19,7 @@ function updateModelValue(event: Event) {
 
 <template>
   <input
-    class="agui-input"
+    class="agui-input pr-0"
     type="number"
     :value="modelValue"
     :min="min"

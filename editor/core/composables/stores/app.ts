@@ -40,14 +40,14 @@ const defaultLayout: AGUILayoutType = {
       name: 'right',
       size: 25,
       min: 20,
-      max: 50,
+      max: 60,
     },
   ],
 }
 
 export const useAppStore = defineStore('app', () => {
   const pixiApp = shallowRef<PIXI.Application | null>(null)
-  const layout = useStorage('agui:layout', defaultLayout)
+  const layout = useStorage('agui:layout', JSON.parse(JSON.stringify(defaultLayout)))
 
   return {
     layout,
@@ -55,7 +55,7 @@ export const useAppStore = defineStore('app', () => {
 
     // todo extract layout store & useAGUILayout
     resetLayout() {
-      layout.value = defaultLayout
+      layout.value = JSON.parse(JSON.stringify(defaultLayout))
     },
   }
 })

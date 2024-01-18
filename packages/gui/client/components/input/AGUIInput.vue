@@ -13,7 +13,7 @@ function updateModelValue(event: any) {
 
 <template>
   <input
-    class="agui-input"
+    class="agui-input shadow shadow-inset"
     :value="modelValue"
     @input="updateModelValue"
   >

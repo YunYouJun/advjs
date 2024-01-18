@@ -24,6 +24,7 @@ export default defineNuxtConfig({
     '@vite-pwa/nuxt',
 
     '@advjs/gui/nuxt',
+    'nuxt-monaco-editor',
   ],
 
   experimental: {
@@ -83,5 +84,18 @@ export default defineNuxtConfig({
 
   devtools: {
     enabled: true,
+  },
+
+  vue: {
+    compilerOptions: {
+      isCustomElement: (tag: string) => {
+        const customElements = [
+          'model-viewer',
+        ]
+        const isFluent = tag.startsWith('fluent-')
+        return customElements.includes(tag) || isFluent
+      },
+    },
+    runtimeCompiler: true,
   },
 })

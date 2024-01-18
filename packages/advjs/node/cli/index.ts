@@ -183,7 +183,7 @@ cli.command(
       default: false,
       describe: 'build watch',
     })
-    .option('out', {
+    .option('output', {
       alias: 'o',
       type: 'string',
       default: 'dist',
@@ -195,7 +195,7 @@ cli.command(
     })
     .strict()
     .help(),
-  async ({ entry, theme, watch, base, out }) => {
+  async ({ entry, theme, watch, base, output }) => {
     const { build } = await import('../build')
 
     const options = await resolveOptions({ entry, theme }, 'build')
@@ -205,7 +205,7 @@ cli.command(
       base,
       build: {
         watch: watch ? {} : undefined,
-        outDir: out,
+        outDir: path.resolve(options.userRoot, output),
       },
     })
   },

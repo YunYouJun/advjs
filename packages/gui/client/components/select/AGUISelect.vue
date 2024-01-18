@@ -139,7 +139,7 @@ function onUpdateModelValue(value: string) {
   }
 
   &[data-placeholder] {
-    color: var(--grass-9);
+    color: var(--agui-c-text-1);
   }
 }
 

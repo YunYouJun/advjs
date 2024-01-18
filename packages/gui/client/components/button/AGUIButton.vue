@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 
 const props = defineProps<{
+  icon?: string
   size?: 'mini' | '' | 'large'
 }>()
 
@@ -15,6 +16,7 @@ const classes = computed(() => {
 
 <template>
   <button :class="classes" class="agui-button">
+    <div class="mr-1 inline-flex" :class="icon" />
     <slot />
   </button>
 </template>
@@ -26,13 +28,15 @@ const classes = computed(() => {
 
 .agui-button {
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 6px;
   font-size: 12px;
 
   appearance: none;
   background: rgba(88, 88, 88, 1) no-repeat center center;
   color: #e6e6e6;
-  padding-inline: 8px;
-  flex-shrink: 0;
   cursor: pointer;
 
   border-radius: var(--border-radius);

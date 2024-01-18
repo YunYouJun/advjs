@@ -1,6 +1,5 @@
 <template>
-  <main class="px-10 py-20 text-center">
+  <main class="h-full w-full">
     <slot />
-    <Footer />
   </main>
 </template>

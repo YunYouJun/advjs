@@ -82,6 +82,7 @@ const state = {
   onDblClick: props.onDblClick,
   onFileDblClick: props.onFileDblClick,
   onDirDblClick: props.onDirDblClick,
+  onOpenRootDir: props.onOpenRootDir,
 
   emit,
 

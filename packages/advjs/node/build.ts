@@ -26,7 +26,6 @@ export async function build(
       options,
       viteConfig,
       <InlineConfig>{
-        root: options.userRoot,
         plugins: [
           // https://vitejs.dev/guide/build.html#chunking-strategy
           splitVendorChunkPlugin(),
@@ -39,13 +38,10 @@ export async function build(
           },
         ],
         build: {
+          emptyOutDir: true,
           chunkSizeWarningLimit: 2000,
           rollupOptions: {
-            output: {
-              manualChunks: {
-                html2canvas: ['html2canvas'],
-              },
-            },
+            external: ['html2canvas'],
           },
         },
         ssr: {
@@ -67,8 +63,6 @@ export async function build(
 
   const outDir = resolve(options.userRoot, config.build.outDir)
 
-  // copy index.html to 404.html for GitHub Pages
-  await fs.copyFile(resolve(outDir, 'index.html'), resolve(outDir, '404.html'))
   // _redirects for SPA
   const redirectsPath = resolve(outDir, '_redirects')
   if (!fs.existsSync(redirectsPath))

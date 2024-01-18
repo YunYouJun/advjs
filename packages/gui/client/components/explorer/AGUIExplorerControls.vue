@@ -1,10 +1,19 @@
 <script lang="ts" setup>
-import AGUIInput from '../AGUIInput.vue'
+import { AGUIIconButton, AGUIInput, onOpenDir, useAGUIAssetsExplorerState } from '@advjs/gui/client'
+import { vscodeFolderIcon } from '../../../unocss'
+
+const state = useAGUIAssetsExplorerState()
 </script>
 
 <template>
   <div class="agui-explorer-controls">
     <div />
+    <AGUIIconButton
+      size="mini"
+      :icon="vscodeFolderIcon"
+      title="Open Directory"
+      @click="onOpenDir(state)"
+    />
     <div class="flex-grow" />
     <slot />
     <AGUIInput class="search-files-input" />
