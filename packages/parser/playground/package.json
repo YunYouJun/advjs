@@ -20,7 +20,7 @@
     "@vueuse/core": "^10.7.2",
     "monaco-editor": "^0.45.0",
     "pinia": "^2.1.7",
-    "vue": "^3.4.14",
+    "vue": "^3.4.15",
     "vue-router": "^4.2.5",
     "wc-github-corners": "^0.1.6"
   },
@@ -34,7 +34,7 @@
     "unplugin-vue-markdown": "^0.25.2",
     "unplugin-vue-router": "^0.7.0",
     "v-tooltip": "^4.0.0-beta.17",
-    "vite": "^5.0.11",
+    "vite": "^5.0.12",
     "vite-plugin-inspect": "^0.8.1",
     "vite-plugin-pwa": "^0.17.4",
     "vite-plugin-vue-layouts": "^0.11.0"

@@ -1,13 +1,14 @@
 {
   "name": "@advjs/gui",
   "type": "module",
-  "version": "0.0.3-beta.14",
+  "version": "0.0.3-beta.17",
   "repository": {
     "url": "https://github.com/YunYouJun/advjs/tree/main/packages/gui",
     "type": "git"
   },
   "exports": {
     "./client/*": "./client/*",
+    "./client": "./client/index.ts",
     "./components/*": "./client/components/*",
     "./nuxt": "./nuxt.mjs",
     "./runtime": "./index.ts",

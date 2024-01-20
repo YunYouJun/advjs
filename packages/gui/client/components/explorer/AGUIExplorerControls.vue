@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { AGUIIconButton, AGUIInput, onOpenDir, useAGUIAssetsExplorerState } from '@advjs/gui/client'
+import { onOpenDir, useAGUIAssetsExplorerState } from '../../composables'
+import { AGUIIconButton, AGUIInput } from '../../components'
 import { vscodeFolderIcon } from '../../../unocss'
 
 const state = useAGUIAssetsExplorerState()

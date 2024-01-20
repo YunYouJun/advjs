@@ -52,6 +52,19 @@ adv your.adv.md
 - 状态：Todo
 - 目标：生成基础的 ADV 项目脚手架
 
+### [@advjs/editor](./editor/core/) | 編輯器
+
+- 状态：开发中
+- 目标：可视化编辑器，集成各类功能
+- 预览：<https://editor.advjs.org>
+
+#### [@advjs/vrm](./packages/vrm) VRM 模型在线编辑器
+
+[![Netlify Status](https://api.netlify.com/api/v1/badges/33595ad5-4006-460e-a826-d7fd98a20638/deploy-status)](https://app.netlify.com/sites/gallant-goodall-b4101f/deploys)
+
+- Demo: <https://vrm.advjs.org>
+- 功能：可用于 VRM 模型动作、表情的在线编辑
+
 ### [@advjs/parser](./packages/parser) | 剧本解析器
 
 [![GitHub deployments](https://img.shields.io/github/deployments/YunYouJun/advjs/Production%20%E2%80%93%20advjs-parser?label=vercel&logo=vercel&logoColor=white)](https://github.com/YunYouJun/advjs/deployments/activity_log?environment=Production+%E2%80%93+advjs-parser)
@@ -65,13 +78,6 @@ adv your.adv.md
 
 - 状态：Todo
 - 目标：实现 VS Code 中对 `.adv.md` 文件的语法高亮与提示。
-
-### [@advjs/vrm](./packages/vrm) VRM 模型在线编辑器
-
-[![Netlify Status](https://api.netlify.com/api/v1/badges/33595ad5-4006-460e-a826-d7fd98a20638/deploy-status)](https://app.netlify.com/sites/gallant-goodall-b4101f/deploys)
-
-- Demo: <https://vrm.advjs.org>
-- 功能：可用于 VRM 模型动作、表情的在线编辑
 
 ## FAQ
 
