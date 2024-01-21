@@ -1,14 +1,14 @@
 {
   "name": "@advjs/gui",
   "type": "module",
-  "version": "0.0.3-beta.17",
+  "version": "0.0.4-beta.0",
   "repository": {
     "url": "https://github.com/YunYouJun/advjs/tree/main/packages/gui",
     "type": "git"
   },
   "exports": {
-    "./client/*": "./client/*",
     "./client": "./client/index.ts",
+    "./client/*": "./client/*",
     "./components/*": "./client/components/*",
     "./nuxt": "./nuxt.mjs",
     "./runtime": "./index.ts",
@@ -23,14 +23,11 @@
       "require": "./dist/unocss/index.cjs"
     },
     "./*": "./*",
-    ".": {
-      "import": "./dist/agui.js",
-      "require": "./dist/agui.umd.cjs"
-    }
+    ".": "./index.ts"
   },
-  "main": "./dist/agui.umd.cjs",
-  "module": "./dist/agui.js",
-  "types": "./dist/client/index.d.ts",
+  "main": "./index.ts",
+  "module": "./index.ts",
+  "types": "./index.ts",
   "scripts": {
     "build": "npm run build:lib && npm run build:icons && npm run build:node",
     "build:node": "unbuild",
