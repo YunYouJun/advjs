@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import './explorer.scss'
 
-import { provide, ref } from 'vue'
+import { onMounted, provide, ref } from 'vue'
 import { Pane, Splitpanes } from 'splitpanes'
 import { useEventListener } from '@vueuse/core'
 
@@ -205,6 +205,10 @@ useEventListener(explorerContent, 'drop', async (e) => {
       showFiles: true,
     }))
   }
+})
+
+onMounted(() => {
+  window.AGUI_DRAGGING_ITEM_MAP = new Map()
 })
 </script>
 

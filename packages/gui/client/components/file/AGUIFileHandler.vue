@@ -2,9 +2,11 @@
 import { ref } from 'vue'
 
 import { useEventListener } from '@vueuse/core'
+import type { FSItem } from '../explorer'
 
-defineProps<{
+const props = defineProps<{
   placeholder?: string
+  onFileChange?: (file?: FSItem) => (void | Promise<void>)
 }>()
 
 // function onFileChange(e: Event) {
@@ -27,6 +29,7 @@ defineProps<{
 const areaRef = ref<HTMLDivElement>()
 
 const isDraggingOver = ref(false)
+const fileItem = ref<FSItem>()
 
 useEventListener(areaRef, 'dragenter', (e) => {
   e.preventDefault()
@@ -47,9 +50,16 @@ function onDragLeave(e: any) {
 }
 useEventListener(areaRef, 'dragleave', onDragLeave)
 useEventListener(areaRef, 'dragend', onDragLeave)
-useEventListener(areaRef, 'drop', (e) => {
+useEventListener(areaRef, 'drop', async (e) => {
   e.preventDefault()
   e.stopPropagation()
+
+  const fileUUID = e.dataTransfer?.getData('fileUUID')
+  if (fileUUID) {
+    fileItem.value = window.AGUI_DRAGGING_ITEM_MAP.get(fileUUID)
+    window.AGUI_DRAGGING_ITEM_MAP.delete(fileUUID)
+    await props.onFileChange?.(fileItem.value)
+  }
 
   onDragLeave(e)
 })
@@ -64,14 +74,10 @@ useEventListener(areaRef, 'drop', (e) => {
       'bg-dark': !isDraggingOver,
     }"
   >
-    <!-- <input
-      class="h-30px w-full"
-      type="file"
-      accept="image/*"
-      @change="onFileChange"
-    > -->
-
-    <span text-xs op="50">
+    <span v-if="fileItem?.name" class="text-xs">
+      {{ fileItem?.name }}
+    </span>
+    <span v-else text-xs op="50">
       {{ placeholder || 'Drag File Here' }}
     </span>
   </div>

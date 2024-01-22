@@ -89,6 +89,7 @@ defineProps<{
             v-else-if="property.type === 'file'"
             class="w-full"
             :disabled="property.disabled"
+            :on-file-change="property.onFileChange"
           />
         </AGUIFormItem>
       </template>

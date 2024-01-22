@@ -28,7 +28,7 @@ importers:
         version: link:packages/types
       '@antfu/eslint-config':
         specifier: 2.6.3
-        version: 2.6.3(@vue/compiler-sfc@3.4.14)(eslint-plugin-format@0.1.0)(eslint@8.56.0)(typescript@5.3.3)(vitest@1.2.1)
+        version: 2.6.3(@vue/compiler-sfc@3.4.15)(eslint-plugin-format@0.1.0)(eslint@8.56.0)(typescript@5.3.3)(vitest@1.2.1)
       '@antfu/ni':
         specifier: ^0.21.12
         version: 0.21.12
@@ -221,8 +221,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/gui
       '@iconify-json/carbon':
-        specifier: ^1.1.27
-        version: 1.1.27
+        specifier: ^1.1.28
+        version: 1.1.28
       '@iconify-json/ep':
         specifier: ^1.1.14
         version: 1.1.14
@@ -318,8 +318,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/unocss
       '@iconify-json/carbon':
-        specifier: ^1.1.27
-        version: 1.1.27
+        specifier: ^1.1.28
+        version: 1.1.28
       '@intlify/unplugin-vue-i18n':
         specifier: ^2.0.0
         version: 2.0.0(rollup@2.79.1)(vue-i18n@9.9.0)
@@ -393,8 +393,8 @@ importers:
         specifier: ^0.7.7
         version: 0.7.7
       '@iconify-json/carbon':
-        specifier: ^1.1.27
-        version: 1.1.27
+        specifier: ^1.1.28
+        version: 1.1.28
       '@iconify-json/ri':
         specifier: ^1.1.19
         version: 1.1.19
@@ -996,7 +996,7 @@ packages:
       '@jridgewell/gen-mapping': 0.3.3
       '@jridgewell/trace-mapping': 0.3.20
 
-  /@antfu/eslint-config@2.6.3(@vue/compiler-sfc@3.4.14)(eslint-plugin-format@0.1.0)(eslint@8.56.0)(typescript@5.3.3)(vitest@1.2.1):
+  /@antfu/eslint-config@2.6.3(@vue/compiler-sfc@3.4.15)(eslint-plugin-format@0.1.0)(eslint@8.56.0)(typescript@5.3.3)(vitest@1.2.1):
     resolution: {integrity: sha512-sfkamrOatMwMZkp14mBerHKIw8FY0SD1iCb5UZ6Y5hgb+FeDpNQPlVA0i2PN95TQ8NSYyPC1QnoM+UA5NSl0Kg==}
     hasBin: true
     peerDependencies:
@@ -1051,7 +1051,7 @@ packages:
       eslint-plugin-vitest: 0.3.20(@typescript-eslint/eslint-plugin@6.19.0)(eslint@8.56.0)(typescript@5.3.3)(vitest@1.2.1)
       eslint-plugin-vue: 9.20.1(eslint@8.56.0)
       eslint-plugin-yml: 1.12.2(eslint@8.56.0)
-      eslint-processor-vue-blocks: 0.1.1(@vue/compiler-sfc@3.4.14)(eslint@8.56.0)
+      eslint-processor-vue-blocks: 0.1.1(@vue/compiler-sfc@3.4.15)(eslint@8.56.0)
       globals: 13.24.0
       jsonc-eslint-parser: 2.4.0
       local-pkg: 0.5.0
@@ -2842,8 +2842,8 @@ packages:
     resolution: {integrity: sha512-dvuCeX5fC9dXgJn9t+X5atfmgQAzUOWqS1254Gh0m6i8wKd10ebXkfNKiRK+1GWi/yTvvLDHpoxLr0xxxeslWw==}
     dev: true
 
-  /@iconify-json/carbon@1.1.27:
-    resolution: {integrity: sha512-tJVXv9+D9cjU5HcaY+8J0awv9AL/Mjo9MWR/fxHfHFPP/iokjPBEgq4jOBDGNe8W0k/BTrVI3zpgZjLoi6RNGg==}
+  /@iconify-json/carbon@1.1.28:
+    resolution: {integrity: sha512-tg+h0i+69JrIqUpQva2Mt611KdLMeCyibqS7lIqaMRXJgnalHtdqDcdZAKCSLb/hTbkJHyk0NCpQSYJ3f/v51w==}
     dependencies:
       '@iconify/types': 2.0.0
 
@@ -8144,13 +8144,13 @@ packages:
       - supports-color
     dev: true
 
-  /eslint-processor-vue-blocks@0.1.1(@vue/compiler-sfc@3.4.14)(eslint@8.56.0):
+  /eslint-processor-vue-blocks@0.1.1(@vue/compiler-sfc@3.4.15)(eslint@8.56.0):
     resolution: {integrity: sha512-9+dU5lU881log570oBwpelaJmOfOzSniben7IWEDRYQPPWwlvaV7NhOtsTuUWDqpYT+dtKKWPsgz4OkOi+aZnA==}
     peerDependencies:
       '@vue/compiler-sfc': ^3.3.0
       eslint: ^8.50.0
     dependencies:
-      '@vue/compiler-sfc': 3.4.14
+      '@vue/compiler-sfc': 3.4.15
       eslint: 8.56.0
     dev: true
 

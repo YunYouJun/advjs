@@ -38,7 +38,12 @@ const cssVars = computed(() => ({
 
 function onDragStart(e: DragEvent) {
   e.dataTransfer?.clearData()
-  e.dataTransfer?.setData('item', JSON.stringify(props.item))
+  const fileUUID = crypto.randomUUID()
+  e.dataTransfer?.setData('fileUUID', fileUUID)
+  window.AGUI_DRAGGING_ITEM_MAP.set(
+    fileUUID,
+    props.item,
+  )
 }
 
 useEventListener(fileItemRef, 'dragstart', onDragStart)

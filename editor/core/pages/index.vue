@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { AGUIToast, Toast, toastRef } from '@advjs/gui'
 import { useAppStore } from '~/composables'
 
 definePageMeta({
@@ -6,6 +7,13 @@ definePageMeta({
 })
 
 const app = useAppStore()
+
+onMounted(() => {
+  Toast({
+    title: 'Hello!',
+    description: 'Welcome to preview ADV.JS Editor!',
+  })
+})
 </script>
 
 <template>
@@ -30,5 +38,7 @@ const app = useAppStore()
         <PanelProject />
       </template>
     </AGUILayout>
+
+    <AGUIToast ref="toastRef" />
   </main>
 </template>

@@ -1,4 +1,4 @@
-import type { Vector } from '../../types'
+import type { FSItem, Vector } from '../../types'
 import type { AGUIAccordionProps } from '../accordion/types'
 
 /**
@@ -74,7 +74,7 @@ export interface AGUIPropertyButtonProps extends AGUIPropertyBaseProps {
 export interface AGUIPropertyFileProps extends AGUIPropertyBaseProps {
   type: 'file'
   placeholder?: string
-  onFileChange: (file: File) => void
+  onFileChange?: (file?: FSItem) => (void | Promise<void>)
 }
 
 export type AGUIPropertyProps =

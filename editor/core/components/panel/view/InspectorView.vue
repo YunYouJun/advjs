@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
+import { Toast } from '@advjs/gui'
 import type { AGUIPropertiesPanelProps, Vector3 } from '@advjs/gui'
 
+let count = 0
 const items = ref<AGUIPropertiesPanelProps[]>([
   {
     icon: 'i-mdi-axis-arrow',
@@ -144,17 +146,21 @@ const items = ref<AGUIPropertiesPanelProps[]>([
         label: 'Button Label',
         title: 'Alert Test',
         onClick() {
-          // eslint-disable-next-line no-alert
-          alert('Button clicked!')
+          // alert('Button clicked!')
+          Toast({
+            title: 'Button clicked!',
+            description: 'Button clicked!',
+            type: (['default', 'info', 'success', 'warning', 'error'] as const)[count++ % 5],
+          })
         },
       },
       {
         type: 'file',
         name: 'Accept File',
         placeholder: 'Placeholder',
-        onFileChange() {
-          // eslint-disable-next-line no-alert
-          alert('File changed!')
+        onFileChange(file) {
+          // eslint-disable-next-line no-console
+          console.log(file)
         },
       },
     ],

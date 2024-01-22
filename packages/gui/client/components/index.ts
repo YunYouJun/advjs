@@ -29,6 +29,8 @@ import AGUITabPanel from './tabs/AGUITabPanel.vue'
 import AGUITree from './tree/AGUITree.vue'
 import AGUITreeNode from './tree/AGUITreeNode.vue'
 
+import AGUIToast from './toast/AGUIToast.vue'
+
 export {
   AGUICheckbox,
   AGUIColorPicker,
@@ -55,4 +57,9 @@ export {
   AGUITabPanel,
   AGUITree,
   AGUITreeNode,
+
+  AGUIToast,
 }
+
+// Imperative API
+export * from './toast/AGUIToast.vue'

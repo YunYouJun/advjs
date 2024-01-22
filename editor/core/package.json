@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "@advjs/gui": "workspace:*",
-    "@iconify-json/carbon": "^1.1.27",
+    "@iconify-json/carbon": "^1.1.28",
     "@iconify-json/ep": "^1.1.14",
     "@iconify-json/mdi": "^1.1.64",
     "@iconify-json/twemoji": "^1.1.15",
