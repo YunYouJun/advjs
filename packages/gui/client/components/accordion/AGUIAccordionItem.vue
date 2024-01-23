@@ -17,8 +17,12 @@ defineProps<{
     <AccordionHeader class="AccordionHeader">
       <AccordionTrigger class="AccordionTrigger">
         <div class="AccordionChevron i-ep-caret-right mx-1" />
-        <div :class="item.icon" class="AccordionIcon mr-1 text-xs" />
-        <span class="text-xs">{{ item.title }}</span>
+        <slot name="icon">
+          <div :class="item.icon" class="AccordionIcon mr-1 text-xs" />
+        </slot>
+        <slot name="title">
+          <span class="text-xs">{{ item.title }}</span>
+        </slot>
         <slot name="trigger" />
       </AccordionTrigger>
     </AccordionHeader>

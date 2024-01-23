@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { AGUIButton, AGUICheckbox, AGUIColorPicker, AGUISlider } from '..'
+import { AGUIButton, AGUICheckbox, AGUIColorPicker, AGUINumberField, AGUISlider } from '..'
 import AGUINumberSlider from '../AGUINumberSlider.vue'
 import AGUIAccordionItem from '../accordion/AGUIAccordionItem.vue'
 
@@ -42,6 +42,15 @@ defineProps<{
           />
           <AGUISlider
             v-else-if="property.type === 'slider'"
+            v-model="property.value"
+            class="w-full"
+            :min="property.min"
+            :max="property.max"
+            :step="property.step"
+            :disabled="property.disabled"
+          />
+          <AGUINumberField
+            v-else-if="property.type === 'number-field'"
             v-model="property.value"
             class="w-full"
             :min="property.min"

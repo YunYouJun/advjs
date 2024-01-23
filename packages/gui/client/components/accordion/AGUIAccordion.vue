@@ -6,11 +6,14 @@ import './styles.scss'
 
 import type { AGUIAccordionProps } from './types'
 
-withDefaults(defineProps<{
-  items?: AGUIAccordionProps[]
-} & AccordionRootProps>(), {
-  type: 'multiple',
-})
+withDefaults(
+  defineProps<{
+    items?: AGUIAccordionProps[]
+  } & Partial<AccordionRootProps>>(),
+  {
+    type: 'multiple',
+  },
+)
 </script>
 
 <template>

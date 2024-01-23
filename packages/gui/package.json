@@ -1,7 +1,7 @@
 {
   "name": "@advjs/gui",
   "type": "module",
-  "version": "0.0.4-beta.2",
+  "version": "0.0.4-beta.3",
   "repository": {
     "url": "https://github.com/YunYouJun/advjs/tree/main/packages/gui",
     "type": "git"
@@ -49,6 +49,7 @@
     "splitpanes": "^3.1.5"
   },
   "devDependencies": {
+    "unbuild": "^2.0.0",
     "vite-plugin-css-injected-by-js": "^3.3.1",
     "vite-plugin-dts": "^3.7.1",
     "vue-tsc": "^1.8.27"

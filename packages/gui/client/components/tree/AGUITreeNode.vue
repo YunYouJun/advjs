@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue'
 
-import Toggle from '../button/AGUIIcon.vue'
+import Toggle from '../button/AGUIToggleIcon.vue'
 import type { TreeNode } from './types'
 
 withDefaults(defineProps<{

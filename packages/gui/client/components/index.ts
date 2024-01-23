@@ -17,7 +17,6 @@ import AGUISlider from './AGUISlider.vue'
 
 import AGUIButton from './button/AGUIButton.vue'
 import AGUIIconButton from './button/AGUIIconButton.vue'
-import AGUIIcon from './button/AGUIIcon.vue'
 
 import AGUIHr from './common/AGUIHr.vue'
 
@@ -32,6 +31,7 @@ import AGUITree from './tree/AGUITree.vue'
 import AGUITreeNode from './tree/AGUITreeNode.vue'
 
 import AGUIToast from './toast/AGUIToast.vue'
+import AGUIToolbar from './toolbar/AGUIToolbar.vue'
 
 export {
   AGUICheckbox,
@@ -50,7 +50,6 @@ export {
   AGUISlider,
   AGUIButton,
   AGUIIconButton,
-  AGUIIcon,
   AGUIHr,
   AGUIAssetsExplorer,
   AGUIForm,
@@ -62,6 +61,7 @@ export {
   AGUITreeNode,
 
   AGUIToast,
+  AGUIToolbar,
 }
 
 // Imperative API

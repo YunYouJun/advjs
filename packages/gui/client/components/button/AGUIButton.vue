@@ -16,7 +16,7 @@ const classes = computed(() => {
 
 <template>
   <button :class="classes" class="agui-button">
-    <div class="mr-1 inline-flex" :class="icon" />
+    <div v-if="icon" class="mr-1 inline-flex" :class="icon" />
     <slot />
   </button>
 </template>

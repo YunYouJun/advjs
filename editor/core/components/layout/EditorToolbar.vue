@@ -1,26 +1,43 @@
 <script setup lang="ts">
-import {
-  ToolbarRoot,
-  ToolbarSeparator,
-} from 'radix-vue'
+import type { ToolbarItem } from '@advjs/gui'
 
 const app = useAppStore()
+
+const tools: ToolbarItem[] = [
+  {
+    type: 'button',
+    icon: 'i-mdi-account-circle',
+    name: 'YunYouJun',
+  },
+  {
+    type: 'button',
+    icon: 'i-ri-puzzle-line',
+  },
+  {
+    type: 'separator',
+  },
+  {
+    type: 'button',
+    icon: 'i-ri-puzzle-2-line',
+  },
+  {
+    type: 'space',
+  },
+  {
+    type: 'space',
+  },
+  {
+    type: 'button',
+    name: 'Reset Layout',
+    onClick: () => {
+      app.resetLayout()
+    },
+  },
+]
 </script>
 
 <template>
-  <ToolbarRoot
-    class="shadow-blackA7 w-full flex p-1"
-    aria-label="Formatting options"
-  >
-    <div flex gap="1">
-      <AGUIButton icon="i-mdi-account-circle">
-        YunYouJun
-      </AGUIButton>
-      <AGUIIconButton size="mini" icon="i-ri-puzzle-line" />
-    </div>
-    <ToolbarSeparator class="bg-mauve6 mx-[10px] w-[1px]" />
-    <AGUIButton class="ml-auto" @click="app.resetLayout">
-      Reset Layout
-    </AGUIButton>
-  </ToolbarRoot>
+  <AGUIToolbar :items="tools">
+    asd
+  </AGUIToolbar>
 </template>

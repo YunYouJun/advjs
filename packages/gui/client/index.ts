@@ -1,4 +1,5 @@
 import { createAGUI } from './utils'
+import './shims.d'
 
 export * from './styles/icons'
 export * from './types'

@@ -129,7 +129,10 @@ const vNumberDrag = numberDrag({
 </script>
 
 <template>
-  <div class="agui-number-field" :class="{ active, focused }" :data-location="location" @click="onClick">
+  <div
+    class="agui-number-field"
+    :class="{ active, focused }" :data-location="location" @click="onClick"
+  >
     <input
       :id="id"
       ref="elRef"
@@ -153,12 +156,19 @@ const vNumberDrag = numberDrag({
 
 <style lang="scss">
 .agui-number-field {
+  // --number-field-c-bg: #545454;
+  --number-field-c-bg: #222;
+  --arrow-c-bg: #656565;
+  // --arrow-c-bg: #333;
+  --arrow-c-bg-hover: #797979;
+  // --arrow-c-bg-hover: #555;
+
   position: relative;
-  background: #545454;
+  background: var(--number-field-c-bg);
   overflow: hidden;
 
   &:not(.focused, .active):hover {
-    background: #656565;
+    background: var(--arrow-c-bg);
   }
   &.active,
   &.focused {
@@ -189,7 +199,7 @@ const vNumberDrag = numberDrag({
 
   .input {
     background-color: transparent;
-    color: #e5e5e5;
+    color: #ddd;
     border: 0;
     text-align: center;
     outline: none;
@@ -204,7 +214,7 @@ const vNumberDrag = numberDrag({
     text-shadow: 0 1px 2px rgba(black, 0.8);
 
     :not(.focused, .active) &:hover {
-      background-color: #797979;
+      background-color: var(--arrow-c-bg-hover);
       color: #fcfcfc;
     }
     &:focus {
@@ -236,12 +246,12 @@ const vNumberDrag = numberDrag({
     top: 0;
     bottom: 0;
     width: 13px;
-    background: #656565 no-repeat center center;
+    background: var(--arrow-c-bg) no-repeat center center;
     display: none;
     cursor: pointer;
 
     :not(.focused, .active) &:hover {
-      background-color: #797979;
+      background-color: var(--arrow-c-bg-hover);
     }
     &.left {
       left: 0;

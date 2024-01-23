@@ -51,6 +51,14 @@ export interface AGUIPropertySliderProps extends AGUIPropertyBaseProps {
   value: number
 }
 
+export interface AGUIPropertyNumberFieldProps extends AGUIPropertyBaseProps {
+  type: 'number-field'
+  min: number
+  max: number
+  step: number
+  value: number
+}
+
 export interface AGUIPropertyNumberSliderProps extends AGUIPropertyBaseProps {
   type: 'number-slider'
   min: number
@@ -85,6 +93,7 @@ export type AGUIPropertyProps =
   AGUIPropertyDividerProps |
   AGUIPropertyColorProps |
   AGUIPropertySliderProps |
+  AGUIPropertyNumberFieldProps |
   AGUIPropertyNumberSliderProps |
   AGUIPropertyVectorProps |
   AGUIPropertyButtonProps |
