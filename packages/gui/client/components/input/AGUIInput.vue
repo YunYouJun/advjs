@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 defineProps<{
+  className?: string
   prefixIcon?: string
   modelValue?: string
+  placeholder?: string
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -13,7 +15,7 @@ function updateModelValue(event: any) {
 </script>
 
 <template>
-  <div class="relative flex">
+  <div v-if="prefixIcon" class="relative flex">
     <div v-if="$slots.prefix" class="absolute">
       <slot name="prefix" />
     </div>
@@ -21,20 +23,30 @@ function updateModelValue(event: any) {
       <div v-if="prefixIcon" :class="prefixIcon" />
     </div>
     <input
+      class="agui-input w-full px-1 shadow shadow-inset"
       :class="{
         'pl-5': prefixIcon,
       }"
-      class="agui-input px-1 shadow shadow-inset"
       :value="modelValue"
+      :placeholder="placeholder"
       @input="updateModelValue"
     >
   </div>
+  <input
+    v-else
+    class="agui-input w-full px-1 shadow shadow-inset"
+    :value="modelValue"
+    :placeholder="placeholder"
+    @input="updateModelValue"
+  >
 </template>
 
 <style lang="scss">
 .agui-input {
+  --agui-input-c-bg: rgba(42, 42, 42, 1);
+
   color: var(--agui-c-label);
-  background-color: rgba(42, 42, 42, 1);
+  background-color: var(--agui-input-c-bg, rgba(42, 42, 42, 1));
   border: 1px solid var(--agui-c-border);
 
   border-radius: 3px;

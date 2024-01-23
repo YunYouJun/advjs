@@ -9,37 +9,38 @@ export interface AGUIPropertyBaseProps {
    * Property name
    */
   name?: string
-  value?: string | number | Vector | boolean | Array<string | { label: string, value: string }>
+  /**
+   * pass object and key to get bound value
+   */
+  // value?: string | number | Vector | boolean | (string | { label: string, value: string })[]
   disabled?: boolean
+  object: Record<string, any>
+  key: string
 }
 
 export interface AGUIPropertyInputProps extends AGUIPropertyBaseProps {
   type: 'input'
-  value: string
 }
 
 export interface AGUIPropertyNumberProps extends AGUIPropertyBaseProps {
   type: 'number'
-  value: number
 }
 
 export interface AGUIPropertyCheckboxProps extends AGUIPropertyBaseProps {
   type: 'checkbox'
-  value: boolean
 }
 
 export interface AGUIPropertySelectProps extends AGUIPropertyBaseProps {
   type: 'select'
-  options: Array<string | { label: string, value: string }>
-  value: string
+  options: (string | { label: string, value: string })[]
 }
 
 export interface AGUIPropertyColorProps extends AGUIPropertyBaseProps {
   type: 'color'
-  value: string
 }
 
-export interface AGUIPropertyDividerProps extends AGUIPropertyBaseProps {
+export interface AGUIPropertyDividerProps {
+  name?: string
   type: 'divider'
 }
 
@@ -48,7 +49,6 @@ export interface AGUIPropertySliderProps extends AGUIPropertyBaseProps {
   min: number
   max: number
   step: number
-  value: number
 }
 
 export interface AGUIPropertyNumberFieldProps extends AGUIPropertyBaseProps {
@@ -56,7 +56,6 @@ export interface AGUIPropertyNumberFieldProps extends AGUIPropertyBaseProps {
   min: number
   max: number
   step: number
-  value: number
 }
 
 export interface AGUIPropertyNumberSliderProps extends AGUIPropertyBaseProps {
@@ -64,12 +63,14 @@ export interface AGUIPropertyNumberSliderProps extends AGUIPropertyBaseProps {
   min: number
   max: number
   step: number
-  value: number
 }
 
 export interface AGUIPropertyVectorProps extends AGUIPropertyBaseProps {
   type: 'vector'
-  value: Vector
+  // value: Vector
+  object: {
+    [key: string]: Vector | any
+  }
 }
 
 export interface AGUIPropertyButtonProps extends AGUIPropertyBaseProps {
@@ -83,8 +84,13 @@ export interface AGUIPropertyFileProps extends AGUIPropertyBaseProps {
   type: 'file'
   placeholder?: string
   onFileChange?: (file?: FSItem) => (void | Promise<void>)
+  value?: FSItem
 }
 
+/**
+ * property props
+ * etc: input, number, checkbox, select, divider, color, slider, number-field, number-slider, vector, button, file
+ */
 export type AGUIPropertyProps =
   AGUIPropertyInputProps |
   AGUIPropertyNumberProps |

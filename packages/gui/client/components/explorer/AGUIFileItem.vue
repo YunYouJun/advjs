@@ -106,6 +106,8 @@ useEventListener(fileItemRef, 'dblclick', async () => {
 const fileIcon = ref(props.item.icon)
 watchEffect(async () => {
   fileIcon.value = await getIconFromFSItem(props.item)
+  if (state.onFSItemChange)
+    await state.onFSItemChange?.(props.item)
 })
 </script>
 

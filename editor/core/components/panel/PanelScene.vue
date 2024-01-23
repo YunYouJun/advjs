@@ -6,19 +6,25 @@ const tabList = ref([
   { title: 'Asset Store', key: 'asset-store', icon: 'i-ri-store-line' },
   { title: 'Node Editor', key: 'node-editor', icon: 'i-ri-node-tree' },
 ])
+
+const curTab = ref(0)
+
+function changeTab(index: number) {
+  curTab.value = index
+}
 </script>
 
 <template>
-  <AGUIPanel class="panel-scene flex-1" h="full" w="full">
-    <AGUITabs :list="tabList" :default-index="2">
+  <AGUIPanel
+    class="panel-scene flex-1" h="full" w="full"
+  >
+    <AGUITabs
+      :selected-index="curTab" :list="tabList"
+      :default-index="2" @change="changeTab"
+    >
       <AGUITabPanel h="full" :unmount="false" relative>
         <SceneToolbar absolute top-0 w-full />
-        <SceneToolkit />
-        <SceneCanvas />
-      </AGUITabPanel>
-
-      <AGUITabPanel>
-        Console
+        <SceneCanvas v-show="curTab === 0" />
       </AGUITabPanel>
 
       <AGUITabPanel>

@@ -2,7 +2,7 @@
   "name": "@advjs/editor",
   "version": "0.0.0",
   "private": true,
-  "packageManager": "pnpm@8.14.2",
+  "packageManager": "pnpm@8.14.3",
   "description": "ADV.JS Editor",
   "scripts": {
     "build": "nuxi build",
@@ -16,7 +16,8 @@
     "start:generate": "npx serve .output/public"
   },
   "dependencies": {
-    "@google/model-viewer": "^3.4.0"
+    "@google/model-viewer": "^3.4.0",
+    "pixi-painter": "^0.1.2"
   },
   "devDependencies": {
     "@advjs/gui": "workspace:*",

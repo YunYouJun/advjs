@@ -15,6 +15,10 @@ export const AGUIAssetsExplorerSymbol: InjectionKey<{
   onFileDblClick?: (item: FSFileItem) => void | Promise<void>
   onDirDblClick?: (item: FSDirItem) => void | Promise<void>
   onOpenRootDir?: (dir: FSDirItem) => void | Promise<void>
+  /**
+   * every fs item change
+   */
+  onFSItemChange?: (item: FSItem) => void | Promise<void>
 
   // ctx
   emit: (event: 'update:curDir' | 'update:rootDir' | 'update:tree', value: FSDirItem) => void

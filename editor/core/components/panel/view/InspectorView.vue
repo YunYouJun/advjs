@@ -4,6 +4,53 @@ import { Toast } from '@advjs/gui'
 import type { AGUIPropertiesPanelProps, Vector3 } from '@advjs/gui'
 
 let count = 0
+
+const transformObj = ref({
+  position: {
+    x: 0,
+    y: 0,
+    z: 0,
+  },
+  rotation: {
+    x: 0,
+    y: 0,
+    z: 0,
+  },
+  scale: {
+    x: 0,
+    y: 0,
+    z: 0,
+  },
+})
+
+const formData = ref({
+  input: 'test',
+  inputNumber: 10,
+  checkbox: true,
+  select: '',
+  select2: 'option1',
+  slider: 10,
+  numberField: 10,
+  numberSlider: 10,
+  vector2: {
+    x: 0,
+    y: 0,
+  },
+  vector3: {
+    x: 0,
+    y: 0,
+    z: 0,
+  },
+  vector4: {
+    x: 0,
+    y: 0,
+    z: 0,
+    w: 0,
+  },
+  color: '#0099ff',
+  file: '',
+})
+
 const items = ref<AGUIPropertiesPanelProps[]>([
   {
     icon: 'i-mdi-axis-arrow',
@@ -12,29 +59,20 @@ const items = ref<AGUIPropertiesPanelProps[]>([
       {
         type: 'vector',
         name: 'Position',
-        value: {
-          x: 0,
-          y: 0,
-          z: 0,
-        },
+        object: transformObj,
+        key: 'position',
       },
       {
         type: 'vector',
         name: 'Rotation',
-        value: {
-          x: 0,
-          y: 0,
-          z: 0,
-        },
+        object: transformObj,
+        key: 'rotation',
       },
       {
         type: 'vector',
         name: 'Scale',
-        value: {
-          x: 0,
-          y: 0,
-          z: 0,
-        },
+        object: transformObj,
+        key: 'scale',
       },
     ],
   },
@@ -46,17 +84,20 @@ const items = ref<AGUIPropertiesPanelProps[]>([
       {
         type: 'input',
         name: 'Input',
-        value: 'test',
+        object: formData,
+        key: 'input',
       },
       {
         type: 'number',
         name: 'InputNumber',
-        value: 10,
+        object: formData,
+        key: 'inputNumber',
       },
       {
         type: 'checkbox',
         name: 'Checkbox',
-        value: true,
+        object: formData,
+        key: 'checkbox',
       },
       {
         type: 'select',
@@ -71,7 +112,8 @@ const items = ref<AGUIPropertiesPanelProps[]>([
             value: 'option2',
           },
         ],
-        value: '',
+        object: formData,
+        key: 'select',
       },
       {
         type: 'select',
@@ -86,7 +128,8 @@ const items = ref<AGUIPropertiesPanelProps[]>([
             value: 'option2',
           },
         ],
-        value: 'option1',
+        object: formData,
+        key: 'select2',
       },
       {
         name: 'Slider',
@@ -94,7 +137,8 @@ const items = ref<AGUIPropertiesPanelProps[]>([
         max: 100,
         min: 0,
         step: 1,
-        value: 10,
+        object: formData,
+        key: 'slider',
       },
       {
         name: 'Number Field',
@@ -102,7 +146,8 @@ const items = ref<AGUIPropertiesPanelProps[]>([
         max: 100,
         min: 0,
         step: 1,
-        value: 10,
+        object: formData,
+        key: 'numberField',
       },
       {
         name: 'Number Slider',
@@ -110,7 +155,8 @@ const items = ref<AGUIPropertiesPanelProps[]>([
         max: 100,
         min: 0,
         step: 1,
-        value: 10,
+        object: formData,
+        key: 'numberSlider',
       },
       {
         name: 'divider',
@@ -119,34 +165,26 @@ const items = ref<AGUIPropertiesPanelProps[]>([
       {
         type: 'vector',
         name: 'Vector2',
-        value: {
-          x: 0,
-          y: 0,
-        },
+        object: formData,
+        key: 'vector2',
       },
       {
         type: 'vector',
         name: 'Vector3',
-        value: {
-          x: 0,
-          y: 0,
-          z: 0,
-        },
+        object: formData,
+        key: 'vector3',
       },
       {
         type: 'vector',
         name: 'Vector4',
-        value: {
-          x: 0,
-          y: 0,
-          z: 0,
-          w: 0,
-        },
+        object: formData,
+        key: 'vector4',
       },
       {
         type: 'color',
         name: 'Color Picker',
-        value: '#0099ff',
+        object: formData,
+        key: 'color',
       },
       {
         type: 'button',
@@ -161,6 +199,8 @@ const items = ref<AGUIPropertiesPanelProps[]>([
             type: (['default', 'info', 'success', 'warning', 'error'] as const)[count++ % 5],
           })
         },
+        object: formData,
+        key: 'button',
       },
       {
         type: 'file',
@@ -170,6 +210,8 @@ const items = ref<AGUIPropertiesPanelProps[]>([
           // eslint-disable-next-line no-console
           console.log(file)
         },
+        object: formData,
+        key: 'file',
       },
     ],
   },

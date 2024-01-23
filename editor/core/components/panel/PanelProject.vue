@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { FSDirItem, FSFileItem } from '@advjs/gui'
+import type { FSDirItem, FSFileItem, FSItem } from '@advjs/gui'
 import { ref } from 'vue'
 
 const tabList = ref([
@@ -21,6 +21,11 @@ async function onFileDrop(files: FSFileItem[]) {
 
 const curDir = ref<FSDirItem>()
 const rootDir = ref<FSDirItem>()
+
+// eslint-disable-next-line unused-imports/no-unused-vars
+function onFSItemChange(item: FSItem) {
+  // item.icon = 'i-ri-folder-fill'
+}
 </script>
 
 <template>
@@ -31,6 +36,7 @@ const rootDir = ref<FSDirItem>()
           v-model:cur-dir="curDir"
           v-model:root-dir="rootDir"
           :on-file-drop="onFileDrop"
+          :on-f-s-item-change="onFSItemChange"
         />
         <slot name="project" />
       </AGUITabPanel>

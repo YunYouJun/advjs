@@ -1,43 +1,27 @@
 <script lang="ts" setup>
-import * as PIXI from 'pixi.js'
-
-import { createExampleScene } from '@advjs/editor/utils'
+import type { Painter } from 'pixi-painter'
+import { createPainter } from 'pixi-painter'
 
 const sceneCanvasContainer = ref<HTMLDivElement>()
 const sceneCanvas = ref<HTMLCanvasElement>()
 
-function createRuntime(options: {
-  container: HTMLDivElement
-  canvas: HTMLCanvasElement
-}) {
-  const { container, canvas } = options
-  const app = new PIXI.Application()
-  // @ts-expect-error for pixi chrome plugin
-  globalThis.__PIXI_APP__ = app
-
-  app.init({
-    canvas,
-    // resolution: window.devicePixelRatio || 1,
-    resizeTo: container,
-    antialias: true,
-  })
-
-  return app
-}
-
-const app = useAppStore()
-
-onMounted(() => {
+let painter: Painter
+onMounted(async () => {
   if (!sceneCanvas.value || !sceneCanvasContainer.value)
     return
 
-  const pixiApp = createRuntime({
-    container: sceneCanvasContainer.value,
-    canvas: sceneCanvas.value,
-  })
-  app.pixiApp = pixiApp
+  await nextTick()
+  if (painter)
+    return
 
-  createExampleScene(pixiApp)
+  painter = createPainter({
+    view: sceneCanvas.value,
+    size: {
+      width: sceneCanvasContainer.value.clientWidth,
+      height: sceneCanvasContainer.value.clientHeight,
+    },
+  })
+  painter.init()
 })
 </script>
 

@@ -19,7 +19,6 @@ function updateModelValue(event: Event) {
 
 <template>
   <input
-    v-number-drag
     class="agui-input pl-1 pr-0"
     type="number"
     :value="modelValue"

@@ -41,6 +41,10 @@ const props = defineProps<{
    * dblclick dir in file list
    */
   onDirDblClick?: (item: FSDirItem) => void | Promise<void>
+  /**
+   * on FileItem change
+   */
+  onFSItemChange?: (item: FSItem) => void | Promise<void>
 }>()
 
 const emit = defineEmits([
@@ -83,6 +87,7 @@ const state = {
   onFileDblClick: props.onFileDblClick,
   onDirDblClick: props.onDirDblClick,
   onOpenRootDir: props.onOpenRootDir,
+  onFSItemChange: props.onFSItemChange,
 
   emit,
 

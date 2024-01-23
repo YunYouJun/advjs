@@ -3,11 +3,12 @@ defineProps<{
   label?: string
   hint?: string
   group?: boolean
+  size?: 'mini' | '' | 'large'
 }>()
 </script>
 
 <template>
-  <div :class="{ group }" class="agui-property">
+  <div :class="{ group, size }" class="agui-property">
     <div class="label" :title="hint">
       {{ label }}
     </div>
@@ -27,6 +28,11 @@ defineProps<{
 
   &:not(.group) {
     margin-bottom: 4px;
+  }
+
+  &.mini {
+    font-size: 0.625rem;
+    line-height: 0.75rem;
   }
 
   .label {

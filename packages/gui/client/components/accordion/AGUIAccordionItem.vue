@@ -27,9 +27,11 @@ defineProps<{
       </AccordionTrigger>
     </AccordionHeader>
     <AccordionContent class="AccordionContent">
-      <div class="AccordionContentText">
-        <slot />
-      </div>
+      <slot name="content">
+        <div class="AccordionContentText">
+          <slot />
+        </div>
+      </slot>
     </AccordionContent>
   </AccordionItem>
 </template>
