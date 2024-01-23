@@ -174,7 +174,7 @@ function onUpdateModelValue(value: string) {
   &[data-highlighted] {
     outline: none;
     background-color: var(--agui-c-active);
-    color: var(--grass-1);
+    color: white;
     cursor: pointer;
   }
 
@@ -207,7 +207,7 @@ function onUpdateModelValue(value: string) {
   justify-content: center;
   height: 25px;
   background-color: white;
-  color: var(--grass-11);
+  color: #989898;
   cursor: default;
 }
 </style>

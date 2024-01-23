@@ -2,6 +2,8 @@
 import { computed, ref } from 'vue'
 import type { Vector, VectorKey } from '../../types'
 
+import AGUIInputNumber from './AGUIInputNumber.vue'
+
 const props = defineProps<{
   modelValue?: Vector
 }>()

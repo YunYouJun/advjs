@@ -6,7 +6,7 @@ import type { ToastOptions } from '../../composables'
 const toastOptions = ref<ToastOptions>({
   title: '',
   description: '',
-  duration: 3000,
+  duration: 5000,
   type: 'default',
 })
 
@@ -68,6 +68,7 @@ function getClassesFromType(type: ToastOptions['type']) {
         v-for="item, i in toastList" :key="i"
         class="ToastRoot relative flex flex-col shadow-xl"
         :class="getClassesFromType(item.type)"
+        :duration="item.duration"
       >
         <ToastTitle class="ToastTitle flex items-center">
           <div mr-1 :class="getIconFromType(item.type)" />
@@ -110,6 +111,7 @@ button {
 }
 
 .ToastRoot {
+  color: white;
   border-radius: 6px;
   box-shadow:
     hsl(206 22% 7% / 35%) 0px 10px 38px -10px,

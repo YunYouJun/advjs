@@ -8,6 +8,8 @@ import AGUIInputVector from './input/AGUIInputVector.vue'
 
 import AGUILayout from './layout/AGUILayout.vue'
 
+import AGUIMenubar from './menu/AGUIMenubar.vue'
+
 import AGUINumberField from './AGUINumberField.vue'
 import AGUIPanel from './AGUIPanel.vue'
 import AGUIProperty from './AGUIProperty.vue'
@@ -41,6 +43,7 @@ export {
   AGUIInputVector,
 
   AGUILayout,
+  AGUIMenubar,
   AGUINumberField,
   AGUIPanel,
   AGUIProperty,

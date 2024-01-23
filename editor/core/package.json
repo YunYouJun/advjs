@@ -2,7 +2,7 @@
   "name": "@advjs/editor",
   "version": "0.0.0",
   "private": true,
-  "packageManager": "pnpm@8.14.1",
+  "packageManager": "pnpm@8.14.2",
   "description": "ADV.JS Editor",
   "scripts": {
     "build": "nuxi build",

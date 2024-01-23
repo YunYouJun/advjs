@@ -11,8 +11,6 @@
   // height: var(--agui-explorer-main-content-height);
   height: 100%;
 
-
-
   .agui-assets-panel {
     display: flex;
     flex-direction: column;
@@ -32,7 +30,12 @@
     overflow-y: auto;
     background-color: var(--agui-c-bg-panel);
 
-    height: calc(100% - var(--agui-explorer-footer-height) - var(--agui-explorer-breadcrumb-height, 20px));
+    height: calc(
+      100% - var(--agui-explorer-footer-height) - var(
+          --agui-explorer-breadcrumb-height,
+          20px
+        )
+    );
 
     /* 整个滚动条 */
     &::-webkit-scrollbar {

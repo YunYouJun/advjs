@@ -2,6 +2,7 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import type * as PIXI from 'pixi.js'
 import { useStorage } from '@vueuse/core'
 import type { AGUILayoutType } from '@advjs/gui'
+import { ANALYTICS_EVENTS, addCustomEvent } from '~/utils/analystics'
 
 const defaultLayout: AGUILayoutType = {
   name: 'root',
@@ -56,6 +57,7 @@ export const useAppStore = defineStore('app', () => {
     // todo extract layout store & useAGUILayout
     resetLayout() {
       layout.value = JSON.parse(JSON.stringify(defaultLayout))
+      addCustomEvent(ANALYTICS_EVENTS.RESET_LAYOUT)
     },
   }
 })
