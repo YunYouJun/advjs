@@ -26,9 +26,9 @@ const value = computed(() => {
   const rawValue = props.modelValue as RgbaColor
   if (props.rgbScale !== 255 && typeof rawValue === 'object') {
     const rgba = {
-      r: rawValue.r / 255 * props.rgbScale,
-      g: rawValue.g / 255 * props.rgbScale,
-      b: rawValue.b / 255 * props.rgbScale,
+      r: rawValue.r * 255 / props.rgbScale,
+      g: rawValue.g * 255 / props.rgbScale,
+      b: rawValue.b * 255 / props.rgbScale,
       a: rawValue.a,
     }
     return colord(rgba).toHex()

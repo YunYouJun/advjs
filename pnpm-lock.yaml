@@ -688,8 +688,8 @@ importers:
         specifier: ^3.3.1
         version: 3.3.1(vite@5.0.12)
       vite-plugin-dts:
-        specifier: ^3.7.1
-        version: 3.7.1(@types/node@20.11.6)(rollup@3.29.4)(typescript@5.3.3)(vite@5.0.12)
+        specifier: ^3.7.2
+        version: 3.7.2(@types/node@20.11.6)(rollup@3.29.4)(typescript@5.3.3)(vite@5.0.12)
       vue-tsc:
         specifier: ^1.8.27
         version: 1.8.27(typescript@5.3.3)
@@ -15457,8 +15457,8 @@ packages:
       vite: 5.0.12(@types/node@20.11.6)(sass@1.70.0)
     dev: true
 
-  /vite-plugin-dts@3.7.1(@types/node@20.11.6)(rollup@3.29.4)(typescript@5.3.3)(vite@5.0.12):
-    resolution: {integrity: sha512-VZJckNFpVfRAkmOxhGT5OgTUVWVXxkNQqLpBUuiNGAr9HbtvmvsPLo2JB3Xhn+o/Z9+CT6YZfYa4bX9SGR5hNw==}
+  /vite-plugin-dts@3.7.2(@types/node@20.11.6)(rollup@3.29.4)(typescript@5.3.3)(vite@5.0.12):
+    resolution: {integrity: sha512-kg//1nDA01b8rufJf4TsvYN8LMkdwv0oBYpiQi6nRwpHyue+wTlhrBiqgipdFpMnW1oOYv6ywmzE5B0vg6vSEA==}
     engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
       typescript: '*'
