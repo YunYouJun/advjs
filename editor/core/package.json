@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@google/model-viewer": "^3.4.0",
-    "pixi-painter": "^0.1.2"
+    "pixi-painter": "^0.1.3"
   },
   "devDependencies": {
     "@advjs/gui": "workspace:*",

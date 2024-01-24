@@ -34,6 +34,7 @@ defineProps<{
         <AGUIColorPicker
           v-if="property.type === 'color'"
           v-model="property.object[property.key]"
+          :rgb-scale="property.rgbScale"
         />
         <AGUISelect
           v-else-if="'options' in property && Array.isArray(property.options)"

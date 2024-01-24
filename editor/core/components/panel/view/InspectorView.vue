@@ -47,23 +47,29 @@ const formData = ref({
     z: 0,
     w: 0,
   },
-  color: '#0099ff',
-  color2: {
+  colorHex: '#0099ff',
+  colorRgba: {
     r: 0,
     g: 0,
     b: 0,
     a: 0,
   },
-  color3: {
+  colorHsla: {
     h: 0,
     s: 0,
     l: 0,
     a: 0,
   },
-  color4: {
+  colorHsva: {
     h: 0,
     s: 0,
     v: 0,
+    a: 0,
+  },
+  colorRgbScale: {
+    r: 0,
+    g: 0,
+    b: 0,
     a: 0,
   },
   file: '',
@@ -200,27 +206,34 @@ const items = ref<AGUIPropertiesPanelProps[]>([
       },
       {
         type: 'color',
-        name: 'Color Picker',
+        name: 'Color Picker Hex',
         object: formData,
-        key: 'color',
+        key: 'colorHex',
       },
       {
         type: 'color',
-        name: 'Color Picker 2',
+        name: 'Color Picker Rgba',
         object: formData,
-        key: 'color2',
+        key: 'colorRgba',
       },
       {
         type: 'color',
-        name: 'Color Picker 3',
+        name: 'Color Picker Hsla',
         object: formData,
-        key: 'color3',
+        key: 'colorHsla',
       },
       {
         type: 'color',
-        name: 'Color Picker 4',
+        name: 'Color Picker Hsva',
         object: formData,
-        key: 'color4',
+        key: 'colorHsva',
+      },
+      {
+        type: 'color',
+        name: 'Color Picker (Rgb Scale)',
+        object: formData,
+        key: 'colorRgbScale',
+        rgbScale: 1,
       },
       {
         type: 'button',
@@ -276,8 +289,6 @@ const vector3 = ref<Vector3>({
           <AGUIInputVector v-model="vector3" />
         </AGUIFormItem>
 
-        {{ formData }}
-
         <AGUIFormItem label="Default">
           <AGUICheckbox />
         </AGUIFormItem>
@@ -287,6 +298,10 @@ const vector3 = ref<Vector3>({
         <AGUIFormItem label="Disabled">
           <AGUICheckbox disabled />
         </AGUIFormItem>
+
+        <pre>
+{{ formData }}
+</pre>
       </AGUIForm>
     </AGUIAccordionItem>
   </AGUIAccordion>

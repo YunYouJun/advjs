@@ -37,6 +37,12 @@ export interface AGUIPropertySelectProps extends AGUIPropertyBaseProps {
 
 export interface AGUIPropertyColorProps extends AGUIPropertyBaseProps {
   type: 'color'
+  /**
+   * color scale
+   * @default 255
+   * If you want to use 0-1 scale, set this to 1.
+   */
+  rgbScale?: number
 }
 
 export interface AGUIPropertyDividerProps {

@@ -1,27 +1,68 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { computed } from 'vue'
 import type { Colord, HslColor, HslaColor, HsvColor, HsvaColor, RgbColor, RgbaColor } from 'colord'
 import { colord, getFormat } from 'colord'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   modelValue: string | RgbaColor | HslaColor | HsvaColor | RgbColor | HslColor | HsvColor
+  /**
+   * @default 255
+   * @description The maximum value of the red, green, and blue channels.
+   * You can set 1 if you want to use a value between 0 and 1.
+   */
+  rgbScale?: number
   onChange?: (value: string) => void
-}>()
+}>(), {
+  rgbScale: 255,
+})
 
 const emit = defineEmits(
   ['update:modelValue', 'change', 'input'],
 )
 
-const format = ref(getFormat(props.modelValue) || 'hex')
+// displayed color value for input
+const value = computed(() => {
+  // parse color
+  const rawValue = props.modelValue as RgbaColor
+  if (props.rgbScale !== 255 && typeof rawValue === 'object') {
+    const rgba = {
+      r: rawValue.r / 255 * props.rgbScale,
+      g: rawValue.g / 255 * props.rgbScale,
+      b: rawValue.b / 255 * props.rgbScale,
+      a: rawValue.a,
+    }
+    return colord(rgba).toHex()
+  }
+  else {
+    return colord(rawValue).toHex()
+  }
+})
+const format = computed(() => getFormat(props.modelValue) || 'hex')
+
 function formatColor(color: Colord) {
-  if (format.value === 'hex')
+  if (format.value === 'hex') {
     return color.toHex()
-  else if (format.value === 'rgb')
-    return color.toRgb()
-  else if (format.value === 'hsl')
+  }
+  else if (format.value === 'rgb') {
+    const rgba = color.toRgb()
+    if (props.rgbScale === 255) {
+      return rgba
+    }
+    else {
+      return {
+        r: rgba.r / 255 * props.rgbScale,
+        g: rgba.g / 255 * props.rgbScale,
+        b: rgba.b / 255 * props.rgbScale,
+        a: rgba.a,
+      }
+    }
+  }
+  else if (format.value === 'hsl') {
     return color.toHsl()
-  else if (format.value === 'hsv')
+  }
+  else if (format.value === 'hsv') {
     return color.toHsv()
+  }
 }
 
 function onChange(e: Event) {
@@ -40,7 +81,7 @@ function onInput(e: Event) {
 </script>
 
 <template>
-  <input class="agui-color-picker" type="color" opacity @input="onInput" @change="onChange">
+  <input class="agui-color-picker" :value="value" type="color" opacity @input="onInput" @change="onChange">
 </template>
 
 <style lang="scss">
