@@ -1,1 +1,1 @@
-export * from './pixi'
+export * from './analystics'

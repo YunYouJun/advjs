@@ -9,7 +9,7 @@ const tabList = ref([
 <template>
   <AGUIPanel h="full" w="full">
     <AGUITabs :list="tabList">
-      <AGUITabPanel>
+      <AGUITabPanel overflow="auto">
         <InspectorView />
       </AGUITabPanel>
     </AGUITabs>

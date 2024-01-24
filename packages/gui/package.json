@@ -1,7 +1,7 @@
 {
   "name": "@advjs/gui",
   "type": "module",
-  "version": "0.0.4-beta.7",
+  "version": "0.0.4-beta.9",
   "repository": {
     "url": "https://github.com/YunYouJun/advjs/tree/main/packages/gui",
     "type": "git"
@@ -44,6 +44,7 @@
     "@radix-ui/colors": "^3.0.0",
     "@types/splitpanes": "^2.2.6",
     "@types/wicg-file-system-access": "^2023.10.4",
+    "colord": "^2.9.3",
     "consola": "^3.2.3",
     "radix-vue": "^1.3.2",
     "splitpanes": "^3.1.5"

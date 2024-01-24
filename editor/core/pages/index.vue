@@ -21,7 +21,7 @@ onMounted(() => {
     <AGUIMenubar />
     <EditorToolbar />
 
-    <AGUILayout v-model:layout="app.layout" class="flex">
+    <AGUILayout v-model:layout="app.layout" class="advjs-editor-layout flex">
       <template #right>
         <PanelInspector />
       </template>
@@ -42,3 +42,12 @@ onMounted(() => {
     <AGUIToast ref="toastRef" />
   </main>
 </template>
+
+<style lang="scss">
+.advjs-editor-layout {
+  --agui-menu-bar-height: 26px;
+  --agui-toolbar-height: 28px;
+
+  height: calc(100% - var(--agui-menu-bar-height) - var(--agui-toolbar-height));
+}
+</style>

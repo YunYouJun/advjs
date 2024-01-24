@@ -48,6 +48,24 @@ const formData = ref({
     w: 0,
   },
   color: '#0099ff',
+  color2: {
+    r: 0,
+    g: 0,
+    b: 0,
+    a: 0,
+  },
+  color3: {
+    h: 0,
+    s: 0,
+    l: 0,
+    a: 0,
+  },
+  color4: {
+    h: 0,
+    s: 0,
+    v: 0,
+    a: 0,
+  },
   file: '',
 })
 
@@ -187,6 +205,24 @@ const items = ref<AGUIPropertiesPanelProps[]>([
         key: 'color',
       },
       {
+        type: 'color',
+        name: 'Color Picker 2',
+        object: formData,
+        key: 'color2',
+      },
+      {
+        type: 'color',
+        name: 'Color Picker 3',
+        object: formData,
+        key: 'color3',
+      },
+      {
+        type: 'color',
+        name: 'Color Picker 4',
+        object: formData,
+        key: 'color4',
+      },
+      {
         type: 'button',
         name: 'Button',
         label: 'Button Label',
@@ -239,6 +275,8 @@ const vector3 = ref<Vector3>({
         <AGUIFormItem label="Default">
           <AGUIInputVector v-model="vector3" />
         </AGUIFormItem>
+
+        {{ formData }}
 
         <AGUIFormItem label="Default">
           <AGUICheckbox />

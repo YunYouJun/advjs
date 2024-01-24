@@ -38,7 +38,7 @@ defineProps<{
       </Tab>
     </TabList>
 
-    <TabPanels style="height:calc(100% - 20px)">
+    <TabPanels style="height:calc(100% - 20px)" overflow="auto">
       <slot />
     </TabPanels>
   </TabGroup>

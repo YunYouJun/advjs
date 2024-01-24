@@ -9,7 +9,7 @@ defineProps<{
 
 <template>
   <ToolbarRoot
-    class="shadow-blackA7 w-full flex gap-1 p-1"
+    class="shadow-blackA7 h-$agui-toolbar-height w-full flex gap-1 p-1"
     aria-label="Formatting options"
   >
     <!-- <ToolbarSeparator class="bg-mauve6 mx-[10px] w-[1px]" /> -->

@@ -82,7 +82,7 @@ defineProps<{
         />
         <AGUICheckbox
           v-else-if="property.type === 'checkbox'"
-          v-model="property.object[property.key]"
+          v-model:checked="property.object[property.key]"
           :disabled="property.disabled"
         />
         <AGUIInputVector
