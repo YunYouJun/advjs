@@ -1,7 +1,5 @@
 import { defineConfig } from 'vite'
 
-// import Inspect from 'vite-plugin-inspect'
-
 // import { VitePWA } from 'vite-plugin-pwa'
 import VueDevTools from 'vite-plugin-vue-devtools'
 
@@ -18,10 +16,6 @@ export default defineConfig({
     //   },
     // }),
 
-    // https://github.com/antfu/vite-plugin-inspect
-    // Inspect({
-    //   enabled: true,
-    // }),
     VueDevTools(),
   ],
 })

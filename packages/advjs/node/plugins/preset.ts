@@ -8,6 +8,8 @@ import Markdown from 'unplugin-vue-markdown/vite'
 import VueRouter from 'unplugin-vue-router/vite'
 import VueI18n from '@intlify/unplugin-vue-i18n/vite'
 
+import fs from 'fs-extra'
+import { resolve } from 'pathe'
 import type { AdvPluginOptions, AdvServerOptions, ResolvedAdvOptions } from '../options'
 import { customElements } from '../constants'
 import { createConfigPlugin } from './extendConfig'
@@ -29,6 +31,7 @@ export async function ViteAdvPlugin(
 
   const {
     clientRoot,
+    userRoot,
     roots,
   } = options
 
@@ -45,6 +48,10 @@ export async function ViteAdvPlugin(
     ...vueOptions,
   })
 
+  // generated files for adv
+  const tempDir = resolve(userRoot, '.adv')
+  fs.ensureDirSync(resolve(userRoot, '.adv'))
+
   return [
     await createConfigPlugin(options),
     await createUnocssPlugin(options, pluginOptions),
@@ -57,6 +64,7 @@ export async function ViteAdvPlugin(
       extensions: ['.vue', '.md'],
       routesFolder: roots.map(root => `${root}/pages`),
       exclude: ['**/*.adv.md'],
+      dts: resolve(tempDir, 'typed-router.d.ts'),
     }),
 
     // https://github.com/JohnCampionJr/vite-plugin-vue-layouts
@@ -72,6 +80,7 @@ export async function ViteAdvPlugin(
         .concat([`${clientRoot}/builtin`]),
 
       include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
+      dts: resolve(tempDir, 'components.d.ts'),
 
       ...componentsOptions,
     }),

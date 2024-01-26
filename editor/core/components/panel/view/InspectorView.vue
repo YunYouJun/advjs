@@ -23,7 +23,7 @@ const transformObj = ref({
   },
 })
 
-const formData = ref({
+const formData = reactive({
   input: 'test',
   inputNumber: 10,
   checkbox: true,

@@ -21,9 +21,6 @@ bgm:
   collection:
     - name: xxx
       src: 'https://cdn.yunyoujun.cn/audio/star-timer.mp3'
-assets:
-  background:
-    love: /img/bg/bbburst-love.svg
 ---
 
 > 屏幕里似乎传来了些声音
@@ -166,7 +163,7 @@ exit: 云游君
 
 ```yaml
 type: background
-name: love
+name: bbbrustLove
 ```
 
 @小云

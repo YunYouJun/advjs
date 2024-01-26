@@ -1,5 +1,5 @@
 import { inject } from 'vue'
-import { advConfigSymbol, appConfigSymbol } from '../../core/src/constants'
+import { advConfigSymbol, appConfigSymbol } from '@advjs/core'
 
 /**
  * get app config in client

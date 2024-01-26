@@ -2,7 +2,7 @@
 // todo: fix type
 // @ts-expect-error vue-about-me
 import VueAboutMe from 'vue-about-me'
-import { isDark } from 'advjs'
+import { isDark } from '@advjs/core'
 import pkg from '../package.json'
 
 import 'vue-about-me/style.css'

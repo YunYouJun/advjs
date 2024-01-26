@@ -8,7 +8,6 @@ import { useAdvConfig } from '../composables'
 
 const advConfig = useAdvConfig()
 const images = computed(() => advConfig.value.assets.images)
-
 const app = useAppStore()
 
 const { t } = useI18n()

@@ -29,14 +29,14 @@
     "@vitejs/plugin-vue": "^5.0.3",
     "markdown-it-link-attributes": "^4.0.1",
     "markdown-it-prism": "^2.3.0",
-    "unocss": "^0.58.3",
+    "unocss": "^0.58.4",
     "unplugin-vue-components": "^0.26.0",
     "unplugin-vue-markdown": "^0.25.2",
     "unplugin-vue-router": "^0.7.0",
     "v-tooltip": "^4.0.0-beta.17",
     "vite": "^5.0.12",
-    "vite-plugin-inspect": "^0.8.2",
-    "vite-plugin-pwa": "^0.17.4",
+    "vite-plugin-inspect": "^0.8.3",
+    "vite-plugin-pwa": "^0.17.5",
     "vite-plugin-vue-layouts": "^0.11.0"
   }
 }
