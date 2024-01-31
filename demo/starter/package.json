@@ -21,6 +21,6 @@
     "advjs": "workspace:*",
     "https-localhost": "^4.7.1",
     "nodemon": "^3.0.3",
-    "vite-plugin-vue-devtools": "^7.0.12"
+    "vite-plugin-vue-devtools": "^7.0.13"
   }
 }

@@ -40,9 +40,6 @@ export async function build(
         build: {
           emptyOutDir: true,
           chunkSizeWarningLimit: 2000,
-          rollupOptions: {
-            external: ['html2canvas'],
-          },
         },
         ssr: {
           // TODO: workaround until they support native ESM
