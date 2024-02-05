@@ -1,6 +1,6 @@
 <!-- eslint-disable no-console -->
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import type { TreeNode, Trees } from '@advjs/gui'
 import AGUITree from '@advjs/gui/client/components/tree/AGUITree.vue'
 
@@ -99,6 +99,17 @@ function expand(nodes: Trees) {
 function activate(node: TreeNode) {
   console.log('activate', node)
 }
+
+const currentNode = ref<TreeNode | undefined>(treeData.value[0])
+
+onMounted(() => {
+  console.log('treeData', treeData.value)
+  // You can change the current node manually
+  setTimeout(() => {
+    currentNode.value = treeData.value[1]
+    console.log('currentNode', currentNode.value)
+  }, 1000)
+})
 </script>
 
 <template>
@@ -106,6 +117,7 @@ function activate(node: TreeNode) {
     title="AGUITree Demo"
   >
     <AGUITree
+      v-model:current-node="currentNode"
       :data="treeData"
       @node-selected="onSelected"
       @node-unselected="onUnselected"

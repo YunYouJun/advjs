@@ -1,10 +1,11 @@
 <!-- eslint-disable vue/custom-event-name-casing -->
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed } from 'vue'
 import type { TreeNode, Trees } from './types'
 import AGUITreeNode from './AGUITreeNode.vue'
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
+  currentNode?: TreeNode
   data: Trees | TreeNode
   depth?: number
 }>(), {
@@ -21,10 +22,12 @@ const emit = defineEmits([
   'node-hide',
 
   'log',
+
+  'update:currentNode',
 ],
 )
 
-const currentNode = ref<TreeNode>({
+const currentNode = computed(() => props.currentNode || {
   name: 'root',
 })
 
@@ -71,9 +74,9 @@ function hide(nodes: Trees) {
 }
 
 function activate(node: TreeNode) {
-  currentNode.value = node
   node.active = true
   emit('node-activate', node)
+  emit('update:currentNode', node)
 }
 </script>
 
