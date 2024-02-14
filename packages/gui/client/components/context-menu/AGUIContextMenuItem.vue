@@ -41,7 +41,7 @@ defineProps<{
         :value="subItem.label"
       >
         <ContextMenuItemIndicator class="ContextMenuItemIndicator">
-          <Icon icon="radix-icons:dot-filled" />
+          <div class="i-radix-icons:dot-filled" />
         </ContextMenuItemIndicator>
         {{ subItem.label }}
       </ContextMenuRadioItem>
@@ -70,7 +70,7 @@ defineProps<{
     >
       {{ item.label }}
       <div class="RightSlot">
-        <Icon icon="radix-icons:chevron-right" />
+        <div class="i-radix-icons:chevron-right" />
       </div>
     </ContextMenuSubTrigger>
     <ContextMenuPortal>

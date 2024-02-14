@@ -15,7 +15,6 @@ import {
   SelectValue,
   SelectViewport,
 } from 'radix-vue'
-import { Icon } from '@iconify/vue'
 
 type OptionType = string | { value: string, label?: string, icon?: string }
 
@@ -43,7 +42,7 @@ function onUpdateModelValue(value: string) {
       :aria-label="placeholder"
     >
       <SelectValue :placeholder="placeholder" />
-      <Icon icon="radix-icons:chevron-down" op="60" />
+      <div class="i-radix-icons:chevron-down" op="60" />
     </SelectTrigger>
 
     <SelectPortal>
@@ -52,7 +51,7 @@ function onUpdateModelValue(value: string) {
         side="bottom"
       >
         <SelectScrollUpButton class="SelectScrollButton">
-          <Icon icon="radix-icons:chevron-up" />
+          <div class="i-radix-icons:chevron-up" />
         </SelectScrollUpButton>
 
         <SelectViewport class="agui-select-viewport">
@@ -70,7 +69,7 @@ function onUpdateModelValue(value: string) {
                 :value="option"
               >
                 <SelectItemIndicator class="agui-select-item-indicator">
-                  <Icon icon="radix-icons:check" />
+                  <div class="i-radix-icons:check" />
                 </SelectItemIndicator>
                 <SelectItemText>
                   {{ option }}
@@ -83,7 +82,7 @@ function onUpdateModelValue(value: string) {
                 :value="option.value"
               >
                 <SelectItemIndicator class="agui-select-item-indicator">
-                  <Icon icon="radix-icons:check" />
+                  <div class="i-radix-icons:check" />
                 </SelectItemIndicator>
                 <div mr-1 :class="option.icon" />
                 <SelectItemText>
@@ -95,7 +94,7 @@ function onUpdateModelValue(value: string) {
         </SelectViewport>
 
         <SelectScrollDownButton class="SelectScrollButton agui-select-scroll-button">
-          <Icon icon="radix-icons:chevron-down" />
+          <div class="i-radix-icons:chevron-down" />
         </SelectScrollDownButton>
       </SelectContent>
     </SelectPortal>

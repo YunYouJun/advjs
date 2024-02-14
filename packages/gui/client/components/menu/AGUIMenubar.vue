@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
 import { ref } from 'vue'
 import {
   MenubarCheckboxItem,
@@ -91,7 +90,7 @@ export interface Menu {
               <div
                 class="RightSlot"
               >
-                <Icon icon="radix-icons:chevron-right" />
+                <div class="i-radix-icons:chevron-right" />
               </div>
             </MenubarSubTrigger>
             <MenubarPortal>
@@ -168,7 +167,7 @@ export interface Menu {
               <div
                 class="RightSlot"
               >
-                <Icon icon="radix-icons:chevron-right" />
+                <div class="i-radix-icons:chevron-right" />
               </div>
             </MenubarSubTrigger>
 
@@ -239,7 +238,7 @@ export interface Menu {
             class="MenubarCheckboxItem"
           >
             <MenubarItemIndicator class="MenubarItemIndicator">
-              <Icon icon="radix-icons:check" />
+              <div class="i-radix-icons:check" />
             </MenubarItemIndicator>
             Show Bookmarks
             <div
@@ -253,7 +252,7 @@ export interface Menu {
             class="MenubarCheckboxItem"
           >
             <MenubarItemIndicator class="MenubarItemIndicator">
-              <Icon icon="radix-icons:check" />
+              <div class="i-radix-icons:check" />
             </MenubarItemIndicator>
             Show Full URLs
           </MenubarCheckboxItem>
@@ -310,7 +309,7 @@ export interface Menu {
               value="pedro"
             >
               <MenubarItemIndicator class="MenubarItemIndicator">
-                <Icon icon="radix-icons:dot-filled" />
+                <div class="i-radix-icons:dot-filled" />
               </MenubarItemIndicator>
               Pedro Duarte
             </MenubarRadioItem>
@@ -319,7 +318,7 @@ export interface Menu {
               value="colm"
             >
               <MenubarItemIndicator class="MenubarItemIndicator">
-                <Icon icon="radix-icons:dot-filled" />
+                <div class="i-radix-icons:dot-filled" />
               </MenubarItemIndicator>
               Colm Tuite
             </MenubarRadioItem>

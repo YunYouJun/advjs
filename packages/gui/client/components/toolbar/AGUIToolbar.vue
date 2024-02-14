@@ -1,10 +1,14 @@
 <script lang="ts" setup>
-import { ToolbarButton, ToolbarRoot, ToolbarSeparator } from 'radix-vue'
+import { ToggleGroupItem, ToggleGroupRoot, ToolbarButton, ToolbarRoot, ToolbarSeparator } from 'radix-vue'
+
 import type { ToolbarItem } from './types'
 
 defineProps<{
   items: ToolbarItem[]
 }>()
+
+const toggleGroupItemClasses
+  = 'cursor-pointer bg-dark-200 shadow hover:bg-dark-100 text-mauve11 flex w-8 items-center justify-center text-base leading-4 first:rounded-l last:rounded-r focus:z-10 shadow focus:shadow-[0_0_0_1px] focus:shadow-dark-600 focus:outline-none'
 </script>
 
 <template>
@@ -25,6 +29,7 @@ defineProps<{
         v-else-if="item.type === 'button'"
         :key="item.name"
         class="agui-button h-20px"
+        :title="item.title"
         @click="item.onClick"
       >
         <div
@@ -35,6 +40,24 @@ defineProps<{
           {{ item.name }}
         </span>
       </ToolbarButton>
+
+      <ToggleGroupRoot
+        v-else-if="item.type === 'toggle-group'"
+        :key="`group:${item.name}`"
+        v-model="item.value"
+        class="flex"
+      >
+        <ToggleGroupItem
+          v-for="bItem in item.children"
+          :key="bItem.value"
+          :value="bItem.value"
+          :aria-label="bItem.label"
+          :class="`${bItem.class} ${toggleGroupItemClasses}`"
+          @click="bItem.onClick"
+        >
+          <div :class="bItem.icon" class="h-[15px] w-[15px]" />
+        </ToggleGroupItem>
+      </ToggleGroupRoot>
     </template>
   </ToolbarRoot>
 </template>

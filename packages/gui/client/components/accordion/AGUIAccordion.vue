@@ -12,6 +12,7 @@ withDefaults(
   } & Partial<AccordionRootProps>>(),
   {
     type: 'multiple',
+    defaultValue: '',
   },
 )
 </script>

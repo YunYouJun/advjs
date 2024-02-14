@@ -18,15 +18,15 @@
     "@types/mdast": "4.0.3",
     "@unhead/vue": "^1.8.10",
     "@vueuse/core": "^10.7.2",
-    "monaco-editor": "^0.45.0",
+    "monaco-editor": "^0.46.0",
     "pinia": "^2.1.7",
-    "vue": "^3.4.15",
+    "vue": "^3.4.19",
     "vue-router": "^4.2.5",
     "wc-github-corners": "^0.1.6"
   },
   "devDependencies": {
     "@intlify/unplugin-vue-i18n": "^2.0.0",
-    "@vitejs/plugin-vue": "^5.0.3",
+    "@vitejs/plugin-vue": "^5.0.4",
     "markdown-it-link-attributes": "^4.0.1",
     "markdown-it-prism": "^2.3.0",
     "unocss": "^0.58.5",
@@ -34,9 +34,9 @@
     "unplugin-vue-markdown": "^0.26.0",
     "unplugin-vue-router": "^0.7.0",
     "v-tooltip": "^4.0.0-beta.17",
-    "vite": "^5.0.12",
+    "vite": "^5.1.2",
     "vite-plugin-inspect": "^0.8.3",
-    "vite-plugin-pwa": "^0.17.5",
+    "vite-plugin-pwa": "^0.18.1",
     "vite-plugin-vue-layouts": "^0.11.0"
   }
 }
