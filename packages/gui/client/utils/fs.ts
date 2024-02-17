@@ -103,6 +103,7 @@ export function getIconFromFileType(filetype: string) {
       return 'i-vscode-icons-file-type-audio'
     case 'pdf':
       return 'i-vscode-icons-file-type-pdf2'
+    case 'docx':
     case 'word':
       return 'i-vscode-icons-file-type-word'
     case 'excel':
@@ -141,6 +142,7 @@ export function getIconFromFileType(filetype: string) {
 
     case 'binary':
       return 'i-vscode-icons-file-type-binary'
+    case 'txt':
     case 'text':
       return 'i-vscode-icons-file-type-text'
     default:
