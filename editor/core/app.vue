@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { mountCssVarsRootStyle } from '@advjs/gui/client/styles/icons'
+import { mountCssVarsRootStyle } from '@advjs/gui/client'
 import { appName } from '~/constants'
 
 useHead({
@@ -8,6 +8,10 @@ useHead({
 
 onMounted(() => {
   mountCssVarsRootStyle()
+})
+
+definePageMeta({
+  colorMode: 'dark',
 })
 </script>
 
@@ -27,10 +31,8 @@ body,
   padding: 0;
 
   overflow: hidden;
-}
 
-html.dark {
-  background: var(--agui-c-bg);
   color: white;
+  background: var(--agui-c-bg);
 }
 </style>

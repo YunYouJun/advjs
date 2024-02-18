@@ -8,10 +8,18 @@ const tools: ToolbarItem[] = [
     type: 'button',
     icon: 'i-mdi-account-circle',
     name: 'YunYouJun',
+    onClick: () => {
+      // eslint-disable-next-line no-console
+      console.log('YunYouJun')
+    },
   },
   {
     type: 'button',
     icon: 'i-ri-puzzle-line',
+    onClick: () => {
+      // eslint-disable-next-line no-console
+      console.log('puzzle')
+    },
   },
   {
     type: 'separator',
@@ -19,6 +27,10 @@ const tools: ToolbarItem[] = [
   {
     type: 'button',
     icon: 'i-ri-puzzle-2-line',
+    onClick: () => {
+      // eslint-disable-next-line no-console
+      console.log('puzzle 2')
+    },
   },
   {
     type: 'space',

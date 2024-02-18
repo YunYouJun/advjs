@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AGUIMenubar, AGUIToast, Toast, toastRef } from '@advjs/gui'
+import { AGUIToast, Toast, toastRef } from '@advjs/gui'
 import { useAppStore } from '~/composables'
 
 definePageMeta({
@@ -18,7 +18,7 @@ onMounted(() => {
 
 <template>
   <main class="h-screen w-screen flex flex-col">
-    <AGUIMenubar />
+    <EditorMenubar />
     <EditorToolbar />
 
     <AGUILayout v-model:layout="app.layout" class="advjs-editor-layout flex">

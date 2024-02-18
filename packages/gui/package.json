@@ -7,8 +7,8 @@
     "type": "git"
   },
   "exports": {
-    "./client": "./client/index.ts",
     "./client/*": "./client/*",
+    "./client": "./client/index.ts",
     "./components/*": "./client/components/*",
     "./nuxt": "./nuxt.mjs",
     "./runtime": "./index.ts",
@@ -39,6 +39,7 @@
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.19",
+    "@iconify-json/radix-icons": "^1.1.14",
     "@iconify-json/vscode-icons": "^1.1.33",
     "@iconify/vue": "^4.1.1",
     "@radix-ui/colors": "^3.0.0",

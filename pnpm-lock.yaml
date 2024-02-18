@@ -650,6 +650,9 @@ importers:
       '@headlessui/vue':
         specifier: ^1.7.19
         version: 1.7.19(vue@3.4.19)
+      '@iconify-json/radix-icons':
+        specifier: ^1.1.14
+        version: 1.1.14
       '@iconify-json/vscode-icons':
         specifier: ^1.1.33
         version: 1.1.33
@@ -3257,6 +3260,12 @@ packages:
     dependencies:
       '@iconify/types': 2.0.0
     dev: true
+
+  /@iconify-json/radix-icons@1.1.14:
+    resolution: {integrity: sha512-AYBOyhnJ2hXlg3aIn8Ekphrr7zHRyz1l8x6bidM3PDUuTL+aRt8r6cpCvN3GeuTHy2JOhmihbVJRF0bt2FF7Ag==}
+    dependencies:
+      '@iconify/types': 2.0.0
+    dev: false
 
   /@iconify-json/ri@1.1.19:
     resolution: {integrity: sha512-S9usTucQOY//J3LGIGZ+A6i8AYGCStDcLKjmWzI2UPnWJo+Xd5dESMQGkhOI5BlG3W4AtH6RmiXcpbPy3krmjQ==}

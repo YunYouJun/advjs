@@ -18,6 +18,8 @@ import {
 } from 'radix-vue'
 import './menu-bar.scss'
 
+import type { Menu } from './types'
+
 defineProps<{
   menus?: Menu[]
 }>()
@@ -32,16 +34,6 @@ function handleClick() {
 
 // const RADIO_ITEMS = ['Andy', 'Benoît', 'Luis']
 // const CHECK_ITEMS = ['Always Show Bookmarks Bar', 'Always Show Full URLs']
-
-export interface MenuItem {
-  name: string
-  items: string[]
-}
-
-export interface Menu {
-  name: string
-  items: string[]
-}
 </script>
 
 <template>
@@ -305,7 +297,7 @@ export interface Menu {
         >
           <MenubarRadioGroup v-model="person">
             <MenubarRadioItem
-              class="MenubarCheckboxItem"
+              class="MenubarCheckboxItem inset"
               value="pedro"
             >
               <MenubarItemIndicator class="MenubarItemIndicator">
@@ -314,7 +306,7 @@ export interface Menu {
               Pedro Duarte
             </MenubarRadioItem>
             <MenubarRadioItem
-              class="MenubarCheckboxItem"
+              class="MenubarCheckboxItem inset"
               value="colm"
             >
               <MenubarItemIndicator class="MenubarItemIndicator">
@@ -336,6 +328,47 @@ export interface Menu {
           >
             Add Profile…
           </MenubarItem>
+        </MenubarContent>
+      </MenubarPortal>
+    </MenubarMenu>
+
+    <MenubarMenu v-for="menu in menus" :key="menu.name">
+      <MenubarTrigger
+        class="MenubarTrigger"
+      >
+        {{ menu.name }}
+      </MenubarTrigger>
+      <MenubarPortal>
+        <MenubarContent
+          class="MenubarContent"
+          align="start"
+          :side-offset="5"
+          :align-offset="-3"
+        >
+          <template v-for="menuItem in menu.items" :key="menuItem.name">
+            <MenubarCheckboxItem
+              v-if="menuItem.type === 'checkbox'"
+              v-model:checked="menuItem.checked"
+              class="MenubarCheckboxItem inset"
+            >
+              <MenubarItemIndicator class="MenubarItemIndicator">
+                <div class="i-radix-icons:check" />
+              </MenubarItemIndicator>
+              {{ menuItem.label }}
+            </MenubarCheckboxItem>
+
+            <MenubarItem
+              v-else
+              class="MenubarItem"
+              :disabled="menuItem.disabled"
+            >
+              {{ menuItem.label }}
+
+              <div class="RightSlot">
+                {{ menuItem.accelerator }}
+              </div>
+            </MenubarItem>
+          </template>
         </MenubarContent>
       </MenubarPortal>
     </MenubarMenu>

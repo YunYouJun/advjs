@@ -9,7 +9,6 @@ button {
   display: flex;
   background-color: var(--agui-c-bg);
   padding: 3px;
-  border-radius: 6px;
   box-shadow: 0 2px 10px var(--black-a7);
   height: var(--agui-menu-bar-height);
 }
@@ -41,12 +40,15 @@ button {
 .MenubarContent,
 .MenubarSubContent {
   min-width: 220px;
-  background-color: var(--agui-c-bg);
+  background-color: rgba(22, 23, 24, 0.5);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--agui-c-divider);
+
   border-radius: 6px;
   padding: 5px;
   box-shadow:
     0px 10px 38px -10px rgba(22, 23, 24, 0.35),
-    0px 10px 20px -15px rgba(22, 23, 24, 0.2);
+    0px 10px 20px -15px rgba(22, 23, 24, 0.8);
   animation-duration: 400ms;
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform, opacity;
@@ -68,6 +70,7 @@ button {
   align-items: center;
   height: 25px;
   padding: 0 10px;
+
   position: relative;
   user-select: none;
 }
