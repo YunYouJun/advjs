@@ -11,7 +11,7 @@ withDefaults(
     items?: AGUIAccordionProps[]
   } & Partial<AccordionRootProps>>(),
   {
-    type: 'multiple',
+    type: 'single',
     defaultValue: '',
   },
 )

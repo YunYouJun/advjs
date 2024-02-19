@@ -1,5 +1,8 @@
 <script lang="ts" setup>
-defineProps<{
+import { onMounted, ref } from 'vue'
+
+const props = defineProps<{
+  autofocus?: boolean
   className?: string
   prefixIcon?: string
   modelValue?: string
@@ -12,6 +15,15 @@ function updateModelValue(event: any) {
   const val = event.target?.value || ''
   emit('update:modelValue', val)
 }
+const inputRef = ref<HTMLInputElement | null>()
+
+onMounted(async () => {
+  if (props.autofocus) {
+    setTimeout(() => {
+      inputRef.value?.focus()
+    }, 1)
+  }
+})
 </script>
 
 <template>
@@ -23,12 +35,15 @@ function updateModelValue(event: any) {
       <div v-if="prefixIcon" :class="prefixIcon" />
     </div>
     <input
+      ref="inputRef"
       class="agui-input w-full px-1 shadow shadow-inset"
       :class="{
         'pl-5': prefixIcon,
+        [className || '']: true,
       }"
       :value="modelValue"
       :placeholder="placeholder"
+      :autofocus="autofocus"
       @input="updateModelValue"
     >
   </div>
