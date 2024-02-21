@@ -8,7 +8,7 @@ defineProps<{
 <template>
   <div
     class="agui-form-item flex"
-    items-center justify-center h="6"
+    items-center justify-center
   >
     <label
       class="agui-label w-1/3 text-$agui-c-label"

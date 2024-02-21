@@ -17,7 +17,7 @@ export default defineConfig({
   },
 
   plugins: [
-    vue(),
+    vue() as any,
 
     // css in js
     cssInjectedByJsPlugin(),

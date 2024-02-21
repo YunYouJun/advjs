@@ -1,6 +1,7 @@
 <template>
   <div
     class="agui-form"
+    gap="1"
   >
     <slot />
   </div>
