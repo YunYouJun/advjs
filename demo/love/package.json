@@ -13,6 +13,6 @@
     "@advjs/theme-default": "workspace:*",
     "advjs": "workspace:*",
     "https-localhost": "^4.7.1",
-    "nodemon": "^3.0.3"
+    "nodemon": "^3.1.0"
   }
 }

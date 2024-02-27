@@ -17,15 +17,15 @@
   "dependencies": {
     "@advjs/plugin-babylon": "workspace:*",
     "@unhead/vue": "^1.8.10",
-    "@vueuse/core": "^10.7.2",
+    "@vueuse/core": "^10.9.0",
     "@vueuse/head": "^2.0.0",
     "nprogress": "^0.2.0",
     "pinia": "^2.1.7",
     "prism-theme-vars": "^0.2.4",
-    "vue": "^3.4.19",
+    "vue": "^3.4.20",
     "vue-demi": "^0.14.7",
     "vue-i18n": "^9.9.1",
-    "vue-router": "^4.2.5"
+    "vue-router": "^4.3.0"
   },
   "devDependencies": {
     "@advjs/core": "workspace:*",
@@ -44,7 +44,7 @@
     "unplugin-vue-components": "^0.26.0",
     "unplugin-vue-markdown": "^0.26.0",
     "unplugin-vue-router": "^0.7.0",
-    "vite": "^5.1.3",
+    "vite": "^5.1.4",
     "vite-plugin-inspect": "^0.8.3",
     "vite-plugin-pwa": "^0.19.0",
     "vite-plugin-vue-layouts": "^0.11.0",

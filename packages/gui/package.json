@@ -1,7 +1,7 @@
 {
   "name": "@advjs/gui",
   "type": "module",
-  "version": "0.0.5-beta.7",
+  "version": "0.0.5",
   "repository": {
     "url": "https://github.com/YunYouJun/advjs/tree/main/packages/gui",
     "type": "git"
@@ -47,7 +47,7 @@
     "@types/wicg-file-system-access": "^2023.10.4",
     "colord": "^2.9.3",
     "consola": "^3.2.3",
-    "radix-vue": "^1.4.8",
+    "radix-vue": "^1.4.9",
     "splitpanes": "^3.1.5"
   },
   "devDependencies": {

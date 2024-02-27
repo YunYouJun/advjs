@@ -2,7 +2,7 @@
   "name": "@advjs/editor",
   "version": "0.0.0",
   "private": true,
-  "packageManager": "pnpm@8.15.3",
+  "packageManager": "pnpm@8.15.4",
   "description": "ADV.JS Editor",
   "scripts": {
     "build": "nuxi build",
@@ -31,10 +31,10 @@
     "@unocss/eslint-config": "^0.58.5",
     "@unocss/nuxt": "^0.58.5",
     "@vite-pwa/nuxt": "^0.5.0",
-    "@vueuse/nuxt": "^10.7.2",
-    "baklavajs": "2.4.1",
+    "@vueuse/nuxt": "^10.9.0",
+    "baklavajs": "2.4.2",
     "consola": "^3.2.3",
-    "nuxt": "^3.10.2",
+    "nuxt": "^3.10.3",
     "nuxt-monaco-editor": "git+https://github.com/jontybrook/nuxt-monaco-editor.git#patch1",
     "pinia": "^2.1.7"
   }
