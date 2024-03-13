@@ -12,7 +12,6 @@ withDefaults(
   } & Partial<AccordionRootProps>>(),
   {
     type: 'single',
-    defaultValue: '',
   },
 )
 </script>
@@ -20,10 +19,11 @@ withDefaults(
 <template>
   <AccordionRoot
     class="AccordionRoot"
-    :collapsible="true"
+    collapsible
     :type="type"
-    :default-value="defaultValue"
+    v-bind="$props"
   >
+    {{ type }}
     <template v-if="items">
       <template v-for="item in items" :key="item.title">
         <AGUIAccordionItem :item="item" />

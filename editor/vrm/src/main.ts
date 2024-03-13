@@ -1,7 +1,7 @@
 // register vue composition api globally
 import { ViteSSG } from 'vite-ssg'
 import { setupLayouts } from 'virtual:generated-layouts'
-import { routes } from 'vue-router/auto/routes'
+import { routes } from 'vue-router/auto-routes'
 import App from './App.vue'
 import type { UserModule } from './types'
 

@@ -3,7 +3,7 @@ import { createApp } from 'vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { MotionPlugin } from '@vueuse/motion'
 import { createHead } from '@unhead/vue'
-import { routes } from 'vue-router/auto/routes'
+import { routes } from 'vue-router/auto-routes'
 import App from './App.vue'
 
 // unocss

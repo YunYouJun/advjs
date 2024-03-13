@@ -30,7 +30,7 @@
     "@advjs/parser": "workspace:*",
     "@advjs/types": "workspace:*",
     "@antfu/utils": "^0.7.7",
-    "@unhead/vue": "^1.8.10",
+    "@unhead/vue": "^1.8.14",
     "@vueuse/core": "^10.9.0",
     "@vueuse/motion": "^2.1.0",
     "@vueuse/sound": "^2.0.1",
@@ -40,10 +40,10 @@
     "howler": "^2.2.4",
     "nprogress": "^0.2.0",
     "pinia": "^2.1.7",
-    "pixi.js": "8.0.0-beta.8",
+    "pixi.js": "8.0.1",
     "resolve": "^1.22.8",
     "swiper": "^11.0.7",
-    "vue": "^3.4.20",
+    "vue": "^3.4.21",
     "vue-router": "^4.3.0"
   },
   "optionalDependencies": {
