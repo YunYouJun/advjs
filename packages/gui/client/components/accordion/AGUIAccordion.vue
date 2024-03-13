@@ -23,7 +23,6 @@ withDefaults(
     :type="type"
     v-bind="$props"
   >
-    {{ type }}
     <template v-if="items">
       <template v-for="item in items" :key="item.title">
         <AGUIAccordionItem :item="item" />

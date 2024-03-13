@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { Toast } from '@advjs/gui'
 import type { AGUIPropertiesPanelProps, Vector3 } from '@advjs/gui'
+import { useStorage } from '@vueuse/core'
 
 let count = 0
 
@@ -266,8 +267,7 @@ const items = ref<AGUIPropertiesPanelProps[]>([
   },
 ])
 
-const defaultOpenItems = items.value.map(item => item.title).concat('test')
-
+const openItems = useStorage<string[]>('inspector:open-items', items.value.map(item => item.title))
 const vector3 = ref<Vector3>({
   x: 0,
   y: 0,
@@ -276,7 +276,7 @@ const vector3 = ref<Vector3>({
 </script>
 
 <template>
-  <AGUIAccordion type="multiple" :default-value="defaultOpenItems">
+  <AGUIAccordion v-model="openItems" type="multiple">
     <AGUIPropertiesPanel v-for="item in items" :key="item.title" :item="item" />
     <AGUIAccordionItem
       :item="{
