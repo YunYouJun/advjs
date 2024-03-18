@@ -209,10 +209,10 @@ importers:
     dependencies:
       '@google/model-viewer':
         specifier: ^3.4.0
-        version: 3.4.0(three@0.162.0)
+        version: 3.4.0(three@0.160.1)
       pixi-painter:
         specifier: ^0.1.6-beta.1
-        version: 0.1.6-beta.1(@pixi/core@7.4.0)
+        version: 0.1.6-beta.1(@pixi/core@7.3.3)
     devDependencies:
       '@advjs/gui':
         specifier: workspace:*
@@ -256,6 +256,9 @@ importers:
       consola:
         specifier: ^3.2.3
         version: 3.2.3
+      honeycomb-grid:
+        specifier: ^4.1.5
+        version: 4.1.5
       nuxt:
         specifier: ^3.10.3
         version: 3.10.3(@types/node@20.11.26)(eslint@8.57.0)(rollup@2.79.1)(typescript@5.4.2)(vite@5.1.6)(vue-tsc@2.0.6)
@@ -355,7 +358,7 @@ importers:
         version: 5.1.6(@types/node@20.11.26)(sass@1.71.1)
       vite-plugin-inspect:
         specifier: ^0.8.3
-        version: 0.8.3(rollup@2.79.1)(vite@5.1.6)
+        version: 0.8.3(@nuxt/kit@3.9.1)(rollup@2.79.1)(vite@5.1.6)
       vite-plugin-pwa:
         specifier: ^0.19.2
         version: 0.19.2(vite@5.1.6)(workbox-build@7.0.0)(workbox-window@7.0.0)
@@ -412,7 +415,7 @@ importers:
         version: 3.2.3
       debug:
         specifier: ^4.3.4
-        version: 4.3.4(supports-color@8.1.1)
+        version: 4.3.4(supports-color@5.5.0)
       defu:
         specifier: ^6.1.4
         version: 6.1.4
@@ -805,7 +808,7 @@ importers:
         version: 5.1.6(@types/node@20.11.26)(sass@1.71.1)
       vite-plugin-inspect:
         specifier: ^0.8.3
-        version: 0.8.3(rollup@2.79.1)(vite@5.1.6)
+        version: 0.8.3(@nuxt/kit@3.9.1)(rollup@2.79.1)(vite@5.1.6)
       vite-plugin-pwa:
         specifier: ^0.19.2
         version: 0.19.2(vite@5.1.6)(workbox-build@7.0.0)(workbox-window@7.0.0)
@@ -826,7 +829,7 @@ importers:
         version: 5.19.0(@babylonjs/core@5.19.0)
       '@babylonjs/loaders':
         specifier: 5.19.0
-        version: 5.19.0(@babylonjs/core@5.19.0)(babylonjs-gltf2interface@6.46.1)
+        version: 5.19.0(@babylonjs/core@5.19.0)(babylonjs-gltf2interface@5.57.1)
       '@babylonjs/materials':
         specifier: 5.19.0
         version: 5.19.0(@babylonjs/core@5.19.0)
@@ -1202,7 +1205,7 @@ packages:
       '@babel/traverse': 7.23.7
       '@babel/types': 7.23.6
       convert-source-map: 2.0.0
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       gensync: 1.0.0-beta.2
       json5: 2.2.3
       semver: 6.3.1
@@ -1225,7 +1228,7 @@ packages:
       '@babel/traverse': 7.23.9
       '@babel/types': 7.23.9
       convert-source-map: 2.0.0
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       gensync: 1.0.0-beta.2
       json5: 2.2.3
       semver: 6.3.1
@@ -1247,7 +1250,7 @@ packages:
       '@babel/traverse': 7.24.0
       '@babel/types': 7.24.0
       convert-source-map: 2.0.0
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       gensync: 1.0.0-beta.2
       json5: 2.2.3
       semver: 6.3.1
@@ -1342,7 +1345,7 @@ packages:
       '@babel/core': 7.24.0
       '@babel/helper-compilation-targets': 7.23.6
       '@babel/helper-plugin-utils': 7.24.0
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       lodash.debounce: 4.0.8
       resolve: 1.22.8
     transitivePeerDependencies:
@@ -1357,7 +1360,7 @@ packages:
       '@babel/core': 7.24.0
       '@babel/helper-compilation-targets': 7.23.6
       '@babel/helper-plugin-utils': 7.24.0
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       lodash.debounce: 4.0.8
       resolve: 1.22.8
     transitivePeerDependencies:
@@ -2578,7 +2581,7 @@ packages:
       '@babel/helper-split-export-declaration': 7.22.6
       '@babel/parser': 7.23.9
       '@babel/types': 7.23.9
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       globals: 11.12.0
     transitivePeerDependencies:
       - supports-color
@@ -2595,7 +2598,7 @@ packages:
       '@babel/helper-split-export-declaration': 7.22.6
       '@babel/parser': 7.23.9
       '@babel/types': 7.23.9
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       globals: 11.12.0
     transitivePeerDependencies:
       - supports-color
@@ -2612,7 +2615,7 @@ packages:
       '@babel/helper-split-export-declaration': 7.22.6
       '@babel/parser': 7.24.0
       '@babel/types': 7.24.0
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       globals: 11.12.0
     transitivePeerDependencies:
       - supports-color
@@ -2657,14 +2660,14 @@ packages:
       tslib: 2.6.2
     dev: false
 
-  /@babylonjs/loaders@5.19.0(@babylonjs/core@5.19.0)(babylonjs-gltf2interface@6.46.1):
+  /@babylonjs/loaders@5.19.0(@babylonjs/core@5.19.0)(babylonjs-gltf2interface@5.57.1):
     resolution: {integrity: sha512-8+Crf9udgDS3a70S54wevukJPMsHIMf4FSchwdvMyb5goktNf0T3+fptMe8UVdkmcCztYqIgCkBrUAtHRVQksA==}
     peerDependencies:
       '@babylonjs/core': ^5.0.0
       babylonjs-gltf2interface: ^5.0.0
     dependencies:
       '@babylonjs/core': 5.19.0
-      babylonjs-gltf2interface: 6.46.1
+      babylonjs-gltf2interface: 5.57.1
       tslib: 2.6.2
     dev: false
 
@@ -3436,7 +3439,7 @@ packages:
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     dependencies:
       ajv: 6.12.6
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       espree: 9.6.1
       globals: 13.24.0
       ignore: 5.3.0
@@ -3491,15 +3494,15 @@ packages:
       - vue
     dev: false
 
-  /@google/model-viewer@3.4.0(three@0.162.0):
+  /@google/model-viewer@3.4.0(three@0.160.1):
     resolution: {integrity: sha512-ZGZktE+uy7CiNOSrFdR1bTZDe9nfel2h8gWiRY6D5Eit77RAzIRYnPlkdQBoLSo8nnYS0faL/Z1tKP7nntvoGg==}
     engines: {node: '>=6.0.0'}
     peerDependencies:
       three: ^0.160.0
     dependencies:
-      '@monogrid/gainmap-js': 3.0.1(three@0.162.0)
+      '@monogrid/gainmap-js': 3.0.1(three@0.160.1)
       lit: 2.8.0
-      three: 0.162.0
+      three: 0.160.1
     dev: false
 
   /@headlessui/vue@1.7.19(vue@3.4.21):
@@ -3517,7 +3520,7 @@ packages:
     engines: {node: '>=10.10.0'}
     dependencies:
       '@humanwhocodes/object-schema': 2.0.2
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       minimatch: 3.1.2
     transitivePeerDependencies:
       - supports-color
@@ -3593,7 +3596,7 @@ packages:
       '@antfu/install-pkg': 0.1.1
       '@antfu/utils': 0.7.7
       '@iconify/types': 2.0.0
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       kolorist: 1.8.0
       local-pkg: 0.5.0
       mlly: 1.5.0
@@ -3676,7 +3679,7 @@ packages:
       '@intlify/shared': 9.10.1
       '@rollup/pluginutils': 5.1.0(rollup@2.79.1)
       '@vue/compiler-sfc': 3.4.21
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       fast-glob: 3.3.2
       js-yaml: 4.1.0
       json5: 2.2.3
@@ -3709,7 +3712,7 @@ packages:
       '@intlify/shared': 9.10.1
       '@rollup/pluginutils': 5.1.0(rollup@3.29.4)
       '@vue/compiler-sfc': 3.4.21
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       fast-glob: 3.3.2
       js-yaml: 4.1.0
       json5: 2.2.3
@@ -3823,7 +3826,7 @@ packages:
   /@kwsites/file-exists@1.1.1:
     resolution: {integrity: sha512-m9/5YGR18lIwxSFDwfE3oA7bWuq9kdau6ugN4H2rJeyhFQZcG9AgSHkQtSD15a8WvTgfz9aikZMrKPHvbpqFiw==}
     dependencies:
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -3920,13 +3923,13 @@ packages:
     resolution: {integrity: sha512-9b8mPpKrfeGRuhFH5iO1iwCLeIIsV6+H1sRfxbkoGXIyQE2BTsPd9zqSqQJ+pv5sJ/hT5M1zvOFL02MnEezFug==}
     dev: true
 
-  /@monogrid/gainmap-js@3.0.1(three@0.162.0):
+  /@monogrid/gainmap-js@3.0.1(three@0.160.1):
     resolution: {integrity: sha512-ds5/oRGp6bW11W6iHHHAQiEFaBMUDTuszXHxZvkLH4YdcRd1eRFt925XDLcE/ucT3HhYq7rr1xS1Yjz26QOB6A==}
     peerDependencies:
       three: '>= 0.159.0'
     dependencies:
       promise-worker-transferable: 1.0.4
-      three: 0.162.0
+      three: 0.160.1
     dev: false
 
   /@netlify/functions@2.4.1:
@@ -4660,8 +4663,8 @@ packages:
       '@pixi/events': 7.3.3
     dependencies:
       '@pixi/core': 7.3.3
-      '@pixi/display': 7.3.3(@pixi/core@7.4.0)
-      '@pixi/events': 7.3.3(@pixi/core@7.4.0)(@pixi/display@7.3.3)
+      '@pixi/display': 7.3.3(@pixi/core@7.3.3)
+      '@pixi/events': 7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)
     dev: false
 
   /@pixi/app@7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3):
@@ -4671,26 +4674,20 @@ packages:
       '@pixi/display': 7.3.3
     dependencies:
       '@pixi/core': 7.3.3
-      '@pixi/display': 7.3.3(@pixi/core@7.4.0)
+      '@pixi/display': 7.3.3(@pixi/core@7.3.3)
     dev: false
 
-  /@pixi/assets@7.3.3(@pixi/core@7.4.0):
+  /@pixi/assets@7.3.3(@pixi/core@7.3.3):
     resolution: {integrity: sha512-KcLXVehdJ2kc2bSnTfatLPLL6sLD7dwU+EZ5bWQ/PZDSsfML3kLFvq84VXd4k8LKNX4RCvfy4yeeIUW1o5tnMg==}
     peerDependencies:
       '@pixi/core': 7.3.3
     dependencies:
-      '@pixi/core': 7.4.0
+      '@pixi/core': 7.3.3
       '@types/css-font-loading-module': 0.0.12
     dev: false
 
   /@pixi/color@7.3.3:
     resolution: {integrity: sha512-IiiFhNIqXt7yULe0Wkq5Hn38ymDoEen/6EvV2y2AQIOu6TyuET5PGswAdMfG7ZjfwBaCudK6yQEUjWaXbgRUmw==}
-    dependencies:
-      '@pixi/colord': 2.9.6
-    dev: false
-
-  /@pixi/color@7.4.0:
-    resolution: {integrity: sha512-Qgn3OSW9SFCQ8wrm524anENwIAeRTORC014LkTqaBQrpuOUHrx11SCy4kNFaQyZWO1DCTe4m8g/foCK7zJM7cg==}
     dependencies:
       '@pixi/colord': 2.9.6
     dev: false
@@ -4705,16 +4702,12 @@ packages:
       '@pixi/assets': 7.3.3
       '@pixi/core': 7.3.3
     dependencies:
-      '@pixi/assets': 7.3.3(@pixi/core@7.4.0)
+      '@pixi/assets': 7.3.3(@pixi/core@7.3.3)
       '@pixi/core': 7.3.3
     dev: false
 
   /@pixi/constants@7.3.3:
     resolution: {integrity: sha512-ww1JdekmKBUqHyPq8A5L+86FkzpS4KidlBm9wkX1fcd+6QQzq/vbx1JOz6m3CmH5LnlmDZ+zysLezvpZlBcwwA==}
-    dev: false
-
-  /@pixi/constants@7.4.0:
-    resolution: {integrity: sha512-jQMPMRqkOTjI4D0cHWqvu+pofw6bIa8861x2vp2kNsmM2zcBO/b01AlmILi5pEDk0nTumgzgmVHZ7dtT9KxfQw==}
     dev: false
 
   /@pixi/core@7.3.3:
@@ -4731,43 +4724,26 @@ packages:
       '@types/offscreencanvas': 2019.7.3
     dev: false
 
-  /@pixi/core@7.4.0:
-    resolution: {integrity: sha512-X6UiDzmdd2oRK3zQggDrWNIlw5rjZakByRIwI6MRgj17FGkpNkCY78dO1snZ6qnpUoo5M03aSUCFCfq6LKA5Bg==}
-    dependencies:
-      '@pixi/color': 7.4.0
-      '@pixi/constants': 7.4.0
-      '@pixi/extensions': 7.4.0
-      '@pixi/math': 7.4.0
-      '@pixi/runner': 7.4.0
-      '@pixi/settings': 7.4.0
-      '@pixi/ticker': 7.4.0
-      '@pixi/utils': 7.4.0
-    dev: false
-
-  /@pixi/display@7.3.3(@pixi/core@7.4.0):
+  /@pixi/display@7.3.3(@pixi/core@7.3.3):
     resolution: {integrity: sha512-iULZ2E6Z4vhI0FypXpUbtA+CODnj/CuTt2pi9gsw00ILI12eEx76cAiazvhxnCNqcfmj1RRK2P6s9Vzr5WmEIg==}
     peerDependencies:
       '@pixi/core': 7.3.3
     dependencies:
-      '@pixi/core': 7.4.0
+      '@pixi/core': 7.3.3
     dev: false
 
-  /@pixi/events@7.3.3(@pixi/core@7.4.0)(@pixi/display@7.3.3):
+  /@pixi/events@7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3):
     resolution: {integrity: sha512-1oDfdFtKsy0Z9ew09MrSYGIIeGnBXr/c7866A32Od3KXql0dhd7UpFFpaFKLCXydDHRgFkjOP7t0/Pp1luTvfg==}
     peerDependencies:
       '@pixi/core': 7.3.3
       '@pixi/display': 7.3.3
     dependencies:
-      '@pixi/core': 7.4.0
-      '@pixi/display': 7.3.3(@pixi/core@7.4.0)
+      '@pixi/core': 7.3.3
+      '@pixi/display': 7.3.3(@pixi/core@7.3.3)
     dev: false
 
   /@pixi/extensions@7.3.3:
     resolution: {integrity: sha512-Of44Wde0ZHYCuMoDLFl/8SOSPV2NiDBUB6QKBvYvNdhVslbO3pxrn9oQH9Fmsd8iGcGJ/YtyI5H2T/ky4Bo6AQ==}
-    dev: false
-
-  /@pixi/extensions@7.4.0:
-    resolution: {integrity: sha512-bX0aw6z2D9bJ5NOsrbuWXnBR7sy2z+dyq2EQ2/t0dF6Si764r8FiA0QUGFn9NJO1FTnB9LLjz7q4c0XaWF3mcg==}
     dev: false
 
   /@pixi/extract@7.3.3(@pixi/core@7.3.3):
@@ -4826,32 +4802,28 @@ packages:
       '@pixi/core': 7.3.3
     dev: false
 
-  /@pixi/graphics@7.3.3(@pixi/core@7.4.0)(@pixi/display@7.3.3)(@pixi/sprite@7.3.3):
+  /@pixi/graphics@7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)(@pixi/sprite@7.3.3):
     resolution: {integrity: sha512-czX/SEQTSCI3kkH5DFAcchPaPYOAF7cz1P5K2hVvClE/bbbIWN0H2sBIF6pIY1ENkZ0aguQs36yDeXUDWXyoiQ==}
     peerDependencies:
       '@pixi/core': 7.3.3
       '@pixi/display': 7.3.3
       '@pixi/sprite': 7.3.3
     dependencies:
-      '@pixi/core': 7.4.0
-      '@pixi/display': 7.3.3(@pixi/core@7.4.0)
-      '@pixi/sprite': 7.3.3(@pixi/core@7.4.0)(@pixi/display@7.3.3)
+      '@pixi/core': 7.3.3
+      '@pixi/display': 7.3.3(@pixi/core@7.3.3)
+      '@pixi/sprite': 7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)
     dev: false
 
-  /@pixi/math-extras@7.3.3(@pixi/core@7.4.0):
+  /@pixi/math-extras@7.3.3(@pixi/core@7.3.3):
     resolution: {integrity: sha512-K6LGNIUhkAYpnDruieoqBQ+43ldQUCXqLwDRPMLKcXhnTmmMpDlmazwAd903LDb/Oas1uKVLLLi244fC5C9CDA==}
     peerDependencies:
       '@pixi/core': 7.3.3
     dependencies:
-      '@pixi/core': 7.4.0
+      '@pixi/core': 7.3.3
     dev: false
 
   /@pixi/math@7.3.3:
     resolution: {integrity: sha512-kaHN6iusINPS0wIbrhP82za+B2qNDWHPHip/QtmpQTp81ibOIfHlDMOlsnE6rSdelTFNhrNWoTWU8IvXUbvy8g==}
-    dev: false
-
-  /@pixi/math@7.4.0:
-    resolution: {integrity: sha512-9WCWKX5z/VOYGpsnXXQ73vg/IT+bUXCLO6miXuS5YPXNfw9RpvdV4ZgFmuQwPNM7wfFk5T7Uvfr8ZJRBCfKhZw==}
     dev: false
 
   /@pixi/mesh-extras@7.3.3(@pixi/core@7.3.3)(@pixi/mesh@7.3.3):
@@ -4861,17 +4833,17 @@ packages:
       '@pixi/mesh': 7.3.3
     dependencies:
       '@pixi/core': 7.3.3
-      '@pixi/mesh': 7.3.3(@pixi/core@7.4.0)(@pixi/display@7.3.3)
+      '@pixi/mesh': 7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)
     dev: false
 
-  /@pixi/mesh@7.3.3(@pixi/core@7.4.0)(@pixi/display@7.3.3):
+  /@pixi/mesh@7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3):
     resolution: {integrity: sha512-8G3FO44wLDimNlCqXBKF+zQ3nBqJ4kMBbIjGxRaRkJmahcMYkY2zJpYsYh1YqKQztL9UmcP5V170VEIcPsmaJw==}
     peerDependencies:
       '@pixi/core': 7.3.3
       '@pixi/display': 7.3.3
     dependencies:
-      '@pixi/core': 7.4.0
-      '@pixi/display': 7.3.3(@pixi/core@7.4.0)
+      '@pixi/core': 7.3.3
+      '@pixi/display': 7.3.3(@pixi/core@7.3.3)
     dev: false
 
   /@pixi/mixin-cache-as-bitmap@7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)(@pixi/sprite@7.3.3):
@@ -4882,8 +4854,8 @@ packages:
       '@pixi/sprite': 7.3.3
     dependencies:
       '@pixi/core': 7.3.3
-      '@pixi/display': 7.3.3(@pixi/core@7.4.0)
-      '@pixi/sprite': 7.3.3(@pixi/core@7.4.0)(@pixi/display@7.3.3)
+      '@pixi/display': 7.3.3(@pixi/core@7.3.3)
+      '@pixi/sprite': 7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)
     dev: false
 
   /@pixi/mixin-get-child-by-name@7.3.3(@pixi/display@7.3.3):
@@ -4891,7 +4863,7 @@ packages:
     peerDependencies:
       '@pixi/display': 7.3.3
     dependencies:
-      '@pixi/display': 7.3.3(@pixi/core@7.4.0)
+      '@pixi/display': 7.3.3(@pixi/core@7.3.3)
     dev: false
 
   /@pixi/mixin-get-global-position@7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3):
@@ -4901,7 +4873,7 @@ packages:
       '@pixi/display': 7.3.3
     dependencies:
       '@pixi/core': 7.3.3
-      '@pixi/display': 7.3.3(@pixi/core@7.4.0)
+      '@pixi/display': 7.3.3(@pixi/core@7.3.3)
     dev: false
 
   /@pixi/particle-container@7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)(@pixi/sprite@7.3.3):
@@ -4912,8 +4884,8 @@ packages:
       '@pixi/sprite': 7.3.3
     dependencies:
       '@pixi/core': 7.3.3
-      '@pixi/display': 7.3.3(@pixi/core@7.4.0)
-      '@pixi/sprite': 7.3.3(@pixi/core@7.4.0)(@pixi/display@7.3.3)
+      '@pixi/display': 7.3.3(@pixi/core@7.3.3)
+      '@pixi/sprite': 7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)
     dev: false
 
   /@pixi/prepare@7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)(@pixi/graphics@7.3.3)(@pixi/text@7.3.3):
@@ -4925,31 +4897,19 @@ packages:
       '@pixi/text': 7.3.3
     dependencies:
       '@pixi/core': 7.3.3
-      '@pixi/display': 7.3.3(@pixi/core@7.4.0)
-      '@pixi/graphics': 7.3.3(@pixi/core@7.4.0)(@pixi/display@7.3.3)(@pixi/sprite@7.3.3)
-      '@pixi/text': 7.3.3(@pixi/core@7.4.0)(@pixi/sprite@7.3.3)
+      '@pixi/display': 7.3.3(@pixi/core@7.3.3)
+      '@pixi/graphics': 7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)(@pixi/sprite@7.3.3)
+      '@pixi/text': 7.3.3(@pixi/core@7.3.3)(@pixi/sprite@7.3.3)
     dev: false
 
   /@pixi/runner@7.3.3:
     resolution: {integrity: sha512-LUObHyxM3tK504ChbioYySZhFhyNs779uA71fuWSFV04Ry0WNlbqVvwTbKGkyR6er6blfxdqk7d51WmuQtfLCg==}
     dev: false
 
-  /@pixi/runner@7.4.0:
-    resolution: {integrity: sha512-TIfocv2TD4xHOiGSpeu2y3GMN09cKEpxiS/rswdCU/aacfgSyvjEmskL/dbq/PSA4FCmjVHLyjgNPvd79WPZhQ==}
-    dev: false
-
   /@pixi/settings@7.3.3:
     resolution: {integrity: sha512-a1OePduDPOfnrCm1U1RL7JhuEAncA5/jNwF51urclXU6HNTHiJT41/S6KELPoV8NbLyJCKtnKwzbbPkzKwc0Yg==}
     dependencies:
       '@pixi/constants': 7.3.3
-      '@types/css-font-loading-module': 0.0.12
-      ismobilejs: 1.1.1
-    dev: false
-
-  /@pixi/settings@7.4.0:
-    resolution: {integrity: sha512-ODWmSVfLnn384xFsXp+NNV6mQ+AwoeI4FtN+tMcJ+w/qQTi+eq6VLIpgqNx2Z/TJESI4HY4jxL6qz4SJEs7SMA==}
-    dependencies:
-      '@pixi/constants': 7.4.0
       '@types/css-font-loading-module': 0.0.12
       ismobilejs: 1.1.1
     dev: false
@@ -4961,7 +4921,7 @@ packages:
       '@pixi/sprite': 7.3.3
     dependencies:
       '@pixi/core': 7.3.3
-      '@pixi/sprite': 7.3.3(@pixi/core@7.4.0)(@pixi/display@7.3.3)
+      '@pixi/sprite': 7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)
     dev: false
 
   /@pixi/sprite-tiling@7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)(@pixi/sprite@7.3.3):
@@ -4972,18 +4932,18 @@ packages:
       '@pixi/sprite': 7.3.3
     dependencies:
       '@pixi/core': 7.3.3
-      '@pixi/display': 7.3.3(@pixi/core@7.4.0)
-      '@pixi/sprite': 7.3.3(@pixi/core@7.4.0)(@pixi/display@7.3.3)
+      '@pixi/display': 7.3.3(@pixi/core@7.3.3)
+      '@pixi/sprite': 7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)
     dev: false
 
-  /@pixi/sprite@7.3.3(@pixi/core@7.4.0)(@pixi/display@7.3.3):
+  /@pixi/sprite@7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3):
     resolution: {integrity: sha512-P/RxnvNV0PiuyaT9HA8F1aX9krp1BgjllBQcn6KHVxyAP8tJE0TD9pfHOU1+xRuoX37swXRQiDFTF6YvWzozUQ==}
     peerDependencies:
       '@pixi/core': 7.3.3
       '@pixi/display': 7.3.3
     dependencies:
-      '@pixi/core': 7.4.0
-      '@pixi/display': 7.3.3(@pixi/core@7.4.0)
+      '@pixi/core': 7.3.3
+      '@pixi/display': 7.3.3(@pixi/core@7.3.3)
     dev: false
 
   /@pixi/spritesheet@7.3.3(@pixi/assets@7.3.3)(@pixi/core@7.3.3):
@@ -4992,7 +4952,7 @@ packages:
       '@pixi/assets': 7.3.3
       '@pixi/core': 7.3.3
     dependencies:
-      '@pixi/assets': 7.3.3(@pixi/core@7.4.0)
+      '@pixi/assets': 7.3.3(@pixi/core@7.3.3)
       '@pixi/core': 7.3.3
     dev: false
 
@@ -5005,11 +4965,11 @@ packages:
       '@pixi/mesh': 7.3.3
       '@pixi/text': 7.3.3
     dependencies:
-      '@pixi/assets': 7.3.3(@pixi/core@7.4.0)
+      '@pixi/assets': 7.3.3(@pixi/core@7.3.3)
       '@pixi/core': 7.3.3
-      '@pixi/display': 7.3.3(@pixi/core@7.4.0)
-      '@pixi/mesh': 7.3.3(@pixi/core@7.4.0)(@pixi/display@7.3.3)
-      '@pixi/text': 7.3.3(@pixi/core@7.4.0)(@pixi/sprite@7.3.3)
+      '@pixi/display': 7.3.3(@pixi/core@7.3.3)
+      '@pixi/mesh': 7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)
+      '@pixi/text': 7.3.3(@pixi/core@7.3.3)(@pixi/sprite@7.3.3)
     dev: false
 
   /@pixi/text-html@7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)(@pixi/sprite@7.3.3)(@pixi/text@7.3.3):
@@ -5021,19 +4981,19 @@ packages:
       '@pixi/text': 7.3.3
     dependencies:
       '@pixi/core': 7.3.3
-      '@pixi/display': 7.3.3(@pixi/core@7.4.0)
-      '@pixi/sprite': 7.3.3(@pixi/core@7.4.0)(@pixi/display@7.3.3)
-      '@pixi/text': 7.3.3(@pixi/core@7.4.0)(@pixi/sprite@7.3.3)
+      '@pixi/display': 7.3.3(@pixi/core@7.3.3)
+      '@pixi/sprite': 7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)
+      '@pixi/text': 7.3.3(@pixi/core@7.3.3)(@pixi/sprite@7.3.3)
     dev: false
 
-  /@pixi/text@7.3.3(@pixi/core@7.4.0)(@pixi/sprite@7.3.3):
+  /@pixi/text@7.3.3(@pixi/core@7.3.3)(@pixi/sprite@7.3.3):
     resolution: {integrity: sha512-s9BLmiURYeJppPYB040jrGbtbsWM9PcXSRtr40xrbR0a+HPlxDEWCaHka9DiUFr/lIuOpA0y/YjmZskq5o5R7g==}
     peerDependencies:
       '@pixi/core': 7.3.3
       '@pixi/sprite': 7.3.3
     dependencies:
-      '@pixi/core': 7.4.0
-      '@pixi/sprite': 7.3.3(@pixi/core@7.4.0)(@pixi/display@7.3.3)
+      '@pixi/core': 7.3.3
+      '@pixi/sprite': 7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)
     dev: false
 
   /@pixi/ticker@7.3.3:
@@ -5044,32 +5004,12 @@ packages:
       '@pixi/utils': 7.3.3
     dev: false
 
-  /@pixi/ticker@7.4.0:
-    resolution: {integrity: sha512-GaDmk27tEpPfUVgVTNQWGuOYGu6ehqmVSGxecCv4No5KHP52+LihTC4YHO06zRxfyrIOgafooDL/vQiEMqas8g==}
-    dependencies:
-      '@pixi/extensions': 7.4.0
-      '@pixi/settings': 7.4.0
-      '@pixi/utils': 7.4.0
-    dev: false
-
   /@pixi/utils@7.3.3:
     resolution: {integrity: sha512-rgWD0YV6oDKOVuQJ9ra6g3VdoN8usC6Kj/t3Ba1t9P+k9qUKIM0gCr9/bxFf7CJ/EUS8A2WTVfEmJVN2TwZfxg==}
     dependencies:
       '@pixi/color': 7.3.3
       '@pixi/constants': 7.3.3
       '@pixi/settings': 7.3.3
-      '@types/earcut': 2.1.4
-      earcut: 2.2.4
-      eventemitter3: 4.0.7
-      url: 0.11.3
-    dev: false
-
-  /@pixi/utils@7.4.0:
-    resolution: {integrity: sha512-VBnxNGGg/uj7k1wmvyNZei2qpbFNN/kdQ2/mwNXJtFcFymVfijNZWRUNobpSRE/yHx40WGYzSm3ZJZrF4WxFzA==}
-    dependencies:
-      '@pixi/color': 7.4.0
-      '@pixi/constants': 7.4.0
-      '@pixi/settings': 7.4.0
       '@types/earcut': 2.1.4
       earcut: 2.2.4
       eventemitter3: 4.0.7
@@ -6027,7 +5967,7 @@ packages:
       '@typescript-eslint/type-utils': 7.2.0(eslint@8.57.0)(typescript@5.4.2)
       '@typescript-eslint/utils': 7.2.0(eslint@8.57.0)(typescript@5.4.2)
       '@typescript-eslint/visitor-keys': 7.2.0
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       eslint: 8.57.0
       graphemer: 1.4.0
       ignore: 5.3.1
@@ -6053,7 +5993,7 @@ packages:
       '@typescript-eslint/types': 7.2.0
       '@typescript-eslint/typescript-estree': 7.2.0(typescript@5.4.2)
       '@typescript-eslint/visitor-keys': 7.2.0
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       eslint: 8.57.0
       typescript: 5.4.2
     transitivePeerDependencies:
@@ -6096,7 +6036,7 @@ packages:
     dependencies:
       '@typescript-eslint/typescript-estree': 7.2.0(typescript@5.4.2)
       '@typescript-eslint/utils': 7.2.0(eslint@8.57.0)(typescript@5.4.2)
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       eslint: 8.57.0
       ts-api-utils: 1.3.0(typescript@5.4.2)
       typescript: 5.4.2
@@ -6130,7 +6070,7 @@ packages:
     dependencies:
       '@typescript-eslint/types': 6.20.0
       '@typescript-eslint/visitor-keys': 6.20.0
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       globby: 11.1.0
       is-glob: 4.0.3
       minimatch: 9.0.3
@@ -6152,7 +6092,7 @@ packages:
     dependencies:
       '@typescript-eslint/types': 6.21.0
       '@typescript-eslint/visitor-keys': 6.21.0
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       globby: 11.1.0
       is-glob: 4.0.3
       minimatch: 9.0.3
@@ -6174,7 +6114,7 @@ packages:
     dependencies:
       '@typescript-eslint/types': 7.2.0
       '@typescript-eslint/visitor-keys': 7.2.0
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       globby: 11.1.0
       is-glob: 4.0.3
       minimatch: 9.0.3
@@ -7384,7 +7324,7 @@ packages:
     resolution: {integrity: sha512-RZNwNclF7+MS/8bDg70amg32dyeZGZxiDuQmZxKLAlQjr3jGyLx+4Kkk58UO7D2QdgFIQCovuSuZESne6RG6XQ==}
     engines: {node: '>= 6.0.0'}
     dependencies:
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -7393,7 +7333,7 @@ packages:
     resolution: {integrity: sha512-o/zjMZRhJxny7OyEF+Op8X+efiELC7k7yOjMzgfzVqOzXqkBkWI79YoTdOtsuWd5BWhAGAuOY/Xa6xpiaWXiNg==}
     engines: {node: '>= 14'}
     dependencies:
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -7835,12 +7775,12 @@ packages:
       '@babylonjs/loaders': ^5.19.0
     dependencies:
       '@babylonjs/core': 5.19.0
-      '@babylonjs/loaders': 5.19.0(@babylonjs/core@5.19.0)(babylonjs-gltf2interface@6.46.1)
+      '@babylonjs/loaders': 5.19.0(@babylonjs/core@5.19.0)(babylonjs-gltf2interface@5.57.1)
       babylon-mtoon-material: 5.1.1(@babylonjs/core@5.19.0)
     dev: false
 
-  /babylonjs-gltf2interface@6.46.1:
-    resolution: {integrity: sha512-BOeuBMmbfZh33xvrrDmogvxOIg7VybFuLPGfSm4GQP0p1cNQ85WKaKbAk6zaN628LboqWYFORuMnp5qa5ObjpQ==}
+  /babylonjs-gltf2interface@5.57.1:
+    resolution: {integrity: sha512-RZnaKfJ6Q/AYLdIjBYMRxCW/HPEC8jabAL1U8wJ0KVziw6NSbSV6S80S22fUCPTyaZ7nCekn1TYg1IPmJ/eA6w==}
     dev: false
 
   /bail@2.0.2:
@@ -8827,7 +8767,7 @@ packages:
       vite: ^2.9.0 || ^3.0.0 || ^4.0.0 || ^5.0.0
     dependencies:
       chokidar: 3.5.3
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       vite: 5.1.6(@types/node@20.11.26)(sass@1.71.1)
     transitivePeerDependencies:
       - supports-color
@@ -8939,7 +8879,6 @@ packages:
     dependencies:
       ms: 2.1.2
       supports-color: 5.5.0
-    dev: true
 
   /debug@4.3.4(supports-color@8.1.1):
     resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
@@ -8952,6 +8891,7 @@ packages:
     dependencies:
       ms: 2.1.2
       supports-color: 8.1.1
+    dev: true
 
   /decimal.js@10.4.3:
     resolution: {integrity: sha512-VBBaLc1MgL5XpzgIP7ny5Z6Nx3UrRkIViUkPUdtl9aya5amy3De1gsUUSB1g3+3sExYNjCAsAznmukyxCb1GRA==}
@@ -9675,7 +9615,7 @@ packages:
     peerDependencies:
       eslint: ^7.2.0 || ^8
     dependencies:
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       doctrine: 3.0.0
       eslint: 8.57.0
       eslint-import-resolver-node: 0.3.9
@@ -9700,7 +9640,7 @@ packages:
       '@es-joy/jsdoccomment': 0.42.0
       are-docs-informative: 0.0.2
       comment-parser: 1.4.1
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       escape-string-regexp: 4.0.0
       eslint: 8.57.0
       esquery: 1.5.0
@@ -9798,7 +9738,7 @@ packages:
     peerDependencies:
       eslint: '>=6.0.0'
     dependencies:
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       eslint: 8.57.0
       eslint-compat-utils: 0.4.1(eslint@8.57.0)
       lodash: 4.17.21
@@ -9895,7 +9835,7 @@ packages:
     peerDependencies:
       eslint: '>=6.0.0'
     dependencies:
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       eslint: 8.57.0
       eslint-compat-utils: 0.4.1(eslint@8.57.0)
       lodash: 4.17.21
@@ -9956,7 +9896,7 @@ packages:
       ajv: 6.12.6
       chalk: 4.1.2
       cross-spawn: 7.0.3
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       doctrine: 3.0.0
       escape-string-regexp: 4.0.0
       eslint-scope: 7.2.2
@@ -10841,6 +10781,7 @@ packages:
   /has-flag@4.0.0:
     resolution: {integrity: sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==}
     engines: {node: '>=8'}
+    dev: true
 
   /has-property-descriptors@1.0.1:
     resolution: {integrity: sha512-VsX8eaIewvas0xnvinAe9bw4WfIeODpGYikiWYLH+dma0Jw6KHYqWiWfhQlgOVK8D6PvjubK5Uc4P0iIhIcNVg==}
@@ -10984,6 +10925,11 @@ packages:
     resolution: {integrity: sha512-COpmrF2NOg4TBWUJ5UVyaCU2A88wEMkUPK4hNqyCkqHbxT92BbvfjoSozkAIIm6XhicGlJHhFdullInrdhwU8Q==}
     dev: false
 
+  /honeycomb-grid@4.1.5:
+    resolution: {integrity: sha512-VrnQwu5dHuzqK3wFhLD9EURmLSyEWb0teiHhDJq6WdK0MrFsEtKNYT1HLzXOLe2X1acU8Y9hhK7wWfIiGK1G5w==}
+    engines: {node: '>=16'}
+    dev: true
+
   /hookable@5.5.3:
     resolution: {integrity: sha512-Yc+BQe8SvoXH1643Qez1zqLRmbA5rCL+sSmk6TVos0LWVfNIB7PGncdlId77WzLGSIB5KaWgTaNTs2lNVEI6VQ==}
 
@@ -11090,7 +11036,7 @@ packages:
     engines: {node: '>= 14'}
     dependencies:
       agent-base: 7.1.0
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -11127,7 +11073,7 @@ packages:
     engines: {node: '>= 6'}
     dependencies:
       agent-base: 6.0.2
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -11137,7 +11083,7 @@ packages:
     engines: {node: '>= 14'}
     dependencies:
       agent-base: 7.1.0
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -11298,7 +11244,7 @@ packages:
     dependencies:
       '@ioredis/commands': 1.2.0
       cluster-key-slot: 1.1.2
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       denque: 2.1.0
       lodash.defaults: 4.2.0
       lodash.isarguments: 3.1.0
@@ -11985,7 +11931,7 @@ packages:
     dependencies:
       chalk: 5.3.0
       commander: 11.1.0
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       execa: 8.0.1
       lilconfig: 3.0.0
       listr2: 8.0.1
@@ -12780,7 +12726,7 @@ packages:
   /micromark@2.11.4:
     resolution: {integrity: sha512-+WoovN/ppKolQOFIAajxi7Lu9kInbPxFuTBVEavFcL8eAfVstoc5MocPmqBeAdBOJV00uaVjegzH4+MA0DN/uA==}
     dependencies:
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       parse-entities: 2.0.0
     transitivePeerDependencies:
       - supports-color
@@ -12790,7 +12736,7 @@ packages:
     resolution: {integrity: sha512-o/sd0nMof8kYff+TqcDx3VSrgBTcZpSvYcAHIfHhv5VAuNmisCxjhx6YmxS8PFEpb9z5WKWKPdzf0jM23ro3RQ==}
     dependencies:
       '@types/debug': 4.1.12
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       decode-named-character-reference: 1.0.2
       devlop: 1.1.0
       micromark-core-commonmark: 2.0.0
@@ -13630,7 +13576,6 @@ packages:
       define-lazy-prop: 3.0.0
       is-inside-container: 1.0.0
       is-wsl: 3.1.0
-    dev: true
 
   /open@10.1.0:
     resolution: {integrity: sha512-mnkeQ1qP5Ue2wd+aivTD3NHd/lZ96Lu0jgf0pwktLPtx6cTZiH7tyeGRRHs0zX0rbrahXPnXlUnbeXyaBBuIaw==}
@@ -13640,6 +13585,7 @@ packages:
       define-lazy-prop: 3.0.0
       is-inside-container: 1.0.0
       is-wsl: 3.1.0
+    dev: false
 
   /open@8.4.2:
     resolution: {integrity: sha512-7x81NCL719oNbsq/3mh+hVrAWmFuEYUqrq/Iw3kUzH8ReypT9QQ0BLoJS7/G9k6N81XjW4qHWtjWwe/9eLy1EQ==}
@@ -13982,11 +13928,11 @@ packages:
     engines: {node: '>= 6'}
     dev: true
 
-  /pixi-painter@0.1.6-beta.1(@pixi/core@7.4.0):
+  /pixi-painter@0.1.6-beta.1(@pixi/core@7.3.3):
     resolution: {integrity: sha512-800wVfFHTYgwSb9ktDTUV01v854y+m3rtv2wSvZZtzheG32PPhDmr6h6dmNGvIk9s78nYqqXmDZ9/bmeifBhnQ==}
     dependencies:
       '@ctrl/tinycolor': 4.0.3
-      '@pixi/math-extras': 7.3.3(@pixi/core@7.4.0)
+      '@pixi/math-extras': 7.3.3(@pixi/core@7.3.3)
       consola: 3.2.3
       hotkeys-js: 3.13.5
       mitt: 3.0.1
@@ -14000,11 +13946,11 @@ packages:
     dependencies:
       '@pixi/accessibility': 7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)(@pixi/events@7.3.3)
       '@pixi/app': 7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)
-      '@pixi/assets': 7.3.3(@pixi/core@7.4.0)
+      '@pixi/assets': 7.3.3(@pixi/core@7.3.3)
       '@pixi/compressed-textures': 7.3.3(@pixi/assets@7.3.3)(@pixi/core@7.3.3)
       '@pixi/core': 7.3.3
-      '@pixi/display': 7.3.3(@pixi/core@7.4.0)
-      '@pixi/events': 7.3.3(@pixi/core@7.4.0)(@pixi/display@7.3.3)
+      '@pixi/display': 7.3.3(@pixi/core@7.3.3)
+      '@pixi/events': 7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)
       '@pixi/extensions': 7.3.3
       '@pixi/extract': 7.3.3(@pixi/core@7.3.3)
       '@pixi/filter-alpha': 7.3.3(@pixi/core@7.3.3)
@@ -14013,19 +13959,19 @@ packages:
       '@pixi/filter-displacement': 7.3.3(@pixi/core@7.3.3)
       '@pixi/filter-fxaa': 7.3.3(@pixi/core@7.3.3)
       '@pixi/filter-noise': 7.3.3(@pixi/core@7.3.3)
-      '@pixi/graphics': 7.3.3(@pixi/core@7.4.0)(@pixi/display@7.3.3)(@pixi/sprite@7.3.3)
-      '@pixi/mesh': 7.3.3(@pixi/core@7.4.0)(@pixi/display@7.3.3)
+      '@pixi/graphics': 7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)(@pixi/sprite@7.3.3)
+      '@pixi/mesh': 7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)
       '@pixi/mesh-extras': 7.3.3(@pixi/core@7.3.3)(@pixi/mesh@7.3.3)
       '@pixi/mixin-cache-as-bitmap': 7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)(@pixi/sprite@7.3.3)
       '@pixi/mixin-get-child-by-name': 7.3.3(@pixi/display@7.3.3)
       '@pixi/mixin-get-global-position': 7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)
       '@pixi/particle-container': 7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)(@pixi/sprite@7.3.3)
       '@pixi/prepare': 7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)(@pixi/graphics@7.3.3)(@pixi/text@7.3.3)
-      '@pixi/sprite': 7.3.3(@pixi/core@7.4.0)(@pixi/display@7.3.3)
+      '@pixi/sprite': 7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)
       '@pixi/sprite-animated': 7.3.3(@pixi/core@7.3.3)(@pixi/sprite@7.3.3)
       '@pixi/sprite-tiling': 7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)(@pixi/sprite@7.3.3)
       '@pixi/spritesheet': 7.3.3(@pixi/assets@7.3.3)(@pixi/core@7.3.3)
-      '@pixi/text': 7.3.3(@pixi/core@7.4.0)(@pixi/sprite@7.3.3)
+      '@pixi/text': 7.3.3(@pixi/core@7.3.3)(@pixi/sprite@7.3.3)
       '@pixi/text-bitmap': 7.3.3(@pixi/assets@7.3.3)(@pixi/core@7.3.3)(@pixi/display@7.3.3)(@pixi/mesh@7.3.3)(@pixi/text@7.3.3)
       '@pixi/text-html': 7.3.3(@pixi/core@7.3.3)(@pixi/display@7.3.3)(@pixi/sprite@7.3.3)(@pixi/text@7.3.3)
     dev: false
@@ -15718,7 +15664,7 @@ packages:
     dependencies:
       '@kwsites/file-exists': 1.1.1
       '@kwsites/promise-deferred': 1.1.1
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -15803,7 +15749,7 @@ packages:
     engines: {node: '>= 14'}
     dependencies:
       agent-base: 7.1.0
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       socks: 2.7.1
     transitivePeerDependencies:
       - supports-color
@@ -15892,7 +15838,7 @@ packages:
   /spdy-transport@3.0.0:
     resolution: {integrity: sha512-hsLVFE5SjA6TCisWeJXFKniGGOpBgMLmerfO2aCyCU5s7nJ/rpAepqmFifv/GCbSbueEeAJJnmSQ2rKC/g8Fcw==}
     dependencies:
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       detect-node: 2.1.0
       hpack.js: 2.1.6
       obuf: 1.1.2
@@ -15906,7 +15852,7 @@ packages:
     resolution: {integrity: sha512-r46gZQZQV+Kl9oItvl1JZZqJKGr+oEkB08A6BzkiR7593/7IbtuncXHd2YoYeTsG4157ZssMu9KYvUHLcjcDoA==}
     engines: {node: '>=6.0.0'}
     dependencies:
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       handle-thing: 2.0.1
       http-deceiver: 1.2.7
       select-hose: 2.0.0
@@ -16196,6 +16142,7 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       has-flag: 4.0.0
+    dev: true
 
   /supports-color@9.4.0:
     resolution: {integrity: sha512-VL+lNrEoIXww1coLPOmiEmK/0sGigko5COxI09KzHc2VJXJsQ37UaQ+8quuxjDeA7+KnLGTWRyOXSLLR2Wb4jw==}
@@ -16368,8 +16315,8 @@ packages:
       any-promise: 1.3.0
     dev: true
 
-  /three@0.162.0:
-    resolution: {integrity: sha512-xfCYj4RnlozReCmUd+XQzj6/5OjDNHBy5nT6rVwrOKGENAvpXe2z1jL+DZYaMu4/9pNsjH/4Os/VvS9IrH7IOQ==}
+  /three@0.160.1:
+    resolution: {integrity: sha512-Bgl2wPJypDOZ1stAxwfWAcJ0WQf7QzlptsxkjYiURPz+n5k4RBDLsq+6f9Y75TYxn6aHLcWz+JNmwTOXWrQTBQ==}
     dev: false
 
   /throttleit@1.0.1:
@@ -16528,7 +16475,7 @@ packages:
       bundle-require: 4.0.2(esbuild@0.19.11)
       cac: 6.7.14
       chokidar: 3.5.3
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       esbuild: 0.19.11
       execa: 5.1.1
       globby: 11.1.0
@@ -16562,7 +16509,7 @@ packages:
     engines: {node: ^16.14.0 || >=18.0.0}
     dependencies:
       '@tufjs/models': 2.0.0
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       make-fetch-happen: 13.0.0
     transitivePeerDependencies:
       - supports-color
@@ -17126,7 +17073,7 @@ packages:
       '@antfu/utils': 0.7.7
       '@rollup/pluginutils': 5.1.0(rollup@2.79.1)
       chokidar: 3.5.3
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       fast-glob: 3.3.2
       local-pkg: 0.4.3
       magic-string: 0.30.5
@@ -17155,7 +17102,7 @@ packages:
       '@antfu/utils': 0.7.7
       '@rollup/pluginutils': 5.1.0(rollup@3.29.4)
       chokidar: 3.5.3
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       fast-glob: 3.3.2
       local-pkg: 0.4.3
       magic-string: 0.30.5
@@ -17562,7 +17509,7 @@ packages:
     hasBin: true
     dependencies:
       cac: 6.7.14
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       pathe: 1.1.2
       picocolors: 1.0.0
       vite: 5.1.6(@types/node@20.11.26)(sass@1.71.1)
@@ -17650,7 +17597,7 @@ packages:
       '@microsoft/api-extractor': 7.39.0(@types/node@20.11.26)
       '@rollup/pluginutils': 5.1.0(rollup@3.29.4)
       '@vue/language-core': 1.8.27(typescript@5.4.2)
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       kolorist: 1.8.0
       typescript: 5.4.2
       vite: 5.1.6(@types/node@20.11.26)(sass@1.71.1)
@@ -17674,32 +17621,7 @@ packages:
       '@antfu/utils': 0.7.7
       '@nuxt/kit': 3.9.1(rollup@2.79.1)
       '@rollup/pluginutils': 5.1.0(rollup@2.79.1)
-      debug: 4.3.4(supports-color@8.1.1)
-      error-stack-parser-es: 0.1.1
-      fs-extra: 11.2.0
-      open: 10.1.0
-      perfect-debounce: 1.0.0
-      picocolors: 1.0.0
-      sirv: 2.0.4
-      vite: 5.1.6(@types/node@20.11.26)(sass@1.71.1)
-    transitivePeerDependencies:
-      - rollup
-      - supports-color
-    dev: true
-
-  /vite-plugin-inspect@0.8.3(rollup@2.79.1)(vite@5.1.6):
-    resolution: {integrity: sha512-SBVzOIdP/kwe6hjkt7LSW4D0+REqqe58AumcnCfRNw4Kt3mbS9pEBkch+nupu2PBxv2tQi69EQHQ1ZA1vgB/Og==}
-    engines: {node: '>=14'}
-    peerDependencies:
-      '@nuxt/kit': '*'
-      vite: ^3.1.0 || ^4.0.0 || ^5.0.0-0
-    peerDependenciesMeta:
-      '@nuxt/kit':
-        optional: true
-    dependencies:
-      '@antfu/utils': 0.7.7
-      '@rollup/pluginutils': 5.1.0(rollup@2.79.1)
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       error-stack-parser-es: 0.1.1
       fs-extra: 11.2.0
       open: 10.0.3
@@ -17724,10 +17646,10 @@ packages:
     dependencies:
       '@antfu/utils': 0.7.7
       '@rollup/pluginutils': 5.1.0(rollup@3.29.4)
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       error-stack-parser-es: 0.1.1
       fs-extra: 11.2.0
-      open: 10.1.0
+      open: 10.0.3
       perfect-debounce: 1.0.0
       picocolors: 1.0.0
       sirv: 2.0.4
@@ -17748,7 +17670,7 @@ packages:
       '@vite-pwa/assets-generator':
         optional: true
     dependencies:
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       fast-glob: 3.3.2
       pretty-bytes: 6.1.1
       vite: 5.1.6(@types/node@20.11.26)(sass@1.71.1)
@@ -17816,7 +17738,7 @@ packages:
       vue: ^3.2.4
       vue-router: ^4.0.11
     dependencies:
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       fast-glob: 3.3.2
       vite: 5.1.6(@types/node@20.11.26)(sass@1.71.1)
       vue: 3.4.21(typescript@5.4.2)
@@ -18020,7 +17942,7 @@ packages:
       '@vitest/utils': 1.3.1
       acorn-walk: 8.3.2
       chai: 4.4.0
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       execa: 8.0.1
       local-pkg: 0.5.0
       magic-string: 0.30.7
@@ -18121,7 +18043,7 @@ packages:
     peerDependencies:
       eslint: '>=6.0.0'
     dependencies:
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4(supports-color@5.5.0)
       eslint: 8.57.0
       eslint-scope: 7.2.2
       eslint-visitor-keys: 3.4.3

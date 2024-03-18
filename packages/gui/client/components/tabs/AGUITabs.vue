@@ -8,7 +8,9 @@ defineProps<{
 </script>
 
 <template>
-  <TabGroup as="div" class="agui-tab-group h-full w-full flex flex-col">
+  <TabGroup
+    as="div" class="agui-tab-group h-full w-full flex flex-col"
+  >
     <TabList
       class="agui-tab-list flex justify-start bg-$agui-c-bg-soft"
     >

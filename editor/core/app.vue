@@ -9,10 +9,6 @@ useHead({
 onMounted(() => {
   mountCssVarsRootStyle()
 })
-
-definePageMeta({
-  colorMode: 'dark',
-})
 </script>
 
 <template>
