@@ -189,10 +189,6 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
           text: '功能',
           link: '/guide/features',
         },
-        {
-          text: 'VRM 模型编辑器',
-          link: '/guide/vrm',
-        },
       ],
     },
     {
@@ -202,6 +198,20 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
         {
           text: '基础配置',
           link: '/guide/config/',
+        },
+      ],
+    },
+    {
+      text: '编辑器',
+      collapsed: false,
+      items: [
+        {
+          text: '核心编辑器',
+          link: '/guide/editor/',
+        },
+        {
+          text: 'VRM 模型编辑器',
+          link: '/guide/editor/vrm',
         },
       ],
     },

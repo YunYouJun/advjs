@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@advjs/plugin-babylon": "workspace:*",
-    "@unhead/vue": "^1.8.14",
+    "@unhead/vue": "^1.8.20",
     "@vueuse/core": "^10.9.0",
     "@vueuse/head": "^2.0.0",
     "nprogress": "^0.2.0",
@@ -24,7 +24,7 @@
     "prism-theme-vars": "^0.2.4",
     "vue": "^3.4.21",
     "vue-demi": "^0.14.7",
-    "vue-i18n": "^9.10.1",
+    "vue-i18n": "^9.10.2",
     "vue-router": "^4.3.0"
   },
   "devDependencies": {
@@ -40,13 +40,13 @@
     "critters": "^0.0.22",
     "markdown-it-link-attributes": "^4.0.1",
     "markdown-it-prism": "^2.3.0",
-    "unocss": "^0.58.5",
+    "unocss": "^0.58.6",
     "unplugin-vue-components": "^0.26.0",
     "unplugin-vue-markdown": "^0.26.0",
-    "unplugin-vue-router": "^0.8.4",
+    "unplugin-vue-router": "^0.8.5",
     "vite": "^5.1.6",
     "vite-plugin-inspect": "^0.8.3",
-    "vite-plugin-pwa": "^0.19.2",
+    "vite-plugin-pwa": "^0.19.4",
     "vite-plugin-vue-layouts": "^0.11.0",
     "vite-ssg": "0.23.6"
   }

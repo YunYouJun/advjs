@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@types/mdast": "4.0.3",
-    "@unhead/vue": "^1.8.14",
+    "@unhead/vue": "^1.8.20",
     "@vueuse/core": "^10.9.0",
     "monaco-editor": "^0.47.0",
     "pinia": "^2.1.7",
@@ -29,14 +29,14 @@
     "@vitejs/plugin-vue": "^5.0.4",
     "markdown-it-link-attributes": "^4.0.1",
     "markdown-it-prism": "^2.3.0",
-    "unocss": "^0.58.5",
+    "unocss": "^0.58.6",
     "unplugin-vue-components": "^0.26.0",
     "unplugin-vue-markdown": "^0.26.0",
-    "unplugin-vue-router": "^0.8.4",
+    "unplugin-vue-router": "^0.8.5",
     "v-tooltip": "^4.0.0-beta.17",
     "vite": "^5.1.6",
     "vite-plugin-inspect": "^0.8.3",
-    "vite-plugin-pwa": "^0.19.2",
+    "vite-plugin-pwa": "^0.19.4",
     "vite-plugin-vue-layouts": "^0.11.0"
   }
 }

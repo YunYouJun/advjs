@@ -20,12 +20,12 @@ adv:
       color: green
 
 features:
-  - title: 🧶 Adventure
-    details: 冒险
-  - title: 📃 Document
-    details: 文档
-  - title: 👴 Vtuber
-    details: 虚拟
+  - title: 🧶 Adventure - 冒险
+    details: 只想得起搞笑的回忆，不过真的好开心，我很庆幸能跟你们一起冒险。
+  - title: 📃 Document -  文档
+    details: 我想做的是……冒险者，能帮助需要帮助的人
+  - title: 👴 Vtuber - 虚拟
+    details: 这虽然是游戏，但不是闹着玩的。
   - title: ✍️ 简洁
     details: 像写小说一样制作 ADV 游戏
   - title: 💻 跨平台

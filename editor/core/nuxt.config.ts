@@ -105,8 +105,7 @@ export default defineNuxtConfig({
         const customElements = [
           'model-viewer',
         ]
-        const isFluent = tag.startsWith('fluent-')
-        return customElements.includes(tag) || isFluent
+        return customElements.includes(tag)
       },
     },
     runtimeCompiler: true,
