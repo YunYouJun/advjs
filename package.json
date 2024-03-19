@@ -74,7 +74,7 @@
     "@antfu/ni": "^0.21.12",
     "@types/fs-extra": "^11.0.4",
     "@types/howler": "^2.2.11",
-    "@types/node": "^20.11.28",
+    "@types/node": "^20.11.29",
     "@types/prompts": "^2.4.9",
     "@types/semver": "^7.5.8",
     "@types/unist": "^3.0.2",

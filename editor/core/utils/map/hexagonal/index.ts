@@ -1,19 +1,19 @@
 import { Assets, type FederatedPointerEvent } from 'pixi.js'
 import { Application, Container, Graphics, Sprite } from 'pixi.js'
-import type { Hex } from 'honeycomb-grid'
-import { Grid, defineHex, rectangle } from 'honeycomb-grid'
-import consola from 'consola'
+import { Grid, rectangle } from 'honeycomb-grid'
 import { config } from './config'
 import { drawTwoTiles } from './tiles'
+import { CustomHex, tilesMap } from './global'
+import { hexFromString, updateBorderTiles } from './utils'
+import { addMapScale } from './event'
 
 const spriteSize = config.grid.size * 2
 
-export const tilesMap = new Map<string, Sprite>()
-
 export async function init(canvas: HTMLCanvasElement) {
+  tilesMap.clear()
+
   // you may want the origin to be the top left corner of a hex's bounding box
   // instead of its center (which is the default)
-  const CustomHex = defineHex({ dimensions: config.grid.size, origin: 'topLeft' })
   const grid = new Grid(CustomHex, rectangle({ width: 20, height: 10 }))
 
   // load assets
@@ -64,6 +64,9 @@ export async function init(canvas: HTMLCanvasElement) {
   })
   app.stage.addChild(assetsBox)
 
+  const map = new Container()
+  app.stage.addChild(map)
+
   // border
   const graphics = new Graphics()
   graphics.setStrokeStyle({
@@ -71,21 +74,21 @@ export async function init(canvas: HTMLCanvasElement) {
     width: 1,
   })
 
-  grid.forEach((hex: Hex) => {
-    // PIXI.Polygon happens to be compatible with hex.corners
-    graphics.poly(hex.corners)
+  // grid.forEach((hex: Hex) => {
+  // PIXI.Polygon happens to be compatible with hex.corners
+  // graphics.poly(hex.corners)
 
-    // const sprite = Sprite.from('ocean')
-    // sprite.anchor.set(0.5)
-    // sprite.position.set(hex.x, hex.y)
-    // sprite.width = spriteSize
-    // sprite.height = spriteSize
-    // app.stage.addChild(sprite)
-  })
+  // const sprite = Sprite.from('ocean')
+  // sprite.anchor.set(0.5)
+  // sprite.position.set(hex.x, hex.y)
+  // sprite.width = spriteSize
+  // sprite.height = spriteSize
+  // app.stage.addChild(sprite)
+  // })
   // graphics.fill()
   graphics.stroke()
 
-  app.stage.addChild(graphics)
+  map.addChild(graphics)
 
   // enable interaction
   app.stage.eventMode = 'static'
@@ -96,7 +99,6 @@ export async function init(canvas: HTMLCanvasElement) {
     color: 0xFFFFFF,
     width: 1,
   })
-  app.stage.addChild(highlightG)
 
   function highlightGrid(e: FederatedPointerEvent) {
     const { x, y } = e.global
@@ -146,8 +148,8 @@ export async function init(canvas: HTMLCanvasElement) {
       { allowOutside: false },
     )
     const [centerSprite, secondSprite] = drawTwoTiles(hex!)!
-    app.stage.addChild(centerSprite)
-    app.stage.addChild(secondSprite)
+    map.addChild(centerSprite)
+    map.addChild(secondSprite)
 
     dragTarget.destroy()
     dragTarget = null
@@ -163,7 +165,7 @@ export async function init(canvas: HTMLCanvasElement) {
   gridContainer.addChild(centerSprite)
   gridContainer.addChild(secondSprite)
   gridContainer.eventMode = 'static'
-  app.stage.addChild(gridContainer)
+  map.addChild(gridContainer)
 
   function onDragStart(_e: FederatedPointerEvent) {
     gridContainer.alpha = 0.5
@@ -172,6 +174,14 @@ export async function init(canvas: HTMLCanvasElement) {
   }
   gridContainer.addEventListener('pointerdown', onDragStart)
 
+  // 可以放置新的 tile
+  const emptyTilesBorder = new Graphics()
+  emptyTilesBorder.setStrokeStyle({
+    color: 0x999999,
+    width: 2,
+  })
+  map.addChild(emptyTilesBorder)
+  map.addChild(highlightG)
   app.stage.addEventListener('pointertap', (e: FederatedPointerEvent) => {
     const { x, y } = e.global
     const hex = grid.pointToHex(
@@ -182,10 +192,10 @@ export async function init(canvas: HTMLCanvasElement) {
     if (!hex)
       return
 
-    if (tilesMap.has(hex.toString())) {
-      consola.info('Tile already exists')
-      return
-    }
+    // if (!isEmptyTile(hex)) {
+    //   consola.info('Tile already exists')
+    //   return
+    // }
 
     const sprite = Sprite.from(curTiles)
     sprite.anchor.set(0.5)
@@ -193,10 +203,23 @@ export async function init(canvas: HTMLCanvasElement) {
 
     sprite.width = spriteSize
     sprite.height = spriteSize
-    app.stage.addChild(sprite)
+    map.addChild(sprite)
 
     tilesMap.set(hex.toString(), sprite)
+
+    // add new hex
+    updateBorderTiles(grid, hex)
+    emptyTilesBorder.clear()
+    tilesMap.forEach((val, key) => {
+      if (val === 'empty') {
+        const hex = hexFromString(key)
+        emptyTilesBorder.poly(hex.corners)
+      }
+    })
+    emptyTilesBorder.stroke()
   })
+
+  addMapScale(app, map)
 
   // @ts-expect-error globalThis
   globalThis.__PIXI_APP__ = app
