@@ -47,14 +47,14 @@
     "@types/wicg-file-system-access": "^2023.10.5",
     "colord": "^2.9.3",
     "consola": "^3.2.3",
-    "radix-vue": "^1.5.2",
+    "radix-vue": "^1.5.3",
     "splitpanes": "^3.1.5"
   },
   "devDependencies": {
     "unbuild": "^2.0.0",
-    "vite": "^5.1.6",
-    "vite-plugin-css-injected-by-js": "^3.4.0",
+    "vite": "^5.2.4",
+    "vite-plugin-css-injected-by-js": "^3.5.0",
     "vite-plugin-dts": "^3.7.3",
-    "vue-tsc": "^2.0.6"
+    "vue-tsc": "^2.0.7"
   }
 }

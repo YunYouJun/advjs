@@ -34,9 +34,9 @@
     "unplugin-vue-markdown": "^0.26.0",
     "unplugin-vue-router": "^0.8.5",
     "v-tooltip": "^4.0.0-beta.17",
-    "vite": "^5.1.6",
+    "vite": "^5.2.4",
     "vite-plugin-inspect": "^0.8.3",
-    "vite-plugin-pwa": "^0.19.4",
+    "vite-plugin-pwa": "^0.19.7",
     "vite-plugin-vue-layouts": "^0.11.0"
   }
 }

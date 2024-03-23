@@ -24,7 +24,7 @@
     "@advjs/parser": "workspace:*",
     "@types/mdast": "4.0.3",
     "html2canvas": "^1.4.1",
-    "pixi.js": "8.0.2",
+    "pixi.js": "8.0.4",
     "unstorage": "^1.10.2"
   },
   "devDependencies": {

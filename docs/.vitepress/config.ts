@@ -5,6 +5,7 @@ import { defineConfig } from 'vitepress'
 
 // todo: // wait released https://github.com/vitejs/vite/pull/10254
 // import { customElements } from '../../packages/advjs/node/constants'
+import typedocSidebar from '../api/typedoc-sidebar.json'
 import head from './config/head'
 import { metaData } from './config/constants'
 
@@ -12,7 +13,8 @@ const customElements = new Set(['font'])
 
 const nav: DefaultTheme.Config['nav'] = [
   { text: '指南', link: '/guide/' },
-  { text: 'API', link: 'https://api.docs.advjs.org' },
+  // { text: 'API', link: 'https://api.docs.advjs.org' },
+  { text: 'API', link: '/api/' },
   {
     text: 'AGUI',
     link: '/agui/',
@@ -335,6 +337,8 @@ const ContributingSidebar: DefaultTheme.SidebarItem[] = [
   },
 ]
 const sidebar: DefaultTheme.Config['sidebar'] = {
+  '/api/': typedocSidebar,
+
   '/guide/': sidebarGuide(),
   '/about/': sidebarAbout(),
   '/agui/': sidebarAGUI(),

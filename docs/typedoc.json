@@ -1,0 +1,21 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "readme": "none",
+  "plugin": [
+    "typedoc-plugin-markdown",
+    "typedoc-vitepress-theme",
+    "typedoc-plugin-merge-modules"
+  ],
+  "entryPoints": [
+    "../packages/types/src/index.ts",
+    "../packages/core/src/index.ts",
+    "../packages/parser/src/index.ts",
+    // client
+    "../packages/client/composables/index.ts",
+    "../packages/theme-default/index.ts",
+    // plugins
+    "../packages/plugin-babylon/src/index.ts"
+  ],
+  "out": "api",
+  "categorizeByGroup": true
+}

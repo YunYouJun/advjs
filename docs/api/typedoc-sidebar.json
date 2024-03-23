@@ -1,0 +1,695 @@
+[
+  {
+    "text": "README",
+    "link": "/..\\api/index.md",
+    "collapsed": true
+  },
+  {
+    "text": "API",
+    "link": "/..\\api/exports.md",
+    "collapsed": true
+  },
+  {
+    "text": "Namespaces",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "AdvAst",
+        "link": "/..\\api/namespaces/AdvAst/index.md",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "Interfaces",
+            "collapsed": true,
+            "items": [
+              {
+                "text": "Background",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/Background.md",
+                "collapsed": true
+              },
+              {
+                "text": "Break",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/Break.md",
+                "collapsed": true
+              },
+              {
+                "text": "Camera",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/Camera.md",
+                "collapsed": true
+              },
+              {
+                "text": "Character",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/Character.md",
+                "collapsed": true
+              },
+              {
+                "text": "Choice",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/Choice.md",
+                "collapsed": true
+              },
+              {
+                "text": "Choices",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/Choices.md",
+                "collapsed": true
+              },
+              {
+                "text": "Code",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/Code.md",
+                "collapsed": true
+              },
+              {
+                "text": "CodeFunction",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/CodeFunction.md",
+                "collapsed": true
+              },
+              {
+                "text": "Delete",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/Delete.md",
+                "collapsed": true
+              },
+              {
+                "text": "Dialog",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/Dialog.md",
+                "collapsed": true
+              },
+              {
+                "text": "Emphasis",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/Emphasis.md",
+                "collapsed": true
+              },
+              {
+                "text": "Go",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/Go.md",
+                "collapsed": true
+              },
+              {
+                "text": "HTML",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/HTML.md",
+                "collapsed": true
+              },
+              {
+                "text": "Heading",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/Heading.md",
+                "collapsed": true
+              },
+              {
+                "text": "Image",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/Image.md",
+                "collapsed": true
+              },
+              {
+                "text": "InlineCode",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/InlineCode.md",
+                "collapsed": true
+              },
+              {
+                "text": "Link",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/Link.md",
+                "collapsed": true
+              },
+              {
+                "text": "Narration",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/Narration.md",
+                "collapsed": true
+              },
+              {
+                "text": "Node",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/Node.md",
+                "collapsed": true
+              },
+              {
+                "text": "Paragraph",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/Paragraph.md",
+                "collapsed": true
+              },
+              {
+                "text": "PhrasingContentMap",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/PhrasingContentMap.md",
+                "collapsed": true
+              },
+              {
+                "text": "Resource",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/Resource.md",
+                "collapsed": true
+              },
+              {
+                "text": "Root",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/Root.md",
+                "collapsed": true
+              },
+              {
+                "text": "SceneInfo",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/SceneInfo.md",
+                "collapsed": true
+              },
+              {
+                "text": "Strong",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/Strong.md",
+                "collapsed": true
+              },
+              {
+                "text": "Tachie",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/Tachie.md",
+                "collapsed": true
+              },
+              {
+                "text": "Text",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/Text.md",
+                "collapsed": true
+              },
+              {
+                "text": "Unknown",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/Unknown.md",
+                "collapsed": true
+              },
+              {
+                "text": "Words",
+                "link": "/..\\api/namespaces/AdvAst/interfaces/Words.md",
+                "collapsed": true
+              }
+            ]
+          },
+          {
+            "text": "Type Aliases",
+            "collapsed": true,
+            "items": [
+              {
+                "text": "Child",
+                "link": "/..\\api/namespaces/AdvAst/type-aliases/Child.md",
+                "collapsed": true
+              },
+              {
+                "text": "ChildWithMd",
+                "link": "/..\\api/namespaces/AdvAst/type-aliases/ChildWithMd.md",
+                "collapsed": true
+              },
+              {
+                "text": "CodeOperation",
+                "link": "/..\\api/namespaces/AdvAst/type-aliases/CodeOperation.md",
+                "collapsed": true
+              },
+              {
+                "text": "Item",
+                "link": "/..\\api/namespaces/AdvAst/type-aliases/Item.md",
+                "collapsed": true
+              },
+              {
+                "text": "PhrasingContent",
+                "link": "/..\\api/namespaces/AdvAst/type-aliases/PhrasingContent.md",
+                "collapsed": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "text": "DefaultTheme",
+        "link": "/..\\api/namespaces/DefaultTheme/index.md",
+        "collapsed": true,
+        "items": [
+          {
+            "text": "Interfaces",
+            "collapsed": true,
+            "items": [
+              {
+                "text": "Config",
+                "link": "/..\\api/namespaces/DefaultTheme/interfaces/Config.md",
+                "collapsed": true
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "text": "Classes",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "Serialize",
+        "link": "/..\\api/classes/Serialize.md",
+        "collapsed": true
+      }
+    ]
+  },
+  {
+    "text": "Interfaces",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "AdvCheckboxProps",
+        "link": "/..\\api/interfaces/AdvCheckboxProps.md",
+        "collapsed": true
+      },
+      {
+        "text": "AdvConfig",
+        "link": "/..\\api/interfaces/AdvConfig.md",
+        "collapsed": true
+      },
+      {
+        "text": "AdvFeatureFlags",
+        "link": "/..\\api/interfaces/AdvFeatureFlags.md",
+        "collapsed": true
+      },
+      {
+        "text": "AdvItemOption",
+        "link": "/..\\api/interfaces/AdvItemOption.md",
+        "collapsed": true
+      },
+      {
+        "text": "AdvMarkdown",
+        "link": "/..\\api/interfaces/AdvMarkdown.md",
+        "collapsed": true
+      },
+      {
+        "text": "AdvMenuItemMap",
+        "link": "/..\\api/interfaces/AdvMenuItemMap.md",
+        "collapsed": true
+      },
+      {
+        "text": "AdvRadioGroupProps",
+        "link": "/..\\api/interfaces/AdvRadioGroupProps.md",
+        "collapsed": true
+      },
+      {
+        "text": "AdvSelectProps",
+        "link": "/..\\api/interfaces/AdvSelectProps.md",
+        "collapsed": true
+      },
+      {
+        "text": "AdvSliderProps",
+        "link": "/..\\api/interfaces/AdvSliderProps.md",
+        "collapsed": true
+      },
+      {
+        "text": "AdvThemeMeta",
+        "link": "/..\\api/interfaces/AdvThemeMeta.md",
+        "collapsed": true
+      },
+      {
+        "text": "AppConfig",
+        "link": "/..\\api/interfaces/AppConfig.md",
+        "collapsed": true
+      },
+      {
+        "text": "CameraInfo",
+        "link": "/..\\api/interfaces/CameraInfo.md",
+        "collapsed": true
+      },
+      {
+        "text": "Character",
+        "link": "/..\\api/interfaces/Character.md",
+        "collapsed": true
+      },
+      {
+        "text": "Music",
+        "link": "/..\\api/interfaces/Music.md",
+        "collapsed": true
+      },
+      {
+        "text": "StartMenuItem",
+        "link": "/..\\api/interfaces/StartMenuItem.md",
+        "collapsed": true
+      },
+      {
+        "text": "Tachie",
+        "link": "/..\\api/interfaces/Tachie.md",
+        "collapsed": true
+      },
+      {
+        "text": "VRMPose",
+        "link": "/..\\api/interfaces/VRMPose.md",
+        "collapsed": true
+      },
+      {
+        "text": "VRMPoseTransform",
+        "link": "/..\\api/interfaces/VRMPoseTransform.md",
+        "collapsed": true
+      }
+    ]
+  },
+  {
+    "text": "Type Aliases",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "AdvMenuItemKeys",
+        "link": "/..\\api/type-aliases/AdvMenuItemKeys.md",
+        "collapsed": true
+      },
+      {
+        "text": "AdvMenuItemProps",
+        "link": "/..\\api/type-aliases/AdvMenuItemProps.md",
+        "collapsed": true
+      },
+      {
+        "text": "HumanBonesType",
+        "link": "/..\\api/type-aliases/HumanBonesType.md",
+        "collapsed": true
+      },
+      {
+        "text": "MorphingPresetData",
+        "link": "/..\\api/type-aliases/MorphingPresetData.md",
+        "collapsed": true
+      },
+      {
+        "text": "MorphingPresetType",
+        "link": "/..\\api/type-aliases/MorphingPresetType.md",
+        "collapsed": true
+      },
+      {
+        "text": "PoseEulerType",
+        "link": "/..\\api/type-aliases/PoseEulerType.md",
+        "collapsed": true
+      },
+      {
+        "text": "PoseQuaternion",
+        "link": "/..\\api/type-aliases/PoseQuaternion.md",
+        "collapsed": true
+      },
+      {
+        "text": "RawVector3",
+        "link": "/..\\api/type-aliases/RawVector3.md",
+        "collapsed": true
+      },
+      {
+        "text": "RawVector4",
+        "link": "/..\\api/type-aliases/RawVector4.md",
+        "collapsed": true
+      },
+      {
+        "text": "ThemeConfig",
+        "link": "/..\\api/type-aliases/ThemeConfig.md",
+        "collapsed": true
+      },
+      {
+        "text": "UnionMenuItem",
+        "link": "/..\\api/type-aliases/UnionMenuItem.md",
+        "collapsed": true
+      },
+      {
+        "text": "UserConfig",
+        "link": "/..\\api/type-aliases/UserConfig.md",
+        "collapsed": true
+      }
+    ]
+  },
+  {
+    "text": "Variables",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "HumanBones",
+        "link": "/..\\api/variables/HumanBones.md",
+        "collapsed": true
+      },
+      {
+        "text": "MorphingPresets",
+        "link": "/..\\api/variables/MorphingPresets.md",
+        "collapsed": true
+      },
+      {
+        "text": "PIXI_VERSION",
+        "link": "/..\\api/variables/PIXI_VERSION.md",
+        "collapsed": true
+      },
+      {
+        "text": "advConfigSymbol",
+        "link": "/..\\api/variables/advConfigSymbol.md",
+        "collapsed": true
+      },
+      {
+        "text": "advNodeMap",
+        "link": "/..\\api/variables/advNodeMap.md",
+        "collapsed": true
+      },
+      {
+        "text": "appConfigSymbol",
+        "link": "/..\\api/variables/appConfigSymbol.md",
+        "collapsed": true
+      },
+      {
+        "text": "assets",
+        "link": "/..\\api/variables/assets.md",
+        "collapsed": true
+      },
+      {
+        "text": "audios",
+        "link": "/..\\api/variables/audios.md",
+        "collapsed": true
+      },
+      {
+        "text": "defaultConfig",
+        "link": "/..\\api/variables/defaultConfig.md",
+        "collapsed": true
+      },
+      {
+        "text": "defaultPoseQuaternion",
+        "link": "/..\\api/variables/defaultPoseQuaternion.md",
+        "collapsed": true
+      },
+      {
+        "text": "images",
+        "link": "/..\\api/variables/images.md",
+        "collapsed": true
+      },
+      {
+        "text": "isDark",
+        "link": "/..\\api/variables/isDark.md",
+        "collapsed": true
+      },
+      {
+        "text": "namespace",
+        "link": "/..\\api/variables/namespace.md",
+        "collapsed": true
+      },
+      {
+        "text": "scriptSuffix",
+        "link": "/..\\api/variables/scriptSuffix.md",
+        "collapsed": true
+      },
+      {
+        "text": "themeConfigSymbol",
+        "link": "/..\\api/variables/themeConfigSymbol.md",
+        "collapsed": true
+      },
+      {
+        "text": "themeName",
+        "link": "/..\\api/variables/themeName.md",
+        "collapsed": true
+      },
+      {
+        "text": "vRawPoseData",
+        "link": "/..\\api/variables/vRawPoseData.md",
+        "collapsed": true
+      }
+    ]
+  },
+  {
+    "text": "Functions",
+    "collapsed": true,
+    "items": [
+      {
+        "text": "captureCameraInfo",
+        "link": "/..\\api/functions/captureCameraInfo.md",
+        "collapsed": true
+      },
+      {
+        "text": "convertMdToAdv",
+        "link": "/..\\api/functions/convertMdToAdv.md",
+        "collapsed": true
+      },
+      {
+        "text": "createArcRotateCamera",
+        "link": "/..\\api/functions/createArcRotateCamera.md",
+        "collapsed": true
+      },
+      {
+        "text": "createCameraAnimation",
+        "link": "/..\\api/functions/createCameraAnimation.md",
+        "collapsed": true
+      },
+      {
+        "text": "createCharacterScene",
+        "link": "/..\\api/functions/createCharacterScene.md",
+        "collapsed": true
+      },
+      {
+        "text": "createGridGround",
+        "link": "/..\\api/functions/createGridGround.md",
+        "collapsed": true
+      },
+      {
+        "text": "createRecordsStorage",
+        "link": "/..\\api/functions/createRecordsStorage.md",
+        "collapsed": true
+      },
+      {
+        "text": "createRotatePointLight",
+        "link": "/..\\api/functions/createRotatePointLight.md",
+        "collapsed": true
+      },
+      {
+        "text": "createScene",
+        "link": "/..\\api/functions/createScene.md",
+        "collapsed": true
+      },
+      {
+        "text": "createVRM",
+        "link": "/..\\api/functions/createVRM.md",
+        "collapsed": true
+      },
+      {
+        "text": "createVRMScene",
+        "link": "/..\\api/functions/createVRMScene.md",
+        "collapsed": true
+      },
+      {
+        "text": "downloadDataUrlAsImage",
+        "link": "/..\\api/functions/downloadDataUrlAsImage.md",
+        "collapsed": true
+      },
+      {
+        "text": "getCharacter",
+        "link": "/..\\api/functions/getCharacter.md",
+        "collapsed": true
+      },
+      {
+        "text": "getGameViewDom",
+        "link": "/..\\api/functions/getGameViewDom.md",
+        "collapsed": true
+      },
+      {
+        "text": "getVrmManager",
+        "link": "/..\\api/functions/getVrmManager.md",
+        "collapsed": true
+      },
+      {
+        "text": "isScript",
+        "link": "/..\\api/functions/isScript.md",
+        "collapsed": true
+      },
+      {
+        "text": "isVrmModel",
+        "link": "/..\\api/functions/isVrmModel.md",
+        "collapsed": true
+      },
+      {
+        "text": "mdParse",
+        "link": "/..\\api/functions/mdParse.md",
+        "collapsed": true
+      },
+      {
+        "text": "mdRender",
+        "link": "/..\\api/functions/mdRender.md",
+        "collapsed": true
+      },
+      {
+        "text": "ns",
+        "link": "/..\\api/functions/ns.md",
+        "collapsed": true
+      },
+      {
+        "text": "parse",
+        "link": "/..\\api/functions/parse.md",
+        "collapsed": true
+      },
+      {
+        "text": "parseAdvCode",
+        "link": "/..\\api/functions/parseAdvCode.md",
+        "collapsed": true
+      },
+      {
+        "text": "parseAst",
+        "link": "/..\\api/functions/parseAst.md",
+        "collapsed": true
+      },
+      {
+        "text": "parseChild",
+        "link": "/..\\api/functions/parseChild.md",
+        "collapsed": true
+      },
+      {
+        "text": "parseText",
+        "link": "/..\\api/functions/parseText.md",
+        "collapsed": true
+      },
+      {
+        "text": "resolveConfig",
+        "link": "/..\\api/functions/resolveConfig.md",
+        "collapsed": true
+      },
+      {
+        "text": "screenshot",
+        "link": "/..\\api/functions/screenshot.md",
+        "collapsed": true
+      },
+      {
+        "text": "screenshotGame",
+        "link": "/..\\api/functions/screenshotGame.md",
+        "collapsed": true
+      },
+      {
+        "text": "screenshotGameThumb",
+        "link": "/..\\api/functions/screenshotGameThumb.md",
+        "collapsed": true
+      },
+      {
+        "text": "setup",
+        "link": "/..\\api/functions/setup.md",
+        "collapsed": true
+      },
+      {
+        "text": "toggleDark",
+        "link": "/..\\api/functions/toggleDark.md",
+        "collapsed": true
+      },
+      {
+        "text": "useAdvConfig",
+        "link": "/..\\api/functions/useAdvConfig.md",
+        "collapsed": true
+      },
+      {
+        "text": "useAdvCtx",
+        "link": "/..\\api/functions/useAdvCtx.md",
+        "collapsed": true
+      },
+      {
+        "text": "useAdvKeys",
+        "link": "/..\\api/functions/useAdvKeys.md",
+        "collapsed": true
+      },
+      {
+        "text": "useAppConfig",
+        "link": "/..\\api/functions/useAppConfig.md",
+        "collapsed": true
+      },
+      {
+        "text": "useBabylonStore",
+        "link": "/..\\api/functions/useBabylonStore.md",
+        "collapsed": true
+      },
+      {
+        "text": "useBeforeUnload",
+        "link": "/..\\api/functions/useBeforeUnload.md",
+        "collapsed": true
+      },
+      {
+        "text": "useImages",
+        "link": "/..\\api/functions/useImages.md",
+        "collapsed": true
+      },
+      {
+        "text": "useScreenLock",
+        "link": "/..\\api/functions/useScreenLock.md",
+        "collapsed": true
+      },
+      {
+        "text": "useSound",
+        "link": "/..\\api/functions/useSound.md",
+        "collapsed": true
+      }
+    ]
+  }
+]

@@ -12,16 +12,20 @@
   "homepage": "https://docs.advjs.org",
   "scripts": {
     "dev": "vitepress dev .",
-    "build": "vitepress build .",
-    "serve": "vitepress serve ."
+    "build": "npm run typedoc:md && vitepress build .",
+    "serve": "vitepress serve .",
+    "typedoc:md": "typedoc --options ./typedoc.json"
   },
   "devDependencies": {
     "@iconify-json/file-icons": "^1.1.8",
     "@iconify-json/logos": "^1.1.42",
     "@iconify-json/vscode-icons": "^1.1.33",
+    "typedoc-plugin-markdown": "4.0.0-next.23",
+    "typedoc-plugin-merge-modules": "^5.1.0",
+    "typedoc-vitepress-theme": "1.0.0-next.3",
     "unocss": "0.58.6",
     "unplugin-vue-components": "^0.26.0",
-    "vite-plugin-pwa": "^0.19.4",
-    "vitepress": "1.0.0-rc.45"
+    "vite-plugin-pwa": "^0.19.7",
+    "vitepress": "1.0.1"
   }
 }
