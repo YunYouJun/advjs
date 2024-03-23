@@ -1,12 +1,7 @@
 [
   {
-    "text": "README",
-    "link": "/..\\api/index.md",
-    "collapsed": true
-  },
-  {
     "text": "API",
-    "link": "/..\\api/exports.md",
+    "link": "/..\\api/index.md",
     "collapsed": true
   },
   {
