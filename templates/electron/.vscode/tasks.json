@@ -13,6 +13,7 @@
         "fileLocation": "relative",
         "pattern": {
           // TODO: correct "regexp"
+          // eslint-disable-next-line jsonc/no-useless-escape
           "regexp": "^([a-zA-Z]\\:\/?([\\w\\-]\/?)+\\.\\w+):(\\d+):(\\d+): (ERROR|WARNING)\\: (.*)$",
           "file": 1,
           "line": 3,

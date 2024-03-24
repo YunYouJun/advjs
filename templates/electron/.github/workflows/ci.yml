@@ -65,7 +65,6 @@ jobs:
             change:
               - added|modified: '*.md'
 
-
   job2:
     name: Lint Markdown
     runs-on: ubuntu-latest

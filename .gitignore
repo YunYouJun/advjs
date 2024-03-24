@@ -12,6 +12,7 @@ auto-imports.d.ts
 .vite-ssg-temp
 
 dist/
+dist-electron
 dist-ssr
 *.local
 
@@ -60,3 +61,6 @@ build/
 
 # plugins
 .VSCodeCounter
+
+# api docs
+docs/api
