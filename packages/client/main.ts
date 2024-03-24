@@ -41,5 +41,8 @@ Object.values(
 
 app.use(MotionPlugin)
 app.mount('#app')
+  .$nextTick(() => {
+    postMessage({ payload: 'removeLoading' }, '*')
+  })
 
 statement()

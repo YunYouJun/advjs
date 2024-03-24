@@ -3,6 +3,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import process from 'node:process'
 import { BrowserWindow, app, ipcMain, shell } from 'electron'
+import { handleMap } from '../ipc/main'
 
 globalThis.__filename = fileURLToPath(import.meta.url)
 globalThis.__dirname = dirname(__filename)
@@ -57,7 +58,7 @@ async function createWindow() {
     webPreferences: {
       preload,
       // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
-      // nodeIntegration: true,
+      nodeIntegration: true,
 
       // Consider using contextBridge.exposeInMainWorld
       // Read more on https://www.electronjs.org/docs/latest/tutorial/context-isolation
@@ -129,4 +130,16 @@ ipcMain.handle('open-win', (_, arg) => {
     childWindow.loadURL(`${url}#${arg}`)
   else
     childWindow.loadFile(indexHtml, { hash: arg })
+})
+
+Object.entries(handleMap).forEach(([channel, handle]) => {
+  ipcMain.handle(channel, async (event, ...args) => {
+    try {
+      return await handle(...args)
+    }
+    catch (error) {
+      console.error(error)
+      event.sender.send(`${channel}-error`, error)
+    }
+  })
 })

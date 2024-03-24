@@ -3,8 +3,8 @@ import type { StartMenuItem } from '@advjs/theme-default'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { useAppStore } from '../stores'
-import { useAdvConfig } from '../composables'
+import { useAdvConfig, useAppStore } from 'advjs/client'
+import { quitApp } from '../electron/ipc/renderer'
 
 const advConfig = useAdvConfig()
 const images = computed(() => advConfig.value.assets.images)
@@ -47,10 +47,7 @@ const menuItems = computed<StartMenuItem[]>(() =>
     {
       title: t('menu.quit'),
       do: () => {
-        window.close()
-
-        // eslint-disable-next-line no-alert
-        window.alert('为什么不直接关浏览器窗口呢？╮(￣▽￣"")╭')
+        quitApp()
       },
     },
   ],

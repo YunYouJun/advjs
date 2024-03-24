@@ -22,7 +22,6 @@
     "preview": "vite preview --host",
     "preview-https": "serve dist"
   },
-  "dependencies": {},
   "devDependencies": {
     "@advjs/devtools": "workspace:*",
     "@advjs/plugin-babylon": "workspace:*",

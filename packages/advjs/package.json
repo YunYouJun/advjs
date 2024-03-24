@@ -15,9 +15,7 @@
     "url": "https://github.com/YunYouJun/advjs"
   },
   "exports": {
-    "./client": {
-      "types": "./types/index.d.ts"
-    },
+    "./client": "./client/index.ts",
     "./node": {
       "types": "./dist/node/index.d.ts",
       "default": "./dist/node/index.mjs"
