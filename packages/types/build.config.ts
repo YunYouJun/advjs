@@ -16,5 +16,8 @@ export default defineBuildConfig({
 
     /@advjs/,
     '@advjs/client',
+
+    'vfile',
+    'pixi.js',
   ],
 })

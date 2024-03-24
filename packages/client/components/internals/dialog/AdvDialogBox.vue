@@ -87,7 +87,7 @@ watch(() => curCharacter.value.name, () => {
 </script>
 
 <template>
-  <div class="dialog-box cursor-pointer select-none" grid="~ cols-12" gap="12" @click="next">
+  <div class="adv-dialog-box cursor-pointer select-none shadow-xl" grid="~ cols-12" gap="12" @click="next">
     <div v-if="curCharacter" class="col-span-3 text-right">
       <template v-if="$adv.config.showCharacterAvatar && characterAvatar">
         <div flex="~ col" class="items-end justify-center">
@@ -97,7 +97,7 @@ watch(() => curCharacter.value.name, () => {
       </template>
       <template v-else>
         <Transition name="fade">
-          <span v-if="transitionFlag" class="dialog-name">{{ curCharacter.name }}</span>
+          <span v-if="transitionFlag" class="dialog-name text-gray-200">{{ curCharacter.name }}</span>
         </Transition>
       </template>
     </div>
@@ -115,29 +115,30 @@ watch(() => curCharacter.value.name, () => {
 </template>
 
 <style lang="scss">
-.dialog-box {
-  width: 100%;
-  height: 40%;
+.adv-dialog-box {
+  height: 25%;
 
   position: absolute;
-  right: 0;
-  bottom: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -2px;
 
-  background-image: linear-gradient(
-    rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 0.9) 30%,
-    black 100%
-  );
-  padding-top: 4rem;
+  // background-color: rgba(0, 0, 0, 0.7);
+  background: linear-gradient(to bottom, transparent, black) repeat bottom;
+  // 硬件加速，修复 1px 空白问题
+  transform: translateZ(0);
+
+  text-shadow: 0 0 0.2rem black;
 
   .dialog-name {
-    color: gray;
     font-size: 2rem;
   }
 
   .dialog-content {
     color: white;
     margin-top: 0.3rem;
+
+    text-shadow: 0 0 0.2rem black;
   }
 }
 </style>

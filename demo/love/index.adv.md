@@ -1,26 +1,6 @@
 ---
+# You can config it in adv.config.ts
 title: Doki Doki Love
-characters:
-  - name: 小云
-    actor: 小云
-    avatar: 'https://r2.yunyoujun.cn/yun-good-alpha-compressed.png'
-    tachies:
-      default:
-        src: 'https://r2.yunyoujun.cn/images/yun-alpha-compressed.png'
-        style:
-          transform: scale(1) translateY(5%)
-  - name: 云游君
-    actor: 云游君
-    tachies:
-      default:
-        src: 'https://r2.yunyoujun.cn/images/advjs/characters-he.png'
-        style:
-          transform: scale(0.7) translateY(-20%)
-bgm:
-  autoplay: true
-  collection:
-    - name: xxx
-      src: 'https://cdn.yunyoujun.cn/audio/star-timer.mp3'
 ---
 
 > 屏幕里似乎传来了些声音

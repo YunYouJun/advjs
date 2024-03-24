@@ -43,6 +43,7 @@ const tachies = computed(() => {
   <AdvContainer text="white" class="h-screen w-screen">
     <div class="adv-game absolute h-full w-full bg-black">
       <AdvScene />
+      <AdvPixiCanvas />
       <slot name="scene" />
       <TachieBox :tachies="tachies" />
 
@@ -64,7 +65,7 @@ const tachies = computed(() => {
       </Transition>
 
       <Transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
-        <DialogControls v-show="app.showUi" class="adv-animated absolute bottom-0 left-0 right-0 z-3" />
+        <DialogControls v-show="app.showUi" class="adv-animated absolute bottom-1 left-0 right-0 z-3" />
       </Transition>
       <Transition enter-active-class="animate__fadeInDown" leave-active-class="animate__fadeOutUp">
         <UserInterface v-show="app.showUi" class="adv-animated z-99" />

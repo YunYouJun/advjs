@@ -1,11 +1,7 @@
 ---
 title: About
+layout: text
 ---
-
-<route lang="yaml">
-meta:
-  layout: text
-</route>
 
 <div class="text-center">
   <!-- You can use Vue components inside markdown -->

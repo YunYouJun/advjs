@@ -3,12 +3,14 @@
 // you can use this to manipulate the document head in any components,
 // they will be rendered correctly in the html results with vite-ssg
 import { useHead } from '@unhead/vue'
-import { useAdvCtx } from './composables'
+import { useAdvConfig, useAdvCtx } from './composables'
+
+const config = useAdvConfig()
 
 useHead({
-  title: 'ADV.JS',
+  title: config.value.title,
   meta: [
-    { name: 'description', content: '面向未来与前端的 ADV 文字冒险游戏引擎' },
+    { name: 'description', content: config.value.description },
   ],
 })
 

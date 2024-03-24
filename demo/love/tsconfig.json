@@ -11,7 +11,7 @@
       "node",
       "vite/client",
       "vite-plugin-vue-layouts/client",
-      "advjs"
+      "advjs/client"
     ],
     "strict": true,
     "strictNullChecks": true,

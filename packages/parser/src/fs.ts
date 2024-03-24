@@ -19,7 +19,9 @@ export async function load(filepath: string, themeMeta?: AdvThemeMeta) {
   ])
   data.entries = Array.from(entries)
 
-  consola.info('themeMeta', themeMeta)
+  if (themeMeta)
+    consola.info('themeMeta', themeMeta)
+
   // todo add 'src' for child frontmatter
 
   return data

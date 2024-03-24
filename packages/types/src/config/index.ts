@@ -1,3 +1,4 @@
+import type { AssetsManifest } from 'pixi.js'
 import type { AdvFeatureFlags } from '../types'
 
 export * from './app'
@@ -7,27 +8,40 @@ export interface AdvConfig {
   remote?: boolean
 
   /**
+   * @zh 游戏标题
    * @default 'ADV.JS'
    */
   title: string
   /**
+   * @zh 游戏描述
+   * @default '面向未来与前端的 ADV 文字冒险游戏引擎'
+   */
+  description: string
+  /**
+   * @zh 游戏图标
    * @default '/favicon.svg'
    */
   favicon: string
   /**
+   * @zh UI 主题
    * Theme to use for the advjs
    * @default 'default'
    */
   theme: string
   /**
+   * @zh 主题配置
    * @default {}
    */
   themeConfig: any
 
+  /**
+   * @zh 特性开关
+   */
   features: AdvFeatureFlags
 
   // client
   /**
+   * @zh 画面宽高比
    * Aspect ratio for game
    * should be like `16/9` or `1:1`
    *
@@ -38,7 +52,7 @@ export interface AdvConfig {
    * The actual width for canvas.
    * unit in px.
    *
-   * @default '980'
+   * @default '1920'
    */
   canvasWidth: number
   /**
@@ -60,12 +74,12 @@ export interface AdvConfig {
     start: {
       /**
        * Path or URL
-       * @description:zh-CN 背景
+       * @zh 背景
        */
       bg: string
       /**
        * Path or URL
-       * @description:zh-CN 暗色模式背景
+       * @zh 暗色模式背景
        */
       darkBg?: string
     }
@@ -95,19 +109,27 @@ export interface AdvConfig {
     collection: Music[]
   }
 
+  /**
+   * @zh 资源配置
+   */
   assets: {
     /**
-     * other images
+     * @see https://pixijs.com/8.x/examples/assets/bundle
+     * @zh 资源清单
      */
-    images: Record<string, string>
-    /**
-     * background url
-     */
-    background?: Record<string, string>
-    /**
-     * audio url
-     */
-    audios: Record<string, string>
+    manifest: AssetsManifest
+    // /**
+    //  * other images
+    //  */
+    // images: Record<string, string>
+    // /**
+    //  * background url
+    //  */
+    // background?: Record<string, string>
+    // /**
+    //  * audio url
+    //  */
+    // audios: Record<string, string>
   }
 
   // -------------------------------------------------
@@ -132,19 +154,31 @@ export interface Tachie {
 
 export interface Character {
   /**
-   * @description:zh-CN 姓名
+   * @zh ID 唯一标识
+   */
+  id: string
+  /**
+   * @zh 姓名
    */
   name: string
   /**
-   * @description:zh-CN 头像
+   * @zh 头像
    */
   avatar?: string
   /**
-   * @description:zh-CN 别名
+   * @zh 演员
+   */
+  actor?: string
+  /**
+   * @zh 声优
+   */
+  cv?: string
+  /**
+   * @zh 别名
    */
   alias?: string | string[]
   /**
-   * @description:zh-CN 立绘们，key为立绘名称
+   * @zh 立绘们，key为立绘名称
    */
   tachies: Record<string, Tachie>
 }

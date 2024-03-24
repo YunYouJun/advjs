@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue'
-import { useElementSize } from '@vueuse/core'
+import { useCssVar, useElementSize } from '@vueuse/core'
 import { advAspect, advHeight, advWidth } from '../../config'
 import { useAppStore } from '../../stores'
 import { useAdvConfig } from '../../composables'
@@ -45,6 +45,11 @@ const style = computed(() => ({
   '--adv-screen-height': `${advHeight.value}px`,
   'transform': `translate(-50%, -50%) scale(${containerScale.value}) rotate(${app.rotation}deg)`,
 }))
+
+const fontSize = useCssVar('font-size')
+watchEffect(() => {
+  fontSize.value = `${advWidth.value / 80}px`
+})
 
 const className = computed(() => ({
   'select-none': !advConfig.value.selectable,

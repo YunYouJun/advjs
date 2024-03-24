@@ -29,6 +29,7 @@ const popDown = useSound(popDownUrl, { volume: sVolume })
   cursor: pointer;
 
   transition: 0.2s;
+
   &:hover {
     background: rgba(123, 123, 123, 0.2);
   }
