@@ -140,7 +140,7 @@ export function createAdvLoader(
           return
 
         // only hot reload .md files as .vue files
-        const newData = parser.load(entry, data.themeMeta)
+        const newData = await parser.load(entry, data.themeMeta)
 
         const payload: AdvHmrPayload = {
           data: newData,

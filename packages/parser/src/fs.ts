@@ -1,17 +1,18 @@
-import fs from 'node:fs'
-
 // import { dirname } from 'path'
-import type { AdvThemeMeta } from '@advjs/types'
+import type { AdvMarkdown, AdvThemeMeta } from '@advjs/types'
 import consola from 'consola'
-import { parse } from './core'
+import { matter } from 'vfile-matter'
+import { read } from 'to-vfile'
+
+import { resolveConfig } from './config'
 
 export * from './core'
 
-export function load(filepath: string, themeMeta?: AdvThemeMeta, content?: string) {
-  // const dir = dirname(filepath)
-  const markdown = content ?? fs.readFileSync(filepath, 'utf-8')
-
-  const data = parse(markdown, filepath)
+/**
+ * will depend node:fs
+ */
+export async function load(filepath: string, themeMeta?: AdvThemeMeta) {
+  const data = await parse(filepath)
 
   const entries = new Set([
     filepath,
@@ -22,4 +23,24 @@ export function load(filepath: string, themeMeta?: AdvThemeMeta, content?: strin
   // todo add 'src' for child frontmatter
 
   return data
+}
+
+/**
+ * parse adv.md config
+ * @param filepath
+ */
+export async function parse(filepath: string): Promise<AdvMarkdown> {
+  const file = await read(filepath)
+  matter(file, { strip: true })
+
+  const config = resolveConfig(file.data)
+
+  return {
+    file,
+    raw: String(file),
+    filepath,
+    config,
+    features: config.features,
+    frontmatter: file.data,
+  }
 }

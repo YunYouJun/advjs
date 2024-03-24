@@ -1,6 +1,7 @@
-import matter from 'gray-matter'
+import { matter } from 'vfile-matter'
 import { parseAst } from '@advjs/parser'
 import type { AdvAst } from '@advjs/types'
+import { read } from 'to-vfile'
 import type { ResolvedOptions } from './types'
 import { checkAdvMd } from './check'
 
@@ -74,7 +75,8 @@ export function createMarkdown(options: ResolvedOptions) {
     if (transforms.before)
       raw = transforms.before(raw, id)
 
-    const { data } = matter(raw)
+    const file = await read(id)
+    matter(file, { strip: true })
 
     // todo: judge to insert <AdvBabylonCanvas />
     let html = ''
@@ -101,7 +103,7 @@ export function createMarkdown(options: ResolvedOptions) {
     scriptLines.push('$adv.core.loadAst(advAst)')
 
     if (options.frontmatter) {
-      const { head, frontmatter } = frontmatterPreprocess(data || {}, options)
+      const { head, frontmatter } = frontmatterPreprocess(file.data || {}, options)
       // to delete
       scriptLines.push(`const frontmatter = ${transformObject(frontmatter)}`)
 

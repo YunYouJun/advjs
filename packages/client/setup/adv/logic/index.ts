@@ -7,6 +7,9 @@ import { useAdvConfig } from '../../../composables'
 import { useCamera } from './operation'
 import { useTachies } from './tachies'
 
+/**
+ * Game Logic Helper
+ */
 export function useLogic(ctx: {
   functions: Record<string, () => void>
 }) {

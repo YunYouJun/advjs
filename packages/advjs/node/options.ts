@@ -121,8 +121,7 @@ export async function resolveOptions(
     userRoot,
   } = getUserRoot(options)
   // avoid type error, type see packages/parser/fs
-  const data = (parser as any).load(entry)
-
+  const data = await (parser as any).load(entry)
   const theme = await resolveThemeName(options.theme || data.config.theme)
 
   if (!await packageExists(theme)) {

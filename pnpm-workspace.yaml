@@ -4,3 +4,4 @@ packages:
   - editor/*
   - packages/*
   - packages/*/playground
+  - templates/*

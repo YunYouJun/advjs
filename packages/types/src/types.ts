@@ -1,3 +1,4 @@
+import type { VFile } from 'vfile'
 import type { AdvConfig } from './config'
 
 export interface AdvFeatureFlags {
@@ -14,6 +15,7 @@ export interface AdvThemeMeta {
 }
 
 export interface AdvMarkdown {
+  file: VFile
   // advjs: AdvInfo[]
   raw: string
   config: AdvConfig

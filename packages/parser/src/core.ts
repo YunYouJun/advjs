@@ -1,9 +1,8 @@
 import type * as MdAst from 'mdast'
-import type { AdvAst, AdvMarkdown } from '@advjs/types'
-import matter from 'gray-matter'
+import type { AdvAst } from '@advjs/types'
+
 import { mdParse } from './markdown'
 import { Serialize } from './Serialize'
-import { resolveConfig } from './config'
 import { isScript } from './syntax'
 
 // import { AdvItem } from '@advjs/types'
@@ -69,23 +68,4 @@ export async function parseAst(content: string) {
   const mdAst = await mdParse(content)
   const advAst = convertMdToAdv(mdAst)
   return advAst
-}
-
-/**
- * parse adv.md config
- * @param markdown
- * @param filepath
- */
-export function parse(markdown: string, filepath?: string): AdvMarkdown {
-  const { data } = matter(markdown)
-
-  const config = resolveConfig(data)
-
-  return {
-    raw: markdown,
-    filepath,
-    config,
-    features: config.features,
-    frontmatter: data,
-  }
 }

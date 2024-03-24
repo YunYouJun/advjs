@@ -1,0 +1,12 @@
+public/assets/
+
+node_modules
+dist
+dist-electron
+
+auto-imports.d.ts
+
+.adv
+
+# build electron
+release/
