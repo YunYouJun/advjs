@@ -3,9 +3,10 @@ import { isScript, parseAst } from '@advjs/parser'
 import consola from 'consola'
 
 import { useAdvStore } from '../store'
-import { useAdvConfig } from '../../../composables'
+// import { useAdvConfig } from '../../../composables'
 import { useCamera } from './operation'
 import { useTachies } from './tachies'
+import { BackgroundSystem } from '~/pixi/system/background'
 
 /**
  * Game Logic Helper
@@ -13,7 +14,7 @@ import { useTachies } from './tachies'
 export function useLogic(ctx: {
   functions: Record<string, () => void>
 }) {
-  const advConfig = useAdvConfig()
+  // const advConfig = useAdvConfig()
   const store = useAdvStore()
 
   const useNav = () => {
@@ -160,8 +161,8 @@ export function useLogic(ctx: {
         break
       case 'background':
         if (node.name) {
-          const bg = advConfig.value.assets.background
-          if (bg && bg[node.name])
+          const bg = BackgroundSystem.instance?.load(node.name)
+          if (bg)
             store.cur.background = bg[node.name]
         }
         else if (node.url) {

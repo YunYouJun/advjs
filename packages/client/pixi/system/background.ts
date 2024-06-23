@@ -2,6 +2,8 @@ import { Container, Sprite, Texture } from 'pixi.js'
 import type { PixiGame } from '../game'
 
 export class BackgroundSystem {
+  static instance: BackgroundSystem | null = null
+
   game: PixiGame
 
   container = new Container({
@@ -22,6 +24,8 @@ export class BackgroundSystem {
     container.addChild(bgSprite)
 
     this.bgSprite = bgSprite
+
+    BackgroundSystem.instance = this
   }
 
   load(alias: string) {

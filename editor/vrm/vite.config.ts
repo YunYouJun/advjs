@@ -8,7 +8,8 @@ import VueRouter from 'unplugin-vue-router/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import VueI18n from '@intlify/unplugin-vue-i18n/vite'
 import Inspect from 'vite-plugin-inspect'
-import Prism from 'markdown-it-prism'
+
+import Shiki from '@shikijs/markdown-it'
 import LinkAttributes from 'markdown-it-link-attributes'
 import Unocss from 'unocss/vite'
 
@@ -77,9 +78,8 @@ export default defineConfig((config) => {
       Markdown({
         wrapperClasses: markdownWrapperClasses,
         headEnabled: true,
-        markdownItSetup(md) {
+        async markdownItSetup(md) {
           // https://prismjs.com/
-          md.use(Prism)
           md.use(LinkAttributes, {
             pattern: /^https?:\/\//,
             attrs: {
@@ -87,6 +87,13 @@ export default defineConfig((config) => {
               rel: 'noopener',
             },
           })
+          md.use(await Shiki({
+            defaultColor: false,
+            themes: {
+              light: 'vitesse-light',
+              dark: 'vitesse-dark',
+            },
+          }))
         },
         exclude: ['**/*.adv.md'],
       }),

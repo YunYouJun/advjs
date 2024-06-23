@@ -92,7 +92,7 @@ export function bCssVars(): string {
   if (cache)
     return cache
 
-  const cssVars = []
+  const cssVars: string[] = []
   for (const [name, data] of Object.entries(svg)) {
     const url = URL.createObjectURL(
       new Blob([data], { type: 'image/svg+xml' }),

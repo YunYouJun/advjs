@@ -8,7 +8,7 @@ const props = defineProps<{
 }>()
 
 const classes = computed(() => {
-  const cls = []
+  const cls: string[] = []
   if (props.active)
     cls.push('active')
   if (props.size)

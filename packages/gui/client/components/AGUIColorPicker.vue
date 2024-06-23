@@ -63,6 +63,7 @@ function formatColor(color: Colord) {
   else if (format.value === 'hsv') {
     return color.toHsv()
   }
+  return color.toHex()
 }
 
 function onChange(e: Event) {

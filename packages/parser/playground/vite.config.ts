@@ -10,7 +10,7 @@ import Inspect from 'vite-plugin-inspect'
 import Unocss from 'unocss/vite'
 import VueRouter from 'unplugin-vue-router/vite'
 
-import Prism from 'markdown-it-prism'
+import Shiki from '@shikijs/markdown-it'
 import LinkAttributes from 'markdown-it-link-attributes'
 
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
@@ -65,9 +65,7 @@ export default defineConfig({
     Markdown({
       wrapperClasses: markdownWrapperClasses,
       headEnabled: true,
-      markdownItSetup(md) {
-        // https://prismjs.com/
-        md.use(Prism)
+      async markdownItSetup(md) {
         md.use(LinkAttributes, {
           pattern: /^https?:\/\//,
           attrs: {
@@ -75,6 +73,13 @@ export default defineConfig({
             rel: 'noopener',
           },
         })
+        md.use(await Shiki({
+          defaultColor: false,
+          themes: {
+            light: 'material-theme-lighter',
+            dark: 'material-theme-darker',
+          },
+        }))
       },
       exclude: ['**/*.adv.md'],
     }),

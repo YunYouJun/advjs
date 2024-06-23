@@ -60,7 +60,7 @@
     "@advjs/unocss": "workspace:*",
     "@types/mdast": "4.0.3",
     "js-yaml": "^4.1.0",
-    "mdast-util-to-hast": "^13.1.0",
+    "mdast-util-to-hast": "^13.2.0",
     "rehype-stringify": "^10.0.0",
     "remark": "^15.0.1",
     "remark-frontmatter": "^5.0.0",
@@ -68,7 +68,7 @@
     "remark-parse": "^11.0.0",
     "remark-rehype": "^11.1.0",
     "to-vfile": "^8.0.0",
-    "unified": "^11.0.4",
+    "unified": "^11.0.5",
     "vfile-matter": "^5.0.0"
   },
   "devDependencies": {

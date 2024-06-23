@@ -345,7 +345,7 @@ function handleClick() {
           :side-offset="5"
           :align-offset="-3"
         >
-          <template v-for="menuItem in menu.items" :key="menuItem.name">
+          <template v-for="menuItem in menu.items" :key="menuItem.label">
             <MenubarCheckboxItem
               v-if="menuItem.type === 'checkbox'"
               v-model:checked="menuItem.checked"

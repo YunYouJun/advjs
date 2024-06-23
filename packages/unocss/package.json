@@ -18,6 +18,6 @@
   },
   "devDependencies": {
     "defu": "^6.1.4",
-    "unocss": "^0.58.6"
+    "unocss": "^0.61.0"
   }
 }
