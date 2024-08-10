@@ -27,12 +27,12 @@
     "@advjs/plugin-babylon": "workspace:*",
     "@advjs/theme-default": "workspace:*",
     "advjs": "workspace:*",
-    "electron": "^29.4.2",
+    "electron": "^31.3.1",
     "electron-builder": "^24.13.3",
     "https-localhost": "^4.7.1",
     "nodemon": "^3.1.4",
     "vite-plugin-electron": "^0.28.7",
     "vite-plugin-electron-renderer": "^0.14.5",
-    "vite-plugin-vue-devtools": "^7.3.4"
+    "vite-plugin-vue-devtools": "^7.3.7"
   }
 }

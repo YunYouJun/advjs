@@ -32,11 +32,11 @@ const classes = computed(() => {
 <style lang="scss">
 .agui-icon-button {
   cursor: pointer;
+  padding: 6px;
+
   &.active {
     background-color: var(--agui-c-active);
   }
-
-  padding: 6px;
 
   &.mini {
     //

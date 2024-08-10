@@ -17,15 +17,15 @@
     "typedoc:md": "typedoc --options ./typedoc.json"
   },
   "devDependencies": {
-    "@iconify-json/file-icons": "^1.1.8",
-    "@iconify-json/logos": "^1.1.43",
-    "@iconify-json/vscode-icons": "^1.1.35",
+    "@iconify-json/file-icons": "^1.1.10",
+    "@iconify-json/logos": "^1.1.44",
+    "@iconify-json/vscode-icons": "^1.1.37",
     "typedoc-plugin-markdown": "4.0.0-next.23",
     "typedoc-plugin-merge-modules": "^5.1.0",
     "typedoc-vitepress-theme": "1.0.0-next.10",
     "unocss": "0.58.6",
-    "unplugin-vue-components": "^0.27.0",
-    "vite-plugin-pwa": "^0.20.0",
+    "unplugin-vue-components": "^0.27.3",
+    "vite-plugin-pwa": "^0.20.1",
     "vitepress": "1.0.1"
   }
 }
