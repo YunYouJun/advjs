@@ -12,8 +12,9 @@ export default defineBuildConfig({
   clean: true,
   externals: [
     'mdast',
-    ...Object.keys(pkg.dependencies),
+    'playwright-chromium',
 
+    ...Object.keys(pkg.dependencies),
     ...ADV_VIRTUAL_MODULES,
   ],
 })

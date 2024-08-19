@@ -31,7 +31,7 @@
     "@advjs/types": "workspace:*",
     "@antfu/utils": "^0.7.10",
     "@unhead/vue": "^1.9.16",
-    "@vueuse/core": "^10.11.1",
+    "@vueuse/core": "^11.0.1",
     "@vueuse/motion": "^2.2.3",
     "@vueuse/sound": "^2.0.1",
     "animate.css": "^4.1.1",
@@ -39,11 +39,11 @@
     "dayjs": "^1.11.12",
     "howler": "^2.2.4",
     "nprogress": "^0.2.0",
-    "pinia": "^2.2.1",
+    "pinia": "^2.2.2",
     "pixi.js": "8.0.4",
     "resolve": "^1.22.8",
     "swiper": "^11.1.9",
-    "vue": "^3.4.37",
+    "vue": "^3.4.38",
     "vue-router": "^4.4.3"
   },
   "optionalDependencies": {

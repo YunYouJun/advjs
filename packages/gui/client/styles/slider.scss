@@ -6,13 +6,8 @@
 }
 
 .agui-slider {
-  &-container {
-    width: 100%;
-  }
-
-  width: 100%;
-
   -webkit-appearance: none;
+  width: 100%;
   cursor: pointer;
 
   display: flex;
@@ -23,6 +18,10 @@
   outline: none;
   opacity: 0.7;
   transition: opacity 0.2s;
+
+  &-container {
+    width: 100%;
+  }
 
   &:hover {
     opacity: 1;

@@ -191,6 +191,10 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
           text: '功能',
           link: '/guide/features',
         },
+        {
+          text: '导出',
+          link: '/guide/export',
+        },
       ],
     },
     {
