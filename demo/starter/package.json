@@ -19,8 +19,8 @@
     "@advjs/plugin-babylon": "workspace:*",
     "@advjs/theme-default": "workspace:*",
     "advjs": "workspace:*",
-    "https-localhost": "^4.7.1",
-    "nodemon": "^3.1.4",
-    "vite-plugin-vue-devtools": "^7.3.8"
+    "https-localhost": "catalog:",
+    "nodemon": "catalog:",
+    "vite-plugin-vue-devtools": "catalog:"
   }
 }

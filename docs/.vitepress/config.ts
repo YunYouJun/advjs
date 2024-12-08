@@ -1,8 +1,6 @@
 import type { DefaultTheme } from 'vitepress'
 import { defineConfig } from 'vitepress'
 
-// import { VitePWA } from 'vite-plugin-pwa'
-
 // todo: // wait released https://github.com/vitejs/vite/pull/10254
 // import { customElements } from '../../packages/advjs/node/constants'
 import typedocSidebar from '../api/typedoc-sidebar.json'

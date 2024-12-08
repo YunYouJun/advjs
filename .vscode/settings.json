@@ -24,16 +24,13 @@
   "i18n-ally.localesPaths": "locales",
   "i18n-ally.sortKeys": true,
 
-  // Enable the flat config support
-  "eslint.experimental.useFlatConfig": true,
-
-  // Disable the default formatter
+  // Disable the default formatter, use eslint instead
   "prettier.enable": false,
   "editor.formatOnSave": false,
 
   // Auto fix
   "editor.codeActionsOnSave": {
-    "source.fixAll": "explicit",
+    "source.fixAll.eslint": "explicit",
     "source.organizeImports": "never"
   },
 
@@ -57,8 +54,5 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   "files.associations": {
     "*.css": "postcss"
-  },
-  "[typescript]": {
-    "editor.formatOnSave": false
   }
 }

@@ -25,3 +25,8 @@ npx advjs export
 # test.webm -> test.mp4
 ffmpeg -i test.webm test.mp4
 ```
+
+TODO:
+
+- playwright recordVideo 质量较低
+  - 考虑实用 RecordRTC

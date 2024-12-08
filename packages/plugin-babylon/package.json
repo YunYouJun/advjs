@@ -42,13 +42,13 @@
   },
   "dependencies": {
     "@advjs/types": "workspace:*",
-    "@babylonjs/core": "5.19.0",
-    "@babylonjs/gui": "5.19.0",
-    "@babylonjs/loaders": "5.19.0",
-    "@babylonjs/materials": "5.19.0",
-    "babylon-vrm-loader": "^2.0.0"
+    "@babylonjs/core": "catalog:",
+    "@babylonjs/gui": "catalog:",
+    "@babylonjs/loaders": "catalog:",
+    "@babylonjs/materials": "catalog:",
+    "babylon-vrm-loader": "catalog:"
   },
   "devDependencies": {
-    "unbuild": "^2.0.0"
+    "unbuild": "catalog:"
   }
 }

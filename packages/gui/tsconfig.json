@@ -18,5 +18,5 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
   },
-  "exclude": ["dist", "node_modules", "cypress", "nuxt.mjs"]
+  "exclude": ["dist", "node_modules", "nuxt.mjs"]
 }

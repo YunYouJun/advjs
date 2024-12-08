@@ -17,7 +17,7 @@
     "unocss": "*"
   },
   "devDependencies": {
-    "defu": "^6.1.4",
-    "unocss": "^0.62.2"
+    "defu": "catalog:",
+    "unocss": "catalog:"
   }
 }

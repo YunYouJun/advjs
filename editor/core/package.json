@@ -2,7 +2,7 @@
   "name": "@advjs/editor",
   "version": "0.0.0",
   "private": true,
-  "packageManager": "pnpm@9.7.1",
+  "packageManager": "pnpm@9.15.0",
   "description": "ADV.JS Editor",
   "scripts": {
     "build": "nuxi build",
@@ -16,27 +16,27 @@
     "start:generate": "npx serve .output/public"
   },
   "dependencies": {
-    "@google/model-viewer": "^3.5.0",
-    "pixi-painter": "^0.1.6-beta.1"
+    "@google/model-viewer": "catalog:",
+    "pixi-painter": "catalog:"
   },
   "devDependencies": {
     "@advjs/gui": "workspace:*",
-    "@iconify-json/carbon": "^1.1.37",
-    "@iconify-json/ep": "^1.1.16",
-    "@iconify-json/mdi": "^1.1.68",
-    "@iconify-json/twemoji": "^1.1.16",
-    "@nuxt/devtools": "^1.3.9",
-    "@nuxtjs/color-mode": "^3.4.4",
-    "@pinia/nuxt": "^0.5.3",
-    "@unocss/eslint-config": "^0.62.2",
-    "@unocss/nuxt": "^0.62.2",
-    "@vite-pwa/nuxt": "^0.10.0",
-    "@vueuse/nuxt": "^11.0.1",
-    "baklavajs": "2.4.3",
-    "consola": "^3.2.3",
-    "honeycomb-grid": "^4.1.5",
-    "nuxt": "^3.12.4",
+    "@iconify-json/carbon": "catalog:",
+    "@iconify-json/ep": "catalog:",
+    "@iconify-json/mdi": "catalog:",
+    "@iconify-json/twemoji": "catalog:",
+    "@nuxt/devtools": "catalog:",
+    "@nuxtjs/color-mode": "catalog:",
+    "@pinia/nuxt": "catalog:",
+    "@unocss/eslint-config": "catalog:",
+    "@unocss/nuxt": "catalog:",
+    "@vite-pwa/nuxt": "catalog:",
+    "@vueuse/nuxt": "catalog:",
+    "baklavajs": "catalog:",
+    "consola": "catalog:",
+    "honeycomb-grid": "catalog:",
+    "nuxt": "catalog:",
     "nuxt-monaco-editor": "git+https://github.com/jontybrook/nuxt-monaco-editor.git#patch1",
-    "pinia": "^2.2.2"
+    "pinia": "catalog:"
   }
 }

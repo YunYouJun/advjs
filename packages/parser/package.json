@@ -58,20 +58,20 @@
   "dependencies": {
     "@advjs/types": "workspace:*",
     "@advjs/unocss": "workspace:*",
-    "@types/mdast": "4.0.3",
-    "js-yaml": "^4.1.0",
-    "mdast-util-to-hast": "^13.2.0",
-    "rehype-stringify": "^10.0.0",
-    "remark": "^15.0.1",
-    "remark-frontmatter": "^5.0.0",
-    "remark-gfm": "^4.0.0",
-    "remark-parse": "^11.0.0",
-    "remark-rehype": "^11.1.0",
-    "to-vfile": "^8.0.0",
-    "unified": "^11.0.5",
-    "vfile-matter": "^5.0.0"
+    "@types/mdast": "catalog:",
+    "js-yaml": "catalog:",
+    "mdast-util-to-hast": "catalog:",
+    "rehype-stringify": "catalog:",
+    "remark": "catalog:",
+    "remark-frontmatter": "catalog:",
+    "remark-gfm": "catalog:",
+    "remark-parse": "catalog:",
+    "remark-rehype": "catalog:",
+    "to-vfile": "catalog:",
+    "unified": "catalog:",
+    "vfile-matter": "catalog:"
   },
   "devDependencies": {
-    "@types/js-yaml": "^4.0.9"
+    "@types/js-yaml": "catalog:"
   }
 }

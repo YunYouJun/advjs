@@ -19,6 +19,6 @@
     "vite": "*"
   },
   "dependencies": {
-    "hookable": "^5.5.3"
+    "hookable": "catalog:"
   }
 }

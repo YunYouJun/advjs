@@ -31,6 +31,6 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@types/mdast": "4.0.3"
+    "@types/mdast": "catalog:"
   }
 }
