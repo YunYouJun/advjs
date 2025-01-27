@@ -43,7 +43,7 @@ defineProps<{
     padding: 2px;
     padding-left: 8px;
     user-select: none;
-    background-color: var(--agui-c-bg-summary, rgba(62, 62, 62, 1));
+    background-color: var(--agui-c-bg-summary);
     &:hover {
       background-color: var(--agui-c-bg-hover);
     }

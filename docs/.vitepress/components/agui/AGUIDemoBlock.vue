@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
 import AGUIDetails from '@advjs/gui/client/components/AGUIDetails.vue'
 
 withDefaults(defineProps<{
@@ -9,13 +8,10 @@ withDefaults(defineProps<{
   title: 'Untitled',
   inPanel: true,
 })
-
-const isDark = ref(true)
 </script>
 
 <template>
   <div
-    :class="isDark ? 'dark' : 'light'"
     class="agui-demo-block w-full bg-$agui-c-bg-panel"
     border="solid 1px $agui-c-divider-dark-2"
     relative rounded-2px shadow

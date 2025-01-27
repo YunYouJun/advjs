@@ -29,6 +29,16 @@ export default defineConfig({
     },
   },
 
+  server: {
+    watch: {
+      ignored: [
+        '**/node_modules/**',
+        '**/.git/**',
+        `!${componentsDir}`,
+      ],
+    },
+  },
+
   plugins: [
     Components({
       include: [/\.vue/, /\.md/],
