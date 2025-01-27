@@ -131,6 +131,10 @@ function sidebarAGUI(): DefaultTheme.SidebarItem[] {
       name: 'Select 选择器',
     },
     {
+      key: 'sidebar',
+      name: 'Sidebar 侧边栏',
+    },
+    {
       key: 'switch',
       name: 'Switch 开关',
     },

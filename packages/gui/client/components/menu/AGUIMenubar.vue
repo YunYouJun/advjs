@@ -20,9 +20,11 @@ import './menu-bar.scss'
 
 import type { Menu } from './types'
 
-defineProps<{
+withDefaults(defineProps<{
   menus?: Menu[]
-}>()
+}>(), {
+  menus: () => [],
+})
 
 const currentMenu = ref('')
 const checkboxOne = ref(false)
@@ -332,45 +334,47 @@ function handleClick() {
       </MenubarPortal>
     </MenubarMenu>
 
-    <MenubarMenu v-for="menu in menus" :key="menu.name">
-      <MenubarTrigger
-        class="MenubarTrigger"
-      >
-        {{ menu.name }}
-      </MenubarTrigger>
-      <MenubarPortal>
-        <MenubarContent
-          class="MenubarContent"
-          align="start"
-          :side-offset="5"
-          :align-offset="-3"
+    <template v-if="menus?.length">
+      <MenubarMenu v-for="menu in menus" :key="menu.name">
+        <MenubarTrigger
+          class="MenubarTrigger"
         >
-          <template v-for="menuItem in menu.items" :key="menuItem.label">
-            <MenubarCheckboxItem
-              v-if="menuItem.type === 'checkbox'"
-              v-model:checked="menuItem.checked"
-              class="MenubarCheckboxItem inset"
-            >
-              <MenubarItemIndicator class="MenubarItemIndicator">
-                <div class="i-radix-icons:check" />
-              </MenubarItemIndicator>
-              {{ menuItem.label }}
-            </MenubarCheckboxItem>
+          {{ menu.name }}
+        </MenubarTrigger>
+        <MenubarPortal>
+          <MenubarContent
+            class="MenubarContent"
+            align="start"
+            :side-offset="5"
+            :align-offset="-3"
+          >
+            <template v-for="menuItem in menu.items" :key="menuItem.label">
+              <MenubarCheckboxItem
+                v-if="menuItem.type === 'checkbox'"
+                v-model:checked="menuItem.checked"
+                class="MenubarCheckboxItem inset"
+              >
+                <MenubarItemIndicator class="MenubarItemIndicator">
+                  <div class="i-radix-icons:check" />
+                </MenubarItemIndicator>
+                {{ menuItem.label }}
+              </MenubarCheckboxItem>
 
-            <MenubarItem
-              v-else
-              class="MenubarItem"
-              :disabled="menuItem.disabled"
-            >
-              {{ menuItem.label }}
+              <MenubarItem
+                v-else
+                class="MenubarItem"
+                :disabled="menuItem.disabled"
+              >
+                {{ menuItem.label }}
 
-              <div class="RightSlot">
-                {{ menuItem.accelerator }}
-              </div>
-            </MenubarItem>
-          </template>
-        </MenubarContent>
-      </MenubarPortal>
-    </MenubarMenu>
+                <div class="RightSlot">
+                  {{ menuItem.accelerator }}
+                </div>
+              </MenubarItem>
+            </template>
+          </MenubarContent>
+        </MenubarPortal>
+      </MenubarMenu>
+    </template>
   </MenubarRoot>
 </template>

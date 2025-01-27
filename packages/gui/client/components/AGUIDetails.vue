@@ -29,6 +29,10 @@ defineProps<{
 .agui-details {
   border-top: 1px solid var(--agui-c-border);
 
+  &:first-child {
+    border-top: none;
+  }
+
   .agui-summary {
     // display: flex;
     align-items: center;

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { speak, useAdvCtx, useSettingsStore } from '@advjs/client'
-import { computed, ref, watch } from 'vue'
+import { computed, ref, unref, watch } from 'vue'
 import type { AdvAst } from '@advjs/types'
 
 const props = defineProps<{
@@ -23,7 +23,7 @@ watch(
     // 若开启了语音合成
     if (settings.storage.speech) {
       speechSynthesis.cancel()
-      speak(val, (typeof lang === 'function' ? lang() : lang) || 'zh-CN')
+      speak(val, unref((typeof lang === 'function' ? lang() : lang)) || 'zh-CN')
     }
   },
 )

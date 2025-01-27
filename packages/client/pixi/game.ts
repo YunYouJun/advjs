@@ -25,7 +25,6 @@ export class PixiGame {
       canvas,
       // background: '#FFFFFF',
       backgroundAlpha: 0,
-      resizeTo: canvas,
       antialias: true,
       // resolution: window.devicePixelRatio,
     })

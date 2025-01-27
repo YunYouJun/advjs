@@ -1,7 +1,7 @@
 import { resolve } from 'node:path'
 import { commonAlias } from '../../packages/shared/node'
-import { pwa } from './config/pwa'
-import { appDescription } from './constants/index'
+import { pwa } from './app/config/pwa'
+import { appDescription } from './app/constants/index'
 
 const alias = commonAlias as Record<string, string>
 
@@ -27,14 +27,19 @@ export default defineNuxtConfig({
     'nuxt-monaco-editor',
   ],
 
+  future: {
+    compatibilityVersion: 4,
+  },
+
   experimental: {
     // when using generate, payload js assets included in sw precache manifest
     // but missing on offline, disabling extraction it until fixed
     payloadExtraction: false,
-    // inlineSSRStyles: false,
     renderJsonPayloads: true,
     typedPages: true,
   },
+
+  compatibilityDate: '2024-08-14',
 
   css: [
     '@unocss/reset/tailwind.css',

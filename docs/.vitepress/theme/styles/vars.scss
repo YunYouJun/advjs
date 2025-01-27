@@ -1,8 +1,10 @@
+@use 'sass:color';
+
 :root {
   --vp-c-brand: #0078e7;
-  --vp-c-brand-light: #{lighten(#0078e7, 5)};
-  --vp-c-brand-lighter: #{lighten(#0078e7, 10)};
-  --vp-c-brand-dark: #{darken(#0078e7, 5)};
+  --vp-c-brand-light: #{color.adjust(#0078e7, $lightness: 5%)};
+  --vp-c-brand-lighter: #{color.adjust(#0078e7, $lightness: 10%)};
+  --vp-c-brand-dark: #{color.adjust(#0078e7, $lightness: -5%)};
 }
 
 // Home

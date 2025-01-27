@@ -1,7 +1,7 @@
 {
   "name": "@advjs/gui",
   "type": "module",
-  "version": "0.0.7-beta.5",
+  "version": "0.0.7-beta.7",
   "repository": {
     "url": "https://github.com/YunYouJun/advjs/tree/main/packages/gui",
     "type": "git"
@@ -34,7 +34,7 @@
     "build:lib": "npm run typecheck && vite build",
     "build:icons": "tsx scripts/build.ts",
     "prepublishOnly": "npm run build",
-    "release": "bumpp --no-commit --no-tag --no-push && npm publish",
+    "release": "bumpp --no-commit --no-tag --no-push && pnpm publish --no-git-checks",
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {

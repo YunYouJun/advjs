@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { AGUIToast, Toast, toastRef } from '@advjs/gui'
-import { useAppStore } from '~/composables'
+import { useAppStore } from '~/app/composables'
 
 definePageMeta({
   layout: 'editor',

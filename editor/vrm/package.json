@@ -37,7 +37,6 @@
     "@types/markdown-it-link-attributes": "catalog:",
     "@types/nprogress": "catalog:",
     "@vitejs/plugin-vue": "catalog:",
-    "critters": "catalog:",
     "markdown-it-link-attributes": "catalog:",
     "unocss": "catalog:",
     "unplugin-vue-components": "catalog:",

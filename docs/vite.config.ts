@@ -2,7 +2,6 @@ import path from 'node:path'
 import { defineConfig } from 'vite'
 
 import Components from 'unplugin-vue-components/vite'
-import { presetAttributify, presetIcons, presetUno } from 'unocss'
 import Unocss from 'unocss/vite'
 
 // import { componentsDir } from '@advjs/gui/node'
@@ -10,6 +9,17 @@ import Unocss from 'unocss/vite'
 import { componentsDir } from '../packages/gui/node'
 
 export default defineConfig({
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: 'modern-compiler', // or "modern", "legacy"
+        importers: [
+          // ...
+        ],
+      },
+    },
+  },
+
   resolve: {
     alias: {
       '@advjs/gui/': `${path.resolve(__dirname, '../packages/gui')}/`,
@@ -28,19 +38,9 @@ export default defineConfig({
       ],
       dts: '.vitepress/components.d.ts',
     }),
-    Unocss({
-      shortcuts: [
-        ['btn', 'px-4 py-1 rounded inline-flex justify-center gap-2 text-white leading-30px children:mya !no-underline cursor-pointer disabled:cursor-default disabled:bg-gray-600 disabled:opacity-50'],
-      ],
-      presets: [
-        presetUno({
-          dark: 'media',
-        }),
-        presetAttributify(),
-        presetIcons({
-          scale: 1.2,
-        }),
-      ],
-    }),
+
+    // https://github.com/antfu/unocss
+    // see unocss.config.ts for config
+    Unocss(),
   ],
 })
