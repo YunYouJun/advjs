@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue'
 import { isClient } from '@vueuse/core'
-import { initPixi } from '../../pixi'
+import { onMounted, ref } from 'vue'
 import { useAdvConfig } from '../../composables'
+import { initPixi } from '../../pixi'
 
 const pixiCanvasRef = ref<HTMLCanvasElement>()
 const advConfig = useAdvConfig()

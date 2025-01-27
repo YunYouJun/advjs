@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import type { CameraInfo } from '@advjs/plugin-babylon'
 import type * as BABYLON from '@babylonjs/core'
 
-import type { CameraInfo } from '@advjs/plugin-babylon'
 import { captureCameraInfo, useBabylonStore } from '@advjs/plugin-babylon'
+import { computed, ref, watch } from 'vue'
 
 const el = ref<HTMLElement | null>(null)
 const open = ref(false)

@@ -1,5 +1,5 @@
-import type * as AdvItem from './props'
 import type { AdvItemOption } from '.'
+import type * as AdvItem from './props'
 
 export interface AdvMenuItemMap<T extends AdvItemOption = AdvItemOption> {
   Checkbox: AdvItem.AdvCheckboxProps

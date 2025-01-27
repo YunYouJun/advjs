@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import type { StartMenuItem } from '@advjs/theme-default'
+import { useAdvConfig, useAppStore } from 'advjs/client'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { useAdvConfig, useAppStore } from 'advjs/client'
 import { quitApp } from '../electron/ipc/renderer'
 
 const advConfig = useAdvConfig()

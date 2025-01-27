@@ -1,5 +1,5 @@
-import * as BABYLON from '@babylonjs/core'
 import type { AdvAst } from '@advjs/types'
+import * as BABYLON from '@babylonjs/core'
 
 /**
  * create camera animation by code operation node

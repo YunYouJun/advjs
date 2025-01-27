@@ -1,9 +1,9 @@
-import { acceptHMRUpdate, defineStore } from 'pinia'
+import type { SettingOptions } from './types'
 import { ns } from '@advjs/core'
 import { useFullscreen, useSpeechSynthesis, useStorage } from '@vueuse/core'
 
+import { acceptHMRUpdate, defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { SettingOptions } from './types'
 
 export * from './types'
 

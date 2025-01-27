@@ -1,7 +1,7 @@
-import { themeConfigSymbol } from '@advjs/core'
 import type { ComputedRef } from 'vue'
-import { computed, inject } from 'vue'
 import type { DefaultTheme } from '../types'
+import { themeConfigSymbol } from '@advjs/core'
+import { computed, inject } from 'vue'
 
 /**
  * get theme default config

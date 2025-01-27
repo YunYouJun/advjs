@@ -1,10 +1,10 @@
+import type { InlineConfig, ResolvedConfig } from 'vite'
+import type { ResolvedAdvOptions } from './options'
 import { resolve } from 'node:path'
 import fs from 'fs-extra'
-import type { InlineConfig, ResolvedConfig } from 'vite'
 import { resolveConfig, splitVendorChunkPlugin, build as viteBuild } from 'vite'
-import { ViteAdvPlugin } from './plugins/preset'
 import { getIndexHtml, mergeViteConfigs } from './common'
-import type { ResolvedAdvOptions } from './options'
+import { ViteAdvPlugin } from './plugins/preset'
 
 export async function build(
   options: ResolvedAdvOptions,

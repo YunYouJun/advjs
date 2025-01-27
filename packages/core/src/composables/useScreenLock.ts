@@ -1,6 +1,6 @@
+import type { OrientationLockType } from '@vueuse/core'
 import type { Ref } from 'vue'
 import { ref, shallowRef, watch } from 'vue'
-import type { OrientationLockType } from '@vueuse/core'
 
 /**
  * https://developer.mozilla.org/en-US/docs/Web/API/ScreenOrientation/lock

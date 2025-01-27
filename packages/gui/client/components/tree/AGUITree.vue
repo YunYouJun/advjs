@@ -1,7 +1,7 @@
 <!-- eslint-disable vue/custom-event-name-casing -->
 <script setup lang="ts">
-import { computed } from 'vue'
 import type { TreeNode, Trees } from './types'
+import { computed } from 'vue'
 import AGUITreeNode from './AGUITreeNode.vue'
 
 const props = withDefaults(defineProps<{

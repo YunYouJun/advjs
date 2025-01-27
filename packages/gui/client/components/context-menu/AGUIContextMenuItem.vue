@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { AGUIContextMenuItemType } from './types'
 import { Icon } from '@iconify/vue'
 import {
   ContextMenuItem,
@@ -12,7 +13,6 @@ import {
   ContextMenuSubContent,
   ContextMenuSubTrigger,
 } from 'radix-vue'
-import type { AGUIContextMenuItemType } from './types'
 
 defineProps<{
   item: AGUIContextMenuItemType

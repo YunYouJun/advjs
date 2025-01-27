@@ -1,8 +1,8 @@
-import { join } from 'node:path'
 import { createRequire } from 'node:module'
+import { join } from 'node:path'
 import { ensurePrefix, slash } from '@antfu/utils'
-import isInstalledGlobally from 'is-installed-globally'
 import globalDirs from 'global-directory'
+import isInstalledGlobally from 'is-installed-globally'
 
 export function toAtFS(path: string) {
   return `/@fs${ensurePrefix('/', slash(path))}`

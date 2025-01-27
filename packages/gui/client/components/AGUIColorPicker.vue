@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { computed } from 'vue'
-import type { Colord, HslColor, HslaColor, HsvColor, HsvaColor, RgbColor, RgbaColor } from 'colord'
+import type { Colord, HslaColor, HslColor, HsvaColor, HsvColor, RgbaColor, RgbColor } from 'colord'
 import { colord, getFormat } from 'colord'
+import { computed } from 'vue'
 
 const props = withDefaults(defineProps<{
   modelValue: string | RgbaColor | HslaColor | HsvaColor | RgbColor | HslColor | HsvColor

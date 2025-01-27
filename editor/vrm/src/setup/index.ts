@@ -1,12 +1,12 @@
-import * as BABYLON from '@babylonjs/core'
-import '@babylonjs/loaders'
 import type { VRMManager } from 'babylon-vrm-loader'
-
 import { createArcRotateCamera, createGridGround, createRotatePointLight, createVRM, createVRMScene, getVrmManager } from '@advjs/plugin-babylon'
 import { demoVrm } from '@advjs/shared'
+
+import * as BABYLON from '@babylonjs/core'
 import { useVrmStore } from '../stores/vrm'
 import { createSkybox } from './scene'
 import { createGizmoManager } from './utils'
+import '@babylonjs/loaders'
 
 // https://doc.babylonjs.com/divingDeeper/cameras/multiViewsPart2
 /**

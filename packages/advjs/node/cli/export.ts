@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import type { Argv } from 'yargs'
 import consola from 'consola'
 import c from 'picocolors'

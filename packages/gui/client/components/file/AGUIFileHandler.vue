@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import type { FSItem } from '../explorer'
 
 import { useEventListener } from '@vueuse/core'
-import type { FSItem } from '../explorer'
+import { ref } from 'vue'
 
 const props = defineProps<{
   placeholder?: string

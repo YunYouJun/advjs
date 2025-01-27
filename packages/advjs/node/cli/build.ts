@@ -1,5 +1,5 @@
-import path from 'node:path'
 import type { Argv } from 'yargs'
+import path from 'node:path'
 import { resolveOptions } from '../options'
 import { commonOptions, printInfo } from './utils'
 

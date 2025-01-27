@@ -1,5 +1,5 @@
-import { getCharacter } from '@advjs/core'
 import type { AdvAst } from '@advjs/types'
+import { getCharacter } from '@advjs/core'
 import consola from 'consola'
 import { useAdvConfig } from '../../../composables'
 import { useAdvStore } from '../store'

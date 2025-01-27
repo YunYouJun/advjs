@@ -1,9 +1,9 @@
-import { acceptHMRUpdate, defineStore } from 'pinia'
+import { useSound } from '@advjs/core'
 import { useToggle } from '@vueuse/core'
 
+import { acceptHMRUpdate, defineStore } from 'pinia'
 // @vueuse/sound not reactive
 import { computed, ref } from 'vue'
-import { useSound } from '@advjs/core'
 import { assets } from '../assets'
 
 /**

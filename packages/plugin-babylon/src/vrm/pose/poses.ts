@@ -1,7 +1,7 @@
-import * as BABYLON from '@babylonjs/core'
-
 // import type { HumanBoneName } from 'babylon-vrm-loader'
 import type { PoseQuaternion } from '../../types'
+
+import * as BABYLON from '@babylonjs/core'
 
 // extra is jaw?
 // https://docs.unity.cn/550/Documentation/ScriptReference/HumanBodyBones.html

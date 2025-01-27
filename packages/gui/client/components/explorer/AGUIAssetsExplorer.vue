@@ -1,20 +1,20 @@
 <script lang="ts" setup>
-import './explorer.scss'
+import type { FSDirItem, FSFileItem, FSItem } from './types'
 
-import { onMounted, provide, ref } from 'vue'
-import { Pane, Splitpanes } from 'splitpanes'
 import { useEventListener } from '@vueuse/core'
+import { Pane, Splitpanes } from 'splitpanes'
+import { onMounted, provide, ref } from 'vue'
 
-import AGUITree from '../tree/AGUITree.vue'
-import AGUISlider from '../AGUISlider.vue'
 import { AGUIAssetsExplorerSymbol, listFilesInDir, saveFile, useAGUIAssetsExplorer } from '../../composables'
-import AGUIBreadcrumb from '../breadcrumb/AGUIBreadcrumb.vue'
 import { sortFSItems } from '../../utils'
+import AGUISlider from '../AGUISlider.vue'
+import AGUIBreadcrumb from '../breadcrumb/AGUIBreadcrumb.vue'
+import AGUITree from '../tree/AGUITree.vue'
+import AGUIExplorerControls from './AGUIExplorerControls.vue'
 import AGUIFileList from './AGUIFileList.vue'
 import AGUIOpenDirectory from './AGUIOpenDirectory.vue'
-import AGUIExplorerControls from './AGUIExplorerControls.vue'
 
-import type { FSDirItem, FSFileItem, FSItem } from './types'
+import './explorer.scss'
 
 const props = defineProps<{
   /**

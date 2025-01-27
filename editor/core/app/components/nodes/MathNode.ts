@@ -1,4 +1,4 @@
-import { NodeInterface, NumberInterface, SelectInterface, defineNode } from 'baklavajs'
+import { defineNode, NodeInterface, NumberInterface, SelectInterface } from 'baklavajs'
 
 export default defineNode({
   type: 'MathNode',

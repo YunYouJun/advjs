@@ -1,8 +1,8 @@
 <!-- eslint-disable no-console -->
 <script lang="ts" setup>
-import { ref } from 'vue'
 import type { TreeNode, Trees } from '@advjs/gui'
 import AGUITree from '@advjs/gui/client/components/tree/AGUITree.vue'
+import { ref } from 'vue'
 
 const treeData = ref<Trees>([
   {

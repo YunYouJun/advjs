@@ -1,10 +1,10 @@
-export * from './setup'
-
 export * from './camera'
-export * from './scene'
-export * from './vrm'
+
 export * from './light'
+export * from './scene'
+export * from './setup'
+export * from './stores'
 
 export * from './types'
 
-export * from './stores'
+export * from './vrm'

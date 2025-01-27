@@ -1,12 +1,11 @@
-/* eslint-disable no-console */
+import type { AdvConfig } from '@advjs/types'
+import type { Argv } from 'yargs'
+import type { ResolvedAdvOptions } from '../options'
+import net from 'node:net'
 import os from 'node:os'
 import path from 'node:path'
-import net from 'node:net'
-import type { Argv } from 'yargs'
 import isInstalledGlobally from 'is-installed-globally'
 import { blue, bold, cyan, dim, gray, green, underline, yellow } from 'kolorist'
-import type { AdvConfig } from '@advjs/types'
-import type { ResolvedAdvOptions } from '../options'
 import { version } from '../../package.json'
 
 export const CONFIG_RESTART_FIELDS: (keyof AdvConfig)[] = [

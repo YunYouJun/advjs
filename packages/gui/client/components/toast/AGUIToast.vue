@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import type { ToastOptions } from '../../composables'
 import { ToastClose, ToastDescription, ToastProvider, ToastRoot, ToastTitle, ToastViewport } from 'radix-vue'
 import { ref } from 'vue'
-import type { ToastOptions } from '../../composables'
 
 const toastOptions = ref<ToastOptions>({
   title: '',

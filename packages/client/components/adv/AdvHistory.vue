@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue'
 import type { AdvAst } from '@advjs/types'
 import { useAdvCtx, useAppStore } from '@advjs/client'
+import { computed, ref, watch } from 'vue'
 
 const $adv = useAdvCtx()
 

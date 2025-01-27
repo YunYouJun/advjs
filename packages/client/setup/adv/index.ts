@@ -1,6 +1,6 @@
+import type { UserModule } from '~/types'
 import { advConfigSymbol, appConfigSymbol, themeConfigSymbol } from '@advjs/core'
 import { initAdvConfig, initAppConfig, initThemeConfig } from '../../config'
-import type { UserModule } from '~/types'
 
 export const install: UserModule = ({ app }) => {
   // inject adv config before modules
@@ -15,6 +15,6 @@ export const install: UserModule = ({ app }) => {
   // handler HMR when router is ready
 }
 
-export * from './logic'
 export * from './context'
+export * from './logic'
 export * from './store'

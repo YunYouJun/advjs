@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { isClient } from '@vueuse/core'
 import type * as m from 'monaco-editor'
+import { isClient } from '@vueuse/core'
 import { nextTick, ref, watch } from 'vue'
 import setupMonaco from '../setup/monaco'
 

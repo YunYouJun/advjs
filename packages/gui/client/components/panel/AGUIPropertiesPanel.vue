@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import AGUIAccordionItem from '../accordion/AGUIAccordionItem.vue'
-
 import type { AGUIPropertiesPanelProps } from './types'
+
+import AGUIAccordionItem from '../accordion/AGUIAccordionItem.vue'
 import AGUIPropertiesForm from './AGUIPropertiesForm.vue'
 
 defineProps<{

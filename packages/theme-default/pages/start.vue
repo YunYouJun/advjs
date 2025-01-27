@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import { images } from '@advjs/theme-default'
 import type { StartMenuItem } from '@advjs/theme-default'
+import { useAppStore } from '@advjs/client'
+import { images } from '@advjs/theme-default'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { useAppStore } from '@advjs/client'
 
 const app = useAppStore()
 

@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { useFullscreen } from '@vueuse/core'
-import { useI18n } from 'vue-i18n'
-
 import type { AdvMenuItemProps } from '@advjs/theme-default'
 import { useScreenLock } from '@advjs/core'
 
+import { useFullscreen } from '@vueuse/core'
 import { computed } from 'vue'
+
+import { useI18n } from 'vue-i18n'
 import { useSettingsStore } from '../../stores'
 import AudioVolume from './settings/AudioVolume.vue'
 

@@ -1,7 +1,7 @@
-import type { Ref } from 'vue'
-import { computed, ref, toValue } from 'vue'
 import type { MaybeRefOrGetter, UseImageOptions, UseImageReturn } from '@vueuse/core'
+import type { Ref } from 'vue'
 import { useImage } from '@vueuse/core'
+import { computed, ref, toValue } from 'vue'
 
 /**
  * useImage Array for loading

@@ -1,9 +1,9 @@
+import type { ConfigEnv, InlineConfig } from 'vite'
+import type { ResolvedAdvOptions } from './options'
 import fs from 'node:fs'
 import { join } from 'node:path'
 import { uniq } from '@antfu/utils'
 import { loadConfigFromFile, mergeConfig } from 'vite'
-import type { ConfigEnv, InlineConfig } from 'vite'
-import type { ResolvedAdvOptions } from './options'
 import { toAtFS } from './utils'
 
 export async function getIndexHtml({ clientRoot, themeRoot, data, userRoot }: ResolvedAdvOptions): Promise<string> {
@@ -25,8 +25,8 @@ export async function getIndexHtml({ clientRoot, themeRoot, data, userRoot }: Re
 
     const index = fs.readFileSync(path, 'utf-8')
 
-    head += `\n${(index.match(/<head>([\s\S]*?)<\/head>/im)?.[1] || '').trim()}`
-    body += `\n${(index.match(/<body>([\s\S]*?)<\/body>/im)?.[1] || '').trim()}`
+    head += `\n${(index.match(/<head>([\s\S]*?)<\/head>/i)?.[1] || '').trim()}`
+    body += `\n${(index.match(/<body>([\s\S]*?)<\/body>/i)?.[1] || '').trim()}`
   }
 
   main = main

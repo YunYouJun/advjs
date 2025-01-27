@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
 import { ToolbarButton, ToolbarRoot, ToolbarToggleGroup } from 'radix-vue'
+import { ref } from 'vue'
 
 const tabList = ref([
   { title: 'Hierarchy', key: 'hierarchy', icon: 'i-ri-node-tree' },

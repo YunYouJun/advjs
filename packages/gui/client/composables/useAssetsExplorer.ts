@@ -1,8 +1,8 @@
 import type { InjectionKey, Ref } from 'vue'
-import { computed, inject } from 'vue'
-import type { FSDirItem, FSFileItem, FSItem } from '../components/explorer/types'
 import type { AGUIBreadcrumbItem } from '../components/breadcrumb/types'
+import type { FSDirItem, FSFileItem, FSItem } from '../components/explorer/types'
 import type { TreeNode } from '../components/tree/types'
+import { computed, inject } from 'vue'
 import { sortFSItems } from '../utils'
 
 export const AGUIAssetsExplorerSymbol: InjectionKey<{
@@ -22,7 +22,7 @@ export const AGUIAssetsExplorerSymbol: InjectionKey<{
 
   // ctx
   emit: (event: 'update:curDir' | 'update:rootDir' | 'update:tree', value: FSDirItem) => void
-  | ((event: 'update:curFileList', value: FSItem[]) => void)
+    | ((event: 'update:curFileList', value: FSItem[]) => void)
 
   setCurDir: (dir: FSDirItem) => void
   setCurFileList: (list: FSItem[]) => void

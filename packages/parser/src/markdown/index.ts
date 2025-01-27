@@ -19,12 +19,12 @@
 //   .use(remarkGfm)
 
 import type { Root } from 'mdast'
-import { unified } from 'unified'
-import remarkParse from 'remark-parse'
+import rehypeStringify from 'rehype-stringify'
 import remarkFrontmatter from 'remark-frontmatter'
 import remarkGfm from 'remark-gfm'
+import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
-import rehypeStringify from 'rehype-stringify'
+import { unified } from 'unified'
 
 export async function mdRender(content: string) {
   const file = await unified()

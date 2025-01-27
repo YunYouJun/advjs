@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { onOpenDir, useAGUIAssetsExplorerState } from '../../composables'
-import { AGUIIconButton, AGUIInput } from '../../components'
 import { vscodeFolderIcon } from '../../../unocss'
+import { AGUIIconButton, AGUIInput } from '../../components'
+import { onOpenDir, useAGUIAssetsExplorerState } from '../../composables'
 
 const state = useAGUIAssetsExplorerState()
 </script>

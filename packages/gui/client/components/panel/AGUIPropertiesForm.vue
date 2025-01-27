@@ -1,18 +1,18 @@
 <script lang="ts" setup>
+import type { AGUIPropertiesPanelProps } from './types'
 import { AGUIButton, AGUICheckbox, AGUIColorPicker, AGUINumberField, AGUISlider } from '..'
+
 import AGUINumberSlider from '../AGUINumberSlider.vue'
+import AGUIFileHandler from '../file/AGUIFileHandler.vue'
 
 import AGUIForm from '../form/AGUIForm.vue'
 import AGUIFormItem from '../form/AGUIFormItem.vue'
-
 import AGUIInput from '../input/AGUIInput.vue'
 import AGUIInputNumber from '../input/AGUIInputNumber.vue'
+
 import AGUIInputVector from '../input/AGUIInputVector.vue'
+
 import AGUISelect from '../select/AGUISelect.vue'
-
-import AGUIFileHandler from '../file/AGUIFileHandler.vue'
-
-import type { AGUIPropertiesPanelProps } from './types'
 
 defineProps<{
   properties: AGUIPropertiesPanelProps['properties']

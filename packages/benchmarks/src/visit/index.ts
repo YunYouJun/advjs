@@ -1,8 +1,8 @@
 import { visit } from 'unist-util-visit'
-import { generateMockTree } from './generate'
-
-import { testPerformance } from './utils'
 import { dfs } from './dfs'
+
+import { generateMockTree } from './generate'
+import { testPerformance } from './utils'
 
 export function testVisitAndDfs(type: 'breadth' | 'depth', count: number) {
   const tree = generateMockTree(type, count)

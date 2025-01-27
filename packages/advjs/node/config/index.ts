@@ -1,7 +1,7 @@
-import { loadConfig } from 'c12'
 import type { AdvConfig } from '@advjs/types'
-import { defaultConfig } from '@advjs/core'
 import type { AdvUserConfig } from '../options'
+import { defaultConfig } from '@advjs/core'
+import { loadConfig } from 'c12'
 
 export const ADV_VIRTUAL_MODULES = [
   'virtual:advjs/adv.config',

@@ -1,16 +1,16 @@
-import 'uno.css'
+import Theme from 'vitepress/theme'
 
 import { h } from 'vue'
-import Theme from 'vitepress/theme'
+import { mountCssVarsRootStyle } from '../../../packages/gui/client/styles/icons'
+
+import HomePage from '../components/HomePage.vue'
+import 'uno.css'
 
 // custom
 import './styles/vars.scss'
+
 import './styles/index.scss'
-
-import HomePage from '../components/HomePage.vue'
-
 import '../../../packages/gui/client/styles/index.scss'
-import { mountCssVarsRootStyle } from '../../../packages/gui/client/styles/icons'
 
 export default {
   ...Theme,

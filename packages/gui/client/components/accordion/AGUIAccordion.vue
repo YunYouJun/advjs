@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import type { AccordionRootProps } from 'radix-vue'
+import type { AGUIAccordionProps } from './types'
 import { AccordionRoot } from 'radix-vue'
 import AGUIAccordionItem from './AGUIAccordionItem.vue'
-import './styles.scss'
 
-import type { AGUIAccordionProps } from './types'
+import './styles.scss'
 
 withDefaults(
   defineProps<{

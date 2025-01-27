@@ -3,8 +3,8 @@
 import type { AdvAst, AdvConfig, Tachie } from '@advjs/types'
 
 import { useAdvCtx, useAdvKeys, useAppStore, useBeforeUnload } from '@advjs/client'
-import { computed } from 'vue'
 import { getCharacter } from '@advjs/core'
+import { computed } from 'vue'
 
 defineProps<{
   frontmatter?: AdvConfig

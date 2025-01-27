@@ -1,10 +1,10 @@
 import process from 'node:process'
-import { hideBin } from 'yargs/helpers'
 import yargs from 'yargs'
+import { hideBin } from 'yargs/helpers'
 import { version } from '../../package.json'
 
-import { installDevCommand } from './dev'
 import { installBuildCommand } from './build'
+import { installDevCommand } from './dev'
 import { installExportCommand } from './export'
 
 const namespace = 'adv'

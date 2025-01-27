@@ -1,7 +1,7 @@
 <script lang="ts" setup>
+import type { AGUIAccordionProps } from './types'
 import { AccordionContent, AccordionHeader, AccordionItem, AccordionTrigger } from 'radix-vue'
 import './styles.scss'
-import type { AGUIAccordionProps } from './types'
 
 defineProps<{
   item: AGUIAccordionProps

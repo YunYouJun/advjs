@@ -1,6 +1,6 @@
 import type { Options } from 'html2canvas'
-import html2canvas from 'html2canvas'
 import dayjs from 'dayjs'
+import html2canvas from 'html2canvas'
 
 /**
  * 将 DataUrl 下载为图片

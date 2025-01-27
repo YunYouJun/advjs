@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { isDark, toggleDark } from '@advjs/core'
 // import * as pkg from '~/../package.json'
 import { useI18n } from 'vue-i18n'
-import { isDark, toggleDark } from '@advjs/core'
 
 const { t, availableLocales, locale } = useI18n()
 

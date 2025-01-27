@@ -1,21 +1,21 @@
-import { dirname, join, resolve } from 'node:path'
-import process from 'node:process'
-import { fileURLToPath } from 'node:url'
-import type Vue from '@vitejs/plugin-vue'
-import type Components from 'unplugin-vue-components/vite'
-import type Markdown from 'unplugin-vue-markdown'
-import type UnoCSS from 'unocss/vite'
-
+import type { AdvConfig, AdvMarkdown } from '@advjs/types'
 // import type RemoteAssets from 'vite-plugin-remote-assets'
 // import type ServerRef from 'vite-plugin-vue-server-ref'
 import type { ArgumentsType } from '@antfu/utils'
-import { uniq } from '@antfu/utils'
-import type { AdvConfig, AdvMarkdown } from '@advjs/types'
-import _debug from 'debug'
+import type Vue from '@vitejs/plugin-vue'
+import type UnoCSS from 'unocss/vite'
+import type Components from 'unplugin-vue-components/vite'
+import type Markdown from 'unplugin-vue-markdown'
+import { dirname, join, resolve } from 'node:path'
+
+import process from 'node:process'
+import { fileURLToPath } from 'node:url'
 import { load } from '@advjs/parser/fs'
-import { packageExists, resolveImportPath } from './utils'
-import { getThemeMeta, resolveThemeName } from './themes'
+import { uniq } from '@antfu/utils'
+import _debug from 'debug'
 import { loadAdvConfig } from './config'
+import { getThemeMeta, resolveThemeName } from './themes'
+import { packageExists, resolveImportPath } from './utils'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -88,7 +88,7 @@ export function getCLIRoot() {
 }
 
 export function isPath(name: string) {
-  return name.startsWith('/') || /^\.\.?[\/\\]/.test(name)
+  return name.startsWith('/') || /^\.\.?[/\\]/.test(name)
 }
 
 export async function getThemeRoot(name: string, entry: string) {

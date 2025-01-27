@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { useRouter } from 'vue-router'
 import { useAdvConfig } from '@advjs/client'
+import { useRouter } from 'vue-router'
 
 const advConfig = useAdvConfig()
 const router = useRouter()

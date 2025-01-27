@@ -1,5 +1,5 @@
-import { isClient } from '@vueuse/core'
 import type { UserModule } from '../types'
+import { isClient } from '@vueuse/core'
 import * as pkg from '../../package.json'
 
 export const install: UserModule = () => {

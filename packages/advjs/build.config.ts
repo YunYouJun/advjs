@@ -1,7 +1,7 @@
 import { defineBuildConfig } from 'unbuild'
-import pkg from './package.json'
-
 import { ADV_VIRTUAL_MODULES } from './node/config'
+
+import pkg from './package.json'
 
 export default defineBuildConfig({
   declaration: true,

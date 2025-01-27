@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { screenshotGame } from '@advjs/core'
 import { useAppStore } from '@advjs/client'
+import { screenshotGame } from '@advjs/core'
 
 const app = useAppStore()
 

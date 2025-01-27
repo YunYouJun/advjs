@@ -1,8 +1,8 @@
 // import { dirname } from 'path'
 import type { AdvMarkdown, AdvThemeMeta } from '@advjs/types'
 import consola from 'consola'
-import { matter } from 'vfile-matter'
 import { read } from 'to-vfile'
+import { matter } from 'vfile-matter'
 
 import { resolveConfig } from './config'
 

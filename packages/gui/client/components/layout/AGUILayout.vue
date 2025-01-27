@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { Pane, Splitpanes } from 'splitpanes'
-import 'splitpanes/dist/splitpanes.css'
-import { computed } from 'vue'
 import type { AGUILayoutType } from './types'
+import { Pane, Splitpanes } from 'splitpanes'
+import { computed } from 'vue'
+import 'splitpanes/dist/splitpanes.css'
 
 const props = defineProps<{
   layout: AGUILayoutType

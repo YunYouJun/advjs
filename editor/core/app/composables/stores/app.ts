@@ -1,8 +1,8 @@
-import { acceptHMRUpdate, defineStore } from 'pinia'
+import type { AGUILayoutType } from '@advjs/gui'
 import type * as PIXI from 'pixi.js'
 import { useStorage } from '@vueuse/core'
-import type { AGUILayoutType } from '@advjs/gui'
-import { ANALYTICS_EVENTS, addCustomEvent } from '~/utils/analystics'
+import { acceptHMRUpdate, defineStore } from 'pinia'
+import { addCustomEvent, ANALYTICS_EVENTS } from '~/utils/analystics'
 
 const defaultLayout: AGUILayoutType = {
   name: 'root',

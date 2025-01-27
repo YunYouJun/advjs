@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import type { Menu } from './types'
 import {
   MenubarCheckboxItem,
   MenubarContent,
@@ -16,9 +16,9 @@ import {
   MenubarSubTrigger,
   MenubarTrigger,
 } from 'radix-vue'
-import './menu-bar.scss'
+import { ref } from 'vue'
 
-import type { Menu } from './types'
+import './menu-bar.scss'
 
 withDefaults(defineProps<{
   menus?: Menu[]

@@ -1,5 +1,5 @@
-import yaml from 'js-yaml'
 import type { AdvAst } from '@advjs/types'
+import yaml from 'js-yaml'
 
 /**
  * Parse AdvCode (js/ts)

@@ -1,18 +1,18 @@
+import type { Alias, InlineConfig, Plugin } from 'vite'
+import type { ResolvedAdvOptions } from '../options'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import type { Alias, InlineConfig, Plugin } from 'vite'
-import { mergeConfig } from 'vite'
-import isInstalledGlobally from 'is-installed-globally'
-
 import { uniq } from '@antfu/utils'
+
+import isInstalledGlobally from 'is-installed-globally'
+import { mergeConfig } from 'vite'
+
+import { ADV_VIRTUAL_MODULES } from '../config'
+
 import { require } from '../env'
 
-import type { ResolvedAdvOptions } from '../options'
-
 import { resolveGlobalImportPath, resolveImportPath, toAtFS } from '../utils'
-
 import { searchForWorkspaceRoot } from '../vite/searchRoot'
-import { ADV_VIRTUAL_MODULES } from '../config'
 
 // import { commonAlias } from '../../../shared/config/vite'
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -46,12 +46,12 @@ function filterDeps(deps: Record<string, string>) {
 }
 
 export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<Plugin> {
+  const clientPkg = require('@advjs/client/package.json')
+  const corePkg = require('@advjs/core/package.json')
   // const { dependencies: parserDeps } = await import('@advjs/parser/package.json', { assert: { type: 'json' } })
   // const { dependencies: clientDeps } = await import('@advjs/client/package.json', { assert: { type: 'json' } })
   // const { dependencies: coreDeps } = await import('@advjs/core/package.json', { assert: { type: 'json' } })
   const parserPkg = require('@advjs/parser/package.json')
-  const clientPkg = require('@advjs/client/package.json')
-  const corePkg = require('@advjs/core/package.json')
 
   const parserDeps = 'dependencies' in parserPkg ? parserPkg.dependencies : {}
   const clientDeps = 'dependencies' in clientPkg ? clientPkg.dependencies : {}

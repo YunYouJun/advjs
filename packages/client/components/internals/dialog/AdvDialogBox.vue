@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import type { AdvAst } from '@advjs/types'
 import { speak, useAdvCtx, useSettingsStore } from '@advjs/client'
 import { computed, ref, unref, watch } from 'vue'
-import type { AdvAst } from '@advjs/types'
 
 const props = defineProps<{
   node: AdvAst.Child

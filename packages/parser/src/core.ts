@@ -1,5 +1,5 @@
-import type * as MdAst from 'mdast'
 import type { AdvAst } from '@advjs/types'
+import type * as MdAst from 'mdast'
 
 import { mdParse } from './markdown'
 import { Serialize } from './Serialize'

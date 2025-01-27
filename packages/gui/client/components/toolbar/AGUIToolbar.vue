@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { ToggleGroupItem, ToggleGroupRoot, ToolbarButton, ToolbarRoot, ToolbarSeparator } from 'radix-vue'
-
 import type { ToolbarItem } from './types'
+
+import { ToggleGroupItem, ToggleGroupRoot, ToolbarButton, ToolbarRoot, ToolbarSeparator } from 'radix-vue'
 
 defineProps<{
   items: ToolbarItem[]

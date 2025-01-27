@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import { computed, ref, watch, watchEffect } from 'vue'
-import { onClickOutside, useEventListener } from '@vueuse/core'
-import { listFilesInDir, useAGUIAssetsExplorerState } from '../../composables'
-import { getIconFromFSItem } from './utils'
-
 import type { FSDirItem, FSFileItem, FSItem } from './types'
+import { onClickOutside, useEventListener } from '@vueuse/core'
+import { computed, ref, watch, watchEffect } from 'vue'
+import { listFilesInDir, useAGUIAssetsExplorerState } from '../../composables'
+
+import { getIconFromFSItem } from './utils'
 
 const props = withDefaults(defineProps<{
   item: FSItem

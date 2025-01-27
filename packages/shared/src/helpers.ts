@@ -11,7 +11,7 @@ export async function getScript(url: string, type = 'module') {
       resolve(true)
     }
     script.onerror = () => {
-      reject(Error('Script 加载失败'))
+      reject(new Error('Script 加载失败'))
     }
     script.src = url
     document.body.appendChild(script)

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 // import * as pkg from '~/../package.json'
 import { useI18n } from 'vue-i18n'
-import { useAppStore } from '../stores/app'
 import { isDark, toggleDark } from '../composables'
+import { useAppStore } from '../stores/app'
 
 const appStore = useAppStore()
 

@@ -1,5 +1,5 @@
-import { createPinia } from 'pinia'
 import type { UserModule } from '@advjs/client/types'
+import { createPinia } from 'pinia'
 
 // Setup Pinia
 // https://pinia.esm.dev/

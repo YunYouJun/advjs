@@ -1,5 +1,5 @@
-import { getFiletypeFromPath, getIconFromFileType, isImage } from '../../utils'
 import type { FSItem } from './types'
+import { getFiletypeFromPath, getIconFromFileType, isImage } from '../../utils'
 
 /**
  * get icon from fs item

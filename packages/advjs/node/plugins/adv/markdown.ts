@@ -1,8 +1,9 @@
-import { matter } from 'vfile-matter'
-import { parseAst } from '@advjs/parser'
+/* eslint-disable regexp/no-contradiction-with-assertion */
 import type { AdvAst } from '@advjs/types'
-import { read } from 'to-vfile'
 import type { ResolvedOptions } from './types'
+import { parseAst } from '@advjs/parser'
+import { read } from 'to-vfile'
+import { matter } from 'vfile-matter'
 import { checkAdvMd } from './check'
 
 /**
@@ -13,8 +14,8 @@ export function transformObject(obj: any) {
   return `JSON.parse(${JSON.stringify(JSON.stringify(obj))})`
 }
 
-const scriptSetupRE = /<\s*script[^>]*\bsetup\b[^>]*>([\s\S]*)<\/script>/gm
-const defineExposeRE = /defineExpose\s*\(/gm
+const scriptSetupRE = /<\s*script[^>]*\bsetup\b[^>]*>([\s\S]*)<\/script>/g
+const defineExposeRE = /defineExpose\s*\(/g
 
 function extractScriptSetup(html: string) {
   const scripts: string[] = []
@@ -49,7 +50,7 @@ function extractCustomBlock(html: string, options: ResolvedOptions) {
   const blocks: string[] = []
   for (const tag of options.customSfcBlocks) {
     html = html.replace(
-      new RegExp(`<${tag}[^>]*\\b[^>]*>[^<>]*<\\/${tag}>`, 'mg'),
+      new RegExp(`<${tag}[^>]*\\b[^>]*>[^<>]*<\\/${tag}>`, 'gm'),
       (code) => {
         blocks.push(code)
         return ''

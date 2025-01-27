@@ -1,8 +1,8 @@
 <script lang="ts" setup>
+import type { FSItem } from './types'
 import { computed } from 'vue'
 import AGUIContextMenu from '../context-menu/AGUIContextMenu.vue'
 import AGUIFileItem from './AGUIFileItem.vue'
-import type { FSItem } from './types'
 
 const props = withDefaults(defineProps<{
   list?: FSItem[]

@@ -1,5 +1,5 @@
-import { images } from './images'
 import { audios } from './audios'
+import { images } from './images'
 
 export * from './audios'
 export * from './images'

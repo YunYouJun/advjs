@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
 import type { Vector2, Vector3 } from '@advjs/gui'
+import { ref } from 'vue'
 
 const num = ref(6)
 

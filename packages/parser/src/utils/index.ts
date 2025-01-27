@@ -1,5 +1,5 @@
-import type * as Mdast from 'mdast'
 import type { AdvAst } from '@advjs/types'
+import type * as Mdast from 'mdast'
 
 /**
  * 人物信息

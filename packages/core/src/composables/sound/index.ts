@@ -1,10 +1,9 @@
 /* eslint-disable new-cap */
 
-// eslint-disable-next-line ts/ban-ts-comment
+import type { MaybeRef } from '@vueuse/core'
+
 // @ts-nocheck
 import type { Howl } from 'howler'
-import { onMounted, ref, unref, watch } from 'vue-demi'
-import type { MaybeRef } from '@vueuse/core'
 import type {
   ComposableOptions,
   HowlStatic,
@@ -12,6 +11,7 @@ import type {
   PlayOptions,
   ReturnedValue,
 } from './types'
+import { onMounted, ref, unref, watch } from 'vue-demi'
 
 export function useSound(
   url: MaybeRef<string>,
@@ -47,7 +47,7 @@ export function useSound(
     })
   })
 
-  function handleLoad() {
+  function handleLoad(this: Howl) {
     if (typeof onload === 'function')
 
       onload.call(this)

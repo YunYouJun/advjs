@@ -1,8 +1,8 @@
-import { fileURLToPath } from 'node:url'
-import path from 'node:path'
 import type { PluginOption } from 'vite'
-import { normalizePath } from 'vite'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import consola from 'consola'
+import { normalizePath } from 'vite'
 import { PLUGIN_NAME } from './constant'
 
 function getAdvDevtoolsPath() {

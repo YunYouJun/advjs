@@ -2,9 +2,9 @@ import fs from 'node:fs'
 import process from 'node:process'
 import { defineConfig } from 'vite'
 
+import electron from 'vite-plugin-electron/simple'
 // import { VitePWA } from 'vite-plugin-pwa'
 import VueDevTools from 'vite-plugin-vue-devtools'
-import electron from 'vite-plugin-electron/simple'
 import pkg from './package.json'
 
 export default defineConfig(({ command }) => {
@@ -34,7 +34,7 @@ export default defineConfig(({ command }) => {
           entry: 'electron/main/index.ts',
           onstart({ startup }) {
             if (process.env.VSCODE_DEBUG)
-              // eslint-disable-next-line no-console
+
               console.log(/* For `.vscode/.debug.script.mjs` */'[startup] Electron App')
             else
               startup()

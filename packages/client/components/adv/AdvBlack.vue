@@ -3,8 +3,8 @@
 // import { toHtml } from 'hast-util-to-html'
 
 import type { AdvAst } from '@advjs/types'
-import { onMounted, ref, watch } from 'vue'
 import { useAdvCtx } from '@advjs/client'
+import { onMounted, ref, watch } from 'vue'
 
 const props = defineProps<{
   content: AdvAst.Narration

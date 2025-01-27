@@ -1,6 +1,6 @@
+import { useMagicKeys } from '@vueuse/core'
 import consola from 'consola'
 import { watch } from 'vue'
-import { useMagicKeys } from '@vueuse/core'
 import { useAppStore } from '../stores'
 import { useAdvCtx } from './ctx'
 

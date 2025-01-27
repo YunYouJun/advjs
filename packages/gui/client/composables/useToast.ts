@@ -1,5 +1,5 @@
-import { ref } from 'vue'
 import type AGUIToast from '../components/toast/AGUIToast.vue'
+import { ref } from 'vue'
 
 export const toastRef = ref<InstanceType<typeof AGUIToast>>()
 export const AGUIToastRef = toastRef

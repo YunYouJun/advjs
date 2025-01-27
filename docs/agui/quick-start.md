@@ -17,11 +17,11 @@ pnpm add @advjs/gui
 #### Vue
 
 ```ts
+import Vue from '@vitejs/plugin-vue'
+import Components from 'unplugin-vue-components/vite'
 // vite.config.ts
 // with unplugin-vue-components
 import { defineConfig } from 'vite'
-import Vue from '@vitejs/plugin-vue'
-import Components from 'unplugin-vue-components/vite'
 
 export default defineConfig({
   plugins: [

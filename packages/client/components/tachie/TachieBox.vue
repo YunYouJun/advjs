@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Tachie } from '@advjs/types'
-import { computed, watch } from 'vue'
 import { useAdvCtx, useAppStore } from '@advjs/client'
+import { computed, watch } from 'vue'
 
 const props = defineProps<{
   tachies: Map<string, Tachie>

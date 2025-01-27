@@ -1,6 +1,6 @@
 import { resolve } from 'node:path'
-import { existsSync } from 'fs-extra'
 import { isObject } from '@antfu/utils'
+import { existsSync } from 'fs-extra'
 import jiti from 'jiti'
 
 function deepMerge(a: any, b: any, rootPath = '') {

@@ -1,5 +1,5 @@
-import { Direction } from 'honeycomb-grid'
 import type { Grid, Hex } from 'honeycomb-grid'
+import { Direction } from 'honeycomb-grid'
 import { Sprite } from 'pixi.js'
 import { CustomHex, tilesMap } from './global'
 

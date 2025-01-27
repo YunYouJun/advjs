@@ -1,5 +1,5 @@
-import { resolve } from 'node:path'
 import fs from 'node:fs'
+import { resolve } from 'node:path'
 import { rimrafSync } from 'rimraf'
 
 const cleanDirs = [

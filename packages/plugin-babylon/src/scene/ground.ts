@@ -1,5 +1,5 @@
-import { GridMaterial } from '@babylonjs/materials'
 import * as BABYLON from '@babylonjs/core'
+import { GridMaterial } from '@babylonjs/materials'
 
 /**
  * 创建网格地面

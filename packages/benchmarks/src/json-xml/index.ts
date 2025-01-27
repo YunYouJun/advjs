@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { parseString, parseStringPromise } from 'xml2js'
 import b from 'benny'
+import { parseString, parseStringPromise } from 'xml2js'
 import { jsonFolder, xmlFolder } from './common'
 
 const dataLength = 1000

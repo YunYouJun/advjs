@@ -1,10 +1,10 @@
 <script lang="ts" setup>
+import type { FSDirItem } from './types'
 import { useEventListener } from '@vueuse/core'
 import { ref } from 'vue'
-import AGUIOverlay from '../AGUIOverlay.vue'
-import { onOpenDir, openRootDir, useAGUIAssetsExplorerState } from '../../composables'
 import { vscodeFolderIcon } from '../../../unocss'
-import type { FSDirItem } from './types'
+import { onOpenDir, openRootDir, useAGUIAssetsExplorerState } from '../../composables'
+import AGUIOverlay from '../AGUIOverlay.vue'
 
 const props = defineProps<{
   onOpenRootDir?: (dir?: FSDirItem) => void | Promise<void>

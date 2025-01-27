@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { CSSProperties } from 'vue'
-import { computed, reactive, ref } from 'vue'
+import { isClient, useParallax } from '@vueuse/core'
 
 // import { useData } from 'vitepress'
 
-import { isClient, useParallax } from '@vueuse/core'
+import { computed, reactive, ref } from 'vue'
 
 const target = ref(isClient ? (document && document.body) : null)
 const parallax = reactive(useParallax(target))

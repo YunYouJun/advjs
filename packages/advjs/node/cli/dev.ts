@@ -1,19 +1,18 @@
-/* eslint-disable no-console */
-import process from 'node:process'
-import path from 'node:path'
-import { exec } from 'node:child_process'
-import * as readline from 'node:readline'
+import type { LogLevel, ViteDevServer } from 'vite'
 import type { Argv } from 'yargs'
+import { exec } from 'node:child_process'
+import path from 'node:path'
+import process from 'node:process'
+import * as readline from 'node:readline'
+import equal from 'fast-deep-equal'
 import fs from 'fs-extra'
+import { yellow } from 'kolorist'
 import openBrowser from 'open'
 import prompts from 'prompts'
-import { yellow } from 'kolorist'
-import type { LogLevel, ViteDevServer } from 'vite'
-import equal from 'fast-deep-equal'
-import { createServer } from '../server'
 import { resolveOptions } from '../options'
+import { createServer } from '../server'
 import { resolveThemeName } from '../themes'
-import { CONFIG_RESTART_FIELDS, commonOptions, findFreePort, printInfo } from './utils'
+import { commonOptions, CONFIG_RESTART_FIELDS, findFreePort, printInfo } from './utils'
 
 export async function installDevCommand(cli: Argv) {
   cli.command(

@@ -14,7 +14,7 @@ export function generateSimpleTree() {
  * 生成广度大的语法树
  */
 export function generateMockBreadthTree(count = 10000) {
-  const leafs = Array(count).fill(0).map((_, i) => u('leaf', i.toString()))
+  const leafs = Array.from({ length: count }, (_, i) => u('leaf', i.toString()))
   const tree = u('tree', leafs)
   return tree
 }

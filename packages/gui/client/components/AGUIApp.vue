@@ -1,7 +1,7 @@
 <script lang="ts" setup>
+import type { AGUIPanelProps } from '../types'
 import { ref } from 'vue'
 import { bCssVars } from '../styles/icons'
-import type { AGUIPanelProps } from '../types'
 
 defineProps<{
   title?: string

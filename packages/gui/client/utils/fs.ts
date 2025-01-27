@@ -1,5 +1,6 @@
-import consola from 'consola'
+/* eslint-disable regexp/no-unused-capturing-group */
 import type { FSItem } from '..'
+import consola from 'consola'
 
 export function isVideo(path: string) {
   return /\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/.test(path)

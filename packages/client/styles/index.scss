@@ -1,5 +1,5 @@
-@import './main.scss';
-@import './reset.scss';
+@use './main.scss';
+@use './reset.scss';
 
 button {
   &:focus {

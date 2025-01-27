@@ -4,8 +4,8 @@ import { defineConfig } from 'vitepress'
 // todo: // wait released https://github.com/vitejs/vite/pull/10254
 // import { customElements } from '../../packages/advjs/node/constants'
 import typedocSidebar from '../api/typedoc-sidebar.json'
-import head from './config/head'
 import { metaData } from './config/constants'
+import head from './config/head'
 
 const customElements = new Set(['font'])
 

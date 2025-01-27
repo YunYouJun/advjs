@@ -1,6 +1,8 @@
-import { defu } from 'defu'
-import Unocss from 'unocss/vite'
+import type { AdvConfig } from '@advjs/types'
+import type { VitePluginConfig } from 'unocss/vite'
 
+import type { AdvPluginOptions, ResolvedAdvOptions } from '..'
+import { defu } from 'defu'
 import {
   presetAttributify,
   presetIcons,
@@ -10,9 +12,7 @@ import {
   transformerDirectives,
   transformerVariantGroup,
 } from 'unocss'
-import type { VitePluginConfig } from 'unocss/vite'
-import type { AdvConfig } from '@advjs/types'
-import type { AdvPluginOptions, ResolvedAdvOptions } from '..'
+import Unocss from 'unocss/vite'
 
 export async function createSafelist(_config: AdvConfig) {
   const safeIcons: string[] = [

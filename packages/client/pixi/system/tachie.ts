@@ -1,6 +1,6 @@
-import { Container, Sprite } from 'pixi.js'
 import type { Character } from '@advjs/types'
 import type { PixiGame } from '../game'
+import { Container, Sprite } from 'pixi.js'
 
 export class TachieSystem {
   game: PixiGame

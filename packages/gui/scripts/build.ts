@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import fs from 'fs-extra'
 import consola from 'consola'
+import fs from 'fs-extra'
 import { svg } from '../client/styles/icons'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))

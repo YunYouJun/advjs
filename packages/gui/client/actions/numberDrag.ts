@@ -1,5 +1,5 @@
-import { ref } from 'vue'
 import type { Directive } from 'vue'
+import { ref } from 'vue'
 
 let pointerLockSupported = true
 

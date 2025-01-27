@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
 import type { DisplayMode } from '@advjs/client'
+import { onMounted, ref, watch } from 'vue'
 
 const props = withDefaults(defineProps<{
   speed?: 'normal' | 'fast' | 'slow'

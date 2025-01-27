@@ -1,7 +1,7 @@
-import * as BABYLON from '@babylonjs/core'
 import { demoVrm } from '@advjs/shared'
-import { createScene } from '../scene'
+import * as BABYLON from '@babylonjs/core'
 import { createArcRotateCamera } from '../camera'
+import { createScene } from '../scene'
 import { createVRM } from '../vrm'
 
 /**

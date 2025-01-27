@@ -1,5 +1,5 @@
-import { Application, Assets } from 'pixi.js'
 import type { AdvConfig } from '@advjs/types'
+import { Application, Assets } from 'pixi.js'
 import { BackgroundSystem } from './system/background'
 import { TachieSystem } from './system/tachie'
 

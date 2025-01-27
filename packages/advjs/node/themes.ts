@@ -1,13 +1,13 @@
-import prompts from 'prompts'
+import type { AdvThemeMeta } from '@advjs/types'
 import { parseNi, run } from '@antfu/ni'
+import fs from 'fs-extra'
 import isInstalledGlobally from 'is-installed-globally'
 import { underline } from 'kolorist'
-import fs from 'fs-extra'
-import type { AdvThemeMeta } from '@advjs/types'
+import prompts from 'prompts'
 import { satisfies } from 'semver'
 import { version } from '../package.json'
-import { packageExists } from './utils'
 import { isPath } from './options'
+import { packageExists } from './utils'
 
 const officialThemes: Record<string, string> = {
   none: '',

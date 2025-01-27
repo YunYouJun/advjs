@@ -1,11 +1,11 @@
 import type { AdvConfig, AppConfig, ThemeConfig } from '@advjs/types'
 
-import { computed, readonly, shallowRef } from 'vue'
-
 // virtual module
 import advConfig from 'virtual:advjs/adv.config'
+
 import appConfig from 'virtual:advjs/app.config'
 import themeConfig from 'virtual:advjs/theme.config'
+import { computed, readonly, shallowRef } from 'vue'
 
 function parse<T = any>(data: object): T {
   const parsed = data

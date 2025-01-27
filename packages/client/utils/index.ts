@@ -1,3 +1,3 @@
-export * from './statement'
-
 export * from './speech'
+
+export * from './statement'

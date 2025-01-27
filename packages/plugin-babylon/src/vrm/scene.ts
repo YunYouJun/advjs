@@ -1,6 +1,6 @@
-import * as BABYLON from '@babylonjs/core'
 import type { VRMManager } from 'babylon-vrm-loader'
 import type { HumanBonesType } from './pose'
+import * as BABYLON from '@babylonjs/core'
 import { HumanBones, vRawPoseData } from './pose'
 
 export function getVrmManager(scene: BABYLON.Scene) {

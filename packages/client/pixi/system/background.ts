@@ -1,5 +1,5 @@
-import { Container, Sprite, Texture } from 'pixi.js'
 import type { PixiGame } from '../game'
+import { Container, Sprite, Texture } from 'pixi.js'
 
 export class BackgroundSystem {
   static instance: BackgroundSystem | null = null

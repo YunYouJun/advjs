@@ -1,8 +1,8 @@
 import path from 'node:path'
-import { defineConfig } from 'vite'
+import Unocss from 'unocss/vite'
 
 import Components from 'unplugin-vue-components/vite'
-import Unocss from 'unocss/vite'
+import { defineConfig } from 'vite'
 
 // import { componentsDir } from '@advjs/gui/node'
 // no compile

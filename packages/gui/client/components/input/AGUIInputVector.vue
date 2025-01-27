@@ -1,7 +1,7 @@
 <script lang="ts" setup>
+import type { Vector, VectorKey } from '../../types'
 import { computed, ref } from 'vue'
 import AGUINumberField from '../AGUINumberField.vue'
-import type { Vector, VectorKey } from '../../types'
 
 const props = defineProps<{
   modelValue?: Vector

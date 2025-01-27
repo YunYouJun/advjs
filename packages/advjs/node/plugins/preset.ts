@@ -1,22 +1,22 @@
 import type { PluginOption } from 'vite'
-import Vue from '@vitejs/plugin-vue'
-import Components from 'unplugin-vue-components/vite'
+import type { AdvPluginOptions, AdvServerOptions, ResolvedAdvOptions } from '../options'
 import { notNullish } from '@antfu/utils'
-import Layouts from 'vite-plugin-vue-layouts'
+import VueI18n from '@intlify/unplugin-vue-i18n/vite'
+import Vue from '@vitejs/plugin-vue'
+import fs from 'fs-extra'
 import LinkAttributes from 'markdown-it-link-attributes'
+import { resolve } from 'pathe'
+import Components from 'unplugin-vue-components/vite'
+
 import Markdown from 'unplugin-vue-markdown/vite'
 import VueRouter from 'unplugin-vue-router/vite'
-import VueI18n from '@intlify/unplugin-vue-i18n/vite'
-
-import fs from 'fs-extra'
-import { resolve } from 'pathe'
-import type { AdvPluginOptions, AdvServerOptions, ResolvedAdvOptions } from '../options'
+import Layouts from 'vite-plugin-vue-layouts'
 import { customElements } from '../constants'
 import { createConfigPlugin } from './extendConfig'
 
+import { createAdvLoader } from './loaders'
 // import { createClientSetupPlugin } from './setupClient'
 import { createUnocssPlugin } from './unocss'
-import { createAdvLoader } from './loaders'
 
 export async function ViteAdvPlugin(
   options: ResolvedAdvOptions,

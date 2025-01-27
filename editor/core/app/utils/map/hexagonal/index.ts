@@ -1,11 +1,11 @@
-import { Assets, type FederatedPointerEvent } from 'pixi.js'
-import { Application, Container, Graphics, Sprite } from 'pixi.js'
+import type { FederatedPointerEvent } from 'pixi.js'
 import { Grid, rectangle } from 'honeycomb-grid'
+import { Application, Assets, Container, Graphics, Sprite } from 'pixi.js'
 import { config } from './config'
-import { drawTwoTiles } from './tiles'
-import { CustomHex, tilesMap } from './global'
-import { hexFromString, updateBorderTiles } from './utils'
 import { addMapScale } from './event'
+import { CustomHex, tilesMap } from './global'
+import { drawTwoTiles } from './tiles'
+import { hexFromString, updateBorderTiles } from './utils'
 
 const spriteSize = config.grid.size * 2
 

@@ -1,8 +1,8 @@
 import { release } from 'node:os'
 import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import process from 'node:process'
-import { BrowserWindow, app, ipcMain, shell } from 'electron'
+import { fileURLToPath } from 'node:url'
+import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { handleMap } from '../ipc/main'
 
 globalThis.__filename = fileURLToPath(import.meta.url)

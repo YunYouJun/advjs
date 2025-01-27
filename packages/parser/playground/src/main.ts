@@ -1,19 +1,19 @@
-import { routes } from 'vue-router/auto-routes'
-import { setupLayouts } from 'virtual:generated-layouts'
-import { createRouter, createWebHashHistory } from 'vue-router'
+import type { UserModule } from './types'
 import { createHead } from '@unhead/vue'
-
+import { setupLayouts } from 'virtual:generated-layouts'
 import { createApp } from 'vue'
+
+import { createRouter, createWebHashHistory } from 'vue-router'
+import { routes } from 'vue-router/auto-routes'
+
 import App from './App.vue'
 
 import '@unocss/reset/tailwind.css'
-
 // your custom styles here
 import './styles/index.css'
-import 'uno.css'
 
+import 'uno.css'
 import 'wc-github-corners'
-import type { UserModule } from './types'
 
 const router = createRouter({
   history: createWebHashHistory(),

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { createVRM, getVrmManager } from '@advjs/plugin-babylon'
-import { isVrmModel } from '@advjs/core'
 import type * as BABYLON from '@babylonjs/core'
+import { isVrmModel } from '@advjs/core'
+import { createVRM, getVrmManager } from '@advjs/plugin-babylon'
 import { onMounted, ref } from 'vue'
 import { useVrmStore } from '../stores/vrm'
 

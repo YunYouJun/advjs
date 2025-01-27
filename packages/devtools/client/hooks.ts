@@ -1,4 +1,5 @@
-import { type Hookable, createHooks } from 'hookable'
+import type { Hookable } from 'hookable'
+import { createHooks } from 'hookable'
 
 export interface HookInfo {
   name: string

@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import { useRoute, useRouter } from 'vue-router'
+import type { MenuButtonItem } from '~/types/menu'
+import { isDark, toggleDark } from '@advjs/core'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { isDark, toggleDark } from '@advjs/core'
+import { useRoute, useRouter } from 'vue-router'
 import { useAppStore, useSettingsStore } from '../../stores'
-import type { MenuButtonItem } from '~/types/menu'
 
 const { t, locale, availableLocales } = useI18n()
 

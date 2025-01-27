@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
-import { Toast } from '@advjs/gui'
 import type { AGUIPropertiesPanelProps, Vector3 } from '@advjs/gui'
+import { Toast } from '@advjs/gui'
 import { useStorage } from '@vueuse/core'
+import { ref } from 'vue'
 
 let count = 0
 

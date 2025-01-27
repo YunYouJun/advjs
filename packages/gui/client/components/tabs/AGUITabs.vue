@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { Tab, TabGroup, TabList, TabPanels } from '@headlessui/vue'
 import type { TabItem } from './types'
+import { Tab, TabGroup, TabList, TabPanels } from '@headlessui/vue'
 
 defineProps<{
   list: TabItem[]

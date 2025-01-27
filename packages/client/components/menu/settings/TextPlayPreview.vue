@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-
+import type { DisplayFontSize, DisplayMode, DisplaySpeed } from '@advjs/client'
 // 文字播放预览
 import type { AdvItemOption, AdvMenuItemProps } from '@advjs/theme-default'
-import type { DisplayFontSize, DisplayMode, DisplaySpeed } from '@advjs/client'
+
+import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useSettingsStore } from '../../../stores'
 
 const settings = useSettingsStore()

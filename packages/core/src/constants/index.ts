@@ -1,5 +1,5 @@
-import type { ComputedRef, InjectionKey } from 'vue'
 import type { AdvConfig, AppConfig } from '@advjs/types'
+import type { ComputedRef, InjectionKey } from 'vue'
 
 type ThemeConfig = AdvConfig['themeConfig']
 
