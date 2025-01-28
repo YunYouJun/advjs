@@ -42,6 +42,15 @@ export default defineConfig((config) => {
           '#advjs:app.config',
           '#advjs:theme.config',
         ],
+        output: {
+          manualChunks: {
+            'babylonjs-core': ['@babylonjs/core'],
+            'babylonjs-gui': ['@babylonjs/gui'],
+            'babylonjs-loaders': ['@babylonjs/loaders'],
+            'babylonjs-materials': ['@babylonjs/materials'],
+            'babylon-vrm-loader': ['babylon-vrm-loader'],
+          },
+        },
       },
     },
 
@@ -106,6 +115,9 @@ export default defineConfig((config) => {
           name: 'VRM Editor',
           short_name: 'VRM',
           theme_color: '#0078e7',
+        },
+        workbox: {
+          maximumFileSizeToCacheInBytes: 5000000,
         },
       }),
 
