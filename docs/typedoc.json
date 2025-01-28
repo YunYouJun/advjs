@@ -17,5 +17,6 @@
     "../packages/plugin-babylon/src/index.ts"
   ],
   "out": "api",
-  "categorizeByGroup": true
+  "categorizeByGroup": true,
+  "githubPages": true
 }

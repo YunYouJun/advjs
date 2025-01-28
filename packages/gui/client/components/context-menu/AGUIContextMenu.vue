@@ -175,9 +175,11 @@ withDefaults(defineProps<{
   </ContextMenuRoot>
 </template>
 
-<style lang="scss">
-@use '@radix-ui/colors/black-alpha.css';
+<style>
+@import '@radix-ui/colors/black-alpha.css';
+</style>
 
+<style lang="scss">
 // trigger
 // .ContextMenuTrigger {}
 

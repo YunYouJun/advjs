@@ -2,7 +2,7 @@ import type { AdvAst } from '@advjs/types'
 import { isScript, parseAst } from '@advjs/parser'
 import consola from 'consola'
 
-import { BackgroundSystem } from '~/pixi/system/background'
+import { BackgroundSystem } from '../../../pixi/system/background'
 import { useAdvStore } from '../store'
 // import { useAdvConfig } from '../../../composables'
 import { useCamera } from './operation'
