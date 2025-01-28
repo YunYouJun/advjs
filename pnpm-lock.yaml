@@ -75,9 +75,6 @@ catalogs:
     '@pinia/nuxt':
       specifier: ^0.9.0
       version: 0.9.0
-    '@playwright/test':
-      specifier: ^1.50.0
-      version: 1.50.0
     '@radix-ui/colors':
       specifier: ^3.0.0
       version: 3.0.0
@@ -294,9 +291,6 @@ catalogs:
     pixi.js:
       specifier: 8.0.4
       version: 8.0.4
-    playwright-chromium:
-      specifier: ^1.50.0
-      version: 1.50.0
     prism-theme-vars:
       specifier: ^0.2.5
       version: 0.2.5
@@ -489,7 +483,7 @@ importers:
         specifier: 'catalog:'
         version: 23.3.0
       '@playwright/test':
-        specifier: 'catalog:'
+        specifier: ^1.50.0
         version: 1.50.0
       '@types/fs-extra':
         specifier: 'catalog:'
@@ -548,9 +542,6 @@ importers:
       npm-run-all:
         specifier: 'catalog:'
         version: 4.1.5
-      playwright-chromium:
-        specifier: 'catalog:'
-        version: 1.50.0
       rimraf:
         specifier: 'catalog:'
         version: 6.0.1
@@ -7674,11 +7665,6 @@ packages:
 
   platform@1.3.6:
     resolution: {integrity: sha512-fnWVljUchTro6RiCFvCXBbNhJc2NijN7oIQxbwsyL0buWJPG85v81ehlHI9fXrJsMNgTofEoWIQeClKpgxFLrg==}
-
-  playwright-chromium@1.50.0:
-    resolution: {integrity: sha512-gyI1ATjSCn0kCHCV8lGS65h0tRSlJvdlwgvXwY5EyUHW+YLPnOtnMaCiNmHgrcVK8ofsXWq3alaUfnmirNzBlA==}
-    engines: {node: '>=18'}
-    hasBin: true
 
   playwright-core@1.50.0:
     resolution: {integrity: sha512-CXkSSlr4JaZs2tZHI40DsZUN/NIwgaUPsyLuOAaIZp2CyF2sN5MM5NJsyB188lFSSozFxQ5fPT4qM+f0tH/6wQ==}
@@ -17864,10 +17850,6 @@ snapshots:
       pathe: 2.0.2
 
   platform@1.3.6: {}
-
-  playwright-chromium@1.50.0:
-    dependencies:
-      playwright-core: 1.50.0
 
   playwright-core@1.50.0: {}
 

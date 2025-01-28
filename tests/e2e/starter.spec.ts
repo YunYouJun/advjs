@@ -23,7 +23,7 @@ test.describe('Demo Starter', () => {
     await page.locator('.menu-setting-button').first().click()
 
     // Check for the presence of the settings text
-    await expect(page.locator('text=设置')).toBeVisible()
+    await expect(page.getByRole('heading', { name: '设置' })).toBeVisible()
   })
 
   // Uncomment and modify the following test if needed

@@ -14,7 +14,7 @@ export function installExportCommand(cli: Argv) {
     async ({ entry }) => {
       consola.info('Export to video', entry)
 
-      const { chromium } = await import('playwright-chromium')
+      const { chromium } = await import('@playwright/test')
       const browser = await chromium.launch({
         headless: true,
       })
