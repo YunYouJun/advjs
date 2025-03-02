@@ -20,7 +20,7 @@
     "@iconify-json/file-icons": "catalog:",
     "@iconify-json/logos": "catalog:",
     "@iconify-json/vscode-icons": "catalog:",
-    "typedoc-plugin-markdown": "^4.4.1",
+    "typedoc-plugin-markdown": "^4.4.2",
     "typedoc-plugin-merge-modules": "catalog:",
     "typedoc-vitepress-theme": "^1.1.2",
     "unocss": "catalog:",

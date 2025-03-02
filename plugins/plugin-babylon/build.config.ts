@@ -7,10 +7,6 @@ export default defineBuildConfig({
   ],
   clean: true,
 
-  rollup: {
-    emitCJS: true,
-  },
-
   externals: [
     'advjs',
     '@advjs/client',

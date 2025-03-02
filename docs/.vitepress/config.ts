@@ -178,7 +178,7 @@ function sidebarAGUI(): DefaultTheme.SidebarItem[] {
 function sidebarGuide(): DefaultTheme.SidebarItem[] {
   return [
     {
-      text: 'Guide',
+      text: '指南',
       collapsed: false,
       items: [
         {
@@ -197,6 +197,10 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
           text: '导出',
           link: '/guide/export',
         },
+        {
+          text: '录制视频',
+          link: '/guide/record/video',
+        },
       ],
     },
     {
@@ -206,6 +210,11 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
         {
           text: '基础配置',
           link: '/guide/config/',
+        },
+
+        {
+          text: '动画',
+          link: '/guide/config/animation',
         },
       ],
     },
@@ -231,14 +240,9 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
         { text: '基础语法', link: '/guide/advscript/syntax' },
         { text: '扩展语法', link: '/guide/advscript/code' },
         { text: '常见问题', link: '/guide/advscript/faq' },
-      ],
-    },
-    {
-      text: 'TypeScript',
-      collapsed: false,
-      items: [
+
         {
-          text: '如何使用',
+          text: '与 TypeScript 使用',
           link: '/guide/typescript/how',
         },
       ],
@@ -342,6 +346,7 @@ const ContributingSidebar: DefaultTheme.SidebarItem[] = [
     ],
   },
 ]
+
 const sidebar: DefaultTheme.Config['sidebar'] = {
   '/api/': typedocSidebar,
 

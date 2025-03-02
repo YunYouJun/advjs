@@ -33,7 +33,7 @@ export const advNodeMap = [
     suffix: ['yml', 'yaml'],
     parse(val: string): AdvAst.CodeOperation[] {
       const data = yaml.load(val)
-      return Array.isArray(data) ? data : [data]
+      return (Array.isArray(data) ? data : [data]) as AdvAst.CodeOperation[]
     },
   },
 ]

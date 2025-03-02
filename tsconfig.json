@@ -91,7 +91,8 @@
     "./editor/**/*.ts",
     "./packages/global.d.ts",
     "./packages/**/*.ts",
-    "./packages/**/*.vue"
+    "./packages/**/*.vue",
+    "./plugins/**/*.ts"
   ],
   "exclude": [
     "**/dist/**",

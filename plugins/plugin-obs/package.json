@@ -1,0 +1,42 @@
+{
+  "name": "@advjs/plugin-obs",
+  "type": "module",
+  "version": "0.0.1",
+  "description": "OBS Plugin for ADV.JS",
+  "author": {
+    "name": "YunYouJun",
+    "email": "me@yunyoujun.cn",
+    "url": "https://www.yunyoujun.cn"
+  },
+  "license": "MPL-2.0",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./*": "./*"
+  },
+  "main": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "*.d.ts",
+    "dist"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "dev": "unbuild --stub",
+    "prepublishOnly": "npm run build",
+    "start": "tsx src/index.ts",
+    "test": "tsx scripts/test.ts"
+  },
+  "dependencies": {
+    "cli-progress": "^3.12.0",
+    "consola": "catalog:",
+    "obs-websocket-js": "^5.0.6",
+    "open": "catalog:"
+  },
+  "devDependencies": {
+    "@advjs/core": "workspace:*",
+    "@types/cli-progress": "^3.11.6",
+    "advjs": "workspace:*",
+    "tsx": "catalog:",
+    "unbuild": "catalog:"
+  }
+}

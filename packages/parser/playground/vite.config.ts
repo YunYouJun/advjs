@@ -93,6 +93,10 @@ export default defineConfig({
         short_name: 'ADV',
         theme_color: '#000',
       },
+
+      workbox: {
+        maximumFileSizeToCacheInBytes: 10000000,
+      },
     }),
 
     // https://github.com/intlify/bundle-tools/tree/main/packages/unplugin-vue-i18n

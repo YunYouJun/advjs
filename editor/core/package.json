@@ -3,7 +3,6 @@
   "type": "module",
   "version": "0.0.1",
   "private": true,
-  "packageManager": "pnpm@9.15.4",
   "description": "ADV.JS Editor",
   "scripts": {
     "build": "nuxi build",

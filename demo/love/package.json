@@ -6,6 +6,7 @@
   "scripts": {
     "build": "adv build",
     "dev": "nodemon -w '../../packages/**/dist/*.js' --exec \"adv ./index.adv.md --open=false --log=info\"",
+    "export": "adv export",
     "preview": "vite preview --host",
     "preview-https": "serve dist"
   },

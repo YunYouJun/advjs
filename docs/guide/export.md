@@ -1,5 +1,11 @@
 # 导出
 
+## 导出游戏产物
+
+TODO
+
+<!--  -->
+
 ## 导出视频
 
 ADV.JS 支持将交互过程自动录制为视频。
@@ -28,5 +34,7 @@ ffmpeg -i test.webm test.mp4
 
 TODO:
 
-- playwright recordVideo 质量较低
-  - 考虑实用 RecordRTC
+- 命令行导出：playwright recordVideo 质量较低
+- 浏览器录制：RecordRTC 仓库很久没有更新了，考虑使用浏览器原生支持的 MediaRecorder
+
+- 视频处理：[ffmpegwasm](https://github.com/ffmpegwasm/ffmpeg.wasm)
