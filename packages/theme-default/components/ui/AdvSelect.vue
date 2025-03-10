@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { AdvItemOption, AdvSelectProps } from '@advjs/theme-default'
 
-const iProps = withDefaults(defineProps<{ props: AdvSelectProps }>(), {
+const iProps = withDefaults(defineProps<{
+  props?: AdvSelectProps
+}>(), {
   props: () => ({
     selected: '',
     options: [] as AdvItemOption[],

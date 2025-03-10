@@ -3,6 +3,12 @@
   --agui-layout-splitter-color: black;
 }
 
+// override
+.splitpanes__pane {
+  // 禁用初始化时的动画
+  transition: none !important;
+}
+
 // splitpanes
 .splitpanes__pane {
   display: flex;

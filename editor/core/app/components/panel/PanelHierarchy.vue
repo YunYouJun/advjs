@@ -12,7 +12,7 @@ const tabList = ref([
     <AGUITabs :list="tabList">
       <AGUITabPanel>
         <ToolbarRoot class="flex items-center justify-center p-1">
-          <ToolbarToggleGroup />
+          <ToolbarToggleGroup type="multiple" />
           <AGUIInput class="flex flex-grow" placeholder="Search" />
           <ToolbarButton
             class="ml-1"

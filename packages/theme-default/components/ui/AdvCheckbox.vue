@@ -3,7 +3,9 @@ import type { AdvCheckboxProps } from '@advjs/theme-default'
 import { useAudioStore } from '@advjs/client'
 import { watch } from 'vue'
 
-const p = withDefaults(defineProps<{ props: AdvCheckboxProps }>(), {
+const p = withDefaults(defineProps<{
+  props?: AdvCheckboxProps
+}>(), {
   props: () => ({ checked: false }),
 })
 

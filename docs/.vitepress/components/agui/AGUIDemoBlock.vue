@@ -3,7 +3,7 @@ import AGUIDetails from '@advjs/gui/client/components/AGUIDetails.vue'
 
 withDefaults(defineProps<{
   inPanel?: boolean
-  title: string
+  title?: string
 }>(), {
   title: 'Untitled',
   inPanel: true,

@@ -2,6 +2,8 @@
 import { mountCssVarsRootStyle } from '@advjs/gui/client'
 import { appName } from '~/constants'
 
+import './styles'
+
 useHead({
   title: appName,
 })

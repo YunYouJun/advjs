@@ -3,7 +3,7 @@ import type { AdvMenuItemKeys, AdvMenuItemProps } from '@advjs/theme-default'
 
 withDefaults(defineProps<{
   // todo optimize
-  item: AdvMenuItemProps<AdvMenuItemKeys, any>
+  item?: AdvMenuItemProps<AdvMenuItemKeys, any>
 }>(), {
   item: () => {
     const defaultMenuItemProps: AdvMenuItemProps = {

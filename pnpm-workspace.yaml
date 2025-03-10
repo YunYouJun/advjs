@@ -14,7 +14,7 @@ catalog:
   '@babylonjs/gui': 5.19.0
   '@babylonjs/loaders': 5.19.0
   '@babylonjs/materials': 5.19.0
-  '@faker-js/faker': ^9.5.1
+  '@faker-js/faker': ^9.6.0
   '@google/model-viewer': ^4.0.0
   '@headlessui/vue': ^1.7.23
   '@iconify-json/carbon': ^1.2.8
@@ -28,10 +28,10 @@ catalog:
   '@iconify-json/vscode-icons': ^1.2.16
   '@iconify/vue': ^4.3.0
   '@intlify/unplugin-vue-i18n': ^6.0.3
-  '@nuxt/devtools': ^2.1.1
+  '@nuxt/devtools': ^2.2.1
   '@nuxtjs/color-mode': ^3.5.2
   '@pinia/nuxt': ^0.10.1
-  '@playwright/test': ^1.50.1
+  '@playwright/test': ^1.51.0
   '@radix-ui/colors': ^3.0.0
   '@shikijs/markdown-it': ^3.1.0
   '@types/fs-extra': ^11.0.4
@@ -39,7 +39,7 @@ catalog:
   '@types/js-yaml': ^4.0.9
   '@types/markdown-it-link-attributes': ^3.0.5
   '@types/mdast': 4.0.3
-  '@types/node': ^22.13.8
+  '@types/node': ^22.13.10
   '@types/nprogress': ^0.2.3
   '@types/prompts': ^2.4.9
   '@types/semver': ^7.5.8
@@ -53,12 +53,12 @@ catalog:
   '@unocss/nuxt': ^65.5.0
   '@vite-pwa/nuxt': ^0.10.6
   '@vitejs/plugin-vue': ^5.2.1
-  '@vueuse/core': ^12.7.0
+  '@vueuse/core': ^12.8.2
   '@vueuse/head': ^2.0.0
   '@vueuse/motion': ^2.2.6
-  '@vueuse/nuxt': ^12.7.0
+  '@vueuse/nuxt': ^12.8.2
   '@vueuse/sound': ^2.1.3
-  '@webgpu/types': ^0.1.54
+  '@webgpu/types': ^0.1.55
   animate.css: ^4.1.1
   babylon-vrm-loader: ^2.0.0
   baklavajs: 2.4.3
@@ -71,9 +71,9 @@ catalog:
   dayjs: ^1.11.13
   debug: ^4.4.0
   defu: ^6.1.4
-  electron: ^34.3.0
+  electron: ^35.0.0
   electron-builder: ^25.1.8
-  eslint: ^9.21.0
+  eslint: ^9.22.0
   eslint-plugin-format: ^1.0.1
   fast-deep-equal: ^3.1.3
   fs-extra: ^11.3.0
@@ -97,7 +97,7 @@ catalog:
   nodemon: ^3.1.9
   npm-run-all: ^4.1.5
   nprogress: ^0.2.0
-  nuxt: ^3.15.4
+  nuxt: ^3.16.0
   open: ^10.1.0
   pathe: ^2.0.3
   picocolors: ^1.1.1
@@ -119,8 +119,8 @@ catalog:
   rimraf: ^6.0.1
   sass: ^1.85.1
   semver: ^7.7.1
-  splitpanes: ^3.1.8
-  swiper: ^11.2.4
+  splitpanes: ^4.0.2
+  swiper: ^11.2.5
   to-vfile: ^8.0.0
   tsup: ^8.4.0
   tsx: ^4.19.3
@@ -134,13 +134,13 @@ catalog:
   unocss: ^65.5.0
   unplugin-vue-components: ^28.4.1
   unplugin-vue-markdown: ^28.3.1
-  unplugin-vue-router: ^0.11.2
+  unplugin-vue-router: ^0.12.0
   unstorage: ^1.15.0
   v-tooltip: ^4.0.0-beta.17
   vfile-matter: ^5.0.0
-  vite: ^6.2.0
+  vite: ^6.2.1
   vite-plugin-css-injected-by-js: ^3.5.2
-  vite-plugin-dts: ^4.5.1
+  vite-plugin-dts: ^4.5.3
   vite-plugin-electron: ^0.29.0
   vite-plugin-electron-renderer: ^0.14.6
   vite-plugin-inspect: ^11.0.0
@@ -149,10 +149,10 @@ catalog:
   vite-plugin-vue-layouts: ^0.11.0
   vite-ssg: 0.23.6
   vitepress: 1.0.1
-  vitest: ^3.0.7
+  vitest: ^3.0.8
   vue: ^3.5.13
   vue-demi: ^0.14.10
-  vue-i18n: ^11.1.1
+  vue-i18n: ^11.1.2
   vue-router: ^4.5.0
   vue-tsc: ^2.2.8
   wc-github-corners: ^0.1.6

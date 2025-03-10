@@ -14,13 +14,11 @@
     "./runtime": "./index.ts",
     "./node": {
       "types": "./dist/node/index.d.ts",
-      "import": "./dist/node/index.mjs",
-      "require": "./dist/node/index.cjs"
+      "import": "./dist/node/index.mjs"
     },
     "./unocss": {
       "types": "./dist/unocss/index.d.ts",
-      "import": "./dist/unocss/index.mjs",
-      "require": "./dist/unocss/index.cjs"
+      "import": "./dist/unocss/index.mjs"
     },
     "./*": "./*",
     ".": "./index.ts"
