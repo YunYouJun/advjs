@@ -6,3 +6,5 @@ import '@vue-flow/core/dist/theme-default.css'
 import '@vue-flow/node-resizer/dist/style.css'
 
 import './css-vars.scss'
+
+import './vue-flow.scss'

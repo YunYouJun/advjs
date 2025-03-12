@@ -225,6 +225,21 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
         {
           text: '核心编辑器',
           link: '/guide/editor/',
+
+          items: [
+            {
+              text: '基础操作',
+              link: '/guide/editor/basic',
+            },
+            {
+              text: '剧本编辑器',
+              link: '/guide/editor/script',
+            },
+            {
+              text: '节点编辑器',
+              link: '/guide/editor/flow',
+            },
+          ],
         },
         {
           text: 'VRM 模型编辑器',

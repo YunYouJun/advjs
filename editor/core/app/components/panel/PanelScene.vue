@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useStorage } from '@vueuse/core'
+import { useFullscreen, useStorage } from '@vueuse/core'
 import { ref } from 'vue'
 
 const tabList = ref([
@@ -21,12 +21,32 @@ function changeTab(index: number) {
 const selectedIndex = computed(() => {
   return tabList.value.findIndex(tab => tab.key === curTab.value)
 })
+
+const fullscreenEl = ref<HTMLElement | null>(null)
+const { isFullscreen, toggle } = useFullscreen(fullscreenEl)
+function toggleFullscreen() {
+  toggle()
+}
 </script>
 
 <template>
   <AGUIPanel
-    class="panel-scene flex-1" h="full" w="full"
+    ref="fullscreenEl"
+    class="panel-scene relative flex-1" h="full" w="full"
   >
+    <div
+      class="fullscreen-btn absolute right-0 top-0 z-1 size-5 inline-flex cursor-pointer items-center justify-center"
+      @click="toggleFullscreen"
+    >
+      <AdvIcon>
+        <div
+          :class="isFullscreen
+            ? 'i-ri-fullscreen-exit-line'
+            : 'i-ri-fullscreen-line'"
+        />
+      </AdvIcon>
+    </div>
+
     <AGUITabs
       :selected-index="selectedIndex"
       :list="tabList"
