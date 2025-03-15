@@ -1,0 +1,20 @@
+{
+  "name": "@advjs/demo-flow",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Demo for flow",
+  "scripts": {
+    "build": "adv build",
+    "dev": "adv --open=false --log=info",
+    "export": "adv export",
+    "preview": "vite preview --host",
+    "preview-https": "serve dist"
+  },
+  "devDependencies": {
+    "@advjs/theme-default": "workspace:*",
+    "advjs": "workspace:*",
+    "https-localhost": "catalog:",
+    "nodemon": "^3.1.9"
+  }
+}

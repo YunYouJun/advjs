@@ -13,6 +13,7 @@ import Inspect from 'vite-plugin-inspect'
 import { VitePWA } from 'vite-plugin-pwa'
 import Layouts from 'vite-plugin-vue-layouts'
 
+import { ADV_VIRTUAL_MODULES } from '../../packages/advjs/node'
 import { commonAlias } from '../../packages/shared/node'
 
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
@@ -38,9 +39,7 @@ export default defineConfig((config) => {
     build: {
       rollupOptions: {
         external: [
-          '#advjs:adv.config',
-          '#advjs:app.config',
-          '#advjs:theme.config',
+          ...ADV_VIRTUAL_MODULES,
         ],
         output: {
           manualChunks: {

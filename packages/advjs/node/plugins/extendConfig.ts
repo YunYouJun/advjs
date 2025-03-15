@@ -4,14 +4,13 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { uniq } from '@antfu/utils'
 
-import isInstalledGlobally from 'is-installed-globally'
 import { mergeConfig } from 'vite'
 
 import { ADV_VIRTUAL_MODULES } from '../config'
 
 import { require } from '../env'
 
-import { resolveGlobalImportPath, resolveImportPath, toAtFS } from '../utils'
+import { isInstalledGlobally, resolveImportPath, toAtFS } from '../resolver'
 import { searchForWorkspaceRoot } from '../vite/searchRoot'
 
 // import { commonAlias } from '../../../shared/config/vite'
@@ -63,7 +62,7 @@ export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<P
     ...filterDeps(coreDeps),
   ]
 
-  if (options.data.features.babylon)
+  if (options.data.config.features.babylon)
     INCLUDE = INCLUDE.concat(babylonDeps)
 
   const themeDefaultRoot = resolve(__dirname, '../../../theme-default')
@@ -103,17 +102,13 @@ export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<P
               searchForWorkspaceRoot(options.userRoot),
               searchForWorkspaceRoot(options.cliRoot),
               searchForWorkspaceRoot(options.themeRoot),
-              ...(
-                isInstalledGlobally
-                  ? [dirname(await resolveGlobalImportPath('@advjs/client/package.json'))]
-                  : []
-              ),
+              searchForWorkspaceRoot(options.cliRoot),
             ]),
           },
         },
       }
 
-      if (isInstalledGlobally) {
+      if (isInstalledGlobally.value) {
         injection.cacheDir = join(options.cliRoot, 'node_modules/.vite')
         injection.publicDir = join(options.userRoot, 'public')
         injection.root = options.cliRoot

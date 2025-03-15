@@ -1,10 +1,9 @@
 import type { AdvConfig, AppConfig, ThemeConfig } from '@advjs/types'
-
 // virtual module
-import advConfig from 'virtual:advjs/adv.config'
+import advConfig from '@advjs/configs/adv'
+import appConfig from '@advjs/configs/app'
+import themeConfig from '@advjs/configs/theme'
 
-import appConfig from 'virtual:advjs/app.config'
-import themeConfig from 'virtual:advjs/theme.config'
 import { computed, readonly, shallowRef } from 'vue'
 
 function parse<T = any>(data: object): T {
@@ -20,24 +19,13 @@ export const themeConfigRef = shallowRef<ThemeConfig>(parse<ThemeConfig>(themeCo
 if (__DEV__) {
   if (import.meta.hot) {
     // id must be static string
-    // const configs = ['#advjs:adv.config', '#advjs:app.config', '#advjs:theme.config']
-    // configs.forEach((id) => {
-    //   import.meta.hot!.accept(id, (m) => {
-    //     if (id === '#advjs:adv.config')
-    //       advConfigRef.value = parse<AdvConfig>(m?.default)
-    //     if (id === '#advjs:app.config')
-    //       appConfigRef.value = parse<AppConfig>(m?.default)
-    //     if (id === '#advjs:theme.config')
-    //       themeConfigRef.value = parse<ThemeConfig>(m?.default)
-    //   })
-    // })
-    import.meta.hot!.accept('#advjs:adv.config', (m) => {
+    import.meta.hot!.accept('@advjs/configs/adv', (m) => {
       advConfigRef.value = parse<AdvConfig>(m?.default)
     })
-    import.meta.hot!.accept('#advjs:app.config', (m) => {
+    import.meta.hot!.accept('@advjs/configs/app', (m) => {
       appConfigRef.value = parse<AppConfig>(m?.default)
     })
-    import.meta.hot!.accept('#advjs:theme.config', (m) => {
+    import.meta.hot!.accept('@advjs/configs/theme', (m) => {
       themeConfigRef.value = parse<ThemeConfig>(m?.default)
     })
 

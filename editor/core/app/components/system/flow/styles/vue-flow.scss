@@ -1,9 +1,17 @@
 // override '@vue-flow/minimap/dist/style.css'
-.vue-flow__minimap{
+.vue-flow__minimap {
   // background-color: var(--vf-node-bg);
 }
 
-.vue-flow__minimap.pannable{cursor:grab}.vue-flow__minimap.dragging{cursor:grabbing}.vue-flow__minimap-mask.pannable{cursor:grab}
+.vue-flow__minimap.pannable {
+  cursor: grab;
+}
+.vue-flow__minimap.dragging {
+  cursor: grabbing;
+}
+.vue-flow__minimap-mask.pannable {
+  cursor: grab;
+}
 
 .vue-flow__minimap-node {
   // background-color: var(--vf-node-bg-alt);

@@ -25,7 +25,7 @@ const dark = ref(true)
   >
     <Background pattern-color="#aaa" :gap="16" />
 
-    <MiniMap />
+    <MiniMap mask-color="rgba(0,0,0,0.1)" node-color="rgba(0,0,0,0.5)" />
 
     <Controls position="top-left" />
   </VueFlow>

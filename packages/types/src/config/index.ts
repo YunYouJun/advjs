@@ -1,10 +1,21 @@
 import type { AssetsManifest } from 'pixi.js'
+import type { AdvChapter } from '../game/chapter'
 import type { AdvFeatureFlags } from '../types'
 
 export * from './app'
 export * from './theme'
 
 export interface AdvConfig {
+  /**
+   * 游戏解析格式
+   *
+   * - fountain(markdown): 以 Markdown 文本编辑为核心体验的解析方式
+   * - flow(json): 以节点编辑器为开发工作流的节点解析方式
+   *
+   * @default 'fountain'
+   */
+  format: 'fountain' | 'flow'
+
   remote?: boolean
 
   /**
@@ -99,7 +110,7 @@ export interface AdvConfig {
   /**
    * all characters appear in the game
    */
-  characters: Character[]
+  characters: AdvCharacter[]
 
   bgm: {
     /**
@@ -132,6 +143,11 @@ export interface AdvConfig {
     // audios: Record<string, string>
   }
 
+  /**
+   * chapters
+   */
+  chapters: AdvChapter[]
+
   // -------------------------------------------------
 }
 
@@ -152,7 +168,7 @@ export interface Tachie {
   style?: Record<string, string>
 }
 
-export interface Character {
+export interface AdvCharacter {
   /**
    * @zh ID 唯一标识
    */
@@ -180,7 +196,20 @@ export interface Character {
   /**
    * @zh 立绘们，key为立绘名称
    */
-  tachies: Record<string, Tachie>
+  tachies?: Record<string, Tachie>
+
+  /**
+   * 外貌特征
+   */
+  appearance?: string
+  /**
+   * 外貌特征提示词
+   */
+  appearance_prompt?: string
+  /**
+   * 人物背景
+   */
+  background?: string
 }
 
 /**

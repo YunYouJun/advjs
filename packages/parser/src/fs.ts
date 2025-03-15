@@ -1,9 +1,8 @@
+import type { AdvData } from '../../types'
 // import { dirname } from 'path'
-import type { AdvMarkdown, AdvThemeMeta } from '@advjs/types'
-import consola from 'consola'
 import { read } from 'to-vfile'
-import { matter } from 'vfile-matter'
 
+import { matter } from 'vfile-matter'
 import { resolveConfig } from './config'
 
 export * from './core'
@@ -11,16 +10,13 @@ export * from './core'
 /**
  * will depend node:fs
  */
-export async function load(filepath: string, themeMeta?: AdvThemeMeta) {
+export async function load(filepath: string) {
   const data = await parse(filepath)
 
   const entries = new Set([
     filepath,
   ])
   data.entries = Array.from(entries)
-
-  if (themeMeta)
-    consola.info('themeMeta', themeMeta)
 
   // todo add 'src' for child frontmatter
 
@@ -31,7 +27,7 @@ export async function load(filepath: string, themeMeta?: AdvThemeMeta) {
  * parse adv.md config
  * @param filepath
  */
-export async function parse(filepath: string): Promise<AdvMarkdown> {
+export async function parse(filepath: string): Promise<AdvData> {
   const file = await read(filepath)
   matter(file, { strip: true })
 
@@ -42,7 +38,6 @@ export async function parse(filepath: string): Promise<AdvMarkdown> {
     raw: String(file),
     filepath,
     config,
-    features: config.features,
     frontmatter: file.data,
-  }
+  } as AdvData
 }

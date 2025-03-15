@@ -20,8 +20,8 @@ export interface VitePluginAdvDevToolsOptions {
 
 export function VitePluginAdvDevTools(options?: VitePluginAdvDevToolsOptions) {
   const advDevtoolsPath = getAdvDevtoolsPath()
-  // eslint-disable-next-line no-console
-  console.log(options)
+  if (options)
+    consola.debug(options)
   consola.info('Virtual Adv DevTools Path:', advDevtoolsPath)
 
   const plugin = <PluginOption>{

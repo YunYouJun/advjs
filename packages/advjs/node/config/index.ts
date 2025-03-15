@@ -4,9 +4,9 @@ import { defaultConfig } from '@advjs/core'
 import { loadConfig } from 'c12'
 
 export const ADV_VIRTUAL_MODULES = [
-  'virtual:advjs/adv.config',
-  'virtual:advjs/app.config',
-  'virtual:advjs/theme.config',
+  '@advjs/configs/adv',
+  '@advjs/configs/app',
+  '@advjs/configs/theme',
 ]
 
 export function defineAdvConfig(config: AdvUserConfig) {

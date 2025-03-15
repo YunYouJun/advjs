@@ -1,16 +1,11 @@
-import type { AdvConfig } from '@advjs/types'
 import type { Argv } from 'yargs'
 import type { ResolvedAdvOptions } from '../options'
 import net from 'node:net'
 import os from 'node:os'
 import path from 'node:path'
-import isInstalledGlobally from 'is-installed-globally'
-import { blue, bold, cyan, dim, gray, green, underline, yellow } from 'kolorist'
+import { colors } from 'consola/utils'
 import { version } from '../../package.json'
-
-export const CONFIG_RESTART_FIELDS: (keyof AdvConfig)[] = [
-  // null
-]
+import { isInstalledGlobally } from '../resolver'
 
 export function isPortFree(port: number) {
   return new Promise((resolve) => {
@@ -57,30 +52,38 @@ export function commonOptions(args: Argv) {
  * @param remote
  */
 export function printInfo(options: ResolvedAdvOptions, port?: number, remote?: boolean) {
+  const { data: { config } } = options
+  const themeVersion = colors.blue(`v${options.data.themeConfig?.pkg?.version}`) || 'unknown'
+
   console.log()
   console.log()
-  console.log(`${bold('  🎮 ADV.JS')}  ${blue(`v${version}`)} ${isInstalledGlobally ? yellow('(global)') : ''}`)
+  console.log(`${colors.bold('  🎮 ADV.JS')}  ${colors.blue(`v${version}`)} ${isInstalledGlobally.value ? colors.yellow('(global)') : ''}`)
   console.log()
-  if (options.config.title)
-    console.log(dim('  Game         ') + yellow(options.config.title))
-  console.log(dim('  theme        ') + (options.theme ? green(options.theme) : gray('none')))
-  console.log(dim('  entry        ') + dim(path.dirname(options.entry) + path.sep) + path.basename(options.entry))
+  if (config.title)
+    console.log(colors.dim('  ⚔️  Game      ') + colors.yellow(config.title))
+
+  console.log(`  ${colors.dim('🗺️  Theme')}     > ${colors.green(config.theme)} (${themeVersion})`)
+  if (config.format === 'fountain')
+    console.log(colors.dim('  entry        ') + colors.dim(path.dirname(options.entry) + path.sep) + path.basename(options.entry))
+  else
+    console.log(`  ${colors.dim('📁')} ${colors.dim(colors.underline(options.userRoot))}`)
+
   if (port) {
     console.log()
-    console.log(`${dim('  Preview    ')}  > ${cyan(`http://localhost:${bold(port)}/`)}`)
+    console.log(`${colors.dim('  Preview    ')}  > ${colors.cyan(`http://localhost:${colors.bold(port)}/`)}`)
 
     if (remote) {
       Object.values(os.networkInterfaces())
         .forEach(v => (v || [])
           .filter(details => details.family === 'IPv4' && !details.address.includes('127.0.0.1'))
           .forEach(({ address }) => {
-            console.log(`${dim('  Network     ')} > ${blue(`http://${address}:${bold(port)}/`)}`)
+            console.log(`${colors.dim('  Network     ')} > ${colors.blue(`http://${address}:${colors.bold(port)}/`)}`)
           }),
         )
     }
 
     console.log()
-    console.log(`${dim('  shortcuts ')}   > ${underline('r')}${dim('estart | ')}${underline('o')}${dim('pen | ')}${underline('e')}${dim('dit')}`)
+    console.log(`${colors.dim('  shortcuts ')}   > ${colors.underline('r')}${colors.dim('estart | ')}${colors.underline('o')}${colors.dim('pen | ')}${colors.underline('e')}${colors.dim('dit')}`)
   }
   console.log()
   console.log()

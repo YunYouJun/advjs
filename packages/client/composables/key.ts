@@ -1,17 +1,16 @@
+import type { AdvContext } from '../types'
 import { useMagicKeys } from '@vueuse/core'
 import consola from 'consola'
 import { watch } from 'vue'
 import { useAppStore } from '../stores'
-import { useAdvCtx } from './ctx'
 
 /**
  * register adv magic keys
  * - `space`: adv next
  * - `T+C`: toggle Canvas
  */
-export function useAdvKeys() {
+export function useAdvKeys($adv: AdvContext) {
   const app = useAppStore()
-  const $adv = useAdvCtx()
 
   const keys = useMagicKeys()
   const { space } = keys

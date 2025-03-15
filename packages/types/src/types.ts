@@ -1,5 +1,6 @@
 import type { VFile } from 'vfile'
 import type { AdvConfig } from './config'
+import type { AdvThemeConfig } from './theme'
 
 export interface AdvFeatureFlags {
   babylon: boolean
@@ -14,15 +15,25 @@ export interface AdvThemeMeta {
   colorSchema?: 'dark' | 'light' | 'both'
 }
 
-export interface AdvMarkdown {
+export interface AdvData {
   file: VFile
   // advjs: AdvInfo[]
   raw: string
-  config: AdvConfig
-  features: AdvFeatureFlags
   frontmatter: Record<string, unknown>
 
   filepath?: string
   entries?: string[]
+
+  /**
+   * Adv Config
+   */
+  config: AdvConfig
+  configFile: string
+
+  /**
+   * theme
+   */
   themeMeta?: AdvThemeMeta
+  themeConfig: AdvThemeConfig
+  themeConfigFile?: string
 }

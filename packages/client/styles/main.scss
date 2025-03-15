@@ -1,5 +1,16 @@
 @use 'sass:map';
 
+button {
+  &:focus {
+    outline: none;
+  }
+}
+
+// avoid img events
+img {
+  pointer-events: none;
+}
+
 html,
 body,
 #app {

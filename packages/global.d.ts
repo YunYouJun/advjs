@@ -9,9 +9,3 @@ declare module '*.vue' {
 }
 
 declare let Prism: any
-
-declare module '/@advjs/configs' {
-  import { AdvConfig } from '@advjs/types'
-
-  export default AdvConfig
-}

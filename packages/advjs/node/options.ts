@@ -1,4 +1,4 @@
-import type { AdvConfig, AdvMarkdown } from '@advjs/types'
+import type { AdvConfig, AdvData } from '@advjs/types'
 // import type RemoteAssets from 'vite-plugin-remote-assets'
 // import type ServerRef from 'vite-plugin-vue-server-ref'
 import type { ArgumentsType } from '@antfu/utils'
@@ -14,8 +14,10 @@ import { load } from '@advjs/parser/fs'
 import { uniq } from '@antfu/utils'
 import _debug from 'debug'
 import { loadAdvConfig } from './config'
+import { loadAdvThemeConfig } from './config/theme'
+import { packageExists, resolveImportPath } from './resolver'
 import { getThemeMeta, resolveThemeName } from './themes'
-import { packageExists, resolveImportPath } from './utils'
+import { getAdvThemeRoot } from './utils/root'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -47,22 +49,23 @@ export interface AdvEntryOptions {
 export type AdvUserConfig = Partial<AdvConfig>
 
 export interface ResolvedAdvOptions {
-  data: AdvMarkdown
+  /**
+   * 都放在 data 下以便一起处理 HMR
+   */
+  data: AdvData
   entry: string
+
+  /**
+   * root path
+   */
   userRoot: string
   cliRoot: string
   clientRoot: string
   themeRoot: string
-  theme: string
   roots: string[]
+
   mode: 'dev' | 'build'
   remote?: boolean
-
-  /**
-   * Adv Config
-   */
-  config: AdvUserConfig
-  configFile: string
 }
 
 export interface AdvPluginOptions extends AdvEntryOptions {
@@ -75,7 +78,10 @@ export interface AdvPluginOptions extends AdvEntryOptions {
 }
 
 export interface AdvServerOptions {
-  onDataReload?: (newData: AdvMarkdown, data: AdvMarkdown) => void
+  /**
+   * @returns `false` if server should be restarted
+   */
+  loadData?: (loadedSource: Record<string, string>) => Promise<AdvData | false>
 }
 
 export async function getClientRoot() {
@@ -91,15 +97,7 @@ export function isPath(name: string) {
   return name.startsWith('/') || /^\.\.?[/\\]/.test(name)
 }
 
-export async function getThemeRoot(name: string, entry: string) {
-  if (!name)
-    return
-
-  // TODO: handle theme inherit
-  return getRoot(name, entry)
-}
-
-export async function getRoot(name: string, entry: string) {
+export async function getRoot(name: string, entry: string = process.cwd()) {
   if (isPath(name))
     return resolve(dirname(entry), name)
   return dirname(await resolveImportPath(`${name}/package.json`, true))
@@ -120,18 +118,56 @@ export async function resolveOptions(
     entry,
     userRoot,
   } = getUserRoot(options)
-  // avoid type error, type see packages/parser/fs
-  const data = await load(entry)
-  const theme = await resolveThemeName(options.theme || data.config.theme)
+
+  /**
+   * Load adv.js config
+   */
+  const { config, configFile = '' } = await loadAdvConfig()
+  let data: AdvData = {} as AdvData
+  if (config.format === 'fountain') {
+    // avoid type error, type see packages/parser/fs
+    data = await load(entry)
+  }
+
+  data.config = config
+  data.configFile = configFile
+
+  const theme = await resolveThemeName(options.theme)
+  /**
+   * load theme config
+   */
 
   if (!await packageExists(theme)) {
     console.error(`Theme "${theme}" not found, have you installed it?`)
     process.exit(1)
   }
 
-  const clientRoot = await getClientRoot()
   const cliRoot = getCLIRoot()
-  const themeRoot = await getThemeRoot(theme, entry)
+  const clientRoot = await getClientRoot()
+  const themeRoot = await getAdvThemeRoot(theme)
+
+  const roots = uniq([clientRoot, themeRoot, userRoot])
+
+  const advOptions: ResolvedAdvOptions = {
+    data,
+    mode,
+    entry,
+
+    userRoot,
+    clientRoot,
+    cliRoot,
+    themeRoot,
+
+    roots,
+    remote,
+  }
+
+  /**
+   * Load theme config
+   */
+  const { themeConfig, themeConfigFile } = await loadAdvThemeConfig(advOptions)
+  data.themeConfig = themeConfig
+  data.themeConfigFile = themeConfigFile
 
   if (themeRoot) {
     const themeMeta = await getThemeMeta(theme, join(themeRoot, 'package.json'))
@@ -139,26 +175,6 @@ export async function resolveOptions(
   }
   else {
     throw new Error('[ADV] Can not find your ADV.JS Theme')
-  }
-
-  const roots = uniq([clientRoot, themeRoot, userRoot])
-
-  const { config = {}, configFile = '' } = await loadAdvConfig()
-
-  const advOptions: ResolvedAdvOptions = {
-    data,
-    mode,
-    entry,
-    theme,
-    userRoot,
-    clientRoot,
-    cliRoot,
-    themeRoot,
-    roots,
-    remote,
-
-    config: config || {},
-    configFile,
   }
 
   debug(advOptions)

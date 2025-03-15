@@ -1,19 +1,19 @@
 // virtual module
-declare module 'virtual:advjs/adv.config' {
+declare module '@advjs/configs/adv' {
   import type { AdvConfig } from '@advjs/types'
 
   const advConfig: AdvConfig
   export default advConfig
 }
 
-declare module 'virtual:advjs/app.config' {
+declare module '@advjs/configs/app' {
   import type { AppConfig } from '@advjs/types'
 
   const appConfig: AppConfig
   export default appConfig
 }
 
-declare module 'virtual:advjs/theme.config' {
+declare module '@advjs/configs/theme' {
   import type { ThemeConfig } from '@advjs/types'
 
   const themeConfig: ThemeConfig

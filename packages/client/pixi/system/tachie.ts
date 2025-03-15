@@ -1,4 +1,4 @@
-import type { Character } from '@advjs/types'
+import type { AdvCharacter } from '@advjs/types'
 import type { PixiGame } from '../game'
 import { Container, Sprite } from 'pixi.js'
 
@@ -12,7 +12,7 @@ export class TachieSystem {
   /**
    * todo data structure
    */
-  characterMap = new Map<string, Character>()
+  characterMap = new Map<string, AdvCharacter>()
 
   constructor(game: PixiGame) {
     this.game = game
@@ -38,7 +38,13 @@ export class TachieSystem {
       console.error(`Character ${id} not found!`)
       return
     }
-    const sprite = Sprite.from(character.tachies.default.src)
+
+    if (!character.tachies?.default) {
+      console.error(`Character ${id} tachie not found!`)
+      return
+    }
+
+    const sprite = Sprite.from(character.tachies?.default.src)
     sprite.label = id
 
     const scale = (app.screen.width * 2 / 5) / sprite.width

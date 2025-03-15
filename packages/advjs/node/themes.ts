@@ -1,13 +1,12 @@
 import type { AdvThemeMeta } from '@advjs/types'
 import { parseNi, run } from '@antfu/ni'
+import { colors } from 'consola/utils'
 import fs from 'fs-extra'
-import isInstalledGlobally from 'is-installed-globally'
-import { underline } from 'kolorist'
 import prompts from 'prompts'
 import { satisfies } from 'semver'
 import { version } from '../package.json'
 import { isPath } from './options'
-import { packageExists } from './utils'
+import { isInstalledGlobally, packageExists } from './resolver'
 
 const officialThemes: Record<string, string> = {
   none: '',
@@ -34,7 +33,7 @@ export async function getThemeMeta(name: string, path: string) {
   return undefined
 }
 
-export async function resolveThemeName(name: string) {
+export async function resolveThemeName(name?: string) {
   if (!name || name === 'none')
     name = 'default'
 
@@ -71,7 +70,7 @@ export async function promptForThemeInstallation(name: string) {
     name: 'confirm',
     initial: 'Y',
     type: 'confirm',
-    message: `The theme "${name}" was not found ${underline(isInstalledGlobally ? 'globally' : 'in your project')}, do you want to install it now?`,
+    message: `The theme "${name}" was not found ${colors.underline(isInstalledGlobally.value ? 'globally' : 'in your project')}, do you want to install it now?`,
   })
 
   if (!confirm)

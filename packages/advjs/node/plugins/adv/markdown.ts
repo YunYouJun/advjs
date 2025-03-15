@@ -95,8 +95,9 @@ export function createMarkdown(options: ResolvedOptions) {
     html = customBlocks.html
 
     const scriptLines: string[] = [
-      'import { useAdvCtx } from "@advjs/client"',
-      'const $adv = useAdvCtx()',
+      // 'import { useAdvCtx } from "@advjs/client"',
+      // 'const $adv = useAdvCtx()',
+      'import { $adv } from "@advjs/client"',
     ]
 
     const advAst = await parseAst(raw)

@@ -1,25 +1,23 @@
-import type { AdvMarkdown } from '@advjs/types'
+import type { AdvData } from '@advjs/types'
 import type { Plugin, ViteDevServer } from 'vite'
 import type { ResolvedAdvOptions } from '../options'
-import { existsSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import * as parser from '@advjs/parser/fs'
 import { notNullish, slash } from '@antfu/utils'
-import { defu } from 'defu'
 import equal from 'fast-deep-equal'
-import { toAtFS } from '../utils'
 import { createMarkdown, resolveOptions } from './adv'
+import { templates } from './virtual'
 
 interface AdvHmrPayload {
-  data: AdvMarkdown
+  data: AdvData
 }
 
 export function createAdvLoader(
-  { data, remote, roots, entry, config: resolvedAdvConfig }: ResolvedAdvOptions,
+  advOptions: ResolvedAdvOptions,
   vuePlugin: Plugin,
 ): Plugin[] {
   const advPrefix = '/@advjs/drama'
 
+  const { data, entry } = advOptions
   const options = resolveOptions()
   const transformMarkdown = createMarkdown(options)
 
@@ -33,62 +31,6 @@ export function createAdvLoader(
     )
   }
 
-  /**
-   * generate AdvConfig from frontmatter & meta
-   */
-  function generateAdvConfig() {
-    // front override latter
-    const config = defu({ ...data.config, remote }, resolvedAdvConfig)
-
-    return `export default ${JSON.stringify(config)}`
-  }
-
-  function generateLocales(roots: string[]) {
-    const imports: string[] = [
-      'const messages = { "zh-CN": {}, en: {} }',
-    ]
-    const languages = ['zh-CN', 'en']
-
-    roots.forEach((root, i) => {
-      languages.forEach((lang) => {
-        const langYml = `${root}/locales/${lang}.yml`
-        // file not null
-        if (existsSync(langYml) && readFileSync(langYml, 'utf-8')) {
-          const varName = lang.replace('-', '') + i
-          imports.push(`import ${varName} from "${toAtFS(langYml)}"`)
-          imports.push(`Object.assign(messages['${lang}'], ${varName})`)
-        }
-      })
-    })
-
-    imports.push('export default messages')
-    return imports.join('\n')
-  }
-
-  async function generateUserStyles(roots: string[]) {
-    const imports = []
-
-    for (const root of roots) {
-      const styles = [
-        join(root, 'styles', 'index.ts'),
-        join(root, 'styles', 'index.js'),
-        join(root, 'styles', 'index.css'),
-        join(root, 'styles', 'index.scss'),
-        join(root, 'styles', 'css-vars.css'),
-        join(root, 'styles', 'css-vars.scss'),
-      ]
-
-      for (const style of styles) {
-        if (existsSync(style)) {
-          imports.push(`import "${toAtFS(style)}"`)
-          continue
-        }
-      }
-    }
-
-    return imports.join('\n')
-  }
-
   return [
     {
       name: 'advjs:loader',
@@ -99,29 +41,27 @@ export function createAdvLoader(
       },
 
       resolveId(id) {
-        if (id.startsWith('virtual:') || id.startsWith(advPrefix) || id.startsWith('/@advjs/'))
+        const virtualPrefixes = [
+          '/@advjs/',
+          '@advjs/configs/',
+        ]
+        if (virtualPrefixes.some(prefix => id.startsWith(prefix)))
           return id
         return null
       },
 
-      load(id) {
-        if (id === 'virtual:advjs/adv.config')
-          return generateAdvConfig()
-        if (id === 'virtual:advjs/app.config')
-          return generateAdvConfig()
-        if (id === 'virtual:advjs/theme.config')
-          return generateAdvConfig()
-
-        if (id === '/@advjs/locales')
-          return generateLocales(roots)
-
-        // styles
-        if (id === '/@advjs/styles')
-          return generateUserStyles(roots)
+      async load(id) {
+        const template = templates.find(t => t.id === id)
+        if (template) {
+          return {
+            code: await template.getContent.call(this, advOptions),
+            map: { mappings: '' },
+          }
+        }
 
         if (id.startsWith(advPrefix)) {
           return {
-            code: data.raw,
+            code: data?.raw || '',
             map: {
               mappings: '',
             },
@@ -130,7 +70,7 @@ export function createAdvLoader(
       },
 
       async handleHotUpdate(ctx) {
-        if (!data.entries!.some(i => slash(i) === ctx.file))
+        if (!data?.entries?.some(i => slash(i) === ctx.file))
           return
 
         await ctx.read()
@@ -140,7 +80,7 @@ export function createAdvLoader(
           return
 
         // only hot reload .md files as .vue files
-        const newData = await parser.load(entry, data.themeMeta)
+        const newData = await parser.load(entry)
 
         const payload: AdvHmrPayload = {
           data: newData,
@@ -148,14 +88,14 @@ export function createAdvLoader(
 
         const moduleIds = new Set<string>()
 
-        if (!equal(data.features, newData.features)) {
+        if (!equal(data.config.features, newData.config.features)) {
           setTimeout(() => {
             ctx.server.ws.send({ type: 'full-reload' })
           }, 1)
         }
 
         if (!equal(data.config, newData.config))
-          moduleIds.add('virtual:advjs/adv.config')
+          moduleIds.add('@advjs/configs/adv')
 
         moduleIds.add('/@advjs/drama.adv.md')
 
@@ -237,6 +177,6 @@ export function createAdvLoader(
   function updateServerWatcher() {
     if (!server)
       return
-    server.watcher.add(data.entries?.map(slash) || [])
+    server.watcher.add(data?.entries?.map(slash) || [])
   }
 }

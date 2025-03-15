@@ -1,6 +1,7 @@
 import type { AdvConfig } from '@advjs/types'
 
 export const defaultConfig: AdvConfig = {
+  format: 'fountain',
   features: {
     babylon: false,
   },
@@ -35,4 +36,5 @@ export const defaultConfig: AdvConfig = {
       bundles: [],
     },
   },
+  chapters: [],
 }

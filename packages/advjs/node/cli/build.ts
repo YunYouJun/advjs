@@ -26,7 +26,7 @@ export async function installBuildCommand(cli: Argv) {
       .strict()
       .help(),
     async ({ entry, theme, watch, base, output }) => {
-      const { build } = await import('../build')
+      const { build } = await import('../commands/build')
 
       const options = await resolveOptions({ entry, theme }, 'build')
 
