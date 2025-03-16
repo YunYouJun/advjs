@@ -1,11 +1,13 @@
 import type { AdvData } from '@advjs/types'
 import type { Plugin, ViteDevServer } from 'vite'
-import type { ResolvedAdvOptions } from '../options'
-import * as parser from '@advjs/parser/fs'
+import type { AdvServerOptions, ResolvedAdvOptions } from '../options'
 import { notNullish, slash } from '@antfu/utils'
+import consola from 'consola'
+import { colors } from 'consola/utils'
 import equal from 'fast-deep-equal'
 import { createMarkdown, resolveOptions } from './adv'
 import { templates } from './virtual'
+import { templateConfigs } from './virtual/configs'
 
 interface AdvHmrPayload {
   data: AdvData
@@ -13,7 +15,7 @@ interface AdvHmrPayload {
 
 export function createAdvLoader(
   advOptions: ResolvedAdvOptions,
-  vuePlugin: Plugin,
+  serverOptions: AdvServerOptions,
 ): Plugin[] {
   const advPrefix = '/@advjs/drama'
 
@@ -25,7 +27,8 @@ export function createAdvLoader(
 
   const filter = (name: string) => {
     return (
-      name.endsWith('.adv.md')
+      name.endsWith('.config.ts')
+      || name.endsWith('.adv.md')
       || name.endsWith('.adv')
       || name.startsWith('/@advjs/drama')
     )
@@ -43,6 +46,7 @@ export function createAdvLoader(
       resolveId(id) {
         const virtualPrefixes = [
           '/@advjs/',
+          '@advjs:data',
           '@advjs/configs/',
         ]
         if (virtualPrefixes.some(prefix => id.startsWith(prefix)))
@@ -70,17 +74,17 @@ export function createAdvLoader(
       },
 
       async handleHotUpdate(ctx) {
-        if (!data?.entries?.some(i => slash(i) === ctx.file))
-          return
-
-        await ctx.read()
-
         const { file, server } = ctx
         if (!filter(file))
           return
 
-        // only hot reload .md files as .vue files
-        const newData = await parser.load(entry)
+        const start = Date.now()
+        const newData = await serverOptions.loadData?.({
+          [ctx.file]: await ctx.read(),
+        })
+
+        if (!newData)
+          return []
 
         const payload: AdvHmrPayload = {
           data: newData,
@@ -94,8 +98,11 @@ export function createAdvLoader(
           }, 1)
         }
 
-        if (!equal(data.config, newData.config))
-          moduleIds.add('@advjs/configs/adv')
+        if (!equal(data.config, newData.config)) {
+          templateConfigs.forEach((config) => {
+            moduleIds.add(config.id)
+          })
+        }
 
         moduleIds.add('/@advjs/drama.adv.md')
 
@@ -108,38 +115,11 @@ export function createAdvLoader(
           data: payload,
         })
 
-        // todo separate scene
-        const hmrPages = new Set<number>()
-        hmrPages.add(1)
-
-        const vueModules = (
-          await Promise.all(
-            Array.from(hmrPages).map(async (_page) => {
-              const file = entry
-
-              try {
-                const { vueSrc } = await transformMarkdown(entry, newData.raw)
-                const handleHotUpdate
-                      = 'handler' in vuePlugin.handleHotUpdate!
-                        ? vuePlugin.handleHotUpdate!.handler
-                        : vuePlugin.handleHotUpdate!
-                return await handleHotUpdate!({
-                  ...ctx,
-                  modules: Array.from(
-                    ctx.server.moduleGraph.getModulesByFile(file) || [],
-                  ),
-                  file,
-                  read: () => vueSrc,
-                })
-              }
-              catch {}
-            }),
-          )
-        ).flatMap(i => i || [])
-        hmrPages.clear()
+        // @todo separate scene
+        const hmrScenesIndexes = new Set<number>()
+        hmrScenesIndexes.add(0)
 
         const moduleEntries = [
-          ...vueModules,
           ...Array.from(moduleIds).map((id) => {
             return server.moduleGraph.getModuleById(id)
           }),
@@ -147,6 +127,8 @@ export function createAdvLoader(
           .filter(notNullish)
           .filter(i => !i.id?.startsWith('/@id/@vite-icons'))
 
+        const duration = Date.now() - start
+        consola.success(`🎬 ${colors.blue('[ADV.JS]')} ${colors.green('config updated')} ${colors.dim(file)} ${colors.dim(`${duration}ms`)}`)
         return moduleEntries
       },
     },

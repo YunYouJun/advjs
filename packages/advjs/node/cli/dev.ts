@@ -1,5 +1,6 @@
 import type { LogLevel, ViteDevServer } from 'vite'
 import type { Argv } from 'yargs'
+import type { AdvData } from '../../../types'
 import { exec } from 'node:child_process'
 import path from 'node:path'
 import process from 'node:process'
@@ -9,6 +10,7 @@ import fs from 'fs-extra'
 import openBrowser from 'open'
 import prompts from 'prompts'
 import { createServer } from '../commands/serve'
+import { loadAdvConfig } from '../config'
 import { resolveOptions } from '../options'
 import { commonOptions, findFreePort, printInfo } from './utils'
 
@@ -54,20 +56,28 @@ export async function advDev(options: {
   async function initServer() {
     if (server)
       await server.close()
-    const options = await resolveOptions({
+    const resolvedOptions = await resolveOptions({
       entry,
       remote,
     }, 'dev')
 
-    if (options.data.config.format === 'fountain') {
+    const { data } = resolvedOptions
+    if (data.config.format === 'fountain') {
       await checkFountain(entry)
     }
 
     port = userPort || await findFreePort(port)
     server = (await createServer(
-      options,
+      resolvedOptions,
       {
         server: {
+          watch: {
+            ignored: [
+              `!${resolvedOptions.themeRoot}/**`,
+              `!${resolvedOptions.userRoot}/**`,
+            ],
+          },
+
           port,
           strictPort: true,
           open,
@@ -75,10 +85,22 @@ export async function advDev(options: {
         },
         logLevel: log as LogLevel,
       },
+      {
+        async loadData() {
+          const { config } = await loadAdvConfig()
+
+          const newData: AdvData = {
+            ...data,
+            config,
+          }
+
+          return newData
+        },
+      },
     ))
 
     await server.listen()
-    printInfo(options, port, remote)
+    printInfo(resolvedOptions, port, remote)
   }
 
   const SHORTCUTS = [

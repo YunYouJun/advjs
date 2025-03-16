@@ -10,12 +10,7 @@ import { statement } from './utils/statement'
 async function main() {
   const app = createApp(App)
   const { router } = await setupMain(app)
-
-  /**
-   * adv client ctx
-   */
   const ctx = { app, isClient: typeof window !== 'undefined', router }
-  setupAdv(ctx)
 
   /**
    * glob import all modules
@@ -25,6 +20,12 @@ async function main() {
   ).map(i =>
     i.install?.(ctx),
   )
+
+  /**
+   * adv client ctx
+   * after modules load (pinia, ...)
+   */
+  setupAdv(ctx)
 
   app.mount('#app')
     .$nextTick(() => {

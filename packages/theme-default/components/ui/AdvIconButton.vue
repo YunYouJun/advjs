@@ -5,7 +5,7 @@ import { useThemeConfig } from '../../composables'
 
 const themeConfig = useThemeConfig()
 const sVolume = computed(() => themeConfig.value?.audio?.volume || 0.5)
-const popDownUrl = computed(() => themeConfig.value?.assets.audio?.popDownUrl || '')
+const popDownUrl = computed(() => themeConfig.value?.assets?.audio?.popDownUrl || '')
 
 const popDown = useSound(popDownUrl, { volume: sVolume })
 </script>

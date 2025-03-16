@@ -7,7 +7,7 @@ import { useRouter } from 'vue-router'
 import { quitApp } from '../electron/ipc/renderer'
 
 const advConfig = useAdvConfig()
-const images = computed(() => advConfig.value.assets.images)
+const images = computed(() => advConfig.value.assets.manifest.bundles)
 const app = useAppStore()
 
 const { t } = useI18n()

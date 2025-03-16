@@ -10,7 +10,8 @@ import { ADV_VIRTUAL_MODULES } from '../config'
 
 import { require } from '../env'
 
-import { isInstalledGlobally, resolveImportPath, toAtFS } from '../resolver'
+import { resolveImportPath, toAtFS } from '../resolver'
+import setupIndexHtml from '../setups/indexHtml'
 import { searchForWorkspaceRoot } from '../vite/searchRoot'
 
 // import { commonAlias } from '../../../shared/config/vite'
@@ -82,12 +83,21 @@ export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<P
     enforce: 'pre',
     async config(config) {
       const injection: InlineConfig = {
-        root: options.clientRoot,
+        // cacheDir: join(options.userRoot, 'node_modules/.vite'),
+        cacheDir: join(options.userRoot, 'node_modules/.valaxy/cache'),
         publicDir: join(options.userRoot, 'public'),
 
         define: getDefine(options),
         resolve: {
-          alias,
+          alias: [
+            ...alias,
+
+            {
+              find: 'vue',
+              replacement: await resolveImportPath('vue/dist/vue.esm-bundler.js', true),
+            },
+          ],
+          dedupe: ['vue'],
         },
         optimizeDeps: {
           entries: [resolve(options.clientRoot, 'main.ts')],
@@ -97,42 +107,37 @@ export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<P
         },
         server: {
           fs: {
-            // strict: false,
+            strict: true,
             allow: uniq([
+              searchForWorkspaceRoot(options.clientRoot),
+              searchForWorkspaceRoot(options.themeRoot),
               searchForWorkspaceRoot(options.userRoot),
               searchForWorkspaceRoot(options.cliRoot),
-              searchForWorkspaceRoot(options.themeRoot),
-              searchForWorkspaceRoot(options.cliRoot),
+              ...options.roots,
             ]),
           },
         },
       }
 
-      if (isInstalledGlobally.value) {
-        injection.cacheDir = join(options.cliRoot, 'node_modules/.vite')
-        injection.publicDir = join(options.userRoot, 'public')
-        injection.root = options.cliRoot
-        // @ts-expect-error type cast
-        injection.resolve.alias.vue = `${await resolveImportPath('vue/dist/vue.esm-browser.js', true)}`
-      }
-
       return mergeConfig(config, injection)
     },
-    // configureServer(server) {
-    //   console.log('config plugin configure server')
-    //   // serve our index.html after vite history fallback
-    //   return () => {
-    //     server.middlewares.use(async (req, res, next) => {
-    //       if (req.url!.endsWith('.html')) {
-    //         res.setHeader('Content-Type', 'text/html')
-    //         res.statusCode = 200
-    //         res.end(await getIndexHtml(options))
-    //         return
-    //       }
-    //       next()
-    //     })
-    //   }
-    // },
+
+    configureServer(server) {
+      const indexHtml = setupIndexHtml(options)
+      // console.log('config plugin configure server')
+      // serve our index.html after vite history fallback
+      return () => {
+        server.middlewares.use(async (req, res, next) => {
+          if (req.url!.endsWith('.html')) {
+            res.setHeader('Content-Type', 'text/html')
+            res.statusCode = 200
+            res.end(indexHtml)
+            return
+          }
+          next()
+        })
+      }
+    },
 
     transformIndexHtml(html) {
       // todo: adapt user/theme index.html by transformIndexHtml

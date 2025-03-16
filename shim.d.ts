@@ -1,4 +1,11 @@
 // virtual module
+declare module '@advjs:data' {
+  import type { AdvData } from '@advjs/types'
+
+  const advData: AdvData
+  export default advData
+}
+
 declare module '@advjs/configs/adv' {
   import type { AdvConfig } from '@advjs/types'
 

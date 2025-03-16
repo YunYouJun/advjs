@@ -1,8 +1,6 @@
 import type { PluginOption } from 'vite'
 import type { AdvPluginOptions, AdvServerOptions, ResolvedAdvOptions } from '../options'
-import { notNullish } from '@antfu/utils'
 import VueI18n from '@intlify/unplugin-vue-i18n/vite'
-import Vue from '@vitejs/plugin-vue'
 import fs from 'fs-extra'
 import LinkAttributes from 'markdown-it-link-attributes'
 import { resolve } from 'pathe'
@@ -11,9 +9,9 @@ import Components from 'unplugin-vue-components/vite'
 import Markdown from 'unplugin-vue-markdown/vite'
 import VueRouter from 'unplugin-vue-router/vite'
 import Layouts from 'vite-plugin-vue-layouts'
-import { customElements } from '../constants'
-import { createConfigPlugin } from './extendConfig'
+import { createVuePlugin } from '../vite/vue'
 
+import { createConfigPlugin } from './extendConfig'
 import { createAdvLoader } from './loaders'
 // import { createClientSetupPlugin } from './setupClient'
 import { createUnocssPlugin } from './unocss'
@@ -21,11 +19,9 @@ import { createUnocssPlugin } from './unocss'
 export async function ViteAdvPlugin(
   options: ResolvedAdvOptions,
   pluginOptions: AdvPluginOptions,
-
-  _serverOptions: AdvServerOptions = {},
+  serverOptions: AdvServerOptions = {},
 ): Promise<PluginOption[]> {
   const {
-    vue: vueOptions = {},
     components: componentsOptions = {},
   } = pluginOptions
 
@@ -35,29 +31,16 @@ export async function ViteAdvPlugin(
     roots,
   } = options
 
-  const vuePlugin = Vue({
-    include: [/\.vue$/, /\.md$/],
-    template: {
-      compilerOptions: {
-        isCustomElement(tag) {
-          return customElements.has(tag)
-        },
-      },
-      ...vueOptions?.template,
-    },
-    ...vueOptions,
-  })
-
   // generated files for adv
   const tempDir = resolve(userRoot, '.adv')
   fs.ensureDirSync(resolve(userRoot, '.adv'))
 
-  return [
-    await createConfigPlugin(options),
-    await createUnocssPlugin(options, pluginOptions),
+  return Promise.all([
+    createConfigPlugin(options),
+    createUnocssPlugin(options, pluginOptions),
 
-    vuePlugin,
-    createAdvLoader(options, vuePlugin),
+    createVuePlugin(options, pluginOptions),
+    createAdvLoader(options, serverOptions),
 
     // https://github.com/posva/unplugin-vue-router
     VueRouter({
@@ -110,7 +93,5 @@ export async function ViteAdvPlugin(
     }),
 
     // todo download remote assets
-  ]
-    .flat()
-    .filter(notNullish)
+  ])
 }

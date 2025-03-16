@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { AdvGameRecord, AdvGameRecordMeta } from '@advjs/client'
-import { useAdvCtx, useAppStore, useGameStore } from '@advjs/client'
+import { useAdvContext, useAppStore, useGameStore } from '@advjs/client'
 import { screenshotGameThumb } from '@advjs/core'
 import { assets } from '@advjs/theme-default'
 
@@ -20,8 +20,7 @@ const props = withDefaults(defineProps<{
 })
 
 const images = assets.images
-
-const $adv = useAdvCtx()
+const { $adv } = useAdvContext()
 
 const app = useAppStore()
 

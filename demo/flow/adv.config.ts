@@ -35,18 +35,19 @@ export default defineAdvConfig({
     manifest: assetsManifest,
   },
 
-  title: yourName1.title,
+  // title: yourName1.title,
+  title: 'asd',
   characters: yourName1.characters,
 
-  chapters: [
-    {
-      id: 'intro',
-      title: 'Introduction',
-      description: 'Welcome to the world of AdvJS!',
-      data: {
-        nodes: yourName1.nodes,
-        edges: yourName1.edges,
-      },
-    },
-  ],
+  // chapters: [
+  //   {
+  //     id: 'intro',
+  //     title: 'Introduction',
+  //     description: 'Welcome to the world of AdvJS!',
+  //     data: {
+  //       nodes: yourName1.nodes,
+  //       edges: yourName1.edges,
+  //     },
+  //   },
+  // ],
 })

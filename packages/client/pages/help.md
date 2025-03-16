@@ -3,6 +3,12 @@ title: 帮助
 layout: text
 ---
 
+<script setup lang="ts">
+import advConfig from '@advjs/configs/adv'
+</script>
+
+{{ advConfig.title }}
+
 <div class="text-center">
   <div i-ri-question-line class="text-4xl mb-6 m-auto" />
   <h3>帮助</h3>

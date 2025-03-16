@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { useCssVar, useElementSize } from '@vueuse/core'
 import { computed, ref, watchEffect } from 'vue'
-import { useAdvConfig } from '../../composables'
-import { advAspect, advHeight, advWidth } from '../../config'
+import { advAspect, advDataRef, advHeight, advWidth } from '../../data'
 import { useAppStore } from '../../stores'
 
 const props = withDefaults(defineProps<{
@@ -10,7 +9,6 @@ const props = withDefaults(defineProps<{
   meta?: any
   scale?: number | string
 }>(), {})
-const advConfig = useAdvConfig()
 const app = useAppStore()
 
 const root = ref<HTMLDivElement>()
@@ -52,7 +50,7 @@ watchEffect(() => {
 })
 
 const className = computed(() => ({
-  'select-none': !advConfig.value.selectable,
+  'select-none': !advDataRef.value.config.selectable,
 }))
 </script>
 

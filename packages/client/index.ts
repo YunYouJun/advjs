@@ -1,7 +1,7 @@
 export * from './assets'
 
 export * from './composables'
-export * from './config'
+export * from './data'
 export * from './pixi'
 
 export * from './stores'

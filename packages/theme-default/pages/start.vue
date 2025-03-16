@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { StartMenuItem } from '@advjs/theme-default'
-import { useAppStore } from '@advjs/client'
+import { advDataRef, useAppStore } from '@advjs/client'
 import { images } from '@advjs/theme-default'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -62,6 +62,9 @@ const menuItems = computed<StartMenuItem[]>(() =>
     <NewYunLogo class="text-8xl text-blue-600 mix-blend-screen" m="t-20" alt="YunYouJun Logo" />
     <h1 class="adv-game-title gradient-text shadow-co z-1 mt-2 from-purple-500 to-blue-500 bg-gradient-to-r text-xl text-shadow-lg" font="bold">
       Doki Doki ADV.JS
+
+      <!-- {{ advConfigRef.title }} -->
+      {{ advDataRef.config.title }}
     </h1>
   </div>
 

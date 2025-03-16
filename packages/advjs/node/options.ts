@@ -66,6 +66,10 @@ export interface ResolvedAdvOptions {
 
   mode: 'dev' | 'build'
   remote?: boolean
+  /**
+   * Base URL in dev or build mode
+   */
+  base?: string
 }
 
 export interface AdvPluginOptions extends AdvEntryOptions {

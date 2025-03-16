@@ -3,7 +3,7 @@ import type { ResolvedAdvOptions } from '../options'
 import { resolve } from 'node:path'
 import fs from 'fs-extra'
 import { build as viteBuild } from 'vite'
-import { getIndexHtml } from '../common'
+import setupIndexHtml from '../setups/indexHtml'
 import { resolveViteConfigs } from './shared'
 
 export async function build(
@@ -16,7 +16,7 @@ export async function build(
   if (fs.existsSync(indexPath))
     originalIndexHTML = await fs.readFile(indexPath, 'utf-8')
 
-  await fs.writeFile(indexPath, await getIndexHtml(options), 'utf-8')
+  await fs.writeFile(indexPath, setupIndexHtml(options), 'utf-8')
   let config: ResolvedConfig = undefined!
 
   try {
