@@ -52,15 +52,15 @@ export function commonOptions(args: Argv) {
  * @param remote
  */
 export function printInfo(options: ResolvedAdvOptions, port?: number, remote?: boolean) {
-  const { data: { config } } = options
+  const { data: { config, gameConfig } } = options
   const themeVersion = colors.blue(`v${options.data.themeConfig?.pkg?.version}`) || 'unknown'
 
   console.log()
   console.log()
   console.log(`${colors.bold('  🎮 ADV.JS')}  ${colors.blue(`v${version}`)} ${isInstalledGlobally.value ? colors.yellow('(global)') : ''}`)
   console.log()
-  if (config.title)
-    console.log(colors.dim('  ⚔️  Game      ') + colors.yellow(config.title))
+  if (gameConfig.title)
+    console.log(colors.dim('  ⚔️  Game      ') + colors.yellow(gameConfig.title))
 
   console.log(`  ${colors.dim('🗺️  Theme')}     > ${colors.green(config.theme)} (${themeVersion})`)
   if (config.format === 'fountain')

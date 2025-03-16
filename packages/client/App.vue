@@ -7,9 +7,9 @@ import { useAdvContext } from './composables'
 const { $adv } = useAdvContext()
 
 useHead({
-  title: $adv.config.title,
+  title: $adv.gameConfig.value.title,
   meta: [
-    { name: 'description', content: $adv.config.description },
+    { name: 'description', content: $adv.gameConfig.value.description },
   ],
 })
 

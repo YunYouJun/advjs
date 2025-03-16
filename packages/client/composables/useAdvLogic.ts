@@ -2,19 +2,17 @@ import type { AdvAst } from '@advjs/types'
 import { isScript, parseAst } from '@advjs/parser'
 import consola from 'consola'
 
-import { BackgroundSystem } from '../../pixi/system/background'
-import { useAdvStore } from '../../stores'
-// import { useAdvConfig } from '../../../composables'
-import { useCamera } from './operation'
-import { useTachies } from './tachies'
+import { BackgroundSystem } from '../pixi/system/background'
+import { useAdvStore } from '../stores'
+import { useAdvCamera } from './useAdvCamera'
+import { useAdvTachies } from './useAdvTachies'
 
 /**
  * Game Logic Helper
  */
-export function useLogic(ctx: {
+export function useAdvLogic(ctx: {
   functions: Record<string, () => void>
 }) {
-  // const advConfig = useAdvConfig()
   const store = useAdvStore()
 
   const useNav = () => {
@@ -69,7 +67,7 @@ export function useLogic(ctx: {
 
   const nav = useNav()
 
-  const tachies = useTachies()
+  const tachies = useAdvTachies()
 
   /**
    * 理解文本
@@ -142,7 +140,7 @@ export function useLogic(ctx: {
     }
   }
 
-  const camera = useCamera()
+  const camera = useAdvCamera()
 
   /**
    * run predefined
@@ -195,4 +193,4 @@ export function useLogic(ctx: {
   }
 }
 
-export type AdvLogic = ReturnType<typeof useLogic>
+export type AdvLogic = ReturnType<typeof useAdvLogic>

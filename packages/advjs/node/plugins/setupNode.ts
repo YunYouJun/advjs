@@ -1,34 +1,34 @@
+import type { Awaitable } from '@antfu/utils'
 import { resolve } from 'node:path'
-import { isObject } from '@antfu/utils'
+import { deepMergeWithArray } from '@antfu/utils'
 import { existsSync } from 'fs-extra'
-import jiti from 'jiti'
+import { loadModule } from '../utils'
 
-function deepMerge(a: any, b: any, rootPath = '') {
-  a = { ...a }
-  Object.keys(b).forEach((key) => {
-    if (isObject(a[key]))
-      a[key] = deepMerge(a[key], b[key], rootPath ? `${rootPath}.${key}` : key)
-    else if (Array.isArray(a[key]))
-      a[key] = [...a[key], ...b[key]]
-    else
-      a[key] = b[key]
-  })
-  return a
+export function mergeOptions<T, S extends Partial<T> = T>(
+  base: T,
+  options: S[],
+  merger: (base: T, options: S) => T = deepMergeWithArray as any,
+): T {
+  return options.reduce((acc, cur) => merger(acc, cur), base)
 }
 
-export async function loadSetups<T, R extends object>(roots: string[], name: string, arg: T, initial: R, merge = true): Promise<R> {
-  let returns = initial
+export async function loadSetups<F extends (...args: any) => any>(
+  roots: string[],
+  filename: string,
+  args: Parameters<F>,
+  extraLoader?: (root: string) => Awaitable<Awaited<ReturnType<F>>[]>,
+) {
+  const returns: Awaited<ReturnType<F>>[] = []
   for (const root of roots) {
-    const path = resolve(root, 'setup', name)
+    const path = resolve(root, 'setup', filename)
     if (existsSync(path)) {
-      const { default: setup } = jiti(__filename)(path)
-      const result = await setup(arg)
-      if (result !== null) {
-        returns = merge
-          ? deepMerge(returns, result)
-          : result
-      }
+      const { default: setup } = await loadModule(path) as { default: F }
+      const ret = await setup(...args)
+      if (ret)
+        returns.push(ret)
     }
+    if (extraLoader)
+      returns.push(...await extraLoader(root))
   }
   return returns
 }

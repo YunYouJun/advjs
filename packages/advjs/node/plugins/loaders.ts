@@ -1,7 +1,7 @@
 import type { AdvData } from '@advjs/types'
 import type { Plugin, ViteDevServer } from 'vite'
 import type { AdvServerOptions, ResolvedAdvOptions } from '../options'
-import { notNullish, slash } from '@antfu/utils'
+import { notNullish } from '@antfu/utils'
 import consola from 'consola'
 import { colors } from 'consola/utils'
 import equal from 'fast-deep-equal'
@@ -46,8 +46,7 @@ export function createAdvLoader(
       resolveId(id) {
         const virtualPrefixes = [
           '/@advjs/',
-          '@advjs:data',
-          '@advjs/configs/',
+          '#advjs/',
         ]
         if (virtualPrefixes.some(prefix => id.startsWith(prefix)))
           return id
@@ -159,6 +158,6 @@ export function createAdvLoader(
   function updateServerWatcher() {
     if (!server)
       return
-    server.watcher.add(data?.entries?.map(slash) || [])
+    server.watcher.add(Object.keys(data.watchFiles || {}))
   }
 }

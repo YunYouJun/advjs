@@ -49,10 +49,12 @@ catalog:
   '@types/xml2js': ^0.4.14
   '@types/yargs': ^17.0.33
   '@unhead/vue': ^1.11.20
-  '@unocss/eslint-config': ^65.5.0
-  '@unocss/nuxt': ^65.5.0
+  '@unocss/eslint-config': ^66.0.0
+  '@unocss/eslint-plugin': ^66.0.0
+  '@unocss/nuxt': ^66.0.0
   '@vite-pwa/nuxt': ^0.10.6
   '@vitejs/plugin-vue': ^5.2.1
+  '@vue-flow/core': ^1.42.3
   '@vueuse/core': ^13.0.0
   '@vueuse/head': ^2.0.0
   '@vueuse/motion': ^3.0.3
@@ -98,7 +100,6 @@ catalog:
   nuxt: ^3.16.0
   open: ^10.1.0
   pathe: ^2.0.3
-  picocolors: ^1.1.1
   pinia: ^3.0.1
   pixi-painter: ^0.1.6-beta.1
   pixi.js: 8.0.4
@@ -117,7 +118,7 @@ catalog:
   rimraf: ^6.0.1
   sass: ^1.85.1
   semver: ^7.7.1
-  splitpanes: ^4.0.2
+  splitpanes: ^4.0.3
   swiper: ^11.2.5
   to-vfile: ^8.0.0
   tsup: ^8.4.0
@@ -129,7 +130,7 @@ catalog:
   unified: ^11.0.5
   unist-builder: ^4.0.0
   unist-util-visit: ^5.0.0
-  unocss: ^65.5.0
+  unocss: ^66.0.0
   unplugin-vue-components: ^28.4.1
   unplugin-vue-markdown: ^28.3.1
   unplugin-vue-router: ^0.12.0

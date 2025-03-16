@@ -1,16 +1,20 @@
+import type { FlowExportObject } from '@vue-flow/core'
 // import type { FlowExportObject, VueFlowStore } from '@vue-flow/core'
 import type { AdvFlowItem } from '../../types'
-import { useVueFlow } from '@vue-flow/core'
+import { MarkerType, useVueFlow } from '@vue-flow/core'
 import { useStorage } from '@vueuse/core'
 import consola from 'consola'
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { defaultElements } from '../../constants'
+import { defaultElements, yourNameData } from '../../constants'
+import { useFlowLayout } from '../flow'
 
 export const GLOBAL_FLOW_ID = Symbol('advjs-global-flow')
 
 export const useFlowStore = defineStore('flow', () => {
   // const flowInstance = shallowRef<VueFlowStore>()
   const vueFlow = useVueFlow()
+
+  const { layout } = useFlowLayout()
 
   /**
    * Current flow item
@@ -77,6 +81,56 @@ export const useFlowStore = defineStore('flow', () => {
     addEdges(connection)
   })
 
+  /**
+   * refresh data
+   * for debug
+   */
+  async function refreshData() {
+    function postFlowData(data: FlowExportObject) {
+      const { nodes, edges } = data
+
+      nodes.forEach((node) => {
+        // node.type = 'default'
+        if (node.id === 'node_01') {
+          node.type = 'input'
+        }
+        else {
+          node.type = 'default'
+        }
+      })
+      edges.forEach((edge) => {
+        edge.markerEnd = MarkerType.ArrowClosed
+      })
+    }
+    postFlowData(yourNameData as unknown as FlowExportObject)
+
+    // @ts-expect-error ignore
+    curItem.value.data.nodes = yourNameData.nodes
+    curItem.value.data.edges = yourNameData.edges
+
+    layoutGraph('LR')
+  }
+
+  /**
+   * darge 布局
+   *
+   * @see https://vueflow.dev/examples/layout/simple.html
+   * @param direction
+   */
+  async function layoutGraph(direction: 'LR' | 'TB') {
+    curItem.value.data.nodes = layout(
+      // nodes.value,
+      curItem.value.data.nodes,
+      curItem.value.data.edges,
+      direction,
+    )
+
+    await nextTick()
+    setTimeout(() => {
+      vueFlow.fitView()
+    }, 1)
+  }
+
   return {
     // flowInstance,
     curItem,
@@ -85,6 +139,9 @@ export const useFlowStore = defineStore('flow', () => {
 
     resetTransform,
     logToObject,
+
+    refreshData,
+    layoutGraph,
   }
 })
 

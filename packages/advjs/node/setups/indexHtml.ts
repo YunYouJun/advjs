@@ -14,7 +14,7 @@ export default function setupIndexHtml({ mode, data, themeRoot, userRoot, client
   let head = ''
   let body = ''
 
-  head += `<link rel="icon" href="${data.config.favicon}">`
+  head += `<link rel="icon" href="${data.gameConfig.favicon}">`
 
   const roots = uniq([
     themeRoot,

@@ -4,7 +4,6 @@ import { join } from 'node:path'
 import process from 'node:process'
 
 import { createServer as createViteServer } from 'vite'
-import { VitePluginAdvDevTools } from '../../../devtools/src'
 import { resolveViteConfigs } from './shared'
 
 export async function createServer(
@@ -26,10 +25,6 @@ export async function createServer(
           join(options.clientRoot, 'main.ts'),
         ],
       },
-      plugins: [
-        VitePluginAdvDevTools(),
-
-      ],
     }),
     viteConfig,
     'serve',

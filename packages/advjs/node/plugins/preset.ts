@@ -1,16 +1,18 @@
 import type { PluginOption } from 'vite'
 import type { AdvPluginOptions, AdvServerOptions, ResolvedAdvOptions } from '../options'
+import { join } from 'node:path'
 import VueI18n from '@intlify/unplugin-vue-i18n/vite'
 import fs from 'fs-extra'
 import LinkAttributes from 'markdown-it-link-attributes'
 import { resolve } from 'pathe'
-import Components from 'unplugin-vue-components/vite'
 
+import Components from 'unplugin-vue-components/vite'
 import Markdown from 'unplugin-vue-markdown/vite'
 import VueRouter from 'unplugin-vue-router/vite'
+import vueDevTools from 'vite-plugin-vue-devtools'
+
 import Layouts from 'vite-plugin-vue-layouts'
 import { createVuePlugin } from '../vite/vue'
-
 import { createConfigPlugin } from './extendConfig'
 import { createAdvLoader } from './loaders'
 // import { createClientSetupPlugin } from './setupClient'
@@ -45,22 +47,24 @@ export async function ViteAdvPlugin(
     // https://github.com/posva/unplugin-vue-router
     VueRouter({
       extensions: ['.vue', '.md'],
-      routesFolder: roots.map(root => `${root}/pages`),
+      routesFolder: roots.map(root => join(root, 'pages')),
       exclude: ['**/*.adv.md'],
       dts: resolve(tempDir, 'typed-router.d.ts'),
     }),
 
     // https://github.com/JohnCampionJr/vite-plugin-vue-layouts
     Layouts({
-      layoutsDirs: roots.map(root => `${root}/layouts`),
+      layoutsDirs: roots.map(root => join(root, 'layouts')),
     }),
 
     Components({
       extensions: ['vue', 'md'],
 
       dirs: roots
-        .map(root => `${root}/components`)
-        .concat([`${clientRoot}/builtin`]),
+        .map(root => join(root, 'components'))
+        .concat([
+          join(clientRoot, 'builtin'),
+        ]),
 
       include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
       dts: resolve(tempDir, 'components.d.ts'),
@@ -92,6 +96,9 @@ export async function ViteAdvPlugin(
       include: roots.map(root => `${root}/locales/**`),
     }),
 
+    vueDevTools({
+      appendTo: join(options.clientRoot, 'main.ts'),
+    }),
     // todo download remote assets
   ])
 }

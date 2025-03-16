@@ -1,6 +1,5 @@
 import type { VFile } from 'vfile'
-import type { AdvConfig } from './config'
-import type { AdvThemeConfig } from './theme'
+import type { AdvConfig, AdvGameConfig } from './config'
 
 export interface AdvFeatureFlags {
   babylon: boolean
@@ -15,7 +14,7 @@ export interface AdvThemeMeta {
   colorSchema?: 'dark' | 'light' | 'both'
 }
 
-export interface AdvData {
+export interface AdvData<ThemeConfig = any> {
   file: VFile
   // advjs: AdvInfo[]
   raw: string
@@ -24,6 +23,8 @@ export interface AdvData {
   filepath?: string
   entries?: string[]
 
+  watchFiles?: string[]
+
   /**
    * Adv Config
    */
@@ -31,9 +32,24 @@ export interface AdvData {
   configFile: string
 
   /**
-   * theme
+   * Game config
+   */
+  gameConfig: AdvGameConfig
+  gameConfigFile: string
+
+  /**
+   * Theme
    */
   themeMeta?: AdvThemeMeta
-  themeConfig: AdvThemeConfig
+  themeConfig: ThemeConfig & {
+    /**
+     * theme package.json
+     */
+    pkg: {
+      name: string
+      version: string
+      [key: string]: any
+    }
+  }
   themeConfigFile?: string
 }

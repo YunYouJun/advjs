@@ -1,3 +1,5 @@
+/// <reference types="@advjs/types/client" />
+
 import type { UserModule } from './types'
 import { createApp } from 'vue'
 import App from './App.vue'
@@ -11,7 +13,6 @@ async function main() {
   const app = createApp(App)
   const { router } = await setupMain(app)
   const ctx = { app, isClient: typeof window !== 'undefined', router }
-
   /**
    * glob import all modules
    */
@@ -25,7 +26,7 @@ async function main() {
    * adv client ctx
    * after modules load (pinia, ...)
    */
-  setupAdv(ctx)
+  await setupAdv(ctx)
 
   app.mount('#app')
     .$nextTick(() => {

@@ -1,4 +1,4 @@
-import { resolve } from 'node:path'
+import path, { resolve } from 'node:path'
 import { commonAlias } from '../../packages/shared/node'
 import { pwa } from './app/config/pwa'
 import { appDescription } from './app/constants/index'
@@ -93,7 +93,7 @@ export default defineNuxtConfig({
   components: [
     // remove prefix
     { path: '~/components', pathPrefix: false },
-    { path: '../../packages/gui/src/components', pathPrefix: false },
+    { path: path.resolve(import.meta.dirname, '../../packages/theme-default/components'), pathPrefix: false },
   ],
 
   pwa,

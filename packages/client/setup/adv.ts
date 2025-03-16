@@ -1,29 +1,48 @@
-import type { UserModule } from '~/types'
-import { advDataSymbol, appConfigSymbol, themeConfigSymbol } from '@advjs/core'
-import { computed, reactive } from 'vue'
-import { injectionAdvContext } from '../constants'
+import type { AdvContext, UserModule } from '~/types'
+import setups from '#advjs/setups/adv'
+import { advConfigSymbol, advDataSymbol, gameConfigSymbol, themeConfigSymbol } from '@advjs/core'
+import { computed } from 'vue'
 
+import { injectionAdvContext } from '../constants'
 import { initAdvData } from '../data'
-// import { advConfig } from '../env'
+
 import { useAdvStore } from '../stores'
 
-export const setupAdv: UserModule = ({ app }) => {
+export const setupAdv: UserModule = async ({ app, router }) => {
   // inject adv config before modules
   // const advConfig = initAdvConfig()
   const advData = initAdvData()
+  const advConfig = computed(() => advData.value.config)
+  const gameConfig = computed(() => advData.value.gameConfig)
   const themeConfig = computed(() => advData.value.config.themeConfig)
 
   app.provide(advDataSymbol, advData)
-  app.provide(appConfigSymbol, computed(() => advData.value.config))
+
+  app.provide(advConfigSymbol, advConfig)
+  app.provide(gameConfigSymbol, gameConfig)
   app.provide(themeConfigSymbol, themeConfig)
 
-  // handler HMR when router is ready
   const store = useAdvStore()
-  app.provide(injectionAdvContext, reactive({
+  const advContext: AdvContext = {
     store,
-    config: advData.value.config,
+    config: advConfig,
+    gameConfig,
     themeConfig,
     functions: {},
     nav: {},
-  }))
+  }
+
+  Object.defineProperties(app.config.globalProperties, {
+    $adv: {
+      get() {
+        return advContext
+      },
+    },
+  })
+
+  // handler HMR when router is ready
+  app.provide(injectionAdvContext, advContext)
+
+  for (const setup of setups)
+    await setup({ app, router, $adv: advContext })
 }

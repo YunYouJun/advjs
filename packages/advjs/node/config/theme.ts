@@ -1,13 +1,12 @@
-import type { AdvThemeConfig } from '@advjs/types'
-import type { ResolvedAdvOptions } from '../options'
+import type { AdvEntryOptions } from '../options'
+import process from 'node:process'
 import { loadConfig } from 'c12'
-import fs from 'fs-extra'
 
 /**
  * resolve theme config from special root
  */
 export async function resolveThemeConfigFromRoot(root: string) {
-  return loadConfig<AdvThemeConfig>({
+  return loadConfig<any>({
     cwd: root,
     configFile: 'theme.config',
     // defaultConfig:
@@ -17,12 +16,8 @@ export async function resolveThemeConfigFromRoot(root: string) {
 /**
  * Resolve user theme config
  */
-export async function loadAdvThemeConfig(options: ResolvedAdvOptions) {
-  const { config: themeConfig, configFile: themeConfigFile } = await resolveThemeConfigFromRoot(options.userRoot)
-
-  const { themeRoot } = options
-  const pkg = await fs.readJSON(`${themeRoot}/package.json`)
-  themeConfig.pkg = pkg
+export async function loadAdvThemeConfig(options: AdvEntryOptions) {
+  const { config: themeConfig, configFile: themeConfigFile } = await resolveThemeConfigFromRoot(options.userRoot || process.cwd())
 
   return {
     themeConfig,

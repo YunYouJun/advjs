@@ -24,7 +24,7 @@ function onChange(val: Event | any) {
     class="adv-select w-full rounded"
     border="~ 1"
     p="x-2"
-    text="lg"
+    text="xl"
     @change="onChange"
   >
     <option v-for="item in props.options" :key="item.value" :value="item.value">
@@ -32,4 +32,3 @@ function onChange(val: Event | any) {
     </option>
   </select>
 </template>
-@advjs/

@@ -1,6 +1,6 @@
 import type { AdvData } from '@advjs/types'
 // virtual module
-import advData from '@advjs:data'
+import advData from '#advjs/data'
 
 import { computed, readonly, shallowRef } from 'vue'
 
@@ -12,7 +12,7 @@ export const advDataRef = shallowRef<AdvData>(
 if (__DEV__) {
   if (import.meta.hot) {
     // id must be static string
-    import.meta.hot!.accept('@advjs:data', (m) => {
+    import.meta.hot!.accept('#advjs/data', (m) => {
       if (m) {
         advDataRef.value = m.default
       }
@@ -36,4 +36,5 @@ export function initAdvData() {
 
 export const advAspect = computed(() => advDataRef.value.config.aspectRatio)
 export const advWidth = computed(() => advDataRef.value.config.canvasWidth)
-export const advHeight = computed(() => Math.round(advWidth.value / advAspect.value))
+// To honor the aspect ratio more as possible, we need to approximate the height to the next integer.
+export const advHeight = computed(() => Math.ceil(advWidth.value / advAspect.value))

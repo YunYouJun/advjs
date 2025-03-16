@@ -1,34 +1,28 @@
 <script setup lang="ts">
-import { useCssVar, useElementSize } from '@vueuse/core'
-import { computed, ref, watchEffect } from 'vue'
+import { provideLocal, useElementSize } from '@vueuse/core'
+import { computed, ref } from 'vue'
+import { injectionAdvContent, injectionAdvScale } from '../../constants'
 import { advAspect, advDataRef, advHeight, advWidth } from '../../data'
 import { useAppStore } from '../../stores'
 
 const props = withDefaults(defineProps<{
   width?: number
   meta?: any
-  scale?: number | string
+  scale?: number
+  contentStyle?: object
 }>(), {})
 const app = useAppStore()
 
-const root = ref<HTMLDivElement>()
-const element = useElementSize(root)
+const container = ref<HTMLDivElement>()
+const advContentRef = ref<HTMLDivElement>()
+const containerSize = useElementSize(container)
 
-const width = computed(() => props.width ? props.width : element.width.value)
-const height = computed(() => props.width ? props.width / advAspect.value : element.height.value)
-
-if (props.width) {
-  watchEffect(() => {
-    if (root.value) {
-      root.value.style.width = `${width.value}px`
-      root.value.style.height = `${height.value}px`
-    }
-  })
-}
+const width = computed(() => props.width ? props.width : containerSize.width.value)
+const height = computed(() => props.width ? props.width / advAspect.value : containerSize.height.value)
 
 const screenAspect = computed(() => app.isHorizontal ? width.value / height.value : height.value / width.value)
 
-const containerScale = computed(() => {
+const scale = computed(() => {
   if (props.scale)
     return props.scale
 
@@ -38,28 +32,42 @@ const containerScale = computed(() => {
   return app.isHorizontal ? (height.value * advAspect.value) / advWidth.value : (width.value / advHeight.value)
 })
 
-const style = computed(() => ({
+const containerStyle = computed(() => props.width
+  ? {
+      width: `${props.width}px`,
+      height: `${props.width / advAspect.value}px`,
+    }
+  : {},
+)
+
+const contentStyle = computed(() => ({
+  ...props.contentStyle,
   '--adv-screen-width': `${advWidth.value}px`,
   '--adv-screen-height': `${advHeight.value}px`,
-  'transform': `translate(-50%, -50%) scale(${containerScale.value}) rotate(${app.rotation}deg)`,
+  '--adv-screen-scale': scale.value,
+  'transform': `translate(-50%, -50%) scale(${scale.value}) rotate(${app.rotation}deg)`,
 }))
-
-const fontSize = useCssVar('font-size')
-watchEffect(() => {
-  fontSize.value = `${advWidth.value / 80}px`
-})
 
 const className = computed(() => ({
   'select-none': !advDataRef.value.config.selectable,
 }))
+
+provideLocal(injectionAdvScale, scale)
+provideLocal(injectionAdvContent, advContentRef)
 </script>
 
 <template>
-  <div ref="root" class="adv-screen relative overflow-hidden" bg="black" :class="className">
+  <div
+    ref="container"
+    class="adv-screen relative overflow-hidden" bg="black"
+    :class="className"
+    :style="containerStyle"
+  >
     <div
       id="adv-content"
+      ref="advContentRef"
       class="relative h-$adv-screen-height w-$adv-screen-width flex transition"
-      :style="style"
+      :style="contentStyle"
     >
       <slot />
     </div>

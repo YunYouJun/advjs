@@ -25,7 +25,7 @@ const popDown = useSound(popDownUrl, { volume: sVolume })
   align-items: center;
 
   border-radius: 50%;
-  padding: 0.6rem;
+  padding: 1rem;
   cursor: pointer;
 
   transition: 0.2s;

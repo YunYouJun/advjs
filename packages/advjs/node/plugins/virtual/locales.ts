@@ -1,6 +1,7 @@
 import type { VirtualModuleTemplate } from './types'
 import { existsSync, readFileSync } from 'node:fs'
 
+import { join } from 'node:path'
 import { toAtFS } from '../../resolver'
 
 export const templateLocales: VirtualModuleTemplate = {
@@ -13,7 +14,8 @@ export const templateLocales: VirtualModuleTemplate = {
 
     roots.forEach((root, i) => {
       languages.forEach((lang) => {
-        const langYml = `${root}/locales/${lang}.yml`
+        const langYml = join(root, 'locales', `${lang}.yml`)
+
         // file not null
         if (existsSync(langYml) && readFileSync(langYml, 'utf-8')) {
           const varName = lang.replace('-', '') + i

@@ -1,35 +1,48 @@
 import type { Alias, InlineConfig, Plugin } from 'vite'
 import type { ResolvedAdvOptions } from '../options'
 import { dirname, join, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { uniq } from '@antfu/utils'
+
+import { createResolve } from 'mlly'
 
 import { mergeConfig } from 'vite'
 
 import { ADV_VIRTUAL_MODULES } from '../config'
 
-import { require } from '../env'
-
-import { resolveImportPath, toAtFS } from '../resolver'
+import { isInstalledGlobally, resolveImportPath, toAtFS } from '../resolver'
 import setupIndexHtml from '../setups/indexHtml'
 import { searchForWorkspaceRoot } from '../vite/searchRoot'
 
 // import { commonAlias } from '../../../shared/config/vite'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-const EXCLUDE = [
+const EXCLUDE_GLOBAL = [
   // avoid css parse by vite
   'animate.css',
 
+  '@antfu/utils',
+  '@unhead/vue',
+
   '@vueuse/core',
   '@vueuse/shared',
+  '@vueuse/shared',
   'vue-demi',
+  'vue-router',
+  'vue',
 
   '@types/mdast',
 
   // internal
   ...ADV_VIRTUAL_MODULES,
+
+  '@advjs/client',
+  '@advjs/client/types',
+  '@advjs/types',
+
+  'floating-vue',
 ]
+const EXCLUDE_LOCAL = EXCLUDE_GLOBAL
 
 const babylonDeps = [
   'babylon-vrm-loader',
@@ -41,36 +54,46 @@ const babylonDeps = [
   '@babylonjs/loaders/glTF',
 ]
 
-function filterDeps(deps: Record<string, string>) {
-  return Object.keys(deps).filter(i => !EXCLUDE.includes(i) && !i.startsWith('@advjs/') && !i.startsWith('#advjs') && !i.startsWith('@types'))
-}
+// function filterDeps(deps: Record<string, string>) {
+//   return Object.keys(deps).filter(i => !EXCLUDE.includes(i) && !i.startsWith('@advjs/') && !i.startsWith('#advjs') && !i.startsWith('@types'))
+// }
+
+const INCLUDE_GLOBAL: string[] = []
+const INCLUDE_LOCAL = [
+  'typescript',
+  // 合并请求
+  '@vueuse/motion',
+  'pixi.js',
+]
+
+// const { dependencies: parserDeps } = await import('@advjs/parser/package.json', { assert: { type: 'json' } })
+// const { dependencies: clientDeps } = await import('@advjs/client/package.json', { assert: { type: 'json' } })
+// const { dependencies: coreDeps } = await import('@advjs/core/package.json', { assert: { type: 'json' } })
+
+// const parserDeps = 'dependencies' in parserPkg ? parserPkg.dependencies : {}
+// const clientDeps = 'dependencies' in clientPkg ? clientPkg.dependencies : {}
+// const coreDeps = 'dependencies' in corePkg ? corePkg.dependencies : {}
 
 export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<Plugin> {
-  const clientPkg = require('@advjs/client/package.json')
-  const corePkg = require('@advjs/core/package.json')
-  // const { dependencies: parserDeps } = await import('@advjs/parser/package.json', { assert: { type: 'json' } })
-  // const { dependencies: clientDeps } = await import('@advjs/client/package.json', { assert: { type: 'json' } })
-  // const { dependencies: coreDeps } = await import('@advjs/core/package.json', { assert: { type: 'json' } })
-  const parserPkg = require('@advjs/parser/package.json')
+  const resolveClientDep = createResolve({
+    // Same as Vite's default resolve conditions
+    conditions: ['import', 'module', 'browser', 'default', options.mode === 'build' ? 'production' : 'development'],
+    url: pathToFileURL(options.clientRoot),
+  })
 
-  const parserDeps = 'dependencies' in parserPkg ? parserPkg.dependencies : {}
-  const clientDeps = 'dependencies' in clientPkg ? clientPkg.dependencies : {}
-  const coreDeps = 'dependencies' in corePkg ? corePkg.dependencies : {}
-
-  let INCLUDE = [
-    ...filterDeps(parserDeps),
-    ...filterDeps(clientDeps),
-    ...filterDeps(coreDeps),
-  ]
-
-  if (options.data.config.features.babylon)
-    INCLUDE = INCLUDE.concat(babylonDeps)
+  if (options.data.config.features.babylon) {
+    INCLUDE_LOCAL.push(...babylonDeps)
+  }
 
   const themeDefaultRoot = resolve(__dirname, '../../../theme-default')
   const alias: Alias[] = [
     { find: '~/', replacement: `${toAtFS(options.clientRoot)}/` },
-    { find: '@advjs/client', replacement: `${toAtFS(options.clientRoot)}/index.ts` },
-    { find: '@advjs/client/', replacement: `${toAtFS(options.clientRoot)}/` },
+    /**
+     * `/` 开头无法 declare module 类型
+     */
+    { find: /^#advjs\/(.*)/, replacement: '/@advjs/$1' },
+    { find: /^@advjs\/client$/, replacement: `${toAtFS(options.clientRoot)}/index.ts` },
+    { find: /^@advjs\/client\/(.*)/, replacement: `${toAtFS(options.clientRoot)}/$1` },
     { find: '@advjs/core', replacement: `${resolve(__dirname, '../../../core/src')}/index.ts` },
     { find: '@advjs/parser', replacement: `${toAtFS(resolve(__dirname, '../../../parser/src', 'index.ts'))}` },
     { find: '@advjs/shared', replacement: `${toAtFS(resolve(__dirname, '../../../shared/src', 'index.ts'))}` },
@@ -84,26 +107,32 @@ export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<P
     async config(config) {
       const injection: InlineConfig = {
         // cacheDir: join(options.userRoot, 'node_modules/.vite'),
-        cacheDir: join(options.userRoot, 'node_modules/.valaxy/cache'),
+        cacheDir: join(options.userRoot, '.adv/cache'),
         publicDir: join(options.userRoot, 'public'),
 
         define: getDefine(options),
         resolve: {
           alias: [
             ...alias,
-
             {
               find: 'vue',
               replacement: await resolveImportPath('vue/dist/vue.esm-bundler.js', true),
             },
+            ...(isInstalledGlobally.value
+              ? await Promise.all(INCLUDE_GLOBAL.map(async dep => ({
+                find: dep,
+                replacement: fileURLToPath(await resolveClientDep(dep)),
+              })))
+              : []
+            ),
           ],
           dedupe: ['vue'],
         },
         optimizeDeps: {
           entries: [resolve(options.clientRoot, 'main.ts')],
 
-          include: INCLUDE,
-          exclude: EXCLUDE,
+          include: INCLUDE_LOCAL,
+          exclude: EXCLUDE_LOCAL,
         },
         server: {
           fs: {

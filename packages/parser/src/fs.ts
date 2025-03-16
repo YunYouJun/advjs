@@ -1,4 +1,4 @@
-import type { AdvData } from '../../types'
+import type { AdvData } from '@advjs/types'
 // import { dirname } from 'path'
 import { read } from 'to-vfile'
 

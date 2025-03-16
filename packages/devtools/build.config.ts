@@ -13,7 +13,4 @@ export default defineBuildConfig({
     'unstorage',
     'nitropack',
   ],
-  rollup: {
-    inlineDependencies: true,
-  },
 })

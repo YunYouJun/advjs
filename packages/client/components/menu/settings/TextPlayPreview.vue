@@ -80,15 +80,15 @@ const fontSizeItem = computed<AdvMenuItemProps<'RadioGroup', FontSizeOption>>(()
     options: [
       {
         label: t('font_size.small'),
-        value: 'xl',
-      },
-      {
-        label: t('font_size.normal'),
         value: '2xl',
       },
       {
-        label: t('font_size.big'),
+        label: t('font_size.normal'),
         value: '3xl',
+      },
+      {
+        label: t('font_size.big'),
+        value: '4xl',
       },
     ],
     onClick(options) {

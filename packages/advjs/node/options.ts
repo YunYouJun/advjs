@@ -1,9 +1,9 @@
-import type { AdvConfig, AdvData } from '@advjs/types'
+import type { AdvData } from '@advjs/types'
 // import type RemoteAssets from 'vite-plugin-remote-assets'
 // import type ServerRef from 'vite-plugin-vue-server-ref'
 import type { ArgumentsType } from '@antfu/utils'
 import type Vue from '@vitejs/plugin-vue'
-import type UnoCSS from 'unocss/vite'
+import type { VitePluginConfig as UnoCSSConfig } from 'unocss/vite'
 import type Components from 'unplugin-vue-components/vite'
 import type Markdown from 'unplugin-vue-markdown'
 import { dirname, join, resolve } from 'node:path'
@@ -13,10 +13,11 @@ import { fileURLToPath } from 'node:url'
 import { load } from '@advjs/parser/fs'
 import { uniq } from '@antfu/utils'
 import _debug from 'debug'
-import { loadAdvConfig } from './config'
-import { loadAdvThemeConfig } from './config/theme'
+import fs from 'fs-extra'
+import { loadAdvConfigs } from './config'
 import { packageExists, resolveImportPath } from './resolver'
 import { getThemeMeta, resolveThemeName } from './themes'
+
 import { getAdvThemeRoot } from './utils/root'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -46,8 +47,6 @@ export interface AdvEntryOptions {
   userRoot?: string
 }
 
-export type AdvUserConfig = Partial<AdvConfig>
-
 export interface ResolvedAdvOptions {
   /**
    * 都放在 data 下以便一起处理 HMR
@@ -76,7 +75,7 @@ export interface AdvPluginOptions extends AdvEntryOptions {
   vue?: ArgumentsType<typeof Vue>[0]
   markdown?: ArgumentsType<typeof Markdown>[0]
   components?: ArgumentsType<typeof Components>[0]
-  unocss?: ArgumentsType<typeof UnoCSS>[0]
+  unocss?: UnoCSSConfig
   // remoteAssets?: ArgumentsType<typeof RemoteAssets>[0]
   // serverRef?: ArgumentsType<typeof ServerRef>[0]
 }
@@ -126,7 +125,15 @@ export async function resolveOptions(
   /**
    * Load adv.js config
    */
-  const { config, configFile = '' } = await loadAdvConfig()
+  const {
+    config,
+    configFile = '',
+    gameConfig,
+    gameConfigFile = '',
+    themeConfig,
+    themeConfigFile = '',
+  } = await loadAdvConfigs(options)
+
   let data: AdvData = {} as AdvData
   if (config.format === 'fountain') {
     // avoid type error, type see packages/parser/fs
@@ -135,6 +142,10 @@ export async function resolveOptions(
 
   data.config = config
   data.configFile = configFile
+  data.gameConfig = gameConfig
+  data.gameConfigFile = gameConfigFile
+  data.themeConfig = themeConfig
+  data.themeConfigFile = themeConfigFile
 
   const theme = await resolveThemeName(options.theme)
   /**
@@ -150,7 +161,15 @@ export async function resolveOptions(
   const clientRoot = await getClientRoot()
   const themeRoot = await getAdvThemeRoot(theme)
 
-  const roots = uniq([clientRoot, themeRoot, userRoot])
+  const pkg = await fs.readJSON(`${themeRoot}/package.json`)
+  themeConfig.pkg = pkg
+
+  const roots = uniq([
+    clientRoot,
+    themeRoot,
+    userRoot,
+    resolve(userRoot, data.config.root || ''),
+  ])
 
   const advOptions: ResolvedAdvOptions = {
     data,
@@ -165,13 +184,6 @@ export async function resolveOptions(
     roots,
     remote,
   }
-
-  /**
-   * Load theme config
-   */
-  const { themeConfig, themeConfigFile } = await loadAdvThemeConfig(advOptions)
-  data.themeConfig = themeConfig
-  data.themeConfigFile = themeConfigFile
 
   if (themeRoot) {
     const themeMeta = await getThemeMeta(theme, join(themeRoot, 'package.json'))

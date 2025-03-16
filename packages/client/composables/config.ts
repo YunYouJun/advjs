@@ -1,19 +1,32 @@
-import { advConfigSymbol, appConfigSymbol } from '@advjs/core'
+import { advConfigSymbol, advDataSymbol, gameConfigSymbol } from '@advjs/core'
 import { inject } from 'vue'
 
 /**
- * get app config in client
+ * get game config in client
  */
-export function useAppConfig() {
-  const config = inject(appConfigSymbol)
+export function useGameConfig() {
+  const config = inject(gameConfigSymbol)
   if (!config)
-    throw new Error('[ADV.JS] app config not properly injected in client.')
+    throw new Error('[ADV.JS] game config not properly injected in client.')
   return config!
 }
 
+/**
+ * adv.config.ts
+ */
 export function useAdvConfig() {
   const config = inject(advConfigSymbol)
   if (!config)
     throw new Error('[ADV.JS] adv config not properly injected in client.')
+  return config!
+}
+
+/**
+ * advData
+ */
+export function useAdvData() {
+  const config = inject(advDataSymbol)
+  if (!config)
+    throw new Error('[ADV.JS] adv data not properly injected in client.')
   return config!
 }

@@ -1,6 +1,5 @@
 import type { LogLevel, ViteDevServer } from 'vite'
 import type { Argv } from 'yargs'
-import type { AdvData } from '../../../types'
 import { exec } from 'node:child_process'
 import path from 'node:path'
 import process from 'node:process'
@@ -11,6 +10,8 @@ import openBrowser from 'open'
 import prompts from 'prompts'
 import { createServer } from '../commands/serve'
 import { loadAdvConfig } from '../config'
+import { loadAdvGameConfig } from '../config/game'
+import { loadAdvThemeConfig } from '../config/theme'
 import { resolveOptions } from '../options'
 import { commonOptions, findFreePort, printInfo } from './utils'
 
@@ -86,15 +87,30 @@ export async function advDev(options: {
         logLevel: log as LogLevel,
       },
       {
-        async loadData() {
-          const { config } = await loadAdvConfig()
-
-          const newData: AdvData = {
-            ...data,
-            config,
+        async loadData(loadedSource) {
+          const file = Object.keys(loadedSource)[0]
+          if (file.endsWith('adv.config.ts')) {
+            const { config } = await loadAdvConfig()
+            return {
+              ...data,
+              config,
+            }
           }
-
-          return newData
+          else if (file.endsWith('game.config.ts')) {
+            const { gameConfig } = await loadAdvGameConfig()
+            return {
+              ...data,
+              gameConfig,
+            }
+          }
+          else if (file.endsWith('theme.config.ts')) {
+            const { themeConfig } = await loadAdvThemeConfig(options)
+            return {
+              ...data,
+              themeConfig,
+            }
+          }
+          return false
         },
       },
     ))

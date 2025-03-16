@@ -1,6 +1,6 @@
-import { useAdvStore } from '../../stores'
+import { useAdvStore } from '../stores'
 
-export function useCamera() {
+export function useAdvCamera() {
   const store = useAdvStore()
   return {
     handle() {

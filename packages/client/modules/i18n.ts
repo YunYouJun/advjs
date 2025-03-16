@@ -17,12 +17,14 @@ import { createI18n } from 'vue-i18n'
 // @ts-expect-error virtual
 import messages from '/@advjs/locales'
 
-export const install: UserModule = ({ app }) => {
-  const i18n = createI18n({
-    legacy: false,
-    locale: 'zh-CN',
-    messages,
-  })
+const i18n = createI18n({
+  legacy: false,
+  locale: 'zh-CN',
+  messages,
+})
 
+export const $t = i18n.global.t
+
+export const install: UserModule = ({ app }) => {
   app.use(i18n)
 }

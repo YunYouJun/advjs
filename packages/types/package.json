@@ -32,6 +32,11 @@
   },
   "dependencies": {
     "@antfu/utils": "catalog:",
-    "@types/mdast": "catalog:"
+    "@types/mdast": "catalog:",
+    "@types/unist": "catalog:",
+    "@vue-flow/core": "catalog:",
+    "unocss": "catalog:",
+    "vue": "catalog:",
+    "vue-router": "catalog:"
   }
 }

@@ -38,7 +38,7 @@ export async function resolveViteConfigs(
     plugins: await ViteAdvPlugin(options, {}, serverOptions),
     define: {
       // Fixes Vue production mode breaking PDF Export #1245
-      __VUE_PROD_DEVTOOLS__: false,
+      // __VUE_PROD_DEVTOOLS__: false,
     },
   } satisfies InlineConfig)
 

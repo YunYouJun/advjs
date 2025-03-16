@@ -49,11 +49,11 @@ const items = computed(() => {
 <template>
   <div class="menu-panel grid grid-cols-24" gap="0" h="full" text="2xl">
     <div col="span-18" class="overflow-y-scroll">
-      <div grid="~ cols-12 gap-5" p="4">
+      <div grid="~ cols-12 gap-5" p="6">
         <h1
           col="span-12"
           class="adv-font-serif font-black"
-          text="4xl"
+          text="6xl"
         >
           {{ t('settings.title') }}
         </h1>

@@ -1,23 +1,26 @@
-import type { AdvConfig } from '@advjs/types'
+import type { AssetsManifest } from 'pixi.js'
 import { Application, Assets } from 'pixi.js'
 import { BackgroundSystem } from './system/background'
 import { TachieSystem } from './system/tachie'
 
 export class PixiGame {
-  config: AdvConfig
-
   app: Application
   // wait init
   BgSystem!: BackgroundSystem
   TachieSystem!: TachieSystem
 
-  constructor(config: AdvConfig) {
+  assetsManifest: AssetsManifest | null = null
+
+  constructor() {
     const app = new Application()
     this.app = app
-    this.config = config
 
     // @ts-expect-error debug
     window.__PIXI_APP__ = app
+  }
+
+  async setAssetsManifest(manifest: AssetsManifest) {
+    this.assetsManifest = manifest
   }
 
   async init(canvas: HTMLCanvasElement) {
@@ -29,9 +32,11 @@ export class PixiGame {
       // resolution: window.devicePixelRatio,
     })
 
-    await Assets.init({
-      manifest: this.config.assets.manifest,
-    })
+    if (this.assetsManifest) {
+      await Assets.init({
+        manifest: this.assetsManifest,
+      })
+    }
 
     await Assets.loadBundle('game-screen')
 

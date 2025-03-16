@@ -1,4 +1,4 @@
-import { defineAppSetup } from '@advjs/types'
+import { defineAppSetup } from '@advjs/client'
 import consola from 'consola'
 
 export default defineAppSetup(() => {

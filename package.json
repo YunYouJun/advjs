@@ -85,7 +85,7 @@
     "@types/unist": "catalog:",
     "@types/wicg-file-system-access": "catalog:",
     "@types/yargs": "catalog:",
-    "@unocss/eslint-plugin": "^65.5.0",
+    "@unocss/eslint-plugin": "catalog:",
     "@webgpu/types": "catalog:",
     "advjs": "workspace:*",
     "bumpp": "catalog:",

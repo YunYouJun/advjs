@@ -34,8 +34,7 @@
   ],
   "scripts": {
     "build": "unbuild",
-    "jiti-fix": "tsx scripts/jiti-fix.ts",
-    "dev": "unbuild --stub && npm run jiti-fix",
+    "dev": "unbuild --stub",
     "prepublishOnly": "npm run build",
     "start": "tsx src/index.ts",
     "test": "vitest"

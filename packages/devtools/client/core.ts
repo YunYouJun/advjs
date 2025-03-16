@@ -5,7 +5,7 @@ import { createDevToolsHooks } from './hooks'
 export function createDevToolsContainer(App: Component) {
   const hook = createDevToolsHooks()
 
-  const CONTAINER_ID = '__vue-devtools-container__'
+  const CONTAINER_ID = '__advjs-devtools-container__'
   const el = document.createElement('div')
   el.setAttribute('id', CONTAINER_ID)
   el.setAttribute('data-v-inspector-ignore', 'true')

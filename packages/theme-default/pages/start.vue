@@ -1,70 +1,30 @@
 <script lang="ts" setup>
-import type { StartMenuItem } from '@advjs/theme-default'
-import { advDataRef, useAppStore } from '@advjs/client'
-import { images } from '@advjs/theme-default'
-import { computed, onMounted, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useAppStore, useGameConfig } from '@advjs/client'
+import { images, useThemeDefaultStore } from '@advjs/theme-default'
+import { onMounted, ref } from 'vue'
 
 const app = useAppStore()
-
-const { t } = useI18n()
-const router = useRouter()
+const gameConfig = useGameConfig()
 
 const rippleAnimation = ref(true)
 onMounted(() => {
   rippleAnimation.value = false
 })
 
-const menuItems = computed<StartMenuItem[]>(() =>
-  [
-    {
-      title: t('menu.new_game'),
-      do: () => {
-        router.push('/game')
-      },
-    },
-    {
-      title: t('menu.load_game'),
-      do: () => {
-        app.toggleShowLoadMenu()
-      },
-    },
-    {
-      title: t('menu.settings'),
-      do: () => {
-        app.toggleShowMenu()
-      },
-    },
-    {
-      title: t('menu.help'),
-      do: () => {
-        router.push('/help')
-      },
-    },
-    {
-      title: t('menu.quit'),
-      do: () => {
-        window.close()
-
-        // eslint-disable-next-line no-alert
-        window.alert('为什么不直接关浏览器窗口呢？╮(￣▽￣"")╭')
-      },
-    },
-  ],
-)
+const themeStore = useThemeDefaultStore()
 </script>
 
 <template>
   <div
     class="animate__animated animate__fadeIn adv-start-game-logo inline-flex flex-col animate-delay-600 items-center mix-blend-hard-light"
+    absolute right-5rem min-w-25rem
   >
-    <NewYunLogo class="text-8xl text-blue-600 mix-blend-screen" m="t-20" alt="YunYouJun Logo" />
-    <h1 class="adv-game-title gradient-text shadow-co z-1 mt-2 from-purple-500 to-blue-500 bg-gradient-to-r text-xl text-shadow-lg" font="bold">
-      Doki Doki ADV.JS
-
-      <!-- {{ advConfigRef.title }} -->
-      {{ advDataRef.config.title }}
+    <NewYunLogo class="text-9xl text-blue-600 mix-blend-screen" m="t-20" alt="YunYouJun Logo" />
+    <h1
+      class="adv-game-title gradient-text shadow-co z-1 mt-2 from-purple-500 to-blue-500 bg-gradient-to-r text-4xl text-shadow-lg"
+      font="bold"
+    >
+      {{ gameConfig.title }}
     </h1>
   </div>
 
@@ -76,12 +36,12 @@ const menuItems = computed<StartMenuItem[]>(() =>
   >
 
   <img
-    class="animate__animated animate__fadeInRight absolute top-5 z-2 h-200 drop-shadow-lg filter -left-5"
+    class="animate__animated animate__fadeInRight absolute top-10 z-2 h-350 drop-shadow-lg filter -left-10"
     :src="images.yunAlphaUrl"
   >
   <div class="animate__animated animate__fadeInRight animate-delay-200">
     <img
-      class="absolute left-89 top-5 z-1 h-200 transform drop-shadow-lg filter -rotate-y-180"
+      class="absolute left-150 top-10 z-1 h-350 transform drop-shadow-lg filter -rotate-y-180"
       :src="images.yunAlphaUrl"
     >
   </div>
@@ -102,7 +62,7 @@ const menuItems = computed<StartMenuItem[]>(() =>
     <div v-if="rippleAnimation" bg="orange-400" class="adv-ripple absolute right-0 top-0 animate-delay-200" />
   </Transition>
 
-  <StartMenu :menu-items="menuItems" />
+  <StartMenu :menu-items="themeStore.startMenuItems" />
 
   <AdvModal header="加载存档" :show="app.showLoadMenu" @close="app.toggleShowLoadMenu">
     <LoadMenu />
@@ -119,12 +79,6 @@ meta:
 </route>
 
 <style lang="scss">
-.adv-start-game-logo {
-  position: absolute;
-  left: 20rem;
-  top: 0rem;
-}
-
 .adv-game-title {
   --text-shadow-color: #{rgba(#0078e7, 0.4)};
   text-shadow: 0 0 20px var(--text-shadow-color);

@@ -16,6 +16,7 @@
     "start:generate": "npx serve .output/public"
   },
   "dependencies": {
+    "@dagrejs/dagre": "^1.1.4",
     "@google/model-viewer": "catalog:",
     "@vue-flow/background": "^1.3.2",
     "@vue-flow/controls": "^1.1.2",

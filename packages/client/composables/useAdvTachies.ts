@@ -1,18 +1,17 @@
 import type { AdvAst } from '@advjs/types'
 import { getCharacter } from '@advjs/core'
 import consola from 'consola'
-import { useAdvConfig } from '..'
-import { useAdvStore } from '../../stores'
+import { useGameConfig } from '.'
+import { useAdvStore } from '../stores'
 
-export function useTachies() {
-  // const appConfig = useAppConfig()
-  const advConfig = useAdvConfig()
+export function useAdvTachies() {
+  const gameConfig = useGameConfig()
 
   const store = useAdvStore()
   const tachies = store.cur.tachies
 
   function enter(name: string, status = 'default') {
-    const character = getCharacter(advConfig.value.characters, name)
+    const character = getCharacter(gameConfig.value.characters, name)
     if (!character) {
       consola.warn(`Can not find ${name}`)
       return
@@ -68,7 +67,7 @@ export function useTachies() {
 
   function update(curNode: AdvAst.Dialog) {
     const character = getCharacter(
-      advConfig.value.characters,
+      gameConfig.value.characters,
       curNode.character.name,
     )
     if (!character)

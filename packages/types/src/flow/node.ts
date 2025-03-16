@@ -1,5 +1,3 @@
-import type { DefaultEdge, FlowExportObject, Node } from '@vue-flow/core'
-
 /**
  * 考虑到需要通过节点编辑器进行编辑
  *
@@ -16,18 +14,4 @@ export interface AdvFlowNode extends Node {
   //  * 跳转节点
   //  */
   // next: string
-}
-
-/**
- * Edge
- */
-export interface AdvFlowEdge extends DefaultEdge {
-  id: string
-  source: string
-  target: string
-}
-
-export interface AdvFlow extends FlowExportObject {
-  nodes: AdvFlowNode[]
-  edges: AdvFlowEdge[]
 }

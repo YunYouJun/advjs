@@ -22,6 +22,5 @@ export default defineBuildConfig({
     'pinia',
 
     'html2canvas',
-    'unstorage',
   ],
 })

@@ -23,4 +23,7 @@ export const commonAlias: AliasOptions = {
 
   '@advjs/theme-default/': `${defaultThemeFolder}/`,
   '@advjs/theme-default': defaultThemeFolder,
+
+  '@advjs/flow': `${path.resolve(packagesFolder, 'flow')}/index.ts`,
+  '@advjs/flow/': `${path.resolve(packagesFolder, 'flow')}/`,
 }

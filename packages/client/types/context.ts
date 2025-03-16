@@ -1,4 +1,4 @@
-import type { AdvConfig } from '@advjs/types'
+import type { AdvConfig, AdvGameConfig } from '@advjs/types'
 
 import type { ComputedRef } from 'vue'
 // import type { AdvLogic } from '../composables'
@@ -6,7 +6,8 @@ import type { AdvStore } from '../stores'
 
 export interface AdvContext {
   store: AdvStore
-  config: AdvConfig
+  config: ComputedRef<AdvConfig>
+  gameConfig: ComputedRef<AdvGameConfig>
   themeConfig: ComputedRef<AdvConfig['themeConfig']>
   functions: Record<string, () => void>
   nav: any

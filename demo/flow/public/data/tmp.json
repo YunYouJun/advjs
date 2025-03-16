@@ -1,0 +1,446 @@
+{
+  "a": [
+
+    {
+      "id": "node_05",
+      "sceneDescription": "The next morning, Taki wakes up to find a reply to his note. The handwriting is different, and the message is from Mitsuha.",
+      "imagePrompt": "Taki's desk with a handwritten note in a different script. The morning light streams through the window, casting a warm glow on the paper.",
+      "dialogues": [
+        {
+          "speaker": "Mitsuha",
+          "text": "I’m Mitsuha. I don’t know why this is happening either, but I think we’re swapping bodies."
+        },
+        {
+          "speaker": "Mitsuha",
+          "text": "It’s been happening to me too. I wake up in your body, in your life."
+        },
+        {
+          "speaker": "Mitsuha",
+          "text": "At first, I thought it was a dream, but it’s too real. Too vivid."
+        },
+        {
+          "speaker": "Mitsuha",
+          "text": "I don’t know how to explain it, but... I think we’re connected somehow."
+        },
+        {
+          "speaker": "Mitsuha",
+          "text": "Please, tell me you’re real. Tell me I’m not imagining all of this."
+        }
+      ],
+      "choices": [
+        {
+          "text": "Ask Mitsuha about her life",
+          "nextNode": "node_06"
+        },
+        {
+          "text": "Try to figure out how to control the swaps",
+          "nextNode": "node_07"
+        }
+      ],
+      "next": null
+    },
+    {
+      "id": "node_06",
+      "sceneDescription": "Taki and Mitsuha begin exchanging notes, learning about each other's lives. Taki is fascinated by Mitsuha's rural town and her role in the shrine.",
+      "imagePrompt": "A series of handwritten notes spread across a desk, showing a conversation between Taki and Mitsuha. The room is cozy, with a warm lamp lighting the scene.",
+      "dialogues": [
+        {
+          "speaker": "Taki",
+          "text": "Your town sounds so different from Tokyo. What’s it like living there?"
+        },
+        {
+          "speaker": "Mitsuha",
+          "text": "It’s quiet, but sometimes it feels like I’m trapped. I wish I could see the city."
+        },
+        {
+          "speaker": "Taki",
+          "text": "Trapped? But it sounds peaceful. Tokyo is so loud, so crowded. It’s exhausting."
+        },
+        {
+          "speaker": "Mitsuha",
+          "text": "I guess the grass is always greener, huh? I’d give anything to see the skyline, the lights..."
+        },
+        {
+          "speaker": "Taki",
+          "text": "And I’d give anything to see the stars. Here, the city lights drown them out."
+        },
+        {
+          "speaker": "Mitsuha",
+          "text": "Maybe... we’re both looking for something we don’t have."
+        }
+      ],
+      "choices": [],
+      "next": "node_08"
+    },
+    {
+      "id": "node_07",
+      "sceneDescription": "Taki tries to find a way to control the body swaps, experimenting with different methods like meditation and writing down his thoughts.",
+      "imagePrompt": "Taki sitting cross-legged on his bed, eyes closed, trying to meditate. The room is dimly lit, with a notebook open beside him.",
+      "dialogues": [
+        {
+          "speaker": "Taki",
+          "text": "Maybe if I focus hard enough, I can control when we switch..."
+        },
+        {
+          "speaker": "Taki",
+          "text": "There has to be a pattern, a trigger. Something that makes this happen."
+        },
+        {
+          "speaker": "Taki",
+          "text": "If I can figure it out, maybe we can stop it. Or at least make it less... chaotic."
+        },
+        {
+          "speaker": "Taki",
+          "text": "But how? It’s not like there’s a manual for this kind of thing."
+        },
+        {
+          "speaker": "Taki",
+          "text": "I’ll try meditating. Maybe clearing my mind will help me understand."
+        }
+      ],
+      "choices": [],
+      "next": "node_08"
+    },
+    {
+      "id": "node_08",
+      "sceneDescription": "Taki and Mitsuha continue to swap bodies, growing closer as they navigate each other's lives. They start leaving detailed notes to help each other.",
+      "imagePrompt": "A montage of scenes showing Taki and Mitsuha living each other's lives: Taki in Mitsuha's rural town, Mitsuha in Tokyo. The transitions are seamless, with a dreamlike quality.",
+      "dialogues": [
+        {
+          "speaker": "Mitsuha",
+          "text": "Your friends are so different from mine. It’s kind of fun being you."
+        },
+        {
+          "speaker": "Taki",
+          "text": "And your family... they’re so warm. I wish I had that."
+        },
+        {
+          "speaker": "Mitsuha",
+          "text": "Really? I always thought my family was too traditional, too... suffocating."
+        },
+        {
+          "speaker": "Taki",
+          "text": "At least they care. My dad’s always working, and my mom... well, she’s not around."
+        },
+        {
+          "speaker": "Mitsuha",
+          "text": "I guess we both have things we’re running from, huh?"
+        },
+        {
+          "speaker": "Taki",
+          "text": "Yeah. But maybe... we’re also running toward something. Together."
+        }
+      ],
+      "choices": [],
+      "next": "node_09"
+    },
+    {
+      "id": "node_09",
+      "sceneDescription": "One day, Taki wakes up and realizes the swaps have stopped. He feels a deep sense of loss and decides to find Mitsuha.",
+      "imagePrompt": "Taki standing in his apartment, looking out the window at the city skyline. His expression is one of longing and determination.",
+      "dialogues": [
+        {
+          "speaker": "Taki",
+          "text": "Mitsuha... where are you? I need to find you."
+        },
+        {
+          "speaker": "Taki",
+          "text": "It’s been days since the last swap. I feel... empty without you."
+        },
+        {
+          "speaker": "Taki",
+          "text": "I don’t even know where to start looking, but I can’t just sit here."
+        },
+        {
+          "speaker": "Taki",
+          "text": "You’re out there somewhere. I know it. And I’m going to find you."
+        },
+        {
+          "speaker": "Taki",
+          "text": "No matter how far I have to go, no matter what it takes."
+        }
+      ],
+      "choices": [
+        {
+          "text": "Search for Mitsuha online",
+          "nextNode": "node_10"
+        },
+        {
+          "text": "Travel to Itomori to find her",
+          "nextNode": "node_11"
+        }
+      ],
+      "next": null
+    },
+    {
+      "id": "node_10",
+      "sceneDescription": "Taki searches online for Mitsuha but finds no trace of her. He begins to suspect something is wrong.",
+      "imagePrompt": "Taki sitting at his computer, scrolling through search results. The screen glows in the dark room, casting shadows on his worried face.",
+      "dialogues": [
+        {
+          "speaker": "Taki",
+          "text": "Why can’t I find anything about her? It’s like she doesn’t exist..."
+        },
+        {
+          "speaker": "Taki",
+          "text": "I’ve searched everywhere—social media, news articles, even old records. Nothing."
+        },
+        {
+          "speaker": "Taki",
+          "text": "But she’s real. I know she is. I’ve lived her life, felt her memories."
+        },
+        {
+          "speaker": "Taki",
+          "text": "There has to be something I’m missing. Some clue I haven’t found yet."
+        },
+        {
+          "speaker": "Taki",
+          "text": "I won’t give up. I can’t. Not until I find her."
+        }
+      ],
+      "choices": [],
+      "next": "node_12"
+    },
+    {
+      "id": "node_11",
+      "sceneDescription": "Taki travels to Itomori, only to find the town in ruins. He learns that it was destroyed by a comet three years ago.",
+      "imagePrompt": "Taki standing in the ruins of Itomori, surrounded by debris and overgrown vegetation. The sky is overcast, adding to the somber atmosphere.",
+      "dialogues": [
+        {
+          "speaker": "Taki",
+          "text": "No... this can’t be real. Mitsuha... she was here. She was real."
+        },
+        {
+          "speaker": "Taki",
+          "text": "The town... it’s gone. Destroyed. How could this happen?"
+        },
+        {
+          "speaker": "Taki",
+          "text": "I remember her talking about the comet, but... I didn’t think it would end like this."
+        },
+        {
+          "speaker": "Taki",
+          "text": "She’s gone. And I... I never got to say goodbye."
+        },
+        {
+          "speaker": "Taki",
+          "text": "But... there has to be a way. I can’t accept this. I won’t."
+        }
+      ],
+      "choices": [],
+      "next": "node_12"
+    },
+    {
+      "id": "node_12",
+      "sceneDescription": "Taki discovers that Mitsuha's spirit is still connected to him through the body swaps. He resolves to travel back in time to save her.",
+      "imagePrompt": "Taki standing in a mystical shrine, surrounded by glowing symbols. The atmosphere is otherworldly, with a sense of urgency in the air.",
+      "dialogues": [
+        {
+          "speaker": "Taki",
+          "text": "I have to save her. No matter what it takes, I have to change the past."
+        },
+        {
+          "speaker": "Taki",
+          "text": "If I can go back, if I can warn her... maybe I can stop this from happening."
+        },
+        {
+          "speaker": "Taki",
+          "text": "But how? Time travel... it’s impossible. Isn’t it?"
+        },
+        {
+          "speaker": "Taki",
+          "text": "No. I can’t think like that. If there’s even a chance, I have to take it."
+        },
+        {
+          "speaker": "Taki",
+          "text": "Mitsuha... I’m coming for you. Just hold on."
+        }
+      ],
+      "choices": [],
+      "next": "node_13"
+    },
+    {
+      "id": "node_13",
+      "sceneDescription": "Taki succeeds in altering the past, saving Mitsuha and her town. However, the changes cause both of them to lose their memories of each other.",
+      "imagePrompt": "A surreal scene of time rewinding, with Taki and Mitsuha fading from each other's memories. The background is a mix of past and present, with a dreamlike quality.",
+      "dialogues": [
+        {
+          "speaker": "Narrator",
+          "text": "The timeline shifts, and the memories of their connection fade away. But somewhere deep inside, a bond remains."
+        },
+        {
+          "speaker": "Narrator",
+          "text": "The comet passes harmlessly, and the town of Itomori is saved. But the cost is high."
+        },
+        {
+          "speaker": "Narrator",
+          "text": "Taki and Mitsuha no longer remember each other. Their shared moments, their struggles, their love... all gone."
+        },
+        {
+          "speaker": "Narrator",
+          "text": "Yet, in their hearts, a faint echo lingers. A whisper of something lost, something precious."
+        },
+        {
+          "speaker": "Narrator",
+          "text": "And though they don’t know it yet, their paths will cross again."
+        }
+      ],
+      "choices": [],
+      "next": "node_14"
+    },
+    {
+      "id": "node_14",
+      "sceneDescription": "Years later, Taki and Mitsuha cross paths in Tokyo. They feel a strange sense of déjà vu but can't place why.",
+      "imagePrompt": "A busy Tokyo street at sunset. Taki and Mitsuha pass each other, their eyes meeting briefly. The city lights create a warm, nostalgic atmosphere.",
+      "dialogues": [
+        {
+          "speaker": "Taki",
+          "text": "Have we... met before?"
+        },
+        {
+          "speaker": "Mitsuha",
+          "text": "I feel like I know you from somewhere..."
+        },
+        {
+          "speaker": "Taki",
+          "text": "Your face... it’s familiar. Like I’ve seen it in a dream."
+        },
+        {
+          "speaker": "Mitsuha",
+          "text": "Me too. It’s strange, but... I feel like I’ve been waiting for you."
+        },
+        {
+          "speaker": "Taki",
+          "text": "Maybe... we have. Maybe we were meant to find each other."
+        }
+      ],
+      "choices": [
+        {
+          "text": "Introduce yourself and see if she remembers",
+          "nextNode": "node_15"
+        },
+        {
+          "text": "Walk away, feeling it's just a coincidence",
+          "nextNode": "node_16"
+        }
+      ],
+      "next": null
+    },
+    {
+      "id": "node_15",
+      "sceneDescription": "Taki and Mitsuha start talking, and slowly, fragments of their memories return. They realize the depth of their connection.",
+      "imagePrompt": "Taki and Mitsuha sitting on a park bench, talking under the soft glow of streetlights. The atmosphere is warm and intimate, with a sense of rediscovery.",
+      "dialogues": [
+        {
+          "speaker": "Taki",
+          "text": "It’s you... it’s really you. I’ve been looking for you all this time."
+        },
+        {
+          "speaker": "Mitsuha",
+          "text": "And I’ve been waiting for you. I just didn’t know it until now."
+        },
+        {
+          "speaker": "Taki",
+          "text": "The memories... they’re coming back. The swaps, the notes, everything."
+        },
+        {
+          "speaker": "Mitsuha",
+          "text": "I remember too. The town, the comet... you saved me."
+        },
+        {
+          "speaker": "Taki",
+          "text": "No, we saved each other. And this time, I won’t let you go."
+        }
+      ],
+      "choices": [],
+      "next": "node_17"
+    },
+    {
+      "id": "node_16",
+      "sceneDescription": "Taki walks away, but the sense of déjà vu lingers. He feels a deep sadness, as if he's lost something important.",
+      "imagePrompt": "Taki walking alone down a Tokyo street at night, his expression pensive. The city lights blur in the background, creating a melancholic atmosphere.",
+      "dialogues": [
+        {
+          "speaker": "Taki",
+          "text": "Why does it feel like I’ve lost something... someone?"
+        },
+        {
+          "speaker": "Taki",
+          "text": "That girl... her face keeps haunting me. Like I’m supposed to remember her."
+        },
+        {
+          "speaker": "Taki",
+          "text": "But every time I try to grasp it, the memory slips away."
+        },
+        {
+          "speaker": "Taki",
+          "text": "It’s like a part of me is missing, and I don’t know how to fill the void."
+        },
+        {
+          "speaker": "Taki",
+          "text": "I need to find her. I need to know who she is."
+        }
+      ],
+      "choices": [],
+      "next": "node_18"
+    },
+    {
+      "id": "node_17",
+      "sceneDescription": "Taki and Mitsuha reunite fully, their memories restored. They embrace, knowing their bond transcends time and space.",
+      "imagePrompt": "Taki and Mitsuha embracing under a starry sky, their faces filled with joy and relief. The scene is bathed in soft, ethereal light.",
+      "dialogues": [
+        {
+          "speaker": "Taki",
+          "text": "We found each other again. This time, I won’t let you go."
+        },
+        {
+          "speaker": "Mitsuha",
+          "text": "And I’ll always be here, waiting for you."
+        },
+        {
+          "speaker": "Taki",
+          "text": "No matter what happens, no matter how far apart we are, I’ll always find you."
+        },
+        {
+          "speaker": "Mitsuha",
+          "text": "And I’ll always remember you. Even if the world forgets, I won’t."
+        },
+        {
+          "speaker": "Taki",
+          "text": "This is our second chance. Let’s make it count."
+        }
+      ],
+      "choices": [],
+      "next": null
+    },
+    {
+      "id": "node_18",
+      "sceneDescription": "Taki continues his life in Tokyo, but the memory of Mitsuha haunts him. He feels an inexplicable void in his heart.",
+      "imagePrompt": "Taki sitting alone in his apartment, staring out the window at the city lights. His expression is one of longing and unresolved emotion.",
+      "dialogues": [
+        {
+          "speaker": "Taki",
+          "text": "Why does it feel like I’m missing a part of myself?"
+        },
+        {
+          "speaker": "Taki",
+          "text": "Even though I’m back in Tokyo, back to my normal life, something feels... off."
+        },
+        {
+          "speaker": "Taki",
+          "text": "It’s like there’s a hole in my heart, and I don’t know how to fill it."
+        },
+        {
+          "speaker": "Taki",
+          "text": "I keep dreaming of a girl with long hair and a red ribbon. Who is she?"
+        },
+        {
+          "speaker": "Taki",
+          "text": "I need to find her. I need to know why she feels so important."
+        }
+      ],
+      "choices": [],
+      "next": null
+    }
+  ]
+}

@@ -23,10 +23,10 @@ defineProps<{
 <style lang="scss">
 @use 'sass:map';
 .start-menu {
-  font-size: 2rem;
+  font-size: 4rem;
 
-  right: 3rem;
-  bottom: 3rem;
+  right: 6rem;
+  bottom: 6rem;
 }
 
 .start-menu-item {
@@ -35,15 +35,15 @@ defineProps<{
   background-color: rgba(255, 255, 255, 0.1);
   line-height: 1;
 
-  margin: 0.5rem;
-  padding: 0.5rem 1.25rem;
+  margin: 1rem;
+  padding: 1rem 2.5rem;
 
   transition: all 0.2s;
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 4px 4px 16px rgba(0, 0, 0, 0.1);
 
   &:hover {
     color: white;
-    box-shadow: 5px 5px 24px rgba(0, 0, 0, 0.3);
+    box-shadow: 10px 10px 48px rgba(0, 0, 0, 0.3);
     background-color: rgba(0, 0, 0, 0.9);
   }
 }

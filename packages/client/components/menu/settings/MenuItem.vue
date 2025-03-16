@@ -19,7 +19,7 @@ withDefaults(defineProps<{
 </script>
 
 <template>
-  <div col="span-5" class="adv-menu-item--label justify-center" text="2xl">
+  <div col="span-5" class="adv-menu-item--label justify-center" text="3xl">
     <label :for="item.label" font="bold serif">
       {{ item.label }}
     </label>

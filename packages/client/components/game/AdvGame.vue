@@ -2,8 +2,8 @@
 // Game Instance
 import type { AdvAst, AdvConfig, Tachie } from '@advjs/types'
 
-import { useAppStore, useBeforeUnload } from '@advjs/client'
-import { getCharacter } from '@advjs/core'
+import { useAppStore } from '@advjs/client'
+import { getCharacter, useBeforeUnload } from '@advjs/core'
 import { computed } from 'vue'
 import { useAdvContext } from '../../composables/useAdvContext'
 
@@ -28,7 +28,7 @@ const tachies = computed(() => {
 
   if ($adv.store.cur.tachies.size) {
     $adv.store.cur.tachies.forEach((tachie, key) => {
-      const character = getCharacter($adv.config.characters, key)
+      const character = getCharacter($adv.gameConfig.value.characters, key)
       if (character && character.tachies)
         tachiesMap.set(key, character.tachies[tachie.status || 'default'])
     })
