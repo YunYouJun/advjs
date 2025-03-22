@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import consola from 'consola'
+import { consola } from 'consola'
 import fs from 'fs-extra'
 import { svg } from '../client/styles/icons'
 

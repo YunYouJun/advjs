@@ -92,6 +92,10 @@ export async function getClientRoot() {
   return dirname(importPath)
 }
 
+/**
+ * cli root
+ * `adv.config.ts` should be in this directory
+ */
 export function getCLIRoot() {
   return resolve(__dirname, '..')
 }

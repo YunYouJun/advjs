@@ -1,6 +1,6 @@
 import type { AdvContext } from '../types'
 import { useMagicKeys } from '@vueuse/core'
-import consola from 'consola'
+import { consola } from 'consola'
 import { watch } from 'vue'
 import { useAppStore } from '../stores'
 

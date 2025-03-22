@@ -1,5 +1,5 @@
 import { defineAppSetup } from '@advjs/client'
-import consola from 'consola'
+import { consola } from 'consola'
 
 export default defineAppSetup(() => {
   consola.info('App setup')

@@ -1,5 +1,5 @@
 import type { AdvContext } from '../types'
-import consola from 'consola'
+import { consola } from 'consola'
 
 export function useAdvNav($adv: AdvContext) {
   const { store } = $adv

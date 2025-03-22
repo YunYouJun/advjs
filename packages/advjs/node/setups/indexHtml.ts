@@ -2,12 +2,7 @@ import type { ResolvedAdvOptions } from '../options'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { uniq } from '@antfu/utils'
-import { escapeHtml } from 'markdown-it/lib/common/utils.mjs'
 import { toAtFS } from '../resolver'
-
-export function toAttrValue(unsafe: unknown) {
-  return JSON.stringify(escapeHtml(String(unsafe)))
-}
 
 export default function setupIndexHtml({ mode, data, themeRoot, userRoot, clientRoot, base }: ResolvedAdvOptions): string {
   let main = readFileSync(join(clientRoot, 'index.html'), 'utf-8')

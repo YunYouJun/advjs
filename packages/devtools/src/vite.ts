@@ -1,7 +1,7 @@
 import type { PluginOption } from 'vite'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import consola from 'consola'
+import { consola } from 'consola'
 import { normalizePath } from 'vite'
 import { PLUGIN_NAME } from './constant'
 

@@ -1,5 +1,5 @@
 import type { Argv } from 'yargs'
-import consola from 'consola'
+import { consola } from 'consola'
 import { colors } from 'consola/utils'
 import { commonOptions } from './utils'
 

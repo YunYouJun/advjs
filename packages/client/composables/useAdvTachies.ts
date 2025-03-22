@@ -1,6 +1,6 @@
 import type { AdvAst } from '@advjs/types'
 import { getCharacter } from '@advjs/core'
-import consola from 'consola'
+import { consola } from 'consola'
 import { useGameConfig } from '.'
 import { useAdvStore } from '../stores'
 

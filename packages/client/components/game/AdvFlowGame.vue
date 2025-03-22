@@ -4,7 +4,7 @@ import type { Tachie } from '@advjs/types'
 
 import { useAdvContext, useAppStore } from '@advjs/client'
 import { getCharacter, useBeforeUnload } from '@advjs/core'
-import consola from 'consola'
+import { consola } from 'consola'
 import { computed, onMounted } from 'vue'
 
 const { $adv } = useAdvContext()

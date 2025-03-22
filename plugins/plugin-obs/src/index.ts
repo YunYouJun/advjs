@@ -3,7 +3,7 @@ import type { ConnectOBSWebSocketOptions } from './types'
 import { dirname } from 'node:path'
 import { sleep } from '@advjs/core'
 import cliProgress from 'cli-progress'
-import consola from 'consola'
+import { consola } from 'consola'
 import { colors } from 'consola/utils'
 import OBSWebSocket from 'obs-websocket-js'
 
