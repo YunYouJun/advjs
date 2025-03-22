@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Tachie } from '@advjs/types'
-import { useAdvCtx } from '@advjs/client'
+import { useAdvContext } from '@advjs/client'
 import { computed } from 'vue'
 
 const props = defineProps<{
@@ -8,7 +8,7 @@ const props = defineProps<{
   character: string
 }>()
 
-const $adv = useAdvCtx()
+const { $adv } = useAdvContext()
 
 const advStore = $adv.store
 

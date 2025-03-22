@@ -44,6 +44,7 @@ play_speed:
   slow: Slow
   normal: Normal
   fast: Fast
+  very_fast: Very Fast
 
 font_size:
   small: Small

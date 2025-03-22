@@ -29,7 +29,7 @@ export function useAdvKeys($adv: AdvContext) {
 
   watch(space, (v) => {
     if (v && !app.showHistory && !app.showSaveMenu && !app.showLoadMenu)
-      $adv.nav.next()
+      $adv.$nav.next()
   })
 
   advKeys.forEach((item) => {

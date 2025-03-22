@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { useAdvCtx, useAppStore, useAudioStore } from '@advjs/client'
+import { useAdvContext, useAppStore, useAudioStore } from '@advjs/client'
 
-const $adv = useAdvCtx()
+const { $adv } = useAdvContext()
 
 const app = useAppStore()
 const audio = useAudioStore()
 
-audio.setBgm($adv.config.bgm.collection[0]?.src)
+audio.setBgm($adv.gameConfig.value.bgm.collection[0]?.src)
 </script>
 
 <template>

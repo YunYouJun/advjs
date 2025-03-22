@@ -20,13 +20,13 @@ enter: 小云
 - [ ] 高兴！
 
   ```ts
-  $adv.nav.next()
+  $adv.$nav.next()
   ```
 
 - [ ] 很高兴！
 
   ```ts
-  $adv.nav.next()
+  $adv.$nav.next()
   ```
 
 ```yaml

@@ -61,6 +61,10 @@ const playSpeedItem = computed<AdvMenuItemProps<'RadioGroup', SpeedOption>>(() =
         label: t('play_speed.fast'),
         value: 'fast',
       },
+      {
+        label: t('play_speed.very_fast'),
+        value: 'very_fast',
+      },
     ],
     onClick(option) {
       settings.storage.text.curSpeed = option.value

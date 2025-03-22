@@ -31,6 +31,7 @@ export class BackgroundSystem {
   load(alias: string) {
     const app = this.game.app
     const bgSprite = this.bgSprite
+
     bgSprite.texture = Texture.from(alias)
     bgSprite.width = app.screen.width
     bgSprite.height = app.screen.height

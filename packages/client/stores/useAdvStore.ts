@@ -1,15 +1,15 @@
-import type { AdvAst } from '@advjs/types'
+import type { AdvAst, AdvChapter, AdvDialoguesNode, AdvNode } from '@advjs/types'
 import type { StorageMeta } from 'unstorage'
-import { acceptHMRUpdate, defineStore } from 'pinia'
 
-import { computed, ref, shallowRef, watch } from 'vue'
+import { acceptHMRUpdate, defineStore } from 'pinia'
+import { computed, ref, shallowRef } from 'vue'
 
 export interface CurStateType {
   /**
    * 顺序
    */
   order: number
-  dialog: AdvAst.Dialog
+  dialog: AdvAst.Dialog | AdvDialoguesNode
   // enter character name
   tachies: Map<string, { status: string }>
   background: string
@@ -81,11 +81,15 @@ export const useAdvStore = defineStore('adv', () => {
     return undefined
   })
 
-  // watch order, update dialog
-  watch(() => curNode.value, () => {
-    if (curNode.value?.type === 'dialog')
-      curState.value.dialog = curNode.value
+  const curFlowNode = ref<AdvNode>({
+    id: '',
+    type: '',
   })
+
+  /**
+   * 当前章节
+   */
+  const curChapter = ref<AdvChapter>()
 
   return {
     ast,
@@ -94,6 +98,15 @@ export const useAdvStore = defineStore('adv', () => {
      * 当前节点
      */
     curNode,
+
+    /**
+     * 当前 Flow 节点
+     *
+     * 未来重构替换 curNode
+     */
+    curFlowNode,
+
+    curChapter,
 
     /**
      * 当前

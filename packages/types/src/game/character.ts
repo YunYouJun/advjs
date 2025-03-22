@@ -50,6 +50,6 @@ export interface Tachie {
    * when 3d: pose json data url
    */
   src: string
-  class?: string[]
+  class?: string | string[]
   style?: Record<string, string>
 }

@@ -182,7 +182,7 @@ export interface Character extends Node {
 - [ ] 好的！
 
   ```ts
-  $adv.nav.next()
+  $adv.$nav.next()
   ```
 
 - [ ] 抱歉……

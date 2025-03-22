@@ -1,9 +1,10 @@
 import type { AdvCharacter } from '@advjs/types'
 import type { PixiGame } from '../game'
+import consola from 'consola'
 import { Container, Sprite } from 'pixi.js'
 
 export class TachieSystem {
-  game: PixiGame
+  pixiGame: PixiGame
 
   container = new Container({
     label: 'TachiesContainer',
@@ -14,16 +15,15 @@ export class TachieSystem {
    */
   characterMap = new Map<string, AdvCharacter>()
 
-  constructor(game: PixiGame) {
-    this.game = game
-    const app = game.app
-
+  constructor(pixiGame: PixiGame) {
+    this.pixiGame = pixiGame
+    const app = pixiGame.app
     app.stage.addChild(this.container)
   }
 
   init() {
-    const config = this.game.config
-    config.characters.forEach((char) => {
+    const gameConfig = this.pixiGame.$adv.gameConfig.value
+    gameConfig.characters.forEach((char) => {
       this.characterMap.set(char.id, char)
     })
   }
@@ -32,7 +32,9 @@ export class TachieSystem {
    * character id
    */
   showCharacter(id: string) {
-    const app = this.game.app
+    consola.info('Show Character', id)
+
+    const app = this.pixiGame.app
     const character = this.characterMap.get(id)
     if (!character) {
       console.error(`Character ${id} not found!`)

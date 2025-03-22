@@ -1,4 +1,6 @@
 import type { AssetsManifest } from 'pixi.js'
+import type { AdvContext } from '../types'
+import { consola } from 'consola'
 import { Application, Assets } from 'pixi.js'
 import { BackgroundSystem } from './system/background'
 import { TachieSystem } from './system/tachie'
@@ -11,9 +13,10 @@ export class PixiGame {
 
   assetsManifest: AssetsManifest | null = null
 
-  constructor() {
+  constructor(public $adv: AdvContext) {
     const app = new Application()
     this.app = app
+    this.$adv = $adv
 
     // @ts-expect-error debug
     window.__PIXI_APP__ = app
@@ -33,6 +36,7 @@ export class PixiGame {
     })
 
     if (this.assetsManifest) {
+      consola.start('assets manifest', this.assetsManifest)
       await Assets.init({
         manifest: this.assetsManifest,
       })
@@ -41,10 +45,10 @@ export class PixiGame {
     await Assets.loadBundle('game-screen')
 
     this.BgSystem = new BackgroundSystem(this)
-    this.BgSystem.load('stacked-steps-haikei')
+    // this.BgSystem.load('stacked-steps-haikei')
 
     this.TachieSystem = new TachieSystem(this)
     this.TachieSystem.init()
-    this.TachieSystem.showCharacter('xiao-yun')
+    // this.TachieSystem.showCharacter('xiao-yun')
   }
 }

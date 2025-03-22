@@ -1,13 +1,11 @@
-import type { AdvAst } from '@advjs/types'
+import type { AdvAst, AdvTachieNode } from '@advjs/types'
+import type { AdvContext } from '../types'
 import { getCharacter } from '@advjs/core'
 import { consola } from 'consola'
-import { useGameConfig } from '.'
-import { useAdvStore } from '../stores'
 
-export function useAdvTachies() {
-  const gameConfig = useGameConfig()
-
-  const store = useAdvStore()
+export function useAdvTachies($adv: AdvContext) {
+  const store = $adv.store
+  const gameConfig = $adv.gameConfig
   const tachies = store.cur.tachies
 
   function enter(name: string, status = 'default') {
@@ -23,7 +21,7 @@ export function useAdvTachies() {
       return
     }
 
-    tachies.set(character.name, { status })
+    tachies.set(character.id || character.name, { status })
   }
 
   function exit(name: string) {
@@ -59,6 +57,19 @@ export function useAdvTachies() {
           exit(item)
         })
       }
+    }
+
+    // AdvTachieNode
+    const tachieNode = node as any as AdvTachieNode
+    switch (tachieNode.action) {
+      case 'enter':
+        enter(tachieNode.name, tachieNode.status || 'default')
+        break
+      case 'exit':
+        exit(tachieNode.name)
+        break
+      default:
+        break
     }
 
     // toggle tachie & show next text

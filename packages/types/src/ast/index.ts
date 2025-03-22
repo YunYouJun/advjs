@@ -38,9 +38,10 @@ export interface Choice extends Node {
   text: string
   /**
    * onClick
-   * @default $adv.nav.next()
+   * @default $adv.$nav.next()
    */
   do?: Code
+  target?: string
 }
 
 export interface Choices extends Node {

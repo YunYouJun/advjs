@@ -125,7 +125,7 @@ export interface Tachie extends Node {
 
 ````md
 ```ts
-$adv.nav.next()
+$adv.$nav.next()
 ```
 ````
 

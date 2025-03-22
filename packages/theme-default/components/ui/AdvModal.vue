@@ -30,7 +30,7 @@ onMounted(() => {
         <slot name="header">
           <template v-if="header">
             <h1
-              class="adv-font-serif mt-2 font-black"
+              class="adv-font-serif my-4 font-medium"
               text="4xl"
             >
               {{ header }}

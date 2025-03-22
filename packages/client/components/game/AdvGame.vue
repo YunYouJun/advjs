@@ -1,41 +1,28 @@
 <script lang="ts" setup>
 // Game Instance
-import type { AdvAst, AdvConfig, Tachie } from '@advjs/types'
+import type { AdvAst, AdvConfig } from '@advjs/types'
 
 import { useAppStore } from '@advjs/client'
-import { getCharacter, useBeforeUnload } from '@advjs/core'
+import { useBeforeUnload } from '@advjs/core'
 import { computed } from 'vue'
 import { useAdvContext } from '../../composables/useAdvContext'
 
 defineProps<{
   frontmatter?: AdvConfig
-  ast: AdvAst.Root
+  ast?: AdvAst.Root
 }>()
 
 const { $adv } = useAdvContext()
 
-const curNode = computed(() => $adv.store.curNode)
+// const curNode = computed(() => $adv.store.curNode)
+const curNode = computed(() => $adv.store.curFlowNode)
 
 // 添加提示，防止意外退出
 if (!__DEV__)
   useBeforeUnload()
 
 const app = useAppStore()
-
-// tachies map by cur characters
-const tachies = computed(() => {
-  const tachiesMap = new Map<string, Tachie>()
-
-  if ($adv.store.cur.tachies.size) {
-    $adv.store.cur.tachies.forEach((tachie, key) => {
-      const character = getCharacter($adv.gameConfig.value.characters, key)
-      if (character && character.tachies)
-        tachiesMap.set(key, character.tachies[tachie.status || 'default'])
-    })
-  }
-
-  return tachiesMap
-})
+const tachies = computed(() => $adv.tachies.value)
 </script>
 
 <template>
@@ -44,7 +31,7 @@ const tachies = computed(() => {
       <AdvScene />
       <AdvPixiCanvas />
       <slot name="scene" />
-      <TachieBox :tachies="tachies" />
+      <AdvTachieBox :tachies="tachies" />
 
       <AdvBlack v-if="curNode && curNode.type === 'narration'" class="z-9" :content="curNode" />
 
@@ -67,7 +54,7 @@ const tachies = computed(() => {
         <DialogControls v-show="app.showUi" class="adv-animated absolute bottom-1 left-0 right-0 z-3" />
       </Transition>
       <Transition enter-active-class="animate__fadeInDown" leave-active-class="animate__fadeOutUp">
-        <UserInterface v-show="app.showUi" class="adv-animated z-99" />
+        <AdvGameUI v-show="app.showUi" class="adv-animated z-99" />
       </Transition>
 
       <AdvHistory />

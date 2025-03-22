@@ -80,6 +80,8 @@ function wordClasses(i: number) {
     <span
       v-for="word, i in words" :key="i"
       :class="wordClasses(i)"
-    >{{ word }}</span>
+    >
+      {{ word }}
+    </span>
   </div>
 </template>

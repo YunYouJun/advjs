@@ -1,19 +1,16 @@
-import type { AdvAst } from '@advjs/types'
+import type { AdvAst, AdvBackgroundNode, AdvNode } from '@advjs/types'
+import type { AdvContext } from '../types'
 import { isScript, parseAst } from '@advjs/parser'
-import { consola } from 'consola'
 
+import { consola } from 'consola'
 import { BackgroundSystem } from '../pixi/system/background'
-import { useAdvStore } from '../stores'
 import { useAdvCamera } from './useAdvCamera'
-import { useAdvTachies } from './useAdvTachies'
 
 /**
  * Game Logic Helper
  */
-export function useAdvLogic(ctx: {
-  functions: Record<string, () => void>
-}) {
-  const store = useAdvStore()
+export function useAdvLogic($adv: AdvContext) {
+  const store = $adv.store
 
   const useNav = () => {
     /**
@@ -67,8 +64,6 @@ export function useAdvLogic(ctx: {
 
   const nav = useNav()
 
-  const tachies = useAdvTachies()
-
   /**
    * 理解文本
    * @param text
@@ -78,10 +73,10 @@ export function useAdvLogic(ctx: {
   }
 
   /**
-   * handle adv ast
+   * handle adv node
    * @param node
    */
-  async function handleAdvNode(node: AdvAst.Item) {
+  async function handleAdvNode(node: AdvAst.Item | AdvNode) {
     switch (node.type) {
       case 'code': {
         if (await handleCode(node))
@@ -106,6 +101,21 @@ export function useAdvLogic(ctx: {
       case 'narration':
       case 'choices':
         break
+
+      // flow ndoe
+      case 'dialogues': {
+        // watch dialog in AdvDialogBox
+        break
+      }
+      case 'background': {
+        consola.info('background', node)
+        $adv.pixiGame?.BgSystem.load((node as AdvBackgroundNode).name)
+        break
+      }
+      case 'tachie': {
+        await $adv.$tachies.handle(node)
+        break
+      }
       default:
         return true
     }
@@ -119,7 +129,7 @@ export function useAdvLogic(ctx: {
     const lang = node.lang?.toLowerCase() || ''
     if (isScript(node)) {
       try {
-        ctx.functions[node.value]()
+        // ctx.functions[node.value]()
       }
       catch (e) {
         console.error(e)
@@ -149,7 +159,7 @@ export function useAdvLogic(ctx: {
   async function handleCodeOperation(node: AdvAst.CodeOperation): Promise<boolean | void> {
     switch (node.type) {
       case 'tachie': {
-        return tachies.handle(node)
+        return $adv.$tachies.handle(node)
       }
       case 'camera':
         camera.handle()
@@ -174,23 +184,18 @@ export function useAdvLogic(ctx: {
   }
 
   return {
-    core: {
-      read,
+    read,
 
-      loadAst(ast: AdvAst.Root) {
-        store.ast = ast
+    loadAst(ast: AdvAst.Root) {
+      store.ast = ast
 
-        // handle ast first node
-        if (store.cur.order === 0 && ast.children[0])
-          handleAdvNode(ast.children[0])
-      },
-
-      handleAdvNode,
-      handleCode,
+      // handle ast first node
+      if (store.cur.order === 0 && ast.children[0])
+        handleAdvNode(ast.children[0])
     },
-    tachies,
+
+    handleCode,
+    handleAdvNode,
     nav,
   }
 }
-
-export type AdvLogic = ReturnType<typeof useAdvLogic>

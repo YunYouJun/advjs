@@ -1,9 +1,8 @@
 <script lang="ts" setup>
 // Game Instance
-import type { Tachie } from '@advjs/types'
 
 import { useAdvContext, useAppStore } from '@advjs/client'
-import { getCharacter, useBeforeUnload } from '@advjs/core'
+import { useBeforeUnload } from '@advjs/core'
 import { consola } from 'consola'
 import { computed, onMounted } from 'vue'
 
@@ -20,20 +19,20 @@ if (!__DEV__)
 
 const app = useAppStore()
 
-// tachies map by cur characters
-const tachies = computed(() => {
-  const tachiesMap = new Map<string, Tachie>()
+// // tachies map by cur characters
+// const tachies = computed(() => {
+//   const tachiesMap = new Map<string, Tachie>()
 
-  if ($adv.store.cur.tachies.size) {
-    $adv.store.cur.tachies.forEach((tachie, key) => {
-      const character = getCharacter($adv.gameConfig.value.characters, key)
-      if (character && character.tachies)
-        tachiesMap.set(key, character.tachies[tachie.status || 'default'])
-    })
-  }
+//   if ($adv.store.cur.tachies.size) {
+//     $adv.store.cur.tachies.forEach((tachie, key) => {
+//       const character = getCharacter($adv.gameConfig.value.characters, key)
+//       if (character && character.tachies)
+//         tachiesMap.set(key, character.tachies[tachie.status || 'default'])
+//     })
+//   }
 
-  return tachiesMap
-})
+//   return tachiesMap
+// })
 </script>
 
 <template>
@@ -42,7 +41,7 @@ const tachies = computed(() => {
       <AdvScene />
       <AdvPixiCanvas />
       <slot name="scene" />
-      <TachieBox :tachies="tachies" />
+      <TachieBox :tachies="$adv.tachies.value" />
 
       <AdvBlack v-if="curNode && curNode.type === 'narration'" class="z-9" :content="curNode" />
 
@@ -65,7 +64,7 @@ const tachies = computed(() => {
         <DialogControls v-show="app.showUi" class="adv-animated absolute bottom-1 left-0 right-0 z-3" />
       </Transition>
       <Transition enter-active-class="animate__fadeInDown" leave-active-class="animate__fadeOutUp">
-        <UserInterface v-show="app.showUi" class="adv-animated z-99" />
+        <AdvGameUI v-show="app.showUi" class="adv-animated z-99" />
       </Transition>
 
       <AdvHistory />

@@ -46,6 +46,7 @@ play_speed:
   slow: 慢
   normal: 中
   fast: 快
+  very_fast: 极快
 
 font_size:
   small: 小

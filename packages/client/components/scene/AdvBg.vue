@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { useAdvCtx, useAppStore } from '@advjs/client'
+import { useAdvContext, useAppStore } from '@advjs/client'
 import { computed, onMounted, ref, watch } from 'vue'
 
-const $adv = useAdvCtx()
+const { $adv } = useAdvContext()
 const app = useAppStore()
 
 const bgImage = ref('')

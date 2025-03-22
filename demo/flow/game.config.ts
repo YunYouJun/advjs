@@ -1,27 +1,25 @@
-import type { AdvCharacter } from '@advjs/types'
+import type { UnresolvedAsset } from 'pixi.js'
+
 import { defineGameConfig } from 'advjs'
-
 import { assetsManifest } from './config/assets'
-import yourNameFlow from './public/data/your-name-flow.json'
 
-yourNameFlow.characters.forEach((character: AdvCharacter) => {
-  switch (character.id) {
-    case 'taki': {
-      character.tachies = {
-        default: { src: '/img/your-name/1.jpg' },
+// import yourNameFlow from './public/data/your-name-flow.json'
+import { data as yourNameFlow } from './config/data'
+
+const gameScreen = assetsManifest.bundles[1] as { assets: UnresolvedAsset[] }
+yourNameFlow.nodes.forEach((node) => {
+  if (node.type === 'background') {
+    if (node.name && node.src) {
+      const asset: UnresolvedAsset = {
+        alias: node.name,
+        src: node.src,
       }
-      break
+      gameScreen.assets.push(asset)
     }
-    case 'mitsuha': {
-      character.tachies = {
-        default: { src: '/img/your-name/2.jpg' },
-      }
-      break
-    }
-    default:
-      break
   }
 })
+
+console.log(assetsManifest)
 
 export default defineGameConfig({
   assets: {
@@ -32,15 +30,15 @@ export default defineGameConfig({
   title: 'Your Name',
   characters: yourNameFlow.characters,
 
-  // chapters: [
-  //   {
-  //     id: 'intro',
-  //     title: 'Introduction',
-  //     description: 'Welcome to the world of AdvJS!',
-  //     data: {
-  //       nodes: yourName1.nodes,
-  //       edges: yourName1.edges,
-  //     },
-  //   },
-  // ],
+  chapters: [
+    {
+      id: 'intro',
+      title: 'Introduction',
+      description: 'Welcome to the world of AdvJS!',
+      data: {
+        nodes: yourNameFlow.nodes as any,
+        edges: yourNameFlow.edges,
+      },
+    },
+  ],
 })

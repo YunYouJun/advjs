@@ -1,18 +1,25 @@
 <script lang="ts" setup>
 import type { AdvAst } from '@advjs/types'
-import { useAdvCtx } from '@advjs/client'
+import { useAdvContext } from '@advjs/client'
+import { consola } from 'consola'
 
 defineProps<{
   node: AdvAst.Choices
 }>()
 
-const $adv = useAdvCtx()
+const { $adv } = useAdvContext()
 
 function onChoiceClick(choice: AdvAst.Choice) {
-  if (choice.do && choice.do.value)
-    $adv.core.handleCode(choice.do)
-  else
-    $adv.nav.next()
+  if (choice.do && choice.do.value) {
+    $adv.$logic.handleCode(choice.do)
+  }
+  else if (choice.target) {
+    consola.info('go to', choice.target)
+    $adv.$nav.go(choice.target)
+  }
+  else {
+    $adv.$nav.next()
+  }
 }
 </script>
 
