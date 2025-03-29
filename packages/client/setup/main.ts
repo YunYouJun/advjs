@@ -1,7 +1,7 @@
 import type { App } from 'vue'
 import setups from '#advjs/setups/main'
 
-import { createHead } from '@unhead/vue'
+import { createHead } from '@unhead/vue/client'
 import { MotionPlugin } from '@vueuse/motion'
 import { setupLayouts } from 'virtual:generated-layouts'
 

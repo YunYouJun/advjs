@@ -29,13 +29,12 @@ export async function ViteAdvPlugin(
 
   const {
     clientRoot,
-    userRoot,
     roots,
+    tempRoot,
   } = options
 
   // generated files for adv
-  const tempDir = resolve(userRoot, '.adv')
-  fs.ensureDirSync(resolve(userRoot, '.adv'))
+  fs.ensureDirSync(tempRoot)
 
   return Promise.all([
     createConfigPlugin(options),
@@ -49,7 +48,7 @@ export async function ViteAdvPlugin(
       extensions: ['.vue', '.md'],
       routesFolder: roots.map(root => join(root, 'pages')),
       exclude: ['**/*.adv.md'],
-      dts: resolve(tempDir, 'typed-router.d.ts'),
+      dts: resolve(tempRoot, 'typed-router.d.ts'),
     }),
 
     // https://github.com/JohnCampionJr/vite-plugin-vue-layouts
@@ -67,7 +66,7 @@ export async function ViteAdvPlugin(
         ]),
 
       include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
-      dts: resolve(tempDir, 'components.d.ts'),
+      dts: resolve(tempRoot, 'components.d.ts'),
 
       ...componentsOptions,
     }),

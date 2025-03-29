@@ -19,7 +19,7 @@ function onLoaded() {
   >
     <NewYunLogo class="h-40 w-40" />
     <div class="font-bold">
-      @YunYouJun
+      Created By <a href="https://advjs.org/" target="_blank">ADV.JS</a>
     </div>
 
     <StartLoading :assets="assets" @loaded="onLoaded" />

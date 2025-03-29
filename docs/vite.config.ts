@@ -1,24 +1,20 @@
 import path from 'node:path'
-import Unocss from 'unocss/vite'
+import { getViteConfig } from '@yunyoujun/docs'
 
-import Components from 'unplugin-vue-components/vite'
 import { defineConfig } from 'vite'
 
 // import { componentsDir } from '@advjs/gui/node'
 // no compile
 import { componentsDir } from '../packages/gui/node'
 
+const viteConfig = getViteConfig({
+  componentsDirs: [
+    componentsDir,
+  ],
+})
+
 export default defineConfig({
-  css: {
-    preprocessorOptions: {
-      scss: {
-        api: 'modern-compiler', // or "modern", "legacy"
-        importers: [
-          // ...
-        ],
-      },
-    },
-  },
+  ...viteConfig,
 
   resolve: {
     alias: {
@@ -38,19 +34,4 @@ export default defineConfig({
       ],
     },
   },
-
-  plugins: [
-    Components({
-      include: [/\.vue/, /\.md/],
-      dirs: [
-        '.vitepress/components',
-        componentsDir,
-      ],
-      dts: '.vitepress/components.d.ts',
-    }),
-
-    // https://github.com/antfu/unocss
-    // see unocss.config.ts for config
-    Unocss(),
-  ],
 })

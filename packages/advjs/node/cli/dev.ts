@@ -62,7 +62,7 @@ export async function advDev(options: {
       remote,
     }, 'dev')
 
-    const { data } = resolvedOptions
+    const { data, userRoot, themeRoot, tempRoot } = resolvedOptions
     if (data.config.format === 'fountain') {
       await checkFountain(entry)
     }
@@ -74,8 +74,9 @@ export async function advDev(options: {
         server: {
           watch: {
             ignored: [
-              `!${resolvedOptions.themeRoot}/**`,
-              `!${resolvedOptions.userRoot}/**`,
+              tempRoot,
+              `!${userRoot}/**`,
+              `!${themeRoot}/**`,
             ],
           },
 
@@ -87,8 +88,12 @@ export async function advDev(options: {
         logLevel: log as LogLevel,
       },
       {
-        async loadData(loadedSource) {
+        async loadData(_ctx, loadedSource) {
           const file = Object.keys(loadedSource)[0]
+
+          // console.log('file', file, ctx.server.moduleGraph.getModulesByFile(file))
+          // console.log('file id', file, ctx.server.moduleGraph.getModuleById(file))
+
           if (file.endsWith('adv.config.ts')) {
             const { config } = await loadAdvConfig()
             return {

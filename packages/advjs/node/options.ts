@@ -6,8 +6,9 @@ import type Vue from '@vitejs/plugin-vue'
 import type { VitePluginConfig as UnoCSSConfig } from 'unocss/vite'
 import type Components from 'unplugin-vue-components/vite'
 import type Markdown from 'unplugin-vue-markdown'
-import { dirname, join, resolve } from 'node:path'
+import type { HmrContext } from 'vite'
 
+import { dirname, join, resolve } from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { load } from '@advjs/parser/fs'
@@ -16,8 +17,8 @@ import _debug from 'debug'
 import fs from 'fs-extra'
 import { loadAdvConfigs } from './config'
 import { packageExists, resolveImportPath } from './resolver'
-import { getThemeMeta, resolveThemeName } from './themes'
 
+import { getThemeMeta, resolveThemeName } from './themes'
 import { getAdvThemeRoot } from './utils/root'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -62,6 +63,10 @@ export interface ResolvedAdvOptions {
   clientRoot: string
   themeRoot: string
   roots: string[]
+  /**
+   * '.adv' directory
+   */
+  tempRoot: string
 
   mode: 'dev' | 'build'
   remote?: boolean
@@ -84,7 +89,7 @@ export interface AdvServerOptions {
   /**
    * @returns `false` if server should be restarted
    */
-  loadData?: (loadedSource: Record<string, string>) => Promise<AdvData | false>
+  loadData?: (ctx: HmrContext, loadedSource: Record<string, string>) => Promise<AdvData | false>
 }
 
 export async function getClientRoot() {
@@ -164,6 +169,7 @@ export async function resolveOptions(
   const cliRoot = getCLIRoot()
   const clientRoot = await getClientRoot()
   const themeRoot = await getAdvThemeRoot(theme)
+  const tempRoot = resolve(userRoot, '.adv')
 
   const pkg = await fs.readJSON(`${themeRoot}/package.json`)
   themeConfig.pkg = pkg
@@ -184,6 +190,7 @@ export async function resolveOptions(
     clientRoot,
     cliRoot,
     themeRoot,
+    tempRoot,
 
     roots,
     remote,

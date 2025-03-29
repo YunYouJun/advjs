@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.0.1",
   "private": true,
-  "packageManager": "pnpm@10.6.5",
+  "packageManager": "pnpm@10.7.0",
   "description": "面向未来与前端的 ADV 文字冒险游戏引擎。",
   "author": {
     "name": "YunYouJun",
@@ -74,7 +74,7 @@
     "@advjs/plugin-babylon": "workspace:*",
     "@advjs/theme-default": "workspace:*",
     "@advjs/types": "workspace:*",
-    "@antfu/eslint-config": "^4.10.2",
+    "@antfu/eslint-config": "^4.11.0",
     "@antfu/ni": "catalog:",
     "@playwright/test": "^1.51.1",
     "@types/fs-extra": "catalog:",

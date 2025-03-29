@@ -19,9 +19,12 @@ const themeStore = useThemeDefaultStore()
     class="animate__animated animate__fadeIn adv-start-game-logo inline-flex flex-col animate-delay-600 items-center mix-blend-hard-light"
     absolute right-5rem min-w-25rem
   >
-    <NewYunLogo class="text-9xl text-blue-600 mix-blend-screen" m="t-20" alt="YunYouJun Logo" />
+    <NewYunLogo
+      class="text-9xl text-blue-600 mix-blend-screen dark:text-blue-400"
+      m="t-20" alt="YunYouJun Logo"
+    />
     <h1
-      class="adv-game-title gradient-text shadow-co z-1 mt-2 from-purple-500 to-blue-500 bg-gradient-to-r text-4xl text-shadow-lg"
+      class="adv-game-title gradient-text shadow-co z-1 mt-2 from-purple-500 to-blue-500 bg-gradient-to-r text-4xl text-shadow-lg dark:to-blue-300"
       font="bold"
     >
       {{ gameConfig.title }}

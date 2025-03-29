@@ -3,7 +3,7 @@ import Theme from 'vitepress/theme'
 import { h } from 'vue'
 import { mountCssVarsRootStyle } from '../../../packages/gui/client/styles/icons'
 
-import HomePage from '../components/HomePage.vue'
+import HomePage from './components/HomePage.vue'
 import 'uno.css'
 
 // custom

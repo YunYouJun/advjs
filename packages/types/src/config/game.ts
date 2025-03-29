@@ -1,5 +1,5 @@
 import type { AssetsManifest } from 'pixi.js'
-import type { AdvChapter, AdvCharacter, AdvMusic } from '../game'
+import type { AdvChapter, AdvCharacter, AdvMusic, AdvScene } from '../game'
 
 /**
  * 描述游戏具体内容的配置
@@ -22,7 +22,9 @@ export interface AdvGameConfig {
   favicon: string
 
   /**
+   * adv/characters/*.character.ts
    * all characters appear in the game
+   * @zh 角色配置
    */
   characters: AdvCharacter[]
 
@@ -58,7 +60,16 @@ export interface AdvGameConfig {
   }
 
   /**
+   * adv/characters/*.character.ts
    * chapters
+   * @zh 章节配置
+   * @default []
    */
   chapters: AdvChapter[]
+  /**
+   * adv/scenes/*.scene.ts
+   * @zh 场景配置
+   * @default []
+   */
+  scenes: AdvScene[]
 }

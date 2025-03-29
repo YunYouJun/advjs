@@ -8,6 +8,8 @@ import equal from 'fast-deep-equal'
 import { createMarkdown, resolveOptions } from './adv'
 import { templates } from './virtual'
 import { templateConfigs } from './virtual/configs'
+import { templateData } from './virtual/data'
+import { templateGames } from './virtual/game'
 
 interface AdvHmrPayload {
   data: AdvData
@@ -27,8 +29,7 @@ export function createAdvLoader(
 
   const filter = (name: string) => {
     return (
-      name.endsWith('.config.ts')
-      || name.endsWith('.adv.md')
+      name.endsWith('.adv.md')
       || name.endsWith('.adv')
       || name.startsWith('/@advjs/drama')
     )
@@ -74,11 +75,9 @@ export function createAdvLoader(
 
       async handleHotUpdate(ctx) {
         const { file, server } = ctx
-        if (!filter(file))
-          return
 
         const start = Date.now()
-        const newData = await serverOptions.loadData?.({
+        const newData = await serverOptions.loadData?.(ctx, {
           [ctx.file]: await ctx.read(),
         })
 
@@ -101,6 +100,10 @@ export function createAdvLoader(
           templateConfigs.forEach((config) => {
             moduleIds.add(config.id)
           })
+          templateGames.forEach((game) => {
+            moduleIds.add(game.id)
+          })
+          moduleIds.add(templateData.id)
         }
 
         moduleIds.add('/@advjs/drama.adv.md')
@@ -126,8 +129,11 @@ export function createAdvLoader(
           .filter(notNullish)
           .filter(i => !i.id?.startsWith('/@id/@vite-icons'))
 
+        updateServerWatcher()
+
         const duration = Date.now() - start
         consola.success(`🎬 ${colors.blue('[ADV.JS]')} ${colors.green('config updated')} ${colors.dim(file)} ${colors.dim(`${duration}ms`)}`)
+
         return moduleEntries
       },
     },

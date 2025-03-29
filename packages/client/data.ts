@@ -2,6 +2,10 @@ import type { AdvData } from '@advjs/types'
 // virtual module
 import advData from '#advjs/data'
 
+import chapters from '#advjs/game/chapters'
+import characters from '#advjs/game/characters'
+import scenes from '#advjs/game/scenes'
+
 import { computed, readonly, shallowRef } from 'vue'
 
 export const advDataRef = shallowRef<AdvData>(
@@ -31,6 +35,9 @@ if (__DEV__) {
 
 // init
 export function initAdvData() {
+  advDataRef.value.gameConfig.characters = characters
+  advDataRef.value.gameConfig.chapters = chapters
+  advDataRef.value.gameConfig.scenes = scenes
   return computed(() => advDataRef.value)
 }
 

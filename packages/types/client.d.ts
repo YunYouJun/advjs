@@ -24,3 +24,24 @@ declare module '#advjs/setups/adv' {
   const setups: AdvSetup[]
   export default setups
 }
+
+declare module '#advjs/game/chapters' {
+  import type { AdvChapter } from '@advjs/types'
+
+  const chapters: AdvChapter[]
+  export default chapters
+}
+
+declare module '#advjs/game/characters' {
+  import type { AdvCharacter } from '@advjs/types'
+
+  const characters: AdvCharacter[]
+  export default characters
+}
+
+declare module '#advjs/game/scenes' {
+  import type { AdvScene } from '@advjs/types'
+
+  const scenes: AdvScene[]
+  export default scenes
+}

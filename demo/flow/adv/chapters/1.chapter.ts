@@ -1,31 +1,4 @@
-import type { AdvCharacter } from '@advjs/types'
-
-const characters: AdvCharacter[] = [
-  {
-    id: 'taki',
-    name: 'Taki Tachibana',
-    appearance: 'A 17-year-old boy with short, messy black hair, wearing a high school uniform consisting of a white shirt, black blazer, and gray trousers. He has sharp, expressive eyes and a lean build.',
-    appearance_prompt: 'A Japanese high school boy with short black hair, wearing a white shirt, black blazer, and gray trousers. Sharp, expressive eyes, lean build, standing confidently in an urban setting.',
-    background: 'Taki is a high school student living in Tokyo. He works part-time at an Italian restaurant and has a passion for architecture. He is practical and determined, but often feels disconnected from his surroundings until he starts swapping bodies with Mitsuha.',
-
-    avatar: '/img/your-name/characters/taki.png',
-    tachies: {
-      default: { src: '/img/your-name/characters/taki.png', class: ['h-full'] },
-    },
-  },
-  {
-    id: 'mitsuha',
-    name: 'Mitsuha Miyamizu',
-    appearance: 'A 17-year-old girl with long, dark brown hair tied in a red ribbon, wearing her school uniform: a white blouse, green pleated skirt, and red ribbon. She has gentle, kind eyes and a petite frame.',
-    appearance_prompt: 'A Japanese high school girl with long dark brown hair tied in a red ribbon, wearing a white blouse and green pleated skirt. Gentle, kind eyes, petite frame, standing in a rural setting with mountains in the background.',
-    background: 'Mitsuha is a high school girl living in the rural town of Itomori. She helps her family run a shrine and often feels stifled by the small-town life. She dreams of living in Tokyo and experiencing the excitement of the city.',
-
-    avatar: '/img/your-name/characters/mitsuha.png',
-    tachies: {
-      default: { src: '/img/your-name/characters/mitsuha.png', class: ['h-full'] },
-    },
-  },
-]
+import { defineAdvChapter } from '@advjs/client'
 
 /**
  * for runtime hmr
@@ -33,14 +6,32 @@ const characters: AdvCharacter[] = [
 export const data = {
   title: 'Your Name: A Tale of Fate and Love',
   startNode: 'node_01',
-  characters,
+  // characters,
+  backgrounds: [
+    {
+      id: 'taki-bedroom',
+      sceneDesc: 'Taki wakes up in his small Tokyo apartment, feeling disoriented. The morning light filters through the curtains, and the sounds of the bustling city outside fill the air.',
+      src: '/img/your-name/node1.jpg',
+    },
+    {
+      id: 'tokyo-phone',
+      sceneDesc: 'Taki wakes up in his small Tokyo apartment, feeling disoriented. The morning light filters through the curtains, and the sounds of the bustling city outside fill the air.',
+      imagePrompt: 'A small, cluttered Tokyo apartment with morning light filtering through curtains. ',
+      src: '/img/your-name/node2.jpg',
+    },
+    {
+      id: 'tokyo-school',
+      sceneDesc: 'Taki wakes up in his small Tokyo apartment, feeling disoriented. The morning light filters through the curtains, and the sounds of the bustling city outside fill the air.',
+      imagePrompt: 'A small, cluttered Tokyo apartment with morning light filtering through curtains. ',
+      src: '/img/your-name/node3.jpg',
+    },
+  ],
   nodes: [
     {
       // 背景
       id: 'background_01',
       type: 'background',
       name: 'taki-bedroom',
-      src: '/img/your-name/node1.jpg',
     },
     {
       // 人物出场
@@ -104,7 +95,6 @@ export const data = {
       id: 'background_02',
       type: 'background',
       name: 'tokyo-phone',
-      src: '/img/your-name/node2.jpg',
     },
     {
       // 背景
@@ -120,6 +110,12 @@ export const data = {
       name: 'mitsuha',
       status: 'default',
       action: 'enter',
+    },
+    {
+      // 背景
+      id: 'background_02',
+      type: 'background',
+      name: 'tokyo-phone',
     },
     {
       // 人物退出
@@ -205,10 +201,12 @@ export const data = {
 
 data.nodes.forEach((node, _index) => {
   if (node.type === 'dialogues') {
+    // @ts-expect-error character
     node.character = {
       type: 'character',
       name: node.dialogues![0].speaker,
     }
+    // @ts-expect-error children
     node.children = node.dialogues!.map((dialogue) => {
       return {
         type: 'text',
@@ -217,4 +215,14 @@ data.nodes.forEach((node, _index) => {
       }
     }) as any
   }
+})
+
+export default defineAdvChapter({
+  id: 'intro',
+  title: 'Introduction',
+  description: 'Welcome to the world of AdvJS!',
+  data: {
+    nodes: data.nodes as any,
+    edges: data.edges,
+  },
 })

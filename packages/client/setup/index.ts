@@ -1,3 +1,4 @@
+import type { AdvChapter, AdvCharacter, AdvScene } from '@advjs/types'
 import type { Awaitable } from '@antfu/utils'
 import type { VitePluginConfig as UnoCssConfig } from 'unocss/vite'
 import type { App } from 'vue'
@@ -30,3 +31,18 @@ export const defineAppSetup = defineSetup<AppSetup>
  */
 export const defineAdvSetup = defineSetup<AdvSetup>
 export const defineUnoSetup = defineSetup<UnoSetup>
+/**
+ * define adv chapter
+ * @description 定义章节
+ */
+export const defineAdvChapter = defineSetup<AdvChapter>
+/**
+ * define adv character
+ * @description 定义角色
+ */
+export const defineAdvCharacter = defineSetup<AdvCharacter>
+/**
+ * define adv scene
+ * @description 定义场景
+ */
+export const defineAdvScene = defineSetup<AdvScene>

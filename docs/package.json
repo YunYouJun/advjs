@@ -20,13 +20,16 @@
     "@iconify-json/file-icons": "catalog:",
     "@iconify-json/logos": "catalog:",
     "@iconify-json/vscode-icons": "catalog:",
-    "mermaid": "^11.5.0",
-    "typedoc-plugin-markdown": "^4.5.2",
+    "@shikijs/vitepress-twoslash": "^3.2.1",
+    "@yunyoujun/docs": "^0.1.9",
+    "mermaid": "^11.6.0",
+    "typedoc-plugin-markdown": "^4.6.0",
     "typedoc-plugin-merge-modules": "catalog:",
     "typedoc-vitepress-theme": "^1.1.2",
     "unocss": "catalog:",
     "unplugin-vue-components": "catalog:",
     "vitepress": "catalog:",
+    "vitepress-plugin-group-icons": "^1.3.8",
     "vitepress-plugin-mermaid": "^2.0.17"
   }
 }

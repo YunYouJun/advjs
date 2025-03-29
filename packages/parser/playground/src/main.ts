@@ -1,5 +1,5 @@
 import type { UserModule } from './types'
-import { createHead } from '@unhead/vue'
+import { createHead } from '@unhead/vue/client'
 import { setupLayouts } from 'virtual:generated-layouts'
 import { createApp } from 'vue'
 

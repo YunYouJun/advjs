@@ -1,18 +1,18 @@
 import type { Alias, InlineConfig, Plugin } from 'vite'
 import type { ResolvedAdvOptions } from '../options'
 import { dirname, join, resolve } from 'node:path'
+import process from 'node:process'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { uniq } from '@antfu/utils'
 
+import { uniq } from '@antfu/utils'
 import { createResolve } from 'mlly'
 
-import { mergeConfig } from 'vite'
+import { mergeConfig, searchForWorkspaceRoot } from 'vite'
 
 import { ADV_VIRTUAL_MODULES } from '../config'
 
 import { isInstalledGlobally, resolveImportPath, toAtFS } from '../resolver'
 import setupIndexHtml from '../setups/indexHtml'
-import { searchForWorkspaceRoot } from '../vite/searchRoot'
 
 // import { commonAlias } from '../../../shared/config/vite'
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -106,8 +106,7 @@ export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<P
     enforce: 'pre',
     async config(config) {
       const injection: InlineConfig = {
-        // cacheDir: join(options.userRoot, 'node_modules/.vite'),
-        cacheDir: join(options.userRoot, '.adv/cache'),
+        cacheDir: join(options.userRoot, 'node_modules/.adv/cache'),
         publicDir: join(options.userRoot, 'public'),
 
         define: getDefine(options),
@@ -138,6 +137,7 @@ export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<P
           fs: {
             strict: true,
             allow: uniq([
+              searchForWorkspaceRoot(process.cwd()),
               searchForWorkspaceRoot(options.clientRoot),
               searchForWorkspaceRoot(options.themeRoot),
               searchForWorkspaceRoot(options.userRoot),
