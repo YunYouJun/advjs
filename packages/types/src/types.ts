@@ -53,3 +53,5 @@ export interface AdvData<ThemeConfig = any> {
   }
   themeConfigFile?: string
 }
+
+export type AdvThemeConfig = Record<string, string | number>

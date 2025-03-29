@@ -2,11 +2,11 @@
 
 import type { UserModule } from './types'
 import { createApp } from 'vue'
+
 import App from './App.vue'
-
 import { setupAdv } from './setup/adv'
-import { setupMain } from './setup/main'
 
+import { setupMain } from './setup/main'
 import { statement } from './utils/statement'
 
 async function main() {

@@ -6,26 +6,6 @@ import { defineAdvChapter } from '@advjs/client'
 export const data = {
   title: 'Your Name: A Tale of Fate and Love',
   startNode: 'node_01',
-  // characters,
-  backgrounds: [
-    {
-      id: 'taki-bedroom',
-      sceneDesc: 'Taki wakes up in his small Tokyo apartment, feeling disoriented. The morning light filters through the curtains, and the sounds of the bustling city outside fill the air.',
-      src: '/img/your-name/node1.jpg',
-    },
-    {
-      id: 'tokyo-phone',
-      sceneDesc: 'Taki wakes up in his small Tokyo apartment, feeling disoriented. The morning light filters through the curtains, and the sounds of the bustling city outside fill the air.',
-      imagePrompt: 'A small, cluttered Tokyo apartment with morning light filtering through curtains. ',
-      src: '/img/your-name/node2.jpg',
-    },
-    {
-      id: 'tokyo-school',
-      sceneDesc: 'Taki wakes up in his small Tokyo apartment, feeling disoriented. The morning light filters through the curtains, and the sounds of the bustling city outside fill the air.',
-      imagePrompt: 'A small, cluttered Tokyo apartment with morning light filtering through curtains. ',
-      src: '/img/your-name/node3.jpg',
-    },
-  ],
   nodes: [
     {
       // 背景
@@ -94,13 +74,13 @@ export const data = {
       // 背景
       id: 'background_02',
       type: 'background',
-      name: 'tokyo-phone',
+      name: 'taki-phone',
     },
     {
       // 背景
       id: 'background_03',
       type: 'background',
-      name: 'tokyo-school',
+      name: 'taki-school',
       src: '/img/your-name/node3.jpg',
     },
     {
@@ -115,7 +95,7 @@ export const data = {
       // 背景
       id: 'background_02',
       type: 'background',
-      name: 'tokyo-phone',
+      name: 'taki-phone',
     },
     {
       // 人物退出

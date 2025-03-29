@@ -2,6 +2,7 @@ import type { Tachie } from '@advjs/types'
 import type { AdvContext, UserModule } from '~/types'
 import setups from '#advjs/setups/adv'
 import { advConfigSymbol, advDataSymbol, gameConfigSymbol, getCharacter, themeConfigSymbol } from '@advjs/core'
+import { consola, LogLevels } from 'consola'
 import { computed } from 'vue'
 
 import { useAdvLogic, useAdvNav, useAdvTachies } from '../composables'
@@ -77,6 +78,11 @@ export const setupAdv: UserModule = async ({ app, router }) => {
 
   // handler HMR when router is ready
   app.provide(injectionAdvContext, advContext)
+
+  /**
+   * debug
+   */
+  consola.level = advContext.config.value.logLevel || LogLevels.info
 
   for (const setup of setups)
     await setup({ app, router, $adv: advContext })

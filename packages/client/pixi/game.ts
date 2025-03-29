@@ -1,9 +1,11 @@
-import type { AssetsManifest } from 'pixi.js'
+import type { AssetsBundle, AssetsManifest, UnresolvedAsset } from 'pixi.js'
 import type { AdvContext } from '../types'
 import { consola } from 'consola'
 import { Application, Assets } from 'pixi.js'
 import { BackgroundSystem } from './system/background'
 import { TachieSystem } from './system/tachie'
+
+const gameBundleName = '@advjs/game/bundle'
 
 export class PixiGame {
   app: Application
@@ -22,8 +24,43 @@ export class PixiGame {
     window.__PIXI_APP__ = app
   }
 
-  async setAssetsManifest(manifest: AssetsManifest) {
-    this.assetsManifest = manifest
+  initGameAssetsBundle() {
+    const assets: UnresolvedAsset[] = []
+    const gameBundle: AssetsBundle = {
+      name: gameBundleName,
+      assets,
+    }
+    if (this.$adv.gameConfig.value.scenes?.length) {
+      this.$adv.gameConfig.value.scenes.forEach((scene) => {
+        if (scene.type === 'image') {
+          const sceneAsset: UnresolvedAsset = {
+            alias: scene.alias || scene.id,
+            src: scene.src,
+          }
+          assets.push(sceneAsset)
+        }
+      })
+    }
+    return gameBundle
+  }
+
+  initAssetsManifest() {
+    const manifest: AssetsManifest = {
+      bundles: [],
+    }
+    const gameBundle = this.initGameAssetsBundle()
+    manifest.bundles.push(gameBundle)
+    return manifest
+  }
+
+  /**
+   * 合并自定义资源清单
+   * @param manifest
+   */
+  setAssetsManifest(manifest: AssetsManifest) {
+    const defaultManifest = this.initAssetsManifest()
+    defaultManifest.bundles.push(...manifest.bundles)
+    this.assetsManifest = defaultManifest
   }
 
   async init(canvas: HTMLCanvasElement) {
@@ -42,7 +79,7 @@ export class PixiGame {
       })
     }
 
-    await Assets.loadBundle('game-screen')
+    await Assets.loadBundle(gameBundleName)
 
     this.BgSystem = new BackgroundSystem(this)
     // this.BgSystem.load('stacked-steps-haikei')

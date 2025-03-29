@@ -35,9 +35,9 @@ if (__DEV__) {
 
 // init
 export function initAdvData() {
-  advDataRef.value.gameConfig.characters = characters
-  advDataRef.value.gameConfig.chapters = chapters
-  advDataRef.value.gameConfig.scenes = scenes
+  advData.gameConfig.characters = characters
+  advData.gameConfig.scenes = scenes
+  advData.gameConfig.chapters = chapters
   return computed(() => advDataRef.value)
 }
 

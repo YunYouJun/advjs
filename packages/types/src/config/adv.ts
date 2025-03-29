@@ -1,11 +1,20 @@
-import type { AdvFeatureFlags } from '../types'
+import type { LogLevel } from 'consola'
+import type { AdvFeatureFlags, AdvThemeConfig } from '../types'
+import type { AdvGameConfig } from './game'
 
 /**
  * 游戏应用级别的配置
  *
  * - 游戏内容位于 `game.config.ts` 中
  */
-export interface AdvConfig {
+export interface AdvConfig<ThemeConfig = AdvThemeConfig> {
+  /**
+   * consola 日志级别 (浏览器控制台)
+   *
+   * use 'LogLevels.debug' for debug
+   * @default 'info'
+   */
+  logLevel: LogLevel
   /**
    * adv root
    *
@@ -36,11 +45,6 @@ export interface AdvConfig {
    * @default 'default'
    */
   theme: string
-  /**
-   * @zh 主题配置
-   * @default {}
-   */
-  themeConfig: any
 
   /**
    * @zh 特性开关
@@ -105,6 +109,15 @@ export interface AdvConfig {
   }
 
   // -------------------------------------------------
+  /**
+   * gameConfig
+   */
+  gameConfig: Partial<AdvGameConfig>
+  /**
+   * @zh 主题配置 (取决于 theme)
+   * @default {}
+   */
+  themeConfig: ThemeConfig
 }
 
 /**

@@ -1,6 +1,8 @@
 import { defineAdvConfig } from 'advjs'
+import { LogLevels } from 'consola'
 
 export default defineAdvConfig({
+  logLevel: LogLevels.debug,
   root: './adv',
 
   format: 'flow',
@@ -8,5 +10,9 @@ export default defineAdvConfig({
 
   features: {
     babylon: false,
+  },
+
+  gameConfig: {
+    title: 'Your Name',
   },
 })

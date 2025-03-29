@@ -12,7 +12,7 @@ export function useAdvNav($adv: AdvContext) {
    * load chapter
    */
   async function loadChapter(index: number = 0) {
-    consola.info('Load Chapter', index)
+    consola.debug('Load Chapter', index)
     const curChapter = $adv.gameConfig.value.chapters[index]
     if (!curChapter)
       return
