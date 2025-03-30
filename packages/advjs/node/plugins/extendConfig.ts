@@ -1,13 +1,12 @@
 import type { Alias, InlineConfig, Plugin } from 'vite'
 import type { ResolvedAdvOptions } from '../options'
-import { dirname, join, resolve } from 'node:path'
-import process from 'node:process'
+import path, { dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import { uniq } from '@antfu/utils'
 import { createResolve } from 'mlly'
 
-import { mergeConfig, searchForWorkspaceRoot } from 'vite'
+import { mergeConfig } from 'vite'
 
 import { ADV_VIRTUAL_MODULES } from '../config'
 
@@ -66,10 +65,6 @@ const INCLUDE_LOCAL = [
   'pixi.js',
 ]
 
-// const { dependencies: parserDeps } = await import('@advjs/parser/package.json', { assert: { type: 'json' } })
-// const { dependencies: clientDeps } = await import('@advjs/client/package.json', { assert: { type: 'json' } })
-// const { dependencies: coreDeps } = await import('@advjs/core/package.json', { assert: { type: 'json' } })
-
 // const parserDeps = 'dependencies' in parserPkg ? parserPkg.dependencies : {}
 // const clientDeps = 'dependencies' in clientPkg ? clientPkg.dependencies : {}
 // const coreDeps = 'dependencies' in corePkg ? corePkg.dependencies : {}
@@ -85,7 +80,8 @@ export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<P
     INCLUDE_LOCAL.push(...babylonDeps)
   }
 
-  const themeDefaultRoot = resolve(__dirname, '../../../theme-default')
+  // packages/*
+  const packagesDir = path.resolve(__dirname, '../../../')
   const alias: Alias[] = [
     { find: '~/', replacement: `${toAtFS(options.clientRoot)}/` },
     /**
@@ -94,10 +90,12 @@ export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<P
     { find: /^#advjs\/(.*)/, replacement: '/@advjs/$1' },
     { find: /^@advjs\/client$/, replacement: `${toAtFS(options.clientRoot)}/index.ts` },
     { find: /^@advjs\/client\/(.*)/, replacement: `${toAtFS(options.clientRoot)}/$1` },
-    { find: '@advjs/core', replacement: `${resolve(__dirname, '../../../core/src')}/index.ts` },
-    { find: '@advjs/parser', replacement: `${toAtFS(resolve(__dirname, '../../../parser/src', 'index.ts'))}` },
-    { find: '@advjs/shared', replacement: `${toAtFS(resolve(__dirname, '../../../shared/src', 'index.ts'))}` },
-    { find: '@advjs/theme-default', replacement: `${toAtFS(themeDefaultRoot)}/index.ts` },
+    { find: '@advjs/core', replacement: `${resolve(packagesDir, 'core/src')}/index.ts` },
+    { find: '@advjs/parser', replacement: `${toAtFS(resolve(packagesDir, 'parser/src', 'index.ts'))}` },
+    { find: '@advjs/shared', replacement: `${toAtFS(resolve(packagesDir, 'shared/src', 'index.ts'))}` },
+    { find: '@advjs/theme-default', replacement: `${toAtFS(options.themeRoot)}/index.ts` },
+    // for dev
+    { find: '@advjs/types', replacement: `${toAtFS(resolve(packagesDir, 'types/src', 'index.ts'))}` },
   ]
 
   return {
@@ -106,7 +104,7 @@ export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<P
     enforce: 'pre',
     async config(config) {
       const injection: InlineConfig = {
-        cacheDir: join(options.userRoot, 'node_modules/.adv/cache'),
+        cacheDir: isInstalledGlobally.value ? join(options.cliRoot, 'node_modules/.vite') : undefined,
         publicDir: join(options.userRoot, 'public'),
 
         define: getDefine(options),
@@ -128,8 +126,6 @@ export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<P
           dedupe: ['vue'],
         },
         optimizeDeps: {
-          entries: [resolve(options.clientRoot, 'main.ts')],
-
           include: INCLUDE_LOCAL,
           exclude: EXCLUDE_LOCAL,
         },
@@ -137,11 +133,9 @@ export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<P
           fs: {
             strict: true,
             allow: uniq([
-              searchForWorkspaceRoot(process.cwd()),
-              searchForWorkspaceRoot(options.clientRoot),
-              searchForWorkspaceRoot(options.themeRoot),
-              searchForWorkspaceRoot(options.userRoot),
-              searchForWorkspaceRoot(options.cliRoot),
+              options.userWorkspaceRoot,
+              options.clientRoot,
+              options.themeRoot,
               ...options.roots,
             ]),
           },

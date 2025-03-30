@@ -81,8 +81,19 @@ export function createAdvLoader(
           [ctx.file]: await ctx.read(),
         })
 
+        /**
+         * in adv gameRoot config
+         */
+        // if (file.startsWith(path.resolve(advOptions.gameRoot, 'games')))
+
+        /**
+         * match *.config.ts
+         *
+         * return undefined to continue other hmr, like vue
+         * return [] will stop hmr
+         */
         if (!newData)
-          return []
+          return
 
         const payload: AdvHmrPayload = {
           data: newData,

@@ -8,20 +8,16 @@ import type Components from 'unplugin-vue-components/vite'
 import type Markdown from 'unplugin-vue-markdown'
 import type { HmrContext } from 'vite'
 
-import { dirname, join, resolve } from 'node:path'
+import path, { dirname, join, resolve } from 'node:path'
 import process from 'node:process'
-import { fileURLToPath } from 'node:url'
 import { load } from '@advjs/parser/fs'
 import { uniq } from '@antfu/utils'
 import _debug from 'debug'
 import fs from 'fs-extra'
 import { loadAdvConfigs } from './config'
-import { packageExists, resolveImportPath } from './resolver'
+import { getRoots, packageExists, resolveImportPath } from './resolver'
 
 import { getThemeMeta, resolveThemeName } from './themes'
-import { getAdvThemeRoot } from './utils/root'
-
-const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const debug = _debug('adv:options')
 
@@ -48,13 +44,8 @@ export interface AdvEntryOptions {
   userRoot?: string
 }
 
-export interface ResolvedAdvOptions {
-  /**
-   * 都放在 data 下以便一起处理 HMR
-   */
-  data: AdvData
+export interface RootsInfo {
   entry: string
-
   /**
    * root path
    */
@@ -62,11 +53,18 @@ export interface ResolvedAdvOptions {
   cliRoot: string
   clientRoot: string
   themeRoot: string
-  roots: string[]
   /**
    * '.adv' directory
    */
   tempRoot: string
+  userWorkspaceRoot: string
+}
+
+export interface ResolvedAdvOptions extends RootsInfo {
+  /**
+   * 都放在 data 下以便一起处理 HMR
+   */
+  data: AdvData
 
   mode: 'dev' | 'build'
   remote?: boolean
@@ -74,6 +72,16 @@ export interface ResolvedAdvOptions {
    * Base URL in dev or build mode
    */
   base?: string
+
+  /**
+   * Custom Game Root in adv.config.ts 'root'
+   * @default 'adv'
+   */
+  gameRoot: string
+  /**
+   * = `[clientRoot, ...themeRoots, ...addonRoots, userRoot]`
+   */
+  roots: string[]
 }
 
 export interface AdvPluginOptions extends AdvEntryOptions {
@@ -97,14 +105,6 @@ export async function getClientRoot() {
   return dirname(importPath)
 }
 
-/**
- * cli root
- * `adv.config.ts` should be in this directory
- */
-export function getCLIRoot() {
-  return resolve(__dirname, '..')
-}
-
 export function isPath(name: string) {
   return name.startsWith('/') || /^\.\.?[/\\]/.test(name)
 }
@@ -126,10 +126,7 @@ export async function resolveOptions(
   mode: ResolvedAdvOptions['mode'],
 ): Promise<ResolvedAdvOptions> {
   const { remote } = options
-  const {
-    entry,
-    userRoot,
-  } = getUserRoot(options)
+  const rootsInfo = await getRoots(options)
 
   /**
    * Load adv.js config
@@ -146,7 +143,7 @@ export async function resolveOptions(
   let data: AdvData = {} as AdvData
   if (config.format === 'fountain') {
     // avoid type error, type see packages/parser/fs
-    data = await load(entry)
+    data = await load(rootsInfo.entry)
   }
 
   data.config = config
@@ -166,38 +163,30 @@ export async function resolveOptions(
     process.exit(1)
   }
 
-  const cliRoot = getCLIRoot()
-  const clientRoot = await getClientRoot()
-  const themeRoot = await getAdvThemeRoot(theme)
-  const tempRoot = resolve(userRoot, '.adv')
-
-  const pkg = await fs.readJSON(`${themeRoot}/package.json`)
+  const pkg = await fs.readJSON(`${rootsInfo.themeRoot}/package.json`)
   themeConfig.pkg = pkg
 
+  const gameRoot = path.resolve(rootsInfo.userRoot, data.config.root || 'adv')
   const roots = uniq([
-    clientRoot,
-    themeRoot,
-    userRoot,
-    resolve(userRoot, data.config.root || ''),
+    rootsInfo.clientRoot,
+    rootsInfo.themeRoot,
+    rootsInfo.userRoot,
+    gameRoot,
   ])
 
   const advOptions: ResolvedAdvOptions = {
     data,
     mode,
-    entry,
-
-    userRoot,
-    clientRoot,
-    cliRoot,
-    themeRoot,
-    tempRoot,
 
     roots,
+    ...rootsInfo,
+    gameRoot,
+
     remote,
   }
 
-  if (themeRoot) {
-    const themeMeta = await getThemeMeta(theme, join(themeRoot, 'package.json'))
+  if (rootsInfo.themeRoot) {
+    const themeMeta = await getThemeMeta(theme, join(rootsInfo.themeRoot, 'package.json'))
     data.themeMeta = themeMeta
   }
   else {

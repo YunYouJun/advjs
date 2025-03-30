@@ -10,9 +10,10 @@ import openBrowser from 'open'
 import prompts from 'prompts'
 import { createServer } from '../commands/serve'
 import { loadAdvConfig } from '../config'
-import { loadAdvGameConfig } from '../config/game'
+import { loadAdvGameConfig, loadAdvGameConfigFromType } from '../config/game'
 import { loadAdvThemeConfig } from '../config/theme'
 import { resolveOptions } from '../options'
+import { gameModules } from '../plugins/virtual/game'
 import { commonOptions, findFreePort, printInfo } from './utils'
 
 /**
@@ -41,6 +42,7 @@ export async function checkFountain(entry: string) {
  */
 export async function advDev(options: {
   root: string
+  force?: boolean
   port?: number
   remote?: boolean
   log?: LogLevel
@@ -49,7 +51,7 @@ export async function advDev(options: {
 } = {
   root: process.cwd(),
 }) {
-  const { port: userPort, remote, log, open, entry = 'index' } = options
+  const { port: userPort, remote, log, open, entry = 'index', force } = options
 
   let server: ViteDevServer | undefined
   let port = 3333
@@ -62,7 +64,7 @@ export async function advDev(options: {
       remote,
     }, 'dev')
 
-    const { data, userRoot, themeRoot, tempRoot } = resolvedOptions
+    const { data, tempRoot, gameRoot } = resolvedOptions
     if (data.config.format === 'fountain') {
       await checkFountain(entry)
     }
@@ -75,8 +77,6 @@ export async function advDev(options: {
           watch: {
             ignored: [
               tempRoot,
-              `!${userRoot}/**`,
-              `!${themeRoot}/**`,
             ],
           },
 
@@ -85,14 +85,14 @@ export async function advDev(options: {
           open,
           host: remote !== undefined ? '0.0.0.0' : 'localhost',
         },
+        optimizeDeps: {
+          force,
+        },
         logLevel: log as LogLevel,
       },
       {
         async loadData(_ctx, loadedSource) {
           const file = Object.keys(loadedSource)[0]
-
-          // console.log('file', file, ctx.server.moduleGraph.getModulesByFile(file))
-          // console.log('file id', file, ctx.server.moduleGraph.getModuleById(file))
 
           if (file.endsWith('adv.config.ts')) {
             const { config } = await loadAdvConfig()
@@ -115,6 +115,16 @@ export async function advDev(options: {
               themeConfig,
             }
           }
+
+          for (const gameModule of gameModules) {
+            const root = path.resolve(gameRoot, `${gameModule}s`)
+            if (file.startsWith(root)) {
+              const characters = await loadAdvGameConfigFromType('character', resolvedOptions)
+              data.gameConfig.characters = characters
+              return data
+            }
+          }
+
           return false
         },
       },

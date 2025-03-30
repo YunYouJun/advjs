@@ -1,0 +1,23 @@
+{
+  "name": "@advjs/plugin-openai",
+  "type": "module",
+  "version": "0.0.1",
+  "description": "OpenAI Plugin for ADV.JS to support TTS and more.",
+  "author": {
+    "name": "YunYouJun",
+    "email": "me@yunyoujun.cn",
+    "url": "https://www.yunyoujun.cn"
+  },
+  "license": "MPL-2.0",
+  "scripts": {
+    "start": "tsx scripts/index.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "openai": "^4.90.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "catalog:",
+    "fs-extra": "catalog:"
+  }
+}

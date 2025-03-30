@@ -6,8 +6,8 @@ import { toAtFS } from '../../resolver'
 function createGameTemplate(name: string): VirtualModuleTemplate {
   return {
     id: `/@advjs/game/${name}s`,
-    async getContent({ userRoot, data }) {
-      const root = join(userRoot, data.config.root || 'adv', `${name}s`)
+    async getContent({ gameRoot }) {
+      const root = join(gameRoot, `${name}s`)
       /**
        * 按数字顺序排序
        */
@@ -34,7 +34,7 @@ function createGameTemplate(name: string): VirtualModuleTemplate {
 }
 
 // games
-const gameModules = [
+export const gameModules = [
   'chapter',
   'character',
   'scene',

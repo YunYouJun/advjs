@@ -105,7 +105,7 @@ const menuItems = computed<StartMenuItem[]>(() =>
   </AdvModal>
 
   <AdvModal :show="app.showMenu" @close="app.toggleShowMenu">
-    <MenuPanel />
+    <AdvMenuPanel />
   </AdvModal>
 </template>
 

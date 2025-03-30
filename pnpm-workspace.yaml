@@ -52,7 +52,7 @@ catalog:
   '@unocss/eslint-config': ^66.1.0-beta.7
   '@unocss/eslint-plugin': ^66.1.0-beta.7
   '@unocss/nuxt': ^66.1.0-beta.7
-  '@vite-pwa/nuxt': ^0.10.8
+  '@vite-pwa/nuxt': ^1.0.0
   '@vitejs/plugin-vue': ^5.2.3
   '@vue-flow/core': ^1.42.5
   '@vueuse/core': ^13.0.0
@@ -143,7 +143,7 @@ catalog:
   vite-plugin-electron: ^0.29.0
   vite-plugin-electron-renderer: ^0.14.6
   vite-plugin-inspect: ^11.0.0
-  vite-plugin-pwa: ^0.21.2
+  vite-plugin-pwa: ^1.0.0
   vite-plugin-vue-devtools: ^7.7.2
   vite-plugin-vue-layouts: ^0.11.0
   vite-ssg: 0.23.6

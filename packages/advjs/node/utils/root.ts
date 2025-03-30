@@ -31,7 +31,7 @@ export async function getModuleRoot(name: string, entry?: string) {
  * @param name valaxy-theme-name
  * @param entry
  */
-export async function getAdvThemeRoot(name: string, entry?: string) {
+export async function getAdvThemeRoot(name = '@advjs/theme-default', entry?: string) {
   const themeModule = (name.startsWith('@advjs/theme-') || name.startsWith('advjs-theme-') || name.startsWith('.')) ? name : `advjs-theme-${name}`
   return await getModuleRoot(themeModule, entry)
 }

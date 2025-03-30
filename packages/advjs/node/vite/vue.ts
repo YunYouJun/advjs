@@ -1,39 +1,7 @@
 import type { Plugin } from 'vite'
 import type { AdvPluginOptions, ResolvedAdvOptions } from '../options'
 import Vue from '@vitejs/plugin-vue'
-
-const customElements = new Set([
-  'font',
-
-  // katex
-  'annotation',
-  'math',
-  'menclose',
-  'mfrac',
-  'mglyph',
-  'mi',
-  'mlabeledtr',
-  'mn',
-  'mo',
-  'mover',
-  'mpadded',
-  'mphantom',
-  'mroot',
-  'mrow',
-  'mspace',
-  'msqrt',
-  'mstyle',
-  'msub',
-  'msubsup',
-  'msup',
-  'mtable',
-  'mtd',
-  'mtext',
-  'mtr',
-  'munder',
-  'munderover',
-  'semantics',
-])
+import { customElements } from '../constants'
 
 export async function createVuePlugin(
   _options: ResolvedAdvOptions,

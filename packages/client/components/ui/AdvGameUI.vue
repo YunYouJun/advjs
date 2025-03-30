@@ -39,7 +39,7 @@ audio.setBgm($adv.gameConfig.value.bgm.collection[0]?.src)
     </AdvIconButton>
 
     <AdvModal :show="app.showMenu" @close="app.toggleShowMenu">
-      <MenuPanel />
+      <AdvMenuPanel />
     </AdvModal>
 
     <AdvModal header="存储存档" :show="app.showSaveMenu" @close="app.toggleShowSaveMenu">

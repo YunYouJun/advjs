@@ -6,12 +6,13 @@
   "description": "Demo for flow",
   "scripts": {
     "build": "adv build",
-    "dev": "adv --open=false --log=info",
+    "dev": "adv --log=info",
     "export": "adv export",
     "preview": "vite preview --host",
     "preview-https": "serve dist"
   },
   "devDependencies": {
+    "@advjs/plugin-openai": "workspace:*",
     "@advjs/theme-default": "workspace:*",
     "advjs": "workspace:*",
     "https-localhost": "catalog:",

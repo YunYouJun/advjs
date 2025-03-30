@@ -1,0 +1,7 @@
+@use 'sass:map';
+@use './vars.scss' as *;
+
+:root {
+  --adv-theme-name: 'default';
+  --adv-theme-color: var(--adv-c-primary);
+}

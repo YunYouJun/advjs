@@ -1,4 +1,4 @@
-import { defineAdvCharacter } from '@advjs/client'
+import { defineAdvCharacter } from '@advjs/types'
 
 export default defineAdvCharacter({
   id: 'mitsuha',

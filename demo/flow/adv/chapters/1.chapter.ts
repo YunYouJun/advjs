@@ -1,4 +1,4 @@
-import { defineAdvChapter } from '@advjs/client'
+import { defineAdvChapter } from '@advjs/types'
 
 /**
  * for runtime hmr
@@ -46,6 +46,10 @@ export const data = {
         {
           speaker: 'Taki',
           text: 'But... why does my reflection in the mirror look so unfamiliar?',
+        },
+        {
+          speaker: 'Others',
+          text: 'Others Text',
         },
       ],
     },

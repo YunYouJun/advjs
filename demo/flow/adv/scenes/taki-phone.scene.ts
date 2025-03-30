@@ -1,4 +1,4 @@
-import { defineAdvScene } from '@advjs/client'
+import { defineAdvScene } from '@advjs/types'
 
 export default defineAdvScene({
   id: 'taki-phone',

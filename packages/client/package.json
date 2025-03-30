@@ -41,6 +41,7 @@
     "nprogress": "catalog:",
     "pinia": "catalog:",
     "pixi.js": "catalog:",
+    "radix-vue": "catalog:",
     "resolve": "catalog:",
     "swiper": "catalog:",
     "vue": "catalog:",

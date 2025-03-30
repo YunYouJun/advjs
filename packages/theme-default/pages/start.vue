@@ -72,7 +72,7 @@ const themeStore = useThemeDefaultStore()
   </AdvModal>
 
   <AdvModal :show="app.showMenu" @close="app.toggleShowMenu">
-    <MenuPanel />
+    <AdvMenuPanel />
   </AdvModal>
 </template>
 

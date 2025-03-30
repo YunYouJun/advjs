@@ -1,11 +1,16 @@
-import * as fs from 'node:fs'
+import type { AdvEntryOptions, RootsInfo } from './options'
 
-import { dirname, join } from 'node:path'
+import * as fs from 'node:fs'
+import path, { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { ensurePrefix, slash } from '@antfu/utils'
 import globalDirs from 'global-directory'
 import { resolvePath } from 'mlly'
 import { resolveGlobal } from 'resolve-global'
+import { searchForWorkspaceRoot } from 'vite'
 import { findDepPkgJsonPath } from 'vitefu'
+import { getClientRoot, getUserRoot } from './options'
+import { getAdvThemeRoot } from './utils/root'
 
 export const isInstalledGlobally: { value?: boolean } = {}
 
@@ -76,6 +81,34 @@ export async function packageExists(name: string) {
   return false
 }
 
+let rootsInfo: RootsInfo | undefined
 /**
- * @TODO getRoots
+ * Get the root directory of the project
  */
+export async function getRoots(options: AdvEntryOptions): Promise<RootsInfo> {
+  if (rootsInfo)
+    return rootsInfo
+
+  const { entry, userRoot } = getUserRoot(options)
+
+  /**
+   * cli root
+   * `adv.config.ts` should be in this directory
+   */
+  const cliRoot = fileURLToPath(new URL('..', import.meta.url))
+  const clientRoot = await getClientRoot()
+  const themeRoot = await getAdvThemeRoot(options.theme)
+  const tempRoot = path.resolve(userRoot, '.adv')
+
+  rootsInfo = {
+    entry,
+    cliRoot,
+    userRoot,
+    clientRoot,
+    themeRoot,
+    tempRoot,
+    userWorkspaceRoot: searchForWorkspaceRoot(userRoot),
+  }
+
+  return rootsInfo
+}

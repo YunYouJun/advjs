@@ -1,13 +1,17 @@
 import type { AdvConfig, AdvGameConfig } from '@advjs/types'
+import { LogLevels } from 'consola'
 
 export const defaultConfig: AdvConfig = {
+  logLevel: LogLevels.info,
   format: 'fountain',
   features: {
     babylon: false,
   },
 
+  gameConfig: {},
   theme: 'default',
   themeConfig: {},
+
   aspectRatio: 16 / 9,
   canvasWidth: 1920, // 1920*1080
   // canvasWidth: 2560, // 2560*1440
@@ -41,4 +45,5 @@ export const defaultGameConfig: AdvGameConfig = {
     },
   },
   chapters: [],
+  scenes: [],
 }

@@ -10,6 +10,7 @@ export const packagesFolder = path.resolve(__dirname, '../../')
 
 export const defaultThemeFolder = path.resolve(packagesFolder, 'theme-default')
 export const commonAlias: AliasOptions = {
+  '@advjs/client': `${path.resolve(packagesFolder, 'client')}/index.ts`,
   '@advjs/client/': `${path.resolve(packagesFolder, 'client')}/`,
   '@advjs/examples/': `${path.resolve(packagesFolder, 'examples')}/`,
 
@@ -20,6 +21,8 @@ export const commonAlias: AliasOptions = {
   '@advjs/parser/': `${path.resolve(packagesFolder, 'parser/src')}/`,
   '@advjs/shared/': `${path.resolve(packagesFolder, 'shared/src')}/`,
   '@advjs/plugin-babylon': `${path.resolve(packagesFolder, 'plugin-babylon/src')}/`,
+
+  '@advjs/types': `${path.resolve(packagesFolder, 'types/src')}/index.ts`,
 
   '@advjs/theme-default/': `${defaultThemeFolder}/`,
   '@advjs/theme-default': defaultThemeFolder,

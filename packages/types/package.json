@@ -35,6 +35,7 @@
     "@types/mdast": "catalog:",
     "@types/unist": "catalog:",
     "@vue-flow/core": "catalog:",
+    "consola": "catalog:",
     "unocss": "catalog:",
     "vue": "catalog:",
     "vue-router": "catalog:"
