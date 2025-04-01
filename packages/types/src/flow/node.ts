@@ -53,12 +53,24 @@ export interface AdvTachieNode extends AdvBaseNode {
   action: 'enter' | 'exit'
 }
 
+export interface AdvDialogNode {
+  type: 'dialog'
+  /**
+   * 对话内容
+   */
+  text: string
+  /**
+   * 对话角色 ID
+   */
+  speaker?: string
+}
+
 export interface AdvDialoguesNode extends AdvBaseNode {
   type: 'dialogues'
   /**
    * 对话列表
    */
-  children: Array<{ type: 'text', value: string }>
+  children: AdvDialogNode[]
 }
 
 /**

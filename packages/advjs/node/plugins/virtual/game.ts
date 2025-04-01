@@ -38,6 +38,7 @@ export const gameModules = [
   'chapter',
   'character',
   'scene',
-]
+] as const
+export type AdvGameModuleName = typeof gameModules[number]
 
 export const templateGames = gameModules.map(createGameTemplate)

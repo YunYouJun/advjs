@@ -28,23 +28,23 @@ export const data = {
       imagePrompt: 'A small, cluttered Tokyo apartment with morning light filtering through curtains. A teenage boy with short black hair sits on a bed, looking confused. The room is filled with posters and sketches of buildings.',
       dialogues: [
         {
-          speaker: 'Taki',
+          speaker: 'taki',
           text: 'What... what happened last night? Why do I feel so strange?',
         },
         {
-          speaker: 'Taki',
+          speaker: 'taki',
           text: 'My head feels heavy, like I’ve been dreaming for hours, but I can’t remember a thing.',
         },
         {
-          speaker: 'Taki',
+          speaker: 'taki',
           text: 'And why does my room feel... different? Like it’s not entirely mine.',
         },
         {
-          speaker: 'Taki',
+          speaker: 'taki',
           text: 'I need to shake this off. Maybe some water will help.',
         },
         {
-          speaker: 'Taki',
+          speaker: 'taki',
           text: 'But... why does my reflection in the mirror look so unfamiliar?',
         },
         {
@@ -116,23 +116,23 @@ export const data = {
       imagePrompt: 'A close-up of a smartphone screen showing a handwritten note in a neat, feminine script. The room is dimly lit, with the phone\'s glow illuminating Taki\'s confused expression.',
       dialogues: [
         {
-          speaker: 'Taki',
+          speaker: 'taki',
           text: 'Who wrote this? This isn’t my handwriting... Did someone break into my phone?',
         },
         {
-          speaker: 'Taki',
+          speaker: 'taki',
           text: 'Wait, this note... it’s about my day, but I don’t remember doing any of this.',
         },
         {
-          speaker: 'Taki',
+          speaker: 'taki',
           text: 'Did I sleepwalk? Or... is this some kind of prank?',
         },
         {
-          speaker: 'Taki',
+          speaker: 'taki',
           text: 'No, it’s too detailed. Someone was in my body. But how?',
         },
         {
-          speaker: 'Taki',
+          speaker: 'taki',
           text: 'I need to figure this out. This can’t be real... can it?',
         },
       ],
@@ -148,7 +148,7 @@ export const data = {
           text: 'Hey, Taki, you look like you’ve seen a ghost. Are you okay?',
         },
         {
-          speaker: 'Taki',
+          speaker: 'taki',
           text: 'I... I don’t know. Something feels really off today.',
         },
         {
@@ -156,7 +156,7 @@ export const data = {
           text: 'You’ve been spacing out all morning. Did you pull an all-nighter or something?',
         },
         {
-          speaker: 'Taki',
+          speaker: 'taki',
           text: 'No, it’s not that. It’s like... I’m not entirely myself.',
         },
         {
@@ -164,7 +164,7 @@ export const data = {
           text: 'Well, you’re acting weird, that’s for sure. Maybe you’re coming down with something.',
         },
         {
-          speaker: 'Taki',
+          speaker: 'taki',
           text: 'Maybe... but it feels deeper than that. Like something’s missing.',
         },
       ],
@@ -193,7 +193,7 @@ data.nodes.forEach((node, _index) => {
     // @ts-expect-error children
     node.children = node.dialogues!.map((dialogue) => {
       return {
-        type: 'text',
+        type: 'dialog',
         value: dialogue.text,
         speaker: dialogue.speaker,
       }

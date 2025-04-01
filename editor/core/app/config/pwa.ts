@@ -35,6 +35,8 @@ export const pwa: ModuleOptions = {
     // ],
   },
   workbox: {
+    // nuxt-monaco-editor/vs/language/typescript/ts.worker.js 11.2MB
+    maximumFileSizeToCacheInBytes: 12 * 1000 * 1000,
     globPatterns: ['**/*.{js,css,html,txt,png,ico,svg}'],
     navigateFallbackDenylist: [/^\/api\//],
     navigateFallback: '/',

@@ -10,8 +10,8 @@ export const packagesFolder = path.resolve(__dirname, '../../')
 
 export const defaultThemeFolder = path.resolve(packagesFolder, 'theme-default')
 export const commonAlias: AliasOptions = {
-  '@advjs/client': `${path.resolve(packagesFolder, 'client')}/index.ts`,
   '@advjs/client/': `${path.resolve(packagesFolder, 'client')}/`,
+  '@advjs/client': `${path.resolve(packagesFolder, 'client')}/index.ts`,
   '@advjs/examples/': `${path.resolve(packagesFolder, 'examples')}/`,
 
   '@advjs/gui/': `${path.resolve(packagesFolder, 'gui')}/`,

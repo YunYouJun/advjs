@@ -1,5 +1,6 @@
 import type { AdvChapter, AdvCharacter, AdvGameConfig, AdvScene } from '@advjs/types'
 import type { ResolvedAdvOptions } from '../options'
+import type { AdvGameModuleName } from '../plugins/virtual/game'
 import path from 'node:path'
 import { defaultGameConfig } from '@advjs/core'
 import { loadConfig } from 'c12'
@@ -27,6 +28,10 @@ export interface GameTypeConfig {
   character: AdvCharacter
 }
 
+export type AdvGameTypeConfig = {
+  [K in AdvGameModuleName]: GameTypeConfig[K][]
+}
+
 /**
  * load config
  *
@@ -34,7 +39,7 @@ export interface GameTypeConfig {
  * - adv/chapters
  * - adv/characters
  */
-export async function loadAdvGameConfigFromType<T extends 'scene' | 'chapter' | 'character'>(type: T, options: ResolvedAdvOptions): Promise<GameTypeConfig[T][]> {
+export async function loadAdvGameConfigFromType<T extends AdvGameModuleName>(type: T, options: ResolvedAdvOptions): Promise<GameTypeConfig[T][]> {
   const root = path.resolve(options.gameRoot, `${type}s`)
   /**
    * 按数字顺序排序

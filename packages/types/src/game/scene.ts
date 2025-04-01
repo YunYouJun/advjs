@@ -16,6 +16,7 @@ export interface AdvBaseScene {
    */
   description?: string
   /**
+   * Image Prompt
    * @zh 场景提示词
    * @description 生成图片的提示词
    * @example "A small, cluttered Tokyo apartment with morning light filtering through curtains."

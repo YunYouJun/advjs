@@ -117,10 +117,10 @@ export async function advDev(options: {
           }
 
           for (const gameModule of gameModules) {
-            const root = path.resolve(gameRoot, `${gameModule}s`)
+            const gameConfigName = `${gameModule}s` as const
+            const root = path.resolve(gameRoot, gameConfigName)
             if (file.startsWith(root)) {
-              const characters = await loadAdvGameConfigFromType('character', resolvedOptions)
-              data.gameConfig.characters = characters
+              data.gameConfig[gameConfigName] = await loadAdvGameConfigFromType(gameModule, resolvedOptions) as any
               return data
             }
           }

@@ -21,13 +21,6 @@ export interface AdvGameConfig {
    */
   favicon: string
 
-  /**
-   * adv/characters/*.character.ts
-   * all characters appear in the game
-   * @zh 角色配置
-   */
-  characters: AdvCharacter[]
-
   bgm: {
     /**
      * auto play first bgm
@@ -66,6 +59,12 @@ export interface AdvGameConfig {
    * @default []
    */
   chapters: AdvChapter[]
+  /**
+   * adv/characters/*.character.ts
+   * all characters appear in the game
+   * @zh 角色配置
+   */
+  characters: AdvCharacter[]
   /**
    * adv/scenes/*.scene.ts
    * @zh 场景配置

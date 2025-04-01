@@ -5,7 +5,8 @@ const fileUrl = computed(() => decodeURI(route.query.fileUrl as string))
 const type = computed(() => route.query.type as string)
 
 onBeforeMount(() => {
-  import('@google/model-viewer')
+  // @TODO
+  // import('@google/model-viewer')
 })
 
 const fileContent = computedAsync(async () => {

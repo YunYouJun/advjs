@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AdvAst, AdvDialoguesNode } from '@advjs/types'
+import type { AdvAst, AdvDialogNode, AdvDialoguesNode } from '@advjs/types'
 import { speak, useAdvContext, useSettingsStore } from '@advjs/client'
 import { computed, ref, unref, watch } from 'vue'
 
@@ -12,10 +12,13 @@ const { $adv } = useAdvContext()
 const settings = useSettingsStore()
 const store = $adv.store
 
-const curDialog = computed(() => $adv.store.cur.dialog)
-
+/**
+ * dialogues 包含多个对话子节点
+ */
+const dialogues = computed(() => $adv.store.cur.dialog)
 // 局部 words order，与全局 order 相区别
 const iOrder = ref(0)
+const curDialog = computed(() => dialogues.value.children[iOrder.value] as AdvDialogNode)
 
 // watch order, update dialog
 watch(() => store.curFlowNode, () => {
@@ -28,13 +31,13 @@ watch(() => store.curFlowNode, () => {
 })
 
 watch(
-  () => curDialog.value.children[iOrder.value]?.value,
+  () => curDialog?.value,
   (val) => {
     const lang = settings.storage.speechOptions.lang
     // 若开启了语音合成
     if (settings.storage.speech) {
       speechSynthesis.cancel()
-      speak(val, unref((typeof lang === 'function' ? lang() : lang)) || 'zh-CN')
+      speak(val.text, unref((typeof lang === 'function' ? lang() : lang)) || 'zh-CN')
     }
   },
 )
@@ -43,6 +46,9 @@ const end = ref(false)
 const animation = ref(true)
 
 async function next() {
+  /**
+   * 如果当前节点非对话节点，则直接跳转到下一个节点
+   */
   if (store.curFlowNode.type !== 'dialogues') {
     await $adv.$nav.next()
     return
@@ -62,8 +68,8 @@ async function next() {
   //   end.value = false
   // }
 
-  if (curDialog.value.children) {
-    const length = curDialog.value.children.length
+  if (dialogues.value.children) {
+    const length = dialogues.value.children.length
 
     if (iOrder.value + 1 > length - 1) {
       await $adv.$nav.next()
@@ -75,7 +81,11 @@ async function next() {
   }
 }
 
-const curCharacter = computed(() => curDialog.value.character)
+const curCharacter = computed(() => {
+  const characterID = curDialog.value?.speaker
+  const character = $adv.gameConfig.value.characters?.find(item => item.id === characterID)
+  return character
+})
 
 const characterAvatar = computed(() => {
   const advConfig = $adv.config.value
@@ -91,7 +101,7 @@ const curWords = computed(() => {
   if (props.node && props.node.type === 'text')
     return props.node.value
 
-  return curDialog.value.children[iOrder.value]?.value
+  return curDialog.value
 
   if (store.curFlowNode.type === 'dialogues') {
     // return store.curFlowNode.dialogues[iOrder.value]?.value
@@ -100,7 +110,7 @@ const curWords = computed(() => {
 
 // trigger transition
 const transitionFlag = ref(true)
-watch(() => curCharacter.value.name, () => {
+watch(() => curCharacter.value?.name, () => {
   transitionFlag.value = false
   setTimeout(() => {
     transitionFlag.value = true
