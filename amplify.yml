@@ -1,0 +1,18 @@
+version: 1
+applications:
+  - frontend:
+      phases:
+        preBuild:
+          commands:
+            - node --version
+            - corepack enable
+            - pnpm install
+        build:
+          commands:
+            - pnpm run editor:build
+      artifacts:
+        baseDirectory: editor/core/.amplify-hosting
+        files:
+          - '**/*'
+      buildPath: /
+    appRoot: editor/core
