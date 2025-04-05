@@ -1,45 +1,11 @@
-import type { AdvContext, UserModule } from '~/types'
+import type { UserModule } from '~/types'
 import setups from '#advjs/setups/adv'
 import { advConfigSymbol, advDataSymbol, gameConfigSymbol, themeConfigSymbol } from '@advjs/core'
 import { consola, LogLevels } from 'consola'
-import { computed } from 'vue'
 
-import { $t, initAdvData } from '../compiler'
+import { initAdvContext, initAdvData } from '../compiler'
 
-import { useAdvLogic, useAdvNav, useAdvTachies } from '../composables'
 import { injectionAdvContext } from '../constants'
-import { initPixi } from '../pixi'
-import { useAdvStore } from '../stores'
-
-export function initAdvContext(advData: ReturnType<typeof initAdvData>) {
-  const advConfig = computed(() => advData.value.config)
-  const gameConfig = computed(() => advData.value.gameConfig)
-  const themeConfig = computed(() => advData.value.config.themeConfig)
-
-  const store = useAdvStore()
-
-  const advContext: AdvContext = {
-    store,
-    config: advConfig,
-    gameConfig,
-    themeConfig,
-    functions: {},
-
-    init: async () => {
-      advContext.pixiGame = await initPixi(advContext)
-    },
-
-    $t,
-    $nav: {} as ReturnType<typeof useAdvNav>,
-    $logic: {} as ReturnType<typeof useAdvLogic>,
-    $tachies: {} as ReturnType<typeof useAdvTachies>,
-  }
-  advContext.$nav = useAdvNav(advContext)
-  advContext.$logic = useAdvLogic(advContext)
-  advContext.$tachies = useAdvTachies(advContext)
-
-  return advContext
-}
 
 export const setupAdv: UserModule = async ({ app, router }) => {
   // inject adv config before modules

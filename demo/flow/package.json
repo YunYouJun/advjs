@@ -6,6 +6,7 @@
   "description": "Demo for flow",
   "scripts": {
     "build": "adv build",
+    "config": "adv config -m -t public/config --base64",
     "dev": "adv --log=info",
     "export": "adv export",
     "preview": "vite preview --host",

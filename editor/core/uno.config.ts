@@ -1,21 +1,12 @@
-import {
-  defineConfig,
-  presetAttributify,
-  presetIcons,
-  presetTypography,
-  presetUno,
-  transformerDirectives,
-  transformerVariantGroup,
-} from 'unocss'
+import extractorMdc from '@unocss/extractor-mdc'
+import { defineConfig, presetAttributify, presetIcons, presetTypography, presetWind3, transformerDirectives, transformerVariantGroup } from 'unocss'
 import { safelist } from '../../packages/gui/unocss'
+import { presetAdv } from '../../packages/unocss/src'
 
 export default defineConfig({
-  shortcuts: [
-    ['btn', 'px-4 py-1 rounded inline-block bg-teal-600 text-white cursor-pointer hover:bg-teal-700 disabled:cursor-default disabled:bg-gray-600 disabled:opacity-50'],
-    ['icon-btn', 'inline-block cursor-pointer select-none opacity-75 transition duration-200 ease-in-out hover:opacity-100 hover:text-teal-600'],
-  ],
   presets: [
-    presetUno(),
+    presetWind3(),
+    presetAdv(),
     presetAttributify(),
     presetIcons({
       scale: 1.2,
@@ -26,6 +17,11 @@ export default defineConfig({
     transformerDirectives(),
     transformerVariantGroup(),
   ],
+  extractors: [
+    extractorMdc(),
+  ],
 
-  safelist,
+  safelist: [
+    ...safelist,
+  ],
 })

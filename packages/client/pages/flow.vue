@@ -14,7 +14,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <AdvGame :config="advConfig" />
+  <AdvGame class="h-screen w-screen" :config="advConfig" />
   <AdvDevTools v-if="isDev" />
 </template>
 

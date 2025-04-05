@@ -83,7 +83,6 @@ export function useAdvNav($adv: AdvContext) {
       consola.error('Can not find target')
     }
     else {
-      consola.info('Next')
       const targetNode = curChapterMap.get(store.curFlowNode.target)
       if (!targetNode) {
         consola.error('Can not find target node')
@@ -91,6 +90,7 @@ export function useAdvNav($adv: AdvContext) {
       else {
         store.curFlowNode = targetNode
       }
+      consola.debug('Next', store.curFlowNode)
     }
 
     // if (!store.ast)

@@ -33,6 +33,7 @@
     "@iconify-json/twemoji": "catalog:",
     "@nuxt/devtools": "catalog:",
     "@nuxtjs/color-mode": "catalog:",
+    "@nuxtjs/i18n": "9.5.2",
     "@pinia/nuxt": "catalog:",
     "@unocss/eslint-config": "catalog:",
     "@unocss/nuxt": "catalog:",

@@ -1,6 +1,6 @@
 export interface MenuItem {
-  type?: 'checkbox'
-  label: string
+  type?: 'checkbox' | 'separator' | 'submenu' | 'normal'
+  label?: string
   /**
    * Shortcut key
    */
@@ -9,6 +9,8 @@ export interface MenuItem {
 
   checked?: boolean
   onClick?: () => void
+
+  children?: MenuItem[]
 }
 
 export interface Menu {

@@ -57,9 +57,11 @@ export class PixiGame {
    * 合并自定义资源清单
    * @param manifest
    */
-  setAssetsManifest(manifest: AssetsManifest) {
+  setAssetsManifest(manifest?: AssetsManifest) {
     const defaultManifest = this.initAssetsManifest()
-    defaultManifest.bundles.push(...manifest.bundles)
+    if (manifest) {
+      defaultManifest.bundles.push(...manifest.bundles)
+    }
     this.assetsManifest = defaultManifest
   }
 
@@ -79,7 +81,7 @@ export class PixiGame {
       })
     }
 
-    await Assets.loadBundle(gameBundleName)
+    await this.loadBundle()
 
     this.BgSystem = new BackgroundSystem(this)
     // this.BgSystem.load('stacked-steps-haikei')
@@ -87,5 +89,9 @@ export class PixiGame {
     this.TachieSystem = new TachieSystem(this)
     this.TachieSystem.init()
     // this.TachieSystem.showCharacter('xiao-yun')
+  }
+
+  async loadBundle(name = gameBundleName) {
+    await Assets.loadBundle(name)
   }
 }

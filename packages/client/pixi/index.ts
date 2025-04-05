@@ -8,7 +8,7 @@ export async function initPixi($adv: AdvContext) {
 
   const pixiGameInstance = new PixiGame($adv)
   // console.log(renderer)
-  pixiGameInstance.setAssetsManifest($adv.gameConfig.value.assets.manifest)
+  pixiGameInstance.setAssetsManifest($adv.gameConfig.value.assets?.manifest)
   await pixiGameInstance.init(canvas)
 
   return pixiGameInstance

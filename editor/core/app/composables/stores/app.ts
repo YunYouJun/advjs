@@ -11,7 +11,7 @@ const defaultLayout: AGUILayoutType = {
     {
       type: 'horizontal',
       name: 'left',
-      size: 75,
+      size: 70,
       children: [
         {
           type: 'vertical',
@@ -39,7 +39,7 @@ const defaultLayout: AGUILayoutType = {
     },
     {
       name: 'right',
-      size: 25,
+      size: 30,
       min: 20,
       max: 60,
     },

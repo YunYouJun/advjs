@@ -4,7 +4,7 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 
 const recordsStorage = createRecordsStorage()
 
-export const useGameStore = defineStore('game', () => {
+export const useGameStore = defineStore('@advjs/client/game', () => {
   // 0 for temp save
   // const recordsMap = useStorage<boolean[]>(`${namespace}::records`, [])
 

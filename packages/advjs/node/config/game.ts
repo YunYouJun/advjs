@@ -2,7 +2,6 @@ import type { AdvChapter, AdvCharacter, AdvGameConfig, AdvScene } from '@advjs/t
 import type { ResolvedAdvOptions } from '../options'
 import type { AdvGameModuleName } from '../plugins/virtual/game'
 import path from 'node:path'
-import { defaultGameConfig } from '@advjs/core'
 import { loadConfig } from 'c12'
 import fs from 'fs-extra'
 import { loadModule } from '../utils'
@@ -13,7 +12,6 @@ import { loadModule } from '../utils'
 export async function loadAdvGameConfig() {
   const { config: gameConfig, configFile: gameConfigFile } = await loadConfig<AdvGameConfig>({
     name: 'game',
-    defaultConfig: defaultGameConfig,
   })
 
   return {

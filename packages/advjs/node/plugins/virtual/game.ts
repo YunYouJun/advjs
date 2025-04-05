@@ -1,5 +1,6 @@
 import type { VirtualModuleTemplate } from './types'
 import { join } from 'node:path'
+import { gameModules } from '@advjs/core'
 import fs from 'fs-extra'
 import { toAtFS } from '../../resolver'
 
@@ -33,12 +34,6 @@ function createGameTemplate(name: string): VirtualModuleTemplate {
   }
 }
 
-// games
-export const gameModules = [
-  'chapter',
-  'character',
-  'scene',
-] as const
 export type AdvGameModuleName = typeof gameModules[number]
 
 export const templateGames = gameModules.map(createGameTemplate)

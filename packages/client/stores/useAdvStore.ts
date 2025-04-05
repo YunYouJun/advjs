@@ -63,12 +63,7 @@ export const useAdvStore = defineStore('adv', () => {
         name: '',
         status: '',
       },
-      children: [
-        {
-          type: 'text',
-          value: '',
-        },
-      ],
+      children: [],
     },
     tachies: new Map(),
     background: '',

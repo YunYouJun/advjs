@@ -51,7 +51,7 @@ const { $adv } = useAdvContext()
       <div>
         Tachies
 
-        <pre>{{ $adv.$tachies.map.value }}</pre>
+        <pre>{{ $adv.$tachies.runtime.value }}</pre>
       </div>
     </div>
   </div>

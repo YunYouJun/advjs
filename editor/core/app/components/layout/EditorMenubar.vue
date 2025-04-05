@@ -3,6 +3,37 @@ import type { Menu } from '@advjs/gui'
 
 const menus: Menu[] = [
   {
+    name: 'File',
+    items: [
+      {
+        label: 'New Window',
+        accelerator: '⌘ N',
+      },
+      {
+        type: 'separator',
+      },
+      {
+        type: 'submenu',
+        label: 'Share...',
+        children: [
+          {
+            label: 'Email Link',
+          },
+          { label: 'Messages' },
+          { label: 'Copy Link' },
+          { label: 'Copy QR Code' },
+        ],
+      },
+      {
+        label: 'Open Config File',
+        onClick: () => {
+          // eslint-disable-next-line no-console
+          console.log('Open Config File')
+        },
+      },
+    ],
+  },
+  {
     name: 'Window',
     items: [
       {

@@ -33,7 +33,7 @@ const classes = computed(() => {
 
 <template>
   <Transition enter-active-class="animate__fadeInLeft" leave-active-class="animate__fadeOutLeft">
-    <div v-if="app.showTachie" grid="~" :class="classes" class="adv-animated adv-tachie-box pointer-events-none absolute" w="full" h="full">
+    <div v-if="app.showTachie" grid="~" :class="classes" class="adv-tachie-box pointer-events-none absolute adv-animated" w="full" h="full">
       <TachieCharacter
         v-for="tachie in props.tachies" :key="tachie[0]"
         :character="tachie[0]"

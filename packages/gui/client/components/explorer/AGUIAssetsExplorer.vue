@@ -34,6 +34,10 @@ const props = defineProps<{
   onFileDrop?: (files: FSFileItem[]) => (FSFileItem[] | Promise<FSFileItem[]>)
   onDblClick?: (item: FSItem) => void | Promise<void>
   /**
+   * click file in file list
+   */
+  onFileClick?: (item: FSFileItem) => void | Promise<void>
+  /**
    * dblclick file in file list
    */
   onFileDblClick?: (item: FSFileItem) => void | Promise<void>
@@ -84,6 +88,7 @@ const state = {
   tree,
 
   onDblClick: props.onDblClick,
+  // onFileClick: props.onFileClick,
   onFileDblClick: props.onFileDblClick,
   onDirDblClick: props.onDirDblClick,
   onOpenRootDir: props.onOpenRootDir,

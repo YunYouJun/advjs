@@ -38,7 +38,9 @@ const fileList = computed(() => {
     <template v-if="list">
       <AGUIContextMenu v-for="(item, i) in fileList" :key="i">
         <template #trigger>
-          <AGUIFileItem :size="size" :item="item" />
+          <AGUIFileItem
+            :size="size" :item="item"
+          />
         </template>
       </AGUIContextMenu>
     </template>

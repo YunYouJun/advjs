@@ -10,12 +10,14 @@ defineProps<{
     class="agui-form-item flex gap-1"
     items-center justify-center
   >
-    <label
-      class="agui-label w-1/3 text-$agui-c-label"
-      :title="description"
-    >
-      {{ label }}
-    </label>
+    <slot name="label">
+      <label
+        class="agui-label w-1/3 text-$agui-c-label"
+        :title="description"
+      >
+        {{ label }}
+      </label>
+    </slot>
     <div class="w-2/3 flex flex-1" items-center>
       <slot />
     </div>

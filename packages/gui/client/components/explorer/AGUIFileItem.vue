@@ -3,6 +3,7 @@ import type { FSDirItem, FSFileItem, FSItem } from './types'
 import { onClickOutside, useEventListener } from '@vueuse/core'
 import { computed, ref, watch, watchEffect } from 'vue'
 import { listFilesInDir, useAGUIAssetsExplorerState } from '../../composables'
+import AGUIFileItemIcon from './AGUIFileItemIcon.vue'
 
 import { getIconFromFSItem } from './utils'
 
@@ -109,6 +110,19 @@ watchEffect(async () => {
   if (state.onFSItemChange)
     await state.onFSItemChange?.(props.item)
 })
+
+/**
+ * 点击文件
+ */
+function onClick() {
+  active.value = true
+  // if (state.onFileClick) {
+  //   if (props.item.handle?.kind === 'file') {
+  //     const fileItem = props.item as FSFileItem
+  //     state.onFileClick?.(fileItem)
+  //   }
+  // }
+}
 </script>
 
 <template>
@@ -120,21 +134,10 @@ watchEffect(async () => {
     }"
     :style="cssVars"
     draggable="true"
-    @click="active = true"
+    @click="onClick"
     @blur="active = false"
   >
-    <div class="agui-file-icon">
-      <div
-        v-if="fileIcon?.startsWith('i-')"
-        class="icon"
-        :class="fileIcon"
-      />
-      <img
-        v-else
-        class="icon h-full w-full object-contain"
-        :src="fileIcon"
-      >
-    </div>
+    <AGUIFileItemIcon :file-icon="fileIcon || ''" />
 
     <div class="agui-file-name">
       {{ item.name }}

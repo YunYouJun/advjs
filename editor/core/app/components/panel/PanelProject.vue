@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import type { FSDirItem, FSFileItem, FSItem } from '@advjs/gui'
+import { Toast } from '@advjs/gui'
+import consola from 'consola'
 import { ref } from 'vue'
 
 const tabList = ref([
@@ -19,12 +21,31 @@ async function onFileDrop(files: FSFileItem[]) {
   return files
 }
 
-const curDir = ref<FSDirItem>()
-const rootDir = ref<FSDirItem>()
+const curDir = shallowRef<FSDirItem>()
+const rootDir = shallowRef<FSDirItem>()
 
 // eslint-disable-next-line unused-imports/no-unused-vars
 function onFSItemChange(item: FSItem) {
   // item.icon = 'i-ri-folder-fill'
+}
+
+function onFileClick(item: FSFileItem) {
+  consola.info('onFileClick', item)
+}
+
+const fileStore = useFileStore()
+function onFileDblClick(item: FSFileItem) {
+  consola.info('onFileDblClick', item)
+  if (item.name.endsWith('.json')) {
+    fileStore.openedFile = item
+  }
+  else {
+    Toast({
+      title: 'Warning',
+      description: 'This file is not supported',
+      type: 'warning',
+    })
+  }
 }
 </script>
 
@@ -37,6 +58,8 @@ function onFSItemChange(item: FSItem) {
           v-model:root-dir="rootDir"
           :on-file-drop="onFileDrop"
           :on-f-s-item-change="onFSItemChange"
+          :on-file-click="onFileClick"
+          :on-file-dbl-click="onFileDblClick"
         />
         <slot name="project" />
       </AGUITabPanel>

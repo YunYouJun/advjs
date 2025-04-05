@@ -1,0 +1,3 @@
+/**
+ * generate *.adv.json
+ */

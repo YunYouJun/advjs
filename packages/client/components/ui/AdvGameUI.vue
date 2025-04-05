@@ -16,7 +16,7 @@ audio.setBgm($adv.gameConfig.value.bgm?.collection[0]?.src)
 </script>
 
 <template>
-  <div class="absolute top-5 w-full flex justify-between" p="x-5">
+  <div class="absolute top-0 w-full flex justify-between" p="5">
     <div class="inline-flex" gap="4">
       <AdvIconButton @click="app.toggleHistory()">
         <div i-ri-message-2-line />

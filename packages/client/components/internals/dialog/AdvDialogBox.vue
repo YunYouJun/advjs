@@ -4,7 +4,7 @@ import { speak, useAdvContext, useSettingsStore } from '@advjs/client'
 import { computed, ref, unref, watch } from 'vue'
 
 const props = defineProps<{
-  node: AdvAst.Child
+  node: AdvAst.Child | AdvDialogNode
 }>()
 
 const { $adv } = useAdvContext()
@@ -83,7 +83,7 @@ async function next() {
 
 const curCharacter = computed(() => {
   const characterID = curDialog.value?.speaker
-  const character = $adv.gameConfig.value.characters?.find(item => item.id === characterID)
+  const character = $adv.gameConfig?.value?.characters?.find(item => item.id === characterID)
   return character
 })
 
@@ -98,14 +98,16 @@ const characterAvatar = computed(() => {
 
 // 当前对话框中的台词
 const curWords = computed(() => {
-  if (props.node && props.node.type === 'text')
-    return props.node.value
-
-  return curDialog.value
-
-  if (store.curFlowNode.type === 'dialogues') {
-    // return store.curFlowNode.dialogues[iOrder.value]?.value
+  if (props.node) {
+    if (props.node.type === 'dialog') {
+      return (props.node as AdvDialogNode).text
+    }
+    if (props.node.type === 'text') {
+      return props.node.value
+    }
   }
+
+  return curDialog.value?.text
 })
 
 // trigger transition
@@ -124,24 +126,28 @@ const fontSizeClass = computed(() => {
 
 <template>
   <div class="adv-dialog-box cursor-pointer select-none pt-12 shadow-xl" grid="~ cols-12" gap="12" @click="next">
-    <div v-if="curCharacter" class="col-span-3 text-right">
-      <template v-if="$adv.config.value.showCharacterAvatar && characterAvatar">
+    <div class="col-span-3 text-right">
+      <template v-if="$adv.config?.value?.showCharacterAvatar && characterAvatar">
         <div flex="~ col" class="items-end justify-center">
           <img class="h-25 w-25 rounded shadow" object="cover top" :src="characterAvatar">
-          <span class="w-25" m="t-2" text="center gray-400">{{ curCharacter.name }}</span>
+          <span class="w-25" m="t-2" text="center gray-400">{{ curCharacter?.name }}</span>
         </div>
       </template>
       <template v-else>
         <Transition name="fade">
-          <span v-if="transitionFlag" class="dialog-name text-4xl text-gray-200 font-medium" :class="fontSizeClass">{{ curCharacter.name }}</span>
+          <span v-if="transitionFlag" class="dialog-name text-4xl text-gray-200 font-medium" :class="fontSizeClass">{{ curCharacter?.name }}</span>
         </Transition>
       </template>
     </div>
-    <div class="dialog-content col-span-9 pr-24 text-left" :class="fontSizeClass">
+    <div
+      class="dialog-content col-span-9 pr-24 text-left"
+      :class="fontSizeClass"
+    >
       <PrintWords
         :animation="animation"
         :speed="settings.storage.text.curSpeed"
-        :words="curWords" @end="end = true"
+        :words="curWords"
+        @end="end = true"
       />
       <span v-if="!$adv.store.status.isEnd" class="typed-cursor">
         ▼

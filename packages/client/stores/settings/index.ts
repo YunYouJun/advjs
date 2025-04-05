@@ -15,7 +15,7 @@ export const useSettingsStore = defineStore('settings', () => {
     const defaultSettings: SettingOptions = {
       text: {
         curSpeed: 'fast',
-        curFontSize: 'xl',
+        curFontSize: '3xl',
         curDisplayMode: 'soft',
       },
       play: {

@@ -70,7 +70,7 @@ function toggleFullscreen() {
       </AGUITabPanel> -->
 
       <AGUITabPanel>
-        <MapEditor />
+        <!-- <MapEditor /> -->
       </AGUITabPanel>
 
       <AGUITabPanel>

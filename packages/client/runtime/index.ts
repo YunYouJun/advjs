@@ -1,38 +1,36 @@
+import type { AdvConfig, AdvGameConfig, AdvThemeConfig } from '@advjs/types'
 import type { AdvContext } from '../types'
-import type { initAdvData } from './data'
-import { $t } from '@advjs/client/modules/i18n'
-
-import { computed } from 'vue'
+import { defaultConfig } from '@advjs/core'
+import { computed, ref } from 'vue'
 import { useAdvLogic, useAdvNav, useAdvTachies } from '../composables'
 import { initPixi } from '../pixi'
 import { useAdvStore } from '../stores'
 
-export * from './data'
-export { $t } from '@advjs/client/modules/i18n'
+export const gameConfig = ref<AdvGameConfig>(defaultConfig.gameConfig as AdvGameConfig)
 
-export function initAdvContext(advData: ReturnType<typeof initAdvData>) {
-  const advConfig = computed(() => advData.value.config)
-  const gameConfig = computed(() => advData.value.gameConfig)
-  const themeConfig = computed(() => advData.value.config.themeConfig)
-
+export function initAdvContext() {
   const store = useAdvStore()
 
+  const config = computed<AdvConfig>(() => defaultConfig)
+  const themeConfig = computed<AdvThemeConfig>(() => defaultConfig.themeConfig)
+
   const advContext: AdvContext = {
-    store,
-    config: advConfig,
-    gameConfig,
+    config,
+    gameConfig: computed(() => gameConfig.value),
     themeConfig,
+    store,
     functions: {},
 
-    init: async () => {
+    async init() {
       advContext.pixiGame = await initPixi(advContext)
     },
 
-    $t,
+    $t: (key: string) => key,
     $nav: {} as ReturnType<typeof useAdvNav>,
     $logic: {} as ReturnType<typeof useAdvLogic>,
     $tachies: {} as ReturnType<typeof useAdvTachies>,
   }
+
   advContext.$nav = useAdvNav(advContext)
   advContext.$logic = useAdvLogic(advContext)
   advContext.$tachies = useAdvTachies(advContext)

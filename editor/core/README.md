@@ -20,3 +20,10 @@ Based on Nuxt.
     - [ ] Console 控制台
     - [ ] Animation 动画编辑器
 - [ ] Undo/Redo [useManualRefHistory](https://vueuse.org/core/useManualRefHistory/)
+
+## Assets
+
+```bash
+# dev
+ln -s demo/flow/public/img editor/core/public/img
+```

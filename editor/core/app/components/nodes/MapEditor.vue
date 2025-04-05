@@ -13,6 +13,6 @@ onMounted(() => {
 
 <template>
   <div ref="mapCanvasContainer" class="h-full w-full">
-    <canvas ref="mapCanvas" h-full w-full border-none outline-none focus:outline-none />
+    <canvas ref="mapCanvas" class="adv-map-canvas" h-full w-full border-none outline-none focus:outline-none />
   </div>
 </template>

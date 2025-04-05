@@ -4,6 +4,7 @@ import { exec } from 'node:child_process'
 import path from 'node:path'
 import process from 'node:process'
 import * as readline from 'node:readline'
+import { gameModules } from '@advjs/core'
 import { colors } from 'consola/utils'
 import fs from 'fs-extra'
 import openBrowser from 'open'
@@ -13,7 +14,6 @@ import { loadAdvConfig } from '../config'
 import { loadAdvGameConfig, loadAdvGameConfigFromType } from '../config/game'
 import { loadAdvThemeConfig } from '../config/theme'
 import { resolveOptions } from '../options'
-import { gameModules } from '../plugins/virtual/game'
 import { commonOptions, findFreePort, printInfo } from './utils'
 
 /**
@@ -105,7 +105,10 @@ export async function advDev(options: {
             const { gameConfig } = await loadAdvGameConfig()
             return {
               ...data,
-              gameConfig,
+              gameConfig: {
+                ...data.gameConfig,
+                ...gameConfig,
+              },
             }
           }
           else if (file.endsWith('theme.config.ts')) {

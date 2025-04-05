@@ -12,6 +12,12 @@ export const AGUIAssetsExplorerSymbol: InjectionKey<{
   tree: Ref<TreeNode>
 
   onDblClick?: (item: FSItem) => void | Promise<void>
+  /**
+   * 和 dblClick 一起的时候，好像有问题
+   * @param item
+   * @returns
+   */
+  // onFileClick?: (item: FSFileItem) => void | Promise<void>
   onFileDblClick?: (item: FSFileItem) => void | Promise<void>
   onDirDblClick?: (item: FSDirItem) => void | Promise<void>
   onOpenRootDir?: (dir: FSDirItem) => void | Promise<void>

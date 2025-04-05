@@ -20,9 +20,9 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     '@nuxtjs/color-mode',
     '@vite-pwa/nuxt',
-
     '@advjs/gui/nuxt',
     'nuxt-monaco-editor',
+    '@nuxtjs/i18n',
   ],
 
   future: {
@@ -44,6 +44,8 @@ export default defineNuxtConfig({
   ],
 
   colorMode: {
+    // avoid conflict with game dark mode
+    classPrefix: 'editor-',
     classSuffix: '',
     preference: 'dark',
     fallback: 'dark',
@@ -117,6 +119,12 @@ export default defineNuxtConfig({
     define: {
       // dev adv.js
       __DEV__: 'true',
+    },
+  },
+
+  i18n: {
+    bundle: {
+      optimizeTranslationDirective: false,
     },
   },
 })

@@ -4,6 +4,7 @@ import { hideBin } from 'yargs/helpers'
 import { version } from '../../package.json'
 
 import { installBuildCommand } from './build'
+import { installConfigCommand } from './config'
 import { installDevCommand } from './dev'
 import { installExportCommand } from './export'
 
@@ -20,6 +21,7 @@ const cli = yargs(hideBin(process.argv))
 installDevCommand(cli)
 installBuildCommand(cli)
 installExportCommand(cli)
+installConfigCommand(cli)
 
 cli
   .help()

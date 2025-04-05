@@ -13,6 +13,7 @@ import AGUIButton from './button/AGUIButton.vue'
 import AGUIIconButton from './button/AGUIIconButton.vue'
 import AGUIHr from './common/AGUIHr.vue'
 import AGUIAssetsExplorer from './explorer/AGUIAssetsExplorer.vue'
+import AGUIFileItemIcon from './explorer/AGUIFileItemIcon.vue'
 import AGUIForm from './form/AGUIForm.vue'
 
 import AGUIFormItem from './form/AGUIFormItem.vue'
@@ -40,8 +41,9 @@ export {
 
   AGUIColorPicker,
   AGUIDetails,
-  AGUIForm,
+  AGUIFileItemIcon,
 
+  AGUIForm,
   AGUIFormItem,
   AGUIHr,
   AGUIIconButton,
@@ -58,8 +60,8 @@ export {
   AGUITabPanel,
   AGUITabs,
   AGUIToast,
-  AGUIToolbar,
 
+  AGUIToolbar,
   AGUITree,
   AGUITreeNode,
 }

@@ -194,7 +194,7 @@ data.nodes.forEach((node, _index) => {
     node.children = node.dialogues!.map((dialogue) => {
       return {
         type: 'dialog',
-        value: dialogue.text,
+        text: dialogue.text,
         speaker: dialogue.speaker,
       }
     }) as any

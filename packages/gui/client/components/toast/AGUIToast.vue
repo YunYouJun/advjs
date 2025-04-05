@@ -62,7 +62,7 @@ function getClassesFromType(type: ToastOptions['type']) {
 </script>
 
 <template>
-  <div class="fixed">
+  <div class="fixed z-999">
     <ToastProvider>
       <ToastRoot
         v-for="item, i in toastList" :key="i"

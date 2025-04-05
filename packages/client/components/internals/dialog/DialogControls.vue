@@ -14,7 +14,7 @@ function openLoadMenu() {
 </script>
 
 <template>
-  <div class="dialog-controls">
+  <div class="dialog-controls flex justify-center">
     <AdvIconButton title="快速存档">
       <div i-ri-save-line />
     </AdvIconButton>

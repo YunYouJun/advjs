@@ -4,3 +4,5 @@ dist
 .adv
 
 public/img/your-name
+public/data/your-name.adv.json
+public/config

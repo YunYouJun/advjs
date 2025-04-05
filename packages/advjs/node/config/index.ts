@@ -1,7 +1,8 @@
 import type { AdvConfig, AdvGameConfig } from '@advjs/types'
 import type { AdvEntryOptions } from '../options'
-import { defaultConfig } from '@advjs/core'
+import { defaultConfig, defaultGameConfig } from '@advjs/core'
 import { loadConfig } from 'c12'
+import defu from 'defu'
 import { loadAdvGameConfig } from './game'
 import { loadAdvThemeConfig } from './theme'
 
@@ -71,7 +72,7 @@ export async function loadAdvConfigs(options: AdvEntryOptions) {
   return {
     config,
     configFile,
-    gameConfig,
+    gameConfig: defu(gameConfig, config.gameConfig, defaultGameConfig),
     gameConfigFile,
     themeConfig,
     themeConfigFile,

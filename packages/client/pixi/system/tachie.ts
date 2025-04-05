@@ -1,6 +1,6 @@
 import type { AdvCharacter } from '@advjs/types'
 import type { PixiGame } from '../game'
-import consola from 'consola'
+import { consola } from 'consola'
 import { Container, Sprite } from 'pixi.js'
 
 export class TachieSystem {

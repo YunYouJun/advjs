@@ -40,88 +40,83 @@ function handleClick() {
 
 <template>
   <MenubarRoot v-model="currentMenu" class="MenubarRoot">
-    <MenubarMenu value="file">
-      <MenubarTrigger
-        class="MenubarTrigger"
-      >
-        File
-      </MenubarTrigger>
-      <MenubarPortal>
-        <MenubarContent
-          class="MenubarContent"
-          align="start"
-          :side-offset="5"
-          :align-offset="-3"
+    <template v-if="menus?.length">
+      <MenubarMenu v-for="menu in menus" :key="menu.name">
+        <MenubarTrigger
+          class="MenubarTrigger"
         >
-          <MenubarItem
-            class="MenubarItem"
+          {{ menu.name }}
+        </MenubarTrigger>
+        <MenubarPortal>
+          <MenubarContent
+            class="MenubarContent"
+            align="start"
+            :side-offset="5"
+            :align-offset="-3"
           >
-            New Tab
-            <div class="RightSlot">
-              ⌘ T
-            </div>
-          </MenubarItem>
-          <MenubarItem
-            class="MenubarItem"
-          >
-            New Window
-            <div class="RightSlot">
-              ⌘ N
-            </div>
-          </MenubarItem>
-          <MenubarItem
-            class="MenubarItem"
-            disabled
-          >
-            New Incognito Window
-          </MenubarItem>
-          <MenubarSeparator class="MenubarSeparator" />
-          <MenubarSub>
-            <MenubarSubTrigger
-              class="MenubarItem"
-            >
-              Share
-              <div
-                class="RightSlot"
+            <template v-for="menuItem in menu.items" :key="menuItem.label">
+              <MenubarCheckboxItem
+                v-if="menuItem.type === 'checkbox'"
+                v-model:checked="menuItem.checked"
+                class="MenubarCheckboxItem inset"
               >
-                <div class="i-radix-icons:chevron-right" />
-              </div>
-            </MenubarSubTrigger>
-            <MenubarPortal>
-              <MenubarSubContent
-                class="MenubarContent"
-                :align-offset="-5"
+                <MenubarItemIndicator class="MenubarItemIndicator">
+                  <div class="i-radix-icons:check" />
+                </MenubarItemIndicator>
+                {{ menuItem.label }}
+              </MenubarCheckboxItem>
+
+              <MenubarSeparator
+                v-else-if="menuItem.type === 'separator'"
+                class="MenubarSeparator"
+              />
+
+              <MenubarSub v-else-if="menuItem.type === 'submenu'">
+                <MenubarSubTrigger
+                  class="MenubarItem"
+                >
+                  {{ menuItem.label }}
+                  <div
+                    class="RightSlot"
+                  >
+                    <div class="i-radix-icons:chevron-right" />
+                  </div>
+                </MenubarSubTrigger>
+                <MenubarPortal>
+                  <MenubarSubContent
+                    class="MenubarContent"
+                    :align-offset="-5"
+                  >
+                    <MenubarItem
+                      v-for="(subItem, key) in menuItem.children"
+                      :key="key"
+                      class="MenubarItem"
+                    >
+                      {{ subItem.label }}
+                      <div class="RightSlot">
+                        {{ subItem.accelerator }}
+                      </div>
+                    </MenubarItem>
+                  </MenubarSubContent>
+                </MenubarPortal>
+              </MenubarSub>
+
+              <MenubarItem
+                v-else
+                class="MenubarItem"
+                :disabled="menuItem.disabled"
               >
-                <MenubarItem
-                  class="MenubarItem"
-                >
-                  Email Link
-                </MenubarItem>
-                <MenubarItem
-                  class="MenubarItem"
-                >
-                  Messages
-                </MenubarItem>
-                <MenubarItem
-                  class="MenubarItem"
-                >
-                  Notes
-                </MenubarItem>
-              </MenubarSubContent>
-            </MenubarPortal>
-          </MenubarSub>
-          <MenubarSeparator class="MenubarSeparator" />
-          <MenubarItem
-            class="MenubarItem"
-          >
-            Print…
-            <div class="RightSlot">
-              ⌘ P
-            </div>
-          </MenubarItem>
-        </MenubarContent>
-      </MenubarPortal>
-    </MenubarMenu>
+                {{ menuItem.label }}
+
+                <div class="RightSlot">
+                  {{ menuItem.accelerator }}
+                </div>
+              </MenubarItem>
+            </template>
+          </MenubarContent>
+        </MenubarPortal>
+      </MenubarMenu>
+    </template>
 
     <MenubarMenu>
       <MenubarTrigger
@@ -333,48 +328,5 @@ function handleClick() {
         </MenubarContent>
       </MenubarPortal>
     </MenubarMenu>
-
-    <template v-if="menus?.length">
-      <MenubarMenu v-for="menu in menus" :key="menu.name">
-        <MenubarTrigger
-          class="MenubarTrigger"
-        >
-          {{ menu.name }}
-        </MenubarTrigger>
-        <MenubarPortal>
-          <MenubarContent
-            class="MenubarContent"
-            align="start"
-            :side-offset="5"
-            :align-offset="-3"
-          >
-            <template v-for="menuItem in menu.items" :key="menuItem.label">
-              <MenubarCheckboxItem
-                v-if="menuItem.type === 'checkbox'"
-                v-model:checked="menuItem.checked"
-                class="MenubarCheckboxItem inset"
-              >
-                <MenubarItemIndicator class="MenubarItemIndicator">
-                  <div class="i-radix-icons:check" />
-                </MenubarItemIndicator>
-                {{ menuItem.label }}
-              </MenubarCheckboxItem>
-
-              <MenubarItem
-                v-else
-                class="MenubarItem"
-                :disabled="menuItem.disabled"
-              >
-                {{ menuItem.label }}
-
-                <div class="RightSlot">
-                  {{ menuItem.accelerator }}
-                </div>
-              </MenubarItem>
-            </template>
-          </MenubarContent>
-        </MenubarPortal>
-      </MenubarMenu>
-    </template>
   </MenubarRoot>
 </template>
