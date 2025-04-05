@@ -66,6 +66,7 @@ export const data = {
           target: 'background_03',
         },
       ],
+      target: 'tachie_02',
     },
     {
       // 立绘退出
@@ -79,6 +80,7 @@ export const data = {
       id: 'background_02',
       type: 'background',
       name: 'taki-phone',
+      target: 'node_03',
     },
     {
       // 背景
@@ -94,12 +96,6 @@ export const data = {
       name: 'mitsuha',
       status: 'default',
       action: 'enter',
-    },
-    {
-      // 背景
-      id: 'background_02',
-      type: 'background',
-      name: 'taki-phone',
     },
     {
       // 人物退出

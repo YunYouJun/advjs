@@ -31,16 +31,22 @@ const language = computed(() => {
   return ext === 'js' ? 'javascript' : ext
 })
 
+/**
+ * Load game from JSON file
+ */
+const loadStatus = ref<'' | 'success' | 'fail'>('')
 async function loadGameFromJSON() {
   const data = JSON.parse(fileContent.value)
   consola.log('Loading game from JSON:', data)
   try {
     gameStore.gameConfig = data
+    loadStatus.value = 'success'
 
     await $adv.init()
     await $adv.$nav.start('background_01')
   }
   catch (e) {
+    loadStatus.value = 'fail'
     consola.error('Failed to parse game config:', e)
   }
 }
@@ -99,13 +105,13 @@ function goToNode() {
         <AGUIButton v-if="file.name.endsWith('.adv.json')" @click="loadGameFromJSON">
           Load
         </AGUIButton>
-        <AGUIButton v-if="file.name.endsWith('.adv.json')" @click="goToNode">
+        <AGUIButton v-if="loadStatus === 'success'" @click="goToNode">
           Start
         </AGUIButton>
       </div>
     </div>
 
-    <div class="p-2">
+    <div v-if="loadStatus === 'success'" class="p-2">
       <AGUIForm>
         <AGUIFormItem>
           <template #label>

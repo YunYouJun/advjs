@@ -2,7 +2,7 @@
 <script lang="ts" setup>
 import type { TreeNode, Trees } from '@advjs/gui'
 import type { AdvDialoguesNode } from '@advjs/types'
-import { useAdvContext } from '@advjs/client'
+import { useAdvContext, useDialogStore } from '@advjs/client'
 import AGUITree from '@advjs/gui/client/components/tree/AGUITree.vue'
 import { ref, watch } from 'vue'
 
@@ -19,23 +19,54 @@ watch(() => $adv.gameConfig.value.chapters, () => {
 
   const nodes = curChapter.data.nodes.map((node) => {
     const treeNode: TreeNode = {
+      id: node.id,
       name: node.id,
       selectable: true,
-      expanded: true,
+      expanded: false,
     }
 
     if (node.type === 'dialogues') {
       treeNode.children = (node as unknown as AdvDialoguesNode).children.map(child => ({
         name: child.speaker,
-        selectable: true,
-        expanded: true,
         children: [],
       }))
     }
     return treeNode
   })
   treeData.value = nodes
-}, { deep: true })
+}, { deep: true, immediate: true })
+
+const dialogStore = useDialogStore()
+watch(() => [$adv.store.curFlowNode, dialogStore.iOrder], () => {
+  const curNode = $adv.store.curFlowNode
+  if (!curNode)
+    return
+
+  const treeNode = treeData.value.find(node => node.id === curNode.id)
+  if (treeNode) {
+    // reset all nodes
+    treeData.value.forEach((node) => {
+      node.match = false
+      if (node.children) {
+        node.expanded = false
+        node.children.forEach((child) => {
+          child.match = false
+        })
+      }
+    })
+    treeNode.match = true
+    if (treeNode.children) {
+      treeNode.children.forEach((child) => {
+        child.match = false
+      })
+      treeNode.expanded = true
+      const curDialogNode = treeNode.children[dialogStore.iOrder]
+      if (curDialogNode) {
+        curDialogNode.match = true
+      }
+    }
+  }
+})
 
 // const treeData = ref<Trees>([
 //   {

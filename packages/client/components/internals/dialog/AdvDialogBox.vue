@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AdvAst, AdvDialogNode, AdvDialoguesNode } from '@advjs/types'
-import { speak, useAdvContext, useSettingsStore } from '@advjs/client'
+import { speak, useAdvContext, useDialogStore, useSettingsStore } from '@advjs/client'
 import { computed, ref, unref, watch } from 'vue'
 
 const props = defineProps<{
@@ -12,13 +12,13 @@ const { $adv } = useAdvContext()
 const settings = useSettingsStore()
 const store = $adv.store
 
+const dialogStore = useDialogStore()
+
 /**
  * dialogues 包含多个对话子节点
  */
 const dialogues = computed(() => $adv.store.cur.dialog)
-// 局部 words order，与全局 order 相区别
-const iOrder = ref(0)
-const curDialog = computed(() => dialogues.value.children[iOrder.value] as AdvDialogNode)
+const curDialog = computed(() => dialogues.value.children[dialogStore.iOrder] as AdvDialogNode)
 
 // watch order, update dialog
 watch(() => store.curFlowNode, () => {
@@ -71,12 +71,12 @@ async function next() {
   if (dialogues.value.children) {
     const length = dialogues.value.children.length
 
-    if (iOrder.value + 1 > length - 1) {
+    if (dialogStore.iOrder + 1 > length - 1) {
       await $adv.$nav.next()
-      iOrder.value = 0
+      dialogStore.iOrder = 0
     }
     else {
-      iOrder.value++
+      dialogStore.iOrder++
     }
   }
 }
