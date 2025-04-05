@@ -3,6 +3,7 @@ import { useFullscreen, useStorage } from '@vueuse/core'
 import { ref } from 'vue'
 
 const tabList = ref([
+  { title: 'Game', key: 'game', icon: 'i-ri-gamepad-line' },
   { title: 'Flow Editor', key: 'flow-editor', icon: 'i-ri-flow-chart' },
   { title: 'Node Editor', key: 'node-editor', icon: 'i-ri-node-tree' },
   { title: 'Scene', key: 'scene', icon: 'i-ri-grid-line' },
@@ -10,7 +11,7 @@ const tabList = ref([
   { title: 'Map Editor', key: 'map-editor', icon: 'i-ri-map-line' },
 ])
 
-const curTab = useStorage('cur-scene-tab', 'node-editor')
+const curTab = useStorage('cur-scene-tab', 'game')
 /**
  * change tab key
  */
@@ -38,13 +39,11 @@ function toggleFullscreen() {
       class="fullscreen-btn absolute right-0 top-0 z-1 size-5 inline-flex cursor-pointer items-center justify-center"
       @click="toggleFullscreen"
     >
-      <AdvIcon>
-        <div
-          :class="isFullscreen
-            ? 'i-ri-fullscreen-exit-line'
-            : 'i-ri-fullscreen-line'"
-        />
-      </AdvIcon>
+      <div
+        :class="isFullscreen
+          ? 'i-ri-fullscreen-exit-line'
+          : 'i-ri-fullscreen-line'"
+      />
     </div>
 
     <AGUITabs
@@ -53,6 +52,10 @@ function toggleFullscreen() {
       :default-index="2"
       @change="changeTab"
     >
+      <AGUITabPanel v-show="curTab === 'game'">
+        <AdvGamePreview />
+      </AGUITabPanel>
+
       <AGUITabPanel v-show="curTab === 'flow-editor'">
         <AdvFlowEditor />
       </AGUITabPanel>

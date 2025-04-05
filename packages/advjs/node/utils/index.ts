@@ -9,7 +9,12 @@ export function loadModule<T = unknown>(absolutePath: string): Promise<T> {
   jiti ??= createJiti(fileURLToPath(import.meta.url), {
     // Allows changes to take effect
     moduleCache: false,
-    alias: commonAlias as Record<string, string>,
+    alias: commonAlias.reduce((acc, { find, replacement }) => {
+      if (typeof find === 'string') {
+        acc[find] = replacement
+      }
+      return acc
+    }, {} as Record<string, string>),
   })
   return jiti.import(absolutePath) as Promise<T>
 }

@@ -36,12 +36,12 @@ const app = useAppStore()
 </script>
 
 <template>
-  <AdvContainer text="white" class="h-screen w-screen">
+  <AdvContainer text="white">
     <div class="adv-game absolute h-full w-full bg-black">
       <AdvScene />
       <AdvPixiCanvas />
       <slot name="scene" />
-      <TachieBox :tachies="$adv.tachies.value" />
+      <AdvTachieBox :tachies="$adv.$tachies.map.value" />
 
       <AdvBlack v-if="curNode && curNode.type === 'narration'" class="z-9" :content="curNode" />
 

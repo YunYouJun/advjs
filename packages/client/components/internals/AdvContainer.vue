@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import type { AdvConfig } from '@advjs/types'
 import { provideLocal, useElementSize } from '@vueuse/core'
 import { computed, ref } from 'vue'
 import { injectionAdvContent, injectionAdvScale } from '../../constants'
-import { advAspect, advDataRef, advHeight, advWidth } from '../../data'
 import { useAppStore } from '../../stores'
 
 const props = withDefaults(defineProps<{
@@ -10,12 +10,20 @@ const props = withDefaults(defineProps<{
   meta?: any
   scale?: number
   contentStyle?: object
+
+  config?: AdvConfig
 }>(), {})
 const app = useAppStore()
 
 const container = ref<HTMLDivElement>()
 const advContentRef = ref<HTMLDivElement>()
 const containerSize = useElementSize(container)
+
+// aspect
+const advAspect = computed(() => props.config?.aspectRatio || (16 / 9))
+const advWidth = computed(() => props.config?.canvasWidth || 1920)
+// To honor the aspect ratio more as possible, we need to approximate the height to the next integer.
+const advHeight = computed(() => Math.ceil(advWidth.value / advAspect.value))
 
 const width = computed(() => props.width ? props.width : containerSize.width.value)
 const height = computed(() => props.width ? props.width / advAspect.value : containerSize.height.value)
@@ -49,7 +57,7 @@ const contentStyle = computed(() => ({
 }))
 
 const className = computed(() => ({
-  'select-none': !advDataRef.value.config.selectable,
+  'select-none': !props.config?.selectable,
 }))
 
 provideLocal(injectionAdvScale, scale)

@@ -1,9 +1,7 @@
 import path, { resolve } from 'node:path'
-import { commonAlias } from '../../packages/shared/node'
+import { commonAliasMap, packagesDir } from '../../packages/shared/node'
 import { pwa } from './app/config/pwa'
 import { appDescription } from './app/constants/index'
-
-const alias = commonAlias as Record<string, string>
 
 export default defineNuxtConfig({
   // ssr: false,
@@ -13,7 +11,7 @@ export default defineNuxtConfig({
 
   alias: {
     '@advjs/editor': `${resolve(__dirname, '.')}`,
-    ...alias,
+    ...commonAliasMap,
   },
 
   modules: [
@@ -93,7 +91,8 @@ export default defineNuxtConfig({
   components: [
     // remove prefix
     { path: '~/components', pathPrefix: false },
-    { path: path.resolve(import.meta.dirname, '../../packages/theme-default/components'), pathPrefix: false },
+    { path: path.resolve(packagesDir, 'client/components'), pathPrefix: false },
+    { path: path.resolve(packagesDir, 'theme-default/components'), pathPrefix: false },
   ],
 
   pwa,
@@ -112,5 +111,12 @@ export default defineNuxtConfig({
       },
     },
     runtimeCompiler: true,
+  },
+
+  vite: {
+    define: {
+      // dev adv.js
+      __DEV__: 'true',
+    },
   },
 })

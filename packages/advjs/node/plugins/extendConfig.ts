@@ -1,6 +1,6 @@
 import type { Alias, InlineConfig, Plugin } from 'vite'
 import type { ResolvedAdvOptions } from '../options'
-import path, { dirname, join, resolve } from 'node:path'
+import { join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import { uniq } from '@antfu/utils'
@@ -8,14 +8,13 @@ import { createResolve } from 'mlly'
 
 import { mergeConfig } from 'vite'
 
-import { ADV_VIRTUAL_MODULES } from '../config'
+import { commonAlias } from '../../../shared/node'
 
+import { ADV_VIRTUAL_MODULES } from '../config'
 import { isInstalledGlobally, resolveImportPath, toAtFS } from '../resolver'
 import setupIndexHtml from '../setups/indexHtml'
 
 // import { commonAlias } from '../../../shared/config/vite'
-const __dirname = dirname(fileURLToPath(import.meta.url))
-
 const EXCLUDE_GLOBAL = [
   // avoid css parse by vite
   'animate.css',
@@ -81,21 +80,27 @@ export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<P
   }
 
   // packages/*
-  const packagesDir = path.resolve(__dirname, '../../../')
   const alias: Alias[] = [
     { find: '~/', replacement: `${toAtFS(options.clientRoot)}/` },
     /**
      * `/` 开头无法 declare module 类型
      */
     { find: /^#advjs\/(.*)/, replacement: '/@advjs/$1' },
+
+    { find: '@advjs/client/modules/i18n', replacement: resolve(options.clientRoot, 'modules/i18n.ts') },
+    { find: '@advjs/client/compiler', replacement: resolve(options.clientRoot, 'compiler/index.ts') },
+    { find: '@advjs/client/runtime', replacement: resolve(options.clientRoot, 'runtime/index.ts') },
     { find: /^@advjs\/client$/, replacement: `${toAtFS(options.clientRoot)}/index.ts` },
     { find: /^@advjs\/client\/(.*)/, replacement: `${toAtFS(options.clientRoot)}/$1` },
-    { find: '@advjs/core', replacement: `${resolve(packagesDir, 'core/src')}/index.ts` },
-    { find: '@advjs/parser', replacement: `${toAtFS(resolve(packagesDir, 'parser/src', 'index.ts'))}` },
-    { find: '@advjs/shared', replacement: `${toAtFS(resolve(packagesDir, 'shared/src', 'index.ts'))}` },
     { find: '@advjs/theme-default', replacement: `${toAtFS(options.themeRoot)}/index.ts` },
+
     // for dev
-    { find: '@advjs/types', replacement: `${toAtFS(resolve(packagesDir, 'types/src', 'index.ts'))}` },
+    ...commonAlias.map(({ find, replacement }) => {
+      return {
+        find,
+        replacement: toAtFS(replacement),
+      }
+    }),
   ]
 
   return {

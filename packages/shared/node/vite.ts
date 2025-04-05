@@ -1,32 +1,34 @@
-import type { AliasOptions } from 'vite'
-import path from 'node:path'
+import type { Alias } from 'vite'
+import path, { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 /**
  * monorepo packages folder
  */
-export const packagesFolder = path.resolve(__dirname, '../../')
+export const packagesDir = path.resolve(__dirname, '../../')
+export const defaultThemeFolder = path.resolve(packagesDir, 'theme-default')
 
-export const defaultThemeFolder = path.resolve(packagesFolder, 'theme-default')
-export const commonAlias: AliasOptions = {
-  '@advjs/client/': `${path.resolve(packagesFolder, 'client')}/`,
-  '@advjs/client': `${path.resolve(packagesFolder, 'client')}/index.ts`,
-  '@advjs/examples/': `${path.resolve(packagesFolder, 'examples')}/`,
+export const commonAlias: Alias[] = [
+  // { find: '@advjs/client/', replacement: `${resolve(packagesDir, 'client')}/` },
+  // { find: '@advjs/client', replacement: `${resolve(packagesDir, 'client')}/index.ts` },
+  { find: '@advjs/examples/', replacement: `${resolve(packagesDir, 'examples')}/` },
+  { find: '@advjs/gui/', replacement: `${resolve(packagesDir, 'gui')}/` },
+  { find: '@advjs/gui', replacement: `${resolve(packagesDir, 'gui/client/')}` },
+  { find: '@advjs/parser/fs', replacement: `${resolve(packagesDir, 'parser/src')}/fs.ts` },
+  { find: '@advjs/shared/', replacement: `${resolve(packagesDir, 'shared/src')}/` },
+  { find: '@advjs/plugin-babylon', replacement: `${resolve(packagesDir, 'plugin-babylon/src')}/` },
+  { find: '@advjs/theme-default/', replacement: `${defaultThemeFolder}/` },
+  { find: '@advjs/theme-default', replacement: defaultThemeFolder },
+  { find: '@advjs/flow', replacement: `${resolve(packagesDir, 'flow')}/index.ts` },
+  { find: '@advjs/flow/', replacement: `${resolve(packagesDir, 'flow')}/` },
 
-  '@advjs/gui/': `${path.resolve(packagesFolder, 'gui')}/`,
-  '@advjs/gui': `${path.resolve(packagesFolder, 'gui/client/')}`,
+  { find: '@advjs/core', replacement: `${resolve(packagesDir, 'core/src')}/index.ts` },
+  { find: '@advjs/parser', replacement: `${resolve(packagesDir, 'parser/src', 'index.ts')}` },
+  { find: '@advjs/shared', replacement: `${resolve(packagesDir, 'shared/src', 'index.ts')}` },
+  { find: '@advjs/types', replacement: `${resolve(packagesDir, 'types/src', 'index.ts')}` },
+]
 
-  '@advjs/core': `${path.resolve(packagesFolder, 'core/src')}/`,
-  '@advjs/parser/': `${path.resolve(packagesFolder, 'parser/src')}/`,
-  '@advjs/shared/': `${path.resolve(packagesFolder, 'shared/src')}/`,
-  '@advjs/plugin-babylon': `${path.resolve(packagesFolder, 'plugin-babylon/src')}/`,
-
-  '@advjs/types': `${path.resolve(packagesFolder, 'types/src')}/index.ts`,
-
-  '@advjs/theme-default/': `${defaultThemeFolder}/`,
-  '@advjs/theme-default': defaultThemeFolder,
-
-  '@advjs/flow': `${path.resolve(packagesFolder, 'flow')}/index.ts`,
-  '@advjs/flow/': `${path.resolve(packagesFolder, 'flow')}/`,
-}
+export const commonAliasMap = Object.fromEntries(
+  commonAlias.map(({ find, replacement }) => [find, replacement]),
+)

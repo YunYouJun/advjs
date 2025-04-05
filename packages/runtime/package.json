@@ -1,0 +1,6 @@
+{
+  "name": "@advjs/runtime",
+  "type": "module",
+  "version": "0.0.1",
+  "description": "The runtime for advjs."
+}

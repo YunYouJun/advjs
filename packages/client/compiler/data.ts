@@ -40,8 +40,3 @@ export function initAdvData() {
   advData.gameConfig.chapters = chapters
   return computed(() => advDataRef.value)
 }
-
-export const advAspect = computed(() => advDataRef.value.config.aspectRatio)
-export const advWidth = computed(() => advDataRef.value.config.canvasWidth)
-// To honor the aspect ratio more as possible, we need to approximate the height to the next integer.
-export const advHeight = computed(() => Math.ceil(advWidth.value / advAspect.value))

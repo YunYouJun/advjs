@@ -1,4 +1,4 @@
-import { $t, useAppStore } from '@advjs/client'
+import { useAdvContext, useAppStore } from '@advjs/client'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -6,9 +6,11 @@ import { useRouter } from 'vue-router'
  * 开始菜单
  */
 export function useStartMenu() {
+  const { $adv } = useAdvContext()
+
   const router = useRouter()
   const app = useAppStore()
-  const t = $t
+  const t = $adv.$t
 
   const startMenuItems = ref([
     {

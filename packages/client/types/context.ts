@@ -1,4 +1,4 @@
-import type { AdvConfig, AdvGameConfig, Tachie } from '@advjs/types'
+import type { AdvConfig, AdvGameConfig } from '@advjs/types'
 
 import type { ComputedRef } from 'vue'
 import type { useAdvLogic, useAdvNav, useAdvTachies } from '../composables'
@@ -14,11 +14,8 @@ export interface AdvContext {
   gameConfig: ComputedRef<AdvGameConfig>
   themeConfig: ComputedRef<AdvConfig['themeConfig']>
   functions: Record<string, () => void>
-  /**
-   * 立绘数据
-   */
-  tachies: ComputedRef<Map<string, Tachie>>
 
+  $t: typeof import('../compiler').$t
   $nav: ReturnType<typeof useAdvNav>
   $logic: ReturnType<typeof useAdvLogic>
   $tachies: ReturnType<typeof useAdvTachies>

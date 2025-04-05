@@ -23,7 +23,7 @@
     "@shikijs/vitepress-twoslash": "^3.2.1",
     "@yunyoujun/docs": "^0.1.9",
     "mermaid": "^11.6.0",
-    "typedoc-plugin-markdown": "^4.6.0",
+    "typedoc-plugin-markdown": "^4.6.1",
     "typedoc-plugin-merge-modules": "catalog:",
     "typedoc-vitepress-theme": "^1.1.2",
     "unocss": "catalog:",

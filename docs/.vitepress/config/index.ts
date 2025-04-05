@@ -192,6 +192,10 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
           link: '/guide/quick-start',
         },
         {
+          text: '运行与编译',
+          link: '/guide/mode',
+        },
+        {
           text: '功能',
           link: '/guide/features',
         },

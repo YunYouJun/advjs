@@ -2,7 +2,7 @@ import { ns } from '@advjs/core'
 import { useStorage, useToggle } from '@vueuse/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { advDataRef } from '../data'
+import { useAdvConfig } from '../composables'
 
 export const useAppStore = defineStore('app', () => {
   const [showUi, toggleUi] = useToggle(true)
@@ -19,8 +19,9 @@ export const useAppStore = defineStore('app', () => {
 
   const [showBg, toggleBg] = useToggle(true)
 
+  const config = useAdvConfig()
   // 3D canvas flag
-  const showCanvas = useStorage(ns('canvas'), advDataRef.value.config.features.babylon)
+  const showCanvas = useStorage(ns('canvas'), config.value.features.babylon)
   const toggleCanvas = useToggle(showCanvas)
 
   const rotation = ref(0)

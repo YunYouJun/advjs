@@ -1,14 +1,13 @@
-import type { Tachie } from '@advjs/types'
 import type { AdvContext, UserModule } from '~/types'
 import setups from '#advjs/setups/adv'
-import { advConfigSymbol, advDataSymbol, gameConfigSymbol, getCharacter, themeConfigSymbol } from '@advjs/core'
+import { advConfigSymbol, advDataSymbol, gameConfigSymbol, themeConfigSymbol } from '@advjs/core'
 import { consola, LogLevels } from 'consola'
 import { computed } from 'vue'
 
+import { $t, initAdvData } from '../compiler'
+
 import { useAdvLogic, useAdvNav, useAdvTachies } from '../composables'
 import { injectionAdvContext } from '../constants'
-
-import { initAdvData } from '../data'
 import { initPixi } from '../pixi'
 import { useAdvStore } from '../stores'
 
@@ -19,33 +18,18 @@ export function initAdvContext(advData: ReturnType<typeof initAdvData>) {
 
   const store = useAdvStore()
 
-  // tachies map by cur characters
-  const tachies = computed(() => {
-    const tachiesMap = new Map<string, Tachie>()
-
-    if (store.cur.tachies.size) {
-      store.cur.tachies.forEach((tachie, key) => {
-        const character = getCharacter(gameConfig.value.characters, key)
-        if (character && character.tachies)
-          tachiesMap.set(key, character.tachies[tachie.status || 'default'])
-      })
-    }
-
-    return tachiesMap
-  })
-
   const advContext: AdvContext = {
     store,
     config: advConfig,
     gameConfig,
     themeConfig,
     functions: {},
-    tachies,
 
     init: async () => {
       advContext.pixiGame = await initPixi(advContext)
     },
 
+    $t,
     $nav: {} as ReturnType<typeof useAdvNav>,
     $logic: {} as ReturnType<typeof useAdvLogic>,
     $tachies: {} as ReturnType<typeof useAdvTachies>,

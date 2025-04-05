@@ -1,12 +1,29 @@
-import type { AdvAst, AdvTachieNode } from '@advjs/types'
+import type { AdvAst, AdvTachieNode, Tachie } from '@advjs/types'
 import type { AdvContext } from '../types'
 import { getCharacter } from '@advjs/core'
 import { consola } from 'consola'
+import { computed } from 'vue'
 
 export function useAdvTachies($adv: AdvContext) {
   const store = $adv.store
   const gameConfig = $adv.gameConfig
-  const tachies = store.cur.tachies
+
+  /**
+   * tachies map by cur characters
+   */
+  const tachies = computed(() => {
+    const tachiesMap = new Map<string, Tachie>()
+
+    if (store.cur.tachies.size) {
+      store.cur.tachies.forEach((tachie, key) => {
+        const character = getCharacter(gameConfig.value.characters, key)
+        if (character && character.tachies)
+          tachiesMap.set(key, character.tachies[tachie.status || 'default'])
+      })
+    }
+
+    return tachiesMap
+  })
 
   function enter(name: string, status = 'default') {
     const character = getCharacter(gameConfig.value.characters, name)
@@ -21,11 +38,11 @@ export function useAdvTachies($adv: AdvContext) {
       return
     }
 
-    tachies.set(character.id || character.name, { status })
+    tachies.value.set(character.id || character.name, { status })
   }
 
   function exit(name: string) {
-    tachies.delete(name)
+    tachies.value.delete(name)
   }
 
   function handle(node: AdvAst.Tachie) {
@@ -102,5 +119,7 @@ export function useAdvTachies($adv: AdvContext) {
     exit,
     handle,
     update,
+
+    map: tachies,
   }
 }

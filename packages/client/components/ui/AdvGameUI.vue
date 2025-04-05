@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { useAdvContext, useAppStore, useAudioStore } from '@advjs/client'
 
+withDefaults(defineProps<{
+  showHelper?: boolean
+}>(), {
+  showHelper: true,
+})
+
 const { $adv } = useAdvContext()
 
 const app = useAppStore()
 const audio = useAudioStore()
 
-audio.setBgm($adv.gameConfig.value.bgm.collection[0]?.src)
+audio.setBgm($adv.gameConfig.value.bgm?.collection[0]?.src)
 </script>
 
 <template>
@@ -30,8 +36,10 @@ audio.setBgm($adv.gameConfig.value.bgm.collection[0]?.src)
         <div v-else i-mdi-music-note-off-outline />
       </AdvIconButton>
 
-      <AdvHelper text="white" />
-      <AdvFullscreenBtn />
+      <template v-if="showHelper">
+        <AdvHelper text="white" />
+        <AdvFullscreenBtn />
+      </template>
     </div>
 
     <AdvIconButton class="menu-setting-button" @click="app.toggleShowMenu()">

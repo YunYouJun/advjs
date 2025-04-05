@@ -26,7 +26,10 @@ const tachies = computed(() => $adv.tachies.value)
 </script>
 
 <template>
-  <AdvContainer text="white" class="h-screen w-screen">
+  <AdvContainer
+    text="white" class="h-screen w-screen"
+    :config="$adv.config.value"
+  >
     <div class="adv-game absolute h-full w-full bg-black">
       <AdvScene />
       <AdvPixiCanvas />

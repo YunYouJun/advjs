@@ -12,6 +12,7 @@ onMounted(() => {
   Toast({
     title: 'Hello!',
     description: 'Welcome to preview ADV.JS Editor!',
+    duration: 3000,
   })
 })
 </script>
