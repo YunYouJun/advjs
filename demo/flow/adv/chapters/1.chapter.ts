@@ -66,7 +66,6 @@ export const data = {
           target: 'background_03',
         },
       ],
-      target: 'tachie_02',
     },
     {
       // 立绘退出

@@ -4,6 +4,7 @@ import { ref } from 'vue'
 
 const tabList = ref([
   { title: 'Game', key: 'game', icon: 'i-ri-gamepad-line' },
+  { title: 'Character', key: 'character', icon: 'i-ri-user-line' },
   { title: 'Flow Editor', key: 'flow-editor', icon: 'i-ri-flow-chart' },
   { title: 'Node Editor', key: 'node-editor', icon: 'i-ri-node-tree' },
   { title: 'Scene', key: 'scene', icon: 'i-ri-grid-line' },
@@ -54,6 +55,10 @@ function toggleFullscreen() {
     >
       <AGUITabPanel v-show="curTab === 'game'">
         <AdvGamePreview />
+      </AGUITabPanel>
+
+      <AGUITabPanel v-if="curTab === 'character'">
+        <AEWindowCharacter />
       </AGUITabPanel>
 
       <AGUITabPanel v-show="curTab === 'flow-editor'">

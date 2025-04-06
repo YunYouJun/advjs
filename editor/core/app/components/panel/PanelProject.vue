@@ -33,10 +33,12 @@ function onFileClick(item: FSFileItem) {
   consola.info('onFileClick', item)
 }
 
+const app = useAppStore()
 const fileStore = useFileStore()
 function onFileDblClick(item: FSFileItem) {
   consola.info('onFileDblClick', item)
   if (item.name.endsWith('.json')) {
+    app.activeInspector = 'file'
     fileStore.openedFile = item
   }
   else {

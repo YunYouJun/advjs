@@ -24,6 +24,7 @@ const curDialog = computed(() => dialogues.value.children[dialogStore.iOrder] as
 watch(() => store.curFlowNode, () => {
   if (store.curFlowNode.type === 'dialogues') {
     store.cur.dialog = store.curFlowNode as AdvDialoguesNode
+    dialogStore.iOrder = 0
   }
   else if (store.curNode?.type === 'dialog') {
     store.cur.dialog = store.curNode
@@ -56,7 +57,7 @@ async function next() {
 
   // temp for flow node
   // if ($adv.store.status.isEnd)
-  //   return
+  // return
 
   // if (!end.value && animation.value) {
   //   animation.value = false
@@ -71,9 +72,8 @@ async function next() {
   if (dialogues.value.children) {
     const length = dialogues.value.children.length
 
-    if (dialogStore.iOrder + 1 > length - 1) {
+    if (dialogStore.iOrder + 1 >= length) {
       await $adv.$nav.next()
-      dialogStore.iOrder = 0
     }
     else {
       dialogStore.iOrder++
@@ -149,7 +149,10 @@ const fontSizeClass = computed(() => {
         :words="curWords"
         @end="end = true"
       />
-      <span v-if="!$adv.store.status.isEnd" class="typed-cursor">
+      <span
+        v-if="dialogStore.iOrder < (dialogues.children.length - 1) && store.curFlowNode.type !== 'end'"
+        class="typed-cursor"
+      >
         ▼
       </span>
     </div>

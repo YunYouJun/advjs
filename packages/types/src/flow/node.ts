@@ -74,6 +74,15 @@ export interface AdvDialoguesNode extends AdvBaseNode {
 }
 
 /**
+ * 结束节点
+ *
+ * @runtime
+ */
+export interface AdvEndNode extends AdvBaseNode {
+  type: 'end'
+}
+
+/**
  * adv node
  */
-export type AdvNode = AdvBaseNode | AdvBackgroundNode | AdvTachieNode | AdvDialoguesNode
+export type AdvNode = AdvBaseNode | AdvBackgroundNode | AdvTachieNode | AdvDialoguesNode | AdvEndNode

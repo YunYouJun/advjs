@@ -30,7 +30,7 @@ function onChoiceClick(choice: AdvAst.Choice) {
     flex="~ col"
     w="full"
     h="full"
-    text="2xl"
+    text="3xl"
     font="bold"
   >
     <ul class="adv-options-container">
@@ -58,7 +58,7 @@ function onChoiceClick(choice: AdvAst.Choice) {
     cursor: pointer;
 
     margin: 1rem;
-    padding: 0.5rem;
+    padding: 1rem;
     background-color: rgba(0, 0, 0, 0.8);
 
     width: 50%;

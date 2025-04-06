@@ -6,6 +6,8 @@ const tabList = ref([
   { title: 'Inspector', key: 'inspector', icon: 'i-ri-information-fill' },
 ])
 
+const app = useAppStore()
+
 const fileStore = useFileStore()
 </script>
 
@@ -13,8 +15,12 @@ const fileStore = useFileStore()
   <AGUIPanel h="full" w="full">
     <AGUITabs :list="tabList">
       <AGUITabPanel overflow="auto">
-        <InspectorView v-if="!fileStore.openedFile" />
-        <InspectorFileView v-if="fileStore.openedFile" :file="fileStore.openedFile" />
+        <InspectorFileView
+          v-if="app.activeInspector === 'file' && fileStore.openedFile"
+          :file="fileStore.openedFile"
+        />
+        <AEInspectorCharacter v-else-if="app.activeInspector === 'character'" />
+        <InspectorView v-else />
       </AGUITabPanel>
     </AGUITabs>
   </AGUIPanel>

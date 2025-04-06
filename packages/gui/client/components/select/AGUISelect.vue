@@ -47,7 +47,7 @@ function onUpdateModelValue(value: string) {
 
     <SelectPortal>
       <SelectContent
-        class="agui-select-content"
+        class="agui-select-content z-99"
         side="bottom"
       >
         <SelectScrollUpButton class="SelectScrollButton">

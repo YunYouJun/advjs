@@ -50,9 +50,16 @@ export const useAppStore = defineStore('app', () => {
   const pixiApp = shallowRef<PIXI.Application | null>(null)
   const layout = useStorage('agui:layout', JSON.parse(JSON.stringify(defaultLayout)))
 
+  /**
+   * 当前激活的 Inspector
+   */
+  const activeInspector = ref<'file' | 'character' | 'node'>()
+
   return {
     layout,
     pixiApp,
+
+    activeInspector,
 
     // todo extract layout store & useAGUILayout
     resetLayout() {

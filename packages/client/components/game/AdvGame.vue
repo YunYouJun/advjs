@@ -59,6 +59,14 @@ const app = useAppStore()
         <AdvGameUI v-show="app.showUi" class="z-99 adv-animated" />
       </Transition>
 
+      <Transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
+        <div v-if="curNode.type === 'end'" class="absolute bottom-0 left-0 right-0 top-0 z-50 adv-animated">
+          <div class="h-full w-full flex items-center justify-center bg-black/60 text-8xl font-bold">
+            - END -
+          </div>
+        </div>
+      </Transition>
+
       <AdvHistory />
     </div>
   </AdvContainer>

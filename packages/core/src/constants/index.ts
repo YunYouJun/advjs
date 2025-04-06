@@ -1,6 +1,8 @@
 import type { AdvConfig, AdvData, AdvGameConfig } from '@advjs/types'
 import type { ComputedRef, InjectionKey } from 'vue'
 
+export * from './nodes'
+
 type ThemeConfig = AdvConfig['themeConfig']
 
 // for inject

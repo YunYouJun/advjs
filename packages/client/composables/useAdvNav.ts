@@ -1,5 +1,6 @@
 import type { AdvFlow, AdvFlowNode, AdvNode } from '@advjs/types'
 import type { AdvContext } from '../types'
+import { END_NODE } from '@advjs/core'
 import { consola } from 'consola'
 import { watch } from 'vue'
 
@@ -73,7 +74,7 @@ export function useAdvNav($adv: AdvContext) {
   /**
    * 下一部分
    */
-  async function next(): Promise<void> {
+  async function next(): Promise<AdvFlowNode | undefined> {
     if (!store.curFlowNode) {
       consola.error('No curFlowNode')
       return
@@ -81,6 +82,7 @@ export function useAdvNav($adv: AdvContext) {
 
     if (!store.curFlowNode.target) {
       consola.error('Can not find target')
+      store.curFlowNode = END_NODE
     }
     else {
       const targetNode = curChapterMap.get(store.curFlowNode.target)
@@ -91,6 +93,7 @@ export function useAdvNav($adv: AdvContext) {
         store.curFlowNode = targetNode
       }
       consola.debug('Next', store.curFlowNode)
+      return targetNode
     }
 
     // if (!store.ast)
