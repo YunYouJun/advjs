@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import type { Menu } from '@advjs/gui'
 
+const fileStore = useFileStore()
+
 const menus: Menu[] = [
   {
     name: 'File',
@@ -25,10 +27,9 @@ const menus: Menu[] = [
         ],
       },
       {
-        label: 'Open Config File',
-        onClick: () => {
-          // eslint-disable-next-line no-console
-          console.log('Open Config File')
+        label: 'Open ADV Config File',
+        onClick: async () => {
+          fileStore.openAdvConfigFile()
         },
       },
     ],

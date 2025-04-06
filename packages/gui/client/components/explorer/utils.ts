@@ -12,20 +12,27 @@ export async function getIconFromFSItem(item: FSItem) {
   if (!handle)
     return
 
-  if (handle.kind === 'directory') {
+  return getIconFromFSHandle(handle)
+}
+
+/**
+ * get icon from File System handle
+ */
+export async function getIconFromFSHandle(fsHandle: FileSystemFileHandle | FileSystemDirectoryHandle) {
+  if (fsHandle.kind === 'directory') {
     return 'i-vscode-icons-default-folder'
   }
-  else if (handle.kind === 'file') {
-    const { name = '' } = item
+  else if (fsHandle.kind === 'file') {
+    const { name = '' } = fsHandle
     if (isImage(name)) {
       // 从 handle 读取缩略图
-      const file = await handle.getFile()
+      const file = await fsHandle.getFile()
       const imageUrl = URL.createObjectURL(file)
       return imageUrl
     }
   }
 
-  const name = item.name || ''
+  const name = fsHandle.name || ''
   const ext = getFiletypeFromPath(name)
   const icon = getIconFromFileType(ext)
   return icon

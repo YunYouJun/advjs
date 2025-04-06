@@ -74,7 +74,10 @@ provideLocal(injectionAdvContent, advContentRef)
     <div
       id="adv-content"
       ref="advContentRef"
-      class="relative h-$adv-screen-height w-$adv-screen-width flex transition"
+      class="relative h-$adv-screen-height w-$adv-screen-width flex"
+      :class="{
+        transition: app.transition,
+      }"
       :style="contentStyle"
     >
       <slot />

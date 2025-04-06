@@ -16,8 +16,8 @@ const fileStore = useFileStore()
     <AGUITabs :list="tabList">
       <AGUITabPanel overflow="auto">
         <InspectorFileView
-          v-if="app.activeInspector === 'file' && fileStore.openedFile"
-          :file="fileStore.openedFile"
+          v-if="app.activeInspector === 'file' && fileStore.openedFileHandle"
+          :file-handle="fileStore.openedFileHandle"
         />
         <AEInspectorCharacter v-else-if="app.activeInspector === 'character'" />
         <InspectorView v-else />

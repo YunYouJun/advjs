@@ -8,7 +8,8 @@ import '../../../../packages/theme-default/styles'
 
 // const isDev = import.meta.env.DEV
 
-const show = ref(false)
+const fileStore = useFileStore()
+const show = computed(() => fileStore.openedFileHandle)
 
 /**
  * debug
@@ -17,12 +18,27 @@ consola.level = LogLevels.debug
 
 onMounted(async () => {
   // await sleep(10)
-  show.value = true
 })
 </script>
 
 <template>
-  <AdvGame v-if="show" class="h-full w-full" />
+  <div class="h-full w-full flex items-center justify-center">
+    <AdvGame v-if="show" class="h-full w-full" />
+    <div
+      v-else
+      class="inline-flex flex-col cursor-pointer items-center"
+      @click="fileStore.openAdvConfigFile"
+    >
+      <div class="glow-icon text-8xl">
+        <div
+          class="i-vscode-icons:file-type-jsonld"
+        />
+      </div>
+      <div class="text-base op-50">
+        Open ADV Config File
+      </div>
+    </div>
+  </div>
   <!-- <AdvDevTools v-if="isDev" /> -->
   <!-- <div /> -->
   <!-- <iframe
@@ -35,3 +51,14 @@ onMounted(async () => {
     frameborder="0"
   /> -->
 </template>
+
+<style scoped>
+.glow-icon {
+  will-change: filter;
+  transition: filter 300ms;
+
+  &:hover {
+    filter: drop-shadow(0 0 1rem rgba(252, 171, 49, 0.9));
+  }
+}
+</style>

@@ -3,6 +3,7 @@ import { ToolbarButton, ToolbarRoot, ToolbarToggleGroup } from 'radix-vue'
 import { ref } from 'vue'
 
 const tabList = ref([
+  { title: 'Story Line', key: 'story-line', icon: 'i-ri-git-commit-line' },
   { title: 'Hierarchy', key: 'hierarchy', icon: 'i-ri-node-tree' },
 ])
 </script>
@@ -10,7 +11,21 @@ const tabList = ref([
 <template>
   <AGUIPanel h="full" w="full">
     <AGUITabs :list="tabList">
-      <AGUITabPanel>
+      <AGUITabPanel value="story-line">
+        <ToolbarRoot class="flex items-center justify-center p-1">
+          <ToolbarToggleGroup type="multiple" />
+          <AGUIInput class="flex flex-grow" placeholder="Search" />
+          <ToolbarButton
+            class="ml-1"
+          >
+            <AGUIIconButton size="mini" icon="i-ri-search-line" />
+          </ToolbarButton>
+        </ToolbarRoot>
+
+        <AEViewStoryLine />
+      </AGUITabPanel>
+
+      <AGUITabPanel value="hierarchy">
         <ToolbarRoot class="flex items-center justify-center p-1">
           <ToolbarToggleGroup type="multiple" />
           <AGUIInput class="flex flex-grow" placeholder="Search" />

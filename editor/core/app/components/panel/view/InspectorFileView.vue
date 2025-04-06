@@ -1,55 +1,34 @@
 <script setup lang="ts">
-import type { FSFileItem } from '@advjs/gui'
 import { useAdvContext } from '@advjs/client'
-import { getIconFromFSItem } from '@advjs/gui/client/components/explorer/utils.js'
-import consola from 'consola'
+import { getIconFromFSHandle } from '@advjs/gui/client/components/explorer/utils.js'
 
 const props = defineProps<{
-  file: FSFileItem
+  fileHandle: FileSystemFileHandle
 }>()
 
 const fileIcon = ref()
 const fileContent = ref()
 
 const gameStore = useGameStore()
+const fileStore = useFileStore()
 const { $adv } = useAdvContext()
 
 watchEffect(async () => {
-  const file = await props.file.handle?.getFile()
+  const file = await props.fileHandle?.getFile()
 
   const text = await file?.text()
   fileContent.value = text
 
   // gameStore.gameConfig
 
-  const icon = await getIconFromFSItem(props.file)
+  const icon = await getIconFromFSHandle(props.fileHandle)
   fileIcon.value = icon
 })
 
 const language = computed(() => {
-  const ext = props.file.name.split('.').pop()
+  const ext = props.fileHandle.name.split('.').pop()
   return ext === 'js' ? 'javascript' : ext
 })
-
-/**
- * Load game from JSON file
- */
-const loadStatus = ref<'' | 'success' | 'fail'>('')
-async function loadGameFromJSON() {
-  const data = JSON.parse(fileContent.value)
-  consola.log('Loading game from JSON:', data)
-  try {
-    gameStore.gameConfig = data
-    loadStatus.value = 'success'
-
-    await $adv.init()
-    await $adv.$nav.start('background_01')
-  }
-  catch (e) {
-    loadStatus.value = 'fail'
-    consola.error('Failed to parse game config:', e)
-  }
-}
 
 const startChapter = ref()
 const chapterOptions = computed(() => {
@@ -97,21 +76,21 @@ function goToNode() {
       <div class="flex items-center gap-2">
         <AGUIFileItemIcon :file-icon="fileIcon" />
         <div class="text-sm op-80">
-          {{ file?.name }}
+          {{ fileHandle?.name }}
         </div>
       </div>
 
       <div class="flex items-center gap-2">
-        <AGUIButton v-if="file.name.endsWith('.adv.json')" @click="loadGameFromJSON">
+        <AGUIButton v-if="fileHandle.name.endsWith('.adv.json')" @click="gameStore.loadGameFromJSONStr(fileStore.configFileContent)">
           Load
         </AGUIButton>
-        <AGUIButton v-if="loadStatus === 'success'" @click="goToNode">
+        <AGUIButton v-if="gameStore.loadStatus === 'success'" @click="goToNode">
           Start
         </AGUIButton>
       </div>
     </div>
 
-    <div v-if="loadStatus === 'success'" class="p-2">
+    <div v-if="gameStore.loadStatus === 'success'" class="p-2">
       <AGUIForm>
         <AGUIFormItem>
           <template #label>

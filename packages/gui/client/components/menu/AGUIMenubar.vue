@@ -105,6 +105,7 @@ function handleClick() {
                 v-else
                 class="MenubarItem"
                 :disabled="menuItem.disabled"
+                @click="menuItem.onClick"
               >
                 {{ menuItem.label }}
 

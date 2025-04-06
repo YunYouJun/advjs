@@ -97,7 +97,7 @@ export function getIconFromFileType(filetype: string) {
     case 'folder':
       return 'i-vscode-icons-default-folder'
     case 'image':
-      return 'i-vscode-icons-file-type-image'
+      return 'i-vscode-icons:file-type-image'
     case 'video':
       return 'i-vscode-icons-file-type-video'
     case 'audio':

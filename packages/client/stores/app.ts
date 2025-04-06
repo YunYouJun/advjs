@@ -22,13 +22,19 @@ export const useAppStore = defineStore('@advjs/client/app', () => {
   const showCanvas = useStorage(ns('canvas'), false)
   const toggleCanvas = useToggle(showCanvas)
 
+  const transition = ref(false)
   const rotation = ref(0)
   const rotate = () => {
+    transition.value = true
     rotation.value = rotation.value + 90
+    setTimeout(() => {
+      transition.value = false
+    }, 300)
   }
   const isHorizontal = computed(() => rotation.value % 180 === 0)
 
   return {
+    transition,
     rotation,
     isHorizontal,
     rotate,

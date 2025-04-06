@@ -15,11 +15,9 @@ onMounted(() => {
   mountCssVarsRootStyle()
 })
 
-const gameStore = useGameStore()
-
 // advjs context
 const nuxtApp = useNuxtApp()
-const advContext = initAdvContext(gameStore.gameConfig)
+const advContext = initAdvContext()
 nuxtApp.vueApp.provide(injectionAdvContext, advContext)
 nuxtApp.vueApp.provide(advConfigSymbol, advContext.config || {})
 nuxtApp.vueApp.provide(gameConfigSymbol, advContext.gameConfig)
