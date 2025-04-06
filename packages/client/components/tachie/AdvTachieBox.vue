@@ -32,8 +32,8 @@ const classes = computed(() => {
 </script>
 
 <template>
-  <Transition enter-active-class="animate__fadeInLeft" leave-active-class="animate__fadeOutLeft">
-    <div v-if="app.showTachie" grid="~" :class="classes" class="adv-tachie-box pointer-events-none absolute adv-animated" w="full" h="full">
+  <Transition enter-active-class="animate-fade-in-left" leave-active-class="animate-fade-out-left">
+    <div v-if="app.showTachie" grid="~" :class="classes" class="adv-tachie-box pointer-events-none absolute animate-duration-200" w="full" h="full">
       <TachieCharacter
         v-for="tachie in props.tachies" :key="tachie[0]"
         :character="tachie[0]"

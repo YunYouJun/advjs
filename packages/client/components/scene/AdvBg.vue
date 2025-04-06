@@ -30,7 +30,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <Transition enter-active-class="animate__fadeIn" leave-active-class="animate__fadeOut">
-    <div v-if="app.showBg" h="full" w="full" class="animate__animated absolute" bg="cover center no-repeat" :style="advGameStyle" />
+  <Transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+    <div v-if="app.showBg" h="full" w="full" class="absolute animate-duration-200" bg="cover center no-repeat" :style="advGameStyle" />
   </Transition>
 </template>

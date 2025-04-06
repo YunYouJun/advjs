@@ -66,7 +66,9 @@ function onFileDblClick(item: FSFileItem) {
         <slot name="project" />
       </AGUITabPanel>
       <AGUITabPanel>
-        <slot name="console" />
+        <slot name="console">
+          <AEViewConsole />
+        </slot>
       </AGUITabPanel>
       <slot />
     </AGUITabs>

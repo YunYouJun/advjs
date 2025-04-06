@@ -11,9 +11,7 @@ useHead({
   title: appName,
 })
 
-onMounted(() => {
-  mountCssVarsRootStyle()
-})
+const consoleStore = useConsoleStore()
 
 // advjs context
 const nuxtApp = useNuxtApp()
@@ -22,6 +20,13 @@ nuxtApp.vueApp.provide(injectionAdvContext, advContext)
 nuxtApp.vueApp.provide(advConfigSymbol, advContext.config || {})
 nuxtApp.vueApp.provide(gameConfigSymbol, advContext.gameConfig)
 nuxtApp.vueApp.provide(themeConfigSymbol, advContext.themeConfig)
+
+onMounted(() => {
+  // @advjs/gui
+  mountCssVarsRootStyle()
+
+  consoleStore.info('ADVJS Context initialized.')
+})
 </script>
 
 <template>

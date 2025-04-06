@@ -48,7 +48,7 @@ catalog:
   '@types/wicg-file-system-access': ^2023.10.6
   '@types/xml2js': ^0.4.14
   '@types/yargs': ^17.0.33
-  '@unhead/vue': ^2.0.3
+  '@unhead/vue': ^2.0.4
   '@unocss/eslint-config': ^66.1.0-beta.10
   '@unocss/eslint-plugin': ^66.1.0-beta.10
   '@unocss/nuxt': ^66.1.0-beta.10

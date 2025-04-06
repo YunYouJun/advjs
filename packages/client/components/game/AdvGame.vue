@@ -43,24 +43,24 @@ const app = useAppStore()
     <div class="adv-ui absolute" w="full" h="full">
       <BaseLayer v-if="!app.showUi" />
 
-      <Transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
-        <AdvDialogBox v-if="curNode" v-show="app.showUi" :node="curNode" class="z-1 adv-animated" />
+      <Transition enter-active-class="animate-fade-in-up" leave-active-class="animate-fade-out-down">
+        <AdvDialogBox v-if="curNode" v-show="app.showUi" :node="curNode" class="z-1 animate-duration-200" />
       </Transition>
 
-      <Transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
+      <Transition enter-active-class="animate-fade-in-up" leave-active-class="animate-fade-out-down">
         <!-- todo: fix types -->
-        <AdvChoice v-if="curNode" v-show="curNode?.type === 'choices'" :node="curNode as any" class="z-2 adv-animated" />
+        <AdvChoice v-if="curNode" v-show="curNode?.type === 'choices'" :node="curNode as any" class="z-2 animate-duration-200" />
       </Transition>
 
-      <Transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
-        <DialogControls v-show="app.showUi" class="absolute bottom-1 left-0 right-0 z-3 adv-animated" />
+      <Transition enter-active-class="animate-fade-in-up" leave-active-class="animate-fade-out-down">
+        <DialogControls v-show="app.showUi" class="absolute bottom-1 left-0 right-0 z-3 animate-duration-200" />
       </Transition>
-      <Transition enter-active-class="animate__fadeInDown" leave-active-class="animate__fadeOutUp">
-        <AdvGameUI v-show="app.showUi" class="z-99 adv-animated" />
+      <Transition enter-active-class="animate-fade-in-down" leave-active-class="animate-fade-out-up">
+        <AdvGameUI v-show="app.showUi" class="z-99 animate-duration-200" />
       </Transition>
 
-      <Transition enter-active-class="animate__fadeInUp" leave-active-class="animate__fadeOutDown">
-        <div v-if="curNode.type === 'end'" class="absolute bottom-0 left-0 right-0 top-0 z-50 adv-animated">
+      <Transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+        <div v-if="curNode.type === 'end'" class="absolute bottom-0 left-0 right-0 top-0 z-50 animate-duration-200">
           <div class="h-full w-full flex items-center justify-center bg-black/60 text-8xl font-bold">
             - END -
           </div>

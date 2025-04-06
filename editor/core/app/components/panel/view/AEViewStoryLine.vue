@@ -62,22 +62,27 @@ const items = computed(() => {
   return nodes
 })
 
-const expanded = computed(() => {
-  const curNode = $adv.store.curFlowNode
-  if (!curNode)
-    return []
+const expanded = ref<string[]>([])
+watch(
+  () => $adv.store.curFlowNode,
+  (curNode) => {
+    if (!curNode)
+      return
 
-  return [curNode.id]
-})
+    const curId = curNode.id
+    expanded.value = [curId]
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
   <TreeRoot
     v-slot="{ flattenItems }"
+    v-model:expanded="expanded"
     class="text-blackA11 select-none list-none rounded-lg text-sm font-medium"
     :items="items"
     :get-key="(item) => item.title"
-    :expanded="expanded"
   >
     <TreeItem
       v-for="item in flattenItems"

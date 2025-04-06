@@ -65,9 +65,7 @@ function wordClasses(i: number) {
   }
   else {
     if (props.mode === 'soft') {
-      classes.push('animate__animated')
-      classes.push('animate__fast')
-      classes.push('animate__fadeIn')
+      classes.push('animate-fade-in animate-duration-100')
     }
   }
 

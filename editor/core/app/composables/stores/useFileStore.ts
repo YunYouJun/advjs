@@ -2,6 +2,7 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 
 export const useFileStore = defineStore('file', () => {
   const gameStore = useGameStore()
+  const consoleStore = useConsoleStore()
 
   /**
    * 被打开的文件
@@ -47,6 +48,10 @@ export const useFileStore = defineStore('file', () => {
     configFileContent.value = text
 
     gameStore.loadGameFromJSONStr(text)
+
+    consoleStore.success('File loaded', {
+      fileName: file.name,
+    })
   }
 
   return {

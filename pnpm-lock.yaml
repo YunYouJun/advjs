@@ -124,8 +124,8 @@ catalogs:
       specifier: ^17.0.33
       version: 17.0.33
     '@unhead/vue':
-      specifier: ^2.0.3
-      version: 2.0.3
+      specifier: ^2.0.4
+      version: 2.0.4
     '@unocss/eslint-config':
       specifier: ^66.1.0-beta.10
       version: 66.1.0-beta.10
@@ -780,7 +780,7 @@ importers:
         version: link:../../plugins/plugin-babylon
       '@unhead/vue':
         specifier: 'catalog:'
-        version: 2.0.3(vue@3.5.13(typescript@5.8.3))
+        version: 2.0.4(vue@3.5.13(typescript@5.8.3))
       '@vueuse/core':
         specifier: 'catalog:'
         version: 13.0.0(vue@3.5.13(typescript@5.8.3))
@@ -1061,7 +1061,7 @@ importers:
         version: 9.2.0
       '@unhead/vue':
         specifier: 'catalog:'
-        version: 2.0.3(vue@3.5.13(typescript@5.8.3))
+        version: 2.0.4(vue@3.5.13(typescript@5.8.3))
       '@vueuse/core':
         specifier: 'catalog:'
         version: 13.0.0(vue@3.5.13(typescript@5.8.3))
@@ -1263,7 +1263,7 @@ importers:
         version: 4.0.3
       '@unhead/vue':
         specifier: 'catalog:'
-        version: 2.0.3(vue@3.5.13(typescript@5.8.3))
+        version: 2.0.4(vue@3.5.13(typescript@5.8.3))
       '@vueuse/core':
         specifier: 'catalog:'
         version: 13.0.0(vue@3.5.13(typescript@5.8.3))
@@ -4233,6 +4233,11 @@ packages:
 
   '@unhead/vue@2.0.3':
     resolution: {integrity: sha512-6Yci+MTunYuJLYwujBA68hEr5PabBl87yEhImrG4AUogaYWqIwtMHukn0bQvcjaBksXartLJtGUhxhmKgBdyPw==}
+    peerDependencies:
+      vue: '>=3.5.13'
+
+  '@unhead/vue@2.0.4':
+    resolution: {integrity: sha512-bTpxG/P6cRgniBxTJbivQBjpz3chR9842N/5zYc5Jr2mgvAuCsIHffRVC+4B3yGAVBj/ey1duTY7iQQOxIeWAQ==}
     peerDependencies:
       vue: '>=3.5.13'
 
@@ -9756,6 +9761,9 @@ packages:
   unhead@2.0.3:
     resolution: {integrity: sha512-l2O1DSzEid8Fp+I+FMMhFnl1IewyAvBhbdYipaq9Jh2AMndv//yWZ2amjzDLpYpUmDr9E8WTcdoAXkm9wH60Aw==}
 
+  unhead@2.0.4:
+    resolution: {integrity: sha512-lluXKaKrirCiHr/SRezWDNezQMkIlJ8enxaGPlvD5qU+wPx87zKjDz8EwKX1Mlj+h+7lbgNEgJmfKBQNdnIWww==}
+
   unicode-canonical-property-names-ecmascript@2.0.1:
     resolution: {integrity: sha512-dA8WbNeb2a6oQzAQ55YlT5vQAWGV9WXOsi3SskE3bcCdM0P4SDd+24zS/OCacdRq5BkdsRj9q3Pg6YyQoxIGqg==}
     engines: {node: '>=4'}
@@ -13833,6 +13841,12 @@ snapshots:
     dependencies:
       hookable: 5.5.3
       unhead: 2.0.3
+      vue: 3.5.13(typescript@5.8.3)
+
+  '@unhead/vue@2.0.4(vue@3.5.13(typescript@5.8.3))':
+    dependencies:
+      hookable: 5.5.3
+      unhead: 2.0.4
       vue: 3.5.13(typescript@5.8.3)
 
   '@unocss/astro@66.1.0-beta.10(vite@6.2.5(@types/node@22.14.0)(jiti@2.4.2)(sass@1.86.3)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.1))(vue@3.5.13(typescript@5.8.3))':
@@ -20742,6 +20756,10 @@ snapshots:
       hookable: 5.5.3
 
   unhead@2.0.3:
+    dependencies:
+      hookable: 5.5.3
+
+  unhead@2.0.4:
     dependencies:
       hookable: 5.5.3
 

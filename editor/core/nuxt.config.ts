@@ -4,7 +4,8 @@ import { pwa } from './app/config/pwa'
 import { appDescription } from './app/constants/index'
 
 export default defineNuxtConfig({
-  // ssr: false,
+  ssr: false,
+
   routeRules: {
     '/': { ssr: false },
   },
@@ -126,5 +127,12 @@ export default defineNuxtConfig({
     bundle: {
       optimizeTranslationDirective: false,
     },
+
+    defaultLocale: 'en',
+
+    locales: [
+      { code: 'en', language: 'en-US', name: 'English', file: path.resolve(packagesDir, 'client/locales/en.yml') },
+      { code: 'zh', language: 'zh-CN', name: '简体中文', file: path.resolve(packagesDir, 'client/locales/zh-CN.yml') },
+    ],
   },
 })
