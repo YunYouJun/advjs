@@ -1,0 +1,8 @@
+{
+  "name": "@advjs/plugin-cos",
+  "version": "0.0.1",
+  "description": "Upload assets to Tencent COS",
+  "dependencies": {
+    "cos-nodejs-sdk-v5": "^2.14.7"
+  }
+}

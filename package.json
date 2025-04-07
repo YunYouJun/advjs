@@ -97,7 +97,6 @@
     "lint-staged": "catalog:",
     "npm-run-all": "catalog:",
     "rimraf": "catalog:",
-    "tsup": "catalog:",
     "tsx": "catalog:",
     "typedoc": "catalog:",
     "typescript": "^5.8.3",

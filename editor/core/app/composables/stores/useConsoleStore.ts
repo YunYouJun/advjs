@@ -12,6 +12,7 @@ export interface LogItem {
 export const useConsoleStore = defineStore('@advjs/editor/console', () => {
   const logList = ref<LogItem[]>([])
   const filterText = ref<string>('')
+  const filterType = ref<LogItem['type'] | 'all'>('all')
 
   const log = (type: LogItem['type'], message: string, data?: any) => {
     const logItem: LogItem = {
@@ -34,6 +35,9 @@ export const useConsoleStore = defineStore('@advjs/editor/console', () => {
   const error = (message: string, data?: any) => {
     log('error', message, data)
   }
+  const debug = (message: string, data?: any) => {
+    log('debug', message, data)
+  }
 
   const clear = () => {
     logList.value = []
@@ -51,6 +55,7 @@ export const useConsoleStore = defineStore('@advjs/editor/console', () => {
   return {
     logList,
     filterText,
+    filterType,
 
     log,
 
@@ -58,6 +63,7 @@ export const useConsoleStore = defineStore('@advjs/editor/console', () => {
     info,
     warn,
     error,
+    debug,
 
     clear,
     getLogList,

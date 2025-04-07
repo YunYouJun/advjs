@@ -1,9 +1,9 @@
 {
   "extends": "./.nuxt/tsconfig.json",
   "compilerOptions": {
-    "verbatimModuleSyntax": true,
     "types": [
       "@types/wicg-file-system-access"
-    ]
+    ],
+    "verbatimModuleSyntax": true
   }
 }

@@ -22,12 +22,15 @@
   },
   "dependencies": {
     "@advjs/parser": "workspace:*",
+    "@advjs/types": "workspace:*",
     "@types/mdast": "catalog:",
+    "consola": "catalog:",
     "html2canvas": "catalog:",
     "pixi.js": "catalog:",
     "unstorage": "catalog:"
   },
   "devDependencies": {
-    "unbuild": "catalog:"
+    "unbuild": "catalog:",
+    "vue": "catalog:"
   }
 }

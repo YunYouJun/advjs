@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ToolbarButton, ToolbarRoot, ToolbarToggleGroup } from 'radix-vue'
+import { ToolbarButton, ToolbarRoot, ToolbarToggleGroup } from 'reka-ui'
 import { ref } from 'vue'
 
 const tabList = ref([

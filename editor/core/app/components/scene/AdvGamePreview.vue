@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import consola, { LogLevels } from 'consola'
+import { consola, LogLevels } from 'consola'
 // import { useAdvConfig, useAdvContext } from '@advjs/client'
 import { onMounted } from 'vue'
 import '../../../../packages/theme-default/styles'
@@ -8,6 +8,7 @@ import '../../../../packages/theme-default/styles'
 
 // const isDev = import.meta.env.DEV
 
+const consoleStore = useConsoleStore()
 const fileStore = useFileStore()
 const show = computed(() => fileStore.openedFileHandle)
 
@@ -15,6 +16,21 @@ const show = computed(() => fileStore.openedFileHandle)
  * debug
  */
 consola.level = LogLevels.debug
+
+const oldConsolaInfo = consola.info
+const oldConsolaDebug = consola.debug
+// @ts-expect-error override old consola
+consola.info = (...args: any[]) => {
+  // @ts-expect-error override old consola
+  oldConsolaInfo(...args)
+  consoleStore.info(args[0], ...args.slice(1))
+}
+// @ts-expect-error override old consola
+consola.debug = (...args: any[]) => {
+  // @ts-expect-error override old consola
+  oldConsolaDebug(...args)
+  consoleStore.debug(args[0], ...args.slice(1))
+}
 
 onMounted(async () => {
   // await sleep(10)

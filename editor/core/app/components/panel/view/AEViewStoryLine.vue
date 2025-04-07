@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { AdvDialoguesNode } from '@advjs/types'
 import { useAdvContext, useDialogStore } from '@advjs/client'
-import { TreeItem, TreeRoot } from 'radix-vue'
+import { TreeItem, TreeRoot } from 'reka-ui'
 
 const { $adv } = useAdvContext()
 
