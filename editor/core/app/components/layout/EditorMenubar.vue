@@ -2,6 +2,7 @@
 import type { Menu } from '@advjs/gui'
 
 const fileStore = useFileStore()
+const dialogStore = useDialogStore()
 
 const menus: Menu[] = [
   {
@@ -49,9 +50,23 @@ const menus: Menu[] = [
       },
     ],
   },
+  {
+    name: 'Settings',
+    items: [
+      {
+        type: 'normal',
+        label: 'Tencent COS',
+        onClick: () => {
+          dialogStore.settingsDialogOpen = true
+        },
+      },
+    ],
+  },
 ]
 </script>
 
 <template>
   <AGUIMenubar :menus="menus" />
+
+  <AESettingsDialog />
 </template>

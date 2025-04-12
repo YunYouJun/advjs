@@ -27,3 +27,7 @@ Based on Nuxt.
 # dev
 ln -s demo/flow/public/img editor/core/public/img
 ```
+
+## Demo
+
+- <https://cos.advjs.yunle.fun/games/the-lord-of-the-rings/index.adv.json>

@@ -4,7 +4,7 @@ import { ref } from 'vue'
 
 const tabList = ref([
   { title: 'Story Line', key: 'story-line', icon: 'i-ri-git-commit-line' },
-  { title: 'Hierarchy', key: 'hierarchy', icon: 'i-ri-node-tree' },
+  // { title: 'Hierarchy', key: 'hierarchy', icon: 'i-ri-node-tree' },
 ])
 </script>
 
@@ -25,7 +25,7 @@ const tabList = ref([
         <AEViewStoryLine />
       </AGUITabPanel>
 
-      <AGUITabPanel value="hierarchy">
+      <!-- <AGUITabPanel value="hierarchy">
         <ToolbarRoot class="flex items-center justify-center p-1">
           <ToolbarToggleGroup type="multiple" />
           <AGUIInput class="flex flex-grow" placeholder="Search" />
@@ -36,7 +36,7 @@ const tabList = ref([
           </ToolbarButton>
         </ToolbarRoot>
         <HierarchyView />
-      </AGUITabPanel>
+      </AGUITabPanel> -->
     </AGUITabs>
   </AGUIPanel>
 </template>

@@ -2,6 +2,7 @@
 import { consola, LogLevels } from 'consola'
 // import { useAdvConfig, useAdvContext } from '@advjs/client'
 import { onMounted } from 'vue'
+
 import '../../../../packages/theme-default/styles'
 // const { $adv } = useAdvContext()
 // const advConfig = useAdvConfig()
@@ -10,7 +11,8 @@ import '../../../../packages/theme-default/styles'
 
 const consoleStore = useConsoleStore()
 const fileStore = useFileStore()
-const show = computed(() => fileStore.openedFileHandle)
+const gameStore = useGameStore()
+const show = computed(() => gameStore.loadStatus === 'success')
 
 /**
  * debug
@@ -40,21 +42,59 @@ onMounted(async () => {
 <template>
   <div class="h-full w-full flex items-center justify-center">
     <AdvGame v-if="show" class="h-full w-full" />
-    <div
-      v-else
-      class="inline-flex flex-col cursor-pointer items-center"
-      @click="fileStore.openAdvConfigFile"
-    >
-      <div class="glow-icon text-8xl">
-        <div
-          class="i-vscode-icons:file-type-jsonld"
-        />
+    <div v-else class="w-full flex items-center justify-evenly">
+      <div
+        class="inline-flex flex-col cursor-pointer items-center gap-2"
+        @click="fileStore.openAdvConfigFile"
+      >
+        <div class="glow-icon text-8xl">
+          <div
+            class="i-vscode-icons:file-type-jsonld"
+          />
+        </div>
+        <div class="text-sm op-50">
+          Open Local ADV Config File
+        </div>
       </div>
-      <div class="text-base op-50">
-        Open ADV Config File
+
+      <div
+        class="inline-flex flex-col cursor-pointer items-center gap-2"
+        @click="fileStore.onlineAdvConfigFileDialogOpen = true"
+      >
+        <div class="glow-icon text-8xl">
+          <div
+            class="i-vscode-icons:file-type-aspx"
+          />
+        </div>
+        <div class="text-sm op-50">
+          Open Online ADV Config File
+        </div>
       </div>
     </div>
   </div>
+
+  <AGUIDialog
+    v-model:open="fileStore.onlineAdvConfigFileDialogOpen" title="ADV Config File Link"
+    content-class="w-720px"
+  >
+    <div class="flex flex-col gap-4">
+      <AGUIForm>
+        <AGUIFormItem label="Online ADV Config File">
+          <AGUIInput
+            v-model="fileStore.onlineAdvConfigFileUrl"
+            placeholder="https://.../*.adv.json"
+            autofocus
+          />
+        </AGUIFormItem>
+      </AGUIForm>
+
+      <div class="flex justify-end">
+        <AGUIButton @click="fileStore.openOnlineAdvConfigFile">
+          Open File
+        </AGUIButton>
+      </div>
+    </div>
+  </AGUIDialog>
   <!-- <AdvDevTools v-if="isDev" /> -->
   <!-- <div /> -->
   <!-- <iframe

@@ -14,10 +14,10 @@ watch(() => $adv.gameConfig.value.chapters, () => {
   if (!curChapter)
     return []
 
-  if (typeof curChapter.data === 'string')
-    return []
+  // if (typeof curChapter.data === 'string')
+  // return []
 
-  const nodes = curChapter.data.nodes.map((node) => {
+  const nodes = curChapter.nodes.map((node) => {
     const treeNode: TreeNode = {
       id: node.id,
       name: node.id,

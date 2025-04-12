@@ -6,10 +6,10 @@ const tabList = ref([
   { title: 'Game', key: 'game', icon: 'i-ri-gamepad-line' },
   { title: 'Character', key: 'character', icon: 'i-ri-user-line' },
   { title: 'Flow Editor', key: 'flow-editor', icon: 'i-ri-flow-chart' },
-  { title: 'Node Editor', key: 'node-editor', icon: 'i-ri-node-tree' },
+  // { title: 'Node Editor', key: 'node-editor', icon: 'i-ri-node-tree' },
   { title: 'Scene', key: 'scene', icon: 'i-ri-grid-line' },
   { title: 'Asset Store', key: 'asset-store', icon: 'i-ri-store-line' },
-  { title: 'Map Editor', key: 'map-editor', icon: 'i-ri-map-line' },
+  // { title: 'Map Editor', key: 'map-editor', icon: 'i-ri-map-line' },
 ])
 
 const curTab = useStorage('cur-scene-tab', 'game')
@@ -62,7 +62,7 @@ function toggleFullscreen() {
       </AGUITabPanel>
 
       <AGUITabPanel v-show="curTab === 'flow-editor'">
-        <AdvFlowEditor />
+        <!-- <AdvFlowEditor /> -->
       </AGUITabPanel>
 
       <AGUITabPanel v-show="curTab === 'scene'" h="full" :unmount="false" relative>

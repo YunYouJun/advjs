@@ -200,8 +200,6 @@ export default defineAdvChapter({
   id: 'intro',
   title: 'Introduction',
   description: 'Welcome to the world of AdvJS!',
-  data: {
-    nodes: data.nodes as any,
-    edges: data.edges,
-  },
+  nodes: data.nodes as any,
+  // edges: data.edges,
 })

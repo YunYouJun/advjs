@@ -39,7 +39,7 @@ function onFileDblClick(item: FSFileItem) {
   consola.info('onFileDblClick', item)
   if (item.name.endsWith('.json')) {
     app.activeInspector = 'file'
-    fileStore.openedFile = item
+    fileStore.openedFileHandle = item.handle
   }
   else {
     Toast({

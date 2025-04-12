@@ -1,4 +1,4 @@
-import type { AdvFlow, AdvFlowNode, AdvNode } from '@advjs/types'
+import type { AdvFlowNode, AdvNode } from '@advjs/types'
 import type { AdvContext } from '../types'
 import { END_NODE } from '@advjs/core'
 import { consola } from 'consola'
@@ -18,23 +18,24 @@ export function useAdvNav($adv: AdvContext) {
     if (!curChapter)
       return
 
-    if (typeof curChapter.data === 'string') {
-      const data = await fetch(curChapter.data)
-      curChapter.data = await data.json()
-    }
+    // if (typeof curChapter.data === 'string') {
+    //   const data = await fetch(curChapter.data)
+    //   curChapter.data = await data.json()
+    // }
 
     store.curChapter = JSON.parse(JSON.stringify(curChapter))
-    const { nodes, edges } = store.curChapter?.data as AdvFlow
+    // const { nodes, edges } = store.curChapter as AdvFlow
+    const nodes = store.curChapter?.nodes || []
     nodes.forEach((node) => {
       curChapterMap.set(node.id, node)
     })
-    edges.forEach((edge) => {
-      const source = curChapterMap.get(edge.source)
-      const target = curChapterMap.get(edge.target)
-      if (source && target) {
-        source.target = target.id
-      }
-    })
+    // edges.forEach((edge) => {
+    //   const source = curChapterMap.get(edge.source)
+    //   const target = curChapterMap.get(edge.target)
+    //   if (source && target) {
+    //     source.target = target.id
+    //   }
+    // })
   }
 
   /**

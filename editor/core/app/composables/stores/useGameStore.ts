@@ -1,3 +1,4 @@
+import type { AdvGameConfig } from '@advjs/types'
 import { useAdvContext } from '@advjs/client'
 import { consola } from 'consola'
 import { acceptHMRUpdate, defineStore } from 'pinia'
@@ -13,16 +14,14 @@ export const useGameStore = defineStore('editor:game', () => {
    */
   const loadStatus = ref<'' | 'success' | 'fail'>('')
 
+  const startChapter = ref()
+  const startNode = ref()
+
   const { $adv } = useAdvContext()
   async function loadGameFromJSONStr(jsonStr: string) {
     try {
       gameConfig.value = JSON.parse(jsonStr)
-      loadStatus.value = 'success'
-
-      await nextTick()
-
-      await $adv.init()
-      await $adv.$nav.start('background_01')
+      await loadGameFromConfig(gameConfig.value)
     }
     catch (e) {
       loadStatus.value = 'fail'
@@ -30,10 +29,24 @@ export const useGameStore = defineStore('editor:game', () => {
     }
   }
 
+  async function loadGameFromConfig(config: AdvGameConfig) {
+    gameConfig.value = config
+    loadStatus.value = 'success'
+
+    await nextTick()
+
+    await $adv.init()
+    await $adv.$nav.start('background_01')
+  }
+
   return {
     gameConfig,
     loadStatus,
 
+    startChapter,
+    startNode,
+
+    loadGameFromConfig,
     loadGameFromJSONStr,
   }
 })

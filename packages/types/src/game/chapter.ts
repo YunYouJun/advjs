@@ -1,4 +1,4 @@
-import type { AdvFlow } from '../flow'
+import type { AdvFlowNode } from '../flow'
 
 /**
  * 游戏章节
@@ -21,5 +21,6 @@ export interface AdvChapter {
    *
    * JSON or URL
    */
-  data: AdvFlow | string
+  // data: AdvFlow | string
+  nodes: AdvFlowNode[]
 }
