@@ -31,6 +31,7 @@ const open = defineModel('open', {
         class="data-[state=open]:animate-contentShow fixed left-[50%] top-[50%] z-[100] w-[60vw] translate-x-[-50%] translate-y-[-50%] overflow-hidden rounded bg-dark-300 shadow-xl focus:outline-none"
         :class="contentClass"
         :aria-describedby="description"
+        :aria-hidden="!open"
       >
         <div class="absolute relative left-0 right-0 top-0 flex items-center justify-center bg-dark-50 px-2 py-1 shadow">
           <DialogTitle
@@ -44,13 +45,9 @@ const open = defineModel('open', {
               aria-label="Close"
               class="size-3.5 inline-flex cursor-pointer items-center justify-center rounded-full bg-red-500 text-transparent hover:text-white/80 focus:outline-none"
             >
-              <div i-ri-close-line />
+              <div aria-hidden="true" i-ri-close-line />
             </DialogClose>
           </div>
-        </div>
-
-        <div class="p-4">
-          <slot />
         </div>
 
         <DialogDescription
@@ -59,6 +56,10 @@ const open = defineModel('open', {
         >
           {{ description }}
         </DialogDescription>
+
+        <div class="p-4">
+          <slot />
+        </div>
       </DialogContent>
     </DialogPortal>
   </DialogRoot>

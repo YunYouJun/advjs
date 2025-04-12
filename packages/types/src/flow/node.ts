@@ -24,6 +24,8 @@ export interface AdvBackgroundNode extends AdvBaseNode {
   type: 'background'
   /**
    * 背景名称
+   *
+   * 场景 ID：sceneId
    */
   name: string
   /**
@@ -70,7 +72,12 @@ export interface AdvDialoguesNode extends AdvBaseNode {
   /**
    * 对话列表
    */
-  children: AdvDialogNode[]
+  dialogues: AdvDialogNode[]
+
+  /**
+   * 场景 ID
+   */
+  sceneId?: string
 }
 
 /**

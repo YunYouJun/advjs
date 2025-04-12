@@ -18,9 +18,23 @@ export const useFileStore = defineStore('file', () => {
   const onlineAdvConfigFileUrl = useStorage('adv:editor:online-adv-config-url', '')
 
   /**
+   * rawConfigFile
+   *
+   * adapted config File
+   */
+  const showRawConfigFile = useStorage('adv:editor:show-raw-config-file', false)
+
+  /**
    * 被打开的文件内容
    */
-  const configFileContent = ref<string>('')
+  const rawConfigFileContent = ref<string>('')
+
+  /**
+   * monaco editor file content
+   */
+  const monacoEditorFileContent = computed(() => {
+    return showRawConfigFile.value ? rawConfigFileContent.value : JSON.stringify(gameStore.gameConfig, null, 2)
+  })
 
   const app = useAppStore()
 
@@ -52,7 +66,7 @@ export const useFileStore = defineStore('file', () => {
     // 获取文件内容
     const file = await fileHandle.getFile()
     const text = await file.text()
-    configFileContent.value = text
+    rawConfigFileContent.value = text
 
     gameStore.loadGameFromJSONStr(text)
 
@@ -75,7 +89,7 @@ export const useFileStore = defineStore('file', () => {
     const url = onlineAdvConfigFileUrl.value
     const json = await fetch(url).then(res => res.json())
 
-    configFileContent.value = JSON.stringify(json, null, 2)
+    rawConfigFileContent.value = JSON.stringify(json, null, 2)
     gameStore.loadGameFromConfig(json)
     consoleStore.success('File loaded', {
       fileName: url,
@@ -85,9 +99,11 @@ export const useFileStore = defineStore('file', () => {
   }
 
   return {
+    monacoEditorFileContent,
     openedFileHandle,
     onlineAdvConfigFileUrl,
-    configFileContent,
+    rawConfigFileContent,
+    showRawConfigFile,
 
     openAdvConfigFile,
     setOpenedConfigFile,

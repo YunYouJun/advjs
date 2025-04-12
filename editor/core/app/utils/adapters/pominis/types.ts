@@ -22,17 +22,17 @@ interface Chapter {
   title: string
   startNodeId: string
   description: string
-  nodes: Node[]
+  nodes: VSNode[]
   entryPoints: Record<string, string>
 }
 
-interface Node {
+interface VSNode {
   id: string
   plot_summary: string
   imagePrompt: string
   dialogues: Dialogue[]
-  choices: Choice[]
-  next: string | null
+  choices?: Choice[]
+  next?: string | null
   bgmThemeId: string
 }
 

@@ -6,7 +6,7 @@ import { TreeItem, TreeRoot } from 'reka-ui'
 const { $adv } = useAdvContext()
 
 export interface TreeNode {
-  id?: string
+  id: string
   title: string
   icon?: string
   children?: TreeNode[]
@@ -48,8 +48,8 @@ const items = computed(() => {
 
     if (node.type === 'dialogues') {
       const curNode = node as unknown as AdvDialoguesNode
-      if (curNode.children.length > 0) {
-        treeNode.children = curNode.children.map((child, i) => ({
+      if (curNode.dialogues.length > 0) {
+        treeNode.children = curNode.dialogues.map((child, i) => ({
           id: `${node.id}-${i}`,
           title: `${i}. ${child.speaker}`,
           icon: 'i-ri-message-2-line',
@@ -80,16 +80,17 @@ watch(
   <TreeRoot
     v-slot="{ flattenItems }"
     v-model:expanded="expanded"
-    class="text-blackA11 select-none list-none rounded-lg text-sm font-medium"
+    class="flex flex-col select-none list-none rounded-lg text-sm font-medium"
     :items="items"
-    :get-key="(item) => item.title"
+    :get-key="(item) => item.id || ''"
+    :multiple="false"
   >
     <TreeItem
       v-for="item in flattenItems"
       v-slot="{ isExpanded }"
+      v-bind="item.bind"
       :key="item._id"
       :style="{ 'padding-left': `${item.level - 0.5}rem` }"
-      v-bind="item.bind"
       class="flex cursor-pointer items-center px-2 py-1 text-xs outline-none data-[selected]:bg-blue-600"
       :class="{
         'bg-dark-600': item.value.id === $adv.store.curFlowNode?.id,

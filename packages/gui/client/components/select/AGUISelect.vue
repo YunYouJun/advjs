@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import type {
+  AcceptableValue,
+} from 'reka-ui'
 import {
   SelectContent,
   SelectGroup,
@@ -14,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
   SelectViewport,
-} from 'radix-vue'
+} from 'reka-ui'
 
 type OptionType = string | { value: string, label?: string, icon?: string }
 
@@ -29,7 +32,7 @@ defineProps<{
 // 使用 emits 定义组件发出的事件
 const emit = defineEmits(['change', 'update:modelValue'])
 
-function onUpdateModelValue(value: string) {
+function onUpdateModelValue(value: AcceptableValue) {
   emit('update:modelValue', value)
   emit('change', value)
 }
@@ -47,7 +50,7 @@ function onUpdateModelValue(value: string) {
 
     <SelectPortal>
       <SelectContent
-        class="agui-select-content z-99"
+        class="agui-select-content z-100"
         side="bottom"
       >
         <SelectScrollUpButton class="SelectScrollButton">

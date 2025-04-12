@@ -11,8 +11,8 @@ const tabList = ref([
 <template>
   <AGUIPanel h="full" w="full">
     <AGUITabs :list="tabList">
-      <AGUITabPanel value="story-line">
-        <ToolbarRoot class="flex items-center justify-center p-1">
+      <AGUITabPanel value="ae-story-line h-full flex flex-col">
+        <ToolbarRoot class="flex items-center justify-center border-b border-b-stone-300 p-1 dark:border-b-dark-300">
           <ToolbarToggleGroup type="multiple" />
           <AGUIInput class="flex flex-grow" placeholder="Search" />
           <ToolbarButton
@@ -22,7 +22,9 @@ const tabList = ref([
           </ToolbarButton>
         </ToolbarRoot>
 
-        <AEViewStoryLine />
+        <div class="flex flex-1 overflow-auto" style="height: calc(100% - 28px - 1px)">
+          <AEViewStoryLine class="w-full" />
+        </div>
       </AGUITabPanel>
 
       <!-- <AGUITabPanel value="hierarchy">

@@ -1,0 +1,29 @@
+{
+  "name": "@advjs/plugin-starter",
+  "type": "module",
+  "version": "0.0.1",
+  "description": "A starter plugin for AdvJS",
+  "author": {
+    "name": "YunYouJun",
+    "email": "me@yunyoujun.cn",
+    "url": "https://www.yunyoujun.cn"
+  },
+  "license": "MPL-2.0",
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./*": "./*"
+  },
+  "main": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "*.d.ts",
+    "dist"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "dev": "unbuild --stub",
+    "prepublishOnly": "npm run build",
+    "start": "tsx src/index.ts",
+    "test": "tsx scripts/test.ts"
+  }
+}

@@ -73,28 +73,8 @@ onMounted(async () => {
     </div>
   </div>
 
-  <AGUIDialog
-    v-model:open="fileStore.onlineAdvConfigFileDialogOpen" title="ADV Config File Link"
-    content-class="w-720px"
-  >
-    <div class="flex flex-col gap-4">
-      <AGUIForm>
-        <AGUIFormItem label="Online ADV Config File">
-          <AGUIInput
-            v-model="fileStore.onlineAdvConfigFileUrl"
-            placeholder="https://.../*.adv.json"
-            autofocus
-          />
-        </AGUIFormItem>
-      </AGUIForm>
+  <AELoadOnlineConfigFileDialog />
 
-      <div class="flex justify-end">
-        <AGUIButton @click="fileStore.openOnlineAdvConfigFile">
-          Open File
-        </AGUIButton>
-      </div>
-    </div>
-  </AGUIDialog>
   <!-- <AdvDevTools v-if="isDev" /> -->
   <!-- <div /> -->
   <!-- <iframe

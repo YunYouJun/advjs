@@ -17,8 +17,8 @@ const dialogStore = useDialogStore()
 /**
  * dialogues 包含多个对话子节点
  */
-const dialogues = computed(() => $adv.store.cur.dialog)
-const curDialog = computed(() => dialogues.value.children[dialogStore.iOrder] as AdvDialogNode)
+const dialoguesNode = computed<AdvDialoguesNode>(() => $adv.store.cur.dialog as AdvDialoguesNode)
+const curDialog = computed(() => dialoguesNode.value.dialogues[dialogStore.iOrder] as AdvDialogNode)
 
 // watch order, update dialog
 watch(() => store.curFlowNode, () => {
@@ -69,8 +69,8 @@ async function next() {
   //   end.value = false
   // }
 
-  if (dialogues.value.children) {
-    const length = dialogues.value.children.length
+  if (dialoguesNode.value.dialogues) {
+    const length = dialoguesNode.value.dialogues.length
 
     if (dialogStore.iOrder + 1 >= length) {
       await $adv.$nav.next()
@@ -125,12 +125,12 @@ const fontSizeClass = computed(() => {
 </script>
 
 <template>
-  <div class="adv-dialog-box cursor-pointer select-none pt-12 shadow-xl" grid="~ cols-12" gap="12" @click="next">
+  <div class="adv-dialog-box cursor-pointer select-none pt-20 shadow-xl" grid="~ cols-12" gap="12" @click="next">
     <div class="col-span-3 text-right">
       <template v-if="$adv.config?.value?.showCharacterAvatar && characterAvatar">
         <div flex="~ col" class="items-end justify-center">
-          <img class="h-25 w-25 rounded shadow" object="cover top" :src="characterAvatar">
-          <span class="w-25" m="t-2" text="center gray-400">{{ curCharacter?.name }}</span>
+          <img class="size-40 rounded shadow" object="cover top" :src="characterAvatar">
+          <span class="w-40" m="t-4" text="2xl center white/80">{{ curCharacter?.name }}</span>
         </div>
       </template>
       <template v-else>
@@ -150,7 +150,7 @@ const fontSizeClass = computed(() => {
         @end="end = true"
       />
       <span
-        v-if="dialogStore.iOrder < (dialogues.children.length - 1) && store.curFlowNode.type !== 'end'"
+        v-if="dialogStore.iOrder < (dialoguesNode.dialogues.length - 1) && store.curFlowNode.type !== 'end'"
         class="typed-cursor"
       >
         ▼

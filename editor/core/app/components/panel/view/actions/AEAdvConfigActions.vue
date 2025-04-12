@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const fileStore = useFileStore()
 const gameStore = useGameStore()
 
 const chapterOptions = computed(() => {
@@ -61,6 +62,18 @@ const nodeOptions = computed(() => {
           </label>
         </template>
         <AGUISelect v-model="gameStore.startNode" :options="nodeOptions" />
+      </AGUIFormItem>
+
+      <AGUIFormItem>
+        <template #label>
+          <label
+            class="agui-label w-1/3 flex items-center gap-2 text-$agui-c-label"
+          >
+            <div class="i-ri:file-text-line" />
+            <span>Raw File</span>
+          </label>
+        </template>
+        <AGUICheckbox v-model:checked="fileStore.showRawConfigFile" />
       </AGUIFormItem>
     </AGUIForm>
   </div>

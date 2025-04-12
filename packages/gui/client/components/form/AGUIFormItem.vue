@@ -1,6 +1,7 @@
 <script setup lang="ts">
 defineProps<{
   label?: string
+  labelClass?: string
   description?: string
 }>()
 </script>
@@ -13,6 +14,7 @@ defineProps<{
     <slot name="label">
       <label
         class="agui-label w-1/3 text-$agui-c-label"
+        :class="labelClass"
         :title="description"
       >
         {{ label }}

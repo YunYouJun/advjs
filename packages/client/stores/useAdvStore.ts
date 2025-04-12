@@ -57,13 +57,16 @@ export const useAdvStore = defineStore('adv', () => {
      * 当前对话
      */
     dialog: {
-      type: 'dialog',
-      character: {
-        type: 'character',
-        name: '',
-        status: '',
-      },
-      children: [],
+      // type: 'dialog',
+      id: '',
+      type: 'dialogues',
+      dialogues: [],
+      // character: {
+      //   type: 'character',
+      //   name: '',
+      //   status: '',
+      // },
+      // children: [],
     },
     tachies: new Map(),
     background: '',

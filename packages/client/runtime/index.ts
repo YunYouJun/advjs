@@ -11,7 +11,12 @@ export const gameConfig = ref<AdvGameConfig>(defaultConfig.gameConfig as AdvGame
 export function initAdvContext() {
   const store = useAdvStore()
 
-  const config = computed<AdvConfig>(() => defaultConfig)
+  const config = computed<AdvConfig>(() => {
+    return {
+      ...defaultConfig,
+      showCharacterAvatar: true,
+    }
+  })
   const themeConfig = computed<AdvThemeConfig>(() => defaultConfig.themeConfig)
 
   const advContext: AdvContext = {

@@ -1,4 +1,4 @@
-import type { AdvAst, AdvBackgroundNode, AdvNode } from '@advjs/types'
+import type { AdvAst, AdvBackgroundNode, AdvDialoguesNode, AdvNode } from '@advjs/types'
 import type { AdvContext } from '../types'
 import { isScript, parseAst } from '@advjs/parser'
 
@@ -102,9 +102,15 @@ export function useAdvLogic($adv: AdvContext) {
       case 'choices':
         break
 
-      // flow ndoe
+      // flow node
       case 'dialogues': {
         // watch dialog in AdvDialogBox
+
+        // sceneId 存在则自动切换场景
+        const sceneId = (node as AdvDialoguesNode).sceneId
+        if (sceneId) {
+          $adv.pixiGame?.BgSystem.load(sceneId)
+        }
         break
       }
       case 'background': {

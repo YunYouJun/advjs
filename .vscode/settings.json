@@ -12,13 +12,14 @@
     "mdast",
     "pixi",
     "Prefiltered",
+    "Runware",
     "Skybox",
+    "splitpanes",
     "tachie",
     "tachies",
     "Tauri",
     "unstorage",
-    "VRoid",
-    "splitpanes"
+    "VRoid"
   ],
   "i18n-ally.keystyle": "nested",
   "i18n-ally.localesPaths": "locales",

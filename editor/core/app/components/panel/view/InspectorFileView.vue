@@ -23,11 +23,6 @@ const fileIcon = computed(() => {
     ? fileHandleInfo?.icon.value
     : onlineFileInfo?.icon.value
 })
-const fileContent = computed(() => {
-  return props.fileHandle
-    ? fileHandleInfo?.content.value
-    : onlineFileInfo?.content.value
-})
 const fileLanguage = computed(() => {
   return props.fileHandle
     ? fileHandleInfo?.language.value
@@ -41,7 +36,7 @@ function goToNode() {
 
 <template>
   <div class="h-full w-full flex flex-col">
-    <div class="flex items-center justify-between gap-2 p-2">
+    <div class="flex items-center justify-between gap-2 border-b border-b-stone-300 p-2 dark:border-b-dark-300">
       <div class="flex items-center gap-2">
         <AGUIFileItemIcon :file-icon="fileIcon" />
         <div class="text-sm op-80">
@@ -52,7 +47,7 @@ function goToNode() {
       <div class="flex items-center gap-2">
         <AGUIButton
           v-if="fileName?.endsWith('.adv.json')"
-          @click="gameStore.loadGameFromJSONStr(fileStore.configFileContent)"
+          @click="gameStore.loadGameFromJSONStr(fileStore.rawConfigFileContent)"
         >
           Load
         </AGUIButton>
@@ -66,7 +61,7 @@ function goToNode() {
 
     <MonacoEditor
       class="flex flex-grow"
-      :model-value="fileContent"
+      :model-value="fileStore.monacoEditorFileContent"
       :lang="fileLanguage"
       :options="{ theme: 'vs-dark' }"
       :editor-options="{ automaticLayout: true }"
