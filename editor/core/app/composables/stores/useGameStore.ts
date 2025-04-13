@@ -1,5 +1,4 @@
 import type { AdvGameConfig } from '@advjs/types'
-import type { PominisAIVSConfig } from '../../utils'
 import { useAdvContext } from '@advjs/client'
 import { Toast } from '@advjs/gui'
 import { useStorage } from '@vueuse/core'
@@ -24,6 +23,11 @@ export const useGameStore = defineStore('editor:game', () => {
   const startChapter = ref()
   const startNode = ref()
 
+  /**
+   * cdn url
+   */
+  const cdnUrl = ref('')
+
   const { $adv } = useAdvContext()
   async function loadGameFromJSONStr(jsonStr: string) {
     try {
@@ -42,7 +46,10 @@ export const useGameStore = defineStore('editor:game', () => {
         case 'default':
           break
         case 'pominis':
-          config = convertPominisAItoAdvConfig(config as any as PominisAIVSConfig)
+          config = convertPominisAItoAdvConfig({
+            config: config as any,
+            cdnUrl: cdnUrl.value,
+          })
           break
         default:
           break
@@ -75,6 +82,7 @@ export const useGameStore = defineStore('editor:game', () => {
   }
 
   return {
+    cdnUrl,
     curAdapter,
     gameConfig,
     loadStatus,

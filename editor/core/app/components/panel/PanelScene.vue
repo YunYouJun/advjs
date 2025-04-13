@@ -12,12 +12,17 @@ const tabList = ref([
   // { title: 'Map Editor', key: 'map-editor', icon: 'i-ri-map-line' },
 ])
 
+const app = useAppStore()
 const curTab = useStorage('cur-scene-tab', 'game')
 /**
  * change tab key
  */
 function changeTab(index: number) {
   curTab.value = tabList.value[index]?.key
+
+  if (curTab.value === 'game') {
+    app.activeInspector = 'file'
+  }
 }
 
 const selectedIndex = computed(() => {

@@ -24,13 +24,15 @@ function onClickCharacter() {
       {{ character.id }}
     </div>
 
+    <div v-if="character.avatar" class="m-auto">
+      <img class="size-20 rounded object-contain" :src="character.avatar">
+    </div>
+
     <div class="text-center font-bold">
       {{ character.name }}
     </div>
 
-    <!-- <img v-if="character.avatar" :src="character.avatar" /> -->
-
-    <div class="tachies flex flex-wrap justify-center">
+    <div v-if="character.tachies" class="tachies flex flex-wrap justify-center">
       <div
         v-for="(tachie, tachieKey) in character.tachies" :key="tachieKey"
         class="tachie flex flex-col gap-1"

@@ -33,6 +33,13 @@ const adapterOptions = ref<{
             placeholder="Select Config Adapter"
           />
         </AGUIFormItem>
+        <AGUIFormItem label="CDN Url" label-class="w-1/4">
+          <AGUIInput
+            v-model="gameStore.cdnUrl"
+            placeholder="https://.../xxx"
+            autofocus
+          />
+        </AGUIFormItem>
       </AGUIForm>
 
       <div class="flex justify-end">

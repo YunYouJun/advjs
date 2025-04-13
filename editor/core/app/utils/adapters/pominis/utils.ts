@@ -6,11 +6,16 @@ import type { PominisAIVSConfig } from './types'
  *
  * @example https://cos.advjs.yunle.fun/games/the-lord-of-the-rings/index.ai.adv.json
  */
-export function convertPominisAItoAdvConfig(config: PominisAIVSConfig) {
-  const advConfig = JSON.parse(JSON.stringify(config)) as PominisAIVSConfig
+export function convertPominisAItoAdvConfig(options: {
+  cdnUrl?: string
+  config: PominisAIVSConfig
+} = {
+  config: {} as any,
+}) {
+  const advConfig = JSON.parse(JSON.stringify(options.config)) as PominisAIVSConfig
 
   const gameId = 'the-lord-of-the-rings'
-  const cdnUrlPrefix = `https://cos.advjs.yunle.fun/games/${gameId}`
+  const cdnUrlPrefix = `${options.cdnUrl || 'https://cos.advjs.yunle.fun/games/'}${gameId}`
 
   const characterMap = new Map<string, string>()
   advConfig.characters.forEach((character) => {
