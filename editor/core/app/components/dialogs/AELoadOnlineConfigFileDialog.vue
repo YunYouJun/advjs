@@ -44,7 +44,14 @@ const adapterOptions = ref<{
       </AGUIForm>
 
       <div class="flex justify-end">
-        <AGUIButton @click="fileStore.openOnlineAdvConfigFile(onlineStore.onlineAdvConfigFileUrl)">
+        <AGUIButton
+          @click="
+            fileStore.openOnlineAdvConfigFile({
+              url: onlineStore.onlineAdvConfigFileUrl,
+              adapter: gameStore.curAdapter,
+            })
+          "
+        >
           Open File
         </AGUIButton>
       </div>

@@ -1,3 +1,4 @@
+import type { AdvConfigAdapterType } from '../../types'
 import { useStorage } from '@vueuse/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
@@ -77,13 +78,21 @@ export const useFileStore = defineStore('file', () => {
   /**
    * open online adv config file
    */
-  async function openOnlineAdvConfigFile(url: string) {
+  async function openOnlineAdvConfigFile(options: {
+    /**
+     * online url
+     */
+    url: string
+    adapter: AdvConfigAdapterType
+  }) {
     app.activeInspector = 'file'
 
+    const { url, adapter } = options
     // fetch json from online link
     const json = await fetch(url).then(res => res.json())
 
     rawConfigFileContent.value = JSON.stringify(json, null, 2)
+    gameStore.curAdapter = adapter
     gameStore.loadGameFromConfig(json)
     consoleStore.success('File loaded', {
       fileName: url,

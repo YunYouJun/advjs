@@ -91,7 +91,7 @@ const characterAvatar = computed(() => {
   const advConfig = $adv.config.value
   const gameConfig = $adv.gameConfig.value
   const curName = curCharacter.value ? curCharacter.value.name : ''
-  const avatar = gameConfig.characters.find(item => item.name === curName || item.alias === curName || (Array.isArray(item.alias) && item.alias.includes(curName)))?.avatar
+  const avatar = gameConfig.characters?.find(item => item.name === curName || item.alias === curName || (Array.isArray(item.alias) && item.alias.includes(curName)))?.avatar
   const prefix = advConfig.cdn.enable ? (advConfig.cdn.prefix || '') : ''
   return avatar ? prefix + avatar : ''
 })
