@@ -70,15 +70,15 @@ function getClassesFromType(type: ToastOptions['type']) {
         :class="getClassesFromType(item.type)"
         :duration="item.duration"
       >
-        <ToastTitle class="ToastTitle flex items-center">
+        <ToastTitle v-if="item.title" class="ToastTitle flex items-center">
           <div mr-1 :class="getIconFromType(item.type)" />
           {{ item.title || '' }}
         </ToastTitle>
-        <ToastDescription class="ml-21px flex text-xs">
+        <ToastDescription v-if="item.description" class="ml-21px flex text-xs">
           {{ item.description || '' }}
         </ToastDescription>
         <!-- <slot /> -->
-        <ToastClose class="absolute right-2 top-2 cursor-pointer">
+        <ToastClose class="absolute right-2 top-3.5 cursor-pointer text-base">
           <div i-ri-close-fill />
         </ToastClose>
       </ToastRoot>
@@ -165,7 +165,6 @@ button {
 
 .ToastTitle {
   grid-area: title;
-  margin-bottom: 5px;
   font-weight: 500;
   color: var(--slate-12);
   font-size: 14px;

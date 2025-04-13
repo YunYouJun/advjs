@@ -13,11 +13,6 @@ export const useFileStore = defineStore('file', () => {
   const openedFileHandle = shallowRef<FileSystemFileHandle>()
 
   /**
-   * confirmed online adv config file
-   */
-  const onlineAdvConfigFileUrl = useStorage('adv:editor:online-adv-config-url', '')
-
-  /**
    * rawConfigFile
    *
    * adapted config File
@@ -82,11 +77,10 @@ export const useFileStore = defineStore('file', () => {
   /**
    * open online adv config file
    */
-  async function openOnlineAdvConfigFile() {
+  async function openOnlineAdvConfigFile(url: string) {
     app.activeInspector = 'file'
 
     // fetch json from online link
-    const url = onlineAdvConfigFileUrl.value
     const json = await fetch(url).then(res => res.json())
 
     rawConfigFileContent.value = JSON.stringify(json, null, 2)
@@ -101,7 +95,6 @@ export const useFileStore = defineStore('file', () => {
   return {
     monacoEditorFileContent,
     openedFileHandle,
-    onlineAdvConfigFileUrl,
     rawConfigFileContent,
     showRawConfigFile,
 

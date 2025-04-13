@@ -1,10 +1,10 @@
 export function useInspectorOnlineFile() {
-  const fileStore = useFileStore()
+  const onlineStore = useOnlineStore()
 
   const icon = ref('i-vscode-icons:file-type-json')
 
   const name = computed(() => {
-    const url = new URL(fileStore.onlineAdvConfigFileUrl)
+    const url = new URL(onlineStore.onlineAdvConfigFileUrl)
     const path = url.pathname
     return path.split('/').pop() || ''
   })

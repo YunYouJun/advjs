@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const onlineStore = useOnlineStore()
 const fileStore = useFileStore()
 const gameStore = useGameStore()
 
@@ -21,7 +22,7 @@ const adapterOptions = ref<{
       <AGUIForm>
         <AGUIFormItem label="Online ADV Config File" label-class="w-1/4">
           <AGUIInput
-            v-model="fileStore.onlineAdvConfigFileUrl"
+            v-model="onlineStore.onlineAdvConfigFileUrl"
             placeholder="https://.../*.adv.json"
             autofocus
           />
@@ -35,15 +36,15 @@ const adapterOptions = ref<{
         </AGUIFormItem>
         <AGUIFormItem label="CDN Url" label-class="w-1/4">
           <AGUIInput
-            v-model="gameStore.cdnUrl"
-            placeholder="https://.../xxx"
+            v-model="onlineStore.cdnUrl"
+            :placeholder="onlineStore.defaultCdnUrl"
             autofocus
           />
         </AGUIFormItem>
       </AGUIForm>
 
       <div class="flex justify-end">
-        <AGUIButton @click="fileStore.openOnlineAdvConfigFile">
+        <AGUIButton @click="fileStore.openOnlineAdvConfigFile(onlineStore.onlineAdvConfigFileUrl)">
           Open File
         </AGUIButton>
       </div>

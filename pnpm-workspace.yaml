@@ -14,7 +14,7 @@ catalog:
   '@babylonjs/gui': 5.19.0
   '@babylonjs/loaders': 5.19.0
   '@babylonjs/materials': 5.19.0
-  '@faker-js/faker': ^9.6.0
+  '@faker-js/faker': ^9.7.0
   '@google/model-viewer': ^4.1.0
   '@headlessui/vue': ^1.7.23
   '@iconify-json/carbon': ^1.2.8

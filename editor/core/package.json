@@ -24,7 +24,8 @@
     "@vue-flow/minimap": "^1.5.3",
     "@vue-flow/node-resizer": "^1.4.0",
     "cos-js-sdk-v5": "^1.8.7",
-    "pixi-painter": "catalog:"
+    "pixi-painter": "catalog:",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "@advjs/gui": "workspace:*",
@@ -36,6 +37,7 @@
     "@nuxtjs/color-mode": "catalog:",
     "@nuxtjs/i18n": "9.5.2",
     "@pinia/nuxt": "catalog:",
+    "@types/qrcode": "^1.5.5",
     "@unocss/eslint-config": "catalog:",
     "@unocss/nuxt": "catalog:",
     "@vite-pwa/nuxt": "catalog:",

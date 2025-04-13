@@ -6,7 +6,7 @@ export const AGUIToastRef = toastRef
 
 export interface ToastOptions {
   title: string
-  description: string
+  description?: string
   duration?: number
   type?: 'info' | 'success' | 'warning' | 'error' | 'default'
 }

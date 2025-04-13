@@ -13,9 +13,7 @@ export function convertPominisAItoAdvConfig(options: {
   config: {} as any,
 }) {
   const advConfig = JSON.parse(JSON.stringify(options.config)) as PominisAIVSConfig
-
-  const gameId = 'the-lord-of-the-rings'
-  const cdnUrlPrefix = `${options.cdnUrl || 'https://cos.advjs.yunle.fun/games/'}${gameId}`
+  const cdnUrlPrefix = options.cdnUrl
 
   const characterMap = new Map<string, string>()
   advConfig.characters.forEach((character) => {

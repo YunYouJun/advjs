@@ -91,6 +91,7 @@ function handleClick() {
                       v-for="(subItem, key) in menuItem.children"
                       :key="key"
                       class="MenubarItem"
+                      @click="subItem.onClick"
                     >
                       {{ subItem.label }}
                       <div class="RightSlot">
