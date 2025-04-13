@@ -4,8 +4,11 @@ export function useInspectorOnlineFile() {
   const icon = ref('i-vscode-icons:file-type-json')
 
   const name = computed(() => {
-    return fileStore.onlineAdvConfigFileUrl.split('/').pop()
+    const url = new URL(fileStore.onlineAdvConfigFileUrl)
+    const path = url.pathname
+    return path.split('/').pop() || ''
   })
+
   const language = computed(() => {
     return name.value?.endsWith('.json') ? 'json' : 'text'
   })

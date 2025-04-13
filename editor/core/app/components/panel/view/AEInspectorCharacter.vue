@@ -7,7 +7,7 @@ const fileContent = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col">
+  <div class="h-full flex flex-col">
     <div class="flex items-center justify-between gap-2 p-2">
       <div class="flex items-center gap-2">
         <div i-ri-user-line />
