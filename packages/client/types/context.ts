@@ -1,7 +1,7 @@
 import type { AdvConfig, AdvGameConfig } from '@advjs/types'
 
 import type { ComputedRef } from 'vue'
-import type { useAdvLogic, useAdvNav, useAdvTachies } from '../composables'
+import type { useAdvBgm, useAdvLogic, useAdvNav, useAdvTachies } from '../composables'
 import type { PixiGame } from '../pixi/game'
 import type { AdvStore } from '../stores'
 
@@ -19,6 +19,7 @@ export interface AdvContext {
   $nav: ReturnType<typeof useAdvNav>
   $logic: ReturnType<typeof useAdvLogic>
   $tachies: ReturnType<typeof useAdvTachies>
+  $bgm: ReturnType<typeof useAdvBgm>
 
   init: () => Promise<void>
   pixiGame?: PixiGame

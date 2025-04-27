@@ -2,7 +2,7 @@ import type { AssetsBundle, AssetsManifest, UnresolvedAsset } from 'pixi.js'
 import type { AdvContext } from '../types'
 import { consola } from 'consola'
 import { Application, Assets } from 'pixi.js'
-import { BackgroundSystem } from './system/background'
+import { SceneSystem } from './system/scene'
 import { TachieSystem } from './system/tachie'
 
 const gameBundleName = '@advjs/game/bundle'
@@ -10,7 +10,7 @@ const gameBundleName = '@advjs/game/bundle'
 export class PixiGame {
   app: Application
   // wait init
-  BgSystem!: BackgroundSystem
+  SceneSystem!: SceneSystem
   TachieSystem!: TachieSystem
 
   assetsManifest: AssetsManifest | null = null
@@ -83,8 +83,7 @@ export class PixiGame {
 
     await this.loadBundle()
 
-    this.BgSystem = new BackgroundSystem(this)
-    // this.BgSystem.load('stacked-steps-haikei')
+    this.SceneSystem = new SceneSystem(this)
 
     this.TachieSystem = new TachieSystem(this)
     this.TachieSystem.init()

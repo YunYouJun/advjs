@@ -1,5 +1,6 @@
 export * from './config'
 
+export * from './useAdvBgm'
 export * from './useAdvCamera'
 export * from './useAdvContext'
 export * from './useAdvKeys'

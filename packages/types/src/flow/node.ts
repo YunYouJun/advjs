@@ -53,6 +53,9 @@ export interface AdvTachieNode extends AdvBaseNode {
    * 动作
    */
   action: 'enter' | 'exit'
+
+  enter?: string | string[]
+  exit?: string | string[]
 }
 
 export interface AdvDialogNode {

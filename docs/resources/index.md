@@ -33,6 +33,10 @@
 - [Free SVG Generator](https://fffuel.co/)
   - [bbburst](https://fffuel.co/bbburst/): 形状爆炸
 
+### 音乐/音效
+
+- [Visual Novel Music and Sound Effects](https://wowsound.com/royalty-free-music-for-visual-novel.aspx)
+
 ### 资源网站
 
 - [Galgame 制作常用素材网站 - 醉里挑灯看剑的文章 - 知乎](https://zhuanlan.zhihu.com/p/394051701)

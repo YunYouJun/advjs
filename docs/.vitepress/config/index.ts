@@ -13,7 +13,7 @@ const customElements = new Set(['font'])
 
 const nav: DefaultTheme.Config['nav'] = [
   { text: '指南', link: '/guide/' },
-  // { text: 'API', link: 'https://api.docs.advjs.org' },
+  { text: 'AI', link: '/ai/' },
   { text: 'API', link: '/api/' },
   {
     text: 'AGUI',
@@ -47,6 +47,10 @@ const nav: DefaultTheme.Config['nav'] = [
   {
     text: '资源',
     items: [
+      {
+        text: '素材',
+        link: '/resources/',
+      },
       {
         text: '案例',
         link: '/resources/showcases',

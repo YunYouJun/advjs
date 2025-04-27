@@ -26,7 +26,20 @@ export interface AdvGameConfig {
      * auto play first bgm
      */
     autoplay: boolean
-    collection: AdvMusic[]
+    /**
+     * custom collection
+     */
+    collection?: AdvMusic[]
+    /**
+     * @zh 音乐库
+     *
+     * @example
+     * https://cos.advjs.yunle.fun/bgms/bgm_library.json
+     *
+     * one of the bgm
+     * https://cos.advjs.yunle.fun/bgms/library/%E6%B8%9A%EF%BD%9E%E5%9D%82%E3%81%AE%E4%B8%8B%E3%81%AE%E5%88%A5%E3%82%8C.mp3
+     */
+    library?: Record<string, AdvMusic | AdvMusic[]> | string
   }
 
   /**

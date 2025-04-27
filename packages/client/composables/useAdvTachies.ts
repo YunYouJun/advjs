@@ -30,7 +30,8 @@ export function useAdvTachies($adv: AdvContext) {
     tachiesMap.value.delete(name)
   }
 
-  function handle(node: AdvAst.Tachie) {
+  // function handle(node: AdvAst.Tachie) {
+  async function handle(node: AdvAst.Tachie | AdvTachieNode) {
     if (node.enter) {
       if (typeof node.enter === 'string') {
         enter(node.enter)

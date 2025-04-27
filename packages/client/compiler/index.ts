@@ -3,7 +3,7 @@ import type { initAdvData } from './data'
 import { $t } from '@advjs/client/modules/i18n'
 
 import { computed } from 'vue'
-import { useAdvLogic, useAdvNav, useAdvTachies } from '../composables'
+import { useAdvBgm, useAdvLogic, useAdvNav, useAdvTachies } from '../composables'
 import { initPixi } from '../pixi'
 import { useAdvStore } from '../stores'
 
@@ -32,10 +32,12 @@ export function initAdvContext(advData: ReturnType<typeof initAdvData>) {
     $nav: {} as ReturnType<typeof useAdvNav>,
     $logic: {} as ReturnType<typeof useAdvLogic>,
     $tachies: {} as ReturnType<typeof useAdvTachies>,
+    $bgm: {} as ReturnType<typeof useAdvBgm>,
   }
   advContext.$nav = useAdvNav(advContext)
   advContext.$logic = useAdvLogic(advContext)
   advContext.$tachies = useAdvTachies(advContext)
+  advContext.$bgm = useAdvBgm(advContext)
 
   return advContext
 }

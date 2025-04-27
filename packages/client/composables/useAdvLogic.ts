@@ -1,9 +1,9 @@
-import type { AdvAst, AdvBackgroundNode, AdvDialoguesNode, AdvNode } from '@advjs/types'
+import type { AdvAst, AdvBackgroundNode, AdvDialoguesNode, AdvNode, AdvTachieNode } from '@advjs/types'
 import type { AdvContext } from '../types'
 import { isScript, parseAst } from '@advjs/parser'
 
 import { consola } from 'consola'
-import { BackgroundSystem } from '../pixi/system/background'
+import { SceneSystem } from '../pixi/system/scene'
 import { useAdvCamera } from './useAdvCamera'
 
 /**
@@ -109,17 +109,17 @@ export function useAdvLogic($adv: AdvContext) {
         // sceneId 存在则自动切换场景
         const sceneId = (node as AdvDialoguesNode).sceneId
         if (sceneId) {
-          $adv.pixiGame?.BgSystem.load(sceneId)
+          $adv.pixiGame?.SceneSystem.load(sceneId)
         }
         break
       }
       case 'background': {
         consola.info('background', node)
-        $adv.pixiGame?.BgSystem.load((node as AdvBackgroundNode).name)
+        $adv.pixiGame?.SceneSystem.load((node as AdvBackgroundNode).name)
         break
       }
       case 'tachie': {
-        await $adv.$tachies.handle(node)
+        await $adv.$tachies.handle(node as AdvTachieNode)
         break
       }
       default:
@@ -175,7 +175,7 @@ export function useAdvLogic($adv: AdvContext) {
         break
       case 'background':
         if (node.name) {
-          const bg = BackgroundSystem.instance?.load(node.name)
+          const bg = SceneSystem.instance?.load(node.name)
           if (bg)
             store.cur.background = bg[node.name]
         }
