@@ -4,16 +4,14 @@ import type { AdvContext } from '../types'
 import { Howl } from 'howler'
 
 export function useAdvBgm($adv: AdvContext) {
-  let bgmLibrary = $adv.gameConfig.value.bgm?.library || {}
-  if (typeof bgmLibrary === 'string') {
-    fetch(bgmLibrary)
-      .then(res => res.json())
-      .then((data) => {
-        bgmLibrary = data
-      })
-  }
-
   const bgmMap = new Map<string, Howl>()
+
+  function getBgmSrc(bgmKey: string) {
+    const bgmLibrary = ($adv.gameConfig.value.bgm?.library || {}) as Record<string, AdvMusic>
+    const cdnUrl = $adv.config.value.cdn.prefix || 'https://cos.advjs.yunle.fun'
+    const bgmName = bgmLibrary[bgmKey]?.src || bgmKey
+    return `${cdnUrl}/bgms/library/${bgmName}.mp3`
+  }
 
   return {
     /**
@@ -21,10 +19,10 @@ export function useAdvBgm($adv: AdvContext) {
      * @param bgmId
      */
     playBgm: (bgmId: string) => {
+      const bgmLibrary = $adv.gameConfig.value.bgm?.library || {}
       const bgm = (bgmLibrary as Record<string, AdvMusic>)[bgmId]
       if (bgm) {
-        const cdnUrl = $adv.config.value.cdn.prefix
-        const src = `${cdnUrl}/bgms/${bgm.name}.mp3`
+        const src = getBgmSrc(bgm.name)
         const sound = new Howl({
           src: [src],
         })
@@ -34,6 +32,7 @@ export function useAdvBgm($adv: AdvContext) {
       }
     },
     pauseBgm: (bgmId: string) => {
+      const bgmLibrary = $adv.gameConfig.value.bgm?.library || {}
       const bgm = (bgmLibrary as Record<string, AdvMusic>)[bgmId]
       if (bgm) {
         const sound = bgmMap.get(bgm.name)
@@ -43,6 +42,7 @@ export function useAdvBgm($adv: AdvContext) {
       }
     },
     stopBgm: (bgmId: string) => {
+      const bgmLibrary = $adv.gameConfig.value.bgm?.library || {}
       const bgm = (bgmLibrary as Record<string, AdvMusic>)[bgmId]
       if (bgm) {
         const sound = bgmMap.get(bgm.name)
@@ -59,6 +59,9 @@ export function useAdvBgm($adv: AdvContext) {
         }
       }
     },
+    /**
+     * stop all bgms
+     */
     stop() {
       for (const sound of bgmMap.values()) {
         if (sound.playing()) {

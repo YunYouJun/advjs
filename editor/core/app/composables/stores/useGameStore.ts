@@ -5,6 +5,7 @@ import { useStorage } from '@vueuse/core'
 import { consola } from 'consola'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { gameConfig } from '../../../../../packages/client/runtime'
+import { DEFAULT_BGM_LIBRARY_URL } from '../../constants'
 
 /**
  * editor game store
@@ -50,6 +51,27 @@ export const useGameStore = defineStore('editor:game', () => {
           break
         default:
           break
+      }
+
+      // add default config
+      config = {
+        ...$adv.config.value.gameConfig,
+        ...config,
+
+        bgm: {
+          autoplay: true,
+          library: DEFAULT_BGM_LIBRARY_URL,
+        },
+      }
+
+      // post
+      const bgmLibrary = config.bgm.library
+      if (typeof bgmLibrary === 'string') {
+        fetch(bgmLibrary)
+          .then(res => res.json())
+          .then((data) => {
+            config.bgm.library = data
+          })
       }
     }
     catch (e) {

@@ -693,6 +693,9 @@ importers:
       pixi-painter:
         specifier: 'catalog:'
         version: 0.1.6-beta.1(@pixi/core@7.3.3)
+      plyr:
+        specifier: ^3.7.8
+        version: 3.7.8
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4
@@ -2976,11 +2979,8 @@ packages:
     engines: {node: '>= 18'}
     peerDependencies:
       vue: ^3.0.0
-      vue-i18n: ^9.0.0 || ^10.0.0 || ^11.0.0
     peerDependenciesMeta:
       vue:
-        optional: true
-      vue-i18n:
         optional: true
 
   '@ioredis/commands@1.2.0':
@@ -5532,6 +5532,9 @@ packages:
   core-js-compat@3.42.0:
     resolution: {integrity: sha512-bQasjMfyDGyaeWKBIu33lHh9qlSR0MFE/Nmc6nMjf/iU9b3rSMdAYz1Baxrv4lPdGUsTqZudHA4jIGSJy0SWZQ==}
 
+  core-js@3.42.0:
+    resolution: {integrity: sha512-Sz4PP4ZA+Rq4II21qkNqOEDTDrCvcANId3xpIgB34NDkWc3UduWj2dqEtN9yZIq8Dk3HyPI33x9sqqU5C8sr0g==}
+
   core-util-is@1.0.2:
     resolution: {integrity: sha512-3lqz5YjWTYnW6dlDa5TLaTCcShfar1e40rmcJVwCBJC6mWlFuj0eCHIElmG1g5kyuJ/GD+8Wn4FFCcz4gJPfaQ==}
 
@@ -5660,6 +5663,9 @@ packages:
 
   csstype@3.1.3:
     resolution: {integrity: sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw==}
+
+  custom-event-polyfill@1.0.7:
+    resolution: {integrity: sha512-TDDkd5DkaZxZFM8p+1I3yAlvM3rSr1wbrOliG4yJiwinMZN8z/iGL7BTlDkrJcYTmgUSb4ywVCc3ZaUtOtC76w==}
 
   cytoscape-cose-bilkent@4.1.0:
     resolution: {integrity: sha512-wgQlVIUJF13Quxiv5e1gstZ08rnZj2XaLHGoFMYXz7SkNfCDOOteKBE6SYRfA9WxxI/iBc3ajfDoc6hb/MRAHQ==}
@@ -7629,6 +7635,9 @@ packages:
     resolution: {integrity: sha512-Kx8hMakjX03tiGTLAIdJ+lL0htKnXjEZN6hk/tozf/WOuYGdZBJrZ+rCJRbVCugsjB3jMLn9746NsQIf5VjBMw==}
     engines: {node: '>=4'}
 
+  loadjs@4.3.0:
+    resolution: {integrity: sha512-vNX4ZZLJBeDEOBvdr2v/F+0aN5oMuPu7JTqrMwp+DtgK+AryOlpy6Xtm2/HpNr+azEa828oQjOtWsB6iDtSfSQ==}
+
   local-pkg@1.1.1:
     resolution: {integrity: sha512-WunYko2W1NcdfAFpuLUoucsgULmgDBRkdxHxWQ7mK0cQqwPiy8E1enjuRBrhLtZkB5iScJ1XIPdhVEFK8aOLSg==}
     engines: {node: '>=14'}
@@ -8647,6 +8656,9 @@ packages:
     resolution: {integrity: sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==}
     engines: {node: '>=4'}
 
+  plyr@3.7.8:
+    resolution: {integrity: sha512-yG/EHDobwbB/uP+4Bm6eUpJ93f8xxHjjk2dYcD1Oqpe1EcuQl5tzzw9Oq+uVAzd2lkM11qZfydSiyIpiB8pgdA==}
+
   pngjs@5.0.0:
     resolution: {integrity: sha512-40QW5YalBNfQo5yRYmiw7Yz6TKKVr3h6970B2YE+3fQpsWcrbj1PzJgxeJ19DRQjhMbKPIuMY8rFaXc8moolVw==}
     engines: {node: '>=10.13.0'}
@@ -8984,6 +8996,9 @@ packages:
   range-parser@1.2.1:
     resolution: {integrity: sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==}
     engines: {node: '>= 0.6'}
+
+  rangetouch@2.0.1:
+    resolution: {integrity: sha512-sln+pNSc8NGaHoLzwNBssFSf/rSYkqeBXzX1AtJlkJiUaVSJSbRAWJk+4omsXkN+EJalzkZhWQ3th1m0FpR5xA==}
 
   raw-body@2.5.2:
     resolution: {integrity: sha512-8zGqypfENjCIqGhgXToC8aB2r7YrBX+AQAfIPs/Mlk+BtPTztOvTS01NRW/3Eh60J+a48lt8qsCzirQ6loCVfA==}
@@ -10229,6 +10244,9 @@ packages:
 
   url-parse@1.5.10:
     resolution: {integrity: sha512-WypcfiRhfeUP9vvF0j6rw0J3hrWrw6iZv3+22h6iRMJ/8z1Tj6XfLP4DsUix5MhMPnXpiHDoKyoZ/bdCkwBCiQ==}
+
+  url-polyfill@1.1.13:
+    resolution: {integrity: sha512-tXzkojrv2SujumYthZ/WjF7jaSfNhSXlYMpE5AYdL2I3D7DCeo+mch8KtW2rUuKjDg+3VXODXHVgipt8yGY/eQ==}
 
   url@0.11.4:
     resolution: {integrity: sha512-oCwdVC7mTuWiPyjLUz/COz5TLk6wgp0RCsN+wHZ2Ekneac9w8uuV0njcbbie2ME+Vs+d6duwmYuR3HgQXs1fOg==}
@@ -12498,7 +12516,7 @@ snapshots:
       '@eslint-community/eslint-utils': 4.6.1(eslint@9.25.1(jiti@2.4.2))
       '@intlify/bundle-utils': 10.0.1(vue-i18n@10.0.7(vue@3.5.13(typescript@5.8.3)))
       '@intlify/shared': 11.1.3
-      '@intlify/vue-i18n-extensions': 8.0.0(vue-i18n@10.0.7(vue@3.5.13(typescript@5.8.3)))(vue@3.5.13(typescript@5.8.3))
+      '@intlify/vue-i18n-extensions': 8.0.0(vue@3.5.13(typescript@5.8.3))
       '@rollup/pluginutils': 5.1.4(rollup@4.40.1)
       '@typescript-eslint/scope-manager': 8.31.1
       '@typescript-eslint/typescript-estree': 8.31.1(typescript@5.8.3)
@@ -12524,7 +12542,7 @@ snapshots:
       '@eslint-community/eslint-utils': 4.6.1(eslint@9.25.1(jiti@2.4.2))
       '@intlify/bundle-utils': 10.0.1(vue-i18n@11.1.3(vue@3.5.13(typescript@5.8.3)))
       '@intlify/shared': 11.1.3
-      '@intlify/vue-i18n-extensions': 8.0.0(vue-i18n@11.1.3(vue@3.5.13(typescript@5.8.3)))(vue@3.5.13(typescript@5.8.3))
+      '@intlify/vue-i18n-extensions': 8.0.0(vue@3.5.13(typescript@5.8.3))
       '@rollup/pluginutils': 5.1.4(rollup@4.40.1)
       '@typescript-eslint/scope-manager': 8.31.1
       '@typescript-eslint/typescript-estree': 8.31.1(typescript@5.8.3)
@@ -12547,23 +12565,14 @@ snapshots:
 
   '@intlify/utils@0.13.0': {}
 
-  '@intlify/vue-i18n-extensions@8.0.0(vue-i18n@10.0.7(vue@3.5.13(typescript@5.8.3)))(vue@3.5.13(typescript@5.8.3))':
+  '@intlify/vue-i18n-extensions@8.0.0(vue@3.5.13(typescript@5.8.3))':
     dependencies:
       '@babel/parser': 7.27.1
       '@intlify/shared': 10.0.7
       '@vue/compiler-dom': 3.5.13
-    optionalDependencies:
-      vue: 3.5.13(typescript@5.8.3)
       vue-i18n: 10.0.7(vue@3.5.13(typescript@5.8.3))
-
-  '@intlify/vue-i18n-extensions@8.0.0(vue-i18n@11.1.3(vue@3.5.13(typescript@5.8.3)))(vue@3.5.13(typescript@5.8.3))':
-    dependencies:
-      '@babel/parser': 7.27.1
-      '@intlify/shared': 10.0.7
-      '@vue/compiler-dom': 3.5.13
     optionalDependencies:
       vue: 3.5.13(typescript@5.8.3)
-      vue-i18n: 11.1.3(vue@3.5.13(typescript@5.8.3))
 
   '@ioredis/commands@1.2.0': {}
 
@@ -15774,6 +15783,8 @@ snapshots:
     dependencies:
       browserslist: 4.24.4
 
+  core-js@3.42.0: {}
+
   core-util-is@1.0.2: {}
 
   core-util-is@1.0.3: {}
@@ -15936,6 +15947,8 @@ snapshots:
       rrweb-cssom: 0.8.0
 
   csstype@3.1.3: {}
+
+  custom-event-polyfill@1.0.7: {}
 
   cytoscape-cose-bilkent@4.1.0(cytoscape@3.31.4):
     dependencies:
@@ -18186,6 +18199,8 @@ snapshots:
       pify: 3.0.0
       strip-bom: 3.0.0
 
+  loadjs@4.3.0: {}
+
   local-pkg@1.1.1:
     dependencies:
       mlly: 1.7.4
@@ -19636,6 +19651,14 @@ snapshots:
 
   pluralize@8.0.0: {}
 
+  plyr@3.7.8:
+    dependencies:
+      core-js: 3.42.0
+      custom-event-polyfill: 1.0.7
+      loadjs: 4.3.0
+      rangetouch: 2.0.1
+      url-polyfill: 1.1.13
+
   pngjs@5.0.0: {}
 
   pnpm-workspace-yaml@0.3.1:
@@ -19982,6 +20005,8 @@ snapshots:
       safe-buffer: 5.2.1
 
   range-parser@1.2.1: {}
+
+  rangetouch@2.0.1: {}
 
   raw-body@2.5.2:
     dependencies:
@@ -21581,6 +21606,8 @@ snapshots:
     dependencies:
       querystringify: 2.2.0
       requires-port: 1.0.0
+
+  url-polyfill@1.1.13: {}
 
   url@0.11.4:
     dependencies:

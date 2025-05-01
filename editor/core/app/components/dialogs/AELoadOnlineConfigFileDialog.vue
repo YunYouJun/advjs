@@ -1,7 +1,11 @@
 <script setup lang="ts">
+import { useAudioStore } from '../../composables/stores/useAudioStore'
+import { DEFAULT_BGM_LIBRARY_URL } from '../../constants'
+
 const onlineStore = useOnlineStore()
 const fileStore = useFileStore()
 const gameStore = useGameStore()
+const audioStore = useAudioStore()
 
 const adapterOptions = ref<{
   label: string
@@ -42,6 +46,14 @@ const adapterOptions = ref<{
           <AGUIInput
             v-model="onlineStore.cdnUrl"
             :placeholder="onlineStore.defaultCdnUrl"
+            autofocus
+          />
+        </AGUIFormItem>
+
+        <AGUIFormItem label="BGM Library Url" label-class="w-1/4">
+          <AGUIInput
+            v-model="audioStore.bgmLibraryUrl"
+            :placeholder="DEFAULT_BGM_LIBRARY_URL"
             autofocus
           />
         </AGUIFormItem>

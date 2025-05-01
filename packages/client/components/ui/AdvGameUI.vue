@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAdvContext, useAppStore, useAudioStore } from '@advjs/client'
+import { useAppStore, useAudioStore } from '@advjs/client'
 
 withDefaults(defineProps<{
   showHelper?: boolean
@@ -7,12 +7,11 @@ withDefaults(defineProps<{
   showHelper: true,
 })
 
-const { $adv } = useAdvContext()
-
+// const { $adv } = useAdvContext()
 const app = useAppStore()
 const audio = useAudioStore()
 
-audio.setBgm($adv.gameConfig.value.bgm?.collection[0]?.src)
+// audio.setBgm($adv.gameConfig.value.bgm?.collection[0]?.src)
 </script>
 
 <template>

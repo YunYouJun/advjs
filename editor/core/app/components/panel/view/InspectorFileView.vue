@@ -14,9 +14,9 @@ const fileHandleInfo = useInspectorFileHandle(props.fileHandle)
 const onlineFileInfo = useInspectorOnlineFile()
 
 const fileName = computed(() => {
-  return props.fileHandle
+  return fileStore.fileName || (props.fileHandle
     ? fileHandleInfo?.name.value
-    : onlineFileInfo?.name.value
+    : onlineFileInfo?.name.value)
 })
 const fileIcon = computed(() => {
   return props.fileHandle

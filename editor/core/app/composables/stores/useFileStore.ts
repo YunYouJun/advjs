@@ -26,10 +26,16 @@ export const useFileStore = defineStore('file', () => {
   const rawConfigFileContent = ref<string>('')
 
   /**
+   * override filename
+   */
+  const fileName = ref<string>('')
+  /**
    * monaco editor file content
    */
-  const monacoEditorFileContent = computed(() => {
-    return showRawConfigFile.value ? rawConfigFileContent.value : JSON.stringify(gameStore.gameConfig, null, 2)
+  const monacoEditorFileContent = ref<string>()
+
+  watch(() => showRawConfigFile.value, (val) => {
+    monacoEditorFileContent.value = val ? rawConfigFileContent.value : JSON.stringify(gameStore.gameConfig, null, 2)
   })
 
   const app = useAppStore()
@@ -102,7 +108,9 @@ export const useFileStore = defineStore('file', () => {
   }
 
   return {
+    fileName,
     monacoEditorFileContent,
+
     openedFileHandle,
     rawConfigFileContent,
     showRawConfigFile,
