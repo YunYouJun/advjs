@@ -1,13 +1,20 @@
 <script lang="ts" setup>
-import { TabPanel } from '@headlessui/vue'
+import { TabsContent } from 'reka-ui'
 
 const props = defineProps<{
-  unmount?: boolean
+  /**
+   * tab key
+   */
+  value: string | number
 }>()
 </script>
 
 <template>
-  <TabPanel class="relative h-full w-full text-sm text-white" v-bind="props">
+  <TabsContent
+    class="relative h-full w-full text-sm text-white"
+    v-bind="props"
+    :value="value"
+  >
     <slot />
-  </TabPanel>
+  </TabsContent>
 </template>

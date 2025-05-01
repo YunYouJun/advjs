@@ -5,6 +5,7 @@ import { ref } from 'vue'
 const tabList = ref([
   { title: 'Game', key: 'game', icon: 'i-ri-gamepad-line' },
   { title: 'Character', key: 'character', icon: 'i-ri-user-line' },
+  { title: 'Audio', key: 'audio', icon: 'i-ri-music-line' },
   { title: 'Flow Editor', key: 'flow-editor', icon: 'i-ri-flow-chart' },
   // { title: 'Node Editor', key: 'node-editor', icon: 'i-ri-node-tree' },
   { title: 'Scene', key: 'scene', icon: 'i-ri-grid-line' },
@@ -24,10 +25,6 @@ function changeTab(index: number) {
     app.activeInspector = 'file'
   }
 }
-
-const selectedIndex = computed(() => {
-  return tabList.value.findIndex(tab => tab.key === curTab.value)
-})
 
 const fullscreenEl = ref<HTMLElement | null>(null)
 const { isFullscreen, toggle } = useFullscreen(fullscreenEl)
@@ -53,24 +50,28 @@ function toggleFullscreen() {
     </div>
 
     <AGUITabs
-      :selected-index="selectedIndex"
+      v-model="curTab"
       :list="tabList"
-      :default-index="2"
+      default-value="game"
       @change="changeTab"
     >
-      <AGUITabPanel v-show="curTab === 'game'">
+      <AGUITabPanel v-show="curTab === 'game'" value="game">
         <AdvGamePreview />
       </AGUITabPanel>
 
-      <AGUITabPanel v-if="curTab === 'character'">
+      <AGUITabPanel v-if="curTab === 'character'" value="character">
         <AEWindowCharacter />
       </AGUITabPanel>
 
-      <AGUITabPanel v-show="curTab === 'flow-editor'">
+      <AGUITabPanel value="audio">
+        <AEAudioPanel />
+      </AGUITabPanel>
+
+      <AGUITabPanel v-show="curTab === 'flow-editor'" value="flow-editor">
         <!-- <AdvFlowEditor /> -->
       </AGUITabPanel>
 
-      <AGUITabPanel v-show="curTab === 'scene'" h="full" :unmount="false" relative>
+      <AGUITabPanel v-show="curTab === 'scene'" h="full" :unmount="false" relative value="scene">
         <SceneToolbar absolute top-0 w-full />
         <SceneCanvas />
       </AGUITabPanel>
@@ -79,13 +80,13 @@ function toggleFullscreen() {
         <NodeEditor />
       </AGUITabPanel> -->
 
-      <AGUITabPanel>
-        <!-- <MapEditor /> -->
-      </AGUITabPanel>
+      <!-- <AGUITabPanel>
+        <MapEditor />
+      </AGUITabPanel> -->
 
-      <AGUITabPanel>
-        <!-- <NodeEditor /> -->
-      </AGUITabPanel>
+      <!-- <AGUITabPanel>
+        <NodeEditor />
+      </AGUITabPanel> -->
 
       <slot />
     </AGUITabs>

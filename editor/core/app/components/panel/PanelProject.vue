@@ -9,6 +9,8 @@ const tabList = ref([
   { title: 'Console', key: 'console', icon: 'i-ri-terminal-box-fill' },
 ])
 
+const curTab = ref('project')
+
 async function onFileDrop(files: FSFileItem[]) {
   // const curDir = explorerRef.value?.curDir
   // console.log(curDir)
@@ -53,8 +55,8 @@ function onFileDblClick(item: FSFileItem) {
 
 <template>
   <AGUIPanel w="full" h="full">
-    <AGUITabs :list="tabList">
-      <AGUITabPanel>
+    <AGUITabs v-model="curTab" :list="tabList">
+      <AGUITabPanel value="project">
         <AGUIAssetsExplorer
           v-model:cur-dir="curDir"
           v-model:root-dir="rootDir"
@@ -65,7 +67,7 @@ function onFileDblClick(item: FSFileItem) {
         />
         <slot name="project" />
       </AGUITabPanel>
-      <AGUITabPanel>
+      <AGUITabPanel value="console">
         <slot name="console">
           <AEViewConsole />
         </slot>

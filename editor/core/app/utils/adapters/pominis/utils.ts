@@ -17,11 +17,12 @@ export function convertPominisAItoAdvConfig(options: {
 
   const characterMap = new Map<string, string>()
   advConfig.characters.forEach((character) => {
+    const characterName = character.name.replace(/ /g, '_')
     // characterMap.set(character.id, character.name)
-    characterMap.set(character.name, character.id)
+    characterMap.set(characterName, character.id)
 
     const modifiedCharacter = character as any
-    modifiedCharacter.avatar = `${cdnUrlPrefix}/characters/${character.name}.jpg`
+    modifiedCharacter.avatar = `${cdnUrlPrefix}/characters/${characterName}.jpg`
   })
 
   for (let i = 0; i < advConfig.chapters.length; i++) {
@@ -58,7 +59,8 @@ export function convertPominisAItoAdvConfig(options: {
       if (node.dialogues && node.dialogues.length > 0) {
         node.dialogues.forEach((dialog) => {
           // dialog.speaker = advConfig.characters.find((c) => c.id === dialog.speaker)?.name
-          dialog.speaker = characterMap.get(dialog.speaker) || dialog.speaker
+          const characterId = dialog.speaker.replace(/ /g, '_')
+          dialog.speaker = characterMap.get(characterId) || dialog.speaker
         })
       }
 

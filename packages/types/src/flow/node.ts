@@ -81,6 +81,10 @@ export interface AdvDialoguesNode extends AdvBaseNode {
    * 场景 ID
    */
   sceneId?: string
+  /**
+   * 背景音乐 ID
+   */
+  bgmThemeId?: string
 }
 
 /**

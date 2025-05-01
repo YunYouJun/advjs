@@ -10,8 +10,8 @@ const tabList = ref([
 
 <template>
   <AGUIPanel h="full" w="full">
-    <AGUITabs :list="tabList">
-      <AGUITabPanel value="ae-story-line h-full flex flex-col">
+    <AGUITabs :list="tabList" default-value="ae-story-line">
+      <AGUITabPanel class="ae-story-line h-full flex flex-col" value="ae-story-line">
         <ToolbarRoot class="flex items-center justify-center border-b border-b-stone-300 p-1 dark:border-b-dark-300">
           <ToolbarToggleGroup type="multiple" />
           <AGUIInput class="flex flex-grow" placeholder="Search" />

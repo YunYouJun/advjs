@@ -33,7 +33,11 @@ interface VSNode {
   dialogues: Dialogue[]
   choices?: Choice[]
   next?: string | null
-  bgmThemeId: string
+  /**
+   * background music theme id
+   * from library
+   */
+  bgmThemeId?: string
 }
 
 interface Dialogue {

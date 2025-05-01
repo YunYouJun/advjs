@@ -24,6 +24,7 @@ export default defineNuxtConfig({
     '@advjs/gui/nuxt',
     'nuxt-monaco-editor',
     '@nuxtjs/i18n',
+    '@tdesign-vue-next/nuxt',
   ],
 
   future: {

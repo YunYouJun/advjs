@@ -36,7 +36,6 @@
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "@headlessui/vue": "catalog:",
     "@iconify-json/radix-icons": "catalog:",
     "@iconify-json/vscode-icons": "catalog:",
     "@iconify/vue": "catalog:",

@@ -68,3 +68,6 @@ docs/api
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# temp
+packages/mcp

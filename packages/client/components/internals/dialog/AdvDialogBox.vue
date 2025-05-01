@@ -130,7 +130,7 @@ const fontSizeClass = computed(() => {
       <template v-if="$adv.config?.value?.showCharacterAvatar && characterAvatar">
         <div flex="~ col" class="items-end justify-center">
           <img class="size-40 rounded shadow" object="cover top" :src="characterAvatar">
-          <span class="w-40" m="t-4" text="2xl center white/80">{{ curCharacter?.name }}</span>
+          <span class="w-40" m="t-4" text="xl center white/80">{{ curCharacter?.name }}</span>
         </div>
       </template>
       <template v-else>

@@ -13,8 +13,8 @@ const fileStore = useFileStore()
 
 <template>
   <AGUIPanel h="full" w="full">
-    <AGUITabs :list="tabList">
-      <AGUITabPanel overflow="auto">
+    <AGUITabs :list="tabList" default-value="inspector">
+      <AGUITabPanel overflow="auto" value="inspector">
         <InspectorFileView
           v-if="app.activeInspector === 'file'"
           :file-handle="fileStore.openedFileHandle"

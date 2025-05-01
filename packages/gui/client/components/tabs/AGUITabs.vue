@@ -1,32 +1,30 @@
 <script lang="ts" setup>
 import type { TabItem } from './types'
-import { Tab, TabGroup, TabList, TabPanels } from '@headlessui/vue'
+import { TabsList, TabsRoot, TabsTrigger } from 'reka-ui'
 
 defineProps<{
+  defaultValue?: string
   list: TabItem[]
 }>()
 </script>
 
 <template>
-  <TabGroup
-    as="div" class="agui-tab-group h-full w-full flex flex-col"
+  <TabsRoot
+    class="agui-tab-group h-full w-full flex flex-col"
+    :default-value="defaultValue"
   >
-    <TabList
+    <TabsList
       class="agui-tab-list flex justify-start bg-$agui-c-bg-soft"
+      aria-label="AETabs"
     >
-      <Tab
+      <TabsTrigger
         v-for="item in list"
         :key="item.title"
-        v-slot="{ selected }"
-        class="inline-flex border-none outline-none"
+        :value="item.key"
+        class="agui-tab-btn inline-flex border-none outline-none"
       >
         <div
-          class="agui-tab-btn h-full inline-flex cursor-pointer items-center justify-center text-xs text-white"
-          :class="[
-            selected
-              ? 'active bg-$agui-c-bg-panel text-white'
-              : 'op-80',
-          ]"
+          class="h-full inline-flex cursor-pointer items-center justify-center text-xs text-white"
           mr-1 px-2
         >
           <div v-if="item.icon" mr-1 :class="item.icon" />
@@ -34,13 +32,13 @@ defineProps<{
             {{ item.title }}
           </div>
         </div>
-      </Tab>
-    </TabList>
+      </TabsTrigger>
+    </TabsList>
 
-    <TabPanels style="height:calc(100% - 20px)" overflow-y="auto">
+    <div style="height:calc(100% - 20px)" overflow-y="auto">
       <slot />
-    </TabPanels>
-  </TabGroup>
+    </div>
+  </TabsRoot>
 </template>
 
 <style lang="scss">
@@ -51,6 +49,16 @@ defineProps<{
   .active {
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;
+  }
+
+  .agui-tab-btn[data-state='inactive'] {
+    opacity: 1;
+  }
+
+  .agui-tab-btn[data-state='active'] {
+    opacity: 0.8;
+    background-color: var(--agui-c-bg-panel);
+    color: var(--agui-c-text);
   }
 }
 </style>

@@ -21,12 +21,16 @@ const adapterOptions = ref<{
     <div class="flex flex-col gap-4">
       <AGUIForm>
         <AGUIFormItem label="Online ADV Config File" label-class="w-1/4">
-          <AGUIInput
+          <t-auto-complete
             v-model="onlineStore.onlineAdvConfigFileUrl"
             placeholder="https://.../*.adv.json"
+            size="small"
+            clearable
             autofocus
+            :options="onlineStore.onlineAdvConfigUrlOptions"
           />
         </AGUIFormItem>
+        <hr class="my-2 op-10">
         <AGUIFormItem label="Config Adapter" label-class="w-1/4">
           <AGUISelect
             v-model="gameStore.curAdapter"
@@ -45,12 +49,13 @@ const adapterOptions = ref<{
 
       <div class="flex justify-end">
         <AGUIButton
-          @click="
+          @click="() => {
+            onlineStore.addConfigUrlOption(onlineStore.onlineAdvConfigFileUrl);
             fileStore.openOnlineAdvConfigFile({
               url: onlineStore.onlineAdvConfigFileUrl,
               adapter: gameStore.curAdapter,
-            })
-          "
+            });
+          }"
         >
           Open File
         </AGUIButton>

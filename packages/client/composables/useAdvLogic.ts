@@ -79,7 +79,7 @@ export function useAdvLogic($adv: AdvContext) {
   async function handleAdvNode(node: AdvAst.Item | AdvNode) {
     switch (node.type) {
       case 'code': {
-        if (await handleCode(node))
+        if (await handleCode(node as any))
           return true
         break
       }
@@ -95,7 +95,7 @@ export function useAdvLogic($adv: AdvContext) {
             name: '',
             status: '',
           },
-          children: [node],
+          children: [node as any],
         }
         break
       case 'narration':
@@ -107,9 +107,12 @@ export function useAdvLogic($adv: AdvContext) {
         // watch dialog in AdvDialogBox
 
         // sceneId 存在则自动切换场景
-        const sceneId = (node as AdvDialoguesNode).sceneId
+        const { sceneId = '', bgmThemeId = '' } = node as AdvDialoguesNode
         if (sceneId) {
           $adv.pixiGame?.SceneSystem.load(sceneId)
+        }
+        if (bgmThemeId) {
+          $adv.$bgm.playBgm(bgmThemeId)
         }
         break
       }
