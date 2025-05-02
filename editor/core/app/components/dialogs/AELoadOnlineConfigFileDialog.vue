@@ -30,7 +30,6 @@ const adapterOptions = ref<{
             placeholder="https://.../*.adv.json"
             size="small"
             clearable
-            autofocus
             :options="onlineStore.onlineAdvConfigUrlOptions"
           />
         </AGUIFormItem>

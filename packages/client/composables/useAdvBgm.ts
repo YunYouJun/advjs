@@ -2,9 +2,17 @@ import type { AdvMusic } from '@advjs/types'
 import type { AdvContext } from '../types'
 
 import { Howl } from 'howler'
+import { ref } from 'vue'
 
+/**
+ * adv bgm system & utilities
+ * @param $adv
+ */
 export function useAdvBgm($adv: AdvContext) {
   const bgmMap = new Map<string, Howl>()
+
+  const volume = ref(0.5)
+  const isMuted = ref(false)
 
   function getBgmSrc(bgmKey: string) {
     const bgmLibrary = ($adv.gameConfig.value.bgm?.library || {}) as Record<string, AdvMusic>
@@ -22,13 +30,22 @@ export function useAdvBgm($adv: AdvContext) {
       const bgmLibrary = $adv.gameConfig.value.bgm?.library || {}
       const bgm = (bgmLibrary as Record<string, AdvMusic>)[bgmId]
       if (bgm) {
-        const src = getBgmSrc(bgm.name)
-        const sound = new Howl({
-          src: [src],
-        })
-        sound.play()
-
-        bgmMap.set(bgm.name, sound)
+        if (bgmMap.has(bgm.name)) {
+          const sound = bgmMap.get(bgm.name)
+          if (!sound?.playing()) {
+            sound?.play()
+          }
+          // continue
+        }
+        else {
+          const src = getBgmSrc(bgm.name)
+          const sound = new Howl({
+            src: [src],
+            volume: isMuted.value ? 0 : volume.value,
+          })
+          sound.play()
+          bgmMap.set(bgm.name, sound)
+        }
       }
     },
     pauseBgm: (bgmId: string) => {
@@ -68,6 +85,31 @@ export function useAdvBgm($adv: AdvContext) {
           sound.stop()
         }
       }
+    },
+    isMuted,
+    /**
+     * mute
+     */
+    mute() {
+      for (const sound of bgmMap.values()) {
+        sound.mute(true)
+      }
+      isMuted.value = true
+    },
+    /**
+     * 解除静音
+     */
+    unmute() {
+      for (const sound of bgmMap.values()) {
+        sound.mute(false)
+      }
+      isMuted.value = false
+    },
+    /**
+     * 切换静音状态
+     */
+    toggleMute() {
+      return isMuted.value ? this.unmute() : this.mute()
     },
   }
 }

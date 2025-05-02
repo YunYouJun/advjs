@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAppStore, useAudioStore } from '@advjs/client'
+import { useAdvContext, useAppStore } from '@advjs/client'
 
 withDefaults(defineProps<{
   showHelper?: boolean
@@ -7,9 +7,8 @@ withDefaults(defineProps<{
   showHelper: true,
 })
 
-// const { $adv } = useAdvContext()
+const { $adv } = useAdvContext()
 const app = useAppStore()
-const audio = useAudioStore()
 
 // audio.setBgm($adv.gameConfig.value.bgm?.collection[0]?.src)
 </script>
@@ -30,8 +29,8 @@ const audio = useAudioStore()
         <div v-else i-ri-file-user-fill />
       </AdvIconButton>
 
-      <AdvIconButton @click="audio.toggleBgm()">
-        <div v-if="audio.curBgm.isPlaying" i-mdi-music-note-outline />
+      <AdvIconButton @click="$adv.$bgm.toggleMute()">
+        <div v-if="!$adv.$bgm.isMuted.value" i-mdi-music-note-outline />
         <div v-else i-mdi-music-note-off-outline />
       </AdvIconButton>
 
