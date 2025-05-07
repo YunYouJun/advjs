@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { DisplayFontSize, DisplayMode, DisplaySpeed } from '@advjs/client'
 // 文字播放预览
-import type { AdvItemOption, AdvMenuItemProps } from '@advjs/theme-default'
+import type { AdvItemOption, AdvMenuItemProps } from 'themes/theme-default'
 
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'

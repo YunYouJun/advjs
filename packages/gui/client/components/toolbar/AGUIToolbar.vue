@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ToolbarItem } from './types'
 
-import { ToggleGroupItem, ToggleGroupRoot, ToolbarButton, ToolbarRoot, ToolbarSeparator } from 'radix-vue'
+import { ToggleGroupItem, ToggleGroupRoot, ToolbarButton, ToolbarRoot, ToolbarSeparator } from 'reka-ui'
 
 defineProps<{
   items: ToolbarItem[]

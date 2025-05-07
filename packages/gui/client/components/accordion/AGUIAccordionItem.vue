@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { AGUIAccordionProps } from './types'
-import { AccordionContent, AccordionHeader, AccordionItem, AccordionTrigger } from 'radix-vue'
+import { AccordionContent, AccordionHeader, AccordionItem, AccordionTrigger } from 'reka-ui'
 import './styles.scss'
 
 defineProps<{

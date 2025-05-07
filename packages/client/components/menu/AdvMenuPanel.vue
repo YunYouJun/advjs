@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { AdvMenuItemProps } from '@advjs/theme-default'
+import type { AdvMenuItemProps } from 'themes/theme-default'
 import { useScreenLock } from '@advjs/core'
 
 import { useFullscreen } from '@vueuse/core'
-import { TabsContent, TabsIndicator, TabsList, TabsRoot } from 'radix-vue'
+import { TabsContent, TabsIndicator, TabsList, TabsRoot } from 'reka-ui'
 
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

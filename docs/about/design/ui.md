@@ -2,7 +2,7 @@
 
 ## 默认主题 theme-default
 
-advjs 将会内置默认主题 `@advjs/theme-defaults`。
+advjs 将会内置默认主题 `@advjs/theme-default`。
 
 用户也可以通过 Vue 自定义自己任意的 UI 主题界面。
 

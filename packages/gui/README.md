@@ -41,4 +41,4 @@ export default defineNuxtConfig({
 
 ## Thanks
 
-- [radix-vue](https://github.com/radix-vue/radix-vue)
+- [reka-ui](https://github.com/unovue/reka-ui)

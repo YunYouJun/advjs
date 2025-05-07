@@ -8,8 +8,6 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { defaultElements, yourNameData } from '../../constants'
 import { useFlowLayout } from '../flow'
 
-export const GLOBAL_FLOW_ID = Symbol('advjs-global-flow')
-
 export const useFlowStore = defineStore('flow', () => {
   // const flowInstance = shallowRef<VueFlowStore>()
   const vueFlow = useVueFlow()

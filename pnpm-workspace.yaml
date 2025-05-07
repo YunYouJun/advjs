@@ -6,6 +6,7 @@ packages:
   - packages/*/playground
   - plugins/*
   - templates/*
+  - themes/*
 catalog:
   '@antfu/eslint-config': 2.9.0
   '@antfu/ni': ^24.3.0
@@ -32,13 +33,13 @@ catalog:
   '@pinia/nuxt': ^0.11.0
   '@playwright/test': ^1.52.0
   '@radix-ui/colors': ^3.0.0
-  '@shikijs/markdown-it': ^3.3.0
+  '@shikijs/markdown-it': ^3.4.0
   '@types/fs-extra': ^11.0.4
   '@types/howler': ^2.2.12
   '@types/js-yaml': ^4.0.9
   '@types/markdown-it-link-attributes': ^3.0.5
   '@types/mdast': 4.0.3
-  '@types/node': ^22.15.3
+  '@types/node': ^22.15.14
   '@types/nprogress': ^0.2.3
   '@types/prompts': ^2.4.9
   '@types/semver': ^7.7.0
@@ -48,9 +49,9 @@ catalog:
   '@types/xml2js': ^0.4.14
   '@types/yargs': ^17.0.33
   '@unhead/vue': ^2.0.8
-  '@unocss/eslint-config': ^66.1.0-beta.13
-  '@unocss/eslint-plugin': ^66.1.0-beta.13
-  '@unocss/nuxt': ^66.1.0-beta.13
+  '@unocss/eslint-config': ^66.1.0
+  '@unocss/eslint-plugin': ^66.1.0
+  '@unocss/nuxt': ^66.1.0
   '@vite-pwa/nuxt': ^1.0.0
   '@vitejs/plugin-vue': ^5.2.3
   '@vue-flow/core': ^1.43.1
@@ -72,7 +73,7 @@ catalog:
   dayjs: ^1.11.13
   debug: ^4.4.0
   defu: ^6.1.4
-  eslint: ^9.25.1
+  eslint: ^9.26.0
   eslint-plugin-format: ^1.0.1
   fast-deep-equal: ^3.1.3
   fs-extra: ^11.3.0
@@ -86,14 +87,14 @@ catalog:
   husky: ^9.1.7
   jiti: ^2.4.2
   js-yaml: ^4.1.0
-  lint-staged: ^15.5.1
+  lint-staged: ^15.5.2
   markdown-it-link-attributes: ^4.0.1
   mdast-util-to-hast: ^13.2.0
   monaco-editor: ^0.52.2
   nodemon: ^3.1.10
   npm-run-all: ^4.1.5
   nprogress: ^0.2.0
-  nuxt: ^3.17.1
+  nuxt: ^3.17.2
   open: ^10.1.2
   pathe: ^2.0.3
   pinia: ^3.0.2
@@ -101,9 +102,8 @@ catalog:
   pixi.js: 8.0.4
   prism-theme-vars: ^0.2.5
   prompts: ^2.4.2
-  radix-vue: ^1.9.17
   rehype-stringify: ^10.0.1
-  reka-ui: ^2.2.0
+  reka-ui: ^2.2.1
   remark: ^15.0.1
   remark-frontmatter: ^5.0.0
   remark-gfm: ^4.0.1
@@ -119,21 +119,21 @@ catalog:
   to-vfile: ^8.0.0
   tsup: ^8.4.0
   tsx: ^4.19.4
-  typedoc: ^0.28.3
+  typedoc: ^0.28.4
   typedoc-plugin-merge-modules: ^7.0.0
   typescript: 5.6.3
   unbuild: ^3.5.0
   unified: ^11.0.5
   unist-builder: ^4.0.0
   unist-util-visit: ^5.0.0
-  unocss: ^66.1.0-beta.13
+  unocss: ^66.1.0
   unplugin-vue-components: ^28.5.0
   unplugin-vue-markdown: ^28.3.1
   unplugin-vue-router: ^0.12.0
   unstorage: ^1.16.0
   v-tooltip: ^4.0.0-beta.17
   vfile-matter: ^5.0.1
-  vite: ^6.3.4
+  vite: ^6.3.5
   vite-plugin-css-injected-by-js: ^3.5.2
   vite-plugin-dts: ^4.5.3
   vite-plugin-inspect: ^11.0.1
@@ -142,7 +142,7 @@ catalog:
   vite-plugin-vue-layouts: ^0.11.0
   vite-ssg: 0.23.6
   vitepress: 1.0.1
-  vitest: ^3.1.2
+  vitest: ^3.1.3
   vue: ^3.5.13
   vue-demi: ^0.14.10
   vue-i18n: ^11.1.3

@@ -1,40 +1,40 @@
 <!-- eslint-disable vue/no-mutating-props -->
 <script lang="ts" setup>
-import type { DewNodeOptions, DewNodeStatus, InputsInterface, OutputsInterface } from '@stardew/kit/client'
+// import type { DewNodeOptions, DewNodeStatus, InputsInterface, OutputsInterface } from '@stardew/kit/client'
 import type { NodeProps } from '@vue-flow/core'
 import type { CSSProperties } from 'vue'
-import { getNodeCategoryColor, getNodeType } from '@stardew/flow'
-import { isDataHandleType, useGlobalFlowEditor } from '@stardew/kit/client'
+// import type { FlowNodeStatus } from '../../types'
+// import { getNodeCategoryColor, getNodeType } from '@stardew/flow'
 
-import { ContextMenuContent, ContextMenuPortal, ContextMenuRoot, ContextMenuTrigger } from 'radix-vue'
+import type { FlowNodeStatus } from '../../types'
+// import { isDataHandleType, useGlobalFlowEditor } from '@stardew/kit/client'
+import { ContextMenuContent, ContextMenuPortal, ContextMenuRoot, ContextMenuTrigger } from 'reka-ui'
 
 import { computed, ref } from 'vue'
 
 import { useI18n } from 'vue-i18n'
+import { useGlobalFlowEditor } from '../../composables'
 
-const props = defineProps<WrapperNodeProps<InputsInterface, OutputsInterface> & {
+const props = defineProps<{
   class?: string
+  node: NodeProps
+  options?: {
+    inputs?: Record<string, any>
+    outputs?: Record<string, any>
+    showStartEnd?: boolean
+  }
 }>()
 const { emitter } = useGlobalFlowEditor()
 
-export interface WrapperNodeProps<Inputs extends InputsInterface, Outputs extends OutputsInterface> {
-  node: NodeProps
-  status: DewNodeStatus
-  options?: Pick<DewNodeOptions<Inputs, Outputs>, 'inputs' | 'outputs' | 'showRunButton' | 'showStartEnd'>
-  /**
-   * run node
-   */
-  run?: () => void | Promise<void>
-  resetNode?: () => void
-  resetData?: () => void
-  consoleDebugData?: () => void
-}
+const status = computed<FlowNodeStatus>(() => {
+  return ''
+})
 
-const { t, locale } = useI18n()
+// const { t, locale } = useI18n()
+const { t } = useI18n()
 
 const showHelp = ref(false)
 const showSettings = ref(false)
-const showRun = computed(() => props.run && (props.options?.showRunButton || typeof props.options?.showRunButton === 'undefined'))
 // const showStartEnd = computed(() => props.options?.showStartEnd)
 
 function toggleSettings() {
@@ -60,7 +60,8 @@ const showInputsOutputs = computed(() => {
 })
 
 const color = computed(() => {
-  return getNodeCategoryColor(props.node.type)
+  // return getNodeCategoryColor(props.node.type)
+  return ''
 })
 const headerBgStyles = computed<CSSProperties>(() => {
   return {
@@ -69,9 +70,13 @@ const headerBgStyles = computed<CSSProperties>(() => {
   }
 })
 
-const nodeType = getNodeType(props.node.type)!
+// const nodeType = getNodeType(props.node.type)!
+// const nodeType = computed(() => {
+//   return props.node.type
+// })
 const nodeTitle = computed(() => {
-  return props.node.label || nodeType.title || nodeType.locales?.[locale.value as 'zh-CN' | 'en'].title
+  // return props.node.label || nodeType.value.title || nodeType.value.locales?.[locale.value as 'zh-CN' | 'en'].title
+  return props.node.label
 })
 
 const inputs = computed(() => {
@@ -118,28 +123,28 @@ const outputs = computed(() => {
           flex items-center border="b-1px b-dark-50" op="95"
           :style="headerBgStyles"
         >
-          <div v-if="status === 'running'" i-svg-spinners:3-dots-scale mr-1 />
+          <!-- <div v-if="status === 'running'" i-svg-spinners:3-dots-scale mr-1 />
           <div v-else-if="status === 'done'" i-ri-checkbox-circle-line mr-1 />
           <div v-else-if="status === 'error'" i-ri-error-warning-line mr-1 />
-          <div v-else i-ri-git-commit-line mr-1 />
+          <div v-else i-ri-git-commit-line mr-1 /> -->
           <div>
             {{ nodeTitle || t(`node.${props.node.type}`) }}
           </div>
           <slot name="after-title" />
           <div flex-grow />
-          <div v-if="resetNode" op="80" hover="op-100" i-ri-refresh-line ml-1 cursor-pointer @click="resetNode" />
-          <div
-            v-if="resetData" op="80" hover="op-100"
-            alt="Remove Data" i-mdi-database-remove ml-1 cursor-pointer @click="resetData"
-          />
+          <!-- <div v-if="resetNode" op="80" hover="op-100" i-ri-refresh-line ml-1 cursor-pointer @click="resetNode" /> -->
+          <!-- <div
+            op="80" hover="op-100"
+            alt="Remove Data" i-mdi-database-remove ml-1 cursor-pointer
+            @click="resetData"
+          /> -->
           <div flex>
-            <div op="90" hover="op-100 shadow" i-ri-bug-line ml-1 cursor-pointer @click="consoleDebugData" />
+            <!-- <div op="90" hover="op-100 shadow" i-ri-bug-line ml-1 cursor-pointer @click="consoleDebugData" /> -->
             <div v-if="$slots.help" op="90" hover="op-100 shadow" i-ri-question-line ml-1 cursor-pointer @click="toggleHelp" />
             <div v-if="$slots.settings" op="90" hover="op-100 shadow" i-ri-settings-line ml-1 cursor-pointer @click="toggleSettings" />
             <div
-              v-if="showRun"
               i-ri-play-line op="90" hover="op-100 shadow" ml-1 cursor-pointer
-              @click="run"
+              @click="() => {}"
             />
 
             <slot name="extended-actions" />
@@ -170,12 +175,12 @@ const outputs = computed(() => {
                   :id="id" :key="id"
                   :input="input"
                 />
-                <FlowInputHandle
+                <!-- <FlowInputHandle
                   v-if="isDataHandleType(input.type)"
                   :id="id" :key="id"
                   :input="input"
                   :inputs="node.data.inputs"
-                />
+                /> -->
               </template>
             </div>
             <div v-else />
@@ -189,11 +194,11 @@ const outputs = computed(() => {
                   :id="id" :key="id"
                   :output="output"
                 />
-                <FlowOutputHandle
+                <!-- <FlowOutputHandle
                   v-if="isDataHandleType(output.type)"
                   :id="id" :key="id"
                   :output="output"
-                />
+                /> -->
               </template>
             </div>
             <div v-else />
@@ -208,12 +213,12 @@ const outputs = computed(() => {
                 :id="id" :key="id"
                 :input="input"
               />
-              <FlowInputHandle
+              <!-- <FlowInputHandle
                 v-if="isDataHandleType(input.type)"
                 :id="id" :key="id"
                 :input="input"
                 :inputs="node.data.inputs"
-              />
+              /> -->
             </template>
             <template
               v-for="{ id, output } in outputs"
@@ -223,11 +228,11 @@ const outputs = computed(() => {
                 :id="id" :key="id"
                 :output="output"
               />
-              <FlowOutputHandle
+              <!-- <FlowOutputHandle
                 v-if="isDataHandleType(output.type)"
                 :id="id" :key="id"
                 :output="output"
-              />
+              /> -->
             </template>
           </template>
           <slot />

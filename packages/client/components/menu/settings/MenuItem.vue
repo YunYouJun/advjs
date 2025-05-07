@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AdvMenuItemKeys, AdvMenuItemProps } from '@advjs/theme-default'
+import type { AdvMenuItemKeys, AdvMenuItemProps } from 'themes/theme-default'
 
 withDefaults(defineProps<{
   // todo optimize

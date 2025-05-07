@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import type { AccordionRootProps } from 'radix-vue'
+import type { AccordionRootProps } from 'reka-ui'
 import type { PropType } from 'vue'
 import type { AGUIAccordionProps } from './types'
-import { AccordionRoot } from 'radix-vue'
+import { AccordionRoot } from 'reka-ui'
 
 import AGUIAccordionItem from './AGUIAccordionItem.vue'
 

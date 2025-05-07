@@ -1,0 +1,30 @@
+{
+  "name": "@advjs/theme-pominis",
+  "type": "module",
+  "version": "0.0.1",
+  "description": "Pominis Theme for ADV.JS",
+  "author": {
+    "name": "YunYouJun",
+    "email": "me@yunyoujun.cn",
+    "url": "https://www.yunyoujun.cn"
+  },
+  "license": "MPL-2.0",
+  "keywords": [
+    "advjs-theme",
+    "advjs"
+  ],
+  "exports": {
+    ".": {
+      "default": "./index.ts"
+    },
+    "./*": "./*"
+  },
+  "main": "index.ts",
+  "engines": {
+    "node": "^18.0.0 || >=20.0.0",
+    "advjs": ">=0.0.1"
+  },
+  "advjs": {
+    "colorSchema": "both"
+  }
+}

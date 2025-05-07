@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ToastOptions } from '../../composables'
-import { ToastClose, ToastDescription, ToastProvider, ToastRoot, ToastTitle, ToastViewport } from 'radix-vue'
+import { ToastClose, ToastDescription, ToastProvider, ToastRoot, ToastTitle, ToastViewport } from 'reka-ui'
 import { ref } from 'vue'
 
 const toastOptions = ref<ToastOptions>({

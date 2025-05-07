@@ -12,7 +12,7 @@ import {
   ContextMenuSub,
   ContextMenuSubContent,
   ContextMenuSubTrigger,
-} from 'radix-vue'
+} from 'reka-ui'
 
 defineProps<{
   item: AGUIContextMenuItemType

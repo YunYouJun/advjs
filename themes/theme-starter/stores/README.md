@@ -1,0 +1,3 @@
+# Stores
+
+Theme global stores.

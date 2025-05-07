@@ -14,7 +14,10 @@ const advStore = $adv.store
 
 const active = computed(() => {
   const curDialog = advStore.cur.dialog
-  return curDialog.character && (curDialog.character.name === props.character)
+  if (curDialog.type === 'dialog') {
+    return curDialog.character && (curDialog.character.name === props.character)
+  }
+  return false
 })
 
 const characterClass = computed(() => {

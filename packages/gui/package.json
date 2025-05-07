@@ -44,7 +44,6 @@
     "@types/wicg-file-system-access": "catalog:",
     "colord": "catalog:",
     "consola": "catalog:",
-    "radix-vue": "catalog:",
     "reka-ui": "catalog:",
     "splitpanes": "catalog:"
   },

@@ -1,8 +1,8 @@
 {
-  "name": "@advjs/theme-default",
+  "name": "@advjs/theme-starter",
   "type": "module",
   "version": "0.0.1",
-  "description": "Default Theme for ADV.JS",
+  "description": "Starter Theme for ADV.JS",
   "author": {
     "name": "YunYouJun",
     "email": "me@yunyoujun.cn",
@@ -26,5 +26,8 @@
   },
   "advjs": {
     "colorSchema": "both"
+  },
+  "devDependencies": {
+    "advjs": "workspace:*"
   }
 }

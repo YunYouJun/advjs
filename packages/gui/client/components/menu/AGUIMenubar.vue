@@ -15,7 +15,7 @@ import {
   MenubarSubContent,
   MenubarSubTrigger,
   MenubarTrigger,
-} from 'radix-vue'
+} from 'reka-ui'
 import { ref } from 'vue'
 
 import './menu-bar.scss'

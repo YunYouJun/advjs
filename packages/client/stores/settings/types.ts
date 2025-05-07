@@ -13,8 +13,8 @@ export interface SettingOptions {
 }
 
 export type DisplayMode = 'type' | 'soft'
-export type DisplaySpeed = 'normal' | 'fast' | 'slow'
-export type DisplayFontSize = 'xl' | '2xl' | '3xl'
+export type DisplaySpeed = 'normal' | 'fast' | 'slow' | 'very_fast'
+export type DisplayFontSize = 'xl' | '2xl' | '3xl' | '4xl'
 
 export interface TextOptions {
   curFontSize: DisplayFontSize

@@ -6,7 +6,7 @@ import {
   MenubarPortal,
   MenubarSeparator,
   MenubarTrigger,
-} from 'radix-vue'
+} from 'reka-ui'
 </script>
 
 <template>
@@ -24,7 +24,7 @@ import {
         :align-offset="-14"
       >
         <MenubarItem
-          class="text-grass11 group data-[highlighted]:to-green10 data-[state=open]:text-grass11 data-[disabled]:text-mauve8 data-[highlighted]:data-[state=open]:text-green1 relative h-[25px] flex select-none items-center rounded px-[10px] pl-5 text-[13px] leading-none outline-none data-[disabled]:pointer-events-none data-[state=open]:bg-green4 data-[highlighted]:from-green9 data-[highlighted]:bg-gradient-to-br data-[highlighted]:text-green1"
+          class="text-grass11 group data-[highlighted]:to-green10 data-[state=open]:text-grass11 data-[disabled]:text-mauve8 relative h-[25px] flex select-none items-center rounded px-[10px] pl-5 text-[13px] leading-none outline-none data-[disabled]:pointer-events-none data-[state=open]:bg-green4 data-[highlighted]:from-green9 data-[highlighted]:bg-gradient-to-br data-[highlighted]:text-green1 data-[highlighted]:data-[state=open]:text-green1"
         >
           Reload
           <div class="text-mauve9 group-data-[disabled]:text-mauve8 ml-auto pl-5 group-data-[highlighted]:text-white">
@@ -32,7 +32,7 @@ import {
           </div>
         </MenubarItem>
         <MenubarItem
-          class="group text-grass11 data-[state=open]:text-grass11 data-[highlighted]:to-green10 data-[highlighted]:data-[state=open]:text-green1 data-[disabled]:text-mauve8 relative h-[25px] flex select-none items-center rounded px-[10px] pl-5 text-[13px] leading-none outline-none data-[disabled]:pointer-events-none data-[state=open]:bg-green4 data-[highlighted]:from-green9 data-[highlighted]:bg-gradient-to-br data-[highlighted]:text-green1"
+          class="group text-grass11 data-[state=open]:text-grass11 data-[highlighted]:to-green10 data-[disabled]:text-mauve8 relative h-[25px] flex select-none items-center rounded px-[10px] pl-5 text-[13px] leading-none outline-none data-[disabled]:pointer-events-none data-[state=open]:bg-green4 data-[highlighted]:from-green9 data-[highlighted]:bg-gradient-to-br data-[highlighted]:text-green1 data-[highlighted]:data-[state=open]:text-green1"
           disabled
         >
           Force Reload
@@ -42,13 +42,13 @@ import {
         </MenubarItem>
         <MenubarSeparator class="m-[5px] h-[1px] bg-green6" />
         <MenubarItem
-          class="text-grass11 data-[state=open]:text-grass11 data-[highlighted]:to-green10 data-[highlighted]:data-[state=open]:text-green1 data-[disabled]:text-mauve8 relative h-[25px] flex select-none items-center rounded px-[10px] pl-5 text-[13px] leading-none outline-none data-[disabled]:pointer-events-none data-[state=open]:bg-green4 data-[highlighted]:from-green9 data-[highlighted]:bg-gradient-to-br data-[highlighted]:text-green1"
+          class="text-grass11 data-[state=open]:text-grass11 data-[highlighted]:to-green10 data-[disabled]:text-mauve8 relative h-[25px] flex select-none items-center rounded px-[10px] pl-5 text-[13px] leading-none outline-none data-[disabled]:pointer-events-none data-[state=open]:bg-green4 data-[highlighted]:from-green9 data-[highlighted]:bg-gradient-to-br data-[highlighted]:text-green1 data-[highlighted]:data-[state=open]:text-green1"
         >
           Toggle Fullscreen
         </MenubarItem>
         <MenubarSeparator class="m-[5px] h-[1px] bg-green6" />
         <MenubarItem
-          class="text-grass11 data-[state=open]:text-grass11 data-[highlighted]:to-green10 data-[highlighted]:data-[state=open]:text-green1 data-[disabled]:text-mauve8 relative h-[25px] flex select-none items-center rounded px-[10px] pl-5 text-[13px] leading-none outline-none data-[disabled]:pointer-events-none data-[state=open]:bg-green4 data-[highlighted]:from-green9 data-[highlighted]:bg-gradient-to-br data-[highlighted]:text-green1"
+          class="text-grass11 data-[state=open]:text-grass11 data-[highlighted]:to-green10 data-[disabled]:text-mauve8 relative h-[25px] flex select-none items-center rounded px-[10px] pl-5 text-[13px] leading-none outline-none data-[disabled]:pointer-events-none data-[state=open]:bg-green4 data-[highlighted]:from-green9 data-[highlighted]:bg-gradient-to-br data-[highlighted]:text-green1 data-[highlighted]:data-[state=open]:text-green1"
         >
           Hide Sidebar
         </MenubarItem>
