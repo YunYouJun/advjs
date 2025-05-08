@@ -84,7 +84,7 @@ export function createMarkdown(options: ResolvedOptions) {
     const wrapperComponent = 'AdvGame'
     html = `<${wrapperComponent}${
       options.frontmatter ? ' :frontmatter="frontmatter"' : ''
-    } :ast="advAst">${html}</${wrapperComponent}>`
+    } :ast="advAst" class="w-full h-full">${html}</${wrapperComponent}>`
 
     if (transforms.after)
       html = transforms.after(html, id)
@@ -95,14 +95,13 @@ export function createMarkdown(options: ResolvedOptions) {
     html = customBlocks.html
 
     const scriptLines: string[] = [
-      // 'import { useAdvCtx } from "@advjs/client"',
-      // 'const $adv = useAdvCtx()',
-      'import { $adv } from "@advjs/client"',
+      'import { useAdvContext } from "@advjs/client"',
+      'const { $adv } = useAdvContext()',
     ]
 
     const advAst = await parseAst(raw)
     scriptLines.push(`const advAst = ${transformObject(advAst)}`)
-    scriptLines.push('$adv.core.loadAst(advAst)')
+    scriptLines.push('$adv.$logic.loadAst(advAst)')
 
     if (options.frontmatter) {
       const { head, frontmatter } = frontmatterPreprocess(file.data || {}, options)

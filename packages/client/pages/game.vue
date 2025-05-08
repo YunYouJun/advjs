@@ -7,7 +7,7 @@ const advConfig = useAdvConfig()
 const Drama = defineAsyncComponent(() =>
   advConfig.value.format === 'fountain'
     ? import('/@advjs/drama.adv.md')
-    : import('../components/game/AdvFlowGame.vue'))
+    : import('../components/game/AdvGame.vue'))
 </script>
 
 <template>

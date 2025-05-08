@@ -9,8 +9,8 @@ test.describe('Demo Starter', () => {
     // Verify the initial URL
     await expect(page).toHaveURL('http://localhost:3333/')
 
-    // Check for the presence of the text '@YunYouJun'
-    await expect(page.locator('text=@YunYouJun')).toBeVisible()
+    // Check for the presence of the text 'Made with ADV.JS'
+    await expect(page.locator('text=Made with ADV.JS')).toBeVisible()
 
     // Click the first start menu item
     await page.locator('.start-menu-item').first().click()
