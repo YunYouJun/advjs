@@ -3,7 +3,7 @@ import {
   presetAttributify,
   presetIcons,
   presetTypography,
-  presetUno,
+  presetWind3,
   transformerDirectives,
   transformerVariantGroup,
 } from 'unocss'
@@ -15,12 +15,12 @@ const safelist = 'm-auto text-left'.split(' ')
 export default defineConfig({
   content: {
     pipeline: {
-      include: ['**/*.{md,vue}', '../../packages/theme-default/**/*.{md,vue}'],
+      include: ['**/*.{md,vue}', '../../themes/theme-default/**/*.{md,vue}'],
     },
   },
 
   presets: [
-    presetUno(),
+    presetWind3(),
     presetAttributify(),
     presetIcons({
       scale: 1.2,

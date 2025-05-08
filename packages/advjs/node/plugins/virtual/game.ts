@@ -9,6 +9,9 @@ function createGameTemplate(name: string): VirtualModuleTemplate {
     id: `/@advjs/game/${name}s`,
     async getContent({ gameRoot }) {
       const root = join(gameRoot, `${name}s`)
+      if (!(await fs.pathExists(root))) {
+        return `export default []`
+      }
       /**
        * 按数字顺序排序
        */

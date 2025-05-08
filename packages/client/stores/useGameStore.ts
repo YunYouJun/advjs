@@ -2,9 +2,8 @@ import type { AdvGameRecord, AdvGameRecordMeta } from '@advjs/client'
 import { createRecordsStorage } from '@advjs/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
-const recordsStorage = createRecordsStorage()
-
 export const useGameStore = defineStore('@advjs/client/game', () => {
+  const recordsStorage = createRecordsStorage()
   // 0 for temp save
   // const recordsMap = useStorage<boolean[]>(`${namespace}::records`, [])
 

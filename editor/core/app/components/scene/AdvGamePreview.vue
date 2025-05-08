@@ -3,7 +3,7 @@ import { consola, LogLevels } from 'consola'
 // import { useAdvConfig, useAdvContext } from '@advjs/client'
 import { onMounted } from 'vue'
 
-import '../../../../packages/theme-default/styles'
+import '../../../../themes/theme-default/styles'
 // const { $adv } = useAdvContext()
 // const advConfig = useAdvConfig()
 

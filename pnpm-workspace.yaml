@@ -39,7 +39,7 @@ catalog:
   '@types/js-yaml': ^4.0.9
   '@types/markdown-it-link-attributes': ^3.0.5
   '@types/mdast': 4.0.3
-  '@types/node': ^22.15.14
+  '@types/node': ^22.15.16
   '@types/nprogress': ^0.2.3
   '@types/prompts': ^2.4.9
   '@types/semver': ^7.7.0
@@ -151,3 +151,10 @@ catalog:
   wc-github-corners: ^0.1.6
   xml2js: ^0.6.2
   yargs: ^17.7.2
+ignoredBuiltDependencies:
+  - '@parcel/watcher'
+  - bufferutil
+  - esbuild
+  - unrs-resolver
+onlyBuiltDependencies:
+  - vue-demi

@@ -14,7 +14,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import Layouts from 'vite-plugin-vue-layouts'
 
 import { ADV_VIRTUAL_MODULES } from '../../packages/advjs/node'
-import { commonAlias } from '../../packages/shared/node'
+import { commonAlias, themesDir } from '../../packages/shared/node'
 
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
 export default defineConfig((config) => {
@@ -69,7 +69,7 @@ export default defineConfig((config) => {
 
       // https://github.com/antfu/unplugin-vue-components
       Components({
-        dirs: ['src/components', '../../packages/theme-default/components'],
+        dirs: ['src/components', path.resolve(themesDir, 'components')],
         // allow auto load markdown components under `./src/components/`
         extensions: ['vue', 'md'],
 

@@ -7,7 +7,7 @@ export default defineAdvSetup(({ $adv, router }) => {
   // $adv.config
 
   const themeStore = useThemeDefaultStore()
-  const startGameItem = themeStore.startMenuItems.find(item => item.id === 'start_game')
+  const startGameItem = themeStore.$startMenu.menuItems.find(item => item.id === 'start_game')
   startGameItem!.do = () => {
     router.push('/flow')
   }

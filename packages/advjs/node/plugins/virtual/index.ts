@@ -11,6 +11,6 @@ export const templates = [
   templateStyles,
 
   ...templateConfigs,
-  ...templateSetups,
   ...templateGames,
+  ...templateSetups,
 ]

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AdvMenuItemProps } from 'themes/theme-default'
+import type { AdvMenuItemProps } from '@advjs/theme-default'
 import { useScreenLock } from '@advjs/core'
 
 import { useFullscreen } from '@vueuse/core'

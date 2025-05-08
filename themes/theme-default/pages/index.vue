@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-
-import * as assets from '../assets'
+import { assets } from '../assets'
 
 withDefaults(defineProps<{ duration?: number }>(), {
   duration: 2000,

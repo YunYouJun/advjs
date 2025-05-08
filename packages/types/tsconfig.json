@@ -3,5 +3,5 @@
   "compilerOptions": {
     "declaration": true
   },
-  "include": ["src/**/*.ts", "../client/setup/index.ts"]
+  "include": ["src/**/*.ts"]
 }

@@ -11,6 +11,8 @@ import { isInstalledGlobally, packageExists } from './resolver'
 const officialThemes: Record<string, string> = {
   none: '',
   default: '@advjs/theme-default',
+  pominis: '@advjs/theme-pominis',
+  starter: '@advjs/theme-starter',
 }
 
 /**

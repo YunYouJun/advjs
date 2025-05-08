@@ -34,11 +34,11 @@
       "@advjs/theme-default/*": [
         "themes/theme-default/*"
       ],
-      "@advjs/client": [
-        "./packages/client/index.ts"
-      ],
       "@advjs/theme-default": [
         "themes/theme-default/index.ts"
+      ],
+      "@advjs/client": [
+        "./packages/client/index.ts"
       ],
       "@advjs/*": [
         "./packages/*/src/index.ts"
@@ -67,7 +67,6 @@
       "vite-plugin-pwa/client",
       "unplugin-vue-router/client"
     ],
-    "allowImportingTsExtensions": true,
     "allowJs": true,
 
     // lint
@@ -81,6 +80,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
+    "skipDefaultLibCheck": true,
     "skipLibCheck": true
   },
   "include": [
@@ -92,7 +92,8 @@
     "./packages/global.d.ts",
     "./packages/**/*.ts",
     "./packages/**/*.vue",
-    "./plugins/**/*.ts"
+    "./plugins/**/*.ts",
+    "./themes/**/*.ts"
   ],
   "exclude": [
     "**/dist/**",

@@ -65,7 +65,7 @@ const themeStore = useThemeDefaultStore()
     <div v-if="rippleAnimation" bg="orange-400" class="adv-ripple absolute right-0 top-0 animate-delay-200" />
   </Transition>
 
-  <StartMenu :menu-items="themeStore.startMenuItems" />
+  <StartMenu :menu-items="themeStore.$startMenu.menuItems" />
 
   <AdvModal header="加载存档" :show="app.showLoadMenu" @close="app.toggleShowLoadMenu">
     <LoadMenu />

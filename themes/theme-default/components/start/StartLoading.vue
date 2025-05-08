@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 
-// const emit = defineEmits(['loaded'])
+const emit = defineEmits(['loaded'])
 
 /**
  * image load by pixi.js manifest
@@ -10,6 +10,13 @@ import { ref } from 'vue'
 const percentage = ref(0)
 
 const show = ref(true)
+
+onMounted(() => {
+  percentage.value = 100
+  setTimeout(() => {
+    emit('loaded')
+  }, 1)
+})
 </script>
 
 <template>

@@ -12,7 +12,7 @@ export function useStartMenu() {
   const app = useAppStore()
   const t = $adv.$t
 
-  const startMenuItems = ref([
+  const menuItems = ref([
     {
       id: 'start_game',
       title: t('menu.new_game'),
@@ -54,6 +54,6 @@ export function useStartMenu() {
   ])
 
   return {
-    startMenuItems,
+    menuItems,
   }
 }

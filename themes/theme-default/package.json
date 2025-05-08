@@ -14,14 +14,12 @@
     "advjs"
   ],
   "exports": {
-    ".": {
-      "default": "./index.ts"
-    },
+    ".": "./index.ts",
     "./*": "./*"
   },
   "main": "index.ts",
   "engines": {
-    "node": "^18.0.0 || >=20.0.0",
+    "node": "^20.0.0 || >=22.0.0",
     "advjs": ">=0.0.1"
   },
   "advjs": {

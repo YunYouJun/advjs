@@ -1,5 +1,5 @@
 import path, { resolve } from 'node:path'
-import { commonAliasMap, packagesDir } from '../../packages/shared/node'
+import { commonAliasMap, packagesDir, themesDir } from '../../packages/shared/node'
 import { pwa } from './app/config/pwa'
 import { appDescription } from './app/constants/index'
 
@@ -96,7 +96,7 @@ export default defineNuxtConfig({
     // remove prefix
     { path: '~/components', pathPrefix: false },
     { path: path.resolve(packagesDir, 'client/components'), pathPrefix: false },
-    { path: path.resolve(packagesDir, 'theme-default/components'), pathPrefix: false },
+    { path: path.resolve(themesDir, 'theme-default/components'), pathPrefix: false },
   ],
 
   pwa,

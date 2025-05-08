@@ -13,16 +13,16 @@ import Inspect from 'vite-plugin-inspect'
 import { VitePWA } from 'vite-plugin-pwa'
 import Layouts from 'vite-plugin-vue-layouts'
 
+import { commonAlias } from '../../shared/node'
+
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
+
 const customElements = ['github-corners']
 
 // https://vitejs.dev/config/
 export default defineConfig({
   resolve: {
-    alias: {
-      '@advjs/core': `${path.resolve(__dirname, '../', '../core/src')}/`,
-      '@advjs/parser': `${path.resolve(__dirname, '../', '../parser/src')}/`,
-    },
+    alias: commonAlias,
   },
 
   plugins: [

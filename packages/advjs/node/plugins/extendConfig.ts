@@ -14,7 +14,6 @@ import { ADV_VIRTUAL_MODULES } from '../config'
 import { isInstalledGlobally, resolveImportPath, toAtFS } from '../resolver'
 import setupIndexHtml from '../setups/indexHtml'
 
-// import { commonAlias } from '../../../shared/config/vite'
 const EXCLUDE_GLOBAL = [
   // avoid css parse by vite
   'animate.css',
@@ -68,20 +67,18 @@ const INCLUDE_LOCAL = [
 // const clientDeps = 'dependencies' in clientPkg ? clientPkg.dependencies : {}
 // const coreDeps = 'dependencies' in corePkg ? corePkg.dependencies : {}
 
-export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<Plugin> {
+/**
+ * get dynamic alias by config
+ * @param options
+ */
+export async function getAlias(options: ResolvedAdvOptions): Promise<Alias[]> {
   const resolveClientDep = createResolve({
     // Same as Vite's default resolve conditions
     conditions: ['import', 'module', 'browser', 'default', options.mode === 'build' ? 'production' : 'development'],
     url: pathToFileURL(options.clientRoot),
   })
 
-  if (options.data.config.features.babylon) {
-    INCLUDE_LOCAL.push(...babylonDeps)
-  }
-
-  // packages/*
   const alias: Alias[] = [
-    { find: '~/', replacement: `${toAtFS(options.clientRoot)}/` },
     /**
      * `/` 开头无法 declare module 类型
      */
@@ -92,16 +89,54 @@ export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<P
     { find: '@advjs/client/runtime', replacement: resolve(options.clientRoot, 'runtime/index.ts') },
     { find: /^@advjs\/client$/, replacement: `${toAtFS(options.clientRoot)}/index.ts` },
     { find: /^@advjs\/client\/(.*)/, replacement: `${toAtFS(options.clientRoot)}/$1` },
-    { find: '@advjs/theme-default', replacement: `${toAtFS(options.themeRoot)}/index.ts` },
-
-    // for dev
-    ...commonAlias.map(({ find, replacement }) => {
-      return {
-        find,
-        replacement: toAtFS(replacement),
-      }
-    }),
   ]
+
+  // themes
+  const themeName = options.data.config.theme || 'default'
+  alias.push(
+    { find: 'virtual:advjs-theme', replacement: `${toAtFS(options.themeRoot)}/client/index.ts` },
+    { find: `@advjs/theme-${themeName}/client`, replacement: `${toAtFS(resolve(options.themeRoot))}/client/index.ts` },
+    {
+      // strict match
+      find: new RegExp(`^@advjs/theme-${themeName}$`),
+      replacement: `${toAtFS(resolve(options.themeRoot))}/index.ts`,
+    },
+    { find: `@advjs/theme-${themeName}/`, replacement: `${toAtFS(resolve(options.themeRoot))}/` },
+  )
+
+  // for dev
+  if (options.mode === 'dev') {
+    alias.push(
+      ...commonAlias.map(({ find, replacement }) => {
+        return {
+          find,
+          replacement: toAtFS(replacement),
+        }
+      }),
+    )
+  }
+
+  alias.push(
+    {
+      find: 'vue',
+      replacement: await resolveImportPath('vue/dist/vue.esm-bundler.js', true),
+    },
+    ...(isInstalledGlobally.value
+      ? await Promise.all(INCLUDE_GLOBAL.map(async dep => ({
+        find: dep,
+        replacement: fileURLToPath(await resolveClientDep(dep)),
+      })))
+      : []
+    ),
+  )
+
+  return alias
+}
+
+export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<Plugin> {
+  if (options.data.config.features.babylon) {
+    INCLUDE_LOCAL.push(...babylonDeps)
+  }
 
   return {
     name: 'advjs:config',
@@ -114,20 +149,7 @@ export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<P
 
         define: getDefine(options),
         resolve: {
-          alias: [
-            ...alias,
-            {
-              find: 'vue',
-              replacement: await resolveImportPath('vue/dist/vue.esm-bundler.js', true),
-            },
-            ...(isInstalledGlobally.value
-              ? await Promise.all(INCLUDE_GLOBAL.map(async dep => ({
-                find: dep,
-                replacement: fileURLToPath(await resolveClientDep(dep)),
-              })))
-              : []
-            ),
-          ],
+          alias: await getAlias(options),
           dedupe: ['vue'],
         },
         optimizeDeps: {
@@ -156,7 +178,7 @@ export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<P
       // serve our index.html after vite history fallback
       return () => {
         server.middlewares.use(async (req, res, next) => {
-          if (req.url!.endsWith('.html')) {
+          if (req.url === '/index.html') {
             res.setHeader('Content-Type', 'text/html')
             res.statusCode = 200
             res.end(indexHtml)

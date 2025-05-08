@@ -1,13 +1,14 @@
 import type { Alias } from 'vite'
 import path, { resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
 /**
  * monorepo packages folder
  */
-export const packagesDir = path.resolve(__dirname, '../../')
-export const defaultThemeFolder = path.resolve(packagesDir, 'theme-default')
+export const packagesDir = path.resolve(import.meta.dirname, '../../')
+export const themesDir = path.resolve(import.meta.dirname, '../../../themes')
+export const pluginsDir = path.resolve(import.meta.dirname, '../../../plugins')
+
+export const defaultThemeFolder = path.resolve(themesDir, 'theme-default')
 
 export const commonAlias: Alias[] = [
   // { find: '@advjs/client/', replacement: `${resolve(packagesDir, 'client')}/` },
@@ -18,8 +19,10 @@ export const commonAlias: Alias[] = [
   { find: '@advjs/parser/fs', replacement: `${resolve(packagesDir, 'parser/src')}/fs.ts` },
   { find: '@advjs/shared/', replacement: `${resolve(packagesDir, 'shared/src')}/` },
   { find: '@advjs/plugin-babylon', replacement: `${resolve(packagesDir, 'plugin-babylon/src')}/` },
-  { find: '@advjs/theme-default/', replacement: `${defaultThemeFolder}/` },
-  { find: '@advjs/theme-default', replacement: defaultThemeFolder },
+  // themes
+  // { find: '@advjs/theme-default/', replacement: `${resolve(defaultThemeFolder)}/` },
+  // { find: '@advjs/theme-default', replacement: `${resolve(defaultThemeFolder)}/index.ts` },
+
   { find: '@advjs/flow', replacement: `${resolve(packagesDir, 'flow')}/index.ts` },
   { find: '@advjs/flow/', replacement: `${resolve(packagesDir, 'flow')}/` },
 

@@ -1,11 +1,12 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { useStartMenu } from '../composables'
+import { name } from '../package.json'
 
-export const useThemeDefaultStore = defineStore('theme-default', () => {
-  const { startMenuItems } = useStartMenu()
+export const useThemeDefaultStore = defineStore(name, () => {
+  const $startMenu = useStartMenu()
 
   return {
-    startMenuItems,
+    $startMenu,
   }
 })
 
