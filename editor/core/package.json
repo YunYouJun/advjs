@@ -24,7 +24,7 @@
     "@vue-flow/minimap": "^1.5.3",
     "@vue-flow/node-resizer": "^1.4.0",
     "@vueuse/core": "catalog:",
-    "cos-js-sdk-v5": "^1.8.7",
+    "cos-js-sdk-v5": "^1.8.8",
     "pixi-painter": "catalog:",
     "qrcode": "^1.5.4"
   },

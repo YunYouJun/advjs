@@ -8,9 +8,14 @@ export const useDialogStore = defineStore('@advjs/editor:dialog', () => {
    * settings dialog is open
    */
   const settingsDialogOpen = ref(false)
+  /**
+   * project settings dialog is open
+   */
+  const projectSettingsDialogOpen = ref(false)
 
   return {
     settingsDialogOpen,
+    projectSettingsDialogOpen,
   }
 })
 

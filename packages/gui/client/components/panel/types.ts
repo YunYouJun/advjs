@@ -9,6 +9,7 @@ export interface AGUIPropertyBaseProps {
    * Property name
    */
   name?: string
+  description?: string
   /**
    * pass object and key to get bound value
    */
@@ -32,7 +33,10 @@ export interface AGUIPropertyCheckboxProps extends AGUIPropertyBaseProps {
 
 export interface AGUIPropertySelectProps extends AGUIPropertyBaseProps {
   type: 'select'
-  options: (string | { label: string, value: string })[]
+  options: (
+    string |
+    { label: string, value: string | number, icon?: string }
+  )[]
 }
 
 export interface AGUIPropertyColorProps extends AGUIPropertyBaseProps {
@@ -110,7 +114,13 @@ export type AGUIPropertyProps =
   AGUIPropertyVectorProps |
   AGUIPropertyButtonProps |
   AGUIPropertyFileProps
+export type AGUIPropertyItem = AGUIPropertyProps & {
+  /**
+   * show property key
+   */
+  showKey?: boolean
+}
 
 export interface AGUIPropertiesPanelProps extends AGUIAccordionProps {
-  properties: AGUIPropertyProps[]
+  properties: AGUIPropertyItem[]
 }

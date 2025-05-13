@@ -1,30 +1,15 @@
 import type { InjectionKey, Ref } from 'vue'
 import type { AGUIBreadcrumbItem } from '../components/breadcrumb/types'
-import type { FSDirItem, FSFileItem, FSItem } from '../components/explorer/types'
+import type { AGUIAssetsExplorerProps, FSDirItem, FSItem } from '../components/explorer/types'
 import type { TreeNode } from '../components/tree/types'
 import { computed, inject } from 'vue'
 import { sortFSItems } from '../utils'
 
-export const AGUIAssetsExplorerSymbol: InjectionKey<{
+export interface AGUIAssetsExplorerState extends Omit<AGUIAssetsExplorerProps, 'rootDir' | 'curDir' | 'curFileList' | 'tree'> {
   rootDir: Ref<FSDirItem | undefined>
   curDir: Ref<FSDirItem | undefined>
   curFileList: Ref<FSItem[]>
   tree: Ref<TreeNode>
-
-  onDblClick?: (item: FSItem) => void | Promise<void>
-  /**
-   * 和 dblClick 一起的时候，好像有问题
-   * @param item
-   * @returns
-   */
-  // onFileClick?: (item: FSFileItem) => void | Promise<void>
-  onFileDblClick?: (item: FSFileItem) => void | Promise<void>
-  onDirDblClick?: (item: FSDirItem) => void | Promise<void>
-  onOpenRootDir?: (dir: FSDirItem) => void | Promise<void>
-  /**
-   * every fs item change
-   */
-  onFSItemChange?: (item: FSItem) => void | Promise<void>
 
   // ctx
   emit: (event: 'update:curDir' | 'update:rootDir' | 'update:tree', value: FSDirItem) => void
@@ -33,7 +18,9 @@ export const AGUIAssetsExplorerSymbol: InjectionKey<{
   setCurDir: (dir: FSDirItem) => void
   setCurFileList: (list: FSItem[]) => void
   setRootDir: (dir: FSDirItem) => void
-}> = Symbol('AGUIAssetsExplorer')
+}
+
+export const AGUIAssetsExplorerSymbol: InjectionKey<AGUIAssetsExplorerState> = Symbol('AGUIAssetsExplorer')
 
 export function useAGUIAssetsExplorerState() {
   const state = inject(AGUIAssetsExplorerSymbol)
@@ -120,7 +107,7 @@ export async function listFilesInDir(dir: FSDirItem, options: {
   return sortFSItems(files)
 }
 
-export async function openRootDir(dirHandle: FileSystemDirectoryHandle, state: ReturnType<typeof useAGUIAssetsExplorerState>) {
+export async function openRootDir(dirHandle: FileSystemDirectoryHandle, state: AGUIAssetsExplorerState) {
   const { curFileList, tree, setCurFileList, setCurDir, setRootDir } = state
   const dir = getDirItemFromHandle(dirHandle)
   if (!dir)
@@ -165,7 +152,7 @@ export function getBreadcrumbItems(state: ReturnType<typeof useAGUIAssetsExplore
   return items
 }
 
-export function useAGUIAssetsExplorer(state: ReturnType<typeof useAGUIAssetsExplorerState>) {
+export function useAGUIAssetsExplorer(state: AGUIAssetsExplorerState) {
   const breadcrumbItems = computed(() => getBreadcrumbItems(state))
 
   return {
@@ -176,13 +163,23 @@ export function useAGUIAssetsExplorer(state: ReturnType<typeof useAGUIAssetsExpl
 /**
  * click icon to open root dir
  */
-export async function onOpenDir(state: ReturnType<typeof useAGUIAssetsExplorerState>) {
-  try {
-    const dirHandle = await window.showDirectoryPicker()
+export async function onOpenDir(dirHandle: FileSystemDirectoryHandle, state: AGUIAssetsExplorerState) {
+  if (!state.beforeOpenRootDir || await state.beforeOpenRootDir(dirHandle)) {
+    // emit before set curDir to before open-directory component unmount
     await openRootDir(dirHandle, state)
     const { rootDir } = state
-    if (state.onOpenRootDir && rootDir.value)
+    if (rootDir.value)
       state.onOpenRootDir?.(rootDir.value)
+  }
+}
+
+/**
+ * open dir with picker
+ */
+export async function openDir(state: AGUIAssetsExplorerState) {
+  try {
+    const dirHandle = await window.showDirectoryPicker()
+    await onOpenDir(dirHandle, state)
   }
   catch (e) {
     // user abort

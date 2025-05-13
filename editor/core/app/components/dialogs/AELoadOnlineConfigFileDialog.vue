@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useAudioStore } from '../../composables/stores/useAudioStore'
 import { DEFAULT_BGM_LIBRARY_URL } from '../../constants'
 
 const onlineStore = useOnlineStore()

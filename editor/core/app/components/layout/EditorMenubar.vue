@@ -100,6 +100,63 @@ const menus: Menu[] = [
     ],
   },
   {
+    name: 'Edit',
+    items: [
+      {
+        label: 'Undo',
+        accelerator: '⌘ Z',
+        onClick: () => {
+          // eslint-disable-next-line no-console
+          console.log('Undo')
+        },
+      },
+      {
+        label: 'Redo',
+        accelerator: '⇧ ⌘ Z',
+        onClick: () => {
+          // eslint-disable-next-line no-console
+          console.log('Redo')
+        },
+      },
+      {
+        type: 'separator',
+      },
+      {
+        label: 'Cut',
+        accelerator: '⌘ X',
+        onClick: () => {
+          // eslint-disable-next-line no-console
+          console.log('Cut')
+        },
+      },
+      {
+        label: 'Copy',
+        accelerator: '⌘ C',
+        onClick: () => {
+          // eslint-disable-next-line no-console
+          console.log('Copy')
+        },
+      },
+      {
+        label: 'Paste',
+        accelerator: '⌘ V',
+        onClick: () => {
+          // eslint-disable-next-line no-console
+          console.log('Paste')
+        },
+      },
+      {
+        type: 'separator',
+      },
+      {
+        label: 'Project Settings',
+        onClick: () => {
+          dialogStore.projectSettingsDialogOpen = true
+        },
+      },
+    ],
+  },
+  {
     name: 'Window',
     items: [
       {
@@ -132,5 +189,7 @@ const menus: Menu[] = [
 <template>
   <AGUIMenubar :menus="menus" />
 
+  <!-- dialog -->
   <AESettingsDialog />
+  <AEProjectSettingsDialog />
 </template>

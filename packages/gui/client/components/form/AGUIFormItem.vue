@@ -13,11 +13,12 @@ defineProps<{
   >
     <slot name="label">
       <label
-        class="agui-label w-1/3 text-$agui-c-label"
+        class="agui-label w-1/3 inline-flex items-center justify-between text-$agui-c-label"
         :class="labelClass"
         :title="description"
       >
         {{ label }}
+        <slot name="after-label" />
       </label>
     </slot>
     <div class="w-2/3 flex flex-1" items-center>

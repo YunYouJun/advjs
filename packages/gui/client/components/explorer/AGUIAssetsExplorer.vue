@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { FSDirItem, FSFileItem, FSItem } from './types'
+import type { AGUIAssetsExplorerProps, FSDirItem, FSFileItem, FSItem } from './types'
 
 import { useEventListener } from '@vueuse/core'
 import { Pane, Splitpanes } from 'splitpanes'
@@ -16,40 +16,7 @@ import AGUIOpenDirectory from './AGUIOpenDirectory.vue'
 
 import './explorer.scss'
 
-const props = defineProps<{
-  /**
-   * init folder
-   */
-  rootDir?: FSDirItem
-  curDir?: FSDirItem
-  /**
-   * current file list
-   */
-  curFileList?: FSItem[]
-  tree?: any
-  /**
-   * when open root dir
-   */
-  onOpenRootDir?: (dir: FSDirItem) => void | Promise<void>
-  onFileDrop?: (files: FSFileItem[]) => (FSFileItem[] | Promise<FSFileItem[]>)
-  onDblClick?: (item: FSItem) => void | Promise<void>
-  /**
-   * click file in file list
-   */
-  onFileClick?: (item: FSFileItem) => void | Promise<void>
-  /**
-   * dblclick file in file list
-   */
-  onFileDblClick?: (item: FSFileItem) => void | Promise<void>
-  /**
-   * dblclick dir in file list
-   */
-  onDirDblClick?: (item: FSDirItem) => void | Promise<void>
-  /**
-   * on FileItem change
-   */
-  onFSItemChange?: (item: FSItem) => void | Promise<void>
-}>()
+const props = defineProps<AGUIAssetsExplorerProps>()
 
 const emit = defineEmits([
   'treeNodeActivate',
@@ -87,6 +54,7 @@ const state = {
   curFileList,
   tree,
 
+  beforeOpenRootDir: props.beforeOpenRootDir,
   onDblClick: props.onDblClick,
   // onFileClick: props.onFileClick,
   onFileDblClick: props.onFileDblClick,

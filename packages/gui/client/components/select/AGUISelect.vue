@@ -19,10 +19,10 @@ import {
   SelectViewport,
 } from 'reka-ui'
 
-type OptionType = string | { value: string, label?: string, icon?: string }
+type OptionType = string | { value: string | number, label?: string, icon?: string }
 
 defineProps<{
-  modelValue?: string
+  modelValue?: string | number
   options: OptionType[]
   legend?: string
 

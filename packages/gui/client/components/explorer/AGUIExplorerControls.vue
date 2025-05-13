@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { vscodeFolderIcon } from '../../../unocss'
 import { AGUIIconButton, AGUIInput } from '../../components'
-import { onOpenDir, useAGUIAssetsExplorerState } from '../../composables'
+import { openDir, useAGUIAssetsExplorerState } from '../../composables'
 
 const state = useAGUIAssetsExplorerState()
 </script>
@@ -13,7 +13,7 @@ const state = useAGUIAssetsExplorerState()
       size="mini"
       :icon="vscodeFolderIcon"
       title="Open Directory"
-      @click="onOpenDir(state)"
+      @click="openDir(state)"
     />
     <div class="flex-grow" />
     <slot />

@@ -4,8 +4,8 @@ import { Toast } from '@advjs/gui'
 import { useStorage } from '@vueuse/core'
 import { consola } from 'consola'
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { gameConfig } from '../../../../../packages/client/runtime'
-import { DEFAULT_BGM_LIBRARY_URL } from '../../constants'
+import { gameConfig } from '../../../../packages/client/runtime'
+import { DEFAULT_BGM_LIBRARY_URL } from '../constants'
 
 /**
  * editor game store

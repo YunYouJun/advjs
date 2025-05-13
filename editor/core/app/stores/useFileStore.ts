@@ -29,21 +29,13 @@ export const useFileStore = defineStore('file', () => {
    * override filename
    */
   const fileName = ref<string>('')
-  /**
-   * monaco editor file content
-   */
-  const monacoEditorFileContent = ref<string>()
+  const monacoStore = useMonacoStore()
 
   watch(() => showRawConfigFile.value, (val) => {
-    monacoEditorFileContent.value = val ? rawConfigFileContent.value : JSON.stringify(gameStore.gameConfig, null, 2)
+    monacoStore.fileContent = val ? rawConfigFileContent.value : JSON.stringify(gameStore.gameConfig, null, 2)
   })
 
   const app = useAppStore()
-
-  function setOpenedConfigFile(fileHandle: FileSystemFileHandle) {
-    app.activeInspector = 'file'
-    openedFileHandle.value = fileHandle
-  }
 
   /**
    * open adv config file
@@ -63,7 +55,15 @@ export const useFileStore = defineStore('file', () => {
       excludeAcceptAllOption: true,
     })
 
-    setOpenedConfigFile(fileHandle)
+    await openAdvConfigFileHandle(fileHandle)
+  }
+
+  /**
+   * open adv config file handle
+   */
+  async function openAdvConfigFileHandle(fileHandle: FileSystemFileHandle) {
+    fileName.value = fileHandle.name
+    setOpenedFileHandle(fileHandle)
 
     // 获取文件内容
     const file = await fileHandle.getFile()
@@ -107,19 +107,43 @@ export const useFileStore = defineStore('file', () => {
     onlineAdvConfigFileDialogOpen.value = false
   }
 
+  /**
+   * set opened file handle
+   */
+  async function setOpenedFileHandle(fileHandle: FileSystemFileHandle) {
+    app.activeInspector = 'file'
+    openedFileHandle.value = fileHandle
+
+    const fileContent = await fileHandle.getFile().then(file => file.text())
+    monacoStore.fileContent = fileContent
+
+    const ext = fileHandle.name.split('.').pop() || ''
+    const extLangMap: Record<string, string> = {
+      ts: 'typescript',
+      js: 'javascript',
+      html: 'html',
+      css: 'css',
+      json: 'json',
+      md: 'markdown',
+    }
+    const lang = extLangMap[ext] || 'text'
+    monacoStore.language = lang
+  }
+
   return {
     fileName,
-    monacoEditorFileContent,
 
     openedFileHandle,
     rawConfigFileContent,
     showRawConfigFile,
 
+    openAdvConfigFileHandle,
     openAdvConfigFile,
-    setOpenedConfigFile,
 
     openOnlineAdvConfigFile,
     onlineAdvConfigFileDialogOpen,
+
+    setOpenedFileHandle,
   }
 })
 

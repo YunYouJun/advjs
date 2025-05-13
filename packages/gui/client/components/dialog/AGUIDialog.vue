@@ -28,15 +28,16 @@ const open = defineModel('open', {
     <DialogPortal>
       <DialogOverlay class="data-[state=open]:animate-overlayShow fixed inset-0 z-99 bg-black/50" />
       <DialogContent
-        class="data-[state=open]:animate-contentShow fixed left-[50%] top-[50%] z-[100] w-[60vw] translate-x-[-50%] translate-y-[-50%] overflow-hidden rounded bg-dark-300 shadow-xl focus:outline-none"
+        class="data-[state=open]:animate-contentShow fixed left-[50%] top-[50%] z-[100] h-lg w-4xl translate-x-[-50%] translate-y-[-50%] overflow-hidden rounded-lg bg-dark-300 shadow-xl focus:outline-none"
+        flex="~ col"
         :class="contentClass"
         :aria-describedby="description"
         :aria-hidden="!open"
       >
-        <div class="absolute relative left-0 right-0 top-0 flex items-center justify-center bg-dark-50 px-2 py-1 shadow">
+        <div class="relative h-7 flex items-center justify-center bg-dark-50 shadow">
           <DialogTitle
             v-if="title"
-            class="text-sm op-60"
+            class="text-13px font-bold op-60"
           >
             {{ title }}
           </DialogTitle>
@@ -57,9 +58,7 @@ const open = defineModel('open', {
           {{ description }}
         </DialogDescription>
 
-        <div class="p-4">
-          <slot />
-        </div>
+        <slot />
       </DialogContent>
     </DialogPortal>
   </DialogRoot>

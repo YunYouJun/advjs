@@ -61,7 +61,7 @@ export function isGlb(path: string) {
 /**
  * get file type from path
  */
-export function getFiletypeFromPath(path: string) {
+export function getFileTypeFromPath(path: string) {
   if (!path)
     return ''
 
@@ -83,6 +83,9 @@ export function getFiletypeFromPath(path: string) {
   const knownExt = [
     'fbx',
     'gltf',
+
+    'md',
+    'gitignore',
   ]
   if (!knownExt.includes(ext))
     consola.warn('unknown file type:', path)
@@ -145,6 +148,7 @@ export function getIconFromFileType(filetype: string) {
       return 'i-vscode-icons-file-type-binary'
     case 'txt':
     case 'text':
+    case 'gitignore':
       return 'i-vscode-icons-file-type-text'
     default:
       return 'i-vscode-icons-default-file'

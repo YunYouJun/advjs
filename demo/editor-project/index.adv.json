@@ -1,0 +1,686 @@
+{
+  "title": "魔戒：夏尔的阴影",
+  "startNode": "ch1_node_01",
+  "characters": [
+    {
+      "id": "character_01",
+      "name": "艾瑞克",
+      "appearance": "艾瑞克是一个身材瘦小的霍比特人，大约三十岁出头。他有一头浓密的棕色卷发，总是有点乱糟糟的。他的眼睛是明亮的蓝色，充满了好奇和渴望。他穿着朴素的亚麻衬衫和棕色灯芯绒裤子，脚上穿着磨损的皮靴。他总是带着一个小小的皮质笔记本，用来记录他的想法和梦想。",
+      "appearance_prompt": "A young hobbit named Eric, early 30s, with messy, thick brown curly hair and bright blue eyes full of curiosity. He wears a simple linen shirt, brown corduroy trousers, and worn leather boots. He carries a small leather-bound notebook. He is standing in the Shire, looking towards the horizon.",
+      "background": "艾瑞克出生在夏尔一个不起眼的霍比特人家庭。他从小就听着关于夏尔以外世界的传说长大，这激起了他强烈的冒险欲望。他觉得夏尔的生活太过于安逸和重复，渴望探索未知的土地，体验不同的文化。他的家人并不理解他的梦想，认为他应该像其他霍比特人一样，安稳地过着平凡的生活。但他决心追逐自己的梦想，即使这意味着要离开他所熟悉的一切。他性格开朗乐观，但有时也显得有些冲动和天真。他相信善良和正义，渴望为世界带来积极的影响。",
+      "concept": "一个年轻的霍比特人，梦想着离开夏尔去冒险。"
+    },
+    {
+      "id": "character_02",
+      "name": "甘道夫",
+      "appearance": "甘道夫是一位身材高大的巫师，留着长长的灰色胡须和头发。他穿着一件灰色的长袍，头戴一顶宽大的尖顶帽子。他的眼睛深邃而睿智，仿佛能看穿一切。他手持一根橡木法杖，上面雕刻着神秘的符文。他的外表充满了智慧和力量。",
+      "appearance_prompt": "Gandalf the Grey, a tall wizard with a long grey beard and hair, wearing a grey robe and a wide-brimmed pointed hat. His eyes are deep and wise. He holds an oak staff carved with runes. He is standing on a hilltop overlooking the Shire.",
+      "background": "甘道夫是一位强大的巫师，属于迈雅族，被派往中土世界帮助对抗索伦的邪恶势力。他是一位睿智而善良的长者，总是尽力保护弱者，维护和平。他对霍比特人特别感兴趣，认为他们身上蕴藏着巨大的潜力。他预见到夏尔的未来将受到威胁，因此密切关注着那里的发展。他知道艾瑞克是一个特别的霍比特人，相信他有能力为夏尔的命运做出贡献。甘道夫性格沉稳而神秘，总是以自己的方式引导着事情的发展。他深知命运的复杂性和不可预测性，因此总是谨慎行事，避免干涉过多。",
+      "concept": "一位强大的巫师，对夏尔的命运感兴趣。"
+    }
+  ],
+  "chapters": [
+    {
+      "id": "chapter_1",
+      "title": "意外的访客",
+      "startNodeId": "ch1_node_01",
+      "description": "艾瑞克的生活在甘道夫到来后发生了改变，他发现夏尔并非如他想象的那么安全。",
+      "nodes": [
+        {
+          "id": "ch1_node_01",
+          "plot_summary": "艾瑞克在夏尔的田野里工作，梦想着远方。",
+          "imagePrompt": "Anime style. A young hobbit named Eric, early 30s, with messy, thick brown curly hair and bright blue eyes, stands in a lush, green Shire field. He wears a simple linen shirt, brown corduroy trousers, and worn leather boots. He carries a small leather-bound notebook in his hand. The sun shines brightly, casting long shadows across the field. He gazes wistfully towards the distant, rolling hills. The atmosphere is peaceful and serene, but with a hint of longing in Eric's expression. Wide shot, vibrant colors, detailed background.",
+          "dialogues": [
+            {
+              "speaker": "艾瑞克",
+              "text": "（叹气）又是一样的田地，一样的阳光，一样的…土豆。什么时候才能看到夏尔以外的世界呢？"
+            },
+            {
+              "speaker": "艾瑞克",
+              "text": "那些古老的传说，那些关于高山和大海的故事…它们一定比这更精彩。"
+            },
+            {
+              "speaker": "艾瑞克",
+              "text": "也许有一天，我会离开这里，去追寻我的梦想。只是…什么时候呢？"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_node_02",
+          "bgmThemeId": "theme_daily_rural"
+        },
+        {
+          "id": "ch1_node_02",
+          "plot_summary": "甘道夫突然出现在艾瑞克的田地里，显得神秘莫测。",
+          "imagePrompt": "Anime style. Gandalf the Grey, a tall wizard with a long grey beard and hair, wearing a grey robe and a wide-brimmed pointed hat, stands in Eric's field. Eric stares at him in surprise, his blue eyes wide. The Shire landscape stretches behind them, a patchwork of green fields and Hobbit holes. The lighting is soft and diffused, creating a sense of mystery. Gandalf's face is partially obscured by his hat, adding to his enigmatic presence. Medium shot, focus on the characters, slightly tilted angle.",
+          "dialogues": [
+            {
+              "speaker": "艾瑞克",
+              "text": "嗯？那是什么？那边怎么站着一个人？"
+            },
+            {
+              "speaker": "艾瑞克",
+              "text": "（眯起眼睛）好高啊…而且穿着灰色的长袍…难道是…一个巫师？"
+            },
+            {
+              "speaker": "艾瑞克",
+              "text": "（犹豫）巫师来夏尔做什么？难道…难道我的冒险要开始了？"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_node_03",
+          "bgmThemeId": "theme_mood_mystery"
+        },
+        {
+          "id": "ch1_node_03",
+          "plot_summary": "甘道夫询问艾瑞克关于夏尔的事情，并暗示有危险正在逼近。",
+          "imagePrompt": "Anime style. Gandalf the Grey stands tall, his oak staff planted firmly in the ground. Eric, looking up at him with a mixture of awe and apprehension, listens intently. They are in the middle of a green field in the Shire. Soft sunlight filters through the trees in the background. The atmosphere is tense, a sense of foreboding hangs in the air. Close-up on their faces, emphasizing their expressions. Gandalf's eyes are deep and knowing.",
+          "dialogues": [
+            {
+              "speaker": "甘道夫",
+              "text": "你好，艾瑞克。夏尔的土地真是富饶，霍比特人的生活也十分安逸。"
+            },
+            {
+              "speaker": "艾瑞克",
+              "text": "（惊讶）您…您怎么知道我的名字？还有…您真的是一位巫师吗？"
+            },
+            {
+              "speaker": "甘道夫",
+              "text": "我知道很多事情，艾瑞克。包括…潜伏在夏尔边缘的阴影。"
+            },
+            {
+              "speaker": "甘道夫",
+              "text": "平静的生活即将被打破。危险正在逼近，艾瑞克。你感受到了吗？"
+            }
+          ],
+          "choices": [
+            {
+              "text": "询问危险是什么",
+              "targetId": "ch1_node_05"
+            },
+            {
+              "text": "不相信甘道夫，认为他疯了",
+              "targetId": "ch1_node_04"
+            }
+          ],
+          "next": null,
+          "bgmThemeId": "theme_mood_mystery"
+        },
+        {
+          "id": "ch1_node_04",
+          "plot_summary": "艾瑞克不相信甘道夫，试图赶走他。",
+          "imagePrompt": "Anime style. Eric, looking annoyed and dismissive, gestures towards Gandalf the Grey. Gandalf stands calmly, his expression unreadable. The Shire landscape is visible in the background, peaceful and idyllic. The lighting is bright and cheerful, contrasting with the underlying tension of the scene. Medium shot, focus on Eric's body language, conveying his disbelief and frustration.",
+          "dialogues": [
+            {
+              "speaker": "艾瑞克",
+              "text": "危险？阴影？您在说什么啊，巫师先生？夏尔一直都很平静！"
+            },
+            {
+              "speaker": "艾瑞克",
+              "text": "我看您一定是走错地方了，或者…喝多了麦芽酒。请您离开我的田地吧！"
+            },
+            {
+              "speaker": "艾瑞克",
+              "text": "（小声嘀咕）疯疯癫癫的，巫师也一样…还是脚踏实地地种土豆比较好。"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_node_06",
+          "bgmThemeId": "theme_scene_confrontation"
+        },
+        {
+          "id": "ch1_node_05",
+          "plot_summary": "甘道夫解释说黑暗势力正在崛起，夏尔可能成为目标。",
+          "imagePrompt": "Anime style. Gandalf the Grey speaks with a serious expression, his eyes fixed on Eric. Eric listens intently, his face etched with concern. The Shire landscape stretches behind them, now cast in shadow. The lighting is dramatic, emphasizing the sense of impending doom. Close-up on their faces, highlighting the intensity of the conversation. Darker color palette.",
+          "dialogues": [
+            {
+              "speaker": "甘道夫",
+              "text": "黑暗势力正在崛起，艾瑞克。索伦的力量正在蔓延，即使远在夏尔，也无法幸免。"
+            },
+            {
+              "speaker": "甘道夫",
+              "text": "夏尔的宁静和富饶，反而会成为它的弱点。它太容易被攻击，太容易被控制。"
+            },
+            {
+              "speaker": "甘道夫",
+              "text": "你必须相信我，艾瑞克。时间不多了。我们需要联合起来，保护夏尔。"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_node_07",
+          "bgmThemeId": "theme_mood_tension"
+        },
+        {
+          "id": "ch1_node_06",
+          "plot_summary": "甘道夫离开，但艾瑞克开始感到不安。",
+          "imagePrompt": "Anime style. Eric watches Gandalf the Grey walk away, his expression thoughtful and slightly worried. He stands alone in the field, the Shire landscape stretching out around him. The lighting is soft and melancholic, reflecting Eric's growing unease. Medium shot, focus on Eric's silhouette against the landscape, conveying his isolation and uncertainty.",
+          "dialogues": [
+            {
+              "speaker": "艾瑞克",
+              "text": "（看着甘道夫离开的背影）索伦？黑暗势力？这…这真的可能吗？"
+            },
+            {
+              "speaker": "艾瑞克",
+              "text": "他看起来不像是在开玩笑…而且，他说的那些…真的让我感到一丝不安。"
+            },
+            {
+              "speaker": "艾瑞克",
+              "text": "也许…也许我应该更认真地听听他说什么？"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_node_08",
+          "bgmThemeId": "theme_mood_tension"
+        },
+        {
+          "id": "ch1_node_07",
+          "plot_summary": "甘道夫说服艾瑞克相信他，并要求他帮助保护夏尔。",
+          "imagePrompt": "Anime style. Gandalf the Grey places a hand on Eric's shoulder, his expression encouraging. Eric looks up at him, his eyes filled with a newfound determination. The Shire landscape is bathed in golden sunlight, symbolizing hope and possibility. Close-up on their faces, emphasizing the connection between them. Warm color palette.",
+          "dialogues": [
+            {
+              "speaker": "甘道夫",
+              "text": "我相信你，艾瑞克。你的内心深处，渴望着冒险，渴望着保护弱小。"
+            },
+            {
+              "speaker": "甘道夫",
+              "text": "夏尔需要你，艾瑞克。它需要你的勇气，你的善良，你的决心。"
+            },
+            {
+              "speaker": "艾瑞克",
+              "text": "（深吸一口气）我…我可以做什么？我只是一个普通的霍比特人。"
+            },
+            {
+              "speaker": "甘道夫",
+              "text": "每个人都有自己的力量，艾瑞克。而你的力量，将在未来的日子里显现。"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_node_09",
+          "bgmThemeId": "theme_mood_tension"
+        },
+        {
+          "id": "ch1_node_08",
+          "plot_summary": "艾瑞克回到村庄，发现一切如常，但内心的不安感挥之不去。",
+          "imagePrompt": "Anime style. Eric walks through his village in the Shire. Hobbits are bustling about their daily lives, seemingly oblivious to any danger. Eric's face is troubled, his eyes scanning the surroundings with concern. The lighting is bright and cheerful, contrasting with Eric's internal turmoil. Medium shot, capturing the contrast between Eric's anxiety and the peacefulness of the village.",
+          "dialogues": [
+            {
+              "speaker": "艾瑞克",
+              "text": "（回到村庄，看到大家都在忙碌着，一切如常）也许…也许他只是在危言耸听。"
+            },
+            {
+              "speaker": "艾瑞克",
+              "text": "但是…为什么我的心里总觉得不安呢？好像有什么事情要发生一样…"
+            },
+            {
+              "speaker": "艾瑞克",
+              "text": "我应该告诉大家吗？但是…他们会相信我吗？"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_node_10",
+          "bgmThemeId": "theme_daily_rural"
+        },
+        {
+          "id": "ch1_node_09",
+          "plot_summary": "甘道夫告诉艾瑞克，需要找到一位名叫比尔博的老霍比特人。",
+          "imagePrompt": "Anime style. Gandalf the Grey points towards the distance, his expression urgent. Eric listens intently, his eyes following Gandalf's gaze. The Shire landscape stretches before them, a vast and inviting expanse. The lighting is clear and bright, highlighting the importance of their mission. Medium shot, emphasizing the direction and purpose of their quest.",
+          "dialogues": [
+            {
+              "speaker": "甘道夫",
+              "text": "首先，我们需要找到比尔博·巴金斯。他是一位经历过许多事情的老霍比特人。"
+            },
+            {
+              "speaker": "甘道夫",
+              "text": "他知道一些事情，一些对我们来说至关重要的事情。找到他，艾瑞克，他会指引你下一步的方向。"
+            },
+            {
+              "speaker": "艾瑞克",
+              "text": "比尔博·巴金斯？他不是已经隐居了吗？我该去哪里找他？"
+            },
+            {
+              "speaker": "甘道夫",
+              "text": "去袋底洞找他。那是他的家。"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_node_11",
+          "bgmThemeId": "theme_mood_mystery"
+        },
+        {
+          "id": "ch1_node_10",
+          "plot_summary": "夜幕降临，艾瑞克听到奇怪的声音，决定出去看看。",
+          "imagePrompt": "Anime style. Night has fallen over the Shire. Eric stands outside his Hobbit hole, listening intently. The moon casts a pale glow over the landscape, creating an eerie atmosphere. His face is illuminated by the moonlight, revealing his fear and determination. Close-up on Eric's face, emphasizing his vulnerability and resolve. Dark color palette, dramatic lighting.",
+          "dialogues": [
+            {
+              "speaker": "艾瑞克",
+              "text": "（夜幕降临，听到远处传来奇怪的声音）那是什么声音？听起来…不太对劲。"
+            },
+            {
+              "speaker": "艾瑞克",
+              "text": "也许…也许甘道夫说的是真的？真的有什么危险正在逼近？"
+            },
+            {
+              "speaker": "艾瑞克",
+              "text": "我必须去看看！我不能就这样坐视不理！"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_node_12",
+          "bgmThemeId": "theme_mood_tension"
+        },
+        {
+          "id": "ch1_node_11",
+          "plot_summary": "艾瑞克开始寻找比尔博。",
+          "imagePrompt": "Anime style. Eric runs towards Bag End, his expression determined. The Shire landscape stretches behind him, disappearing into the distance. The lighting is soft and diffused, creating a sense of urgency. Medium shot, capturing Eric's movement and determination. Rolling hills and Hobbit holes line the path.",
+          "dialogues": [
+            {
+              "speaker": "艾瑞克",
+              "text": "（前往袋底洞）比尔博·巴金斯…希望他能告诉我一些什么。"
+            },
+            {
+              "speaker": "艾瑞克",
+              "text": "甘道夫为什么会让我去找他呢？他到底知道些什么？"
+            },
+            {
+              "speaker": "艾瑞克",
+              "text": "（加快脚步）必须尽快找到他！夏尔…可能真的有危险！"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_node_13",
+          "bgmThemeId": "theme_mood_mystery"
+        },
+        {
+          "id": "ch1_node_12",
+          "plot_summary": "艾瑞克发现一群奇怪的生物潜伏在夏尔的边缘。",
+          "imagePrompt": "Anime style. Eric hides behind a tree, his eyes wide with fear. He watches a group of strange, menacing creatures moving through the field. The creatures are shadowy and distorted, their eyes glowing with an evil light. The lighting is dark and ominous, creating a sense of danger and suspense. Close-up on Eric's face, emphasizing his terror. Wide shot showing the creatures in the field.",
+          "dialogues": [
+            {
+              "speaker": "艾瑞克",
+              "text": "（躲在树后，看到一群奇怪的生物在田野里移动）那些是什么？他们…他们不是霍比特人！"
+            },
+            {
+              "speaker": "艾瑞克",
+              "text": "他们的眼睛…他们的眼睛里充满了邪恶！他们来夏尔做什么？"
+            },
+            {
+              "speaker": "艾瑞克",
+              "text": "（害怕地喘息）我…我该怎么办？我应该逃跑，还是…尝试阻止他们？"
+            }
+          ],
+          "choices": [
+            {
+              "text": "逃跑",
+              "targetId": "ch1_node_14"
+            },
+            {
+              "text": "尝试战斗",
+              "targetId": "ch1_node_15"
+            }
+          ],
+          "next": null,
+          "bgmThemeId": "theme_mood_danger"
+        },
+        {
+          "id": "ch1_node_13",
+          "plot_summary": "艾瑞克找到了比尔博，但比尔博似乎知道些什么，却不愿透露。",
+          "imagePrompt": "Anime style. Eric stands before Bilbo Baggins' round green door, looking hesitant. Bilbo, an old hobbit with a wise expression, peers out at him. Bag End is a cozy Hobbit hole nestled into the hillside. The lighting is warm and inviting, but with a hint of mystery. Medium shot, capturing the contrast between Eric's youthful energy and Bilbo's aged wisdom.",
+          "dialogues": [
+            {
+              "speaker": "艾瑞克",
+              "text": "巴金斯先生？我是艾瑞克，甘道夫让我来找您。"
+            },
+            {
+              "speaker": "比尔博",
+              "text": "甘道夫？他终于还是来了…我知道，这一天迟早会到来。"
+            },
+            {
+              "speaker": "艾瑞克",
+              "text": "您知道什么？甘道夫说夏尔有危险！"
+            },
+            {
+              "speaker": "比尔博",
+              "text": "（叹气）孩子，有些事情，知道得太多并不是好事。你最好…还是不知道的好。"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_node_16",
+          "bgmThemeId": "theme_mood_mystery"
+        },
+        {
+          "id": "ch1_node_14",
+          "plot_summary": "艾瑞克逃回村庄，试图警告大家，但没有人相信他。",
+          "imagePrompt": "Anime style. Eric frantically runs through the village, shouting a warning. The other hobbits look at him with skepticism and amusement. The village is brightly lit and cheerful, contrasting with Eric's desperate plea. Medium shot, capturing the chaos and confusion of the scene. Focus on Eric's panicked expression.",
+          "dialogues": [
+            {
+              "speaker": "艾瑞克",
+              "text": "（气喘吁吁地跑回村庄）怪物！有怪物！他们在夏尔的边缘！"
+            },
+            {
+              "speaker": "村民",
+              "text": "艾瑞克，你在说什么啊？怪物？你一定是做噩梦了。"
+            },
+            {
+              "speaker": "村民",
+              "text": "别理他，他总是喜欢说些奇怪的事情。快去睡觉吧，艾瑞克。"
+            },
+            {
+              "speaker": "艾瑞克",
+              "text": "可是...真的有怪物啊！你们相信我！"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_ending_A",
+          "bgmThemeId": "theme_mood_tension"
+        },
+        {
+          "id": "ch1_node_15",
+          "plot_summary": "艾瑞克试图与生物战斗，但很快就被击败。",
+          "imagePrompt": "Anime style. Eric lies on the ground, defeated. The strange creatures loom over him, their eyes glowing with malice. The Shire landscape is dark and foreboding. The lighting is harsh and dramatic, emphasizing Eric's vulnerability. Close-up on Eric's face, showing his pain and despair. Low angle shot looking up at the creatures.",
+          "dialogues": [
+            {
+              "speaker": "艾瑞克",
+              "text": "（挥舞着手中的木棍）你们这些怪物！滚出夏尔！"
+            },
+            {
+              "speaker": "怪物",
+              "text": "（嘶哑的声音）霍比特人…弱小…美味…"
+            },
+            {
+              "speaker": "艾瑞克",
+              "text": "（被打倒在地）啊！我…我不能就这样放弃！"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_ending_B",
+          "bgmThemeId": "theme_action_energetic"
+        },
+        {
+          "id": "ch1_node_16",
+          "plot_summary": "比尔博告诉艾瑞克，他必须离开夏尔，去寻找真正的答案。",
+          "imagePrompt": "Anime style. Bilbo Baggins speaks to Eric with a serious expression. He stands inside Bag End. Eric listens intently, his face filled with uncertainty. The interior of Bag End is cozy and cluttered, filled with books and artifacts. The lighting is warm and intimate. Close-up on their faces, emphasizing the gravity of the situation.",
+          "dialogues": [
+            {
+              "speaker": "比尔博",
+              "text": "孩子，听我说。夏尔的未来…不在这里。你必须离开，去寻找真正的答案。"
+            },
+            {
+              "speaker": "比尔博",
+              "text": "有些事情…是注定的。而你的命运，不在夏尔。"
+            },
+            {
+              "speaker": "艾瑞克",
+              "text": "离开？去哪里？我该怎么办？"
+            },
+            {
+              "speaker": "比尔博",
+              "text": "去布理村，问问那里的旅店老板巴利曼·奶油伯."
+            }
+          ],
+          "choices": [],
+          "next": "ch1_node_17",
+          "bgmThemeId": "theme_scene_decision"
+        },
+        {
+          "id": "ch1_node_17",
+          "plot_summary": "比尔博给了艾瑞克一件神秘的物品，并告诉他这会帮助他找到答案。",
+          "imagePrompt": "Anime style. Bilbo Baggins hands Eric a glowing amulet, his expression solemn. Eric looks at the amulet with wonder and apprehension. The interior of Bag End is dimly lit, highlighting the amulet's ethereal glow. Close-up on the amulet and their hands, emphasizing its importance. Soft, diffused lighting.",
+          "dialogues": [
+            {
+              "speaker": "比尔博",
+              "text": "拿着这个，孩子。它会指引你找到答案。但记住，小心使用。"
+            },
+            {
+              "speaker": "比尔博",
+              "text": "（递给艾瑞克一个闪烁着微弱光芒的护身符）去吧，艾瑞克。你的冒险，才刚刚开始。"
+            },
+            {
+              "speaker": "艾瑞克",
+              "text": "（接过护身符）这…这是什么？我…我真的要离开吗？"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_node_18",
+          "bgmThemeId": "theme_mood_mystery"
+        },
+        {
+          "id": "ch1_node_18",
+          "plot_summary": "艾瑞克决定离开夏尔，开始他的冒险。",
+          "imagePrompt": "Anime style. Eric stands on a hilltop, looking back at the Shire with a mixture of sadness and determination. He clutches the amulet tightly in his hand. The Shire landscape stretches behind him, a patchwork of green fields and Hobbit holes. The lighting is soft and melancholic, reflecting Eric's bittersweet departure. Wide shot, capturing the vastness of the landscape and the weight of Eric's decision.",
+          "dialogues": [
+            {
+              "speaker": "艾瑞克",
+              "text": "（回头看着夏尔，眼中充满了不舍）再见了，夏尔…我会回来的。我会保护你的！"
+            },
+            {
+              "speaker": "艾瑞克",
+              "text": "（握紧护身符，踏上离开夏尔的路）我…我一定要找到答案！为了夏尔，为了我自己！"
+            }
+          ],
+          "choices": [],
+          "next": null,
+          "bgmThemeId": "theme_action_energetic"
+        },
+        {
+          "id": "ch1_ending_A",
+          "plot_summary": "夏尔最终被黑暗势力入侵，艾瑞克后悔没有更早地采取行动。",
+          "imagePrompt": "Anime style. The Shire is engulfed in darkness, the once-peaceful landscape now scarred and desolate. Hobbit holes are destroyed, and the sky is filled with ominous clouds. A lone figure, silhouetted against the destruction, kneels in despair. The lighting is dark and oppressive, conveying the sense of loss and hopelessness. Wide shot, emphasizing the scale of the devastation.",
+          "dialogues": [
+            {
+              "speaker": "旁白",
+              "text": "黑暗最终笼罩了夏尔，霍比特人的家园沦陷了。艾瑞克永远无法原谅自己，如果当初他能更勇敢一些，或许一切都会不一样…"
+            }
+          ],
+          "choices": [],
+          "next": "ch2_node_01",
+          "bgmThemeId": "theme_ending_tragic"
+        },
+        {
+          "id": "ch1_ending_B",
+          "plot_summary": "艾瑞克被俘虏，夏尔的命运变得更加危险。",
+          "imagePrompt": "Anime style. Eric is bound and captured, surrounded by menacing creatures. Their eyes glow with malice as they drag him away. The Shire landscape is visible in the background, but it is now shrouded in shadow. The lighting is harsh and unforgiving, emphasizing Eric's helplessness. Low angle shot, looking up at the creatures and emphasizing their power.",
+          "dialogues": [
+            {
+              "speaker": "旁白",
+              "text": "艾瑞克被黑暗势力俘虏，夏尔的命运更加岌岌可危。希望…似乎已经消失…"
+            }
+          ],
+          "choices": [],
+          "next": null,
+          "bgmThemeId": "theme_ending_tragic"
+        }
+      ],
+      "entryPoints": {}
+    },
+    {
+      "id": "chapter_2",
+      "title": "逃离夏尔",
+      "startNodeId": "ch2_node_01",
+      "description": "在夏尔沦陷后，艾瑞克带着比尔博给他的神秘物品，踏上了寻找希望的旅程。他必须避开黑暗势力的追捕，并找到能够帮助他拯救夏尔的人。",
+      "nodes": [
+        {
+          "id": "ch2_node_01",
+          "plot_summary": "艾瑞克目睹夏尔被黑暗笼罩，心中充满绝望。他紧紧握着比尔博给他的物品，那是他唯一的希望。",
+          "imagePrompt": "Anime style. Eric, a young hobbit with messy brown curly hair and bright blue eyes, stands amidst the ruins of the Shire. Smoldering buildings and dark shadows engulf the once-peaceful landscape. He clutches a small leather-bound notebook tightly in his hands, his expression a mix of despair and determination. The sky is a bruised purple, reflecting the chaos below. Dramatic lighting emphasizes the destruction and Eric's forlorn figure. Wide shot, detailed background.",
+          "dialogues": [],
+          "choices": [],
+          "next": "ch2_node_02",
+          "bgmThemeId": "theme_emotion_sadness"
+        },
+        {
+          "id": "ch2_node_02",
+          "plot_summary": "艾瑞克离开了被摧毁的袋底洞，踏上前往布理的路。他必须小心翼翼，避开任何可疑的生物。",
+          "imagePrompt": "Anime style. Eric, the young hobbit, cautiously makes his way along a winding path leading out of the Shire. The landscape is bleak and desolate, with withered trees and barren fields. He wears a simple linen shirt, brown corduroy trousers, and worn leather boots. He glances nervously over his shoulder, wary of unseen dangers. Soft, diffused lighting creates a sense of unease. Medium shot, focusing on Eric's cautious movement.",
+          "dialogues": [],
+          "choices": [],
+          "next": "ch2_node_03",
+          "bgmThemeId": "theme_mood_tension"
+        },
+        {
+          "id": "ch2_node_03",
+          "plot_summary": "在路上，艾瑞克遇到了一群流浪的霍比特人，他们也正逃离夏尔。他们看起来惊恐万分。",
+          "imagePrompt": "Anime style. A group of frightened hobbits, their faces etched with fear, huddle together on a dusty road. Eric approaches them, his expression hesitant. The hobbits are a mix of ages and appearances, all wearing simple, tattered clothing. The background shows the rolling hills of the Shire, now marred by dark shadows and smoke. Overcast sky, muted colors, emphasizing the somber mood. Medium shot, showing the interaction between Eric and the group.",
+          "dialogues": [],
+          "choices": [
+            {
+              "text": "加入他们",
+              "targetId": "ch2_node_05"
+            },
+            {
+              "text": "独自行动",
+              "targetId": "ch2_node_04"
+            }
+          ],
+          "next": null,
+          "bgmThemeId": "theme_mood_tension"
+        },
+        {
+          "id": "ch2_node_04",
+          "plot_summary": "艾瑞克决定独自行动，他担心这群霍比特人会拖累他。他相信自己速度更快，更有机会逃脱。",
+          "imagePrompt": "Anime style. Eric walks alone, his head down, through a desolate landscape. The Shire's once vibrant fields are now barren and gray. He grips his small notebook, lost in thought. The sun is setting, casting long, ominous shadows. Focus on his solitary figure and the emptiness around him. Low angle, emphasizing his vulnerability.",
+          "dialogues": [],
+          "choices": [],
+          "next": "ch2_node_06",
+          "bgmThemeId": "theme_scene_decision"
+        },
+        {
+          "id": "ch2_node_05",
+          "plot_summary": "艾瑞克加入了这群霍比特人，但他们的速度很慢，而且经常发出噪音，这让艾瑞克感到不安。",
+          "imagePrompt": "Anime style. Eric walks alongside a group of hobbits, their pace slow and unsteady. The hobbits chatter nervously, their voices echoing in the otherwise silent landscape. Eric appears impatient and anxious, glancing around warily. The background is a dense forest, with twisted trees and tangled undergrowth. Dim lighting, creating a sense of claustrophobia. Medium shot, showing the group's slow progress.",
+          "dialogues": [],
+          "choices": [],
+          "next": "ch2_node_07",
+          "bgmThemeId": "theme_mood_tension"
+        },
+        {
+          "id": "ch2_node_06",
+          "plot_summary": "艾瑞克独自在荒野中行走，他感到孤独和恐惧。他开始怀疑自己的决定是否正确。",
+          "imagePrompt": "Anime style. Eric, small and alone, navigates a dark and overgrown path. Gnarled trees reach out like skeletal fingers. His face is illuminated by a sliver of moonlight, revealing his fear and uncertainty. Focus on the surrounding wilderness, creating a sense of isolation. High contrast lighting, emphasizing the shadows. Medium shot, showcasing his vulnerability.",
+          "dialogues": [],
+          "choices": [],
+          "next": "ch2_node_08",
+          "bgmThemeId": "theme_emotion_sadness"
+        },
+        {
+          "id": "ch2_node_07",
+          "plot_summary": "黑暗势力发现了这群霍比特人，艾瑞克必须做出选择：是牺牲自己保护他们，还是逃跑？",
+          "imagePrompt": "Anime style. Dark figures, wreathed in shadow, descend upon the group of hobbits. Eric stands protectively in front of them, his eyes wide with determination. The hobbits cower behind him, their faces filled with terror. The scene is bathed in an ominous red glow. Dynamic action pose, dramatic lighting. Wide shot, capturing the scale of the threat.",
+          "dialogues": [],
+          "choices": [
+            {
+              "text": "保护他们",
+              "targetId": "ch2_ending_A"
+            },
+            {
+              "text": "逃跑",
+              "targetId": "ch2_node_08"
+            }
+          ],
+          "next": null,
+          "bgmThemeId": "theme_mood_danger"
+        },
+        {
+          "id": "ch2_node_08",
+          "plot_summary": "艾瑞克继续前进，他来到了一个废弃的村庄。这里看起来曾经有人居住，但现在一片死寂。",
+          "imagePrompt": "Anime style. Eric stands in the center of a deserted village. Buildings are crumbling, windows are broken, and the streets are overgrown with weeds. The atmosphere is heavy with silence and decay. Eric's expression is one of unease and apprehension. Soft, diffused lighting, creating a ghostly atmosphere. Wide shot, showcasing the desolation of the village.",
+          "dialogues": [],
+          "choices": [],
+          "next": "ch2_node_09",
+          "bgmThemeId": "theme_mood_mystery"
+        },
+        {
+          "id": "ch2_node_09",
+          "plot_summary": "在村庄里，艾瑞克发现了一本古老的书籍。这本书似乎记载着关于黑暗势力的信息。",
+          "imagePrompt": "Anime style. Eric kneels in a dusty room, holding an ancient book. The book is bound in leather and covered in strange symbols. Light streams in through a broken window, illuminating the book's pages. Eric's brow is furrowed in concentration as he attempts to decipher the text. Close-up shot, focusing on the book and Eric's expression.",
+          "dialogues": [],
+          "choices": [],
+          "next": "ch2_node_10",
+          "bgmThemeId": "theme_mood_mystery"
+        },
+        {
+          "id": "ch2_node_10",
+          "plot_summary": "艾瑞克试图解读这本书，但他发现这本书是用一种古老的语言写成的。他需要找到一个能够翻译这本书的人。",
+          "imagePrompt": "Anime style. Eric sits hunched over the ancient book, surrounded by flickering candlelight. He pores over the text, his expression frustrated. The room is cluttered with dusty shelves and forgotten objects. The atmosphere is one of intense study and determination. Warm, intimate lighting. Close-up shot, emphasizing the book and Eric's struggle.",
+          "dialogues": [],
+          "choices": [],
+          "next": "ch2_node_11",
+          "bgmThemeId": "theme_mood_mystery"
+        },
+        {
+          "id": "ch2_node_11",
+          "plot_summary": "艾瑞克继续前往布理，他希望能在那里找到能够帮助他的人。但他不知道，黑暗势力正在紧追不舍。",
+          "imagePrompt": "Anime style. Eric walks along a winding road, his gaze fixed on the horizon. The landscape is rugged and unforgiving, with towering mountains and deep valleys. He is determined to reach Bree, but a sense of impending danger hangs in the air. The sky is overcast, casting a long shadow over the road. Medium shot, conveying a sense of journey and peril.",
+          "dialogues": [],
+          "choices": [],
+          "next": "ch2_node_12",
+          "bgmThemeId": "theme_mood_tension"
+        },
+        {
+          "id": "ch2_node_12",
+          "plot_summary": "在路上，艾瑞克遇到了阿拉贡，一个神秘的游侠。阿拉贡似乎知道艾瑞克的来历，并表示愿意帮助他。",
+          "imagePrompt": "Anime style. Eric stands face to face with Aragorn, a mysterious ranger. Aragorn is tall and imposing, with a weathered face and piercing eyes. He wears a hooded cloak and carries a sword at his side. Eric looks up at him with a mixture of suspicion and hope. The background is a dense forest, with dappled sunlight filtering through the trees. Medium shot, emphasizing the tension between the two characters.",
+          "dialogues": [],
+          "choices": [
+            {
+              "text": "信任他",
+              "targetId": "ch2_node_13"
+            },
+            {
+              "text": "不信任他",
+              "targetId": "ch2_node_14"
+            }
+          ],
+          "next": null,
+          "bgmThemeId": "theme_mood_mystery"
+        },
+        {
+          "id": "ch2_node_13",
+          "plot_summary": "艾瑞克选择信任阿拉贡，阿拉贡告诉他，他必须前往瑞文戴尔，在那里他才能找到真正的答案。",
+          "imagePrompt": "Anime style. Eric and Aragorn stand together on a hilltop, gazing towards the distant mountains. Aragorn points towards the horizon, his expression serious. Eric listens intently, his eyes filled with determination. The sky is clear and blue, and the air is crisp and clean. Wide shot, conveying a sense of hope and adventure.",
+          "dialogues": [],
+          "choices": [],
+          "next": "ch2_ending_C",
+          "bgmThemeId": "theme_scene_decision"
+        },
+        {
+          "id": "ch2_node_14",
+          "plot_summary": "艾瑞克不信任阿拉贡，他认为阿拉贡是黑暗势力的爪牙。他决定独自前往布理。",
+          "imagePrompt": "Anime style. Eric turns his back on Aragorn and walks away, his expression resolute. Aragorn watches him go, his face unreadable. The background is a dark and foreboding forest, with twisted trees and tangled undergrowth. The atmosphere is one of mistrust and uncertainty. Medium shot, emphasizing the separation between the two characters.",
+          "dialogues": [],
+          "choices": [],
+          "next": "ch2_ending_B",
+          "bgmThemeId": "theme_scene_decision"
+        },
+        {
+          "id": "ch2_ending_A",
+          "plot_summary": "艾瑞克为了保护流浪的霍比特人，牺牲了自己。他的牺牲为其他人赢得了逃脱的机会，但夏尔的命运仍然悬而未决。",
+          "imagePrompt": "Anime style. Eric lies on the ground, mortally wounded, but a faint smile plays on his lips. The surviving hobbits flee into the distance, their faces filled with grief and gratitude. Dark figures loom over Eric's body, their eyes glowing with malice. The scene is bathed in an ethereal light, symbolizing Eric's sacrifice. Wide shot, emphasizing the tragedy and heroism of the moment.",
+          "dialogues": [],
+          "choices": [],
+          "next": null,
+          "bgmThemeId": "theme_ending_tragic"
+        },
+        {
+          "id": "ch2_ending_B",
+          "plot_summary": "艾瑞克独自前往布理，但他最终被黑暗势力抓住。他被带到了魔多的监狱，夏尔的希望变得更加渺茫。",
+          "imagePrompt": "Anime style. Eric is dragged through the gates of Mordor, his face bruised and bloodied. Orcs jeer and taunt him as he is led into the darkness. The atmosphere is one of despair and hopelessness. The sky is a perpetual twilight, and the air is thick with smoke and ash. Wide shot, conveying the horrors of Mordor.",
+          "dialogues": [],
+          "choices": [],
+          "next": null,
+          "bgmThemeId": "theme_ending_tragic"
+        },
+        {
+          "id": "ch2_ending_C",
+          "plot_summary": "艾瑞克在阿拉贡的帮助下，前往瑞文戴尔。在那里，他将寻求精灵的帮助，共同对抗黑暗势力。夏尔的命运，掌握在他们手中。",
+          "imagePrompt": "Anime style. Eric and Aragorn ride towards Rivendell, their faces determined. The landscape is breathtakingly beautiful, with towering waterfalls and lush forests. In the distance, the shimmering towers of Rivendell can be seen. The sky is clear and blue, and the air is filled with hope. Wide shot, conveying a sense of hope and destiny.",
+          "dialogues": [],
+          "choices": [],
+          "next": null,
+          "bgmThemeId": "theme_ending_hopeful"
+        }
+      ],
+      "entryPoints": {
+        "ch1_ending_A": "ch2_node_01"
+      }
+    }
+  ]
+}

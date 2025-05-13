@@ -40,9 +40,12 @@ export interface AdvConfig<ThemeConfig = AdvThemeConfig> {
   remote?: boolean
 
   /**
-   * @zh UI 主题
    * Theme to use for the advjs
+   *
+   * @zh UI 主题
    * @default 'default'
+   *
+   * `pnpm add @advjs/theme-default`
    */
   theme: string
 
@@ -118,6 +121,14 @@ export interface AdvConfig<ThemeConfig = AdvThemeConfig> {
    * @default {}
    */
   themeConfig: ThemeConfig
+
+  /**
+   * DO NOT MODIFY THIS
+   * @zh 运行时生成
+   */
+  runtimeConfig: {
+    canvasHeight: number
+  }
 }
 
 /**

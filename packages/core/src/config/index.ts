@@ -27,6 +27,10 @@ export const defaultConfig: AdvConfig = {
     },
   },
   showCharacterAvatar: false,
+
+  runtimeConfig: {
+    canvasHeight: 0,
+  },
 }
 
 export const defaultGameConfig: AdvGameConfig = {

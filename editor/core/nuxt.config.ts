@@ -15,6 +15,14 @@ export default defineNuxtConfig({
     ...commonAliasMap,
   },
 
+  imports: {
+    dirs: [
+      './composables',
+      './stores',
+      './utils',
+    ],
+  },
+
   modules: [
     '@vueuse/nuxt',
     '@unocss/nuxt',

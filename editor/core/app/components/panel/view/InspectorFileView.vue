@@ -9,6 +9,7 @@ const { $adv } = useAdvContext()
 
 const gameStore = useGameStore()
 const fileStore = useFileStore()
+const monacoStore = useMonacoStore()
 
 const fileHandleInfo = useInspectorFileHandle(props.fileHandle)
 const onlineFileInfo = useInspectorOnlineFile()
@@ -61,9 +62,9 @@ function goToNode() {
 
     <MonacoEditor
       class="flex flex-grow"
-      :model-value="fileStore.monacoEditorFileContent"
-      :lang="fileLanguage"
-      :options="{ theme: 'vs-dark' }"
+      :model-value="monacoStore.fileContent"
+      :lang="monacoStore.language || fileLanguage"
+      :options="monacoStore.options"
       :editor-options="{ automaticLayout: true }"
     />
   </div>

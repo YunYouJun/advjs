@@ -1,17 +1,11 @@
 <script lang="ts" setup>
-import type { FSDirItem } from './types'
 import { useEventListener } from '@vueuse/core'
 import { ref } from 'vue'
 import { vscodeFolderIcon } from '../../../unocss'
-import { onOpenDir, openRootDir, useAGUIAssetsExplorerState } from '../../composables'
+import { onOpenDir, openDir, useAGUIAssetsExplorerState } from '../../composables'
 import AGUIOverlay from '../AGUIOverlay.vue'
 
-const props = defineProps<{
-  onOpenRootDir?: (dir?: FSDirItem) => void | Promise<void>
-}>()
-
 const state = useAGUIAssetsExplorerState()
-const { rootDir } = state
 const isDragging = ref(false)
 
 const openDirectoryRef = ref<HTMLDivElement>()
@@ -35,19 +29,20 @@ useEventListener(openDirectoryRef, 'drop', async (e) => {
   const dirHandle = await e.dataTransfer?.items[0].getAsFileSystemHandle()
   if (dirHandle?.kind === 'directory') {
     const handle = dirHandle as FileSystemDirectoryHandle
-    // emit before set curDir to before open-directory component unmount
-    await openRootDir(handle, state)
-    props.onOpenRootDir?.(rootDir.value)
+    await onOpenDir(handle, state)
   }
 })
 </script>
 
 <template>
-  <div ref="openDirectoryRef" class="agui-open-directory relative h-full w-full flex flex-col items-center justify-center">
-    <div class="icon cursor-pointer text-6xl">
+  <div
+    ref="openDirectoryRef"
+    class="agui-open-directory relative h-full w-full flex flex-col cursor-pointer items-center justify-center"
+    @click="openDir(state)"
+  >
+    <div class="icon text-6xl">
       <div
         :class="vscodeFolderIcon"
-        @click="onOpenDir(state)"
       />
     </div>
     <div class="text-base">

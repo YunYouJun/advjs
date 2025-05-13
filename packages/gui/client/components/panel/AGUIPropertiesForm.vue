@@ -30,7 +30,14 @@ defineProps<{
         v-else
         :key="property.name"
         :label="property.name"
+        :description="property.description"
       >
+        <template v-if="property.showKey" #after-label>
+          <span class="text-xs op-50">
+            {{ property.key }}
+          </span>
+        </template>
+
         <AGUIColorPicker
           v-if="property.type === 'color'"
           v-model="property.object[property.key]"

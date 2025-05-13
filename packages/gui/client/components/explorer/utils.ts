@@ -1,5 +1,5 @@
 import type { FSItem } from './types'
-import { getFiletypeFromPath, getIconFromFileType, isImage } from '../../utils'
+import { getFileTypeFromPath, getIconFromFileType, isImage } from '../../utils'
 
 /**
  * get icon from fs item
@@ -33,7 +33,7 @@ export async function getIconFromFSHandle(fsHandle: FileSystemFileHandle | FileS
   }
 
   const name = fsHandle.name || ''
-  const ext = getFiletypeFromPath(name)
+  const ext = getFileTypeFromPath(name)
   const icon = getIconFromFileType(ext)
   return icon
 }

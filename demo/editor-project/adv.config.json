@@ -1,0 +1,9 @@
+{
+  "$schema": "../../packages/types/schema/adv.config.schema.json",
+  "format": "flow",
+  "theme": "default",
+  "gameConfig": {
+    "id": "the-lord-of-the-rings",
+    "cdnUrl": ""
+  }
+}

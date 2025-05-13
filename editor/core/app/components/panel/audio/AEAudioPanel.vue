@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { useAdvContext } from '@advjs/client'
 
-import { useAudioStore } from '../../../composables/stores/useAudioStore'
-
 const { $adv } = useAdvContext()
 
 const audioStore = useAudioStore()
 const app = useAppStore()
 const fileStore = useFileStore()
+const monacoStore = useMonacoStore()
 
 async function fetchLibraryData() {
   if (!audioStore.bgmLibraryUrl) {
@@ -20,7 +19,7 @@ async function fetchLibraryData() {
       audioStore.bgmLibraryData = data
 
       app.activeInspector = 'file'
-      fileStore.monacoEditorFileContent = JSON.stringify(data, null, 2)
+      monacoStore.fileContent = JSON.stringify(data, null, 2)
       fileStore.fileName = audioStore.bgmLibraryUrl
     })
     .catch((err) => {

@@ -24,7 +24,7 @@ async function onFileDrop(files: FSFileItem[]) {
 }
 
 const curDir = shallowRef<FSDirItem>()
-const rootDir = shallowRef<FSDirItem>()
+const projectStore = useProjectStore()
 
 // eslint-disable-next-line unused-imports/no-unused-vars
 function onFSItemChange(item: FSItem) {
@@ -35,13 +35,11 @@ function onFileClick(item: FSFileItem) {
   consola.info('onFileClick', item)
 }
 
-const app = useAppStore()
 const fileStore = useFileStore()
 function onFileDblClick(item: FSFileItem) {
   consola.info('onFileDblClick', item)
-  if (item.name.endsWith('.json')) {
-    app.activeInspector = 'file'
-    fileStore.openedFileHandle = item.handle
+  if (item.handle) {
+    fileStore.setOpenedFileHandle(item.handle)
   }
   else {
     Toast({
@@ -51,6 +49,51 @@ function onFileDblClick(item: FSFileItem) {
     })
   }
 }
+
+/**
+ * 校验项目目录内容
+ */
+async function beforeOpenRootDir(dirHandle: FileSystemDirectoryHandle) {
+  const files = dirHandle.values()
+  // valid adv project
+  const validFiles = [
+    'index.adv.json',
+  ]
+  for await (const file of files) {
+    if (file.kind === 'file') {
+      const fileName = file.name
+      switch (fileName) {
+        case 'index.adv.json':
+          projectStore.setEntryFileHandle(file)
+          break
+        case 'adv.config.json':
+          projectStore.setAdvConfigFileHandle(file)
+          break
+        default:
+          break
+      }
+      if (validFiles.includes(fileName)) {
+        return true
+      }
+    }
+  }
+  // invalid adv project
+  Toast({
+    title: 'Error',
+    description: 'This is not a valid adv project. `index.adv.json` is required',
+    type: 'error',
+  })
+  return false
+}
+
+/**
+ * open adv project root dir
+ */
+function onOpenRootDir(dir?: FSDirItem) {
+  consola.debug('onOpenRootDir', dir)
+  // console.log('onOpenRootDir', dir)
+  // cache
+}
 </script>
 
 <template>
@@ -58,12 +101,15 @@ function onFileDblClick(item: FSFileItem) {
     <AGUITabs v-model="curTab" :list="tabList">
       <AGUITabPanel value="project">
         <AGUIAssetsExplorer
+          id="adv-explorer"
           v-model:cur-dir="curDir"
-          v-model:root-dir="rootDir"
+          v-model:root-dir="projectStore.rootDir"
+          :before-open-root-dir="beforeOpenRootDir"
           :on-file-drop="onFileDrop"
           :on-f-s-item-change="onFSItemChange"
           :on-file-click="onFileClick"
           :on-file-dbl-click="onFileDblClick"
+          :on-open-root-dir="onOpenRootDir"
         />
         <slot name="project" />
       </AGUITabPanel>
