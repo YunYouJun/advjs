@@ -2,9 +2,11 @@ import type { DefaultTheme } from 'vitepress'
 import { defineConfig } from 'vitepress'
 
 import { withMermaid } from 'vitepress-plugin-mermaid'
+import { links } from '../../../packages/shared/src'
 // todo: // wait released https://github.com/vitejs/vite/pull/10254
 // import { customElements } from '../../packages/advjs/node/constants'
 import typedocSidebar from '../../api/typedoc-sidebar.json'
+
 import { metaData } from './constants'
 
 import head from './head'
@@ -418,15 +420,15 @@ const userConfig = defineConfig({
     socialLinks: [
       {
         icon: 'github',
-        link: 'https://github.com/YunYouJun/advjs',
+        link: links.github,
       },
       {
         icon: 'twitter',
-        link: 'https://twitter.com/YunYouJun',
+        link: links.twitter,
       },
       {
         icon: 'discord',
-        link: 'https://discord.gg/HNNPywcTxw',
+        link: links.discord,
       },
     ],
 

@@ -60,12 +60,14 @@ function goToNode() {
 
     <AEAdvConfigActions v-if="gameStore.loadStatus === 'success'" />
 
-    <MonacoEditor
-      class="flex flex-grow"
-      :model-value="monacoStore.fileContent"
-      :lang="monacoStore.language || fileLanguage"
-      :options="monacoStore.options"
-      :editor-options="{ automaticLayout: true }"
-    />
+    <ClientOnly>
+      <MonacoEditor
+        class="flex flex-grow"
+        :model-value="monacoStore.fileContent"
+        :lang="monacoStore.language || fileLanguage"
+        :options="monacoStore.options"
+        :editor-options="{ automaticLayout: true }"
+      />
+    </ClientOnly>
   </div>
 </template>

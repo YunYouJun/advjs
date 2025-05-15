@@ -29,7 +29,7 @@
     "unocss": "catalog:",
     "unplugin-vue-components": "catalog:",
     "vitepress": "catalog:",
-    "vitepress-plugin-group-icons": "^1.5.2",
+    "vitepress-plugin-group-icons": "^1.5.3",
     "vitepress-plugin-mermaid": "^2.0.17"
   }
 }

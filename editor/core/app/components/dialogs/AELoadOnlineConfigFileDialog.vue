@@ -18,7 +18,8 @@ const adapterOptions = ref<{
 
 <template>
   <AGUIDialog
-    v-model:open="fileStore.onlineAdvConfigFileDialogOpen" title="Load Online ADV Config File"
+    v-model:open="fileStore.onlineAdvConfigFileDialogOpen"
+    title="Load Online ADV Config File"
     content-class="w-720px"
   >
     <div class="flex flex-col gap-4">

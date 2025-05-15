@@ -26,6 +26,23 @@ export interface ToolbarButton extends BaseToolbarItem {
   onClick: () => void
 }
 
+export interface ToolbarDropdown extends BaseToolbarItem {
+  type: 'dropdown'
+  name?: string
+  icon?: string
+  /**
+   * hover text
+   */
+  title?: string
+  children: {
+    type: 'item' | 'separator'
+    class?: string
+    onClick: () => void
+    icon?: string
+    label?: string
+  }[]
+}
+
 export interface ToolbarSeparator extends BaseToolbarItem {
   type: 'separator'
 }
@@ -34,4 +51,4 @@ export interface ToolbarSpace extends BaseToolbarItem {
   type: 'space'
 }
 
-export type ToolbarItem = ToolbarToggleGroup | ToolbarButton | ToolbarSeparator | ToolbarSpace
+export type ToolbarItem = ToolbarToggleGroup | ToolbarButton | ToolbarSeparator | ToolbarSpace | ToolbarDropdown

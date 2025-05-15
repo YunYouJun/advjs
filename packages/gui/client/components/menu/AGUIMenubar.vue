@@ -7,8 +7,8 @@ import {
   MenubarItemIndicator,
   MenubarMenu,
   MenubarPortal,
-  MenubarRadioGroup,
-  MenubarRadioItem,
+  // MenubarRadioGroup,
+  // MenubarRadioItem,
   MenubarRoot,
   MenubarSeparator,
   MenubarSub,
@@ -16,8 +16,6 @@ import {
   MenubarSubTrigger,
   MenubarTrigger,
 } from 'reka-ui'
-import { ref } from 'vue'
-
 import './menu-bar.scss'
 
 withDefaults(defineProps<{
@@ -26,16 +24,10 @@ withDefaults(defineProps<{
   menus: () => [],
 })
 
-const currentMenu = ref('')
-const checkboxOne = ref(false)
-const checkboxTwo = ref(false)
-const person = ref('pedro')
-function handleClick() {
-  // alert('hello!')
-}
-
-// const RADIO_ITEMS = ['Andy', 'Benoît', 'Luis']
-// const CHECK_ITEMS = ['Always Show Bookmarks Bar', 'Always Show Full URLs']
+const currentMenu = defineModel('currentMenu', {
+  type: String,
+  default: '',
+})
 </script>
 
 <template>
@@ -44,6 +36,7 @@ function handleClick() {
       <MenubarMenu v-for="menu in menus" :key="menu.name">
         <MenubarTrigger
           class="MenubarTrigger"
+          :class="menu.class"
         >
           {{ menu.name }}
         </MenubarTrigger>
@@ -108,8 +101,7 @@ function handleClick() {
                 :disabled="menuItem.disabled"
                 @click="menuItem.onClick"
               >
-                {{ menuItem.label }}
-
+                {{ menuItem.label }}<span v-if="menuItem.ellipsis">…</span>
                 <div class="RightSlot">
                   {{ menuItem.accelerator }}
                 </div>
@@ -119,125 +111,5 @@ function handleClick() {
         </MenubarPortal>
       </MenubarMenu>
     </template>
-
-    <MenubarMenu>
-      <MenubarTrigger
-        class="MenubarTrigger"
-      >
-        View
-      </MenubarTrigger>
-      <MenubarPortal>
-        <MenubarContent
-          class="MenubarContent"
-          align="start"
-          :side-offset="5"
-          :align-offset="-14"
-        >
-          <MenubarCheckboxItem
-            v-model="checkboxOne"
-            class="MenubarCheckboxItem"
-          >
-            <MenubarItemIndicator class="MenubarItemIndicator">
-              <div class="i-radix-icons:check" />
-            </MenubarItemIndicator>
-            Show Bookmarks
-            <div
-              class="RightSlot"
-            >
-              ⌘+B
-            </div>
-          </MenubarCheckboxItem>
-          <MenubarCheckboxItem
-            v-model="checkboxTwo"
-            class="MenubarCheckboxItem"
-          >
-            <MenubarItemIndicator class="MenubarItemIndicator">
-              <div class="i-radix-icons:check" />
-            </MenubarItemIndicator>
-            Show Full URLs
-          </MenubarCheckboxItem>
-          <MenubarSeparator class="MenubarSeparator" />
-          <MenubarItem
-            class="MenubarItem"
-          >
-            Reload
-            <div class="RightSlot">
-              ⌘ R
-            </div>
-          </MenubarItem>
-          <MenubarItem
-            class="MenubarItem"
-            disabled
-          >
-            Force Reload
-            <div class="RightSlot">
-              ⇧ ⌘ R
-            </div>
-          </MenubarItem>
-          <MenubarSeparator class="MenubarSeparator" />
-          <MenubarItem
-            class="MenubarItem"
-          >
-            Toggle Fullscreen
-          </MenubarItem>
-          <MenubarSeparator class="MenubarSeparator" />
-          <MenubarItem
-            class="MenubarItem"
-          >
-            Hide Sidebar
-          </MenubarItem>
-        </MenubarContent>
-      </MenubarPortal>
-    </MenubarMenu>
-
-    <MenubarMenu>
-      <MenubarTrigger
-        class="MenubarTrigger"
-      >
-        Profiles
-      </MenubarTrigger>
-      <MenubarPortal>
-        <MenubarContent
-          class="MenubarContent"
-          align="start"
-          :side-offset="5"
-          :align-offset="-14"
-        >
-          <MenubarRadioGroup v-model="person">
-            <MenubarRadioItem
-              class="MenubarCheckboxItem inset"
-              value="pedro"
-            >
-              <MenubarItemIndicator class="MenubarItemIndicator">
-                <div class="i-radix-icons:dot-filled" />
-              </MenubarItemIndicator>
-              Pedro Duarte
-            </MenubarRadioItem>
-            <MenubarRadioItem
-              class="MenubarCheckboxItem inset"
-              value="colm"
-            >
-              <MenubarItemIndicator class="MenubarItemIndicator">
-                <div class="i-radix-icons:dot-filled" />
-              </MenubarItemIndicator>
-              Colm Tuite
-            </MenubarRadioItem>
-          </MenubarRadioGroup>
-          <MenubarSeparator class="MenubarSeparator" />
-          <MenubarItem
-            class="MenubarItem"
-            @click="handleClick"
-          >
-            Edit…
-          </MenubarItem>
-          <MenubarSeparator class="MenubarSeparator" />
-          <MenubarItem
-            class="MenubarItem"
-          >
-            Add Profile…
-          </MenubarItem>
-        </MenubarContent>
-      </MenubarPortal>
-    </MenubarMenu>
   </MenubarRoot>
 </template>

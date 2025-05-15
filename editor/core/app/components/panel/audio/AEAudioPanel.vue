@@ -60,7 +60,12 @@ function getAudioSrcByKey(bgmKey: string) {
             <span class="text-white font-bold">{{ key }}:</span>
             <span class="text-$agui-c-text">《{{ item.name }}》</span>
           </div>
-          <audio :src="getAudioSrcByKey(key as any as string)" preload="auto" controls class="w-full" />
+          <audio
+            :src="getAudioSrcByKey(key as any as string)"
+            preload="metadata"
+            controls
+            class="w-full"
+          />
           <span class="text-gray-400">{{ item.description }}</span>
         </div>
       </li>

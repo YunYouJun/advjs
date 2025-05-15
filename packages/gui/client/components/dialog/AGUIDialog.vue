@@ -28,9 +28,9 @@ const open = defineModel('open', {
     <DialogPortal>
       <DialogOverlay class="data-[state=open]:animate-overlayShow fixed inset-0 z-99 bg-black/50" />
       <DialogContent
-        class="data-[state=open]:animate-contentShow fixed left-[50%] top-[50%] z-[100] h-lg w-4xl translate-x-[-50%] translate-y-[-50%] overflow-hidden rounded-lg bg-dark-300 shadow-xl focus:outline-none"
+        class="data-[state=open]:animate-contentShow fixed left-[50%] top-[50%] z-[100] translate-x-[-50%] translate-y-[-50%] overflow-hidden rounded-lg bg-dark-300 shadow-xl focus:outline-none"
         flex="~ col"
-        :class="contentClass"
+        :class="contentClass || 'w-4xl h-md'"
         :aria-describedby="description"
         :aria-hidden="!open"
       >

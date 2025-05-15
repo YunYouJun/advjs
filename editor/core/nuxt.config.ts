@@ -1,7 +1,33 @@
 import path, { resolve } from 'node:path'
+import { simpleGit } from 'simple-git'
 import { commonAliasMap, packagesDir, themesDir } from '../../packages/shared/node'
 import { pwa } from './app/config/pwa'
+
 import { appDescription } from './app/constants/index'
+
+const git = simpleGit()
+/**
+ * simple-git 获取当前最新 git commit
+ */
+async function getLatestCommit() {
+  try {
+    const commit = await git.log({ n: 1 }) // 获取最近1条提交记录
+    const latestCommit = commit.all[0] // 提取第一条记录
+    return latestCommit?.hash // 返回最新提交的哈希值
+  }
+  catch (err) {
+    console.error('获取 commit 失败:', err)
+  }
+}
+
+/**
+ * add global env
+ */
+import.meta.env.VITE_APP_BUILD_TIME = new Date().getTime().toString()
+getLatestCommit().then((hash) => {
+  import.meta.env.VITE_APP_LATEST_COMMIT_HASH = hash
+  console.log('hash', hash)
+})
 
 export default defineNuxtConfig({
   ssr: false,
@@ -129,6 +155,13 @@ export default defineNuxtConfig({
     define: {
       // dev adv.js
       __DEV__: 'true',
+    },
+
+    optimizeDeps: {
+      include: [
+        'qrcode',
+        'pixi-painter',
+      ],
     },
   },
 

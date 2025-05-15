@@ -20,8 +20,8 @@
   "files": [
     "client.d.ts",
     "dist",
-    "schema",
-    "index.d.ts"
+    "index.d.ts",
+    "schema"
   ],
   "engines": {
     "node": "^20.0.0 || >=22.0.0"

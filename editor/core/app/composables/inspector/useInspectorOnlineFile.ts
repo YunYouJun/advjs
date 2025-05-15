@@ -9,8 +9,8 @@ export function useInspectorOnlineFile() {
     return path.split('/').pop() || ''
   })
 
-  const language = computed(() => {
-    return name.value?.endsWith('.json') ? 'json' : 'text'
+  const language = computed<MonacoEditorLanguage>(() => {
+    return name.value?.endsWith('.json') ? 'json' : 'plaintext'
   })
 
   return {

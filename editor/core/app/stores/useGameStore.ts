@@ -25,6 +25,7 @@ export const useGameStore = defineStore('editor:game', () => {
   const startNode = ref()
 
   const onlineStore = useOnlineStore()
+  const projectStore = useProjectStore()
 
   const { $adv } = useAdvContext()
   async function loadGameFromJSONStr(jsonStr: string) {
@@ -46,7 +47,7 @@ export const useGameStore = defineStore('editor:game', () => {
         case 'pominis':
           config = convertPominisAItoAdvConfig({
             config: config as any,
-            cdnUrl: onlineStore.cdnUrl || onlineStore.defaultCdnUrl,
+            cdnUrl: projectStore.advConfig.cdn.prefix || onlineStore.cdnUrl || onlineStore.defaultCdnUrl,
           })
           break
         default:

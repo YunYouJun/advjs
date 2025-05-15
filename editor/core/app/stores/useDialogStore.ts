@@ -5,17 +5,16 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
  */
 export const useDialogStore = defineStore('@advjs/editor:dialog', () => {
   /**
-   * settings dialog is open
+   * dialog open states
    */
-  const settingsDialogOpen = ref(false)
-  /**
-   * project settings dialog is open
-   */
-  const projectSettingsDialogOpen = ref(false)
+  const openStates = ref({
+    about: false,
+    settings: false,
+    projectSettings: false,
+  })
 
   return {
-    settingsDialogOpen,
-    projectSettingsDialogOpen,
+    openStates,
   }
 })
 

@@ -3,7 +3,10 @@
   "format": "flow",
   "theme": "default",
   "gameConfig": {
-    "id": "the-lord-of-the-rings",
-    "cdnUrl": ""
+    "id": "the-lord-of-the-rings"
+  },
+  "cdn": {
+    "enable": true,
+    "prefix": ""
   }
 }

@@ -1,0 +1,41 @@
+.agui-dropdown-menu-content,
+.agui-dropdown-menu-sub-content {
+  min-width: 220px;
+  background-color: rgba(22, 23, 24, 0.5);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--agui-c-divider);
+
+  border-radius: 6px;
+  padding: 5px;
+  box-shadow:
+    0px 10px 38px -10px rgba(22, 23, 24, 0.35),
+    0px 10px 20px -15px rgba(22, 23, 24, 0.8);
+  animation-duration: 400ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+
+  z-index: 1000;
+}
+
+.agui-dropdown-menu-item {
+  color: var(--agui-c-text-1);
+
+  all: unset;
+  font-size: 12px;
+  line-height: 1;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  height: 25px;
+  padding: 0 10px;
+
+  position: relative;
+  user-select: none;
+}
+
+.agui-dropdown-menu-item {
+  &[data-highlighted] {
+    background-color: var(--agui-c-active);
+    color: white;
+  }
+}

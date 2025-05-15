@@ -5,6 +5,12 @@ export interface MenuItem {
    * Shortcut key
    */
   accelerator?: string
+  /**
+   * show …
+   * @default false
+   */
+  ellipsis?: boolean
+
   disabled?: boolean
 
   checked?: boolean
@@ -15,5 +21,9 @@ export interface MenuItem {
 
 export interface Menu {
   name: string
+  /**
+   * custom class
+   */
+  class?: string
   items: MenuItem[]
 }

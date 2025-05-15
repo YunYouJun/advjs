@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { DialogClose } from 'reka-ui'
 
-const dialogStore = useDialogStore()
+const open = defineModel('open', {
+  type: Boolean,
+  default: false,
+})
 </script>
 
 <template>
-  <AGUIDialog v-model:open="dialogStore.settingsDialogOpen" title="Settings">
+  <AGUIDialog v-model:open="open" title="Settings">
     <AESettingsCOSTab />
     <div class="mt-[25px] flex justify-end">
       <DialogClose as-child>

@@ -13,16 +13,16 @@ const toggleGroupItemClasses
 
 <template>
   <ToolbarRoot
-    class="shadow-blackA7 h-$agui-toolbar-height w-full flex gap-1 p-1"
+    class="shadow-blackA7 h-$agui-toolbar-height w-full flex gap-1 px-1.5 py-1"
     aria-label="Formatting options"
   >
-    <!-- <ToolbarSeparator class="bg-mauve6 mx-[10px] w-[1px]" /> -->
+    <slot name="before-toolbar" />
 
     <template v-for="(item, key) in items">
       <div v-if="item.type === 'space'" :key="key" class="flex flex-grow" />
       <ToolbarSeparator
-        v-if="item.type === 'separator'"
-        :key="key"
+        v-else-if="item.type === 'separator'"
+        :key="`separator:${key}`"
         class="mx-1 my-2px w-1px bg-gray op-50"
       />
       <ToolbarButton
@@ -58,6 +58,14 @@ const toggleGroupItemClasses
           <div :class="bItem.icon" class="h-[15px] w-[15px]" />
         </ToggleGroupItem>
       </ToggleGroupRoot>
+
+      <AGUIDropdownMenu
+        v-else-if="item.type === 'dropdown'"
+        :key="`dropdown:${item.name}`"
+        :data="item"
+      />
     </template>
+
+    <slot name="after-toolbar" />
   </ToolbarRoot>
 </template>

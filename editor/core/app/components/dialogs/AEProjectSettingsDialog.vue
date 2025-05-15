@@ -2,7 +2,11 @@
 import type { Trees } from '@advjs/gui'
 import { SplitterGroup, SplitterPanel, SplitterResizeHandle } from 'reka-ui'
 
-const dialogStore = useDialogStore()
+const open = defineModel('open', {
+  type: Boolean,
+  default: false,
+})
+
 const projectStore = useProjectStore()
 
 const treeData = ref<Trees>([
@@ -12,7 +16,7 @@ const treeData = ref<Trees>([
 </script>
 
 <template>
-  <AGUIDialog v-model:open="dialogStore.projectSettingsDialogOpen" title="Project Settings">
+  <AGUIDialog v-model:open="open" title="Project Settings">
     <!-- <AESettingsCOSTab /> -->
     <div class="h-full w-full flex flex-1">
       <SplitterGroup

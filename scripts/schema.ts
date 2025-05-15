@@ -40,8 +40,11 @@ async function generateSchema() {
   consola.success(colors.yellow('adv.config.json'), 'Schema generated successfully:', colors.cyan(targetSchemaFile))
 
   // copy for online schema link
-  await fs.copyFile(targetSchemaFile, path.resolve(docsDir, 'public/adv.config.schema.json'))
-  consola.success('Schema copied to:', colors.cyan(path.resolve(docsDir, 'public/adv.config.schema.json')))
+  const publicSchemaDir = path.resolve(docsDir, 'public/schema')
+  await fs.ensureDir(publicSchemaDir)
+  const advConfigSchemaFile = path.resolve(publicSchemaDir, 'adv.config.schema.json')
+  await fs.copyFile(targetSchemaFile, advConfigSchemaFile)
+  consola.success('Schema copied to:', colors.cyan(advConfigSchemaFile))
 }
 
 generateSchema()

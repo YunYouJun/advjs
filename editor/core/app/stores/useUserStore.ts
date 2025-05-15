@@ -2,6 +2,11 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 
 export const useUserStore = defineStore('user', () => {
   /**
+   * 是否登录
+   */
+  const loggedIn = ref(false)
+
+  /**
    * Current named of the user.
    */
   const savedName = ref('')
@@ -24,6 +29,8 @@ export const useUserStore = defineStore('user', () => {
   }
 
   return {
+    loggedIn,
+
     setNewName,
     otherNames,
     savedName,
