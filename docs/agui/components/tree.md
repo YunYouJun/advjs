@@ -2,4 +2,4 @@
 
 <TreeDemo />
 
-<<< @/.vitepress/components/demo/TreeDemo.vue
+<<< @/.vitepress/theme/components/demo/TreeDemo.vue

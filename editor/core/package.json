@@ -18,9 +18,11 @@
   "dependencies": {
     "@dagrejs/dagre": "^1.1.4",
     "@google/model-viewer": "catalog:",
+    "@octokit/core": "^7.0.2",
+    "@octokit/rest": "^21.1.1",
     "@vue-flow/background": "^1.3.2",
     "@vue-flow/controls": "^1.1.2",
-    "@vue-flow/core": "^1.43.1",
+    "@vue-flow/core": "^1.44.0",
     "@vue-flow/minimap": "^1.5.3",
     "@vue-flow/node-resizer": "^1.4.0",
     "@vueuse/core": "catalog:",
@@ -34,6 +36,7 @@
     "@iconify-json/carbon": "catalog:",
     "@iconify-json/ep": "catalog:",
     "@iconify-json/mdi": "catalog:",
+    "@iconify-json/svg-spinners": "^1.2.2",
     "@iconify-json/twemoji": "catalog:",
     "@nuxt/devtools": "catalog:",
     "@nuxtjs/color-mode": "catalog:",
@@ -50,9 +53,10 @@
     "honeycomb-grid": "catalog:",
     "monaco-editor": "catalog:",
     "nuxt": "catalog:",
+    "nuxt-auth-utils": "0.5.20",
     "nuxt-monaco-editor": "^1.3.1",
     "pinia": "catalog:",
     "simple-git": "^3.27.0",
-    "tdesign-vue-next": "^1.12.0"
+    "tdesign-vue-next": "^1.13.0"
   }
 }

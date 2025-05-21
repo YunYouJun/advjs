@@ -11,19 +11,19 @@ export interface AdvConfig<ThemeConfig = AdvThemeConfig> {
   /**
    * consola 日志级别 (浏览器控制台)
    *
-   * use 'LogLevels.debug' for debug
-   * @default 'info'
+   * use `LogLevels.debug` for debug
+   * @default 'LogLevels.info'
    */
   logLevel: LogLevel
   /**
    * adv root
    *
-   * - /<rootDir>/setups
-   * - /<rootDir>/locales
-   * - /<rootDir>/components
-   * - /<rootDir>/layouts
-   * - /<rootDir>/pages
-   * - /<rootDir>/styles
+   * - `/<rootDir>/setups`
+   * - `/<rootDir>/locales`
+   * - `/<rootDir>/components`
+   * - `/<rootDir>/layouts`
+   * - `/<rootDir>/pages`
+   * - `/<rootDir>/styles`
    */
   root?: string
 

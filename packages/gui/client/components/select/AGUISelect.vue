@@ -27,6 +27,11 @@ defineProps<{
   legend?: string
 
   placeholder?: string
+
+  /**
+   * @description 是否多选
+   */
+  multiple?: boolean
 }>()
 
 // 使用 emits 定义组件发出的事件
@@ -39,7 +44,11 @@ function onUpdateModelValue(value: AcceptableValue) {
 </script>
 
 <template>
-  <SelectRoot :model-value="modelValue" @update:model-value="onUpdateModelValue">
+  <SelectRoot
+    :model-value="modelValue"
+    :multiple="multiple"
+    @update:model-value="onUpdateModelValue"
+  >
     <SelectTrigger
       class="agui-select-trigger"
       :aria-label="placeholder"

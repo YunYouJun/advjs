@@ -4,10 +4,10 @@
 
 <ButtonDemo />
 
-<<< @/.vitepress/components/demo/ButtonDemo.vue
+<<< @/.vitepress/theme/components/demo/ButtonDemo.vue
 
 ## Icon Button
 
 <IconButtonDemo />
 
-<<< @/.vitepress/components/demo/IconButtonDemo.vue
+<<< @/.vitepress/theme/components/demo/IconButtonDemo.vue

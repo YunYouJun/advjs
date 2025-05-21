@@ -2,4 +2,4 @@
 
 <NumberSliderDemo />
 
-<<< @/.vitepress/components/demo/NumberSliderDemo.vue
+<<< @/.vitepress/theme/components/demo/NumberSliderDemo.vue

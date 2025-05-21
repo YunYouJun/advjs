@@ -2,4 +2,4 @@
 
 <SelectDemo />
 
-<<< @/.vitepress/components/demo/SelectDemo.vue
+<<< @/.vitepress/theme/components/demo/SelectDemo.vue

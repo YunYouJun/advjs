@@ -2,4 +2,4 @@
 
 <InputDemo />
 
-<<< @/.vitepress/components/demo/InputDemo.vue
+<<< @/.vitepress/theme/components/demo/InputDemo.vue

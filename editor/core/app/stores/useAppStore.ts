@@ -46,7 +46,7 @@ const defaultLayout: AGUILayoutType = {
   ],
 }
 
-export const useAppStore = defineStore('app', () => {
+export const useAppStore = defineStore('@advjs/editor:app', () => {
   const pixiApp = shallowRef<PIXI.Application | null>(null)
   const layout = useStorage('agui:layout', JSON.parse(JSON.stringify(defaultLayout)))
 

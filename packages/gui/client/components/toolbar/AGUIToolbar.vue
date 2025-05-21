@@ -13,7 +13,7 @@ const toggleGroupItemClasses
 
 <template>
   <ToolbarRoot
-    class="shadow-blackA7 h-$agui-toolbar-height w-full flex gap-1 px-1.5 py-1"
+    class="h-$agui-toolbar-height w-full flex gap-1 bg-$agui-c-bg px-1.5 py-1 shadow-black/70"
     aria-label="Formatting options"
   >
     <slot name="before-toolbar" />

@@ -1,8 +1,9 @@
 import path, { resolve } from 'node:path'
+import process from 'node:process'
 import { simpleGit } from 'simple-git'
 import { commonAliasMap, packagesDir, themesDir } from '../../packages/shared/node'
-import { pwa } from './app/config/pwa'
 
+import { pwa } from './app/config/pwa'
 import { appDescription } from './app/constants/index'
 
 const git = simpleGit()
@@ -26,7 +27,6 @@ async function getLatestCommit() {
 import.meta.env.VITE_APP_BUILD_TIME = new Date().getTime().toString()
 getLatestCommit().then((hash) => {
   import.meta.env.VITE_APP_LATEST_COMMIT_HASH = hash
-  console.log('hash', hash)
 })
 
 export default defineNuxtConfig({
@@ -59,6 +59,7 @@ export default defineNuxtConfig({
     'nuxt-monaco-editor',
     '@nuxtjs/i18n',
     '@tdesign-vue-next/nuxt',
+    'nuxt-auth-utils',
   ],
 
   future: {
@@ -160,7 +161,7 @@ export default defineNuxtConfig({
     optimizeDeps: {
       include: [
         'qrcode',
-        'pixi-painter',
+        // 'pixi-painter',
       ],
     },
   },
@@ -176,5 +177,14 @@ export default defineNuxtConfig({
       { code: 'en', language: 'en-US', name: 'English', file: path.resolve(packagesDir, 'client/locales/en.yml') },
       { code: 'zh', language: 'zh-CN', name: '简体中文', file: path.resolve(packagesDir, 'client/locales/zh-CN.yml') },
     ],
+  },
+
+  runtimeConfig: {
+    oauth: {
+      github: {
+        clientId: process.env.NUXT_OAUTH_GITHUB_CLIENT_ID,
+        clientSecret: process.env.NUXT_OAUTH_GITHUB_CLIENT_SECRET,
+      },
+    },
   },
 })

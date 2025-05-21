@@ -2,4 +2,4 @@
 
 <TabsDemo />
 
-<<< @/.vitepress/components/demo/TabsDemo.vue
+<<< @/.vitepress/theme/components/demo/TabsDemo.vue

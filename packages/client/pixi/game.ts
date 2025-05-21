@@ -71,7 +71,7 @@ export class PixiGame {
       // background: '#FFFFFF',
       backgroundAlpha: 0,
       antialias: true,
-      // resolution: window.devicePixelRatio,
+      resolution: window.devicePixelRatio,
     })
 
     if (this.assetsManifest) {

@@ -4,10 +4,10 @@
 
 <InputNumberDemo />
 
-<<< @/.vitepress/components/demo/InputNumberDemo.vue
+<<< @/.vitepress/theme/components/demo/InputNumberDemo.vue
 
 ## NumberField (Drag)
 
 <NumberFieldDemo />
 
-<<< @/.vitepress/components/demo/NumberFieldDemo.vue
+<<< @/.vitepress/theme/components/demo/NumberFieldDemo.vue

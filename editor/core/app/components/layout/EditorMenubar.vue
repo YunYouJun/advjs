@@ -3,7 +3,7 @@ const { menus } = useEditorMenubar()
 </script>
 
 <template>
-  <AGUIMenubar :menus="menus" />
+  <AGUIMenubar class="border-b-1px border-b-black/80" :menus="menus" />
 
   <!-- dialog -->
   <AEGlobalDialogs />

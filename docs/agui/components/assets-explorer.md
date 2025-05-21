@@ -2,4 +2,4 @@
 
 <AssetsExplorerDemo />
 
-<<< @/.vitepress/components/demo/AssetsExplorerDemo.vue
+<<< @/.vitepress/theme/components/demo/AssetsExplorerDemo.vue

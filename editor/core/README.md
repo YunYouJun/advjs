@@ -1,5 +1,8 @@
 # Core
 
+- Global: <https://editor.advjs.org>
+- 国内加速（EdgeOne）: <https://editor.advjs.yunle.fun>
+
 Based on Nuxt.
 
 ## Todo

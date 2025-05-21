@@ -52,10 +52,12 @@ onMounted(() => {
   color: var(--adv-c-text);
   position: fixed;
   z-index: 1000;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+
+  /* -1px for 1px problem */
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
   backdrop-filter: blur(30px);
   background-color: var(--adv-modal-bg-color);
   transition: all 0.2s ease;

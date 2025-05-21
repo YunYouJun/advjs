@@ -1,13 +1,14 @@
 import type { FSDirItem, TreeNode } from '@advjs/gui'
 import type { AdvConfig } from '@advjs/types'
 import { defaultConfig } from '@advjs/core'
-import { consola } from 'consola'
 
 /**
  * global project store
  */
 export const useProjectStore = defineStore('@advjs/editor:project', () => {
+  const consoleStore = useConsoleStore()
   const fileStore = useFileStore()
+  const gameStore = useGameStore()
 
   // global project store with dir handle
   /**
@@ -53,10 +54,30 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
     // load file content
     const advConfigJson = await fileHandle.getFile()
       .then(file => file.text())
-      .then(text => JSON.parse(text) as AdvConfig)
-    advConfig.value = advConfigJson
 
-    consola.info('adv.config.json', advConfigJson)
+    loadAdvConfigJSON(advConfigJson)
+  }
+
+  /**
+   * load index.adv.json txt
+   */
+  async function loadIndexAdvJSON(text: string) {
+    fileStore.rawConfigFileContent = text
+    gameStore.loadGameFromJSONStr(text)
+
+    consoleStore.success('File loaded', {
+      fileName: 'index.adv.json',
+    })
+  }
+
+  /**
+   * load adv.config.json
+   */
+  async function loadAdvConfigJSON(text: string) {
+    advConfig.value = JSON.parse(text) as AdvConfig
+    consoleStore.success('File loaded', {
+      fileName: 'adv.config.json',
+    })
   }
 
   return {
@@ -68,6 +89,9 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
     entryFileHandle,
     setEntryFileHandle,
     setAdvConfigFileHandle,
+
+    loadIndexAdvJSON,
+    loadAdvConfigJSON,
   }
 })
 

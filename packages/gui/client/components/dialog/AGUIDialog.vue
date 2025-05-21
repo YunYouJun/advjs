@@ -58,7 +58,9 @@ const open = defineModel('open', {
           {{ description }}
         </DialogDescription>
 
-        <slot />
+        <div class="relative" style="height: calc(100% - 28px)">
+          <slot />
+        </div>
       </DialogContent>
     </DialogPortal>
   </DialogRoot>

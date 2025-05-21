@@ -7,6 +7,6 @@
   },
   "cdn": {
     "enable": true,
-    "prefix": ""
+    "prefix": "https://cos.advjs.yunle.fun/games/the-lord-of-the-rings"
   }
 }

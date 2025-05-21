@@ -1,5 +1,6 @@
 import type { AdvGameConfig } from '@advjs/types'
 import type { PominisAIVSConfig } from './types'
+import { ensureSuffix } from '@antfu/utils'
 
 /**
  * adapt ai pominis format
@@ -13,7 +14,7 @@ export function convertPominisAItoAdvConfig(options: {
   config: {} as any,
 }) {
   const advConfig = JSON.parse(JSON.stringify(options.config)) as PominisAIVSConfig
-  const cdnUrlPrefix = options.cdnUrl
+  const cdnUrlPrefix = ensureSuffix('/', options.cdnUrl || '')
 
   const characterMap = new Map<string, string>()
   advConfig.characters.forEach((character) => {
@@ -22,7 +23,7 @@ export function convertPominisAItoAdvConfig(options: {
     characterMap.set(characterName, character.id)
 
     const modifiedCharacter = character as any
-    modifiedCharacter.avatar = `${cdnUrlPrefix}/characters/${characterName}.jpg`
+    modifiedCharacter.avatar = `${cdnUrlPrefix}characters/${characterName}.jpg`
   })
 
   for (let i = 0; i < advConfig.chapters.length; i++) {
@@ -79,7 +80,7 @@ export function convertPominisAItoAdvConfig(options: {
             {
               id: `${node.id}_scene`,
               type: 'image',
-              src: `${cdnUrlPrefix}/nodes/${node.id}.jpg`,
+              src: `${cdnUrlPrefix}nodes/${node.id}.jpg`,
             },
           )
         }

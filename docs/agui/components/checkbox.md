@@ -2,4 +2,4 @@
 
 <CheckboxDemo />
 
-<<< @/.vitepress/components/demo/CheckboxDemo.vue
+<<< @/.vitepress/theme/components/demo/CheckboxDemo.vue

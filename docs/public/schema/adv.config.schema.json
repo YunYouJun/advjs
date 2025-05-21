@@ -3,12 +3,12 @@
   "type": "object",
   "properties": {
     "logLevel": {
-      "description": "consola 日志级别 (浏览器控制台)\n\nuse 'LogLevels.debug' for debug",
+      "description": "consola 日志级别 (浏览器控制台)\n\nuse `LogLevels.debug` for debug",
       "type": "{0 | 1 | 2 | 3 | 4 | 5 | (number & {})} LogLevel - Represents the log level.",
-      "default": "'info'"
+      "default": "'LogLevels.info'"
     },
     "root": {
-      "description": "adv root\n\n- /<rootDir>/setups\n- /<rootDir>/locales\n- /<rootDir>/components\n- /<rootDir>/layouts\n- /<rootDir>/pages\n- /<rootDir>/styles",
+      "description": "adv root\n\n- `/<rootDir>/setups`\n- `/<rootDir>/locales`\n- `/<rootDir>/components`\n- `/<rootDir>/layouts`\n- `/<rootDir>/pages`\n- `/<rootDir>/styles`",
       "type": "string"
     },
     "format": {
@@ -34797,12 +34797,12 @@
     "Promise<ServiceWorkerRegistration>": {
       "type": "object",
       "properties": {
-        "__@toStringTag@15839": {
+        "__@toStringTag@15847": {
           "type": "string"
         }
       },
       "required": [
-        "__@toStringTag@15839"
+        "__@toStringTag@15847"
       ]
     },
     "UserActivation": {
@@ -50369,12 +50369,12 @@
         "size": {
           "type": "number"
         },
-        "__@toStringTag@15839": {
+        "__@toStringTag@15847": {
           "type": "string"
         }
       },
       "required": [
-        "__@toStringTag@15839",
+        "__@toStringTag@15847",
         "onloading",
         "onloadingdone",
         "onloadingerror",
@@ -50386,12 +50386,12 @@
     "Promise<FontFaceSet>": {
       "type": "object",
       "properties": {
-        "__@toStringTag@15839": {
+        "__@toStringTag@15847": {
           "type": "string"
         }
       },
       "required": [
-        "__@toStringTag@15839"
+        "__@toStringTag@15847"
       ]
     },
     "FontFaceSetLoadStatus": {

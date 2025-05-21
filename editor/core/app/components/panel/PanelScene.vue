@@ -8,7 +8,7 @@ const tabList = ref([
   { title: 'Audio', key: 'audio', icon: 'i-ri-music-line' },
   { title: 'Flow Editor', key: 'flow-editor', icon: 'i-ri-flow-chart' },
   // { title: 'Node Editor', key: 'node-editor', icon: 'i-ri-node-tree' },
-  { title: 'Scene', key: 'scene', icon: 'i-ri-grid-line' },
+  // { title: 'Scene', key: 'scene', icon: 'i-ri-grid-line' },
   { title: 'Asset Store', key: 'asset-store', icon: 'i-ri-store-line' },
   // { title: 'Map Editor', key: 'map-editor', icon: 'i-ri-map-line' },
 ])
@@ -53,8 +53,10 @@ function toggleFullscreen() {
       v-model="curTab"
       :list="tabList"
       default-value="game"
+      :unmount-on-hide="false"
       @change="changeTab"
     >
+      <!-- avoid canvas display -->
       <AGUITabPanel v-show="curTab === 'game'" value="game">
         <AdvGamePreview />
       </AGUITabPanel>
@@ -71,10 +73,10 @@ function toggleFullscreen() {
         <!-- <AdvFlowEditor /> -->
       </AGUITabPanel>
 
-      <AGUITabPanel v-show="curTab === 'scene'" h="full" :unmount="false" relative value="scene">
+      <!-- <AGUITabPanel v-show="curTab === 'scene'" h="full" :unmount="false" relative value="scene">
         <SceneToolbar absolute top-0 w-full />
         <SceneCanvas />
-      </AGUITabPanel>
+      </AGUITabPanel> -->
 
       <!-- <AGUITabPanel v-show="curTab === 'node-editor'">
         <NodeEditor />

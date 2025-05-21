@@ -6,4 +6,4 @@ title_zh: 侧边栏
 
 <DemoSidebar />
 
-<<< @/.vitepress/components/demo/DemoSidebar.vue
+<<< @/.vitepress/theme/components/demo/DemoSidebar.vue

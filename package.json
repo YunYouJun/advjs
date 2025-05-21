@@ -75,7 +75,7 @@
     "@advjs/plugin-babylon": "workspace:*",
     "@advjs/theme-default": "workspace:*",
     "@advjs/types": "workspace:*",
-    "@antfu/eslint-config": "^4.13.0",
+    "@antfu/eslint-config": "^4.13.2",
     "@antfu/ni": "catalog:",
     "@playwright/test": "^1.52.0",
     "@types/fs-extra": "catalog:",

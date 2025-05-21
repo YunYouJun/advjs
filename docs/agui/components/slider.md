@@ -2,4 +2,4 @@
 
 <SliderDemo />
 
-<<< @/.vitepress/components/demo/SliderDemo.vue
+<<< @/.vitepress/theme/components/demo/SliderDemo.vue

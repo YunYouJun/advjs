@@ -1,4 +1,5 @@
-import type { AdvConfigAdapterType } from '../../types'
+import type { AdvConfigAdapterType } from '../types'
+import type { MonacoEditorLanguage } from './useMonacoStore'
 import { useStorage } from '@vueuse/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
@@ -118,7 +119,7 @@ export const useFileStore = defineStore('file', () => {
     monacoStore.fileContent = fileContent
 
     const ext = fileHandle.name.split('.').pop() || ''
-    const extLangMap: Record<string, string> = {
+    const extLangMap: Record<string, MonacoEditorLanguage> = {
       ts: 'typescript',
       js: 'javascript',
       html: 'html',
@@ -126,7 +127,7 @@ export const useFileStore = defineStore('file', () => {
       json: 'json',
       md: 'markdown',
     }
-    const lang = extLangMap[ext] || 'text'
+    const lang = extLangMap[ext] || 'plaintext'
     monacoStore.language = lang
   }
 

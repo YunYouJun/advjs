@@ -56,34 +56,39 @@ function onFileDblClick(item: FSFileItem) {
 async function beforeOpenRootDir(dirHandle: FileSystemDirectoryHandle) {
   const files = dirHandle.values()
   // valid adv project
-  const validFiles = [
-    'index.adv.json',
-  ]
+  type ProjectFileName = 'adv.config.json' | 'index.adv.json'
+  const projectFiles: Record<ProjectFileName, FileSystemFileHandle> = {
+    'adv.config.json': undefined!,
+    'index.adv.json': undefined!,
+  }
   for await (const file of files) {
     if (file.kind === 'file') {
       const fileName = file.name
       switch (fileName) {
-        case 'index.adv.json':
-          projectStore.setEntryFileHandle(file)
-          break
         case 'adv.config.json':
-          projectStore.setAdvConfigFileHandle(file)
+        case 'index.adv.json':
+          projectFiles[fileName] = file
           break
         default:
           break
       }
-      if (validFiles.includes(fileName)) {
-        return true
-      }
     }
   }
-  // invalid adv project
-  Toast({
-    title: 'Error',
-    description: 'This is not a valid adv project. `index.adv.json` is required',
-    type: 'error',
-  })
-  return false
+
+  if (projectFiles['index.adv.json'] && projectFiles['adv.config.json']) {
+    // set config firstly
+    await projectStore.setAdvConfigFileHandle(projectFiles['adv.config.json'])
+    await projectStore.setEntryFileHandle(projectFiles['index.adv.json'])
+    return true
+  }
+  else {
+    Toast({
+      title: 'Error',
+      description: 'This is not a valid adv project. `index.adv.json` is required',
+      type: 'error',
+    })
+    return false
+  }
 }
 
 /**
