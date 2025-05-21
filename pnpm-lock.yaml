@@ -1168,7 +1168,24 @@ importers:
         specifier: 'catalog:'
         version: 3.5.14(typescript@5.8.3)
 
-  packages/create-adv: {}
+  packages/create-adv:
+    dependencies:
+      consola:
+        specifier: 'catalog:'
+        version: 3.4.2
+      execa:
+        specifier: ^9.5.3
+        version: 9.5.3
+      minimist:
+        specifier: ^1.2.8
+        version: 1.2.8
+      prompts:
+        specifier: 'catalog:'
+        version: 2.4.2
+    devDependencies:
+      '@types/minimist':
+        specifier: ^1.2.5
+        version: 1.2.5
 
   packages/devtools:
     dependencies:
@@ -3067,11 +3084,8 @@ packages:
     engines: {node: '>= 18'}
     peerDependencies:
       vue: ^3.0.0
-      vue-i18n: ^9.0.0 || ^10.0.0 || ^11.0.0
     peerDependenciesMeta:
       vue:
-        optional: true
-      vue-i18n:
         optional: true
 
   '@ioredis/commands@1.2.0':
@@ -4594,6 +4608,9 @@ packages:
 
   '@types/mdurl@2.0.0':
     resolution: {integrity: sha512-RGdgjQUZba5p6QEFAVx2OGb8rQDL/cPRG7GiedRzMcJ1tYnUANBncjbSB1NRGwbvjcPeikRABz2nshyPk1bhWg==}
+
+  '@types/minimist@1.2.5':
+    resolution: {integrity: sha512-hov8bUuiLiyFPGyFPE1lwWhmzYbirOXQNNo40+y3zow8aFVTeyn3VWL0VFFfdNddA8S4Vf0Tc062rzyNr7Paag==}
 
   '@types/ms@2.1.0':
     resolution: {integrity: sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==}
@@ -13525,7 +13542,7 @@ snapshots:
       '@eslint-community/eslint-utils': 4.7.0(eslint@9.27.0(jiti@2.4.2))
       '@intlify/bundle-utils': 10.0.1(vue-i18n@10.0.7(vue@3.5.14(typescript@5.8.3)))
       '@intlify/shared': 11.1.3
-      '@intlify/vue-i18n-extensions': 8.0.0(vue-i18n@10.0.7(vue@3.5.14(typescript@5.8.3)))(vue@3.5.14(typescript@5.8.3))
+      '@intlify/vue-i18n-extensions': 8.0.0(vue@3.5.14(typescript@5.8.3))
       '@rollup/pluginutils': 5.1.4(rollup@4.41.0)
       '@typescript-eslint/scope-manager': 8.32.1
       '@typescript-eslint/typescript-estree': 8.32.1(typescript@5.8.3)
@@ -13551,7 +13568,7 @@ snapshots:
       '@eslint-community/eslint-utils': 4.7.0(eslint@9.27.0(jiti@2.4.2))
       '@intlify/bundle-utils': 10.0.1(vue-i18n@11.1.3(vue@3.5.14(typescript@5.8.3)))
       '@intlify/shared': 11.1.3
-      '@intlify/vue-i18n-extensions': 8.0.0(vue-i18n@11.1.3(vue@3.5.14(typescript@5.8.3)))(vue@3.5.14(typescript@5.8.3))
+      '@intlify/vue-i18n-extensions': 8.0.0(vue@3.5.14(typescript@5.8.3))
       '@rollup/pluginutils': 5.1.4(rollup@4.41.0)
       '@typescript-eslint/scope-manager': 8.32.1
       '@typescript-eslint/typescript-estree': 8.32.1(typescript@5.8.3)
@@ -13574,23 +13591,14 @@ snapshots:
 
   '@intlify/utils@0.13.0': {}
 
-  '@intlify/vue-i18n-extensions@8.0.0(vue-i18n@10.0.7(vue@3.5.14(typescript@5.8.3)))(vue@3.5.14(typescript@5.8.3))':
+  '@intlify/vue-i18n-extensions@8.0.0(vue@3.5.14(typescript@5.8.3))':
     dependencies:
       '@babel/parser': 7.27.2
       '@intlify/shared': 10.0.7
       '@vue/compiler-dom': 3.5.14
-    optionalDependencies:
-      vue: 3.5.14(typescript@5.8.3)
       vue-i18n: 10.0.7(vue@3.5.14(typescript@5.8.3))
-
-  '@intlify/vue-i18n-extensions@8.0.0(vue-i18n@11.1.3(vue@3.5.14(typescript@5.8.3)))(vue@3.5.14(typescript@5.8.3))':
-    dependencies:
-      '@babel/parser': 7.27.2
-      '@intlify/shared': 10.0.7
-      '@vue/compiler-dom': 3.5.14
     optionalDependencies:
       vue: 3.5.14(typescript@5.8.3)
-      vue-i18n: 11.1.3(vue@3.5.14(typescript@5.8.3))
 
   '@ioredis/commands@1.2.0': {}
 
@@ -15570,6 +15578,8 @@ snapshots:
   '@types/mdurl@1.0.5': {}
 
   '@types/mdurl@2.0.0': {}
+
+  '@types/minimist@1.2.5': {}
 
   '@types/ms@2.1.0': {}
 

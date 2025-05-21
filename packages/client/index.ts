@@ -1,3 +1,9 @@
+/**
+ * @packageDocumentation
+ * ADV.JS 客户端（组件与 API）
+ *
+ * @module @advjs/client
+ */
 export * from './assets'
 export * from './composables'
 export * from './pixi'

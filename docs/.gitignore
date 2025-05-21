@@ -1,6 +1,7 @@
 .vitepress/cache
 
-api/**/*.md
+# typedoc
+api/
 
 # online schema
 public/*.schema.json

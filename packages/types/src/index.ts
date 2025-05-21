@@ -1,3 +1,9 @@
+/**
+ * @packageDocumentation
+ * ADV.JS 相关类型
+ * @module
+ * @advjs/types
+ */
 export * as AdvAst from './ast'
 export * from './config'
 export * from './flow'

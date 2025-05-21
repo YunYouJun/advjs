@@ -1,6 +1,6 @@
 # create-adv
 
-Scaffolding Your First ADV Project
+Scaffolding Your First ADV Project/Plugin.
 
 With NPM:
 
@@ -17,7 +17,7 @@ yarn create adv
 With PNPM:
 
 ```bash
-pnpm dlx create-adv
+pnpm create adv
 ```
 
 Then follow the prompts!

@@ -1,6 +1,8 @@
 {
   "name": "create-adv",
+  "type": "module",
   "version": "0.0.1",
+  "description": "Create a new advjs project/plugin",
   "author": {
     "name": "YunYouJun",
     "email": "me@yunyoujun.cn",
@@ -20,5 +22,14 @@
   "files": [
     "index.js",
     "template-*"
-  ]
+  ],
+  "dependencies": {
+    "consola": "catalog:",
+    "execa": "^9.5.3",
+    "minimist": "^1.2.8",
+    "prompts": "catalog:"
+  },
+  "devDependencies": {
+    "@types/minimist": "^1.2.5"
+  }
 }

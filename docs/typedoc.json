@@ -12,11 +12,25 @@
     "../packages/parser/src/index.ts",
     // client
     "../packages/client/index.ts",
-    "../packages/theme-default/index.ts",
+    // themes
+    "../themes/theme-default/index.ts",
+    // "../themes/theme-pominis/index.ts",
     // plugins
-    "../packages/plugin-babylon/src/index.ts"
+    "../plugins/plugin-babylon/src/index.ts",
+    "../plugins/plugin-obs/src/index.ts",
+    "../plugins/plugin-runware/src/index.ts",
+    // gui
+    "../packages/gui/index.ts",
+    "../packages/unocss/src/index.ts"
   ],
   "out": "api",
   "categorizeByGroup": true,
-  "githubPages": true
+  "githubPages": true,
+  // https://typedoc-plugin-markdown.org/plugins/vitepress
+  "sidebar": {
+    "autoConfiguration": true,
+    "format": "vitepress",
+    "pretty": true,
+    "collapsed": true
+  }
 }

@@ -1,3 +1,8 @@
+/**
+ * @packageDocumentation
+ * [Babylon.js](https://www.babylonjs.com/) 插件
+ * @module plugins/plugin-babylon
+ */
 import type * as BABYLON from '@babylonjs/core'
 
 export * from './camera'

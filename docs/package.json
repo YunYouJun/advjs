@@ -12,9 +12,9 @@
   "homepage": "https://docs.advjs.org",
   "scripts": {
     "dev": "vitepress dev .",
-    "build": "npm run typedoc:md && vitepress build .",
+    "build": "npm run predocs && vitepress build .",
     "serve": "vitepress serve .",
-    "typedoc:md": "typedoc --options ./typedoc.json"
+    "predocs": "typedoc"
   },
   "devDependencies": {
     "@iconify-json/file-icons": "catalog:",

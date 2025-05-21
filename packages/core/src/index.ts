@@ -1,3 +1,7 @@
+/**
+ * @packageDocumentation ADV.JS 核心 API
+ * @module @advjs/core
+ */
 export * from './app'
 export * from './composables'
 export * from './config'
