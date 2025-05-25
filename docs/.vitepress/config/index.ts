@@ -22,10 +22,6 @@ const nav: DefaultTheme.Config['nav'] = [
     link: '/agui/',
   },
   {
-    text: '贡献',
-    link: '/contributing/',
-  },
-  {
     text: '关于',
     items: [
       {
@@ -43,6 +39,20 @@ const nav: DefaultTheme.Config['nav'] = [
       {
         text: '设想',
         link: '/about/future/',
+      },
+
+      {
+        text: '贡献',
+        items: [
+          {
+            text: '参与贡献',
+            link: '/contributing/',
+          },
+          {
+            text: '文档写作指南',
+            link: '/contributing/writing-guide',
+          },
+        ],
       },
     ],
   },
@@ -99,6 +109,29 @@ const nav: DefaultTheme.Config['nav'] = [
     ],
   },
 ]
+
+function sidebarAI(): DefaultTheme.SidebarItem[] {
+  return [
+    {
+      text: 'AI',
+      collapsed: false,
+      items: [
+        {
+          text: '介绍',
+          link: '/ai/',
+        },
+        {
+          text: 'MCP',
+          link: '/ai/mcp',
+        },
+        {
+          text: '参考',
+          link: '/ai/ref',
+        },
+      ],
+    },
+  ]
+}
 
 function sidebarAGUI(): DefaultTheme.SidebarItem[] {
   const components = [
@@ -277,6 +310,21 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
   ]
 }
 
+const ContributingSidebar: DefaultTheme.SidebarItem[] = [
+  {
+    text: '贡献',
+    items: [
+      {
+        text: '参与贡献',
+        link: '/contributing/',
+      },
+      {
+        text: '文档写作指南',
+        link: '/contributing/writing-guide',
+      },
+    ],
+  },
+]
 function sidebarAbout(): DefaultTheme.SidebarItem[] {
   return [
     {
@@ -355,32 +403,20 @@ function sidebarAbout(): DefaultTheme.SidebarItem[] {
         },
       ],
     },
+
+    ...ContributingSidebar,
   ]
 }
 
-const ContributingSidebar: DefaultTheme.SidebarItem[] = [
-  {
-    text: 'Contributing',
-    items: [
-      {
-        text: '参与贡献',
-        link: '/contributing/',
-      },
-      {
-        text: '文档写作指南',
-        link: '/contributing/writing-guide',
-      },
-    ],
-  },
-]
-
 const sidebar: DefaultTheme.Config['sidebar'] = {
+  '/ai/': sidebarAI(),
   '/api/': typedocSidebar,
-
   '/guide/': sidebarGuide(),
+
+  '/contributing/': sidebarAbout(),
   '/about/': sidebarAbout(),
+
   '/agui/': sidebarAGUI(),
-  '/contributing/': ContributingSidebar,
   '/resources/': [
     {
       text: 'Resources',

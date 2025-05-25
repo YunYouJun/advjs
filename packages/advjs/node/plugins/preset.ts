@@ -71,7 +71,7 @@ export async function ViteAdvPlugin(
       ...componentsOptions,
     }),
 
-    // https://github.com/antfu/unplugin-vue-markdown
+    // https://github.com/unplugin/unplugin-vue-markdown/
     Markdown({
       wrapperClasses: 'markdown-body',
       headEnabled: true,

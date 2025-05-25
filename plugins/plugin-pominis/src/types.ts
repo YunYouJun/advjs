@@ -26,7 +26,7 @@ interface Chapter {
   entryPoints: Record<string, string>
 }
 
-interface VSNode {
+export interface VSNode {
   id: string
   plot_summary: string
   imagePrompt: string

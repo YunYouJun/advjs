@@ -64,7 +64,7 @@ export function printInfo(options: ResolvedAdvOptions, port?: number, remote?: b
 
   console.log(`  ${colors.dim('🗺️  Theme')}     > ${colors.green(config.theme)} (${themeVersion})`)
   if (config.format === 'fountain')
-    console.log(colors.dim('  📃 Entry        ') + colors.dim(path.dirname(options.entry) + path.sep) + path.basename(options.entry))
+    console.log(colors.dim('  📃 Entry     ') + colors.dim(path.dirname(options.entry) + path.sep) + path.basename(options.entry))
   else
     console.log(`  ${colors.dim('📁')} ${colors.dim(colors.underline(options.userRoot))}`)
 

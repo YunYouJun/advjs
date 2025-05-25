@@ -1,8 +1,8 @@
 {
-  "name": "@advjs/plugin-runware",
+  "name": "@advjs/plugin-pominis",
   "type": "module",
   "version": "0.0.1",
-  "description": "A runware plugin for AdvJS",
+  "description": "Pominis Adapter Plugin for ADV.JS",
   "author": {
     "name": "YunYouJun",
     "email": "me@yunyoujun.cn",
@@ -24,12 +24,10 @@
     "dev": "unbuild --stub",
     "prepublishOnly": "npm run build",
     "start": "tsx src/index.ts",
-    "test": "tsx scripts/test.ts"
+    "test": "vitest"
   },
-  "dependencies": {
-    "@aws-sdk/client-s3": "^3.817.0",
-    "@aws-sdk/s3-request-presigner": "^3.817.0",
-    "@runware/sdk-js": "^1.1.38",
-    "consola": "catalog:"
+  "devDependencies": {
+    "advjs": "latest",
+    "unbuild": "^3.5.0"
   }
 }

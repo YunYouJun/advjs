@@ -18,6 +18,7 @@
     // plugins
     "../plugins/plugin-babylon/src/index.ts",
     "../plugins/plugin-obs/src/index.ts",
+    "../plugins/plugin-pominis/src/index.ts",
     "../plugins/plugin-runware/src/index.ts",
     // gui
     "../packages/gui/index.ts",

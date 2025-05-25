@@ -48,7 +48,7 @@
     "docs": "pnpm -C docs dev",
     "docs:build": "pnpm -C docs build",
     "docs:dev": "pnpm -C docs dev",
-    "docs:pre": "pnpm -C docs typedoc:md",
+    "docs:pre": "pnpm -C docs predocs",
     "docs:serve": "pnpm -C docs serve",
     "editor:build": "pnpm -C editor/core build",
     "gui:build": "pnpm -C packages/gui build",

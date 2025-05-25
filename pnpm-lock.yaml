@@ -121,8 +121,8 @@ catalogs:
       specifier: ^17.0.33
       version: 17.0.33
     '@unhead/vue':
-      specifier: ^2.0.9
-      version: 2.0.9
+      specifier: ^2.0.10
+      version: 2.0.10
     '@unocss/eslint-config':
       specifier: ^66.1.2
       version: 66.1.2
@@ -316,11 +316,11 @@ catalogs:
       specifier: ^7.7.2
       version: 7.7.2
     splitpanes:
-      specifier: ^4.0.3
-      version: 4.0.3
+      specifier: ^4.0.4
+      version: 4.0.4
     swiper:
-      specifier: ^11.2.7
-      version: 11.2.7
+      specifier: ^11.2.8
+      version: 11.2.8
     to-vfile:
       specifier: ^8.0.0
       version: 8.0.0
@@ -406,8 +406,8 @@ catalogs:
       specifier: ^0.14.10
       version: 0.14.10
     vue-i18n:
-      specifier: ^11.1.3
-      version: 11.1.3
+      specifier: ^11.1.4
+      version: 11.1.4
     vue-router:
       specifier: ^4.5.1
       version: 4.5.1
@@ -810,7 +810,7 @@ importers:
         version: link:../../plugins/plugin-babylon
       '@unhead/vue':
         specifier: 'catalog:'
-        version: 2.0.9(vue@3.5.14(typescript@5.8.3))
+        version: 2.0.10(vue@3.5.14(typescript@5.8.3))
       '@vueuse/core':
         specifier: 'catalog:'
         version: 13.2.0(vue@3.5.14(typescript@5.8.3))
@@ -834,7 +834,7 @@ importers:
         version: 0.14.10(vue@3.5.14(typescript@5.8.3))
       vue-i18n:
         specifier: 'catalog:'
-        version: 11.1.3(vue@3.5.14(typescript@5.8.3))
+        version: 11.1.4(vue@3.5.14(typescript@5.8.3))
       vue-router:
         specifier: 'catalog:'
         version: 4.5.1(vue@3.5.14(typescript@5.8.3))
@@ -856,7 +856,7 @@ importers:
         version: 1.2.8
       '@intlify/unplugin-vue-i18n':
         specifier: 'catalog:'
-        version: 6.0.8(eslint@9.27.0(jiti@2.4.2))(rollup@4.41.0)(typescript@5.8.3)(vue-i18n@11.1.3(vue@3.5.14(typescript@5.8.3)))(vue@3.5.14(typescript@5.8.3))
+        version: 6.0.8(eslint@9.27.0(jiti@2.4.2))(rollup@4.41.0)(typescript@5.8.3)(vue-i18n@11.1.4(vue@3.5.14(typescript@5.8.3)))(vue@3.5.14(typescript@5.8.3))
       '@types/markdown-it-link-attributes':
         specifier: 'catalog:'
         version: 3.0.5
@@ -928,7 +928,7 @@ importers:
         version: 1.2.5
       '@intlify/unplugin-vue-i18n':
         specifier: 'catalog:'
-        version: 6.0.8(eslint@9.27.0(jiti@2.4.2))(rollup@4.41.0)(typescript@5.8.3)(vue-i18n@11.1.3(vue@3.5.14(typescript@5.8.3)))(vue@3.5.14(typescript@5.8.3))
+        version: 6.0.8(eslint@9.27.0(jiti@2.4.2))(rollup@4.41.0)(typescript@5.8.3)(vue-i18n@11.1.4(vue@3.5.14(typescript@5.8.3)))(vue@3.5.14(typescript@5.8.3))
       '@types/mdast':
         specifier: 'catalog:'
         version: 4.0.3
@@ -1021,7 +1021,7 @@ importers:
         version: 3.5.14(typescript@5.8.3)
       vue-i18n:
         specifier: 'catalog:'
-        version: 11.1.3(vue@3.5.14(typescript@5.8.3))
+        version: 11.1.4(vue@3.5.14(typescript@5.8.3))
       vue-router:
         specifier: 'catalog:'
         version: 4.5.1(vue@3.5.14(typescript@5.8.3))
@@ -1082,7 +1082,7 @@ importers:
         version: 9.2.0
       '@unhead/vue':
         specifier: 'catalog:'
-        version: 2.0.9(vue@3.5.14(typescript@5.8.3))
+        version: 2.0.10(vue@3.5.14(typescript@5.8.3))
       '@vueuse/core':
         specifier: 'catalog:'
         version: 13.2.0(vue@3.5.14(typescript@5.8.3))
@@ -1118,7 +1118,7 @@ importers:
         version: 2.2.1(typescript@5.8.3)(vue@3.5.14(typescript@5.8.3))
       swiper:
         specifier: 'catalog:'
-        version: 11.2.7
+        version: 11.2.8
       vue:
         specifier: 'catalog:'
         version: 3.5.14(typescript@5.8.3)
@@ -1227,7 +1227,7 @@ importers:
         version: 2.2.1(typescript@5.6.3)(vue@3.5.14(typescript@5.6.3))
       splitpanes:
         specifier: 'catalog:'
-        version: 4.0.3(vue@3.5.14(typescript@5.6.3))
+        version: 4.0.4(vue@3.5.14(typescript@5.6.3))
     devDependencies:
       typescript:
         specifier: 'catalog:'
@@ -1304,7 +1304,7 @@ importers:
         version: 4.0.3
       '@unhead/vue':
         specifier: 'catalog:'
-        version: 2.0.9(vue@3.5.14(typescript@5.8.3))
+        version: 2.0.10(vue@3.5.14(typescript@5.8.3))
       '@vueuse/core':
         specifier: 'catalog:'
         version: 13.2.0(vue@3.5.14(typescript@5.8.3))
@@ -1326,7 +1326,7 @@ importers:
     devDependencies:
       '@intlify/unplugin-vue-i18n':
         specifier: 'catalog:'
-        version: 6.0.8(eslint@9.27.0(jiti@2.4.2))(rollup@4.41.0)(typescript@5.8.3)(vue-i18n@11.1.3(vue@3.5.14(typescript@5.8.3)))(vue@3.5.14(typescript@5.8.3))
+        version: 6.0.8(eslint@9.27.0(jiti@2.4.2))(rollup@4.41.0)(typescript@5.8.3)(vue-i18n@11.1.4(vue@3.5.14(typescript@5.8.3)))(vue@3.5.14(typescript@5.8.3))
       '@shikijs/markdown-it':
         specifier: 'catalog:'
         version: 3.4.2(markdown-it-async@2.2.0)
@@ -1473,8 +1473,8 @@ importers:
         specifier: ^16.5.0
         version: 16.5.0
       openai:
-        specifier: ^4.100.0
-        version: 4.100.0(ws@8.18.2(bufferutil@4.0.9))(zod@3.25.17)
+        specifier: ^4.103.0
+        version: 4.103.0(ws@8.18.2(bufferutil@4.0.9))(zod@3.25.17)
     devDependencies:
       '@types/fs-extra':
         specifier: 'catalog:'
@@ -1502,22 +1502,29 @@ importers:
         specifier: 'catalog:'
         version: 3.5.0(sass@1.89.0)(typescript@5.8.3)(vue-tsc@2.2.10(typescript@5.8.3))(vue@3.5.14(typescript@5.8.3))
 
+  plugins/plugin-pominis:
+    devDependencies:
+      advjs:
+        specifier: latest
+        version: 0.0.1(typescript@5.8.3)
+      unbuild:
+        specifier: ^3.5.0
+        version: 3.5.0(sass@1.89.0)(typescript@5.8.3)(vue-tsc@2.2.10(typescript@5.8.3))(vue@3.5.14(typescript@5.8.3))
+
   plugins/plugin-runware:
     dependencies:
       '@aws-sdk/client-s3':
-        specifier: ^3.812.0
-        version: 3.812.0
+        specifier: ^3.817.0
+        version: 3.817.0
       '@aws-sdk/s3-request-presigner':
-        specifier: ^3.812.0
-        version: 3.812.0
+        specifier: ^3.817.0
+        version: 3.817.0
       '@runware/sdk-js':
         specifier: ^1.1.38
         version: 1.1.38
       consola:
         specifier: 'catalog:'
         version: 3.4.2
-
-  plugins/plugin-starter: {}
 
   plugins/plugin-three: {}
 
@@ -1740,44 +1747,44 @@ packages:
   '@aws-crypto/util@5.2.0':
     resolution: {integrity: sha512-4RkU9EsI6ZpBve5fseQlGNUWKMa1RLPQ1dnjnQoe07ldfIzcsGb5hC5W0Dm7u423KWzawlrpbjXBrXCEv9zazQ==}
 
-  '@aws-sdk/client-s3@3.812.0':
-    resolution: {integrity: sha512-kHgw9JDXNPLa/mHtWpOd5btBVXFSe+wwp1Ed9+bqz9uLkv0iV4joZrdQwnydkO8zlTs60Sc5ez+P2OiZ76i2Qg==}
+  '@aws-sdk/client-s3@3.817.0':
+    resolution: {integrity: sha512-nZyjhlLMEXDs0ofWbpikI8tKoeKuuSgYcIb6eEZJk90Nt5HkkXn6nkWOs/kp2FdhpoGJyTILOVsDgdm7eutnLA==}
     engines: {node: '>=18.0.0'}
 
-  '@aws-sdk/client-sso@3.812.0':
-    resolution: {integrity: sha512-O//smQRj1+RXELB7xX54s5pZB0V69KHXpUZmz8V+8GAYO1FKTHfbpUgK+zyMNb+lFZxG9B69yl8pWPZ/K8bvxA==}
+  '@aws-sdk/client-sso@3.817.0':
+    resolution: {integrity: sha512-fCh5rUHmWmWDvw70NNoWpE5+BRdtNi45kDnIoeoszqVg7UKF79SlG+qYooUT52HKCgDNHqgbWaXxMOSqd2I/OQ==}
     engines: {node: '>=18.0.0'}
 
-  '@aws-sdk/core@3.812.0':
-    resolution: {integrity: sha512-myWA9oHMBVDObKrxG+puAkIGs8igcWInQ1PWCRTS/zN4BkhUMFjjh/JPV/4Vzvtvj5E36iujq2WtlrDLl1PpOw==}
+  '@aws-sdk/core@3.816.0':
+    resolution: {integrity: sha512-Lx50wjtyarzKpMFV6V+gjbSZDgsA/71iyifbClGUSiNPoIQ4OCV0KVOmAAj7mQRVvGJqUMWKVM+WzK79CjbjWA==}
     engines: {node: '>=18.0.0'}
 
-  '@aws-sdk/credential-provider-env@3.812.0':
-    resolution: {integrity: sha512-Ge7IEu06ANurGBZx39q9CNN/ncqb1K8lpKZCY969uNWO0/7YPhnplrRJGMZYIS35nD2mBm3ortEKjY/wMZZd5g==}
+  '@aws-sdk/credential-provider-env@3.816.0':
+    resolution: {integrity: sha512-wUJZwRLe+SxPxRV9AENYBLrJZRrNIo+fva7ZzejsC83iz7hdfq6Rv6B/aHEdPwG/nQC4+q7UUvcRPlomyrpsBA==}
     engines: {node: '>=18.0.0'}
 
-  '@aws-sdk/credential-provider-http@3.812.0':
-    resolution: {integrity: sha512-Vux2U42vPGXeE407Lp6v3yVA65J7hBO9rB67LXshyGVi7VZLAYWc4mrZxNJNqabEkjcDEmMQQakLPT6zc5SvFw==}
+  '@aws-sdk/credential-provider-http@3.816.0':
+    resolution: {integrity: sha512-gcWGzMQ7yRIF+ljTkR8Vzp7727UY6cmeaPrFQrvcFB8PhOqWpf7g0JsgOf5BSaP8CkkSQcTQHc0C5ZYAzUFwPg==}
     engines: {node: '>=18.0.0'}
 
-  '@aws-sdk/credential-provider-ini@3.812.0':
-    resolution: {integrity: sha512-oltqGvQ488xtPY5wrNjbD+qQYYkuCjn30IDE1qKMxJ58EM6UVTQl3XV44Xq07xfF5gKwVJQkfIyOkRAguOVybg==}
+  '@aws-sdk/credential-provider-ini@3.817.0':
+    resolution: {integrity: sha512-kyEwbQyuXE+phWVzloMdkFv6qM6NOon+asMXY5W0fhDKwBz9zQLObDRWBrvQX9lmqq8BbDL1sCfZjOh82Y+RFw==}
     engines: {node: '>=18.0.0'}
 
-  '@aws-sdk/credential-provider-node@3.812.0':
-    resolution: {integrity: sha512-SnvSWBP6cr9nqx784eETnL2Zl7ZnMB/oJgFVEG1aejAGbT1H9gTpMwuUsBXk4u/mEYe3f1lh1Wqo+HwDgNkfrg==}
+  '@aws-sdk/credential-provider-node@3.817.0':
+    resolution: {integrity: sha512-b5mz7av0Lhavs1Bz3Zb+jrs0Pki93+8XNctnVO0drBW98x1fM4AR38cWvGbM/w9F9Q0/WEH3TinkmrMPrP4T/w==}
     engines: {node: '>=18.0.0'}
 
-  '@aws-sdk/credential-provider-process@3.812.0':
-    resolution: {integrity: sha512-YI8bb153XeEOb59F9KtTZEwDAc14s2YHZz58+OFiJ2udnKsPV87mNiFhJPW6ba9nmOLXVat5XDcwtVT1b664wg==}
+  '@aws-sdk/credential-provider-process@3.816.0':
+    resolution: {integrity: sha512-9Tm+AxMoV2Izvl5b9tyMQRbBwaex8JP06HN7ZeCXgC5sAsSN+o8dsThnEhf8jKN+uBpT6CLWKN1TXuUMrAmW1A==}
     engines: {node: '>=18.0.0'}
 
-  '@aws-sdk/credential-provider-sso@3.812.0':
-    resolution: {integrity: sha512-ODsPcNhgiO6GOa82TVNskM97mml9rioe9Cbhemz48lkfDQPv1u06NaCR0o3FsvprX1sEhMvJTR3sE1fyEOzvJQ==}
+  '@aws-sdk/credential-provider-sso@3.817.0':
+    resolution: {integrity: sha512-gFUAW3VmGvdnueK1bh6TOcRX+j99Xm0men1+gz3cA4RE+rZGNy1Qjj8YHlv0hPwI9OnTPZquvPzA5fkviGREWg==}
     engines: {node: '>=18.0.0'}
 
-  '@aws-sdk/credential-provider-web-identity@3.812.0':
-    resolution: {integrity: sha512-E9Bmiujvm/Hp9DM/Vc1S+D0pQbx8/x4dR/zyAEZU9EoRq0duQOQ1reWYWbebYmL1OklcVpTfKV0a/VCwuAtGSg==}
+  '@aws-sdk/credential-provider-web-identity@3.817.0':
+    resolution: {integrity: sha512-A2kgkS9g6NY0OMT2f2EdXHpL17Ym81NhbGnQ8bRXPqESIi7TFypFD2U6osB2VnsFv+MhwM+Ke4PKXSmLun22/A==}
     engines: {node: '>=18.0.0'}
 
   '@aws-sdk/middleware-bucket-endpoint@3.808.0':
@@ -1788,8 +1795,8 @@ packages:
     resolution: {integrity: sha512-YW1hySBolALMII6C8y7Z0CRG2UX1dGJjLEBNFeefhO/xP7ZuE1dvnmfJGaEuBMnvc3wkRS63VZ3aqX6sevM1CA==}
     engines: {node: '>=18.0.0'}
 
-  '@aws-sdk/middleware-flexible-checksums@3.812.0':
-    resolution: {integrity: sha512-/ayAooUZvV1GTomNMrfbhjUHAEaz0Wmio3lKyaTJsW4WdLJXBuzdo57YADRmYYUqx6awzJ6VJ6HGc1Uc6tOlbw==}
+  '@aws-sdk/middleware-flexible-checksums@3.816.0':
+    resolution: {integrity: sha512-kftcwDxB/VoCBsUiRgkm5CIuKbTfCN1WLPbis9LRwX3kQhKgGVxG2gG78SHk4TBB0qviWVAd/t+i/KaUgwiAcA==}
     engines: {node: '>=18.0.0'}
 
   '@aws-sdk/middleware-host-header@3.804.0':
@@ -1808,36 +1815,36 @@ packages:
     resolution: {integrity: sha512-zqHOrvLRdsUdN/ehYfZ9Tf8svhbiLLz5VaWUz22YndFv6m9qaAcijkpAOlKexsv3nLBMJdSdJ6GUTAeIy3BZzw==}
     engines: {node: '>=18.0.0'}
 
-  '@aws-sdk/middleware-sdk-s3@3.812.0':
-    resolution: {integrity: sha512-e8AqRRIaTsunL1hqtO1hksa9oTYdsIbfezHUyVpPGugUIB1lMqPt/DlBsanI85OzUD711UfNSEcZ1mqAxpDOoA==}
+  '@aws-sdk/middleware-sdk-s3@3.816.0':
+    resolution: {integrity: sha512-jJ+EAXM7gnOwiCM6rrl4AUNY5urmtIsX7roTkxtb4DevJxcS+wFYRRg3/j33fQbuxQZrvk21HqxyZYx5UH70PA==}
     engines: {node: '>=18.0.0'}
 
   '@aws-sdk/middleware-ssec@3.804.0':
     resolution: {integrity: sha512-Tk8jK0gOIUBvEPTz/wwSlP1V70zVQ3QYqsLPAjQRMO6zfOK9ax31dln3MgKvFDJxBydS2tS3wsn53v+brxDxTA==}
     engines: {node: '>=18.0.0'}
 
-  '@aws-sdk/middleware-user-agent@3.812.0':
-    resolution: {integrity: sha512-r+HFwtSvnAs6Fydp4mijylrTX0og9p/xfxOcKsqhMuk3HpZAIcf9sSjRQI6MBusYklg7pnM4sGEnPAZIrdRotA==}
+  '@aws-sdk/middleware-user-agent@3.816.0':
+    resolution: {integrity: sha512-bHRSlWZ0xDsFR8E2FwDb//0Ff6wMkVx4O+UKsfyNlAbtqCiiHRt5ANNfKPafr95cN2CCxLxiPvFTFVblQM5TsQ==}
     engines: {node: '>=18.0.0'}
 
-  '@aws-sdk/nested-clients@3.812.0':
-    resolution: {integrity: sha512-FS/fImbEpJU3cXtBGR9fyVd+CP51eNKlvTMi3f4/6lSk3RmHjudNC9yEF/og3jtpT3O+7vsNOUW9mHco5IjdQQ==}
+  '@aws-sdk/nested-clients@3.817.0':
+    resolution: {integrity: sha512-vQ2E06A48STJFssueJQgxYD8lh1iGJoLJnHdshRDWOQb8gy1wVQR+a7MkPGhGR6lGoS0SCnF/Qp6CZhnwLsqsQ==}
     engines: {node: '>=18.0.0'}
 
   '@aws-sdk/region-config-resolver@3.808.0':
     resolution: {integrity: sha512-9x2QWfphkARZY5OGkl9dJxZlSlYM2l5inFeo2bKntGuwg4A4YUe5h7d5yJ6sZbam9h43eBrkOdumx03DAkQF9A==}
     engines: {node: '>=18.0.0'}
 
-  '@aws-sdk/s3-request-presigner@3.812.0':
-    resolution: {integrity: sha512-OpyANELjcD2oknkd3/qWanaRaZDx4SSV6NwYuWIk+fuxDZ+KxZZrrfue1X7OAdaP2TdSapbs7xLisxtTuptWYg==}
+  '@aws-sdk/s3-request-presigner@3.817.0':
+    resolution: {integrity: sha512-FMV0YefefGwPqIbGcHdkkHaiVWKIZoI0wOhYhYDZI129aUD5+CEOtTi7KFp1iJjAK+Cx9bW5tAYc+e9shaWEyQ==}
     engines: {node: '>=18.0.0'}
 
-  '@aws-sdk/signature-v4-multi-region@3.812.0':
-    resolution: {integrity: sha512-JTpk3ZHf7TXYbicKfOKi+VrsBTqcAszg9QR9fQmT9aCxPp39gsF3WsXq7NjepwZ5So11ixGIsPE/jtMym399QQ==}
+  '@aws-sdk/signature-v4-multi-region@3.816.0':
+    resolution: {integrity: sha512-idcr9NW86sSIXASSej3423Selu6fxlhhJJtMgpAqoCH/HJh1eQrONJwNKuI9huiruPE8+02pwxuePvLW46X2mw==}
     engines: {node: '>=18.0.0'}
 
-  '@aws-sdk/token-providers@3.812.0':
-    resolution: {integrity: sha512-dbVBaKxrxE708ub5uH3w+cmKIeRQas+2Xf6rpckhohYY+IiflGOdK6aLrp3T6dOQgr/FJ37iQtcYNonAG+yVBQ==}
+  '@aws-sdk/token-providers@3.817.0':
+    resolution: {integrity: sha512-CYN4/UO0VaqyHf46ogZzNrVX7jI3/CfiuktwKlwtpKA6hjf2+ivfgHSKzPpgPBcSEfiibA/26EeLuMnB6cpSrQ==}
     engines: {node: '>=18.0.0'}
 
   '@aws-sdk/types@3.804.0':
@@ -1863,8 +1870,8 @@ packages:
   '@aws-sdk/util-user-agent-browser@3.804.0':
     resolution: {integrity: sha512-KfW6T6nQHHM/vZBBdGn6fMyG/MgX5lq82TDdX4HRQRRuHKLgBWGpKXqqvBwqIaCdXwWHgDrg2VQups6GqOWW2A==}
 
-  '@aws-sdk/util-user-agent-node@3.812.0':
-    resolution: {integrity: sha512-8pt+OkHhS2U0LDwnzwRnFxyKn8sjSe752OIZQCNv263odud8jQu9pYO2pKqb2kRBk9h9szynjZBDLXfnvSQ7Bg==}
+  '@aws-sdk/util-user-agent-node@3.816.0':
+    resolution: {integrity: sha512-Q6dxmuj4hL7pudhrneWEQ7yVHIQRBFr0wqKLF1opwOi1cIePuoEbPyJ2jkel6PDEv1YMfvsAKaRshp6eNA8VHg==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       aws-crt: '>=1.0.0'
@@ -3034,8 +3041,12 @@ packages:
     resolution: {integrity: sha512-mE71aUH5baH0me8duB4FY5qevUJizypHsYw3eCvmOx07QvmKppgOONx3dYINxuA89Z2qkAGb/K6Nrpi7aAMwew==}
     engines: {node: '>= 16'}
 
-  '@intlify/core-base@11.1.3':
-    resolution: {integrity: sha512-cMuHunYO7LE80azTitcvEbs1KJmtd6g7I5pxlApV3Jo547zdO3h31/0uXpqHc+Y3RKt1wo2y68RGSx77Z1klyA==}
+  '@intlify/core-base@11.1.4':
+    resolution: {integrity: sha512-VNIanL84HNBNAoJjPA2V8EykT5NtgNDquO2MsDQcSheo7EcCt4uvH14IHBEDKVoL6k38NNICLuRhtKOKqW2ylA==}
+    engines: {node: '>= 16'}
+
+  '@intlify/core-base@9.14.4':
+    resolution: {integrity: sha512-vtZCt7NqWhKEtHa3SD/322DlgP5uR9MqWxnE0y8Q0tjDs9H5Lxhss+b5wv8rmuXRoHKLESNgw9d+EN9ybBbj9g==}
     engines: {node: '>= 16'}
 
   '@intlify/core@10.0.7':
@@ -3054,12 +3065,28 @@ packages:
     resolution: {integrity: sha512-7rbqqpo2f5+tIcwZTAG/Ooy9C8NDVwfDkvSeDPWUPQW+Dyzfw2o9H103N5lKBxO7wxX9dgCDjQ8Umz73uYw3hw==}
     engines: {node: '>= 16'}
 
+  '@intlify/message-compiler@11.1.4':
+    resolution: {integrity: sha512-fQWJwTOBFNFGNr4I5k629hQxTGEKsDWhhTzr6Y4CN4OXJw/dLB/VbbQm5jlylqnv44RBZN5GSD+d1nWpNcAR5A==}
+    engines: {node: '>= 16'}
+
+  '@intlify/message-compiler@9.14.4':
+    resolution: {integrity: sha512-vcyCLiVRN628U38c3PbahrhbbXrckrM9zpy0KZVlDk2Z0OnGwv8uQNNXP3twwGtfLsCf4gu3ci6FMIZnPaqZsw==}
+    engines: {node: '>= 16'}
+
   '@intlify/shared@10.0.7':
     resolution: {integrity: sha512-oeoq0L5+5P4ShXa6jBQcx+BT+USe3MjX0xJexZO1y7rfDJdwZ9+QP3jO4tcS1nxhBYYdjvFTqe4bmnLijV0GxQ==}
     engines: {node: '>= 16'}
 
   '@intlify/shared@11.1.3':
     resolution: {integrity: sha512-pTFBgqa/99JRA2H1qfyqv97MKWJrYngXBA/I0elZcYxvJgcCw3mApAoPW3mJ7vx3j+Ti0FyKUFZ4hWxdjKaxvA==}
+    engines: {node: '>= 16'}
+
+  '@intlify/shared@11.1.4':
+    resolution: {integrity: sha512-zOW2L5+QnWRQgM/7WNSPxa6E0F3wR2/KEQV7P4s4AXzxzmg0MuzLNiixvkRJU5h0Xb3DnHic6zybKva28kabDw==}
+    engines: {node: '>= 16'}
+
+  '@intlify/shared@9.14.4':
+    resolution: {integrity: sha512-P9zv6i1WvMc9qDBWvIgKkymjY2ptIiQ065PjDv7z7fDqH3J/HBRBN5IoiR46r/ujRcU7hCuSIZWvCAFCyuOYZA==}
     engines: {node: '>= 16'}
 
   '@intlify/unplugin-vue-i18n@6.0.8':
@@ -3084,8 +3111,11 @@ packages:
     engines: {node: '>= 18'}
     peerDependencies:
       vue: ^3.0.0
+      vue-i18n: ^9.0.0 || ^10.0.0 || ^11.0.0
     peerDependenciesMeta:
       vue:
+        optional: true
+      vue-i18n:
         optional: true
 
   '@ioredis/commands@1.2.0':
@@ -4783,6 +4813,11 @@ packages:
     peerDependencies:
       vue: '>=2.7 || >=3'
 
+  '@unhead/vue@2.0.10':
+    resolution: {integrity: sha512-lV7E1sXX6/te8+IiUwlMysBAyJT/WM5Je47cRnpU5hsvDRziSIGfim9qMWbsTouH+paavRJz1i8gk5hRzjvkcw==}
+    peerDependencies:
+      vue: '>=3.5.13'
+
   '@unhead/vue@2.0.9':
     resolution: {integrity: sha512-0t8YXVXvEgXkXhCb22hqPrsgun3Jqul/ZvydgBY0SlEfEbC1ioL15/1QuJwBFG3us6OnSewjbDagg4Jh478g8g==}
     peerDependencies:
@@ -5199,6 +5234,22 @@ packages:
     peerDependencies:
       vue: ^3.5.0
 
+  '@vueuse/core@6.9.2':
+    resolution: {integrity: sha512-FRwl4ccSFuHZBHLGgS9TMv/+Dd6XFaL4o9nph2qtgQIV+z29RBFokw08XjHfykiENRzB01MjYHJ7iRUnsIFQXg==}
+    peerDependencies:
+      '@vue/composition-api': ^1.1.0
+      vue: ^2.6.0 || ^3.2.0
+    peerDependenciesMeta:
+      '@vue/composition-api':
+        optional: true
+      vue:
+        optional: true
+
+  '@vueuse/head@0.6.0':
+    resolution: {integrity: sha512-fi7ZjkMpEAUtTT6iR5wgL2HkX1+3zbrmbpcwU//RgJIWEr5b42jk8E9yOheaC2dYAAHzelAllVpX0pDmhcTXuw==}
+    peerDependencies:
+      vue: '>=3'
+
   '@vueuse/head@2.0.0':
     resolution: {integrity: sha512-ykdOxTGs95xjD4WXE4na/umxZea2Itl0GWBILas+O4oqS7eXIods38INvk3XkJKjqMdWPcpCyLX/DioLQxU1KA==}
     peerDependencies:
@@ -5276,6 +5327,17 @@ packages:
     peerDependencies:
       vue: ^3.5.0
 
+  '@vueuse/shared@6.9.2':
+    resolution: {integrity: sha512-lAiMh6XROs0kSKVd0Yb/6GKoQMxC1fYrFDi6opvQWISPtcqRNluRrQxLUZ3WTI78ovtoKRLktjhkFAtydcfFDg==}
+    peerDependencies:
+      '@vue/composition-api': ^1.1.0
+      vue: ^2.6.0 || ^3.2.0
+    peerDependenciesMeta:
+      '@vue/composition-api':
+        optional: true
+      vue:
+        optional: true
+
   '@vueuse/sound@2.1.3':
     resolution: {integrity: sha512-yZW1dzMJqCp57+ZM1tJ2oPye4RJvWhzkUpGvokB5fhk/jAmOwKGbdvm8O7dJ/YAmP+eLFCBQmELjso6sXSfnAg==}
     peerDependencies:
@@ -5348,6 +5410,9 @@ packages:
     resolution: {integrity: sha512-OvQ/2pUDKmgfCg++xsTX1wGxfTaszcHVcTctW4UJB4hibJx2HXxxO5UmVgyjMa+ZDsiaf5wWLXYpRWMmBI0QHg==}
     engines: {node: '>=0.4.0'}
     hasBin: true
+
+  advjs@0.0.1:
+    resolution: {integrity: sha512-KR3OpgfU5lXSLzivYwbQaxmgnYip2qUcikO+qfiThpyBRQzBWz/y7kHGSnWo93LMGr+lGQ7QE7kuyTvY4qe86A==}
 
   agent-base@6.0.2:
     resolution: {integrity: sha512-RZNwNclF7+MS/8bDg70amg32dyeZGZxiDuQmZxKLAlQjr3jGyLx+4Kkk58UO7D2QdgFIQCovuSuZESne6RG6XQ==}
@@ -8307,6 +8372,11 @@ packages:
     engines: {node: '>= 18'}
     hasBin: true
 
+  marked@3.0.8:
+    resolution: {integrity: sha512-0gVrAjo5m0VZSJb4rpL59K1unJAMb/hm8HRXqasD8VeC8m91ytDPMritgFSlKonfdt+rRYYpP/JfLxgIX8yoSw==}
+    engines: {node: '>= 12'}
+    hasBin: true
+
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
     engines: {node: '>= 0.4'}
@@ -8928,8 +8998,8 @@ packages:
     resolution: {integrity: sha512-7x81NCL719oNbsq/3mh+hVrAWmFuEYUqrq/Iw3kUzH8ReypT9QQ0BLoJS7/G9k6N81XjW4qHWtjWwe/9eLy1EQ==}
     engines: {node: '>=12'}
 
-  openai@4.100.0:
-    resolution: {integrity: sha512-9soq/wukv3utxcuD7TWFqKdKp0INWdeyhUCvxwrne5KwnxaCp4eHL4GdT/tMFhYolxgNhxFzg5GFwM331Z5CZg==}
+  openai@4.103.0:
+    resolution: {integrity: sha512-eWcz9kdurkGOFDtd5ySS5y251H2uBgq9+1a2lTBnjMMzlexJ40Am5t6Mu76SSE87VvitPa0dkIAp75F+dZVC0g==}
     hasBin: true
     peerDependencies:
       ws: ^8.18.0
@@ -9172,6 +9242,15 @@ packages:
   pify@3.0.0:
     resolution: {integrity: sha512-C3FsVNH1udSEX48gGX1xfvwTWfsYWj5U+8/uK15BGzIGrKoUpghX8hWZwa/OFnakBiiVNmBvemTJR5mcy7iPcg==}
     engines: {node: '>=4'}
+
+  pinia@2.3.1:
+    resolution: {integrity: sha512-khUlZSwt9xXCaTbbxFYBKDc/bWAGWJjOgvxETwkTN7KRm66EeT1ZdZj6i2ceh9sP2Pzqsbc704r2yngBrxBVug==}
+    peerDependencies:
+      typescript: '>=4.4.4'
+      vue: ^2.7.0 || ^3.5.11
+    peerDependenciesMeta:
+      typescript:
+        optional: true
 
   pinia@3.0.2:
     resolution: {integrity: sha512-sH2JK3wNY809JOeiiURUR0wehJ9/gd9qFN2Y828jCbxEzKEmEt0pzCXwqiSTfuRsK9vQsOflSdnbdBOGrhtn+g==}
@@ -9468,6 +9547,10 @@ packages:
   prism-theme-vars@0.2.5:
     resolution: {integrity: sha512-/D8gBTScYzi9afwE6v3TC1U/1YFZ6k+ly17mtVRdLpGy7E79YjJJWkXFgUDHJ2gDksV/ZnXF7ydJ4TvoDm2z/Q==}
 
+  prismjs@1.30.0:
+    resolution: {integrity: sha512-DEvV2ZF2r2/63V+tK8hQvrR2ZGn10srHbXviTlcv7Kpzw8jWiNTqbVgjO3IY8RxrrOUF8VPMQQFysYYYv0YZxw==}
+    engines: {node: '>=6'}
+
   process-nextick-args@2.0.1:
     resolution: {integrity: sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==}
 
@@ -9645,6 +9728,9 @@ packages:
   regexpu-core@6.2.0:
     resolution: {integrity: sha512-H66BPQMrv+V16t8xtmq+UC0CBpiTBA60V8ibS1QVReIp8T1z8hwFxqcGzm9K6lgsN7sB5edVH8a+ze6Fqm4weA==}
     engines: {node: '>=4'}
+
+  register-service-worker@1.7.2:
+    resolution: {integrity: sha512-CiD3ZSanZqcMPRhtfct5K9f7i3OLCcBBWsJjLh1gW9RO/nS94sVzY59iS+fgYBOBqaBpf4EzfqUF3j9IG+xo8A==}
 
   regjsgen@0.8.0:
     resolution: {integrity: sha512-RvwtGe3d7LvWiDQXeQw8p5asZUmfU1G/l6WbUXeHta7Y2PEIvBTwH6E2EfmYUK8pxcxEdEmaomqyp0vZZ7C+3Q==}
@@ -10072,8 +10158,8 @@ packages:
     resolution: {integrity: sha512-1POYv7uv2gXoyGFpBCmpDVSNV74IfsWlDW216UPjbWufNf+bSU6GdbDsxdcxtfwb4xlI3yxzOTKClUosxARYrQ==}
     engines: {node: '>=0.10.0'}
 
-  splitpanes@4.0.3:
-    resolution: {integrity: sha512-S/f1CoH2JroOib7kzQtTQNtQCa7VzNQ2qKOO5HNj/5EVVcNkfz1eX/sH+X3XKdBdDLihEKDekVGwrLADd2oirA==}
+  splitpanes@4.0.4:
+    resolution: {integrity: sha512-RbysugZhjbCw5fgplvk3hOXr41stahQDtZhHVkhnnJI6H4wlGDhM2kIpbehy7v92duy9GnMa8zIhHigIV1TWtg==}
     peerDependencies:
       vue: ^3.2.0
 
@@ -10242,8 +10328,8 @@ packages:
     engines: {node: '>=14.0.0'}
     hasBin: true
 
-  swiper@11.2.7:
-    resolution: {integrity: sha512-oPJCwdcjFMw3SoBM7AdB1RJzjT7JaE4Mg7TWceTmJ/i2OtF8L01Ct+5eOf48nG3trgR0wXFekWdfnTdl0eg6Pg==}
+  swiper@11.2.8:
+    resolution: {integrity: sha512-S5FVf6zWynPWooi7pJ7lZhSUe2snTzqLuUzbd5h5PHUOhzgvW0bLKBd2wv0ixn6/5o9vwc/IkQT74CRcLJQzeg==}
     engines: {node: '>= 4.7.0'}
 
   symbol-tree@3.2.4:
@@ -10518,6 +10604,9 @@ packages:
     resolution: {integrity: sha512-3KS2b+kL7fsuk/eJZ7EQdnEmQoaho/r6KUef7hxvltNA5DR8NAUM+8wJMbJyZ4G9/7i3v5zPBIMN5aybAh2/Jg==}
     engines: {node: '>= 0.4'}
 
+  typed.js@2.1.0:
+    resolution: {integrity: sha512-bDuXEf7YcaKN4g08NMTUM6G90XU25CK3bh6U0THC/Mod/QPKlEt9g/EjvbYB8x2Qwr2p6J6I3NrsoYaVnY6wsQ==}
+
   typedoc-plugin-markdown@4.6.3:
     resolution: {integrity: sha512-86oODyM2zajXwLs4Wok2mwVEfCwCnp756QyhLGX2IfsdRYr1DXLCgJgnLndaMUjJD7FBhnLk2okbNE9PdLxYRw==}
     engines: {node: '>= 18'}
@@ -10622,6 +10711,9 @@ packages:
 
   unhead@1.11.20:
     resolution: {integrity: sha512-3AsNQC0pjwlLqEYHLjtichGWankK8yqmocReITecmpB1H0aOabeESueyy+8X1gyJx4ftZVwo9hqQ4O3fPWffCA==}
+
+  unhead@2.0.10:
+    resolution: {integrity: sha512-GT188rzTCeSKt55tYyQlHHKfUTtZvgubrXiwzGeXg6UjcKO3FsagaMzQp6TVDrpDY++3i7Qt0t3pnCc/ebg5yQ==}
 
   unhead@2.0.9:
     resolution: {integrity: sha512-ZLTNJ51PZPO4/3keW7FHiTMb6K+JmhhVApJA52qWNw7NMYPD8fM2eA+hUEaCA2L5bZtbRg43TT7n/lJ+/9o6pw==}
@@ -11238,8 +11330,14 @@ packages:
     peerDependencies:
       vue: ^3.0.0
 
-  vue-i18n@11.1.3:
-    resolution: {integrity: sha512-Pcylh9z9S5+CJAqgbRZ3EKxFIBIrtY5YUppU722GIT65+Nukm0TCqiQegZnNLCZkXGthxe0cpqj0AoM51H+6Gw==}
+  vue-i18n@11.1.4:
+    resolution: {integrity: sha512-0B2Q4rTSzQigfIQnsgNMgWOekouT2lr3hiKG3k7q3fQykr968BRdIUDnIvHisq/f1FPKbBznHpvAyGg78eDAyg==}
+    engines: {node: '>= 16'}
+    peerDependencies:
+      vue: ^3.0.0
+
+  vue-i18n@9.14.4:
+    resolution: {integrity: sha512-B934C8yUyWLT0EMud3DySrwSUJI7ZNiWYsEEz2gknTthqKiG4dzWE/WSa8AzCuSQzwBEv4HtG1jZDhgzPfWSKQ==}
     engines: {node: '>= 16'}
     peerDependencies:
       vue: ^3.0.0
@@ -11837,29 +11935,29 @@ snapshots:
       '@smithy/util-utf8': 2.3.0
       tslib: 2.8.1
 
-  '@aws-sdk/client-s3@3.812.0':
+  '@aws-sdk/client-s3@3.817.0':
     dependencies:
       '@aws-crypto/sha1-browser': 5.2.0
       '@aws-crypto/sha256-browser': 5.2.0
       '@aws-crypto/sha256-js': 5.2.0
-      '@aws-sdk/core': 3.812.0
-      '@aws-sdk/credential-provider-node': 3.812.0
+      '@aws-sdk/core': 3.816.0
+      '@aws-sdk/credential-provider-node': 3.817.0
       '@aws-sdk/middleware-bucket-endpoint': 3.808.0
       '@aws-sdk/middleware-expect-continue': 3.804.0
-      '@aws-sdk/middleware-flexible-checksums': 3.812.0
+      '@aws-sdk/middleware-flexible-checksums': 3.816.0
       '@aws-sdk/middleware-host-header': 3.804.0
       '@aws-sdk/middleware-location-constraint': 3.804.0
       '@aws-sdk/middleware-logger': 3.804.0
       '@aws-sdk/middleware-recursion-detection': 3.804.0
-      '@aws-sdk/middleware-sdk-s3': 3.812.0
+      '@aws-sdk/middleware-sdk-s3': 3.816.0
       '@aws-sdk/middleware-ssec': 3.804.0
-      '@aws-sdk/middleware-user-agent': 3.812.0
+      '@aws-sdk/middleware-user-agent': 3.816.0
       '@aws-sdk/region-config-resolver': 3.808.0
-      '@aws-sdk/signature-v4-multi-region': 3.812.0
+      '@aws-sdk/signature-v4-multi-region': 3.816.0
       '@aws-sdk/types': 3.804.0
       '@aws-sdk/util-endpoints': 3.808.0
       '@aws-sdk/util-user-agent-browser': 3.804.0
-      '@aws-sdk/util-user-agent-node': 3.812.0
+      '@aws-sdk/util-user-agent-node': 3.816.0
       '@aws-sdk/xml-builder': 3.804.0
       '@smithy/config-resolver': 4.1.3
       '@smithy/core': 3.4.0
@@ -11898,20 +11996,20 @@ snapshots:
     transitivePeerDependencies:
       - aws-crt
 
-  '@aws-sdk/client-sso@3.812.0':
+  '@aws-sdk/client-sso@3.817.0':
     dependencies:
       '@aws-crypto/sha256-browser': 5.2.0
       '@aws-crypto/sha256-js': 5.2.0
-      '@aws-sdk/core': 3.812.0
+      '@aws-sdk/core': 3.816.0
       '@aws-sdk/middleware-host-header': 3.804.0
       '@aws-sdk/middleware-logger': 3.804.0
       '@aws-sdk/middleware-recursion-detection': 3.804.0
-      '@aws-sdk/middleware-user-agent': 3.812.0
+      '@aws-sdk/middleware-user-agent': 3.816.0
       '@aws-sdk/region-config-resolver': 3.808.0
       '@aws-sdk/types': 3.804.0
       '@aws-sdk/util-endpoints': 3.808.0
       '@aws-sdk/util-user-agent-browser': 3.804.0
-      '@aws-sdk/util-user-agent-node': 3.812.0
+      '@aws-sdk/util-user-agent-node': 3.816.0
       '@smithy/config-resolver': 4.1.3
       '@smithy/core': 3.4.0
       '@smithy/fetch-http-handler': 5.0.3
@@ -11941,7 +12039,7 @@ snapshots:
     transitivePeerDependencies:
       - aws-crt
 
-  '@aws-sdk/core@3.812.0':
+  '@aws-sdk/core@3.816.0':
     dependencies:
       '@aws-sdk/types': 3.804.0
       '@smithy/core': 3.4.0
@@ -11955,17 +12053,17 @@ snapshots:
       fast-xml-parser: 4.4.1
       tslib: 2.8.1
 
-  '@aws-sdk/credential-provider-env@3.812.0':
+  '@aws-sdk/credential-provider-env@3.816.0':
     dependencies:
-      '@aws-sdk/core': 3.812.0
+      '@aws-sdk/core': 3.816.0
       '@aws-sdk/types': 3.804.0
       '@smithy/property-provider': 4.0.3
       '@smithy/types': 4.3.0
       tslib: 2.8.1
 
-  '@aws-sdk/credential-provider-http@3.812.0':
+  '@aws-sdk/credential-provider-http@3.816.0':
     dependencies:
-      '@aws-sdk/core': 3.812.0
+      '@aws-sdk/core': 3.816.0
       '@aws-sdk/types': 3.804.0
       '@smithy/fetch-http-handler': 5.0.3
       '@smithy/node-http-handler': 4.0.5
@@ -11976,15 +12074,15 @@ snapshots:
       '@smithy/util-stream': 4.2.1
       tslib: 2.8.1
 
-  '@aws-sdk/credential-provider-ini@3.812.0':
+  '@aws-sdk/credential-provider-ini@3.817.0':
     dependencies:
-      '@aws-sdk/core': 3.812.0
-      '@aws-sdk/credential-provider-env': 3.812.0
-      '@aws-sdk/credential-provider-http': 3.812.0
-      '@aws-sdk/credential-provider-process': 3.812.0
-      '@aws-sdk/credential-provider-sso': 3.812.0
-      '@aws-sdk/credential-provider-web-identity': 3.812.0
-      '@aws-sdk/nested-clients': 3.812.0
+      '@aws-sdk/core': 3.816.0
+      '@aws-sdk/credential-provider-env': 3.816.0
+      '@aws-sdk/credential-provider-http': 3.816.0
+      '@aws-sdk/credential-provider-process': 3.816.0
+      '@aws-sdk/credential-provider-sso': 3.817.0
+      '@aws-sdk/credential-provider-web-identity': 3.817.0
+      '@aws-sdk/nested-clients': 3.817.0
       '@aws-sdk/types': 3.804.0
       '@smithy/credential-provider-imds': 4.0.5
       '@smithy/property-provider': 4.0.3
@@ -11994,14 +12092,14 @@ snapshots:
     transitivePeerDependencies:
       - aws-crt
 
-  '@aws-sdk/credential-provider-node@3.812.0':
+  '@aws-sdk/credential-provider-node@3.817.0':
     dependencies:
-      '@aws-sdk/credential-provider-env': 3.812.0
-      '@aws-sdk/credential-provider-http': 3.812.0
-      '@aws-sdk/credential-provider-ini': 3.812.0
-      '@aws-sdk/credential-provider-process': 3.812.0
-      '@aws-sdk/credential-provider-sso': 3.812.0
-      '@aws-sdk/credential-provider-web-identity': 3.812.0
+      '@aws-sdk/credential-provider-env': 3.816.0
+      '@aws-sdk/credential-provider-http': 3.816.0
+      '@aws-sdk/credential-provider-ini': 3.817.0
+      '@aws-sdk/credential-provider-process': 3.816.0
+      '@aws-sdk/credential-provider-sso': 3.817.0
+      '@aws-sdk/credential-provider-web-identity': 3.817.0
       '@aws-sdk/types': 3.804.0
       '@smithy/credential-provider-imds': 4.0.5
       '@smithy/property-provider': 4.0.3
@@ -12011,20 +12109,20 @@ snapshots:
     transitivePeerDependencies:
       - aws-crt
 
-  '@aws-sdk/credential-provider-process@3.812.0':
+  '@aws-sdk/credential-provider-process@3.816.0':
     dependencies:
-      '@aws-sdk/core': 3.812.0
+      '@aws-sdk/core': 3.816.0
       '@aws-sdk/types': 3.804.0
       '@smithy/property-provider': 4.0.3
       '@smithy/shared-ini-file-loader': 4.0.3
       '@smithy/types': 4.3.0
       tslib: 2.8.1
 
-  '@aws-sdk/credential-provider-sso@3.812.0':
+  '@aws-sdk/credential-provider-sso@3.817.0':
     dependencies:
-      '@aws-sdk/client-sso': 3.812.0
-      '@aws-sdk/core': 3.812.0
-      '@aws-sdk/token-providers': 3.812.0
+      '@aws-sdk/client-sso': 3.817.0
+      '@aws-sdk/core': 3.816.0
+      '@aws-sdk/token-providers': 3.817.0
       '@aws-sdk/types': 3.804.0
       '@smithy/property-provider': 4.0.3
       '@smithy/shared-ini-file-loader': 4.0.3
@@ -12033,10 +12131,10 @@ snapshots:
     transitivePeerDependencies:
       - aws-crt
 
-  '@aws-sdk/credential-provider-web-identity@3.812.0':
+  '@aws-sdk/credential-provider-web-identity@3.817.0':
     dependencies:
-      '@aws-sdk/core': 3.812.0
-      '@aws-sdk/nested-clients': 3.812.0
+      '@aws-sdk/core': 3.816.0
+      '@aws-sdk/nested-clients': 3.817.0
       '@aws-sdk/types': 3.804.0
       '@smithy/property-provider': 4.0.3
       '@smithy/types': 4.3.0
@@ -12061,12 +12159,12 @@ snapshots:
       '@smithy/types': 4.3.0
       tslib: 2.8.1
 
-  '@aws-sdk/middleware-flexible-checksums@3.812.0':
+  '@aws-sdk/middleware-flexible-checksums@3.816.0':
     dependencies:
       '@aws-crypto/crc32': 5.2.0
       '@aws-crypto/crc32c': 5.2.0
       '@aws-crypto/util': 5.2.0
-      '@aws-sdk/core': 3.812.0
+      '@aws-sdk/core': 3.816.0
       '@aws-sdk/types': 3.804.0
       '@smithy/is-array-buffer': 4.0.0
       '@smithy/node-config-provider': 4.1.2
@@ -12103,9 +12201,9 @@ snapshots:
       '@smithy/types': 4.3.0
       tslib: 2.8.1
 
-  '@aws-sdk/middleware-sdk-s3@3.812.0':
+  '@aws-sdk/middleware-sdk-s3@3.816.0':
     dependencies:
-      '@aws-sdk/core': 3.812.0
+      '@aws-sdk/core': 3.816.0
       '@aws-sdk/types': 3.804.0
       '@aws-sdk/util-arn-parser': 3.804.0
       '@smithy/core': 3.4.0
@@ -12126,9 +12224,9 @@ snapshots:
       '@smithy/types': 4.3.0
       tslib: 2.8.1
 
-  '@aws-sdk/middleware-user-agent@3.812.0':
+  '@aws-sdk/middleware-user-agent@3.816.0':
     dependencies:
-      '@aws-sdk/core': 3.812.0
+      '@aws-sdk/core': 3.816.0
       '@aws-sdk/types': 3.804.0
       '@aws-sdk/util-endpoints': 3.808.0
       '@smithy/core': 3.4.0
@@ -12136,20 +12234,20 @@ snapshots:
       '@smithy/types': 4.3.0
       tslib: 2.8.1
 
-  '@aws-sdk/nested-clients@3.812.0':
+  '@aws-sdk/nested-clients@3.817.0':
     dependencies:
       '@aws-crypto/sha256-browser': 5.2.0
       '@aws-crypto/sha256-js': 5.2.0
-      '@aws-sdk/core': 3.812.0
+      '@aws-sdk/core': 3.816.0
       '@aws-sdk/middleware-host-header': 3.804.0
       '@aws-sdk/middleware-logger': 3.804.0
       '@aws-sdk/middleware-recursion-detection': 3.804.0
-      '@aws-sdk/middleware-user-agent': 3.812.0
+      '@aws-sdk/middleware-user-agent': 3.816.0
       '@aws-sdk/region-config-resolver': 3.808.0
       '@aws-sdk/types': 3.804.0
       '@aws-sdk/util-endpoints': 3.808.0
       '@aws-sdk/util-user-agent-browser': 3.804.0
-      '@aws-sdk/util-user-agent-node': 3.812.0
+      '@aws-sdk/util-user-agent-node': 3.816.0
       '@smithy/config-resolver': 4.1.3
       '@smithy/core': 3.4.0
       '@smithy/fetch-http-handler': 5.0.3
@@ -12188,9 +12286,9 @@ snapshots:
       '@smithy/util-middleware': 4.0.3
       tslib: 2.8.1
 
-  '@aws-sdk/s3-request-presigner@3.812.0':
+  '@aws-sdk/s3-request-presigner@3.817.0':
     dependencies:
-      '@aws-sdk/signature-v4-multi-region': 3.812.0
+      '@aws-sdk/signature-v4-multi-region': 3.816.0
       '@aws-sdk/types': 3.804.0
       '@aws-sdk/util-format-url': 3.804.0
       '@smithy/middleware-endpoint': 4.1.7
@@ -12199,18 +12297,19 @@ snapshots:
       '@smithy/types': 4.3.0
       tslib: 2.8.1
 
-  '@aws-sdk/signature-v4-multi-region@3.812.0':
+  '@aws-sdk/signature-v4-multi-region@3.816.0':
     dependencies:
-      '@aws-sdk/middleware-sdk-s3': 3.812.0
+      '@aws-sdk/middleware-sdk-s3': 3.816.0
       '@aws-sdk/types': 3.804.0
       '@smithy/protocol-http': 5.1.1
       '@smithy/signature-v4': 5.1.1
       '@smithy/types': 4.3.0
       tslib: 2.8.1
 
-  '@aws-sdk/token-providers@3.812.0':
+  '@aws-sdk/token-providers@3.817.0':
     dependencies:
-      '@aws-sdk/nested-clients': 3.812.0
+      '@aws-sdk/core': 3.816.0
+      '@aws-sdk/nested-clients': 3.817.0
       '@aws-sdk/types': 3.804.0
       '@smithy/property-provider': 4.0.3
       '@smithy/shared-ini-file-loader': 4.0.3
@@ -12253,9 +12352,9 @@ snapshots:
       bowser: 2.11.0
       tslib: 2.8.1
 
-  '@aws-sdk/util-user-agent-node@3.812.0':
+  '@aws-sdk/util-user-agent-node@3.816.0':
     dependencies:
-      '@aws-sdk/middleware-user-agent': 3.812.0
+      '@aws-sdk/middleware-user-agent': 3.816.0
       '@aws-sdk/types': 3.804.0
       '@smithy/node-config-provider': 4.1.2
       '@smithy/types': 4.3.0
@@ -13489,7 +13588,7 @@ snapshots:
     optionalDependencies:
       vue-i18n: 10.0.7(vue@3.5.14(typescript@5.8.3))
 
-  '@intlify/bundle-utils@10.0.1(vue-i18n@11.1.3(vue@3.5.14(typescript@5.8.3)))':
+  '@intlify/bundle-utils@10.0.1(vue-i18n@11.1.4(vue@3.5.14(typescript@5.8.3)))':
     dependencies:
       '@intlify/message-compiler': 11.1.3
       '@intlify/shared': 11.1.3
@@ -13501,17 +13600,22 @@ snapshots:
       source-map-js: 1.2.1
       yaml-eslint-parser: 1.3.0
     optionalDependencies:
-      vue-i18n: 11.1.3(vue@3.5.14(typescript@5.8.3))
+      vue-i18n: 11.1.4(vue@3.5.14(typescript@5.8.3))
 
   '@intlify/core-base@10.0.7':
     dependencies:
       '@intlify/message-compiler': 10.0.7
       '@intlify/shared': 10.0.7
 
-  '@intlify/core-base@11.1.3':
+  '@intlify/core-base@11.1.4':
     dependencies:
-      '@intlify/message-compiler': 11.1.3
-      '@intlify/shared': 11.1.3
+      '@intlify/message-compiler': 11.1.4
+      '@intlify/shared': 11.1.4
+
+  '@intlify/core-base@9.14.4':
+    dependencies:
+      '@intlify/message-compiler': 9.14.4
+      '@intlify/shared': 9.14.4
 
   '@intlify/core@10.0.7':
     dependencies:
@@ -13533,16 +13637,30 @@ snapshots:
       '@intlify/shared': 11.1.3
       source-map-js: 1.2.1
 
+  '@intlify/message-compiler@11.1.4':
+    dependencies:
+      '@intlify/shared': 11.1.4
+      source-map-js: 1.2.1
+
+  '@intlify/message-compiler@9.14.4':
+    dependencies:
+      '@intlify/shared': 9.14.4
+      source-map-js: 1.2.1
+
   '@intlify/shared@10.0.7': {}
 
   '@intlify/shared@11.1.3': {}
+
+  '@intlify/shared@11.1.4': {}
+
+  '@intlify/shared@9.14.4': {}
 
   '@intlify/unplugin-vue-i18n@6.0.8(eslint@9.27.0(jiti@2.4.2))(rollup@4.41.0)(typescript@5.8.3)(vue-i18n@10.0.7(vue@3.5.14(typescript@5.8.3)))(vue@3.5.14(typescript@5.8.3))':
     dependencies:
       '@eslint-community/eslint-utils': 4.7.0(eslint@9.27.0(jiti@2.4.2))
       '@intlify/bundle-utils': 10.0.1(vue-i18n@10.0.7(vue@3.5.14(typescript@5.8.3)))
       '@intlify/shared': 11.1.3
-      '@intlify/vue-i18n-extensions': 8.0.0(vue@3.5.14(typescript@5.8.3))
+      '@intlify/vue-i18n-extensions': 8.0.0(vue-i18n@10.0.7(vue@3.5.14(typescript@5.8.3)))(vue@3.5.14(typescript@5.8.3))
       '@rollup/pluginutils': 5.1.4(rollup@4.41.0)
       '@typescript-eslint/scope-manager': 8.32.1
       '@typescript-eslint/typescript-estree': 8.32.1(typescript@5.8.3)
@@ -13563,12 +13681,12 @@ snapshots:
       - supports-color
       - typescript
 
-  '@intlify/unplugin-vue-i18n@6.0.8(eslint@9.27.0(jiti@2.4.2))(rollup@4.41.0)(typescript@5.8.3)(vue-i18n@11.1.3(vue@3.5.14(typescript@5.8.3)))(vue@3.5.14(typescript@5.8.3))':
+  '@intlify/unplugin-vue-i18n@6.0.8(eslint@9.27.0(jiti@2.4.2))(rollup@4.41.0)(typescript@5.8.3)(vue-i18n@11.1.4(vue@3.5.14(typescript@5.8.3)))(vue@3.5.14(typescript@5.8.3))':
     dependencies:
       '@eslint-community/eslint-utils': 4.7.0(eslint@9.27.0(jiti@2.4.2))
-      '@intlify/bundle-utils': 10.0.1(vue-i18n@11.1.3(vue@3.5.14(typescript@5.8.3)))
+      '@intlify/bundle-utils': 10.0.1(vue-i18n@11.1.4(vue@3.5.14(typescript@5.8.3)))
       '@intlify/shared': 11.1.3
-      '@intlify/vue-i18n-extensions': 8.0.0(vue@3.5.14(typescript@5.8.3))
+      '@intlify/vue-i18n-extensions': 8.0.0(vue-i18n@11.1.4(vue@3.5.14(typescript@5.8.3)))(vue@3.5.14(typescript@5.8.3))
       '@rollup/pluginutils': 5.1.4(rollup@4.41.0)
       '@typescript-eslint/scope-manager': 8.32.1
       '@typescript-eslint/typescript-estree': 8.32.1(typescript@5.8.3)
@@ -13582,7 +13700,7 @@ snapshots:
       unplugin: 1.16.1
       vue: 3.5.14(typescript@5.8.3)
     optionalDependencies:
-      vue-i18n: 11.1.3(vue@3.5.14(typescript@5.8.3))
+      vue-i18n: 11.1.4(vue@3.5.14(typescript@5.8.3))
     transitivePeerDependencies:
       - eslint
       - rollup
@@ -13591,14 +13709,23 @@ snapshots:
 
   '@intlify/utils@0.13.0': {}
 
-  '@intlify/vue-i18n-extensions@8.0.0(vue@3.5.14(typescript@5.8.3))':
+  '@intlify/vue-i18n-extensions@8.0.0(vue-i18n@10.0.7(vue@3.5.14(typescript@5.8.3)))(vue@3.5.14(typescript@5.8.3))':
     dependencies:
       '@babel/parser': 7.27.2
       '@intlify/shared': 10.0.7
       '@vue/compiler-dom': 3.5.14
-      vue-i18n: 10.0.7(vue@3.5.14(typescript@5.8.3))
     optionalDependencies:
       vue: 3.5.14(typescript@5.8.3)
+      vue-i18n: 10.0.7(vue@3.5.14(typescript@5.8.3))
+
+  '@intlify/vue-i18n-extensions@8.0.0(vue-i18n@11.1.4(vue@3.5.14(typescript@5.8.3)))(vue@3.5.14(typescript@5.8.3))':
+    dependencies:
+      '@babel/parser': 7.27.2
+      '@intlify/shared': 10.0.7
+      '@vue/compiler-dom': 3.5.14
+    optionalDependencies:
+      vue: 3.5.14(typescript@5.8.3)
+      vue-i18n: 11.1.4(vue@3.5.14(typescript@5.8.3))
 
   '@ioredis/commands@1.2.0': {}
 
@@ -15585,7 +15712,7 @@ snapshots:
 
   '@types/node-fetch@2.6.12':
     dependencies:
-      '@types/node': 18.19.103
+      '@types/node': 22.15.21
       form-data: 4.0.2
 
   '@types/node@18.19.103':
@@ -15791,6 +15918,12 @@ snapshots:
       '@unhead/shared': 1.11.20
       hookable: 5.5.3
       unhead: 1.11.20
+      vue: 3.5.14(typescript@5.8.3)
+
+  '@unhead/vue@2.0.10(vue@3.5.14(typescript@5.8.3))':
+    dependencies:
+      hookable: 5.5.3
+      unhead: 2.0.10
       vue: 3.5.14(typescript@5.8.3)
 
   '@unhead/vue@2.0.9(vue@3.5.14(typescript@5.8.3))':
@@ -16463,6 +16596,17 @@ snapshots:
       '@vueuse/shared': 13.2.0(vue@3.5.14(typescript@5.8.3))
       vue: 3.5.14(typescript@5.8.3)
 
+  '@vueuse/core@6.9.2(vue@3.5.14(typescript@5.8.3))':
+    dependencies:
+      '@vueuse/shared': 6.9.2(vue@3.5.14(typescript@5.8.3))
+      vue-demi: 0.14.10(vue@3.5.14(typescript@5.8.3))
+    optionalDependencies:
+      vue: 3.5.14(typescript@5.8.3)
+
+  '@vueuse/head@0.6.0(vue@3.5.14(typescript@5.8.3))':
+    dependencies:
+      vue: 3.5.14(typescript@5.8.3)
+
   '@vueuse/head@2.0.0(vue@3.5.14(typescript@5.8.3))':
     dependencies:
       '@unhead/dom': 1.11.20
@@ -16539,6 +16683,12 @@ snapshots:
     dependencies:
       vue: 3.5.14(typescript@5.8.3)
 
+  '@vueuse/shared@6.9.2(vue@3.5.14(typescript@5.8.3))':
+    dependencies:
+      vue-demi: 0.14.10(vue@3.5.14(typescript@5.8.3))
+    optionalDependencies:
+      vue: 3.5.14(typescript@5.8.3)
+
   '@vueuse/sound@2.1.3(vue@3.5.14(typescript@5.8.3))':
     dependencies:
       howler: 2.2.4
@@ -16608,6 +16758,23 @@ snapshots:
       acorn: 8.14.1
 
   acorn@8.14.1: {}
+
+  advjs@0.0.1(typescript@5.8.3):
+    dependencies:
+      '@vueuse/core': 6.9.2(vue@3.5.14(typescript@5.8.3))
+      '@vueuse/head': 0.6.0(vue@3.5.14(typescript@5.8.3))
+      marked: 3.0.8
+      nprogress: 0.2.0
+      pinia: 2.3.1(typescript@5.8.3)(vue@3.5.14(typescript@5.8.3))
+      prismjs: 1.30.0
+      register-service-worker: 1.7.2
+      typed.js: 2.1.0
+      vue: 3.5.14(typescript@5.8.3)
+      vue-i18n: 9.14.4(vue@3.5.14(typescript@5.8.3))
+      vue-router: 4.5.1(vue@3.5.14(typescript@5.8.3))
+    transitivePeerDependencies:
+      - '@vue/composition-api'
+      - typescript
 
   agent-base@6.0.2:
     dependencies:
@@ -19939,6 +20106,8 @@ snapshots:
 
   marked@15.0.12: {}
 
+  marked@3.0.8: {}
+
   math-intrinsics@1.1.0: {}
 
   mdast-util-find-and-replace@3.0.2:
@@ -20961,7 +21130,7 @@ snapshots:
       is-docker: 2.2.1
       is-wsl: 2.2.0
 
-  openai@4.100.0(ws@8.18.2(bufferutil@4.0.9))(zod@3.25.17):
+  openai@4.103.0(ws@8.18.2(bufferutil@4.0.9))(zod@3.25.17):
     dependencies:
       '@types/node': 18.19.103
       '@types/node-fetch': 2.6.12
@@ -21187,6 +21356,16 @@ snapshots:
   pidtree@0.6.0: {}
 
   pify@3.0.0: {}
+
+  pinia@2.3.1(typescript@5.8.3)(vue@3.5.14(typescript@5.8.3)):
+    dependencies:
+      '@vue/devtools-api': 6.6.4
+      vue: 3.5.14(typescript@5.8.3)
+      vue-demi: 0.14.10(vue@3.5.14(typescript@5.8.3))
+    optionalDependencies:
+      typescript: 5.8.3
+    transitivePeerDependencies:
+      - '@vue/composition-api'
 
   pinia@3.0.2(typescript@5.8.3)(vue@3.5.14(typescript@5.8.3)):
     dependencies:
@@ -21520,6 +21699,8 @@ snapshots:
 
   prism-theme-vars@0.2.5: {}
 
+  prismjs@1.30.0: {}
+
   process-nextick-args@2.0.1: {}
 
   process@0.11.10: {}
@@ -21728,6 +21909,8 @@ snapshots:
       regjsparser: 0.12.0
       unicode-match-property-ecmascript: 2.0.0
       unicode-match-property-value-ecmascript: 2.2.0
+
+  register-service-worker@1.7.2: {}
 
   regjsgen@0.8.0: {}
 
@@ -22320,7 +22503,7 @@ snapshots:
 
   speakingurl@14.0.1: {}
 
-  splitpanes@4.0.3(vue@3.5.14(typescript@5.6.3)):
+  splitpanes@4.0.4(vue@3.5.14(typescript@5.6.3)):
     dependencies:
       vue: 3.5.14(typescript@5.6.3)
 
@@ -22517,7 +22700,7 @@ snapshots:
       csso: 5.0.5
       picocolors: 1.1.1
 
-  swiper@11.2.7: {}
+  swiper@11.2.8: {}
 
   symbol-tree@3.2.4: {}
 
@@ -22812,6 +22995,8 @@ snapshots:
       possible-typed-array-names: 1.1.0
       reflect.getprototypeof: 1.0.10
 
+  typed.js@2.1.0: {}
+
   typedoc-plugin-markdown@4.6.3(typedoc@0.28.4(typescript@5.8.3)):
     dependencies:
       typedoc: 0.28.4(typescript@5.8.3)
@@ -22985,6 +23170,10 @@ snapshots:
       '@unhead/dom': 1.11.20
       '@unhead/schema': 1.11.20
       '@unhead/shared': 1.11.20
+      hookable: 5.5.3
+
+  unhead@2.0.10:
+    dependencies:
       hookable: 5.5.3
 
   unhead@2.0.9:
@@ -23708,10 +23897,17 @@ snapshots:
       '@vue/devtools-api': 6.6.4
       vue: 3.5.14(typescript@5.8.3)
 
-  vue-i18n@11.1.3(vue@3.5.14(typescript@5.8.3)):
+  vue-i18n@11.1.4(vue@3.5.14(typescript@5.8.3)):
     dependencies:
-      '@intlify/core-base': 11.1.3
-      '@intlify/shared': 11.1.3
+      '@intlify/core-base': 11.1.4
+      '@intlify/shared': 11.1.4
+      '@vue/devtools-api': 6.6.4
+      vue: 3.5.14(typescript@5.8.3)
+
+  vue-i18n@9.14.4(vue@3.5.14(typescript@5.8.3)):
+    dependencies:
+      '@intlify/core-base': 9.14.4
+      '@intlify/shared': 9.14.4
       '@vue/devtools-api': 6.6.4
       vue: 3.5.14(typescript@5.8.3)
 

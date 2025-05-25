@@ -1,1 +1,1 @@
-export * from './pominis'
+export * from '../../../../../plugins/plugin-pominis/src'
