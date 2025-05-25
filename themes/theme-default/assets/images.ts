@@ -1,5 +1,5 @@
 export const images = {
-  yunAlphaUrl: 'https://r2.yunyoujun.cn/images/yun-alpha-compressed.png',
-  yunGoodAlphaUrl: 'https://r2.yunyoujun.cn/images/yun-good-alpha-compressed.png',
-  defaultBgUrl: 'https://cdn.yunyoujun.cn/img/bg/stars-timing-0-blur-30px.jpg',
+  yunAlphaUrl: 'https://cos.advjs.yunle.fun/characters/xiaoyun/yun-alpha-compressed.png',
+  yunGoodAlphaUrl: 'https://cos.advjs.yunle.fun/characters/xiaoyun/yun-good-alpha-compressed.png',
+  defaultBgUrl: 'https://cos.advjs.yunle.fun/images/bg/stars-timing-0-blur-30px.jpg',
 }

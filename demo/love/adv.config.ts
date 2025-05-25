@@ -35,7 +35,7 @@ export default defineAdvConfig({
       actor: '云游君',
       tachies: {
         default: {
-          src: 'https://r2.yunyoujun.cn/images/advjs/characters-he.png',
+          src: 'https://cos.advjs.yunle.fun/characters/he/characters-he.png',
           style: {
             transform: 'scale(0.7) translateY(-20%)',
           },

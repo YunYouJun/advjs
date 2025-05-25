@@ -55,6 +55,7 @@
     "parser:dev": "pnpm -C packages/parser dev",
     "parser:play": "pnpm -C packages/parser play",
     "parser:play:build": "pnpm -C packages/parser play:build",
+    "plugins:build": "pnpm -r --filter=\"./plugins/plugin-*\" run build",
     "vrm:build": "pnpm -C editor/vrm build",
     "vrm:dev": "pnpm -C editor/vrm dev",
     "types:build": "pnpm -C packages/types build",

@@ -1,9 +1,9 @@
 {
-  "name": "@advjs/demo-editor",
+  "name": "@advjs/demo-ai",
   "type": "module",
   "version": "0.0.1",
   "private": true,
-  "description": "Editor Project Demo for flow",
+  "description": "AI Project Demo for flow",
   "scripts": {
     "build": "adv build",
     "config": "adv config -m -t public/config",

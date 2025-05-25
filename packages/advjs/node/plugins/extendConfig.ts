@@ -8,8 +8,6 @@ import { createResolve } from 'mlly'
 
 import { mergeConfig } from 'vite'
 
-import { commonAlias } from '../../../shared/node'
-
 import { ADV_VIRTUAL_MODULES } from '../config'
 import { isInstalledGlobally, resolveImportPath, toAtFS } from '../resolver'
 import setupIndexHtml from '../setups/indexHtml'
@@ -106,16 +104,16 @@ export async function getAlias(options: ResolvedAdvOptions): Promise<Alias[]> {
   )
 
   // for dev
-  if (options.mode === 'dev') {
-    alias.push(
-      ...commonAlias.map(({ find, replacement }) => {
-        return {
-          find,
-          replacement: toAtFS(replacement),
-        }
-      }),
-    )
-  }
+  // if (options.mode === 'dev') {
+  //   alias.push(
+  //     ...commonAlias.map(({ find, replacement }) => {
+  //       return {
+  //         find,
+  //         replacement: toAtFS(replacement),
+  //       }
+  //     }),
+  //   )
+  // }
 
   alias.push(
     {

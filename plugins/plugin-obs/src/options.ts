@@ -1,7 +1,7 @@
 import type { ConnectOBSWebSocketOptions } from './types'
-import pkg from 'package.json'
+import { version } from '../package.json'
 
-export const namespace = `[plugin-obs v${pkg.version}]`
+export const namespace = `[plugin-obs v${version}]`
 export const defaultOptions: ConnectOBSWebSocketOptions = {
   url: 'ws://127.0.0.1:4455',
   password: 'advjs-plugin-obs',

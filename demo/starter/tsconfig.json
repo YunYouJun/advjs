@@ -8,7 +8,6 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "types": [
-      "advjs/client",
       "node",
       // "@babylonjs/core",
       // "@babylonjs/loaders",

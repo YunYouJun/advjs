@@ -30,7 +30,6 @@
     "consola": "catalog:"
   },
   "devDependencies": {
-    "@advjs/core": "workspace:*",
     "advjs": "workspace:*",
     "tsx": "catalog:",
     "unbuild": "catalog:"

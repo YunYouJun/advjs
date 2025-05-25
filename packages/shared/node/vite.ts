@@ -4,7 +4,7 @@ import path, { resolve } from 'node:path'
 /**
  * monorepo packages folder
  */
-export const packagesDir = path.resolve(import.meta.dirname, '../../')
+export const packagesDir = path.resolve(import.meta.dirname, '../../../packages')
 export const themesDir = path.resolve(import.meta.dirname, '../../../themes')
 export const pluginsDir = path.resolve(import.meta.dirname, '../../../plugins')
 

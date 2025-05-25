@@ -26,6 +26,9 @@
     "start": "tsx src/index.ts",
     "test": "tsx scripts/test.ts"
   },
+  "peerDependencies": {
+    "advjs": "*"
+  },
   "dependencies": {
     "cli-progress": "^3.12.0",
     "consola": "catalog:",

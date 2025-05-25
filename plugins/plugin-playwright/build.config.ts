@@ -6,17 +6,8 @@ export default defineBuildConfig({
     'src/index',
   ],
   clean: true,
+
   externals: [
     'advjs',
-    '@advjs/client',
-    '@advjs/shared',
-    '@advjs/types',
-
-    'vue',
   ],
-  rollup: {
-    inlineDependencies: [
-      '@antfu/utils',
-    ],
-  },
 })
