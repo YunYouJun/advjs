@@ -14,6 +14,7 @@ import { ADV_VIRTUAL_MODULES } from '../config'
 import { isInstalledGlobally, resolveImportPath, toAtFS } from '../resolver'
 import setupIndexHtml from '../setups/indexHtml'
 
+const vueRuntimePath = 'vue/dist/vue.runtime.esm-bundler.js'
 const EXCLUDE_GLOBAL = [
   // avoid css parse by vite
   'animate.css',
@@ -118,9 +119,12 @@ export async function getAlias(options: ResolvedAdvOptions): Promise<Alias[]> {
 
   alias.push(
     {
-      find: 'vue',
-      replacement: await resolveImportPath('vue/dist/vue.esm-bundler.js', true),
+      // avoid vue/compiler-sfc in unplugin-vue-i18n
+      find: /^vue$/,
+      replacement: await resolveImportPath(vueRuntimePath, true),
     },
+  )
+  alias.push(
     ...(isInstalledGlobally.value
       ? await Promise.all(INCLUDE_GLOBAL.map(async dep => ({
         find: dep,

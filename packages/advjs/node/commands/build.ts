@@ -37,13 +37,15 @@ export async function build(
           rollupOptions: {
             output: {
               manualChunks: {
-                advjs: ['advjs'],
                 advjs_core: ['@advjs/core'],
                 advjs_client: ['@advjs/client'],
                 advjs_parser: ['@advjs/parser'],
                 pixijs: ['pixi.js'],
               },
             },
+            external: [
+              'advjs',
+            ],
           },
         },
         ssr: {
