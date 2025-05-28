@@ -9,7 +9,7 @@ packages:
   - themes/*
 catalog:
   '@antfu/eslint-config': 2.9.0
-  '@antfu/ni': ^24.4.0
+  '@antfu/ni': ^25.0.0
   '@antfu/utils': ^9.2.0
   '@babylonjs/core': 5.19.0
   '@babylonjs/gui': 5.19.0
@@ -39,7 +39,7 @@ catalog:
   '@types/js-yaml': ^4.0.9
   '@types/markdown-it-link-attributes': ^3.0.5
   '@types/mdast': 4.0.3
-  '@types/node': ^22.15.21
+  '@types/node': ^22.15.23
   '@types/nprogress': ^0.2.3
   '@types/prompts': ^2.4.9
   '@types/semver': ^7.7.0
@@ -55,12 +55,12 @@ catalog:
   '@vite-pwa/nuxt': ^1.0.1
   '@vitejs/plugin-vue': ^5.2.4
   '@vue-flow/core': ^1.44.0
-  '@vueuse/core': ^13.2.0
+  '@vueuse/core': ^13.3.0
   '@vueuse/head': ^2.0.0
   '@vueuse/motion': ^3.0.3
-  '@vueuse/nuxt': ^13.2.0
+  '@vueuse/nuxt': ^13.3.0
   '@vueuse/sound': ^2.1.3
-  '@webgpu/types': ^0.1.60
+  '@webgpu/types': ^0.1.61
   animate.css: ^4.1.1
   babylon-vrm-loader: ^2.0.0
   baklavajs: 2.4.3
@@ -87,7 +87,7 @@ catalog:
   husky: ^9.1.7
   jiti: ^2.4.2
   js-yaml: ^4.1.0
-  lint-staged: ^16.0.0
+  lint-staged: ^16.1.0
   markdown-it-link-attributes: ^4.0.1
   mdast-util-to-hast: ^13.2.0
   monaco-editor: ^0.52.2
@@ -103,7 +103,7 @@ catalog:
   prism-theme-vars: ^0.2.5
   prompts: ^2.4.2
   rehype-stringify: ^10.0.1
-  reka-ui: ^2.2.1
+  reka-ui: ^2.3.0
   remark: ^15.0.1
   remark-frontmatter: ^5.0.0
   remark-gfm: ^4.0.1
@@ -119,7 +119,7 @@ catalog:
   to-vfile: ^8.0.0
   tsup: ^8.5.0
   tsx: ^4.19.4
-  typedoc: ^0.28.4
+  typedoc: ^0.28.5
   typedoc-plugin-merge-modules: ^7.0.0
   typescript: 5.6.3
   unbuild: ^3.5.0
@@ -127,7 +127,7 @@ catalog:
   unist-builder: ^4.0.0
   unist-util-visit: ^5.0.0
   unocss: ^66.1.2
-  unplugin-vue-components: ^28.5.0
+  unplugin-vue-components: ^28.7.0
   unplugin-vue-markdown: ^28.3.1
   unplugin-vue-router: ^0.12.0
   unstorage: ^1.16.0
@@ -143,14 +143,14 @@ catalog:
   vite-ssg: 0.23.6
   vitepress: 1.0.1
   vitest: ^3.1.4
-  vue: ^3.5.14
+  vue: ^3.5.15
   vue-demi: ^0.14.10
-  vue-i18n: ^11.1.4
+  vue-i18n: ^11.1.5
   vue-router: ^4.5.1
   vue-tsc: ^2.2.10
   wc-github-corners: ^0.1.6
   xml2js: ^0.6.2
-  yargs: ^17.7.2
+  yargs: ^18.0.0
 ignoredBuiltDependencies:
   - '@parcel/watcher'
   - bufferutil

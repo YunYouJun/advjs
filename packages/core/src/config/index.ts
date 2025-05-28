@@ -42,7 +42,7 @@ export const defaultGameConfig: AdvGameConfig = {
   bgm: {
     autoplay: false,
     collection: [],
-    library: 'https://cos.advjs.yunle.fun/bgms/bgm_library.json',
+    library: 'https://cos.advjs.yunle.fun/bgms/bgm-library.json',
   },
   assets: {
     manifest: {

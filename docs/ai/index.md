@@ -70,14 +70,14 @@ export interface PominisBgmLibrary {
 文件夹结构如下：
 
 - `bgms/`: 背景音乐文件夹
-  - `bgm_library.json`: 曲库列表 JSON 文件
+  - `bgm-library.json`: 曲库列表 JSON 文件
   - `library/`: 曲库文件夹
     - `<音乐名称>.mp3`: 音乐文件
 
 ---
 
-- 此时曲库 CDN 链接为：`CDN 前缀` + `bgms` + `/bgm_library.json`。
-  - `https://cos.advjs.yunle.fun/bgms/bgm_library.json`
+- 此时曲库 CDN 链接为：`CDN 前缀` + `bgms` + `/bgm-library.json`。
+  - `https://cos.advjs.yunle.fun/bgms/bgm-library.json`
 - 音乐 CDN 链接为：`CDN 前缀` + `bgms` + `/library/` + `<音乐名称>.mp3`。
   - `https://cos.advjs.yunle.fun/bgms/library/渚～坂の下の別れ.mp3`
 

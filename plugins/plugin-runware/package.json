@@ -29,7 +29,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.817.0",
     "@aws-sdk/s3-request-presigner": "^3.817.0",
-    "@runware/sdk-js": "^1.1.38",
+    "@runware/sdk-js": "^1.1.39",
     "consola": "catalog:"
   }
 }
