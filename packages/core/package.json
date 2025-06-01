@@ -1,36 +1,34 @@
 {
   "name": "@advjs/core",
   "type": "module",
+  "description": "Core library for AdvJS, providing essential functionalities and utilities.",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.mjs"
+      "import": "./dist/index.js"
     },
     "./package.json": "./package.json"
   },
-  "main": "./dist/index.mjs",
-  "module": "./dist/index.mjs",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "unbuild",
-    "dev": "unbuild --stub",
+    "build": "tsdown",
+    "dev": "tsdown --watch",
     "prepublishOnly": "npm run build"
-  },
-  "peerDependencies": {
-    "@vueuse/core": "^10"
   },
   "dependencies": {
     "@advjs/parser": "workspace:*",
     "@advjs/types": "workspace:*",
     "@types/mdast": "catalog:",
+    "@vueuse/core": "catalog:",
     "consola": "catalog:",
     "html2canvas": "catalog:",
     "pixi.js": "catalog:",
     "unstorage": "catalog:"
   },
   "devDependencies": {
-    "unbuild": "catalog:",
+    "tsdown": "catalog:",
     "vue": "catalog:"
   }
 }

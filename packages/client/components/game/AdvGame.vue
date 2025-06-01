@@ -15,7 +15,7 @@ defineProps<{
 const { $adv } = useAdvContext()
 
 // const curNode = computed(() => $adv.store.curNode)
-const curNode = computed(() => $adv.store.curFlowNode)
+const curNode = computed(() => $adv.store.curNode)
 
 // 添加提示，防止意外退出
 if (!__DEV__)
@@ -60,7 +60,7 @@ const app = useAppStore()
       </Transition>
 
       <Transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-        <div v-if="curNode.type === 'end'" class="absolute bottom-0 left-0 right-0 top-0 z-50 animate-duration-200">
+        <div v-if="curNode?.type === 'end'" class="absolute bottom-0 left-0 right-0 top-0 z-50 animate-duration-200">
           <div class="h-full w-full flex items-center justify-center bg-black/60 text-8xl font-bold">
             - END -
           </div>

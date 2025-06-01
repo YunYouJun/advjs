@@ -15,10 +15,14 @@ function main() {
   demos.forEach((name) => {
     const targetDir = `${targetFolder}/demo/${name}`
     fs.ensureDirSync(targetDir)
-    fs.copyFile(
-      `${demoFolder}/${name}/index.adv.md`,
-      `${targetDir}/index.adv.md`,
-    )
+
+    const sourceEntryFile = `${demoFolder}/${name}/index.adv.md`
+    if (fs.existsSync(sourceEntryFile)) {
+      fs.copyFile(
+        sourceEntryFile,
+        `${targetDir}/index.adv.md`,
+      )
+    }
   })
 
   // copy @advjs/examples

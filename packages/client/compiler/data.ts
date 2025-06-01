@@ -6,6 +6,8 @@ import chapters from '#advjs/game/chapters'
 import characters from '#advjs/game/characters'
 import scenes from '#advjs/game/scenes'
 
+import { defu } from 'defu'
+
 import { computed, readonly, shallowRef } from 'vue'
 
 export const advDataRef = shallowRef<AdvData>(
@@ -35,8 +37,10 @@ if (__DEV__) {
 
 // init
 export function initAdvData() {
-  advData.gameConfig.characters = characters
-  advData.gameConfig.scenes = scenes
-  advData.gameConfig.chapters = chapters
+  advData.gameConfig = defu(advData.gameConfig, {
+    characters,
+    scenes,
+    chapters,
+  })
   return computed(() => advDataRef.value)
 }

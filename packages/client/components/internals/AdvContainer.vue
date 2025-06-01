@@ -67,7 +67,7 @@ provideLocal(injectionAdvContent, advContentRef)
 <template>
   <div
     ref="container"
-    class="adv-screen relative overflow-hidden" bg="black"
+    class="adv-screen relative size-full overflow-hidden" bg="black"
     :class="className"
     :style="containerStyle"
   >

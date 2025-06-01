@@ -1,7 +1,7 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { ref } from 'vue'
 
-export const useDialogStore = defineStore('@advjs/client/stores/dialog', () => {
+export const useDialogStore = defineStore('@advjs/client/dialog', () => {
   // 局部 words order，与全局 order 相区别
   const iOrder = ref(0)
 

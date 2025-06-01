@@ -21,6 +21,9 @@ export const useGameStore = defineStore('editor:game', () => {
    */
   const loadStatus = ref<'' | 'success' | 'fail'>('')
 
+  /**
+   * todo, use client/useGameStore
+   */
   const startChapter = ref()
   const startNode = ref()
 
@@ -97,7 +100,9 @@ export const useGameStore = defineStore('editor:game', () => {
 
     const startNodeId = config.chapters[0]?.nodes[0]?.id
     if (startNodeId) {
-      await $adv.$nav.start(startNodeId)
+      await $adv.$nav.start({
+        nodeId: startNodeId,
+      })
     }
   }
 

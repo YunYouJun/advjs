@@ -17,17 +17,17 @@
   "exports": {
     "./client": "./client/index.ts",
     "./node": {
-      "types": "./dist/node/index.d.ts",
-      "default": "./dist/node/index.mjs"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     },
     ".": {
-      "types": "./dist/node/index.d.ts",
-      "default": "./dist/node/index.mjs"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     },
     "./*": "./*"
   },
-  "main": "./dist/node/index.mjs",
-  "types": "./dist/node/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "bin": {
     "adv": "./bin/adv.mjs"
   },
@@ -35,8 +35,8 @@
     "node": "^20.0.0 || >=22.0.0"
   },
   "scripts": {
-    "build": "unbuild",
-    "dev": "unbuild --stub",
+    "build": "tsdown",
+    "dev": "tsdown --watch",
     "prepublishOnly": "npm run build",
     "start": "tsx node/cli/index.ts",
     "export": "tsx node/cli/index.ts export"
@@ -90,6 +90,6 @@
     "@types/markdown-it-link-attributes": "catalog:",
     "hast-util-to-html": "catalog:",
     "mdast-util-to-hast": "catalog:",
-    "unbuild": "catalog:"
+    "tsdown": "catalog:"
   }
 }

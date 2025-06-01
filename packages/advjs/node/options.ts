@@ -10,7 +10,6 @@ import type { HmrContext } from 'vite'
 
 import path, { dirname, join, resolve } from 'node:path'
 import process from 'node:process'
-import { load } from '@advjs/parser/fs'
 import { uniq } from '@antfu/utils'
 import _debug from 'debug'
 import fs from 'fs-extra'
@@ -26,6 +25,9 @@ export interface AdvEntryOptions {
    * Markdown entry
    *
    * @default 'index.adv.md'
+   *
+   * @deprecated
+   * 入口配置应该使用 `adv.config.ts` 以支持动态函数
    */
   entry?: string
 
@@ -140,18 +142,14 @@ export async function resolveOptions(
     themeConfigFile = '',
   } = await loadAdvConfigs(options)
 
-  let data: AdvData = {} as AdvData
-  if (config.format === 'fountain') {
-    // avoid type error, type see packages/parser/fs
-    data = await load(rootsInfo.entry)
-  }
-
-  data.config = config
-  data.configFile = configFile
-  data.gameConfig = gameConfig
-  data.gameConfigFile = gameConfigFile
-  data.themeConfig = themeConfig
-  data.themeConfigFile = themeConfigFile
+  const data: AdvData = {
+    config,
+    configFile,
+    gameConfig,
+    gameConfigFile,
+    themeConfig,
+    themeConfigFile,
+  } as AdvData
 
   const theme = await resolveThemeName(options.theme)
   /**

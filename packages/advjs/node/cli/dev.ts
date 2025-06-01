@@ -65,9 +65,9 @@ export async function advDev(options: {
     }, 'dev')
 
     const { data, tempRoot, gameRoot } = resolvedOptions
-    if (data.config.format === 'fountain') {
-      await checkFountain(entry)
-    }
+    // if (data.config.format === 'fountain') {
+    //   await checkFountain(entry)
+    // }
 
     port = userPort || await findFreePort(port)
     server = (await createServer(

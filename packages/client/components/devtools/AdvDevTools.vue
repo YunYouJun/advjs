@@ -35,22 +35,26 @@ const { $adv } = useAdvContext()
 
   <div
     v-if="showDevTools" absolute
-    class="bottom-0 right-0 top-0 z-9999 min-w-md bg-dark p-4 text-white"
+    class="bottom-0 right-0 top-0 z-9999 max-w-2xl min-w-md overflow-auto bg-dark p-4 text-white"
   >
     <div class="items-start text-left" flex="~ col" gap="4">
       <div>
-        CurNode:
+        <h3 class="text-lg font-bold">
+          CurNode:
+        </h3>
         <pre>{{ $adv.store.curNode }}</pre>
       </div>
       <div>
-        FlowNode:
-
+        <h3 class="text-lg font-bold">
+          FlowNode:
+        </h3>
         <pre>{{ $adv.store.curFlowNode }}</pre>
       </div>
 
       <div>
-        Tachies
-
+        <h3 class="text-lg font-bold">
+          Tachies:
+        </h3>
         <pre>{{ $adv.$tachies.runtime.value }}</pre>
       </div>
     </div>

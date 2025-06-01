@@ -1,33 +1,45 @@
-import type { AdvFlowNode, AdvNode } from '@advjs/types'
+import type { AdvChapter, AdvFlowNode } from '@advjs/types'
 import type { AdvContext } from '../types'
 import { END_NODE } from '@advjs/core'
 import { consola } from 'consola'
 import { watch } from 'vue'
+import { ADV_RUNTIME } from '../utils'
+
+export type ChapterNodesMap = Map<string, AdvFlowNode>
+export type ChaptersMap = Map<string, {
+  nodesMap: ChapterNodesMap
+}>
 
 export function useAdvNav($adv: AdvContext) {
   const { store } = $adv
 
-  const curChapterMap = new Map<string, AdvFlowNode>()
+  const { chaptersMap } = ADV_RUNTIME
 
   /**
    * load chapter
    */
-  async function loadChapter(index: number = 0) {
-    consola.debug('Load Chapter', index)
-    const curChapter = $adv.gameConfig.value.chapters[index]
+  async function loadChapter(id?: string) {
+    const curChapter = id
+      ? $adv.gameConfig.value.chapters.find(chapter => chapter.id === id)
+      : store.curChapter || $adv.gameConfig.value.chapters[0]
+
     if (!curChapter)
       return
 
+    if (chaptersMap.has(curChapter.id)) {
+      return chaptersMap.get(curChapter.id)
+    }
     // if (typeof curChapter.data === 'string') {
     //   const data = await fetch(curChapter.data)
     //   curChapter.data = await data.json()
     // }
 
-    store.curChapter = JSON.parse(JSON.stringify(curChapter))
+    const chapterNodesMap = new Map<string, AdvFlowNode>()
+    store.curChapter = JSON.parse(JSON.stringify(curChapter)) as AdvChapter
     // const { nodes, edges } = store.curChapter as AdvFlow
-    const nodes = store.curChapter?.nodes || []
+    const nodes = (store.curChapter as AdvChapter)?.nodes || []
     nodes.forEach((node) => {
-      curChapterMap.set(node.id, node)
+      chapterNodesMap.set(node.id, node)
     })
     // edges.forEach((edge) => {
     //   const source = curChapterMap.get(edge.source)
@@ -36,18 +48,31 @@ export function useAdvNav($adv: AdvContext) {
     //     source.target = target.id
     //   }
     // })
+    const chapter = {
+      nodesMap: chapterNodesMap,
+    }
+    chaptersMap.set(curChapter.id, chapter)
+    return chapter
   }
 
   /**
    * start
    */
-  async function start(nodeId: string) {
+  async function start(params: {
+    chapterId?: string
+    nodeId: string
+  }) {
     consola.info('AdvJS Game Start')
     store.cur.order = 0
 
-    await loadChapter(0)
-    // store.curFlowNode = $adv.gameConfig.value.chapters[0].
-    const startNode = curChapterMap.get(nodeId)
+    const { chapterId, nodeId } = params
+
+    const chapter = await loadChapter(chapterId)
+    if (!chapter) {
+      consola.error('No chapter nodes found')
+      return
+    }
+    const startNode = chapter.nodesMap.get(nodeId)
     if (!startNode)
       return
 
@@ -68,7 +93,17 @@ export function useAdvNav($adv: AdvContext) {
 
     // next()
     if (target) {
-      store.curFlowNode = curChapterMap.get(target) as AdvNode
+      const curChapterId = store.curChapter?.id || $adv.gameConfig.value.chapters[0].id
+      const chapter = chaptersMap.get(curChapterId)
+      if (!chapter) {
+        consola.error(`Chapter ${curChapterId} not found`)
+        return
+      }
+      const targetNode = chapter.nodesMap.get(target)
+      if (targetNode) {
+        consola.debug(`Go to node ${target}`, targetNode)
+        store.curFlowNode = targetNode
+      }
     }
   }
 
@@ -81,12 +116,23 @@ export function useAdvNav($adv: AdvContext) {
       return
     }
 
+    if (store.curFlowNode.type === 'fountain') {
+      if (store.curFlowNode.order) {
+        store.curFlowNode.order++
+      }
+      else {
+        store.curFlowNode.order = 1
+      }
+      return store.curFlowNode
+    }
+
     if (!store.curFlowNode.target) {
       consola.error('Can not find target')
       store.curFlowNode = END_NODE
     }
     else {
-      const targetNode = curChapterMap.get(store.curFlowNode.target)
+      const chapter = chaptersMap.get(store.curChapter?.id || '')
+      const targetNode = chapter?.nodesMap?.get(store.curFlowNode.target)
       if (!targetNode) {
         consola.error('Can not find target node')
       }
@@ -111,9 +157,6 @@ export function useAdvNav($adv: AdvContext) {
     // // 跳过无效节点（虽然应该不会有）
     // if (!curNode)
     //   return next()
-
-    // if (__DEV__)
-    //   consola.info(curNode)
 
     // const skippedTypes = ['scene']
     // if (skippedTypes.includes(curNode.type || ''))

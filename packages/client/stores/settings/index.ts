@@ -7,7 +7,7 @@ import { ref } from 'vue'
 
 export * from './types'
 
-export const useSettingsStore = defineStore('settings', () => {
+export const useSettingsStore = defineStore('@advjs/client/settings', () => {
   // userClientConfig
   const { toggle: toggleFullScreen } = useFullscreen()
 

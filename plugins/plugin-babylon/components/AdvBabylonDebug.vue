@@ -78,4 +78,3 @@ const debugInfo = computed(() => {
   margin-top: 8px;
 }
 </style>
-~/utils/debug/camera~/utils/debug/camera

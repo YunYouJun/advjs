@@ -1,11 +1,28 @@
 import type { AdvGameRecord, AdvGameRecordMeta } from '@advjs/client'
 import { createRecordsStorage } from '@advjs/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
+import { ref } from 'vue'
 
+/**
+ * runtime game store
+ */
 export const useGameStore = defineStore('@advjs/client/game', () => {
+  /**
+   * 游戏开始章节
+   */
+  const startChapter = ref()
+  /**
+   * 游戏开始节点
+   */
+  const startNode = ref()
+
   const recordsStorage = createRecordsStorage()
   // 0 for temp save
   // const recordsMap = useStorage<boolean[]>(`${namespace}::records`, [])
+
+  /**
+   * init game map
+   */
 
   /**
    * 存储记录
@@ -50,6 +67,9 @@ export const useGameStore = defineStore('@advjs/client/game', () => {
   }
 
   return {
+    startChapter,
+    startNode,
+
     readRecord,
     readRecordMeta,
     saveRecord,

@@ -8,7 +8,7 @@ import { loadAdvThemeConfig } from './theme'
 
 export const ADV_VIRTUAL_MODULES = [
   '@advjs/configs/adv',
-  '@advjs/configs/app',
+  '@advjs/configs/game',
   '@advjs/configs/theme',
 ]
 

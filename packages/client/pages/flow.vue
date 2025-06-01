@@ -9,7 +9,9 @@ const isDev = import.meta.env.DEV
 
 onMounted(async () => {
   await $adv.init()
-  await $adv.$nav.start('background_01')
+  await $adv.$nav.start({
+    nodeId: 'background_01',
+  })
 })
 </script>
 

@@ -22,7 +22,7 @@ function createConfigTemplate(name: string): VirtualModuleTemplate {
  */
 const configs = [
   'adv',
-  'app',
+  'game',
   'theme',
 ]
 

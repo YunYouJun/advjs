@@ -1,106 +1,39 @@
 <script setup lang="ts">
-import type { AdvAst, AdvDialogNode, AdvDialoguesNode } from '@advjs/types'
-import { speak, useAdvContext, useDialogStore, useSettingsStore } from '@advjs/client'
-import { computed, ref, unref, watch } from 'vue'
+import type { AdvAst, AdvDialogNode } from '@advjs/types'
+import { useAdvContext, useSettingsStore } from '@advjs/client'
+import { computed } from 'vue'
+import { useAdvDialogBox } from '../../../composables/useAdvDialogBox'
 
 const props = defineProps<{
-  node: AdvAst.Child | AdvDialogNode
+  node: AdvDialogNode | AdvAst.Dialog | AdvAst.Text
 }>()
 
 const { $adv } = useAdvContext()
 
 const settings = useSettingsStore()
-const store = $adv.store
 
-const dialogStore = useDialogStore()
-
-/**
- * dialogues 包含多个对话子节点
- */
-const dialoguesNode = computed<AdvDialoguesNode>(() => $adv.store.cur.dialog as AdvDialoguesNode)
-const curDialog = computed(() => dialoguesNode.value.dialogues[dialogStore.iOrder] as AdvDialogNode)
-
-// watch order, update dialog
-watch(() => store.curFlowNode, () => {
-  if (store.curFlowNode.type === 'dialogues') {
-    store.cur.dialog = store.curFlowNode as AdvDialoguesNode
-    dialogStore.iOrder = 0
-  }
-  else if (store.curNode?.type === 'dialog') {
-    store.cur.dialog = store.curNode
-  }
-})
-
-watch(
-  () => curDialog?.value,
-  (val) => {
-    const lang = settings.storage.speechOptions.lang
-    // 若开启了语音合成
-    if (settings.storage.speech) {
-      speechSynthesis.cancel()
-      speak(val.text, unref((typeof lang === 'function' ? lang() : lang)) || 'zh-CN')
-    }
-  },
-)
-
-const end = ref(false)
-const animation = ref(true)
-
-async function next() {
-  /**
-   * 如果当前节点非对话节点，则直接跳转到下一个节点
-   */
-  if (store.curFlowNode.type !== 'dialogues') {
-    await $adv.$nav.next()
-    return
-  }
-
-  // temp for flow node
-  // if ($adv.store.status.isEnd)
-  // return
-
-  // if (!end.value && animation.value) {
-  //   animation.value = false
-  //   return
-  // }
-  // else {
-  //   // reset
-  //   animation.value = true
-  //   end.value = false
-  // }
-
-  if (dialoguesNode.value.dialogues) {
-    const length = dialoguesNode.value.dialogues.length
-
-    if (dialogStore.iOrder + 1 >= length) {
-      await $adv.$nav.next()
-    }
-    else {
-      dialogStore.iOrder++
-    }
-  }
-}
-
-const curCharacter = computed(() => {
-  const characterID = curDialog.value?.speaker
-  const character = $adv.gameConfig?.value?.characters?.find(item => item.id === characterID)
-  return character
-})
-
-const characterAvatar = computed(() => {
-  const advConfig = $adv.config.value
-  const gameConfig = $adv.gameConfig.value
-  const curName = curCharacter.value ? curCharacter.value.name : ''
-  const avatar = gameConfig.characters?.find(item => item.name === curName || item.alias === curName || (Array.isArray(item.alias) && item.alias.includes(curName)))?.avatar
-  const prefix = advConfig.cdn.enable ? (advConfig.cdn.prefix || '') : ''
-  return avatar ? prefix + avatar : ''
-})
+const {
+  next,
+  curCharacter,
+  characterAvatar,
+  end,
+  animation,
+  transitionFlag,
+  fontSizeClass,
+  showNextCursor,
+  curDialog,
+} = useAdvDialogBox()
 
 // 当前对话框中的台词
 const curWords = computed(() => {
   if (props.node) {
     if (props.node.type === 'dialog') {
-      return (props.node as AdvDialogNode).text
+      return (props.node as AdvAst.Dialog).children.map((child) => {
+        if (child.type === 'text') {
+          return child.value
+        }
+        return ''
+      }).join('')
     }
     if (props.node.type === 'text') {
       return props.node.value
@@ -108,19 +41,6 @@ const curWords = computed(() => {
   }
 
   return curDialog.value?.text
-})
-
-// trigger transition
-const transitionFlag = ref(true)
-watch(() => curCharacter.value?.name, () => {
-  transitionFlag.value = false
-  setTimeout(() => {
-    transitionFlag.value = true
-  }, 1)
-})
-
-const fontSizeClass = computed(() => {
-  return `text-${settings.storage.text.curFontSize}`
 })
 </script>
 
@@ -150,7 +70,7 @@ const fontSizeClass = computed(() => {
         @end="end = true"
       />
       <span
-        v-if="dialogStore.iOrder < (dialoguesNode.dialogues.length - 1) && store.curFlowNode.type !== 'end'"
+        v-if="showNextCursor"
         class="typed-cursor"
       >
         ▼

@@ -4,6 +4,8 @@
  * 结构参考 React/Vue Flow 的节点结构
  */
 
+import type { AdvAst } from '..'
+
 export interface AdvBaseNode {
   id: string
   /**
@@ -17,8 +19,6 @@ export interface AdvBaseNode {
    */
   target?: string
 }
-
-export type AdvFlowNode = AdvBaseNode & Node
 
 export interface AdvBackgroundNode extends AdvBaseNode {
   type: 'background'
@@ -97,6 +97,34 @@ export interface AdvEndNode extends AdvBaseNode {
 }
 
 /**
+ * use fountain to write dialogues
+ */
+export interface AdvFountainNode extends AdvBaseNode {
+  type: 'fountain'
+  /**
+   * fountain file path
+   */
+  src: string
+
+  /**
+   * 运行时索引顺序
+   *
+   * @runtime
+   * @default 0
+   */
+  order?: number
+
+  /**
+   * 解析后的语法树
+   */
+  ast?: AdvAst.Root
+}
+
+export interface AdvStartNode extends AdvBaseNode {
+  type: 'start'
+}
+
+/**
  * adv node
  */
-export type AdvNode = AdvBaseNode | AdvBackgroundNode | AdvTachieNode | AdvDialoguesNode | AdvEndNode
+export type AdvFlowNode = AdvStartNode | AdvBackgroundNode | AdvTachieNode | AdvDialoguesNode | AdvEndNode | AdvFountainNode

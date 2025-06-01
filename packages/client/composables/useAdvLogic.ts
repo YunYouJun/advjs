@@ -1,4 +1,4 @@
-import type { AdvAst, AdvBackgroundNode, AdvDialoguesNode, AdvNode, AdvTachieNode } from '@advjs/types'
+import type { AdvAst, AdvBackgroundNode, AdvDialoguesNode, AdvFlowNode, AdvTachieNode } from '@advjs/types'
 import type { AdvContext } from '../types'
 import { isScript, parseAst } from '@advjs/parser'
 
@@ -76,7 +76,7 @@ export function useAdvLogic($adv: AdvContext) {
    * handle adv node
    * @param node
    */
-  async function handleAdvNode(node: AdvAst.Item | AdvNode) {
+  async function handleAdvNode(node: AdvAst.Item | AdvFlowNode) {
     switch (node.type) {
       case 'code': {
         if (await handleCode(node as any))

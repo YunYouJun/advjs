@@ -1,4 +1,4 @@
-import type { AdvAst, AdvChapter, AdvDialoguesNode, AdvNode } from '@advjs/types'
+import type { AdvAst, AdvChapter, AdvDialoguesNode, AdvFlowNode } from '@advjs/types'
 import type { StorageMeta } from 'unstorage'
 
 import { acceptHMRUpdate, defineStore } from 'pinia'
@@ -72,16 +72,34 @@ export const useAdvStore = defineStore('adv', () => {
     background: '',
   })
 
-  const curNode = computed((): AdvAst.Item | undefined => {
-    if (ast.value && ast.value.children.length > 0 && curState.value.order < ast.value.children.length)
-      return ast.value.children[curState.value.order]
-
-    return undefined
+  /**
+   * 当前节点是 flow node（比如 `fountain` 类型）
+   * 这时切换 curNode
+   */
+  const curFlowNode = ref<AdvFlowNode>({
+    id: 'start',
+    type: 'start',
   })
 
-  const curFlowNode = ref<AdvNode>({
-    id: '',
-    type: '',
+  /**
+   * 当前运行时的节点
+   */
+  const curNode = computed((): AdvAst.Item | AdvFlowNode | undefined => {
+    // if (ast.value && ast.value.children.length > 0 && curState.value.order < ast.value.children.length)
+    //   return ast.value.children[curState.value.order]
+    if (curFlowNode.value.type === 'fountain') {
+      const fountainNode = curFlowNode.value
+      const fountainAst = fountainNode.ast
+      if (fountainAst) {
+        return fountainAst.children[fountainNode.order ?? 0]
+      }
+      else {
+        return fountainNode
+      }
+    }
+    else {
+      return curFlowNode.value
+    }
   })
 
   /**

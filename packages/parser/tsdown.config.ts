@@ -1,15 +1,14 @@
-import { defineBuildConfig } from 'unbuild'
+import { defineConfig } from 'tsdown'
 import pkg from './package.json'
 
-export default defineBuildConfig({
-  declaration: true,
-  entries: [
-    'src/index',
-    'src/core',
-    'src/fs',
+export default defineConfig({
+  entry: [
+    './src/index.ts',
+    './src/fs.ts',
   ],
   clean: true,
-  externals: [
+  dts: true,
+  external: [
     // @types/mdast
     'mdast',
     ...Object.keys(pkg.dependencies),
