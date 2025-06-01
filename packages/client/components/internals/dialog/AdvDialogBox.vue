@@ -16,7 +16,7 @@ const {
   next,
   curCharacter,
   characterAvatar,
-  end,
+  printed,
   animation,
   transitionFlag,
   fontSizeClass,
@@ -45,7 +45,10 @@ const curWords = computed(() => {
 </script>
 
 <template>
-  <div class="adv-dialog-box cursor-pointer select-none pt-20 shadow-xl" grid="~ cols-12" gap="12" @click="next">
+  <div
+    class="adv-dialog-box cursor-pointer select-none pt-20 shadow-xl" grid="~ cols-12" gap="12"
+    @click="next"
+  >
     <div class="col-span-3 text-right">
       <template v-if="$adv.config?.value?.showCharacterAvatar && characterAvatar">
         <div flex="~ col" class="items-end justify-center">
@@ -64,10 +67,10 @@ const curWords = computed(() => {
       :class="fontSizeClass"
     >
       <PrintWords
+        v-model:printed="printed"
         :animation="animation"
         :speed="settings.storage.text.curSpeed"
         :words="curWords"
-        @end="end = true"
       />
       <span
         v-if="showNextCursor"

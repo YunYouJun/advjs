@@ -51,10 +51,21 @@ export function useAdvDialogBox() {
     },
   )
 
-  const end = ref(false)
+  const printed = ref(false)
   const animation = ref(true)
 
+  /**
+   * 用户点击下一页按钮时触发
+   */
   async function next() {
+    /**
+     * 如果文字未打印完毕，则先打印完毕
+     */
+    if (!printed.value) {
+      printed.value = true
+      return
+    }
+
     /**
      * 如果当前节点非对话节点，则直接跳转到下一个节点
      */
@@ -134,8 +145,8 @@ export function useAdvDialogBox() {
     curCharacter,
     characterAvatar,
     dialoguesNode,
-    end,
     animation,
+    printed,
     showNextCursor,
     next,
     transitionFlag,

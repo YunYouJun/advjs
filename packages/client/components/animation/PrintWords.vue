@@ -22,6 +22,14 @@ const props = withDefaults(defineProps<{
 })
 const emit = defineEmits(['end'])
 
+/**
+ * 文字是否全部打印完毕
+ */
+const printed = defineModel('printed', {
+  type: Boolean,
+  default: false,
+})
+
 const speedMap = {
   slow: 100,
   normal: 50,
@@ -35,6 +43,7 @@ function playWordsAnimation() {
   intervalId.value = setInterval(() => {
     if (len.value === props.words.length) {
       clearInterval(intervalId.value)
+      printed.value = true
       emit('end')
     }
 
@@ -50,8 +59,19 @@ watch(() => props.words, () => {
   if (intervalId.value)
     clearInterval(intervalId.value)
 
+  printed.value = false
   len.value = 0
   playWordsAnimation()
+})
+
+/**
+ * 当 printed 被修改为 true 时
+ */
+watch(() => printed.value, (newVal) => {
+  if (newVal && intervalId.value) {
+    clearInterval(intervalId.value)
+    len.value = props.words.length
+  }
 })
 
 function wordClasses(i: number) {
