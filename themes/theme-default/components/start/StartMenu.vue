@@ -7,15 +7,18 @@ defineProps<{
 </script>
 
 <template>
-  <ul class="start-menu absolute flex flex-col items-end">
+  <ul class="start-menu absolute flex flex-col items-end gap-9">
     <li
       v-for="(item, i) in menuItems"
       :key="i"
-      class="animate__animated animate__fadeInRight start-menu-item font-serif transition"
+      class="animate__animated animate__fadeInRight start-menu-item flex gap-3 text-6xl font-serif transition"
       :style="`animation-delay: ${0.4 + i * 0.1}s`"
       @click="item.do"
     >
-      {{ item.title }}
+      <div :class="item.icon" />
+      <span>
+        {{ item.title }}
+      </span>
     </li>
   </ul>
 </template>
@@ -23,8 +26,6 @@ defineProps<{
 <style lang="scss">
 @use 'sass:map';
 .start-menu {
-  font-size: 4rem;
-
   right: 6rem;
   bottom: 6rem;
 }
@@ -35,8 +36,7 @@ defineProps<{
   background-color: rgba(255, 255, 255, 0.1);
   line-height: 1;
 
-  margin: 1rem;
-  padding: 1rem 2.5rem;
+  padding: 1.25rem 2.5rem;
 
   transition: all 0.2s;
   box-shadow: 4px 4px 16px rgba(0, 0, 0, 0.1);

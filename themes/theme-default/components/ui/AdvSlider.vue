@@ -25,7 +25,11 @@ function input(event: any) {
     <span class="mr-2">{{ label }}</span>
     <div class="adv-slider-container inline-flex">
       <!-- eslint-disable-next-line vue/no-mutating-props -->
-      <input :value="modelValue" class="adv-slider w-40" type="range" :min="min || 0" :max="max || 360" :step="step" text="black" @input="input">
+      <input
+        :value="modelValue" class="adv-slider w-40" type="range"
+        :min="min || 0" :max="max || 360" :step="step"
+        text="black" @input="input"
+      >
     </div>
     <input :value="modelValue" class="adv-slider-input" :step="step" @input="input">{{ unit }}
   </div>

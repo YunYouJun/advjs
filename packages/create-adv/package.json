@@ -16,8 +16,7 @@
   },
   "main": "index.js",
   "bin": {
-    "create-adv": "index.js",
-    "caa": "index.js"
+    "create-adv": "bin/index.mjs"
   },
   "files": [
     "index.js",

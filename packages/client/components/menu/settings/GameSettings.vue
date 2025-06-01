@@ -14,7 +14,8 @@ const item = computed<AdvMenuItemProps<'Slider'>>(() => ({
   label: t('settings.animation_duration'),
   type: 'Slider',
   props: {
-    label: 'duration',
+    // label: 'duration',
+    label: '',
     modelValue: ref(0),
     unit: 's',
     min: 0,

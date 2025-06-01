@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "dotenv": "^16.5.0",
-    "openai": "^4.103.0"
+    "openai": "^5.0.1"
   },
   "devDependencies": {
     "@types/fs-extra": "catalog:",
