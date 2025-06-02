@@ -2,6 +2,7 @@
 import { useDraggable } from '@vueuse/core'
 import { ref, useTemplateRef } from 'vue'
 import { useAdvContext } from '../../composables'
+import { ADV_RUNTIME } from '../../utils'
 
 const buttonRef = useTemplateRef('buttonRef')
 
@@ -53,9 +54,23 @@ const { $adv } = useAdvContext()
 
       <div>
         <h3 class="text-lg font-bold">
+          Cur Dialog
+        </h3>
+        <pre>{{ $adv.store.cur.dialog }}</pre>
+      </div>
+
+      <div>
+        <h3 class="text-lg font-bold">
           Tachies:
         </h3>
-        <pre>{{ $adv.$tachies.runtime.value }}</pre>
+        <pre>{{ ADV_RUNTIME.tachiesMapRef }}</pre>
+      </div>
+
+      <div>
+        <h3 class="text-lg font-bold">
+          Config:
+        </h3>
+        <pre>{{ $adv.config }}</pre>
       </div>
     </div>
   </div>

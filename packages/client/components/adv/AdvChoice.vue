@@ -30,11 +30,15 @@ function onChoiceClick(choice: AdvAst.Choice) {
     flex="~ col"
     w="full"
     h="full"
-    text="3xl"
+    text="4xl"
     font="bold"
   >
     <ul class="adv-options-container">
-      <li v-for="choice, i in node.choices" :key="i" class="adv-option" @click="onChoiceClick(choice)">
+      <li
+        v-for="choice, i in node.choices" :key="i"
+        class="adv-option"
+        @click="onChoiceClick(choice)"
+      >
         {{ choice.text }}
       </li>
     </ul>
@@ -64,10 +68,10 @@ function onChoiceClick(choice: AdvAst.Choice) {
     width: 50%;
     border: 1px solid white;
 
-    @apply shadow;
+    @apply shadow transition-all duration-200 ease-in-out;
 
     &:hover {
-      @apply shadow-lg;
+      @apply shadow-lg bg-blue-500/80;
     }
   }
 }

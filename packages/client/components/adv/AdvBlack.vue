@@ -28,9 +28,15 @@ const displaySentences = ref(Array.from({ length: props.content.children.length 
 // })
 
 const typeInterval = 50
+const printed = ref(false)
 
 function next() {
-  $adv.$nav.next()
+  if (!printed.value) {
+    printed.value = true
+  }
+  else {
+    $adv.$nav.next()
+  }
 }
 
 function playSentencesAnimation() {
@@ -60,13 +66,17 @@ watch(() => props.content, () => {
     class="adv-black absolute items-center justify-center"
     w="full"
     h="full"
-    text="2xl"
+    text="5xl"
     font="bold"
     @click="next"
   >
     <div class="words-wrapper relative" text="left">
-      <!-- todo: fix types -->
-      <PrintWords v-for="(item, i) in displaySentences" :key="i" :type-interval="typeInterval" m="2" :words="item as any" />
+      <PrintWords
+        v-for="(item, i) in displaySentences" :key="i"
+        v-model:printed="printed"
+        :type-interval="typeInterval" m="2"
+        :words="item as any"
+      />
     </div>
   </div>
 </template>

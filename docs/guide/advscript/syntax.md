@@ -109,7 +109,8 @@ export interface Dialog extends Node {
 ```ts
 export interface Character extends Node {
   type: 'character'
-  name: string
+  id: string
+  name?: string
   /**
    * status of character to adjust tachie
    * @default '' as 'default'

@@ -4,6 +4,7 @@ import type { ComputedRef } from 'vue'
 import type { useAdvBgm, useAdvLogic, useAdvNav, useAdvTachies } from '../composables'
 import type { PixiGame } from '../pixi/game'
 import type { AdvStore } from '../stores'
+import type { ADV_RUNTIME } from '../utils'
 
 /**
  * start with $ means it's a system functions
@@ -22,6 +23,10 @@ export interface AdvContext {
   $bgm: ReturnType<typeof useAdvBgm>
 
   init: () => Promise<void>
+  /**
+   * 运行时变量
+   */
+  runtime: typeof ADV_RUNTIME
   pixiGame?: PixiGame
 }
 

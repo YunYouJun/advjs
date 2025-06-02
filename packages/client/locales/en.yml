@@ -17,6 +17,7 @@ not-found: Not found
 
 menu:
   new_game: New Game
+  continue_game: Continue Game
   load_game: Load Game
   save_game: Save Game
   back_home: Back Home

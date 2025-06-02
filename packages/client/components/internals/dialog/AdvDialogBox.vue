@@ -46,7 +46,7 @@ const curWords = computed(() => {
 
 <template>
   <div
-    class="adv-dialog-box cursor-pointer select-none pt-20 shadow-xl" grid="~ cols-12" gap="12"
+    class="adv-dialog-box cursor-pointer select-none pt-30 shadow-xl" grid="~ cols-12" gap="12"
     @click="next"
   >
     <div class="col-span-3 text-right">
@@ -84,15 +84,15 @@ const curWords = computed(() => {
 
 <style lang="scss">
 .adv-dialog-box {
-  height: 30%;
+  height: 33%;
 
   position: absolute;
   left: -1px;
   right: -1px;
-  bottom: -2px;
+  bottom: -5px;
 
   // background-color: rgba(0, 0, 0, 0.7);
-  background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.8) 20%, black) repeat bottom;
+  background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.75) 35%, black) repeat bottom;
   // 硬件加速，修复 1px 空白问题
   transform: translateZ(0);
 

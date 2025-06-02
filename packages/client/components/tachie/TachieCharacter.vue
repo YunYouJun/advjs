@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { Tachie } from '@advjs/types'
+import type { TachieState } from '@advjs/client'
 import { useAdvContext } from '@advjs/client'
 import { computed } from 'vue'
 
 const props = defineProps<{
-  tachie: Tachie
-  character: string
+  tachie: TachieState
+  characterId: string
 }>()
 
 const { $adv } = useAdvContext()
@@ -15,16 +15,24 @@ const advStore = $adv.store
 const active = computed(() => {
   const curDialog = advStore.cur.dialog
   if (curDialog.type === 'dialog') {
-    return curDialog.character && (curDialog.character.name === props.character)
+    const character = $adv.gameConfig?.value?.characters?.find(item => item.id === props.characterId)
+    if (!character)
+      return false
+    if (curDialog.character && [character.id, character.alias].includes(curDialog.character.name))
+      return true
   }
   return false
+})
+
+const curTachie = computed(() => {
+  return $adv.runtime.charactersMap.get(props.characterId)?.tachies?.[props.tachie.status]
 })
 
 const characterClass = computed(() => {
   const defaultClass: string[] = []
   let resultClass: string[] = []
-  if (props.tachie.class)
-    resultClass = defaultClass.concat(props.tachie.class)
+  if (curTachie.value?.class)
+    resultClass = defaultClass.concat(curTachie.value?.class || [])
 
   if (active.value)
     resultClass.push('active')
@@ -34,12 +42,12 @@ const characterClass = computed(() => {
 
 <template>
   <Transition appear>
-    <div class="col-span-1 flex flex-col items-center justify-end">
+    <div class="col-span-1 h-full flex flex-col items-center justify-end overflow-hidden">
       <img
-        class="tachie-character inline-block transform"
+        class="tachie-character inline-flex transform"
         :class="characterClass"
-        :style="tachie.style"
-        :src="tachie.src"
+        :style="curTachie?.style"
+        :src="curTachie?.src"
       >
     </div>
   </Transition>

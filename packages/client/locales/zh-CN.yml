@@ -18,6 +18,7 @@ not-found: 未找到页面
 # 开始菜单
 menu:
   new_game: 开始游戏
+  continue_game: 继续游戏
   load_game: 加载存档
   save_game: 存储存档
   back_home: 回主菜单

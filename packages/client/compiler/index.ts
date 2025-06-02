@@ -6,7 +6,7 @@ import { computed } from 'vue'
 import { useAdvBgm, useAdvLogic, useAdvNav, useAdvTachies } from '../composables'
 import { initPixi } from '../pixi'
 import { useAdvStore } from '../stores'
-import { initGameRuntime } from '../utils'
+import { ADV_RUNTIME, initGameRuntime } from '../utils'
 
 export * from './data'
 export { $t } from '@advjs/client/modules/i18n'
@@ -26,7 +26,7 @@ export function initAdvContext(advData: ReturnType<typeof initAdvData>) {
     functions: {},
 
     init: async () => {
-      await initGameRuntime(advContext)
+      advContext.runtime = await initGameRuntime(advContext)
       advContext.pixiGame = await initPixi(advContext)
     },
 
@@ -35,6 +35,7 @@ export function initAdvContext(advData: ReturnType<typeof initAdvData>) {
     $logic: {} as ReturnType<typeof useAdvLogic>,
     $tachies: {} as ReturnType<typeof useAdvTachies>,
     $bgm: {} as ReturnType<typeof useAdvBgm>,
+    runtime: ADV_RUNTIME,
   }
   advContext.$nav = useAdvNav(advContext)
   advContext.$logic = useAdvLogic(advContext)

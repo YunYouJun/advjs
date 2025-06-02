@@ -22,6 +22,22 @@ export default defineAdvConfig({
             type: 'fountain',
             src: '/md/chapters/1/仓鼠的笼子.adv.md',
             order: 0,
+            target: {
+              chapterId: 'chapter-2',
+              nodeId: 'node-2',
+            },
+          },
+        ],
+      },
+      {
+        id: 'chapter-2',
+        title: '第二章：武林外传',
+        nodes: [
+          {
+            id: 'node-2',
+            type: 'fountain',
+            src: '/md/chapters/2/wlwz.adv.md',
+            order: 0,
           },
         ],
       },

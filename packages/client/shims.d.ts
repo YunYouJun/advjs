@@ -1,3 +1,10 @@
+import type { AdvContext } from '@advjs/core'
+
+declare interface Window {
+  // extend the window
+  $adv: AdvContext
+}
+
 declare module '*.md' {
   import type { ComponentOptions } from 'vue'
 

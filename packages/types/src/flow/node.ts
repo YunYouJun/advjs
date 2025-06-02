@@ -15,9 +15,14 @@ export interface AdvBaseNode {
   /**
    * 目标节点
    *
+   * 默认跳转当前章节下的节点
+   *
    * @runtime
    */
-  target?: string
+  target?: string | {
+    chapterId: string
+    nodeId: string
+  }
 }
 
 export interface AdvBackgroundNode extends AdvBaseNode {

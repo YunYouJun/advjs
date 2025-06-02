@@ -1,6 +1,7 @@
-import type { AdvChapter, AdvFlowNode } from '@advjs/types'
+import type { AdvFlowNode } from '@advjs/types'
 import type { AdvContext } from '../types'
 import { END_NODE } from '@advjs/core'
+import { convertMdToAdv, mdParse } from '@advjs/parser'
 import { consola } from 'consola'
 import { watch } from 'vue'
 import { ADV_RUNTIME } from '../utils'
@@ -27,19 +28,23 @@ export function useAdvNav($adv: AdvContext) {
       return
 
     if (chaptersMap.has(curChapter.id)) {
-      return chaptersMap.get(curChapter.id)
+      const chapter = chaptersMap.get(curChapter.id)
+      if (chapter?.loaded) {
+        return chapter
+      }
     }
     // if (typeof curChapter.data === 'string') {
     //   const data = await fetch(curChapter.data)
     //   curChapter.data = await data.json()
     // }
 
-    const chapterNodesMap = new Map<string, AdvFlowNode>()
-    store.curChapter = JSON.parse(JSON.stringify(curChapter)) as AdvChapter
+    // load chapter nodes
+    const nodesMap = new Map<string, AdvFlowNode>()
+    store.curChapter = curChapter
     // const { nodes, edges } = store.curChapter as AdvFlow
-    const nodes = (store.curChapter as AdvChapter)?.nodes || []
+    const nodes = store.curChapter?.nodes || []
     nodes.forEach((node) => {
-      chapterNodesMap.set(node.id, node)
+      nodesMap.set(node.id, node)
     })
     // edges.forEach((edge) => {
     //   const source = curChapterMap.get(edge.source)
@@ -48,11 +53,33 @@ export function useAdvNav($adv: AdvContext) {
     //     source.target = target.id
     //   }
     // })
-    const chapter = {
-      nodesMap: chapterNodesMap,
-    }
-    chaptersMap.set(curChapter.id, chapter)
-    return chapter
+
+    // init fountain nodes
+    const fountainNodes = nodes.filter(node => node.type === 'fountain')
+    // promise.all
+    await Promise.all(fountainNodes.map(async (node) => {
+      const src = node.src
+      // fetch and parse src
+      const md = await fetch(src).then(res => res.text())
+      // parse md
+      const parsedTokens = await mdParse(md)
+      const parsedAst = convertMdToAdv(parsedTokens)
+      consola.info(parsedAst)
+
+      nodesMap.set(node.id, {
+        ...node,
+        ast: parsedAst,
+      })
+    }))
+
+    chaptersMap.set(curChapter.id, {
+      loaded: true,
+      nodesMap,
+    })
+
+    const loadedChapter = chaptersMap.get(curChapter.id)
+    consola.info(`Chapter ${curChapter.id} loaded`, loadedChapter)
+    return loadedChapter
   }
 
   /**
@@ -77,33 +104,44 @@ export function useAdvNav($adv: AdvContext) {
       return
 
     store.curFlowNode = startNode
-    // console.log('startNode', startNode)
-    // next()
   }
 
   /**
-   * go to scene
+   * go to target node
    * @param target
    */
-  function go(target: string) {
-    const order = store.ast.scene[target]
-    if (Number.isNaN(order))
-      consola.error(`Can not find screen ${target}`)
-    else store.cur.order = order
+  async function go(target: string | { chapterId: string, nodeId: string } | AdvFlowNode = END_NODE) {
+    if (typeof target === 'object' && 'id' in target) {
+      // 如果是 AdvFlowNode 对象，直接设置为当前节点
+      store.curFlowNode = target
+      return target
+    }
 
-    // next()
-    if (target) {
-      const curChapterId = store.curChapter?.id || $adv.gameConfig.value.chapters[0].id
-      const chapter = chaptersMap.get(curChapterId)
-      if (!chapter) {
-        consola.error(`Chapter ${curChapterId} not found`)
-        return
-      }
-      const targetNode = chapter.nodesMap.get(target)
-      if (targetNode) {
-        consola.debug(`Go to node ${target}`, targetNode)
-        store.curFlowNode = targetNode
-      }
+    // go to target node
+    let targetChapterId = ''
+    let targetNodeId = ''
+    if (typeof target === 'string') {
+      targetChapterId = store.curChapter?.id || ''
+      targetNodeId = target
+    }
+    else {
+      targetChapterId = target.chapterId
+      targetNodeId = target.nodeId
+    }
+
+    let targetChapter = chaptersMap.get(targetChapterId)
+    if (!targetChapter) {
+      consola.error(`Chapter ${targetChapterId} not found`)
+      return
+    }
+    else if (!targetChapter.loaded) {
+      targetChapter = await loadChapter(targetChapterId)
+    }
+    const targetNode = targetChapter?.nodesMap.get(targetNodeId)
+    if (targetNode) {
+      consola.debug(`Go to node ${target}`, targetNode)
+      store.curFlowNode = targetNode
+      return targetNode
     }
   }
 
@@ -117,7 +155,14 @@ export function useAdvNav($adv: AdvContext) {
     }
 
     if (store.curFlowNode.type === 'fountain') {
-      if (store.curFlowNode.order) {
+      if (store.curFlowNode.order === undefined) {
+        store.curFlowNode.order = 1
+      }
+
+      if (store.curFlowNode.ast && store.curFlowNode.order >= store.curFlowNode.ast.children?.length - 1) {
+        await go(store.curFlowNode.target)
+      }
+      else if (store.curFlowNode.order) {
         store.curFlowNode.order++
       }
       else {
@@ -131,15 +176,8 @@ export function useAdvNav($adv: AdvContext) {
       store.curFlowNode = END_NODE
     }
     else {
-      const chapter = chaptersMap.get(store.curChapter?.id || '')
-      const targetNode = chapter?.nodesMap?.get(store.curFlowNode.target)
-      if (!targetNode) {
-        consola.error('Can not find target node')
-      }
-      else {
-        store.curFlowNode = targetNode
-      }
-      consola.debug('Next', store.curFlowNode)
+      const targetNode = await go(store.curFlowNode.target)
+      consola.debug('Next', targetNode)
       return targetNode
     }
 
@@ -169,11 +207,14 @@ export function useAdvNav($adv: AdvContext) {
   /**
    * 处理节点
    */
-  watch(() => store.curFlowNode, () => {
-    $adv.$logic.handleAdvNode(store.curFlowNode)
+  watch(() => store.curNode, () => {
+    if (store.curNode) {
+      $adv.$logic.handleAdvNode(store.curNode)
+    }
   })
 
   return {
+    loadChapter,
     start,
     next,
     go,

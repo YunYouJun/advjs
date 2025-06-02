@@ -16,7 +16,7 @@ export function useAdvDialogBox() {
   const dialoguesNode = computed(() => $adv.store.cur.dialog)
   const curDialog = computed(() => {
     if (store.cur.dialog) {
-    // 如果当前对话是单个对话节点
+      // 如果当前对话是单个对话节点
       if (store.cur.dialog.type === 'dialog') {
         return store.cur.dialog as any
       }
@@ -36,6 +36,13 @@ export function useAdvDialogBox() {
     }
     else if (store.curNode?.type === 'dialog') {
       store.cur.dialog = store.curNode
+    }
+    else {
+      store.cur.dialog = {
+        id: '',
+        type: 'dialogues',
+        dialogues: [],
+      }
     }
   })
 
@@ -102,12 +109,23 @@ export function useAdvDialogBox() {
     }
   }
 
+  /**
+   * 当前对话的角色
+   */
   const curCharacter = computed(() => {
+    if (curDialog.value?.character) {
+      // 如果当前对话是单个对话节点
+      return curDialog.value.character
+    }
+
     const characterID = curDialog.value?.speaker
     const character = $adv.gameConfig?.value?.characters?.find(item => item.id === characterID)
     return character
   })
 
+  /**
+   * 当前对话的角色头像
+   */
   const characterAvatar = computed(() => {
     const advConfig = $adv.config.value
     const gameConfig = $adv.gameConfig.value

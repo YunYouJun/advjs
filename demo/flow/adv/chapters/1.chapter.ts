@@ -182,6 +182,7 @@ data.nodes.forEach((node, _index) => {
   if (node.type === 'dialogues') {
     // @ts-expect-error character
     node.character = {
+      id: node.dialogues![0].speaker.toLowerCase(),
       type: 'character',
       name: node.dialogues![0].speaker,
     }

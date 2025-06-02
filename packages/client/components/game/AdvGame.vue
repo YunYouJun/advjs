@@ -29,11 +29,11 @@ const app = useAppStore()
     text="white"
     :config="$adv.config?.value"
   >
-    <div class="adv-game absolute h-full w-full bg-black">
+    <div class="adv-game absolute size-full bg-black">
       <AdvScene />
       <AdvPixiCanvas />
       <slot name="scene" />
-      <AdvTachieBox :tachies="$adv.$tachies.runtime.value" />
+      <AdvTachieBox class="z-1" :tachies-map="$adv.runtime.tachiesMapRef.value" />
 
       <AdvBlack v-if="curNode && curNode.type === 'narration'" class="z-9" :content="curNode" />
 
@@ -44,27 +44,25 @@ const app = useAppStore()
       <BaseLayer v-if="!app.showUi" />
 
       <Transition enter-active-class="animate-fade-in-up" leave-active-class="animate-fade-out-down">
-        <AdvDialogBox v-if="curNode" v-show="app.showUi" :node="curNode" class="z-1 animate-duration-200" />
+        <AdvDialogBox v-if="curNode" v-show="app.showUi" :node="curNode" class="z-2 animate-duration-200" />
       </Transition>
 
       <Transition enter-active-class="animate-fade-in-up" leave-active-class="animate-fade-out-down">
-        <!-- todo: fix types -->
-        <AdvChoice v-if="curNode" v-show="curNode?.type === 'choices'" :node="curNode as any" class="z-2 animate-duration-200" />
+        <AdvChoice v-if="curNode" v-show="curNode?.type === 'choices'" :node="curNode" class="z-3 animate-duration-200" />
       </Transition>
 
       <Transition enter-active-class="animate-fade-in-up" leave-active-class="animate-fade-out-down">
-        <DialogControls v-show="app.showUi" class="absolute bottom-1 left-0 right-0 z-3 animate-duration-200" />
+        <DialogControls v-show="app.showUi" class="absolute bottom-1 left-0 right-0 z-4 animate-duration-200" />
       </Transition>
+
       <Transition enter-active-class="animate-fade-in-down" leave-active-class="animate-fade-out-up">
         <AdvGameUI v-show="app.showUi" class="z-99 animate-duration-200" />
       </Transition>
 
       <Transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-        <div v-if="curNode?.type === 'end'" class="absolute bottom-0 left-0 right-0 top-0 z-50 animate-duration-200">
-          <div class="h-full w-full flex items-center justify-center bg-black/60 text-8xl font-bold">
-            - END -
-          </div>
-        </div>
+        <AdvOverlay v-if="curNode?.type === 'end'">
+          - END -
+        </AdvOverlay>
       </Transition>
 
       <AdvHistory />

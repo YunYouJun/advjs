@@ -54,7 +54,9 @@ export const useAdvStore = defineStore('adv', () => {
   const curState = ref<CurStateType>({
     order: 0,
     /**
-     * 当前对话
+     * 当前所处对话
+     *
+     * - dialogues 包含多个对话
      */
     dialog: {
       // type: 'dialog',

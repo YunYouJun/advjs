@@ -139,6 +139,17 @@ export function useAdvLogic($adv: AdvContext) {
     const lang = node.lang?.toLowerCase() || ''
     if (isScript(node)) {
       try {
+        if (store.curFlowNode.type === 'fountain') {
+          // store.curFlowNode.ast?.functions
+          // eval string
+          const script = store.curFlowNode.ast?.functions[node.value]
+          if (script) {
+            // eslint-disable-next-line no-new-func
+            const fn = new Function(script)
+            await fn()
+            return true
+          }
+        }
         // ctx.functions[node.value]()
       }
       catch (e) {
