@@ -20,7 +20,7 @@ const { $adv } = useAdvContext()
 <template>
   <button
     ref="buttonRef"
-    class="absolute bottom-6 right-6 z-9999 size-12 flex items-center justify-center rounded-full bg-dark shadow"
+    class="fixed bottom-6 right-6 z-9999 size-12 flex items-center justify-center rounded-full bg-dark shadow"
     :style="style"
     @click="showDevTools = !showDevTools"
   >
@@ -36,7 +36,7 @@ const { $adv } = useAdvContext()
 
   <div
     v-if="showDevTools" absolute
-    class="bottom-0 right-0 top-0 z-9999 max-w-2xl min-w-md overflow-auto bg-dark p-4 text-white"
+    class="fixed bottom-0 right-0 top-0 z-9999 max-w-2xl min-w-md overflow-auto bg-dark p-4 text-white"
   >
     <div class="items-start text-left" flex="~ col" gap="4">
       <div>

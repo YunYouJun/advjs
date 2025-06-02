@@ -43,17 +43,5 @@ const app = useAppStore()
     <AdvIconButton class="menu-setting-button" @click="app.toggleShowMenu()">
       <div i-ri-settings-3-line />
     </AdvIconButton>
-
-    <AdvModal :show="app.showMenu" @close="app.toggleShowMenu">
-      <AdvMenuPanel />
-    </AdvModal>
-
-    <AdvModal header="存储存档" :show="app.showSaveMenu" @close="app.toggleShowSaveMenu">
-      <SaveMenu />
-    </AdvModal>
-
-    <AdvModal header="加载存档" :show="app.showLoadMenu" @close="app.toggleShowLoadMenu">
-      <LoadMenu />
-    </AdvModal>
   </div>
 </template>

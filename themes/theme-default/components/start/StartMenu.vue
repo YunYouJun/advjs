@@ -11,11 +11,11 @@ defineProps<{
     <li
       v-for="(item, i) in menuItems"
       :key="i"
-      class="animate__animated animate__fadeInRight start-menu-item flex gap-3 text-6xl font-serif transition"
+      class="animate__animated animate__fadeInRight start-menu-item flex gap-3 text-6xl adv-font-serif transition"
       :style="`animation-delay: ${0.4 + i * 0.1}s`"
       @click="item.do"
     >
-      <div :class="item.icon" />
+      <div v-if="item.icon" :class="item.icon" />
       <span>
         {{ item.title }}
       </span>

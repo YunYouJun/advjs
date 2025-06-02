@@ -65,7 +65,7 @@ const app = useAppStore()
         </AdvOverlay>
       </Transition>
 
-      <AdvHistory />
+      <AdvGameModals />
     </div>
   </AdvContainer>
 </template>

@@ -28,9 +28,9 @@ export function presetAdv(options: Partial<PresetAdvOptions> = {}): Preset<objec
         'adv-animated-slow',
         'animate-fill-mode-both animate-duration-$adv-animation-duration-slow',
       ],
-      ['font-serif', 'font-$adv-font-serif'],
-      ['font-sans', 'font-$adv-font-sans'],
-      ['font-mono', 'font-$adv-font-mono'],
+      ['adv-font-serif', 'font-$adv-font-serif'],
+      ['adv-font-sans', 'font-$adv-font-sans'],
+      ['adv-font-mono', 'font-$adv-font-mono'],
 
       [
         'btn',

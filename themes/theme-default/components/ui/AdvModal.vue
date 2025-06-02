@@ -1,20 +1,30 @@
 <script lang="ts" setup>
+/**
+ * 与 dialog fix 超出屏幕不同，
+ * modal 覆盖的是游戏全屏
+ */
+
 import { onKeyStroke } from '@vueuse/core'
 import { onMounted } from 'vue'
 
-const props = withDefaults(defineProps<{
-  show?: boolean
+withDefaults(defineProps<{
+  icon?: string
   header?: string
 }>(), {
-  show: false,
+  icon: '',
   header: '',
 })
 
 const emit = defineEmits(['close'])
 
+const open = defineModel('open', {
+  type: Boolean,
+  default: false,
+})
+
 onMounted(() => {
   onKeyStroke('Escape', (_e) => {
-    if (props.show)
+    if (open.value)
       emit('close')
   })
 })
@@ -22,24 +32,31 @@ onMounted(() => {
 
 <template>
   <Transition name="modal">
-    <div v-if="show" class="modal-mask">
-      <div class="modal-container">
-        <AdvIconButton class="modal-close-button" @click="emit('close')">
-          <div i-ri-close-line />
+    <div v-if="open" class="modal-mask">
+      <div class="modal-container size-full flex flex-col">
+        <AdvIconButton v-if="!header" class="modal-close-button absolute right-4 top-4" @click="emit('close')">
+          <div i-ri-close-line class="text-6xl" />
         </AdvIconButton>
+
         <slot name="header">
-          <template v-if="header">
+          <div v-if="header" class="flex items-center justify-between">
             <h1
-              class="adv-font-serif my-4 font-medium"
-              text="4xl"
+              class="flex items-center gap-2 p-6 font-black adv-font-serif"
+              text="6xl"
             >
-              {{ header }}
+              <div :class="icon" />
+              <span>{{ header }}</span>
             </h1>
-            <HorizontalDivider />
-          </template>
+
+            <AdvIconButton class="modal-close-button" @click="emit('close')">
+              <div i-ri-close-line class="text-6xl" />
+            </AdvIconButton>
+          </div>
+
+          <HorizontalDivider v-if="header" />
         </slot>
 
-        <div class="modal-body" :h="header ? '15/17' : 'full'">
+        <div class="modal-body w-full flex flex-grow justify-center overflow-auto">
           <slot />
         </div>
       </div>
@@ -64,16 +81,11 @@ onMounted(() => {
 }
 
 .modal-container {
-  width: 100%;
-  height: 100%;
   /* padding: 1rem; */
   transition: all 0.2s ease;
 }
 
 .modal-close-button {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
   outline: none;
 }
 
