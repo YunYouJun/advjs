@@ -58,7 +58,7 @@ export const useGameStore = defineStore('@advjs/editor:game', () => {
 
       // add default config
       config = {
-        ...$adv.config.value.gameConfig,
+        ...$adv.gameConfig.value,
         ...config,
 
         bgm: {

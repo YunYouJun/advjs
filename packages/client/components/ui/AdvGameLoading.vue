@@ -13,7 +13,6 @@ const gameStore = useGameStore()
       flex="~" justify="center" items="center"
       z="99999"
     >
-      {{ gameStore.loadStatus }}
       <div i-svg-spinners:blocks-shuffle-2 class="text-8xl" />
     </div>
   </Transition>

@@ -66,7 +66,7 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
    */
   async function loadIndexAdvJSON(text: string) {
     fileStore.rawConfigFileContent = text
-    gameStore.loadGameFromJSONStr(text)
+    await gameStore.loadGameFromJSONStr(text)
 
     consoleStore.success('File loaded', {
       fileName: 'index.adv.json',
@@ -129,7 +129,7 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
         return
       }
       const text = await response.text()
-      loadIndexAdvJSON(text)
+      await loadIndexAdvJSON(text)
     },
 
     async openOnlineAdvProject(params: {
@@ -172,6 +172,9 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
           throw new Error(`Invalid host platform: ${params.host.platform}`)
         }
       }
+
+      // set adapter
+      gameStore.curAdapter = params.adapter
 
       online.hostUrl = hostUrl
       // load index.adv.json

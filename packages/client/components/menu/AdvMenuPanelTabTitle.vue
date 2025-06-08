@@ -13,7 +13,7 @@ defineProps<{
     :value="value"
   >
     <slot>
-      <h2 class="adv-font-serif font-black" text="6xl">
+      <h2 class="font-black adv-font-serif" text="6xl">
         {{ title }}
       </h2>
     </slot>

@@ -125,9 +125,9 @@ export async function getAlias(options: ResolvedAdvOptions): Promise<Alias[]> {
   alias.push(
     ...(isInstalledGlobally.value
       ? await Promise.all(INCLUDE_GLOBAL.map(async dep => ({
-        find: dep,
-        replacement: fileURLToPath(await resolveClientDep(dep)),
-      })))
+          find: dep,
+          replacement: fileURLToPath(await resolveClientDep(dep)),
+        })))
       : []
     ),
   )

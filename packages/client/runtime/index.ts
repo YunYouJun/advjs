@@ -21,10 +21,10 @@ export function initAdvContext() {
   const themeConfig = computed<AdvThemeConfig>(() => defaultAdvConfig.themeConfig)
 
   const advContext: AdvContext = {
+    store,
     config,
     gameConfig: computed(() => gameConfig.value),
     themeConfig,
-    store,
     functions: {},
 
     async init() {

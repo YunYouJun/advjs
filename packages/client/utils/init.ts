@@ -45,8 +45,8 @@ export const ADV_RUNTIME: {
  */
 export async function initGameRuntime($adv: AdvContext) {
   (window as any).$adv = $adv
-  consola.info('Init Game Runtime')
-  const gameConfig = $adv.config.value.gameConfig
+  const gameConfig = $adv.gameConfig.value
+  consola.info('Init Game Runtime', $adv.gameConfig)
 
   /**
    * init map
@@ -87,6 +87,6 @@ export async function initGameRuntime($adv: AdvContext) {
     await $adv.$nav.loadChapter(firstChapter.id)
   }
 
-  consola.info('Game Runtime Initialized', ADV_RUNTIME.chaptersMap)
+  consola.info('Game Runtime Initialized', ADV_RUNTIME.chaptersMap.size)
   return ADV_RUNTIME
 }

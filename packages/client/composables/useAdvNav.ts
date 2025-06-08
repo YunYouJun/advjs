@@ -94,10 +94,11 @@ export function useAdvNav($adv: AdvContext) {
       consola.error('No chapter nodes found')
       return
     }
+    consola.success('Chapter loaded', chapter)
     const startNode = chapter.nodesMap.get(nodeId)
     if (!startNode)
       return
-
+    consola.success(`Start node ${nodeId} found`, startNode)
     store.curFlowNode = startNode
   }
 

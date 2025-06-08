@@ -5,7 +5,7 @@ import '../../../../themes/theme-default/styles'
 
 const gameStore = useGameStore()
 const projectStore = useProjectStore()
-const show = computed(() => gameStore.client.loadStatus >= AdvGameLoadStatusEnum.CONFIG_LOADED)
+const show = computed(() => gameStore.client.loadStatus >= AdvGameLoadStatusEnum.CONFIG_LOADING)
 
 const route = useRoute()
 
