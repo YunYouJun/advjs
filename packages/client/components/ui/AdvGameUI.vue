@@ -14,7 +14,10 @@ const app = useAppStore()
 </script>
 
 <template>
-  <div class="absolute top-0 w-full flex justify-between" p="5">
+  <!-- 渐变黑色背景 -->
+  <div
+    class="adv-game-ui--header absolute top-0 w-full flex justify-between" p="5"
+  >
     <div class="inline-flex" gap="4">
       <AdvIconButton @click="app.toggleHistory()">
         <div i-ri-message-2-line />
@@ -45,3 +48,9 @@ const app = useAppStore()
     </AdvIconButton>
   </div>
 </template>
+
+<style lang="scss">
+.adv-game-ui--header {
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5));
+}
+</style>

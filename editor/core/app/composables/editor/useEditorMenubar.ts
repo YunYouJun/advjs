@@ -80,13 +80,20 @@ export function useEditorMenubar() {
             {
               label: 'Copy Link',
               onClick: async () => {
-                await copy('https://editor.advjs.org')
+                const playLink = new URL(window.location.href)
+                // path
+                playLink.pathname = '/play'
+                // todo modify as online link
+                playLink.searchParams.set('url', 'https://cos.advjs.yunle.fun/games/the-lord-of-the-rings/index.adv.json')
+                playLink.searchParams.set('adapter', 'pominis')
+                await copy(playLink.toString())
+
                 if (copied.value) {
                   Toast({
                     title: 'Link copied to clipboard',
                     description: '',
                     type: 'success',
-                    duration: 99999,
+                    duration: 3000,
                   })
                 }
               },

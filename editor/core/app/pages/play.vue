@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { AdvConfigAdapterType } from '../types'
+import '../../../../themes/theme-default/styles'
 
 const fileStore = useFileStore()
 const gameStore = useGameStore()
