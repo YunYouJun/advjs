@@ -3,6 +3,6 @@
   "version": "0.0.1",
   "description": "Upload assets to Tencent COS",
   "dependencies": {
-    "cos-nodejs-sdk-v5": "^2.15.1"
+    "cos-nodejs-sdk-v5": "^2.16.0-beta.3"
   }
 }

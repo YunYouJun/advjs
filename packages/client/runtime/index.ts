@@ -5,6 +5,7 @@ import { computed, ref } from 'vue'
 import { useAdvBgm, useAdvLogic, useAdvNav, useAdvTachies } from '../composables'
 import { initPixi } from '../pixi'
 import { useAdvStore } from '../stores'
+import { ADV_RUNTIME, initGameRuntime } from '../utils'
 
 export const gameConfig = ref<AdvGameConfig>(defaultConfig.gameConfig as AdvGameConfig)
 
@@ -27,6 +28,7 @@ export function initAdvContext() {
     functions: {},
 
     async init() {
+      advContext.runtime = await initGameRuntime(advContext)
       advContext.pixiGame = await initPixi(advContext)
     },
 
@@ -35,6 +37,7 @@ export function initAdvContext() {
     $logic: {} as ReturnType<typeof useAdvLogic>,
     $tachies: {} as ReturnType<typeof useAdvTachies>,
     $bgm: {} as ReturnType<typeof useAdvBgm>,
+    runtime: ADV_RUNTIME,
   }
 
   advContext.$nav = useAdvNav(advContext)
