@@ -39,7 +39,7 @@ outline: deep
 
 ### 资源目录结构
 
-为了便于映射 CDN 资源，我们约定如下图片、音频等资源的目录结构。
+为了便于映射 CDN 资源，我们约定游戏中图片、音频等资源默认的目录结构。
 
 - `nodes/`: 节点文件夹
   - `<节点 ID>/`: 节点 ID 文件夹
@@ -48,18 +48,26 @@ outline: deep
   - `<角色 ID>/`: 角色 ID 文件夹
     - `avatar.png`: 角色头像
     - `tachie.png`: 角色全身立绘
+- `audios/`: 音频文件夹
+  - `bgms/`: 背景音乐文件夹
+    - `<音乐名称>.mp3`: 背景音乐音频文件
+  - `voices/`: 角色语音文件夹
+    - `<角色 ID>/`: 角色 ID 文件夹
+      - `<音频名称>.mp3`: 角色语音音频文件
+  - `sfx/`: 音效文件夹
+    - `<音效名称>.mp3`: 音效音频文件
 
 例如：
 
 小云的 ID 为 `XiaoYun`，此时头像 CDN 链接为 `CDN 前缀` + `游戏 ID` + `/characters/XiaoYun/avatar.png`
 
-### 背景音乐列表
+### 公共背景音乐列表
 
 一组背景音乐：
 
 音乐类型及其对应音乐名称/简介。
 
-背景音乐列表可以 CDN 链接/JSON 形式配置在 `adv.config.json` 中，它的路径不依赖于游戏路径，可在多个游戏中复用曲库。
+公共背景音乐列表可以 CDN 链接/JSON 形式配置在 `adv.config.json` 中，它的路径不依赖于游戏路径，可在多个游戏中复用曲库。
 
 ```ts
 export interface PominisBgmLibrary {

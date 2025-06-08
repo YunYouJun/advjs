@@ -2,20 +2,25 @@
 import type { AdvConfigAdapterType } from '../types'
 import '../../../../themes/theme-default/styles'
 
-const fileStore = useFileStore()
 const gameStore = useGameStore()
+const projectStore = useProjectStore()
 const show = computed(() => gameStore.loadStatus === 'success')
 
 const route = useRoute()
 
 onMounted(() => {
-  const onlineAdvConfigFileUrl = route.query.url as string
-  const adapter = route.query.adapter as AdvConfigAdapterType
+  const { gameId, adapter } = route.query as {
+    gameId?: string
+    adapter?: AdvConfigAdapterType
+  }
 
-  if (onlineAdvConfigFileUrl && adapter) {
-    fileStore.openOnlineAdvConfigFile({
-      url: onlineAdvConfigFileUrl,
+  if (gameId && adapter) {
+    projectStore.online.openOnlineAdvProject({
       adapter,
+      gameId,
+      host: {
+        platform: 'yunlefun',
+      },
     })
   }
 })

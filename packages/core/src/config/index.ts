@@ -1,7 +1,7 @@
 import type { AdvConfig, AdvGameConfig } from '@advjs/types'
 import { LogLevels } from 'consola'
 
-export const defaultConfig: AdvConfig = {
+export const defaultAdvConfig: AdvConfig = {
   logLevel: LogLevels.info,
   format: 'fountain',
   features: {

@@ -1,24 +1,24 @@
 import type { AdvConfig, AdvGameConfig, AdvThemeConfig } from '@advjs/types'
 import type { AdvContext } from '../types'
-import { defaultConfig } from '@advjs/core'
+import { defaultAdvConfig } from '@advjs/core'
 import { computed, ref } from 'vue'
 import { useAdvBgm, useAdvLogic, useAdvNav, useAdvTachies } from '../composables'
 import { initPixi } from '../pixi'
 import { useAdvStore } from '../stores'
 import { ADV_RUNTIME, initGameRuntime } from '../utils'
 
-export const gameConfig = ref<AdvGameConfig>(defaultConfig.gameConfig as AdvGameConfig)
+export const gameConfig = ref<AdvGameConfig>(defaultAdvConfig.gameConfig as AdvGameConfig)
 
 export function initAdvContext() {
   const store = useAdvStore()
 
   const config = computed<AdvConfig>(() => {
     return {
-      ...defaultConfig,
+      ...defaultAdvConfig,
       showCharacterAvatar: true,
     }
   })
-  const themeConfig = computed<AdvThemeConfig>(() => defaultConfig.themeConfig)
+  const themeConfig = computed<AdvThemeConfig>(() => defaultAdvConfig.themeConfig)
 
   const advContext: AdvContext = {
     config,
