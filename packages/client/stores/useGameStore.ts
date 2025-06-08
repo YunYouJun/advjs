@@ -1,12 +1,24 @@
-import type { AdvGameRecord, AdvGameRecordMeta } from '@advjs/client'
+import { AdvGameLoadStatusEnum, type AdvGameRecord, type AdvGameRecordMeta } from '@advjs/client'
 import { createRecordsStorage } from '@advjs/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 /**
  * runtime game store
  */
-export const useGameStore = defineStore('@advjs/client/game', () => {
+export const useGameStore = defineStore('@advjs/client:game', () => {
+  /**
+   * 游戏加载状态
+   * Load game from JSON file
+   */
+  const loadStatus = ref<AdvGameLoadStatusEnum>(AdvGameLoadStatusEnum.IDLE)
+  /**
+   * 正在加载
+   */
+  const isLoading = computed(() => {
+    return ![AdvGameLoadStatusEnum.SUCCESS, AdvGameLoadStatusEnum.FAIL].includes(loadStatus.value)
+  })
+
   /**
    * 游戏开始章节
    */
@@ -67,6 +79,9 @@ export const useGameStore = defineStore('@advjs/client/game', () => {
   }
 
   return {
+    loadStatus,
+    isLoading,
+
     startChapter,
     startNode,
 

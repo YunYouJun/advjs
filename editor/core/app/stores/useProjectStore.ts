@@ -2,6 +2,7 @@ import type { FSDirItem, TreeNode } from '@advjs/gui'
 import type { AdvConfig } from '@advjs/types'
 import type { AdvConfigAdapterType } from '../types'
 import { defaultAdvConfig } from '@advjs/core'
+import { consola } from 'consola'
 import { PLATFORM_MAP } from '../constants'
 
 /**
@@ -105,7 +106,7 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
         await loadAdvConfig(data)
       }
       catch (error) {
-        console.error('Failed to load online adv.config.json', error)
+        consola.error('Failed to load online adv.config.json', error)
         // load default advConfig
         await loadAdvConfig({
           cdn: {

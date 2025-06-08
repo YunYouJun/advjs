@@ -1,17 +1,8 @@
 import type { AdvCharacter, AdvFlowNode } from '@advjs/types'
 import type { Ref } from 'vue'
-import type { AdvContext } from '../types'
+import type { AdvContext, ChaptersMap } from '../types'
 import { consola } from 'consola'
 import { ref } from 'vue'
-
-export type ChapterNodesMap = Map<string, AdvFlowNode>
-export type ChaptersMap = Map<string, {
-  /**
-   * 是否已加载完毕
-   */
-  loaded: boolean
-  nodesMap: ChapterNodesMap
-}>
 
 export interface TachieState {
   /**

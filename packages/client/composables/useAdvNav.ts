@@ -6,11 +6,6 @@ import { consola } from 'consola'
 import { watch } from 'vue'
 import { ADV_RUNTIME } from '../utils'
 
-export type ChapterNodesMap = Map<string, AdvFlowNode>
-export type ChaptersMap = Map<string, {
-  nodesMap: ChapterNodesMap
-}>
-
 export function useAdvNav($adv: AdvContext) {
   const { store } = $adv
 

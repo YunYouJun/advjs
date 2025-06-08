@@ -1,10 +1,11 @@
 <script lang="ts" setup>
 import type { AdvConfigAdapterType } from '../types'
+import { AdvGameLoadStatusEnum } from '@advjs/client'
 import '../../../../themes/theme-default/styles'
 
 const gameStore = useGameStore()
 const projectStore = useProjectStore()
-const show = computed(() => gameStore.loadStatus === 'success')
+const show = computed(() => gameStore.client.loadStatus >= AdvGameLoadStatusEnum.CONFIG_LOADED)
 
 const route = useRoute()
 
@@ -30,6 +31,8 @@ onMounted(() => {
   <div class="h-full w-full flex items-center justify-center">
     <AdvGame v-if="show" class="h-full w-full" />
     <AEOpenAdvConfigFile v-else />
+
+    <AdvGameLoading class="absolute inset-0 z-9999" />
   </div>
 
   <AELoadOnlineConfigFileDialog />

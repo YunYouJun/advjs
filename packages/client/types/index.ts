@@ -7,3 +7,4 @@ export type UserModule = (ctx: { app: App, isClient: boolean, router: Router }) 
 
 export * from './context'
 export * from './menu'
+export * from './runtime'

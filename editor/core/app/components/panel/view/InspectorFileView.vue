@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAdvContext } from '@advjs/client'
+import { AdvGameLoadStatusEnum, useAdvContext } from '@advjs/client'
 
 const props = defineProps<{
   fileHandle?: FileSystemFileHandle
@@ -52,13 +52,13 @@ function goToNode() {
         >
           Load
         </AGUIButton>
-        <AGUIButton v-if="gameStore.loadStatus === 'success'" @click="goToNode">
+        <AGUIButton v-if="gameStore.client.loadStatus === AdvGameLoadStatusEnum.SUCCESS" @click="goToNode">
           Start
         </AGUIButton>
       </div>
     </div>
 
-    <AEAdvConfigActions v-if="gameStore.loadStatus === 'success'" />
+    <AEAdvConfigActions v-if="gameStore.client.loadStatus === AdvGameLoadStatusEnum.SUCCESS" />
 
     <ClientOnly>
       <MonacoEditor

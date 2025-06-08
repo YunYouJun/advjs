@@ -1,5 +1,6 @@
 import type { AdvGameConfig } from '@advjs/types'
-import { useAdvContext } from '@advjs/client'
+import { useAdvContext, useGameStore as useClientGameStore } from '@advjs/client'
+import { AdvGameLoadStatusEnum } from '@advjs/client/constants/game.js'
 import { Toast } from '@advjs/gui'
 import { useStorage } from '@vueuse/core'
 import { consola } from 'consola'
@@ -11,15 +12,13 @@ import { DEFAULT_BGM_LIBRARY_URL } from '../constants'
  * editor game store
  * for runtime
  */
-export const useGameStore = defineStore('editor:game', () => {
+export const useGameStore = defineStore('@advjs/editor:game', () => {
+  const clientGameStore = useClientGameStore()
+
   /**
    * adapt config format
    */
   const curAdapter = useStorage<'default' | 'pominis'>('advjs:editor:adv-config-adapter', 'default')
-  /**
-   * Load game from JSON file
-   */
-  const loadStatus = ref<'' | 'success' | 'fail'>('')
 
   /**
    * todo, use client/useGameStore
@@ -37,7 +36,7 @@ export const useGameStore = defineStore('editor:game', () => {
       await loadGameFromConfig(gameConfig.value)
     }
     catch (e) {
-      loadStatus.value = 'fail'
+      clientGameStore.loadStatus = AdvGameLoadStatusEnum.FAIL
       consola.error('Failed to parse game config:', e)
     }
   }
@@ -80,7 +79,7 @@ export const useGameStore = defineStore('editor:game', () => {
     }
     catch (e) {
       consola.error('Failed to adapt game config:', e)
-      loadStatus.value = 'fail'
+      clientGameStore.loadStatus = AdvGameLoadStatusEnum.FAIL
 
       Toast({
         title: 'Error Game Config Format',
@@ -92,11 +91,10 @@ export const useGameStore = defineStore('editor:game', () => {
     }
 
     gameConfig.value = config
-    loadStatus.value = 'success'
-
-    await nextTick()
+    clientGameStore.loadStatus = AdvGameLoadStatusEnum.CONFIG_LOADED
 
     await $adv.init()
+    clientGameStore.loadStatus = AdvGameLoadStatusEnum.SUCCESS
 
     const startNodeId = config.chapters[0]?.nodes[0]?.id
     if (startNodeId) {
@@ -109,7 +107,7 @@ export const useGameStore = defineStore('editor:game', () => {
   return {
     curAdapter,
     gameConfig,
-    loadStatus,
+    client: clientGameStore,
 
     startChapter,
     startNode,

@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { AdvGameLoadStatusEnum } from '@advjs/client'
+
 // import { useAdvConfig, useAdvContext } from '@advjs/client'
 import { onMounted } from 'vue'
-
 import '../../../../themes/theme-default/styles'
 // const { $adv } = useAdvContext()
 // const advConfig = useAdvConfig()
@@ -9,7 +10,7 @@ import '../../../../themes/theme-default/styles'
 // const isDev = import.meta.env.DEV
 
 const gameStore = useGameStore()
-const show = computed(() => gameStore.loadStatus === 'success')
+const show = computed(() => gameStore.client.loadStatus >= AdvGameLoadStatusEnum.CONFIG_LOADED)
 
 proxyLog()
 
