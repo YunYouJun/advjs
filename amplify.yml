@@ -1,12 +1,13 @@
 version: 1
 applications:
   - frontend:
+      buildPath: /
       phases:
         preBuild:
           commands:
             - node --version
             - corepack enable
-            - pnpm install
+            - pnpm install --filter editor/core
         build:
           commands:
             - pnpm run editor:build
@@ -14,15 +15,18 @@ applications:
         baseDirectory: editor/core/.amplify-hosting
         files:
           - '**/*'
-      buildPath: /
+      cache:
+        paths:
+          - node_modules/**/*
     appRoot: editor/core
   - frontend:
+      buildPath: /
       phases:
         preBuild:
           commands:
             - node --version
             - corepack enable
-            - pnpm install
+            - pnpm install --filter playground
         build:
           commands:
             - pnpm run build:play
@@ -30,5 +34,7 @@ applications:
         baseDirectory: playground/dist
         files:
           - '**/*'
-      buildPath: /
+      cache:
+        paths:
+          - node_modules/**/*
     appRoot: playground
