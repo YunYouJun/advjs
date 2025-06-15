@@ -7,7 +7,7 @@ applications:
           commands:
             - node --version
             - corepack enable
-            - pnpm install --filter editor/core
+            - pnpm install --filter @advjs/editor
         build:
           commands:
             - pnpm run editor:build
@@ -26,7 +26,7 @@ applications:
           commands:
             - node --version
             - corepack enable
-            - pnpm install --filter playground
+            - pnpm install --filter @advjs/playground
         build:
           commands:
             - pnpm run build:play
