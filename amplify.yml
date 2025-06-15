@@ -16,3 +16,19 @@ applications:
           - '**/*'
       buildPath: /
     appRoot: editor/core
+  - frontend:
+      phases:
+        preBuild:
+          commands:
+            - node --version
+            - corepack enable
+            - pnpm install
+        build:
+          commands:
+            - pnpm run build:play
+      artifacts:
+        baseDirectory: playground/dist
+        files:
+          - '**/*'
+      buildPath: /
+    appRoot: playground
