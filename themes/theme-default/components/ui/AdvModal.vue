@@ -33,7 +33,7 @@ onMounted(() => {
 <template>
   <Transition name="modal">
     <div v-if="open" class="modal-mask">
-      <div class="modal-container size-full flex flex-col">
+      <div class="modal-container z-9999 size-full flex flex-col">
         <AdvIconButton v-if="!header" class="modal-close-button absolute right-4 top-4" @click="emit('close')">
           <div i-ri-close-line class="text-6xl" />
         </AdvIconButton>

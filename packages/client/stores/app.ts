@@ -5,12 +5,20 @@ import { computed, ref } from 'vue'
 
 export const useAppStore = defineStore('@advjs/client/app', () => {
   const [showUi, toggleUi] = useToggle(true)
-  // 加载菜单
-  const [showMenu, toggleShowMenu] = useToggle(false)
   // 加载存档菜单
   const [showLoadMenu, toggleShowLoadMenu] = useToggle(false)
   // 存储存档菜单
   const [showSaveMenu, toggleShowSaveMenu] = useToggle(false)
+
+  /**
+   * 菜单状态
+   */
+  const menus = ref({
+    /**
+     * 设置
+     */
+    settings: false,
+  })
 
   const [showHistory, toggleHistory] = useToggle(false)
   const [showBlack, toggleBlack] = useToggle(false)
@@ -41,7 +49,6 @@ export const useAppStore = defineStore('@advjs/client/app', () => {
 
     showUi,
     showHistory,
-    showMenu,
     showSaveMenu,
     showLoadMenu,
     showBlack,
@@ -49,8 +56,9 @@ export const useAppStore = defineStore('@advjs/client/app', () => {
     showCanvas,
     showBg,
 
+    menus,
+
     toggleUi,
-    toggleShowMenu,
     toggleShowSaveMenu,
     toggleShowLoadMenu,
     toggleHistory,

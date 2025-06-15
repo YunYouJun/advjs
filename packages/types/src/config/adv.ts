@@ -18,6 +18,8 @@ export interface AdvConfig<ThemeConfig = AdvThemeConfig> {
   /**
    * adv root
    *
+   * @zh adv 根目录
+   *
    * - `/<rootDir>/setups`
    * - `/<rootDir>/locales`
    * - `/<rootDir>/components`

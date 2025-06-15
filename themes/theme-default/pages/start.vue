@@ -1,8 +1,7 @@
 <script lang="ts" setup>
-import { useAppStore, useGameConfig } from '@advjs/client'
+import { useGameConfig } from '@advjs/client'
 import { useThemeDefaultStore } from '@advjs/theme-default'
 
-const app = useAppStore()
 const gameConfig = useGameConfig()
 
 const themeStore = useThemeDefaultStore()
@@ -38,13 +37,7 @@ const themeStore = useThemeDefaultStore()
 
   <StartMenu :menu-items="themeStore.$startMenu.menuItems" />
 
-  <AdvModal header="加载存档" :show="app.showLoadMenu" @close="app.toggleShowLoadMenu">
-    <LoadMenu />
-  </AdvModal>
-
-  <AdvModal :show="app.showMenu" @close="app.toggleShowMenu">
-    <AdvMenuPanel />
-  </AdvModal>
+  <AdvGameModals />
 </template>
 
 <route lang="yaml">

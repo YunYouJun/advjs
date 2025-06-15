@@ -14,8 +14,8 @@ const app = useAppStore()
   </AdvModal>
 
   <AdvModal
-    v-model:open="app.showMenu"
-    @close="app.toggleShowMenu"
+    v-model:open="app.menus.settings"
+    @close="app.menus.settings = false"
   >
     <AdvMenuPanel />
   </AdvModal>

@@ -24,7 +24,6 @@ function onClick(event: Event) {
   padding: 0.35rem 0.6rem 0.2rem 0.6rem;
   transition: 0.2s;
   border-bottom: 2px solid transparent;
-  @apply text-2xl;
 
   &:hover {
     cursor: pointer;

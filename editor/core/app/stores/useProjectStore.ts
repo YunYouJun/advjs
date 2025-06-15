@@ -173,9 +173,6 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
         }
       }
 
-      // set adapter
-      gameStore.curAdapter = params.adapter
-
       online.hostUrl = hostUrl
       // load index.adv.json
       await this.loadAdvConfigJSON(`${hostUrl}/adv.config.json`)

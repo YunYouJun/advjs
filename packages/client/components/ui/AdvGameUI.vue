@@ -43,7 +43,7 @@ const app = useAppStore()
       </template>
     </div>
 
-    <AdvIconButton class="menu-setting-button" @click="app.toggleShowMenu()">
+    <AdvIconButton class="menu-setting-button" @click="app.menus.settings = true">
       <div i-ri-settings-3-line />
     </AdvIconButton>
   </div>

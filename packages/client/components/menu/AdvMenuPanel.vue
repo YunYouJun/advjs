@@ -50,7 +50,7 @@ const currentTab = ref('common')
 </script>
 
 <template>
-  <div class="menu-panel grid grid-cols-24" gap="0" h="full" text="2xl">
+  <div class="menu-panel grid grid-cols-24 size-full" gap="0" text="2xl">
     <div col="span-18" class="overflow-y-scroll">
       <TabsRoot class="shadow-blackA4 w-full flex flex-col" :default-value="currentTab">
         <TabsList class="relative flex shrink-0 border-b border-dark-100" aria-label="Manage your account">
@@ -76,13 +76,8 @@ const currentTab = ref('common')
             <HorizontalDivider />
             <AudioVolume />
 
-            <HorizontalDivider />
-
-            <ToggleSourceMd />
-
-            <HorizontalDivider />
-
-            <GameSettings />
+            <!-- <HorizontalDivider /> -->
+            <!-- <GameSettings /> -->
           </div>
         </TabsContent>
 

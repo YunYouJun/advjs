@@ -15,6 +15,10 @@ onMounted(() => {
     adapter?: AdvConfigAdapterType
   }
 
+  if (adapter) {
+    gameStore.curAdapter = adapter
+  }
+
   if (gameId && adapter) {
     projectStore.online.openOnlineAdvProject({
       adapter,

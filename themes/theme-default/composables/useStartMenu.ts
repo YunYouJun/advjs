@@ -58,7 +58,7 @@ export function useStartMenu() {
       icon: 'i-ri-settings-2-line',
       title: t('menu.settings'),
       do: () => {
-        app.toggleShowMenu()
+        app.menus.settings = true
       },
     },
     {

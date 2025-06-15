@@ -27,7 +27,7 @@ const menuItems = computed<MenuButtonItem[]>(() => {
           {
             title: t('menu.save_game'),
             do: () => {
-              app.toggleShowMenu()
+              app.menus.settings = false
               app.toggleShowSaveMenu()
             },
           },
@@ -38,14 +38,14 @@ const menuItems = computed<MenuButtonItem[]>(() => {
     {
       title: t('menu.load_game'),
       do: () => {
-        app.toggleShowMenu()
+        app.menus.settings = false
         app.toggleShowLoadMenu()
       },
     },
     {
       title: t('menu.back_home'),
       do: () => {
-        app.toggleShowMenu()
+        app.menus.settings = false
         router.push('/start')
       },
     },
@@ -87,7 +87,7 @@ const menuItems = computed<MenuButtonItem[]>(() => {
       </AdvIconButton>
     </div>
 
-    <AdvButton @click="app.toggleShowMenu()">
+    <AdvButton @click="app.menus.settings = false">
       {{ t('button.close') }}
     </AdvButton>
   </div>

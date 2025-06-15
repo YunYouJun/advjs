@@ -12,6 +12,8 @@ outline: deep
 
 ## 约定格式
 
+> 一个 Demo 示例：<https://editor.advjs.org/play?gameId=the-lord-of-the-rings&adapter=pominis>
+
 若打包为文件夹，文件夹名默认为`游戏 ID`。
 
 ### `adv.config.json`
@@ -63,9 +65,9 @@ outline: deep
 
 ### 公共背景音乐列表
 
-一组背景音乐：
+除了游戏专属的背景音乐外，我们还也计划支持公共背景音乐列表。
 
-音乐类型及其对应音乐名称/简介。
+不同游戏可以使用公共版权的背景音乐作为曲库，包含音乐类型及其对应音乐名称/简介。
 
 公共背景音乐列表可以 CDN 链接/JSON 形式配置在 `adv.config.json` 中，它的路径不依赖于游戏路径，可在多个游戏中复用曲库。
 
