@@ -17,7 +17,6 @@ export default defineBuildConfig({
 
     // vue
     'vue',
-    'vue-demi',
     '@vueuse/core',
     'pinia',
 

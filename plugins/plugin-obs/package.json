@@ -30,16 +30,16 @@
     "advjs": "*"
   },
   "dependencies": {
-    "cli-progress": "^3.12.0",
-    "consola": "catalog:",
+    "cli-progress": "catalog:cli",
+    "consola": "catalog:cli",
     "obs-websocket-js": "^5.0.6",
-    "open": "catalog:"
+    "open": "catalog:utils"
   },
   "devDependencies": {
     "@advjs/core": "workspace:*",
-    "@types/cli-progress": "^3.11.6",
+    "@types/cli-progress": "catalog:types",
     "advjs": "workspace:*",
-    "tsx": "catalog:",
-    "unbuild": "catalog:"
+    "tsx": "catalog:dev",
+    "unbuild": "catalog:build"
   }
 }

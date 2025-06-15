@@ -53,21 +53,22 @@
   "dependencies": {
     "@advjs/types": "workspace:*",
     "@advjs/unocss": "workspace:*",
-    "@types/mdast": "catalog:",
-    "js-yaml": "catalog:",
-    "mdast-util-to-hast": "catalog:",
-    "rehype-stringify": "catalog:",
-    "remark": "catalog:",
-    "remark-frontmatter": "catalog:",
-    "remark-gfm": "catalog:",
-    "remark-parse": "catalog:",
-    "remark-rehype": "catalog:",
-    "to-vfile": "catalog:",
-    "unified": "catalog:",
-    "vfile-matter": "catalog:"
+    "@types/mdast": "catalog:types",
+    "floating-vue": "^5.2.2",
+    "js-yaml": "catalog:utils",
+    "mdast-util-to-hast": "catalog:unified",
+    "rehype-stringify": "catalog:unified",
+    "remark": "catalog:unified",
+    "remark-frontmatter": "catalog:unified",
+    "remark-gfm": "catalog:unified",
+    "remark-parse": "catalog:unified",
+    "remark-rehype": "catalog:unified",
+    "to-vfile": "catalog:unified",
+    "unified": "catalog:unified",
+    "vfile-matter": "catalog:unified"
   },
   "devDependencies": {
-    "@types/js-yaml": "catalog:",
-    "tsdown": "catalog:"
+    "@types/js-yaml": "catalog:types",
+    "tsdown": "catalog:build"
   }
 }

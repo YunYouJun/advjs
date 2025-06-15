@@ -1,9 +1,6 @@
 import type { UserModule } from '../types'
-// @ts-expect-error v-tooltip is not ts
-import VTooltip from 'v-tooltip'
-
-import 'v-tooltip/dist/v-tooltip.css'
+import FloatingVue from 'floating-vue'
 
 export const install: UserModule = ({ app }) => {
-  app.use(VTooltip)
+  app.use(FloatingVue)
 }

@@ -19,7 +19,7 @@
     "vite": "*"
   },
   "dependencies": {
-    "consola": "catalog:",
-    "hookable": "catalog:"
+    "consola": "catalog:cli",
+    "hookable": "catalog:utils"
   }
 }

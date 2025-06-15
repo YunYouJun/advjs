@@ -36,23 +36,22 @@
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "@iconify-json/radix-icons": "catalog:",
-    "@iconify-json/vscode-icons": "catalog:",
-    "@iconify/vue": "catalog:",
-    "@radix-ui/colors": "catalog:",
-    "@types/splitpanes": "catalog:",
-    "@types/wicg-file-system-access": "catalog:",
-    "colord": "catalog:",
-    "consola": "catalog:",
-    "reka-ui": "catalog:",
-    "splitpanes": "catalog:"
+    "@iconify-json/radix-icons": "catalog:icons",
+    "@iconify-json/vscode-icons": "catalog:icons",
+    "@iconify/vue": "catalog:icons",
+    "@types/splitpanes": "catalog:types",
+    "@types/wicg-file-system-access": "catalog:types",
+    "colord": "catalog:frontend",
+    "consola": "catalog:cli",
+    "reka-ui": "catalog:frontend",
+    "splitpanes": "catalog:frontend"
   },
   "devDependencies": {
-    "typescript": "catalog:",
-    "unbuild": "catalog:",
-    "vite": "catalog:",
-    "vite-plugin-css-injected-by-js": "catalog:",
-    "vite-plugin-dts": "catalog:",
-    "vue-tsc": "catalog:"
+    "typescript": "catalog:dev",
+    "unbuild": "catalog:build",
+    "vite": "catalog:build",
+    "vite-plugin-css-injected-by-js": "catalog:build",
+    "vite-plugin-dts": "catalog:build",
+    "vue-tsc": "catalog:dev"
   }
 }

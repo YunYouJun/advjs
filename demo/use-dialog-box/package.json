@@ -11,11 +11,11 @@
   },
   "dependencies": {
     "@advjs/parser": "workspace:*",
-    "vue": "catalog:"
+    "vue": "catalog:frontend"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "catalog:",
-    "vite": "catalog:",
-    "vue-tsc": "catalog:"
+    "@vitejs/plugin-vue": "catalog:build",
+    "vite": "catalog:build",
+    "vue-tsc": "catalog:dev"
   }
 }

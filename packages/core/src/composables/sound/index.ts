@@ -11,7 +11,7 @@ import type {
   PlayOptions,
   ReturnedValue,
 } from './types'
-import { onMounted, ref, unref, watch } from 'vue-demi'
+import { onMounted, ref, unref, watch } from 'vue'
 
 export function useSound(
   url: MaybeRef<string>,

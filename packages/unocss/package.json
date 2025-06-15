@@ -17,7 +17,7 @@
     "unocss": "*"
   },
   "devDependencies": {
-    "defu": "catalog:",
-    "unocss": "catalog:"
+    "defu": "catalog:utils",
+    "unocss": "catalog:build"
   }
 }

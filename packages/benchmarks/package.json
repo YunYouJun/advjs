@@ -7,12 +7,12 @@
     "generate:json-xml": "tsx src/json-xml/generate.ts --generate"
   },
   "devDependencies": {
-    "@faker-js/faker": "catalog:",
-    "@types/xml2js": "catalog:",
-    "benny": "catalog:",
-    "consola": "catalog:",
-    "unist-builder": "catalog:",
-    "unist-util-visit": "catalog:",
-    "xml2js": "catalog:"
+    "@faker-js/faker": "catalog:dev",
+    "@types/xml2js": "catalog:types",
+    "benny": "catalog:utils",
+    "consola": "catalog:cli",
+    "unist-builder": "catalog:unified",
+    "unist-util-visit": "catalog:unified",
+    "xml2js": "catalog:utils"
   }
 }

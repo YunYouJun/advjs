@@ -32,13 +32,13 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@antfu/utils": "catalog:",
-    "@types/mdast": "catalog:",
-    "@types/unist": "catalog:",
-    "@vue-flow/core": "catalog:",
-    "consola": "catalog:",
-    "unocss": "catalog:",
-    "vue": "catalog:",
-    "vue-router": "catalog:"
+    "@antfu/utils": "catalog:utils",
+    "@types/mdast": "catalog:types",
+    "@types/unist": "catalog:types",
+    "@vue-flow/core": "catalog:frontend",
+    "consola": "catalog:cli",
+    "unocss": "catalog:build",
+    "vue": "catalog:frontend",
+    "vue-router": "catalog:frontend"
   }
 }

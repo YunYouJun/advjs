@@ -15,29 +15,28 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@types/mdast": "catalog:",
-    "@unhead/vue": "catalog:",
-    "@vueuse/core": "catalog:",
-    "monaco-editor": "catalog:",
-    "pinia": "catalog:",
-    "vue": "catalog:",
-    "vue-router": "catalog:",
-    "wc-github-corners": "catalog:"
+    "@types/mdast": "catalog:types",
+    "@unhead/vue": "catalog:frontend",
+    "@vueuse/core": "catalog:frontend",
+    "monaco-editor": "catalog:frontend",
+    "pinia": "catalog:frontend",
+    "vue": "catalog:frontend",
+    "vue-router": "catalog:frontend",
+    "wc-github-corners": "catalog:frontend"
   },
   "devDependencies": {
-    "@intlify/unplugin-vue-i18n": "catalog:",
-    "@shikijs/markdown-it": "catalog:",
-    "@types/markdown-it-link-attributes": "catalog:",
-    "@vitejs/plugin-vue": "catalog:",
-    "markdown-it-link-attributes": "catalog:",
-    "unocss": "catalog:",
-    "unplugin-vue-components": "catalog:",
-    "unplugin-vue-markdown": "catalog:",
-    "unplugin-vue-router": "catalog:",
-    "v-tooltip": "catalog:",
-    "vite": "catalog:",
-    "vite-plugin-inspect": "catalog:",
-    "vite-plugin-pwa": "catalog:",
-    "vite-plugin-vue-layouts": "catalog:"
+    "@intlify/unplugin-vue-i18n": "catalog:build",
+    "@shikijs/markdown-it": "catalog:build",
+    "@types/markdown-it-link-attributes": "catalog:types",
+    "@vitejs/plugin-vue": "catalog:build",
+    "markdown-it-link-attributes": "catalog:build",
+    "unocss": "catalog:build",
+    "unplugin-vue-components": "catalog:build",
+    "unplugin-vue-markdown": "catalog:build",
+    "unplugin-vue-router": "catalog:build",
+    "vite": "catalog:build",
+    "vite-plugin-inspect": "catalog:build",
+    "vite-plugin-pwa": "catalog:build",
+    "vite-plugin-vue-layouts": "catalog:build"
   }
 }

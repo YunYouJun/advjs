@@ -23,7 +23,6 @@ const EXCLUDE_GLOBAL = [
   '@vueuse/core',
   '@vueuse/shared',
   '@vueuse/shared',
-  'vue-demi',
   'vue-router',
   'vue',
 

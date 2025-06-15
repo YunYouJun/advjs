@@ -13,7 +13,7 @@
   "devDependencies": {
     "@advjs/theme-default": "workspace:*",
     "advjs": "workspace:*",
-    "https-localhost": "catalog:",
-    "nodemon": "^3.1.10"
+    "https-localhost": "catalog:dev",
+    "nodemon": "catalog:dev"
   }
 }

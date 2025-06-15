@@ -29,28 +29,28 @@
     "@advjs/core": "workspace:*",
     "@advjs/parser": "workspace:*",
     "@advjs/types": "workspace:*",
-    "@antfu/utils": "catalog:",
-    "@unhead/vue": "catalog:",
-    "@vueuse/core": "catalog:",
-    "@vueuse/motion": "catalog:",
-    "@vueuse/sound": "catalog:",
-    "animate.css": "catalog:",
-    "consola": "catalog:",
-    "dayjs": "catalog:",
-    "howler": "catalog:",
-    "nprogress": "catalog:",
-    "pinia": "catalog:",
-    "pixi.js": "catalog:",
-    "reka-ui": "catalog:",
-    "swiper": "catalog:",
-    "vue": "catalog:",
-    "vue-router": "catalog:"
+    "@antfu/utils": "catalog:utils",
+    "@unhead/vue": "catalog:frontend",
+    "@vueuse/core": "catalog:frontend",
+    "@vueuse/motion": "catalog:frontend",
+    "@vueuse/sound": "catalog:frontend",
+    "animate.css": "catalog:frontend",
+    "consola": "catalog:cli",
+    "dayjs": "catalog:utils",
+    "howler": "catalog:utils",
+    "nprogress": "catalog:frontend",
+    "pinia": "catalog:frontend",
+    "pixi.js": "catalog:frontend",
+    "reka-ui": "catalog:frontend",
+    "swiper": "catalog:frontend",
+    "vue": "catalog:frontend",
+    "vue-router": "catalog:frontend"
   },
   "optionalDependencies": {
     "@advjs/plugin-babylon": "workspace:*"
   },
   "devDependencies": {
-    "@iconify-json/mdi": "catalog:",
-    "@types/nprogress": "catalog:"
+    "@iconify-json/mdi": "catalog:icons",
+    "@types/nprogress": "catalog:types"
   }
 }

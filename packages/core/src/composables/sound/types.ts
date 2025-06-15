@@ -1,5 +1,5 @@
 import type { Howl, HowlOptions } from 'howler'
-import type { ComputedRef, Ref } from 'vue-demi'
+import type { ComputedRef, Ref } from 'vue'
 
 export interface HowlStatic {
   new (properties: HowlOptions): Howl

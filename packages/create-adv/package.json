@@ -23,10 +23,10 @@
     "template-*"
   ],
   "dependencies": {
-    "consola": "catalog:",
-    "execa": "^9.6.0",
-    "minimist": "^1.2.8",
-    "prompts": "catalog:"
+    "consola": "catalog:cli",
+    "execa": "catalog:cli",
+    "minimist": "catalog:cli",
+    "prompts": "catalog:cli"
   },
   "devDependencies": {
     "@types/minimist": "^1.2.5"

@@ -17,7 +17,7 @@
     "openai": "^5.3.0"
   },
   "devDependencies": {
-    "@types/fs-extra": "catalog:",
-    "fs-extra": "catalog:"
+    "@types/fs-extra": "catalog:types",
+    "fs-extra": "catalog:utils"
   }
 }

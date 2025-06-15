@@ -34,8 +34,8 @@ export interface AGUIPropertyCheckboxProps extends AGUIPropertyBaseProps {
 export interface AGUIPropertySelectProps extends AGUIPropertyBaseProps {
   type: 'select'
   options: (
-    string |
-    { label: string, value: string | number, icon?: string }
+    string
+    | { label: string, value: string | number, icon?: string }
   )[]
 }
 
@@ -101,19 +101,19 @@ export interface AGUIPropertyFileProps extends AGUIPropertyBaseProps {
  * property props
  * etc: input, number, checkbox, select, divider, color, slider, number-field, number-slider, vector, button, file
  */
-export type AGUIPropertyProps =
-  AGUIPropertyInputProps |
-  AGUIPropertyNumberProps |
-  AGUIPropertyCheckboxProps |
-  AGUIPropertySelectProps |
-  AGUIPropertyDividerProps |
-  AGUIPropertyColorProps |
-  AGUIPropertySliderProps |
-  AGUIPropertyNumberFieldProps |
-  AGUIPropertyNumberSliderProps |
-  AGUIPropertyVectorProps |
-  AGUIPropertyButtonProps |
-  AGUIPropertyFileProps
+export type AGUIPropertyProps
+  = AGUIPropertyInputProps
+    | AGUIPropertyNumberProps
+    | AGUIPropertyCheckboxProps
+    | AGUIPropertySelectProps
+    | AGUIPropertyDividerProps
+    | AGUIPropertyColorProps
+    | AGUIPropertySliderProps
+    | AGUIPropertyNumberFieldProps
+    | AGUIPropertyNumberSliderProps
+    | AGUIPropertyVectorProps
+    | AGUIPropertyButtonProps
+    | AGUIPropertyFileProps
 export type AGUIPropertyItem = AGUIPropertyProps & {
   /**
    * show property key

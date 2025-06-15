@@ -56,6 +56,5 @@ export async function createServer(
 //     'html2canvas',
 //   ].concat(babylonDependencies),
 //   exclude: [
-//     'vue-demi',
 //   ],
 // },

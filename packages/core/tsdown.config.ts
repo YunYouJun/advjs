@@ -15,7 +15,6 @@ export default defineConfig({
 
     // vue
     'vue',
-    'vue-demi',
     '@vueuse/core',
     'pinia',
 

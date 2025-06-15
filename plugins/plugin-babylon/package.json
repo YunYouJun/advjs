@@ -41,13 +41,13 @@
   },
   "dependencies": {
     "@advjs/types": "workspace:*",
-    "@babylonjs/core": "catalog:",
-    "@babylonjs/gui": "catalog:",
-    "@babylonjs/loaders": "catalog:",
-    "@babylonjs/materials": "catalog:",
-    "babylon-vrm-loader": "catalog:"
+    "@babylonjs/core": "catalog:babylon",
+    "@babylonjs/gui": "catalog:babylon",
+    "@babylonjs/loaders": "catalog:babylon",
+    "@babylonjs/materials": "catalog:babylon",
+    "babylon-vrm-loader": "catalog:babylon"
   },
   "devDependencies": {
-    "unbuild": "catalog:"
+    "unbuild": "catalog:build"
   }
 }

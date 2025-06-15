@@ -27,11 +27,11 @@
     "test": "tsx scripts/test.ts"
   },
   "dependencies": {
-    "consola": "catalog:"
+    "consola": "catalog:cli"
   },
   "devDependencies": {
     "advjs": "workspace:*",
-    "tsx": "catalog:",
-    "unbuild": "catalog:"
+    "tsx": "catalog:dev",
+    "unbuild": "catalog:build"
   }
 }

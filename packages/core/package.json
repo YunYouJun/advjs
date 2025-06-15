@@ -20,15 +20,15 @@
   "dependencies": {
     "@advjs/parser": "workspace:*",
     "@advjs/types": "workspace:*",
-    "@types/mdast": "catalog:",
-    "@vueuse/core": "catalog:",
-    "consola": "catalog:",
-    "html2canvas": "catalog:",
-    "pixi.js": "catalog:",
-    "unstorage": "catalog:"
+    "@types/mdast": "catalog:types",
+    "@vueuse/core": "catalog:frontend",
+    "consola": "catalog:cli",
+    "html2canvas": "catalog:frontend",
+    "pixi.js": "catalog:frontend",
+    "unstorage": "catalog:utils"
   },
   "devDependencies": {
-    "tsdown": "catalog:",
-    "vue": "catalog:"
+    "tsdown": "catalog:build",
+    "vue": "catalog:frontend"
   }
 }
