@@ -37,7 +37,7 @@
     "animate.css": "catalog:frontend",
     "consola": "catalog:cli",
     "dayjs": "catalog:utils",
-    "howler": "catalog:utils",
+    "howler": "catalog:frontend",
     "nprogress": "catalog:frontend",
     "pinia": "catalog:frontend",
     "pixi.js": "catalog:frontend",

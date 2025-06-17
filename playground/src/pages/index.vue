@@ -1,53 +1,31 @@
 <script setup lang="ts">
-defineOptions({
-  name: 'IndexPage',
+import { useRouter } from 'vue-router'
+import { assets } from '../assets'
+
+withDefaults(defineProps<{ duration?: number }>(), {
+  duration: 2000,
 })
-const user = useUserStore()
-const name = ref(user.savedName)
 
 const router = useRouter()
-function go() {
-  if (name.value)
-    router.push(`/hi/${encodeURIComponent(name.value)}`)
+function onLoaded() {
+  router.push('/start')
 }
-
-const { t } = useI18n()
-useHead({
-  title: () => t('button.home'),
-})
 </script>
 
 <template>
-  <div>
-    <div text-4xl>
-      <div i-carbon-campsite inline-block />
+  <main
+    class="animate__animated animate__fadeIn h-screen w-screen flex flex-col items-center justify-center opacity-90"
+  >
+    <NewYunLogo class="h-40 w-40" />
+    <div class="font-bold">
+      Made with <a href="https://advjs.org/" target="_blank">ADV.JS</a>
     </div>
-    <p>
-      <a rel="noreferrer" href="https://github.com/antfu/vitesse" target="_blank">
-        Vitesse
-      </a>
-    </p>
-    <p>
-      <em text-sm opacity-75>{{ t('intro.desc') }}</em>
-    </p>
 
-    <div py-4 />
-
-    <label class="hidden" for="input">{{ t('intro.whats-your-name') }}</label>
-
-    <div>
-      <button
-        m-3 text-sm btn
-        :disabled="!name"
-        @click="go"
-      >
-        {{ t('button.go') }}
-      </button>
-    </div>
-  </div>
+    <StartLoading :assets="assets" @loaded="onLoaded" />
+  </main>
 </template>
 
 <route lang="yaml">
 meta:
-  layout: home
+  layout: logo
 </route>

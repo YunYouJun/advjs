@@ -2,7 +2,6 @@
   "name": "@advjs/playground",
   "type": "module",
   "private": true,
-  "packageManager": "pnpm@10.12.1",
   "scripts": {
     "build": "vite-ssg build",
     "dev": "vite --port 3333 --open",

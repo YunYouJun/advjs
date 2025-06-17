@@ -17,7 +17,7 @@
     "start:generate": "npx serve .output/public"
   },
   "dependencies": {
-    "@dagrejs/dagre": "^1.1.4",
+    "@dagrejs/dagre": "^1.1.5",
     "@google/model-viewer": "catalog:frontend",
     "@octokit/core": "^7.0.2",
     "@octokit/rest": "^22.0.0",
