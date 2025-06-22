@@ -1462,6 +1462,9 @@ importers:
       axios:
         specifier: ^1.10.0
         version: 1.10.0
+      howler:
+        specifier: ^2.2.4
+        version: 2.2.4
       nprogress:
         specifier: catalog:frontend
         version: 0.2.0
