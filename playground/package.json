@@ -22,6 +22,7 @@
     "howler": "^2.2.4",
     "nprogress": "catalog:frontend",
     "pinia": "catalog:frontend",
+    "swiper": "^11.2.8",
     "vue": "catalog:frontend",
     "vue-i18n": "catalog:frontend",
     "vue-router": "catalog:frontend"

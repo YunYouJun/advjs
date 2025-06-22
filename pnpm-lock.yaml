@@ -1474,6 +1474,9 @@ importers:
       pinia:
         specifier: catalog:frontend
         version: 3.0.3(typescript@5.8.3)(vue@3.5.17(typescript@5.8.3))
+      swiper:
+        specifier: ^11.2.8
+        version: 11.2.8
       vue:
         specifier: catalog:frontend
         version: 3.5.17(typescript@5.8.3)
