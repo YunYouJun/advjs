@@ -16,6 +16,10 @@ const cdnUrl = ''
  * for runtime
  */
 export const usePlayStore = defineStore('@advjs/play', () => {
+  /**
+   * 是否正在加载接口信息
+   */
+  const loading = ref(true)
   const clientGameStore = useClientGameStore()
 
   /**
@@ -101,6 +105,7 @@ export const usePlayStore = defineStore('@advjs/play', () => {
   }
 
   return {
+    loading,
     curAdapter,
     gameConfig,
     client: clientGameStore,

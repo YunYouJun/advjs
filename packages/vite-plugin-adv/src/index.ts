@@ -4,6 +4,7 @@ import process from 'node:process'
 import VueI18n from '@intlify/unplugin-vue-i18n/vite'
 import Components from 'unplugin-vue-components/vite'
 import Layouts from 'vite-plugin-vue-layouts'
+import { createAdvVirtualLoader } from '../../advjs/node/plugins/loaders'
 import { advClientDir, themesDir } from '../../shared/node/vite'
 import { vitePluginAdv } from './adv'
 
@@ -20,8 +21,13 @@ export default function advFramework(options: {
     ...roots,
   ]
 
+  const advVirtualLoader = createAdvVirtualLoader({
+    roots,
+  } as any, {})
+
   return [
     vitePluginAdv(),
+    advVirtualLoader,
 
     // https://github.com/JohnCampionJr/vite-plugin-vue-layouts
     Layouts({

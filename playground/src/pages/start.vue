@@ -42,6 +42,7 @@ const menuItems = ref<AdvStartMenuItem[]>([
 ])
 
 onMounted(async () => {
+  playStore.loading = true
   // pominisStore
 
   const query = route.query
@@ -56,6 +57,7 @@ onMounted(async () => {
       token,
     })
     await playStore.loadGameFromConfig(data)
+    playStore.loading = false
 
     route.meta.title = data.title || '游戏标题'
   }

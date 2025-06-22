@@ -26,9 +26,10 @@ applications:
           commands:
             - node --version
             - corepack enable
-            - pnpm install --filter @advjs/playground
+            - pnpm install --filter @advjs/playground @advjs/client @advjs/core
         build:
           commands:
+            - pnpm run build:advjs
             - pnpm run build:play
       artifacts:
         baseDirectory: playground/dist

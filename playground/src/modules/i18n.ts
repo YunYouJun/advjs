@@ -1,5 +1,7 @@
 import type { Locale } from 'vue-i18n'
 import type { UserModule } from '~/types'
+import { install as installI18n } from '@advjs/client/modules/i18n'
+
 import { createI18n } from 'vue-i18n'
 
 // Import i18n resources
@@ -44,7 +46,7 @@ export async function loadLanguageAsync(lang: string): Promise<Locale> {
   return setI18nLanguage(lang)
 }
 
-export const install: UserModule = ({ app }) => {
-  app.use(i18n)
-  loadLanguageAsync('en')
+export const install: UserModule = (ctx) => {
+  // loadLanguageAsync('en')
+  installI18n(ctx)
 }

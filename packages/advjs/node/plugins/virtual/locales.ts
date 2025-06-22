@@ -8,7 +8,16 @@ export const templateLocales: VirtualModuleTemplate = {
   id: '/@advjs/locales',
   async getContent({ roots }) {
     const imports: string[] = [
+      'import { createDefu } from "defu"',
       'const messages = { "zh-CN": {}, en: {} }',
+      `
+  const replaceArrMerge = createDefu((obj, key, value) => {
+    if (key && obj[key] && Array.isArray(obj[key]) && Array.isArray(value)) {
+      obj[key] = value
+      return true
+    }
+  })
+  `,
     ]
     const languages = ['zh-CN', 'en']
 
@@ -20,7 +29,8 @@ export const templateLocales: VirtualModuleTemplate = {
         if (existsSync(langYml) && readFileSync(langYml, 'utf-8')) {
           const varName = lang.replace('-', '') + i
           imports.push(`import ${varName} from "${toAtFS(langYml)}"`)
-          imports.push(`Object.assign(messages['${lang}'], ${varName})`)
+          // pre override next
+          imports.push(`messages['${lang}'] = replaceArrMerge(${varName}, messages['${lang}'])`)
         }
       })
     })

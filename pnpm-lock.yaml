@@ -1462,21 +1462,12 @@ importers:
       axios:
         specifier: ^1.10.0
         version: 1.10.0
-      dayjs:
-        specifier: ^1.11.13
-        version: 1.11.13
-      howler:
-        specifier: ^2.2.4
-        version: 2.2.4
       nprogress:
         specifier: catalog:frontend
         version: 0.2.0
       pinia:
         specifier: catalog:frontend
         version: 3.0.3(typescript@5.8.3)(vue@3.5.17(typescript@5.8.3))
-      swiper:
-        specifier: ^11.2.8
-        version: 11.2.8
       vue:
         specifier: catalog:frontend
         version: 3.5.17(typescript@5.8.3)

@@ -9,22 +9,22 @@
     "paths": {
       "~/*": ["src/*"],
       "advjs": [
-        "./packages/advjs/node/index.ts"
+        "../packages/advjs/node/index.ts"
       ],
       "@advjs/editor/*": [
-        "./editor/core/*"
+        "../editor/core/*"
       ],
       "@advjs/client/*": [
-        "./packages/client/*"
+        "../packages/client/*"
       ],
       "@advjs/client": [
-        "./packages/client/index.ts"
+        "../packages/client/index.ts"
       ],
       "@advjs/*": [
-        "./packages/*/src/index.ts"
+        "../packages/*/src/index.ts"
       ],
       "advjs/*": [
-        "./packages/advjs/*"
+        "../packages/advjs/*"
       ]
     },
     "resolveJsonModule": true,

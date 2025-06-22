@@ -4,7 +4,6 @@
 import '@advjs/theme-pominis/styles'
 
 // const show = computed(() => gameStore.client.loadStatus >= AdvGameLoadStatusEnum.CONFIG_LOADING)
-const show = computed(() => true)
 
 const route = useRoute()
 const router = useRouter()
@@ -36,7 +35,7 @@ onMounted(async () => {
 
 <template>
   <div class="h-full w-full flex items-center justify-center">
-    <AdvGame v-if="show" class="h-full w-full" />
+    <AdvGame class="h-full w-full" />
     <AdvGameLoading class="absolute inset-0 z-9999" />
   </div>
 </template>

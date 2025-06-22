@@ -43,6 +43,11 @@ interface Character {
   appearance_prompt: string
   background: string
   concept: string
+
+  /**
+   * 角色头像
+   */
+  avatar?: string
 }
 
 interface Chapter {
@@ -56,6 +61,10 @@ interface Chapter {
 
 export interface VSNode {
   id: string
+  /**
+   * 场景图片
+   */
+  sceneImage?: string
   plot_summary: string
   imagePrompt: string
   dialogues: Dialogue[]
