@@ -1,8 +1,8 @@
 import type { UserModule } from '~/types'
 
-import { injectionAdvContext } from '../../../packages/client/constants'
+import { injectionAdvContext } from '@advjs/client'
+import { advConfigSymbol, gameConfigSymbol, themeConfigSymbol } from '@advjs/core'
 import { initAdvContext } from '../../../packages/client/runtime'
-import { advConfigSymbol, gameConfigSymbol, themeConfigSymbol } from '../../../packages/core/src'
 
 export const install: UserModule = ({ app }) => {
   const advContext = initAdvContext()

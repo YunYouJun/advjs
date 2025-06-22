@@ -689,15 +689,15 @@
     "Partial<ControlSymbolsValue>": {
       "type": "object",
       "properties": {
-        "__@SymbolShortcutsNoMerge@18340": {
+        "__@SymbolShortcutsNoMerge@18341": {
           "const": true,
           "type": "boolean"
         },
-        "__@SymbolNoMerge@18342": {
+        "__@SymbolNoMerge@18343": {
           "const": true,
           "type": "boolean"
         },
-        "__@SymbolVariants@18344": {
+        "__@SymbolVariants@18345": {
           "anyOf": [
             {
               "type": "array",
@@ -710,16 +710,16 @@
             }
           ]
         },
-        "__@SymbolParent@18346": {
+        "__@SymbolParent@18347": {
           "type": "string"
         },
-        "__@SymbolSelector@18348": {
+        "__@SymbolSelector@18349": {
           "type": "object"
         },
-        "__@SymbolLayer@18350": {
+        "__@SymbolLayer@18351": {
           "type": "string"
         },
-        "__@SymbolSort@18352": {
+        "__@SymbolSort@18353": {
           "type": "number"
         }
       }
@@ -784,12 +784,12 @@
         "description": {
           "type": "string"
         },
-        "__@toStringTag@16126": {
+        "__@toStringTag@16127": {
           "type": "string"
         }
       },
       "required": [
-        "__@toStringTag@16126",
+        "__@toStringTag@16127",
         "description"
       ]
     },
@@ -799,12 +799,12 @@
         "description": {
           "type": "string"
         },
-        "__@toStringTag@16126": {
+        "__@toStringTag@16127": {
           "type": "string"
         }
       },
       "required": [
-        "__@toStringTag@16126",
+        "__@toStringTag@16127",
         "description"
       ]
     },
@@ -814,12 +814,12 @@
         "description": {
           "type": "string"
         },
-        "__@toStringTag@16126": {
+        "__@toStringTag@16127": {
           "type": "string"
         }
       },
       "required": [
-        "__@toStringTag@16126",
+        "__@toStringTag@16127",
         "description"
       ]
     },
@@ -829,12 +829,12 @@
         "description": {
           "type": "string"
         },
-        "__@toStringTag@16126": {
+        "__@toStringTag@16127": {
           "type": "string"
         }
       },
       "required": [
-        "__@toStringTag@16126",
+        "__@toStringTag@16127",
         "description"
       ]
     },
@@ -844,12 +844,12 @@
         "description": {
           "type": "string"
         },
-        "__@toStringTag@16126": {
+        "__@toStringTag@16127": {
           "type": "string"
         }
       },
       "required": [
-        "__@toStringTag@16126",
+        "__@toStringTag@16127",
         "description"
       ]
     },
@@ -859,12 +859,12 @@
         "description": {
           "type": "string"
         },
-        "__@toStringTag@16126": {
+        "__@toStringTag@16127": {
           "type": "string"
         }
       },
       "required": [
-        "__@toStringTag@16126",
+        "__@toStringTag@16127",
         "description"
       ]
     },
@@ -874,12 +874,12 @@
         "description": {
           "type": "string"
         },
-        "__@toStringTag@16126": {
+        "__@toStringTag@16127": {
           "type": "string"
         }
       },
       "required": [
-        "__@toStringTag@16126",
+        "__@toStringTag@16127",
         "description"
       ]
     },
@@ -1530,12 +1530,12 @@
     "Promise<Preset<Theme>>": {
       "type": "object",
       "properties": {
-        "__@toStringTag@16126": {
+        "__@toStringTag@16127": {
           "type": "string"
         }
       },
       "required": [
-        "__@toStringTag@16126"
+        "__@toStringTag@16127"
       ]
     },
     "PresetOrFactoryAwaitable<Theme>": {

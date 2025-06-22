@@ -23,4 +23,11 @@ export interface AdvChapter {
    */
   // data: AdvFlow | string
   nodes: AdvFlowNode[]
+
+  /**
+   * 开始节点 ID
+   *
+   * 默认为第一个
+   */
+  startNodeId?: string
 }

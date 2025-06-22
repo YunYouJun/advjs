@@ -40,6 +40,9 @@ export const commonAlias: Alias[] = [
   // { find: '@advjs/theme-default/', replacement: `${resolve(defaultThemeFolder)}/` },
   // { find: '@advjs/theme-default', replacement: `${resolve(defaultThemeFolder)}/index.ts` },
   { find: '@advjs/theme-pominis/', replacement: `${resolve(themesDir, 'theme-pominis')}/` },
+
+  // plugins
+  { find: '@advjs/plugin-pominis/', replacement: `${resolve(pluginsDir, 'plugin-pominis/src')}/` },
 ]
 
 export const commonAliasMap = Object.fromEntries(
