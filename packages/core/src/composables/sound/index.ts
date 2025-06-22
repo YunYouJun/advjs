@@ -11,6 +11,7 @@ import type {
   PlayOptions,
   ReturnedValue,
 } from './types'
+import { isClient } from '@vueuse/core'
 import { onMounted, ref, unref, watch } from 'vue'
 
 export function useSound(
@@ -34,17 +35,19 @@ export function useSound(
     if (!curUrl)
       return
 
-    import('howler').then((mod) => {
-      HowlConstructor.value = mod.Howl
+    if (isClient) {
+      import('howler').then((mod) => {
+        HowlConstructor.value = mod.Howl
 
-      sound.value = new HowlConstructor.value({
-        src: [curUrl],
-        volume: unref(volume),
-        rate: unref(playbackRate),
-        onload: handleLoad,
-        ...delegated,
+        sound.value = new HowlConstructor.value({
+          src: [curUrl],
+          volume: unref(volume),
+          rate: unref(playbackRate),
+          onload: handleLoad,
+          ...delegated,
+        })
       })
-    })
+    }
   })
 
   function handleLoad(this: Howl) {
