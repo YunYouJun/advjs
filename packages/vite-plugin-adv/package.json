@@ -1,0 +1,9 @@
+{
+  "name": "vite-plugin-adv",
+  "version": "0.0.1",
+  "description": "A Vite plugin for ADV",
+  "dependencies": {
+    "@intlify/unplugin-vue-i18n": "catalog:build",
+    "unplugin-vue-components": "catalog:build"
+  }
+}

@@ -26,7 +26,7 @@ export interface AdvGameConfig {
    * 开始界面封面
    * @zh 游戏封面
    */
-  cover: string
+  cover?: string
 
   bgm: {
     /**

@@ -80,7 +80,7 @@
     "vite": "catalog:build",
     "vite-plugin-vue-devtools": "catalog:build",
     "vite-plugin-vue-layouts": "catalog:build",
-    "vitefu": "^1.0.6",
+    "vitefu": "^1.0.7",
     "vue": "catalog:frontend",
     "vue-i18n": "catalog:frontend",
     "vue-router": "catalog:frontend",

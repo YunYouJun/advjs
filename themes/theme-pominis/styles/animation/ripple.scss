@@ -1,0 +1,44 @@
+.adv-ripple {
+  --ripple-size: 20rem;
+  width: var(--ripple-size);
+  height: var(--ripple-size);
+  border-radius: 50%;
+  opacity: 0;
+
+  animation-name: rippleFadeOut;
+  animation-duration: 1s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: 1;
+  animation-direction: normal;
+  animation-fill-mode: forwards;
+}
+
+.adv-bubble-breath {
+  animation: bubbleBreath 3s ease-in-out;
+  animation-direction: alternate-reverse;
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
+}
+
+@keyframes rippleFadeOut {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  40% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(8);
+  }
+}
+
+@keyframes bubbleBreath {
+  0% {
+    transform: scale(0.6);
+  }
+  100% {
+    transform: scale(1.1);
+  }
+}

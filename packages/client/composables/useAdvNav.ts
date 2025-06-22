@@ -87,9 +87,9 @@ export function useAdvNav($adv: AdvContext) {
     consola.info('AdvJS Game Start')
     store.cur.order = 0
 
-    const { chapterId, nodeId } = params
+    const { nodeId } = params
 
-    const chapter = await loadChapter(chapterId)
+    const chapter = await loadChapter(params.chapterId)
     if (!chapter) {
       consola.error('No chapter nodes found')
       return

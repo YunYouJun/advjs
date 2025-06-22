@@ -10,6 +10,14 @@ export const pluginsDir = path.resolve(import.meta.dirname, '../../../plugins')
 
 export const defaultThemeFolder = path.resolve(themesDir, 'theme-default')
 
+/**
+ * module dir
+ */
+/**
+ * @advjs/client
+ */
+export const advClientDir = resolve(packagesDir, 'client')
+
 export const commonAlias: Alias[] = [
   // { find: '@advjs/client/', replacement: `${resolve(packagesDir, 'client')}/` },
   // { find: '@advjs/client', replacement: `${resolve(packagesDir, 'client')}/index.ts` },
@@ -19,9 +27,6 @@ export const commonAlias: Alias[] = [
   { find: '@advjs/parser/fs', replacement: `${resolve(packagesDir, 'parser/src')}/fs.ts` },
   { find: '@advjs/shared/', replacement: `${resolve(packagesDir, 'shared/src')}/` },
   { find: '@advjs/plugin-babylon', replacement: `${resolve(packagesDir, 'plugin-babylon/src')}/` },
-  // themes
-  // { find: '@advjs/theme-default/', replacement: `${resolve(defaultThemeFolder)}/` },
-  // { find: '@advjs/theme-default', replacement: `${resolve(defaultThemeFolder)}/index.ts` },
 
   { find: '@advjs/flow', replacement: `${resolve(packagesDir, 'flow')}/index.ts` },
   { find: '@advjs/flow/', replacement: `${resolve(packagesDir, 'flow')}/` },
@@ -30,8 +35,24 @@ export const commonAlias: Alias[] = [
   { find: '@advjs/parser', replacement: `${resolve(packagesDir, 'parser/src', 'index.ts')}` },
   { find: '@advjs/shared', replacement: `${resolve(packagesDir, 'shared/src', 'index.ts')}` },
   { find: '@advjs/types', replacement: `${resolve(packagesDir, 'types/src', 'index.ts')}` },
+
+  // themes
+  // { find: '@advjs/theme-default/', replacement: `${resolve(defaultThemeFolder)}/` },
+  // { find: '@advjs/theme-default', replacement: `${resolve(defaultThemeFolder)}/index.ts` },
+  { find: '@advjs/theme-pominis/', replacement: `${resolve(themesDir, 'theme-pominis')}/` },
 ]
 
 export const commonAliasMap = Object.fromEntries(
   commonAlias.map(({ find, replacement }) => [find, replacement]),
 )
+
+/**
+ * 组件目录
+ *
+ * for unplugin-vue-components
+ */
+export const componentsDirs = [
+  resolve(packagesDir, 'client/components'),
+  resolve(themesDir, 'theme-default/components'),
+  resolve(themesDir, 'theme-pominis/components'),
+]

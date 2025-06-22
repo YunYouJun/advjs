@@ -5,9 +5,13 @@ import { ViteSSG } from 'vite-ssg'
 import { routes } from 'vue-router/auto-routes'
 import App from './App.vue'
 
+import { install as installAdv } from './setup/adv'
+
 import '@unocss/reset/tailwind.css'
 import './styles/main.css'
 import 'uno.css'
+
+import '@advjs/theme-pominis/styles'
 
 // https://github.com/antfu/vite-ssg
 export const createApp = ViteSSG(
@@ -21,5 +25,7 @@ export const createApp = ViteSSG(
     Object.values(import.meta.glob<{ install: UserModule }>('./modules/*.ts', { eager: true }))
       .forEach(i => i.install?.(ctx))
     // ctx.app.use(Previewer)
+
+    installAdv(ctx)
   },
 )

@@ -6,11 +6,13 @@ import {
   presetAttributify,
   presetIcons,
   presetTypography,
-  presetUno,
   presetWebFonts,
+  presetWind3,
   transformerDirectives,
   transformerVariantGroup,
 } from 'unocss'
+
+import { presetAdv } from '../packages/unocss/src'
 
 export default defineConfig({
   shortcuts: [
@@ -18,7 +20,8 @@ export default defineConfig({
     ['icon-btn', 'inline-block cursor-pointer select-none opacity-75 transition duration-200 ease-in-out hover:opacity-100 hover:text-teal-600'],
   ],
   presets: [
-    presetUno(),
+    presetAdv(),
+    presetWind3(),
     presetAttributify(),
     presetIcons({
       scale: 1.2,

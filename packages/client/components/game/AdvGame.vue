@@ -18,7 +18,7 @@ const { $adv } = useAdvContext()
 const curNode = computed(() => $adv.store.curNode)
 
 // 添加提示，防止意外退出
-if (!__DEV__)
+if (typeof __DEV__ !== 'undefined' && !__DEV__)
   useBeforeUnload()
 
 const app = useAppStore()
@@ -51,7 +51,7 @@ const app = useAppStore()
         <AdvChoice v-if="curNode" v-show="curNode?.type === 'choices'" :node="curNode" class="z-3 animate-duration-200" />
       </Transition>
 
-      <Transition enter-active-class="animate-fade-in-up" leave-active-class="animate-fade-out-down">
+      <Transition v-if="app.showDialogControls" enter-active-class="animate-fade-in-up" leave-active-class="animate-fade-out-down">
         <DialogControls v-show="app.showUi" class="absolute bottom-1 left-0 right-0 z-4 animate-duration-200" />
       </Transition>
 

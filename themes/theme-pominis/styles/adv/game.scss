@@ -1,0 +1,10 @@
+.adv {
+  &-input-checkbox {
+    &:checked {
+      display: block;
+      content: '\2714';
+      text-align: center;
+      color: white;
+    }
+  }
+}

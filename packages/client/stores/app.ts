@@ -26,6 +26,11 @@ export const useAppStore = defineStore('@advjs/client/app', () => {
 
   const [showBg, toggleBg] = useToggle(true)
 
+  /**
+   * show dialog controls
+   */
+  const showDialogControls = useStorage(ns('dialog-controls'), false)
+
   // 3D canvas flag
   const showCanvas = useStorage(ns('canvas'), false)
   const toggleCanvas = useToggle(showCanvas)
@@ -55,6 +60,8 @@ export const useAppStore = defineStore('@advjs/client/app', () => {
     showTachie,
     showCanvas,
     showBg,
+
+    showDialogControls,
 
     menus,
 

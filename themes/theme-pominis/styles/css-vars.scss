@@ -1,0 +1,11 @@
+@use 'sass:map';
+@use './vars.scss' as *;
+
+:root {
+  --adv-theme-name: 'default';
+  --adv-theme-color: var(--adv-c-primary);
+}
+
+:root {
+  --pominis-c-mix: linear-gradient(90deg, #3f5efb 5.21%, #fc466b 100%);
+}

@@ -80,11 +80,6 @@ export interface AdvConfig<ThemeConfig = AdvThemeConfig> {
   selectable: boolean
 
   /**
-   * 游戏开始界面 封面
-   */
-  cover: string
-
-  /**
    * global game config
    * -------------------------------------------------
    */

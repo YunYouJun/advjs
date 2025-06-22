@@ -58,7 +58,6 @@
       "@babylonjs/gui",
       "@babylonjs/materials",
       "babylon-vrm-loader",
-      "vitepress/client",
       "node",
       "vitest",
       "vite/client",

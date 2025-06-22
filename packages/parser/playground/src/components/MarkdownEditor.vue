@@ -68,7 +68,7 @@ if (isClient)
       <div i-ri-link />
     </button>
     <VMenu placement="top">
-      <button class="rounded-full shadow transition icon-btn" hover="shadow-md">
+      <button class="icon-btn rounded-full shadow transition" hover="shadow-md">
         <div v-if="loading" i-ri-loader-line class="animate-spin" />
         <div v-else i-ri-check-line text="green-500" class="cursor-pointer" @click="fetchMarkdown" />
       </button>

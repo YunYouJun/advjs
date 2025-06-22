@@ -88,5 +88,7 @@ export function convertPominisAItoAdvConfig(options: {
     }
   })
 
-  return advConfig as any as AdvGameConfig
+  // set cover
+  const advGameConfig = advConfig as any as AdvGameConfig
+  return advGameConfig
 }

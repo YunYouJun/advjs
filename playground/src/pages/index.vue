@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { assets } from '../assets'
 
 withDefaults(defineProps<{ duration?: number }>(), {
   duration: 2000,
@@ -10,6 +9,12 @@ const router = useRouter()
 function onLoaded() {
   router.push('/start')
 }
+
+onMounted(() => {
+  setTimeout(() => {
+    onLoaded()
+  }, 1)
+})
 </script>
 
 <template>
@@ -21,7 +26,7 @@ function onLoaded() {
       Made with <a href="https://advjs.org/" target="_blank">ADV.JS</a>
     </div>
 
-    <StartLoading :assets="assets" @loaded="onLoaded" />
+    <!-- <StartLoading :assets="assets" @loaded="onLoaded" /> -->
   </main>
 </template>
 

@@ -1,4 +1,5 @@
-import { AdvGameLoadStatusEnum, type AdvGameRecord, type AdvGameRecordMeta } from '@advjs/client'
+import type { AdvGameRecord, AdvGameRecordMeta } from '@advjs/client'
+import { AdvGameLoadStatusEnum } from '@advjs/client'
 import { createRecordsStorage } from '@advjs/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed, ref } from 'vue'

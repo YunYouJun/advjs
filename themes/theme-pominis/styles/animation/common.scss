@@ -1,0 +1,19 @@
+@keyframes advFadeIn {
+  0% {
+    transform: translate(0, -1rem);
+    opacity: 0.2;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}

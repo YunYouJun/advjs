@@ -42,6 +42,7 @@ export function useAdvBgm($adv: AdvContext) {
           const sound = new Howl({
             src: [src],
             volume: isMuted.value ? 0 : volume.value,
+            loop: true,
           })
           sound.play()
           bgmMap.set(bgm.name, sound)

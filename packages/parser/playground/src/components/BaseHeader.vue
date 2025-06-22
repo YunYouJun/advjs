@@ -52,7 +52,7 @@ function toggleLocales() {
       <div v-else i-ri-sun-line />
     </button>
 
-    <a class="mx-2 transform transition icon-btn" :class="{ '-rotate-y-180': locale === 'zh-CN' }" :title="t('button.toggle_langs')" @click="toggleLocales">
+    <a class="mx-2 icon-btn transform transition" :class="{ '-rotate-y-180': locale === 'zh-CN' }" :title="t('button.toggle_langs')" @click="toggleLocales">
       <div i-ri-translate />
     </a>
 

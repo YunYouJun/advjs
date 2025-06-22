@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import type { CreativeEffectOptions } from 'swiper/types'
+import type { CreativeEffectOptions, Swiper as SwiperClass } from 'swiper/types'
 
-import type { Swiper as SwiperClass } from 'swiper/types'
 import { EffectCreative } from 'swiper/modules'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { ref } from 'vue'

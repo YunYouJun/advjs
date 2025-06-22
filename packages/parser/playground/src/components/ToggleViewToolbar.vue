@@ -33,7 +33,7 @@ const parserItems: { title: string, value: OutputType, icon: string }[] = [
     <button
       v-for="(item, i) in parserItems"
       :key="i"
-      class="rounded-full icon-btn focus:outline-none"
+      class="icon-btn rounded-full focus:outline-none"
       m="x-1"
       hover="shadow"
       text="sm"

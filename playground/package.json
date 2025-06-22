@@ -10,7 +10,6 @@
     "preview-https": "serve dist",
     "test": "vitest",
     "test:unit": "vitest",
-    "typecheck": "vue-tsc --noEmit",
     "up": "taze major -I",
     "sizecheck": "npx vite-bundle-visualizer"
   },
@@ -18,6 +17,7 @@
     "@unhead/vue": "catalog:frontend",
     "@unocss/reset": "catalog:frontend",
     "@vueuse/core": "catalog:frontend",
+    "axios": "^1.10.0",
     "nprogress": "catalog:frontend",
     "pinia": "catalog:frontend",
     "vue": "catalog:frontend",
@@ -25,6 +25,9 @@
     "vue-router": "catalog:frontend"
   },
   "devDependencies": {
+    "@advjs/client": "workspace:*",
+    "@advjs/core": "workspace:*",
+    "@advjs/theme-default": "workspace:*",
     "@iconify-json/carbon": "catalog:icons",
     "@intlify/unplugin-vue-i18n": "catalog:build",
     "@shikijs/markdown-it": "catalog:build",

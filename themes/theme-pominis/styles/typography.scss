@@ -1,0 +1,6 @@
+@use 'sass:map';
+@use './vars.scss' as *;
+
+:root {
+  --adv-font-serif: #{map.get($adv-font, 'serif')};
+}
