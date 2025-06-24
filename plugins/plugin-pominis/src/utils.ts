@@ -23,7 +23,9 @@ export function convertPominisAItoAdvConfig(options: {
     characterMap.set(characterName, character.id)
 
     const modifiedCharacter = character as any
-    modifiedCharacter.avatar = `${cdnUrlPrefix}characters/${characterName}.jpg`
+    // 如果没有 avatar，则使用默认的 CDN 路径查找
+    if (!modifiedCharacter.avatar)
+      modifiedCharacter.avatar = `${cdnUrlPrefix}characters/${characterName}.jpg`
   })
 
   for (let i = 0; i < advConfig.chapters.length; i++) {
@@ -80,7 +82,7 @@ export function convertPominisAItoAdvConfig(options: {
             {
               id: `${node.id}_scene`,
               type: 'image',
-              src: `${cdnUrlPrefix}nodes/${node.id}.jpg`,
+              src: node.sceneImage || `${cdnUrlPrefix}nodes/${node.id}.jpg`,
             },
           )
         }

@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
-axios.defaults.baseURL = 'https://api.pominis.com/v1'
+axios.defaults.baseURL = import.meta.env.DEV ? '/v1' : 'https://api.pominis.com/v1'
 
 export const usePominisStore = defineStore('pominis', () => {
   async function fetchPominisStory(params: {

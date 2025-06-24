@@ -25,6 +25,17 @@ export default defineConfig({
     },
   },
 
+  server: {
+    cors: true,
+
+    proxy: {
+      '^/v1/adv/.*': {
+        target: 'https://api.pominis.com/v1/adv',
+        changeOrigin: true,
+      },
+    },
+  },
+
   plugins: [
     Vue({
       include: [/\.vue$/, /\.md$/],

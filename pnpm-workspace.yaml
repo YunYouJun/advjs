@@ -41,7 +41,7 @@ catalogs:
     unplugin-vue-components: ^28.7.0
     unplugin-vue-markdown: ^28.3.1
     unplugin-vue-router: ^0.12.0
-    vite: ^6.3.5
+    vite: ^7.0.0
     vite-bundle-visualizer: ^1.2.1
     vite-plugin-css-injected-by-js: ^3.5.2
     vite-plugin-dts: ^4.5.4
@@ -60,7 +60,7 @@ catalogs:
     prompts: ^2.4.2
     yargs: ^18.0.0
   dev:
-    '@antfu/eslint-config': ^4.15.0
+    '@antfu/eslint-config': ^4.16.1
     '@faker-js/faker': ^9.8.0
     '@unocss/eslint-plugin': ^66.2.3
     cypress: ^14.5.0
@@ -81,7 +81,7 @@ catalogs:
     vitepress: ^1.6.3
   frontend:
     '@google/model-viewer': ^4.1.0
-    '@unhead/vue': ^2.0.10
+    '@unhead/vue': ^2.0.11
     '@unocss/reset': ^66.2.3
     '@vue-flow/core': ^1.45.0
     '@vueuse/core': ^13.4.0
@@ -100,7 +100,7 @@ catalogs:
     splitpanes: ^4.0.4
     swiper: ^11.2.8
     vue: ^3.5.17
-    vue-i18n: ^11.1.6
+    vue-i18n: ^11.1.7
     vue-router: ^4.5.1
     wc-github-corners: ^0.1.6
   icons:

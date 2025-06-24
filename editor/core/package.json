@@ -30,7 +30,7 @@
     "cos-js-sdk-v5": "^1.10.1",
     "pixi-painter": "catalog:frontend",
     "qrcode": "^1.5.4",
-    "ua-parser-js": "^2.0.3"
+    "ua-parser-js": "^2.0.4"
   },
   "devDependencies": {
     "@advjs/gui": "workspace:*",
