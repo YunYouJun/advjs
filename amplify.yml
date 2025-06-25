@@ -26,7 +26,8 @@ applications:
           commands:
             - node --version
             - corepack enable
-            - pnpm install --filter @advjs/playground @advjs/client @advjs/core
+            # - pnpm install --filter @advjs/playground @advjs/client @advjs/core
+            - pnpm install
         build:
           commands:
             - pnpm run build:advjs

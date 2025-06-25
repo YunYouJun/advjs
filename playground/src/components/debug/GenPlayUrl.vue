@@ -1,10 +1,14 @@
 <script setup lang="ts">
+import { isClient } from '@vueuse/core'
 import { computed, ref } from 'vue'
 
 const pominisId = ref('')
 const authToken = ref('')
 
 const gameUrl = computed(() => {
+  if (!isClient)
+    return ''
+
   // return windlow. `https://play.pominis.com/${pominisId.value}?auth=${authToken.value}`
   const url = new URL(window.location.href)
   url.pathname = `/start`
@@ -16,6 +20,9 @@ const gameUrl = computed(() => {
 })
 
 const onlineGameUrl = computed(() => {
+  if (!isClient)
+    return ''
+
   const url = new URL(gameUrl.value)
   url.protocol = 'https:'
   url.hostname = 'play.pominis.com'
