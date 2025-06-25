@@ -74,20 +74,18 @@ export function convertPominisAItoAdvConfig(options: {
   const modifiedAdvConfig = advConfig as any
   modifiedAdvConfig.scenes = []
   advConfig.chapters.forEach((chapter) => {
-    if (chapter.id === 'chapter_1') {
-      chapter.nodes.forEach((node) => {
-        const modifiedNode = node as any
-        if (modifiedNode.type === 'dialogues') {
-          modifiedAdvConfig.scenes.push(
-            {
-              id: `${node.id}_scene`,
-              type: 'image',
-              src: node.sceneImage || `${cdnUrlPrefix}nodes/${node.id}.jpg`,
-            },
-          )
-        }
-      })
-    }
+    chapter.nodes.forEach((node) => {
+      const modifiedNode = node as any
+      if (modifiedNode.type === 'dialogues') {
+        modifiedAdvConfig.scenes.push(
+          {
+            id: `${node.id}_scene`,
+            type: 'image',
+            src: node.sceneImage || `${cdnUrlPrefix}nodes/${node.id}.jpg`,
+          },
+        )
+      }
+    })
   })
 
   // set cover
