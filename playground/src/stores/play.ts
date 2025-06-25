@@ -108,7 +108,7 @@ export const usePlayStore = defineStore('@advjs/play', () => {
     loading,
     curAdapter,
     gameConfig,
-    client: clientGameStore,
+    // client: clientGameStore,
 
     startChapter,
     startNode,

@@ -26,6 +26,18 @@ export default defineConfig({
     },
   },
 
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'advjs-core': ['@advjs/core'],
+          'advjs-client': ['@advjs/client'],
+          'advjs-parser': ['@advjs/parser'],
+        },
+      },
+    },
+  },
+
   server: {
     cors: true,
 
