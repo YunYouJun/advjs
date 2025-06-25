@@ -1,3 +1,4 @@
+import type { ArgumentsType } from '@antfu/utils'
 import type { Plugin } from 'vite'
 import path from 'node:path'
 import process from 'node:process'
@@ -6,11 +7,14 @@ import Components from 'unplugin-vue-components/vite'
 import Layouts from 'vite-plugin-vue-layouts'
 import { createAdvVirtualLoader } from '../../advjs/node/plugins/loaders'
 import { advClientDir, themesDir } from '../../shared/node/vite'
+
 import { vitePluginAdv } from './adv'
 
 export default function advFramework(options: {
   theme?: string
   roots?: string[]
+
+  components?: ArgumentsType<typeof Components>[0]
 } = {}): Plugin[] {
   let { roots = [process.cwd()], theme = 'default' } = options
 
@@ -49,6 +53,8 @@ export default function advFramework(options: {
         // local components
         path.resolve(process.cwd(), 'src/components'),
       ],
+
+      ...options.components,
     }),
 
     // https://github.com/intlify/bundle-tools/tree/main/packages/unplugin-vue-i18n

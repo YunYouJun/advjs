@@ -5,6 +5,7 @@ import Vue from '@vitejs/plugin-vue'
 import LinkAttributes from 'markdown-it-link-attributes'
 import Unocss from 'unocss/vite'
 import AutoImport from 'unplugin-auto-import/vite'
+import { TDesignResolver } from 'unplugin-vue-components/resolvers'
 import Markdown from 'unplugin-vue-markdown/vite'
 import { VueRouterAutoImports } from 'unplugin-vue-router'
 import VueRouter from 'unplugin-vue-router/vite'
@@ -29,7 +30,7 @@ export default defineConfig({
     cors: true,
 
     proxy: {
-      '^/v1/adv/.*': {
+      '^/v1/adv': {
         target: 'https://api.pominis.com/v1/adv',
         changeOrigin: true,
       },
@@ -49,6 +50,14 @@ export default defineConfig({
 
     ADV({
       theme: 'pominis',
+
+      components: {
+        resolvers: [
+          TDesignResolver({
+            library: 'vue-next',
+          }),
+        ],
+      },
     }),
 
     // https://github.com/antfu/unplugin-auto-import
