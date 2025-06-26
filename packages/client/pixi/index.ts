@@ -1,4 +1,5 @@
 import type { AdvContext } from '../types'
+import { consola } from 'consola'
 import { PixiGame } from './game'
 
 let pixiGameInstance: PixiGame | null = null
@@ -12,6 +13,7 @@ export async function initPixi($adv: AdvContext) {
   // console.log(renderer)
   pixiGameInstance.setAssetsManifest($adv.gameConfig.value.assets?.manifest)
   await pixiGameInstance.init(canvas)
+  consola.success('Init pixi')
 
   return pixiGameInstance
 }
