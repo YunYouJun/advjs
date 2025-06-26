@@ -29,6 +29,17 @@ export function useAdvBgm($adv: AdvContext) {
     playBgm: (bgmId: string) => {
       const bgmLibrary = $adv.gameConfig.value.bgm?.library || {}
       const bgm = (bgmLibrary as Record<string, AdvMusic>)[bgmId]
+
+      /**
+       * 停止 bgmId 之外的所有背景音乐
+       */
+      for (const [name, sound] of bgmMap.entries()) {
+        if (name !== bgm.name && sound.playing()) {
+          sound.stop()
+          bgmMap.delete(name)
+        }
+      }
+
       if (bgm) {
         if (bgmMap.has(bgm.name)) {
           const sound = bgmMap.get(bgm.name)

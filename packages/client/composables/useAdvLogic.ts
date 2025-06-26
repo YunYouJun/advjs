@@ -112,7 +112,6 @@ export function useAdvLogic($adv: AdvContext) {
           $adv.pixiGame?.SceneSystem.load(sceneId)
         }
         if (bgmThemeId) {
-          $adv.$bgm.stop()
           $adv.$bgm.playBgm(bgmThemeId)
         }
         break
