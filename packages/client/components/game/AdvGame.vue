@@ -60,9 +60,7 @@ const app = useAppStore()
       </Transition>
 
       <Transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-        <AdvOverlay v-if="curNode?.type === 'end'">
-          - END -
-        </AdvOverlay>
+        <AdvEnd v-if="curNode?.type === 'end'" />
       </Transition>
 
       <AdvGameModals />

@@ -1,0 +1,3 @@
+<template>
+  <AdvEnd />
+</template>

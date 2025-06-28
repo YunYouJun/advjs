@@ -49,4 +49,7 @@ export async function loadLanguageAsync(lang: string): Promise<Locale> {
 export const install: UserModule = (ctx) => {
   // loadLanguageAsync('en')
   installI18n(ctx)
+
+  // 优先使用浏览器/系统语言
+  loadLanguageAsync(navigator.language || 'zh-CN')
 }

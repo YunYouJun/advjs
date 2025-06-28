@@ -47,6 +47,12 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+
+    headers: {
+      'access-control-allow-origin': '*',
+    },
+
+    origin: 'https://play.pominis.com',
   },
 
   plugins: [

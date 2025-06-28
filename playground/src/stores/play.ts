@@ -105,6 +105,13 @@ export const usePlayStore = defineStore('@advjs/play', () => {
     }
   }
 
+  /**
+   * 重新开始
+   */
+  async function restartGame() {
+    startGame()
+  }
+
   return {
     loading,
     curAdapter,
@@ -114,6 +121,7 @@ export const usePlayStore = defineStore('@advjs/play', () => {
     startNode,
 
     startGame,
+    restartGame,
 
     loadGameFromConfig,
   }

@@ -17,8 +17,10 @@ useHead({
   link: [
     {
       rel: 'icon',
-      type: 'image/svg+xml',
-      href: () => '/favicon.svg',
+      // type: 'image/svg+xml',
+      // href: () => '/favicon.svg',
+      type: 'image/png',
+      href: () => '/pominis.png',
     },
   ],
 })

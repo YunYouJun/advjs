@@ -11,7 +11,7 @@ defineProps<{
     <PominisBtn
       v-for="(item, i) in menuItems"
       :key="i"
-      class="animate__animated animate__fadeInRight start-menu-item min-w-500px flex items-center justify-center gap-3 text-4xl font-sans transition"
+      class="animate__animated animate__fadeInRight start-menu-item min-w-500px gap-3 text-4xl font-sans transition"
       :style="`animation-delay: ${0.4 + i * 0.1}s`"
       @click="item.do"
     >

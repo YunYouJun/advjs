@@ -22,20 +22,20 @@ catalogs:
     '@nuxtjs/color-mode': ^3.5.2
     '@pinia/nuxt': ^0.11.1
     '@shikijs/markdown-it': ^3.7.0
-    '@unocss/eslint-config': ^66.3.1
-    '@unocss/nuxt': ^66.3.1
+    '@unocss/eslint-config': ^66.3.2
+    '@unocss/nuxt': ^66.3.2
     '@vite-pwa/nuxt': ^1.0.4
-    '@vitejs/plugin-vue': ^5.2.4
+    '@vitejs/plugin-vue': ^6.0.0
     '@vueuse/nuxt': ^13.4.0
     beasties: ^0.3.4
     markdown-it-link-attributes: ^4.0.1
     nuxt: ^3.17.5
-    rollup: ^4.44.0
+    rollup: ^4.44.1
     sass: ^1.89.2
     shiki: ^3.7.0
-    tsdown: ^0.12.8
+    tsdown: ^0.12.9
     unbuild: ^3.5.0
-    unocss: ^66.3.1
+    unocss: ^66.3.2
     unplugin: ^2.3.5
     unplugin-auto-import: ^19.3.0
     unplugin-vue-components: ^28.7.0
@@ -62,10 +62,10 @@ catalogs:
   dev:
     '@antfu/eslint-config': ^4.16.1
     '@faker-js/faker': ^9.8.0
-    '@unocss/eslint-plugin': ^66.3.1
+    '@unocss/eslint-plugin': ^66.3.2
     cypress: ^14.5.0
     cypress-vite: ^1.6.0
-    eslint: ^9.29.0
+    eslint: ^9.30.0
     eslint-plugin-format: ^1.0.1
     https-localhost: ^4.7.1
     husky: ^9.1.7
@@ -76,13 +76,13 @@ catalogs:
     typescript: ^5.8.3
     vue-tsc: ^2.2.10
   docs:
-    typedoc: ^0.28.5
+    typedoc: ^0.28.6
     typedoc-plugin-merge-modules: ^7.0.0
     vitepress: ^1.6.3
   frontend:
     '@google/model-viewer': ^4.1.0
     '@unhead/vue': ^2.0.11
-    '@unocss/reset': ^66.3.1
+    '@unocss/reset': ^66.3.2
     '@vue-flow/core': ^1.45.0
     '@vueuse/core': ^13.4.0
     '@vueuse/motion': ^3.0.3
@@ -98,7 +98,8 @@ catalogs:
     pixi.js: 8.0.4
     reka-ui: ^2.3.1
     splitpanes: ^4.0.4
-    swiper: ^11.2.8
+    swiper: ^11.2.9
+    tdesign-vue-next: ^1.14.1
     vue: ^3.5.17
     vue-i18n: ^11.1.7
     vue-router: ^4.5.1
@@ -127,7 +128,7 @@ catalogs:
     '@types/js-yaml': ^4.0.9
     '@types/markdown-it-link-attributes': ^3.0.5
     '@types/mdast': ^4.0.4
-    '@types/node': ^24.0.4
+    '@types/node': ^24.0.7
     '@types/nprogress': ^0.2.3
     '@types/prompts': ^2.4.9
     '@types/qrcode': ^1.5.5
@@ -137,7 +138,7 @@ catalogs:
     '@types/wicg-file-system-access': ^2023.10.6
     '@types/xml2js': ^0.4.14
     '@types/yargs': ^17.0.33
-    '@webgpu/types': ^0.1.61
+    '@webgpu/types': ^0.1.63
   unified:
     hast-util-to-html: ^9.0.5
     mdast-util-to-hast: ^13.2.0

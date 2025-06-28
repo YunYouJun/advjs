@@ -13,8 +13,8 @@
     "start": "tsx scripts/index.ts"
   },
   "dependencies": {
-    "dotenv": "^16.5.0",
-    "openai": "^5.7.0"
+    "dotenv": "^16.6.1",
+    "openai": "^5.8.2"
   },
   "devDependencies": {
     "@types/fs-extra": "catalog:types",
