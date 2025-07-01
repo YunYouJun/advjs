@@ -51,5 +51,5 @@ export const install: UserModule = (ctx) => {
   installI18n(ctx)
 
   // 优先使用浏览器/系统语言
-  loadLanguageAsync(navigator.language || 'zh-CN')
+  loadLanguageAsync(navigator.language === 'zh-CN' ? 'zh-CN' : 'en')
 }
