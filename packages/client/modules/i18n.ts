@@ -19,7 +19,7 @@ import messages from '/@advjs/locales'
 
 const i18n = createI18n({
   legacy: false,
-  locale: 'zh-CN',
+  locale: navigator.language === 'zh-CN' ? 'zh-CN' : 'en',
   messages,
 })
 

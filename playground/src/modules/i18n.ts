@@ -10,7 +10,7 @@ import { createI18n } from 'vue-i18n'
 // Don't need this? Try vitesse-lite: https://github.com/antfu/vitesse-lite
 const i18n = createI18n({
   legacy: false,
-  locale: '',
+  locale: navigator.language === 'zh-CN' ? 'zh-CN' : 'en',
   messages: {},
 })
 
@@ -47,9 +47,9 @@ export async function loadLanguageAsync(lang: string): Promise<Locale> {
 }
 
 export const install: UserModule = (ctx) => {
-  // loadLanguageAsync('en')
-  installI18n(ctx)
-
   // 优先使用浏览器/系统语言
   loadLanguageAsync(navigator.language === 'zh-CN' ? 'zh-CN' : 'en')
+
+  // loadLanguageAsync('en')
+  installI18n(ctx)
 }
