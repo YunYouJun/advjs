@@ -109,6 +109,9 @@
     "vitest": "catalog:test",
     "vue-tsc": "catalog:dev"
   },
+  "resolutions": {
+    "vite": "catalog:build"
+  },
   "lint-staged": {
     "*.{js,ts,vue}": [
       "eslint --fix"

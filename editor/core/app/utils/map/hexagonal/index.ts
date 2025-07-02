@@ -148,6 +148,10 @@ export async function init(canvas: HTMLCanvasElement) {
       { allowOutside: false },
     )
     const [centerSprite, secondSprite] = drawTwoTiles(hex!)!
+    if (!centerSprite || !secondSprite) {
+      console.error('Failed to draw tiles')
+      return
+    }
     map.addChild(centerSprite)
     map.addChild(secondSprite)
 
@@ -161,7 +165,11 @@ export async function init(canvas: HTMLCanvasElement) {
   app.stage.on('pointerupoutside', onDragEnd)
 
   const gridContainer = new Container()
-  const [centerSprite, secondSprite] = drawTwoTiles(targetHex)!
+  const [centerSprite, secondSprite] = drawTwoTiles(targetHex)
+  if (!centerSprite || !secondSprite) {
+    console.error('Failed to draw tiles')
+    return
+  }
   gridContainer.addChild(centerSprite)
   gridContainer.addChild(secondSprite)
   gridContainer.eventMode = 'static'

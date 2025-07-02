@@ -13,7 +13,7 @@
     "start": "tsx scripts/index.ts"
   },
   "dependencies": {
-    "dotenv": "^16.6.1",
+    "dotenv": "^17.0.1",
     "openai": "^5.8.2"
   },
   "devDependencies": {

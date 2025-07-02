@@ -109,7 +109,7 @@ export function useAdvLogic($adv: AdvContext) {
         // sceneId 存在则自动切换场景
         const { sceneId = '', bgmThemeId = '' } = node as AdvDialoguesNode
         if (sceneId) {
-          $adv.pixiGame?.SceneSystem.load(sceneId)
+          await $adv.pixiGame?.SceneSystem.load(sceneId)
         }
         if (bgmThemeId) {
           $adv.$bgm.playBgm(bgmThemeId)
@@ -118,7 +118,7 @@ export function useAdvLogic($adv: AdvContext) {
       }
       case 'background': {
         consola.info('background', node)
-        $adv.pixiGame?.SceneSystem.load((node as AdvBackgroundNode).name)
+        await $adv.pixiGame?.SceneSystem.load((node as AdvBackgroundNode).name)
         break
       }
       case 'tachie': {
@@ -189,7 +189,7 @@ export function useAdvLogic($adv: AdvContext) {
         break
       case 'background':
         if (node.name) {
-          const bg = SceneSystem.instance?.load(node.name)
+          const bg = await SceneSystem.instance?.load(node.name)
           if (bg)
             store.cur.background = bg[node.name]
         }

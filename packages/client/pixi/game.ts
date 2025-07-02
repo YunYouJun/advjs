@@ -81,16 +81,30 @@ export class PixiGame {
       })
     }
 
-    await this.loadBundle()
+    const preload = this.$adv.config.value.preload
+    if (typeof preload === 'object') {
+      if (['all', 'chapter'].includes(preload.type)) {
+        // 加载第一张图片
+        const gameBundleAssets = this.assetsManifest?.bundles.find(b => b.name === gameBundleName)?.assets
+        if (Array.isArray(gameBundleAssets) && gameBundleAssets.length > 0) {
+          await Assets.load({
+            alias: gameBundleAssets?.[0]?.alias,
+            src: gameBundleAssets?.[0]?.src,
+          })
+        }
+        if (preload.background) {
+          Assets.backgroundLoadBundle(gameBundleName)
+        }
+        else {
+          await Assets.loadBundle(gameBundleName)
+        }
+      }
+    }
 
     this.SceneSystem = new SceneSystem(this)
 
     this.TachieSystem = new TachieSystem(this)
     this.TachieSystem.init()
     // this.TachieSystem.showCharacter('xiao-yun')
-  }
-
-  async loadBundle(name = gameBundleName) {
-    await Assets.loadBundle(name)
   }
 }

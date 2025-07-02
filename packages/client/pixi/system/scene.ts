@@ -1,5 +1,5 @@
 import type { PixiGame } from '../game'
-import { Container, Sprite, Texture } from 'pixi.js'
+import { Assets, Container, Sprite, Texture } from 'pixi.js'
 
 export class SceneSystem {
   static instance: SceneSystem | null = null
@@ -28,10 +28,13 @@ export class SceneSystem {
     SceneSystem.instance = this
   }
 
-  load(alias: string) {
+  async load(alias: string) {
     const app = this.game.app
     const bgSprite = this.bgSprite
 
+    if (!Assets.cache.has(alias)) {
+      await Assets.load(alias)
+    }
     bgSprite.texture = Texture.from(alias)
     bgSprite.width = app.screen.width
     bgSprite.height = app.screen.height

@@ -112,6 +112,27 @@ export interface AdvConfig<ThemeConfig = AdvThemeConfig> {
     prefix?: string
   }
 
+  /**
+   * 开始游戏时是否预加载当前章节资源
+   */
+  preload?: boolean | {
+    /**
+     * 预加载类型
+     *
+     * - 'all': 预加载所有章节资源
+     * - 'chapter': 仅预加载当前章节资源
+     *
+     * @default 'chapter'
+     */
+    type: 'all' | 'chapter'
+    /**
+     * 是否在背后预加载
+     *
+     * @default true
+     */
+    background?: boolean
+  }
+
   // -------------------------------------------------
   /**
    * gameConfig

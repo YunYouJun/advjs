@@ -21,6 +21,12 @@ export const defaultAdvConfig: AdvConfig = {
   cdn: {
     enable: false,
   },
+
+  preload: {
+    type: 'chapter',
+    background: true,
+  },
+
   pages: {
     start: {
       bg: 'https://cdn.yunyoujun.cn/img/bg/stars-timing-0-blur-30px.jpg',

@@ -105,7 +105,7 @@ onMounted(() => {
         </div>
       </div>
     </div>
-    <div v-else class="h-full flex items-center justify-center text-center text-6xl text-gray-500">
+    <div v-else class="h-full flex items-center justify-center text-center text-6xl dark:text-gray-200">
       暂无历史记录
     </div>
   </div>
