@@ -47,6 +47,7 @@
     "splitpanes": "catalog:frontend"
   },
   "devDependencies": {
+    "@vitejs/plugin-vue": "catalog:build",
     "typescript": "catalog:dev",
     "unbuild": "catalog:build",
     "vite": "catalog:build",

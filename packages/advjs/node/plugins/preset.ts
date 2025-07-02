@@ -68,6 +68,8 @@ export async function ViteAdvPlugin(
       include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
       dts: resolve(tempRoot, 'components.d.ts'),
 
+      allowOverrides: true,
+
       ...componentsOptions,
     }),
 

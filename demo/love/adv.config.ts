@@ -68,8 +68,8 @@ export default defineAdvConfig({
       autoplay: true,
       collection: [
         {
-          name: 'xxx',
-          src: 'https://cdn.yunyoujun.cn/audio/star-timer.mp3',
+          name: '潮鳴り',
+          src: 'https://cos.advjs.yunle.fun/bgms/library/%E6%BD%AE%E9%B3%B4%E3%82%8A.mp3',
         },
       ],
     },

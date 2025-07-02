@@ -54,6 +54,8 @@ export default function advFramework(options: {
         path.resolve(process.cwd(), 'src/components'),
       ],
 
+      allowOverrides: true,
+
       ...options.components,
     }),
 

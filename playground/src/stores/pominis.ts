@@ -8,6 +8,12 @@ export const usePominisStore = defineStore('pominis', () => {
     id: string
     token?: string
   }) {
+    // mock data
+    if (import.meta.env.DEV) {
+      const res = await fetch('/games/three-pigs.json')
+      return res.json()
+    }
+
     try {
       if (params.token) {
         axios.defaults.headers.common.Authorization = `Bearer ${params.token}`

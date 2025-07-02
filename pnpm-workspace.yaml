@@ -25,7 +25,7 @@ catalogs:
     '@unocss/eslint-config': ^66.3.2
     '@unocss/nuxt': ^66.3.2
     '@vite-pwa/nuxt': ^1.0.4
-    '@vitejs/plugin-vue': ^6.0.0
+    '@vitejs/plugin-vue': ^5.2.4
     '@vueuse/nuxt': ^13.5.0
     beasties: ^0.3.4
     markdown-it-link-attributes: ^4.0.1
@@ -101,7 +101,7 @@ catalogs:
     swiper: ^11.2.10
     tdesign-vue-next: ^1.14.2
     vue: ^3.5.17
-    vue-i18n: ^11.1.7
+    vue-i18n: ^11.1.8
     vue-router: ^4.5.1
     wc-github-corners: ^0.1.6
   icons:

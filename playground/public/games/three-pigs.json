@@ -1,0 +1,796 @@
+{
+  "title": "三只小猪与风中之狼",
+  "startNode": "ch1_node_01",
+  "cover": "https://cdn.pominis.com/generated_images/e16bafde-d4af-4889-9544-8b2e67e2de43.jpg",
+  "characters": [
+    {
+      "id": "character_01",
+      "name": "猪大哥（博伦）",
+      "appearance": "博伦体格魁梧，是三兄弟中最强壮的一个。他有着厚实的肩膀和粗壮的四肢，皮肤呈健康的粉红色，上面点缀着一些因为常年劳作而留下的泥土印记和细小疤痕。他的耳朵大而挺立，眼神坚定而直接，总是流露出不容置疑的神情。他通常穿着朴素耐磨的工装裤和一件厚实的亚麻衬衫，袖子总是卷到手肘，露出结实的前臂。腰间系着一条多功能工具带，上面挂着锤子、尺子等工具。",
+      "background": "作为长兄，博伦从小就肩负着保护弟弟们的责任。他见证了太多次脆弱的庇护所在风雨中倒塌，因此深信只有最坚固、最实在的东西才能带来真正的安全。他将所有精力都投入到学习建筑和工程中，痴迷于石工和木工技术。对于弟弟菲恩口中的“森林魔法”，他嗤之以鼻，认为那是逃避现实的幻想。他的固执源于一份深沉的责任感，他最大的愿望就是用自己的双手为家人们建造一个永不陷落的避风港，即使这意味着要付出更多的汗水和时间。",
+      "concept": "务实但固执的长兄，相信蛮力与最坚固的材料，对魔法持怀疑态度。",
+      "avatar": "https://cdn.pominis.com/generated_images/198467be-83b5-42b5-960f-8eb9003df038.jpg"
+    },
+    {
+      "id": "character_02",
+      "name": "猪二哥（埃尔文）",
+      "appearance": "埃尔文身形匀称，介于博伦的强壮和菲恩的纤细之间。他有一双滴溜溜转的灵活眼睛，总是闪烁着精明和机智的光芒。他的嘴角常常挂着一丝若有若无的微笑，显得既有魅力又有些狡黠。他喜欢穿着剪裁合身的马甲和干净的衬衫，衣着总是比兄弟们更整洁时髦。他随身携带一个小巧的皮质挎包，里面装着各种地图、合同和算盘，时刻准备着发现和利用新的商机。",
+      "background": "埃尔文是三兄弟中的“外交官”和“商人”。他头脑灵活，口才出众，总能用最少的成本换取最大的利益。他不像大哥那样执着于“永恒”，也不像小弟那样沉迷于“虚无”，他只相信眼前能抓住的机会。他认为，在这个瞬息万变的世界里，适应性远比坚固性更重要。他建造木屋并非出于懒惰，而是经过精密计算后的“最优解”——用最快的速度、最低的成本解决眼前的住宿问题，以便将更多资源投入到其他他认为更有价值的投资上。然而，这种对短期利益的过度追求，也让他有时会低估潜在的、长远的风险。",
+      "concept": "聪明的投机主义者，善于利用现有资源快速达成目标，但有时会忽视长远的风险。",
+      "avatar": "https://cdn.pominis.com/generated_images/845f242a-65aa-415b-8b73-b3a9cd5bf7fe.jpg"
+    },
+    {
+      "id": "character_03",
+      "name": "猪小弟（菲恩）",
+      "appearance": "菲恩是三兄弟中最瘦小的一个，身形纤细，动作轻快。他有一双充满好奇和善意的大眼睛，眼神清澈，仿佛能看见别人看不见的东西。他的耳朵尖略带圆润，总是侧向一边，像是在倾听风的声音。他喜欢穿着柔软舒适的棉麻衣物，颜色多为贴近自然的绿色和棕色。他的头发（鬃毛）有些蓬乱，上面常常会插着一两片叶子或一朵小野花，这是他在森林里探索时留下的印记。",
+      "background": "菲恩从小就对世界充满了无限的好奇。相比于哥哥们关注的现实问题，他更着迷于森林里的传说、风中的低语和万物间无形的联系。他常常一个人跑到森林深处，与小动物交谈，学习辨认各种带有魔力的植物。他相信，真正的力量并非来自坚硬的石头或精明的交易，而是源于与自然和谐共生的智慧。他选择用茅草建房子，并非因为无知或懒惰，而是因为他相信，只要怀着敬意，并运用古老的森林魔法，最脆弱的材料也能获得风的庇护。他富有同情心，是三兄弟中的“心灵纽带”，常常能以独特的视角调和哥哥们之间的矛盾。",
+      "concept": "富有想象力和同情心，对古老的森林魔法充满好奇，是三兄弟中最具创造力的一个。",
+      "avatar": "https://cdn.pominis.com/generated_images/7c281f5c-a0d6-4b41-8df0-8b62ea37367d.jpg"
+    }
+  ],
+  "chapters": [
+    {
+      "id": "chapter_1",
+      "title": "离巢之日与狼影",
+      "startNodeId": "ch1_node_01",
+      "description": "三只小猪成年后，必须离开家园，在充满魔法与危险的森林中建造自己的居所。然而，一个古老的威胁正在暗中窥伺，他们的选择将决定各自的命运。",
+      "nodes": [
+        {
+          "id": "ch1_node_09",
+          "plot_summary": "夜幕降临，风声鹤唳。一个巨大的阴影笼罩了稻草屋。大坏狼出现了，他的眼睛闪烁着红光。",
+          "sceneImage": "https://cdn.pominis.com/generated_images/0d06e762-0618-4a2b-8573-33894eeae94b.jpg",
+          "dialogues": [
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "天黑得真快啊。森林里的夜晚，风声听起来有点吓人。",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "咦？那是什么？窗户外面……好大的一个影子……",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "大坏狼",
+              "text": "呵呵呵呵……"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "是……是狼！妈妈说的大坏狼！他的眼睛……是红色的！",
+              "speakerId": "character_03"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_node_10",
+          "bgmThemeId": "suspense_dread_ambient_slowburn_horror"
+        },
+        {
+          "id": "ch1_node_08",
+          "plot_summary": "猪小弟花了一天时间，用普通稻草盖好了一座简陋的小屋。虽然不完美，但总算有个家了。",
+          "sceneImage": "https://cdn.pominis.com/generated_images/1b072197-7b0c-4394-9a96-3d68721d9a38.jpg",
+          "dialogues": [
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "谢谢您，先生，但我还是想用自己的双手来收集材料。",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "神秘商人",
+              "text": "是吗？那真是可惜了。祝你好运，小家伙。"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "呼……好累啊……一捆，两捆……",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "终于……终于盖好了。虽然歪歪扭扭的，看起来也不怎么结实……但，这是我自己的家了！",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "先进去休息一下吧。希望……它能撑得住。",
+              "speakerId": "character_03"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_node_09",
+          "bgmThemeId": "peaceful_piano_woodwind_reflective"
+        },
+        {
+          "id": "ch1_node_07",
+          "plot_summary": "猪小弟用魔法稻草迅速盖好了一座漂亮的小屋。他感到非常满意和自豪。",
+          "sceneImage": "https://cdn.pominis.com/generated_images/e16bafde-d4af-4889-9544-8b2e67e2de43.jpg",
+          "dialogues": [
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "给你，先生！这是我全部的积蓄了！",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "神秘商人",
+              "text": "呵呵，聪明的选择。这些魔法稻草现在是你的了。好好使用它们吧，小家伙。"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "谢谢您！",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "哇，真的好神奇！它们好像自己就知道该去哪里一样！",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "好了！我的小屋盖好了！比我想象的还要漂亮！哥哥们要是看到了，一定会大吃一惊的！",
+              "speakerId": "character_03"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_node_09",
+          "bgmThemeId": "happy_light_innocent_music_box_chimes_simple"
+        },
+        {
+          "id": "ch1_node_06",
+          "plot_summary": "猪小弟在麦田中遇到一位卖稻草的神秘商人。商人告诉他，这些稻草蕴含着微弱的“生长魔法”。",
+          "sceneImage": "https://cdn.pominis.com/generated_images/e9d6c306-b7f8-47cf-b47e-5479d669de2a.jpg",
+          "dialogues": [
+            {
+              "speaker": "神秘商人",
+              "text": "嘿，小家伙。看你在这片麦田里转悠了半天，是在找盖房子的材料吗？"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "啊，是的，先生。我想用稻草盖一座小屋。",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "神秘商人",
+              "text": "普通的稻草？那可不够结实。不过嘛，你运气好，遇上了我。看看我这车上的稻草，它们可不一般。"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "不一般？它们看起来……好像在发着微光？",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "神秘商人",
+              "text": "有眼光！这些稻草在月光下吸收了森林的精华，蕴含着微弱的‘生长魔法’。用它们盖房子，小屋会像植物一样坚韧。"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "真的吗？这正是我想要的！",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "神秘商人",
+              "text": "当然。不过，这么好的东西，价钱嘛……也不便宜。得用你身上所有的积蓄来换。"
+            }
+          ],
+          "choices": [
+            {
+              "targetId": "ch1_node_07",
+              "text": "用自己所有的积蓄交换魔法稻草。"
+            },
+            {
+              "targetId": "ch1_node_08",
+              "text": "拒绝交易，自己收集普通稻草。"
+            }
+          ],
+          "next": null,
+          "bgmThemeId": "fantasy_mysterious_orchestral_ancient_vocal_chant"
+        },
+        {
+          "id": "ch1_node_17",
+          "plot_summary": "猪小弟没有去二哥家，而是选择继续逃亡。狼紧追不舍，森林变得越来越黑暗和危险。他必须在被抓住前找到大哥。",
+          "sceneImage": "https://cdn.pominis.com/generated_images/87baee24-76f6-4b81-80d5-f52277583944.jpg",
+          "dialogues": [
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "不……不能去二哥那里。他的木头房子……肯定也挡不住那阵风！",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "大哥……我必须找到大哥！只有他的石头房子才安全！",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "大坏狼",
+              "text": "放弃吧，小东西。你的体力就快耗尽了。"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "石山……石山就在前面！我看到轮廓了！",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "大坏狼",
+              "text": "我能听到你的心跳声了……砰、砰、砰……真悦耳啊。"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "再快一点……就差一点了……",
+              "speakerId": "character_03"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_ending_B",
+          "bgmThemeId": "mystery_urban_suspense_electronic_driving"
+        },
+        {
+          "id": "ch1_ending_B",
+          "plot_summary": "在筋疲力尽之际，猪小弟远远望见了石山上大哥正在建造的石头堡垒的轮廓。但狼的喘息声已经近在咫尺。他能及时赶到吗？ 章节结束。",
+          "sceneImage": "https://cdn.pominis.com/generated_images/36a82d1c-fe91-47f7-b17a-eeda607dcbf8.jpg",
+          "dialogues": [
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "大哥！博伦大哥！救命！",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "猪大哥（博伦）",
+              "text": "那是……菲恩的声音？",
+              "speakerId": "character_01"
+            },
+            {
+              "speaker": "大坏狼",
+              "text": "抓到你了。"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "啊！",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "猪大哥（博伦）",
+              "text": "菲恩！该死的畜生，放开我弟弟！",
+              "speakerId": "character_01"
+            }
+          ],
+          "choices": [],
+          "next": null,
+          "bgmThemeId": "dark_ominous_drone_slow_build_repetitive_tension"
+        },
+        {
+          "id": "ch1_ending_A",
+          "plot_summary": "“咚！咚！咚！”狼开始撞门，木屋在剧烈地颤抖。猪二哥脸色苍白，看着猪小弟说：“我们可能犯了个大错。” 章节结束。",
+          "sceneImage": "https://cdn.pominis.com/generated_images/c526bc7d-8928-43d8-b0c8-996156346742.jpg",
+          "dialogues": [
+            {
+              "speaker": "大坏狼",
+              "text": "开门，不然我就像吹倒那堆草一样，吹倒你这间木柴棚！"
+            },
+            {
+              "speaker": "猪二哥（埃尔文）",
+              "text": "他……他开始撞门了！",
+              "speakerId": "character_02"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "门……门在裂开！二哥！",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "猪二哥（埃尔文）",
+              "text": "该死……我太小看他了……我的计算出错了……",
+              "speakerId": "character_02"
+            },
+            {
+              "speaker": "猪二哥（埃尔文）",
+              "text": "菲恩，我们可能……犯了个大错。",
+              "speakerId": "character_02"
+            }
+          ],
+          "choices": [],
+          "next": null,
+          "bgmThemeId": "dark_ominous_drone_slow_build_repetitive_tension"
+        },
+        {
+          "id": "ch1_node_05",
+          "plot_summary": "尽管决定在一起，但对于用什么材料盖房子，他们产生了严重分歧。猪大哥主张用石头，猪二哥认为木头足够，猪小弟则对稻草着迷。",
+          "sceneImage": "https://cdn.pominis.com/generated_images/7699e755-f3c1-4c51-99ef-0acb39e2f39c.jpg",
+          "dialogues": [
+            {
+              "speaker": "猪大哥（博伦）",
+              "text": "好了，地方找到了。现在该讨论正事了。我们必须用石头盖房子，这是唯一安全的选择。",
+              "speakerId": "character_01"
+            },
+            {
+              "speaker": "猪二哥（埃尔文）",
+              "text": "大哥，别这么死板。用石头？你知道那要花多少时间和力气吗？等我们盖好，冬天都来了。用木头才是最优解，又快又省力，而且足够坚固了。",
+              "speakerId": "character_02"
+            },
+            {
+              "speaker": "猪大哥（博伦）",
+              "text": "足够？你管那叫足够？一场大风就可能让它散架！我追求的是永恒的坚固，不是你那种投机取巧的‘足够’！",
+              "speakerId": "character_01"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "哥哥们，别吵了……我觉得，用稻草也很好啊。它们很柔软，很温暖，而且……我感觉它们有生命力。",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "猪大哥（博伦）",
+              "text": "稻草？！菲恩，你是在开玩笑吗？那根本不叫房子，那叫一堆草！一阵风就能吹走！",
+              "speakerId": "character_01"
+            },
+            {
+              "speaker": "猪二哥（埃尔文）",
+              "text": "小弟，我知道你心地善良，但现实一点。稻草连雨都挡不住，更别提狼了。",
+              "speakerId": "character_02"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "可是我相信，只要用心，用正确的方法，稻草也能变得很坚固……",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "猪大哥（博伦）",
+              "text": "够了！我无法忍受你们这种天真的想法！简直是胡闹！",
+              "speakerId": "character_01"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_node_04",
+          "bgmThemeId": "comedy_orchestral_suspenseful_dramatic_pompous"
+        },
+        {
+          "id": "ch1_node_16",
+          "plot_summary": "猪小弟冲进木屋，猪二哥惊讶地看着他。他们一起把门闩上，但狼的脚步声越来越近。",
+          "sceneImage": "https://cdn.pominis.com/generated_images/1331c05f-2bc3-44cf-9b1c-b70cc6363b93.jpg",
+          "dialogues": [
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "二哥！开门！快开门！",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "猪二哥（埃尔文）",
+              "text": "菲恩？你怎么搞成这样？快进来！",
+              "speakerId": "character_02"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "狼……狼在后面！快把门闩上！",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "猪二哥（埃尔文）",
+              "text": "狼？他真的来了？别怕，我的木屋很结实，他进不来的。",
+              "speakerId": "character_02"
+            },
+            {
+              "speaker": "大坏狼",
+              "text": "小猪们……我闻到两个人的味道了……真好，今晚可以加餐了。"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "他来了！他就在门外！",
+              "speakerId": "character_03"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_ending_A",
+          "bgmThemeId": "mystery_urban_suspense_electronic_driving"
+        },
+        {
+          "id": "ch1_node_04",
+          "plot_summary": "三兄弟争执后决定分道扬镳。猪大哥走向石山，猪二哥走向伐木林，猪小弟走向金色的麦田。故事将跟随猪小弟的视角。",
+          "sceneImage": "https://cdn.pominis.com/generated_images/c496d202-6ce4-43de-99df-6d47afa3fe42.jpg",
+          "dialogues": [
+            {
+              "speaker": "猪大哥（博伦）",
+              "text": "既然你们都这么想，那就各走各的路吧！我要去石山，建造一座狼永远也吹不倒的堡垒！",
+              "speakerId": "character_01"
+            },
+            {
+              "speaker": "猪二哥（埃尔文）",
+              "text": "随你便，大哥。我要去那片林子，用最快的速度建好房子，然后开始我的生意。时间就是金钱！",
+              "speakerId": "character_02"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "哥哥们……别这样……",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "猪大哥（博伦）",
+              "text": "菲恩，你自己好自为之！别被那些虚无缥缈的东西骗了！",
+              "speakerId": "character_01"
+            },
+            {
+              "speaker": "猪二哥（埃尔文）",
+              "text": "走了，小弟。祝你好运。",
+              "speakerId": "character_02"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "……",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "好吧……那我就去麦田那边看看。风会指引我的。",
+              "speakerId": "character_03"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_node_06",
+          "bgmThemeId": "comedy_orchestral_suspenseful_dramatic_pompous"
+        },
+        {
+          "id": "ch1_node_15",
+          "plot_summary": "猪小弟看到前方不远处，猪二哥的木屋已经建好，正亮着灯光。",
+          "sceneImage": "https://cdn.pominis.com/generated_images/928438b5-6d48-4f87-81a8-9cfa98189d97.jpg",
+          "dialogues": [
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "呼……哈……跑不动了……",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "那是……灯光！是二哥的木屋！",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "大坏狼",
+              "text": "我闻到你了……你就在前面……"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "二哥！埃尔文！他会帮我吗？还是……他也会觉得我是个累赘？",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "不……现在没时间犹豫了！",
+              "speakerId": "character_03"
+            }
+          ],
+          "choices": [
+            {
+              "targetId": "ch1_node_16",
+              "text": "向猪二哥的木屋求救。"
+            },
+            {
+              "targetId": "ch1_node_17",
+              "text": "不信任二哥，继续往大哥的石山方向跑。"
+            }
+          ],
+          "next": null,
+          "bgmThemeId": "hopeful_piano_strings_flowing_emotional"
+        },
+        {
+          "id": "ch1_node_03",
+          "plot_summary": "三兄弟决定暂时不分开。他们一起探索，发现了一片开阔地，周围有各种材料：稻草、木材和石头。",
+          "sceneImage": "https://cdn.pominis.com/generated_images/28fe0e28-a548-485b-a5f4-f964ae1b839d.jpg",
+          "dialogues": [
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "我们应该团结在一起！妈妈说过要互相照顾的！",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "猪大哥（博伦）",
+              "text": "菲恩说得对。我们是兄弟，不能分开。走，我们一起找个合适的地方。",
+              "speakerId": "character_01"
+            },
+            {
+              "speaker": "猪二哥（埃尔文）",
+              "text": "好吧，一起行动效率更高些。前面那片空地看起来不错，视野开阔。",
+              "speakerId": "character_02"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "看！这里什么都有！那边有好多石头！",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "猪大哥（博伦）",
+              "text": "太好了！正是我需要的，坚固，可靠！",
+              "speakerId": "character_01"
+            },
+            {
+              "speaker": "猪二哥（埃尔文）",
+              "text": "旁边还有这么多砍伐好的木头，堆放得很整齐，省了不少力气。",
+              "speakerId": "character_02"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "还有这些稻草……它们闻起来有太阳的味道，好温暖。",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "猪大哥（博伦）",
+              "text": "嗯，材料很齐全。看来我们可以在这里开始我们的新生活了。",
+              "speakerId": "character_01"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_node_05",
+          "bgmThemeId": "fantasy_folk_adventurous_playful_flute_strings"
+        },
+        {
+          "id": "ch1_node_14",
+          "plot_summary": "稻草屋被吹得粉碎。猪小弟尖叫着从废墟中逃出，拼命向森林深处跑去。",
+          "sceneImage": "https://cdn.pominis.com/generated_images/f0d4f9d5-598d-40d5-a36d-de1e3b682a2b.jpg",
+          "dialogues": [
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "啊——！",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "大坏狼",
+              "text": "呵呵呵，跑吧，小家伙。游戏现在才刚刚开始。"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "哥哥……救我！",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "大坏狼",
+              "text": "往哪儿跑？森林这么大，你能跑到哪里去呢？"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_node_15",
+          "bgmThemeId": "silence"
+        },
+        {
+          "id": "ch1_node_02",
+          "plot_summary": "三兄弟来到森林深处的一个三岔路口，这里有不同的资源。他们必须决定在哪里安家。",
+          "sceneImage": "https://cdn.pominis.com/generated_images/9c13b8cc-64f7-4d26-afc6-9847ab1f8569.jpg",
+          "dialogues": [
+            {
+              "speaker": "猪大哥（博伦）",
+              "text": "好了，就是这里了。妈妈说沿着小溪走，会有一个三岔路口。",
+              "speakerId": "character_01"
+            },
+            {
+              "speaker": "猪二哥（埃尔文）",
+              "text": "嗯……让我看看。左边这条路通往石山，看起来很崎岖。中间这条路嘛，是片木材丰富的森林。右边……是一望无际的金色麦田。",
+              "speakerId": "character_02"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "哇……风吹过麦田的声音，像是在唱歌一样……",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "猪大哥（博伦）",
+              "text": "别发呆了，菲恩。我们得决定在哪儿安家。这关系到我们未来的安全。",
+              "speakerId": "character_01"
+            },
+            {
+              "speaker": "猪二哥（埃尔文）",
+              "text": "确实是个关键的决定。不同的地方，意味着不同的资源，不同的机会，当然，也可能有不同的风险。",
+              "speakerId": "character_02"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "那……我们该怎么办？",
+              "speakerId": "character_03"
+            }
+          ],
+          "choices": [
+            {
+              "targetId": "ch1_node_03",
+              "text": "“我们应该团结在一起！”"
+            },
+            {
+              "targetId": "ch1_node_04",
+              "text": "“不，我们应该分开，这样机会更大。”"
+            }
+          ],
+          "next": null,
+          "bgmThemeId": "fantasy_folk_adventurous_playful_flute_strings"
+        },
+        {
+          "id": "ch1_node_13",
+          "plot_summary": "狂风呼啸，稻草屋剧烈摇晃。猪小弟惊恐地躲在角落里。",
+          "sceneImage": "https://cdn.pominis.com/generated_images/04a8f2fc-aae9-434e-b1f0-f0a03d14f78b.jpg",
+          "dialogues": [
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "啊！不要！",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "大坏狼",
+              "text": "呼——！"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "房子在晃！墙壁要倒了！",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "大坏狼",
+              "text": "还不够吗？那就再来一下！呼——！"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "救命啊！",
+              "speakerId": "character_03"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_node_14",
+          "bgmThemeId": "fantasy_epic_orchestral_heroic_battle_brass_percussion"
+        },
+        {
+          "id": "ch1_node_01",
+          "plot_summary": "猪妈妈告诉三只小猪，他们已经长大，是时候离开家，去建造自己的房子了。她提醒他们要小心森林里的“大坏狼”。",
+          "sceneImage": "https://cdn.pominis.com/generated_images/15e75c71-a73d-424e-9046-61c055e98fcd.jpg",
+          "dialogues": [
+            {
+              "speaker": "猪妈妈",
+              "text": "孩子们，都过来一下。"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "妈妈，什么事呀？",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "猪妈妈",
+              "text": "博伦，埃尔文，菲恩，你们都长大了。看看你们，一个个都身强力壮，聪明伶俐。"
+            },
+            {
+              "speaker": "猪大哥（博伦）",
+              "text": "是的，妈妈。我已经能举起那块最大的磨刀石了。",
+              "speakerId": "character_01"
+            },
+            {
+              "speaker": "猪二哥（埃尔文）",
+              "text": "而且我已经学会了怎么和市场里的狐狸商人讨价还价，他可占不到我半点便宜。",
+              "speakerId": "character_02"
+            },
+            {
+              "speaker": "猪妈妈",
+              "text": "我知道，你们都很出色。所以，是时候了……是时候离开家，去建造属于你们自己的房子，开创自己的生活了。"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "离开家？自己……盖房子？",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "猪妈妈",
+              "text": "是的，孩子。这是成长的必经之路。但你们要记住，外面的世界不像家里这么安稳。特别是森林里……"
+            },
+            {
+              "speaker": "猪妈妈",
+              "text": "你们一定要当心那只‘大坏狼’。他狡猾又残忍，千万不要相信他的任何话。"
+            },
+            {
+              "speaker": "猪大哥（博伦）",
+              "text": "放心吧妈妈，我会照顾好弟弟们的。狼来了，我就用拳头把他打跑！",
+              "speakerId": "character_01"
+            },
+            {
+              "speaker": "猪二哥（埃尔文）",
+              "text": "我会用智慧让他无功而返。",
+              "speakerId": "character_02"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "我们会小心的，妈妈。",
+              "speakerId": "character_03"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_node_02",
+          "bgmThemeId": "gentle_piano_arpeggios_wistful_strings"
+        },
+        {
+          "id": "ch1_node_12",
+          "plot_summary": "沉默让狼失去了耐心。“敬酒不吃吃罚酒！我就吹倒你的房子！”狼深吸一口气，猛地吹向稻草屋。",
+          "sceneImage": "https://cdn.pominis.com/generated_images/43caae0c-2fe9-4664-9503-feb1e852a8ef.jpg",
+          "dialogues": [
+            {
+              "speaker": "大坏狼",
+              "text": "怎么？不说话？以为装作不在家，我就会离开吗？太天真了。"
+            },
+            {
+              "speaker": "大坏狼",
+              "text": "我再给你最后一次机会，小猪。开门。"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "……",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "大坏狼",
+              "text": "好，这是你自找的。敬酒不吃吃罚酒！"
+            },
+            {
+              "speaker": "大坏狼",
+              "text": "我就吹一口气，再吹一口气，把你的房子吹个粉碎！"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_node_13",
+          "bgmThemeId": "fantasy_epic_orchestral_heroic_battle_brass_percussion"
+        },
+        {
+          "id": "ch1_node_11",
+          "plot_summary": "狼被激怒了。“那我就吹倒你的房子！”狼深吸一口气，猛地吹向稻草屋。",
+          "sceneImage": "https://cdn.pominis.com/generated_images/f97ef6c1-9449-4ab6-9d03-03f91f5ee914.jpg",
+          "dialogues": [
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "不！我不会让你进来的！你快滚开！你这个大坏蛋！",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "大坏狼",
+              "text": "……坏蛋？"
+            },
+            {
+              "speaker": "大坏狼",
+              "text": "呵呵……呵呵呵呵……好，很好。既然你不肯自己打开门……"
+            },
+            {
+              "speaker": "大坏狼",
+              "text": "那我就吹一口气，再吹一口气，吹倒你的破房子！"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_node_13",
+          "bgmThemeId": "fantasy_epic_orchestral_heroic_battle_brass_percussion"
+        },
+        {
+          "id": "ch1_node_10",
+          "plot_summary": "“小猪，小猪，让我进去！”狼的声音充满了蛊惑性。“我知道你一个人很孤独。”",
+          "sceneImage": "https://cdn.pominis.com/generated_images/0f757ce1-3124-484e-9f5d-dbb6b331f2d3.jpg",
+          "dialogues": [
+            {
+              "speaker": "大坏狼",
+              "text": "小猪，小猪，开开门，让我进去吧。"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "你……你是谁？我不认识你！",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "大坏狼",
+              "text": "别怕，我不是坏人。我只是一个路过的旅人，看到这里有灯光。这么深的夜，你一个人待在这脆弱的小草屋里，一定很孤独吧？"
+            },
+            {
+              "speaker": "猪小弟（菲恩）",
+              "text": "我……我不孤独！",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "大坏狼",
+              "text": "别嘴硬了。我能听出你声音里的颤抖。打开门，让我进去陪陪你，我们就不会都那么孤单了。"
+            }
+          ],
+          "choices": [
+            {
+              "targetId": "ch1_node_11",
+              "text": "“不！快滚开！”"
+            },
+            {
+              "targetId": "ch1_node_12",
+              "text": "（保持沉默，希望能躲过去）"
+            }
+          ],
+          "next": null,
+          "bgmThemeId": "suspense_eerie_unsettling_supernatural_motif"
+        }
+      ],
+      "entryPoints": {}
+    }
+  ]
+}
