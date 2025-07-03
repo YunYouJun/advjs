@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { pendoJS } from './constants/report'
+
 // https://github.com/vueuse/head
 // you can use this to manipulate the document head in any components,
 // they will be rendered correctly in the html results with vite-ssg
@@ -21,6 +23,20 @@ useHead({
       // href: () => '/favicon.svg',
       type: 'image/png',
       href: () => '/pominis.png',
+    },
+  ],
+})
+
+useHead({
+  script: [
+    {
+      type: 'text/javascript',
+      innerHTML: computed(() => {
+        if (window.location.hostname.includes('pominis.com')) {
+          return pendoJS
+        }
+        return ''
+      }),
     },
   ],
 })
