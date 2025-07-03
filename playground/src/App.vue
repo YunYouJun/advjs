@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { isClient } from '@vueuse/core'
 import { pendoJS } from './constants/report'
 
 // https://github.com/vueuse/head
@@ -32,7 +33,7 @@ useHead({
     {
       type: 'text/javascript',
       innerHTML: computed(() => {
-        if (window.location.hostname.includes('pominis.com')) {
+        if (isClient && window.location.hostname.includes('pominis.com')) {
           return pendoJS
         }
         return ''
