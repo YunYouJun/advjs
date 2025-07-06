@@ -1,7 +1,7 @@
 import process from 'node:process'
 import { consola } from 'consola'
 import OpenAI from 'openai'
-import { dtsContent, prompts } from '../config'
+import { configTSContent, prompts } from '../config'
 import { renderTemplate } from './render'
 import 'dotenv/config'
 
@@ -21,7 +21,7 @@ export async function generateAdvDramaJSON(params: {
   storyBackground: string
 }) {
   const dramaWriterPrompt = renderTemplate(prompts.dramaWriter, {
-    dts: dtsContent,
+    dts: configTSContent,
     story_background: params.storyBackground,
   })
   consola.debug('dramaWriterPrompt:', dramaWriterPrompt)

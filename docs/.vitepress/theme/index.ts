@@ -5,6 +5,7 @@ import { mountCssVarsRootStyle } from '../../../packages/gui/client/styles/icons
 
 import HomePage from './components/HomePage.vue'
 import 'uno.css'
+import 'virtual:group-icons.css'
 
 // custom
 import './styles/vars.scss'

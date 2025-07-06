@@ -113,3 +113,16 @@ export interface PominisBgmLibrary {
   }
 }
 ```
+
+## `@advjs/ai`
+
+`@advjs/ai` 是一个 NPM 包。
+
+其中包含 AI 相关的内容。
+
+- `examples`: AI 相关的生成示例。
+- `prompts`: 生成剧本、图片等所需提示词。
+- `scripts`: 用于生成 AI 相关内容的脚本。
+- `src/types`
+  - `types`: 期望 AI 生成配置的类型定义。
+  - `workflow`: 工作流脚本

@@ -1,6 +1,7 @@
 import type { DefaultTheme } from 'vitepress'
-import { defineConfig } from 'vitepress'
+import { getVitepressConfig } from '@yunyoujun/docs'
 
+import { defineConfig } from 'vitepress'
 import { withMermaid } from 'vitepress-plugin-mermaid'
 import { links } from '../../../packages/shared/src'
 // todo: // wait released https://github.com/vitejs/vite/pull/10254
@@ -11,6 +12,7 @@ import { metaData } from './constants'
 
 import head from './head'
 
+const vpConfig = getVitepressConfig({})
 const customElements = new Set(['font'])
 
 const nav: DefaultTheme.Config['nav'] = [
@@ -116,18 +118,11 @@ function sidebarAI(): DefaultTheme.SidebarItem[] {
       text: 'AI',
       collapsed: false,
       items: [
-        {
-          text: '介绍',
-          link: '/ai/',
-        },
-        {
-          text: 'MCP',
-          link: '/ai/mcp',
-        },
-        {
-          text: '参考',
-          link: '/ai/ref',
-        },
+        { text: '介绍', link: '/ai/' },
+        { text: '生成策略', link: '/ai/strategy' },
+        { text: 'MCP', link: '/ai/mcp' },
+        { text: '参考', link: '/ai/ref' },
+        { text: 'FAQ', link: '/ai/faq' },
       ],
     },
   ]
@@ -431,6 +426,7 @@ const sidebar: DefaultTheme.Config['sidebar'] = {
 }
 
 const userConfig = defineConfig({
+  ...vpConfig,
   ...metaData,
 
   head,
@@ -446,6 +442,7 @@ const userConfig = defineConfig({
   lastUpdated: true,
 
   themeConfig: {
+    ...vpConfig.themeConfig,
     logo: '/favicon.svg',
 
     editLink: {

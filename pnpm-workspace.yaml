@@ -24,26 +24,26 @@ catalogs:
     '@nuxtjs/color-mode': ^3.5.2
     '@pinia/nuxt': ^0.11.1
     '@shikijs/markdown-it': ^3.7.0
-    '@unocss/eslint-config': ^66.3.2
-    '@unocss/nuxt': ^66.3.2
+    '@unocss/eslint-config': ^66.3.3
+    '@unocss/nuxt': ^66.3.3
     '@vite-pwa/nuxt': ^1.0.4
     '@vitejs/plugin-vue': ^5.2.4
     '@vueuse/nuxt': ^13.5.0
     beasties: ^0.3.4
     markdown-it-link-attributes: ^4.0.1
     nuxt: ^3.17.6
-    rollup: ^4.44.1
+    rollup: ^4.44.2
     sass: ^1.89.2
     shiki: ^3.7.0
     tsdown: ^0.12.9
     unbuild: ^3.5.0
-    unocss: ^66.3.2
+    unocss: ^66.3.3
     unplugin: ^2.3.5
     unplugin-auto-import: ^19.3.0
     unplugin-vue-components: ^28.8.0
     unplugin-vue-markdown: ^29.1.0
     unplugin-vue-router: ^0.14.0
-    vite: ^7.0.1
+    vite: ^7.0.2
     vite-bundle-visualizer: ^1.2.1
     vite-plugin-css-injected-by-js: ^3.5.2
     vite-plugin-dts: ^4.5.4
@@ -65,7 +65,7 @@ catalogs:
   dev:
     '@antfu/eslint-config': ^4.16.2
     '@faker-js/faker': ^9.9.0
-    '@unocss/eslint-plugin': ^66.3.2
+    '@unocss/eslint-plugin': ^66.3.3
     cypress: ^14.5.1
     cypress-vite: ^1.6.0
     eslint: ^9.30.1
@@ -84,8 +84,8 @@ catalogs:
     vitepress: ^1.6.3
   frontend:
     '@google/model-viewer': ^4.1.0
-    '@unhead/vue': ^2.0.11
-    '@unocss/reset': ^66.3.2
+    '@unhead/vue': ^2.0.12
+    '@unocss/reset': ^66.3.3
     '@vue-flow/core': ^1.45.0
     '@vueuse/core': ^13.5.0
     '@vueuse/motion': ^3.0.3

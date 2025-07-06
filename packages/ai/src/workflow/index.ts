@@ -3,6 +3,8 @@ import { consola } from 'consola'
 import fs from 'fs-extra'
 import { generateAdvDramaJSON } from './chat'
 
+export * from './hunyuan'
+
 export interface AdvWriterWorkflowParams {
   /**
    * 主人公

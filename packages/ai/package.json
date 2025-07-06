@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsdown",
     "gen": "tsx scripts/gen.ts",
+    "gen:img": "tsx scripts/gen-img.ts",
     "schema": "tsx scripts/schema.ts",
     "workflow": "tsx scripts/run-workflow.ts"
   },
@@ -18,6 +19,7 @@
   "devDependencies": {
     "@types/fs-extra": "catalog:types",
     "fs-extra": "catalog:utils",
+    "tencentcloud-sdk-nodejs-hunyuan": "^4.1.70",
     "tsx": "catalog:dev"
   }
 }
