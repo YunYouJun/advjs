@@ -40,7 +40,6 @@ interface Character {
   id: string
   name: string
   appearance: string
-  appearance_prompt: string
   background: string
   concept: string
 

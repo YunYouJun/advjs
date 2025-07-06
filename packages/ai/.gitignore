@@ -1,0 +1,6 @@
+node_modules
+
+.env
+
+examples/ai-format.json
+examples/ai-generated/

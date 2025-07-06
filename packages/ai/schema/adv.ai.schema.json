@@ -1,0 +1,142 @@
+{
+  "description": "Generate AI Content",
+  "type": "object",
+  "properties": {
+    "title": {
+      "description": "标题",
+      "type": "string"
+    },
+    "description": {
+      "description": "故事描述",
+      "type": "string"
+    },
+    "characters": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/AdvAICharacter"
+      }
+    },
+    "chapters": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/AdvAIChapter"
+      }
+    }
+  },
+  "required": [
+    "chapters",
+    "characters",
+    "title"
+  ],
+  "definitions": {
+    "AdvAICharacter": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "角色 ID",
+          "type": "string"
+        },
+        "name": {
+          "description": "角色名称",
+          "type": "string"
+        },
+        "avatar": {
+          "description": "角色头像",
+          "type": "string"
+        },
+        "description": {
+          "description": "角色描述",
+          "type": "string"
+        },
+        "appearance": {
+          "description": "外貌特征",
+          "type": "string"
+        },
+        "appearance_prompt": {
+          "description": "外貌特征提示词",
+          "type": "string"
+        },
+        "background": {
+          "description": "人物背景",
+          "type": "string"
+        },
+        "concept": {
+          "description": "人物理念",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "AdvAIChapter": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Chapter ID",
+          "type": "string"
+        },
+        "title": {
+          "description": "Chapter title",
+          "type": "string"
+        },
+        "description": {
+          "description": "Chapter Description",
+          "type": "string"
+        },
+        "nodes": {
+          "description": "Chapter Flow Nodes",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "dialogues": {
+                "description": "对话列表",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "description": "对话内容",
+                      "type": "string"
+                    },
+                    "speakerId": {
+                      "description": "对话角色 ID",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "speakerId",
+                    "text"
+                  ]
+                }
+              },
+              "sceneId": {
+                "description": "场景 ID",
+                "type": "string"
+              },
+              "bgmThemeId": {
+                "description": "背景音乐 ID",
+                "type": "string"
+              }
+            },
+            "required": [
+              "dialogues"
+            ]
+          }
+        },
+        "startNodeId": {
+          "description": "Start Node ID\n\nDefaults to the first node",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "nodes",
+        "title"
+      ]
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

@@ -26,23 +26,25 @@ export interface AdvCharacter {
   /**
    * @zh 立绘们，key为立绘名称
    */
-  tachies?: Record<string, Tachie>
+  tachies?: Record<string, AdvTachie>
 
   /**
    * 外貌特征
    */
   appearance?: string
   /**
-   * 外貌特征提示词
-   */
-  appearance_prompt?: string
-  /**
    * 人物背景
    */
   background?: string
+  /**
+   * 人物理念
+   *
+   * @example 犹豫不决
+   */
+  concept?: string
 }
 
-export interface Tachie {
+export interface AdvTachie {
   description?: string
   /**
    * tachie path or url

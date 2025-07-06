@@ -5,6 +5,10 @@ settings:
   excludeLinksFromLockfile: false
 
 catalogs:
+  ai:
+    openai:
+      specifier: ^5.8.2
+      version: 5.8.2
   babylon:
     '@babylonjs/core':
       specifier: 5.19.0
@@ -125,6 +129,9 @@ catalogs:
     consola:
       specifier: ^3.4.2
       version: 3.4.2
+    dotenv:
+      specifier: ^17.0.1
+      version: 17.0.1
     execa:
       specifier: ^9.6.0
       version: 9.6.0
@@ -1075,6 +1082,31 @@ importers:
       tsdown:
         specifier: catalog:build
         version: 0.12.9(typescript@5.8.3)(vue-tsc@3.0.1(typescript@5.8.3))
+
+  packages/ai:
+    dependencies:
+      '@advjs/types':
+        specifier: workspace:*
+        version: link:../types
+      consola:
+        specifier: catalog:cli
+        version: 3.4.2
+      dotenv:
+        specifier: catalog:cli
+        version: 17.0.1
+      openai:
+        specifier: catalog:ai
+        version: 5.8.2(ws@8.18.3(bufferutil@4.0.9))(zod@3.25.67)
+    devDependencies:
+      '@types/fs-extra':
+        specifier: catalog:types
+        version: 11.0.4
+      fs-extra:
+        specifier: catalog:utils
+        version: 11.3.0
+      tsx:
+        specifier: catalog:dev
+        version: 4.20.3
 
   packages/benchmarks:
     devDependencies:

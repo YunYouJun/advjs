@@ -6,7 +6,6 @@
       "id": "character_01",
       "name": "艾瑞克",
       "appearance": "艾瑞克是一个身材瘦小的霍比特人，大约三十岁出头。他有一头浓密的棕色卷发，总是有点乱糟糟的。他的眼睛是明亮的蓝色，充满了好奇和渴望。他穿着朴素的亚麻衬衫和棕色灯芯绒裤子，脚上穿着磨损的皮靴。他总是带着一个小小的皮质笔记本，用来记录他的想法和梦想。",
-      "appearance_prompt": "A young hobbit named Eric, early 30s, with messy, thick brown curly hair and bright blue eyes full of curiosity. He wears a simple linen shirt, brown corduroy trousers, and worn leather boots. He carries a small leather-bound notebook. He is standing in the Shire, looking towards the horizon.",
       "background": "艾瑞克出生在夏尔一个不起眼的霍比特人家庭。他从小就听着关于夏尔以外世界的传说长大，这激起了他强烈的冒险欲望。他觉得夏尔的生活太过于安逸和重复，渴望探索未知的土地，体验不同的文化。他的家人并不理解他的梦想，认为他应该像其他霍比特人一样，安稳地过着平凡的生活。但他决心追逐自己的梦想，即使这意味着要离开他所熟悉的一切。他性格开朗乐观，但有时也显得有些冲动和天真。他相信善良和正义，渴望为世界带来积极的影响。",
       "concept": "一个年轻的霍比特人，梦想着离开夏尔去冒险。"
     },
@@ -14,7 +13,6 @@
       "id": "character_02",
       "name": "甘道夫",
       "appearance": "甘道夫是一位身材高大的巫师，留着长长的灰色胡须和头发。他穿着一件灰色的长袍，头戴一顶宽大的尖顶帽子。他的眼睛深邃而睿智，仿佛能看穿一切。他手持一根橡木法杖，上面雕刻着神秘的符文。他的外表充满了智慧和力量。",
-      "appearance_prompt": "Gandalf the Grey, a tall wizard with a long grey beard and hair, wearing a grey robe and a wide-brimmed pointed hat. His eyes are deep and wise. He holds an oak staff carved with runes. He is standing on a hilltop overlooking the Shire.",
       "background": "甘道夫是一位强大的巫师，属于迈雅族，被派往中土世界帮助对抗索伦的邪恶势力。他是一位睿智而善良的长者，总是尽力保护弱者，维护和平。他对霍比特人特别感兴趣，认为他们身上蕴藏着巨大的潜力。他预见到夏尔的未来将受到威胁，因此密切关注着那里的发展。他知道艾瑞克是一个特别的霍比特人，相信他有能力为夏尔的命运做出贡献。甘道夫性格沉稳而神秘，总是以自己的方式引导着事情的发展。他深知命运的复杂性和不可预测性，因此总是谨慎行事，避免干涉过多。",
       "concept": "一位强大的巫师，对夏尔的命运感兴趣。"
     }

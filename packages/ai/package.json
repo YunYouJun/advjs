@@ -1,0 +1,23 @@
+{
+  "name": "@advjs/ai",
+  "type": "module",
+  "version": "0.0.1",
+  "description": "AI module for AdvJS",
+  "scripts": {
+    "build": "tsdown",
+    "gen": "tsx scripts/gen.ts",
+    "schema": "tsx scripts/schema.ts",
+    "workflow": "tsx scripts/run-workflow.ts"
+  },
+  "dependencies": {
+    "@advjs/types": "workspace:*",
+    "consola": "catalog:cli",
+    "dotenv": "catalog:cli",
+    "openai": "catalog:ai"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "catalog:types",
+    "fs-extra": "catalog:utils",
+    "tsx": "catalog:dev"
+  }
+}

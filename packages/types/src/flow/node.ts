@@ -11,7 +11,7 @@ export interface AdvBaseNode {
   /**
    * 节点类型
    */
-  type: string
+  type?: string
   /**
    * 目标节点
    *
@@ -64,19 +64,27 @@ export interface AdvTachieNode extends AdvBaseNode {
 }
 
 export interface AdvDialogNode {
-  type: 'dialog'
+  type?: 'dialog'
   /**
    * 对话内容
    */
   text: string
   /**
    * 对话角色 ID
+   * @deprecated use `speakerId` instead
    */
   speaker?: string
+  /**
+   * 对话角色 ID
+   */
+  speakerId?: string
 }
 
 export interface AdvDialoguesNode extends AdvBaseNode {
-  type: 'dialogues'
+  /**
+   * default is 'dialogues'
+   */
+  type?: 'dialogues'
   /**
    * 对话列表
    */

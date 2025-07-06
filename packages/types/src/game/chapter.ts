@@ -3,7 +3,7 @@ import type { AdvFlowNode } from '../flow'
 /**
  * 游戏章节
  */
-export interface AdvChapter {
+export interface AdvChapter<AdvNode = AdvFlowNode> {
   /**
    * Chapter ID
    */
@@ -22,7 +22,7 @@ export interface AdvChapter {
    * JSON or URL
    */
   // data: AdvFlow | string
-  nodes: AdvFlowNode[]
+  nodes: AdvNode[]
 
   /**
    * 开始节点 ID
