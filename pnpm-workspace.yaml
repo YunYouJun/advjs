@@ -56,7 +56,7 @@ catalogs:
   cli:
     cli-progress: ^3.12.0
     consola: ^3.4.2
-    dotenv: ^17.0.1
+    dotenv: ^17.1.0
     execa: ^9.6.0
     minimist: ^1.2.8
     npm-run-all: ^4.1.5
@@ -122,7 +122,6 @@ catalogs:
   test:
     '@playwright/test': ^1.53.2
     '@vue/test-utils': ^2.4.6
-
     vitest: ^3.2.4
   types:
     '@types/cli-progress': ^3.11.6
@@ -141,7 +140,7 @@ catalogs:
     '@types/wicg-file-system-access': ^2023.10.6
     '@types/xml2js': ^0.4.14
     '@types/yargs': ^17.0.33
-    '@webgpu/types': ^0.1.63
+    '@webgpu/types': ^0.1.64
   unified:
     hast-util-to-html: ^9.0.5
     mdast-util-to-hast: ^13.2.0

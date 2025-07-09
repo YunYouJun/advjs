@@ -22,7 +22,7 @@
     "@iconify-json/vscode-icons": "catalog:icons",
     "@shikijs/vitepress-twoslash": "^3.7.0",
     "@yunyoujun/docs": "^0.1.12",
-    "mermaid": "^11.8.0",
+    "mermaid": "^11.8.1",
     "typedoc-plugin-markdown": "^4.7.0",
     "typedoc-plugin-merge-modules": "catalog:docs",
     "typedoc-vitepress-theme": "^1.1.2",

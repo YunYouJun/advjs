@@ -19,7 +19,7 @@
   "devDependencies": {
     "@types/fs-extra": "catalog:types",
     "fs-extra": "catalog:utils",
-    "tencentcloud-sdk-nodejs-hunyuan": "^4.1.70",
+    "tencentcloud-sdk-nodejs-hunyuan": "^4.1.71",
     "tsx": "catalog:dev"
   }
 }

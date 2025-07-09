@@ -8,7 +8,13 @@
 
 项目本身可通过 npm 包发布，提供默认的主题，并允许用户以布局/API 的形式进行 UI 的自定义。
 
-## [Doki Doki Literature Club! | 心跳文学部](https://zh.wikipedia.org/wiki/%E5%BF%83%E8%B7%B3%E6%96%87%E5%AD%B8%E9%83%A8%EF%BC%81)
+## [Ren'Py](https://www.renpy.org/)
+
+Ren'Py 是一个基于 Python 的视觉小说引擎，并已经有了相当成熟的生态。
+
+但我更希望 ADV.JS 能使用 TypeScript 与 Markdown 来定制与编写剧本。
+
+### [Doki Doki Literature Club! | 心跳文学部](https://zh.wikipedia.org/wiki/%E5%BF%83%E8%B7%B3%E6%96%87%E5%AD%B8%E9%83%A8%EF%BC%81)
 
 心跳文学部也是我喜欢的一部作品，同时其使用 [renpy](https://www.renpy.org/)，也是个人制作游戏的一个典范。
 

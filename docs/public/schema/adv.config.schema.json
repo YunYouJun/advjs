@@ -344,63 +344,6 @@
         "type": "string"
       }
     },
-    "extraContent": {
-      "$ref": "#/definitions/ContentOptions"
-    },
-    "include": {
-      "description": "Patterns that filter the files being extracted.",
-      "anyOf": [
-        {
-          "$ref": "#/definitions/RegExp"
-        },
-        {
-          "type": "array",
-          "items": {
-            "anyOf": [
-              {
-                "$ref": "#/definitions/RegExp"
-              },
-              {
-                "type": "string"
-              }
-            ]
-          }
-        },
-        {
-          "type": [
-            "null",
-            "string"
-          ]
-        }
-      ]
-    },
-    "exclude": {
-      "description": "Patterns that filter the files NOT being extracted.",
-      "anyOf": [
-        {
-          "$ref": "#/definitions/RegExp"
-        },
-        {
-          "type": "array",
-          "items": {
-            "anyOf": [
-              {
-                "$ref": "#/definitions/RegExp"
-              },
-              {
-                "type": "string"
-              }
-            ]
-          }
-        },
-        {
-          "type": [
-            "null",
-            "string"
-          ]
-        }
-      ]
-    },
     "cli": {
       "type": "object",
       "properties": {
@@ -689,15 +632,15 @@
     "Partial<ControlSymbolsValue>": {
       "type": "object",
       "properties": {
-        "__@SymbolShortcutsNoMerge@18341": {
+        "__@SymbolShortcutsNoMerge@18377": {
           "const": true,
           "type": "boolean"
         },
-        "__@SymbolNoMerge@18343": {
+        "__@SymbolNoMerge@18379": {
           "const": true,
           "type": "boolean"
         },
-        "__@SymbolVariants@18345": {
+        "__@SymbolVariants@18381": {
           "anyOf": [
             {
               "type": "array",
@@ -710,16 +653,16 @@
             }
           ]
         },
-        "__@SymbolParent@18347": {
+        "__@SymbolParent@18383": {
           "type": "string"
         },
-        "__@SymbolSelector@18349": {
+        "__@SymbolSelector@18385": {
           "type": "object"
         },
-        "__@SymbolLayer@18351": {
+        "__@SymbolLayer@18387": {
           "type": "string"
         },
-        "__@SymbolSort@18353": {
+        "__@SymbolSort@18389": {
           "type": "number"
         }
       }
@@ -784,12 +727,12 @@
         "description": {
           "type": "string"
         },
-        "__@toStringTag@16127": {
+        "__@toStringTag@16163": {
           "type": "string"
         }
       },
       "required": [
-        "__@toStringTag@16127",
+        "__@toStringTag@16163",
         "description"
       ]
     },
@@ -799,12 +742,12 @@
         "description": {
           "type": "string"
         },
-        "__@toStringTag@16127": {
+        "__@toStringTag@16163": {
           "type": "string"
         }
       },
       "required": [
-        "__@toStringTag@16127",
+        "__@toStringTag@16163",
         "description"
       ]
     },
@@ -814,12 +757,12 @@
         "description": {
           "type": "string"
         },
-        "__@toStringTag@16127": {
+        "__@toStringTag@16163": {
           "type": "string"
         }
       },
       "required": [
-        "__@toStringTag@16127",
+        "__@toStringTag@16163",
         "description"
       ]
     },
@@ -829,12 +772,12 @@
         "description": {
           "type": "string"
         },
-        "__@toStringTag@16127": {
+        "__@toStringTag@16163": {
           "type": "string"
         }
       },
       "required": [
-        "__@toStringTag@16127",
+        "__@toStringTag@16163",
         "description"
       ]
     },
@@ -844,12 +787,12 @@
         "description": {
           "type": "string"
         },
-        "__@toStringTag@16127": {
+        "__@toStringTag@16163": {
           "type": "string"
         }
       },
       "required": [
-        "__@toStringTag@16127",
+        "__@toStringTag@16163",
         "description"
       ]
     },
@@ -859,12 +802,12 @@
         "description": {
           "type": "string"
         },
-        "__@toStringTag@16127": {
+        "__@toStringTag@16163": {
           "type": "string"
         }
       },
       "required": [
-        "__@toStringTag@16127",
+        "__@toStringTag@16163",
         "description"
       ]
     },
@@ -874,12 +817,12 @@
         "description": {
           "type": "string"
         },
-        "__@toStringTag@16127": {
+        "__@toStringTag@16163": {
           "type": "string"
         }
       },
       "required": [
-        "__@toStringTag@16127",
+        "__@toStringTag@16163",
         "description"
       ]
     },
@@ -1530,12 +1473,12 @@
     "Promise<Preset<Theme>>": {
       "type": "object",
       "properties": {
-        "__@toStringTag@16127": {
+        "__@toStringTag@16163": {
           "type": "string"
         }
       },
       "required": [
-        "__@toStringTag@16127"
+        "__@toStringTag@16163"
       ]
     },
     "PresetOrFactoryAwaitable<Theme>": {
@@ -1680,30 +1623,6 @@
               "type": "boolean"
             }
           ]
-        },
-        "plain": {
-          "type": "array",
-          "items": {
-            "anyOf": [
-              {
-                "type": "object",
-                "properties": {
-                  "code": {
-                    "type": "string"
-                  },
-                  "id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "code"
-                ]
-              },
-              {
-                "type": "string"
-              }
-            ]
-          }
         }
       }
     },
