@@ -1,5 +1,5 @@
 import type { AGUILayoutType } from '@advjs/gui'
-import type * as PIXI from 'pixi.js'
+import type { Application } from 'pixi.js'
 import { useStorage } from '@vueuse/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { addCustomEvent, ANALYTICS_EVENTS } from '~/utils/analystics'
@@ -47,7 +47,7 @@ const defaultLayout: AGUILayoutType = {
 }
 
 export const useAppStore = defineStore('@advjs/editor:app', () => {
-  const pixiApp = shallowRef<PIXI.Application | null>(null)
+  const pixiApp = shallowRef<Application | null>(null)
   const layout = useStorage('agui:layout', JSON.parse(JSON.stringify(defaultLayout)))
 
   /**

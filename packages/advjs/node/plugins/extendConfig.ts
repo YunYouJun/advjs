@@ -36,6 +36,8 @@ const EXCLUDE_GLOBAL = [
   '@advjs/types',
 
   'floating-vue',
+
+  'pixi.js',
 ]
 const EXCLUDE_LOCAL = EXCLUDE_GLOBAL
 
@@ -47,6 +49,7 @@ const babylonDeps = [
   '@babylonjs/materials',
   '@babylonjs/materials/grid',
   '@babylonjs/loaders/glTF',
+
 ]
 
 // function filterDeps(deps: Record<string, string>) {
@@ -58,7 +61,12 @@ const INCLUDE_LOCAL = [
   'typescript',
   // 合并请求
   '@vueuse/motion',
-  'pixi.js',
+
+  // pixi.js support esm, but some deps not
+  'pixi.js > eventemitter3',
+  'pixi.js > earcut',
+  'pixi.js > parse-svg-path',
+  'pixi.js > @xmldom/xmldom',
 ]
 
 // const parserDeps = 'dependencies' in parserPkg ? parserPkg.dependencies : {}

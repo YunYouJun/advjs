@@ -19,7 +19,7 @@
   "dependencies": {
     "@dagrejs/dagre": "^1.1.5",
     "@google/model-viewer": "catalog:frontend",
-    "@octokit/core": "^7.0.2",
+    "@octokit/core": "^7.0.3",
     "@octokit/rest": "^22.0.0",
     "@vue-flow/background": "^1.3.2",
     "@vue-flow/controls": "^1.1.2",

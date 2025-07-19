@@ -1,5 +1,5 @@
 import Vue from '@vitejs/plugin-vue'
-import { presetAttributify, presetIcons, presetUno } from 'unocss'
+import { presetAttributify, presetIcons, presetWind4 } from 'unocss'
 import UnoCSS from 'unocss/vite'
 import { defineConfig } from 'vite'
 
@@ -8,7 +8,7 @@ export default defineConfig({
   plugins: [
     UnoCSS({
       presets: [
-        presetUno(),
+        presetWind4(),
         presetAttributify(),
         presetIcons({
           scale: 1.2,

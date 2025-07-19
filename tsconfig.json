@@ -60,12 +60,15 @@
       "babylon-vrm-loader",
       "node",
       "vitest",
+      "vite",
       "vite/client",
       // https://github.com/JohnCampionJr/vite-plugin-vue-layouts/issues/111#issuecomment-1549482642
       "vite-plugin-vue-layouts/client.d.ts",
       "vite-plugin-pwa/client",
       "unplugin-vue-router/client"
     ],
+
+    "allowImportingTsExtensions": true,
     "allowJs": true,
 
     // lint
@@ -74,11 +77,11 @@
     "noFallthroughCasesInSwitch": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-
     "noEmit": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
+    "verbatimModuleSyntax": true,
     "skipDefaultLibCheck": true,
     "skipLibCheck": true
   },

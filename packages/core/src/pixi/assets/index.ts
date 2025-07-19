@@ -1,6 +1,7 @@
-import * as PIXI from 'pixi.js'
+import type { AssetsManifest } from 'pixi.js'
+import { Assets, Sprite } from 'pixi.js'
 
-export const basicManifest: PIXI.AssetsManifest = {
+export const basicManifest: AssetsManifest = {
   bundles: [
     {
       name: 'load-screen',
@@ -14,8 +15,8 @@ export const basicManifest: PIXI.AssetsManifest = {
 }
 
 async function init() {
-  await PIXI.Assets.init({ manifest: basicManifest })
-  await PIXI.Assets.loadBundle('load-screen')
+  await Assets.init({ manifest: basicManifest })
+  await Assets.loadBundle('load-screen')
   // bundles can be loaded in the background too!
   // PIXI.Assets.backgroundLoadBundle(['load-screen', 'game-screen'])
 
@@ -25,10 +26,10 @@ async function init() {
 async function makeLoadScreen() {
   // get the assets from the load screen bundle.
   // If the bundle was already downloaded the promise resolves instantly!
-  const loadScreenAssets = await PIXI.Assets.loadBundle('load-screen')
+  const loadScreenAssets = await Assets.loadBundle('load-screen')
 
   // create a new Sprite from the resolved loaded texture
-  const goNext = new PIXI.Sprite(loadScreenAssets.flowerTop)
+  const goNext = new Sprite(loadScreenAssets.flowerTop)
 
   goNext.anchor.set(0.5)
   // goNext.x = app.screen.width / 2
@@ -48,10 +49,10 @@ async function makeGameScreen() {
   // Wait here until you get the assets
   // If the user spends enough time in the load screen by the time they reach the game screen
   // the assets are completely loaded and the promise resolves instantly!
-  const loadScreenAssets = await PIXI.Assets.loadBundle('game-screen')
+  const loadScreenAssets = await Assets.loadBundle('game-screen')
 
   // create a new Sprite from the resolved loaded texture
-  const goBack = new PIXI.Sprite(loadScreenAssets.eggHead)
+  const goBack = new Sprite(loadScreenAssets.eggHead)
 
   goBack.anchor.set(0.5)
   // goBack.x = app.screen.width / 2

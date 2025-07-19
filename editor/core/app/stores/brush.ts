@@ -1,4 +1,4 @@
-import type * as PIXI from 'pixi.js'
+import type { RenderTexture } from 'pixi.js'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { ref } from 'vue'
 
@@ -6,7 +6,7 @@ export const useBrushStore = defineStore('brush', () => {
   const color = ref('#000000')
   const size = ref(10)
 
-  const histories = ref<PIXI.RenderTexture[]>([])
+  const histories = ref<RenderTexture[]>([])
 
   return {
     color,
