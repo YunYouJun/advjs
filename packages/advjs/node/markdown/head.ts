@@ -1,4 +1,4 @@
-import type { ResolvedOptions } from './types'
+import type { ResolvedMdOptions } from './types'
 
 const headProperties = [
   'title',
@@ -11,7 +11,7 @@ const headProperties = [
   'bodyAttrs',
 ]
 
-export function preprocessHead(frontmatter: any, options: ResolvedOptions) {
+export function preprocessHead(frontmatter: any, options: ResolvedMdOptions) {
   if (!options.headEnabled)
     return frontmatter
 

@@ -31,7 +31,7 @@ catalogs:
     '@vueuse/nuxt': ^13.5.0
     beasties: ^0.3.5
     markdown-it-link-attributes: ^4.0.1
-    nuxt: ^4.0.0
+    nuxt: ^4.0.1
     rollup: ^4.45.1
     sass: ^1.89.2
     shiki: ^3.8.1
@@ -52,7 +52,7 @@ catalogs:
     vite-plugin-vue-devtools: ^7.7.7
     vite-plugin-vue-layouts: ^0.11.0
     vite-ssg: ^28.0.0
-    vite-ssg-sitemap: ^0.9.0
+    vite-ssg-sitemap: ^0.10.0
   cli:
     cli-progress: ^3.12.0
     consola: ^3.4.2
@@ -106,7 +106,7 @@ catalogs:
     vue-router: ^4.5.1
     wc-github-corners: ^0.1.6
   icons:
-    '@iconify-json/carbon': ^1.2.10
+    '@iconify-json/carbon': ^1.2.11
     '@iconify-json/ep': ^1.2.2
     '@iconify-json/file-icons': ^1.2.1
     '@iconify-json/logos': ^1.2.4

@@ -8,6 +8,11 @@ export async function installBuildCommand(cli: Argv) {
     'build [entry]',
     'Build hostable SPA',
     args => commonOptions(args)
+      .option('local', {
+        type: 'boolean',
+        default: true,
+        describe: '使用相对路径构建, 支持 index.html 直接打开',
+      })
       .option('watch', {
         alias: 'w',
         default: false,
@@ -25,14 +30,14 @@ export async function installBuildCommand(cli: Argv) {
       })
       .strict()
       .help(),
-    async ({ entry, theme, watch, base, output }) => {
+    async ({ entry, theme, watch, base, output, local }) => {
       const { build } = await import('../commands/build')
 
       const options = await resolveOptions({ entry, theme }, 'build')
 
       printInfo(options)
       await build(options, {
-        base,
+        base: local ? './' : base,
         build: {
           watch: watch ? {} : undefined,
           outDir: path.resolve(options.userRoot, output),

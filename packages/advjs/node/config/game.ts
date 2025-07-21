@@ -1,6 +1,6 @@
 import type { AdvChapter, AdvCharacter, AdvGameConfig, AdvScene } from '@advjs/types'
 import type { ResolvedAdvOptions } from '../options'
-import type { AdvGameModuleName } from '../plugins/virtual/game'
+import type { AdvGameModuleName } from '../virtual/game'
 import path from 'node:path'
 import { loadConfig } from 'c12'
 import fs from 'fs-extra'

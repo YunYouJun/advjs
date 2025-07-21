@@ -34,27 +34,3 @@ export async function createServer(
   const server = await createViteServer(inlineConfig)
   return server
 }
-
-// optimizeDeps: {
-//   include: [
-//     'vue',
-//     'vue-router',
-//     '@vueuse/core',
-//     '@unhead/vue',
-//     '@vueuse/motion',
-//     'dayjs',
-//     'js-yaml',
-//     'unified',
-//     'remark-parse',
-//     'remark-frontmatter',
-//     'remark-gfm',
-//     'remark-rehype',
-//     'rehype-stringify',
-//     'consola',
-//     'unstorage',
-//     'unstorage/drivers/localstorage',
-//     'html2canvas',
-//   ].concat(babylonDependencies),
-//   exclude: [
-//   ],
-// },

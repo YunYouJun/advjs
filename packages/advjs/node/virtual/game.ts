@@ -2,7 +2,7 @@ import type { VirtualModuleTemplate } from './types'
 import { join } from 'node:path'
 import { gameModules } from '@advjs/core'
 import fs from 'fs-extra'
-import { toAtFS } from '../../resolver'
+import { toAtFS } from '../resolver'
 
 function createGameTemplate(name: string): VirtualModuleTemplate {
   return {

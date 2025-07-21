@@ -44,10 +44,10 @@ export interface Options {
   /**
    * Custom function to process the frontmatter
    */
-  frontmatterPreprocess?: (frontmatter: Record<string, unknown>, options: ResolvedOptions) => any
+  frontmatterPreprocess?: (frontmatter: Record<string, unknown>, options: ResolvedMdOptions) => any
 
   include?: FilterPattern
   exclude?: FilterPattern
 }
 
-export interface ResolvedOptions extends Required<Options> {}
+export interface ResolvedMdOptions extends Required<Options> {}

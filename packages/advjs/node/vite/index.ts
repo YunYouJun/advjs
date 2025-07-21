@@ -6,35 +6,25 @@ import fs from 'fs-extra'
 import LinkAttributes from 'markdown-it-link-attributes'
 import { resolve } from 'pathe'
 
-import Components from 'unplugin-vue-components/vite'
 import Markdown from 'unplugin-vue-markdown/vite'
 import VueRouter from 'unplugin-vue-router/vite'
 import vueDevTools from 'vite-plugin-vue-devtools'
 
 import Layouts from 'vite-plugin-vue-layouts'
-import { createVuePlugin } from '../vite/vue'
+import { createComponentsPlugin } from './components'
 import { createConfigPlugin } from './extendConfig'
 import { createAdvLoader } from './loaders'
 // import { createClientSetupPlugin } from './setupClient'
 import { createUnocssPlugin } from './unocss'
+import { createVuePlugin } from './vue'
 
 export async function ViteAdvPlugin(
   options: ResolvedAdvOptions,
   pluginOptions: AdvPluginOptions,
   serverOptions: AdvServerOptions = {},
 ): Promise<PluginOption[]> {
-  const {
-    components: componentsOptions = {},
-  } = pluginOptions
-
-  const {
-    clientRoot,
-    roots,
-    tempRoot,
-  } = options
-
   // generated files for adv
-  fs.ensureDirSync(tempRoot)
+  fs.ensureDirSync(options.tempRoot)
 
   return Promise.all([
     createConfigPlugin(options),
@@ -46,32 +36,17 @@ export async function ViteAdvPlugin(
     // https://github.com/posva/unplugin-vue-router
     VueRouter({
       extensions: ['.vue', '.md'],
-      routesFolder: roots.map(root => join(root, 'pages')),
+      routesFolder: options.roots.map(root => join(root, 'pages')),
       exclude: ['**/*.adv.md'],
-      dts: resolve(tempRoot, 'typed-router.d.ts'),
+      dts: resolve(options.tempRoot, 'typed-router.d.ts'),
     }),
 
     // https://github.com/JohnCampionJr/vite-plugin-vue-layouts
     Layouts({
-      layoutsDirs: roots.map(root => join(root, 'layouts')),
+      layoutsDirs: options.roots.map(root => join(root, 'layouts')),
     }),
 
-    Components({
-      extensions: ['vue', 'md'],
-
-      dirs: roots
-        .map(root => join(root, 'components'))
-        .concat([
-          join(clientRoot, 'builtin'),
-        ]),
-
-      include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
-      dts: resolve(tempRoot, 'components.d.ts'),
-
-      allowOverrides: true,
-
-      ...componentsOptions,
-    }),
+    createComponentsPlugin(options, pluginOptions),
 
     // https://github.com/unplugin/unplugin-vue-markdown/
     Markdown({
@@ -94,7 +69,7 @@ export async function ViteAdvPlugin(
     VueI18n({
       runtimeOnly: true,
       compositionOnly: true,
-      include: roots.map(root => `${root}/locales/**`),
+      include: options.roots.map(root => `${root}/locales/**`),
     }),
 
     vueDevTools({

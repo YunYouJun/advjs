@@ -6,7 +6,7 @@ import type Vue from '@vitejs/plugin-vue'
 import type { VitePluginConfig as UnoCSSConfig } from 'unocss/vite'
 import type Components from 'unplugin-vue-components/vite'
 import type Markdown from 'unplugin-vue-markdown'
-import type { HmrContext } from 'vite'
+import type { ConfigEnv, HmrContext } from 'vite'
 
 import path, { dirname, join, resolve } from 'node:path'
 import process from 'node:process'
@@ -21,6 +21,11 @@ import { getThemeMeta, resolveThemeName } from './themes'
 const debug = _debug('adv:options')
 
 export interface AdvEntryOptions {
+  /**
+   * @default 'app'
+   */
+  env?: 'plugin' | 'app'
+
   /**
    * Markdown entry
    *
@@ -64,11 +69,19 @@ export interface RootsInfo {
 
 export interface ResolvedAdvOptions extends RootsInfo {
   /**
+   * plugin or app
+   * - `plugin`: used in advjs plugin mode, like `vite-plugin-adv`
+   * - `app`: used in advjs app mode, 通过 cli 独立使用
+   *
+   * @default 'app'
+   */
+  env: 'plugin' | 'app'
+
+  mode: ConfigEnv['mode']
+  /**
    * 都放在 data 下以便一起处理 HMR
    */
   data: AdvData
-
-  mode: 'dev' | 'build'
   remote?: boolean
   /**
    * Base URL in dev or build mode
@@ -84,6 +97,15 @@ export interface ResolvedAdvOptions extends RootsInfo {
    * = `[clientRoot, ...themeRoots, ...addonRoots, userRoot]`
    */
   roots: string[]
+
+  /**
+   * theme
+   */
+  theme: string
+  /**
+   * Theme package name
+   */
+  themePkgName: string
 }
 
 export interface AdvPluginOptions extends AdvEntryOptions {
@@ -173,6 +195,10 @@ export async function resolveOptions(
   ])
 
   const advOptions: ResolvedAdvOptions = {
+    env: options.env || 'app',
+    theme: options.theme || 'default',
+    themePkgName: theme,
+
     data,
     mode,
 

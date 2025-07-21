@@ -1,6 +1,6 @@
 /* eslint-disable regexp/no-contradiction-with-assertion */
 import type { AdvAst } from '@advjs/types'
-import type { ResolvedOptions } from './types'
+import type { ResolvedMdOptions } from './types'
 import { parseAst } from '@advjs/parser'
 import { read } from 'to-vfile'
 import { matter } from 'vfile-matter'
@@ -46,7 +46,7 @@ function extractAdvScriptSetup(ast: AdvAst.Root) {
   return scripts
 }
 
-function extractCustomBlock(html: string, options: ResolvedOptions) {
+function extractCustomBlock(html: string, options: ResolvedMdOptions) {
   const blocks: string[] = []
   for (const tag of options.customSfcBlocks) {
     html = html.replace(
@@ -61,7 +61,7 @@ function extractCustomBlock(html: string, options: ResolvedOptions) {
   return { html, blocks }
 }
 
-export function createMarkdown(options: ResolvedOptions) {
+export function createMarkdown(options: ResolvedMdOptions) {
   const {
     transforms,
     headEnabled,

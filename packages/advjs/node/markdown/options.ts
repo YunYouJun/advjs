@@ -1,7 +1,7 @@
-import type { Options, ResolvedOptions } from './types'
+import type { Options, ResolvedMdOptions } from './types'
 import { preprocessHead } from './head'
 
-export function resolveOptions(userOptions: Options = {}): ResolvedOptions {
+export function resolveMdOptions(userOptions: Options = {}): ResolvedMdOptions {
   const options = Object.assign(
     {
       headEnabled: false,
@@ -9,12 +9,12 @@ export function resolveOptions(userOptions: Options = {}): ResolvedOptions {
       frontmatter: true,
       customSfcBlocks: ['route', 'i18n', 'style'],
       transforms: {},
-      frontmatterPreprocess: (frontmatter: any, options: ResolvedOptions) => {
+      frontmatterPreprocess: (frontmatter: any, options: ResolvedMdOptions) => {
         const head = preprocessHead(frontmatter, options)
         return { head, frontmatter }
       },
     },
     userOptions,
-  ) as ResolvedOptions
+  ) as ResolvedMdOptions
   return options
 }

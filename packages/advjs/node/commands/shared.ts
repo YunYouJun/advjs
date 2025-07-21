@@ -4,7 +4,7 @@ import type { AdvServerOptions, ResolvedAdvOptions } from '../options'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { loadConfigFromFile, mergeConfig } from 'vite'
-import { ViteAdvPlugin } from '..'
+import { ViteAdvPlugin } from '../vite'
 
 export async function resolveViteConfigs(
   options: ResolvedAdvOptions,

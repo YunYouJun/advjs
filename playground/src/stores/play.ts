@@ -1,6 +1,5 @@
 import type { AdvGameConfig } from '@advjs/types'
-import { useAdvContext, useGameStore as useClientGameStore } from '@advjs/client'
-import { AdvGameLoadStatusEnum } from '@advjs/client/constants/game.js'
+import { AdvGameLoadStatusEnum, useAdvContext, useGameStore as useClientGameStore } from '@advjs/client'
 import { Toast } from '@advjs/gui'
 import { convertPominisAItoAdvConfig } from '@advjs/plugin-pominis'
 import { useStorage } from '@vueuse/core'

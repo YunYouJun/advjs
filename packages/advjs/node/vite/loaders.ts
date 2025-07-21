@@ -5,11 +5,11 @@ import { notNullish } from '@antfu/utils'
 import { consola } from 'consola'
 import { colors } from 'consola/utils'
 import equal from 'fast-deep-equal'
-import { createMarkdown, resolveOptions } from './adv'
-import { templates } from './virtual'
-import { templateConfigs } from './virtual/configs'
-import { templateData } from './virtual/data'
-import { templateGames } from './virtual/game'
+import { createMarkdown, resolveMdOptions } from '../markdown'
+import { templates } from '../virtual'
+import { templateConfigs } from '../virtual/configs'
+import { templateData } from '../virtual/data'
+import { templateGames } from '../virtual/game'
 
 interface AdvHmrPayload {
   data: AdvData
@@ -20,8 +20,8 @@ interface AdvHmrPayload {
  * @param entry
  */
 export function createAdvMdLoader(entry: string): Plugin {
-  const options = resolveOptions()
-  const transformMarkdown = createMarkdown(options)
+  const mdOptions = resolveMdOptions()
+  const transformMarkdown = createMarkdown(mdOptions)
   const filter = (name: string) => {
     return (
       name.endsWith('.adv.md')

@@ -49,7 +49,6 @@ const babylonDeps = [
   '@babylonjs/materials',
   '@babylonjs/materials/grid',
   '@babylonjs/loaders/glTF',
-
 ]
 
 // function filterDeps(deps: Record<string, string>) {
@@ -142,7 +141,7 @@ export async function getAlias(options: ResolvedAdvOptions): Promise<Alias[]> {
   return alias
 }
 
-export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<Plugin> {
+export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
   if (options.data.config.features.babylon) {
     INCLUDE_LOCAL.push(...babylonDeps)
   }
@@ -182,19 +181,24 @@ export async function createConfigPlugin(options: ResolvedAdvOptions): Promise<P
     },
 
     configureServer(server) {
-      const indexHtml = setupIndexHtml(options)
-      // console.log('config plugin configure server')
-      // serve our index.html after vite history fallback
-      return () => {
-        server.middlewares.use(async (req, res, next) => {
-          if (req.url === '/index.html') {
-            res.setHeader('Content-Type', 'text/html')
-            res.statusCode = 200
-            res.end(indexHtml)
-            return
-          }
-          next()
-        })
+      /**
+       * when app need indexHtml
+       */
+      if (options.env === 'app') {
+        const indexHtml = setupIndexHtml(options)
+        // console.log('config plugin configure server')
+        // serve our index.html after vite history fallback
+        return () => {
+          server.middlewares.use(async (req, res, next) => {
+            if (req.url === '/index.html') {
+              res.setHeader('Content-Type', 'text/html')
+              res.statusCode = 200
+              res.end(indexHtml)
+              return
+            }
+            next()
+          })
+        }
       }
     },
 

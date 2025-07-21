@@ -1,7 +1,7 @@
 import type { VirtualModuleTemplate } from './types'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
-import { toAtFS } from '../../resolver'
+import { toAtFS } from '../resolver'
 
 function createSetupTemplate(name: string): VirtualModuleTemplate {
   return {
