@@ -89,7 +89,7 @@ export async function getRoots(options: AdvEntryOptions): Promise<RootsInfo> {
   if (rootsInfo)
     return rootsInfo
 
-  const { entry, userRoot } = getUserRoot(options)
+  const { userRoot } = getUserRoot(options)
 
   /**
    * cli root
@@ -101,7 +101,6 @@ export async function getRoots(options: AdvEntryOptions): Promise<RootsInfo> {
   const tempRoot = path.resolve(userRoot, '.adv')
 
   rootsInfo = {
-    entry,
     cliRoot,
     userRoot,
     clientRoot,

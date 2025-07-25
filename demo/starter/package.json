@@ -8,9 +8,9 @@
     "email": "me@yunyoujun.cn"
   },
   "scripts": {
-    "build": "adv build ./wlwz.adv.md",
+    "build": "adv build",
+    "build:singlefile": "adv build --singlefile",
     "dev": "adv --open=false --log=info",
-    "dev:wlwz": "nodemon -w '../../packages/**/dist/*.js' --exec \"adv ./wlwz.adv.md --open=false --log=info\"",
     "preview": "vite preview --host",
     "preview-https": "serve dist"
   },

@@ -5,6 +5,7 @@ import Vue from '@vitejs/plugin-vue'
 import LinkAttributes from 'markdown-it-link-attributes'
 import Unocss from 'unocss/vite'
 import AutoImport from 'unplugin-auto-import/vite'
+import Mockery from 'unplugin-mockery/vite'
 import { TDesignResolver } from 'unplugin-vue-components/resolvers'
 import Markdown from 'unplugin-vue-markdown/vite'
 import { VueRouterAutoImports } from 'unplugin-vue-router'
@@ -48,12 +49,12 @@ export default defineConfig(async ({ mode }) => {
     server: {
       cors: true,
 
-      proxy: {
-        '^/v1/adv': {
-          target: 'https://api.pominis.com/v1/adv',
-          changeOrigin: true,
-        },
-      },
+      // proxy: {
+      //   '^/v1/adv': {
+      //     target: 'https://api.pominis.com/v1/adv',
+      //     changeOrigin: true,
+      //   },
+      // },
 
       headers: {
         'access-control-allow-origin': '*',
@@ -145,6 +146,12 @@ export default defineConfig(async ({ mode }) => {
 
       // https://github.com/webfansplz/vite-plugin-vue-devtools
       VueDevTools(),
+
+      Mockery({
+        client: {
+          port: 51274,
+        },
+      }),
     ],
 
     // https://github.com/vitest-dev/vitest

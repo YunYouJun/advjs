@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
-axios.defaults.baseURL = import.meta.env.DEV ? 'https://api.pominis.com/v1' : 'https://api.pominis.com/v1'
+axios.defaults.baseURL = import.meta.env.DEV ? 'http://localhost:3333/v1' : 'https://api.pominis.com/v1'
 
 export const usePominisStore = defineStore('pominis', () => {
   async function fetchPominisStory(params: {
@@ -9,11 +9,6 @@ export const usePominisStore = defineStore('pominis', () => {
     token?: string
   }) {
     // mock data
-    if (import.meta.env.DEV) {
-      const res = await fetch('/games/three-pigs.json')
-      return res.json()
-    }
-
     try {
       if (params.token) {
         axios.defaults.headers.common.Authorization = `Bearer ${params.token}`

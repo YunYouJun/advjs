@@ -59,6 +59,7 @@
     "plugins:build": "pnpm -r --filter=\"./plugins/plugin-*\" run build",
     "play:build": "pnpm -C playground build",
     "play:dev": "pnpm -C playground dev",
+    "play": "pnpm run play:dev",
     "vrm:build": "pnpm -C editor/vrm build",
     "vrm:dev": "pnpm -C editor/vrm dev",
     "types:build": "pnpm -C packages/types build",

@@ -26,7 +26,7 @@ export async function ViteAdvPlugin(
   // generated files for adv
   fs.ensureDirSync(options.tempRoot)
 
-  return Promise.all([
+  const plugins: PluginOption[] | Promise<PluginOption[]> = [
     createConfigPlugin(options),
     createUnocssPlugin(options, pluginOptions),
 
@@ -76,5 +76,11 @@ export async function ViteAdvPlugin(
       appendTo: join(options.clientRoot, 'main.ts'),
     }),
     // todo download remote assets
-  ])
+  ]
+
+  if (options.build.singlefile) {
+    const { viteSingleFile } = await import('vite-plugin-singlefile')
+    plugins.push(viteSingleFile())
+  }
+  return Promise.all(plugins)
 }

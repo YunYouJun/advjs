@@ -78,6 +78,7 @@
     "unplugin-vue-router": "catalog:build",
     "vfile-matter": "catalog:unified",
     "vite": "catalog:build",
+    "vite-plugin-singlefile": "^2.3.0",
     "vite-plugin-vue-devtools": "catalog:build",
     "vite-plugin-vue-layouts": "catalog:build",
     "vitefu": "^1.1.1",

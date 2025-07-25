@@ -1,28 +1,20 @@
 import type { Argv } from 'yargs'
-import path from 'node:path'
-import { resolveOptions } from '../options'
-import { commonOptions, printInfo } from './utils'
+import { commonOptions } from './utils'
 
 export async function installBuildCommand(cli: Argv) {
   cli.command(
     'build [entry]',
     'Build hostable SPA',
     args => commonOptions(args)
-      .option('local', {
+      .option('singlefile', {
         type: 'boolean',
-        default: true,
-        describe: '使用相对路径构建, 支持 index.html 直接打开',
-      })
-      .option('watch', {
-        alias: 'w',
         default: false,
-        describe: 'build watch',
+        describe: '构建为单个文件, 支持 index.html 直接打开',
       })
-      .option('output', {
-        alias: 'o',
+      .option('outDir', {
         type: 'string',
         default: 'dist',
-        describe: 'output dir',
+        describe: 'Output directory',
       })
       .option('base', {
         type: 'string',
@@ -30,18 +22,13 @@ export async function installBuildCommand(cli: Argv) {
       })
       .strict()
       .help(),
-    async ({ entry, theme, watch, base, output, local }) => {
-      const { build } = await import('../commands/build')
-
-      const options = await resolveOptions({ entry, theme }, 'build')
-
-      printInfo(options)
-      await build(options, {
-        base: local ? './' : base,
-        build: {
-          watch: watch ? {} : undefined,
-          outDir: path.resolve(options.userRoot, output),
-        },
+    async ({ theme, base, outDir, singlefile }) => {
+      const { advBuild } = await import('../commands/build')
+      await advBuild({
+        base,
+        outDir,
+        theme,
+        singlefile,
       })
     },
   )

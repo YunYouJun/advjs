@@ -2,7 +2,6 @@ import type { Argv } from 'yargs'
 import type { ResolvedAdvOptions } from '../options'
 import net from 'node:net'
 import os from 'node:os'
-import path from 'node:path'
 import { colors } from 'consola/utils'
 import { version } from '../../package.json'
 import { isInstalledGlobally } from '../resolver'
@@ -33,11 +32,6 @@ export async function findFreePort(start: number): Promise<number> {
 
 export function commonOptions(args: Argv) {
   return args
-    .positional('entry', {
-      default: 'index.adv.md',
-      type: 'string',
-      describe: 'path to the advjs markdown entry',
-    })
     .option('theme', {
       alias: 't',
       type: 'string',
@@ -63,10 +57,7 @@ export function printInfo(options: ResolvedAdvOptions, port?: number, remote?: b
     console.log(colors.dim('  ⚔️  Game      ') + colors.yellow(gameConfig.title))
 
   console.log(`  ${colors.dim('🗺️  Theme')}     > ${colors.green(config.theme)} (${themeVersion})`)
-  if (config.format === 'fountain')
-    console.log(colors.dim('  📃 Entry     ') + colors.dim(path.dirname(options.entry) + path.sep) + path.basename(options.entry))
-  else
-    console.log(`  ${colors.dim('📁')} ${colors.dim(colors.underline(options.userRoot))}`)
+  console.log(`  ${colors.dim('📁')} ${colors.dim(colors.underline(options.userRoot))}`)
 
   if (port) {
     console.log()

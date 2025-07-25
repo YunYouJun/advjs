@@ -8,12 +8,10 @@ import { commonOptions } from './utils'
  */
 export function installExportCommand(cli: Argv) {
   cli.command(
-    'export [entry]',
+    'export',
     'Export to Video',
     args => commonOptions(args),
-    async ({ entry }) => {
-      consola.info('Export to video:', colors.green(entry))
-
+    async () => {
       const { chromium } = await import('@playwright/test')
       const browser = await chromium.launch({
         // headless: true,

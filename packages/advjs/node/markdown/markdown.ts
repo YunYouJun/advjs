@@ -112,8 +112,8 @@ export function createMarkdown(options: ResolvedMdOptions) {
         scriptLines.push('defineExpose({ frontmatter })')
 
       if (headEnabled && head) {
-        scriptLines.push(`const head = ${JSON.stringify(head)}`)
         scriptLines.unshift('import { useHead } from "@unhead/vue"')
+        scriptLines.push(`const head = ${JSON.stringify(head)}`)
         scriptLines.push('useHead(head)')
       }
     }

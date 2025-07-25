@@ -1,0 +1,18 @@
+{
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "schema file path",
+      "nullable": true
+    },
+    "curScene": {
+      "type": "string",
+      "description": "当前场景",
+      "enum": [
+        "default"
+      ],
+      "nullable": true
+    }
+  }
+}

@@ -1,8 +1,10 @@
 import type { InlineConfig, ResolvedConfig } from 'vite'
-import type { ResolvedAdvOptions } from '../options'
-import { resolve } from 'node:path'
+import type { AdvBuildOptions, ResolvedAdvOptions } from '../options'
+import path, { resolve } from 'node:path'
 import fs from 'fs-extra'
 import { build as viteBuild } from 'vite'
+import { printInfo } from '../cli/utils'
+import { resolveOptions } from '../options'
 import setupIndexHtml from '../setups/indexHtml'
 import { resolveViteConfigs } from './shared'
 
@@ -31,28 +33,6 @@ export async function build(
             },
           },
         ],
-        build: {
-          emptyOutDir: true,
-          chunkSizeWarningLimit: 2000,
-          rollupOptions: {
-            output: {
-              manualChunks: {
-                advjs_core: ['@advjs/core'],
-                advjs_client: ['@advjs/client'],
-                advjs_parser: ['@advjs/parser'],
-                pixijs: ['pixi.js'],
-                html2canvas: ['html2canvas'],
-              },
-            },
-            external: [
-              'advjs',
-            ],
-          },
-        },
-        ssr: {
-          // TODO: workaround until they support native ESM
-          noExternal: ['workbox-window', /vue-i18n/],
-        },
       },
       viteConfig,
       'build',
@@ -73,4 +53,18 @@ export async function build(
   const redirectsPath = resolve(outDir, '_redirects')
   if (!fs.existsSync(redirectsPath))
     await fs.writeFile(redirectsPath, `${config.base}*    ${config.base}index.html   200\n`, 'utf-8')
+}
+
+export async function advBuild(buildOptions: AdvBuildOptions) {
+  const { theme, singlefile } = buildOptions
+  const options = await resolveOptions({ theme }, 'build')
+  options.build.singlefile = singlefile || false
+
+  printInfo(options)
+  await build(options, {
+    base: buildOptions.base || '/',
+    build: {
+      outDir: path.resolve(options.userRoot, buildOptions.outDir || 'dist'),
+    },
+  })
 }

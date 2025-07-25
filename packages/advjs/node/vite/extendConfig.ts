@@ -175,6 +175,31 @@ export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
             ]),
           },
         },
+        ssr: {
+          // TODO: workaround until they support native ESM
+          noExternal: ['workbox-window', /vue-i18n/],
+        },
+      }
+
+      if (!options.build.singlefile) {
+        injection.build = {
+          emptyOutDir: true,
+          chunkSizeWarningLimit: 2000,
+          rollupOptions: {
+            output: {
+              manualChunks: {
+                advjs_core: ['@advjs/core'],
+                advjs_client: ['@advjs/client'],
+                advjs_parser: ['@advjs/parser'],
+                pixijs: ['pixi.js'],
+                html2canvas: ['html2canvas'],
+              },
+            },
+            external: [
+              'advjs',
+            ],
+          },
+        }
       }
 
       return mergeConfig(config, injection)

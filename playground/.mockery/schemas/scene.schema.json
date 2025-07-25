@@ -1,0 +1,8 @@
+{
+  "type": "object",
+  "properties": {
+    "/v1/adv/stories/:storyId": {
+      "type": "string"
+    }
+  }
+}

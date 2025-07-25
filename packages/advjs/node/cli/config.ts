@@ -40,9 +40,9 @@ export function installConfigCommand(cli: Argv) {
           describe: 'convert image to base64',
           type: 'boolean',
         }),
-    async ({ entry, target, base64 }) => {
+    async ({ target, base64 }) => {
       consola.start('Resolving options...')
-      const options = await resolveOptions({ entry }, 'build')
+      const options = await resolveOptions({}, 'build')
       const { gameConfig } = options.data
 
       for (const gameModule of gameModules) {

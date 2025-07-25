@@ -60,7 +60,6 @@ export async function advDev(options: {
     if (server)
       await server.close()
     const resolvedOptions = await resolveOptions({
-      entry,
       remote,
     }, 'dev')
 
@@ -219,10 +218,9 @@ export async function installDevCommand(cli: Argv) {
       })
       .strict()
       .help(),
-    async ({ entry, port: userPort, open, log, remote }) => {
+    async ({ port: userPort, open, log, remote }) => {
       advDev({
         root: process.cwd(),
-        entry,
         port: userPort,
         open,
         log: log as LogLevel,

@@ -17,9 +17,8 @@ interface AdvHmrPayload {
 
 /**
  * to handle adv.md loader
- * @param entry
  */
-export function createAdvMdLoader(entry: string): Plugin {
+export function createAdvMdLoader(): Plugin {
   const mdOptions = resolveMdOptions()
   const transformMarkdown = createMarkdown(mdOptions)
   const filter = (name: string) => {
@@ -43,7 +42,7 @@ export function createAdvMdLoader(entry: string): Plugin {
         return
 
       try {
-        const { vueSrc } = await transformMarkdown(entry, code)
+        const { vueSrc } = await transformMarkdown(id, code)
         return vueSrc
       }
       catch (e: any) {
@@ -188,10 +187,8 @@ export function createAdvLoader(
   advOptions: ResolvedAdvOptions,
   serverOptions: AdvServerOptions,
 ): Plugin[] {
-  const { entry } = advOptions
-
   return [
     createAdvVirtualLoader(advOptions, serverOptions),
-    createAdvMdLoader(entry),
+    createAdvMdLoader(),
   ]
 }

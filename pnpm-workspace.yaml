@@ -11,7 +11,7 @@ packages:
 
 catalogs:
   ai:
-    openai: ^5.10.1
+    openai: ^5.10.2
   babylon:
     '@babylonjs/core': 5.19.0
     '@babylonjs/gui': 5.19.0
@@ -35,15 +35,15 @@ catalogs:
     rollup: ^4.45.1
     sass: ^1.89.2
     shiki: ^3.8.1
-    tsdown: ^0.12.9
-    unbuild: ^3.5.0
+    tsdown: ^0.13.0
+    unbuild: ^3.6.0
     unocss: ^66.3.3
     unplugin: ^2.3.5
     unplugin-auto-import: ^19.3.0
     unplugin-vue-components: ^28.8.0
     unplugin-vue-markdown: ^29.1.0
     unplugin-vue-router: ^0.14.0
-    vite: ^7.0.5
+    vite: ^7.0.6
     vite-bundle-visualizer: ^1.2.1
     vite-plugin-css-injected-by-js: ^3.5.2
     vite-plugin-dts: ^4.5.4
@@ -56,17 +56,17 @@ catalogs:
   cli:
     cli-progress: ^3.12.0
     consola: ^3.4.2
-    dotenv: ^17.2.0
+    dotenv: ^17.2.1
     execa: ^9.6.0
     minimist: ^1.2.8
     npm-run-all: ^4.1.5
     prompts: ^2.4.2
     yargs: ^18.0.0
   dev:
-    '@antfu/eslint-config': ^4.17.0
+    '@antfu/eslint-config': ^5.0.0
     '@faker-js/faker': ^9.9.0
     '@unocss/eslint-plugin': ^66.3.3
-    eslint: ^9.31.0
+    eslint: ^9.32.0
     eslint-plugin-format: ^1.0.1
     https-localhost: ^4.7.1
     husky: ^9.1.7
@@ -75,7 +75,8 @@ catalogs:
     taze: ^19.1.0
     tsx: ^4.20.3
     typescript: ^5.8.3
-    vue-tsc: ^3.0.3
+    unplugin-mockery: ^0.4.0-beta.6
+    vue-tsc: ^3.0.4
   docs:
     typedoc: ^0.28.7
     typedoc-plugin-merge-modules: ^7.0.0
@@ -97,19 +98,19 @@ catalogs:
     pinia: ^3.0.3
     pixi-painter: ^0.1.6-beta.1
     pixi.js: 8.0.4
-    reka-ui: ^2.3.2
+    reka-ui: ^2.4.0
     splitpanes: ^4.0.4
     swiper: ^11.2.10
     tdesign-vue-next: ^1.15.1
-    vue: ^3.5.17
-    vue-i18n: ^11.1.10
+    vue: ^3.5.18
+    vue-i18n: ^11.1.11
     vue-router: ^4.5.1
     wc-github-corners: ^0.1.6
   icons:
     '@iconify-json/carbon': ^1.2.11
     '@iconify-json/ep': ^1.2.2
     '@iconify-json/file-icons': ^1.2.1
-    '@iconify-json/logos': ^1.2.4
+    '@iconify-json/logos': ^1.2.5
     '@iconify-json/mdi': ^1.2.3
     '@iconify-json/radix-icons': ^1.2.2
     '@iconify-json/ri': ^1.2.5
@@ -128,7 +129,7 @@ catalogs:
     '@types/js-yaml': ^4.0.9
     '@types/markdown-it-link-attributes': ^3.0.5
     '@types/mdast': ^4.0.4
-    '@types/node': ^24.0.15
+    '@types/node': ^24.1.0
     '@types/nprogress': ^0.2.3
     '@types/prompts': ^2.4.9
     '@types/qrcode': ^1.5.5
@@ -168,7 +169,7 @@ catalogs:
     global-directory: ^4.0.1
     honeycomb-grid: ^4.1.5
     hookable: ^5.5.3
-    jiti: ^2.4.2
+    jiti: ^2.5.1
     js-yaml: ^4.1.0
     open: ^10.2.0
     pathe: ^2.0.3

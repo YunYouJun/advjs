@@ -46,3 +46,7 @@
 
 - [alicia VRM 模型 | nicovideo](https://3d.nicovideo.jp/alicia/)
 - [Mixamo](https://www.mixamo.com/): Adobe 出品，可下载动作数据
+
+### 动效
+
+- [Vue Bits](https://vue-bits.dev/)

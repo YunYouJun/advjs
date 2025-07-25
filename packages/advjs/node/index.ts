@@ -1,4 +1,4 @@
-export * from './commands/serve'
+export * from './commands'
 export * from './config'
 export * from './markdown'
 export * from './options'
