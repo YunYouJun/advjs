@@ -1,5 +1,5 @@
 import { defineAdvConfig } from 'advjs'
-// import * as assets from './assets'
+import { pluginPominis } from '../../plugins/plugin-pominis'
 
 export default defineAdvConfig({
   theme: 'pominis',
@@ -8,7 +8,15 @@ export default defineAdvConfig({
     babylon: false,
   },
 
-  // assets,
+  plugins: [
+    pluginPominis({
+      /**
+       * 三只小猪
+       * @see https://play.pominis.com/start?pominisId=6c91aa92-3f4a-462e-89e8-05040602e768
+       */
+      storyId: '6c91aa92-3f4a-462e-89e8-05040602e768', // example storyId, replace with actual
+    }),
+  ],
 
   gameConfig: {
     title: 'ADVJS Starter',

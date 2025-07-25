@@ -1,5 +1,5 @@
 import type { AdvGameConfig } from '@advjs/types'
-import type { PominisAIVSConfig } from './types'
+import type { PominisAIVSConfig } from '../types'
 import { ensureSuffix } from '@antfu/utils'
 
 /**

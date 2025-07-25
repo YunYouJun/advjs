@@ -26,8 +26,11 @@
     "start": "tsx src/index.ts",
     "test": "vitest"
   },
+  "dependencies": {
+    "axios": "^1.11.0"
+  },
   "devDependencies": {
-    "advjs": "latest",
+    "advjs": "workspace:*",
     "unbuild": "catalog:build"
   }
 }

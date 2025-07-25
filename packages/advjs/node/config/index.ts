@@ -1,5 +1,4 @@
-import type { AdvConfig, AdvGameConfig } from '@advjs/types'
-import type { AdvEntryOptions } from '../options'
+import type { AdvConfig, AdvEntryOptions, AdvGameConfig } from '@advjs/types'
 import { defaultAdvConfig, defaultGameConfig } from '@advjs/core'
 import { loadConfig } from 'c12'
 import defu from 'defu'

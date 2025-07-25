@@ -1,3 +1,4 @@
+import type { AdvBaseEntryOptions, AdvDevOptions } from '@advjs/types'
 import type { LogLevel, ViteDevServer } from 'vite'
 import type { Argv } from 'yargs'
 import { exec } from 'node:child_process'
@@ -40,18 +41,8 @@ export async function checkFountain(entry: string) {
 /**
  * Start a local server for ADV.JS
  */
-export async function advDev(options: {
-  root: string
-  force?: boolean
-  port?: number
-  remote?: boolean
-  log?: LogLevel
-  open?: boolean
-  entry?: string
-} = {
-  root: process.cwd(),
-}) {
-  const { port: userPort, remote, log, open, entry = 'index', force } = options
+export async function advDev(options: AdvDevOptions & AdvBaseEntryOptions) {
+  const { port: userPort, remote, log, open, force, root = process.cwd() } = options
 
   let server: ViteDevServer | undefined
   let port = 3333
@@ -155,7 +146,7 @@ export async function advDev(options: {
       name: 'e',
       fullname: 'edit',
       action() {
-        exec(`code "${entry}"`)
+        exec(`code "${path.resolve(root, 'adv.config.ts')}"`)
       },
     },
   ]

@@ -1,4 +1,5 @@
-import type { AdvPluginOptions, ResolvedAdvOptions } from '../options'
+import type { ResolvedAdvOptions } from '@advjs/types'
+import type { AdvPluginOptions } from '../options'
 import path, { join } from 'node:path'
 import Components from 'unplugin-vue-components/vite'
 

@@ -1,6 +1,4 @@
-import type { AdvConfig } from '@advjs/types'
-
-import type { AdvEntryOptions, RootsInfo } from './options'
+import type { AdvConfig, AdvEntryOptions, RootsInfo } from '@advjs/types'
 import * as fs from 'node:fs'
 import path, { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'

@@ -1,4 +1,4 @@
-import type { AdvEntryOptions } from '../options'
+import type { AdvEntryOptions } from '@advjs/types'
 import process from 'node:process'
 import { loadConfig } from 'c12'
 

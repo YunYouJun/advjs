@@ -1,5 +1,6 @@
+import type { ResolvedAdvOptions } from '@advjs/types'
 import type { InlineConfig } from 'vite'
-import type { AdvServerOptions, ResolvedAdvOptions } from '../options'
+import type { AdvServerOptions } from '../options'
 import { join } from 'node:path'
 import process from 'node:process'
 

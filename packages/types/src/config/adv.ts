@@ -1,6 +1,7 @@
 import type { LogLevel } from 'consola'
 import type { AdvFeatureFlags, AdvThemeConfig } from '../types'
 import type { AdvGameConfig } from './game'
+import type { AdvPlugin } from './plugin'
 
 /**
  * 游戏应用级别的配置
@@ -151,6 +152,8 @@ export interface AdvConfig<ThemeConfig = AdvThemeConfig> {
   runtimeConfig: {
     canvasHeight: number
   }
+
+  plugins: AdvPlugin[]
 }
 
 /**

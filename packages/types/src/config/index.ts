@@ -1,3 +1,5 @@
 export * from './adv'
 export * from './game'
+export * from './options'
+export * from './plugin'
 export * from './theme'

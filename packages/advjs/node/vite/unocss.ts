@@ -1,4 +1,5 @@
-import type { AdvPluginOptions, ResolvedAdvOptions } from '..'
+import type { ResolvedAdvOptions } from '@advjs/types'
+import type { AdvPluginOptions } from '..'
 
 import UnoCSS from 'unocss/vite'
 import setupUnocss from '../setups/unocss'

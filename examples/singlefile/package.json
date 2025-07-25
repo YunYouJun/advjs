@@ -4,7 +4,8 @@
   "description": "单文件打包，导出 index.html",
   "scripts": {
     "dev": "adv dev",
-    "build": "tsx scripts/build.ts",
+    "build": "npm run build:singlefile",
+    "build:scripts": "tsx scripts/build.ts",
     "build:adv": "adv build",
     "build:singlefile": "adv build --singlefile"
   },

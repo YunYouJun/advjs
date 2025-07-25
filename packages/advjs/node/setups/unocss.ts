@@ -1,7 +1,6 @@
-import type { UnoSetup } from '@advjs/types'
+import type { ResolvedAdvOptions, UnoSetup } from '@advjs/types'
 import type { UserConfig } from '@unocss/core'
 import type { Theme } from '@unocss/preset-uno'
-import type { ResolvedAdvOptions } from '../options'
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { mergeConfigs, presetIcons } from 'unocss'

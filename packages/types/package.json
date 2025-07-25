@@ -38,6 +38,7 @@
     "@vue-flow/core": "catalog:frontend",
     "consola": "catalog:cli",
     "unocss": "catalog:build",
+    "vite": "catalog:build",
     "vue": "catalog:frontend",
     "vue-router": "catalog:frontend"
   }

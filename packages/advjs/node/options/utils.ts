@@ -1,6 +1,5 @@
-import type { AdvData } from '@advjs/types'
+import type { AdvData, AdvEntryOptions, ResolvedAdvOptions, RootsInfo } from '@advjs/types'
 
-import type { AdvEntryOptions, ResolvedAdvOptions, RootsInfo } from './types'
 import { dirname, join, resolve } from 'node:path'
 import process from 'node:process'
 import { uniq } from '@antfu/utils'
@@ -84,6 +83,7 @@ export async function resolveOptions(
   }
 
   const advOptions: ResolvedAdvOptions = {
+    ...options,
     env: options.env || 'app',
     theme: options.theme || 'default',
     themePkgName,
@@ -104,7 +104,7 @@ export async function resolveOptions(
     remote,
 
     build: {
-      singlefile: false,
+      singlefile: options.singlefile,
     },
   }
 
@@ -131,5 +131,12 @@ export async function resolveOptions(
   }
 
   debug(advOptions)
+
+  // await
+  for (const plugin of advOptions.data.config.plugins) {
+    if (plugin.optionsResolved)
+      await plugin.optionsResolved(advOptions)
+  }
+
   return advOptions
 }

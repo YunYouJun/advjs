@@ -64,7 +64,7 @@ catalogs:
     prompts: ^2.4.2
     yargs: ^18.0.0
   dev:
-    '@antfu/eslint-config': ^5.0.0
+    '@antfu/eslint-config': ^4.19.0
     '@faker-js/faker': ^9.9.0
     '@unocss/eslint-plugin': ^66.3.3
     eslint: ^9.32.0
@@ -161,7 +161,7 @@ catalogs:
     benny: ^3.7.1
     bumpp: ^10.2.0
     c12: ^3.1.0
-    cross-env: ^7.0.3
+    cross-env: ^10.0.0
     dayjs: ^1.11.13
     debug: ^4.4.1
     defu: ^6.1.4
@@ -180,6 +180,7 @@ catalogs:
     semver: ^7.7.2
     unstorage: ^1.16.1
     xml2js: ^0.6.2
+
 ignoredBuiltDependencies:
   - '@parcel/watcher'
   - bufferutil

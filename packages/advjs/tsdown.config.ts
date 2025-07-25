@@ -11,8 +11,6 @@ export default defineConfig({
   ],
   clean: true,
   external: [
-    '@advjs/core',
-
     '@playwright/test',
 
     'mdast',

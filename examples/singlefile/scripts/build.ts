@@ -5,10 +5,9 @@
 import { advBuild } from '../../../packages/advjs/node'
 
 async function main() {
+  // todo set plugins
   await advBuild({
     singlefile: true,
-    adapter: 'pominis',
-    storyId: '6c91aa92-3f4a-462e-89e8-05040602e768',
   })
 }
 

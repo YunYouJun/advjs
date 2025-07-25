@@ -1,4 +1,4 @@
-import type { ResolvedAdvOptions } from '../options'
+import type { ResolvedAdvOptions } from '@advjs/types'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { uniq } from '@antfu/utils'

@@ -1,5 +1,5 @@
+import type { ResolvedAdvOptions } from '@advjs/types'
 import type { Alias, InlineConfig, Plugin } from 'vite'
-import type { ResolvedAdvOptions } from '../options'
 import { join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 

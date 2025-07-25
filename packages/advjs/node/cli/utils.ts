@@ -1,5 +1,5 @@
+import type { ResolvedAdvOptions } from '@advjs/types'
 import type { Argv } from 'yargs'
-import type { ResolvedAdvOptions } from '../options'
 import net from 'node:net'
 import os from 'node:os'
 import { colors } from 'consola/utils'

@@ -1,5 +1,5 @@
+import type { AdvEntryOptions, ResolvedAdvOptions } from '@advjs/types'
 import type { InlineConfig, ResolvedConfig } from 'vite'
-import type { AdvBuildOptions, ResolvedAdvOptions } from '../../options'
 import path, { resolve } from 'node:path'
 import fs from 'fs-extra'
 import { build as viteBuild } from 'vite'
@@ -55,16 +55,14 @@ export async function build(
     await fs.writeFile(redirectsPath, `${config.base}*    ${config.base}index.html   200\n`, 'utf-8')
 }
 
-export async function advBuild(buildOptions: AdvBuildOptions) {
-  const { theme, singlefile } = buildOptions
-  const options = await resolveOptions({ theme }, 'build')
-  options.build.singlefile = singlefile || false
+export async function advBuild(entryOptions: AdvEntryOptions) {
+  const options = await resolveOptions(entryOptions, 'build')
 
   printInfo(options)
   await build(options, {
-    base: buildOptions.base || '/',
+    base: options.base || '/',
     build: {
-      outDir: path.resolve(options.userRoot, buildOptions.outDir || 'dist'),
+      outDir: path.resolve(options.userRoot, options.outDir || 'dist'),
     },
   })
 }

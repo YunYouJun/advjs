@@ -1,5 +1,6 @@
+import type { ResolvedAdvOptions } from '@advjs/types'
 import type { Plugin } from 'vite'
-import type { AdvPluginOptions, ResolvedAdvOptions } from '../options'
+import type { AdvPluginOptions } from '../options'
 import Vue from '@vitejs/plugin-vue'
 import { customElements } from '../constants'
 

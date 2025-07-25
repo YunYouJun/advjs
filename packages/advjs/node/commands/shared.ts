@@ -1,5 +1,6 @@
+import type { ResolvedAdvOptions } from '@advjs/types'
 import type { ConfigEnv, InlineConfig } from 'vite'
-import type { AdvServerOptions, ResolvedAdvOptions } from '../options'
+import type { AdvServerOptions } from '../options'
 
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'

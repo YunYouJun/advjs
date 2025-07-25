@@ -4,4 +4,4 @@
 api/
 
 # online schema
-public/*.schema.json
+public/**/*.schema.json

@@ -1,10 +1,11 @@
+import type { ResolvedAdvOptions } from '@advjs/types'
 import type { Plugin } from 'vite'
-import type { AdvPluginOptions, ResolvedAdvOptions } from '../../advjs/node'
+import type { AdvPluginOptions } from '../../advjs/node'
 import path from 'node:path'
 import process from 'node:process'
 import VueI18n from '@intlify/unplugin-vue-i18n/vite'
-
 import Layouts from 'vite-plugin-vue-layouts'
+
 import { createComponentsPlugin } from '../../advjs/node/vite/components'
 import { createConfigPlugin } from '../../advjs/node/vite/extendConfig'
 import { createAdvVirtualLoader } from '../../advjs/node/vite/loaders'

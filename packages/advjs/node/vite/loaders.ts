@@ -1,6 +1,6 @@
-import type { AdvData } from '@advjs/types'
+import type { AdvData, ResolvedAdvOptions } from '@advjs/types'
 import type { Plugin, ViteDevServer } from 'vite'
-import type { AdvServerOptions, ResolvedAdvOptions } from '../options'
+import type { AdvServerOptions } from '../options'
 import { notNullish } from '@antfu/utils'
 import { consola } from 'consola'
 import { colors } from 'consola/utils'

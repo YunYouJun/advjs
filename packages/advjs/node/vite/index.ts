@@ -1,5 +1,6 @@
+import type { ResolvedAdvOptions } from '@advjs/types'
 import type { PluginOption } from 'vite'
-import type { AdvPluginOptions, AdvServerOptions, ResolvedAdvOptions } from '../options'
+import type { AdvPluginOptions, AdvServerOptions } from '../options'
 import { join } from 'node:path'
 import VueI18n from '@intlify/unplugin-vue-i18n/vite'
 import fs from 'fs-extra'
