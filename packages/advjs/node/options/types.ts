@@ -36,7 +36,7 @@ export interface AdvEntryOptions {
 /**
  * adv build options
  */
-export interface AdvBuildOptions extends AdvEntryOptions {
+export interface AdvBaseBuildOptions extends AdvEntryOptions {
   /**
    * 是否单文件打包
    * @default false
@@ -49,6 +49,20 @@ export interface AdvBuildOptions extends AdvEntryOptions {
   outDir?: string
 }
 
+/**
+ * 仅当启用 `pominis` 适配器时有效
+ */
+export interface PominisBuildOptions extends AdvBaseBuildOptions {
+  adapter: 'pominis'
+  /**
+   * story id
+   * @example '6c91aa92-3f4a-462e-89e8-05040602e768'
+   */
+  storyId: string
+}
+
+export type AdvBuildOptions = AdvBaseBuildOptions | PominisBuildOptions
+
 export interface RootsInfo {
   /**
    * root path
@@ -58,9 +72,18 @@ export interface RootsInfo {
   clientRoot: string
   themeRoot: string
   /**
+   * game root path
+   * @default 'adv'
+   */
+  gameRoot: string
+  /**
    * '.adv' directory
    */
   tempRoot: string
+  /**
+   * user workspace root
+   * monorepo root like pnpm workspace
+   */
   userWorkspaceRoot: string
 }
 

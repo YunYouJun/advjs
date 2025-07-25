@@ -1,7 +1,7 @@
 import type { AdvData } from '@advjs/types'
 
-import type { AdvEntryOptions, ResolvedAdvOptions } from './types'
-import path, { dirname, join, resolve } from 'node:path'
+import type { AdvEntryOptions, ResolvedAdvOptions, RootsInfo } from './types'
+import { dirname, join, resolve } from 'node:path'
 import process from 'node:process'
 import { uniq } from '@antfu/utils'
 import _debug from 'debug'
@@ -43,7 +43,6 @@ export async function resolveOptions(
   mode: ResolvedAdvOptions['mode'],
 ): Promise<ResolvedAdvOptions> {
   const { remote } = options
-  const rootsInfo = await getRoots(options)
 
   /**
    * Load adv.js config
@@ -56,6 +55,15 @@ export async function resolveOptions(
     themeConfig,
     themeConfigFile = '',
   } = await loadAdvConfigs(options)
+  // load theme from adv.config.ts
+  if (!options.theme) {
+    options.theme = config.theme || 'default'
+  }
+  else {
+    config.theme = options.theme
+  }
+  const themePkgName = await resolveThemeName(options.theme)
+  options.theme = themePkgName
 
   const data: AdvData = {
     config,
@@ -66,38 +74,32 @@ export async function resolveOptions(
     themeConfigFile,
   } as AdvData
 
-  const theme = await resolveThemeName(options.theme)
   /**
    * load theme config
    */
 
-  if (!await packageExists(theme)) {
-    console.error(`Theme "${theme}" not found, have you installed it?`)
+  if (!await packageExists(themePkgName)) {
+    console.error(`Theme "${themePkgName}" not found, have you installed it?`)
     process.exit(1)
   }
-
-  const pkg = await fs.readJSON(`${rootsInfo.themeRoot}/package.json`)
-  themeConfig.pkg = pkg
-
-  const gameRoot = path.resolve(rootsInfo.userRoot, data.config.root || 'adv')
-  const roots = uniq([
-    rootsInfo.clientRoot,
-    rootsInfo.themeRoot,
-    rootsInfo.userRoot,
-    gameRoot,
-  ])
 
   const advOptions: ResolvedAdvOptions = {
     env: options.env || 'app',
     theme: options.theme || 'default',
-    themePkgName: theme,
+    themePkgName,
 
     data,
     mode,
 
-    roots,
-    ...rootsInfo,
-    gameRoot,
+    // root
+    roots: [],
+    gameRoot: '',
+    cliRoot: '',
+    userRoot: '',
+    clientRoot: '',
+    themeRoot: '',
+    tempRoot: '',
+    userWorkspaceRoot: '',
 
     remote,
 
@@ -106,8 +108,22 @@ export async function resolveOptions(
     },
   }
 
+  const rootsInfo = await getRoots(options, config)
+  const pkg = await fs.readJSON(`${rootsInfo.themeRoot}/package.json`)
+  themeConfig.pkg = pkg
+
+  advOptions.roots = uniq([
+    rootsInfo.clientRoot,
+    rootsInfo.themeRoot,
+    rootsInfo.userRoot,
+    rootsInfo.gameRoot,
+  ])
+  Object.keys(rootsInfo).forEach((key) => {
+    (advOptions as any)[key] = rootsInfo[key as keyof RootsInfo]
+  })
+
   if (rootsInfo.themeRoot) {
-    const themeMeta = await getThemeMeta(theme, join(rootsInfo.themeRoot, 'package.json'))
+    const themeMeta = await getThemeMeta(themePkgName, join(rootsInfo.themeRoot, 'package.json'))
     data.themeMeta = themeMeta
   }
   else {

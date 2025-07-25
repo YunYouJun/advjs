@@ -1,12 +1,12 @@
 import type { InlineConfig, ResolvedConfig } from 'vite'
-import type { AdvBuildOptions, ResolvedAdvOptions } from '../options'
+import type { AdvBuildOptions, ResolvedAdvOptions } from '../../options'
 import path, { resolve } from 'node:path'
 import fs from 'fs-extra'
 import { build as viteBuild } from 'vite'
-import { printInfo } from '../cli/utils'
-import { resolveOptions } from '../options'
-import setupIndexHtml from '../setups/indexHtml'
-import { resolveViteConfigs } from './shared'
+import { printInfo } from '../../cli/utils'
+import { resolveOptions } from '../../options'
+import setupIndexHtml from '../../setups/indexHtml'
+import { resolveViteConfigs } from '../shared'
 
 export async function build(
   options: ResolvedAdvOptions,

@@ -2,6 +2,7 @@ packages:
   - demo/*
   - docs
   - editor/*
+  - examples/*
   - packages/*
   - packages/*/playground
   - plugins/*

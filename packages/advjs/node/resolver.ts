@@ -1,5 +1,6 @@
-import type { AdvEntryOptions, RootsInfo } from './options'
+import type { AdvConfig } from '@advjs/types'
 
+import type { AdvEntryOptions, RootsInfo } from './options'
 import * as fs from 'node:fs'
 import path, { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -85,7 +86,7 @@ let rootsInfo: RootsInfo | undefined
 /**
  * Get the root directory of the project
  */
-export async function getRoots(options: AdvEntryOptions): Promise<RootsInfo> {
+export async function getRoots(options: AdvEntryOptions, config: AdvConfig): Promise<RootsInfo> {
   if (rootsInfo)
     return rootsInfo
 
@@ -99,11 +100,13 @@ export async function getRoots(options: AdvEntryOptions): Promise<RootsInfo> {
   const clientRoot = await getClientRoot()
   const themeRoot = await getAdvThemeRoot(options.theme)
   const tempRoot = path.resolve(userRoot, '.adv')
+  const gameRoot = path.resolve(userRoot, config.root || 'adv')
 
   rootsInfo = {
     cliRoot,
     userRoot,
     clientRoot,
+    gameRoot,
     themeRoot,
     tempRoot,
     userWorkspaceRoot: searchForWorkspaceRoot(userRoot),

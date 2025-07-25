@@ -44,9 +44,6 @@ node_modules/
 # Coverage
 coverage
 
-# Transpiled files
-build/
-
 # JetBrains IDEs
 .idea/
 
