@@ -48,7 +48,7 @@ catalogs:
     vite-plugin-css-injected-by-js: ^3.5.2
     vite-plugin-dts: ^4.5.4
     vite-plugin-inspect: ^11.3.0
-    vite-plugin-pwa: ^1.0.1
+    vite-plugin-pwa: ^1.0.2
     vite-plugin-vue-devtools: ^7.7.7
     vite-plugin-vue-layouts: ^0.11.0
     vite-ssg: ^28.0.0
@@ -75,7 +75,7 @@ catalogs:
     taze: ^19.1.0
     tsx: ^4.20.3
     typescript: ^5.8.3
-    unplugin-mockery: ^0.4.0-beta.6
+    unplugin-mockery: ^0.4.0-beta.13
     vue-tsc: ^3.0.4
   docs:
     typedoc: ^0.28.7

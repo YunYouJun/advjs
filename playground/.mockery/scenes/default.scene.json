@@ -1,3 +1,4 @@
 {
-  "$schema": "../schemas/scene.schema.json"
+  "$schema": "../schemas/scene.schema.json",
+  "/v1/adv/stories/:storyId": "两个章节"
 }

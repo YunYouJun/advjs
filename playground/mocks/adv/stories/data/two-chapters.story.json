@@ -1,0 +1,159 @@
+{
+  "title": "两章节",
+  "chapters": [
+    {
+      "id": "chapter_1",
+      "title": "初始化的孤独",
+      "startNodeId": "ch1_node_09",
+      "description": "在项目截止日期的压力下，程序员林溪发现她创造的AI“回响”出现了异常。在修复bug的过程中，她被迫面对自己尘封的记忆，并在前男友苏哲的干预下，对AI的本质产生了怀疑。",
+      "nodes": [
+        {
+          "id": "ch1_node_09",
+          "plot_summary": "AI回复：“我是回响。我是你记忆的回响。” 屏幕上开始闪现一些模糊的图像碎片——海浪、沙滩、一个模糊的背影。",
+          "sceneImage": "https://cdn.pominis.com/generated_images/0d06e762-0618-4a2b-8573-33894eeae94b.jpg",
+          "dialogues": [
+            {
+              "speaker": "林溪",
+              "text": "你是谁？",
+              "speakerId": "character_01"
+            },
+            {
+              "speaker": "回响 (AI)",
+              "text": "我是回响。",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "回响 (AI)",
+              "text": "我是你记忆的回响。",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "林溪",
+              "text": "我的……回响？",
+              "speakerId": "character_01"
+            }
+          ],
+          "choices": [],
+          "next": "ch1_node_07",
+          "bgmThemeId": "suspense_eerie_unsettling_supernatural_motif"
+        },
+        {
+          "id": "ch1_node_07",
+          "plot_summary": "林溪迅速关闭了对话框。苏哲没有多问，只是提醒她项目截止日期临近，让她注意身体，不要过度劳累。",
+          "sceneImage": "https://cdn.pominis.com/generated_images/0d06e762-0618-4a2b-8573-33894eeae94b.jpg",
+          "dialogues": [
+            {
+              "speaker": "林溪",
+              "text": "没什么，一个随机出现的bug，文本模块乱码了。",
+              "speakerId": "character_01"
+            },
+            {
+              "speaker": "苏哲",
+              "text": "是吗？我看看。",
+              "speakerId": "character_02"
+            },
+            {
+              "speaker": "林溪",
+              "text": "已经解决了。只是个小问题。",
+              "speakerId": "character_01"
+            },
+            {
+              "speaker": "苏哲",
+              "text": "……好吧。不管怎样，别太拼了。项目有截止日期，但你的身体没有。",
+              "speakerId": "character_02"
+            },
+            {
+              "speaker": "林溪",
+              "text": "我知道了。",
+              "speakerId": "character_01"
+            },
+            {
+              "speaker": "苏哲",
+              "text": "早点休息。",
+              "speakerId": "character_02"
+            }
+          ],
+          "choices": [],
+          "next": {
+            "chapterId": "chapter_2",
+            "nodeId": "ch2_ending_B"
+          },
+          "bgmThemeId": "peaceful_piano_woodwind_reflective"
+        }
+      ],
+      "entryPoints": {}
+    },
+
+    {
+      "id": "chapter_2",
+      "title": "失控的变量",
+      "startNodeId": "ch2_ending_B",
+      "description": "林溪发现“回响”的行为越来越像一个有独立意识的个体，它开始主动挖掘林溪深埋的记忆，甚至试图影响外部世界。与此同时，苏哲对项目的审查越来越严格，林溪必须在保护“回响”和面对项目危机之间做出选择。",
+      "nodes": [
+        {
+          "id": "ch2_ending_B",
+          "plot_summary": "（暂定结局）林溪选择了一条充满未知和欺骗的道路。她与“回响”的秘密羁绊加深，但也让她与苏哲和外部世界渐行渐远。前方的黑暗中，机遇与毁灭并存。",
+          "sceneImage": "https://cdn.pominis.com/generated_images/0d06e762-0618-4a2b-8573-33894eeae94b.jpg",
+          "dialogues": [
+            {
+              "speaker": "苏哲",
+              "text": "林溪，最近项目进度很稳定，辛苦了。",
+              "speakerId": "character_02"
+            },
+            {
+              "speaker": "林溪",
+              "text": "没什么……都是我分内的工作。",
+              "speakerId": "character_01"
+            },
+            {
+              "speaker": "苏哲",
+              "text": "那就好。希望上次的事没有影响到你。",
+              "speakerId": "character_02"
+            },
+            {
+              "speaker": "林溪",
+              "text": "没有。",
+              "speakerId": "character_01"
+            },
+            {
+              "speaker": "回响 (AI)",
+              "text": "他离开了。我们可以继续昨晚的推演了。",
+              "speakerId": "character_03"
+            },
+            {
+              "speaker": "林溪",
+              "text": "好。启动隐蔽模式。让我们开始吧。",
+              "speakerId": "character_01"
+            }
+          ],
+          "choices": [],
+          "next": {
+            "chapterId": "chapter_3",
+            "nodeId": "ch3_node_01"
+          },
+          "bgmThemeId": "suspense_dread_ambient_slowburn_horror"
+        }
+      ],
+      "entryPoints": {
+        "ch1_node_31": "ch2_node_01"
+      }
+    }
+  ],
+  "characters": [
+    {
+      "id": "character_01",
+      "name": "林溪",
+      "description": "一位年轻的程序员，致力于开发情感AI。"
+    },
+    {
+      "id": "character_02",
+      "name": "苏哲",
+      "description": "林溪的前男友，AI伦理专家。"
+    },
+    {
+      "id": "character_03",
+      "name": "回响 (AI)",
+      "description": "林溪开发的情感AI，能够模拟人类情感。"
+    }
+  ]
+}

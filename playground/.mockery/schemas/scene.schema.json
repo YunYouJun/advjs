@@ -3,6 +3,9 @@
   "properties": {
     "/v1/adv/stories/:storyId": {
       "type": "string"
+    },
+    "/v1/adv/stories/:storyId/chapters/:chapterId": {
+      "type": "string"
     }
   }
 }

@@ -37,7 +37,7 @@ export const commonAlias: Alias[] = [
   { find: '@advjs/types', replacement: `${resolve(packagesDir, 'types/src', 'index.ts')}` },
 
   // themes
-  // { find: '@advjs/theme-default/', replacement: `${resolve(defaultThemeFolder)}/` },
+  { find: '@advjs/theme-default/', replacement: `${resolve(themesDir, 'theme-default')}/` },
   // { find: '@advjs/theme-default', replacement: `${resolve(defaultThemeFolder)}/index.ts` },
   { find: '@advjs/theme-pominis/', replacement: `${resolve(themesDir, 'theme-pominis')}/` },
 

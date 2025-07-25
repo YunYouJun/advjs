@@ -136,7 +136,7 @@ export default defineConfig(async ({ mode }) => {
       // https://github.com/antfu/vite-plugin-pwa
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['favicon.svg', 'safari-pinned-tab.svg'],
+        includeAssets: ['favicon.svg'],
         manifest: {
           name: 'ADV.JS Playground',
           short_name: 'Play',
