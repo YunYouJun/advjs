@@ -27,6 +27,7 @@
     "build:demo": "pnpm -C demo/starter run build",
     "build:schema": "tsx scripts/schema.ts",
     "build:play": "pnpm run play:build",
+    "build:plugins": "pnpm -r --parallel --filter=\"./plugins/*\" run build",
     "clean": "tsx scripts/clean.ts",
     "demo": "pnpm -C demo/starter run dev",
     "demo:love": "pnpm -C demo/love run dev",

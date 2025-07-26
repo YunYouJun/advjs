@@ -20,7 +20,7 @@
     "./package.json": "./package.json",
     ".": "./dist/index.mjs",
     "./fs": {
-      "types": "./fs.d.mts",
+      "types": "./dist/fs.d.mts",
       "default": "./dist/fs.mjs"
     },
     "./*": "./*"

@@ -4,7 +4,7 @@ import { ADV_VIRTUAL_MODULES } from './node/config'
 import pkg from './package.json'
 
 export default defineBuildConfig({
-  declaration: true,
+  declaration: 'node16',
   entries: [
     'node/index',
     'node/cli/index',

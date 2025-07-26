@@ -5,4 +5,5 @@ export default defineBuildConfig({
     'src/index',
   ],
   clean: true,
+  declaration: 'node16',
 })

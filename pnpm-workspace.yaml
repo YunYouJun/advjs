@@ -33,7 +33,7 @@ catalogs:
     beasties: ^0.3.5
     markdown-it-link-attributes: ^4.0.1
     nuxt: ^4.0.1
-    rollup: ^4.45.1
+    rollup: ^4.45.3
     sass: ^1.89.2
     shiki: ^3.8.1
     unbuild: ^3.6.0

@@ -17,17 +17,14 @@
   "exports": {
     "./client": "./client/index.ts",
     "./node": {
-      "types": "./dist/node/index.d.ts",
+      "types": "./dist/node/index.d.mts",
       "default": "./dist/node/index.mjs"
     },
-    ".": {
-      "types": "./dist/node/index.d.ts",
-      "default": "./dist/node/index.mjs"
-    },
+    ".": "./dist/node/index.mjs",
     "./*": "./*"
   },
   "main": "./dist/node/index.mjs",
-  "types": "./dist/node/index.d.ts",
+  "types": "./dist/node/index.d.mts",
   "bin": {
     "adv": "./bin/adv.mjs"
   },
@@ -52,6 +49,7 @@
     "@iconify-json/carbon": "catalog:icons",
     "@iconify-json/ri": "catalog:icons",
     "@intlify/unplugin-vue-i18n": "catalog:build",
+    "@rollup/pluginutils": "^5.2.0",
     "@types/mdast": "catalog:types",
     "@unocss/extractor-mdc": "66.1.0-beta.5",
     "@vitejs/plugin-vue": "catalog:build",

@@ -5,7 +5,7 @@ import fs from 'fs-extra'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const demoFolder = path.resolve(__dirname, '../../../demo')
-const examplesFolder = path.resolve(__dirname, '../../examples')
+const examplesFolder = path.resolve(__dirname, '../../../examples/adv-format')
 const targetFolder = path.resolve(__dirname, '../playground/public/examples')
 
 function main() {
