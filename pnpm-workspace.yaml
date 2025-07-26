@@ -36,7 +36,6 @@ catalogs:
     rollup: ^4.45.1
     sass: ^1.89.2
     shiki: ^3.8.1
-    tsdown: ^0.13.0
     unbuild: ^3.6.0
     unocss: ^66.3.3
     unplugin: ^2.3.5

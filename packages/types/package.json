@@ -31,6 +31,11 @@
     "dev": "unbuild --stub",
     "prepublishOnly": "npm run build"
   },
+  "peerDependencies": {
+    "@vueuse/core": "catalog:frontend",
+    "pixi.js": "catalog:frontend",
+    "vite": "catalog:build"
+  },
   "dependencies": {
     "@antfu/utils": "catalog:utils",
     "@types/mdast": "catalog:types",
@@ -38,7 +43,6 @@
     "@vue-flow/core": "catalog:frontend",
     "consola": "catalog:cli",
     "unocss": "catalog:build",
-    "vite": "catalog:build",
     "vue": "catalog:frontend",
     "vue-router": "catalog:frontend"
   }

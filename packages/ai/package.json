@@ -4,7 +4,8 @@
   "version": "0.0.1",
   "description": "AI module for AdvJS",
   "scripts": {
-    "build": "tsdown",
+    "dev": "unbuild --stub",
+    "build": "unbuild",
     "gen": "tsx scripts/gen.ts",
     "gen:img": "tsx scripts/gen-img.ts",
     "schema": "tsx scripts/schema.ts",
@@ -14,12 +15,13 @@
     "@advjs/types": "workspace:*",
     "consola": "catalog:cli",
     "dotenv": "catalog:cli",
-    "openai": "catalog:ai"
+    "fs-extra": "catalog:utils",
+    "openai": "catalog:ai",
+    "tencentcloud-sdk-nodejs-hunyuan": "^4.1.82"
   },
   "devDependencies": {
     "@types/fs-extra": "catalog:types",
-    "fs-extra": "catalog:utils",
-    "tencentcloud-sdk-nodejs-hunyuan": "^4.1.82",
-    "tsx": "catalog:dev"
+    "tsx": "catalog:dev",
+    "unbuild": "catalog:build"
   }
 }

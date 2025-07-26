@@ -109,18 +109,6 @@ export async function getAlias(options: ResolvedAdvOptions): Promise<Alias[]> {
     { find: `@advjs/theme-${themeName}/`, replacement: `${toAtFS(resolve(options.themeRoot))}/` },
   )
 
-  // for dev
-  // if (options.mode === 'dev') {
-  //   alias.push(
-  //     ...commonAlias.map(({ find, replacement }) => {
-  //       return {
-  //         find,
-  //         replacement: toAtFS(replacement),
-  //       }
-  //     }),
-  //   )
-  // }
-
   alias.push(
     {
       // avoid vue/compiler-sfc in unplugin-vue-i18n

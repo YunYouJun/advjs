@@ -326,10 +326,8 @@ function sidebarAbout(): DefaultTheme.SidebarItem[] {
       text: '关于',
       collapsed: false,
       items: [
-        {
-          text: '关于 ADV.JS',
-          link: '/about/index',
-        },
+        { text: '关于 ADV.JS', link: '/about/index' },
+        { text: '环境配置', link: '/about/env' },
       ],
     },
     {

@@ -5,16 +5,16 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "default": "./dist/index.mjs"
     },
     "./package.json": "./package.json"
   },
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsdown",
-    "dev": "tsdown --watch",
+    "build": "unbuild",
+    "dev": "unbuild --stub",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
@@ -28,7 +28,7 @@
     "unstorage": "catalog:utils"
   },
   "devDependencies": {
-    "tsdown": "catalog:build",
+    "unbuild": "catalog:build",
     "vue": "catalog:frontend"
   }
 }

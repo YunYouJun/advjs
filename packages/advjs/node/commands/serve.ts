@@ -15,9 +15,6 @@ export async function createServer(
   // default open editor to code, #312
   process.env.EDITOR = process.env.EDITOR || 'code'
 
-  // todo
-  // import { commonAlias } from '../shared/config/vite'
-
   const inlineConfig = await resolveViteConfigs(
     options,
     <InlineConfig>({

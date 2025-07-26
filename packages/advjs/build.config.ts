@@ -1,16 +1,16 @@
-import { defineConfig } from 'tsdown'
+import { defineBuildConfig } from 'unbuild'
 import { ADV_VIRTUAL_MODULES } from './node/config'
 
 import pkg from './package.json'
 
-export default defineConfig({
-  dts: true,
-  entry: [
-    './node/index.ts',
-    './node/cli/index.ts',
+export default defineBuildConfig({
+  declaration: true,
+  entries: [
+    'node/index',
+    'node/cli/index',
   ],
   clean: true,
-  external: [
+  externals: [
     '@playwright/test',
 
     'mdast',

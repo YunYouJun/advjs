@@ -35,6 +35,7 @@
     "dev": "pnpm -r --parallel --filter=\"./packages/*\" run dev",
     "dev:lib": "run-p core:dev parser:dev & pnpm run advjs:dev",
     "dev:vrm": "run-p vrm:dev babylon:dev",
+    "dev:plugins": "pnpm -r --parallel --filter=\"./plugins/*\" run dev",
     "editor": "pnpm -C editor/core run dev",
     "lint": "eslint .",
     "release": "tsx release.ts",
