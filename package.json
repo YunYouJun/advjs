@@ -1,7 +1,7 @@
 {
   "name": "@advjs/monorepo",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.1.0-beta.1",
   "private": true,
   "packageManager": "pnpm@10.13.1",
   "description": "面向未来与前端的 ADV 文字冒险游戏引擎。",
@@ -39,9 +39,6 @@
     "dev:plugins": "pnpm -r --parallel --filter=\"./plugins/*\" run dev",
     "editor": "pnpm -C editor/core run dev",
     "lint": "eslint .",
-    "release": "tsx release.ts",
-    "release:gui": "pnpm -C packages/gui run release",
-    "prepare": "husky install",
     "preview": "pnpm -C packages/advjs preview",
     "advjs:build": "pnpm -C packages/advjs run build",
     "advjs:dev": "pnpm -C packages/advjs run dev",
@@ -64,6 +61,8 @@
     "play": "pnpm run play:dev",
     "vrm:build": "pnpm -C editor/vrm build",
     "vrm:dev": "pnpm -C editor/vrm dev",
+    "release": "bumpp",
+    "release:gui": "pnpm -C packages/gui run release",
     "types:build": "pnpm -C packages/types build",
     "types:dev": "pnpm -C packages/types dev",
     "typecheck": "vue-tsc --noEmit --skipLibCheck",
@@ -71,7 +70,8 @@
     "e2e": "playwright test",
     "e2e:ui": "pnpm exec playwright test --ui",
     "test": "vitest",
-    "test:unit": "vitest"
+    "test:unit": "vitest",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@advjs/core": "workspace:*",
