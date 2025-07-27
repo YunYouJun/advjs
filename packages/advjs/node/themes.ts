@@ -27,7 +27,9 @@ export async function getThemeMeta(name: string, path: string) {
   if (path) {
     const { advjs = {}, engines = {} } = await fs.readJSON(path)
 
-    if (engines.advjs && !satisfies(version, engines.advjs))
+    // tmp
+    const v = version.split('-') ? version.split('-')[0] : version
+    if (engines.advjs && !satisfies(v, engines.advjs))
       throw new Error(`[advjs] theme "${name}" requires ADV.JS version range "${engines.advjs}" but found "${version}"`)
 
     return advjs as AdvThemeMeta

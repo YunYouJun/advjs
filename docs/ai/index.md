@@ -35,7 +35,7 @@ outline: deep
 可在 Flow 编辑器格式与 AI 剧本格式中互相转换。
 为了节约 token，AI 剧本格式是 Flow 编辑器格式的特殊简化版。
 
-类型参见 [VSNode | Pominis](/api/plugins/plugin-pominis/interfaces/VSNode)。
+类型参见 [VSNode | Pominis](/api/plugins/plugin-pominis/src/interfaces/VSNode)。
 
 其中主要包括：基础的节点 ID、场景描述、会话内容等。
 
