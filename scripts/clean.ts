@@ -1,21 +1,23 @@
-import fs from 'node:fs'
-import { resolve } from 'node:path'
-import { rimrafSync } from 'rimraf'
-import { cleanDirs } from './config'
-import { clean } from './utils/clean'
+import path from 'node:path'
+import { consola } from 'consola'
+import { colors } from 'consola/utils'
+import { cleanDir } from './utils/clean'
+import { getAllPackages } from './utils/monorepo'
 
-const packagesFolder = resolve('packages')
+const cleanChildDirs = [
+  'dist',
+  // 'node_modules',
+]
 
 async function run() {
-  cleanDirs.forEach((dir) => {
-    rimrafSync(dir)
+  const dirs = getAllPackages()
+  dirs.forEach((dir) => {
+    cleanChildDirs.forEach((childDir) => {
+      const dirPath = path.resolve(dir, childDir)
+      cleanDir(dirPath)
+      consola.success(`Cleaned Dir: ${colors.cyan(dirPath)}`)
+    })
   })
-
-  const dirs = fs.readdirSync('packages')
-  const targets = dirs.filter(dir => !dir.startsWith('.') && fs.statSync(
-    resolve(packagesFolder, dir),
-  ).isDirectory())
-  targets.forEach(target => clean(target, cleanDirs))
 }
 
 run()

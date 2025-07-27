@@ -11,3 +11,7 @@ export function clean(target: string, cleanDirs: string[]) {
     rimrafSync(resolve(folder, dir))
   })
 }
+
+export function cleanDir(dir: string) {
+  rimrafSync(resolve(dir))
+}

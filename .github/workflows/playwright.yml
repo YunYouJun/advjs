@@ -22,7 +22,7 @@ jobs:
         run: pnpm install
 
       - name: Build ADV.JS Lib
-        run: pnpm dev
+        run: pnpm build:advjs
 
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps

@@ -1,5 +1,11 @@
 import path from 'node:path'
 
+export const monoPackages = [
+  'packages',
+  'plugins',
+  'themes',
+]
+
 export const cleanDirs = [
   // 'node_modules',
   'dist',
