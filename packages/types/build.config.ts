@@ -18,7 +18,6 @@ export default defineBuildConfig({
     '@advjs/client',
 
     'vfile',
-    'pixi.js',
 
     ...Object.keys(pkg.peerDependencies),
   ],

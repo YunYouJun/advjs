@@ -1,10 +1,17 @@
 import path, { resolve } from 'node:path'
 import process from 'node:process'
 import { simpleGit } from 'simple-git'
-import { commonAliasMap, packagesDir, themesDir } from '../../packages/shared/node'
+import { resolveOptions } from '../../packages/advjs/node'
 
+import { commonAliasMap, packagesDir, themesDir } from '../../packages/shared/node'
+import ADV from '../../packages/vite-plugin-adv/src'
 import { pwa } from './app/config/pwa'
 import { appDescription } from './app/constants/index'
+
+const options = await resolveOptions({
+  env: 'plugin',
+  theme: 'default',
+}, '')
 
 const git = simpleGit()
 /**
@@ -164,6 +171,12 @@ export default defineNuxtConfig({
         // 'pixi-painter',
       ],
     },
+
+    plugins: [
+      ADV(options, {
+
+      }),
+    ],
   },
 
   i18n: {
@@ -172,11 +185,6 @@ export default defineNuxtConfig({
     },
 
     defaultLocale: 'en',
-
-    locales: [
-      { code: 'en', language: 'en-US', name: 'English', file: path.resolve(packagesDir, 'client/locales/en.yml') },
-      { code: 'zh', language: 'zh-CN', name: '简体中文', file: path.resolve(packagesDir, 'client/locales/zh-CN.yml') },
-    ],
   },
 
   runtimeConfig: {

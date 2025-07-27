@@ -8,8 +8,6 @@ import { initPixi } from '../pixi'
 import { useAdvStore } from '../stores'
 import { ADV_RUNTIME, initGameRuntime } from '../utils'
 
-export { $t } from '@advjs/client/modules/i18n'
-
 /**
  * set adv context
  */

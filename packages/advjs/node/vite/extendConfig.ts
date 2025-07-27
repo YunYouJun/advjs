@@ -185,8 +185,6 @@ export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
                 advjs_core: ['@advjs/core'],
                 advjs_client: ['@advjs/client'],
                 advjs_parser: ['@advjs/parser'],
-                pixijs: ['pixi.js'],
-                html2canvas: ['html2canvas'],
               },
             },
             external: [
