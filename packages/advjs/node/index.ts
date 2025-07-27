@@ -1,3 +1,4 @@
+export * from '../shared'
 export * from './commands'
 export * from './config'
 export * from './markdown'

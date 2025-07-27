@@ -6,6 +6,7 @@ import pkg from './package.json'
 export default defineBuildConfig({
   declaration: 'node16',
   entries: [
+    'client/index',
     'node/index',
     'node/cli/index',
   ],

@@ -1,7 +1,7 @@
 import path, { resolve } from 'node:path'
 import process from 'node:process'
 import { simpleGit } from 'simple-git'
-import { resolveOptions } from '../../packages/advjs/node'
+import { resolveOptions } from '../../packages/advjs/node/options/utils'
 
 import { commonAliasMap, packagesDir, themesDir } from '../../packages/shared/node'
 import ADV from '../../packages/vite-plugin-adv/src'
@@ -173,9 +173,7 @@ export default defineNuxtConfig({
     },
 
     plugins: [
-      ADV(options, {
-
-      }),
+      ADV(options, {}),
     ],
   },
 

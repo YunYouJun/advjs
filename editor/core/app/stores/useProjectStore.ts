@@ -1,7 +1,7 @@
 import type { FSDirItem, TreeNode } from '@advjs/gui'
 import type { AdvConfig } from '@advjs/types'
 import type { AdvConfigAdapterType } from '../types'
-import { defaultAdvConfig } from '@advjs/core'
+import { defaultAdvConfig } from 'advjs'
 import { consola } from 'consola'
 import { PLATFORM_MAP } from '../constants'
 

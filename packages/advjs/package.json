@@ -15,7 +15,7 @@
     "url": "https://github.com/YunYouJun/advjs"
   },
   "exports": {
-    "./client": "./client/index.ts",
+    "./client": "./dist/client/index.mjs",
     "./node": {
       "types": "./dist/node/index.d.mts",
       "default": "./dist/node/index.mjs"
@@ -24,10 +24,16 @@
     "./*": "./*"
   },
   "main": "./dist/node/index.mjs",
+  "module": "./dist/node/index.mjs",
   "types": "./dist/node/index.d.mts",
   "bin": {
     "adv": "./bin/adv.mjs"
   },
+  "files": [
+    "bin",
+    "client",
+    "dist"
+  ],
   "engines": {
     "node": "^20.0.0 || >=22.0.0"
   },

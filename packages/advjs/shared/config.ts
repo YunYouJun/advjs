@@ -59,3 +59,10 @@ export const defaultGameConfig: AdvGameConfig = {
   chapters: [],
   scenes: [],
 }
+
+// games
+export const gameModules = [
+  'chapter',
+  'character',
+  'scene',
+] as const

@@ -1,5 +1,5 @@
 import type { AdvConfig, AdvGameConfig, AdvThemeConfig } from '@advjs/types'
-import { defaultAdvConfig } from '@advjs/core'
+import { defaultAdvConfig } from 'advjs'
 import { computed, ref } from 'vue'
 import { setupAdvContext } from '../setup/context'
 
