@@ -1,7 +1,6 @@
 /* eslint-disable regexp/no-contradiction-with-assertion */
 import type { AdvAst } from '@advjs/types'
 import type { ResolvedMdOptions } from './types'
-import { parseAst } from '@advjs/parser'
 import { read } from 'to-vfile'
 import { matter } from 'vfile-matter'
 import { checkAdvMd } from './check'
@@ -69,6 +68,8 @@ export function createMarkdown(options: ResolvedMdOptions) {
   } = options
 
   return async (id: string, raw: string) => {
+    const { parseAst } = await import('@advjs/parser')
+
     raw = raw.trimStart()
 
     checkAdvMd(raw, id)
