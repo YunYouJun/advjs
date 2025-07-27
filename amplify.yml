@@ -24,6 +24,7 @@ applications:
       phases:
         preBuild:
           commands:
+            - export NODE_OPTIONS="--max-old-space-size=32768"
             - node --version
             - corepack enable
             # - pnpm install --filter @advjs/playground @advjs/client @advjs/core
