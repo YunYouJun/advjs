@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { statement } from '@advjs/client'
 import { isClient } from '@vueuse/core'
 import { pendoJS } from './constants/report'
 
@@ -40,6 +41,10 @@ useHead({
       }),
     },
   ],
+})
+
+onMounted(() => {
+  statement()
 })
 </script>
 

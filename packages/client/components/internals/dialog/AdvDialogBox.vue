@@ -84,7 +84,8 @@ const curWords = computed(() => {
 
 <style lang="scss">
 .adv-dialog-box {
-  height: 33%;
+  // use int to fix percent 1px issue
+  height: 350px;
 
   position: absolute;
   left: -1px;

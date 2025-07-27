@@ -84,7 +84,7 @@ export function useAdvNav($adv: AdvContext) {
     chapterId?: string
     nodeId: string
   }) {
-    consola.info('AdvJS Game Start')
+    consola.debug('AdvJS Game Start')
     store.cur.order = 0
 
     const { nodeId } = params

@@ -75,7 +75,7 @@ export class PixiGame {
     })
 
     if (this.assetsManifest) {
-      consola.start('assets manifest', this.assetsManifest)
+      consola.debug('assets manifest', this.assetsManifest)
       await Assets.init({
         manifest: this.assetsManifest,
       })
