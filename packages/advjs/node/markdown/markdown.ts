@@ -68,8 +68,6 @@ export function createMarkdown(options: ResolvedMdOptions) {
   } = options
 
   return async (id: string, raw: string) => {
-    const { parseAst } = await import('@advjs/parser')
-
     raw = raw.trimStart()
 
     checkAdvMd(raw, id)
@@ -100,6 +98,7 @@ export function createMarkdown(options: ResolvedMdOptions) {
       'const { $adv } = useAdvContext()',
     ]
 
+    const { parseAst } = await import('@advjs/parser')
     const advAst = await parseAst(raw)
     scriptLines.push(`const advAst = ${transformObject(advAst)}`)
     scriptLines.push('$adv.$logic.loadAst(advAst)')
