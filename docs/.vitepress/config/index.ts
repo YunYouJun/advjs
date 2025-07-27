@@ -377,6 +377,10 @@ function sidebarAbout(): DefaultTheme.SidebarItem[] {
           link: '/about/dev/dependencies',
         },
         {
+          text: 'Pominis',
+          link: '/about/dev/pominis',
+        },
+        {
           text: 'FAQ',
           link: '/about/dev/faq',
         },

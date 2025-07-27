@@ -30,7 +30,7 @@ export default defineAdvConfig({
             type: 'fountain',
             src: '/md/chapters/1/仓鼠的笼子.adv.md',
             order: 0,
-            target: {
+            next: {
               chapterId: 'chapter-2',
               nodeId: 'node-2',
             },

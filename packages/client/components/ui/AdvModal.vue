@@ -75,7 +75,7 @@ onMounted(() => {
   left: -1px;
   right: -1px;
   bottom: -1px;
-  backdrop-filter: blur(30px);
+  backdrop-filter: blur(100px);
   background-color: var(--adv-modal-bg-color);
   transition: all 0.2s ease;
 }

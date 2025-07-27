@@ -1,22 +1,26 @@
 <script lang="ts" setup>
 import type { AdvAst } from '@advjs/types'
-import { useAdvContext } from '@advjs/client'
+import { useAdvContext, useDialogStore } from '@advjs/client'
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 const { $adv } = useAdvContext()
-
+const { t } = useI18n()
 const ast = computed(() => $adv.store.ast)
+const dialogStore = useDialogStore()
 
 const containerRef = ref<HTMLDivElement>()
+
+interface HistoryDialog {
+  type: 'dialog'
+  character: { name: string }
+  children: { value: string }[]
+}
 
 /**
  * 当前章节 历史所有会话内容
  */
-const historyDialogsList = ref<{
-  type: 'dialog'
-  character: { name: string }
-  children: { value: string }[]
-}[]>([])
+const historyDialogsList = ref<HistoryDialog[]>([])
 
 onMounted(() => {
   const curChapter = $adv.store.curChapter
@@ -45,6 +49,57 @@ onMounted(() => {
         }
       }
     }
+  }
+  else if (startNode?.type === 'dialogues') {
+    // 从当前节点向上查找，获取所有对话内容
+    let prevNode = $adv.store.curNode
+    let prevChapterId = $adv.store.curChapter?.id || ''
+    do {
+      const list: HistoryDialog[] = []
+      if (prevNode?.type === 'dialogues') {
+        for (let i = 0; i < prevNode.dialogues.length; i++) {
+          const dialogue = prevNode.dialogues[i]
+          // get character by speakerId or speaker
+          const characterId = dialogue.speakerId || dialogue.speaker || ''
+          const character = $adv.$characters.get(characterId)
+
+          let pushDialog = true
+          if (prevNode === $adv.store.curNode) {
+            // 如果是对话节点，使用 order
+            if (i > dialogStore.iOrder) {
+              pushDialog = false
+            }
+          }
+
+          if (pushDialog) {
+            list.push({
+              type: 'dialog',
+              character: { name: character?.name || '' },
+              children: [
+                { value: dialogue.text },
+              ],
+            })
+          }
+        }
+      }
+
+      historyDialogsList.value.unshift(...list)
+
+      // prevNode.prev && (prevNode = $adv.runtime.chaptersMap.get(curChapter?.id || '')?.nodesMap.get(prevNode.prev))
+      if (prevNode?.type === 'dialogues') {
+        const prevId = typeof prevNode.prev === 'string' ? prevNode.prev : prevNode.prev?.nodeId
+        if (typeof prevNode.prev === 'object' && prevChapterId) {
+          prevChapterId = prevNode.prev?.chapterId || prevChapterId
+        }
+        prevNode = $adv.$nodes.get({
+          chapterId: prevChapterId,
+          nodeId: prevId || '',
+        })
+      }
+      else {
+        prevNode = undefined
+      }
+    } while (prevNode)
   }
 
   // 总是滚动至最低部
@@ -106,7 +161,7 @@ onMounted(() => {
       </div>
     </div>
     <div v-else class="h-full flex items-center justify-center text-center text-6xl dark:text-gray-200">
-      暂无历史记录
+      {{ t('settings.history.empty') }}
     </div>
   </div>
 </template>

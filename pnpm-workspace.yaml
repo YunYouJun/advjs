@@ -33,7 +33,7 @@ catalogs:
     beasties: ^0.3.5
     markdown-it-link-attributes: ^4.0.1
     nuxt: ^4.0.1
-    rollup: ^4.45.3
+    rollup: ^4.46.0
     sass: ^1.89.2
     shiki: ^3.8.1
     unbuild: ^3.6.0
@@ -47,7 +47,7 @@ catalogs:
     vite-bundle-visualizer: ^1.2.1
     vite-plugin-css-injected-by-js: ^3.5.2
     vite-plugin-dts: ^4.5.4
-    vite-plugin-inspect: ^11.3.0
+    vite-plugin-inspect: ^11.3.2
     vite-plugin-pwa: ^1.0.2
     vite-plugin-vue-devtools: ^7.7.7
     vite-plugin-vue-layouts: ^0.11.0

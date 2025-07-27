@@ -44,6 +44,9 @@ settings:
   sound_volume: 音效音量
   music_volume: 音乐音量
 
+  history:
+    empty: 暂无历史记录
+
 play_speed:
   slow: 慢
   normal: 中

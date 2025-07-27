@@ -156,7 +156,7 @@ export function useAdvNav($adv: AdvContext) {
       }
 
       if (store.curFlowNode.ast && store.curFlowNode.order >= store.curFlowNode.ast.children?.length - 1) {
-        await go(store.curFlowNode.target)
+        await go(store.curFlowNode.next)
       }
       else if (store.curFlowNode.order) {
         store.curFlowNode.order++
@@ -167,12 +167,12 @@ export function useAdvNav($adv: AdvContext) {
       return store.curFlowNode
     }
 
-    if (!store.curFlowNode.target) {
-      consola.error('Can not find target')
+    if (!store.curFlowNode.next) {
+      consola.error('Can not find next', store.curFlowNode)
       store.curFlowNode = END_NODE
     }
     else {
-      const targetNode = await go(store.curFlowNode.target)
+      const targetNode = await go(store.curFlowNode.next)
       consola.debug('Next', targetNode)
       return targetNode
     }

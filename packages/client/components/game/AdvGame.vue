@@ -18,7 +18,7 @@ const { $adv } = useAdvContext()
 const curNode = computed(() => $adv.store.curNode)
 
 // 添加提示，防止意外退出
-if (typeof __DEV__ !== 'undefined' && !__DEV__)
+if (!import.meta.env.DEV && typeof __DEV__ !== 'undefined' && !__DEV__)
   useBeforeUnload()
 
 const app = useAppStore()

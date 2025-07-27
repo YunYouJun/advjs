@@ -1,5 +1,5 @@
-import type { AdvGameConfig } from '@advjs/types'
-import type { PominisAIVSConfig } from '../types'
+import type { AdvBaseNode, AdvGameConfig } from '@advjs/types'
+import type { PominisAIVSConfig } from '../src/types'
 import { ensureSuffix } from '@antfu/utils'
 
 /**
@@ -33,8 +33,7 @@ export function convertPominisAItoAdvConfig(options: {
     for (let j = 0; j < chapter.nodes.length; j++) {
       const node = chapter.nodes[j]!;
       (node as any).type = 'dialogues' as any
-      (node as any).target = node?.next
-      delete node.next
+      (node as AdvBaseNode).next = node?.next || ''
 
       const modifiedNode = node as any
       modifiedNode.sceneId = `${node.id}_scene`
@@ -45,7 +44,7 @@ export function convertPominisAItoAdvConfig(options: {
         // 当前节点后面插入 nodes 列表
         j += 1
         const choicesId = `${node.id}_choices`;
-        (node as any).target = choicesId
+        (node as AdvBaseNode).next = choicesId
         chapter.nodes.splice(j, 0, {
           id: choicesId,
           type: 'choices',

@@ -12,6 +12,18 @@ export interface AdvBaseNode {
    * 节点类型
    */
   type?: string
+
+  /**
+   * 前驱节点
+   *
+   * 运行时标识
+   * @runtime
+   */
+  prev?: string | {
+    chapterId: string
+    nodeId: string
+  }
+
   /**
    * 目标节点
    *
@@ -19,7 +31,7 @@ export interface AdvBaseNode {
    *
    * @runtime
    */
-  target?: string | {
+  next?: string | {
     chapterId: string
     nodeId: string
   }

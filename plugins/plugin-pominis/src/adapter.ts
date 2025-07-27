@@ -1,7 +1,8 @@
 import type { ResolvedAdvOptions } from '@advjs/types'
 import type { PominisAIVSConfig } from './types'
 import { consola } from 'consola'
-import { convertPominisAItoAdvConfig, fetchImageAsBase64, isOnlineImageUrl } from './utils'
+import { convertPominisAItoAdvConfig } from '../shared'
+import { fetchImageAsBase64, isOnlineImageUrl } from './utils'
 
 /**
  * fetch pominis story and convert to adv config

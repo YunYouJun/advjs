@@ -5,7 +5,7 @@ import { isPath } from '../options'
 import { resolveImportPath } from '../resolver'
 
 /**
- * get theme roots
+ * get theme/plugin roots
  * @param name
  * @param entry
  */

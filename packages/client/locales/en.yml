@@ -42,6 +42,9 @@ settings:
   sound_volume: Sound Volume
   music_volume: Music Volume
 
+  history:
+    empty: 暂无历史记录
+
 play_speed:
   slow: Slow
   normal: Normal

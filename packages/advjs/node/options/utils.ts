@@ -7,8 +7,9 @@ import _debug from 'debug'
 import fs from 'fs-extra'
 import { loadAdvConfigs } from '../config'
 
-import { getRoots, packageExists, resolveImportPath } from '../resolver'
+import { resolvePlugins } from '../plugins/resolve'
 
+import { getRoots, packageExists, resolveImportPath } from '../resolver'
 import { getThemeMeta, resolveThemeName } from '../themes'
 
 export const debug = _debug('adv:options')
@@ -91,6 +92,8 @@ export async function resolveOptions(
     data,
     mode,
 
+    plugins: [],
+
     // root
     roots: [],
     gameRoot: '',
@@ -132,8 +135,9 @@ export async function resolveOptions(
 
   debug(advOptions)
 
+  advOptions.plugins = await resolvePlugins(config.plugins, advOptions.userRoot)
   // await
-  for (const plugin of advOptions.data.config.plugins) {
+  for (const plugin of advOptions.plugins) {
     if (plugin.optionsResolved)
       await plugin.optionsResolved(advOptions)
   }

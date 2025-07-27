@@ -1,4 +1,4 @@
-import type { AdvData, MakeRequired } from '@advjs/types'
+import type { AdvData, MakeRequired, ResolvedAdvPlugin } from '@advjs/types'
 import type { ConfigEnv, LogLevel } from 'vite'
 
 /**
@@ -132,6 +132,11 @@ export interface BaseResolvedAdvOptions {
    * will set `build.singlefile` to true
    */
   build: AdvBuildOptions
+
+  /**
+   * adv plugins
+   */
+  plugins: ResolvedAdvPlugin[]
 }
 
 export type ResolvedAdvOptions = MakeRequired<AdvEntryOptions, 'env' | 'theme'> & RootsInfo & BaseResolvedAdvOptions

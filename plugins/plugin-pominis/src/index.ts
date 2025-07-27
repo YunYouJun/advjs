@@ -1,5 +1,6 @@
 import { pluginPominis } from './plugin'
 
+export * from '../shared'
 /**
  * @packageDocumentation
  * @module plugins/plugin-pominis

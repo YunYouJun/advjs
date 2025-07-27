@@ -60,9 +60,39 @@ export async function initGameRuntime($adv: AdvContext) {
       chapter.nodes.forEach((node) => {
         chapterNodesMap.set(node.id, node)
       })
+
       chaptersMap.set(chapter.id, {
         loaded: false,
         nodesMap: chapterNodesMap,
+      })
+    })
+
+    // set prev
+    gameConfig.chapters.forEach((chapter) => {
+      chapter.nodes.forEach((node) => {
+        let nextChapterId = chapter.id
+        let nextNodeId = ''
+        if (typeof node.next === 'object') {
+          nextChapterId = node.next.chapterId || chapter.id
+          nextNodeId = node.next.nodeId || ''
+        }
+        else {
+          nextNodeId = node.next || ''
+        }
+
+        const chapterMap = chaptersMap.get(nextChapterId)
+        const targetNode = chapterMap?.nodesMap.get(nextNodeId)
+        if (targetNode) {
+          if (nextChapterId !== chapter.id) {
+            targetNode.prev = {
+              chapterId: chapter.id,
+              nodeId: node.id,
+            }
+          }
+          else {
+            targetNode.prev = node.id
+          }
+        }
       })
     })
   }

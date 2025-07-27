@@ -143,17 +143,19 @@
     {
       "id": "character_01",
       "name": "林溪",
-      "description": "一位年轻的程序员，致力于开发情感AI。"
+      "description": "一位年轻的程序员，致力于开发情感AI。",
+      "avatar": "https://cdn.pominis.com/generated_images/198467be-83b5-42b5-960f-8eb9003df038.jpg"
     },
     {
       "id": "character_02",
       "name": "苏哲",
-      "description": "林溪的前男友，AI伦理专家。"
+      "description": "林溪的前男友，AI伦理专家。",
+      "avatar": "https://cdn.pominis.com/generated_images/845f242a-65aa-415b-8b73-b3a9cd5bf7fe.jpg"
     },
     {
       "id": "character_03",
       "name": "回响 (AI)",
-      "description": "林溪开发的情感AI，能够模拟人类情感。"
+      "avatar": "https://cdn.pominis.com/generated_images/7c281f5c-a0d6-4b41-8df0-8b62ea37367d.jpg"
     }
   ]
 }

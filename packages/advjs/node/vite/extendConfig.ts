@@ -106,8 +106,14 @@ export async function getAlias(options: ResolvedAdvOptions): Promise<Alias[]> {
       find: new RegExp(`^@advjs/theme-${themeName}$`),
       replacement: `${toAtFS(resolve(options.themeRoot))}/index.ts`,
     },
-    { find: `@advjs/theme-${themeName}/`, replacement: `${toAtFS(resolve(options.themeRoot))}/` },
+    { find: `@advjs/theme-${themeName}/`, replacement: `${resolve(options.themeRoot)}/` },
   )
+
+  options.plugins.forEach((plugin) => {
+    alias.push(
+      { find: plugin.name, replacement: `${toAtFS(resolve(plugin.root))}/client/index.ts` },
+    )
+  })
 
   alias.push(
     {
