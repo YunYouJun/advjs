@@ -1,4 +1,5 @@
 import process from 'node:process'
+import Vue from '@vitejs/plugin-vue'
 import { defaultExclude, defineConfig } from 'vitest/config'
 
 export default defineConfig({
@@ -8,5 +9,11 @@ export default defineConfig({
 
     reporters: [process.env.CI ? 'html' : 'default'],
     outputFile: 'vitest-report/index.html',
+
+    environment: 'jsdom',
   },
+
+  plugins: [
+    Vue(),
+  ],
 })

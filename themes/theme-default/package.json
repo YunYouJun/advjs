@@ -26,6 +26,7 @@
     "colorSchema": "both"
   },
   "devDependencies": {
+    "@advjs/core": "workspace:*",
     "@iconify-json/ri": "catalog:icons",
     "advjs": "workspace:*"
   }

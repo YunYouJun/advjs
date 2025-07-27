@@ -5,15 +5,15 @@
   "private": true,
   "description": "ADV.JS Editor",
   "scripts": {
-    "build": "nuxi build",
-    "dev": "nuxi dev --port 3001",
-    "dev:pwa": "VITE_PLUGIN_PWA=true nuxi dev",
+    "build": "nuxt build",
+    "dev": "nuxt dev --port 3001",
+    "dev:pwa": "VITE_PLUGIN_PWA=true nuxt dev",
     "start": "node .output/server/index.mjs",
     "typecheck": "vue-tsc --noEmit",
     "lint": "eslint .",
-    "postinstall": "nuxi prepare",
+    "postinstall": "nuxt prepare",
     "preview": "nuxt preview",
-    "generate": "nuxi generate",
+    "generate": "nuxt generate",
     "start:generate": "npx serve .output/public"
   },
   "dependencies": {
@@ -33,6 +33,7 @@
     "ua-parser-js": "^2.0.4"
   },
   "devDependencies": {
+    "@advjs/core": "workspace:*",
     "@advjs/gui": "workspace:*",
     "@iconify-json/carbon": "catalog:icons",
     "@iconify-json/ep": "catalog:icons",

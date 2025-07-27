@@ -63,6 +63,7 @@
     "vrm:dev": "pnpm -C editor/vrm dev",
     "release": "bumpp",
     "release:gui": "pnpm -C packages/gui run release",
+    "release:local": "pnpm -r publish --no-git-checks --access public",
     "types:build": "pnpm -C packages/types build",
     "types:dev": "pnpm -C packages/types dev",
     "typecheck": "vue-tsc --noEmit --skipLibCheck",

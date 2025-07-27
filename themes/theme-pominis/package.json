@@ -24,5 +24,9 @@
   },
   "advjs": {
     "colorSchema": "both"
+  },
+  "devDependencies": {
+    "@advjs/core": "workspace:*",
+    "advjs": "workspace:*"
   }
 }

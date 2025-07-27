@@ -15,6 +15,7 @@
     "preview-https": "serve dist"
   },
   "devDependencies": {
+    "@advjs/core": "workspace:*",
     "@advjs/devtools": "workspace:*",
     "@advjs/plugin-babylon": "workspace:*",
     "@advjs/theme-default": "workspace:*",
