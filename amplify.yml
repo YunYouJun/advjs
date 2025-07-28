@@ -9,10 +9,11 @@ applications:
             - node -e "const v8=require('v8');console.log('Heap limit:',v8.getHeapStatistics().heap_size_limit/2**20,'MB')"
             - node --version
             - corepack enable
-            - pnpm install --filter @advjs/editor
+            - pnpm install --filter @advjs/editor --concurrency 3 --frozen-lockfile
+            #- pnpm install --filter @advjs/editor
         build:
           commands:
-            - pnpm run editor:build
+            - pnpm run editor:build --concurrency 2
       artifacts:
         baseDirectory: editor/core/.amplify-hosting
         files:
@@ -31,12 +32,13 @@ applications:
             - node --version
             - corepack enable
             # - pnpm install --filter @advjs/playground @advjs/client @advjs/core
-            - pnpm install
+            - pnpm install --concurrency 3 --frozen-lockfile
+            #- pnpm install
         build:
           commands:
-            - pnpm run build:advjs
-            - pnpm -C plugins/plugin-pominis run build
-            - pnpm run build:play
+            - pnpm run build:advjs --concurrency 2
+            - pnpm -C plugins/plugin-pominis run build --concurrency 2
+            - pnpm run build:play --concurrency 2
       artifacts:
         baseDirectory: playground/dist
         files:
