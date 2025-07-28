@@ -1,49 +1,55 @@
 version: 1
+
+# ------------ 全局设置（可选）------------
+# 彻底关闭 Amplify 的环境缓存，避免脏缓存导致瞬时 OOM
+cache:
+  disabled: true
+
 applications:
-  - frontend:
-      buildPath: /
+  # ──────────────────────────────────────────────
+  - env:                          # 构建期间注入的环境变量
+      NODE_OPTIONS: '--max-old-space-size=16384'   # 单个 Node 进程 16 GB 堆
+      # ↓ 让 pnpm 在脚本里“就地执行”，而不是再 fork 子进程
+      PNPM_SCRIPT_INLINE_EXECUTION: '1'
+
+    frontend:
+      appRoot: playground         # 只针对 playground
+      buildPath: /                # 默认即可
+
       phases:
         preBuild:
           commands:
+            # 打印调试信息
             - echo "NODE_OPTIONS=$NODE_OPTIONS"
             - node -e "const v8=require('v8');console.log('Heap limit:',v8.getHeapStatistics().heap_size_limit/2**20,'MB')"
             - node --version
-            - corepack enable
-            - pnpm install --filter @advjs/editor --concurrency 3 --frozen-lockfile
-            #- pnpm install --filter @advjs/editor
+
+            # 安装 pnpm 指定版本（锁定，避免每次下载最新）
+            - corepack enable pnpm@10.13.1
+
+            # 依赖安装：完全串行，杜绝 OOM
+            - pnpm install --frozen-lockfile \
+                           --child-concurrency=1 \
+                           --workspace-concurrency=1
+
         build:
+          # 串行执行每个包的 build（按依赖顺序）
           commands:
-            - pnpm run editor:build --concurrency 2
-      artifacts:
-        baseDirectory: editor/core/.amplify-hosting
-        files:
-          - '**/*'
-      cache:
-        paths:
-          - node_modules/**/*
-    appRoot: editor/core
-  - frontend:
-      buildPath: /
-      phases:
-        preBuild:
-          commands:
-            - echo "NODE_OPTIONS=$NODE_OPTIONS"
-            - node -e "const v8=require('v8');console.log('Heap limit:',v8.getHeapStatistics().heap_size_limit/2**20,'MB')"
-            - node --version
-            - corepack enable
-            # - pnpm install --filter @advjs/playground @advjs/client @advjs/core
-            - pnpm install --concurrency 3 --frozen-lockfile
-            #- pnpm install
-        build:
-          commands:
-            - pnpm run build:advjs --concurrency 2
-            - pnpm -C plugins/plugin-pominis run build --concurrency 2
-            - pnpm run build:play --concurrency 2
+            - pnpm --filter @advjs/types       --workspace-concurrency=1 run build
+            - pnpm --filter @advjs/parser      --workspace-concurrency=1 run build
+            - pnpm --filter @advjs/core        --workspace-concurrency=1 run build
+            - pnpm --filter advjs              --workspace-concurrency=1 run build
+            - pnpm --filter @advjs/plugin-pominis --workspace-concurrency=1 run build
+            - pnpm --filter @advjs/playground  --workspace-concurrency=1 run build
+
       artifacts:
         baseDirectory: playground/dist
         files:
           - '**/*'
+
+      # 如果你想继续使用缓存，把 disabled 改成 false，并仅缓存 node_modules
       cache:
-        paths:
-          - node_modules/**/*
-    appRoot: playground
+        disabled: true
+        # paths:
+        #   - node_modules/**/*
+
