@@ -5,6 +5,8 @@ applications:
       phases:
         preBuild:
           commands:
+            - echo "NODE_OPTIONS=$NODE_OPTIONS"
+            - node -e "const v8=require('v8');console.log('Heap limit:',v8.getHeapStatistics().heap_size_limit/2**20,'MB')"
             - node --version
             - corepack enable
             - pnpm install --filter @advjs/editor
@@ -24,6 +26,8 @@ applications:
       phases:
         preBuild:
           commands:
+            - echo "NODE_OPTIONS=$NODE_OPTIONS"
+            - node -e "const v8=require('v8');console.log('Heap limit:',v8.getHeapStatistics().heap_size_limit/2**20,'MB')"
             - node --version
             - corepack enable
             # - pnpm install --filter @advjs/playground @advjs/client @advjs/core
