@@ -1,18 +1,26 @@
 version: 1
+
+cache:            # ← 必须与 version 同级
+  disabled: true  # 彻底关闭环境缓存
+
 applications:
-  - appRoot: playground          # ← 必须是字符串，并且和 frontend 同层
+  - appRoot: playground
+
+    env:
+      NODE_OPTIONS: '--max-old-space-size=16384'
+      PNPM_SCRIPT_INLINE_EXECUTION: '1'
+
     frontend:
-      env:
-        NODE_OPTIONS: '--max-old-space-size=16384'
+      buildPath: /
 
       phases:
         preBuild:
           commands:
             - echo "NODE_OPTIONS=$NODE_OPTIONS"
             - node -e "const v8=require('v8');console.log('Heap limit:',v8.getHeapStatistics().heap_size_limit/2**20,'MB')"
-            - node --version
             - corepack enable pnpm@10.13.1
             - pnpm install --frozen-lockfile --child-concurrency=1 --workspace-concurrency=1
+
         build:
           commands:
             - pnpm --filter @advjs/types            --workspace-concurrency=1 run build
@@ -24,10 +32,9 @@ applications:
 
       artifacts:
         baseDirectory: playground/dist
-        files:
-          - '**/*'
+        files: ['**/*']
 
-      cache:                  # 彻底关闭环境缓存，防止脏层
+      # 产物缓存也先关掉，等成功后再打开
+      cache:
         disabled: true
-
 
