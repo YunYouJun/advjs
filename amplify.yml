@@ -6,11 +6,15 @@ applications:
         preBuild:
           commands:
             - node --version
+            - export NODE_OPTIONS=--max-old-space-size=5632
+            - node -e 'console.log(v8.getHeapStatistics().total_available_size/(1024*1024))'
+            - export GENERATE_SOURCEMAP=false
+            - export INLINE_RUNTIME_CHUNK=false
             - corepack enable
-            - pnpm install --filter @advjs/editor --workspace-concurrency=1
+            - pnpm install --filter @advjs/editor
         build:
           commands:
-            - pnpm run editor:build --workspace-concurrency=1
+            - pnpm run editor:build
       artifacts:
         baseDirectory: editor/core/.amplify-hosting
         files:
@@ -25,14 +29,18 @@ applications:
         preBuild:
           commands:
             - node --version
+            - export NODE_OPTIONS=--max-old-space-size=5632
+            - node -e 'console.log(v8.getHeapStatistics().total_available_size/(1024*1024))'
+            - export GENERATE_SOURCEMAP=false
+            - export INLINE_RUNTIME_CHUNK=false
             - corepack enable
             # - pnpm install --filter @advjs/playground @advjs/client @advjs/core
-            - pnpm install --workspace-concurrency=1
+            - pnpm install
         build:
           commands:
-            - pnpm run build:advjs --workspace-concurrency=1
-            - pnpm -C plugins/plugin-pominis run build --workspace-concurrency=1
-            - pnpm run build:play --workspace-concurrency=1
+            - pnpm run build:advjs
+            - pnpm -C plugins/plugin-pominis run build
+            - pnpm run build:play
       artifacts:
         baseDirectory: playground/dist
         files:
