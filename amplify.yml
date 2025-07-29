@@ -35,7 +35,8 @@ applications:
             - export INLINE_RUNTIME_CHUNK=false
             - corepack enable
             # - pnpm install --filter @advjs/playground @advjs/client @advjs/core
-            - pnpm install
+            # - pnpm install
+            - pnpm install --filter @advjs/playground... --filter @advjs/plugin-pominis...
         build:
           commands:
             - pnpm run build:advjs
