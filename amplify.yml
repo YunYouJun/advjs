@@ -1,6 +1,4 @@
 version: 1
-cache:         
-  disabled: true
 applications:
   - frontend:
       buildPath: /
