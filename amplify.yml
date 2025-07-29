@@ -1,40 +1,45 @@
 version: 1
-
-cache:            # ← 必须与 version 同级
-  disabled: true  # 彻底关闭环境缓存
-
+cache:         
+  disabled: true
 applications:
-  - appRoot: playground
-
-    env:
-      NODE_OPTIONS: '--max-old-space-size=16384'
-      PNPM_SCRIPT_INLINE_EXECUTION: '1'
-
-    frontend:
+  - frontend:
       buildPath: /
-
       phases:
         preBuild:
           commands:
-            - echo "NODE_OPTIONS=$NODE_OPTIONS"
-            - node -e "const v8=require('v8');console.log('Heap limit:',v8.getHeapStatistics().heap_size_limit/2**20,'MB')"
-            - corepack enable pnpm@10.13.1
-            - pnpm install --frozen-lockfile --child-concurrency=1 --workspace-concurrency=1
-
+            - node --version
+            - corepack enable
+            - pnpm install --filter @advjs/editor --workspace-concurrency=1
         build:
           commands:
-            - pnpm --filter @advjs/types            --workspace-concurrency=1 run build
-            - pnpm --filter @advjs/parser           --workspace-concurrency=1 run build
-            - pnpm --filter @advjs/core             --workspace-concurrency=1 run build
-            - pnpm --filter advjs                   --workspace-concurrency=1 run build
-            - pnpm --filter @advjs/plugin-pominis   --workspace-concurrency=1 run build
-            - pnpm --filter @advjs/playground       --workspace-concurrency=1 run build
-
+            - pnpm run editor:build --workspace-concurrency=1
+      artifacts:
+        baseDirectory: editor/core/.amplify-hosting
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+    appRoot: editor/core
+  - frontend:
+      buildPath: /
+      phases:
+        preBuild:
+          commands:
+            - node --version
+            - corepack enable
+            # - pnpm install --filter @advjs/playground @advjs/client @advjs/core
+            - pnpm install --workspace-concurrency=1
+        build:
+          commands:
+            - pnpm run build:advjs --workspace-concurrency=1
+            - pnpm -C plugins/plugin-pominis run build --workspace-concurrency=1
+            - pnpm run build:play --workspace-concurrency=1
       artifacts:
         baseDirectory: playground/dist
-        files: ['**/*']
-
-      # 产物缓存也先关掉，等成功后再打开
+        files:
+          - '**/*'
       cache:
-        disabled: true
-
+        paths:
+          - node_modules/**/*
+    appRoot: playground
