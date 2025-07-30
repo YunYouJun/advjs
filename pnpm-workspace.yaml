@@ -12,7 +12,7 @@ packages:
 
 catalogs:
   ai:
-    openai: ^5.10.3
+    openai: ^5.11.0
   babylon:
     '@babylonjs/core': 5.19.0
     '@babylonjs/gui': 5.19.0
@@ -63,7 +63,7 @@ catalogs:
     prompts: ^2.4.2
     yargs: ^18.0.0
   dev:
-    '@antfu/eslint-config': ^4.19.0
+    '@antfu/eslint-config': ^5.0.0
     '@faker-js/faker': ^9.9.0
     '@unocss/eslint-plugin': ^66.3.3
     eslint: ^9.32.0
