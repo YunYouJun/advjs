@@ -187,9 +187,6 @@ export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
                 advjs_parser: ['@advjs/parser'],
               },
             },
-            external: [
-              'advjs',
-            ],
           },
         }
       }

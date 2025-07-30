@@ -6,7 +6,7 @@ import { getAllPackages } from './utils/monorepo'
 
 const cleanChildDirs = [
   'dist',
-  // 'node_modules',
+  'node_modules',
 ]
 
 async function run() {

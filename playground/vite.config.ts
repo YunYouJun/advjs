@@ -34,6 +34,11 @@ export default defineConfig(async ({ mode }) => {
       },
     },
 
+    build: {
+      // temp for debug
+      minify: false,
+    },
+
     server: {
       cors: true,
 
