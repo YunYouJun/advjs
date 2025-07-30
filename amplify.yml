@@ -6,6 +6,10 @@ applications:
         preBuild:
           commands:
             - node --version
+            - export NODE_OPTIONS=--max-old-space-size=5632
+            - node -e 'console.log(v8.getHeapStatistics().total_available_size/(1024*1024))'
+            - export GENERATE_SOURCEMAP=false
+            - export INLINE_RUNTIME_CHUNK=false
             - corepack enable
             - pnpm install --filter @advjs/editor
         build:
@@ -25,9 +29,14 @@ applications:
         preBuild:
           commands:
             - node --version
+            - export NODE_OPTIONS=--max-old-space-size=5632
+            - node -e 'console.log(v8.getHeapStatistics().total_available_size/(1024*1024))'
+            - export GENERATE_SOURCEMAP=false
+            - export INLINE_RUNTIME_CHUNK=false
             - corepack enable
             # - pnpm install --filter @advjs/playground @advjs/client @advjs/core
-            - pnpm install
+            # - pnpm install
+            - pnpm install --filter @advjs/playground... --filter @advjs/plugin-pominis...
         build:
           commands:
             - pnpm run build:advjs
