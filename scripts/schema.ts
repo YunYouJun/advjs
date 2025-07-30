@@ -34,6 +34,7 @@ async function generateSchema() {
 
   // write schema to file
   const targetSchemaFile = path.resolve(typesDir, 'schema/adv.config.schema.json')
+  await fs.emptyDir(path.dirname(targetSchemaFile))
   await fs.writeJSON(targetSchemaFile, schema, {
     spaces: 2,
   })

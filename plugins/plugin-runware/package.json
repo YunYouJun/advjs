@@ -27,8 +27,8 @@
     "test": "tsx scripts/test.ts"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.850.0",
-    "@aws-sdk/s3-request-presigner": "^3.850.0",
+    "@aws-sdk/client-s3": "^3.856.0",
+    "@aws-sdk/s3-request-presigner": "^3.856.0",
     "@runware/sdk-js": "^1.1.42",
     "consola": "catalog:cli"
   }

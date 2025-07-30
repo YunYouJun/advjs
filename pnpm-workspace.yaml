@@ -12,7 +12,7 @@ packages:
 
 catalogs:
   ai:
-    openai: ^5.10.2
+    openai: ^5.10.3
   babylon:
     '@babylonjs/core': 5.19.0
     '@babylonjs/gui': 5.19.0
@@ -29,11 +29,11 @@ catalogs:
     '@unocss/nuxt': ^66.3.3
     '@vite-pwa/nuxt': ^1.0.4
     '@vitejs/plugin-vue': 5.2.4
-    '@vueuse/nuxt': ^13.5.0
+    '@vueuse/nuxt': ^13.6.0
     beasties: ^0.3.5
     markdown-it-link-attributes: ^4.0.1
-    nuxt: ^4.0.1
-    rollup: ^4.46.0
+    nuxt: ^4.0.2
+    rollup: ^4.46.2
     sass: ^1.89.2
     shiki: ^3.8.1
     unbuild: ^3.6.0
@@ -78,7 +78,7 @@ catalogs:
     unplugin-mockery: ^0.4.0-beta.13
     vue-tsc: ^3.0.4
   docs:
-    typedoc: ^0.28.7
+    typedoc: ^0.28.8
     typedoc-plugin-merge-modules: ^7.0.0
     vitepress: ^1.6.3
   frontend:
@@ -86,7 +86,7 @@ catalogs:
     '@unhead/vue': ^2.0.12
     '@unocss/reset': ^66.3.3
     '@vue-flow/core': ^1.45.0
-    '@vueuse/core': ^13.5.0
+    '@vueuse/core': ^13.6.0
     '@vueuse/motion': ^3.0.3
     '@vueuse/sound': ^2.1.3
     animate.css: ^4.1.1
@@ -158,8 +158,8 @@ catalogs:
     '@antfu/ni': ^25.0.0
     '@antfu/utils': ^9.2.0
     benny: ^3.7.1
-    bumpp: ^10.2.0
-    c12: ^3.1.0
+    bumpp: ^10.2.1
+    c12: ^3.2.0
     cross-env: ^10.0.0
     dayjs: ^1.11.13
     debug: ^4.4.1

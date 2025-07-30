@@ -5,11 +5,8 @@ test.use({
 })
 
 test.describe('Demo Starter', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:3333/')
-  })
-
   test('basic nav', async ({ page }) => {
+    await page.goto('http://localhost:3333/')
     // Verify the initial URL
     expect(page.url()).toContain('http://localhost:3333/')
 
