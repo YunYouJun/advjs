@@ -51,6 +51,9 @@ export default defineConfig(async ({ mode }) => {
 
       headers: {
         'access-control-allow-origin': '*',
+
+        'Cross-Origin-Embedder-Policy': 'require-corp',
+        'Cross-Origin-Opener-Policy': 'same-origin',
       },
 
       origin: 'https://play.pominis.com',

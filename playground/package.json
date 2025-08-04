@@ -38,6 +38,7 @@
     "@unocss/eslint-config": "catalog:build",
     "@vitejs/plugin-vue": "catalog:build",
     "@vue/test-utils": "catalog:test",
+    "@webcontainer/api": "^1.6.1",
     "advjs": "workspace:*",
     "beasties": "catalog:build",
     "https-localhost": "catalog:dev",

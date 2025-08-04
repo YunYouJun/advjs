@@ -2,6 +2,11 @@ import type { VFile } from 'vfile'
 import type { AdvConfig, AdvGameConfig } from './config'
 
 export interface AdvFeatureFlags {
+  /**
+   * @default false
+   *
+   * enable babylon for 3d scenes
+   */
   babylon: boolean
 }
 

@@ -24,9 +24,9 @@ catalogs:
     '@nuxt/devtools': ^2.6.2
     '@nuxtjs/color-mode': ^3.5.2
     '@pinia/nuxt': ^0.11.2
-    '@shikijs/markdown-it': ^3.8.1
-    '@unocss/eslint-config': ^66.3.3
-    '@unocss/nuxt': ^66.3.3
+    '@shikijs/markdown-it': ^3.9.2
+    '@unocss/eslint-config': ^66.4.1
+    '@unocss/nuxt': ^66.4.1
     '@vite-pwa/nuxt': ^1.0.4
     '@vitejs/plugin-vue': 5.2.4
     '@vueuse/nuxt': ^13.6.0
@@ -35,21 +35,21 @@ catalogs:
     nuxt: ^4.0.2
     rollup: ^4.46.2
     sass: ^1.89.2
-    shiki: ^3.8.1
+    shiki: ^3.9.2
     unbuild: ^3.6.0
-    unocss: ^66.3.3
+    unocss: ^66.4.1
     unplugin: ^2.3.5
     unplugin-auto-import: ^19.3.0
     unplugin-vue-components: ^28.8.0
     unplugin-vue-markdown: ^29.1.0
-    unplugin-vue-router: ^0.14.0
+    unplugin-vue-router: ^0.15.0
     vite: ^7.0.6
     vite-bundle-visualizer: ^1.2.1
     vite-plugin-css-injected-by-js: ^3.5.2
     vite-plugin-dts: ^4.5.4
     vite-plugin-inspect: ^11.3.2
     vite-plugin-pwa: ^1.0.2
-    vite-plugin-vue-devtools: ^7.7.7
+    vite-plugin-vue-devtools: ^8.0.0
     vite-plugin-vue-layouts: ^0.11.0
     vite-ssg: ^28.0.0
     vite-ssg-sitemap: ^0.10.0
@@ -63,28 +63,28 @@ catalogs:
     prompts: ^2.4.2
     yargs: ^18.0.0
   dev:
-    '@antfu/eslint-config': ^5.0.0
+    '@antfu/eslint-config': ^5.1.0
     '@faker-js/faker': ^9.9.0
-    '@unocss/eslint-plugin': ^66.3.3
+    '@unocss/eslint-plugin': ^66.4.1
     eslint: ^9.32.0
     eslint-plugin-format: ^1.0.1
     https-localhost: ^4.7.1
     husky: ^9.1.7
-    lint-staged: ^16.1.2
+    lint-staged: ^16.1.4
     nodemon: ^3.1.10
     taze: ^19.1.0
     tsx: ^4.20.3
-    typescript: ^5.8.3
+    typescript: ^5.9.2
     unplugin-mockery: ^0.4.0-beta.13
-    vue-tsc: ^3.0.4
+    vue-tsc: ^3.0.5
   docs:
-    typedoc: ^0.28.8
+    typedoc: ^0.28.9
     typedoc-plugin-merge-modules: ^7.0.0
     vitepress: ^1.6.3
   frontend:
     '@google/model-viewer': ^4.1.0
-    '@unhead/vue': ^2.0.12
-    '@unocss/reset': ^66.3.3
+    '@unhead/vue': ^2.0.13
+    '@unocss/reset': ^66.4.1
     '@vue-flow/core': ^1.45.0
     '@vueuse/core': ^13.6.0
     '@vueuse/motion': ^3.0.3
@@ -98,10 +98,10 @@ catalogs:
     pinia: ^3.0.3
     pixi-painter: ^0.1.6-beta.1
     pixi.js: 8.0.4
-    reka-ui: ^2.4.0
+    reka-ui: ^2.4.1
     splitpanes: ^4.0.4
     swiper: ^11.2.10
-    tdesign-vue-next: ^1.15.1
+    tdesign-vue-next: ^1.15.2
     vue: ^3.5.18
     vue-i18n: ^11.1.11
     vue-router: ^4.5.1
@@ -116,10 +116,10 @@ catalogs:
     '@iconify-json/ri': ^1.2.5
     '@iconify-json/svg-spinners': ^1.2.2
     '@iconify-json/twemoji': ^1.2.2
-    '@iconify-json/vscode-icons': ^1.2.23
+    '@iconify-json/vscode-icons': ^1.2.24
     '@iconify/vue': ^5.0.0
   test:
-    '@playwright/test': ^1.54.1
+    '@playwright/test': ^1.54.2
     '@vue/test-utils': ^2.4.6
     vitest: ^3.2.4
   types:
@@ -129,7 +129,7 @@ catalogs:
     '@types/js-yaml': ^4.0.9
     '@types/markdown-it-link-attributes': ^3.0.5
     '@types/mdast': ^4.0.4
-    '@types/node': ^24.1.0
+    '@types/node': ^24.2.0
     '@types/nprogress': ^0.2.3
     '@types/prompts': ^2.4.9
     '@types/qrcode': ^1.5.5
@@ -158,7 +158,7 @@ catalogs:
     '@antfu/ni': ^25.0.0
     '@antfu/utils': ^9.2.0
     benny: ^3.7.1
-    bumpp: ^10.2.1
+    bumpp: ^10.2.2
     c12: ^3.2.0
     cross-env: ^10.0.0
     dayjs: ^1.11.13

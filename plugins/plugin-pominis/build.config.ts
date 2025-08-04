@@ -4,6 +4,7 @@ export default defineBuildConfig({
   declaration: true,
   entries: [
     'src/index',
+    'client/index',
   ],
   clean: true,
   externals: [
