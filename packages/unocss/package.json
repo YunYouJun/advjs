@@ -3,11 +3,12 @@
   "type": "module",
   "version": "0.1.0-beta.6",
   "exports": {
-    ".": {
-      "import": "./dist/index.mjs"
-    }
+    ".": "./dist/index.mjs",
+    "./package.json": "./package.json"
   },
   "main": "dist/index.mjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.mts",
   "scripts": {
     "build": "unbuild",
     "dev": "unbuild --stub",
