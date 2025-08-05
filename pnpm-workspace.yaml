@@ -30,6 +30,7 @@ catalogs:
     '@vite-pwa/nuxt': ^1.0.4
     '@vitejs/plugin-vue': 5.2.4
     '@vueuse/nuxt': ^13.6.0
+    '@webcontainer/api': ^1.6.1
     beasties: ^0.3.5
     markdown-it-link-attributes: ^4.0.1
     nuxt: ^4.0.3
@@ -54,6 +55,7 @@ catalogs:
     vite-ssg: ^28.0.0
     vite-ssg-sitemap: ^0.10.0
   cli:
+    '@xterm/xterm': ^5.5.0
     cli-progress: ^3.12.0
     consola: ^3.4.2
     dotenv: ^17.2.1

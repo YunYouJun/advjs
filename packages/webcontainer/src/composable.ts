@@ -1,3 +1,4 @@
+import type { Terminal } from '@xterm/xterm'
 import { WebContainer } from '@webcontainer/api'
 import { ref, shallowRef } from 'vue'
 import { advProjectFiles } from './files'
@@ -12,6 +13,10 @@ export function useAdvWebContainer() {
 
   const state = ref({
     /**
+     * 是否已挂载
+     */
+    mounted: false,
+    /**
      * 依赖是否已安装
      */
     depsInstalled: false,
@@ -25,14 +30,16 @@ export function useAdvWebContainer() {
    * Mount the WebContainer with the ADV project files.
    */
   async function mount() {
+    state.value.mounted = false
     webContainerRef.value = await WebContainer.boot({
       // You can pass options here if needed
     })
 
     await webContainerRef.value.mount(advProjectFiles)
+    state.value.mounted = true
   }
 
-  async function installDependencies() {
+  async function installDependencies(terminal?: Terminal) {
     if (!webContainerRef.value) {
       throw new Error('WebContainer is not initialized. Call mount() first.')
     }
@@ -50,13 +57,18 @@ export function useAdvWebContainer() {
 
     installProcess.output.pipeTo(new WritableStream({
       write(data) {
-        // eslint-disable-next-line no-console
-        console.log(data)
+        if (terminal) {
+          terminal.write(data)
+        }
+        else {
+          // eslint-disable-next-line no-console
+          console.log(data)
+        }
       },
     }))
   }
 
-  async function build() {
+  async function build(terminal?: Terminal) {
     if (!webContainerRef.value) {
       throw new Error('WebContainer is not initialized. Call mount() first.')
     }
@@ -73,8 +85,13 @@ export function useAdvWebContainer() {
 
     buildProcess.output.pipeTo(new WritableStream({
       write(data) {
-        // eslint-disable-next-line no-console
-        console.log(data)
+        if (terminal) {
+          terminal.write(data)
+        }
+        else {
+          // eslint-disable-next-line no-console
+          console.log(data)
+        }
       },
     }))
   }

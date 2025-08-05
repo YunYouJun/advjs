@@ -2,6 +2,7 @@
   "type": "module",
   "private": true,
   "dependencies": {
-    "@webcontainer/api": "^1.6.1"
+    "@webcontainer/api": "catalog:build",
+    "@xterm/xterm": "catalog:cli"
   }
 }
