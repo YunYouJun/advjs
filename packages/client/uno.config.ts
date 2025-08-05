@@ -1,10 +1,10 @@
+import { presetAdv } from '@advjs/unocss'
 import extractorMdc from '@unocss/extractor-mdc'
-import { defineConfig, presetAttributify, presetIcons, presetTypography, presetWind3, transformerDirectives, transformerVariantGroup } from 'unocss'
-import { presetAdv } from '../unocss/src'
+import { defineConfig, presetAttributify, presetIcons, presetTypography, presetWind4, transformerDirectives, transformerVariantGroup } from 'unocss'
 
 export default defineConfig({
   presets: [
-    presetWind3(),
+    presetWind4(),
     presetAdv(),
     presetAttributify(),
     presetIcons({

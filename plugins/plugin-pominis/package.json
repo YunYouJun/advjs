@@ -1,7 +1,7 @@
 {
   "name": "@advjs/plugin-pominis",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Pominis Adapter Plugin for ADV.JS",
   "author": {
     "name": "YunYouJun",

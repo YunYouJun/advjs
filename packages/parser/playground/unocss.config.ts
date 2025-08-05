@@ -1,14 +1,14 @@
+import { presetAdv } from '@advjs/unocss'
+
 import {
   defineConfig,
   presetAttributify,
   presetIcons,
   presetTypography,
-  presetUno,
+  presetWind4,
   transformerDirectives,
   transformerVariantGroup,
 } from 'unocss'
-
-import { presetAdv } from '../../unocss/src'
 
 const safelist = [
   'i-ri-file-text-line',
@@ -19,7 +19,7 @@ const safelist = [
 
 export default defineConfig({
   presets: [
-    presetUno(),
+    presetWind4(),
     presetAttributify(),
     presetIcons({
       scale: 1.2,

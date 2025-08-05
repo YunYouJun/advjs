@@ -1,7 +1,7 @@
 {
   "name": "@advjs/client",
   "type": "module",
-  "version": "0.1.0-beta.1",
+  "version": "0.1.0-beta.5",
   "description": "ADV.JS Client",
   "author": {
     "email": "me@yunyoujun.cn",
@@ -45,9 +45,6 @@
     "swiper": "catalog:frontend",
     "vue": "catalog:frontend",
     "vue-router": "catalog:frontend"
-  },
-  "optionalDependencies": {
-    "@advjs/plugin-babylon": "workspace:*"
   },
   "devDependencies": {
     "@iconify-json/mdi": "catalog:icons",

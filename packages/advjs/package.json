@@ -1,7 +1,7 @@
 {
   "name": "advjs",
   "type": "module",
-  "version": "0.1.0-beta.2",
+  "version": "0.1.0-beta.5",
   "description": "A parser for @advjs.",
   "author": {
     "name": "YunYouJun",
@@ -95,6 +95,7 @@
     "@types/markdown-it-link-attributes": "catalog:types",
     "hast-util-to-html": "catalog:unified",
     "mdast-util-to-hast": "catalog:unified",
+    "rollup": "catalog:build",
     "unbuild": "catalog:build"
   }
 }

@@ -3,28 +3,23 @@
 
 import consola from 'consola'
 import { onMounted } from 'vue'
-import { createAdvWebContainer } from '../../../packages/webcontainer/src'
+import { useAdvWebContainer } from '../../../packages/webcontainer/src/index'
 
-// await
-const advWebContainer = shallowRef<Awaited<ReturnType<typeof createAdvWebContainer>>>()
+const { webContainerRef, installDependencies, build, mount, state, downloadIndexHtml } = useAdvWebContainer()
 
 onMounted(async () => {
-  advWebContainer.value = await createAdvWebContainer()
-  if (!advWebContainer.value) {
-    consola.error('Failed to create AdvWebContainer instance')
+  await mount()
+
+  if (!webContainerRef.value) {
+    consola.error('WebContainer is not initialized')
     return
   }
 
-  const { mount, webcontainerInstance } = advWebContainer.value
-  await mount()
-
-  const packageJSON = await webcontainerInstance.fs.readFile(
+  const packageJSON = await webContainerRef.value.fs.readFile(
     'package.json',
     'utf-8',
   )
   consola.info(packageJSON)
-  // await installDependencies()
-  // await build()
 })
 </script>
 
@@ -32,12 +27,22 @@ onMounted(async () => {
   <div>
     Web Container
 
-    <AdvButton @click="advWebContainer?.installDependencies">
+    <div>
+      Installed: {{ state.depsInstalled }}
+
+      Built: {{ state.built }}
+    </div>
+
+    <AdvButton @click="installDependencies">
       Install Dependencies
     </AdvButton>
 
-    <AdvButton @click="advWebContainer?.build">
+    <AdvButton @click="build">
       Build
+    </AdvButton>
+
+    <AdvButton @click="downloadIndexHtml">
+      Download index.html
     </AdvButton>
   </div>
 </template>

@@ -18,6 +18,7 @@
     "@unocss/reset": "catalog:frontend",
     "@vueuse/core": "catalog:frontend",
     "axios": "^1.11.0",
+    "defu": "catalog:utils",
     "nprogress": "catalog:frontend",
     "pinia": "catalog:frontend",
     "vue": "catalog:frontend",

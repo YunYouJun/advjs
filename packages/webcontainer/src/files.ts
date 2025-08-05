@@ -6,6 +6,11 @@ import { version as advjsVersion } from '../../advjs/package.json'
 const storyId = '6c91aa92-3f4a-462e-89e8-05040602e768'
 
 export const advProjectFiles: FileSystemTree = {
+  '.npmrc': {
+    file: {
+      contents: `shamefully-hoist=true`,
+    },
+  },
   'adv.config.ts': {
     file: {
       contents: `

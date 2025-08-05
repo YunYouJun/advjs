@@ -1,7 +1,7 @@
 {
   "name": "@advjs/monorepo",
   "type": "module",
-  "version": "0.1.0-beta.1",
+  "version": "0.1.0-beta.5",
   "private": true,
   "packageManager": "pnpm@10.14.0",
   "description": "面向未来与前端的 ADV 文字冒险游戏引擎。",
@@ -63,6 +63,8 @@
     "vrm:build": "pnpm -C editor/vrm build",
     "vrm:dev": "pnpm -C editor/vrm dev",
     "release": "bumpp",
+    "release:advjs": "bumpp",
+    "release:local:advjs": "bumpp --no-commit --no-push --no-tag && pnpm -r publish --tag beta --no-git-checks",
     "release:gui": "pnpm -C packages/gui run release",
     "release:local": "pnpm -r publish --no-git-checks --access public",
     "types:build": "pnpm -C packages/types build",
