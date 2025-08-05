@@ -29,7 +29,7 @@ const gameTitle = computed(() => {
       <Transition>
         <div v-if="gameTitle" class="absolute bottom-22 left-20 rounded bg-black/30 px-8 py-6">
           <h1
-            class="adv-game-title gradient-text max-w-250 from-purple-500 to-blue-500 bg-gradient-to-r text-7xl leading-snug text-shadow-lg dark:to-blue-300"
+            class="adv-game-title gradient-text bg-linear-to-r max-w-250 from-purple-500 to-blue-500 text-7xl leading-snug text-shadow-lg dark:to-blue-300"
             font="bold"
           >
             {{ gameTitle }}

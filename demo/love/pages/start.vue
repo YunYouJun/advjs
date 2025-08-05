@@ -22,7 +22,7 @@ const themeStore = useThemeDefaultStore()
 
     <slot name="title">
       <h1
-        class="adv-game-title gradient-text shadow-co z-1 mt-2 from-purple-500 to-blue-500 bg-gradient-to-r text-4xl text-shadow-lg dark:to-blue-300"
+        class="adv-game-title gradient-text shadow-co bg-linear-to-r z-1 mt-2 from-purple-500 to-blue-500 text-4xl text-shadow-lg dark:to-blue-300"
         font="bold"
       >
         {{ gameConfig.title }}

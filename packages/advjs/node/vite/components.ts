@@ -13,6 +13,8 @@ export function createComponentsPlugin(options: ResolvedAdvOptions, pluginOption
     extensions: ['vue', 'md'],
 
     include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
+    // node_modules is needed to be search when install deps
+    exclude: [/[\\/]\.git[\\/]/, /[\\/]\.nuxt[\\/]/],
     dts: path.resolve(options.tempRoot, 'components.d.ts'),
 
     allowOverrides: true,
