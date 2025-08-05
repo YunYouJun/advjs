@@ -1,7 +1,7 @@
 {
   "name": "@advjs/gui",
   "type": "module",
-  "version": "0.1.0-beta.5",
+  "version": "0.1.0-beta.6",
   "repository": {
     "url": "https://github.com/YunYouJun/advjs/tree/main/packages/gui",
     "type": "git"
