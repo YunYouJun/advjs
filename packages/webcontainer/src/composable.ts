@@ -1,6 +1,6 @@
 import type { Terminal } from '@xterm/xterm'
+import { isClient } from '@vueuse/core'
 import { WebContainer } from '@webcontainer/api'
-import { FitAddon } from '@xterm/addon-fit'
 import * as xterm from '@xterm/xterm'
 import { ref, shallowRef } from 'vue'
 import { createAdvProjectFiles } from './files'
@@ -20,10 +20,8 @@ export type StageStatus = 'running' | 'done' | ''
  *
  * mount()
  */
-export function useAdvWebContainer(options: {
-  storyId: string
-}) {
-  const advProjectFiles = createAdvProjectFiles({ storyId: options.storyId })
+export function useAdvWebContainer() {
+  const storyId = ref('')
 
   const webContainerRef = shallowRef<WebContainer>()
   const terminalRef = shallowRef<Terminal>()
@@ -57,6 +55,10 @@ export function useAdvWebContainer(options: {
    * 初始化终端
    */
   async function initTerminal(el?: HTMLElement) {
+    if (!isClient)
+      return
+
+    const { FitAddon } = await import('@xterm/addon-fit')
     const fitAddon = new FitAddon()
     const terminal = new Terminal({
       convertEol: true,
@@ -107,6 +109,7 @@ export function useAdvWebContainer(options: {
     state.value.status = 'mounting'
 
     state.value.mount = 'running'
+    const advProjectFiles = createAdvProjectFiles({ storyId: storyId.value })
     webContainerRef.value = await WebContainer.boot({
       // You can pass options here if needed
     })
@@ -195,6 +198,8 @@ export function useAdvWebContainer(options: {
   }
 
   return {
+    storyId,
+
     state,
     terminalRef,
     webContainerRef,

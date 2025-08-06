@@ -25,9 +25,8 @@ const {
   state,
   downloadIndexHtml,
   initTerminal,
-} = useAdvWebContainer({
-  storyId: route.query.pominisId as string,
-})
+  storyId,
+} = useAdvWebContainer()
 
 /**
  * 当前状态描述
@@ -83,6 +82,7 @@ onMounted(async () => {
   const pominisId = query.pominisId as string | undefined
   if (pominisId) {
     playStore.curAdapter = 'pominis'
+    storyId.value = pominisId
 
     const token = query.token as string | undefined
     const data = await pominisStore.fetchPominisStory({
