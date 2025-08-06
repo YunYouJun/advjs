@@ -32,6 +32,7 @@
     "@advjs/theme-pominis": "workspace:*",
     "@advjs/types": "workspace:*",
     "@iconify-json/carbon": "catalog:icons",
+    "@iconify-json/ri": "catalog:icons",
     "@intlify/unplugin-vue-i18n": "catalog:build",
     "@shikijs/markdown-it": "catalog:build",
     "@types/markdown-it-link-attributes": "catalog:types",
