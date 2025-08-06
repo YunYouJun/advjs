@@ -1,49 +1,127 @@
 import type { Terminal } from '@xterm/xterm'
 import { WebContainer } from '@webcontainer/api'
+import { FitAddon } from '@xterm/addon-fit'
+import * as xterm from '@xterm/xterm'
 import { ref, shallowRef } from 'vue'
-import { advProjectFiles } from './files'
+import { createAdvProjectFiles } from './files'
+
+/**
+ * 步骤状态
+ */
+export type StepStatus = 'starting' | 'mounting' | 'installing' | 'building' | 'ready'
+
+/**
+ * 每个阶段的状态
+ */
+export type StageStatus = 'running' | 'done' | ''
 
 /**
  * adv webContainer
  *
  * mount()
  */
-export function useAdvWebContainer() {
-  const webContainerRef = shallowRef<WebContainer>()
+export function useAdvWebContainer(options: {
+  storyId: string
+}) {
+  const advProjectFiles = createAdvProjectFiles({ storyId: options.storyId })
 
-  const state = ref({
+  const webContainerRef = shallowRef<WebContainer>()
+  const terminalRef = shallowRef<Terminal>()
+  const { Terminal } = xterm
+
+  const state = ref<{
     /**
-     * 是否已挂载
+     * 当前步骤状态
      */
-    mounted: false,
+    status: StepStatus
     /**
-     * 依赖是否已安装
+     * 挂载状态
      */
-    depsInstalled: false,
+    mount: StageStatus
     /**
-     * 是否已构建
+     * 安装依赖状态
      */
-    built: false,
+    installDependencies: StageStatus
+    /**
+     * 构建状态
+     */
+    build: StageStatus
+  }>({
+    status: 'starting' as StepStatus,
+    mount: '',
+    installDependencies: '',
+    build: '',
   })
+
+  /**
+   * 初始化终端
+   */
+  async function initTerminal(el?: HTMLElement) {
+    const fitAddon = new FitAddon()
+    const terminal = new Terminal({
+      convertEol: true,
+    })
+    terminal.loadAddon(fitAddon)
+    terminal.open(el || document.querySelector('.terminal')!)
+
+    terminalRef.value = terminal
+    fitAddon.fit()
+
+    const shellProcess = await startShell(terminal)
+    window.addEventListener('resize', () => {
+      fitAddon.fit()
+      shellProcess.resize({
+        cols: terminal.cols,
+        rows: terminal.rows,
+      })
+    })
+  }
+
+  async function startShell(terminal = terminalRef.value) {
+    if (!webContainerRef.value) {
+      throw new Error('WebContainer is not initialized. Call mount() first.')
+    }
+
+    const shellProcess = await webContainerRef.value.spawn('jsh')
+    shellProcess.output.pipeTo(
+      new WritableStream({
+        write(data) {
+          terminal?.write(data)
+        },
+      }),
+    )
+
+    // interactive
+    // const input = shellProcess.input.getWriter()
+    // terminal?.onData((data) => {
+    //   input.write(data)
+    // })
+
+    return shellProcess
+  };
 
   /**
    * Mount the WebContainer with the ADV project files.
    */
   async function mount() {
-    state.value.mounted = false
+    state.value.status = 'mounting'
+
+    state.value.mount = 'running'
     webContainerRef.value = await WebContainer.boot({
       // You can pass options here if needed
     })
 
     await webContainerRef.value.mount(advProjectFiles)
-    state.value.mounted = true
+    state.value.mount = 'done'
   }
 
-  async function installDependencies(terminal?: Terminal) {
+  async function installDependencies(terminal: Terminal | undefined = terminalRef.value) {
     if (!webContainerRef.value) {
       throw new Error('WebContainer is not initialized. Call mount() first.')
     }
 
+    state.value.status = 'installing'
+    state.value.installDependencies = 'running'
     // Logic to install dependencies
     const installProcess = await webContainerRef.value.spawn('pnpm', ['install'])
     const installExitCode = await installProcess.exit
@@ -52,7 +130,7 @@ export function useAdvWebContainer() {
       console.error('Failed to install dependencies', installExitCode)
     }
     else {
-      state.value.depsInstalled = true
+      state.value.installDependencies = 'done'
     }
 
     installProcess.output.pipeTo(new WritableStream({
@@ -68,11 +146,13 @@ export function useAdvWebContainer() {
     }))
   }
 
-  async function build(terminal?: Terminal) {
+  async function build(terminal: Terminal | undefined = terminalRef.value) {
     if (!webContainerRef.value) {
       throw new Error('WebContainer is not initialized. Call mount() first.')
     }
 
+    state.value.status = 'building'
+    state.value.build = 'running'
     const buildProcess = await webContainerRef.value.spawn('pnpm', ['build'])
     const buildExitCode = await buildProcess.exit
 
@@ -80,7 +160,7 @@ export function useAdvWebContainer() {
       console.error('Failed to build project', buildExitCode)
     }
     else {
-      state.value.built = true
+      state.value.build = 'done'
     }
 
     buildProcess.output.pipeTo(new WritableStream({
@@ -116,7 +196,12 @@ export function useAdvWebContainer() {
 
   return {
     state,
+    terminalRef,
     webContainerRef,
+
+    initTerminal,
+    startShell,
+
     mount,
     installDependencies,
     build,

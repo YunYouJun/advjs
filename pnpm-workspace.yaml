@@ -35,7 +35,7 @@ catalogs:
     markdown-it-link-attributes: ^4.0.1
     nuxt: ^4.0.3
     rollup: ^4.46.2
-    sass: ^1.89.2
+    sass: ^1.90.0
     shiki: ^3.9.2
     unbuild: ^3.6.0
     unocss: ^66.4.1
@@ -65,7 +65,7 @@ catalogs:
     prompts: ^2.4.2
     yargs: ^18.0.0
   dev:
-    '@antfu/eslint-config': ^5.1.0
+    '@antfu/eslint-config': ^5.2.0
     '@faker-js/faker': ^9.9.0
     '@unocss/eslint-plugin': ^66.4.1
     eslint: ^9.32.0

@@ -25,9 +25,11 @@
   "advjs": {
     "colorSchema": "both"
   },
+  "dependencies": {
+    "@iconify-json/ri": "catalog:icons"
+  },
   "devDependencies": {
     "@advjs/core": "workspace:*",
-    "@iconify-json/ri": "catalog:icons",
     "advjs": "workspace:*"
   }
 }

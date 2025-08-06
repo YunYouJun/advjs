@@ -12,3 +12,20 @@ intro:
   aka: 也叫
   whats-your-name: 输入你的名字
 not-found: 未找到页面
+
+webcontainer:
+  status-title: 当前状态
+  step:
+    start: 启动
+    mount: 挂载
+    install-dependencies: 安装依赖
+    build: 构建
+  status:
+    starting: 启动中...
+    mounting: 挂载中...
+    installing: 安装依赖中...
+    building: 构建中...
+    ready: 准备就绪
+  install-and-build: 安装并构建
+  download: 下载
+  download-disabled-tip: 在游戏构建成功后方可下载

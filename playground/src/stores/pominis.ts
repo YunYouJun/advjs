@@ -1,9 +1,12 @@
+import type { AdvGameConfig } from '../../../packages/types/src'
 import axios from 'axios'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
 axios.defaults.baseURL = import.meta.env.DEV ? 'http://localhost:3333/v1' : 'https://api.pominis.com/v1'
 
 export const usePominisStore = defineStore('pominis', () => {
+  const curPominisStory = ref<AdvGameConfig>()
+
   async function fetchPominisStory(params: {
     id: string
     token?: string
@@ -14,6 +17,7 @@ export const usePominisStore = defineStore('pominis', () => {
         axios.defaults.headers.common.Authorization = `Bearer ${params.token}`
       }
       const response = await axios.get(`/adv/stories/${params.id}`)
+      curPominisStory.value = response.data
       return response.data
     }
     catch (error) {
@@ -23,6 +27,7 @@ export const usePominisStore = defineStore('pominis', () => {
   }
 
   return {
+    curPominisStory,
     fetchPominisStory,
   }
 })

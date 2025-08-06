@@ -1,28 +1,31 @@
 <script setup lang="ts">
 import { isClient } from '@vueuse/core'
-import { Terminal } from '@xterm/xterm'
 
 // webcontainer
 import { consola } from 'consola'
 import { useAdvWebContainer } from '../../../packages/webcontainer/src/index'
 import '@xterm/xterm/css/xterm.css'
 
-const { webContainerRef, installDependencies, build, mount, state, downloadIndexHtml } = useAdvWebContainer()
 const terminalElRef = ref<HTMLElement>()
-
-const terminalRef = shallowRef<Terminal>()
+const {
+  webContainerRef,
+  installDependencies,
+  build,
+  mount,
+  state,
+  downloadIndexHtml,
+  initTerminal,
+} = useAdvWebContainer()
 
 onMounted(async () => {
   consola.info('mounted')
 
   if (isClient) {
-    consola.info('Init Terminal')
-    terminalRef.value = new Terminal({
-      convertEol: true,
-    })
-    terminalRef.value.open(terminalElRef.value || document.querySelector('.terminal')!)
-
+    consola.info('Mounting WebContainer...')
     await mount()
+
+    consola.info('Init Terminal')
+    await initTerminal(terminalElRef.value)
 
     if (!webContainerRef.value) {
       consola.error('WebContainer is not initialized')
@@ -36,32 +39,44 @@ onMounted(async () => {
     consola.info(packageJSON)
   }
 })
+
+async function installAndBuild() {
+  await installDependencies()
+  await build()
+}
 </script>
 
 <template>
   <div>
     Web Container
 
-    <div>
-      Mounted: {{ state.mounted }}
+    {{ state }}
 
-      Installed: {{ state.depsInstalled }}
-
-      Built: {{ state.built }}
-    </div>
-
-    <AdvButton @click="installDependencies(terminalRef)">
+    <AdvButton @click="installDependencies()">
       Install Dependencies
     </AdvButton>
 
-    <AdvButton @click="build(terminalRef)">
+    <AdvButton @click="build()">
       Build
     </AdvButton>
 
-    <AdvButton @click="downloadIndexHtml">
+    <AdvButton @click="installAndBuild()">
+      安装并构建
+    </AdvButton>
+
+    <AdvButton @click="downloadIndexHtml()">
       Download index.html
     </AdvButton>
 
     <div ref="terminalElRef" class="terminal" />
   </div>
 </template>
+
+<style>
+.terminal {
+  background-color: black;
+  padding: 4px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+</style>

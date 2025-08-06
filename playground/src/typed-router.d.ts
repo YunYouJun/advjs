@@ -22,6 +22,7 @@ declare module 'vue-router/auto-routes' {
     '/[...all]': RouteRecordInfo<'/[...all]', '/:all(.*)', { all: ParamValue<true> }, { all: ParamValue<false> }>,
     '/about': RouteRecordInfo<'/about', '/about', Record<never, never>, Record<never, never>>,
     '/debug': RouteRecordInfo<'/debug', '/debug', Record<never, never>, Record<never, never>>,
+    '/download': RouteRecordInfo<'/download', '/download', Record<never, never>, Record<never, never>>,
     '/game': RouteRecordInfo<'/game', '/game', Record<never, never>, Record<never, never>>,
     '/README': RouteRecordInfo<'/README', '/README', Record<never, never>, Record<never, never>>,
     '/restart': RouteRecordInfo<'/restart', '/restart', Record<never, never>, Record<never, never>>,
@@ -55,6 +56,10 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/debug.vue': {
       routes: '/debug'
+      views: never
+    }
+    'src/pages/download.vue': {
+      routes: '/download'
       views: never
     }
     'src/pages/game.vue': {

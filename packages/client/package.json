@@ -30,6 +30,9 @@
     "@advjs/parser": "workspace:*",
     "@advjs/types": "workspace:*",
     "@antfu/utils": "catalog:utils",
+    "@iconify-json/carbon": "catalog:icons",
+    "@iconify-json/mdi": "catalog:icons",
+    "@iconify-json/ri": "catalog:icons",
     "@unhead/vue": "catalog:frontend",
     "@vueuse/core": "catalog:frontend",
     "@vueuse/motion": "catalog:frontend",
@@ -47,7 +50,6 @@
     "vue-router": "catalog:frontend"
   },
   "devDependencies": {
-    "@iconify-json/mdi": "catalog:icons",
     "@types/nprogress": "catalog:types"
   }
 }

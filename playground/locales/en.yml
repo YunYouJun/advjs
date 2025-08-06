@@ -11,3 +11,20 @@ intro:
   hi: Hi, {name}!
   aka: Also known as
 not-found: Not found
+
+webcontainer:
+  status-title: Current Status
+  step:
+    start: Start
+    mount: Mount
+    install-dependencies: Install dependencies
+    build: Build
+  status:
+    starting: Starting...
+    mounting: Mounting...
+    installing: Installing dependencies...
+    building: Building...
+    ready: Ready
+  install-and-build: Install and build
+  download: Download
+  download-disabled-tip: Download is available after the game is built successfully.

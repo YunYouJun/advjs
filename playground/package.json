@@ -40,6 +40,7 @@
     "@vitejs/plugin-vue": "catalog:build",
     "@vue/test-utils": "catalog:test",
     "@webcontainer/api": "catalog:build",
+    "@xterm/addon-fit": "^0.10.0",
     "@xterm/xterm": "catalog:cli",
     "advjs": "workspace:*",
     "beasties": "catalog:build",
