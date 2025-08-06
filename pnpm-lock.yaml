@@ -1603,6 +1603,9 @@ importers:
       '@iconify-json/ri':
         specifier: catalog:icons
         version: 1.2.5
+      '@iconify-json/svg-spinners':
+        specifier: catalog:icons
+        version: 1.2.2
       '@intlify/unplugin-vue-i18n':
         specifier: catalog:build
         version: 6.0.8(@vue/compiler-dom@3.5.18)(eslint@9.32.0(jiti@2.5.1))(rollup@4.46.2)(typescript@5.9.2)(vue-i18n@11.1.11(vue@3.5.18(typescript@5.9.2)))(vue@3.5.18(typescript@5.9.2))
