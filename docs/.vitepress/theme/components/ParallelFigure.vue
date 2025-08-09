@@ -105,7 +105,7 @@ const endColor = computed(
               gradient-text
               from-cyan-400
               to-blue-600
-              bg-linear-to-r
+              bg-gradient-to-r
             "
         >ADV</b>
         <span>.JS</span>

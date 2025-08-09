@@ -45,7 +45,7 @@ footer:
 
 <div class="text-center font-light text-2xl" m="t-10">
 
-<div m="b-4" class="text-2xl font-normal gradient-text from-blue-600 to-green-500 bg-linear-to-r">
+<div m="b-4" class="text-2xl font-normal gradient-text from-blue-600 to-green-500 bg-gradient-to-r">
 
 愿能在未来的冒险中与你相遇
 
