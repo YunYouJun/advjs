@@ -39,7 +39,14 @@ export function defineThemeConfig<ThemeConfig>(config: Partial<ThemeConfig>) {
 /**
  * resolve adv.config.ts
  */
-export async function loadAdvConfig() {
+export async function loadAdvConfig(options: AdvEntryOptions) {
+  if (options.advConfig) {
+    return {
+      config: defu(options.advConfig, defaultAdvConfig) as AdvConfig,
+      configFile: '',
+    }
+  }
+
   const { config, configFile } = await loadConfig<AdvConfig>({
     name: 'adv',
     defaultConfig: defaultAdvConfig,
@@ -63,7 +70,7 @@ export async function loadAdvConfigs(options: AdvEntryOptions) {
     { gameConfig, gameConfigFile },
     { themeConfig, themeConfigFile },
   ] = await Promise.all([
-    loadAdvConfig(),
+    loadAdvConfig(options),
     loadAdvGameConfig(),
     loadAdvThemeConfig(options),
   ])

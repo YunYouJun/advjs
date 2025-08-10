@@ -118,7 +118,7 @@ catalogs:
     '@iconify-json/ri': ^1.2.5
     '@iconify-json/svg-spinners': ^1.2.2
     '@iconify-json/twemoji': ^1.2.2
-    '@iconify-json/vscode-icons': ^1.2.24
+    '@iconify-json/vscode-icons': ^1.2.25
     '@iconify/vue': ^5.0.0
   test:
     '@playwright/test': ^1.54.2

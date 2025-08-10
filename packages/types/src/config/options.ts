@@ -1,4 +1,4 @@
-import type { AdvData, MakeRequired, ResolvedAdvPlugin } from '@advjs/types'
+import type { AdvConfig, AdvData, MakeRequired, ResolvedAdvPlugin } from '@advjs/types'
 import type { ConfigEnv, LogLevel } from 'vite'
 
 /**
@@ -49,6 +49,11 @@ export interface AdvBaseEntryOptions {
    * log level
    */
   log?: LogLevel
+
+  /**
+   * advConfig
+   */
+  advConfig?: Partial<AdvConfig>
 }
 
 export interface AdvDevOptions {

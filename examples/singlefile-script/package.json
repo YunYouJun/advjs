@@ -1,0 +1,12 @@
+{
+  "type": "module",
+  "scripts": {
+    "build": "tsx scripts/build.ts"
+  },
+  "devDependencies": {
+    "@advjs/plugin-pominis": "workspace:^",
+    "@advjs/theme-pominis": "workspace:^",
+    "advjs": "workspace:^",
+    "tsx": "^4.20.3"
+  }
+}

@@ -85,7 +85,7 @@ export async function advDev(options: AdvDevOptions & AdvBaseEntryOptions) {
           const file = Object.keys(loadedSource)[0]
 
           if (file.endsWith('adv.config.ts')) {
-            const { config } = await loadAdvConfig()
+            const { config } = await loadAdvConfig(options)
             return {
               ...data,
               config,

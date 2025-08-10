@@ -1,7 +1,7 @@
 import type { Connect } from 'vite'
 import { fileURLToPath } from 'node:url'
 import { createJiti } from 'jiti'
-import { commonAlias } from '../../../shared/node'
+// import { commonAlias } from '../../../shared/node/vite'
 
 type Jiti = ReturnType<typeof createJiti>
 let jiti: Jiti | undefined
@@ -9,12 +9,12 @@ export function loadModule<T = unknown>(absolutePath: string): Promise<T> {
   jiti ??= createJiti(fileURLToPath(import.meta.url), {
     // Allows changes to take effect
     moduleCache: false,
-    alias: commonAlias.reduce((acc, { find, replacement }) => {
-      if (typeof find === 'string') {
-        acc[find] = replacement
-      }
-      return acc
-    }, {} as Record<string, string>),
+    // alias: commonAlias.reduce((acc, { find, replacement }) => {
+    //   if (typeof find === 'string') {
+    //     acc[find] = replacement
+    //   }
+    //   return acc
+    // }, {} as Record<string, string>),
   })
   return jiti.import(absolutePath) as Promise<T>
 }

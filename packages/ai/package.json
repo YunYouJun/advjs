@@ -1,7 +1,7 @@
 {
   "name": "@advjs/ai",
   "type": "module",
-  "version": "0.1.0-beta.6",
+  "version": "0.1.0",
   "description": "AI module for AdvJS",
   "author": {
     "name": "YunYouJun"

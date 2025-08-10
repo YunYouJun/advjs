@@ -5,13 +5,11 @@
   "scripts": {
     "dev": "adv dev",
     "build": "npm run build:singlefile",
-    "build:scripts": "tsx scripts/build.ts",
     "build:adv": "adv build",
     "build:singlefile": "adv build --singlefile"
   },
   "devDependencies": {
     "@advjs/theme-pominis": "workspace:^",
-    "advjs": "workspace:^",
-    "tsx": "^4.20.3"
+    "advjs": "workspace:^"
   }
 }
