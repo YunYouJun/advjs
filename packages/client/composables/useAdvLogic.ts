@@ -107,11 +107,14 @@ export function useAdvLogic($adv: AdvContext) {
         // watch dialog in AdvDialogBox
 
         // sceneId 存在则自动切换场景
-        const { sceneId = '', bgmThemeId = '' } = node as AdvDialoguesNode
+        const { sceneId = '', bgmThemeId = '', bgmSrc = '' } = node as AdvDialoguesNode
         if (sceneId) {
           await $adv.pixiGame?.SceneSystem.load(sceneId)
         }
-        if (bgmThemeId) {
+        if (bgmSrc) {
+          $adv.$bgm.playBgmBySrc(bgmSrc)
+        }
+        else if (bgmThemeId) {
           $adv.$bgm.playBgm(bgmThemeId)
         }
         break

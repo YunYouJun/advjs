@@ -1,7 +1,7 @@
-import type { ResolvedAdvOptions } from '@advjs/types'
+import type { AdvMusic, ResolvedAdvOptions } from '@advjs/types'
 import type { PominisAIVSConfig } from './types'
 import { consola } from 'consola'
-import { convertPominisAItoAdvConfig } from '../shared'
+import { cdnDomain, convertPominisAItoAdvConfig } from '../shared'
 import { fetchImageAsBase64, isOnlineImageUrl } from './utils'
 
 /**
@@ -77,5 +77,24 @@ export async function handlePominisAdapter(options: ResolvedAdvOptions, pominisC
     else {
       consola.log('No online images found to convert')
     }
+
+    /**
+     * 替换 bgmThemeId 为 bgmSrc
+     */
+    gameConfig.chapters.forEach((chapter) => {
+      chapter.nodes.forEach((node) => {
+        if ('bgmThemeId' in node && node.bgmThemeId) {
+          const bgmKey = node.bgmThemeId
+          const bgmLibrary = (gameConfig.bgm?.library || {}) as Record<string, AdvMusic>
+          const cdnUrl = options.data.config.cdn.prefix || cdnDomain
+          const bgmName = bgmLibrary[bgmKey]?.src || bgmKey
+          return `${cdnUrl}/bgms/library/${bgmName}.mp3`
+        }
+      })
+    })
+
+    /**
+     * covert audio to base64
+     */
   }
 }

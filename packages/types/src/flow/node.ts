@@ -110,6 +110,10 @@ export interface AdvDialoguesNode extends AdvBaseNode {
    * 背景音乐 ID
    */
   bgmThemeId?: string
+  /**
+   * bgm src
+   */
+  bgmSrc?: string
 }
 
 /**

@@ -9,11 +9,19 @@ import { ref } from 'vue'
  * @param $adv
  */
 export function useAdvBgm($adv: AdvContext) {
+  /**
+   * key is src
+   */
   const bgmMap = new Map<string, Howl>()
 
   const volume = ref(0.5)
   const isMuted = ref(false)
 
+  /**
+   * 获取背景音乐的源地址
+   * @param bgmKey 背景音乐的键
+   * @returns 背景音乐的源地址
+   */
   function getBgmSrc(bgmKey: string) {
     const bgmLibrary = ($adv.gameConfig.value.bgm?.library || {}) as Record<string, AdvMusic>
     const cdnUrl = $adv.config.value.cdn.prefix || 'https://cos.advjs.yunle.fun'
@@ -21,7 +29,65 @@ export function useAdvBgm($adv: AdvContext) {
     return `${cdnUrl}/bgms/library/${bgmName}.mp3`
   }
 
+  /**
+   * play bgm by src
+   */
+  function playBgmBySrc(src: string) {
+    if (bgmMap.has(src)) {
+      const sound = bgmMap.get(src)
+      if (sound && !sound.playing()) {
+        sound.play()
+      }
+    }
+    else {
+      const sound = new Howl({
+        src: [src],
+        volume: isMuted.value ? 0 : volume.value,
+        loop: true,
+      })
+      sound.play()
+      bgmMap.set(src, sound)
+    }
+  }
+
+  /**
+   * 停止之外的所有背景音乐
+   */
+  function stopOtherBgmBySrc(src: string) {
+    for (const [key, sound] of bgmMap.entries()) {
+      if (key !== src && sound.playing()) {
+        sound.stop()
+      }
+    }
+  }
+
+  /**
+   * pause bgm by src
+   */
+  function pauseBgmBySrc(src: string) {
+    const sound = bgmMap.get(src)
+    if (sound) {
+      sound.pause()
+    }
+  }
+
+  /**
+   * stop bgm by src
+   */
+  function stopBgmBySrc(src: string) {
+    const sound = bgmMap.get(src)
+    if (sound) {
+      sound.stop()
+      bgmMap.delete(src)
+    }
+  }
+
   return {
+    playBgmBySrc,
+    pauseBgmBySrc,
+    stopBgmBySrc,
+    stopOtherBgmBySrc,
+
     /**
      * 播放指定的背景音乐
      * @param bgmId
@@ -29,57 +95,23 @@ export function useAdvBgm($adv: AdvContext) {
     playBgm: (bgmId: string) => {
       const bgmLibrary = $adv.gameConfig.value.bgm?.library || {}
       const bgm = (bgmLibrary as Record<string, AdvMusic>)[bgmId]
+      const bgmSrc = getBgmSrc(bgm.name)
+      stopOtherBgmBySrc(bgmSrc)
 
-      /**
-       * 停止 bgmId 之外的所有背景音乐
-       */
-      for (const [name, sound] of bgmMap.entries()) {
-        if (name !== bgm.name && sound.playing()) {
-          sound.stop()
-          bgmMap.delete(name)
-        }
-      }
-
-      if (bgm) {
-        if (bgmMap.has(bgm.name)) {
-          const sound = bgmMap.get(bgm.name)
-          if (!sound?.playing()) {
-            sound?.play()
-          }
-          // continue
-        }
-        else {
-          const src = getBgmSrc(bgm.name)
-          const sound = new Howl({
-            src: [src],
-            volume: isMuted.value ? 0 : volume.value,
-            loop: true,
-          })
-          sound.play()
-          bgmMap.set(bgm.name, sound)
-        }
-      }
+      playBgmBySrc(bgmSrc)
     },
+
     pauseBgm: (bgmId: string) => {
       const bgmLibrary = $adv.gameConfig.value.bgm?.library || {}
       const bgm = (bgmLibrary as Record<string, AdvMusic>)[bgmId]
-      if (bgm) {
-        const sound = bgmMap.get(bgm.name)
-        if (sound) {
-          sound.pause()
-        }
-      }
+      const bgmSrc = getBgmSrc(bgm.name)
+      pauseBgmBySrc(bgmSrc)
     },
     stopBgm: (bgmId: string) => {
       const bgmLibrary = $adv.gameConfig.value.bgm?.library || {}
       const bgm = (bgmLibrary as Record<string, AdvMusic>)[bgmId]
-      if (bgm) {
-        const sound = bgmMap.get(bgm.name)
-        if (sound) {
-          sound.stop()
-          bgmMap.delete(bgm.name)
-        }
-      }
+      const bgmSrc = getBgmSrc(bgm.name)
+      stopBgmBySrc(bgmSrc)
     },
     play() {
       for (const sound of bgmMap.values()) {

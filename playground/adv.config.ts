@@ -7,4 +7,9 @@ export default defineAdvConfig({
   plugins: [
     pluginPominis({}),
   ],
+
+  cdn: {
+    enable: true,
+    prefix: 'https://cdn.pominis.com',
+  },
 })

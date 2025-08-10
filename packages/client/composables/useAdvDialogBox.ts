@@ -131,8 +131,12 @@ export function useAdvDialogBox() {
     const gameConfig = $adv.gameConfig.value
     const curName = curCharacter.value ? curCharacter.value.name : ''
     const avatar = gameConfig.characters?.find(item => item.name === curName || item.alias === curName || (Array.isArray(item.alias) && item.alias.includes(curName)))?.avatar
-    const prefix = advConfig.cdn.enable ? (advConfig.cdn.prefix || '') : ''
-    return avatar ? prefix + avatar : ''
+
+    if (advConfig.cdn.enable && !avatar?.startsWith('http')) {
+      const prefix = advConfig.cdn.prefix || ''
+      return prefix + avatar
+    }
+    return avatar
   })
 
   // trigger transition
