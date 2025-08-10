@@ -1,6 +1,7 @@
 import type { AdvMusic } from '@advjs/types'
 import type { AdvContext } from '../types'
 
+import { getBgmSrcUrl } from '@advjs/core'
 import { Howl } from 'howler'
 import { ref } from 'vue'
 
@@ -26,7 +27,7 @@ export function useAdvBgm($adv: AdvContext) {
     const bgmLibrary = ($adv.gameConfig.value.bgm?.library || {}) as Record<string, AdvMusic>
     const cdnUrl = $adv.config.value.cdn.prefix || 'https://cos.advjs.yunle.fun'
     const bgmName = bgmLibrary[bgmKey]?.src || bgmKey
-    return `${cdnUrl}/bgms/library/${bgmName}.mp3`
+    return getBgmSrcUrl({ cdnUrl, bgmName })
   }
 
   /**

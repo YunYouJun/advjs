@@ -171,12 +171,12 @@
           ],
           "choices": [
             {
-              "targetId": "ch1_node_07",
-              "text": "用自己所有的积蓄交换魔法稻草。"
+              "text": "用自己所有的积蓄交换魔法稻草。",
+              "targetId": "ch1_node_07"
             },
             {
-              "targetId": "ch1_node_08",
-              "text": "拒绝交易，自己收集普通稻草。"
+              "text": "拒绝交易，自己收集普通稻草。",
+              "targetId": "ch1_node_08"
             }
           ],
           "next": null,
@@ -454,12 +454,12 @@
           ],
           "choices": [
             {
-              "targetId": "ch1_node_16",
-              "text": "向猪二哥的木屋求救。"
+              "text": "向猪二哥的木屋求救。",
+              "targetId": "ch1_node_16"
             },
             {
-              "targetId": "ch1_node_17",
-              "text": "不信任二哥，继续往大哥的石山方向跑。"
+              "text": "不信任二哥，继续往大哥的石山方向跑。",
+              "targetId": "ch1_node_17"
             }
           ],
           "next": null,
@@ -581,12 +581,12 @@
           ],
           "choices": [
             {
-              "targetId": "ch1_node_03",
-              "text": "“我们应该团结在一起！”"
+              "text": "“我们应该团结在一起！”",
+              "targetId": "ch1_node_03"
             },
             {
-              "targetId": "ch1_node_04",
-              "text": "“不，我们应该分开，这样机会更大。”"
+              "text": "“不，我们应该分开，这样机会更大。”",
+              "targetId": "ch1_node_04"
             }
           ],
           "next": null,
@@ -778,12 +778,12 @@
           ],
           "choices": [
             {
-              "targetId": "ch1_node_11",
-              "text": "“不！快滚开！”"
+              "text": "“不！快滚开！”",
+              "targetId": "ch1_node_11"
             },
             {
-              "targetId": "ch1_node_12",
-              "text": "（保持沉默，希望能躲过去）"
+              "text": "（保持沉默，希望能躲过去）",
+              "targetId": "ch1_node_12"
             }
           ],
           "next": null,

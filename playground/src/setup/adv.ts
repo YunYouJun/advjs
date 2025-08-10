@@ -11,6 +11,12 @@ const customAdvConfig: Partial<AdvConfig> = {
     enable: true,
     prefix: 'https://cdn.pominis.com',
   },
+  gameConfig: {
+    bgm: {
+      autoplay: true,
+      library: 'https://cdn.pominis.com/bgms/bgm-library.json',
+    },
+  },
 }
 
 export const install: UserModule = ({ app }) => {

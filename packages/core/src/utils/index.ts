@@ -1,3 +1,4 @@
+export * from './bgm'
 export * from './device'
 export * from './functions'
 export * from './ns'

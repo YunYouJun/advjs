@@ -956,6 +956,18 @@ importers:
       advjs:
         specifier: workspace:^
         version: link:../../packages/advjs
+
+  examples/singlefile-script:
+    devDependencies:
+      '@advjs/plugin-pominis':
+        specifier: workspace:^
+        version: link:../../plugins/plugin-pominis
+      '@advjs/theme-pominis':
+        specifier: workspace:^
+        version: link:../../themes/theme-pominis
+      advjs:
+        specifier: workspace:^
+        version: link:../../packages/advjs
       tsx:
         specifier: ^4.20.3
         version: 4.20.3

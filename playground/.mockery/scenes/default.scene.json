@@ -1,4 +1,4 @@
 {
   "$schema": "../schemas/scene.schema.json",
-  "/v1/adv/stories/:storyId": "两个章节"
+  "/v1/adv/stories/:storyId": "Normal Story"
 }
