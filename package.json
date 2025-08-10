@@ -21,10 +21,11 @@
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "build": "pnpm -r --filter=\"./packages/*\" run build",
-    "postbuild": "pnpm run build:schema",
+    "build": "pnpm build:packages",
+    "prepublishOnly": "pnpm run build:schema",
     "build:advjs": "pnpm types:build && pnpm parser:build && pnpm core:build && pnpm advjs:build",
     "build:demo": "pnpm -C demo/starter run build",
+    "build:packages": "pnpm -r --filter=\"./packages/*\" run build",
     "build:schema": "tsx scripts/schema.ts",
     "build:play": "pnpm run play:build",
     "build:plugins": "pnpm -r --parallel --filter=\"./plugins/*\" run build",
