@@ -35,7 +35,6 @@
     "node": "^20.0.0 || >=22.0.0"
   },
   "scripts": {
-    "postinstall": "npm run copy",
     "build": "unbuild",
     "copy": "tsx scripts/copy.ts",
     "dev": "unbuild --stub",

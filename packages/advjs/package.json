@@ -66,7 +66,7 @@
     "global-directory": "catalog:utils",
     "jiti": "catalog:utils",
     "markdown-it-link-attributes": "catalog:build",
-    "mlly": "^1.7.4",
+    "mlly": "^1.8.0",
     "open": "catalog:utils",
     "pathe": "catalog:utils",
     "prompts": "catalog:cli",

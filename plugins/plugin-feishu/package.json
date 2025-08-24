@@ -1,8 +1,7 @@
 {
   "name": "@advjs/plugin-feishu",
   "version": "1.0.0",
-  "packageManager": "pnpm@10.14.0",
-  "description": "",
+  "description": "Feishu API for ADV.JS",
   "author": "",
   "license": "ISC",
   "keywords": [],
@@ -13,7 +12,7 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@larksuiteoapi/node-sdk": "^1.54.0",
+    "@larksuiteoapi/node-sdk": "^1.55.0",
     "body-parser": "^2.2.0",
     "consola": "catalog:cli",
     "dotenv": "catalog:cli",
