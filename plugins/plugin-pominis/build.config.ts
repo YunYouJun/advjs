@@ -10,10 +10,12 @@ export default defineBuildConfig({
   externals: [
     'advjs',
     '@advjs/client',
+    '@advjs/core',
     '@advjs/shared',
     '@advjs/types',
 
     'vue',
+    'fs-extra',
   ],
   rollup: {
     inlineDependencies: [

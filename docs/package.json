@@ -20,7 +20,7 @@
     "@iconify-json/file-icons": "catalog:icons",
     "@iconify-json/logos": "catalog:icons",
     "@iconify-json/vscode-icons": "catalog:icons",
-    "@shikijs/vitepress-twoslash": "^3.11.0",
+    "@shikijs/vitepress-twoslash": "^3.12.0",
     "@yunyoujun/docs": "^0.1.12",
     "mermaid": "^11.10.1",
     "typedoc-plugin-markdown": "^4.8.1",

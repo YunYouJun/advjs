@@ -1,7 +1,7 @@
 {
   "name": "@advjs/core",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Core library for AdvJS, providing essential functionalities and utilities.",
   "exports": {
     ".": {

@@ -1,7 +1,7 @@
 {
   "name": "@advjs/plugin-pominis",
   "type": "module",
-  "version": "0.0.2",
+  "version": "0.0.5",
   "description": "Pominis Adapter Plugin for ADV.JS",
   "author": {
     "name": "YunYouJun",
@@ -11,6 +11,7 @@
   "license": "MPL-2.0",
   "exports": {
     ".": "./dist/index.mjs",
+    "./client": "./dist/client/index.mjs",
     "./*": "./*"
   },
   "main": "dist/index.mjs",
@@ -24,7 +25,8 @@
     "dev": "unbuild --stub",
     "prepublishOnly": "npm run build",
     "start": "tsx src/index.ts",
-    "test": "vitest"
+    "test": "vitest",
+    "release": "bumpp --no-commit --no-push --no-tag && pnpm -r publish --tag beta --no-git-checks"
   },
   "dependencies": {
     "axios": "^1.11.0",

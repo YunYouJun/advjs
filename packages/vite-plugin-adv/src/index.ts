@@ -1,5 +1,5 @@
 import type { ResolvedAdvOptions } from '@advjs/types'
-import type { Plugin } from 'vite'
+import type { PluginOption } from 'vite'
 import type { AdvPluginOptions } from '../../advjs/node'
 import path from 'node:path'
 import process from 'node:process'
@@ -17,7 +17,7 @@ import { vitePluginAdv } from './adv'
 
 // components?: ArgumentsType<typeof Components>[0]
 
-export default function advFramework(options: ResolvedAdvOptions, pluginOptions: AdvPluginOptions): Plugin[] {
+export default function advFramework(options: ResolvedAdvOptions, pluginOptions: AdvPluginOptions): PluginOption[] {
   let { roots = [process.cwd()], theme = 'default' } = options
 
   const themeDir = path.resolve(themesDir, `theme-${theme}`)

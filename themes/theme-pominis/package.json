@@ -19,11 +19,14 @@
   },
   "main": "index.ts",
   "engines": {
-    "node": "^20.0.0 || >=22.0.0",
+    "node": "^20.19.0 || >=22.12.0",
     "advjs": ">=0.0.1"
   },
   "advjs": {
     "colorSchema": "both"
+  },
+  "scripts": {
+    "release": "bumpp --no-commit --no-push --no-tag && pnpm -r publish --tag beta --no-git-checks"
   },
   "devDependencies": {
     "@advjs/core": "workspace:*",

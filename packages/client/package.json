@@ -1,7 +1,7 @@
 {
   "name": "@advjs/client",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "ADV.JS Client",
   "author": {
     "email": "me@yunyoujun.cn",
@@ -23,7 +23,7 @@
   },
   "main": "index.ts",
   "engines": {
-    "node": "^20.0.0 || >=22.0.0"
+    "node": "^20.19.0 || >=22.12.0"
   },
   "dependencies": {
     "@advjs/core": "workspace:*",

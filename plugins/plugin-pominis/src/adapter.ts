@@ -98,7 +98,7 @@ export async function handlePominisAdapter(options: ResolvedAdvOptions, pominisC
     }
     gameConfig.chapters.forEach((chapter) => {
       chapter.nodes.forEach((node) => {
-        if ('bgmThemeId' in node && node.bgmThemeId) {
+        if ('bgmThemeId' in node && node.bgmThemeId && node.bgmThemeId !== 'silence') {
           const bgmKey = node.bgmThemeId
           const cdnUrl = options.data.config.cdn.prefix || cdnDomain
           const bgmName = bgmLibrary[bgmKey]?.name || ''

@@ -48,8 +48,6 @@
       ]
     },
     "resolveJsonModule": true,
-    // https://github.com/JohnCampionJr/vite-plugin-vue-layouts/issues/111#issuecomment-1549482642
-    "resolvePackageJsonExports": false,
     "types": [
       "@types/wicg-file-system-access",
       "@webgpu/types",
@@ -58,12 +56,9 @@
       "@babylonjs/gui",
       "@babylonjs/materials",
       "babylon-vrm-loader",
-      "node",
       "vitest",
-      "vite",
       "vite/client",
-      // https://github.com/JohnCampionJr/vite-plugin-vue-layouts/issues/111#issuecomment-1549482642
-      "vite-plugin-vue-layouts/client.d.ts",
+      "vite-plugin-vue-layouts/client",
       "vite-plugin-pwa/client",
       "unplugin-vue-router/client"
     ],
