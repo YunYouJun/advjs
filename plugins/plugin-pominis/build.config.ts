@@ -16,6 +16,9 @@ export default defineBuildConfig({
 
     'vue',
     'fs-extra',
+
+    // advjs child deps
+    'defu',
   ],
   rollup: {
     inlineDependencies: [

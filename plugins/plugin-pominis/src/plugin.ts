@@ -1,5 +1,6 @@
 import type { AdvPlugin } from '@advjs/types'
 import path from 'node:path'
+import { defu } from 'defu'
 import fs from 'fs-extra'
 import { name } from '../package.json'
 import { handlePominisAdapter } from './adapter'
@@ -14,16 +15,25 @@ export interface PominisPluginOptions {
 
   /**
    * 是否捆绑资源文件 到 index.html 中
-   *
-   * @default true
    */
-  bundleAssets?: boolean | {
+  bundleAssets?: {
+    enable?: boolean
     /**
      * 音频文件
      *
      * @default true
      */
-    audio?: boolean
+    audio?: {
+      /**
+       * @default true
+       */
+      enable?: boolean
+      /**
+       * 最大并发数
+       * @default 4
+       */
+      concurrency?: number
+    }
     /**
      * 图片文件
      *
@@ -33,10 +43,26 @@ export interface PominisPluginOptions {
   }
 }
 
+export const defaultPominisPluginOptions: PominisPluginOptions = {
+  storyId: '',
+  bundleAssets: {
+    audio: {
+      enable: true,
+      concurrency: 4,
+    },
+    image: true,
+  },
+}
+
 export function pluginPominis(pluginOptions?: PominisPluginOptions): AdvPlugin {
   return {
     name,
     async optionsResolved(options) {
+      /**
+       * merge options with default
+       */
+      pluginOptions = defu(pluginOptions, defaultPominisPluginOptions)
+
       // convert
       const storyId = pluginOptions?.storyId
       if (storyId) {
@@ -51,7 +77,7 @@ export function pluginPominis(pluginOptions?: PominisPluginOptions): AdvPlugin {
         const distConfigPath = path.resolve(distFolder, `${storyId}.json`)
         await fs.writeJson(distConfigPath, pominisConfig, { spaces: 2, EOL: '\n' })
 
-        await handlePominisAdapter(options, pominisConfig)
+        await handlePominisAdapter(options, pluginOptions, pominisConfig)
       }
     },
   }

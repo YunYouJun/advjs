@@ -39,7 +39,7 @@ catalogs:
     shiki: ^3.12.0
     unbuild: ^3.6.1
     unocss: ^66.5.0
-    unplugin: ^2.3.9
+    unplugin: ^2.3.10
     unplugin-auto-import: ^20.1.0
     unplugin-vue-components: ^29.0.0
     unplugin-vue-markdown: ^29.1.0

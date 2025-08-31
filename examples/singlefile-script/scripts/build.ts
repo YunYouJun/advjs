@@ -27,6 +27,13 @@ async function main() {
           // storyId: '903ac93a-cec0-4f8c-a91f-053317b5a03a', // example storyId, replace with actual
           // storyId: '404bfe4e-6d75-41a1-95c8-258d1fe7b2b5', // example storyId, replace with actual
           storyId: '608a2398-5574-4bad-a52c-7322a1f0ec97', // example storyId, replace with actual
+
+          bundleAssets: {
+            enable: true,
+            audio: {
+              concurrency: 3,
+            },
+          },
         }),
       ],
     },
