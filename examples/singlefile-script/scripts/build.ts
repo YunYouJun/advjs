@@ -31,7 +31,10 @@ async function main() {
           bundleAssets: {
             enable: true,
             audio: {
-              concurrency: 3,
+              concurrency: 1,
+            },
+            image: {
+              concurrency: 1,
             },
           },
         }),

@@ -18,17 +18,17 @@ const defaultBonesRotation: Record<keyof PoseEulerType, {
   y: Ref<number>
   z: Ref<number>
 }>
-= Object.fromEntries(
-  HumanBones.map(bone => [bone as (keyof PoseEulerType), {
-    x: ref(0),
-    y: ref(0),
-    z: ref(0),
-  }]),
-) as Record<keyof PoseEulerType, {
-  x: Ref<number>
-  y: Ref<number>
-  z: Ref<number>
-}>
+  = Object.fromEntries(
+    HumanBones.map(bone => [bone as (keyof PoseEulerType), {
+      x: ref(0),
+      y: ref(0),
+      z: ref(0),
+    }]),
+  ) as Record<keyof PoseEulerType, {
+    x: Ref<number>
+    y: Ref<number>
+    z: Ref<number>
+  }>
 
 HumanBones.forEach((bone) => {
   defaultBonesRotation[bone] = {

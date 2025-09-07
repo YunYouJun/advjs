@@ -12,6 +12,10 @@ export interface PominisPluginOptions {
    * @example '6c91aa92-3f4a-462e-89e8-05040602e768'
    */
   storyId?: string
+  /**
+   * token for private story
+   */
+  token?: string
 
   /**
    * 是否捆绑资源文件 到 index.html 中
@@ -39,7 +43,17 @@ export interface PominisPluginOptions {
      *
      * @default true
      */
-    image?: boolean
+    image?: {
+      /**
+       * @default true
+       */
+      enable?: boolean
+      /**
+       * 最大并发数
+       * @default 4
+       */
+      concurrency?: number
+    } | boolean
   }
 }
 
@@ -50,7 +64,10 @@ export const defaultPominisPluginOptions: PominisPluginOptions = {
       enable: true,
       concurrency: 4,
     },
-    image: true,
+    image: {
+      enable: true,
+      concurrency: 4,
+    },
   },
 }
 
@@ -68,6 +85,7 @@ export function pluginPominis(pluginOptions?: PominisPluginOptions): AdvPlugin {
       if (storyId) {
         const pominisConfig = await fetchPominisStory({
           storyId,
+          token: pluginOptions?.token,
         })
         /**
          * for debug
