@@ -24,7 +24,7 @@ const historyDialogsList = ref<HistoryDialog[]>([])
 
 onMounted(() => {
   const curChapter = $adv.store.curChapter
-  const startNodeId = $adv.store.curChapter?.nodes[0].id || ''
+  const startNodeId = curChapter?.startNodeId || curChapter?.nodes[0].id || ''
   const startNode = $adv.runtime.chaptersMap.get(curChapter?.id || '')?.nodesMap.get(startNodeId)
 
   if (startNode?.type === 'fountain') {

@@ -21,8 +21,9 @@ onMounted(async () => {
   /**
    * 开始节点 默认为第一个章节的第一个节点
    */
-  const startChapterId = $adv.gameConfig.value?.chapters?.[0]?.id
-  const startNodeId = $adv.gameConfig.value?.chapters?.[0]?.nodes?.[0]?.id
+  const startChapter = $adv.gameConfig.value?.chapters?.[0]
+  const startChapterId = startChapter?.id
+  const startNodeId = startChapter.startNodeId || startChapter?.nodes?.[0]?.id
   if (!startChapterId) {
     console.error('No start chapter found in game config')
     return

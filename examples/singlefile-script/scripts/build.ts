@@ -26,19 +26,28 @@ async function main() {
           // storyId: '6c91aa92-3f4a-462e-89e8-05040602e768', // example storyId, replace with actual
           // storyId: '903ac93a-cec0-4f8c-a91f-053317b5a03a', // example storyId, replace with actual
           // storyId: '404bfe4e-6d75-41a1-95c8-258d1fe7b2b5', // example storyId, replace with actual
+          // storyId: '608a2398-5574-4bad-a52c-7322a1f0ec97', // example storyId, replace with actual
           storyId: '608a2398-5574-4bad-a52c-7322a1f0ec97', // example storyId, replace with actual
 
           bundleAssets: {
             enable: true,
-            audio: {
-              concurrency: 1,
-            },
-            image: {
-              concurrency: 1,
-            },
+            audio: false,
+            image: false,
+            // audio: {
+            //   concurrency: 1,
+            // },
+            // image: {
+            //   concurrency: 1,
+            // },
           },
         }),
       ],
+    },
+
+    vite: {
+      build: {
+        emptyOutDir: false,
+      },
     },
   })
 }

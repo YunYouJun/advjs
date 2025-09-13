@@ -1,5 +1,6 @@
 import type { AdvPlugin } from '@advjs/types'
 import path from 'node:path'
+import { consola } from 'consola'
 import { defu } from 'defu'
 import fs from 'fs-extra'
 import { name } from '../package.json'
@@ -25,11 +26,11 @@ export interface PominisPluginOptions {
     /**
      * 音频文件
      *
-     * @default true
+     * @default false
      */
     audio?: {
       /**
-       * @default true
+       * @default false
        */
       enable?: boolean
       /**
@@ -37,15 +38,15 @@ export interface PominisPluginOptions {
        * @default 4
        */
       concurrency?: number
-    }
+    } | boolean
     /**
      * 图片文件
      *
-     * @default true
+     * @default false
      */
     image?: {
       /**
-       * @default true
+       * @default false
        */
       enable?: boolean
       /**
@@ -60,14 +61,16 @@ export interface PominisPluginOptions {
 export const defaultPominisPluginOptions: PominisPluginOptions = {
   storyId: '',
   bundleAssets: {
-    audio: {
-      enable: true,
-      concurrency: 4,
-    },
-    image: {
-      enable: true,
-      concurrency: 4,
-    },
+    audio: false,
+    image: false,
+    // audio: {
+    //   enable: true,
+    //   concurrency: 4,
+    // },
+    // image: {
+    //   enable: true,
+    //   concurrency: 4,
+    // },
   },
 }
 
@@ -94,6 +97,7 @@ export function pluginPominis(pluginOptions?: PominisPluginOptions): AdvPlugin {
         await fs.ensureDir(distFolder)
         const distConfigPath = path.resolve(distFolder, `${storyId}.json`)
         await fs.writeJson(distConfigPath, pominisConfig, { spaces: 2, EOL: '\n' })
+        consola.debug(`Pominis story config saved to: ${distConfigPath}`)
 
         await handlePominisAdapter(options, pluginOptions, pominisConfig)
       }

@@ -1,5 +1,5 @@
 import type { AdvConfig, AdvData, MakeRequired, ResolvedAdvPlugin } from '@advjs/types'
-import type { ConfigEnv, LogLevel } from 'vite'
+import type { ConfigEnv, InlineConfig, LogLevel } from 'vite'
 
 /**
  * adv build options
@@ -15,6 +15,11 @@ export interface AdvBuildOptions {
    * @default 'dist'
    */
   outDir?: string
+
+  /**
+   * vite config
+   */
+  vite?: InlineConfig
 }
 
 export interface AdvBaseEntryOptions {

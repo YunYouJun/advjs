@@ -2,7 +2,7 @@ import type { AdvEntryOptions, ResolvedAdvOptions } from '@advjs/types'
 import type { InlineConfig, ResolvedConfig } from 'vite'
 import path, { resolve } from 'node:path'
 import fs from 'fs-extra'
-import { build as viteBuild } from 'vite'
+import { mergeConfig, build as viteBuild } from 'vite'
 import { printInfo } from '../../cli/utils'
 import { resolveOptions } from '../../options'
 import setupIndexHtml from '../../setups/indexHtml'
@@ -59,10 +59,12 @@ export async function advBuild(entryOptions: AdvEntryOptions) {
   const options = await resolveOptions(entryOptions, 'build')
 
   printInfo(options)
-  await build(options, {
+
+  const mergedViteConfig = mergeConfig({
     base: options.base || '/',
     build: {
       outDir: path.resolve(options.userRoot, options.outDir || 'dist'),
     },
-  })
+  }, entryOptions.vite || {})
+  await build(options, mergedViteConfig)
 }

@@ -105,7 +105,6 @@ export function useAdvLogic($adv: AdvContext) {
       // flow node
       case 'dialogues': {
         // watch dialog in AdvDialogBox
-
         // sceneId 存在则自动切换场景
         const { sceneId = '', bgmThemeId = '', bgmSrc = '' } = node as AdvDialoguesNode
         if (sceneId) {

@@ -56,74 +56,75 @@ export async function handlePominisAdapter(options: ResolvedAdvOptions, pluginOp
   }
 
   if (options.singlefile) {
-    consola.start('Converting images to base64 for single file mode...')
-    const imageFetchTaskArr: (() => Promise<void>)[] = []
+    if (pluginOptions.bundleAssets?.image) {
+      const imageFetchTaskArr: (() => Promise<void>)[] = []
+      consola.start('Converting images to base64 for single file mode...')
 
-    // 处理场景图片
-    gameConfig.scenes.forEach((scene) => {
-      if (scene.type === 'image' && scene.src && isOnlineImageUrl(scene.src)) {
-        imageFetchTaskArr.push(() => (async () => {
-          try {
-            const base64 = await fetchImageAsBase64(scene.src!)
-            consola.success(`Converted scene image: ${colors.cyan(scene.id)}`)
-            scene.src = base64
-          }
-          catch (error) {
-            consola.warn(`Failed to convert scene image ${colors.cyan(scene.src!)}:`, (error instanceof Error ? error.message : String(error)))
+      // 处理场景图片
+      gameConfig.scenes.forEach((scene) => {
+        if (scene.type === 'image' && scene.src && isOnlineImageUrl(scene.src)) {
+          imageFetchTaskArr.push(() => (async () => {
+            try {
+              const base64 = await fetchImageAsBase64(scene.src!)
+              consola.success(`Converted scene image: ${colors.cyan(scene.id)}`)
+              scene.src = base64
+            }
+            catch (error) {
+              consola.warn(`Failed to convert scene image ${colors.cyan(scene.src!)}:`, (error instanceof Error ? error.message : String(error)))
             // 保持原始 URL，不中断流程
-          }
-        })())
-      }
-    })
+            }
+          })())
+        }
+      })
 
-    // 处理角色头像
-    gameConfig.characters.forEach((character) => {
-      if (character.avatar && isOnlineImageUrl(character.avatar)) {
-        imageFetchTaskArr.push(() => (async () => {
-          try {
-            const base64 = await fetchImageAsBase64(character.avatar!)
-            consola.success(`Converted character avatar: ${colors.cyan(character.name)}`)
-            character.avatar = base64
-          }
-          catch (error) {
-            consola.warn(`Failed to convert character avatar ${colors.cyan(character.avatar!)}:`, (error instanceof Error ? error.message : String(error)))
-          }
-        })())
-      }
+      // 处理角色头像
+      gameConfig.characters.forEach((character) => {
+        if (character.avatar && isOnlineImageUrl(character.avatar)) {
+          imageFetchTaskArr.push(() => (async () => {
+            try {
+              const base64 = await fetchImageAsBase64(character.avatar!)
+              consola.success(`Converted character avatar: ${colors.cyan(character.name)}`)
+              character.avatar = base64
+            }
+            catch (error) {
+              consola.warn(`Failed to convert character avatar ${colors.cyan(character.avatar!)}:`, (error instanceof Error ? error.message : String(error)))
+            }
+          })())
+        }
 
-      // 处理角色立绘
-      if (character.tachies) {
-        Object.keys(character.tachies).forEach((key) => {
-          const tachie = character.tachies![key]
-          if (tachie?.src && isOnlineImageUrl(tachie.src)) {
-            imageFetchTaskArr.push(() => (async () => {
-              try {
-                const base64 = await fetchImageAsBase64(tachie.src!)
-                consola.success(`Converted character tachie: ${colors.cyan(character.name)}/${colors.cyan(key)}`)
-                tachie.src = base64
-              }
-              catch (error) {
-                consola.warn(`Failed to convert character tachie ${colors.cyan(tachie.src!)}:`, (error instanceof Error ? error.message : String(error)))
-              }
-            })())
-          }
-        })
-      }
-    })
+        // 处理角色立绘
+        if (character.tachies) {
+          Object.keys(character.tachies).forEach((key) => {
+            const tachie = character.tachies![key]
+            if (tachie?.src && isOnlineImageUrl(tachie.src)) {
+              imageFetchTaskArr.push(() => (async () => {
+                try {
+                  const base64 = await fetchImageAsBase64(tachie.src!)
+                  consola.success(`Converted character tachie: ${colors.cyan(character.name)}/${colors.cyan(key)}`)
+                  tachie.src = base64
+                }
+                catch (error) {
+                  consola.warn(`Failed to convert character tachie ${colors.cyan(tachie.src!)}:`, (error instanceof Error ? error.message : String(error)))
+                }
+              })())
+            }
+          })
+        }
+      })
 
-    // batch convert images to base64 with concurrency limit
-    const imageConfig = pluginOptions.bundleAssets?.image
-    const maxImageConcurrency = typeof imageConfig === 'object' ? (imageConfig?.concurrency || 4) : 4 // 可根据需要调整最大并发数
-    if (imageFetchTaskArr.length > 0) {
-      consola.log(`Converting ${imageFetchTaskArr.length} images to base64...`)
-      await runWithConcurrencyLimit(imageFetchTaskArr, maxImageConcurrency)
-      consola.success('🖼️ Image conversion completed')
+      // batch convert images to base64 with concurrency limit
+      const imageConfig = pluginOptions.bundleAssets?.image
+      const maxImageConcurrency = typeof imageConfig === 'object' ? (imageConfig?.concurrency || 4) : 4 // 可根据需要调整最大并发数
+      if (imageFetchTaskArr.length > 0) {
+        consola.log(`Converting ${imageFetchTaskArr.length} images to base64...`)
+        await runWithConcurrencyLimit(imageFetchTaskArr, maxImageConcurrency)
+        consola.success('🖼️ Image conversion completed')
+      }
+      else {
+        consola.log('No online images found to convert')
+      }
     }
-    else {
-      consola.log('No online images found to convert')
-    }
 
-    const audioFetchTaskArr: (() => Promise<void>)[] = []
     /**
      * 替换 bgmThemeId 为 bgmSrc
      */
@@ -133,36 +134,46 @@ export async function handlePominisAdapter(options: ResolvedAdvOptions, pluginOp
         .then(res => res.json())
         .then((data) => {
           bgmLibrary = data
+          gameConfig.bgm!.library = bgmLibrary
+          consola.success('BGM library loaded successfully')
         })
     }
-    gameConfig.chapters.forEach((chapter) => {
-      chapter.nodes.forEach((node) => {
-        if ('bgmThemeId' in node && node.bgmThemeId && node.bgmThemeId !== 'silence') {
-          const bgmKey = node.bgmThemeId
-          const cdnUrl = options.data.config.cdn.prefix || cdnDomain
-          const bgmName = bgmLibrary[bgmKey]?.name || ''
-          const bgmSrc = getBgmSrcUrl({ cdnUrl, bgmName })
-          node.bgmSrc = bgmSrc
 
-          audioFetchTaskArr.push(() => (async () => {
-            try {
-              const base64 = await fetchAudioAsBase64(bgmSrc)
-              consola.success(`Converted BGM: ${colors.cyan(bgmKey)} -> base64`)
-              node.bgmSrc = base64
-            }
-            catch (error) {
-              consola.warn(`Failed to convert BGM ${colors.cyan(bgmSrc)}:`, (error instanceof Error ? error.message : String(error)))
-            }
-          })())
-        }
+    if (pluginOptions.bundleAssets?.audio) {
+      const audioFetchTaskArr: (() => Promise<void>)[] = []
+
+      gameConfig.chapters.forEach((chapter) => {
+        chapter.nodes.forEach((node) => {
+          if ('bgmThemeId' in node && node.bgmThemeId && node.bgmThemeId !== 'silence') {
+            const bgmKey = node.bgmThemeId
+            const cdnUrl = options.data.config.cdn.prefix || cdnDomain
+            const bgmName = bgmLibrary[bgmKey]?.name || ''
+            const bgmSrc = getBgmSrcUrl({ cdnUrl, bgmName })
+            node.bgmSrc = bgmSrc
+
+            audioFetchTaskArr.push(() => (async () => {
+              try {
+                const base64 = await fetchAudioAsBase64(bgmSrc)
+                consola.success(`Converted BGM: ${colors.cyan(bgmKey)} -> base64`)
+                node.bgmSrc = base64
+              }
+              catch (error) {
+                consola.warn(`Failed to convert BGM ${colors.cyan(bgmSrc)}:`, (error instanceof Error ? error.message : String(error)))
+              }
+            })())
+          }
+        })
       })
-    })
 
-    // batch convert src to base64 with concurrency limit
-    const maxAudioConcurrency = pluginOptions.bundleAssets?.audio?.concurrency || 4 // 可根据需要调整最大并发数
-    if (audioFetchTaskArr.length > 0) {
-      await runWithConcurrencyLimit(audioFetchTaskArr, maxAudioConcurrency)
-      consola.success('🎵 BGM conversion completed.')
+      // batch convert src to base64 with concurrency limit
+      const defaultAudioConcurrency = 4
+      const maxAudioConcurrency = typeof pluginOptions.bundleAssets?.audio === 'object'
+        ? pluginOptions.bundleAssets.audio.concurrency || defaultAudioConcurrency
+        : defaultAudioConcurrency
+      if (audioFetchTaskArr.length > 0) {
+        await runWithConcurrencyLimit(audioFetchTaskArr, maxAudioConcurrency)
+        consola.success('🎵 BGM conversion completed.')
+      }
     }
   }
 }
