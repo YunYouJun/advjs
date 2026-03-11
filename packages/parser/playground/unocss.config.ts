@@ -10,12 +10,12 @@ import {
   transformerVariantGroup,
 } from 'unocss'
 
-const safelist = [
+const safelist = [...[
   'i-ri-file-text-line',
   'i-ri-video-chat-line',
   'i-ri-html5-line',
   'i-ri-markdown-line',
-].concat('prose prose-sm m-auto text-left'.split(' '))
+], ...'prose prose-sm m-auto text-left'.split(' ')]
 
 export default defineConfig({
   presets: [

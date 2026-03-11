@@ -67,14 +67,14 @@ provideLocal(injectionAdvContent, advContentRef)
 <template>
   <div
     ref="container"
-    class="adv-screen relative size-full overflow-hidden" bg="black"
+    class="adv-screen size-full relative overflow-hidden" bg="black"
     :class="className"
     :style="containerStyle"
   >
     <div
       id="adv-content"
       ref="advContentRef"
-      class="relative h-$adv-screen-height w-$adv-screen-width flex"
+      class="flex h-$adv-screen-height w-$adv-screen-width relative"
       :class="{
         transition: app.transition,
       }"

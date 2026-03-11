@@ -33,15 +33,15 @@ onMounted(() => {
 <template>
   <Transition name="modal">
     <div v-if="open" class="modal-mask">
-      <div class="modal-container z-9999 size-full flex flex-col">
-        <AdvIconButton v-if="!header" class="modal-close-button absolute right-4 top-4" @click="emit('close')">
+      <div class="modal-container flex flex-col size-full z-9999">
+        <AdvIconButton v-if="!header" class="modal-close-button right-4 top-4 absolute" @click="emit('close')">
           <div i-ri-close-line class="text-6xl" />
         </AdvIconButton>
 
         <slot name="header">
           <div v-if="header" class="flex items-center justify-between">
             <h1
-              class="flex items-center gap-2 p-6 font-black adv-font-serif"
+              class="adv-font-serif font-black p-6 flex gap-2 items-center"
               text="6xl"
             >
               <div :class="icon" />
@@ -56,7 +56,7 @@ onMounted(() => {
           <HorizontalDivider v-if="header" />
         </slot>
 
-        <div class="modal-body w-full flex flex-grow justify-center overflow-auto">
+        <div class="modal-body flex flex-grow w-full justify-center overflow-auto">
           <slot />
         </div>
       </div>

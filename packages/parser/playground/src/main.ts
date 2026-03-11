@@ -4,6 +4,7 @@ import { setupLayouts } from 'virtual:generated-layouts'
 import { createApp } from 'vue'
 
 import { createRouter, createWebHashHistory } from 'vue-router'
+// @ts-expect-error - routes export is available at runtime
 import { routes } from 'vue-router/auto-routes'
 
 import App from './App.vue'

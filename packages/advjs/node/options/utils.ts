@@ -19,8 +19,10 @@ export async function getClientRoot() {
   return dirname(importPath)
 }
 
+const relativePathPattern = /^\.\.?[/\\]/
+
 export function isPath(name: string) {
-  return name.startsWith('/') || /^\.\.?[/\\]/.test(name)
+  return name.startsWith('/') || relativePathPattern.test(name)
 }
 
 export async function getRoot(name: string, entry: string = process.cwd()) {

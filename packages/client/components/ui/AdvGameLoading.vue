@@ -9,7 +9,7 @@ const gameStore = useGameStore()
     <div
       v-if="gameStore.isLoading"
       w="full"
-      class="size-full bg-black/80"
+      class="bg-black/80 size-full"
       flex="~" justify="center" items="center"
       z="99999"
     >

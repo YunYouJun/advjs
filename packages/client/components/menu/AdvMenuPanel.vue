@@ -52,18 +52,18 @@ const currentTab = ref('common')
 <template>
   <div class="menu-panel grid grid-cols-24 size-full" gap="0" text="2xl">
     <div col="span-18" class="overflow-y-scroll">
-      <TabsRoot class="shadow-blackA4 w-full flex flex-col" :default-value="currentTab">
-        <TabsList class="relative flex shrink-0 border-b border-dark-100" aria-label="Manage your account">
+      <TabsRoot class="shadow-blackA4 flex flex-col w-full" :default-value="currentTab">
+        <TabsList class="border-b border-dark-100 flex shrink-0 relative" aria-label="Manage your account">
           <TabsIndicator
-            class="absolute bottom-0 left-0 h-[4px] w-$radix-tabs-indicator-size translate-x-$radix-tabs-indicator-position rounded-full transition-[width,transform] duration-300"
+            class="rounded-full h-[4px] w-$radix-tabs-indicator-size translate-x-$radix-tabs-indicator-position transition-[width,transform] duration-300 bottom-0 left-0 absolute"
           >
-            <div class="h-full w-full bg-blue-600" />
+            <div class="bg-blue-600 h-full w-full" />
           </TabsIndicator>
           <AdvMenuPanelTabTitle :title="t('settings.title')" value="common" />
           <AdvMenuPanelTabTitle title="Speech" value="speech" />
         </TabsList>
         <TabsContent
-          class="grow p-5 outline-none"
+          class="p-5 outline-none grow"
           value="common"
         >
           <div grid="~ cols-12 gap-5" p="6">
@@ -82,7 +82,7 @@ const currentTab = ref('common')
         </TabsContent>
 
         <TabsContent
-          class="grow p-5 outline-none"
+          class="p-5 outline-none grow"
           value="speech"
         >
           <div grid="~ cols-12 gap-5" p="6">

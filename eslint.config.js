@@ -12,4 +12,11 @@ export default antfu(
       '**/cache/**',
     ],
   },
+  {
+    files: ['packages/create-adv/templates/**/*'],
+    rules: {
+      // Disable catalog enforcement for template files
+      'pnpm/json-enforce-catalog': 'off',
+    },
+  },
 )

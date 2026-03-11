@@ -141,7 +141,7 @@ onMounted(() => {
     <div v-if="historyDialogsList.length" class="flex flex-col gap-9">
       <div v-for="(item, index) in historyDialogsList" :key="index" class="flex" gap="8">
         <p class="justify-end" flex="~" w="1/6" text="right">
-          <span v-if="item.character.name" class="truncate font-bold" text="3xl">
+          <span v-if="item.character.name" class="font-bold truncate" text="3xl">
             【{{ item.character.name }}】
           </span>
         </p>
@@ -153,14 +153,14 @@ onMounted(() => {
             「{{ child.value }}」
           </span>
         </p>
-        <div v-else class="items-center justify-start italic" flex="~ grow" text="left 3xl" w="5/6">
+        <div v-else class="italic items-center justify-start" flex="~ grow" text="left 3xl" w="5/6">
           <span v-for="(child, childIndex) in item.children" :key="childIndex">
             {{ child.value }}
           </span>
         </div>
       </div>
     </div>
-    <div v-else class="h-full flex items-center justify-center text-center text-6xl dark:text-gray-200">
+    <div v-else class="text-6xl text-center flex h-full items-center justify-center dark:text-gray-200">
       {{ t('settings.history.empty') }}
     </div>
   </div>

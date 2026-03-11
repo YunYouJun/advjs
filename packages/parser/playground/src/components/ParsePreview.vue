@@ -43,7 +43,7 @@ const content = computed(() => {
       <div class="toolbar flex justify-between" m="b-2">
         <span
           id="responseTime"
-          class="flex items-center justify-center shadow"
+          class="flex shadow items-center justify-center"
           text="sm"
           p="x-2 y-1"
           :title="t('parser.response_time')"

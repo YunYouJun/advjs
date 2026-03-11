@@ -29,6 +29,6 @@
     "prompts": "catalog:cli"
   },
   "devDependencies": {
-    "@types/minimist": "^1.2.5"
+    "@types/minimist": "catalog:"
   }
 }

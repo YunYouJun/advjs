@@ -32,7 +32,7 @@ const characterClass = computed(() => {
   const defaultClass: string[] = []
   let resultClass: string[] = []
   if (curTachie.value?.class)
-    resultClass = defaultClass.concat(curTachie.value?.class || [])
+    resultClass = [...defaultClass, ...curTachie.value?.class || []]
 
   if (active.value)
     resultClass.push('active')
@@ -42,7 +42,7 @@ const characterClass = computed(() => {
 
 <template>
   <Transition appear>
-    <div class="col-span-1 h-full flex flex-col items-center justify-end overflow-hidden">
+    <div class="flex flex-col col-span-1 h-full items-center justify-end overflow-hidden">
       <img
         class="tachie-character inline-flex transform"
         :class="characterClass"

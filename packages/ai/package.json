@@ -35,7 +35,7 @@
     "dotenv": "catalog:cli",
     "fs-extra": "catalog:utils",
     "openai": "catalog:ai",
-    "tencentcloud-sdk-nodejs-hunyuan": "^4.1.96"
+    "tencentcloud-sdk-nodejs-hunyuan": "catalog:"
   },
   "devDependencies": {
     "@types/fs-extra": "catalog:types",

@@ -6,16 +6,17 @@ import LinkAttributes from 'markdown-it-link-attributes'
 import Unocss from 'unocss/vite'
 import Components from 'unplugin-vue-components/vite'
 import Markdown from 'unplugin-vue-markdown/vite'
-import VueRouter from 'unplugin-vue-router/vite'
 import { defineConfig } from 'vite'
 import Inspect from 'vite-plugin-inspect'
-
 import { VitePWA } from 'vite-plugin-pwa'
+
 import Layouts from 'vite-plugin-vue-layouts'
+import VueRouter from 'vue-router/vite'
 
 import { commonAlias } from '../../shared/node'
 
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
+const httpsPattern = /^https?:\/\//
 
 const customElements = ['github-corners']
 
@@ -40,7 +41,7 @@ export default defineConfig({
     // https://github.com/posva/unplugin-vue-router
     VueRouter({
       extensions: ['.vue', '.md'],
-      dts: 'src/typed-router.d.ts',
+      dts: 'src/route-map.d.ts',
     }),
 
     // https://github.com/JohnCampionJr/vite-plugin-vue-layouts
@@ -66,13 +67,15 @@ export default defineConfig({
       wrapperClasses: markdownWrapperClasses,
       headEnabled: true,
       async markdownItSetup(md) {
+        // @ts-expect-error - LinkAttributes type mismatch with markdown-exit
         md.use(LinkAttributes, {
-          pattern: /^https?:\/\//,
+          pattern: httpsPattern,
           attrs: {
             target: '_blank',
             rel: 'noopener',
           },
         })
+        // @ts-expect-error - Shiki type mismatch with markdown-exit
         md.use(await Shiki({
           defaultColor: false,
           themes: {

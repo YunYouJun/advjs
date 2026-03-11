@@ -1,9 +1,9 @@
 ---
 title: ADV.JS
 layout: home
-# heroImage: /favicon.svg
-# heroIconClass: i-ri-video-chat-line
-# heroText: <b class="font-black">ADV</b>.JS
+## heroImage: /favicon.svg
+## heroIconClass: i-ri-video-chat-line
+## heroText: <b class="font-black">ADV</b>.JS
 
 adv:
   name: ADV.JS
@@ -32,8 +32,8 @@ features:
     details: 随时随地开始你的冒险
   - title: 🎨 灵活
     details: 任意自定义你的 UI 主题
-  # - title: 实时
-  #   details: 实时解析运行你的剧本
+  ## - title: 实时
+  ##   details: 实时解析运行你的剧本
 
 footer:
   license: MPL-2.0 Licensed

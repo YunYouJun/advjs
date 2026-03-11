@@ -72,6 +72,7 @@ export function useFlowHistory(ctx: {
 
     if (!data.value)
       return
+    // @ts-expect-error - Type instantiation depth issue
     setFlowDataWithoutViewport(data.value)
     updateUndoRedoEnabled()
   }

@@ -46,13 +46,13 @@ const curWords = computed(() => {
 
 <template>
   <div
-    class="adv-dialog-box cursor-pointer select-none pt-30 shadow-xl" grid="~ cols-12" gap="12"
+    class="adv-dialog-box pt-30 cursor-pointer select-none shadow-xl" grid="~ cols-12" gap="12"
     @click="next"
   >
-    <div class="col-span-3 text-right">
+    <div class="text-right col-span-3">
       <template v-if="$adv.config?.value?.showCharacterAvatar && characterAvatar">
         <div flex="~ col" class="items-end justify-center">
-          <img class="size-40 rounded shadow" object="cover top" :src="characterAvatar">
+          <img class="rounded size-40 shadow" object="cover top" :src="characterAvatar">
           <span class="w-40" m="t-4" text="xl center white/80">{{ curCharacter?.name }}</span>
         </div>
       </template>
@@ -63,7 +63,7 @@ const curWords = computed(() => {
       </template>
     </div>
     <div
-      class="dialog-content col-span-9 pr-24 text-left"
+      class="dialog-content pr-24 text-left col-span-9"
       :class="fontSizeClass"
     >
       <PrintWords

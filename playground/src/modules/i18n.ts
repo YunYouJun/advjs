@@ -4,6 +4,8 @@ import { install as installI18n } from '@advjs/client/modules/i18n'
 
 import { createI18n } from 'vue-i18n'
 
+const ymlPattern = /([\w-]*)\.yml$/
+
 // Import i18n resources
 // https://vitejs.dev/guide/features.html#glob-import
 //
@@ -16,7 +18,7 @@ const i18n = createI18n({
 
 const localesMap = Object.fromEntries(
   Object.entries(import.meta.glob('../../locales/*.yml'))
-    .map(([path, loadLocale]) => [path.match(/([\w-]*)\.yml$/)?.[1], loadLocale]),
+    .map(([path, loadLocale]) => [path.match(ymlPattern)?.[1], loadLocale]),
 ) as Record<Locale, () => Promise<{ default: Record<string, string> }>>
 
 export const availableLocales = Object.keys(localesMap)

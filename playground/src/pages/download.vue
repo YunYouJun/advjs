@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { StageStatus } from '../../../packages/webcontainer/src/index'
+import type { StageStatus } from '@advjs/webcontainer'
+
+import { useAdvWebContainer } from '@advjs/webcontainer'
 
 import { isClient } from '@vueuse/core'
-
 import { consola } from 'consola'
 import { TooltipContent, TooltipPortal, TooltipProvider, TooltipRoot, TooltipTrigger } from 'reka-ui'
 import { useI18n } from 'vue-i18n'
-import { useAdvWebContainer } from '../../../packages/webcontainer/src/index'
 
 import '@xterm/xterm/css/xterm.css'
 

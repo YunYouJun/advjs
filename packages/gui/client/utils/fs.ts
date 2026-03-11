@@ -2,60 +2,75 @@
 import type { FSItem } from '..'
 import { consola } from 'consola'
 
+const videoPattern = /\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/
+const imagePattern = /\.(jpeg|jpg|gif|png|svg|webp|avif)(\?.*)?$/
+const audioPattern = /\.(mp3|wav|flac|aac)(\?.*)?$/
+const pdfPattern = /\.(pdf)(\?.*)?$/
+const wordPattern = /\.(doc|docx)(\?.*)?$/
+const excelPattern = /\.(xls|xlsx)(\?.*)?$/
+const powerPointPattern = /\.(ppt|pptx)(\?.*)?$/
+const archivePattern = /\.(zip|tar|gz|rar|7z)(\?.*)?$/
+const codePattern = /\.(js|css|html|vue|ts|md|json)(\?.*)?$/
+const textPattern = /\.(txt|log|csv)(\?.*)?$/
+const markdownPattern = /\.(md)(\?.*)?$/
+const jsonPattern = /\.(json)(\?.*)?$/
+const gltfPattern = /\.(gltf)(\?.*)?$/
+const glbPattern = /\.(glb)(\?.*)?$/
+
 export function isVideo(path: string) {
-  return /\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/.test(path)
+  return videoPattern.test(path)
 }
 
 export function isImage(path: string) {
-  return /\.(jpeg|jpg|gif|png|svg|webp|avif)(\?.*)?$/.test(path.toLowerCase())
+  return imagePattern.test(path.toLowerCase())
 }
 
 export function isAudio(path: string) {
-  return /\.(mp3|wav|flac|aac)(\?.*)?$/.test(path.toLowerCase())
+  return audioPattern.test(path.toLowerCase())
 }
 
 export function isPDF(path: string) {
-  return /\.(pdf)(\?.*)?$/.test(path.toLowerCase())
+  return pdfPattern.test(path.toLowerCase())
 }
 
 export function isWord(path: string) {
-  return /\.(doc|docx)(\?.*)?$/.test(path.toLowerCase())
+  return wordPattern.test(path.toLowerCase())
 }
 
 export function isExcel(path: string) {
-  return /\.(xls|xlsx)(\?.*)?$/.test(path.toLowerCase())
+  return excelPattern.test(path.toLowerCase())
 }
 
 export function isPowerPoint(path: string) {
-  return /\.(ppt|pptx)(\?.*)?$/.test(path.toLowerCase())
+  return powerPointPattern.test(path.toLowerCase())
 }
 
 export function isArchive(path: string) {
-  return /\.(zip|tar|gz|rar|7z)(\?.*)?$/.test(path.toLowerCase())
+  return archivePattern.test(path.toLowerCase())
 }
 
 export function isCode(path: string) {
-  return /\.(js|css|html|vue|ts|md|json)(\?.*)?$/.test(path.toLowerCase())
+  return codePattern.test(path.toLowerCase())
 }
 
 export function isText(path: string) {
-  return /\.(txt|log|csv)(\?.*)?$/.test(path.toLowerCase())
+  return textPattern.test(path.toLowerCase())
 }
 
 export function isMarkdown(path: string) {
-  return /\.(md)(\?.*)?$/.test(path.toLowerCase())
+  return markdownPattern.test(path.toLowerCase())
 }
 
 export function isJSON(path: string) {
-  return /\.(json)(\?.*)?$/.test(path.toLowerCase())
+  return jsonPattern.test(path.toLowerCase())
 }
 
 export function isGltf(path: string) {
-  return /\.(gltf)(\?.*)?$/.test(path.toLowerCase())
+  return gltfPattern.test(path.toLowerCase())
 }
 
 export function isGlb(path: string) {
-  return /\.(glb)(\?.*)?$/.test(path.toLowerCase())
+  return glbPattern.test(path.toLowerCase())
 }
 
 /**

@@ -79,7 +79,7 @@ if (isClient)
 
     <select
       v-model="editorStore.options.mdUrl"
-      class="bg-transparent text-sm shadow outline-none"
+      class="text-sm outline-none bg-transparent shadow"
       p="1"
       placeholder="选择测试 Markdown"
       @change="fetchMarkdown"
@@ -104,7 +104,7 @@ if (isClient)
   </div>
   <div
     ref="inputEditor"
-    class="border rounded bg-transparent outline-none focus:border-black"
+    class="outline-none border rounded bg-transparent focus:border-black"
     dark="border-white"
     h="full"
     text="left"

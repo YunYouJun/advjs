@@ -32,7 +32,7 @@
   "dependencies": {
     "cli-progress": "catalog:cli",
     "consola": "catalog:cli",
-    "obs-websocket-js": "^5.0.6",
+    "obs-websocket-js": "catalog:",
     "open": "catalog:utils"
   },
   "devDependencies": {

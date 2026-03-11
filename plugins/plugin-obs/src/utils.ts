@@ -21,7 +21,7 @@ import { defaultOptions } from './options'
  * 记得勾选「开启 WebSocket 服务」
  */
 export async function connectOBSWebSocket(options: ConnectOBSWebSocketOptions) {
-  const resolvedOptions = Object.assign({}, defaultOptions, options) as Required<ConnectOBSWebSocketOptions>
+  const resolvedOptions = { ...defaultOptions, ...options } as Required<ConnectOBSWebSocketOptions>
 
   const obs = new OBSWebSocket()
   consola.start('Connecting to', colors.cyan(options.url || 'unknown'))

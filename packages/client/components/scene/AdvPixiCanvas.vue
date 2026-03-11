@@ -3,5 +3,5 @@
 </script>
 
 <template>
-  <canvas id="advjs-pixi-canvas" class="absolute h-full w-full" />
+  <canvas id="advjs-pixi-canvas" class="h-full w-full absolute" />
 </template>

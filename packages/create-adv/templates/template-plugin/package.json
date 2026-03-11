@@ -28,6 +28,6 @@
   },
   "devDependencies": {
     "advjs": "latest",
-    "unbuild": "latest"
+    "unbuild": "^3"
   }
 }

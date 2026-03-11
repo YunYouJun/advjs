@@ -59,8 +59,7 @@
       "vitest",
       "vite/client",
       "vite-plugin-vue-layouts/client",
-      "vite-plugin-pwa/client",
-      "unplugin-vue-router/client"
+      "vite-plugin-pwa/client"
     ],
 
     "allowImportingTsExtensions": true,

@@ -26,7 +26,7 @@ function onChoiceClick(choice: AdvAst.Choice) {
 <template>
   <div
     v-if="node && node.choices && node.choices.length"
-    class="adv-choice absolute items-center justify-center"
+    class="adv-choice items-center justify-center absolute"
     flex="~ col"
     w="full"
     h="full"

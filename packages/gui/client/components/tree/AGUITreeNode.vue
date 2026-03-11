@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { TreeNode } from './types'
 
-import { onMounted, ref } from 'vue'
+import { onMounted } from 'vue'
 import Toggle from '../button/AGUIToggleIcon.vue'
 
 withDefaults(defineProps<{
@@ -25,8 +25,6 @@ const emit = defineEmits([
   'node-show',
   'node-hide',
 ])
-
-const el = ref<HTMLDivElement>()
 
 onMounted(() => {
   // Assign outlineRow or any other initialization logic
@@ -77,7 +75,6 @@ function onNodeActivated(node: TreeNode) {
 <template>
   <div
     v-if="node"
-    ref="el"
     class="agui-tree-node"
     :class="[{ active: node === currentNode, muted: node.muted, match: node.match }]"
     :style="{ '--depth': `${depth}` }"

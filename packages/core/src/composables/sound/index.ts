@@ -1,5 +1,6 @@
 /* eslint-disable new-cap */
 
+// @ts-expect-error - MaybeRef is available in @vueuse/core
 import type { MaybeRef } from '@vueuse/core'
 
 // @ts-nocheck

@@ -20,6 +20,9 @@
       "@advjs/client": [
         "../packages/client/index.ts"
       ],
+      "@advjs/webcontainer": [
+        "../packages/webcontainer/src/index.ts"
+      ],
       "@advjs/*": [
         "../packages/*/src/index.ts"
       ],
@@ -32,8 +35,7 @@
       "vitest",
       "vite/client",
       "vite-plugin-vue-layouts/client",
-      "vite-plugin-pwa/client",
-      "unplugin-vue-router/client"
+      "vite-plugin-pwa/client"
     ],
     "allowJs": true,
     "strict": true,

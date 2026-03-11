@@ -16,10 +16,10 @@ function toggleLocales() {
 </script>
 
 <template>
-  <nav class="pt-2 text-xl">
+  <nav class="text-xl pt-2">
     <RouterLink
       active-class="text-blue-500"
-      class="mx-2 icon-btn"
+      class="icon-btn mx-2"
       to="/"
       :title="t('button.home')"
     >
@@ -27,24 +27,24 @@ function toggleLocales() {
     </RouterLink>
 
     <button
-      class="mx-2 icon-btn !outline-none"
+      class="icon-btn mx-2 !outline-none"
       :title="t('button.toggle_dark')"
       @click="appStore.toggleLeftRight"
     >
       <div
         i-ri-arrow-left-right-line
         class="transform transition <sm:hidden"
-        :class="appStore.isPositive ? '-rotate-y-180' : 0"
+        :class="appStore.isPositive ? '-rotate-y-180' : ''"
       />
       <div
         i-ri-arrow-up-down-line
         class="transform transition sm:hidden"
-        :class="appStore.isPositive ? '-rotate-x-180' : 0"
+        :class="appStore.isPositive ? '-rotate-x-180' : ''"
       />
     </button>
 
     <button
-      class="mx-2 icon-btn !outline-none"
+      class="icon-btn mx-2 !outline-none"
       :title="t('button.toggle_dark')"
       @click="toggleDark()"
     >
@@ -52,12 +52,12 @@ function toggleLocales() {
       <div v-else i-ri-sun-line />
     </button>
 
-    <a class="mx-2 icon-btn transform transition" :class="{ '-rotate-y-180': locale === 'zh-CN' }" :title="t('button.toggle_langs')" @click="toggleLocales">
+    <a class="icon-btn mx-2 transform transition" :class="{ '-rotate-y-180': locale === 'zh-CN' }" :title="t('button.toggle_langs')" @click="toggleLocales">
       <div i-ri-translate />
     </a>
 
     <RouterLink
-      class="mx-2 icon-btn"
+      class="icon-btn mx-2"
       href
       to="/about"
       :title="t('button.about')"
@@ -67,7 +67,7 @@ function toggleLocales() {
     </RouterLink>
 
     <a
-      class="mx-2 icon-btn"
+      class="icon-btn mx-2"
       rel="noreferrer"
       href="https://github.com/YunYouJun/advjs"
       target="_blank"

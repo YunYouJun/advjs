@@ -46,6 +46,6 @@ export async function screenshotGame(options: Partial<Options> = {}) {
  */
 export async function screenshotGameThumb(options: Partial<Options> = {}) {
   const advContent = getGameViewDom()
-  const dataUrl = await screenshot(advContent, Object.assign({ scale: 0.2 }, options))
+  const dataUrl = await screenshot(advContent, { scale: 0.2, ...options })
   return dataUrl
 }

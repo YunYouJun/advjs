@@ -29,7 +29,7 @@ const app = useAppStore()
     text="white"
     :config="$adv.config?.value"
   >
-    <div class="adv-game absolute size-full bg-black">
+    <div class="adv-game bg-black size-full absolute">
       <AdvScene />
       <AdvPixiCanvas />
       <slot name="scene" />
@@ -52,7 +52,7 @@ const app = useAppStore()
       </Transition>
 
       <Transition v-if="app.showDialogControls" enter-active-class="animate-fade-in-up" leave-active-class="animate-fade-out-down">
-        <DialogControls v-show="app.showUi" class="absolute bottom-1 left-0 right-0 z-4 animate-duration-200" />
+        <DialogControls v-show="app.showUi" class="bottom-1 left-0 right-0 absolute z-4 animate-duration-200" />
       </Transition>
 
       <Transition enter-active-class="animate-fade-in-down" leave-active-class="animate-fade-out-up">

@@ -6,17 +6,25 @@ import LinkAttributes from 'markdown-it-link-attributes'
 import Unocss from 'unocss/vite'
 import Components from 'unplugin-vue-components/vite'
 import Markdown from 'unplugin-vue-markdown/vite'
-import VueRouter from 'unplugin-vue-router/vite'
 import { defineConfig } from 'vite'
-
 import Inspect from 'vite-plugin-inspect'
+
 import { VitePWA } from 'vite-plugin-pwa'
 import Layouts from 'vite-plugin-vue-layouts'
+import VueRouter from 'vue-router/vite'
 
 import { ADV_VIRTUAL_MODULES } from '../../packages/advjs/node'
 import { commonAlias, themesDir } from '../../packages/shared/node'
 
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
+
+// Regular expressions moved to module scope to avoid re-compilation
+const VUE_REGEX = /\.vue$/
+const VUE_QUERY_REGEX = /\.vue\?vue/
+const MD_REGEX = /\.md$/
+const HTTPS_REGEX = /^https?:\/\//
+const VUE_I18N_PATTERN = 'vue-i18n'
+
 export default defineConfig((config) => {
   return {
     define: {
@@ -28,12 +36,10 @@ export default defineConfig((config) => {
       },
     },
     resolve: {
-      alias: Object.assign(
-        {
-          '~/': `${path.resolve(__dirname, 'src')}/`,
-        },
-        commonAlias,
-      ),
+      alias: {
+        '~/': `${path.resolve(__dirname, 'src')}/`,
+        ...commonAlias,
+      },
     },
 
     build: {
@@ -55,13 +61,13 @@ export default defineConfig((config) => {
 
     plugins: [
       Vue({
-        include: [/\.vue$/, /\.md$/],
+        include: [VUE_REGEX, MD_REGEX],
       }),
 
       // https://github.com/posva/unplugin-vue-router
       VueRouter({
         extensions: ['.vue', '.md'],
-        dts: 'src/typed-router.d.ts',
+        dts: 'src/route-map.d.ts',
       }),
 
       // https://github.com/JohnCampionJr/vite-plugin-vue-layouts
@@ -74,7 +80,7 @@ export default defineConfig((config) => {
         extensions: ['vue', 'md'],
 
         // allow auto import and register components used in markdown
-        include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
+        include: [VUE_REGEX, VUE_QUERY_REGEX, MD_REGEX],
         dts: 'src/components.d.ts',
       }),
 
@@ -89,7 +95,7 @@ export default defineConfig((config) => {
         async markdownItSetup(md) {
           // https://prismjs.com/
           md.use(LinkAttributes, {
-            pattern: /^https?:\/\//,
+            pattern: HTTPS_REGEX,
             attrs: {
               target: '_blank',
               rel: 'noopener',
@@ -151,7 +157,7 @@ export default defineConfig((config) => {
 
     ssr: {
       // TODO: workaround until they support native ESM
-      noExternal: ['workbox-window', /vue-i18n/],
+      noExternal: ['workbox-window', VUE_I18N_PATTERN],
     },
   }
 })

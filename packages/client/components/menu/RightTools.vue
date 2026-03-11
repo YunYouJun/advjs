@@ -34,34 +34,29 @@ const menuItems = computed<MenuButtonItem[]>(() => {
         ]
       : []
 
-  return items.concat(
-    {
-      title: t('menu.load_game'),
-      do: () => {
-        app.menus.settings = false
-        app.toggleShowLoadMenu()
-      },
+  return [...items, {
+    title: t('menu.load_game'),
+    do: () => {
+      app.menus.settings = false
+      app.toggleShowLoadMenu()
     },
-    {
-      title: t('menu.back_home'),
-      do: () => {
-        app.menus.settings = false
-        router.push('/start')
-      },
+  }, {
+    title: t('menu.back_home'),
+    do: () => {
+      app.menus.settings = false
+      router.push('/start')
     },
-    {
-      title: t('menu.reset_settings'),
-      do: () => {
-        settings.resetSettings()
-      },
+  }, {
+    title: t('menu.reset_settings'),
+    do: () => {
+      settings.resetSettings()
     },
-    {
-      title: t('menu.help'),
-      do: () => {
-        router.push('/help')
-      },
+  }, {
+    title: t('menu.help'),
+    do: () => {
+      router.push('/help')
     },
-  )
+  }]
 })
 </script>
 

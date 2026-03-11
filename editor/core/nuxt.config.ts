@@ -31,7 +31,7 @@ async function getLatestCommit() {
 /**
  * add global env
  */
-import.meta.env.VITE_APP_BUILD_TIME = new Date().getTime().toString()
+import.meta.env.VITE_APP_BUILD_TIME = Date.now().toString()
 getLatestCommit().then((hash) => {
   import.meta.env.VITE_APP_LATEST_COMMIT_HASH = hash
 })

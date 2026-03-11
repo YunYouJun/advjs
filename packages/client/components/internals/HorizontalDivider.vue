@@ -1,5 +1,5 @@
 <template>
-  <div class="h-1 flex items-center justify-center" col="span-12">
+  <div class="flex h-1 items-center justify-center" col="span-12">
     <div class="adv-menu-horizontal-divider" />
   </div>
 </template>

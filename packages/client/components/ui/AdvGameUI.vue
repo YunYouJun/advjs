@@ -16,7 +16,7 @@ const app = useAppStore()
 <template>
   <!-- 渐变黑色背景 -->
   <div
-    class="adv-game-ui--header absolute top-0 w-full flex justify-between" p="5"
+    class="adv-game-ui--header flex w-full top-0 justify-between absolute" p="5"
   >
     <div class="inline-flex" gap="4">
       <AdvIconButton @click="app.toggleHistory()">

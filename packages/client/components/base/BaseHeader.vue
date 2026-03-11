@@ -13,7 +13,7 @@ function toggleLocales() {
 </script>
 
 <template>
-  <nav class="w-full flex justify-between p-4 text-xl">
+  <nav class="text-xl p-4 flex w-full justify-between">
     <div class="flex gap-2">
       <RouterLink to="/" :title="t('button.home')">
         <AdvIconButton>

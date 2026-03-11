@@ -50,7 +50,7 @@ export const useGameStore = defineStore('@advjs/client:game', () => {
 
   const saveRecordMeta = async (index: number, meta: Partial<AdvGameRecordMeta>) => {
     const key = index.toString()
-    return await recordsStorage.setMeta(key, Object.assign({ createdAt: (new Date()).valueOf() }, meta))
+    return await recordsStorage.setMeta(key, { createdAt: (new Date()).valueOf(), ...meta })
   }
 
   /**

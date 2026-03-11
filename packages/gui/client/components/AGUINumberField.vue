@@ -21,6 +21,8 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits(['change', 'update:modelValue'])
 
+const trailingZerosPattern = /\.?0+$/
+
 // Refs
 const elRef = ref<HTMLInputElement>()
 const focused = ref(false)
@@ -48,7 +50,7 @@ function format(val: number) {
     return Math.round(val).toString() + props.suffix
 
   return (
-    val.toFixed(6).substring(0, 7).replace(/\.?0+$/, '') + props.suffix
+    val.toFixed(6).substring(0, 7).replace(trailingZerosPattern, '') + props.suffix
   )
 }
 

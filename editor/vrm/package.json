@@ -38,7 +38,6 @@
     "unocss": "catalog:build",
     "unplugin-vue-components": "catalog:build",
     "unplugin-vue-markdown": "catalog:build",
-    "unplugin-vue-router": "catalog:build",
     "vite": "catalog:build",
     "vite-plugin-inspect": "catalog:build",
     "vite-plugin-pwa": "catalog:build",

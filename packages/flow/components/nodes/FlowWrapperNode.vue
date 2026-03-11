@@ -54,8 +54,7 @@ function onSelected() {
 }
 
 const showInputsOutputs = computed(() => {
-  return Object.values(props.options?.inputs || {})
-    .concat(Object.values(props.options?.outputs || {}))
+  return [...Object.values(props.options?.inputs || {}), ...Object.values(props.options?.outputs || {})]
     .some(v => v.showLabel !== false)
 })
 

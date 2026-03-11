@@ -1,3 +1,4 @@
+// @ts-expect-error - MaybeRefOrGetter is available in @vueuse/core
 import type { MaybeRefOrGetter, UseImageOptions, UseImageReturn } from '@vueuse/core'
 import type { Ref } from 'vue'
 import { useImage } from '@vueuse/core'

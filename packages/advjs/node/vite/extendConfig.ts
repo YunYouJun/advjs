@@ -13,6 +13,12 @@ import { isInstalledGlobally, resolveImportPath, toAtFS } from '../resolver'
 import setupIndexHtml from '../setups/indexHtml'
 
 const vueRuntimePath = 'vue/dist/vue.runtime.esm-bundler.js'
+const vuePattern = /^vue$/
+const vueI18nPattern = /vue-i18n/
+const ADVJS_PATTERN = /^#advjs\/(.*)/
+const ADVJS_CLIENT_PATTERN = /^@advjs\/client$/
+const ADVJS_CLIENT_SLASH_PATTERN = /^@advjs\/client\/(.*)/
+
 const EXCLUDE_GLOBAL = [
   // avoid css parse by vite
   'animate.css',
@@ -87,23 +93,24 @@ export async function getAlias(options: ResolvedAdvOptions): Promise<Alias[]> {
     /**
      * `/` 开头无法 declare module 类型
      */
-    { find: /^#advjs\/(.*)/, replacement: '/@advjs/$1' },
+    { find: ADVJS_PATTERN, replacement: '/@advjs/$1' },
 
     { find: '@advjs/client/modules/i18n', replacement: resolve(options.clientRoot, 'modules/i18n.ts') },
     { find: '@advjs/client/compiler', replacement: resolve(options.clientRoot, 'compiler/index.ts') },
     { find: '@advjs/client/runtime', replacement: resolve(options.clientRoot, 'runtime/index.ts') },
-    { find: /^@advjs\/client$/, replacement: `${toAtFS(options.clientRoot)}/index.ts` },
-    { find: /^@advjs\/client\/(.*)/, replacement: `${toAtFS(options.clientRoot)}/$1` },
+    { find: ADVJS_CLIENT_PATTERN, replacement: `${toAtFS(options.clientRoot)}/index.ts` },
+    { find: ADVJS_CLIENT_SLASH_PATTERN, replacement: `${toAtFS(options.clientRoot)}/$1` },
   ]
 
   // themes
   const themeName = options.data.config.theme || 'default'
+  const themeRegex = new RegExp(`^@advjs/theme-${themeName}$`)
   alias.push(
     { find: 'virtual:advjs-theme', replacement: `${toAtFS(options.themeRoot)}/client/index.ts` },
     { find: `@advjs/theme-${themeName}/client`, replacement: `${toAtFS(resolve(options.themeRoot))}/client/index.ts` },
     {
       // strict match
-      find: new RegExp(`^@advjs/theme-${themeName}$`),
+      find: themeRegex,
       replacement: `${toAtFS(resolve(options.themeRoot))}/index.ts`,
     },
     { find: `@advjs/theme-${themeName}/`, replacement: `${resolve(options.themeRoot)}/` },
@@ -118,7 +125,7 @@ export async function getAlias(options: ResolvedAdvOptions): Promise<Alias[]> {
   alias.push(
     {
       // avoid vue/compiler-sfc in unplugin-vue-i18n
-      find: /^vue$/,
+      find: vuePattern,
       replacement: await resolveImportPath(vueRuntimePath, true),
     },
   )
@@ -171,7 +178,7 @@ export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
         },
         ssr: {
           // TODO: workaround until they support native ESM
-          noExternal: ['workbox-window', /vue-i18n/],
+          noExternal: ['workbox-window', vueI18nPattern],
         },
       }
 

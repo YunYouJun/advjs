@@ -48,7 +48,7 @@
     "@advjs/unocss": "workspace:*",
     "@types/mdast": "catalog:types",
     "consola": "catalog:cli",
-    "floating-vue": "^5.2.2",
+    "floating-vue": "catalog:",
     "js-yaml": "catalog:utils",
     "mdast-util-to-hast": "catalog:unified",
     "rehype-stringify": "catalog:unified",

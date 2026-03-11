@@ -8,17 +8,24 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Mockery from 'unplugin-mockery/vite'
 import { TDesignResolver } from 'unplugin-vue-components/resolvers'
 import Markdown from 'unplugin-vue-markdown/vite'
-import { VueRouterAutoImports } from 'unplugin-vue-router'
-import VueRouter from 'unplugin-vue-router/vite'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import VueDevTools from 'vite-plugin-vue-devtools'
 import generateSitemap from 'vite-ssg-sitemap'
+import { VueRouterAutoImports } from 'vue-router/unplugin'
+import VueRouter from 'vue-router/vite'
 import { resolveOptions } from '../packages/advjs/node/options'
 import { commonAliasMap } from '../packages/shared/node/vite'
 
 import ADV from '../packages/vite-plugin-adv/src'
 import 'vitest/config'
+
+const VUE_REGEX = /\.vue$/
+const MD_REGEX = /\.md$/
+const JSX_REGEX = /\.[jt]sx?$/
+const VUE_QUERY_REGEX = /\.vue\?vue/
+const HTTPS_REGEX = /^https?:\/\//
+const VUE_I18N_REGEX = /vue-i18n/
 
 export default defineConfig(async ({ mode }) => {
   const options = await resolveOptions({
@@ -61,13 +68,13 @@ export default defineConfig(async ({ mode }) => {
 
     plugins: [
       Vue({
-        include: [/\.vue$/, /\.md$/],
+        include: [VUE_REGEX, MD_REGEX],
       }),
 
       // https://github.com/posva/unplugin-vue-router
       VueRouter({
         extensions: ['.vue', '.md'],
-        dts: 'src/typed-router.d.ts',
+        dts: 'src/route-map.d.ts',
       }),
 
       ADV(options, {
@@ -82,7 +89,7 @@ export default defineConfig(async ({ mode }) => {
 
       // https://github.com/antfu/unplugin-auto-import
       AutoImport({
-        include: [/\.[jt]sx?$/, /\.vue$/, /\.vue\?vue/, /\.md$/],
+        include: [JSX_REGEX, VUE_REGEX, VUE_QUERY_REGEX, MD_REGEX],
         imports: [
           'vue',
           'vue-i18n',
@@ -113,7 +120,7 @@ export default defineConfig(async ({ mode }) => {
         headEnabled: true,
         async markdownItSetup(md) {
           md.use(LinkAttributes, {
-            matcher: (link: string) => /^https?:\/\//.test(link),
+            matcher: (link: string) => HTTPS_REGEX.test(link),
             attrs: {
               target: '_blank',
               rel: 'noopener',
@@ -168,7 +175,7 @@ export default defineConfig(async ({ mode }) => {
 
     ssr: {
       // TODO: workaround until they support native ESM
-      noExternal: ['workbox-window', /vue-i18n/],
+      noExternal: ['workbox-window', VUE_I18N_REGEX],
     },
   }
 })

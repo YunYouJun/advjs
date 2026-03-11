@@ -16,7 +16,7 @@ export async function load(filepath: string) {
   const entries = new Set([
     filepath,
   ])
-  data.entries = Array.from(entries)
+  data.entries = [...entries]
 
   // todo add 'src' for child frontmatter
 

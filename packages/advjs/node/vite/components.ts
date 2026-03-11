@@ -3,6 +3,12 @@ import type { AdvPluginOptions } from '../options'
 import path, { join } from 'node:path'
 import Components from 'unplugin-vue-components/vite'
 
+const vueFilePattern = /\.vue$/
+const vueQueryPattern = /\.vue\?vue/
+const mdFilePattern = /\.md$/
+const gitExcludePattern = /[\\/]\.git[\\/]/
+const nuxtExcludePattern = /[\\/]\.nuxt[\\/]/
+
 /**
  * @see // https://github.com/antfu/unplugin-vue-components
  * @param options
@@ -12,20 +18,19 @@ export function createComponentsPlugin(options: ResolvedAdvOptions, pluginOption
   return Components({
     extensions: ['vue', 'md'],
 
-    include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
+    include: [vueFilePattern, vueQueryPattern, mdFilePattern],
     // node_modules is needed to be search when install deps
-    exclude: [/[\\/]\.git[\\/]/, /[\\/]\.nuxt[\\/]/],
+    exclude: [gitExcludePattern, nuxtExcludePattern],
     dts: path.resolve(options.tempRoot, 'components.d.ts'),
 
     allowOverrides: true,
 
     ...pluginOptions.components,
     dirs: [
-      ...options.roots
-        .map(root => join(root, 'components'))
-        .concat([
-          join(options.clientRoot, 'builtin'),
-        ]),
+      ...[...options.roots
+        .map(root => join(root, 'components')), ...[
+        join(options.clientRoot, 'builtin'),
+      ]],
       ...pluginOptions.components?.dirs || [],
     ],
   })

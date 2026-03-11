@@ -47,9 +47,16 @@ function extractAdvScriptSetup(ast: AdvAst.Root) {
 
 function extractCustomBlock(html: string, options: ResolvedMdOptions) {
   const blocks: string[] = []
+  const regexCache = new Map<string, RegExp>()
+
   for (const tag of options.customSfcBlocks) {
+    let regex = regexCache.get(tag)
+    if (!regex) {
+      regex = new RegExp(`<${tag}[^>]*\\b[^>]*>[^<>]*<\\/${tag}>`, 'gm')
+      regexCache.set(tag, regex)
+    }
     html = html.replace(
-      new RegExp(`<${tag}[^>]*\\b[^>]*>[^<>]*<\\/${tag}>`, 'gm'),
+      regex,
       (code) => {
         blocks.push(code)
         return ''

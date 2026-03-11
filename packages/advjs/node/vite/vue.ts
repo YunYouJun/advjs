@@ -4,6 +4,8 @@ import type { AdvPluginOptions } from '../options'
 import Vue from '@vitejs/plugin-vue'
 import { customElements } from '../constants'
 
+const vueIncludePatterns = [/\.vue$/, /\.vue\?vue/, /\.vue\?v=/, /\.md$/, /\.md\?vue/]
+
 export async function createVuePlugin(
   _options: ResolvedAdvOptions,
   pluginOptions: AdvPluginOptions,
@@ -13,7 +15,7 @@ export async function createVuePlugin(
   } = pluginOptions
 
   const VuePlugin = Vue({
-    include: [/\.vue$/, /\.vue\?vue/, /\.vue\?v=/, /\.md$/, /\.md\?vue/],
+    include: vueIncludePatterns,
     exclude: [],
     ...vueOptions,
     template: {

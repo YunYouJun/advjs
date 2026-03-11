@@ -36,7 +36,7 @@ const classes = computed(() => {
     <div
       v-if="app.showTachie" grid="~"
       :class="classes"
-      class="adv-tachie-box pointer-events-none absolute size-full animate-duration-200 overflow-hidden"
+      class="adv-tachie-box size-full pointer-events-none absolute overflow-hidden animate-duration-200"
     >
       <TachieCharacter
         v-for="tachie in props.tachiesMap" :key="tachie[0]"

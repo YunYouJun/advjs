@@ -166,7 +166,7 @@ export function createAdvVirtualLoader(advOptions: ResolvedAdvOptions, serverOpt
       hmrScenesIndexes.add(0)
 
       const moduleEntries = [
-        ...Array.from(moduleIds).map((id) => {
+        ...Array.from(moduleIds, (id) => {
           return server.moduleGraph.getModuleById(id)
         }),
       ]

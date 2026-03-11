@@ -8,16 +8,18 @@ import LinkAttributes from 'markdown-it-link-attributes'
 import { resolve } from 'pathe'
 
 import Markdown from 'unplugin-vue-markdown/vite'
-import VueRouter from 'unplugin-vue-router/vite'
 import vueDevTools from 'vite-plugin-vue-devtools'
-
 import Layouts from 'vite-plugin-vue-layouts'
+
+import VueRouter from 'vue-router/vite'
 import { createComponentsPlugin } from './components'
 import { createConfigPlugin } from './extendConfig'
 import { createAdvLoader } from './loaders'
 // import { createClientSetupPlugin } from './setupClient'
 import { createUnocssPlugin } from './unocss'
 import { createVuePlugin } from './vue'
+
+const httpsPattern = /^https?:\/\//
 
 export async function ViteAdvPlugin(
   options: ResolvedAdvOptions,
@@ -54,8 +56,9 @@ export async function ViteAdvPlugin(
       wrapperClasses: 'markdown-body',
       headEnabled: true,
       markdownItSetup(md) {
+        // @ts-expect-error - LinkAttributes type mismatch with markdown-exit
         md.use(LinkAttributes, {
-          pattern: /^https?:\/\//,
+          pattern: httpsPattern,
           attrs: {
             target: '_blank',
             rel: 'noopener',

@@ -18,13 +18,11 @@ const ownerOptions = computed(() => {
       value: githubStore.user!.login,
     },
   ]
-  return options.concat(
-    githubStore.orgs.map(org => ({
-      icon: 'i-ri-building-line',
-      label: org.login!,
-      value: org.login!,
-    })),
-  )
+  return [...options, ...githubStore.orgs.map(org => ({
+    icon: 'i-ri-building-line',
+    label: org.login!,
+    value: org.login!,
+  }))]
 })
 
 onMounted(async () => {

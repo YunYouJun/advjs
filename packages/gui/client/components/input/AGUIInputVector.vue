@@ -16,9 +16,11 @@ const styles = computed(() => ({
   'grid-template-columns': `repeat(${length.value}, minmax(0, 1fr))`,
 }))
 
-function updateModelValue(val: number, key: keyof Vector) {
+function updateModelValue(val: number, key: VectorKey) {
   const modelValue: Vector = props.modelValue || { x: 0, y: 0 }
-  modelValue[key] = val
+  if (key in modelValue) {
+    (modelValue as any)[key] = val
+  }
   emit('update:modelValue', modelValue)
 }
 
@@ -71,12 +73,12 @@ const active = ref('')
       /> -->
       <AGUINumberField
         class="flex-grow border-l-1"
-        :class="getBorderColor(key)"
+        :class="getBorderColor(key as VectorKey)"
         style="width:calc(100% - 30px)"
         :name="key"
         :label="`${key}`"
-        :model-value="modelValue![key]"
-        @update:model-value="updateModelValue($event, key)"
+        :model-value="(modelValue as any)![key]"
+        @update:model-value="updateModelValue($event, key as VectorKey)"
         @click="active = key"
         @blur="active = ''"
       />

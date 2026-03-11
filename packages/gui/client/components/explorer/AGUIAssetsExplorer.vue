@@ -28,6 +28,8 @@ const emit = defineEmits([
   'update:tree',
 ])
 
+const numberAfterSpacePattern = /(?<=\s)\d+/
+
 const rootDir = ref<FSDirItem | undefined>(props.rootDir)
 const curDir = ref<FSDirItem | undefined>(props.curDir)
 const curFileList = ref<FSItem[]>(props.curFileList || [])
@@ -122,7 +124,7 @@ useEventListener(explorerContent, 'drop', async (e) => {
     return
 
   let fileItems: FSFileItem[] = []
-  const filesArray = Array.from(files)
+  const filesArray = [...files]
   for (const file of filesArray) {
     fileItems.push({
       name: file.name,
@@ -154,13 +156,13 @@ useEventListener(explorerContent, 'drop', async (e) => {
       // get index from name
       // for example: 'test 1.png' index is 1
       let index = 1
-      const match = name.match(/(?<=\s)\d+/)
+      const match = name.match(numberAfterSpacePattern)
       if (match) {
         index = Number.parseInt(match[0])
         rawName = name.replace(match[0], '')
       }
 
-      while (curFileList.value.find(i => i.name === name)) {
+      while (curFileList.value.some(i => i.name === name)) {
         // handle suffix
         const ext = item.name.split('.').pop()
         name = `${rawName.replace(`.${ext}`, '')} ${index}.${ext}`
@@ -170,7 +172,7 @@ useEventListener(explorerContent, 'drop', async (e) => {
     })
 
     setCurFileList(sortFSItems(
-      curFileList.value.concat(fileItems),
+      [...curFileList.value, ...fileItems],
     ))
   }
   else {

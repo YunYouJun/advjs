@@ -5,9 +5,11 @@ import { consola } from 'consola'
 import { normalizePath } from 'vite'
 import { PLUGIN_NAME } from './constant'
 
+const distPattern = /\/dist$/
+
 function getAdvDevtoolsPath() {
   const pluginPath = normalizePath(path.dirname(fileURLToPath(import.meta.url)))
-  return pluginPath.replace(/\/dist$/, '\/src')
+  return pluginPath.replace(distPattern, '\/src')
 }
 
 export interface VitePluginAdvDevToolsOptions {

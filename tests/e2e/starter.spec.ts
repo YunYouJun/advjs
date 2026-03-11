@@ -4,6 +4,8 @@ test.use({
   locale: 'zh-CN',
 })
 
+const hashRootPattern = /.*\/#\//
+
 test.describe('Demo Starter', () => {
   test('basic nav', async ({ page }) => {
     await page.goto('http://localhost:3333/')
@@ -15,7 +17,7 @@ test.describe('Demo Starter', () => {
 
     // Click the first start menu item
     await page.locator('.start-menu-item').first().click()
-    await expect(page).toHaveURL(/.*\/#\//)
+    await expect(page).toHaveURL(hashRootPattern)
 
     // Check for the presence of the first dialog text
     await expect(page.locator('text=你说世界上真的有外星人吗？')).toBeVisible()

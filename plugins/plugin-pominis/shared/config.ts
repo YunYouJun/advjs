@@ -2,6 +2,8 @@ import type { AdvBaseNode, AdvGameConfig } from '@advjs/types'
 import type { PominisAIVSConfig } from '../src/types'
 import { ensureSuffix } from '@antfu/utils'
 
+const spacePattern = / /g
+
 /**
  * adapt ai pominis format
  *
@@ -18,7 +20,7 @@ export function convertPominisAItoAdvConfig(options: {
 
   const characterMap = new Map<string, string>()
   advConfig.characters.forEach((character) => {
-    const characterName = character.name.replace(/ /g, '_')
+    const characterName = character.name.replace(spacePattern, '_')
     // characterMap.set(character.id, character.name)
     characterMap.set(characterName, character.id)
 
@@ -61,7 +63,7 @@ export function convertPominisAItoAdvConfig(options: {
       if (node.dialogues && node.dialogues.length > 0) {
         node.dialogues.forEach((dialog) => {
           // dialog.speaker = advConfig.characters.find((c) => c.id === dialog.speaker)?.name
-          const characterId = dialog.speaker.replace(/ /g, '_')
+          const characterId = dialog.speaker.replace(spacePattern, '_')
           dialog.speaker = characterMap.get(characterId) || dialog.speaker
         })
       }

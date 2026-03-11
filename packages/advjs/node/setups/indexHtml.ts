@@ -4,6 +4,9 @@ import { join } from 'node:path'
 import { uniq } from '@antfu/utils'
 import { toAtFS } from '../resolver'
 
+const headPattern = /<head>([\s\S]*?)<\/head>/i
+const bodyPattern = /<body>([\s\S]*?)<\/body>/i
+
 export default function setupIndexHtml({ mode, data, themeRoot, userRoot, clientRoot, base }: ResolvedAdvOptions): string {
   let main = readFileSync(join(clientRoot, 'index.html'), 'utf-8')
   let head = ''
@@ -23,8 +26,8 @@ export default function setupIndexHtml({ mode, data, themeRoot, userRoot, client
 
     const index = readFileSync(path, 'utf-8')
 
-    head += `\n${(index.match(/<head>([\s\S]*?)<\/head>/i)?.[1] || '').trim()}`
-    body += `\n${(index.match(/<body>([\s\S]*?)<\/body>/i)?.[1] || '').trim()}`
+    head += `\n${(index.match(headPattern)?.[1] || '').trim()}`
+    body += `\n${(index.match(bodyPattern)?.[1] || '').trim()}`
   }
 
   const baseInDev = mode === 'dev' && base ? base.slice(0, -1) : ''

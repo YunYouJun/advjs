@@ -61,7 +61,7 @@ const creativeEffect: CreativeEffectOptions = {
 </script>
 
 <template>
-  <div class="menu-panel size-full flex flex-col justify-between" gap="x-2 y-0" text="2xl">
+  <div class="menu-panel flex flex-col size-full justify-between" gap="x-2 y-0" text="2xl">
     <div class="flex flex-grow" col="span-12">
       <Swiper
         effect="creative"
@@ -86,7 +86,7 @@ const creativeEffect: CreativeEffectOptions = {
 
     <HorizontalDivider />
 
-    <div class="adv-pagination-container py-4 text-4xl">
+    <div class="adv-pagination-container text-4xl py-4">
       <AdvTextButton
         v-for="i in 10" :key="i"
         :active="curPage === i"

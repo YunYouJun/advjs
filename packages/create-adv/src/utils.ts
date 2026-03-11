@@ -2,11 +2,17 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { colors } from 'consola/utils'
 
+const trailingSlashPattern = /\/+$/g
+const packageNamePattern = /^(?:@[a-z\d\-*~][a-z\d\-*._~]*\/)?[a-z\d\-~][a-z\d\-._~]*$/
+const whitespacePattern = /\s+/g
+const leadingSpecialPattern = /^[._]/
+const invalidCharsPattern = /[^a-z\d\-~]+/g
+
 /**
  * remove trailing slash
  */
 export function formatTargetDir(targetDir: string | undefined) {
-  return targetDir?.trim().replace(/\/+$/g, '')
+  return targetDir?.trim().replace(trailingSlashPattern, '')
 }
 
 export function isEmpty(path: string) {
@@ -47,7 +53,7 @@ export function emptyDir(dir: string) {
 }
 
 export function isValidPackageName(projectName: string) {
-  return /^(?:@[a-z\d\-*~][a-z\d\-*._~]*\/)?[a-z\d\-~][a-z\d\-._~]*$/.test(
+  return packageNamePattern.test(
     projectName,
   )
 }
@@ -56,9 +62,9 @@ export function toValidPackageName(projectName: string) {
   return projectName
     .trim()
     .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/^[._]/, '')
-    .replace(/[^a-z\d\-~]+/g, '-')
+    .replace(whitespacePattern, '-')
+    .replace(leadingSpecialPattern, '')
+    .replace(invalidCharsPattern, '-')
 }
 
 export function pkgFromUserAgent(userAgent: string | undefined) {

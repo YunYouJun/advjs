@@ -36,6 +36,7 @@ export const commonAlias: Alias[] = [
   { find: '@advjs/parser', replacement: `${resolve(packagesDir, 'parser/src', 'index.ts')}` },
   { find: '@advjs/shared', replacement: `${resolve(packagesDir, 'shared/src', 'index.ts')}` },
   { find: '@advjs/types', replacement: `${resolve(packagesDir, 'types/src', 'index.ts')}` },
+  { find: '@advjs/webcontainer', replacement: `${resolve(packagesDir, 'webcontainer/src', 'index.ts')}` },
 
   // themes
   { find: '@advjs/theme-default/', replacement: `${resolve(themesDir, 'theme-default')}/` },
