@@ -3,11 +3,12 @@
  */
 
 import path from 'node:path'
+import process from 'node:process'
 import { consola } from 'consola'
 import { colors } from 'consola/utils'
 import * as TJS from 'typescript-json-schema'
-import { copy, emptyDir, ensureDir, writeJSON } from './utils/fs'
 import { docsDir, typesDir } from './config'
+import { copy, emptyDir, ensureDir, writeJSON } from './utils/fs'
 
 async function generateSchema() {
   // optionally pass argument to schema generator
@@ -50,4 +51,6 @@ async function generateSchema() {
 
 generateSchema()
   .catch((error) => {
-    console.error(
+    console.error(error)
+    process.exit(1)
+  })

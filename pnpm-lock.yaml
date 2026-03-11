@@ -1427,6 +1427,9 @@ importers:
       '@types/wicg-file-system-access':
         specifier: catalog:types
         version: 2023.10.7
+      '@vueuse/core':
+        specifier: catalog:frontend
+        version: 14.2.1(vue@3.5.30(typescript@5.9.3))
       colord:
         specifier: catalog:frontend
         version: 2.9.3

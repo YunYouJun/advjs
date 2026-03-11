@@ -27,11 +27,11 @@
   "module": "./index.ts",
   "types": "./index.ts",
   "scripts": {
-    "build": "npm run build:lib && npm run build:icons && npm run build:node",
+    "build": "pnpm run build:lib && pnpm run build:icons && pnpm run build:node",
     "build:node": "unbuild",
-    "build:lib": "npm run typecheck && vite build",
+    "build:lib": "pnpm run typecheck && vite build",
     "build:icons": "tsx scripts/build.ts",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "pnpm run build",
     "release": "bumpp --no-commit --no-tag --no-push && pnpm publish --no-git-checks",
     "typecheck": "vue-tsc --noEmit"
   },
@@ -41,6 +41,7 @@
     "@iconify/vue": "catalog:icons",
     "@types/splitpanes": "catalog:types",
     "@types/wicg-file-system-access": "catalog:types",
+    "@vueuse/core": "catalog:frontend",
     "colord": "catalog:frontend",
     "consola": "catalog:cli",
     "reka-ui": "catalog:frontend",
