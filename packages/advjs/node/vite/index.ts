@@ -3,15 +3,15 @@ import type { PluginOption } from 'vite'
 import type { AdvPluginOptions, AdvServerOptions } from '../options'
 import { join } from 'node:path'
 import VueI18n from '@intlify/unplugin-vue-i18n/vite'
-import fs from 'fs-extra'
 import LinkAttributes from 'markdown-it-link-attributes'
 import { resolve } from 'pathe'
-
 import Markdown from 'unplugin-vue-markdown/vite'
+
 import vueDevTools from 'vite-plugin-vue-devtools'
 import Layouts from 'vite-plugin-vue-layouts'
-
 import VueRouter from 'vue-router/vite'
+
+import { ensureDirSync } from '../utils/fs'
 import { createComponentsPlugin } from './components'
 import { createConfigPlugin } from './extendConfig'
 import { createAdvLoader } from './loaders'
@@ -27,7 +27,7 @@ export async function ViteAdvPlugin(
   serverOptions: AdvServerOptions = {},
 ): Promise<PluginOption[]> {
   // generated files for adv
-  fs.ensureDirSync(options.tempRoot)
+  ensureDirSync(options.tempRoot)
 
   const plugins: PluginOption[] | Promise<PluginOption[]> = [
     createConfigPlugin(options),

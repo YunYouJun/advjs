@@ -1,9 +1,10 @@
 import type { Argv } from 'yargs'
 import path from 'node:path'
 import process from 'node:process'
+import { existsSync, readFileSync } from 'node:fs'
 import { consola } from 'consola'
 import { colors } from 'consola/utils'
-import fs from 'fs-extra'
+import { ensureDir, writeJSON } from '../utils/fs'
 import { gameModules } from '../../shared'
 import { loadAdvGameConfigFromType } from '../config/game'
 import { resolveOptions } from '../options'
@@ -54,11 +55,11 @@ export function installConfigCommand(cli: Argv) {
         const publicPath = path.resolve(options.userRoot, 'public')
         function imgToBase64(src: string) {
           const srcPath = path.resolve(publicPath, src.startsWith('/') ? src.slice(1) : src)
-          if (!fs.existsSync(srcPath)) {
+          if (!existsSync(srcPath)) {
             consola.warn(`Image not found: ${srcPath}`)
             return ''
           }
-          const base64Data = fs.readFileSync(srcPath).toString('base64')
+          const base64Data = readFileSync(srcPath).toString('base64')
           return `data:image/png;base64,${base64Data}`
         }
         gameConfig.scenes.forEach((scene) => {

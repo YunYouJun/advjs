@@ -1,5 +1,5 @@
 import { dirname } from 'node:path'
-import fs from 'fs-extra'
+import { lstatSync } from 'node:fs'
 import { resolve } from 'pathe'
 import { isPath } from '../options'
 import { resolveImportPath } from '../resolver'
@@ -15,7 +15,7 @@ export async function getModuleRoot(name: string, entry?: string) {
 
   if (isPath(name)) {
     if (entry) {
-      const isFile = fs.lstatSync(entry).isFile()
+      const isFile = lstatSync(entry).isFile()
       return resolve(isFile ? dirname(entry) : entry, name)
     }
     else { throw new Error(`entry is required when ${name} is path`) }

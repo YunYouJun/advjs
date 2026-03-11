@@ -1,7 +1,7 @@
 import type { AdvPlugin, ResolvedAdvPlugin } from '@advjs/types'
 import path from 'node:path'
 import process from 'node:process'
-import fs from 'fs-extra'
+import { pathExists, readJSON } from '../utils/fs'
 import { getModuleRoot } from '../utils/root'
 
 /**
@@ -21,11 +21,11 @@ export async function resolvePlugin(plugin: AdvPlugin, userRoot = process.cwd())
   const pluginRoot = await getPluginRoot(plugin.name, userRoot)
   const pkgPath = path.resolve(pluginRoot, 'package.json')
 
-  if (!(await fs.pathExists(pkgPath))) {
+  if (!(await pathExists(pkgPath))) {
     throw new Error(`Plugin "${plugin.name}" not found at ${pluginRoot}. Please ensure it is installed in your project.`)
   }
 
-  const packageJSON = await fs.readJSON(pkgPath)
+  const packageJSON = await readJSON(pkgPath)
   const resolvedPlugin: ResolvedAdvPlugin = {
     ...plugin,
     root: pluginRoot,

@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { consola } from 'consola'
-import fs from 'fs-extra'
+import { ensureDir, writeJSON } from '../utils/fs'
 import { generateAdvDramaJSON } from './chat'
 
 export * from './hunyuan'
@@ -34,9 +34,9 @@ export async function writerWorkflow(params: AdvWriterWorkflowParams) {
   try {
     const aiData = JSON.parse(aiStr || '{}')
     if (params.outputDir) {
-      await fs.ensureDir(params.outputDir)
+      await ensureDir(params.outputDir)
       const fileName = params.overwrite ? 'adv.ai.json' : `adv.ai.${Date.now()}.json`
-      await fs.writeJSON(path.resolve(params.outputDir, fileName), aiData, {
+      await writeJSON(path.resolve(params.outputDir, fileName), aiData, {
         spaces: 2,
         EOL: '\n',
       })

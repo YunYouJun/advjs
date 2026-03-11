@@ -2,7 +2,7 @@ import type { SpeechCreateParams } from 'openai/resources/audio/speech'
 
 import { Buffer } from 'node:buffer'
 import path from 'node:path'
-import fs from 'fs-extra'
+import { writeFile } from 'node:fs/promises'
 import { openai } from '../src'
 import { logsDir } from './config'
 
@@ -40,7 +40,7 @@ export async function main() {
     const buffer = Buffer.from(await mp3.arrayBuffer())
 
     const speechFile = path.resolve(logsDir, `speech-${voice}.mp3`)
-    await fs.writeFile(speechFile, buffer)
+    await writeFile(speechFile, buffer)
   }
 }
 

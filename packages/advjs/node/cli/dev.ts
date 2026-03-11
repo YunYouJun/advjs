@@ -5,8 +5,9 @@ import { exec } from 'node:child_process'
 import path from 'node:path'
 import process from 'node:process'
 import * as readline from 'node:readline'
+import { existsSync } from 'node:fs'
 import { colors } from 'consola/utils'
-import fs from 'fs-extra'
+import { copy } from '../utils/fs'
 import openBrowser from 'open'
 import prompts from 'prompts'
 import { gameModules } from '../../shared'
@@ -21,10 +22,10 @@ import { commonOptions, findFreePort, printInfo } from './utils'
  * 检查剧本文件是否存在
  */
 export async function checkFountain(entry: string) {
-  if (!fs.existsSync(entry) && !entry.endsWith('.adv.md'))
+  if (!existsSync(entry) && !entry.endsWith('.adv.md'))
     entry = `${entry}.adv.md`
 
-  if (!fs.existsSync(entry)) {
+  if (!existsSync(entry)) {
     const { create } = await prompts({
       name: 'create',
       type: 'confirm',
@@ -32,7 +33,7 @@ export async function checkFountain(entry: string) {
       message: `Entry file ${colors.yellow(`"${entry}"`)} does not exist, do you want to create it?`,
     })
     if (create)
-      await fs.copyFile(path.resolve(__dirname, '../template.adv.md'), entry)
+      await copy(path.resolve(__dirname, '../template.adv.md'), entry)
     else
       process.exit(0)
   }

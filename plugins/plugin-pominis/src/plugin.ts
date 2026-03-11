@@ -1,8 +1,8 @@
 import type { AdvPlugin } from '@advjs/types'
 import path from 'node:path'
+import { mkdir, writeFile } from 'node:fs/promises'
 import { consola } from 'consola'
 import { defu } from 'defu'
-import fs from 'fs-extra'
 import { name } from '../package.json'
 import { handlePominisAdapter } from './adapter'
 import { fetchPominisStory } from './api'
@@ -94,9 +94,10 @@ export function pluginPominis(pluginOptions?: PominisPluginOptions): AdvPlugin {
          * for debug
          */
         const distFolder = path.resolve(options.userRoot, options.outDir || 'dist')
-        await fs.ensureDir(distFolder)
+        await mkdir(distFolder, { recursive: true })
         const distConfigPath = path.resolve(distFolder, `${storyId}.json`)
-        await fs.writeJson(distConfigPath, pominisConfig, { spaces: 2, EOL: '\n' })
+        const content = JSON.stringify(pominisConfig, null, 2) + '\n'
+        await writeFile(distConfigPath, content, 'utf-8')
         consola.debug(`Pominis story config saved to: ${distConfigPath}`)
 
         await handlePominisAdapter(options, pluginOptions, pominisConfig)

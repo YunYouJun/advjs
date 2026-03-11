@@ -1,7 +1,7 @@
 import path from 'node:path'
+import { writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { consola } from 'consola'
-import fs from 'fs-extra'
 import { svg } from '../client/styles/icons'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -19,4 +19,4 @@ function bCssVarsRootStyle() {
 
 const iconCSSPath = path.resolve(distFolder, 'icons.css')
 consola.info('Writing icons.css to', iconCSSPath)
-fs.writeFileSync(iconCSSPath, bCssVarsRootStyle(), 'utf-8')
+writeFileSync(iconCSSPath, bCssVarsRootStyle(), 'utf-8')

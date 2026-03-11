@@ -1,6 +1,7 @@
 import type { VirtualModuleTemplate } from './types'
 import { join } from 'node:path'
-import fs from 'fs-extra'
+import { readdir } from 'node:fs/promises'
+import { pathExists } from '../utils/fs'
 import { gameModules } from '../../shared'
 import { toAtFS } from '../resolver'
 
@@ -9,13 +10,13 @@ function createGameTemplate(name: string): VirtualModuleTemplate {
     id: `/@advjs/game/${name}s`,
     async getContent({ gameRoot }) {
       const root = join(gameRoot, `${name}s`)
-      if (!(await fs.pathExists(root))) {
+      if (!(await pathExists(root))) {
         return `export default []`
       }
       /**
        * 按数字顺序排序
        */
-      const files = (await fs.readdir(root)).filter(i => i.endsWith(`.${name}.ts`)).sort((a, b) => {
+      const files = (await readdir(root)).filter(i => i.endsWith(`.${name}.ts`)).sort((a, b) => {
         const numA = Number.parseInt(a.split('.')[0])
         const numB = Number.parseInt(b.split('.')[0])
         return numA - numB

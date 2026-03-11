@@ -1,12 +1,12 @@
 import path from 'node:path'
-import fs from 'fs-extra'
+import { readFile } from 'node:fs/promises'
 import { expect, it } from 'vitest'
 import { parseAst } from '../src'
 
 const testAdvPath = path.resolve(import.meta.dirname, '../../shared/examples/test.adv')
 
 it('main', async () => {
-  const testAdv = await fs.readFile(testAdvPath, 'utf-8')
+  const testAdv = await readFile(testAdvPath, 'utf-8')
   const advAst = await parseAst(testAdv)
   expect(advAst.children).toContainEqual({
     type: 'text',

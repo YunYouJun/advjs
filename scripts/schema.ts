@@ -5,8 +5,8 @@
 import path from 'node:path'
 import { consola } from 'consola'
 import { colors } from 'consola/utils'
-import fs from 'fs-extra'
 import * as TJS from 'typescript-json-schema'
+import { copy, emptyDir, ensureDir, writeJSON } from './utils/fs'
 import { docsDir, typesDir } from './config'
 
 async function generateSchema() {
@@ -34,21 +34,20 @@ async function generateSchema() {
 
   // write schema to file
   const targetSchemaFile = path.resolve(typesDir, 'schema/adv.config.schema.json')
-  await fs.emptyDir(path.dirname(targetSchemaFile))
-  await fs.writeJSON(targetSchemaFile, schema, {
+  await emptyDir(path.dirname(targetSchemaFile))
+  await writeJSON(targetSchemaFile, schema, {
     spaces: 2,
   })
   consola.success(colors.yellow('adv.config.json'), 'Schema generated successfully:', colors.cyan(targetSchemaFile))
 
   // copy for online schema link
   const publicSchemaDir = path.resolve(docsDir, 'public/schema')
-  await fs.ensureDir(publicSchemaDir)
+  await ensureDir(publicSchemaDir)
   const advConfigSchemaFile = path.resolve(publicSchemaDir, 'adv.config.schema.json')
-  await fs.copyFile(targetSchemaFile, advConfigSchemaFile)
+  await copy(targetSchemaFile, advConfigSchemaFile)
   consola.success('Schema copied to:', colors.cyan(advConfigSchemaFile))
 }
 
 generateSchema()
   .catch((error) => {
-    console.error('Error generating schema:', error)
-  })
+    console.error(

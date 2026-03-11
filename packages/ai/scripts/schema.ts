@@ -5,8 +5,8 @@
 import path from 'node:path'
 import { consola } from 'consola'
 import { colors } from 'consola/utils'
-import fs from 'fs-extra'
 import * as TJS from 'typescript-json-schema'
+import { writeJSON } from '../src/utils/fs'
 
 const typesDir = path.resolve(import.meta.dirname, '../src/types')
 const schemaDir = path.resolve(typesDir, '../schema')

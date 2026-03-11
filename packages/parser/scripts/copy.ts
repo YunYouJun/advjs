@@ -1,6 +1,7 @@
 import path, { dirname } from 'node:path'
+import { cpSync, existsSync, mkdirSync } from 'node:fs'
+import { copyFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
-import fs from 'fs-extra'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -8,25 +9,25 @@ const demoFolder = path.resolve(__dirname, '../../../demo')
 const examplesFolder = path.resolve(__dirname, '../../../examples/adv-format')
 const targetFolder = path.resolve(__dirname, '../playground/public/examples')
 
-function main() {
-  fs.ensureDirSync(targetFolder)
+async function main() {
+  mkdirSync(targetFolder, { recursive: true })
   // copy demo
   const demos = ['starter', 'love']
-  demos.forEach((name) => {
+  for (const name of demos) {
     const targetDir = `${targetFolder}/demo/${name}`
-    fs.ensureDirSync(targetDir)
+    mkdirSync(targetDir, { recursive: true })
 
     const sourceEntryFile = `${demoFolder}/${name}/index.adv.md`
-    if (fs.existsSync(sourceEntryFile)) {
-      fs.copyFile(
+    if (existsSync(sourceEntryFile)) {
+      await copyFile(
         sourceEntryFile,
         `${targetDir}/index.adv.md`,
       )
     }
-  })
+  }
 
   // copy @advjs/examples
-  fs.copySync(`${examplesFolder}`, targetFolder, { overwrite: true })
+  cpSync(examplesFolder, targetFolder, { recursive: true, force: true })
 }
 
 main()

@@ -1,5 +1,5 @@
 import path from 'node:path'
-import fs from 'fs-extra'
+import { writeJSON } from '../src/utils/fs'
 import { aiFormatJSONData } from '../examples/ai-data'
 
 const AI_FORMAT_JSON_PATH = path.resolve(import.meta.dirname, '../examples/ai-format.json')
@@ -10,7 +10,7 @@ const AI_FORMAT_JSON_PATH = path.resolve(import.meta.dirname, '../examples/ai-fo
  * 以便设置工作流的时候导入格式
  */
 export async function genAIFormatJson() {
-  await fs.writeJSON(AI_FORMAT_JSON_PATH, aiFormatJSONData, { spaces: 2, EOL: '\n' })
+  await writeJSON(AI_FORMAT_JSON_PATH, aiFormatJSONData, { spaces: 2, EOL: '\n' })
 }
 
 genAIFormatJson()

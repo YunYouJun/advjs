@@ -4,13 +4,13 @@ import { dirname, join, resolve } from 'node:path'
 import process from 'node:process'
 import { uniq } from '@antfu/utils'
 import _debug from 'debug'
-import fs from 'fs-extra'
 import { loadAdvConfigs } from '../config'
-
 import { resolvePlugins } from '../plugins/resolve'
 
 import { getRoots, packageExists, resolveImportPath } from '../resolver'
+
 import { getThemeMeta, resolveThemeName } from '../themes'
+import { readJSON } from '../utils/fs'
 
 export const debug = _debug('adv:options')
 
@@ -114,7 +114,7 @@ export async function resolveOptions(
   }
 
   const rootsInfo = await getRoots(options, config)
-  const pkg = await fs.readJSON(`${rootsInfo.themeRoot}/package.json`)
+  const pkg = await readJSON(`${rootsInfo.themeRoot}/package.json`)
   themeConfig.pkg = pkg
 
   advOptions.roots = uniq([
