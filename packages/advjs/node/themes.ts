@@ -1,13 +1,13 @@
 import type { AdvThemeMeta } from '@advjs/types'
+import { existsSync } from 'node:fs'
 import { parseNi, run } from '@antfu/ni'
 import { colors } from 'consola/utils'
-import { existsSync } from 'node:fs'
-import { readJSON } from './utils/fs'
 import prompts from 'prompts'
 import { satisfies } from 'semver'
 import { version } from '../package.json'
 import { isPath } from './options'
 import { isInstalledGlobally, packageExists } from './resolver'
+import { readJSON } from './utils/fs'
 
 const officialThemes: Record<string, string> = {
   none: '',
@@ -22,11 +22,11 @@ const officialThemes: Record<string, string> = {
  * @param path
  */
 export async function getThemeMeta(name: string, path: string) {
-  if (!fs.existsSync(path))
+  if (!existsSync(path))
     return {}
 
   if (path) {
-    const { advjs = {}, engines = {} } = await fs.readJSON(path)
+    const { advjs = {}, engines = {} } = await readJSON(path)
 
     // tmp
     const v = version.split('-') ? version.split('-')[0] : version

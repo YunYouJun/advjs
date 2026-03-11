@@ -88,7 +88,6 @@
     "@antfu/eslint-config": "catalog:dev",
     "@antfu/ni": "catalog:utils",
     "@playwright/test": "catalog:test",
-    "@types/fs-extra": "catalog:types",
     "@types/howler": "catalog:types",
     "@types/node": "catalog:types",
     "@types/prompts": "catalog:types",

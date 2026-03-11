@@ -1,13 +1,13 @@
 import type { Argv } from 'yargs'
+import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
-import { existsSync, readFileSync } from 'node:fs'
 import { consola } from 'consola'
 import { colors } from 'consola/utils'
-import { ensureDir, writeJSON } from '../utils/fs'
 import { gameModules } from '../../shared'
 import { loadAdvGameConfigFromType } from '../config/game'
 import { resolveOptions } from '../options'
+import { ensureDir, writeJSON } from '../utils/fs'
 import { commonOptions } from './utils'
 
 /**
@@ -80,9 +80,9 @@ export function installConfigCommand(cli: Argv) {
       }
 
       const targetDir = path.resolve(process.cwd(), target)
-      await fs.ensureDir(targetDir)
+      await ensureDir(targetDir)
       const gameConfigFile = path.resolve(targetDir, `${gameConfig.title}.adv.json`)
-      await fs.writeJSON(
+      await writeJSON(
         gameConfigFile,
         gameConfig,
         {

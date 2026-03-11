@@ -33,12 +33,10 @@
     "@advjs/types": "workspace:*",
     "consola": "catalog:cli",
     "dotenv": "catalog:cli",
-    "fs-extra": "catalog:utils",
     "openai": "catalog:ai",
     "tencentcloud-sdk-nodejs-hunyuan": "catalog:"
   },
   "devDependencies": {
-    "@types/fs-extra": "catalog:types",
     "tsx": "catalog:dev",
     "unbuild": "catalog:build"
   }

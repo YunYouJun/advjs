@@ -1,7 +1,7 @@
 import type { AdvChapter, AdvCharacter, AdvGameConfig, AdvScene, ResolvedAdvOptions } from '@advjs/types'
 import type { AdvGameModuleName } from '../virtual/game'
-import path from 'node:path'
 import { readdir } from 'node:fs/promises'
+import path from 'node:path'
 import { loadConfig } from 'c12'
 import { loadModule } from '../utils'
 
@@ -41,7 +41,7 @@ export async function loadAdvGameConfigFromType<T extends AdvGameModuleName>(typ
   /**
    * 按数字顺序排序
    */
-  const files = (await fs.readdir(root)).filter(i => i.endsWith(`.${type}.ts`)).sort((a, b) => {
+  const files = (await readdir(root)).filter(i => i.endsWith(`.${type}.ts`)).sort((a, b) => {
     const numA = Number.parseInt(a.split('.')[0])
     const numB = Number.parseInt(b.split('.')[0])
     return numA - numB

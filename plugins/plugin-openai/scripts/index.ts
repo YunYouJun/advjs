@@ -1,8 +1,8 @@
 import type { SpeechCreateParams } from 'openai/resources/audio/speech'
 
 import { Buffer } from 'node:buffer'
-import path from 'node:path'
 import { writeFile } from 'node:fs/promises'
+import path from 'node:path'
 import { openai } from '../src'
 import { logsDir } from './config'
 

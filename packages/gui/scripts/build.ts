@@ -1,5 +1,5 @@
-import path from 'node:path'
 import { writeFileSync } from 'node:fs'
+import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { consola } from 'consola'
 import { svg } from '../client/styles/icons'

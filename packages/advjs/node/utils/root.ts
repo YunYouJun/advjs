@@ -1,5 +1,5 @@
-import { dirname } from 'node:path'
 import { lstatSync } from 'node:fs'
+import { dirname } from 'node:path'
 import { resolve } from 'pathe'
 import { isPath } from '../options'
 import { resolveImportPath } from '../resolver'

@@ -1,6 +1,6 @@
 import path from 'node:path'
-import { writeJSON } from '../src/utils/fs'
 import { aiFormatJSONData } from '../examples/ai-data'
+import { writeJSON } from '../src/utils/fs'
 
 const AI_FORMAT_JSON_PATH = path.resolve(import.meta.dirname, '../examples/ai-format.json')
 

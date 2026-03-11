@@ -15,7 +15,6 @@ export default defineBuildConfig({
     '@advjs/types',
 
     'vue',
-    'fs-extra',
 
     // advjs child deps
     'defu',
