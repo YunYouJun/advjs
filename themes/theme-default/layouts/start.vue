@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Game Start Menu Page Layout
-import { isDark } from '@advjs/core'
+import { isDark } from '@advjs/client'
 import { images } from '../assets'
 
 withDefaults(defineProps<{

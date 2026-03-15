@@ -1,8 +1,8 @@
 import type { AdvGameRecord, AdvGameRecordMeta } from '@advjs/client'
 import { AdvGameLoadStatusEnum } from '@advjs/client'
-import { createRecordsStorage } from '@advjs/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import { createRecordsStorage } from '../utils'
 
 /**
  * runtime game store

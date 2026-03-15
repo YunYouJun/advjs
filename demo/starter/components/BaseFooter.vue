@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { isDark } from '@advjs/core'
+import { isDark } from '@advjs/client'
 // todo: fix type
 // @ts-expect-error vue-about-me
 import VueAboutMe from 'vue-about-me'

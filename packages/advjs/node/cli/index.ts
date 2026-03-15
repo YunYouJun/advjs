@@ -7,6 +7,7 @@ import { installBuildCommand } from './build'
 import { installConfigCommand } from './config'
 import { installDevCommand } from './dev'
 import { installExportCommand } from './export'
+import { installPlayCommand } from './play'
 
 const namespace = 'adv'
 const cli = yargs(hideBin(process.argv))
@@ -22,6 +23,7 @@ installDevCommand(cli)
 installBuildCommand(cli)
 installExportCommand(cli)
 installConfigCommand(cli)
+installPlayCommand(cli)
 
 cli
   .help()

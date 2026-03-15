@@ -18,6 +18,7 @@ const customElements = new Set(['font'])
 const nav: DefaultTheme.Config['nav'] = [
   { text: '指南', link: '/guide/' },
   { text: 'AI', link: '/ai/' },
+  { text: 'Skills', link: '/skills/' },
   { text: 'API', link: '/api/' },
   {
     text: 'AGUI',
@@ -123,6 +124,21 @@ function sidebarAI(): DefaultTheme.SidebarItem[] {
         { text: 'MCP', link: '/ai/mcp' },
         { text: '参考', link: '/ai/ref' },
         { text: 'FAQ', link: '/ai/faq' },
+      ],
+    },
+  ]
+}
+
+function sidebarSkills(): DefaultTheme.SidebarItem[] {
+  return [
+    {
+      text: 'Skills',
+      collapsed: false,
+      items: [
+        { text: '介绍', link: '/skills/' },
+        { text: 'OpenClaw 集成', link: '/skills/openclaw' },
+        { text: 'adv-story', link: '/skills/adv-story' },
+        { text: '路线图', link: '/skills/roadmap' },
       ],
     },
   ]
@@ -409,6 +425,7 @@ const sidebar: DefaultTheme.Config['sidebar'] = {
   '/ai/': sidebarAI(),
   '/api/': typedocSidebar,
   '/guide/': sidebarGuide(),
+  '/skills/': sidebarSkills(),
 
   '/contributing/': sidebarAbout(),
   '/about/': sidebarAbout(),

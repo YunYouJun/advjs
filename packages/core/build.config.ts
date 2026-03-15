@@ -11,15 +11,9 @@ export default defineBuildConfig({
     '@advjs/parser',
     '@advjs/types',
     'consola',
-
-    'dayjs',
-    'howler',
+    'unstorage',
 
     // vue
     'vue',
-    '@vueuse/core',
-    'pinia',
-
-    'html2canvas',
   ],
 })

@@ -16,6 +16,5 @@
     "dotenv": "catalog:cli",
     "openai": "catalog:ai"
   },
-  "devDependencies": {
-  }
+  "devDependencies": {}
 }

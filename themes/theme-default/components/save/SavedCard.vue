@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { AdvGameRecord, AdvGameRecordMeta } from '@advjs/client'
-import { useAdvContext, useAppStore, useGameStore } from '@advjs/client'
-import { screenshotGameThumb } from '@advjs/core'
+import { screenshotGameThumb, useAdvContext, useAppStore, useGameStore } from '@advjs/client'
 import { assets } from '@advjs/theme-default'
 
 import dayjs from 'dayjs'
