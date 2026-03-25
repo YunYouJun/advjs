@@ -1,6 +1,7 @@
 import type { Argv } from 'yargs'
 import { consola } from 'consola'
 import { colors } from 'consola/utils'
+import { t } from './i18n'
 import { commonOptions } from './utils'
 
 /**
@@ -9,7 +10,7 @@ import { commonOptions } from './utils'
 export function installExportCommand(cli: Argv) {
   cli.command(
     'export',
-    'Export to Video',
+    t('export.desc'),
     args => commonOptions(args),
     async () => {
       const { chromium } = await import('@playwright/test')
@@ -35,15 +36,15 @@ export function installExportCommand(cli: Argv) {
       })
 
       const page = await context.newPage()
-      consola.info('Opening page', colors.cyan(targetUrl))
+      consola.info(t('export.opening_page'), colors.cyan(targetUrl))
       await page.goto(targetUrl, {
         waitUntil: 'domcontentloaded',
       })
-      consola.success('Page domcontentloaded')
+      consola.success(t('export.page_loaded'))
       await page.waitForTimeout(1000)
 
       console.log()
-      consola.start('Recording video...')
+      consola.start(t('export.recording'))
 
       await page.waitForTimeout(3000)
 
@@ -56,16 +57,16 @@ export function installExportCommand(cli: Argv) {
 
       for (let i = 0; i < 200; i++) {
         if (i % 60 === 0) {
-          consola.info('Screenshot index:', colors.dim(i))
+          consola.info(t('export.screenshot_index'), colors.dim(i))
         }
         await screenshot(i)
       }
 
-      consola.success('Recording video done')
+      consola.success(t('export.recording_done'))
       await browser.close()
 
       const path = await page.video()?.path()
-      consola.success('Video saved to', colors.dim(path || ''))
+      consola.success(t('export.video_saved'), colors.dim(path || ''))
     },
   )
 }

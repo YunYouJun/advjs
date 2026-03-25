@@ -28,6 +28,6 @@
   },
   "devDependencies": {
     "advjs": "latest",
-    "unbuild": "^3"
+    "unbuild": "^3.6.1"
   }
 }

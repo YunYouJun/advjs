@@ -1,9 +1,9 @@
 import type { VirtualModuleTemplate } from './types'
-import { join } from 'node:path'
 import { readdir } from 'node:fs/promises'
-import { pathExists } from '../utils/fs'
+import { join } from 'node:path'
 import { gameModules } from '../../shared'
 import { toAtFS } from '../resolver'
+import { pathExists } from '../utils/fs'
 
 function createGameTemplate(name: string): VirtualModuleTemplate {
   return {

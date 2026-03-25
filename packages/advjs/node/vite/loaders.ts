@@ -91,7 +91,7 @@ export function createAdvVirtualLoader(advOptions: ResolvedAdvOptions, serverOpt
       const template = templates.find(t => t.id === id)
       if (template) {
         return {
-          code: await template.getContent.call(this, advOptions),
+          code: await template.getContent.call(this as any, advOptions),
           map: { mappings: '' },
         }
       }

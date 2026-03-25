@@ -8,7 +8,7 @@ describe('pominis plugin options', () => {
 
     const imageConfig = defaultPominisPluginOptions.bundleAssets?.image
     if (typeof imageConfig === 'object') {
-      expect(imageConfig.enable).toBe(true)
+      expect(imageConfig.enable).toBe(false)
       expect(imageConfig.concurrency).toBe(4)
     }
   })

@@ -1,3 +1,6 @@
+export * from './device'
 export * from './init'
+export * from './screenshots'
 export * from './speech'
 export * from './statement'
+export * from './storage'

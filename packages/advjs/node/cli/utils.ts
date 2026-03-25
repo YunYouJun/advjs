@@ -5,6 +5,7 @@ import os from 'node:os'
 import { colors } from 'consola/utils'
 import { version } from '../../package.json'
 import { isInstalledGlobally } from '../resolver'
+import { t } from './i18n'
 
 export function isPortFree(port: number) {
   return new Promise((resolve) => {
@@ -35,7 +36,7 @@ export function commonOptions(args: Argv) {
     .option('theme', {
       alias: 't',
       type: 'string',
-      describe: 'override theme',
+      describe: t('common.theme_desc'),
     })
 }
 

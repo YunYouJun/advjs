@@ -3,8 +3,8 @@
 import type { AdvAst, AdvConfig } from '@advjs/types'
 
 import { useAppStore } from '@advjs/client'
-import { useBeforeUnload } from '@advjs/core'
 import { computed } from 'vue'
+import { useBeforeUnload } from '../../composables'
 import { useAdvContext } from '../../composables/useAdvContext'
 
 defineProps<{

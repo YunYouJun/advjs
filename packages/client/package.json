@@ -41,11 +41,13 @@
     "consola": "catalog:cli",
     "dayjs": "catalog:utils",
     "howler": "catalog:frontend",
+    "html2canvas": "catalog:frontend",
     "nprogress": "catalog:frontend",
     "pinia": "catalog:frontend",
     "pixi.js": "catalog:frontend",
     "reka-ui": "catalog:frontend",
     "swiper": "catalog:frontend",
+    "unstorage": "catalog:utils",
     "vue": "catalog:frontend",
     "vue-router": "catalog:frontend"
   },

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import type { AdvMenuItemProps } from '@advjs/theme-default'
-import { useScreenLock } from '@advjs/core'
-
 import { useFullscreen } from '@vueuse/core'
-import { TabsContent, TabsIndicator, TabsList, TabsRoot } from 'reka-ui'
 
+import { TabsContent, TabsIndicator, TabsList, TabsRoot } from 'reka-ui'
 import { computed, ref } from 'vue'
+
 import { useI18n } from 'vue-i18n'
+import { useScreenLock } from '../../composables'
 import { useSettingsStore } from '../../stores'
 import AudioVolume from './settings/AudioVolume.vue'
 

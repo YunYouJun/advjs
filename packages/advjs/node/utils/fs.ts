@@ -1,8 +1,8 @@
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 /**
  * File system utilities to replace fs-extra with native Node.js APIs
  */
 import { access, copyFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 
 const newlinePattern = /\n/g

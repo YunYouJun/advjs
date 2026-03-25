@@ -125,6 +125,16 @@ function sidebarAI(): DefaultTheme.SidebarItem[] {
         { text: 'FAQ', link: '/ai/faq' },
       ],
     },
+    {
+      text: 'Skills',
+      collapsed: false,
+      items: [
+        { text: '介绍', link: '/ai/skills/' },
+        { text: 'adv-story', link: '/ai/skills/adv-story' },
+        { text: 'OpenClaw 集成', link: '/ai/skills/openclaw' },
+        { text: '路线图', link: '/ai/skills/roadmap' },
+      ],
+    },
   ]
 }
 
@@ -234,8 +244,8 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
           link: '/guide/features',
         },
         {
-          text: '导出',
-          link: '/guide/export',
+          text: 'CLI',
+          link: '/guide/cli',
         },
         {
           text: '录制视频',

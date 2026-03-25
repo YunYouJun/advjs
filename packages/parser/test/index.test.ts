@@ -1,5 +1,5 @@
-import path from 'node:path'
 import { readFile } from 'node:fs/promises'
+import path from 'node:path'
 import { expect, it } from 'vitest'
 import { parseAst } from '../src'
 

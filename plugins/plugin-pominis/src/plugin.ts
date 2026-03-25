@@ -1,6 +1,6 @@
 import type { AdvPlugin } from '@advjs/types'
-import path from 'node:path'
 import { mkdir, writeFile } from 'node:fs/promises'
+import path from 'node:path'
 import { consola } from 'consola'
 import { defu } from 'defu'
 import { name } from '../package.json'
@@ -61,16 +61,14 @@ export interface PominisPluginOptions {
 export const defaultPominisPluginOptions: PominisPluginOptions = {
   storyId: '',
   bundleAssets: {
-    audio: false,
-    image: false,
-    // audio: {
-    //   enable: true,
-    //   concurrency: 4,
-    // },
-    // image: {
-    //   enable: true,
-    //   concurrency: 4,
-    // },
+    audio: {
+      enable: false,
+      concurrency: 4,
+    },
+    image: {
+      enable: false,
+      concurrency: 4,
+    },
   },
 }
 
@@ -96,7 +94,7 @@ export function pluginPominis(pluginOptions?: PominisPluginOptions): AdvPlugin {
         const distFolder = path.resolve(options.userRoot, options.outDir || 'dist')
         await mkdir(distFolder, { recursive: true })
         const distConfigPath = path.resolve(distFolder, `${storyId}.json`)
-        const content = JSON.stringify(pominisConfig, null, 2) + '\n'
+        const content = `${JSON.stringify(pominisConfig, null, 2)}\n`
         await writeFile(distConfigPath, content, 'utf-8')
         consola.debug(`Pominis story config saved to: ${distConfigPath}`)
 

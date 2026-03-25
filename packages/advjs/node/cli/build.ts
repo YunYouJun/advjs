@@ -1,24 +1,25 @@
 import type { Argv } from 'yargs'
+import { t } from './i18n'
 import { commonOptions } from './utils'
 
 export async function installBuildCommand(cli: Argv) {
   cli.command(
     'build [entry]',
-    'Build hostable SPA',
+    t('build.desc'),
     args => commonOptions(args)
       .option('singlefile', {
         type: 'boolean',
         default: false,
-        describe: '构建为单个文件, 支持 index.html 直接打开',
+        describe: t('build.singlefile_desc'),
       })
       .option('outDir', {
         type: 'string',
         default: 'dist',
-        describe: 'Output directory',
+        describe: t('build.outdir_desc'),
       })
       .option('base', {
         type: 'string',
-        describe: 'output base',
+        describe: t('build.base_desc'),
       })
       .strict()
       .help(),

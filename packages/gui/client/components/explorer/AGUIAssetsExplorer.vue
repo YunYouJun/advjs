@@ -110,7 +110,7 @@ function onDragLeave() {
 useEventListener(explorerContent, 'dragleave', onDragLeave)
 useEventListener(explorerContent, 'dragend', onDragLeave)
 
-useEventListener(explorerContent, 'drop', async (e) => {
+useEventListener(explorerContent, 'drop', async (e: DragEvent) => {
   isDragging.value = false
   e.preventDefault()
   e.stopPropagation()
@@ -124,7 +124,8 @@ useEventListener(explorerContent, 'drop', async (e) => {
     return
 
   let fileItems: FSFileItem[] = []
-  const filesArray = [...files]
+
+  const filesArray = Array.from(files)
   for (const file of filesArray) {
     fileItems.push({
       name: file.name,

@@ -1,0 +1,66 @@
+{
+  "play": {
+    "desc": "Interactive narrative play",
+    "script_desc": "Path to .adv.md script file",
+    "session_id_desc": "Session ID for persistence",
+    "json_desc": "Output in JSON format",
+    "next_desc": "Advance to the next node",
+    "choose_desc": "Make a choice",
+    "choice_number_desc": "Choice number (1-based)",
+    "status_desc": "Show current session status",
+    "list_desc": "List all sessions",
+    "reset_desc": "Reset a session",
+    "session_not_found": "Session not found: {0}",
+    "no_script": "Please provide a script file: adv play <script.adv.md>",
+    "no_script_prefix": "Please provide a script file:",
+    "story_ended": "Story ended.",
+    "session_reset": "Session reset.",
+    "session_reset_id": "Session reset: {0}",
+    "hint_choose": "choose <number>",
+    "hint_next": "enter/next",
+    "no_sessions": "No active sessions.",
+    "active_sessions": "Active sessions:",
+    "session_status": "Session status:"
+  },
+  "dev": {
+    "desc": "Start a local server for ADV.JS",
+    "entry_prompt": "Entry file \"{0}\" does not exist, do you want to create it?",
+    "port_desc": "port",
+    "open_desc": "open in browser",
+    "remote_desc": "listen public host and enable remote control",
+    "log_desc": "log level",
+    "shortcut_failed": "Failed to execute shortcut {0}"
+  },
+  "build": {
+    "desc": "Build hostable SPA",
+    "singlefile_desc": "Build to a single file, supports opening index.html directly",
+    "outdir_desc": "Output directory",
+    "base_desc": "output base"
+  },
+  "export": {
+    "desc": "Export to Video",
+    "opening_page": "Opening page",
+    "page_loaded": "Page domcontentloaded",
+    "recording": "Recording video...",
+    "screenshot_index": "Screenshot index:",
+    "recording_done": "Recording video done",
+    "video_saved": "Video saved to"
+  },
+  "config": {
+    "desc": "Merge Config to a single file",
+    "merge_desc": "merge config to a single file",
+    "target_desc": "target directory",
+    "base64_desc": "convert image to base64",
+    "resolving": "Resolving options...",
+    "image_not_found": "Image not found: {0}",
+    "merged": "Merged config to {0}"
+  },
+  "common": {
+    "theme_desc": "override theme"
+  },
+  "formatter": {
+    "option_fallback": "Option {0}",
+    "choices_prompt": "Please choose:",
+    "scene_label": "[Scene]"
+  }
+}

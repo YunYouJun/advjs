@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.1.1",
   "private": true,
-  "packageManager": "pnpm@10.32.1",
+  "packageManager": "pnpm@10.33.0",
   "description": "面向未来与前端的 ADV 文字冒险游戏引擎。",
   "author": {
     "name": "YunYouJun",
@@ -88,7 +88,6 @@
     "@antfu/eslint-config": "catalog:dev",
     "@antfu/ni": "catalog:utils",
     "@playwright/test": "catalog:test",
-    "@types/fs-extra": "catalog:types",
     "@types/howler": "catalog:types",
     "@types/node": "catalog:types",
     "@types/prompts": "catalog:types",

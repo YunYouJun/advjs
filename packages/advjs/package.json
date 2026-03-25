@@ -62,7 +62,6 @@
     "debug": "catalog:utils",
     "defu": "catalog:utils",
     "fast-deep-equal": "catalog:utils",
-    "fs-extra": "catalog:utils",
     "global-directory": "catalog:utils",
     "jiti": "catalog:utils",
     "markdown-it-link-attributes": "catalog:build",

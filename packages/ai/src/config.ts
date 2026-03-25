@@ -1,5 +1,5 @@
-import path from 'node:path'
 import { readFileSync } from 'node:fs'
+import path from 'node:path'
 
 export const promptsDir = path.resolve(import.meta.dirname, '../prompts')
 export const distDir = path.resolve(import.meta.dirname, '../dist')

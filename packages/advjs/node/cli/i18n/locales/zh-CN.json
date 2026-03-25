@@ -1,0 +1,66 @@
+{
+  "play": {
+    "desc": "交互式叙事播放",
+    "script_desc": ".adv.md 脚本文件路径",
+    "session_id_desc": "用于持久化的会话 ID",
+    "json_desc": "以 JSON 格式输出",
+    "next_desc": "前进到下一个节点",
+    "choose_desc": "做出选择",
+    "choice_number_desc": "选项编号（从 1 开始）",
+    "status_desc": "显示当前会话状态",
+    "list_desc": "列出所有会话",
+    "reset_desc": "重置会话",
+    "session_not_found": "未找到会话：{0}",
+    "no_script": "请提供脚本文件：adv play <script.adv.md>",
+    "no_script_prefix": "请提供脚本文件：",
+    "story_ended": "故事结束。",
+    "session_reset": "会话已重置。",
+    "session_reset_id": "会话已重置：{0}",
+    "hint_choose": "choose <编号>",
+    "hint_next": "回车/next",
+    "no_sessions": "没有活跃的会话。",
+    "active_sessions": "活跃会话：",
+    "session_status": "会话状态："
+  },
+  "dev": {
+    "desc": "启动 ADV.JS 本地服务器",
+    "entry_prompt": "入口文件 \"{0}\" 不存在，是否创建？",
+    "port_desc": "端口",
+    "open_desc": "在浏览器中打开",
+    "remote_desc": "监听公共主机并启用远程控制",
+    "log_desc": "日志级别",
+    "shortcut_failed": "快捷键 {0} 执行失败"
+  },
+  "build": {
+    "desc": "构建可托管的 SPA",
+    "singlefile_desc": "构建为单个文件，支持 index.html 直接打开",
+    "outdir_desc": "输出目录",
+    "base_desc": "输出 base 路径"
+  },
+  "export": {
+    "desc": "导出为视频",
+    "opening_page": "正在打开页面",
+    "page_loaded": "页面 domcontentloaded",
+    "recording": "正在录制视频...",
+    "screenshot_index": "截图索引：",
+    "recording_done": "视频录制完成",
+    "video_saved": "视频已保存到"
+  },
+  "config": {
+    "desc": "合并配置到单个文件",
+    "merge_desc": "合并配置到单个文件",
+    "target_desc": "目标目录",
+    "base64_desc": "将图片转换为 base64",
+    "resolving": "正在解析选项...",
+    "image_not_found": "未找到图片：{0}",
+    "merged": "已合并配置到 {0}"
+  },
+  "common": {
+    "theme_desc": "覆盖主题"
+  },
+  "formatter": {
+    "option_fallback": "选项 {0}",
+    "choices_prompt": "请选择：",
+    "scene_label": "[场景]"
+  }
+}
