@@ -4,7 +4,7 @@ ADV.JS Skills 体系的未来发展方向。
 
 ## 当前版本 (v0.1)
 
-- ✅ `adv-story` Skill — 基础互动叙事播放
+- ✅ `adv-story` — 基础互动叙事播放
 - ✅ CLI `adv play` 命令组
 - ✅ JSON 输出格式支持
 - ✅ 会话持久化

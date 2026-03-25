@@ -18,7 +18,6 @@ const customElements = new Set(['font'])
 const nav: DefaultTheme.Config['nav'] = [
   { text: '指南', link: '/guide/' },
   { text: 'AI', link: '/ai/' },
-  { text: 'Skills', link: '/skills/' },
   { text: 'API', link: '/api/' },
   {
     text: 'AGUI',
@@ -126,19 +125,14 @@ function sidebarAI(): DefaultTheme.SidebarItem[] {
         { text: 'FAQ', link: '/ai/faq' },
       ],
     },
-  ]
-}
-
-function sidebarSkills(): DefaultTheme.SidebarItem[] {
-  return [
     {
       text: 'Skills',
       collapsed: false,
       items: [
-        { text: '介绍', link: '/skills/' },
-        { text: 'OpenClaw 集成', link: '/skills/openclaw' },
-        { text: 'adv-story', link: '/skills/adv-story' },
-        { text: '路线图', link: '/skills/roadmap' },
+        { text: '介绍', link: '/ai/skills/' },
+        { text: 'adv-story', link: '/ai/skills/adv-story' },
+        { text: 'OpenClaw 集成', link: '/ai/skills/openclaw' },
+        { text: '路线图', link: '/ai/skills/roadmap' },
       ],
     },
   ]
@@ -250,8 +244,8 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
           link: '/guide/features',
         },
         {
-          text: '导出',
-          link: '/guide/export',
+          text: 'CLI',
+          link: '/guide/cli',
         },
         {
           text: '录制视频',
@@ -425,7 +419,6 @@ const sidebar: DefaultTheme.Config['sidebar'] = {
   '/ai/': sidebarAI(),
   '/api/': typedocSidebar,
   '/guide/': sidebarGuide(),
-  '/skills/': sidebarSkills(),
 
   '/contributing/': sidebarAbout(),
   '/about/': sidebarAbout(),

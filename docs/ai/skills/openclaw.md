@@ -1,6 +1,6 @@
 # OpenClaw 集成
 
-本指南介绍如何将 ADV.JS Skills 集成到 OpenClaw AI Agent 系统中。
+本指南介绍如何将 ADV.JS Skills 集成到 [OpenClaw](https://openclaw.com) AI Agent 系统中。
 
 ## 概述
 
@@ -47,26 +47,9 @@ adv play skills/adv-story/examples/demo.adv.md --json
                             回复用户
 ```
 
-## JSON 输出格式
-
-所有 `adv play` 命令支持 `--json` 参数，输出结构化数据便于 Agent 解析：
-
-```json
-{
-  "type": "dialog",
-  "character": "云游君",
-  "status": "smile",
-  "text": "欢迎来到 ADV.JS 的世界！"
-}
-```
-
-支持的输出类型：`dialog`、`narration`、`choices`、`scene`、`text`、`end`
-
 ## 会话管理
 
-每次 `adv play` 调用通过 `--session-id` 参数绑定会话：
-
-- 会话持久化在 `~/.advjs/play-sessions/` 目录
+- 会话通过 `--session-id` 参数绑定，持久化在 `~/.advjs/play-sessions/`
 - 同一 `session-id` 可跨多次命令调用
 - 使用 `adv play reset --session-id <id>` 清理会话
 
