@@ -87,6 +87,7 @@ External integrations: Babylon.js 3D (`plugin-babylon`), Three.js (`plugin-three
 ## TSConfig Path Aliases
 
 Key aliases defined in `tsconfig.json`:
+
 - `@advjs/*` → `packages/*/src/index.ts`
 - `@advjs/client` → `packages/client/index.ts`
 - `@advjs/editor/*` → `editor/core/*`

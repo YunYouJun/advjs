@@ -4,14 +4,14 @@
 
 ## 命令列表
 
-| 命令 | 说明 |
-| --- | --- |
-| `adv play <script> --session-id <id> --json` | 加载剧本并启动播放 |
-| `adv play next --session-id <id> --json` | 推进到下一个节点 |
-| `adv play choose <n> --session-id <id> --json` | 在选项中做出选择 |
-| `adv play status --session-id <id> --json` | 查看当前会话状态 |
-| `adv play list --json` | 列出所有活跃会话 |
-| `adv play reset --session-id <id>` | 重置（删除）会话 |
+| 命令                                           | 说明               |
+| ---------------------------------------------- | ------------------ |
+| `adv play <script> --session-id <id> --json`   | 加载剧本并启动播放 |
+| `adv play next --session-id <id> --json`       | 推进到下一个节点   |
+| `adv play choose <n> --session-id <id> --json` | 在选项中做出选择   |
+| `adv play status --session-id <id> --json`     | 查看当前会话状态   |
+| `adv play list --json`                         | 列出所有活跃会话   |
+| `adv play reset --session-id <id>`             | 重置（删除）会话   |
 
 ## JSON 输出类型
 
