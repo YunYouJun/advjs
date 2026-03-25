@@ -15,8 +15,8 @@ packages:
   - playground
 
 catalog:
-  '@aws-sdk/client-s3': ^3.1009.0
-  '@aws-sdk/s3-request-presigner': ^3.1009.0
+  '@aws-sdk/client-s3': ^3.1016.0
+  '@aws-sdk/s3-request-presigner': ^3.1016.0
   '@dagrejs/dagre': ^2.0.4
   '@larksuiteoapi/node-sdk': ^1.59.0
   '@nuxtjs/i18n': 9.5.2
@@ -43,24 +43,24 @@ catalog:
   express: ^5.2.1
   floating-vue: ^5.2.2
   mermaid: ^11.13.0
-  mlly: ^1.8.1
+  mlly: ^1.8.2
   nuxt-auth-utils: 0.5.20
   nuxt-monaco-editor: ^1.4.0
   obs-websocket-js: ^5.0.8
   qrcode: ^1.5.4
   simple-git: ^3.33.0
   tencentcloud-sdk-nodejs-hunyuan: ^4.1.188
-  typedoc-plugin-markdown: ^4.10.0
+  typedoc-plugin-markdown: ^4.11.0
   typedoc-vitepress-theme: ^1.1.2
   typescript-json-schema: ^0.67.1
   ua-parser-js: ^2.0.9
-  vite-plugin-singlefile: ^2.3.0
+  vite-plugin-singlefile: ^2.3.2
   vitefu: ^1.1.2
   vitepress-plugin-group-icons: ^1.7.1
   vitepress-plugin-mermaid: ^2.0.17
 catalogs:
   ai:
-    openai: ^6.29.0
+    openai: ^6.32.0
   babylon:
     '@babylonjs/core': 5.19.0
     '@babylonjs/gui': 5.19.0
@@ -69,12 +69,12 @@ catalogs:
     babylon-vrm-loader: ^2.0.0
   build:
     '@intlify/unplugin-vue-i18n': ^11.0.7
-    '@nuxt/devtools': ^3.2.3
+    '@nuxt/devtools': ^3.2.4
     '@nuxtjs/color-mode': ^4.0.0
     '@pinia/nuxt': ^0.11.3
     '@shikijs/markdown-it': ^3.23.0
-    '@unocss/eslint-config': ^66.6.6
-    '@unocss/nuxt': ^66.6.6
+    '@unocss/eslint-config': ^66.6.7
+    '@unocss/nuxt': ^66.6.7
     '@vite-pwa/nuxt': ^1.1.1
     '@vitejs/plugin-vue': ^6.0.5
     '@vueuse/nuxt': ^14.2.1
@@ -82,21 +82,21 @@ catalogs:
     beasties: ^0.4.1
     markdown-it-link-attributes: ^4.0.1
     nuxt: ^4.4.2
-    rollup: ^4.59.0
+    rollup: ^4.60.0
     sass: ^1.98.0
     shiki: ^3.23.0
     unbuild: ^3.6.1
-    unocss: ^66.6.6
+    unocss: ^66.6.7
     unplugin-auto-import: ^21.0.0
-    unplugin-vue-components: ^31.0.0
+    unplugin-vue-components: ^32.0.0
     unplugin-vue-markdown: ^30.0.0
-    vite: ^8.0.0
+    vite: ^8.0.2
     vite-bundle-visualizer: ^1.2.1
     vite-plugin-css-injected-by-js: ^4.0.1
     vite-plugin-dts: ^4.5.4
     vite-plugin-inspect: ^11.3.3
     vite-plugin-pwa: ^1.2.0
-    vite-plugin-vue-devtools: ^8.1.0
+    vite-plugin-vue-devtools: ^8.1.1
     vite-plugin-vue-layouts: ^0.11.0
     vite-ssg: ^28.3.0
     vite-ssg-sitemap: ^0.10.0
@@ -111,10 +111,10 @@ catalogs:
     prompts: ^2.4.2
     yargs: ^18.0.0
   dev:
-    '@antfu/eslint-config': ^7.7.2
-    '@faker-js/faker': ^10.3.0
-    '@unocss/eslint-plugin': ^66.6.6
-    eslint: ^10.0.3
+    '@antfu/eslint-config': ^7.7.3
+    '@faker-js/faker': ^10.4.0
+    '@unocss/eslint-plugin': ^66.6.7
+    eslint: ^10.1.0
     eslint-plugin-format: ^2.0.1
     https-localhost: ^4.7.1
     husky: ^9.1.7
@@ -122,17 +122,17 @@ catalogs:
     nodemon: ^3.1.14
     taze: ^19.10.0
     tsx: ^4.21.0
-    typescript: ^5.9.3
+    typescript: ^5
     unplugin-mockery: ^0.4.0-beta.13
-    vue-tsc: ^3.2.5
+    vue-tsc: ^3.2.6
   docs:
-    typedoc: ^0.28.17
+    typedoc: ^0.28.18
     typedoc-plugin-merge-modules: ^7.0.0
-    vitepress: ^1.6.4
+    vitepress: ^2.0.0-alpha.17
   frontend:
     '@google/model-viewer': ^4.2.0
     '@unhead/vue': ^2.1.12
-    '@unocss/reset': ^66.6.6
+    '@unocss/reset': ^66.6.7
     '@vue-flow/core': ^1.48.2
     '@vueuse/core': ^14.2.1
     '@vueuse/motion': ^3.0.3
@@ -148,11 +148,11 @@ catalogs:
     pixi.js: 8.0.4
     reka-ui: ^2.9.2
     splitpanes: ^4.0.4
-    swiper: ^12.1.2
-    tdesign-vue-next: ^1.18.5
+    swiper: ^12.1.3
+    tdesign-vue-next: ^1.18.6
     vue: ^3.5.30
     vue-i18n: ^11.3.0
-    vue-router: ^5.0.3
+    vue-router: ^5.0.4
     wc-github-corners: ^0.1.6
   icons:
     '@iconify-json/carbon': ^1.2.19
@@ -169,7 +169,7 @@ catalogs:
   test:
     '@playwright/test': ^1.58.2
     '@vue/test-utils': ^2.4.6
-    vitest: ^4.1.0
+    vitest: ^4.1.1
   types:
     '@types/cli-progress': ^3.11.6
     '@types/howler': ^2.2.12
@@ -202,10 +202,10 @@ catalogs:
     unist-util-visit: ^5.1.0
     vfile-matter: ^5.0.1
   utils:
-    '@antfu/ni': ^29.0.0
+    '@antfu/ni': ^30.0.0
     '@antfu/utils': ^9.3.0
     benny: ^3.7.1
-    bumpp: ^10.4.1
+    bumpp: ^11.0.1
     c12: ^3.3.3
     cross-env: ^10.1.0
     dayjs: ^1.11.20
@@ -214,7 +214,7 @@ catalogs:
     fast-deep-equal: ^3.1.3
     global-directory: ^5.0.0
     honeycomb-grid: ^4.1.5
-    hookable: ^6.0.1
+    hookable: ^6.1.0
     jiti: ^2.6.1
     js-yaml: ^4.1.1
     open: ^11.0.0

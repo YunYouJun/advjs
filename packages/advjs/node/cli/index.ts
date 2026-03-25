@@ -1,12 +1,13 @@
 import process from 'node:process'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
-import { version } from '../../package.json'
 
+import { version } from '../../package.json'
 import { installBuildCommand } from './build'
 import { installConfigCommand } from './config'
 import { installDevCommand } from './dev'
 import { installExportCommand } from './export'
+import { setLocale } from './i18n'
 import { installPlayCommand } from './play'
 
 const namespace = 'adv'
@@ -18,6 +19,14 @@ const cli = yargs(hideBin(process.argv))
   .showHelpOnFail(false)
   .alias('h', 'help')
   .alias('v', 'version')
+  .option('lang', {
+    type: 'string',
+    hidden: true,
+  })
+  .middleware((argv) => {
+    if (argv.lang)
+      setLocale(argv.lang)
+  }, true)
 
 installDevCommand(cli)
 installBuildCommand(cli)

@@ -75,6 +75,7 @@ Deletes a session to start fresh.
 All commands with `--json` return structured JSON:
 
 ### Dialog
+
 ```json
 {
   "type": "dialog",
@@ -85,6 +86,7 @@ All commands with `--json` return structured JSON:
 ```
 
 ### Narration
+
 ```json
 {
   "type": "narration",
@@ -93,6 +95,7 @@ All commands with `--json` return structured JSON:
 ```
 
 ### Choices
+
 ```json
 {
   "type": "choices",
@@ -105,6 +108,7 @@ All commands with `--json` return structured JSON:
 ```
 
 ### Scene
+
 ```json
 {
   "type": "scene",
@@ -115,6 +119,7 @@ All commands with `--json` return structured JSON:
 ```
 
 ### End
+
 ```json
 {
   "type": "end",

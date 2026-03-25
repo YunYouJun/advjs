@@ -72,3 +72,6 @@ resources
 packages/mcp
 
 release
+
+# codebuddy
+.codebuddy/memory

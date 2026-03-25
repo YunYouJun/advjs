@@ -4,14 +4,14 @@
 
 ## 命令一览
 
-| 命令 | 说明 |
-|------|------|
-| `adv play <script>` | 加载剧本并启动互动播放 |
-| `adv play next` | 推进到下一个节点 |
-| `adv play choose <n>` | 在选项中做出选择 |
-| `adv play status` | 查看当前会话状态 |
-| `adv play list` | 列出所有活跃会话 |
-| `adv play reset` | 重置会话 |
+| 命令                  | 说明                   |
+| --------------------- | ---------------------- |
+| `adv play <script>`   | 加载剧本并启动互动播放 |
+| `adv play next`       | 推进到下一个节点       |
+| `adv play choose <n>` | 在选项中做出选择       |
+| `adv play status`     | 查看当前会话状态       |
+| `adv play list`       | 列出所有活跃会话       |
+| `adv play reset`      | 重置会话               |
 
 ## 使用方式
 

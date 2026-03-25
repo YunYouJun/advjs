@@ -46,8 +46,8 @@
     "pinia": "catalog:frontend",
     "pixi.js": "catalog:frontend",
     "reka-ui": "catalog:frontend",
-    "unstorage": "catalog:utils",
     "swiper": "catalog:frontend",
+    "unstorage": "catalog:utils",
     "vue": "catalog:frontend",
     "vue-router": "catalog:frontend"
   },

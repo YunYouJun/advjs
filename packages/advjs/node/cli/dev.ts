@@ -16,6 +16,7 @@ import { loadAdvGameConfig, loadAdvGameConfigFromType } from '../config/game'
 import { loadAdvThemeConfig } from '../config/theme'
 import { resolveOptions } from '../options'
 import { copy } from '../utils/fs'
+import { t } from './i18n'
 import { commonOptions, findFreePort, printInfo } from './utils'
 
 /**
@@ -30,7 +31,7 @@ export async function checkFountain(entry: string) {
       name: 'create',
       type: 'confirm',
       initial: 'Y',
-      message: `Entry file ${colors.yellow(`"${entry}"`)} does not exist, do you want to create it?`,
+      message: t('dev.entry_prompt', colors.yellow(`"${entry}"`)),
     })
     if (create)
       await copy(path.resolve(__dirname, '../template.adv.md'), entry)
@@ -170,7 +171,7 @@ export async function advDev(options: AdvDevOptions & AdvBaseEntryOptions) {
             sh.action()
           }
           catch (err) {
-            console.error(`Failed to execute shortcut ${sh.fullname}`, err)
+            console.error(t('dev.shortcut_failed', sh.fullname), err)
           }
         }
       }
@@ -184,29 +185,29 @@ export async function advDev(options: AdvDevOptions & AdvBaseEntryOptions) {
 export async function installDevCommand(cli: Argv) {
   cli.command(
     '* [entry]',
-    'Start a local server for ADV.JS',
+    t('dev.desc'),
     args => commonOptions(args)
       .option('port', {
         alias: 'p',
         type: 'number',
-        describe: 'port',
+        describe: t('dev.port_desc'),
       })
       .option('open', {
         alias: 'o',
         default: false,
         type: 'boolean',
-        describe: 'open in browser',
+        describe: t('dev.open_desc'),
       })
       .option('remote', {
         default: true,
         type: 'boolean',
-        describe: 'listen public host and enable remote control',
+        describe: t('dev.remote_desc'),
       })
       .option('log', {
         default: 'warn',
         type: 'string',
         choices: ['error', 'warn', 'info', 'silent'],
-        describe: 'log level',
+        describe: t('dev.log_desc'),
       })
       .strict()
       .help(),

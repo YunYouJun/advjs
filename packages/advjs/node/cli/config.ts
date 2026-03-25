@@ -8,6 +8,7 @@ import { gameModules } from '../../shared'
 import { loadAdvGameConfigFromType } from '../config/game'
 import { resolveOptions } from '../options'
 import { ensureDir, writeJSON } from '../utils/fs'
+import { t } from './i18n'
 import { commonOptions } from './utils'
 
 /**
@@ -18,31 +19,30 @@ import { commonOptions } from './utils'
 export function installConfigCommand(cli: Argv) {
   cli.command(
     'config',
-    'Merge Config to a single file',
+    t('config.desc'),
     args =>
       commonOptions(args)
         .option('merge', {
           alias: 'm',
           default: true,
-          describe: 'merge config to a single file',
+          describe: t('config.merge_desc'),
           type: 'boolean',
         })
         // target directory
         .option('target', {
           alias: 't',
           default: 'public',
-          describe: 'target directory',
+          describe: t('config.target_desc'),
           type: 'string',
         })
-        // 图片转换成 base64
         .option('base64', {
           alias: 'b',
           default: false,
-          describe: 'convert image to base64',
+          describe: t('config.base64_desc'),
           type: 'boolean',
         }),
     async ({ target, base64 }) => {
-      consola.start('Resolving options...')
+      consola.start(t('config.resolving'))
       const options = await resolveOptions({}, 'build')
       const { gameConfig } = options.data
 
@@ -56,7 +56,7 @@ export function installConfigCommand(cli: Argv) {
         function imgToBase64(src: string) {
           const srcPath = path.resolve(publicPath, src.startsWith('/') ? src.slice(1) : src)
           if (!existsSync(srcPath)) {
-            consola.warn(`Image not found: ${srcPath}`)
+            consola.warn(t('config.image_not_found', srcPath))
             return ''
           }
           const base64Data = readFileSync(srcPath).toString('base64')
@@ -89,7 +89,7 @@ export function installConfigCommand(cli: Argv) {
           spaces: 2,
         },
       )
-      consola.success(`Merged config to ${colors.dim(gameConfigFile)}`)
+      consola.success(t('config.merged', colors.dim(gameConfigFile)))
     },
   )
 }

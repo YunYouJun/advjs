@@ -193,7 +193,7 @@ export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
                 advjs_client: ['@advjs/client'],
                 advjs_parser: ['@advjs/parser'],
               },
-            },
+            } as any,
           },
         }
       }

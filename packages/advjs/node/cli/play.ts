@@ -6,6 +6,7 @@ import * as readline from 'node:readline'
 import { AdvPlayEngine, formatAsText } from '@advjs/core'
 import { consola } from 'consola'
 import { colors } from 'consola/utils'
+import { t } from './i18n'
 
 const CHOICE_RE = /^(?:choose\s+)?(\d+)$/
 
@@ -41,7 +42,7 @@ async function interactivePlay(scriptPath: string, sessionId?: string) {
   }
 
   if (eng.isEnd()) {
-    consola.info('Story ended.')
+    consola.info(t('play.story_ended'))
     return
   }
 
@@ -53,8 +54,8 @@ async function interactivePlay(scriptPath: string, sessionId?: string) {
   const prompt = () => {
     const status = eng.getStatus()
     const hint = status.status === 'waiting_choice'
-      ? colors.yellow('choose <number>')
-      : colors.dim('enter/next')
+      ? colors.yellow(t('play.hint_choose'))
+      : colors.dim(t('play.hint_next'))
 
     rl.question(`\n${colors.dim('>')} (${hint}): `, async (input) => {
       const trimmed = input.trim().toLowerCase()
@@ -72,7 +73,7 @@ async function interactivePlay(scriptPath: string, sessionId?: string) {
 
       if (trimmed === 'reset') {
         await eng.reset()
-        consola.success('Session reset.')
+        consola.success(t('play.session_reset'))
         rl.close()
         return
       }
@@ -94,7 +95,7 @@ async function interactivePlay(scriptPath: string, sessionId?: string) {
       }
 
       if (eng.isEnd()) {
-        consola.info('Story ended.')
+        consola.info(t('play.story_ended'))
         rl.close()
         return
       }
@@ -107,68 +108,68 @@ async function interactivePlay(scriptPath: string, sessionId?: string) {
 }
 
 export function installPlayCommand(cli: Argv) {
-  cli.command('play [script]', 'Interactive narrative play', (yargs) => {
+  cli.command('play [script]', t('play.desc'), (yargs) => {
     return yargs
       .positional('script', {
         type: 'string',
-        describe: 'Path to .adv.md script file',
+        describe: t('play.script_desc'),
       })
       .option('session-id', {
         type: 'string',
-        describe: 'Session ID for persistence',
+        describe: t('play.session_id_desc'),
       })
       .option('json', {
         type: 'boolean',
         default: false,
-        describe: 'Output in JSON format',
+        describe: t('play.json_desc'),
       })
-      .command('next', 'Advance to the next node', (yargs) => {
+      .command('next', t('play.next_desc'), (yargs) => {
         return yargs
-          .option('session-id', { type: 'string', demandOption: true, describe: 'Session ID' })
+          .option('session-id', { type: 'string', demandOption: true, describe: t('play.session_id_desc') })
           .option('json', { type: 'boolean', default: false })
       }, async (argv) => {
         const eng = getEngine()
         const result = await eng.resumeSession(argv.sessionId as string)
         if (!result) {
-          consola.error('Session not found:', argv.sessionId)
+          consola.error(t('play.session_not_found', argv.sessionId as string))
           process.exit(1)
         }
         const next = await eng.next()
         output(next, argv.json as boolean)
       })
-      .command('choose <number>', 'Make a choice', (yargs) => {
+      .command('choose <number>', t('play.choose_desc'), (yargs) => {
         return yargs
-          .positional('number', { type: 'number', demandOption: true, describe: 'Choice number (1-based)' })
-          .option('session-id', { type: 'string', demandOption: true, describe: 'Session ID' })
+          .positional('number', { type: 'number', demandOption: true, describe: t('play.choice_number_desc') })
+          .option('session-id', { type: 'string', demandOption: true, describe: t('play.session_id_desc') })
           .option('json', { type: 'boolean', default: false })
       }, async (argv) => {
         const eng = getEngine()
         const result = await eng.resumeSession(argv.sessionId as string)
         if (!result) {
-          consola.error('Session not found:', argv.sessionId)
+          consola.error(t('play.session_not_found', argv.sessionId as string))
           process.exit(1)
         }
         const choice = await eng.choose(argv.number as number)
         output(choice, argv.json as boolean)
       })
-      .command('status', 'Show current session status', (yargs) => {
+      .command('status', t('play.status_desc'), (yargs) => {
         return yargs
-          .option('session-id', { type: 'string', demandOption: true, describe: 'Session ID' })
+          .option('session-id', { type: 'string', demandOption: true, describe: t('play.session_id_desc') })
           .option('json', { type: 'boolean', default: false })
       }, async (argv) => {
         const eng = getEngine()
         const result = await eng.resumeSession(argv.sessionId as string)
         if (!result) {
-          consola.error('Session not found:', argv.sessionId)
+          consola.error(t('play.session_not_found', argv.sessionId as string))
           process.exit(1)
         }
         const status = eng.getStatus()
         if (argv.json)
           console.log(JSON.stringify(status, null, 2))
         else
-          consola.info('Session status:', status)
+          consola.info(t('play.session_status'), status)
       })
-      .command('list', 'List all sessions', (yargs) => {
+      .command('list', t('play.list_desc'), (yargs) => {
         return yargs
           .option('json', { type: 'boolean', default: false })
       }, async (argv) => {
@@ -179,21 +180,21 @@ export function installPlayCommand(cli: Argv) {
         }
         else {
           if (sessions.length === 0) {
-            consola.info('No active sessions.')
+            consola.info(t('play.no_sessions'))
           }
           else {
-            consola.info('Active sessions:')
+            consola.info(t('play.active_sessions'))
             sessions.forEach(s => console.log(`  - ${s}`))
           }
         }
       })
-      .command('reset', 'Reset a session', (yargs) => {
+      .command('reset', t('play.reset_desc'), (yargs) => {
         return yargs
-          .option('session-id', { type: 'string', demandOption: true, describe: 'Session ID' })
+          .option('session-id', { type: 'string', demandOption: true, describe: t('play.session_id_desc') })
       }, async (argv) => {
         const eng = getEngine()
         await eng.getSessionManager().delete(argv.sessionId as string)
-        consola.success('Session reset:', argv.sessionId)
+        consola.success(t('play.session_reset_id', argv.sessionId as string))
       })
   }, async (argv) => {
     // Default: interactive play mode
@@ -201,7 +202,7 @@ export function installPlayCommand(cli: Argv) {
       await interactivePlay(argv.script as string, argv.sessionId as string | undefined)
     }
     else {
-      consola.error('Please provide a script file: adv play <script.adv.md>')
+      consola.error(`${t('play.no_script_prefix')} ${colors.cyan('adv play')} ${colors.dim('<script.adv.md>')}`)
       process.exit(1)
     }
   })

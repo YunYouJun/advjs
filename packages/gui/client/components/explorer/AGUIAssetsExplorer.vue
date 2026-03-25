@@ -124,7 +124,7 @@ useEventListener(explorerContent, 'drop', async (e: DragEvent) => {
     return
 
   let fileItems: FSFileItem[] = []
-  // eslint-disable-next-line e18e/prefer-spread-syntax
+
   const filesArray = Array.from(files)
   for (const file of filesArray) {
     fileItems.push({

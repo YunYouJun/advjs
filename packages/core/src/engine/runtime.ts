@@ -238,12 +238,19 @@ export class AdvPlayEngine {
         case 'tachie': {
           const tachie = op as AdvAst.Tachie
           if (tachie.enter) {
-            for (const t of tachie.enter)
-              this.session.tachies[t.name || ''] = { status: t.status || '' }
+            const entries = Array.isArray(tachie.enter) ? tachie.enter : [tachie.enter]
+            for (const t of entries) {
+              if (typeof t === 'string') {
+                this.session.tachies[t] = { status: '' }
+              }
+              else {
+                this.session.tachies[t.name || ''] = { status: t.status || '' }
+              }
+            }
           }
           if (tachie.exit) {
             for (const t of tachie.exit)
-              delete this.session.tachies[t.name || '']
+              delete this.session.tachies[t]
           }
           break
         }

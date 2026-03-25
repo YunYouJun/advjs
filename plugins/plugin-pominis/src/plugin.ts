@@ -61,16 +61,14 @@ export interface PominisPluginOptions {
 export const defaultPominisPluginOptions: PominisPluginOptions = {
   storyId: '',
   bundleAssets: {
-    audio: false,
-    image: false,
-    // audio: {
-    //   enable: true,
-    //   concurrency: 4,
-    // },
-    // image: {
-    //   enable: true,
-    //   concurrency: 4,
-    // },
+    audio: {
+      enable: false,
+      concurrency: 4,
+    },
+    image: {
+      enable: false,
+      concurrency: 4,
+    },
   },
 }
 

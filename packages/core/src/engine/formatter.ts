@@ -1,5 +1,6 @@
 import type { AdvAst } from '@advjs/types'
 import type { AstChild, FormattedOutput } from './types'
+import { tf } from './i18n'
 
 /**
  * Extract text from mdast PhrasingContent children
@@ -8,9 +9,9 @@ function extractText(children: AdvAst.PhrasingContent[]): string {
   return children
     .map((child) => {
       if ('value' in child)
-        return child.value
+        return (child as { value: string }).value
       if ('children' in child)
-        return extractText(child.children as AdvAst.PhrasingContent[])
+        return extractText((child as { children: AdvAst.PhrasingContent[] }).children)
       return ''
     })
     .join('')
@@ -50,12 +51,12 @@ export function formatNode(node: AstChild): FormattedOutput | null {
       const choices = node as AdvAst.Choices
       const options = choices.choices.map((choice, index) => ({
         index: index + 1,
-        label: choice.text || `选项 ${index + 1}`,
+        label: choice.text || tf('option_fallback', index + 1),
       }))
       const text = options.map(o => `  ${o.index}. ${o.label}`).join('\n')
       return {
         type: 'choices',
-        text: `请选择:\n${text}`,
+        text: `${tf('choices_prompt')}\n${text}`,
         options,
       }
     }
@@ -65,7 +66,7 @@ export function formatNode(node: AstChild): FormattedOutput | null {
       const parts = [scene.place, scene.time, scene.inOrOut].filter(Boolean)
       return {
         type: 'scene',
-        text: `[场景] ${parts.join(' - ')}`,
+        text: `${tf('scene_label')} ${parts.join(' - ')}`,
         place: scene.place,
         time: scene.time,
       }
@@ -88,12 +89,6 @@ export function formatNode(node: AstChild): FormattedOutput | null {
       }
       return null
     }
-
-    case 'end':
-      return {
-        type: 'end',
-        text: '— END —',
-      }
 
     // Code operations (tachie, camera, background, go) are silent
     case 'code':
