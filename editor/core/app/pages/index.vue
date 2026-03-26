@@ -1,23 +1,41 @@
 <script setup lang="ts">
 import { AGUIToast, Toast, toastRef } from '@advjs/gui'
+import { useStorage } from '@vueuse/core'
 
 definePageMeta({
   layout: 'editor',
 })
 
 const app = useAppStore()
+const { initLocale } = useEditorLocale()
 
-onMounted(() => {
-  Toast({
-    title: 'Hello!',
-    description: 'Welcome to preview ADV.JS Editor!',
-    duration: 3000,
-  })
-})
+const showSplash = ref(true)
+const showOnboarding = ref(false)
+const onboarded = useStorage('advjs:editor:onboarded', false)
+
+// Restore saved locale on load
+initLocale()
+
+function onSplashComplete() {
+  showSplash.value = false
+
+  if (!onboarded.value) {
+    showOnboarding.value = true
+  }
+  else {
+    Toast({
+      title: 'Hello!',
+      description: 'Welcome to preview ADV.JS Editor!',
+      duration: 3000,
+    })
+  }
+}
 </script>
 
 <template>
   <main class="h-screen w-screen flex flex-col">
+    <AEEditorSplash :show="showSplash" @complete="onSplashComplete" />
+
     <EditorMenubar />
     <EditorToolbar />
 
@@ -39,6 +57,7 @@ onMounted(() => {
       </template>
     </AGUILayout>
 
+    <AEOnboardingDialog v-model:open="showOnboarding" />
     <AGUIToast ref="toastRef" />
   </main>
 </template>

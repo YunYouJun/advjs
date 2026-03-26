@@ -15,3 +15,25 @@ export const SPACE_NODE = {
     DATA_SOURCE: 'FU4jwsDIOie6DekdWXrcRXZunle',
   },
 }
+
+/**
+ * 多维表格 App Token
+ * 角色管理相关表格
+ */
+export const BITABLE = {
+  CHARACTERS: {
+    /**
+     * 角色管理多维表格 app_token
+     * 创建后填入
+     */
+    APP_TOKEN: '',
+    /**
+     * characters 表 table_id
+     */
+    TABLE_ID: '',
+    /**
+     * relationships 表 table_id
+     */
+    RELATIONSHIPS_TABLE_ID: '',
+  },
+}

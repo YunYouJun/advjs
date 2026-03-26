@@ -1,6 +1,19 @@
 /**
  * @see 'nuxt-auth-utils/dist/runtime/server/lib/oauth/github'
  */
+export interface FeishuUser {
+  open_id: string
+  union_id: string
+  name: string
+  avatar_url: string
+  email?: string
+  user_access_token: string
+  token_type: string
+  expires_in: number
+  refresh_token: string
+  refresh_expires_in: number
+}
+
 export interface GitHubUser {
   login: string
   id: number
@@ -42,9 +55,10 @@ declare module '#auth-utils' {
 
   interface User {
     // Add your own fields
-    github: GitHubUser & {
+    github?: GitHubUser & {
       access_token: string
     }
+    feishu?: FeishuUser
   }
 
   interface UserSession {

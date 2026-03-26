@@ -1,70 +1,91 @@
 <script setup lang="ts">
-// import { ref } from 'vue'
-
 const fileStore = useFileStore()
-
-// const files = ref([])
-// const autoUpload = ref(false)
-// function formatResponse(res: any) {
-//   if (!res) {
-//     return { status: 'fail', error: '上传失败，原因：文件过大或网络不通' }
-//   }
-//   return res
-// }
 </script>
 
 <template>
-  <!-- <div class="my-4">
-    <t-upload
-      v-model="files"
-      :auto-upload="autoUpload"
-      theme="file"
-      :data="{ extra_data: 123, file_name: 'certificate' }"
-      :abridge-name="[10, 8]"
-      :format-response="formatResponse"
-      draggable
-      action="https://service-bv448zsw-1257786608.gz.apigw.tencentcs.com/api/upload-demo"
-    />
-  </div> -->
-
-  <div class="w-full flex items-center justify-evenly">
-    <div
-      class="inline-flex flex-col cursor-pointer items-center gap-2"
+  <div class="flex gap-3">
+    <button
+      class="config-card group flex items-center gap-2.5 px-4 py-3"
       @click="fileStore.openAdvConfigFile"
     >
-      <div class="glow-icon text-7xl">
-        <div
-          class="i-vscode-icons:file-type-jsonld"
-        />
+      <div class="config-card-icon">
+        <div class="i-ri-settings-3-line" />
       </div>
-      <div class="text-sm op-50">
-        Open Local ADV Config File
+      <div class="text-left">
+        <div class="text-xs font-medium op-80 transition-opacity group-hover:op-100">
+          本地配置文件
+        </div>
+        <div class="text-11px op-35 transition-opacity group-hover:op-50">
+          打开 adv.config.json
+        </div>
       </div>
-    </div>
+    </button>
 
-    <div
-      class="inline-flex flex-col cursor-pointer items-center gap-2"
+    <button
+      class="config-card group flex items-center gap-2.5 px-4 py-3"
       @click="fileStore.onlineAdvConfigFileDialogOpen = true"
     >
-      <div class="glow-icon text-7xl">
-        <div
-          class="i-vscode-icons:file-type-aspx"
-        />
+      <div class="config-card-icon">
+        <div class="i-ri-cloud-line" />
       </div>
-      <div class="text-sm op-50">
-        Open Online ADV Config File
+      <div class="text-left">
+        <div class="text-xs font-medium op-80 transition-opacity group-hover:op-100">
+          在线配置文件
+        </div>
+        <div class="text-11px op-35 transition-opacity group-hover:op-50">
+          加载远程 adv.config
+        </div>
       </div>
-    </div>
+    </button>
   </div>
 </template>
 
 <style scoped>
-.glow-icon {
-  will-change: filter;
-  transition: filter 300ms;
+.config-card {
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  transition:
+    border-color 200ms ease,
+    background-color 200ms ease,
+    box-shadow 200ms ease,
+    transform 150ms ease;
+}
 
-  &:hover {
-    filter: drop-shadow(0 0 1rem rgba(252, 171, 49, 0.9));
-  }
+.config-card:hover {
+  border-color: rgba(71, 114, 179, 0.5);
+  background: rgba(71, 114, 179, 0.06);
+  box-shadow:
+    0 0 0 1px rgba(71, 114, 179, 0.1),
+    0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.config-card:active {
+  transform: scale(0.98);
+  border-color: rgba(71, 114, 179, 0.6);
+  background: rgba(71, 114, 179, 0.1);
+}
+
+.config-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  font-size: 14px;
+  flex-shrink: 0;
+  color: #7ba4d9;
+  background: rgba(71, 114, 179, 0.12);
+  border: 1px solid rgba(71, 114, 179, 0.15);
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease;
+}
+
+.config-card:hover .config-card-icon {
+  background: rgba(71, 114, 179, 0.2);
+  border-color: rgba(71, 114, 179, 0.3);
 }
 </style>

@@ -52,7 +52,6 @@
     "rollup": "catalog:build",
     "shiki": "catalog:build",
     "taze": "catalog:dev",
-    "tdesign-vue-next": "catalog:frontend",
     "typescript": "catalog:dev",
     "unocss": "catalog:build",
     "unplugin-auto-import": "catalog:build",

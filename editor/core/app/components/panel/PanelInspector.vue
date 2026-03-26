@@ -19,7 +19,7 @@ const fileStore = useFileStore()
           v-if="app.activeInspector === 'file'"
           :file-handle="fileStore.openedFileHandle"
         />
-        <AEInspectorCharacter v-else-if="app.activeInspector === 'character'" />
+        <AEInspectorCharacter v-else-if="app.activeInspector === 'character' || app.activeInspector === 'character-create'" />
         <InspectorView v-else />
       </AGUITabPanel>
     </AGUITabs>

@@ -204,6 +204,10 @@ function sidebarAGUI(): DefaultTheme.SidebarItem[] {
           link: '/agui/',
         },
         {
+          text: '设计风格',
+          link: '/agui/design',
+        },
+        {
           text: '快速开始',
           link: '/agui/quick-start',
         },
@@ -234,6 +238,10 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
         {
           text: '快速开始',
           link: '/guide/quick-start',
+        },
+        {
+          text: '项目结构',
+          link: '/guide/project-structure',
         },
         {
           text: '运行与编译',
@@ -284,6 +292,10 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             {
               text: '剧本编辑器',
               link: '/guide/editor/script',
+            },
+            {
+              text: '角色管理',
+              link: '/guide/editor/character',
             },
             {
               text: '节点编辑器',
@@ -351,6 +363,10 @@ function sidebarAbout(): DefaultTheme.SidebarItem[] {
         {
           text: '存储系统',
           link: '/about/design/storage',
+        },
+        {
+          text: '角色管理系统',
+          link: '/about/design/character',
         },
         {
           text: '国际化',

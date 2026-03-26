@@ -6,7 +6,7 @@
   "description": "ADV.JS Editor",
   "scripts": {
     "build": "nuxt build",
-    "dev": "nuxt dev --port 3001",
+    "dev": "nuxt dev --port 3000",
     "dev:pwa": "VITE_PLUGIN_PWA=true nuxt dev",
     "start": "node .output/server/index.mjs",
     "typecheck": "vue-tsc --noEmit",
@@ -19,6 +19,7 @@
   "dependencies": {
     "@dagrejs/dagre": "catalog:",
     "@google/model-viewer": "catalog:frontend",
+    "@larksuiteoapi/node-sdk": "catalog:",
     "@octokit/core": "catalog:",
     "@octokit/rest": "catalog:",
     "@vue-flow/background": "catalog:",
@@ -38,13 +39,13 @@
     "@iconify-json/carbon": "catalog:icons",
     "@iconify-json/ep": "catalog:icons",
     "@iconify-json/mdi": "catalog:icons",
+    "@iconify-json/ri": "catalog:icons",
     "@iconify-json/svg-spinners": "catalog:icons",
     "@iconify-json/twemoji": "catalog:icons",
     "@nuxt/devtools": "catalog:build",
     "@nuxtjs/color-mode": "catalog:build",
     "@nuxtjs/i18n": "catalog:",
     "@pinia/nuxt": "catalog:build",
-    "@tdesign-vue-next/nuxt": "catalog:",
     "@types/qrcode": "catalog:types",
     "@unocss/eslint-config": "catalog:build",
     "@unocss/nuxt": "catalog:build",
@@ -57,7 +58,6 @@
     "nuxt-auth-utils": "catalog:",
     "nuxt-monaco-editor": "catalog:",
     "pinia": "catalog:frontend",
-    "simple-git": "catalog:",
-    "tdesign-vue-next": "catalog:frontend"
+    "simple-git": "catalog:"
   }
 }

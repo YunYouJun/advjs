@@ -3,13 +3,16 @@ import { AdvGameLoadStatusEnum } from '@advjs/client'
 
 // import { useAdvConfig, useAdvContext } from '@advjs/client'
 import { onMounted } from 'vue'
-import '../../../../themes/theme-default/styles'
+import '../../../../../themes/theme-default/styles'
 // const { $adv } = useAdvContext()
 // const advConfig = useAdvConfig()
 
 // const isDev = import.meta.env.DEV
 
+const AELoadOnlineConfigFileDialog = defineAsyncComponent(() => import('../dialogs/AELoadOnlineConfigFileDialog.vue'))
+
 const gameStore = useGameStore()
+const fileStore = useFileStore()
 const show = computed(() => gameStore.client.loadStatus >= AdvGameLoadStatusEnum.CONFIG_LOADED)
 
 proxyLog()
@@ -25,7 +28,7 @@ onMounted(async () => {
     <AEOpenProject v-else />
   </div>
 
-  <AELoadOnlineConfigFileDialog />
+  <AELoadOnlineConfigFileDialog v-if="fileStore.onlineAdvConfigFileDialogOpen" />
 
   <!-- <AdvDevTools v-if="isDev" /> -->
   <!-- <div /> -->

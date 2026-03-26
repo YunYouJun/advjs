@@ -4,7 +4,7 @@ import { ref } from 'vue'
 
 const tabList = ref([
   { title: 'Story Line', key: 'story-line', icon: 'i-ri-git-commit-line' },
-  // { title: 'Hierarchy', key: 'hierarchy', icon: 'i-ri-node-tree' },
+  { title: 'Characters', key: 'characters', icon: 'i-ri-group-line' },
 ])
 </script>
 
@@ -27,18 +27,11 @@ const tabList = ref([
         </div>
       </AGUITabPanel>
 
-      <!-- <AGUITabPanel value="hierarchy">
-        <ToolbarRoot class="flex items-center justify-center p-1">
-          <ToolbarToggleGroup type="multiple" />
-          <AGUIInput class="flex flex-grow" placeholder="Search" />
-          <ToolbarButton
-            class="ml-1"
-          >
-            <AGUIIconButton size="mini" icon="i-ri-search-line" />
-          </ToolbarButton>
-        </ToolbarRoot>
-        <HierarchyView />
-      </AGUITabPanel> -->
+      <AGUITabPanel class="h-full flex flex-col" value="ae-characters">
+        <div class="flex flex-1 overflow-auto" style="height: calc(100% - 28px - 1px)">
+          <AEViewCharacters class="w-full" />
+        </div>
+      </AGUITabPanel>
     </AGUITabs>
   </AGUIPanel>
 </template>

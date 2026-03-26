@@ -13,17 +13,17 @@ const { loggedIn, user, session, clear } = useUserSession()
 
     <div class="flex flex-col items-center justify-center gap-1 text-xs">
       <div class="font-bold">
-        {{ user?.github.name }}
+        {{ user?.github?.name }}
       </div>
       <a
-        :href="user?.github.html_url" target="_blank"
+        :href="user?.github?.html_url" target="_blank"
         class="flex items-center gap-1 op-80 hover:underline"
-        :github-id="user?.github.id"
+        :github-id="user?.github?.id"
       >
-        <div i-ri-github-line /> {{ user?.github.login }}
+        <div i-ri-github-line /> {{ user?.github?.login }}
       </a>
       <div class="op-80">
-        {{ user?.github.email }}
+        {{ user?.github?.email }}
       </div>
 
       <p class="text-xs op-50">
@@ -31,8 +31,8 @@ const { loggedIn, user, session, clear } = useUserSession()
       </p>
     </div>
 
-    <t-button size="small" @click="clear">
+    <AGUIButton size="mini" @click="clear">
       Sign Out
-    </t-button>
+    </AGUIButton>
   </div>
 </template>

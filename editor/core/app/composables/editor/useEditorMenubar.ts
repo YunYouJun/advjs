@@ -2,52 +2,133 @@ import type { Menu } from '@advjs/gui'
 import { Toast } from '@advjs/gui'
 
 import qrcode from 'qrcode'
+import { PROJECT_TEMPLATES } from '~/composables/useCreateProject'
 import { links } from '../../../../../packages/shared/src'
 
 export function useEditorMenubar() {
+  const { t } = useI18n()
   const fileStore = useFileStore()
   const dialogStore = useDialogStore()
+  const router = useRouter()
 
   const { copy, copied } = useClipboard()
   const clipboardItems = useClipboardItems()
 
-  const menus: Menu[] = [
+  const { createAndLoadProject } = useCreateProject()
+  const { recentProjects } = useRecentProjects()
+
+  /**
+   * open adv project by triggering the explorer's open directory button
+   */
+  function openAdvProject() {
+    const advExplorerDom = document.querySelector('#adv-explorer')
+    const openDirBtn = advExplorerDom?.querySelector('.agui-open-directory') as HTMLElement
+    if (openDirBtn) {
+      openDirBtn.click()
+    }
+  }
+
+  const menus = computed<Menu[]>(() => [
     {
       name: 'ADV.JS',
       class: 'font-bold!',
       items: [
         {
-          label: 'About ADV.JS',
+          label: t('menu.about'),
           ellipsis: true,
           onClick: () => {
             dialogStore.openStates.about = true
           },
         },
         {
-          label: 'Settings',
+          label: t('menu.settings'),
           ellipsis: true,
           onClick: () => {
-
+            dialogStore.openStates.preferences = true
           },
         },
       ],
     },
     {
-      name: 'File',
+      name: t('menu.file'),
       items: [
         {
-          label: 'New ADV Config File',
+          type: 'submenu',
+          label: t('menu.newProject'),
+          children: PROJECT_TEMPLATES.map(tpl => ({
+            label: tpl.name,
+            onClick: () => {
+              createAndLoadProject(tpl.id)
+            },
+          })),
+        },
+        {
+          label: t('menu.openLocalProject'),
+          onClick: () => {
+            openAdvProject()
+          },
+        },
+        {
+          type: 'submenu',
+          label: t('menu.recentProjects'),
+          children: recentProjects.value.length > 0
+            ? recentProjects.value.map(project => ({
+                label: project.name,
+                onClick: async () => {
+                  const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' })
+                  const projectStore = useProjectStore()
+                  const { addRecentProject } = useRecentProjects()
+
+                  projectStore.rootDir = {
+                    name: dirHandle.name,
+                    kind: 'directory',
+                    handle: dirHandle,
+                  } as any
+
+                  try {
+                    const configHandle = await dirHandle.getFileHandle('adv.config.json')
+                    await projectStore.setAdvConfigFileHandle(configHandle)
+                  }
+                  catch {
+                    // no config file
+                  }
+
+                  try {
+                    const entryHandle = await dirHandle.getFileHandle('index.adv.json')
+                    await projectStore.setEntryFileHandle(entryHandle)
+                  }
+                  catch {
+                    // no entry file
+                  }
+
+                  addRecentProject({
+                    name: dirHandle.name,
+                    templateId: project.templateId,
+                  })
+                },
+              }))
+            : [{
+                label: t('menu.noRecentProjects'),
+                disabled: true,
+              }],
+        },
+
+        {
+          type: 'separator',
+        },
+        {
+          label: t('menu.newConfigFile'),
           accelerator: '⌘ N',
         },
 
         {
-          label: 'Open ADV Config File',
+          label: t('menu.openConfigFile'),
           onClick: async () => {
             fileStore.openAdvConfigFile()
           },
         },
         {
-          label: 'Open Online ADV Config File',
+          label: t('menu.openOnlineConfigFile'),
           onClick: async () => {
             fileStore.onlineAdvConfigFileDialogOpen = true
           },
@@ -58,10 +139,10 @@ export function useEditorMenubar() {
         },
         {
           type: 'submenu',
-          label: 'Share...',
+          label: t('menu.share'),
           children: [
             {
-              label: 'Copy Messages',
+              label: t('menu.copyMessages'),
               onClick: async () => {
                 const messages = [
                   '在线体验我的 ADV 游戏',
@@ -78,7 +159,7 @@ export function useEditorMenubar() {
               },
             },
             {
-              label: 'Copy Link',
+              label: t('menu.copyLink'),
               onClick: async () => {
                 const playLink = new URL(window.location.href)
                 // path
@@ -99,7 +180,7 @@ export function useEditorMenubar() {
               },
             },
             {
-              label: 'Copy QR Code',
+              label: t('menu.copyQRCode'),
               onClick: async () => {
                 // copy qrcode img
                 qrcode.toDataURL('https://editor.advjs.org', {
@@ -128,10 +209,10 @@ export function useEditorMenubar() {
       ],
     },
     {
-      name: 'Edit',
+      name: t('menu.edit'),
       items: [
         {
-          label: 'Undo',
+          label: t('menu.undo'),
           accelerator: '⌘ Z',
           onClick: () => {
             // eslint-disable-next-line no-console
@@ -139,7 +220,7 @@ export function useEditorMenubar() {
           },
         },
         {
-          label: 'Redo',
+          label: t('menu.redo'),
           accelerator: '⇧ ⌘ Z',
           onClick: () => {
             // eslint-disable-next-line no-console
@@ -150,7 +231,7 @@ export function useEditorMenubar() {
           type: 'separator',
         },
         {
-          label: 'Cut',
+          label: t('menu.cut'),
           accelerator: '⌘ X',
           onClick: () => {
             // eslint-disable-next-line no-console
@@ -158,7 +239,7 @@ export function useEditorMenubar() {
           },
         },
         {
-          label: 'Copy',
+          label: t('menu.copy'),
           accelerator: '⌘ C',
           onClick: () => {
             // eslint-disable-next-line no-console
@@ -166,7 +247,7 @@ export function useEditorMenubar() {
           },
         },
         {
-          label: 'Paste',
+          label: t('menu.paste'),
           accelerator: '⌘ V',
           onClick: () => {
             // eslint-disable-next-line no-console
@@ -177,28 +258,106 @@ export function useEditorMenubar() {
           type: 'separator',
         },
         {
-          label: 'Project Settings',
+          label: t('menu.projectSettings'),
           onClick: () => {
             dialogStore.openStates.settings = true
+          },
+        },
+        {
+          type: 'separator',
+        },
+        {
+          label: `${t('menu.preferences')}...`,
+          accelerator: '⌘ ,',
+          onClick: () => {
+            dialogStore.openStates.preferences = true
           },
         },
       ],
     },
     {
-      name: 'View',
+      name: t('menu.story'),
       items: [
         {
-          label: 'Command Palette',
+          type: 'submenu',
+          label: t('menu.create'),
+          children: [
+            {
+              label: t('menu.createWorldview'),
+              onClick: () => {
+                // TODO: open worldview creation dialog
+              },
+            },
+            {
+              label: t('menu.createScene'),
+              onClick: () => {
+                // TODO: open scene creation dialog
+              },
+            },
+            {
+              label: t('menu.createCharacter'),
+              onClick: () => {
+                router.push('/characters')
+              },
+            },
+            { type: 'separator' },
+            {
+              label: t('menu.createChapter'),
+              onClick: () => {
+                // TODO: open chapter creation dialog
+              },
+            },
+            {
+              label: t('menu.createDialogue'),
+              onClick: () => {
+                // TODO: open dialogue creation dialog
+              },
+            },
+            {
+              label: t('menu.createChoice'),
+              onClick: () => {
+                // TODO: open choice creation dialog
+              },
+            },
+            { type: 'separator' },
+            {
+              label: t('menu.createMusic'),
+              onClick: () => {
+                // TODO: open music creation dialog
+              },
+            },
+          ],
+        },
+        { type: 'separator' },
+        {
+          label: t('menu.characters'),
+          onClick: () => {
+            router.push('/characters')
+          },
+        },
+      ],
+    },
+    {
+      name: t('menu.view'),
+      items: [
+        {
+          label: t('menu.commandPalette'),
           ellipsis: true,
           accelerator: '⇧ ⌘ P',
         },
         { type: 'separator' },
         {
-          label: 'Chat',
+          label: t('menu.characters'),
+          onClick: () => {
+            router.push('/characters')
+          },
+        },
+        {
+          label: t('menu.chat'),
         },
         { type: 'separator' },
         {
-          label: 'Reload',
+          label: t('menu.reload'),
           accelerator: '⌘ R',
           onClick: () => {
             window.location.reload()
@@ -206,7 +365,7 @@ export function useEditorMenubar() {
         },
         { type: 'separator' },
         {
-          label: 'Toggle Fullscreen',
+          label: t('menu.toggleFullscreen'),
           onClick: () => {
             // page fullscreen
             if (document.fullscreenElement) {
@@ -220,20 +379,20 @@ export function useEditorMenubar() {
       ],
     },
     {
-      name: 'Window',
+      name: t('menu.window'),
       items: [
         {
           type: 'submenu',
-          label: 'Layouts',
+          label: t('menu.layouts'),
           children: [
             {
-              label: 'Reset Layout',
+              label: t('menu.resetLayout'),
             },
           ],
         },
         { type: 'separator' },
         {
-          label: 'Package Manager',
+          label: t('menu.packageManager'),
           onClick: () => {
             // eslint-disable-next-line no-console
             console.log('Package Manager')
@@ -242,10 +401,10 @@ export function useEditorMenubar() {
       ],
     },
     {
-      name: 'Services',
+      name: t('menu.services'),
       items: [
         {
-          label: 'CDN',
+          label: t('menu.cdn'),
           type: 'submenu',
           children: [
             {
@@ -267,41 +426,41 @@ export function useEditorMenubar() {
       ],
     },
     {
-      name: 'Help',
+      name: t('menu.help'),
       items: [
         {
-          label: 'Documentation',
+          label: t('menu.documentation'),
           onClick: () => {
             window.open('https://docs.advjs.org')
           },
         },
         {
-          label: 'Report Issues',
+          label: t('menu.reportIssues'),
           onClick: () => {
             window.open(links.issues)
           },
         },
         {
-          label: 'Release Notes',
+          label: t('menu.releaseNotes'),
           onClick: () => {
             window.open(links.releases)
           },
         },
         {
-          label: 'Source Code',
+          label: t('menu.sourceCode'),
           onClick: () => {
             window.open(links.github)
           },
         },
         { type: 'separator' },
         {
-          label: 'Join Discord',
+          label: t('menu.joinDiscord'),
           onClick: () => {
             window.open(links.discord)
           },
         },
         {
-          label: 'Discuss on GitHub',
+          label: t('menu.discussOnGitHub'),
           onClick: () => {
             window.open(links.discussions)
           },
@@ -314,7 +473,7 @@ export function useEditorMenubar() {
         },
       ],
     },
-  ]
+  ])
 
   return {
     menus,

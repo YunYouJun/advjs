@@ -18,7 +18,7 @@ const active = computed(() => {
     const character = $adv.gameConfig?.value?.characters?.find(item => item.id === props.characterId)
     if (!character)
       return false
-    if (curDialog.character && [character.id, character.alias].includes(curDialog.character.name))
+    if (curDialog.character && (character.id === curDialog.character.name || character.aliases?.includes(curDialog.character.name)))
       return true
   }
   return false

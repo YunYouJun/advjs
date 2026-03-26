@@ -1,5 +1,3 @@
-import process from 'node:process'
-
 interface FormatterMessages {
   option_fallback: string
   choices_prompt: string
@@ -23,22 +21,30 @@ const locales: Record<string, FormatterMessages> = {
   'zh-CN': zhCN,
 }
 
-function detectLocale(): string {
-  const langIdx = process.argv.indexOf('--lang')
-  if (langIdx !== -1 && process.argv[langIdx + 1])
-    return normalizeLocale(process.argv[langIdx + 1])
-
-  const envLang = process.env.LANG || process.env.LC_ALL || process.env.LC_MESSAGES || ''
-  if (envLang)
-    return normalizeLocale(envLang)
-
-  return 'en'
-}
-
 function normalizeLocale(raw: string): string {
   const base = raw.split('.')[0].replace('_', '-')
   if (base.startsWith('zh'))
     return 'zh-CN'
+  return 'en'
+}
+
+/**
+ * Detect locale from browser or Node.js environment
+ */
+function detectLocale(): string {
+  // Browser: use navigator.language
+  if (typeof navigator !== 'undefined' && navigator.language)
+    return normalizeLocale(navigator.language)
+
+  // Node.js: use environment variables
+  /* eslint-disable node/prefer-global/process */
+  if (typeof process !== 'undefined' && process.env) {
+    const envLang = process.env.LANG || process.env.LC_ALL || process.env.LC_MESSAGES || ''
+    if (envLang)
+      return normalizeLocale(envLang)
+  }
+  /* eslint-enable node/prefer-global/process */
+
   return 'en'
 }
 

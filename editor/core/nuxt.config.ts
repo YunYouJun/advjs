@@ -1,5 +1,4 @@
 import path, { resolve } from 'node:path'
-import process from 'node:process'
 import { simpleGit } from 'simple-git'
 import { resolveOptions } from '../../packages/advjs/node/options/utils'
 
@@ -65,7 +64,6 @@ export default defineNuxtConfig({
     '@advjs/gui/nuxt',
     'nuxt-monaco-editor',
     '@nuxtjs/i18n',
-    '@tdesign-vue-next/nuxt',
     'nuxt-auth-utils',
   ],
 
@@ -122,14 +120,16 @@ export default defineNuxtConfig({
       ],
       script: [
         // https://clarity.microsoft.com/
-        {
-          type: 'text/javascript',
-          innerHTML: `(function(c,l,a,r,i,t,y){
+        ...import.meta.env.NODE_ENV === 'production'
+          ? [{
+              type: 'text/javascript',
+              innerHTML: `(function(c,l,a,r,i,t,y){
             c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
             t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
             y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
         })(window, document, "clarity", "script", "kq50mx5ttn");`,
-        },
+            }]
+          : [],
       ],
     },
   },
@@ -137,8 +137,10 @@ export default defineNuxtConfig({
   components: [
     // remove prefix
     { path: '~/components', pathPrefix: false },
-    { path: path.resolve(packagesDir, 'client/components'), pathPrefix: false },
-    { path: path.resolve(themesDir, 'theme-default/components'), pathPrefix: false },
+    // base components from @advjs/client (priority: 1)
+    { path: path.resolve(packagesDir, 'client/components'), pathPrefix: false, priority: 1 },
+    // theme components override client components (priority: 2)
+    { path: path.resolve(themesDir, 'theme-default/components'), pathPrefix: false, priority: 2 },
   ],
 
   pwa,
@@ -168,6 +170,7 @@ export default defineNuxtConfig({
     optimizeDeps: {
       include: [
         'qrcode',
+        'pixi.js',
         // 'pixi-painter',
       ],
     },
@@ -178,18 +181,26 @@ export default defineNuxtConfig({
   },
 
   i18n: {
-    bundle: {
-      optimizeTranslationDirective: false,
-    },
-
+    strategy: 'no_prefix',
     defaultLocale: 'en',
+    langDir: 'locales',
+    locales: [
+      { code: 'en', file: 'en.json' },
+      { code: 'zh-CN', file: 'zh-CN.json' },
+    ],
   },
 
   runtimeConfig: {
+    feishu: {
+      appId: '',
+      appSecret: '',
+      bitableAppToken: '',
+      redirectUri: '',
+    },
     oauth: {
       github: {
-        clientId: process.env.NUXT_OAUTH_GITHUB_CLIENT_ID,
-        clientSecret: process.env.NUXT_OAUTH_GITHUB_CLIENT_SECRET,
+        clientId: '',
+        clientSecret: '',
       },
     },
   },

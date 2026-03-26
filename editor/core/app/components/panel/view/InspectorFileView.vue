@@ -61,13 +61,18 @@ function goToNode() {
     <AEAdvConfigActions v-if="gameStore.client.loadStatus === AdvGameLoadStatusEnum.SUCCESS" />
 
     <ClientOnly>
-      <MonacoEditor
+      <LazyMonacoEditor
         class="flex flex-grow"
         :model-value="monacoStore.fileContent"
         :lang="monacoStore.language || fileLanguage"
         :options="monacoStore.options"
         :editor-options="{ automaticLayout: true }"
       />
+      <template #fallback>
+        <div class="flex flex-1 items-center justify-center op-50">
+          <div i-svg-spinners:3-dots-scale class="text-2xl" />
+        </div>
+      </template>
     </ClientOnly>
   </div>
 </template>

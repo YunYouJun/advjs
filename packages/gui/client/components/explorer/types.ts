@@ -27,6 +27,9 @@ export type FSItem = FSFileItem | FSDirItem
 /**
  * props
  */
+/**
+ * props
+ */
 export interface AGUIAssetsExplorerProps {
   /**
    * init folder
@@ -73,4 +76,18 @@ export interface AGUIAssetsExplorerProps {
    * every fs item change
    */
   onFSItemChange?: (item: FSItem) => void | Promise<void>
+
+  // file operations callbacks
+  /**
+   * Called after rename. Return false to prevent.
+   */
+  onRename?: (item: FSItem, newName: string) => boolean | void | Promise<boolean | void>
+  /**
+   * Called after delete. Return false to prevent.
+   */
+  onDelete?: (items: FSItem[]) => boolean | void | Promise<boolean | void>
+  /**
+   * Called after create. Return false to prevent.
+   */
+  onCreate?: (parentDir: FSDirItem, name: string, kind: 'file' | 'directory') => boolean | void | Promise<boolean | void>
 }

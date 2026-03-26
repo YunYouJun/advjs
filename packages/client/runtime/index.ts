@@ -6,13 +6,13 @@ import { setupAdvContext } from '../setup/context'
 
 export const gameConfig = ref<AdvGameConfig>(defaultAdvConfig.gameConfig as AdvGameConfig)
 
-export function initAdvContext(advData: Ref<{
+export function initAdvContext(advData?: Ref<{
   config: Partial<AdvConfig>
 }>) {
   const config = computed<AdvConfig>(() => {
     return {
       ...defaultAdvConfig,
-      ...advData.value.config,
+      ...advData?.value.config,
     }
   })
   const themeConfig = computed<AdvThemeConfig>(() => defaultAdvConfig.themeConfig)

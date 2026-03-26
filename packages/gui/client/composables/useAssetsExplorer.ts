@@ -2,6 +2,7 @@ import type { InjectionKey, Ref } from 'vue'
 import type { AGUIBreadcrumbItem } from '../components/breadcrumb/types'
 import type { AGUIAssetsExplorerProps, FSDirItem, FSItem } from '../components/explorer/types'
 import type { TreeNode } from '../components/tree/types'
+import type { FileSelectionState } from './useFileSelection'
 import { computed, inject } from 'vue'
 import { sortFSItems } from '../utils'
 
@@ -11,6 +12,8 @@ export interface AGUIAssetsExplorerState extends Omit<AGUIAssetsExplorerProps, '
   curFileList: Ref<FSItem[]>
   tree: Ref<TreeNode>
 
+  selection: FileSelectionState
+
   // ctx
   emit: (event: 'update:curDir' | 'update:rootDir' | 'update:tree', value: FSDirItem) => void
     | ((event: 'update:curFileList', value: FSItem[]) => void)
@@ -18,6 +21,7 @@ export interface AGUIAssetsExplorerState extends Omit<AGUIAssetsExplorerProps, '
   setCurDir: (dir: FSDirItem) => void
   setCurFileList: (list: FSItem[]) => void
   setRootDir: (dir: FSDirItem) => void
+  refreshCurrentDir: () => Promise<void>
 }
 
 export const AGUIAssetsExplorerSymbol: InjectionKey<AGUIAssetsExplorerState> = Symbol('AGUIAssetsExplorer')

@@ -1,2 +1,7 @@
 export * from './useAssetsExplorer'
+export * from './useExplorerContextMenu'
+export * from './useExplorerKeyboard'
+export * from './useFileOperations'
+export * from './useFileSelection'
 export * from './useToast'
+export * from './useTreeContextMenu'

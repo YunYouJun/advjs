@@ -6,7 +6,6 @@ import LinkAttributes from 'markdown-it-link-attributes'
 import Unocss from 'unocss/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import Mockery from 'unplugin-mockery/vite'
-import { TDesignResolver } from 'unplugin-vue-components/resolvers'
 import Markdown from 'unplugin-vue-markdown/vite'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -77,15 +76,7 @@ export default defineConfig(async ({ mode }) => {
         dts: 'src/route-map.d.ts',
       }),
 
-      ADV(options, {
-        components: {
-          resolvers: [
-            TDesignResolver({
-              library: 'vue-next',
-            }),
-          ],
-        },
-      }),
+      ADV(options, {}),
 
       // https://github.com/antfu/unplugin-auto-import
       AutoImport({

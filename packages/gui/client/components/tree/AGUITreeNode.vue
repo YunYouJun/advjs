@@ -1,14 +1,17 @@
 <script lang="ts" setup>
+import type { AGUIContextMenuItemType } from '../context-menu/types'
 import type { TreeNode } from './types'
 
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import Toggle from '../button/AGUIToggleIcon.vue'
+import AGUIContextMenu from '../context-menu/AGUIContextMenu.vue'
 
 withDefaults(defineProps<{
   currentNode: TreeNode
   node: TreeNode
   depth?: number
   visible?: boolean
+  contextMenu?: (node: TreeNode) => AGUIContextMenuItemType[]
 }>(), {
   depth: 0,
   visible: true,
@@ -18,6 +21,7 @@ const emit = defineEmits([
   'log',
 
   'node-activate',
+  'node-dblclick',
   'node-collapse',
   'node-expand',
   'node-selected',
@@ -30,8 +34,9 @@ onMounted(() => {
   // Assign outlineRow or any other initialization logic
 })
 
-function log() {
-  emit('log')
+function onNodeDblClicked(node: TreeNode) {
+  // eslint-disable-next-line vue/custom-event-name-casing
+  emit('node-dblclick', node)
 }
 
 function collapse(nodes: TreeNode[]) {
@@ -41,6 +46,38 @@ function collapse(nodes: TreeNode[]) {
 function expand(nodes: TreeNode[]) {
   // eslint-disable-next-line vue/custom-event-name-casing
   emit('node-expand', nodes)
+}
+
+/**
+ * Delayed toggle to prevent double-click from toggling twice.
+ * Single click: toggle after delay.
+ * Double click on toggle: cancel the pending toggle, then expand.
+ */
+const toggleTimer = ref<ReturnType<typeof setTimeout> | null>(null)
+
+function onToggleClick(node: TreeNode) {
+  if (toggleTimer.value) {
+    clearTimeout(toggleTimer.value)
+    toggleTimer.value = null
+  }
+  toggleTimer.value = setTimeout(() => {
+    toggleTimer.value = null
+    if (node.expanded)
+      collapse([node])
+    else
+      expand([node])
+  }, 200)
+}
+
+function onToggleDblClick(node: TreeNode) {
+  if (toggleTimer.value) {
+    clearTimeout(toggleTimer.value)
+    toggleTimer.value = null
+  }
+  // Ensure expanded on double-click
+  if (!node.expanded)
+    expand([node])
+  onNodeDblClicked(node)
 }
 
 function hide(nodes: TreeNode[]) {
@@ -73,15 +110,73 @@ function onNodeActivated(node: TreeNode) {
 </script>
 
 <template>
+  <!-- With context menu -->
+  <AGUIContextMenu v-if="node && contextMenu" :context-menu="contextMenu(node)">
+    <template #trigger>
+      <div
+        class="agui-tree-node"
+        :class="[{ active: node === currentNode, muted: node.muted, match: node.match }]"
+        :style="{ '--depth': `${depth}` }"
+        tabindex="0"
+        :title="node.name || `[${node.type}]`"
+        @click="onNodeActivated(node)"
+        @dblclick="onNodeDblClicked(node)"
+        @keydown="onKeyDown"
+      >
+        <div class="content" :class="{ invisible: node.visible === false || visible === false }">
+          <template v-if="node.children && node.children.length > 0">
+            <Toggle
+              class="cursor-pointer text-xl"
+              :icon="node.expanded ? 'expanded' : 'collapsed'"
+              @click="onToggleClick(node)"
+              @dblclick="onToggleDblClick(node)"
+            />
+          </template>
+          <template v-else>
+            <span class="toggle-spacer" />
+          </template>
+          <span class="title">{{ node.name || `[${node.type}]` }}</span>
+        </div>
+
+        <template v-if="(typeof node.selectable === 'boolean')">
+          <template v-if="node.selectable">
+            <Toggle
+              icon="selectable"
+              hint="Disable right-click selection"
+              :muted="node.parentUnselectable"
+              @click="onNodeUnselected([node])"
+            />
+          </template>
+          <template v-else>
+            <Toggle
+              icon="unselectable"
+              hint="Enable right-click selection"
+              :muted="node.parentUnselectable"
+              @click="onNodeSelected([node])"
+            />
+          </template>
+        </template>
+        <template v-if="typeof node.visible === 'boolean'">
+          <Toggle
+            :icon="node.visible ? 'eye-opened' : 'eye-closed'"
+            :hint="node.visible ? 'Hide (h)' : 'Show (h)'"
+            @click="node.visible ? hide([node]) : show([node])"
+          />
+        </template>
+      </div>
+    </template>
+  </AGUIContextMenu>
+
+  <!-- Without context menu -->
   <div
-    v-if="node"
+    v-else-if="node"
     class="agui-tree-node"
     :class="[{ active: node === currentNode, muted: node.muted, match: node.match }]"
     :style="{ '--depth': `${depth}` }"
     tabindex="0"
     :title="node.name || `[${node.type}]`"
     @click="onNodeActivated(node)"
-    @dblclick="log"
+    @dblclick="onNodeDblClicked(node)"
     @keydown="onKeyDown"
   >
     <div class="content" :class="{ invisible: node.visible === false || visible === false }">
@@ -89,7 +184,8 @@ function onNodeActivated(node: TreeNode) {
         <Toggle
           class="cursor-pointer text-xl"
           :icon="node.expanded ? 'expanded' : 'collapsed'"
-          @click="node.expanded ? collapse([node]) : expand([node])"
+          @click="onToggleClick(node)"
+          @dblclick="onToggleDblClick(node)"
         />
       </template>
       <template v-else>
@@ -125,16 +221,18 @@ function onNodeActivated(node: TreeNode) {
     </template>
   </div>
 
-  <template v-if="node.expanded">
+  <template v-if="node?.expanded">
     <template v-for="(child, _i) in node.children" :key="child.id || _i">
       <AGUITreeNode
         :current-node="currentNode"
         :node="child"
         :depth="depth + 1"
+        :context-menu="contextMenu"
 
         :visible="typeof node.visible === 'boolean' ? visible && node.visible : visible"
 
         @node-activate="onNodeActivated"
+        @node-dblclick="onNodeDblClicked"
         @node-collapse="collapse"
         @node-expand="expand"
         @node-hide="hide"

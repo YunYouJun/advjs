@@ -105,15 +105,15 @@ function openRepoUrl(repo: GitHubRepo) {
           </div>
 
           <div class="flex items-center gap-1">
-            <t-button size="small" shape="circle" theme="default" @click="openRepoUrl(repo)">
+            <AGUIButton size="mini" variant="outline" @click="openRepoUrl(repo)">
               <div i-ri-external-link-line />
-            </t-button>
-            <t-button v-if="githubStore.connectedRepo?.id !== repo.id" theme="default" size="small" @click="connectRepo(repo)">
+            </AGUIButton>
+            <AGUIButton v-if="githubStore.connectedRepo?.id !== repo.id" size="mini" @click="connectRepo(repo)">
               Connect
-            </t-button>
-            <t-button v-else theme="default" size="small" variant="dashed" @click="githubStore.disconnectRepo()">
+            </AGUIButton>
+            <AGUIButton v-else size="mini" variant="outline" @click="githubStore.disconnectRepo()">
               Disconnect
-            </t-button>
+            </AGUIButton>
           </div>
         </li>
       </ul>

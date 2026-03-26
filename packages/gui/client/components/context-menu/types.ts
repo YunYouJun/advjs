@@ -1,10 +1,18 @@
-export interface AGUIContextMenuItemType {
+interface AGUIContextMenuBaseItem {
   id?: string
   label: string
   icon?: string
-  type?: 'separator' | 'label' | 'radio-group' | 'radio-item'
+  type?: 'label' | 'radio-group' | 'radio-item'
   disabled?: boolean
   accelerator?: string
   children?: AGUIContextMenuItemType[]
-  onClick: () => void
+  onClick?: () => void
 }
+
+interface AGUIContextMenuSeparator {
+  id?: string
+  label?: string
+  type: 'separator'
+}
+
+export type AGUIContextMenuItemType = AGUIContextMenuBaseItem | AGUIContextMenuSeparator

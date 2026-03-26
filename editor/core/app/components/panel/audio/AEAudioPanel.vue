@@ -37,15 +37,14 @@ function getAudioSrcByKey(bgmKey: string) {
 <template>
   <div class="h-full w-full p-4 text-white">
     <div>
-      <t-form>
-        <t-form-item label="背景音乐库" name="name">
-          <t-input v-model="audioStore.bgmLibraryUrl" placeholder="https://xxx" size="small">
-            <template #suffixIcon>
-              <div class="i-ri-search-line cursor-pointer text-xs op-80 hover:op-100" @click="fetchLibraryData" />
-            </template>
-          </t-input>
-        </t-form-item>
-      </t-form>
+      <AGUIForm>
+        <AGUIFormItem label="背景音乐库">
+          <div class="flex items-center gap-1">
+            <AGUIInput v-model="audioStore.bgmLibraryUrl" placeholder="https://xxx" />
+            <div class="i-ri-search-line cursor-pointer text-xs op-80 hover:op-100" @click="fetchLibraryData" />
+          </div>
+        </AGUIFormItem>
+      </AGUIForm>
     </div>
 
     <ul class="flex flex-col gap-2 py-4 pl-5 text-sm">

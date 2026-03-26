@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { FSDirItem, FSFileItem, FSItem } from '@advjs/gui'
 import { Toast } from '@advjs/gui'
+import { parseCharacterMd } from '@advjs/parser'
 import consola from 'consola'
 import { ref } from 'vue'
 
@@ -12,14 +13,6 @@ const tabList = ref([
 const curTab = ref('project')
 
 async function onFileDrop(files: FSFileItem[]) {
-  // const curDir = explorerRef.value?.curDir
-  // console.log(curDir)
-  // console.log(curDir.value?.handle)
-
-  // for (const file of files) {
-  //   if (file.file)
-  //     await saveFile(file.file, curDir.value.handle)
-  // }
   return files
 }
 
@@ -36,8 +29,46 @@ function onFileClick(item: FSFileItem) {
 }
 
 const fileStore = useFileStore()
-function onFileDblClick(item: FSFileItem) {
+const characterStore = useCharacterStore()
+const app = useAppStore()
+
+function onRename(item: FSItem, newName: string) {
+  consola.info('onRename', item.name, '->', newName)
+}
+
+function onDelete(items: FSItem[]) {
+  consola.info('onDelete', items.map(i => i.name))
+}
+
+function onCreate(parentDir: FSDirItem, name: string, kind: 'file' | 'directory') {
+  consola.info('onCreate', kind, name, 'in', parentDir.name)
+}
+
+async function onFileDblClick(item: FSFileItem) {
   consola.info('onFileDblClick', item)
+
+  // Handle .character.md files → open in Inspector with CharacterForm
+  if (item.name.endsWith('.character.md') && item.handle) {
+    try {
+      const file = await (item.handle as FileSystemFileHandle).getFile()
+      const content = await file.text()
+      const character = parseCharacterMd(content)
+      characterStore.selectedCharacter = character
+      characterStore.selectedCharacterHandle = item.handle as FileSystemFileHandle
+      app.activeInspector = 'character'
+      return
+    }
+    catch (e) {
+      consola.error('Failed to parse character file:', e)
+      Toast({
+        title: 'Error',
+        description: 'Failed to parse character file',
+        type: 'error',
+      })
+      return
+    }
+  }
+
   if (item.handle) {
     fileStore.setOpenedFileHandle(item.handle)
   }
@@ -61,16 +92,24 @@ async function beforeOpenRootDir(dirHandle: FileSystemDirectoryHandle) {
     'adv.config.json': undefined!,
     'index.adv.json': undefined!,
   }
-  for await (const file of files) {
-    if (file.kind === 'file') {
-      const fileName = file.name
+  for await (const entry of files) {
+    if (entry.kind === 'file') {
+      const fileName = entry.name
       switch (fileName) {
         case 'adv.config.json':
         case 'index.adv.json':
-          projectFiles[fileName] = file
+          projectFiles[fileName] = entry
           break
         default:
           break
+      }
+    }
+    else if (entry.kind === 'directory' && entry.name === 'adv') {
+      // index.adv.json moved to adv/index.adv.json
+      for await (const subEntry of (entry as FileSystemDirectoryHandle).values()) {
+        if (subEntry.kind === 'file' && subEntry.name === 'index.adv.json') {
+          projectFiles['index.adv.json'] = subEntry
+        }
       }
     }
   }
@@ -84,7 +123,7 @@ async function beforeOpenRootDir(dirHandle: FileSystemDirectoryHandle) {
   else {
     Toast({
       title: 'Error',
-      description: 'This is not a valid adv project. `index.adv.json` is required',
+      description: 'This is not a valid adv project. `adv.config.json` and `adv/index.adv.json` are required',
       type: 'error',
     })
     return false
@@ -96,8 +135,6 @@ async function beforeOpenRootDir(dirHandle: FileSystemDirectoryHandle) {
  */
 function onOpenRootDir(dir?: FSDirItem) {
   consola.debug('onOpenRootDir', dir)
-  // console.log('onOpenRootDir', dir)
-  // cache
 }
 </script>
 
@@ -115,6 +152,9 @@ function onOpenRootDir(dir?: FSDirItem) {
           :on-file-click="onFileClick"
           :on-file-dbl-click="onFileDblClick"
           :on-open-root-dir="onOpenRootDir"
+          :on-rename="onRename"
+          :on-delete="onDelete"
+          :on-create="onCreate"
         />
         <slot name="project" />
       </AGUITabPanel>

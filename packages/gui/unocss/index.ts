@@ -28,4 +28,9 @@ export const safelist: string[] = [
   'i-vscode-icons-file-type-css',
   'i-vscode-icons-file-type-html',
   'i-vscode-icons-file-type-yaml',
+
+  // Project template icons (dynamically bound via :class)
+  'i-ri-markdown-line',
+  'i-ri-node-tree',
+  'i-ri-file-add-line',
 ]

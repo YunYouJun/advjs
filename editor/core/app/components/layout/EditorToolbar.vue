@@ -47,7 +47,7 @@ const tools = computed<ToolbarItem[]>(() => {
       type: 'dropdown',
       // icon: 'i-mdi-account-circle',
       icon: 'i-ri-github-line',
-      name: userStore.user?.github.name,
+      name: userStore.user?.github?.name,
       children: [
         {
           label: 'My Account',

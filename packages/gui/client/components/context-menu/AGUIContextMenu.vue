@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { AGUIContextMenuItemType } from './types'
 import {
   ContextMenuContent,
   ContextMenuPortal,
@@ -7,16 +8,7 @@ import {
 } from 'reka-ui'
 import AGUIContextMenuItem from './AGUIContextMenuItem.vue'
 
-export interface AGUIContextMenuItemType {
-  id?: string
-  label: string
-  icon?: string
-  type?: 'separator' | 'label' | 'radio-group' | 'radio-item'
-  disabled?: boolean
-  accelerator?: string
-  children?: AGUIContextMenuItemType[]
-  onClick: () => void
-}
+export type { AGUIContextMenuItemType }
 
 withDefaults(defineProps<{
   contextMenu?: AGUIContextMenuItemType[]

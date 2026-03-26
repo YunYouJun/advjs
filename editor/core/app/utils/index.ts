@@ -1,5 +1,6 @@
 // adapters
-export * from '../../../../plugins/plugin-pominis/src'
+export * from '../../../../plugins/plugin-pominis/client'
 
 export * from './analystics'
+export * from './feishu-url'
 export * from './project'

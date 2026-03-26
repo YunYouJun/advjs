@@ -12,23 +12,13 @@ const open = defineModel('open', {
     <div class="h-full flex flex-col items-center justify-center gap-4 p-6">
       <AEUserProfile v-if="userStore.loggedIn" />
       <div v-else id="login-container" class="max-w-md flex flex-col items-center justify-center gap-4">
-        <t-button theme="default" block>
-          <template #icon>
-            <div i-ri-github-line />
-          </template>
-          <span class="ml-2" @click="userStore.loginWithGitHub()">
-            Login with GitHub
-          </span>
-        </t-button>
+        <AGUIButton icon="i-ri-github-line" @click="userStore.loginWithGitHub()">
+          Login with GitHub
+        </AGUIButton>
 
-        <!-- <t-button theme="success" block>
-          <template #icon>
-            <div i-ri-wechat-line />
-          </template>
-          <span class="ml-2">
-            Login with WeChat (TODO)
-          </span>
-        </t-button> -->
+        <!-- <AGUIButton icon="i-ri-wechat-line">
+          Login with WeChat (TODO)
+        </AGUIButton> -->
 
         <div class="text-xs op-50">
           More login methods wip...

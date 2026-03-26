@@ -15,17 +15,16 @@ packages:
   - playground
 
 catalog:
-  '@aws-sdk/client-s3': ^3.1016.0
-  '@aws-sdk/s3-request-presigner': ^3.1016.0
+  '@aws-sdk/client-s3': ^3.1018.0
+  '@aws-sdk/s3-request-presigner': ^3.1018.0
   '@dagrejs/dagre': ^2.0.4
-  '@larksuiteoapi/node-sdk': ^1.59.0
-  '@nuxtjs/i18n': 9.5.2
+  '@larksuiteoapi/node-sdk': ^1.60.0
+  '@nuxtjs/i18n': ^10.2.4
   '@octokit/core': ^7.0.6
   '@octokit/rest': ^22.0.1
   '@rollup/pluginutils': ^5.3.0
   '@runware/sdk-js': ^1.2.5
   '@shikijs/vitepress-twoslash': ^3.23.0
-  '@tdesign-vue-next/nuxt': 0.1.5
   '@types/body-parser': ^1.19.6
   '@types/express': ^5.0.6
   '@types/minimist': ^1.2.5
@@ -56,11 +55,11 @@ catalog:
   ua-parser-js: ^2.0.9
   vite-plugin-singlefile: ^2.3.2
   vitefu: ^1.1.2
-  vitepress-plugin-group-icons: ^1.7.1
+  vitepress-plugin-group-icons: ^1.7.2
   vitepress-plugin-mermaid: ^2.0.17
 catalogs:
   ai:
-    openai: ^6.32.0
+    openai: ^6.33.0
   babylon:
     '@babylonjs/core': 5.19.0
     '@babylonjs/gui': 5.19.0
@@ -90,7 +89,7 @@ catalogs:
     unplugin-auto-import: ^21.0.0
     unplugin-vue-components: ^32.0.0
     unplugin-vue-markdown: ^30.0.0
-    vite: ^8.0.2
+    vite: ^8.0.3
     vite-bundle-visualizer: ^1.2.1
     vite-plugin-css-injected-by-js: ^4.0.1
     vite-plugin-dts: ^4.5.4
@@ -122,7 +121,7 @@ catalogs:
     nodemon: ^3.1.14
     taze: ^19.10.0
     tsx: ^4.21.0
-    typescript: ^5
+    typescript: ^5.9.3
     unplugin-mockery: ^0.4.0-beta.13
     vue-tsc: ^3.2.6
   docs:
@@ -149,13 +148,12 @@ catalogs:
     reka-ui: ^2.9.2
     splitpanes: ^4.0.4
     swiper: ^12.1.3
-    tdesign-vue-next: ^1.18.6
-    vue: ^3.5.30
+    vue: ^3.5.31
     vue-i18n: ^11.3.0
     vue-router: ^5.0.4
     wc-github-corners: ^0.1.6
   icons:
-    '@iconify-json/carbon': ^1.2.19
+    '@iconify-json/carbon': ^1.2.20
     '@iconify-json/ep': ^1.2.4
     '@iconify-json/file-icons': ^1.2.2
     '@iconify-json/logos': ^1.2.10
@@ -169,7 +167,7 @@ catalogs:
   test:
     '@playwright/test': ^1.58.2
     '@vue/test-utils': ^2.4.6
-    vitest: ^4.1.1
+    vitest: ^4.1.2
   types:
     '@types/cli-progress': ^3.11.6
     '@types/howler': ^2.2.12

@@ -56,10 +56,18 @@
   .agui-explorer-footer {
     display: flex;
     justify-content: right;
+    align-items: center;
+    gap: 8px;
 
     padding: 8px;
 
     height: var(--agui-explorer-footer-height);
     background-color: var(--agui-c-bg-panel-title);
+
+    .agui-explorer-selection-info {
+      font-size: 11px;
+      color: var(--agui-c-text-2);
+      margin-right: auto;
+    }
   }
 }

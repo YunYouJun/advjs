@@ -80,17 +80,22 @@ const currentMenu = defineModel('currentMenu', {
                     class="MenubarContent"
                     :align-offset="-5"
                   >
-                    <MenubarItem
-                      v-for="(subItem, key) in menuItem.children"
-                      :key="key"
-                      class="MenubarItem"
-                      @click="subItem.onClick"
-                    >
-                      {{ subItem.label }}
-                      <div class="RightSlot">
-                        {{ subItem.accelerator }}
-                      </div>
-                    </MenubarItem>
+                    <template v-for="(subItem, key) in menuItem.children" :key="key">
+                      <MenubarSeparator
+                        v-if="subItem.type === 'separator'"
+                        class="MenubarSeparator"
+                      />
+                      <MenubarItem
+                        v-else
+                        class="MenubarItem"
+                        @click="subItem.onClick"
+                      >
+                        {{ subItem.label }}
+                        <div class="RightSlot">
+                          {{ subItem.accelerator }}
+                        </div>
+                      </MenubarItem>
+                    </template>
                   </MenubarSubContent>
                 </MenubarPortal>
               </MenubarSub>

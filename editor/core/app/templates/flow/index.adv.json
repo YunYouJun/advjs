@@ -1,0 +1,42 @@
+{
+  "title": "我的节点流程图",
+  "startNode": "node_start",
+  "characters": [],
+  "chapters": [
+    {
+      "id": "chapter_1",
+      "title": "第一章",
+      "startNodeId": "node_start",
+      "nodes": [
+        {
+          "id": "node_start",
+          "plot_summary": "起点",
+          "dialogues": [
+            {
+              "speaker": "旁白",
+              "text": "欢迎来到节点流程图模式。请选择你的路线。"
+            }
+          ],
+          "choices": [
+            { "text": "路线 A", "nextNodeId": "node_a" },
+            { "text": "路线 B", "nextNodeId": "node_b" }
+          ]
+        },
+        {
+          "id": "node_a",
+          "plot_summary": "路线 A",
+          "dialogues": [{ "speaker": "旁白", "text": "你选择了路线 A。" }],
+          "choices": [],
+          "next": null
+        },
+        {
+          "id": "node_b",
+          "plot_summary": "路线 B",
+          "dialogues": [{ "speaker": "旁白", "text": "你选择了路线 B。" }],
+          "choices": [],
+          "next": null
+        }
+      ]
+    }
+  ]
+}

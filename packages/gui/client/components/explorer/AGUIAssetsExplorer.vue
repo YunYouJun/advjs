@@ -1,14 +1,28 @@
 <script lang="ts" setup>
+import type { AGUIContextMenuItemType } from '../context-menu/types'
+import type { TreeNode } from '../tree/types'
 import type { AGUIAssetsExplorerProps, FSDirItem, FSFileItem, FSItem } from './types'
 
 import { useEventListener } from '@vueuse/core'
+import {
+  ContextMenuContent,
+  ContextMenuPortal,
+  ContextMenuRoot,
+  ContextMenuTrigger,
+} from 'reka-ui'
 import { Pane, Splitpanes } from 'splitpanes'
-import { onMounted, provide, ref } from 'vue'
+import { computed, onMounted, provide, ref, watch } from 'vue'
 
-import { AGUIAssetsExplorerSymbol, listFilesInDir, saveFile, useAGUIAssetsExplorer } from '../../composables'
+import { AGUIAssetsExplorerSymbol, listFilesInDir, openRootDir as openRootDirUtil, saveFile, useAGUIAssetsExplorer } from '../../composables'
+import { getEmptyAreaContextMenu } from '../../composables/useExplorerContextMenu'
+import { useExplorerKeyboard } from '../../composables/useExplorerKeyboard'
+import { useFileOperations } from '../../composables/useFileOperations'
+import { useFileSelection } from '../../composables/useFileSelection'
+import { getTreeNodeContextMenu } from '../../composables/useTreeContextMenu'
 import { sortFSItems } from '../../utils'
 import AGUISlider from '../AGUISlider.vue'
 import AGUIBreadcrumb from '../breadcrumb/AGUIBreadcrumb.vue'
+import AGUIContextMenuItem from '../context-menu/AGUIContextMenuItem.vue'
 import AGUITree from '../tree/AGUITree.vue'
 import AGUIExplorerControls from './AGUIExplorerControls.vue'
 import AGUIFileList from './AGUIFileList.vue'
@@ -50,28 +64,61 @@ function setCurFileList(list: FSItem[]) {
   emit('update:curFileList', list)
 }
 
+const selection = useFileSelection()
+
+async function refreshCurrentDir() {
+  const dir = curDir.value
+  if (!dir)
+    return
+  const list = await listFilesInDir(dir, { showFiles: true })
+  setCurFileList(list)
+}
+
 const state = {
   rootDir,
   curDir,
   curFileList,
   tree,
 
+  selection,
+
   beforeOpenRootDir: props.beforeOpenRootDir,
   onDblClick: props.onDblClick,
-  // onFileClick: props.onFileClick,
   onFileDblClick: props.onFileDblClick,
   onDirDblClick: props.onDirDblClick,
   onOpenRootDir: props.onOpenRootDir,
   onFSItemChange: props.onFSItemChange,
+  onRename: props.onRename,
+  onDelete: props.onDelete,
+  onCreate: props.onCreate,
 
   emit,
 
   setCurDir,
   setCurFileList,
   setRootDir,
+  refreshCurrentDir,
 }
 provide(AGUIAssetsExplorerSymbol, state)
 defineExpose(state)
+
+const ops = useFileOperations(state)
+
+/**
+ * Watch for external rootDir changes (e.g. after project creation)
+ * to sync internal state and populate the file tree.
+ */
+watch(() => props.rootDir, async (newRootDir) => {
+  if (newRootDir && newRootDir !== rootDir.value && newRootDir.handle) {
+    await openRootDirUtil(newRootDir.handle, state)
+  }
+  else if (!newRootDir) {
+    rootDir.value = undefined
+    curDir.value = undefined
+    curFileList.value = []
+    tree.value = {}
+  }
+})
 
 const size = ref(64)
 
@@ -94,8 +141,48 @@ async function onNodeActivated(node: FSItem) {
   emit('treeNodeActivate', node)
 }
 
+/**
+ * Generate context menu items for a tree node
+ */
+function getTreeContextMenu(node: TreeNode): AGUIContextMenuItemType[] {
+  return getTreeNodeContextMenu(node, ops, selection, state)
+}
+
+/**
+ * Double-click handler for tree nodes
+ * - Directory: expand node + navigate to directory
+ * - File: trigger file open callback
+ */
+async function onTreeNodeDblClick(node: TreeNode) {
+  const item = node as unknown as FSItem
+  const isDirectory = item.kind === 'directory' || node.handle?.kind === 'directory'
+
+  if (isDirectory) {
+    node.expanded = true
+    if (item.handle) {
+      const list = await listFilesInDir(item as FSDirItem, { showFiles: true })
+      setCurDir(item as FSDirItem)
+      setCurFileList(list)
+    }
+  }
+  else {
+    if (state.onFileDblClick) {
+      state.onFileDblClick(item)
+    }
+    else if (state.onDblClick) {
+      state.onDblClick(item)
+    }
+  }
+}
+
 const { breadcrumbItems } = useAGUIAssetsExplorer(state)
 const explorerContent = ref<HTMLDivElement>()
+
+// Initialize keyboard shortcuts
+watch(explorerContent, (el) => {
+  if (el)
+    useExplorerKeyboard(state, ops, explorerContent)
+}, { immediate: true })
 
 const isDragging = ref(false)
 useEventListener(explorerContent, 'dragover', (e: DragEvent) => {
@@ -188,6 +275,20 @@ useEventListener(explorerContent, 'drop', async (e: DragEvent) => {
   }
 })
 
+// Footer selection info
+const footerInfo = computed(() => {
+  const count = selection.selectedItems.size
+  if (count > 1)
+    return `${count} items selected`
+  return ''
+})
+
+// Empty area context menu (standalone, no nesting with per-item menus)
+const emptyAreaMenuItems = ref<AGUIContextMenuItemType[]>([])
+function onEmptyAreaContextMenu() {
+  emptyAreaMenuItems.value = getEmptyAreaContextMenu(ops, selection)
+}
+
 onMounted(() => {
   window.AGUI_DRAGGING_ITEM_MAP = new Map()
 })
@@ -203,7 +304,9 @@ onMounted(() => {
             v-if="tree && rootDir"
             class="h-full w-full"
             :data="tree"
+            :context-menu="getTreeContextMenu"
             @node-activate="onNodeActivated"
+            @node-dblclick="onTreeNodeDblClick"
           />
           <AGUIOpenDirectory v-else :on-open-root-dir="onOpenRootDir" />
         </div>
@@ -213,17 +316,31 @@ onMounted(() => {
         <div class="agui-assets-panel">
           <AGUIBreadcrumb :items="breadcrumbItems" />
 
-          <div ref="explorerContent" class="agui-explorer-content">
-            <div
-              class="h-full p-2" :class="{
-                'is-dragging': isDragging,
-              }"
-            >
-              <AGUIFileList :size="size" :list="curFileList" />
-            </div>
-          </div>
+          <ContextMenuRoot>
+            <ContextMenuTrigger as-child @contextmenu="onEmptyAreaContextMenu">
+              <div ref="explorerContent" class="agui-explorer-content" tabindex="0">
+                <div
+                  class="h-full p-2" :class="{
+                    'is-dragging': isDragging,
+                  }"
+                >
+                  <AGUIFileList :size="size" :list="curFileList" />
+                </div>
+              </div>
+            </ContextMenuTrigger>
+            <ContextMenuPortal>
+              <ContextMenuContent class="ContextMenuContent" :side-offset="5">
+                <AGUIContextMenuItem
+                  v-for="menuItem in emptyAreaMenuItems"
+                  :key="menuItem.id || menuItem.label"
+                  :item="menuItem"
+                />
+              </ContextMenuContent>
+            </ContextMenuPortal>
+          </ContextMenuRoot>
 
           <div class="agui-explorer-footer">
+            <span v-if="footerInfo" class="agui-explorer-selection-info">{{ footerInfo }}</span>
             <AGUISlider v-model="size" style="width:120px" :max="120" :min="12" />
           </div>
         </div>

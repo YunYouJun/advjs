@@ -1,5 +1,6 @@
 <!-- eslint-disable vue/custom-event-name-casing -->
 <script setup lang="ts">
+import type { AGUIContextMenuItemType } from '../context-menu/types'
 import type { TreeNode, Trees } from './types'
 import { computed } from 'vue'
 import AGUITreeNode from './AGUITreeNode.vue'
@@ -8,12 +9,14 @@ const props = withDefaults(defineProps<{
   currentNode?: TreeNode
   data: Trees | TreeNode
   depth?: number
+  contextMenu?: (node: TreeNode) => AGUIContextMenuItemType[]
 }>(), {
   depth: 0,
 })
 
 const emit = defineEmits([
   'node-activate',
+  'node-dblclick',
   'node-collapse',
   'node-expand',
   'node-selected',
@@ -78,6 +81,10 @@ function activate(node: TreeNode) {
   emit('node-activate', node)
   emit('update:currentNode', node)
 }
+
+function onDblClick(node: TreeNode) {
+  emit('node-dblclick', node)
+}
 </script>
 
 <template>
@@ -88,8 +95,10 @@ function activate(node: TreeNode) {
           :current-node="currentNode"
           :node="tree"
           :depth="depth || 0"
+          :context-menu="contextMenu"
 
           @node-activate="activate"
+          @node-dblclick="onDblClick"
           @node-collapse="collapse"
           @node-expand="expand"
           @node-show="show"
@@ -104,8 +113,10 @@ function activate(node: TreeNode) {
         :current-node="currentNode"
         :node="data"
         :depth="depth || 0"
+        :context-menu="contextMenu"
 
         @node-activate="activate"
+        @node-dblclick="onDblClick"
         @node-collapse="collapse"
         @node-expand="expand"
         @node-show="show"

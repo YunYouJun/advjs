@@ -15,11 +15,6 @@ const props = withDefaults(defineProps<{
 const backgroundImageStyle = computed(() => ({
   backgroundImage: `var(--b-icon-${props.icon})`,
 }))
-
-// Double click event handler
-function handleDoubleClick() {
-  // Your double click logic here
-}
 </script>
 
 <template>
@@ -29,7 +24,7 @@ function handleDoubleClick() {
     :style="backgroundImageStyle"
     :title="hint"
     @click.stop
-    @dblclick.stop="handleDoubleClick"
+    @dblclick.stop
   />
 </template>
 

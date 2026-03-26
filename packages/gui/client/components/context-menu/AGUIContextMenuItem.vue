@@ -52,7 +52,7 @@ defineProps<{
     :value="item.label"
     class="agui-context-menu-item"
     :disabled="item.disabled"
-    @click="item.onClick"
+    @click="item.onClick?.()"
   >
     <ContextMenuItemIndicator class="ContextMenuItemIndicator">
       <Icon v-if="item.icon" :icon="item.icon" />

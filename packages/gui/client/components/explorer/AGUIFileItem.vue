@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { FSDirItem, FSFileItem, FSItem } from './types'
 import { onClickOutside, useEventListener } from '@vueuse/core'
-import { computed, ref, watch, watchEffect } from 'vue'
+import { computed, nextTick, ref, watch, watchEffect } from 'vue'
 import { listFilesInDir, useAGUIAssetsExplorerState } from '../../composables'
 import AGUIFileItemIcon from './AGUIFileItemIcon.vue'
 
@@ -15,14 +15,45 @@ const props = withDefaults(defineProps<{
 })
 
 const state = useAGUIAssetsExplorerState()
-const active = ref(false)
-watch(() => props.item, () => {
-  active.value = false
+const { selection } = state
+
+const isSelected = computed(() => selection.isSelected(props.item))
+const isRenaming = computed(() => selection.renamingItem.value === props.item)
+const isCut = computed(() => {
+  const cb = selection.clipboard.value
+  return cb?.mode === 'cut' && cb.items.includes(props.item)
 })
 
 const fileItemRef = ref<HTMLElement>()
+
+// Keep original onClickOutside behavior: clear selection when clicking outside
 onClickOutside(fileItemRef, () => {
-  active.value = false
+  // only clear this item from selection if it's the only one selected
+  if (selection.selectedItems.size <= 1 && isSelected.value)
+    selection.clearSelection()
+})
+
+// Inline rename
+const renameInputRef = ref<HTMLInputElement>()
+const renameValue = ref('')
+
+// Slow double-click tracking
+let lastClickTime = 0
+let slowClickTimer: ReturnType<typeof setTimeout> | undefined
+
+watch(isRenaming, async (val) => {
+  if (val) {
+    renameValue.value = props.item.name
+    await nextTick()
+    if (renameInputRef.value) {
+      renameInputRef.value.focus()
+      const dotIndex = props.item.name.lastIndexOf('.')
+      if (dotIndex > 0 && props.item.kind === 'file')
+        renameInputRef.value.setSelectionRange(0, dotIndex)
+      else
+        renameInputRef.value.select()
+    }
+  }
 })
 
 const fontSize = computed(() => {
@@ -48,7 +79,15 @@ function onDragStart(e: DragEvent) {
 }
 
 useEventListener(fileItemRef, 'dragstart', onDragStart)
+
+// Keep dblclick as useEventListener — exactly like the original
 useEventListener(fileItemRef, 'dblclick', async () => {
+  // Clear slow click timer on real dblclick
+  if (slowClickTimer) {
+    clearTimeout(slowClickTimer)
+    slowClickTimer = undefined
+  }
+
   const item = props.item
   if (!item.handle)
     return
@@ -112,16 +151,68 @@ watchEffect(async () => {
 })
 
 /**
- * 点击文件
+ * Click to select file, supporting multi-select modifiers
  */
-function onClick() {
-  active.value = true
-  // if (state.onFileClick) {
-  //   if (props.item.handle?.kind === 'file') {
-  //     const fileItem = props.item as FSFileItem
-  //     state.onFileClick?.(fileItem)
-  //   }
-  // }
+function onClick(e: MouseEvent) {
+  if (isRenaming.value)
+    return
+
+  const wasSelected = isSelected.value
+
+  if (e.ctrlKey || e.metaKey) {
+    selection.toggleSelect(props.item)
+  }
+  else if (e.shiftKey) {
+    selection.rangeSelect(props.item, state.curFileList.value)
+  }
+  else {
+    selection.select(props.item)
+  }
+
+  // Slow double-click: if item was already selected and we click it again
+  // after 500ms-1500ms, trigger rename
+  const now = Date.now()
+  const elapsed = now - lastClickTime
+  lastClickTime = now
+
+  if (wasSelected && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+    if (elapsed >= 500 && elapsed <= 1500) {
+      slowClickTimer = setTimeout(() => {
+        selection.startRenaming(props.item)
+        slowClickTimer = undefined
+      }, 300)
+    }
+  }
+}
+
+/**
+ * Confirm rename
+ */
+function confirmRename() {
+  const newName = renameValue.value.trim()
+  if (newName && newName !== props.item.name) {
+    const event = new CustomEvent('agui-rename', {
+      detail: { item: props.item, newName },
+      bubbles: true,
+    })
+    fileItemRef.value?.dispatchEvent(event)
+  }
+  selection.stopRenaming()
+}
+
+function cancelRename() {
+  selection.stopRenaming()
+}
+
+function onRenameKeydown(e: KeyboardEvent) {
+  if (e.key === 'Enter') {
+    e.preventDefault()
+    confirmRename()
+  }
+  else if (e.key === 'Escape') {
+    e.preventDefault()
+    cancelRename()
+  }
 }
 </script>
 
@@ -130,16 +221,30 @@ function onClick() {
     ref="fileItemRef"
     class="agui-file-item"
     :class="{
-      active,
+      'selected': isSelected,
+      'active': isSelected,
+      'is-cut': isCut,
+      'is-renaming': isRenaming,
     }"
     :style="cssVars"
     draggable="true"
     @click="onClick"
-    @blur="active = false"
+    @blur="selection.clearSelection()"
   >
     <AGUIFileItemIcon :file-icon="fileIcon || ''" />
 
-    <div class="agui-file-name">
+    <div v-if="isRenaming" class="agui-file-name agui-file-name-editing">
+      <input
+        ref="renameInputRef"
+        v-model="renameValue"
+        class="agui-rename-input"
+        @keydown="onRenameKeydown"
+        @blur="confirmRename"
+        @click.stop
+        @dblclick.stop
+      >
+    </div>
+    <div v-else class="agui-file-name">
       {{ item.name }}
     </div>
   </div>
@@ -148,9 +253,11 @@ function onClick() {
 <style lang="scss">
 .with-thumbnail {
   .agui-file-item {
-    display: flex;
+    display: inline-flex;
     flex-direction: column;
     align-items: center;
+    // icon + file name label, add some padding room
+    height: calc(var(--icon-size, 32px) + var(--font-size, 12px) + 8px);
 
     .agui-file-name {
       display: block;
@@ -179,7 +286,7 @@ function onClick() {
   display: flex;
   flex-direction: row;
   align-items: center;
-  height: 100%;
+  height: var(--icon-size, 32px);
 
   cursor: pointer;
 
@@ -215,9 +322,33 @@ function onClick() {
     white-space: nowrap;
   }
 
+  .agui-file-name-editing {
+    overflow: visible;
+  }
+
+  .agui-rename-input {
+    width: 100%;
+    font-size: inherit;
+    padding: 1px 2px;
+    border: 1px solid var(--agui-c-active);
+    border-radius: 2px;
+    background: var(--agui-c-bg-panel);
+    color: var(--agui-c-text);
+    outline: none;
+
+    &:focus {
+      border-color: var(--agui-c-active);
+      box-shadow: 0 0 0 1px var(--agui-c-active);
+    }
+  }
+
   &.active {
     border-radius: 4px;
     background-color: var(--agui-c-active);
+  }
+
+  &.is-cut {
+    opacity: 0.5;
   }
 }
 </style>

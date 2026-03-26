@@ -163,12 +163,12 @@ User-Agent: ${uaResult.ua}`
       </table>
 
       <div class="flex items-center justify-center gap-2">
-        <t-button theme="default" class="font-bold" size="small" @click="copyUA">
+        <AGUIButton size="mini" @click="copyUA">
           Copy User Agent
-        </t-button>
-        <t-button theme="default" class="font-bold" size="small" @click="copyDebugEnv">
+        </AGUIButton>
+        <AGUIButton size="mini" @click="copyDebugEnv">
           Copy Debug Env
-        </t-button>
+        </AGUIButton>
       </div>
     </div>
   </AGUIDialog>

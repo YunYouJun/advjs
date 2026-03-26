@@ -130,7 +130,7 @@ export function useAdvDialogBox() {
     const advConfig = $adv.config.value
     const gameConfig = $adv.gameConfig.value
     const curName = curCharacter.value ? curCharacter.value.name : ''
-    const avatar = gameConfig.characters?.find(item => item.name === curName || item.alias === curName || (Array.isArray(item.alias) && item.alias.includes(curName)))?.avatar
+    const avatar = gameConfig.characters?.find(item => item.name === curName || item.aliases?.includes(curName))?.avatar
 
     if (avatar && advConfig.cdn.enable && !avatar?.startsWith('http')) {
       const prefix = advConfig.cdn.prefix || ''

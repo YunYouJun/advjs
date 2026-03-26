@@ -40,8 +40,9 @@ export const useGitHubStore = defineStore('github', () => {
    */
   const selectedOwner = ref<GitHubUser | GitHubOrg>()
 
-  watch(() => user.value?.github.access_token, () => {
-    initOctokit()
+  watch(() => user.value?.github?.access_token, () => {
+    if (user.value?.github?.access_token)
+      initOctokit()
     selectedOwner.value = user.value?.github
   }, { immediate: true })
 
@@ -60,7 +61,7 @@ export const useGitHubStore = defineStore('github', () => {
 
   function initOctokit() {
     octokit.value = new Octokit({
-      auth: user.value?.github.access_token,
+      auth: user.value?.github?.access_token,
     })
   }
 
@@ -68,7 +69,7 @@ export const useGitHubStore = defineStore('github', () => {
    * repos list
    */
   async function getOwnerRepos() {
-    if (!user.value?.github.login) {
+    if (!user.value?.github?.login) {
       return []
     }
 
@@ -112,7 +113,7 @@ export const useGitHubStore = defineStore('github', () => {
    * orgs list
    */
   async function getOrgs() {
-    if (!user.value?.github.login) {
+    if (!user.value?.github?.login) {
       return []
     }
 
@@ -153,7 +154,7 @@ export const useGitHubStore = defineStore('github', () => {
    * connect repo
    */
   async function connectRepo(repo: GitHubRepo) {
-    if (!user.value?.github.login) {
+    if (!user.value?.github?.login) {
       return
     }
 

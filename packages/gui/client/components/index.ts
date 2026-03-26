@@ -9,8 +9,9 @@ import AGUIProperty from './AGUIProperty.vue'
 import AGUISlider from './AGUISlider.vue'
 
 import AGUIButton from './button/AGUIButton.vue'
-
 import AGUIIconButton from './button/AGUIIconButton.vue'
+
+import AGUICombobox from './combobox/AGUICombobox.vue'
 import AGUIHr from './common/AGUIHr.vue'
 import AGUIAssetsExplorer from './explorer/AGUIAssetsExplorer.vue'
 import AGUIFileItemIcon from './explorer/AGUIFileItemIcon.vue'
@@ -23,11 +24,14 @@ import AGUIInputNumber from './input/AGUIInputNumber.vue'
 
 import AGUIInputVector from './input/AGUIInputVector.vue'
 import AGUILayout from './layout/AGUILayout.vue'
+import AGUILoading from './loading/AGUILoading.vue'
 import AGUIMenubar from './menu/AGUIMenubar.vue'
 
 import AGUISelect from './select/AGUISelect.vue'
 import AGUITabPanel from './tabs/AGUITabPanel.vue'
 import AGUITabs from './tabs/AGUITabs.vue'
+import AGUITag from './tag/AGUITag.vue'
+import AGUITextarea from './textarea/AGUITextarea.vue'
 import AGUIToast from './toast/AGUIToast.vue'
 import AGUIToolbar from './toolbar/AGUIToolbar.vue'
 
@@ -38,8 +42,9 @@ export {
   AGUIAssetsExplorer,
   AGUIButton,
   AGUICheckbox,
-
   AGUIColorPicker,
+
+  AGUICombobox,
   AGUIDetails,
   AGUIFileItemIcon,
 
@@ -51,6 +56,7 @@ export {
   AGUIInputNumber,
   AGUIInputVector,
   AGUILayout,
+  AGUILoading,
   AGUIMenubar,
   AGUINumberField,
   AGUIPanel,
@@ -59,6 +65,8 @@ export {
   AGUISlider,
   AGUITabPanel,
   AGUITabs,
+  AGUITag,
+  AGUITextarea,
   AGUIToast,
 
   AGUIToolbar,

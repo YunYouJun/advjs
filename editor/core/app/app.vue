@@ -26,9 +26,6 @@ onMounted(() => {
   mountCssVarsRootStyle()
 
   consoleStore.info('ADVJS Context initialized.')
-
-  // tdesign dark mode
-  document.documentElement.setAttribute('theme-mode', 'dark')
 })
 </script>
 

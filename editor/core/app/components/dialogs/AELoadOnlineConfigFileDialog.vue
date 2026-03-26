@@ -25,12 +25,11 @@ const adapterOptions = ref<{
     <div class="flex flex-col gap-4">
       <AGUIForm>
         <AGUIFormItem label="Online ADV Config File" label-class="w-1/4">
-          <t-auto-complete
-            v-model="onlineStore.onlineAdvConfigFileUrl"
+          <AGUICombobox
+            :model-value="onlineStore.onlineAdvConfigFileUrl"
             placeholder="https://.../*.adv.json"
-            size="small"
-            clearable
             :options="onlineStore.onlineAdvConfigUrlOptions"
+            @update:model-value="onlineStore.onlineAdvConfigFileUrl = $event"
           />
         </AGUIFormItem>
         <hr class="my-2 op-10">
