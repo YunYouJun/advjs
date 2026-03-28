@@ -20,6 +20,7 @@ export const advClientDir = resolve(packagesDir, 'client')
 
 export const commonAlias: Alias[] = [
   { find: 'advjs', replacement: resolve(packagesDir, 'advjs/client/index.ts') },
+  { find: '@advjs/template/', replacement: `${resolve(packagesDir, 'advjs/template')}/` },
   // { find: '@advjs/client/', replacement: `${resolve(packagesDir, 'client')}/` },
   // { find: '@advjs/client', replacement: `${resolve(packagesDir, 'client')}/index.ts` },
   { find: '@advjs/examples/', replacement: `${resolve(packagesDir, 'examples')}/` },

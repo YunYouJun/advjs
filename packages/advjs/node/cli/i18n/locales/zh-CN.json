@@ -114,5 +114,18 @@
     "option_fallback": "选项 {0}",
     "choices_prompt": "请选择：",
     "scene_label": "[场景]"
+  },
+  "init": {
+    "desc": "从模板初始化新的 ADV.JS 项目",
+    "dir_desc": "目标目录（默认：当前目录）",
+    "name_desc": "项目名称（替换模板中的 {{projectName}} 占位符）",
+    "force_desc": "覆盖已有文件",
+    "already_exists": "目标目录已包含 ADV.JS 文件：{0}。使用 --force 覆盖。",
+    "creating": "正在创建项目到 {0}...",
+    "done": "项目创建成功（{0} 个文件）",
+    "next_steps": "下一步：",
+    "hint_check": "验证项目结构",
+    "hint_context": "导出项目上下文供 AI 使用",
+    "hint_dev": "启动开发服务器预览"
   }
 }

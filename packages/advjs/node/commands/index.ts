@@ -1,6 +1,7 @@
 export * from './build'
 export * from './check'
 export * from './context'
+export * from './init'
 export * from './serve'
 export * from './shared'
 export * from './sync'

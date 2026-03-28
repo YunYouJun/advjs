@@ -7,10 +7,8 @@ const tabList = ref([
   { title: 'Character', key: 'character', icon: 'i-ri-user-line' },
   { title: 'Audio', key: 'audio', icon: 'i-ri-music-line' },
   { title: 'Flow Editor', key: 'flow-editor', icon: 'i-ri-flow-chart' },
-  // { title: 'Node Editor', key: 'node-editor', icon: 'i-ri-node-tree' },
-  // { title: 'Scene', key: 'scene', icon: 'i-ri-grid-line' },
   { title: 'Asset Store', key: 'asset-store', icon: 'i-ri-store-line' },
-  // { title: 'Map Editor', key: 'map-editor', icon: 'i-ri-map-line' },
+  { title: 'Dashboard', key: 'dashboard', icon: 'i-ri-dashboard-line' },
 ])
 
 const app = useAppStore()
@@ -70,25 +68,12 @@ function toggleFullscreen() {
       </AGUITabPanel>
 
       <AGUITabPanel v-show="curTab === 'flow-editor'" value="flow-editor">
-        <!-- <AdvFlowEditor /> -->
+        <AdvFlowEditor />
       </AGUITabPanel>
 
-      <!-- <AGUITabPanel v-show="curTab === 'scene'" h="full" :unmount="false" relative value="scene">
-        <SceneToolbar absolute top-0 w-full />
-        <SceneCanvas />
-      </AGUITabPanel> -->
-
-      <!-- <AGUITabPanel v-show="curTab === 'node-editor'">
-        <NodeEditor />
-      </AGUITabPanel> -->
-
-      <!-- <AGUITabPanel>
-        <MapEditor />
-      </AGUITabPanel> -->
-
-      <!-- <AGUITabPanel>
-        <NodeEditor />
-      </AGUITabPanel> -->
+      <AGUITabPanel v-if="curTab === 'dashboard'" value="dashboard">
+        <AIDashboardView />
+      </AGUITabPanel>
 
       <slot />
     </AGUITabs>

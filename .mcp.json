@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "advjs": {
+      "command": "npx",
+      "args": ["@advjs/mcp-server"]
+    }
+  }
+}

@@ -53,7 +53,7 @@ export const useAppStore = defineStore('@advjs/editor:app', () => {
   /**
    * 当前激活的 Inspector
    */
-  const activeInspector = ref<'file' | 'character' | 'character-create' | 'node'>()
+  const activeInspector = ref<'file' | 'character' | 'character-create' | 'node' | 'context'>()
 
   return {
     layout,

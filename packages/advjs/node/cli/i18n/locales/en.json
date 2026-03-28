@@ -114,5 +114,18 @@
     "option_fallback": "Option {0}",
     "choices_prompt": "Please choose:",
     "scene_label": "[Scene]"
+  },
+  "init": {
+    "desc": "Initialize a new ADV.JS project from template",
+    "dir_desc": "Target directory (default: current directory)",
+    "name_desc": "Project name (replaces {{projectName}} placeholders)",
+    "force_desc": "Overwrite existing files",
+    "already_exists": "Target directory already contains ADV.JS files: {0}. Use --force to overwrite.",
+    "creating": "Creating project in {0}...",
+    "done": "Project created successfully ({0} files)",
+    "next_steps": "Next steps:",
+    "hint_check": "Validate project structure",
+    "hint_context": "Export project context for AI",
+    "hint_dev": "Start dev server for preview"
   }
 }

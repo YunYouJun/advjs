@@ -25,6 +25,9 @@ const dark = ref(true)
     :min-zoom="0.2"
     :max-zoom="4"
     :node-types="nodeTypes"
+    :nodes-draggable="false"
+    :nodes-connectable="false"
+    :elements-selectable="false"
     fit-view-on-init
   >
     <Background pattern-color="#aaa" :gap="16" />

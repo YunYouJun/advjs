@@ -32,7 +32,8 @@
   "files": [
     "bin",
     "client",
-    "dist"
+    "dist",
+    "template"
   ],
   "engines": {
     "node": "^20.19.0 || >=22.12.0"

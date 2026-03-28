@@ -885,30 +885,32 @@ AI：（读取 world.md、kai.character.md、outline.md）
 
 **验收标准**：在 Claude Code 中配置 MCP Server 后，AI 能通过标准接口读取和操作 ADV.JS 项目。
 
-### Phase 3：Skills & 工作流（2-3 周）
+### Phase 3：Skills & 工作流（2-3 周） ✅ 已完成
 
 **目标**：打通 AI 创作的完整工作流。
 
-- [ ] 开发 `adv-create` Claude Code 技能
-- [ ] 开发 `adv-debug` Claude Code 技能
-- [ ] 升级 `adv-story` 支持多章节和上下文感知
-- [ ] 编写 AI 创作工作流教程
-- [ ] 创建示例项目（完整的短篇视觉小说）
+- [x] 开发 `adv-create` Claude Code 技能
+- [x] 开发 `adv-debug` Claude Code 技能
+- [x] 升级 `adv-story` 支持多章节和上下文感知
+- [x] 实现 `adv init` CLI 命令（项目初始化）
+- [x] 创建示例项目（完整的 3 章短篇视觉小说模板）
+- [x] 编写 AI 创作工作流文档
 
-**验收标准**：用户可以通过 Claude Code 从零创建一个包含 3+ 章节的完整视觉小说项目。
+**验收结果**：用户可以通过 `adv init` 创建项目骨架，使用 `adv-create` skill 从概念生成完整项目，使用 `adv-debug` skill 检查分支覆盖和一致性。模板项目包含 3 章完整示例故事。
 
-### Phase 4：Editor 改造（3-4 周）
+### Phase 4：Editor 改造（3-4 周） ✅ 已完成
 
 **目标**：精简编辑器，聚焦预览和项目管理。
 
-- [ ] 移除/降级低优先级功能（Monaco 编辑器、复杂表单、第三方集成）
-- [ ] 增强预览功能（一键预览、热重载）
-- [ ] 新增项目上下文面板
-- [ ] 新增 AI 创作状态看板
-- [ ] Flow 编辑器改为只读可视化
-- [ ] 集成云同步功能
+- [x] 清理死代码/demo 组件（Counter、Logos、InputEntry、SceneCanvas、SceneToolbar、MapEditor、BrushTool）
+- [x] 增强预览功能（文件变更检测 + 刷新按钮）
+- [x] 新增项目上下文面板（ProjectContextView + useProjectContextStore）
+- [x] 新增 AI 创作状态看板（AIDashboardView）
+- [x] Flow 编辑器改为只读可视化（禁用拖拽/连线/选择）
+- [x] PanelInspector 新增 Context 标签页
+- [x] PanelScene 新增 Dashboard 标签页
 
-**验收标准**：编辑器组件数减少 ~50%，核心预览体验保持或提升。
+**验收结果**：删除 8 个死代码文件，新增 2 个面板视图和 1 个 Pinia store。编辑器聚焦预览 + 项目管理，Flow Editor 改为只读展示。
 
 ### Phase 5：Mobile Studio（4-6 周）
 

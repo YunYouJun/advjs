@@ -10,6 +10,7 @@ import { installContextCommand } from './context'
 import { installDevCommand } from './dev'
 import { installExportCommand } from './export'
 import { setLocale } from './i18n'
+import { installInitCommand } from './init'
 import { installPlayCommand } from './play'
 import { installSyncCommand } from './sync'
 
@@ -35,6 +36,7 @@ installDevCommand(cli)
 installBuildCommand(cli)
 installExportCommand(cli)
 installConfigCommand(cli)
+installInitCommand(cli)
 installPlayCommand(cli)
 installCheckCommand(cli)
 installContextCommand(cli)
