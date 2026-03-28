@@ -65,6 +65,8 @@ docs/api
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+# mcp
+.playwright-mcp
 
 resources
 
