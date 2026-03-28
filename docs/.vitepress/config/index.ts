@@ -119,6 +119,8 @@ function sidebarAI(): DefaultTheme.SidebarItem[] {
       collapsed: false,
       items: [
         { text: '介绍', link: '/ai/' },
+        { text: 'AI 优先战略', link: '/ai/ai-first-strategy' },
+        { text: '创作文件格式规范', link: '/ai/formats' },
         { text: '生成策略', link: '/ai/strategy' },
         { text: 'MCP', link: '/ai/mcp' },
         { text: '参考', link: '/ai/ref' },

@@ -6,6 +6,8 @@ outline: deep
 
 我们计划支持通过 AI 生成项目相关游戏剧本（JSON）与图片等资源。
 
+> 📖 **推荐阅读**：[AI 优先战略](/ai/ai-first-strategy) — ADV.JS 从「编辑器优先」转向「AI 优先」的完整战略文档，包含 Markdown 世界观体系、AI 创作工作流、工具规划和实施路线图。
+
 更多的推进正在 [Pominis](https://www.pominis.com/) 中进行。
 
 我们希望能在此处约定一个统一的 AI 生成格式。
