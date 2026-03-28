@@ -1,8 +1,30 @@
 {
   "name": "@advjs/plugin-cos",
+  "type": "module",
   "version": "0.0.1",
-  "description": "Upload assets to Tencent COS",
+  "description": "Tencent COS storage plugin for ADV.JS — sync game assets to cloud",
+  "author": {
+    "name": "YunYouJun",
+    "email": "me@yunyoujun.cn",
+    "url": "https://www.yunyoujun.cn"
+  },
+  "license": "MPL-2.0",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "scripts": {
+    "build": "unbuild",
+    "dev": "unbuild --stub"
+  },
   "dependencies": {
     "cos-nodejs-sdk-v5": "catalog:"
+  },
+  "devDependencies": {
+    "unbuild": "catalog:build"
   }
 }
