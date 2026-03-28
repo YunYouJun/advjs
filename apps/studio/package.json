@@ -1,0 +1,43 @@
+{
+  "name": "@advjs/studio",
+  "type": "module",
+  "version": "0.0.1",
+  "private": true,
+  "description": "ADV.JS Studio - visual novel editor app",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview",
+    "test:e2e": "playwright test",
+    "test:unit": "vitest",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@capacitor/app": "catalog:",
+    "@capacitor/core": "catalog:",
+    "@capacitor/haptics": "catalog:",
+    "@capacitor/keyboard": "catalog:",
+    "@capacitor/status-bar": "catalog:",
+    "@ionic/vue": "catalog:",
+    "@ionic/vue-router": "catalog:",
+    "ionicons": "catalog:",
+    "vue": "catalog:frontend",
+    "vue-router": "catalog:frontend"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "catalog:",
+    "@playwright/test": "catalog:test",
+    "@vitejs/plugin-legacy": "catalog:",
+    "@vitejs/plugin-vue": "catalog:build",
+    "@vue/eslint-config-typescript": "catalog:",
+    "@vue/test-utils": "catalog:test",
+    "eslint": "catalog:dev",
+    "eslint-plugin-vue": "catalog:",
+    "jsdom": "catalog:",
+    "terser": "catalog:",
+    "typescript": "catalog:dev",
+    "vite": "catalog:build",
+    "vitest": "catalog:test",
+    "vue-tsc": "catalog:dev"
+  }
+}

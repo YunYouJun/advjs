@@ -1,0 +1,7 @@
+{
+  "name": "ADV.JS",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}
