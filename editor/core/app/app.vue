@@ -15,7 +15,7 @@ const consoleStore = useConsoleStore()
 
 // advjs context
 const nuxtApp = useNuxtApp()
-const advContext = initAdvContext()
+const advContext = initAdvContext(undefined, nuxtApp.$pinia)
 nuxtApp.vueApp.provide(injectionAdvContext, advContext)
 nuxtApp.vueApp.provide(advConfigSymbol, advContext.config || {})
 nuxtApp.vueApp.provide(gameConfigSymbol, advContext.gameConfig)

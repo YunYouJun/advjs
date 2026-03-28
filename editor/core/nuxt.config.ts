@@ -169,9 +169,24 @@ export default defineNuxtConfig({
 
     optimizeDeps: {
       include: [
-        'qrcode',
+        'qrcode', // CJS
         'pixi.js',
-        // 'pixi-painter',
+        '@vue/devtools-core',
+        '@vue/devtools-kit',
+        'colord',
+        'reka-ui',
+        'splitpanes',
+        '@iconify/vue',
+        'dayjs', // CJS
+        'howler', // CJS
+        'html2canvas', // CJS
+        'js-yaml',
+        'rehype-stringify',
+        'remark-frontmatter',
+        'remark-gfm',
+        'remark-parse',
+        'remark-rehype',
+        'unified',
       ],
     },
 

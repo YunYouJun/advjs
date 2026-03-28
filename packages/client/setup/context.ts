@@ -1,3 +1,4 @@
+import type { Pinia } from 'pinia'
 import type { AdvContext } from '../types'
 import { $t } from '@advjs/client/modules/i18n'
 
@@ -15,8 +16,9 @@ export function setupAdvContext(ctx: {
   config: AdvContext['config']
   gameConfig: AdvContext['gameConfig']
   themeConfig: AdvContext['themeConfig']
+  pinia?: Pinia
 }) {
-  const store = useAdvStore()
+  const store = useAdvStore(ctx.pinia)
 
   const advContext: AdvContext = {
     store,
