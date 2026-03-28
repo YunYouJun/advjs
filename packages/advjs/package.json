@@ -2,7 +2,7 @@
   "name": "advjs",
   "type": "module",
   "version": "0.1.1",
-  "description": "A parser for @advjs.",
+  "description": "ADV.JS - A front-end visual novel game engine",
   "author": {
     "name": "YunYouJun",
     "email": "me@yunyoujun.cn",

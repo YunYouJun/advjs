@@ -12,8 +12,8 @@ export default defineBuildConfig({
   ],
   clean: true,
   externals: [
+    '@advjs/plugin-cos',
     '@playwright/test',
-
     'mdast',
 
     ...Object.keys(pkg.dependencies),

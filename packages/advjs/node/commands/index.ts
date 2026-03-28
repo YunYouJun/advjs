@@ -1,3 +1,7 @@
 export * from './build'
+export * from './check'
+export * from './context'
 export * from './serve'
 export * from './shared'
+export * from './sync'
+export * from './utils'
