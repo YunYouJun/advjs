@@ -1,0 +1,42 @@
+/* Shared component styles — ADV.JS design system */
+
+/* Empty state — reusable across pages */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--adv-space-2xl) var(--adv-space-lg);
+  text-align: center;
+}
+
+.empty-state__illustration {
+  width: 88px;
+  height: 88px;
+  border-radius: var(--adv-radius-xl);
+  background: var(--adv-gradient-surface);
+  box-shadow: var(--adv-shadow-glow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--adv-space-lg);
+}
+
+.empty-state__illustration ion-icon {
+  font-size: 36px;
+  color: var(--ion-color-primary);
+}
+
+.empty-state__title {
+  font-size: var(--adv-font-title);
+  font-weight: 700;
+  color: var(--adv-text-primary);
+  margin: 0 0 var(--adv-space-sm);
+}
+
+.empty-state__description {
+  font-size: var(--adv-font-body);
+  color: var(--adv-text-secondary);
+  max-width: 300px;
+  line-height: 1.5;
+  margin: 0;
+}

@@ -1,4 +1,5 @@
 export const vscodeFolderIcon = 'i-vscode-icons-default-folder'
+export const vscodeFolderOpenedIcon = 'i-vscode-icons-default-folder-opened'
 
 /**
  * vscode file icons
@@ -7,6 +8,7 @@ export const vscodeFolderIcon = 'i-vscode-icons-default-folder'
 export const safelist: string[] = [
   'i-vscode-icons-default-file',
   vscodeFolderIcon,
+  vscodeFolderOpenedIcon,
   'i-vscode-icons:file-type-image',
   'i-vscode-icons-file-type-video',
   'i-vscode-icons-file-type-audio',

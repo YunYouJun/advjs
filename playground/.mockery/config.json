@@ -2,3 +2,4 @@
   "$schema": "./schemas/config.schema.json",
   "curScene": "default"
 }
+

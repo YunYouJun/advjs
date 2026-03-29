@@ -1,30 +1,44 @@
 <script setup lang="ts">
 import { IonIcon, IonLabel, IonPage, IonRouterOutlet, IonTabBar, IonTabButton, IonTabs } from '@ionic/vue'
-import { ellipse, square, triangle } from 'ionicons/icons'
+import { chatbubbleOutline, layersOutline, personOutline, playOutline } from 'ionicons/icons'
+import { onMounted } from 'vue'
+import { useStudioStore } from '../stores/useStudioStore'
+
+const studioStore = useStudioStore()
+
+// Auto-restore last project on page reload (global, runs once for all tabs)
+onMounted(() => {
+  if (!studioStore.currentProject)
+    studioStore.autoRestoreLastProject()
+})
 </script>
 
 <template>
   <IonPage>
     <IonTabs>
       <IonRouterOutlet />
-      <template #bottom>
-        <IonTabBar>
-          <IonTabButton tab="tab1" href="/tabs/tab1">
-            <IonIcon aria-hidden="true" :icon="triangle" />
-            <IonLabel>Tab 1</IonLabel>
-          </IonTabButton>
+      <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+      <IonTabBar slot="bottom">
+        <IonTabButton tab="workspace" href="/tabs/workspace">
+          <IonIcon aria-hidden="true" :icon="layersOutline" />
+          <IonLabel>{{ $t('tabs.workspace') }}</IonLabel>
+        </IonTabButton>
 
-          <IonTabButton tab="tab2" href="/tabs/tab2">
-            <IonIcon aria-hidden="true" :icon="ellipse" />
-            <IonLabel>Tab 2</IonLabel>
-          </IonTabButton>
+        <IonTabButton tab="chat" href="/tabs/chat">
+          <IonIcon aria-hidden="true" :icon="chatbubbleOutline" />
+          <IonLabel>{{ $t('tabs.chat') }}</IonLabel>
+        </IonTabButton>
 
-          <IonTabButton tab="tab3" href="/tabs/tab3">
-            <IonIcon aria-hidden="true" :icon="square" />
-            <IonLabel>Tab 3</IonLabel>
-          </IonTabButton>
-        </IonTabBar>
-      </template>
+        <IonTabButton tab="play" href="/tabs/play">
+          <IonIcon aria-hidden="true" :icon="playOutline" />
+          <IonLabel>{{ $t('tabs.play') }}</IonLabel>
+        </IonTabButton>
+
+        <IonTabButton tab="me" href="/tabs/me">
+          <IonIcon aria-hidden="true" :icon="personOutline" />
+          <IonLabel>{{ $t('tabs.me') }}</IonLabel>
+        </IonTabButton>
+      </IonTabBar>
     </IonTabs>
   </IonPage>
 </template>

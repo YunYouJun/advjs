@@ -261,6 +261,10 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
           text: '录制视频',
           link: '/guide/record/video',
         },
+        {
+          text: 'Studio',
+          link: '/guide/studio',
+        },
       ],
     },
     {

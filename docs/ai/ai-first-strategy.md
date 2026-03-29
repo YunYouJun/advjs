@@ -916,14 +916,14 @@ AI：（读取 world.md、kai.character.md、outline.md）
 
 **目标**：推出移动端 AI 创作应用。
 
-- [ ] 搭建 `apps/studio` Ionic + Capacitor 项目
-- [ ] 实现 AI 对话式创作界面
-- [ ] 集成 `@advjs/client` 预览引擎
-- [ ] 实现云同步（COS）
-- [ ] 简单文本编辑功能
+- [x] 搭建 `apps/studio` Ionic + Capacitor 项目
+- [x] 实现 AI 对话式创作界面
+- [x] 集成 `@advjs/parser` 预览引擎（ChapterReader 文本预览）
+- [x] 实现云同步（COS）骨架
+- [x] 简单文本编辑功能
 - [ ] iOS / Android 打包和测试
 
-**验收标准**：在移动端可以通过 AI 对话创建剧本、预览游戏效果、与桌面端同步内容。
+**验收结果**：完成 4 个页面（Projects / AI Chat / Preview / Settings）、Pinia 状态管理、基础 AI 对话界面、章节阅读预览（ChapterReader）、简单文本编辑、云同步骨架。原生打包待后续完成。
 
 ---
 

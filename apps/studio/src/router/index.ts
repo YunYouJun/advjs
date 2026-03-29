@@ -5,7 +5,7 @@ import TabsPage from '../views/TabsPage.vue'
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    redirect: '/tabs/tab1',
+    redirect: '/tabs/workspace',
   },
   {
     path: '/tabs/',
@@ -13,21 +13,72 @@ const routes: Array<RouteRecordRaw> = [
     children: [
       {
         path: '',
-        redirect: '/tabs/tab1',
+        redirect: '/tabs/workspace',
       },
       {
-        path: 'tab1',
-        component: () => import('@/views/Tab1Page.vue'),
+        path: 'workspace',
+        component: () => import('@/views/ProjectsPage.vue'),
+      },
+      // Legacy redirects
+      {
+        path: 'projects',
+        redirect: '/tabs/workspace',
       },
       {
-        path: 'tab2',
-        component: () => import('@/views/Tab2Page.vue'),
+        path: 'chat',
+        component: () => import('@/views/ChatPage.vue'),
       },
       {
-        path: 'tab3',
-        component: () => import('@/views/Tab3Page.vue'),
+        path: 'play',
+        component: () => import('@/views/PlayPage.vue'),
+      },
+      // Legacy redirect
+      {
+        path: 'preview',
+        redirect: '/tabs/play',
+      },
+      // Me tab
+      {
+        path: 'me',
+        component: () => import('@/views/MePage.vue'),
+      },
+      {
+        path: 'me/settings',
+        component: () => import('@/views/me/MeSettingsPage.vue'),
+      },
+      {
+        path: 'me/settings/appearance',
+        component: () => import('@/views/settings/SettingsAppearancePage.vue'),
+      },
+      {
+        path: 'me/settings/cloud',
+        component: () => import('@/views/settings/SettingsCloudPage.vue'),
+      },
+      {
+        path: 'me/settings/ai',
+        component: () => import('@/views/settings/SettingsAiPage.vue'),
+      },
+      {
+        path: 'me/settings/language',
+        component: () => import('@/views/settings/SettingsLanguagePage.vue'),
+      },
+      {
+        path: 'me/settings/about',
+        component: () => import('@/views/settings/SettingsAboutPage.vue'),
+      },
+      {
+        path: 'me/developer',
+        component: () => import('@/views/me/DeveloperPage.vue'),
+      },
+      {
+        path: 'me/feedback',
+        component: () => import('@/views/me/MeFeedbackPage.vue'),
       },
     ],
+  },
+  {
+    path: '/editor',
+    component: () => import('@/views/EditorPage.vue'),
   },
 ]
 

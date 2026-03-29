@@ -40,6 +40,8 @@
     "dev:packages": "pnpm -r --parallel --filter=\"./packages/*\" run dev",
     "dev:plugins": "pnpm -r --parallel --filter=\"./plugins/*\" run dev",
     "editor": "pnpm -C editor/core run dev",
+    "studio:dev": "pnpm -C apps/studio run dev",
+    "studio:build": "pnpm -C apps/studio run build",
     "lint": "eslint .",
     "preview": "pnpm -C packages/advjs preview",
     "advjs:build": "pnpm -C packages/advjs run build",

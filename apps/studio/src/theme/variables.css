@@ -1,2 +1,83 @@
 /* For information on how to create your own theme, please refer to:
-http://ionicframework.com/docs/theming/ */
+   http://ionicframework.com/docs/theming/ */
+
+:root {
+  /* Ionic primary */
+  --ion-color-primary: #6366f1;
+  --ion-color-primary-rgb: 99, 102, 241;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #4f46e5;
+  --ion-color-primary-tint: #818cf8;
+
+  /* Gradients */
+  --adv-gradient-primary: linear-gradient(135deg, #6366f1, #818cf8, #a78bfa);
+  --adv-gradient-warm: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
+  --adv-gradient-surface: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.04));
+
+  /* Spacing */
+  --adv-space-xs: 4px;
+  --adv-space-sm: 8px;
+  --adv-space-md: 16px;
+  --adv-space-lg: 24px;
+  --adv-space-xl: 32px;
+  --adv-space-2xl: 48px;
+
+  /* Border radius */
+  --adv-radius-sm: 8px;
+  --adv-radius-md: 12px;
+  --adv-radius-lg: 16px;
+  --adv-radius-xl: 20px;
+  --adv-radius-full: 9999px;
+
+  /* Font sizes */
+  --adv-font-caption: 11px;
+  --adv-font-body-sm: 13px;
+  --adv-font-body: 15px;
+  --adv-font-subtitle: 17px;
+  --adv-font-title: 20px;
+  --adv-font-display: 28px;
+
+  /* Shadows — light mode */
+  --adv-shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --adv-shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --adv-shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.06);
+  --adv-shadow-glow: 0 4px 20px rgba(99, 102, 241, 0.2);
+
+  /* Surfaces — light mode */
+  --adv-surface-card: #ffffff;
+  --adv-surface-elevated: #fafafa;
+
+  /* Text — light mode */
+  --adv-text-primary: #111827;
+  --adv-text-secondary: #6b7280;
+  --adv-text-tertiary: #9ca3af;
+
+  /* Borders — light mode */
+  --adv-border-subtle: rgba(0, 0, 0, 0.06);
+
+  /* Duration & easing */
+  --adv-duration-fast: 150ms;
+  --adv-duration-normal: 250ms;
+  --adv-duration-slow: 400ms;
+  --adv-ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark mode — class-based (for manual toggle & system preference) */
+:root.dark {
+  --adv-gradient-surface: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.06));
+
+  --adv-shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.16);
+  --adv-shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
+  --adv-shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.4), 0 4px 8px rgba(0, 0, 0, 0.24);
+  --adv-shadow-glow: 0 4px 24px rgba(99, 102, 241, 0.35);
+
+  --adv-surface-card: #1e1e2e;
+  --adv-surface-elevated: #2a2a3e;
+
+  --adv-text-primary: #f3f4f6;
+  --adv-text-secondary: #9ca3af;
+  --adv-text-tertiary: #6b7280;
+
+  --adv-border-subtle: rgba(255, 255, 255, 0.08);
+}

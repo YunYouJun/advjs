@@ -1,0 +1,76 @@
+/* Global Ionic overrides — ADV.JS design system */
+
+/* Remove Ionic default uppercase on buttons */
+ion-button {
+  text-transform: none;
+  letter-spacing: 0;
+  --border-radius: var(--adv-radius-sm);
+  font-weight: 600;
+}
+
+/* Card styling */
+ion-card {
+  border-radius: var(--adv-radius-lg);
+  box-shadow: var(--adv-shadow-subtle);
+  border: 1px solid var(--adv-border-subtle);
+  transition:
+    transform var(--adv-duration-fast) var(--adv-ease-default),
+    box-shadow var(--adv-duration-fast) var(--adv-ease-default);
+}
+
+ion-card:active {
+  transform: scale(0.98);
+}
+
+/* Title typography */
+ion-title {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+ion-title[size='large'] {
+  font-weight: 800;
+}
+
+/* Section headers */
+ion-list-header ion-label {
+  font-size: var(--adv-font-body-sm) !important;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--adv-text-tertiary);
+}
+
+/* Tab bar refinement */
+ion-tab-bar {
+  border-top: 1px solid var(--adv-border-subtle);
+}
+
+/* Touch target minimum 44px */
+ion-item {
+  --min-height: 44px;
+}
+
+/* Smooth theme transition */
+body {
+  transition: background-color var(--adv-duration-slow) var(--adv-ease-default);
+}
+
+/* WebKit scrollbar — thin 4px track */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--adv-text-tertiary);
+  border-radius: var(--adv-radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--adv-text-secondary);
+}
