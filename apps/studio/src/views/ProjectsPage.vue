@@ -536,8 +536,7 @@ async function handleSaveFile() {
 
   try {
     const handle = selectedFile.value.handle as FileSystemFileHandle
-    // @ts-expect-error createWritable is not in all TS libs yet
-    const writable = await handle.createWritable()
+    const writable = await (handle as any).createWritable()
     await writable.write(editedContent.value)
     await writable.close()
 

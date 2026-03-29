@@ -72,7 +72,7 @@ function phrasingToText(children: AdvAst.PhrasingContent[]): string {
     if (c.type === 'text')
       return c.value
     if (c.type === 'link')
-      return `[${phrasingToText(c.children)}]`
+      return `[${phrasingToText((c as unknown as AdvAst.Link).children)}]`
     return ''
   }).join('')
 }
@@ -133,10 +133,10 @@ function next() {
 
   currentIndex.value++
 
-  // Skip non-renderable nodes (scene, code, unknown, heading)
+  // Skip non-renderable nodes (scene, code, unknown)
   while (currentIndex.value < ast.value.children.length) {
     const node = ast.value.children[currentIndex.value]
-    if (node.type === 'scene' || node.type === 'code' || node.type === 'unknown' || node.type === 'heading') {
+    if (node.type === 'scene' || node.type === 'code' || node.type === 'unknown') {
       currentIndex.value++
     }
     else {

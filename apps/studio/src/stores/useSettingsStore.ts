@@ -112,7 +112,7 @@ export const useSettingsStore = defineStore('settings', () => {
 
   watch(locale, (val) => {
     localStorage.setItem('advjs-studio-locale', val)
-    i18n.global.locale.value = val
+    ;(i18n.global.locale as any).value = val
   })
 
   watch(cos, (val) => {
@@ -128,8 +128,9 @@ export const useSettingsStore = defineStore('settings', () => {
   applyTheme(theme.value)
 
   // Sync locale to i18n on load
-  if (locale.value)
-    i18n.global.locale.value = locale.value
+  if (locale.value) {
+    (i18n.global.locale as any).value = locale.value
+  }
 
   const developerMode = ref(false)
   const chatWordWrap = ref(true)

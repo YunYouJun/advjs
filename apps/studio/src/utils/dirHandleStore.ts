@@ -75,8 +75,7 @@ export async function removeDirHandle(projectName: string): Promise<void> {
  */
 export async function verifyDirHandle(handle: FileSystemDirectoryHandle): Promise<boolean> {
   try {
-    // @ts-expect-error queryPermission is not in all TS libs yet
-    const permission = await handle.queryPermission({ mode: 'readwrite' })
+    const permission = await (handle as any).queryPermission({ mode: 'readwrite' })
     return permission === 'granted'
   }
   catch {
@@ -92,8 +91,7 @@ export async function verifyDirHandle(handle: FileSystemDirectoryHandle): Promis
  */
 export async function requestDirHandlePermission(handle: FileSystemDirectoryHandle): Promise<boolean> {
   try {
-    // @ts-expect-error requestPermission is not in all TS libs yet
-    const permission = await handle.requestPermission({ mode: 'readwrite' })
+    const permission = await (handle as any).requestPermission({ mode: 'readwrite' })
     return permission === 'granted'
   }
   catch {

@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import type { Child } from '@advjs/types'
+import type { AdvAst } from '@advjs/types'
 import { parseAst } from '@advjs/parser'
 import { IonChip, IonIcon, IonItem, IonLabel, IonNote } from '@ionic/vue'
 import { personOutline } from 'ionicons/icons'
 import { onMounted, ref } from 'vue'
+
+type Child = AdvAst.Child
 
 const props = defineProps<{
   content: string

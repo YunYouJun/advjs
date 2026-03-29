@@ -5,8 +5,7 @@
 
 /** Open a directory picker and return the handle */
 export async function openProjectDirectory(): Promise<FileSystemDirectoryHandle> {
-  // @ts-expect-error showDirectoryPicker is not yet in all TS libs
-  const dirHandle = await window.showDirectoryPicker({
+  const dirHandle = await (window as any).showDirectoryPicker({
     mode: 'readwrite',
   })
   return dirHandle
@@ -24,7 +23,7 @@ export async function readFileFromDir(
   for (let i = 0; i < parts.length - 1; i++)
     current = await current.getDirectoryHandle(parts[i])
 
-  const fileName = parts.at(-1)
+  const fileName = parts.at(-1)!
   const fileHandle = await current.getFileHandle(fileName)
   const file = await fileHandle.getFile()
   return file.text()
@@ -123,7 +122,7 @@ export async function writeFileToDir(
   for (let i = 0; i < parts.length - 1; i++)
     current = await current.getDirectoryHandle(parts[i], { create: true })
 
-  const fileName = parts.at(-1)
+  const fileName = parts.at(-1)!
   const fileHandle = await current.getFileHandle(fileName, { create: true })
   const writable = await fileHandle.createWritable()
   await writable.write(content)

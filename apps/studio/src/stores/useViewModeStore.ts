@@ -1,6 +1,6 @@
 import type { AdvCharacter } from '@advjs/types'
 import { exportCharacterForAI } from '@advjs/parser'
-import { computed, ref, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 
 export type ViewMode = 'character' | 'god' | 'visitor'
 
@@ -119,7 +119,7 @@ export function useViewModeStore() {
     return prefix ? `${prefix}\n\n${worldContext}` : worldContext
   }
 
-  return {
+  return reactive({
     mode,
     playerCharacterId,
     customCharacters,
@@ -132,5 +132,5 @@ export function useViewModeStore() {
     removeCustomCharacter,
     getSystemPromptPrefix,
     getEffectiveWorldContext,
-  }
+  })
 }

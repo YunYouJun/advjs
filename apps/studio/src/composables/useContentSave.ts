@@ -58,7 +58,7 @@ async function writeBinaryToDir(dirHandle: FileSystemDirectoryHandle, path: stri
     current = await current.getDirectoryHandle(parts[i], { create: true })
   const fileHandle = await current.getFileHandle(parts.at(-1)!, { create: true })
   const writable = await fileHandle.createWritable()
-  await writable.write(data)
+  await writable.write(new Blob([data as unknown as Uint8Array<ArrayBuffer>]))
   await writable.close()
 }
 
