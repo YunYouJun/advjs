@@ -182,10 +182,10 @@ catalogs:
       specifier: ^2.0.4
       version: 2.0.4
     '@ionic/vue':
-      specifier: ^8.0.0
+      specifier: ^8.8.2
       version: 8.8.2
     '@ionic/vue-router':
-      specifier: ^8.0.0
+      specifier: ^8.8.2
       version: 8.8.2
     '@larksuiteoapi/node-sdk':
       specifier: ^1.60.0

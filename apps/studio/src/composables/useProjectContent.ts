@@ -4,6 +4,7 @@ import { ref } from 'vue'
 import { downloadFromCloud, listCloudFiles } from '../utils/cloudSync'
 import { listFilesInDir, readFileFromDir } from '../utils/fileAccess'
 import { parseSceneMd } from '../utils/sceneMd'
+import { useKnowledgeBase } from './useKnowledgeBase'
 
 export interface ChapterInfo {
   file: string
@@ -26,14 +27,16 @@ export interface ProjectStats {
   chapters: number
   characters: number
   scenes: number
+  knowledge: number
 }
 
 export function useProjectContent() {
   const chapters = ref<ChapterInfo[]>([])
   const characters = ref<AdvCharacter[]>([])
   const scenes = ref<SceneInfo[]>([])
-  const stats = ref<ProjectStats>({ chapters: 0, characters: 0, scenes: 0 })
+  const stats = ref<ProjectStats>({ chapters: 0, characters: 0, scenes: 0, knowledge: 0 })
   const isLoading = ref(false)
+  const knowledgeBase = useKnowledgeBase()
 
   // Store the last-used dir handle for reload
   let lastDirHandle: FileSystemDirectoryHandle | null = null
@@ -136,11 +139,15 @@ export function useProjectContent() {
       catch { /* no scenes dir */ }
       scenes.value = sceneList
 
+      // Load knowledge base
+      await knowledgeBase.loadFromDir(dirHandle)
+
       // Update stats
       stats.value = {
         chapters: chapterInfos.length,
         characters: charList.length,
         scenes: sceneList.length,
+        knowledge: knowledgeBase.entries.value.length,
       }
     }
     finally {
@@ -200,10 +207,14 @@ export function useProjectContent() {
         name: file.split('/').pop()?.replace('.md', '') || file,
       }))
 
+      // Load knowledge base
+      await knowledgeBase.loadFromCos(cosConfig, prefix)
+
       stats.value = {
         chapters: chapterInfos.length,
         characters: charList.length,
         scenes: sceneFiles.length,
+        knowledge: knowledgeBase.entries.value.length,
       }
     }
     finally {
@@ -236,6 +247,7 @@ export function useProjectContent() {
     scenes,
     stats,
     isLoading,
+    knowledgeBase,
     loadFromDir,
     loadFromCos,
     reload,

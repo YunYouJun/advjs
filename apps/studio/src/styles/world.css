@@ -1,0 +1,62 @@
+/* ── World Page Styles ── */
+
+/* Empty state */
+.world-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--adv-space-2xl) var(--adv-space-lg);
+  text-align: center;
+}
+
+.world-empty__icon {
+  font-size: 48px;
+  margin-bottom: var(--adv-space-lg);
+}
+
+.world-empty__title {
+  font-size: var(--adv-font-subtitle);
+  font-weight: 700;
+  color: var(--adv-text-primary);
+  margin: 0 0 var(--adv-space-sm);
+}
+
+.world-empty__desc {
+  font-size: var(--adv-font-body-sm);
+  color: var(--adv-text-secondary);
+  margin: 0;
+  max-width: 280px;
+  line-height: 1.5;
+}
+
+/* Loading */
+.world-loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--adv-space-2xl);
+  color: var(--adv-text-secondary);
+}
+
+/* Character list */
+.world-characters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--adv-space-sm);
+  padding: var(--adv-space-md);
+}
+
+.world-character-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.world-character-preview {
+  font-size: var(--adv-font-caption, 11px);
+  color: var(--adv-text-tertiary, #94a3b8);
+  margin: 0;
+  padding: 0 var(--adv-space-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

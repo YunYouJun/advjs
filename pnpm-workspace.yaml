@@ -25,8 +25,8 @@ catalog:
   '@capacitor/keyboard': 8.0.2
   '@capacitor/status-bar': 8.0.2
   '@dagrejs/dagre': ^2.0.4
-  '@ionic/vue': ^8.0.0
-  '@ionic/vue-router': ^8.0.0
+  '@ionic/vue': ^8.8.2
+  '@ionic/vue-router': ^8.8.2
   '@larksuiteoapi/node-sdk': ^1.60.0
   '@nuxtjs/i18n': ^10.2.4
   '@octokit/core': ^7.0.6

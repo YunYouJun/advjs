@@ -3,9 +3,12 @@ import type { AdvCharacter } from '@advjs/types'
 import { IonChip, IonIcon } from '@ionic/vue'
 import { imageOutline } from 'ionicons/icons'
 import { computed } from 'vue'
+import { getDomainIcon, getMoodEmoji } from '../utils/chatUtils'
 
 const props = defineProps<{
   character: AdvCharacter
+  mood?: string
+  location?: string
 }>()
 
 defineEmits<{
@@ -29,6 +32,14 @@ const initials = computed(() => {
 const tachieCount = computed(() => {
   return props.character.tachies ? Object.keys(props.character.tachies).length : 0
 })
+
+const moodEmoji = computed(() => {
+  if (!props.mood)
+    return ''
+  return getMoodEmoji(props.mood)
+})
+
+const domainIcon = computed(() => getDomainIcon(props.character.knowledgeDomain || ''))
 </script>
 
 <template>
@@ -43,11 +54,20 @@ const tachieCount = computed(() => {
     <div class="cc-body">
       <div class="cc-name">
         {{ character.name }}
+        <span v-if="moodEmoji" class="cc-mood">{{ moodEmoji }}</span>
       </div>
 
+      <span v-if="character.knowledgeDomain" class="cc-domain">
+        {{ domainIcon }} {{ character.knowledgeDomain }}
+      </span>
+
       <p v-if="character.appearance" class="cc-desc">
-        {{ character.appearance.slice(0, 60) }}{{ character.appearance.length > 60 ? '…' : '' }}
+        {{ character.appearance.slice(0, 60) }}{{ character.appearance.length > 60 ? '...' : '' }}
       </p>
+
+      <div v-if="location" class="cc-location">
+        <span>📍 {{ location }}</span>
+      </div>
 
       <div class="cc-footer">
         <div v-if="character.tags?.length" class="cc-tags">
@@ -195,6 +215,28 @@ const tachieCount = computed(() => {
 
 .cc-faction {
   font-size: 11px;
+  color: var(--adv-text-tertiary);
+  line-height: 1.3;
+}
+
+.cc-mood {
+  font-size: 14px;
+  margin-left: 2px;
+}
+
+.cc-domain {
+  display: inline-block;
+  font-size: 11px;
+  color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.08);
+  padding: 1px 8px;
+  border-radius: var(--adv-radius-sm, 6px);
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.cc-location {
+  font-size: 12px;
   color: var(--adv-text-tertiary);
   line-height: 1.3;
 }

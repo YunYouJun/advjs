@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { IonIcon, IonLabel, IonPage, IonRouterOutlet, IonTabBar, IonTabButton, IonTabs } from '@ionic/vue'
-import { chatbubbleOutline, layersOutline, personOutline, playOutline } from 'ionicons/icons'
+import { chatbubbleOutline, globeOutline, layersOutline, personOutline, playOutline } from 'ionicons/icons'
 import { onMounted } from 'vue'
 import { useStudioStore } from '../stores/useStudioStore'
 
@@ -27,6 +27,11 @@ onMounted(() => {
         <IonTabButton tab="chat" href="/tabs/chat">
           <IonIcon aria-hidden="true" :icon="chatbubbleOutline" />
           <IonLabel>{{ $t('tabs.chat') }}</IonLabel>
+        </IonTabButton>
+
+        <IonTabButton tab="world" href="/tabs/world">
+          <IonIcon aria-hidden="true" :icon="globeOutline" />
+          <IonLabel>{{ $t('tabs.world') }}</IonLabel>
         </IonTabButton>
 
         <IonTabButton tab="play" href="/tabs/play">

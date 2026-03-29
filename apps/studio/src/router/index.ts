@@ -29,6 +29,22 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/views/ChatPage.vue'),
       },
       {
+        path: 'world',
+        component: () => import('@/views/WorldPage.vue'),
+      },
+      {
+        path: 'world/chat/:characterId',
+        component: () => import('@/views/CharacterChatPage.vue'),
+      },
+      {
+        path: 'world/group/:roomId',
+        component: () => import('@/views/GroupChatPage.vue'),
+      },
+      {
+        path: 'world/create-player',
+        component: () => import('@/views/PlayerCreatorPage.vue'),
+      },
+      {
         path: 'play',
         component: () => import('@/views/PlayPage.vue'),
       },

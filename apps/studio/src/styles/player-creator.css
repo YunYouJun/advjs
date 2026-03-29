@@ -1,0 +1,366 @@
+/* ═══ Player Creator Page ═══ */
+
+.pc-page {
+  --pc-accent: #8b5cf6;
+  --pc-accent-light: rgba(139, 92, 246, 0.12);
+  --pc-accent-border: rgba(139, 92, 246, 0.25);
+  padding: var(--adv-space-md);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ── Step indicator ── */
+.pc-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--adv-space-sm);
+  padding: var(--adv-space-md) 0;
+}
+
+.pc-step {
+  display: flex;
+  align-items: center;
+  gap: var(--adv-space-xs);
+  font-size: var(--adv-font-body-sm);
+  color: var(--adv-text-tertiary);
+  transition: color 0.2s ease;
+}
+
+.pc-step--active {
+  color: var(--pc-accent);
+  font-weight: 600;
+}
+
+.pc-step--done {
+  color: var(--ion-color-success);
+}
+
+.pc-step__dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--adv-surface-elevated);
+  border: 2px solid var(--adv-border-subtle);
+  transition: all 0.25s ease;
+}
+
+.pc-step--active .pc-step__dot {
+  background: var(--pc-accent);
+  border-color: var(--pc-accent);
+  color: white;
+}
+
+.pc-step--done .pc-step__dot {
+  background: var(--ion-color-success);
+  border-color: var(--ion-color-success);
+  color: white;
+}
+
+.pc-step__line {
+  width: 32px;
+  height: 2px;
+  background: var(--adv-border-subtle);
+  border-radius: 1px;
+}
+
+.pc-step__line--active {
+  background: var(--pc-accent);
+}
+
+/* ── Step 1: Description ── */
+.pc-input-section {
+  margin-top: var(--adv-space-md);
+}
+
+.pc-input-section__label {
+  font-size: var(--adv-font-body);
+  font-weight: 600;
+  color: var(--adv-text-primary);
+  margin-bottom: var(--adv-space-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--adv-space-xs);
+}
+
+.pc-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: var(--adv-space-md);
+  border: 2px solid var(--adv-border-subtle);
+  border-radius: var(--adv-radius-lg);
+  background: var(--adv-surface-card);
+  color: var(--adv-text-primary);
+  font-size: var(--adv-font-body);
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.2s ease;
+  outline: none;
+}
+
+.pc-textarea:focus {
+  border-color: var(--pc-accent);
+}
+
+.pc-textarea::placeholder {
+  color: var(--adv-text-tertiary);
+}
+
+/* ── Quick suggestions ── */
+.pc-suggestions {
+  margin-top: var(--adv-space-md);
+}
+
+.pc-suggestions__label {
+  font-size: var(--adv-font-body-sm);
+  color: var(--adv-text-secondary);
+  margin-bottom: var(--adv-space-xs);
+}
+
+.pc-suggestions__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pc-suggestion-tag {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--pc-accent-border);
+  background: var(--pc-accent-light);
+  color: var(--pc-accent);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pc-suggestion-tag:hover {
+  background: var(--pc-accent);
+  color: white;
+  border-color: var(--pc-accent);
+}
+
+.pc-suggestion-tag:active {
+  transform: scale(0.95);
+}
+
+/* ── Generate button ── */
+.pc-actions {
+  margin-top: var(--adv-space-lg);
+  display: flex;
+  justify-content: center;
+  gap: var(--adv-space-sm);
+}
+
+/* ── AI not configured warning ── */
+.pc-warning {
+  margin-top: var(--adv-space-md);
+  padding: var(--adv-space-md);
+  border-radius: var(--adv-radius-lg);
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: var(--adv-text-secondary);
+  font-size: var(--adv-font-body-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--adv-space-sm);
+}
+
+.pc-warning a {
+  color: var(--ion-color-warning);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* ── Generating state ── */
+.pc-generating {
+  text-align: center;
+  padding: var(--adv-space-xl) 0;
+  color: var(--adv-text-secondary);
+}
+
+.pc-generating__text {
+  margin-top: var(--adv-space-sm);
+  font-size: var(--adv-font-body-sm);
+}
+
+.pc-raw-output {
+  margin-top: var(--adv-space-md);
+  padding: var(--adv-space-md);
+  border-radius: var(--adv-radius-lg);
+  background: var(--adv-surface-elevated);
+  font-family: monospace;
+  font-size: 12px;
+  color: var(--adv-text-secondary);
+  max-height: 200px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* ── Step 2: Preview card ── */
+.pc-preview {
+  margin-top: var(--adv-space-md);
+}
+
+.pc-card {
+  background: var(--adv-surface-card);
+  border: 1px solid var(--adv-border-subtle);
+  border-radius: var(--adv-radius-xl, 16px);
+  padding: var(--adv-space-lg);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--adv-space-md);
+}
+
+.pc-card__avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--pc-accent-light), rgba(99, 102, 241, 0.1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2px solid var(--pc-accent-border);
+  overflow: hidden;
+}
+
+.pc-card__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pc-card__initials {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--pc-accent);
+}
+
+.pc-card__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.pc-card__name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--adv-text-primary);
+  margin-bottom: 4px;
+}
+
+.pc-card__meta {
+  font-size: 13px;
+  color: var(--adv-text-secondary);
+  line-height: 1.5;
+}
+
+.pc-card__meta-label {
+  font-weight: 600;
+  color: var(--adv-text-primary);
+}
+
+/* ── Edit toggle ── */
+.pc-edit-toggle {
+  margin-top: var(--adv-space-md);
+}
+
+.pc-edit-form {
+  margin-top: var(--adv-space-sm);
+  border: 1px solid var(--adv-border-subtle);
+  border-radius: var(--adv-radius-lg);
+  overflow: hidden;
+}
+
+/* ── Preview actions ── */
+.pc-preview-actions {
+  margin-top: var(--adv-space-md);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--adv-space-sm);
+  justify-content: center;
+}
+
+/* ── Error ── */
+.pc-error {
+  margin-top: var(--adv-space-md);
+  padding: var(--adv-space-md);
+  border-radius: var(--adv-radius-lg);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: var(--ion-color-danger);
+  font-size: var(--adv-font-body-sm);
+  text-align: center;
+}
+
+/* ── Step 3: Success ── */
+.pc-success {
+  text-align: center;
+  padding: var(--adv-space-xl) 0;
+}
+
+.pc-success__icon {
+  font-size: 64px;
+  margin-bottom: var(--adv-space-md);
+}
+
+.pc-success__title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--adv-text-primary);
+  margin-bottom: var(--adv-space-xs);
+}
+
+.pc-success__desc {
+  font-size: var(--adv-font-body);
+  color: var(--adv-text-secondary);
+  margin-bottom: var(--adv-space-lg);
+}
+
+/* ── Transitions ── */
+.pc-fade-enter-active,
+.pc-fade-leave-active {
+  transition: all 0.25s ease;
+}
+
+.pc-fade-enter-from {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.pc-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-12px);
+}
+
+/* ── Responsive ── */
+@media (max-width: 375px) {
+  .pc-card {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .pc-suggestions__list {
+    justify-content: center;
+  }
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .pc-suggestion-tag,
+  .pc-step__dot,
+  .pc-textarea,
+  .pc-fade-enter-active,
+  .pc-fade-leave-active {
+    transition: none;
+  }
+}

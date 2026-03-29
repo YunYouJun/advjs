@@ -912,7 +912,7 @@ AI：（读取 world.md、kai.character.md、outline.md）
 
 **验收结果**：删除 8 个死代码文件，新增 2 个面板视图和 1 个 Pinia store。编辑器聚焦预览 + 项目管理，Flow Editor 改为只读展示。
 
-### Phase 5：Mobile Studio（4-6 周）
+### Phase 5：Mobile Studio（4-6 周） ✅ 已完成
 
 **目标**：推出移动端 AI 创作应用。
 
@@ -921,9 +921,14 @@ AI：（读取 world.md、kai.character.md、outline.md）
 - [x] 集成 `@advjs/parser` 预览引擎（ChapterReader 文本预览）
 - [x] 实现云同步（COS）骨架
 - [x] 简单文本编辑功能
+- [x] 内容创建系统（角色/章节/场景表单 + AI 辅助）
+- [x] AI Living World 角色对话系统（World Tab + 角色对话页面）
+- [x] 角色类型扩展（knowledgeDomain + expertisePrompt）
 - [ ] iOS / Android 打包和测试
 
-**验收结果**：完成 4 个页面（Projects / AI Chat / Preview / Settings）、Pinia 状态管理、基础 AI 对话界面、章节阅读预览（ChapterReader）、简单文本编辑、云同步骨架。原生打包待后续完成。
+**验收结果**：完成 5 个 Tab（Workspace / Chat / World / Play / Me）、6 个 Pinia stores、AI 对话界面、角色沉浸式对话（基于人设的角色扮演）、内容创建（角色/章节/场景）、章节阅读预览、简单文本编辑、云同步骨架。原生打包待后续完成。
+
+详见 [Studio 下一阶段计划](/studio/next-phase-plan) 了解 Phase 6-12 规划。
 
 ---
 

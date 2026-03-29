@@ -90,6 +90,30 @@ export interface AdvCharacterBody {
    * 语气/说话风格（## 说话风格 / ## Speech Style）
    */
   speechStyle?: string
+  /**
+   * 知识领域（## 知识领域 / ## Knowledge Domain）
+   */
+  knowledgeDomain?: string
+  /**
+   * 专业提示（## 专业提示 / ## Expertise Prompt）
+   */
+  expertisePrompt?: string
+}
+
+/** 角色的可变运行时状态（世界模拟用，不写入 .character.md） */
+export interface AdvCharacterDynamicState {
+  /** 当前位置 */
+  location?: string
+  /** 健康状态 */
+  health?: string
+  /** 当前活动 */
+  activity?: string
+  /** 自定义数值属性（如体力、魔力等） */
+  attributes?: Record<string, number>
+  /** 最近发生的事件摘要 */
+  recentEvents?: string[]
+  /** 状态最后更新时间 (ISO string) */
+  lastUpdated?: string
 }
 
 /**
@@ -108,6 +132,10 @@ export interface AdvCharacter extends AdvCharacterFrontmatter, AdvCharacterBody 
    * 飞书 record_id（同步用）
    */
   feishuRecordId?: string
+  /**
+   * 动态运行时状态（不持久化到 .character.md）
+   */
+  dynamicState?: AdvCharacterDynamicState
 }
 
 export interface AdvTachie {

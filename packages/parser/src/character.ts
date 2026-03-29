@@ -22,6 +22,12 @@ const SECTION_MAP: Record<string, keyof AdvCharacterBody> = {
   '说话风格': 'speechStyle',
   'speech style': 'speechStyle',
   'speechstyle': 'speechStyle',
+  '知识领域': 'knowledgeDomain',
+  'knowledge domain': 'knowledgeDomain',
+  'knowledgedomain': 'knowledgeDomain',
+  '专业提示': 'expertisePrompt',
+  'expertise prompt': 'expertisePrompt',
+  'expertiseprompt': 'expertisePrompt',
 }
 
 /**
@@ -33,6 +39,8 @@ const BODY_SECTION_ORDER: { field: keyof AdvCharacterBody, heading: string }[] =
   { field: 'background', heading: '背景' },
   { field: 'concept', heading: '理念' },
   { field: 'speechStyle', heading: '说话风格' },
+  { field: 'knowledgeDomain', heading: '知识领域' },
+  { field: 'expertisePrompt', heading: '专业提示' },
 ]
 
 /**
