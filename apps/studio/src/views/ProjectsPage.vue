@@ -30,14 +30,14 @@ import FilePreview from '../components/FilePreview.vue'
 import MobileFileTree from '../components/MobileFileTree.vue'
 import ProjectOverview from '../components/ProjectOverview.vue'
 import ProjectSwitcher from '../components/ProjectSwitcher.vue'
-import { collectAllLocalFiles } from '../composables/useCloudSync'
 import { useFileChanges } from '../composables/useFileChanges'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { listCloudFiles, uploadProjectToCloud } from '../utils/cloudSync'
 import { restoreAndVerifyHandle } from '../utils/dirHandleStore'
-import { detectAdvProject, openProjectDirectory } from '../utils/fileAccess'
+import { collectLocalFiles, detectAdvProject, openProjectDirectory } from '../utils/fileAccess'
 import { createProjectFromTemplate } from '../utils/projectTemplate'
+import { toSlug } from '../utils/slug'
 
 const { t } = useI18n()
 const studioStore = useStudioStore()
@@ -138,7 +138,8 @@ async function handleCreateProject(payload: { displayName: string, slug: string,
     const projectDir = await createProjectFromTemplate(parentDir, slug)
 
     const cosPrefix = normalizeCosPrefix(settingsStore.cos.projectRoot, slug)
-    studioStore.setCurrentProject({
+    await studioStore.switchProject({
+      projectId: slug,
       name: displayName,
       dirHandle: projectDir,
       source: 'local',
@@ -157,7 +158,7 @@ async function handleCreateProject(payload: { displayName: string, slug: string,
     // Auto-sync to COS if configured (non-blocking)
     if (isCosConfigured()) {
       try {
-        const files = await collectAllLocalFiles(projectDir)
+        const files = await collectLocalFiles(projectDir)
         const config = {
           bucket: settingsStore.cos.bucket,
           region: settingsStore.cos.region,
@@ -210,7 +211,8 @@ async function handleOpenLocal() {
           {
             text: t('projects.openAnyway'),
             handler: () => {
-              studioStore.setCurrentProject({
+              studioStore.switchProject({
+                projectId: toSlug(dirHandle.name) || dirHandle.name,
                 name: dirHandle.name,
                 dirHandle,
                 source: 'local',
@@ -224,7 +226,8 @@ async function handleOpenLocal() {
       return
     }
 
-    studioStore.setCurrentProject({
+    await studioStore.switchProject({
+      projectId: toSlug(detection.name) || detection.name,
       name: detection.name,
       dirHandle,
       source: 'local',
@@ -253,7 +256,8 @@ async function handleLoadUrl() {
         handler: (data: { url: string }) => {
           if (data.url) {
             const name = data.url.split('/').pop() || 'Online Project'
-            studioStore.setCurrentProject({
+            studioStore.switchProject({
+              projectId: toSlug(name) || name,
               name,
               url: data.url,
               source: 'url',
@@ -310,7 +314,8 @@ async function handleLoadCloud() {
             }
 
             const projectName = prefix.replace(TRAILING_SLASH_RE, '').split('/').pop() || 'Cloud Project'
-            studioStore.setCurrentProject({
+            await studioStore.switchProject({
+              projectId: toSlug(projectName) || projectName,
               name: projectName,
               source: 'cos',
               cosPrefix: prefix,
@@ -388,7 +393,7 @@ function getSourceLabel(project: typeof studioStore.projects[0]) {
 async function handleSelectProject(project: typeof studioStore.projects[0]) {
   // Non-local projects don't need dirHandle
   if (project.source !== 'local' || project.dirHandle) {
-    studioStore.setCurrentProject(project)
+    await studioStore.switchProject(project)
     return
   }
 
@@ -396,7 +401,7 @@ async function handleSelectProject(project: typeof studioStore.projects[0]) {
   const handle = await restoreAndVerifyHandle(project.name)
   if (handle) {
     project.dirHandle = handle
-    studioStore.setCurrentProject(project)
+    await studioStore.switchProject(project)
     return
   }
 
@@ -412,7 +417,7 @@ async function handleSelectProject(project: typeof studioStore.projects[0]) {
           try {
             const dirHandle = await openProjectDirectory()
             project.dirHandle = dirHandle
-            studioStore.setCurrentProject(project)
+            await studioStore.switchProject(project)
           }
           catch {
             // User cancelled
@@ -438,7 +443,7 @@ async function handleReconnectDir() {
   const handle = await restoreAndVerifyHandle(project.name)
   if (handle) {
     project.dirHandle = handle
-    studioStore.setCurrentProject(project)
+    await studioStore.switchProject(project)
     return
   }
 
@@ -446,7 +451,7 @@ async function handleReconnectDir() {
   try {
     const dirHandle = await openProjectDirectory()
     project.dirHandle = dirHandle
-    studioStore.setCurrentProject(project)
+    await studioStore.switchProject(project)
   }
   catch {
     // User cancelled

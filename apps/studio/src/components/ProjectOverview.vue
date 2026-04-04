@@ -12,15 +12,13 @@ import {
   toastController,
 } from '@ionic/vue'
 import { addOutline, bookOutline, imageOutline, peopleOutline } from 'ionicons/icons'
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useContentEditor } from '../composables/useContentEditor'
 import { useContentSave } from '../composables/useContentSave'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useAiSettingsStore } from '../stores/useAiSettingsStore'
-import { useSettingsStore } from '../stores/useSettingsStore'
-import { useStudioStore } from '../stores/useStudioStore'
 import { stringifyChapterMd } from '../utils/chapterMd'
 import { parseSceneMd, stringifySceneMd } from '../utils/sceneMd'
 import AiGeneratePanel from './AiGeneratePanel.vue'
@@ -34,8 +32,6 @@ import SceneEditorForm from './SceneEditorForm.vue'
 
 const { t } = useI18n()
 const router = useRouter()
-const studioStore = useStudioStore()
-const settingsStore = useSettingsStore()
 const aiSettings = useAiSettingsStore()
 
 const {
@@ -44,8 +40,6 @@ const {
   scenes,
   stats,
   isLoading,
-  loadFromDir,
-  loadFromCos,
   reload,
   getDirHandle,
 } = useProjectContent()
@@ -141,19 +135,6 @@ function markdownToChapter(md: string) {
 function handleAiApplyChapter(md: string) {
   markdownToChapter(md)
 }
-
-// --- Load project data ---
-watch(() => studioStore.currentProject, async (project) => {
-  if (!project)
-    return
-
-  if (project.source === 'cos' && project.cosPrefix) {
-    await loadFromCos(settingsStore.cos, project.cosPrefix)
-  }
-  else if (project.dirHandle) {
-    await loadFromDir(project.dirHandle)
-  }
-}, { immediate: true })
 
 // --- Navigation ---
 function handleEditChapter(file: string) {

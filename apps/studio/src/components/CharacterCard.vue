@@ -3,7 +3,7 @@ import type { AdvCharacter } from '@advjs/types'
 import { IonChip, IonIcon } from '@ionic/vue'
 import { imageOutline } from 'ionicons/icons'
 import { computed } from 'vue'
-import { getDomainIcon, getMoodEmoji } from '../utils/chatUtils'
+import { getCharacterInitials, getDomainIcon, getMoodEmoji, getValidAvatarUrl } from '../utils/chatUtils'
 
 const props = defineProps<{
   character: AdvCharacter
@@ -15,19 +15,9 @@ defineEmits<{
   click: [character: AdvCharacter]
 }>()
 
-const avatarUrl = computed(() => {
-  const avatar = props.character.avatar
-  if (!avatar)
-    return ''
-  if (avatar.startsWith('http') || avatar.startsWith('data:') || avatar.startsWith('blob:'))
-    return avatar
-  return ''
-})
+const avatarUrl = computed(() => getValidAvatarUrl(props.character.avatar))
 
-const initials = computed(() => {
-  const name = props.character.name || props.character.id || '?'
-  return name.slice(0, 2)
-})
+const initials = computed(() => getCharacterInitials(props.character.name || props.character.id))
 
 const tachieCount = computed(() => {
   return props.character.tachies ? Object.keys(props.character.tachies).length : 0

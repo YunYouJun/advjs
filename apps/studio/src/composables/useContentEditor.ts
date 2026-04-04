@@ -1,7 +1,8 @@
 import type { AdvCharacter } from '@advjs/types'
 import type { ChapterFormData } from '../utils/chapterMd'
 import type { SceneFormData } from '../utils/sceneMd'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { getCurrentProjectId } from '../utils/projectScope'
 
 export type ContentType = 'character' | 'scene' | 'chapter'
 export type EditorMode = 'create' | 'edit'
@@ -23,7 +24,7 @@ export function useContentEditor<T extends AdvCharacter | SceneFormData | Chapte
   const originalId = ref<string>('')
   const hasDraft = ref(false)
 
-  const draftKey = `${DRAFT_PREFIX}${contentType}`
+  const draftKey = computed(() => `${DRAFT_PREFIX}${getCurrentProjectId()}-${contentType}`)
 
   // --- Draft persistence ---
 
@@ -35,7 +36,7 @@ export function useContentEditor<T extends AdvCharacter | SceneFormData | Chapte
         data: formData.value,
         timestamp: Date.now(),
       }
-      localStorage.setItem(draftKey, JSON.stringify(draft))
+      localStorage.setItem(draftKey.value, JSON.stringify(draft))
     }
     catch {
       // Storage full or not available
@@ -44,7 +45,7 @@ export function useContentEditor<T extends AdvCharacter | SceneFormData | Chapte
 
   function loadDraft(): boolean {
     try {
-      const raw = localStorage.getItem(draftKey)
+      const raw = localStorage.getItem(draftKey.value)
       if (!raw)
         return false
 
@@ -75,7 +76,7 @@ export function useContentEditor<T extends AdvCharacter | SceneFormData | Chapte
 
   function clearDraft() {
     try {
-      localStorage.removeItem(draftKey)
+      localStorage.removeItem(draftKey.value)
     }
     catch {
       // ignore
@@ -84,7 +85,7 @@ export function useContentEditor<T extends AdvCharacter | SceneFormData | Chapte
   }
 
   // Check for existing draft on initialization
-  hasDraft.value = !!localStorage.getItem(draftKey)
+  hasDraft.value = !!localStorage.getItem(draftKey.value)
 
   // Auto-save draft when formData changes while editor is open
   watch(formData, () => {

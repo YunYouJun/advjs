@@ -3,6 +3,18 @@
  * Uses the File System Access API (showDirectoryPicker).
  */
 
+/** Navigate into nested subdirectories from a root handle */
+export async function resolveSubdir(
+  dir: FileSystemDirectoryHandle,
+  parts: string[],
+  create = false,
+): Promise<FileSystemDirectoryHandle> {
+  let current = dir
+  for (const part of parts)
+    current = await current.getDirectoryHandle(part, create ? { create: true } : undefined)
+  return current
+}
+
 /** Open a directory picker and return the handle */
 export async function openProjectDirectory(): Promise<FileSystemDirectoryHandle> {
   const dirHandle = await (window as any).showDirectoryPicker({
@@ -17,12 +29,7 @@ export async function readFileFromDir(
   path: string,
 ): Promise<string> {
   const parts = path.split('/').filter(Boolean)
-  let current: FileSystemDirectoryHandle = dir
-
-  // Navigate to subdirectories
-  for (let i = 0; i < parts.length - 1; i++)
-    current = await current.getDirectoryHandle(parts[i])
-
+  const current = await resolveSubdir(dir, parts.slice(0, -1))
   const fileName = parts.at(-1)!
   const fileHandle = await current.getFileHandle(fileName)
   const file = await fileHandle.getFile()
@@ -40,9 +47,7 @@ export async function listFilesInDir(
   try {
     let targetDir: FileSystemDirectoryHandle = dir
     if (subdir) {
-      const parts = subdir.split('/').filter(Boolean)
-      for (const part of parts)
-        targetDir = await targetDir.getDirectoryHandle(part)
+      targetDir = await resolveSubdir(dir, subdir.split('/').filter(Boolean))
     }
 
     for await (const entry of targetDir.values()) {
@@ -116,15 +121,102 @@ export async function writeFileToDir(
   content: string,
 ): Promise<void> {
   const parts = path.split('/').filter(Boolean)
-  let current: FileSystemDirectoryHandle = dir
-
-  // Navigate/create subdirectories
-  for (let i = 0; i < parts.length - 1; i++)
-    current = await current.getDirectoryHandle(parts[i], { create: true })
-
+  const current = await resolveSubdir(dir, parts.slice(0, -1), true)
   const fileName = parts.at(-1)!
   const fileHandle = await current.getFileHandle(fileName, { create: true })
   const writable = await fileHandle.createWritable()
   await writable.write(content)
   await writable.close()
+}
+
+/**
+ * Trigger a browser file download from in-memory content.
+ * Complements `writeFileToDir` (which writes to the File System Access API).
+ */
+export function downloadAsFile(
+  content: string,
+  filename: string,
+  type = 'text/markdown',
+): void {
+  const blob = new Blob([content], { type })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+const TEXT_EXTENSIONS = [
+  '.md',
+  '.adv.md',
+  '.txt',
+  '.json',
+  '.yaml',
+  '.yml',
+  '.ts',
+  '.js',
+  '.vue',
+  '.css',
+  '.html',
+  '.xml',
+  '.toml',
+  '.ini',
+  '.cfg',
+  '.conf',
+]
+
+/** Check if a filename is likely a text file */
+export function isTextFile(name: string): boolean {
+  return TEXT_EXTENSIONS.some(ext => name.endsWith(ext))
+}
+
+/** Collect all files from a local directory handle recursively (text files only) */
+export async function collectLocalFiles(
+  dirHandle: FileSystemDirectoryHandle,
+  basePath = '',
+): Promise<{ path: string, content: string, lastModified: Date }[]> {
+  const files: { path: string, content: string, lastModified: Date }[] = []
+
+  try {
+    for await (const entry of dirHandle.values()) {
+      const entryPath = basePath ? `${basePath}/${entry.name}` : entry.name
+
+      if (entry.kind === 'file') {
+        try {
+          const fileHandle = await dirHandle.getFileHandle(entry.name)
+          const file = await fileHandle.getFile()
+          if (isTextFile(entry.name)) {
+            const content = await file.text()
+            files.push({
+              path: entryPath,
+              content,
+              lastModified: new Date(file.lastModified),
+            })
+          }
+        }
+        catch {
+          // skip unreadable files
+        }
+      }
+      else if (entry.kind === 'directory') {
+        if (entry.name.startsWith('.') || entry.name === 'node_modules')
+          continue
+
+        try {
+          const subDir = await dirHandle.getDirectoryHandle(entry.name)
+          const subFiles = await collectLocalFiles(subDir, entryPath)
+          files.push(...subFiles)
+        }
+        catch {
+          // skip inaccessible directories
+        }
+      }
+    }
+  }
+  catch {
+    // iteration error
+  }
+
+  return files
 }

@@ -1,25 +1,21 @@
 import type { AdvCharacter } from '@advjs/types'
 import { parseCharacterMd } from '@advjs/parser'
-import { onUnmounted, ref } from 'vue'
+import { ref } from 'vue'
 import { useAiSettingsStore } from '../stores/useAiSettingsStore'
-import { buildStreamOptions, streamChat } from '../utils/aiClient'
 import { buildImagePromptTemplate, generateImage, isImageGenerationAvailable } from '../utils/aiImageClient'
+import { extractMarkdown } from '../utils/chatUtils'
 import { getContentTemplate } from '../utils/contentTemplates'
-
-const FENCE_RE = /```(?:markdown|md)?\n([\s\S]*?)```/
+import { useStreamingGenerate } from './useStreamingGenerate'
 
 /**
  * Composable for AI-guided player character creation.
  * Wraps streaming generation, markdown parsing, and avatar generation.
  */
 export function usePlayerCreator() {
-  const isGenerating = ref(false)
+  const streaming = useStreamingGenerate()
   const generatedCharacter = ref<AdvCharacter | null>(null)
-  const rawMarkdown = ref('')
-  const error = ref<string | null>(null)
   const isGeneratingAvatar = ref(false)
 
-  let abortController: AbortController | null = null
   const aiSettings = useAiSettingsStore()
 
   /**
@@ -27,9 +23,6 @@ export function usePlayerCreator() {
    * Streams AI output, then parses the .character.md result.
    */
   async function generate(description: string, lang: string = 'zh') {
-    if (isGenerating.value)
-      return
-
     const template = getContentTemplate('character', lang)
 
     // Prepend player-character context to the system prompt
@@ -40,63 +33,32 @@ export function usePlayerCreator() {
 
     const systemPrompt = playerContext + template.systemPrompt
 
-    isGenerating.value = true
-    rawMarkdown.value = ''
-    error.value = null
     generatedCharacter.value = null
-    abortController = new AbortController()
 
-    try {
-      const messages = [
-        { role: 'system' as const, content: systemPrompt },
-        { role: 'user' as const, content: description },
-      ]
+    const messages = [
+      { role: 'system' as const, content: systemPrompt },
+      { role: 'user' as const, content: description },
+    ]
 
-      const options = buildStreamOptions(
-        messages,
-        aiSettings.config,
-        aiSettings.effectiveBaseURL,
-        aiSettings.effectiveModel,
-        abortController.signal,
-      )
+    await streaming.run(messages)
 
-      for await (const delta of streamChat(options)) {
-        rawMarkdown.value += delta
-      }
-
-      // Extract markdown from code fences if present
-      const extracted = extractMarkdown(rawMarkdown.value)
-
-      // Parse into AdvCharacter
+    // Post-process: extract markdown and parse into AdvCharacter (only if no error)
+    if (!streaming.error.value && streaming.output.value) {
+      const extracted = extractMarkdown(streaming.output.value)
       generatedCharacter.value = parseCharacterMd(extracted)
-    }
-    catch (err) {
-      if (err instanceof DOMException && err.name === 'AbortError') {
-        // User cancelled — not an error
-      }
-      else {
-        error.value = err instanceof Error ? err.message : 'Unknown error'
-      }
-    }
-    finally {
-      isGenerating.value = false
-      abortController = null
     }
   }
 
   /** Cancel ongoing generation */
   function stop() {
-    abortController?.abort()
+    streaming.stop()
   }
 
   /** Reset all state for a fresh start */
   function reset() {
     generatedCharacter.value = null
-    rawMarkdown.value = ''
-    error.value = null
-    isGenerating.value = false
-    abortController?.abort()
-    abortController = null
+    streaming.stop()
+    streaming.clear()
   }
 
   /**
@@ -145,16 +107,11 @@ export function usePlayerCreator() {
     return !!(aiSettings.config.apiKey && aiSettings.effectiveBaseURL && aiSettings.effectiveModel)
   }
 
-  // Cleanup on unmount
-  onUnmounted(() => {
-    abortController?.abort()
-  })
-
   return {
-    isGenerating,
+    isGenerating: streaming.isGenerating,
     generatedCharacter,
-    rawMarkdown,
-    error,
+    rawMarkdown: streaming.output,
+    error: streaming.error,
     isGeneratingAvatar,
     generate,
     stop,
@@ -162,13 +119,4 @@ export function usePlayerCreator() {
     generateAvatar,
     isAiConfigured,
   }
-}
-
-/** Extract markdown content from AI output (strip code fences) */
-function extractMarkdown(text: string): string {
-  const trimmed = text.trim()
-  const fenceMatch = FENCE_RE.exec(trimmed)
-  if (fenceMatch)
-    return fenceMatch[1].trim()
-  return trimmed
 }

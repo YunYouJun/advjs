@@ -18,6 +18,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAiSettingsStore } from '../stores/useAiSettingsStore'
 import { buildImagePromptTemplate, generateImage, isImageGenerationAvailable } from '../utils/aiImageClient'
+import { getCharacterInitials, getValidAvatarUrl } from '../utils/chatUtils'
 import RelationshipEditor from './RelationshipEditor.vue'
 import TagsInput from './TagsInput.vue'
 
@@ -37,19 +38,9 @@ function updateField<K extends keyof AdvCharacter>(field: K, value: AdvCharacter
 // --- Avatar ---
 const avatarInputRef = ref<HTMLInputElement>()
 
-const avatarPreviewUrl = computed(() => {
-  const avatar = model.value.avatar
-  if (!avatar)
-    return ''
-  if (avatar.startsWith('http') || avatar.startsWith('data:') || avatar.startsWith('blob:'))
-    return avatar
-  return ''
-})
+const avatarPreviewUrl = computed(() => getValidAvatarUrl(model.value.avatar))
 
-const avatarInitials = computed(() => {
-  const name = model.value.name || model.value.id || '?'
-  return name.slice(0, 2)
-})
+const avatarInitials = computed(() => getCharacterInitials(model.value.name || model.value.id))
 
 function triggerAvatarUpload() {
   avatarInputRef.value?.click()

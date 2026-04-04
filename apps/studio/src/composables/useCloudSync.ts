@@ -7,7 +7,7 @@ import {
   listCloudFilesDetailed,
   uploadToCloud,
 } from '../utils/cloudSync'
-import { writeFileToDir } from '../utils/fileAccess'
+import { collectLocalFiles, writeFileToDir } from '../utils/fileAccess'
 
 export type SyncStatus = 'idle' | 'syncing' | 'success' | 'failed'
 
@@ -174,60 +174,6 @@ export function useCloudSync() {
   }
 
   /**
-   * Collect all files from a local directory handle recursively.
-   */
-  async function collectLocalFiles(
-    dirHandle: FileSystemDirectoryHandle,
-    basePath = '',
-  ): Promise<{ path: string, content: string, lastModified: Date }[]> {
-    const files: { path: string, content: string, lastModified: Date }[] = []
-
-    try {
-      for await (const entry of dirHandle.values()) {
-        const entryPath = basePath ? `${basePath}/${entry.name}` : entry.name
-
-        if (entry.kind === 'file') {
-          try {
-            const fileHandle = await dirHandle.getFileHandle(entry.name)
-            const file = await fileHandle.getFile()
-            // Only sync text files (skip binaries)
-            if (isTextFile(entry.name)) {
-              const content = await file.text()
-              files.push({
-                path: entryPath,
-                content,
-                lastModified: new Date(file.lastModified),
-              })
-            }
-          }
-          catch {
-            // skip unreadable files
-          }
-        }
-        else if (entry.kind === 'directory') {
-          // Skip hidden directories and node_modules
-          if (entry.name.startsWith('.') || entry.name === 'node_modules')
-            continue
-
-          try {
-            const subDir = await dirHandle.getDirectoryHandle(entry.name)
-            const subFiles = await collectLocalFiles(subDir, entryPath)
-            files.push(...subFiles)
-          }
-          catch {
-            // skip inaccessible directories
-          }
-        }
-      }
-    }
-    catch {
-      // iteration error
-    }
-
-    return files
-  }
-
-  /**
    * Start automatic periodic sync.
    */
   function startAutoSync() {
@@ -303,77 +249,4 @@ export function useCloudSync() {
     isCosConfigured,
     collectLocalFiles,
   }
-}
-
-/**
- * Check if a filename is likely a text file.
- */
-function isTextFile(name: string): boolean {
-  const textExtensions = [
-    '.md',
-    '.adv.md',
-    '.txt',
-    '.json',
-    '.yaml',
-    '.yml',
-    '.ts',
-    '.js',
-    '.vue',
-    '.css',
-    '.html',
-    '.xml',
-    '.toml',
-    '.ini',
-    '.cfg',
-    '.conf',
-  ]
-  return textExtensions.some(ext => name.endsWith(ext))
-}
-
-/**
- * Collect all files from a local directory handle (exported for use in ProjectsPage).
- */
-export async function collectAllLocalFiles(
-  dirHandle: FileSystemDirectoryHandle,
-  basePath = '',
-): Promise<{ path: string, content: string }[]> {
-  const files: { path: string, content: string }[] = []
-
-  try {
-    for await (const entry of dirHandle.values()) {
-      const entryPath = basePath ? `${basePath}/${entry.name}` : entry.name
-
-      if (entry.kind === 'file') {
-        if (isTextFile(entry.name)) {
-          try {
-            const fileHandle = await dirHandle.getFileHandle(entry.name)
-            const file = await fileHandle.getFile()
-            const content = await file.text()
-            files.push({ path: entryPath, content })
-          }
-          catch {
-            // skip
-          }
-        }
-      }
-      else if (entry.kind === 'directory') {
-        if (entry.name.startsWith('.') || entry.name === 'node_modules')
-          continue
-
-        try {
-          const subDir = await dirHandle.getDirectoryHandle(entry.name)
-          const subFiles = await collectAllLocalFiles(subDir, entryPath)
-          files.push(...subFiles)
-        }
-        catch {
-          // skip
-        }
-      }
-    }
-  }
-  catch {
-    // iteration error
-  }
-
-  return files
 }

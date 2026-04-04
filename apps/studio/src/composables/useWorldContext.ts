@@ -1,14 +1,22 @@
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import i18n from '../i18n'
+import { useSettingsStore } from '../stores/useSettingsStore'
+import { useStudioStore } from '../stores/useStudioStore'
 import { downloadFromCloud } from '../utils/cloudSync'
 import { readFileFromDir } from '../utils/fileAccess'
 
+// --- Module-level singleton state ---
+const worldContext = ref('')
+const isLoading = ref(false)
+let watchInitialized = false
+
 /**
  * Load world context (world.md + glossary.md) for character chat system prompts.
+ *
+ * This is a shared singleton — all callers share the same reactive state.
+ * An internal watch on `currentProject` automatically loads data on project switch.
  */
 export function useWorldContext() {
-  const worldContext = ref('')
-  const isLoading = ref(false)
-
   async function loadFromDir(dirHandle: FileSystemDirectoryHandle) {
     isLoading.value = true
     try {
@@ -24,9 +32,9 @@ export function useWorldContext() {
       )
 
       if (world)
-        parts.push(`## 世界观\n${world}`)
+        parts.push(`${i18n.global.t('systemPrompt.worldContext.worldviewHeader')}\n${world}`)
       if (glossary)
-        parts.push(`## 术语表\n${glossary}`)
+        parts.push(`${i18n.global.t('systemPrompt.worldContext.glossaryHeader')}\n${glossary}`)
 
       worldContext.value = parts.join('\n\n')
     }
@@ -56,9 +64,9 @@ export function useWorldContext() {
       )
 
       if (world)
-        parts.push(`## 世界观\n${world}`)
+        parts.push(`${i18n.global.t('systemPrompt.worldContext.worldviewHeader')}\n${world}`)
       if (glossary)
-        parts.push(`## 术语表\n${glossary}`)
+        parts.push(`${i18n.global.t('systemPrompt.worldContext.glossaryHeader')}\n${glossary}`)
 
       worldContext.value = parts.join('\n\n')
     }
@@ -70,10 +78,35 @@ export function useWorldContext() {
     }
   }
 
+  function $reset() {
+    worldContext.value = ''
+    isLoading.value = false
+  }
+
+  if (!watchInitialized) {
+    watchInitialized = true
+    const studioStore = useStudioStore()
+    const settingsStore = useSettingsStore()
+
+    watch(() => studioStore.currentProject, async (project) => {
+      if (!project) {
+        $reset()
+        return
+      }
+      if (project.dirHandle) {
+        await loadFromDir(project.dirHandle)
+      }
+      else if (project.source === 'cos' && project.cosPrefix) {
+        await loadFromCos(settingsStore.cos, project.cosPrefix)
+      }
+    }, { immediate: true })
+  }
+
   return {
     worldContext,
     isLoading,
     loadFromDir,
     loadFromCos,
+    $reset,
   }
 }

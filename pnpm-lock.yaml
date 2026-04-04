@@ -253,6 +253,9 @@ catalogs:
     cos-nodejs-sdk-v5:
       specifier: ^2.16.0-beta.8
       version: 2.16.0-beta.8
+    dexie:
+      specifier: ^4.4.1
+      version: 4.4.1
     express:
       specifier: ^5.2.1
       version: 5.2.1
@@ -789,6 +792,9 @@ importers:
       '@vueuse/core':
         specifier: catalog:frontend
         version: 14.2.1(vue@3.5.31(typescript@5.9.3))
+      dexie:
+        specifier: 'catalog:'
+        version: 4.4.1
       ionicons:
         specifier: 'catalog:'
         version: 7.4.0
@@ -8276,6 +8282,9 @@ packages:
 
   devlop@1.1.0:
     resolution: {integrity: sha512-RWmIqhcFf1lRYBvNmr7qTNuyCt/7/ns2jbpp1+PalgE/rDQcBT0fioSMUpJ93irlUhC5hrg4cYqe6U+0ImW0rA==}
+
+  dexie@4.4.1:
+    resolution: {integrity: sha512-4Xec5+yrS+TgyFAnMrneFOt/QG8sD3FxlkUVpfypui3SriRN80UN0SZBWmkNAY7ulfKgk0ilvv7M6pBURprdgA==}
 
   diff-sequences@29.6.3:
     resolution: {integrity: sha512-EjePK1srD3P08o2j4f0ExnylqRs5B9tJjcp9t1krH2qRi8CCdsYfwe9JgSLurFBWwq4uOlipzfk5fHNvwFKr8Q==}
@@ -20337,6 +20346,8 @@ snapshots:
   devlop@1.1.0:
     dependencies:
       dequal: 2.0.3
+
+  dexie@4.4.1: {}
 
   diff-sequences@29.6.3: {}
 

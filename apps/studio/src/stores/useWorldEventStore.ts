@@ -1,53 +1,46 @@
 import type { AdvCharacter, WorldClockState, WorldEvent } from '@advjs/types'
-import type { ChatMessage as AiChatMessage } from '../utils/aiClient'
 import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
-import { buildStreamOptions, streamChat } from '../utils/aiClient'
-import { CODE_FENCE_END_RE, CODE_FENCE_START_RE } from '../utils/chatUtils'
+import { ref } from 'vue'
+import i18n from '../i18n'
+import { runAiJsonExtraction } from '../utils/aiExtraction'
+import { db } from '../utils/db'
+import { useProjectPersistence } from '../utils/projectPersistence'
+import { getCurrentProjectId } from '../utils/projectScope'
 import { useAiSettingsStore } from './useAiSettingsStore'
 
-const STORAGE_KEY = 'advjs-studio-world-events'
 const MAX_EVENTS = 200
 
-let nextId = 1
-
 function generateId(): string {
-  return `evt-${Date.now()}-${nextId++}`
+  return `evt-${crypto.randomUUID()}`
 }
 
 export const useWorldEventStore = defineStore('worldEvent', () => {
   const events = ref<WorldEvent[]>([])
   const isGenerating = ref(false)
 
-  // Load from localStorage on init
-  loadFromStorage()
+  // --- Dexie persistence ---
 
-  function loadFromStorage() {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved) {
-        const parsed: WorldEvent[] = JSON.parse(saved)
-        events.value = parsed
+  const { flush, init, $reset: _$reset } = useProjectPersistence({
+    source: events,
+    save: async () => {
+      const pid = getCurrentProjectId()
+      const rows = events.value.map(e => ({ ...e, projectId: pid }))
+      await db.worldEvents.bulkPut(rows)
+    },
+    load: async (pid) => {
+      const all = await db.worldEvents.where('projectId').equals(pid).toArray()
+      if (all.length > 0) {
+        events.value = all
       }
-    }
-    catch {
-      // ignore
-    }
-  }
+    },
+    clear: () => {
+      events.value = []
+      isGenerating.value = false
+    },
+  })
 
-  function saveToStorage() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(events.value))
-    }
-    catch {
-      // ignore
-    }
-  }
-
-  // Persist on change
-  watch(events, () => {
-    saveToStorage()
-  }, { deep: true })
+  // Alias to preserve the original $reset name
+  const $reset = _$reset
 
   function addEvent(event: WorldEvent) {
     events.value.push(event)
@@ -70,7 +63,7 @@ export const useWorldEventStore = defineStore('worldEvent', () => {
       return ''
 
     const lines = recent.map(e => `- [${e.date} ${e.period}] ${e.summary}`)
-    return `# 最近世界事件\n\n${lines.join('\n')}`
+    return `${i18n.global.t('systemPrompt.events.header')}\n\n${lines.join('\n')}`
   }
 
   /**
@@ -114,12 +107,12 @@ Return ONLY a JSON object:
 {
   "events": [
     {
-      "summary": "Brief description of the event in Chinese",
+      "summary": "Brief description of the event",
       "type": "daily" | "social" | "unexpected",
       "characterIds": ["character_id"] or []
     }
   ],
-  "weather": ${dateChanged ? '"new weather description in Chinese"' : 'null'}
+  "weather": ${dateChanged ? '"new weather description"' : 'null'}
 }
 
 Return ONLY the JSON, no markdown fencing or explanation.`
@@ -141,58 +134,45 @@ Return ONLY the JSON, no markdown fencing or explanation.`
     isGenerating.value = true
 
     const prompt = buildEventGenerationPrompt(worldContext, characters, clockState, dateChanged)
-    const messages: AiChatMessage[] = [
-      { role: 'system', content: 'You are a JSON event generator. Return only valid JSON.' },
-      { role: 'user', content: prompt },
-    ]
 
     try {
-      const options = buildStreamOptions(
-        messages,
-        aiSettings.config,
-        aiSettings.effectiveBaseURL,
-        aiSettings.effectiveModel,
+      const parsed = await runAiJsonExtraction(
+        { prompt, maxTokens: 300, temperature: 0.7 },
+        raw => ({
+          events: Array.isArray(raw.events) ? raw.events : [],
+          weather: typeof raw.weather === 'string' && raw.weather ? raw.weather : null,
+        }),
       )
-      options.maxTokens = 300
-      options.temperature = 0.7
-
-      let accumulated = ''
-      for await (const delta of streamChat(options)) {
-        accumulated += delta
-      }
-
-      const cleaned = accumulated.replace(CODE_FENCE_START_RE, '').replace(CODE_FENCE_END_RE, '').trim()
-      const parsed = JSON.parse(cleaned)
+      if (!parsed)
+        return
 
       // Add generated events
-      if (Array.isArray(parsed.events)) {
-        for (const evt of parsed.events) {
-          if (typeof evt.summary === 'string') {
-            addEvent({
-              id: generateId(),
-              date: clockState.date,
-              period: clockState.period,
-              summary: evt.summary,
-              type: evt.type || 'daily',
-              characterIds: Array.isArray(evt.characterIds) ? evt.characterIds : undefined,
-              timestamp: Date.now(),
-            })
-          }
+      for (const evt of parsed.events) {
+        if (typeof evt.summary === 'string') {
+          addEvent({
+            id: generateId(),
+            date: clockState.date,
+            period: clockState.period,
+            summary: evt.summary,
+            type: evt.type || 'daily',
+            characterIds: Array.isArray(evt.characterIds) ? evt.characterIds : undefined,
+            timestamp: Date.now(),
+          })
         }
       }
 
       // Return weather for the clock store to apply
-      if (typeof parsed.weather === 'string' && parsed.weather) {
+      if (parsed.weather) {
         // Add a weather event
         addEvent({
           id: generateId(),
           date: clockState.date,
           period: clockState.period,
-          summary: `天气变为${parsed.weather}`,
+          summary: i18n.global.t('systemPrompt.events.weatherChanged', { weather: parsed.weather }),
           type: 'weather',
           timestamp: Date.now(),
         })
-        return parsed.weather as string
+        return parsed.weather
       }
     }
     catch {
@@ -216,5 +196,8 @@ Return ONLY the JSON, no markdown fencing or explanation.`
     formatEventsForPrompt,
     generateEvents,
     clearEvents,
+    init,
+    flush,
+    $reset,
   }
 })

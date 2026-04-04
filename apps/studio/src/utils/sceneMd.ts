@@ -1,6 +1,6 @@
 import type { AdvBaseScene } from '@advjs/types'
 import yaml from 'js-yaml'
-import { parseFrontmatterAndBody } from './mdFrontmatter'
+import { dumpYamlFrontmatter, parseFrontmatterAndBody } from './mdFrontmatter'
 
 /**
  * Scene frontmatter fields
@@ -63,13 +63,7 @@ export function stringifySceneMd(scene: SceneFormData): string {
     fm.tags = scene.tags
   }
 
-  const yamlStr = yaml.dump(fm, {
-    indent: 2,
-    lineWidth: -1,
-    noRefs: true,
-    quotingType: '\'',
-    forceQuotes: false,
-  }).trim()
+  const yamlStr = dumpYamlFrontmatter(fm)
 
   return `---\n${yamlStr}\n---\n`
 }

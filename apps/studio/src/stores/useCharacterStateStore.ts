@@ -1,13 +1,13 @@
 import type { AdvCharacterDynamicState } from '@advjs/types'
-import type { ChatMessage as AiChatMessage } from '../utils/aiClient'
 import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
-import { buildStreamOptions, streamChat } from '../utils/aiClient'
-import { CODE_FENCE_END_RE, CODE_FENCE_START_RE } from '../utils/chatUtils'
-import { useAiSettingsStore } from './useAiSettingsStore'
+import { ref } from 'vue'
+import i18n from '../i18n'
+import { runAiJsonExtraction, shouldSkipExtraction } from '../utils/aiExtraction'
+import { db } from '../utils/db'
+import { getOrCreateInMap, loadMapFromDexie, useProjectPersistence } from '../utils/projectPersistence'
+import { getCurrentProjectId } from '../utils/projectScope'
+import { PromptBuilder } from '../utils/promptBuilder'
 import { useCharacterMemoryStore } from './useCharacterMemoryStore'
-
-const STORAGE_KEY = 'advjs-studio-character-states'
 
 function createDefaultState(): AdvCharacterDynamicState {
   return {
@@ -42,71 +42,45 @@ Return a JSON object with these fields (use null if no change detected):
 - "location": string | null — Where the character is now (null if unchanged)
 - "health": string | null — Character's health/physical state (null if unchanged)
 - "activity": string | null — What the character is currently doing (null if unchanged)
+- "recentEvent": string | null — A brief note of a notable event or action in this exchange (null if nothing noteworthy)
 
 Return ONLY the JSON object, no markdown fencing or explanation.`
-}
-
-/**
- * Parse the AI's state extraction response.
- */
-function parseStateExtraction(response: string): {
-  location: string | null
-  health: string | null
-  activity: string | null
-} | null {
-  try {
-    const cleaned = response.replace(CODE_FENCE_START_RE, '').replace(CODE_FENCE_END_RE, '').trim()
-    const parsed = JSON.parse(cleaned)
-    return {
-      location: typeof parsed.location === 'string' ? parsed.location : null,
-      health: typeof parsed.health === 'string' ? parsed.health : null,
-      activity: typeof parsed.activity === 'string' ? parsed.activity : null,
-    }
-  }
-  catch {
-    return null
-  }
 }
 
 export const useCharacterStateStore = defineStore('characterState', () => {
   const states = ref<Map<string, AdvCharacterDynamicState>>(new Map())
 
-  // Load from localStorage on init
-  loadFromStorage()
+  // --- Dexie persistence ---
 
-  function loadFromStorage() {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved) {
-        const parsed: [string, AdvCharacterDynamicState][] = JSON.parse(saved)
-        states.value = new Map(parsed)
-      }
-    }
-    catch {
-      // ignore
-    }
-  }
-
-  function saveToStorage() {
-    try {
+  const { flush, init, $reset } = useProjectPersistence({
+    source: states,
+    save: async () => {
+      const pid = getCurrentProjectId()
       const entries = Array.from(states.value.entries())
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
-    }
-    catch {
-      // ignore
-    }
-  }
-
-  // Persist on change
-  watch(states, () => {
-    saveToStorage()
-  }, { deep: true })
+      const rows = entries.map(([characterId, state]) => ({
+        projectId: pid,
+        characterId,
+        state,
+      }))
+      await db.characterStates.bulkPut(rows)
+    },
+    load: async (pid) => {
+      const map = await loadMapFromDexie<AdvCharacterDynamicState>(
+        db.characterStates,
+        pid,
+        row => row.characterId,
+        row => row.state,
+      )
+      if (map)
+        states.value = map
+    },
+    clear: () => {
+      states.value = new Map()
+    },
+  })
 
   function getState(characterId: string): AdvCharacterDynamicState {
-    if (!states.value.has(characterId)) {
-      states.value.set(characterId, createDefaultState())
-    }
-    return states.value.get(characterId)!
+    return getOrCreateInMap(states.value, characterId, () => createDefaultState())
   }
 
   function updateState(characterId: string, partial: Partial<AdvCharacterDynamicState>) {
@@ -128,30 +102,28 @@ export const useCharacterStateStore = defineStore('characterState', () => {
     if (!hasState)
       return ''
 
-    const parts: string[] = [
-      '# 角色当前状态',
-      '',
-    ]
+    const builder = new PromptBuilder()
+      .line(i18n.global.t('systemPrompt.state.header'))
+      .line()
 
     if (mood && mood !== 'neutral')
-      parts.push(`- 心情：${mood}`)
+      builder.line(i18n.global.t('systemPrompt.state.mood', { mood }))
     if (state.location)
-      parts.push(`- 位置：${state.location}`)
+      builder.line(i18n.global.t('systemPrompt.state.location', { location: state.location }))
     if (state.health)
-      parts.push(`- 健康：${state.health}`)
+      builder.line(i18n.global.t('systemPrompt.state.health', { health: state.health }))
     if (state.activity)
-      parts.push(`- 活动：${state.activity}`)
+      builder.line(i18n.global.t('systemPrompt.state.activity', { activity: state.activity }))
 
     if (state.recentEvents && state.recentEvents.length > 0) {
-      parts.push('')
-      parts.push('## 最近事件')
-      for (const event of state.recentEvents.slice(-5)) {
-        parts.push(`- ${event}`)
-      }
+      builder
+        .line()
+        .line(i18n.global.t('systemPrompt.state.recentEventsHeader'))
+        .items(state.recentEvents.slice(-5).map(event => `- ${event}`))
     }
 
-    parts.push('')
-    return parts.join('\n')
+    builder.line()
+    return builder.build()
   }
 
   /**
@@ -164,39 +136,22 @@ export const useCharacterStateStore = defineStore('characterState', () => {
     userMessage: string,
     assistantMessage: string,
   ) {
-    // Don't extract from error messages or very short responses
-    if (!assistantMessage || assistantMessage.length < 10 || assistantMessage.startsWith('⚠️') || assistantMessage.startsWith('🔑') || assistantMessage.startsWith('❌'))
-      return
-
-    const aiSettings = useAiSettingsStore()
-    if (!aiSettings.isConfigured)
+    if (shouldSkipExtraction(assistantMessage))
       return
 
     const state = getState(characterId)
     const prompt = buildStateExtractionPrompt(characterName, userMessage, assistantMessage, state)
 
-    const messages: AiChatMessage[] = [
-      { role: 'system', content: 'You are a JSON extraction system. Return only valid JSON.' },
-      { role: 'user', content: prompt },
-    ]
-
     try {
-      const options = buildStreamOptions(
-        messages,
-        aiSettings.config,
-        aiSettings.effectiveBaseURL,
-        aiSettings.effectiveModel,
+      const extraction = await runAiJsonExtraction(
+        { prompt, maxTokens: 200, temperature: 0.3 },
+        parsed => ({
+          location: typeof parsed.location === 'string' ? parsed.location : null,
+          health: typeof parsed.health === 'string' ? parsed.health : null,
+          activity: typeof parsed.activity === 'string' ? parsed.activity : null,
+          recentEvent: typeof parsed.recentEvent === 'string' ? parsed.recentEvent : null,
+        }),
       )
-      // Low token extraction mode
-      options.maxTokens = 200
-      options.temperature = 0.3
-
-      let accumulated = ''
-      for await (const delta of streamChat(options)) {
-        accumulated += delta
-      }
-
-      const extraction = parseStateExtraction(accumulated)
       if (!extraction)
         return
 
@@ -208,6 +163,11 @@ export const useCharacterStateStore = defineStore('characterState', () => {
         updates.health = extraction.health
       if (extraction.activity !== null)
         updates.activity = extraction.activity
+      if (extraction.recentEvent !== null) {
+        const current = getState(characterId)
+        const existing = current.recentEvents || []
+        updates.recentEvents = [...existing, extraction.recentEvent].slice(-10)
+      }
 
       if (Object.keys(updates).length > 0) {
         updateState(characterId, updates)
@@ -229,5 +189,8 @@ export const useCharacterStateStore = defineStore('characterState', () => {
     formatStateForPrompt,
     extractStateFromTurn,
     clearState,
+    init,
+    flush,
+    $reset,
   }
 })

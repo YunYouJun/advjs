@@ -17,8 +17,8 @@ import { useRoute } from 'vue-router'
 import { useCloudSync } from '../composables/useCloudSync'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
-import { downloadFromCloud, uploadToCloud } from '../utils/cloudSync'
-import { readFileFromDir, writeFileToDir } from '../utils/fileAccess'
+import { downloadFromCloud } from '../utils/cloudSync'
+import { downloadAsFile, readFileFromDir, writeFileToDir } from '../utils/fileAccess'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -146,7 +146,6 @@ async function save() {
     if (project?.source === 'cos' && filePath.value) {
       // Save to COS (immediate, bypasses debounce)
       await cloudSaveNow(filePath.value, content.value)
-      await uploadToCloud(settingsStore.cos, filePath.value, content.value)
       initialContent.value = content.value
       const toast = await toastController.create({
         message: t('editor.saved'),
@@ -177,13 +176,7 @@ async function save() {
     }
     else {
       // Fallback: download as file
-      const blob = new Blob([content.value], { type: 'text/markdown' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = fileName.value
-      a.click()
-      URL.revokeObjectURL(url)
+      downloadAsFile(content.value, fileName.value)
 
       const toast = await toastController.create({
         message: t('editor.downloaded'),

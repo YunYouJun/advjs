@@ -13,6 +13,7 @@ import {
 import { bookOutline, closeOutline, createOutline } from 'ionicons/icons'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { SLUG_RE, toSlug } from '../utils/slug'
 
 const props = defineProps<{
   open: boolean
@@ -46,25 +47,6 @@ const displayName = ref('')
 const slugManuallyEdited = ref(false)
 const slugValue = ref('')
 
-const SPACES_UNDERSCORES_RE = /[\s_]+/g
-const NON_SLUG_CHARS_RE = /[^\w\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF-]/g
-const MULTI_HYPHENS_RE = /-{2,}/g
-const LEADING_TRAILING_HYPHENS_RE = /^-+|-+$/g
-
-/**
- * Generate a filesystem/URL-safe slug from display name.
- * CJK characters are preserved as-is (modern FS & COS handle UTF-8 fine).
- */
-function toSlug(name: string): string {
-  return name
-    .trim()
-    .toLowerCase()
-    .replace(SPACES_UNDERSCORES_RE, '-')
-    .replace(NON_SLUG_CHARS_RE, '')
-    .replace(MULTI_HYPHENS_RE, '-')
-    .replace(LEADING_TRAILING_HYPHENS_RE, '')
-}
-
 // Auto-generate slug from display name (unless user manually edited it)
 watch(displayName, (name) => {
   if (!slugManuallyEdited.value) {
@@ -85,7 +67,6 @@ const nameError = computed(() => {
 })
 
 // Validation — slug (filesystem/URL safe)
-const SLUG_RE = /^[\w\u4E00-\u9FFF\u3040-\u309F\u30A0-\u30FF-]+$/
 const slugError = computed(() => {
   const s = slugValue.value.trim()
   if (!s)

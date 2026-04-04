@@ -5,7 +5,7 @@ import type { ContentType, EditorMode } from './useContentEditor'
 import { stringifyCharacterMd } from '@advjs/parser'
 import { ref } from 'vue'
 import { stringifyChapterMd } from '../utils/chapterMd'
-import { writeFileToDir } from '../utils/fileAccess'
+import { resolveSubdir, writeFileToDir } from '../utils/fileAccess'
 import { stringifySceneMd } from '../utils/sceneMd'
 
 const DATA_URI_RE = /^data:image\/(\w+);base64,/
@@ -22,10 +22,8 @@ export interface SaveResult {
  */
 async function fileExists(dirHandle: FileSystemDirectoryHandle, path: string): Promise<boolean> {
   const parts = path.split('/').filter(Boolean)
-  let current: FileSystemDirectoryHandle = dirHandle
   try {
-    for (let i = 0; i < parts.length - 1; i++)
-      current = await current.getDirectoryHandle(parts[i])
+    const current = await resolveSubdir(dirHandle, parts.slice(0, -1))
     await current.getFileHandle(parts.at(-1)!)
     return true
   }
@@ -53,9 +51,7 @@ function dataUriToBytes(dataUri: string): { bytes: Uint8Array, ext: string } {
  */
 async function writeBinaryToDir(dirHandle: FileSystemDirectoryHandle, path: string, data: Uint8Array): Promise<void> {
   const parts = path.split('/').filter(Boolean)
-  let current: FileSystemDirectoryHandle = dirHandle
-  for (let i = 0; i < parts.length - 1; i++)
-    current = await current.getDirectoryHandle(parts[i], { create: true })
+  const current = await resolveSubdir(dirHandle, parts.slice(0, -1), true)
   const fileHandle = await current.getFileHandle(parts.at(-1)!, { create: true })
   const writable = await fileHandle.createWritable()
   await writable.write(new Blob([data as unknown as Uint8Array<ArrayBuffer>]))

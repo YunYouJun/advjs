@@ -1,6 +1,8 @@
 import type { AdvCharacter } from '@advjs/types'
 import { parseCharacterMd } from '@advjs/parser'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { useSettingsStore } from '../stores/useSettingsStore'
+import { useStudioStore } from '../stores/useStudioStore'
 import { downloadFromCloud, listCloudFiles } from '../utils/cloudSync'
 import { listFilesInDir, readFileFromDir } from '../utils/fileAccess'
 import { parseSceneMd } from '../utils/sceneMd'
@@ -30,18 +32,28 @@ export interface ProjectStats {
   knowledge: number
 }
 
-export function useProjectContent() {
-  const chapters = ref<ChapterInfo[]>([])
-  const characters = ref<AdvCharacter[]>([])
-  const scenes = ref<SceneInfo[]>([])
-  const stats = ref<ProjectStats>({ chapters: 0, characters: 0, scenes: 0, knowledge: 0 })
-  const isLoading = ref(false)
-  const knowledgeBase = useKnowledgeBase()
+// --- Module-level singleton state ---
+const chapters = ref<ChapterInfo[]>([])
+const characters = ref<AdvCharacter[]>([])
+const scenes = ref<SceneInfo[]>([])
+const stats = ref<ProjectStats>({ chapters: 0, characters: 0, scenes: 0, knowledge: 0 })
+const isLoading = ref(false)
 
-  // Store the last-used dir handle for reload
-  let lastDirHandle: FileSystemDirectoryHandle | null = null
-  let lastCosConfig: { bucket: string, region: string, secretId: string, secretKey: string } | null = null
-  let lastCosPrefix: string | null = null
+// Closure variables for reload
+let lastDirHandle: FileSystemDirectoryHandle | null = null
+let lastCosConfig: { bucket: string, region: string, secretId: string, secretKey: string } | null = null
+let lastCosPrefix: string | null = null
+
+let watchInitialized = false
+
+/**
+ * Composable for loading project content (chapters, characters, scenes, knowledge).
+ *
+ * This is a shared singleton — all callers share the same reactive state.
+ * An internal watch on `currentProject` automatically loads data on project switch.
+ */
+export function useProjectContent() {
+  const knowledgeBase = useKnowledgeBase()
 
   /**
    * Load project content from a local FileSystemDirectoryHandle
@@ -241,6 +253,37 @@ export function useProjectContent() {
     return lastDirHandle
   }
 
+  function $reset() {
+    chapters.value = []
+    characters.value = []
+    scenes.value = []
+    stats.value = { chapters: 0, characters: 0, scenes: 0, knowledge: 0 }
+    isLoading.value = false
+    lastDirHandle = null
+    lastCosConfig = null
+    lastCosPrefix = null
+    knowledgeBase.$reset()
+  }
+
+  if (!watchInitialized) {
+    watchInitialized = true
+    const studioStore = useStudioStore()
+    const settingsStore = useSettingsStore()
+
+    watch(() => studioStore.currentProject, async (project) => {
+      if (!project) {
+        $reset()
+        return
+      }
+      if (project.dirHandle) {
+        await loadFromDir(project.dirHandle)
+      }
+      else if (project.source === 'cos' && project.cosPrefix) {
+        await loadFromCos(settingsStore.cos, project.cosPrefix)
+      }
+    }, { immediate: true })
+  }
+
   return {
     chapters,
     characters,
@@ -252,5 +295,6 @@ export function useProjectContent() {
     loadFromCos,
     reload,
     getDirHandle,
+    $reset,
   }
 }

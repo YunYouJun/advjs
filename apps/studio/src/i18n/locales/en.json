@@ -124,7 +124,9 @@
     "errorTimeout": "⏰ **Timeout**: The request took too long. Please try again.",
     "errorGeneric": "❌ **Error**: {message}",
     "errorAborted": "⏹️ Response generation was cancelled.",
-    "errorUnexpected": "❌ **Unexpected Error**: {message}"
+    "errorUnexpected": "❌ **Unexpected Error**: {message}",
+    "loadEarlier": "Load earlier messages",
+    "messagesHidden": "{count} earlier messages"
   },
   "preview": {
     "title": "Play",
@@ -397,14 +399,55 @@
     "knowledgeEmpty": "No knowledge files found",
     "knowledgeEmptyHint": "Add .md files to adv/knowledge/",
     "knowledgeLoaded": "Knowledge loaded ({count} files)",
-    "professionalCharacter": "Professional"
+    "professionalCharacter": "Professional",
+    "showGraph": "Relationship Graph",
+    "hideGraph": "Hide Graph",
+    "noRelationships": "No relationship data",
+    "createSnapshot": "Create Snapshot",
+    "snapshots": "Snapshots",
+    "snapshotLabel": "Message {n}",
+    "snapshotCreated": "Snapshot created",
+    "snapshotMessages": "messages",
+    "restoreSnapshot": "Restore",
+    "restoreSnapshotConfirm": "Restoring this snapshot will replace the current conversation. Continue?",
+    "deleteSnapshot": "Delete Snapshot",
+    "deleteSnapshotConfirm": "Delete this snapshot? This cannot be undone.",
+    "noSnapshots": "No snapshots yet",
+    "diary": "Character Diary",
+    "diaryEmpty": "No diary entries yet",
+    "diaryGenerate": "Generate Today's Entry",
+    "diaryGenerating": "Generating...",
+    "diaryDelete": "Delete Entry",
+    "diaryDeleteConfirm": "Delete this diary entry?",
+    "diaryGenerateFailed": "Failed to generate diary. Please check your AI configuration.",
+    "timeline": "Timeline",
+    "timelineList": "List",
+    "timelineEmpty": "No timeline entries yet. Advance time or generate diary entries to populate.",
+    "timelineFilterAll": "All",
+    "timelineFilterEvents": "Events",
+    "timelineFilterDiaries": "Diaries",
+    "timelineLoadMore": "Load {count} earlier entries",
+    "period_morning": "Morning",
+    "period_afternoon": "Afternoon",
+    "period_evening": "Evening",
+    "period_night": "Night",
+    "emotionalState": "Emotional State",
+    "affinity": "Affinity",
+    "trust": "Trust",
+    "userProfile": "Their Impression",
+    "keyEvents": "Key Memories",
+    "autoDiaryGenerating": "Auto-generating diaries..."
   },
   "common": {
     "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
     "load": "Load",
     "clear": "Clear",
     "ok": "OK",
-    "back": "Back"
+    "back": "Back",
+    "expand": "Expand",
+    "collapse": "Collapse"
   },
   "contentEditor": {
     "formTab": "Form",
@@ -498,5 +541,75 @@
     "saveTypeChapter": "chapter",
     "saveTypeScene": "scene",
     "saveToProject": "Save {type} \"{label}\" to project"
+  },
+  "systemPrompt": {
+    "common": {
+      "characterInfoHeader": "# Character Information",
+      "expertiseHeader": "# Expertise Guidance",
+      "knowledgeRefHeader": "# {domain} Knowledge Reference",
+      "knowledgeRefInstruction": "Below is professional knowledge related to the current topic. Please reference it naturally in your responses:",
+      "worldBackgroundHeader": "# World Background",
+      "dialogueRulesHeader": "# Dialogue Rules",
+      "ruleStayInCharacter": "- Always respond in character, never break character",
+      "ruleKeepStyle": "- Maintain the character's speech style and personality traits",
+      "ruleUseBackground": "- Answer based on the character's background and areas of expertise",
+      "ruleUserLanguage": "- Respond in the user's language",
+      "ruleExpressEmotion": "- Express the character's emotions and attitudes when appropriate",
+      "ruleReferMemory": "- If there are character memories, naturally reference past conversation experiences"
+    },
+    "characterChat": {
+      "roleInstruction": "You are now playing the following character. Always maintain consistency. Reply to the user's messages in the character's tone and style.",
+      "contextSummaryPrefix": "[Conversation Summary] Below is a summary of previous conversations:\n{summary}"
+    },
+    "groupChat": {
+      "roleInstruction": "You are now playing the following character. Always maintain consistency.",
+      "presentCharactersHeader": "# Present Characters",
+      "relationshipsHeader": "# Character Relationships",
+      "relationshipFormat": "- Relationship with **{target}**: {type}{desc}",
+      "ruleGroupConversation": "- You are participating in a group conversation. Only say what your character would say, keep it brief and natural.",
+      "ruleNoSpeakForOthers": "- Do not speak or act for other characters",
+      "ruleCanMention": "- You can {'@'} or directly address other characters present",
+      "playerPrefix": "[Player]",
+      "defaultRoomName": "Group Chat {n}",
+      "speakerSelectionPrompt": "Based on the recent messages in this group conversation, determine who should most naturally speak next.\n\nParticipants:\n{participantList}\n\nRecent conversation:\n{msgSummary}\n\n{consecutiveWarning}\n\nReturn only the character ID who should speak next, nothing else.",
+      "consecutiveWarning": "Note: {id} has been speaking consecutively. Please choose someone else.",
+      "speakerSelectionSystem": "You are a conversation analysis system. Return only the character ID, no other text.",
+      "contextSummaryPrefix": "[Earlier conversation summary]: {summary}"
+    },
+    "player": "Player",
+    "viewMode": {
+      "characterPrefix": "The user is playing as \"{name}\", a character in this world. {personality}Treat them as a character present in the scene, address them by name, and react naturally to their presence. Here is information about \"{name}\":\n{charInfo}",
+      "godPrefix": "The user is an omniscient narrator/creator who exists outside the story world. They can observe everything, know all characters' thoughts, and guide the direction of events. Respond as you would to your creator — you may share inner thoughts, break the fourth wall, and accept narrative instructions."
+    },
+    "memory": {
+      "header": "# Character Memory",
+      "emotionalState": "Current emotional state: Affinity {affinity}/100, Trust {trust}/100, Mood: {mood}",
+      "userProfileHeader": "## Known User Information",
+      "keyEventsHeader": "## Past Key Events"
+    },
+    "state": {
+      "header": "# Character Current State",
+      "mood": "- Mood: {mood}",
+      "location": "- Location: {location}",
+      "health": "- Health: {health}",
+      "activity": "- Activity: {activity}",
+      "recentEventsHeader": "## Recent Events"
+    },
+    "worldContext": {
+      "worldviewHeader": "## Worldview",
+      "glossaryHeader": "## Glossary"
+    },
+    "clock": {
+      "header": "# Current World Time",
+      "weatherSuffix": ", Weather: {weather}",
+      "morning": "Morning",
+      "afternoon": "Afternoon",
+      "evening": "Evening",
+      "night": "Night"
+    },
+    "events": {
+      "header": "# Recent World Events",
+      "weatherChanged": "Weather changed to {weather}"
+    }
   }
 }

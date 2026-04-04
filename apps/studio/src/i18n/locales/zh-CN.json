@@ -124,7 +124,9 @@
     "errorTimeout": "⏰ **请求超时**：请求时间过长，请重试。",
     "errorGeneric": "❌ **错误**：{message}",
     "errorAborted": "⏹️ 已取消生成回复。",
-    "errorUnexpected": "❌ **意外错误**：{message}"
+    "errorUnexpected": "❌ **意外错误**：{message}",
+    "loadEarlier": "加载更早的消息",
+    "messagesHidden": "还有 {count} 条更早的消息"
   },
   "preview": {
     "title": "游玩",
@@ -397,14 +399,55 @@
     "knowledgeEmpty": "暂无知识文件",
     "knowledgeEmptyHint": "在 adv/knowledge/ 下添加 .md 文件",
     "knowledgeLoaded": "知识库已加载（{count} 个文件）",
-    "professionalCharacter": "专业角色"
+    "professionalCharacter": "专业角色",
+    "showGraph": "关系图谱",
+    "hideGraph": "收起图谱",
+    "noRelationships": "暂无关系数据",
+    "createSnapshot": "创建存档点",
+    "snapshots": "存档点",
+    "snapshotLabel": "第 {n} 条消息",
+    "snapshotCreated": "存档点已创建",
+    "snapshotMessages": "条消息",
+    "restoreSnapshot": "恢复",
+    "restoreSnapshotConfirm": "恢复后当前对话将被存档内容替换，确认继续？",
+    "deleteSnapshot": "删除存档",
+    "deleteSnapshotConfirm": "确认删除此存档点？此操作不可撤销。",
+    "noSnapshots": "暂无存档点",
+    "diary": "角色日记",
+    "diaryEmpty": "暂无日记",
+    "diaryGenerate": "生成今日日记",
+    "diaryGenerating": "生成中...",
+    "diaryDelete": "删除日记",
+    "diaryDeleteConfirm": "确认删除此日记？",
+    "diaryGenerateFailed": "日记生成失败，请检查 AI 配置后重试",
+    "timeline": "时间线",
+    "timelineList": "列表",
+    "timelineEmpty": "暂无时间线记录，推进时间或生成日记以填充",
+    "timelineFilterAll": "全部",
+    "timelineFilterEvents": "事件",
+    "timelineFilterDiaries": "日记",
+    "timelineLoadMore": "加载更早的 {count} 条记录",
+    "period_morning": "上午",
+    "period_afternoon": "下午",
+    "period_evening": "傍晚",
+    "period_night": "夜晚",
+    "emotionalState": "情感状态",
+    "affinity": "好感度",
+    "trust": "信任度",
+    "userProfile": "TA 对你的印象",
+    "keyEvents": "关键记忆",
+    "autoDiaryGenerating": "正在自动生成日记..."
   },
   "common": {
     "cancel": "取消",
+    "confirm": "确认",
+    "delete": "删除",
     "load": "加载",
     "clear": "清除",
     "ok": "确定",
-    "back": "返回"
+    "back": "返回",
+    "expand": "展开",
+    "collapse": "收起"
   },
   "contentEditor": {
     "formTab": "表单",
@@ -498,5 +541,75 @@
     "saveTypeChapter": "章节",
     "saveTypeScene": "场景",
     "saveToProject": "保存{type}「{label}」到项目"
+  },
+  "systemPrompt": {
+    "common": {
+      "characterInfoHeader": "# 角色信息",
+      "expertiseHeader": "# 专业领域指导",
+      "knowledgeRefHeader": "# {domain}知识参考",
+      "knowledgeRefInstruction": "以下是与当前话题相关的专业知识，回答时请自然引用：",
+      "worldBackgroundHeader": "# 世界背景",
+      "dialogueRulesHeader": "# 对话规则",
+      "ruleStayInCharacter": "- 始终以角色身份回复，不要跳出角色",
+      "ruleKeepStyle": "- 保持角色的说话风格和性格特征",
+      "ruleUseBackground": "- 根据角色的背景和知识领域来回答",
+      "ruleUserLanguage": "- 回复使用用户的语言",
+      "ruleExpressEmotion": "- 可以适当表达角色的情感和态度",
+      "ruleReferMemory": "- 如果有角色记忆，请自然地参考之前的对话经历"
+    },
+    "characterChat": {
+      "roleInstruction": "你现在扮演以下角色，请始终保持角色一致性。用角色的口吻和风格回复用户的消息。",
+      "contextSummaryPrefix": "[对话摘要] 以下是之前对话的概要：\n{summary}"
+    },
+    "groupChat": {
+      "roleInstruction": "你现在扮演以下角色，请始终保持角色一致性。",
+      "presentCharactersHeader": "# 在场角色",
+      "relationshipsHeader": "# 角色关系",
+      "relationshipFormat": "- 与 **{target}** 的关系：{type}{desc}",
+      "ruleGroupConversation": "- 你正在参与多人对话。只说你角色会说的话，保持简短自然。",
+      "ruleNoSpeakForOthers": "- 不要替其他角色说话或行动",
+      "ruleCanMention": "- 可以{'@'}或直接称呼在场的其他角色",
+      "playerPrefix": "[玩家]",
+      "defaultRoomName": "群聊 {n}",
+      "speakerSelectionPrompt": "根据以下多人对话的最近几条消息，判断谁最自然地应该接话。\n\n参与者：\n{participantList}\n\n最近对话：\n{msgSummary}\n\n{consecutiveWarning}\n\n只返回最应该接话的角色 ID，不要返回其他内容。",
+      "consecutiveWarning": "注意：{id} 已经连续发言了，请选择其他人。",
+      "speakerSelectionSystem": "你是一个对话分析系统。只返回角色 ID，不要有其他文字。",
+      "contextSummaryPrefix": "[早期对话摘要]: {summary}"
+    },
+    "player": "玩家",
+    "viewMode": {
+      "characterPrefix": "用户正在扮演「{name}」，是这个世界中的一个角色。{personality}请把他们当作在场的角色对待，用名字称呼他们，自然地对他们的存在做出反应。以下是关于「{name}」的信息：\n{charInfo}",
+      "godPrefix": "用户是全知全能的叙述者/创造者，存在于故事世界之外。他们可以观察一切、了解所有角色的想法、引导事件走向。请像对待你的创造者一样回应——可以分享内心想法、打破第四面墙、接受叙事指令。"
+    },
+    "memory": {
+      "header": "# 角色记忆",
+      "emotionalState": "当前情感状态：好感度 {affinity}/100，信任度 {trust}/100，心情：{mood}",
+      "userProfileHeader": "## 已知的用户信息",
+      "keyEventsHeader": "## 过往重要事件"
+    },
+    "state": {
+      "header": "# 角色当前状态",
+      "mood": "- 心情：{mood}",
+      "location": "- 位置：{location}",
+      "health": "- 健康：{health}",
+      "activity": "- 活动：{activity}",
+      "recentEventsHeader": "## 最近事件"
+    },
+    "worldContext": {
+      "worldviewHeader": "## 世界观",
+      "glossaryHeader": "## 术语表"
+    },
+    "clock": {
+      "header": "# 当前世界时间",
+      "weatherSuffix": "，天气：{weather}",
+      "morning": "早晨",
+      "afternoon": "下午",
+      "evening": "傍晚",
+      "night": "夜晚"
+    },
+    "events": {
+      "header": "# 最近世界事件",
+      "weatherChanged": "天气变为{weather}"
+    }
   }
 }

@@ -24,6 +24,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStudioStore } from '../stores/useStudioStore'
 import { detectAdvProject, openProjectDirectory } from '../utils/fileAccess'
+import { toSlug } from '../utils/slug'
 
 const { t } = useI18n()
 const studioStore = useStudioStore()
@@ -36,7 +37,7 @@ const currentName = computed(() => currentProject.value?.name)
 /** Other projects (exclude active one) shown in popover */
 const otherProjects = computed(() =>
   studioStore.projects
-    .filter(p => p.name !== currentName.value)
+    .filter(p => p.projectId !== currentProject.value?.projectId)
     .slice(0, 5),
 )
 
@@ -77,12 +78,12 @@ function openPopover(e: Event) {
 }
 
 function selectProject(project: StudioProject) {
-  studioStore.setCurrentProject(project)
+  studioStore.switchProject(project)
   popoverOpen.value = false
 }
 
 function backToHome() {
-  studioStore.setCurrentProject(null)
+  studioStore.switchProject(null)
   popoverOpen.value = false
 }
 
@@ -91,7 +92,8 @@ async function handleOpenLocal() {
   try {
     const dirHandle = await openProjectDirectory()
     const detection = await detectAdvProject(dirHandle)
-    studioStore.setCurrentProject({
+    studioStore.switchProject({
+      projectId: toSlug(detection.isValid ? detection.name : dirHandle.name) || dirHandle.name,
       name: detection.isValid ? detection.name : dirHandle.name,
       dirHandle,
       source: 'local',

@@ -1,68 +1,87 @@
 import type { AdvCharacter } from '@advjs/types'
 import { exportCharacterForAI } from '@advjs/parser'
-import { computed, reactive, ref, watch } from 'vue'
+import { defineStore } from 'pinia'
+import { computed, ref } from 'vue'
+import i18n from '../i18n'
+import { db } from '../utils/db'
+import { useProjectPersistence } from '../utils/projectPersistence'
+import { getCurrentProjectId } from '../utils/projectScope'
 
 export type ViewMode = 'character' | 'god' | 'visitor'
 
-const STORAGE_KEY = 'advjs-studio-view-mode'
+const MODE_STORAGE_KEY = 'advjs-studio-view-mode'
 
-interface ViewModeStorageData {
-  mode: ViewMode
-  playerCharacterId: string | null
-  customCharacters: AdvCharacter[]
-}
-
-function loadFromStorage(): ViewModeStorageData {
+/**
+ * Load the global `mode` preference from localStorage.
+ * Project-level data (playerCharacterId, customCharacters) is now in Dexie.
+ */
+function loadModeFromStorage(): ViewMode {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(MODE_STORAGE_KEY)
     if (raw) {
-      const data = JSON.parse(raw) as ViewModeStorageData
-      return {
-        mode: data.mode || 'visitor',
-        playerCharacterId: data.playerCharacterId || null,
-        customCharacters: data.customCharacters || [],
-      }
+      const data = JSON.parse(raw)
+      return data.mode || 'visitor'
     }
   }
   catch {
     // ignore
   }
-  return { mode: 'visitor', playerCharacterId: null, customCharacters: [] }
+  return 'visitor'
 }
 
-function saveToStorage(data: ViewModeStorageData) {
+function saveModeToStorage(mode: ViewMode) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    localStorage.setItem(MODE_STORAGE_KEY, JSON.stringify({ mode }))
   }
   catch {
     // ignore
   }
 }
 
-const stored = loadFromStorage()
+export const useViewModeStore = defineStore('viewMode', () => {
+  // --- Global preference (localStorage) ---
+  const mode = ref<ViewMode>(loadModeFromStorage())
 
-const mode = ref<ViewMode>(stored.mode)
-const playerCharacterId = ref<string | null>(stored.playerCharacterId)
-const customCharacters = ref<AdvCharacter[]>(stored.customCharacters)
+  // --- Project-scoped data (Dexie) ---
+  const playerCharacterId = ref<string | null>(null)
+  const customCharacters = ref<AdvCharacter[]>([])
 
-// Persist on change
-watch([mode, playerCharacterId, customCharacters], () => {
-  saveToStorage({
-    mode: mode.value,
-    playerCharacterId: playerCharacterId.value,
-    customCharacters: customCharacters.value,
+  const playerCharacter = computed<AdvCharacter | null>(() => {
+    if (!playerCharacterId.value)
+      return null
+    return customCharacters.value.find(c => c.id === playerCharacterId.value) || null
   })
-}, { deep: true })
 
-const playerCharacter = computed<AdvCharacter | null>(() => {
-  if (!playerCharacterId.value)
-    return null
-  return customCharacters.value.find(c => c.id === playerCharacterId.value) || null
-})
+  // --- Dexie persistence ---
 
-export function useViewModeStore() {
+  const { flush, init, $reset } = useProjectPersistence({
+    source: [playerCharacterId, customCharacters],
+    save: async () => {
+      const pid = getCurrentProjectId()
+      await db.viewModes.put({
+        projectId: pid,
+        playerCharacterId: playerCharacterId.value,
+        customCharacters: customCharacters.value,
+      })
+    },
+    load: async (pid) => {
+      const row = await db.viewModes.get(pid)
+      if (row) {
+        playerCharacterId.value = row.playerCharacterId
+        customCharacters.value = row.customCharacters || []
+      }
+    },
+    clear: () => {
+      playerCharacterId.value = null
+      customCharacters.value = []
+    },
+  })
+
+  // --- Actions ---
+
   function setMode(m: ViewMode) {
     mode.value = m
+    saveModeToStorage(m)
   }
 
   function setPlayerCharacter(id: string) {
@@ -100,10 +119,14 @@ export function useViewModeStore() {
           ? pc.personality.slice(0, 100)
           : ''
         const charInfo = exportCharacterForAI(pc)
-        return `用户正在扮演「${pc.name}」，是这个世界中的一个角色。${personalitySummary ? `${personalitySummary}。` : ''}请把他们当作在场的角色对待，用名字称呼他们，自然地对他们的存在做出反应。以下是关于「${pc.name}」的信息：\n${charInfo}`
+        return i18n.global.t('systemPrompt.viewMode.characterPrefix', {
+          name: pc.name,
+          personality: personalitySummary ? `${personalitySummary}。` : '',
+          charInfo,
+        })
       }
       case 'god':
-        return '用户是全知全能的叙述者/创造者，存在于故事世界之外。他们可以观察一切、了解所有角色的想法、引导事件走向。请像对待你的创造者一样回应——可以分享内心想法、打破第四面墙、接受叙事指令。'
+        return i18n.global.t('systemPrompt.viewMode.godPrefix')
       case 'visitor':
       default:
         return ''
@@ -119,7 +142,7 @@ export function useViewModeStore() {
     return prefix ? `${prefix}\n\n${worldContext}` : worldContext
   }
 
-  return reactive({
+  return {
     mode,
     playerCharacterId,
     customCharacters,
@@ -132,5 +155,8 @@ export function useViewModeStore() {
     removeCustomCharacter,
     getSystemPromptPrefix,
     getEffectiveWorldContext,
-  })
-}
+    init,
+    flush,
+    $reset,
+  }
+})

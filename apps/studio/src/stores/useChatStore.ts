@@ -1,12 +1,17 @@
 import type { ChatMessage as AiChatMessage } from '../utils/aiClient'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import i18n from '../i18n'
-import { AiApiError, buildStreamOptions, streamChat } from '../utils/aiClient'
 import { buildImagePromptTemplate, detectImageIntent } from '../utils/aiImageClient'
+import { abortAndClear, pushNotConfiguredFallback, streamToMessage } from '../utils/chatUtils'
 import { downloadFromCloud } from '../utils/cloudSync'
+import { db } from '../utils/db'
 import { readFileFromDir } from '../utils/fileAccess'
+import { assembleProjectContext } from '../utils/projectContext'
+import { useProjectPersistence } from '../utils/projectPersistence'
+import { getCurrentProjectId } from '../utils/projectScope'
 import { useAiSettingsStore } from './useAiSettingsStore'
+import { useWorldClockStore } from './useWorldClockStore'
+import { useWorldEventStore } from './useWorldEventStore'
 
 export interface ChatMessage {
   role: 'user' | 'assistant'
@@ -14,12 +19,64 @@ export interface ChatMessage {
   timestamp: number
 }
 
+/** Max messages to persist (older messages trimmed on save) */
+const MAX_STORED_MESSAGES = 100
+/** When trimming, keep only the most recent N messages */
+const TRIM_TO = 60
+
 export const useChatStore = defineStore('chat', () => {
   const messages = ref<ChatMessage[]>([])
   const isLoading = ref(false)
   const projectContext = ref('')
   const streamingContent = ref('')
   const currentAbortController = ref<AbortController | null>(null)
+
+  // --- Dexie persistence ---
+
+  const { flush, init, $reset: _persistReset } = useProjectPersistence({
+    source: messages,
+    save: async () => {
+      const pid = getCurrentProjectId()
+      const toSave = messages.value.length > MAX_STORED_MESSAGES
+        ? messages.value.slice(-TRIM_TO)
+        : messages.value
+      const rows = toSave.map((m, i) => ({
+        projectId: pid,
+        id: `${m.timestamp}-${i}`,
+        role: m.role,
+        content: m.content,
+        timestamp: m.timestamp,
+      }))
+      await db.transaction('rw', db.chatMessages, async () => {
+        const existing = await db.chatMessages.where('projectId').equals(pid).primaryKeys()
+        await db.chatMessages.bulkDelete(existing)
+        await db.chatMessages.bulkPut(rows)
+      })
+    },
+    load: async (pid) => {
+      const rows = await db.chatMessages
+        .where('projectId')
+        .equals(pid)
+        .sortBy('timestamp')
+      if (rows.length > 0) {
+        messages.value = rows.map(r => ({
+          role: r.role,
+          content: r.content,
+          timestamp: r.timestamp,
+        }))
+      }
+    },
+    clear: () => {
+      stopGeneration()
+      messages.value = []
+      projectContext.value = ''
+      streamingContent.value = ''
+    },
+  })
+
+  function $reset() {
+    _persistReset()
+  }
 
   async function sendMessage(content: string) {
     messages.value.push({
@@ -32,15 +89,7 @@ export const useChatStore = defineStore('chat', () => {
 
     // If AI is not configured, provide a helpful fallback
     if (!aiSettings.isConfigured) {
-      isLoading.value = true
-      setTimeout(() => {
-        messages.value.push({
-          role: 'assistant',
-          content: i18n.global.t('chat.aiNotConfiguredMessage'),
-          timestamp: Date.now(),
-        })
-        isLoading.value = false
-      }, 300)
+      pushNotConfiguredFallback(messages.value, isLoading)
       return
     }
 
@@ -60,6 +109,15 @@ export const useChatStore = defineStore('chat', () => {
       if (projectContext.value)
         systemContent += `\n\n# Project Context\n${projectContext.value}`
 
+      const clockStore = useWorldClockStore()
+      const eventStore = useWorldEventStore()
+      const clockPrompt = clockStore.formatClockForPrompt()
+      const eventsPrompt = eventStore.formatEventsForPrompt()
+      if (clockPrompt)
+        systemContent += `\n\n${clockPrompt}`
+      if (eventsPrompt)
+        systemContent += `\n\n${eventsPrompt}`
+
       systemMessages.push({ role: 'system', content: systemContent })
     }
 
@@ -70,76 +128,16 @@ export const useChatStore = defineStore('chat', () => {
 
     const allMessages = [...systemMessages, ...chatHistory]
 
-    // Create abort controller for cancellation
-    const abortController = new AbortController()
-    currentAbortController.value = abortController
+    await streamToMessage({
+      allMessages,
+      messageList: messages.value,
+      placeholderRole: 'assistant',
+      streamingContent,
+      isLoading,
+      currentAbortController,
+    })
 
-    // Add a placeholder message for streaming
-    const assistantMsg: ChatMessage = {
-      role: 'assistant',
-      content: '',
-      timestamp: Date.now(),
-    }
-    messages.value.push(assistantMsg)
-    const msgIndex = messages.value.length - 1
-
-    try {
-      const options = buildStreamOptions(
-        allMessages,
-        aiSettings.config,
-        aiSettings.effectiveBaseURL,
-        aiSettings.effectiveModel,
-        abortController.signal,
-      )
-
-      let accumulated = ''
-      for await (const delta of streamChat(options)) {
-        accumulated += delta
-        streamingContent.value = accumulated
-        // Directly assign content to avoid creating a new object on every delta
-        messages.value[msgIndex].content = accumulated
-      }
-
-      streamingContent.value = ''
-    }
-    catch (err) {
-      streamingContent.value = ''
-
-      let errorMessage: string
-      if (err instanceof AiApiError) {
-        switch (err.type) {
-          case 'auth':
-            errorMessage = i18n.global.t('chat.errorAuth')
-            break
-          case 'rate_limit':
-            errorMessage = i18n.global.t('chat.errorRateLimit')
-            break
-          case 'network':
-            errorMessage = i18n.global.t('chat.errorNetwork')
-            break
-          case 'timeout':
-            errorMessage = i18n.global.t('chat.errorTimeout')
-            break
-          default:
-            errorMessage = i18n.global.t('chat.errorGeneric', { message: err.message })
-        }
-      }
-      else if (err instanceof DOMException && err.name === 'AbortError') {
-        errorMessage = i18n.global.t('chat.errorAborted')
-      }
-      else {
-        errorMessage = i18n.global.t('chat.errorUnexpected', { message: err instanceof Error ? err.message : 'Unknown error' })
-      }
-
-      messages.value[msgIndex] = {
-        ...messages.value[msgIndex],
-        content: messages.value[msgIndex].content || errorMessage,
-      }
-    }
-    finally {
-      isLoading.value = false
-      currentAbortController.value = null
-    }
+    flush().catch(() => {})
   }
 
   async function handleImageIntent(content: string) {
@@ -225,10 +223,7 @@ To enable direct image generation, configure an image provider in **Settings →
   }
 
   function stopGeneration() {
-    if (currentAbortController.value) {
-      currentAbortController.value.abort()
-      currentAbortController.value = null
-    }
+    abortAndClear(currentAbortController)
   }
 
   function clearMessages() {
@@ -239,36 +234,9 @@ To enable direct image generation, configure an image provider in **Settings →
 
   async function loadProjectContext(dirHandle: FileSystemDirectoryHandle) {
     try {
-      const parts: string[] = []
-
-      // Read all context files in parallel (mirrors MCP Server resources)
-      const reads = await Promise.allSettled([
-        readFileFromDir(dirHandle, 'adv/world.md'),
-        readFileFromDir(dirHandle, 'adv/outline.md'),
-        readFileFromDir(dirHandle, 'adv/glossary.md'),
-        readFileFromDir(dirHandle, 'adv/characters/README.md'),
-        readFileFromDir(dirHandle, 'adv/chapters/README.md'),
-        readFileFromDir(dirHandle, 'adv/scenes/README.md'),
-      ])
-
-      const [world, outline, glossary, chars, chapters, scenes] = reads.map(
-        r => r.status === 'fulfilled' ? r.value : '',
+      projectContext.value = await assembleProjectContext(
+        path => readFileFromDir(dirHandle, path),
       )
-
-      if (world)
-        parts.push(`## World Setting\n${world}`)
-      if (outline)
-        parts.push(`## Story Outline\n${outline}`)
-      if (chapters)
-        parts.push(`## Chapters\n${chapters}`)
-      if (chars)
-        parts.push(`## Characters\n${chars}`)
-      if (scenes)
-        parts.push(`## Scenes\n${scenes}`)
-      if (glossary)
-        parts.push(`## Glossary\n${glossary}`)
-
-      projectContext.value = parts.join('\n\n')
     }
     catch {
       projectContext.value = ''
@@ -284,35 +252,9 @@ To enable direct image generation, configure an image provider in **Settings →
     prefix: string,
   ) {
     try {
-      const parts: string[] = []
-
-      const reads = await Promise.allSettled([
-        downloadFromCloud(cosConfig, `${prefix}adv/world.md`),
-        downloadFromCloud(cosConfig, `${prefix}adv/outline.md`),
-        downloadFromCloud(cosConfig, `${prefix}adv/glossary.md`),
-        downloadFromCloud(cosConfig, `${prefix}adv/characters/README.md`),
-        downloadFromCloud(cosConfig, `${prefix}adv/chapters/README.md`),
-        downloadFromCloud(cosConfig, `${prefix}adv/scenes/README.md`),
-      ])
-
-      const [world, outline, glossary, chars, chapters, scenes] = reads.map(
-        r => r.status === 'fulfilled' ? r.value : '',
+      projectContext.value = await assembleProjectContext(
+        path => downloadFromCloud(cosConfig, `${prefix}${path}`),
       )
-
-      if (world)
-        parts.push(`## World Setting\n${world}`)
-      if (outline)
-        parts.push(`## Story Outline\n${outline}`)
-      if (chapters)
-        parts.push(`## Chapters\n${chapters}`)
-      if (chars)
-        parts.push(`## Characters\n${chars}`)
-      if (scenes)
-        parts.push(`## Scenes\n${scenes}`)
-      if (glossary)
-        parts.push(`## Glossary\n${glossary}`)
-
-      projectContext.value = parts.join('\n\n')
     }
     catch {
       projectContext.value = ''
@@ -329,5 +271,8 @@ To enable direct image generation, configure an image provider in **Settings →
     clearMessages,
     loadProjectContext,
     loadProjectContextFromCos,
+    $reset,
+    flush,
+    init,
   }
 })

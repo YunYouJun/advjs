@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { WorldEvent } from '@advjs/types'
+import type { CharacterDiaryEntry } from '../stores/useCharacterDiaryStore'
 import {
   IonContent,
   IonHeader,
@@ -6,20 +8,22 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/vue'
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import CharacterCard from '../components/CharacterCard.vue'
 import CreateGroupChatModal from '../components/CreateGroupChatModal.vue'
+import RelationshipGraph from '../components/RelationshipGraph.vue'
 import SelectPlayerCharacterModal from '../components/SelectPlayerCharacterModal.vue'
 import ViewModeSwitcher from '../components/ViewModeSwitcher.vue'
+import WorldTimeline from '../components/WorldTimeline.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useWorldContext } from '../composables/useWorldContext'
 import { useCharacterChatStore } from '../stores/useCharacterChatStore'
+import { useCharacterDiaryStore } from '../stores/useCharacterDiaryStore'
 import { useCharacterMemoryStore } from '../stores/useCharacterMemoryStore'
 import { useCharacterStateStore } from '../stores/useCharacterStateStore'
 import { useGroupChatStore } from '../stores/useGroupChatStore'
-import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { useViewModeStore } from '../stores/useViewModeStore'
 import { useWorldClockStore } from '../stores/useWorldClockStore'
@@ -31,22 +35,24 @@ import '../styles/world.css'
 const { t } = useI18n()
 const router = useRouter()
 const studioStore = useStudioStore()
-const settingsStore = useSettingsStore()
 const characterChatStore = useCharacterChatStore()
 const memoryStore = useCharacterMemoryStore()
 const stateStore = useCharacterStateStore()
 const clockStore = useWorldClockStore()
 const eventStore = useWorldEventStore()
 const groupChatStore = useGroupChatStore()
-const { characters, isLoading, loadFromDir, loadFromCos } = useProjectContent()
-const { worldContext, loadFromDir: loadWorldFromDir, loadFromCos: loadWorldFromCos } = useWorldContext()
+const diaryStore = useCharacterDiaryStore()
+const { characters, isLoading } = useProjectContent()
+const { worldContext } = useWorldContext()
 
 const viewModeStore = useViewModeStore()
 
 const hasProject = computed(() => !!studioStore.currentProject)
 const showEvents = ref(true)
+const showGraph = ref(false)
 const showCreateGroupModal = ref(false)
 const showSelectPlayerModal = ref(false)
+const timelineView = ref<'list' | 'timeline'>('list')
 
 const groupRooms = computed(() => groupChatStore.listRooms())
 
@@ -61,16 +67,22 @@ const EVENT_TYPE_EMOJI: Record<string, string> = {
 }
 
 // Register clock advance listener to trigger event generation
-function onClockAdvance(dateChanged: boolean) {
-  eventStore.generateEvents(
+const autoDiaryInProgress = ref(false)
+
+async function onClockAdvance(dateChanged: boolean) {
+  const weather = await eventStore.generateEvents(
     worldContext.value,
     characters.value,
     clockStore.clock,
     dateChanged,
-  ).then((weather) => {
-    if (typeof weather === 'string')
-      clockStore.setWeather(weather)
-  })
+  )
+  if (typeof weather === 'string')
+    clockStore.setWeather(weather)
+  if (dateChanged && characters.value.length > 0) {
+    autoDiaryInProgress.value = true
+    await Promise.all(characters.value.map(char => diaryStore.generateDiary(char)))
+    autoDiaryInProgress.value = false
+  }
 }
 
 onMounted(() => {
@@ -80,24 +92,6 @@ onMounted(() => {
 onUnmounted(() => {
   clockStore.offAdvance(onClockAdvance)
 })
-
-// Load characters and world context when project changes
-watch(() => studioStore.currentProject, async (project) => {
-  if (!project)
-    return
-  if (project.dirHandle) {
-    await Promise.all([
-      loadFromDir(project.dirHandle),
-      loadWorldFromDir(project.dirHandle),
-    ])
-  }
-  else if (project.source === 'cos' && project.cosPrefix) {
-    await Promise.all([
-      loadFromCos(settingsStore.cos, project.cosPrefix),
-      loadWorldFromCos(settingsStore.cos, project.cosPrefix),
-    ])
-  }
-}, { immediate: true })
 
 onMounted(() => {
   if (!studioStore.currentProject)
@@ -154,6 +148,75 @@ const displayCharacters = computed(() => {
     return characters.value.filter(c => c.id !== viewModeStore.playerCharacterId)
   }
   return characters.value
+})
+
+// --- Timeline ---
+
+export interface TimelineEntry {
+  id: string
+  kind: 'event' | 'diary'
+  date: string
+  period: string
+  characterId?: string
+  characterIds?: string[]
+  summary: string
+  type?: string
+  mood?: string
+  createdAt: number
+  source: WorldEvent | CharacterDiaryEntry
+  /** Full diary content (only present when kind === 'diary') */
+  diaryContent?: string
+}
+
+const PERIOD_ORDER: Record<string, number> = {
+  morning: 0,
+  afternoon: 1,
+  evening: 2,
+  night: 3,
+}
+
+const timelineEntries = computed<TimelineEntry[]>(() => {
+  const events: TimelineEntry[] = eventStore.events.map(e => ({
+    id: e.id,
+    kind: 'event' as const,
+    date: e.date,
+    period: e.period,
+    characterId: e.characterIds?.[0],
+    characterIds: e.characterIds,
+    summary: e.summary,
+    type: e.type,
+    createdAt: e.timestamp,
+    source: e,
+  }))
+
+  const diaries: TimelineEntry[] = []
+  for (const [, list] of diaryStore.diaries) {
+    for (const d of list) {
+      diaries.push({
+        id: d.id,
+        kind: 'diary' as const,
+        date: d.date,
+        period: d.period,
+        characterId: d.characterId,
+        characterIds: [d.characterId],
+        summary: d.content.slice(0, 80) + (d.content.length > 80 ? '…' : ''),
+        mood: d.mood,
+        createdAt: d.createdAt,
+        source: d,
+        diaryContent: d.content,
+      })
+    }
+  }
+
+  return [...events, ...diaries].sort((a, b) => {
+    if (a.date !== b.date)
+      return a.date.localeCompare(b.date)
+    const pa = PERIOD_ORDER[a.period] ?? 99
+    const pb = PERIOD_ORDER[b.period] ?? 99
+    if (pa !== pb)
+      return pa - pb
+    return a.createdAt - b.createdAt
+  })
 })
 </script>
 
@@ -222,6 +285,9 @@ const displayCharacters = computed(() => {
             >
               ⏭️
             </button>
+            <span v-if="autoDiaryInProgress" class="world-auto-diary-hint">
+              {{ t('world.autoDiaryGenerating') }}
+            </span>
           </div>
         </div>
 
@@ -260,29 +326,58 @@ const displayCharacters = computed(() => {
 
         <!-- World Events Feed -->
         <div class="world-events-section">
-          <button
-            class="world-events-header"
-            @click="showEvents = !showEvents"
-          >
-            <span>🌍 {{ t('world.worldDynamics') }}</span>
-            <span class="world-events-toggle">{{ showEvents ? '▼' : '▶' }}</span>
-          </button>
-
-          <div v-if="showEvents" class="world-events-list">
-            <div v-if="eventStore.isGenerating" class="world-events-loading">
-              {{ t('world.generatingEvents') }}
-            </div>
-            <div v-else-if="recentEvents.length === 0" class="world-events-empty">
-              {{ t('world.noEvents') }}
-            </div>
-            <div
-              v-for="event in recentEvents"
-              :key="event.id"
-              class="world-event-item"
+          <div class="world-events-header-row">
+            <button
+              class="world-events-header"
+              @click="showEvents = !showEvents"
             >
-              <span class="world-event-icon">{{ EVENT_TYPE_EMOJI[event.type] || '🔵' }}</span>
-              <span class="world-event-summary">{{ event.summary }}</span>
+              <span>🌍 {{ t('world.worldDynamics') }}</span>
+              <span class="world-events-toggle">{{ showEvents ? '▼' : '▶' }}</span>
+            </button>
+            <div v-if="showEvents" class="world-events-view-switch">
+              <button
+                class="world-view-btn"
+                :class="{ active: timelineView === 'list' }"
+                @click="timelineView = 'list'"
+              >
+                {{ t('world.timelineList') }}
+              </button>
+              <button
+                class="world-view-btn"
+                :class="{ active: timelineView === 'timeline' }"
+                @click="timelineView = 'timeline'"
+              >
+                {{ t('world.timeline') }}
+              </button>
             </div>
+          </div>
+
+          <div v-if="showEvents">
+            <!-- List view (original) -->
+            <div v-if="timelineView === 'list'" class="world-events-list">
+              <div v-if="eventStore.isGenerating" class="world-events-loading">
+                {{ t('world.generatingEvents') }}
+              </div>
+              <div v-else-if="recentEvents.length === 0" class="world-events-empty">
+                {{ t('world.noEvents') }}
+              </div>
+              <div
+                v-for="event in recentEvents"
+                :key="event.id"
+                class="world-event-item"
+              >
+                <span class="world-event-icon">{{ EVENT_TYPE_EMOJI[event.type] || '🔵' }}</span>
+                <span class="world-event-summary">{{ event.summary }}</span>
+              </div>
+            </div>
+
+            <!-- Timeline view -->
+            <WorldTimeline
+              v-else
+              :entries="timelineEntries"
+              :characters="displayCharacters"
+              @select-character="(id: string) => openCharacterChat({ id })"
+            />
           </div>
         </div>
 
@@ -322,6 +417,24 @@ const displayCharacters = computed(() => {
           </div>
         </div>
 
+        <!-- Relationship Graph Toggle + Graph -->
+        <div v-if="displayCharacters.length > 1" class="world-graph-section">
+          <button
+            class="world-graph-toggle"
+            @click="showGraph = !showGraph"
+          >
+            <span>🔗 {{ showGraph ? t('world.hideGraph') : t('world.showGraph') }}</span>
+            <span class="world-events-toggle">{{ showGraph ? '▼' : '▶' }}</span>
+          </button>
+          <Transition name="fade">
+            <RelationshipGraph
+              v-if="showGraph"
+              :characters="displayCharacters"
+              @select-character="(id: string) => openCharacterChat({ id })"
+            />
+          </Transition>
+        </div>
+
         <!-- Character list -->
         <div class="world-characters">
           <div
@@ -338,6 +451,16 @@ const displayCharacters = computed(() => {
             <p v-if="getLastMessagePreview(character.id)" class="world-character-preview">
               {{ getLastMessagePreview(character.id) }}
             </p>
+            <div class="world-character-actions">
+              <button
+                class="world-character-diary-btn"
+                :disabled="diaryStore.isGenerating(character.id)"
+                :title="t('world.diaryGenerate')"
+                @click.stop="diaryStore.generateDiary(character)"
+              >
+                📓
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -399,7 +522,25 @@ const displayCharacters = computed(() => {
 
 .world-clock-controls {
   display: flex;
+  align-items: center;
   gap: 4px;
+}
+
+.world-auto-diary-hint {
+  font-size: var(--adv-font-caption, 11px);
+  color: #8b5cf6;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
 }
 
 .world-clock-btn {
@@ -445,6 +586,57 @@ const displayCharacters = computed(() => {
 :root.dark .world-events-section {
   background: var(--adv-surface-card, #1e1e2e);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.world-events-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: var(--adv-space-sm);
+}
+
+.world-events-header-row .world-events-header {
+  flex: 1;
+}
+
+.world-events-view-switch {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.world-view-btn {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--adv-border-subtle, #e2e8f0);
+  background: var(--adv-surface-elevated, #f8fafc);
+  color: var(--adv-text-tertiary, #94a3b8);
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.world-view-btn:hover {
+  border-color: rgba(139, 92, 246, 0.4);
+  color: var(--adv-text-primary);
+}
+
+.world-view-btn.active {
+  background: rgba(139, 92, 246, 0.1);
+  border-color: rgba(139, 92, 246, 0.4);
+  color: #8b5cf6;
+  font-weight: 600;
+}
+
+:root.dark .world-view-btn {
+  background: var(--adv-surface-elevated, #252536);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+:root.dark .world-view-btn.active {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.4);
+  color: #a78bfa;
 }
 
 .world-events-header {
@@ -494,5 +686,69 @@ const displayCharacters = computed(() => {
 
 .world-event-summary {
   line-height: 1.5;
+}
+
+/* Relationship Graph Section */
+.world-graph-section {
+  margin: var(--adv-space-sm) var(--adv-space-md);
+  background: var(--adv-surface-card, #fff);
+  border-radius: var(--adv-radius-lg, 12px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+:root.dark .world-graph-section {
+  background: var(--adv-surface-card, #1e1e2e);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.world-graph-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--adv-space-sm) var(--adv-space-md);
+  border: none;
+  background: none;
+  color: var(--adv-text-primary);
+  font-size: var(--adv-font-body-sm, 13px);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Fade transition for graph */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.world-character-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 4px var(--adv-space-md) 0;
+}
+
+.world-character-diary-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 18px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  padding: 4px;
+}
+
+.world-character-diary-btn:hover {
+  opacity: 1;
+}
+
+.world-character-diary-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 </style>

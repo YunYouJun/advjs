@@ -26,6 +26,7 @@ import { useRouter } from 'vue-router'
 import CharacterEditorForm from '../components/CharacterEditorForm.vue'
 import { usePlayerCreator } from '../composables/usePlayerCreator'
 import { useViewModeStore } from '../stores/useViewModeStore'
+import { getCharacterInitials, getValidAvatarUrl } from '../utils/chatUtils'
 import '../styles/player-creator.css'
 
 const { t, locale } = useI18n()
@@ -150,18 +151,7 @@ function goToSettings() {
   router.push('/tabs/me/settings/ai')
 }
 
-function getInitials(name: string): string {
-  return name ? name.slice(0, 2) : '?'
-}
-
-const avatarUrl = computed(() => {
-  const avatar = editableCharacter.value.avatar
-  if (!avatar)
-    return ''
-  if (avatar.startsWith('http') || avatar.startsWith('data:') || avatar.startsWith('blob:'))
-    return avatar
-  return ''
-})
+const avatarUrl = computed(() => getValidAvatarUrl(editableCharacter.value.avatar))
 </script>
 
 <template>
@@ -283,7 +273,7 @@ const avatarUrl = computed(() => {
               <div class="pc-card">
                 <div class="pc-card__avatar">
                   <img v-if="avatarUrl" :src="avatarUrl" alt="">
-                  <span v-else class="pc-card__initials">{{ getInitials(editableCharacter.name) }}</span>
+                  <span v-else class="pc-card__initials">{{ getCharacterInitials(editableCharacter.name) }}</span>
                 </div>
                 <div class="pc-card__info">
                   <div class="pc-card__name">

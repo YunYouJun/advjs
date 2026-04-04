@@ -1,7 +1,7 @@
 import type { ComputedRef, Ref } from 'vue'
 import { computed, ref } from 'vue'
 import { downloadFromCloud, listCloudFiles } from '../utils/cloudSync'
-import { readFileFromDir } from '../utils/fileAccess'
+import { readFileFromDir, resolveSubdir } from '../utils/fileAccess'
 
 const TITLE_RE = /^#[ \t]+(\S[\S \t]*)$/m
 const MD_EXT_RE = /\.md$/
@@ -300,9 +300,7 @@ async function listMdFilesRecursive(
   try {
     let targetDir: FileSystemDirectoryHandle = dir
     if (prefix) {
-      const parts = prefix.split('/').filter(Boolean)
-      for (const part of parts)
-        targetDir = await targetDir.getDirectoryHandle(part)
+      targetDir = await resolveSubdir(dir, prefix.split('/').filter(Boolean))
     }
 
     for await (const entry of targetDir.values()) {
@@ -323,21 +321,24 @@ async function listMdFilesRecursive(
   return files.sort()
 }
 
+// --- Module-level singleton state ---
+const entries: Ref<KnowledgeEntry[]> = ref([])
+const isLoading: Ref<boolean> = ref(false)
+
+const domains: ComputedRef<string[]> = computed(() => {
+  const domainSet = new Set(entries.value.map(e => e.domain))
+  return [...domainSet].sort()
+})
+
 /**
  * Composable for loading, indexing, and querying knowledge files.
  *
  * Knowledge files are .md files stored in `adv/knowledge/` or `adv/knowledge/{domain}/`.
  * They are split by `##` headings into sections for fine-grained retrieval.
+ *
+ * This is a shared singleton — all callers share the same reactive state.
  */
 export function useKnowledgeBase() {
-  const entries: Ref<KnowledgeEntry[]> = ref([])
-  const isLoading: Ref<boolean> = ref(false)
-
-  const domains: ComputedRef<string[]> = computed(() => {
-    const domainSet = new Set(entries.value.map(e => e.domain))
-    return [...domainSet].sort()
-  })
-
   /**
    * Parse a single knowledge file into a KnowledgeEntry.
    */
@@ -515,6 +516,11 @@ export function useKnowledgeBase() {
     return selectedParts.join('\n\n')
   }
 
+  function $reset() {
+    entries.value = []
+    isLoading.value = false
+  }
+
   return {
     entries,
     domains,
@@ -524,5 +530,6 @@ export function useKnowledgeBase() {
     getEntriesForDomain,
     getDomainSummary,
     selectRelevantKnowledge,
+    $reset,
   }
 }

@@ -49,6 +49,7 @@ catalog:
   body-parser: ^2.2.2
   cos-js-sdk-v5: ^1.10.1
   cos-nodejs-sdk-v5: ^2.16.0-beta.8
+  dexie: ^4.4.1
   express: ^5.2.1
   floating-vue: ^5.2.2
   ionicons: ^7.4.0

@@ -1,5 +1,5 @@
 /**
- * Persist FileSystemDirectoryHandle to IndexedDB.
+ * Persist FileSystemDirectoryHandle to IndexedDB via Dexie.
  *
  * localStorage cannot store FileSystemDirectoryHandle (not serializable to JSON),
  * but IndexedDB structured clone algorithm supports it natively.
@@ -9,62 +9,22 @@
  * so restored handles often work without re-prompting.
  */
 
-const DB_NAME = 'advjs-studio'
-const DB_VERSION = 1
-const STORE_NAME = 'dir-handles'
-
-let dbInstance: IDBDatabase | null = null
-
-function openDB(): Promise<IDBDatabase> {
-  if (dbInstance)
-    return Promise.resolve(dbInstance)
-
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION)
-    request.onupgradeneeded = () => {
-      const db = request.result
-      if (!db.objectStoreNames.contains(STORE_NAME))
-        db.createObjectStore(STORE_NAME)
-    }
-    request.onsuccess = () => {
-      dbInstance = request.result
-      resolve(request.result)
-    }
-    request.onerror = () => reject(request.error)
-  })
-}
+import { db } from './db'
 
 /** Save a directory handle for a project by name */
 export async function saveDirHandle(projectName: string, handle: FileSystemDirectoryHandle): Promise<void> {
-  const db = await openDB()
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readwrite')
-    tx.objectStore(STORE_NAME).put(handle, projectName)
-    tx.oncomplete = () => resolve()
-    tx.onerror = () => reject(tx.error)
-  })
+  await db.dirHandles.put({ projectName, handle })
 }
 
 /** Load a directory handle for a project by name */
 export async function loadDirHandle(projectName: string): Promise<FileSystemDirectoryHandle | undefined> {
-  const db = await openDB()
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readonly')
-    const request = tx.objectStore(STORE_NAME).get(projectName)
-    request.onsuccess = () => resolve(request.result as FileSystemDirectoryHandle | undefined)
-    request.onerror = () => reject(request.error)
-  })
+  const entry = await db.dirHandles.get(projectName)
+  return entry?.handle
 }
 
 /** Remove a directory handle entry */
 export async function removeDirHandle(projectName: string): Promise<void> {
-  const db = await openDB()
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readwrite')
-    tx.objectStore(STORE_NAME).delete(projectName)
-    tx.oncomplete = () => resolve()
-    tx.onerror = () => reject(tx.error)
-  })
+  await db.dirHandles.delete(projectName)
 }
 
 /**

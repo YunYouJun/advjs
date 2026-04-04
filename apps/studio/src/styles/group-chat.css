@@ -327,3 +327,123 @@
     transform: none;
   }
 }
+
+/* ── Snapshot Panel ── */
+.snapshot-panel {
+  background: var(--adv-surface-card, #fff);
+  border-top: 1px solid var(--adv-border-light, #e2e8f0);
+  padding: var(--adv-space-sm) var(--adv-space-md);
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+:root.dark .snapshot-panel {
+  background: var(--adv-surface-card, #1e1e2e);
+  border-top-color: var(--adv-border-light, #2a2a3e);
+}
+
+.snapshot-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--adv-space-xs, 4px);
+  font-size: var(--adv-font-body-sm, 13px);
+  font-weight: 600;
+  color: var(--adv-text-primary);
+}
+
+.snapshot-create-btn {
+  font-size: 12px;
+  padding: 3px 10px;
+  background: var(--adv-primary, #8b5cf6);
+  color: #fff;
+  border: none;
+  border-radius: var(--adv-radius-md, 8px);
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.snapshot-create-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.snapshot-empty {
+  font-size: var(--adv-font-caption, 11px);
+  color: var(--adv-text-tertiary, #94a3b8);
+  padding: var(--adv-space-xs) 0;
+  text-align: center;
+}
+
+.snapshot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.snapshot-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  background: var(--adv-surface-elevated, #f1f5f9);
+  border-radius: var(--adv-radius-md, 8px);
+  gap: var(--adv-space-sm, 8px);
+}
+
+:root.dark .snapshot-item {
+  background: var(--adv-surface-elevated, #2a2a3e);
+}
+
+.snapshot-item__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.snapshot-item__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--adv-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.snapshot-item__meta {
+  font-size: 11px;
+  color: var(--adv-text-tertiary, #94a3b8);
+}
+
+.snapshot-item__actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.snapshot-btn {
+  font-size: 12px;
+  padding: 3px 8px;
+  border: none;
+  border-radius: var(--adv-radius-sm, 4px);
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.snapshot-btn--restore {
+  background: var(--adv-primary-light, #ede9fe);
+  color: var(--adv-primary, #8b5cf6);
+}
+
+:root.dark .snapshot-btn--restore {
+  background: var(--adv-surface-hover, #3a3a4e);
+  color: var(--adv-primary, #a78bfa);
+}
+
+.snapshot-btn--delete {
+  background: transparent;
+  color: var(--adv-text-tertiary, #94a3b8);
+}
+
+.snapshot-btn--delete:hover {
+  color: var(--adv-danger, #ef4444);
+}

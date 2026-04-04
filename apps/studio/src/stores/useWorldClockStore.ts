@@ -1,17 +1,12 @@
 import type { DayPeriod, WorldClockState } from '@advjs/types'
 import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
-
-const STORAGE_KEY = 'advjs-studio-world-clock'
+import { ref } from 'vue'
+import i18n from '../i18n'
+import { db } from '../utils/db'
+import { useProjectPersistence } from '../utils/projectPersistence'
+import { getCurrentProjectId } from '../utils/projectScope'
 
 const PERIOD_ORDER: DayPeriod[] = ['morning', 'afternoon', 'evening', 'night']
-
-const PERIOD_LABELS: Record<DayPeriod, string> = {
-  morning: '早晨',
-  afternoon: '下午',
-  evening: '傍晚',
-  night: '夜晚',
-}
 
 const PERIOD_EMOJI: Record<DayPeriod, string> = {
   morning: '🌅',
@@ -50,36 +45,30 @@ export const useWorldClockStore = defineStore('worldClock', () => {
   // Listeners that get called on each time advance
   const onAdvanceListeners: Array<(dateChanged: boolean) => void> = []
 
-  // Load from localStorage on init
-  loadFromStorage()
+  // --- Dexie persistence ---
 
-  function loadFromStorage() {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved) {
-        const parsed = JSON.parse(saved) as WorldClockState
-        // Restore but always start paused
-        clock.value = { ...parsed, running: false }
+  const { flush, init, $reset: _persistReset } = useProjectPersistence({
+    source: clock,
+    save: async () => {
+      const pid = getCurrentProjectId()
+      await db.worldClocks.put({
+        projectId: pid,
+        clock: { ...clock.value, running: false },
+      })
+    },
+    load: async (pid) => {
+      const row = await db.worldClocks.get(pid)
+      if (row) {
+        clock.value = { ...row.clock, running: false }
       }
-    }
-    catch {
-      // ignore
-    }
-  }
+    },
+    clear: () => {
+      pause()
+      clock.value = createDefaultClock()
+    },
+  })
 
-  function saveToStorage() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(clock.value))
-    }
-    catch {
-      // ignore
-    }
-  }
-
-  // Persist on change
-  watch(clock, () => {
-    saveToStorage()
-  }, { deep: true })
+  const $reset = _persistReset
 
   /**
    * Register a listener called each time the clock advances.
@@ -164,9 +153,9 @@ export const useWorldClockStore = defineStore('worldClock', () => {
    * Format clock state for system prompt injection.
    */
   function formatClockForPrompt(): string {
-    const periodLabel = PERIOD_LABELS[clock.value.period]
-    const weather = clock.value.weather ? `，天气：${clock.value.weather}` : ''
-    return `# 当前世界时间\n\n${clock.value.date} ${periodLabel}${weather}`
+    const periodLabel = i18n.global.t(`systemPrompt.clock.${clock.value.period}`)
+    const weather = clock.value.weather ? i18n.global.t('systemPrompt.clock.weatherSuffix', { weather: clock.value.weather }) : ''
+    return `${i18n.global.t('systemPrompt.clock.header')}\n\n${clock.value.date} ${periodLabel}${weather}`
   }
 
   /**
@@ -180,7 +169,7 @@ export const useWorldClockStore = defineStore('worldClock', () => {
    * Get period label.
    */
   function getPeriodLabel(): string {
-    return PERIOD_LABELS[clock.value.period]
+    return i18n.global.t(`systemPrompt.clock.${clock.value.period}`)
   }
 
   /**
@@ -203,5 +192,8 @@ export const useWorldClockStore = defineStore('worldClock', () => {
     onAdvance,
     offAdvance,
     reset,
+    init,
+    flush,
+    $reset,
   }
 })

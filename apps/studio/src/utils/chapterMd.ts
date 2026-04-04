@@ -1,5 +1,5 @@
 import yaml from 'js-yaml'
-import { parseFrontmatterAndBody } from './mdFrontmatter'
+import { dumpYamlFrontmatter, parseFrontmatterAndBody } from './mdFrontmatter'
 
 /**
  * Chapter form data for Studio editing
@@ -46,13 +46,7 @@ export function stringifyChapterMd(chapter: ChapterFormData): string {
     fm.plotSummary = chapter.plotSummary
 
   if (Object.keys(fm).length > 0) {
-    const yamlStr = yaml.dump(fm, {
-      indent: 2,
-      lineWidth: -1,
-      noRefs: true,
-      quotingType: '\'',
-      forceQuotes: false,
-    }).trim()
+    const yamlStr = dumpYamlFrontmatter(fm)
 
     return `---\n${yamlStr}\n---\n`
   }

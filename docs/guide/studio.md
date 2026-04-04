@@ -55,6 +55,10 @@ AI Living World 的入口，浏览和与角色互动：
 - **对话导出**：将对话导出为 `.adv.md`（到项目）或 Markdown（下载）
 - **对话搜索**：搜索历史消息并跳转定位
 - **世界上下文**：自动加载 `world.md` + `glossary.md` 作为对话背景
+- **角色关系图谱**：折叠展开的 SVG 可视化图，展示角色间关系网络（Phase 25）
+- **对话存档点**：随时保存对话现场，一键恢复到任意历史分支（Phase 25）
+- **角色自主日记**：一键触发 AI 为角色生成当日内心独白，在角色信息面板和世界页均可生成（Phase 26）
+- **世界时间线**：以时间轴视图聚合世界事件与角色日记，支持类型/角色过滤和日期分组（Phase 27）
 
 ### Play（播放）
 
@@ -131,21 +135,22 @@ Studio 支持多种项目来源：
 
 ### 状态管理
 
-Studio 使用 12 个 Pinia Store 管理全局状态，全部 localStorage 持久化：
+Studio 使用 13 个 Pinia Store 管理全局状态，全部 IndexedDB（Dexie）持久化：
 
-| Store                     | 职责                                        |
-| ------------------------- | ------------------------------------------- |
-| `useStudioStore`          | 当前项目信息、项目列表                      |
-| `useAiSettingsStore`      | AI 服务商配置（API Key、模型、Base URL）    |
-| `useSettingsStore`        | 用户设置（外观、语言、COS 配置）            |
-| `useCharacterChatStore`   | 角色 1v1 对话（消息、流式生成、上下文窗口） |
-| `useChatStore`            | 通用 AI 聊天（项目创作辅助）                |
-| `useCharacterMemoryStore` | 角色记忆（事实、偏好、情感状态提取）        |
-| `useCharacterStateStore`  | 角色动态状态（位置、健康、活动、属性）      |
-| `useWorldClockStore`      | 世界时钟（日期、时段、天气）                |
-| `useWorldEventStore`      | 世界事件（日常/社交/意外/天气）             |
-| `useGroupChatStore`       | 多角色群聊（自动选人、轮流发言）            |
-| `useViewModeStore`        | 视角模式（角色/上帝/访客）                  |
+| Store                      | 职责                                        |
+| -------------------------- | ------------------------------------------- |
+| `useStudioStore`           | 当前项目信息、项目列表                      |
+| `useAiSettingsStore`       | AI 服务商配置（API Key、模型、Base URL）    |
+| `useSettingsStore`         | 用户设置（外观、语言、COS 配置）            |
+| `useCharacterChatStore`    | 角色 1v1 对话（消息、流式生成、上下文窗口） |
+| `useChatStore`             | 通用 AI 聊天（项目创作辅助）                |
+| `useCharacterMemoryStore`  | 角色记忆（事实、偏好、情感状态提取）        |
+| `useCharacterStateStore`   | 角色动态状态（位置、健康、活动、属性）      |
+| `useWorldClockStore`       | 世界时钟（日期、时段、天气）                |
+| `useWorldEventStore`       | 世界事件（日常/社交/意外/天气）             |
+| `useGroupChatStore`        | 多角色群聊（自动选人、轮流发言）            |
+| `useViewModeStore`         | 视角模式（角色/上帝/访客）                  |
+| `useCharacterDiaryStore`   | 角色日记（AI 生成内心独白、按日期存储）     |
 
 ## 使用说明
 
@@ -294,14 +299,125 @@ adv/knowledge/
 - 支持在 Studio UI 中直接创建/编辑知识文件
 - 知识文件变更时自动重新索引
 
-## 后续路线 {#roadmap}
+### Phase 12：数据持久化迁移 {#phase-12}
 
-### Phase 12：原生打包与性能优化
+将所有 Store 从 localStorage 迁移至 IndexedDB（Dexie），解决 5MB 容量上限问题，并实现项目级数据隔离。
+
+**实现内容**：
+
+- `utils/db.ts` — `StudioDatabase` Dexie 类，经历 v2→v3→v4→v5→v6 增量迁移
+  - v3：全量 Store 迁入 Dexie，compound key `[projectId+characterId]` 实现项目隔离
+  - v4：`worldClocks` + `viewModes` 表，从 localStorage 数据升级迁移
+  - v5：`conversationSnapshots` 表（详见 Phase 25）
+  - v6：`characterDiaries` 表（详见 Phase 26）
+- `utils/projectPersistence.ts` — 通用持久化 composable，封装 `init/flush/$reset` 模式
+- `utils/projectScope.ts` — `getCurrentProjectId()` 统一获取当前项目 ID
+- `claimDefaultData()` — 一次性将 `_default_` 数据重键为真实项目 ID
+- 所有 Store（CharacterChat / Memory / State / WorldClock / WorldEvent / GroupChat / ViewMode）全部迁移完成
+
+**仍待完成**：
 
 - [ ] Capacitor 打包 iOS/Android 原生应用
 - [ ] 虚拟滚动优化长消息列表
 - [ ] 离线模式（Service Worker 缓存）
-- [ ] 消息数据库迁移（localStorage → IndexedDB）
+
+### Phase 25：关系图谱 + 记忆重试 + 对话存档 {#phase-25}
+
+三项独立前端功能，无后端依赖，在单次 session 内一次性交付。
+
+**A. 角色关系图谱**
+
+可视化展示角色间的关系网络，数据来源为 `.character.md` 中的 `relationships[]` 字段。
+
+- `components/RelationshipGraph.vue` — 纯 SVG 实现，零新依赖
+  - 节点圆形等角度布局（≤10 个时 r=180，否则 r=240）
+  - 边带箭头 marker，双向关系自动合并为双箭头线
+  - 边中点显示 `rel.type` 标注，悬停 `<title>` 展示 `rel.description`
+  - 点击节点触发 `selectCharacter` 跳转到对应角色对话页
+- `WorldPage.vue` — 角色列表上方新增折叠/展开按钮，`<Transition name="fade">` 动画
+
+**B. AI 记忆提取重试强化**
+
+修复 AI 返回格式异常时静默失败、记忆永不更新的问题。
+
+- `utils/aiExtraction.ts` — `runAiJsonExtraction` 新增 `retries` 参数（默认 0，向后兼容）
+  - 内部改为 `for (attempt ≤ retries)` 循环；JSON 解析失败时继续重试，异常时最终返回 `null`
+- `stores/useCharacterMemoryStore.ts` — 调用时传 `retries=1`，最多重试 1 次
+
+**C. 对话存档点**
+
+在角色对话页增加快照（snapshot）能力，可随时保存对话现场并回溯到任意存档点。
+
+- `ConversationSnapshot` 接口（id / characterId / label / createdAt / messages / contextSummary）
+- `utils/db.ts` v5 — 新增 `conversationSnapshots` 表，复合主键 `[projectId+id]`，索引 `[projectId+characterId]`
+- `stores/useCharacterChatStore.ts` — 新增 `createSnapshot / getSnapshots / restoreSnapshot / deleteSnapshot` 四个方法，`persistence.load` 自动加载存档列表
+- `views/CharacterChatPage.vue` — header 新增 📸 相机按钮，展开存档面板（创建/恢复/删除）
+
+### Phase 26：AI 角色自主日记 {#phase-26}
+
+角色可以自主生成内心独白/日记，AI 结合角色性格、当前状态、记忆和世界事件生成当日视角的日记条目。
+
+**实现内容**：
+
+- `utils/db.ts` v6 — 新增 `characterDiaries` 表，复合主键 `[projectId+id]`，索引 `[projectId+characterId]`，`claimDefaultData` 一并迁移
+- `stores/useCharacterDiaryStore.ts` — 完整 Pinia Store：
+  - `generateDiary(character)` — 融合角色性格/背景 + 记忆 + 动态状态 + 世界时钟 + 世界事件 + 近 3 条历史日记作为上下文，调用 `runAiJsonExtraction`（`retries=1`）生成 `{content, mood?}`
+  - `getDiaries / addDiary / deleteDiary` — CRUD，`addDiary` 后立即 `flush()` 持久化，`deleteDiary` 同步删除 Dexie 行防幽灵数据
+  - `isGenerating(characterId)` — 防重复生成（Set 标记）
+  - `useProjectPersistence` — 标准化 `init/flush/$reset`，`load` 时按 `[projectId+characterId]` 批量加载并分组
+- `components/DiaryEntryContent.vue` — 可折叠文本组件，超过 80 字符显示「展开/收起」
+- `components/CharacterInfoModal.vue` — 新增 `diaries`/`isDiaryGenerating` props + `generateDiary`/`deleteDiary` emits；日记 section 显示最新日记在前（倒序），含日期/时段/心情徽章/删除按钮
+- `views/CharacterChatPage.vue` — 接入 `diaryStore`，ℹ️ 按钮打开的 Modal 传入日记 props + 事件处理器
+- `views/WorldPage.vue` — 每个角色卡片下方增加 📓 快捷按钮，一键生成当日日记
+- `stores/useStudioStore.ts` — `switchProject` 中加入 `diaryStore.flush() / $reset() / init(pid)` 三步
+
+**数据结构**：
+
+```ts
+interface CharacterDiaryEntry {
+  id: string          // 'diary-{timestamp}-{n}'
+  characterId: string
+  date: string        // 世界内日期（与 WorldClock.date 对齐）
+  period: string      // 世界时段（morning / afternoon / evening / night）
+  content: string     // AI 生成的日记正文
+  createdAt: number   // 真实时间戳
+  mood?: string       // AI 可选提取的心情词
+}
+```
+
+### Phase 27：世界时间线 {#phase-27}
+
+以**时间轴视图**聚合世界事件（`WorldEvent`）与角色日记（`CharacterDiaryEntry`），让创作者在一个统一界面内回顾整个世界的发展脉络。
+
+**实现内容**：
+
+- `views/WorldPage.vue` — 世界事件区块改造为双视图切换（列表 / 时间线 pill 按钮）；新增 `timelineView = ref<'list' | 'timeline'>('list')` 和 `timelineEntries` computed（合并 `eventStore.events` + `diaryStore.diaries`，按 `date → PERIOD_ORDER → createdAt` 三键排序）；导出 `TimelineEntry` 接口供子组件使用
+- `components/TimelineFilter.vue` — 三行横向滚动 pill 过滤器（`v-model:TimelineFilter`）：行 1 种类切换（全部/事件/日记）、行 2 事件类型（仅 events 可见时展示）、行 3 角色头像（仅角色数 > 1 时展示）；`toggleKind` 在移除 'event' 时同步清空 `eventTypes`
+- `components/WorldTimeline.vue` — 完整时间轴组件：内部持有 `filter` 状态，`watch(filter, () => displayLimit.value = PAGE_SIZE, { deep: true })` 重置分页；`filteredEntries` 三级过滤（kind → characterIds → eventTypes）；`buildGroups` 按 date 倒序 + period 正序分组，使用 `Array.from(map.entries(), mapper)` 规避 lint 规则；每次渲染最近 60 条（`slice(-displayLimit.value)`），顶部「加载更多」按钮（+60）；Event 卡片：类型 emoji + 类型标签 + 角色头像列表（可点击跳转）；Diary 卡片：📓 + 角色头像 + 角色名 + 心情徽章 + `DiaryEntryContent`（可折叠）
+- `i18n/locales/zh-CN.json` + `en.json` — 新增 `world.timeline`、`world.timelineList`、`world.timelineEmpty`、`world.timelineFilterAll`、`world.timelineFilterEvents`、`world.timelineFilterDiaries`、`world.timelineLoadMore`、`world.period_morning/afternoon/evening/night`
+
+**数据结构**：
+
+```ts
+// 导出自 views/WorldPage.vue（<script setup> export interface）
+export interface TimelineEntry {
+  id: string
+  kind: 'event' | 'diary'
+  date: string        // 世界内日期（排序主键）
+  period: string      // 世界时段（morning < afternoon < evening < night）
+  characterId?: string    // diary 条目的角色 ID
+  characterIds?: string[] // event 的完整角色列表
+  summary: string     // event.summary 或 diary.content
+  type?: string       // event.type（diary 为 undefined）
+  mood?: string       // diary.mood
+  createdAt: number   // 真实时间戳
+  source: WorldEvent | CharacterDiaryEntry // 原始数据
+}
+```
+
+**零新依赖**：纯 CSS 垂直时间轴（`border-left: 2px solid` + 圆点 + 卡片），无新 npm 包。
+
+## 后续路线 {#roadmap}
 
 ### Phase 13：账号系统 {#phase-13}
 
@@ -362,9 +478,10 @@ interface MarketplaceEntry {
 - [ ] **多人协作 / 实时同步** — 基于 CRDT 或 OT 的协同编辑
 - [ ] **插件系统** — 接入 Babylon/Three/OpenAI 等引擎插件
 - [ ] **资源管理** — 图片/音频/VRM 模型预览与管理
-- [ ] **角色关系图谱** — 可视化展示角色间关系网络
-- [ ] **对话分支回溯** — 保存对话存档点，回到过去的对话分支重新开始
-- [ ] **AI 角色自主日记** — 角色在无玩家交互时自动生成内心独白/日记
+- [x] **角色关系图谱** — 可视化展示角色间关系网络（Phase 25）
+- [x] **对话分支回溯** — 保存对话存档点，回到过去的对话分支重新开始（Phase 25 轻量版）
+- [x] **AI 角色自主日记** — 角色在无玩家交互时自动生成内心独白/日记（Phase 26）
+- [x] **世界时间线** — 以时间轴视图聚合世界事件 + 角色日记，支持按角色/类型筛选（Phase 27）
 - [ ] **语音合成集成** — TTS 为角色对话添加语音
 
 ## 已知待优化项 {#improvements}
@@ -373,8 +490,8 @@ interface MarketplaceEntry {
 
 ### 数据持久化
 
-- **localStorage 容量有限** — 当前所有 Store 使用 localStorage 持久化，对话历史过多时可能超出 5MB 限制。应迁移至 IndexedDB。
-- **消息清理策略** — 缺少自动归档或清理旧对话的机制。
+- ~~**localStorage 容量有限**~~ — ✅ 已迁移至 IndexedDB（Phase 12，Dexie v2→v5）
+- **消息清理策略** — 有 `MAX_STORED_MESSAGES=200` 截断兜底，但缺少自动归档旧对话的机制。
 
 ### 知识库系统
 
@@ -384,7 +501,7 @@ interface MarketplaceEntry {
 
 ### AI 对话
 
-- **记忆摘要质量** — `useCharacterMemoryStore` 的记忆提取依赖 AI 响应格式，有时提取不精确。可增加格式校验和重试机制。
+- ~~**记忆摘要质量**~~ — ✅ 已增加格式校验和重试机制（Phase 25，`retries=1`）
 - **多模型支持** — 不同角色可使用不同模型/温度设置（如专业角色用高精度低温度模型）。
 - **上下文压缩** — Smart Context Window 目前只做简单截断 + 摘要，可引入更智能的上下文压缩算法。
 

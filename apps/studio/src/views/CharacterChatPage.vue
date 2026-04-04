@@ -17,6 +17,7 @@ import {
 } from '@ionic/vue'
 import {
   arrowBackOutline,
+  cameraOutline,
   downloadOutline,
   informationCircleOutline,
   searchOutline,
@@ -24,7 +25,7 @@ import {
   stopOutline,
   trashOutline,
 } from 'ionicons/icons'
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import CharacterChatWelcome from '../components/CharacterChatWelcome.vue'
@@ -34,14 +35,15 @@ import MarkdownMessage from '../components/MarkdownMessage.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useWorldContext } from '../composables/useWorldContext'
 import { useCharacterChatStore } from '../stores/useCharacterChatStore'
+import { useCharacterDiaryStore } from '../stores/useCharacterDiaryStore'
 import { useCharacterMemoryStore } from '../stores/useCharacterMemoryStore'
 import { useCharacterStateStore } from '../stores/useCharacterStateStore'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { useViewModeStore } from '../stores/useViewModeStore'
-import { getMoodEmoji } from '../utils/chatUtils'
+import { formatChatTime, getMoodEmoji } from '../utils/chatUtils'
 import { uploadToCloud } from '../utils/cloudSync'
-import { writeFileToDir } from '../utils/fileAccess'
+import { downloadAsFile, writeFileToDir } from '../utils/fileAccess'
 import '../styles/chat.css'
 
 const SAFE_FILENAME_RE = /[^a-z0-9\u4E00-\u9FFF]+/g
@@ -53,10 +55,11 @@ const router = useRouter()
 const studioStore = useStudioStore()
 const settingsStore = useSettingsStore()
 const characterChatStore = useCharacterChatStore()
+const diaryStore = useCharacterDiaryStore()
 const memoryStore = useCharacterMemoryStore()
 const stateStore = useCharacterStateStore()
-const { characters, loadFromDir, loadFromCos, knowledgeBase } = useProjectContent()
-const { worldContext, loadFromDir: loadWorldFromDir, loadFromCos: loadWorldFromCos } = useWorldContext()
+const { characters, knowledgeBase } = useProjectContent()
+const { worldContext } = useWorldContext()
 const viewModeStore = useViewModeStore()
 
 function getEffectiveWorldContext(): string {
@@ -67,6 +70,7 @@ const inputText = ref('')
 const contentRef = ref<InstanceType<typeof IonContent> | null>(null)
 const showInfoModal = ref(false)
 const showSearch = ref(false)
+const showSnapshots = ref(false)
 
 const characterId = computed(() => route.params.characterId as string)
 
@@ -74,9 +78,39 @@ const character = computed<AdvCharacter | undefined>(() => {
   return characters.value.find(c => c.id === characterId.value)
 })
 
-const messages = computed(() => {
+const allMessages = computed(() => {
   return characterChatStore.getMessages(characterId.value)
 })
+
+// --- Pagination ---
+const PAGE_SIZE = 50
+const displayCount = ref(PAGE_SIZE)
+
+const hasMore = computed(() => allMessages.value.length > displayCount.value)
+const hiddenCount = computed(() => Math.max(0, allMessages.value.length - displayCount.value))
+
+const visibleStart = computed(() => Math.max(0, allMessages.value.length - displayCount.value))
+
+const visibleMessages = computed(() => {
+  return allMessages.value.slice(visibleStart.value)
+})
+
+/** Absolute index of a message within allMessages, from its position in visibleMessages */
+function getAbsoluteIndex(visibleIdx: number): number {
+  return visibleStart.value + visibleIdx
+}
+
+function loadMore() {
+  displayCount.value += PAGE_SIZE
+}
+
+// Reset pagination when switching characters
+watch(characterId, () => {
+  displayCount.value = PAGE_SIZE
+})
+
+// Keep backward-compat alias for template
+const messages = allMessages
 
 const memory = computed(() => {
   return memoryStore.getMemory(characterId.value)
@@ -91,29 +125,8 @@ const moodEmoji = computed(() => {
   return getMoodEmoji(mood)
 })
 
-// Load project content if needed
-onMounted(async () => {
-  const project = studioStore.currentProject
-  if (!project)
-    return
-  if (characters.value.length === 0) {
-    if (project.dirHandle) {
-      await Promise.all([
-        loadFromDir(project.dirHandle),
-        loadWorldFromDir(project.dirHandle),
-      ])
-    }
-    else if (project.source === 'cos' && project.cosPrefix) {
-      await Promise.all([
-        loadFromCos(settingsStore.cos, project.cosPrefix),
-        loadWorldFromCos(settingsStore.cos, project.cosPrefix),
-      ])
-    }
-  }
-})
-
 // Auto-scroll to bottom when messages change
-watch(() => messages.value.length, async () => {
+watch(() => visibleMessages.value.length, async () => {
   await nextTick()
   contentRef.value?.$el?.scrollToBottom?.(300)
 })
@@ -284,13 +297,7 @@ async function exportAsMarkdown(charName: string) {
   const filename = `chat-${safeName}.md`
 
   // Markdown export always downloads (not saved to project structure)
-  const blob = new Blob([content], { type: 'text/markdown' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  a.click()
-  URL.revokeObjectURL(url)
+  downloadAsFile(content, filename)
 
   const toast = await toastController.create({
     message: t('world.exportSuccess'),
@@ -313,13 +320,7 @@ async function saveExportedFile(filename: string, content: string) {
     }
     else {
       // Fallback: download
-      const blob = new Blob([content], { type: 'text/markdown' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = filename.split('/').pop() || 'export.md'
-      a.click()
-      URL.revokeObjectURL(url)
+      downloadAsFile(content, filename.split('/').pop() || 'export.md')
     }
 
     const toast = await toastController.create({
@@ -342,25 +343,31 @@ async function saveExportedFile(filename: string, content: string) {
 }
 
 function handleSearchJump(index: number) {
-  // Scroll to the message at the given index
-  const el = contentRef.value?.$el
-  if (!el)
-    return
-  const msgElements = el.querySelectorAll('.message')
-  if (msgElements[index]) {
-    msgElements[index].scrollIntoView({ behavior: 'smooth', block: 'center' })
-    // Brief highlight
-    msgElements[index].classList.add('message--highlight')
-    setTimeout(() => {
-      msgElements[index].classList.remove('message--highlight')
-    }, 1500)
+  // If the target message is outside the visible range, expand displayCount
+  const totalMessages = allMessages.value.length
+  const visibleStart = Math.max(0, totalMessages - displayCount.value)
+  if (index < visibleStart) {
+    // Expand to include the target message plus some buffer
+    displayCount.value = totalMessages - index + PAGE_SIZE
   }
-}
 
-function formatTime(timestamp: number): string {
-  return new Date(timestamp).toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
+  // Map absolute index to visible index
+  const newVisibleStart = Math.max(0, totalMessages - displayCount.value)
+  const visibleIndex = index - newVisibleStart
+
+  nextTick(() => {
+    const el = contentRef.value?.$el
+    if (!el)
+      return
+    const msgElements = el.querySelectorAll('.message')
+    if (msgElements[visibleIndex]) {
+      msgElements[visibleIndex].scrollIntoView({ behavior: 'smooth', block: 'center' })
+      // Brief highlight
+      msgElements[visibleIndex].classList.add('message--highlight')
+      setTimeout(() => {
+        msgElements[visibleIndex].classList.remove('message--highlight')
+      }, 1500)
+    }
   })
 }
 
@@ -369,6 +376,96 @@ function handleKeydown(event: KeyboardEvent) {
     event.preventDefault()
     send()
   }
+}
+
+// --- Snapshot helpers ---
+
+const snapshotList = computed(() => characterChatStore.getSnapshots(characterId.value))
+
+async function handleCreateSnapshot() {
+  if (messages.value.length === 0)
+    return
+  characterChatStore.createSnapshot(characterId.value)
+  const toast = await toastController.create({
+    message: t('world.snapshotCreated'),
+    duration: 1500,
+    position: 'top',
+    color: 'success',
+  })
+  await toast.present()
+}
+
+async function handleRestoreSnapshot(snapshotId: string) {
+  const alert = await alertController.create({
+    header: t('world.restoreSnapshot'),
+    message: t('world.restoreSnapshotConfirm'),
+    buttons: [
+      { text: t('common.cancel'), role: 'cancel' },
+      {
+        text: t('common.ok'),
+        handler: () => {
+          characterChatStore.restoreSnapshot(characterId.value, snapshotId)
+        },
+      },
+    ],
+  })
+  await alert.present()
+}
+
+async function handleDeleteSnapshot(snapshotId: string) {
+  const alert = await alertController.create({
+    header: t('world.deleteSnapshot'),
+    message: t('world.deleteSnapshotConfirm'),
+    buttons: [
+      { text: t('common.cancel'), role: 'cancel' },
+      {
+        text: t('common.clear'),
+        role: 'destructive',
+        handler: () => {
+          characterChatStore.deleteSnapshot(characterId.value, snapshotId)
+        },
+      },
+    ],
+  })
+  await alert.present()
+}
+
+// --- Diary helpers ---
+
+const diaryEntries = computed(() => diaryStore.getDiaries(characterId.value))
+const isDiaryGenerating = computed(() => diaryStore.isGenerating(characterId.value))
+
+async function handleGenerateDiary() {
+  if (!character.value)
+    return
+  const entry = await diaryStore.generateDiary(character.value)
+  if (!entry) {
+    const toast = await toastController.create({
+      message: t('world.diaryGenerateFailed'),
+      duration: 2500,
+      position: 'top',
+      color: 'danger',
+    })
+    await toast.present()
+  }
+}
+
+async function handleDeleteDiary(diaryId: string) {
+  const alert = await alertController.create({
+    header: t('world.diaryDelete'),
+    message: t('world.diaryDeleteConfirm'),
+    buttons: [
+      { text: t('common.cancel'), role: 'cancel' },
+      {
+        text: t('common.clear'),
+        role: 'destructive',
+        handler: () => {
+          diaryStore.deleteDiary(characterId.value, diaryId)
+        },
+      },
+    ],
+  })
+  await alert.present()
 }
 </script>
 
@@ -393,6 +490,10 @@ function handleKeydown(event: KeyboardEvent) {
             <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
             <IonIcon slot="icon-only" :icon="searchOutline" />
           </IonButton>
+          <IonButton @click="showSnapshots = !showSnapshots">
+            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+            <IonIcon slot="icon-only" :icon="cameraOutline" />
+          </IonButton>
           <IonButton :disabled="messages.length === 0" @click="handleExport">
             <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
             <IonIcon slot="icon-only" :icon="downloadOutline" />
@@ -411,10 +512,51 @@ function handleKeydown(event: KeyboardEvent) {
       <!-- Search bar (collapsible) -->
       <ChatHistorySearch
         v-if="showSearch"
-        :messages="messages"
+        :messages="allMessages"
         @jump-to="handleSearchJump"
         @close="showSearch = false"
       />
+
+      <!-- Snapshot panel (collapsible) -->
+      <div v-if="showSnapshots" class="snapshot-panel">
+        <div class="snapshot-panel__header">
+          <span>📸 {{ t('world.snapshots') }}</span>
+          <button
+            class="snapshot-create-btn"
+            :disabled="messages.length === 0"
+            @click="handleCreateSnapshot"
+          >
+            + {{ t('world.createSnapshot') }}
+          </button>
+        </div>
+        <div v-if="snapshotList.length === 0" class="snapshot-empty">
+          {{ t('world.noSnapshots') }}
+        </div>
+        <div v-else class="snapshot-list">
+          <div
+            v-for="snap in snapshotList"
+            :key="snap.id"
+            class="snapshot-item"
+          >
+            <div class="snapshot-item__info">
+              <div class="snapshot-item__label">
+                {{ snap.label }}
+              </div>
+              <div class="snapshot-item__meta">
+                {{ formatChatTime(snap.createdAt) }} · {{ snap.messages.length }} {{ t('world.snapshotMessages') }}
+              </div>
+            </div>
+            <div class="snapshot-item__actions">
+              <button class="snapshot-btn snapshot-btn--restore" @click="handleRestoreSnapshot(snap.id)">
+                {{ t('world.restoreSnapshot') }}
+              </button>
+              <button class="snapshot-btn snapshot-btn--delete" @click="handleDeleteSnapshot(snap.id)">
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </IonHeader>
 
     <IonContent ref="contentRef" :fullscreen="true">
@@ -426,10 +568,18 @@ function handleKeydown(event: KeyboardEvent) {
           @send="quickSend"
         />
 
+        <!-- Load earlier messages button -->
+        <div v-if="hasMore" class="load-earlier">
+          <button class="load-earlier-btn" @click="loadMore">
+            {{ t('chat.loadEarlier') }}
+          </button>
+          <span class="load-earlier-hint">{{ t('chat.messagesHidden', { count: hiddenCount }) }}</span>
+        </div>
+
         <TransitionGroup name="msg">
           <div
-            v-for="(msg, index) in messages"
-            :key="msg.timestamp + index"
+            v-for="(msg, index) in visibleMessages"
+            :key="getAbsoluteIndex(index)"
             class="message"
             :class="[msg.role]"
           >
@@ -440,7 +590,7 @@ function handleKeydown(event: KeyboardEvent) {
               </template>
             </div>
             <div class="time">
-              {{ formatTime(msg.timestamp) }}
+              {{ formatChatTime(msg.timestamp) }}
             </div>
           </div>
         </TransitionGroup>
@@ -507,8 +657,13 @@ function handleKeydown(event: KeyboardEvent) {
       :dynamic-state="dynamicState"
       :knowledge-entries="knowledgeBase.entries.value"
       :knowledge-loading="knowledgeBase.isLoading.value"
+      :diaries="diaryEntries"
+      :is-diary-generating="isDiaryGenerating"
+      :memory="memory"
       @close="showInfoModal = false"
       @refresh-knowledge="reloadKnowledge"
+      @generate-diary="handleGenerateDiary"
+      @delete-diary="handleDeleteDiary"
     />
   </IonPage>
 </template>
@@ -571,5 +726,153 @@ ion-footer ion-toolbar {
   100% {
     box-shadow: 0 0 0 0 rgba(139, 92, 246, 0);
   }
+}
+
+.load-earlier {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--adv-space-sm) 0;
+  gap: 4px;
+}
+
+.load-earlier-btn {
+  background: var(--adv-surface-elevated);
+  color: var(--adv-text-secondary);
+  border: 1px solid var(--adv-border-light);
+  border-radius: var(--adv-radius-lg);
+  padding: 6px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.load-earlier-btn:hover {
+  background: var(--adv-surface-card);
+}
+
+.load-earlier-hint {
+  font-size: 11px;
+  color: var(--adv-text-tertiary);
+}
+
+/* Snapshot Panel */
+.snapshot-panel {
+  background: var(--adv-surface-card, #fff);
+  border-top: 1px solid var(--adv-border-light, #e2e8f0);
+  padding: var(--adv-space-sm) var(--adv-space-md);
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+:root.dark .snapshot-panel {
+  background: var(--adv-surface-card, #1e1e2e);
+  border-top-color: var(--adv-border-light, #2a2a3e);
+}
+
+.snapshot-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--adv-space-xs, 4px);
+  font-size: var(--adv-font-body-sm, 13px);
+  font-weight: 600;
+  color: var(--adv-text-primary);
+}
+
+.snapshot-create-btn {
+  font-size: 12px;
+  padding: 3px 10px;
+  background: var(--adv-primary, #8b5cf6);
+  color: #fff;
+  border: none;
+  border-radius: var(--adv-radius-md, 8px);
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.snapshot-create-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.snapshot-empty {
+  font-size: var(--adv-font-caption, 11px);
+  color: var(--adv-text-tertiary, #94a3b8);
+  padding: var(--adv-space-xs) 0;
+  text-align: center;
+}
+
+.snapshot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.snapshot-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  background: var(--adv-surface-elevated, #f1f5f9);
+  border-radius: var(--adv-radius-md, 8px);
+  gap: var(--adv-space-sm, 8px);
+}
+
+:root.dark .snapshot-item {
+  background: var(--adv-surface-elevated, #2a2a3e);
+}
+
+.snapshot-item__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.snapshot-item__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--adv-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.snapshot-item__meta {
+  font-size: 11px;
+  color: var(--adv-text-tertiary, #94a3b8);
+}
+
+.snapshot-item__actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.snapshot-btn {
+  font-size: 12px;
+  padding: 3px 8px;
+  border: none;
+  border-radius: var(--adv-radius-sm, 4px);
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.snapshot-btn--restore {
+  background: var(--adv-primary-light, #ede9fe);
+  color: var(--adv-primary, #8b5cf6);
+}
+
+:root.dark .snapshot-btn--restore {
+  background: var(--adv-surface-hover, #3a3a4e);
+  color: var(--adv-primary, #a78bfa);
+}
+
+.snapshot-btn--delete {
+  background: transparent;
+  color: var(--adv-text-tertiary, #94a3b8);
+}
+
+.snapshot-btn--delete:hover {
+  color: var(--adv-danger, #ef4444);
 }
 </style>

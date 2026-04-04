@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { AdvCharacter } from '@advjs/types'
 import {
   alertController,
   IonButton,
@@ -11,34 +12,47 @@ import {
   IonPage,
   IonTitle,
   IonToolbar,
+  toastController,
 } from '@ionic/vue'
 import {
   arrowBackOutline,
+  cameraOutline,
   sendOutline,
   stopOutline,
   trashOutline,
 } from 'ionicons/icons'
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import MarkdownMessage from '../components/MarkdownMessage.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useWorldContext } from '../composables/useWorldContext'
+import { useCharacterMemoryStore } from '../stores/useCharacterMemoryStore'
 import { useGroupChatStore } from '../stores/useGroupChatStore'
-import { useSettingsStore } from '../stores/useSettingsStore'
-import { useStudioStore } from '../stores/useStudioStore'
 import { useViewModeStore } from '../stores/useViewModeStore'
+import { formatChatTime, getCharacterInitials, getMoodEmoji, getValidAvatarUrl } from '../utils/chatUtils'
 import '../styles/group-chat.css'
 
 const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
-const studioStore = useStudioStore()
-const settingsStore = useSettingsStore()
 const groupChatStore = useGroupChatStore()
-const { characters, loadFromDir, loadFromCos } = useProjectContent()
-const { worldContext, loadFromDir: loadWorldFromDir, loadFromCos: loadWorldFromCos } = useWorldContext()
+const { characters } = useProjectContent()
+const { worldContext } = useWorldContext()
 const viewModeStore = useViewModeStore()
+const memoryStore = useCharacterMemoryStore()
+
+const characterMap = computed(() => {
+  const m = new Map<string, AdvCharacter>()
+  for (const c of characters.value)
+    m.set(c.id, c)
+  return m
+})
+
+function getParticipantMood(characterId: string): string {
+  const mem = memoryStore.getMemory(characterId)
+  return mem?.emotionalState.mood ? getMoodEmoji(mem.emotionalState.mood) : ''
+}
 
 function getEffectiveWorldContext(): string {
   return viewModeStore.getEffectiveWorldContext(worldContext.value)
@@ -53,9 +67,33 @@ const room = computed(() => {
   return groupChatStore.getRoom(roomId.value)
 })
 
-const messages = computed(() => {
+const allMessages = computed(() => {
   return room.value?.messages || []
 })
+
+// --- Pagination ---
+const PAGE_SIZE = 50
+const displayCount = ref(PAGE_SIZE)
+
+const hasMore = computed(() => allMessages.value.length > displayCount.value)
+const hiddenCount = computed(() => Math.max(0, allMessages.value.length - displayCount.value))
+
+const visibleMessages = computed(() => {
+  const start = Math.max(0, allMessages.value.length - displayCount.value)
+  return allMessages.value.slice(start)
+})
+
+function loadMore() {
+  displayCount.value += PAGE_SIZE
+}
+
+// Reset pagination when switching rooms
+watch(roomId, () => {
+  displayCount.value = PAGE_SIZE
+})
+
+// Keep backward-compat alias
+const messages = allMessages
 
 const participants = computed(() => {
   if (!room.value)
@@ -86,29 +124,8 @@ function getAvatarInitial(name?: string): string {
   return name.charAt(0)
 }
 
-// Load project content if needed
-onMounted(async () => {
-  const project = studioStore.currentProject
-  if (!project)
-    return
-  if (characters.value.length === 0) {
-    if (project.dirHandle) {
-      await Promise.all([
-        loadFromDir(project.dirHandle),
-        loadWorldFromDir(project.dirHandle),
-      ])
-    }
-    else if (project.source === 'cos' && project.cosPrefix) {
-      await Promise.all([
-        loadFromCos(settingsStore.cos, project.cosPrefix),
-        loadWorldFromCos(settingsStore.cos, project.cosPrefix),
-      ])
-    }
-  }
-})
-
 // Auto-scroll to bottom when messages change
-watch(() => messages.value.length, async () => {
+watch(() => visibleMessages.value.length, async () => {
   await nextTick()
   contentRef.value?.$el?.scrollToBottom?.(300)
 })
@@ -166,18 +183,65 @@ async function confirmDelete() {
   await alert.present()
 }
 
-function formatTime(timestamp: number): string {
-  return new Date(timestamp).toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
 function handleKeydown(event: KeyboardEvent) {
   if (event.key === 'Enter' && !event.shiftKey) {
     event.preventDefault()
     send()
   }
+}
+
+// --- Snapshot helpers ---
+
+const showSnapshots = ref(false)
+
+const snapshotList = computed(() => groupChatStore.getRoomSnapshots(roomId.value))
+
+async function handleCreateSnapshot() {
+  const snap = groupChatStore.createRoomSnapshot(roomId.value)
+  if (snap) {
+    const toast = await toastController.create({
+      message: t('world.snapshotCreated'),
+      duration: 1500,
+      position: 'top',
+      color: 'success',
+    })
+    await toast.present()
+  }
+}
+
+async function handleRestoreSnapshot(snapshotId: string) {
+  const alert = await alertController.create({
+    header: t('world.restoreSnapshot'),
+    message: t('world.restoreSnapshotConfirm'),
+    buttons: [
+      { text: t('common.cancel'), role: 'cancel' },
+      {
+        text: t('common.ok'),
+        handler: () => {
+          groupChatStore.restoreRoomSnapshot(roomId.value, snapshotId)
+        },
+      },
+    ],
+  })
+  await alert.present()
+}
+
+async function handleDeleteSnapshot(snapshotId: string) {
+  const alert = await alertController.create({
+    header: t('world.deleteSnapshot'),
+    message: t('world.deleteSnapshotConfirm'),
+    buttons: [
+      { text: t('common.cancel'), role: 'cancel' },
+      {
+        text: t('common.clear'),
+        role: 'destructive',
+        handler: () => {
+          groupChatStore.deleteRoomSnapshot(roomId.value, snapshotId)
+        },
+      },
+    ],
+  })
+  await alert.present()
 }
 </script>
 
@@ -195,24 +259,99 @@ function handleKeydown(event: KeyboardEvent) {
         <IonTitle>{{ room?.name || roomId }}</IonTitle>
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
         <IonButtons slot="end">
+          <IonButton @click="showSnapshots = !showSnapshots">
+            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+            <IonIcon slot="icon-only" :icon="cameraOutline" />
+          </IonButton>
           <IonButton color="danger" @click="confirmDelete">
             <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
             <IonIcon slot="icon-only" :icon="trashOutline" />
           </IonButton>
         </IonButtons>
       </IonToolbar>
+
+      <!-- Snapshot panel (collapsible) -->
+      <div v-if="showSnapshots" class="snapshot-panel">
+        <div class="snapshot-panel__header">
+          <span>📸 {{ t('world.snapshots') }}</span>
+          <button
+            class="snapshot-create-btn"
+            :disabled="allMessages.length === 0"
+            @click="handleCreateSnapshot"
+          >
+            + {{ t('world.createSnapshot') }}
+          </button>
+        </div>
+        <div v-if="snapshotList.length === 0" class="snapshot-empty">
+          {{ t('world.noSnapshots') }}
+        </div>
+        <div v-else class="snapshot-list">
+          <div
+            v-for="snap in snapshotList"
+            :key="snap.id"
+            class="snapshot-item"
+          >
+            <div class="snapshot-item__info">
+              <div class="snapshot-item__label">
+                {{ snap.label }}
+              </div>
+              <div class="snapshot-item__meta">
+                {{ formatChatTime(snap.createdAt) }} · {{ snap.messages.length }} {{ t('world.snapshotMessages') }}
+              </div>
+            </div>
+            <div class="snapshot-item__actions">
+              <button class="snapshot-btn snapshot-btn--restore" @click="handleRestoreSnapshot(snap.id)">
+                {{ t('world.restoreSnapshot') }}
+              </button>
+              <button class="snapshot-btn snapshot-btn--delete" @click="handleDeleteSnapshot(snap.id)">
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </IonHeader>
 
     <IonContent ref="contentRef" :fullscreen="true">
+      <!-- Participant Status Bar -->
+      <div v-if="room?.participantIds?.length" class="gc-participants">
+        <button
+          v-for="pid in room.participantIds"
+          :key="pid"
+          class="gc-participant-chip"
+          @click="router.push(`/tabs/world/chat/${pid}`)"
+        >
+          <img
+            v-if="getValidAvatarUrl(characterMap.get(pid)?.avatar)"
+            :src="getValidAvatarUrl(characterMap.get(pid)?.avatar)"
+            class="gc-chip-avatar"
+            alt=""
+          >
+          <span v-else class="gc-chip-initials">
+            {{ getCharacterInitials(characterMap.get(pid)?.name) }}
+          </span>
+          <span class="gc-chip-name">{{ characterMap.get(pid)?.name || pid }}</span>
+          <span v-if="getParticipantMood(pid)" class="gc-chip-mood">{{ getParticipantMood(pid) }}</span>
+        </button>
+      </div>
+
       <div class="group-messages-container">
         <!-- Empty state -->
         <div v-if="messages.length === 0 && !groupChatStore.isLoading" style="text-align: center; padding: 40px 20px; color: var(--adv-text-tertiary);">
           <p>{{ t('world.groupChatPlaceholder') }}</p>
         </div>
 
+        <!-- Load earlier messages button -->
+        <div v-if="hasMore" class="load-earlier">
+          <button class="load-earlier-btn" @click="loadMore">
+            {{ t('chat.loadEarlier') }}
+          </button>
+          <span class="load-earlier-hint">{{ t('chat.messagesHidden', { count: hiddenCount }) }}</span>
+        </div>
+
         <TransitionGroup name="group-msg">
           <div
-            v-for="(msg, index) in messages"
+            v-for="(msg, index) in visibleMessages"
             :key="msg.timestamp + String(index)"
             class="group-message"
             :class="[msg.role]"
@@ -240,7 +379,7 @@ function handleKeydown(event: KeyboardEvent) {
               </template>
             </div>
             <div class="group-time">
-              {{ formatTime(msg.timestamp) }}
+              {{ formatChatTime(msg.timestamp) }}
             </div>
           </div>
         </TransitionGroup>
@@ -324,6 +463,87 @@ ion-footer ion-toolbar {
     0 -1px 2px rgba(0, 0, 0, 0.04);
 }
 
+/* Participant status bar */
+.gc-participants {
+  display: flex;
+  gap: var(--adv-space-sm, 8px);
+  padding: var(--adv-space-sm, 8px) var(--adv-space-md, 16px);
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--adv-border-subtle, rgba(0, 0, 0, 0.06));
+  background: var(--adv-surface-card, #fff);
+}
+
+.gc-participants::-webkit-scrollbar {
+  display: none;
+}
+
+:root.dark .gc-participants {
+  background: var(--adv-surface-card, #1e1e2e);
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+.gc-participant-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: var(--adv-space-xs, 4px) var(--adv-space-sm, 8px);
+  background: var(--adv-surface-elevated, #f8fafc);
+  border: none;
+  border-radius: var(--adv-radius-md, 8px);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.2s;
+  min-width: 52px;
+}
+
+.gc-participant-chip:hover {
+  background: var(--adv-surface-hover, #e2e8f0);
+}
+
+:root.dark .gc-participant-chip {
+  background: var(--adv-surface-elevated, #252536);
+}
+
+:root.dark .gc-participant-chip:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.gc-chip-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.gc-chip-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.gc-chip-name {
+  font-size: var(--adv-font-caption, 11px);
+  color: var(--adv-text-secondary);
+  max-width: 56px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gc-chip-mood {
+  font-size: 12px;
+  line-height: 1;
+}
+
 :root.dark ion-footer ion-toolbar {
   box-shadow:
     0 -1px 8px rgba(0, 0, 0, 0.3),
@@ -353,5 +573,33 @@ ion-footer ion-toolbar {
   width: 44px;
   height: 44px;
   flex-shrink: 0;
+}
+
+.load-earlier {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--adv-space-sm) 0;
+  gap: 4px;
+}
+
+.load-earlier-btn {
+  background: var(--adv-surface-elevated);
+  color: var(--adv-text-secondary);
+  border: 1px solid var(--adv-border-light);
+  border-radius: var(--adv-radius-lg);
+  padding: 6px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.load-earlier-btn:hover {
+  background: var(--adv-surface-card);
+}
+
+.load-earlier-hint {
+  font-size: 11px;
+  color: var(--adv-text-tertiary);
 }
 </style>

@@ -3,6 +3,7 @@ import type { AdvCharacter } from '@advjs/types'
 import { IonChip } from '@ionic/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { getCharacterInitials, getValidAvatarUrl } from '../utils/chatUtils'
 
 const props = defineProps<{
   character: AdvCharacter
@@ -14,19 +15,9 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const avatarUrl = computed(() => {
-  const avatar = props.character.avatar
-  if (!avatar)
-    return ''
-  if (avatar.startsWith('http') || avatar.startsWith('data:') || avatar.startsWith('blob:'))
-    return avatar
-  return ''
-})
+const avatarUrl = computed(() => getValidAvatarUrl(props.character.avatar))
 
-const initials = computed(() => {
-  const name = props.character.name || props.character.id || '?'
-  return name.slice(0, 2)
-})
+const initials = computed(() => getCharacterInitials(props.character.name || props.character.id))
 
 const personalitySummary = computed(() => {
   const p = props.character.personality

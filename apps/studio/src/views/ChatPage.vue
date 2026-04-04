@@ -22,8 +22,9 @@ import { useAiSettingsStore } from '../stores/useAiSettingsStore'
 import { useChatStore } from '../stores/useChatStore'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
+import { formatChatTime } from '../utils/chatUtils'
 import { uploadToCloud } from '../utils/cloudSync'
-import { writeFileToDir } from '../utils/fileAccess'
+import { downloadAsFile, writeFileToDir } from '../utils/fileAccess'
 import '../styles/chat.css'
 
 const { t } = useI18n()
@@ -109,13 +110,6 @@ async function copyContext() {
   }
 }
 
-function formatTime(timestamp: number): string {
-  return new Date(timestamp).toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
 function handleKeydown(event: KeyboardEvent) {
   if (event.key === 'Enter' && !event.shiftKey) {
     event.preventDefault()
@@ -139,13 +133,7 @@ async function handleSaveContent(payload: { type: string, content: string, filen
     }
     else {
       // Fallback: download as file
-      const blob = new Blob([payload.content], { type: 'text/markdown' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = payload.filename.split('/').pop() || 'file.md'
-      a.click()
-      URL.revokeObjectURL(url)
+      downloadAsFile(payload.content, payload.filename.split('/').pop() || 'file.md')
 
       const toast = await toastController.create({
         message: t('chat.savedAsDownload'),
@@ -293,7 +281,7 @@ async function handleSaveContent(payload: { type: string, content: string, filen
               </template>
             </div>
             <div class="time">
-              {{ formatTime(msg.timestamp) }}
+              {{ formatChatTime(msg.timestamp) }}
             </div>
           </div>
         </TransitionGroup>

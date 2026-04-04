@@ -16,6 +16,7 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useViewModeStore } from '../stores/useViewModeStore'
+import { getCharacterInitials } from '../utils/chatUtils'
 import CharacterEditorForm from './CharacterEditorForm.vue'
 
 defineProps<{
@@ -95,10 +96,6 @@ async function saveNewCharacter() {
   showCreateForm.value = false
   emit('close')
 }
-
-function getInitials(name: string): string {
-  return name ? name.slice(0, 2) : '?'
-}
 </script>
 
 <template>
@@ -166,7 +163,7 @@ function getInitials(name: string): string {
             @click="selectCharacter(char.id)"
           >
             <div class="spc-item__avatar">
-              {{ getInitials(char.name) }}
+              {{ getCharacterInitials(char.name) }}
             </div>
             <div class="spc-item__info">
               <div class="spc-item__name">
