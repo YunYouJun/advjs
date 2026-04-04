@@ -134,7 +134,8 @@
     "deleteMessage": "删除",
     "regenerate": "重新生成",
     "editCancel": "取消",
-    "editConfirm": "发送"
+    "editConfirm": "发送",
+    "messageCopied": "已复制到剪贴板"
   },
   "preview": {
     "title": "游玩",
@@ -450,12 +451,42 @@
     "cancel": "取消",
     "confirm": "确认",
     "delete": "删除",
+    "deleted": "删除成功",
+    "confirmDelete": "确认删除",
     "load": "加载",
     "clear": "清除",
     "ok": "确定",
     "back": "返回",
     "expand": "展开",
-    "collapse": "收起"
+    "collapse": "收起",
+    "viewAll": "查看全部",
+    "search": "搜索..."
+  },
+  "chapters": {
+    "title": "章节",
+    "confirmDelete": "确定删除章节「{name}」？此操作不可撤销。",
+    "emptySearch": "没有匹配的章节"
+  },
+  "characters": {
+    "title": "角色",
+    "confirmDelete": "确定删除角色「{name}」？此操作不可撤销。",
+    "emptySearch": "没有匹配的角色"
+  },
+  "scenes": {
+    "title": "场景",
+    "confirmDelete": "确定删除场景「{name}」？此操作不可撤销。",
+    "emptySearch": "没有匹配的场景"
+  },
+  "dashboard": {
+    "worldSetting": "世界设定",
+    "storyOutline": "故事大纲",
+    "glossary": "术语 / 词条",
+    "knowledgeBase": "知识库",
+    "noKnowledge": "在 adv/knowledge/ 下添加文件",
+    "audioAssets": "音频素材",
+    "comingSoon": "即将推出",
+    "clickToEdit": "点击编辑",
+    "recentActivity": "最近编辑"
   },
   "contentEditor": {
     "formTab": "表单",

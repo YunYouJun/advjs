@@ -328,6 +328,14 @@
   }
 }
 
+/* ── Search highlight ── */
+.group-message--highlight .group-bubble {
+  outline: 2px solid var(--adv-primary, #8b5cf6);
+  outline-offset: 2px;
+  border-radius: 18px;
+  transition: outline 0.3s ease;
+}
+
 /* ── Snapshot Panel ── */
 .snapshot-panel {
   background: var(--adv-surface-card, #fff);

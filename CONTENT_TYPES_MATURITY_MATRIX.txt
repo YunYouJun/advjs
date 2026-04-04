@@ -1,0 +1,124 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                   ADV.JS CONTENT TYPES MATURITY MATRIX                        ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+Resource Type               │ Type Definition │ Parser │ Storage │ UI │ Status
+─────────────────────────────────────────────────────────────────────────────────
+CORE CONTENT (Foundation)
+  Chapters (.adv.md)        │ ✅ Complete     │ ✅     │ ✅     │ ✅  │ ✅ READY
+  Characters (.character)   │ ✅ Complete     │ ✅     │ ✅     │ ✅  │ ✅ READY
+  Scenes (.md)              │ ✅ Complete     │ ✅     │ ✅     │ ⚠️  │ ✅ READY
+  Flow/Branching            │ ✅ Complete     │ ✅     │ ✅     │ ✅  │ ✅ READY
+  Choices                   │ ✅ Complete     │ ✅     │ ✅     │ ✅  │ ✅ READY
+
+WORLD-BUILDING (Complete)
+  Knowledge Base            │ ✅ Complete     │ ✅     │ ✅     │ ✅  │ ✅ READY
+  World Clock               │ ✅ Complete     │ ✅     │ ✅     │ ⚠️  │ ✅ READY
+  World Events              │ ✅ Complete     │ ✅     │ ✅     │ ⚠️  │ ✅ READY
+  Character State           │ ✅ Complete     │ ✅     │ ✅     │ ✅  │ ✅ READY
+
+AUDIO/VISUAL (Partial)
+  BGM/Music                 │ ✅ Complete     │ ⚠️     │ ✅     │ ⚠️  │ ⚠️  PARTIAL
+  Sound Effects (SE)        │ ❌ Sketched     │ ❌     │ ❌     │ ❌  │ ❌ PLANNED
+  CG Images                 │ ✅ Partial      │ ✅     │ ✅     │ ⚠️  │ ⚠️  PARTIAL
+  Gallery System            │ ❌ Missing      │ ❌     │ ❌     │ ❌  │ ❌ NOT IMPL
+
+GAME STATE (Partial)
+  Variables/Flags           │ ⚠️  Partial     │ ⚠️     │ ⚠️     │ ❌  │ ⚠️  PARTIAL
+  Saves/Slots               │ ⚠️  Partial     │ ⚠️     │ ✅     │ ❌  │ ⚠️  PARTIAL
+  Items/Inventory           │ ❌ Missing      │ ❌     │ ❌     │ ❌  │ ❌ NOT IMPL
+  Achievements              │ ❌ Missing      │ ❌     │ ❌     │ ❌  │ ❌ NOT IMPL
+
+FEATURES (Planned)
+  Dialogue History          │ ❌ Missing      │ ❌     │ ❌     │ ❌  │ ❌ NOT IMPL
+  Localization (i18n)       │ ⚠️  Sketched    │ ❌     │ ⚠️     │ ❌  │ ❌ PLANNED
+  Crafting System           │ ❌ Missing      │ ❌     │ ❌     │ ❌  │ ❌ NOT IMPL
+  Reputation/Affinity       │ ❌ Missing      │ ❌     │ ❌     │ ❌  │ ❌ NOT IMPL
+
+Legend:
+  ✅ = Fully implemented
+  ⚠️  = Partially implemented
+  ❌ = Not implemented
+
+
+COLUMN DEFINITIONS:
+  Type Definition = TypeScript interface/type defined
+  Parser          = File format can be parsed
+  Storage         = Data persistence mechanism
+  UI              = User-facing interface in studio
+  Status          = Overall implementation status
+
+
+IMPLEMENTATION EFFORT ESTIMATES:
+
+Quick Wins (1-2 weeks):
+  • Sound Effects (SE) - Parser + config only
+  • Global Variables - Extend code operations
+  • Items System - Can use character.attributes pattern
+
+Medium Effort (3-4 weeks):
+  • CG Gallery System - Add unlock tracking + UI
+  • Achievements - Full new system
+  • Dialogue History - Tracking + display UI
+  • Save Slots - Extend character state system
+
+Large Projects (4+ weeks):
+  • Localization System - Full i18n implementation
+  • Advanced Inventory - Complex UI + logic
+  • Reputation System - Relation tracking + AI integration
+
+
+DATA LAYER ANALYSIS:
+
+Currently Available Storage:
+  • Character dynamic state → Dexie (IndexedDB)
+  • World events → In-memory + can be persisted
+  • Knowledge entries → In-memory
+  • Code state → Runtime only (can persist via character.attributes)
+
+Persistence Pattern Used:
+  • Primary: Dexie (IndexedDB) via useCharacterStateStore
+  • Secondary: JSON files via studio file system
+  • Config: TypeScript files + JSON manifests
+
+Recommended for New Types:
+  • IndexedDB for runtime state (fast access, offline)
+  • JSON files for project content (version control)
+  • TypeScript configs for settings
+
+
+ARCHITECTURAL PATTERNS TO REUSE:
+
+1. File Format Pattern (Used by Chapters & Characters):
+   ├─ YAML Frontmatter (metadata)
+   └─ Markdown Body (content)
+   → Can apply to: Music, Items, Achievements
+
+2. Dynamic State Pattern (Used by Characters):
+   └─ Persisted to Dexie with character ID
+   → Can apply to: Global game state, inventories, achievements
+
+3. Knowledge Base Pattern:
+   ├─ Hierarchical domain structure
+   ├─ Section-based parsing (## headings)
+   └─ Keyword search
+   → Can apply to: Item descriptions, achievement criteria
+
+4. Composable Loading Pattern (Used by useProjectContent):
+   ├─ Multi-source loading (local dir or cloud)
+   └─ Watch-based auto-reload
+   → Use for: New resource types
+
+
+QUICK IMPLEMENTATION CHECKLIST:
+
+For adding a new resource type {ResourceName}:
+  ☐ Define type interface: packages/types/src/game/{resource}.ts
+  ☐ Create parser: packages/parser/src/{resource}.ts
+  ☐ Add composable: apps/studio/src/composables/use{Resource}.ts (if needed)
+  ☐ Update ProjectStats: apps/studio/src/composables/useProjectContent.ts
+  ☐ Add stats calculation in loadFromDir() and loadFromCos()
+  ☐ Create demo files in demo/starter or demo/love
+  ☐ Update project template: apps/studio/src/utils/projectTemplate.ts (if main type)
+  ☐ Add tests in packages/parser/src/ or packages/types/src/
+

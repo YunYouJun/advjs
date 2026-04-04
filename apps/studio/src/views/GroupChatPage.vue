@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { AdvCharacter } from '@advjs/types'
+import type { ChatMessage } from '../stores/useChatStore'
 import {
+  actionSheetController,
   alertController,
   IonButton,
   IonButtons,
@@ -17,6 +19,8 @@ import {
 import {
   arrowBackOutline,
   cameraOutline,
+  downloadOutline,
+  searchOutline,
   sendOutline,
   stopOutline,
   trashOutline,
@@ -24,14 +28,23 @@ import {
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import ChatHistorySearch from '../components/ChatHistorySearch.vue'
 import MarkdownMessage from '../components/MarkdownMessage.vue'
+import MessageActions from '../components/MessageActions.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useWorldContext } from '../composables/useWorldContext'
 import { useCharacterMemoryStore } from '../stores/useCharacterMemoryStore'
 import { useGroupChatStore } from '../stores/useGroupChatStore'
+import { useSettingsStore } from '../stores/useSettingsStore'
+import { useStudioStore } from '../stores/useStudioStore'
 import { useViewModeStore } from '../stores/useViewModeStore'
 import { formatChatTime, getCharacterInitials, getMoodEmoji, getValidAvatarUrl } from '../utils/chatUtils'
+import { uploadToCloud } from '../utils/cloudSync'
+import { downloadAsFile, writeFileToDir } from '../utils/fileAccess'
 import '../styles/group-chat.css'
+
+const SAFE_FILENAME_RE = /[^a-z0-9\u4E00-\u9FFF]+/g
+const TRIM_UNDERSCORE_RE = /^_|_$/g
 
 const { t } = useI18n()
 const route = useRoute()
@@ -41,6 +54,8 @@ const { characters } = useProjectContent()
 const { worldContext } = useWorldContext()
 const viewModeStore = useViewModeStore()
 const memoryStore = useCharacterMemoryStore()
+const studioStore = useStudioStore()
+const settingsStore = useSettingsStore()
 
 const characterMap = computed(() => {
   const m = new Map<string, AdvCharacter>()
@@ -60,6 +75,7 @@ function getEffectiveWorldContext(): string {
 
 const inputText = ref('')
 const contentRef = ref<InstanceType<typeof IonContent> | null>(null)
+const showSearch = ref(false)
 
 const roomId = computed(() => route.params.roomId as string)
 
@@ -190,6 +206,163 @@ function handleKeydown(event: KeyboardEvent) {
   }
 }
 
+// --- Search ---
+
+function handleSearchJump(index: number) {
+  const totalMessages = allMessages.value.length
+  const curVisibleStart = Math.max(0, totalMessages - displayCount.value)
+  if (index < curVisibleStart) {
+    displayCount.value = totalMessages - index + PAGE_SIZE
+  }
+  const newVisibleStart = Math.max(0, totalMessages - displayCount.value)
+  const visibleIndex = index - newVisibleStart
+  nextTick(() => {
+    const el = contentRef.value?.$el
+    if (!el)
+      return
+    const msgEls = el.querySelectorAll('.group-message')
+    if (msgEls[visibleIndex]) {
+      msgEls[visibleIndex].scrollIntoView({ behavior: 'smooth', block: 'center' })
+      msgEls[visibleIndex].classList.add('group-message--highlight')
+      setTimeout(() => {
+        msgEls[visibleIndex].classList.remove('group-message--highlight')
+      }, 1500)
+    }
+  })
+}
+
+// --- Export ---
+
+async function handleExport() {
+  if (allMessages.value.length === 0)
+    return
+  const roomName = room.value?.name || roomId.value
+  const sheet = await actionSheetController.create({
+    header: t('world.exportTitle'),
+    buttons: [
+      { text: t('world.exportAdvMd'), handler: () => exportGroupAsAdvMd(roomName) },
+      { text: t('world.exportMarkdown'), handler: () => exportGroupAsMarkdown(roomName) },
+      { text: t('common.cancel'), role: 'cancel' },
+    ],
+  })
+  await sheet.present()
+}
+
+function getSpeakerName(msg: { role: string, characterName?: string }): string {
+  if (msg.role === 'user')
+    return 'Player'
+  return msg.characterName || 'Character'
+}
+
+function groupConversationToAdvMd(roomName: string): string {
+  const lines: string[] = [
+    '---',
+    `plotSummary: Group Chat - ${roomName}`,
+    '---',
+    '',
+  ]
+  for (const msg of allMessages.value) {
+    lines.push(`@${getSpeakerName(msg)}`)
+    lines.push(msg.content)
+    lines.push('')
+  }
+  return lines.join('\n')
+}
+
+function groupConversationToMarkdown(roomName: string): string {
+  const lines: string[] = [
+    `# Group Chat: ${roomName}`,
+    '',
+    `> ${new Date().toLocaleDateString()}`,
+    '',
+  ]
+  for (const msg of allMessages.value) {
+    const speaker = getSpeakerName(msg)
+    const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    lines.push(`**${speaker}** (${time}):`)
+    lines.push('')
+    lines.push(msg.content)
+    lines.push('')
+  }
+  return lines.join('\n')
+}
+
+async function exportGroupAsAdvMd(roomName: string) {
+  const content = groupConversationToAdvMd(roomName)
+  const safeName = roomName.toLowerCase().replace(SAFE_FILENAME_RE, '_').replace(TRIM_UNDERSCORE_RE, '')
+  await saveExportedFile(`adv/chapters/group-${safeName}.adv.md`, content)
+}
+
+async function exportGroupAsMarkdown(roomName: string) {
+  const content = groupConversationToMarkdown(roomName)
+  const safeName = roomName.toLowerCase().replace(SAFE_FILENAME_RE, '_').replace(TRIM_UNDERSCORE_RE, '')
+  downloadAsFile(content, `group-${safeName}.md`)
+  const toast = await toastController.create({
+    message: t('world.exportSuccess'),
+    duration: 2000,
+    position: 'top',
+  })
+  await toast.present()
+}
+
+async function saveExportedFile(filename: string, content: string) {
+  const project = studioStore.currentProject
+  try {
+    if (project?.dirHandle) {
+      await writeFileToDir(project.dirHandle, filename, content)
+    }
+    else if (project?.source === 'cos' && project.cosPrefix) {
+      await uploadToCloud(settingsStore.cos, `${project.cosPrefix}${filename}`, content)
+    }
+    else {
+      downloadAsFile(content, filename.split('/').pop() || 'export.md')
+    }
+    const toast = await toastController.create({
+      message: t('world.exportSavedTo', { file: filename }),
+      duration: 2000,
+      position: 'top',
+      color: 'success',
+    })
+    await toast.present()
+  }
+  catch {
+    const toast = await toastController.create({
+      message: t('world.exportFailed'),
+      duration: 2000,
+      position: 'top',
+      color: 'danger',
+    })
+    await toast.present()
+  }
+}
+
+// --- Message Actions ---
+
+async function copyGroupMessage(content: string) {
+  try {
+    await navigator.clipboard.writeText(content)
+    const toast = await toastController.create({
+      message: t('chat.messageCopied'),
+      duration: 1500,
+      position: 'top',
+    })
+    await toast.present()
+  }
+  catch {
+    const toast = await toastController.create({
+      message: t('chat.copyFailed'),
+      duration: 1500,
+      position: 'top',
+      color: 'danger',
+    })
+    await toast.present()
+  }
+}
+
+function deleteGroupMessage(timestamp: number) {
+  groupChatStore.deleteMessage(roomId.value, timestamp)
+}
+
 // --- Snapshot helpers ---
 
 const showSnapshots = ref(false)
@@ -259,6 +432,14 @@ async function handleDeleteSnapshot(snapshotId: string) {
         <IonTitle>{{ room?.name || roomId }}</IonTitle>
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
         <IonButtons slot="end">
+          <IonButton @click="showSearch = !showSearch">
+            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+            <IonIcon slot="icon-only" :icon="searchOutline" />
+          </IonButton>
+          <IonButton :disabled="allMessages.length === 0" @click="handleExport">
+            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+            <IonIcon slot="icon-only" :icon="downloadOutline" />
+          </IonButton>
           <IonButton @click="showSnapshots = !showSnapshots">
             <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
             <IonIcon slot="icon-only" :icon="cameraOutline" />
@@ -269,6 +450,14 @@ async function handleDeleteSnapshot(snapshotId: string) {
           </IonButton>
         </IonButtons>
       </IonToolbar>
+
+      <!-- Search panel -->
+      <ChatHistorySearch
+        v-if="showSearch"
+        :messages="(allMessages as any)"
+        @jump-to="handleSearchJump"
+        @close="showSearch = false"
+      />
 
       <!-- Snapshot panel (collapsible) -->
       <div v-if="showSnapshots" class="snapshot-panel">
@@ -381,6 +570,15 @@ async function handleDeleteSnapshot(snapshotId: string) {
             <div class="group-time">
               {{ formatChatTime(msg.timestamp) }}
             </div>
+            <MessageActions
+              :message="{ role: msg.role === 'character' ? 'assistant' : 'user', content: msg.content, timestamp: msg.timestamp } as ChatMessage"
+              :is-last="false"
+              :is-loading="groupChatStore.isLoading"
+              @copy="copyGroupMessage(msg.content)"
+              @delete="deleteGroupMessage(msg.timestamp)"
+              @edit="() => {}"
+              @regenerate="() => {}"
+            />
           </div>
         </TransitionGroup>
 
@@ -461,6 +659,13 @@ ion-footer ion-toolbar {
   box-shadow:
     0 -1px 6px rgba(0, 0, 0, 0.06),
     0 -1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* Show msg-actions on group-message hover */
+:deep(.group-message:hover .msg-actions),
+:deep(.group-message .msg-actions:focus-within) {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* Participant status bar */

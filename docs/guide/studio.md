@@ -137,20 +137,20 @@ Studio 支持多种项目来源：
 
 Studio 使用 13 个 Pinia Store 管理全局状态，全部 IndexedDB（Dexie）持久化：
 
-| Store                      | 职责                                        |
-| -------------------------- | ------------------------------------------- |
-| `useStudioStore`           | 当前项目信息、项目列表                      |
-| `useAiSettingsStore`       | AI 服务商配置（API Key、模型、Base URL）    |
-| `useSettingsStore`         | 用户设置（外观、语言、COS 配置）            |
-| `useCharacterChatStore`    | 角色 1v1 对话（消息、流式生成、上下文窗口） |
-| `useChatStore`             | 通用 AI 聊天（项目创作辅助）                |
-| `useCharacterMemoryStore`  | 角色记忆（事实、偏好、情感状态提取）        |
-| `useCharacterStateStore`   | 角色动态状态（位置、健康、活动、属性）      |
-| `useWorldClockStore`       | 世界时钟（日期、时段、天气）                |
-| `useWorldEventStore`       | 世界事件（日常/社交/意外/天气）             |
-| `useGroupChatStore`        | 多角色群聊（自动选人、轮流发言）            |
-| `useViewModeStore`         | 视角模式（角色/上帝/访客）                  |
-| `useCharacterDiaryStore`   | 角色日记（AI 生成内心独白、按日期存储）     |
+| Store                     | 职责                                        |
+| ------------------------- | ------------------------------------------- |
+| `useStudioStore`          | 当前项目信息、项目列表                      |
+| `useAiSettingsStore`      | AI 服务商配置（API Key、模型、Base URL）    |
+| `useSettingsStore`        | 用户设置（外观、语言、COS 配置）            |
+| `useCharacterChatStore`   | 角色 1v1 对话（消息、流式生成、上下文窗口） |
+| `useChatStore`            | 通用 AI 聊天（项目创作辅助）                |
+| `useCharacterMemoryStore` | 角色记忆（事实、偏好、情感状态提取）        |
+| `useCharacterStateStore`  | 角色动态状态（位置、健康、活动、属性）      |
+| `useWorldClockStore`      | 世界时钟（日期、时段、天气）                |
+| `useWorldEventStore`      | 世界事件（日常/社交/意外/天气）             |
+| `useGroupChatStore`       | 多角色群聊（自动选人、轮流发言）            |
+| `useViewModeStore`        | 视角模式（角色/上帝/访客）                  |
+| `useCharacterDiaryStore`  | 角色日记（AI 生成内心独白、按日期存储）     |
 
 ## 使用说明
 
@@ -375,13 +375,13 @@ adv/knowledge/
 
 ```ts
 interface CharacterDiaryEntry {
-  id: string          // 'diary-{timestamp}-{n}'
+  id: string // 'diary-{timestamp}-{n}'
   characterId: string
-  date: string        // 世界内日期（与 WorldClock.date 对齐）
-  period: string      // 世界时段（morning / afternoon / evening / night）
-  content: string     // AI 生成的日记正文
-  createdAt: number   // 真实时间戳
-  mood?: string       // AI 可选提取的心情词
+  date: string // 世界内日期（与 WorldClock.date 对齐）
+  period: string // 世界时段（morning / afternoon / evening / night）
+  content: string // AI 生成的日记正文
+  createdAt: number // 真实时间戳
+  mood?: string // AI 可选提取的心情词
 }
 ```
 
@@ -403,14 +403,14 @@ interface CharacterDiaryEntry {
 export interface TimelineEntry {
   id: string
   kind: 'event' | 'diary'
-  date: string        // 世界内日期（排序主键）
-  period: string      // 世界时段（morning < afternoon < evening < night）
-  characterId?: string    // diary 条目的角色 ID
+  date: string // 世界内日期（排序主键）
+  period: string // 世界时段（morning < afternoon < evening < night）
+  characterId?: string // diary 条目的角色 ID
   characterIds?: string[] // event 的完整角色列表
-  summary: string     // event.summary 或 diary.content
-  type?: string       // event.type（diary 为 undefined）
-  mood?: string       // diary.mood
-  createdAt: number   // 真实时间戳
+  summary: string // event.summary 或 diary.content
+  type?: string // event.type（diary 为 undefined）
+  mood?: string // diary.mood
+  createdAt: number // 真实时间戳
   source: WorldEvent | CharacterDiaryEntry // 原始数据
 }
 ```

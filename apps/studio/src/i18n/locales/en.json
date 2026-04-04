@@ -134,7 +134,8 @@
     "deleteMessage": "Delete",
     "regenerate": "Regenerate",
     "editCancel": "Cancel",
-    "editConfirm": "Send"
+    "editConfirm": "Send",
+    "messageCopied": "Copied to clipboard"
   },
   "preview": {
     "title": "Play",
@@ -450,12 +451,42 @@
     "cancel": "Cancel",
     "confirm": "Confirm",
     "delete": "Delete",
+    "deleted": "Deleted successfully",
+    "confirmDelete": "Confirm Delete",
     "load": "Load",
     "clear": "Clear",
     "ok": "OK",
     "back": "Back",
     "expand": "Expand",
-    "collapse": "Collapse"
+    "collapse": "Collapse",
+    "viewAll": "View All",
+    "search": "Search..."
+  },
+  "chapters": {
+    "title": "Chapters",
+    "confirmDelete": "Delete chapter \"{name}\"? This cannot be undone.",
+    "emptySearch": "No chapters match your search"
+  },
+  "characters": {
+    "title": "Characters",
+    "confirmDelete": "Delete character \"{name}\"? This cannot be undone.",
+    "emptySearch": "No characters match your search"
+  },
+  "scenes": {
+    "title": "Scenes",
+    "confirmDelete": "Delete scene \"{name}\"? This cannot be undone.",
+    "emptySearch": "No scenes match your search"
+  },
+  "dashboard": {
+    "worldSetting": "World Setting",
+    "storyOutline": "Story Outline",
+    "glossary": "Glossary / Terminology",
+    "knowledgeBase": "Knowledge Base",
+    "noKnowledge": "Add files to adv/knowledge/",
+    "audioAssets": "Audio Assets",
+    "comingSoon": "Coming soon",
+    "clickToEdit": "Click to edit",
+    "recentActivity": "Recent Activity"
   },
   "contentEditor": {
     "formTab": "Form",

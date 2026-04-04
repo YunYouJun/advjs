@@ -1,581 +1,701 @@
 <script setup lang="ts">
-import type { AdvCharacter } from '@advjs/types'
-import type { ChapterFormData } from '../utils/chapterMd'
-import type { SceneFormData } from '../utils/sceneMd'
-import { parseCharacterMd, stringifyCharacterMd } from '@advjs/parser'
 import {
-  IonButton,
   IonIcon,
-  IonLabel,
-  IonListHeader,
-  IonNote,
-  toastController,
 } from '@ionic/vue'
-import { addOutline, bookOutline, imageOutline, peopleOutline } from 'ionicons/icons'
-import { ref } from 'vue'
+import {
+  addOutline,
+  bookOutline,
+  bulbOutline,
+  chevronForwardOutline,
+  documentTextOutline,
+  globeOutline,
+  imageOutline,
+  libraryOutline,
+  musicalNotesOutline,
+  peopleOutline,
+  timeOutline,
+} from 'ionicons/icons'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { useContentEditor } from '../composables/useContentEditor'
-import { useContentSave } from '../composables/useContentSave'
 import { useProjectContent } from '../composables/useProjectContent'
-import { useAiSettingsStore } from '../stores/useAiSettingsStore'
-import { stringifyChapterMd } from '../utils/chapterMd'
-import { parseSceneMd, stringifySceneMd } from '../utils/sceneMd'
-import AiGeneratePanel from './AiGeneratePanel.vue'
-import ChapterCard from './ChapterCard.vue'
-import ChapterEditorForm from './ChapterEditorForm.vue'
-import CharacterCard from './CharacterCard.vue'
-import CharacterEditorForm from './CharacterEditorForm.vue'
-import ContentEditorModal from './ContentEditorModal.vue'
-import SceneCard from './SceneCard.vue'
-import SceneEditorForm from './SceneEditorForm.vue'
+import { useProjectDescription } from '../composables/useProjectDescription'
+import { useRecentActivity } from '../composables/useRecentActivity'
+import { useStudioStore } from '../stores/useStudioStore'
 
 const { t } = useI18n()
 const router = useRouter()
-const aiSettings = useAiSettingsStore()
+const studioStore = useStudioStore()
 
 const {
-  chapters,
-  characters,
-  scenes,
   stats,
   isLoading,
-  reload,
-  getDirHandle,
+  knowledgeBase,
 } = useProjectContent()
 
-const { isSaving, saveContent } = useContentSave()
+const {
+  worldMd,
+  outlineMd,
+  glossaryMd,
+  extractTitle,
+  extractPreview,
+  extractSections,
+} = useProjectDescription()
 
-// --- Character editor ---
-const characterEditor = useContentEditor<AdvCharacter>('character', () => ({
-  id: '',
-  name: '',
-  tags: [],
-  faction: '',
-  appearance: '',
-  personality: '',
-  background: '',
-  concept: '',
-  speechStyle: '',
-  relationships: [],
-}))
-const characterMarkdown = ref('')
+const { recentItems } = useRecentActivity()
 
-function characterToMarkdown() {
-  characterMarkdown.value = stringifyCharacterMd(characterEditor.formData.value)
+// --- Derived data for dashboard cards ---
+const projectName = computed(() => studioStore.currentProject?.name || '')
+
+const worldTitle = computed(() => extractTitle(worldMd.value) || t('dashboard.worldSetting'))
+const worldPreview = computed(() => extractPreview(worldMd.value))
+const worldSections = computed(() => extractSections(worldMd.value))
+const hasWorld = computed(() => worldMd.value.trim().length > 0)
+
+const outlineTitle = computed(() => extractTitle(outlineMd.value) || t('dashboard.storyOutline'))
+const outlinePreview = computed(() => extractPreview(outlineMd.value))
+const outlineSections = computed(() => extractSections(outlineMd.value))
+const hasOutline = computed(() => outlineMd.value.trim().length > 0)
+
+const glossaryTitle = computed(() => extractTitle(glossaryMd.value) || t('dashboard.glossary'))
+const glossarySections = computed(() => extractSections(glossaryMd.value))
+const hasGlossary = computed(() => glossaryMd.value.trim().length > 0)
+
+const knowledgeDomains = computed(() => knowledgeBase.domains.value)
+
+const TYPE_ICON: Record<string, string> = {
+  chapter: '📖',
+  character: '👤',
+  scene: '🎬',
+  file: '📄',
 }
 
-function markdownToCharacter(md: string) {
-  characterMarkdown.value = md
-  try {
-    const parsed = parseCharacterMd(md)
-    characterEditor.formData.value = parsed
-  }
-  catch {
-    // If md is invalid, keep formData unchanged; user can fix in markdown view
-  }
+function navigateTo(path: string) {
+  router.push(path)
 }
 
-function handleAiApplyCharacter(md: string) {
-  markdownToCharacter(md)
-}
-
-// --- Scene editor ---
-const sceneEditor = useContentEditor<SceneFormData>('scene', () => ({
-  id: '',
-  name: '',
-  description: '',
-  imagePrompt: '',
-  type: 'image' as const,
-  tags: [],
-}))
-const sceneMarkdown = ref('')
-
-function sceneToMarkdown() {
-  sceneMarkdown.value = stringifySceneMd(sceneEditor.formData.value)
-}
-
-function markdownToScene(md: string) {
-  sceneMarkdown.value = md
-  try {
-    const parsed = parseSceneMd(md)
-    sceneEditor.formData.value = parsed
-  }
-  catch {
-    // keep formData unchanged on parse failure
-  }
-}
-
-function handleAiApplyScene(md: string) {
-  markdownToScene(md)
-}
-
-// --- Chapter editor ---
-const chapterEditor = useContentEditor<ChapterFormData>('chapter', () => ({
-  filename: '',
-  title: '',
-  plotSummary: '',
-  content: '',
-}))
-const chapterMarkdown = ref('')
-
-function chapterToMarkdown() {
-  // For chapters, the "markdown" IS the .adv.md content
-  chapterMarkdown.value = stringifyChapterMd(chapterEditor.formData.value)
-}
-
-function markdownToChapter(md: string) {
-  chapterMarkdown.value = md
-  chapterEditor.formData.value = {
-    ...chapterEditor.formData.value,
-    content: md,
-  }
-}
-
-function handleAiApplyChapter(md: string) {
-  markdownToChapter(md)
-}
-
-// --- Navigation ---
-function handleEditChapter(file: string) {
+function openFileInEditor(file: string) {
   router.push(`/editor?file=${encodeURIComponent(file)}`)
 }
 
-function handlePlayChapter(file: string) {
-  router.push(`/tabs/play?file=${encodeURIComponent(file)}`)
-}
-
-function handleEditCharacter(character: AdvCharacter) {
-  characterEditor.openEdit(character)
-  characterMarkdown.value = stringifyCharacterMd(character)
-}
-
-function handleEditScene(scene: { file: string, name: string, id?: string, description?: string, imagePrompt?: string, type?: 'image' | 'model', tags?: string[] }) {
-  const sceneData: SceneFormData = {
-    id: scene.id || scene.name,
-    name: scene.name,
-    description: scene.description,
-    imagePrompt: scene.imagePrompt,
-    type: scene.type || 'image',
-    tags: scene.tags,
+function handleRecentClick(item: { id: string, type: string }) {
+  if (item.type === 'chapter') {
+    router.push(`/editor?file=${encodeURIComponent(item.id)}`)
   }
-  sceneEditor.openEdit(sceneData)
-  sceneMarkdown.value = stringifySceneMd(sceneData)
-}
-
-// --- Toast ---
-async function showToast(message: string, color: string = 'success') {
-  const toast = await toastController.create({
-    message,
-    duration: 2000,
-    color,
-    position: 'bottom',
-  })
-  await toast.present()
-}
-
-// --- Save handlers ---
-async function handleSaveCharacter() {
-  const errors = characterEditor.validate()
-  if (errors.length > 0) {
-    await showToast(t('contentEditor.validationError', { errors: errors.join(', ') }), 'warning')
-    return
+  else if (item.type === 'character') {
+    navigateTo('/tabs/workspace/characters')
   }
-
-  const dirHandle = getDirHandle()
-  if (!dirHandle) {
-    await showToast(t('contentEditor.saveFailed', { error: 'No directory handle' }), 'danger')
-    return
-  }
-
-  const result = await saveContent(dirHandle, 'character', characterEditor.mode.value, characterEditor.formData.value, characterEditor.originalId.value)
-  if (result.success) {
-    await showToast(t('contentEditor.saveSuccess'))
-    characterEditor.onSaved()
-    characterEditor.close()
-    await reload()
-  }
-  else {
-    await showToast(t('contentEditor.saveFailed', { error: result.error }), 'danger')
+  else if (item.type === 'scene') {
+    navigateTo('/tabs/workspace/scenes')
   }
 }
 
-async function handleSaveScene() {
-  const errors = sceneEditor.validate()
-  if (errors.length > 0) {
-    await showToast(t('contentEditor.validationError', { errors: errors.join(', ') }), 'warning')
-    return
-  }
-
-  const dirHandle = getDirHandle()
-  if (!dirHandle) {
-    await showToast(t('contentEditor.saveFailed', { error: 'No directory handle' }), 'danger')
-    return
-  }
-
-  const result = await saveContent(dirHandle, 'scene', sceneEditor.mode.value, sceneEditor.formData.value, sceneEditor.originalId.value)
-  if (result.success) {
-    await showToast(t('contentEditor.saveSuccess'))
-    sceneEditor.onSaved()
-    sceneEditor.close()
-    await reload()
-  }
-  else {
-    await showToast(t('contentEditor.saveFailed', { error: result.error }), 'danger')
-  }
-}
-
-async function handleSaveChapter() {
-  const errors = chapterEditor.validate()
-  if (errors.length > 0) {
-    await showToast(t('contentEditor.validationError', { errors: errors.join(', ') }), 'warning')
-    return
-  }
-
-  const dirHandle = getDirHandle()
-  if (!dirHandle) {
-    await showToast(t('contentEditor.saveFailed', { error: 'No directory handle' }), 'danger')
-    return
-  }
-
-  const result = await saveContent(dirHandle, 'chapter', chapterEditor.mode.value, chapterEditor.formData.value, chapterEditor.originalId.value)
-  if (result.success) {
-    await showToast(t('contentEditor.saveSuccess'))
-    chapterEditor.onSaved()
-    chapterEditor.close()
-    await reload()
-  }
-  else {
-    await showToast(t('contentEditor.saveFailed', { error: result.error }), 'danger')
-  }
+function formatRelativeTime(timestamp: number): string {
+  const diffMs = Date.now() - timestamp
+  const diffMins = Math.floor(diffMs / 60000)
+  if (diffMins < 1)
+    return t('time.justNow')
+  if (diffMins < 60)
+    return t('time.minutesAgo', { n: diffMins })
+  const diffHours = Math.floor(diffMins / 60)
+  if (diffHours < 24)
+    return t('time.hoursAgo', { n: diffHours })
+  const diffDays = Math.floor(diffHours / 24)
+  return t('time.daysAgo', { n: diffDays })
 }
 </script>
 
 <template>
-  <div class="project-overview">
-    <!-- Loading indicator -->
-    <div v-if="isLoading" class="overview-loading">
+  <div class="overview">
+    <!-- Loading -->
+    <div v-if="isLoading" class="overview__loading">
       {{ t('preview.loadingGame') }}
     </div>
 
-    <!-- Stats Grid -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-card__icon stat-card__icon--primary">
-          <IonIcon :icon="bookOutline" />
-        </div>
-        <span class="stat-card__value">{{ stats.chapters }}</span>
-        <span class="stat-card__label">{{ t('preview.chaptersCount') }}</span>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card__icon stat-card__icon--purple">
-          <IonIcon :icon="peopleOutline" />
-        </div>
-        <span class="stat-card__value">{{ stats.characters }}</span>
-        <span class="stat-card__label">{{ t('preview.charactersCount') }}</span>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card__icon stat-card__icon--teal">
-          <IonIcon :icon="imageOutline" />
-        </div>
-        <span class="stat-card__value">{{ stats.scenes }}</span>
-        <span class="stat-card__label">{{ t('workspace.scenes') }}</span>
-      </div>
-    </div>
+    <!-- Project Header -->
+    <header v-if="projectName" class="overview__header">
+      <h2 class="overview__title">
+        {{ projectName }}
+      </h2>
+      <p v-if="worldPreview" class="overview__desc">
+        {{ worldPreview }}
+      </p>
+    </header>
 
-    <!-- Chapters Section -->
-    <IonListHeader>
-      <IonLabel>{{ t('preview.chapters') }}</IonLabel>
-      <IonButton fill="clear" size="small" @click="chapterEditor.openCreate()">
-        <IonIcon :icon="addOutline" />
-      </IonButton>
-    </IonListHeader>
-    <div v-if="chapterEditor.hasDraft.value" class="draft-banner-wrapper">
-      <div class="draft-banner">
-        <span>{{ t('contentEditor.draftFound', { type: t('contentEditor.createChapter') }) }}</span>
-        <div class="draft-banner__actions">
-          <IonButton fill="solid" size="small" @click="chapterEditor.restoreDraft()">
-            {{ t('contentEditor.restoreDraft') }}
-          </IonButton>
-          <IonButton fill="clear" size="small" color="medium" @click="chapterEditor.clearDraft()">
-            {{ t('contentEditor.discardDraft') }}
-          </IonButton>
-        </div>
+    <!-- ═══════════ Stats Row ═══════════ -->
+    <nav class="stats" aria-label="Resource navigation">
+      <button class="stats__card" data-accent="indigo" @click="navigateTo('/tabs/workspace/chapters')">
+        <span class="stats__icon"><IonIcon :icon="bookOutline" /></span>
+        <span class="stats__value">{{ stats.chapters }}</span>
+        <span class="stats__label">{{ t('preview.chaptersCount') }}</span>
+        <IonIcon :icon="chevronForwardOutline" class="stats__arrow" />
+      </button>
+      <button class="stats__card" data-accent="violet" @click="navigateTo('/tabs/workspace/characters')">
+        <span class="stats__icon"><IonIcon :icon="peopleOutline" /></span>
+        <span class="stats__value">{{ stats.characters }}</span>
+        <span class="stats__label">{{ t('preview.charactersCount') }}</span>
+        <IonIcon :icon="chevronForwardOutline" class="stats__arrow" />
+      </button>
+      <button class="stats__card" data-accent="teal" @click="navigateTo('/tabs/workspace/scenes')">
+        <span class="stats__icon"><IonIcon :icon="imageOutline" /></span>
+        <span class="stats__value">{{ stats.scenes }}</span>
+        <span class="stats__label">{{ t('workspace.scenes') }}</span>
+        <IonIcon :icon="chevronForwardOutline" class="stats__arrow" />
+      </button>
+    </nav>
+
+    <!-- ═══════════ Recent Activity ═══════════ -->
+    <section v-if="recentItems.length > 0" class="recent">
+      <h3 class="section-label">
+        <IonIcon :icon="timeOutline" />
+        {{ t('dashboard.recentActivity') }}
+      </h3>
+      <div class="recent__track">
+        <button
+          v-for="item in recentItems"
+          :key="item.id"
+          class="recent__pill"
+          @click="handleRecentClick(item)"
+        >
+          <span class="recent__emoji">{{ TYPE_ICON[item.type] || '📄' }}</span>
+          <span class="recent__name">{{ item.label }}</span>
+          <time class="recent__time">{{ formatRelativeTime(item.timestamp) }}</time>
+        </button>
       </div>
-    </div>
-    <div v-if="chapters.length > 0" class="card-list">
-      <ChapterCard
-        v-for="chapter in chapters"
-        :key="chapter.file"
-        :chapter="chapter"
-        @edit="handleEditChapter"
-        @play="handlePlayChapter"
-      />
-    </div>
-    <IonNote v-else class="empty-note">
-      {{ t('preview.noChapters') }}
-    </IonNote>
+    </section>
 
-    <!-- Characters Section -->
-    <IonListHeader>
-      <IonLabel>{{ t('workspace.characters') }}</IonLabel>
-      <IonButton fill="clear" size="small" @click="characterEditor.openCreate()">
-        <IonIcon :icon="addOutline" />
-      </IonButton>
-    </IonListHeader>
-    <div v-if="characterEditor.hasDraft.value" class="draft-banner-wrapper">
-      <div class="draft-banner">
-        <span>{{ t('contentEditor.draftFound', { type: t('contentEditor.createCharacter') }) }}</span>
-        <div class="draft-banner__actions">
-          <IonButton fill="solid" size="small" @click="characterEditor.restoreDraft()">
-            {{ t('contentEditor.restoreDraft') }}
-          </IonButton>
-          <IonButton fill="clear" size="small" color="medium" @click="characterEditor.clearDraft()">
-            {{ t('contentEditor.discardDraft') }}
-          </IonButton>
+    <!-- ═══════════ Content Cards ═══════════ -->
+    <section class="cards">
+      <!-- World Setting -->
+      <button class="card" :class="{ 'card--empty': !hasWorld }" data-accent="blue" @click="openFileInEditor('adv/world.md')">
+        <div class="card__head">
+          <span class="card__icon"><IonIcon :icon="globeOutline" /></span>
+          <span class="card__title">{{ worldTitle }}</span>
         </div>
-      </div>
-    </div>
-    <div v-if="characters.length > 0" class="card-grid">
-      <CharacterCard
-        v-for="character in characters"
-        :key="character.id"
-        :character="character"
-        @click="handleEditCharacter"
-      />
-    </div>
-    <IonNote v-else class="empty-note">
-      {{ t('workspace.noCharacters') }}
-    </IonNote>
-
-    <!-- Scenes Section -->
-    <IonListHeader>
-      <IonLabel>{{ t('workspace.scenes') }}</IonLabel>
-      <IonButton fill="clear" size="small" @click="sceneEditor.openCreate()">
-        <IonIcon :icon="addOutline" />
-      </IonButton>
-    </IonListHeader>
-    <div v-if="sceneEditor.hasDraft.value" class="draft-banner-wrapper">
-      <div class="draft-banner">
-        <span>{{ t('contentEditor.draftFound', { type: t('contentEditor.createScene') }) }}</span>
-        <div class="draft-banner__actions">
-          <IonButton fill="solid" size="small" @click="sceneEditor.restoreDraft()">
-            {{ t('contentEditor.restoreDraft') }}
-          </IonButton>
-          <IonButton fill="clear" size="small" color="medium" @click="sceneEditor.clearDraft()">
-            {{ t('contentEditor.discardDraft') }}
-          </IonButton>
+        <div v-if="worldSections.length > 0" class="card__chips">
+          <span v-for="s in worldSections.slice(0, 4)" :key="s" class="chip">{{ s }}</span>
+          <span v-if="worldSections.length > 4" class="chip chip--more">+{{ worldSections.length - 4 }}</span>
         </div>
+        <span v-else class="card__empty-hint">
+          <IonIcon :icon="addOutline" class="card__empty-icon" />
+          {{ t('dashboard.clickToEdit') }}
+        </span>
+      </button>
+
+      <!-- Story Outline -->
+      <button class="card" :class="{ 'card--empty': !hasOutline }" data-accent="amber" @click="openFileInEditor('adv/outline.md')">
+        <div class="card__head">
+          <span class="card__icon"><IonIcon :icon="documentTextOutline" /></span>
+          <span class="card__title">{{ outlineTitle }}</span>
+        </div>
+        <p v-if="outlinePreview" class="card__preview">
+          {{ outlinePreview }}
+        </p>
+        <div v-if="outlineSections.length > 0" class="card__chips">
+          <span v-for="s in outlineSections.slice(0, 4)" :key="s" class="chip">{{ s }}</span>
+          <span v-if="outlineSections.length > 4" class="chip chip--more">+{{ outlineSections.length - 4 }}</span>
+        </div>
+        <span v-else-if="!outlinePreview" class="card__empty-hint">
+          <IonIcon :icon="addOutline" class="card__empty-icon" />
+          {{ t('dashboard.clickToEdit') }}
+        </span>
+      </button>
+
+      <!-- Glossary -->
+      <button class="card" :class="{ 'card--empty': !hasGlossary }" data-accent="rose" @click="openFileInEditor('adv/glossary.md')">
+        <div class="card__head">
+          <span class="card__icon"><IonIcon :icon="bulbOutline" /></span>
+          <span class="card__title">{{ glossaryTitle }}</span>
+        </div>
+        <div v-if="glossarySections.length > 0" class="card__chips">
+          <span v-for="s in glossarySections.slice(0, 6)" :key="s" class="chip">{{ s }}</span>
+          <span v-if="glossarySections.length > 6" class="chip chip--more">+{{ glossarySections.length - 6 }}</span>
+        </div>
+        <span v-else class="card__empty-hint">
+          <IonIcon :icon="addOutline" class="card__empty-icon" />
+          {{ t('dashboard.clickToEdit') }}
+        </span>
+      </button>
+
+      <!-- Knowledge Base -->
+      <button class="card" :class="{ 'card--empty': stats.knowledge === 0 }" data-accent="emerald" @click="navigateTo('/tabs/workspace')">
+        <div class="card__head">
+          <span class="card__icon"><IonIcon :icon="libraryOutline" /></span>
+          <span class="card__title">{{ t('dashboard.knowledgeBase') }}</span>
+          <span v-if="stats.knowledge > 0" class="card__badge">{{ stats.knowledge }}</span>
+        </div>
+        <div v-if="knowledgeDomains.length > 0" class="card__chips">
+          <span v-for="d in knowledgeDomains.slice(0, 5)" :key="d" class="chip">{{ d }}</span>
+        </div>
+        <span v-else class="card__empty-hint">
+          <IonIcon :icon="addOutline" class="card__empty-icon" />
+          {{ t('dashboard.noKnowledge') }}
+        </span>
+      </button>
+
+      <!-- Audio (placeholder) -->
+      <div class="card card--disabled" data-accent="violet">
+        <div class="card__head">
+          <span class="card__icon"><IonIcon :icon="musicalNotesOutline" /></span>
+          <span class="card__title">{{ t('dashboard.audioAssets') }}</span>
+        </div>
+        <span class="card__empty-hint">{{ t('dashboard.comingSoon') }}</span>
       </div>
-    </div>
-    <div v-if="scenes.length > 0" class="card-grid">
-      <SceneCard
-        v-for="scene in scenes"
-        :key="scene.file"
-        :scene="scene"
-        @click="handleEditScene(scene)"
-      />
-    </div>
-    <IonNote v-else class="empty-note">
-      {{ t('workspace.noScenes') }}
-    </IonNote>
-
-    <!-- Character Editor Modal -->
-    <ContentEditorModal
-      :is-open="characterEditor.isOpen.value"
-      :title="characterEditor.mode.value === 'create' ? t('contentEditor.createCharacter') : t('contentEditor.editCharacter')"
-      :mode="characterEditor.mode.value"
-      :is-saving="isSaving"
-      :ai-enabled="aiSettings.isConfigured"
-      :markdown="characterMarkdown"
-      :monaco-filename="`${characterEditor.formData.value.id || 'character'}.character.md`"
-      @update:is-open="(v: boolean) => { if (!v) characterEditor.close() }"
-      @update:markdown="characterMarkdown = $event"
-      @sync-to-markdown="characterToMarkdown()"
-      @sync-from-markdown="markdownToCharacter($event)"
-      @save="handleSaveCharacter"
-      @cancel="characterEditor.close()"
-    >
-      <template #form>
-        <CharacterEditorForm v-model="characterEditor.formData.value" :characters="characters" />
-      </template>
-      <template #ai>
-        <AiGeneratePanel content-type="character" @apply="handleAiApplyCharacter" />
-      </template>
-    </ContentEditorModal>
-
-    <!-- Scene Editor Modal -->
-    <ContentEditorModal
-      :is-open="sceneEditor.isOpen.value"
-      :title="sceneEditor.mode.value === 'create' ? t('contentEditor.createScene') : t('contentEditor.editScene')"
-      :mode="sceneEditor.mode.value"
-      :is-saving="isSaving"
-      :ai-enabled="aiSettings.isConfigured"
-      :markdown="sceneMarkdown"
-      :monaco-filename="`${sceneEditor.formData.value.id || 'scene'}.md`"
-      @update:is-open="(v: boolean) => { if (!v) sceneEditor.close() }"
-      @update:markdown="sceneMarkdown = $event"
-      @sync-to-markdown="sceneToMarkdown()"
-      @sync-from-markdown="markdownToScene($event)"
-      @save="handleSaveScene"
-      @cancel="sceneEditor.close()"
-    >
-      <template #form>
-        <SceneEditorForm v-model="sceneEditor.formData.value" />
-      </template>
-      <template #ai>
-        <AiGeneratePanel content-type="scene" @apply="handleAiApplyScene" />
-      </template>
-    </ContentEditorModal>
-
-    <!-- Chapter Editor Modal -->
-    <ContentEditorModal
-      :is-open="chapterEditor.isOpen.value"
-      :title="chapterEditor.mode.value === 'create' ? t('contentEditor.createChapter') : t('contentEditor.editChapter')"
-      :mode="chapterEditor.mode.value"
-      :is-saving="isSaving"
-      :ai-enabled="aiSettings.isConfigured"
-      :markdown="chapterMarkdown"
-      :monaco-filename="`${chapterEditor.formData.value.filename || 'chapter'}.adv.md`"
-      @update:is-open="(v: boolean) => { if (!v) chapterEditor.close() }"
-      @update:markdown="chapterMarkdown = $event"
-      @sync-to-markdown="chapterToMarkdown()"
-      @sync-from-markdown="markdownToChapter($event)"
-      @save="handleSaveChapter"
-      @cancel="chapterEditor.close()"
-    >
-      <template #form>
-        <ChapterEditorForm v-model="chapterEditor.formData.value" />
-      </template>
-      <template #ai>
-        <AiGeneratePanel content-type="chapter" @apply="handleAiApplyChapter" />
-      </template>
-    </ContentEditorModal>
+    </section>
   </div>
 </template>
 
 <style scoped>
-.project-overview {
+/* ─── Accent Palette (data-accent tokens) ─── */
+.overview {
+  --accent-indigo: 99, 102, 241;
+  --accent-violet: 139, 92, 246;
+  --accent-teal: 20, 184, 166;
+  --accent-blue: 59, 130, 246;
+  --accent-amber: 245, 158, 11;
+  --accent-rose: 244, 63, 94;
+  --accent-emerald: 16, 185, 129;
+
   padding-bottom: var(--adv-space-lg);
 }
 
-.overview-loading {
+[data-accent='indigo'] {
+  --_a: var(--accent-indigo);
+}
+[data-accent='violet'] {
+  --_a: var(--accent-violet);
+}
+[data-accent='teal'] {
+  --_a: var(--accent-teal);
+}
+[data-accent='blue'] {
+  --_a: var(--accent-blue);
+}
+[data-accent='amber'] {
+  --_a: var(--accent-amber);
+}
+[data-accent='rose'] {
+  --_a: var(--accent-rose);
+}
+[data-accent='emerald'] {
+  --_a: var(--accent-emerald);
+}
+
+/* ─── Loading ─── */
+.overview__loading {
   text-align: center;
   padding: var(--adv-space-lg);
   color: var(--adv-text-tertiary);
 }
 
-/* Stats grid */
-.stats-grid {
+/* ─── Header ─── */
+.overview__header {
+  padding: var(--adv-space-md) var(--adv-space-md) 0;
+}
+
+.overview__title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--adv-text-primary);
+  margin: 0 0 4px;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.overview__desc {
+  font-size: var(--adv-font-body-sm);
+  color: var(--adv-text-secondary);
+  margin: 0;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ─── Stats Row ─── */
+.stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--adv-space-sm);
+  gap: 10px;
   padding: var(--adv-space-md);
 }
 
-.stat-card {
+.stats__card {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--adv-space-xs);
-  padding: var(--adv-space-md);
-  border-radius: var(--adv-radius-lg);
-  background: var(--adv-surface-card);
+  gap: 6px;
+  padding: 14px 8px 12px;
+  border-radius: 14px;
   border: 1px solid var(--adv-border-subtle);
-  box-shadow: var(--adv-shadow-subtle);
+  background: var(--adv-surface-card);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
+  transition:
+    transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-.stat-card__icon {
+/* Decorative top-bar — uses accent color */
+.stats__card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgb(var(--_a));
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.stats__card:hover::before {
+  opacity: 1;
+}
+
+.stats__card:hover {
+  border-color: rgba(var(--_a), 0.3);
+  box-shadow: 0 4px 16px rgba(var(--_a), 0.1);
+}
+
+.stats__card:active {
+  transform: scale(0.96);
+}
+
+.stats__card:focus-visible {
+  outline: 2px solid rgb(var(--_a));
+  outline-offset: 2px;
+}
+
+.stats__icon {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 18px;
+  background: rgba(var(--_a), 0.1);
+  color: rgb(var(--_a));
 }
 
-.stat-card__icon--primary {
-  background: rgba(99, 102, 241, 0.1);
-  color: var(--ion-color-primary);
-}
-
-.stat-card__icon--purple {
-  background: rgba(139, 92, 246, 0.1);
-  color: #8b5cf6;
-}
-
-.stat-card__icon--teal {
-  background: rgba(20, 184, 166, 0.1);
-  color: #14b8a6;
-}
-
-.stat-card__value {
-  font-size: var(--adv-font-title);
+.stats__value {
+  font-size: 24px;
   font-weight: 800;
   color: var(--adv-text-primary);
   line-height: 1;
+  letter-spacing: -0.03em;
 }
 
-.stat-card__label {
-  font-size: var(--adv-font-caption);
+.stats__label {
+  font-size: 11px;
+  font-weight: 500;
   color: var(--adv-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-/* Card list and grid */
-.card-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--adv-space-sm);
-  padding: 0 var(--adv-space-md);
-}
-
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--adv-space-sm);
-  padding: 0 var(--adv-space-md);
-}
-
-.empty-note {
-  display: block;
-  padding: var(--adv-space-md);
-  text-align: center;
+.stats__arrow {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
   color: var(--adv-text-tertiary);
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
-/* Draft restore banners */
-.draft-banner-wrapper {
-  padding: var(--adv-space-xs) var(--adv-space-md) 0;
+.stats__card:hover .stats__arrow {
+  opacity: 0.6;
 }
 
-.draft-banner {
+/* ─── Section Label ─── */
+.section-label {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--adv-space-sm);
-  padding: var(--adv-space-sm) var(--adv-space-md);
-  border-radius: var(--adv-radius-md);
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.2);
-  font-size: var(--adv-font-body-sm);
-  color: var(--adv-text-primary);
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--adv-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 8px;
 }
 
-.draft-banner__actions {
+.section-label ion-icon {
+  font-size: 14px;
+}
+
+/* ─── Recent Activity ─── */
+.recent {
+  padding: 0 var(--adv-space-md) var(--adv-space-md);
+}
+
+.recent__track {
   display: flex;
-  gap: var(--adv-space-xs);
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.recent__track::-webkit-scrollbar {
+  display: none;
+}
+
+.recent__pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 6px 8px;
+  border-radius: 20px;
+  background: var(--adv-surface-card);
+  border: 1px solid var(--adv-border-subtle);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.12s ease;
+}
+
+.recent__pill:hover {
+  border-color: rgba(var(--accent-indigo), 0.3);
+  box-shadow: 0 2px 8px rgba(var(--accent-indigo), 0.08);
+}
+
+.recent__pill:active {
+  transform: scale(0.96);
+}
+
+.recent__pill:focus-visible {
+  outline: 2px solid rgb(var(--accent-indigo));
+  outline-offset: 2px;
+}
+
+.recent__emoji {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.recent__name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--adv-text-primary);
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recent__time {
+  font-size: 10px;
+  color: var(--adv-text-tertiary);
+}
+
+/* ─── Content Cards Grid ─── */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  padding: 0 var(--adv-space-md) var(--adv-space-md);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--adv-surface-card);
+  border: 1px solid var(--adv-border-subtle);
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+  min-height: 88px;
+}
+
+.card:hover {
+  border-color: rgba(var(--_a), 0.3);
+  box-shadow: 0 4px 16px rgba(var(--_a), 0.08);
+}
+
+.card:active {
+  transform: scale(0.97);
+}
+
+.card:focus-visible {
+  outline: 2px solid rgb(var(--_a));
+  outline-offset: 2px;
+}
+
+/* Empty card — dashed border, dim */
+.card--empty {
+  border-style: dashed;
+  border-color: rgba(var(--_a), 0.2);
+}
+
+.card--empty:hover {
+  border-color: rgba(var(--_a), 0.45);
+  background: rgba(var(--_a), 0.02);
+}
+
+/* Disabled (placeholder) */
+.card--disabled {
+  cursor: default;
+  opacity: 0.5;
+  border-style: dashed;
+}
+
+.card--disabled:hover {
+  border-color: var(--adv-border-subtle);
+  box-shadow: none;
+  background: var(--adv-surface-card);
+}
+
+.card--disabled:active {
+  transform: none;
+}
+
+/* Card header */
+.card__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card__icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+  background: rgba(var(--_a), 0.1);
+  color: rgb(var(--_a));
+}
+
+.card__title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--adv-text-primary);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 11px;
+  background: rgba(var(--_a), 0.1);
+  color: rgb(var(--_a));
+  font-size: 11px;
+  font-weight: 700;
   flex-shrink: 0;
 }
 
+.card__preview {
+  font-size: 12px;
+  color: var(--adv-text-secondary);
+  line-height: 1.55;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Chips */
+.card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.chip {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(var(--_a), 0.08);
+  color: rgb(var(--_a));
+  white-space: nowrap;
+}
+
+.chip--more {
+  background: transparent;
+  color: var(--adv-text-tertiary);
+  font-weight: 700;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+/* Empty hint */
+.card__empty-hint {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: rgba(var(--_a), 0.6);
+  font-weight: 500;
+}
+
+.card__empty-icon {
+  font-size: 14px;
+}
+
+/* ─── Responsive ─── */
 @media (max-width: 767px) {
-  .stats-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--adv-space-xs);
+  .stats {
+    gap: 8px;
   }
 
-  .card-grid {
+  .stats__value {
+    font-size: 20px;
+  }
+
+  .stats__label {
+    font-size: 10px;
+  }
+
+  .cards {
     grid-template-columns: 1fr;
+  }
+
+  .card {
+    min-height: 72px;
+  }
+}
+
+/* ─── Reduced motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  .stats__card,
+  .card,
+  .recent__pill,
+  .stats__card::before {
+    transition: none;
   }
 }
 </style>

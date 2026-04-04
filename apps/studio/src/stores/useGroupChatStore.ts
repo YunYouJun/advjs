@@ -698,6 +698,17 @@ export const useGroupChatStore = defineStore('groupChat', () => {
     })
   }
 
+  function deleteMessage(roomId: string, timestamp: number): void {
+    const room = getRoom(roomId)
+    if (!room)
+      return
+    const idx = room.messages.findIndex(m => m.timestamp === timestamp)
+    if (idx !== -1) {
+      room.messages.splice(idx, 1)
+      void flush()
+    }
+  }
+
   return {
     rooms,
     snapshots,
@@ -717,6 +728,7 @@ export const useGroupChatStore = defineStore('groupChat', () => {
     getRoomSnapshots,
     restoreRoomSnapshot,
     deleteRoomSnapshot,
+    deleteMessage,
     init,
     flush,
     $reset,
