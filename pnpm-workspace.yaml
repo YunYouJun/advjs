@@ -35,6 +35,7 @@ catalog:
   '@runware/sdk-js': ^1.2.7
   '@shikijs/vitepress-twoslash': ^3.23.0
   '@types/body-parser': ^1.19.6
+
   '@types/express': ^5.0.6
   '@types/minimist': ^1.2.5
   '@unocss/extractor-mdc': 66.1.0-beta.5
@@ -50,6 +51,7 @@ catalog:
   cos-js-sdk-v5: ^1.10.1
   cos-nodejs-sdk-v5: ^2.16.0-beta.8
   dexie: ^4.4.1
+  diff: ^8.0.4
   express: ^5.2.1
   floating-vue: ^5.2.2
   ionicons: ^7.4.0

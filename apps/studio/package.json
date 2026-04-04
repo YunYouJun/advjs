@@ -26,6 +26,7 @@
     "@ionic/vue-router": "catalog:",
     "@vueuse/core": "catalog:frontend",
     "dexie": "catalog:",
+    "diff": "catalog:",
     "ionicons": "catalog:",
     "markdown-it": "catalog:build",
     "monaco-editor": "catalog:frontend",
@@ -40,6 +41,7 @@
     "@capacitor/cli": "catalog:",
     "@iconify-json/vscode-icons": "catalog:icons",
     "@playwright/test": "catalog:test",
+
     "@types/splitpanes": "catalog:types",
     "@vitejs/plugin-legacy": "catalog:",
     "@vitejs/plugin-vue": "catalog:build",

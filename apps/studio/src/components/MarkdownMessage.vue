@@ -1,16 +1,21 @@
 <script setup lang="ts">
+import type { FileDiff } from '../utils/lineDiff'
 import { IonButton, IonIcon } from '@ionic/vue'
 import { saveOutline } from 'ionicons/icons'
 import MarkdownIt from 'markdown-it'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import FileDiffPreview from './FileDiffPreview.vue'
 
 const props = withDefaults(defineProps<{
   content: string
   /** Enable word-wrap in code blocks */
   wordWrap?: boolean
+  /** In-memory file diffs to display after save actions */
+  fileDiffs?: FileDiff[]
 }>(), {
   wordWrap: false,
+  fileDiffs: undefined,
 })
 
 const emit = defineEmits<{
@@ -132,6 +137,14 @@ function handleSave(block: typeof saveableBlocks.value[number]) {
       </IonButton>
       <span class="save-block__path">{{ block.filename }}</span>
     </div>
+  </div>
+  <!-- File diff previews -->
+  <div v-if="props.fileDiffs?.length" class="diff-previews">
+    <FileDiffPreview
+      v-for="diff in props.fileDiffs"
+      :key="diff.filename"
+      :diff="diff"
+    />
   </div>
 </template>
 

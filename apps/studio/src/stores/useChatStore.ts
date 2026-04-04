@@ -1,7 +1,8 @@
 import type { ChatMessage as AiChatMessage } from '../utils/aiClient'
+import type { FileDiff } from '../utils/lineDiff'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { buildImagePromptTemplate, detectImageIntent } from '../utils/aiImageClient'
+import { buildImagePromptTemplate, detectImageIntent, generateImage, isImageGenerationAvailable } from '../utils/aiImageClient'
 import { abortAndClear, pushNotConfiguredFallback, streamToMessage } from '../utils/chatUtils'
 import { downloadFromCloud } from '../utils/cloudSync'
 import { db } from '../utils/db'
@@ -17,6 +18,8 @@ export interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
   timestamp: number
+  /** In-memory only: file diffs attached after a save action (not persisted to Dexie) */
+  fileDiffs?: FileDiff[]
 }
 
 /** Max messages to persist (older messages trimmed on save) */
@@ -140,15 +143,8 @@ export const useChatStore = defineStore('chat', () => {
     flush().catch(() => {})
   }
 
-  async function handleImageIntent(content: string) {
-    isLoading.value = true
-
-    const aiSettings = useAiSettingsStore()
-
-    // If no image provider configured, generate prompt template
-    if (aiSettings.config.imageProvider === 'none') {
-      const template = buildImagePromptTemplate(content, 'anime')
-      const response = `🎨 **Image Generation Prompt**
+  function buildPromptTemplateResponse(template: import('../utils/aiImageClient').ImagePromptTemplate): string {
+    return `🎨 **Image Generation Prompt**
 
 I've prepared prompt templates for you to use with various platforms:
 
@@ -203,20 +199,41 @@ ${template.platforms.stableDiffusion}
 💡 **Tip**: Copy the prompt for your preferred platform, generate the image there, then upload it back to your project's \`assets/images/\` folder.
 
 To enable direct image generation, configure an image provider in **Settings → AI Provider → Image Generation**.`
+  }
 
-      messages.value.push({
-        role: 'assistant',
-        content: response,
-        timestamp: Date.now(),
-      })
+  async function handleImageIntent(content: string) {
+    isLoading.value = true
+
+    const aiSettings = useAiSettingsStore()
+
+    // If image generation is available, call the API
+    if (isImageGenerationAvailable(aiSettings.config)) {
+      try {
+        const result = await generateImage({ prompt: content }, aiSettings.config)
+        messages.value.push({
+          role: 'assistant',
+          content: `![generated](${result.url})`,
+          timestamp: Date.now(),
+        })
+      }
+      catch {
+        // Generation failed — fall back to prompt template
+        const template = buildImagePromptTemplate(content, 'anime')
+        messages.value.push({
+          role: 'assistant',
+          content: buildPromptTemplateResponse(template),
+          timestamp: Date.now(),
+        })
+      }
       isLoading.value = false
       return
     }
 
-    // TODO: When image providers are implemented, call generateImage() here
+    // No image provider configured — generate prompt template
+    const template = buildImagePromptTemplate(content, 'anime')
     messages.value.push({
       role: 'assistant',
-      content: '🎨 Image generation via API is coming soon! For now, please use the prompt templates above with external tools.',
+      content: buildPromptTemplateResponse(template),
       timestamp: Date.now(),
     })
     isLoading.value = false

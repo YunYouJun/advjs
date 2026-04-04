@@ -116,6 +116,8 @@
     "savedToProject": "已保存到 {file}",
     "savedAsDownload": "已下载文件",
     "saveFailed": "保存失败，请重试",
+    "diffNoChange": "未检测到变更",
+    "diffNewFile": "新建文件",
     "toggleWrap": "切换代码换行",
     "aiNotConfiguredMessage": "⚠️ **尚未配置 AI 服务商。** 请前往 **设置 → AI 服务商** 填写 API 密钥。\n\n配置完成后，我将能帮你创建角色、撰写场景，并协助你打造视觉小说！",
     "errorAuth": "🔑 **认证失败**：API 密钥无效，请检查设置。",

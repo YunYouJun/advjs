@@ -116,6 +116,8 @@
     "savedToProject": "Saved to {file}",
     "savedAsDownload": "File downloaded",
     "saveFailed": "Save failed, please try again",
+    "diffNoChange": "No changes detected",
+    "diffNewFile": "New file",
     "toggleWrap": "Toggle code wrap",
     "aiNotConfiguredMessage": "⚠️ **AI provider is not configured yet.** Please go to **Settings → AI Provider** to set up your API key.\n\nOnce configured, I'll be able to help you create characters, write scenes, and build your visual novel with real AI capabilities!",
     "errorAuth": "🔑 **Authentication Error**: Invalid API key. Please check your settings.",

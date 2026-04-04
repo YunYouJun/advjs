@@ -9,6 +9,15 @@ export interface ImageGenerateOptions {
 }
 
 const TRAILING_SLASH_RE = /\/+$/
+const UUID_REPLACE_RE = /[xy]/g
+
+/** RFC-4122 v4 UUID, no external deps */
+function uuidv4(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(UUID_REPLACE_RE, (c) => {
+    const r = (Math.random() * 16) | 0
+    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16)
+  })
+}
 
 export interface ImageGenerateResult {
   url: string
@@ -130,7 +139,50 @@ async function generateViaSiliconFlow(
 }
 
 /**
- * Generate an image using OpenAI DALL-E compatible API.
+ * Generate an image using Runware REST API.
+ * POST https://api.runware.ai/v1
+ */
+async function generateViaRunware(
+  options: ImageGenerateOptions,
+  apiKey: string,
+): Promise<ImageGenerateResult> {
+  const taskUUID = uuidv4()
+  const response = await fetch('https://api.runware.ai/v1', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify([
+      { taskType: 'authentication', apiKey },
+      {
+        taskType: 'imageInference',
+        taskUUID,
+        positivePrompt: options.prompt,
+        model: 'runware:100@1',
+        width: options.width ?? 512,
+        height: options.height ?? 512,
+        numberResults: 1,
+        outputFormat: 'WEBP',
+      },
+    ]),
+  })
+
+  if (!response.ok) {
+    const text = await response.text().catch(() => '')
+    throw new Error(`Runware API error ${response.status}: ${text || response.statusText}`)
+  }
+
+  const json = await response.json() as { data?: Array<{ taskType: string, imageURL?: string }> }
+  const imageTask = json.data?.find(d => d.taskType === 'imageInference')
+  const url = imageTask?.imageURL
+  if (!url)
+    throw new Error('No image URL in Runware response')
+
+  return { url }
+}
+
+/**
  * Works with OpenAI and other compatible providers.
  */
 async function generateViaOpenAI(
@@ -198,8 +250,7 @@ export async function generateImage(
       throw new Error('Hunyuan image generation requires server-side SDK. Use prompt templates instead.')
 
     case 'runware':
-      // TODO: Integrate Runware API
-      throw new Error('Runware integration not yet available. Use prompt templates instead.')
+      return generateViaRunware(options, config.imageApiKey)
 
     case 'none':
     default:
@@ -211,7 +262,7 @@ export async function generateImage(
  * Check if image generation is available (provider configured with API key).
  */
 export function isImageGenerationAvailable(config: AiConfig): boolean {
-  if (config.imageProvider === 'none')
+  if (config.imageProvider === 'none' || config.imageProvider === 'hunyuan')
     return false
   return !!config.imageApiKey
 }

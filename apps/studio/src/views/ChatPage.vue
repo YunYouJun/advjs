@@ -24,7 +24,8 @@ import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { formatChatTime } from '../utils/chatUtils'
 import { uploadToCloud } from '../utils/cloudSync'
-import { downloadAsFile, writeFileToDir } from '../utils/fileAccess'
+import { downloadAsFile, readFileFromDir, writeFileToDir } from '../utils/fileAccess'
+import { computeLineDiff } from '../utils/lineDiff'
 import '../styles/chat.css'
 
 const { t } = useI18n()
@@ -125,7 +126,20 @@ async function handleSaveContent(payload: { type: string, content: string, filen
 
   try {
     if (project.dirHandle) {
+      // Capture before-snapshot for diff (new file → empty string)
+      const beforeContent = await readFileFromDir(project.dirHandle, payload.filename).catch(() => '')
       await writeFileToDir(project.dirHandle, payload.filename, payload.content)
+
+      // Compute and attach diff to the last assistant message
+      if (beforeContent !== payload.content) {
+        const diff = computeLineDiff(payload.filename, beforeContent, payload.content)
+        const lastAssistant = [...chatStore.messages].reverse().find(m => m.role === 'assistant')
+        if (lastAssistant) {
+          if (!lastAssistant.fileDiffs)
+            lastAssistant.fileDiffs = []
+          lastAssistant.fileDiffs.push(diff)
+        }
+      }
     }
     else if (project.source === 'cos' && project.cosPrefix) {
       const key = `${project.cosPrefix}${payload.filename}`
@@ -275,7 +289,7 @@ async function handleSaveContent(payload: { type: string, content: string, filen
             :class="[msg.role]"
           >
             <div class="bubble">
-              <MarkdownMessage v-if="msg.role === 'assistant'" :content="msg.content" :word-wrap="settingsStore.chatWordWrap" @save="handleSaveContent" />
+              <MarkdownMessage v-if="msg.role === 'assistant'" :content="msg.content" :word-wrap="settingsStore.chatWordWrap" :file-diffs="msg.fileDiffs" @save="handleSaveContent" />
               <template v-else>
                 {{ msg.content }}
               </template>
