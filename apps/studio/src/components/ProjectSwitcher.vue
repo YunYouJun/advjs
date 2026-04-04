@@ -117,8 +117,7 @@ async function handleOpenLocal() {
       @click="openPopover"
     >
       <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-      <IonIcon slot="start" :icon="swapHorizontalOutline" />
-      <span v-if="currentName" class="project-switcher__name">{{ currentName }}</span>
+      <IonIcon slot="icon-only" :icon="swapHorizontalOutline" />
     </IonButton>
 
     <IonPopover
@@ -212,15 +211,13 @@ async function handleOpenLocal() {
 .project-switcher {
   display: flex;
   align-items: center;
-  padding-inline-end: var(--adv-space-xs, 4px);
 }
 
 /* --- Trigger button --- */
 .project-switcher__trigger {
-  --padding-start: var(--adv-space-sm, 8px);
-  --padding-end: var(--adv-space-sm, 8px);
+  --padding-start: 8px;
+  --padding-end: 8px;
   font-size: 18px;
-  min-height: 44px; /* UX: touch target minimum */
   transition: opacity var(--adv-duration-fast, 150ms) var(--adv-ease-default, ease);
 }
 

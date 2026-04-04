@@ -13,19 +13,22 @@ import {
   libraryOutline,
   musicalNotesOutline,
   peopleOutline,
+  settingsOutline,
   timeOutline,
 } from 'ionicons/icons'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useProjectDescription } from '../composables/useProjectDescription'
 import { useRecentActivity } from '../composables/useRecentActivity'
 import { useStudioStore } from '../stores/useStudioStore'
+import ProjectSettingsModal from './ProjectSettingsModal.vue'
 
 const { t } = useI18n()
 const router = useRouter()
 const studioStore = useStudioStore()
+const showSettings = ref(false)
 
 const {
   stats,
@@ -114,9 +117,14 @@ function formatRelativeTime(timestamp: number): string {
 
     <!-- Project Header -->
     <header v-if="projectName" class="overview__header">
-      <h2 class="overview__title">
-        {{ projectName }}
-      </h2>
+      <div class="overview__header-row">
+        <h2 class="overview__title">
+          {{ projectName }}
+        </h2>
+        <button class="overview__settings-btn" :title="t('projectSettings.title')" @click="showSettings = true">
+          <IonIcon :icon="settingsOutline" />
+        </button>
+      </div>
       <p v-if="worldPreview" class="overview__desc">
         {{ worldPreview }}
       </p>
@@ -242,6 +250,9 @@ function formatRelativeTime(timestamp: number): string {
         <span class="card__empty-hint">{{ t('dashboard.comingSoon') }}</span>
       </div>
     </section>
+
+    <!-- Project Settings Modal -->
+    <ProjectSettingsModal :open="showSettings" @close="showSettings = false" />
   </div>
 </template>
 
@@ -293,6 +304,13 @@ function formatRelativeTime(timestamp: number): string {
   padding: var(--adv-space-md) var(--adv-space-md) 0;
 }
 
+.overview__header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--adv-space-sm);
+}
+
 .overview__title {
   font-size: 22px;
   font-weight: 800;
@@ -300,6 +318,38 @@ function formatRelativeTime(timestamp: number): string {
   margin: 0 0 4px;
   line-height: 1.25;
   letter-spacing: -0.02em;
+  flex: 1;
+  min-width: 0;
+}
+
+.overview__settings-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--adv-border-subtle);
+  background: var(--adv-surface-card);
+  color: var(--adv-text-tertiary);
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 18px;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.overview__settings-btn:hover {
+  color: var(--adv-text-primary);
+  border-color: rgba(var(--accent-indigo), 0.3);
+  background: rgba(var(--accent-indigo), 0.06);
+}
+
+.overview__settings-btn:active {
+  transform: scale(0.92);
 }
 
 .overview__desc {

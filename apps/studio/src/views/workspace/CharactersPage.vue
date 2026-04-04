@@ -16,9 +16,10 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/vue'
-import { addOutline, trashOutline } from 'ionicons/icons'
+import { addOutline, chatbubbleOutline, trashOutline } from 'ionicons/icons'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import AiGeneratePanel from '../../components/AiGeneratePanel.vue'
 import CharacterCard from '../../components/CharacterCard.vue'
 import CharacterEditorForm from '../../components/CharacterEditorForm.vue'
@@ -32,6 +33,7 @@ import { useAiSettingsStore } from '../../stores/useAiSettingsStore'
 import { showToast } from '../../utils/toast'
 
 const { t } = useI18n()
+const router = useRouter()
 const aiSettings = useAiSettingsStore()
 
 const { characters, reload, getDirHandle } = useProjectContent()
@@ -91,6 +93,11 @@ function handleEditCharacter(character: AdvCharacter) {
   trackAccess({ id: character.id, label: character.name, type: 'character' })
   characterEditor.openEdit(character)
   characterMarkdown.value = stringifyCharacterMd(character)
+}
+
+function goToChat(character: AdvCharacter, event: Event) {
+  event.stopPropagation()
+  router.push(`/tabs/world/chat/${character.id}`)
 }
 
 // --- Save ---
@@ -172,7 +179,18 @@ async function handleDeleteCharacter(character: AdvCharacter) {
           :key="character.id"
           :character="character"
           @click="handleEditCharacter"
-        />
+        >
+          <template #actions>
+            <button
+              class="card-chat-btn"
+              :title="t('characters.chatWithCharacter', { name: character.name })"
+              :aria-label="t('characters.chatWithCharacter', { name: character.name })"
+              @click="goToChat(character, $event)"
+            >
+              <IonIcon :icon="chatbubbleOutline" />
+            </button>
+          </template>
+        </CharacterCard>
       </div>
 
       <!-- Empty state -->
@@ -242,8 +260,50 @@ async function handleDeleteCharacter(character: AdvCharacter) {
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--adv-space-sm);
-  padding: var(--adv-space-md);
+  gap: var(--adv-space-sm, 10px);
+  padding: var(--adv-space-md, 16px);
+  box-sizing: border-box;
+}
+
+/* Chat button inside CharacterCard's actions slot */
+.card-chat-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(139, 92, 246, 0.12);
+  color: #8b5cf6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.18s ease,
+    background 0.18s ease,
+    transform 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(4px);
+}
+
+/* Trigger via CharacterCard's wrapper class */
+:deep(.cc-wrapper:hover) .card-chat-btn {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .card-chat-btn {
+    opacity: 1;
+  }
+}
+
+.card-chat-btn:hover {
+  background: rgba(139, 92, 246, 0.22);
+}
+
+.card-chat-btn:active {
+  transform: scale(0.88);
 }
 
 .empty-state {
@@ -294,6 +354,11 @@ async function handleDeleteCharacter(character: AdvCharacter) {
 @media (max-width: 767px) {
   .card-grid {
     grid-template-columns: 1fr;
+  }
+
+  .draft-banner {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 </style>

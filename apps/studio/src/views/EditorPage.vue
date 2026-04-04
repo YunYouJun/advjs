@@ -5,28 +5,34 @@ import {
   IonButtons,
   IonContent,
   IonHeader,
+  IonIcon,
   IonNote,
   IonPage,
   IonTitle,
   IonToolbar,
   toastController,
 } from '@ionic/vue'
+import { createOutline, sparklesOutline } from 'ionicons/icons'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
+import AiGeneratePanel from '../components/AiGeneratePanel.vue'
 import { useCloudSync } from '../composables/useCloudSync'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { downloadFromCloud } from '../utils/cloudSync'
 import { downloadAsFile, readFileFromDir, writeFileToDir } from '../utils/fileAccess'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const route = useRoute()
 const studioStore = useStudioStore()
 const settingsStore = useSettingsStore()
 const content = ref('')
 const isSaving = ref(false)
 const initialContent = ref('')
+
+/** True when the file simply doesn't exist yet (not a read error) */
+const fileNotFound = ref(false)
 
 const {
   isDirty: cloudDirty,
@@ -44,6 +50,20 @@ const filePath = computed(() => {
 const fileName = computed(() => {
   return filePath.value.split('/').pop() || 'Untitled'
 })
+
+/**
+ * AI system prompt: locale-aware, scoped to file creation context.
+ */
+const aiSystemPrompt = computed(() => {
+  return locale.value.startsWith('zh')
+    ? `你是 ADV.JS 视觉小说游戏引擎的创作助手。请根据用户的描述生成对应的文件内容，使用 Markdown 格式输出。`
+    : `You are a creative assistant for the ADV.JS visual novel engine. Generate file content based on the user's description in Markdown format.`
+})
+
+/**
+ * User prefix: prepends file name context to every prompt.
+ */
+const aiUserPrefix = computed(() => `File: ${fileName.value}\n\n`)
 
 /**
  * Whether auto-save should be active for current context.
@@ -82,6 +102,15 @@ const saveStatusClass = computed(() => {
   return ''
 })
 
+/** Detect whether an error means "file not found" */
+function isNotFoundError(err: unknown): boolean {
+  if (err instanceof DOMException && err.name === 'NotFoundError')
+    return true
+  if (err instanceof Error && (err.message.includes('not found') || err.message.includes('NoSuchKey') || err.message.includes('404')))
+    return true
+  return false
+}
+
 onMounted(async () => {
   if (!filePath.value)
     return
@@ -99,15 +128,20 @@ onMounted(async () => {
     }
     initialContent.value = content.value
   }
-  catch {
-    content.value = ''
-    const toast = await toastController.create({
-      message: t('editor.readFailed', { file: filePath.value }),
-      duration: 2000,
-      position: 'top',
-      color: 'danger',
-    })
-    await toast.present()
+  catch (err) {
+    if (isNotFoundError(err)) {
+      fileNotFound.value = true
+    }
+    else {
+      content.value = ''
+      const toast = await toastController.create({
+        message: t('editor.readFailed', { file: filePath.value }),
+        duration: 2000,
+        position: 'bottom',
+        color: 'danger',
+      })
+      await toast.present()
+    }
   }
 })
 
@@ -136,6 +170,20 @@ watch(content, (newVal) => {
 onUnmounted(() => {
   // Clean up is handled by the composable's watchers
 })
+
+/** Create an empty file and enter the editor */
+function createEmpty() {
+  content.value = ''
+  initialContent.value = ''
+  fileNotFound.value = false
+}
+
+/** Called when AiGeneratePanel emits its generated markdown */
+function applyAiOutput(markdown: string) {
+  content.value = markdown
+  initialContent.value = ''
+  fileNotFound.value = false
+}
 
 async function save() {
   isSaving.value = true
@@ -207,22 +255,65 @@ async function save() {
       <IonToolbar>
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
         <IonButtons slot="start">
-          <IonBackButton default-href="/tabs/play" />
+          <IonBackButton :text="t('editor.back')" default-href="/tabs/play" />
         </IonButtons>
         <IonTitle>{{ fileName }}</IonTitle>
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
         <IonButtons slot="end">
-          <IonNote v-if="saveStatusText" class="save-status" :class="saveStatusClass">
+          <IonNote v-if="saveStatusText && !fileNotFound" class="save-status" :class="saveStatusClass">
             {{ saveStatusText }}
           </IonNote>
-          <IonButton :disabled="isSaving" @click="save">
+          <IonButton v-if="!fileNotFound" :disabled="isSaving" @click="save">
             {{ isSaving ? t('editor.saving') : t('editor.save') }}
           </IonButton>
         </IonButtons>
       </IonToolbar>
     </IonHeader>
     <IonContent :fullscreen="true">
+      <!-- File not found: creation guide -->
+      <div v-if="fileNotFound" class="create-guide">
+        <div class="create-guide__header">
+          <div class="create-guide__icon">
+            <IonIcon :icon="createOutline" />
+          </div>
+          <h2 class="create-guide__title">
+            {{ t('editor.fileNotFound') }}
+          </h2>
+          <p class="create-guide__desc">
+            {{ t('editor.fileNotFoundDesc') }}
+          </p>
+          <div class="create-guide__filename">
+            {{ filePath }}
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="create-guide__actions">
+          <IonButton expand="block" fill="outline" @click="createEmpty">
+            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+            <IonIcon slot="start" :icon="createOutline" />
+            {{ t('editor.createEmpty') }}
+          </IonButton>
+        </div>
+
+        <!-- AI section -->
+        <div class="create-guide__ai">
+          <div class="create-guide__ai-label">
+            <IonIcon :icon="sparklesOutline" class="create-guide__ai-label-icon" />
+            {{ t('editor.aiGenerate') }}
+          </div>
+          <AiGeneratePanel
+            :custom-system-prompt="aiSystemPrompt"
+            :user-prefix="aiUserPrefix"
+            :placeholder="t('editor.aiPromptPlaceholder')"
+            @apply="applyAiOutput"
+          />
+        </div>
+      </div>
+
+      <!-- Normal editor -->
       <textarea
+        v-else
         v-model="content"
         class="editor-textarea"
         :placeholder="t('editor.editPlaceholder', { file: fileName })"
@@ -275,5 +366,86 @@ async function save() {
 
 .save-status--unsaved::before {
   background: var(--ion-color-danger);
+}
+
+/* ── Create guide ── */
+.create-guide {
+  display: flex;
+  flex-direction: column;
+  gap: var(--adv-space-lg);
+  padding: var(--adv-space-xl) var(--adv-space-lg);
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.create-guide__header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--adv-space-sm);
+}
+
+.create-guide__icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(99, 102, 241, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: var(--ion-color-primary);
+}
+
+.create-guide__title {
+  font-size: var(--adv-font-heading);
+  font-weight: 600;
+  margin: 0;
+}
+
+.create-guide__desc {
+  font-size: var(--adv-font-body-sm);
+  color: var(--adv-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.create-guide__filename {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  color: var(--adv-text-tertiary);
+  background: var(--adv-surface-elevated);
+  border: 1px solid var(--adv-border-subtle);
+  border-radius: var(--adv-radius-sm);
+  padding: 4px 10px;
+}
+
+.create-guide__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--adv-space-sm);
+}
+
+.create-guide__ai {
+  border-top: 1px solid var(--adv-border-subtle);
+  padding-top: var(--adv-space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--adv-space-md);
+}
+
+.create-guide__ai-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--adv-font-body-sm);
+  font-weight: 600;
+  color: var(--adv-text-secondary);
+}
+
+.create-guide__ai-label-icon {
+  font-size: 14px;
+  color: #8b5cf6;
 }
 </style>

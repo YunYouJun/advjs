@@ -12,7 +12,6 @@ import {
   toastController,
 } from '@ionic/vue'
 import {
-  chevronForwardOutline,
   cloudOutline,
   colorPaletteOutline,
   globeOutline,
@@ -21,6 +20,8 @@ import {
 } from 'ionicons/icons'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import NavGroup from '../../components/ui/NavGroup.vue'
+import NavItem from '../../components/ui/NavItem.vue'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -110,42 +111,30 @@ const serviceItems = [
 
       <div class="page-container">
         <!-- General: Appearance & Language -->
-        <nav class="nav-group">
-          <button
+        <NavGroup>
+          <NavItem
             v-for="item in generalItems"
             :key="item.key"
-            class="nav-item"
+            :icon="item.icon"
+            :icon-color="`var(${item.color})`"
+            :label="t(item.labelKey)"
+            :desc="t(item.descKey)"
             @click="router.push(item.route)"
-          >
-            <span class="nav-item__icon" :style="{ '--icon-color': `var(${item.color})` }">
-              <IonIcon :icon="item.icon" />
-            </span>
-            <span class="nav-item__text">
-              <span class="nav-item__label">{{ t(item.labelKey) }}</span>
-              <span class="nav-item__desc">{{ t(item.descKey) }}</span>
-            </span>
-            <IonIcon :icon="chevronForwardOutline" class="nav-item__chevron" />
-          </button>
-        </nav>
+          />
+        </NavGroup>
 
         <!-- Services: AI & Cloud Sync -->
-        <nav class="nav-group">
-          <button
+        <NavGroup>
+          <NavItem
             v-for="item in serviceItems"
             :key="item.key"
-            class="nav-item"
+            :icon="item.icon"
+            :icon-color="`var(${item.color})`"
+            :label="t(item.labelKey)"
+            :desc="t(item.descKey)"
             @click="router.push(item.route)"
-          >
-            <span class="nav-item__icon" :style="{ '--icon-color': `var(${item.color})` }">
-              <IonIcon :icon="item.icon" />
-            </span>
-            <span class="nav-item__text">
-              <span class="nav-item__label">{{ t(item.labelKey) }}</span>
-              <span class="nav-item__desc">{{ t(item.descKey) }}</span>
-            </span>
-            <IonIcon :icon="chevronForwardOutline" class="nav-item__chevron" />
-          </button>
-        </nav>
+          />
+        </NavGroup>
 
         <!-- Danger Zone -->
         <div class="danger-section">
@@ -172,82 +161,6 @@ const serviceItems = [
   --nav-icon-appearance: #f59e0b;
   --nav-icon-language: #10b981;
   --nav-icon-cloud: #6366f1;
-}
-
-/* ── Navigation Group ── */
-.nav-group {
-  display: flex;
-  flex-direction: column;
-  border-radius: var(--adv-radius-lg);
-  background: var(--adv-surface-card);
-  border: 1px solid var(--adv-border-subtle);
-  box-shadow: var(--adv-shadow-subtle);
-  overflow: hidden;
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: var(--adv-space-sm);
-  padding: var(--adv-space-sm) var(--adv-space-md);
-  min-height: 52px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  text-align: left;
-  transition: background var(--adv-duration-fast) var(--adv-ease-default);
-  -webkit-tap-highlight-color: transparent;
-}
-
-.nav-item:hover {
-  background: var(--adv-surface-elevated);
-}
-
-.nav-item:active {
-  background: var(--adv-surface-elevated);
-}
-
-.nav-item + .nav-item {
-  border-top: 1px solid var(--adv-border-subtle);
-}
-
-.nav-item__icon {
-  width: 34px;
-  height: 34px;
-  border-radius: var(--adv-radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-size: 18px;
-  color: var(--icon-color);
-  background: color-mix(in srgb, var(--icon-color) 10%, transparent);
-}
-
-.nav-item__text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1;
-  min-width: 0;
-}
-
-.nav-item__label {
-  font-size: var(--adv-font-body);
-  font-weight: 600;
-  color: var(--adv-text-primary);
-}
-
-.nav-item__desc {
-  font-size: var(--adv-font-caption);
-  color: var(--adv-text-tertiary);
-  line-height: 1.3;
-}
-
-.nav-item__chevron {
-  font-size: 16px;
-  color: var(--adv-text-tertiary);
-  flex-shrink: 0;
 }
 
 /* ── Danger Section ── */

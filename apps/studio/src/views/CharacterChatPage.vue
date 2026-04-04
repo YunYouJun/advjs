@@ -138,7 +138,10 @@ watch(() => characterChatStore.streamingContent, async () => {
 })
 
 function goBack() {
-  router.push('/tabs/world')
+  if (window.history.length > 1)
+    router.back()
+  else
+    router.push('/tabs/world')
 }
 
 async function send() {

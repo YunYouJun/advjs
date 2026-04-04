@@ -59,6 +59,30 @@
     "sourceUrl": "URL",
     "sourceLocal": "本地"
   },
+  "projectSettings": {
+    "title": "项目设置",
+    "segGeneral": "常规",
+    "segSync": "同步",
+    "segInfo": "信息",
+    "general": "基本信息",
+    "projectId": "项目 ID",
+    "name": "项目名称",
+    "url": "项目 URL",
+    "cosPrefix": "COS 前缀",
+    "info": "项目信息",
+    "source": "来源",
+    "connectionSettings": "连接设置",
+    "noSyncConfig": "当前项目无同步配置",
+    "syncHint": "修改连接地址后请保存以生效。清空字段可移除该配置。",
+    "dangerZone": "危险操作",
+    "removeProject": "从列表移除项目",
+    "removeHint": "从项目列表中移除，不会删除本地文件。",
+    "deleteTitle": "移除项目",
+    "deleteMessage": "将「{name}」从项目列表中移除？本地文件不会被删除。",
+    "save": "保存",
+    "saved": "设置已保存",
+    "projectIdCopied": "项目 ID 已复制"
+  },
   "time": {
     "justNow": "刚刚",
     "minutesAgo": "{n} 分钟前",
@@ -164,6 +188,7 @@
     "goSettings": "打开设置"
   },
   "editor": {
+    "back": "返回",
     "save": "保存",
     "saving": "保存中...",
     "saved": "已保存！",
@@ -172,7 +197,12 @@
     "readFailed": "读取 {file} 失败",
     "editPlaceholder": "编辑 {file}...",
     "autoSaved": "已自动保存",
-    "unsaved": "未保存"
+    "unsaved": "未保存",
+    "fileNotFound": "文件不存在",
+    "fileNotFoundDesc": "该文件尚未创建。你可以手动新建空文件，或让 AI 生成内容。",
+    "createEmpty": "创建空文件",
+    "aiGenerate": "AI 生成",
+    "aiPromptPlaceholder": "描述要生成的内容..."
   },
   "me": {
     "title": "我的",
@@ -470,7 +500,9 @@
   "characters": {
     "title": "角色",
     "confirmDelete": "确定删除角色「{name}」？此操作不可撤销。",
-    "emptySearch": "没有匹配的角色"
+    "emptySearch": "没有匹配的角色",
+    "chatWith": "对话",
+    "chatWithCharacter": "与{name}对话"
   },
   "scenes": {
     "title": "场景",

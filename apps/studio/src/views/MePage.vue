@@ -19,6 +19,8 @@ import {
 } from 'ionicons/icons'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import NavGroup from '../components/ui/NavGroup.vue'
+import NavItem from '../components/ui/NavItem.vue'
 import { useSettingsStore } from '../stores/useSettingsStore'
 
 const { t } = useI18n()
@@ -142,50 +144,38 @@ const infoItems = [
         </div>
 
         <!-- Settings & Features -->
-        <nav class="nav-group">
-          <button
+        <NavGroup>
+          <NavItem
             v-for="item in navItems"
             :key="item.key"
-            class="nav-item"
+            :icon="item.icon"
+            :icon-color="`var(${item.color})`"
+            :label="t(`me.${item.key}`)"
             @click="navigateTo(item.route)"
-          >
-            <span class="nav-item__icon" :style="{ '--icon-color': `var(${item.color})` }">
-              <IonIcon :icon="item.icon" />
-            </span>
-            <span class="nav-item__label">{{ t(`me.${item.key}`) }}</span>
-            <IonIcon :icon="chevronForwardOutline" class="nav-item__chevron" />
-          </button>
-        </nav>
+          />
+        </NavGroup>
 
         <!-- Help & About -->
-        <nav class="nav-group">
-          <button
+        <NavGroup>
+          <NavItem
             v-for="item in infoItems"
             :key="item.key"
-            class="nav-item"
+            :icon="item.icon"
+            :icon-color="`var(${item.color})`"
+            :label="t(`me.${item.key}`)"
             @click="navigateTo(item.route)"
-          >
-            <span class="nav-item__icon" :style="{ '--icon-color': `var(${item.color})` }">
-              <IonIcon :icon="item.icon" />
-            </span>
-            <span class="nav-item__label">{{ t(`me.${item.key}`) }}</span>
-            <IonIcon :icon="chevronForwardOutline" class="nav-item__chevron" />
-          </button>
-        </nav>
+          />
+        </NavGroup>
 
         <!-- Developer Options (conditional) -->
-        <nav v-if="settingsStore.developerMode" class="nav-group">
-          <button
-            class="nav-item"
+        <NavGroup v-if="settingsStore.developerMode">
+          <NavItem
+            :icon="codeSlashOutline"
+            icon-color="var(--nav-icon-developer)"
+            :label="t('me.developer')"
             @click="navigateTo('/tabs/me/developer')"
-          >
-            <span class="nav-item__icon" :style="{ '--icon-color': 'var(--nav-icon-developer)' }">
-              <IonIcon :icon="codeSlashOutline" />
-            </span>
-            <span class="nav-item__label">{{ t('me.developer') }}</span>
-            <IonIcon :icon="chevronForwardOutline" class="nav-item__chevron" />
-          </button>
-        </nav>
+          />
+        </NavGroup>
 
         <!-- Logout -->
         <div v-if="settingsStore.account.isLoggedIn" class="danger-section">
@@ -408,69 +398,6 @@ const infoItems = [
 
 .hero-btn--ghost:hover {
   background: rgba(255, 255, 255, 0.15);
-}
-
-/* ── Navigation Group ── */
-.nav-group {
-  display: flex;
-  flex-direction: column;
-  border-radius: var(--adv-radius-lg);
-  background: var(--adv-surface-card);
-  border: 1px solid var(--adv-border-subtle);
-  box-shadow: var(--adv-shadow-subtle);
-  overflow: hidden;
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: var(--adv-space-sm);
-  padding: 10px var(--adv-space-md);
-  min-height: 44px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  text-align: left;
-  transition: background var(--adv-duration-fast) var(--adv-ease-default);
-  -webkit-tap-highlight-color: transparent;
-}
-
-.nav-item:hover {
-  background: var(--adv-surface-elevated);
-}
-
-.nav-item:active {
-  background: var(--adv-surface-elevated);
-}
-
-.nav-item + .nav-item {
-  border-top: 1px solid var(--adv-border-subtle);
-}
-
-.nav-item__icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-size: 16px;
-  color: var(--icon-color);
-  background: color-mix(in srgb, var(--icon-color) 10%, transparent);
-}
-
-.nav-item__label {
-  font-size: var(--adv-font-body);
-  font-weight: 600;
-  color: var(--adv-text-primary);
-  flex: 1;
-}
-
-.nav-item__chevron {
-  font-size: 14px;
-  color: var(--adv-text-tertiary);
-  flex-shrink: 0;
 }
 
 /* ── Danger Section ── */

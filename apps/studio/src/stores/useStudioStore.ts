@@ -95,6 +95,32 @@ export const useStudioStore = defineStore('studio', () => {
     saveToStorage()
   }
 
+  /**
+   * Update editable fields of an existing project (name, url, cosPrefix).
+   * If the project is the current one, also refreshes the persisted state.
+   */
+  function updateProject(projectId: string, updates: Partial<Pick<StudioProject, 'name' | 'url' | 'cosPrefix' | 'source'>>) {
+    const project = projects.value.find(p => p.projectId === projectId)
+    if (!project)
+      return
+
+    if ('name' in updates && updates.name !== undefined)
+      project.name = updates.name
+    if ('url' in updates)
+      project.url = updates.url || undefined
+    if ('cosPrefix' in updates)
+      project.cosPrefix = updates.cosPrefix || undefined
+    if ('source' in updates && updates.source !== undefined)
+      project.source = updates.source
+
+    saveToStorage()
+
+    // If this is the current project, also update the ref so UI reacts
+    if (currentProject.value?.projectId === projectId) {
+      currentProject.value = { ...project }
+    }
+  }
+
   function setCurrentProject(project: StudioProject | null) {
     currentProject.value = project
     if (project) {
@@ -248,6 +274,7 @@ export const useStudioStore = defineStore('studio', () => {
     projects,
     addProject,
     removeProject,
+    updateProject,
     setCurrentProject,
     switchProject,
     restoreDirHandle,

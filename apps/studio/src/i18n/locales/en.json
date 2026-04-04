@@ -59,6 +59,30 @@
     "sourceUrl": "URL",
     "sourceLocal": "Local"
   },
+  "projectSettings": {
+    "title": "Project Settings",
+    "segGeneral": "General",
+    "segSync": "Sync",
+    "segInfo": "Info",
+    "general": "General",
+    "projectId": "Project ID",
+    "name": "Project Name",
+    "url": "Project URL",
+    "cosPrefix": "COS Prefix",
+    "info": "Project Info",
+    "source": "Source",
+    "connectionSettings": "Connection Settings",
+    "noSyncConfig": "No sync configuration for this project",
+    "syncHint": "Save after updating connection settings. Clear a field to remove that configuration.",
+    "dangerZone": "Danger Zone",
+    "removeProject": "Remove from Project List",
+    "removeHint": "Removes the project from the list without deleting local files.",
+    "deleteTitle": "Remove Project",
+    "deleteMessage": "Remove \"{name}\" from the project list? Local files will not be deleted.",
+    "save": "Save",
+    "saved": "Settings saved",
+    "projectIdCopied": "Project ID copied"
+  },
   "time": {
     "justNow": "Just now",
     "minutesAgo": "{n}m ago",
@@ -164,6 +188,7 @@
     "goSettings": "Open Settings"
   },
   "editor": {
+    "back": "Back",
     "save": "Save",
     "saving": "Saving...",
     "saved": "Saved!",
@@ -172,7 +197,12 @@
     "readFailed": "Failed to read {file}",
     "editPlaceholder": "Edit {file}...",
     "autoSaved": "Auto-saved",
-    "unsaved": "Unsaved"
+    "unsaved": "Unsaved",
+    "fileNotFound": "File Not Found",
+    "fileNotFoundDesc": "This file doesn't exist yet. Create it manually or let AI generate the content.",
+    "createEmpty": "Create Empty File",
+    "aiGenerate": "AI Generate",
+    "aiPromptPlaceholder": "Describe what content to generate..."
   },
   "me": {
     "title": "Me",
@@ -470,7 +500,9 @@
   "characters": {
     "title": "Characters",
     "confirmDelete": "Delete character \"{name}\"? This cannot be undone.",
-    "emptySearch": "No characters match your search"
+    "emptySearch": "No characters match your search",
+    "chatWith": "Chat",
+    "chatWithCharacter": "Chat with {name}"
   },
   "scenes": {
     "title": "Scenes",
