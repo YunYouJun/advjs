@@ -1,7 +1,7 @@
 import type { AdvCharacter } from '@advjs/types'
 import { exportCharacterForAI } from '@advjs/parser'
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, ref, toRaw } from 'vue'
 import i18n from '../i18n'
 import { db } from '../utils/db'
 import { useProjectPersistence } from '../utils/projectPersistence'
@@ -61,7 +61,7 @@ export const useViewModeStore = defineStore('viewMode', () => {
       await db.viewModes.put({
         projectId: pid,
         playerCharacterId: playerCharacterId.value,
-        customCharacters: customCharacters.value,
+        customCharacters: toRaw(customCharacters.value),
       })
     },
     load: async (pid) => {

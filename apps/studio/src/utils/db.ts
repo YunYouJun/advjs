@@ -95,6 +95,9 @@ class StudioDatabase extends Dexie {
   constructor() {
     super('advjs-studio')
 
+    // v2: original single-field primary keys.
+    // We MUST keep this declaration so Dexie knows the v2 schema when upgrading
+    // from v2 → v3. The v3 upgrade handler will manually migrate the data.
     this.version(2).stores({
       characterChats: 'characterId',
       characterMemories: 'characterId',
@@ -211,7 +214,38 @@ class StudioDatabase extends Dexie {
   }
 }
 
-export const db = new StudioDatabase()
+let _db = new StudioDatabase()
+
+/**
+ * Open the database with auto-recovery.
+ *
+ * v2→v3 changed primary keys (e.g. 'characterId' → '[projectId+characterId]'),
+ * which IndexedDB does not support. If a user's browser still has a v2 database,
+ * Dexie throws "UpgradeError Not yet support for changing primary key" and the
+ * DB stays closed, breaking all subsequent reads/writes.
+ *
+ * Recovery: delete the corrupted DB and recreate from scratch.
+ * Data loss is acceptable — v2 data is from early development and minimal.
+ */
+export const dbReady: Promise<StudioDatabase> = _db.open()
+  .then(() => _db)
+  .catch(async (err) => {
+    console.warn('[db] Failed to open database, deleting and recreating:', err)
+    _db.close()
+    await Dexie.delete('advjs-studio')
+    _db = new StudioDatabase()
+    await _db.open()
+    return _db
+  })
+
+// Synchronous export for convenience — Dexie queues operations until open() resolves,
+// so callers can use `db.table.get(...)` without awaiting. After recovery `_db` points
+// to the fresh instance; the proxy ensures callers always reach it.
+export const db: StudioDatabase = new Proxy({} as StudioDatabase, {
+  get(_target, prop, receiver) {
+    return Reflect.get(_db, prop, receiver)
+  },
+})
 
 // --- Project data helpers ---
 

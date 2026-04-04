@@ -230,14 +230,13 @@ export const useStudioStore = defineStore('studio', () => {
 
     // Try to restore dirHandle + verify permission silently
     const handle = await restoreAndVerifyHandle(project.name)
-    if (handle) {
+    if (handle)
       project.dirHandle = handle
-      await switchProject(project)
-      return true
-    }
 
-    // Permission denied or handle not found — don't auto-restore
-    return false
+    // Always restore the project — if dirHandle is missing, the UI will show
+    // a reconnect button so the user can re-grant permission with a user gesture.
+    await switchProject(project)
+    return !!handle
   }
 
   // Initialize from storage

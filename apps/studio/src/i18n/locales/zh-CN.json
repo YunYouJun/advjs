@@ -128,7 +128,13 @@
     "errorAborted": "⏹️ 已取消生成回复。",
     "errorUnexpected": "❌ **意外错误**：{message}",
     "loadEarlier": "加载更早的消息",
-    "messagesHidden": "还有 {count} 条更早的消息"
+    "messagesHidden": "还有 {count} 条更早的消息",
+    "copyMessage": "复制",
+    "editMessage": "编辑",
+    "deleteMessage": "删除",
+    "regenerate": "重新生成",
+    "editCancel": "取消",
+    "editConfirm": "发送"
   },
   "preview": {
     "title": "游玩",

@@ -30,6 +30,7 @@ import FilePreview from '../components/FilePreview.vue'
 import MobileFileTree from '../components/MobileFileTree.vue'
 import ProjectOverview from '../components/ProjectOverview.vue'
 import ProjectSwitcher from '../components/ProjectSwitcher.vue'
+import WorkspaceReconnect from '../components/WorkspaceReconnect.vue'
 import { useFileChanges } from '../composables/useFileChanges'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
@@ -400,8 +401,7 @@ async function handleSelectProject(project: typeof studioStore.projects[0]) {
   // Try to restore from IndexedDB + verify/request permission in one shot
   const handle = await restoreAndVerifyHandle(project.name)
   if (handle) {
-    project.dirHandle = handle
-    await studioStore.switchProject(project)
+    await studioStore.switchProject({ ...project, dirHandle: handle })
     return
   }
 
@@ -416,8 +416,7 @@ async function handleSelectProject(project: typeof studioStore.projects[0]) {
         handler: async () => {
           try {
             const dirHandle = await openProjectDirectory()
-            project.dirHandle = dirHandle
-            await studioStore.switchProject(project)
+            await studioStore.switchProject({ ...project, dirHandle })
           }
           catch {
             // User cancelled
@@ -442,16 +441,15 @@ async function handleReconnectDir() {
   // Try IDB restore first (needs user gesture for requestPermission)
   const handle = await restoreAndVerifyHandle(project.name)
   if (handle) {
-    project.dirHandle = handle
-    await studioStore.switchProject(project)
+    // Create a new object so Vue's shallow watch on currentProject triggers
+    await studioStore.switchProject({ ...project, dirHandle: handle })
     return
   }
 
   // Fallback: open directory picker
   try {
     const dirHandle = await openProjectDirectory()
-    project.dirHandle = dirHandle
-    await studioStore.switchProject(project)
+    await studioStore.switchProject({ ...project, dirHandle })
   }
   catch {
     // User cancelled
@@ -734,19 +732,7 @@ function getGradientForIndex(index: number): string {
                 @file-select="handleMobileFileSelect"
               />
             </template>
-            <div v-else class="workspace-reconnect">
-              <div class="workspace-reconnect__icon">
-                <IonIcon :icon="folderOpenOutline" />
-              </div>
-              <p class="workspace-reconnect__text">
-                {{ t('workspace.reSelectDir') }}
-              </p>
-              <IonButton size="default" @click="handleReconnectDir">
-                <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-                <IonIcon slot="start" :icon="folderOpenOutline" />
-                {{ t('workspace.reconnect') }}
-              </IonButton>
-            </div>
+            <WorkspaceReconnect v-else @reconnect="handleReconnectDir" />
           </template>
 
           <!-- Desktop: AGUIAssetsExplorer splitpanes -->
@@ -759,19 +745,7 @@ function getGradientForIndex(index: number): string {
                 :on-file-dbl-click="handleFileDblClick"
               />
               <!-- No dirHandle: URL/COS project or handle lost -->
-              <div v-else class="workspace-reconnect">
-                <div class="workspace-reconnect__icon">
-                  <IonIcon :icon="folderOpenOutline" />
-                </div>
-                <p class="workspace-reconnect__text">
-                  {{ t('workspace.reSelectDir') }}
-                </p>
-                <IonButton size="default" @click="handleReconnectDir">
-                  <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-                  <IonIcon slot="start" :icon="folderOpenOutline" />
-                  {{ t('workspace.reconnect') }}
-                </IonButton>
-              </div>
+              <WorkspaceReconnect v-else @reconnect="handleReconnectDir" />
             </div>
             <div class="workspace-preview">
               <div v-if="isDirty" class="workspace-preview__toolbar">
@@ -1035,31 +1009,6 @@ function getGradientForIndex(index: number): string {
 .modal-toolbar-actions {
   display: flex;
   align-items: center;
-}
-
-.workspace-reconnect {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  gap: var(--adv-space-md);
-  padding: var(--adv-space-lg);
-  text-align: center;
-}
-
-.workspace-reconnect__icon {
-  font-size: 48px;
-  color: var(--adv-text-tertiary);
-  opacity: 0.5;
-}
-
-.workspace-reconnect__text {
-  font-size: var(--adv-font-body);
-  color: var(--adv-text-secondary);
-  max-width: 280px;
-  margin: 0;
-  line-height: 1.5;
 }
 
 /* No mobile CSS hacks needed — isMobile ref controls which component renders */

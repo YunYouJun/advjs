@@ -81,12 +81,14 @@ export const useChatStore = defineStore('chat', () => {
     _persistReset()
   }
 
-  async function sendMessage(content: string) {
-    messages.value.push({
-      role: 'user',
-      content,
-      timestamp: Date.now(),
-    })
+  async function sendMessage(content: string, skipPush?: boolean) {
+    if (!skipPush) {
+      messages.value.push({
+        role: 'user',
+        content,
+        timestamp: Date.now(),
+      })
+    }
 
     const aiSettings = useAiSettingsStore()
 
@@ -243,6 +245,51 @@ To enable direct image generation, configure an image provider in **Settings →
     abortAndClear(currentAbortController)
   }
 
+  /** Delete the message with the given timestamp */
+  function deleteMessage(timestamp: number) {
+    const idx = messages.value.findIndex(m => m.timestamp === timestamp)
+    if (idx !== -1) {
+      messages.value.splice(idx, 1)
+      void flush()
+    }
+  }
+
+  /** Edit a user message content in-place (no resend) */
+  function editMessage(timestamp: number, newContent: string) {
+    const msg = messages.value.find(m => m.timestamp === timestamp)
+    if (msg && msg.role === 'user') {
+      msg.content = newContent
+      void flush()
+    }
+  }
+
+  /** Truncate to the given user message (inclusive) and resend it */
+  async function editAndResend(timestamp: number, newContent: string) {
+    const idx = messages.value.findIndex(m => m.timestamp === timestamp)
+    if (idx === -1)
+      return
+    // Remove this message and everything after it
+    messages.value.splice(idx)
+    // Push updated user message and resend (skipPush because we push manually)
+    messages.value.push({
+      role: 'user',
+      content: newContent,
+      timestamp: Date.now(),
+    })
+    await sendMessage(newContent, /* skipPush */ true)
+  }
+
+  /** Remove the last assistant message(s) and resend the last user message */
+  async function regenerateLast() {
+    const lastUser = [...messages.value].reverse().find(m => m.role === 'user')
+    if (!lastUser)
+      return
+    const idx = messages.value.findIndex(m => m.timestamp === lastUser.timestamp)
+    // Remove all messages after the last user message
+    messages.value.splice(idx + 1)
+    await sendMessage(lastUser.content, /* skipPush */ true)
+  }
+
   function clearMessages() {
     messages.value = []
     streamingContent.value = ''
@@ -286,6 +333,10 @@ To enable direct image generation, configure an image provider in **Settings →
     sendMessage,
     stopGeneration,
     clearMessages,
+    deleteMessage,
+    editMessage,
+    editAndResend,
+    regenerateLast,
     loadProjectContext,
     loadProjectContextFromCos,
     $reset,

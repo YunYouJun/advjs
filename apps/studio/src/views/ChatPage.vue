@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ChatMessage } from '../stores/useChatStore'
 import {
   IonButton,
   IonButtons,
@@ -9,6 +10,7 @@ import {
   IonIcon,
   IonInput,
   IonPage,
+  IonTextarea,
   IonTitle,
   IonToolbar,
   toastController,
@@ -18,6 +20,7 @@ import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import MarkdownMessage from '../components/MarkdownMessage.vue'
+import MessageActions from '../components/MessageActions.vue'
 import { useAiSettingsStore } from '../stores/useAiSettingsStore'
 import { useChatStore } from '../stores/useChatStore'
 import { useSettingsStore } from '../stores/useSettingsStore'
@@ -78,6 +81,71 @@ async function send() {
 function quickSend(text: string) {
   inputText.value = ''
   chatStore.sendMessage(text)
+}
+
+// ── Message Actions ──────────────────────────────────────────────────────────
+
+const editingTimestamp = ref<number | null>(null)
+const editingContent = ref('')
+
+function isLastAssistant(msg: ChatMessage) {
+  const assistants = chatStore.messages.filter(m => m.role === 'assistant')
+  return assistants.at(-1)?.timestamp === msg.timestamp
+}
+
+function startEdit(msg: ChatMessage) {
+  editingTimestamp.value = msg.timestamp
+  editingContent.value = msg.content
+}
+
+function cancelEdit() {
+  editingTimestamp.value = null
+  editingContent.value = ''
+}
+
+async function confirmEdit(timestamp: number) {
+  const content = editingContent.value.trim()
+  if (!content)
+    return
+  editingTimestamp.value = null
+  editingContent.value = ''
+  await chatStore.editAndResend(timestamp, content)
+}
+
+function handleEditKeydown(event: KeyboardEvent, timestamp: number) {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault()
+    confirmEdit(timestamp)
+  }
+  else if (event.key === 'Escape') {
+    cancelEdit()
+  }
+}
+
+async function copyMessage(msg: ChatMessage) {
+  try {
+    await navigator.clipboard.writeText(msg.content)
+    const toast = await toastController.create({
+      message: t('chat.copied'),
+      duration: 1500,
+      position: 'top',
+      color: 'success',
+    })
+    await toast.present()
+  }
+  catch {
+    const toast = await toastController.create({
+      message: t('chat.copyFailed'),
+      duration: 2000,
+      position: 'top',
+      color: 'danger',
+    })
+    await toast.present()
+  }
+}
+
+async function handleDeleteMessage(timestamp: number) {
+  chatStore.deleteMessage(timestamp)
 }
 
 async function copyContext() {
@@ -288,12 +356,45 @@ async function handleSaveContent(payload: { type: string, content: string, filen
             class="message"
             :class="[msg.role]"
           >
-            <div class="bubble">
-              <MarkdownMessage v-if="msg.role === 'assistant'" :content="msg.content" :word-wrap="settingsStore.chatWordWrap" :file-diffs="msg.fileDiffs" @save="handleSaveContent" />
-              <template v-else>
-                {{ msg.content }}
-              </template>
-            </div>
+            <!-- Edit mode (user messages only) -->
+            <template v-if="editingTimestamp === msg.timestamp">
+              <div class="bubble edit-bubble">
+                <IonTextarea
+                  v-model="editingContent"
+                  :auto-grow="true"
+                  class="edit-textarea"
+                  @keydown="handleEditKeydown($event, msg.timestamp)"
+                />
+                <div class="edit-actions">
+                  <IonButton fill="clear" size="small" @click="cancelEdit">
+                    {{ t('chat.editCancel') }}
+                  </IonButton>
+                  <IonButton size="small" :disabled="!editingContent.trim()" @click="confirmEdit(msg.timestamp)">
+                    {{ t('chat.editConfirm') }}
+                  </IonButton>
+                </div>
+              </div>
+            </template>
+
+            <!-- Normal display mode -->
+            <template v-else>
+              <div class="bubble">
+                <MarkdownMessage v-if="msg.role === 'assistant'" :content="msg.content" :word-wrap="settingsStore.chatWordWrap" :file-diffs="msg.fileDiffs" @save="handleSaveContent" />
+                <template v-else>
+                  {{ msg.content }}
+                </template>
+              </div>
+              <MessageActions
+                :message="msg"
+                :is-last="isLastAssistant(msg)"
+                :is-loading="chatStore.isLoading"
+                @copy="copyMessage(msg)"
+                @edit="startEdit(msg)"
+                @delete="handleDeleteMessage(msg.timestamp)"
+                @regenerate="chatStore.regenerateLast()"
+              />
+            </template>
+
             <div class="time">
               {{ formatChatTime(msg.timestamp) }}
             </div>
@@ -598,5 +699,34 @@ ion-footer ion-toolbar {
 
 .ai-banner__btn:active {
   transform: scale(0.97);
+}
+
+/* ── Message Actions (hover / touch) ── */
+.message {
+  position: relative;
+}
+
+/* ── Edit Mode ── */
+.edit-bubble {
+  width: 100%;
+  padding: var(--adv-space-sm) !important;
+  display: flex;
+  flex-direction: column;
+  gap: var(--adv-space-sm);
+}
+
+.edit-textarea {
+  --background: var(--adv-surface-elevated);
+  --border-radius: var(--adv-radius-sm);
+  --padding-start: var(--adv-space-sm);
+  --padding-end: var(--adv-space-sm);
+  width: 100%;
+  min-height: 60px;
+}
+
+.edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--adv-space-sm);
 }
 </style>

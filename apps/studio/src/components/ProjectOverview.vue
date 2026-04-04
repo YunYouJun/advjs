@@ -283,31 +283,15 @@ async function handleSaveChapter() {
       </div>
     </div>
 
-    <!-- Draft restore banners -->
-    <div v-if="characterEditor.hasDraft.value || sceneEditor.hasDraft.value || chapterEditor.hasDraft.value" class="draft-banners">
-      <div v-if="characterEditor.hasDraft.value" class="draft-banner">
-        <span>{{ t('contentEditor.draftFound', { type: t('contentEditor.createCharacter') }) }}</span>
-        <div class="draft-banner__actions">
-          <IonButton fill="solid" size="small" @click="characterEditor.restoreDraft()">
-            {{ t('contentEditor.restoreDraft') }}
-          </IonButton>
-          <IonButton fill="clear" size="small" color="medium" @click="characterEditor.clearDraft()">
-            {{ t('contentEditor.discardDraft') }}
-          </IonButton>
-        </div>
-      </div>
-      <div v-if="sceneEditor.hasDraft.value" class="draft-banner">
-        <span>{{ t('contentEditor.draftFound', { type: t('contentEditor.createScene') }) }}</span>
-        <div class="draft-banner__actions">
-          <IonButton fill="solid" size="small" @click="sceneEditor.restoreDraft()">
-            {{ t('contentEditor.restoreDraft') }}
-          </IonButton>
-          <IonButton fill="clear" size="small" color="medium" @click="sceneEditor.clearDraft()">
-            {{ t('contentEditor.discardDraft') }}
-          </IonButton>
-        </div>
-      </div>
-      <div v-if="chapterEditor.hasDraft.value" class="draft-banner">
+    <!-- Chapters Section -->
+    <IonListHeader>
+      <IonLabel>{{ t('preview.chapters') }}</IonLabel>
+      <IonButton fill="clear" size="small" @click="chapterEditor.openCreate()">
+        <IonIcon :icon="addOutline" />
+      </IonButton>
+    </IonListHeader>
+    <div v-if="chapterEditor.hasDraft.value" class="draft-banner-wrapper">
+      <div class="draft-banner">
         <span>{{ t('contentEditor.draftFound', { type: t('contentEditor.createChapter') }) }}</span>
         <div class="draft-banner__actions">
           <IonButton fill="solid" size="small" @click="chapterEditor.restoreDraft()">
@@ -319,14 +303,6 @@ async function handleSaveChapter() {
         </div>
       </div>
     </div>
-
-    <!-- Chapters Section -->
-    <IonListHeader>
-      <IonLabel>{{ t('preview.chapters') }}</IonLabel>
-      <IonButton fill="clear" size="small" @click="chapterEditor.openCreate()">
-        <IonIcon :icon="addOutline" />
-      </IonButton>
-    </IonListHeader>
     <div v-if="chapters.length > 0" class="card-list">
       <ChapterCard
         v-for="chapter in chapters"
@@ -347,6 +323,19 @@ async function handleSaveChapter() {
         <IonIcon :icon="addOutline" />
       </IonButton>
     </IonListHeader>
+    <div v-if="characterEditor.hasDraft.value" class="draft-banner-wrapper">
+      <div class="draft-banner">
+        <span>{{ t('contentEditor.draftFound', { type: t('contentEditor.createCharacter') }) }}</span>
+        <div class="draft-banner__actions">
+          <IonButton fill="solid" size="small" @click="characterEditor.restoreDraft()">
+            {{ t('contentEditor.restoreDraft') }}
+          </IonButton>
+          <IonButton fill="clear" size="small" color="medium" @click="characterEditor.clearDraft()">
+            {{ t('contentEditor.discardDraft') }}
+          </IonButton>
+        </div>
+      </div>
+    </div>
     <div v-if="characters.length > 0" class="card-grid">
       <CharacterCard
         v-for="character in characters"
@@ -366,6 +355,19 @@ async function handleSaveChapter() {
         <IonIcon :icon="addOutline" />
       </IonButton>
     </IonListHeader>
+    <div v-if="sceneEditor.hasDraft.value" class="draft-banner-wrapper">
+      <div class="draft-banner">
+        <span>{{ t('contentEditor.draftFound', { type: t('contentEditor.createScene') }) }}</span>
+        <div class="draft-banner__actions">
+          <IonButton fill="solid" size="small" @click="sceneEditor.restoreDraft()">
+            {{ t('contentEditor.restoreDraft') }}
+          </IonButton>
+          <IonButton fill="clear" size="small" color="medium" @click="sceneEditor.clearDraft()">
+            {{ t('contentEditor.discardDraft') }}
+          </IonButton>
+        </div>
+      </div>
+    </div>
     <div v-if="scenes.length > 0" class="card-grid">
       <SceneCard
         v-for="scene in scenes"
@@ -543,12 +545,8 @@ async function handleSaveChapter() {
 }
 
 /* Draft restore banners */
-.draft-banners {
-  display: flex;
-  flex-direction: column;
-  gap: var(--adv-space-xs);
-  padding: 0 var(--adv-space-md);
-  margin-bottom: var(--adv-space-sm);
+.draft-banner-wrapper {
+  padding: var(--adv-space-xs) var(--adv-space-md) 0;
 }
 
 .draft-banner {

@@ -128,7 +128,13 @@
     "errorAborted": "⏹️ Response generation was cancelled.",
     "errorUnexpected": "❌ **Unexpected Error**: {message}",
     "loadEarlier": "Load earlier messages",
-    "messagesHidden": "{count} earlier messages"
+    "messagesHidden": "{count} earlier messages",
+    "copyMessage": "Copy",
+    "editMessage": "Edit",
+    "deleteMessage": "Delete",
+    "regenerate": "Regenerate",
+    "editCancel": "Cancel",
+    "editConfirm": "Send"
   },
   "preview": {
     "title": "Play",
