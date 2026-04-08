@@ -1,6 +1,8 @@
 import { computed, ref } from 'vue'
 import { getCurrentProjectId } from '../utils/projectScope'
 
+export type RecentAction = 'edit' | 'view'
+
 export interface RecentItem {
   /** File path or content id */
   id: string
@@ -8,8 +10,12 @@ export interface RecentItem {
   label: string
   /** 'chapter' | 'character' | 'scene' | 'file' */
   type: string
+  /** Whether this was an edit or a view */
+  action: RecentAction
   /** Timestamp of last access */
   timestamp: number
+  /** Optional avatar/thumbnail URL (for characters) */
+  avatar?: string
 }
 
 const STORAGE_KEY = 'advjs-studio-recent'
@@ -59,7 +65,8 @@ export function useRecentActivity() {
    */
   function trackAccess(item: Omit<RecentItem, 'timestamp'>) {
     const list = loadItems()
-    const existing = list.findIndex(i => i.id === item.id)
+    // Dedupe by id + action pair
+    const existing = list.findIndex(i => i.id === item.id && i.action === item.action)
     if (existing >= 0)
       list.splice(existing, 1)
 

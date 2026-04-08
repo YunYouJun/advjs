@@ -2,6 +2,7 @@ import type { AdvCharacter } from '@advjs/types'
 import { exportCharacterForAI } from '@advjs/parser'
 import { defineStore } from 'pinia'
 import { computed, ref, toRaw } from 'vue'
+import { useProjectContent } from '../composables/useProjectContent'
 import i18n from '../i18n'
 import { db } from '../utils/db'
 import { useProjectPersistence } from '../utils/projectPersistence'
@@ -49,7 +50,12 @@ export const useViewModeStore = defineStore('viewMode', () => {
   const playerCharacter = computed<AdvCharacter | null>(() => {
     if (!playerCharacterId.value)
       return null
-    return customCharacters.value.find(c => c.id === playerCharacterId.value) || null
+    // Look up in custom characters first, then fall back to project characters
+    const fromCustom = customCharacters.value.find(c => c.id === playerCharacterId.value)
+    if (fromCustom)
+      return fromCustom
+    const { characters: projectCharacters } = useProjectContent()
+    return projectCharacters.value.find(c => c.id === playerCharacterId.value) || null
   })
 
   // --- Dexie persistence ---

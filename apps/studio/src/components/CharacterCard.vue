@@ -85,11 +85,22 @@ const domainIcon = computed(() => getDomainIcon(props.character.knowledgeDomain 
 </template>
 
 <style scoped>
-/* ── Wrapper (handles overlay positioning) ── */
+/* ── Wrapper (groups card + actions) ── */
 .cc-wrapper {
-  position: relative;
   width: 100%;
   min-width: 0;
+  border-radius: var(--adv-radius-lg, 14px);
+  border: 1px solid var(--adv-border-subtle);
+  background: var(--adv-surface-card);
+  overflow: hidden;
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.cc-wrapper:hover {
+  border-color: rgba(139, 92, 246, 0.35);
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.1);
 }
 
 /* ── Card shell ── */
@@ -99,25 +110,16 @@ const domainIcon = computed(() => getDomainIcon(props.character.knowledgeDomain 
   align-items: flex-start;
   gap: 10px;
   padding: 12px;
-  border-radius: var(--adv-radius-lg, 14px);
-  border: 1px solid var(--adv-border-subtle);
-  background: var(--adv-surface-card);
+  background: transparent;
+  border: none;
   cursor: pointer;
   text-align: left;
   width: 100%;
   box-sizing: border-box;
   min-width: 0;
   overflow: hidden;
-  transition:
-    box-shadow 0.2s ease,
-    transform 0.15s ease,
-    border-color 0.2s ease;
+  transition: transform 0.15s ease;
   -webkit-tap-highlight-color: transparent;
-}
-
-.cc:hover {
-  border-color: rgba(139, 92, 246, 0.35);
-  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.1);
 }
 
 .cc:active {
@@ -126,7 +128,7 @@ const domainIcon = computed(() => getDomainIcon(props.character.knowledgeDomain 
 
 .cc:focus-visible {
   outline: 2px solid var(--ion-color-primary);
-  outline-offset: 2px;
+  outline-offset: -2px;
 }
 
 /* ── Avatar ── */
@@ -298,14 +300,9 @@ const domainIcon = computed(() => getDomainIcon(props.character.knowledgeDomain 
   font-size: 13px;
 }
 
-/* ── Actions slot (overlay) ── */
+/* ── Actions slot (full-width row below card body) ── */
 .cc-actions {
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
-  display: flex;
-  gap: 4px;
-  z-index: 1;
+  width: 100%;
 }
 
 /* Reduced motion */

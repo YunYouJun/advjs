@@ -19,6 +19,7 @@ import {
   arrowBackOutline,
   cameraOutline,
   downloadOutline,
+  ellipsisVertical,
   informationCircleOutline,
   searchOutline,
   sendOutline,
@@ -210,6 +211,45 @@ async function confirmClear() {
     ],
   })
   await alert.present()
+}
+
+/**
+ * Show overflow menu for secondary actions.
+ */
+async function showMoreActions() {
+  const sheet = await actionSheetController.create({
+    header: t('world.moreActions'),
+    buttons: [
+      {
+        text: t('world.snapshots'),
+        icon: cameraOutline,
+        handler: () => { showSnapshots.value = !showSnapshots.value },
+      },
+      {
+        text: t('world.exportTitle'),
+        icon: downloadOutline,
+        handler: () => {
+          // Defer to next tick so the action sheet closes first
+          nextTick(() => handleExport())
+        },
+      },
+      {
+        text: t('world.characterInfo'),
+        icon: informationCircleOutline,
+        handler: () => { showInfoModal.value = true },
+      },
+      {
+        text: t('world.clearChatTitle'),
+        role: 'destructive',
+        icon: trashOutline,
+        handler: () => {
+          nextTick(() => confirmClear())
+        },
+      },
+      { text: t('common.cancel'), role: 'cancel' },
+    ],
+  })
+  await sheet.present()
 }
 
 /**
@@ -441,6 +481,22 @@ const isDiaryGenerating = computed(() => diaryStore.isGenerating(characterId.val
 async function handleGenerateDiary() {
   if (!character.value)
     return
+
+  // Check for duplicate before calling AI
+  const { useWorldClockStore } = await import('../stores/useWorldClockStore')
+  const clockStore = useWorldClockStore()
+  const { date, period } = clockStore.clock
+  if (diaryStore.hasDiary(characterId.value, date, period)) {
+    const toast = await toastController.create({
+      message: t('world.diaryAlreadyExists'),
+      duration: 2500,
+      position: 'top',
+      color: 'warning',
+    })
+    await toast.present()
+    return
+  }
+
   const entry = await diaryStore.generateDiary(character.value)
   if (!entry) {
     const toast = await toastController.create({
@@ -493,21 +549,9 @@ async function handleDeleteDiary(diaryId: string) {
             <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
             <IonIcon slot="icon-only" :icon="searchOutline" />
           </IonButton>
-          <IonButton @click="showSnapshots = !showSnapshots">
+          <IonButton @click="showMoreActions">
             <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-            <IonIcon slot="icon-only" :icon="cameraOutline" />
-          </IonButton>
-          <IonButton :disabled="messages.length === 0" @click="handleExport">
-            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-            <IonIcon slot="icon-only" :icon="downloadOutline" />
-          </IonButton>
-          <IonButton @click="showInfoModal = true">
-            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-            <IonIcon slot="icon-only" :icon="informationCircleOutline" />
-          </IonButton>
-          <IonButton color="danger" @click="confirmClear">
-            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-            <IonIcon slot="icon-only" :icon="trashOutline" />
+            <IonIcon slot="icon-only" :icon="ellipsisVertical" />
           </IonButton>
         </IonButtons>
       </IonToolbar>

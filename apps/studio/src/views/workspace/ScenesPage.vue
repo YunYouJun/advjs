@@ -20,6 +20,7 @@ import { addOutline, trashOutline } from 'ionicons/icons'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AiGeneratePanel from '../../components/AiGeneratePanel.vue'
+import DraftRestoreBanner from '../../components/common/DraftRestoreBanner.vue'
 import ContentEditorModal from '../../components/ContentEditorModal.vue'
 import SceneCard from '../../components/SceneCard.vue'
 import SceneEditorForm from '../../components/SceneEditorForm.vue'
@@ -84,7 +85,7 @@ function handleAiApplyScene(md: string) {
 }
 
 function handleEditScene(scene: SceneInfo) {
-  trackAccess({ id: scene.file, label: scene.name, type: 'scene' })
+  trackAccess({ id: scene.file, label: scene.name, type: 'scene', action: 'edit' })
   const sceneData: SceneFormData = {
     id: scene.id || scene.name,
     name: scene.name,
@@ -155,19 +156,12 @@ async function handleDeleteScene(scene: SceneFormData) {
 
     <IonContent :fullscreen="true">
       <!-- Draft restore banner -->
-      <div v-if="sceneEditor.hasDraft.value" class="draft-banner-wrapper">
-        <div class="draft-banner">
-          <span>{{ t('contentEditor.draftFound', { type: t('contentEditor.createScene') }) }}</span>
-          <div class="draft-banner__actions">
-            <IonButton fill="solid" size="small" @click="sceneEditor.restoreDraft()">
-              {{ t('contentEditor.restoreDraft') }}
-            </IonButton>
-            <IonButton fill="clear" size="small" color="medium" @click="sceneEditor.clearDraft()">
-              {{ t('contentEditor.discardDraft') }}
-            </IonButton>
-          </div>
-        </div>
-      </div>
+      <DraftRestoreBanner
+        v-if="sceneEditor.hasDraft.value"
+        :message="t('contentEditor.draftFound', { type: t('contentEditor.createScene') })"
+        @restore="sceneEditor.restoreDraft()"
+        @discard="sceneEditor.clearDraft()"
+      />
 
       <!-- Scene grid -->
       <div v-if="filteredScenes.length > 0" class="card-grid">
@@ -269,30 +263,6 @@ async function handleDeleteScene(scene: SceneFormData) {
   font-size: var(--adv-font-body);
   color: var(--adv-text-tertiary);
   margin: 0;
-}
-
-/* Draft restore banners */
-.draft-banner-wrapper {
-  padding: var(--adv-space-xs) var(--adv-space-md) 0;
-}
-
-.draft-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--adv-space-sm);
-  padding: var(--adv-space-sm) var(--adv-space-md);
-  border-radius: var(--adv-radius-md);
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.2);
-  font-size: var(--adv-font-body-sm);
-  color: var(--adv-text-primary);
-}
-
-.draft-banner__actions {
-  display: flex;
-  gap: var(--adv-space-xs);
-  flex-shrink: 0;
 }
 
 @media (max-width: 767px) {

@@ -11,7 +11,6 @@ import {
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import CharacterCard from '../components/CharacterCard.vue'
 import CreateGroupChatModal from '../components/CreateGroupChatModal.vue'
 import RelationshipGraph from '../components/RelationshipGraph.vue'
 import SelectPlayerCharacterModal from '../components/SelectPlayerCharacterModal.vue'
@@ -19,10 +18,7 @@ import ViewModeSwitcher from '../components/ViewModeSwitcher.vue'
 import WorldTimeline from '../components/WorldTimeline.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useWorldContext } from '../composables/useWorldContext'
-import { useCharacterChatStore } from '../stores/useCharacterChatStore'
 import { useCharacterDiaryStore } from '../stores/useCharacterDiaryStore'
-import { useCharacterMemoryStore } from '../stores/useCharacterMemoryStore'
-import { useCharacterStateStore } from '../stores/useCharacterStateStore'
 import { useGroupChatStore } from '../stores/useGroupChatStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { useViewModeStore } from '../stores/useViewModeStore'
@@ -35,9 +31,6 @@ import '../styles/world.css'
 const { t } = useI18n()
 const router = useRouter()
 const studioStore = useStudioStore()
-const characterChatStore = useCharacterChatStore()
-const memoryStore = useCharacterMemoryStore()
-const stateStore = useCharacterStateStore()
 const clockStore = useWorldClockStore()
 const eventStore = useWorldEventStore()
 const groupChatStore = useGroupChatStore()
@@ -108,25 +101,6 @@ function openGroupChat(roomId: string) {
 
 function getParticipantCount(room: { participantIds: string[] }): number {
   return room.participantIds.length
-}
-
-function getLastMessagePreview(characterId: string): string {
-  const msg = characterChatStore.getLastMessage(characterId)
-  if (!msg)
-    return ''
-  const preview = msg.content.slice(0, 50)
-  return preview + (msg.content.length > 50 ? '...' : '')
-}
-
-function getMood(characterId: string): string | undefined {
-  const memory = memoryStore.getMemory(characterId)
-  const mood = memory.emotionalState.mood
-  return mood !== 'neutral' ? mood : undefined
-}
-
-function getLocation(characterId: string): string | undefined {
-  const state = stateStore.getState(characterId)
-  return state.location || undefined
 }
 
 function toggleClock() {
@@ -435,33 +409,12 @@ const timelineEntries = computed<TimelineEntry[]>(() => {
           </Transition>
         </div>
 
-        <!-- Character list -->
-        <div class="world-characters">
-          <div
-            v-for="character in displayCharacters"
-            :key="character.id"
-            class="world-character-item"
-          >
-            <CharacterCard
-              :character="character"
-              :mood="getMood(character.id)"
-              :location="getLocation(character.id)"
-              @click="openCharacterChat(character)"
-            />
-            <p v-if="getLastMessagePreview(character.id)" class="world-character-preview">
-              {{ getLastMessagePreview(character.id) }}
-            </p>
-            <div class="world-character-actions">
-              <button
-                class="world-character-diary-btn"
-                :disabled="diaryStore.isGenerating(character.id)"
-                :title="t('world.diaryGenerate')"
-                @click.stop="diaryStore.generateDiary(character)"
-              >
-                📓
-              </button>
-            </div>
-          </div>
+        <!-- Quick link to characters page -->
+        <div class="world-characters-link">
+          <button class="world-characters-link-btn" @click="router.push('/tabs/workspace/characters')">
+            👥 {{ t('world.viewAllCharacters') }}
+            <span class="world-characters-link-arrow">→</span>
+          </button>
         </div>
       </div>
     </IonContent>
@@ -725,30 +678,5 @@ const timelineEntries = computed<TimelineEntry[]>(() => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-}
-
-.world-character-actions {
-  display: flex;
-  justify-content: flex-end;
-  padding: 4px var(--adv-space-md) 0;
-}
-
-.world-character-diary-btn {
-  border: none;
-  background: none;
-  cursor: pointer;
-  font-size: 18px;
-  opacity: 0.7;
-  transition: opacity 0.2s;
-  padding: 4px;
-}
-
-.world-character-diary-btn:hover {
-  opacity: 1;
-}
-
-.world-character-diary-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
 }
 </style>

@@ -6,8 +6,6 @@ import {
   IonButton,
   IonButtons,
   IonContent,
-  IonFab,
-  IonFabButton,
   IonHeader,
   IonIcon,
   IonNote,
@@ -16,13 +14,15 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/vue'
-import { addOutline, chatbubbleOutline, trashOutline } from 'ionicons/icons'
+import { addOutline, trashOutline } from 'ionicons/icons'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import AiGeneratePanel from '../../components/AiGeneratePanel.vue'
 import CharacterCard from '../../components/CharacterCard.vue'
+import CharacterCardActions from '../../components/CharacterCardActions.vue'
 import CharacterEditorForm from '../../components/CharacterEditorForm.vue'
+import DraftRestoreBanner from '../../components/common/DraftRestoreBanner.vue'
 import ContentEditorModal from '../../components/ContentEditorModal.vue'
 import { useContentDelete } from '../../composables/useContentDelete'
 import { useContentEditor } from '../../composables/useContentEditor'
@@ -90,13 +90,12 @@ function handleAiApplyCharacter(md: string) {
 }
 
 function handleEditCharacter(character: AdvCharacter) {
-  trackAccess({ id: character.id, label: character.name, type: 'character' })
+  trackAccess({ id: character.id, label: character.name, type: 'character', action: 'edit', avatar: character.avatar })
   characterEditor.openEdit(character)
   characterMarkdown.value = stringifyCharacterMd(character)
 }
 
-function goToChat(character: AdvCharacter, event: Event) {
-  event.stopPropagation()
+function goToChat(character: AdvCharacter) {
   router.push(`/tabs/world/chat/${character.id}`)
 }
 
@@ -145,6 +144,12 @@ async function handleDeleteCharacter(character: AdvCharacter) {
           <IonBackButton default-href="/tabs/workspace" />
         </IonButtons>
         <IonTitle>{{ t('workspace.characters') }}</IonTitle>
+        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+        <IonButtons slot="end">
+          <IonButton @click="characterEditor.openCreate()">
+            <IonIcon :icon="addOutline" />
+          </IonButton>
+        </IonButtons>
       </IonToolbar>
       <IonToolbar>
         <IonSearchbar
@@ -158,19 +163,12 @@ async function handleDeleteCharacter(character: AdvCharacter) {
 
     <IonContent :fullscreen="true">
       <!-- Draft restore banner -->
-      <div v-if="characterEditor.hasDraft.value" class="draft-banner-wrapper">
-        <div class="draft-banner">
-          <span>{{ t('contentEditor.draftFound', { type: t('contentEditor.createCharacter') }) }}</span>
-          <div class="draft-banner__actions">
-            <IonButton fill="solid" size="small" @click="characterEditor.restoreDraft()">
-              {{ t('contentEditor.restoreDraft') }}
-            </IonButton>
-            <IonButton fill="clear" size="small" color="medium" @click="characterEditor.clearDraft()">
-              {{ t('contentEditor.discardDraft') }}
-            </IonButton>
-          </div>
-        </div>
-      </div>
+      <DraftRestoreBanner
+        v-if="characterEditor.hasDraft.value"
+        :message="t('contentEditor.draftFound', { type: t('contentEditor.createCharacter') })"
+        @restore="characterEditor.restoreDraft()"
+        @discard="characterEditor.clearDraft()"
+      />
 
       <!-- Character grid -->
       <div v-if="filteredCharacters.length > 0" class="card-grid">
@@ -181,14 +179,12 @@ async function handleDeleteCharacter(character: AdvCharacter) {
           @click="handleEditCharacter"
         >
           <template #actions>
-            <button
-              class="card-chat-btn"
-              :title="t('characters.chatWithCharacter', { name: character.name })"
-              :aria-label="t('characters.chatWithCharacter', { name: character.name })"
-              @click="goToChat(character, $event)"
-            >
-              <IonIcon :icon="chatbubbleOutline" />
-            </button>
+            <CharacterCardActions
+              :character="character"
+              @edit="handleEditCharacter"
+              @chat="goToChat"
+              @delete="handleDeleteCharacter"
+            />
           </template>
         </CharacterCard>
       </div>
@@ -209,14 +205,6 @@ async function handleDeleteCharacter(character: AdvCharacter) {
           {{ t('contentEditor.createCharacter') }}
         </IonButton>
       </div>
-
-      <!-- FAB add button -->
-      <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-      <IonFab slot="fixed" vertical="bottom" horizontal="end">
-        <IonFabButton @click="characterEditor.openCreate()">
-          <IonIcon :icon="addOutline" />
-        </IonFabButton>
-      </IonFab>
 
       <!-- Character Editor Modal -->
       <ContentEditorModal
@@ -265,47 +253,6 @@ async function handleDeleteCharacter(character: AdvCharacter) {
   box-sizing: border-box;
 }
 
-/* Chat button inside CharacterCard's actions slot */
-.card-chat-btn {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(139, 92, 246, 0.12);
-  color: #8b5cf6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  cursor: pointer;
-  opacity: 0;
-  transition:
-    opacity 0.18s ease,
-    background 0.18s ease,
-    transform 0.12s ease;
-  -webkit-tap-highlight-color: transparent;
-  backdrop-filter: blur(4px);
-}
-
-/* Trigger via CharacterCard's wrapper class */
-:deep(.cc-wrapper:hover) .card-chat-btn {
-  opacity: 1;
-}
-
-@media (hover: none) {
-  .card-chat-btn {
-    opacity: 1;
-  }
-}
-
-.card-chat-btn:hover {
-  background: rgba(139, 92, 246, 0.22);
-}
-
-.card-chat-btn:active {
-  transform: scale(0.88);
-}
-
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -327,38 +274,9 @@ async function handleDeleteCharacter(character: AdvCharacter) {
   margin: 0;
 }
 
-/* Draft restore banners */
-.draft-banner-wrapper {
-  padding: var(--adv-space-xs) var(--adv-space-md) 0;
-}
-
-.draft-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--adv-space-sm);
-  padding: var(--adv-space-sm) var(--adv-space-md);
-  border-radius: var(--adv-radius-md);
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.2);
-  font-size: var(--adv-font-body-sm);
-  color: var(--adv-text-primary);
-}
-
-.draft-banner__actions {
-  display: flex;
-  gap: var(--adv-space-xs);
-  flex-shrink: 0;
-}
-
 @media (max-width: 767px) {
   .card-grid {
     grid-template-columns: 1fr;
-  }
-
-  .draft-banner {
-    flex-direction: column;
-    align-items: flex-start;
   }
 }
 </style>

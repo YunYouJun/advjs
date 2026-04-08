@@ -26,6 +26,7 @@ import { useRouter } from 'vue-router'
 import AiGeneratePanel from '../../components/AiGeneratePanel.vue'
 import ChapterCard from '../../components/ChapterCard.vue'
 import ChapterEditorForm from '../../components/ChapterEditorForm.vue'
+import DraftRestoreBanner from '../../components/common/DraftRestoreBanner.vue'
 import ContentEditorModal from '../../components/ContentEditorModal.vue'
 import { useContentDelete } from '../../composables/useContentDelete'
 import { useContentEditor } from '../../composables/useContentEditor'
@@ -84,13 +85,13 @@ function handleAiApplyChapter(md: string) {
 // --- Navigation ---
 function handleEditChapter(file: string) {
   const name = file.split('/').pop()?.replace('.adv.md', '') || file
-  trackAccess({ id: file, label: name, type: 'chapter' })
+  trackAccess({ id: file, label: name, type: 'chapter', action: 'edit' })
   router.push(`/editor?file=${encodeURIComponent(file)}`)
 }
 
 function handlePlayChapter(file: string) {
   const name = file.split('/').pop()?.replace('.adv.md', '') || file
-  trackAccess({ id: file, label: name, type: 'chapter' })
+  trackAccess({ id: file, label: name, type: 'chapter', action: 'view' })
   router.push(`/tabs/play?file=${encodeURIComponent(file)}`)
 }
 
@@ -149,19 +150,12 @@ async function handleDeleteChapter(file: string) {
 
     <IonContent :fullscreen="true">
       <!-- Draft restore banner -->
-      <div v-if="chapterEditor.hasDraft.value" class="draft-banner-wrapper">
-        <div class="draft-banner">
-          <span>{{ t('contentEditor.draftFound', { type: t('contentEditor.createChapter') }) }}</span>
-          <div class="draft-banner__actions">
-            <IonButton fill="solid" size="small" @click="chapterEditor.restoreDraft()">
-              {{ t('contentEditor.restoreDraft') }}
-            </IonButton>
-            <IonButton fill="clear" size="small" color="medium" @click="chapterEditor.clearDraft()">
-              {{ t('contentEditor.discardDraft') }}
-            </IonButton>
-          </div>
-        </div>
-      </div>
+      <DraftRestoreBanner
+        v-if="chapterEditor.hasDraft.value"
+        :message="t('contentEditor.draftFound', { type: t('contentEditor.createChapter') })"
+        @restore="chapterEditor.restoreDraft()"
+        @discard="chapterEditor.clearDraft()"
+      />
 
       <!-- Chapter list -->
       <div v-if="filteredChapters.length > 0" class="card-list">
@@ -258,29 +252,5 @@ async function handleDeleteChapter(file: string) {
   font-size: var(--adv-font-body);
   color: var(--adv-text-tertiary);
   margin: 0;
-}
-
-/* Draft restore banners */
-.draft-banner-wrapper {
-  padding: var(--adv-space-xs) var(--adv-space-md) 0;
-}
-
-.draft-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--adv-space-sm);
-  padding: var(--adv-space-sm) var(--adv-space-md);
-  border-radius: var(--adv-radius-md);
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.2);
-  font-size: var(--adv-font-body-sm);
-  color: var(--adv-text-primary);
-}
-
-.draft-banner__actions {
-  display: flex;
-  gap: var(--adv-space-xs);
-  flex-shrink: 0;
 }
 </style>

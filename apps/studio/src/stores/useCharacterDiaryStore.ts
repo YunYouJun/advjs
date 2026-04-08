@@ -54,9 +54,13 @@ export const useCharacterDiaryStore = defineStore('characterDiary', () => {
         list.push(entry)
         map.set(entry.characterId, list)
       }
-      // Sort each character's entries by createdAt
+      // Sort each character's entries by date + period (chronological order)
       for (const [id, list] of map) {
-        map.set(id, list.sort((a, b) => a.createdAt - b.createdAt))
+        map.set(id, list.sort((a, b) => {
+          if (a.date !== b.date)
+            return a.date.localeCompare(b.date)
+          return a.period.localeCompare(b.period)
+        }))
       }
       diaries.value = map
     },
@@ -92,14 +96,24 @@ export const useCharacterDiaryStore = defineStore('characterDiary', () => {
     diaries.value.set(characterId, list.filter(e => e.id !== diaryId))
     // Immediately remove from Dexie to avoid ghost entries on next load
     const pid = getCurrentProjectId()
-    db.characterDiaries.delete([pid, diaryId]).catch(() => {})
+    db.characterDiaries.delete([pid, diaryId]).catch((err) => {
+      console.warn('[diary] Failed to delete diary from DB:', err)
+    })
   }
 
   // --- AI Generation ---
 
   /**
+   * Check if a diary already exists for the given character, date, and period.
+   */
+  function hasDiary(characterId: string, date: string, period: string): boolean {
+    const list = diaries.value.get(characterId) || []
+    return list.some(d => d.date === date && d.period === period)
+  }
+
+  /**
    * Generate a diary entry for the given character using AI.
-   * Returns the new entry or null if generation fails.
+   * Returns the new entry or null if generation fails or a diary already exists for this period.
    */
   async function generateDiary(
     character: AdvCharacter,
@@ -115,6 +129,10 @@ export const useCharacterDiaryStore = defineStore('characterDiary', () => {
       const { useWorldClockStore } = await import('./useWorldClockStore')
       const clockStore = useWorldClockStore()
       const { date, period } = clockStore.clock
+
+      // Avoid generating duplicate diary for the same date + period
+      if (hasDiary(characterId, date, period))
+        return null
 
       const prompts = gatherCharacterPrompts(characterId)
 
@@ -180,6 +198,7 @@ Return JSON: { "content": "diary text here", "mood": "optional mood word" }`
     diaries,
     getDiaries,
     isGenerating,
+    hasDiary,
     generateDiary,
     addDiary,
     deleteDiary,

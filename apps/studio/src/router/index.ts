@@ -49,6 +49,14 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/views/CharacterChatPage.vue'),
       },
       {
+        path: 'world/diary/:characterId',
+        component: () => import('@/views/CharacterDiaryPage.vue'),
+      },
+      {
+        path: 'world/info/:characterId',
+        component: () => import('@/views/CharacterInfoPage.vue'),
+      },
+      {
         path: 'world/group/:roomId',
         component: () => import('@/views/GroupChatPage.vue'),
       },

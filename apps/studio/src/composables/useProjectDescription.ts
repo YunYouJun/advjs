@@ -8,6 +8,8 @@ import { readFileFromDir } from '../utils/fileAccess'
 const worldMd = ref('')
 const outlineMd = ref('')
 const glossaryMd = ref('')
+const propsMd = ref('')
+const writingStyleMd = ref('')
 const isLoading = ref(false)
 let watchInitialized = false
 
@@ -39,7 +41,7 @@ function extractSections(md: string): string[] {
 }
 
 /**
- * Composable for loading project description files (world.md, outline.md, glossary.md).
+ * Composable for loading project description files (world.md, outline.md, glossary.md, props.md, writing-style.md).
  *
  * Shared singleton — all callers share the same reactive state.
  */
@@ -51,11 +53,15 @@ export function useProjectDescription() {
         readFileFromDir(dirHandle, 'adv/world.md'),
         readFileFromDir(dirHandle, 'adv/outline.md'),
         readFileFromDir(dirHandle, 'adv/glossary.md'),
+        readFileFromDir(dirHandle, 'adv/props.md'),
+        readFileFromDir(dirHandle, 'adv/writing-style.md'),
       ])
 
       worldMd.value = reads[0].status === 'fulfilled' ? reads[0].value : ''
       outlineMd.value = reads[1].status === 'fulfilled' ? reads[1].value : ''
       glossaryMd.value = reads[2].status === 'fulfilled' ? reads[2].value : ''
+      propsMd.value = reads[3].status === 'fulfilled' ? reads[3].value : ''
+      writingStyleMd.value = reads[4].status === 'fulfilled' ? reads[4].value : ''
     }
     finally {
       isLoading.value = false
@@ -72,11 +78,15 @@ export function useProjectDescription() {
         downloadFromCloud(cosConfig, `${prefix}adv/world.md`),
         downloadFromCloud(cosConfig, `${prefix}adv/outline.md`),
         downloadFromCloud(cosConfig, `${prefix}adv/glossary.md`),
+        downloadFromCloud(cosConfig, `${prefix}adv/props.md`),
+        downloadFromCloud(cosConfig, `${prefix}adv/writing-style.md`),
       ])
 
       worldMd.value = reads[0].status === 'fulfilled' ? reads[0].value : ''
       outlineMd.value = reads[1].status === 'fulfilled' ? reads[1].value : ''
       glossaryMd.value = reads[2].status === 'fulfilled' ? reads[2].value : ''
+      propsMd.value = reads[3].status === 'fulfilled' ? reads[3].value : ''
+      writingStyleMd.value = reads[4].status === 'fulfilled' ? reads[4].value : ''
     }
     finally {
       isLoading.value = false
@@ -87,6 +97,8 @@ export function useProjectDescription() {
     worldMd.value = ''
     outlineMd.value = ''
     glossaryMd.value = ''
+    propsMd.value = ''
+    writingStyleMd.value = ''
     isLoading.value = false
   }
 
@@ -113,6 +125,8 @@ export function useProjectDescription() {
     worldMd,
     outlineMd,
     glossaryMd,
+    propsMd,
+    writingStyleMd,
     isLoading,
     extractTitle,
     extractPreview,

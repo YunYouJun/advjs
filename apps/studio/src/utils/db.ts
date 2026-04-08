@@ -211,6 +211,22 @@ class StudioDatabase extends Dexie {
       chatMessages: '[projectId+id]',
       groupChatSnapshots: '[projectId+id], [projectId+roomId]',
     })
+
+    // v8: add compound index for efficient diary duplicate detection
+    this.version(8).stores({
+      characterChats: '[projectId+characterId]',
+      characterMemories: '[projectId+characterId]',
+      groupChats: '[projectId+id]',
+      worldEvents: '[projectId+id]',
+      characterStates: '[projectId+characterId]',
+      worldClocks: 'projectId',
+      viewModes: 'projectId',
+      dirHandles: 'projectName',
+      conversationSnapshots: '[projectId+id], [projectId+characterId]',
+      characterDiaries: '[projectId+id], [projectId+characterId], [projectId+characterId+date+period]',
+      chatMessages: '[projectId+id]',
+      groupChatSnapshots: '[projectId+id], [projectId+roomId]',
+    })
   }
 }
 

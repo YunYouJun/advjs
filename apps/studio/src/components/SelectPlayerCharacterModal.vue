@@ -12,11 +12,12 @@ import {
   toastController,
 } from '@ionic/vue'
 import { addOutline, closeOutline, sparklesOutline, trashOutline } from 'ionicons/icons'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { useProjectContent } from '../composables/useProjectContent'
 import { useViewModeStore } from '../stores/useViewModeStore'
-import { getCharacterInitials } from '../utils/chatUtils'
+import { getCharacterInitials, getValidAvatarUrl } from '../utils/chatUtils'
 import CharacterEditorForm from './CharacterEditorForm.vue'
 
 defineProps<{
@@ -30,8 +31,32 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const router = useRouter()
 const viewModeStore = useViewModeStore()
+const { characters: projectCharacters } = useProjectContent()
 
 const showCreateForm = ref(false)
+const searchQuery = ref('')
+
+const filteredProjectCharacters = computed(() => {
+  if (!searchQuery.value)
+    return projectCharacters.value
+  const q = searchQuery.value.toLowerCase()
+  return projectCharacters.value.filter(c =>
+    c.name.toLowerCase().includes(q)
+    || c.id.toLowerCase().includes(q)
+    || c.tags?.some(tag => tag.toLowerCase().includes(q))
+    || c.faction?.toLowerCase().includes(q),
+  )
+})
+
+const filteredCustomCharacters = computed(() => {
+  if (!searchQuery.value)
+    return viewModeStore.customCharacters
+  const q = searchQuery.value.toLowerCase()
+  return viewModeStore.customCharacters.filter(c =>
+    c.name.toLowerCase().includes(q)
+    || c.id.toLowerCase().includes(q),
+  )
+})
 
 function createEmptyCharacter(): AdvCharacter {
   return {
@@ -137,54 +162,108 @@ async function saveNewCharacter() {
           {{ t('world.selectPlayerDesc') }}
         </div>
 
-        <!-- AI Create button -->
-        <button class="spc-create-btn spc-create-btn--ai" @click="goToAiCreate">
-          <span class="spc-create-btn__icon">
-            <IonIcon :icon="sparklesOutline" />
-          </span>
-          <span class="spc-create-btn__text">{{ t('world.aiCreateCharacter') }}</span>
-        </button>
-
-        <!-- Manual Create button -->
-        <button class="spc-create-btn" @click="startCreate">
-          <span class="spc-create-btn__icon">
-            <IonIcon :icon="addOutline" />
-          </span>
-          <span class="spc-create-btn__text">{{ t('world.manualCreateCharacter') }}</span>
-        </button>
-
-        <!-- Custom character list -->
-        <div v-if="viewModeStore.customCharacters.length > 0" class="spc-list">
-          <div
-            v-for="char in viewModeStore.customCharacters"
-            :key="char.id"
-            class="spc-item"
-            :class="{ 'spc-item--selected': viewModeStore.playerCharacterId === char.id }"
-            @click="selectCharacter(char.id)"
+        <!-- Search bar -->
+        <div v-if="projectCharacters.length > 0 || viewModeStore.customCharacters.length > 0" class="spc-search">
+          <input
+            v-model="searchQuery"
+            type="text"
+            class="spc-search__input"
+            :placeholder="t('common.search')"
           >
-            <div class="spc-item__avatar">
-              {{ getCharacterInitials(char.name) }}
-            </div>
-            <div class="spc-item__info">
-              <div class="spc-item__name">
-                {{ char.name }}
-                <span v-if="viewModeStore.playerCharacterId === char.id" class="spc-item__check">✓</span>
-              </div>
-              <div v-if="char.personality" class="spc-item__desc">
-                {{ char.personality.slice(0, 60) }}{{ char.personality.length > 60 ? '...' : '' }}
-              </div>
-            </div>
-            <button
-              class="spc-item__delete"
-              :aria-label="t('common.clear')"
-              @click.stop="removeCharacter(char.id)"
+        </div>
+
+        <!-- Project characters section -->
+        <div v-if="filteredProjectCharacters.length > 0" class="spc-section">
+          <div class="spc-section__header">
+            👥 {{ t('world.projectCharacters') }}
+          </div>
+          <div class="spc-list">
+            <div
+              v-for="char in filteredProjectCharacters"
+              :key="char.id"
+              class="spc-item"
+              :class="{ 'spc-item--selected': viewModeStore.playerCharacterId === char.id }"
+              @click="selectCharacter(char.id)"
             >
-              <IonIcon :icon="trashOutline" />
-            </button>
+              <div class="spc-item__avatar">
+                <img v-if="getValidAvatarUrl(char.avatar)" :src="getValidAvatarUrl(char.avatar)!" alt="" class="spc-item__avatar-img">
+                <span v-else>{{ getCharacterInitials(char.name) }}</span>
+              </div>
+              <div class="spc-item__info">
+                <div class="spc-item__name">
+                  {{ char.name }}
+                  <span v-if="char.faction" class="spc-item__faction">{{ char.faction }}</span>
+                  <span v-if="viewModeStore.playerCharacterId === char.id" class="spc-item__check">✓</span>
+                </div>
+                <div v-if="char.personality || char.appearance" class="spc-item__desc">
+                  {{ (char.personality || char.appearance || '').slice(0, 60) }}{{ (char.personality || char.appearance || '').length > 60 ? '...' : '' }}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div v-else class="spc-empty">
+        <!-- Custom characters section -->
+        <div v-if="filteredCustomCharacters.length > 0" class="spc-section">
+          <div class="spc-section__header">
+            🎭 {{ t('world.customCharacters') }}
+          </div>
+          <div class="spc-list">
+            <div
+              v-for="char in filteredCustomCharacters"
+              :key="char.id"
+              class="spc-item"
+              :class="{ 'spc-item--selected': viewModeStore.playerCharacterId === char.id }"
+              @click="selectCharacter(char.id)"
+            >
+              <div class="spc-item__avatar">
+                {{ getCharacterInitials(char.name) }}
+              </div>
+              <div class="spc-item__info">
+                <div class="spc-item__name">
+                  {{ char.name }}
+                  <span v-if="viewModeStore.playerCharacterId === char.id" class="spc-item__check">✓</span>
+                </div>
+                <div v-if="char.personality" class="spc-item__desc">
+                  {{ char.personality.slice(0, 60) }}{{ char.personality.length > 60 ? '...' : '' }}
+                </div>
+              </div>
+              <button
+                class="spc-item__delete"
+                :aria-label="t('common.clear')"
+                @click.stop="removeCharacter(char.id)"
+              >
+                <IonIcon :icon="trashOutline" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Create new character buttons -->
+        <div class="spc-section">
+          <div class="spc-section__header">
+            ✨ {{ t('world.createCustomCharacter') }}
+          </div>
+
+          <!-- AI Create button -->
+          <button class="spc-create-btn spc-create-btn--ai" @click="goToAiCreate">
+            <span class="spc-create-btn__icon">
+              <IonIcon :icon="sparklesOutline" />
+            </span>
+            <span class="spc-create-btn__text">{{ t('world.aiCreateCharacter') }}</span>
+          </button>
+
+          <!-- Manual Create button -->
+          <button class="spc-create-btn" @click="startCreate">
+            <span class="spc-create-btn__icon">
+              <IonIcon :icon="addOutline" />
+            </span>
+            <span class="spc-create-btn__text">{{ t('world.manualCreateCharacter') }}</span>
+          </button>
+        </div>
+
+        <!-- Empty state when no characters at all and no search -->
+        <div v-if="projectCharacters.length === 0 && viewModeStore.customCharacters.length === 0" class="spc-empty">
           <div class="spc-empty__icon">
             🎭
           </div>
