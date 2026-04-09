@@ -325,9 +325,36 @@ adv/knowledge/
 
 三项独立前端功能，无后端依赖，在单次 session 内一次性交付。
 
-**A. 角色关系图谱**
+#### A. 角色关系图谱（Relationship Graph）
 
-可视化展示角色间的关系网络，数据来源为 `.character.md` 中的 `relationships[]` 字段。
+可视化展示角色间的关系网络，帮助创作者和玩家理解人物关系脉络。
+
+**👤 用户指南**
+
+1. 在 World 标签页的角色列表上方，点击「📊 关系图谱」展开/收起按钮
+2. 图谱以圆形布局展示所有角色为节点，关系为带箭头的连接线
+3. 相互关系的角色间会出现双箭头（💕 相恋 ←→ 相恋）
+4. 悬停关系线可查看关系描述（如"青梅竹马"、"师徒关系"）
+5. 点击任意角色节点可直接跳转到与该角色的对话页面
+
+**⚙️ 配置方法**
+
+在 `.character.md` 的 YAML frontmatter 中定义 `relationships[]` 字段：
+
+```yaml
+---
+name: '小李'
+relationships:
+  - targetId: 'char_002'
+    type: '朋友'
+    description: '大学同学，形影不离'
+  - targetId: 'char_003'
+    type: '对手'
+    description: '公司竞争对手，暗自较劲'
+---
+```
+
+**🔧 技术实现**
 
 - `components/RelationshipGraph.vue` — 纯 SVG 实现，零新依赖
   - 节点圆形等角度布局（≤10 个时 r=180，否则 r=240）
@@ -336,7 +363,19 @@ adv/knowledge/
   - 点击节点触发 `selectCharacter` 跳转到对应角色对话页
 - `WorldPage.vue` — 角色列表上方新增折叠/展开按钮，`<Transition name="fade">` 动画
 
-**B. AI 记忆提取重试强化**
+---
+
+#### B. AI 记忆提取重试强化
+
+改进了 AI 记忆系统的稳定性，当 AI 响应格式异常时，系统会自动重试一次，确保角色不会"遗忘"关键信息。
+
+**✨ 效果**
+
+- 显著降低因网络波动导致的记忆丢失
+- 角色记忆更加稳定可靠
+- 多轮对话中信息保留率更高
+
+**🔧 技术实现**
 
 修复 AI 返回格式异常时静默失败、记忆永不更新的问题。
 
@@ -344,20 +383,94 @@ adv/knowledge/
   - 内部改为 `for (attempt ≤ retries)` 循环；JSON 解析失败时继续重试，异常时最终返回 `null`
 - `stores/useCharacterMemoryStore.ts` — 调用时传 `retries=1`，最多重试 1 次
 
-**C. 对话存档点**
+---
 
-在角色对话页增加快照（snapshot）能力，可随时保存对话现场并回溯到任意存档点。
+#### C. 对话存档点（Conversation Snapshot）
+
+在与角色对话时，可以随时保存"快照"，之后回溯到任意存档点继续对话。
+
+**👤 用户指南**
+
+1. 在角色对话页的顶部 header，点击 📸 **相机按钮** 打开存档面板
+2. **创建快照**：点击「💾 保存对话现场」，为当前对话设置标签（如"重要决定点"）
+3. **查看快照列表**：面板显示所有已保存的快照，按创建时间排列
+4. **恢复快照**：点击任意快照旁的「⏮️ 恢复」按钮，对话内容和上下文立即回溯
+5. **删除快照**：滑动快照卡片或点击 ✕ 删除不需要的存档
+
+**💡 应用场景**
+
+- 在重要剧情分支前保存快照，尝试不同对话路线
+- 进行多结局体验前保存关键点
+- 记录角色的"重要时刻"回忆点
+
+**ℹ️ 技术细节**
+
+- 每个快照自动保存当前的：对话历史、角色状态、角色记忆、世界时钟状态
+- 快照永久保存在本地 IndexedDB 中
+- 恢复快照不会覆盖其他快照，只影响当前对话会话
+
+**🔧 技术实现**
 
 - `ConversationSnapshot` 接口（id / characterId / label / createdAt / messages / contextSummary）
 - `utils/db.ts` v5 — 新增 `conversationSnapshots` 表，复合主键 `[projectId+id]`，索引 `[projectId+characterId]`
 - `stores/useCharacterChatStore.ts` — 新增 `createSnapshot / getSnapshots / restoreSnapshot / deleteSnapshot` 四个方法，`persistence.load` 自动加载存档列表
 - `views/CharacterChatPage.vue` — header 新增 📸 相机按钮，展开存档面板（创建/恢复/删除）
 
+---
+
 ### Phase 26：AI 角色自主日记 {#phase-26}
 
-角色可以自主生成内心独白/日记，AI 结合角色性格、当前状态、记忆和世界事件生成当日视角的日记条目。
+角色可以自主生成内心独白/日记，让每个角色有自己的"秘密"视角和心理世界。
 
-**实现内容**：
+**👤 用户指南**
+
+**方法 1：快速生成（World 页面）**
+
+1. 打开 World 标签页
+2. 在任意角色卡片下方点击 📓 **日记按钮**
+3. 系统自动为该角色生成**今日日记**
+4. 日记会立即显示在角色信息面板中
+
+**方法 2：详细查看（角色信息模态）**
+
+1. 打开角色对话页，点击顶部 **ℹ️ 信息按钮**
+2. 在弹出的角色详情面板中，向下滚动到「📓 日记」区块
+3. 点击「✍️ 生成今日日记」创建新日记
+4. 查看历往日记（最新优先排列，含日期、时段、心情徽章）
+5. 可删除不满意的日记条目
+
+**📝 日记的生成逻辑**
+
+系统综合以下因素生成日记内容：
+- 角色的性格和背景设定
+- 与玩家的历往对话（记忆）
+- 角色当前的动态状态（位置、心情、健康）
+- 世界中发生的事件
+- 历往日记的记录（形成连贯的人物弧光）
+
+**📋 日记结构**
+
+每条日记包含：
+- 📅 **日期**：世界内的日期（与世界时钟对齐）
+- 🕐 **时段**：早/中/晚/夜（period）
+- 😊 **心情**：AI 提取的情绪词（高兴、焦虑、平静等）
+- 📝 **正文**：角色的内心独白（可折叠展开）
+- 🗑️ **删除**：移除不需要的日记
+
+**💡 应用场景**
+
+- 创作者用来理解角色的心路历程
+- 玩家用来体验角色的内心世界
+- 长期运行的世界中形成"日记长编"，记录故事演进
+- 导出日记作为角色背景素材库
+
+**⏱️ 性能提示**
+
+- 首次生成日记可能需要 5-10 秒（取决于 AI 响应速度和历史数据量）
+- 系统会显示"生成中..."进度提示
+- 同一角色同一时段生成的日记会自动替换旧的
+
+**🔧 技术实现**
 
 - `utils/db.ts` v6 — 新增 `characterDiaries` 表，复合主键 `[projectId+id]`，索引 `[projectId+characterId]`，`claimDefaultData` 一并迁移
 - `stores/useCharacterDiaryStore.ts` — 完整 Pinia Store：
@@ -371,7 +484,7 @@ adv/knowledge/
 - `views/WorldPage.vue` — 每个角色卡片下方增加 📓 快捷按钮，一键生成当日日记
 - `stores/useStudioStore.ts` — `switchProject` 中加入 `diaryStore.flush() / $reset() / init(pid)` 三步
 
-**数据结构**：
+**📊 数据结构**
 
 ```ts
 interface CharacterDiaryEntry {
@@ -385,18 +498,75 @@ interface CharacterDiaryEntry {
 }
 ```
 
+---
+
 ### Phase 27：世界时间线 {#phase-27}
 
-以**时间轴视图**聚合世界事件（`WorldEvent`）与角色日记（`CharacterDiaryEntry`），让创作者在一个统一界面内回顾整个世界的发展脉络。
+在统一的时间轴视图中回顾整个世界的发展脉络，将所有事件和角色日记按时间线索呈现。
 
-**实现内容**：
+**👤 用户指南**
+
+**打开时间线视图**
+
+1. 进入 World 标签页，向下滚动到「⏰ 世界事件」区块
+2. 点击顶部的 **「📊 时间线」** 切换按钮（旁边有「📋 列表」视图选项）
+3. 页面切换到时间轴展示模式
+
+**时间线视图结构**
+
+- 左侧：竖向时间轴（从过去→未来）
+- 卡片：按时间顺序排列的事件和日记
+  - 🌍 **事件卡片**：世界中发生的事件（日常/社交/意外/天气）
+  - 📓 **日记卡片**：角色生成的日记
+  - 每张卡片显示：时间 + 类型 emoji + 参与角色 + 内容摘要
+
+**🔍 使用过滤器精准查看**
+
+时间线上方提供三行过滤器（横向滚动）：
+
+1. **种类切换**（行 1）：
+   - 「全部」- 显示所有事件和日记
+   - 「🌍 事件」- 仅显示世界事件
+   - 「📓 日记」- 仅显示角色日记
+
+2. **事件类型**（行 2，仅在选中「事件」时显示）：
+   - 「☀️ 日常」- 日常活动
+   - 「💬 社交」- 人物互动
+   - 「⚡ 意外」- 冲突/突发事件
+   - 「🌧️ 天气」- 天气变化
+
+3. **角色头像**（行 3，当项目有 2+ 角色时显示）：
+   - 点击角色头像筛选该角色相关的事件和日记
+   - 多选支持（按 Ctrl/Cmd 可多选）
+
+**📖 分页加载**
+
+- 时间线默认显示最近 60 条记录
+- 向上滚动到顶部后，点击「📈 加载更多」按钮查看历史
+- 支持无限向上回溯整个世界历史
+
+**💡 应用场景**
+
+- 创作者回顾剧情发展，检查时间逻辑一致性
+- 发现"失联"的角色或遗漏的事件
+- 从宏观视角理解多角色故事的交织
+- 导出时间线作为故事大纲
+- 玩家回顾已有的游戏进度和角色成长轨迹
+
+**⚡ 性能提示**
+
+- 时间线采用纯 CSS 实现，无第三方图表库依赖，性能优异
+- 超长项目（1000+ 事件）也能流畅滚动
+- 过滤条件会自动保存到当前 session（刷新后重置）
+
+**🔧 技术实现**
 
 - `views/WorldPage.vue` — 世界事件区块改造为双视图切换（列表 / 时间线 pill 按钮）；新增 `timelineView = ref<'list' | 'timeline'>('list')` 和 `timelineEntries` computed（合并 `eventStore.events` + `diaryStore.diaries`，按 `date → PERIOD_ORDER → createdAt` 三键排序）；导出 `TimelineEntry` 接口供子组件使用
 - `components/TimelineFilter.vue` — 三行横向滚动 pill 过滤器（`v-model:TimelineFilter`）：行 1 种类切换（全部/事件/日记）、行 2 事件类型（仅 events 可见时展示）、行 3 角色头像（仅角色数 > 1 时展示）；`toggleKind` 在移除 'event' 时同步清空 `eventTypes`
 - `components/WorldTimeline.vue` — 完整时间轴组件：内部持有 `filter` 状态，`watch(filter, () => displayLimit.value = PAGE_SIZE, { deep: true })` 重置分页；`filteredEntries` 三级过滤（kind → characterIds → eventTypes）；`buildGroups` 按 date 倒序 + period 正序分组，使用 `Array.from(map.entries(), mapper)` 规避 lint 规则；每次渲染最近 60 条（`slice(-displayLimit.value)`），顶部「加载更多」按钮（+60）；Event 卡片：类型 emoji + 类型标签 + 角色头像列表（可点击跳转）；Diary 卡片：📓 + 角色头像 + 角色名 + 心情徽章 + `DiaryEntryContent`（可折叠）
 - `i18n/locales/zh-CN.json` + `en.json` — 新增 `world.timeline`、`world.timelineList`、`world.timelineEmpty`、`world.timelineFilterAll`、`world.timelineFilterEvents`、`world.timelineFilterDiaries`、`world.timelineLoadMore`、`world.period_morning/afternoon/evening/night`
 
-**数据结构**：
+**📊 数据结构**
 
 ```ts
 // 导出自 views/WorldPage.vue（<script setup> export interface）
@@ -416,6 +586,7 @@ export interface TimelineEntry {
 ```
 
 **零新依赖**：纯 CSS 垂直时间轴（`border-left: 2px solid` + 圆点 + 卡片），无新 npm 包。
+
 
 ## 后续路线 {#roadmap}
 
