@@ -45,6 +45,6 @@ AI：（使用 adv-create skill）
 
 ## 参考
 
-- [Skill 定义文件](/skills/adv-create/SKILL.md)
-- [示例会话](/skills/adv-create/examples/session-demo.md)
+- [Skill 定义文件 - GitHub](https://github.com/YunYouJun/advjs/blob/main/skills/adv-create/SKILL.md)
+- [示例会话 - GitHub](https://github.com/YunYouJun/advjs/tree/main/skills/adv-create/examples)
 - [ADV.JS 项目结构](/guide/project-structure)

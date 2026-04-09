@@ -65,6 +65,6 @@
 
 ## 参考
 
-- [Skill 定义文件](/skills/adv-debug/SKILL.md)
+- [Skill 定义文件 - GitHub](https://github.com/YunYouJun/advjs/blob/main/skills/adv-debug/SKILL.md)
 - [adv check 命令](/guide/cli#check)
 - [adv play 命令](/guide/cli#play)
