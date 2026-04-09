@@ -44,6 +44,16 @@ const nav: DefaultTheme.Config['nav'] = [
       },
 
       {
+        text: '发展路线',
+        items: [
+          {
+            text: 'Studio 下一阶段计划',
+            link: '/studio/next-phase-plan',
+          },
+        ],
+      },
+
+      {
         text: '贡献',
         items: [
           {
