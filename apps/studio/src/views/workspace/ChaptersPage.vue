@@ -15,6 +15,8 @@ import {
   IonItemSliding,
   IonNote,
   IonPage,
+  IonRefresher,
+  IonRefresherContent,
   IonSearchbar,
   IonTitle,
   IonToolbar,
@@ -149,6 +151,10 @@ async function handleDeleteChapter(file: string) {
     </IonHeader>
 
     <IonContent :fullscreen="true">
+      <IonRefresher slot="fixed" @ion-refresh="async (e: CustomEvent) => { await reload(); (e.target as HTMLIonRefresherElement).complete() }">
+        <IonRefresherContent />
+      </IonRefresher>
+
       <!-- Draft restore banner -->
       <DraftRestoreBanner
         v-if="chapterEditor.hasDraft.value"

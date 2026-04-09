@@ -23,6 +23,11 @@ const currentIndex = ref(0)
 const isLoading = ref(false)
 const error = ref('')
 
+// Touch swipe support
+const touchStartX = ref(0)
+const touchStartY = ref(0)
+const SWIPE_THRESHOLD = 50
+
 // Parse content into AST
 watch(() => props.content, async (content) => {
   if (!content) {
@@ -161,17 +166,70 @@ function handleChoice(_choice: AdvAst.Choice) {
   next()
 }
 
+function prev() {
+  if (!ast.value || currentIndex.value <= 0)
+    return
+  currentIndex.value--
+  // Skip non-renderable nodes backwards
+  while (currentIndex.value > 0) {
+    const node = ast.value.children[currentIndex.value]
+    if (node.type === 'scene' || node.type === 'code' || node.type === 'unknown')
+      currentIndex.value--
+    else
+      break
+  }
+}
+
 // Click anywhere on the game area to advance (except choices)
 function handleAreaClick() {
   if (currentNode.value?.type !== 'choices' && !isEnded.value)
     next()
 }
 
-defineExpose({ goToNode, restart, next, renderableNodes, currentIndex })
+function handleTouchStart(e: TouchEvent) {
+  touchStartX.value = e.touches[0].clientX
+  touchStartY.value = e.touches[0].clientY
+}
+
+function handleTouchEnd(e: TouchEvent) {
+  const deltaX = e.changedTouches[0].clientX - touchStartX.value
+  const deltaY = e.changedTouches[0].clientY - touchStartY.value
+
+  // Only trigger swipe if horizontal movement dominates
+  if (Math.abs(deltaX) < SWIPE_THRESHOLD || Math.abs(deltaX) < Math.abs(deltaY))
+    return
+
+  if (deltaX < 0) {
+    // Swipe left → next
+    if (currentNode.value?.type !== 'choices' && !isEnded.value)
+      next()
+  }
+  else {
+    // Swipe right → prev
+    prev()
+  }
+}
+
+function handleProgressClick(e: MouseEvent) {
+  if (!ast.value)
+    return
+  const bar = e.currentTarget as HTMLElement
+  const rect = bar.getBoundingClientRect()
+  const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+  const targetIndex = Math.round(ratio * (totalNodes.value - 1))
+  goToNode(targetIndex)
+}
+
+defineExpose({ goToNode, restart, next, prev, renderableNodes, currentIndex })
 </script>
 
 <template>
-  <div class="game-player" @click="handleAreaClick">
+  <div
+    class="game-player"
+    @click="handleAreaClick"
+    @touchstart.passive="handleTouchStart"
+    @touchend.passive="handleTouchEnd"
+  >
     <!-- Loading -->
     <div v-if="isLoading" class="game-player__center">
       <div class="game-player__spinner" />
@@ -273,14 +331,17 @@ defineExpose({ goToNode, restart, next, renderableNodes, currentIndex })
         </div>
       </Transition>
 
-      <!-- Footer: compact progress -->
+      <!-- Footer: chapter name + progress -->
       <div class="game-player__footer">
+        <Transition name="gp-fade" mode="out-in">
+          <span v-if="chapterName" :key="chapterName" class="game-player__chapter-name">{{ chapterName }}</span>
+        </Transition>
         <span class="game-player__progress">{{ currentIndex + 1 }}/{{ totalNodes }}</span>
       </div>
     </template>
 
-    <!-- Progress bar (bottom) -->
-    <div v-if="ast" class="game-player__progress-bar">
+    <!-- Progress bar (bottom, clickable) -->
+    <div v-if="ast" class="game-player__progress-bar" @click.stop="handleProgressClick">
       <div class="game-player__progress-fill" :style="{ width: `${progress}%` }" />
     </div>
   </div>
@@ -444,8 +505,21 @@ defineExpose({ goToNode, restart, next, renderableNodes, currentIndex })
 .game-player__footer {
   position: absolute;
   bottom: 16px;
+  left: 20px;
   right: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   pointer-events: none;
+}
+
+.game-player__chapter-name {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.25);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60%;
 }
 
 .game-player__progress {
@@ -454,14 +528,16 @@ defineExpose({ goToNode, restart, next, renderableNodes, currentIndex })
   font-variant-numeric: tabular-nums;
 }
 
-/* Progress bar (bottom) */
+/* Progress bar (bottom, clickable) */
 .game-player__progress-bar {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 2px;
+  height: 4px;
   background: rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  z-index: 10;
 }
 
 .game-player__progress-fill {
@@ -498,6 +574,17 @@ defineExpose({ goToNode, restart, next, renderableNodes, currentIndex })
 .gp-fade-up-enter-from {
   opacity: 0;
   transform: translateY(16px);
+}
+
+/* Transition: simple fade (for chapter name) */
+.gp-fade-enter-active,
+.gp-fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.gp-fade-enter-from,
+.gp-fade-leave-to {
+  opacity: 0;
 }
 
 /* Mobile */

@@ -44,6 +44,17 @@ ion-list-header ion-label {
 /* Tab bar refinement */
 ion-tab-bar {
   border-top: 1px solid var(--adv-border-subtle);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Footer safe area (chat input, etc.) */
+ion-footer ion-toolbar:last-child {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* FAB safe area — lift above bottom safe area */
+ion-fab[vertical='bottom'] {
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
 }
 
 /* Touch target minimum 44px */

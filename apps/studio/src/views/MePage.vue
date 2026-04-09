@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import {
-  IonContent,
   IonHeader,
   IonIcon,
-  IonPage,
   IonTitle,
   IonToolbar,
   toastController,
@@ -19,6 +17,7 @@ import {
 } from 'ionicons/icons'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import StudioPage from '../components/StudioPage.vue'
 import NavGroup from '../components/ui/NavGroup.vue'
 import NavItem from '../components/ui/NavItem.vue'
 import { useSettingsStore } from '../stores/useSettingsStore'
@@ -85,108 +84,101 @@ const infoItems = [
 </script>
 
 <template>
-  <IonPage>
-    <IonHeader>
+  <StudioPage :title="t('me.title')">
+    <IonHeader collapse="condense">
       <IonToolbar>
-        <IonTitle>{{ t('me.title') }}</IonTitle>
+        <IonTitle size="large">
+          {{ t('me.title') }}
+        </IonTitle>
       </IonToolbar>
     </IonHeader>
-    <IonContent :fullscreen="true">
-      <IonHeader collapse="condense">
-        <IonToolbar>
-          <IonTitle size="large">
-            {{ t('me.title') }}
-          </IonTitle>
-        </IonToolbar>
-      </IonHeader>
 
-      <div class="page-container">
-        <!-- Account Section -->
-        <!-- Logged-in state -->
-        <div v-if="settingsStore.account.isLoggedIn" class="account-card">
-          <div class="account-card__user">
-            <div class="account-card__avatar">
-              <img v-if="settingsStore.account.avatar" :src="settingsStore.account.avatar" alt="avatar">
-              <span v-else class="account-card__avatar-fallback">
-                {{ settingsStore.account.username.charAt(0).toUpperCase() }}
-              </span>
-            </div>
-            <div class="account-card__info">
-              <span class="account-card__name">{{ settingsStore.account.username }}</span>
-              <span class="account-card__email">{{ settingsStore.account.email }}</span>
-            </div>
-            <IonIcon :icon="chevronForwardOutline" class="account-card__chevron" />
+    <div class="page-container">
+      <!-- Account Section -->
+      <!-- Logged-in state -->
+      <div v-if="settingsStore.account.isLoggedIn" class="account-card">
+        <div class="account-card__user">
+          <div class="account-card__avatar">
+            <img v-if="settingsStore.account.avatar" :src="settingsStore.account.avatar" alt="avatar">
+            <span v-else class="account-card__avatar-fallback">
+              {{ settingsStore.account.username.charAt(0).toUpperCase() }}
+            </span>
           </div>
-        </div>
-
-        <!-- Not logged in — hero card -->
-        <div v-else class="account-hero" @click="handleLogin">
-          <div class="account-hero__glow" />
-          <div class="account-hero__content">
-            <div class="account-hero__avatar-ring">
-              <IonIcon :icon="personCircleOutline" />
-            </div>
-            <h3 class="account-hero__title">
-              {{ t('me.accountTitle') }}
-            </h3>
-            <p class="account-hero__desc">
-              {{ t('me.accountDesc') }}
-            </p>
-            <div class="account-hero__actions">
-              <button class="hero-btn hero-btn--primary" @click.stop="handleLogin">
-                {{ t('me.login') }}
-              </button>
-              <button class="hero-btn hero-btn--ghost" @click.stop="handleRegister">
-                {{ t('me.register') }}
-              </button>
-            </div>
+          <div class="account-card__info">
+            <span class="account-card__name">{{ settingsStore.account.username }}</span>
+            <span class="account-card__email">{{ settingsStore.account.email }}</span>
           </div>
-        </div>
-
-        <!-- Settings & Features -->
-        <NavGroup>
-          <NavItem
-            v-for="item in navItems"
-            :key="item.key"
-            :icon="item.icon"
-            :icon-color="`var(${item.color})`"
-            :label="t(`me.${item.key}`)"
-            @click="navigateTo(item.route)"
-          />
-        </NavGroup>
-
-        <!-- Help & About -->
-        <NavGroup>
-          <NavItem
-            v-for="item in infoItems"
-            :key="item.key"
-            :icon="item.icon"
-            :icon-color="`var(${item.color})`"
-            :label="t(`me.${item.key}`)"
-            @click="navigateTo(item.route)"
-          />
-        </NavGroup>
-
-        <!-- Developer Options (conditional) -->
-        <NavGroup v-if="settingsStore.developerMode">
-          <NavItem
-            :icon="codeSlashOutline"
-            icon-color="var(--nav-icon-developer)"
-            :label="t('me.developer')"
-            @click="navigateTo('/tabs/me/developer')"
-          />
-        </NavGroup>
-
-        <!-- Logout -->
-        <div v-if="settingsStore.account.isLoggedIn" class="danger-section">
-          <button class="danger-btn" @click="handleLogout">
-            <IonIcon :icon="logOutOutline" />
-            <span>{{ t('me.logout') }}</span>
-          </button>
+          <IonIcon :icon="chevronForwardOutline" class="account-card__chevron" />
         </div>
       </div>
-    </IonContent>
-  </IonPage>
+
+      <!-- Not logged in — hero card -->
+      <div v-else class="account-hero" @click="handleLogin">
+        <div class="account-hero__glow" />
+        <div class="account-hero__content">
+          <div class="account-hero__avatar-ring">
+            <IonIcon :icon="personCircleOutline" />
+          </div>
+          <h3 class="account-hero__title">
+            {{ t('me.accountTitle') }}
+          </h3>
+          <p class="account-hero__desc">
+            {{ t('me.accountDesc') }}
+          </p>
+          <div class="account-hero__actions">
+            <button class="hero-btn hero-btn--primary" @click.stop="handleLogin">
+              {{ t('me.login') }}
+            </button>
+            <button class="hero-btn hero-btn--ghost" @click.stop="handleRegister">
+              {{ t('me.register') }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings & Features -->
+      <NavGroup>
+        <NavItem
+          v-for="item in navItems"
+          :key="item.key"
+          :icon="item.icon"
+          :icon-color="`var(${item.color})`"
+          :label="t(`me.${item.key}`)"
+          @click="navigateTo(item.route)"
+        />
+      </NavGroup>
+
+      <!-- Help & About -->
+      <NavGroup>
+        <NavItem
+          v-for="item in infoItems"
+          :key="item.key"
+          :icon="item.icon"
+          :icon-color="`var(${item.color})`"
+          :label="t(`me.${item.key}`)"
+          @click="navigateTo(item.route)"
+        />
+      </NavGroup>
+
+      <!-- Developer Options (conditional) -->
+      <NavGroup v-if="settingsStore.developerMode">
+        <NavItem
+          :icon="codeSlashOutline"
+          icon-color="var(--nav-icon-developer)"
+          :label="t('me.developer')"
+          @click="navigateTo('/tabs/me/developer')"
+        />
+      </NavGroup>
+
+      <!-- Logout -->
+      <div v-if="settingsStore.account.isLoggedIn" class="danger-section">
+        <button class="danger-btn" @click="handleLogout">
+          <IonIcon :icon="logOutOutline" />
+          <span>{{ t('me.logout') }}</span>
+        </button>
+      </div>
+    </div>
+  </StudioPage>
 </template>
 
 <style scoped>

@@ -1,5 +1,6 @@
 import type { AdvCharacter } from '@advjs/types'
 import type { ChatMessage as AiChatMessage } from '../utils/aiClient'
+import type { CharacterAiOverride } from '../utils/resolveAiConfig'
 import { exportCharacterForAI } from '@advjs/parser'
 import Dexie from 'dexie'
 import { defineStore } from 'pinia'
@@ -12,6 +13,8 @@ import { getOrCreateInMap, loadMapFromDexie, useProjectPersistence } from '../ut
 import { getCurrentProjectId } from '../utils/projectScope'
 import { PromptBuilder } from '../utils/promptBuilder'
 import { gatherCharacterPrompts } from '../utils/promptContext'
+import { resolveCharacterAiConfig } from '../utils/resolveAiConfig'
+import { estimateTokens } from '../utils/tokenEstimate'
 import { useAiSettingsStore } from './useAiSettingsStore'
 
 export interface CharacterChatMessage {
@@ -46,6 +49,8 @@ const KEEP_FIRST = 2
 const KEEP_RECENT = 15
 /** Total hard limit for messages sent to API */
 const MAX_API_MESSAGES = 20
+/** Token budget for context messages (excluding system prompt) */
+const CONTEXT_TOKEN_BUDGET = 4096
 
 /**
  * Build a character-specific system prompt for roleplay conversations.
@@ -87,7 +92,11 @@ function buildCharacterSystemPrompt(
 
 /**
  * Build a smart context window from the full message history.
- * Strategy: keep first few messages + summary of middle + recent messages.
+ *
+ * Strategy (token-budget-aware):
+ * 1. If all messages fit within budget, send everything
+ * 2. Otherwise: keep first N messages + context summary + as many recent messages as budget allows
+ * 3. Falls back to hard message count limit if token estimation is not needed
  */
 function buildSmartContext(
   allMessages: CharacterChatMessage[],
@@ -95,39 +104,59 @@ function buildSmartContext(
 ): AiChatMessage[] {
   const total = allMessages.length
 
-  // If within limit, send everything
+  // If within hard message limit, send everything
   if (total <= MAX_API_MESSAGES) {
     return allMessages.map(m => ({ role: m.role, content: m.content }))
   }
 
   const result: AiChatMessage[] = []
+  let usedTokens = 0
 
   // 1. Keep first N messages (initial greeting/context)
   const firstMessages = allMessages.slice(0, KEEP_FIRST)
   for (const m of firstMessages) {
+    const tokens = estimateTokens(m.content) + 4
+    usedTokens += tokens
     result.push({ role: m.role, content: m.content })
   }
 
   // 2. Insert summary of middle messages if available
   if (contextSummary) {
-    result.push({
-      role: 'system',
-      content: i18n.global.t('systemPrompt.characterChat.contextSummaryPrefix', { summary: contextSummary }),
-    })
+    const summaryContent = i18n.global.t('systemPrompt.characterChat.contextSummaryPrefix', { summary: contextSummary })
+    usedTokens += estimateTokens(summaryContent) + 4
+    result.push({ role: 'system', content: summaryContent })
   }
 
-  // 3. Keep recent N messages
-  const recentMessages = allMessages.slice(-KEEP_RECENT)
-  for (const m of recentMessages) {
-    result.push({ role: m.role, content: m.content })
+  // 3. Fill remaining budget with recent messages (newest first, then reverse)
+  const remainingBudget = CONTEXT_TOKEN_BUDGET - usedTokens
+  const recentCandidates = allMessages.slice(KEEP_FIRST) // all messages after first N
+  const selectedRecent: AiChatMessage[] = []
+  let recentTokens = 0
+
+  // Walk backwards from most recent, accumulate until budget exhausted
+  for (let i = recentCandidates.length - 1; i >= 0; i--) {
+    const m = recentCandidates[i]
+    const tokens = estimateTokens(m.content) + 4
+    if (recentTokens + tokens > remainingBudget && selectedRecent.length >= KEEP_RECENT)
+      break
+    // Always include at least KEEP_RECENT messages regardless of budget
+    if (recentTokens + tokens > remainingBudget && selectedRecent.length < KEEP_RECENT) {
+      selectedRecent.unshift({ role: m.role, content: m.content })
+      recentTokens += tokens
+      continue
+    }
+    selectedRecent.unshift({ role: m.role, content: m.content })
+    recentTokens += tokens
   }
 
+  result.push(...selectedRecent)
   return result
 }
 
 export const useCharacterChatStore = defineStore('characterChat', () => {
   const conversations = ref<Map<string, CharacterConversation>>(new Map())
   const snapshots = ref<Map<string, ConversationSnapshot[]>>(new Map())
+  const aiOverrides = ref<Map<string, CharacterAiOverride>>(new Map())
   const isLoading = ref(false)
   const streamingContent = ref('')
   const currentAbortController = ref<AbortController | null>(null)
@@ -181,11 +210,28 @@ export const useCharacterChatStore = defineStore('characterChat', () => {
       catch {
         // ignore — snapshots are best-effort
       }
+
+      // Load per-character AI overrides
+      try {
+        const configs = await db.characterAiConfigs
+          .where('[projectId+characterId]')
+          .between([pid, Dexie.minKey], [pid, Dexie.maxKey])
+          .toArray()
+        const overrideMap = new Map<string, CharacterAiOverride>()
+        for (const row of configs) {
+          overrideMap.set(row.characterId, row.config)
+        }
+        aiOverrides.value = overrideMap
+      }
+      catch {
+        // ignore — overrides are best-effort
+      }
     },
     clear: () => {
       stopGeneration()
       conversations.value = new Map()
       snapshots.value = new Map()
+      aiOverrides.value = new Map()
       streamingContent.value = ''
     },
   })
@@ -249,6 +295,15 @@ export const useCharacterChatStore = defineStore('characterChat', () => {
 
     const allMessages = [...systemMessages, ...chatHistory]
 
+    // Resolve per-character AI config (falls back to global if no override)
+    const override = aiOverrides.value.get(characterId)
+    const resolved = resolveCharacterAiConfig(
+      aiSettings.config,
+      aiSettings.effectiveBaseURL,
+      aiSettings.effectiveModel,
+      override,
+    )
+
     await streamToMessage({
       allMessages,
       messageList: conversation.messages,
@@ -256,6 +311,7 @@ export const useCharacterChatStore = defineStore('characterChat', () => {
       streamingContent,
       isLoading,
       currentAbortController,
+      resolvedConfig: resolved,
       onSuccess: accumulated =>
         triggerBackgroundExtraction(characterId, character.name, content, accumulated),
     })
@@ -276,7 +332,7 @@ export const useCharacterChatStore = defineStore('characterChat', () => {
   }
 
   /**
-   * Trim messages if over threshold and fire-and-forget AI context summary generation.
+   * Trim messages if over threshold, archive old messages, and generate context summary.
    */
   async function trimMessagesIfNeeded(
     characterId: string,
@@ -288,6 +344,17 @@ export const useCharacterChatStore = defineStore('characterChat', () => {
 
     const trimmedMessages = conv.messages.slice(0, conv.messages.length - TRIM_TO)
     conv.messages = conv.messages.slice(-TRIM_TO)
+
+    // Archive trimmed messages to IndexedDB (fire-and-forget)
+    const pid = getCurrentProjectId()
+    db.archivedBatches.put({
+      projectId: pid,
+      characterId,
+      batchId: `batch-${Date.now()}`,
+      messages: trimmedMessages,
+      summary: '',
+      archivedAt: Date.now(),
+    }).catch(() => {})
 
     const t = i18n.global.t
     const conversationText = trimmedMessages
@@ -310,6 +377,15 @@ export const useCharacterChatStore = defineStore('characterChat', () => {
       if (result) {
         const c = getConversation(characterId)
         c.contextSummary = result.summary
+        // Also update the archive batch with summary
+        const batches = await db.archivedBatches
+          .where('[projectId+characterId]')
+          .equals([pid, characterId])
+          .last()
+        if (batches) {
+          batches.summary = result.summary
+          await db.archivedBatches.put(batches)
+        }
         await flush()
       }
     }).catch(() => {})
@@ -365,9 +441,53 @@ export const useCharacterChatStore = defineStore('characterChat', () => {
     })
   }
 
+  // --- Archive methods ---
+
+  /**
+   * Get archived message batches for a character.
+   */
+  async function getArchivedBatches(characterId: string) {
+    const pid = getCurrentProjectId()
+    return db.archivedBatches
+      .where('[projectId+characterId]')
+      .equals([pid, characterId])
+      .sortBy('archivedAt')
+  }
+
+  /**
+   * Check if a character has any archived messages.
+   */
+  async function hasArchivedMessages(characterId: string): Promise<boolean> {
+    const pid = getCurrentProjectId()
+    const count = await db.archivedBatches
+      .where('[projectId+characterId]')
+      .equals([pid, characterId])
+      .count()
+    return count > 0
+  }
+
+  // --- AI Override methods ---
+
+  function getAiOverride(characterId: string): CharacterAiOverride | undefined {
+    return aiOverrides.value.get(characterId)
+  }
+
+  async function setAiOverride(characterId: string, config: CharacterAiOverride): Promise<void> {
+    aiOverrides.value.set(characterId, config)
+    const pid = getCurrentProjectId()
+    await db.characterAiConfigs.put({ projectId: pid, characterId, config }).catch(() => {})
+  }
+
+  async function clearAiOverride(characterId: string): Promise<void> {
+    aiOverrides.value.delete(characterId)
+    const pid = getCurrentProjectId()
+    await db.characterAiConfigs.delete([pid, characterId]).catch(() => {})
+  }
+
   return {
     conversations,
     snapshots,
+    aiOverrides,
     isLoading,
     streamingContent,
     getConversation,
@@ -380,6 +500,11 @@ export const useCharacterChatStore = defineStore('characterChat', () => {
     getSnapshots,
     restoreSnapshot,
     deleteSnapshot,
+    getAiOverride,
+    setAiOverride,
+    clearAiOverride,
+    getArchivedBatches,
+    hasArchivedMessages,
     init,
     flush,
     $reset,

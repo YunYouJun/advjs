@@ -24,10 +24,12 @@
     "@capacitor/status-bar": "catalog:",
     "@ionic/vue": "catalog:",
     "@ionic/vue-router": "catalog:",
+    "@tanstack/vue-virtual": "catalog:",
     "@vueuse/core": "catalog:frontend",
     "dexie": "catalog:",
     "diff": "catalog:",
     "ionicons": "catalog:",
+    "jszip": "catalog:",
     "markdown-it": "catalog:build",
     "monaco-editor": "catalog:frontend",
     "pinia": "catalog:frontend",
@@ -41,7 +43,6 @@
     "@capacitor/cli": "catalog:",
     "@iconify-json/vscode-icons": "catalog:icons",
     "@playwright/test": "catalog:test",
-
     "@types/splitpanes": "catalog:types",
     "@vitejs/plugin-legacy": "catalog:",
     "@vitejs/plugin-vue": "catalog:build",
@@ -51,6 +52,7 @@
     "typescript": "catalog:dev",
     "unocss": "catalog:build",
     "vite": "catalog:build",
+    "vite-plugin-pwa": "catalog:build",
     "vitest": "catalog:test",
     "vue-tsc": "catalog:dev"
   }

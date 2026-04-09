@@ -57,7 +57,9 @@
     "slugHint": "Used as folder name and cloud path, auto-generated from name",
     "sourceCos": "COS",
     "sourceUrl": "URL",
-    "sourceLocal": "Local"
+    "sourceLocal": "Local",
+    "importProject": "Import Project",
+    "importProjectDesc": "Import from .advpkg.zip"
   },
   "projectSettings": {
     "title": "Project Settings",
@@ -202,7 +204,14 @@
     "fileNotFoundDesc": "This file doesn't exist yet. Create it manually or let AI generate the content.",
     "createEmpty": "Create Empty File",
     "aiGenerate": "AI Generate",
-    "aiPromptPlaceholder": "Describe what content to generate..."
+    "aiPromptPlaceholder": "Describe what content to generate...",
+    "insertHeading": "Insert Heading",
+    "insertCharacter": "Insert Character Tag",
+    "insertList": "Insert List",
+    "insertBold": "Insert Bold",
+    "insertQuote": "Insert Quote",
+    "insertDivider": "Insert Divider",
+    "insertScene": "Insert Scene Marker"
   },
   "me": {
     "title": "Me",
@@ -481,7 +490,16 @@
     "trust": "Trust",
     "userProfile": "Their Impression",
     "keyEvents": "Key Memories",
-    "autoDiaryGenerating": "Auto-generating diaries..."
+    "autoDiaryGenerating": "Auto-generating diaries...",
+    "aiSettings": "AI Settings",
+    "aiCustomSettings": "Custom AI Config",
+    "aiProvider": "Provider",
+    "aiModel": "Model",
+    "aiTemperature": "Temperature",
+    "aiMaxTokens": "Max Tokens",
+    "aiUseGlobal": "Use global ({value})",
+    "aiEffective": "Effective config",
+    "aiSettingsSaved": "AI settings saved"
   },
   "common": {
     "cancel": "Cancel",
@@ -496,7 +514,8 @@
     "expand": "Expand",
     "collapse": "Collapse",
     "viewAll": "View All",
-    "search": "Search..."
+    "search": "Search...",
+    "save": "Save"
   },
   "chapters": {
     "title": "Chapters",
@@ -525,7 +544,71 @@
   "scenes": {
     "title": "Scenes",
     "confirmDelete": "Delete scene \"{name}\"? This cannot be undone.",
-    "emptySearch": "No scenes match your search"
+    "emptySearch": "No scenes match your search",
+    "generateImage": "AI Generate Image",
+    "generating": "Generating image…",
+    "imageGenerated": "Image generated and saved",
+    "imageGenerateFailed": "Image generation failed: {error}",
+    "noImage": "No image"
+  },
+  "audio": {
+    "title": "Audio Resources",
+    "name": "Name",
+    "namePlaceholder": "Enter audio name",
+    "descriptionPlaceholder": "Audio description (optional)",
+    "search": "Search audio",
+    "empty": "No audio resources yet",
+    "emptySearch": "No audio matches your search",
+    "import": "Import Audio",
+    "importSuccess": "Successfully imported {count} audio file(s)",
+    "importFailed": "Import failed",
+    "play": "Play",
+    "pause": "Pause",
+    "duration": "Duration",
+    "confirmDelete": "Delete audio \"{name}\"? This cannot be undone.",
+    "linkedContent": "Linked Content",
+    "linkedScenes": "Linked Scenes",
+    "linkedChapters": "Linked Chapters"
+  },
+  "knowledge": {
+    "title": "Knowledge Base",
+    "search": "Search knowledge...",
+    "basicInfo": "Basic Info",
+    "titleField": "Title",
+    "titlePlaceholder": "Knowledge file title",
+    "titleRequired": "Title is required",
+    "domain": "Domain",
+    "domainGeneral": "General",
+    "domainCustom": "Custom domain",
+    "domainNew": "New domain name",
+    "domainNewPlaceholder": "e.g. law, history",
+    "content": "Content",
+    "contentPlaceholder": "Write knowledge content in Markdown...\n\n## Section Heading\n\nContent is auto-segmented by ## headings for AI retrieval.",
+    "create": "Create Knowledge File",
+    "edit": "Edit Knowledge File",
+    "confirmDelete": "Delete knowledge file \"{name}\"? This cannot be undone.",
+    "emptySearch": "No knowledge files match your search"
+  },
+  "project": {
+    "export": "Export Project",
+    "exportSuccess": "Project exported as .advpkg.zip",
+    "exportFailed": "Export failed",
+    "import": "Import Project",
+    "importSuccess": "Project \"{name}\" imported successfully",
+    "importFailed": "Import failed",
+    "importInvalid": "Invalid .advpkg file"
+  },
+  "marketplace": {
+    "title": "Story Market",
+    "search": "Search worlds and stories...",
+    "empty": "No results found",
+    "by": "by {author}",
+    "downloads": "Downloads",
+    "rating": "Rating",
+    "install": "Load to Local",
+    "comingSoon": "Marketplace coming soon, stay tuned!",
+    "browse": "Browse Market",
+    "browseDesc": "Discover stories by other creators"
   },
   "dashboard": {
     "worldSetting": "World Setting",
@@ -534,7 +617,7 @@
     "knowledgeBase": "Knowledge Base",
     "noKnowledge": "Add files to adv/knowledge/",
     "audioAssets": "Audio Assets",
-    "comingSoon": "Coming soon",
+    "clickToManage": "Click to manage",
     "clickToEdit": "Click to edit",
     "recentActivity": "Recent Activity",
     "recentEdited": "Recently Edited",
@@ -543,7 +626,22 @@
     "writingStyle": "Writing Style",
     "timeline": "Timeline",
     "noTimeline": "No events yet",
-    "viewAll": "View all..."
+    "viewAll": "View all...",
+    "projectHealth": "Project Health",
+    "share": "Share",
+    "shareText": "Check out this visual novel project!",
+    "shareCopied": "Link copied"
+  },
+  "validation": {
+    "clickToCheck": "Click to check project health",
+    "checking": "Checking…",
+    "passed": "Project is healthy, no issues",
+    "failed": "Issues found",
+    "issueCount": "{count} issue(s)",
+    "recheck": "Recheck",
+    "syntaxErrors": "{count} syntax error(s)",
+    "characterErrors": "{count} missing character reference(s)",
+    "sceneErrors": "{count} missing scene reference(s)"
   },
   "contentEditor": {
     "formTab": "Form",
@@ -578,6 +676,8 @@
     "speechStylePlaceholder": "Describe how the character speaks...",
     "createScene": "Create Scene",
     "editScene": "Edit Scene",
+    "createAudio": "Create Audio",
+    "editAudio": "Edit Audio",
     "sceneId": "Scene ID",
     "sceneIdPlaceholder": "e.g. classroom",
     "sceneName": "Scene Name",

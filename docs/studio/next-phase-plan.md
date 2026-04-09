@@ -1,14 +1,14 @@
-# Studio 下一阶段计划：AI Living World 深化
+# Studio 下阶段计划：移动端优先
 
-> 📅 2026-03-29
+> 📅 2026-04-09
 >
-> 基于 Phase 5（Mobile Studio）已完成的角色对话系统，以及 `brainstorm-ai-living-world.md` 的远期愿景，制定 Studio 的下一阶段开发路线。
+> Phase 1-27 核心功能已全部完成。Studio 框架完整（项目管理、Dashboard、编辑器、角色/章节/场景列表、AI 聊天、世界模拟、游戏预览）。现在围绕移动端体验逐步完善功能。
 
 ---
 
-## 当前已完成功能
+## 已完成功能一览
 
-### Phase 5 已交付（截至 2026-03-29）
+### Phase 1-5：基础 Mobile Studio ✅
 
 | 功能         | 说明                                 |
 | ------------ | ------------------------------------ |
@@ -21,450 +21,356 @@
 | 游戏预览     | ChapterReader + GamePlayer           |
 | i18n         | 中英双语                             |
 
-### 类型/解析器已扩展
+### Phase 6-12：AI Living World 深化 ✅
 
-- `AdvCharacterBody` 新增 `knowledgeDomain` + `expertisePrompt` 字段
-- 解析器 `SECTION_MAP` / `BODY_SECTION_ORDER` 已同步更新
-- `exportCharacterForAI()` 自动包含新字段
+| Phase | 功能                 | 状态 |
+| ----- | -------------------- | ---- |
+| 6     | 角色记忆与对话增强   | ✅   |
+| 7     | 动态角色状态         | ✅   |
+| 8     | 世界事件与时间系统   | ✅   |
+| 9     | 多角色群聊交互       | ✅   |
+| 10    | 玩家角色与视角模式   | ✅   |
+| 11    | 专业角色知识系统     | ✅   |
+| 12    | IndexedDB 数据持久化 | ✅   |
 
----
+### Phase 25-27：高级功能 ✅
 
-## Phase 6：角色记忆与对话增强（2-3 周）
-
-### 目标
-
-让角色对话从「无状态聊天」进化为「有记忆的持续关系」。
-
-### 6.1 角色记忆系统
-
-**新文件**: `apps/studio/src/stores/useCharacterMemoryStore.ts`
-
-为每个角色维护一份结构化记忆：
-
-```ts
-interface CharacterMemory {
-  characterId: string
-  /** 关键事件摘要（AI 自动提取） */
-  keyEvents: { summary: string, timestamp: number }[]
-  /** 用户偏好/信息（角色视角记住的关于用户的信息） */
-  userProfile: { key: string, value: string }[]
-  /** 情感状态（好感度、信任度等） */
-  emotionalState: {
-    affinity: number // -100 ~ 100
-    trust: number // 0 ~ 100
-    mood: string // 当前心情关键词
-  }
-}
-```
-
-**工作原理**：
-
-- 每轮对话结束后，调用 AI（用一个轻量 prompt）从对话中提取关键信息
-- 关键事件列表保持最近 50 条，超出后用 AI 合并摘要
-- `emotionalState` 根据对话语气由 AI 微调
-- 记忆注入 system prompt：`buildCharacterSystemPrompt()` 额外追加记忆段落
-- 持久化到 `localStorage`（key: `advjs-studio-character-memories`）
-
-### 6.2 对话历史搜索
-
-**新文件**: `apps/studio/src/components/ChatHistorySearch.vue`
-
-- 搜索框过滤对话历史中的关键词
-- 高亮匹配的消息
-- 点击跳转到对应消息位置
-
-### 6.3 多轮对话上下文优化
-
-**修改文件**: `apps/studio/src/stores/useCharacterChatStore.ts`
-
-- 当前：固定发送最近 20 条消息
-- 改进：智能上下文窗口
-  - 始终保留首条消息（用户初次交流，包含重要意图）
-  - 保留最近 15 条消息
-  - 中间消息用 AI 生成的摘要替代
-  - 注入角色记忆摘要
-
-### 6.4 对话导出
-
-**修改文件**: `apps/studio/src/views/CharacterChatPage.vue`
-
-- Header 新增"导出"按钮
-- 导出为 `.adv.md` 格式（对话内容转为 AdvScript 对话脚本）
-- 导出为 Markdown 纯文本
-- 可直接保存到项目的 `adv/chapters/` 目录
-
-### 验证
-
-- 连续对话 30 条后，角色仍能回忆之前讨论的话题
-- 关闭 / 重新打开 App，记忆保持
-- 导出的 `.adv.md` 可在游戏引擎中预览
+| Phase | 功能                               | 状态 |
+| ----- | ---------------------------------- | ---- |
+| 25    | 角色关系图谱 + 记忆重试 + 对话存档 | ✅   |
+| 26    | AI 角色自主日记                    | ✅   |
+| 27    | 世界时间线                         | ✅   |
 
 ---
 
-## Phase 7：动态角色状态（2-3 周）
+## 下阶段计划
 
-### 目标
+### Phase M1：移动端基础体验完善 {#phase-m1}
 
-角色从静态人设进化为有状态变化的动态角色。
+#### M1.1 Safe Area 适配 ✅
 
-### 7.1 动态角色状态类型
+- `viewport-fit=cover` 已在 `index.html` 中配置
+- Tab bar、Footer toolbar、FAB、Editor textarea、ContentEditorModal、CharacterEditorForm 均已添加 `env(safe-area-inset-bottom)` padding
+- 所有 Chat 输入区域通过 `ion-footer ion-toolbar:last-child` 全局覆盖
 
-**修改文件**: `packages/types/src/game/character.ts`
+#### M1.2 触摸交互优化 ✅
 
-```ts
-/** 角色的可变状态（运行时/世界模拟用） */
-export interface AdvCharacterDynamicState {
-  /** 当前心情 */
-  mood?: string
-  /** 健康状态 */
-  health?: string
-  /** 当前位置 */
-  location?: string
-  /** 自定义数值属性 */
-  attributes?: Record<string, number>
-  /** 最近发生的事件 */
-  recentEvents?: string[]
-  /** 状态最后更新时间 */
-  lastUpdated?: string
-}
-```
+- 所有可点击元素 ≥44px 触摸区域（`ion-item { --min-height: 44px }`）
+- 章节列表：`IonItemSliding` 左滑删除
+- 场景列表：`IonItemSliding` 左滑删除
+- 角色列表：`CharacterCardActions` 操作按钮（编辑/聊天/删除）
+- 所有内容列表：`IonRefresher` 下拉刷新
 
-**修改文件**: `packages/types/src/game/character.ts` → `AdvCharacter`
+#### M1.3 Capacitor 插件集成 ✅
 
-```ts
-export interface AdvCharacter extends AdvCharacterFrontmatter, AdvCharacterBody {
-  // ... 现有字段 ...
-  /** 动态状态（运行时） */
-  dynamicState?: AdvCharacterDynamicState
-}
-```
-
-### 7.2 状态持久化
-
-**新文件**: `apps/studio/src/stores/useCharacterStateStore.ts`
-
-- 每个角色的动态状态独立存储
-- 与 `.character.md` 分离（不修改源文件），存在 `adv/.state/characters/{id}.json`
-- 支持本地和 COS 两种存储
-- World Tab 的角色卡片展示当前心情/位置
-
-### 7.3 状态感知对话
-
-**修改文件**: `apps/studio/src/stores/useCharacterChatStore.ts`
-
-- `buildCharacterSystemPrompt()` 注入角色当前状态
-- 对话后 AI 自动更新角色状态（心情、关系值等）
-- 状态变化在 UI 中有微妙的视觉反馈（如心情 emoji 变化）
-
-### 验证
-
-- 角色在"开心"状态下的回复风格与"沮丧"状态明显不同
-- 对话导致的状态变化即时反映在 World Tab 的角色卡片上
+- **Status Bar**: 根据暗/亮主题自动切换样式，MutationObserver 监听 `dark` 类变化
+- **Keyboard**: `KeyboardResize.Ionic` 模式，自动调整视口
+- **Haptics**: `hapticFeedback()` / `hapticNotification()` 工具函数，可在任意页面调用
+- 全局初始化：`main.ts` → `initCapacitorPlugins()`
 
 ---
 
-## Phase 8：世界事件与时间系统（3-4 周）
+### Phase M2：核心功能完善 {#phase-m2}
 
-### 目标
+#### M2.1 章节阅读器增强 ✅
 
-引入世界时间概念和事件系统，让世界有"活"的感觉。
+- GamePlayer 新增触摸左右滑动翻页（`touchstart` / `touchend`，50px 阈值）
+- 新增 `prev()` 方法，支持回退到上一个可渲染节点
+- 进度条从 2px 加粗到 4px，支持点击跳转到对应位置
+- Footer 新增章节名显示（淡入淡出动画）
+- PlayPage 新增浮动章节按钮 + 底部 sheet 章节面板（`IonModal` breakpoints）
 
-### 8.1 世界时钟
+**修改文件**:
 
-**新文件**: `apps/studio/src/stores/useWorldClockStore.ts`
+- `apps/studio/src/components/GamePlayer.vue` — 触摸事件 + prev() + 进度条点击
+- `apps/studio/src/views/PlayPage.vue` — 章节面板 + 浮动按钮
 
-```ts
-interface WorldClock {
-  /** 世界内日期 (YYYY-MM-DD) */
-  date: string
-  /** 时段 */
-  period: 'morning' | 'afternoon' | 'evening' | 'night'
-  /** 天气 */
-  weather?: string
-  /** 时钟是否在运行 */
-  running: boolean
-}
-```
+#### M2.2 内容编辑器移动端工具栏 ✅
 
-- 时间流逝速率可配置（默认：现实 5 分钟 = 世界 1 小时）
-- 时间变化触发角色位置/心情的自动更新
-- 暂停/恢复控制
+- EditorPage textarea 上方新增横向滚动快捷工具栏
+- 支持 7 种快捷插入：`## 标题` / `@角色` / `- 列表` / `**粗体**` / `> 引用` / `---分隔线` / `【场景】`
+- 使用 `selectionStart` / `selectionEnd` 精确在光标位置插入
 
-### 8.2 事件生成器
+**修改文件**: `apps/studio/src/views/EditorPage.vue`
 
-**新文件**: `apps/studio/src/composables/useWorldEvents.ts`
+#### M2.3 Dashboard 条目列表视图 ✅
 
-- 基于世界设定（`world.md`）和当前角色状态，AI 生成随机事件
-- 事件类型：日常（买菜、上学）、社交（角色间对话）、意外（生病、纠纷）
-- 事件影响角色状态，产生连锁反应
-- 事件日志持久化，可浏览"世界历史"
+- 道具/术语 StatsCard 点击时展开 inline section 列表（而非直接跳编辑器）
+- 列表显示 `## heading` 条目（chips 布局），每条可点击跳转编辑器
+- 无条目时仍直接跳编辑器
 
-### 8.3 World Tab 增强
+**修改文件**: `apps/studio/src/components/ProjectOverview.vue`
 
-**修改文件**: `apps/studio/src/views/WorldPage.vue`
+#### Chat 内联 Diff ✅
 
-- 顶部新增世界时钟显示（日期 + 时段 + 天气）
-- 角色卡片显示当前位置和心情
-- 新增"世界动态"信息流（最近发生的事件）
-- 新增"推进时间"按钮（手动触发时间流逝）
+- `MarkdownMessage` 检测到 `saveableBlocks` 时，自动用 `readFileFromDir` 读取项目中已有文件
+- 如果文件存在且内容不同，用 `computeLineDiff` 预计算行级 diff
+- 保存按钮旁显示 `+N/-M` diff 摘要按钮，点击展开 `FileDiffPreview`
+- 用户可在保存前预览变更
 
-### 验证
-
-- 推进时间后，角色位置和心情发生变化
-- 世界动态信息流显示新事件
-- 进入角色对话，角色知道最近发生的事件
+**修改文件**: `apps/studio/src/components/MarkdownMessage.vue`
 
 ---
 
-## Phase 9：多角色交互与场景模拟（3-4 周）
+### Phase M3：音频资源 & 场景图片 ✅ {#phase-m3}
 
-### 目标
+#### M3.1 场景图片预览 + AI 生成 ✅
 
-支持多角色同时在场景中互动，而非仅 1v1 对话。
+- `SceneInfo` / `SceneFormData` 新增 `src` 字段
+- `SceneCard.vue` 重构为带缩略图预览的卡片（16:9 aspect-ratio）
+- 支持三种图片来源：本地相对路径（blob URL 读取）、远程 URL、AI 生成
+- `ScenesPage.vue` 集成 `generateImage()`（调用 `aiImageClient.ts`），生成后自动保存图片并更新场景 frontmatter
 
-### 9.1 场景对话模式
+**新增/修改文件**:
 
-**新文件**: `apps/studio/src/views/SceneChatPage.vue`
+- `apps/studio/src/utils/sceneMd.ts` — `SCENE_FRONTMATTER_KEYS` 新增 `src`
+- `apps/studio/src/components/SceneCard.vue` — 完整重写，支持缩略图 + AI 生成按钮
+- `apps/studio/src/views/workspace/ScenesPage.vue` — `handleGenerateImage()` 集成
 
-- 选择一个场景 + 多个角色
-- AI 生成角色间的对话（用户可选择观察或以某个角色身份参与）
-- 场景对话自动以 `.adv.md` 格式记录
-- 每个角色维持各自的人设和说话风格
+#### M3.2 音频资源完整管理 ✅
 
-**路由**: `/tabs/world/scene/:sceneId`
+- `AdvMusic` 类型扩展：新增 `duration?`, `tags?`, `linkedScenes?`, `linkedChapters?`
+- 音频解析器 `audioMd.ts`：frontmatter 解析/序列化
+- `useProjectContent` 扩展：`AudioInfo` 接口 + `audios` ref + `adv/audio/` 目录扫描
+- `AudioCard.vue`：内联播放器（播放/暂停 + 进度条 + 时长显示）
+- `AudioEditorForm.vue`：名称/描述/标签/关联场景/关联章节
+- `AudioPage.vue`：完整列表页（搜索、下拉刷新、滑动删除、导入、创建/编辑）
+- Dashboard 音频卡片激活 + Stats Row 音频统计
 
-### 9.2 角色关系网络可视化
+**新增文件**:
 
-**新文件**: `apps/studio/src/components/RelationshipGraph.vue`
+- `apps/studio/src/utils/audioMd.ts`
+- `apps/studio/src/components/AudioCard.vue`
+- `apps/studio/src/components/AudioEditorForm.vue`
+- `apps/studio/src/views/workspace/AudioPage.vue`
 
-- 基于 `@advjs/flow`（Vue Flow）渲染角色关系图
-- 节点 = 角色（头像 + 名字）
-- 边 = 关系（类型 + 描述）
-- 只读可视化，点击节点进入角色对话
-- 关系值随对话和事件动态变化
+**修改文件**:
 
-### 9.3 角色自主对话
-
-**新文件**: `apps/studio/src/composables/useAutonomousChat.ts`
-
-- 当世界时钟运行时，同一场景的角色会自主产生对话
-- AI 基于角色性格、关系、当前事件生成对话
-- 对话结果影响角色记忆和状态
-- 用户可在 World Tab 的"世界动态"中查看
-
-### 验证
-
-- 选择"学校天台"场景 + 2 个角色，观察他们自动对话
-- 对话内容反映各自性格和关系
-- 自主对话的内容出现在角色记忆中
-
----
-
-## Phase 10：平行人生与玩家角色（4-6 周）
-
-### 目标
-
-实现 Living World 头脑风暴中最有共鸣的功能：「捏自己，看不同人生」。
-
-### 10.1 玩家角色创建器
-
-**新文件**: `apps/studio/src/views/PlayerCreatorPage.vue`
-
-- 引导式问卷：姓名、年龄、性格关键词、人生目标
-- AI 根据问卷自动生成 `.character.md`
-- 角色卡保存到 `adv/characters/player.character.md`
-- 支持上传或 AI 生成头像
-
-**路由**: `/tabs/world/create-player`
-
-### 10.2 人生分支模拟
-
-**新文件**: `apps/studio/src/views/LifeSimPage.vue`
-**新文件**: `apps/studio/src/stores/useLifeSimStore.ts`
-
-- 设定人生关键节点（专业选择、城市选择、职业选择等）
-- AI 模拟不同选择下的人生轨迹
-- 同时运行多条平行线（最多 3 条）
-- 每条线以时间轴 + 事件列表的形式展示
-- 可以在任意节点"穿越"进入，体验对应人生
-
-**路由**: `/tabs/world/life-sim`
-
-### 10.3 混合视角模式
-
-**修改文件**: `apps/studio/src/views/WorldPage.vue`
-
-新增视角切换器：
-
-- 🎮 **角色模式**: 以玩家角色身份参与世界
-- 👁️ **上帝模式**: 观察和引导世界运转
-- 💬 **访客模式**: 与任意角色自由对话（当前默认模式）
-
-不同模式下 World Tab 和角色对话的 system prompt 不同。
-
-### 验证
-
-- 创建玩家角色后，可在 World Tab 中以角色身份与 NPC 互动
-- 人生模拟中选择不同路径，看到不同的事件发展
-- 模式切换后，角色对话的风格和互动方式明显不同
+- `packages/types/src/game/music.ts` — 类型扩展
+- `apps/studio/src/utils/fileAccess.ts` — 新增 blob 读写工具 + 音频/图片扩展名检测
+- `apps/studio/src/composables/useProjectContent.ts` — AudioInfo + audios 加载
+- `apps/studio/src/composables/useContentEditor.ts` — 支持 `audio` ContentType
+- `apps/studio/src/router/index.ts` — `workspace/audio` 路由
+- `apps/studio/src/components/ProjectOverview.vue` — 音频 StatsCard + 音频内容卡片
+- `apps/studio/src/i18n/locales/zh-CN.json` + `en.json` — 音频/场景 i18n keys
 
 ---
 
-## Phase 11：专业角色知识系统（2-3 周）
+### Phase M4：项目验证 & 分享 ✅ {#phase-m4}
 
-### 目标
+#### M4.1 浏览器端项目验证 ✅
 
-让专业角色（法律、医学等）具备真正有用的领域知识。
+- 新建 `projectValidation.ts` — 浏览器端验证函数，基于内存数据（不依赖 Node.js fs）
+- 检查逻辑镜像 `packages/advjs/node/commands/check.ts`：
+  1. 语法检查 — 调用 `parseAst()` 捕获解析错误
+  2. 角色引用检查 — `@Name` 语法 vs characters 列表
+  3. 场景引用检查 — `【place，time，inOrOut】` 语法 vs scenes 列表
+  4. 音频链接完整性 — `linkedScenes` / `linkedChapters` 引用检查
 
-### 11.1 知识库管理
+**新增文件**: `apps/studio/src/utils/projectValidation.ts`
 
-**新文件**: `apps/studio/src/composables/useKnowledgeBase.ts`
+#### M4.2 Dashboard 健康状态卡片 ✅
 
-- 支持从 `.md` 文件加载领域知识（放在 `adv/knowledge/{domain}/` 目录下）
-- 知识库内容通过 RAG 式 prompt 注入（选取最相关的段落）
-- 支持在线加载外部知识源（URL）
+- Stats Row 下方新增健康卡片区域
+- 三态：未检查 → 检查中（spinner）→ 结果（通过 ✅ / 失败 ⚠️）
+- 失败时可展开查看问题列表（最多 10 条，按分类显示）
+- 支持重新检查
 
-### 11.2 专业角色模板
+#### M4.3 项目级分享 ✅
 
-在 `adv/characters/` 中提供预制专业角色模板：
+- 项目 header 新增分享按钮（与设置按钮并排）
+- Web Share API（移动端）/ 剪贴板复制（桌面端）
 
-```
-adv/characters/
-├── templates/
-│   ├── legal-expert.character.md    # 法律专家模板
-│   ├── medical-expert.character.md  # 医学专家模板
-│   ├── life-coach.character.md      # 生活教练模板
-│   └── counselor.character.md       # 心理咨询师模板
-```
+**修改文件**:
 
-每个模板预设 `knowledgeDomain` + `expertisePrompt` + `speechStyle`。
-
-### 11.3 角色能力标签
-
-**修改文件**: `apps/studio/src/components/CharacterCard.vue`
-
-- 专业角色卡片显示知识领域标签（如 ⚖️ 法律、🏥 医学）
-- 带有"专业角色"标识
-- 点击知识领域标签可查看该角色的能力范围
-
-### 验证
-
-- 法律专家角色能引用具体法条回答法律问题
-- 知识库更新后，角色的回答实时更新
-- 非专业问题，角色会委婉表示超出自己专长
+- `apps/studio/src/components/ProjectOverview.vue` — 健康卡 + 分享按钮
+- `apps/studio/src/i18n/locales/zh-CN.json` + `en.json` — validation._+ dashboard.share_ keys
 
 ---
 
-## Phase 12：原生打包与性能优化（2-3 周）
+### Phase M5：桌面布局 + AI 个性化 + 知识库编辑 + 项目打包 ✅ {#phase-m5}
 
-### 目标
+#### M5.1 响应式桌面双栏布局 ✅
 
-完成 iOS/Android 原生打包，优化移动端体验。
+- `useResponsive.ts` composable（基于 `@vueuse/core` `useMediaQuery`）
+- TabsPage: ≥768px 时底部 tab bar 替换为左侧 72px sidebar navigation
+- 桌面端 sidebar nav + 移动端 bottom tab bar 自动切换
 
-### 12.1 Capacitor 打包
+**新增/修改文件**:
 
-- iOS: Xcode 项目配置、App Store 提审准备
-- Android: Gradle 项目配置、APK/AAB 构建
-- Capacitor Filesystem 适配（替代 File System Access API）
-- 推送通知（AI 任务完成、世界事件触发）
+- `apps/studio/src/composables/useResponsive.ts` — 响应式断点
+- `apps/studio/src/views/TabsPage.vue` — 桌面 sidebar + 移动端 tab bar
 
-### 12.2 性能优化
+#### M5.2 角色 AI 模型/温度设置 ✅
 
-- 对话历史虚拟滚动（大量消息时保持流畅）
-- 角色列表懒加载
-- 世界状态增量更新（避免全量刷新）
-- IndexedDB 替代 localStorage 存储大量对话数据
-- Service Worker 离线缓存
+- `CharacterAiOverride` 接口：per-character provider/model/temperature/maxTokens
+- IndexedDB `characterAiConfigs` table（v9 schema）
+- `resolveCharacterAiConfig()` 合并全局 + 角色覆盖配置
+- `useCharacterChatStore.sendMessage()` 使用 resolved config
+- `streamToMessage` 新增 `resolvedConfig` 可选参数
+- `CharacterAiSettingsForm.vue` UI（IonModal bottom sheet）
+- CharacterChatPage header 更多操作中新增"AI 设置"入口
 
-### 12.3 离线模式
+**新增文件**:
 
-- 已加载的角色和对话历史离线可用
-- 离线时的操作排队，上线后自动同步
-- 本地 LLM 支持（通过 Ollama）实现完全离线对话
+- `apps/studio/src/utils/resolveAiConfig.ts`
+- `apps/studio/src/components/CharacterAiSettingsForm.vue`
 
-### 验证
+**修改文件**:
 
-- iOS/Android 真机流畅运行
-- 500+ 条对话历史无卡顿
-- 断网后仍可浏览历史对话
+- `apps/studio/src/utils/db.ts` — v9 schema + characterAiConfigs table
+- `apps/studio/src/utils/chatUtils.ts` — streamToMessage resolvedConfig
+- `apps/studio/src/stores/useCharacterChatStore.ts` — aiOverrides + CRUD
+- `apps/studio/src/views/CharacterChatPage.vue` — AI 设置入口
 
----
+#### M5.3 知识库 UI 编辑 ✅
 
-## 阶段总览
+- `useKnowledgeBase` 扩展：`saveEntry` / `createEntry` / `deleteEntry`
+- `KnowledgePage.vue` — 完整列表页（按 domain 分组、搜索、下拉刷新、滑动删除）
+- `KnowledgeEditorForm.vue` — 标题/领域/Markdown 内容编辑
+- Dashboard 知识库卡片点击跳转到 KnowledgePage
 
-| Phase | 名称                 | 周期   | 依赖                   |
-| ----- | -------------------- | ------ | ---------------------- |
-| 6     | 角色记忆与对话增强   | 2-3 周 | Phase 5 ✅             |
-| 7     | 动态角色状态         | 2-3 周 | Phase 6                |
-| 8     | 世界事件与时间系统   | 3-4 周 | Phase 7                |
-| 9     | 多角色交互与场景模拟 | 3-4 周 | Phase 7, 8             |
-| 10    | 平行人生与玩家角色   | 4-6 周 | Phase 8, 9             |
-| 11    | 专业角色知识系统     | 2-3 周 | Phase 6（可并行 8-10） |
-| 12    | 原生打包与性能优化   | 2-3 周 | 可在任意阶段并行       |
+**新增文件**:
 
-```
-Phase 6 ──→ Phase 7 ──→ Phase 8 ──→ Phase 9 ──→ Phase 10
-                │                      │
-                └──→ Phase 11          └──→ (可并行)
-                     (可独立)
+- `apps/studio/src/views/workspace/KnowledgePage.vue`
+- `apps/studio/src/components/KnowledgeEditorForm.vue`
 
-Phase 12 (贯穿全程，可随时推进)
-```
+**修改文件**:
 
-**推荐优先级**：Phase 6 → 7 → 11 → 8 → 9 → 10 → 12
+- `apps/studio/src/composables/useKnowledgeBase.ts` — 写入 API
+- `apps/studio/src/router/index.ts` — workspace/knowledge 路由
+- `apps/studio/src/components/ProjectOverview.vue` — 知识库卡片跳转
 
-理由：记忆和状态是所有后续功能的基础；专业角色知识系统独立性强、用户价值高，可以提前交付；世界模拟和人生模拟是更复杂的系统，放在后面打磨。
+#### M5.4 长列表虚拟滚动 ✅
 
----
+- 安装 `@tanstack/vue-virtual`
+- `useVirtualScroll.ts` composable（re-export + 使用文档）
+- 现有缓解策略已到位：消息 200 条上限 + 分页 50 条
 
-## 新增文件清单（全部阶段）
+**新增文件**:
 
-| Phase | 新文件                              | 说明           |
-| ----- | ----------------------------------- | -------------- |
-| 6     | `stores/useCharacterMemoryStore.ts` | 角色记忆管理   |
-| 6     | `components/ChatHistorySearch.vue`  | 对话搜索       |
-| 7     | `stores/useCharacterStateStore.ts`  | 动态角色状态   |
-| 8     | `stores/useWorldClockStore.ts`      | 世界时钟       |
-| 8     | `composables/useWorldEvents.ts`     | 世界事件生成   |
-| 9     | `views/SceneChatPage.vue`           | 场景多角色对话 |
-| 9     | `components/RelationshipGraph.vue`  | 关系网络可视化 |
-| 9     | `composables/useAutonomousChat.ts`  | 角色自主对话   |
-| 10    | `views/PlayerCreatorPage.vue`       | 玩家角色创建   |
-| 10    | `views/LifeSimPage.vue`             | 人生模拟       |
-| 10    | `stores/useLifeSimStore.ts`         | 人生模拟状态   |
-| 11    | `composables/useKnowledgeBase.ts`   | 知识库管理     |
+- `apps/studio/src/composables/useVirtualScroll.ts`
 
-### 修改文件
+#### M5.5 项目打包导出 (.advpkg) ✅
 
-| Phase | 文件                                   | 改动                            |
-| ----- | -------------------------------------- | ------------------------------- |
-| 6     | `stores/useCharacterChatStore.ts`      | 智能上下文窗口、记忆注入        |
-| 6     | `views/CharacterChatPage.vue`          | 导出按钮、搜索                  |
-| 7     | `packages/types/src/game/character.ts` | 添加 `AdvCharacterDynamicState` |
-| 7     | `stores/useCharacterChatStore.ts`      | 状态感知 prompt                 |
-| 8     | `views/WorldPage.vue`                  | 世界时钟 + 动态信息流           |
-| 9     | `router/index.ts`                      | 场景对话路由                    |
-| 10    | `router/index.ts`                      | 人生模拟路由                    |
-| 10    | `views/WorldPage.vue`                  | 视角切换器                      |
-| 11    | `components/CharacterCard.vue`         | 专业角色标识                    |
-| 全    | `i18n/locales/*.json`                  | 新增翻译 key                    |
+- 安装 `jszip`
+- `useProjectExport.ts`：`exportProject()` 递归收集 `adv/` 文件 → JSZip 打包 + `manifest.json`
+- `importProject()` 解压 + 校验 manifest → 写入 dirHandle
+- Dashboard header 新增导出按钮（与分享按钮并排）
+
+**新增文件**:
+
+- `apps/studio/src/composables/useProjectExport.ts`
+
+**修改文件**:
+
+- `apps/studio/src/components/ProjectOverview.vue` — 导出按钮
 
 ---
 
-## 与 ai-first-strategy.md 的关系
+### Phase M6：桌面双栏 + 项目导入 + PWA + 体验优化 ✅ {#phase-m6}
 
-| 战略文档提到的目标 | 对应阶段   |
-| ------------------ | ---------- |
-| 动态角色卡格式     | Phase 7    |
-| 角色对话 API       | Phase 5 ✅ |
-| 角色记忆系统       | Phase 6    |
-| 性格演化引擎       | Phase 7    |
-| 知识注入机制       | Phase 11   |
-| 世界时钟           | Phase 8    |
-| 角色自治 AI        | Phase 9    |
-| 事件生成器         | Phase 8    |
-| 角色关系网络       | Phase 9    |
-| 玩家角色创建器     | Phase 10   |
-| 多视角切换         | Phase 10   |
-| 平行人生模式       | Phase 10   |
-| iOS/Android 打包   | Phase 12   |
+#### M6.1 桌面双栏布局深化 ✅
+
+- WorldPage 桌面端左栏角色列表（280px）+ 右栏世界动态/事件/群聊
+- ChatPage 桌面端左栏项目上下文摘要 + 右栏消息流
+- 使用 `useResponsive` 的 `isDesktop` 控制，移动端保持不变
+
+**修改文件**: `WorldPage.vue`, `ChatPage.vue`
+
+#### M6.2 项目导入 UI 补全 ✅
+
+- ProjectsPage 新增「导入 .advpkg」action-card
+- 文件选择器 + dirHandle 选择 → `importProject()` → 自动切换项目
+
+**修改文件**: `ProjectsPage.vue`
+
+#### M6.3 PWA 离线模式 ✅
+
+- `vite-plugin-pwa` + Workbox 缓存策略
+- App shell CacheFirst / AI API NetworkOnly / 静态资源 CacheFirst
+- PWA manifest 配置完成
+
+**修改文件**: `vite.config.ts`
+
+#### M6.4 知识库增量更新 ✅
+
+- `useKnowledgeBase` 新增 `watchForChanges(dirHandle)` + `stopWatching()`
+- 每 30 秒扫描 `adv/knowledge/` 文件变更，自动静默刷新
+- 项目加载时自动启动 watch
+
+**修改文件**: `useKnowledgeBase.ts`, `useProjectContent.ts`
+
+#### M6.5 消息自动归档 ✅
+
+- Dexie v10 新增 `archivedBatches` table
+- `trimMessagesIfNeeded` 增强：被裁剪的消息自动存入归档
+- 新增 `getArchivedBatches()` / `hasArchivedMessages()` 查询方法
+
+**修改文件**: `db.ts`, `useCharacterChatStore.ts`
+
+#### M6.6 上下文压缩优化 ✅
+
+- `tokenEstimate.ts` — 中英文 token 估算（CJK ~1.5 tokens/char, Latin ~4 chars/token）
+- `buildSmartContext` 从固定消息数改为 4096 token budget 动态分配
+- 按 budget 从最新消息向前累积，保证至少 KEEP_RECENT 条
+
+**新增文件**: `utils/tokenEstimate.ts`
+**修改文件**: `useCharacterChatStore.ts`
+
+#### M6.7 市场页面原型 ✅
+
+- `MarketplacePage.vue` — 搜索/分类标签/卡片网格/详情 Modal
+- 5 个 Mock 示例项目（樱花学院、Cyber Noir、仙途录、Haunted Manor、Star Voyager）
+- ProjectsPage 新增「浏览市场」action-card 入口
+
+**新增文件**: `views/workspace/MarketplacePage.vue`
+**修改文件**: `ProjectsPage.vue`, `router/index.ts`
+
+---
+
+### Phase 13：账号系统 {#phase-13}
+
+- 用户注册/登录（邮箱 + OAuth）
+- 用户资料（头像、昵称、简介）
+- 项目云端绑定（跨设备同步）
+
+### Phase 14：世界/故事市场 {#phase-14}
+
+> 前置依赖：Phase 13 账号系统
+
+- 市场浏览（分类、搜索、排序）
+- 世界发布（打包 `.advpkg.zip`）
+- 一键加载
+- 评价系统
+
+---
+
+## 关键文件清单
+
+| 文件                                                     | 说明                   |
+| -------------------------------------------------------- | ---------------------- |
+| `apps/studio/src/utils/capacitor.ts`                     | Capacitor 插件初始化   |
+| `apps/studio/src/main.ts`                                | 全局初始化入口         |
+| `apps/studio/src/theme/global.css`                       | Safe area 全局配置     |
+| `apps/studio/index.html`                                 | viewport-fit=cover     |
+| `apps/studio/src/views/TabsPage.vue`                     | Tab bar + 桌面 sidebar |
+| `apps/studio/src/views/ChatPage.vue`                     | 聊天输入框             |
+| `apps/studio/src/views/EditorPage.vue`                   | 编辑器                 |
+| `apps/studio/src/components/ProjectOverview.vue`         | Dashboard 卡片         |
+| `apps/studio/src/components/GamePlayer.vue`              | 游戏预览               |
+| `apps/studio/src/utils/resolveAiConfig.ts`               | 角色 AI 配置合并       |
+| `apps/studio/src/components/CharacterAiSettingsForm.vue` | 角色 AI 设置表单       |
+| `apps/studio/src/views/workspace/KnowledgePage.vue`      | 知识库管理页           |
+| `apps/studio/src/composables/useProjectExport.ts`        | 项目打包导出           |
+| `apps/studio/src/composables/useResponsive.ts`           | 响应式断点             |
+| `apps/studio/src/utils/tokenEstimate.ts`                 | Token 估算             |
+| `apps/studio/src/views/workspace/MarketplacePage.vue`    | 市场页面原型           |
+| `apps/studio/vite.config.ts`                             | PWA 配置               |
+
+## 验证方式
+
+1. `pnpm exec vue-tsc --noEmit --project apps/studio/tsconfig.json` — 零错误
+2. `pnpm --filter @advjs/studio dev` — 浏览器中可正常访问
+3. Chrome DevTools 移动端模拟器中测试各页面
+4. 后续：`npx cap add android && npx cap sync && npx cap open android`

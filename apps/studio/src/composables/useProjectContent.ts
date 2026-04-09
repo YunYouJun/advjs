@@ -3,10 +3,13 @@ import { parseCharacterMd } from '@advjs/parser'
 import { ref, watch } from 'vue'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
+import { parseAudioMd } from '../utils/audioMd'
 import { downloadFromCloud, listCloudFiles } from '../utils/cloudSync'
-import { listFilesInDir, readFileFromDir } from '../utils/fileAccess'
+import { AUDIO_EXTENSIONS, listFilesInDir, listFilesInDirByExts, readFileFromDir } from '../utils/fileAccess'
 import { parseSceneMd } from '../utils/sceneMd'
 import { useKnowledgeBase } from './useKnowledgeBase'
+
+const FILE_EXT_RE = /\.[^.]+$/
 
 export interface ChapterInfo {
   file: string
@@ -23,6 +26,20 @@ export interface SceneInfo {
   imagePrompt?: string
   type?: 'image' | 'model'
   tags?: string[]
+  src?: string
+}
+
+export interface AudioInfo {
+  /** Metadata file path (e.g. adv/audio/bgm.md) or audio file path */
+  file: string
+  name: string
+  description?: string
+  /** Audio file path within the project */
+  src?: string
+  duration?: number
+  tags?: string[]
+  linkedScenes?: string[]
+  linkedChapters?: string[]
 }
 
 export interface ProjectStats {
@@ -30,13 +47,15 @@ export interface ProjectStats {
   characters: number
   scenes: number
   knowledge: number
+  audios: number
 }
 
 // --- Module-level singleton state ---
 const chapters = ref<ChapterInfo[]>([])
 const characters = ref<AdvCharacter[]>([])
 const scenes = ref<SceneInfo[]>([])
-const stats = ref<ProjectStats>({ chapters: 0, characters: 0, scenes: 0, knowledge: 0 })
+const audios = ref<AudioInfo[]>([])
+const stats = ref<ProjectStats>({ chapters: 0, characters: 0, scenes: 0, knowledge: 0, audios: 0 })
 const isLoading = ref(false)
 
 // Closure variables for reload
@@ -137,6 +156,7 @@ export function useProjectContent() {
               imagePrompt: parsed.imagePrompt,
               type: parsed.type,
               tags: parsed.tags,
+              src: parsed.src,
             })
           }
           catch {
@@ -151,8 +171,54 @@ export function useProjectContent() {
       catch { /* no scenes dir */ }
       scenes.value = sceneList
 
-      // Load knowledge base
+      // Load audio
+      const audioList: AudioInfo[] = []
+      try {
+        // Load audio metadata files (.md)
+        const audioMdFiles = await listFilesInDir(dirHandle, 'adv/audio', '.md')
+        for (const file of audioMdFiles) {
+          try {
+            const content = await readFileFromDir(dirHandle, file)
+            const parsed = parseAudioMd(content)
+            audioList.push({
+              file,
+              name: parsed.name,
+              description: parsed.description,
+              src: parsed.src,
+              duration: parsed.duration,
+              tags: parsed.tags,
+              linkedScenes: parsed.linkedScenes,
+              linkedChapters: parsed.linkedChapters,
+            })
+          }
+          catch {
+            audioList.push({
+              file,
+              name: file.split('/').pop()?.replace('.md', '') || file,
+            })
+          }
+        }
+
+        // Also list raw audio files without metadata
+        const audioFiles = await listFilesInDirByExts(dirHandle, 'adv/audio', AUDIO_EXTENSIONS)
+        for (const file of audioFiles) {
+          const baseName = file.split('/').pop()?.replace(FILE_EXT_RE, '') || ''
+          // Skip if we already have metadata for this audio
+          if (!audioList.some(a => a.name === baseName || a.src === file.split('/').pop())) {
+            audioList.push({
+              file,
+              name: baseName,
+              src: file,
+            })
+          }
+        }
+      }
+      catch { /* no audio dir */ }
+      audios.value = audioList
+
+      // Load knowledge base + start watching for changes
       await knowledgeBase.loadFromDir(dirHandle)
+      knowledgeBase.watchForChanges(dirHandle)
 
       // Update stats
       stats.value = {
@@ -160,6 +226,7 @@ export function useProjectContent() {
         characters: charList.length,
         scenes: sceneList.length,
         knowledge: knowledgeBase.entries.value.length,
+        audios: audioList.length,
       }
     }
     finally {
@@ -214,10 +281,64 @@ export function useProjectContent() {
 
       // Scenes
       const sceneFiles = allFiles.filter(f => f.includes('/scenes/') && f.endsWith('.md'))
-      scenes.value = sceneFiles.map(file => ({
-        file,
-        name: file.split('/').pop()?.replace('.md', '') || file,
-      }))
+      const sceneList: SceneInfo[] = []
+      for (const file of sceneFiles) {
+        try {
+          const content = await downloadFromCloud(cosConfig, file)
+          const parsed = parseSceneMd(content)
+          sceneList.push({
+            file,
+            name: parsed.name || file.split('/').pop()?.replace('.md', '') || file,
+            id: parsed.id,
+            description: parsed.description,
+            imagePrompt: parsed.imagePrompt,
+            type: parsed.type,
+            tags: parsed.tags,
+            src: parsed.src,
+          })
+        }
+        catch {
+          sceneList.push({
+            file,
+            name: file.split('/').pop()?.replace('.md', '') || file,
+          })
+        }
+      }
+      scenes.value = sceneList
+
+      // Audio
+      const audioMdFiles = allFiles.filter(f => f.includes('/audio/') && f.endsWith('.md'))
+      const audioMediaFiles = allFiles.filter(f => f.includes('/audio/') && AUDIO_EXTENSIONS.some(ext => f.toLowerCase().endsWith(ext)))
+      const audioList: AudioInfo[] = []
+      for (const file of audioMdFiles) {
+        try {
+          const content = await downloadFromCloud(cosConfig, file)
+          const parsed = parseAudioMd(content)
+          audioList.push({
+            file,
+            name: parsed.name,
+            description: parsed.description,
+            src: parsed.src,
+            duration: parsed.duration,
+            tags: parsed.tags,
+            linkedScenes: parsed.linkedScenes,
+            linkedChapters: parsed.linkedChapters,
+          })
+        }
+        catch {
+          audioList.push({
+            file,
+            name: file.split('/').pop()?.replace('.md', '') || file,
+          })
+        }
+      }
+      for (const file of audioMediaFiles) {
+        const baseName = file.split('/').pop()?.replace(FILE_EXT_RE, '') || ''
+        if (!audioList.some(a => a.name === baseName)) {
+          audioList.push({ file, name: baseName, src: file })
+        }
+      }
+      audios.value = audioList
 
       // Load knowledge base
       await knowledgeBase.loadFromCos(cosConfig, prefix)
@@ -225,8 +346,9 @@ export function useProjectContent() {
       stats.value = {
         chapters: chapterInfos.length,
         characters: charList.length,
-        scenes: sceneFiles.length,
+        scenes: sceneList.length,
         knowledge: knowledgeBase.entries.value.length,
+        audios: audioList.length,
       }
     }
     finally {
@@ -257,7 +379,8 @@ export function useProjectContent() {
     chapters.value = []
     characters.value = []
     scenes.value = []
-    stats.value = { chapters: 0, characters: 0, scenes: 0, knowledge: 0 }
+    audios.value = []
+    stats.value = { chapters: 0, characters: 0, scenes: 0, knowledge: 0, audios: 0 }
     isLoading.value = false
     lastDirHandle = null
     lastCosConfig = null
@@ -288,6 +411,7 @@ export function useProjectContent() {
     chapters,
     characters,
     scenes,
+    audios,
     stats,
     isLoading,
     knowledgeBase,

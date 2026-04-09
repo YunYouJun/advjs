@@ -2,14 +2,8 @@
 import {
   IonBackButton,
   IonButton,
-  IonButtons,
-  IonContent,
-  IonHeader,
   IonIcon,
   IonNote,
-  IonPage,
-  IonTitle,
-  IonToolbar,
   toastController,
 } from '@ionic/vue'
 import { createOutline, sparklesOutline } from 'ionicons/icons'
@@ -17,11 +11,14 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import AiGeneratePanel from '../components/AiGeneratePanel.vue'
+import StudioPage from '../components/StudioPage.vue'
 import { useCloudSync } from '../composables/useCloudSync'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { downloadFromCloud } from '../utils/cloudSync'
 import { downloadAsFile, readFileFromDir, writeFileToDir } from '../utils/fileAccess'
+
+const BLOCK_LEVEL_RE = /^(?:## |[-*] |> |---|【)/
 
 const { t, locale } = useI18n()
 const route = useRoute()
@@ -30,6 +27,42 @@ const settingsStore = useSettingsStore()
 const content = ref('')
 const isSaving = ref(false)
 const initialContent = ref('')
+const textareaRef = ref<HTMLTextAreaElement | null>(null)
+
+/** Insert text at cursor position in textarea */
+function insertAtCursor(text: string) {
+  const el = textareaRef.value
+  if (!el)
+    return
+  const start = el.selectionStart
+  const end = el.selectionEnd
+  const before = content.value.slice(0, start)
+  const after = content.value.slice(end)
+
+  // If inserting at start of line or empty, just insert
+  // For block-level items (heading, list, quote, hr, scene), ensure we're at start of line
+  const needsNewline = start > 0 && before.at(-1) !== '\n' && BLOCK_LEVEL_RE.test(text)
+  const prefix = needsNewline ? '\n' : ''
+
+  content.value = before + prefix + text + after
+
+  // Restore cursor position after the inserted text
+  const cursorPos = start + prefix.length + text.length
+  requestAnimationFrame(() => {
+    el.focus()
+    el.setSelectionRange(cursorPos, cursorPos)
+  })
+}
+
+const toolbarItems = [
+  { label: 'H2', insert: '## ', title: 'editor.insertHeading' },
+  { label: '@', insert: '@', title: 'editor.insertCharacter' },
+  { label: '•', insert: '- ', title: 'editor.insertList' },
+  { label: 'B', insert: '**', title: 'editor.insertBold' },
+  { label: '>', insert: '> ', title: 'editor.insertQuote' },
+  { label: '—', insert: '---\n', title: 'editor.insertDivider' },
+  { label: '【】', insert: '【，，】', title: 'editor.insertScene' },
+]
 
 /** True when the file simply doesn't exist yet (not a read error) */
 const fileNotFound = ref(false)
@@ -250,87 +283,146 @@ async function save() {
 </script>
 
 <template>
-  <IonPage>
-    <IonHeader>
-      <IonToolbar>
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonButtons slot="start">
-          <IonBackButton :text="t('editor.back')" default-href="/tabs/play" />
-        </IonButtons>
-        <IonTitle>{{ fileName }}</IonTitle>
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonButtons slot="end">
-          <IonNote v-if="saveStatusText && !fileNotFound" class="save-status" :class="saveStatusClass">
-            {{ saveStatusText }}
-          </IonNote>
-          <IonButton v-if="!fileNotFound" :disabled="isSaving" @click="save">
-            {{ isSaving ? t('editor.saving') : t('editor.save') }}
-          </IonButton>
-        </IonButtons>
-      </IonToolbar>
-    </IonHeader>
-    <IonContent :fullscreen="true">
-      <!-- File not found: creation guide -->
-      <div v-if="fileNotFound" class="create-guide">
-        <div class="create-guide__header">
-          <div class="create-guide__icon">
-            <IonIcon :icon="createOutline" />
-          </div>
-          <h2 class="create-guide__title">
-            {{ t('editor.fileNotFound') }}
-          </h2>
-          <p class="create-guide__desc">
-            {{ t('editor.fileNotFoundDesc') }}
-          </p>
-          <div class="create-guide__filename">
-            {{ filePath }}
-          </div>
-        </div>
+  <StudioPage :title="fileName">
+    <template #start>
+      <IonBackButton :text="t('editor.back')" default-href="/tabs/play" />
+    </template>
+    <template #end>
+      <IonNote v-if="saveStatusText && !fileNotFound" class="save-status" :class="saveStatusClass">
+        {{ saveStatusText }}
+      </IonNote>
+      <IonButton v-if="!fileNotFound" :disabled="isSaving" @click="save">
+        {{ isSaving ? t('editor.saving') : t('editor.save') }}
+      </IonButton>
+    </template>
 
-        <!-- Actions -->
-        <div class="create-guide__actions">
-          <IonButton expand="block" fill="outline" @click="createEmpty">
-            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-            <IonIcon slot="start" :icon="createOutline" />
-            {{ t('editor.createEmpty') }}
-          </IonButton>
+    <!-- File not found: creation guide -->
+    <div v-if="fileNotFound" class="create-guide">
+      <div class="create-guide__header">
+        <div class="create-guide__icon">
+          <IonIcon :icon="createOutline" />
         </div>
-
-        <!-- AI section -->
-        <div class="create-guide__ai">
-          <div class="create-guide__ai-label">
-            <IonIcon :icon="sparklesOutline" class="create-guide__ai-label-icon" />
-            {{ t('editor.aiGenerate') }}
-          </div>
-          <AiGeneratePanel
-            :custom-system-prompt="aiSystemPrompt"
-            :user-prefix="aiUserPrefix"
-            :placeholder="t('editor.aiPromptPlaceholder')"
-            @apply="applyAiOutput"
-          />
+        <h2 class="create-guide__title">
+          {{ t('editor.fileNotFound') }}
+        </h2>
+        <p class="create-guide__desc">
+          {{ t('editor.fileNotFoundDesc') }}
+        </p>
+        <div class="create-guide__filename">
+          {{ filePath }}
         </div>
       </div>
 
-      <!-- Normal editor -->
+      <!-- Actions -->
+      <div class="create-guide__actions">
+        <IonButton expand="block" fill="outline" @click="createEmpty">
+          <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+          <IonIcon slot="start" :icon="createOutline" />
+          {{ t('editor.createEmpty') }}
+        </IonButton>
+      </div>
+
+      <!-- AI section -->
+      <div class="create-guide__ai">
+        <div class="create-guide__ai-label">
+          <IonIcon :icon="sparklesOutline" class="create-guide__ai-label-icon" />
+          {{ t('editor.aiGenerate') }}
+        </div>
+        <AiGeneratePanel
+          :custom-system-prompt="aiSystemPrompt"
+          :user-prefix="aiUserPrefix"
+          :placeholder="t('editor.aiPromptPlaceholder')"
+          @apply="applyAiOutput"
+        />
+      </div>
+    </div>
+
+    <!-- Normal editor -->
+    <div v-else class="editor-container">
+      <!-- Quick-insert toolbar -->
+      <div class="editor-toolbar">
+        <button
+          v-for="item in toolbarItems"
+          :key="item.label"
+          class="editor-toolbar__btn"
+          :title="t(item.title)"
+          @click="insertAtCursor(item.insert)"
+        >
+          {{ item.label }}
+        </button>
+      </div>
       <textarea
-        v-else
+        ref="textareaRef"
         v-model="content"
         class="editor-textarea"
         :placeholder="t('editor.editPlaceholder', { file: fileName })"
         spellcheck="false"
       />
-    </IonContent>
-  </IonPage>
+    </div>
+  </StudioPage>
 </template>
 
 <style scoped>
+.editor-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.editor-toolbar {
+  display: flex;
+  gap: 4px;
+  padding: 6px var(--adv-space-md);
+  border-bottom: 1px solid var(--adv-border-subtle);
+  background: var(--adv-surface-card);
+  overflow-x: auto;
+  flex-shrink: 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.editor-toolbar::-webkit-scrollbar {
+  display: none;
+}
+
+.editor-toolbar__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: var(--adv-radius-sm);
+  border: 1px solid var(--adv-border-subtle);
+  background: var(--adv-surface-elevated);
+  color: var(--adv-text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.editor-toolbar__btn:hover {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.editor-toolbar__btn:active {
+  transform: scale(0.95);
+}
+
 .editor-textarea {
   width: 100%;
-  height: 100%;
+  flex: 1;
   border: none;
   outline: none;
   resize: none;
   padding: var(--adv-space-md);
+  padding-bottom: calc(var(--adv-space-md) + env(safe-area-inset-bottom, 0px));
   font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
   font-size: 14px;
   line-height: 1.6;

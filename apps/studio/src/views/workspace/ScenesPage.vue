@@ -10,8 +10,13 @@ import {
   IonFabButton,
   IonHeader,
   IonIcon,
+  IonItemOption,
+  IonItemOptions,
+  IonItemSliding,
   IonNote,
   IonPage,
+  IonRefresher,
+  IonRefresherContent,
   IonSearchbar,
   IonTitle,
   IonToolbar,
@@ -30,6 +35,8 @@ import { useContentSave } from '../../composables/useContentSave'
 import { useProjectContent } from '../../composables/useProjectContent'
 import { useRecentActivity } from '../../composables/useRecentActivity'
 import { useAiSettingsStore } from '../../stores/useAiSettingsStore'
+import { generateImage, isImageGenerationAvailable } from '../../utils/aiImageClient'
+import { writeBlobToDir, writeFileToDir } from '../../utils/fileAccess'
 import { parseSceneMd, stringifySceneMd } from '../../utils/sceneMd'
 import { showToast } from '../../utils/toast'
 
@@ -40,6 +47,66 @@ const { scenes, reload, getDirHandle } = useProjectContent()
 const { isSaving, saveContent } = useContentSave()
 const { deleteFile } = useContentDelete()
 const { trackAccess } = useRecentActivity()
+
+const generatingSceneIds = ref(new Set<string>())
+const aiImageAvailable = computed(() => isImageGenerationAvailable(aiSettings.config))
+
+// --- AI Image Generation ---
+async function handleGenerateImage(scene: SceneInfo) {
+  if (!scene.imagePrompt || !scene.id)
+    return
+
+  const sceneId = scene.id
+  generatingSceneIds.value.add(sceneId)
+
+  try {
+    const result = await generateImage(
+      { prompt: scene.imagePrompt, width: 768, height: 432 },
+      aiSettings.config,
+    )
+
+    // Download the image and save to project
+    const dirHandle = getDirHandle()
+    if (dirHandle && result.url) {
+      const response = await fetch(result.url)
+      const blob = await response.blob()
+      const ext = blob.type.includes('webp') ? 'webp' : blob.type.includes('png') ? 'png' : 'jpg'
+      const imagePath = `adv/scenes/${sceneId}.${ext}`
+      await writeBlobToDir(dirHandle, imagePath, blob)
+
+      // Update scene frontmatter with src
+      const sceneMdPath = `adv/scenes/${sceneId}.md`
+      try {
+        const { readFileFromDir } = await import('../../utils/fileAccess')
+        const content = await readFileFromDir(dirHandle, sceneMdPath)
+        const parsed = parseSceneMd(content)
+        parsed.src = `${sceneId}.${ext}`
+        const newContent = stringifySceneMd(parsed)
+        await writeFileToDir(dirHandle, sceneMdPath, newContent)
+      }
+      catch {
+        // Scene md not found — create one
+        const newContent = stringifySceneMd({
+          id: sceneId,
+          name: scene.name,
+          imagePrompt: scene.imagePrompt,
+          src: `${sceneId}.${ext}`,
+          type: 'image',
+        })
+        await writeFileToDir(dirHandle, sceneMdPath, newContent)
+      }
+
+      await reload()
+      await showToast(t('scenes.imageGenerated'))
+    }
+  }
+  catch (err) {
+    await showToast(t('scenes.imageGenerateFailed', { error: err instanceof Error ? err.message : 'Unknown' }), 'danger')
+  }
+  finally {
+    generatingSceneIds.value.delete(sceneId)
+  }
+}
 
 // --- Search ---
 const searchQuery = ref('')
@@ -155,6 +222,10 @@ async function handleDeleteScene(scene: SceneFormData) {
     </IonHeader>
 
     <IonContent :fullscreen="true">
+      <IonRefresher slot="fixed" @ion-refresh="async (e: CustomEvent) => { await reload(); (e.target as HTMLIonRefresherElement).complete() }">
+        <IonRefresherContent />
+      </IonRefresher>
+
       <!-- Draft restore banner -->
       <DraftRestoreBanner
         v-if="sceneEditor.hasDraft.value"
@@ -165,12 +236,20 @@ async function handleDeleteScene(scene: SceneFormData) {
 
       <!-- Scene grid -->
       <div v-if="filteredScenes.length > 0" class="card-grid">
-        <SceneCard
-          v-for="scene in filteredScenes"
-          :key="scene.file"
-          :scene="scene"
-          @click="handleEditScene(scene)"
-        />
+        <IonItemSliding v-for="scene in filteredScenes" :key="scene.file">
+          <SceneCard
+            :scene="scene"
+            :is-generating="generatingSceneIds.has(scene.id || '')"
+            :ai-available="aiImageAvailable"
+            @click="handleEditScene(scene)"
+            @generate-image="handleGenerateImage"
+          />
+          <IonItemOptions side="end">
+            <IonItemOption color="danger" @click="handleDeleteScene({ id: scene.id || scene.name, name: scene.name, description: scene.description, imagePrompt: scene.imagePrompt, type: scene.type || 'image', tags: scene.tags })">
+              <IonIcon :icon="trashOutline" />
+            </IonItemOption>
+          </IonItemOptions>
+        </IonItemSliding>
       </div>
 
       <!-- Empty state -->

@@ -1,16 +1,15 @@
 <script setup lang="ts">
 import type { AdvCharacter } from '@advjs/types'
+import type { CharacterAiOverride } from '../utils/resolveAiConfig'
 import {
   actionSheetController,
   alertController,
   IonButton,
-  IonButtons,
   IonContent,
-  IonFooter,
   IonHeader,
   IonIcon,
   IonInput,
-  IonPage,
+  IonModal,
   IonTitle,
   IonToolbar,
   toastController,
@@ -23,16 +22,19 @@ import {
   informationCircleOutline,
   searchOutline,
   sendOutline,
+  settingsOutline,
   stopOutline,
   trashOutline,
 } from 'ionicons/icons'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import CharacterAiSettingsForm from '../components/CharacterAiSettingsForm.vue'
 import CharacterChatWelcome from '../components/CharacterChatWelcome.vue'
 import CharacterInfoModal from '../components/CharacterInfoModal.vue'
 import ChatHistorySearch from '../components/ChatHistorySearch.vue'
 import MarkdownMessage from '../components/MarkdownMessage.vue'
+import StudioPage from '../components/StudioPage.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useWorldContext } from '../composables/useWorldContext'
 import { useCharacterChatStore } from '../stores/useCharacterChatStore'
@@ -67,11 +69,14 @@ function getEffectiveWorldContext(): string {
   return viewModeStore.getEffectiveWorldContext(worldContext.value)
 }
 
+type StudioPageInstance = InstanceType<typeof StudioPage>
+
 const inputText = ref('')
-const contentRef = ref<InstanceType<typeof IonContent> | null>(null)
+const studioPageRef = ref<StudioPageInstance | null>(null)
 const showInfoModal = ref(false)
 const showSearch = ref(false)
 const showSnapshots = ref(false)
+const showAiSettings = ref(false)
 
 const characterId = computed(() => route.params.characterId as string)
 
@@ -129,13 +134,13 @@ const moodEmoji = computed(() => {
 // Auto-scroll to bottom when messages change
 watch(() => visibleMessages.value.length, async () => {
   await nextTick()
-  contentRef.value?.$el?.scrollToBottom?.(300)
+  studioPageRef.value?.contentRef?.$el?.scrollToBottom?.(300)
 })
 
 // Also scroll when streaming content updates
 watch(() => characterChatStore.streamingContent, async () => {
   await nextTick()
-  contentRef.value?.$el?.scrollToBottom?.(100)
+  studioPageRef.value?.contentRef?.$el?.scrollToBottom?.(100)
 })
 
 function goBack() {
@@ -220,6 +225,11 @@ async function showMoreActions() {
   const sheet = await actionSheetController.create({
     header: t('world.moreActions'),
     buttons: [
+      {
+        text: t('world.aiSettings'),
+        icon: settingsOutline,
+        handler: () => { showAiSettings.value = true },
+      },
       {
         text: t('world.snapshots'),
         icon: cameraOutline,
@@ -399,7 +409,7 @@ function handleSearchJump(index: number) {
   const visibleIndex = index - newVisibleStart
 
   nextTick(() => {
-    const el = contentRef.value?.$el
+    const el = studioPageRef.value?.contentRef?.$el
     if (!el)
       return
     const msgElements = el.querySelectorAll('.message')
@@ -478,6 +488,25 @@ async function handleDeleteSnapshot(snapshotId: string) {
 const diaryEntries = computed(() => diaryStore.getDiaries(characterId.value))
 const isDiaryGenerating = computed(() => diaryStore.isGenerating(characterId.value))
 
+const currentAiOverride = computed(() => characterChatStore.getAiOverride(characterId.value))
+
+async function handleSaveAiOverride(config: CharacterAiOverride | undefined) {
+  if (config) {
+    await characterChatStore.setAiOverride(characterId.value, config)
+  }
+  else {
+    await characterChatStore.clearAiOverride(characterId.value)
+  }
+  showAiSettings.value = false
+  const toast = await toastController.create({
+    message: t('world.aiSettingsSaved'),
+    duration: 1500,
+    position: 'top',
+    color: 'success',
+  })
+  await toast.present()
+}
+
 async function handleGenerateDiary() {
   if (!character.value)
     return
@@ -529,33 +558,29 @@ async function handleDeleteDiary(diaryId: string) {
 </script>
 
 <template>
-  <IonPage>
-    <IonHeader>
-      <IonToolbar>
+  <StudioPage ref="studioPageRef">
+    <template #start>
+      <IonButton @click="goBack">
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonButtons slot="start">
-          <IonButton @click="goBack">
-            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-            <IonIcon slot="icon-only" :icon="arrowBackOutline" />
-          </IonButton>
-        </IonButtons>
-        <IonTitle>
-          {{ character?.name || characterId }}
-          <span v-if="messages.length > 0" class="header-mood">{{ moodEmoji }}</span>
-        </IonTitle>
+        <IonIcon slot="icon-only" :icon="arrowBackOutline" />
+      </IonButton>
+    </template>
+    <template #title>
+      {{ character?.name || characterId }}
+      <span v-if="messages.length > 0" class="header-mood">{{ moodEmoji }}</span>
+    </template>
+    <template #end>
+      <IonButton @click="showSearch = !showSearch">
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonButtons slot="end">
-          <IonButton @click="showSearch = !showSearch">
-            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-            <IonIcon slot="icon-only" :icon="searchOutline" />
-          </IonButton>
-          <IonButton @click="showMoreActions">
-            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-            <IonIcon slot="icon-only" :icon="ellipsisVertical" />
-          </IonButton>
-        </IonButtons>
-      </IonToolbar>
+        <IonIcon slot="icon-only" :icon="searchOutline" />
+      </IonButton>
+      <IonButton @click="showMoreActions">
+        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+        <IonIcon slot="icon-only" :icon="ellipsisVertical" />
+      </IonButton>
+    </template>
 
+    <template #header-extra>
       <!-- Search bar (collapsible) -->
       <ChatHistorySearch
         v-if="showSearch"
@@ -604,60 +629,58 @@ async function handleDeleteDiary(diaryId: string) {
           </div>
         </div>
       </div>
-    </IonHeader>
+    </template>
 
-    <IonContent ref="contentRef" :fullscreen="true">
-      <div class="messages-container">
-        <!-- Welcome state -->
-        <CharacterChatWelcome
-          v-if="character && messages.length === 0"
-          :character="character"
-          @send="quickSend"
-        />
+    <div class="messages-container">
+      <!-- Welcome state -->
+      <CharacterChatWelcome
+        v-if="character && messages.length === 0"
+        :character="character"
+        @send="quickSend"
+      />
 
-        <!-- Load earlier messages button -->
-        <div v-if="hasMore" class="load-earlier">
-          <button class="load-earlier-btn" @click="loadMore">
-            {{ t('chat.loadEarlier') }}
-          </button>
-          <span class="load-earlier-hint">{{ t('chat.messagesHidden', { count: hiddenCount }) }}</span>
-        </div>
-
-        <TransitionGroup name="msg">
-          <div
-            v-for="(msg, index) in visibleMessages"
-            :key="getAbsoluteIndex(index)"
-            class="message"
-            :class="[msg.role]"
-          >
-            <div class="bubble">
-              <MarkdownMessage v-if="msg.role === 'assistant'" :content="msg.content" />
-              <template v-else>
-                {{ msg.content }}
-              </template>
-            </div>
-            <div class="time">
-              {{ formatChatTime(msg.timestamp) }}
-            </div>
-          </div>
-        </TransitionGroup>
-
-        <!-- Typing indicator -->
-        <Transition name="msg">
-          <div v-if="characterChatStore.isLoading && !characterChatStore.streamingContent" class="message assistant">
-            <div class="bubble">
-              <div class="typing-indicator">
-                <span class="typing-dot" />
-                <span class="typing-dot" />
-                <span class="typing-dot" />
-              </div>
-            </div>
-          </div>
-        </Transition>
+      <!-- Load earlier messages button -->
+      <div v-if="hasMore" class="load-earlier">
+        <button class="load-earlier-btn" @click="loadMore">
+          {{ t('chat.loadEarlier') }}
+        </button>
+        <span class="load-earlier-hint">{{ t('chat.messagesHidden', { count: hiddenCount }) }}</span>
       </div>
-    </IonContent>
 
-    <IonFooter>
+      <TransitionGroup name="msg">
+        <div
+          v-for="(msg, index) in visibleMessages"
+          :key="getAbsoluteIndex(index)"
+          class="message"
+          :class="[msg.role]"
+        >
+          <div class="bubble">
+            <MarkdownMessage v-if="msg.role === 'assistant'" :content="msg.content" />
+            <template v-else>
+              {{ msg.content }}
+            </template>
+          </div>
+          <div class="time">
+            {{ formatChatTime(msg.timestamp) }}
+          </div>
+        </div>
+      </TransitionGroup>
+
+      <!-- Typing indicator -->
+      <Transition name="msg">
+        <div v-if="characterChatStore.isLoading && !characterChatStore.streamingContent" class="message assistant">
+          <div class="bubble">
+            <div class="typing-indicator">
+              <span class="typing-dot" />
+              <span class="typing-dot" />
+              <span class="typing-dot" />
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </div>
+
+    <template #footer>
       <IonToolbar>
         <div class="chat-input-bar">
           <IonInput
@@ -694,7 +717,7 @@ async function handleDeleteDiary(diaryId: string) {
           </IonButton>
         </div>
       </IonToolbar>
-    </IonFooter>
+    </template>
 
     <!-- Character Info Modal -->
     <CharacterInfoModal
@@ -712,7 +735,24 @@ async function handleDeleteDiary(diaryId: string) {
       @generate-diary="handleGenerateDiary"
       @delete-diary="handleDeleteDiary"
     />
-  </IonPage>
+
+    <!-- AI Settings Modal -->
+    <IonModal :is-open="showAiSettings" :initial-breakpoint="0.6" :breakpoints="[0, 0.6, 0.85]" @did-dismiss="showAiSettings = false">
+      <IonHeader>
+        <IonToolbar>
+          <IonTitle>{{ t('world.aiSettings') }} · {{ character?.name || characterId }}</IonTitle>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent>
+        <CharacterAiSettingsForm
+          :character-id="characterId"
+          :character-name="character?.name || characterId"
+          :override="currentAiOverride"
+          @save="handleSaveAiOverride"
+        />
+      </IonContent>
+    </IonModal>
+  </StudioPage>
 </template>
 
 <style scoped>

@@ -1,17 +1,13 @@
 <script setup lang="ts">
 import {
   IonButton,
-  IonButtons,
   IonContent,
-  IonHeader,
   IonIcon,
   IonItem,
   IonLabel,
   IonList,
-  IonPage,
+  IonModal,
   IonPopover,
-  IonTitle,
-  IonToolbar,
   toastController,
 } from '@ionic/vue'
 import { expandOutline, folderOpenOutline, refreshOutline, settingsOutline, shareOutline } from 'ionicons/icons'
@@ -20,6 +16,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import GamePlayer from '../components/GamePlayer.vue'
 import NodeSelector from '../components/NodeSelector.vue'
+import StudioPage from '../components/StudioPage.vue'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { downloadFromCloud, listCloudFiles } from '../utils/cloudSync'
@@ -39,6 +36,7 @@ const chapters = ref<string[]>([])
 const currentChapterFile = ref('')
 const settingsPopover = ref(false)
 const settingsPopoverEvent = ref<Event>()
+const showChapterPanel = ref(false)
 
 watch(() => studioStore.currentProject, () => {
   loadChapters()
@@ -203,64 +201,98 @@ async function handleShare() {
 </script>
 
 <template>
-  <IonPage>
-    <IonHeader>
-      <IonToolbar>
-        <IonTitle>{{ headerTitle }}</IonTitle>
+  <StudioPage :title="headerTitle" :fullscreen="false" :scroll-y="false">
+    <template v-if="studioStore.currentProject" #start>
+      <NodeSelector
+        :chapters="chapters"
+        :current-chapter="currentChapterFile"
+        :nodes="playerNodes"
+        :current-node-index="playerCurrentIndex"
+        @select="handleSelectChapter"
+        @select-node="handleSelectNode"
+      />
+    </template>
+    <template v-if="studioStore.currentProject" #end>
+      <IonButton size="small" fill="clear" :aria-label="t('preview.settings')" @click="openSettings">
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonButtons v-if="studioStore.currentProject" slot="start">
-          <NodeSelector
-            :chapters="chapters"
-            :current-chapter="currentChapterFile"
-            :nodes="playerNodes"
-            :current-node-index="playerCurrentIndex"
-            @select="handleSelectChapter"
-            @select-node="handleSelectNode"
-          />
-        </IonButtons>
+        <IonIcon slot="icon-only" :icon="settingsOutline" />
+      </IonButton>
+      <IonButton size="small" fill="clear" :aria-label="t('preview.share')" @click="handleShare">
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonButtons v-if="studioStore.currentProject" slot="end">
-          <IonButton size="small" fill="clear" :aria-label="t('preview.settings')" @click="openSettings">
-            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-            <IonIcon slot="icon-only" :icon="settingsOutline" />
-          </IonButton>
-          <IonButton size="small" fill="clear" :aria-label="t('preview.share')" @click="handleShare">
-            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-            <IonIcon slot="icon-only" :icon="shareOutline" />
-          </IonButton>
-          <IonButton size="small" fill="clear" aria-label="Fullscreen" @click="toggleFullscreen">
-            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-            <IonIcon slot="icon-only" :icon="expandOutline" />
-          </IonButton>
-        </IonButtons>
-      </IonToolbar>
-    </IonHeader>
+        <IonIcon slot="icon-only" :icon="shareOutline" />
+      </IonButton>
+      <IonButton size="small" fill="clear" aria-label="Fullscreen" @click="toggleFullscreen">
+        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+        <IonIcon slot="icon-only" :icon="expandOutline" />
+      </IonButton>
+    </template>
 
-    <IonContent :scroll-y="false">
-      <template v-if="studioStore.currentProject">
-        <!-- Game player (fills all content space) -->
-        <div class="play-game-container">
-          <GamePlayer
-            ref="gamePlayerRef"
-            :content="gameContent"
-            :chapter-name="gameChapterName"
-          />
-        </div>
-      </template>
+    <template v-if="studioStore.currentProject">
+      <!-- Game player (fills all content space) -->
+      <div class="play-game-container">
+        <GamePlayer
+          ref="gamePlayerRef"
+          :content="gameContent"
+          :chapter-name="gameChapterName"
+        />
 
-      <!-- Empty state: no project -->
-      <div v-else class="empty-state">
-        <div class="empty-state__illustration">
-          <IonIcon :icon="folderOpenOutline" />
-        </div>
-        <h3 class="empty-state__title">
-          {{ t('preview.emptyTitle') }}
-        </h3>
-        <p class="empty-state__description">
-          {{ t('preview.emptyDescription') }}
-        </p>
+        <!-- Floating chapter list button (mobile) -->
+        <button
+          v-if="chapters.length > 1"
+          class="play-chapter-fab"
+          :aria-label="t('preview.chapters')"
+          @click="showChapterPanel = true"
+        >
+          📖 {{ chapters.length }}
+        </button>
       </div>
-    </IonContent>
+
+      <!-- Bottom sheet chapter panel -->
+      <IonModal
+        :is-open="showChapterPanel"
+        :initial-breakpoint="0.5"
+        :breakpoints="[0, 0.5, 0.75]"
+        class="play-chapter-modal"
+        @did-dismiss="showChapterPanel = false"
+      >
+        <IonContent>
+          <div class="play-chapter-panel">
+            <h3 class="play-chapter-panel__title">
+              {{ t('preview.chapters') }}
+            </h3>
+            <div class="play-chapter-panel__list">
+              <button
+                v-for="file in chapters"
+                :key="file"
+                class="play-chapter-panel__item"
+                :class="{ 'play-chapter-panel__item--active': file === currentChapterFile }"
+                @click="handleSelectChapter(file); showChapterPanel = false"
+              >
+                <span class="play-chapter-panel__name">
+                  {{ file.split('/').pop()?.replace('.adv.md', '') || file }}
+                </span>
+                <span v-if="file === currentChapterFile" class="play-chapter-panel__badge">
+                  ▶
+                </span>
+              </button>
+            </div>
+          </div>
+        </IonContent>
+      </IonModal>
+    </template>
+
+    <!-- Empty state: no project -->
+    <div v-else class="empty-state">
+      <div class="empty-state__illustration">
+        <IonIcon :icon="folderOpenOutline" />
+      </div>
+      <h3 class="empty-state__title">
+        {{ t('preview.emptyTitle') }}
+      </h3>
+      <p class="empty-state__description">
+        {{ t('preview.emptyDescription') }}
+      </p>
+    </div>
 
     <!-- Settings popover menu -->
     <IonPopover
@@ -284,13 +316,100 @@ async function handleShare() {
         </IonItem>
       </IonList>
     </IonPopover>
-  </IonPage>
+  </StudioPage>
 </template>
 
 <style scoped>
 .play-game-container {
   height: 100%;
   background: #000;
+  position: relative;
+}
+
+/* Floating chapter button */
+.play-chapter-fab {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: none;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease;
+}
+
+.play-chapter-fab:active {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+/* Chapter panel */
+.play-chapter-panel {
+  padding: var(--adv-space-md);
+}
+
+.play-chapter-panel__title {
+  font-size: var(--adv-font-subtitle);
+  font-weight: 700;
+  margin: 0 0 var(--adv-space-md);
+  color: var(--adv-text-primary);
+}
+
+.play-chapter-panel__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.play-chapter-panel__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--adv-text-primary);
+  font-size: var(--adv-font-body);
+  cursor: pointer;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease;
+}
+
+.play-chapter-panel__item:hover {
+  background: var(--adv-surface-elevated);
+}
+
+.play-chapter-panel__item:active {
+  transform: scale(0.98);
+}
+
+.play-chapter-panel__item--active {
+  background: rgba(99, 102, 241, 0.08);
+  border-color: rgba(99, 102, 241, 0.2);
+  font-weight: 600;
+}
+
+.play-chapter-panel__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.play-chapter-panel__badge {
+  color: var(--ion-color-primary);
+  font-size: 12px;
+  flex-shrink: 0;
 }
 
 .adv-popover-menu {

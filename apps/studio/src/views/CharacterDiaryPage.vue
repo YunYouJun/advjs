@@ -1,19 +1,13 @@
 <script setup lang="ts">
 import {
   alertController,
-  IonBackButton,
   IonButton,
-  IonButtons,
-  IonContent,
-  IonHeader,
-  IonPage,
-  IonTitle,
-  IonToolbar,
 } from '@ionic/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import DiaryEntryContent from '../components/DiaryEntryContent.vue'
+import StudioPage from '../components/StudioPage.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useCharacterDiaryStore } from '../stores/useCharacterDiaryStore'
 import { showToast } from '../utils/toast'
@@ -67,76 +61,64 @@ async function confirmDelete(diaryId: string) {
 </script>
 
 <template>
-  <IonPage>
-    <IonHeader>
-      <IonToolbar>
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonButtons slot="start">
-          <IonBackButton :default-href="`/tabs/world/chat/${characterId}`" />
-        </IonButtons>
-        <IonTitle>{{ t('characters.diaryTitle', { name: characterName }) }}</IonTitle>
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonButtons slot="end">
-          <IonButton
-            :disabled="isDiaryGenerating"
-            @click="handleGenerate"
-          >
-            {{ isDiaryGenerating ? t('world.diaryGenerating') : t('world.diaryGenerate') }}
-          </IonButton>
-        </IonButtons>
-      </IonToolbar>
-    </IonHeader>
+  <StudioPage :title="t('characters.diaryTitle', { name: characterName })" show-back-button :default-href="`/tabs/world/chat/${characterId}`">
+    <template #end>
+      <IonButton
+        :disabled="isDiaryGenerating"
+        @click="handleGenerate"
+      >
+        {{ isDiaryGenerating ? t('world.diaryGenerating') : t('world.diaryGenerate') }}
+      </IonButton>
+    </template>
 
-    <IonContent :fullscreen="true">
-      <!-- Diary list -->
-      <div v-if="diaryEntries.length > 0" class="diary-list">
-        <div
-          v-for="entry in diaryEntries"
-          :key="entry.id"
-          class="diary-item"
-        >
-          <div class="diary-item__header">
-            <span class="diary-item__date">
-              📅 {{ entry.date }}
-            </span>
-            <span class="diary-item__period">
-              {{ t(`world.period_${entry.period}`, entry.period) }}
-            </span>
-            <span v-if="entry.mood" class="diary-item__mood">
-              {{ entry.mood }}
-            </span>
-            <button class="diary-item__delete" @click="confirmDelete(entry.id)">
-              ×
-            </button>
-          </div>
-          <div class="diary-item__content">
-            <DiaryEntryContent :content="entry.content" :max-length="200" />
-          </div>
+    <!-- Diary list -->
+    <div v-if="diaryEntries.length > 0" class="diary-list">
+      <div
+        v-for="entry in diaryEntries"
+        :key="entry.id"
+        class="diary-item"
+      >
+        <div class="diary-item__header">
+          <span class="diary-item__date">
+            📅 {{ entry.date }}
+          </span>
+          <span class="diary-item__period">
+            {{ t(`world.period_${entry.period}`, entry.period) }}
+          </span>
+          <span v-if="entry.mood" class="diary-item__mood">
+            {{ entry.mood }}
+          </span>
+          <button class="diary-item__delete" @click="confirmDelete(entry.id)">
+            ×
+          </button>
+        </div>
+        <div class="diary-item__content">
+          <DiaryEntryContent :content="entry.content" :max-length="200" />
         </div>
       </div>
+    </div>
 
-      <!-- Empty state -->
-      <div v-else class="diary-empty">
-        <div class="diary-empty__icon">
-          📓
-        </div>
-        <p class="diary-empty__title">
-          {{ t('characters.diaryEmpty') }}
-        </p>
-        <p class="diary-empty__hint">
-          {{ t('characters.diaryEmptyHint') }}
-        </p>
-        <IonButton
-          fill="outline"
-          size="small"
-          :disabled="isDiaryGenerating"
-          @click="handleGenerate"
-        >
-          {{ isDiaryGenerating ? t('world.diaryGenerating') : t('world.diaryGenerate') }}
-        </IonButton>
+    <!-- Empty state -->
+    <div v-else class="diary-empty">
+      <div class="diary-empty__icon">
+        📓
       </div>
-    </IonContent>
-  </IonPage>
+      <p class="diary-empty__title">
+        {{ t('characters.diaryEmpty') }}
+      </p>
+      <p class="diary-empty__hint">
+        {{ t('characters.diaryEmptyHint') }}
+      </p>
+      <IonButton
+        fill="outline"
+        size="small"
+        :disabled="isDiaryGenerating"
+        @click="handleGenerate"
+      >
+        {{ isDiaryGenerating ? t('world.diaryGenerating') : t('world.diaryGenerate') }}
+      </IonButton>
+    </div>
+  </StudioPage>
 </template>
 
 <style scoped>

@@ -15,14 +15,13 @@ import {
   IonList,
   IonModal,
   IonNote,
-  IonPage,
   IonSegment,
   IonSegmentButton,
   IonTitle,
   IonToolbar,
   toastController,
 } from '@ionic/vue'
-import { addOutline, cloudDownloadOutline, cloudUploadOutline, folderOpenOutline, linkOutline, saveOutline, trashOutline } from 'ionicons/icons'
+import { addOutline, cloudDownloadOutline, cloudUploadOutline, downloadOutline, folderOpenOutline, linkOutline, saveOutline, storefrontOutline, trashOutline } from 'ionicons/icons'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CreateProjectModal from '../components/CreateProjectModal.vue'
@@ -30,8 +29,10 @@ import FilePreview from '../components/FilePreview.vue'
 import MobileFileTree from '../components/MobileFileTree.vue'
 import ProjectOverview from '../components/ProjectOverview.vue'
 import ProjectSwitcher from '../components/ProjectSwitcher.vue'
+import StudioPage from '../components/StudioPage.vue'
 import WorkspaceReconnect from '../components/WorkspaceReconnect.vue'
 import { useFileChanges } from '../composables/useFileChanges'
+import { importProject } from '../composables/useProjectExport'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { listCloudFiles, uploadProjectToCloud } from '../utils/cloudSync'
@@ -39,6 +40,8 @@ import { restoreAndVerifyHandle } from '../utils/dirHandleStore'
 import { collectLocalFiles, detectAdvProject, openProjectDirectory } from '../utils/fileAccess'
 import { createProjectFromTemplate } from '../utils/projectTemplate'
 import { toSlug } from '../utils/slug'
+
+const ZIP_EXT_RE = /\.advpkg\.zip$|\.zip$/i
 
 const { t } = useI18n()
 const studioStore = useStudioStore()
@@ -347,6 +350,53 @@ async function handleLoadCloud() {
   await alert.present()
 }
 
+const importFileInput = ref<HTMLInputElement | null>(null)
+
+function handleImportProject() {
+  importFileInput.value?.click()
+}
+
+async function handleImportFileSelected(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = '' // reset for re-selection
+  if (!file)
+    return
+
+  try {
+    // Ask user to select a target directory
+    const dirHandle = await (window as any).showDirectoryPicker({ mode: 'readwrite' })
+    const manifest = await importProject(file, dirHandle)
+    const projectName = manifest.name || file.name.replace(ZIP_EXT_RE, '')
+
+    await studioStore.switchProject({
+      projectId: toSlug(projectName) || projectName,
+      name: projectName,
+      source: 'local',
+      dirHandle,
+      lastOpened: Date.now(),
+    })
+
+    const toast = await toastController.create({
+      message: t('project.importSuccess', { name: projectName }),
+      duration: 2000,
+      position: 'top',
+      color: 'success',
+    })
+    await toast.present()
+  }
+  catch (err) {
+    const message = err instanceof Error ? err.message : t('project.importFailed')
+    const toast = await toastController.create({
+      message,
+      duration: 2500,
+      position: 'top',
+      color: 'danger',
+    })
+    await toast.present()
+  }
+}
+
 function formatTime(timestamp: number): string {
   const date = new Date(timestamp)
   const now = new Date()
@@ -582,238 +632,258 @@ function getGradientForIndex(index: number): string {
 </script>
 
 <template>
-  <IonPage>
-    <IonHeader>
-      <IonToolbar>
-        <IonTitle>{{ hasProject ? studioStore.currentProject?.name : t('workspace.title') }}</IonTitle>
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <ProjectSwitcher v-if="hasProject" slot="end" />
-      </IonToolbar>
-    </IonHeader>
-    <IonContent :fullscreen="true">
-      <!-- ==================== View A: Welcome Page ==================== -->
-      <template v-if="!hasProject">
-        <!-- Action cards -->
-        <div class="action-cards">
-          <button class="action-card" @click="showCreateModal = true">
-            <span class="action-card__icon">
-              <IonIcon :icon="addOutline" />
-            </span>
-            <span class="action-card__text">
-              <strong>{{ t('projects.createProject') }}</strong>
-              <span>{{ t('projects.createProjectDesc') }}</span>
-            </span>
-          </button>
-          <button class="action-card" @click="handleOpenLocal">
-            <span class="action-card__icon">
-              <IonIcon :icon="folderOpenOutline" />
-            </span>
-            <span class="action-card__text">
-              <strong>{{ t('projects.openLocal') }}</strong>
-              <span>{{ t('projects.openLocalDesc') }}</span>
-            </span>
-          </button>
-          <button class="action-card" @click="handleLoadUrl">
-            <span class="action-card__icon">
-              <IonIcon :icon="linkOutline" />
-            </span>
-            <span class="action-card__text">
-              <strong>{{ t('projects.loadUrl') }}</strong>
-              <span>{{ t('projects.loadUrlDesc') }}</span>
-            </span>
-          </button>
-          <button class="action-card" @click="handleLoadCloud">
-            <span class="action-card__icon">
-              <IonIcon :icon="cloudDownloadOutline" />
-            </span>
-            <span class="action-card__text">
-              <strong>{{ t('projects.loadCloud') }}</strong>
-              <span>{{ t('projects.loadCloudDesc') }}</span>
-            </span>
-          </button>
-        </div>
+  <StudioPage :title="hasProject ? studioStore.currentProject?.name : t('workspace.title')">
+    <template v-if="hasProject" #end>
+      <ProjectSwitcher />
+    </template>
 
-        <!-- Featured projects (large cards) -->
-        <div v-if="featuredProjects.length > 0" class="featured-section">
-          <h3 class="section-title">
-            {{ t('workspace.featuredProjects') }}
-          </h3>
-          <div class="featured-cards">
-            <button
-              v-for="(project, index) in featuredProjects"
-              :key="project.name + project.lastOpened"
-              class="featured-card"
-              :style="{ background: getGradientForIndex(index) }"
-              @click="handleSelectProject(project)"
-            >
-              <div class="featured-card__content">
-                <h3 class="featured-card__name">
-                  {{ project.name }}
-                </h3>
-                <div class="featured-card__meta">
-                  <span class="featured-card__source">{{ getSourceLabel(project) }}</span>
-                  <span class="featured-card__time">{{ formatTime(project.lastOpened) }}</span>
-                </div>
-              </div>
-              <div class="featured-card__decoration" />
-            </button>
-          </div>
-        </div>
-
-        <!-- Remaining project list -->
-        <IonList v-if="remainingProjects.length > 0">
-          <IonItemSliding v-for="(project, index) in remainingProjects" :key="project.name + project.lastOpened">
-            <IonItem button @click="handleSelectProject(project)">
-              <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-              <IonIcon slot="start" :icon="getProjectIcon(project)" />
-              <IonLabel>
-                <h2>{{ project.name }}</h2>
-                <p v-if="project.url">
-                  {{ project.url }}
-                </p>
-                <p v-if="project.source === 'cos' && project.cosPrefix">
-                  COS: {{ project.cosPrefix }}
-                </p>
-              </IonLabel>
-              <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-              <IonNote slot="end">
-                {{ formatTime(project.lastOpened) }}
-              </IonNote>
-            </IonItem>
-            <IonItemOptions side="end">
-              <IonItemOption color="danger" @click="handleDeleteProject(index + 3)">
-                <template #icon-only>
-                  <IonIcon :icon="trashOutline" />
-                </template>
-              </IonItemOption>
-            </IonItemOptions>
-          </IonItemSliding>
-        </IonList>
-
-        <!-- Empty state -->
-        <div v-if="studioStore.projects.length === 0" class="empty-state">
-          <div class="empty-state__illustration">
+    <!-- ==================== View A: Welcome Page ==================== -->
+    <template v-if="!hasProject">
+      <!-- Action cards -->
+      <div class="action-cards">
+        <button class="action-card" @click="showCreateModal = true">
+          <span class="action-card__icon">
+            <IonIcon :icon="addOutline" />
+          </span>
+          <span class="action-card__text">
+            <strong>{{ t('projects.createProject') }}</strong>
+            <span>{{ t('projects.createProjectDesc') }}</span>
+          </span>
+        </button>
+        <button class="action-card" @click="handleOpenLocal">
+          <span class="action-card__icon">
             <IonIcon :icon="folderOpenOutline" />
-          </div>
-          <h3 class="empty-state__title">
-            {{ t('projects.emptyTitle') }}
-          </h3>
-          <p class="empty-state__description">
-            {{ t('projects.emptyDescription') }}
-          </p>
-        </div>
-      </template>
+          </span>
+          <span class="action-card__text">
+            <strong>{{ t('projects.openLocal') }}</strong>
+            <span>{{ t('projects.openLocalDesc') }}</span>
+          </span>
+        </button>
+        <button class="action-card" @click="handleLoadUrl">
+          <span class="action-card__icon">
+            <IonIcon :icon="linkOutline" />
+          </span>
+          <span class="action-card__text">
+            <strong>{{ t('projects.loadUrl') }}</strong>
+            <span>{{ t('projects.loadUrlDesc') }}</span>
+          </span>
+        </button>
+        <button class="action-card" @click="handleLoadCloud">
+          <span class="action-card__icon">
+            <IonIcon :icon="cloudDownloadOutline" />
+          </span>
+          <span class="action-card__text">
+            <strong>{{ t('projects.loadCloud') }}</strong>
+            <span>{{ t('projects.loadCloudDesc') }}</span>
+          </span>
+        </button>
+        <button class="action-card" @click="handleImportProject">
+          <span class="action-card__icon">
+            <IonIcon :icon="downloadOutline" />
+          </span>
+          <span class="action-card__text">
+            <strong>{{ t('projects.importProject') }}</strong>
+            <span>{{ t('projects.importProjectDesc') }}</span>
+          </span>
+        </button>
+        <input
+          ref="importFileInput"
+          type="file"
+          accept=".zip,.advpkg"
+          style="display: none"
+          @change="handleImportFileSelected"
+        >
+        <button class="action-card" @click="$router.push('/tabs/workspace/marketplace')">
+          <span class="action-card__icon">
+            <IonIcon :icon="storefrontOutline" />
+          </span>
+          <span class="action-card__text">
+            <strong>{{ t('marketplace.browse') }}</strong>
+            <span>{{ t('marketplace.browseDesc') }}</span>
+          </span>
+        </button>
+      </div>
 
-      <!-- ==================== View B: Workspace ==================== -->
-      <template v-else>
-        <!-- Segment toggle: Overview / Files -->
-        <div class="workspace-segment">
-          <IonSegment v-model="workspaceSegment">
-            <IonSegmentButton value="overview">
-              <IonLabel>{{ t('workspace.overview') }}</IonLabel>
-            </IonSegmentButton>
-            <IonSegmentButton value="files">
-              <IonLabel>{{ t('workspace.files') }}</IonLabel>
-            </IonSegmentButton>
-          </IonSegment>
-        </div>
-
-        <!-- Overview view -->
-        <ProjectOverview v-if="workspaceSegment === 'overview'" />
-
-        <!-- Files view -->
-        <div v-else class="workspace-layout">
-          <!-- Mobile: MobileFileTree -->
-          <template v-if="isMobile">
-            <template v-if="studioStore.currentProject?.dirHandle && rootDir">
-              <MobileFileTree
-                :dir="rootDir"
-                :selected-file="selectedFile?.name"
-                @file-select="handleMobileFileSelect"
-              />
-            </template>
-            <WorkspaceReconnect v-else @reconnect="handleReconnectDir" />
-          </template>
-
-          <!-- Desktop: AGUIAssetsExplorer splitpanes -->
-          <div v-else class="workspace-split">
-            <div class="workspace-explorer">
-              <AGUIAssetsExplorer
-                v-if="studioStore.currentProject?.dirHandle"
-                v-model:root-dir="rootDir"
-                v-model:cur-dir="curDir"
-                :on-file-dbl-click="handleFileDblClick"
-              />
-              <!-- No dirHandle: URL/COS project or handle lost -->
-              <WorkspaceReconnect v-else @reconnect="handleReconnectDir" />
+      <!-- Featured projects (large cards) -->
+      <div v-if="featuredProjects.length > 0" class="featured-section">
+        <h3 class="section-title">
+          {{ t('workspace.featuredProjects') }}
+        </h3>
+        <div class="featured-cards">
+          <button
+            v-for="(project, index) in featuredProjects"
+            :key="project.name + project.lastOpened"
+            class="featured-card"
+            :style="{ background: getGradientForIndex(index) }"
+            @click="handleSelectProject(project)"
+          >
+            <div class="featured-card__content">
+              <h3 class="featured-card__name">
+                {{ project.name }}
+              </h3>
+              <div class="featured-card__meta">
+                <span class="featured-card__source">{{ getSourceLabel(project) }}</span>
+                <span class="featured-card__time">{{ formatTime(project.lastOpened) }}</span>
+              </div>
             </div>
-            <div class="workspace-preview">
-              <div v-if="isDirty" class="workspace-preview__toolbar">
-                <span class="workspace-preview__dirty">{{ t('workspace.modified') }}</span>
-                <IonButton size="small" fill="clear" @click="handleSaveFile">
+            <div class="featured-card__decoration" />
+          </button>
+        </div>
+      </div>
+
+      <!-- Remaining project list -->
+      <IonList v-if="remainingProjects.length > 0">
+        <IonItemSliding v-for="(project, index) in remainingProjects" :key="project.name + project.lastOpened">
+          <IonItem button @click="handleSelectProject(project)">
+            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+            <IonIcon slot="start" :icon="getProjectIcon(project)" />
+            <IonLabel>
+              <h2>{{ project.name }}</h2>
+              <p v-if="project.url">
+                {{ project.url }}
+              </p>
+              <p v-if="project.source === 'cos' && project.cosPrefix">
+                COS: {{ project.cosPrefix }}
+              </p>
+            </IonLabel>
+            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+            <IonNote slot="end">
+              {{ formatTime(project.lastOpened) }}
+            </IonNote>
+          </IonItem>
+          <IonItemOptions side="end">
+            <IonItemOption color="danger" @click="handleDeleteProject(index + 3)">
+              <template #icon-only>
+                <IonIcon :icon="trashOutline" />
+              </template>
+            </IonItemOption>
+          </IonItemOptions>
+        </IonItemSliding>
+      </IonList>
+
+      <!-- Empty state -->
+      <div v-if="studioStore.projects.length === 0" class="empty-state">
+        <div class="empty-state__illustration">
+          <IonIcon :icon="folderOpenOutline" />
+        </div>
+        <h3 class="empty-state__title">
+          {{ t('projects.emptyTitle') }}
+        </h3>
+        <p class="empty-state__description">
+          {{ t('projects.emptyDescription') }}
+        </p>
+      </div>
+    </template>
+
+    <!-- ==================== View B: Workspace ==================== -->
+    <template v-else>
+      <!-- Segment toggle: Overview / Files -->
+      <div class="workspace-segment">
+        <IonSegment v-model="workspaceSegment">
+          <IonSegmentButton value="overview">
+            <IonLabel>{{ t('workspace.overview') }}</IonLabel>
+          </IonSegmentButton>
+          <IonSegmentButton value="files">
+            <IonLabel>{{ t('workspace.files') }}</IonLabel>
+          </IonSegmentButton>
+        </IonSegment>
+      </div>
+
+      <!-- Overview view -->
+      <ProjectOverview v-if="workspaceSegment === 'overview'" />
+
+      <!-- Files view -->
+      <div v-else class="workspace-layout">
+        <!-- Mobile: MobileFileTree -->
+        <template v-if="isMobile">
+          <template v-if="studioStore.currentProject?.dirHandle && rootDir">
+            <MobileFileTree
+              :dir="rootDir"
+              :selected-file="selectedFile?.name"
+              @file-select="handleMobileFileSelect"
+            />
+          </template>
+          <WorkspaceReconnect v-else @reconnect="handleReconnectDir" />
+        </template>
+
+        <!-- Desktop: AGUIAssetsExplorer splitpanes -->
+        <div v-else class="workspace-split">
+          <div class="workspace-explorer">
+            <AGUIAssetsExplorer
+              v-if="studioStore.currentProject?.dirHandle"
+              v-model:root-dir="rootDir"
+              v-model:cur-dir="curDir"
+              :on-file-dbl-click="handleFileDblClick"
+            />
+            <!-- No dirHandle: URL/COS project or handle lost -->
+            <WorkspaceReconnect v-else @reconnect="handleReconnectDir" />
+          </div>
+          <div class="workspace-preview">
+            <div v-if="isDirty" class="workspace-preview__toolbar">
+              <span class="workspace-preview__dirty">{{ t('workspace.modified') }}</span>
+              <IonButton size="small" fill="clear" @click="handleSaveFile">
+                <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+                <IonIcon slot="start" :icon="saveOutline" />
+                {{ t('workspace.save') }}
+              </IonButton>
+            </div>
+            <FilePreview
+              :content="fileContent"
+              :original-content="fileOriginalContent"
+              :filename="selectedFile?.name || ''"
+              :readonly="false"
+              @update:content="handleContentUpdate"
+              @save="handleSaveFile"
+            />
+          </div>
+        </div>
+
+        <!-- Mobile: modal for file preview -->
+        <IonModal
+          :is-open="isMobilePreviewOpen"
+          @did-dismiss="isMobilePreviewOpen = false"
+        >
+          <IonHeader>
+            <IonToolbar>
+              <IonTitle>
+                <span v-if="selectedFile" class="modal-title-with-icon">
+                  <span class="modal-file-icon" :class="getFileIconClass(selectedFile.name)" />
+                  {{ selectedFile.name }}
+                </span>
+              </IonTitle>
+              <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+              <div slot="end" class="modal-toolbar-actions">
+                <IonButton v-if="isDirty" fill="clear" size="small" @click="handleSaveFile">
                   <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-                  <IonIcon slot="start" :icon="saveOutline" />
-                  {{ t('workspace.save') }}
+                  <IonIcon slot="icon-only" :icon="saveOutline" />
+                </IonButton>
+                <IonButton fill="clear" @click="isMobilePreviewOpen = false">
+                  {{ t('common.ok') }}
                 </IonButton>
               </div>
-              <FilePreview
-                :content="fileContent"
-                :original-content="fileOriginalContent"
-                :filename="selectedFile?.name || ''"
-                :readonly="false"
-                @update:content="handleContentUpdate"
-                @save="handleSaveFile"
-              />
-            </div>
-          </div>
+            </IonToolbar>
+          </IonHeader>
+          <IonContent>
+            <FilePreview
+              :content="fileContent"
+              :original-content="fileOriginalContent"
+              :filename="selectedFile?.name || ''"
+              :readonly="false"
+              @update:content="handleContentUpdate"
+              @save="handleSaveFile"
+            />
+          </IonContent>
+        </IonModal>
+      </div>
+    </template>
 
-          <!-- Mobile: modal for file preview -->
-          <IonModal
-            :is-open="isMobilePreviewOpen"
-            @did-dismiss="isMobilePreviewOpen = false"
-          >
-            <IonHeader>
-              <IonToolbar>
-                <IonTitle>
-                  <span v-if="selectedFile" class="modal-title-with-icon">
-                    <span class="modal-file-icon" :class="getFileIconClass(selectedFile.name)" />
-                    {{ selectedFile.name }}
-                  </span>
-                </IonTitle>
-                <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-                <div slot="end" class="modal-toolbar-actions">
-                  <IonButton v-if="isDirty" fill="clear" size="small" @click="handleSaveFile">
-                    <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-                    <IonIcon slot="icon-only" :icon="saveOutline" />
-                  </IonButton>
-                  <IonButton fill="clear" @click="isMobilePreviewOpen = false">
-                    {{ t('common.ok') }}
-                  </IonButton>
-                </div>
-              </IonToolbar>
-            </IonHeader>
-            <IonContent>
-              <FilePreview
-                :content="fileContent"
-                :original-content="fileOriginalContent"
-                :filename="selectedFile?.name || ''"
-                :readonly="false"
-                @update:content="handleContentUpdate"
-                @save="handleSaveFile"
-              />
-            </IonContent>
-          </IonModal>
-        </div>
-      </template>
-
-      <!-- Create Project Modal -->
-      <CreateProjectModal
-        :open="showCreateModal"
-        @close="showCreateModal = false"
-        @create="handleCreateProject"
-      />
-    </IonContent>
-  </IonPage>
+    <!-- Create Project Modal -->
+    <CreateProjectModal
+      :open="showCreateModal"
+      @close="showCreateModal = false"
+      @create="handleCreateProject"
+    />
+  </StudioPage>
 </template>
 
 <style scoped>

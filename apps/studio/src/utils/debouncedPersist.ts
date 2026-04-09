@@ -17,7 +17,7 @@ export interface DebouncedPersistOptions<T> {
  *
  * @returns `flush` — call to immediately persist (e.g. on manual save).
  */
-export function useDebouncedPersist<T>(options: DebouncedPersistOptions<T>): { flush: () => void } {
+export function useDebouncedPersist<T>(options: DebouncedPersistOptions<T>): { flush: () => Promise<void> } {
   const { source, save, delay = 800 } = options
 
   let pending = false

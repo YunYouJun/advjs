@@ -3,21 +3,24 @@ import yaml from 'js-yaml'
 import { dumpYamlFrontmatter, parseFrontmatterAndBody } from './mdFrontmatter'
 
 /**
- * Scene frontmatter fields
+ * Scene frontmatter fields (includes `src` from AdvSceneImage)
  */
-const SCENE_FRONTMATTER_KEYS: (keyof AdvBaseScene)[] = [
+const SCENE_FRONTMATTER_KEYS: string[] = [
   'id',
   'name',
   'description',
   'imagePrompt',
   'type',
   'alias',
+  'src',
 ]
 
 /**
  * Extended scene data for Studio editing
  */
 export interface SceneFormData extends AdvBaseScene {
+  /** Image source path or URL (from AdvSceneImage) */
+  src?: string
   tags?: string[]
 }
 
@@ -39,6 +42,7 @@ export function parseSceneMd(content: string): SceneFormData {
     imagePrompt: fm.imagePrompt,
     type: fm.type || 'image',
     alias: fm.alias,
+    src: fm.src,
     tags: fm.tags,
   }
 

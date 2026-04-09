@@ -1,13 +1,15 @@
 import type { ComputedRef, Ref } from 'vue'
 import { computed, ref } from 'vue'
 import { downloadFromCloud, listCloudFiles } from '../utils/cloudSync'
-import { readFileFromDir, resolveSubdir } from '../utils/fileAccess'
+import { readFileFromDir, resolveSubdir, writeFileToDir } from '../utils/fileAccess'
 
 const TITLE_RE = /^#[ \t]+(\S[\S \t]*)$/m
 const MD_EXT_RE = /\.md$/
 const ENGLISH_WORD_RE = /[a-z]{2,}/gi
 const NON_CJK_RE = /[a-z0-9\s.,!?;:'"()\-[\]{}]/gi
 const KNOWLEDGE_PREFIX_RE = /^adv\/knowledge\//
+const SAFE_TITLE_RE = /[^a-z0-9\u4E00-\u9FFF]+/g
+const TRIM_UNDERSCORE_RE = /^_|_$/g
 
 export interface KnowledgeSection {
   /** Title of the parent knowledge file */
@@ -324,6 +326,8 @@ async function listMdFilesRecursive(
 // --- Module-level singleton state ---
 const entries: Ref<KnowledgeEntry[]> = ref([])
 const isLoading: Ref<boolean> = ref(false)
+let watchInterval: ReturnType<typeof setInterval> | null = null
+let lastFileSnapshot: Map<string, number> = new Map() // filename → lastModified
 
 const domains: ComputedRef<string[]> = computed(() => {
   const domainSet = new Set(entries.value.map(e => e.domain))
@@ -380,12 +384,15 @@ export function useKnowledgeBase() {
     try {
       const knowledgeFiles = await listMdFilesRecursive(dirHandle, 'adv/knowledge')
       const newEntries: KnowledgeEntry[] = []
+      const snapshot = new Map<string, number>()
 
       for (const file of knowledgeFiles) {
         try {
           const content = await readFileFromDir(dirHandle, file)
           const domain = extractDomain(file)
           newEntries.push(parseEntry(file, content, domain))
+          // Track file for change detection (use content length as simple fingerprint)
+          snapshot.set(file, content.length)
         }
         catch {
           // skip unreadable files
@@ -393,6 +400,7 @@ export function useKnowledgeBase() {
       }
 
       entries.value = newEntries
+      lastFileSnapshot = snapshot
     }
     finally {
       isLoading.value = false
@@ -516,9 +524,125 @@ export function useKnowledgeBase() {
     return selectedParts.join('\n\n')
   }
 
+  /**
+   * Save (create or update) a knowledge entry to a local directory.
+   * Writes the file at the entry's `file` path.
+   */
+  async function saveEntry(
+    dirHandle: FileSystemDirectoryHandle,
+    entry: KnowledgeEntry,
+  ): Promise<void> {
+    await writeFileToDir(dirHandle, entry.file, entry.content)
+    // Update in-memory state
+    const idx = entries.value.findIndex(e => e.file === entry.file)
+    if (idx >= 0) {
+      entries.value[idx] = entry
+    }
+    else {
+      entries.value = [...entries.value, entry]
+    }
+  }
+
+  /**
+   * Create a new knowledge entry and write it to disk.
+   */
+  async function createEntry(
+    dirHandle: FileSystemDirectoryHandle,
+    domain: string,
+    title: string,
+    content: string,
+  ): Promise<KnowledgeEntry> {
+    // Generate safe filename from title
+    const safeTitle = title
+      .toLowerCase()
+      .replace(SAFE_TITLE_RE, '_')
+      .replace(TRIM_UNDERSCORE_RE, '')
+      || 'untitled'
+
+    const dir = domain === 'general' ? 'adv/knowledge' : `adv/knowledge/${domain}`
+    const file = `${dir}/${safeTitle}.md`
+    const fullContent = `# ${title}\n\n${content}`
+
+    const entry = parseEntry(file, fullContent, domain)
+    await writeFileToDir(dirHandle, file, fullContent)
+    entries.value = [...entries.value, entry]
+    return entry
+  }
+
+  /**
+   * Delete a knowledge entry from local directory.
+   */
+  async function deleteEntry(
+    dirHandle: FileSystemDirectoryHandle,
+    filePath: string,
+  ): Promise<void> {
+    // Navigate to the file's parent directory and delete
+    const parts = filePath.split('/')
+    const fileName = parts.pop()!
+    let dir = dirHandle
+    for (const part of parts) {
+      dir = await dir.getDirectoryHandle(part)
+    }
+    await dir.removeEntry(fileName)
+    entries.value = entries.value.filter(e => e.file !== filePath)
+  }
+
+  /**
+   * Start watching for file changes in `adv/knowledge/`.
+   * Polls every 30 seconds, silently reloads if changes detected.
+   */
+  function watchForChanges(dirHandle: FileSystemDirectoryHandle): void {
+    stopWatching()
+    watchInterval = setInterval(async () => {
+      if (isLoading.value)
+        return
+      try {
+        const knowledgeFiles = await listMdFilesRecursive(dirHandle, 'adv/knowledge')
+        // Quick check: file count changed?
+        if (knowledgeFiles.length !== lastFileSnapshot.size) {
+          await loadFromDir(dirHandle)
+          return
+        }
+        // Check individual files for content length changes
+        for (const file of knowledgeFiles) {
+          try {
+            const content = await readFileFromDir(dirHandle, file)
+            const prevLen = lastFileSnapshot.get(file)
+            if (prevLen === undefined || prevLen !== content.length) {
+              // Change detected — full reload
+              await loadFromDir(dirHandle)
+              return
+            }
+          }
+          catch {
+            // file became unreadable — trigger reload
+            await loadFromDir(dirHandle)
+            return
+          }
+        }
+      }
+      catch {
+        // directory access error — stop watching
+        stopWatching()
+      }
+    }, 30_000)
+  }
+
+  /**
+   * Stop watching for file changes.
+   */
+  function stopWatching(): void {
+    if (watchInterval) {
+      clearInterval(watchInterval)
+      watchInterval = null
+    }
+  }
+
   function $reset() {
+    stopWatching()
     entries.value = []
     isLoading.value = false
+    lastFileSnapshot = new Map()
   }
 
   return {
@@ -530,6 +654,11 @@ export function useKnowledgeBase() {
     getEntriesForDomain,
     getDomainSummary,
     selectRelevantKnowledge,
+    saveEntry,
+    createEntry,
+    deleteEntry,
+    watchForChanges,
+    stopWatching,
     $reset,
   }
 }

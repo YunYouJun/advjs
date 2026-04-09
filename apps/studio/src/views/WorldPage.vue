@@ -1,22 +1,17 @@
 <script setup lang="ts">
 import type { WorldEvent } from '@advjs/types'
 import type { CharacterDiaryEntry } from '../stores/useCharacterDiaryStore'
-import {
-  IonContent,
-  IonHeader,
-  IonPage,
-  IonTitle,
-  IonToolbar,
-} from '@ionic/vue'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import CreateGroupChatModal from '../components/CreateGroupChatModal.vue'
 import RelationshipGraph from '../components/RelationshipGraph.vue'
 import SelectPlayerCharacterModal from '../components/SelectPlayerCharacterModal.vue'
+import StudioPage from '../components/StudioPage.vue'
 import ViewModeSwitcher from '../components/ViewModeSwitcher.vue'
 import WorldTimeline from '../components/WorldTimeline.vue'
 import { useProjectContent } from '../composables/useProjectContent'
+import { useResponsive } from '../composables/useResponsive'
 import { useWorldContext } from '../composables/useWorldContext'
 import { useCharacterDiaryStore } from '../stores/useCharacterDiaryStore'
 import { useGroupChatStore } from '../stores/useGroupChatStore'
@@ -37,6 +32,7 @@ const groupChatStore = useGroupChatStore()
 const diaryStore = useCharacterDiaryStore()
 const { characters, isLoading } = useProjectContent()
 const { worldContext } = useWorldContext()
+const { isDesktop } = useResponsive()
 
 const viewModeStore = useViewModeStore()
 
@@ -195,47 +191,63 @@ const timelineEntries = computed<TimelineEntry[]>(() => {
 </script>
 
 <template>
-  <IonPage>
-    <IonHeader>
-      <IonToolbar>
-        <IonTitle>{{ t('world.title') }}</IonTitle>
-      </IonToolbar>
-    </IonHeader>
+  <StudioPage :title="t('world.title')">
+    <!-- No project state -->
+    <div v-if="!hasProject" class="world-empty">
+      <div class="world-empty__icon">
+        🌍
+      </div>
+      <h3 class="world-empty__title">
+        {{ t('world.noProjectTitle') }}
+      </h3>
+      <p class="world-empty__desc">
+        {{ t('world.noProjectDesc') }}
+      </p>
+    </div>
 
-    <IonContent :fullscreen="true">
-      <!-- No project state -->
-      <div v-if="!hasProject" class="world-empty">
-        <div class="world-empty__icon">
-          🌍
+    <!-- Loading -->
+    <div v-else-if="isLoading" class="world-loading">
+      <p>{{ t('world.loading') }}</p>
+    </div>
+
+    <!-- No characters -->
+    <div v-else-if="characters.length === 0" class="world-empty">
+      <div class="world-empty__icon">
+        👤
+      </div>
+      <h3 class="world-empty__title">
+        {{ t('world.noCharacters') }}
+      </h3>
+      <p class="world-empty__desc">
+        {{ t('world.noCharactersDesc') }}
+      </p>
+    </div>
+
+    <!-- Main content with clock + events + characters -->
+    <div v-else class="world-main" :class="[{ 'world-main--desktop': isDesktop }]">
+      <!-- Desktop: Left sidebar with character list -->
+      <aside v-if="isDesktop" class="world-sidebar">
+        <div class="world-sidebar__header">
+          👥 {{ t('world.viewAllCharacters') }}
         </div>
-        <h3 class="world-empty__title">
-          {{ t('world.noProjectTitle') }}
-        </h3>
-        <p class="world-empty__desc">
-          {{ t('world.noProjectDesc') }}
-        </p>
-      </div>
-
-      <!-- Loading -->
-      <div v-else-if="isLoading" class="world-loading">
-        <p>{{ t('world.loading') }}</p>
-      </div>
-
-      <!-- No characters -->
-      <div v-else-if="characters.length === 0" class="world-empty">
-        <div class="world-empty__icon">
-          👤
+        <div class="world-sidebar__list">
+          <button
+            v-for="char in displayCharacters"
+            :key="char.id"
+            class="world-sidebar__char"
+            @click="openCharacterChat(char)"
+          >
+            <span class="world-sidebar__avatar">{{ char.name?.slice(0, 2) || '?' }}</span>
+            <span class="world-sidebar__info">
+              <span class="world-sidebar__name">{{ char.name }}</span>
+              <span v-if="char.faction" class="world-sidebar__faction">{{ char.faction }}</span>
+            </span>
+          </button>
         </div>
-        <h3 class="world-empty__title">
-          {{ t('world.noCharacters') }}
-        </h3>
-        <p class="world-empty__desc">
-          {{ t('world.noCharactersDesc') }}
-        </p>
-      </div>
+      </aside>
 
-      <!-- Main content with clock + events + characters -->
-      <div v-else>
+      <!-- Right content (or full-width on mobile) -->
+      <div class="world-content">
         <!-- World Clock Bar -->
         <div class="world-clock-bar">
           <div class="world-clock-info">
@@ -409,15 +421,15 @@ const timelineEntries = computed<TimelineEntry[]>(() => {
           </Transition>
         </div>
 
-        <!-- Quick link to characters page -->
-        <div class="world-characters-link">
+        <!-- Quick link to characters page (mobile only) -->
+        <div v-if="!isDesktop" class="world-characters-link">
           <button class="world-characters-link-btn" @click="router.push('/tabs/workspace/characters')">
             👥 {{ t('world.viewAllCharacters') }}
             <span class="world-characters-link-arrow">→</span>
           </button>
         </div>
-      </div>
-    </IonContent>
+      </div><!-- .world-content -->
+    </div>
 
     <!-- Create Group Chat Modal -->
     <CreateGroupChatModal
@@ -431,7 +443,7 @@ const timelineEntries = computed<TimelineEntry[]>(() => {
       :is-open="showSelectPlayerModal"
       @close="showSelectPlayerModal = false"
     />
-  </IonPage>
+  </StudioPage>
 </template>
 
 <style scoped>
@@ -678,5 +690,97 @@ const timelineEntries = computed<TimelineEntry[]>(() => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+/* ── Desktop dual-pane layout ── */
+.world-main--desktop {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 0;
+  height: 100%;
+}
+
+.world-sidebar {
+  border-right: 1px solid var(--adv-border-subtle, rgba(0, 0, 0, 0.08));
+  overflow-y: auto;
+  padding: var(--adv-space-sm) 0;
+}
+
+:root.dark .world-sidebar {
+  border-right-color: rgba(255, 255, 255, 0.06);
+}
+
+.world-sidebar__header {
+  padding: var(--adv-space-sm) var(--adv-space-md);
+  font-size: var(--adv-font-body-sm, 13px);
+  font-weight: 600;
+  color: var(--adv-text-secondary);
+}
+
+.world-sidebar__list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 var(--adv-space-xs);
+}
+
+.world-sidebar__char {
+  display: flex;
+  align-items: center;
+  gap: var(--adv-space-sm);
+  padding: var(--adv-space-sm) var(--adv-space-md);
+  border: none;
+  background: transparent;
+  border-radius: var(--adv-radius-md, 8px);
+  cursor: pointer;
+  text-align: left;
+  min-height: 48px;
+  transition: background 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.world-sidebar__char:hover {
+  background: var(--adv-surface-elevated, #f5f5f5);
+}
+
+:root.dark .world-sidebar__char:hover {
+  background: var(--adv-surface-elevated, #2a2a3e);
+}
+
+.world-sidebar__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--adv-gradient-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.world-sidebar__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.world-sidebar__name {
+  font-size: var(--adv-font-body-sm, 13px);
+  font-weight: 500;
+  color: var(--adv-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.world-sidebar__faction {
+  font-size: var(--adv-font-caption, 11px);
+  color: var(--adv-text-tertiary);
+}
+
+.world-content {
+  overflow-y: auto;
 }
 </style>

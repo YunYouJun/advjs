@@ -2,16 +2,10 @@
 import type { ChatMessage } from '../stores/useChatStore'
 import {
   IonButton,
-  IonButtons,
   IonChip,
-  IonContent,
-  IonFooter,
-  IonHeader,
   IonIcon,
   IonInput,
-  IonPage,
   IonTextarea,
-  IonTitle,
   IonToolbar,
   toastController,
 } from '@ionic/vue'
@@ -21,6 +15,9 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import MarkdownMessage from '../components/MarkdownMessage.vue'
 import MessageActions from '../components/MessageActions.vue'
+import StudioPage from '../components/StudioPage.vue'
+import { useProjectContent } from '../composables/useProjectContent'
+import { useResponsive } from '../composables/useResponsive'
 import { useAiSettingsStore } from '../stores/useAiSettingsStore'
 import { useChatStore } from '../stores/useChatStore'
 import { useSettingsStore } from '../stores/useSettingsStore'
@@ -31,6 +28,8 @@ import { downloadAsFile, readFileFromDir, writeFileToDir } from '../utils/fileAc
 import { computeLineDiff } from '../utils/lineDiff'
 import '../styles/chat.css'
 
+type StudioPageInstance = InstanceType<typeof StudioPage>
+
 const { t } = useI18n()
 const chatStore = useChatStore()
 const studioStore = useStudioStore()
@@ -38,7 +37,10 @@ const settingsStore = useSettingsStore()
 const aiSettings = useAiSettingsStore()
 const router = useRouter()
 const inputText = ref('')
-const contentRef = ref<InstanceType<typeof IonContent> | null>(null)
+const studioPageRef = ref<StudioPageInstance | null>(null)
+
+const { isDesktop } = useResponsive()
+const { characters, stats } = useProjectContent()
 
 const hasProject = computed(() => !!studioStore.currentProject)
 const isAiConfigured = computed(() => aiSettings.isConfigured)
@@ -66,7 +68,7 @@ watch(() => studioStore.currentProject, async (project) => {
 // Auto-scroll to bottom when messages change
 watch(() => chatStore.messages.length, async () => {
   await nextTick()
-  contentRef.value?.$el?.scrollToBottom?.(300)
+  studioPageRef.value?.contentRef?.$el?.scrollToBottom?.(300)
 })
 
 async function send() {
@@ -255,37 +257,55 @@ async function handleSaveContent(payload: { type: string, content: string, filen
 </script>
 
 <template>
-  <IonPage>
-    <IonHeader>
-      <IonToolbar>
-        <IonTitle>{{ t('chat.title') }}</IonTitle>
+  <StudioPage ref="studioPageRef" :title="t('chat.title')">
+    <template #end>
+      <IonButton
+        :aria-label="t('chat.toggleWrap')"
+        :color="settingsStore.chatWordWrap ? 'primary' : undefined"
+        @click="settingsStore.chatWordWrap = !settingsStore.chatWordWrap"
+      >
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonButtons slot="end">
-          <IonButton
-            :aria-label="t('chat.toggleWrap')"
-            :color="settingsStore.chatWordWrap ? 'primary' : undefined"
-            @click="settingsStore.chatWordWrap = !settingsStore.chatWordWrap"
-          >
-            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-            <IonIcon slot="icon-only" :icon="codeOutline" />
-          </IonButton>
-          <IonButton aria-label="Copy context" @click="copyContext">
-            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-            <IonIcon slot="icon-only" :icon="clipboardOutline" />
-          </IonButton>
-          <IonButton
-            color="danger"
-            aria-label="Clear messages"
-            @click="chatStore.clearMessages()"
-          >
-            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-            <IonIcon slot="icon-only" :icon="trashOutline" />
-          </IonButton>
-        </IonButtons>
-      </IonToolbar>
-    </IonHeader>
+        <IonIcon slot="icon-only" :icon="codeOutline" />
+      </IonButton>
+      <IonButton aria-label="Copy context" @click="copyContext">
+        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+        <IonIcon slot="icon-only" :icon="clipboardOutline" />
+      </IonButton>
+      <IonButton
+        color="danger"
+        aria-label="Clear messages"
+        @click="chatStore.clearMessages()"
+      >
+        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+        <IonIcon slot="icon-only" :icon="trashOutline" />
+      </IonButton>
+    </template>
 
-    <IonContent ref="contentRef" :fullscreen="true">
+    <div class="chat-layout" :class="[{ 'chat-layout--desktop': isDesktop }]">
+      <!-- Desktop: left sidebar with project context -->
+      <aside v-if="isDesktop && hasProject" class="chat-sidebar">
+        <div class="chat-sidebar__section">
+          <div class="chat-sidebar__title">
+            📊 {{ t('workspace.overview') }}
+          </div>
+          <div class="chat-sidebar__stats">
+            <span>📖 {{ stats.chapters }} {{ t('preview.chaptersCount') }}</span>
+            <span>👥 {{ stats.characters }} {{ t('preview.charactersCount') }}</span>
+            <span>🎬 {{ stats.scenes }} {{ t('scenes.title') }}</span>
+          </div>
+        </div>
+        <div v-if="characters.length > 0" class="chat-sidebar__section">
+          <div class="chat-sidebar__title">
+            👥 {{ t('characters.title') }}
+          </div>
+          <div class="chat-sidebar__chips">
+            <span v-for="c in characters.slice(0, 10)" :key="c.id" class="chat-sidebar__chip">
+              {{ c.name }}
+            </span>
+          </div>
+        </div>
+      </aside>
+
       <div class="messages-container">
         <!-- No project state -->
         <div v-if="!hasProject" class="chat-no-project">
@@ -414,9 +434,9 @@ async function handleSaveContent(payload: { type: string, content: string, filen
           </div>
         </Transition>
       </div>
-    </IonContent>
+    </div><!-- .chat-layout -->
 
-    <IonFooter>
+    <template #footer>
       <IonToolbar>
         <div class="chat-input-bar">
           <IonInput
@@ -453,8 +473,8 @@ async function handleSaveContent(payload: { type: string, content: string, filen
           </IonButton>
         </div>
       </IonToolbar>
-    </IonFooter>
-  </IonPage>
+    </template>
+  </StudioPage>
 </template>
 
 <style scoped>
@@ -728,5 +748,64 @@ ion-footer ion-toolbar {
   display: flex;
   justify-content: flex-end;
   gap: var(--adv-space-sm);
+}
+
+/* ── Desktop dual-pane layout ── */
+.chat-layout--desktop {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  height: 100%;
+}
+
+.chat-sidebar {
+  border-right: 1px solid var(--adv-border-subtle, rgba(0, 0, 0, 0.08));
+  overflow-y: auto;
+  padding: var(--adv-space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--adv-space-lg);
+}
+
+:root.dark .chat-sidebar {
+  border-right-color: rgba(255, 255, 255, 0.06);
+}
+
+.chat-sidebar__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--adv-space-xs);
+}
+
+.chat-sidebar__title {
+  font-size: var(--adv-font-body-sm, 13px);
+  font-weight: 600;
+  color: var(--adv-text-secondary);
+}
+
+.chat-sidebar__stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--adv-font-caption, 12px);
+  color: var(--adv-text-tertiary);
+}
+
+.chat-sidebar__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.chat-sidebar__chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--adv-radius-lg, 12px);
+  background: var(--adv-surface-elevated, #f1f5f9);
+  font-size: 11px;
+  color: var(--adv-text-secondary);
+}
+
+:root.dark .chat-sidebar__chip {
+  background: var(--adv-surface-elevated, #2a2a3e);
 }
 </style>

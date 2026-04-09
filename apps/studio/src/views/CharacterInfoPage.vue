@@ -1,19 +1,13 @@
 <script setup lang="ts">
 import {
-  IonBackButton,
   IonButton,
-  IonButtons,
-  IonContent,
-  IonHeader,
   IonIcon,
-  IonPage,
-  IonTitle,
-  IonToolbar,
 } from '@ionic/vue'
 import { chatbubbleOutline, createOutline, journalOutline } from 'ionicons/icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import StudioPage from '../components/StudioPage.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useCharacterDiaryStore } from '../stores/useCharacterDiaryStore'
 import { useCharacterMemoryStore } from '../stores/useCharacterMemoryStore'
@@ -48,209 +42,196 @@ function affinityClass(affinity: number): string {
 </script>
 
 <template>
-  <IonPage>
-    <IonHeader>
-      <IonToolbar>
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonButtons slot="start">
-          <IonBackButton default-href="/tabs/world" />
-        </IonButtons>
-        <IonTitle>{{ character?.name || characterId }}</IonTitle>
-      </IonToolbar>
-    </IonHeader>
-
-    <IonContent :fullscreen="true">
-      <div v-if="character" class="ci-page">
-        <!-- Avatar + Name Header -->
-        <div class="ci-hero">
-          <div class="ci-hero__avatar">
-            <img v-if="avatarUrl" :src="avatarUrl" alt="" class="ci-hero__img">
-            <span v-else class="ci-hero__initials">{{ (character.name || characterId).slice(0, 2) }}</span>
-          </div>
-          <h2 class="ci-hero__name">
-            {{ character.name }}
-          </h2>
-          <span v-if="character.faction" class="ci-hero__faction">{{ character.faction }}</span>
-          <div v-if="character.tags?.length" class="ci-hero__tags">
-            <span v-for="tag in character.tags" :key="tag" class="ci-hero__tag">{{ tag }}</span>
-          </div>
+  <StudioPage :title="character?.name || characterId" show-back-button default-href="/tabs/world">
+    <div v-if="character" class="ci-page">
+      <!-- Avatar + Name Header -->
+      <div class="ci-hero">
+        <div class="ci-hero__avatar">
+          <img v-if="avatarUrl" :src="avatarUrl" alt="" class="ci-hero__img">
+          <span v-else class="ci-hero__initials">{{ (character.name || characterId).slice(0, 2) }}</span>
         </div>
-
-        <!-- Quick actions -->
-        <div class="ci-quick-actions">
-          <IonButton fill="outline" size="small" @click="router.push(`/tabs/world/chat/${characterId}`)">
-            <IonIcon slot="start" :icon="chatbubbleOutline" />
-            {{ t('characters.actionChat') }}
-          </IonButton>
-          <IonButton fill="outline" size="small" @click="router.push(`/tabs/world/diary/${characterId}`)">
-            <IonIcon slot="start" :icon="journalOutline" />
-            {{ t('characters.actionDiary') }}
-          </IonButton>
-          <IonButton fill="outline" size="small" @click="router.push('/tabs/workspace/characters')">
-            <IonIcon slot="start" :icon="createOutline" />
-            {{ t('characters.actionEdit') }}
-          </IonButton>
-        </div>
-
-        <!-- Sections -->
-        <div class="ci-sections">
-          <section v-if="character.appearance" class="ci-section">
-            <h4 class="ci-section__title">
-              {{ t('contentEditor.appearance') }}
-            </h4>
-            <p class="ci-section__content">
-              {{ character.appearance }}
-            </p>
-          </section>
-
-          <section v-if="character.personality" class="ci-section">
-            <h4 class="ci-section__title">
-              {{ t('contentEditor.personality') }}
-            </h4>
-            <p class="ci-section__content">
-              {{ character.personality }}
-            </p>
-          </section>
-
-          <section v-if="character.background" class="ci-section">
-            <h4 class="ci-section__title">
-              {{ t('contentEditor.background') }}
-            </h4>
-            <p class="ci-section__content">
-              {{ character.background }}
-            </p>
-          </section>
-
-          <section v-if="character.concept" class="ci-section">
-            <h4 class="ci-section__title">
-              {{ t('contentEditor.concept') }}
-            </h4>
-            <p class="ci-section__content">
-              {{ character.concept }}
-            </p>
-          </section>
-
-          <section v-if="character.speechStyle" class="ci-section">
-            <h4 class="ci-section__title">
-              {{ t('contentEditor.speechStyle') }}
-            </h4>
-            <p class="ci-section__content">
-              {{ character.speechStyle }}
-            </p>
-          </section>
-
-          <section v-if="character.knowledgeDomain" class="ci-section">
-            <h4 class="ci-section__title">
-              {{ t('world.knowledgeDomain') }}
-            </h4>
-            <p class="ci-section__content">
-              {{ character.knowledgeDomain }}
-            </p>
-          </section>
-
-          <!-- Dynamic State -->
-          <section v-if="dynamicState && (dynamicState.location || dynamicState.health || dynamicState.activity)" class="ci-section">
-            <h4 class="ci-section__title">
-              {{ t('world.currentState') }}
-            </h4>
-            <div class="ci-state">
-              <div v-if="dynamicState.location" class="ci-state__item">
-                <span class="ci-state__label">{{ t('world.location') }}</span>
-                <span class="ci-state__value">{{ dynamicState.location }}</span>
-              </div>
-              <div v-if="dynamicState.health" class="ci-state__item">
-                <span class="ci-state__label">{{ t('world.health') }}</span>
-                <span class="ci-state__value">{{ dynamicState.health }}</span>
-              </div>
-              <div v-if="dynamicState.activity" class="ci-state__item">
-                <span class="ci-state__label">{{ t('world.activity') }}</span>
-                <span class="ci-state__value">{{ dynamicState.activity }}</span>
-              </div>
-            </div>
-          </section>
-
-          <!-- Emotional Memory -->
-          <section v-if="memory?.emotionalState" class="ci-section">
-            <h4 class="ci-section__title">
-              {{ t('world.emotionalState') }}
-            </h4>
-            <div class="ci-bar-row">
-              <span class="ci-bar-label">{{ t('world.affinity') }}</span>
-              <div class="ci-bar">
-                <div
-                  class="ci-bar__fill"
-                  :class="affinityClass(memory.emotionalState.affinity)"
-                  :style="{ width: `${(memory.emotionalState.affinity + 100) / 2}%` }"
-                />
-              </div>
-              <span class="ci-bar-value">{{ memory.emotionalState.affinity }}</span>
-            </div>
-            <div class="ci-bar-row">
-              <span class="ci-bar-label">{{ t('world.trust') }}</span>
-              <div class="ci-bar">
-                <div
-                  class="ci-bar__fill ci-bar__fill--trust"
-                  :style="{ width: `${Math.min(100, Math.max(0, memory.emotionalState.trust))}%` }"
-                />
-              </div>
-              <span class="ci-bar-value">{{ memory.emotionalState.trust }}</span>
-            </div>
-            <div v-if="memory.emotionalState.mood" class="ci-mood-badge">
-              {{ memory.emotionalState.mood }}
-            </div>
-            <div v-if="memory.keyEvents.length" class="ci-key-events">
-              <h5 class="ci-sub-title">
-                {{ t('world.keyEvents') }}
-              </h5>
-              <div v-for="ev in memory.keyEvents.slice(-5)" :key="ev.timestamp" class="ci-key-event">
-                {{ ev.summary }}
-              </div>
-            </div>
-          </section>
-
-          <!-- Relationships -->
-          <section v-if="character.relationships?.length" class="ci-section">
-            <h4 class="ci-section__title">
-              {{ t('contentEditor.relationships') }}
-            </h4>
-            <div v-for="rel in character.relationships" :key="rel.targetId" class="ci-rel">
-              <span class="ci-rel__target">{{ rel.targetId }}</span>
-              <span class="ci-rel__type">{{ rel.type }}</span>
-              <span v-if="rel.description" class="ci-rel__desc">{{ rel.description }}</span>
-            </div>
-          </section>
-
-          <!-- Recent Diary Preview -->
-          <section v-if="recentDiaries.length > 0" class="ci-section">
-            <div class="ci-section__header-row">
-              <h4 class="ci-section__title">
-                {{ t('world.diary') }}
-              </h4>
-              <IonButton fill="clear" size="small" @click="router.push(`/tabs/world/diary/${characterId}`)">
-                {{ t('common.viewAll') }}
-              </IonButton>
-            </div>
-            <div class="ci-diary-list">
-              <div v-for="entry in recentDiaries" :key="entry.id" class="ci-diary-item">
-                <div class="ci-diary-meta">
-                  <span class="ci-diary-date">{{ entry.date }} {{ entry.period }}</span>
-                  <span v-if="entry.mood" class="ci-diary-mood">{{ entry.mood }}</span>
-                </div>
-                <p class="ci-diary-content">
-                  {{ entry.content.slice(0, 100) }}{{ entry.content.length > 100 ? '…' : '' }}
-                </p>
-              </div>
-            </div>
-          </section>
+        <h2 class="ci-hero__name">
+          {{ character.name }}
+        </h2>
+        <span v-if="character.faction" class="ci-hero__faction">{{ character.faction }}</span>
+        <div v-if="character.tags?.length" class="ci-hero__tags">
+          <span v-for="tag in character.tags" :key="tag" class="ci-hero__tag">{{ tag }}</span>
         </div>
       </div>
 
-      <!-- Not found -->
-      <div v-else class="ci-empty">
-        <p>{{ t('workspace.noCharacters') }}</p>
+      <!-- Quick actions -->
+      <div class="ci-quick-actions">
+        <IonButton fill="outline" size="small" @click="router.push(`/tabs/world/chat/${characterId}`)">
+          <IonIcon slot="start" :icon="chatbubbleOutline" />
+          {{ t('characters.actionChat') }}
+        </IonButton>
+        <IonButton fill="outline" size="small" @click="router.push(`/tabs/world/diary/${characterId}`)">
+          <IonIcon slot="start" :icon="journalOutline" />
+          {{ t('characters.actionDiary') }}
+        </IonButton>
+        <IonButton fill="outline" size="small" @click="router.push('/tabs/workspace/characters')">
+          <IonIcon slot="start" :icon="createOutline" />
+          {{ t('characters.actionEdit') }}
+        </IonButton>
       </div>
-    </IonContent>
-  </IonPage>
+
+      <!-- Sections -->
+      <div class="ci-sections">
+        <section v-if="character.appearance" class="ci-section">
+          <h4 class="ci-section__title">
+            {{ t('contentEditor.appearance') }}
+          </h4>
+          <p class="ci-section__content">
+            {{ character.appearance }}
+          </p>
+        </section>
+
+        <section v-if="character.personality" class="ci-section">
+          <h4 class="ci-section__title">
+            {{ t('contentEditor.personality') }}
+          </h4>
+          <p class="ci-section__content">
+            {{ character.personality }}
+          </p>
+        </section>
+
+        <section v-if="character.background" class="ci-section">
+          <h4 class="ci-section__title">
+            {{ t('contentEditor.background') }}
+          </h4>
+          <p class="ci-section__content">
+            {{ character.background }}
+          </p>
+        </section>
+
+        <section v-if="character.concept" class="ci-section">
+          <h4 class="ci-section__title">
+            {{ t('contentEditor.concept') }}
+          </h4>
+          <p class="ci-section__content">
+            {{ character.concept }}
+          </p>
+        </section>
+
+        <section v-if="character.speechStyle" class="ci-section">
+          <h4 class="ci-section__title">
+            {{ t('contentEditor.speechStyle') }}
+          </h4>
+          <p class="ci-section__content">
+            {{ character.speechStyle }}
+          </p>
+        </section>
+
+        <section v-if="character.knowledgeDomain" class="ci-section">
+          <h4 class="ci-section__title">
+            {{ t('world.knowledgeDomain') }}
+          </h4>
+          <p class="ci-section__content">
+            {{ character.knowledgeDomain }}
+          </p>
+        </section>
+
+        <!-- Dynamic State -->
+        <section v-if="dynamicState && (dynamicState.location || dynamicState.health || dynamicState.activity)" class="ci-section">
+          <h4 class="ci-section__title">
+            {{ t('world.currentState') }}
+          </h4>
+          <div class="ci-state">
+            <div v-if="dynamicState.location" class="ci-state__item">
+              <span class="ci-state__label">{{ t('world.location') }}</span>
+              <span class="ci-state__value">{{ dynamicState.location }}</span>
+            </div>
+            <div v-if="dynamicState.health" class="ci-state__item">
+              <span class="ci-state__label">{{ t('world.health') }}</span>
+              <span class="ci-state__value">{{ dynamicState.health }}</span>
+            </div>
+            <div v-if="dynamicState.activity" class="ci-state__item">
+              <span class="ci-state__label">{{ t('world.activity') }}</span>
+              <span class="ci-state__value">{{ dynamicState.activity }}</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Emotional Memory -->
+        <section v-if="memory?.emotionalState" class="ci-section">
+          <h4 class="ci-section__title">
+            {{ t('world.emotionalState') }}
+          </h4>
+          <div class="ci-bar-row">
+            <span class="ci-bar-label">{{ t('world.affinity') }}</span>
+            <div class="ci-bar">
+              <div
+                class="ci-bar__fill"
+                :class="affinityClass(memory.emotionalState.affinity)"
+                :style="{ width: `${(memory.emotionalState.affinity + 100) / 2}%` }"
+              />
+            </div>
+            <span class="ci-bar-value">{{ memory.emotionalState.affinity }}</span>
+          </div>
+          <div class="ci-bar-row">
+            <span class="ci-bar-label">{{ t('world.trust') }}</span>
+            <div class="ci-bar">
+              <div
+                class="ci-bar__fill ci-bar__fill--trust"
+                :style="{ width: `${Math.min(100, Math.max(0, memory.emotionalState.trust))}%` }"
+              />
+            </div>
+            <span class="ci-bar-value">{{ memory.emotionalState.trust }}</span>
+          </div>
+          <div v-if="memory.emotionalState.mood" class="ci-mood-badge">
+            {{ memory.emotionalState.mood }}
+          </div>
+          <div v-if="memory.keyEvents.length" class="ci-key-events">
+            <h5 class="ci-sub-title">
+              {{ t('world.keyEvents') }}
+            </h5>
+            <div v-for="ev in memory.keyEvents.slice(-5)" :key="ev.timestamp" class="ci-key-event">
+              {{ ev.summary }}
+            </div>
+          </div>
+        </section>
+
+        <!-- Relationships -->
+        <section v-if="character.relationships?.length" class="ci-section">
+          <h4 class="ci-section__title">
+            {{ t('contentEditor.relationships') }}
+          </h4>
+          <div v-for="rel in character.relationships" :key="rel.targetId" class="ci-rel">
+            <span class="ci-rel__target">{{ rel.targetId }}</span>
+            <span class="ci-rel__type">{{ rel.type }}</span>
+            <span v-if="rel.description" class="ci-rel__desc">{{ rel.description }}</span>
+          </div>
+        </section>
+
+        <!-- Recent Diary Preview -->
+        <section v-if="recentDiaries.length > 0" class="ci-section">
+          <div class="ci-section__header-row">
+            <h4 class="ci-section__title">
+              {{ t('world.diary') }}
+            </h4>
+            <IonButton fill="clear" size="small" @click="router.push(`/tabs/world/diary/${characterId}`)">
+              {{ t('common.viewAll') }}
+            </IonButton>
+          </div>
+          <div class="ci-diary-list">
+            <div v-for="entry in recentDiaries" :key="entry.id" class="ci-diary-item">
+              <div class="ci-diary-meta">
+                <span class="ci-diary-date">{{ entry.date }} {{ entry.period }}</span>
+                <span v-if="entry.mood" class="ci-diary-mood">{{ entry.mood }}</span>
+              </div>
+              <p class="ci-diary-content">
+                {{ entry.content.slice(0, 100) }}{{ entry.content.length > 100 ? '…' : '' }}
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div v-else class="ci-empty">
+      <p>{{ t('workspace.noCharacters') }}</p>
+    </div>
+  </StudioPage>
 </template>
 
 <style scoped>

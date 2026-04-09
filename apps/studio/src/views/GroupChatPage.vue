@@ -5,14 +5,8 @@ import {
   actionSheetController,
   alertController,
   IonButton,
-  IonButtons,
-  IonContent,
-  IonFooter,
-  IonHeader,
   IonIcon,
   IonInput,
-  IonPage,
-  IonTitle,
   IonToolbar,
   toastController,
 } from '@ionic/vue'
@@ -31,6 +25,7 @@ import { useRoute, useRouter } from 'vue-router'
 import ChatHistorySearch from '../components/ChatHistorySearch.vue'
 import MarkdownMessage from '../components/MarkdownMessage.vue'
 import MessageActions from '../components/MessageActions.vue'
+import StudioPage from '../components/StudioPage.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useWorldContext } from '../composables/useWorldContext'
 import { useCharacterMemoryStore } from '../stores/useCharacterMemoryStore'
@@ -42,6 +37,8 @@ import { formatChatTime, getCharacterInitials, getMoodEmoji, getValidAvatarUrl }
 import { uploadToCloud } from '../utils/cloudSync'
 import { downloadAsFile, writeFileToDir } from '../utils/fileAccess'
 import '../styles/group-chat.css'
+
+type StudioPageInstance = InstanceType<typeof StudioPage>
 
 const SAFE_FILENAME_RE = /[^a-z0-9\u4E00-\u9FFF]+/g
 const TRIM_UNDERSCORE_RE = /^_|_$/g
@@ -74,7 +71,7 @@ function getEffectiveWorldContext(): string {
 }
 
 const inputText = ref('')
-const contentRef = ref<InstanceType<typeof IonContent> | null>(null)
+const studioPageRef = ref<StudioPageInstance | null>(null)
 const showSearch = ref(false)
 
 const roomId = computed(() => route.params.roomId as string)
@@ -143,13 +140,13 @@ function getAvatarInitial(name?: string): string {
 // Auto-scroll to bottom when messages change
 watch(() => visibleMessages.value.length, async () => {
   await nextTick()
-  contentRef.value?.$el?.scrollToBottom?.(300)
+  studioPageRef.value?.contentRef?.$el?.scrollToBottom?.(300)
 })
 
 // Also scroll when streaming content updates
 watch(() => groupChatStore.streamingContent, async () => {
   await nextTick()
-  contentRef.value?.$el?.scrollToBottom?.(100)
+  studioPageRef.value?.contentRef?.$el?.scrollToBottom?.(100)
 })
 
 function goBack() {
@@ -217,7 +214,7 @@ function handleSearchJump(index: number) {
   const newVisibleStart = Math.max(0, totalMessages - displayCount.value)
   const visibleIndex = index - newVisibleStart
   nextTick(() => {
-    const el = contentRef.value?.$el
+    const el = studioPageRef.value?.contentRef?.$el
     if (!el)
       return
     const msgEls = el.querySelectorAll('.group-message')
@@ -419,38 +416,33 @@ async function handleDeleteSnapshot(snapshotId: string) {
 </script>
 
 <template>
-  <IonPage>
-    <IonHeader>
-      <IonToolbar>
+  <StudioPage ref="studioPageRef" :title="room?.name || roomId">
+    <template #start>
+      <IonButton @click="goBack">
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonButtons slot="start">
-          <IonButton @click="goBack">
-            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-            <IonIcon slot="icon-only" :icon="arrowBackOutline" />
-          </IonButton>
-        </IonButtons>
-        <IonTitle>{{ room?.name || roomId }}</IonTitle>
+        <IonIcon slot="icon-only" :icon="arrowBackOutline" />
+      </IonButton>
+    </template>
+    <template #end>
+      <IonButton @click="showSearch = !showSearch">
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonButtons slot="end">
-          <IonButton @click="showSearch = !showSearch">
-            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-            <IonIcon slot="icon-only" :icon="searchOutline" />
-          </IonButton>
-          <IonButton :disabled="allMessages.length === 0" @click="handleExport">
-            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-            <IonIcon slot="icon-only" :icon="downloadOutline" />
-          </IonButton>
-          <IonButton @click="showSnapshots = !showSnapshots">
-            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-            <IonIcon slot="icon-only" :icon="cameraOutline" />
-          </IonButton>
-          <IonButton color="danger" @click="confirmDelete">
-            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-            <IonIcon slot="icon-only" :icon="trashOutline" />
-          </IonButton>
-        </IonButtons>
-      </IonToolbar>
+        <IonIcon slot="icon-only" :icon="searchOutline" />
+      </IonButton>
+      <IonButton :disabled="allMessages.length === 0" @click="handleExport">
+        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+        <IonIcon slot="icon-only" :icon="downloadOutline" />
+      </IonButton>
+      <IonButton @click="showSnapshots = !showSnapshots">
+        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+        <IonIcon slot="icon-only" :icon="cameraOutline" />
+      </IonButton>
+      <IonButton color="danger" @click="confirmDelete">
+        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+        <IonIcon slot="icon-only" :icon="trashOutline" />
+      </IonButton>
+    </template>
 
+    <template #header-extra>
       <!-- Search panel -->
       <ChatHistorySearch
         v-if="showSearch"
@@ -499,109 +491,107 @@ async function handleDeleteSnapshot(snapshotId: string) {
           </div>
         </div>
       </div>
-    </IonHeader>
+    </template>
 
-    <IonContent ref="contentRef" :fullscreen="true">
-      <!-- Participant Status Bar -->
-      <div v-if="room?.participantIds?.length" class="gc-participants">
-        <button
-          v-for="pid in room.participantIds"
-          :key="pid"
-          class="gc-participant-chip"
-          @click="router.push(`/tabs/world/chat/${pid}`)"
+    <!-- Participant Status Bar -->
+    <div v-if="room?.participantIds?.length" class="gc-participants">
+      <button
+        v-for="pid in room.participantIds"
+        :key="pid"
+        class="gc-participant-chip"
+        @click="router.push(`/tabs/world/chat/${pid}`)"
+      >
+        <img
+          v-if="getValidAvatarUrl(characterMap.get(pid)?.avatar)"
+          :src="getValidAvatarUrl(characterMap.get(pid)?.avatar)"
+          class="gc-chip-avatar"
+          alt=""
         >
-          <img
-            v-if="getValidAvatarUrl(characterMap.get(pid)?.avatar)"
-            :src="getValidAvatarUrl(characterMap.get(pid)?.avatar)"
-            class="gc-chip-avatar"
-            alt=""
-          >
-          <span v-else class="gc-chip-initials">
-            {{ getCharacterInitials(characterMap.get(pid)?.name) }}
-          </span>
-          <span class="gc-chip-name">{{ characterMap.get(pid)?.name || pid }}</span>
-          <span v-if="getParticipantMood(pid)" class="gc-chip-mood">{{ getParticipantMood(pid) }}</span>
+        <span v-else class="gc-chip-initials">
+          {{ getCharacterInitials(characterMap.get(pid)?.name) }}
+        </span>
+        <span class="gc-chip-name">{{ characterMap.get(pid)?.name || pid }}</span>
+        <span v-if="getParticipantMood(pid)" class="gc-chip-mood">{{ getParticipantMood(pid) }}</span>
+      </button>
+    </div>
+
+    <div class="group-messages-container">
+      <!-- Empty state -->
+      <div v-if="messages.length === 0 && !groupChatStore.isLoading" style="text-align: center; padding: 40px 20px; color: var(--adv-text-tertiary);">
+        <p>{{ t('world.groupChatPlaceholder') }}</p>
+      </div>
+
+      <!-- Load earlier messages button -->
+      <div v-if="hasMore" class="load-earlier">
+        <button class="load-earlier-btn" @click="loadMore">
+          {{ t('chat.loadEarlier') }}
         </button>
+        <span class="load-earlier-hint">{{ t('chat.messagesHidden', { count: hiddenCount }) }}</span>
       </div>
 
-      <div class="group-messages-container">
-        <!-- Empty state -->
-        <div v-if="messages.length === 0 && !groupChatStore.isLoading" style="text-align: center; padding: 40px 20px; color: var(--adv-text-tertiary);">
-          <p>{{ t('world.groupChatPlaceholder') }}</p>
-        </div>
-
-        <!-- Load earlier messages button -->
-        <div v-if="hasMore" class="load-earlier">
-          <button class="load-earlier-btn" @click="loadMore">
-            {{ t('chat.loadEarlier') }}
-          </button>
-          <span class="load-earlier-hint">{{ t('chat.messagesHidden', { count: hiddenCount }) }}</span>
-        </div>
-
-        <TransitionGroup name="group-msg">
-          <div
-            v-for="(msg, index) in visibleMessages"
-            :key="msg.timestamp + String(index)"
-            class="group-message"
-            :class="[msg.role]"
-          >
-            <!-- Character message header -->
-            <div v-if="msg.role === 'character'" class="group-message-header">
-              <div
-                class="group-avatar"
-                :class="`group-avatar--${getColorIndex(msg.characterId)}`"
-              >
-                {{ getAvatarInitial(msg.characterName) }}
-              </div>
-              <span
-                class="group-speaker-name"
-                :class="`group-speaker-name--${getColorIndex(msg.characterId)}`"
-              >
-                {{ msg.characterName }}
-              </span>
+      <TransitionGroup name="group-msg">
+        <div
+          v-for="(msg, index) in visibleMessages"
+          :key="msg.timestamp + String(index)"
+          class="group-message"
+          :class="[msg.role]"
+        >
+          <!-- Character message header -->
+          <div v-if="msg.role === 'character'" class="group-message-header">
+            <div
+              class="group-avatar"
+              :class="`group-avatar--${getColorIndex(msg.characterId)}`"
+            >
+              {{ getAvatarInitial(msg.characterName) }}
             </div>
-
-            <div class="group-bubble">
-              <MarkdownMessage v-if="msg.role === 'character'" :content="msg.content" />
-              <template v-else>
-                {{ msg.content }}
-              </template>
-            </div>
-            <div class="group-time">
-              {{ formatChatTime(msg.timestamp) }}
-            </div>
-            <MessageActions
-              :message="{ role: msg.role === 'character' ? 'assistant' : 'user', content: msg.content, timestamp: msg.timestamp } as ChatMessage"
-              :is-last="false"
-              :is-loading="groupChatStore.isLoading"
-              @copy="copyGroupMessage(msg.content)"
-              @delete="deleteGroupMessage(msg.timestamp)"
-              @edit="() => {}"
-              @regenerate="() => {}"
-            />
+            <span
+              class="group-speaker-name"
+              :class="`group-speaker-name--${getColorIndex(msg.characterId)}`"
+            >
+              {{ msg.characterName }}
+            </span>
           </div>
-        </TransitionGroup>
 
-        <!-- Thinking indicator -->
-        <Transition name="group-msg">
-          <div v-if="groupChatStore.isLoading" class="group-thinking">
-            <template v-if="groupChatStore.selectingSpeaker">
-              {{ t('world.selectingSpeaker') }}
+          <div class="group-bubble">
+            <MarkdownMessage v-if="msg.role === 'character'" :content="msg.content" />
+            <template v-else>
+              {{ msg.content }}
             </template>
-            <template v-else-if="groupChatStore.currentSpeakerName">
-              {{ t('world.speakerThinking', { name: groupChatStore.currentSpeakerName }) }}
-            </template>
-            <div class="group-thinking-dot">
-              <span />
-              <span />
-              <span />
-            </div>
           </div>
-        </Transition>
-      </div>
-    </IonContent>
+          <div class="group-time">
+            {{ formatChatTime(msg.timestamp) }}
+          </div>
+          <MessageActions
+            :message="{ role: msg.role === 'character' ? 'assistant' : 'user', content: msg.content, timestamp: msg.timestamp } as ChatMessage"
+            :is-last="false"
+            :is-loading="groupChatStore.isLoading"
+            @copy="copyGroupMessage(msg.content)"
+            @delete="deleteGroupMessage(msg.timestamp)"
+            @edit="() => {}"
+            @regenerate="() => {}"
+          />
+        </div>
+      </TransitionGroup>
 
-    <IonFooter>
+      <!-- Thinking indicator -->
+      <Transition name="group-msg">
+        <div v-if="groupChatStore.isLoading" class="group-thinking">
+          <template v-if="groupChatStore.selectingSpeaker">
+            {{ t('world.selectingSpeaker') }}
+          </template>
+          <template v-else-if="groupChatStore.currentSpeakerName">
+            {{ t('world.speakerThinking', { name: groupChatStore.currentSpeakerName }) }}
+          </template>
+          <div class="group-thinking-dot">
+            <span />
+            <span />
+            <span />
+          </div>
+        </div>
+      </Transition>
+    </div>
+
+    <template #footer>
       <IonToolbar>
         <div class="chat-input-bar">
           <!-- Continue button -->
@@ -647,8 +637,8 @@ async function handleDeleteSnapshot(snapshotId: string) {
           </IonButton>
         </div>
       </IonToolbar>
-    </IonFooter>
-  </IonPage>
+    </template>
+  </StudioPage>
 </template>
 
 <style scoped>

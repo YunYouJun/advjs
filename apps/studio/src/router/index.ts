@@ -31,6 +31,18 @@ const routes: Array<RouteRecordRaw> = [
         path: 'workspace/scenes',
         component: () => import('@/views/workspace/ScenesPage.vue'),
       },
+      {
+        path: 'workspace/audio',
+        component: () => import('@/views/workspace/AudioPage.vue'),
+      },
+      {
+        path: 'workspace/knowledge',
+        component: () => import('@/views/workspace/KnowledgePage.vue'),
+      },
+      {
+        path: 'workspace/marketplace',
+        component: () => import('@/views/workspace/MarketplacePage.vue'),
+      },
       // Legacy redirects
       {
         path: 'projects',

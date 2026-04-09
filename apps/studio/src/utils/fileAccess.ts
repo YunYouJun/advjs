@@ -62,6 +62,32 @@ export async function listFilesInDir(
   return files.sort()
 }
 
+/** List files in a subdirectory matching any of the given extensions */
+export async function listFilesInDirByExts(
+  dir: FileSystemDirectoryHandle,
+  subdir: string,
+  exts: string[],
+): Promise<string[]> {
+  const files: string[] = []
+
+  try {
+    let targetDir: FileSystemDirectoryHandle = dir
+    if (subdir) {
+      targetDir = await resolveSubdir(dir, subdir.split('/').filter(Boolean))
+    }
+
+    for await (const entry of targetDir.values()) {
+      if (entry.kind === 'file' && exts.some(ext => entry.name.toLowerCase().endsWith(ext)))
+        files.push(subdir ? `${subdir}/${entry.name}` : entry.name)
+    }
+  }
+  catch {
+    // directory not found
+  }
+
+  return files.sort()
+}
+
 /** Detect whether the directory is an ADV.JS project */
 export async function detectAdvProject(
   dir: FileSystemDirectoryHandle,
@@ -145,6 +171,50 @@ export function downloadAsFile(
   a.download = filename
   a.click()
   URL.revokeObjectURL(url)
+}
+
+/** Read a binary file from a directory handle and return a blob URL */
+export async function readBlobFromDir(
+  dir: FileSystemDirectoryHandle,
+  path: string,
+): Promise<string> {
+  const parts = path.split('/').filter(Boolean)
+  const current = await resolveSubdir(dir, parts.slice(0, -1))
+  const fileName = parts.at(-1)!
+  const fileHandle = await current.getFileHandle(fileName)
+  const file = await fileHandle.getFile()
+  return URL.createObjectURL(file)
+}
+
+/** Write a Blob or File to a directory handle by relative path */
+export async function writeBlobToDir(
+  dir: FileSystemDirectoryHandle,
+  path: string,
+  data: Blob,
+): Promise<void> {
+  const parts = path.split('/').filter(Boolean)
+  const current = await resolveSubdir(dir, parts.slice(0, -1), true)
+  const fileName = parts.at(-1)!
+  const fileHandle = await current.getFileHandle(fileName, { create: true })
+  const writable = await fileHandle.createWritable()
+  await writable.write(data)
+  await writable.close()
+}
+
+export const AUDIO_EXTENSIONS = ['.mp3', '.wav', '.ogg', '.m4a', '.webm', '.flac', '.aac']
+
+export const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp', '.avif']
+
+/** Check if a filename is an audio file */
+export function isAudioFile(name: string): boolean {
+  const lower = name.toLowerCase()
+  return AUDIO_EXTENSIONS.some(ext => lower.endsWith(ext))
+}
+
+/** Check if a filename is an image file */
+export function isImageFile(name: string): boolean {
+  const lower = name.toLowerCase()
+  return IMAGE_EXTENSIONS.some(ext => lower.endsWith(ext))
 }
 
 const TEXT_EXTENSIONS = [

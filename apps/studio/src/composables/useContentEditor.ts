@@ -1,10 +1,11 @@
 import type { AdvCharacter } from '@advjs/types'
+import type { AudioFormData } from '../utils/audioMd'
 import type { ChapterFormData } from '../utils/chapterMd'
 import type { SceneFormData } from '../utils/sceneMd'
 import { computed, ref, watch } from 'vue'
 import { getCurrentProjectId } from '../utils/projectScope'
 
-export type ContentType = 'character' | 'scene' | 'chapter'
+export type ContentType = 'character' | 'scene' | 'chapter' | 'audio'
 export type EditorMode = 'create' | 'edit'
 
 const ID_RE = /^[\w-]+$/
@@ -14,7 +15,7 @@ const DRAFT_PREFIX = 'advjs-studio-draft-'
  * Generic content editor state machine
  * Manages form state, mode, validation, and local draft persistence
  */
-export function useContentEditor<T extends AdvCharacter | SceneFormData | ChapterFormData>(
+export function useContentEditor<T extends AdvCharacter | SceneFormData | ChapterFormData | AudioFormData>(
   contentType: ContentType,
   createDefault: () => T,
 ) {
@@ -160,6 +161,11 @@ export function useContentEditor<T extends AdvCharacter | SceneFormData | Chapte
         errors.push('Filename is required')
       if (chapter.filename && !ID_RE.test(chapter.filename.replace('.adv.md', '')))
         errors.push('Filename must contain only letters, numbers, hyphens, and underscores')
+    }
+    else if (contentType === 'audio') {
+      const audio = data as AudioFormData
+      if (!audio.name?.trim())
+        errors.push('Name is required')
     }
 
     return errors

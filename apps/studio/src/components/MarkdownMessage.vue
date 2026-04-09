@@ -3,8 +3,11 @@ import type { FileDiff } from '../utils/lineDiff'
 import { IonButton, IonIcon } from '@ionic/vue'
 import { saveOutline } from 'ionicons/icons'
 import MarkdownIt from 'markdown-it'
-import { computed } from 'vue'
+import { computed, ref, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useStudioStore } from '../stores/useStudioStore'
+import { readFileFromDir } from '../utils/fileAccess'
+import { computeLineDiff } from '../utils/lineDiff'
 import FileDiffPreview from './FileDiffPreview.vue'
 
 const props = withDefaults(defineProps<{
@@ -123,6 +126,44 @@ const saveableBlocks = computed(() => {
 function handleSave(block: typeof saveableBlocks.value[number]) {
   emit('save', { type: block.type, content: block.content, filename: block.filename })
 }
+
+// --- Pre-computed diffs for saveable blocks ---
+const studioStore = useStudioStore()
+const precomputedDiffs = ref<Map<string, FileDiff>>(new Map())
+const expandedDiffs = ref<Set<string>>(new Set())
+
+watchEffect(async () => {
+  const blocks = saveableBlocks.value
+  if (!blocks.length)
+    return
+
+  const project = studioStore.currentProject
+  if (!project?.dirHandle)
+    return
+
+  const newDiffs = new Map<string, FileDiff>()
+  for (const block of blocks) {
+    try {
+      const existing = await readFileFromDir(project.dirHandle, block.filename)
+      if (existing && existing !== block.content) {
+        const diff = computeLineDiff(block.filename, existing, block.content)
+        if (diff.addedCount > 0 || diff.removedCount > 0)
+          newDiffs.set(block.filename, diff)
+      }
+    }
+    catch {
+      // File doesn't exist yet — no diff to show
+    }
+  }
+  precomputedDiffs.value = newDiffs
+})
+
+function toggleDiffExpand(filename: string) {
+  if (expandedDiffs.value.has(filename))
+    expandedDiffs.value.delete(filename)
+  else
+    expandedDiffs.value.add(filename)
+}
 </script>
 
 <template>
@@ -130,12 +171,26 @@ function handleSave(block: typeof saveableBlocks.value[number]) {
   <!-- Save buttons for detected ADV content blocks -->
   <div v-if="saveableBlocks.length" class="save-blocks">
     <div v-for="(block, i) in saveableBlocks" :key="i" class="save-block">
-      <IonButton size="small" fill="outline" color="primary" class="save-block__btn" @click="handleSave(block)">
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonIcon slot="start" :icon="saveOutline" />
-        {{ t('contentEditor.saveToProject', { type: t(`contentEditor.saveType${block.type.charAt(0).toUpperCase() + block.type.slice(1)}`), label: block.label }) }}
-      </IonButton>
+      <div class="save-block__row">
+        <IonButton size="small" fill="outline" color="primary" class="save-block__btn" @click="handleSave(block)">
+          <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+          <IonIcon slot="start" :icon="saveOutline" />
+          {{ t('contentEditor.saveToProject', { type: t(`contentEditor.saveType${block.type.charAt(0).toUpperCase() + block.type.slice(1)}`), label: block.label }) }}
+        </IonButton>
+        <button
+          v-if="precomputedDiffs.has(block.filename)"
+          class="save-block__diff-toggle"
+          @click="toggleDiffExpand(block.filename)"
+        >
+          <span class="save-block__diff-added">+{{ precomputedDiffs.get(block.filename)!.addedCount }}</span>
+          <span class="save-block__diff-removed">-{{ precomputedDiffs.get(block.filename)!.removedCount }}</span>
+        </button>
+      </div>
       <span class="save-block__path">{{ block.filename }}</span>
+      <FileDiffPreview
+        v-if="expandedDiffs.has(block.filename) && precomputedDiffs.has(block.filename)"
+        :diff="precomputedDiffs.get(block.filename)!"
+      />
     </div>
   </div>
   <!-- File diff previews -->
@@ -267,10 +322,51 @@ function handleSave(block: typeof saveableBlocks.value[number]) {
   gap: 2px;
 }
 
+.save-block__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .save-block__btn {
   --border-radius: 8px;
   text-transform: none;
   font-weight: 500;
+}
+
+.save-block__diff-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--adv-border-subtle, rgba(0, 0, 0, 0.1));
+  background: transparent;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s;
+}
+
+.save-block__diff-toggle:hover {
+  background: var(--adv-surface-elevated, #f5f5f5);
+}
+
+.save-block__diff-added {
+  color: #16a34a;
+}
+
+.save-block__diff-removed {
+  color: #dc2626;
+}
+
+:root.dark .save-block__diff-added {
+  color: #4ade80;
+}
+
+:root.dark .save-block__diff-removed {
+  color: #f87171;
 }
 
 .save-block__path {

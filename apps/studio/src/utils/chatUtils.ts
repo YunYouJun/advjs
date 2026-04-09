@@ -3,6 +3,8 @@
  */
 
 import type { Ref } from 'vue'
+import type { ChatMessage } from './aiClient'
+import type { ResolvedAiConfig } from './resolveAiConfig'
 import i18n from '../i18n'
 import { useAiSettingsStore } from '../stores/useAiSettingsStore'
 import { AiApiError, buildStreamOptions, streamChat } from './aiClient'
@@ -224,13 +226,15 @@ export function pushNotConfiguredFallback(
  * and its placeholder messages have additional fields (characterId, characterName).
  */
 export async function streamToMessage(opts: {
-  allMessages: Array<{ role: string, content: string }>
+  allMessages: ChatMessage[]
   messageList: Array<{ role: string, content: string, timestamp: number }>
-  placeholderRole: string
+  placeholderRole: ChatMessage['role']
   streamingContent: Ref<string>
   isLoading: Ref<boolean>
   currentAbortController: Ref<AbortController | null>
   onSuccess?: (accumulated: string) => void
+  /** Per-character AI config override. When provided, bypasses global aiSettings. */
+  resolvedConfig?: ResolvedAiConfig
 }): Promise<void> {
   const aiSettings = useAiSettingsStore()
   const abortController = new AbortController()
@@ -245,13 +249,23 @@ export async function streamToMessage(opts: {
   const msgIndex = opts.messageList.length - 1
 
   try {
-    const options = buildStreamOptions(
-      opts.allMessages,
-      aiSettings.config,
-      aiSettings.effectiveBaseURL,
-      aiSettings.effectiveModel,
-      abortController.signal,
-    )
+    const options = opts.resolvedConfig
+      ? {
+          messages: opts.allMessages,
+          baseURL: opts.resolvedConfig.baseURL,
+          apiKey: opts.resolvedConfig.apiKey,
+          model: opts.resolvedConfig.model,
+          temperature: opts.resolvedConfig.temperature,
+          maxTokens: opts.resolvedConfig.maxTokens,
+          signal: abortController.signal,
+        }
+      : buildStreamOptions(
+          opts.allMessages,
+          aiSettings.config,
+          aiSettings.effectiveBaseURL,
+          aiSettings.effectiveModel,
+          abortController.signal,
+        )
 
     let accumulated = ''
     for await (const delta of streamChat(options)) {

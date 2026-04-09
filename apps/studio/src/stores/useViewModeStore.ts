@@ -61,7 +61,7 @@ export const useViewModeStore = defineStore('viewMode', () => {
   // --- Dexie persistence ---
 
   const { flush, init, $reset } = useProjectPersistence({
-    source: [playerCharacterId, customCharacters],
+    source: () => [playerCharacterId.value, customCharacters.value] as const,
     save: async () => {
       const pid = getCurrentProjectId()
       await db.viewModes.put({

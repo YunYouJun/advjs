@@ -6,6 +6,9 @@ import i18n from './i18n'
 
 import router from './router'
 
+/* Capacitor native plugin initialization */
+import { initCapacitorPlugins } from './utils/capacitor'
+
 /* Ensure IndexedDB is open (with auto-recovery) before mounting */
 import { dbReady } from './utils/db'
 
@@ -57,4 +60,5 @@ const app = createApp(App)
 
 Promise.all([router.isReady(), dbReady]).then(() => {
   app.mount('#app')
+  initCapacitorPlugins()
 })

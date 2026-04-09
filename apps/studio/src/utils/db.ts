@@ -2,6 +2,7 @@ import type { AdvCharacter, AdvCharacterDynamicState, WorldClockState, WorldEven
 import type { CharacterChatMessage, CharacterConversation, ConversationSnapshot } from '../stores/useCharacterChatStore'
 import type { CharacterMemory } from '../stores/useCharacterMemoryStore'
 import type { GroupChatRoom, GroupChatRoomSnapshot } from '../stores/useGroupChatStore'
+import type { CharacterAiOverride } from './resolveAiConfig'
 import Dexie from 'dexie'
 
 export const DEFAULT_PROJECT_ID = '_default_'
@@ -76,6 +77,21 @@ export interface DbGroupChatRoomSnapshot extends GroupChatRoomSnapshot {
   projectId: string
 }
 
+export interface DbCharacterAiConfig {
+  projectId: string
+  characterId: string
+  config: CharacterAiOverride
+}
+
+export interface DbArchivedBatch {
+  projectId: string
+  characterId: string
+  batchId: string
+  messages: Array<{ role: string, content: string, timestamp: number }>
+  summary: string
+  archivedAt: number
+}
+
 // --- Database ---
 
 class StudioDatabase extends Dexie {
@@ -91,6 +107,8 @@ class StudioDatabase extends Dexie {
   characterDiaries!: Dexie.Table<DbCharacterDiary, [string, string]>
   chatMessages!: Dexie.Table<DbChatMessage, [string, string]>
   groupChatSnapshots!: Dexie.Table<DbGroupChatRoomSnapshot, [string, string]>
+  characterAiConfigs!: Dexie.Table<DbCharacterAiConfig, [string, string]>
+  archivedBatches!: Dexie.Table<DbArchivedBatch, [string, string]>
 
   constructor() {
     super('advjs-studio')
@@ -226,6 +244,41 @@ class StudioDatabase extends Dexie {
       characterDiaries: '[projectId+id], [projectId+characterId], [projectId+characterId+date+period]',
       chatMessages: '[projectId+id]',
       groupChatSnapshots: '[projectId+id], [projectId+roomId]',
+    })
+
+    // v9: add characterAiConfigs table for per-character AI overrides
+    this.version(9).stores({
+      characterChats: '[projectId+characterId]',
+      characterMemories: '[projectId+characterId]',
+      groupChats: '[projectId+id]',
+      worldEvents: '[projectId+id]',
+      characterStates: '[projectId+characterId]',
+      worldClocks: 'projectId',
+      viewModes: 'projectId',
+      dirHandles: 'projectName',
+      conversationSnapshots: '[projectId+id], [projectId+characterId]',
+      characterDiaries: '[projectId+id], [projectId+characterId], [projectId+characterId+date+period]',
+      chatMessages: '[projectId+id]',
+      groupChatSnapshots: '[projectId+id], [projectId+roomId]',
+      characterAiConfigs: '[projectId+characterId]',
+    })
+
+    // v10: add archivedBatches table for message archival
+    this.version(10).stores({
+      characterChats: '[projectId+characterId]',
+      characterMemories: '[projectId+characterId]',
+      groupChats: '[projectId+id]',
+      worldEvents: '[projectId+id]',
+      characterStates: '[projectId+characterId]',
+      worldClocks: 'projectId',
+      viewModes: 'projectId',
+      dirHandles: 'projectName',
+      conversationSnapshots: '[projectId+id], [projectId+characterId]',
+      characterDiaries: '[projectId+id], [projectId+characterId], [projectId+characterId+date+period]',
+      chatMessages: '[projectId+id]',
+      groupChatSnapshots: '[projectId+id], [projectId+roomId]',
+      characterAiConfigs: '[projectId+characterId]',
+      archivedBatches: '[projectId+batchId], [projectId+characterId]',
     })
   }
 }

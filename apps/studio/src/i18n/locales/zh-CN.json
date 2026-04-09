@@ -57,7 +57,9 @@
     "slugHint": "用作文件夹名和云端路径，自动根据名称生成",
     "sourceCos": "COS",
     "sourceUrl": "URL",
-    "sourceLocal": "本地"
+    "sourceLocal": "本地",
+    "importProject": "导入项目",
+    "importProjectDesc": "从 .advpkg.zip 包导入"
   },
   "projectSettings": {
     "title": "项目设置",
@@ -202,7 +204,14 @@
     "fileNotFoundDesc": "该文件尚未创建。你可以手动新建空文件，或让 AI 生成内容。",
     "createEmpty": "创建空文件",
     "aiGenerate": "AI 生成",
-    "aiPromptPlaceholder": "描述要生成的内容..."
+    "aiPromptPlaceholder": "描述要生成的内容...",
+    "insertHeading": "插入标题",
+    "insertCharacter": "插入角色标签",
+    "insertList": "插入列表",
+    "insertBold": "插入粗体",
+    "insertQuote": "插入引用",
+    "insertDivider": "插入分隔线",
+    "insertScene": "插入场景标记"
   },
   "me": {
     "title": "我的",
@@ -481,7 +490,16 @@
     "trust": "信任度",
     "userProfile": "TA 对你的印象",
     "keyEvents": "关键记忆",
-    "autoDiaryGenerating": "正在自动生成日记..."
+    "autoDiaryGenerating": "正在自动生成日记...",
+    "aiSettings": "AI 设置",
+    "aiCustomSettings": "自定义 AI 配置",
+    "aiProvider": "服务商",
+    "aiModel": "模型",
+    "aiTemperature": "温度",
+    "aiMaxTokens": "最大 Token 数",
+    "aiUseGlobal": "使用全局（{value}）",
+    "aiEffective": "实际配置",
+    "aiSettingsSaved": "AI 设置已保存"
   },
   "common": {
     "cancel": "取消",
@@ -496,7 +514,8 @@
     "expand": "展开",
     "collapse": "收起",
     "viewAll": "查看全部",
-    "search": "搜索..."
+    "search": "搜索...",
+    "save": "保存"
   },
   "chapters": {
     "title": "章节",
@@ -525,7 +544,71 @@
   "scenes": {
     "title": "场景",
     "confirmDelete": "确定删除场景「{name}」？此操作不可撤销。",
-    "emptySearch": "没有匹配的场景"
+    "emptySearch": "没有匹配的场景",
+    "generateImage": "AI 生成图片",
+    "generating": "图片生成中…",
+    "imageGenerated": "图片已生成并保存",
+    "imageGenerateFailed": "图片生成失败: {error}",
+    "noImage": "暂无图片"
+  },
+  "audio": {
+    "title": "音频资源",
+    "name": "名称",
+    "namePlaceholder": "输入音频名称",
+    "descriptionPlaceholder": "音频描述（可选）",
+    "search": "搜索音频",
+    "empty": "暂无音频资源",
+    "emptySearch": "没有匹配的音频",
+    "import": "导入音频",
+    "importSuccess": "成功导入 {count} 个音频文件",
+    "importFailed": "导入失败",
+    "play": "播放",
+    "pause": "暂停",
+    "duration": "时长",
+    "confirmDelete": "确定删除音频「{name}」？此操作不可撤销。",
+    "linkedContent": "关联内容",
+    "linkedScenes": "关联场景",
+    "linkedChapters": "关联章节"
+  },
+  "knowledge": {
+    "title": "知识库",
+    "search": "搜索知识...",
+    "basicInfo": "基本信息",
+    "titleField": "标题",
+    "titlePlaceholder": "知识文件标题",
+    "titleRequired": "请输入标题",
+    "domain": "领域",
+    "domainGeneral": "通用",
+    "domainCustom": "自定义领域",
+    "domainNew": "新领域名称",
+    "domainNewPlaceholder": "例如: law, history",
+    "content": "内容",
+    "contentPlaceholder": "使用 Markdown 格式编写知识内容...\n\n## 分段标题\n\n内容会按 ## 标题自动分段，用于 AI 检索。",
+    "create": "创建知识文件",
+    "edit": "编辑知识文件",
+    "confirmDelete": "确定删除知识文件「{name}」？此操作不可撤销。",
+    "emptySearch": "没有匹配的知识文件"
+  },
+  "project": {
+    "export": "导出项目",
+    "exportSuccess": "项目已导出为 .advpkg.zip",
+    "exportFailed": "导出失败",
+    "import": "导入项目",
+    "importSuccess": "项目「{name}」已导入成功",
+    "importFailed": "导入失败",
+    "importInvalid": "无效的 .advpkg 文件"
+  },
+  "marketplace": {
+    "title": "故事市场",
+    "search": "搜索世界和故事...",
+    "empty": "暂无匹配结果",
+    "by": "作者: {author}",
+    "downloads": "下载",
+    "rating": "评分",
+    "install": "加载到本地",
+    "comingSoon": "市场功能即将上线，敬请期待！",
+    "browse": "浏览市场",
+    "browseDesc": "发现其他创作者的故事"
   },
   "dashboard": {
     "worldSetting": "世界设定",
@@ -534,7 +617,7 @@
     "knowledgeBase": "知识库",
     "noKnowledge": "在 adv/knowledge/ 下添加文件",
     "audioAssets": "音频素材",
-    "comingSoon": "即将推出",
+    "clickToManage": "点击管理",
     "clickToEdit": "点击编辑",
     "recentActivity": "最近活动",
     "recentEdited": "最近编辑",
@@ -543,7 +626,22 @@
     "writingStyle": "文风设定",
     "timeline": "时间线",
     "noTimeline": "暂无事件",
-    "viewAll": "查看全部..."
+    "viewAll": "查看全部...",
+    "projectHealth": "项目健康",
+    "share": "分享",
+    "shareText": "来看看这个视觉小说项目！",
+    "shareCopied": "链接已复制"
+  },
+  "validation": {
+    "clickToCheck": "点击检查项目健康状态",
+    "checking": "正在检查…",
+    "passed": "项目健康，无问题",
+    "failed": "发现问题",
+    "issueCount": "{count} 个问题",
+    "recheck": "重新检查",
+    "syntaxErrors": "{count} 个语法错误",
+    "characterErrors": "{count} 个角色引用缺失",
+    "sceneErrors": "{count} 个场景引用缺失"
   },
   "contentEditor": {
     "formTab": "表单",
@@ -578,6 +676,8 @@
     "speechStylePlaceholder": "描述角色的说话风格和语气...",
     "createScene": "创建场景",
     "editScene": "编辑场景",
+    "createAudio": "创建音频",
+    "editAudio": "编辑音频",
     "sceneId": "场景 ID",
     "sceneIdPlaceholder": "例如: classroom",
     "sceneName": "场景名",
