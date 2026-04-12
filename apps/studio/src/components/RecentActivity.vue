@@ -131,7 +131,7 @@ function getAvatarUrl(item: RecentItem): string {
 
 <style scoped>
 .recent {
-  padding: 0 var(--adv-space-md) var(--adv-space-md);
+  padding: 1rem var(--adv-space-md) var(--adv-space-md);
   display: flex;
   flex-direction: column;
   gap: var(--adv-space-sm);

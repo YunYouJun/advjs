@@ -38,8 +38,8 @@ import CharacterAiSettingsForm from '../components/CharacterAiSettingsForm.vue'
 import CharacterChatWelcome from '../components/CharacterChatWelcome.vue'
 import CharacterInfoModal from '../components/CharacterInfoModal.vue'
 import ChatHistorySearch from '../components/ChatHistorySearch.vue'
+import LayoutPage from '../components/common/LayoutPage.vue'
 import MarkdownMessage from '../components/MarkdownMessage.vue'
-import StudioPage from '../components/StudioPage.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useWorldContext } from '../composables/useWorldContext'
 import { useAiSettingsStore } from '../stores/useAiSettingsStore'
@@ -82,10 +82,10 @@ function getEffectiveWorldContext(): string {
   return viewModeStore.getEffectiveWorldContext(worldContext.value)
 }
 
-type StudioPageInstance = InstanceType<typeof StudioPage>
+type LayoutPageInstance = InstanceType<typeof LayoutPage>
 
 const inputText = ref('')
-const studioPageRef = ref<StudioPageInstance | null>(null)
+const layoutPageRef = ref<LayoutPageInstance | null>(null)
 const showInfoModal = ref(false)
 const showSearch = ref(false)
 const showSnapshots = ref(false)
@@ -154,13 +154,13 @@ const moodEmoji = computed(() => {
 // Auto-scroll to bottom when messages change
 watch(() => visibleMessages.value.length, async () => {
   await nextTick()
-  studioPageRef.value?.contentRef?.$el?.scrollToBottom?.(300)
+  layoutPageRef.value?.contentRef?.$el?.scrollToBottom?.(300)
 })
 
 // Also scroll when streaming content updates
 watch(() => characterChatStore.streamingContent, async () => {
   await nextTick()
-  studioPageRef.value?.contentRef?.$el?.scrollToBottom?.(100)
+  layoutPageRef.value?.contentRef?.$el?.scrollToBottom?.(100)
 })
 
 function goBack() {
@@ -451,7 +451,7 @@ function handleSearchJump(index: number) {
   const visibleIndex = index - newVisibleStart
 
   nextTick(() => {
-    const el = studioPageRef.value?.contentRef?.$el
+    const el = layoutPageRef.value?.contentRef?.$el
     if (!el)
       return
     const msgElements = el.querySelectorAll('.message')
@@ -746,7 +746,7 @@ async function handleDeleteDiary(diaryId: string) {
 </script>
 
 <template>
-  <StudioPage ref="studioPageRef">
+  <LayoutPage ref="layoutPageRef">
     <template #start>
       <IonButton @click="goBack">
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
@@ -1002,7 +1002,7 @@ async function handleDeleteDiary(diaryId: string) {
         </div>
       </IonContent>
     </IonModal>
-  </StudioPage>
+  </LayoutPage>
 </template>
 
 <style scoped>

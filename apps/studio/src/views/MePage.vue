@@ -17,7 +17,7 @@ import {
 } from 'ionicons/icons'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import StudioPage from '../components/StudioPage.vue'
+import LayoutPage from '../components/common/LayoutPage.vue'
 import NavGroup from '../components/ui/NavGroup.vue'
 import NavItem from '../components/ui/NavItem.vue'
 import { useSettingsStore } from '../stores/useSettingsStore'
@@ -84,7 +84,7 @@ const infoItems = [
 </script>
 
 <template>
-  <StudioPage :title="t('me.title')">
+  <LayoutPage :title="t('me.title')">
     <IonHeader collapse="condense">
       <IonToolbar>
         <IonTitle size="large">
@@ -178,7 +178,7 @@ const infoItems = [
         </button>
       </div>
     </div>
-  </StudioPage>
+  </LayoutPage>
 </template>
 
 <style scoped>

@@ -11,12 +11,19 @@ import {
   brushOutline,
   bulbOutline,
   checkmarkCircleOutline,
+  chevronForwardOutline,
+  closeOutline,
+  cloudDoneOutline,
   cloudDownloadOutline,
+  cloudOfflineOutline,
+  cloudOutline,
   cubeOutline,
   documentTextOutline,
   globeOutline,
+  gridOutline,
   imageOutline,
   libraryOutline,
+  listOutline,
   locationOutline,
   musicalNotesOutline,
   peopleOutline,
@@ -29,6 +36,7 @@ import {
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { useCloudSync } from '../composables/useCloudSync'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useProjectDescription } from '../composables/useProjectDescription'
 import { downloadBlob, exportProject } from '../composables/useProjectExport'
@@ -37,7 +45,6 @@ import { useWorldEventStore } from '../stores/useWorldEventStore'
 import { validateProject } from '../utils/projectValidation'
 import ProjectSettingsModal from './ProjectSettingsModal.vue'
 import RecentActivity from './RecentActivity.vue'
-import StatsCard from './StatsCard.vue'
 
 const SAFE_NAME_RE = /[^a-z0-9\u4E00-\u9FFF]+/g
 
@@ -69,6 +76,88 @@ const {
 } = useProjectDescription()
 
 const worldEventStore = useWorldEventStore()
+const { syncStatus, isSyncing, lastSyncTime, isCosConfigured, performSync } = useCloudSync()
+
+const syncIcon = computed(() => {
+  if (isSyncing.value)
+    return cloudOutline
+  if (syncStatus.value === 'success')
+    return cloudDoneOutline
+  if (syncStatus.value === 'failed')
+    return cloudOfflineOutline
+  return cloudOutline
+})
+
+async function handleSync() {
+  if (!isCosConfigured()) {
+    const toast = await toastController.create({
+      message: t('project.noSyncConfig'),
+      duration: 2000,
+      position: 'top',
+    })
+    await toast.present()
+    return
+  }
+  const { uploaded, downloaded } = await performSync()
+  const toast = await toastController.create({
+    message: syncStatus.value === 'success'
+      ? `${t('sync.syncComplete')} ↑${uploaded} ↓${downloaded}`
+      : t('sync.syncFailed'),
+    duration: 2000,
+    position: 'top',
+    color: syncStatus.value === 'success' ? 'success' : 'danger',
+  })
+  await toast.present()
+}
+
+// --- Project Validation ---
+const validationResult = ref<ValidationResult | null>(null)
+const isValidating = ref(false)
+
+const validationIcon = computed(() => {
+  if (!validationResult.value)
+    return shieldCheckmarkOutline
+  return validationResult.value.passed ? checkmarkCircleOutline : warningOutline
+})
+
+async function handleValidation() {
+  isValidating.value = true
+  try {
+    validationResult.value = await validateProject(
+      chapters.value,
+      characters.value,
+      scenes.value,
+      audios.value,
+      locations.value,
+    )
+    const r = validationResult.value
+    const errors = r.issues.filter(i => i.type === 'error').length
+    const warnings = r.issues.filter(i => i.type === 'warning').length
+    const toast = await toastController.create({
+      message: r.passed
+        ? t('validation.passed')
+        : `${t('validation.failed')} — ${errors} error${errors !== 1 ? 's' : ''}, ${warnings} warning${warnings !== 1 ? 's' : ''}`,
+      duration: 2500,
+      position: 'top',
+      color: r.passed ? 'success' : 'warning',
+      buttons: [{ role: 'cancel', icon: closeOutline }],
+    })
+    await toast.present()
+  }
+  catch {
+    const toast = await toastController.create({
+      message: t('validation.failed'),
+      duration: 2000,
+      position: 'top',
+      color: 'danger',
+      buttons: [{ role: 'cancel', icon: closeOutline }],
+    })
+    await toast.present()
+  }
+  finally {
+    isValidating.value = false
+  }
+}
 
 // --- Derived data for dashboard cards ---
 const projectName = computed(() => studioStore.currentProject?.name || '')
@@ -91,14 +180,162 @@ const styleTitle = computed(() => extractTitle(writingStyleMd.value) || t('dashb
 const styleSections = computed(() => extractSections(writingStyleMd.value))
 const hasStyle = computed(() => writingStyleMd.value.trim().length > 0)
 
-// Expandable section lists
-const expandedPropsCard = ref(false)
-const expandedGlossaryCard = ref(false)
+// View mode toggle: 'grid' | 'list'
+const viewMode = ref<'grid' | 'list'>('grid')
 
 const timelineEvents = computed(() => worldEventStore.events.slice(-3).reverse())
 const hasTimeline = computed(() => worldEventStore.events.length > 0)
-
 const knowledgeDomains = computed(() => knowledgeBase.domains.value)
+
+// --- Unified resource items ---
+interface ResourceItem {
+  key: string
+  icon: string
+  accent: string
+  label: string
+  value: number | string
+  chips: string[]
+  preview?: string
+  empty: boolean
+  emptyHint: string
+  action: () => void
+}
+
+const resourceItems = computed<ResourceItem[]>(() => [
+  {
+    key: 'chapters',
+    icon: bookOutline,
+    accent: 'indigo',
+    label: t('preview.chaptersCount'),
+    value: stats.value.chapters,
+    chips: [],
+    empty: stats.value.chapters === 0,
+    emptyHint: t('dashboard.clickToManage'),
+    action: () => navigateTo('/tabs/workspace/chapters'),
+  },
+  {
+    key: 'characters',
+    icon: peopleOutline,
+    accent: 'violet',
+    label: t('preview.charactersCount'),
+    value: stats.value.characters,
+    chips: [],
+    empty: stats.value.characters === 0,
+    emptyHint: t('dashboard.clickToManage'),
+    action: () => navigateTo('/tabs/workspace/characters'),
+  },
+  {
+    key: 'scenes',
+    icon: imageOutline,
+    accent: 'teal',
+    label: t('workspace.scenes'),
+    value: stats.value.scenes,
+    chips: [],
+    empty: stats.value.scenes === 0,
+    emptyHint: t('dashboard.clickToManage'),
+    action: () => navigateTo('/tabs/workspace/scenes'),
+  },
+  {
+    key: 'world',
+    icon: globeOutline,
+    accent: 'blue',
+    label: worldTitle.value,
+    value: worldSections.value.length,
+    chips: worldSections.value.slice(0, 4),
+    empty: !hasWorld.value,
+    emptyHint: t('dashboard.clickToEdit'),
+    action: () => openFileInEditor('adv/world.md'),
+  },
+  {
+    key: 'outline',
+    icon: documentTextOutline,
+    accent: 'amber',
+    label: outlineTitle.value,
+    value: outlineSections.value.length,
+    chips: outlineSections.value.slice(0, 4),
+    preview: outlinePreview.value,
+    empty: !hasOutline.value,
+    emptyHint: t('dashboard.clickToEdit'),
+    action: () => openFileInEditor('adv/outline.md'),
+  },
+  {
+    key: 'locations',
+    icon: locationOutline,
+    accent: 'emerald',
+    label: t('dashboard.locations'),
+    value: stats.value.locations,
+    chips: locations.value.slice(0, 4).map(l => l.name),
+    empty: stats.value.locations === 0,
+    emptyHint: t('dashboard.clickToManage'),
+    action: () => navigateTo('/tabs/workspace/locations'),
+  },
+  {
+    key: 'knowledge',
+    icon: libraryOutline,
+    accent: 'emerald',
+    label: t('dashboard.knowledgeBase'),
+    value: stats.value.knowledge,
+    chips: knowledgeDomains.value.slice(0, 4),
+    empty: stats.value.knowledge === 0,
+    emptyHint: t('dashboard.noKnowledge'),
+    action: () => navigateTo('/tabs/workspace/knowledge'),
+  },
+  {
+    key: 'props',
+    icon: cubeOutline,
+    accent: 'orange',
+    label: t('dashboard.props'),
+    value: propsSections.value.length,
+    chips: propsSections.value.slice(0, 4),
+    empty: propsSections.value.length === 0,
+    emptyHint: t('dashboard.clickToEdit'),
+    action: () => openFileInEditor('adv/props.md'),
+  },
+  {
+    key: 'glossary',
+    icon: bulbOutline,
+    accent: 'rose',
+    label: t('dashboard.glossary'),
+    value: glossarySections.value.length,
+    chips: glossarySections.value.slice(0, 4),
+    empty: glossarySections.value.length === 0,
+    emptyHint: t('dashboard.clickToEdit'),
+    action: () => openFileInEditor('adv/glossary.md'),
+  },
+  {
+    key: 'style',
+    icon: brushOutline,
+    accent: 'pink',
+    label: styleTitle.value,
+    value: styleSections.value.length,
+    chips: styleSections.value.slice(0, 4),
+    empty: !hasStyle.value,
+    emptyHint: t('dashboard.clickToEdit'),
+    action: () => openFileInEditor('adv/writing-style.md'),
+  },
+  {
+    key: 'audio',
+    icon: musicalNotesOutline,
+    accent: 'amber',
+    label: t('dashboard.audioAssets'),
+    value: stats.value.audios,
+    chips: [],
+    empty: stats.value.audios === 0,
+    emptyHint: t('dashboard.clickToManage'),
+    action: () => navigateTo('/tabs/workspace/audio'),
+  },
+  {
+    key: 'timeline',
+    icon: timeOutline,
+    accent: 'cyan',
+    label: t('dashboard.timeline'),
+    value: worldEventStore.events.length,
+    chips: timelineEvents.value.map(e => e.summary),
+    empty: !hasTimeline.value,
+    emptyHint: t('dashboard.noTimeline'),
+    action: () => navigateTo('/tabs/world'),
+  },
+])
 
 function navigateTo(path: string) {
   router.push(path)
@@ -106,39 +343,6 @@ function navigateTo(path: string) {
 
 function openFileInEditor(file: string) {
   router.push(`/editor?file=${encodeURIComponent(file)}`)
-}
-
-// --- Project Validation ---
-const validationResult = ref<ValidationResult | null>(null)
-const isValidating = ref(false)
-const showIssueDetails = ref(false)
-
-const validationSummary = computed(() => {
-  if (!validationResult.value)
-    return null
-  const r = validationResult.value
-  const errors = r.issues.filter(i => i.type === 'error')
-  const warnings = r.issues.filter(i => i.type === 'warning')
-  return { errors: errors.length, warnings: warnings.length, total: r.issues.length, passed: r.passed }
-})
-
-async function runValidation() {
-  isValidating.value = true
-  try {
-    validationResult.value = await validateProject(
-      chapters.value,
-      characters.value,
-      scenes.value,
-      audios.value,
-      locations.value,
-    )
-  }
-  catch {
-    // Validation itself failed
-  }
-  finally {
-    isValidating.value = false
-  }
 }
 
 // --- Project Share ---
@@ -219,14 +423,38 @@ async function handleExport() {
       {{ t('preview.loadingGame') }}
     </div>
 
-    <!-- Project Header -->
-    <header v-if="projectName" class="overview__header">
-      <div class="overview__header-row">
-        <h2 class="overview__title">
-          {{ projectName }}
-        </h2>
+    <!-- Project Toolbar: info + quick actions -->
+    <header v-if="projectName" class="overview__header" :class="{ 'overview__header--card': !!worldPreview }">
+      <p v-if="worldPreview" class="overview__desc">
+        {{ worldPreview }}
+      </p>
+      <span v-else class="overview__sync-hint">
+        <IonIcon :icon="cloudOutline" class="overview__sync-icon" />
+        {{ lastSyncTime ? t('settings.lastSync', { time: lastSyncTime.toLocaleTimeString() }) : t('sync.notSynced') }}
+      </span>
+      <div class="overview__actions">
         <button class="overview__icon-btn" :title="t('dashboard.share')" @click="handleShare">
           <IonIcon :icon="shareOutline" />
+        </button>
+        <button
+          class="overview__icon-btn"
+          :class="{ 'overview__icon-btn--syncing': isSyncing, 'overview__icon-btn--success': syncStatus === 'success', 'overview__icon-btn--fail': syncStatus === 'failed' }"
+          :title="lastSyncTime ? t('settings.lastSync', { time: lastSyncTime.toLocaleTimeString() }) : t('me.cloudSync')"
+          :disabled="isSyncing"
+          @click="handleSync"
+        >
+          <IonSpinner v-if="isSyncing" name="crescent" style="width: 18px; height: 18px;" />
+          <IonIcon v-else :icon="syncIcon" />
+        </button>
+        <button
+          class="overview__icon-btn"
+          :class="{ 'overview__icon-btn--success': validationResult?.passed, 'overview__icon-btn--fail': validationResult && !validationResult.passed }"
+          :title="t('validation.clickToCheck')"
+          :disabled="isValidating"
+          @click="handleValidation"
+        >
+          <IonSpinner v-if="isValidating" name="crescent" style="width: 18px; height: 18px;" />
+          <IonIcon v-else :icon="validationIcon" />
         </button>
         <button class="overview__icon-btn" :title="t('project.export')" :disabled="isExporting" @click="handleExport">
           <IonSpinner v-if="isExporting" name="crescent" style="width: 18px; height: 18px;" />
@@ -236,263 +464,84 @@ async function handleExport() {
           <IonIcon :icon="settingsOutline" />
         </button>
       </div>
-      <p v-if="worldPreview" class="overview__desc">
-        {{ worldPreview }}
-      </p>
     </header>
-
-    <!-- ═══════════ Stats Row ═══════════ -->
-    <nav class="stats" aria-label="Resource navigation">
-      <StatsCard
-        accent="indigo"
-        :icon="bookOutline"
-        :value="stats.chapters"
-        :label="t('preview.chaptersCount')"
-        @click="navigateTo('/tabs/workspace/chapters')"
-      />
-      <StatsCard
-        accent="violet"
-        :icon="peopleOutline"
-        :value="stats.characters"
-        :label="t('preview.charactersCount')"
-        @click="navigateTo('/tabs/workspace/characters')"
-      />
-      <StatsCard
-        accent="teal"
-        :icon="imageOutline"
-        :value="stats.scenes"
-        :label="t('workspace.scenes')"
-        @click="navigateTo('/tabs/workspace/scenes')"
-      />
-      <StatsCard
-        accent="emerald"
-        :icon="locationOutline"
-        :value="stats.locations"
-        :label="t('dashboard.locations')"
-        @click="navigateTo('/tabs/workspace/locations')"
-      />
-      <StatsCard
-        accent="orange"
-        :icon="cubeOutline"
-        :value="propsSections.length"
-        :label="t('dashboard.props')"
-        @click="propsSections.length > 0 ? (expandedPropsCard = !expandedPropsCard) : openFileInEditor('adv/props.md')"
-      />
-      <StatsCard
-        accent="rose"
-        :icon="bulbOutline"
-        :value="glossarySections.length"
-        :label="t('dashboard.glossary')"
-        @click="glossarySections.length > 0 ? (expandedGlossaryCard = !expandedGlossaryCard) : openFileInEditor('adv/glossary.md')"
-      />
-      <StatsCard
-        accent="amber"
-        :icon="musicalNotesOutline"
-        :value="stats.audios"
-        :label="t('dashboard.audioAssets')"
-        @click="navigateTo('/tabs/workspace/audio')"
-      />
-    </nav>
-
-    <!-- ═══════════ Expandable Section Lists ═══════════ -->
-    <Transition name="health-expand">
-      <div v-if="expandedPropsCard && propsSections.length > 0" class="section-list">
-        <div class="section-list__header">
-          <span class="section-list__title">{{ t('dashboard.props') }}</span>
-          <button class="section-list__edit" @click="openFileInEditor('adv/props.md')">
-            {{ t('dashboard.clickToEdit') }}
-          </button>
-        </div>
-        <div class="section-list__items">
-          <button v-for="s in propsSections" :key="s" class="section-list__item" @click="openFileInEditor('adv/props.md')">
-            {{ s }}
-          </button>
-        </div>
-      </div>
-    </Transition>
-
-    <Transition name="health-expand">
-      <div v-if="expandedGlossaryCard && glossarySections.length > 0" class="section-list">
-        <div class="section-list__header">
-          <span class="section-list__title">{{ t('dashboard.glossary') }}</span>
-          <button class="section-list__edit" @click="openFileInEditor('adv/glossary.md')">
-            {{ t('dashboard.clickToEdit') }}
-          </button>
-        </div>
-        <div class="section-list__items">
-          <button v-for="s in glossarySections" :key="s" class="section-list__item" @click="openFileInEditor('adv/glossary.md')">
-            {{ s }}
-          </button>
-        </div>
-      </div>
-    </Transition>
-
-    <!-- ═══════════ Project Health ═══════════ -->
-    <section v-if="projectName" class="health">
-      <!-- Not checked yet -->
-      <button v-if="!validationResult && !isValidating" class="health__card health__card--idle" @click="runValidation">
-        <IonIcon :icon="shieldCheckmarkOutline" class="health__icon" />
-        <span class="health__text">{{ t('validation.clickToCheck') }}</span>
-      </button>
-
-      <!-- Checking -->
-      <div v-else-if="isValidating" class="health__card health__card--checking">
-        <IonSpinner name="crescent" class="health__spinner" />
-        <span class="health__text">{{ t('validation.checking') }}</span>
-      </div>
-
-      <!-- Result -->
-      <button v-else-if="validationResult" class="health__card" :class="validationSummary?.passed ? 'health__card--pass' : 'health__card--fail'" @click="showIssueDetails = !showIssueDetails">
-        <IonIcon :icon="validationSummary?.passed ? checkmarkCircleOutline : warningOutline" class="health__icon" />
-        <div class="health__info">
-          <span class="health__text">{{ validationSummary?.passed ? t('validation.passed') : t('validation.failed') }}</span>
-          <span v-if="!validationSummary?.passed" class="health__count">
-            {{ t('validation.issueCount', { count: validationSummary?.total || 0 }) }}
-          </span>
-        </div>
-        <span role="button" tabindex="0" class="health__recheck" :title="t('validation.recheck')" @click.stop="runValidation" @keydown.enter.stop="runValidation">
-          ↻
-        </span>
-      </button>
-
-      <!-- Issue details (expandable) -->
-      <Transition name="health-expand">
-        <div v-if="showIssueDetails && validationResult && !validationResult.passed" class="health__details">
-          <div v-for="(issue, i) in validationResult.issues.slice(0, 10)" :key="i" class="health__issue" :class="`health__issue--${issue.type}`">
-            <span class="health__issue-badge">{{ issue.type === 'error' ? '✗' : '⚠' }}</span>
-            <span class="health__issue-cat">{{ issue.category }}</span>
-            <span class="health__issue-file">{{ issue.file.split('/').pop() }}</span>
-            <span class="health__issue-msg">{{ issue.message }}</span>
-          </div>
-          <div v-if="validationResult.issues.length > 10" class="health__more">
-            +{{ validationResult.issues.length - 10 }} {{ t('dashboard.viewAll') }}
-          </div>
-        </div>
-      </Transition>
-    </section>
 
     <!-- ═══════════ Recent Activity ═══════════ -->
     <RecentActivity />
 
-    <!-- ═══════════ Content Cards ═══════════ -->
-    <section class="cards">
-      <!-- World Setting -->
-      <button class="card" :class="{ 'card--empty': !hasWorld }" data-accent="blue" @click="openFileInEditor('adv/world.md')">
-        <div class="card__head">
-          <span class="card__icon"><IonIcon :icon="globeOutline" /></span>
-          <span class="card__title">{{ worldTitle }}</span>
-        </div>
-        <div v-if="worldSections.length > 0" class="card__chips">
-          <span v-for="s in worldSections.slice(0, 4)" :key="s" class="chip">{{ s }}</span>
-          <span v-if="worldSections.length > 4" class="chip chip--more">+{{ worldSections.length - 4 }}</span>
-        </div>
-        <span v-else class="card__empty-hint">
-          <IonIcon :icon="addOutline" class="card__empty-icon" />
-          {{ t('dashboard.clickToEdit') }}
-        </span>
-      </button>
+    <!-- ═══════════ Unified Resource Panel ═══════════ -->
+    <div class="resources-header">
+      <span class="resources-header__title">{{ t('dashboard.content') || 'Content' }}</span>
+      <div class="resources-header__toggle">
+        <button
+          class="resources-header__btn"
+          :class="{ 'resources-header__btn--active': viewMode === 'grid' }"
+          :title="t('dashboard.gridView') || 'Grid'"
+          @click="viewMode = 'grid'"
+        >
+          <IonIcon :icon="gridOutline" />
+        </button>
+        <button
+          class="resources-header__btn"
+          :class="{ 'resources-header__btn--active': viewMode === 'list' }"
+          :title="t('dashboard.listView') || 'List'"
+          @click="viewMode = 'list'"
+        >
+          <IonIcon :icon="listOutline" />
+        </button>
+      </div>
+    </div>
 
-      <!-- Story Outline -->
-      <button class="card" :class="{ 'card--empty': !hasOutline }" data-accent="amber" @click="openFileInEditor('adv/outline.md')">
-        <div class="card__head">
-          <span class="card__icon"><IonIcon :icon="documentTextOutline" /></span>
-          <span class="card__title">{{ outlineTitle }}</span>
+    <!-- Grid View -->
+    <section v-if="viewMode === 'grid'" class="res-grid">
+      <button
+        v-for="item in resourceItems"
+        :key="item.key"
+        class="res-card"
+        :class="{ 'res-card--empty': item.empty }"
+        :data-accent="item.accent"
+        @click="item.action()"
+      >
+        <div class="res-card__head">
+          <span class="res-card__icon"><IonIcon :icon="item.icon" /></span>
+          <span class="res-card__title">{{ item.label }}</span>
+          <span v-if="Number(item.value) > 0" class="res-card__badge">{{ item.value }}</span>
         </div>
-        <p v-if="outlinePreview" class="card__preview">
-          {{ outlinePreview }}
+        <p v-if="item.preview" class="res-card__preview">
+          {{ item.preview }}
         </p>
-        <div v-if="outlineSections.length > 0" class="card__chips">
-          <span v-for="s in outlineSections.slice(0, 4)" :key="s" class="chip">{{ s }}</span>
-          <span v-if="outlineSections.length > 4" class="chip chip--more">+{{ outlineSections.length - 4 }}</span>
+        <div v-if="item.chips.length > 0" class="res-card__chips">
+          <span v-for="c in item.chips" :key="c" class="chip">{{ c }}</span>
+          <span v-if="item.key === 'world' && worldSections.length > 4" class="chip chip--more">+{{ worldSections.length - 4 }}</span>
+          <span v-if="item.key === 'outline' && outlineSections.length > 4" class="chip chip--more">+{{ outlineSections.length - 4 }}</span>
+          <span v-if="item.key === 'locations' && locations.length > 4" class="chip chip--more">+{{ locations.length - 4 }}</span>
+          <span v-if="item.key === 'style' && styleSections.length > 4" class="chip chip--more">+{{ styleSections.length - 4 }}</span>
         </div>
-        <span v-else-if="!outlinePreview" class="card__empty-hint">
-          <IonIcon :icon="addOutline" class="card__empty-icon" />
-          {{ t('dashboard.clickToEdit') }}
+        <span v-else-if="item.empty" class="res-card__empty-hint">
+          <IonIcon :icon="addOutline" class="res-card__empty-icon" />
+          {{ item.emptyHint }}
         </span>
       </button>
+    </section>
 
-      <!-- Knowledge Base -->
-      <button class="card" :class="{ 'card--empty': stats.knowledge === 0 }" data-accent="emerald" @click="navigateTo('/tabs/workspace/knowledge')">
-        <div class="card__head">
-          <span class="card__icon"><IonIcon :icon="libraryOutline" /></span>
-          <span class="card__title">{{ t('dashboard.knowledgeBase') }}</span>
-          <span v-if="stats.knowledge > 0" class="card__badge">{{ stats.knowledge }}</span>
+    <!-- List View -->
+    <section v-else class="res-list">
+      <button
+        v-for="item in resourceItems"
+        :key="item.key"
+        class="res-row"
+        :data-accent="item.accent"
+        @click="item.action()"
+      >
+        <span class="res-row__icon"><IonIcon :icon="item.icon" /></span>
+        <div class="res-row__body">
+          <span class="res-row__title">{{ item.label }}</span>
+          <span v-if="item.preview" class="res-row__meta">{{ item.preview }}</span>
+          <span v-else-if="item.chips.length > 0" class="res-row__meta">{{ item.chips.slice(0, 3).join(' · ') }}<template v-if="item.chips.length > 3"> · +{{ item.chips.length - 3 }}</template></span>
+          <span v-else-if="item.empty" class="res-row__meta res-row__meta--empty">{{ item.emptyHint }}</span>
         </div>
-        <div v-if="knowledgeDomains.length > 0" class="card__chips">
-          <span v-for="d in knowledgeDomains.slice(0, 5)" :key="d" class="chip">{{ d }}</span>
-        </div>
-        <span v-else class="card__empty-hint">
-          <IonIcon :icon="addOutline" class="card__empty-icon" />
-          {{ t('dashboard.noKnowledge') }}
-        </span>
-      </button>
-
-      <!-- Writing Style -->
-      <button class="card" :class="{ 'card--empty': !hasStyle }" data-accent="pink" @click="openFileInEditor('adv/writing-style.md')">
-        <div class="card__head">
-          <span class="card__icon"><IonIcon :icon="brushOutline" /></span>
-          <span class="card__title">{{ styleTitle }}</span>
-        </div>
-        <div v-if="styleSections.length > 0" class="card__chips">
-          <span v-for="s in styleSections.slice(0, 6)" :key="s" class="chip">{{ s }}</span>
-          <span v-if="styleSections.length > 6" class="chip chip--more">+{{ styleSections.length - 6 }}</span>
-        </div>
-        <span v-else class="card__empty-hint">
-          <IonIcon :icon="addOutline" class="card__empty-icon" />
-          {{ t('dashboard.clickToEdit') }}
-        </span>
-      </button>
-
-      <!-- Location Map -->
-      <button class="card" :class="{ 'card--empty': stats.locations === 0 }" data-accent="emerald" @click="navigateTo('/tabs/workspace/locations')">
-        <div class="card__head">
-          <span class="card__icon"><IonIcon :icon="locationOutline" /></span>
-          <span class="card__title">{{ t('dashboard.locationMap') }}</span>
-          <span v-if="stats.locations > 0" class="card__badge">{{ stats.locations }}</span>
-        </div>
-        <div v-if="locations.length > 0" class="card__chips">
-          <span v-for="l in locations.slice(0, 5)" :key="l.file" class="chip">{{ l.name }}</span>
-          <span v-if="locations.length > 5" class="chip chip--more">+{{ locations.length - 5 }}</span>
-        </div>
-        <span v-else class="card__empty-hint">
-          <IonIcon :icon="addOutline" class="card__empty-icon" />
-          {{ t('dashboard.clickToManage') }}
-        </span>
-      </button>
-
-      <!-- Timeline -->
-      <button class="card" :class="{ 'card--empty': !hasTimeline }" data-accent="cyan" @click="navigateTo('/tabs/world')">
-        <div class="card__head">
-          <span class="card__icon"><IonIcon :icon="timeOutline" /></span>
-          <span class="card__title">{{ t('dashboard.timeline') }}</span>
-          <span v-if="worldEventStore.events.length > 0" class="card__badge">{{ worldEventStore.events.length }}</span>
-        </div>
-        <div v-if="timelineEvents.length > 0" class="card__timeline">
-          <div v-for="evt in timelineEvents" :key="evt.id" class="card__timeline-item">
-            <span class="card__timeline-dot" />
-            <span class="card__timeline-text">{{ evt.summary }}</span>
-          </div>
-          <span v-if="worldEventStore.events.length > 3" class="card__timeline-more">
-            {{ t('dashboard.viewAll') }}
-          </span>
-        </div>
-        <span v-else class="card__empty-hint">
-          <IonIcon :icon="addOutline" class="card__empty-icon" />
-          {{ t('dashboard.noTimeline') }}
-        </span>
-      </button>
-
-      <!-- Audio -->
-      <button class="card" :class="{ 'card--empty': stats.audios === 0 }" data-accent="violet" @click="navigateTo('/tabs/workspace/audio')">
-        <div class="card__head">
-          <span class="card__icon"><IonIcon :icon="musicalNotesOutline" /></span>
-          <span class="card__title">{{ t('dashboard.audioAssets') }}</span>
-          <span v-if="stats.audios > 0" class="card__badge">{{ stats.audios }}</span>
-        </div>
-        <span v-if="stats.audios === 0" class="card__empty-hint">
-          <IonIcon :icon="addOutline" class="card__empty-icon" />
-          {{ t('dashboard.clickToManage') }}
-        </span>
+        <span v-if="Number(item.value) > 0" class="res-row__badge">{{ item.value }}</span>
+        <IonIcon :icon="chevronForwardOutline" class="res-row__arrow" />
       </button>
     </section>
 
@@ -558,40 +607,71 @@ async function handleExport() {
 
 /* ─── Header ─── */
 .overview__header {
-  padding: var(--adv-space-md) var(--adv-space-md) 0;
-}
-
-.overview__header-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--adv-space-sm);
+  padding: 4px var(--adv-space-md);
+  justify-content: flex-end;
 }
 
-.overview__title {
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--adv-text-primary);
-  margin: 0 0 4px;
-  line-height: 1.25;
-  letter-spacing: -0.02em;
+.overview__header--card {
+  margin: var(--adv-space-sm) var(--adv-space-md) 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--adv-surface-card);
+  border: 1px solid var(--adv-border-subtle);
+  justify-content: stretch;
+}
+
+.overview__desc {
   flex: 1;
   min-width: 0;
+  font-size: var(--adv-font-body-sm);
+  color: var(--adv-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.overview__sync-hint {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--adv-text-tertiary);
+  white-space: nowrap;
+}
+
+.overview__sync-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.overview__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .overview__icon-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  border: 1px solid var(--adv-border-subtle);
-  background: var(--adv-surface-card);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
   color: var(--adv-text-tertiary);
   cursor: pointer;
   flex-shrink: 0;
-  font-size: 18px;
+  font-size: 16px;
   transition:
     color 0.15s ease,
     border-color 0.15s ease,
@@ -601,282 +681,94 @@ async function handleExport() {
 
 .overview__icon-btn:hover {
   color: var(--adv-text-primary);
-  border-color: rgba(var(--accent-indigo), 0.3);
-  background: rgba(var(--accent-indigo), 0.06);
+  background: rgba(var(--accent-indigo), 0.08);
 }
 
 .overview__icon-btn:active {
   transform: scale(0.92);
 }
 
-.overview__desc {
-  font-size: var(--adv-font-body-sm);
-  color: var(--adv-text-secondary);
-  margin: 0;
-  line-height: 1.6;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.overview__icon-btn--syncing {
+  color: var(--ion-color-primary);
+  border-color: rgba(var(--accent-blue), 0.3);
+  cursor: wait;
 }
 
-/* ─── Stats Row ─── */
-.stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  padding: var(--adv-space-md);
+.overview__icon-btn--success {
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.3);
 }
 
-/* ─── Section List (expandable) ─── */
-.section-list {
-  padding: 0 var(--adv-space-md) var(--adv-space-sm);
+.overview__icon-btn--fail {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
 }
 
-.section-list__header {
+/* ─── Resources Header (view toggle) ─── */
+.resources-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  padding: var(--adv-space-md) var(--adv-space-md) 0;
 }
 
-.section-list__title {
+.resources-header__title {
   font-size: 13px;
   font-weight: 700;
   color: var(--adv-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-.section-list__edit {
-  font-size: 12px;
-  color: var(--ion-color-primary);
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-weight: 500;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.section-list__items {
+.resources-header__toggle {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.section-list__item {
-  display: inline-block;
-  font-size: 12px;
-  font-weight: 500;
-  padding: 6px 12px;
+  gap: 2px;
+  padding: 2px;
   border-radius: 8px;
-  border: 1px solid var(--adv-border-subtle);
-  background: var(--adv-surface-card);
-  color: var(--adv-text-primary);
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease;
+  background: var(--adv-surface-elevated);
 }
 
-.section-list__item:hover {
-  border-color: rgba(99, 102, 241, 0.3);
-  background: rgba(99, 102, 241, 0.04);
-}
-
-.section-list__item:active {
-  transform: scale(0.97);
-}
-
-/* ─── Health Card ─── */
-.health {
-  padding: 0 var(--adv-space-md) var(--adv-space-sm);
-}
-
-.health__card {
+.resources-header__btn {
   display: flex;
   align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid var(--adv-border-subtle);
-  background: var(--adv-surface-card);
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition:
-    border-color 0.2s ease,
-    background 0.2s ease;
-}
-
-.health__card:active {
-  transform: scale(0.98);
-}
-
-.health__card--idle .health__icon {
-  font-size: 20px;
-  color: var(--adv-text-tertiary);
-}
-
-.health__card--idle .health__text {
-  font-size: 13px;
-  color: var(--adv-text-secondary);
-  font-weight: 500;
-}
-
-.health__card--checking {
-  cursor: default;
-}
-
-.health__spinner {
-  width: 18px;
-  height: 18px;
-  color: var(--ion-color-primary);
-}
-
-.health__card--pass {
-  border-color: rgba(16, 185, 129, 0.3);
-  background: rgba(16, 185, 129, 0.04);
-}
-
-.health__card--pass .health__icon {
-  font-size: 20px;
-  color: #10b981;
-}
-
-.health__card--fail {
-  border-color: rgba(245, 158, 11, 0.3);
-  background: rgba(245, 158, 11, 0.04);
-}
-
-.health__card--fail .health__icon {
-  font-size: 20px;
-  color: #f59e0b;
-}
-
-.health__info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.health__text {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--adv-text-primary);
-}
-
-.health__count {
-  font-size: 11px;
-  color: var(--adv-text-tertiary);
-}
-
-.health__recheck {
-  width: 28px;
+  justify-content: center;
+  width: 30px;
   height: 28px;
-  border-radius: 8px;
-  border: 1px solid var(--adv-border-subtle);
+  border: none;
+  border-radius: 6px;
   background: transparent;
   color: var(--adv-text-tertiary);
   font-size: 16px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
   -webkit-tap-highlight-color: transparent;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
 }
 
-.health__recheck:hover {
-  background: var(--adv-surface-elevated);
-}
-
-.health__details {
-  margin-top: 8px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: var(--adv-surface-elevated);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  overflow: hidden;
-}
-
-.health__issue {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  font-size: 12px;
-  line-height: 1.4;
-}
-
-.health__issue-badge {
-  font-size: 11px;
-  flex-shrink: 0;
-}
-
-.health__issue--error .health__issue-badge {
-  color: #ef4444;
-}
-
-.health__issue--warning .health__issue-badge {
-  color: #f59e0b;
-}
-
-.health__issue-cat {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: var(--adv-text-tertiary);
-  flex-shrink: 0;
-}
-
-.health__issue-file {
+.resources-header__btn:hover {
   color: var(--adv-text-secondary);
-  flex-shrink: 0;
 }
 
-.health__issue-msg {
+.resources-header__btn--active {
+  background: var(--adv-surface-card);
   color: var(--adv-text-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-.health__more {
-  font-size: 11px;
-  color: var(--adv-text-tertiary);
-  text-align: center;
-  padding-top: 4px;
-}
-
-.health-expand-enter-active,
-.health-expand-leave-active {
-  transition: all 0.25s ease;
-}
-
-.health-expand-enter-from,
-.health-expand-leave-to {
-  opacity: 0;
-  max-height: 0;
-  margin-top: 0;
-  padding: 0 12px;
-}
-
-/* ─── Content Cards Grid ─── */
-.cards {
+/* ─── Resource Grid ─── */
+.res-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
-  padding: 0 var(--adv-space-md) var(--adv-space-md);
+  padding: var(--adv-space-sm) var(--adv-space-md) var(--adv-space-md);
 }
 
-.card {
+.res-card {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 14px;
+  gap: 6px;
+  padding: 12px;
   border-radius: 14px;
   background: var(--adv-surface-card);
   border: 1px solid var(--adv-border-subtle);
@@ -887,61 +779,147 @@ async function handleExport() {
     transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
     border-color 0.2s ease,
     box-shadow 0.2s ease;
-  min-height: 88px;
+  min-height: 72px;
+  overflow: hidden;
 }
 
-.card:hover {
+.res-card:hover {
   border-color: rgba(var(--_a), 0.3);
   box-shadow: 0 4px 16px rgba(var(--_a), 0.08);
 }
 
-.card:active {
+.res-card:active {
   transform: scale(0.97);
 }
 
-.card:focus-visible {
+.res-card:focus-visible {
   outline: 2px solid rgb(var(--_a));
   outline-offset: 2px;
 }
 
-/* Empty card — dashed border, dim */
-.card--empty {
+.res-card--empty {
   border-style: dashed;
   border-color: rgba(var(--_a), 0.2);
 }
 
-.card--empty:hover {
+.res-card--empty:hover {
   border-color: rgba(var(--_a), 0.45);
   background: rgba(var(--_a), 0.02);
 }
 
-/* Disabled (placeholder) */
-.card--disabled {
-  cursor: default;
-  opacity: 0.5;
-  border-style: dashed;
-}
-
-.card--disabled:hover {
-  border-color: var(--adv-border-subtle);
-  box-shadow: none;
-  background: var(--adv-surface-card);
-}
-
-.card--disabled:active {
-  transform: none;
-}
-
-/* Card header */
-.card__head {
+.res-card__head {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.card__icon {
-  width: 30px;
-  height: 30px;
+.res-card__icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+  background: rgba(var(--_a), 0.1);
+  color: rgb(var(--_a));
+}
+
+.res-card__title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--adv-text-primary);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.res-card__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: rgba(var(--_a), 0.1);
+  color: rgb(var(--_a));
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.res-card__preview {
+  font-size: 11px;
+  color: var(--adv-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.res-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.res-card__empty-hint {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: rgba(var(--_a), 0.6);
+  font-weight: 500;
+}
+
+.res-card__empty-icon {
+  font-size: 13px;
+}
+
+/* ─── Resource List ─── */
+.res-list {
+  display: flex;
+  flex-direction: column;
+  padding: var(--adv-space-sm) var(--adv-space-md) var(--adv-space-md);
+  gap: 6px;
+}
+
+.res-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--adv-border-subtle);
+  background: var(--adv-surface-card);
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 0.15s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.res-row:hover {
+  border-color: rgba(var(--_a), 0.3);
+  background: rgba(var(--_a), 0.02);
+}
+
+.res-row:active {
+  transform: scale(0.98);
+}
+
+.res-row__icon {
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -952,18 +930,38 @@ async function handleExport() {
   color: rgb(var(--_a));
 }
 
-.card__title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--adv-text-primary);
+.res-row__body {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.res-row__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--adv-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.card__badge {
+.res-row__meta {
+  font-size: 11px;
+  color: var(--adv-text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.res-row__meta--empty {
+  color: rgba(var(--_a), 0.5);
+  font-style: italic;
+}
+
+.res-row__badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -978,25 +976,19 @@ async function handleExport() {
   flex-shrink: 0;
 }
 
-.card__preview {
-  font-size: 12px;
-  color: var(--adv-text-secondary);
-  line-height: 1.55;
-  margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.res-row__arrow {
+  font-size: 14px;
+  color: var(--adv-text-tertiary);
+  flex-shrink: 0;
+  opacity: 0.4;
+  transition: opacity 0.15s ease;
 }
 
-/* Chips */
-.card__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
+.res-row:hover .res-row__arrow {
+  opacity: 0.8;
 }
 
+/* Shared Chips */
 .chip {
   display: inline-block;
   font-size: 10px;
@@ -1017,84 +1009,28 @@ async function handleExport() {
   padding-right: 4px;
 }
 
-/* Empty hint */
-.card__empty-hint {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: rgba(var(--_a), 0.6);
-  font-weight: 500;
-}
-
-.card__empty-icon {
-  font-size: 14px;
-}
-
-/* Timeline items */
-.card__timeline {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.card__timeline-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-}
-
-.card__timeline-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: rgb(var(--_a));
-  flex-shrink: 0;
-  margin-top: 5px;
-}
-
-.card__timeline-text {
-  font-size: 11px;
-  color: var(--adv-text-secondary);
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.card__timeline-more {
-  font-size: 11px;
-  color: rgba(var(--_a), 0.7);
-  font-weight: 500;
-}
-
 /* ─── Responsive ─── */
 @media (max-width: 767px) {
-  .stats {
+  .res-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
 
-  /* On mobile, all stats cards span 1 col */
-  .stats :deep(.stats__card:nth-child(-n + 3)),
-  .stats :deep(.stats__card:nth-child(n + 4)) {
-    grid-column: span 1;
+  .res-card {
+    min-height: 64px;
   }
+}
 
-  .cards {
-    grid-template-columns: 1fr;
-  }
-
-  .card {
-    min-height: 72px;
+@media (min-width: 768px) {
+  .res-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
 /* ─── Reduced motion ─── */
 @media (prefers-reduced-motion: reduce) {
-  .card {
+  .res-card,
+  .res-row {
     transition: none;
   }
 }

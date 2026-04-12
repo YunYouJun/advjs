@@ -6,8 +6,8 @@ import {
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
+import LayoutPage from '../components/common/LayoutPage.vue'
 import DiaryEntryContent from '../components/DiaryEntryContent.vue'
-import StudioPage from '../components/StudioPage.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useCharacterDiaryStore } from '../stores/useCharacterDiaryStore'
 import { showToast } from '../utils/toast'
@@ -61,7 +61,7 @@ async function confirmDelete(diaryId: string) {
 </script>
 
 <template>
-  <StudioPage :title="t('characters.diaryTitle', { name: characterName })" show-back-button :default-href="`/tabs/world/chat/${characterId}`">
+  <LayoutPage :title="t('characters.diaryTitle', { name: characterName })" show-back-button :default-href="`/tabs/world/chat/${characterId}`">
     <template #end>
       <IonButton
         :disabled="isDiaryGenerating"
@@ -118,7 +118,7 @@ async function confirmDelete(diaryId: string) {
         {{ isDiaryGenerating ? t('world.diaryGenerating') : t('world.diaryGenerate') }}
       </IonButton>
     </div>
-  </StudioPage>
+  </LayoutPage>
 </template>
 
 <style scoped>

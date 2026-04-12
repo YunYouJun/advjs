@@ -2,18 +2,12 @@
 import type { AdvCharacter } from '@advjs/types'
 import { parseCharacterMd, stringifyCharacterMd } from '@advjs/parser'
 import {
-  IonBackButton,
   IonButton,
-  IonButtons,
-  IonContent,
-  IonHeader,
   IonIcon,
   IonNote,
-  IonPage,
   IonRefresher,
   IonRefresherContent,
   IonSearchbar,
-  IonTitle,
   IonToolbar,
 } from '@ionic/vue'
 import { addOutline, trashOutline } from 'ionicons/icons'
@@ -25,6 +19,7 @@ import CharacterCard from '../../components/CharacterCard.vue'
 import CharacterCardActions from '../../components/CharacterCardActions.vue'
 import CharacterEditorForm from '../../components/CharacterEditorForm.vue'
 import DraftRestoreBanner from '../../components/common/DraftRestoreBanner.vue'
+import LayoutPage from '../../components/common/LayoutPage.vue'
 import ContentEditorModal from '../../components/ContentEditorModal.vue'
 import { useContentDelete } from '../../composables/useContentDelete'
 import { useContentEditor } from '../../composables/useContentEditor'
@@ -140,21 +135,13 @@ async function handleDeleteCharacter(character: AdvCharacter) {
 </script>
 
 <template>
-  <IonPage>
-    <IonHeader>
-      <IonToolbar>
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonButtons slot="start">
-          <IonBackButton default-href="/tabs/workspace" />
-        </IonButtons>
-        <IonTitle>{{ t('workspace.characters') }}</IonTitle>
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonButtons slot="end">
-          <IonButton @click="characterEditor.openCreate()">
-            <IonIcon :icon="addOutline" />
-          </IonButton>
-        </IonButtons>
-      </IonToolbar>
+  <LayoutPage :title="t('workspace.characters')" show-back-button default-href="/tabs/workspace">
+    <template #end>
+      <IonButton @click="characterEditor.openCreate()">
+        <IonIcon :icon="addOutline" />
+      </IonButton>
+    </template>
+    <template #header-extra>
       <IonToolbar>
         <IonSearchbar
           v-model="searchQuery"
@@ -163,94 +150,92 @@ async function handleDeleteCharacter(character: AdvCharacter) {
           animated
         />
       </IonToolbar>
-    </IonHeader>
+    </template>
 
-    <IonContent :fullscreen="true">
-      <IonRefresher slot="fixed" @ion-refresh="async (e: CustomEvent) => { await reload(); (e.target as HTMLIonRefresherElement).complete() }">
-        <IonRefresherContent />
-      </IonRefresher>
+    <IonRefresher slot="fixed" @ion-refresh="async (e: CustomEvent) => { await reload(); (e.target as HTMLIonRefresherElement).complete() }">
+      <IonRefresherContent />
+    </IonRefresher>
 
-      <!-- Draft restore banner -->
-      <DraftRestoreBanner
-        v-if="characterEditor.hasDraft.value"
-        :message="t('contentEditor.draftFound', { type: t('contentEditor.createCharacter') })"
-        @restore="characterEditor.restoreDraft()"
-        @discard="characterEditor.clearDraft()"
-      />
+    <!-- Draft restore banner -->
+    <DraftRestoreBanner
+      v-if="characterEditor.hasDraft.value"
+      :message="t('contentEditor.draftFound', { type: t('contentEditor.createCharacter') })"
+      @restore="characterEditor.restoreDraft()"
+      @discard="characterEditor.clearDraft()"
+    />
 
-      <!-- Character grid -->
-      <div v-if="filteredCharacters.length > 0" class="card-grid">
-        <CharacterCard
-          v-for="character in filteredCharacters"
-          :key="character.id"
-          :character="character"
-          :location="characterStateStore.getState(character.id).location"
-          @click="handleEditCharacter"
-        >
-          <template #actions>
-            <CharacterCardActions
-              :character="character"
-              @edit="handleEditCharacter"
-              @chat="goToChat"
-              @delete="handleDeleteCharacter"
-            />
-          </template>
-        </CharacterCard>
-      </div>
-
-      <!-- Empty state -->
-      <div v-else-if="searchQuery" class="empty-state">
-        <IonNote>{{ t('characters.emptySearch') }}</IonNote>
-      </div>
-      <div v-else class="empty-state">
-        <div class="empty-state__illustration">
-          👤
-        </div>
-        <p class="empty-state__title">
-          {{ t('workspace.noCharacters') }}
-        </p>
-        <IonButton fill="outline" size="small" @click="characterEditor.openCreate()">
-          <IonIcon :icon="addOutline" />
-          {{ t('contentEditor.createCharacter') }}
-        </IonButton>
-      </div>
-
-      <!-- Character Editor Modal -->
-      <ContentEditorModal
-        :is-open="characterEditor.isOpen.value"
-        :title="characterEditor.mode.value === 'create' ? t('contentEditor.createCharacter') : t('contentEditor.editCharacter')"
-        :mode="characterEditor.mode.value"
-        :is-saving="isSaving"
-        :ai-enabled="aiSettings.isConfigured"
-        :markdown="characterMarkdown"
-        :monaco-filename="`${characterEditor.formData.value.id || 'character'}.character.md`"
-        @update:is-open="(v: boolean) => { if (!v) characterEditor.close() }"
-        @update:markdown="characterMarkdown = $event"
-        @sync-to-markdown="characterToMarkdown()"
-        @sync-from-markdown="markdownToCharacter($event)"
-        @save="handleSaveCharacter"
-        @cancel="characterEditor.close()"
+    <!-- Character grid -->
+    <div v-if="filteredCharacters.length > 0" class="card-grid">
+      <CharacterCard
+        v-for="character in filteredCharacters"
+        :key="character.id"
+        :character="character"
+        :location="characterStateStore.getState(character.id).location"
+        @click="handleEditCharacter"
       >
-        <template #form>
-          <CharacterEditorForm v-model="characterEditor.formData.value" :characters="characters" />
+        <template #actions>
+          <CharacterCardActions
+            :character="character"
+            @edit="handleEditCharacter"
+            @chat="goToChat"
+            @delete="handleDeleteCharacter"
+          />
         </template>
-        <template #ai>
-          <AiGeneratePanel content-type="character" @apply="handleAiApplyCharacter" />
-        </template>
-        <template #header-actions>
-          <IonButton
-            v-if="characterEditor.mode.value === 'edit'"
-            fill="clear"
-            color="danger"
-            size="small"
-            @click="handleDeleteCharacter(characterEditor.formData.value)"
-          >
-            <IonIcon :icon="trashOutline" />
-          </IonButton>
-        </template>
-      </ContentEditorModal>
-    </IonContent>
-  </IonPage>
+      </CharacterCard>
+    </div>
+
+    <!-- Empty state -->
+    <div v-else-if="searchQuery" class="empty-state">
+      <IonNote>{{ t('characters.emptySearch') }}</IonNote>
+    </div>
+    <div v-else class="empty-state">
+      <div class="empty-state__illustration">
+        👤
+      </div>
+      <p class="empty-state__title">
+        {{ t('workspace.noCharacters') }}
+      </p>
+      <IonButton fill="outline" size="small" @click="characterEditor.openCreate()">
+        <IonIcon :icon="addOutline" />
+        {{ t('contentEditor.createCharacter') }}
+      </IonButton>
+    </div>
+
+    <!-- Character Editor Modal -->
+    <ContentEditorModal
+      :is-open="characterEditor.isOpen.value"
+      :title="characterEditor.mode.value === 'create' ? t('contentEditor.createCharacter') : t('contentEditor.editCharacter')"
+      :mode="characterEditor.mode.value"
+      :is-saving="isSaving"
+      :ai-enabled="aiSettings.isConfigured"
+      :markdown="characterMarkdown"
+      :monaco-filename="`${characterEditor.formData.value.id || 'character'}.character.md`"
+      @update:is-open="(v: boolean) => { if (!v) characterEditor.close() }"
+      @update:markdown="characterMarkdown = $event"
+      @sync-to-markdown="characterToMarkdown()"
+      @sync-from-markdown="markdownToCharacter($event)"
+      @save="handleSaveCharacter"
+      @cancel="characterEditor.close()"
+    >
+      <template #form>
+        <CharacterEditorForm v-model="characterEditor.formData.value" :characters="characters" />
+      </template>
+      <template #ai>
+        <AiGeneratePanel content-type="character" @apply="handleAiApplyCharacter" />
+      </template>
+      <template #header-actions>
+        <IonButton
+          v-if="characterEditor.mode.value === 'edit'"
+          fill="clear"
+          color="danger"
+          size="small"
+          @click="handleDeleteCharacter(characterEditor.formData.value)"
+        >
+          <IonIcon :icon="trashOutline" />
+        </IonButton>
+      </template>
+    </ContentEditorModal>
+  </LayoutPage>
 </template>
 
 <style scoped>

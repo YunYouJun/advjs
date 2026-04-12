@@ -357,7 +357,8 @@
     "syncing": "Syncing...",
     "syncComplete": "Sync complete",
     "syncFailed": "Sync failed",
-    "noChanges": "No changes"
+    "noChanges": "No changes",
+    "notSynced": "Not synced yet"
   },
   "world": {
     "title": "World",
@@ -695,7 +696,10 @@
     "projectHealth": "Project Health",
     "share": "Share",
     "shareText": "Check out this visual novel project!",
-    "shareCopied": "Link copied"
+    "shareCopied": "Link copied",
+    "content": "Content",
+    "gridView": "Grid",
+    "listView": "List"
   },
   "validation": {
     "clickToCheck": "Click to check project health",

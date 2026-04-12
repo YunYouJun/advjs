@@ -23,9 +23,9 @@ import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import ChatHistorySearch from '../components/ChatHistorySearch.vue'
+import LayoutPage from '../components/common/LayoutPage.vue'
 import MarkdownMessage from '../components/MarkdownMessage.vue'
 import MessageActions from '../components/MessageActions.vue'
-import StudioPage from '../components/StudioPage.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useWorldContext } from '../composables/useWorldContext'
 import { useCharacterMemoryStore } from '../stores/useCharacterMemoryStore'
@@ -38,7 +38,7 @@ import { uploadToCloud } from '../utils/cloudSync'
 import { downloadAsFile, writeFileToDir } from '../utils/fileAccess'
 import '../styles/group-chat.css'
 
-type StudioPageInstance = InstanceType<typeof StudioPage>
+type LayoutPageInstance = InstanceType<typeof LayoutPage>
 
 const SAFE_FILENAME_RE = /[^a-z0-9\u4E00-\u9FFF]+/g
 const TRIM_UNDERSCORE_RE = /^_|_$/g
@@ -71,7 +71,7 @@ function getEffectiveWorldContext(): string {
 }
 
 const inputText = ref('')
-const studioPageRef = ref<StudioPageInstance | null>(null)
+const layoutPageRef = ref<LayoutPageInstance | null>(null)
 const showSearch = ref(false)
 
 const roomId = computed(() => route.params.roomId as string)
@@ -140,13 +140,13 @@ function getAvatarInitial(name?: string): string {
 // Auto-scroll to bottom when messages change
 watch(() => visibleMessages.value.length, async () => {
   await nextTick()
-  studioPageRef.value?.contentRef?.$el?.scrollToBottom?.(300)
+  layoutPageRef.value?.contentRef?.$el?.scrollToBottom?.(300)
 })
 
 // Also scroll when streaming content updates
 watch(() => groupChatStore.streamingContent, async () => {
   await nextTick()
-  studioPageRef.value?.contentRef?.$el?.scrollToBottom?.(100)
+  layoutPageRef.value?.contentRef?.$el?.scrollToBottom?.(100)
 })
 
 function goBack() {
@@ -214,7 +214,7 @@ function handleSearchJump(index: number) {
   const newVisibleStart = Math.max(0, totalMessages - displayCount.value)
   const visibleIndex = index - newVisibleStart
   nextTick(() => {
-    const el = studioPageRef.value?.contentRef?.$el
+    const el = layoutPageRef.value?.contentRef?.$el
     if (!el)
       return
     const msgEls = el.querySelectorAll('.group-message')
@@ -416,7 +416,7 @@ async function handleDeleteSnapshot(snapshotId: string) {
 </script>
 
 <template>
-  <StudioPage ref="studioPageRef" :title="room?.name || roomId">
+  <LayoutPage ref="layoutPageRef" :title="room?.name || roomId">
     <template #start>
       <IonButton @click="goBack">
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
@@ -638,7 +638,7 @@ async function handleDeleteSnapshot(snapshotId: string) {
         </div>
       </IonToolbar>
     </template>
-  </StudioPage>
+  </LayoutPage>
 </template>
 
 <style scoped>

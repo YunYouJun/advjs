@@ -2,23 +2,17 @@
 import type { LocationInfo } from '../../composables/useProjectContent'
 import type { LocationFormData } from '../../utils/locationMd'
 import {
-  IonBackButton,
   IonButton,
-  IonButtons,
-  IonContent,
   IonFab,
   IonFabButton,
-  IonHeader,
   IonIcon,
   IonItemOption,
   IonItemOptions,
   IonItemSliding,
   IonNote,
-  IonPage,
   IonRefresher,
   IonRefresherContent,
   IonSearchbar,
-  IonTitle,
   IonToolbar,
 } from '@ionic/vue'
 import { addOutline, trashOutline } from 'ionicons/icons'
@@ -27,6 +21,7 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import AiGeneratePanel from '../../components/AiGeneratePanel.vue'
 import DraftRestoreBanner from '../../components/common/DraftRestoreBanner.vue'
+import LayoutPage from '../../components/common/LayoutPage.vue'
 import ContentEditorModal from '../../components/ContentEditorModal.vue'
 import LocationCard from '../../components/LocationCard.vue'
 import LocationEditorForm from '../../components/LocationEditorForm.vue'
@@ -134,15 +129,8 @@ async function handleDeleteLocation(location: LocationFormData) {
 </script>
 
 <template>
-  <IonPage>
-    <IonHeader>
-      <IonToolbar>
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonButtons slot="start">
-          <IonBackButton default-href="/tabs/workspace" />
-        </IonButtons>
-        <IonTitle>{{ t('locations.title') }}</IonTitle>
-      </IonToolbar>
+  <LayoutPage :title="t('locations.title')" show-back-button default-href="/tabs/workspace">
+    <template #header-extra>
       <IonToolbar>
         <IonSearchbar
           v-model="searchQuery"
@@ -151,97 +139,95 @@ async function handleDeleteLocation(location: LocationFormData) {
           animated
         />
       </IonToolbar>
-    </IonHeader>
+    </template>
 
-    <IonContent :fullscreen="true">
-      <IonRefresher slot="fixed" @ion-refresh="async (e: CustomEvent) => { await reload(); (e.target as HTMLIonRefresherElement).complete() }">
-        <IonRefresherContent />
-      </IonRefresher>
+    <IonRefresher slot="fixed" @ion-refresh="async (e: CustomEvent) => { await reload(); (e.target as HTMLIonRefresherElement).complete() }">
+      <IonRefresherContent />
+    </IonRefresher>
 
-      <!-- Draft restore banner -->
-      <DraftRestoreBanner
-        v-if="locationEditor.hasDraft.value"
-        :message="t('contentEditor.draftFound', { type: t('locations.createLocation') })"
-        @restore="locationEditor.restoreDraft()"
-        @discard="locationEditor.clearDraft()"
-      />
+    <!-- Draft restore banner -->
+    <DraftRestoreBanner
+      v-if="locationEditor.hasDraft.value"
+      :message="t('contentEditor.draftFound', { type: t('locations.createLocation') })"
+      @restore="locationEditor.restoreDraft()"
+      @discard="locationEditor.clearDraft()"
+    />
 
-      <!-- Location grid -->
-      <div v-if="filteredLocations.length > 0" class="card-grid">
-        <IonItemSliding v-for="location in filteredLocations" :key="location.file">
-          <LocationCard
-            :location="location"
-            @click="handleViewLocation(location)"
-          />
-          <IonItemOptions side="end">
-            <IonItemOption color="danger" @click="handleDeleteLocation({ id: location.id || location.name, name: location.name, type: location.type || 'other', description: location.description, tags: location.tags, linkedScenes: location.linkedScenes, linkedCharacters: location.linkedCharacters })">
-              <IonIcon :icon="trashOutline" />
-            </IonItemOption>
-          </IonItemOptions>
-        </IonItemSliding>
-      </div>
-
-      <!-- Empty state -->
-      <div v-else-if="searchQuery" class="empty-state">
-        <IonNote>{{ t('locations.emptySearch') }}</IonNote>
-      </div>
-      <div v-else class="empty-state">
-        <div class="empty-state__illustration">
-          📍
-        </div>
-        <p class="empty-state__title">
-          {{ t('workspace.noLocations') }}
-        </p>
-        <IonButton fill="outline" size="small" @click="locationEditor.openCreate()">
-          <IonIcon :icon="addOutline" />
-          {{ t('locations.createLocation') }}
-        </IonButton>
-      </div>
-
-      <!-- FAB add button -->
-      <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-      <IonFab slot="fixed" vertical="bottom" horizontal="end">
-        <IonFabButton @click="locationEditor.openCreate()">
-          <IonIcon :icon="addOutline" />
-        </IonFabButton>
-      </IonFab>
-
-      <!-- Location Editor Modal -->
-      <ContentEditorModal
-        :is-open="locationEditor.isOpen.value"
-        :title="locationEditor.mode.value === 'create' ? t('locations.createLocation') : t('locations.editLocation')"
-        :mode="locationEditor.mode.value"
-        :is-saving="isSaving"
-        :ai-enabled="aiSettings.isConfigured"
-        :markdown="locationMarkdown"
-        :monaco-filename="`${locationEditor.formData.value.id || 'location'}.md`"
-        @update:is-open="(v: boolean) => { if (!v) locationEditor.close() }"
-        @update:markdown="locationMarkdown = $event"
-        @sync-to-markdown="locationToMarkdown()"
-        @sync-from-markdown="markdownToLocation($event)"
-        @save="handleSaveLocation"
-        @cancel="locationEditor.close()"
-      >
-        <template #form>
-          <LocationEditorForm v-model="locationEditor.formData.value" />
-        </template>
-        <template #ai>
-          <AiGeneratePanel content-type="location" @apply="handleAiApplyLocation" />
-        </template>
-        <template #header-actions>
-          <IonButton
-            v-if="locationEditor.mode.value === 'edit'"
-            fill="clear"
-            color="danger"
-            size="small"
-            @click="handleDeleteLocation(locationEditor.formData.value)"
-          >
+    <!-- Location grid -->
+    <div v-if="filteredLocations.length > 0" class="card-grid">
+      <IonItemSliding v-for="location in filteredLocations" :key="location.file">
+        <LocationCard
+          :location="location"
+          @click="handleViewLocation(location)"
+        />
+        <IonItemOptions side="end">
+          <IonItemOption color="danger" @click="handleDeleteLocation({ id: location.id || location.name, name: location.name, type: location.type || 'other', description: location.description, tags: location.tags, linkedScenes: location.linkedScenes, linkedCharacters: location.linkedCharacters })">
             <IonIcon :icon="trashOutline" />
-          </IonButton>
-        </template>
-      </ContentEditorModal>
-    </IonContent>
-  </IonPage>
+          </IonItemOption>
+        </IonItemOptions>
+      </IonItemSliding>
+    </div>
+
+    <!-- Empty state -->
+    <div v-else-if="searchQuery" class="empty-state">
+      <IonNote>{{ t('locations.emptySearch') }}</IonNote>
+    </div>
+    <div v-else class="empty-state">
+      <div class="empty-state__illustration">
+        📍
+      </div>
+      <p class="empty-state__title">
+        {{ t('workspace.noLocations') }}
+      </p>
+      <IonButton fill="outline" size="small" @click="locationEditor.openCreate()">
+        <IonIcon :icon="addOutline" />
+        {{ t('locations.createLocation') }}
+      </IonButton>
+    </div>
+
+    <!-- FAB add button -->
+    <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+    <IonFab slot="fixed" vertical="bottom" horizontal="end">
+      <IonFabButton @click="locationEditor.openCreate()">
+        <IonIcon :icon="addOutline" />
+      </IonFabButton>
+    </IonFab>
+
+    <!-- Location Editor Modal -->
+    <ContentEditorModal
+      :is-open="locationEditor.isOpen.value"
+      :title="locationEditor.mode.value === 'create' ? t('locations.createLocation') : t('locations.editLocation')"
+      :mode="locationEditor.mode.value"
+      :is-saving="isSaving"
+      :ai-enabled="aiSettings.isConfigured"
+      :markdown="locationMarkdown"
+      :monaco-filename="`${locationEditor.formData.value.id || 'location'}.md`"
+      @update:is-open="(v: boolean) => { if (!v) locationEditor.close() }"
+      @update:markdown="locationMarkdown = $event"
+      @sync-to-markdown="locationToMarkdown()"
+      @sync-from-markdown="markdownToLocation($event)"
+      @save="handleSaveLocation"
+      @cancel="locationEditor.close()"
+    >
+      <template #form>
+        <LocationEditorForm v-model="locationEditor.formData.value" />
+      </template>
+      <template #ai>
+        <AiGeneratePanel content-type="location" @apply="handleAiApplyLocation" />
+      </template>
+      <template #header-actions>
+        <IonButton
+          v-if="locationEditor.mode.value === 'edit'"
+          fill="clear"
+          color="danger"
+          size="small"
+          @click="handleDeleteLocation(locationEditor.formData.value)"
+        >
+          <IonIcon :icon="trashOutline" />
+        </IonButton>
+      </template>
+    </ContentEditorModal>
+  </LayoutPage>
 </template>
 
 <style scoped>

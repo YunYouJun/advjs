@@ -13,9 +13,9 @@ import { addOutline, clipboardOutline, codeOutline, folderOpenOutline, gameContr
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import LayoutPage from '../components/common/LayoutPage.vue'
 import MarkdownMessage from '../components/MarkdownMessage.vue'
 import MessageActions from '../components/MessageActions.vue'
-import StudioPage from '../components/StudioPage.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useResponsive } from '../composables/useResponsive'
 import { useAiSettingsStore } from '../stores/useAiSettingsStore'
@@ -28,7 +28,7 @@ import { downloadAsFile, readFileFromDir, writeFileToDir } from '../utils/fileAc
 import { computeLineDiff } from '../utils/lineDiff'
 import '../styles/chat.css'
 
-type StudioPageInstance = InstanceType<typeof StudioPage>
+type LayoutPageInstance = InstanceType<typeof LayoutPage>
 
 const { t } = useI18n()
 const chatStore = useChatStore()
@@ -37,7 +37,7 @@ const settingsStore = useSettingsStore()
 const aiSettings = useAiSettingsStore()
 const router = useRouter()
 const inputText = ref('')
-const studioPageRef = ref<StudioPageInstance | null>(null)
+const layoutPageRef = ref<LayoutPageInstance | null>(null)
 
 const { isDesktop } = useResponsive()
 const { characters, stats } = useProjectContent()
@@ -68,7 +68,7 @@ watch(() => studioStore.currentProject, async (project) => {
 // Auto-scroll to bottom when messages change
 watch(() => chatStore.messages.length, async () => {
   await nextTick()
-  studioPageRef.value?.contentRef?.$el?.scrollToBottom?.(300)
+  layoutPageRef.value?.contentRef?.$el?.scrollToBottom?.(300)
 })
 
 async function send() {
@@ -257,7 +257,7 @@ async function handleSaveContent(payload: { type: string, content: string, filen
 </script>
 
 <template>
-  <StudioPage ref="studioPageRef" :title="t('chat.title')">
+  <LayoutPage ref="layoutPageRef" :title="t('chat.title')">
     <template #end>
       <IonButton
         :aria-label="t('chat.toggleWrap')"
@@ -474,7 +474,7 @@ async function handleSaveContent(payload: { type: string, content: string, filen
         </div>
       </IonToolbar>
     </template>
-  </StudioPage>
+  </LayoutPage>
 </template>
 
 <style scoped>

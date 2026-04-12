@@ -2,23 +2,17 @@
 import type { AudioInfo } from '../../composables/useProjectContent'
 import type { AudioFormData } from '../../utils/audioMd'
 import {
-  IonBackButton,
   IonButton,
-  IonButtons,
-  IonContent,
   IonFab,
   IonFabButton,
-  IonHeader,
   IonIcon,
   IonItemOption,
   IonItemOptions,
   IonItemSliding,
   IonNote,
-  IonPage,
   IonRefresher,
   IonRefresherContent,
   IonSearchbar,
-  IonTitle,
   IonToolbar,
 } from '@ionic/vue'
 import { addOutline, cloudUploadOutline, trashOutline } from 'ionicons/icons'
@@ -28,6 +22,7 @@ import AiGeneratePanel from '../../components/AiGeneratePanel.vue'
 import AudioCard from '../../components/AudioCard.vue'
 import AudioEditorForm from '../../components/AudioEditorForm.vue'
 import DraftRestoreBanner from '../../components/common/DraftRestoreBanner.vue'
+import LayoutPage from '../../components/common/LayoutPage.vue'
 import ContentEditorModal from '../../components/ContentEditorModal.vue'
 import { useContentDelete } from '../../composables/useContentDelete'
 import { useContentEditor } from '../../composables/useContentEditor'
@@ -191,21 +186,13 @@ async function handleFileImport(event: Event) {
 </script>
 
 <template>
-  <IonPage>
-    <IonHeader>
-      <IonToolbar>
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonButtons slot="start">
-          <IonBackButton default-href="/tabs/workspace" />
-        </IonButtons>
-        <IonTitle>{{ t('audio.title') }}</IonTitle>
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonButtons slot="end">
-          <IonButton @click="triggerImport">
-            <IonIcon :icon="cloudUploadOutline" />
-          </IonButton>
-        </IonButtons>
-      </IonToolbar>
+  <LayoutPage :title="t('audio.title')" show-back-button default-href="/tabs/workspace">
+    <template #end>
+      <IonButton @click="triggerImport">
+        <IonIcon :icon="cloudUploadOutline" />
+      </IonButton>
+    </template>
+    <template #header-extra>
       <IonToolbar>
         <IonSearchbar
           v-model="searchQuery"
@@ -214,113 +201,111 @@ async function handleFileImport(event: Event) {
           animated
         />
       </IonToolbar>
-    </IonHeader>
+    </template>
 
-    <IonContent :fullscreen="true">
-      <IonRefresher slot="fixed" @ion-refresh="async (e: CustomEvent) => { await reload(); (e.target as HTMLIonRefresherElement).complete() }">
-        <IonRefresherContent />
-      </IonRefresher>
+    <IonRefresher slot="fixed" @ion-refresh="async (e: CustomEvent) => { await reload(); (e.target as HTMLIonRefresherElement).complete() }">
+      <IonRefresherContent />
+    </IonRefresher>
 
-      <!-- Draft restore banner -->
-      <DraftRestoreBanner
-        v-if="audioEditor.hasDraft.value"
-        :message="t('contentEditor.draftFound', { type: t('contentEditor.createAudio') })"
-        @restore="audioEditor.restoreDraft()"
-        @discard="audioEditor.clearDraft()"
-      />
+    <!-- Draft restore banner -->
+    <DraftRestoreBanner
+      v-if="audioEditor.hasDraft.value"
+      :message="t('contentEditor.draftFound', { type: t('contentEditor.createAudio') })"
+      @restore="audioEditor.restoreDraft()"
+      @discard="audioEditor.clearDraft()"
+    />
 
-      <!-- Audio list -->
-      <div v-if="filteredAudios.length > 0" class="card-list">
-        <IonItemSliding v-for="audio in filteredAudios" :key="audio.file">
-          <AudioCard
-            :audio="audio"
-            @click="handleEditAudio"
-          />
-          <IonItemOptions side="end">
-            <IonItemOption color="danger" @click="handleDeleteAudio(audio)">
-              <IonIcon :icon="trashOutline" />
-            </IonItemOption>
-          </IonItemOptions>
-        </IonItemSliding>
-      </div>
-
-      <!-- Empty state -->
-      <div v-else-if="searchQuery" class="empty-state">
-        <IonNote>{{ t('audio.emptySearch') }}</IonNote>
-      </div>
-      <div v-else class="empty-state">
-        <div class="empty-state__illustration">
-          🎵
-        </div>
-        <p class="empty-state__title">
-          {{ t('audio.empty') }}
-        </p>
-        <div class="empty-state__actions">
-          <IonButton fill="outline" size="small" @click="triggerImport">
-            <IonIcon :icon="cloudUploadOutline" />
-            {{ t('audio.import') }}
-          </IonButton>
-          <IonButton fill="outline" size="small" @click="audioEditor.openCreate()">
-            <IonIcon :icon="addOutline" />
-            {{ t('contentEditor.createAudio') }}
-          </IonButton>
-        </div>
-      </div>
-
-      <!-- FAB add button -->
-      <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-      <IonFab slot="fixed" vertical="bottom" horizontal="end">
-        <IonFabButton @click="audioEditor.openCreate()">
-          <IonIcon :icon="addOutline" />
-        </IonFabButton>
-      </IonFab>
-
-      <!-- Audio Editor Modal -->
-      <ContentEditorModal
-        :is-open="audioEditor.isOpen.value"
-        :title="audioEditor.mode.value === 'create' ? t('contentEditor.createAudio') : t('contentEditor.editAudio')"
-        :mode="audioEditor.mode.value"
-        :is-saving="isSaving"
-        :ai-enabled="aiSettings.isConfigured"
-        :markdown="audioMarkdown"
-        :monaco-filename="`${audioEditor.formData.value.name || 'audio'}.md`"
-        @update:is-open="(v: boolean) => { if (!v) audioEditor.close() }"
-        @update:markdown="audioMarkdown = $event"
-        @sync-to-markdown="audioToMarkdown()"
-        @sync-from-markdown="markdownToAudio($event)"
-        @save="handleSaveAudio"
-        @cancel="audioEditor.close()"
-      >
-        <template #form>
-          <AudioEditorForm v-model="audioEditor.formData.value" />
-        </template>
-        <template #ai>
-          <AiGeneratePanel content-type="audio" @apply="handleAiApplyAudio" />
-        </template>
-        <template #header-actions>
-          <IonButton
-            v-if="audioEditor.mode.value === 'edit'"
-            fill="clear"
-            color="danger"
-            size="small"
-            @click="handleDeleteAudio({ file: `adv/audio/${audioEditor.formData.value.name}.md`, name: audioEditor.formData.value.name })"
-          >
+    <!-- Audio list -->
+    <div v-if="filteredAudios.length > 0" class="card-list">
+      <IonItemSliding v-for="audio in filteredAudios" :key="audio.file">
+        <AudioCard
+          :audio="audio"
+          @click="handleEditAudio"
+        />
+        <IonItemOptions side="end">
+          <IonItemOption color="danger" @click="handleDeleteAudio(audio)">
             <IonIcon :icon="trashOutline" />
-          </IonButton>
-        </template>
-      </ContentEditorModal>
+          </IonItemOption>
+        </IonItemOptions>
+      </IonItemSliding>
+    </div>
 
-      <!-- Hidden file input for audio import -->
-      <input
-        ref="fileInput"
-        type="file"
-        accept="audio/*"
-        multiple
-        style="display: none"
-        @change="handleFileImport"
-      >
-    </IonContent>
-  </IonPage>
+    <!-- Empty state -->
+    <div v-else-if="searchQuery" class="empty-state">
+      <IonNote>{{ t('audio.emptySearch') }}</IonNote>
+    </div>
+    <div v-else class="empty-state">
+      <div class="empty-state__illustration">
+        🎵
+      </div>
+      <p class="empty-state__title">
+        {{ t('audio.empty') }}
+      </p>
+      <div class="empty-state__actions">
+        <IonButton fill="outline" size="small" @click="triggerImport">
+          <IonIcon :icon="cloudUploadOutline" />
+          {{ t('audio.import') }}
+        </IonButton>
+        <IonButton fill="outline" size="small" @click="audioEditor.openCreate()">
+          <IonIcon :icon="addOutline" />
+          {{ t('contentEditor.createAudio') }}
+        </IonButton>
+      </div>
+    </div>
+
+    <!-- FAB add button -->
+    <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+    <IonFab slot="fixed" vertical="bottom" horizontal="end">
+      <IonFabButton @click="audioEditor.openCreate()">
+        <IonIcon :icon="addOutline" />
+      </IonFabButton>
+    </IonFab>
+
+    <!-- Audio Editor Modal -->
+    <ContentEditorModal
+      :is-open="audioEditor.isOpen.value"
+      :title="audioEditor.mode.value === 'create' ? t('contentEditor.createAudio') : t('contentEditor.editAudio')"
+      :mode="audioEditor.mode.value"
+      :is-saving="isSaving"
+      :ai-enabled="aiSettings.isConfigured"
+      :markdown="audioMarkdown"
+      :monaco-filename="`${audioEditor.formData.value.name || 'audio'}.md`"
+      @update:is-open="(v: boolean) => { if (!v) audioEditor.close() }"
+      @update:markdown="audioMarkdown = $event"
+      @sync-to-markdown="audioToMarkdown()"
+      @sync-from-markdown="markdownToAudio($event)"
+      @save="handleSaveAudio"
+      @cancel="audioEditor.close()"
+    >
+      <template #form>
+        <AudioEditorForm v-model="audioEditor.formData.value" />
+      </template>
+      <template #ai>
+        <AiGeneratePanel content-type="audio" @apply="handleAiApplyAudio" />
+      </template>
+      <template #header-actions>
+        <IonButton
+          v-if="audioEditor.mode.value === 'edit'"
+          fill="clear"
+          color="danger"
+          size="small"
+          @click="handleDeleteAudio({ file: `adv/audio/${audioEditor.formData.value.name}.md`, name: audioEditor.formData.value.name })"
+        >
+          <IonIcon :icon="trashOutline" />
+        </IonButton>
+      </template>
+    </ContentEditorModal>
+
+    <!-- Hidden file input for audio import -->
+    <input
+      ref="fileInput"
+      type="file"
+      accept="audio/*"
+      multiple
+      style="display: none"
+      @change="handleFileImport"
+    >
+  </LayoutPage>
 </template>
 
 <style scoped>

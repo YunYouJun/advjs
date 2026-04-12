@@ -2,7 +2,6 @@
 import type { KnowledgeEntry } from '../../composables/useKnowledgeBase'
 import {
   alertController,
-  IonBackButton,
   IonButton,
   IonButtons,
   IonChip,
@@ -19,7 +18,6 @@ import {
   IonList,
   IonModal,
   IonNote,
-  IonPage,
   IonRefresher,
   IonRefresherContent,
   IonSearchbar,
@@ -29,6 +27,7 @@ import {
 import { addOutline, bookOutline, trashOutline } from 'ionicons/icons'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import LayoutPage from '../../components/common/LayoutPage.vue'
 import KnowledgeEditorForm from '../../components/KnowledgeEditorForm.vue'
 import { useKnowledgeBase } from '../../composables/useKnowledgeBase'
 import { useProjectContent } from '../../composables/useProjectContent'
@@ -176,14 +175,8 @@ async function handleDelete(entry: KnowledgeEntry) {
 </script>
 
 <template>
-  <IonPage>
-    <IonHeader>
-      <IonToolbar>
-        <IonButtons slot="start">
-          <IonBackButton :text="t('common.back')" default-href="/tabs/workspace" />
-        </IonButtons>
-        <IonTitle>{{ t('knowledge.title') }}</IonTitle>
-      </IonToolbar>
+  <LayoutPage :title="t('knowledge.title')" show-back-button default-href="/tabs/workspace">
+    <template #header-extra>
       <IonToolbar>
         <IonSearchbar
           v-model="searchQuery"
@@ -191,100 +184,98 @@ async function handleDelete(entry: KnowledgeEntry) {
           :debounce="200"
         />
       </IonToolbar>
-    </IonHeader>
+    </template>
 
-    <IonContent>
-      <IonRefresher slot="fixed" @ion-refresh="handleRefresh">
-        <IonRefresherContent />
-      </IonRefresher>
+    <IonRefresher slot="fixed" @ion-refresh="handleRefresh">
+      <IonRefresherContent />
+    </IonRefresher>
 
-      <!-- Domain filter chips -->
-      <div v-if="knowledgeBase.domains.value.length > 1" class="domain-chips">
-        <IonChip
-          :color="selectedDomain === null ? 'primary' : undefined"
-          @click="selectedDomain = null"
-        >
-          {{ t('world.timelineFilterAll') }}
-        </IonChip>
-        <IonChip
-          v-for="d in knowledgeBase.domains.value"
-          :key="d"
-          :color="selectedDomain === d ? 'primary' : undefined"
-          @click="selectedDomain = d"
-        >
-          {{ d }}
-        </IonChip>
-      </div>
+    <!-- Domain filter chips -->
+    <div v-if="knowledgeBase.domains.value.length > 1" class="domain-chips">
+      <IonChip
+        :color="selectedDomain === null ? 'primary' : undefined"
+        @click="selectedDomain = null"
+      >
+        {{ t('world.timelineFilterAll') }}
+      </IonChip>
+      <IonChip
+        v-for="d in knowledgeBase.domains.value"
+        :key="d"
+        :color="selectedDomain === d ? 'primary' : undefined"
+        @click="selectedDomain = d"
+      >
+        {{ d }}
+      </IonChip>
+    </div>
 
-      <!-- Empty state -->
-      <div v-if="!knowledgeBase.isLoading.value && filteredEntries.length === 0" class="empty-state">
-        <IonIcon :icon="bookOutline" class="empty-state__icon" />
-        <p class="empty-state__title">
-          {{ searchQuery ? t('knowledge.emptySearch') : t('world.knowledgeEmpty') }}
-        </p>
-        <p class="empty-state__hint">
-          {{ t('world.knowledgeEmptyHint') }}
-        </p>
-      </div>
+    <!-- Empty state -->
+    <div v-if="!knowledgeBase.isLoading.value && filteredEntries.length === 0" class="empty-state">
+      <IonIcon :icon="bookOutline" class="empty-state__icon" />
+      <p class="empty-state__title">
+        {{ searchQuery ? t('knowledge.emptySearch') : t('world.knowledgeEmpty') }}
+      </p>
+      <p class="empty-state__hint">
+        {{ t('world.knowledgeEmptyHint') }}
+      </p>
+    </div>
 
-      <!-- Entry list -->
-      <IonList v-else>
-        <IonItemSliding v-for="entry in filteredEntries" :key="entry.file">
-          <IonItem button @click="handleEdit(entry)">
-            <IonLabel>
-              <h2>{{ entry.title }}</h2>
-              <p>{{ entry.domain }} · {{ entry.sections.length }} {{ t('world.knowledgeSections', { count: entry.sections.length }) }}</p>
-            </IonLabel>
-            <IonNote slot="end">
-              {{ Math.round(entry.content.length / 1000) }}k
-            </IonNote>
-          </IonItem>
-          <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-          <IonItemOptions side="end">
-            <IonItemOption color="danger" @click="handleDelete(entry)">
-              <IonIcon slot="icon-only" :icon="trashOutline" />
-            </IonItemOption>
-          </IonItemOptions>
-        </IonItemSliding>
-      </IonList>
+    <!-- Entry list -->
+    <IonList v-else>
+      <IonItemSliding v-for="entry in filteredEntries" :key="entry.file">
+        <IonItem button @click="handleEdit(entry)">
+          <IonLabel>
+            <h2>{{ entry.title }}</h2>
+            <p>{{ entry.domain }} · {{ entry.sections.length }} {{ t('world.knowledgeSections', { count: entry.sections.length }) }}</p>
+          </IonLabel>
+          <IonNote slot="end">
+            {{ Math.round(entry.content.length / 1000) }}k
+          </IonNote>
+        </IonItem>
+        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+        <IonItemOptions side="end">
+          <IonItemOption color="danger" @click="handleDelete(entry)">
+            <IonIcon slot="icon-only" :icon="trashOutline" />
+          </IonItemOption>
+        </IonItemOptions>
+      </IonItemSliding>
+    </IonList>
 
-      <!-- FAB -->
-      <IonFab slot="fixed" vertical="bottom" horizontal="end">
-        <IonFabButton @click="handleCreate">
-          <IonIcon :icon="addOutline" />
-        </IonFabButton>
-      </IonFab>
+    <!-- FAB -->
+    <IonFab slot="fixed" vertical="bottom" horizontal="end">
+      <IonFabButton @click="handleCreate">
+        <IonIcon :icon="addOutline" />
+      </IonFabButton>
+    </IonFab>
 
-      <!-- Editor Modal -->
-      <IonModal :is-open="showEditor" @did-dismiss="showEditor = false">
-        <IonHeader>
-          <IonToolbar>
-            <IonButtons slot="start">
-              <IonButton @click="showEditor = false">
-                {{ t('common.cancel') }}
-              </IonButton>
-            </IonButtons>
-            <IonTitle>{{ editingEntry ? t('knowledge.edit') : t('knowledge.create') }}</IonTitle>
-            <IonButtons slot="end">
-              <IonButton :strong="true" @click="handleSave">
-                {{ t('common.save') }}
-              </IonButton>
-            </IonButtons>
-          </IonToolbar>
-        </IonHeader>
-        <IonContent>
-          <KnowledgeEditorForm
-            :title="editorData.title"
-            :domain="editorData.domain"
-            :content="editorData.content"
-            :domains="knowledgeBase.domains.value"
-            :is-edit="!!editingEntry"
-            @update="handleEditorUpdate"
-          />
-        </IonContent>
-      </IonModal>
-    </IonContent>
-  </IonPage>
+    <!-- Editor Modal -->
+    <IonModal :is-open="showEditor" @did-dismiss="showEditor = false">
+      <IonHeader>
+        <IonToolbar>
+          <IonButtons slot="start">
+            <IonButton @click="showEditor = false">
+              {{ t('common.cancel') }}
+            </IonButton>
+          </IonButtons>
+          <IonTitle>{{ editingEntry ? t('knowledge.edit') : t('knowledge.create') }}</IonTitle>
+          <IonButtons slot="end">
+            <IonButton :strong="true" @click="handleSave">
+              {{ t('common.save') }}
+            </IonButton>
+          </IonButtons>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent>
+        <KnowledgeEditorForm
+          :title="editorData.title"
+          :domain="editorData.domain"
+          :content="editorData.content"
+          :domains="knowledgeBase.domains.value"
+          :is-edit="!!editingEntry"
+          @update="handleEditorUpdate"
+        />
+      </IonContent>
+    </IonModal>
+  </LayoutPage>
 </template>
 
 <style scoped>

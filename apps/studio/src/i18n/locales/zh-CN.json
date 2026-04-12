@@ -357,7 +357,8 @@
     "syncing": "同步中...",
     "syncComplete": "同步完成",
     "syncFailed": "同步失败",
-    "noChanges": "无变更"
+    "noChanges": "无变更",
+    "notSynced": "尚未同步"
   },
   "world": {
     "title": "世界",
@@ -695,7 +696,10 @@
     "projectHealth": "项目健康",
     "share": "分享",
     "shareText": "来看看这个视觉小说项目！",
-    "shareCopied": "链接已复制"
+    "shareCopied": "链接已复制",
+    "content": "内容",
+    "gridView": "网格视图",
+    "listView": "列表视图"
   },
   "validation": {
     "clickToCheck": "点击检查项目健康状态",

@@ -17,7 +17,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import CharacterEditorForm from '../components/CharacterEditorForm.vue'
-import StudioPage from '../components/StudioPage.vue'
+import LayoutPage from '../components/common/LayoutPage.vue'
 import { usePlayerCreator } from '../composables/usePlayerCreator'
 import { useViewModeStore } from '../stores/useViewModeStore'
 import { getCharacterInitials, getValidAvatarUrl } from '../utils/chatUtils'
@@ -149,7 +149,7 @@ const avatarUrl = computed(() => getValidAvatarUrl(editableCharacter.value.avata
 </script>
 
 <template>
-  <StudioPage :title="t('world.playerCreator')" show-back-button default-href="/tabs/world">
+  <LayoutPage :title="t('world.playerCreator')" show-back-button default-href="/tabs/world">
     <div class="pc-page">
       <!-- Step indicator -->
       <div class="pc-steps">
@@ -342,5 +342,5 @@ const avatarUrl = computed(() => getValidAvatarUrl(editableCharacter.value.avata
         </div>
       </Transition>
     </div>
-  </StudioPage>
+  </LayoutPage>
 </template>

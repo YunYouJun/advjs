@@ -2,23 +2,17 @@
 import type { SceneInfo } from '../../composables/useProjectContent'
 import type { SceneFormData } from '../../utils/sceneMd'
 import {
-  IonBackButton,
   IonButton,
-  IonButtons,
-  IonContent,
   IonFab,
   IonFabButton,
-  IonHeader,
   IonIcon,
   IonItemOption,
   IonItemOptions,
   IonItemSliding,
   IonNote,
-  IonPage,
   IonRefresher,
   IonRefresherContent,
   IonSearchbar,
-  IonTitle,
   IonToolbar,
 } from '@ionic/vue'
 import { addOutline, trashOutline } from 'ionicons/icons'
@@ -26,6 +20,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AiGeneratePanel from '../../components/AiGeneratePanel.vue'
 import DraftRestoreBanner from '../../components/common/DraftRestoreBanner.vue'
+import LayoutPage from '../../components/common/LayoutPage.vue'
 import ContentEditorModal from '../../components/ContentEditorModal.vue'
 import SceneCard from '../../components/SceneCard.vue'
 import SceneEditorForm from '../../components/SceneEditorForm.vue'
@@ -203,15 +198,8 @@ async function handleDeleteScene(scene: SceneFormData) {
 </script>
 
 <template>
-  <IonPage>
-    <IonHeader>
-      <IonToolbar>
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonButtons slot="start">
-          <IonBackButton default-href="/tabs/workspace" />
-        </IonButtons>
-        <IonTitle>{{ t('workspace.scenes') }}</IonTitle>
-      </IonToolbar>
+  <LayoutPage :title="t('workspace.scenes')" show-back-button default-href="/tabs/workspace">
+    <template #header-extra>
       <IonToolbar>
         <IonSearchbar
           v-model="searchQuery"
@@ -220,100 +208,98 @@ async function handleDeleteScene(scene: SceneFormData) {
           animated
         />
       </IonToolbar>
-    </IonHeader>
+    </template>
 
-    <IonContent :fullscreen="true">
-      <IonRefresher slot="fixed" @ion-refresh="async (e: CustomEvent) => { await reload(); (e.target as HTMLIonRefresherElement).complete() }">
-        <IonRefresherContent />
-      </IonRefresher>
+    <IonRefresher slot="fixed" @ion-refresh="async (e: CustomEvent) => { await reload(); (e.target as HTMLIonRefresherElement).complete() }">
+      <IonRefresherContent />
+    </IonRefresher>
 
-      <!-- Draft restore banner -->
-      <DraftRestoreBanner
-        v-if="sceneEditor.hasDraft.value"
-        :message="t('contentEditor.draftFound', { type: t('contentEditor.createScene') })"
-        @restore="sceneEditor.restoreDraft()"
-        @discard="sceneEditor.clearDraft()"
-      />
+    <!-- Draft restore banner -->
+    <DraftRestoreBanner
+      v-if="sceneEditor.hasDraft.value"
+      :message="t('contentEditor.draftFound', { type: t('contentEditor.createScene') })"
+      @restore="sceneEditor.restoreDraft()"
+      @discard="sceneEditor.clearDraft()"
+    />
 
-      <!-- Scene grid -->
-      <div v-if="filteredScenes.length > 0" class="card-grid">
-        <IonItemSliding v-for="scene in filteredScenes" :key="scene.file">
-          <SceneCard
-            :scene="scene"
-            :is-generating="generatingSceneIds.has(scene.id || '')"
-            :ai-available="aiImageAvailable"
-            @click="handleEditScene(scene)"
-            @generate-image="handleGenerateImage"
-          />
-          <IonItemOptions side="end">
-            <IonItemOption color="danger" @click="handleDeleteScene({ id: scene.id || scene.name, name: scene.name, description: scene.description, imagePrompt: scene.imagePrompt, type: scene.type || 'image', tags: scene.tags })">
-              <IonIcon :icon="trashOutline" />
-            </IonItemOption>
-          </IonItemOptions>
-        </IonItemSliding>
-      </div>
-
-      <!-- Empty state -->
-      <div v-else-if="searchQuery" class="empty-state">
-        <IonNote>{{ t('scenes.emptySearch') }}</IonNote>
-      </div>
-      <div v-else class="empty-state">
-        <div class="empty-state__illustration">
-          🎬
-        </div>
-        <p class="empty-state__title">
-          {{ t('workspace.noScenes') }}
-        </p>
-        <IonButton fill="outline" size="small" @click="sceneEditor.openCreate()">
-          <IonIcon :icon="addOutline" />
-          {{ t('contentEditor.createScene') }}
-        </IonButton>
-      </div>
-
-      <!-- FAB add button -->
-      <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-      <IonFab slot="fixed" vertical="bottom" horizontal="end">
-        <IonFabButton @click="sceneEditor.openCreate()">
-          <IonIcon :icon="addOutline" />
-        </IonFabButton>
-      </IonFab>
-
-      <!-- Scene Editor Modal -->
-      <ContentEditorModal
-        :is-open="sceneEditor.isOpen.value"
-        :title="sceneEditor.mode.value === 'create' ? t('contentEditor.createScene') : t('contentEditor.editScene')"
-        :mode="sceneEditor.mode.value"
-        :is-saving="isSaving"
-        :ai-enabled="aiSettings.isConfigured"
-        :markdown="sceneMarkdown"
-        :monaco-filename="`${sceneEditor.formData.value.id || 'scene'}.md`"
-        @update:is-open="(v: boolean) => { if (!v) sceneEditor.close() }"
-        @update:markdown="sceneMarkdown = $event"
-        @sync-to-markdown="sceneToMarkdown()"
-        @sync-from-markdown="markdownToScene($event)"
-        @save="handleSaveScene"
-        @cancel="sceneEditor.close()"
-      >
-        <template #form>
-          <SceneEditorForm v-model="sceneEditor.formData.value" />
-        </template>
-        <template #ai>
-          <AiGeneratePanel content-type="scene" @apply="handleAiApplyScene" />
-        </template>
-        <template #header-actions>
-          <IonButton
-            v-if="sceneEditor.mode.value === 'edit'"
-            fill="clear"
-            color="danger"
-            size="small"
-            @click="handleDeleteScene(sceneEditor.formData.value)"
-          >
+    <!-- Scene grid -->
+    <div v-if="filteredScenes.length > 0" class="card-grid">
+      <IonItemSliding v-for="scene in filteredScenes" :key="scene.file">
+        <SceneCard
+          :scene="scene"
+          :is-generating="generatingSceneIds.has(scene.id || '')"
+          :ai-available="aiImageAvailable"
+          @click="handleEditScene(scene)"
+          @generate-image="handleGenerateImage"
+        />
+        <IonItemOptions side="end">
+          <IonItemOption color="danger" @click="handleDeleteScene({ id: scene.id || scene.name, name: scene.name, description: scene.description, imagePrompt: scene.imagePrompt, type: scene.type || 'image', tags: scene.tags })">
             <IonIcon :icon="trashOutline" />
-          </IonButton>
-        </template>
-      </ContentEditorModal>
-    </IonContent>
-  </IonPage>
+          </IonItemOption>
+        </IonItemOptions>
+      </IonItemSliding>
+    </div>
+
+    <!-- Empty state -->
+    <div v-else-if="searchQuery" class="empty-state">
+      <IonNote>{{ t('scenes.emptySearch') }}</IonNote>
+    </div>
+    <div v-else class="empty-state">
+      <div class="empty-state__illustration">
+        🎬
+      </div>
+      <p class="empty-state__title">
+        {{ t('workspace.noScenes') }}
+      </p>
+      <IonButton fill="outline" size="small" @click="sceneEditor.openCreate()">
+        <IonIcon :icon="addOutline" />
+        {{ t('contentEditor.createScene') }}
+      </IonButton>
+    </div>
+
+    <!-- FAB add button -->
+    <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+    <IonFab slot="fixed" vertical="bottom" horizontal="end">
+      <IonFabButton @click="sceneEditor.openCreate()">
+        <IonIcon :icon="addOutline" />
+      </IonFabButton>
+    </IonFab>
+
+    <!-- Scene Editor Modal -->
+    <ContentEditorModal
+      :is-open="sceneEditor.isOpen.value"
+      :title="sceneEditor.mode.value === 'create' ? t('contentEditor.createScene') : t('contentEditor.editScene')"
+      :mode="sceneEditor.mode.value"
+      :is-saving="isSaving"
+      :ai-enabled="aiSettings.isConfigured"
+      :markdown="sceneMarkdown"
+      :monaco-filename="`${sceneEditor.formData.value.id || 'scene'}.md`"
+      @update:is-open="(v: boolean) => { if (!v) sceneEditor.close() }"
+      @update:markdown="sceneMarkdown = $event"
+      @sync-to-markdown="sceneToMarkdown()"
+      @sync-from-markdown="markdownToScene($event)"
+      @save="handleSaveScene"
+      @cancel="sceneEditor.close()"
+    >
+      <template #form>
+        <SceneEditorForm v-model="sceneEditor.formData.value" />
+      </template>
+      <template #ai>
+        <AiGeneratePanel content-type="scene" @apply="handleAiApplyScene" />
+      </template>
+      <template #header-actions>
+        <IonButton
+          v-if="sceneEditor.mode.value === 'edit'"
+          fill="clear"
+          color="danger"
+          size="small"
+          @click="handleDeleteScene(sceneEditor.formData.value)"
+        >
+          <IonIcon :icon="trashOutline" />
+        </IonButton>
+      </template>
+    </ContentEditorModal>
+  </LayoutPage>
 </template>
 
 <style scoped>

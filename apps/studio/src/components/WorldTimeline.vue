@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AdvCharacter } from '@advjs/types'
-import type { TimelineEntry } from '../views/WorldPage.vue'
+import type { TimelineEntry } from '../types/timeline'
 import type { TimelineFilter } from './TimelineFilter.vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'

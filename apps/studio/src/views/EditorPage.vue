@@ -11,7 +11,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import AiGeneratePanel from '../components/AiGeneratePanel.vue'
-import StudioPage from '../components/StudioPage.vue'
+import LayoutPage from '../components/common/LayoutPage.vue'
 import { useCloudSync } from '../composables/useCloudSync'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
@@ -283,7 +283,7 @@ async function save() {
 </script>
 
 <template>
-  <StudioPage :title="fileName">
+  <LayoutPage :title="fileName">
     <template #start>
       <IonBackButton :text="t('editor.back')" default-href="/tabs/play" />
     </template>
@@ -359,7 +359,7 @@ async function save() {
         spellcheck="false"
       />
     </div>
-  </StudioPage>
+  </LayoutPage>
 </template>
 
 <style scoped>

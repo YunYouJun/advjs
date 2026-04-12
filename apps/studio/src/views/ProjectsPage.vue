@@ -24,12 +24,12 @@ import {
 import { addOutline, cloudDownloadOutline, cloudUploadOutline, downloadOutline, folderOpenOutline, linkOutline, saveOutline, storefrontOutline, trashOutline } from 'ionicons/icons'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import LayoutPage from '../components/common/LayoutPage.vue'
 import CreateProjectModal from '../components/CreateProjectModal.vue'
 import FilePreview from '../components/FilePreview.vue'
 import MobileFileTree from '../components/MobileFileTree.vue'
 import ProjectOverview from '../components/ProjectOverview.vue'
 import ProjectSwitcher from '../components/ProjectSwitcher.vue'
-import StudioPage from '../components/StudioPage.vue'
 import WorkspaceReconnect from '../components/WorkspaceReconnect.vue'
 import { useFileChanges } from '../composables/useFileChanges'
 import { importProject } from '../composables/useProjectExport'
@@ -632,7 +632,7 @@ function getGradientForIndex(index: number): string {
 </script>
 
 <template>
-  <StudioPage :title="hasProject ? studioStore.currentProject?.name : t('workspace.title')">
+  <LayoutPage :title="hasProject ? studioStore.currentProject?.name : t('workspace.title')" :subtitle="hasProject ? studioStore.currentProject?.projectId : undefined">
     <template v-if="hasProject" #end>
       <ProjectSwitcher />
     </template>
@@ -883,7 +883,7 @@ function getGradientForIndex(index: number): string {
       @close="showCreateModal = false"
       @create="handleCreateProject"
     />
-  </StudioPage>
+  </LayoutPage>
 </template>
 
 <style scoped>

@@ -14,9 +14,9 @@ import { expandOutline, folderOpenOutline, refreshOutline, settingsOutline, shar
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import LayoutPage from '../components/common/LayoutPage.vue'
 import GamePlayer from '../components/GamePlayer.vue'
 import NodeSelector from '../components/NodeSelector.vue'
-import StudioPage from '../components/StudioPage.vue'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { downloadFromCloud, listCloudFiles } from '../utils/cloudSync'
@@ -201,7 +201,7 @@ async function handleShare() {
 </script>
 
 <template>
-  <StudioPage :title="headerTitle" :fullscreen="false" :scroll-y="false">
+  <LayoutPage :title="headerTitle" :fullscreen="false" :scroll-y="false">
     <template v-if="studioStore.currentProject" #start>
       <NodeSelector
         :chapters="chapters"
@@ -316,7 +316,7 @@ async function handleShare() {
         </IonItem>
       </IonList>
     </IonPopover>
-  </StudioPage>
+  </LayoutPage>
 </template>
 
 <style scoped>

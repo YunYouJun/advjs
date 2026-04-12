@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import {
-  IonBackButton,
   IonButtons,
   IonChip,
   IonContent,
   IonHeader,
   IonIcon,
   IonModal,
-  IonPage,
   IonSearchbar,
   IonTitle,
   IonToolbar,
@@ -15,6 +13,7 @@ import {
 import { cloudDownloadOutline } from 'ionicons/icons'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import LayoutPage from '../../components/common/LayoutPage.vue'
 
 const { t } = useI18n()
 
@@ -133,14 +132,8 @@ function formatDownloads(n: number): string {
 </script>
 
 <template>
-  <IonPage>
-    <IonHeader>
-      <IonToolbar>
-        <IonButtons slot="start">
-          <IonBackButton :text="t('common.back')" default-href="/tabs/workspace" />
-        </IonButtons>
-        <IonTitle>{{ t('marketplace.title') }}</IonTitle>
-      </IonToolbar>
+  <LayoutPage :title="t('marketplace.title')" show-back-button default-href="/tabs/workspace">
+    <template #header-extra>
       <IonToolbar>
         <IonSearchbar
           v-model="searchQuery"
@@ -148,121 +141,119 @@ function formatDownloads(n: number): string {
           :debounce="200"
         />
       </IonToolbar>
-    </IonHeader>
+    </template>
 
-    <IonContent>
-      <!-- Tag filter chips -->
-      <div class="tag-chips">
-        <IonChip
-          :color="selectedTag === null ? 'primary' : undefined"
-          @click="selectedTag = null"
-        >
-          {{ t('world.timelineFilterAll') }}
-        </IonChip>
-        <IonChip
-          v-for="tag in allTags"
-          :key="tag"
-          :color="selectedTag === tag ? 'primary' : undefined"
-          @click="selectedTag = tag"
-        >
-          {{ tag }}
-        </IonChip>
-      </div>
+    <!-- Tag filter chips -->
+    <div class="tag-chips">
+      <IonChip
+        :color="selectedTag === null ? 'primary' : undefined"
+        @click="selectedTag = null"
+      >
+        {{ t('world.timelineFilterAll') }}
+      </IonChip>
+      <IonChip
+        v-for="tag in allTags"
+        :key="tag"
+        :color="selectedTag === tag ? 'primary' : undefined"
+        @click="selectedTag = tag"
+      >
+        {{ tag }}
+      </IonChip>
+    </div>
 
-      <!-- Card grid -->
-      <div class="market-grid">
-        <button
-          v-for="item in filteredItems"
-          :key="item.id"
-          class="market-card"
-          @click="selectedItem = item"
-        >
-          <div class="market-card__cover">
-            {{ item.cover }}
+    <!-- Card grid -->
+    <div class="market-grid">
+      <button
+        v-for="item in filteredItems"
+        :key="item.id"
+        class="market-card"
+        @click="selectedItem = item"
+      >
+        <div class="market-card__cover">
+          {{ item.cover }}
+        </div>
+        <div class="market-card__body">
+          <div class="market-card__title">
+            {{ item.title }}
           </div>
-          <div class="market-card__body">
-            <div class="market-card__title">
-              {{ item.title }}
-            </div>
-            <div class="market-card__author">
-              {{ item.author }}
-            </div>
-            <div class="market-card__meta">
-              <span>👥 {{ item.characters }}</span>
-              <span>📖 {{ item.chapters }}</span>
-              <span>⬇️ {{ formatDownloads(item.downloads) }}</span>
-              <span>⭐ {{ item.rating }}</span>
-            </div>
+          <div class="market-card__author">
+            {{ item.author }}
           </div>
-        </button>
-      </div>
+          <div class="market-card__meta">
+            <span>👥 {{ item.characters }}</span>
+            <span>📖 {{ item.chapters }}</span>
+            <span>⬇️ {{ formatDownloads(item.downloads) }}</span>
+            <span>⭐ {{ item.rating }}</span>
+          </div>
+        </div>
+      </button>
+    </div>
 
-      <!-- Empty -->
-      <div v-if="filteredItems.length === 0" class="market-empty">
-        <p>{{ t('marketplace.empty') }}</p>
-      </div>
+    <!-- Empty -->
+    <div v-if="filteredItems.length === 0" class="market-empty">
+      <p>{{ t('marketplace.empty') }}</p>
+    </div>
 
-      <!-- Detail Modal -->
-      <IonModal :is-open="!!selectedItem" @did-dismiss="selectedItem = null">
-        <IonHeader>
-          <IonToolbar>
-            <IonTitle>{{ selectedItem?.title }}</IonTitle>
-            <IonButtons slot="end">
-              <button class="market-close-btn" @click="selectedItem = null">
-                ✕
-              </button>
-            </IonButtons>
-          </IonToolbar>
-        </IonHeader>
-        <IonContent v-if="selectedItem" class="ion-padding">
-          <div class="market-detail">
-            <div class="market-detail__cover">
-              {{ selectedItem.cover }}
-            </div>
-            <h2 class="market-detail__title">
-              {{ selectedItem.title }}
-            </h2>
-            <p class="market-detail__author">
-              {{ t('marketplace.by', { author: selectedItem.author }) }}
-            </p>
-            <p class="market-detail__desc">
-              {{ selectedItem.description }}
-            </p>
-            <div class="market-detail__stats">
-              <div class="market-detail__stat">
-                <strong>{{ selectedItem.characters }}</strong>
-                <span>{{ t('preview.charactersCount') }}</span>
-              </div>
-              <div class="market-detail__stat">
-                <strong>{{ selectedItem.chapters }}</strong>
-                <span>{{ t('preview.chaptersCount') }}</span>
-              </div>
-              <div class="market-detail__stat">
-                <strong>{{ formatDownloads(selectedItem.downloads) }}</strong>
-                <span>{{ t('marketplace.downloads') }}</span>
-              </div>
-              <div class="market-detail__stat">
-                <strong>⭐ {{ selectedItem.rating }}</strong>
-                <span>{{ t('marketplace.rating') }}</span>
-              </div>
-            </div>
-            <div class="market-detail__tags">
-              <IonChip v-for="tag in selectedItem.tags" :key="tag" color="medium">
-                {{ tag }}
-              </IonChip>
-            </div>
-            <button class="market-detail__install" disabled>
-              <IonIcon :icon="cloudDownloadOutline" />
-              {{ t('marketplace.install') }}
+    <!-- Detail Modal -->
+    <IonModal :is-open="!!selectedItem" @did-dismiss="selectedItem = null">
+      <IonHeader>
+        <IonToolbar>
+          <IonTitle>{{ selectedItem?.title }}</IonTitle>
+          <IonButtons slot="end">
+            <button class="market-close-btn" @click="selectedItem = null">
+              ✕
             </button>
-            <p class="market-detail__hint">
-              {{ t('marketplace.comingSoon') }}
-            </p>
+          </IonButtons>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent v-if="selectedItem" class="ion-padding">
+        <div class="market-detail">
+          <div class="market-detail__cover">
+            {{ selectedItem.cover }}
           </div>
-        </IonContent>
-      </IonModal>
-    </IonContent>
-  </IonPage>
+          <h2 class="market-detail__title">
+            {{ selectedItem.title }}
+          </h2>
+          <p class="market-detail__author">
+            {{ t('marketplace.by', { author: selectedItem.author }) }}
+          </p>
+          <p class="market-detail__desc">
+            {{ selectedItem.description }}
+          </p>
+          <div class="market-detail__stats">
+            <div class="market-detail__stat">
+              <strong>{{ selectedItem.characters }}</strong>
+              <span>{{ t('preview.charactersCount') }}</span>
+            </div>
+            <div class="market-detail__stat">
+              <strong>{{ selectedItem.chapters }}</strong>
+              <span>{{ t('preview.chaptersCount') }}</span>
+            </div>
+            <div class="market-detail__stat">
+              <strong>{{ formatDownloads(selectedItem.downloads) }}</strong>
+              <span>{{ t('marketplace.downloads') }}</span>
+            </div>
+            <div class="market-detail__stat">
+              <strong>⭐ {{ selectedItem.rating }}</strong>
+              <span>{{ t('marketplace.rating') }}</span>
+            </div>
+          </div>
+          <div class="market-detail__tags">
+            <IonChip v-for="tag in selectedItem.tags" :key="tag" color="medium">
+              {{ tag }}
+            </IonChip>
+          </div>
+          <button class="market-detail__install" disabled>
+            <IonIcon :icon="cloudDownloadOutline" />
+            {{ t('marketplace.install') }}
+          </button>
+          <p class="market-detail__hint">
+            {{ t('marketplace.comingSoon') }}
+          </p>
+        </div>
+      </IonContent>
+    </IonModal>
+  </LayoutPage>
 </template>
 
 <style scoped>

@@ -7,7 +7,7 @@ import { chatbubbleOutline, createOutline, journalOutline } from 'ionicons/icons
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import StudioPage from '../components/StudioPage.vue'
+import LayoutPage from '../components/common/LayoutPage.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useCharacterDiaryStore } from '../stores/useCharacterDiaryStore'
 import { useCharacterMemoryStore } from '../stores/useCharacterMemoryStore'
@@ -42,7 +42,7 @@ function affinityClass(affinity: number): string {
 </script>
 
 <template>
-  <StudioPage :title="character?.name || characterId" show-back-button default-href="/tabs/world">
+  <LayoutPage :title="character?.name || characterId" show-back-button default-href="/tabs/world">
     <div v-if="character" class="ci-page">
       <!-- Avatar + Name Header -->
       <div class="ci-hero">
@@ -231,7 +231,7 @@ function affinityClass(affinity: number): string {
     <div v-else class="ci-empty">
       <p>{{ t('workspace.noCharacters') }}</p>
     </div>
-  </StudioPage>
+  </LayoutPage>
 </template>
 
 <style scoped>

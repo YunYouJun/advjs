@@ -2,21 +2,14 @@
 import type { LocationInfo, SceneInfo } from '../../composables/useProjectContent'
 import type { LocationFormData } from '../../utils/locationMd'
 import {
-  IonBackButton,
   IonButton,
-  IonButtons,
   IonCard,
   IonCardContent,
   IonCardHeader,
   IonCardTitle,
   IonChip,
-  IonContent,
-  IonHeader,
   IonIcon,
   IonNote,
-  IonPage,
-  IonTitle,
-  IonToolbar,
 } from '@ionic/vue'
 import {
   createOutline,
@@ -27,6 +20,7 @@ import {
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import LayoutPage from '../../components/common/LayoutPage.vue'
 import ContentEditorModal from '../../components/ContentEditorModal.vue'
 import LocationEditorForm from '../../components/LocationEditorForm.vue'
 import { useContentEditor } from '../../composables/useContentEditor'
@@ -137,132 +131,120 @@ function goToCharacter(characterId: string) {
 </script>
 
 <template>
-  <IonPage>
-    <IonHeader>
-      <IonToolbar>
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonButtons slot="start">
-          <IonBackButton default-href="/tabs/workspace/locations" />
-        </IonButtons>
-        <IonTitle>{{ location?.name || locationId }}</IonTitle>
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonButtons slot="end">
-          <IonButton @click="openEdit">
-            <IonIcon :icon="createOutline" />
-          </IonButton>
-        </IonButtons>
-      </IonToolbar>
-    </IonHeader>
+  <LayoutPage :title="location?.name || locationId" show-back-button default-href="/tabs/workspace/locations">
+    <template #end>
+      <IonButton @click="openEdit">
+        <IonIcon :icon="createOutline" />
+      </IonButton>
+    </template>
 
-    <IonContent :fullscreen="true">
-      <div v-if="location" class="detail">
-        <!-- Header -->
-        <div class="detail__header">
-          <IonIcon :icon="locationOutline" class="detail__icon" />
-          <div>
-            <h2 class="detail__name">
-              {{ location.name }}
-            </h2>
-            <p v-if="location.type" class="detail__type">
-              {{ t(`locations.type${location.type.charAt(0).toUpperCase()}${location.type.slice(1)}`) }}
-            </p>
+    <div v-if="location" class="detail">
+      <!-- Header -->
+      <div class="detail__header">
+        <IonIcon :icon="locationOutline" class="detail__icon" />
+        <div>
+          <h2 class="detail__name">
+            {{ location.name }}
+          </h2>
+          <p v-if="location.type" class="detail__type">
+            {{ t(`locations.type${location.type.charAt(0).toUpperCase()}${location.type.slice(1)}`) }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Tags -->
+      <div v-if="location.tags?.length" class="detail__tags">
+        <IonChip v-for="tag in location.tags" :key="tag" outline>
+          {{ tag }}
+        </IonChip>
+      </div>
+
+      <!-- Description -->
+      <p v-if="location.description" class="detail__desc">
+        {{ location.description }}
+      </p>
+
+      <!-- Linked Scenes -->
+      <IonCard v-if="linkedScenes.length > 0">
+        <IonCardHeader>
+          <IonCardTitle class="detail__section-title">
+            <IonIcon :icon="imageOutline" />
+            {{ t('locations.detailLinkedScenes') }}
+            <span class="detail__badge">{{ linkedScenes.length }}</span>
+          </IonCardTitle>
+        </IonCardHeader>
+        <IonCardContent>
+          <div class="detail__list">
+            <button v-for="scene in linkedScenes" :key="scene.file" class="detail__item" @click="goToScene(scene)">
+              <span class="detail__item-name">{{ scene.name }}</span>
+              <span v-if="scene.description" class="detail__item-desc">{{ scene.description }}</span>
+            </button>
           </div>
-        </div>
+        </IonCardContent>
+      </IonCard>
 
-        <!-- Tags -->
-        <div v-if="location.tags?.length" class="detail__tags">
-          <IonChip v-for="tag in location.tags" :key="tag" outline>
-            {{ tag }}
-          </IonChip>
-        </div>
+      <!-- Characters Here (dynamic state) -->
+      <IonCard v-if="charactersHere.length > 0">
+        <IonCardHeader>
+          <IonCardTitle class="detail__section-title">
+            <IonIcon :icon="peopleOutline" />
+            {{ t('locations.detailCharactersHere') }}
+          </IonCardTitle>
+        </IonCardHeader>
+        <IonCardContent>
+          <div class="detail__list">
+            <button v-for="char in charactersHere" :key="char.id" class="detail__item" @click="goToCharacter(char.id)">
+              <span class="detail__item-name">{{ char.name }}</span>
+            </button>
+          </div>
+        </IonCardContent>
+      </IonCard>
 
-        <!-- Description -->
-        <p v-if="location.description" class="detail__desc">
-          {{ location.description }}
-        </p>
+      <!-- Linked Characters (from frontmatter) -->
+      <IonCard v-if="linkedCharacters.length > 0">
+        <IonCardHeader>
+          <IonCardTitle class="detail__section-title">
+            <IonIcon :icon="peopleOutline" />
+            {{ t('locations.detailLinkedCharacters') }}
+          </IonCardTitle>
+        </IonCardHeader>
+        <IonCardContent>
+          <div class="detail__list">
+            <button v-for="char in linkedCharacters" :key="char.id" class="detail__item" @click="goToCharacter(char.id)">
+              <span class="detail__item-name">{{ char.name }}</span>
+            </button>
+          </div>
+        </IonCardContent>
+      </IonCard>
 
-        <!-- Linked Scenes -->
-        <IonCard v-if="linkedScenes.length > 0">
-          <IonCardHeader>
-            <IonCardTitle class="detail__section-title">
-              <IonIcon :icon="imageOutline" />
-              {{ t('locations.detailLinkedScenes') }}
-              <span class="detail__badge">{{ linkedScenes.length }}</span>
-            </IonCardTitle>
-          </IonCardHeader>
-          <IonCardContent>
-            <div class="detail__list">
-              <button v-for="scene in linkedScenes" :key="scene.file" class="detail__item" @click="goToScene(scene)">
-                <span class="detail__item-name">{{ scene.name }}</span>
-                <span v-if="scene.description" class="detail__item-desc">{{ scene.description }}</span>
-              </button>
-            </div>
-          </IonCardContent>
-        </IonCard>
-
-        <!-- Characters Here (dynamic state) -->
-        <IonCard v-if="charactersHere.length > 0">
-          <IonCardHeader>
-            <IonCardTitle class="detail__section-title">
-              <IonIcon :icon="peopleOutline" />
-              {{ t('locations.detailCharactersHere') }}
-            </IonCardTitle>
-          </IonCardHeader>
-          <IonCardContent>
-            <div class="detail__list">
-              <button v-for="char in charactersHere" :key="char.id" class="detail__item" @click="goToCharacter(char.id)">
-                <span class="detail__item-name">{{ char.name }}</span>
-              </button>
-            </div>
-          </IonCardContent>
-        </IonCard>
-
-        <!-- Linked Characters (from frontmatter) -->
-        <IonCard v-if="linkedCharacters.length > 0">
-          <IonCardHeader>
-            <IonCardTitle class="detail__section-title">
-              <IonIcon :icon="peopleOutline" />
-              {{ t('locations.detailLinkedCharacters') }}
-            </IonCardTitle>
-          </IonCardHeader>
-          <IonCardContent>
-            <div class="detail__list">
-              <button v-for="char in linkedCharacters" :key="char.id" class="detail__item" @click="goToCharacter(char.id)">
-                <span class="detail__item-name">{{ char.name }}</span>
-              </button>
-            </div>
-          </IonCardContent>
-        </IonCard>
-
-        <!-- Empty linked info -->
-        <div v-if="linkedScenes.length === 0 && linkedCharacters.length === 0 && charactersHere.length === 0" class="detail__empty">
-          <IonNote>{{ t('locations.detailNoLinks') }}</IonNote>
-        </div>
+      <!-- Empty linked info -->
+      <div v-if="linkedScenes.length === 0 && linkedCharacters.length === 0 && charactersHere.length === 0" class="detail__empty">
+        <IonNote>{{ t('locations.detailNoLinks') }}</IonNote>
       </div>
+    </div>
 
-      <!-- Not found -->
-      <div v-else class="detail__empty">
-        <IonNote>{{ t('locations.detailNotFound') }}</IonNote>
-      </div>
+    <!-- Not found -->
+    <div v-else class="detail__empty">
+      <IonNote>{{ t('locations.detailNotFound') }}</IonNote>
+    </div>
 
-      <!-- Editor Modal -->
-      <ContentEditorModal
-        :is-open="locationEditor.isOpen.value"
-        :title="t('locations.editLocation')"
-        :mode="locationEditor.mode.value"
-        :is-saving="isSaving"
-        :markdown="stringifyLocationMd(locationEditor.formData.value)"
-        :monaco-filename="`${locationEditor.formData.value.id || 'location'}.md`"
-        @update:is-open="(v: boolean) => { if (!v) locationEditor.close() }"
-        @save="handleSave"
-        @cancel="locationEditor.close()"
-      >
-        <template #form>
-          <LocationEditorForm v-model="locationEditor.formData.value" />
-        </template>
-      </ContentEditorModal>
-    </IonContent>
-  </IonPage>
+    <!-- Editor Modal -->
+    <ContentEditorModal
+      :is-open="locationEditor.isOpen.value"
+      :title="t('locations.editLocation')"
+      :mode="locationEditor.mode.value"
+      :is-saving="isSaving"
+      :markdown="stringifyLocationMd(locationEditor.formData.value)"
+      :monaco-filename="`${locationEditor.formData.value.id || 'location'}.md`"
+      @update:is-open="(v: boolean) => { if (!v) locationEditor.close() }"
+      @save="handleSave"
+      @cancel="locationEditor.close()"
+    >
+      <template #form>
+        <LocationEditorForm v-model="locationEditor.formData.value" />
+      </template>
+    </ContentEditorModal>
+  </LayoutPage>
 </template>
 
 <style scoped>
