@@ -1,4 +1,3 @@
-import JSZip from 'jszip'
 import { resolveSubdir } from '../utils/fileAccess'
 
 const TEXT_FILE_RE = /\.(?:md|json|txt|yaml|yml|css|js|ts|html)$/i
@@ -62,6 +61,7 @@ export async function exportProject(
   dirHandle: FileSystemDirectoryHandle,
   projectName: string,
 ): Promise<Blob> {
+  const JSZip = (await import('jszip')).default
   const zip = new JSZip()
 
   // Collect files from adv/ directory
@@ -141,6 +141,7 @@ export async function importProject(
   zipFile: File,
   dirHandle: FileSystemDirectoryHandle,
 ): Promise<ProjectManifest> {
+  const JSZip = (await import('jszip')).default
   const zip = await JSZip.loadAsync(zipFile)
 
   // Validate manifest

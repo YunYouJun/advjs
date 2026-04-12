@@ -1,11 +1,12 @@
 import type { AdvCharacter } from '@advjs/types'
 import type { AudioFormData } from '../utils/audioMd'
 import type { ChapterFormData } from '../utils/chapterMd'
+import type { LocationFormData } from '../utils/locationMd'
 import type { SceneFormData } from '../utils/sceneMd'
 import { computed, ref, watch } from 'vue'
 import { getCurrentProjectId } from '../utils/projectScope'
 
-export type ContentType = 'character' | 'scene' | 'chapter' | 'audio'
+export type ContentType = 'character' | 'scene' | 'chapter' | 'audio' | 'location'
 export type EditorMode = 'create' | 'edit'
 
 const ID_RE = /^[\w-]+$/
@@ -15,7 +16,7 @@ const DRAFT_PREFIX = 'advjs-studio-draft-'
  * Generic content editor state machine
  * Manages form state, mode, validation, and local draft persistence
  */
-export function useContentEditor<T extends AdvCharacter | SceneFormData | ChapterFormData | AudioFormData>(
+export function useContentEditor<T extends AdvCharacter | SceneFormData | ChapterFormData | AudioFormData | LocationFormData>(
   contentType: ContentType,
   createDefault: () => T,
 ) {
@@ -166,6 +167,13 @@ export function useContentEditor<T extends AdvCharacter | SceneFormData | Chapte
       const audio = data as AudioFormData
       if (!audio.name?.trim())
         errors.push('Name is required')
+    }
+    else if (contentType === 'location') {
+      const location = data as LocationFormData
+      if (!location.id?.trim())
+        errors.push('ID is required')
+      if (location.id && !ID_RE.test(location.id))
+        errors.push('ID must contain only letters, numbers, hyphens, and underscores')
     }
 
     return errors

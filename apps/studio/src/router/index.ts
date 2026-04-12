@@ -32,6 +32,10 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/views/workspace/ScenesPage.vue'),
       },
       {
+        path: 'workspace/locations',
+        component: () => import('@/views/workspace/LocationsPage.vue'),
+      },
+      {
         path: 'workspace/audio',
         component: () => import('@/views/workspace/AudioPage.vue'),
       },

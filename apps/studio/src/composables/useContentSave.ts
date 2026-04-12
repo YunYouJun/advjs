@@ -1,11 +1,13 @@
 import type { AdvCharacter, AdvTachie } from '@advjs/types'
 import type { ChapterFormData } from '../utils/chapterMd'
+import type { LocationFormData } from '../utils/locationMd'
 import type { SceneFormData } from '../utils/sceneMd'
 import type { ContentType, EditorMode } from './useContentEditor'
 import { stringifyCharacterMd } from '@advjs/parser'
 import { ref } from 'vue'
 import { stringifyChapterMd } from '../utils/chapterMd'
 import { resolveSubdir, writeFileToDir } from '../utils/fileAccess'
+import { stringifyLocationMd } from '../utils/locationMd'
 import { stringifySceneMd } from '../utils/sceneMd'
 
 const DATA_URI_RE = /^data:image\/(\w+);base64,/
@@ -112,7 +114,7 @@ export function useContentSave() {
     dirHandle: FileSystemDirectoryHandle,
     contentType: ContentType,
     mode: EditorMode,
-    data: AdvCharacter | SceneFormData | ChapterFormData,
+    data: AdvCharacter | SceneFormData | ChapterFormData | LocationFormData,
     originalId?: string,
   ): Promise<SaveResult> {
     isSaving.value = true
@@ -199,6 +201,30 @@ export function useContentSave() {
           }
 
           content = stringifyChapterMd(chapter)
+          break
+        }
+        case 'location': {
+          const location = data as LocationFormData
+          filePath = `adv/locations/${location.id}.md`
+
+          if (mode === 'create') {
+            if (await fileExists(dirHandle, filePath)) {
+              return {
+                success: false,
+                error: `File already exists: ${filePath}. Please use a different ID.`,
+              }
+            }
+          }
+          else if (originalId && originalId !== location.id) {
+            if (await fileExists(dirHandle, filePath)) {
+              return {
+                success: false,
+                error: `Cannot rename: ${filePath} already exists.`,
+              }
+            }
+          }
+
+          content = stringifyLocationMd(location)
           break
         }
         default:

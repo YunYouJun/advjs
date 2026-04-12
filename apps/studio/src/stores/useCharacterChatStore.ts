@@ -21,6 +21,8 @@ export interface CharacterChatMessage {
   role: 'user' | 'assistant'
   content: string
   timestamp: number
+  /** Path to cached TTS audio file, e.g. 'adv/audio/tts/aria-1712345678.mp3' */
+  ttsAudioPath?: string
 }
 
 export interface CharacterConversation {
@@ -484,6 +486,19 @@ export const useCharacterChatStore = defineStore('characterChat', () => {
     await db.characterAiConfigs.delete([pid, characterId]).catch(() => {})
   }
 
+  /**
+   * Update the TTS audio path on a specific message.
+   * Used to cache generated TTS audio for replay.
+   */
+  function updateMessageTtsPath(characterId: string, messageTimestamp: number, ttsAudioPath: string): void {
+    const conv = getConversation(characterId)
+    const msg = conv.messages.find(m => m.timestamp === messageTimestamp)
+    if (msg) {
+      msg.ttsAudioPath = ttsAudioPath
+      flush()
+    }
+  }
+
   return {
     conversations,
     snapshots,
@@ -505,6 +520,7 @@ export const useCharacterChatStore = defineStore('characterChat', () => {
     clearAiOverride,
     getArchivedBatches,
     hasArchivedMessages,
+    updateMessageTtsPath,
     init,
     flush,
     $reset,

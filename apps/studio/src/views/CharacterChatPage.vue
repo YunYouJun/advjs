@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { AdvCharacter } from '@advjs/types'
+import type { DbArchivedBatch } from '../utils/db'
 import type { CharacterAiOverride } from '../utils/resolveAiConfig'
 import {
   actionSheetController,
@@ -15,18 +16,22 @@ import {
   toastController,
 } from '@ionic/vue'
 import {
+  archiveOutline,
   arrowBackOutline,
   cameraOutline,
   downloadOutline,
   ellipsisVertical,
   informationCircleOutline,
+  micOutline,
   searchOutline,
   sendOutline,
   settingsOutline,
   stopOutline,
   trashOutline,
+  volumeHighOutline,
+  volumeMuteOutline,
 } from 'ionicons/icons'
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import CharacterAiSettingsForm from '../components/CharacterAiSettingsForm.vue'
@@ -37,6 +42,7 @@ import MarkdownMessage from '../components/MarkdownMessage.vue'
 import StudioPage from '../components/StudioPage.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useWorldContext } from '../composables/useWorldContext'
+import { useAiSettingsStore } from '../stores/useAiSettingsStore'
 import { useCharacterChatStore } from '../stores/useCharacterChatStore'
 import { useCharacterDiaryStore } from '../stores/useCharacterDiaryStore'
 import { useCharacterMemoryStore } from '../stores/useCharacterMemoryStore'
@@ -46,7 +52,8 @@ import { useStudioStore } from '../stores/useStudioStore'
 import { useViewModeStore } from '../stores/useViewModeStore'
 import { formatChatTime, getMoodEmoji } from '../utils/chatUtils'
 import { uploadToCloud } from '../utils/cloudSync'
-import { downloadAsFile, writeFileToDir } from '../utils/fileAccess'
+import { downloadAsFile, readBlobFromDir, writeBlobToDir, writeFileToDir } from '../utils/fileAccess'
+import { getTtsProvider, ttsSpeak, ttsStop } from '../utils/ttsClient'
 import '../styles/chat.css'
 
 const SAFE_FILENAME_RE = /[^a-z0-9\u4E00-\u9FFF]+/g
@@ -64,6 +71,12 @@ const stateStore = useCharacterStateStore()
 const { characters, knowledgeBase } = useProjectContent()
 const { worldContext } = useWorldContext()
 const viewModeStore = useViewModeStore()
+const aiSettingsStore = useAiSettingsStore()
+
+const currentTtsCanGenerateBlob = computed(() => {
+  const provider = getTtsProvider(aiSettingsStore.config.ttsProvider)
+  return provider?.canGenerateBlob ?? false
+})
 
 function getEffectiveWorldContext(): string {
   return viewModeStore.getEffectiveWorldContext(worldContext.value)
@@ -77,6 +90,13 @@ const showInfoModal = ref(false)
 const showSearch = ref(false)
 const showSnapshots = ref(false)
 const showAiSettings = ref(false)
+const showArchive = ref(false)
+const archivedBatches = ref<DbArchivedBatch[]>([])
+const ttsPlayingIndex = ref(-1)
+const ttsGeneratingIndex = ref(-1)
+const ttsBatchGenerating = ref(false)
+
+onUnmounted(() => ttsStop())
 
 const characterId = computed(() => route.params.characterId as string)
 
@@ -222,42 +242,64 @@ async function confirmClear() {
  * Show overflow menu for secondary actions.
  */
 async function showMoreActions() {
+  const buttons: Array<Record<string, any>> = [
+    {
+      text: t('world.aiSettings'),
+      icon: settingsOutline,
+      handler: () => { showAiSettings.value = true },
+    },
+    {
+      text: t('world.viewArchive'),
+      icon: archiveOutline,
+      handler: async () => {
+        archivedBatches.value = await characterChatStore.getArchivedBatches(characterId.value)
+        showArchive.value = true
+      },
+    },
+    {
+      text: t('world.snapshots'),
+      icon: cameraOutline,
+      handler: () => { showSnapshots.value = !showSnapshots.value },
+    },
+  ]
+
+  // Batch TTS generate — only for API providers that can generate blobs
+  if (currentTtsCanGenerateBlob.value) {
+    buttons.push({
+      text: t('world.generateAllTts'),
+      icon: micOutline,
+      handler: () => { nextTick(() => handleBatchGenerateTts()) },
+    })
+  }
+
+  buttons.push(
+    {
+      text: t('world.exportTitle'),
+      icon: downloadOutline,
+      handler: () => {
+        // Defer to next tick so the action sheet closes first
+        nextTick(() => handleExport())
+      },
+    },
+    {
+      text: t('world.characterInfo'),
+      icon: informationCircleOutline,
+      handler: () => { showInfoModal.value = true },
+    },
+    {
+      text: t('world.clearChatTitle'),
+      role: 'destructive',
+      icon: trashOutline,
+      handler: () => {
+        nextTick(() => confirmClear())
+      },
+    },
+    { text: t('common.cancel'), role: 'cancel' },
+  )
+
   const sheet = await actionSheetController.create({
     header: t('world.moreActions'),
-    buttons: [
-      {
-        text: t('world.aiSettings'),
-        icon: settingsOutline,
-        handler: () => { showAiSettings.value = true },
-      },
-      {
-        text: t('world.snapshots'),
-        icon: cameraOutline,
-        handler: () => { showSnapshots.value = !showSnapshots.value },
-      },
-      {
-        text: t('world.exportTitle'),
-        icon: downloadOutline,
-        handler: () => {
-          // Defer to next tick so the action sheet closes first
-          nextTick(() => handleExport())
-        },
-      },
-      {
-        text: t('world.characterInfo'),
-        icon: informationCircleOutline,
-        handler: () => { showInfoModal.value = true },
-      },
-      {
-        text: t('world.clearChatTitle'),
-        role: 'destructive',
-        icon: trashOutline,
-        handler: () => {
-          nextTick(() => confirmClear())
-        },
-      },
-      { text: t('common.cancel'), role: 'cancel' },
-    ],
+    buttons,
   })
   await sheet.present()
 }
@@ -507,6 +549,152 @@ async function handleSaveAiOverride(config: CharacterAiOverride | undefined) {
   await toast.present()
 }
 
+// --- TTS helpers ---
+
+function getTtsSettings() {
+  const c = aiSettingsStore.config
+  return {
+    provider: c.ttsProvider,
+    apiKey: c.ttsApiKey,
+    model: c.ttsModel,
+    voice: c.ttsVoice,
+    speed: c.ttsSpeed,
+    customBaseURL: c.ttsCustomBaseURL,
+  }
+}
+
+async function handleTtsPlay(msg: { role: string, content: string, timestamp: number, ttsAudioPath?: string }, visibleIdx: number) {
+  // If already playing this message, stop
+  if (ttsPlayingIndex.value === visibleIdx) {
+    ttsStop()
+    ttsPlayingIndex.value = -1
+    return
+  }
+
+  // Stop any current playback
+  ttsStop()
+  ttsPlayingIndex.value = visibleIdx
+
+  try {
+    // Check for cached audio first
+    if (msg.ttsAudioPath) {
+      const project = studioStore.currentProject
+      if (project?.dirHandle) {
+        try {
+          const blobUrl = await readBlobFromDir(project.dirHandle, msg.ttsAudioPath)
+          const audio = new Audio(blobUrl)
+          ttsPlayingIndex.value = visibleIdx
+          await new Promise<void>((resolve) => {
+            audio.onended = () => resolve()
+            audio.onerror = () => resolve()
+            audio.play()
+          })
+          URL.revokeObjectURL(blobUrl)
+          ttsPlayingIndex.value = -1
+          return
+        }
+        catch {
+          // Cache miss — regenerate
+        }
+      }
+    }
+
+    ttsGeneratingIndex.value = visibleIdx
+    const settings = getTtsSettings()
+    const blob = await ttsSpeak(msg.content, settings)
+    ttsGeneratingIndex.value = -1
+
+    // If blob returned (API provider), cache it
+    if (blob) {
+      const project = studioStore.currentProject
+      if (project?.dirHandle) {
+        const safeName = characterId.value.replace(SAFE_FILENAME_RE, '_').replace(TRIM_UNDERSCORE_RE, '')
+        const path = `adv/audio/tts/${safeName}-${msg.timestamp}.mp3`
+        try {
+          await writeBlobToDir(project.dirHandle, path, blob)
+          characterChatStore.updateMessageTtsPath(characterId.value, msg.timestamp, path)
+        }
+        catch {
+          // Silently fail caching
+        }
+      }
+    }
+  }
+  catch (err) {
+    ttsGeneratingIndex.value = -1
+    const toast = await toastController.create({
+      message: err instanceof Error ? err.message : t('world.ttsGenerateFailed'),
+      duration: 2500,
+      position: 'top',
+      color: 'danger',
+    })
+    await toast.present()
+  }
+  finally {
+    ttsPlayingIndex.value = -1
+  }
+}
+
+async function handleBatchGenerateTts() {
+  if (ttsBatchGenerating.value)
+    return
+
+  const settings = getTtsSettings()
+  const provider = getTtsProvider(settings.provider)
+  if (!provider?.canGenerateBlob || !provider.generate)
+    return
+
+  const project = studioStore.currentProject
+  if (!project?.dirHandle)
+    return
+
+  const assistantMsgs = allMessages.value.filter(m => m.role === 'assistant' && !m.ttsAudioPath)
+  if (assistantMsgs.length === 0)
+    return
+
+  ttsBatchGenerating.value = true
+  let generated = 0
+
+  for (const msg of assistantMsgs) {
+    try {
+      const toast = await toastController.create({
+        message: t('world.ttsGenerateProgress', { current: generated + 1, total: assistantMsgs.length }),
+        duration: 3000,
+        position: 'top',
+      })
+      await toast.present()
+
+      const blob = await provider.generate({
+        text: msg.content,
+        voice: settings.voice,
+        model: settings.model,
+        speed: settings.speed,
+        apiKey: settings.apiKey,
+        baseURL: settings.provider === 'custom' ? settings.customBaseURL : (provider.baseURL || ''),
+      })
+
+      const safeName = characterId.value.replace(SAFE_FILENAME_RE, '_').replace(TRIM_UNDERSCORE_RE, '')
+      const path = `adv/audio/tts/${safeName}-${msg.timestamp}.mp3`
+      await writeBlobToDir(project.dirHandle, path, blob)
+      characterChatStore.updateMessageTtsPath(characterId.value, msg.timestamp, path)
+      generated++
+    }
+    catch {
+      // Skip failed messages, continue with next
+    }
+  }
+
+  ttsBatchGenerating.value = false
+
+  const toast = await toastController.create({
+    message: t('world.ttsGenerateComplete', { count: generated }),
+    duration: 2000,
+    position: 'top',
+    color: 'success',
+  })
+  await toast.present()
+}
+
 async function handleGenerateDiary() {
   if (!character.value)
     return
@@ -631,7 +819,7 @@ async function handleDeleteDiary(diaryId: string) {
       </div>
     </template>
 
-    <div class="messages-container">
+    <div class="messages-container" role="log" aria-live="polite" :aria-label="t('world.chatMessages')">
       <!-- Welcome state -->
       <CharacterChatWelcome
         v-if="character && messages.length === 0"
@@ -660,8 +848,25 @@ async function handleDeleteDiary(diaryId: string) {
               {{ msg.content }}
             </template>
           </div>
-          <div class="time">
-            {{ formatChatTime(msg.timestamp) }}
+          <div class="message__actions">
+            <button
+              v-if="msg.role === 'assistant' && aiSettingsStore.config.ttsProvider !== 'none'"
+              class="tts-btn"
+              :class="{
+                'tts-btn--playing': ttsPlayingIndex === index,
+                'tts-btn--generating': ttsGeneratingIndex === index,
+                'tts-btn--cached': !!msg.ttsAudioPath,
+              }"
+              :aria-label="ttsPlayingIndex === index ? t('world.ttsStop') : t('world.ttsPlay')"
+              :aria-pressed="ttsPlayingIndex === index"
+              :disabled="ttsGeneratingIndex === index"
+              @click="handleTtsPlay(msg, index)"
+            >
+              <IonIcon :icon="ttsPlayingIndex === index ? volumeMuteOutline : volumeHighOutline" />
+            </button>
+            <span class="time">
+              {{ formatChatTime(msg.timestamp) }}
+            </span>
           </div>
         </div>
       </TransitionGroup>
@@ -689,6 +894,7 @@ async function handleDeleteDiary(diaryId: string) {
             :disabled="!character"
             :clear-input="true"
             class="chat-input"
+            :aria-label="t('world.chatPlaceholder')"
             @keydown="handleKeydown"
           />
           <IonButton
@@ -750,6 +956,50 @@ async function handleDeleteDiary(diaryId: string) {
           :override="currentAiOverride"
           @save="handleSaveAiOverride"
         />
+      </IonContent>
+    </IonModal>
+
+    <!-- Archive Viewer Modal -->
+    <IonModal :is-open="showArchive" :initial-breakpoint="0.5" :breakpoints="[0, 0.5, 0.85]" @did-dismiss="showArchive = false">
+      <IonHeader>
+        <IonToolbar>
+          <IonTitle>{{ t('world.archiveTitle') }} · {{ character?.name || characterId }}</IonTitle>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent class="archive-content">
+        <div v-if="archivedBatches.length === 0" class="archive-empty">
+          {{ t('world.archiveEmpty') }}
+        </div>
+        <div v-else class="archive-list">
+          <details
+            v-for="batch in archivedBatches"
+            :key="batch.batchId"
+            class="archive-batch"
+          >
+            <summary class="archive-batch__summary">
+              <span class="archive-batch__date">{{ formatChatTime(batch.archivedAt) }}</span>
+              <span class="archive-batch__badge">{{ t('world.archiveMessages', { count: batch.messages.length }) }}</span>
+              <p v-if="batch.summary" class="archive-batch__text">
+                {{ batch.summary }}
+              </p>
+            </summary>
+            <div class="archive-batch__messages">
+              <div
+                v-for="(msg, idx) in batch.messages"
+                :key="idx"
+                class="message"
+                :class="[msg.role]"
+              >
+                <div class="bubble">
+                  {{ msg.content }}
+                </div>
+                <div class="time">
+                  {{ formatChatTime(msg.timestamp) }}
+                </div>
+              </div>
+            </div>
+          </details>
+        </div>
       </IonContent>
     </IonModal>
   </StudioPage>
@@ -961,5 +1211,176 @@ ion-footer ion-toolbar {
 
 .snapshot-btn--delete:hover {
   color: var(--adv-danger, #ef4444);
+}
+
+/* Archive Viewer */
+.archive-content {
+  --padding-start: var(--adv-space-md, 16px);
+  --padding-end: var(--adv-space-md, 16px);
+  --padding-top: var(--adv-space-sm, 8px);
+}
+
+.archive-empty {
+  text-align: center;
+  color: var(--adv-text-tertiary, #94a3b8);
+  font-size: var(--adv-font-body-sm, 13px);
+  padding: var(--adv-space-xl, 32px) 0;
+}
+
+.archive-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--adv-space-sm, 8px);
+  padding: var(--adv-space-sm, 8px) 0;
+}
+
+.archive-batch {
+  background: var(--adv-surface-elevated, #f1f5f9);
+  border-radius: var(--adv-radius-lg, 12px);
+  overflow: hidden;
+}
+
+:root.dark .archive-batch {
+  background: var(--adv-surface-elevated, #2a2a3e);
+}
+
+.archive-batch__summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--adv-space-sm, 8px);
+  padding: var(--adv-space-sm, 8px) var(--adv-space-md, 16px);
+  cursor: pointer;
+  user-select: none;
+  font-size: var(--adv-font-body-sm, 13px);
+}
+
+.archive-batch__summary::-webkit-details-marker {
+  display: none;
+}
+
+.archive-batch__summary::before {
+  content: '▶';
+  font-size: 10px;
+  color: var(--adv-text-tertiary, #94a3b8);
+  transition: transform 0.2s;
+}
+
+.archive-batch[open] > .archive-batch__summary::before {
+  transform: rotate(90deg);
+}
+
+.archive-batch__date {
+  font-weight: 600;
+  color: var(--adv-text-primary);
+}
+
+.archive-batch__badge {
+  font-size: 11px;
+  background: var(--adv-primary-light, #ede9fe);
+  color: var(--adv-primary, #8b5cf6);
+  padding: 1px 8px;
+  border-radius: var(--adv-radius-sm, 4px);
+}
+
+:root.dark .archive-batch__badge {
+  background: var(--adv-surface-hover, #3a3a4e);
+  color: var(--adv-primary, #a78bfa);
+}
+
+.archive-batch__text {
+  width: 100%;
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--adv-text-secondary, #64748b);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.archive-batch[open] .archive-batch__text {
+  white-space: normal;
+}
+
+.archive-batch__messages {
+  padding: 0 var(--adv-space-md, 16px) var(--adv-space-md, 16px);
+  border-top: 1px solid var(--adv-border-light, #e2e8f0);
+}
+
+:root.dark .archive-batch__messages {
+  border-top-color: var(--adv-border-light, #2a2a3e);
+}
+
+/* TTS Button */
+.message__actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tts-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--adv-radius-sm, 4px);
+  background: transparent;
+  color: var(--adv-text-tertiary, #94a3b8);
+  cursor: pointer;
+  transition:
+    color 0.2s,
+    background 0.2s;
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+.tts-btn:hover {
+  color: var(--adv-primary, #8b5cf6);
+  background: rgba(139, 92, 246, 0.08);
+}
+
+.tts-btn--playing {
+  color: var(--adv-primary, #8b5cf6);
+  animation: tts-pulse 1.5s ease-in-out infinite;
+}
+
+.tts-btn--generating {
+  color: var(--adv-text-tertiary, #94a3b8);
+  animation: tts-spin 1s linear infinite;
+  cursor: wait;
+}
+
+.tts-btn--cached {
+  color: var(--adv-text-secondary, #64748b);
+}
+
+.tts-btn--cached:hover {
+  color: var(--adv-primary, #8b5cf6);
+}
+
+.tts-btn:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+@keyframes tts-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes tts-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

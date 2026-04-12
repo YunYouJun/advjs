@@ -23,6 +23,19 @@ export interface AiConfig {
   imageProvider: 'none' | 'runware' | 'hunyuan' | 'siliconflow' | 'openai-dall-e'
   imageApiKey: string
   imageModel: string
+  // TTS (text-to-speech)
+  ttsProvider: string
+  ttsApiKey: string
+  ttsModel: string
+  ttsVoice: string
+  ttsSpeed: number
+  ttsCustomBaseURL: string
+  // Embedding (knowledge retrieval V2 — opt-in, off by default)
+  embeddingEnabled: boolean
+  embeddingProvider: string
+  embeddingApiKey: string
+  embeddingModel: string
+  embeddingCustomBaseURL: string
 }
 
 export const AI_PROVIDERS: AiProviderPreset[] = [
@@ -167,6 +180,17 @@ function createDefaultConfig(): AiConfig {
     imageProvider: 'none',
     imageApiKey: '',
     imageModel: '',
+    ttsProvider: 'web-speech',
+    ttsApiKey: '',
+    ttsModel: '',
+    ttsVoice: '',
+    ttsSpeed: 1.0,
+    ttsCustomBaseURL: '',
+    embeddingEnabled: false,
+    embeddingProvider: 'same',
+    embeddingApiKey: '',
+    embeddingModel: '',
+    embeddingCustomBaseURL: '',
   }
 }
 

@@ -1101,6 +1101,26 @@ Studio 核心功能（Phase 1-27）已全部完成，现围绕移动端体验逐
 - [x] 上下文压缩优化（token 估算 + budget-aware 动态上下文分配）
 - [x] 市场页面原型（MarketplacePage 静态 mock + ProjectsPage 浏览入口）
 
+#### Phase M7：M6 遗留缺口补全 ✅ {#phase-m7}
+
+- [x] 归档消息查看 UI（CharacterChatPage IonModal 展示归档 batches，折叠/展开只读消息）
+- [x] PWA 图标生成（pwa-192x192.png + pwa-512x512.png + favicon.ico）
+- [x] 文档已知待优化项标记更新（消息清理、增量更新、上下文压缩、离线体验全部 ✅）
+
+#### Phase M8：TTS 语音合成 + 单元测试 + 无障碍 ✅ {#phase-m8}
+
+- [x] TTS 插件架构（`TtsProvider` 接口 + 注册表 + 4 个内置 provider：Web Speech / OpenAI / 豆包 / Custom）
+- [x] TTS 设置 UI（SettingsAiPage 折叠面板：provider / model / voice / speed）
+- [x] 消息 TTS 播放（按需生成 + 自动缓存 + 批量预生成 + 音频文件复用）
+- [x] 单元测试（tokenEstimate + ttsClient + sceneMd，29 tests passing）
+- [x] 无障碍改进（`role="log"` + `aria-live` + `aria-label` + `aria-pressed`）
+
+#### Phase M9：知识库 Embedding V2 + 测试补全 + 性能优化 ✅ {#phase-m9}
+
+- [x] 知识库 Embedding V2（向量检索 opt-in 开关，`embeddingClient.ts` + IndexedDB 缓存 + fallback V1）
+- [x] 单元测试补全（mdFrontmatter + audioMd + chapterMd + slug + lineDiff + resolveAiConfig + embeddingClient，92 tests passing）
+- [x] 性能优化（JSZip 动态导入，Monaco 已为动态导入）
+
 ### Phase 13：账号系统 {#phase-13}
 
 - [ ] 用户注册/登录（邮箱 + OAuth）
@@ -1172,7 +1192,7 @@ interface MarketplaceEntry {
 - [x] **知识库 UI 编辑** — Studio 内创建/编辑/删除知识文件（Phase M5）
 - [x] **项目打包导出** — .advpkg.zip 标准包导出/导入（Phase M5）
 - [x] **虚拟滚动** — @tanstack/vue-virtual 基础设施已就绪（Phase M5）
-- [ ] **语音合成集成** — TTS 为角色对话添加语音
+- [x] **语音合成集成** — TTS 插件架构（Web Speech API / OpenAI / 豆包 / Custom），按需生成 + 缓存复用（Phase M8）
 
 ## 已知待优化项 {#improvements}
 
@@ -1181,22 +1201,22 @@ interface MarketplaceEntry {
 ### 数据持久化
 
 - ~~**localStorage 容量有限**~~ — ✅ 已迁移至 IndexedDB（Phase 12，Dexie v2→v6）
-- **消息清理策略** — 有 `MAX_STORED_MESSAGES=200` 截断兜底，但缺少自动归档旧对话的机制。
+- ~~**消息清理策略**~~ — ✅ 自动归档旧对话至 IndexedDB `archivedBatches` table（Phase M6.5），CharacterChatPage 可查看归档消息（Phase M7.1）
 
 ### 知识库系统
 
-- **检索精度** — 当前 V1 关键词匹配对语义理解有限，中文分词依赖简单 n-gram。未来应引入 embedding 向量检索（可考虑 Web 端 transformers.js 或调用外部 embedding API）。
+- ~~**检索精度**~~ — ✅ V2 向量检索（embedding API + IndexedDB 缓存 + cosine similarity），可选开关，fallback 到 V1 关键词匹配（Phase M9.1）
 - ~~**知识编辑**~~ — ✅ Studio 内已提供知识文件的创建/编辑/删除界面（Phase M5，KnowledgePage）
-- **增量更新** — 知识文件变更后需手动刷新，应自动检测变化并重新索引。
+- ~~**增量更新**~~ — ✅ 每 30 秒自动检测 `adv/knowledge/` 文件变化并重新索引（Phase M6.4，polling watch）
 
 ### AI 对话
 
 - ~~**记忆摘要质量**~~ — ✅ 已增加格式校验和重试机制（Phase 25，`retries=1`）
 - ~~**多模型支持**~~ — ✅ 每个角色可覆盖全局 AI 配置（Phase M5，CharacterAiOverride + IndexedDB）
-- **上下文压缩** — Smart Context Window 目前只做简单截断 + 摘要，可引入更智能的上下文压缩算法。
+- ~~**上下文压缩**~~ — ✅ Token 估算 + 4096 token budget 动态上下文分配，替代固定消息数截断（Phase M6.6）
 
 ### UI/UX
 
 - ~~**长列表性能**~~ — ✅ @tanstack/vue-virtual 已安装，现有 200 条消息上限 + 分页策略足够（Phase M5）
-- **离线体验** — 当前无 Service Worker 缓存，离线时无法使用。
+- ~~**离线体验**~~ — ✅ vite-plugin-pwa + Workbox CacheFirst/NetworkOnly 缓存策略 + PWA 图标（Phase M6.3 + M7.2）
 - ~~**响应式布局**~~ — ✅ 桌面端 ≥768px 左侧 sidebar navigation（Phase M5）

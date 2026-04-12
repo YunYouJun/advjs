@@ -329,6 +329,123 @@
 
 ---
 
+### Phase M7：M6 遗留缺口补全 ✅ {#phase-m7}
+
+补全 M6 实现中遗漏的 UI 和资源文件。
+
+#### M7.1 归档消息查看 UI ✅
+
+- CharacterChatPage 更多操作中新增「查看归档消息」按钮
+- IonModal bottom sheet 展示归档 batches（按时间分组、折叠/展开、只读消息列表）
+- 调用已有 `getArchivedBatches()` / `hasArchivedMessages()` store 方法
+
+**修改文件**: `CharacterChatPage.vue`, i18n `zh-CN.json` + `en.json`
+
+#### M7.2 PWA 图标生成 ✅
+
+- 从紫色背景 + 白色 "A" 字母 SVG 生成 PNG 图标
+- `pwa-192x192.png` (192×192) + `pwa-512x512.png` (512×512) + `favicon.ico` (32×32)
+- 补全 `vite.config.ts` PWA manifest 引用的图标文件
+
+**新增文件**: `public/pwa-192x192.png`, `public/pwa-512x512.png`, `public/favicon.ico`
+
+#### M7.3 文档更新 ✅
+
+- `docs/guide/studio.md` 已知待优化项全部标记为已完成：
+  - 消息清理策略 → ✅ M6.5 + M7.1
+  - 知识库增量更新 → ✅ M6.4
+  - 上下文压缩 → ✅ M6.6
+  - 离线体验 → ✅ M6.3 + M7.2
+
+---
+
+### Phase M8：TTS 语音合成 + 单元测试 + 无障碍 ✅ {#phase-m8}
+
+#### M8.1 TTS 插件架构 ✅
+
+- `TtsProvider` 插件接口：`id`, `name`, `needsKey`, `canGenerateBlob`, `generate()`, `play()`
+- Provider 注册表：`registerTtsProvider()` / `getTtsProvider()` / `listTtsProviders()`
+- 4 个内置 provider：Web Speech API（免费离线）、OpenAI TTS、豆包 TTS、Custom
+- OpenAI + 豆包共用 `openaiCompatibleGenerate()`（OpenAI `/v1/audio/speech` 兼容格式）
+- 统一 API：`ttsSpeak()`, `ttsStop()`, `ttsPlayBlob()`
+- AiConfig 扩展 6 个 TTS 字段
+
+**新增文件**: `utils/ttsClient.ts`
+**修改文件**: `useAiSettingsStore.ts`
+
+#### M8.2 TTS 设置 UI ✅
+
+- SettingsAiPage 新增 TTS 折叠面板（沿用 Image Generation 相同 UI 模式）
+- Provider grid chips + API Key + Model + Voice + Speed 滑块
+- Web Speech API 动态获取浏览器声音列表
+
+**修改文件**: `SettingsAiPage.vue`, i18n `zh-CN.json` + `en.json`
+
+#### M8.3 消息 TTS 播放 ✅
+
+- CharacterChatPage 每条 assistant 消息旁 🔊 播放按钮
+- 模式 1：按需生成 + 自动缓存到 `adv/audio/tts/{characterId}-{timestamp}.mp3`
+- 模式 2：更多操作中「批量生成语音」按钮，串行生成带进度 toast
+- 已缓存消息直接读取文件播放
+- `CharacterChatMessage` 新增 `ttsAudioPath` 可选字段
+
+**修改文件**: `CharacterChatPage.vue`, `useCharacterChatStore.ts`
+
+#### M8.4 单元测试 ✅
+
+- 删除过时 `example.spec.ts`，新建 `src/__tests__/` 目录
+- `tokenEstimate.test.ts` — 10 tests（纯英文/纯中文/混合/边界值）
+- `ttsClient.test.ts` — 9 tests（注册表/OpenAI generate/错误处理）
+- `sceneMd.test.ts` — 10 tests（解析/序列化/round-trip/边界值）
+- 共 29 tests，全部通过
+
+**新增文件**: `src/__tests__/tokenEstimate.test.ts`, `src/__tests__/ttsClient.test.ts`, `src/__tests__/sceneMd.test.ts`
+
+#### M8.5 无障碍改进 ✅
+
+- CharacterChatPage: 消息列表 `role="log" aria-live="polite"` + 输入框 `aria-label`
+- TTS 按钮: `aria-label` + `aria-pressed` 状态
+- WorldPage: 角色列表 `role="navigation"` + `role="list"` + `role="listitem"`
+
+**修改文件**: `CharacterChatPage.vue`, `WorldPage.vue`
+
+---
+
+### Phase M9：知识库 Embedding V2 + 测试补全 + 性能优化 ✅ {#phase-m9}
+
+#### M9.1 知识库 Embedding V2 ✅
+
+- `embeddingClient.ts`（新建）— OpenAI 兼容 `/v1/embeddings` 客户端 + cosine similarity + ranking
+- `EMBEDDING_PROVIDERS` 预设：Same as Chat / OpenAI / SiliconFlow / Custom
+- AiConfig 扩展：`embeddingEnabled`（默认 false）+ provider/apiKey/model
+- IndexedDB v11 新增 `knowledgeEmbeddings` table（向量缓存，content hash 变更检测）
+- `useKnowledgeBase.selectRelevantKnowledgeV2()` — 向量检索 + IndexedDB 缓存 + 批量生成（20/batch）+ fallback V1
+- SettingsAiPage Embedding 折叠面板：开关 + provider + model
+
+**新增文件**: `utils/embeddingClient.ts`
+**修改文件**: `useAiSettingsStore.ts`, `db.ts`, `useKnowledgeBase.ts`, `SettingsAiPage.vue`, i18n
+
+#### M9.2 单元测试补全 ✅
+
+7 个新测试文件，覆盖核心 utils：
+
+- `mdFrontmatter.test.ts` (9 tests) — 前置数据解析/序列化
+- `audioMd.test.ts` (8 tests) — 音频 markdown 解析
+- `chapterMd.test.ts` (7 tests) — 章节解析
+- `slug.test.ts` (12 tests) — slug 生成 + CJK 保留
+- `lineDiff.test.ts` (8 tests) — 行级 diff
+- `resolveAiConfig.test.ts` (6 tests) — AI 配置合并
+- `embeddingClient.test.ts` (13 tests) — 向量运算 + API mock
+
+总计：10 个测试文件，92 tests，全部通过
+
+#### M9.4 性能优化 ✅
+
+- `useProjectExport.ts` — JSZip 从静态 import 改为 `await import('jszip')`（按需加载）
+- Monaco Editor 已为动态导入（FilePreview.vue）
+
+---
+
 ### Phase 13：账号系统 {#phase-13}
 
 - 用户注册/登录（邮箱 + OAuth）

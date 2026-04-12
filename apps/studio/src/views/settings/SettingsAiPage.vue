@@ -20,14 +20,18 @@ import {
   keyOutline,
   lockClosedOutline,
   openOutline,
+  searchOutline,
   settingsOutline,
   shieldCheckmarkOutline,
   sparklesOutline,
+  volumeHighOutline,
 } from 'ionicons/icons'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { AI_PROVIDERS, useAiSettingsStore } from '../../stores/useAiSettingsStore'
 import { testAiConnection } from '../../utils/aiClient'
+import { EMBEDDING_PROVIDERS } from '../../utils/embeddingClient'
+import { getWebSpeechVoices, listTtsProviders } from '../../utils/ttsClient'
 
 const { t } = useI18n()
 const aiStore = useAiSettingsStore()
@@ -37,6 +41,43 @@ const testResult = ref<'idle' | 'success' | 'failed'>('idle')
 const testError = ref('')
 const isAdvancedExpanded = ref(false)
 const isImageExpanded = ref(false)
+const isTtsExpanded = ref(false)
+const isEmbeddingExpanded = ref(false)
+const webSpeechVoices = ref<SpeechSynthesisVoice[]>([])
+
+const ttsProviders = computed(() => listTtsProviders())
+
+const currentTtsProvider = computed(() => {
+  return ttsProviders.value.find(p => p.id === aiStore.config.ttsProvider)
+})
+
+const ttsNeedsKey = computed(() => {
+  return currentTtsProvider.value?.needsKey !== false
+})
+
+const ttsAvailableModels = computed(() => {
+  return currentTtsProvider.value?.models ?? []
+})
+
+const ttsAvailableVoices = computed(() => {
+  if (aiStore.config.ttsProvider === 'web-speech')
+    return webSpeechVoices.value.map(v => v.name)
+  return currentTtsProvider.value?.voices ?? []
+})
+
+const currentEmbeddingProvider = computed(() => {
+  return EMBEDDING_PROVIDERS.find(p => p.id === aiStore.config.embeddingProvider)
+})
+
+const embeddingAvailableModels = computed(() => {
+  return currentEmbeddingProvider.value?.models ?? []
+})
+
+onMounted(async () => {
+  if (typeof speechSynthesis !== 'undefined') {
+    webSpeechVoices.value = await getWebSpeechVoices()
+  }
+})
 
 const providerNeedsKey = computed(() => {
   return aiStore.currentProvider.needsKey !== false
@@ -374,6 +415,241 @@ const IMAGE_PROVIDERS = [
             </p>
           </div>
         </Transition>
+
+        <!-- TTS Settings (Collapsible) -->
+        <button class="guide-toggle" @click="isTtsExpanded = !isTtsExpanded">
+          <span class="guide-toggle__label">
+            <IonIcon :icon="volumeHighOutline" />
+            {{ t('settings.tts') }}
+          </span>
+          <IonIcon :icon="isTtsExpanded ? chevronUpOutline : chevronDownOutline" />
+        </button>
+
+        <Transition name="guide">
+          <div v-show="isTtsExpanded" class="section-card">
+            <div class="section-card__header">
+              <div class="section-card__icon section-card__icon--tts">
+                <IonIcon :icon="volumeHighOutline" />
+              </div>
+              <h3 class="section-card__title">
+                {{ t('settings.ttsProvider') }}
+              </h3>
+            </div>
+
+            <div class="provider-grid">
+              <button
+                v-for="tp in ttsProviders"
+                :key="tp.id"
+                class="provider-chip"
+                :class="{ 'provider-chip--active': aiStore.config.ttsProvider === tp.id }"
+                @click="aiStore.config.ttsProvider = tp.id"
+              >
+                <span class="provider-chip__name">{{ tp.name }}</span>
+                <span v-if="!tp.needsKey" class="provider-chip__badge">{{ t('settings.aiNoKey') }}</span>
+              </button>
+            </div>
+
+            <!-- Registration Link -->
+            <a
+              v-if="currentTtsProvider?.registrationUrl"
+              :href="currentTtsProvider.registrationUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="registration-link"
+            >
+              {{ t('settings.aiGetKey', { provider: currentTtsProvider.name }) }}
+              <IonIcon :icon="openOutline" class="registration-link__icon" />
+            </a>
+
+            <div class="form-group">
+              <!-- TTS API Key -->
+              <div v-if="ttsNeedsKey" class="input-field">
+                <label class="input-field__label">
+                  <IonIcon :icon="lockClosedOutline" class="input-field__label-icon" />
+                  {{ t('settings.ttsApiKey') }}
+                </label>
+                <input
+                  v-model.trim="aiStore.config.ttsApiKey"
+                  class="input-field__input"
+                  type="password"
+                  placeholder="sk-..."
+                  autocomplete="off"
+                >
+              </div>
+
+              <!-- Custom Base URL -->
+              <div v-if="aiStore.config.ttsProvider === 'custom'" class="input-field">
+                <label class="input-field__label">
+                  {{ t('settings.ttsCustomBaseURL') }}
+                </label>
+                <input
+                  v-model.trim="aiStore.config.ttsCustomBaseURL"
+                  class="input-field__input"
+                  type="url"
+                  placeholder="https://api.example.com/v1"
+                  autocomplete="off"
+                >
+              </div>
+
+              <!-- TTS Model -->
+              <div v-if="ttsAvailableModels.length > 0" class="input-field">
+                <label class="input-field__label">
+                  {{ t('settings.ttsModel') }}
+                </label>
+                <div class="model-chips">
+                  <button
+                    v-for="model in ttsAvailableModels"
+                    :key="model"
+                    class="model-chip"
+                    :class="{ 'model-chip--active': aiStore.config.ttsModel === model }"
+                    @click="aiStore.config.ttsModel = model"
+                  >
+                    {{ model }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- TTS Voice -->
+              <div v-if="ttsAvailableVoices.length > 0" class="input-field">
+                <label class="input-field__label">
+                  {{ t('settings.ttsVoice') }}
+                </label>
+                <div class="model-chips">
+                  <button
+                    v-for="voice in ttsAvailableVoices"
+                    :key="voice"
+                    class="model-chip"
+                    :class="{ 'model-chip--active': aiStore.config.ttsVoice === voice }"
+                    @click="aiStore.config.ttsVoice = voice"
+                  >
+                    {{ voice }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- TTS Speed -->
+              <div class="input-field">
+                <label class="input-field__label">
+                  {{ t('settings.ttsSpeed') }}
+                  <span class="input-field__value">{{ aiStore.config.ttsSpeed.toFixed(1) }}</span>
+                </label>
+                <input
+                  v-model.number="aiStore.config.ttsSpeed"
+                  type="range"
+                  min="0.5"
+                  max="2"
+                  step="0.1"
+                  class="range-input"
+                >
+                <span class="input-field__hint">{{ t('settings.ttsSpeedHint') }}</span>
+              </div>
+            </div>
+
+            <p class="image-hint">
+              {{ t('settings.ttsHint') }}
+            </p>
+          </div>
+        </Transition>
+
+        <!-- Embedding Settings (Collapsible) -->
+        <button class="guide-toggle" @click="isEmbeddingExpanded = !isEmbeddingExpanded">
+          <span class="guide-toggle__label">
+            <IonIcon :icon="searchOutline" />
+            {{ t('settings.embedding') }}
+          </span>
+          <IonIcon :icon="isEmbeddingExpanded ? chevronUpOutline : chevronDownOutline" />
+        </button>
+
+        <Transition name="guide">
+          <div v-show="isEmbeddingExpanded" class="section-card">
+            <div class="section-card__header">
+              <div class="section-card__icon section-card__icon--embedding">
+                <IonIcon :icon="searchOutline" />
+              </div>
+              <h3 class="section-card__title">
+                {{ t('settings.embedding') }}
+              </h3>
+            </div>
+
+            <!-- Enable toggle -->
+            <label class="toggle-row">
+              <span class="toggle-row__label">{{ t('settings.embeddingEnabled') }}</span>
+              <input
+                v-model="aiStore.config.embeddingEnabled"
+                type="checkbox"
+                class="toggle-checkbox"
+              >
+            </label>
+            <p class="image-hint">
+              {{ t('settings.embeddingEnabledHint') }}
+            </p>
+
+            <template v-if="aiStore.config.embeddingEnabled">
+              <div class="provider-grid">
+                <button
+                  v-for="ep in EMBEDDING_PROVIDERS"
+                  :key="ep.id"
+                  class="provider-chip"
+                  :class="{ 'provider-chip--active': aiStore.config.embeddingProvider === ep.id }"
+                  @click="aiStore.config.embeddingProvider = ep.id"
+                >
+                  <span class="provider-chip__name">{{ ep.name }}</span>
+                  <span v-if="!ep.needsKey" class="provider-chip__badge">{{ t('settings.aiNoKey') }}</span>
+                </button>
+              </div>
+
+              <div v-if="aiStore.config.embeddingProvider !== 'same'" class="form-group">
+                <div v-if="currentEmbeddingProvider?.needsKey" class="input-field">
+                  <label class="input-field__label">
+                    <IonIcon :icon="lockClosedOutline" class="input-field__label-icon" />
+                    {{ t('settings.embeddingApiKey') }}
+                  </label>
+                  <input
+                    v-model.trim="aiStore.config.embeddingApiKey"
+                    class="input-field__input"
+                    type="password"
+                    placeholder="sk-..."
+                    autocomplete="off"
+                  >
+                </div>
+
+                <div v-if="aiStore.config.embeddingProvider === 'custom'" class="input-field">
+                  <label class="input-field__label">
+                    {{ t('settings.embeddingCustomBaseURL') }}
+                  </label>
+                  <input
+                    v-model.trim="aiStore.config.embeddingCustomBaseURL"
+                    class="input-field__input"
+                    type="url"
+                    placeholder="https://api.example.com/v1"
+                    autocomplete="off"
+                  >
+                </div>
+
+                <div v-if="embeddingAvailableModels.length > 0" class="input-field">
+                  <label class="input-field__label">
+                    {{ t('settings.embeddingModel') }}
+                  </label>
+                  <div class="model-chips">
+                    <button
+                      v-for="model in embeddingAvailableModels"
+                      :key="model"
+                      class="model-chip"
+                      :class="{ 'model-chip--active': aiStore.config.embeddingModel === model }"
+                      @click="aiStore.config.embeddingModel = model"
+                    >
+                      {{ model }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </template>
+
+            <p class="image-hint">
+              {{ t('settings.embeddingHint') }}
+            </p>
+          </div>
+        </Transition>
       </div>
     </IonContent>
   </IonPage>
@@ -463,6 +739,64 @@ const IMAGE_PROVIDERS = [
 .section-card__icon--image {
   background: rgba(236, 72, 153, 0.1);
   color: #ec4899;
+}
+
+.section-card__icon--tts {
+  background: rgba(14, 165, 233, 0.1);
+  color: #0ea5e9;
+}
+
+.section-card__icon--embedding {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+}
+
+/* ── Toggle Row ── */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--adv-space-xs) 0;
+  cursor: pointer;
+}
+
+.toggle-row__label {
+  font-size: var(--adv-font-body);
+  font-weight: 500;
+  color: var(--adv-text-primary);
+}
+
+.toggle-checkbox {
+  width: 44px;
+  height: 24px;
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--adv-border-subtle);
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.toggle-checkbox::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-checkbox:checked {
+  background: var(--ion-color-primary);
+}
+
+.toggle-checkbox:checked::before {
+  transform: translateX(20px);
 }
 
 .section-card__title {

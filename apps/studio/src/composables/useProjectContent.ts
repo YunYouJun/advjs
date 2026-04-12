@@ -6,6 +6,7 @@ import { useStudioStore } from '../stores/useStudioStore'
 import { parseAudioMd } from '../utils/audioMd'
 import { downloadFromCloud, listCloudFiles } from '../utils/cloudSync'
 import { AUDIO_EXTENSIONS, listFilesInDir, listFilesInDirByExts, readFileFromDir } from '../utils/fileAccess'
+import { parseLocationMd } from '../utils/locationMd'
 import { parseSceneMd } from '../utils/sceneMd'
 import { useKnowledgeBase } from './useKnowledgeBase'
 
@@ -42,10 +43,22 @@ export interface AudioInfo {
   linkedChapters?: string[]
 }
 
+export interface LocationInfo {
+  file: string
+  name: string
+  id?: string
+  type?: 'indoor' | 'outdoor' | 'virtual' | 'other'
+  description?: string
+  tags?: string[]
+  linkedScenes?: string[]
+  linkedCharacters?: string[]
+}
+
 export interface ProjectStats {
   chapters: number
   characters: number
   scenes: number
+  locations: number
   knowledge: number
   audios: number
 }
@@ -54,8 +67,9 @@ export interface ProjectStats {
 const chapters = ref<ChapterInfo[]>([])
 const characters = ref<AdvCharacter[]>([])
 const scenes = ref<SceneInfo[]>([])
+const locations = ref<LocationInfo[]>([])
 const audios = ref<AudioInfo[]>([])
-const stats = ref<ProjectStats>({ chapters: 0, characters: 0, scenes: 0, knowledge: 0, audios: 0 })
+const stats = ref<ProjectStats>({ chapters: 0, characters: 0, scenes: 0, locations: 0, knowledge: 0, audios: 0 })
 const isLoading = ref(false)
 
 // Closure variables for reload
@@ -171,6 +185,36 @@ export function useProjectContent() {
       catch { /* no scenes dir */ }
       scenes.value = sceneList
 
+      // Load locations with frontmatter parsing
+      const locationList: LocationInfo[] = []
+      try {
+        const locationFiles = await listFilesInDir(dirHandle, 'adv/locations', '.md')
+        for (const file of locationFiles) {
+          try {
+            const content = await readFileFromDir(dirHandle, file)
+            const parsed = parseLocationMd(content)
+            locationList.push({
+              file,
+              name: parsed.name || file.split('/').pop()?.replace('.md', '') || file,
+              id: parsed.id,
+              type: parsed.type,
+              description: parsed.description,
+              tags: parsed.tags,
+              linkedScenes: parsed.linkedScenes,
+              linkedCharacters: parsed.linkedCharacters,
+            })
+          }
+          catch {
+            locationList.push({
+              file,
+              name: file.split('/').pop()?.replace('.md', '') || file,
+            })
+          }
+        }
+      }
+      catch { /* no locations dir */ }
+      locations.value = locationList
+
       // Load audio
       const audioList: AudioInfo[] = []
       try {
@@ -225,6 +269,7 @@ export function useProjectContent() {
         chapters: chapterInfos.length,
         characters: charList.length,
         scenes: sceneList.length,
+        locations: locationList.length,
         knowledge: knowledgeBase.entries.value.length,
         audios: audioList.length,
       }
@@ -306,6 +351,33 @@ export function useProjectContent() {
       }
       scenes.value = sceneList
 
+      // Locations
+      const locationFiles = allFiles.filter(f => f.includes('/locations/') && f.endsWith('.md'))
+      const locationList: LocationInfo[] = []
+      for (const file of locationFiles) {
+        try {
+          const content = await downloadFromCloud(cosConfig, file)
+          const parsed = parseLocationMd(content)
+          locationList.push({
+            file,
+            name: parsed.name || file.split('/').pop()?.replace('.md', '') || file,
+            id: parsed.id,
+            type: parsed.type,
+            description: parsed.description,
+            tags: parsed.tags,
+            linkedScenes: parsed.linkedScenes,
+            linkedCharacters: parsed.linkedCharacters,
+          })
+        }
+        catch {
+          locationList.push({
+            file,
+            name: file.split('/').pop()?.replace('.md', '') || file,
+          })
+        }
+      }
+      locations.value = locationList
+
       // Audio
       const audioMdFiles = allFiles.filter(f => f.includes('/audio/') && f.endsWith('.md'))
       const audioMediaFiles = allFiles.filter(f => f.includes('/audio/') && AUDIO_EXTENSIONS.some(ext => f.toLowerCase().endsWith(ext)))
@@ -347,6 +419,7 @@ export function useProjectContent() {
         chapters: chapterInfos.length,
         characters: charList.length,
         scenes: sceneList.length,
+        locations: locationList.length,
         knowledge: knowledgeBase.entries.value.length,
         audios: audioList.length,
       }
@@ -379,8 +452,9 @@ export function useProjectContent() {
     chapters.value = []
     characters.value = []
     scenes.value = []
+    locations.value = []
     audios.value = []
-    stats.value = { chapters: 0, characters: 0, scenes: 0, knowledge: 0, audios: 0 }
+    stats.value = { chapters: 0, characters: 0, scenes: 0, locations: 0, knowledge: 0, audios: 0 }
     isLoading.value = false
     lastDirHandle = null
     lastCosConfig = null
@@ -411,6 +485,7 @@ export function useProjectContent() {
     chapters,
     characters,
     scenes,
+    locations,
     audios,
     stats,
     isLoading,

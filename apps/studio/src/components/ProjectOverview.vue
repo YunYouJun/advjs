@@ -17,6 +17,7 @@ import {
   globeOutline,
   imageOutline,
   libraryOutline,
+  locationOutline,
   musicalNotesOutline,
   peopleOutline,
   settingsOutline,
@@ -49,6 +50,7 @@ const {
   chapters,
   characters,
   scenes,
+  locations,
   audios,
   stats,
   isLoading,
@@ -262,6 +264,13 @@ async function handleExport() {
         @click="navigateTo('/tabs/workspace/scenes')"
       />
       <StatsCard
+        accent="emerald"
+        :icon="locationOutline"
+        :value="stats.locations"
+        :label="t('dashboard.locations')"
+        @click="navigateTo('/tabs/workspace/locations')"
+      />
+      <StatsCard
         accent="orange"
         :icon="cubeOutline"
         :value="propsSections.length"
@@ -430,6 +439,23 @@ async function handleExport() {
         <span v-else class="card__empty-hint">
           <IonIcon :icon="addOutline" class="card__empty-icon" />
           {{ t('dashboard.clickToEdit') }}
+        </span>
+      </button>
+
+      <!-- Location Map -->
+      <button class="card" :class="{ 'card--empty': stats.locations === 0 }" data-accent="emerald" @click="navigateTo('/tabs/workspace/locations')">
+        <div class="card__head">
+          <span class="card__icon"><IonIcon :icon="locationOutline" /></span>
+          <span class="card__title">{{ t('dashboard.locationMap') }}</span>
+          <span v-if="stats.locations > 0" class="card__badge">{{ stats.locations }}</span>
+        </div>
+        <div v-if="locations.length > 0" class="card__chips">
+          <span v-for="l in locations.slice(0, 5)" :key="l.file" class="chip">{{ l.name }}</span>
+          <span v-if="locations.length > 5" class="chip chip--more">+{{ locations.length - 5 }}</span>
+        </div>
+        <span v-else class="card__empty-hint">
+          <IonIcon :icon="addOutline" class="card__empty-icon" />
+          {{ t('dashboard.clickToManage') }}
         </span>
       </button>
 

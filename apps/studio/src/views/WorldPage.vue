@@ -226,15 +226,17 @@ const timelineEntries = computed<TimelineEntry[]>(() => {
     <!-- Main content with clock + events + characters -->
     <div v-else class="world-main" :class="[{ 'world-main--desktop': isDesktop }]">
       <!-- Desktop: Left sidebar with character list -->
-      <aside v-if="isDesktop" class="world-sidebar">
+      <aside v-if="isDesktop" class="world-sidebar" role="navigation" :aria-label="t('world.viewAllCharacters')">
         <div class="world-sidebar__header">
           👥 {{ t('world.viewAllCharacters') }}
         </div>
-        <div class="world-sidebar__list">
+        <div class="world-sidebar__list" role="list">
           <button
             v-for="char in displayCharacters"
             :key="char.id"
             class="world-sidebar__char"
+            role="listitem"
+            :aria-label="char.name"
             @click="openCharacterChat(char)"
           >
             <span class="world-sidebar__avatar">{{ char.name?.slice(0, 2) || '?' }}</span>
