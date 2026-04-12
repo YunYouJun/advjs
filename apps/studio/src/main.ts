@@ -53,7 +53,9 @@ import 'splitpanes/dist/splitpanes.css'
 const pinia = createPinia()
 
 const app = createApp(App)
-  .use(IonicVue)
+  .use(IonicVue, {
+    mode: 'ios',
+  })
   .use(pinia)
   .use(i18n)
   .use(router)

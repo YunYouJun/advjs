@@ -28,6 +28,7 @@ export interface SceneInfo {
   type?: 'image' | 'model'
   tags?: string[]
   src?: string
+  linkedLocation?: string
 }
 
 export interface AudioInfo {
@@ -171,6 +172,7 @@ export function useProjectContent() {
               type: parsed.type,
               tags: parsed.tags,
               src: parsed.src,
+              linkedLocation: parsed.linkedLocation,
             })
           }
           catch {
@@ -340,6 +342,7 @@ export function useProjectContent() {
             type: parsed.type,
             tags: parsed.tags,
             src: parsed.src,
+            linkedLocation: parsed.linkedLocation,
           })
         }
         catch {

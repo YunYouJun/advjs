@@ -13,6 +13,7 @@ const SCENE_FRONTMATTER_KEYS: string[] = [
   'type',
   'alias',
   'src',
+  'linkedLocation',
 ]
 
 /**
@@ -22,6 +23,8 @@ export interface SceneFormData extends AdvBaseScene {
   /** Image source path or URL (from AdvSceneImage) */
   src?: string
   tags?: string[]
+  /** Linked location ID from adv/locations/ */
+  linkedLocation?: string
 }
 
 /**
@@ -44,6 +47,7 @@ export function parseSceneMd(content: string): SceneFormData {
     alias: fm.alias,
     src: fm.src,
     tags: fm.tags,
+    linkedLocation: fm.linkedLocation,
   }
 
   return Object.fromEntries(

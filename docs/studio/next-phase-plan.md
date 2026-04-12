@@ -463,6 +463,100 @@
 
 ---
 
+## 地点系统路线 {#location-roadmap}
+
+地点（Location）模块为 Studio 新增世界观组织维度。文件存储在 `adv/locations/*.md`。
+
+### Phase L1：基础 CRUD ✅ {#phase-l1}
+
+| 功能                 | 说明                                                        | 状态 |
+| -------------------- | ----------------------------------------------------------- | ---- |
+| 地点 Markdown 解析   | `locationMd.ts`，YAML frontmatter + body                    | ✅   |
+| 地点卡片 + 编辑表单  | `LocationCard.vue` + `LocationEditorForm.vue`               | ✅   |
+| 地点列表页           | `LocationsPage.vue`（搜索、CRUD、草稿恢复、AI 辅助）        | ✅   |
+| 通用 composable 扩展 | `useProjectContent` / `useContentEditor` / `useContentSave` | ✅   |
+| 路由 + i18n          | `workspace/locations` 路由，中英双语翻译                    | ✅   |
+| Dashboard 集成       | Stats Row 地点统计卡 + Content Cards 地点地图入口           | ✅   |
+
+**地点数据模型**：
+
+```ts
+interface LocationFormData {
+  id: string // 唯一标识
+  name: string // 显示名称
+  type?: 'indoor' | 'outdoor' | 'virtual' | 'other'
+  description?: string // 地点描述
+  tags?: string[] // 标签
+  linkedScenes?: string[] // 关联场景 ID
+  linkedCharacters?: string[] // 常出现角色 ID
+}
+```
+
+**新增/修改文件**：
+
+| 操作 | 文件                                                  |
+| ---- | ----------------------------------------------------- |
+| 新建 | `apps/studio/src/utils/locationMd.ts`                 |
+| 新建 | `apps/studio/src/components/LocationCard.vue`         |
+| 新建 | `apps/studio/src/components/LocationEditorForm.vue`   |
+| 新建 | `apps/studio/src/views/workspace/LocationsPage.vue`   |
+| 修改 | `apps/studio/src/composables/useProjectContent.ts`    |
+| 修改 | `apps/studio/src/composables/useContentEditor.ts`     |
+| 修改 | `apps/studio/src/composables/useContentSave.ts`       |
+| 修改 | `apps/studio/src/router/index.ts`                     |
+| 修改 | `apps/studio/src/i18n/locales/en.json` + `zh-CN.json` |
+| 修改 | `apps/studio/src/components/ProjectOverview.vue`      |
+
+### Phase L2：关联增强 ✅ {#phase-l2}
+
+- [x] **Scene ↔ Location 双向关联**
+  - 场景编辑表单新增 `linkedLocation` 字段
+  - Location 详情页显示关联 Scene 列表（反查）
+  - `projectValidation.ts` 检查 `linkedLocation` 引用完整性
+- [x] **Character ↔ Location 动态关联**
+  - `locationMatch.ts` 模糊匹配（id 精确 → 名称精确 → 名称包含）
+  - 角色卡片显示当前所在地点名称
+  - 地点详情页显示当前在此的角色 + frontmatter 关联角色
+- [ ] **场景背景继承**
+  - Location 可配置默认 `imagePrompt`
+  - 新建关联 Scene 时自动填充提示词
+- [x] **Location 详情页**
+  - 点击地点卡片进入独立详情页（`LocationDetailPage.vue`）
+  - 展示：描述、标签、关联场景列表、出现角色列表
+  - 快捷操作：编辑、跳转到关联场景/角色
+
+### Phase L3：可视化地图 {#phase-l3}
+
+- [ ] **关系图谱 (LocationMapView.vue)**
+  - 基于 `@advjs/flow`（Vue Flow）的节点图
+  - 地点为节点，连接关系为边
+  - 角色位置标注（当前所在地点高亮）
+  - 支持拖拽布局和缩放
+- [ ] **自定义地图图片**
+  - Location 新增 `mapImage` 字段
+  - 支持上传世界地图底图
+  - 在底图上叠加地点标注
+- [ ] **热区标注**
+  - 在地图图片上标注地点热区（坐标 + 半径）
+  - 点击热区跳转到对应 Location 详情
+  - 悬停显示地点名称和当前角色
+
+### Phase L4：运行时集成 {#phase-l4}
+
+- [ ] **AST 层打通**
+  - `@advjs/parser` 解析 `【place，time，inOrOut】` 时匹配 `adv/locations/{place}.md`
+  - 丰富 `SceneInfo` AST 节点，注入 Location 元数据（type、description）
+  - `adv check` 检查场景引用与地点目录的一致性
+- [ ] **游戏内地图 UI**
+  - `@advjs/client` 新增可选地图组件
+  - 玩家可在游戏中查看地点地图、已访问地点
+  - 支持地图图片 + 热区 + 已探索/未探索状态
+- [ ] **位置驱动剧情**
+  - Flow 编辑器支持"角色到达某地点"作为分支条件
+  - 地点触发器（进入/离开地点时触发事件）
+
+---
+
 ## 关键文件清单
 
 | 文件                                                     | 说明                   |

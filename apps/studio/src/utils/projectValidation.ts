@@ -6,12 +6,12 @@
  */
 
 import type { AdvCharacter } from '@advjs/types'
-import type { AudioInfo, ChapterInfo, SceneInfo } from '../composables/useProjectContent'
+import type { AudioInfo, ChapterInfo, LocationInfo, SceneInfo } from '../composables/useProjectContent'
 import { parseAst } from '@advjs/parser'
 
 export interface ValidationIssue {
   type: 'error' | 'warning'
-  category: 'syntax' | 'character' | 'scene' | 'audio'
+  category: 'syntax' | 'character' | 'scene' | 'audio' | 'location'
   file: string
   message: string
 }
@@ -23,6 +23,7 @@ export interface ValidationResult {
     scripts: number
     characters: number
     scenes: number
+    locations: number
     audios: number
   }
 }
@@ -75,8 +76,17 @@ export async function validateProject(
   characters: AdvCharacter[],
   scenes: SceneInfo[],
   audios: AudioInfo[],
+  locations: LocationInfo[] = [],
 ): Promise<ValidationResult> {
   const issues: ValidationIssue[] = []
+
+  // Build known location lookup
+  const knownLocations = new Set<string>()
+  for (const loc of locations) {
+    if (loc.id)
+      knownLocations.add(loc.id)
+    knownLocations.add(loc.name)
+  }
 
   // Build known character lookup (id, name, aliases)
   const knownCharacters = new Set<string>()
@@ -177,6 +187,46 @@ export async function validateProject(
     }
   }
 
+  // 3. Scene linkedLocation check
+  for (const scene of scenes) {
+    if (scene.linkedLocation && !knownLocations.has(scene.linkedLocation)) {
+      issues.push({
+        type: 'warning',
+        category: 'location',
+        file: scene.file,
+        message: `linkedLocation "${scene.linkedLocation}" not found`,
+      })
+    }
+  }
+
+  // 4. Location reference integrity
+  for (const loc of locations) {
+    if (loc.linkedScenes) {
+      for (const sceneId of loc.linkedScenes) {
+        if (!knownScenes.has(sceneId)) {
+          issues.push({
+            type: 'warning',
+            category: 'location',
+            file: loc.file,
+            message: `linkedScene "${sceneId}" not found`,
+          })
+        }
+      }
+    }
+    if (loc.linkedCharacters) {
+      for (const charId of loc.linkedCharacters) {
+        if (!knownCharacters.has(charId)) {
+          issues.push({
+            type: 'warning',
+            category: 'location',
+            file: loc.file,
+            message: `linkedCharacter "${charId}" not found`,
+          })
+        }
+      }
+    }
+  }
+
   return {
     issues,
     passed: issues.filter(i => i.type === 'error').length === 0,
@@ -184,6 +234,7 @@ export async function validateProject(
       scripts: chapters.length,
       characters: characters.length,
       scenes: scenes.length,
+      locations: locations.length,
       audios: audios.length,
     },
   }

@@ -24,6 +24,7 @@ import {
 import { addOutline, trashOutline } from 'ionicons/icons'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import AiGeneratePanel from '../../components/AiGeneratePanel.vue'
 import DraftRestoreBanner from '../../components/common/DraftRestoreBanner.vue'
 import ContentEditorModal from '../../components/ContentEditorModal.vue'
@@ -39,6 +40,7 @@ import { parseLocationMd, stringifyLocationMd } from '../../utils/locationMd'
 import { showToast } from '../../utils/toast'
 
 const { t } = useI18n()
+const router = useRouter()
 const aiSettings = useAiSettingsStore()
 
 const { locations, reload, getDirHandle } = useProjectContent()
@@ -90,19 +92,9 @@ function handleAiApplyLocation(md: string) {
   markdownToLocation(md)
 }
 
-function handleEditLocation(location: LocationInfo) {
-  trackAccess({ id: location.file, label: location.name, type: 'location', action: 'edit' })
-  const locationData: LocationFormData = {
-    id: location.id || location.name,
-    name: location.name,
-    type: location.type || 'other',
-    description: location.description,
-    tags: location.tags,
-    linkedScenes: location.linkedScenes,
-    linkedCharacters: location.linkedCharacters,
-  }
-  locationEditor.openEdit(locationData)
-  locationMarkdown.value = stringifyLocationMd(locationData)
+function handleViewLocation(location: LocationInfo) {
+  trackAccess({ id: location.file, label: location.name, type: 'location', action: 'view' })
+  router.push(`/tabs/workspace/locations/${encodeURIComponent(location.id || location.name)}`)
 }
 
 // --- Save ---
@@ -179,7 +171,7 @@ async function handleDeleteLocation(location: LocationFormData) {
         <IonItemSliding v-for="location in filteredLocations" :key="location.file">
           <LocationCard
             :location="location"
-            @click="handleEditLocation(location)"
+            @click="handleViewLocation(location)"
           />
           <IonItemOptions side="end">
             <IonItemOption color="danger" @click="handleDeleteLocation({ id: location.id || location.name, name: location.name, type: location.type || 'other', description: location.description, tags: location.tags, linkedScenes: location.linkedScenes, linkedCharacters: location.linkedCharacters })">

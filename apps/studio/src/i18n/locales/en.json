@@ -548,6 +548,7 @@
     "collapse": "Collapse",
     "viewAll": "View All",
     "search": "Search...",
+    "none": "None",
     "save": "Save"
   },
   "chapters": {
@@ -606,7 +607,12 @@
     "linkedScenesPlaceholder": "Enter scene IDs",
     "linkedScenesCount": "{count} linked scene(s)",
     "linkedCharacters": "Linked Characters",
-    "linkedCharactersPlaceholder": "Enter character IDs"
+    "linkedCharactersPlaceholder": "Enter character IDs",
+    "detailLinkedScenes": "Linked Scenes",
+    "detailCharactersHere": "Characters Here",
+    "detailLinkedCharacters": "Linked Characters",
+    "detailNoLinks": "No linked scenes or characters yet",
+    "detailNotFound": "Location not found"
   },
   "audio": {
     "title": "Audio Resources",
@@ -787,6 +793,8 @@
     "draftFound": "Unsaved {type} draft found",
     "restoreDraft": "Restore",
     "discardDraft": "Discard",
+    "linkedLocation": "Linked Location",
+    "linkedLocationPlaceholder": "Select a location",
     "aiGenerateImage": "AI Generate",
     "generating": "Generating...",
     "imageGenerated": "Image generated",

@@ -32,11 +32,13 @@ import { useContentSave } from '../../composables/useContentSave'
 import { useProjectContent } from '../../composables/useProjectContent'
 import { useRecentActivity } from '../../composables/useRecentActivity'
 import { useAiSettingsStore } from '../../stores/useAiSettingsStore'
+import { useCharacterStateStore } from '../../stores/useCharacterStateStore'
 import { showToast } from '../../utils/toast'
 
 const { t } = useI18n()
 const router = useRouter()
 const aiSettings = useAiSettingsStore()
+const characterStateStore = useCharacterStateStore()
 
 const { characters, reload, getDirHandle } = useProjectContent()
 const { isSaving, saveContent } = useContentSave()
@@ -182,6 +184,7 @@ async function handleDeleteCharacter(character: AdvCharacter) {
           v-for="character in filteredCharacters"
           :key="character.id"
           :character="character"
+          :location="characterStateStore.getState(character.id).location"
           @click="handleEditCharacter"
         >
           <template #actions>

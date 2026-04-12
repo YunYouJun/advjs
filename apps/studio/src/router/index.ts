@@ -36,6 +36,10 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/views/workspace/LocationsPage.vue'),
       },
       {
+        path: 'workspace/locations/:id',
+        component: () => import('@/views/workspace/LocationDetailPage.vue'),
+      },
+      {
         path: 'workspace/audio',
         component: () => import('@/views/workspace/AudioPage.vue'),
       },

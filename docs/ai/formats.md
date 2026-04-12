@@ -6,13 +6,14 @@
 
 ## 总览
 
-| 文件          | 位置              | 用途                               | 必需 |
-| ------------- | ----------------- | ---------------------------------- | ---- |
-| `world.md`    | `adv/world.md`    | 世界观设定（基调、规则、美术风格） | 推荐 |
-| `outline.md`  | `adv/outline.md`  | 故事大纲（幕/章/分支结构）         | 推荐 |
-| `glossary.md` | `adv/glossary.md` | 术语表（大型项目保持一致性）       | 可选 |
-| `README.md`   | 各子目录          | AI 上下文摘要                      | 推荐 |
-| `scenes/*.md` | `adv/scenes/`     | 场景描述文件                       | 推荐 |
+| 文件             | 位置              | 用途                               | 必需 |
+| ---------------- | ----------------- | ---------------------------------- | ---- |
+| `world.md`       | `adv/world.md`    | 世界观设定（基调、规则、美术风格） | 推荐 |
+| `outline.md`     | `adv/outline.md`  | 故事大纲（幕/章/分支结构）         | 推荐 |
+| `glossary.md`    | `adv/glossary.md` | 术语表（大型项目保持一致性）       | 可选 |
+| `README.md`      | 各子目录          | AI 上下文摘要                      | 推荐 |
+| `scenes/*.md`    | `adv/scenes/`     | 场景描述文件                       | 推荐 |
+| `locations/*.md` | `adv/locations/`  | 地点描述文件                       | 可选 |
 
 ---
 
@@ -287,6 +288,60 @@ tags:
 
 ---
 
+## `locations/*.md` — 地点描述文件
+
+**位置**：`adv/locations/`
+
+每个地点一个文件，使用 YAML frontmatter 定义结构化字段。地点是世界观层面的地理实体，用于组织世界地理结构和追踪角色位置。
+
+::: tip 场景 vs 地点
+**场景（Scene）** 是叙事中的"镜头"——包含视觉背景（图片/3D模型）和时间标注，在游戏脚本中通过 `【地点，时间，内/外景】` 语法引用，控制运行时的背景切换。
+
+**地点（Location）** 是世界观中的"地方"——包含地理元数据和关联关系，用于 Studio 中组织世界观和追踪 AI 聊天中的角色位置。
+
+一个地点可以对应多个场景（同一地点的不同时间/氛围），两者互补而非替代。
+:::
+
+### 格式
+
+```md
+---
+id: shibuya-cafe
+name: 涩谷咖啡厅
+type: indoor
+tags:
+  - 主线
+  - 日常
+linkedScenes:
+  - cafe-morning
+  - cafe-evening
+linkedCharacters:
+  - jane
+  - tom
+---
+
+位于涩谷中心的温馨咖啡厅，木质装潢搭配暖色灯光。
+是简和汤姆的常去之地，也是故事中多个关键对话的发生场所。
+```
+
+### Frontmatter 字段
+
+| 字段               | 类型     | 必需 | 说明                                                 |
+| ------------------ | -------- | ---- | ---------------------------------------------------- |
+| `id`               | string   | ✅   | 唯一标识符                                           |
+| `name`             | string   | ✅   | 地点显示名称                                         |
+| `type`             | string   | 可选 | 地点类型：`indoor` / `outdoor` / `virtual` / `other` |
+| `tags`             | string[] | 可选 | 分类标签                                             |
+| `description`      | string   | 可选 | 地点描述（也可写在正文中）                           |
+| `linkedScenes`     | string[] | 可选 | 关联场景 ID 列表                                     |
+| `linkedCharacters` | string[] | 可选 | 常出现角色 ID 列表                                   |
+
+### 与角色状态追踪的关系
+
+Studio 的 AI 聊天系统会自动从对话中提取角色的当前位置（`AdvCharacterDynamicState.location`），这是一个自由文本字段。`locations/*.md` 提供了预定义的地点目录，未来可用于将角色位置与地点 ID 进行模糊匹配。
+
+---
+
 ## AI 读取策略
 
 AI 在不同工作流中应按需加载文件：
@@ -299,6 +354,7 @@ AI 在不同工作流中应按需加载文件：
 3. adv/chapters/README.md → 章节进度
 4. adv/characters/README.md → 角色概览
 5. adv/scenes/README.md  → 场景清单
+6. adv/locations/        → 地点目录（如有）
 ```
 
 ### 深入创作（写具体章节）
@@ -307,7 +363,8 @@ AI 在不同工作流中应按需加载文件：
 在快速扫描基础上，额外读取：
 6. 相关的 characters/*.character.md → 涉及角色的详细设定
 7. 相关的 scenes/*.md → 涉及场景的详细描述
-8. adv/glossary.md → 术语一致性参考
+8. 相关的 locations/*.md → 涉及地点的世界观信息
+9. adv/glossary.md → 术语一致性参考
 ```
 
 ### 一致性检查

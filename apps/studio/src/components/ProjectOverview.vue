@@ -130,6 +130,7 @@ async function runValidation() {
       characters.value,
       scenes.value,
       audios.value,
+      locations.value,
     )
   }
   catch {
@@ -349,9 +350,9 @@ async function handleExport() {
             {{ t('validation.issueCount', { count: validationSummary?.total || 0 }) }}
           </span>
         </div>
-        <button class="health__recheck" :title="t('validation.recheck')" @click.stop="runValidation">
+        <span role="button" tabindex="0" class="health__recheck" :title="t('validation.recheck')" @click.stop="runValidation" @keydown.enter.stop="runValidation">
           ↻
-        </button>
+        </span>
       </button>
 
       <!-- Issue details (expandable) -->

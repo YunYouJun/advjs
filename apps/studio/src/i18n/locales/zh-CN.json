@@ -548,6 +548,7 @@
     "collapse": "收起",
     "viewAll": "查看全部",
     "search": "搜索...",
+    "none": "无",
     "save": "保存"
   },
   "chapters": {
@@ -606,7 +607,12 @@
     "linkedScenesPlaceholder": "输入场景 ID",
     "linkedScenesCount": "关联 {count} 个场景",
     "linkedCharacters": "关联角色",
-    "linkedCharactersPlaceholder": "输入角色 ID"
+    "linkedCharactersPlaceholder": "输入角色 ID",
+    "detailLinkedScenes": "关联场景",
+    "detailCharactersHere": "当前在此的角色",
+    "detailLinkedCharacters": "关联角色",
+    "detailNoLinks": "暂无关联场景或角色",
+    "detailNotFound": "地点未找到"
   },
   "audio": {
     "title": "音频资源",
@@ -787,6 +793,8 @@
     "draftFound": "发现未保存的{type}草稿",
     "restoreDraft": "恢复",
     "discardDraft": "丢弃",
+    "linkedLocation": "关联地点",
+    "linkedLocationPlaceholder": "选择一个地点",
     "aiGenerateImage": "AI 生成",
     "generating": "生成中...",
     "imageGenerated": "图片已生成",

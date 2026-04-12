@@ -11,10 +11,12 @@ import {
   IonTextarea,
 } from '@ionic/vue'
 import { useI18n } from 'vue-i18n'
+import { useProjectContent } from '../composables/useProjectContent'
 import TagsInput from './TagsInput.vue'
 
 const { t } = useI18n()
 const model = defineModel<SceneFormData>({ required: true })
+const { locations } = useProjectContent()
 
 function updateField<K extends keyof SceneFormData>(field: K, value: SceneFormData[K]) {
   model.value = { ...model.value, [field]: value }
@@ -73,6 +75,24 @@ function updateField<K extends keyof SceneFormData>(field: K, value: SceneFormDa
             @update:model-value="updateField('tags', $event)"
           />
         </div>
+      </IonItem>
+      <IonItem v-if="locations.length > 0">
+        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+        <IonSelect
+          :value="model.linkedLocation || ''"
+          :label="t('contentEditor.linkedLocation')"
+          label-placement="stacked"
+          interface="popover"
+          :placeholder="t('contentEditor.linkedLocationPlaceholder')"
+          @ion-change="updateField('linkedLocation', ($event.detail.value ?? '') || undefined)"
+        >
+          <IonSelectOption value="">
+            {{ t('common.none') }}
+          </IonSelectOption>
+          <IonSelectOption v-for="loc in locations" :key="loc.file" :value="loc.id || loc.name">
+            {{ loc.name }}
+          </IonSelectOption>
+        </IonSelect>
       </IonItem>
     </IonList>
 

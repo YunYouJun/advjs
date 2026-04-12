@@ -160,6 +160,7 @@ function handleEditScene(scene: SceneInfo) {
     imagePrompt: scene.imagePrompt,
     type: scene.type || 'image',
     tags: scene.tags,
+    linkedLocation: scene.linkedLocation,
   }
   sceneEditor.openEdit(sceneData)
   sceneMarkdown.value = stringifySceneMd(sceneData)

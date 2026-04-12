@@ -34,6 +34,9 @@ my-game/
 │   │   ├── README.md            # AI 上下文摘要 — 场景总览
 │   │   └── school.md            # 场景描述文件
 │   │
+│   ├── locations/               # 地点定义（可选）
+│   │   └── shibuya-cafe.md      # 地点描述文件
+│   │
 │   ├── bgm/                     # 背景音乐（引用路径）
 │   │
 │   ├── assets/                  # 素材资源（立绘、背景、音效、UI 等）
@@ -123,6 +126,31 @@ my-game/
 **场景描述文件**，每个场景一个 `.md` 文件。使用 YAML frontmatter 定义 `id`、`name`、`imagePrompt`（AI 图片生成提示词）和 `tags`。正文描述场景的视觉细节、氛围和出现章节。
 
 场景通过 `【场景名，时间，内外】` 语法在剧本中引用，`adv check` 会检查引用一致性。
+
+> 详细格式规范参见 [AI 创作文件格式规范](/ai/formats)。
+
+### `adv/locations/`
+
+**地点描述文件**（可选），每个地点一个 `.md` 文件。使用 YAML frontmatter 定义 `id`、`name`、`type`（indoor/outdoor/virtual/other）、`tags`，以及 `linkedScenes` 和 `linkedCharacters` 关联字段。
+
+地点与场景是互补概念：**场景**是叙事层的视觉单元（包含背景图片和时间），**地点**是世界观层的地理实体（包含关联关系和地理分类）。一个地点可以对应多个场景（不同时间段的同一地方）。
+
+```md
+---
+id: shibuya-cafe
+name: 涩谷咖啡厅
+type: indoor
+tags:
+  - 主线
+linkedScenes:
+  - cafe-morning
+  - cafe-evening
+linkedCharacters:
+  - jane
+---
+
+位于涩谷中心的温馨咖啡厅。
+```
 
 > 详细格式规范参见 [AI 创作文件格式规范](/ai/formats)。
 
