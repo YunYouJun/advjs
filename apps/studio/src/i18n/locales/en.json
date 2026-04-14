@@ -533,6 +533,11 @@
     "ttsGenerateComplete": "Generated voice for {count} messages",
     "ttsGenerateFailed": "Voice generation failed",
     "ttsCached": "Voice cached",
+    "ttsVoiceSettings": "Voice Settings",
+    "ttsProviderLabel": "Voice Provider",
+    "ttsVoiceLabel": "Voice",
+    "ttsModelLabel": "Voice Model",
+    "ttsSpeedLabel": "Speed",
     "chatMessages": "Chat messages"
   },
   "common": {

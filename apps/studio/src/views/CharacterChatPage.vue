@@ -53,6 +53,7 @@ import { useViewModeStore } from '../stores/useViewModeStore'
 import { formatChatTime, getMoodEmoji } from '../utils/chatUtils'
 import { uploadToCloud } from '../utils/cloudSync'
 import { downloadAsFile, readBlobFromDir, writeBlobToDir, writeFileToDir } from '../utils/fileAccess'
+import { resolveCharacterTtsSettings } from '../utils/resolveAiConfig'
 import { getTtsProvider, ttsSpeak, ttsStop } from '../utils/ttsClient'
 import '../styles/chat.css'
 
@@ -72,11 +73,6 @@ const { characters, knowledgeBase } = useProjectContent()
 const { worldContext } = useWorldContext()
 const viewModeStore = useViewModeStore()
 const aiSettingsStore = useAiSettingsStore()
-
-const currentTtsCanGenerateBlob = computed(() => {
-  const provider = getTtsProvider(aiSettingsStore.config.ttsProvider)
-  return provider?.canGenerateBlob ?? false
-})
 
 function getEffectiveWorldContext(): string {
   return viewModeStore.getEffectiveWorldContext(worldContext.value)
@@ -99,6 +95,19 @@ const ttsBatchGenerating = ref(false)
 onUnmounted(() => ttsStop())
 
 const characterId = computed(() => route.params.characterId as string)
+
+const currentTtsCanGenerateBlob = computed(() => {
+  const override = characterChatStore.getAiOverride(characterId.value)
+  const effectiveProvider = override?.ttsProvider ?? aiSettingsStore.config.ttsProvider
+  const provider = getTtsProvider(effectiveProvider)
+  return provider?.canGenerateBlob ?? false
+})
+
+const ttsEnabled = computed(() => {
+  const override = characterChatStore.getAiOverride(characterId.value)
+  const effectiveProvider = override?.ttsProvider ?? aiSettingsStore.config.ttsProvider
+  return effectiveProvider !== 'none' && effectiveProvider !== ''
+})
 
 const character = computed<AdvCharacter | undefined>(() => {
   return characters.value.find(c => c.id === characterId.value)
@@ -552,15 +561,8 @@ async function handleSaveAiOverride(config: CharacterAiOverride | undefined) {
 // --- TTS helpers ---
 
 function getTtsSettings() {
-  const c = aiSettingsStore.config
-  return {
-    provider: c.ttsProvider,
-    apiKey: c.ttsApiKey,
-    model: c.ttsModel,
-    voice: c.ttsVoice,
-    speed: c.ttsSpeed,
-    customBaseURL: c.ttsCustomBaseURL,
-  }
+  const override = characterChatStore.getAiOverride(characterId.value)
+  return resolveCharacterTtsSettings(aiSettingsStore.config, override)
 }
 
 async function handleTtsPlay(msg: { role: string, content: string, timestamp: number, ttsAudioPath?: string }, visibleIdx: number) {
@@ -850,7 +852,7 @@ async function handleDeleteDiary(diaryId: string) {
           </div>
           <div class="message__actions">
             <button
-              v-if="msg.role === 'assistant' && aiSettingsStore.config.ttsProvider !== 'none'"
+              v-if="msg.role === 'assistant' && ttsEnabled"
               class="tts-btn"
               :class="{
                 'tts-btn--playing': ttsPlayingIndex === index,

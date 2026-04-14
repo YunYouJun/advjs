@@ -9,3 +9,5 @@ node_modules
 *.log
 cypress/downloads
 public/assets/fonts
+
+.mockery

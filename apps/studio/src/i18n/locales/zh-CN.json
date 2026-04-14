@@ -533,6 +533,11 @@
     "ttsGenerateComplete": "已为 {count} 条消息生成语音",
     "ttsGenerateFailed": "语音生成失败",
     "ttsCached": "语音已缓存",
+    "ttsVoiceSettings": "语音设置",
+    "ttsProviderLabel": "语音服务商",
+    "ttsVoiceLabel": "声音",
+    "ttsModelLabel": "语音模型",
+    "ttsSpeedLabel": "语速",
     "chatMessages": "对话消息"
   },
   "common": {

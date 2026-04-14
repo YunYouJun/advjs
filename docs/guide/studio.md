@@ -43,6 +43,7 @@ AI Living World 的入口，浏览和与角色互动：
 
 - **角色列表**：展示项目中的所有角色卡片，显示头像/初始字母、心情、位置、标签
 - **角色对话**：选择角色进入沉浸式 1v1 对话，AI 基于 `.character.md` 人设保持角色一致性
+- **角色语音定制**：每个角色可配置独立的 TTS 语音（provider / voice / speed），不同角色不同声音（Phase M10）
 - **对话记忆**：AI 自动提取每轮对话的关键记忆（事实、偏好、情感状态），跨会话保持连贯
 - **动态状态**：角色位置、健康、活动、自定义属性实时变化
 - **世界时钟**：可推进的日期/时段/天气系统，影响角色对话语境
@@ -1158,6 +1159,38 @@ Studio 核心功能（Phase 1-27）已全部完成，现围绕移动端体验逐
 - [x] 单元测试补全（mdFrontmatter + audioMd + chapterMd + slug + lineDiff + resolveAiConfig + embeddingClient，92 tests passing）
 - [x] 性能优化（JSZip 动态导入，Monaco 已为动态导入）
 
+#### Phase M10：角色独立语音配置 ✅ {#phase-m10}
+
+为每个角色配置独立的 TTS 语音，让不同性格的角色拥有不同的声音，显著提升沉浸感。
+
+**实现内容**：
+
+- [x] `CharacterAiOverride` 扩展 — 新增 `ttsProvider / ttsVoice / ttsModel / ttsSpeed` 四个可选覆盖字段
+- [x] `resolveCharacterTtsSettings()` — 合并全局 TTS 配置 + 角色覆盖配置的解析函数
+- [x] `CharacterAiSettingsForm.vue` — 新增 **语音设置** section（Provider / Voice / Model / Speed 选择器），只存差异字段
+- [x] `CharacterChatPage.vue` — `getTtsSettings()` 改用 per-character resolve，TTS 按钮可见性也读取角色配置
+- [x] i18n 补全（中/英 4 个新 key）
+- [x] 单元测试（`resolveCharacterTtsSettings` 6 个测试用例，全部通过）
+
+**零数据库迁移**：TTS 字段复用已有的 `characterAiConfigs` IndexedDB 表。
+
+**👤 使用方法**
+
+1. 打开角色对话页，点击 ⚙️ 设置按钮
+2. 开启「自定义 AI 配置」开关
+3. 在底部的「语音设置」区块中：
+   - 选择不同的语音服务商（如温柔角色用 OpenAI，严肃角色用豆包）
+   - 为角色选择独有的声音（如 `nova` / `shimmer` / `alloy`）
+   - 调整语速（0.5x ~ 2.0x）
+4. 保存后，该角色的所有 TTS 朗读将使用独立配置
+
+#### Phase M11：场景背景继承 + 对话分支可视化 {#phase-m11}
+
+- [ ] **场景背景继承** — Location 可配置默认背景图提示词（`defaultImagePrompt` 字段），新建关联 Scene 时自动填充 `imagePrompt`，减少重复输入
+- [ ] **对话分支树可视化** — 基于已有的对话存档点（Phase 25），以树形图展示存档点之间的分支关系，方便回溯和对比不同对话路线
+- [ ] **群聊角色语音** — 群聊场景中每个角色使用各自的 TTS 配置朗读（复用 Phase M10 的 per-character TTS resolve）
+- [ ] **TTS 自动朗读模式** — 对话时可开启自动朗读，AI 回复完成后自动播放语音（无需手动点击每条消息的朗读按钮）
+
 ### Phase 13：账号系统 {#phase-13}
 
 - [ ] 用户注册/登录（邮箱 + OAuth）
@@ -1230,6 +1263,7 @@ interface MarketplaceEntry {
 - [x] **项目打包导出** — .advpkg.zip 标准包导出/导入（Phase M5）
 - [x] **虚拟滚动** — @tanstack/vue-virtual 基础设施已就绪（Phase M5）
 - [x] **语音合成集成** — TTS 插件架构（Web Speech API / OpenAI / 豆包 / Custom），按需生成 + 缓存复用（Phase M8）
+- [x] **角色独立语音** — 每个角色可覆盖全局 TTS 配置（provider / voice / model / speed），不同角色不同声音（Phase M10）
 
 ### 地点系统路线 {#location-roadmap}
 
@@ -1248,7 +1282,7 @@ interface MarketplaceEntry {
 
 - [x] **Scene ↔ Location 双向关联** — 场景编辑表单增加 `linkedLocation` 字段，Location 详情显示关联 Scene 列表，`projectValidation.ts` 检查引用完整性
 - [x] **Character ↔ Location 动态关联** — `locationMatch.ts` 模糊匹配，角色卡片显示当前所在地点，地点详情页显示动态角色 + frontmatter 关联角色
-- [ ] **场景背景继承** — Location 可配置默认背景图提示词，新建关联 Scene 时自动填充 `imagePrompt`
+- [ ] **场景背景继承** — Location 可配置默认背景图提示词，新建关联 Scene 时自动填充 `imagePrompt`（→ Phase M11）
 - [x] **Location 详情页** — `LocationDetailPage.vue` 展示描述、标签、关联场景列表、出现角色列表，支持编辑和跳转
 
 #### Phase L3：可视化地图 {#phase-l3}

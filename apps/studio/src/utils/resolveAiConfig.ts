@@ -1,4 +1,5 @@
 import type { AiConfig } from '../stores/useAiSettingsStore'
+import type { TtsSettings } from './ttsClient'
 import { AI_PROVIDERS } from '../stores/useAiSettingsStore'
 
 /**
@@ -11,6 +12,11 @@ export interface CharacterAiOverride {
   model?: string
   temperature?: number
   maxTokens?: number
+  // Per-character TTS voice overrides
+  ttsProvider?: string
+  ttsVoice?: string
+  ttsModel?: string
+  ttsSpeed?: number
 }
 
 export interface ResolvedAiConfig {
@@ -65,5 +71,27 @@ export function resolveCharacterAiConfig(
     model: override.model ?? globalModel,
     temperature: override.temperature ?? globalConfig.temperature,
     maxTokens: override.maxTokens ?? globalConfig.maxTokens,
+  }
+}
+
+/**
+ * Resolve the effective TTS settings for a character by merging global TTS
+ * config with per-character overrides.
+ *
+ * Rules:
+ * - If override TTS field is defined, use it
+ * - apiKey and customBaseURL always come from global config
+ */
+export function resolveCharacterTtsSettings(
+  globalConfig: AiConfig,
+  override?: CharacterAiOverride,
+): TtsSettings {
+  return {
+    provider: override?.ttsProvider ?? globalConfig.ttsProvider,
+    voice: override?.ttsVoice ?? globalConfig.ttsVoice,
+    model: override?.ttsModel ?? globalConfig.ttsModel,
+    speed: override?.ttsSpeed ?? globalConfig.ttsSpeed,
+    apiKey: globalConfig.ttsApiKey,
+    customBaseURL: globalConfig.ttsCustomBaseURL,
   }
 }
