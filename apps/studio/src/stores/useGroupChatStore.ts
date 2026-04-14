@@ -42,6 +42,7 @@ export interface GroupChatRoomSnapshot {
   createdAt: number
   messages: GroupChatMessage[]
   contextSummary?: string
+  // TODO: add parentSnapshotId for branch tree visualization (see CharacterChatStore)
 }
 
 const MAX_ROOMS = 50

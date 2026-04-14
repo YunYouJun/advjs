@@ -18,8 +18,10 @@ import {
   sendOutline,
   stopOutline,
   trashOutline,
+  volumeHighOutline,
+  volumeMuteOutline,
 } from 'ionicons/icons'
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import ChatHistorySearch from '../components/ChatHistorySearch.vue'
@@ -28,6 +30,8 @@ import MarkdownMessage from '../components/MarkdownMessage.vue'
 import MessageActions from '../components/MessageActions.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useWorldContext } from '../composables/useWorldContext'
+import { useAiSettingsStore } from '../stores/useAiSettingsStore'
+import { useCharacterChatStore } from '../stores/useCharacterChatStore'
 import { useCharacterMemoryStore } from '../stores/useCharacterMemoryStore'
 import { useGroupChatStore } from '../stores/useGroupChatStore'
 import { useSettingsStore } from '../stores/useSettingsStore'
@@ -36,6 +40,9 @@ import { useViewModeStore } from '../stores/useViewModeStore'
 import { formatChatTime, getCharacterInitials, getMoodEmoji, getValidAvatarUrl } from '../utils/chatUtils'
 import { uploadToCloud } from '../utils/cloudSync'
 import { downloadAsFile, writeFileToDir } from '../utils/fileAccess'
+import { resolveCharacterTtsSettings } from '../utils/resolveAiConfig'
+import { ttsSpeak, ttsStop } from '../utils/ttsClient'
+import '../styles/chat.css'
 import '../styles/group-chat.css'
 
 type LayoutPageInstance = InstanceType<typeof LayoutPage>
@@ -53,6 +60,46 @@ const viewModeStore = useViewModeStore()
 const memoryStore = useCharacterMemoryStore()
 const studioStore = useStudioStore()
 const settingsStore = useSettingsStore()
+const aiSettingsStore = useAiSettingsStore()
+const characterChatStore = useCharacterChatStore()
+
+// --- TTS state ---
+const ttsPlayingIndex = ref(-1)
+const ttsGeneratingIndex = ref(-1)
+
+onUnmounted(() => ttsStop())
+
+async function handleGroupTtsPlay(msg: { characterId?: string, content: string }, visibleIdx: number) {
+  if (ttsPlayingIndex.value === visibleIdx) {
+    ttsStop()
+    ttsPlayingIndex.value = -1
+    return
+  }
+
+  ttsStop()
+  ttsPlayingIndex.value = visibleIdx
+
+  try {
+    ttsGeneratingIndex.value = visibleIdx
+    const override = msg.characterId ? characterChatStore.getAiOverride(msg.characterId) : undefined
+    const settings = resolveCharacterTtsSettings(aiSettingsStore.config, override)
+    await ttsSpeak(msg.content, settings)
+    ttsGeneratingIndex.value = -1
+  }
+  catch (err) {
+    ttsGeneratingIndex.value = -1
+    const toast = await toastController.create({
+      message: err instanceof Error ? err.message : t('world.ttsGenerateFailed'),
+      duration: 2500,
+      position: 'top',
+      color: 'danger',
+    })
+    await toast.present()
+  }
+  finally {
+    ttsPlayingIndex.value = -1
+  }
+}
 
 const characterMap = computed(() => {
   const m = new Map<string, AdvCharacter>()
@@ -147,6 +194,19 @@ watch(() => visibleMessages.value.length, async () => {
 watch(() => groupChatStore.streamingContent, async () => {
   await nextTick()
   layoutPageRef.value?.contentRef?.$el?.scrollToBottom?.(100)
+})
+
+// Auto-read: when group AI finishes responding, auto-play TTS for the last character message
+watch(() => groupChatStore.isLoading, (newVal, oldVal) => {
+  if (oldVal && !newVal && aiSettingsStore.config.ttsAutoRead) {
+    const msgs = allMessages.value
+    if (msgs.length > 0) {
+      const lastMsg = msgs.at(-1)
+      if (lastMsg?.role === 'character' && lastMsg.content) {
+        handleGroupTtsPlay(lastMsg, msgs.length - 1)
+      }
+    }
+  }
 })
 
 function goBack() {
@@ -560,6 +620,19 @@ async function handleDeleteSnapshot(snapshotId: string) {
           </div>
           <div class="group-time">
             {{ formatChatTime(msg.timestamp) }}
+            <button
+              v-if="msg.role === 'character' && aiSettingsStore.config.ttsProvider !== 'none'"
+              class="tts-btn"
+              :class="{
+                'tts-btn--playing': ttsPlayingIndex === index,
+                'tts-btn--generating': ttsGeneratingIndex === index,
+              }"
+              :aria-label="ttsPlayingIndex === index ? t('world.ttsStop') : t('world.ttsPlay')"
+              :disabled="ttsGeneratingIndex === index"
+              @click="handleGroupTtsPlay(msg, index)"
+            >
+              <IonIcon :icon="ttsPlayingIndex === index ? volumeMuteOutline : volumeHighOutline" />
+            </button>
           </div>
           <MessageActions
             :message="{ role: msg.role === 'character' ? 'assistant' : 'user', content: msg.content, timestamp: msg.timestamp } as ChatMessage"

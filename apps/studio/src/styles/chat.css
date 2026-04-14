@@ -146,3 +146,71 @@
     }
   }
 }
+
+/* ── TTS button (shared between CharacterChatPage & GroupChatPage) ── */
+
+.tts-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--adv-radius-sm, 4px);
+  background: transparent;
+  color: var(--adv-text-tertiary, #94a3b8);
+  cursor: pointer;
+  transition:
+    color 0.2s,
+    background 0.2s;
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+.tts-btn:hover {
+  color: var(--adv-primary, #8b5cf6);
+  background: rgba(139, 92, 246, 0.08);
+}
+
+.tts-btn--playing {
+  color: var(--adv-primary, #8b5cf6);
+  animation: tts-pulse 1.5s ease-in-out infinite;
+}
+
+.tts-btn--generating {
+  color: var(--adv-text-tertiary, #94a3b8);
+  animation: tts-spin 1s linear infinite;
+  cursor: wait;
+}
+
+.tts-btn--cached {
+  color: var(--adv-text-secondary, #64748b);
+}
+
+.tts-btn--cached:hover {
+  color: var(--adv-primary, #8b5cf6);
+}
+
+.tts-btn:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+@keyframes tts-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes tts-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

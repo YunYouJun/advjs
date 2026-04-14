@@ -1184,12 +1184,24 @@ Studio 核心功能（Phase 1-27）已全部完成，现围绕移动端体验逐
    - 调整语速（0.5x ~ 2.0x）
 4. 保存后，该角色的所有 TTS 朗读将使用独立配置
 
-#### Phase M11：场景背景继承 + 对话分支可视化 {#phase-m11}
+#### Phase M11：场景背景继承 + TTS 体验增强 + 对话分支树 ✅ {#phase-m11}
 
-- [ ] **场景背景继承** — Location 可配置默认背景图提示词（`defaultImagePrompt` 字段），新建关联 Scene 时自动填充 `imagePrompt`，减少重复输入
-- [ ] **对话分支树可视化** — 基于已有的对话存档点（Phase 25），以树形图展示存档点之间的分支关系，方便回溯和对比不同对话路线
-- [ ] **群聊角色语音** — 群聊场景中每个角色使用各自的 TTS 配置朗读（复用 Phase M10 的 per-character TTS resolve）
-- [ ] **TTS 自动朗读模式** — 对话时可开启自动朗读，AI 回复完成后自动播放语音（无需手动点击每条消息的朗读按钮）
+- [x] **场景背景继承** — Location 新增 `defaultImagePrompt` 字段，新建关联 Scene 时自动填充 `imagePrompt`，减少重复输入
+- [x] **群聊角色语音** — 群聊场景中每个角色消息显示 TTS 按钮，使用各自的 per-character TTS 配置朗读（复用 Phase M10 的 `resolveCharacterTtsSettings`）
+- [x] **TTS 自动朗读模式** — `ttsAutoRead` 开关，AI 回复完成后自动播放语音，支持 1v1 对话和群聊
+- [x] **对话分支树可视化** — `SnapshotTree.vue` 组件，`ConversationSnapshot` 新增 `parentSnapshotId`，存档面板支持列表/分支树双视图切换
+
+**技术实现**：
+
+- `locationMd.ts` — `LOCATION_FRONTMATTER_KEYS` + `LocationFormData` + `LocationInfo` 新增 `defaultImagePrompt` 字段
+- `SceneEditorForm.vue` — `watch(linkedLocation)` 自动从关联 Location 继承 imagePrompt（仅当 imagePrompt 为空时填充）
+- `GroupChatPage.vue` — 导入 `ttsSpeak` / `ttsStop` / `resolveCharacterTtsSettings`，角色消息旁添加 🔊 按钮
+- `useAiSettingsStore.ts` — 新增 `ttsAutoRead: boolean` 字段
+- `CharacterChatPage.vue` + `GroupChatPage.vue` — `watch(isLoading)` 自动朗读 watcher + overflow 菜单 toggle
+- `useCharacterChatStore.ts` — `ConversationSnapshot` +`parentSnapshotId`，`createSnapshot` 记录 parent，`restoreSnapshot` 跟踪 activeSnapshotId
+- `SnapshotTree.vue` — 纯 CSS 树形图，parent→children 递归渲染，活跃分支高亮
+- `chat.css` — TTS 按钮样式从 scoped 提取到全局共享
+- 115 tests passing，lint 无报错
 
 ### Phase 13：账号系统 {#phase-13}
 
@@ -1264,6 +1276,9 @@ interface MarketplaceEntry {
 - [x] **虚拟滚动** — @tanstack/vue-virtual 基础设施已就绪（Phase M5）
 - [x] **语音合成集成** — TTS 插件架构（Web Speech API / OpenAI / 豆包 / Custom），按需生成 + 缓存复用（Phase M8）
 - [x] **角色独立语音** — 每个角色可覆盖全局 TTS 配置（provider / voice / model / speed），不同角色不同声音（Phase M10）
+- [x] **群聊角色语音** — 群聊中每个角色使用独立 TTS 配置朗读（Phase M11）
+- [x] **TTS 自动朗读** — AI 回复完成后自动播放语音，无需手动点击（Phase M11）
+- [x] **对话分支树** — 存档点分支可视化，列表/树双视图切换（Phase M11）
 
 ### 地点系统路线 {#location-roadmap}
 
@@ -1282,7 +1297,7 @@ interface MarketplaceEntry {
 
 - [x] **Scene ↔ Location 双向关联** — 场景编辑表单增加 `linkedLocation` 字段，Location 详情显示关联 Scene 列表，`projectValidation.ts` 检查引用完整性
 - [x] **Character ↔ Location 动态关联** — `locationMatch.ts` 模糊匹配，角色卡片显示当前所在地点，地点详情页显示动态角色 + frontmatter 关联角色
-- [ ] **场景背景继承** — Location 可配置默认背景图提示词，新建关联 Scene 时自动填充 `imagePrompt`（→ Phase M11）
+- [x] **场景背景继承** — Location 可配置默认背景图提示词，新建关联 Scene 时自动填充 `imagePrompt`（Phase M11）
 - [x] **Location 详情页** — `LocationDetailPage.vue` 展示描述、标签、关联场景列表、出现角色列表，支持编辑和跳转
 
 #### Phase L3：可视化地图 {#phase-l3}

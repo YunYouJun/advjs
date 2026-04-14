@@ -39,6 +39,8 @@ export interface ConversationSnapshot {
   createdAt: number
   messages: CharacterChatMessage[]
   contextSummary?: string
+  /** Parent snapshot ID — tracks which snapshot this was forked from */
+  parentSnapshotId?: string
 }
 
 /** Max messages to persist per character (older messages are trimmed on save) */
@@ -159,6 +161,8 @@ export const useCharacterChatStore = defineStore('characterChat', () => {
   const conversations = ref<Map<string, CharacterConversation>>(new Map())
   const snapshots = ref<Map<string, ConversationSnapshot[]>>(new Map())
   const aiOverrides = ref<Map<string, CharacterAiOverride>>(new Map())
+  /** Tracks the currently active (most recently restored) snapshot per character */
+  const activeSnapshotId = ref<Map<string, string>>(new Map())
   const isLoading = ref(false)
   const streamingContent = ref('')
   const currentAbortController = ref<AbortController | null>(null)
@@ -398,6 +402,7 @@ export const useCharacterChatStore = defineStore('characterChat', () => {
   function createSnapshot(characterId: string, label?: string): ConversationSnapshot {
     const conv = getConversation(characterId)
     const n = conv.messages.length
+    const parentId = activeSnapshotId.value.get(characterId)
     const snap: ConversationSnapshot = {
       id: `snap-${Date.now()}`,
       characterId,
@@ -405,6 +410,7 @@ export const useCharacterChatStore = defineStore('characterChat', () => {
       createdAt: Date.now(),
       messages: [...conv.messages],
       contextSummary: conv.contextSummary,
+      parentSnapshotId: parentId,
     }
     const list = snapshots.value.get(characterId) || []
     snapshots.value.set(characterId, [...list, snap])
@@ -431,6 +437,7 @@ export const useCharacterChatStore = defineStore('characterChat', () => {
       messages: [...snap.messages],
       contextSummary: snap.contextSummary,
     })
+    activeSnapshotId.value.set(characterId, snapshotId)
     return true
   }
 
@@ -503,6 +510,7 @@ export const useCharacterChatStore = defineStore('characterChat', () => {
     conversations,
     snapshots,
     aiOverrides,
+    activeSnapshotId,
     isLoading,
     streamingContent,
     getConversation,

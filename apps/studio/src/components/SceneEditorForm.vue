@@ -10,6 +10,7 @@ import {
   IonSelectOption,
   IonTextarea,
 } from '@ionic/vue'
+import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useProjectContent } from '../composables/useProjectContent'
 import TagsInput from './TagsInput.vue'
@@ -17,10 +18,23 @@ import TagsInput from './TagsInput.vue'
 const { t } = useI18n()
 const model = defineModel<SceneFormData>({ required: true })
 const { locations } = useProjectContent()
+const inheritedHint = ref(false)
 
 function updateField<K extends keyof SceneFormData>(field: K, value: SceneFormData[K]) {
   model.value = { ...model.value, [field]: value }
 }
+
+// Auto-fill imagePrompt from linked location's defaultImagePrompt
+watch(() => model.value.linkedLocation, (locId) => {
+  inheritedHint.value = false
+  if (!locId || model.value.imagePrompt)
+    return
+  const loc = locations.value.find(l => (l.id || l.name) === locId)
+  if (loc?.defaultImagePrompt) {
+    model.value = { ...model.value, imagePrompt: loc.defaultImagePrompt }
+    inheritedHint.value = true
+  }
+})
 </script>
 
 <template>
@@ -122,6 +136,9 @@ function updateField<K extends keyof SceneFormData>(field: K, value: SceneFormDa
           @ion-input="updateField('imagePrompt', ($event.detail.value ?? ''))"
         />
       </IonItem>
+      <p v-if="inheritedHint" class="inherited-hint">
+        {{ t('contentEditor.imagePromptInherited') }}
+      </p>
     </IonList>
   </div>
 </template>
@@ -134,5 +151,12 @@ function updateField<K extends keyof SceneFormData>(field: K, value: SceneFormDa
 .form-field {
   width: 100%;
   padding: var(--adv-space-sm) 0;
+}
+
+.inherited-hint {
+  padding: 0 var(--adv-space-lg);
+  margin: calc(-1 * var(--adv-space-xs)) 0 var(--adv-space-sm);
+  font-size: var(--adv-font-caption, 12px);
+  color: var(--ion-color-success);
 }
 </style>

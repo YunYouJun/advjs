@@ -30,6 +30,8 @@ export interface AiConfig {
   ttsVoice: string
   ttsSpeed: number
   ttsCustomBaseURL: string
+  /** Auto-read AI responses aloud when generation completes */
+  ttsAutoRead: boolean
   // Embedding (knowledge retrieval V2 — opt-in, off by default)
   embeddingEnabled: boolean
   embeddingProvider: string
@@ -186,6 +188,7 @@ function createDefaultConfig(): AiConfig {
     ttsVoice: '',
     ttsSpeed: 1.0,
     ttsCustomBaseURL: '',
+    ttsAutoRead: false,
     embeddingEnabled: false,
     embeddingProvider: 'same',
     embeddingApiKey: '',

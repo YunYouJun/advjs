@@ -97,6 +97,17 @@ function updateField<K extends keyof LocationFormData>(field: K, value: Location
           @ion-input="updateField('description', ($event.detail.value ?? ''))"
         />
       </IonItem>
+      <IonItem>
+        <IonTextarea
+          :value="model.defaultImagePrompt || ''"
+          :label="t('locations.defaultImagePrompt')"
+          label-placement="stacked"
+          :placeholder="t('locations.defaultImagePromptPlaceholder')"
+          :auto-grow="true"
+          :rows="2"
+          @ion-input="updateField('defaultImagePrompt', ($event.detail.value ?? ''))"
+        />
+      </IonItem>
     </IonList>
 
     <IonListHeader>

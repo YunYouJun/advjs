@@ -12,6 +12,7 @@ const LOCATION_FRONTMATTER_KEYS: string[] = [
   'tags',
   'linkedScenes',
   'linkedCharacters',
+  'defaultImagePrompt',
 ]
 
 export type LocationType = 'indoor' | 'outdoor' | 'virtual' | 'other'
@@ -27,6 +28,8 @@ export interface LocationFormData {
   tags?: string[]
   linkedScenes?: string[]
   linkedCharacters?: string[]
+  /** Default image prompt inherited by scenes linked to this location */
+  defaultImagePrompt?: string
 }
 
 /**
@@ -48,6 +51,7 @@ export function parseLocationMd(content: string): LocationFormData {
     tags: fm.tags,
     linkedScenes: fm.linkedScenes,
     linkedCharacters: fm.linkedCharacters,
+    defaultImagePrompt: fm.defaultImagePrompt,
   }
 
   return Object.fromEntries(

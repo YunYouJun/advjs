@@ -112,4 +112,21 @@ describe('stringifyLocationMd', () => {
     expect(parsed.linkedScenes).toEqual(original.linkedScenes)
     expect(parsed.linkedCharacters).toEqual(original.linkedCharacters)
   })
+
+  it('round-trips defaultImagePrompt', () => {
+    const original = {
+      id: 'castle',
+      name: 'Castle',
+      defaultImagePrompt: 'A medieval castle at sunset with towers and a moat',
+    }
+    const md = stringifyLocationMd(original)
+    expect(md).toContain('defaultImagePrompt')
+    const parsed = parseLocationMd(md)
+    expect(parsed.defaultImagePrompt).toBe(original.defaultImagePrompt)
+  })
+
+  it('omits defaultImagePrompt when empty', () => {
+    const result = stringifyLocationMd({ id: 'x', name: 'X', defaultImagePrompt: '' })
+    expect(result).not.toContain('defaultImagePrompt')
+  })
 })

@@ -40,6 +40,7 @@ import CharacterInfoModal from '../components/CharacterInfoModal.vue'
 import ChatHistorySearch from '../components/ChatHistorySearch.vue'
 import LayoutPage from '../components/common/LayoutPage.vue'
 import MarkdownMessage from '../components/MarkdownMessage.vue'
+import SnapshotTree from '../components/SnapshotTree.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useWorldContext } from '../composables/useWorldContext'
 import { useAiSettingsStore } from '../stores/useAiSettingsStore'
@@ -85,6 +86,7 @@ const layoutPageRef = ref<LayoutPageInstance | null>(null)
 const showInfoModal = ref(false)
 const showSearch = ref(false)
 const showSnapshots = ref(false)
+const snapshotView = ref<'list' | 'tree'>('list')
 const showAiSettings = ref(false)
 const showArchive = ref(false)
 const archivedBatches = ref<DbArchivedBatch[]>([])
@@ -170,6 +172,19 @@ watch(() => visibleMessages.value.length, async () => {
 watch(() => characterChatStore.streamingContent, async () => {
   await nextTick()
   layoutPageRef.value?.contentRef?.$el?.scrollToBottom?.(100)
+})
+
+// Auto-read: when AI finishes responding, auto-play TTS for the last message
+watch(() => characterChatStore.isLoading, (newVal, oldVal) => {
+  if (oldVal && !newVal && aiSettingsStore.config.ttsAutoRead && ttsEnabled.value) {
+    const msgs = allMessages.value
+    if (msgs.length > 0) {
+      const lastMsg = msgs.at(-1)
+      if (lastMsg?.role === 'assistant' && lastMsg.content) {
+        handleTtsPlay(lastMsg, msgs.length - 1)
+      }
+    }
+  }
 })
 
 function goBack() {
@@ -278,6 +293,17 @@ async function showMoreActions() {
       text: t('world.generateAllTts'),
       icon: micOutline,
       handler: () => { nextTick(() => handleBatchGenerateTts()) },
+    })
+  }
+
+  // Auto-read toggle
+  if (ttsEnabled.value) {
+    buttons.push({
+      text: aiSettingsStore.config.ttsAutoRead
+        ? t('world.ttsAutoReadOff')
+        : t('world.ttsAutoReadOn'),
+      icon: aiSettingsStore.config.ttsAutoRead ? volumeMuteOutline : volumeHighOutline,
+      handler: () => { aiSettingsStore.config.ttsAutoRead = !aiSettingsStore.config.ttsAutoRead },
     })
   }
 
@@ -783,41 +809,72 @@ async function handleDeleteDiary(diaryId: string) {
       <div v-if="showSnapshots" class="snapshot-panel">
         <div class="snapshot-panel__header">
           <span>📸 {{ t('world.snapshots') }}</span>
-          <button
-            class="snapshot-create-btn"
-            :disabled="messages.length === 0"
-            @click="handleCreateSnapshot"
-          >
-            + {{ t('world.createSnapshot') }}
-          </button>
-        </div>
-        <div v-if="snapshotList.length === 0" class="snapshot-empty">
-          {{ t('world.noSnapshots') }}
-        </div>
-        <div v-else class="snapshot-list">
-          <div
-            v-for="snap in snapshotList"
-            :key="snap.id"
-            class="snapshot-item"
-          >
-            <div class="snapshot-item__info">
-              <div class="snapshot-item__label">
-                {{ snap.label }}
-              </div>
-              <div class="snapshot-item__meta">
-                {{ formatChatTime(snap.createdAt) }} · {{ snap.messages.length }} {{ t('world.snapshotMessages') }}
-              </div>
-            </div>
-            <div class="snapshot-item__actions">
-              <button class="snapshot-btn snapshot-btn--restore" @click="handleRestoreSnapshot(snap.id)">
-                {{ t('world.restoreSnapshot') }}
+          <div class="snapshot-panel__controls">
+            <div class="snapshot-view-toggle">
+              <button
+                class="snapshot-view-btn"
+                :class="{ 'snapshot-view-btn--active': snapshotView === 'list' }"
+                @click="snapshotView = 'list'"
+              >
+                {{ t('world.snapshotListView') }}
               </button>
-              <button class="snapshot-btn snapshot-btn--delete" @click="handleDeleteSnapshot(snap.id)">
-                ✕
+              <button
+                class="snapshot-view-btn"
+                :class="{ 'snapshot-view-btn--active': snapshotView === 'tree' }"
+                @click="snapshotView = 'tree'"
+              >
+                {{ t('world.snapshotTreeView') }}
               </button>
             </div>
+            <button
+              class="snapshot-create-btn"
+              :disabled="messages.length === 0"
+              @click="handleCreateSnapshot"
+            >
+              + {{ t('world.createSnapshot') }}
+            </button>
           </div>
         </div>
+
+        <!-- Tree view -->
+        <SnapshotTree
+          v-if="snapshotView === 'tree'"
+          :snapshots="snapshotList"
+          :active-snapshot-id="characterChatStore.activeSnapshotId.get(characterId)"
+          @restore="handleRestoreSnapshot"
+          @delete="handleDeleteSnapshot"
+        />
+
+        <!-- List view (original) -->
+        <template v-else>
+          <div v-if="snapshotList.length === 0" class="snapshot-empty">
+            {{ t('world.noSnapshots') }}
+          </div>
+          <div v-else class="snapshot-list">
+            <div
+              v-for="snap in snapshotList"
+              :key="snap.id"
+              class="snapshot-item"
+            >
+              <div class="snapshot-item__info">
+                <div class="snapshot-item__label">
+                  {{ snap.label }}
+                </div>
+                <div class="snapshot-item__meta">
+                  {{ formatChatTime(snap.createdAt) }} · {{ snap.messages.length }} {{ t('world.snapshotMessages') }}
+                </div>
+              </div>
+              <div class="snapshot-item__actions">
+                <button class="snapshot-btn snapshot-btn--restore" @click="handleRestoreSnapshot(snap.id)">
+                  {{ t('world.restoreSnapshot') }}
+                </button>
+                <button class="snapshot-btn snapshot-btn--delete" @click="handleDeleteSnapshot(snap.id)">
+                  ✕
+                </button>
+              </div>
+            </div>
+          </div>
+        </template>
       </div>
     </template>
 
@@ -1115,8 +1172,36 @@ ion-footer ion-toolbar {
   justify-content: space-between;
   margin-bottom: var(--adv-space-xs, 4px);
   font-size: var(--adv-font-body-sm, 13px);
-  font-weight: 600;
-  color: var(--adv-text-primary);
+}
+
+.snapshot-panel__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--adv-space-xs, 4px);
+}
+
+.snapshot-view-toggle {
+  display: flex;
+  border-radius: var(--adv-radius-sm, 4px);
+  overflow: hidden;
+  border: 1px solid var(--adv-border, #e2e8f0);
+}
+
+.snapshot-view-btn {
+  border: none;
+  background: transparent;
+  padding: 2px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  color: var(--adv-text-tertiary, #94a3b8);
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.snapshot-view-btn--active {
+  background: var(--adv-primary, #8b5cf6);
+  color: #fff;
 }
 
 .snapshot-create-btn {
@@ -1318,71 +1403,5 @@ ion-footer ion-toolbar {
   display: flex;
   align-items: center;
   gap: 4px;
-}
-
-.tts-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: none;
-  border-radius: var(--adv-radius-sm, 4px);
-  background: transparent;
-  color: var(--adv-text-tertiary, #94a3b8);
-  cursor: pointer;
-  transition:
-    color 0.2s,
-    background 0.2s;
-  flex-shrink: 0;
-  font-size: 16px;
-}
-
-.tts-btn:hover {
-  color: var(--adv-primary, #8b5cf6);
-  background: rgba(139, 92, 246, 0.08);
-}
-
-.tts-btn--playing {
-  color: var(--adv-primary, #8b5cf6);
-  animation: tts-pulse 1.5s ease-in-out infinite;
-}
-
-.tts-btn--generating {
-  color: var(--adv-text-tertiary, #94a3b8);
-  animation: tts-spin 1s linear infinite;
-  cursor: wait;
-}
-
-.tts-btn--cached {
-  color: var(--adv-text-secondary, #64748b);
-}
-
-.tts-btn--cached:hover {
-  color: var(--adv-primary, #8b5cf6);
-}
-
-.tts-btn:disabled {
-  cursor: wait;
-  opacity: 0.5;
-}
-
-@keyframes tts-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-@keyframes tts-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 </style>

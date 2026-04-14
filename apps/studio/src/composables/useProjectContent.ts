@@ -53,6 +53,7 @@ export interface LocationInfo {
   tags?: string[]
   linkedScenes?: string[]
   linkedCharacters?: string[]
+  defaultImagePrompt?: string
 }
 
 export interface ProjectStats {
@@ -204,6 +205,7 @@ export function useProjectContent() {
               tags: parsed.tags,
               linkedScenes: parsed.linkedScenes,
               linkedCharacters: parsed.linkedCharacters,
+              defaultImagePrompt: parsed.defaultImagePrompt,
             })
           }
           catch {
@@ -370,6 +372,7 @@ export function useProjectContent() {
             tags: parsed.tags,
             linkedScenes: parsed.linkedScenes,
             linkedCharacters: parsed.linkedCharacters,
+            defaultImagePrompt: parsed.defaultImagePrompt,
           })
         }
         catch {
