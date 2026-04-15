@@ -74,6 +74,9 @@
     "scenes_ok": "场景引用完整性（全部有效）",
     "scenes_errors": "场景引用完整性（{0} 个未解析）",
     "scene_unresolved": "{0}：场景「{1}」没有匹配的 scenes/*.md",
+    "locations_ok": "地点引用完整性（{0} 个地点，全部有效）",
+    "locations_errors": "地点引用完整性（{0} 个未解析）",
+    "location_unresolved": "{0}：地点「{1}」没有匹配的 scenes/*.md 或 locations/*.md",
     "summary_pass": "所有检查均已通过！",
     "summary_fail": "发现 {0} 个问题"
   },

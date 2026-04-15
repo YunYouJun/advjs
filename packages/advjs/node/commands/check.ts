@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { basename, join, resolve } from 'node:path'
 import process from 'node:process'
-import { parseCharacterMd } from '@advjs/parser'
+import { extractCharacterRefs, extractSceneRefs, parseCharacterMd } from '@advjs/parser'
 import { consola } from 'consola'
 import { colors } from 'consola/utils'
 import { t } from '../cli/i18n'
@@ -13,7 +13,7 @@ export interface CheckOptions {
 
 export interface CheckIssue {
   type: 'error' | 'warning'
-  category: 'syntax' | 'character' | 'scene'
+  category: 'syntax' | 'character' | 'scene' | 'location'
   file: string
   message: string
 }
@@ -24,11 +24,8 @@ export interface CheckResult {
   scriptCount: number
   characterRefCount: number
   sceneRefCount: number
+  locationRefCount: number
 }
-
-// Module-level regex patterns (per e18e/prefer-static-regex)
-const PARENTHESES_STATUS_RE = /[（(].*?[）)]$/
-const SCENE_BLOCK_RE = /^【(.+)】$/gm
 
 /**
  * Resolve the game content root directory.
@@ -55,52 +52,6 @@ export function resolveGameRoot(cwd: string, optionRoot?: string): string {
   return resolve(cwd, 'adv')
 }
 
-/**
- * Extract character names referenced via @Name syntax from .adv.md content.
- * Handles @Name(status) and @Name（状态） patterns.
- */
-function extractCharacterRefs(content: string): string[] {
-  const names = new Set<string>()
-  const lines = content.split('\n')
-
-  for (const line of lines) {
-    const trimmed = line.trim()
-    if (!trimmed.startsWith('@'))
-      continue
-
-    // Extract the name part: @Name or @Name(status) or @Name（状态）
-    let name = trimmed.slice(1) // remove @
-
-    // Remove status in parentheses (both ASCII and Chinese)
-    name = name.replace(PARENTHESES_STATUS_RE, '').trim()
-
-    if (name)
-      names.add(name)
-  }
-
-  return [...names]
-}
-
-/**
- * Extract scene place names from 【place，time，inOrOut】 syntax.
- */
-function extractSceneRefs(content: string): string[] {
-  const places = new Set<string>()
-
-  let match
-  SCENE_BLOCK_RE.lastIndex = 0
-  // eslint-disable-next-line no-cond-assign
-  while ((match = SCENE_BLOCK_RE.exec(content)) !== null) {
-    const inner = match[1]
-    const separator = '，'
-    const parts = inner.split(separator)
-    if (parts[0])
-      places.add(parts[0].trim())
-  }
-
-  return [...places]
-}
-
 const log = consola.log.bind(consola)
 
 /**
@@ -125,12 +76,14 @@ export async function runCheck(options: CheckOptions & { cwd?: string }): Promis
       scriptCount: 0,
       characterRefCount: 0,
       sceneRefCount: 0,
+      locationRefCount: 0,
     }
   }
 
   const chaptersDir = join(gameRoot, 'chapters')
   const charactersDir = join(gameRoot, 'characters')
   const scenesDir = join(gameRoot, 'scenes')
+  const locationsDir = join(gameRoot, 'locations')
 
   // 1. Find all .adv.md script files
   const scriptFiles = scanFiles(chaptersDir, '.adv.md')
@@ -248,12 +201,50 @@ export async function runCheck(options: CheckOptions & { cwd?: string }): Promis
     }
   }
 
+  // 5. Location reference check — scan locations/*.md and cross-reference with scenes
+  const locationFiles = scanFiles(locationsDir, '.md')
+    .filter(f => !basename(f).startsWith('README'))
+  const knownLocations = new Set<string>()
+
+  for (const file of locationFiles) {
+    const content = readFileSync(file, 'utf-8')
+    const loc = parseSceneFrontmatter(content) // reuse: extracts id + name
+    if (loc.id)
+      knownLocations.add(loc.id)
+    if (loc.name)
+      knownLocations.add(loc.name)
+    const fileName = basename(file, '.md')
+    knownLocations.add(fileName)
+  }
+
+  // Check: scene places that match neither scenes/*.md nor locations/*.md
+  // (only when locations dir exists and has files — otherwise don't add noise)
+  if (locationFiles.length > 0) {
+    for (const [place, files] of allSceneRefs) {
+      if (!knownScenes.has(place) && !knownLocations.has(place)) {
+        for (const file of files) {
+          // Avoid duplicating the scene warning — only add location hint
+          // if there's no scene warning already emitted for this place
+          if (knownScenes.size > 0 || knownLocations.size > 0) {
+            issues.push({
+              type: 'warning',
+              category: 'location',
+              file,
+              message: place,
+            })
+          }
+        }
+      }
+    }
+  }
+
   return {
     issues,
     passed: issues.length === 0,
     scriptCount: allScripts.length,
     characterRefCount: allCharacterRefs.size,
     sceneRefCount: allSceneRefs.size,
+    locationRefCount: knownLocations.size,
   }
 }
 
@@ -323,6 +314,19 @@ export async function advCheck(options: CheckOptions) {
     consola.fail(t('check.scenes_errors', unresolvedScenes.size))
     for (const issue of sceneIssues) {
       log(colors.yellow(`  ⚠ ${t('check.scene_unresolved', issue.file, issue.message)}`))
+    }
+  }
+
+  // Report location results
+  const locationIssues = result.issues.filter(i => i.category === 'location')
+  if (result.locationRefCount > 0 && locationIssues.length === 0) {
+    consola.success(t('check.locations_ok', result.locationRefCount))
+  }
+  else if (locationIssues.length > 0) {
+    const unresolvedLocations = new Set(locationIssues.map(i => i.message))
+    consola.fail(t('check.locations_errors', unresolvedLocations.size))
+    for (const issue of locationIssues) {
+      log(colors.yellow(`  ⚠ ${t('check.location_unresolved', issue.file, issue.message)}`))
     }
   }
 

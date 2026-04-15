@@ -625,7 +625,10 @@
     "detailCharactersHere": "当前在此的角色",
     "detailLinkedCharacters": "关联角色",
     "detailNoLinks": "暂无关联场景或角色",
-    "detailNotFound": "地点未找到"
+    "detailNotFound": "地点未找到",
+    "locationGraph": "地点图谱",
+    "noLocations": "暂无地点定义",
+    "sharedChars": "共享"
   },
   "audio": {
     "title": "音频资源",

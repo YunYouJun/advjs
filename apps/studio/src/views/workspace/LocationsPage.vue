@@ -25,6 +25,7 @@ import LayoutPage from '../../components/common/LayoutPage.vue'
 import ContentEditorModal from '../../components/ContentEditorModal.vue'
 import LocationCard from '../../components/LocationCard.vue'
 import LocationEditorForm from '../../components/LocationEditorForm.vue'
+import LocationGraph from '../../components/LocationGraph.vue'
 import { useContentDelete } from '../../composables/useContentDelete'
 import { useContentEditor } from '../../composables/useContentEditor'
 import { useContentSave } from '../../composables/useContentSave'
@@ -38,10 +39,13 @@ const { t } = useI18n()
 const router = useRouter()
 const aiSettings = useAiSettingsStore()
 
-const { locations, reload, getDirHandle } = useProjectContent()
+const { locations, scenes, characters, reload, getDirHandle } = useProjectContent()
 const { isSaving, saveContent } = useContentSave()
 const { deleteFile } = useContentDelete()
 const { trackAccess } = useRecentActivity()
+
+// --- Graph toggle ---
+const showGraph = ref(false)
 
 // --- Search ---
 const searchQuery = ref('')
@@ -152,6 +156,29 @@ async function handleDeleteLocation(location: LocationFormData) {
       @restore="locationEditor.restoreDraft()"
       @discard="locationEditor.clearDraft()"
     />
+
+    <!-- Location graph toggle -->
+    <div v-if="locations.length >= 2" class="graph-toggle">
+      <IonButton
+        fill="clear"
+        size="small"
+        @click="showGraph = !showGraph"
+      >
+        {{ showGraph ? '📋' : '📊' }}
+        {{ showGraph ? t('locations.title') : t('locations.locationGraph') }}
+      </IonButton>
+    </div>
+
+    <!-- Location graph (collapsible) -->
+    <Transition name="fade">
+      <LocationGraph
+        v-if="showGraph && locations.length >= 2"
+        :locations="locations"
+        :scenes="scenes"
+        :characters="characters"
+        @select-location="(id: string) => router.push(`/tabs/workspace/locations/${encodeURIComponent(id)}`)"
+      />
+    </Transition>
 
     <!-- Location grid -->
     <div v-if="filteredLocations.length > 0" class="card-grid">

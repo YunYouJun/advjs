@@ -107,6 +107,10 @@ export interface SceneInfo extends Node {
    * 内/外景
    */
   inOrOut: string
+  /**
+   * Resolved location id from adv/locations/{id}.md (optional, set by post-processing)
+   */
+  locationId?: string
 }
 
 /**

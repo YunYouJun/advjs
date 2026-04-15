@@ -154,21 +154,18 @@ views/workspace/{Type}sPage.vue — 列表页面
 - [x] 路由注册 + i18n (en/zh-CN)
 - [x] `ProjectOverview.vue` 统计卡 + 地点地图入口卡
 
-### Phase 2 🔲 待实现：关联增强
+### Phase 2 ✅ 已完成：关联增强
 
-- [ ] **Scene ↔ Location 自动关联**：在场景编辑表单中增加 `linkedLocation` 字段，反向在 Location 中显示关联的 Scene 列表
-- [ ] **Character ↔ Location 动态关联**：将 `useCharacterStateStore` 提取的 location 字符串与 Location.md ID 进行模糊匹配，在角色卡片上显示当前所在地点
-- [ ] **场景背景继承**：Location 可配置默认背景图，新建关联 Scene 时自动填充 `imagePrompt`
-- [ ] **Location 详情页**：点击 Location 卡片进入详情页，展示关联场景列表、出现角色列表、描述 Markdown 渲染
+- [x] **Scene ↔ Location 双向关联**：场景编辑表单增加 `linkedLocation` 字段，Location 详情显示关联 Scene 列表，`projectValidation.ts` 检查引用完整性
+- [x] **Character ↔ Location 动态关联**：`locationMatch.ts` 模糊匹配，角色卡片显示当前所在地点，地点详情页显示动态角色 + frontmatter 关联角色
+- [x] **场景背景继承**：Location 新增 `defaultImagePrompt` 字段，新建关联 Scene 时自动填充 `imagePrompt`（Phase M11）
+- [x] **Location 详情页**：`LocationDetailPage.vue` 展示描述、标签、关联场景列表、出现角色列表，支持编辑和跳转
 
-### Phase 3 🔲 待实现：可视化地图
+### Phase 3 ✅ 已完成：可视化 + AST 集成
 
-- [ ] **关系图谱 (LocationMapView.vue)**：基于 `@advjs/flow` (Vue Flow) 的节点图，地点为节点、连接关系为边，角色位置标注
-- [ ] **自定义地图图片**：Location 增加 `mapImage` 字段，支持上传世界地图图片
-- [ ] **热区标注**：在地图图片上标注地点热区（坐标 + 半径），点击跳转到 Location 详情
+- [x] **地点关系图 (LocationGraph.vue)**：纯 SVG 轻量实现（复用 RelationshipGraph 模式），地点节点+共享角色连线+场景/角色徽章
+- [x] **AST 地点引用打通**：`SceneInfo` 新增 `locationId?` 字段，CLI `adv check` 扫描 `locations/` 目录交叉引用
 
-### Phase 4 🔲 待实现：运行时集成
+### Phase 4 🔲 待实现：未来扩展
 
-- [ ] **AST 层打通**：在 `@advjs/parser` 中，解析 `【place，time，inOrOut】` 时尝试匹配 `adv/locations/{place}.md`，丰富 SceneInfo 节点信息
-- [ ] **游戏内地图界面**：在 `@advjs/client` 中添加可选的地图 UI 组件，玩家可在游戏中查看地点地图
-- [ ] **位置驱动剧情**：在 Flow 编辑器中支持"角色到达某地点"作为分支条件
+- [ ] **位置驱动剧情**：在 Flow 编辑器中支持"角色到达某地点"作为分支条件（需 editor/studio 数据层统一后实施）

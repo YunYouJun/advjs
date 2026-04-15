@@ -74,6 +74,9 @@
     "scenes_ok": "Scene references (all valid)",
     "scenes_errors": "Scene references ({0} unresolved)",
     "scene_unresolved": "{0}: scene \"{1}\" has no matching scenes/*.md",
+    "locations_ok": "Location references ({0} locations, all valid)",
+    "locations_errors": "Location references ({0} unresolved)",
+    "location_unresolved": "{0}: place \"{1}\" has no matching scenes/*.md or locations/*.md",
     "summary_pass": "All checks passed!",
     "summary_fail": "{0} issue(s) found"
   },

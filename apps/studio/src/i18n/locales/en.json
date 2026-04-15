@@ -625,7 +625,10 @@
     "detailCharactersHere": "Characters Here",
     "detailLinkedCharacters": "Linked Characters",
     "detailNoLinks": "No linked scenes or characters yet",
-    "detailNotFound": "Location not found"
+    "detailNotFound": "Location not found",
+    "locationGraph": "Location Graph",
+    "noLocations": "No locations defined yet",
+    "sharedChars": "shared"
   },
   "audio": {
     "title": "Audio Resources",

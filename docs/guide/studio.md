@@ -817,8 +817,8 @@ useKnowledgeBase Store 初始化索引
 
 - [x] Capacitor 原生插件集成（Status Bar / Keyboard / Haptics — Phase M1）
 - [ ] Capacitor 打包 iOS/Android 原生应用
-- [ ] 虚拟滚动优化长消息列表
-- [ ] 离线模式（Service Worker 缓存）
+- ~~虚拟滚动优化长消息列表~~ — ✅ @tanstack/vue-virtual 已安装（Phase M5）
+- ~~离线模式（Service Worker 缓存）~~ — ✅ vite-plugin-pwa + Workbox 缓存策略（Phase M6）
 
 ### Phase 25：关系图谱 + 记忆重试 + 对话存档 {#phase-25}
 
@@ -1203,6 +1203,34 @@ Studio 核心功能（Phase 1-27）已全部完成，现围绕移动端体验逐
 - `chat.css` — TTS 按钮样式从 scoped 提取到全局共享
 - 115 tests passing，lint 无报错
 
+#### Phase M12：下一阶段计划 {#phase-m12}
+
+基于当前已完成的功能体系，下一阶段聚焦**创作体验深化**和**生态基础建设**两条主线：
+
+##### 主线 A：创作体验深化
+
+- [ ] **群聊分支树** — 群聊存档点支持 `parentSnapshotId`，复用 `SnapshotTree.vue` 实现分支可视化（已有 TODO 标记）
+- [ ] **腾讯混元图片生成** — 集成 Hunyuan TextToImageLite 服务端 SDK（已有 TODO 标记）
+- [ ] **角色情感弧光可视化** — 基于 `CharacterDiaryStore` 日记情绪词，绘制角色情绪变化折线图（mood over time）
+- [ ] **批量角色导入** — 支持从 CSV/JSON 批量创建角色（`.character.md` 批量生成）
+- [ ] **对话导出增强** — 导出为 EPUB/PDF 格式，支持自定义排版模板
+
+##### 主线 B：生态基础建设
+
+- [ ] **Capacitor 原生打包** — 完成 iOS/Android 原生应用打包，支持 App Store / Google Play 发布
+- [ ] **项目模板库** — 内置多种项目模板（校园恋爱、悬疑推理、奇幻冒险等），创建项目时一键选择
+- [ ] **数据导入兼容** — 支持从 Ren'Py / TyranoScript 等主流引擎导入项目（基础脚本转换）
+- [ ] **MCP 工具服务** — 实现 ADV.JS 的 MCP Server，让外部 AI 工具可以直接管理 Studio 项目（`adv_validate` 已有雏形）
+
+##### 主线 C：地点系统可视化（Phase L3 ✅）
+
+- [x] **地点关系图** — `LocationGraph.vue` 纯 SVG 轻量实现，地点节点+角色连线+徽章
+- [x] **AST 地点引用打通** — CLI `adv check` 扫描 `locations/` 目录，`SceneInfo` 新增 `locationId` 字段
+
+::: tip 优先级建议
+建议按 **群聊分支树 → 项目模板库 → Capacitor 原生打包** 的顺序推进。群聊分支树和项目模板库是投入产出比最高的功能，前者代码量小（已有 1v1 参考实现），后者显著降低新用户上手门槛。
+:::
+
 ### Phase 13：账号系统 {#phase-13}
 
 - [ ] 用户注册/登录（邮箱 + OAuth）
@@ -1279,6 +1307,11 @@ interface MarketplaceEntry {
 - [x] **群聊角色语音** — 群聊中每个角色使用独立 TTS 配置朗读（Phase M11）
 - [x] **TTS 自动朗读** — AI 回复完成后自动播放语音，无需手动点击（Phase M11）
 - [x] **对话分支树** — 存档点分支可视化，列表/树双视图切换（Phase M11）
+- [ ] **群聊分支树** — 群聊存档支持 `parentSnapshotId`，复用 `SnapshotTree.vue`（Phase M12）
+- [ ] **混元图片生成** — 集成腾讯 Hunyuan TextToImageLite 服务端 SDK（Phase M12）
+- [ ] **角色情感弧光** — 基于日记情绪词绘制情绪变化折线图（Phase M12）
+- [ ] **项目模板库** — 内置多种类型模板，降低新用户上手门槛（Phase M12）
+- [ ] **Capacitor 原生打包** — iOS/Android 原生应用打包发布（Phase M12）
 
 ### 地点系统路线 {#location-roadmap}
 
@@ -1300,17 +1333,25 @@ interface MarketplaceEntry {
 - [x] **场景背景继承** — Location 可配置默认背景图提示词，新建关联 Scene 时自动填充 `imagePrompt`（Phase M11）
 - [x] **Location 详情页** — `LocationDetailPage.vue` 展示描述、标签、关联场景列表、出现角色列表，支持编辑和跳转
 
-#### Phase L3：可视化地图 {#phase-l3}
+#### Phase L3：可视化 + AST 集成 ✅ {#phase-l3}
 
-- [ ] **关系图谱** — 基于 `@advjs/flow`（Vue Flow）的节点图，地点为节点、连接关系为边，角色位置标注
-- [ ] **自定义地图图片** — Location 增加 `mapImage` 字段，支持上传世界地图底图
-- [ ] **热区标注** — 在地图图片上标注地点热区（坐标 + 半径），点击跳转到 Location 详情
+- [x] **地点关系图** — `LocationGraph.vue` 纯 SVG 轻量实现（复用 `RelationshipGraph.vue` 模式），地点为节点、共享角色为连接线，徽章显示关联场景/角色数量，点击跳转详情页
+- [x] **AST 地点引用打通** — `SceneInfo` AST 节点新增可选 `locationId` 字段；CLI `adv check` 命令扫描 `adv/locations/*.md`，脚本中 `【place】` 引用同时匹配 scenes 和 locations 目录，`CheckResult` 新增 `locationRefCount`
 
-#### Phase L4：运行时集成 {#phase-l4}
+**技术实现**：
 
-- [ ] **AST 层打通** — 解析 `【place，time，inOrOut】` 时匹配 `adv/locations/{place}.md`，丰富 SceneInfo 节点
-- [ ] **游戏内地图 UI** — `@advjs/client` 可选地图组件，玩家可在游戏中查看地点地图
-- [ ] **位置驱动剧情** — Flow 编辑器支持"角色到达某地点"作为分支条件
+- `packages/types/src/ast/index.ts` — `SceneInfo` 新增 `locationId?: string` 可选字段
+- `packages/advjs/node/commands/check.ts` — `CheckIssue.category` 新增 `'location'`，`runCheck` 扫描 `locationsDir`，构建 `knownLocations` 集合，场景地点交叉引用检查，CLI 输出 location 报告
+- `packages/advjs/node/cli/i18n/locales/{en,zh-CN}.json` — 新增 `check.locations_ok/locations_errors/location_unresolved` 三个 i18n key
+- `apps/studio/src/components/LocationGraph.vue` — 纯 SVG 圆形布局，节点按地点类型显示 emoji（🏠🌳💻📍），共享角色连线，场景数/角色数徽章，点击跳转 Location 详情页
+- `apps/studio/src/views/workspace/LocationsPage.vue` — 地点列表上方新增折叠/展开图谱按钮（≥2 个地点时显示）
+- `apps/studio/src/i18n/locales/{en,zh-CN}.json` — `locations` section 新增 `locationGraph/noLocations/sharedChars`
+
+**零新依赖**：纯 SVG + CSS，未引入 Vue Flow。
+
+#### Phase L4：未来扩展 {#phase-l4}
+
+- [ ] **位置驱动剧情** — Flow 编辑器支持"角色到达某地点"作为分支条件（需 editor/studio 数据层统一后实施）
 
 ## 已知待优化项 {#improvements}
 
@@ -1320,6 +1361,7 @@ interface MarketplaceEntry {
 
 - ~~**localStorage 容量有限**~~ — ✅ 已迁移至 IndexedDB（Phase 12，Dexie v2→v6）
 - ~~**消息清理策略**~~ — ✅ 自动归档旧对话至 IndexedDB `archivedBatches` table（Phase M6.5），CharacterChatPage 可查看归档消息（Phase M7.1）
+- **Capacitor 原生打包** — iOS/Android 原生应用尚未打包发布
 
 ### 知识库系统
 
@@ -1338,3 +1380,11 @@ interface MarketplaceEntry {
 - ~~**长列表性能**~~ — ✅ @tanstack/vue-virtual 已安装，现有 200 条消息上限 + 分页策略足够（Phase M5）
 - ~~**离线体验**~~ — ✅ vite-plugin-pwa + Workbox CacheFirst/NetworkOnly 缓存策略 + PWA 图标（Phase M6.3 + M7.2）
 - ~~**响应式布局**~~ — ✅ 桌面端 ≥768px 左侧 sidebar navigation（Phase M5）
+
+### 图片生成
+
+- **腾讯混元集成** — `aiImageClient.ts` 中 Hunyuan TextToImageLite 需要服务端 SDK 集成（当前抛出错误，需后端支持）
+
+### 群聊系统
+
+- **群聊分支树** — `useGroupChatStore` 中 `GroupChatSnapshot` 尚未实现 `parentSnapshotId`，无法进行分支树可视化（1v1 对话已实现）
