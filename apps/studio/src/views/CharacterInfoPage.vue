@@ -8,6 +8,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import LayoutPage from '../components/common/LayoutPage.vue'
+import EmotionalArcChart from '../components/EmotionalArcChart.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useCharacterDiaryStore } from '../stores/useCharacterDiaryStore'
 import { useCharacterMemoryStore } from '../stores/useCharacterMemoryStore'
@@ -189,6 +190,14 @@ function affinityClass(affinity: number): string {
               {{ ev.summary }}
             </div>
           </div>
+        </section>
+
+        <!-- Emotional Arc Chart -->
+        <section v-if="memory?.emotionalHistory?.length" class="ci-section">
+          <h4 class="ci-section__title">
+            {{ t('world.emotionalArc') }}
+          </h4>
+          <EmotionalArcChart :history="memory.emotionalHistory" />
         </section>
 
         <!-- Relationships -->

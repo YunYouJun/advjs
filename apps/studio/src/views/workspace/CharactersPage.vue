@@ -2,6 +2,7 @@
 import type { AdvCharacter } from '@advjs/types'
 import { parseCharacterMd, stringifyCharacterMd } from '@advjs/parser'
 import {
+  actionSheetController,
   IonButton,
   IonIcon,
   IonNote,
@@ -10,7 +11,7 @@ import {
   IonSearchbar,
   IonToolbar,
 } from '@ionic/vue'
-import { addOutline, cloudUploadOutline, trashOutline } from 'ionicons/icons'
+import { addOutline, cloudUploadOutline, downloadOutline, trashOutline } from 'ionicons/icons'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -28,6 +29,8 @@ import { useProjectContent } from '../../composables/useProjectContent'
 import { useRecentActivity } from '../../composables/useRecentActivity'
 import { useAiSettingsStore } from '../../stores/useAiSettingsStore'
 import { useCharacterStateStore } from '../../stores/useCharacterStateStore'
+import { exportCharactersToCSV, exportRelationshipsToCSV } from '../../utils/csvExport'
+import { downloadAsFile } from '../../utils/fileAccess'
 import { showToast } from '../../utils/toast'
 
 const { t } = useI18n()
@@ -132,11 +135,42 @@ async function handleDeleteCharacter(character: AdvCharacter) {
     characterEditor.close()
   }
 }
+
+async function handleExportCSV() {
+  if (characters.value.length === 0) {
+    showToast(t('characters.emptySearch'), 'warning')
+    return
+  }
+  const sheet = await actionSheetController.create({
+    header: t('world.exportTitle'),
+    buttons: [
+      {
+        text: t('characters.exportCharacters'),
+        handler: () => {
+          const csv = exportCharactersToCSV(characters.value)
+          downloadAsFile(csv, 'characters.csv', 'text/csv;charset=utf-8')
+        },
+      },
+      {
+        text: t('characters.exportRelationships'),
+        handler: () => {
+          const csv = exportRelationshipsToCSV(characters.value)
+          downloadAsFile(csv, 'relationships.csv', 'text/csv;charset=utf-8')
+        },
+      },
+      { text: t('common.cancel'), role: 'cancel' },
+    ],
+  })
+  await sheet.present()
+}
 </script>
 
 <template>
   <LayoutPage :title="t('workspace.characters')" show-back-button default-href="/tabs/workspace">
     <template #end>
+      <IonButton fill="clear" @click="handleExportCSV">
+        <IonIcon :icon="downloadOutline" />
+      </IonButton>
       <IonButton router-link="/tabs/workspace/batch-import" fill="clear">
         <IonIcon :icon="cloudUploadOutline" />
       </IonButton>

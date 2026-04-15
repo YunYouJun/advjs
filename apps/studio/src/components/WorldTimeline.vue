@@ -4,7 +4,7 @@ import type { TimelineEntry } from '../types/timeline'
 import type { TimelineFilter } from './TimelineFilter.vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getCharacterInitials, getValidAvatarUrl } from '../utils/chatUtils'
+import { getCharacterInitials, getMoodEmoji, getValidAvatarUrl } from '../utils/chatUtils'
 import DiaryEntryContent from './DiaryEntryContent.vue'
 import TimelineFilterComponent from './TimelineFilter.vue'
 
@@ -23,7 +23,7 @@ const PAGE_SIZE = 60
 
 // --- Filter state (internal) ---
 
-const filter = ref<TimelineFilter>({ kinds: [], characterIds: [], eventTypes: [] })
+const filter = ref<TimelineFilter>({ kinds: [], characterIds: [], eventTypes: [], moods: [] })
 const displayLimit = ref(PAGE_SIZE)
 
 // Reset pagination when filter changes
@@ -46,6 +46,10 @@ const availableEventTypes = computed<string[]>(() =>
   [...new Set(props.entries.filter(e => e.kind === 'event' && e.type).map(e => e.type!))],
 )
 
+const availableMoods = computed<string[]>(() =>
+  [...new Set(props.entries.filter(e => e.kind === 'diary' && e.mood).map(e => e.mood!))],
+)
+
 // --- Filtering ---
 
 const filteredEntries = computed<TimelineEntry[]>(() => {
@@ -59,6 +63,10 @@ const filteredEntries = computed<TimelineEntry[]>(() => {
     }
     if (filter.value.eventTypes.length && e.kind === 'event') {
       if (!filter.value.eventTypes.includes(e.type!))
+        return false
+    }
+    if (filter.value.moods.length && e.kind === 'diary') {
+      if (!e.mood || !filter.value.moods.includes(e.mood))
         return false
     }
     return true
@@ -139,6 +147,7 @@ const EVENT_TYPE_EMOJI: Record<string, string> = {
       v-model="filter"
       :characters="characters"
       :available-event-types="availableEventTypes"
+      :available-moods="availableMoods"
     />
 
     <!-- Load more (top, shows hidden older entries) -->
@@ -234,7 +243,7 @@ const EVENT_TYPE_EMOJI: Record<string, string> = {
                     <span class="wt-diary-name">
                       {{ characterMap.get(entry.characterId || '')?.name || entry.characterId }}
                     </span>
-                    <span v-if="entry.mood" class="wt-diary-mood">{{ entry.mood }}</span>
+                    <span v-if="entry.mood" class="wt-diary-mood">{{ getMoodEmoji(entry.mood) }} {{ entry.mood }}</span>
                   </div>
                   <p class="wt-card__body">
                     <DiaryEntryContent :content="entry.diaryContent ?? entry.summary" :max-length="80" />

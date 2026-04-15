@@ -406,7 +406,22 @@ function conversationToMarkdown(charName: string): string {
     const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     lines.push(`**${speaker}** (${time}):`)
     lines.push('')
-    lines.push(msg.content)
+    if (msg.role === 'user') {
+      lines.push(`> ${msg.content}`)
+    }
+    else {
+      lines.push(msg.content)
+    }
+    lines.push('')
+  }
+
+  // Append emotional state summary if available
+  const memory = memoryStore.getMemory(characterId.value)
+  if (memory.emotionalHistory.length > 0) {
+    const es = memory.emotionalState
+    lines.push('---')
+    lines.push('')
+    lines.push(`**${t('world.emotionalState')}**: ${t('world.affinity')} ${es.affinity} | ${t('world.trust')} ${es.trust} | ${es.mood}`)
     lines.push('')
   }
 

@@ -8,12 +8,14 @@ export interface TimelineFilter {
   kinds: ('event' | 'diary')[]
   characterIds: string[]
   eventTypes: string[]
+  moods: string[]
 }
 
 const props = defineProps<{
   modelValue: TimelineFilter
   characters: AdvCharacter[]
   availableEventTypes: string[]
+  availableMoods?: string[]
 }>()
 
 const emit = defineEmits<{
@@ -34,6 +36,11 @@ const showEventTypes = computed(
   () => props.modelValue.kinds.length === 0 || props.modelValue.kinds.includes('event'),
 )
 
+const showMoods = computed(
+  () => (props.availableMoods?.length ?? 0) > 0
+    && (props.modelValue.kinds.includes('diary') || props.modelValue.kinds.length === 0),
+)
+
 const showCharacters = computed(() => props.characters.length > 1)
 
 function toggleKind(kind: 'event' | 'diary') {
@@ -43,7 +50,11 @@ function toggleKind(kind: 'event' | 'diary') {
   const eventTypes = next.includes('event') || next.length === 0
     ? props.modelValue.eventTypes
     : []
-  emit('update:modelValue', { ...props.modelValue, kinds: next, eventTypes })
+  // Clear moods filter if 'diary' is being removed
+  const moods = next.includes('diary') || next.length === 0
+    ? props.modelValue.moods
+    : []
+  emit('update:modelValue', { ...props.modelValue, kinds: next, eventTypes, moods })
 }
 
 function toggleEventType(type: string) {
@@ -69,6 +80,16 @@ function isEventTypeActive(type: string) {
 function isCharacterActive(id: string) {
   return props.modelValue.characterIds.includes(id)
 }
+
+function toggleMood(mood: string) {
+  const cur = props.modelValue.moods
+  const next = cur.includes(mood) ? cur.filter(m => m !== mood) : [...cur, mood]
+  emit('update:modelValue', { ...props.modelValue, moods: next })
+}
+
+function isMoodActive(mood: string) {
+  return props.modelValue.moods.includes(mood)
+}
 </script>
 
 <template>
@@ -77,8 +98,8 @@ function isCharacterActive(id: string) {
     <div class="tf-row">
       <button
         class="tf-pill"
-        :class="{ active: modelValue.kinds.length === 0 }"
-        @click="emit('update:modelValue', { ...modelValue, kinds: [], eventTypes: [] })"
+        :class="{ active: modelValue.kinds.length === 0 && modelValue.characterIds.length === 0 && modelValue.eventTypes.length === 0 && modelValue.moods.length === 0 }"
+        @click="emit('update:modelValue', { kinds: [], characterIds: [], eventTypes: [], moods: [] })"
       >
         {{ t('world.timelineFilterAll') }}
       </button>
@@ -108,6 +129,19 @@ function isCharacterActive(id: string) {
         @click="toggleEventType(type)"
       >
         {{ EVENT_TYPE_EMOJI[type] || '🔵' }} {{ type }}
+      </button>
+    </div>
+
+    <!-- Row 2b: mood filter (only when diaries are visible) -->
+    <div v-if="showMoods" class="tf-row">
+      <button
+        v-for="mood in availableMoods"
+        :key="mood"
+        class="tf-pill tf-pill--sm"
+        :class="{ active: isMoodActive(mood) }"
+        @click="toggleMood(mood)"
+      >
+        {{ mood }}
       </button>
     </div>
 

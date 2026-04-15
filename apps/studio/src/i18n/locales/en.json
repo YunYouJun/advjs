@@ -517,6 +517,9 @@
     "period_evening": "Evening",
     "period_night": "Night",
     "emotionalState": "Emotional State",
+    "emotionalArc": "Emotional Arc",
+    "emotionalArcEmpty": "No emotional data yet. Chat with the character to track emotional trends.",
+    "exportTimeline": "Export Timeline",
     "affinity": "Affinity",
     "trust": "Trust",
     "userProfile": "Their Impression",
@@ -592,7 +595,9 @@
     "actionDelete": "Delete",
     "diaryTitle": "{name}'s Diary",
     "diaryEmpty": "No diary entries yet",
-    "diaryEmptyHint": "Advance time in the World page or manually generate to create diary entries"
+    "diaryEmptyHint": "Advance time in the World page or manually generate to create diary entries",
+    "exportCharacters": "Export Characters (CSV)",
+    "exportRelationships": "Export Relationships (CSV)"
   },
   "scenes": {
     "title": "Scenes",

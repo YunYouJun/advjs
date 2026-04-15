@@ -4,9 +4,11 @@ import type { TimelineEntry } from '../types/timeline'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { EVENT_TYPE_EMOJI } from '../types/timeline'
+import { exportTimelineToCSV } from '../utils/csvExport'
+import { downloadAsFile } from '../utils/fileAccess'
 import WorldTimeline from './WorldTimeline.vue'
 
-defineProps<{
+const props = defineProps<{
   isGenerating: boolean
   recentEvents: { id: string, type: string, summary: string }[]
   timelineEntries: TimelineEntry[]
@@ -20,6 +22,13 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const showEvents = ref(true)
 const timelineView = ref<'list' | 'timeline'>('list')
+
+function handleExportTimeline() {
+  if (props.timelineEntries.length === 0)
+    return
+  const csv = exportTimelineToCSV(props.timelineEntries)
+  downloadAsFile(csv, 'timeline.csv', 'text/csv;charset=utf-8')
+}
 </script>
 
 <template>
@@ -46,6 +55,14 @@ const timelineView = ref<'list' | 'timeline'>('list')
           @click="timelineView = 'timeline'"
         >
           {{ t('world.timeline') }}
+        </button>
+        <button
+          v-if="timelineEntries.length > 0"
+          class="world-view-btn"
+          :title="t('world.exportTimeline')"
+          @click="handleExportTimeline"
+        >
+          📥
         </button>
       </div>
     </div>

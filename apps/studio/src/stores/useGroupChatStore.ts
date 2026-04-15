@@ -722,6 +722,7 @@ export const useGroupChatStore = defineStore('groupChat', () => {
   return {
     rooms,
     snapshots,
+    activeSnapshotId,
     isLoading,
     streamingContent,
     currentSpeakerName,

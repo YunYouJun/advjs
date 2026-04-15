@@ -28,14 +28,24 @@ export interface EmotionalState {
   mood: string
 }
 
+export interface EmotionalSnapshot {
+  timestamp: number
+  affinity: number
+  trust: number
+  mood: string
+}
+
 export interface CharacterMemory {
   characterId: string
   keyEvents: MemoryKeyEvent[]
   userProfile: UserProfileEntry[]
   emotionalState: EmotionalState
+  /** Time-series emotional snapshots for trend visualization */
+  emotionalHistory: EmotionalSnapshot[]
 }
 
 const MAX_KEY_EVENTS = 50
+const MAX_EMOTIONAL_HISTORY = 200
 
 function createDefaultEmotionalState(): EmotionalState {
   return { affinity: 0, trust: 20, mood: 'neutral' }
@@ -116,12 +126,17 @@ export const useCharacterMemoryStore = defineStore('characterMemory', () => {
   })
 
   function getMemory(characterId: string): CharacterMemory {
-    return getOrCreateInMap(memories.value, characterId, id => ({
+    const mem = getOrCreateInMap(memories.value, characterId, id => ({
       characterId: id,
       keyEvents: [],
       userProfile: [],
       emotionalState: createDefaultEmotionalState(),
+      emotionalHistory: [],
     }))
+    // Backward compatibility: old data may lack emotionalHistory
+    if (!mem.emotionalHistory)
+      mem.emotionalHistory = []
+    return mem
   }
 
   /**
@@ -131,7 +146,11 @@ export const useCharacterMemoryStore = defineStore('characterMemory', () => {
     const memory = getMemory(characterId)
 
     // Only return content if there is actual memory
-    if (memory.userProfile.length === 0 && memory.keyEvents.length === 0) {
+    const hasProfile = memory.userProfile.length > 0
+    const hasEvents = memory.keyEvents.length > 0
+    const es = memory.emotionalState
+    const hasEmotionalChange = es.affinity !== 0 || es.trust !== 20 || es.mood !== 'neutral'
+    if (!hasProfile && !hasEvents && !hasEmotionalChange) {
       return ''
     }
 
@@ -228,6 +247,16 @@ export const useCharacterMemoryStore = defineStore('characterMemory', () => {
         Math.min(100, memory.emotionalState.trust + extraction.trust_delta),
       )
       memory.emotionalState.mood = extraction.mood
+
+      // Record emotional snapshot for trend visualization
+      memory.emotionalHistory.push({
+        timestamp: Date.now(),
+        affinity: memory.emotionalState.affinity,
+        trust: memory.emotionalState.trust,
+        mood: memory.emotionalState.mood,
+      })
+      if (memory.emotionalHistory.length > MAX_EMOTIONAL_HISTORY)
+        memory.emotionalHistory = memory.emotionalHistory.slice(-MAX_EMOTIONAL_HISTORY)
     }
     catch {
       // Memory extraction is best-effort, don't disrupt the chat
@@ -240,6 +269,7 @@ export const useCharacterMemoryStore = defineStore('characterMemory', () => {
       keyEvents: [],
       userProfile: [],
       emotionalState: createDefaultEmotionalState(),
+      emotionalHistory: [],
     })
   }
 

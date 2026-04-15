@@ -25,6 +25,7 @@ function makeGlobalConfig(overrides: Partial<AiConfig> = {}): AiConfig {
     embeddingProvider: 'same',
     embeddingApiKey: '',
     embeddingModel: '',
+    ttsAutoRead: false,
     embeddingCustomBaseURL: '',
     ...overrides,
   }

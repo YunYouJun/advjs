@@ -7,6 +7,7 @@ import { alertController, IonButton, IonContent, IonHeader, IonModal, IonTitle, 
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DiaryEntryContent from './DiaryEntryContent.vue'
+import EmotionalArcChart from './EmotionalArcChart.vue'
 import KnowledgeManageModal from './KnowledgeManageModal.vue'
 
 defineProps<{
@@ -212,6 +213,14 @@ function affinityClass(affinity: number): string {
               {{ ev.summary }}
             </div>
           </div>
+        </section>
+
+        <!-- Emotional Arc Chart -->
+        <section v-if="memory?.emotionalHistory?.length" class="ci-section">
+          <h4 class="ci-section__title">
+            {{ t('world.emotionalArc') }}
+          </h4>
+          <EmotionalArcChart :history="memory.emotionalHistory" />
         </section>
 
         <section v-if="character.relationships?.length" class="ci-section">

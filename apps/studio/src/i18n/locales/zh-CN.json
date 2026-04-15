@@ -517,6 +517,9 @@
     "period_evening": "傍晚",
     "period_night": "夜晚",
     "emotionalState": "情感状态",
+    "emotionalArc": "情感弧光",
+    "emotionalArcEmpty": "暂无情感数据，与角色对话后将记录情感变化趋势",
+    "exportTimeline": "导出时间线",
     "affinity": "好感度",
     "trust": "信任度",
     "userProfile": "TA 对你的印象",
@@ -592,7 +595,9 @@
     "actionDelete": "删除",
     "diaryTitle": "{name}的日记",
     "diaryEmpty": "暂无日记",
-    "diaryEmptyHint": "在世界页面推进时间或手动生成来创建日记"
+    "diaryEmptyHint": "在世界页面推进时间或手动生成来创建日记",
+    "exportCharacters": "导出角色（CSV）",
+    "exportRelationships": "导出关系（CSV）"
   },
   "scenes": {
     "title": "场景",
