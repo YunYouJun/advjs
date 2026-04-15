@@ -1203,7 +1203,7 @@ Studio 核心功能（Phase 1-27）已全部完成，现围绕移动端体验逐
 - `chat.css` — TTS 按钮样式从 scoped 提取到全局共享
 - 115 tests passing，lint 无报错
 
-#### Phase M12（部分完成）：群聊分支树 + 项目模板库 {#phase-m12-done}
+#### Phase M12：群聊分支树 + 项目模板库 + E2E 测试 ✅ {#phase-m12-done}
 
 **群聊分支树**：
 
@@ -1222,32 +1222,59 @@ Studio 核心功能（Phase 1-27）已全部完成，现围绕移动端体验逐
 
 - `tests/e2e/test.spec.ts` — 重写 E2E 测试，覆盖应用启动重定向、Tab 导航（workspace/chat/world/play/me）、Tab bar 渲染等核心流程
 
-#### Phase M12：后续计划 {#phase-m12}
+#### Phase M13：MCP Server 扩展 + 批量角色导入 {#phase-m13}
 
-基于当前已完成的功能体系，下一阶段聚焦**创作体验深化**和**生态基础建设**两条主线：
+MCP Server 已有完整基础架构（9 Resources + 1 Tool + 3 Prompts），但写入类工具严重缺失，限制了 AI 编辑器协作能力。同时，批量角色导入是创作者的实际痛点。本阶段聚焦**AI 协作能力**和**创作效率**两条主线。
 
-##### 主线 A：创作体验深化
+##### MCP Server 工具扩展
 
-- [x] **群聊分支树** — 群聊存档点支持 `parentSnapshotId`，复用泛化后的 `SnapshotTree.vue` 实现分支可视化 ✅
-- [ ] **腾讯混元图片生成** — 集成 Hunyuan TextToImageLite 服务端 SDK
-- [ ] **角色情感弧光可视化** — 基于 `CharacterDiaryStore` 日记情绪词，绘制角色情绪变化折线图（mood over time）
-- [ ] **批量角色导入** — 支持从 CSV/JSON 批量创建角色（`.character.md` 批量生成）
-- [ ] **对话导出增强** — 导出为 EPUB/PDF 格式，支持自定义排版模板
+当前 `@advjs/mcp-server` 状态：
+- **Resources**：`project-overview`、`world`、`outline`、`glossary`、`characters`、`character/{id}`、`chapters`、`chapter/{id}`、`scenes`（共 9 个，只读完备）
+- **Tools**：仅 `adv_validate`（1 个校验工具）
+- **Prompts**：`write-chapter`、`create-character`、`review-script`（3 个创作辅助提示）
 
-##### 主线 B：生态基础建设
+计划新增工具：
 
-- [ ] **Capacitor 原生打包** — 完成 iOS/Android 原生应用打包，支持 App Store / Google Play 发布
-- [x] **项目模板库** — 内置 5 种项目模板（通用入门、校园恋爱、悬疑推理、奇幻冒险、现代都市），创建项目时一键选择
+- [ ] **`list_files`** — 列出项目文件结构（角色/章节/场景/地点/知识文件清单）
+- [ ] **`create_character`** — 创建新角色卡片（写入 `.character.md` 文件）
+- [ ] **`edit_character`** — 编辑已有角色卡片（frontmatter + body 更新）
+- [ ] **`create_chapter`** — 创建新章节脚本（写入 `.adv.md` 文件）
+- [ ] **`edit_chapter`** — 编辑已有章节脚本
+- [ ] **`project_stats`** — 项目统计信息（角色数、章节数、场景数、字数统计）
+- [ ] **`search_content`** — 全文搜索项目内容（支持 glob 模式匹配）
+
+##### 批量角色导入
+
+- [ ] **CSV 导入** — 解析 CSV 文件（name/tags/personality/background 等列），批量生成 `.character.md` 文件
+- [ ] **JSON 导入** — 支持 JSON 数组格式的角色数据批量导入
+- [ ] **导入预览** — 导入前展示解析结果预览，支持逐条确认/跳过
+- [ ] **重复检测** — 导入时检查角色 ID 冲突，提供覆盖/跳过/重命名选项
+
+#### Phase M14：情感弧光可视化 + 导出增强 {#phase-m14}
+
+##### 角色情感弧光可视化
+
+基于已有的 `EmotionalState`（affinity 好感度 / trust 信任度 / mood 心情）和 `CharacterDiaryStore` 日记情绪词，新增历史趋势可视化。
+
+- [ ] **情感数据时序记录** — `useCharacterMemoryStore` 新增 `emotionalHistory: Array<{ timestamp, affinity, trust, mood }>` 字段，每次对话后自动追加快照
+- [ ] **情感折线图组件** — `EmotionalArcChart.vue`，使用 SVG 绘制 affinity/trust 趋势折线 + mood emoji 标注
+- [ ] **角色详情集成** — `CharacterInfoModal` 新增"情感弧光"Tab，展示该角色与玩家交互的情感变化历史
+- [ ] **日记情绪标注** — 日记时间线视图中标注每条日记对应的 mood 状态，形成情绪-事件关联
+
+##### 导出增强
+
+- [ ] **CSV 数据导出** — 角色列表、事件时间线、关系数据等导出为 CSV 表格
+- [ ] **Markdown 增强导出** — 对话记录导出为排版优化的 Markdown（含角色头像/时间戳/分支标记）
+- [ ] **EPUB 对话导出**（远期）— 对话记录打包为 EPUB 电子书格式
+
+#### 后续里程碑 {#future-milestones}
+
+- [ ] **腾讯混元图片生成** — 集成 Hunyuan TextToImageLite 服务端 SDK（已有 SiliconFlow/Runware/DALL-E 三个替代方案可用，优先级较低）
+- [ ] **Capacitor 原生打包** — iOS/Android 原生应用打包发布（架构级工作，需要解决文件系统 API 兼容性）
 - [ ] **数据导入兼容** — 支持从 Ren'Py / TyranoScript 等主流引擎导入项目（基础脚本转换）
-- [ ] **MCP 工具服务** — 实现 ADV.JS 的 MCP Server，让外部 AI 工具可以直接管理 Studio 项目（`adv_validate` 已有雏形）
-
-##### 主线 C：地点系统可视化（Phase L3 ✅）
-
-- [x] **地点关系图** — `LocationGraph.vue` 纯 SVG 轻量实现，地点节点+角色连线+徽章
-- [x] **AST 地点引用打通** — CLI `adv check` 扫描 `locations/` 目录，`SceneInfo` 新增 `locationId` 字段
 
 ::: tip 进展说明
-群聊分支树和项目模板库已完成实现（Phase M12）。建议下一步按 **Capacitor 原生打包 → 混元图片生成 → 角色情感弧光** 的顺序推进。Capacitor 原生打包是发布移动端 App 的关键里程碑。
+Phase M1-M12 + Phase L1-L3 全部完成（57 个组件、31 个页面、12 个 Store、115 个单元测试）。下一阶段按 **MCP Server 扩展 → 批量角色导入 → 情感弧光可视化 → 导出增强** 的顺序推进。MCP Server 扩展是低投入高回报的增量工作，能显著提升 AI 编辑器协作体验。
 :::
 
 ### Phase 13：账号系统 {#phase-13}
@@ -1327,10 +1354,13 @@ interface MarketplaceEntry {
 - [x] **TTS 自动朗读** — AI 回复完成后自动播放语音，无需手动点击（Phase M11）
 - [x] **对话分支树** — 存档点分支可视化，列表/树双视图切换（Phase M11）
 - [x] **群聊分支树** — 群聊存档支持 `parentSnapshotId`，复用泛化后的 `SnapshotTree.vue`（Phase M12）
-- [ ] **混元图片生成** — 集成腾讯 Hunyuan TextToImageLite 服务端 SDK（Phase M12）
-- [ ] **角色情感弧光** — 基于日记情绪词绘制情绪变化折线图（Phase M12）
+- [ ] **混元图片生成** — 集成腾讯 Hunyuan TextToImageLite 服务端 SDK（后续里程碑）
+- [ ] **角色情感弧光** — 基于日记情绪词绘制情绪变化折线图（Phase M14）
 - [x] **项目模板库** — 内置 5 种类型模板，降低新用户上手门槛（Phase M12）
-- [ ] **Capacitor 原生打包** — iOS/Android 原生应用打包发布（Phase M12）
+- [ ] **Capacitor 原生打包** — iOS/Android 原生应用打包发布（后续里程碑）
+- [x] **E2E 测试** — Playwright E2E 测试覆盖核心导航和启动流程（Phase M12）
+- [ ] **MCP Server 扩展** — 新增 CRUD 工具（list_files/create_character/edit_chapter 等），扩展 AI 编辑器协作能力（Phase M13）
+- [ ] **批量角色导入** — CSV/JSON 批量创建角色，支持导入预览和重复检测（Phase M13）
 
 ### 地点系统路线 {#location-roadmap}
 
@@ -1380,7 +1410,7 @@ interface MarketplaceEntry {
 
 - ~~**localStorage 容量有限**~~ — ✅ 已迁移至 IndexedDB（Phase 12，Dexie v2→v6）
 - ~~**消息清理策略**~~ — ✅ 自动归档旧对话至 IndexedDB `archivedBatches` table（Phase M6.5），CharacterChatPage 可查看归档消息（Phase M7.1）
-- **Capacitor 原生打包** — iOS/Android 原生应用尚未打包发布
+- **Capacitor 原生打包** — iOS/Android 原生应用尚未打包发布（列入后续里程碑，需解决文件系统 API 兼容性）
 
 ### 知识库系统
 
@@ -1402,7 +1432,7 @@ interface MarketplaceEntry {
 
 ### 图片生成
 
-- **腾讯混元集成** — `aiImageClient.ts` 中 Hunyuan TextToImageLite 需要服务端 SDK 集成（当前抛出错误，需后端支持）
+- **腾讯混元集成** — `aiImageClient.ts` 中 Hunyuan TextToImageLite 需要服务端 SDK 集成（当前抛出错误，需后端支持；已有 SiliconFlow/Runware/DALL-E 三个替代方案，优先级较低）
 
 ### 群聊系统
 
