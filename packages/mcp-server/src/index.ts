@@ -1,10 +1,11 @@
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
-import { basename, join } from 'node:path'
+import { basename, join, relative } from 'node:path'
 import process from 'node:process'
+import { parseCharacterMd, stringifyCharacterMd } from '@advjs/parser'
 import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
-import { resolveGameRoot } from 'advjs'
+import { resolveGameRoot, scanFiles } from 'advjs'
 import { z } from 'zod'
 
 // Re-export for external use
@@ -201,6 +202,346 @@ export function createAdvMcpServer() {
         content: [{ type: 'text', text: lines.join('\n') }],
         isError: true,
       }
+    },
+  )
+
+  // --- list_files ---
+  server.tool(
+    'list_files',
+    'List project files by category (characters, chapters, scenes, locations, knowledge, audio)',
+    {
+      category: z.enum(['characters', 'chapters', 'scenes', 'locations', 'knowledge', 'audio']).optional().describe('File category to list. Omit to get an overview of all categories.'),
+    },
+    async ({ category }: { category?: string }) => {
+      const extMap: Record<string, { dir: string, ext: string }> = {
+        characters: { dir: 'characters', ext: '.character.md' },
+        chapters: { dir: 'chapters', ext: '.adv.md' },
+        scenes: { dir: 'scenes', ext: '.md' },
+        locations: { dir: 'locations', ext: '.md' },
+        knowledge: { dir: 'knowledge', ext: '.md' },
+        audio: { dir: 'audio', ext: '' },
+      }
+
+      if (category) {
+        const cfg = extMap[category]
+        if (!cfg)
+          return textContent(`Unknown category: ${category}`)
+        const dir = join(gameRoot, cfg.dir)
+        const files = scanFiles(dir, cfg.ext)
+        if (files.length === 0)
+          return textContent(`No files found in ${cfg.dir}/`)
+        const lines = files.map((f) => {
+          const rel = relative(gameRoot, f)
+          const size = statSync(f).size
+          return `${rel} (${size} bytes)`
+        })
+        return textContent(lines.join('\n'))
+      }
+
+      // Overview of all categories
+      const lines: string[] = []
+      for (const [cat, cfg] of Object.entries(extMap)) {
+        const dir = join(gameRoot, cfg.dir)
+        const count = scanFiles(dir, cfg.ext).length
+        lines.push(`${cat}: ${count} file(s)`)
+      }
+      return textContent(lines.join('\n'))
+    },
+  )
+
+  // --- create_character ---
+  server.tool(
+    'create_character',
+    'Create a new character card (.character.md) in the project',
+    {
+      id: z.string().describe('Character ID (lowercase, no spaces, used as filename)'),
+      name: z.string().describe('Character display name'),
+      tags: z.array(z.string()).optional().describe('Character tags'),
+      aliases: z.array(z.string()).optional().describe('Alternative names'),
+      personality: z.string().optional().describe('Personality description'),
+      appearance: z.string().optional().describe('Appearance description'),
+      background: z.string().optional().describe('Background story'),
+      concept: z.string().optional().describe('Core concept or beliefs'),
+      speechStyle: z.string().optional().describe('Speaking style description'),
+    },
+    async (params: {
+      id: string
+      name: string
+      tags?: string[]
+      aliases?: string[]
+      personality?: string
+      appearance?: string
+      background?: string
+      concept?: string
+      speechStyle?: string
+    }) => {
+      const dir = join(gameRoot, 'characters')
+      const filePath = join(dir, `${sanitizeFilename(params.id)}.character.md`)
+
+      if (existsSync(filePath))
+        return { content: [{ type: 'text', text: `Character "${params.id}" already exists at ${relative(gameRoot, filePath)}. Use edit_character to modify.` }], isError: true }
+
+      mkdirSync(dir, { recursive: true })
+
+      const content = stringifyCharacterMd({
+        id: params.id,
+        name: params.name,
+        tags: params.tags,
+        aliases: params.aliases,
+        personality: params.personality,
+        appearance: params.appearance,
+        background: params.background,
+        concept: params.concept,
+        speechStyle: params.speechStyle,
+      })
+
+      writeFileSync(filePath, content, 'utf-8')
+      return textContent(`Created character "${params.name}" at characters/${params.id}.character.md`)
+    },
+  )
+
+  // --- edit_character ---
+  server.tool(
+    'edit_character',
+    'Edit an existing character card (.character.md)',
+    {
+      id: z.string().describe('Character ID to edit'),
+      name: z.string().optional().describe('New display name'),
+      tags: z.array(z.string()).optional().describe('Replace tags'),
+      aliases: z.array(z.string()).optional().describe('Replace aliases'),
+      personality: z.string().optional().describe('New personality description'),
+      appearance: z.string().optional().describe('New appearance description'),
+      background: z.string().optional().describe('New background story'),
+      concept: z.string().optional().describe('New concept or beliefs'),
+      speechStyle: z.string().optional().describe('New speaking style'),
+    },
+    async (params: {
+      id: string
+      name?: string
+      tags?: string[]
+      aliases?: string[]
+      personality?: string
+      appearance?: string
+      background?: string
+      concept?: string
+      speechStyle?: string
+    }) => {
+      const safeId = sanitizeFilename(params.id)
+      const filePath = join(gameRoot, 'characters', `${safeId}.character.md`)
+
+      if (!existsSync(filePath))
+        return { content: [{ type: 'text', text: `Character "${params.id}" not found at characters/${safeId}.character.md` }], isError: true }
+
+      const existing = readFileSync(filePath, 'utf-8')
+      const character = parseCharacterMd(existing)
+
+      // Merge updates
+      const { id: _id, ...updates } = params
+      for (const [key, value] of Object.entries(updates)) {
+        if (value !== undefined)
+          (character as any)[key] = value
+      }
+
+      const content = stringifyCharacterMd(character)
+      writeFileSync(filePath, content, 'utf-8')
+      return textContent(`Updated character "${character.name}" at characters/${safeId}.character.md`)
+    },
+  )
+
+  // --- create_chapter ---
+  server.tool(
+    'create_chapter',
+    'Create a new chapter script (.adv.md) in the project',
+    {
+      filename: z.string().describe('Chapter filename (e.g. "chapter_01" or "chapter_01.adv.md")'),
+      title: z.string().optional().describe('Chapter title'),
+      plotSummary: z.string().optional().describe('Brief plot summary for frontmatter'),
+      content: z.string().optional().describe('Full chapter content in .adv.md format. If provided, title/plotSummary are ignored.'),
+    },
+    async (params: { filename: string, title?: string, plotSummary?: string, content?: string }) => {
+      const dir = join(gameRoot, 'chapters')
+      let fname = sanitizeFilename(params.filename)
+      if (!fname.endsWith('.adv.md'))
+        fname = `${fname}.adv.md`
+
+      const filePath = join(dir, fname)
+      if (existsSync(filePath))
+        return { content: [{ type: 'text', text: `Chapter "${fname}" already exists. Use edit_chapter to modify.` }], isError: true }
+
+      mkdirSync(dir, { recursive: true })
+
+      let fileContent: string
+      if (params.content) {
+        fileContent = params.content
+      }
+      else {
+        // Generate from frontmatter
+        const fmParts: string[] = []
+        if (params.title)
+          fmParts.push(`title: ${params.title}`)
+        if (params.plotSummary)
+          fmParts.push(`plotSummary: ${params.plotSummary}`)
+        fileContent = fmParts.length > 0
+          ? `---\n${fmParts.join('\n')}\n---\n`
+          : ''
+      }
+
+      writeFileSync(filePath, fileContent, 'utf-8')
+      return textContent(`Created chapter at chapters/${fname}`)
+    },
+  )
+
+  // --- edit_chapter ---
+  server.tool(
+    'edit_chapter',
+    'Edit an existing chapter script (.adv.md)',
+    {
+      filename: z.string().describe('Chapter filename (e.g. "chapter_01" or "chapter_01.adv.md")'),
+      content: z.string().describe('New full chapter content (replaces entire file)'),
+    },
+    async (params: { filename: string, content: string }) => {
+      let fname = sanitizeFilename(params.filename)
+      if (!fname.endsWith('.adv.md'))
+        fname = `${fname}.adv.md`
+
+      const filePath = join(gameRoot, 'chapters', fname)
+      if (!existsSync(filePath))
+        return { content: [{ type: 'text', text: `Chapter "${fname}" not found.` }], isError: true }
+
+      writeFileSync(filePath, params.content, 'utf-8')
+      return textContent(`Updated chapter at chapters/${fname}`)
+    },
+  )
+
+  // --- project_stats ---
+  server.tool(
+    'project_stats',
+    'Get project statistics: file counts, character count, word count',
+    {
+      root: z.string().optional().describe('Game content root directory (default: auto-detect)'),
+    },
+    async (_params: { root?: string }) => {
+      const categories = [
+        { label: 'Characters', dir: 'characters', ext: '.character.md' },
+        { label: 'Chapters', dir: 'chapters', ext: '.adv.md' },
+        { label: 'Scenes', dir: 'scenes', ext: '.md' },
+        { label: 'Locations', dir: 'locations', ext: '.md' },
+        { label: 'Knowledge', dir: 'knowledge', ext: '.md' },
+        { label: 'Audio', dir: 'audio', ext: '' },
+      ]
+
+      const lines: string[] = ['# Project Statistics\n']
+      let totalWordCount = 0
+
+      for (const cat of categories) {
+        const dir = join(gameRoot, cat.dir)
+        const files = scanFiles(dir, cat.ext)
+          .filter(f => !basename(f).startsWith('README'))
+        lines.push(`${cat.label}: ${files.length} file(s)`)
+      }
+
+      // Word count from chapters
+      const chapterFiles = scanFiles(join(gameRoot, 'chapters'), '.adv.md')
+      for (const f of chapterFiles) {
+        const text = readFileSync(f, 'utf-8')
+        totalWordCount += text.length
+      }
+
+      lines.push(`\nTotal chapter content: ${totalWordCount} characters`)
+
+      // Check key files
+      const hasWorld = existsSync(join(gameRoot, 'world.md'))
+      const hasOutline = existsSync(join(gameRoot, 'outline.md'))
+      const hasGlossary = existsSync(join(gameRoot, 'glossary.md'))
+      lines.push(`\nworld.md: ${hasWorld ? '✓' : '✗'}`)
+      lines.push(`outline.md: ${hasOutline ? '✓' : '✗'}`)
+      lines.push(`glossary.md: ${hasGlossary ? '✓' : '✗'}`)
+
+      return textContent(lines.join('\n'))
+    },
+  )
+
+  // --- search_content ---
+  server.tool(
+    'search_content',
+    'Full-text search across project files',
+    {
+      query: z.string().describe('Search query (case-insensitive substring match)'),
+      category: z.enum(['characters', 'chapters', 'scenes', 'locations', 'knowledge']).optional().describe('Limit search to a specific category'),
+    },
+    async (params: { query: string, category?: string }) => {
+      const searchDirs: { dir: string, ext: string }[] = []
+      const categoryMap: Record<string, { dir: string, ext: string }> = {
+        characters: { dir: 'characters', ext: '.character.md' },
+        chapters: { dir: 'chapters', ext: '.adv.md' },
+        scenes: { dir: 'scenes', ext: '.md' },
+        locations: { dir: 'locations', ext: '.md' },
+        knowledge: { dir: 'knowledge', ext: '.md' },
+      }
+
+      if (params.category) {
+        const cfg = categoryMap[params.category]
+        if (cfg)
+          searchDirs.push(cfg)
+      }
+      else {
+        searchDirs.push(...Object.values(categoryMap))
+      }
+
+      // Also search root .md files (world.md, outline.md, glossary.md)
+      const rootFiles = ['world.md', 'outline.md', 'glossary.md']
+
+      const queryLower = params.query.toLowerCase()
+      const results: string[] = []
+      const MAX_RESULTS = 50
+
+      // Search root files
+      if (!params.category) {
+        for (const name of rootFiles) {
+          if (results.length >= MAX_RESULTS)
+            break
+          const filePath = join(gameRoot, name)
+          const content = readOptionalFile(filePath)
+          if (!content)
+            continue
+          const lines = content.split('\n')
+          for (let i = 0; i < lines.length; i++) {
+            if (results.length >= MAX_RESULTS)
+              break
+            if (lines[i].toLowerCase().includes(queryLower))
+              results.push(`${name}:${i + 1}: ${lines[i].trim()}`)
+          }
+        }
+      }
+
+      // Search category files
+      for (const cfg of searchDirs) {
+        if (results.length >= MAX_RESULTS)
+          break
+        const dir = join(gameRoot, cfg.dir)
+        const files = scanFiles(dir, cfg.ext)
+        for (const f of files) {
+          if (results.length >= MAX_RESULTS)
+            break
+          const content = readFileSync(f, 'utf-8')
+          const rel = relative(gameRoot, f)
+          const lines = content.split('\n')
+          for (let i = 0; i < lines.length; i++) {
+            if (results.length >= MAX_RESULTS)
+              break
+            if (lines[i].toLowerCase().includes(queryLower))
+              results.push(`${rel}:${i + 1}: ${lines[i].trim()}`)
+          }
+        }
+      }
+
+      if (results.length === 0)
+        return textContent(`No results found for "${params.query}"`)
+
+      const header = results.length >= MAX_RESULTS
+        ? `Found ${MAX_RESULTS}+ matches (showing first ${MAX_RESULTS}):\n\n`
+        : `Found ${results.length} match(es):\n\n`
+      return textContent(header + results.join('\n'))
     },
   )
 

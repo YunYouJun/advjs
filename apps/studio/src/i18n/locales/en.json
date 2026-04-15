@@ -902,5 +902,31 @@
       "header": "# Recent World Events",
       "weatherChanged": "Weather changed to {weather}"
     }
+  },
+  "batchImport": {
+    "title": "Batch Import Characters",
+    "selectFile": "Click to select a CSV or JSON file",
+    "noContent": "File content is empty",
+    "emptyFile": "No valid data rows in file",
+    "missingHeaders": "Missing required columns: {headers}",
+    "missingName": "JSON data missing name field",
+    "preview": "Preview",
+    "conflicts": "{count} conflict(s)",
+    "duplicate": "Duplicate",
+    "conflictStrategy": "Conflict Resolution",
+    "strategySkip": "Skip existing characters",
+    "strategyOverwrite": "Overwrite existing characters",
+    "strategyRename": "Auto-rename (add suffix)",
+    "importButton": "Import {count} character(s)",
+    "importing": "Importing...",
+    "importComplete": "Import completed",
+    "noProject": "Please open a project first",
+    "results": "Import Results",
+    "status_created": "Created",
+    "status_skipped": "Skipped",
+    "status_overwritten": "Overwritten",
+    "status_renamed": "Renamed",
+    "status_error": "Import failed",
+    "reset": "Import Again"
   }
 }

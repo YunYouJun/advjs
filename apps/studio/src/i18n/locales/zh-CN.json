@@ -902,5 +902,31 @@
       "header": "# 最近世界事件",
       "weatherChanged": "天气变为{weather}"
     }
+  },
+  "batchImport": {
+    "title": "批量导入角色",
+    "selectFile": "点击选择 CSV 或 JSON 文件",
+    "noContent": "文件内容为空",
+    "emptyFile": "文件中没有有效数据行",
+    "missingHeaders": "缺少必填列: {headers}",
+    "missingName": "JSON 数据中缺少 name 字段",
+    "preview": "预览",
+    "conflicts": "{count} 个冲突",
+    "duplicate": "重复",
+    "conflictStrategy": "冲突处理策略",
+    "strategySkip": "跳过已存在的角色",
+    "strategyOverwrite": "覆盖已存在的角色",
+    "strategyRename": "自动重命名（加后缀）",
+    "importButton": "导入 {count} 个角色",
+    "importing": "导入中...",
+    "importComplete": "导入完成",
+    "noProject": "请先打开一个项目",
+    "results": "导入结果",
+    "status_created": "已创建",
+    "status_skipped": "已跳过",
+    "status_overwritten": "已覆盖",
+    "status_renamed": "已重命名",
+    "status_error": "导入失败",
+    "reset": "重新导入"
   }
 }

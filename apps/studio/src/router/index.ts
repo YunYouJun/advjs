@@ -48,6 +48,10 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/views/workspace/KnowledgePage.vue'),
       },
       {
+        path: 'workspace/batch-import',
+        component: () => import('@/views/workspace/BatchImportPage.vue'),
+      },
+      {
         path: 'workspace/marketplace',
         component: () => import('@/views/workspace/MarketplacePage.vue'),
       },

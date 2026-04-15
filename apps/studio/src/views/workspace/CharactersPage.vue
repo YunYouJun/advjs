@@ -10,7 +10,7 @@ import {
   IonSearchbar,
   IonToolbar,
 } from '@ionic/vue'
-import { addOutline, trashOutline } from 'ionicons/icons'
+import { addOutline, cloudUploadOutline, trashOutline } from 'ionicons/icons'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -137,6 +137,9 @@ async function handleDeleteCharacter(character: AdvCharacter) {
 <template>
   <LayoutPage :title="t('workspace.characters')" show-back-button default-href="/tabs/workspace">
     <template #end>
+      <IonButton router-link="/tabs/workspace/batch-import" fill="clear">
+        <IonIcon :icon="cloudUploadOutline" />
+      </IonButton>
       <IonButton @click="characterEditor.openCreate()">
         <IonIcon :icon="addOutline" />
       </IonButton>

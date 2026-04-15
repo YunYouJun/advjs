@@ -73,7 +73,7 @@ catalog:
   ua-parser-js: ^2.0.9
   vite-plugin-singlefile: ^2.3.2
   vitefu: ^1.1.3
-  vitepress-plugin-group-icons: ^1.7.3
+  vitepress-plugin-group-icons: ^1.7.5
   vitepress-plugin-mermaid: ^2.0.17
   zod: ^3.25.76
 catalogs:
