@@ -1203,14 +1203,33 @@ Studio 核心功能（Phase 1-27）已全部完成，现围绕移动端体验逐
 - `chat.css` — TTS 按钮样式从 scoped 提取到全局共享
 - 115 tests passing，lint 无报错
 
-#### Phase M12：下一阶段计划 {#phase-m12}
+#### Phase M12（部分完成）：群聊分支树 + 项目模板库 {#phase-m12-done}
+
+**群聊分支树**：
+
+- `useGroupChatStore.ts` — `GroupChatRoomSnapshot` 新增 `parentSnapshotId?: string` 字段；Store 新增 `activeSnapshotId: Map<string, string>` 追踪每个房间的活跃快照；`createRoomSnapshot()` 自动记录 parent → child 关系；`restoreRoomSnapshot()` 恢复后更新 activeSnapshotId
+- `SnapshotTree.vue` — 从绑定 `ConversationSnapshot` 类型泛化为通用 `SnapshotLike` 接口（`id/label/createdAt/messages/parentSnapshotId?`），同时支持 1v1 和群聊快照
+- `GroupChatPage.vue` — 集成 `SnapshotTree` 组件，新增列表/树双视图切换 pill 按钮（与 `CharacterChatPage` 一致的 UI 模式）
+
+**项目模板库**：
+
+- `projectTemplate.ts` — 从单一硬编码模板重构为 `TemplateDefinition` 注册表系统，内置 5 种模板（通用入门、校园恋爱、悬疑推理、奇幻冒险、现代都市），每个模板包含差异化的 README/world/outline/chapter 文件
+- `CreateProjectModal.vue` — 模板选择列表从 1 个扩展为 5 个，新增类型图标
+- `ProjectsPage.vue` — `handleCreateProject()` 传递用户选择的 `templateId`
+- i18n 中/英新增各模板的标题和描述
+
+**E2E 测试**：
+
+- `tests/e2e/test.spec.ts` — 重写 E2E 测试，覆盖应用启动重定向、Tab 导航（workspace/chat/world/play/me）、Tab bar 渲染等核心流程
+
+#### Phase M12：后续计划 {#phase-m12}
 
 基于当前已完成的功能体系，下一阶段聚焦**创作体验深化**和**生态基础建设**两条主线：
 
 ##### 主线 A：创作体验深化
 
-- [ ] **群聊分支树** — 群聊存档点支持 `parentSnapshotId`，复用 `SnapshotTree.vue` 实现分支可视化（已有 TODO 标记）
-- [ ] **腾讯混元图片生成** — 集成 Hunyuan TextToImageLite 服务端 SDK（已有 TODO 标记）
+- [x] **群聊分支树** — 群聊存档点支持 `parentSnapshotId`，复用泛化后的 `SnapshotTree.vue` 实现分支可视化 ✅
+- [ ] **腾讯混元图片生成** — 集成 Hunyuan TextToImageLite 服务端 SDK
 - [ ] **角色情感弧光可视化** — 基于 `CharacterDiaryStore` 日记情绪词，绘制角色情绪变化折线图（mood over time）
 - [ ] **批量角色导入** — 支持从 CSV/JSON 批量创建角色（`.character.md` 批量生成）
 - [ ] **对话导出增强** — 导出为 EPUB/PDF 格式，支持自定义排版模板
@@ -1218,7 +1237,7 @@ Studio 核心功能（Phase 1-27）已全部完成，现围绕移动端体验逐
 ##### 主线 B：生态基础建设
 
 - [ ] **Capacitor 原生打包** — 完成 iOS/Android 原生应用打包，支持 App Store / Google Play 发布
-- [ ] **项目模板库** — 内置多种项目模板（校园恋爱、悬疑推理、奇幻冒险等），创建项目时一键选择
+- [x] **项目模板库** — 内置 5 种项目模板（通用入门、校园恋爱、悬疑推理、奇幻冒险、现代都市），创建项目时一键选择
 - [ ] **数据导入兼容** — 支持从 Ren'Py / TyranoScript 等主流引擎导入项目（基础脚本转换）
 - [ ] **MCP 工具服务** — 实现 ADV.JS 的 MCP Server，让外部 AI 工具可以直接管理 Studio 项目（`adv_validate` 已有雏形）
 
@@ -1227,8 +1246,8 @@ Studio 核心功能（Phase 1-27）已全部完成，现围绕移动端体验逐
 - [x] **地点关系图** — `LocationGraph.vue` 纯 SVG 轻量实现，地点节点+角色连线+徽章
 - [x] **AST 地点引用打通** — CLI `adv check` 扫描 `locations/` 目录，`SceneInfo` 新增 `locationId` 字段
 
-::: tip 优先级建议
-建议按 **群聊分支树 → 项目模板库 → Capacitor 原生打包** 的顺序推进。群聊分支树和项目模板库是投入产出比最高的功能，前者代码量小（已有 1v1 参考实现），后者显著降低新用户上手门槛。
+::: tip 进展说明
+群聊分支树和项目模板库已完成实现（Phase M12）。建议下一步按 **Capacitor 原生打包 → 混元图片生成 → 角色情感弧光** 的顺序推进。Capacitor 原生打包是发布移动端 App 的关键里程碑。
 :::
 
 ### Phase 13：账号系统 {#phase-13}
@@ -1307,10 +1326,10 @@ interface MarketplaceEntry {
 - [x] **群聊角色语音** — 群聊中每个角色使用独立 TTS 配置朗读（Phase M11）
 - [x] **TTS 自动朗读** — AI 回复完成后自动播放语音，无需手动点击（Phase M11）
 - [x] **对话分支树** — 存档点分支可视化，列表/树双视图切换（Phase M11）
-- [ ] **群聊分支树** — 群聊存档支持 `parentSnapshotId`，复用 `SnapshotTree.vue`（Phase M12）
+- [x] **群聊分支树** — 群聊存档支持 `parentSnapshotId`，复用泛化后的 `SnapshotTree.vue`（Phase M12）
 - [ ] **混元图片生成** — 集成腾讯 Hunyuan TextToImageLite 服务端 SDK（Phase M12）
 - [ ] **角色情感弧光** — 基于日记情绪词绘制情绪变化折线图（Phase M12）
-- [ ] **项目模板库** — 内置多种类型模板，降低新用户上手门槛（Phase M12）
+- [x] **项目模板库** — 内置 5 种类型模板，降低新用户上手门槛（Phase M12）
 - [ ] **Capacitor 原生打包** — iOS/Android 原生应用打包发布（Phase M12）
 
 ### 地点系统路线 {#location-roadmap}
@@ -1387,4 +1406,4 @@ interface MarketplaceEntry {
 
 ### 群聊系统
 
-- **群聊分支树** — `useGroupChatStore` 中 `GroupChatSnapshot` 尚未实现 `parentSnapshotId`，无法进行分支树可视化（1v1 对话已实现）
+- ~~**群聊分支树**~~ — ✅ `GroupChatRoomSnapshot` 新增 `parentSnapshotId`，`SnapshotTree.vue` 泛化为 `SnapshotLike` 接口同时支持 1v1 和群聊快照，`GroupChatPage` 列表/树双视图切换（Phase M12）

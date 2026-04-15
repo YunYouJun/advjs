@@ -1,10 +1,20 @@
 <script setup lang="ts">
-import type { ConversationSnapshot } from '../stores/useCharacterChatStore'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+/**
+ * Minimal snapshot shape that both ConversationSnapshot and GroupChatRoomSnapshot satisfy.
+ */
+export interface SnapshotLike {
+  id: string
+  label: string
+  createdAt: number
+  messages: { length: number } & any[]
+  parentSnapshotId?: string
+}
+
 const props = defineProps<{
-  snapshots: ConversationSnapshot[]
+  snapshots: SnapshotLike[]
   activeSnapshotId?: string
 }>()
 
@@ -16,7 +26,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 interface TreeNode {
-  snapshot: ConversationSnapshot
+  snapshot: SnapshotLike
   children: TreeNode[]
   depth: number
 }
@@ -27,13 +37,13 @@ const tree = computed(() => {
     return []
 
   // Build lookup
-  const byId = new Map<string, ConversationSnapshot>()
+  const byId = new Map<string, SnapshotLike>()
   for (const s of snaps)
     byId.set(s.id, s)
 
   // Build parent→children map
-  const childrenOf = new Map<string, ConversationSnapshot[]>()
-  const roots: ConversationSnapshot[] = []
+  const childrenOf = new Map<string, SnapshotLike[]>()
+  const roots: SnapshotLike[] = []
 
   for (const s of snaps) {
     if (s.parentSnapshotId && byId.has(s.parentSnapshotId)) {
@@ -50,7 +60,7 @@ const tree = computed(() => {
   roots.sort((a, b) => a.createdAt - b.createdAt)
 
   // Build tree recursively
-  function buildNodes(snaps: ConversationSnapshot[], depth: number): TreeNode[] {
+  function buildNodes(snaps: SnapshotLike[], depth: number): TreeNode[] {
     return snaps
       .sort((a, b) => a.createdAt - b.createdAt)
       .map(s => ({

@@ -135,11 +135,11 @@ function isCosConfigured(): boolean {
 
 async function handleCreateProject(payload: { displayName: string, slug: string, templateId: string }) {
   showCreateModal.value = false
-  const { displayName, slug } = payload
+  const { displayName, slug, templateId } = payload
 
   try {
     const parentDir = await openProjectDirectory()
-    const projectDir = await createProjectFromTemplate(parentDir, slug)
+    const projectDir = await createProjectFromTemplate(parentDir, slug, templateId)
 
     const cosPrefix = normalizeCosPrefix(settingsStore.cos.projectRoot, slug)
     await studioStore.switchProject({

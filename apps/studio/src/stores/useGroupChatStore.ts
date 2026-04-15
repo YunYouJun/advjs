@@ -42,7 +42,8 @@ export interface GroupChatRoomSnapshot {
   createdAt: number
   messages: GroupChatMessage[]
   contextSummary?: string
-  // TODO: add parentSnapshotId for branch tree visualization (see CharacterChatStore)
+  /** Parent snapshot ID — tracks which snapshot this was forked from */
+  parentSnapshotId?: string
 }
 
 const MAX_ROOMS = 50
@@ -184,6 +185,8 @@ function buildGroupSmartContext(
 export const useGroupChatStore = defineStore('groupChat', () => {
   const rooms = ref<GroupChatRoom[]>([])
   const snapshots = ref<Map<string, GroupChatRoomSnapshot[]>>(new Map())
+  /** Tracks the currently active snapshot per room (roomId → snapshotId) */
+  const activeSnapshotId = ref<Map<string, string>>(new Map())
   const isLoading = ref(false)
   const streamingContent = ref('')
   const currentSpeakerName = ref('')
@@ -238,6 +241,7 @@ export const useGroupChatStore = defineStore('groupChat', () => {
       stopGeneration()
       rooms.value = []
       snapshots.value = new Map()
+      activeSnapshotId.value = new Map()
       streamingContent.value = ''
       currentSpeakerName.value = ''
       selectingSpeaker.value = false
@@ -654,6 +658,7 @@ export const useGroupChatStore = defineStore('groupChat', () => {
     if (!room)
       return null
     const n = room.messages.length
+    const parentId = activeSnapshotId.value.get(roomId)
     const snap: GroupChatRoomSnapshot = {
       id: `snap-${Date.now()}`,
       roomId,
@@ -661,9 +666,13 @@ export const useGroupChatStore = defineStore('groupChat', () => {
       createdAt: Date.now(),
       messages: [...room.messages],
       contextSummary: room.contextSummary,
+      parentSnapshotId: parentId,
     }
     const list = snapshots.value.get(roomId) || []
     snapshots.value.set(roomId, [...list, snap])
+
+    // Update active snapshot
+    activeSnapshotId.value.set(roomId, snap.id)
 
     // Persist immediately
     const pid = getCurrentProjectId()

@@ -10,7 +10,7 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/vue'
-import { bookOutline, closeOutline, createOutline } from 'ionicons/icons'
+import { bookOutline, closeOutline, createOutline, flowerOutline, heartOutline, planetOutline, searchOutline } from 'ionicons/icons'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { SLUG_RE, toSlug } from '../utils/slug'
@@ -39,6 +39,30 @@ const templates: ProjectTemplate[] = [
     icon: bookOutline,
     titleKey: 'projects.templateStarterTitle',
     descKey: 'projects.templateStarterDesc',
+  },
+  {
+    id: 'school-romance',
+    icon: heartOutline,
+    titleKey: 'projects.templateSchoolRomanceTitle',
+    descKey: 'projects.templateSchoolRomanceDesc',
+  },
+  {
+    id: 'mystery-detective',
+    icon: searchOutline,
+    titleKey: 'projects.templateMysteryTitle',
+    descKey: 'projects.templateMysteryDesc',
+  },
+  {
+    id: 'fantasy-adventure',
+    icon: planetOutline,
+    titleKey: 'projects.templateFantasyTitle',
+    descKey: 'projects.templateFantasyDesc',
+  },
+  {
+    id: 'modern-urban',
+    icon: flowerOutline,
+    titleKey: 'projects.templateModernUrbanTitle',
+    descKey: 'projects.templateModernUrbanDesc',
   },
 ]
 

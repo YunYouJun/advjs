@@ -28,6 +28,7 @@ import ChatHistorySearch from '../components/ChatHistorySearch.vue'
 import LayoutPage from '../components/common/LayoutPage.vue'
 import MarkdownMessage from '../components/MarkdownMessage.vue'
 import MessageActions from '../components/MessageActions.vue'
+import SnapshotTree from '../components/SnapshotTree.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useWorldContext } from '../composables/useWorldContext'
 import { useAiSettingsStore } from '../stores/useAiSettingsStore'
@@ -423,6 +424,7 @@ function deleteGroupMessage(timestamp: number) {
 // --- Snapshot helpers ---
 
 const showSnapshots = ref(false)
+const snapshotView = ref<'list' | 'tree'>('list')
 
 const snapshotList = computed(() => groupChatStore.getRoomSnapshots(roomId.value))
 
@@ -515,41 +517,72 @@ async function handleDeleteSnapshot(snapshotId: string) {
       <div v-if="showSnapshots" class="snapshot-panel">
         <div class="snapshot-panel__header">
           <span>📸 {{ t('world.snapshots') }}</span>
-          <button
-            class="snapshot-create-btn"
-            :disabled="allMessages.length === 0"
-            @click="handleCreateSnapshot"
-          >
-            + {{ t('world.createSnapshot') }}
-          </button>
-        </div>
-        <div v-if="snapshotList.length === 0" class="snapshot-empty">
-          {{ t('world.noSnapshots') }}
-        </div>
-        <div v-else class="snapshot-list">
-          <div
-            v-for="snap in snapshotList"
-            :key="snap.id"
-            class="snapshot-item"
-          >
-            <div class="snapshot-item__info">
-              <div class="snapshot-item__label">
-                {{ snap.label }}
-              </div>
-              <div class="snapshot-item__meta">
-                {{ formatChatTime(snap.createdAt) }} · {{ snap.messages.length }} {{ t('world.snapshotMessages') }}
-              </div>
-            </div>
-            <div class="snapshot-item__actions">
-              <button class="snapshot-btn snapshot-btn--restore" @click="handleRestoreSnapshot(snap.id)">
-                {{ t('world.restoreSnapshot') }}
+          <div class="snapshot-panel__controls">
+            <div class="snapshot-view-toggle">
+              <button
+                class="snapshot-view-btn"
+                :class="{ 'snapshot-view-btn--active': snapshotView === 'list' }"
+                @click="snapshotView = 'list'"
+              >
+                {{ t('world.snapshotListView') }}
               </button>
-              <button class="snapshot-btn snapshot-btn--delete" @click="handleDeleteSnapshot(snap.id)">
-                ✕
+              <button
+                class="snapshot-view-btn"
+                :class="{ 'snapshot-view-btn--active': snapshotView === 'tree' }"
+                @click="snapshotView = 'tree'"
+              >
+                {{ t('world.snapshotTreeView') }}
               </button>
             </div>
+            <button
+              class="snapshot-create-btn"
+              :disabled="allMessages.length === 0"
+              @click="handleCreateSnapshot"
+            >
+              + {{ t('world.createSnapshot') }}
+            </button>
           </div>
         </div>
+
+        <!-- Tree view -->
+        <SnapshotTree
+          v-if="snapshotView === 'tree'"
+          :snapshots="snapshotList"
+          :active-snapshot-id="groupChatStore.activeSnapshotId.get(roomId)"
+          @restore="handleRestoreSnapshot"
+          @delete="handleDeleteSnapshot"
+        />
+
+        <!-- List view (original) -->
+        <template v-else>
+          <div v-if="snapshotList.length === 0" class="snapshot-empty">
+            {{ t('world.noSnapshots') }}
+          </div>
+          <div v-else class="snapshot-list">
+            <div
+              v-for="snap in snapshotList"
+              :key="snap.id"
+              class="snapshot-item"
+            >
+              <div class="snapshot-item__info">
+                <div class="snapshot-item__label">
+                  {{ snap.label }}
+                </div>
+                <div class="snapshot-item__meta">
+                  {{ formatChatTime(snap.createdAt) }} · {{ snap.messages.length }} {{ t('world.snapshotMessages') }}
+                </div>
+              </div>
+              <div class="snapshot-item__actions">
+                <button class="snapshot-btn snapshot-btn--restore" @click="handleRestoreSnapshot(snap.id)">
+                  {{ t('world.restoreSnapshot') }}
+                </button>
+                <button class="snapshot-btn snapshot-btn--delete" @click="handleDeleteSnapshot(snap.id)">
+                  ✕
+                </button>
+              </div>
+            </div>
+          </div>
+        </template>
       </div>
     </template>
 
