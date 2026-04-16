@@ -170,6 +170,9 @@
     "errorUnexpected": "❌ **Unexpected Error**: {message}",
     "tapToRetry": "Tap to retry",
     "retrying": "Retrying…",
+    "feedbackTrend": "📊 Chat Quality",
+    "feedbackRate": "Approval Rate",
+    "feedbackTrendEmpty": "Need at least {count} rated AI replies to show trend",
     "loadEarlier": "Load earlier messages",
     "messagesHidden": "{count} earlier messages",
     "copyMessage": "Copy",
@@ -776,8 +779,12 @@
     "noIssues": "All checks passed — no issues found",
     "moreIssues": "more",
     "jumpToFix": "Jump to fix",
+    "fix": "Fix",
+    "fixAll": "Fix All",
     "dismiss": "Dismiss",
-    "dismissAll": "Dismiss All"
+    "dismissAll": "Dismiss All",
+    "fixedCount": "Fixed {count} issue(s)",
+    "fixFailed": "Fix failed, please check manually"
   },
   "contentEditor": {
     "formTab": "Form",

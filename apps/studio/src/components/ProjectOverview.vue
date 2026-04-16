@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import type { ValidationResult } from '../utils/projectValidation'
-import {
-  IonIcon,
-  IonSpinner,
-  toastController,
-} from '@ionic/vue'
+import type {
+  ValidationIssue,
+  ValidationResult,
+} from '../utils/projectValidation'
+import { IonIcon, IonSpinner, toastController } from '@ionic/vue'
 import {
   addOutline,
   bookOutline,
@@ -42,7 +41,7 @@ import { useProjectDescription } from '../composables/useProjectDescription'
 import { downloadBlob, exportProject } from '../composables/useProjectExport'
 import { useStudioStore } from '../stores/useStudioStore'
 import { useWorldEventStore } from '../stores/useWorldEventStore'
-import { validateProject } from '../utils/projectValidation'
+import { autoFixIssues, validateProject } from '../utils/projectValidation'
 import ProjectHealthPanel from './ProjectHealthPanel.vue'
 import ProjectSettingsModal from './ProjectSettingsModal.vue'
 import RecentActivity from './RecentActivity.vue'
@@ -78,7 +77,8 @@ const {
 } = useProjectDescription()
 
 const worldEventStore = useWorldEventStore()
-const { syncStatus, isSyncing, lastSyncTime, isCosConfigured, performSync } = useCloudSync()
+const { syncStatus, isSyncing, lastSyncTime, isCosConfigured, performSync }
+  = useCloudSync()
 
 const syncIcon = computed(() => {
   if (isSyncing.value)
@@ -102,9 +102,10 @@ async function handleSync() {
   }
   const { uploaded, downloaded } = await performSync()
   const toast = await toastController.create({
-    message: syncStatus.value === 'success'
-      ? `${t('sync.syncComplete')} ↑${uploaded} ↓${downloaded}`
-      : t('sync.syncFailed'),
+    message:
+      syncStatus.value === 'success'
+        ? `${t('sync.syncComplete')} ↑${uploaded} ↓${downloaded}`
+        : t('sync.syncFailed'),
     duration: 2000,
     position: 'top',
     color: syncStatus.value === 'success' ? 'success' : 'danger',
@@ -119,7 +120,9 @@ const isValidating = ref(false)
 const validationIcon = computed(() => {
   if (!validationResult.value)
     return shieldCheckmarkOutline
-  return validationResult.value.passed ? checkmarkCircleOutline : warningOutline
+  return validationResult.value.passed
+    ? checkmarkCircleOutline
+    : warningOutline
 })
 
 async function handleValidation() {
@@ -212,15 +215,49 @@ async function handleValidationSilent() {
   }
 }
 
+/** Auto-fix issues by modifying source files, then re-validate */
+async function handleAutoFix(issues: ValidationIssue[]) {
+  const fs = getFs()
+  if (!fs)
+    return
+  try {
+    const fixed = await autoFixIssues(issues, fs)
+    if (fixed.length > 0) {
+      const toast = await toastController.create({
+        message: t('projectHealth.fixedCount', { count: fixed.length }),
+        duration: 2000,
+        position: 'top',
+        color: 'success',
+      })
+      await toast.present()
+      // Re-validate after fix
+      await handleValidationSilent()
+    }
+  }
+  catch {
+    const toast = await toastController.create({
+      message: t('projectHealth.fixFailed'),
+      duration: 2000,
+      position: 'top',
+      color: 'danger',
+    })
+    await toast.present()
+  }
+}
+
 // --- Derived data for dashboard cards ---
 const projectName = computed(() => studioStore.currentProject?.name || '')
 
-const worldTitle = computed(() => extractTitle(worldMd.value) || t('dashboard.worldSetting'))
+const worldTitle = computed(
+  () => extractTitle(worldMd.value) || t('dashboard.worldSetting'),
+)
 const worldPreview = computed(() => extractPreview(worldMd.value))
 const worldSections = computed(() => extractSections(worldMd.value))
 const hasWorld = computed(() => worldMd.value.trim().length > 0)
 
-const outlineTitle = computed(() => extractTitle(outlineMd.value) || t('dashboard.storyOutline'))
+const outlineTitle = computed(
+  () => extractTitle(outlineMd.value) || t('dashboard.storyOutline'),
+)
 const outlinePreview = computed(() => extractPreview(outlineMd.value))
 const outlineSections = computed(() => extractSections(outlineMd.value))
 const hasOutline = computed(() => outlineMd.value.trim().length > 0)
@@ -229,14 +266,18 @@ const glossarySections = computed(() => extractSections(glossaryMd.value))
 
 const propsSections = computed(() => extractSections(propsMd.value))
 
-const styleTitle = computed(() => extractTitle(writingStyleMd.value) || t('dashboard.writingStyle'))
+const styleTitle = computed(
+  () => extractTitle(writingStyleMd.value) || t('dashboard.writingStyle'),
+)
 const styleSections = computed(() => extractSections(writingStyleMd.value))
 const hasStyle = computed(() => writingStyleMd.value.trim().length > 0)
 
 // View mode toggle: 'grid' | 'list'
 const viewMode = ref<'grid' | 'list'>('grid')
 
-const timelineEvents = computed(() => worldEventStore.events.slice(-3).reverse())
+const timelineEvents = computed(() =>
+  worldEventStore.events.slice(-3).reverse(),
+)
 const hasTimeline = computed(() => worldEventStore.events.length > 0)
 const knowledgeDomains = computed(() => knowledgeBase.domains.value)
 
@@ -445,7 +486,9 @@ async function handleExport() {
   isExporting.value = true
   try {
     const blob = await exportProject(fs, project.name || 'project')
-    const safeName = (project.name || 'project').toLowerCase().replace(SAFE_NAME_RE, '-')
+    const safeName = (project.name || 'project')
+      .toLowerCase()
+      .replace(SAFE_NAME_RE, '-')
     downloadBlob(blob, `${safeName}.advpkg.zip`)
     const toast = await toastController.create({
       message: t('project.exportSuccess'),
@@ -474,47 +517,96 @@ async function handleExport() {
   <div class="overview">
     <!-- Loading -->
     <div v-if="isLoading" class="overview__loading">
-      {{ t('preview.loadingGame') }}
+      {{ t("preview.loadingGame") }}
     </div>
 
     <!-- Project Toolbar: info + quick actions -->
-    <header v-if="projectName" class="overview__header" :class="{ 'overview__header--card': !!worldPreview }">
+    <header
+      v-if="projectName"
+      class="overview__header"
+      :class="{ 'overview__header--card': !!worldPreview }"
+    >
       <p v-if="worldPreview" class="overview__desc">
         {{ worldPreview }}
       </p>
       <span v-else class="overview__sync-hint">
         <IonIcon :icon="cloudOutline" class="overview__sync-icon" />
-        {{ lastSyncTime ? t('settings.lastSync', { time: lastSyncTime.toLocaleTimeString() }) : t('sync.notSynced') }}
+        {{
+          lastSyncTime
+            ? t("settings.lastSync", {
+              time: lastSyncTime.toLocaleTimeString(),
+            })
+            : t("sync.notSynced")
+        }}
       </span>
       <div class="overview__actions">
-        <button class="overview__icon-btn" :title="t('dashboard.share')" @click="handleShare">
+        <button
+          class="overview__icon-btn"
+          :title="t('dashboard.share')"
+          @click="handleShare"
+        >
           <IonIcon :icon="shareOutline" />
         </button>
         <button
           class="overview__icon-btn"
-          :class="{ 'overview__icon-btn--syncing': isSyncing, 'overview__icon-btn--success': syncStatus === 'success', 'overview__icon-btn--fail': syncStatus === 'failed' }"
-          :title="lastSyncTime ? t('settings.lastSync', { time: lastSyncTime.toLocaleTimeString() }) : t('me.cloudSync')"
+          :class="{
+            'overview__icon-btn--syncing': isSyncing,
+            'overview__icon-btn--success': syncStatus === 'success',
+            'overview__icon-btn--fail': syncStatus === 'failed',
+          }"
+          :title="
+            lastSyncTime
+              ? t('settings.lastSync', {
+                time: lastSyncTime.toLocaleTimeString(),
+              })
+              : t('me.cloudSync')
+          "
           :disabled="isSyncing"
           @click="handleSync"
         >
-          <IonSpinner v-if="isSyncing" name="crescent" style="width: 18px; height: 18px;" />
+          <IonSpinner
+            v-if="isSyncing"
+            name="crescent"
+            style="width: 18px; height: 18px"
+          />
           <IonIcon v-else :icon="syncIcon" />
         </button>
         <button
           class="overview__icon-btn"
-          :class="{ 'overview__icon-btn--success': validationResult?.passed, 'overview__icon-btn--fail': validationResult && !validationResult.passed }"
+          :class="{
+            'overview__icon-btn--success': validationResult?.passed,
+            'overview__icon-btn--fail':
+              validationResult && !validationResult.passed,
+          }"
           :title="t('validation.clickToCheck')"
           :disabled="isValidating"
           @click="handleValidation"
         >
-          <IonSpinner v-if="isValidating" name="crescent" style="width: 18px; height: 18px;" />
+          <IonSpinner
+            v-if="isValidating"
+            name="crescent"
+            style="width: 18px; height: 18px"
+          />
           <IonIcon v-else :icon="validationIcon" />
         </button>
-        <button class="overview__icon-btn" :title="t('project.export')" :disabled="isExporting" @click="handleExport">
-          <IonSpinner v-if="isExporting" name="crescent" style="width: 18px; height: 18px;" />
+        <button
+          class="overview__icon-btn"
+          :title="t('project.export')"
+          :disabled="isExporting"
+          @click="handleExport"
+        >
+          <IonSpinner
+            v-if="isExporting"
+            name="crescent"
+            style="width: 18px; height: 18px"
+          />
           <IonIcon v-else :icon="cloudDownloadOutline" />
         </button>
-        <button class="overview__icon-btn" :title="t('projectSettings.title')" @click="showSettings = true">
+        <button
+          class="overview__icon-btn"
+          :title="t('projectSettings.title')"
+          @click="showSettings = true"
+        >
           <IonIcon :icon="settingsOutline" />
         </button>
       </div>
@@ -524,20 +616,41 @@ async function handleExport() {
     <RecentActivity />
 
     <!-- ═══════════ Project Health Panel ═══════════ -->
-    <section v-if="validationResult && !validationResult.passed" class="health-section">
+    <section
+      v-if="validationResult && !validationResult.passed"
+      class="health-section"
+    >
       <div class="health-section__header">
-        <span class="health-section__title">{{ t('dashboard.projectHealth') }}</span>
-        <button class="overview__icon-btn" :title="t('validation.recheck')" :disabled="isValidating" @click="handleValidation">
-          <IonSpinner v-if="isValidating" name="crescent" style="width: 16px; height: 16px;" />
-          <span v-else style="font-size: 12px;">{{ t('validation.recheck') }}</span>
+        <span class="health-section__title">{{
+          t("dashboard.projectHealth")
+        }}</span>
+        <button
+          class="overview__icon-btn"
+          :title="t('validation.recheck')"
+          :disabled="isValidating"
+          @click="handleValidation"
+        >
+          <IonSpinner
+            v-if="isValidating"
+            name="crescent"
+            style="width: 16px; height: 16px"
+          />
+          <span v-else style="font-size: 12px">{{
+            t("validation.recheck")
+          }}</span>
         </button>
       </div>
-      <ProjectHealthPanel :result="validationResult" />
+      <ProjectHealthPanel
+        :result="validationResult"
+        @auto-fix="handleAutoFix"
+      />
     </section>
 
     <!-- ═══════════ Unified Resource Panel ═══════════ -->
     <div class="resources-header">
-      <span class="resources-header__title">{{ t('dashboard.content') || 'Content' }}</span>
+      <span class="resources-header__title">{{
+        t("dashboard.content") || "Content"
+      }}</span>
       <div class="resources-header__toggle">
         <button
           class="resources-header__btn"
@@ -571,17 +684,31 @@ async function handleExport() {
         <div class="res-card__head">
           <span class="res-card__icon"><IonIcon :icon="item.icon" /></span>
           <span class="res-card__title">{{ item.label }}</span>
-          <span v-if="Number(item.value) > 0" class="res-card__badge">{{ item.value }}</span>
+          <span v-if="Number(item.value) > 0" class="res-card__badge">{{
+            item.value
+          }}</span>
         </div>
         <p v-if="item.preview" class="res-card__preview">
           {{ item.preview }}
         </p>
         <div v-if="item.chips.length > 0" class="res-card__chips">
           <span v-for="c in item.chips" :key="c" class="chip">{{ c }}</span>
-          <span v-if="item.key === 'world' && worldSections.length > 4" class="chip chip--more">+{{ worldSections.length - 4 }}</span>
-          <span v-if="item.key === 'outline' && outlineSections.length > 4" class="chip chip--more">+{{ outlineSections.length - 4 }}</span>
-          <span v-if="item.key === 'locations' && locations.length > 4" class="chip chip--more">+{{ locations.length - 4 }}</span>
-          <span v-if="item.key === 'style' && styleSections.length > 4" class="chip chip--more">+{{ styleSections.length - 4 }}</span>
+          <span
+            v-if="item.key === 'world' && worldSections.length > 4"
+            class="chip chip--more"
+          >+{{ worldSections.length - 4 }}</span>
+          <span
+            v-if="item.key === 'outline' && outlineSections.length > 4"
+            class="chip chip--more"
+          >+{{ outlineSections.length - 4 }}</span>
+          <span
+            v-if="item.key === 'locations' && locations.length > 4"
+            class="chip chip--more"
+          >+{{ locations.length - 4 }}</span>
+          <span
+            v-if="item.key === 'style' && styleSections.length > 4"
+            class="chip chip--more"
+          >+{{ styleSections.length - 4 }}</span>
         </div>
         <span v-else-if="item.empty" class="res-card__empty-hint">
           <IonIcon :icon="addOutline" class="res-card__empty-icon" />
@@ -602,11 +729,20 @@ async function handleExport() {
         <span class="res-row__icon"><IonIcon :icon="item.icon" /></span>
         <div class="res-row__body">
           <span class="res-row__title">{{ item.label }}</span>
-          <span v-if="item.preview" class="res-row__meta">{{ item.preview }}</span>
-          <span v-else-if="item.chips.length > 0" class="res-row__meta">{{ item.chips.slice(0, 3).join(' · ') }}<template v-if="item.chips.length > 3"> · +{{ item.chips.length - 3 }}</template></span>
-          <span v-else-if="item.empty" class="res-row__meta res-row__meta--empty">{{ item.emptyHint }}</span>
+          <span v-if="item.preview" class="res-row__meta">{{
+            item.preview
+          }}</span>
+          <span v-else-if="item.chips.length > 0" class="res-row__meta">{{ item.chips.slice(0, 3).join(" · ")
+          }}<template v-if="item.chips.length > 3">
+            · +{{ item.chips.length - 3 }}</template></span>
+          <span
+            v-else-if="item.empty"
+            class="res-row__meta res-row__meta--empty"
+          >{{ item.emptyHint }}</span>
         </div>
-        <span v-if="Number(item.value) > 0" class="res-row__badge">{{ item.value }}</span>
+        <span v-if="Number(item.value) > 0" class="res-row__badge">{{
+          item.value
+        }}</span>
         <IonIcon :icon="chevronForwardOutline" class="res-row__arrow" />
       </button>
     </section>

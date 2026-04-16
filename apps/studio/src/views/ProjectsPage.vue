@@ -39,6 +39,7 @@ import { useStudioStore } from '../stores/useStudioStore'
 import { listCloudFiles, uploadProjectToCloud } from '../utils/cloudSync'
 import { restoreAndVerifyHandle } from '../utils/dirHandleStore'
 import { createFileSystem, detectAdvProject, openProjectDirectory } from '../utils/fs'
+import { BrowserFsAdapter } from '../utils/fs/BrowserFsAdapter'
 import { createProjectFromTemplate } from '../utils/projectTemplate'
 import { toSlug } from '../utils/slug'
 

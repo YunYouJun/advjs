@@ -273,7 +273,17 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
         },
         {
           text: 'Studio',
-          link: '/guide/studio',
+          link: '/guide/studio/',
+          items: [
+            {
+              text: '技术架构',
+              link: '/guide/studio/architecture',
+            },
+            {
+              text: '开发路线',
+              link: '/guide/studio/roadmap',
+            },
+          ],
         },
       ],
     },

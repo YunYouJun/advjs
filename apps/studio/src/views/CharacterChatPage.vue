@@ -1164,6 +1164,7 @@ async function handleDeleteDiary(diaryId: string) {
       :diaries="diaryEntries"
       :is-diary-generating="isDiaryGenerating"
       :memory="memory"
+      :messages="allMessages"
       @close="showInfoModal = false"
       @refresh-knowledge="reloadKnowledge"
       @generate-diary="handleGenerateDiary"

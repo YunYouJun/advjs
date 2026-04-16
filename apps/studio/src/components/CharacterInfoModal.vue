@@ -1,13 +1,23 @@
 <script setup lang="ts">
 import type { AdvCharacter, AdvCharacterDynamicState } from '@advjs/types'
 import type { KnowledgeEntry } from '../composables/useKnowledgeBase'
+import type { CharacterChatMessage } from '../stores/useCharacterChatStore'
 import type { CharacterDiaryEntry } from '../stores/useCharacterDiaryStore'
 import type { CharacterMemory } from '../stores/useCharacterMemoryStore'
-import { alertController, IonButton, IonContent, IonHeader, IonModal, IonTitle, IonToolbar } from '@ionic/vue'
+import {
+  alertController,
+  IonButton,
+  IonContent,
+  IonHeader,
+  IonModal,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/vue'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DiaryEntryContent from './DiaryEntryContent.vue'
 import EmotionalArcChart from './EmotionalArcChart.vue'
+import FeedbackTrendChart from './FeedbackTrendChart.vue'
 import KnowledgeManageModal from './KnowledgeManageModal.vue'
 
 defineProps<{
@@ -19,6 +29,7 @@ defineProps<{
   diaries?: CharacterDiaryEntry[]
   isDiaryGenerating?: boolean
   memory?: CharacterMemory
+  messages?: CharacterChatMessage[]
 }>()
 
 const emit = defineEmits<{
@@ -60,7 +71,12 @@ function affinityClass(affinity: number): string {
 </script>
 
 <template>
-  <IonModal :is-open="isOpen" :initial-breakpoint="0.75" :breakpoints="[0, 0.5, 0.75, 1]" @did-dismiss="emit('close')">
+  <IonModal
+    :is-open="isOpen"
+    :initial-breakpoint="0.75"
+    :breakpoints="[0, 0.5, 0.75, 1]"
+    @did-dismiss="emit('close')"
+  >
     <IonHeader>
       <IonToolbar>
         <IonTitle>{{ character.name }}</IonTitle>
@@ -70,7 +86,7 @@ function affinityClass(affinity: number): string {
       <div class="ci-sections">
         <section v-if="character.appearance" class="ci-section">
           <h4 class="ci-section__title">
-            {{ t('contentEditor.appearance') }}
+            {{ t("contentEditor.appearance") }}
           </h4>
           <p class="ci-section__content">
             {{ character.appearance }}
@@ -79,7 +95,7 @@ function affinityClass(affinity: number): string {
 
         <section v-if="character.personality" class="ci-section">
           <h4 class="ci-section__title">
-            {{ t('contentEditor.personality') }}
+            {{ t("contentEditor.personality") }}
           </h4>
           <p class="ci-section__content">
             {{ character.personality }}
@@ -88,7 +104,7 @@ function affinityClass(affinity: number): string {
 
         <section v-if="character.background" class="ci-section">
           <h4 class="ci-section__title">
-            {{ t('contentEditor.background') }}
+            {{ t("contentEditor.background") }}
           </h4>
           <p class="ci-section__content">
             {{ character.background }}
@@ -97,7 +113,7 @@ function affinityClass(affinity: number): string {
 
         <section v-if="character.concept" class="ci-section">
           <h4 class="ci-section__title">
-            {{ t('contentEditor.concept') }}
+            {{ t("contentEditor.concept") }}
           </h4>
           <p class="ci-section__content">
             {{ character.concept }}
@@ -106,7 +122,7 @@ function affinityClass(affinity: number): string {
 
         <section v-if="character.speechStyle" class="ci-section">
           <h4 class="ci-section__title">
-            {{ t('contentEditor.speechStyle') }}
+            {{ t("contentEditor.speechStyle") }}
           </h4>
           <p class="ci-section__content">
             {{ character.speechStyle }}
@@ -115,7 +131,7 @@ function affinityClass(affinity: number): string {
 
         <section v-if="character.knowledgeDomain" class="ci-section">
           <h4 class="ci-section__title">
-            {{ t('world.knowledgeDomain') }}
+            {{ t("world.knowledgeDomain") }}
           </h4>
           <p class="ci-section__content">
             {{ character.knowledgeDomain }}
@@ -127,39 +143,58 @@ function affinityClass(affinity: number): string {
             class="ci-knowledge-btn"
             @click="showKnowledgeModal = true"
           >
-            {{ t('world.knowledgeBase') }}
+            {{ t("world.knowledgeBase") }}
           </IonButton>
         </section>
 
         <section v-if="character.faction" class="ci-section">
           <h4 class="ci-section__title">
-            {{ t('contentEditor.faction') }}
+            {{ t("contentEditor.faction") }}
           </h4>
           <p class="ci-section__content">
             {{ character.faction }}
           </p>
         </section>
 
-        <section v-if="dynamicState && (dynamicState.location || dynamicState.health || dynamicState.activity || dynamicState.attributes)" class="ci-section">
+        <section
+          v-if="
+            dynamicState
+              && (dynamicState.location
+                || dynamicState.health
+                || dynamicState.activity
+                || dynamicState.attributes)
+          "
+          class="ci-section"
+        >
           <h4 class="ci-section__title">
-            {{ t('world.currentState') }}
+            {{ t("world.currentState") }}
           </h4>
           <div class="ci-state">
             <div v-if="dynamicState.location" class="ci-state__item">
-              <span class="ci-state__label">{{ t('world.location') }}</span>
+              <span class="ci-state__label">{{ t("world.location") }}</span>
               <span class="ci-state__value">📍 {{ dynamicState.location }}</span>
             </div>
             <div v-if="dynamicState.health" class="ci-state__item">
-              <span class="ci-state__label">{{ t('world.health') }}</span>
+              <span class="ci-state__label">{{ t("world.health") }}</span>
               <span class="ci-state__value">{{ dynamicState.health }}</span>
             </div>
             <div v-if="dynamicState.activity" class="ci-state__item">
-              <span class="ci-state__label">{{ t('world.activity') }}</span>
+              <span class="ci-state__label">{{ t("world.activity") }}</span>
               <span class="ci-state__value">{{ dynamicState.activity }}</span>
             </div>
-            <div v-if="dynamicState.attributes && Object.keys(dynamicState.attributes).length > 0" class="ci-state__attrs">
-              <span class="ci-state__label">{{ t('world.attributes') }}</span>
-              <div v-for="(value, key) in dynamicState.attributes" :key="key" class="ci-state__attr">
+            <div
+              v-if="
+                dynamicState.attributes
+                  && Object.keys(dynamicState.attributes).length > 0
+              "
+              class="ci-state__attrs"
+            >
+              <span class="ci-state__label">{{ t("world.attributes") }}</span>
+              <div
+                v-for="(value, key) in dynamicState.attributes"
+                :key="key"
+                class="ci-state__attr"
+              >
                 <span class="ci-state__attr-key">{{ key }}</span>
                 <span class="ci-state__attr-value">{{ value }}</span>
               </div>
@@ -170,25 +205,31 @@ function affinityClass(affinity: number): string {
         <!-- Emotional Memory Section -->
         <section v-if="memory?.emotionalState" class="ci-section">
           <h4 class="ci-section__title">
-            {{ t('world.emotionalState') }}
+            {{ t("world.emotionalState") }}
           </h4>
           <div class="ci-bar-row">
-            <span class="ci-bar-label">{{ t('world.affinity') }}</span>
+            <span class="ci-bar-label">{{ t("world.affinity") }}</span>
             <div class="ci-bar">
               <div
                 class="ci-bar__fill"
                 :class="affinityClass(memory.emotionalState.affinity)"
-                :style="{ width: `${(memory.emotionalState.affinity + 100) / 2}%` }"
+                :style="{
+                  width: `${(memory.emotionalState.affinity + 100) / 2}%`,
+                }"
               />
             </div>
-            <span class="ci-bar-value">{{ memory.emotionalState.affinity }}</span>
+            <span class="ci-bar-value">{{
+              memory.emotionalState.affinity
+            }}</span>
           </div>
           <div class="ci-bar-row">
-            <span class="ci-bar-label">{{ t('world.trust') }}</span>
+            <span class="ci-bar-label">{{ t("world.trust") }}</span>
             <div class="ci-bar">
               <div
                 class="ci-bar__fill ci-bar__fill--trust"
-                :style="{ width: `${Math.min(100, Math.max(0, memory.emotionalState.trust))}%` }"
+                :style="{
+                  width: `${Math.min(100, Math.max(0, memory.emotionalState.trust))}%`,
+                }"
               />
             </div>
             <span class="ci-bar-value">{{ memory.emotionalState.trust }}</span>
@@ -198,18 +239,26 @@ function affinityClass(affinity: number): string {
           </div>
           <div v-if="memory?.userProfile?.length" class="ci-profile-list">
             <h5 class="ci-sub-title">
-              {{ t('world.userProfile') }}
+              {{ t("world.userProfile") }}
             </h5>
-            <div v-for="p in memory.userProfile.slice(-5)" :key="p.key" class="ci-profile-item">
+            <div
+              v-for="p in memory.userProfile.slice(-5)"
+              :key="p.key"
+              class="ci-profile-item"
+            >
               <span class="ci-profile-key">{{ p.key }}</span>
               <span class="ci-profile-value">{{ p.value }}</span>
             </div>
           </div>
           <div v-if="memory.keyEvents.length" class="ci-key-events">
             <h5 class="ci-sub-title">
-              {{ t('world.keyEvents') }}
+              {{ t("world.keyEvents") }}
             </h5>
-            <div v-for="ev in memory.keyEvents.slice(-3)" :key="ev.timestamp" class="ci-key-event">
+            <div
+              v-for="ev in memory.keyEvents.slice(-3)"
+              :key="ev.timestamp"
+              class="ci-key-event"
+            >
               {{ ev.summary }}
             </div>
           </div>
@@ -218,28 +267,42 @@ function affinityClass(affinity: number): string {
         <!-- Emotional Arc Chart -->
         <section v-if="memory?.emotionalHistory?.length" class="ci-section">
           <h4 class="ci-section__title">
-            {{ t('world.emotionalArc') }}
+            {{ t("world.emotionalArc") }}
           </h4>
           <EmotionalArcChart :history="memory.emotionalHistory" />
         </section>
 
+        <!-- Feedback Trend Chart -->
+        <section v-if="messages?.length" class="ci-section">
+          <h4 class="ci-section__title">
+            {{ t("chat.feedbackTrend") }}
+          </h4>
+          <FeedbackTrendChart :messages="messages" />
+        </section>
+
         <section v-if="character.relationships?.length" class="ci-section">
           <h4 class="ci-section__title">
-            {{ t('contentEditor.relationships') }}
+            {{ t("contentEditor.relationships") }}
           </h4>
-          <div v-for="rel in character.relationships" :key="rel.targetId" class="ci-rel">
+          <div
+            v-for="rel in character.relationships"
+            :key="rel.targetId"
+            class="ci-rel"
+          >
             <span class="ci-rel__target">{{ rel.targetId }}</span>
             <span class="ci-rel__type">{{ rel.type }}</span>
-            <span v-if="rel.description" class="ci-rel__desc">{{ rel.description }}</span>
+            <span v-if="rel.description" class="ci-rel__desc">{{
+              rel.description
+            }}</span>
           </div>
         </section>
 
         <section v-if="character.tags?.length" class="ci-section">
           <h4 class="ci-section__title">
-            {{ t('contentEditor.tags') }}
+            {{ t("contentEditor.tags") }}
           </h4>
           <p class="ci-section__content">
-            {{ character.tags.join(', ') }}
+            {{ character.tags.join(", ") }}
           </p>
         </section>
 
@@ -247,7 +310,7 @@ function affinityClass(affinity: number): string {
         <section class="ci-section">
           <div class="ci-diary-header">
             <h4 class="ci-section__title">
-              📓 {{ t('world.diary') }}
+              📓 {{ t("world.diary") }}
             </h4>
             <IonButton
               fill="outline"
@@ -256,7 +319,11 @@ function affinityClass(affinity: number): string {
               :disabled="isDiaryGenerating"
               @click="emit('generateDiary')"
             >
-              {{ isDiaryGenerating ? t('world.diaryGenerating') : t('world.diaryGenerate') }}
+              {{
+                isDiaryGenerating
+                  ? t("world.diaryGenerating")
+                  : t("world.diaryGenerate")
+              }}
             </IonButton>
           </div>
           <div v-if="diaries && diaries.length > 0" class="ci-diary-list">
@@ -267,8 +334,13 @@ function affinityClass(affinity: number): string {
             >
               <div class="ci-diary-meta">
                 <span class="ci-diary-date">{{ entry.date }} {{ entry.period }}</span>
-                <span v-if="entry.mood" class="ci-diary-mood">{{ entry.mood }}</span>
-                <button class="ci-diary-delete" @click="confirmDeleteDiary(entry.id)">
+                <span v-if="entry.mood" class="ci-diary-mood">{{
+                  entry.mood
+                }}</span>
+                <button
+                  class="ci-diary-delete"
+                  @click="confirmDeleteDiary(entry.id)"
+                >
                   ×
                 </button>
               </div>
@@ -278,7 +350,7 @@ function affinityClass(affinity: number): string {
             </div>
           </div>
           <p v-else class="ci-section__content">
-            {{ t('world.diaryEmpty') }}
+            {{ t("world.diaryEmpty") }}
           </p>
         </section>
       </div>

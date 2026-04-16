@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import type { ValidationIssue, ValidationResult } from '../utils/projectValidation'
+import type {
+  ValidationIssue,
+  ValidationResult,
+} from '../utils/projectValidation'
 import { IonIcon } from '@ionic/vue'
 import {
   alertCircleOutline,
@@ -17,15 +20,14 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  /** Emitted after one or more issues are auto-fixed; parent should re-validate */
-  (e: 'fixed', dismissed: ValidationIssue[]): void
+  /** Emitted when user requests auto-fix for issues; parent should call autoFixIssues */
+  (e: 'autoFix', issues: ValidationIssue[]): void
 }>()
 
 const { t } = useI18n()
 const router = useRouter()
 
-/** Issues that have been dismissed / fixed in this session */
-const dismissedKeys = ref(new Set<string>())
+/** Issues currently being auto-fixed in this session */
 const fixingKeys = ref(new Set<string>())
 
 function issueKey(issue: ValidationIssue): string {
@@ -35,8 +37,6 @@ function issueKey(issue: ValidationIssue): string {
 const groupedIssues = computed(() => {
   const groups = new Map<string, ValidationIssue[]>()
   for (const issue of props.result.issues) {
-    if (dismissedKeys.value.has(issueKey(issue)))
-      continue
     const list = groups.get(issue.category) || []
     list.push(issue)
     groups.set(issue.category, list)
@@ -50,8 +50,10 @@ const groupedIssues = computed(() => {
  * categories — these are typically broken cross-references that can be safely ignored.
  */
 function isFixable(issue: ValidationIssue): boolean {
-  return issue.type === 'warning'
+  return (
+    issue.type === 'warning'
     && ['character', 'scene', 'audio', 'location'].includes(issue.category)
+  )
 }
 
 const categoryLabels: Record<string, string> = {
@@ -91,44 +93,38 @@ function jumpToIssue(issue: ValidationIssue) {
 }
 
 /**
- * Dismiss a single warning issue (mark as acknowledged).
+ * Fix a single warning issue by requesting parent to modify source files.
  */
-function dismissIssue(issue: ValidationIssue) {
+function fixIssue(issue: ValidationIssue) {
   const key = issueKey(issue)
   fixingKeys.value.add(key)
-  // Brief animation delay then dismiss
+  emit('autoFix', [issue])
   setTimeout(() => {
     fixingKeys.value.delete(key)
-    dismissedKeys.value.add(key)
-    emit('fixed', [issue])
-  }, 300)
+  }, 500)
 }
 
 /**
- * Dismiss all fixable (warning) issues in a category at once.
+ * Fix all fixable (warning) issues in a category at once.
  */
-function dismissCategory(category: string) {
+function fixCategory(category: string) {
   const issues = props.result.issues.filter(
-    i => i.category === category && isFixable(i) && !dismissedKeys.value.has(issueKey(i)),
+    i =>
+      i.category === category
+      && isFixable(i),
   )
-  const fixed: ValidationIssue[] = []
   for (const issue of issues) {
-    const key = issueKey(issue)
-    fixingKeys.value.add(key)
-    fixed.push(issue)
+    fixingKeys.value.add(issueKey(issue))
   }
+  emit('autoFix', issues)
   setTimeout(() => {
-    for (const issue of fixed) {
-      const key = issueKey(issue)
-      fixingKeys.value.delete(key)
-      dismissedKeys.value.add(key)
-    }
-    emit('fixed', fixed)
-  }, 300)
+    for (const issue of issues)
+      fixingKeys.value.delete(issueKey(issue))
+  }, 500)
 }
 
 function hasCategoryFixable(issues: ValidationIssue[]): boolean {
-  return issues.some(i => isFixable(i) && !dismissedKeys.value.has(issueKey(i)))
+  return issues.some(i => isFixable(i))
 }
 </script>
 
@@ -136,8 +132,11 @@ function hasCategoryFixable(issues: ValidationIssue[]): boolean {
   <div class="health-panel">
     <!-- Passed state -->
     <div v-if="result.passed" class="health-panel__passed">
-      <IonIcon :icon="checkmarkCircleOutline" class="health-panel__passed-icon" />
-      <span>{{ t('projectHealth.noIssues') }}</span>
+      <IonIcon
+        :icon="checkmarkCircleOutline"
+        class="health-panel__passed-icon"
+      />
+      <span>{{ t("projectHealth.noIssues") }}</span>
     </div>
 
     <!-- Issues grouped by category -->
@@ -148,17 +147,27 @@ function hasCategoryFixable(issues: ValidationIssue[]): boolean {
         class="health-group"
       >
         <div class="health-group__header">
-          <IonIcon :icon="categoryIcons[category] || warningOutline" class="health-group__icon" :class="{ 'health-group__icon--error': issues.some(i => i.type === 'error') }" />
-          <span class="health-group__label">{{ categoryLabels[category] || category }}</span>
+          <IonIcon
+            :icon="categoryIcons[category] || warningOutline"
+            class="health-group__icon"
+            :class="{
+              'health-group__icon--error': issues.some(
+                (i) => i.type === 'error',
+              ),
+            }"
+          />
+          <span class="health-group__label">{{
+            categoryLabels[category] || category
+          }}</span>
           <span class="health-group__badge">{{ issues.length }}</span>
           <button
             v-if="hasCategoryFixable(issues)"
             class="health-group__fix-all"
-            :title="t('projectHealth.dismissAll')"
-            @click.stop="dismissCategory(category)"
+            :title="t('projectHealth.fixAll')"
+            @click.stop="fixCategory(category)"
           >
             <IonIcon :icon="buildOutline" />
-            <span>{{ t('projectHealth.dismissAll') }}</span>
+            <span>{{ t("projectHealth.fixAll") }}</span>
           </button>
         </div>
         <button
@@ -178,15 +187,19 @@ function hasCategoryFixable(issues: ValidationIssue[]): boolean {
           <button
             v-if="isFixable(issue)"
             class="health-issue__dismiss"
-            :title="t('projectHealth.dismiss')"
-            @click.stop="dismissIssue(issue)"
+            :title="t('projectHealth.fix')"
+            @click.stop="fixIssue(issue)"
           >
             <IonIcon :icon="checkmarkCircleOutline" />
           </button>
-          <IonIcon v-else :icon="chevronForwardOutline" class="health-issue__arrow" />
+          <IonIcon
+            v-else
+            :icon="chevronForwardOutline"
+            class="health-issue__arrow"
+          />
         </button>
         <span v-if="issues.length > 5" class="health-group__more">
-          +{{ issues.length - 5 }} {{ t('projectHealth.moreIssues') }}
+          +{{ issues.length - 5 }} {{ t("projectHealth.moreIssues") }}
         </span>
       </div>
     </template>

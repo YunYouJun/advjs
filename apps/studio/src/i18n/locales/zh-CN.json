@@ -170,6 +170,9 @@
     "errorUnexpected": "❌ **意外错误**：{message}",
     "tapToRetry": "点击重试",
     "retrying": "重试中…",
+    "feedbackTrend": "📊 对话质量",
+    "feedbackRate": "好评率",
+    "feedbackTrendEmpty": "需要至少 {count} 条有评价的 AI 回复才能生成趋势图",
     "loadEarlier": "加载更早的消息",
     "messagesHidden": "还有 {count} 条更早的消息",
     "copyMessage": "复制",
@@ -776,8 +779,12 @@
     "noIssues": "全部检查通过，没有发现问题",
     "moreIssues": "更多",
     "jumpToFix": "跳转修复",
+    "fix": "修复",
+    "fixAll": "一键修复",
     "dismiss": "忽略",
-    "dismissAll": "全部忽略"
+    "dismissAll": "全部忽略",
+    "fixedCount": "已修复 {count} 个问题",
+    "fixFailed": "修复失败，请手动检查"
   },
   "contentEditor": {
     "formTab": "表单",

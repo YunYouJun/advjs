@@ -419,8 +419,8 @@ catalogs:
       specifier: ^1.4.1
       version: 1.4.1
     modern-screenshot:
-      specifier: ^4.6.8
-      version: 4.6.8
+      specifier: ^4.7.0
+      version: 4.7.0
     monaco-editor:
       specifier: ^0.55.1
       version: 0.55.1
@@ -830,7 +830,7 @@ importers:
         version: 14.1.1
       modern-screenshot:
         specifier: catalog:frontend
-        version: 4.6.8
+        version: 4.7.0
       monaco-editor:
         specifier: catalog:frontend
         version: 0.55.1
@@ -10779,8 +10779,8 @@ packages:
   mocked-exports@0.1.1:
     resolution: {integrity: sha512-aF7yRQr/Q0O2/4pIXm6PZ5G+jAd7QS4Yu8m+WEeEHGnbo+7mE36CbLSDQiXYV8bVL3NfmdeqPJct0tUlnjVSnA==}
 
-  modern-screenshot@4.6.8:
-    resolution: {integrity: sha512-GJkv/yWPOJTlxj1LZDU2k474cDyOWL+LVaqTdDWQwQ5d8zIuTz1892+1cV9V0ZpK6HYZFo/+BNLBbierO9d2TA==}
+  modern-screenshot@4.7.0:
+    resolution: {integrity: sha512-9YxN+ddPSMMlhylOv25VHzXrl9u67QRxoh7+SEewGtgUw7t6hHTrjptSDJUSne9oG4Xk/h2cwG15nIt4Hc9ujg==}
 
   module-replacements@2.11.0:
     resolution: {integrity: sha512-j5sNQm3VCpQQ7nTqGeOZtoJtV3uKERgCBm9QRhmGRiXiqkf7iRFOkfxdJRZWLkqYY8PNf4cDQF/WfXUYLENrRA==}
@@ -23728,7 +23728,7 @@ snapshots:
 
   mocked-exports@0.1.1: {}
 
-  modern-screenshot@4.6.8: {}
+  modern-screenshot@4.7.0: {}
 
   module-replacements@2.11.0: {}
 

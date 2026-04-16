@@ -29,12 +29,12 @@
   --agui-c-text-light-2: rgba(60, 60, 60, 0.7);
   --agui-c-text-light-3: rgba(60, 60, 60, 0.33);
   --agui-c-text-light-4: rgba(60, 60, 60, 0.18);
-  --agui-c-text-light-code: var(-agui-c-indigo-soft);
+  --agui-c-text-light-code: var(--agui-c-indigo-soft);
   --agui-c-text-dark-1: rgba(255, 255, 255, 0.8);
   --agui-c-text-dark-2: rgba(235, 235, 235, 0.6);
   --agui-c-text-dark-3: rgba(235, 235, 235, 0.38);
   --agui-c-text-dark-4: rgba(235, 235, 235, 0.18);
-  --agui-c-text-dark-code: var(-agui-c-indigo-light);
+  --agui-c-text-dark-code: var(--agui-c-indigo-light);
   --agui-c-blue: #3b8eed;
   --agui-c-blue-light: #549ced;
   --agui-c-blue-lighter: #50a2ff;
