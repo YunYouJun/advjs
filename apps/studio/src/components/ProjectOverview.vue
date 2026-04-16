@@ -617,7 +617,7 @@ async function handleExport() {
 
     <!-- ═══════════ Project Health Panel ═══════════ -->
     <section
-      v-if="validationResult && !validationResult.passed"
+      v-if="validationResult && validationResult.issues.length > 0"
       class="health-section"
     >
       <div class="health-section__header">

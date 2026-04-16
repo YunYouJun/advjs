@@ -6,6 +6,8 @@ import {
   IonFab,
   IonFabButton,
   IonIcon,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
   IonItemOption,
   IonItemOptions,
   IonItemSliding,
@@ -29,6 +31,7 @@ import LocationGraph from '../../components/LocationGraph.vue'
 import { useContentDelete } from '../../composables/useContentDelete'
 import { useContentEditor } from '../../composables/useContentEditor'
 import { useContentSave } from '../../composables/useContentSave'
+import { useIncrementalList } from '../../composables/useIncrementalList'
 import { useProjectContent } from '../../composables/useProjectContent'
 import { useRecentActivity } from '../../composables/useRecentActivity'
 import { useAiSettingsStore } from '../../stores/useAiSettingsStore'
@@ -59,6 +62,8 @@ const filteredLocations = computed<LocationInfo[]>(() => {
     || l.tags?.some(tag => tag.toLowerCase().includes(q)),
   )
 })
+
+const { visibleItems: visibleLocations, hasMore: hasMoreLocations, loadMore: loadMoreLocations } = useIncrementalList(filteredLocations, 30)
 
 // --- Location editor ---
 const locationEditor = useContentEditor<LocationFormData>('location', () => ({
@@ -182,7 +187,7 @@ async function handleDeleteLocation(location: LocationFormData) {
 
     <!-- Location grid -->
     <div v-if="filteredLocations.length > 0" class="card-grid">
-      <IonItemSliding v-for="location in filteredLocations" :key="location.file">
+      <IonItemSliding v-for="location in visibleLocations" :key="location.file">
         <LocationCard
           :location="location"
           @click="handleViewLocation(location)"
@@ -194,6 +199,10 @@ async function handleDeleteLocation(location: LocationFormData) {
         </IonItemOptions>
       </IonItemSliding>
     </div>
+
+    <IonInfiniteScroll v-if="hasMoreLocations" @ion-infinite="(e: CustomEvent) => { loadMoreLocations(); (e.target as HTMLIonInfiniteScrollElement).complete() }">
+      <IonInfiniteScrollContent />
+    </IonInfiniteScroll>
 
     <!-- Empty state -->
     <div v-else-if="searchQuery" class="empty-state">

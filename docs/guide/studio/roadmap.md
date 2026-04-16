@@ -57,7 +57,17 @@
 
 ---
 
-### Phase N1：对话体验闭环 🔴 {#phase-n1}
+### Phase N0：基础设施加固 ✅ {#phase-n0}
+
+- [x] **全局错误边界** — `ErrorBoundary.vue` + `app.config.errorHandler` + `unhandledrejection` 监听，白屏时展示友好 fallback UI（重试/返回首页）
+- [x] **离线状态感知** — 基于 `@vueuse/core` `useOnline()` 的 `OfflineBanner` 组件，离线时顶部显示提示横幅
+- [x] **编辑器 Undo/Redo** — `useUndoHistory` composable（基于 `useDebouncedRefHistory`，debounce 500ms，50 步容量），EditorPage 工具栏 + ⌘Z/⌘⇧Z 快捷键
+- [x] **首次使用引导** — `OnboardingOverlay` 5 步 tooltip tour（QuickStart → World → Chat → Play → Me），localStorage 记录完成状态
+- [x] **Marketplace 标记** — 页面顶部 Coming Soon 横幅 + ProjectsPage 入口卡片角标
+
+---
+
+### Phase N1：对话体验闭环 ✅ {#phase-n1}
 
 对话是 Studio 最高频的交互，是产品核心价值的直接载体。
 
@@ -65,7 +75,7 @@
 - [x] **流式输出恢复提示** — `RetryButton` 组件 + `handleStreamError` 自动附加错误信息，重试失败后显示错误类型 + 重试按钮
 - [x] **输入体验优化** — `autoGrow` + Shift+Enter 换行 + Enter 发送 + `scrollToBottomOnFocus` 键盘弹起自动滚动
 - [x] **对话预热与懒加载** — `switchProject` 时 `chatStore.init(pid)` 已批量加载全部对话到内存，WorldPage 预取 Store 实例确保数据就绪
-- [ ] **对话质量反馈闭环** — 👍/👎 数据可视化：角色详情页新增近 30 轮好评率折线图
+- [x] **对话质量反馈闭环** — `FeedbackTrendChart.vue` SVG 折线图（滑动窗口好评率）+ `MessageActions.vue` 👍/👎 反馈按钮，数据持久化到 IndexedDB
 
 ---
 
@@ -75,25 +85,25 @@
 
 - [x] **一键体验模式** — `QuickStartButton` 自动创建 MemoryFs 项目 + 预置模板，跳转 World 页开始对话
 - [x] **最近对话快捷入口** — `RecentCharacterPopover` 已集成到 WorldPage，弹出最近对话角色
-- [ ] **项目封面与简介** — `cover` + `description` 字段，项目卡片展示封面缩略图
-- [ ] **项目健康自动修复** — 简单问题提供「一键修复」按钮
+- [x] **项目封面与简介** — `cover` + `description` 字段，ProjectSettingsModal 封面上传/移除 + 简介编辑，项目卡片展示封面缩略图
+- [x] **项目健康自动修复** — `ProjectHealthPanel.vue`（按类别分组 + 单个/批量修复按钮）+ `autoFixIssues()` 自动移除断链引用，集成到 `ProjectOverview` 自动验证
 
 ---
 
 ### Phase N3：性能与包体积 🟡 {#phase-n3}
 
 - [x] **首屏骨架屏** — `WorldSkeleton` / `ChatSkeleton` / `AppSkeleton` 已实现，Tab 切换渲染骨架屏
-- [ ] **Monaco 按需加载** — 仅加载 markdown/yaml/json/typescript 四种语言包（预计减少 ~800KB）
-- [ ] **Ionic 组件审计** — tree-shaking 检查，必要时改为显式导入
-- [ ] **虚拟滚动扩展** — 角色列表 + 时间线接入 `@tanstack/vue-virtual`
-- [ ] **IndexedDB 批量事务** — 高频路径改用 `db.transaction()` 批量读写
+- [x] **Monaco 按需加载** — `monacoSetup.ts` 动态 `import('monaco-editor')` 单例缓存，仅加载 json/ts/css/html/editor 五类 worker（节省 ~7MB）
+- [x] **Ionic 组件审计** — 全部使用 `import { IonButton, ... } from '@ionic/vue'` 显式按需导入，无全局注册
+- [ ] **虚拟滚动扩展** — 角色列表 + 时间线接入 `@tanstack/vue-virtual`（聊天页已覆盖）
+- [x] **IndexedDB 批量事务** — 所有 store 的 flush/load 已使用 `bulkPut` / `bulkDelete` / `db.transaction()` 批量操作
 
 ---
 
 ### Phase N4：平台扩展与文件系统 🟢 {#phase-n4}
 
 - [x] **IFileSystem 抽象层** — Browser/Capacitor/Memory 三适配器，消费者全量迁移完成
-- [ ] **MemoryFs 持久化验证** — E2E 测试：创建项目 → 编辑 → 刷新 → 数据完整恢复
+- [x] **MemoryFs 持久化验证** — Playwright E2E 测试：QuickStart 创建 → IndexedDB 数据写入 → 刷新 → 自动恢复验证
 - [ ] **Capacitor 首次构建** — 初始化 iOS/Android 工程，模拟器首次启动
 
 ---

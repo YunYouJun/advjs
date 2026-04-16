@@ -67,6 +67,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': `${import.meta.dirname}/src`,
+      '@advjs/types': `${import.meta.dirname}/../../packages/types/src/index.ts`,
+      '@advjs/parser': `${import.meta.dirname}/../../packages/parser/src/index.ts`,
     },
   },
   test: {

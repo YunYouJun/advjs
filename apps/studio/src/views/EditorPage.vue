@@ -6,7 +6,7 @@ import {
   IonNote,
   toastController,
 } from '@ionic/vue'
-import { createOutline, sparklesOutline } from 'ionicons/icons'
+import { arrowRedoOutline, arrowUndoOutline, createOutline, sparklesOutline } from 'ionicons/icons'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
@@ -14,6 +14,7 @@ import AiGeneratePanel from '../components/AiGeneratePanel.vue'
 import LayoutPage from '../components/common/LayoutPage.vue'
 import { useCloudSync } from '../composables/useCloudSync'
 import { useProjectContent } from '../composables/useProjectContent'
+import { useUndoHistory } from '../composables/useUndoHistory'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { downloadFromCloud } from '../utils/cloudSync'
@@ -29,6 +30,29 @@ const content = ref('')
 const isSaving = ref(false)
 const initialContent = ref('')
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
+
+const { undo, redo, canUndo, canRedo } = useUndoHistory(content)
+
+function handleKeydown(e: KeyboardEvent) {
+  const mod = e.metaKey || e.ctrlKey
+  if (mod && e.key === 'z' && !e.shiftKey) {
+    e.preventDefault()
+    if (canUndo.value)
+      undo()
+  }
+  else if (mod && e.key === 'z' && e.shiftKey) {
+    e.preventDefault()
+    if (canRedo.value)
+      redo()
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown)
+})
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
+})
 
 /** Insert text at cursor position in textarea */
 function insertAtCursor(text: string) {
@@ -350,6 +374,23 @@ async function save() {
       <!-- Quick-insert toolbar -->
       <div class="editor-toolbar">
         <button
+          class="editor-toolbar__btn"
+          :title="t('editor.undo')"
+          :disabled="!canUndo"
+          @click="undo()"
+        >
+          <IonIcon :icon="arrowUndoOutline" />
+        </button>
+        <button
+          class="editor-toolbar__btn"
+          :title="t('editor.redo')"
+          :disabled="!canRedo"
+          @click="redo()"
+        >
+          <IonIcon :icon="arrowRedoOutline" />
+        </button>
+        <span class="editor-toolbar__divider" />
+        <button
           v-for="item in toolbarItems"
           :key="item.label"
           class="editor-toolbar__btn"
@@ -421,6 +462,24 @@ async function save() {
 
 .editor-toolbar__btn:active {
   transform: scale(0.95);
+}
+
+.editor-toolbar__btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+  pointer-events: none;
+}
+
+.editor-toolbar__btn ion-icon {
+  font-size: 16px;
+}
+
+.editor-toolbar__divider {
+  width: 1px;
+  height: 20px;
+  background: var(--adv-border-subtle);
+  flex-shrink: 0;
+  margin: 0 2px;
 }
 
 .editor-textarea {

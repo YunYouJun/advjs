@@ -5,6 +5,8 @@ import {
   actionSheetController,
   IonButton,
   IonIcon,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
   IonNote,
   IonRefresher,
   IonRefresherContent,
@@ -25,6 +27,7 @@ import ContentEditorModal from '../../components/ContentEditorModal.vue'
 import { useContentDelete } from '../../composables/useContentDelete'
 import { useContentEditor } from '../../composables/useContentEditor'
 import { useContentSave } from '../../composables/useContentSave'
+import { useIncrementalList } from '../../composables/useIncrementalList'
 import { useProjectContent } from '../../composables/useProjectContent'
 import { useRecentActivity } from '../../composables/useRecentActivity'
 import { useAiSettingsStore } from '../../stores/useAiSettingsStore'
@@ -57,6 +60,8 @@ const filteredCharacters = computed<AdvCharacter[]>(() => {
     || c.faction?.toLowerCase().includes(q),
   )
 })
+
+const { visibleItems: visibleCharacters, hasMore, loadMore } = useIncrementalList(filteredCharacters, 30)
 
 // --- Character editor ---
 const characterEditor = useContentEditor<AdvCharacter>('character', () => ({
@@ -234,7 +239,7 @@ async function handleExportCSV() {
     <!-- Character grid -->
     <div v-if="filteredCharacters.length > 0" class="card-grid">
       <CharacterCard
-        v-for="character in filteredCharacters"
+        v-for="character in visibleCharacters"
         :key="character.id"
         :character="character"
         :location="characterStateStore.getState(character.id).location"
@@ -251,6 +256,10 @@ async function handleExportCSV() {
         </template>
       </CharacterCard>
     </div>
+
+    <IonInfiniteScroll v-if="hasMore" @ion-infinite="(e: CustomEvent) => { loadMore(); (e.target as HTMLIonInfiniteScrollElement).complete() }">
+      <IonInfiniteScrollContent />
+    </IonInfiniteScroll>
 
     <!-- Empty state -->
     <div v-else-if="searchQuery" class="empty-state">

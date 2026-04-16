@@ -6,6 +6,8 @@ import {
   IonFab,
   IonFabButton,
   IonIcon,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
   IonItemOption,
   IonItemOptions,
   IonItemSliding,
@@ -27,6 +29,7 @@ import SceneEditorForm from '../../components/SceneEditorForm.vue'
 import { useContentDelete } from '../../composables/useContentDelete'
 import { useContentEditor } from '../../composables/useContentEditor'
 import { useContentSave } from '../../composables/useContentSave'
+import { useIncrementalList } from '../../composables/useIncrementalList'
 import { useProjectContent } from '../../composables/useProjectContent'
 import { useRecentActivity } from '../../composables/useRecentActivity'
 import { useAiSettingsStore } from '../../stores/useAiSettingsStore'
@@ -113,6 +116,8 @@ const filteredScenes = computed<SceneInfo[]>(() => {
     || s.tags?.some(tag => tag.toLowerCase().includes(q)),
   )
 })
+
+const { visibleItems: visibleScenes, hasMore: hasMoreScenes, loadMore: loadMoreScenes } = useIncrementalList(filteredScenes, 30)
 
 // --- Scene editor ---
 const sceneEditor = useContentEditor<SceneFormData>('scene', () => ({
@@ -222,7 +227,7 @@ async function handleDeleteScene(scene: SceneFormData) {
 
     <!-- Scene grid -->
     <div v-if="filteredScenes.length > 0" class="card-grid">
-      <IonItemSliding v-for="scene in filteredScenes" :key="scene.file">
+      <IonItemSliding v-for="scene in visibleScenes" :key="scene.file">
         <SceneCard
           :scene="scene"
           :is-generating="generatingSceneIds.has(scene.id || '')"
@@ -237,6 +242,10 @@ async function handleDeleteScene(scene: SceneFormData) {
         </IonItemOptions>
       </IonItemSliding>
     </div>
+
+    <IonInfiniteScroll v-if="hasMoreScenes" @ion-infinite="(e: CustomEvent) => { loadMoreScenes(); (e.target as HTMLIonInfiniteScrollElement).complete() }">
+      <IonInfiniteScrollContent />
+    </IonInfiniteScroll>
 
     <!-- Empty state -->
     <div v-else-if="searchQuery" class="empty-state">

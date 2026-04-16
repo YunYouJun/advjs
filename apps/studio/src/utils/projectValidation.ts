@@ -206,7 +206,7 @@ export async function validateProject(
           issues.push({
             type: 'warning',
             category: 'character',
-            file: `characters/${char.id}`,
+            file: `adv/characters/${char.id}.character.md`,
             message: `relationship targetId "${rel.targetId}" not found`,
           })
         }

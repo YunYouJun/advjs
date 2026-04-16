@@ -28,6 +28,8 @@ export interface StudioProject {
   cosPrefix?: string
   /** Short description shown on project cards */
   description?: string
+  /** Cover image URL (user upload or AI-generated) */
+  cover?: string
   lastOpened: number
 }
 
@@ -54,6 +56,7 @@ export const useStudioStore = defineStore('studio', () => {
           source?: 'local' | 'url' | 'cos'
           cosPrefix?: string
           description?: string
+          cover?: string
           lastOpened: number
         }>
         projects.value = parsed.map(p => ({
@@ -63,6 +66,7 @@ export const useStudioStore = defineStore('studio', () => {
           source: p.source,
           cosPrefix: p.cosPrefix,
           description: p.description,
+          cover: p.cover,
           lastOpened: p.lastOpened,
         }))
       }
@@ -80,6 +84,7 @@ export const useStudioStore = defineStore('studio', () => {
       source: p.source,
       cosPrefix: p.cosPrefix,
       description: p.description,
+      cover: p.cover,
       lastOpened: p.lastOpened,
     }))
     localStorage.setItem('advjs-studio-projects', JSON.stringify(serializable))
@@ -104,7 +109,7 @@ export const useStudioStore = defineStore('studio', () => {
    * Update editable fields of an existing project (name, url, cosPrefix).
    * If the project is the current one, also refreshes the persisted state.
    */
-  function updateProject(projectId: string, updates: Partial<Pick<StudioProject, 'name' | 'url' | 'cosPrefix' | 'source'>>) {
+  function updateProject(projectId: string, updates: Partial<Pick<StudioProject, 'name' | 'url' | 'cosPrefix' | 'source' | 'description' | 'cover'>>) {
     const project = projects.value.find(p => p.projectId === projectId)
     if (!project)
       return
@@ -117,6 +122,10 @@ export const useStudioStore = defineStore('studio', () => {
       project.cosPrefix = updates.cosPrefix || undefined
     if ('source' in updates && updates.source !== undefined)
       project.source = updates.source
+    if ('description' in updates)
+      project.description = updates.description || undefined
+    if ('cover' in updates)
+      project.cover = updates.cover || undefined
 
     saveToStorage()
 

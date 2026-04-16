@@ -706,6 +706,7 @@ function getGradientForIndex(index: number): string {
             <strong>{{ t('marketplace.browse') }}</strong>
             <span>{{ t('marketplace.browseDesc') }}</span>
           </span>
+          <span class="action-card__badge">{{ t('marketplace.comingSoonBadge') }}</span>
         </button>
       </div>
 
@@ -719,7 +720,7 @@ function getGradientForIndex(index: number): string {
             v-for="(project, index) in featuredProjects"
             :key="project.name + project.lastOpened"
             class="featured-card"
-            :style="{ background: getGradientForIndex(index) }"
+            :style="{ background: project.cover ? `url(${project.cover}) center/cover no-repeat` : getGradientForIndex(index) }"
             @click="handleSelectProject(project)"
           >
             <div class="featured-card__content">
@@ -912,6 +913,7 @@ function getGradientForIndex(index: number): string {
   display: flex;
   align-items: center;
   gap: var(--adv-space-md);
+  position: relative;
   padding: var(--adv-space-md);
   min-height: 44px;
   border-radius: var(--adv-radius-lg);
@@ -958,6 +960,20 @@ function getGradientForIndex(index: number): string {
 .action-card__text span {
   font-size: var(--adv-font-body-sm);
   color: var(--adv-text-secondary);
+}
+
+.action-card__badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--adv-radius-sm, 4px);
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #78350f;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
 }
 
 /* Section title */

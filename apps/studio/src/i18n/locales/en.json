@@ -84,6 +84,12 @@
     "name": "Project Name",
     "url": "Project URL",
     "cosPrefix": "COS Prefix",
+    "cover": "Cover Image",
+    "coverUpload": "Upload Cover",
+    "coverRemove": "Remove Cover",
+    "coverHint": "Displayed on project cards and share links",
+    "description": "Description",
+    "descriptionPlaceholder": "Short description shown on project cards and share links...",
     "info": "Project Info",
     "source": "Source",
     "connectionSettings": "Connection Settings",
@@ -987,5 +993,39 @@
     "status_renamed": "Renamed",
     "status_error": "Import failed",
     "reset": "Import Again"
+  },
+  "errorBoundary": {
+    "title": "Something Went Wrong",
+    "message": "An unexpected error occurred. You can try again or go back to the home page.",
+    "details": "Error details",
+    "retry": "Try Again",
+    "goHome": "Go Home"
+  },
+  "offline": {
+    "banner": "You are offline — some features may be unavailable"
+  },
+  "onboarding": {
+    "skip": "Skip",
+    "next": "Next",
+    "done": "Got it!",
+    "quickStartTitle": "Quick Start",
+    "quickStartDesc": "Tap here to create a demo project instantly and start chatting with characters.",
+    "worldTitle": "World",
+    "worldDesc": "Talk to characters, explore the world, and watch the story unfold.",
+    "chatTitle": "AI Chat",
+    "chatDesc": "Your creative assistant — get help writing scenes, characters, and more.",
+    "playTitle": "Play",
+    "playDesc": "Preview your visual novel and experience the story you've built.",
+    "meTitle": "Settings",
+    "meDesc": "Configure AI providers, cloud sync, appearance, and more."
+  },
+  "chatSnippet": {
+    "selectMessages": "Select Messages",
+    "cancel": "Cancel",
+    "share": "Share Snippet",
+    "noSelection": "Select at least one message",
+    "generating": "Generating share image...",
+    "shareSuccess": "Share image saved",
+    "shareFailed": "Failed to generate share image"
   }
 }

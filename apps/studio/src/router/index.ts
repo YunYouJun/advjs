@@ -1,5 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { createRouter, createWebHistory } from '@ionic/vue-router'
+import { resetOgMeta, setProjectOgMeta } from '../utils/ogMeta'
 import TabsPage from '../views/TabsPage.vue'
 
 const routes: Array<RouteRecordRaw> = [
@@ -145,6 +146,31 @@ const routes: Array<RouteRecordRaw> = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
+})
+
+/* Update OG meta tags on navigation for better share link previews */
+router.afterEach((to) => {
+  if (to.path === '/tabs/workspace' || to.path === '/') {
+    // Try to read current project from localStorage for OG meta
+    try {
+      const saved = localStorage.getItem('advjs-studio-projects')
+      const currentId = localStorage.getItem('advjs-studio-current')
+      if (saved && currentId) {
+        const projects = JSON.parse(saved)
+        const project = projects.find((p: { projectId?: string }) => p.projectId === currentId)
+        if (project) {
+          setProjectOgMeta({
+            title: `${project.name} — ADV.JS Studio`,
+            description: project.description,
+            image: project.cover,
+          })
+          return
+        }
+      }
+    }
+    catch { /* ignore */ }
+    resetOgMeta()
+  }
 })
 
 export default router

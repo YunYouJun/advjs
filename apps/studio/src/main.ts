@@ -60,6 +60,16 @@ const app = createApp(App)
   .use(i18n)
   .use(router)
 
+/* Global error handler — catches uncaught errors from components */
+app.config.errorHandler = (err, _instance, info) => {
+  console.error(`[Vue Error] ${info}:`, err)
+}
+
+/* Catch unhandled promise rejections globally */
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('[Unhandled Rejection]', event.reason)
+})
+
 Promise.all([router.isReady(), dbReady]).then(() => {
   app.mount('#app')
   initCapacitorPlugins()

@@ -143,6 +143,12 @@ function formatDownloads(n: number): string {
       </IonToolbar>
     </template>
 
+    <!-- Coming Soon Banner -->
+    <div class="coming-soon-banner">
+      <span class="coming-soon-banner__icon">🚧</span>
+      <span class="coming-soon-banner__text">{{ t('marketplace.comingSoonBanner') }}</span>
+    </div>
+
     <!-- Tag filter chips -->
     <div class="tag-chips">
       <IonChip
@@ -257,6 +263,30 @@ function formatDownloads(n: number): string {
 </template>
 
 <style scoped>
+.coming-soon-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: var(--adv-space-sm) var(--adv-space-md) 0;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.1));
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: var(--adv-radius-lg, 12px);
+  font-size: 13px;
+  color: var(--adv-text-secondary, #64748b);
+}
+
+:root.dark .coming-soon-banner {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.08), rgba(245, 158, 11, 0.08));
+  border-color: rgba(251, 191, 36, 0.2);
+}
+
+.coming-soon-banner__icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
 .tag-chips {
   display: flex;
   gap: 4px;

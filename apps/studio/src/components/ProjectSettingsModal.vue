@@ -38,6 +38,8 @@ const activeTab = ref('general')
 const editName = ref('')
 const editUrl = ref('')
 const editCosPrefix = ref('')
+const editDescription = ref('')
+const coverFileInput = ref<HTMLInputElement | null>(null)
 
 const project = computed(() => studioStore.currentProject)
 
@@ -63,6 +65,7 @@ watch(() => props.open, (isOpen) => {
     editName.value = project.value.name
     editUrl.value = project.value.url || ''
     editCosPrefix.value = project.value.cosPrefix || ''
+    editDescription.value = project.value.description || ''
     activeTab.value = 'general'
   }
 })
@@ -74,6 +77,7 @@ const hasChanges = computed(() => {
     editName.value.trim() !== project.value.name
     || (editUrl.value.trim() || '') !== (project.value.url || '')
     || (editCosPrefix.value.trim() || '') !== (project.value.cosPrefix || '')
+    || (editDescription.value.trim() || '') !== (project.value.description || '')
   )
 })
 
@@ -100,6 +104,7 @@ async function handleSave() {
     name: editName.value.trim(),
     url: editUrl.value.trim() || undefined,
     cosPrefix: editCosPrefix.value.trim() || undefined,
+    description: editDescription.value.trim() || undefined,
   })
 
   const toast = await toastController.create({
@@ -110,6 +115,47 @@ async function handleSave() {
   })
   await toast.present()
   emit('close')
+}
+
+async function handleCoverUpload(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = '' // reset for re-selection
+  if (!file || !project.value)
+    return
+
+  // Resize and convert to JPEG data URL
+  const dataUrl = await resizeImage(file, 800, 0.8)
+  studioStore.updateProject(project.value.projectId, { cover: dataUrl })
+}
+
+function handleCoverRemove() {
+  if (!project.value)
+    return
+  studioStore.updateProject(project.value.projectId, { cover: undefined })
+}
+
+function resizeImage(file: File, maxWidth: number, quality: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      const ratio = Math.min(1, maxWidth / img.width)
+      const w = Math.round(img.width * ratio)
+      const h = Math.round(img.height * ratio)
+      const canvas = document.createElement('canvas')
+      canvas.width = w
+      canvas.height = h
+      const ctx = canvas.getContext('2d')
+      if (!ctx) {
+        reject(new Error('Canvas not supported'))
+        return
+      }
+      ctx.drawImage(img, 0, 0, w, h)
+      resolve(canvas.toDataURL('image/jpeg', quality))
+    }
+    img.onerror = () => reject(new Error('Failed to load image'))
+    img.src = URL.createObjectURL(file)
+  })
 }
 
 async function handleDelete() {
@@ -216,6 +262,50 @@ async function handleDelete() {
             <div class="field field--last">
               <label class="field-label">{{ t('projectSettings.source') }}</label>
               <span class="field-value field-value--muted">{{ sourceLabel }}</span>
+            </div>
+          </section>
+
+          <!-- Description -->
+          <section class="card">
+            <h3 class="card-title">
+              {{ t('projectSettings.description') || 'Description' }}
+            </h3>
+            <div class="field field--last">
+              <textarea
+                v-model="editDescription"
+                class="field-input field-textarea"
+                rows="3"
+                :placeholder="t('projectSettings.descriptionPlaceholder') || 'Short description for project cards...'"
+              />
+            </div>
+          </section>
+
+          <!-- Cover Image -->
+          <section class="card">
+            <h3 class="card-title">
+              {{ t('projectSettings.cover') }}
+            </h3>
+            <div v-if="project?.cover" class="cover-preview">
+              <img :src="project.cover" alt="Cover" class="cover-preview__img">
+              <button class="cover-preview__remove" @click="handleCoverRemove">
+                <div class="i-carbon-close" />
+              </button>
+            </div>
+            <div class="field field--last">
+              <button class="btn-upload" @click="coverFileInput?.click()">
+                <div class="i-carbon-image" />
+                {{ project?.cover ? t('projectSettings.coverUpload') : t('projectSettings.coverUpload') }}
+              </button>
+              <input
+                ref="coverFileInput"
+                type="file"
+                accept="image/*"
+                style="display: none"
+                @change="handleCoverUpload"
+              >
+              <p class="hint hint--inline">
+                {{ t('projectSettings.coverHint') }}
+              </p>
             </div>
           </section>
         </TabsContent>
@@ -515,5 +605,79 @@ async function handleDelete() {
   font-size: 14px;
   padding: 16px 0 0;
   margin: 0;
+}
+
+/* ── Textarea ── */
+.field-textarea {
+  resize: vertical;
+  min-height: 60px;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+/* ── Cover Preview ── */
+.cover-preview {
+  position: relative;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  overflow: hidden;
+  max-height: 180px;
+}
+
+.cover-preview__img {
+  width: 100%;
+  height: auto;
+  max-height: 180px;
+  object-fit: cover;
+  display: block;
+  border-radius: 10px;
+}
+
+.cover-preview__remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.15s;
+}
+
+.cover-preview__remove:hover {
+  background: rgba(235, 68, 90, 0.8);
+}
+
+/* ── Upload Button ── */
+.btn-upload {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px dashed var(--ion-border-color, #d7d8da);
+  background: transparent;
+  color: var(--ion-color-primary, #3880ff);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.btn-upload:hover {
+  background: rgba(56, 128, 255, 0.04);
+  border-color: var(--ion-color-primary, #3880ff);
 }
 </style>
