@@ -63,6 +63,12 @@
   opacity: 1;
 }
 
+@media (hover: none) {
+  .time {
+    opacity: 0.6;
+  }
+}
+
 /* ── Typing indicator ── */
 .typing-indicator {
   display: flex;

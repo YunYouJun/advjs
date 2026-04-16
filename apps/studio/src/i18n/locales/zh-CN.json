@@ -171,7 +171,9 @@
     "regenerate": "重新生成",
     "editCancel": "取消",
     "editConfirm": "发送",
-    "messageCopied": "已复制到剪贴板"
+    "messageCopied": "已复制到剪贴板",
+    "goodResponse": "回答有帮助",
+    "badResponse": "回答有问题"
   },
   "preview": {
     "title": "游玩",

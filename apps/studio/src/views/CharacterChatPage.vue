@@ -40,6 +40,7 @@ import CharacterInfoModal from '../components/CharacterInfoModal.vue'
 import ChatHistorySearch from '../components/ChatHistorySearch.vue'
 import LayoutPage from '../components/common/LayoutPage.vue'
 import MarkdownMessage from '../components/MarkdownMessage.vue'
+import MessageActions from '../components/MessageActions.vue'
 import SnapshotTree from '../components/SnapshotTree.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useWorldContext } from '../composables/useWorldContext'
@@ -227,6 +228,100 @@ function quickSend(text: string) {
     character.value,
     getEffectiveWorldContext(),
     knowledgeContent || undefined,
+  )
+}
+
+// --- Message actions ---
+
+async function handleCopyMessage(content: string) {
+  try {
+    await navigator.clipboard.writeText(content)
+    const toast = await toastController.create({ message: t('chat.messageCopied'), duration: 1500, position: 'top' })
+    await toast.present()
+  }
+  catch {
+    // silent
+  }
+}
+
+async function handleEditMessage(msg: { content: string, timestamp: number }) {
+  const alert = await alertController.create({
+    header: t('chat.editMessage'),
+    inputs: [{ name: 'content', type: 'textarea', value: msg.content }],
+    buttons: [
+      { text: t('chat.editCancel'), role: 'cancel' },
+      {
+        text: t('chat.editConfirm'),
+        handler: (data) => {
+          const newText = (data.content as string || '').trim()
+          if (!newText || !character.value)
+            return
+          // Delete everything from this message onward and resend
+          const msgs = allMessages.value
+          const idx = msgs.findIndex(m => m.timestamp === msg.timestamp)
+          if (idx === -1)
+            return
+          // Remove from idx to end
+          for (let i = msgs.length - 1; i >= idx; i--)
+            characterChatStore.deleteMessage(characterId.value, msgs[i].timestamp)
+          // Resend the edited text
+          const knowledgeContent = knowledgeBase.selectRelevantKnowledge(
+            newText,
+            character.value!.knowledgeDomain || '',
+          )
+          characterChatStore.sendMessage(
+            characterId.value,
+            newText,
+            character.value!,
+            getEffectiveWorldContext(),
+            knowledgeContent || undefined,
+          )
+        },
+      },
+    ],
+  })
+  await alert.present()
+}
+
+function handleDeleteMessage(timestamp: number) {
+  characterChatStore.deleteMessage(characterId.value, timestamp)
+}
+
+function handleRegenerateMessage() {
+  if (!character.value)
+    return
+  const msgs = allMessages.value
+  if (msgs.length === 0)
+    return
+  const lastMsg = msgs.at(-1)
+  if (lastMsg?.role !== 'assistant')
+    return
+  // Delete the last assistant message and resend context
+  characterChatStore.deleteMessage(characterId.value, lastMsg.timestamp)
+  // Find the last user message to resend
+  const lastUserMsg = [...msgs].reverse().find(m => m.role === 'user')
+  if (lastUserMsg) {
+    const knowledgeContent = knowledgeBase.selectRelevantKnowledge(
+      lastUserMsg.content,
+      character.value.knowledgeDomain || '',
+    )
+    characterChatStore.sendMessage(
+      characterId.value,
+      lastUserMsg.content,
+      character.value,
+      getEffectiveWorldContext(),
+      knowledgeContent || undefined,
+    )
+  }
+}
+
+function handleFeedback(msg: { timestamp: number }, feedback: 'up' | 'down') {
+  const current = characterChatStore.getMessageFeedback(characterId.value, msg.timestamp)
+  // Toggle: if same feedback, remove it; otherwise set new feedback
+  characterChatStore.setMessageFeedback(
+    characterId.value,
+    msg.timestamp,
+    current === feedback ? null : feedback,
   )
 }
 
@@ -894,6 +989,17 @@ async function handleDeleteDiary(diaryId: string) {
     </template>
 
     <div class="messages-container" role="log" aria-live="polite" :aria-label="t('world.chatMessages')">
+      <!-- Character not found fallback -->
+      <div v-if="!character && !isLoading" class="empty-state">
+        <p style="font-size: 1.2em; margin-bottom: 8px;">
+          ⚠️
+        </p>
+        <p>{{ t('world.noCharacters') }}</p>
+        <IonButton fill="outline" size="small" @click="goBack">
+          {{ t('common.back') }}
+        </IonButton>
+      </div>
+
       <!-- Welcome state -->
       <CharacterChatWelcome
         v-if="character && messages.length === 0"
@@ -938,6 +1044,18 @@ async function handleDeleteDiary(diaryId: string) {
             >
               <IonIcon :icon="ttsPlayingIndex === index ? volumeMuteOutline : volumeHighOutline" />
             </button>
+            <MessageActions
+              :message="{ role: msg.role, content: msg.content, timestamp: msg.timestamp }"
+              :is-last="getAbsoluteIndex(index) === allMessages.length - 1"
+              :is-loading="characterChatStore.isLoading"
+              :feedback="msg.feedback"
+              @copy="handleCopyMessage(msg.content)"
+              @edit="handleEditMessage(msg)"
+              @delete="handleDeleteMessage(msg.timestamp)"
+              @regenerate="handleRegenerateMessage()"
+              @feedback-up="handleFeedback(msg, 'up')"
+              @feedback-down="handleFeedback(msg, 'down')"
+            />
             <span class="time">
               {{ formatChatTime(msg.timestamp) }}
             </span>
@@ -945,7 +1063,16 @@ async function handleDeleteDiary(diaryId: string) {
         </div>
       </TransitionGroup>
 
-      <!-- Typing indicator -->
+      <!-- Streaming content bubble -->
+      <Transition name="msg">
+        <div v-if="characterChatStore.isLoading && characterChatStore.streamingContent" class="message assistant">
+          <div class="bubble">
+            <MarkdownMessage :content="characterChatStore.streamingContent" />
+          </div>
+        </div>
+      </Transition>
+
+      <!-- Typing indicator (before streaming starts) -->
       <Transition name="msg">
         <div v-if="characterChatStore.isLoading && !characterChatStore.streamingContent" class="message assistant">
           <div class="bubble">

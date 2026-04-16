@@ -46,6 +46,7 @@ export interface CharacterMemory {
 
 const MAX_KEY_EVENTS = 50
 const MAX_EMOTIONAL_HISTORY = 200
+const MAX_USER_PROFILE = 30
 
 function createDefaultEmotionalState(): EmotionalState {
   return { affinity: 0, trust: 20, mood: 'neutral' }
@@ -216,17 +217,28 @@ export const useCharacterMemoryStore = defineStore('characterMemory', () => {
 
       // Apply updates
       if (extraction.keyEvent) {
-        memory.keyEvents.push({
-          summary: extraction.keyEvent,
-          timestamp: Date.now(),
+        // Deduplicate: skip if a very similar event exists in the last 10 entries
+        const recent = memory.keyEvents.slice(-10)
+        const isDuplicate = recent.some((e) => {
+          const a = e.summary.toLowerCase()
+          const b = extraction.keyEvent!.toLowerCase()
+          return a === b || (a.length > 20 && b.length > 20 && (a.includes(b) || b.includes(a)))
         })
-        // Trim to max
-        if (memory.keyEvents.length > MAX_KEY_EVENTS) {
-          memory.keyEvents = memory.keyEvents.slice(-MAX_KEY_EVENTS)
+        if (!isDuplicate) {
+          memory.keyEvents.push({
+            summary: extraction.keyEvent,
+            timestamp: Date.now(),
+          })
+          // Trim to max
+          if (memory.keyEvents.length > MAX_KEY_EVENTS) {
+            memory.keyEvents = memory.keyEvents.slice(-MAX_KEY_EVENTS)
+          }
         }
       }
 
       for (const info of extraction.userInfo) {
+        if (!info.key || !info.value)
+          continue
         // Update existing or add new
         const existing = memory.userProfile.find(p => p.key === info.key)
         if (existing) {
@@ -235,6 +247,10 @@ export const useCharacterMemoryStore = defineStore('characterMemory', () => {
         else {
           memory.userProfile.push(info)
         }
+      }
+      // Trim userProfile to cap (keep most recent entries)
+      if (memory.userProfile.length > MAX_USER_PROFILE) {
+        memory.userProfile = memory.userProfile.slice(-MAX_USER_PROFILE)
       }
 
       // Clamp emotional state
@@ -258,8 +274,9 @@ export const useCharacterMemoryStore = defineStore('characterMemory', () => {
       if (memory.emotionalHistory.length > MAX_EMOTIONAL_HISTORY)
         memory.emotionalHistory = memory.emotionalHistory.slice(-MAX_EMOTIONAL_HISTORY)
     }
-    catch {
+    catch (err) {
       // Memory extraction is best-effort, don't disrupt the chat
+      console.warn(`[MemoryStore] extraction failed for ${characterId}:`, err)
     }
   }
 

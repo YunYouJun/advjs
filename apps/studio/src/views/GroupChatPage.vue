@@ -308,14 +308,14 @@ async function handleExport() {
 
 function getSpeakerName(msg: { role: string, characterName?: string }): string {
   if (msg.role === 'user')
-    return 'Player'
-  return msg.characterName || 'Character'
+    return t('systemPrompt.player')
+  return msg.characterName || t('world.viewModeCharacter')
 }
 
 function groupConversationToAdvMd(roomName: string): string {
   const lines: string[] = [
     '---',
-    `plotSummary: Group Chat - ${roomName}`,
+    `plotSummary: ${t('world.groupChats')} - ${roomName}`,
     '---',
     '',
   ]
@@ -419,6 +419,18 @@ async function copyGroupMessage(content: string) {
 
 function deleteGroupMessage(timestamp: number) {
   groupChatStore.deleteMessage(roomId.value, timestamp)
+}
+
+function handleRegenerateGroupMessage(timestamp: number) {
+  if (!room.value)
+    return
+  // Delete the message and regenerate
+  groupChatStore.deleteMessage(roomId.value, timestamp)
+  groupChatStore.generateNextTurn(
+    roomId.value,
+    participants.value,
+    getEffectiveWorldContext(),
+  )
 }
 
 // --- Snapshot helpers ---
@@ -609,8 +621,19 @@ async function handleDeleteSnapshot(snapshotId: string) {
     </div>
 
     <div class="group-messages-container">
+      <!-- Room not found fallback -->
+      <div v-if="!room" class="empty-state" style="text-align: center; padding: 40px 20px;">
+        <p style="font-size: 1.2em; margin-bottom: 8px;">
+          ⚠️
+        </p>
+        <p>{{ t('world.noGroupChats') }}</p>
+        <IonButton fill="outline" size="small" @click="router.push('/tabs/world')">
+          {{ t('common.back') }}
+        </IonButton>
+      </div>
+
       <!-- Empty state -->
-      <div v-if="messages.length === 0 && !groupChatStore.isLoading" style="text-align: center; padding: 40px 20px; color: var(--adv-text-tertiary);">
+      <div v-else-if="messages.length === 0 && !groupChatStore.isLoading" style="text-align: center; padding: 40px 20px; color: var(--adv-text-tertiary);">
         <p>{{ t('world.groupChatPlaceholder') }}</p>
       </div>
 
@@ -669,12 +692,12 @@ async function handleDeleteSnapshot(snapshotId: string) {
           </div>
           <MessageActions
             :message="{ role: msg.role === 'character' ? 'assistant' : 'user', content: msg.content, timestamp: msg.timestamp } as ChatMessage"
-            :is-last="false"
+            :is-last="msg.role === 'character' && index === visibleMessages.length - 1"
             :is-loading="groupChatStore.isLoading"
+            :show-edit="false"
             @copy="copyGroupMessage(msg.content)"
             @delete="deleteGroupMessage(msg.timestamp)"
-            @edit="() => {}"
-            @regenerate="() => {}"
+            @regenerate="handleRegenerateGroupMessage(msg.timestamp)"
           />
         </div>
       </TransitionGroup>

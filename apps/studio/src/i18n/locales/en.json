@@ -171,7 +171,9 @@
     "regenerate": "Regenerate",
     "editCancel": "Cancel",
     "editConfirm": "Send",
-    "messageCopied": "Copied to clipboard"
+    "messageCopied": "Copied to clipboard",
+    "goodResponse": "Good response",
+    "badResponse": "Bad response"
   },
   "preview": {
     "title": "Play",

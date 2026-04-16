@@ -15,11 +15,19 @@ export interface StreamChatOptions {
   temperature?: number
   maxTokens?: number
   signal?: AbortSignal
+  /** Per-chunk read timeout in milliseconds (default: 30000). 0 = no timeout. */
+  readTimeout?: number
+  /** Number of automatic retries on network/timeout errors (default: 0). */
+  retries?: number
 }
 
 /**
  * Stream chat completions from an OpenAI-compatible API.
  * Yields content deltas as they arrive via SSE.
+ *
+ * - `readTimeout` (default 30s): if no new data arrives within this window, the stream is aborted.
+ * - `retries` (default 0): on network/timeout errors, automatically retry up to N times.
+ *   Auth and rate-limit errors are never retried.
  */
 export async function* streamChat(options: StreamChatOptions): AsyncGenerator<string> {
   const {
@@ -30,27 +38,78 @@ export async function* streamChat(options: StreamChatOptions): AsyncGenerator<st
     temperature = 0.7,
     maxTokens = 2048,
     signal,
+    readTimeout = 30_000,
+    retries = 0,
   } = options
 
-  const url = `${baseURL.replace(TRAILING_SLASHES, '')}/chat/completions`
+  let lastError: unknown
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      yield* _streamChatOnce({
+        messages,
+        baseURL,
+        apiKey,
+        model,
+        temperature,
+        maxTokens,
+        signal,
+        readTimeout,
+      })
+      return // success — exit retry loop
+    }
+    catch (err) {
+      lastError = err
+      // Never retry auth / rate-limit / not-found errors
+      if (err instanceof AiApiError && (err.type === 'auth' || err.type === 'rate_limit' || err.type === 'not_found'))
+        throw err
+      // Don't retry if caller explicitly aborted
+      if (signal?.aborted)
+        throw err
+      // If this was the last attempt, throw
+      if (attempt === retries)
+        throw err
+      // Brief delay before retry (200ms * attempt for simple backoff)
+      await new Promise(r => setTimeout(r, 200 * (attempt + 1)))
+    }
+  }
+
+  // Should not reach here, but satisfy TS
+  throw lastError
+}
+
+/**
+ * Single-attempt stream implementation with per-chunk read timeout.
+ */
+async function* _streamChatOnce(opts: {
+  messages: ChatMessage[]
+  baseURL: string
+  apiKey: string
+  model: string
+  temperature: number
+  maxTokens: number
+  signal?: AbortSignal
+  readTimeout: number
+}): AsyncGenerator<string> {
+  const url = `${opts.baseURL.replace(TRAILING_SLASHES, '')}/chat/completions`
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   }
-  if (apiKey)
-    headers.Authorization = `Bearer ${apiKey}`
+  if (opts.apiKey)
+    headers.Authorization = `Bearer ${opts.apiKey}`
 
   const response = await fetch(url, {
     method: 'POST',
     headers,
     body: JSON.stringify({
-      model,
-      messages,
-      temperature,
-      max_tokens: maxTokens,
+      model: opts.model,
+      messages: opts.messages,
+      temperature: opts.temperature,
+      max_tokens: opts.maxTokens,
       stream: true,
     }),
-    signal,
+    signal: opts.signal,
   })
 
   if (!response.ok) {
@@ -76,37 +135,59 @@ export async function* streamChat(options: StreamChatOptions): AsyncGenerator<st
 
   try {
     while (true) {
-      const { done, value } = await reader.read()
-      if (done)
+      // Per-chunk read timeout: if no data arrives within readTimeout, abort
+      const readPromise = reader.read()
+      let result: ReadableStreamReadResult<Uint8Array>
+
+      if (opts.readTimeout > 0) {
+        const timeout = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new AiApiError('Stream read timed out', 'timeout')), opts.readTimeout)
+        })
+        result = await Promise.race([readPromise, timeout])
+      }
+      else {
+        result = await readPromise
+      }
+
+      if (result.done)
         break
 
-      buffer += decoder.decode(value, { stream: true })
+      buffer += decoder.decode(result.value, { stream: true })
 
       const lines = buffer.split('\n')
       // Keep the last potentially incomplete line in the buffer
       buffer = lines.pop() || ''
 
       for (const line of lines) {
-        const trimmed = line.trim()
-        if (!trimmed || trimmed === 'data: [DONE]')
-          continue
-        if (!trimmed.startsWith('data: '))
-          continue
-
-        try {
-          const json = JSON.parse(trimmed.slice(6))
-          const delta = json.choices?.[0]?.delta?.content
-          if (delta)
-            yield delta
-        }
-        catch {
-          // Skip malformed JSON lines
-        }
+        const delta = _parseSseLine(line)
+        if (delta)
+          yield delta
       }
+    }
+
+    // Process any remaining data in the buffer after stream ends
+    if (buffer.trim()) {
+      const delta = _parseSseLine(buffer)
+      if (delta)
+        yield delta
     }
   }
   finally {
     reader.releaseLock()
+  }
+}
+
+/** Parse a single SSE line and return the content delta, or null. */
+function _parseSseLine(line: string): string | null {
+  const trimmed = line.trim()
+  if (!trimmed || trimmed === 'data: [DONE]' || !trimmed.startsWith('data: '))
+    return null
+  try {
+    const json = JSON.parse(trimmed.slice(6))
+    return json.choices?.[0]?.delta?.content || null
+  }
+  catch {
+    return null
   }
 }
 

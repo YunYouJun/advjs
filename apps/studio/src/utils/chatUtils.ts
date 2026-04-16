@@ -235,6 +235,8 @@ export async function streamToMessage(opts: {
   onSuccess?: (accumulated: string) => void
   /** Per-character AI config override. When provided, bypasses global aiSettings. */
   resolvedConfig?: ResolvedAiConfig
+  /** Number of automatic retries on network/timeout errors (default: 2). */
+  retries?: number
 }): Promise<void> {
   const aiSettings = useAiSettingsStore()
   const abortController = new AbortController()
@@ -249,6 +251,8 @@ export async function streamToMessage(opts: {
   const msgIndex = opts.messageList.length - 1
 
   try {
+    const streamRetries = opts.retries ?? 2
+
     const options = opts.resolvedConfig
       ? {
           messages: opts.allMessages,
@@ -258,14 +262,18 @@ export async function streamToMessage(opts: {
           temperature: opts.resolvedConfig.temperature,
           maxTokens: opts.resolvedConfig.maxTokens,
           signal: abortController.signal,
+          retries: streamRetries,
         }
-      : buildStreamOptions(
-          opts.allMessages,
-          aiSettings.config,
-          aiSettings.effectiveBaseURL,
-          aiSettings.effectiveModel,
-          abortController.signal,
-        )
+      : {
+          ...buildStreamOptions(
+            opts.allMessages,
+            aiSettings.config,
+            aiSettings.effectiveBaseURL,
+            aiSettings.effectiveModel,
+            abortController.signal,
+          ),
+          retries: streamRetries,
+        }
 
     let accumulated = ''
     for await (const delta of streamChat(options)) {

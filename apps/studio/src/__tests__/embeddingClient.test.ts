@@ -59,10 +59,24 @@ describe('rankBySimilarity', () => {
 })
 
 describe('contentHash', () => {
-  it('returns string length', () => {
-    expect(contentHash('hello')).toBe(5)
-    expect(contentHash('')).toBe(0)
-    expect(contentHash('你好世界')).toBe(4)
+  it('returns FNV-1a hash as a number', () => {
+    const h = contentHash('hello')
+    expect(typeof h).toBe('number')
+    expect(Number.isInteger(h)).toBe(true)
+  })
+
+  it('returns FNV offset basis for empty string', () => {
+    expect(contentHash('')).toBe(2166136261)
+  })
+
+  it('is deterministic (same input → same hash)', () => {
+    expect(contentHash('hello')).toBe(contentHash('hello'))
+    expect(contentHash('你好世界')).toBe(contentHash('你好世界'))
+  })
+
+  it('produces different hashes for different inputs', () => {
+    expect(contentHash('hello')).not.toBe(contentHash('world'))
+    expect(contentHash('abc')).not.toBe(contentHash('abd'))
   })
 })
 

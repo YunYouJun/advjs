@@ -73,6 +73,7 @@ const locations = ref<LocationInfo[]>([])
 const audios = ref<AudioInfo[]>([])
 const stats = ref<ProjectStats>({ chapters: 0, characters: 0, scenes: 0, locations: 0, knowledge: 0, audios: 0 })
 const isLoading = ref(false)
+const loadErrors = ref<string[]>([])
 
 // Closure variables for reload
 let lastDirHandle: FileSystemDirectoryHandle | null = null
@@ -99,6 +100,7 @@ export function useProjectContent() {
     lastCosPrefix = null
 
     isLoading.value = true
+    loadErrors.value = []
     try {
       // Load chapters
       const chapterFiles: string[] = []
@@ -129,7 +131,11 @@ export function useProjectContent() {
           const lines = content.split('\n').filter(l => l.trim() && !l.startsWith('---') && !l.startsWith('#'))
           preview = lines[0]?.slice(0, 100) || ''
         }
-        catch { /* can't read */ }
+        catch (err) {
+          const msg = `Failed to read chapter ${file}: ${err instanceof Error ? err.message : String(err)}`
+          console.warn(msg)
+          loadErrors.value.push(msg)
+        }
 
         chapterInfos.push({
           file,
@@ -150,7 +156,11 @@ export function useProjectContent() {
             const character = parseCharacterMd(content)
             charList.push(character)
           }
-          catch { /* parse error */ }
+          catch (err) {
+            const msg = `Failed to parse character ${file}: ${err instanceof Error ? err.message : String(err)}`
+            console.warn(msg)
+            loadErrors.value.push(msg)
+          }
         }
       }
       catch { /* no characters dir */ }
@@ -176,7 +186,8 @@ export function useProjectContent() {
               linkedLocation: parsed.linkedLocation,
             })
           }
-          catch {
+          catch (err) {
+            console.warn(`Failed to parse scene ${file}: ${err instanceof Error ? err.message : String(err)}`)
             // Fallback: just use file name
             sceneList.push({
               file,
@@ -208,7 +219,8 @@ export function useProjectContent() {
               defaultImagePrompt: parsed.defaultImagePrompt,
             })
           }
-          catch {
+          catch (err) {
+            console.warn(`Failed to parse location ${file}: ${err instanceof Error ? err.message : String(err)}`)
             locationList.push({
               file,
               name: file.split('/').pop()?.replace('.md', '') || file,
@@ -239,7 +251,8 @@ export function useProjectContent() {
               linkedChapters: parsed.linkedChapters,
             })
           }
-          catch {
+          catch (err) {
+            console.warn(`Failed to parse audio ${file}: ${err instanceof Error ? err.message : String(err)}`)
             audioList.push({
               file,
               name: file.split('/').pop()?.replace('.md', '') || file,
@@ -292,6 +305,7 @@ export function useProjectContent() {
     lastDirHandle = null
 
     isLoading.value = true
+    loadErrors.value = []
     try {
       const allFiles = await listCloudFiles(cosConfig, prefix)
 
@@ -305,7 +319,11 @@ export function useProjectContent() {
           const lines = content.split('\n').filter(l => l.trim() && !l.startsWith('---') && !l.startsWith('#'))
           preview = lines[0]?.slice(0, 100) || ''
         }
-        catch { /* can't read */ }
+        catch (err) {
+          const msg = `Failed to read chapter ${file}: ${err instanceof Error ? err.message : String(err)}`
+          console.warn(msg)
+          loadErrors.value.push(msg)
+        }
 
         chapterInfos.push({
           file,
@@ -324,7 +342,11 @@ export function useProjectContent() {
           const character = parseCharacterMd(content)
           charList.push(character)
         }
-        catch { /* parse error */ }
+        catch (err) {
+          const msg = `Failed to parse character ${file}: ${err instanceof Error ? err.message : String(err)}`
+          console.warn(msg)
+          loadErrors.value.push(msg)
+        }
       }
       characters.value = charList
 
@@ -347,7 +369,10 @@ export function useProjectContent() {
             linkedLocation: parsed.linkedLocation,
           })
         }
-        catch {
+        catch (err) {
+          const msg = `Failed to parse scene ${file}: ${err instanceof Error ? err.message : String(err)}`
+          console.warn(msg)
+          loadErrors.value.push(msg)
           sceneList.push({
             file,
             name: file.split('/').pop()?.replace('.md', '') || file,
@@ -375,7 +400,10 @@ export function useProjectContent() {
             defaultImagePrompt: parsed.defaultImagePrompt,
           })
         }
-        catch {
+        catch (err) {
+          const msg = `Failed to parse location ${file}: ${err instanceof Error ? err.message : String(err)}`
+          console.warn(msg)
+          loadErrors.value.push(msg)
           locationList.push({
             file,
             name: file.split('/').pop()?.replace('.md', '') || file,
@@ -403,7 +431,8 @@ export function useProjectContent() {
             linkedChapters: parsed.linkedChapters,
           })
         }
-        catch {
+        catch (err) {
+          console.warn(`Failed to parse audio ${file}: ${err instanceof Error ? err.message : String(err)}`)
           audioList.push({
             file,
             name: file.split('/').pop()?.replace('.md', '') || file,
@@ -462,6 +491,7 @@ export function useProjectContent() {
     audios.value = []
     stats.value = { chapters: 0, characters: 0, scenes: 0, locations: 0, knowledge: 0, audios: 0 }
     isLoading.value = false
+    loadErrors.value = []
     lastDirHandle = null
     lastCosConfig = null
     lastCosPrefix = null
@@ -495,6 +525,7 @@ export function useProjectContent() {
     audios,
     stats,
     isLoading,
+    loadErrors,
     knowledgeBase,
     loadFromDir,
     loadFromCos,

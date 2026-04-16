@@ -182,11 +182,11 @@ catalogs:
       specifier: ^2.0.4
       version: 2.0.4
     '@ionic/vue':
-      specifier: ^8.8.3
-      version: 8.8.3
+      specifier: ^8.8.4
+      version: 8.8.4
     '@ionic/vue-router':
-      specifier: ^8.8.3
-      version: 8.8.3
+      specifier: ^8.8.4
+      version: 8.8.4
     '@larksuiteoapi/node-sdk':
       specifier: ^1.60.0
       version: 1.60.0
@@ -794,10 +794,10 @@ importers:
         version: 8.0.2(@capacitor/core@8.3.0)
       '@ionic/vue':
         specifier: 'catalog:'
-        version: 8.8.3(@stencil/core@4.43.3)(vue-router@5.0.4(@vue/compiler-sfc@3.5.32)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.32(typescript@5.9.3)))(vue@3.5.32(typescript@5.9.3)))(vue@3.5.32(typescript@5.9.3))
+        version: 8.8.4(@stencil/core@4.43.3)(vue-router@5.0.4(@vue/compiler-sfc@3.5.32)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.32(typescript@5.9.3)))(vue@3.5.32(typescript@5.9.3)))(vue@3.5.32(typescript@5.9.3))
       '@ionic/vue-router':
         specifier: 'catalog:'
-        version: 8.8.3(@stencil/core@4.43.3)(vue-router@5.0.4(@vue/compiler-sfc@3.5.32)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.32(typescript@5.9.3)))(vue@3.5.32(typescript@5.9.3)))(vue@3.5.32(typescript@5.9.3))
+        version: 8.8.4(@stencil/core@4.43.3)(vue-router@5.0.4(@vue/compiler-sfc@3.5.32)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.32(typescript@5.9.3)))(vue@3.5.32(typescript@5.9.3)))(vue@3.5.32(typescript@5.9.3))
       '@tanstack/vue-virtual':
         specifier: 'catalog:'
         version: 3.13.23(vue@3.5.32(typescript@5.9.3))
@@ -3865,8 +3865,8 @@ packages:
     resolution: {integrity: sha512-TshtaFQsovB4NWRBydbNFawql6yul7d5bMiW1WYYf17hd99V6xdDdk3vtF51bw6sLkxON3bDQpWsnUc9/hVo3g==}
     engines: {node: '>=16.0.0'}
 
-  '@ionic/core@8.8.3':
-    resolution: {integrity: sha512-qvl+bRgZRvAJ35eW2iW0Vlo11T/EQsPazMU6z45QxJvcLukGJ59MwubjDTx6dPKteful4/FBzVt9etCvcNp8Gg==}
+  '@ionic/core@8.8.4':
+    resolution: {integrity: sha512-RWts/72xtNNJDZQtntMRxB68KDctq76INV5OmLWWc0rlgcxOlNQDNH+lTBH7kV9vQ78JDVGSgi10ax3oQ3dIIQ==}
     engines: {node: '>= 16'}
 
   '@ionic/utils-array@2.1.6':
@@ -3897,11 +3897,11 @@ packages:
     resolution: {integrity: sha512-3cKScz9Jx2/Pr9ijj1OzGlBDfcmx7OMVBt4+P1uRR0SSW4cm1/y3Mo4OY3lfkuaYifMNBW8Wz6lQHbs1bihr7A==}
     engines: {node: '>=16.0.0'}
 
-  '@ionic/vue-router@8.8.3':
-    resolution: {integrity: sha512-jR5NDspvg5kbrzr9zgu+6cZYVjubDegdB8WZd5x6y0A7mTXSVb0PJOwf5JtJZT9DqwMGChOaasMjcYQpnPChRA==}
+  '@ionic/vue-router@8.8.4':
+    resolution: {integrity: sha512-3QxmCETQNO23K1ZjbGISk5AawlWNdnBG8pz0p2pDYHTAB8uvhrrRy7ZMyDeUtg4c4Kvg6eJFSzbJtSKliGPKZA==}
 
-  '@ionic/vue@8.8.3':
-    resolution: {integrity: sha512-6bwi2RodoxECt2Ef6C6km4ZkuH4TweyhF800/XpunOKjM2Iya3pD1j230KSRd35cJpAenGc1uplLdIZhAyMsWg==}
+  '@ionic/vue@8.8.4':
+    resolution: {integrity: sha512-FZftTMul3zw7vjZHAxznheSu0sy0h6GSLtKNeU5U4XtziOaMYZ9dLP5TWsBjRVahAEtqn+n6493fYW4EPE+dvw==}
 
   '@ioredis/commands@1.5.1':
     resolution: {integrity: sha512-JH8ZL/ywcJyR9MmJ5BNqZllXNZQqQbnVZOqpPQqE1vHiFgAw4NHbvE0FOduNU8IX9babitBT46571OnPTT0Zcw==}
@@ -15914,7 +15914,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@ionic/core@8.8.3':
+  '@ionic/core@8.8.4':
     dependencies:
       '@stencil/core': 4.43.0
       ionicons: 8.0.13
@@ -15988,17 +15988,17 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@ionic/vue-router@8.8.3(@stencil/core@4.43.3)(vue-router@5.0.4(@vue/compiler-sfc@3.5.32)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.32(typescript@5.9.3)))(vue@3.5.32(typescript@5.9.3)))(vue@3.5.32(typescript@5.9.3))':
+  '@ionic/vue-router@8.8.4(@stencil/core@4.43.3)(vue-router@5.0.4(@vue/compiler-sfc@3.5.32)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.32(typescript@5.9.3)))(vue@3.5.32(typescript@5.9.3)))(vue@3.5.32(typescript@5.9.3))':
     dependencies:
-      '@ionic/vue': 8.8.3(@stencil/core@4.43.3)(vue-router@5.0.4(@vue/compiler-sfc@3.5.32)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.32(typescript@5.9.3)))(vue@3.5.32(typescript@5.9.3)))(vue@3.5.32(typescript@5.9.3))
+      '@ionic/vue': 8.8.4(@stencil/core@4.43.3)(vue-router@5.0.4(@vue/compiler-sfc@3.5.32)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.32(typescript@5.9.3)))(vue@3.5.32(typescript@5.9.3)))(vue@3.5.32(typescript@5.9.3))
     transitivePeerDependencies:
       - '@stencil/core'
       - vue
       - vue-router
 
-  '@ionic/vue@8.8.3(@stencil/core@4.43.3)(vue-router@5.0.4(@vue/compiler-sfc@3.5.32)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.32(typescript@5.9.3)))(vue@3.5.32(typescript@5.9.3)))(vue@3.5.32(typescript@5.9.3))':
+  '@ionic/vue@8.8.4(@stencil/core@4.43.3)(vue-router@5.0.4(@vue/compiler-sfc@3.5.32)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.32(typescript@5.9.3)))(vue@3.5.32(typescript@5.9.3)))(vue@3.5.32(typescript@5.9.3))':
     dependencies:
-      '@ionic/core': 8.8.3
+      '@ionic/core': 8.8.4
       '@stencil/vue-output-target': 0.10.7(@stencil/core@4.43.3)(vue-router@5.0.4(@vue/compiler-sfc@3.5.32)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.32(typescript@5.9.3)))(vue@3.5.32(typescript@5.9.3)))(vue@3.5.32(typescript@5.9.3))
       ionicons: 8.0.13
     transitivePeerDependencies:

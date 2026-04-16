@@ -10,6 +10,7 @@ import { readFileFromDir } from '../utils/fileAccess'
 import { assembleProjectContext } from '../utils/projectContext'
 import { useProjectPersistence } from '../utils/projectPersistence'
 import { getCurrentProjectId } from '../utils/projectScope'
+import { estimateTokens } from '../utils/tokenEstimate'
 import { useAiSettingsStore } from './useAiSettingsStore'
 import { useWorldClockStore } from './useWorldClockStore'
 import { useWorldEventStore } from './useWorldEventStore'
@@ -126,10 +127,21 @@ export const useChatStore = defineStore('chat', () => {
       systemMessages.push({ role: 'system', content: systemContent })
     }
 
-    const chatHistory: AiChatMessage[] = messages.value.map(m => ({
-      role: m.role,
-      content: m.content,
-    }))
+    // Budget-aware context window: keep recent messages within token budget
+    const CHAT_TOKEN_BUDGET = 6144
+    const MAX_CHAT_API_MESSAGES = 30
+    const recentMessages = messages.value.slice(-MAX_CHAT_API_MESSAGES)
+    const chatHistory: AiChatMessage[] = []
+    let usedTokens = 0
+    // Walk backwards to prioritise recent messages
+    for (let i = recentMessages.length - 1; i >= 0; i--) {
+      const m = recentMessages[i]
+      const tokens = estimateTokens(m.content) + 4
+      if (usedTokens + tokens > CHAT_TOKEN_BUDGET && chatHistory.length >= 4)
+        break
+      chatHistory.unshift({ role: m.role, content: m.content })
+      usedTokens += tokens
+    }
 
     const allMessages = [...systemMessages, ...chatHistory]
 

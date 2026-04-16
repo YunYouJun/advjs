@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ChatMessage } from '../stores/useChatStore'
 import { IonButton, IonIcon } from '@ionic/vue'
-import { copyOutline, createOutline, refreshOutline, trashOutline } from 'ionicons/icons'
+import { copyOutline, createOutline, refreshOutline, thumbsDown, thumbsDownOutline, thumbsUp, thumbsUpOutline, trashOutline } from 'ionicons/icons'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -9,6 +9,10 @@ const props = defineProps<{
   message: ChatMessage
   isLast?: boolean
   isLoading?: boolean
+  /** Hide the edit button (e.g. in group chat where editing single messages is not supported) */
+  showEdit?: boolean
+  /** Current feedback state of this message */
+  feedback?: 'up' | 'down'
 }>()
 
 const emit = defineEmits<{
@@ -16,6 +20,8 @@ const emit = defineEmits<{
   edit: []
   delete: []
   regenerate: []
+  feedbackUp: []
+  feedbackDown: []
 }>()
 
 const { t } = useI18n()
@@ -53,9 +59,9 @@ function onTouchStart() {
       <IonIcon slot="icon-only" :icon="copyOutline" />
     </IonButton>
 
-    <!-- Edit (user messages only) -->
+    <!-- Edit (user messages only, hidden when showEdit is false) -->
     <IonButton
-      v-if="props.message.role === 'user'"
+      v-if="props.message.role === 'user' && props.showEdit !== false"
       fill="clear"
       size="small"
       :disabled="props.isLoading"
@@ -79,6 +85,34 @@ function onTouchStart() {
     >
       <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -->
       <IonIcon slot="icon-only" :icon="refreshOutline" />
+    </IonButton>
+
+    <!-- Feedback (assistant messages only) -->
+    <IonButton
+      v-if="props.message.role === 'assistant'"
+      fill="clear"
+      size="small"
+      :disabled="props.isLoading"
+      :aria-label="t('chat.goodResponse')"
+      class="msg-action-btn"
+      :class="{ 'msg-action-btn--active': props.feedback === 'up' }"
+      @click.stop="emit('feedbackUp')"
+    >
+      <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -->
+      <IonIcon slot="icon-only" :icon="props.feedback === 'up' ? thumbsUp : thumbsUpOutline" />
+    </IonButton>
+    <IonButton
+      v-if="props.message.role === 'assistant'"
+      fill="clear"
+      size="small"
+      :disabled="props.isLoading"
+      :aria-label="t('chat.badResponse')"
+      class="msg-action-btn"
+      :class="{ 'msg-action-btn--active': props.feedback === 'down' }"
+      @click.stop="emit('feedbackDown')"
+    >
+      <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -->
+      <IonIcon slot="icon-only" :icon="props.feedback === 'down' ? thumbsDown : thumbsDownOutline" />
     </IonButton>
 
     <!-- Delete -->
@@ -132,5 +166,9 @@ function onTouchStart() {
 
 .msg-action-btn ion-icon {
   font-size: 14px;
+}
+
+.msg-action-btn--active {
+  color: var(--ion-color-primary);
 }
 </style>

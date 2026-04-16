@@ -188,6 +188,23 @@ export async function validateProject(
     }
   }
 
+  // 5. Character relationship targetId integrity
+  const characterIdSet = new Set(characters.map(c => c.id))
+  for (const char of characters) {
+    if (char.relationships) {
+      for (const rel of char.relationships) {
+        if (rel.targetId && !characterIdSet.has(rel.targetId)) {
+          issues.push({
+            type: 'warning',
+            category: 'character',
+            file: `characters/${char.id}`,
+            message: `relationship targetId "${rel.targetId}" not found`,
+          })
+        }
+      }
+    }
+  }
+
   return {
     issues,
     passed: issues.filter(i => i.type === 'error').length === 0,

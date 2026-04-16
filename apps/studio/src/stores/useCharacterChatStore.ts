@@ -23,6 +23,8 @@ export interface CharacterChatMessage {
   timestamp: number
   /** Path to cached TTS audio file, e.g. 'adv/audio/tts/aria-1712345678.mp3' */
   ttsAudioPath?: string
+  /** User feedback on AI response quality: 'up' (good), 'down' (bad) */
+  feedback?: 'up' | 'down'
 }
 
 export interface CharacterConversation {
@@ -506,6 +508,40 @@ export const useCharacterChatStore = defineStore('characterChat', () => {
     }
   }
 
+  /**
+   * Set user feedback (👍/👎) on an assistant message.
+   * Pass `null` to clear feedback.
+   */
+  function setMessageFeedback(characterId: string, messageTimestamp: number, feedback: 'up' | 'down' | null): void {
+    const conv = getConversation(characterId)
+    const msg = conv.messages.find(m => m.timestamp === messageTimestamp && m.role === 'assistant')
+    if (msg) {
+      msg.feedback = feedback ?? undefined
+      flush()
+    }
+  }
+
+  /**
+   * Get the current feedback for a message.
+   */
+  function getMessageFeedback(characterId: string, messageTimestamp: number): 'up' | 'down' | undefined {
+    const conv = getConversation(characterId)
+    const msg = conv.messages.find(m => m.timestamp === messageTimestamp && m.role === 'assistant')
+    return msg?.feedback
+  }
+
+  /**
+   * Delete a single message by timestamp.
+   */
+  function deleteMessage(characterId: string, timestamp: number): void {
+    const conv = getConversation(characterId)
+    const idx = conv.messages.findIndex(m => m.timestamp === timestamp)
+    if (idx !== -1) {
+      conv.messages.splice(idx, 1)
+      flush()
+    }
+  }
+
   return {
     conversations,
     snapshots,
@@ -529,6 +565,9 @@ export const useCharacterChatStore = defineStore('characterChat', () => {
     getArchivedBatches,
     hasArchivedMessages,
     updateMessageTtsPath,
+    setMessageFeedback,
+    getMessageFeedback,
+    deleteMessage,
     init,
     flush,
     $reset,
