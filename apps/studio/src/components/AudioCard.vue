@@ -11,7 +11,6 @@ import {
 import { musicalNoteOutline, pauseOutline, playOutline } from 'ionicons/icons'
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useStudioStore } from '../stores/useStudioStore'
-import { readBlobFromDir } from '../utils/fileAccess'
 
 const props = defineProps<{
   audio: AudioInfo
@@ -55,13 +54,18 @@ watch(() => props.audio.src, async (src) => {
   if (!project?.dirHandle)
     return
 
+  const { getFs } = useProjectContent()
+  const fs = getFs()
+  if (!fs)
+    return
+
   try {
-    blobUrl.value = await readBlobFromDir(project.dirHandle, src)
+    blobUrl.value = await fs.readBlobUrl(src)
   }
   catch {
     // Try with adv/audio/ prefix
     try {
-      blobUrl.value = await readBlobFromDir(project.dirHandle, `adv/audio/${src}`)
+      blobUrl.value = await fs.readBlobUrl(`adv/audio/${src}`)
     }
     catch { /* ignore */ }
   }

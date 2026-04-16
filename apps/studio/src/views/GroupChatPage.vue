@@ -40,7 +40,7 @@ import { useStudioStore } from '../stores/useStudioStore'
 import { useViewModeStore } from '../stores/useViewModeStore'
 import { formatChatTime, getCharacterInitials, getMoodEmoji, getValidAvatarUrl } from '../utils/chatUtils'
 import { uploadToCloud } from '../utils/cloudSync'
-import { downloadAsFile, writeFileToDir } from '../utils/fileAccess'
+import { downloadAsFile } from '../utils/fileAccess'
 import { resolveCharacterTtsSettings } from '../utils/resolveAiConfig'
 import { ttsSpeak, ttsStop } from '../utils/ttsClient'
 import '../styles/chat.css'
@@ -385,7 +385,10 @@ async function saveExportedFile(filename: string, content: string) {
   const project = studioStore.currentProject
   try {
     if (project?.dirHandle) {
-      await writeFileToDir(project.dirHandle, filename, content)
+      const { getFs } = useProjectContent()
+      const fs = getFs()
+      if (fs)
+        await fs.writeFile(filename, content)
     }
     else if (project?.source === 'cos' && project.cosPrefix) {
       await uploadToCloud(settingsStore.cos, `${project.cosPrefix}${filename}`, content)

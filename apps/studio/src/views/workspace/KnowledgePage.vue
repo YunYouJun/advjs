@@ -40,7 +40,7 @@ const HEADING_LINE_RE = /^#[^\n]*\n\n?/
 const { t } = useI18n()
 const studioStore = useStudioStore()
 const settingsStore = useSettingsStore()
-const { getDirHandle } = useProjectContent()
+const { getFs } = useProjectContent()
 const knowledgeBase = useKnowledgeBase()
 
 // --- Search ---
@@ -156,11 +156,11 @@ async function handleDelete(entry: KnowledgeEntry) {
         text: t('common.delete'),
         role: 'destructive',
         handler: async () => {
-          const dirHandle = getDirHandle()
-          if (!dirHandle)
+          const fs = getFs()
+          if (!fs)
             return
           try {
-            await knowledgeBase.deleteEntry(dirHandle, entry.file)
+            await knowledgeBase.deleteEntryFs(fs, entry.file)
             await showToast(t('common.deleted'), 'success')
           }
           catch {

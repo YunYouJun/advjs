@@ -17,10 +17,10 @@ import { useRoute, useRouter } from 'vue-router'
 import LayoutPage from '../components/common/LayoutPage.vue'
 import GamePlayer from '../components/GamePlayer.vue'
 import NodeSelector from '../components/NodeSelector.vue'
+import { useProjectContent } from '../composables/useProjectContent'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { downloadFromCloud, listCloudFiles } from '../utils/cloudSync'
-import { listFilesInDir, readFileFromDir } from '../utils/fileAccess'
 
 const { t } = useI18n()
 const studioStore = useStudioStore()
@@ -83,21 +83,25 @@ async function loadChapters() {
     }
   }
   else if (project.dirHandle) {
-    const files: string[] = []
-    try {
-      const chapterFiles = await listFilesInDir(project.dirHandle, 'adv/chapters', '.adv.md')
-      files.push(...chapterFiles)
-    }
-    catch { /* no chapters dir */ }
-    try {
-      const rootFiles = await listFilesInDir(project.dirHandle, 'adv', '.adv.md')
-      for (const f of rootFiles) {
-        if (!files.includes(f))
-          files.push(f)
+    const { getFs } = useProjectContent()
+    const fs = getFs()
+    if (fs) {
+      const files: string[] = []
+      try {
+        const chapterFiles = await fs.listFiles('adv/chapters', '.adv.md')
+        files.push(...chapterFiles)
       }
+      catch { /* no chapters dir */ }
+      try {
+        const rootFiles = await fs.listFiles('adv', '.adv.md')
+        for (const f of rootFiles) {
+          if (!files.includes(f))
+            files.push(f)
+        }
+      }
+      catch { /* no root .adv.md */ }
+      chapters.value = files.sort()
     }
-    catch { /* no root .adv.md */ }
-    chapters.value = files.sort()
   }
 
   // Auto-load first chapter if no URL param
@@ -119,7 +123,10 @@ async function loadChapterForPlay(file: string) {
       gameContent.value = await downloadFromCloud(settingsStore.cos, file)
     }
     else if (project.dirHandle) {
-      gameContent.value = await readFileFromDir(project.dirHandle, file)
+      const { getFs } = useProjectContent()
+      const fs = getFs()
+      if (fs)
+        gameContent.value = await fs.readFile(file)
     }
   }
   catch {

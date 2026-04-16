@@ -39,7 +39,7 @@ const { t } = useI18n()
 const router = useRouter()
 const aiSettings = useAiSettingsStore()
 
-const { locations, scenes, characters, reload, getDirHandle } = useProjectContent()
+const { locations, scenes, characters, reload, getFs } = useProjectContent()
 const { isSaving, saveContent } = useContentSave()
 const { deleteFile } = useContentDelete()
 const { trackAccess } = useRecentActivity()
@@ -104,13 +104,13 @@ async function handleSaveLocation() {
     return
   }
 
-  const dirHandle = getDirHandle()
-  if (!dirHandle) {
-    await showToast(t('contentEditor.saveFailed', { error: 'No directory handle' }), 'danger')
+  const fs = getFs()
+  if (!fs) {
+    await showToast(t('contentEditor.saveFailed', { error: 'No file system' }), 'danger')
     return
   }
 
-  const result = await saveContent(dirHandle, 'location', locationEditor.mode.value, locationEditor.formData.value, locationEditor.originalId.value)
+  const result = await saveContent(fs, 'location', locationEditor.mode.value, locationEditor.formData.value, locationEditor.originalId.value)
   if (result.success) {
     await showToast(t('contentEditor.saveSuccess'))
     locationEditor.onSaved()

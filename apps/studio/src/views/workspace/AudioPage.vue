@@ -30,7 +30,7 @@ import { useContentSave } from '../../composables/useContentSave'
 import { useProjectContent } from '../../composables/useProjectContent'
 import { useAiSettingsStore } from '../../stores/useAiSettingsStore'
 import { parseAudioMd, stringifyAudioMd } from '../../utils/audioMd'
-import { isAudioFile, writeBlobToDir, writeFileToDir } from '../../utils/fileAccess'
+import { isAudioFile } from '../../utils/fileAccess'
 import { showToast } from '../../utils/toast'
 
 const FILE_NAME_RE = /[^\w\u4E00-\u9FFF-]/g
@@ -38,7 +38,7 @@ const FILE_NAME_RE = /[^\w\u4E00-\u9FFF-]/g
 const { t } = useI18n()
 const aiSettings = useAiSettingsStore()
 
-const { audios, reload, getDirHandle } = useProjectContent()
+const { audios, reload, getFs } = useProjectContent()
 const { isSaving } = useContentSave()
 const { deleteFile } = useContentDelete()
 
@@ -106,9 +106,9 @@ async function handleSaveAudio() {
     return
   }
 
-  const dirHandle = getDirHandle()
-  if (!dirHandle) {
-    await showToast(t('contentEditor.saveFailed', { error: 'No directory handle' }), 'danger')
+  const fs = getFs()
+  if (!fs) {
+    await showToast(t('contentEditor.saveFailed', { error: 'No file system' }), 'danger')
     return
   }
 
@@ -119,7 +119,7 @@ async function handleSaveAudio() {
   const content = stringifyAudioMd(data)
 
   try {
-    await writeFileToDir(dirHandle, filePath, content)
+    await fs.writeFile(filePath, content)
     await showToast(t('contentEditor.saveSuccess'))
     audioEditor.onSaved()
     audioEditor.close()
@@ -151,8 +151,8 @@ async function handleFileImport(event: Event) {
   if (!files?.length)
     return
 
-  const dirHandle = getDirHandle()
-  if (!dirHandle) {
+  const fs = getFs()
+  if (!fs) {
     await showToast(t('audio.importFailed'), 'danger')
     return
   }
@@ -164,7 +164,7 @@ async function handleFileImport(event: Event) {
       continue
     try {
       const path = `adv/audio/${file.name}`
-      await writeBlobToDir(dirHandle, path, file)
+      await fs.writeBlob(path, file)
       imported++
     }
     catch {

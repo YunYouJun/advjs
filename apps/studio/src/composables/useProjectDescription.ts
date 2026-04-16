@@ -1,8 +1,9 @@
+import type { IFileSystem } from '../utils/fs'
 import { ref, watch } from 'vue'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { downloadFromCloud } from '../utils/cloudSync'
-import { readFileFromDir } from '../utils/fileAccess'
+import { createFsForProject } from '../utils/fs'
 
 // --- Module-level singleton state ---
 const worldMd = ref('')
@@ -46,15 +47,15 @@ function extractSections(md: string): string[] {
  * Shared singleton — all callers share the same reactive state.
  */
 export function useProjectDescription() {
-  async function loadFromDir(dirHandle: FileSystemDirectoryHandle) {
+  async function loadFromFs(fs: IFileSystem) {
     isLoading.value = true
     try {
       const reads = await Promise.allSettled([
-        readFileFromDir(dirHandle, 'adv/world.md'),
-        readFileFromDir(dirHandle, 'adv/outline.md'),
-        readFileFromDir(dirHandle, 'adv/glossary.md'),
-        readFileFromDir(dirHandle, 'adv/props.md'),
-        readFileFromDir(dirHandle, 'adv/writing-style.md'),
+        fs.readFile('adv/world.md'),
+        fs.readFile('adv/outline.md'),
+        fs.readFile('adv/glossary.md'),
+        fs.readFile('adv/props.md'),
+        fs.readFile('adv/writing-style.md'),
       ])
 
       worldMd.value = reads[0].status === 'fulfilled' ? reads[0].value : ''
@@ -66,6 +67,11 @@ export function useProjectDescription() {
     finally {
       isLoading.value = false
     }
+  }
+
+  async function loadFromDir(dirHandle: FileSystemDirectoryHandle) {
+    const { BrowserFsAdapter } = await import('../utils/fs/BrowserFsAdapter')
+    await loadFromFs(new BrowserFsAdapter(dirHandle))
   }
 
   async function loadFromCos(
@@ -113,10 +119,15 @@ export function useProjectDescription() {
         return
       }
       if (project.dirHandle) {
-        await loadFromDir(project.dirHandle)
+        const fs = await createFsForProject(project as any)
+        await loadFromFs(fs)
       }
       else if (project.source === 'cos' && project.cosPrefix) {
         await loadFromCos(settingsStore.cos, project.cosPrefix)
+      }
+      else {
+        const fs = await createFsForProject({ projectId: project.projectId || project.name, source: project.source })
+        await loadFromFs(fs)
       }
     }, { immediate: true })
   }
@@ -131,6 +142,7 @@ export function useProjectDescription() {
     extractTitle,
     extractPreview,
     extractSections,
+    loadFromFs,
     loadFromDir,
     loadFromCos,
     $reset,

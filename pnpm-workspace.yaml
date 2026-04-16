@@ -21,6 +21,7 @@ catalog:
   '@capacitor/app': 8.1.0
   '@capacitor/cli': 8.3.0
   '@capacitor/core': 8.3.0
+  '@capacitor/filesystem': 8.1.2
   '@capacitor/haptics': 8.0.2
   '@capacitor/keyboard': 8.0.2
   '@capacitor/status-bar': 8.0.2

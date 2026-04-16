@@ -8,7 +8,7 @@ import { useProjectContent } from './useProjectContent'
  */
 export function useContentDelete() {
   const { t } = useI18n()
-  const { getDirHandle, reload } = useProjectContent()
+  const { getFs, reload } = useProjectContent()
 
   /**
    * Delete a file from the project directory after user confirmation.
@@ -33,18 +33,14 @@ export function useContentDelete() {
     if (role === 'cancel' || role === 'backdrop')
       return false
 
-    const dirHandle = getDirHandle()
-    if (!dirHandle) {
-      await showToast(t('contentEditor.saveFailed', { error: 'No directory handle' }), 'danger')
+    const fs = getFs()
+    if (!fs) {
+      await showToast(t('contentEditor.saveFailed', { error: 'No file system' }), 'danger')
       return false
     }
 
     try {
-      const parts = filePath.split('/').filter(Boolean)
-      let dir = dirHandle
-      for (let i = 0; i < parts.length - 1; i++)
-        dir = await dir.getDirectoryHandle(parts[i])
-      await dir.removeEntry(parts.at(-1)!)
+      await fs.deleteFile(filePath)
 
       await reload()
       await showToast(t('common.deleted'))

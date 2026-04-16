@@ -11,8 +11,8 @@ import {
 } from '@ionic/vue'
 import { imageOutline, sparklesOutline } from 'ionicons/icons'
 import { computed, onUnmounted, ref, watch } from 'vue'
+import { useProjectContent } from '../composables/useProjectContent'
 import { useStudioStore } from '../stores/useStudioStore'
-import { readBlobFromDir } from '../utils/fileAccess'
 
 const props = defineProps<{
   scene: SceneInfo
@@ -56,12 +56,17 @@ watch(() => props.scene.src, async (src) => {
   if (!project?.dirHandle)
     return
 
+  const { getFs } = useProjectContent()
+  const fs = getFs()
+  if (!fs)
+    return
+
   try {
     // Try relative to project root, or relative to adv/scenes/
     const paths = [src, `adv/scenes/${src}`]
     for (const path of paths) {
       try {
-        thumbnailUrl.value = await readBlobFromDir(project.dirHandle, path)
+        thumbnailUrl.value = await fs.readBlobUrl(path)
         return
       }
       catch { /* try next */ }

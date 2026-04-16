@@ -1,9 +1,10 @@
+import type { IFileSystem } from '../utils/fs'
 import { ref, watch } from 'vue'
 import i18n from '../i18n'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { downloadFromCloud } from '../utils/cloudSync'
-import { readFileFromDir } from '../utils/fileAccess'
+import { createFsForProject } from '../utils/fs'
 
 // --- Module-level singleton state ---
 const worldContext = ref('')
@@ -17,14 +18,14 @@ let watchInitialized = false
  * An internal watch on `currentProject` automatically loads data on project switch.
  */
 export function useWorldContext() {
-  async function loadFromDir(dirHandle: FileSystemDirectoryHandle) {
+  async function loadFromFs(fs: IFileSystem) {
     isLoading.value = true
     try {
       const parts: string[] = []
 
       const reads = await Promise.allSettled([
-        readFileFromDir(dirHandle, 'adv/world.md'),
-        readFileFromDir(dirHandle, 'adv/glossary.md'),
+        fs.readFile('adv/world.md'),
+        fs.readFile('adv/glossary.md'),
       ])
 
       const [world, glossary] = reads.map(
@@ -44,6 +45,11 @@ export function useWorldContext() {
     finally {
       isLoading.value = false
     }
+  }
+
+  async function loadFromDir(dirHandle: FileSystemDirectoryHandle) {
+    const { BrowserFsAdapter } = await import('../utils/fs/BrowserFsAdapter')
+    await loadFromFs(new BrowserFsAdapter(dirHandle))
   }
 
   async function loadFromCos(
@@ -94,10 +100,15 @@ export function useWorldContext() {
         return
       }
       if (project.dirHandle) {
-        await loadFromDir(project.dirHandle)
+        const fs = await createFsForProject(project as any)
+        await loadFromFs(fs)
       }
       else if (project.source === 'cos' && project.cosPrefix) {
         await loadFromCos(settingsStore.cos, project.cosPrefix)
+      }
+      else {
+        const fs = await createFsForProject({ projectId: project.projectId || project.name, source: project.source })
+        await loadFromFs(fs)
       }
     }, { immediate: true })
   }
@@ -105,6 +116,7 @@ export function useWorldContext() {
   return {
     worldContext,
     isLoading,
+    loadFromFs,
     loadFromDir,
     loadFromCos,
     $reset,

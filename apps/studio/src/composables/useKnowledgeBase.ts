@@ -1,4 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
+import type { IFileSystem } from '../utils/fs'
 import { computed, ref } from 'vue'
 import { downloadFromCloud, listCloudFiles } from '../utils/cloudSync'
 import { contentHash, generateEmbeddings, rankBySimilarity } from '../utils/embeddingClient'
@@ -366,6 +367,32 @@ async function listMdFilesRecursive(
   return files.sort()
 }
 
+/**
+ * Recursively list all .md files under a directory via IFileSystem.
+ */
+async function listMdFilesRecursiveFs(
+  fs: IFileSystem,
+  prefix: string,
+): Promise<string[]> {
+  const files: string[] = []
+  try {
+    const entries = await fs.readdir(prefix)
+    for (const entry of entries) {
+      if (entry.type === 'file' && entry.name.endsWith('.md')) {
+        files.push(entry.path)
+      }
+      else if (entry.type === 'directory') {
+        const subFiles = await listMdFilesRecursiveFs(fs, entry.path)
+        files.push(...subFiles)
+      }
+    }
+  }
+  catch {
+    // directory not found or access error
+  }
+  return files.sort()
+}
+
 // --- Module-level singleton state ---
 const entries: Ref<KnowledgeEntry[]> = ref([])
 const isLoading: Ref<boolean> = ref(false)
@@ -484,6 +511,118 @@ export function useKnowledgeBase() {
     finally {
       isLoading.value = false
     }
+  }
+
+  /**
+   * Load knowledge files via IFileSystem interface.
+   */
+  async function loadFromFs(fs: IFileSystem): Promise<void> {
+    isLoading.value = true
+    try {
+      const knowledgeFiles = await listMdFilesRecursiveFs(fs, 'adv/knowledge')
+      const newEntries: KnowledgeEntry[] = []
+      const snapshot = new Map<string, number>()
+
+      for (const file of knowledgeFiles) {
+        try {
+          const content = await fs.readFile(file)
+          const domain = extractDomain(file)
+          newEntries.push(parseEntry(file, content, domain))
+          snapshot.set(file, content.length)
+        }
+        catch {
+          // skip unreadable files
+        }
+      }
+
+      entries.value = newEntries
+      lastFileSnapshot = snapshot
+    }
+    finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Save a knowledge entry via IFileSystem.
+   */
+  async function saveEntryFs(fs: IFileSystem, entry: KnowledgeEntry): Promise<void> {
+    await fs.writeFile(entry.file, entry.content)
+    const idx = entries.value.findIndex(e => e.file === entry.file)
+    if (idx >= 0) {
+      entries.value[idx] = entry
+    }
+    else {
+      entries.value = [...entries.value, entry]
+    }
+  }
+
+  /**
+   * Create a new knowledge entry via IFileSystem.
+   */
+  async function createEntryFs(
+    fs: IFileSystem,
+    domain: string,
+    title: string,
+    content: string,
+  ): Promise<KnowledgeEntry> {
+    const safeTitle = title
+      .toLowerCase()
+      .replace(SAFE_TITLE_RE, '_')
+      .replace(TRIM_UNDERSCORE_RE, '')
+      || 'untitled'
+
+    const dir = domain === 'general' ? 'adv/knowledge' : `adv/knowledge/${domain}`
+    const file = `${dir}/${safeTitle}.md`
+    const fullContent = `# ${title}\n\n${content}`
+
+    const entry = parseEntry(file, fullContent, domain)
+    await fs.writeFile(file, fullContent)
+    entries.value = [...entries.value, entry]
+    return entry
+  }
+
+  /**
+   * Delete a knowledge entry via IFileSystem.
+   */
+  async function deleteEntryFs(fs: IFileSystem, filePath: string): Promise<void> {
+    await fs.deleteFile(filePath)
+    entries.value = entries.value.filter(e => e.file !== filePath)
+  }
+
+  /**
+   * Start watching for file changes via IFileSystem.
+   */
+  function watchForChangesFs(fs: IFileSystem): void {
+    stopWatching()
+    watchInterval = setInterval(async () => {
+      if (isLoading.value)
+        return
+      try {
+        const knowledgeFiles = await listMdFilesRecursiveFs(fs, 'adv/knowledge')
+        if (knowledgeFiles.length !== lastFileSnapshot.size) {
+          await loadFromFs(fs)
+          return
+        }
+        for (const file of knowledgeFiles) {
+          try {
+            const content = await fs.readFile(file)
+            const prevLen = lastFileSnapshot.get(file)
+            if (prevLen === undefined || prevLen !== content.length) {
+              await loadFromFs(fs)
+              return
+            }
+          }
+          catch {
+            await loadFromFs(fs)
+            return
+          }
+        }
+      }
+      catch {
+        stopWatching()
+      }
+    }, 30_000)
   }
 
   /**
@@ -825,15 +964,20 @@ export function useKnowledgeBase() {
     domains,
     isLoading,
     loadFromDir,
+    loadFromFs,
     loadFromCos,
     getEntriesForDomain,
     getDomainSummary,
     selectRelevantKnowledge,
     selectRelevantKnowledgeV2,
     saveEntry,
+    saveEntryFs,
     createEntry,
+    createEntryFs,
     deleteEntry,
+    deleteEntryFs,
     watchForChanges,
+    watchForChangesFs,
     stopWatching,
     $reset,
   }

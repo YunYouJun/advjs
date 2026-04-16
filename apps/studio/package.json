@@ -19,6 +19,7 @@
     "@advjs/types": "workspace:*",
     "@capacitor/app": "catalog:",
     "@capacitor/core": "catalog:",
+    "@capacitor/filesystem": "catalog:",
     "@capacitor/haptics": "catalog:",
     "@capacitor/keyboard": "catalog:",
     "@capacitor/status-bar": "catalog:",

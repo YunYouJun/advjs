@@ -24,7 +24,7 @@ import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { formatChatTime } from '../utils/chatUtils'
 import { uploadToCloud } from '../utils/cloudSync'
-import { downloadAsFile, readFileFromDir, writeFileToDir } from '../utils/fileAccess'
+import { downloadAsFile } from '../utils/fileAccess'
 import { computeLineDiff } from '../utils/lineDiff'
 import '../styles/chat.css'
 
@@ -58,7 +58,10 @@ watch(() => studioStore.currentProject, async (project) => {
   if (!project)
     return
   if (project.dirHandle) {
-    await chatStore.loadProjectContext(project.dirHandle)
+    const { getFs } = useProjectContent()
+    const fs = getFs()
+    if (fs)
+      await chatStore.loadProjectContextFromFs(fs)
   }
   else if (project.source === 'cos' && project.cosPrefix) {
     await chatStore.loadProjectContextFromCos(settingsStore.cos, project.cosPrefix)
@@ -195,10 +198,12 @@ async function handleSaveContent(payload: { type: string, content: string, filen
     return
 
   try {
-    if (project.dirHandle) {
+    const { getFs } = useProjectContent()
+    const fs = getFs()
+    if (fs) {
       // Capture before-snapshot for diff (new file → empty string)
-      const beforeContent = await readFileFromDir(project.dirHandle, payload.filename).catch(() => '')
-      await writeFileToDir(project.dirHandle, payload.filename, payload.content)
+      const beforeContent = await fs.readFile(payload.filename).catch(() => '')
+      await fs.writeFile(payload.filename, payload.content)
 
       // Compute and attach diff to the last assistant message
       if (beforeContent !== payload.content) {
@@ -237,8 +242,9 @@ async function handleSaveContent(payload: { type: string, content: string, filen
     await toast.present()
 
     // Reload project context so the new content is available for future AI conversations
-    if (project.dirHandle) {
-      await chatStore.loadProjectContext(project.dirHandle)
+    const fs2 = useProjectContent().getFs()
+    if (fs2) {
+      await chatStore.loadProjectContextFromFs(fs2)
     }
     else if (project.source === 'cos' && project.cosPrefix) {
       await chatStore.loadProjectContextFromCos(settingsStore.cos, project.cosPrefix)

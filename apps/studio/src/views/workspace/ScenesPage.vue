@@ -31,14 +31,13 @@ import { useProjectContent } from '../../composables/useProjectContent'
 import { useRecentActivity } from '../../composables/useRecentActivity'
 import { useAiSettingsStore } from '../../stores/useAiSettingsStore'
 import { generateImage, isImageGenerationAvailable } from '../../utils/aiImageClient'
-import { writeBlobToDir, writeFileToDir } from '../../utils/fileAccess'
 import { parseSceneMd, stringifySceneMd } from '../../utils/sceneMd'
 import { showToast } from '../../utils/toast'
 
 const { t } = useI18n()
 const aiSettings = useAiSettingsStore()
 
-const { scenes, reload, getDirHandle } = useProjectContent()
+const { scenes, reload, getFs } = useProjectContent()
 const { isSaving, saveContent } = useContentSave()
 const { deleteFile } = useContentDelete()
 const { trackAccess } = useRecentActivity()
@@ -61,23 +60,22 @@ async function handleGenerateImage(scene: SceneInfo) {
     )
 
     // Download the image and save to project
-    const dirHandle = getDirHandle()
-    if (dirHandle && result.url) {
+    const fs = getFs()
+    if (fs && result.url) {
       const response = await fetch(result.url)
       const blob = await response.blob()
       const ext = blob.type.includes('webp') ? 'webp' : blob.type.includes('png') ? 'png' : 'jpg'
       const imagePath = `adv/scenes/${sceneId}.${ext}`
-      await writeBlobToDir(dirHandle, imagePath, blob)
+      await fs.writeBlob(imagePath, blob)
 
       // Update scene frontmatter with src
       const sceneMdPath = `adv/scenes/${sceneId}.md`
       try {
-        const { readFileFromDir } = await import('../../utils/fileAccess')
-        const content = await readFileFromDir(dirHandle, sceneMdPath)
+        const content = await fs.readFile(sceneMdPath)
         const parsed = parseSceneMd(content)
         parsed.src = `${sceneId}.${ext}`
         const newContent = stringifySceneMd(parsed)
-        await writeFileToDir(dirHandle, sceneMdPath, newContent)
+        await fs.writeFile(sceneMdPath, newContent)
       }
       catch {
         // Scene md not found — create one
@@ -88,7 +86,7 @@ async function handleGenerateImage(scene: SceneInfo) {
           src: `${sceneId}.${ext}`,
           type: 'image',
         })
-        await writeFileToDir(dirHandle, sceneMdPath, newContent)
+        await fs.writeFile(sceneMdPath, newContent)
       }
 
       await reload()
@@ -169,13 +167,13 @@ async function handleSaveScene() {
     return
   }
 
-  const dirHandle = getDirHandle()
-  if (!dirHandle) {
-    await showToast(t('contentEditor.saveFailed', { error: 'No directory handle' }), 'danger')
+  const fs = getFs()
+  if (!fs) {
+    await showToast(t('contentEditor.saveFailed', { error: 'No file system' }), 'danger')
     return
   }
 
-  const result = await saveContent(dirHandle, 'scene', sceneEditor.mode.value, sceneEditor.formData.value, sceneEditor.originalId.value)
+  const result = await saveContent(fs, 'scene', sceneEditor.mode.value, sceneEditor.formData.value, sceneEditor.originalId.value)
   if (result.success) {
     await showToast(t('contentEditor.saveSuccess'))
     sceneEditor.onSaved()

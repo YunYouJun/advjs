@@ -13,10 +13,11 @@ import { useRoute } from 'vue-router'
 import AiGeneratePanel from '../components/AiGeneratePanel.vue'
 import LayoutPage from '../components/common/LayoutPage.vue'
 import { useCloudSync } from '../composables/useCloudSync'
+import { useProjectContent } from '../composables/useProjectContent'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { downloadFromCloud } from '../utils/cloudSync'
-import { downloadAsFile, readFileFromDir, writeFileToDir } from '../utils/fileAccess'
+import { downloadAsFile } from '../utils/fileAccess'
 
 const BLOCK_LEVEL_RE = /^(?:## |[-*] |> |---|【)/
 
@@ -157,7 +158,10 @@ onMounted(async () => {
       content.value = await downloadFromCloud(settingsStore.cos, filePath.value)
     }
     else if (project.dirHandle) {
-      content.value = await readFileFromDir(project.dirHandle, filePath.value)
+      const { getFs } = useProjectContent()
+      const fs = getFs()
+      if (fs)
+        content.value = await fs.readFile(filePath.value)
     }
     initialContent.value = content.value
   }
@@ -238,7 +242,11 @@ async function save() {
     }
     else if (project?.dirHandle && filePath.value) {
       // Write back to file system
-      await writeFileToDir(project.dirHandle, filePath.value, content.value)
+      const { getFs } = useProjectContent()
+      const fs = getFs()
+      if (fs) {
+        await fs.writeFile(filePath.value, content.value)
+      }
       initialContent.value = content.value
 
       // Also upload to COS if configured and autoSave is on

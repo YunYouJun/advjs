@@ -26,7 +26,6 @@ import { useI18n } from 'vue-i18n'
 import LayoutPage from '../../components/common/LayoutPage.vue'
 import { useProjectContent } from '../../composables/useProjectContent'
 import { parseCSV, validateCharacterCSVHeaders } from '../../utils/csvParser'
-import { writeFileToDir } from '../../utils/fileAccess'
 import { showToast } from '../../utils/toast'
 
 const WHITESPACE_RE = /\s+/g
@@ -37,7 +36,7 @@ function nameToId(name: string): string {
 }
 
 const { t } = useI18n()
-const { characters, reload, getDirHandle } = useProjectContent()
+const { characters, reload, getFs } = useProjectContent()
 
 // --- State ---
 const importFormat = ref<'csv' | 'json'>('csv')
@@ -171,8 +170,8 @@ function parseJSONContent() {
 
 // --- Import ---
 async function doImport() {
-  const dirHandle = getDirHandle()
-  if (!dirHandle) {
+  const fs = getFs()
+  if (!fs) {
     showToast(t('batchImport.noProject'), 'warning')
     return
   }
@@ -208,7 +207,7 @@ async function doImport() {
         const charToWrite = { ...character, id: finalId }
         const content = stringifyCharacterMd(charToWrite)
         const filePath = `adv/characters/${finalId}.character.md`
-        await writeFileToDir(dirHandle, filePath, content)
+        await fs.writeFile(filePath, content)
 
         occupiedIds.add(finalId)
         importResults.value.push({ name: character.name, status })

@@ -169,6 +169,9 @@ catalogs:
     '@capacitor/core':
       specifier: 8.3.0
       version: 8.3.0
+    '@capacitor/filesystem':
+      specifier: 8.1.2
+      version: 8.1.2
     '@capacitor/haptics':
       specifier: 8.0.2
       version: 8.0.2
@@ -415,6 +418,9 @@ catalogs:
     html2canvas:
       specifier: ^1.4.1
       version: 1.4.1
+    modern-screenshot:
+      specifier: ^4.6.8
+      version: 4.6.8
     monaco-editor:
       specifier: ^0.55.1
       version: 0.55.1
@@ -783,6 +789,9 @@ importers:
       '@capacitor/core':
         specifier: 'catalog:'
         version: 8.3.0
+      '@capacitor/filesystem':
+        specifier: 'catalog:'
+        version: 8.1.2(@capacitor/core@8.3.0)
       '@capacitor/haptics':
         specifier: 'catalog:'
         version: 8.0.2(@capacitor/core@8.3.0)
@@ -820,7 +829,7 @@ importers:
         specifier: catalog:build
         version: 14.1.1
       modern-screenshot:
-        specifier: ^4.6.8
+        specifier: catalog:frontend
         version: 4.6.8
       monaco-editor:
         specifier: catalog:frontend
@@ -3086,6 +3095,11 @@ packages:
   '@capacitor/core@8.3.0':
     resolution: {integrity: sha512-S4ajn4G/fS3VJj8salxqH/3LO5PPWv1VxGKQ27OCajnDcLJjEg9VXwgMPnlypgkIOqCJ2fmQLtk8GT+BlI9/rw==}
 
+  '@capacitor/filesystem@8.1.2':
+    resolution: {integrity: sha512-doaaMfGoFR2hWU6aV6u83I+5ZsGyJVq+Gz4r9lMpJzUKMm1eMu0hLnFdV1aXZlU9FlK/RndFrVD8oRZfNOqWgQ==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
   '@capacitor/haptics@8.0.2':
     resolution: {integrity: sha512-c2hZzRR5Fk1tbTvhG1jhh2XBAf3EhnIerMIb2sl7Mt41Gxx1fhBJFDa0/BI1IbY4loVepyyuqNC9820/GZuoWQ==}
     peerDependencies:
@@ -3100,6 +3114,9 @@ packages:
     resolution: {integrity: sha512-WXs8YB8B9eEaPZz+bcdY6t2nForF1FLoj/JU0Dl9RRgQnddnS98FEEyDooQhaY7wivr000j4+SC1FyeJkrFO7A==}
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
+
+  '@capacitor/synapse@1.0.4':
+    resolution: {integrity: sha512-/C1FUo8/OkKuAT4nCIu/34ny9siNHr9qtFezu4kxm6GY1wNFxrCFWjfYx5C1tUhVGz3fxBABegupkpjXvjCHrw==}
 
   '@chevrotain/cst-dts-gen@11.1.2':
     resolution: {integrity: sha512-XTsjvDVB5nDZBQB8o0o/0ozNelQtn2KrUVteIHSlPd2VAV2utEb6JzyCJaJ8tGxACR4RiBNWy5uYUHX2eji88Q==}
@@ -15203,6 +15220,11 @@ snapshots:
     dependencies:
       tslib: 2.8.1
 
+  '@capacitor/filesystem@8.1.2(@capacitor/core@8.3.0)':
+    dependencies:
+      '@capacitor/core': 8.3.0
+      '@capacitor/synapse': 1.0.4
+
   '@capacitor/haptics@8.0.2(@capacitor/core@8.3.0)':
     dependencies:
       '@capacitor/core': 8.3.0
@@ -15214,6 +15236,8 @@ snapshots:
   '@capacitor/status-bar@8.0.2(@capacitor/core@8.3.0)':
     dependencies:
       '@capacitor/core': 8.3.0
+
+  '@capacitor/synapse@1.0.4': {}
 
   '@chevrotain/cst-dts-gen@11.1.2':
     dependencies:

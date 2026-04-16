@@ -1,12 +1,12 @@
 import type { AdvCharacter, AdvTachie } from '@advjs/types'
 import type { ChapterFormData } from '../utils/chapterMd'
+import type { IFileSystem } from '../utils/fs'
 import type { LocationFormData } from '../utils/locationMd'
 import type { SceneFormData } from '../utils/sceneMd'
 import type { ContentType, EditorMode } from './useContentEditor'
 import { stringifyCharacterMd } from '@advjs/parser'
 import { ref } from 'vue'
 import { stringifyChapterMd } from '../utils/chapterMd'
-import { resolveSubdir, writeFileToDir } from '../utils/fileAccess'
 import { stringifyLocationMd } from '../utils/locationMd'
 import { stringifySceneMd } from '../utils/sceneMd'
 
@@ -20,18 +20,10 @@ export interface SaveResult {
 }
 
 /**
- * Check if a file exists in a directory handle (by navigating the path)
+ * Check if a file exists via IFileSystem
  */
-async function fileExists(dirHandle: FileSystemDirectoryHandle, path: string): Promise<boolean> {
-  const parts = path.split('/').filter(Boolean)
-  try {
-    const current = await resolveSubdir(dirHandle, parts.slice(0, -1))
-    await current.getFileHandle(parts.at(-1)!)
-    return true
-  }
-  catch {
-    return false
-  }
+async function fileExists(fs: IFileSystem, path: string): Promise<boolean> {
+  return fs.exists(path)
 }
 
 /**
@@ -49,15 +41,10 @@ function dataUriToBytes(dataUri: string): { bytes: Uint8Array, ext: string } {
 }
 
 /**
- * Write a binary file to a directory handle
+ * Write a binary file via IFileSystem
  */
-async function writeBinaryToDir(dirHandle: FileSystemDirectoryHandle, path: string, data: Uint8Array): Promise<void> {
-  const parts = path.split('/').filter(Boolean)
-  const current = await resolveSubdir(dirHandle, parts.slice(0, -1), true)
-  const fileHandle = await current.getFileHandle(parts.at(-1)!, { create: true })
-  const writable = await fileHandle.createWritable()
-  await writable.write(new Blob([data as unknown as Uint8Array<ArrayBuffer>]))
-  await writable.close()
+async function writeBinaryToFs(fs: IFileSystem, path: string, data: Uint8Array): Promise<void> {
+  await fs.writeBlob(path, new Blob([data]))
 }
 
 /**
@@ -65,7 +52,7 @@ async function writeBinaryToDir(dirHandle: FileSystemDirectoryHandle, path: stri
  * Saves images to adv/assets/characters/{id}/
  */
 async function extractCharacterImages(
-  dirHandle: FileSystemDirectoryHandle,
+  fs: IFileSystem,
   character: AdvCharacter,
 ): Promise<AdvCharacter> {
   const updated = { ...character }
@@ -75,7 +62,7 @@ async function extractCharacterImages(
   if (updated.avatar && DATA_URI_RE.test(updated.avatar)) {
     const { bytes, ext } = dataUriToBytes(updated.avatar)
     const filePath = `${assetDir}/avatar.${ext}`
-    await writeBinaryToDir(dirHandle, filePath, bytes)
+    await writeBinaryToFs(fs, filePath, bytes)
     updated.avatar = `assets/characters/${character.id}/avatar.${ext}`
   }
 
@@ -87,7 +74,7 @@ async function extractCharacterImages(
         const { bytes, ext } = dataUriToBytes(tachie.src)
         const safeName = name.replace(SAFE_NAME_RE, '_')
         const filePath = `${assetDir}/${safeName}.${ext}`
-        await writeBinaryToDir(dirHandle, filePath, bytes)
+        await writeBinaryToFs(fs, filePath, bytes)
         newTachies[name] = {
           ...tachie,
           src: `assets/characters/${character.id}/${safeName}.${ext}`,
@@ -111,7 +98,7 @@ export function useContentSave() {
   const isSaving = ref(false)
 
   async function saveContent(
-    dirHandle: FileSystemDirectoryHandle,
+    fs: IFileSystem,
     contentType: ContentType,
     mode: EditorMode,
     data: AdvCharacter | SceneFormData | ChapterFormData | LocationFormData,
@@ -130,7 +117,7 @@ export function useContentSave() {
 
           // Check for duplicate path on create, or rename on edit
           if (mode === 'create') {
-            if (await fileExists(dirHandle, filePath)) {
+            if (await fileExists(fs, filePath)) {
               return {
                 success: false,
                 error: `File already exists: ${filePath}. Please use a different ID.`,
@@ -139,7 +126,7 @@ export function useContentSave() {
           }
           else if (originalId && originalId !== char.id) {
             // ID changed during edit — check new path doesn't conflict
-            if (await fileExists(dirHandle, filePath)) {
+            if (await fileExists(fs, filePath)) {
               return {
                 success: false,
                 error: `Cannot rename: ${filePath} already exists.`,
@@ -148,7 +135,7 @@ export function useContentSave() {
           }
 
           // Extract data URI images → save to assets, update paths
-          char = await extractCharacterImages(dirHandle, char)
+          char = await extractCharacterImages(fs, char)
           content = stringifyCharacterMd(char)
           break
         }
@@ -157,7 +144,7 @@ export function useContentSave() {
           filePath = `adv/scenes/${scene.id}.md`
 
           if (mode === 'create') {
-            if (await fileExists(dirHandle, filePath)) {
+            if (await fileExists(fs, filePath)) {
               return {
                 success: false,
                 error: `File already exists: ${filePath}. Please use a different ID.`,
@@ -165,7 +152,7 @@ export function useContentSave() {
             }
           }
           else if (originalId && originalId !== scene.id) {
-            if (await fileExists(dirHandle, filePath)) {
+            if (await fileExists(fs, filePath)) {
               return {
                 success: false,
                 error: `Cannot rename: ${filePath} already exists.`,
@@ -184,7 +171,7 @@ export function useContentSave() {
           filePath = `adv/chapters/${filename}`
 
           if (mode === 'create') {
-            if (await fileExists(dirHandle, filePath)) {
+            if (await fileExists(fs, filePath)) {
               return {
                 success: false,
                 error: `File already exists: ${filePath}. Please use a different filename.`,
@@ -192,7 +179,7 @@ export function useContentSave() {
             }
           }
           else if (originalId && originalId !== chapter.filename) {
-            if (await fileExists(dirHandle, filePath)) {
+            if (await fileExists(fs, filePath)) {
               return {
                 success: false,
                 error: `Cannot rename: ${filePath} already exists.`,
@@ -208,7 +195,7 @@ export function useContentSave() {
           filePath = `adv/locations/${location.id}.md`
 
           if (mode === 'create') {
-            if (await fileExists(dirHandle, filePath)) {
+            if (await fileExists(fs, filePath)) {
               return {
                 success: false,
                 error: `File already exists: ${filePath}. Please use a different ID.`,
@@ -216,7 +203,7 @@ export function useContentSave() {
             }
           }
           else if (originalId && originalId !== location.id) {
-            if (await fileExists(dirHandle, filePath)) {
+            if (await fileExists(fs, filePath)) {
               return {
                 success: false,
                 error: `Cannot rename: ${filePath} already exists.`,
@@ -231,7 +218,7 @@ export function useContentSave() {
           return { success: false, error: `Unknown content type: ${contentType}` }
       }
 
-      await writeFileToDir(dirHandle, filePath, content)
+      await fs.writeFile(filePath, content)
 
       return { success: true, filePath }
     }

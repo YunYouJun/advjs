@@ -103,6 +103,15 @@ export interface DbKnowledgeEmbedding {
   model: string
 }
 
+export interface DbMemfsNode {
+  /** Primary key: 'memfs:{projectId}:{path}' */
+  key: string
+  type: 'file' | 'directory'
+  content: string
+  mtime: number
+  size: number
+}
+
 // --- Database ---
 
 class StudioDatabase extends Dexie {
@@ -117,6 +126,7 @@ class StudioDatabase extends Dexie {
   conversationSnapshots!: Dexie.Table<DbConversationSnapshot, [string, string]>
   characterDiaries!: Dexie.Table<DbCharacterDiary, [string, string]>
   chatMessages!: Dexie.Table<DbChatMessage, [string, string]>
+  memfsNodes!: Dexie.Table<DbMemfsNode, string>
   groupChatSnapshots!: Dexie.Table<DbGroupChatRoomSnapshot, [string, string]>
   characterAiConfigs!: Dexie.Table<DbCharacterAiConfig, [string, string]>
   archivedBatches!: Dexie.Table<DbArchivedBatch, [string, string]>
@@ -310,6 +320,26 @@ class StudioDatabase extends Dexie {
       characterAiConfigs: '[projectId+characterId]',
       archivedBatches: '[projectId+batchId], [projectId+characterId]',
       knowledgeEmbeddings: '[projectId+sectionKey]',
+    })
+
+    // v12: add memfsNodes table for in-memory file system persistence (Safari/Firefox/mobile fallback)
+    this.version(12).stores({
+      characterChats: '[projectId+characterId]',
+      characterMemories: '[projectId+characterId]',
+      groupChats: '[projectId+id]',
+      worldEvents: '[projectId+id]',
+      characterStates: '[projectId+characterId]',
+      worldClocks: 'projectId',
+      viewModes: 'projectId',
+      dirHandles: 'projectName',
+      conversationSnapshots: '[projectId+id], [projectId+characterId]',
+      characterDiaries: '[projectId+id], [projectId+characterId], [projectId+characterId+date+period]',
+      chatMessages: '[projectId+id]',
+      groupChatSnapshots: '[projectId+id], [projectId+roomId]',
+      characterAiConfigs: '[projectId+characterId]',
+      archivedBatches: '[projectId+batchId], [projectId+characterId]',
+      knowledgeEmbeddings: '[projectId+sectionKey]',
+      memfsNodes: 'key',
     })
   }
 }

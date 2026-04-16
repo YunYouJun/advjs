@@ -39,7 +39,7 @@ const router = useRouter()
 const aiSettings = useAiSettingsStore()
 const characterStateStore = useCharacterStateStore()
 
-const { characters, reload, getDirHandle } = useProjectContent()
+const { characters, reload, getFs } = useProjectContent()
 const { isSaving, saveContent } = useContentSave()
 const { deleteFile } = useContentDelete()
 const { trackAccess } = useRecentActivity()
@@ -132,13 +132,13 @@ async function handleSaveCharacter() {
     return
   }
 
-  const dirHandle = getDirHandle()
-  if (!dirHandle) {
-    await showToast(t('contentEditor.saveFailed', { error: 'No directory handle' }), 'danger')
+  const fs = getFs()
+  if (!fs) {
+    await showToast(t('contentEditor.saveFailed', { error: 'No file system' }), 'danger')
     return
   }
 
-  const result = await saveContent(dirHandle, 'character', characterEditor.mode.value, characterEditor.formData.value, characterEditor.originalId.value)
+  const result = await saveContent(fs, 'character', characterEditor.mode.value, characterEditor.formData.value, characterEditor.originalId.value)
   if (result.success) {
     await showToast(t('contentEditor.saveSuccess'))
     characterEditor.onSaved()

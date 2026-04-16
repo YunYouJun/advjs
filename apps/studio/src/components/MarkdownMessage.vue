@@ -5,8 +5,8 @@ import { saveOutline } from 'ionicons/icons'
 import MarkdownIt from 'markdown-it'
 import { computed, ref, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useProjectContent } from '../composables/useProjectContent'
 import { useStudioStore } from '../stores/useStudioStore'
-import { readFileFromDir } from '../utils/fileAccess'
 import { computeLineDiff } from '../utils/lineDiff'
 import FileDiffPreview from './FileDiffPreview.vue'
 
@@ -141,10 +141,15 @@ watchEffect(async () => {
   if (!project?.dirHandle)
     return
 
+  const { getFs } = useProjectContent()
+  const fs = getFs()
+  if (!fs)
+    return
+
   const newDiffs = new Map<string, FileDiff>()
   for (const block of blocks) {
     try {
-      const existing = await readFileFromDir(project.dirHandle, block.filename)
+      const existing = await fs.readFile(block.filename)
       if (existing && existing !== block.content) {
         const diff = computeLineDiff(block.filename, existing, block.content)
         if (diff.addedCount > 0 || diff.removedCount > 0)

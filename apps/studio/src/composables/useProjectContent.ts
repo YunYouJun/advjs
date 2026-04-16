@@ -1,11 +1,13 @@
 import type { AdvCharacter } from '@advjs/types'
+import type { IFileSystem } from '../utils/fs'
 import { parseCharacterMd } from '@advjs/parser'
 import { ref, watch } from 'vue'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { parseAudioMd } from '../utils/audioMd'
 import { downloadFromCloud, listCloudFiles } from '../utils/cloudSync'
-import { AUDIO_EXTENSIONS, listFilesInDir, listFilesInDirByExts, readFileFromDir } from '../utils/fileAccess'
+import { AUDIO_EXTENSIONS } from '../utils/fileAccess'
+import { createFsForProject } from '../utils/fs'
 import { parseLocationMd } from '../utils/locationMd'
 import { parseSceneMd } from '../utils/sceneMd'
 import { useKnowledgeBase } from './useKnowledgeBase'
@@ -76,7 +78,7 @@ const isLoading = ref(false)
 const loadErrors = ref<string[]>([])
 
 // Closure variables for reload
-let lastDirHandle: FileSystemDirectoryHandle | null = null
+let lastFs: IFileSystem | null = null
 let lastCosConfig: { bucket: string, region: string, secretId: string, secretKey: string } | null = null
 let lastCosPrefix: string | null = null
 
@@ -92,10 +94,10 @@ export function useProjectContent() {
   const knowledgeBase = useKnowledgeBase()
 
   /**
-   * Load project content from a local FileSystemDirectoryHandle
+   * Load project content from an IFileSystem instance
    */
-  async function loadFromDir(dirHandle: FileSystemDirectoryHandle) {
-    lastDirHandle = dirHandle
+  async function loadFromFs(fs: IFileSystem) {
+    lastFs = fs
     lastCosConfig = null
     lastCosPrefix = null
 
@@ -105,13 +107,13 @@ export function useProjectContent() {
       // Load chapters
       const chapterFiles: string[] = []
       try {
-        const files = await listFilesInDir(dirHandle, 'adv/chapters', '.adv.md')
+        const files = await fs.listFiles('adv/chapters', '.adv.md')
         chapterFiles.push(...files)
       }
       catch { /* no chapters dir */ }
 
       try {
-        const rootFiles = await listFilesInDir(dirHandle, 'adv', '.adv.md')
+        const rootFiles = await fs.listFiles('adv', '.adv.md')
         for (const f of rootFiles) {
           if (!chapterFiles.includes(f))
             chapterFiles.push(f)
@@ -126,7 +128,7 @@ export function useProjectContent() {
         let preview = ''
         let content = ''
         try {
-          content = await readFileFromDir(dirHandle, file)
+          content = await fs.readFile(file)
           // Extract first meaningful line as preview
           const lines = content.split('\n').filter(l => l.trim() && !l.startsWith('---') && !l.startsWith('#'))
           preview = lines[0]?.slice(0, 100) || ''
@@ -149,10 +151,10 @@ export function useProjectContent() {
       // Load characters
       const charList: AdvCharacter[] = []
       try {
-        const charFiles = await listFilesInDir(dirHandle, 'adv/characters', '.character.md')
+        const charFiles = await fs.listFiles('adv/characters', '.character.md')
         for (const file of charFiles) {
           try {
-            const content = await readFileFromDir(dirHandle, file)
+            const content = await fs.readFile(file)
             const character = parseCharacterMd(content)
             charList.push(character)
           }
@@ -169,10 +171,10 @@ export function useProjectContent() {
       // Load scenes with frontmatter parsing
       const sceneList: SceneInfo[] = []
       try {
-        const sceneFiles = await listFilesInDir(dirHandle, 'adv/scenes', '.md')
+        const sceneFiles = await fs.listFiles('adv/scenes', '.md')
         for (const file of sceneFiles) {
           try {
-            const content = await readFileFromDir(dirHandle, file)
+            const content = await fs.readFile(file)
             const parsed = parseSceneMd(content)
             sceneList.push({
               file,
@@ -202,10 +204,10 @@ export function useProjectContent() {
       // Load locations with frontmatter parsing
       const locationList: LocationInfo[] = []
       try {
-        const locationFiles = await listFilesInDir(dirHandle, 'adv/locations', '.md')
+        const locationFiles = await fs.listFiles('adv/locations', '.md')
         for (const file of locationFiles) {
           try {
-            const content = await readFileFromDir(dirHandle, file)
+            const content = await fs.readFile(file)
             const parsed = parseLocationMd(content)
             locationList.push({
               file,
@@ -235,10 +237,10 @@ export function useProjectContent() {
       const audioList: AudioInfo[] = []
       try {
         // Load audio metadata files (.md)
-        const audioMdFiles = await listFilesInDir(dirHandle, 'adv/audio', '.md')
+        const audioMdFiles = await fs.listFiles('adv/audio', '.md')
         for (const file of audioMdFiles) {
           try {
-            const content = await readFileFromDir(dirHandle, file)
+            const content = await fs.readFile(file)
             const parsed = parseAudioMd(content)
             audioList.push({
               file,
@@ -261,7 +263,7 @@ export function useProjectContent() {
         }
 
         // Also list raw audio files without metadata
-        const audioFiles = await listFilesInDirByExts(dirHandle, 'adv/audio', AUDIO_EXTENSIONS)
+        const audioFiles = await fs.listFilesByExts('adv/audio', AUDIO_EXTENSIONS)
         for (const file of audioFiles) {
           const baseName = file.split('/').pop()?.replace(FILE_EXT_RE, '') || ''
           // Skip if we already have metadata for this audio
@@ -278,8 +280,8 @@ export function useProjectContent() {
       audios.value = audioList
 
       // Load knowledge base + start watching for changes
-      await knowledgeBase.loadFromDir(dirHandle)
-      knowledgeBase.watchForChanges(dirHandle)
+      await knowledgeBase.loadFromFs(fs)
+      knowledgeBase.watchForChangesFs(fs)
 
       // Update stats
       stats.value = {
@@ -297,12 +299,20 @@ export function useProjectContent() {
   }
 
   /**
+   * Load project content from a local FileSystemDirectoryHandle (backward compat)
+   */
+  async function loadFromDir(dirHandle: FileSystemDirectoryHandle) {
+    const { BrowserFsAdapter } = await import('../utils/fs/BrowserFsAdapter')
+    await loadFromFs(new BrowserFsAdapter(dirHandle))
+  }
+
+  /**
    * Load project content from COS cloud storage
    */
   async function loadFromCos(cosConfig: { bucket: string, region: string, secretId: string, secretKey: string }, prefix: string) {
     lastCosConfig = cosConfig
     lastCosPrefix = prefix
-    lastDirHandle = null
+    lastFs = null
 
     isLoading.value = true
     loadErrors.value = []
@@ -468,8 +478,8 @@ export function useProjectContent() {
    * Reload content from the last-used source
    */
   async function reload() {
-    if (lastDirHandle) {
-      await loadFromDir(lastDirHandle)
+    if (lastFs) {
+      await loadFromFs(lastFs)
     }
     else if (lastCosConfig && lastCosPrefix) {
       await loadFromCos(lastCosConfig, lastCosPrefix)
@@ -477,10 +487,21 @@ export function useProjectContent() {
   }
 
   /**
-   * Get the current directory handle (for file saving)
+   * Get the current IFileSystem instance (for file saving / reading)
+   */
+  function getFs(): IFileSystem | null {
+    return lastFs
+  }
+
+  /**
+   * Get the current directory handle (backward compat for views not yet migrated).
+   * Returns null on non-browser backends.
    */
   function getDirHandle(): FileSystemDirectoryHandle | null {
-    return lastDirHandle
+    if (lastFs && lastFs.backend === 'browser') {
+      return (lastFs as any).dirHandle ?? null
+    }
+    return null
   }
 
   function $reset() {
@@ -492,7 +513,7 @@ export function useProjectContent() {
     stats.value = { chapters: 0, characters: 0, scenes: 0, locations: 0, knowledge: 0, audios: 0 }
     isLoading.value = false
     loadErrors.value = []
-    lastDirHandle = null
+    lastFs = null
     lastCosConfig = null
     lastCosPrefix = null
     knowledgeBase.$reset()
@@ -509,10 +530,19 @@ export function useProjectContent() {
         return
       }
       if (project.dirHandle) {
-        await loadFromDir(project.dirHandle)
+        const fs = await createFsForProject(project as any)
+        await loadFromFs(fs)
       }
       else if (project.source === 'cos' && project.cosPrefix) {
         await loadFromCos(settingsStore.cos, project.cosPrefix)
+      }
+      else {
+        // Non-local, non-COS project → use memory or capacitor FS
+        const fs = await createFsForProject({
+          projectId: project.projectId || project.name,
+          source: project.source,
+        })
+        await loadFromFs(fs)
       }
     }, { immediate: true })
   }
@@ -527,9 +557,11 @@ export function useProjectContent() {
     isLoading,
     loadErrors,
     knowledgeBase,
+    loadFromFs,
     loadFromDir,
     loadFromCos,
     reload,
+    getFs,
     getDirHandle,
     $reset,
   }

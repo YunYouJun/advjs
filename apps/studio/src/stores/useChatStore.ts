@@ -320,6 +320,20 @@ To enable direct image generation, configure an image provider in **Settings →
   }
 
   /**
+   * Load project context via IFileSystem interface.
+   */
+  async function loadProjectContextFromFs(fs: { readFile: (path: string) => Promise<string> }) {
+    try {
+      projectContext.value = await assembleProjectContext(
+        path => fs.readFile(path),
+      )
+    }
+    catch {
+      projectContext.value = ''
+    }
+  }
+
+  /**
    * Load project context from COS cloud storage.
    * Mirrors loadProjectContext but reads from COS instead of local FS.
    */
@@ -350,6 +364,7 @@ To enable direct image generation, configure an image provider in **Settings →
     editAndResend,
     regenerateLast,
     loadProjectContext,
+    loadProjectContextFromFs,
     loadProjectContextFromCos,
     $reset,
     flush,

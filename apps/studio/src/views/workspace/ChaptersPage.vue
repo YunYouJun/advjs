@@ -38,7 +38,7 @@ const { t } = useI18n()
 const router = useRouter()
 const aiSettings = useAiSettingsStore()
 
-const { chapters, reload, getDirHandle } = useProjectContent()
+const { chapters, reload, getFs } = useProjectContent()
 const { isSaving, saveContent } = useContentSave()
 const { deleteFile } = useContentDelete()
 const { trackAccess } = useRecentActivity()
@@ -100,13 +100,13 @@ async function handleSaveChapter() {
     return
   }
 
-  const dirHandle = getDirHandle()
-  if (!dirHandle) {
-    await showToast(t('contentEditor.saveFailed', { error: 'No directory handle' }), 'danger')
+  const fs = getFs()
+  if (!fs) {
+    await showToast(t('contentEditor.saveFailed', { error: 'No file system' }), 'danger')
     return
   }
 
-  const result = await saveContent(dirHandle, 'chapter', chapterEditor.mode.value, chapterEditor.formData.value, chapterEditor.originalId.value)
+  const result = await saveContent(fs, 'chapter', chapterEditor.mode.value, chapterEditor.formData.value, chapterEditor.originalId.value)
   if (result.success) {
     await showToast(t('contentEditor.saveSuccess'))
     chapterEditor.onSaved()

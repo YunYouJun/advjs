@@ -54,7 +54,7 @@ import { useStudioStore } from '../stores/useStudioStore'
 import { useViewModeStore } from '../stores/useViewModeStore'
 import { formatChatTime, getMoodEmoji } from '../utils/chatUtils'
 import { uploadToCloud } from '../utils/cloudSync'
-import { downloadAsFile, readBlobFromDir, writeBlobToDir, writeFileToDir } from '../utils/fileAccess'
+import { downloadAsFile } from '../utils/fileAccess'
 import { resolveCharacterTtsSettings } from '../utils/resolveAiConfig'
 import { getTtsProvider, ttsSpeak, ttsStop } from '../utils/ttsClient'
 import '../styles/chat.css'
@@ -330,7 +330,10 @@ async function reloadKnowledge() {
   if (!project)
     return
   if (project.dirHandle) {
-    await knowledgeBase.loadFromDir(project.dirHandle)
+    const { getFs } = useProjectContent()
+    const fs = getFs()
+    if (fs)
+      await knowledgeBase.loadFromFs(fs)
   }
   else if (project.source === 'cos' && project.cosPrefix) {
     await knowledgeBase.loadFromCos(settingsStore.cos, project.cosPrefix)
@@ -576,7 +579,10 @@ async function saveExportedFile(filename: string, content: string) {
 
   try {
     if (project?.dirHandle) {
-      await writeFileToDir(project.dirHandle, filename, content)
+      const { getFs } = useProjectContent()
+      const fs = getFs()
+      if (fs)
+        await fs.writeFile(filename, content)
     }
     else if (project?.source === 'cos' && project.cosPrefix) {
       const key = `${project.cosPrefix}${filename}`
@@ -743,7 +749,11 @@ async function handleTtsPlay(msg: { role: string, content: string, timestamp: nu
       const project = studioStore.currentProject
       if (project?.dirHandle) {
         try {
-          const blobUrl = await readBlobFromDir(project.dirHandle, msg.ttsAudioPath)
+          const { getFs } = useProjectContent()
+          const fs = getFs()
+          if (!fs)
+            return
+          const blobUrl = await fs.readBlobUrl(msg.ttsAudioPath)
           const audio = new Audio(blobUrl)
           ttsPlayingIndex.value = visibleIdx
           await new Promise<void>((resolve) => {
@@ -770,10 +780,14 @@ async function handleTtsPlay(msg: { role: string, content: string, timestamp: nu
     if (blob) {
       const project = studioStore.currentProject
       if (project?.dirHandle) {
+        const { getFs } = useProjectContent()
+        const fs = getFs()
+        if (!fs)
+          return
         const safeName = characterId.value.replace(SAFE_FILENAME_RE, '_').replace(TRIM_UNDERSCORE_RE, '')
         const path = `adv/audio/tts/${safeName}-${msg.timestamp}.mp3`
         try {
-          await writeBlobToDir(project.dirHandle, path, blob)
+          await fs.writeBlob(path, blob)
           characterChatStore.updateMessageTtsPath(characterId.value, msg.timestamp, path)
         }
         catch {
@@ -810,6 +824,11 @@ async function handleBatchGenerateTts() {
   if (!project?.dirHandle)
     return
 
+  const { getFs } = useProjectContent()
+  const batchFs = getFs()
+  if (!batchFs)
+    return
+
   const assistantMsgs = allMessages.value.filter(m => m.role === 'assistant' && !m.ttsAudioPath)
   if (assistantMsgs.length === 0)
     return
@@ -837,7 +856,7 @@ async function handleBatchGenerateTts() {
 
       const safeName = characterId.value.replace(SAFE_FILENAME_RE, '_').replace(TRIM_UNDERSCORE_RE, '')
       const path = `adv/audio/tts/${safeName}-${msg.timestamp}.mp3`
-      await writeBlobToDir(project.dirHandle, path, blob)
+      await batchFs.writeBlob(path, blob)
       characterChatStore.updateMessageTtsPath(characterId.value, msg.timestamp, path)
       generated++
     }
