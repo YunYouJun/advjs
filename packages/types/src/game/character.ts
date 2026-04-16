@@ -62,6 +62,20 @@ export interface AdvCharacterFrontmatter {
    * @zh 角色关系
    */
   relationships?: AdvCharacterRelationship[]
+  /**
+   * @zh 角色对话语言
+   * 用于 AI 系统提示词，指定角色使用的对话语言
+   */
+  language?: 'zh' | 'en' | 'ja'
+}
+
+/**
+ * Human-readable display name for each supported character language.
+ */
+export const LANGUAGE_LABELS: Record<string, string> = {
+  zh: '中文',
+  ja: '日本語',
+  en: 'English',
 }
 
 /**

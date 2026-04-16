@@ -33,7 +33,7 @@ import {
   timeOutline,
   warningOutline,
 } from 'ionicons/icons'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useCloudSync } from '../composables/useCloudSync'
@@ -43,6 +43,7 @@ import { downloadBlob, exportProject } from '../composables/useProjectExport'
 import { useStudioStore } from '../stores/useStudioStore'
 import { useWorldEventStore } from '../stores/useWorldEventStore'
 import { validateProject } from '../utils/projectValidation'
+import ProjectHealthPanel from './ProjectHealthPanel.vue'
 import ProjectSettingsModal from './ProjectSettingsModal.vue'
 import RecentActivity from './RecentActivity.vue'
 
@@ -153,6 +154,57 @@ async function handleValidation() {
       buttons: [{ role: 'cancel', icon: closeOutline }],
     })
     await toast.present()
+  }
+  finally {
+    isValidating.value = false
+  }
+}
+
+// --- Auto validation: run once when loading finishes, re-run on content changes ---
+let autoValidateTimer: ReturnType<typeof setTimeout> | undefined
+onMounted(() => {
+  // Run initial validation once loading is done
+  const unwatch = watch(
+    () => isLoading.value,
+    (loading) => {
+      if (!loading && chapters.value.length > 0) {
+        handleValidationSilent()
+        unwatch()
+      }
+    },
+    { immediate: true },
+  )
+})
+
+// Watch content stats for changes (debounced re-validation)
+watch(
+  () => [stats.value.chapters, stats.value.characters, stats.value.scenes],
+  () => {
+    if (isValidating.value || isLoading.value)
+      return
+    clearTimeout(autoValidateTimer)
+    autoValidateTimer = setTimeout(() => {
+      handleValidationSilent()
+    }, 3000)
+  },
+)
+
+/** Silent validation: no toast, just update validationResult */
+async function handleValidationSilent() {
+  if (isValidating.value)
+    return
+  isValidating.value = true
+  try {
+    validationResult.value = await validateProject(
+      chapters.value,
+      characters.value,
+      scenes.value,
+      audios.value,
+      locations.value,
+    )
+  }
+  catch {
+    // silent
   }
   finally {
     isValidating.value = false
@@ -469,6 +521,18 @@ async function handleExport() {
     <!-- ═══════════ Recent Activity ═══════════ -->
     <RecentActivity />
 
+    <!-- ═══════════ Project Health Panel ═══════════ -->
+    <section v-if="validationResult && !validationResult.passed" class="health-section">
+      <div class="health-section__header">
+        <span class="health-section__title">{{ t('dashboard.projectHealth') }}</span>
+        <button class="overview__icon-btn" :title="t('validation.recheck')" :disabled="isValidating" @click="handleValidation">
+          <IonSpinner v-if="isValidating" name="crescent" style="width: 16px; height: 16px;" />
+          <span v-else style="font-size: 12px;">{{ t('validation.recheck') }}</span>
+        </button>
+      </div>
+      <ProjectHealthPanel :result="validationResult" />
+    </section>
+
     <!-- ═══════════ Unified Resource Panel ═══════════ -->
     <div class="resources-header">
       <span class="resources-header__title">{{ t('dashboard.content') || 'Content' }}</span>
@@ -603,6 +667,27 @@ async function handleExport() {
   text-align: center;
   padding: var(--adv-space-lg);
   color: var(--adv-text-tertiary);
+}
+
+/* ─── Health Section ─── */
+.health-section {
+  padding: 0 var(--adv-space-md);
+  margin-bottom: var(--adv-space-sm);
+}
+
+.health-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--adv-space-xs);
+}
+
+.health-section__title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--adv-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 /* ─── Header ─── */

@@ -1,4 +1,5 @@
 import type { AdvCharacter, AdvCharacterBody, AdvCharacterFrontmatter } from '@advjs/types'
+import { LANGUAGE_LABELS } from '@advjs/types'
 import yaml from 'js-yaml'
 
 /**
@@ -55,6 +56,7 @@ const FRONTMATTER_KEYS: (keyof AdvCharacterFrontmatter)[] = [
   'aliases',
   'tags',
   'faction',
+  'language',
   'tachies',
   'relationships',
 ]
@@ -92,6 +94,7 @@ export function parseCharacterMd(content: string): AdvCharacter {
     aliases: normalizedAliases,
     tags: fm.tags,
     faction: fm.faction,
+    language: fm.language,
     tachies: fm.tachies,
     relationships: fm.relationships,
     ...bodySections,
@@ -167,6 +170,8 @@ export function exportCharacterForAI(character: AdvCharacter): string {
     meta.push(`- **声优**: ${character.cv}`)
   if (character.actor)
     meta.push(`- **演员**: ${character.actor}`)
+  if (character.language)
+    meta.push(`- **对话语言**: ${LANGUAGE_LABELS[character.language] ?? character.language}`)
 
   if (meta.length) {
     lines.push(...meta)

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { AdvCharacter } from '@advjs/types'
 import { IonIcon } from '@ionic/vue'
-import { chatbubbleOutline, createOutline, informationCircleOutline, journalOutline, trashOutline } from 'ionicons/icons'
+import { chatbubbleOutline, createOutline, informationCircleOutline, journalOutline, shareOutline, trashOutline } from 'ionicons/icons'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
@@ -12,6 +12,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   edit: [character: AdvCharacter]
   chat: [character: AdvCharacter]
+  share: [character: AdvCharacter]
   delete: [character: AdvCharacter]
 }>()
 
@@ -32,6 +33,10 @@ function onDiary() {
 
 function onInfo() {
   router.push(`/tabs/world/info/${props.character.id}`)
+}
+
+function onShare() {
+  emit('share', props.character)
 }
 
 function onDelete() {
@@ -56,6 +61,10 @@ function onDelete() {
     <button class="cca-btn" :title="t('characters.viewDetails')" @click.stop="onInfo">
       <IonIcon :icon="informationCircleOutline" class="cca-btn__icon" />
       <span class="cca-btn__label">{{ t('characters.actionInfo') }}</span>
+    </button>
+    <button class="cca-btn" :title="t('characters.actionShare')" @click.stop="onShare">
+      <IonIcon :icon="shareOutline" class="cca-btn__icon" />
+      <span class="cca-btn__label">{{ t('characters.actionShare') }}</span>
     </button>
     <button class="cca-btn cca-btn--danger" :title="t('characters.actionDelete')" @click.stop="onDelete">
       <IonIcon :icon="trashOutline" class="cca-btn__icon" />

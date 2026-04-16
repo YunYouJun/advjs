@@ -1,6 +1,7 @@
 import type { AdvCharacter } from '@advjs/types'
 import type { ChatMessage as AiChatMessage } from '../utils/aiClient'
 import { exportCharacterForAI } from '@advjs/parser'
+import { LANGUAGE_LABELS } from '@advjs/types'
 import Dexie from 'dexie'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
@@ -124,7 +125,9 @@ function buildGroupSystemPrompt(
       t('systemPrompt.groupChat.ruleNoSpeakForOthers'),
       t('systemPrompt.common.ruleKeepStyle'),
       t('systemPrompt.groupChat.ruleCanMention'),
-      t('systemPrompt.common.ruleUserLanguage'),
+      speaker.language
+        ? t('systemPrompt.common.ruleTargetLanguage', { lang: LANGUAGE_LABELS[speaker.language] ?? speaker.language })
+        : t('systemPrompt.common.ruleUserLanguage'),
       t('systemPrompt.common.ruleExpressEmotion'),
       t('systemPrompt.common.ruleReferMemory'),
     ].join('\n'))

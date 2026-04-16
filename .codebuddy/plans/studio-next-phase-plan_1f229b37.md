@@ -125,10 +125,10 @@ graph LR
     A["GroupChatPage<br/>用户点击 📸 创建快照"] --> B["useGroupChatStore<br/>createRoomSnapshot()"]
     B --> C["读取 activeSnapshotId<br/>作为 parentSnapshotId"]
     C --> D["存入 IndexedDB<br/>groupChatSnapshots 表"]
-    
+
     E["用户切换树视图"] --> F["SnapshotTree 组件<br/>泛化 props 类型"]
     F --> G["渲染分支树<br/>parent→children 递归"]
-    
+
     H["用户点击恢复"] --> I["restoreRoomSnapshot()"]
     I --> J["更新 activeSnapshotId"]
 ```

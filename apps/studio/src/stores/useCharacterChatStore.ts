@@ -2,6 +2,7 @@ import type { AdvCharacter } from '@advjs/types'
 import type { ChatMessage as AiChatMessage } from '../utils/aiClient'
 import type { CharacterAiOverride } from '../utils/resolveAiConfig'
 import { exportCharacterForAI } from '@advjs/parser'
+import { LANGUAGE_LABELS } from '@advjs/types'
 import Dexie from 'dexie'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
@@ -89,7 +90,9 @@ function buildCharacterSystemPrompt(
       t('systemPrompt.common.ruleStayInCharacter'),
       t('systemPrompt.common.ruleKeepStyle'),
       t('systemPrompt.common.ruleUseBackground'),
-      t('systemPrompt.common.ruleUserLanguage'),
+      character.language
+        ? t('systemPrompt.common.ruleTargetLanguage', { lang: LANGUAGE_LABELS[character.language] ?? character.language })
+        : t('systemPrompt.common.ruleUserLanguage'),
       t('systemPrompt.common.ruleExpressEmotion'),
       t('systemPrompt.common.ruleReferMemory'),
     ].join('\n'))

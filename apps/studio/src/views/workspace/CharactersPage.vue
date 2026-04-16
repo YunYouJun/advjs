@@ -31,6 +31,7 @@ import { useAiSettingsStore } from '../../stores/useAiSettingsStore'
 import { useCharacterStateStore } from '../../stores/useCharacterStateStore'
 import { exportCharactersToCSV, exportRelationshipsToCSV } from '../../utils/csvExport'
 import { downloadAsFile } from '../../utils/fileAccess'
+import { copyCharacterInfo, shareCharacterAsMd } from '../../utils/shareUtils'
 import { showToast } from '../../utils/toast'
 
 const { t } = useI18n()
@@ -99,6 +100,28 @@ function handleEditCharacter(character: AdvCharacter) {
 
 function goToChat(character: AdvCharacter) {
   router.push(`/tabs/world/chat/${character.id}`)
+}
+
+async function handleShareCharacter(character: AdvCharacter) {
+  const sheet = await actionSheetController.create({
+    header: t('characters.actionShare'),
+    buttons: [
+      {
+        text: t('characters.shareAsMd'),
+        handler: () => shareCharacterAsMd(character),
+      },
+      {
+        text: t('characters.shareCopyInfo'),
+        handler: async () => {
+          const ok = await copyCharacterInfo(character)
+          if (ok)
+            showToast(t('characters.shareCopied'))
+        },
+      },
+      { text: t('common.cancel'), role: 'cancel' },
+    ],
+  })
+  await sheet.present()
 }
 
 // --- Save ---
@@ -215,6 +238,7 @@ async function handleExportCSV() {
             :character="character"
             @edit="handleEditCharacter"
             @chat="goToChat"
+            @share="handleShareCharacter"
             @delete="handleDeleteCharacter"
           />
         </template>

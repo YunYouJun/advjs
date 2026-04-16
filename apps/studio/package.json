@@ -31,6 +31,7 @@
     "ionicons": "catalog:",
     "jszip": "catalog:",
     "markdown-it": "catalog:build",
+    "modern-screenshot": "catalog:frontend",
     "monaco-editor": "catalog:frontend",
     "pinia": "catalog:frontend",
     "reka-ui": "catalog:frontend",

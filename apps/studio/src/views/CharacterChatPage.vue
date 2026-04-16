@@ -455,6 +455,10 @@ async function handleExport() {
         handler: () => exportAsMarkdown(charName),
       },
       {
+        text: t('world.exportHtml'),
+        handler: () => exportAsHtml(charName),
+      },
+      {
         text: t('common.cancel'),
         role: 'cancel',
       },
@@ -538,6 +542,26 @@ async function exportAsMarkdown(charName: string) {
 
   // Markdown export always downloads (not saved to project structure)
   downloadAsFile(content, filename)
+
+  const toast = await toastController.create({
+    message: t('world.exportSuccess'),
+    duration: 2000,
+    position: 'top',
+  })
+  await toast.present()
+}
+
+async function exportAsHtml(charName: string) {
+  const { characterChatToHtml } = await import('../utils/conversationHtml')
+  const html = characterChatToHtml(messages.value, {
+    title: t('world.exportConversationWith', { name: charName }),
+    characterName: charName,
+    characterAvatar: character.value?.avatar,
+    theme: 'dark',
+    projectName: studioStore.currentProject?.name,
+  })
+  const safeName = charName.toLowerCase().replace(SAFE_FILENAME_RE, '_').replace(TRIM_UNDERSCORE_RE, '')
+  downloadAsFile(html, `chat-${safeName}.html`, 'text/html;charset=utf-8')
 
   const toast = await toastController.create({
     message: t('world.exportSuccess'),

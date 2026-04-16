@@ -9,6 +9,8 @@ import {
   IonList,
   IonListHeader,
   IonNote,
+  IonSelect,
+  IonSelectOption,
   IonSpinner,
   IonTextarea,
   toastController,
@@ -316,6 +318,29 @@ async function handleAiImage(target: 'avatar' | 'tachie' = 'avatar') {
             />
           </div>
         </IonItem>
+        <IonItem>
+          <IonSelect
+            :value="model.language || ''"
+            :label="t('contentEditor.language')"
+            label-placement="stacked"
+            interface="popover"
+            :placeholder="t('contentEditor.languageAuto')"
+            @ion-change="updateField('language', ($event.detail.value || undefined) as any)"
+          >
+            <IonSelectOption value="">
+              {{ t('contentEditor.languageAuto') }}
+            </IonSelectOption>
+            <IonSelectOption value="zh">
+              中文
+            </IonSelectOption>
+            <IonSelectOption value="en">
+              English
+            </IonSelectOption>
+            <IonSelectOption value="ja">
+              日本語
+            </IonSelectOption>
+          </IonSelect>
+        </IonItem>
       </IonList>
     </div>
 
@@ -378,6 +403,26 @@ async function handleAiImage(target: 'avatar' | 'tachie' = 'avatar') {
             :auto-grow="true"
             :rows="2"
             @ion-input="updateField('speechStyle', ($event.detail.value ?? ''))"
+          />
+        </IonItem>
+        <IonItem>
+          <IonInput
+            :value="model.knowledgeDomain || ''"
+            :label="t('contentEditor.knowledgeDomain')"
+            label-placement="stacked"
+            :placeholder="t('contentEditor.knowledgeDomainPlaceholder')"
+            @ion-input="updateField('knowledgeDomain', ($event.detail.value ?? ''))"
+          />
+        </IonItem>
+        <IonItem>
+          <IonTextarea
+            :value="model.expertisePrompt || ''"
+            :label="t('contentEditor.expertisePrompt')"
+            label-placement="stacked"
+            :placeholder="t('contentEditor.expertisePromptPlaceholder')"
+            :auto-grow="true"
+            :rows="3"
+            @ion-input="updateField('expertisePrompt', ($event.detail.value ?? ''))"
           />
         </IonItem>
       </IonList>

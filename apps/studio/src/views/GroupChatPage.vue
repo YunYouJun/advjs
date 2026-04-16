@@ -300,6 +300,7 @@ async function handleExport() {
     buttons: [
       { text: t('world.exportAdvMd'), handler: () => exportGroupAsAdvMd(roomName) },
       { text: t('world.exportMarkdown'), handler: () => exportGroupAsMarkdown(roomName) },
+      { text: t('world.exportHtml'), handler: () => exportGroupAsHtml(roomName) },
       { text: t('common.cancel'), role: 'cancel' },
     ],
   })
@@ -355,6 +356,23 @@ async function exportGroupAsMarkdown(roomName: string) {
   const content = groupConversationToMarkdown(roomName)
   const safeName = roomName.toLowerCase().replace(SAFE_FILENAME_RE, '_').replace(TRIM_UNDERSCORE_RE, '')
   downloadAsFile(content, `group-${safeName}.md`)
+  const toast = await toastController.create({
+    message: t('world.exportSuccess'),
+    duration: 2000,
+    position: 'top',
+  })
+  await toast.present()
+}
+
+async function exportGroupAsHtml(roomName: string) {
+  const { groupChatToHtml } = await import('../utils/conversationHtml')
+  const html = groupChatToHtml(allMessages.value, roomName, {
+    title: roomName,
+    theme: 'dark',
+    projectName: studioStore.currentProject?.name,
+  })
+  const safeName = roomName.toLowerCase().replace(SAFE_FILENAME_RE, '_').replace(TRIM_UNDERSCORE_RE, '')
+  downloadAsFile(html, `group-${safeName}.html`, 'text/html;charset=utf-8')
   const toast = await toastController.create({
     message: t('world.exportSuccess'),
     duration: 2000,

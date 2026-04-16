@@ -29,6 +29,9 @@ export interface GraphEdge {
  * @param getName - Extract display name from item
  * @param getExtra - Optionally extract extra fields to merge into the node
  * @param options - Layout options
+ * @param options.smallRadius - Radius used when item count is below threshold
+ * @param options.largeRadius - Radius used when item count is at or above threshold
+ * @param options.threshold - Item count threshold to switch between small and large radius
  */
 export function useCircularLayout<T, E extends Record<string, any> = Record<string, never>>(
   items: ComputedRef<T[]>,
