@@ -67,7 +67,12 @@
     "sourceUrl": "URL",
     "sourceLocal": "Local",
     "importProject": "Import Project",
-    "importProjectDesc": "Import from .advpkg.zip"
+    "importProjectDesc": "Import from .advpkg.zip",
+    "quickStart": "Try Now",
+    "quickStartDesc": "Start chatting with characters instantly — no setup needed",
+    "quickStartCreating": "Creating project...",
+    "quickStartReady": "Project ready! Let's go!",
+    "quickStartFailed": "Quick start failed, please try again"
   },
   "projectSettings": {
     "title": "Project Settings",
@@ -163,6 +168,8 @@
     "errorGeneric": "❌ **Error**: {message}",
     "errorAborted": "⏹️ Response generation was cancelled.",
     "errorUnexpected": "❌ **Unexpected Error**: {message}",
+    "tapToRetry": "Tap to retry",
+    "retrying": "Retrying…",
     "loadEarlier": "Load earlier messages",
     "messagesHidden": "{count} earlier messages",
     "copyMessage": "Copy",
@@ -557,7 +564,9 @@
     "ttsSpeedLabel": "Speed",
     "ttsAutoReadOn": "Enable Auto-Read",
     "ttsAutoReadOff": "Disable Auto-Read",
-    "chatMessages": "Chat messages"
+    "chatMessages": "Chat messages",
+    "recentChats": "Recent Chats",
+    "noRecentChats": "No recent chats yet"
   },
   "common": {
     "cancel": "Cancel",
@@ -699,6 +708,19 @@
     "importFailed": "Import failed",
     "importInvalid": "Invalid .advpkg file"
   },
+  "share": {
+    "title": "Share",
+    "shareSnapshot": "Share Chat Snippet",
+    "selectMessages": "Select messages to share",
+    "generateImage": "Generate Share Image",
+    "generating": "Generating...",
+    "imageSaved": "Share image saved",
+    "imageFailed": "Failed to generate share image",
+    "qrCode": "QR Code",
+    "projectUrl": "Project Link",
+    "copyLink": "Copy Link",
+    "linkCopied": "Link copied"
+  },
   "marketplace": {
     "title": "Story Market",
     "search": "Search worlds and stories...",
@@ -753,7 +775,9 @@
     "title": "Project Health",
     "noIssues": "All checks passed — no issues found",
     "moreIssues": "more",
-    "jumpToFix": "Jump to fix"
+    "jumpToFix": "Jump to fix",
+    "dismiss": "Dismiss",
+    "dismissAll": "Dismiss All"
   },
   "contentEditor": {
     "formTab": "Form",

@@ -67,7 +67,12 @@
     "sourceUrl": "URL",
     "sourceLocal": "本地",
     "importProject": "导入项目",
-    "importProjectDesc": "从 .advpkg.zip 包导入"
+    "importProjectDesc": "从 .advpkg.zip 包导入",
+    "quickStart": "立即体验",
+    "quickStartDesc": "无需设置，30 秒内开始与角色对话",
+    "quickStartCreating": "正在创建项目...",
+    "quickStartReady": "项目已就绪！出发！",
+    "quickStartFailed": "快速创建失败，请重试"
   },
   "projectSettings": {
     "title": "项目设置",
@@ -163,6 +168,8 @@
     "errorGeneric": "❌ **错误**：{message}",
     "errorAborted": "⏹️ 已取消生成回复。",
     "errorUnexpected": "❌ **意外错误**：{message}",
+    "tapToRetry": "点击重试",
+    "retrying": "重试中…",
     "loadEarlier": "加载更早的消息",
     "messagesHidden": "还有 {count} 条更早的消息",
     "copyMessage": "复制",
@@ -557,7 +564,9 @@
     "ttsSpeedLabel": "语速",
     "ttsAutoReadOn": "开启自动朗读",
     "ttsAutoReadOff": "关闭自动朗读",
-    "chatMessages": "对话消息"
+    "chatMessages": "对话消息",
+    "recentChats": "最近对话",
+    "noRecentChats": "暂无对话记录"
   },
   "common": {
     "cancel": "取消",
@@ -699,6 +708,19 @@
     "importFailed": "导入失败",
     "importInvalid": "无效的 .advpkg 文件"
   },
+  "share": {
+    "title": "分享",
+    "shareSnapshot": "分享对话片段",
+    "selectMessages": "选择要分享的消息",
+    "generateImage": "生成分享图",
+    "generating": "生成中...",
+    "imageSaved": "分享图已保存",
+    "imageFailed": "生成分享图失败",
+    "qrCode": "二维码",
+    "projectUrl": "项目链接",
+    "copyLink": "复制链接",
+    "linkCopied": "链接已复制"
+  },
   "marketplace": {
     "title": "故事市场",
     "search": "搜索世界和故事...",
@@ -753,7 +775,9 @@
     "title": "项目健康",
     "noIssues": "全部检查通过，没有发现问题",
     "moreIssues": "更多",
-    "jumpToFix": "跳转修复"
+    "jumpToFix": "跳转修复",
+    "dismiss": "忽略",
+    "dismissAll": "全部忽略"
   },
   "contentEditor": {
     "formTab": "表单",

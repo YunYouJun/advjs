@@ -26,6 +26,8 @@ export interface StudioProject {
   source?: 'local' | 'url' | 'cos'
   /** COS object key prefix for cloud projects */
   cosPrefix?: string
+  /** Short description shown on project cards */
+  description?: string
   lastOpened: number
 }
 
@@ -51,6 +53,7 @@ export const useStudioStore = defineStore('studio', () => {
           url?: string
           source?: 'local' | 'url' | 'cos'
           cosPrefix?: string
+          description?: string
           lastOpened: number
         }>
         projects.value = parsed.map(p => ({
@@ -59,6 +62,7 @@ export const useStudioStore = defineStore('studio', () => {
           url: p.url,
           source: p.source,
           cosPrefix: p.cosPrefix,
+          description: p.description,
           lastOpened: p.lastOpened,
         }))
       }
@@ -75,6 +79,7 @@ export const useStudioStore = defineStore('studio', () => {
       url: p.url,
       source: p.source,
       cosPrefix: p.cosPrefix,
+      description: p.description,
       lastOpened: p.lastOpened,
     }))
     localStorage.setItem('advjs-studio-projects', JSON.stringify(serializable))

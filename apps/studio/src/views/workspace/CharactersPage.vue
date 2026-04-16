@@ -31,7 +31,7 @@ import { useAiSettingsStore } from '../../stores/useAiSettingsStore'
 import { useCharacterStateStore } from '../../stores/useCharacterStateStore'
 import { exportCharactersToCSV, exportRelationshipsToCSV } from '../../utils/csvExport'
 import { downloadAsFile } from '../../utils/fileAccess'
-import { copyCharacterInfo, shareCharacterAsMd } from '../../utils/shareUtils'
+import { copyCharacterInfo, shareCharacterAsImage, shareCharacterAsMd } from '../../utils/shareUtils'
 import { showToast } from '../../utils/toast'
 
 const { t } = useI18n()
@@ -106,6 +106,13 @@ async function handleShareCharacter(character: AdvCharacter) {
   const sheet = await actionSheetController.create({
     header: t('characters.actionShare'),
     buttons: [
+      {
+        text: t('characters.shareAsImage'),
+        handler: async () => {
+          await shareCharacterAsImage(character)
+          await showToast(t('characters.shareImageSaved'))
+        },
+      },
       {
         text: t('characters.shareAsMd'),
         handler: () => shareCharacterAsMd(character),

@@ -1,5 +1,6 @@
 import type { AdvCharacter } from '@advjs/types'
 import type { ChatMessage as AiChatMessage } from '../utils/aiClient'
+import type { ChatMessageError } from '../utils/chatUtils'
 import { exportCharacterForAI } from '@advjs/parser'
 import { LANGUAGE_LABELS } from '@advjs/types'
 import Dexie from 'dexie'
@@ -8,7 +9,7 @@ import { ref } from 'vue'
 import i18n from '../i18n'
 import { buildStreamOptions, streamChat } from '../utils/aiClient'
 import { runAiJsonExtraction, triggerBackgroundExtraction } from '../utils/aiExtraction'
-import { abortAndClear, CODE_FENCE_END_RE, CODE_FENCE_START_RE, getAiErrorMessage } from '../utils/chatUtils'
+import { abortAndClear, buildChatMessageError, CODE_FENCE_END_RE, CODE_FENCE_START_RE } from '../utils/chatUtils'
 import { db } from '../utils/db'
 import { useProjectPersistence } from '../utils/projectPersistence'
 import { getCurrentProjectId } from '../utils/projectScope'
@@ -25,6 +26,10 @@ export interface GroupChatMessage {
   characterName?: string
   content: string
   timestamp: number
+  /** Structured error info when streaming failed (enables retry UI) */
+  error?: ChatMessageError
+  /** User feedback on this message */
+  feedback?: 'up' | 'down'
 }
 
 export interface GroupChatRoom {
@@ -216,29 +221,31 @@ export const useGroupChatStore = defineStore('groupChat', () => {
       await db.groupChats.bulkPut(rows)
     },
     load: async (pid) => {
-      const all = await db.groupChats.where('projectId').equals(pid).toArray()
-      if (all.length > 0) {
-        rooms.value = all
-      }
-
-      // Load snapshots
-      try {
-        const snaps = await db.groupChatSnapshots
-          .where('[projectId+roomId]')
-          .between([pid, Dexie.minKey], [pid, Dexie.maxKey])
-          .toArray()
-        const snapMap = new Map<string, GroupChatRoomSnapshot[]>()
-        for (const s of snaps) {
-          const { projectId: _pid, ...snap } = s
-          const list = snapMap.get(snap.roomId) || []
-          list.push(snap)
-          snapMap.set(snap.roomId, list)
+      await db.transaction('r', [db.groupChats, db.groupChatSnapshots], async () => {
+        const all = await db.groupChats.where('projectId').equals(pid).toArray()
+        if (all.length > 0) {
+          rooms.value = all
         }
-        snapshots.value = snapMap
-      }
-      catch {
-        // ignore — snapshots are best-effort
-      }
+
+        // Load snapshots
+        try {
+          const snaps = await db.groupChatSnapshots
+            .where('[projectId+roomId]')
+            .between([pid, Dexie.minKey], [pid, Dexie.maxKey])
+            .toArray()
+          const snapMap = new Map<string, GroupChatRoomSnapshot[]>()
+          for (const s of snaps) {
+            const { projectId: _pid, ...snap } = s
+            const list = snapMap.get(snap.roomId) || []
+            list.push(snap)
+            snapMap.set(snap.roomId, list)
+          }
+          snapshots.value = snapMap
+        }
+        catch {
+          // ignore — snapshots are best-effort
+        }
+      })
     },
     clear: () => {
       stopGeneration()
@@ -425,12 +432,14 @@ export const useGroupChatStore = defineStore('groupChat', () => {
     catch (err) {
       streamingContent.value = ''
 
-      // Find the placeholder message and fill it with an error message
+      // Find the placeholder message and fill it with an error message + structured error
       const room = getRoom(roomId)
       if (room) {
         const lastMsg = room.messages.at(-1)
         if (lastMsg?.role === 'character' && !lastMsg.content) {
-          lastMsg.content = getAiErrorMessage(err)
+          const errorInfo = buildChatMessageError(err)
+          lastMsg.content = errorInfo.message
+          lastMsg.error = errorInfo
         }
       }
     }
@@ -711,6 +720,27 @@ export const useGroupChatStore = defineStore('groupChat', () => {
     })
   }
 
+  /**
+   * Retry from a failed message: remove it and everything after, then regenerate.
+   */
+  async function retryFromMessage(
+    roomId: string,
+    timestamp: number,
+    characters: AdvCharacter[],
+    worldContext: string,
+  ) {
+    const room = getRoom(roomId)
+    if (!room)
+      return
+    const idx = room.messages.findIndex(m => m.timestamp === timestamp)
+    if (idx === -1)
+      return
+    // Remove the failed message and anything after it
+    room.messages.splice(idx)
+    // Regenerate next turn
+    await generateNextTurn(roomId, characters, worldContext)
+  }
+
   function deleteMessage(roomId: string, timestamp: number): void {
     const room = getRoom(roomId)
     if (!room)
@@ -720,6 +750,21 @@ export const useGroupChatStore = defineStore('groupChat', () => {
       room.messages.splice(idx, 1)
       void flush()
     }
+  }
+
+  /**
+   * Toggle thumbs-up / thumbs-down feedback on a group chat message.
+   * Passing the same value again removes the feedback.
+   */
+  function setMessageFeedback(roomId: string, timestamp: number, feedback: 'up' | 'down') {
+    const room = getRoom(roomId)
+    if (!room)
+      return
+    const msg = room.messages.find(m => m.timestamp === timestamp)
+    if (!msg)
+      return
+    msg.feedback = msg.feedback === feedback ? undefined : feedback
+    flush()
   }
 
   return {
@@ -737,7 +782,9 @@ export const useGroupChatStore = defineStore('groupChat', () => {
     clearRoom,
     sendPlayerMessage,
     generateNextTurn,
+    retryFromMessage,
     stopGeneration,
+    setMessageFeedback,
     createRoomSnapshot,
     getRoomSnapshots,
     restoreRoomSnapshot,

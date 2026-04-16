@@ -7,6 +7,9 @@
  * Reference: https://developer.chrome.com/docs/capabilities/web-apis/file-system-access
  * Chrome 122+ supports persistent permissions ("Allow on every visit"),
  * so restored handles often work without re-prompting.
+ *
+ * @deprecated Internal use only — consumed by useStudioStore. External callers
+ * should use `createFsForProject()` / `getFs()` instead.
  */
 
 import { db } from './db'

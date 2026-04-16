@@ -1462,10 +1462,90 @@ Phase M1-M14 + Phase L1-L3 全部完成（60+ 个组件、32+ 个页面、13 个
 M15（9/9）+ M15b UI 打磨已全部完成。M16 社交分享已完成 2/4（角色卡片分享 + 对话 HTML 导出），剩余 2 项（项目封面、分享链增强）延后。另补全了角色编辑表单缺失的 knowledgeDomain / expertisePrompt 字段。
 M17 文件系统兼容层基础设施已完成（IFileSystem 接口 + 3 个适配器 + 工厂函数 + DB v12），消费者迁移进行中。
 
-**下一阶段路线**：M17 消费者迁移 → M16 剩余（项目封面 + 分享链增强，可选）→ Phase 13（账号系统）→ Phase 14（世界市场）
+**下一阶段路线**：参见 [Phase N 核心体验冲刺](#phase-n)。
 
 优先级逻辑：聚焦核心体验打磨，砍掉非必要功能（Ren'Py 转换器、混元图片生成），先达到「可发布品质」，再建设需要后端基础设施的账号和市场功能。
 :::
+
+### Phase N：核心体验冲刺 {#phase-n}
+
+经过 M1-M17 的功能堆叠，Studio 已拥有丰富的能力（60+ 组件、13 个 Store、170+ 单测），但部分核心路径仍存在体验断裂。Phase N 的目标是**先把已有功能做「丝滑」**，再推进新功能。
+
+**核心原则**：用户能感知到的流畅度 > 功能数量。每个子阶段只聚焦一个体验主题。
+
+---
+
+#### Phase N1：对话体验闭环 {#phase-n1}
+
+对话是 Studio 最高频的交互。当前痛点：长对话卡顿、消息列表未虚拟滚动、首次加载慢、流式输出偶发中断后无恢复提示。
+
+- [ ] **虚拟滚动实装（对话消息）** — `CharacterChatPage` + `GroupChatPage` 接入 `@tanstack/vue-virtual`，消息列表从 DOM 全量渲染改为视口渲染，目标：1000+ 条消息无感滚动
+- [ ] **流式输出恢复提示** — `streamChat` 重试失败后在消息气泡中显示「生成中断，点击重试」按钮（当前静默失败，用户只看到空白）
+- [ ] **对话预热与懒加载** — 进入 World 页时预加载角色列表 + 最近对话的最后 20 条消息，点击角色后即时展示（消除 1-2s 白屏）
+- [ ] **输入体验优化** — 输入框 `autoGrow` + Shift+Enter 换行 + Enter 发送；移动端键盘弹起时自动滚动到底部（当前部分机型输入框被遮挡）
+- [ ] **对话质量反馈闭环** — 👍/👎 数据可视化：角色详情页新增「对话质量趋势」卡片（近 30 轮好评率折线），帮助创作者调优角色人设
+
+---
+
+#### Phase N2：项目管理极简化 {#phase-n2}
+
+新用户首次打开 Studio 到「看到第一条角色对话」的步骤太多。目标：3 步内开始对话。
+
+- [ ] **一键体验模式** — 欢迎页新增「立即体验」按钮，自动创建内存项目（MemoryFs）+ 加载预置模板（含 2 个角色 + 世界观），跳过文件夹选择，30 秒内进入角色对话
+- [ ] **项目封面与简介** — `ProjectSettings` 新增 `cover` + `description`（从 M16 延续），项目列表卡片展示封面缩略图，提升辨识度
+- [ ] **项目健康自动修复** — `ProjectHealthPanel` 对简单问题（缺失字段、引用断裂）提供「一键修复」按钮，而非仅展示问题列表
+- [ ] **最近对话快捷入口** — Tab bar 长按 World 图标弹出最近 3 个对话角色快捷列表，直接跳转
+
+---
+
+#### Phase N3：文件系统迁移完成 {#phase-n3}
+
+M17 已建立 `IFileSystem` 抽象层，但 35 个消费者仍直接使用 `FileSystemDirectoryHandle`。这是 Capacitor 原生打包的最后阻塞项。
+
+- [ ] **消费者迁移（批次 1）** — 迁移 `useProjectContent` + `useContentSave` + `useContentDelete` + `fileAccess.ts` 四个核心文件操作模块到 `IFileSystem`
+- [ ] **消费者迁移（批次 2）** — 迁移 `useKnowledgeBase` + `cloudSync.ts` + `useProjectExport` + `csvParser.ts` 等数据读写模块
+- [ ] **消费者迁移（批次 3）** — 迁移剩余 20+ 个散布在组件/页面中的直接文件访问调用
+- [ ] **MemoryFs 持久化验证** — 完整 E2E 测试：MemoryFs 创建项目 → 编辑 → 刷新页面 → 数据完整恢复（验证 IndexedDB 后端）
+- [ ] **Capacitor 首次构建** — 初始化 iOS/Android 工程，完成模拟器首次启动，验证 `CapacitorFsAdapter` 读写正确性
+
+---
+
+#### Phase N4：性能与包体积 {#phase-n4}
+
+Studio 当前初始包体积偏大（Monaco 全量语言包 + Ionic 未完全 tree-shake），影响首屏加载。
+
+- [ ] **Monaco 按需加载** — 仅加载 markdown / yaml / json / typescript 四种语言包（当前加载全部 70+ 语言），预计减少 ~800KB
+- [ ] **Ionic 组件审计** — 检查未使用的 Ionic 组件是否被 tree-shake 清除，必要时改为显式导入
+- [ ] **虚拟滚动实装（角色列表 + 时间线）** — World 页角色列表 + 时间线列表接入 `@tanstack/vue-virtual`
+- [ ] **IndexedDB 批量事务** — 对话消息加载 / 知识库检索 / 日记列表三个高频路径改用 `db.transaction()` 批量读写
+- [ ] **首屏骨架屏** — Tab 切换时先渲染骨架屏再加载数据，消除白屏闪烁
+
+---
+
+#### Phase N5：分享与传播 {#phase-n5}
+
+完成 M16 剩余项 + 增加传播能力，为后续市场功能铺路。
+
+- [ ] **项目封面生成** — 自动从项目角色 + 世界观生成封面图（调用 AI 图片服务），或手动上传
+- [ ] **分享链增强** — 项目分享时附加封面图 + 简介，OG meta 标签支持（微信/Twitter 预览卡片）
+- [ ] **对话片段分享** — 选中对话中 N 条连续消息，生成精美分享图（对话气泡截图 + 角色头像 + 水印）
+- [ ] **项目二维码** — 生成项目 URL 的二维码图片，方便线下分享
+
+---
+
+**Phase N 之后的路线**：
+
+```
+Phase N（核心体验冲刺，N1-N5）
+    ↓ 达到「可发布品质」
+Phase 13（账号系统）
+    ↓ 用户身份基础设施
+Phase 14（世界/故事市场）
+    ↓ 社区生态
+后续迭代（多人协作、插件系统、位置驱动剧情等）
+```
+
+---
 
 ### Phase 13：账号系统 {#phase-13}
 
@@ -1546,12 +1626,13 @@ interface MarketplaceEntry {
 - [x] **群聊分支树** — 群聊存档支持 `parentSnapshotId`，复用泛化后的 `SnapshotTree.vue`（Phase M12）
 - [x] **角色情感弧光** — 基于日记情绪词和对话情感快照绘制情绪变化折线图（Phase M14）
 - [x] **项目模板库** — 内置 5 种类型模板，降低新用户上手门槛（Phase M12）
-- [ ] **Capacitor 原生打包** — iOS/Android 原生应用打包发布（→ Phase M17）
+- [ ] **Capacitor 原生打包** — iOS/Android 原生应用打包发布（→ Phase N3）
 - [x] **E2E 测试** — Playwright E2E 测试覆盖核心导航和启动流程（Phase M12）
 - [x] **MCP Server 扩展** — 新增 7 个 CRUD 工具（list_files/create_character/edit_character/create_chapter/edit_chapter/project_stats/search_content），扩展 AI 编辑器协作能力（Phase M13）
 - [x] **批量角色导入** — CSV/JSON 批量创建角色，支持导入预览和重复检测（Phase M13）
 - [x] **对话质量评分** — 每轮 AI 回复 👍/👎 反馈 + 趋势展示（Phase M15，数据层已完成）
-- [ ] **虚拟滚动实装** — 三大长列表接入 @tanstack/vue-virtual（→ Phase M17）
+- [ ] **虚拟滚动实装** — 三大长列表接入 @tanstack/vue-virtual（→ Phase N1 + N4）
+- [ ] **一键体验模式** — 零配置快速开始对话体验（→ Phase N2）
 
 ### 地点系统路线 {#location-roadmap}
 
@@ -1601,7 +1682,7 @@ interface MarketplaceEntry {
 
 - ~~**localStorage 容量有限**~~ — ✅ 已迁移至 IndexedDB（Phase 12，Dexie v2→v6）
 - ~~**消息清理策略**~~ — ✅ 自动归档旧对话至 IndexedDB `archivedBatches` table（Phase M6.5），CharacterChatPage 可查看归档消息（Phase M7.1）
-- **Capacitor 原生打包** — iOS/Android 原生应用尚未打包发布（→ Phase M17，需解决文件系统 API 兼容性）
+- **Capacitor 原生打包** — iOS/Android 原生应用尚未打包发布（→ Phase N3，需先完成文件系统迁移）
 
 ### 知识库系统
 

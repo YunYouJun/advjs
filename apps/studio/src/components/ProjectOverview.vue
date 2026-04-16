@@ -63,6 +63,7 @@ const {
   stats,
   isLoading,
   knowledgeBase,
+  getFs,
 } = useProjectContent()
 
 const {
@@ -437,12 +438,13 @@ const isExporting = ref(false)
 
 async function handleExport() {
   const project = studioStore.currentProject
-  if (!project?.dirHandle)
+  const fs = getFs()
+  if (!project || !fs)
     return
 
   isExporting.value = true
   try {
-    const blob = await exportProject(project.dirHandle, project.name || 'project')
+    const blob = await exportProject(fs, project.name || 'project')
     const safeName = (project.name || 'project').toLowerCase().replace(SAFE_NAME_RE, '-')
     downloadBlob(blob, `${safeName}.advpkg.zip`)
     const toast = await toastController.create({

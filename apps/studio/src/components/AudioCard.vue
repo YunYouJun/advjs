@@ -10,7 +10,7 @@ import {
 } from '@ionic/vue'
 import { musicalNoteOutline, pauseOutline, playOutline } from 'ionicons/icons'
 import { computed, onUnmounted, ref, watch } from 'vue'
-import { useStudioStore } from '../stores/useStudioStore'
+import { useProjectContent } from '../composables/useProjectContent'
 
 const props = defineProps<{
   audio: AudioInfo
@@ -20,7 +20,6 @@ defineEmits<{
   click: [audio: AudioInfo]
 }>()
 
-const studioStore = useStudioStore()
 const audioEl = ref<HTMLAudioElement | null>(null)
 const isPlaying = ref(false)
 const currentTime = ref(0)
@@ -49,10 +48,6 @@ watch(() => props.audio.src, async (src) => {
     blobUrl.value = src
     return
   }
-
-  const project = studioStore.currentProject
-  if (!project?.dirHandle)
-    return
 
   const { getFs } = useProjectContent()
   const fs = getFs()

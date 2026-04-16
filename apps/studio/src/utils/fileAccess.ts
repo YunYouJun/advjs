@@ -3,7 +3,10 @@
  * Uses the File System Access API (showDirectoryPicker).
  */
 
-/** Navigate into nested subdirectories from a root handle */
+/**
+ * Navigate into nested subdirectories from a root handle
+ * @deprecated Use IFileSystem.mkdir / readdir instead. Will be removed in N3 batch 3.
+ */
 export async function resolveSubdir(
   dir: FileSystemDirectoryHandle,
   parts: string[],
@@ -15,7 +18,7 @@ export async function resolveSubdir(
   return current
 }
 
-/** Open a directory picker and return the handle */
+/** Open a directory picker and return the handle (browser-only) */
 export async function openProjectDirectory(): Promise<FileSystemDirectoryHandle> {
   const dirHandle = await (window as any).showDirectoryPicker({
     mode: 'readwrite',
@@ -23,7 +26,10 @@ export async function openProjectDirectory(): Promise<FileSystemDirectoryHandle>
   return dirHandle
 }
 
-/** Read a file from a directory handle by relative path */
+/**
+ * Read a file from a directory handle by relative path
+ * @deprecated Use IFileSystem.readFile instead. Will be removed in N3 batch 3.
+ */
 export async function readFileFromDir(
   dir: FileSystemDirectoryHandle,
   path: string,
@@ -36,7 +42,10 @@ export async function readFileFromDir(
   return file.text()
 }
 
-/** List files in a subdirectory matching an extension */
+/**
+ * List files in a subdirectory matching an extension
+ * @deprecated Use IFileSystem.listFiles instead. Will be removed in N3 batch 3.
+ */
 export async function listFilesInDir(
   dir: FileSystemDirectoryHandle,
   subdir: string,
@@ -62,7 +71,10 @@ export async function listFilesInDir(
   return files.sort()
 }
 
-/** List files in a subdirectory matching any of the given extensions */
+/**
+ * List files in a subdirectory matching any of the given extensions
+ * @deprecated Use IFileSystem.listFilesByExts instead. Will be removed in N3 batch 3.
+ */
 export async function listFilesInDirByExts(
   dir: FileSystemDirectoryHandle,
   subdir: string,
@@ -140,7 +152,10 @@ export async function detectAdvProject(
   return result
 }
 
-/** Write content to a file in a directory handle */
+/**
+ * Write content to a file in a directory handle
+ * @deprecated Use IFileSystem.writeFile instead. Will be removed in N3 batch 3.
+ */
 export async function writeFileToDir(
   dir: FileSystemDirectoryHandle,
   path: string,
@@ -173,7 +188,10 @@ export function downloadAsFile(
   URL.revokeObjectURL(url)
 }
 
-/** Read a binary file from a directory handle and return a blob URL */
+/**
+ * Read a binary file from a directory handle and return a blob URL
+ * @deprecated Use IFileSystem.readBlobUrl instead. Will be removed in N3 batch 3.
+ */
 export async function readBlobFromDir(
   dir: FileSystemDirectoryHandle,
   path: string,
@@ -186,7 +204,10 @@ export async function readBlobFromDir(
   return URL.createObjectURL(file)
 }
 
-/** Write a Blob or File to a directory handle by relative path */
+/**
+ * Write a Blob or File to a directory handle by relative path
+ * @deprecated Use IFileSystem.writeBlob instead. Will be removed in N3 batch 3.
+ */
 export async function writeBlobToDir(
   dir: FileSystemDirectoryHandle,
   path: string,
@@ -241,7 +262,10 @@ export function isTextFile(name: string): boolean {
   return TEXT_EXTENSIONS.some(ext => name.endsWith(ext))
 }
 
-/** Collect all files from a local directory handle recursively (text files only) */
+/**
+ * Collect all files from a local directory handle recursively (text files only)
+ * @deprecated Use IFileSystem.collectAllFiles instead. Will be removed in N3 batch 3.
+ */
 export async function collectLocalFiles(
   dirHandle: FileSystemDirectoryHandle,
   basePath = '',

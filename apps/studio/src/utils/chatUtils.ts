@@ -3,11 +3,54 @@
  */
 
 import type { Ref } from 'vue'
-import type { ChatMessage } from './aiClient'
+import type { AiApiErrorType, ChatMessage } from './aiClient'
 import type { ResolvedAiConfig } from './resolveAiConfig'
 import i18n from '../i18n'
 import { useAiSettingsStore } from '../stores/useAiSettingsStore'
 import { AiApiError, buildStreamOptions, streamChat } from './aiClient'
+
+/**
+ * Structured error info attached to a failed message.
+ * Enables RetryButton rendering and smart retry decisions.
+ */
+export interface ChatMessageError {
+  type: AiApiErrorType | 'abort' | 'unknown'
+  message: string
+  /** Whether the user can meaningfully retry this request */
+  retryable: boolean
+}
+
+/** Determine if an error is retryable (network/timeout/api_error yes, auth/rate_limit/abort no) */
+function isRetryableError(err: unknown): boolean {
+  if (err instanceof AiApiError)
+    return err.type === 'network' || err.type === 'timeout' || err.type === 'api_error'
+  if (err instanceof DOMException && err.name === 'AbortError')
+    return false
+  return true // unknown errors are retryable
+}
+
+/** Build a structured ChatMessageError from a caught error */
+export function buildChatMessageError(err: unknown): ChatMessageError {
+  if (err instanceof AiApiError) {
+    return {
+      type: err.type,
+      message: getAiErrorMessage(err),
+      retryable: isRetryableError(err),
+    }
+  }
+  if (err instanceof DOMException && err.name === 'AbortError') {
+    return {
+      type: 'abort',
+      message: getAiErrorMessage(err),
+      retryable: false,
+    }
+  }
+  return {
+    type: 'unknown',
+    message: getAiErrorMessage(err),
+    retryable: true,
+  }
+}
 
 /** Strip markdown code fences from AI responses (e.g. ```json\n...\n```) */
 export const CODE_FENCE_START_RE = /^```(?:json)?\n?/
@@ -176,20 +219,26 @@ export function abortAndClear(controller: Ref<AbortController | null>): void {
 
 /**
  * Handle a streaming error in a chat store:
- * clear streaming state and set error message on the placeholder message
- * (preserving any partial content already streamed).
+ * clear streaming state, set error message on the placeholder message
+ * (preserving any partial content already streamed),
+ * and attach a structured error object for retry UI.
  */
 export function handleStreamError(
   err: unknown,
   streamingContent: Ref<string>,
-  messages: Array<{ content: string, [key: string]: unknown }>,
+  messages: Array<{ content: string, error?: ChatMessageError, [key: string]: unknown }>,
   msgIndex: number,
 ): void {
   streamingContent.value = ''
-  const errorMessage = getAiErrorMessage(err)
+  const errorInfo = buildChatMessageError(err)
   const msg = messages[msgIndex]
-  if (msg)
-    messages[msgIndex] = { ...msg, content: msg.content || errorMessage }
+  if (msg) {
+    messages[msgIndex] = {
+      ...msg,
+      content: msg.content || errorInfo.message,
+      error: errorInfo,
+    }
+  }
 }
 
 /**

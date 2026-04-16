@@ -82,7 +82,7 @@ async function loadChapters() {
       chapters.value = []
     }
   }
-  else if (project.dirHandle) {
+  else {
     const { getFs } = useProjectContent()
     const fs = getFs()
     if (fs) {
@@ -122,7 +122,7 @@ async function loadChapterForPlay(file: string) {
     if (project.source === 'cos') {
       gameContent.value = await downloadFromCloud(settingsStore.cos, file)
     }
-    else if (project.dirHandle) {
+    else {
       const { getFs } = useProjectContent()
       const fs = getFs()
       if (fs)

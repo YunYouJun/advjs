@@ -73,8 +73,9 @@ async function reloadKnowledge() {
   const project = studioStore.currentProject
   if (!project)
     return
-  if (project.dirHandle) {
-    await knowledgeBase.loadFromDir(project.dirHandle)
+  const fs = getFs()
+  if (fs) {
+    await knowledgeBase.loadFromFs(fs)
   }
   else if (project.source === 'cos' && project.cosPrefix) {
     await knowledgeBase.loadFromCos(settingsStore.cos, project.cosPrefix)
@@ -109,8 +110,8 @@ function handleEditorUpdate(data: { title: string, domain: string, content: stri
 }
 
 async function handleSave() {
-  const dirHandle = getDirHandle()
-  if (!dirHandle)
+  const fs = getFs()
+  if (!fs)
     return
 
   const { title, domain, content } = editorData.value
@@ -130,11 +131,11 @@ async function handleSave() {
         content: fullContent,
         sections: [], // Will be re-parsed on next load
       }
-      await knowledgeBase.saveEntry(dirHandle, updatedEntry)
+      await knowledgeBase.saveEntryFs(fs, updatedEntry)
     }
     else {
       // Create new
-      await knowledgeBase.createEntry(dirHandle, domain, title, content)
+      await knowledgeBase.createEntryFs(fs, domain, title, content)
     }
 
     showEditor.value = false

@@ -1,4 +1,4 @@
-import { resolveSubdir } from '../utils/fileAccess'
+import type { IFileSystem } from '../utils/fs'
 
 const TEXT_FILE_RE = /\.(?:md|json|txt|yaml|yml|css|js|ts|html)$/i
 
@@ -16,64 +16,26 @@ interface ProjectManifest {
 }
 
 /**
- * Recursively collect all files under a directory handle into a Map<relativePath, content>.
- * Handles both text files and binary files (images, audio).
- */
-async function collectFiles(
-  dirHandle: FileSystemDirectoryHandle,
-  prefix: string,
-): Promise<Map<string, Blob | string>> {
-  const files = new Map<string, Blob | string>()
-
-  for await (const entry of dirHandle.values()) {
-    const path = prefix ? `${prefix}/${entry.name}` : entry.name
-    if (entry.kind === 'file') {
-      const fileHandle = await dirHandle.getFileHandle(entry.name)
-      const file = await fileHandle.getFile()
-      // Text files: md, json, txt, adv.md, yaml, yml, etc.
-      if (TEXT_FILE_RE.test(entry.name)) {
-        files.set(path, await file.text())
-      }
-      else {
-        // Binary: images, audio, etc.
-        files.set(path, file)
-      }
-    }
-    else if (entry.kind === 'directory') {
-      const subDir = await dirHandle.getDirectoryHandle(entry.name)
-      const subFiles = await collectFiles(subDir, path)
-      for (const [k, v] of subFiles) {
-        files.set(k, v)
-      }
-    }
-  }
-
-  return files
-}
-
-/**
- * Export a project as a `.advpkg.zip` file.
+ * Export a project as a `.advpkg.zip` file via IFileSystem.
  *
  * Collects all files under `adv/` directory, generates a manifest,
  * and packages everything into a downloadable zip.
  */
 export async function exportProject(
-  dirHandle: FileSystemDirectoryHandle,
+  fs: IFileSystem,
   projectName: string,
 ): Promise<Blob> {
   const JSZip = (await import('jszip')).default
   const zip = new JSZip()
 
-  // Collect files from adv/ directory
-  let advDir: FileSystemDirectoryHandle
+  // Collect all text files under adv/
+  let allFiles: { path: string, content: string }[]
   try {
-    advDir = await resolveSubdir(dirHandle, ['adv'])
+    allFiles = await fs.collectAllFiles('adv')
   }
   catch {
     throw new Error('No adv/ directory found in project')
   }
-
-  const files = await collectFiles(advDir, 'adv')
 
   // Count stats
   let characters = 0
@@ -82,14 +44,8 @@ export async function exportProject(
   let audios = 0
   let knowledge = 0
 
-  for (const [path, content] of files) {
-    // Add to zip
-    if (typeof content === 'string') {
-      zip.file(path, content)
-    }
-    else {
-      zip.file(path, content)
-    }
+  for (const { path, content } of allFiles) {
+    zip.file(path, content)
 
     // Count by directory
     if (path.startsWith('adv/characters/'))
@@ -103,6 +59,30 @@ export async function exportProject(
     else if (path.startsWith('adv/knowledge/'))
       knowledge++
   }
+
+  // Also try to include binary files (images, audio) via blob URLs
+  try {
+    const binaryExts = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.mp3', '.wav', '.ogg', '.m4a']
+    for (const ext of binaryExts) {
+      try {
+        const binaryFiles = await fs.listFilesByExts('adv', [ext])
+        for (const binaryPath of binaryFiles) {
+          if (zip.file(binaryPath))
+            continue // already added as text
+          try {
+            const blobUrl = await fs.readBlobUrl(binaryPath)
+            const resp = await fetch(blobUrl)
+            const blob = await resp.blob()
+            URL.revokeObjectURL(blobUrl)
+            zip.file(binaryPath, blob)
+          }
+          catch { /* skip unreadable binary */ }
+        }
+      }
+      catch { /* no files with this ext */ }
+    }
+  }
+  catch { /* binary export best-effort */ }
 
   // Generate manifest
   const manifest: ProjectManifest = {
@@ -133,13 +113,13 @@ export function downloadBlob(blob: Blob, filename: string): void {
 }
 
 /**
- * Import a `.advpkg.zip` file into a project directory.
+ * Import a `.advpkg.zip` file into a project via IFileSystem.
  *
- * Reads the zip, validates manifest, and extracts all files to dirHandle.
+ * Reads the zip, validates manifest, and extracts all files.
  */
 export async function importProject(
   zipFile: File,
-  dirHandle: FileSystemDirectoryHandle,
+  fs: IFileSystem,
 ): Promise<ProjectManifest> {
   const JSZip = (await import('jszip')).default
   const zip = await JSZip.loadAsync(zipFile)
@@ -159,35 +139,22 @@ export async function importProject(
   const entries = Object.entries(zip.files).filter(([name]) => name !== 'manifest.json' && !name.endsWith('/'))
 
   for (const [path, zipEntry] of entries) {
-    const parts = path.split('/')
-    const fileName = parts.pop()!
-
-    // Create directories
-    let currentDir = dirHandle
-    for (const part of parts) {
-      try {
-        currentDir = await currentDir.getDirectoryHandle(part, { create: true })
-      }
-      catch {
-        currentDir = await currentDir.getDirectoryHandle(part)
-      }
+    // Ensure parent directories exist
+    const dirParts = path.split('/')
+    dirParts.pop() // remove filename
+    if (dirParts.length > 0) {
+      await fs.mkdir(dirParts.join('/'))
     }
 
     // Write file
-    const fileHandle = await currentDir.getFileHandle(fileName, { create: true })
-    const writable = await fileHandle.createWritable()
-
-    // Determine if text or binary based on extension
-    if (TEXT_FILE_RE.test(fileName)) {
+    if (TEXT_FILE_RE.test(path)) {
       const text = await zipEntry.async('string')
-      await writable.write(text)
+      await fs.writeFile(path, text)
     }
     else {
       const blob = await zipEntry.async('blob')
-      await writable.write(blob)
+      await fs.writeBlob(path, blob)
     }
-
-    await writable.close()
   }
 
   return manifest

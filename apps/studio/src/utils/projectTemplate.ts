@@ -1,4 +1,4 @@
-import { writeFileToDir } from './fileAccess'
+import type { IFileSystem } from './fs'
 
 // ---------------------------------------------------------------------------
 // Template file definitions
@@ -714,27 +714,201 @@ export function getTemplateById(id: string): TemplateDefinition | undefined {
 }
 
 // ---------------------------------------------------------------------------
+// Quick-start template (for one-click "Try Now" experience)
+// ---------------------------------------------------------------------------
+
+/**
+ * A minimal template with 2 pre-built characters and a world context,
+ * designed for instant play without any setup. Users can start chatting
+ * with characters within seconds.
+ */
+export const quickStartTemplate: TemplateDefinition = {
+  id: 'quick-start',
+  files: projectName => [
+    { path: 'README.md', content: readmeContent(projectName) },
+    {
+      path: 'adv/world.md',
+      content: `# 世界观设定
+
+## 背景
+
+故事发生在一座美丽的海边小城——星海市。这里有蔚蓝的大海、古老的灯塔、热闹的渔港，还有一所面朝大海的高中——星海中学。
+
+## 季节
+
+现在是初秋，海风带着些许凉意，天空格外澄澈。
+
+## 氛围
+
+宁静而充满可能性的小城日常。每天都可能发生温暖的小故事。
+`,
+    },
+    {
+      path: 'adv/outline.md',
+      content: `# 故事大纲
+
+## 概要
+
+在星海市的日常生活中，不同性格的人们彼此相遇、对话、了解，编织出属于这座小城的故事。
+
+## 开放结构
+
+这是一个开放式的故事世界，没有固定剧情走向。角色们的对话和互动由你来引导。
+`,
+    },
+    {
+      path: 'adv/characters/ye-qing.md',
+      content: `---
+id: ye-qing
+name: 叶晴
+avatar: null
+---
+
+# 叶晴
+
+## 基本信息
+
+- **年龄**：17岁
+- **身份**：高二学生，美术社社长
+- **性格**：开朗活泼，有些小迷糊，对人真诚温暖
+- **爱好**：画画、看海、收集贝壳
+
+## 说话风格
+
+- 语气活泼，喜欢用感叹号
+- 偶尔会用可爱的语气词
+- 说到画画相关的话题会特别兴奋
+- 对朋友非常真诚，会主动关心别人
+
+## 背景故事
+
+从小在星海市长大的本地女孩，最喜欢坐在灯塔旁画海景。梦想是成为一名插画师，用画笔记录这座城市的每一个美丽瞬间。
+`,
+    },
+    {
+      path: 'adv/characters/lu-yuan.md',
+      content: `---
+id: lu-yuan
+name: 陆远
+avatar: null
+---
+
+# 陆远
+
+## 基本信息
+
+- **年龄**：18岁
+- **身份**：高三学生，文学社成员
+- **性格**：沉稳内敛，温和有礼，偶尔有些毒舌
+- **爱好**：阅读、写作、弹吉他
+
+## 说话风格
+
+- 语气平稳，用词比较文雅
+- 偶尔引用诗句或文学典故
+- 表面冷静但内心细腻
+- 对感兴趣的话题会不自觉地话变多
+
+## 背景故事
+
+从大城市转学来到星海市，最初觉得小城市无聊，但渐渐被这里的宁静和人情味打动。常在放学后去海边的旧书店看书，正在写一本关于这座城市的小说。
+`,
+    },
+    {
+      path: 'adv/chapters/01.adv.md',
+      content: `---
+scene: seaside
+background: seaside.png
+plotSummary: 海边的偶遇
+---
+
+> 初秋的傍晚，海边的风带着淡淡的咸味。夕阳将天空染成橘红色。
+
+@叶晴
+哇——今天的晚霞好美！一定要画下来！
+
+---
+
+> 叶晴坐在礁石上，速写本摊在膝头，画笔飞速移动。
+
+> 不远处，一个男生靠在灯塔的栏杆上，手里拿着一本书，视线却望向远方的海面。
+
+@陆远
+……
+
+@叶晴
+那边那位同学！对，就是你！能不能不要动？你站在那里的样子特别适合入画！
+
+@陆远
+……我只是在看海。
+
+@叶晴
+就是那个感觉！保持住！
+
+---
+
+> 十分钟后。
+
+@叶晴
+好了！你要看看吗？
+
+@陆远
+你画了……我？
+
+@叶晴
+嗯！灯塔、晚霞、还有你！画面特别和谐！
+
+---
+
+> 陆远看着速写本上的画，嘴角不自觉地微微上扬。
+
+@陆远
+画技不错。不过……你把我画得太高了。
+
+@叶晴
+哈哈，艺术加工嘛！我叫叶晴，你呢？
+
+@陆远
+陆远。
+
+@叶晴
+陆远同学，以后可以经常来这里吗？这个角度真的很适合画画！
+
+@陆远
+……随便你。
+
+---
+
+> 海风吹过，带走了夏天最后的余温。新的故事，就这样开始了。
+`,
+    },
+  ],
+}
+
+// ---------------------------------------------------------------------------
 // Create project from template
 // ---------------------------------------------------------------------------
 
 /**
- * Create a new ADV.JS project from template.
+ * Create a new ADV.JS project from template using IFileSystem.
  *
- * @param parentDir - Parent directory handle where the project folder will be created
- * @param projectName - Name of the project (used as folder name)
+ * @param fs - File system to write files into
+ * @param projectName - Name of the project (used in template content)
  * @param templateId - Template ID (defaults to 'visual-novel-starter')
- * @returns The created project directory handle
  */
 export async function createProjectFromTemplate(
-  parentDir: FileSystemDirectoryHandle,
+  fs: IFileSystem,
   projectName: string,
   templateId: string = 'visual-novel-starter',
-): Promise<FileSystemDirectoryHandle> {
+): Promise<void> {
   const template = getTemplateById(templateId) || starterTemplate
-  const projectDir = await parentDir.getDirectoryHandle(projectName, { create: true })
   const files = template.files(projectName)
   for (const file of files) {
-    await writeFileToDir(projectDir, file.path, file.content)
+    // Ensure parent directories exist
+    const parts = file.path.split('/')
+    if (parts.length > 1) {
+      await fs.mkdir(parts.slice(0, -1).join('/'))
+    }
+    await fs.writeFile(file.path, file.content)
   }
-  return projectDir
 }

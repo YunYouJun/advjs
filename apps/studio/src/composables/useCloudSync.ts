@@ -1,4 +1,5 @@
 import type { CosConfig } from '../utils/cloudSync'
+import type { IFileSystem } from '../utils/fs'
 import { onUnmounted, ref, watch } from 'vue'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
@@ -7,7 +8,7 @@ import {
   listCloudFilesDetailed,
   uploadToCloud,
 } from '../utils/cloudSync'
-import { collectLocalFiles, writeFileToDir } from '../utils/fileAccess'
+import { createFsForProject } from '../utils/fs'
 
 export type SyncStatus = 'idle' | 'syncing' | 'success' | 'failed'
 
@@ -112,10 +113,22 @@ export function useCloudSync() {
       // Get cloud file list with metadata
       const cloudFiles = await listCloudFilesDetailed(config, prefix)
 
-      // If we have a local dirHandle, do bidirectional sync
-      if (project.dirHandle) {
-        // Collect local files
-        const localFiles = await collectLocalFiles(project.dirHandle)
+      // Get the project's file system
+      let fs: IFileSystem | null = null
+      try {
+        fs = await createFsForProject({
+          dirHandle: project.dirHandle,
+          projectId: project.projectId || project.name,
+          source: project.source,
+        })
+      }
+      catch {
+        // No FS available
+      }
+
+      if (fs) {
+        // Collect local files via IFileSystem
+        const localFileEntries = await fs.collectAllFiles('')
 
         // Build cloud file map: relative path → lastModified
         const cloudMap = new Map<string, Date>()
@@ -127,7 +140,7 @@ export function useCloudSync() {
 
         // Build local file map
         const localMap = new Map<string, { content: string, lastModified: Date }>()
-        for (const lf of localFiles)
+        for (const lf of localFileEntries)
           localMap.set(lf.path, { content: lf.content, lastModified: lf.lastModified })
 
         // Upload local files that are newer or missing from cloud
@@ -150,7 +163,7 @@ export function useCloudSync() {
           if (!local || cloudDate > local.lastModified) {
             try {
               const content = await downloadFromCloud(config, prefix + path)
-              await writeFileToDir(project.dirHandle, path, content)
+              await fs.writeFile(path, content)
               downloaded++
             }
             catch {
@@ -247,6 +260,5 @@ export function useCloudSync() {
 
     // Utils
     isCosConfigured,
-    collectLocalFiles,
   }
 }

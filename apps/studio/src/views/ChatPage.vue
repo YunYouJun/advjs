@@ -4,7 +4,6 @@ import {
   IonButton,
   IonChip,
   IonIcon,
-  IonInput,
   IonTextarea,
   IonToolbar,
   toastController,
@@ -13,9 +12,12 @@ import { addOutline, clipboardOutline, codeOutline, folderOpenOutline, gameContr
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import ChatSkeleton from '../components/ChatSkeleton.vue'
 import LayoutPage from '../components/common/LayoutPage.vue'
 import MarkdownMessage from '../components/MarkdownMessage.vue'
 import MessageActions from '../components/MessageActions.vue'
+import RetryButton from '../components/RetryButton.vue'
+import VirtualMessageList from '../components/VirtualMessageList.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useResponsive } from '../composables/useResponsive'
 import { useAiSettingsStore } from '../stores/useAiSettingsStore'
@@ -45,6 +47,9 @@ const { characters, stats } = useProjectContent()
 const hasProject = computed(() => !!studioStore.currentProject)
 const isAiConfigured = computed(() => aiSettings.isConfigured)
 
+// Virtual message list ref
+const virtualListRef = ref<InstanceType<any> | null>(null)
+
 function goToProjects() {
   router.push('/tabs/workspace')
 }
@@ -57,22 +62,25 @@ function goToAiSettings() {
 watch(() => studioStore.currentProject, async (project) => {
   if (!project)
     return
-  if (project.dirHandle) {
-    const { getFs } = useProjectContent()
-    const fs = getFs()
-    if (fs)
-      await chatStore.loadProjectContextFromFs(fs)
+  const { getFs } = useProjectContent()
+  const fs = getFs()
+  if (fs) {
+    await chatStore.loadProjectContextFromFs(fs)
   }
   else if (project.source === 'cos' && project.cosPrefix) {
     await chatStore.loadProjectContextFromCos(settingsStore.cos, project.cosPrefix)
   }
 }, { immediate: true })
 
-// Auto-scroll to bottom when messages change
-watch(() => chatStore.messages.length, async () => {
+// Connect IonContent scroll element to VirtualMessageList
+watch(layoutPageRef, async (page) => {
+  if (!page?.contentRef)
+    return
   await nextTick()
-  layoutPageRef.value?.contentRef?.$el?.scrollToBottom?.(300)
-})
+  const scrollEl = await page.contentRef.$el?.getScrollElement?.()
+  if (scrollEl)
+    virtualListRef.value?.setScrollElement(scrollEl)
+}, { immediate: true })
 
 async function send() {
   const text = inputText.value.trim()
@@ -81,6 +89,17 @@ async function send() {
 
   inputText.value = ''
   chatStore.sendMessage(text)
+}
+
+/** When the input is focused (keyboard opens on mobile), scroll to bottom */
+function scrollToBottomOnFocus() {
+  setTimeout(() => {
+    virtualListRef.value?.scrollToBottom()
+  }, 300) // Wait for keyboard animation
+}
+
+function handleFeedback(msg: ChatMessage, type: 'up' | 'down') {
+  chatStore.setMessageFeedback(msg.timestamp, type)
 }
 
 function quickSend(text: string) {
@@ -351,8 +370,89 @@ async function handleSaveContent(payload: { type: string, content: string, filen
           </button>
         </div>
 
-        <!-- Welcome state -->
-        <div v-else-if="hasProject && chatStore.messages.length === 0" class="chat-welcome">
+        <!-- Virtual scrolled message list -->
+        <VirtualMessageList
+          v-if="hasProject && chatStore.messages.length > 0"
+          ref="virtualListRef"
+          :messages="chatStore.messages"
+          :estimate-size="72"
+          :is-streaming="chatStore.isLoading"
+        >
+          <template #message="{ message: msg }">
+            <div
+              class="message"
+              :class="[msg.role]"
+            >
+              <!-- Edit mode (user messages only) -->
+              <template v-if="editingTimestamp === msg.timestamp">
+                <div class="bubble edit-bubble">
+                  <IonTextarea
+                    v-model="editingContent"
+                    :auto-grow="true"
+                    class="edit-textarea"
+                    @keydown="handleEditKeydown($event, msg.timestamp)"
+                  />
+                  <div class="edit-actions">
+                    <IonButton fill="clear" size="small" @click="cancelEdit">
+                      {{ t('chat.editCancel') }}
+                    </IonButton>
+                    <IonButton size="small" :disabled="!editingContent.trim()" @click="confirmEdit(msg.timestamp)">
+                      {{ t('chat.editConfirm') }}
+                    </IonButton>
+                  </div>
+                </div>
+              </template>
+
+              <!-- Normal display mode -->
+              <template v-else>
+                <div class="bubble" :class="{ 'bubble--error': msg.error }">
+                  <MarkdownMessage v-if="msg.role === 'assistant'" :content="msg.content" :word-wrap="settingsStore.chatWordWrap" :file-diffs="msg.fileDiffs" @save="handleSaveContent" />
+                  <template v-else>
+                    {{ msg.content }}
+                  </template>
+                  <RetryButton v-if="msg.error" :error="msg.error" @retry="chatStore.retryFromMessage(msg.timestamp)" />
+                </div>
+                <MessageActions
+                  :message="msg"
+                  :is-last="isLastAssistant(msg)"
+                  :is-loading="chatStore.isLoading"
+                  :feedback="msg.feedback"
+                  @copy="copyMessage(msg)"
+                  @edit="startEdit(msg)"
+                  @delete="handleDeleteMessage(msg.timestamp)"
+                  @regenerate="chatStore.regenerateLast()"
+                  @feedback-up="handleFeedback(msg, 'up')"
+                  @feedback-down="handleFeedback(msg, 'down')"
+                />
+              </template>
+
+              <div class="time">
+                {{ formatChatTime(msg.timestamp) }}
+              </div>
+            </div>
+          </template>
+
+          <template #footer>
+            <!-- Typing indicator (only when loading and no streaming content yet) -->
+            <Transition name="msg">
+              <div v-if="chatStore.isLoading && !chatStore.streamingContent" class="message assistant">
+                <div class="bubble">
+                  <div class="typing-indicator">
+                    <span class="typing-dot" />
+                    <span class="typing-dot" />
+                    <span class="typing-dot" />
+                  </div>
+                </div>
+              </div>
+            </Transition>
+          </template>
+        </VirtualMessageList>
+
+        <!-- Loading skeleton (first load) -->
+        <ChatSkeleton v-else-if="hasProject && chatStore.isLoading" />
+
+        <!-- Welcome state (when no messages yet) -->
+        <div v-else-if="hasProject && chatStore.messages.length === 0 && !chatStore.isLoading" class="chat-welcome">
           <div class="chat-welcome__icon">
             <IonIcon :icon="gameControllerOutline" />
           </div>
@@ -374,84 +474,21 @@ async function handleSaveContent(payload: { type: string, content: string, filen
             </IonChip>
           </div>
         </div>
-
-        <TransitionGroup name="msg">
-          <div
-            v-for="(msg, index) in chatStore.messages"
-            :key="msg.timestamp + index"
-            class="message"
-            :class="[msg.role]"
-          >
-            <!-- Edit mode (user messages only) -->
-            <template v-if="editingTimestamp === msg.timestamp">
-              <div class="bubble edit-bubble">
-                <IonTextarea
-                  v-model="editingContent"
-                  :auto-grow="true"
-                  class="edit-textarea"
-                  @keydown="handleEditKeydown($event, msg.timestamp)"
-                />
-                <div class="edit-actions">
-                  <IonButton fill="clear" size="small" @click="cancelEdit">
-                    {{ t('chat.editCancel') }}
-                  </IonButton>
-                  <IonButton size="small" :disabled="!editingContent.trim()" @click="confirmEdit(msg.timestamp)">
-                    {{ t('chat.editConfirm') }}
-                  </IonButton>
-                </div>
-              </div>
-            </template>
-
-            <!-- Normal display mode -->
-            <template v-else>
-              <div class="bubble">
-                <MarkdownMessage v-if="msg.role === 'assistant'" :content="msg.content" :word-wrap="settingsStore.chatWordWrap" :file-diffs="msg.fileDiffs" @save="handleSaveContent" />
-                <template v-else>
-                  {{ msg.content }}
-                </template>
-              </div>
-              <MessageActions
-                :message="msg"
-                :is-last="isLastAssistant(msg)"
-                :is-loading="chatStore.isLoading"
-                @copy="copyMessage(msg)"
-                @edit="startEdit(msg)"
-                @delete="handleDeleteMessage(msg.timestamp)"
-                @regenerate="chatStore.regenerateLast()"
-              />
-            </template>
-
-            <div class="time">
-              {{ formatChatTime(msg.timestamp) }}
-            </div>
-          </div>
-        </TransitionGroup>
-
-        <!-- Typing indicator (only when loading and no streaming content yet) -->
-        <Transition name="msg">
-          <div v-if="chatStore.isLoading && !chatStore.streamingContent" class="message assistant">
-            <div class="bubble">
-              <div class="typing-indicator">
-                <span class="typing-dot" />
-                <span class="typing-dot" />
-                <span class="typing-dot" />
-              </div>
-            </div>
-          </div>
-        </Transition>
-      </div>
+      </div><!-- .messages-container -->
     </div><!-- .chat-layout -->
 
     <template #footer>
       <IonToolbar>
         <div class="chat-input-bar">
-          <IonInput
+          <IonTextarea
             v-model="inputText"
             :placeholder="hasProject ? t('chat.placeholder') : t('chat.noProjectPlaceholder')"
             :disabled="!hasProject"
-            :clear-input="true"
+            :auto-grow="true"
+            :rows="1"
             class="chat-input"
             @keydown="handleKeydown"
+            @ion-focus="scrollToBottomOnFocus"
           />
           <IonButton
             v-if="chatStore.isLoading"

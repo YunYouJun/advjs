@@ -9,8 +9,8 @@ import {
   IonContent,
   IonHeader,
   IonIcon,
-  IonInput,
   IonModal,
+  IonTextarea,
   IonTitle,
   IonToolbar,
   toastController,
@@ -38,10 +38,13 @@ import CharacterAiSettingsForm from '../components/CharacterAiSettingsForm.vue'
 import CharacterChatWelcome from '../components/CharacterChatWelcome.vue'
 import CharacterInfoModal from '../components/CharacterInfoModal.vue'
 import ChatHistorySearch from '../components/ChatHistorySearch.vue'
+import ChatSkeleton from '../components/ChatSkeleton.vue'
 import LayoutPage from '../components/common/LayoutPage.vue'
 import MarkdownMessage from '../components/MarkdownMessage.vue'
 import MessageActions from '../components/MessageActions.vue'
+import RetryButton from '../components/RetryButton.vue'
 import SnapshotTree from '../components/SnapshotTree.vue'
+import VirtualMessageList from '../components/VirtualMessageList.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useWorldContext } from '../composables/useWorldContext'
 import { useAiSettingsStore } from '../stores/useAiSettingsStore'
@@ -95,6 +98,9 @@ const ttsPlayingIndex = ref(-1)
 const ttsGeneratingIndex = ref(-1)
 const ttsBatchGenerating = ref(false)
 
+// Virtual message list ref
+const virtualListRef = ref<InstanceType<any> | null>(null)
+
 onUnmounted(() => ttsStop())
 
 const characterId = computed(() => route.params.characterId as string)
@@ -120,35 +126,18 @@ const allMessages = computed(() => {
   return characterChatStore.getMessages(characterId.value)
 })
 
-// --- Pagination ---
-const PAGE_SIZE = 50
-const displayCount = ref(PAGE_SIZE)
-
-const hasMore = computed(() => allMessages.value.length > displayCount.value)
-const hiddenCount = computed(() => Math.max(0, allMessages.value.length - displayCount.value))
-
-const visibleStart = computed(() => Math.max(0, allMessages.value.length - displayCount.value))
-
-const visibleMessages = computed(() => {
-  return allMessages.value.slice(visibleStart.value)
-})
-
-/** Absolute index of a message within allMessages, from its position in visibleMessages */
-function getAbsoluteIndex(visibleIdx: number): number {
-  return visibleStart.value + visibleIdx
-}
-
-function loadMore() {
-  displayCount.value += PAGE_SIZE
-}
-
-// Reset pagination when switching characters
-watch(characterId, () => {
-  displayCount.value = PAGE_SIZE
-})
-
 // Keep backward-compat alias for template
 const messages = allMessages
+
+// Connect IonContent scroll element to VirtualMessageList
+watch(layoutPageRef, async (page) => {
+  if (!page?.contentRef)
+    return
+  await nextTick()
+  const scrollEl = await page.contentRef.$el?.getScrollElement?.()
+  if (scrollEl)
+    virtualListRef.value?.setScrollElement(scrollEl)
+}, { immediate: true })
 
 const memory = computed(() => {
   return memoryStore.getMemory(characterId.value)
@@ -161,18 +150,6 @@ const dynamicState = computed(() => {
 const moodEmoji = computed(() => {
   const mood = memory.value.emotionalState.mood
   return getMoodEmoji(mood)
-})
-
-// Auto-scroll to bottom when messages change
-watch(() => visibleMessages.value.length, async () => {
-  await nextTick()
-  layoutPageRef.value?.contentRef?.$el?.scrollToBottom?.(300)
-})
-
-// Also scroll when streaming content updates
-watch(() => characterChatStore.streamingContent, async () => {
-  await nextTick()
-  layoutPageRef.value?.contentRef?.$el?.scrollToBottom?.(100)
 })
 
 // Auto-read: when AI finishes responding, auto-play TTS for the last message
@@ -212,6 +189,13 @@ async function send() {
     getEffectiveWorldContext(),
     knowledgeContent || undefined,
   )
+}
+
+/** When the input is focused (keyboard opens on mobile), scroll to bottom */
+function scrollToBottomOnFocus() {
+  setTimeout(() => {
+    virtualListRef.value?.scrollToBottom()
+  }, 300)
 }
 
 function quickSend(text: string) {
@@ -315,6 +299,28 @@ function handleRegenerateMessage() {
   }
 }
 
+function handleRetryMessage(timestamp: number) {
+  if (!character.value)
+    return
+  const knowledgeContent = (() => {
+    const msgs = allMessages.value
+    const lastUser = [...msgs].reverse().find(m => m.role === 'user')
+    if (!lastUser)
+      return undefined
+    return knowledgeBase.selectRelevantKnowledge(
+      lastUser.content,
+      character.value!.knowledgeDomain || '',
+    ) || undefined
+  })()
+  characterChatStore.retryFromMessage(
+    characterId.value,
+    timestamp,
+    character.value,
+    getEffectiveWorldContext(),
+    knowledgeContent,
+  )
+}
+
 function handleFeedback(msg: { timestamp: number }, feedback: 'up' | 'down') {
   const current = characterChatStore.getMessageFeedback(characterId.value, msg.timestamp)
   // Toggle: if same feedback, remove it; otherwise set new feedback
@@ -329,11 +335,10 @@ async function reloadKnowledge() {
   const project = studioStore.currentProject
   if (!project)
     return
-  if (project.dirHandle) {
-    const { getFs } = useProjectContent()
-    const fs = getFs()
-    if (fs)
-      await knowledgeBase.loadFromFs(fs)
+  const { getFs } = useProjectContent()
+  const fs = getFs()
+  if (fs) {
+    await knowledgeBase.loadFromFs(fs)
   }
   else if (project.source === 'cos' && project.cosPrefix) {
     await knowledgeBase.loadFromCos(settingsStore.cos, project.cosPrefix)
@@ -578,11 +583,10 @@ async function saveExportedFile(filename: string, content: string) {
   const project = studioStore.currentProject
 
   try {
-    if (project?.dirHandle) {
-      const { getFs } = useProjectContent()
-      const fs = getFs()
-      if (fs)
-        await fs.writeFile(filename, content)
+    const { getFs } = useProjectContent()
+    const fs = getFs()
+    if (fs) {
+      await fs.writeFile(filename, content)
     }
     else if (project?.source === 'cos' && project.cosPrefix) {
       const key = `${project.cosPrefix}${filename}`
@@ -613,32 +617,8 @@ async function saveExportedFile(filename: string, content: string) {
 }
 
 function handleSearchJump(index: number) {
-  // If the target message is outside the visible range, expand displayCount
-  const totalMessages = allMessages.value.length
-  const visibleStart = Math.max(0, totalMessages - displayCount.value)
-  if (index < visibleStart) {
-    // Expand to include the target message plus some buffer
-    displayCount.value = totalMessages - index + PAGE_SIZE
-  }
-
-  // Map absolute index to visible index
-  const newVisibleStart = Math.max(0, totalMessages - displayCount.value)
-  const visibleIndex = index - newVisibleStart
-
-  nextTick(() => {
-    const el = layoutPageRef.value?.contentRef?.$el
-    if (!el)
-      return
-    const msgElements = el.querySelectorAll('.message')
-    if (msgElements[visibleIndex]) {
-      msgElements[visibleIndex].scrollIntoView({ behavior: 'smooth', block: 'center' })
-      // Brief highlight
-      msgElements[visibleIndex].classList.add('message--highlight')
-      setTimeout(() => {
-        msgElements[visibleIndex].classList.remove('message--highlight')
-      }, 1500)
-    }
-  })
+  // With virtual scrolling, just scroll to the absolute index
+  virtualListRef.value?.scrollToIndex(index)
 }
 
 function handleKeydown(event: KeyboardEvent) {
@@ -747,7 +727,7 @@ async function handleTtsPlay(msg: { role: string, content: string, timestamp: nu
     // Check for cached audio first
     if (msg.ttsAudioPath) {
       const project = studioStore.currentProject
-      if (project?.dirHandle) {
+      if (project) {
         try {
           const { getFs } = useProjectContent()
           const fs = getFs()
@@ -779,19 +759,19 @@ async function handleTtsPlay(msg: { role: string, content: string, timestamp: nu
     // If blob returned (API provider), cache it
     if (blob) {
       const project = studioStore.currentProject
-      if (project?.dirHandle) {
+      if (project) {
         const { getFs } = useProjectContent()
         const fs = getFs()
-        if (!fs)
-          return
-        const safeName = characterId.value.replace(SAFE_FILENAME_RE, '_').replace(TRIM_UNDERSCORE_RE, '')
-        const path = `adv/audio/tts/${safeName}-${msg.timestamp}.mp3`
-        try {
-          await fs.writeBlob(path, blob)
-          characterChatStore.updateMessageTtsPath(characterId.value, msg.timestamp, path)
-        }
-        catch {
-          // Silently fail caching
+        if (fs) {
+          const safeName = characterId.value.replace(SAFE_FILENAME_RE, '_').replace(TRIM_UNDERSCORE_RE, '')
+          const path = `adv/audio/tts/${safeName}-${msg.timestamp}.mp3`
+          try {
+            await fs.writeBlob(path, blob)
+            characterChatStore.updateMessageTtsPath(characterId.value, msg.timestamp, path)
+          }
+          catch {
+            // Silently fail caching
+          }
         }
       }
     }
@@ -818,10 +798,6 @@ async function handleBatchGenerateTts() {
   const settings = getTtsSettings()
   const provider = getTtsProvider(settings.provider)
   if (!provider?.canGenerateBlob || !provider.generate)
-    return
-
-  const project = studioStore.currentProject
-  if (!project?.dirHandle)
     return
 
   const { getFs } = useProjectContent()
@@ -1033,7 +1009,7 @@ async function handleDeleteDiary(diaryId: string) {
 
     <div class="messages-container" role="log" aria-live="polite" :aria-label="t('world.chatMessages')">
       <!-- Character not found fallback -->
-      <div v-if="!character && !isLoading" class="empty-state">
+      <div v-if="!character && !characterChatStore.isLoading" class="empty-state">
         <p style="font-size: 1.2em; margin-bottom: 8px;">
           ⚠️
         </p>
@@ -1043,103 +1019,111 @@ async function handleDeleteDiary(diaryId: string) {
         </IonButton>
       </div>
 
+      <!-- Loading skeleton -->
+      <ChatSkeleton v-else-if="!character || (character && allMessages.length === 0 && characterChatStore.isLoading)" />
+
       <!-- Welcome state -->
       <CharacterChatWelcome
-        v-if="character && messages.length === 0"
+        v-else-if="character && allMessages.length === 0"
         :character="character"
         @send="quickSend"
       />
 
       <!-- Load earlier messages button -->
-      <div v-if="hasMore" class="load-earlier">
-        <button class="load-earlier-btn" @click="loadMore">
-          {{ t('chat.loadEarlier') }}
-        </button>
-        <span class="load-earlier-hint">{{ t('chat.messagesHidden', { count: hiddenCount }) }}</span>
-      </div>
 
-      <TransitionGroup name="msg">
-        <div
-          v-for="(msg, index) in visibleMessages"
-          :key="getAbsoluteIndex(index)"
-          class="message"
-          :class="[msg.role]"
-        >
-          <div class="bubble">
-            <MarkdownMessage v-if="msg.role === 'assistant'" :content="msg.content" />
-            <template v-else>
-              {{ msg.content }}
-            </template>
-          </div>
-          <div class="message__actions">
-            <button
-              v-if="msg.role === 'assistant' && ttsEnabled"
-              class="tts-btn"
-              :class="{
-                'tts-btn--playing': ttsPlayingIndex === index,
-                'tts-btn--generating': ttsGeneratingIndex === index,
-                'tts-btn--cached': !!msg.ttsAudioPath,
-              }"
-              :aria-label="ttsPlayingIndex === index ? t('world.ttsStop') : t('world.ttsPlay')"
-              :aria-pressed="ttsPlayingIndex === index"
-              :disabled="ttsGeneratingIndex === index"
-              @click="handleTtsPlay(msg, index)"
-            >
-              <IonIcon :icon="ttsPlayingIndex === index ? volumeMuteOutline : volumeHighOutline" />
-            </button>
-            <MessageActions
-              :message="{ role: msg.role, content: msg.content, timestamp: msg.timestamp }"
-              :is-last="getAbsoluteIndex(index) === allMessages.length - 1"
-              :is-loading="characterChatStore.isLoading"
-              :feedback="msg.feedback"
-              @copy="handleCopyMessage(msg.content)"
-              @edit="handleEditMessage(msg)"
-              @delete="handleDeleteMessage(msg.timestamp)"
-              @regenerate="handleRegenerateMessage()"
-              @feedback-up="handleFeedback(msg, 'up')"
-              @feedback-down="handleFeedback(msg, 'down')"
-            />
-            <span class="time">
-              {{ formatChatTime(msg.timestamp) }}
-            </span>
-          </div>
-        </div>
-      </TransitionGroup>
-
-      <!-- Streaming content bubble -->
-      <Transition name="msg">
-        <div v-if="characterChatStore.isLoading && characterChatStore.streamingContent" class="message assistant">
-          <div class="bubble">
-            <MarkdownMessage :content="characterChatStore.streamingContent" />
-          </div>
-        </div>
-      </Transition>
-
-      <!-- Typing indicator (before streaming starts) -->
-      <Transition name="msg">
-        <div v-if="characterChatStore.isLoading && !characterChatStore.streamingContent" class="message assistant">
-          <div class="bubble">
-            <div class="typing-indicator">
-              <span class="typing-dot" />
-              <span class="typing-dot" />
-              <span class="typing-dot" />
+      <VirtualMessageList
+        v-if="character && allMessages.length > 0"
+        ref="virtualListRef"
+        :messages="allMessages"
+        :estimate-size="72"
+        :is-streaming="characterChatStore.isLoading"
+      >
+        <template #message="{ message: msg, index }">
+          <div
+            class="message"
+            :class="[msg.role]"
+          >
+            <div class="bubble" :class="{ 'bubble--error': msg.error }">
+              <MarkdownMessage v-if="msg.role === 'assistant'" :content="msg.content" />
+              <template v-else>
+                {{ msg.content }}
+              </template>
+              <RetryButton v-if="msg.error" :error="msg.error" @retry="handleRetryMessage(msg.timestamp)" />
+            </div>
+            <div class="message__actions">
+              <button
+                v-if="msg.role === 'assistant' && ttsEnabled"
+                class="tts-btn"
+                :class="{
+                  'tts-btn--playing': ttsPlayingIndex === index,
+                  'tts-btn--generating': ttsGeneratingIndex === index,
+                  'tts-btn--cached': !!msg.ttsAudioPath,
+                }"
+                :aria-label="ttsPlayingIndex === index ? t('world.ttsStop') : t('world.ttsPlay')"
+                :aria-pressed="ttsPlayingIndex === index"
+                :disabled="ttsGeneratingIndex === index"
+                @click="handleTtsPlay(msg, index)"
+              >
+                <IonIcon :icon="ttsPlayingIndex === index ? volumeMuteOutline : volumeHighOutline" />
+              </button>
+              <MessageActions
+                :message="{ role: msg.role, content: msg.content, timestamp: msg.timestamp }"
+                :is-last="index === allMessages.length - 1"
+                :is-loading="characterChatStore.isLoading"
+                :feedback="msg.feedback"
+                @copy="handleCopyMessage(msg.content)"
+                @edit="handleEditMessage(msg)"
+                @delete="handleDeleteMessage(msg.timestamp)"
+                @regenerate="handleRegenerateMessage()"
+                @feedback-up="handleFeedback(msg, 'up')"
+                @feedback-down="handleFeedback(msg, 'down')"
+              />
+              <span class="time">
+                {{ formatChatTime(msg.timestamp) }}
+              </span>
             </div>
           </div>
-        </div>
-      </Transition>
+        </template>
+
+        <template #footer>
+          <!-- Streaming content bubble -->
+          <Transition name="msg">
+            <div v-if="characterChatStore.isLoading && characterChatStore.streamingContent" class="message assistant">
+              <div class="bubble">
+                <MarkdownMessage :content="characterChatStore.streamingContent" />
+              </div>
+            </div>
+          </Transition>
+
+          <!-- Typing indicator (before streaming starts) -->
+          <Transition name="msg">
+            <div v-if="characterChatStore.isLoading && !characterChatStore.streamingContent" class="message assistant">
+              <div class="bubble">
+                <div class="typing-indicator">
+                  <span class="typing-dot" />
+                  <span class="typing-dot" />
+                  <span class="typing-dot" />
+                </div>
+              </div>
+            </div>
+          </Transition>
+        </template>
+      </VirtualMessageList>
     </div>
 
     <template #footer>
       <IonToolbar>
         <div class="chat-input-bar">
-          <IonInput
+          <IonTextarea
             v-model="inputText"
             :placeholder="t('world.chatPlaceholder')"
             :disabled="!character"
-            :clear-input="true"
+            :auto-grow="true"
+            :rows="1"
             class="chat-input"
             :aria-label="t('world.chatPlaceholder')"
             @keydown="handleKeydown"
+            @ion-focus="scrollToBottomOnFocus"
           />
           <IonButton
             v-if="characterChatStore.isLoading"

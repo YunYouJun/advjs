@@ -12,7 +12,6 @@ import {
 import { imageOutline, sparklesOutline } from 'ionicons/icons'
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useProjectContent } from '../composables/useProjectContent'
-import { useStudioStore } from '../stores/useStudioStore'
 
 const props = defineProps<{
   scene: SceneInfo
@@ -25,7 +24,6 @@ defineEmits<{
   generateImage: [scene: SceneInfo]
 }>()
 
-const studioStore = useStudioStore()
 const thumbnailUrl = ref<string | null>(null)
 
 const isRemoteUrl = computed(() => {
@@ -50,10 +48,6 @@ watch(() => props.scene.src, async (src) => {
   }
 
   if (!src || isRemoteUrl.value)
-    return
-
-  const project = studioStore.currentProject
-  if (!project?.dirHandle)
     return
 
   const { getFs } = useProjectContent()

@@ -6,7 +6,7 @@ import MarkdownIt from 'markdown-it'
 import { computed, ref, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useProjectContent } from '../composables/useProjectContent'
-import { useStudioStore } from '../stores/useStudioStore'
+
 import { computeLineDiff } from '../utils/lineDiff'
 import FileDiffPreview from './FileDiffPreview.vue'
 
@@ -128,17 +128,12 @@ function handleSave(block: typeof saveableBlocks.value[number]) {
 }
 
 // --- Pre-computed diffs for saveable blocks ---
-const studioStore = useStudioStore()
 const precomputedDiffs = ref<Map<string, FileDiff>>(new Map())
 const expandedDiffs = ref<Set<string>>(new Set())
 
 watchEffect(async () => {
   const blocks = saveableBlocks.value
   if (!blocks.length)
-    return
-
-  const project = studioStore.currentProject
-  if (!project?.dirHandle)
     return
 
   const { getFs } = useProjectContent()

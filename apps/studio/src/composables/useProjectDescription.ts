@@ -69,11 +69,6 @@ export function useProjectDescription() {
     }
   }
 
-  async function loadFromDir(dirHandle: FileSystemDirectoryHandle) {
-    const { BrowserFsAdapter } = await import('../utils/fs/BrowserFsAdapter')
-    await loadFromFs(new BrowserFsAdapter(dirHandle))
-  }
-
   async function loadFromCos(
     cosConfig: { bucket: string, region: string, secretId: string, secretKey: string },
     prefix: string,
@@ -118,15 +113,15 @@ export function useProjectDescription() {
         $reset()
         return
       }
-      if (project.dirHandle) {
-        const fs = await createFsForProject(project as any)
-        await loadFromFs(fs)
-      }
-      else if (project.source === 'cos' && project.cosPrefix) {
+      if (project.source === 'cos' && project.cosPrefix) {
         await loadFromCos(settingsStore.cos, project.cosPrefix)
       }
       else {
-        const fs = await createFsForProject({ projectId: project.projectId || project.name, source: project.source })
+        const fs = await createFsForProject({
+          dirHandle: project.dirHandle,
+          projectId: project.projectId || project.name,
+          source: project.source,
+        })
         await loadFromFs(fs)
       }
     }, { immediate: true })
@@ -143,7 +138,6 @@ export function useProjectDescription() {
     extractPreview,
     extractSections,
     loadFromFs,
-    loadFromDir,
     loadFromCos,
     $reset,
   }

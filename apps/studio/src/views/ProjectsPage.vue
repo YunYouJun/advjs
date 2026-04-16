@@ -30,6 +30,7 @@ import FilePreview from '../components/FilePreview.vue'
 import MobileFileTree from '../components/MobileFileTree.vue'
 import ProjectOverview from '../components/ProjectOverview.vue'
 import ProjectSwitcher from '../components/ProjectSwitcher.vue'
+import QuickStartButton from '../components/QuickStartButton.vue'
 import WorkspaceReconnect from '../components/WorkspaceReconnect.vue'
 import { useFileChanges } from '../composables/useFileChanges'
 import { importProject } from '../composables/useProjectExport'
@@ -37,7 +38,8 @@ import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { listCloudFiles, uploadProjectToCloud } from '../utils/cloudSync'
 import { restoreAndVerifyHandle } from '../utils/dirHandleStore'
-import { collectLocalFiles, detectAdvProject, openProjectDirectory } from '../utils/fileAccess'
+import { detectAdvProject, openProjectDirectory } from '../utils/fileAccess'
+import { BrowserFsAdapter } from '../utils/fs/BrowserFsAdapter'
 import { createProjectFromTemplate } from '../utils/projectTemplate'
 import { toSlug } from '../utils/slug'
 
@@ -139,7 +141,9 @@ async function handleCreateProject(payload: { displayName: string, slug: string,
 
   try {
     const parentDir = await openProjectDirectory()
-    const projectDir = await createProjectFromTemplate(parentDir, slug, templateId)
+    const projectDir = await parentDir.getDirectoryHandle(slug, { create: true })
+    const fs = new BrowserFsAdapter(projectDir)
+    await createProjectFromTemplate(fs, slug, templateId)
 
     const cosPrefix = normalizeCosPrefix(settingsStore.cos.projectRoot, slug)
     await studioStore.switchProject({
@@ -162,7 +166,8 @@ async function handleCreateProject(payload: { displayName: string, slug: string,
     // Auto-sync to COS if configured (non-blocking)
     if (isCosConfigured()) {
       try {
-        const files = await collectLocalFiles(projectDir)
+        const fileEntries = await fs.collectAllFiles('')
+        const files = fileEntries.map(f => ({ path: f.path, content: f.content }))
         const config = {
           bucket: settingsStore.cos.bucket,
           region: settingsStore.cos.region,
@@ -366,7 +371,8 @@ async function handleImportFileSelected(event: Event) {
   try {
     // Ask user to select a target directory
     const dirHandle = await (window as any).showDirectoryPicker({ mode: 'readwrite' })
-    const manifest = await importProject(file, dirHandle)
+    const fs = new BrowserFsAdapter(dirHandle)
+    const manifest = await importProject(file, fs)
     const projectName = manifest.name || file.name.replace(ZIP_EXT_RE, '')
 
     await studioStore.switchProject({
@@ -639,6 +645,11 @@ function getGradientForIndex(index: number): string {
 
     <!-- ==================== View A: Welcome Page ==================== -->
     <template v-if="!hasProject">
+      <!-- Quick Start (one-click experience) -->
+      <div class="quick-start-section">
+        <QuickStartButton />
+      </div>
+
       <!-- Action cards -->
       <div class="action-cards">
         <button class="action-card" @click="showCreateModal = true">
@@ -721,6 +732,9 @@ function getGradientForIndex(index: number): string {
               <h3 class="featured-card__name">
                 {{ project.name }}
               </h3>
+              <p v-if="project.description" class="featured-card__desc">
+                {{ project.description }}
+              </p>
               <div class="featured-card__meta">
                 <span class="featured-card__source">{{ getSourceLabel(project) }}</span>
                 <span class="featured-card__time">{{ formatTime(project.lastOpened) }}</span>
@@ -887,6 +901,11 @@ function getGradientForIndex(index: number): string {
 </template>
 
 <style scoped>
+/* Quick start section */
+.quick-start-section {
+  padding: var(--adv-space-md) var(--adv-space-md) 0;
+}
+
 /* Action cards */
 .action-cards {
   display: flex;
@@ -996,7 +1015,18 @@ function getGradientForIndex(index: number): string {
 .featured-card__name {
   font-size: var(--adv-font-title);
   font-weight: 700;
+  margin: 0 0 var(--adv-space-xs, 4px);
+}
+
+.featured-card__desc {
+  font-size: var(--adv-font-caption);
+  opacity: 0.85;
   margin: 0 0 var(--adv-space-sm);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .featured-card__meta {

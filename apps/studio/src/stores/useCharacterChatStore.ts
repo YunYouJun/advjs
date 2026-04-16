@@ -1,5 +1,6 @@
 import type { AdvCharacter } from '@advjs/types'
 import type { ChatMessage as AiChatMessage } from '../utils/aiClient'
+import type { ChatMessageError } from '../utils/chatUtils'
 import type { CharacterAiOverride } from '../utils/resolveAiConfig'
 import { exportCharacterForAI } from '@advjs/parser'
 import { LANGUAGE_LABELS } from '@advjs/types'
@@ -26,6 +27,8 @@ export interface CharacterChatMessage {
   ttsAudioPath?: string
   /** User feedback on AI response quality: 'up' (good), 'down' (bad) */
   feedback?: 'up' | 'down'
+  /** Structured error info when streaming failed (enables retry UI) */
+  error?: ChatMessageError
 }
 
 export interface CharacterConversation {
@@ -190,53 +193,55 @@ export const useCharacterChatStore = defineStore('characterChat', () => {
       await db.characterChats.bulkPut(rows)
     },
     load: async (pid) => {
-      const map = await loadMapFromDexie<CharacterConversation>(
-        db.characterChats,
-        pid,
-        row => row.characterId,
-        row => ({
-          characterId: row.characterId,
-          messages: row.messages,
-          contextSummary: row.contextSummary,
-        }),
-      )
-      if (map)
-        conversations.value = map
+      await db.transaction('r', [db.characterChats, db.conversationSnapshots, db.characterAiConfigs], async () => {
+        const map = await loadMapFromDexie<CharacterConversation>(
+          db.characterChats,
+          pid,
+          row => row.characterId,
+          row => ({
+            characterId: row.characterId,
+            messages: row.messages,
+            contextSummary: row.contextSummary,
+          }),
+        )
+        if (map)
+          conversations.value = map
 
-      // Load snapshots
-      try {
-        const snaps = await db.conversationSnapshots
-          .where('[projectId+characterId]')
-          .between([pid, Dexie.minKey], [pid, Dexie.maxKey])
-          .toArray()
-        const snapMap = new Map<string, ConversationSnapshot[]>()
-        for (const s of snaps) {
-          const { projectId: _pid, ...snap } = s
-          const list = snapMap.get(snap.characterId) || []
-          list.push(snap)
-          snapMap.set(snap.characterId, list)
+        // Load snapshots
+        try {
+          const snaps = await db.conversationSnapshots
+            .where('[projectId+characterId]')
+            .between([pid, Dexie.minKey], [pid, Dexie.maxKey])
+            .toArray()
+          const snapMap = new Map<string, ConversationSnapshot[]>()
+          for (const s of snaps) {
+            const { projectId: _pid, ...snap } = s
+            const list = snapMap.get(snap.characterId) || []
+            list.push(snap)
+            snapMap.set(snap.characterId, list)
+          }
+          snapshots.value = snapMap
         }
-        snapshots.value = snapMap
-      }
-      catch {
-        // ignore — snapshots are best-effort
-      }
+        catch {
+          // ignore — snapshots are best-effort
+        }
 
-      // Load per-character AI overrides
-      try {
-        const configs = await db.characterAiConfigs
-          .where('[projectId+characterId]')
-          .between([pid, Dexie.minKey], [pid, Dexie.maxKey])
-          .toArray()
-        const overrideMap = new Map<string, CharacterAiOverride>()
-        for (const row of configs) {
-          overrideMap.set(row.characterId, row.config)
+        // Load per-character AI overrides
+        try {
+          const configs = await db.characterAiConfigs
+            .where('[projectId+characterId]')
+            .between([pid, Dexie.minKey], [pid, Dexie.maxKey])
+            .toArray()
+          const overrideMap = new Map<string, CharacterAiOverride>()
+          for (const row of configs) {
+            overrideMap.set(row.characterId, row.config)
+          }
+          aiOverrides.value = overrideMap
         }
-        aiOverrides.value = overrideMap
-      }
-      catch {
+        catch {
         // ignore — overrides are best-effort
-      }
+        }
+      })
     },
     clear: () => {
       stopGeneration()
@@ -536,6 +541,30 @@ export const useCharacterChatStore = defineStore('characterChat', () => {
   /**
    * Delete a single message by timestamp.
    */
+  /**
+   * Retry from a failed message: remove it and everything after, then resend from the preceding user message.
+   * Requires character + worldContext to be passed from the page layer.
+   */
+  async function retryFromMessage(
+    characterId: string,
+    timestamp: number,
+    character: AdvCharacter,
+    worldContext: string,
+    knowledgeContent?: string,
+  ) {
+    const conv = getConversation(characterId)
+    const idx = conv.messages.findIndex(m => m.timestamp === timestamp)
+    if (idx === -1)
+      return
+    // Remove the failed message and anything after it
+    conv.messages.splice(idx)
+    // Find the last user message to resend
+    const lastUser = [...conv.messages].reverse().find(m => m.role === 'user')
+    if (lastUser) {
+      await sendMessage(characterId, lastUser.content, character, worldContext, knowledgeContent)
+    }
+  }
+
   function deleteMessage(characterId: string, timestamp: number): void {
     const conv = getConversation(characterId)
     const idx = conv.messages.findIndex(m => m.timestamp === timestamp)
@@ -570,6 +599,7 @@ export const useCharacterChatStore = defineStore('characterChat', () => {
     updateMessageTtsPath,
     setMessageFeedback,
     getMessageFeedback,
+    retryFromMessage,
     deleteMessage,
     init,
     flush,

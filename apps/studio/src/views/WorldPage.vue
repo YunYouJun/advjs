@@ -6,16 +6,20 @@ import { useRouter } from 'vue-router'
 import LayoutPage from '../components/common/LayoutPage.vue'
 import CreateGroupChatModal from '../components/CreateGroupChatModal.vue'
 import GroupChatsSection from '../components/GroupChatsSection.vue'
+import RecentCharacterPopover from '../components/RecentCharacterPopover.vue'
 import SelectPlayerCharacterModal from '../components/SelectPlayerCharacterModal.vue'
 import ViewModeSwitcher from '../components/ViewModeSwitcher.vue'
 import WorldClockBar from '../components/WorldClockBar.vue'
 import WorldEventsSection from '../components/WorldEventsSection.vue'
 import WorldGraphSection from '../components/WorldGraphSection.vue'
 import WorldSidebar from '../components/WorldSidebar.vue'
+import WorldSkeleton from '../components/WorldSkeleton.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useResponsive } from '../composables/useResponsive'
 import { useWorldContext } from '../composables/useWorldContext'
+import { useCharacterChatStore } from '../stores/useCharacterChatStore'
 import { useCharacterDiaryStore } from '../stores/useCharacterDiaryStore'
+import { useCharacterMemoryStore } from '../stores/useCharacterMemoryStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { useViewModeStore } from '../stores/useViewModeStore'
 import { useWorldClockStore } from '../stores/useWorldClockStore'
@@ -35,6 +39,11 @@ const { characters, isLoading } = useProjectContent()
 const { worldContext } = useWorldContext()
 const { isDesktop } = useResponsive()
 const viewModeStore = useViewModeStore()
+
+// Prefetch: eagerly initialize character chat and memory stores
+// so they start loading from IndexedDB before user clicks a character
+void useCharacterChatStore()
+void useCharacterMemoryStore()
 
 const hasProject = computed(() => !!studioStore.currentProject)
 const showCreateGroupModal = ref(false)
@@ -155,10 +164,7 @@ const timelineEntries = computed<TimelineEntry[]>(() => {
     </div>
 
     <!-- Loading -->
-    <div v-else-if="isLoading" class="world-loading">
-      <span class="world-loading__spinner">⏳</span>
-      <p>{{ t('world.loading') }}</p>
-    </div>
+    <WorldSkeleton v-else-if="isLoading" />
 
     <!-- No characters -->
     <div v-else-if="characters.length === 0" class="world-empty">
@@ -218,6 +224,12 @@ const timelineEntries = computed<TimelineEntry[]>(() => {
             <span class="player-select-prompt__text">{{ t('world.selectPlayerCharacter') }}</span>
           </button>
         </div>
+
+        <!-- Recent character chats (quick access) -->
+        <RecentCharacterPopover
+          :max="3"
+          @select="(id: string) => openCharacterChat({ id })"
+        />
 
         <WorldEventsSection
           :is-generating="eventStore.isGenerating"

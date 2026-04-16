@@ -299,14 +299,6 @@ export function useProjectContent() {
   }
 
   /**
-   * Load project content from a local FileSystemDirectoryHandle (backward compat)
-   */
-  async function loadFromDir(dirHandle: FileSystemDirectoryHandle) {
-    const { BrowserFsAdapter } = await import('../utils/fs/BrowserFsAdapter')
-    await loadFromFs(new BrowserFsAdapter(dirHandle))
-  }
-
-  /**
    * Load project content from COS cloud storage
    */
   async function loadFromCos(cosConfig: { bucket: string, region: string, secretId: string, secretKey: string }, prefix: string) {
@@ -493,17 +485,6 @@ export function useProjectContent() {
     return lastFs
   }
 
-  /**
-   * Get the current directory handle (backward compat for views not yet migrated).
-   * Returns null on non-browser backends.
-   */
-  function getDirHandle(): FileSystemDirectoryHandle | null {
-    if (lastFs && lastFs.backend === 'browser') {
-      return (lastFs as any).dirHandle ?? null
-    }
-    return null
-  }
-
   function $reset() {
     chapters.value = []
     characters.value = []
@@ -529,16 +510,13 @@ export function useProjectContent() {
         $reset()
         return
       }
-      if (project.dirHandle) {
-        const fs = await createFsForProject(project as any)
-        await loadFromFs(fs)
-      }
-      else if (project.source === 'cos' && project.cosPrefix) {
+      if (project.source === 'cos' && project.cosPrefix) {
         await loadFromCos(settingsStore.cos, project.cosPrefix)
       }
       else {
-        // Non-local, non-COS project → use memory or capacitor FS
+        // Local (dirHandle), memory, or capacitor FS
         const fs = await createFsForProject({
+          dirHandle: project.dirHandle,
           projectId: project.projectId || project.name,
           source: project.source,
         })
@@ -558,11 +536,9 @@ export function useProjectContent() {
     loadErrors,
     knowledgeBase,
     loadFromFs,
-    loadFromDir,
     loadFromCos,
     reload,
     getFs,
-    getDirHandle,
     $reset,
   }
 }

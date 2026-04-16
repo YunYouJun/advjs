@@ -220,3 +220,26 @@
     transform: rotate(360deg);
   }
 }
+
+/* ── Virtual scroll ─────────────────────────────────────────────────────── */
+
+.virtual-message-list {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 0 var(--adv-space-sm, 8px);
+}
+
+.virtual-scroll-container {
+  flex-shrink: 0;
+}
+
+/* ── Error bubble styling ──────────────────────────────────────────────── */
+
+.bubble--error {
+  border: 1px solid var(--adv-border-danger, rgba(235, 68, 68, 0.25));
+}
+
+.group-bubble.bubble--error {
+  border: 1px solid var(--adv-border-danger, rgba(235, 68, 68, 0.25));
+}

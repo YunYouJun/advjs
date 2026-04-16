@@ -1,4 +1,5 @@
 import type { ChatMessage as AiChatMessage } from '../utils/aiClient'
+import type { ChatMessageError } from '../utils/chatUtils'
 import type { FileDiff } from '../utils/lineDiff'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
@@ -6,7 +7,6 @@ import { buildImagePromptTemplate, detectImageIntent, generateImage, isImageGene
 import { abortAndClear, pushNotConfiguredFallback, streamToMessage } from '../utils/chatUtils'
 import { downloadFromCloud } from '../utils/cloudSync'
 import { db } from '../utils/db'
-import { readFileFromDir } from '../utils/fileAccess'
 import { assembleProjectContext } from '../utils/projectContext'
 import { useProjectPersistence } from '../utils/projectPersistence'
 import { getCurrentProjectId } from '../utils/projectScope'
@@ -21,6 +21,10 @@ export interface ChatMessage {
   timestamp: number
   /** In-memory only: file diffs attached after a save action (not persisted to Dexie) */
   fileDiffs?: FileDiff[]
+  /** Structured error info when streaming failed (enables retry UI) */
+  error?: ChatMessageError
+  /** User feedback on this message */
+  feedback?: 'up' | 'down'
 }
 
 /** Max messages to persist (older messages trimmed on save) */
@@ -302,21 +306,32 @@ To enable direct image generation, configure an image provider in **Settings →
     await sendMessage(lastUser.content, /* skipPush */ true)
   }
 
+  /** Retry from a failed message: remove it and regenerate from the preceding user message */
+  async function retryFromMessage(timestamp: number) {
+    const idx = messages.value.findIndex(m => m.timestamp === timestamp)
+    if (idx === -1)
+      return
+    // Remove the failed message and anything after it
+    messages.value.splice(idx)
+    // Find the last user message
+    const lastUser = [...messages.value].reverse().find(m => m.role === 'user')
+    if (lastUser) {
+      await sendMessage(lastUser.content, /* skipPush */ true)
+    }
+  }
+
+  /** Set feedback (thumbs up/down) on a message. Toggle off if same value. */
+  function setMessageFeedback(timestamp: number, feedback: 'up' | 'down') {
+    const msg = messages.value.find(m => m.timestamp === timestamp)
+    if (!msg)
+      return
+    msg.feedback = msg.feedback === feedback ? undefined : feedback
+  }
+
   function clearMessages() {
     messages.value = []
     streamingContent.value = ''
     stopGeneration()
-  }
-
-  async function loadProjectContext(dirHandle: FileSystemDirectoryHandle) {
-    try {
-      projectContext.value = await assembleProjectContext(
-        path => readFileFromDir(dirHandle, path),
-      )
-    }
-    catch {
-      projectContext.value = ''
-    }
   }
 
   /**
@@ -363,7 +378,8 @@ To enable direct image generation, configure an image provider in **Settings →
     editMessage,
     editAndResend,
     regenerateLast,
-    loadProjectContext,
+    retryFromMessage,
+    setMessageFeedback,
     loadProjectContextFromFs,
     loadProjectContextFromCos,
     $reset,

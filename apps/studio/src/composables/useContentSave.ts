@@ -44,7 +44,7 @@ function dataUriToBytes(dataUri: string): { bytes: Uint8Array, ext: string } {
  * Write a binary file via IFileSystem
  */
 async function writeBinaryToFs(fs: IFileSystem, path: string, data: Uint8Array): Promise<void> {
-  await fs.writeBlob(path, new Blob([data]))
+  await fs.writeBlob(path, new Blob([data as BlobPart]))
 }
 
 /**

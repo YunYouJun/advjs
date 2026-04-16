@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import type { AdvCharacter } from '@advjs/types'
 import type { ChatMessage } from '../stores/useChatStore'
+import type { GroupChatMessage } from '../stores/useGroupChatStore'
 import {
   actionSheetController,
   alertController,
   IonButton,
   IonIcon,
-  IonInput,
+  IonTextarea,
   IonToolbar,
   toastController,
 } from '@ionic/vue'
@@ -28,7 +29,9 @@ import ChatHistorySearch from '../components/ChatHistorySearch.vue'
 import LayoutPage from '../components/common/LayoutPage.vue'
 import MarkdownMessage from '../components/MarkdownMessage.vue'
 import MessageActions from '../components/MessageActions.vue'
+import RetryButton from '../components/RetryButton.vue'
 import SnapshotTree from '../components/SnapshotTree.vue'
+import VirtualMessageList from '../components/VirtualMessageList.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useWorldContext } from '../composables/useWorldContext'
 import { useAiSettingsStore } from '../stores/useAiSettingsStore'
@@ -122,6 +125,9 @@ const inputText = ref('')
 const layoutPageRef = ref<LayoutPageInstance | null>(null)
 const showSearch = ref(false)
 
+// Virtual message list ref
+const virtualListRef = ref<InstanceType<any> | null>(null)
+
 const roomId = computed(() => route.params.roomId as string)
 
 const room = computed(() => {
@@ -132,29 +138,18 @@ const allMessages = computed(() => {
   return room.value?.messages || []
 })
 
-// --- Pagination ---
-const PAGE_SIZE = 50
-const displayCount = ref(PAGE_SIZE)
-
-const hasMore = computed(() => allMessages.value.length > displayCount.value)
-const hiddenCount = computed(() => Math.max(0, allMessages.value.length - displayCount.value))
-
-const visibleMessages = computed(() => {
-  const start = Math.max(0, allMessages.value.length - displayCount.value)
-  return allMessages.value.slice(start)
-})
-
-function loadMore() {
-  displayCount.value += PAGE_SIZE
-}
-
-// Reset pagination when switching rooms
-watch(roomId, () => {
-  displayCount.value = PAGE_SIZE
-})
-
-// Keep backward-compat alias
+// Keep backward-compat alias for template
 const messages = allMessages
+
+// Connect IonContent scroll element to VirtualMessageList
+watch(layoutPageRef, async (page) => {
+  if (!page?.contentRef)
+    return
+  await nextTick()
+  const scrollEl = await page.contentRef.$el?.getScrollElement?.()
+  if (scrollEl)
+    virtualListRef.value?.setScrollElement(scrollEl)
+}, { immediate: true })
 
 const participants = computed(() => {
   if (!room.value)
@@ -184,18 +179,6 @@ function getAvatarInitial(name?: string): string {
     return '?'
   return name.charAt(0)
 }
-
-// Auto-scroll to bottom when messages change
-watch(() => visibleMessages.value.length, async () => {
-  await nextTick()
-  layoutPageRef.value?.contentRef?.$el?.scrollToBottom?.(300)
-})
-
-// Also scroll when streaming content updates
-watch(() => groupChatStore.streamingContent, async () => {
-  await nextTick()
-  layoutPageRef.value?.contentRef?.$el?.scrollToBottom?.(100)
-})
 
 // Auto-read: when group AI finishes responding, auto-play TTS for the last character message
 watch(() => groupChatStore.isLoading, (newVal, oldVal) => {
@@ -267,26 +250,8 @@ function handleKeydown(event: KeyboardEvent) {
 // --- Search ---
 
 function handleSearchJump(index: number) {
-  const totalMessages = allMessages.value.length
-  const curVisibleStart = Math.max(0, totalMessages - displayCount.value)
-  if (index < curVisibleStart) {
-    displayCount.value = totalMessages - index + PAGE_SIZE
-  }
-  const newVisibleStart = Math.max(0, totalMessages - displayCount.value)
-  const visibleIndex = index - newVisibleStart
-  nextTick(() => {
-    const el = layoutPageRef.value?.contentRef?.$el
-    if (!el)
-      return
-    const msgEls = el.querySelectorAll('.group-message')
-    if (msgEls[visibleIndex]) {
-      msgEls[visibleIndex].scrollIntoView({ behavior: 'smooth', block: 'center' })
-      msgEls[visibleIndex].classList.add('group-message--highlight')
-      setTimeout(() => {
-        msgEls[visibleIndex].classList.remove('group-message--highlight')
-      }, 1500)
-    }
-  })
+  // With virtual scrolling, just scroll to the absolute index
+  virtualListRef.value?.scrollToIndex(index)
 }
 
 // --- Export ---
@@ -384,11 +349,10 @@ async function exportGroupAsHtml(roomName: string) {
 async function saveExportedFile(filename: string, content: string) {
   const project = studioStore.currentProject
   try {
-    if (project?.dirHandle) {
-      const { getFs } = useProjectContent()
-      const fs = getFs()
-      if (fs)
-        await fs.writeFile(filename, content)
+    const { getFs } = useProjectContent()
+    const fs = getFs()
+    if (fs) {
+      await fs.writeFile(filename, content)
     }
     else if (project?.source === 'cos' && project.cosPrefix) {
       await uploadToCloud(settingsStore.cos, `${project.cosPrefix}${filename}`, content)
@@ -452,6 +416,28 @@ function handleRegenerateGroupMessage(timestamp: number) {
     participants.value,
     getEffectiveWorldContext(),
   )
+}
+
+function handleRetryGroupMessage(timestamp: number) {
+  if (!room.value)
+    return
+  groupChatStore.retryFromMessage(
+    roomId.value,
+    timestamp,
+    participants.value,
+    getEffectiveWorldContext(),
+  )
+}
+
+/** When the input is focused (keyboard opens on mobile), scroll to bottom */
+function scrollToBottomOnFocus() {
+  setTimeout(() => {
+    virtualListRef.value?.scrollToBottom()
+  }, 300) // Wait for keyboard animation
+}
+
+function handleGroupFeedback(msg: GroupChatMessage, type: 'up' | 'down') {
+  groupChatStore.setMessageFeedback(roomId.value, msg.timestamp, type)
 }
 
 // --- Snapshot helpers ---
@@ -659,86 +645,92 @@ async function handleDeleteSnapshot(snapshotId: string) {
       </div>
 
       <!-- Load earlier messages button -->
-      <div v-if="hasMore" class="load-earlier">
-        <button class="load-earlier-btn" @click="loadMore">
-          {{ t('chat.loadEarlier') }}
-        </button>
-        <span class="load-earlier-hint">{{ t('chat.messagesHidden', { count: hiddenCount }) }}</span>
-      </div>
 
-      <TransitionGroup name="group-msg">
-        <div
-          v-for="(msg, index) in visibleMessages"
-          :key="msg.timestamp + String(index)"
-          class="group-message"
-          :class="[msg.role]"
-        >
-          <!-- Character message header -->
-          <div v-if="msg.role === 'character'" class="group-message-header">
-            <div
-              class="group-avatar"
-              :class="`group-avatar--${getColorIndex(msg.characterId)}`"
-            >
-              {{ getAvatarInitial(msg.characterName) }}
+      <VirtualMessageList
+        v-if="room && allMessages.length > 0"
+        ref="virtualListRef"
+        :messages="allMessages"
+        :estimate-size="86"
+        :is-streaming="groupChatStore.isLoading"
+      >
+        <template #message="{ message: msg, index }">
+          <div
+            class="group-message"
+            :class="[msg.role]"
+          >
+            <!-- Character message header -->
+            <div v-if="msg.role === 'character'" class="group-message-header">
+              <div
+                class="group-avatar"
+                :class="`group-avatar--${getColorIndex(msg.characterId)}`"
+              >
+                {{ getAvatarInitial(msg.characterName) }}
+              </div>
+              <span
+                class="group-speaker-name"
+                :class="`group-speaker-name--${getColorIndex(msg.characterId)}`"
+              >
+                {{ msg.characterName }}
+              </span>
             </div>
-            <span
-              class="group-speaker-name"
-              :class="`group-speaker-name--${getColorIndex(msg.characterId)}`"
-            >
-              {{ msg.characterName }}
-            </span>
-          </div>
 
-          <div class="group-bubble">
-            <MarkdownMessage v-if="msg.role === 'character'" :content="msg.content" />
-            <template v-else>
-              {{ msg.content }}
-            </template>
+            <div class="group-bubble" :class="{ 'bubble--error': msg.error }">
+              <MarkdownMessage v-if="msg.role === 'character'" :content="msg.content" />
+              <template v-else>
+                {{ msg.content }}
+              </template>
+              <RetryButton v-if="msg.error" :error="msg.error" @retry="handleRetryGroupMessage(msg.timestamp)" />
+            </div>
+            <div class="group-time">
+              {{ formatChatTime(msg.timestamp) }}
+              <button
+                v-if="msg.role === 'character' && aiSettingsStore.config.ttsProvider !== 'none'"
+                class="tts-btn"
+                :class="{
+                  'tts-btn--playing': ttsPlayingIndex === index,
+                  'tts-btn--generating': ttsGeneratingIndex === index,
+                }"
+                :aria-label="ttsPlayingIndex === index ? t('world.ttsStop') : t('world.ttsPlay')"
+                :disabled="ttsGeneratingIndex === index"
+                @click="handleGroupTtsPlay(msg, index)"
+              >
+                <IonIcon :icon="ttsPlayingIndex === index ? volumeMuteOutline : volumeHighOutline" />
+              </button>
+            </div>
+            <MessageActions
+              :message="{ role: msg.role === 'character' ? 'assistant' : 'user', content: msg.content, timestamp: msg.timestamp } as ChatMessage"
+              :is-last="msg.role === 'character' && index === allMessages.length - 1"
+              :is-loading="groupChatStore.isLoading"
+              :show-edit="false"
+              :feedback="msg.feedback"
+              @copy="copyGroupMessage(msg.content)"
+              @delete="deleteGroupMessage(msg.timestamp)"
+              @regenerate="handleRegenerateGroupMessage(msg.timestamp)"
+              @feedback-up="handleGroupFeedback(msg, 'up')"
+              @feedback-down="handleGroupFeedback(msg, 'down')"
+            />
           </div>
-          <div class="group-time">
-            {{ formatChatTime(msg.timestamp) }}
-            <button
-              v-if="msg.role === 'character' && aiSettingsStore.config.ttsProvider !== 'none'"
-              class="tts-btn"
-              :class="{
-                'tts-btn--playing': ttsPlayingIndex === index,
-                'tts-btn--generating': ttsGeneratingIndex === index,
-              }"
-              :aria-label="ttsPlayingIndex === index ? t('world.ttsStop') : t('world.ttsPlay')"
-              :disabled="ttsGeneratingIndex === index"
-              @click="handleGroupTtsPlay(msg, index)"
-            >
-              <IonIcon :icon="ttsPlayingIndex === index ? volumeMuteOutline : volumeHighOutline" />
-            </button>
-          </div>
-          <MessageActions
-            :message="{ role: msg.role === 'character' ? 'assistant' : 'user', content: msg.content, timestamp: msg.timestamp } as ChatMessage"
-            :is-last="msg.role === 'character' && index === visibleMessages.length - 1"
-            :is-loading="groupChatStore.isLoading"
-            :show-edit="false"
-            @copy="copyGroupMessage(msg.content)"
-            @delete="deleteGroupMessage(msg.timestamp)"
-            @regenerate="handleRegenerateGroupMessage(msg.timestamp)"
-          />
-        </div>
-      </TransitionGroup>
+        </template>
 
-      <!-- Thinking indicator -->
-      <Transition name="group-msg">
-        <div v-if="groupChatStore.isLoading" class="group-thinking">
-          <template v-if="groupChatStore.selectingSpeaker">
-            {{ t('world.selectingSpeaker') }}
-          </template>
-          <template v-else-if="groupChatStore.currentSpeakerName">
-            {{ t('world.speakerThinking', { name: groupChatStore.currentSpeakerName }) }}
-          </template>
-          <div class="group-thinking-dot">
-            <span />
-            <span />
-            <span />
-          </div>
-        </div>
-      </Transition>
+        <template #footer>
+          <!-- Thinking indicator -->
+          <Transition name="group-msg">
+            <div v-if="groupChatStore.isLoading" class="group-thinking">
+              <template v-if="groupChatStore.selectingSpeaker">
+                {{ t('world.selectingSpeaker') }}
+              </template>
+              <template v-else-if="groupChatStore.currentSpeakerName">
+                {{ t('world.speakerThinking', { name: groupChatStore.currentSpeakerName }) }}
+              </template>
+              <div class="group-thinking-dot">
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+          </Transition>
+        </template>
+      </VirtualMessageList>
     </div>
 
     <template #footer>
@@ -753,13 +745,15 @@ async function handleDeleteSnapshot(snapshotId: string) {
             {{ t('world.continueChat') }}
           </button>
 
-          <IonInput
+          <IonTextarea
             v-model="inputText"
             :placeholder="t('world.groupChatPlaceholder')"
             :disabled="!room"
-            :clear-input="true"
+            :auto-grow="true"
+            :rows="1"
             class="chat-input"
             @keydown="handleKeydown"
+            @ion-focus="scrollToBottomOnFocus"
           />
           <IonButton
             v-if="groupChatStore.isLoading"
