@@ -5,7 +5,7 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { EVENT_TYPE_EMOJI } from '../types/timeline'
 import { exportTimelineToCSV } from '../utils/csvExport'
-import { downloadAsFile } from '../utils/fileAccess'
+import { downloadAsFile } from '../utils/fs'
 import WorldTimeline from './WorldTimeline.vue'
 
 const props = defineProps<{

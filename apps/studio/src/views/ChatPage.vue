@@ -26,7 +26,7 @@ import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { formatChatTime } from '../utils/chatUtils'
 import { uploadToCloud } from '../utils/cloudSync'
-import { downloadAsFile } from '../utils/fileAccess'
+import { downloadAsFile } from '../utils/fs'
 import { computeLineDiff } from '../utils/lineDiff'
 import '../styles/chat.css'
 

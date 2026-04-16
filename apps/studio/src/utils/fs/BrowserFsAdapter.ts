@@ -6,29 +6,7 @@
  */
 
 import type { FsEntry, FsFileEntry, IFileSystem } from './types'
-
-const TEXT_EXTENSIONS = new Set([
-  '.md',
-  '.adv.md',
-  '.txt',
-  '.json',
-  '.yaml',
-  '.yml',
-  '.ts',
-  '.js',
-  '.vue',
-  '.css',
-  '.html',
-  '.xml',
-  '.toml',
-  '.ini',
-  '.cfg',
-  '.conf',
-])
-
-function isTextFile(name: string): boolean {
-  return Array.from(TEXT_EXTENSIONS).some(ext => name.endsWith(ext))
-}
+import { isTextFile } from './utils'
 
 export class BrowserFsAdapter implements IFileSystem {
   readonly backend = 'browser' as const

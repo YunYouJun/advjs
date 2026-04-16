@@ -11,32 +11,10 @@
  */
 
 import type { FsEntry, FsFileEntry, IFileSystem } from './types'
+import { isTextFile } from './utils'
 
 const TRIM_SLASHES_RE = /^\/+|\/+$/g
 const MULTI_SLASH_RE = /\/+/g
-
-const TEXT_EXTENSIONS = new Set([
-  '.md',
-  '.adv.md',
-  '.txt',
-  '.json',
-  '.yaml',
-  '.yml',
-  '.ts',
-  '.js',
-  '.vue',
-  '.css',
-  '.html',
-  '.xml',
-  '.toml',
-  '.ini',
-  '.cfg',
-  '.conf',
-])
-
-function isTextFile(name: string): boolean {
-  return Array.from(TEXT_EXTENSIONS).some(ext => name.endsWith(ext))
-}
 
 /** Internal storage node */
 interface FsNode {

@@ -147,7 +147,7 @@
 **修改文件**:
 
 - `packages/types/src/game/music.ts` — 类型扩展
-- `apps/studio/src/utils/fileAccess.ts` — 新增 blob 读写工具 + 音频/图片扩展名检测
+- `apps/studio/src/utils/fs/utils.ts` — 集中维护文件下载、目录选择、项目检测与音频/图片扩展名检测等文件系统工具
 - `apps/studio/src/composables/useProjectContent.ts` — AudioInfo + audios 加载
 - `apps/studio/src/composables/useContentEditor.ts` — 支持 `audio` ContentType
 - `apps/studio/src/router/index.ts` — `workspace/audio` 路由

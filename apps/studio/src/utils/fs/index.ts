@@ -28,3 +28,14 @@ export type {
   FsFileEntry,
   IFileSystem,
 } from './types'
+export {
+  AUDIO_EXTENSIONS,
+  detectAdvProject,
+  downloadAsFile,
+  IMAGE_EXTENSIONS,
+  isAudioFile,
+  isImageFile,
+  isTextFile,
+  openProjectDirectory,
+  TEXT_EXTENSIONS,
+} from './utils'

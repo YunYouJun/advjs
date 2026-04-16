@@ -17,7 +17,7 @@ import { useProjectContent } from '../composables/useProjectContent'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { downloadFromCloud } from '../utils/cloudSync'
-import { downloadAsFile } from '../utils/fileAccess'
+import { downloadAsFile } from '../utils/fs'
 
 const BLOCK_LEVEL_RE = /^(?:## |[-*] |> |---|【)/
 

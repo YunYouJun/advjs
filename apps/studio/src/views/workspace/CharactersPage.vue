@@ -30,7 +30,7 @@ import { useRecentActivity } from '../../composables/useRecentActivity'
 import { useAiSettingsStore } from '../../stores/useAiSettingsStore'
 import { useCharacterStateStore } from '../../stores/useCharacterStateStore'
 import { exportCharactersToCSV, exportRelationshipsToCSV } from '../../utils/csvExport'
-import { downloadAsFile } from '../../utils/fileAccess'
+import { downloadAsFile } from '../../utils/fs'
 import { copyCharacterInfo, shareCharacterAsImage, shareCharacterAsMd } from '../../utils/shareUtils'
 import { showToast } from '../../utils/toast'
 

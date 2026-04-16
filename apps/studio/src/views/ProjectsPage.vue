@@ -38,8 +38,7 @@ import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { listCloudFiles, uploadProjectToCloud } from '../utils/cloudSync'
 import { restoreAndVerifyHandle } from '../utils/dirHandleStore'
-import { detectAdvProject, openProjectDirectory } from '../utils/fileAccess'
-import { BrowserFsAdapter } from '../utils/fs/BrowserFsAdapter'
+import { createFileSystem, detectAdvProject, openProjectDirectory } from '../utils/fs'
 import { createProjectFromTemplate } from '../utils/projectTemplate'
 import { toSlug } from '../utils/slug'
 
@@ -91,7 +90,8 @@ watch(() => studioStore.currentProject, async (project) => {
     rootDir.value = getDirItemFromHandle(project.dirHandle)
 
     // Auto-load README.md as default preview
-    await autoLoadReadme(project.dirHandle)
+    const fs = await createFileSystem({ dirHandle: project.dirHandle })
+    await autoLoadReadme(fs)
   }
   else {
     rootDir.value = undefined
@@ -100,19 +100,12 @@ watch(() => studioStore.currentProject, async (project) => {
 }, { immediate: true })
 
 /** Try to load README.md (or world.md) as default preview content */
-async function autoLoadReadme(dirHandle: FileSystemDirectoryHandle) {
+async function autoLoadReadme(fs: import('../utils/fs').IFileSystem) {
   const candidates = ['README.md', 'readme.md', 'adv/world.md']
   for (const name of candidates) {
     try {
-      const parts = name.split('/')
-      let dir = dirHandle
-      for (let i = 0; i < parts.length - 1; i++)
-        dir = await dir.getDirectoryHandle(parts[i])
-
-      const fileHandle = await dir.getFileHandle(parts.at(-1)!)
-      const file = await fileHandle.getFile()
-      fileContent.value = await file.text()
-      selectedFile.value = { name, kind: 'file', handle: fileHandle } as FSFileItem
+      fileContent.value = await fs.readFile(name)
+      selectedFile.value = { name, kind: 'file' } as FSFileItem
       return
     }
     catch {
@@ -371,7 +364,7 @@ async function handleImportFileSelected(event: Event) {
   try {
     // Ask user to select a target directory
     const dirHandle = await (window as any).showDirectoryPicker({ mode: 'readwrite' })
-    const fs = new BrowserFsAdapter(dirHandle)
+    const fs = await createFileSystem({ dirHandle })
     const manifest = await importProject(file, fs)
     const projectName = manifest.name || file.name.replace(ZIP_EXT_RE, '')
 

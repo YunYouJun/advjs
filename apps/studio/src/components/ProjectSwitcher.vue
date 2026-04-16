@@ -23,7 +23,7 @@ import {
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStudioStore } from '../stores/useStudioStore'
-import { detectAdvProject, openProjectDirectory } from '../utils/fileAccess'
+import { detectAdvProject, openProjectDirectory } from '../utils/fs'
 import { toSlug } from '../utils/slug'
 
 const { t } = useI18n()

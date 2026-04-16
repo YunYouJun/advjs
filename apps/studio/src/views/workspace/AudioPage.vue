@@ -30,7 +30,7 @@ import { useContentSave } from '../../composables/useContentSave'
 import { useProjectContent } from '../../composables/useProjectContent'
 import { useAiSettingsStore } from '../../stores/useAiSettingsStore'
 import { parseAudioMd, stringifyAudioMd } from '../../utils/audioMd'
-import { isAudioFile } from '../../utils/fileAccess'
+import { isAudioFile } from '../../utils/fs'
 import { showToast } from '../../utils/toast'
 
 const FILE_NAME_RE = /[^\w\u4E00-\u9FFF-]/g
