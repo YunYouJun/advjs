@@ -19,7 +19,9 @@ import {
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { useAiSettingsStore } from '../stores/useAiSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
+import { generateImage, isImageGenerationAvailable } from '../utils/aiImageClient'
 
 const props = defineProps<{
   open: boolean
@@ -32,6 +34,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const router = useRouter()
 const studioStore = useStudioStore()
+const aiSettings = useAiSettingsStore()
 
 const activeTab = ref('general')
 
@@ -40,6 +43,12 @@ const editUrl = ref('')
 const editCosPrefix = ref('')
 const editDescription = ref('')
 const coverFileInput = ref<HTMLInputElement | null>(null)
+
+// --- AI cover generation ---
+const aiCoverPrompt = ref('')
+const isGeneratingCover = ref(false)
+
+const canAiGenerateCover = computed(() => isImageGenerationAvailable(aiSettings.config))
 
 const project = computed(() => studioStore.currentProject)
 
@@ -133,6 +142,117 @@ function handleCoverRemove() {
   if (!project.value)
     return
   studioStore.updateProject(project.value.projectId, { cover: undefined })
+}
+
+function handleOpenSharePage() {
+  if (!project.value)
+    return
+  emit('close')
+  router.push(`/share/${encodeURIComponent(project.value.projectId)}`)
+}
+
+/**
+ * Generate a cover image via configured AI image provider.
+ * Falls back to project description if no explicit prompt is entered.
+ */
+async function handleAiGenerateCover() {
+  if (!project.value || isGeneratingCover.value)
+    return
+
+  if (!canAiGenerateCover.value) {
+    const toast = await toastController.create({
+      message: t('projectSettings.coverAiNoConfig'),
+      duration: 2500,
+      position: 'top',
+      color: 'warning',
+    })
+    await toast.present()
+    return
+  }
+
+  const basePrompt = aiCoverPrompt.value.trim()
+    || editDescription.value.trim()
+    || project.value.description
+    || project.value.name
+  const fullPrompt = `Book cover illustration for "${project.value.name}": ${basePrompt}. Cinematic composition, vibrant lighting, high detail, 3:4 portrait orientation.`
+
+  isGeneratingCover.value = true
+  try {
+    const result = await generateImage(
+      { prompt: fullPrompt, width: 768, height: 1024 },
+      aiSettings.config,
+    )
+
+    // Download remote URL → canvas → JPEG data URL (~300KB)
+    const dataUrl = await fetchImageAsDataUrl(result.url)
+    if (!project.value)
+      return
+    studioStore.updateProject(project.value.projectId, { cover: dataUrl })
+
+    const toast = await toastController.create({
+      message: t('projectSettings.saved'),
+      duration: 1500,
+      position: 'top',
+      color: 'success',
+    })
+    await toast.present()
+  }
+  catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    const toast = await toastController.create({
+      message: t('projectSettings.coverAiFailed', { error: msg }),
+      duration: 3000,
+      position: 'top',
+      color: 'danger',
+    })
+    await toast.present()
+  }
+  finally {
+    isGeneratingCover.value = false
+  }
+}
+
+/**
+ * Fetch a remote (or data:) image URL and convert it to a compressed JPEG data URL.
+ * This keeps the cover inline-stored (localStorage) and avoids CORS load issues later.
+ */
+async function fetchImageAsDataUrl(url: string): Promise<string> {
+  // data: URL — just resize via canvas
+  const response = await fetch(url)
+  if (!response.ok)
+    throw new Error(`Failed to fetch generated image: ${response.status}`)
+  const blob = await response.blob()
+
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    const objectUrl = URL.createObjectURL(blob)
+    img.onload = () => {
+      try {
+        const ratio = Math.min(1, 800 / img.width)
+        const w = Math.round(img.width * ratio)
+        const h = Math.round(img.height * ratio)
+        const canvas = document.createElement('canvas')
+        canvas.width = w
+        canvas.height = h
+        const ctx = canvas.getContext('2d')
+        if (!ctx)
+          throw new Error('Canvas not supported')
+        ctx.drawImage(img, 0, 0, w, h)
+        URL.revokeObjectURL(objectUrl)
+        resolve(canvas.toDataURL('image/jpeg', 0.8))
+      }
+      catch (e) {
+        URL.revokeObjectURL(objectUrl)
+        reject(e)
+      }
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl)
+      reject(new Error('Failed to load generated image'))
+    }
+    img.src = objectUrl
+  })
 }
 
 function resizeImage(file: File, maxWidth: number, quality: number): Promise<string> {
@@ -291,7 +411,7 @@ async function handleDelete() {
                 <div class="i-carbon-close" />
               </button>
             </div>
-            <div class="field field--last">
+            <div class="field">
               <button class="btn-upload" @click="coverFileInput?.click()">
                 <div class="i-carbon-image" />
                 {{ project?.cover ? t('projectSettings.coverUpload') : t('projectSettings.coverUpload') }}
@@ -303,6 +423,27 @@ async function handleDelete() {
                 style="display: none"
                 @change="handleCoverUpload"
               >
+            </div>
+
+            <!-- AI generate cover -->
+            <div class="field field--last">
+              <textarea
+                v-model="aiCoverPrompt"
+                class="field-input field-textarea ai-cover-prompt"
+                rows="2"
+                :placeholder="t('projectSettings.coverAiPromptPlaceholder')"
+                :disabled="isGeneratingCover"
+              />
+              <button
+                class="btn-ai-cover"
+                :disabled="isGeneratingCover || !canAiGenerateCover"
+                :title="canAiGenerateCover ? '' : t('projectSettings.coverAiNoConfig')"
+                @click="handleAiGenerateCover"
+              >
+                <div v-if="isGeneratingCover" class="i-carbon-circle-dash btn-ai-cover__spin" />
+                <div v-else class="i-carbon-magic-wand" />
+                {{ isGeneratingCover ? t('projectSettings.coverAiGenerating') : t('projectSettings.coverAiGenerate') }}
+              </button>
               <p class="hint hint--inline">
                 {{ t('projectSettings.coverHint') }}
               </p>
@@ -368,6 +509,19 @@ async function handleDelete() {
                 <div class="i-carbon-copy field-action-icon" />
               </div>
             </div>
+          </section>
+
+          <section v-if="project" class="card">
+            <h3 class="card-title">
+              {{ t('projectSettings.share') }}
+            </h3>
+            <button class="btn-upload" @click="handleOpenSharePage">
+              <div class="i-carbon-share" />
+              {{ t('projectSettings.openSharePage') }}
+            </button>
+            <p class="hint hint--inline">
+              {{ t('projectSettings.shareHint') }}
+            </p>
           </section>
 
           <section class="card card--danger">
@@ -679,5 +833,53 @@ async function handleDelete() {
 .btn-upload:hover {
   background: rgba(56, 128, 255, 0.04);
   border-color: var(--ion-color-primary, #3880ff);
+}
+
+/* ── AI Cover Generate ── */
+.ai-cover-prompt {
+  margin-bottom: 8px;
+}
+
+.btn-ai-cover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    opacity 0.15s,
+    transform 0.15s;
+  box-sizing: border-box;
+}
+
+.btn-ai-cover:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+.btn-ai-cover:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn-ai-cover:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-ai-cover__spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

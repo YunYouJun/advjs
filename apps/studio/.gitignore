@@ -30,3 +30,17 @@ npm-debug.log*
 /platforms
 /plugins
 /www
+
+# Capacitor native projects (generated via `pnpm cap:init:*`)
+# Commit these per-platform configs explicitly if you need CI builds.
+/ios/App/Pods/
+/ios/App/build/
+/ios/App/App.xcworkspace/xcuserdata/
+/ios/App/App.xcodeproj/xcuserdata/
+/ios/App/App.xcodeproj/project.xcworkspace/xcuserdata/
+/android/.gradle/
+/android/app/build/
+/android/build/
+/android/captures/
+/android/local.properties
+/android/.idea/

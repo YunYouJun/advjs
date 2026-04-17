@@ -6,6 +6,7 @@ import {
   actionSheetController,
   alertController,
   IonButton,
+  IonButtons,
   IonContent,
   IonHeader,
   IonIcon,
@@ -39,6 +40,7 @@ import CharacterChatWelcome from '../components/CharacterChatWelcome.vue'
 import CharacterInfoModal from '../components/CharacterInfoModal.vue'
 import ChatHistorySearch from '../components/ChatHistorySearch.vue'
 import ChatSkeleton from '../components/ChatSkeleton.vue'
+import ChatSnippetShare from '../components/ChatSnippetShare.vue'
 import LayoutPage from '../components/common/LayoutPage.vue'
 import MarkdownMessage from '../components/MarkdownMessage.vue'
 import MessageActions from '../components/MessageActions.vue'
@@ -46,6 +48,7 @@ import RetryButton from '../components/RetryButton.vue'
 import SnapshotTree from '../components/SnapshotTree.vue'
 import VirtualMessageList from '../components/VirtualMessageList.vue'
 import { useProjectContent } from '../composables/useProjectContent'
+import { useSnippetShare } from '../composables/useSnippetShare'
 import { useWorldContext } from '../composables/useWorldContext'
 import { useAiSettingsStore } from '../stores/useAiSettingsStore'
 import { useCharacterChatStore } from '../stores/useCharacterChatStore'
@@ -97,6 +100,11 @@ const archivedBatches = ref<DbArchivedBatch[]>([])
 const ttsPlayingIndex = ref(-1)
 const ttsGeneratingIndex = ref(-1)
 const ttsBatchGenerating = ref(false)
+
+// Snippet share state
+const snippet = useSnippetShare()
+const showSnippetPreview = ref(false)
+const snippetCardRef = ref<HTMLElement | null>(null)
 
 // Virtual message list ref
 const virtualListRef = ref<InstanceType<any> | null>(null)
@@ -467,12 +475,76 @@ async function handleExport() {
         handler: () => exportAsHtml(charName),
       },
       {
+        text: t('world.shareSnippetImage') || 'Share as image',
+        handler: () => {
+          nextTick(() => openSnippetPreview())
+        },
+      },
+      {
         text: t('common.cancel'),
         role: 'cancel',
       },
     ],
   })
   await sheet.present()
+}
+
+/**
+ * Open the snippet-share preview modal, pre-selecting the last 6 messages.
+ */
+function openSnippetPreview() {
+  if (messages.value.length === 0)
+    return
+  snippet.selectLastN(messages.value, 6)
+  showSnippetPreview.value = true
+}
+
+/**
+ * Generate + share the snippet image.
+ */
+async function shareSnippetImage() {
+  if (!snippetCardRef.value)
+    return
+  const blob = await snippet.renderToBlob(snippetCardRef.value)
+  if (!blob) {
+    const toast = await toastController.create({
+      message: t('chat.shareFailed') || 'Share image failed',
+      duration: 2000,
+      color: 'danger',
+    })
+    await toast.present()
+    return
+  }
+  try {
+    await snippet.shareBlob(blob, `${character.value?.name || 'chat'}-snippet.png`)
+    const ok = await toastController.create({
+      message: t('chat.shareSuccess') || 'Saved',
+      duration: 1500,
+      color: 'success',
+    })
+    await ok.present()
+    showSnippetPreview.value = false
+  }
+  catch (err: unknown) {
+    // User cancelled the system share sheet — not an error worth surfacing
+    if (err instanceof Error && err.name === 'AbortError')
+      return
+    const toast = await toastController.create({
+      message: t('chat.shareFailed') || 'Share image failed',
+      duration: 2000,
+      color: 'danger',
+    })
+    await toast.present()
+  }
+}
+
+/**
+ * Cycle through the 3 themes (dark → light → sepia → dark …)
+ */
+function cycleSnippetTheme() {
+  const order = ['dark', 'light', 'sepia'] as const
+  const idx = order.indexOf(snippet.theme.value)
+  snippet.theme.value = order[(idx + 1) % order.length]
 }
 
 function conversationToAdvMd(charName: string): string {
@@ -1171,6 +1243,51 @@ async function handleDeleteDiary(diaryId: string) {
       @delete-diary="handleDeleteDiary"
     />
 
+    <!-- Snippet Share Preview Modal -->
+    <IonModal :is-open="showSnippetPreview" :initial-breakpoint="0.9" :breakpoints="[0, 0.9, 1]" @did-dismiss="showSnippetPreview = false">
+      <IonHeader>
+        <IonToolbar>
+          <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic requires native slot -->
+          <IonButtons slot="start">
+            <IonButton fill="clear" @click="showSnippetPreview = false">
+              {{ t('common.cancel') }}
+            </IonButton>
+          </IonButtons>
+          <IonTitle>{{ t('world.shareSnippetImage') || 'Share Snippet' }}</IonTitle>
+          <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic requires native slot -->
+          <IonButtons slot="end">
+            <IonButton fill="clear" @click="cycleSnippetTheme">
+              🎨 {{ snippet.theme.value }}
+            </IonButton>
+            <IonButton :strong="true" color="primary" @click="shareSnippetImage">
+              <IonIcon slot="start" :icon="downloadOutline" />
+              {{ t('common.save') || 'Save' }}
+            </IonButton>
+          </IonButtons>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent class="snippet-preview-content">
+        <div class="snippet-preview-wrapper">
+          <div ref="snippetCardRef">
+            <ChatSnippetShare
+              :messages="snippet.getSelectedMessages(allMessages, msg => ({
+                role: msg.role,
+                content: msg.content,
+                characterName: character?.name,
+                timestamp: msg.timestamp,
+              }))"
+              :project-name="studioStore.currentProject?.name"
+              :character-name="character?.name"
+              :theme="snippet.theme.value"
+            />
+          </div>
+          <p class="snippet-preview-hint">
+            {{ t('world.shareSnippetHint') || 'Saved as PNG. Tap theme button to switch style.' }}
+          </p>
+        </div>
+      </IonContent>
+    </IonModal>
+
     <!-- AI Settings Modal -->
     <IonModal :is-open="showAiSettings" :initial-breakpoint="0.6" :breakpoints="[0, 0.6, 0.85]" @did-dismiss="showAiSettings = false">
       <IonHeader>
@@ -1468,6 +1585,28 @@ ion-footer ion-toolbar {
 
 .snapshot-btn--delete:hover {
   color: var(--adv-danger, #ef4444);
+}
+
+/* Snippet Share Preview */
+.snippet-preview-content {
+  --background: var(--ion-color-light, #f4f5f8);
+}
+
+.snippet-preview-wrapper {
+  padding: var(--adv-space-md, 16px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--adv-space-sm, 12px);
+}
+
+.snippet-preview-hint {
+  font-size: 12px;
+  color: var(--adv-text-tertiary, #94a3b8);
+  text-align: center;
+  max-width: 320px;
+  line-height: 1.5;
+  margin: 0;
 }
 
 /* Archive Viewer */

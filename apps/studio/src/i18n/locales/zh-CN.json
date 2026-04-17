@@ -88,6 +88,14 @@
     "coverUpload": "上传封面",
     "coverRemove": "移除封面",
     "coverHint": "展示在项目卡片和分享链接中",
+    "coverAiGenerate": "AI 生成封面",
+    "coverAiGenerating": "正在生成封面...",
+    "coverAiFailed": "封面生成失败：{error}",
+    "coverAiNoConfig": "请先在「设置 → AI → 图片生成」中配置图片生成服务",
+    "coverAiPromptPlaceholder": "描述封面画面（留空则根据项目简介自动生成）",
+    "share": "分享",
+    "openSharePage": "打开分享预览页",
+    "shareHint": "为该项目生成一个只读预览页，包含封面、角色卡片、章节列表和二维码。",
     "description": "项目简介",
     "descriptionPlaceholder": "项目简介，展示在项目卡片和分享链接中...",
     "info": "项目信息",
@@ -409,6 +417,8 @@
     "exportAdvMd": "保存为 .adv.md（到项目）",
     "exportMarkdown": "下载为 Markdown",
     "exportHtml": "导出为 HTML 小说",
+    "shareSnippetImage": "生成精美分享图",
+    "shareSnippetHint": "点击顶部切换主题，保存为 PNG 分享到社交媒体",
     "exportPlotSummary": "与{name}的对话",
     "exportConversationWith": "与{name}的对话",
     "exportDate": "导出于 {date}",
@@ -1027,5 +1037,19 @@
     "generating": "正在生成分享图...",
     "shareSuccess": "分享图已保存",
     "shareFailed": "生成分享图失败"
+  },
+  "sharePreview": {
+    "loading": "正在加载预览...",
+    "notFoundTitle": "本设备上未找到该项目",
+    "notFoundDesc": "Studio 项目数据默认保存在本地。创作者可将项目导出为 .advpkg 在多设备间共享。",
+    "backToStudio": "进入 Studio",
+    "openInStudio": "在 Studio 中打开",
+    "characters": "角色",
+    "chapters": "章节",
+    "charactersTitle": "登场角色",
+    "chaptersTitle": "章节目录",
+    "scanTitle": "扫码在其他设备打开",
+    "scanHint": "二维码指向该项目的导入链接",
+    "linkCopied": "链接已复制到剪贴板"
   }
 }

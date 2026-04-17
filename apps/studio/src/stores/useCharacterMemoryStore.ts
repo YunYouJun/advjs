@@ -48,6 +48,11 @@ const MAX_KEY_EVENTS = 50
 const MAX_EMOTIONAL_HISTORY = 200
 const MAX_USER_PROFILE = 30
 
+/** When keyEvents reaches this count, trigger AI compression */
+const COMPRESSION_THRESHOLD = 40
+/** After compression, keep this many recent events uncompressed */
+const COMPRESSION_KEEP_RECENT = 15
+
 function createDefaultEmotionalState(): EmotionalState {
   return { affinity: 0, trust: 20, mood: 'neutral' }
 }
@@ -273,10 +278,70 @@ export const useCharacterMemoryStore = defineStore('characterMemory', () => {
       })
       if (memory.emotionalHistory.length > MAX_EMOTIONAL_HISTORY)
         memory.emotionalHistory = memory.emotionalHistory.slice(-MAX_EMOTIONAL_HISTORY)
+
+      // Trigger background compression if events are accumulating
+      if (memory.keyEvents.length >= COMPRESSION_THRESHOLD) {
+        compressMemories(characterId).catch(() => {})
+      }
     }
     catch (err) {
       // Memory extraction is best-effort, don't disrupt the chat
       console.warn(`[MemoryStore] extraction failed for ${characterId}:`, err)
+    }
+  }
+
+  /**
+   * Compress old key events into a summary when count exceeds threshold.
+   * Keeps the most recent events intact and merges older ones via AI summarization.
+   * Runs in the background after extractMemoryFromTurn when needed.
+   */
+  async function compressMemories(characterId: string): Promise<void> {
+    const memory = getMemory(characterId)
+    if (memory.keyEvents.length < COMPRESSION_THRESHOLD)
+      return
+
+    const eventsToCompress = memory.keyEvents.slice(0, -COMPRESSION_KEEP_RECENT)
+    if (eventsToCompress.length < 5)
+      return
+
+    const eventSummaries = eventsToCompress.map(e => `- ${e.summary}`).join('\n')
+    const prompt = `You are a memory compression system. Below are ${eventsToCompress.length} memory entries from a character's interaction history. Compress them into ${Math.min(5, Math.ceil(eventsToCompress.length / 5))} concise summary entries that preserve the most important facts, relationships, and emotional milestones. Drop routine/trivial entries.
+
+## Entries to compress
+${eventSummaries}
+
+## Task
+Return a JSON array of strings, each being a compressed summary entry. Return ONLY the JSON array, no markdown fencing.`
+
+    try {
+      const compressed = await runAiJsonExtraction<string[]>(
+        { prompt, maxTokens: 500, temperature: 0.2 },
+        (raw) => {
+          if (Array.isArray(raw))
+            return raw.filter((s): s is string => typeof s === 'string')
+          return []
+        },
+        1,
+      )
+
+      if (compressed && compressed.length > 0) {
+        const compressedEvents: MemoryKeyEvent[] = compressed.map(s => ({
+          summary: s,
+          timestamp: eventsToCompress[0].timestamp,
+        }))
+
+        const recentEvents = memory.keyEvents.slice(-COMPRESSION_KEEP_RECENT)
+        memory.keyEvents = [...compressedEvents, ...recentEvents]
+
+        // Also compress userProfile: merge duplicates
+        const profileMap = new Map<string, string>()
+        for (const entry of memory.userProfile)
+          profileMap.set(entry.key, entry.value)
+        memory.userProfile = Array.from(profileMap.entries()).map(([key, value]) => ({ key, value }))
+      }
+    }
+    catch (err) {
+      console.warn(`[MemoryStore] compression failed for ${characterId}:`, err)
     }
   }
 
@@ -295,6 +360,7 @@ export const useCharacterMemoryStore = defineStore('characterMemory', () => {
     getMemory,
     formatMemoryForPrompt,
     extractMemoryFromTurn,
+    compressMemories,
     clearMemory,
     init,
     flush,

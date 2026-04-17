@@ -2,6 +2,7 @@
 import type { AdvCharacter } from '@advjs/types'
 import type { TimelineEntry } from '../types/timeline'
 import type { TimelineFilter } from './TimelineFilter.vue'
+import { useVirtualizer } from '@tanstack/vue-virtual'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getCharacterInitials, getMoodEmoji, getValidAvatarUrl } from '../utils/chatUtils'
@@ -20,6 +21,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 
 const PAGE_SIZE = 60
+const VIRTUAL_THRESHOLD = 50
 
 // --- Filter state (internal) ---
 
@@ -93,7 +95,6 @@ interface PeriodGroup { period: string, entries: TimelineEntry[] }
 interface DateGroup { date: string, periods: PeriodGroup[] }
 
 function buildGroups(entries: TimelineEntry[]): DateGroup[] {
-  // Show newest first
   const sorted = [...entries].reverse()
   const dateMap = new Map<string, Map<string, TimelineEntry[]>>()
   for (const e of sorted) {
@@ -111,7 +112,28 @@ function buildGroups(entries: TimelineEntry[]): DateGroup[] {
   }))
 }
 
-// --- Pagination ---
+// --- Flattened rows for virtual scrolling ---
+
+type FlatRow
+  = { type: 'date-header', id: string, date: string }
+    | { type: 'period-header', id: string, period: string }
+    | { type: 'entry', id: string, entry: TimelineEntry }
+
+function flattenGroups(groups: DateGroup[]): FlatRow[] {
+  const rows: FlatRow[] = []
+  for (const g of groups) {
+    rows.push({ type: 'date-header', id: `dh-${g.date}`, date: g.date })
+    for (const pg of g.periods) {
+      rows.push({ type: 'period-header', id: `ph-${g.date}-${pg.period}`, period: pg.period })
+      for (const entry of pg.entries) {
+        rows.push({ type: 'entry', id: entry.id, entry })
+      }
+    }
+  }
+  return rows
+}
+
+// --- Pagination (non-virtual mode) ---
 
 const pagedEntries = computed<TimelineEntry[]>(() =>
   filteredEntries.value.slice(-displayLimit.value),
@@ -128,6 +150,34 @@ const hiddenCount = computed(() =>
 function loadMore() {
   displayLimit.value += PAGE_SIZE
 }
+
+// --- Virtual scrolling (activated when entries exceed threshold) ---
+
+const useVirtual = computed(() => filteredEntries.value.length > VIRTUAL_THRESHOLD)
+
+const allGroups = computed<DateGroup[]>(() => buildGroups(filteredEntries.value))
+const flatRows = computed<FlatRow[]>(() => flattenGroups(allGroups.value))
+
+const virtualContainerRef = ref<HTMLElement | null>(null)
+
+const virtualizer = useVirtualizer({
+  get count() { return flatRows.value.length },
+  getScrollElement: () => virtualContainerRef.value,
+  estimateSize: (index) => {
+    const row = flatRows.value[index]
+    if (!row)
+      return 60
+    if (row.type === 'date-header')
+      return 32
+    if (row.type === 'period-header')
+      return 24
+    return 68
+  },
+  overscan: 8,
+})
+
+const virtualItems = computed(() => virtualizer.value.getVirtualItems())
+const totalSize = computed(() => virtualizer.value.getTotalSize())
 
 // --- Event type emoji ---
 
@@ -150,116 +200,234 @@ const EVENT_TYPE_EMOJI: Record<string, string> = {
       :available-moods="availableMoods"
     />
 
-    <!-- Load more (top, shows hidden older entries) -->
-    <div v-if="hasMore" class="wt-load-more">
-      <button class="wt-load-more-btn" @click="loadMore">
-        {{ t('world.timelineLoadMore', { count: hiddenCount }) }}
-      </button>
-    </div>
-
     <!-- Empty state -->
     <div v-if="filteredEntries.length === 0" class="wt-empty">
       {{ t('world.timelineEmpty') }}
     </div>
 
-    <!-- Timeline groups -->
-    <div v-else class="wt-groups">
-      <div v-for="group in pagedGroups" :key="group.date" class="wt-date-group">
-        <!-- Date header -->
-        <div class="wt-date-label">
-          📅 {{ group.date }}
-        </div>
-
-        <!-- Period sub-sections -->
-        <div v-for="pg in group.periods" :key="pg.period" class="wt-period-section">
-          <div class="wt-period-label">
-            {{ PERIOD_EMOJI[pg.period] || '🕐' }} {{ t(`world.period_${pg.period}`, pg.period) }}
+    <!-- ═══ Virtual scrolling mode (>50 entries) ═══ -->
+    <div v-else-if="useVirtual" ref="virtualContainerRef" class="wt-virtual-container">
+      <div
+        class="wt-virtual-spacer"
+        :style="{ height: `${totalSize}px`, position: 'relative' }"
+      >
+        <div
+          v-for="vItem in virtualItems"
+          :key="flatRows[vItem.index]?.id ?? vItem.index"
+          :style="{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            transform: `translateY(${vItem.start}px)`,
+          }"
+        >
+          <!-- Date header row -->
+          <div
+            v-if="flatRows[vItem.index]?.type === 'date-header'"
+            class="wt-date-label"
+          >
+            📅 {{ (flatRows[vItem.index] as any).date }}
           </div>
 
-          <!-- Entries -->
-          <div class="wt-entries">
-            <div
-              v-for="entry in pg.entries"
-              :key="entry.id"
-              class="wt-entry"
-              :class="[`wt-entry--${entry.kind}`]"
-            >
-              <!-- Axis dot -->
-              <div class="wt-dot" />
+          <!-- Period header row -->
+          <div
+            v-else-if="flatRows[vItem.index]?.type === 'period-header'"
+            class="wt-period-label"
+          >
+            {{ PERIOD_EMOJI[(flatRows[vItem.index] as any).period] || '🕐' }}
+            {{ t(`world.period_${(flatRows[vItem.index] as any).period}`, (flatRows[vItem.index] as any).period) }}
+          </div>
 
-              <!-- Card -->
-              <div class="wt-card">
-                <!-- Event card -->
-                <template v-if="entry.kind === 'event'">
-                  <div class="wt-card__header">
-                    <span class="wt-event-icon">{{ EVENT_TYPE_EMOJI[entry.type!] || '🔵' }}</span>
-                    <span class="wt-event-type">{{ entry.type }}</span>
-                    <!-- Involved characters -->
-                    <div v-if="entry.characterIds?.length" class="wt-avatars">
-                      <button
-                        v-for="cid in entry.characterIds.slice(0, 4)"
-                        :key="cid"
-                        class="wt-avatar-btn"
-                        :title="characterMap.get(cid)?.name || cid"
-                        @click="emit('selectCharacter', cid)"
-                      >
-                        <img
-                          v-if="getValidAvatarUrl(characterMap.get(cid)?.avatar)"
-                          :src="getValidAvatarUrl(characterMap.get(cid)?.avatar)"
-                          class="wt-avatar"
-                          alt=""
-                        >
-                        <span v-else class="wt-avatar wt-avatar--initials">
-                          {{ getCharacterInitials(characterMap.get(cid)?.name) }}
-                        </span>
-                      </button>
-                    </div>
-                  </div>
-                  <p class="wt-card__body">
-                    {{ entry.summary }}
-                  </p>
-                </template>
-
-                <!-- Diary card -->
-                <template v-else>
-                  <div class="wt-card__header">
-                    <span class="wt-diary-icon">📓</span>
+          <!-- Entry row -->
+          <div
+            v-else-if="flatRows[vItem.index]?.type === 'entry'"
+            class="wt-entry"
+            :class="[`wt-entry--${(flatRows[vItem.index] as any).entry.kind}`]"
+          >
+            <div class="wt-dot" />
+            <div class="wt-card">
+              <!-- Event card -->
+              <template v-if="(flatRows[vItem.index] as any).entry.kind === 'event'">
+                <div class="wt-card__header">
+                  <span class="wt-event-icon">{{ EVENT_TYPE_EMOJI[(flatRows[vItem.index] as any).entry.type!] || '🔵' }}</span>
+                  <span class="wt-event-type">{{ (flatRows[vItem.index] as any).entry.type }}</span>
+                  <div v-if="(flatRows[vItem.index] as any).entry.characterIds?.length" class="wt-avatars">
                     <button
-                      v-if="entry.characterId"
+                      v-for="cid in (flatRows[vItem.index] as any).entry.characterIds.slice(0, 4)"
+                      :key="cid"
                       class="wt-avatar-btn"
-                      :title="characterMap.get(entry.characterId)?.name || entry.characterId"
-                      @click="emit('selectCharacter', entry.characterId)"
+                      :title="characterMap.get(cid)?.name || cid"
+                      @click="emit('selectCharacter', cid)"
                     >
                       <img
-                        v-if="getValidAvatarUrl(characterMap.get(entry.characterId)?.avatar)"
-                        :src="getValidAvatarUrl(characterMap.get(entry.characterId)?.avatar)"
+                        v-if="getValidAvatarUrl(characterMap.get(cid)?.avatar)"
+                        :src="getValidAvatarUrl(characterMap.get(cid)?.avatar)"
                         class="wt-avatar"
                         alt=""
                       >
                       <span v-else class="wt-avatar wt-avatar--initials">
-                        {{ getCharacterInitials(characterMap.get(entry.characterId)?.name) }}
+                        {{ getCharacterInitials(characterMap.get(cid)?.name) }}
                       </span>
                     </button>
-                    <span class="wt-diary-name">
-                      {{ characterMap.get(entry.characterId || '')?.name || entry.characterId }}
-                    </span>
-                    <span v-if="entry.mood" class="wt-diary-mood">{{ getMoodEmoji(entry.mood) }} {{ entry.mood }}</span>
                   </div>
-                  <p class="wt-card__body">
-                    <DiaryEntryContent :content="entry.diaryContent ?? entry.summary" :max-length="80" />
-                  </p>
-                </template>
-              </div>
+                </div>
+                <p class="wt-card__body">
+                  {{ (flatRows[vItem.index] as any).entry.summary }}
+                </p>
+              </template>
+
+              <!-- Diary card -->
+              <template v-else>
+                <div class="wt-card__header">
+                  <span class="wt-diary-icon">📓</span>
+                  <button
+                    v-if="(flatRows[vItem.index] as any).entry.characterId"
+                    class="wt-avatar-btn"
+                    :title="characterMap.get((flatRows[vItem.index] as any).entry.characterId)?.name || (flatRows[vItem.index] as any).entry.characterId"
+                    @click="emit('selectCharacter', (flatRows[vItem.index] as any).entry.characterId)"
+                  >
+                    <img
+                      v-if="getValidAvatarUrl(characterMap.get((flatRows[vItem.index] as any).entry.characterId)?.avatar)"
+                      :src="getValidAvatarUrl(characterMap.get((flatRows[vItem.index] as any).entry.characterId)?.avatar)"
+                      class="wt-avatar"
+                      alt=""
+                    >
+                    <span v-else class="wt-avatar wt-avatar--initials">
+                      {{ getCharacterInitials(characterMap.get((flatRows[vItem.index] as any).entry.characterId)?.name) }}
+                    </span>
+                  </button>
+                  <span class="wt-diary-name">
+                    {{ characterMap.get((flatRows[vItem.index] as any).entry.characterId || '')?.name || (flatRows[vItem.index] as any).entry.characterId }}
+                  </span>
+                  <span v-if="(flatRows[vItem.index] as any).entry.mood" class="wt-diary-mood">
+                    {{ getMoodEmoji((flatRows[vItem.index] as any).entry.mood) }} {{ (flatRows[vItem.index] as any).entry.mood }}
+                  </span>
+                </div>
+                <p class="wt-card__body">
+                  <DiaryEntryContent :content="(flatRows[vItem.index] as any).entry.diaryContent ?? (flatRows[vItem.index] as any).entry.summary" :max-length="80" />
+                </p>
+              </template>
             </div>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- ═══ Non-virtual mode (≤50 entries, original behavior) ═══ -->
+    <template v-else>
+      <!-- Load more (top, shows hidden older entries) -->
+      <div v-if="hasMore" class="wt-load-more">
+        <button class="wt-load-more-btn" @click="loadMore">
+          {{ t('world.timelineLoadMore', { count: hiddenCount }) }}
+        </button>
+      </div>
+
+      <!-- Timeline groups -->
+      <div class="wt-groups">
+        <div v-for="group in pagedGroups" :key="group.date" class="wt-date-group">
+          <div class="wt-date-label">
+            📅 {{ group.date }}
+          </div>
+
+          <div v-for="pg in group.periods" :key="pg.period" class="wt-period-section">
+            <div class="wt-period-label">
+              {{ PERIOD_EMOJI[pg.period] || '🕐' }} {{ t(`world.period_${pg.period}`, pg.period) }}
+            </div>
+
+            <div class="wt-entries">
+              <div
+                v-for="entry in pg.entries"
+                :key="entry.id"
+                class="wt-entry"
+                :class="[`wt-entry--${entry.kind}`]"
+              >
+                <div class="wt-dot" />
+
+                <div class="wt-card">
+                  <!-- Event card -->
+                  <template v-if="entry.kind === 'event'">
+                    <div class="wt-card__header">
+                      <span class="wt-event-icon">{{ EVENT_TYPE_EMOJI[entry.type!] || '🔵' }}</span>
+                      <span class="wt-event-type">{{ entry.type }}</span>
+                      <div v-if="entry.characterIds?.length" class="wt-avatars">
+                        <button
+                          v-for="cid in entry.characterIds.slice(0, 4)"
+                          :key="cid"
+                          class="wt-avatar-btn"
+                          :title="characterMap.get(cid)?.name || cid"
+                          @click="emit('selectCharacter', cid)"
+                        >
+                          <img
+                            v-if="getValidAvatarUrl(characterMap.get(cid)?.avatar)"
+                            :src="getValidAvatarUrl(characterMap.get(cid)?.avatar)"
+                            class="wt-avatar"
+                            alt=""
+                          >
+                          <span v-else class="wt-avatar wt-avatar--initials">
+                            {{ getCharacterInitials(characterMap.get(cid)?.name) }}
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                    <p class="wt-card__body">
+                      {{ entry.summary }}
+                    </p>
+                  </template>
+
+                  <!-- Diary card -->
+                  <template v-else>
+                    <div class="wt-card__header">
+                      <span class="wt-diary-icon">📓</span>
+                      <button
+                        v-if="entry.characterId"
+                        class="wt-avatar-btn"
+                        :title="characterMap.get(entry.characterId)?.name || entry.characterId"
+                        @click="emit('selectCharacter', entry.characterId)"
+                      >
+                        <img
+                          v-if="getValidAvatarUrl(characterMap.get(entry.characterId)?.avatar)"
+                          :src="getValidAvatarUrl(characterMap.get(entry.characterId)?.avatar)"
+                          class="wt-avatar"
+                          alt=""
+                        >
+                        <span v-else class="wt-avatar wt-avatar--initials">
+                          {{ getCharacterInitials(characterMap.get(entry.characterId)?.name) }}
+                        </span>
+                      </button>
+                      <span class="wt-diary-name">
+                        {{ characterMap.get(entry.characterId || '')?.name || entry.characterId }}
+                      </span>
+                      <span v-if="entry.mood" class="wt-diary-mood">{{ getMoodEmoji(entry.mood) }} {{ entry.mood }}</span>
+                    </div>
+                    <p class="wt-card__body">
+                      <DiaryEntryContent :content="entry.diaryContent ?? entry.summary" :max-length="80" />
+                    </p>
+                  </template>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 
 <style scoped>
 .wt {
+  width: 100%;
+}
+
+/* Virtual scrolling container */
+.wt-virtual-container {
+  max-height: 500px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 var(--adv-space-md, 16px) var(--adv-space-sm);
+}
+
+.wt-virtual-spacer {
   width: 100%;
 }
 

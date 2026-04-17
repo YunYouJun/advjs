@@ -10,7 +10,14 @@
     "preview": "vite preview",
     "test:e2e": "playwright test",
     "test:unit": "vitest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "cap:init:ios": "cap add ios",
+    "cap:init:android": "cap add android",
+    "cap:sync": "cap sync",
+    "cap:open:ios": "cap open ios",
+    "cap:open:android": "cap open android",
+    "cap:run:ios": "npm run build && cap sync ios && cap run ios",
+    "cap:run:android": "npm run build && cap sync android && cap run android"
   },
   "dependencies": {
     "@advjs/core": "workspace:*",

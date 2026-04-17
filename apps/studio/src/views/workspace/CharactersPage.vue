@@ -265,7 +265,7 @@ async function handleExportCSV() {
     <div v-else-if="searchQuery" class="empty-state">
       <IonNote>{{ t('characters.emptySearch') }}</IonNote>
     </div>
-    <div v-else class="empty-state">
+    <div v-else-if="filteredCharacters.length === 0" class="empty-state">
       <div class="empty-state__illustration">
         👤
       </div>

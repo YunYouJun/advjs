@@ -232,6 +232,30 @@ async function generateViaOpenAI(
 }
 
 /**
+ * Generate an image using Tencent Hunyuan TextToImageLite via the OpenAI-compatible
+ * Hunyuan Studio endpoint. The user is expected to provide their Hunyuan API key
+ * obtained from https://cloud.tencent.com/document/product/1729/101797.
+ *
+ * NOTE: Hunyuan's native Sign-V3 API requires server-side signing. Browser-only
+ * integration uses the Hunyuan OpenAI-compatible endpoint which supports image
+ * generation via the `/v1/images/generations` path.
+ */
+async function generateViaHunyuan(
+  options: ImageGenerateOptions,
+  apiKey: string,
+  model: string,
+): Promise<ImageGenerateResult> {
+  // Hunyuan OpenAI-compatible endpoint (image generation)
+  const baseURL = 'https://api.hunyuan.cloud.tencent.com/v1'
+  return generateViaOpenAI(
+    options,
+    apiKey,
+    model || 'hunyuan-image',
+    baseURL,
+  )
+}
+
+/**
  * Generate an image using the configured provider.
  */
 export async function generateImage(
@@ -246,8 +270,7 @@ export async function generateImage(
       return generateViaOpenAI(options, config.imageApiKey, config.imageModel)
 
     case 'hunyuan':
-      // TODO: Integrate Tencent Hunyuan TextToImageLite
-      throw new Error('Hunyuan image generation requires server-side SDK. Use prompt templates instead.')
+      return generateViaHunyuan(options, config.imageApiKey, config.imageModel)
 
     case 'runware':
       return generateViaRunware(options, config.imageApiKey)
@@ -262,7 +285,7 @@ export async function generateImage(
  * Check if image generation is available (provider configured with API key).
  */
 export function isImageGenerationAvailable(config: AiConfig): boolean {
-  if (config.imageProvider === 'none' || config.imageProvider === 'hunyuan')
+  if (config.imageProvider === 'none')
     return false
   return !!config.imageApiKey
 }

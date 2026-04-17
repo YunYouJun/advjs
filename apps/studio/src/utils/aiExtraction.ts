@@ -5,6 +5,8 @@
  */
 
 import type { ChatMessage as AiChatMessage } from './aiClient'
+import { useCharacterMemoryStore } from '../stores/useCharacterMemoryStore'
+import { useCharacterStateStore } from '../stores/useCharacterStateStore'
 import { buildStreamOptions, streamChat } from './aiClient'
 import { parseAiJson } from './chatUtils'
 
@@ -77,7 +79,6 @@ export function shouldSkipExtraction(message: string): boolean {
 /**
  * Trigger background memory + state extraction for a character conversation turn.
  * Silently skips if aiResponse is empty.
- * Uses dynamic imports to avoid circular module references.
  */
 export async function triggerBackgroundExtraction(
   characterId: string,
@@ -87,8 +88,6 @@ export async function triggerBackgroundExtraction(
 ): Promise<void> {
   if (!aiResponse)
     return
-  const { useCharacterMemoryStore } = await import('../stores/useCharacterMemoryStore')
-  const { useCharacterStateStore } = await import('../stores/useCharacterStateStore')
   const memoryStore = useCharacterMemoryStore()
   const stateStore = useCharacterStateStore()
   memoryStore.extractMemoryFromTurn(characterId, characterName, userMessage, aiResponse)

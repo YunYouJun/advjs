@@ -141,6 +141,10 @@ const routes: Array<RouteRecordRaw> = [
     path: '/editor',
     component: () => import('@/views/EditorPage.vue'),
   },
+  {
+    path: '/share/:projectId',
+    component: () => import('@/views/ProjectSharePage.vue'),
+  },
 ]
 
 const router = createRouter({

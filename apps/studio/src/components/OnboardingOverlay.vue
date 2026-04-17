@@ -4,10 +4,11 @@ import { useI18n } from 'vue-i18n'
 import { useOnboardingTour } from '../composables/useOnboardingTour'
 
 const { t } = useI18n()
-const { isActive, currentStep, currentIndex, totalSteps, next, skip } = useOnboardingTour()
+const { isActive, currentStep, currentIndex, totalSteps, next, skip, recordStepShown } = useOnboardingTour()
 
 const tooltipStyle = ref<Record<string, string>>({})
 const highlightStyle = ref<Record<string, string>>({})
+const stepVisible = ref(true)
 
 function updatePosition() {
   const step = currentStep.value
@@ -16,11 +17,15 @@ function updatePosition() {
 
   const el = document.querySelector(step.selector) as HTMLElement | null
   if (!el) {
-    // If element not found, try next step
+    // Target element not found (e.g. desktop sidebar layout has no ion-tab-button).
+    // Hide this step's tooltip and silently move to next without marking tour complete.
+    stepVisible.value = false
     next()
     return
   }
 
+  stepVisible.value = true
+  recordStepShown()
   const rect = el.getBoundingClientRect()
   const padding = 6
 
@@ -69,7 +74,7 @@ watch([currentStep, isActive], async () => {
 <template>
   <Teleport to="body">
     <Transition name="onboarding">
-      <div v-if="isActive && currentStep" class="onboarding-overlay" @click.self="skip">
+      <div v-if="isActive && currentStep && stepVisible" class="onboarding-overlay" @click.self="skip">
         <!-- Highlight ring around target -->
         <div class="onboarding-highlight" :style="highlightStyle" />
 

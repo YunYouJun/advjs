@@ -174,4 +174,4 @@ adv/knowledge/
 ## 更多
 
 - [技术架构](./architecture.md) — Store 设计、数据流、技术栈详情
-- [开发路线](./roadmap.md) — Phase N 核心体验冲刺、已完成阶段回顾、远期规划
+- [开发路线](./roadmap.md) — Phase N 核心体验冲刺（N0-N7）、已完成阶段回顾、远期规划（账号/市场/协作）

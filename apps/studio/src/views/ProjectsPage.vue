@@ -74,10 +74,40 @@ const isDirty = ref(false)
 const editedContent = ref('')
 
 // Auto-restore last project on mount
-onMounted(() => {
+onMounted(async () => {
   window.addEventListener('resize', () => {
     isMobile.value = window.innerWidth < 768
   })
+
+  // Handle deep-link import: /?import=<projectId>
+  // If the project already exists locally, switch to it.
+  // If not found, show a friendly toast explaining local-only storage.
+  try {
+    const params = new URLSearchParams(window.location.search)
+    const importId = params.get('import')
+    if (importId) {
+      const existing = studioStore.projects.find(p => p.projectId === importId)
+      if (existing) {
+        studioStore.switchProject(existing).catch(() => {})
+      }
+      else {
+        const toast = await toastController.create({
+          message: t('sharePreview.notFoundTitle') || 'Project not found on this device',
+          duration: 4000,
+          position: 'top',
+          color: 'warning',
+        })
+        await toast.present()
+      }
+      // Clean URL so refresh doesn't re-trigger
+      const url = new URL(window.location.href)
+      url.searchParams.delete('import')
+      window.history.replaceState({}, '', url.toString())
+    }
+  }
+  catch {
+    // ignore invalid URL params
+  }
 })
 
 // Initialize rootDir from current project's dirHandle

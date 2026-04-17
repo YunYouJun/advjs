@@ -63,6 +63,7 @@ const {
   isLoading,
   knowledgeBase,
   getFs,
+  reload,
 } = useProjectContent()
 
 const {
@@ -230,7 +231,8 @@ async function handleAutoFix(issues: ValidationIssue[]) {
         color: 'success',
       })
       await toast.present()
-      // Re-validate after fix
+      // Reload memory state from disk first, then re-validate against fresh data
+      await reload()
       await handleValidationSilent()
     }
   }

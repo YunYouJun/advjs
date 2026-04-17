@@ -88,6 +88,14 @@
     "coverUpload": "Upload Cover",
     "coverRemove": "Remove Cover",
     "coverHint": "Displayed on project cards and share links",
+    "coverAiGenerate": "Generate with AI",
+    "coverAiGenerating": "Generating cover...",
+    "coverAiFailed": "Generation failed: {error}",
+    "coverAiNoConfig": "Configure an image provider in Settings → AI → Image Generation first",
+    "coverAiPromptPlaceholder": "Describe the cover image (leave empty to use project description)",
+    "share": "Share",
+    "openSharePage": "Open Share Preview",
+    "shareHint": "Generate a read-only preview page with cover, cast, chapter list, and QR code.",
     "description": "Description",
     "descriptionPlaceholder": "Short description shown on project cards and share links...",
     "info": "Project Info",
@@ -409,6 +417,8 @@
     "exportAdvMd": "Save as .adv.md (to project)",
     "exportMarkdown": "Download as Markdown",
     "exportHtml": "Export as HTML Novel",
+    "shareSnippetImage": "Share as Image",
+    "shareSnippetHint": "Tap top button to switch theme. Saved as PNG for social media.",
     "exportPlotSummary": "Conversation with {name}",
     "exportConversationWith": "Conversation with {name}",
     "exportDate": "Exported on {date}",
@@ -1027,5 +1037,19 @@
     "generating": "Generating share image...",
     "shareSuccess": "Share image saved",
     "shareFailed": "Failed to generate share image"
+  },
+  "sharePreview": {
+    "loading": "Loading preview...",
+    "notFoundTitle": "Project not available on this device",
+    "notFoundDesc": "Project data is stored locally per device by default. The creator can export the project as .advpkg to share across devices.",
+    "backToStudio": "Go to Studio",
+    "openInStudio": "Open in Studio",
+    "characters": "Characters",
+    "chapters": "Chapters",
+    "charactersTitle": "Cast",
+    "chaptersTitle": "Chapters",
+    "scanTitle": "Scan to open on another device",
+    "scanHint": "QR code points to the import URL for this project",
+    "linkCopied": "Link copied to clipboard"
   }
 }

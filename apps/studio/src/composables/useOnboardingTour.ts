@@ -54,6 +54,8 @@ const defaultSteps: OnboardingStep[] = [
 
 const isActive = ref(false)
 const currentIndex = ref(0)
+/** Whether at least one step was actually rendered to the user in this session */
+const hasShownStep = ref(false)
 
 function isCompleted(): boolean {
   try {
@@ -71,6 +73,15 @@ function markCompleted() {
   catch { /* noop */ }
 }
 
+/**
+ * Check whether any onboarding step has a visible target element in the DOM.
+ * Used to skip autoStart on layouts that don't have the expected selectors
+ * (e.g. desktop sidebar where ion-tab-button is hidden).
+ */
+function hasAnyVisibleStep(): boolean {
+  return defaultSteps.some(step => !!document.querySelector(step.selector))
+}
+
 export function useOnboardingTour() {
   const steps = defaultSteps
 
@@ -84,6 +95,7 @@ export function useOnboardingTour() {
     if (isCompleted())
       return
     currentIndex.value = 0
+    hasShownStep.value = false
     isActive.value = true
   }
 
@@ -96,6 +108,11 @@ export function useOnboardingTour() {
     }
   }
 
+  /** Called when a step was actually rendered to the user */
+  function recordStepShown() {
+    hasShownStep.value = true
+  }
+
   function skip() {
     finish()
   }
@@ -103,15 +120,29 @@ export function useOnboardingTour() {
   function finish() {
     isActive.value = false
     currentIndex.value = 0
-    markCompleted()
+    // Only persist completion if at least one step was actually shown.
+    // This prevents the desktop layout (no ion-tab-button) from silently
+    // consuming the tour and preventing it from ever showing on mobile.
+    if (hasShownStep.value) {
+      markCompleted()
+    }
+    hasShownStep.value = false
   }
 
-  /** Auto-start on first visit (call from App.vue onMounted) */
+  /**
+   * Auto-start on first visit (call from App.vue onMounted).
+   * Skips entirely if no step target elements exist in the current layout.
+   */
   function autoStart() {
-    if (!isCompleted()) {
-      // Delay to let the UI render and settle
-      setTimeout(start, 800)
-    }
+    if (isCompleted())
+      return
+    setTimeout(() => {
+      // Only start if there is at least one step target visible in the DOM.
+      // This avoids silently consuming the tour on desktop-only layouts.
+      if (hasAnyVisibleStep()) {
+        start()
+      }
+    }, 800)
   }
 
   return {
@@ -122,6 +153,8 @@ export function useOnboardingTour() {
     start,
     next,
     skip,
+    finish,
     autoStart,
+    recordStepShown,
   }
 }

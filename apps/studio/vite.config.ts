@@ -64,6 +64,21 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    chunkSizeWarningLimit: 5000,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          // Monaco Editor — largest dependency, cache separately
+          if (id.includes('monaco-editor'))
+            return 'monaco-editor'
+          // Ionic UI — shared across almost every page
+          if (id.includes('@ionic/vue') || id.includes('@ionic/core') || id.includes('ionicons'))
+            return 'ionic'
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': `${import.meta.dirname}/src`,
@@ -74,5 +89,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    exclude: ['tests/**', 'src/**/*.e2e.*'],
   },
 })

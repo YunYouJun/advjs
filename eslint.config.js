@@ -11,6 +11,8 @@ export default antfu(
     ignores: [
       '**/.adv/**',
       '**/cache/**',
+      '**/test-results/**',
+      '**/CAPACITOR.md',
     ],
   },
   {
