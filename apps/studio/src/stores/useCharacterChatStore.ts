@@ -9,6 +9,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import i18n from '../i18n'
 import { runAiJsonExtraction, triggerBackgroundExtraction } from '../utils/aiExtraction'
+import { checkAndTriggerEvaluation } from '../utils/chatQualityEvaluator'
 import { abortAndClear, pushNotConfiguredFallback, streamToMessage } from '../utils/chatUtils'
 import { db } from '../utils/db'
 import { getOrCreateInMap, loadMapFromDexie, useProjectPersistence } from '../utils/projectPersistence'
@@ -328,8 +329,11 @@ export const useCharacterChatStore = defineStore('characterChat', () => {
       isLoading,
       currentAbortController,
       resolvedConfig: resolved,
-      onSuccess: accumulated =>
-        triggerBackgroundExtraction(characterId, character.name, content, accumulated),
+      onSuccess: (accumulated) => {
+        triggerBackgroundExtraction(characterId, character.name, content, accumulated)
+        // Trigger quality evaluation every 10 rounds
+        checkAndTriggerEvaluation(characterId, character.name, conversation.messages)
+      },
     })
 
     // Fire-and-forget: trim old messages and generate context summary if needed

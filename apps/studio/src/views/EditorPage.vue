@@ -418,6 +418,29 @@ async function save() {
   height: 100%;
 }
 
+.editor-container--split .editor-main {
+  display: flex;
+  flex-direction: row;
+}
+
+.editor-container--split .editor-textarea {
+  flex: 1;
+  min-width: 0;
+}
+
+.editor-container--split .editor-preview {
+  flex: 1;
+  min-width: 0;
+  max-width: 50%;
+}
+
+.editor-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .editor-toolbar {
   display: flex;
   gap: 4px;
@@ -462,6 +485,12 @@ async function save() {
 
 .editor-toolbar__btn:active {
   transform: scale(0.95);
+}
+
+.editor-toolbar__btn--active {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: var(--ion-color-primary);
 }
 
 .editor-toolbar__btn:disabled {

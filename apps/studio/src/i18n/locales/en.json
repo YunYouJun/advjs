@@ -979,7 +979,9 @@
     }
   },
   "batchImport": {
-    "title": "Batch Import Characters",
+    "title": "Batch Import",
+    "typeCharacter": "Characters",
+    "typeScene": "Scenes",
     "selectFile": "Click to select a CSV or JSON file",
     "noContent": "File content is empty",
     "emptyFile": "No valid data rows in file",
@@ -989,10 +991,10 @@
     "conflicts": "{count} conflict(s)",
     "duplicate": "Duplicate",
     "conflictStrategy": "Conflict Resolution",
-    "strategySkip": "Skip existing characters",
-    "strategyOverwrite": "Overwrite existing characters",
+    "strategySkip": "Skip existing items",
+    "strategyOverwrite": "Overwrite existing items",
     "strategyRename": "Auto-rename (add suffix)",
-    "importButton": "Import {count} character(s)",
+    "importButton": "Import {count} item(s)",
     "importing": "Importing...",
     "importComplete": "Import completed",
     "noProject": "Please open a project first",
@@ -1002,7 +1004,14 @@
     "status_overwritten": "Overwritten",
     "status_renamed": "Renamed",
     "status_error": "Import failed",
-    "reset": "Import Again"
+    "reset": "Import Again",
+    "selectAll": "Select All",
+    "batchTagPlaceholder": "Tags to add (semicolon-separated)",
+    "applyTags": "Apply Tags",
+    "tagsApplied": "Tags applied to {count} item(s)",
+    "deleteSelected": "Delete {count} selected",
+    "batchDeleteTitle": "Delete Selected Items",
+    "batchDeleteMessage": "Remove {count} item(s) from import list?"
   },
   "errorBoundary": {
     "title": "Something Went Wrong",

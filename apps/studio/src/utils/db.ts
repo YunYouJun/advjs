@@ -112,6 +112,20 @@ export interface DbMemfsNode {
   size: number
 }
 
+export interface DbQualityEvaluation {
+  projectId: string
+  characterId: string
+  id: string
+  score: {
+    coherence: number
+    characterConsistency: number
+    informationDensity: number
+    overall: number
+    evaluatedAt: string
+    messageCount: number
+  }
+}
+
 // --- Database ---
 
 class StudioDatabase extends Dexie {
@@ -131,6 +145,7 @@ class StudioDatabase extends Dexie {
   characterAiConfigs!: Dexie.Table<DbCharacterAiConfig, [string, string]>
   archivedBatches!: Dexie.Table<DbArchivedBatch, [string, string]>
   knowledgeEmbeddings!: Dexie.Table<DbKnowledgeEmbedding, [string, string]>
+  qualityEvaluations!: Dexie.Table<DbQualityEvaluation, [string, string]>
 
   constructor() {
     super('advjs-studio')
@@ -340,6 +355,27 @@ class StudioDatabase extends Dexie {
       archivedBatches: '[projectId+batchId], [projectId+characterId]',
       knowledgeEmbeddings: '[projectId+sectionKey]',
       memfsNodes: 'key',
+    })
+
+    // v13: add qualityEvaluations table for AI chat quality scoring
+    this.version(13).stores({
+      characterChats: '[projectId+characterId]',
+      characterMemories: '[projectId+characterId]',
+      groupChats: '[projectId+id]',
+      worldEvents: '[projectId+id]',
+      characterStates: '[projectId+characterId]',
+      worldClocks: 'projectId',
+      viewModes: 'projectId',
+      dirHandles: 'projectName',
+      conversationSnapshots: '[projectId+id], [projectId+characterId]',
+      characterDiaries: '[projectId+id], [projectId+characterId], [projectId+characterId+date+period]',
+      chatMessages: '[projectId+id]',
+      groupChatSnapshots: '[projectId+id], [projectId+roomId]',
+      characterAiConfigs: '[projectId+characterId]',
+      archivedBatches: '[projectId+batchId], [projectId+characterId]',
+      knowledgeEmbeddings: '[projectId+sectionKey]',
+      memfsNodes: 'key',
+      qualityEvaluations: '[projectId+id], [projectId+characterId]',
     })
   }
 }

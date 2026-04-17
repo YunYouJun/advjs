@@ -979,7 +979,9 @@
     }
   },
   "batchImport": {
-    "title": "批量导入角色",
+    "title": "批量导入",
+    "typeCharacter": "角色",
+    "typeScene": "场景",
     "selectFile": "点击选择 CSV 或 JSON 文件",
     "noContent": "文件内容为空",
     "emptyFile": "文件中没有有效数据行",
@@ -989,10 +991,10 @@
     "conflicts": "{count} 个冲突",
     "duplicate": "重复",
     "conflictStrategy": "冲突处理策略",
-    "strategySkip": "跳过已存在的角色",
-    "strategyOverwrite": "覆盖已存在的角色",
+    "strategySkip": "跳过已存在的项",
+    "strategyOverwrite": "覆盖已存在的项",
     "strategyRename": "自动重命名（加后缀）",
-    "importButton": "导入 {count} 个角色",
+    "importButton": "导入 {count} 项",
     "importing": "导入中...",
     "importComplete": "导入完成",
     "noProject": "请先打开一个项目",
@@ -1002,7 +1004,14 @@
     "status_overwritten": "已覆盖",
     "status_renamed": "已重命名",
     "status_error": "导入失败",
-    "reset": "重新导入"
+    "reset": "重新导入",
+    "selectAll": "全选",
+    "batchTagPlaceholder": "要添加的标签（分号分隔）",
+    "applyTags": "应用标签",
+    "tagsApplied": "已为 {count} 项应用标签",
+    "deleteSelected": "删除 {count} 项",
+    "batchDeleteTitle": "删除选中项",
+    "batchDeleteMessage": "从导入列表中移除 {count} 项？"
   },
   "errorBoundary": {
     "title": "出了点问题",

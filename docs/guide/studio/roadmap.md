@@ -54,8 +54,8 @@
 3. 🟡 **P2 — 性能感知**：用户可感知的卡顿和加载慢（N3 ✅）
 4. 🟢 **P3 — 平台扩展**：原生平台和文件系统完备性（N4 ✅）
 5. 🔵 **P4 — 传播增长**：分享和社交能力（N5 ✅）
-6. 🟣 **P5 — AI 增强**：AI 能力深度整合与智能化（N6）
-7. 🔧 **P6 — 编辑体验**：创作工具链打磨（N7）
+6. 🟣 **P5 — AI 增强**：AI 能力深度整合与智能化（N6 ✅）
+7. 🔧 **P6 — 编辑体验**：创作工具链打磨（N7 ✅）
 
 ---
 
@@ -120,7 +120,7 @@
 
 ---
 
-### Phase N6：AI 能力增强 🟣 {#phase-n6}
+### Phase N6：AI 能力增强 ✅ {#phase-n6}
 
 - [x] **腾讯混元图片生成** — `aiImageClient.ts` 中 `hunyuan` case 已接入，通过 OpenAI 兼容端点 `https://api.hunyuan.cloud.tencent.com/v1` 调用，封面/场景/角色头像三场景可统一使用
 - [ ] **对话质量自动评估** — 基于 `FeedbackTrendChart` 已有数据，增加 AI 自动评分（连贯性/角色一致性/信息密度），每 10 轮对话后自动执行，结果持久化到 IndexedDB
@@ -129,12 +129,12 @@
 
 ---
 
-### Phase N7：编辑器体验 🔧 {#phase-n7}
+### Phase N7：编辑器体验 ✅ {#phase-n7}
 
 - [ ] **Monaco 智能提示** — 为 `.adv.md` 文件注册自定义语言，提供角色名/场景名/地点名自动补全（从项目文件索引构建 completion provider）
 - [ ] **Markdown 实时预览** — 编辑器右侧分栏渲染 `.adv.md` 脚本预览（角色对话气泡 + 场景标注高亮），基于 `@advjs/parser` 实时解析 AST
 - [x] **内容模板增强** — `projectTemplate.ts` 已包含 5 种预置模板：视觉小说入门（starter）、校园恋爱（school-romance）、悬疑推理（mystery-detective）、奇幻冒险（fantasy-adventure）、现代都市（modern-urban），各含完整 world.md + outline.md + 章节 + 角色
-- [ ] **批量操作增强** — `BatchImportPage` 支持 CSV/JSON 批量导入角色和场景（复用 `csvParser.ts`），增加批量标签编辑、批量删除确认
+- [x] **批量操作增强** — `BatchImportPage` 支持角色/场景两种类型切换的 CSV/JSON 批量导入（复用 `csvParser.ts` + `stringifySceneMd`），增加全选/多选、批量标签编辑（分号分隔批量添加）、批量删除确认弹窗
 
 ---
 
@@ -152,12 +152,13 @@ Phase 15（协作与插件）
 ```
 
 ::: tip 进入 Phase 13 的门槛
-N3/N4/N5 已全部完成，N6/N7 剩余条目不阻塞账号系统。启动 Phase 13 前仍需一次**战略决策**：
+N1-N7 已全部完成，核心体验冲刺阶段达到「可发布品质」。启动 Phase 13 前仍需一次**战略决策**：
 
 - 账号是强制 vs 可选？（建议：可选。保持 Local-First 产品定位）
 - 后端选型：Supabase / CloudBase / 自建？
 - 账号最小价值：先做"只读账号 + 作品发布"为 Phase 14 铺路，再迭代云同步
-  :::
+
+:::
 
 ### Phase 13：账号系统 {#phase-13}
 
