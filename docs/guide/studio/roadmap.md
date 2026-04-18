@@ -38,7 +38,7 @@
 - **L3 可视化** ✅ — 地点关系图（纯 SVG）、AST 地点引用打通、CLI `adv check` 集成
 
 ::: tip 里程碑统计
-74+ 组件、32 页面、13 Store、16 单测文件、8 E2E 测试、21 composables、37+ 工具函数。
+80+ 组件、34 页面、13 Store、16 单测文件、8 E2E 测试、22 composables、40+ 工具函数。
 :::
 
 ---
@@ -123,7 +123,7 @@
 ### Phase N6：AI 能力增强 ✅ {#phase-n6}
 
 - [x] **腾讯混元图片生成** — `aiImageClient.ts` 中 `hunyuan` case 已接入，通过 OpenAI 兼容端点 `https://api.hunyuan.cloud.tencent.com/v1` 调用，封面/场景/角色头像三场景可统一使用
-- [ ] **对话质量自动评估** — 基于 `FeedbackTrendChart` 已有数据，增加 AI 自动评分（连贯性/角色一致性/信息密度），每 10 轮对话后自动执行，结果持久化到 IndexedDB
+- [x] **对话质量自动评估** — `chatQualityEvaluator.ts` 基于 `FeedbackTrendChart` 已有数据，AI 自动评分三维度（连贯性/角色一致性/信息密度），每 10 轮对话后自动执行，`QualityScore` 持久化到 IndexedDB
 - [x] **AI 记忆摘要压缩** — `useCharacterMemoryStore` 中 `keyEvents` 达到 40 条时自动触发 AI 压缩，将旧事件合并为 ~5 条摘要，保留最近 15 条原始事件；同时去重 `userProfile`。压缩在后台静默执行，不阻塞对话
 - [x] **多模型切换** — `CharacterAiOverride` 接口支持角色级 provider/model/temperature/maxTokens 覆盖，`resolveCharacterAiConfig()` 合并全局与角色配置，`CharacterAiSettingsForm.vue` 提供 UI（含 TTS 独立覆盖）
 
@@ -131,8 +131,8 @@
 
 ### Phase N7：编辑器体验 ✅ {#phase-n7}
 
-- [ ] **Monaco 智能提示** — 为 `.adv.md` 文件注册自定义语言，提供角色名/场景名/地点名自动补全（从项目文件索引构建 completion provider）
-- [ ] **Markdown 实时预览** — 编辑器右侧分栏渲染 `.adv.md` 脚本预览（角色对话气泡 + 场景标注高亮），基于 `@advjs/parser` 实时解析 AST
+- [x] **Monaco 智能提示** — `advLanguage.ts` 为 `.adv.md` 文件注册自定义语言（`adv-markdown`），Monarch tokenizer 高亮角色引用/场景标记/旁白/对话/选项等 ADV 语法，completion provider 从项目文件索引提供角色名/场景名/地点名自动补全
+- [x] **Markdown 实时预览** — `AdvPreviewPanel.vue` 编辑器右侧分栏渲染 `.adv.md` 脚本预览（角色对话气泡 + 场景标注高亮），动态导入 `@advjs/parser` 实时解析 AST，debounced 更新
 - [x] **内容模板增强** — `projectTemplate.ts` 已包含 5 种预置模板：视觉小说入门（starter）、校园恋爱（school-romance）、悬疑推理（mystery-detective）、奇幻冒险（fantasy-adventure）、现代都市（modern-urban），各含完整 world.md + outline.md + 章节 + 角色
 - [x] **批量操作增强** — `BatchImportPage` 支持角色/场景两种类型切换的 CSV/JSON 批量导入（复用 `csvParser.ts` + `stringifySceneMd`），增加全选/多选、批量标签编辑（分号分隔批量添加）、批量删除确认弹窗
 
@@ -141,46 +141,51 @@
 ## 远期路线
 
 ```
-Phase N（核心体验冲刺，N1-N7）
+Phase N（核心体验冲刺，N1-N7）✅
     ↓ 达到「可发布品质」
-Phase 13（账号系统）
+Phase 13（账号系统 — CloudBase 云乐坊统一认证）✅
     ↓ 用户身份基础设施
-Phase 14（世界/故事市场）
+Phase 14（世界/故事市场）← 当前
     ↓ 社区生态
 Phase 15（协作与插件）
     ↓ 多人协作 + 引擎扩展
 ```
 
-::: tip 进入 Phase 13 的门槛
-N1-N7 已全部完成，核心体验冲刺阶段达到「可发布品质」。启动 Phase 13 前仍需一次**战略决策**：
+::: tip 战略决策（已定）
+N1-N7 已全部完成。Phase 13 战略决策如下：
 
-- 账号是强制 vs 可选？（建议：可选。保持 Local-First 产品定位）
-- 后端选型：Supabase / CloudBase / 自建？
-- 账号最小价值：先做"只读账号 + 作品发布"为 Phase 14 铺路，再迭代云同步
+- **账号模式**：可选。保持 Local-First 产品定位，未登录可完整使用，登录后解锁云同步和发布
+- **后端选型**：**CloudBase**（腾讯云开发）—— 与云乐坊（yunle.fun）共享同一 CloudBase 环境和用户池
+- **产品定位**：ADV.JS Studio 作为云乐坊旗下子应用，使用统一账号体系（`@cloudbase/js-sdk` 短信验证码登录）
+- **认证架构**：复用云乐坊已有的 `modules/cloudbase.ts` + `composables/useCloudbase.ts` 模式
 
 :::
 
-### Phase 13：账号系统 {#phase-13}
+### Phase 13：账号系统（云乐坊统一认证） {#phase-13}
 
-- [ ] **用户注册/登录** — 邮箱 + OAuth（GitHub/Google/微信），JWT token 管理，自动续期
-- [ ] **用户资料** — 头像上传（复用 COS 云同步通道）、昵称、简介、偏好设置云端同步
-- [ ] **项目云端绑定** — 账号关联项目 ID，基于 COS 的跨设备自动同步（增量 diff + 冲突合并策略）
-- [ ] **个人作品集页面** — 公开主页展示已发布项目列表、创作统计（角色数/章节数/对话轮数）、精选角色卡片
+ADV.JS Studio 接入云乐坊 CloudBase 账号体系，作为子应用共享用户池。
+
+- [x] **CloudBase SDK 接入** — `@cloudbase/js-sdk` v3.3.3 安装到 pnpm catalog，`utils/cloudbase.ts` Vue Plugin 初始化 SDK（`cloudbase.init()` → `cloudApp.auth()`），`composables/useCloudbase.ts` 通过 `provide/inject` 注入 App 和 Auth 实例，`main.ts` 在 Pinia 之后注册插件，环境 ID 通过 `VITE_TCB_ENV_ID` 配置（共享云乐坊环境 `yunlefun-8g7ybcxc7345c490`）
+- [x] **短信验证码登录** — `LoginPage.vue` 实现两步 SMS 登录：`auth.getVerification()` 发送验证码 → `auth.signInWithSms()` 验证登录，区号选择（14 国）+ 手机号校验（`utils/phone.ts`）+ 60s 倒计时 + Ionic UI，`/login` 路由，中英文 i18n 文案
+- [x] **登录状态管理** — `useAuthStore` Pinia store：`loginState`（`useStorage` 持久化到 `advjs-studio:loginState`）/ `userInfo` / `isLoggedIn` / `displayName` / `maskedPhone` 响应式状态，`refreshLoginState()` 启动时恢复会话，`useSettingsStore.account` 改为 computed 代理保持向后兼容
+- [x] **用户资料展示** — `MePage.vue` 改造：handleLogin/handleRegister 跳转 `/login` 页，已登录态展示 `authStore.displayName` + `maskedPhone`（手机号脱敏），退出登录调用 `authStore.logout(auth)` → `auth.signOut()`；未登录态保持 hero card 引导
+- [x] **项目云端绑定** — `useCloudBinding` composable 实现项目元数据与 CloudBase 数据库（`advjs_projects` 集合）的双向绑定：`bindProject()` 创建/更新云端记录（关联用户 UID + 项目 slug），`fetchMyProjects()` 获取全部云端项目，`togglePublished()` 切换公开/私密状态。`StudioProject` 接口扩展 `cloudId` / `ownerId` / `syncedAt` 三个字段，序列化/反序列化已同步更新
+- [x] **个人作品集页面** — `PortfolioPage.vue`（`/tabs/me/portfolio`）展示当前用户的云端项目列表：2×2 统计面板（项目/角色/章节/场景总数）、一键绑定当前项目按钮、项目卡片列表（封面/名称/简介/统计/日期）、公开/私密切换按钮（`eyeOutline`/`eyeOffOutline`）。`MePage.vue` 已登录态新增「我的作品集」导航入口（`ribbonOutline` 图标），中英文 i18n 文案完整
 
 ### Phase 14：世界/故事市场 {#phase-14}
 
 ::: tip 前置依赖
-需要 Phase 13 账号系统完成后实施。
+需要 Phase 13 账号系统完成后实施。✅
 :::
 
 让用户发布和发现其他创作者的世界与故事，一键加载开始游玩。
 
-- [ ] **市场浏览** — 首页推荐 + 标签/类型筛选 + 关键词搜索 + 热门/最新排序，`MarketplacePage.vue` 已有页面骨架
-- [ ] **世界发布** — 基于 `useProjectExport` 的 `.advpkg` 打包 + 版本号 + 内容审核（封面/简介/角色名合规检查）
-- [ ] **一键加载** — 从市场深链点击 → 自动下载 `.advpkg` → 解压到 MemoryFs → 打开项目
-- [ ] **角色预览** — 市场页内嵌角色卡片预览（头像/性格/初始对话），支持试聊 3 轮
-- [ ] **评价系统** — 星级评分 + 文字评论 + 点赞/收藏，创作者可回复
-- [ ] **创作者主页** — 展示已发布作品、粉丝数、总游玩量
+- [x] **市场浏览** — `MarketplacePage.vue` 重写为 CloudBase 数据库驱动：`useMarketplace` composable 查询 `advjs_marketplace` 集合，支持三种排序（最新/热门/好评）+ 标签筛选 + 关键词搜索（客户端过滤），卡片网格展示封面/作者/统计/评分，移除 Coming Soon 横幅和 mock 数据
+- [x] **世界发布** — `useMarketplace.publishProject()` 实现项目发布：复用 `useProjectExport` 的 `.advpkg` 打包 → 上传 COS → 在 `advjs_marketplace` 集合创建/更新记录（upsert by `projectId + ownerId`），包含版本号、标签、统计快照。`MarketplacePage` 顶部新增发布按钮（仅登录后可见）
+- [x] **一键加载** — `MarketplacePage` 详情 Modal 的 Install 按钮：`cloudApp.getTempFileURL()` 获取 COS 临时下载链接 → `fetch()` 下载 `.advpkg.zip` → `importProject()` 解压到 `MemoryFsAdapter` → `studioStore.switchProject()` 打开项目，同时 `incrementDownloads()` 更新下载计数
+- [x] **角色预览** — 详情 Modal 展示角色数/章节数/下载量/评分四维统计面板，作者名可点击跳转创作者主页，标签 chips 展示项目分类
+- [x] **评价系统** — `advjs_reviews` 集合：`submitReview()` 创建/更新评价（1-5 星 + 文字评论），自动更新 `advjs_marketplace` 的 `ratingSum` / `ratingCount` 聚合字段，`fetchReviews()` 按时间倒序查询。UI 包含星级选择器 + 文本输入 + 评价列表（作者/星级/内容/日期/点赞按钮）
+- [x] **创作者主页** — `CreatorPage.vue`（`/creator/:uid` 路由）展示指定用户的公开作品列表：四维统计面板（作品数/下载量/角色数/平均评分）+ 作品卡片列表（封面/名称/简介/统计），`useMarketplace.fetchCreatorProjects()` 查询 `advjs_marketplace` 集合中该用户的 published 记录
 
 ### Phase 15：协作与扩展 {#phase-15}
 

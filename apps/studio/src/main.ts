@@ -9,6 +9,9 @@ import router from './router'
 /* Capacitor native plugin initialization */
 import { initCapacitorPlugins } from './utils/capacitor'
 
+/* CloudBase SDK Vue Plugin */
+import { cloudbasePlugin } from './utils/cloudbase'
+
 /* Ensure IndexedDB is open (with auto-recovery) before mounting */
 import { dbReady } from './utils/db'
 
@@ -57,6 +60,7 @@ const app = createApp(App)
     mode: 'ios',
   })
   .use(pinia)
+  .use(cloudbasePlugin)
   .use(i18n)
   .use(router)
 
@@ -70,7 +74,19 @@ window.addEventListener('unhandledrejection', (event) => {
   console.error('[Unhandled Rejection]', event.reason)
 })
 
-Promise.all([router.isReady(), dbReady]).then(() => {
+Promise.all([router.isReady(), dbReady]).then(async () => {
   app.mount('#app')
   initCapacitorPlugins()
+
+  // Restore CloudBase login session on app startup
+  try {
+    const { useCloudbaseAuth } = await import('./composables/useCloudbase')
+    const { useAuthStore } = await import('./stores/useAuthStore')
+    const auth = useCloudbaseAuth()
+    const authStore = useAuthStore()
+    await authStore.refreshLoginState(auth)
+  }
+  catch {
+    // CloudBase not configured — skip auth restore
+  }
 })

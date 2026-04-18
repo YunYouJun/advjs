@@ -135,7 +135,15 @@ const routes: Array<RouteRecordRaw> = [
         path: 'me/feedback',
         component: () => import('@/views/me/MeFeedbackPage.vue'),
       },
+      {
+        path: 'me/portfolio',
+        component: () => import('@/views/me/PortfolioPage.vue'),
+      },
     ],
+  },
+  {
+    path: '/login',
+    component: () => import('@/views/LoginPage.vue'),
   },
   {
     path: '/editor',
@@ -144,6 +152,10 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/share/:projectId',
     component: () => import('@/views/ProjectSharePage.vue'),
+  },
+  {
+    path: '/creator/:uid',
+    component: () => import('@/views/CreatorPage.vue'),
   },
 ]
 

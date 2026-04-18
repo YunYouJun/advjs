@@ -16,8 +16,8 @@ packages:
   - apps/*
 
 catalog:
-  '@aws-sdk/client-s3': ^3.1031.0
-  '@aws-sdk/s3-request-presigner': ^3.1031.0
+  '@aws-sdk/client-s3': ^3.1032.0
+  '@aws-sdk/s3-request-presigner': ^3.1032.0
   '@capacitor/app': 8.1.0
   '@capacitor/cli': 8.3.0
   '@capacitor/core': 8.3.0
@@ -25,6 +25,7 @@ catalog:
   '@capacitor/haptics': 8.0.2
   '@capacitor/keyboard': 8.0.2
   '@capacitor/status-bar': 8.0.2
+  '@cloudbase/js-sdk': ^3.3.3
   '@dagrejs/dagre': ^2.0.4
   '@ionic/vue': ^8.8.4
   '@ionic/vue-router': ^8.8.4
@@ -35,7 +36,7 @@ catalog:
   '@rollup/pluginutils': ^5.3.0
   '@runware/sdk-js': ^1.2.9
   '@shikijs/vitepress-twoslash': ^3.23.0
-  '@tanstack/vue-virtual': ^3.13.23
+  '@tanstack/vue-virtual': ^3.13.24
   '@types/body-parser': ^1.19.6
 
   '@types/express': ^5.0.6
@@ -72,7 +73,7 @@ catalog:
   typedoc-vitepress-theme: ^1.1.2
   typescript-json-schema: ^0.67.1
   ua-parser-js: ^2.0.9
-  vite-plugin-singlefile: ^2.3.2
+  vite-plugin-singlefile: ^2.3.3
   vitefu: ^1.1.3
   vitepress-plugin-group-icons: ^1.7.5
   vitepress-plugin-mermaid: ^2.0.17
@@ -102,7 +103,7 @@ catalogs:
     markdown-it: ^14.1.1
     markdown-it-link-attributes: ^4.0.1
     nuxt: ^4.4.2
-    rollup: ^4.60.1
+    rollup: ^4.60.2
     sass: ^1.99.0
     shiki: ^3.23.0
     unbuild: ^3.6.1
@@ -135,7 +136,7 @@ catalogs:
     '@antfu/eslint-config': ^7.7.3
     '@faker-js/faker': ^10.4.0
     '@unocss/eslint-plugin': ^66.6.8
-    eslint: ^10.2.0
+    eslint: ^10.2.1
     eslint-plugin-format: ^2.0.1
     https-localhost: ^4.7.1
     husky: ^9.1.7

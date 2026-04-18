@@ -13,39 +13,49 @@ import {
   informationCircleOutline,
   logOutOutline,
   personCircleOutline,
+  ribbonOutline,
   settingsOutline,
 } from 'ionicons/icons'
+import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import LayoutPage from '../components/common/LayoutPage.vue'
 import NavGroup from '../components/ui/NavGroup.vue'
 import NavItem from '../components/ui/NavItem.vue'
+import { useCloudbase } from '../composables/useCloudbase'
+import { useAuthStore } from '../stores/useAuthStore'
 import { useSettingsStore } from '../stores/useSettingsStore'
 
 const { t } = useI18n()
 const settingsStore = useSettingsStore()
+const authStore = useAuthStore()
 const router = useRouter()
 
-async function handleLogin() {
-  const toast = await toastController.create({
-    message: t('me.comingSoon'),
-    duration: 2000,
-    position: 'top',
-  })
-  await toast.present()
+let auth: ReturnType<typeof useCloudbase>['auth'] | null = null
+try {
+  auth = useCloudbase().auth
+}
+catch {
+  // CloudBase not configured, auth features unavailable
 }
 
-async function handleRegister() {
-  const toast = await toastController.create({
-    message: t('me.comingSoon'),
-    duration: 2000,
-    position: 'top',
-  })
-  await toast.present()
+onMounted(async () => {
+  if (auth)
+    await authStore.refreshLoginState(auth)
+})
+
+function handleLogin() {
+  router.push('/login')
+}
+
+function handleRegister() {
+  router.push('/login')
 }
 
 async function handleLogout() {
-  settingsStore.logout()
+  if (auth)
+    await authStore.logout(auth)
+
   const toast = await toastController.create({
     message: t('me.loggedOut'),
     duration: 1500,
@@ -66,6 +76,13 @@ const navItems = [
     route: '/tabs/me/settings',
   },
 ]
+
+const portfolioItem = {
+  key: 'portfolio',
+  icon: ribbonOutline,
+  color: '--nav-icon-portfolio',
+  route: '/tabs/me/portfolio',
+}
 
 const infoItems = [
   {
@@ -96,17 +113,17 @@ const infoItems = [
     <div class="page-container">
       <!-- Account Section -->
       <!-- Logged-in state -->
-      <div v-if="settingsStore.account.isLoggedIn" class="account-card">
+      <div v-if="authStore.isLoggedIn" class="account-card">
         <div class="account-card__user">
           <div class="account-card__avatar">
             <img v-if="settingsStore.account.avatar" :src="settingsStore.account.avatar" alt="avatar">
             <span v-else class="account-card__avatar-fallback">
-              {{ settingsStore.account.username.charAt(0).toUpperCase() }}
+              {{ authStore.displayName.charAt(0).toUpperCase() }}
             </span>
           </div>
           <div class="account-card__info">
-            <span class="account-card__name">{{ settingsStore.account.username }}</span>
-            <span class="account-card__email">{{ settingsStore.account.email }}</span>
+            <span class="account-card__name">{{ authStore.displayName }}</span>
+            <span class="account-card__email">{{ authStore.maskedPhone || settingsStore.account.email }}</span>
           </div>
           <IonIcon :icon="chevronForwardOutline" class="account-card__chevron" />
         </div>
@@ -137,6 +154,15 @@ const infoItems = [
       </div>
 
       <!-- Settings & Features -->
+      <NavGroup v-if="authStore.isLoggedIn">
+        <NavItem
+          :icon="portfolioItem.icon"
+          :icon-color="`var(${portfolioItem.color})`"
+          :label="t(`me.${portfolioItem.key}`)"
+          @click="navigateTo(portfolioItem.route)"
+        />
+      </NavGroup>
+
       <NavGroup>
         <NavItem
           v-for="item in navItems"
@@ -171,7 +197,7 @@ const infoItems = [
       </NavGroup>
 
       <!-- Logout -->
-      <div v-if="settingsStore.account.isLoggedIn" class="danger-section">
+      <div v-if="authStore.isLoggedIn" class="danger-section">
         <button class="danger-btn" @click="handleLogout">
           <IonIcon :icon="logOutOutline" />
           <span>{{ t('me.logout') }}</span>
@@ -192,6 +218,7 @@ const infoItems = [
 
   /* Nav icon palette */
   --nav-icon-settings: #8b8b8b;
+  --nav-icon-portfolio: #f59e0b;
   --nav-icon-about: #10b981;
   --nav-icon-feedback: #f97316;
   --nav-icon-developer: #8b5cf6;

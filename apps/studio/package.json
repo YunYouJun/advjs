@@ -50,6 +50,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "catalog:",
+    "@cloudbase/js-sdk": "catalog:",
     "@iconify-json/vscode-icons": "catalog:icons",
     "@playwright/test": "catalog:test",
     "@types/splitpanes": "catalog:types",

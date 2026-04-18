@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import i18n from '../i18n'
+import { useAuthStore } from './useAuthStore'
 
 export interface CosConfig {
   bucket: string
@@ -33,11 +34,19 @@ export const useSettingsStore = defineStore('settings', () => {
     autoSync: false,
     syncInterval: 5,
   })
-  const account = ref<AccountInfo>({
-    isLoggedIn: false,
-    username: '',
-    email: '',
-    avatar: '',
+
+  /**
+   * Account proxy — delegates to useAuthStore for backward compatibility.
+   * Components using `settingsStore.account` will continue to work.
+   */
+  const account = computed<AccountInfo>(() => {
+    const authStore = useAuthStore()
+    return {
+      isLoggedIn: authStore.isLoggedIn,
+      username: authStore.displayName,
+      email: (authStore.userInfo as any).email || '',
+      avatar: (authStore.userInfo as any).picture || '',
+    }
   })
 
   // Load from localStorage
@@ -54,7 +63,6 @@ export const useSettingsStore = defineStore('settings', () => {
       const savedCos = localStorage.getItem('advjs-studio-cos')
       if (savedCos) {
         const parsed = JSON.parse(savedCos)
-        // Merge with defaults for backward compatibility
         cos.value = {
           bucket: parsed.bucket || '',
           region: parsed.region || '',
@@ -66,10 +74,6 @@ export const useSettingsStore = defineStore('settings', () => {
           syncInterval: parsed.syncInterval ?? 5,
         }
       }
-
-      const savedAccount = localStorage.getItem('advjs-studio-account')
-      if (savedAccount)
-        account.value = JSON.parse(savedAccount)
     }
     catch {
       // ignore
@@ -95,13 +99,9 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   }
 
+  /** @deprecated Use useAuthStore().logout() instead */
   function logout() {
-    account.value = {
-      isLoggedIn: false,
-      username: '',
-      email: '',
-      avatar: '',
-    }
+    // No-op: handled by useAuthStore
   }
 
   // Watch and persist
@@ -117,10 +117,6 @@ export const useSettingsStore = defineStore('settings', () => {
 
   watch(cos, (val) => {
     localStorage.setItem('advjs-studio-cos', JSON.stringify(val))
-  }, { deep: true })
-
-  watch(account, (val) => {
-    localStorage.setItem('advjs-studio-account', JSON.stringify(val))
   }, { deep: true })
 
   // Initialize

@@ -31,6 +31,12 @@ export interface StudioProject {
   /** Cover image URL (user upload or AI-generated) */
   cover?: string
   lastOpened: number
+  /** CloudBase document _id (set after binding to cloud) */
+  cloudId?: string
+  /** CloudBase user UID who owns this project */
+  ownerId?: string
+  /** Last cloud sync timestamp */
+  syncedAt?: number
 }
 
 export const useStudioStore = defineStore('studio', () => {
@@ -68,6 +74,9 @@ export const useStudioStore = defineStore('studio', () => {
           description: p.description,
           cover: p.cover,
           lastOpened: p.lastOpened,
+          cloudId: (p as any).cloudId,
+          ownerId: (p as any).ownerId,
+          syncedAt: (p as any).syncedAt,
         }))
       }
     }
@@ -86,6 +95,9 @@ export const useStudioStore = defineStore('studio', () => {
       description: p.description,
       cover: p.cover,
       lastOpened: p.lastOpened,
+      cloudId: p.cloudId,
+      ownerId: p.ownerId,
+      syncedAt: p.syncedAt,
     }))
     localStorage.setItem('advjs-studio-projects', JSON.stringify(serializable))
   }
