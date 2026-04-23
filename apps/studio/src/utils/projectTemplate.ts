@@ -890,6 +890,28 @@ plotSummary: 海边的偶遇
 // ---------------------------------------------------------------------------
 
 /**
+ * Write a list of template files (path + content) into the given file system.
+ * Shared by both {@link createProjectFromTemplate} and the Phase M10
+ * Source-to-Project pipeline — anything that produces `TemplateFile[]` can
+ * persist through this single writer loop.
+ *
+ * Parent directories are created on demand (IFileSystem.mkdir is idempotent).
+ */
+export async function writeTemplateFiles(
+  fs: IFileSystem,
+  files: TemplateFile[],
+): Promise<void> {
+  for (const file of files) {
+    // Ensure parent directories exist
+    const parts = file.path.split('/')
+    if (parts.length > 1) {
+      await fs.mkdir(parts.slice(0, -1).join('/'))
+    }
+    await fs.writeFile(file.path, file.content)
+  }
+}
+
+/**
  * Create a new ADV.JS project from template using IFileSystem.
  *
  * @param fs - File system to write files into
@@ -903,12 +925,5 @@ export async function createProjectFromTemplate(
 ): Promise<void> {
   const template = getTemplateById(templateId) || starterTemplate
   const files = template.files(projectName)
-  for (const file of files) {
-    // Ensure parent directories exist
-    const parts = file.path.split('/')
-    if (parts.length > 1) {
-      await fs.mkdir(parts.slice(0, -1).join('/'))
-    }
-    await fs.writeFile(file.path, file.content)
-  }
+  await writeTemplateFiles(fs, files)
 }

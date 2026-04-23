@@ -2,9 +2,13 @@ import { IonicVue } from '@ionic/vue'
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import App from './App.vue'
+/* CloudBase auth restore */
+import { useCloudbaseAuth } from './composables/useCloudbase'
 import i18n from './i18n'
 
 import router from './router'
+
+import { useAuthStore } from './stores/useAuthStore'
 
 /* Capacitor native plugin initialization */
 import { initCapacitorPlugins } from './utils/capacitor'
@@ -74,17 +78,15 @@ window.addEventListener('unhandledrejection', (event) => {
   console.error('[Unhandled Rejection]', event.reason)
 })
 
-Promise.all([router.isReady(), dbReady]).then(async () => {
+Promise.all([router.isReady(), dbReady]).then(() => {
   app.mount('#app')
   initCapacitorPlugins()
 
   // Restore CloudBase login session on app startup
   try {
-    const { useCloudbaseAuth } = await import('./composables/useCloudbase')
-    const { useAuthStore } = await import('./stores/useAuthStore')
-    const auth = useCloudbaseAuth()
+    const auth = app.runWithContext(() => useCloudbaseAuth())
     const authStore = useAuthStore()
-    await authStore.refreshLoginState(auth)
+    authStore.refreshLoginState(auth)
   }
   catch {
     // CloudBase not configured — skip auth restore

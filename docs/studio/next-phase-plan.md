@@ -446,6 +446,72 @@
 
 ---
 
+### Phase M10：Source-to-Project Pipeline 🚧 {#phase-m10}
+
+> 📅 2026-04-23 立项 · 目标：参赛 2026 AI 应用大赛
+>
+> 主赛道：**AI 提效**（通用素材 → 交互剧情引擎）
+> 副赛道：**AI 向善**（人生故事 / 触摸绘本 / 防诈剧场 Template）
+>
+> 详见 [`ai-contest-2026.md`](./ai-contest-2026.md)
+
+#### 核心命题
+
+现有 Studio 已覆盖完整"编辑—预览—分享"链路，但**项目冷启动门槛仍然偏高**：用户必须手动填写 characters / chapters / scenes。Phase M10 补齐最后一公里——**任意素材一键成项目**，让非技术用户（公益机构、培训师、老人、教师）也能在 60 秒内获得一个可玩可编辑的 ADV 作品。
+
+```
+素材（文本/PDF/语音/图文/聊天记录）
+    ↓  多模态归一化
+    ↓  LLM Pipeline（支持 Claude / OpenAI 兼容 Provider）
+生成 characters + chapters + scenes + knowledge
+    ↓  复用 useProjectExport / IndexedDB
+Studio 项目（可玩 / 可编辑 / 可分享 / 可导出 .advpkg）
+```
+
+#### M10.1 Source-to-Project 核心 Pipeline
+
+| 新增文件                                               | 作用                                                                        |
+| ------------------------------------------------------ | --------------------------------------------------------------------------- |
+| `apps/studio/src/utils/sourceParser.ts`                | 多格式素材归一化（text/pdf/markdown/audio/image/chat-log → structured doc） |
+| `apps/studio/src/utils/projectGenerator.ts`            | LLM 分步生成 characters → chapters → scenes → knowledge，支持流式进度       |
+| `apps/studio/src/composables/useProjectImport.ts`      | 生成任务状态机 + 预览 + 用户确认 + 写盘                                     |
+| `apps/studio/src/views/workspace/ImportSourcePage.vue` | 素材上传向导（多步骤 Stepper）                                              |
+
+复用基础设施：
+
+- 复用 `claude-api` skill 规范的 Prompt Caching 策略（system prompt + 素材 片段缓存）
+- 复用 `resolveAiConfig.ts` 的 provider 抽象
+- 复用 `embeddingClient.ts` 做素材分段语义去重
+
+#### M10.2 Template 系统
+
+| 新增文件                                          | 内容                                            |
+| ------------------------------------------------- | ----------------------------------------------- |
+| `apps/studio/src/templates/life-story.yaml`       | 人生故事 Template（对接 AI 向善·时光忆站）      |
+| `apps/studio/src/templates/touch-book.yaml`       | 触摸绘本配套教学 Template（对接 AI 向善·课题1） |
+| `apps/studio/src/templates/training-drill.yaml`   | 企业培训剧本 Template（对接 AI 提效）           |
+| `apps/studio/src/templates/anti-fraud.yaml`       | 防诈剧场 Template（AI 向善·老年人）             |
+| `apps/studio/src/templates/customer-service.yaml` | 客诉话术练习 Template（AI 提效·客服培训）       |
+
+每个 Template 规定：系统 Prompt、默认角色设定、章节节奏、推荐 TTS 音色、推荐配图风格。
+
+#### M10.3 一键分发
+
+- 生成项目后自动静态化构建 → 专属二维码（复用 `modern-screenshot`）
+- 短链 / 分享卡片（社交媒体）
+- 扫码即 Play，无需登录、无需安装
+
+#### M10.4 赛事交付物
+
+| 交付物                                   | 位置                             |
+| ---------------------------------------- | -------------------------------- |
+| Agent / Skill 平台集成：「ADV 故事工坊」 | 独立 skill 仓库                  |
+| 3 个示范作品                             | `examples/ai-contest/*`          |
+| 参赛文档                                 | `docs/studio/ai-contest-2026.md` |
+| Demo 视频（90s）                         | 参赛提交材料                     |
+
+---
+
 ### Phase 13：账号系统 {#phase-13}
 
 - 用户注册/登录（邮箱 + OAuth）

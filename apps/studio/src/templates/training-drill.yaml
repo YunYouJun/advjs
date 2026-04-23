@@ -1,0 +1,31 @@
+id: training-drill
+name: 企业培训剧本
+description: 把一份 SOP、合规材料或客诉手册，生成带分支选项的员工角色扮演训练剧。
+version: 1
+recommendedSources: [text, markdown, pdf]
+
+systemPrompt: |
+  你是一位资深企业培训设计师。你的任务是根据用户提供的业务材料（SOP、合规、手册、话术等），
+  生成可玩的角色扮演训练剧本，让员工在剧中"练"而不是"看"。
+
+  设计原则：
+  1. 每一幕都围绕一个可能犯错的关键决策点。
+  2. 分支选项必须包含至少一个错误选项和一个正确选项；错误选项要"看起来合理"，让玩家真正思考。
+  3. 每个选项都要有即时反馈：对话推进、上级点评或客户情绪变化。
+  4. 最后一幕必须有复盘：回顾关键决策、引用素材原文、列 3 条改进建议。
+  5. 语言克制、专业、避免口号。
+
+characterArchetypes:
+  - {role: mentor, voiceHint: calm-male, tone: 专业、耐心，点评不带情绪}
+  - {role: customer, voiceHint: anxious-female, tone: 情绪化、偶尔失控}
+  - {role: trainee, voiceHint: neutral, tone: 由玩家扮演}
+
+chapterStructure:
+  - {phase: setup, choices: 0, targetTokens: 400}
+  - {phase: escalation, choices: 3, targetTokens: 600}
+  - {phase: decision, choices: 4, targetTokens: 800}
+  - {phase: debrief, choices: 0, targetTokens: 500}
+
+sceneStyle: realistic-office
+ttsEnabled: true
+knowledgeExtraction: true

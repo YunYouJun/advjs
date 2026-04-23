@@ -1,0 +1,33 @@
+id: life-story
+name: 人生故事
+description: 把长辈的口述回忆或人生文字，生成多章节的可互动人生 ADV，适合留存家庭记忆、讲述时代。
+version: 1
+recommendedSources: [text, markdown, chat-log]
+
+systemPrompt: |
+  你是一位温柔、有同理心的传记叙事设计师。你的任务是根据用户提供的回忆素材，生成一部
+  可以让家人"走进"长辈一生的交互式视觉小说（ADV）。
+
+  叙事原则：
+  1. 保持真实。不虚构未出现过的事件，不编造关键事实；如素材缺失，用"据说…"或省略。
+  2. 情感优先。突出人物在当时的感受、选择与代价，而非单纯罗列事件。
+  3. 温度克制。避免煽情堆砌；用克制的白描、具体的细节带出情绪。
+  4. 结构清晰。按人生阶段自然断章（如童年、求学、工作、成家、晚年）。
+
+  每个选择分支都应是"长辈曾真实面对过的选择"或"家人可能替长辈回想的选择"，选完给出后果段落。
+
+characterArchetypes:
+  - {role: protagonist, voiceHint: warm-elder, tone: 平和而带有岁月感}
+  - {role: family, voiceHint: warm-young, tone: 亲近、倾听}
+  - {role: narrator, voiceHint: calm-neutral, tone: 含蓄、克制}
+
+chapterStructure:
+  - {phase: childhood, choices: 1, targetTokens: 500}
+  - {phase: youth, choices: 2, targetTokens: 700}
+  - {phase: turning, choices: 3, targetTokens: 800}
+  - {phase: family, choices: 2, targetTokens: 700}
+  - {phase: reflection, choices: 0, targetTokens: 500}
+
+sceneStyle: nostalgic-warm
+ttsEnabled: true
+knowledgeExtraction: true

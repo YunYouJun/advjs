@@ -144,7 +144,7 @@ async function autoLoadReadme(fs: import('../utils/fs').IFileSystem) {
     }
   }
 }
-const hasProject = computed(() => !!studioStore.currentProject)
+const hasProject = computed(() => !!studioStore.currentProject || studioStore.isRestoring)
 
 const featuredProjects = computed(() => studioStore.projects.slice(0, 3))
 const remainingProjects = computed(() => studioStore.projects.slice(3))
@@ -663,12 +663,27 @@ function getGradientForIndex(index: number): string {
 
 <template>
   <LayoutPage :title="hasProject ? studioStore.currentProject?.name : t('workspace.title')" :subtitle="hasProject ? studioStore.currentProject?.projectId : undefined">
-    <template v-if="hasProject" #end>
+    <template v-if="hasProject && !studioStore.isRestoring" #end>
       <ProjectSwitcher />
     </template>
 
+    <!-- ==================== View: Restoring skeleton ==================== -->
+    <template v-if="studioStore.isRestoring">
+      <div class="restore-skeleton">
+        <div class="restore-skeleton__segment">
+          <div class="skeleton-bone skeleton-bone--tab" />
+          <div class="skeleton-bone skeleton-bone--tab" />
+        </div>
+        <div class="restore-skeleton__cards">
+          <div class="skeleton-bone skeleton-bone--card" />
+          <div class="skeleton-bone skeleton-bone--card skeleton-bone--card-sm" />
+          <div class="skeleton-bone skeleton-bone--card skeleton-bone--card-sm" />
+        </div>
+      </div>
+    </template>
+
     <!-- ==================== View A: Welcome Page ==================== -->
-    <template v-if="!hasProject">
+    <template v-else-if="!hasProject">
       <!-- Quick Start (one-click experience) -->
       <div class="quick-start-section">
         <QuickStartButton />
@@ -1164,5 +1179,69 @@ function getGradientForIndex(index: number): string {
   width: 18px;
   height: 18px;
   flex-shrink: 0;
+}
+
+/* Restore skeleton */
+.restore-skeleton {
+  padding: var(--adv-space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--adv-space-md);
+}
+
+.restore-skeleton__segment {
+  display: flex;
+  gap: var(--adv-space-sm);
+}
+
+.restore-skeleton__cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--adv-space-sm);
+}
+
+.skeleton-bone {
+  border-radius: var(--adv-radius-md, 8px);
+  background: linear-gradient(
+    90deg,
+    var(--adv-border-subtle, rgba(0, 0, 0, 0.06)) 25%,
+    rgba(0, 0, 0, 0.03) 50%,
+    var(--adv-border-subtle, rgba(0, 0, 0, 0.06)) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+:root.dark .skeleton-bone {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.06) 25%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.06) 75%
+  );
+  background-size: 200% 100%;
+}
+
+.skeleton-bone--tab {
+  flex: 1;
+  height: 36px;
+  border-radius: var(--adv-radius-full, 9999px);
+}
+
+.skeleton-bone--card {
+  height: 80px;
+}
+
+.skeleton-bone--card-sm {
+  height: 56px;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 </style>

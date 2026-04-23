@@ -42,6 +42,8 @@ export interface StudioProject {
 export const useStudioStore = defineStore('studio', () => {
   const currentProject = ref<StudioProject | null>(null)
   const projects = ref<StudioProject[]>([])
+  /** True while autoRestoreLastProject is in progress — used to suppress Welcome Page flash */
+  const isRestoring = ref(!!localStorage.getItem('advjs-studio-current'))
 
   const currentProjectId = computed(() =>
     currentProject.value?.projectId ?? DEFAULT_PROJECT_ID,
@@ -264,31 +266,37 @@ export const useStudioStore = defineStore('studio', () => {
    * then restores the dirHandle from IndexedDB and verifies permission.
    */
   async function autoRestoreLastProject(): Promise<boolean> {
-    const lastId = localStorage.getItem('advjs-studio-current')
-    if (!lastId)
-      return false
+    isRestoring.value = true
+    try {
+      const lastId = localStorage.getItem('advjs-studio-current')
+      if (!lastId)
+        return false
 
-    // Try by projectId first, then fallback to name for old data
-    const project = projects.value.find(p => p.projectId === lastId)
-      || projects.value.find(p => p.name === lastId)
-    if (!project)
-      return false
+      // Try by projectId first, then fallback to name for old data
+      const project = projects.value.find(p => p.projectId === lastId)
+        || projects.value.find(p => p.name === lastId)
+      if (!project)
+        return false
 
-    // For non-local projects, no handle needed
-    if (project.source !== 'local') {
+      // For non-local projects, no handle needed
+      if (project.source !== 'local') {
+        await switchProject(project)
+        return true
+      }
+
+      // Try to restore dirHandle + verify permission silently
+      const handle = await restoreAndVerifyHandle(project.name)
+      if (handle)
+        project.dirHandle = handle
+
+      // Always restore the project — if dirHandle is missing, the UI will show
+      // a reconnect button so the user can re-grant permission with a user gesture.
       await switchProject(project)
-      return true
+      return !!handle
     }
-
-    // Try to restore dirHandle + verify permission silently
-    const handle = await restoreAndVerifyHandle(project.name)
-    if (handle)
-      project.dirHandle = handle
-
-    // Always restore the project — if dirHandle is missing, the UI will show
-    // a reconnect button so the user can re-grant permission with a user gesture.
-    await switchProject(project)
-    return !!handle
+    finally {
+      isRestoring.value = false
+    }
   }
 
   // Initialize from storage
@@ -297,6 +305,7 @@ export const useStudioStore = defineStore('studio', () => {
   return {
     currentProject,
     currentProjectId,
+    isRestoring,
     projects,
     addProject,
     removeProject,
