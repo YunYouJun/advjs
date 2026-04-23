@@ -56,6 +56,7 @@
 5. 🔵 **P4 — 传播增长**：分享和社交能力（N5 ✅）
 6. 🟣 **P5 — AI 增强**：AI 能力深度整合与智能化（N6 ✅）
 7. 🔧 **P6 — 编辑体验**：创作工具链打磨（N7 ✅）
+8. 📋 **P7 — 数据结构化**：角色属性结构化 schema（N8 ✅）
 
 ---
 
@@ -138,10 +139,53 @@
 
 ---
 
+### Phase N8：角色属性结构化 ✅ {#phase-n8}
+
+为 `.character.md` frontmatter 引入可选的 `attributes.*` 分层 schema，把作者手写的结构化设定从 Markdown 自由描述中分离出来，提升 AI prompt 注入的稳定性。
+
+- [x] **Zod schema + 类型定义** — `@advjs/types` 新增 `AdvCharacterAttributes` / `AdvCharacterProfile` / `AdvCharacterGalgameAttrs` / `AdvCharacterRpgAttrs` / `AdvCharacterRpgStats` / `AdvCharacterCustomField` / `AdvCharacterAttributesAi` 接口；`@advjs/parser` 引入 `zod` 作为运行时校验器，导出 `CharacterFrontmatterSchema` 等 `safeParse` 友好的 schema（严格模式 + 友好错误格式化 `formatCharacterFrontmatterError`）
+- [x] **Parser 往返保真** — `parseCharacterMd` 解析时跑 schema 软校验（失败 warn 不抛错，保证向后兼容），`stringifyCharacterMd` 通过 `pruneEmpty` 递归剔除空子对象，避免写入 `attributes: {}` / `profile: {}` 这种空字段；数字 `0` / 布尔 `false` 作为合法值保留
+- [x] **三个初始模板** — `template: 'universal' | 'galgame' | 'rpg'` 控制 Studio UI 字段分组；`universal.profile` 含 age/gender/occupation/personalityTags/appearanceSummary；`galgame` 含 birthday/bloodType/zodiac/height/likes/dislikes/affinityInitial；`rpg` 含 race/class/level/stats(STR/DEX/INT/CON/WIS/CHA)/hpInitial/mpInitial/skills/equipment/alignment
+- [x] **Studio UI 集成** — `CharacterAttributesPanel.vue` 集成到 `CharacterEditorForm` 的「描述」和「立绘」section 之间；主开关 opt-in（默认关闭）+ 模板切换 `IonSegment` + 按模板动态渲染字段分组 + RPG 六维紧凑 3×2 网格 + AI 注入开关 + Custom 自定义字段 CRUD（支持 text / number / tags 三种值类型，key 自动 sanitize 防冲突）
+- [x] **Monaco frontmatter completion** — `characterFrontmatterCompletion.ts` 为 YAML / Markdown / adv-markdown 三种语言注册 completion provider，光标定位在 `attributes.*` 子树时自动提示对应字段名（根据路径动态解析），`template:` 行提供 enum 值提示。纯函数 `resolveFrontmatterPath` / `isLineInFrontmatter` / `getFieldsForPath` 便于独立测试，17 个单测覆盖嵌套路径解析
+- [x] **分层约定（关键设计）** — frontmatter 只存**作者手写的静态 Profile**；运行时状态（当前好感度/HP/位置）走 `AdvCharacter.dynamicState` + `useCharacterStateStore` 的 IndexedDB，不污染 `.character.md`；AI 自动提取的记忆走 `useCharacterMemoryStore`
+
+::: tip Schema 样例
+
+```yaml
+---
+id: alice
+name: 爱丽丝
+attributes:
+  template: galgame
+  profile:
+    age: 17
+    personalityTags: [温柔, 腹黑]
+    appearanceSummary: 银发红眸
+  galgame:
+    birthday: 03-14
+    bloodType: AB
+    likes: [红茶, 推理小说]
+    affinityInitial: 0
+  ai:
+    promptInject: true
+    excludeFields: [galgame.bloodType]
+---
+```
+
+:::
+
+**后续计划**（N8 后续迭代，不阻塞当前发布）：
+
+- Mystery 模板 + `ai.visibility: 'gm-only'` 字段级可见性（与 Phase 10 视角系统联动）
+- AI 从 Markdown 描述一键回填 attributes（复用 Phase N6 的 `keyEvents` 压缩思路）
+
+---
+
 ## 远期路线
 
 ```
-Phase N（核心体验冲刺，N1-N7）✅
+Phase N（核心体验冲刺，N1-N8）✅
     ↓ 达到「可发布品质」
 Phase 13（账号系统 — CloudBase 云乐坊统一认证）✅
     ↓ 用户身份基础设施
@@ -152,7 +196,7 @@ Phase 15（协作与插件）
 ```
 
 ::: tip 战略决策（已定）
-N1-N7 已全部完成。Phase 13 战略决策如下：
+N1-N8 已全部完成。Phase 13 战略决策如下：
 
 - **账号模式**：可选。保持 Local-First 产品定位，未登录可完整使用，登录后解锁云同步和发布
 - **后端选型**：**CloudBase**（腾讯云开发）—— 与云乐坊（yunle.fun）共享同一 CloudBase 环境和用户池

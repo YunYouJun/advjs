@@ -2,7 +2,7 @@
 import { getFileTypeFromPath, getIconFromFileType } from '@advjs/gui'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getMonaco } from '../utils/monacoSetup'
+import { getMonaco, registerCharacterFrontmatterCompletionIfNeeded } from '../utils/monacoSetup'
 
 const props = withDefaults(defineProps<{
   content?: string
@@ -102,6 +102,10 @@ async function initEditor() {
 
   const monacoModule = await getMonaco()
   monaco = monacoModule
+
+  // Register character frontmatter schema completions (idempotent — only
+  // actually registers on first call).
+  await registerCharacterFrontmatterCompletionIfNeeded()
 
   const lang = detectLanguage(props.filename)
   const isDiff = props.originalContent !== undefined

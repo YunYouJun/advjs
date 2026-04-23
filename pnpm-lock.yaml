@@ -1724,6 +1724,9 @@ importers:
       vfile-matter:
         specifier: catalog:unified
         version: 5.0.1
+      zod:
+        specifier: 'catalog:'
+        version: 3.25.76
     devDependencies:
       '@types/js-yaml':
         specifier: catalog:types

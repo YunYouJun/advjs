@@ -11,6 +11,7 @@ import type { AdvCompletionContext } from './advLanguage'
 
 let _monaco: typeof Monaco | null = null
 let _advRegistered = false
+let _characterFmRegistered = false
 
 /**
  * Lazily load and configure Monaco editor.
@@ -79,4 +80,19 @@ export async function registerAdvLanguageIfNeeded(
   const { registerAdvLanguage } = await import('./advLanguage')
   registerAdvLanguage(monaco, getContext)
   _advRegistered = true
+}
+
+/**
+ * Register the `.character.md` frontmatter completion provider.
+ *
+ * Independent of the ADV language registration so plain Markdown editors
+ * opened on a character file still get schema-aware completions.
+ */
+export async function registerCharacterFrontmatterCompletionIfNeeded(): Promise<void> {
+  if (_characterFmRegistered)
+    return
+  const monaco = await getMonaco()
+  const { registerCharacterFrontmatterCompletion } = await import('./characterFrontmatterCompletion')
+  registerCharacterFrontmatterCompletion(monaco)
+  _characterFmRegistered = true
 }

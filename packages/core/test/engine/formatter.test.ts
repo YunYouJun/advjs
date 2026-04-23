@@ -1,8 +1,14 @@
 import type { AdvAst } from '@advjs/types'
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { formatAsText, formatNode } from '../../src/engine/formatter'
+import { setFormatterLocale } from '../../src/engine/i18n'
 
 describe('formatNode', () => {
+  beforeAll(() => {
+    // Pin locale so tests don't depend on the host environment's LANG
+    setFormatterLocale('zh-CN')
+  })
+
   it('should format dialog node', () => {
     const node: AdvAst.Dialog = {
       type: 'dialog',

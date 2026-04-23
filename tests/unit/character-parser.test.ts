@@ -221,4 +221,147 @@ name: Simple Character
       expect(reparsed.speechStyle).toBe(original.speechStyle)
     })
   })
+
+  describe('attributes (structured)', () => {
+    const ATTRS_MD = `---
+id: alice
+name: Alice
+attributes:
+  template: galgame
+  profile:
+    age: 17
+    gender: female
+    occupation: 高中生
+    personalityTags:
+      - 温柔
+      - 腹黑
+    appearanceSummary: 银发红眸
+  galgame:
+    birthday: 03-14
+    bloodType: AB
+    likes:
+      - 红茶
+      - 推理小说
+    dislikes:
+      - 苦瓜
+    affinityInitial: 0
+  ai:
+    promptInject: true
+    excludeFields:
+      - galgame.bloodType
+---
+`
+
+    it('should parse structured attributes', () => {
+      const char = parseCharacterMd(ATTRS_MD)
+      expect(char.attributes).toBeDefined()
+      expect(char.attributes?.template).toBe('galgame')
+      expect(char.attributes?.profile?.age).toBe(17)
+      expect(char.attributes?.profile?.personalityTags).toEqual(['温柔', '腹黑'])
+      expect(char.attributes?.galgame?.bloodType).toBe('AB')
+      expect(char.attributes?.galgame?.likes).toEqual(['红茶', '推理小说'])
+      expect(char.attributes?.galgame?.affinityInitial).toBe(0)
+      expect(char.attributes?.ai?.promptInject).toBe(true)
+      expect(char.attributes?.ai?.excludeFields).toEqual(['galgame.bloodType'])
+    })
+
+    it('should roundtrip attributes through parse → stringify → parse', () => {
+      const original = parseCharacterMd(ATTRS_MD)
+      const reparsed = parseCharacterMd(stringifyCharacterMd(original))
+      expect(reparsed.attributes).toEqual(original.attributes)
+    })
+
+    it('should roundtrip RPG stats', () => {
+      const md = `---
+id: hero
+name: Hero
+attributes:
+  template: rpg
+  rpg:
+    race: Elf
+    class: Ranger
+    level: 12
+    stats:
+      str: 14
+      dex: 18
+      int: 12
+      con: 13
+      wis: 15
+      cha: 10
+    hpInitial: 120
+    skills:
+      - 弓术精通
+      - 追踪
+    alignment: 混乱善良
+---
+`
+      const char = parseCharacterMd(md)
+      const reparsed = parseCharacterMd(stringifyCharacterMd(char))
+      expect(reparsed.attributes?.rpg?.stats?.dex).toBe(18)
+      expect(reparsed.attributes?.rpg?.skills).toEqual(['弓术精通', '追踪'])
+      expect(reparsed.attributes?.rpg?.alignment).toBe('混乱善良')
+    })
+
+    it('should NOT write attributes when empty', () => {
+      const output = stringifyCharacterMd({
+        id: 'a',
+        name: 'A',
+        attributes: {},
+      })
+      expect(output).not.toContain('attributes')
+    })
+
+    it('should NOT write attributes when all subtrees empty', () => {
+      const output = stringifyCharacterMd({
+        id: 'a',
+        name: 'A',
+        attributes: {
+          profile: {},
+          galgame: {},
+        },
+      })
+      expect(output).not.toContain('attributes')
+    })
+
+    it('should keep valid zero / false values (not treat as empty)', () => {
+      const output = stringifyCharacterMd({
+        id: 'a',
+        name: 'A',
+        attributes: {
+          galgame: { affinityInitial: 0 },
+          ai: { promptInject: false },
+        },
+      })
+      expect(output).toContain('affinityInitial: 0')
+      expect(output).toContain('promptInject: false')
+    })
+
+    it('should tolerate unknown fields (soft schema warning, not throw)', () => {
+      const md = `---
+id: legacy
+name: Legacy
+attributes:
+  profile:
+    age: 20
+    unknownField: should-be-warned
+---
+`
+      // 应该 parse 成功（schema 只 warn 不抛错）
+      const char = parseCharacterMd(md)
+      expect(char.id).toBe('legacy')
+      // profile 里的未知字段会被原样保留（因为我们没做 strip）
+      expect((char.attributes?.profile as any)?.unknownField).toBe('should-be-warned')
+    })
+
+    it('should be absent from character without attributes', () => {
+      const char = parseCharacterMd(`---
+id: plain
+name: Plain
+---
+`)
+      expect(char.attributes).toBeUndefined()
+      // 往返也不应出现 attributes 字段
+      expect(stringifyCharacterMd(char)).not.toContain('attributes')
+    })
+  })
 })

@@ -18,6 +18,143 @@ export interface AdvCharacterRelationship {
 }
 
 /**
+ * 属性模板 ID
+ * - `universal` 通用基础字段
+ * - `galgame`   恋爱/视觉小说向扩展
+ * - `rpg`       奇幻 / RPG 六维属性
+ */
+export type AdvCharacterTemplate = 'universal' | 'galgame' | 'rpg'
+
+/**
+ * Universal 通用属性（所有模板共享的基础字段）
+ */
+export interface AdvCharacterProfile {
+  /** 年龄（可为数字或描述，如 `17`、`不详`） */
+  age?: number | string
+  /** 性别 */
+  gender?: string
+  /** 职业 / 身份 */
+  occupation?: string
+  /** 性格关键词（tag 数组） */
+  personalityTags?: string[]
+  /** 外貌要点（一句话总结，详细描述仍放在 ## 外貌 body section） */
+  appearanceSummary?: string
+}
+
+/**
+ * Galgame / 恋爱向扩展字段
+ */
+export interface AdvCharacterGalgameAttrs {
+  /** 生日（`MM-DD` 或自由文本） */
+  birthday?: string
+  /** 血型 */
+  bloodType?: 'A' | 'B' | 'AB' | 'O' | string
+  /** 星座 */
+  zodiac?: string
+  /** 身高（cm 或自由文本） */
+  height?: string
+  /** 喜好 */
+  likes?: string[]
+  /** 讨厌 */
+  dislikes?: string[]
+  /**
+   * 玩家好感度的初始值（运行时数值请放 dynamicState，避免污染 frontmatter）
+   */
+  affinityInitial?: number
+}
+
+/**
+ * RPG 六维属性
+ */
+export interface AdvCharacterRpgStats {
+  /** 力量 Strength */
+  str?: number
+  /** 敏捷 Dexterity */
+  dex?: number
+  /** 智力 Intelligence */
+  int?: number
+  /** 体质 Constitution */
+  con?: number
+  /** 感知 Wisdom */
+  wis?: number
+  /** 魅力 Charisma */
+  cha?: number
+}
+
+/**
+ * RPG / 奇幻扩展字段
+ */
+export interface AdvCharacterRpgAttrs {
+  /** 种族 */
+  race?: string
+  /** 职业 / 阶级 */
+  class?: string
+  /** 等级 */
+  level?: number
+  /** 六维属性 */
+  stats?: AdvCharacterRpgStats
+  /** 生命值初始值（运行时数值放 dynamicState） */
+  hpInitial?: number
+  /** 魔法值初始值（运行时数值放 dynamicState） */
+  mpInitial?: number
+  /** 技能列表 */
+  skills?: string[]
+  /** 装备 */
+  equipment?: string[]
+  /** 阵营（守序善良等） */
+  alignment?: string
+}
+
+/**
+ * 自定义字段条目（用户扩展）
+ */
+export interface AdvCharacterCustomField {
+  /** 字段展示名 */
+  label: string
+  /** 字段值（简单值 / 数组） */
+  value: string | number | string[]
+}
+
+/**
+ * 属性面板的 AI 控制
+ */
+export interface AdvCharacterAttributesAi {
+  /**
+   * 是否整个 attributes 面板注入系统提示词
+   * @default true
+   */
+  promptInject?: boolean
+  /**
+   * 字段级黑名单（以 `path.to.field` 表示，如 `galgame.bloodType`）
+   * 列表中的字段不会注入 AI 上下文
+   */
+  excludeFields?: string[]
+}
+
+/**
+ * 结构化角色属性
+ *
+ * @remarks
+ * 本字段承载「作者手写的静态 Profile」，不要塞运行时状态或 AI 自动提取的记忆。
+ * - 运行时状态 → `AdvCharacter.dynamicState`（不持久化到 `.character.md`）
+ * - AI 记忆     → IndexedDB 的 `useCharacterMemoryStore`
+ */
+export interface AdvCharacterAttributes {
+  /** 启用的模板 ID（影响 Studio UI 展示哪些字段组） */
+  template?: AdvCharacterTemplate
+  /** Universal 基础字段 */
+  profile?: AdvCharacterProfile
+  /** Galgame 扩展字段 */
+  galgame?: AdvCharacterGalgameAttrs
+  /** RPG 扩展字段 */
+  rpg?: AdvCharacterRpgAttrs
+  /** 自定义字段（key = 字段标识） */
+  custom?: Record<string, AdvCharacterCustomField>
+  /** AI 控制 */
+  ai?: AdvCharacterAttributesAi
+}
+
+/**
  * .character.md frontmatter 的类型定义
  * 每个字段与 YAML frontmatter 键一一对应
  */
@@ -67,6 +204,13 @@ export interface AdvCharacterFrontmatter {
    * 用于 AI 系统提示词，指定角色使用的对话语言
    */
   language?: 'zh' | 'en' | 'ja'
+  /**
+   * @zh 结构化属性（可选）
+   *
+   * 作者手写的静态 profile，按模板分组存放。不要塞运行时状态或 AI 记忆。
+   * @see AdvCharacterAttributes
+   */
+  attributes?: AdvCharacterAttributes
 }
 
 /**

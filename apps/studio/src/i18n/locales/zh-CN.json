@@ -963,7 +963,82 @@
     "saveTypeCharacter": "角色",
     "saveTypeChapter": "章节",
     "saveTypeScene": "场景",
-    "saveToProject": "保存{type}「{label}」到项目"
+    "saveToProject": "保存{type}「{label}」到项目",
+    "attributes": {
+      "title": "属性（可选）",
+      "hint": "启用后可为角色补充结构化属性，写入 frontmatter。适合偏好结构化设定的创作者；留空不影响原有使用。",
+      "templates": {
+        "universal": "通用",
+        "galgame": "恋爱",
+        "rpg": "奇幻"
+      },
+      "profile": "基础资料",
+      "age": "年龄",
+      "agePlaceholder": "例如 17 或「不详」",
+      "gender": "性别",
+      "genderPlaceholder": "例如 女/男/其他",
+      "occupation": "职业 / 身份",
+      "occupationPlaceholder": "例如 高中生",
+      "personalityTags": "性格关键词",
+      "personalityTagsPlaceholder": "添加标签，回车确认",
+      "appearanceSummary": "外貌一句话",
+      "appearanceSummaryPlaceholder": "一句话概括；详细描述写在上方「外貌」",
+      "galgame": {
+        "heading": "恋爱 / 视觉小说",
+        "birthday": "生日",
+        "birthdayPlaceholder": "03-14 或自由文本",
+        "bloodType": "血型",
+        "zodiac": "星座",
+        "zodiacPlaceholder": "例如 双鱼座",
+        "height": "身高",
+        "likes": "喜好",
+        "dislikes": "讨厌",
+        "affinityInitial": "初始好感度",
+        "affinityInitialHelper": "初始值。运行时变化请在对话中自动更新，不写入文件。"
+      },
+      "rpg": {
+        "heading": "奇幻 / RPG",
+        "race": "种族",
+        "racePlaceholder": "人类 / 精灵 / …",
+        "class": "职业",
+        "classPlaceholder": "游侠 / 法师 / …",
+        "level": "等级",
+        "stats": {
+          "str": "STR",
+          "dex": "DEX",
+          "int": "INT",
+          "con": "CON",
+          "wis": "WIS",
+          "cha": "CHA"
+        },
+        "hpInitial": "HP 初始值",
+        "hpInitialHelper": "初始值。当前血量走动态状态，不写入文件。",
+        "mpInitial": "MP 初始值",
+        "skills": "技能",
+        "equipment": "装备",
+        "alignment": "阵营",
+        "alignmentPlaceholder": "守序善良 / 混乱中立 / …"
+      },
+      "ai": {
+        "heading": "AI 控制",
+        "promptInject": "注入系统提示词",
+        "promptInjectHelper": "关闭后，属性字段不会进入 AI 角色扮演上下文。"
+      },
+      "custom": {
+        "heading": "自定义字段",
+        "hint": "超出预设模板的特殊属性写在这里，会按字段键写入 frontmatter。",
+        "label": "字段名",
+        "type": "类型",
+        "typeString": "文本",
+        "typeNumber": "数字",
+        "typeTags": "标签",
+        "value": "值",
+        "newLabel": "新字段名",
+        "newLabelPlaceholder": "例如 座右铭",
+        "add": "添加",
+        "labelRequired": "请输入字段名"
+      }
+    }
   },
   "systemPrompt": {
     "common": {

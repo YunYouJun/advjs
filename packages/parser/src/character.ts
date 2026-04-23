@@ -1,6 +1,7 @@
 import type { AdvCharacter, AdvCharacterBody, AdvCharacterFrontmatter } from '@advjs/types'
 import { LANGUAGE_LABELS } from '@advjs/types'
 import yaml from 'js-yaml'
+import { CharacterFrontmatterSchema, formatCharacterFrontmatterError } from './schemas/character'
 
 /**
  * Regex for matching ## heading lines (module-level for performance)
@@ -59,6 +60,7 @@ const FRONTMATTER_KEYS: (keyof AdvCharacterFrontmatter)[] = [
   'language',
   'tachies',
   'relationships',
+  'attributes',
 ]
 
 /**
@@ -75,6 +77,14 @@ export function parseCharacterMd(content: string): AdvCharacter {
     throw new Error('Character .character.md must have a string `id` in frontmatter')
   if (!fm.name || typeof fm.name !== 'string')
     throw new Error('Character .character.md must have a string `name` in frontmatter')
+
+  // Schema 软校验：失败时 warn 不抛错，保证向后兼容
+  const schemaResult = CharacterFrontmatterSchema.safeParse(fm)
+  if (!schemaResult.success) {
+    console.warn(
+      `[advjs/parser] Character frontmatter schema warnings for "${fm.id}":\n${formatCharacterFrontmatterError(schemaResult.error)}`,
+    )
+  }
 
   // 解析 body sections
   const bodySections = parseBodySections(body)
@@ -97,6 +107,7 @@ export function parseCharacterMd(content: string): AdvCharacter {
     language: fm.language,
     tachies: fm.tachies,
     relationships: fm.relationships,
+    attributes: fm.attributes,
     ...bodySections,
   }
 
@@ -114,14 +125,31 @@ export function stringifyCharacterMd(character: AdvCharacter): string {
   const fm: Record<string, any> = {}
   for (const key of FRONTMATTER_KEYS) {
     const value = character[key]
-    if (value !== undefined && value !== null && value !== '') {
-      // 跳过空数组和空对象
-      if (Array.isArray(value) && value.length === 0)
-        continue
-      if (typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length === 0)
+    if (value === undefined || value === null || value === '')
+      continue
+
+    // 对象/数组按照类型剔除空值
+    if (Array.isArray(value)) {
+      if (value.length === 0)
         continue
       fm[key] = value
+      continue
     }
+
+    if (typeof value === 'object') {
+      // 对 attributes 做深度剔除，避免写入空子对象（如 `profile: {}`）
+      const pruned = key === 'attributes'
+        ? pruneEmpty(value as Record<string, any>)
+        : value
+      if (pruned === undefined)
+        continue
+      if (typeof pruned === 'object' && !Array.isArray(pruned) && Object.keys(pruned).length === 0)
+        continue
+      fm[key] = pruned
+      continue
+    }
+
+    fm[key] = value
   }
 
   const yamlStr = yaml.dump(fm, {
@@ -147,6 +175,34 @@ export function stringifyCharacterMd(character: AdvCharacter): string {
     return `---\n${yamlStr}\n---\n\n${bodyStr}\n`
   }
   return `---\n${yamlStr}\n---\n`
+}
+
+/**
+ * 递归剔除空对象/空数组/空字符串/undefined。
+ * 返回 `undefined` 表示整个子树都是空。
+ *
+ * 保留：
+ * - 数字 `0` / 布尔 `false`（这些是有效值，不应被当成空）
+ */
+function pruneEmpty(value: any): any {
+  if (value === undefined || value === null || value === '')
+    return undefined
+
+  if (Array.isArray(value)) {
+    return value.length === 0 ? undefined : value
+  }
+
+  if (typeof value === 'object') {
+    const result: Record<string, any> = {}
+    for (const [k, v] of Object.entries(value)) {
+      const pruned = pruneEmpty(v)
+      if (pruned !== undefined)
+        result[k] = pruned
+    }
+    return Object.keys(result).length === 0 ? undefined : result
+  }
+
+  return value
 }
 
 /**

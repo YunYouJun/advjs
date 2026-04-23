@@ -15,6 +15,18 @@
     "url": "https://github.com/YunYouJun/advjs"
   },
   "bugs": "https://github.com/YunYouJun/advjs/issues",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
+    },
+    "./client": {
+      "types": "./client.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "dist/index.mjs",
   "module": "dist/index.mjs",
   "types": "index.d.ts",
   "files": [

@@ -963,7 +963,82 @@
     "saveTypeCharacter": "character",
     "saveTypeChapter": "chapter",
     "saveTypeScene": "scene",
-    "saveToProject": "Save {type} \"{label}\" to project"
+    "saveToProject": "Save {type} \"{label}\" to project",
+    "attributes": {
+      "title": "Attributes (optional)",
+      "hint": "Add structured fields persisted to frontmatter. Useful for creators who prefer schema-driven data; safe to leave off.",
+      "templates": {
+        "universal": "Universal",
+        "galgame": "Romance",
+        "rpg": "RPG"
+      },
+      "profile": "Profile",
+      "age": "Age",
+      "agePlaceholder": "e.g. 17 or \"unknown\"",
+      "gender": "Gender",
+      "genderPlaceholder": "e.g. female / male / other",
+      "occupation": "Occupation",
+      "occupationPlaceholder": "e.g. high school student",
+      "personalityTags": "Personality tags",
+      "personalityTagsPlaceholder": "Type and press Enter",
+      "appearanceSummary": "Appearance (one-liner)",
+      "appearanceSummaryPlaceholder": "One sentence; full description goes into the Appearance field above",
+      "galgame": {
+        "heading": "Romance / VN",
+        "birthday": "Birthday",
+        "birthdayPlaceholder": "03-14 or free text",
+        "bloodType": "Blood type",
+        "zodiac": "Zodiac",
+        "zodiacPlaceholder": "e.g. Pisces",
+        "height": "Height",
+        "likes": "Likes",
+        "dislikes": "Dislikes",
+        "affinityInitial": "Initial affinity",
+        "affinityInitialHelper": "Starting value. Runtime changes live in dynamic state, not in the file."
+      },
+      "rpg": {
+        "heading": "Fantasy / RPG",
+        "race": "Race",
+        "racePlaceholder": "Human / Elf / …",
+        "class": "Class",
+        "classPlaceholder": "Ranger / Mage / …",
+        "level": "Level",
+        "stats": {
+          "str": "STR",
+          "dex": "DEX",
+          "int": "INT",
+          "con": "CON",
+          "wis": "WIS",
+          "cha": "CHA"
+        },
+        "hpInitial": "HP (initial)",
+        "hpInitialHelper": "Starting value. Current HP lives in dynamic state.",
+        "mpInitial": "MP (initial)",
+        "skills": "Skills",
+        "equipment": "Equipment",
+        "alignment": "Alignment",
+        "alignmentPlaceholder": "Lawful Good / Chaotic Neutral / …"
+      },
+      "ai": {
+        "heading": "AI control",
+        "promptInject": "Inject into AI system prompt",
+        "promptInjectHelper": "When off, attribute fields are not included in the AI roleplay context."
+      },
+      "custom": {
+        "heading": "Custom fields",
+        "hint": "Author-specific attributes beyond the built-in templates. Each row writes a key under `custom.*` in frontmatter.",
+        "label": "Label",
+        "type": "Type",
+        "typeString": "Text",
+        "typeNumber": "Number",
+        "typeTags": "Tags",
+        "value": "Value",
+        "newLabel": "New field label",
+        "newLabelPlaceholder": "e.g. Favorite quote",
+        "add": "Add",
+        "labelRequired": "Label required"
+      }
+    }
   },
   "systemPrompt": {
     "common": {

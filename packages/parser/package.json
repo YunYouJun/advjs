@@ -59,7 +59,8 @@
     "remark-rehype": "catalog:unified",
     "to-vfile": "catalog:unified",
     "unified": "catalog:unified",
-    "vfile-matter": "catalog:unified"
+    "vfile-matter": "catalog:unified",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@types/js-yaml": "catalog:types",

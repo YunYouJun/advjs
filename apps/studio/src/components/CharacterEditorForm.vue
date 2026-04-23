@@ -21,6 +21,7 @@ import { useI18n } from 'vue-i18n'
 import { useAiSettingsStore } from '../stores/useAiSettingsStore'
 import { buildImagePromptTemplate, generateImage, isImageGenerationAvailable } from '../utils/aiImageClient'
 import { getCharacterInitials, getValidAvatarUrl } from '../utils/chatUtils'
+import CharacterAttributesPanel from './CharacterAttributesPanel.vue'
 import RelationshipEditor from './RelationshipEditor.vue'
 import TagsInput from './TagsInput.vue'
 
@@ -427,6 +428,9 @@ async function handleAiImage(target: 'avatar' | 'tachie' = 'avatar') {
         </IonItem>
       </IonList>
     </div>
+
+    <!-- ═══ Section: Structured Attributes (optional) ═══ -->
+    <CharacterAttributesPanel v-model="model" />
 
     <!-- ═══ Section: Sprites / Tachies ═══ -->
     <div class="cef-section">
