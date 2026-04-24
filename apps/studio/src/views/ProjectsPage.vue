@@ -21,7 +21,7 @@ import {
   IonToolbar,
   toastController,
 } from '@ionic/vue'
-import { addOutline, cloudDownloadOutline, cloudUploadOutline, downloadOutline, folderOpenOutline, linkOutline, saveOutline, storefrontOutline, trashOutline } from 'ionicons/icons'
+import { addOutline, cloudDownloadOutline, cloudUploadOutline, downloadOutline, folderOpenOutline, linkOutline, saveOutline, sparklesOutline, storefrontOutline, trashOutline } from 'ionicons/icons'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import LayoutPage from '../components/common/LayoutPage.vue'
@@ -700,6 +700,15 @@ function getGradientForIndex(index: number): string {
             <span>{{ t('projects.createProjectDesc') }}</span>
           </span>
         </button>
+        <button class="action-card action-card--highlight" @click="$router.push('/tabs/workspace/import-source')">
+          <span class="action-card__icon">
+            <IonIcon :icon="sparklesOutline" />
+          </span>
+          <span class="action-card__text">
+            <strong>{{ t('importSource.entryCard') }}</strong>
+            <span>{{ t('importSource.entryCardDesc') }}</span>
+          </span>
+        </button>
         <button class="action-card" @click="handleOpenLocal">
           <span class="action-card__icon">
             <IonIcon :icon="folderOpenOutline" />
@@ -975,6 +984,25 @@ function getGradientForIndex(index: number): string {
 
 .action-card:active {
   transform: scale(0.98);
+}
+
+/* Highlight variant used by the AI "from source" entry — slightly
+   pronounced border + gradient icon background to draw attention without
+   breaking the overall card rhythm. */
+.action-card--highlight {
+  border-color: color-mix(in srgb, var(--ion-color-primary) 50%, transparent);
+  box-shadow:
+    var(--adv-shadow-subtle),
+    0 0 0 1px color-mix(in srgb, var(--ion-color-primary) 15%, transparent) inset;
+}
+
+.action-card--highlight .action-card__icon {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--ion-color-primary) 18%, transparent),
+    color-mix(in srgb, var(--ion-color-tertiary, var(--ion-color-primary)) 22%, transparent)
+  );
+  color: var(--ion-color-primary);
 }
 
 .action-card__icon {

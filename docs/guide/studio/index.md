@@ -137,6 +137,34 @@ linkedCharacters:
 2. 选择包含 ADV.JS 项目的文件夹
 3. Studio 自动检测项目结构
 
+### 从素材生成项目（AI 一键创建）
+
+> 📘 Phase M10 新功能 · Source-to-Project Pipeline。详见 [赛事设计文档](/studio/ai-contest-2026.md)。
+
+把一段文字素材（老人口述回忆、企业 SOP、培训手册等）一键变成可玩的 ADV 项目。
+
+1. 在工作区欢迎页点击「**从素材生成**」入口卡片（带 ✨ 图标）
+2. **Step 1：选择模板**
+   - `life-story` 人生故事（推荐）：把回忆文字变成多章人生剧
+   - `training-drill` 企业培训：把 SOP 变成员工角色扮演练习
+3. **Step 2：提供素材**
+   - 粘贴 1000-5000 字的纯文本 / Markdown / 聊天记录
+   - 也可点「选择文件」上传 `.txt` / `.md`
+   - 系统会实时显示预估 token 数和分段数
+   - 输入项目名称（会自动转为文件夹 slug）
+4. **Step 3：生成与预览**
+   - 左侧 **进度树** 实时点亮：characters → chapters → scenes → knowledge
+   - 右侧 **文件预览** 流式渲染生成出的 Markdown 文件
+   - 可随时点「取消生成」中断；失败步骤可重试，已生成的内容不会丢失
+5. **保存项目**
+   - 生成完成后点「保存到项目」，选择一个父目录
+   - 系统会在该目录下创建一个 slug 命名的子文件夹，写入全部文件
+   - 写入成功后自动切换到新项目，即刻可在 Play Tab 试玩
+
+**示范作品**：`examples/ai-contest/life-story/` 是一份预生成的 life-story 项目，可直接用「打开本地项目」加载体验。
+
+**要求**：使用前需先在 `我的 → 设置 → AI` 配置 OpenAI 兼容 Provider 的 API Key。任何支持 `/v1/chat/completions` 接口的服务都可以（DeepSeek、通义、智谱、豆包、Kimi 等）。
+
 ### 云同步设置
 
 1. 前往「我的」→「设置」→「云同步（COS）」

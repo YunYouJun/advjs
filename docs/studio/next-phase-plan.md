@@ -448,67 +448,94 @@
 
 ### Phase M10：Source-to-Project Pipeline 🚧 {#phase-m10}
 
-> 📅 2026-04-23 立项 · 目标：参赛 2026 AI 应用大赛
+> 📅 2026-04-23 立项 · 2026-04-24 聚焦收窄 · 目标：参赛 2026 AI 应用大赛
 >
-> 主赛道：**AI 提效**（通用素材 → 交互剧情引擎）
-> 副赛道：**AI 向善**（人生故事 / 触摸绘本 / 防诈剧场 Template）
+> 主攻赛道：**AI 向善 · 时光忆站**（life-story Template 主打）
+> 副攻演示：**AI 提效 · 企业培训**（training-drill Template 同引擎切换）
+>
+> 实施策略：**单 Template 端到端闭环** + **流式增量预览**（左进度树 / 右文件）+ **分发能力延后到 Phase M11**
 >
 > 详见 [`ai-contest-2026.md`](./ai-contest-2026.md)
 
 #### 核心命题
 
-现有 Studio 已覆盖完整"编辑—预览—分享"链路，但**项目冷启动门槛仍然偏高**：用户必须手动填写 characters / chapters / scenes。Phase M10 补齐最后一公里——**任意素材一键成项目**，让非技术用户（公益机构、培训师、老人、教师）也能在 60 秒内获得一个可玩可编辑的 ADV 作品。
+现有 Studio 已覆盖完整"编辑—预览—分享"链路，但**项目冷启动门槛仍然偏高**：用户必须手动填写 characters / chapters / scenes。Phase M10 补齐最后一公里——**一段回忆一键成项目**，让非技术用户（家人、培训师、老师）也能在 60 秒内获得一个可玩可编辑的 ADV 作品。
 
 ```
-素材（文本/PDF/语音/图文/聊天记录）
-    ↓  多模态归一化
-    ↓  LLM Pipeline（支持 Claude / OpenAI 兼容 Provider）
+素材（text / markdown / chat-log，W3 补 pdf/url）
+    ↓  sourceParser.ts 归一化
+    ↓  projectGenerator.ts LLM Pipeline（4 步 + 流式进度事件）
 生成 characters + chapters + scenes + knowledge
-    ↓  复用 useProjectExport / IndexedDB
-Studio 项目（可玩 / 可编辑 / 可分享 / 可导出 .advpkg）
+    ↓  useProjectImport + writeTemplateFiles
+Studio 项目（可玩 / 可编辑 / 可导出 .advpkg）
 ```
 
 #### M10.1 Source-to-Project 核心 Pipeline
 
-| 新增文件                                               | 作用                                                                        |
-| ------------------------------------------------------ | --------------------------------------------------------------------------- |
-| `apps/studio/src/utils/sourceParser.ts`                | 多格式素材归一化（text/pdf/markdown/audio/image/chat-log → structured doc） |
-| `apps/studio/src/utils/projectGenerator.ts`            | LLM 分步生成 characters → chapters → scenes → knowledge，支持流式进度       |
-| `apps/studio/src/composables/useProjectImport.ts`      | 生成任务状态机 + 预览 + 用户确认 + 写盘                                     |
-| `apps/studio/src/views/workspace/ImportSourcePage.vue` | 素材上传向导（多步骤 Stepper）                                              |
+**技术底已打好（88% 可复用）**：
+
+| 文件                                                | 状态      | 说明                                                                   |
+| --------------------------------------------------- | --------- | ---------------------------------------------------------------------- |
+| `apps/studio/src/utils/sourceParser.ts`             | ✅ 已完成 | W1 的 text/markdown/chat-log 已齐，W3 补 pdf/url（赛后补 image/audio） |
+| `apps/studio/src/utils/sourceChunk.ts`              | ✅ 已完成 | 按 heading 分段 + token 估算                                           |
+| `apps/studio/src/utils/projectGenerator.ts`         | ✅ 已完成 | 582 行，4 步 LLM Pipeline + zod schema 校验 + `GenerateProgressEvent`  |
+| `apps/studio/src/utils/projectGenerator/prompts.ts` | ✅ 已完成 | Prompt Caching 友好的 byte-identical 前缀                              |
+| `apps/studio/src/utils/projectGenerator/schemas.ts` | ✅ 已完成 | 4 种 JSON 输出的 zod schema                                            |
+| `apps/studio/src/utils/templates/loadTemplate.ts`   | ✅ 已完成 | YAML Template 加载器                                                   |
+| 单元测试                                            | ✅ 已完成 | sourceParser / sourceChunk / projectGenerator / templates 等 7+ 文件   |
+
+**Week 1 待建（UX 层）**：
+
+| 文件                                                   | 状态      | 作用                                                                       |
+| ------------------------------------------------------ | --------- | -------------------------------------------------------------------------- |
+| `apps/studio/src/composables/useProjectImport.ts`      | 🚧 Week 1 | 订阅 `GenerateProgressEvent` 的响应式状态机 + previewFiles + confirm/abort |
+| `apps/studio/src/views/workspace/ImportSourcePage.vue` | 🚧 Week 1 | **左进度树 + 右流式预览** 向导（本次参赛的核心差异化体验）                 |
+| 路由接入 + ProjectsPage 入口卡片 + i18n                | 🚧 Week 1 | `/tabs/workspace/import-source`                                            |
 
 复用基础设施：
 
-- 复用 `claude-api` skill 规范的 Prompt Caching 策略（system prompt + 素材 片段缓存）
-- 复用 `resolveAiConfig.ts` 的 provider 抽象
-- 复用 `embeddingClient.ts` 做素材分段语义去重
+- `claude-api` skill 规范的 Prompt Caching（已体现在 prompts.ts 的前缀对齐）
+- `resolveAiConfig.ts` / `aiClient.ts` 的 streamChat + AbortController
+- `projectTemplate.ts` 的 `TemplateFile` 和 `writeTemplateFiles`（共享写盘循环）
 
 #### M10.2 Template 系统
 
-| 新增文件                                          | 内容                                            |
-| ------------------------------------------------- | ----------------------------------------------- |
-| `apps/studio/src/templates/life-story.yaml`       | 人生故事 Template（对接 AI 向善·时光忆站）      |
-| `apps/studio/src/templates/touch-book.yaml`       | 触摸绘本配套教学 Template（对接 AI 向善·课题1） |
-| `apps/studio/src/templates/training-drill.yaml`   | 企业培训剧本 Template（对接 AI 提效）           |
-| `apps/studio/src/templates/anti-fraud.yaml`       | 防诈剧场 Template（AI 向善·老年人）             |
-| `apps/studio/src/templates/customer-service.yaml` | 客诉话术练习 Template（AI 提效·客服培训）       |
+**本届参赛 Template**：
 
-每个 Template 规定：系统 Prompt、默认角色设定、章节节奏、推荐 TTS 音色、推荐配图风格。
+| 文件                                            | 状态      | 角色                                   |
+| ----------------------------------------------- | --------- | -------------------------------------- |
+| `apps/studio/src/templates/life-story.yaml`     | ✅ 已就绪 | **主攻**：人生故事（AI 向善·时光忆站） |
+| `apps/studio/src/templates/training-drill.yaml` | ✅ 已就绪 | **副攻演示**：企业培训（AI 提效）      |
 
-#### M10.3 一键分发
+**赛后扩展**（本届明确不做，仅占位说明引擎可扩展）：
 
-- 生成项目后自动静态化构建 → 专属二维码（复用 `modern-screenshot`）
-- 短链 / 分享卡片（社交媒体）
-- 扫码即 Play，无需登录、无需安装
+- `touch-book.yaml` 触摸绘本
+- `anti-fraud.yaml` 防诈剧场
+- `customer-service.yaml` 客诉话术
+- `medical-comm.yaml` 医患沟通
 
-#### M10.4 赛事交付物
+每个 Template 规定：系统 Prompt、默认角色 archetypes、章节节奏、推荐 TTS 音色、推荐配图风格。
 
-| 交付物                                   | 位置                             |
-| ---------------------------------------- | -------------------------------- |
-| Agent / Skill 平台集成：「ADV 故事工坊」 | 独立 skill 仓库                  |
-| 3 个示范作品                             | `examples/ai-contest/*`          |
-| 参赛文档                                 | `docs/studio/ai-contest-2026.md` |
-| Demo 视频（90s）                         | 参赛提交材料                     |
+#### M10.3 一键分发 · **延后到 Phase M11**
+
+本届赛事窗口期**不做**以下分发能力，但**纳入 Phase M11 正式排期**继续建设：
+
+- ⏭ 生成项目后静态化构建 + 专属二维码（复用 `modern-screenshot`）
+- ⏭ 短链 / 分享卡片
+- ⏭ 扫码即 Play 的公网访问
+
+赛事现场的分享渠道是：**导出 `.advpkg` 包 + 本地 Play**（均已在前序 Phase 完成）。
+
+#### M10.4 赛事交付物（必选 4 条）
+
+| 交付物                        | 位置                                            | 验收标准                                               |
+| ----------------------------- | ----------------------------------------------- | ------------------------------------------------------ |
+| ImportSourcePage 向导         | `apps/studio/src/views/workspace/`              | life-story × text/markdown/chat-log 跑通 + UX 7 条标准 |
+| Source-to-Project Pipeline    | `utils/sourceParser.ts` + `projectGenerator.ts` | 单项目 < 60s · Cache Hit >70% · AiBridge 测试覆盖      |
+| life-story 示范作品           | `examples/ai-contest/life-story/`               | 一段真实或合成口述 → 完整可玩 ADV，作为评审 Fallback   |
+| Demo 视频（90s） + 本参赛文档 | 赛事材料 + `docs/studio/ai-contest-2026.md`     | 贴素材 → 左进度右预览 → 进入 Play                      |
+
+**加分项**（做到就加，不阻塞交付）：training-drill 演示（Week 2 已纳入计划）· 无障碍 · TTS 音色自动分配 · Agent 平台 Skill · 学习数据看板 · 离线可用
 
 ---
 
