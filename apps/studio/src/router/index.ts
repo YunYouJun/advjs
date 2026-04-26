@@ -143,6 +143,10 @@ const routes: Array<RouteRecordRaw> = [
         path: 'me/portfolio',
         component: () => import('@/views/me/PortfolioPage.vue'),
       },
+      {
+        path: 'me/analytics',
+        component: () => import('@/views/me/CreatorAnalyticsPage.vue'),
+      },
     ],
   },
   {
@@ -156,6 +160,10 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/share/:projectId',
     component: () => import('@/views/ProjectSharePage.vue'),
+  },
+  {
+    path: '/s/:code',
+    component: () => import('@/views/ShortLinkRedirectPage.vue'),
   },
   {
     path: '/creator/:uid',

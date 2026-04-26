@@ -27,11 +27,12 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/vue'
-import { chatbubbleOutline, openOutline, shareOutline } from 'ionicons/icons'
+import { chatbubbleOutline, linkOutline, openOutline, shareOutline } from 'ionicons/icons'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import QRCodeGenerator from '../components/QRCodeGenerator.vue'
+import { useShortLink } from '../composables/useShortLink'
 import { createFileSystem } from '../utils/fs'
 import { buildImportUrl, setProjectOgMeta } from '../utils/ogMeta'
 import { showToast } from '../utils/toast'
@@ -56,6 +57,41 @@ const summary = ref<ShareProjectSummary | null>(null)
 const projectId = computed(() => (route.params.projectId as string) || '')
 const shareUrl = computed(() => window.location.href)
 const importUrl = computed(() => buildImportUrl(projectId.value))
+
+// Short link integration
+const { isCreating: isCreatingShortLink, createShortLink } = useShortLink()
+const shortUrl = ref<string | null>(null)
+
+let cloudApp: any = null
+try {
+  const { useCloudbase } = await import('../composables/useCloudbase')
+  cloudApp = useCloudbase().app
+}
+catch {
+  // CloudBase not configured
+}
+
+const qrValue = computed(() => shortUrl.value || importUrl.value)
+
+async function handleGenerateShortLink() {
+  if (!cloudApp || !summary.value)
+    return
+  const result = await createShortLink(cloudApp, {
+    targetUrl: shareUrl.value,
+    projectId: projectId.value,
+  })
+  if (result) {
+    shortUrl.value = result.url
+    showToast(t('sharePreview.shortLinkReady'))
+  }
+}
+
+async function handleCopyShortLink() {
+  if (!shortUrl.value)
+    return
+  await navigator.clipboard.writeText(shortUrl.value)
+  showToast(t('sharePreview.linkCopied'))
+}
 
 onMounted(async () => {
   if (!projectId.value) {
@@ -279,11 +315,34 @@ async function handleShare() {
             {{ t('sharePreview.scanTitle') || 'Scan to Open on Another Device' }}
           </h2>
           <div class="share-qr-box">
-            <QRCodeGenerator :value="importUrl" :size="180" :show-actions="false" />
+            <QRCodeGenerator :value="qrValue" :size="180" :show-actions="false" />
           </div>
           <p class="share-qr-hint">
             {{ t('sharePreview.scanHint') || 'QR code points to the import URL for this project' }}
           </p>
+
+          <!-- Short link generation -->
+          <div v-if="cloudApp" class="share-shortlink">
+            <template v-if="shortUrl">
+              <div class="share-shortlink__url">
+                {{ shortUrl }}
+              </div>
+              <IonButton size="small" fill="clear" @click="handleCopyShortLink">
+                <IonIcon slot="start" :icon="linkOutline" />
+                {{ t('sharePreview.copyShortLink') }}
+              </IonButton>
+            </template>
+            <IonButton
+              v-else
+              size="small"
+              fill="outline"
+              :disabled="isCreatingShortLink"
+              @click="handleGenerateShortLink"
+            >
+              <IonIcon slot="start" :icon="linkOutline" />
+              {{ t('sharePreview.generateShortLink') }}
+            </IonButton>
+          </div>
         </section>
 
         <!-- Footer -->
@@ -516,6 +575,24 @@ async function handleShare() {
   margin: 12px 0 0;
   font-size: 12px;
   color: var(--adv-text-tertiary, #94a3b8);
+}
+
+.share-shortlink {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.share-shortlink__url {
+  padding: 8px 16px;
+  background: var(--adv-surface-elevated, #f8fafc);
+  border-radius: 8px;
+  font-family: monospace;
+  font-size: 14px;
+  color: #8b5cf6;
+  user-select: all;
 }
 
 /* ── Footer ── */

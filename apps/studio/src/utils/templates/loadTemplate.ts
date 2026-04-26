@@ -55,7 +55,7 @@ const REQUIRED_FIELDS: Array<keyof TemplateDef> = [
   'knowledgeExtraction',
 ]
 
-const ALLOWED_SOURCE_TYPES = new Set<SourceType>(['text', 'markdown', 'chat-log', 'pdf', 'url'])
+const ALLOWED_SOURCE_TYPES = new Set<SourceType>(['text', 'markdown', 'chat-log', 'pdf', 'url', 'image', 'audio'])
 
 // Vite glob: eager + raw. Returns { [path]: string } where string is the raw YAML.
 // The `query: '?raw'` + `import: 'default'` form is the recommended API; it

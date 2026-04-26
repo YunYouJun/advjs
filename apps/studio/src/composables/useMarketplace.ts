@@ -31,6 +31,10 @@ export interface MarketplaceRecord {
   packageSize?: number
   /** Marketplace status */
   status: MarketStatus
+  /** Template ID used to generate this project (for category filtering) */
+  templateId?: string
+  /** Featured flag (admin-set) */
+  featured?: boolean
   /** Stats snapshot */
   stats: {
     chapters: number

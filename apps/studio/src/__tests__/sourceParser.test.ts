@@ -110,12 +110,40 @@ describe('parseSource — template suggestion heuristics', () => {
   })
 })
 
-describe('parseSource — unsupported types', () => {
-  it('throws for pdf (Week 3 scope)', async () => {
-    await expect(parseSource({ type: 'pdf', content: '' })).rejects.toThrow(/Week 3/)
+describe('parseSource — pdf', () => {
+  it('rejects string content for PDF (must be Blob)', async () => {
+    await expect(parseSource({ type: 'pdf', content: 'not a blob' })).rejects.toThrow(/Blob/)
+  })
+})
+
+describe('parseSource — url', () => {
+  it('rejects non-HTTP URLs', async () => {
+    await expect(parseSource({ type: 'url', content: 'ftp://example.com' })).rejects.toThrow(/http/)
   })
 
-  it('throws for url (Week 3 scope)', async () => {
-    await expect(parseSource({ type: 'url', content: '' })).rejects.toThrow(/Week 3/)
+  it('rejects empty URLs', async () => {
+    await expect(parseSource({ type: 'url', content: '' })).rejects.toThrow(/http/)
+  })
+})
+
+describe('parseSource — image', () => {
+  it('rejects string content for image (must be Blob)', async () => {
+    await expect(parseSource({ type: 'image', content: 'not a blob' })).rejects.toThrow(/Blob/)
+  })
+
+  it('rejects image without AI config', async () => {
+    const blob = new Blob(['fake'], { type: 'image/png' })
+    await expect(parseSource({ type: 'image', content: blob })).rejects.toThrow(/AI config/)
+  })
+})
+
+describe('parseSource — audio', () => {
+  it('rejects string content for audio (must be Blob)', async () => {
+    await expect(parseSource({ type: 'audio', content: 'not a blob' })).rejects.toThrow(/Blob/)
+  })
+
+  it('rejects audio without AI config', async () => {
+    const blob = new Blob(['fake'], { type: 'audio/mp3' })
+    await expect(parseSource({ type: 'audio', content: blob })).rejects.toThrow(/AI config/)
   })
 })

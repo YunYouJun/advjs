@@ -1,16 +1,18 @@
 /**
- * Multi-format source normalization for Source-to-Project pipeline (Phase M10).
+ * Multi-format source normalization for Source-to-Project pipeline.
  *
- * Turns any raw input (text/markdown/chat-log, and later PDF/URL) into a
- * uniform {@link NormalizedSource} that the projectGenerator can consume
- * without caring about the original format.
+ * Turns any raw input into a uniform {@link NormalizedSource} that the
+ * projectGenerator can consume without caring about the original format.
  *
- * W1 scope: `text`, `markdown`, `chat-log`.
- * W3 scope: `pdf` (dynamic `pdfjs-dist`), `url` (fetch + readability fallback).
- * Post-contest: `image` (VLM OCR), `audio` (ASR).
+ * Supported source types:
+ *   - `text`, `markdown`, `chat-log` — string-based, parsed locally
+ *   - `pdf` — Blob-based, uses pdfjs-dist (dynamic import)
+ *   - `url` — string URL, fetched + extracted via @mozilla/readability
+ *   - `image` — Blob-based, OCR via Vision Language Model (requires AI config)
+ *   - `audio` — Blob-based, ASR via Whisper-compatible API (requires AI config)
  *
  * Pure-ish module — parsing uses `tokenEstimate` and `sourceChunk`, both of
- * which are deterministic. No network calls in W1.
+ * which are deterministic. PDF/URL add network calls. Image/Audio call AI APIs.
  */
 
 import type { SourceSegment } from './sourceChunk'
@@ -19,16 +21,18 @@ import { parseFrontmatterAndBody } from './mdFrontmatter'
 import { chunkByHeadings } from './sourceChunk'
 import { estimateTokens } from './tokenEstimate'
 
-export type SourceType = 'text' | 'markdown' | 'chat-log' | 'pdf' | 'url'
+export type SourceType = 'text' | 'markdown' | 'chat-log' | 'pdf' | 'url' | 'image' | 'audio'
 
 export interface SourceParseInput {
   type: SourceType
   /**
    * Either a raw string (already decoded) or a Blob/File to read.
-   * W1 only handles string; W3 adds File support for PDF.
+   * PDF/image/audio require Blob; text/markdown/chat-log/url use string.
    */
   content: string | Blob
   filename?: string
+  /** Required for image/audio sources that need AI processing */
+  aiConfig?: { baseURL: string, apiKey: string, model: string }
 }
 
 export interface SourceParseOptions {
@@ -71,8 +75,13 @@ export async function parseSource(
     case 'text':
       return parsePlainText(raw, { targetTokens, overlapTokens }, input.filename)
     case 'pdf':
+      return parsePdf(input.content, { targetTokens, overlapTokens }, input.filename)
     case 'url':
-      throw new Error(`[sourceParser] "${input.type}" is scheduled for Week 3, not yet implemented.`)
+      return parseUrlSource(raw, { targetTokens, overlapTokens })
+    case 'image':
+      return parseImage(input.content, { targetTokens, overlapTokens }, input.filename, input.aiConfig)
+    case 'audio':
+      return parseAudio(input.content, { targetTokens, overlapTokens }, input.filename, input.aiConfig)
     default: {
       const _exhaustive: never = input.type
       throw new Error(`[sourceParser] unknown source type: ${_exhaustive}`)
@@ -235,6 +244,8 @@ const SPEAKER_COLON_RE = /^([^：:]{1,30})[：:][ \t]*(\S.*)$/
 const LINE_SPLIT_RE = /\r?\n/
 const BODY_TITLE_RE = /^#[ \t]+(\S.*)$/m
 const EXT_RE = /\.[^.]+$/
+const MULTI_WS_RE = /\s{3,}/g
+const TRAILING_SLASH_RE = /\/+$/
 
 function parsePlainChat(raw: string): ChatMessage[] {
   const lines = raw.split(LINE_SPLIT_RE).map(l => l.trim()).filter(Boolean)
@@ -268,6 +279,298 @@ function parsePlainChat(raw: string): ChatMessage[] {
     }
   }
   return messages
+}
+
+// ---------------------------------------------------------------------------
+// PDF
+// ---------------------------------------------------------------------------
+
+/**
+ * Extract text from a PDF file using pdfjs-dist (dynamic import).
+ * The Blob/File is read page-by-page; text is concatenated with
+ * page-break markers that chunkByHeadings can split on.
+ */
+async function parsePdf(
+  content: string | Blob,
+  chunkOpts: { targetTokens: number, overlapTokens: number },
+  filename?: string,
+): Promise<NormalizedSource> {
+  if (typeof content === 'string')
+    throw new Error('[sourceParser] PDF source must be a Blob/File, not a string')
+
+  // Dynamic import — pdfjs-dist is ~300KB, only load when needed
+  const pdfjsLib = await import('pdfjs-dist')
+
+  // Set the worker source to the bundled worker
+  const pdfjsWorkerUrl = await import('pdfjs-dist/build/pdf.worker.min.mjs?url')
+  pdfjsLib.GlobalWorkerOptions.workerSrc = (pdfjsWorkerUrl as any).default
+
+  const arrayBuffer = await content.arrayBuffer()
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+
+  const pages: string[] = []
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i)
+    const textContent = await page.getTextContent()
+    const pageText = textContent.items
+      .map((item: any) => item.str)
+      .join(' ')
+      .trim()
+    if (pageText)
+      pages.push(`## Page ${i}\n\n${pageText}`)
+  }
+
+  const raw = pages.join('\n\n')
+  if (!raw.trim())
+    throw new Error('[sourceParser] PDF contains no extractable text')
+
+  const title = resolveTitle({ body: raw, filename })
+  const segments = chunkByHeadings(raw, chunkOpts)
+  const metadata: Record<string, string | number> = {
+    pageCount: pdf.numPages,
+    totalTokens: segments.reduce((sum, s) => sum + s.tokenEstimate, 0),
+    segmentCount: segments.length,
+  }
+
+  return {
+    type: 'pdf',
+    title,
+    segments,
+    metadata,
+    suggestedTemplateId: suggestTemplate({ title, body: raw, metadata }),
+    raw,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// URL
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetch a web page and extract readable content using @mozilla/readability.
+ * Falls back to stripping HTML tags if readability fails.
+ */
+async function parseUrlSource(
+  rawUrl: string,
+  chunkOpts: { targetTokens: number, overlapTokens: number },
+): Promise<NormalizedSource> {
+  const url = rawUrl.trim()
+  if (!url.startsWith('http://') && !url.startsWith('https://'))
+    throw new Error('[sourceParser] URL must start with http:// or https://')
+
+  // Fetch via a CORS proxy if direct fetch fails
+  let html: string
+  try {
+    const resp = await fetch(url)
+    html = await resp.text()
+  }
+  catch {
+    // Try a public CORS proxy as fallback
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
+    const resp = await fetch(proxyUrl)
+    html = await resp.text()
+  }
+
+  // Use Readability to extract article content
+  let raw: string
+  let articleTitle: string | undefined
+  try {
+    const { Readability } = await import('@mozilla/readability')
+    const doc = new DOMParser().parseFromString(html, 'text/html')
+    const article = new Readability(doc).parse()
+    raw = article?.textContent?.trim() || stripHtmlTags(html)
+    articleTitle = article?.title || undefined
+  }
+  catch {
+    raw = stripHtmlTags(html)
+  }
+
+  if (!raw.trim())
+    throw new Error('[sourceParser] No readable content found at URL')
+
+  const title = articleTitle || resolveTitle({ body: raw })
+  const segments = chunkByHeadings(raw, chunkOpts)
+  const metadata: Record<string, string | number> = {
+    sourceUrl: url,
+    totalTokens: segments.reduce((sum, s) => sum + s.tokenEstimate, 0),
+    segmentCount: segments.length,
+  }
+
+  return {
+    type: 'url',
+    title,
+    segments,
+    metadata,
+    suggestedTemplateId: suggestTemplate({ title, body: raw, metadata }),
+    raw,
+  }
+}
+
+/** Minimal HTML-to-text fallback when Readability is unavailable. */
+function stripHtmlTags(html: string): string {
+  const doc = new DOMParser().parseFromString(html, 'text/html')
+  for (const tag of ['script', 'style', 'nav', 'header', 'footer', 'aside'])
+    doc.querySelectorAll(tag).forEach(el => el.remove())
+  return (doc.body?.textContent || '').replace(MULTI_WS_RE, '\n\n').trim()
+}
+
+// ---------------------------------------------------------------------------
+// Image (VLM OCR)
+// ---------------------------------------------------------------------------
+
+/**
+ * Extract text from an image using a Vision Language Model (VLM).
+ * Converts the image to base64, sends to the configured AI endpoint.
+ */
+async function parseImage(
+  content: string | Blob,
+  chunkOpts: { targetTokens: number, overlapTokens: number },
+  filename?: string,
+  aiConfig?: { baseURL: string, apiKey: string, model: string },
+): Promise<NormalizedSource> {
+  if (typeof content === 'string')
+    throw new Error('[sourceParser] Image source must be a Blob/File, not a string')
+  if (!aiConfig)
+    throw new Error('[sourceParser] AI config required for image OCR. Please configure an AI provider in Settings.')
+
+  const arrayBuffer = await content.arrayBuffer()
+  const bytes = new Uint8Array(arrayBuffer)
+  let binary = ''
+  for (let i = 0; i < bytes.length; i++)
+    binary += String.fromCharCode(bytes[i])
+  const base64 = btoa(binary)
+  const mimeType = (content as File).type || 'image/png'
+  const dataUrl = `data:${mimeType};base64,${base64}`
+
+  const apiUrl = `${aiConfig.baseURL.replace(TRAILING_SLASH_RE, '')}/chat/completions`
+  const response = await fetch(apiUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${aiConfig.apiKey}`,
+    },
+    body: JSON.stringify({
+      model: aiConfig.model,
+      messages: [{
+        role: 'user',
+        content: [
+          {
+            type: 'text',
+            text: 'Extract ALL text from this image. Return only the extracted text, preserving the original layout and formatting as much as possible. Use Markdown headings for section titles if visible. Do not add any commentary.',
+          },
+          {
+            type: 'image_url',
+            image_url: { url: dataUrl },
+          },
+        ],
+      }],
+      max_tokens: 4096,
+      temperature: 0.1,
+    }),
+  })
+
+  if (!response.ok) {
+    const errText = await response.text().catch(() => '')
+    throw new Error(`[sourceParser] VLM OCR failed: HTTP ${response.status} ${errText.slice(0, 200)}`)
+  }
+
+  const json = await response.json()
+  const raw = json.choices?.[0]?.message?.content?.trim() || ''
+
+  if (!raw)
+    throw new Error('[sourceParser] VLM returned empty text for image')
+
+  const title = resolveTitle({ body: raw, filename })
+  const segments = chunkByHeadings(raw, chunkOpts)
+  const metadata: Record<string, string | number> = {
+    sourceType: 'image-ocr',
+    totalTokens: segments.reduce((sum, s) => sum + s.tokenEstimate, 0),
+    segmentCount: segments.length,
+  }
+
+  return {
+    type: 'image',
+    title,
+    segments,
+    metadata,
+    suggestedTemplateId: suggestTemplate({ title, body: raw, metadata }),
+    raw,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Audio (ASR via Whisper-compatible API)
+// ---------------------------------------------------------------------------
+
+/**
+ * Transcribe audio using a Whisper-compatible /audio/transcriptions endpoint.
+ */
+async function parseAudio(
+  content: string | Blob,
+  chunkOpts: { targetTokens: number, overlapTokens: number },
+  filename?: string,
+  aiConfig?: { baseURL: string, apiKey: string, model: string },
+): Promise<NormalizedSource> {
+  if (typeof content === 'string')
+    throw new Error('[sourceParser] Audio source must be a Blob/File, not a string')
+  if (!aiConfig)
+    throw new Error('[sourceParser] AI config required for audio ASR. Please configure an AI provider in Settings.')
+
+  const formData = new FormData()
+  formData.append('file', content, filename || 'audio.mp3')
+  formData.append('model', aiConfig.model || 'whisper-1')
+  formData.append('response_format', 'verbose_json')
+  formData.append('language', 'zh')
+
+  const apiUrl = `${aiConfig.baseURL.replace(TRAILING_SLASH_RE, '')}/audio/transcriptions`
+  const response = await fetch(apiUrl, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${aiConfig.apiKey}`,
+    },
+    body: formData,
+  })
+
+  if (!response.ok) {
+    const errText = await response.text().catch(() => '')
+    throw new Error(`[sourceParser] ASR failed: HTTP ${response.status} ${errText.slice(0, 200)}`)
+  }
+
+  const json = await response.json()
+  let raw: string
+  if (json.segments && Array.isArray(json.segments)) {
+    raw = json.segments
+      .map((seg: { start: number, text: string }) => {
+        const mins = Math.floor(seg.start / 60)
+        const secs = Math.floor(seg.start % 60)
+        return `[${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}] ${seg.text.trim()}`
+      })
+      .join('\n')
+  }
+  else {
+    raw = json.text || ''
+  }
+
+  if (!raw.trim())
+    throw new Error('[sourceParser] ASR returned empty transcription')
+
+  const title = resolveTitle({ body: raw, filename })
+  const segments = chunkByHeadings(raw, chunkOpts)
+  const metadata: Record<string, string | number> = {
+    sourceType: 'audio-asr',
+    duration: json.duration || 0,
+    totalTokens: segments.reduce((sum, s) => sum + s.tokenEstimate, 0),
+    segmentCount: segments.length,
+  }
+
+  return {
+    type: 'audio',
+    title,
+    segments,
+    metadata,
+    suggestedTemplateId: suggestTemplate({ title, body: raw, metadata }),
+    raw,
+  }
 }
 
 // ---------------------------------------------------------------------------

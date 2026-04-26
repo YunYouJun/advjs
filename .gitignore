@@ -78,3 +78,6 @@ release
 
 # codebuddy
 .codebuddy/memory
+
+# claude code
+.claude/scheduled_tasks.json

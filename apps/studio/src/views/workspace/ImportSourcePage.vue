@@ -85,6 +85,7 @@ const sourceInput = ref<{
   sourceType: SourceType
   sourceText: string
   projectName: string
+  sourceBlob?: Blob
 }>({
   sourceType: 'text',
   sourceText: '',
@@ -93,10 +94,15 @@ const sourceInput = ref<{
 
 const canAdvanceToStep2 = computed(() => !!selectedTemplate.value)
 const canAdvanceToStep3 = computed(
-  () =>
-    !!selectedTemplate.value
-    && sourceInput.value.sourceText.trim().length > 20
-    && sourceInput.value.projectName.trim().length > 0,
+  () => {
+    if (!selectedTemplate.value || !sourceInput.value.projectName.trim())
+      return false
+    // Blob-based sources (PDF, image, audio) only need a blob
+    if (['pdf', 'image', 'audio'].includes(sourceInput.value.sourceType))
+      return !!sourceInput.value.sourceBlob
+    // Text-based sources need sufficient text
+    return sourceInput.value.sourceText.trim().length > 20
+  },
 )
 
 // ---------- Derived: slug + AI readiness -------------------------------------
@@ -183,10 +189,23 @@ async function runGeneration() {
     return
 
   try {
+    // Build AI config for source types that need it (image OCR, audio ASR)
+    const needsAiForParse = ['image', 'audio'].includes(sourceInput.value.sourceType)
+    const aiConfigForParse = needsAiForParse
+      ? {
+          baseURL: aiSettings.effectiveBaseURL,
+          apiKey: aiSettings.config.apiKey,
+          model: sourceInput.value.sourceType === 'audio'
+            ? (aiSettings.config.asrModel || 'whisper-1')
+            : aiSettings.effectiveModel,
+        }
+      : undefined
+
     // Step 2a: parse source
     const source = await imp.startParse({
       type: sourceInput.value.sourceType,
-      content: sourceInput.value.sourceText,
+      content: sourceInput.value.sourceBlob || sourceInput.value.sourceText,
+      aiConfig: aiConfigForParse,
     })
 
     // Step 2b: run pipeline

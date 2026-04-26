@@ -1,0 +1,9 @@
+{
+  "name": "shortlink",
+  "version": "1.0.0",
+  "description": "ADV.JS Studio short link service",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^2.7.0"
+  }
+}

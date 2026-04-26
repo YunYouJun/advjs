@@ -13,12 +13,22 @@ export default antfu(
       '**/cache/**',
       '**/test-results/**',
       '**/CAPACITOR.md',
+      'MATERIAL_*.md',
+      'MISSING_*.md',
+      'TEMPLATE_*.md',
     ],
   },
   {
     files: ['packages/create-adv/templates/**/*'],
     rules: {
       // Disable catalog enforcement for template files
+      'pnpm/json-enforce-catalog': 'off',
+    },
+  },
+  {
+    files: ['apps/studio/cloud/functions/**/package.json'],
+    rules: {
+      // CloudBase functions are not workspace packages; catalog is unavailable
       'pnpm/json-enforce-catalog': 'off',
     },
   },

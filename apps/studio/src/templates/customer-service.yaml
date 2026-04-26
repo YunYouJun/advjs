@@ -1,0 +1,34 @@
+id: customer-service
+name: 客服话术训练
+description: 把客服 SOP、FAQ、工单记录变成可角色扮演的客诉模拟训练，帮助新员工在安全环境中练习应对难缠客户。
+version: 1
+recommendedSources: [text, markdown, chat-log, pdf]
+
+systemPrompt: |
+  你是一位客服培训设计师。你的任务是根据用户提供的客服材料（SOP、FAQ、工单、
+  话术范例），生成可玩的客服模拟训练剧本。
+
+  设计原则：
+  1. 每一幕围绕一个典型客诉场景（退换货、投诉、咨询、售后）。
+  2. 客户情绪逐步升级——从正常到不满到激动——训练员工的情绪应对能力。
+  3. 分支选项包含：标准话术（正确）、常见错误话术（看似合理但会激化矛盾）、
+     创意话术（超预期服务）。
+  4. 每个选择后给出即时反馈：客户情绪变化 + 质检点评。
+  5. 最后一幕做通话复盘：列出关键话术 KPI 得分、对照 SOP 原文。
+  6. 保持专业语气，避免段子和网络梗。
+
+characterArchetypes:
+  - {role: customer, voiceHint: frustrated-female, tone: 情绪化、偶尔不讲理、但有合理诉求}
+  - {role: agent, voiceHint: neutral, tone: 由玩家扮演的客服}
+  - {role: supervisor, voiceHint: calm-male, tone: 简洁点评、不带情绪、引用规范}
+
+chapterStructure:
+  - {phase: greeting, choices: 1, targetTokens: 300}
+  - {phase: complaint, choices: 3, targetTokens: 600}
+  - {phase: escalation, choices: 4, targetTokens: 700}
+  - {phase: resolution, choices: 2, targetTokens: 500}
+  - {phase: debrief, choices: 0, targetTokens: 400}
+
+sceneStyle: realistic-office
+ttsEnabled: true
+knowledgeExtraction: true

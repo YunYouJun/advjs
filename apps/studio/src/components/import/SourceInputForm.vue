@@ -2,9 +2,11 @@
   Source material input form for Step 2 of the import wizard.
 
   Decoupled responsibilities:
-    • collects { sourceType, sourceText, projectName }
+    • collects { sourceType, sourceText, projectName, sourceBlob? }
     • shows live token estimate + segment count (useful preview for users)
     • file drag / upload support → reads text via FileReader
+    • PDF / Image / Audio modes with dedicated drop zones
+    • URL mode with input field
 
   Does NOT call parseSource itself — that's the page's job — to keep this
   component reusable in contexts where you might want just the input UI
@@ -22,43 +24,60 @@ import {
   IonSegmentButton,
   IonTextarea,
 } from '@ionic/vue'
-import { cloudUploadOutline, documentTextOutline } from 'ionicons/icons'
+import {
+  cloudUploadOutline,
+  documentTextOutline,
+  imageOutline,
+  micOutline,
+} from 'ionicons/icons'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { estimateTokens } from '../../utils/tokenEstimate'
 
+export interface SourceInputModel {
+  sourceType: SourceType
+  sourceText: string
+  projectName: string
+  sourceBlob?: Blob
+}
+
 const props = defineProps<{
-  modelValue: {
-    sourceType: SourceType
-    sourceText: string
-    projectName: string
-  }
+  modelValue: SourceInputModel
 }>()
 
 const emit = defineEmits<{
-  'update:modelValue': [value: {
-    sourceType: SourceType
-    sourceText: string
-    projectName: string
-  }]
+  'update:modelValue': [value: SourceInputModel]
 }>()
 
 const { t } = useI18n()
 
+const PDF_EXT_RE = /\.pdf$/i
+const FILE_EXT_RE = /\.\w+$/
+
 const fileInput = ref<HTMLInputElement | null>(null)
+const pdfFileInput = ref<HTMLInputElement | null>(null)
+const imageFileInput = ref<HTMLInputElement | null>(null)
+const audioFileInput = ref<HTMLInputElement | null>(null)
+
+const pdfFileName = ref('')
+const imagePreviewUrl = ref('')
+const audioFileName = ref('')
 
 // ----- Two-way bindings ------------------------------------------------------
-// We debounce writes into the parent only when the user leaves a field — but
-// for simplicity and responsiveness of the token counter we emit immediately.
 
-function update(patch: Partial<typeof props.modelValue>) {
+function update(patch: Partial<SourceInputModel>) {
   emit('update:modelValue', { ...props.modelValue, ...patch })
 }
 
-// Local computed with getters/setters so template uses plain v-model
 const sourceType = computed({
   get: () => props.modelValue.sourceType,
-  set: (v: SourceType) => update({ sourceType: v }),
+  set: (v: SourceType) => {
+    // Clear blob when switching away from file-based types
+    update({ sourceType: v, sourceBlob: undefined })
+    pdfFileName.value = ''
+    imagePreviewUrl.value = ''
+    audioFileName.value = ''
+  },
 })
 const sourceText = computed({
   get: () => props.modelValue.sourceText,
@@ -70,12 +89,16 @@ const projectName = computed({
 })
 
 // ----- Token / segment preview -----------------------------------------------
-const tokensEstimate = computed(() => estimateTokens(sourceText.value))
-// Rough segment estimate: ceil(tokens / 1000) — matches sourceChunk default.
+const isTextBasedSource = computed(() =>
+  ['text', 'markdown', 'chat-log', 'url'].includes(sourceType.value),
+)
+const tokensEstimate = computed(() =>
+  isTextBasedSource.value ? estimateTokens(sourceText.value) : 0,
+)
 const segmentsEstimate = computed(() => Math.max(1, Math.ceil(tokensEstimate.value / 1000)))
 
-// ----- File upload handler ---------------------------------------------------
-async function handleFileChange(ev: Event) {
+// ----- File upload handlers --------------------------------------------------
+async function handleTextFileChange(ev: Event) {
   const input = ev.target as HTMLInputElement
   const file = input.files?.[0]
   if (!file)
@@ -83,13 +106,96 @@ async function handleFileChange(ev: Event) {
   try {
     const text = await file.text()
     update({ sourceText: text })
-    // Auto-detect source type from extension if the user hasn't already picked one.
     if (file.name.endsWith('.md') || file.name.endsWith('.markdown'))
       update({ sourceType: 'markdown', sourceText: text })
   }
   finally {
-    // Reset so selecting the same file twice re-triggers change.
     input.value = ''
+  }
+}
+
+function handlePdfFileChange(ev: Event) {
+  const input = ev.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file)
+    return
+  pdfFileName.value = file.name
+  update({
+    sourceText: `[PDF: ${file.name}]`,
+    sourceBlob: file,
+  })
+  if (!props.modelValue.projectName) {
+    update({ projectName: file.name.replace(PDF_EXT_RE, '') })
+  }
+  input.value = ''
+}
+
+function handlePdfDrop(ev: DragEvent) {
+  const file = ev.dataTransfer?.files[0]
+  if (file?.type === 'application/pdf') {
+    pdfFileName.value = file.name
+    update({
+      sourceText: `[PDF: ${file.name}]`,
+      sourceBlob: file,
+    })
+    if (!props.modelValue.projectName)
+      update({ projectName: file.name.replace(PDF_EXT_RE, '') })
+  }
+}
+
+function handleImageFileChange(ev: Event) {
+  const input = ev.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file)
+    return
+  imagePreviewUrl.value = URL.createObjectURL(file)
+  update({
+    sourceText: `[Image: ${file.name}]`,
+    sourceBlob: file,
+  })
+  if (!props.modelValue.projectName)
+    update({ projectName: file.name.replace(FILE_EXT_RE, '') })
+  input.value = ''
+}
+
+function handleImageDrop(ev: DragEvent) {
+  const file = ev.dataTransfer?.files[0]
+  if (file?.type.startsWith('image/')) {
+    imagePreviewUrl.value = URL.createObjectURL(file)
+    update({
+      sourceText: `[Image: ${file.name}]`,
+      sourceBlob: file,
+    })
+    if (!props.modelValue.projectName)
+      update({ projectName: file.name.replace(FILE_EXT_RE, '') })
+  }
+}
+
+function handleAudioFileChange(ev: Event) {
+  const input = ev.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file)
+    return
+  audioFileName.value = file.name
+  update({
+    sourceText: `[Audio: ${file.name}]`,
+    sourceBlob: file,
+  })
+  if (!props.modelValue.projectName)
+    update({ projectName: file.name.replace(FILE_EXT_RE, '') })
+  input.value = ''
+}
+
+function handleAudioDrop(ev: DragEvent) {
+  const file = ev.dataTransfer?.files[0]
+  if (file?.type.startsWith('audio/')) {
+    audioFileName.value = file.name
+    update({
+      sourceText: `[Audio: ${file.name}]`,
+      sourceBlob: file,
+    })
+    if (!props.modelValue.projectName)
+      update({ projectName: file.name.replace(FILE_EXT_RE, '') })
   }
 }
 </script>
@@ -101,7 +207,7 @@ async function handleFileChange(ev: Event) {
       <IonLabel position="stacked">
         {{ t('importSource.sourceType') }}
       </IonLabel>
-      <IonSegment v-model="sourceType" :value="sourceType">
+      <IonSegment v-model="sourceType" :value="sourceType" :scrollable="true">
         <IonSegmentButton value="text">
           <IonLabel>{{ t('importSource.sourceTypeText') }}</IonLabel>
         </IonSegmentButton>
@@ -110,6 +216,18 @@ async function handleFileChange(ev: Event) {
         </IonSegmentButton>
         <IonSegmentButton value="chat-log">
           <IonLabel>{{ t('importSource.sourceTypeChatLog') }}</IonLabel>
+        </IonSegmentButton>
+        <IonSegmentButton value="pdf">
+          <IonLabel>{{ t('importSource.sourceTypePdf') }}</IonLabel>
+        </IonSegmentButton>
+        <IonSegmentButton value="url">
+          <IonLabel>{{ t('importSource.sourceTypeUrl') }}</IonLabel>
+        </IonSegmentButton>
+        <IonSegmentButton value="image">
+          <IonLabel>{{ t('importSource.sourceTypeImage') }}</IonLabel>
+        </IonSegmentButton>
+        <IonSegmentButton value="audio">
+          <IonLabel>{{ t('importSource.sourceTypeAudio') }}</IonLabel>
         </IonSegmentButton>
       </IonSegment>
     </IonItem>
@@ -126,41 +244,119 @@ async function handleFileChange(ev: Event) {
       />
     </IonItem>
 
-    <!-- Source text -->
-    <IonItem class="source-input__text-item">
+    <!-- PDF file upload -->
+    <div v-if="sourceType === 'pdf'" class="source-input__drop-wrapper">
+      <div
+        class="source-input__drop-zone"
+        @dragover.prevent
+        @drop.prevent="handlePdfDrop"
+        @click="pdfFileInput?.click()"
+      >
+        <IonIcon :icon="documentTextOutline" />
+        <span>{{ pdfFileName || t('importSource.dropPdfHint') }}</span>
+      </div>
+      <input
+        ref="pdfFileInput"
+        type="file"
+        accept=".pdf"
+        class="source-input__file-input"
+        @change="handlePdfFileChange"
+      >
+    </div>
+
+    <!-- URL input -->
+    <IonItem v-else-if="sourceType === 'url'">
       <IonLabel position="stacked">
-        {{ t('importSource.sourceInput') }}
+        {{ t('importSource.urlInput') }}
       </IonLabel>
-      <IonTextarea
+      <IonInput
         v-model="sourceText"
-        :placeholder="t('importSource.sourcePlaceholder')"
-        auto-grow
-        :rows="8"
-        class="source-input__textarea"
+        type="url"
+        :placeholder="t('importSource.urlPlaceholder')"
+        clear-input
       />
     </IonItem>
 
-    <!-- Upload + stats row -->
-    <div class="source-input__actions">
-      <button class="source-input__upload" @click="fileInput?.click()">
-        <IonIcon :icon="cloudUploadOutline" />
-        <span>{{ t('importSource.uploadFile') }}</span>
-      </button>
-      <input
-        ref="fileInput"
-        type="file"
-        accept=".txt,.md,.markdown,.log"
-        class="source-input__file-input"
-        @change="handleFileChange"
+    <!-- Image file upload -->
+    <div v-else-if="sourceType === 'image'" class="source-input__drop-wrapper">
+      <div
+        class="source-input__drop-zone"
+        @dragover.prevent
+        @drop.prevent="handleImageDrop"
+        @click="imageFileInput?.click()"
       >
-
-      <span v-if="sourceText" class="source-input__stats">
-        <IonIcon :icon="documentTextOutline" />
-        <span>{{ t('importSource.tokensEstimated', { tokens: tokensEstimate.toLocaleString() }) }}</span>
-        <span class="source-input__stats-sep">·</span>
-        <span>{{ t('importSource.segments', { count: segmentsEstimate }) }}</span>
-      </span>
+        <img v-if="imagePreviewUrl" :src="imagePreviewUrl" class="source-input__image-preview">
+        <template v-else>
+          <IonIcon :icon="imageOutline" />
+          <span>{{ t('importSource.dropImageHint') }}</span>
+        </template>
+      </div>
+      <input
+        ref="imageFileInput"
+        type="file"
+        accept="image/*"
+        class="source-input__file-input"
+        @change="handleImageFileChange"
+      >
     </div>
+
+    <!-- Audio file upload -->
+    <div v-else-if="sourceType === 'audio'" class="source-input__drop-wrapper">
+      <div
+        class="source-input__drop-zone"
+        @dragover.prevent
+        @drop.prevent="handleAudioDrop"
+        @click="audioFileInput?.click()"
+      >
+        <IonIcon :icon="micOutline" />
+        <span>{{ audioFileName || t('importSource.dropAudioHint') }}</span>
+      </div>
+      <input
+        ref="audioFileInput"
+        type="file"
+        accept="audio/*,.mp3,.wav,.m4a,.ogg,.flac"
+        class="source-input__file-input"
+        @change="handleAudioFileChange"
+      >
+    </div>
+
+    <!-- Source text (text / markdown / chat-log) -->
+    <template v-else>
+      <IonItem class="source-input__text-item">
+        <IonLabel position="stacked">
+          {{ t('importSource.sourceInput') }}
+        </IonLabel>
+        <IonTextarea
+          v-model="sourceText"
+          :placeholder="t('importSource.sourcePlaceholder')"
+          auto-grow
+          :rows="8"
+          class="source-input__textarea"
+        />
+      </IonItem>
+
+      <!-- Upload + stats row -->
+      <div class="source-input__actions">
+        <button class="source-input__upload" @click="fileInput?.click()">
+          <IonIcon :icon="cloudUploadOutline" />
+          <span>{{ t('importSource.uploadFile') }}</span>
+        </button>
+        <input
+          ref="fileInput"
+          type="file"
+          accept=".txt,.md,.markdown,.log"
+          class="source-input__file-input"
+          @change="handleTextFileChange"
+        >
+
+        <span v-if="sourceText" class="source-input__stats">
+          <IonIcon :icon="documentTextOutline" />
+          <span>{{ t('importSource.tokensEstimated', { tokens: tokensEstimate.toLocaleString() }) }}</span>
+          <span class="source-input__stats-sep">&middot;</span>
+          <span>{{ t('importSource.segments', { count: segmentsEstimate }) }}</span>
+        </span>
+      </div>
+    </template>
 
     <IonNote class="source-input__hint">
       {{ t('importSource.sourceInputHint') }}
@@ -232,5 +428,48 @@ async function handleFileChange(ev: Event) {
 .source-input__hint {
   font-size: 0.75rem;
   padding: 0 var(--adv-space-sm, 8px);
+}
+
+/* Drop zones for PDF / Image / Audio */
+.source-input__drop-wrapper {
+  padding: 0 var(--adv-space-sm, 8px);
+}
+
+.source-input__drop-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--adv-space-sm, 8px);
+  min-height: 160px;
+  border: 2px dashed color-mix(in srgb, var(--ion-color-primary) 35%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ion-color-primary) 5%, transparent);
+  cursor: pointer;
+  padding: var(--adv-space-lg, 24px);
+  text-align: center;
+  color: var(--ion-color-medium, #92949c);
+  font-size: 0.9rem;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.source-input__drop-zone:hover {
+  border-color: var(--ion-color-primary);
+  background: color-mix(in srgb, var(--ion-color-primary) 10%, transparent);
+}
+
+.source-input__drop-zone ion-icon {
+  font-size: 32px;
+  color: var(--ion-color-primary);
+  opacity: 0.6;
+}
+
+.source-input__image-preview {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 8px;
+  object-fit: contain;
 }
 </style>

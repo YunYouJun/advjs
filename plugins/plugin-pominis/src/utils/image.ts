@@ -102,12 +102,12 @@ export async function fetchImageAsBase64(
 
     // 检查响应大小
     const contentLength = response.headers['content-length']
-    if (contentLength && Number.parseInt(contentLength) > maxSize) {
+    if (contentLength && Number.parseInt(String(contentLength)) > maxSize) {
       throw new Error(`Image too large: ${contentLength} bytes (max: ${maxSize} bytes)`)
     }
 
     // 获取响应的 content-type
-    let contentType = response.headers['content-type'] || ''
+    let contentType = String(response.headers['content-type'] || '')
 
     // 如果没有 content-type，尝试从URL推断
     if (!contentType) {

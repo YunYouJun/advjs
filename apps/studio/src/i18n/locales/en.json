@@ -791,7 +791,10 @@
     "comingSoon": "Marketplace coming soon, stay tuned!",
     "browse": "Browse Market",
     "browseDesc": "Discover stories by other creators",
-    "comingSoonBadge": "Coming Soon"
+    "comingSoonBadge": "Coming Soon",
+    "featured": "Featured",
+    "categories": "Categories",
+    "allCategories": "All"
   },
   "portfolio": {
     "title": "My Portfolio",
@@ -1168,6 +1171,19 @@
     "sourceTypeText": "Plain text",
     "sourceTypeMarkdown": "Markdown",
     "sourceTypeChatLog": "Chat log",
+    "sourceTypePdf": "PDF",
+    "sourceTypeUrl": "URL",
+    "sourceTypeImage": "Image",
+    "sourceTypeAudio": "Audio",
+    "dropPdfHint": "Drop a PDF file or click to browse",
+    "pdfLoading": "Reading PDF…",
+    "urlInput": "Web page URL",
+    "urlPlaceholder": "https://example.com/article",
+    "urlFetching": "Fetching page content…",
+    "dropImageHint": "Drop an image or click to browse (OCR via AI)",
+    "dropAudioHint": "Drop an audio file or click to browse (transcription via AI)",
+    "ocrProcessing": "Extracting text from image…",
+    "asrProcessing": "Transcribing audio…",
     "uploadFile": "Choose file",
     "tokensEstimated": "~{tokens} tokens",
     "segments": "{count} segment(s)",
@@ -1276,6 +1292,30 @@
     "chaptersTitle": "Chapters",
     "scanTitle": "Scan to open on another device",
     "scanHint": "QR code points to the import URL for this project",
-    "linkCopied": "Link copied to clipboard"
+    "linkCopied": "Link copied to clipboard",
+    "generateShortLink": "Generate Short Link",
+    "shortLinkReady": "Short link created",
+    "copyShortLink": "Copy Link"
+  },
+  "templates": {
+    "touch-book": "Touch Story",
+    "touch-book-desc": "Accessible interactive storybook for young readers",
+    "anti-fraud": "Anti-Fraud Theater",
+    "anti-fraud-desc": "Anti-telecom-fraud interactive scenario education",
+    "customer-service": "CS Training Script",
+    "customer-service-desc": "Customer service role-play drill",
+    "medical-comm": "Medical Communication",
+    "medical-comm-desc": "Doctor-patient communication scenarios"
+  },
+  "analytics": {
+    "title": "Creator Analytics",
+    "totalDownloads": "Total Downloads",
+    "totalReviews": "Total Reviews",
+    "averageRating": "Avg Rating",
+    "projectName": "Project",
+    "downloads": "Downloads",
+    "rating": "Rating",
+    "lastUpdated": "Updated",
+    "noData": "Publish a project to see analytics"
   }
 }

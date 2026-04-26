@@ -809,7 +809,10 @@
     "comingSoon": "市场功能即将上线，敬请期待！",
     "browse": "浏览市场",
     "browseDesc": "发现其他创作者的故事",
-    "comingSoonBadge": "即将上线"
+    "comingSoonBadge": "即将上线",
+    "featured": "精选推荐",
+    "categories": "分类",
+    "allCategories": "全部"
   },
   "dashboard": {
     "worldSetting": "世界设定",
@@ -1168,6 +1171,19 @@
     "sourceTypeText": "纯文本",
     "sourceTypeMarkdown": "Markdown",
     "sourceTypeChatLog": "聊天记录",
+    "sourceTypePdf": "PDF",
+    "sourceTypeUrl": "网址",
+    "sourceTypeImage": "图片",
+    "sourceTypeAudio": "音频",
+    "dropPdfHint": "拖拽 PDF 文件到此处或点击选取",
+    "pdfLoading": "正在读取 PDF…",
+    "urlInput": "网页地址",
+    "urlPlaceholder": "https://example.com/article",
+    "urlFetching": "正在获取网页内容…",
+    "dropImageHint": "拖拽图片或点击选取（AI 文字识别）",
+    "dropAudioHint": "拖拽音频文件或点击选取（AI 语音转文字）",
+    "ocrProcessing": "正在识别图片文字…",
+    "asrProcessing": "正在转录音频…",
     "uploadFile": "选择文件",
     "tokensEstimated": "约 {tokens} tokens",
     "segments": "{count} 段",
@@ -1276,6 +1292,30 @@
     "chaptersTitle": "章节目录",
     "scanTitle": "扫码在其他设备打开",
     "scanHint": "二维码指向该项目的导入链接",
-    "linkCopied": "链接已复制到剪贴板"
+    "linkCopied": "链接已复制到剪贴板",
+    "generateShortLink": "生成短链接",
+    "shortLinkReady": "短链接已创建",
+    "copyShortLink": "复制链接"
+  },
+  "templates": {
+    "touch-book": "触摸绘本",
+    "touch-book-desc": "为视障儿童设计的无障碍互动绘本",
+    "anti-fraud": "反诈剧场",
+    "anti-fraud-desc": "中老年反电信诈骗互动情景教育",
+    "customer-service": "客服话术训练",
+    "customer-service-desc": "客诉模拟角色扮演训练",
+    "medical-comm": "医患沟通",
+    "medical-comm-desc": "医患沟通情境模拟训练"
+  },
+  "analytics": {
+    "title": "创作者数据",
+    "totalDownloads": "总下载量",
+    "totalReviews": "总评论数",
+    "averageRating": "平均评分",
+    "projectName": "项目",
+    "downloads": "下载",
+    "rating": "评分",
+    "lastUpdated": "更新时间",
+    "noData": "发布项目后即可查看数据"
   }
 }

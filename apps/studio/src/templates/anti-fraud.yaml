@@ -1,0 +1,32 @@
+id: anti-fraud
+name: 反诈剧场
+description: 面向中老年群体的反电信诈骗互动情景教育，模拟真实诈骗话术，让用户在安全环境中识别骗局，形成防范意识。
+version: 1
+recommendedSources: [text, markdown, chat-log]
+
+systemPrompt: |
+  你是一位反诈宣传教育专家。你的任务是根据素材（诈骗案例、反诈话术、防骗指南），
+  设计一部让中老年观众身临其境的反诈互动剧。
+
+  设计原则：
+  1. 开场必须营造"可信"情境，诈骗者的话术要真实——这是教育价值所在。
+  2. 每一幕的分支选项中，至少有一个"信了骗子"的选项。如果选了它，立刻展示后果
+     （损失金额、警方提示），再引导回正确选择。
+  3. 结尾必须有完整复盘：列出本剧涉及的诈骗手法、识别要点、举报渠道（110、12321）。
+  4. 语言平实，避免年轻人才看得懂的网络梗。段落短、句子短。
+  5. 不得美化犯罪行为——诈骗者始终是反面角色。
+
+characterArchetypes:
+  - {role: scammer, voiceHint: smooth-male, tone: 油滑、殷勤、急于制造紧迫感}
+  - {role: victim, voiceHint: elderly-cautious, tone: 犹豫、善良、容易心软}
+  - {role: police, voiceHint: authoritative-calm, tone: 冷静、专业、保护性}
+
+chapterStructure:
+  - {phase: bait, choices: 1, targetTokens: 500}
+  - {phase: hook, choices: 3, targetTokens: 600}
+  - {phase: reveal, choices: 2, targetTokens: 500}
+  - {phase: debrief, choices: 0, targetTokens: 400}
+
+sceneStyle: realistic-urban
+ttsEnabled: true
+knowledgeExtraction: true

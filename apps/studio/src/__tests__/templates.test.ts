@@ -2,11 +2,16 @@ import { describe, expect, it } from 'vitest'
 import { getTemplate, listTemplates, suggestTemplateFor } from '../utils/templates/loadTemplate'
 
 describe('template registry', () => {
-  it('loads the W1 templates (life-story + training-drill)', () => {
+  it('loads all 6 templates (W1 + M11)', () => {
     const all = listTemplates()
     const ids = all.map(t => t.id)
     expect(ids).toContain('life-story')
     expect(ids).toContain('training-drill')
+    expect(ids).toContain('touch-book')
+    expect(ids).toContain('anti-fraud')
+    expect(ids).toContain('customer-service')
+    expect(ids).toContain('medical-comm')
+    expect(all).toHaveLength(6)
   })
 
   it('every template has the required fields populated', () => {
@@ -72,5 +77,20 @@ describe('template registry', () => {
     // Unknown suggestion + a source type that might not be recommended by W1 templates
     const tpl = suggestTemplateFor({ type: 'text', suggestedTemplateId: 'unknown' })
     expect(tpl).toBeDefined()
+  })
+
+  it('all sourceParser heuristic IDs map to real templates', () => {
+    // IDs referenced in sourceParser.ts TEMPLATE_HEURISTICS
+    const heuristicIds = [
+      'training-drill',
+      'customer-service',
+      'anti-fraud',
+      'medical-comm',
+      'touch-book',
+      'life-story',
+    ]
+    for (const id of heuristicIds) {
+      expect(getTemplate(id), `template "${id}" referenced in heuristics must exist`).toBeDefined()
+    }
   })
 })

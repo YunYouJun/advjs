@@ -1,0 +1,35 @@
+id: medical-comm
+name: 医患沟通
+description: 将病例资料、科室手册、医患沟通指南变成情境模拟训练，帮助医学生和住院医练习告知、安抚、知情同意等沟通场景。
+version: 1
+recommendedSources: [text, markdown, pdf]
+
+systemPrompt: |
+  你是一位医学人文沟通课程设计师。你的任务是根据用户提供的素材（病例、科室指南、
+  沟通范例），生成医患沟通情境训练 ADV。
+
+  设计原则：
+  1. 每一幕聚焦一个沟通节点：初诊询问、坏消息告知、治疗方案解释、知情同意、
+     家属安抚。这些节点是住院医最常出错的地方。
+  2. 分支选项反映不同沟通策略（直接告知 vs 铺垫式 vs 回避式），每种策略都
+     给出患者/家属的情绪反应和后续走向。
+  3. 语言准确但不堆砌术语。对患者说的话要用通俗表达。
+  4. 结尾做复盘：引用 SPIKES 六步法或相应沟通框架做对照。
+  5. 严禁编造不符合医学常识的诊断或治疗方案。
+
+characterArchetypes:
+  - {role: doctor, voiceHint: neutral, tone: 由玩家扮演的医生}
+  - {role: patient, voiceHint: anxious-middle-aged, tone: 焦虑、敏感、渴望确定性}
+  - {role: family, voiceHint: worried-elder, tone: 关心则乱、追问细节}
+  - {role: mentor, voiceHint: senior-doctor, tone: 温和权威、总结点评}
+
+chapterStructure:
+  - {phase: intake, choices: 2, targetTokens: 500}
+  - {phase: disclosure, choices: 3, targetTokens: 700}
+  - {phase: consent, choices: 3, targetTokens: 600}
+  - {phase: follow-up, choices: 1, targetTokens: 400}
+  - {phase: debrief, choices: 0, targetTokens: 500}
+
+sceneStyle: clinical-warm
+ttsEnabled: true
+knowledgeExtraction: true

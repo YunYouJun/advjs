@@ -59,6 +59,7 @@ const items = ref<MarketplaceRecord[]>([])
 const isLoading = ref(false)
 const searchQuery = ref('')
 const selectedTag = ref<string | null>(null)
+const selectedCategory = ref<string | null>(null)
 const sortMode = ref<SortMode>('newest')
 const selectedItem = ref<MarketplaceRecord | null>(null)
 
@@ -83,15 +84,39 @@ const allTags = computed(() => {
   return [...tags]
 })
 
+// Template-based category list
+const TEMPLATE_CATEGORIES = [
+  { id: null, label: 'world.timelineFilterAll', icon: '🌐' },
+  { id: 'life-story', label: 'templates.life-story', icon: '📖' },
+  { id: 'training-drill', label: 'templates.training-drill', icon: '🏢' },
+  { id: 'touch-book', label: 'templates.touch-book', icon: '📚' },
+  { id: 'anti-fraud', label: 'templates.anti-fraud', icon: '🛡' },
+  { id: 'customer-service', label: 'templates.customer-service', icon: '🎧' },
+  { id: 'medical-comm', label: 'templates.medical-comm', icon: '🏥' },
+] as const
+
+const featuredItems = computed(() =>
+  items.value.filter(i => i.featured).slice(0, 4),
+)
+
 const filteredItems = computed(() => {
-  if (!searchQuery.value)
-    return items.value
-  const q = searchQuery.value.toLowerCase()
-  return items.value.filter(i =>
-    i.name.toLowerCase().includes(q)
-    || (i.description || '').toLowerCase().includes(q)
-    || i.authorName.toLowerCase().includes(q),
-  )
+  let result = items.value
+
+  // Filter by category (templateId)
+  if (selectedCategory.value)
+    result = result.filter(i => i.templateId === selectedCategory.value)
+
+  // Filter by search query
+  if (searchQuery.value) {
+    const q = searchQuery.value.toLowerCase()
+    result = result.filter(i =>
+      i.name.toLowerCase().includes(q)
+      || (i.description || '').toLowerCase().includes(q)
+      || i.authorName.toLowerCase().includes(q),
+    )
+  }
+
+  return result
 })
 
 onMounted(async () => {
@@ -307,6 +332,10 @@ function onTagChange(tag: string | null) {
   loadMarket()
 }
 
+function onCategoryChange(catId: string | null) {
+  selectedCategory.value = catId
+}
+
 function onSortChange(mode: SortMode) {
   sortMode.value = mode
   loadMarket()
@@ -352,6 +381,18 @@ function onSortChange(mode: SortMode) {
       </button>
     </div>
 
+    <!-- Category chips (template-based) -->
+    <div class="category-chips">
+      <IonChip
+        v-for="cat in TEMPLATE_CATEGORIES"
+        :key="cat.id ?? 'all'"
+        :color="selectedCategory === cat.id ? 'primary' : undefined"
+        @click="onCategoryChange(cat.id)"
+      >
+        {{ cat.icon }} {{ t(cat.label) }}
+      </IonChip>
+    </div>
+
     <!-- Tag filter chips -->
     <div v-if="allTags.length > 0" class="tag-chips">
       <IonChip
@@ -373,6 +414,34 @@ function onSortChange(mode: SortMode) {
     <!-- Loading -->
     <div v-if="isLoading" class="market-loading">
       <IonSpinner name="crescent" />
+    </div>
+
+    <!-- Featured section -->
+    <div v-if="featuredItems.length > 0 && !searchQuery && !selectedCategory" class="market-featured">
+      <h3 class="market-featured__title">
+        {{ t('marketplace.featured') }}
+      </h3>
+      <div class="market-featured__row">
+        <button
+          v-for="item in featuredItems"
+          :key="item._id"
+          class="market-card market-card--featured"
+          @click="selectItem(item)"
+        >
+          <div class="market-card__cover">
+            <img v-if="item.cover" :src="item.cover" alt="">
+            <span v-else class="market-card__cover-fallback">{{ item.name.charAt(0) }}</span>
+          </div>
+          <div class="market-card__body">
+            <div class="market-card__title">
+              {{ item.name }}
+            </div>
+            <div class="market-card__author">
+              {{ item.authorName }}
+            </div>
+          </div>
+        </button>
+      </div>
     </div>
 
     <!-- Card grid -->
@@ -582,6 +651,38 @@ function onSortChange(mode: SortMode) {
   padding: var(--adv-space-sm) var(--adv-space-md);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+.category-chips {
+  display: flex;
+  gap: 4px;
+  padding: var(--adv-space-sm) var(--adv-space-md) 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.market-featured {
+  padding: 0 var(--adv-space-md) var(--adv-space-sm);
+}
+
+.market-featured__title {
+  font-size: var(--adv-font-body, 14px);
+  font-weight: 700;
+  margin: 0 0 var(--adv-space-sm);
+  color: var(--adv-text-primary);
+}
+
+.market-featured__row {
+  display: flex;
+  gap: var(--adv-space-md);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: var(--adv-space-xs);
+}
+
+.market-card--featured {
+  min-width: 200px;
+  flex-shrink: 0;
 }
 
 .market-loading {

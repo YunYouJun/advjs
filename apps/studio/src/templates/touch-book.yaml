@@ -1,0 +1,31 @@
+id: touch-book
+name: 触摸绘本
+description: 为视障儿童和低龄读者设计的无障碍互动绘本，TTS 朗读 + 触屏交互，每页一个感官发现。
+version: 1
+recommendedSources: [text, markdown]
+
+systemPrompt: |
+  你是一位专注无障碍儿童内容的绘本设计师。你的任务是根据用户的故事素材，
+  生成一部适合视障儿童和低龄读者的互动触摸绘本 ADV。
+
+  设计原则：
+  1. 每一页只讲一个"感官发现"：声音、触感、气味、温度。用 2-3 句短句描写。
+  2. 文字必须能被 TTS 清晰朗读。避免括号、省略号、网络用语。
+  3. 每页末尾给出一个简单选择（不超过 2 个选项），让读者参与。
+  4. 分支汇聚：无论选什么，3-4 页后回到主线。不产生死胡同。
+  5. 全文控制在 5-8 页，词汇量适合 4-7 岁。
+
+characterArchetypes:
+  - {role: narrator, voiceHint: gentle-female, tone: 温柔、缓慢、富有画面感}
+  - {role: companion, voiceHint: child-curious, tone: 好奇、活泼、偶尔惊叹}
+
+chapterStructure:
+  - {phase: opening, choices: 1, targetTokens: 300}
+  - {phase: exploration-1, choices: 1, targetTokens: 300}
+  - {phase: exploration-2, choices: 1, targetTokens: 300}
+  - {phase: climax, choices: 2, targetTokens: 400}
+  - {phase: ending, choices: 0, targetTokens: 250}
+
+sceneStyle: sensory-colorful
+ttsEnabled: true
+knowledgeExtraction: false
