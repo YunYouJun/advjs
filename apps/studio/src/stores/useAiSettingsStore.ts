@@ -1,14 +1,10 @@
+import type { AiProviderPlugin } from '../utils/aiProviderRegistry'
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
+import { getAiProvider, listAiProviders } from '../utils/aiProviderRegistry'
 
-export interface AiProviderPreset {
-  id: string
-  name: string
-  baseURL: string
-  models: string[]
-  needsKey?: boolean
-  registrationUrl?: string
-}
+/** @deprecated Use `AiProviderPlugin` from `aiProviderRegistry` instead */
+export type AiProviderPreset = AiProviderPlugin
 
 export interface AiConfig {
   providerId: string
@@ -23,6 +19,8 @@ export interface AiConfig {
   imageProvider: 'none' | 'runware' | 'hunyuan' | 'siliconflow' | 'openai-dall-e'
   imageApiKey: string
   imageModel: string
+  // ASR (audio transcription)
+  asrModel?: string
   // TTS (text-to-speech)
   ttsProvider: string
   ttsApiKey: string
@@ -40,49 +38,11 @@ export interface AiConfig {
   embeddingCustomBaseURL: string
 }
 
-export const AI_PROVIDERS: AiProviderPreset[] = [
-  {
-    id: 'deepseek',
-    name: 'DeepSeek',
-    baseURL: 'https://api.deepseek.com/v1',
-    models: ['deepseek-chat', 'deepseek-reasoner'],
-    registrationUrl: 'https://platform.deepseek.com/',
-  },
-  {
-    id: 'siliconflow',
-    name: 'SiliconFlow',
-    baseURL: 'https://api.siliconflow.cn/v1',
-    models: ['Qwen/Qwen2.5-7B-Instruct', 'deepseek-ai/DeepSeek-V3', 'THUDM/glm-4-9b-chat'],
-    registrationUrl: 'https://cloud.siliconflow.cn/',
-  },
-  {
-    id: 'openai',
-    name: 'OpenAI',
-    baseURL: 'https://api.openai.com/v1',
-    models: ['gpt-4o', 'gpt-4o-mini'],
-    registrationUrl: 'https://platform.openai.com/',
-  },
-  {
-    id: 'openrouter',
-    name: 'OpenRouter',
-    baseURL: 'https://openrouter.ai/api/v1',
-    models: ['google/gemini-2.0-flash-exp:free', 'deepseek/deepseek-chat-v3-0324:free'],
-    registrationUrl: 'https://openrouter.ai/',
-  },
-  {
-    id: 'ollama',
-    name: 'Ollama (Local)',
-    baseURL: 'http://localhost:11434/v1',
-    models: ['llama3', 'qwen2.5', 'deepseek-r1'],
-    needsKey: false,
-  },
-  {
-    id: 'custom',
-    name: 'Custom',
-    baseURL: '',
-    models: [],
-  },
-]
+/**
+ * AI provider presets — backed by the plugin registry.
+ * Kept as a module-level export for backward compatibility.
+ */
+export const AI_PROVIDERS: AiProviderPreset[] = listAiProviders()
 
 const DEFAULT_SYSTEM_PROMPT = `You are a creative assistant for ADV.JS, a visual novel game engine. Help users create characters, write scenes, design story branches, and build worlds for their visual novels. Respond in the user's language. Use markdown formatting when showing code or ADV.JS script examples.
 
@@ -182,6 +142,7 @@ function createDefaultConfig(): AiConfig {
     imageProvider: 'none',
     imageApiKey: '',
     imageModel: '',
+    asrModel: 'whisper-1',
     ttsProvider: 'web-speech',
     ttsApiKey: '',
     ttsModel: '',
@@ -203,7 +164,7 @@ export const useAiSettingsStore = defineStore('aiSettings', () => {
   const config = ref<AiConfig>(createDefaultConfig())
 
   const currentProvider = computed(() => {
-    return AI_PROVIDERS.find(p => p.id === config.value.providerId) || AI_PROVIDERS[0]
+    return getAiProvider(config.value.providerId) || listAiProviders()[0]
   })
 
   const isConfigured = computed(() => {
@@ -252,7 +213,7 @@ export const useAiSettingsStore = defineStore('aiSettings', () => {
 
   function setProvider(providerId: string) {
     config.value.providerId = providerId
-    const provider = AI_PROVIDERS.find(p => p.id === providerId)
+    const provider = getAiProvider(providerId)
     if (provider && provider.models.length > 0)
       config.value.model = provider.models[0]
   }

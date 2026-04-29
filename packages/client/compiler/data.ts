@@ -1,14 +1,14 @@
 import type { AdvData } from '@advjs/types'
-// virtual module
-import advData from '#advjs/data'
-
-import chapters from '#advjs/game/chapters'
-import characters from '#advjs/game/characters'
-import scenes from '#advjs/game/scenes'
-
 import { defu } from 'defu'
 
 import { computed, readonly, shallowRef } from 'vue'
+// virtual module
+import advData from '#advjs/data'
+import chapters from '#advjs/game/chapters'
+
+import characters from '#advjs/game/characters'
+
+import scenes from '#advjs/game/scenes'
 
 export const advDataRef = shallowRef<AdvData>(
   (import.meta.env.PROD ? advData : readonly(advData)) as AdvData,

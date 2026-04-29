@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Text as YText } from 'yjs'
 import { getFileTypeFromPath, getIconFromFileType } from '@advjs/gui'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -10,12 +11,14 @@ const props = withDefaults(defineProps<{
   language?: string
   readonly?: boolean
   filename?: string
+  collabText?: YText | null
 }>(), {
   content: '',
   originalContent: undefined,
   language: 'plaintext',
   readonly: true,
   filename: '',
+  collabText: null,
 })
 
 const emit = defineEmits<{
@@ -29,6 +32,11 @@ const editorContainer = ref<HTMLDivElement>()
 let editor: any = null
 let diffEditor: any = null
 let monaco: any = null
+let monacoBinding: any = null
+let editorModel: any = null
+let diffOriginalModel: any = null
+let diffModifiedModel: any = null
+let initToken = 0
 
 const EXT_LANGUAGE_MAP: Record<string, string> = {
   'ts': 'typescript',
@@ -96,16 +104,47 @@ function detectLanguage(filename: string): string {
   return EXT_LANGUAGE_MAP[ext] || props.language
 }
 
+function getInitialEditorValue(): string {
+  if (!props.collabText)
+    return props.content
+
+  const sharedValue = props.collabText.toString()
+  if (sharedValue.length > 0)
+    return sharedValue
+
+  if (props.content)
+    props.collabText.insert(0, props.content)
+
+  return props.collabText.toString()
+}
+
+async function bindCollabText(model: any) {
+  if (!props.collabText || props.readonly)
+    return
+
+  const value = props.collabText.toString()
+  if (value !== model.getValue())
+    model.setValue(value)
+
+  const { MonacoBinding } = await import('y-monaco')
+  monacoBinding = new MonacoBinding(props.collabText, model, new Set([editor]))
+}
+
 async function initEditor() {
   if (!editorContainer.value)
     return
 
+  const token = ++initToken
   const monacoModule = await getMonaco()
+  if (token !== initToken)
+    return
   monaco = monacoModule
 
   // Register character frontmatter schema completions (idempotent — only
   // actually registers on first call).
   await registerCharacterFrontmatterCompletionIfNeeded()
+  if (token !== initToken)
+    return
 
   const lang = detectLanguage(props.filename)
   const isDiff = props.originalContent !== undefined
@@ -121,16 +160,18 @@ async function initEditor() {
       renderSideBySide: window.innerWidth >= 768,
     })
 
+    diffOriginalModel = monaco.editor.createModel(props.originalContent || '', lang)
+    diffModifiedModel = monaco.editor.createModel(props.content, lang)
     diffEditor.setModel({
-      original: monaco.editor.createModel(props.originalContent || '', lang),
-      modified: monaco.editor.createModel(props.content, lang),
+      original: diffOriginalModel,
+      modified: diffModifiedModel,
     })
   }
   else {
     const isMobile = window.innerWidth < 768
+    editorModel = monaco.editor.createModel(getInitialEditorValue(), lang)
     editor = monaco.editor.create(editorContainer.value, {
-      value: props.content,
-      language: lang,
+      model: editorModel,
       readOnly: props.readonly,
       automaticLayout: true,
       minimap: { enabled: false },
@@ -140,6 +181,10 @@ async function initEditor() {
       wordWrap: 'on',
       theme: document.documentElement.classList.contains('dark') ? 'vs-dark' : 'vs',
     })
+
+    await bindCollabText(editorModel)
+    if (token !== initToken)
+      return
 
     if (!props.readonly) {
       editor.onDidChangeModelContent(() => {
@@ -155,27 +200,53 @@ async function initEditor() {
 }
 
 function disposeEditor() {
+  initToken++
+  if (monacoBinding) {
+    monacoBinding.destroy()
+    monacoBinding = null
+  }
   if (diffEditor) {
-    const model = diffEditor.getModel()
-    model?.original?.dispose()
-    model?.modified?.dispose()
     diffEditor.dispose()
     diffEditor = null
   }
+  diffOriginalModel?.dispose()
+  diffModifiedModel?.dispose()
+  diffOriginalModel = null
+  diffModifiedModel = null
   if (editor) {
-    editor.getModel()?.dispose()
     editor.dispose()
     editor = null
   }
+  editorModel?.dispose()
+  editorModel = null
 }
 
-watch([() => props.content, () => props.originalContent, () => props.filename], () => {
+function recreateEditor() {
   disposeEditor()
-  initEditor()
+  void initEditor()
+}
+
+watch(
+  [() => props.originalContent, () => props.filename, () => props.readonly, () => props.collabText],
+  recreateEditor,
+)
+
+watch(() => props.content, (value) => {
+  if (props.collabText)
+    return
+
+  if (diffEditor) {
+    if (diffModifiedModel && value !== diffModifiedModel.getValue())
+      diffModifiedModel.setValue(value)
+    return
+  }
+
+  if (editorModel && value !== editorModel.getValue())
+    editorModel.setValue(value)
 })
 
 onMounted(() => {
-  initEditor()
+  void initEditor()
 })
 
 onBeforeUnmount(() => {

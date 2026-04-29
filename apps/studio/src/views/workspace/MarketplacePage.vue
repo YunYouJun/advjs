@@ -19,6 +19,7 @@ import {
   cloudUploadOutline,
   heartOutline,
   personOutline,
+  shareSocialOutline,
 } from 'ionicons/icons'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -28,6 +29,7 @@ import { useCloudbase } from '../../composables/useCloudbase'
 import { useMarketplace } from '../../composables/useMarketplace'
 import { useProjectContent } from '../../composables/useProjectContent'
 import { exportProject, importProject } from '../../composables/useProjectExport'
+import { useShortLink } from '../../composables/useShortLink'
 import { useAuthStore } from '../../stores/useAuthStore'
 import { useStudioStore } from '../../stores/useStudioStore'
 import { MemoryFsAdapter } from '../../utils/fs/MemoryFsAdapter'
@@ -71,6 +73,8 @@ const isReviewLoading = ref(false)
 
 // Install state
 const isInstalling = ref(false)
+const isSharing = ref(false)
+const { createShortLink } = useShortLink()
 
 // Publish state
 const isPublishing = ref(false)
@@ -215,6 +219,41 @@ async function handleInstall() {
   }
   finally {
     isInstalling.value = false
+  }
+}
+
+async function handleShare() {
+  if (!cloudApp || !selectedItem.value)
+    return
+
+  isSharing.value = true
+  try {
+    const shareUrl = `${window.location.origin}/share/${selectedItem.value.projectId}`
+    const result = await createShortLink(cloudApp, {
+      targetUrl: shareUrl,
+      projectId: selectedItem.value.projectId,
+      marketId: selectedItem.value._id,
+    })
+    if (result?.url) {
+      await navigator.clipboard.writeText(result.url)
+      const toast = await toastController.create({
+        message: t('marketplace.shareUrlCopied'),
+        duration: 2000,
+        color: 'success',
+      })
+      await toast.present()
+    }
+  }
+  catch {
+    const toast = await toastController.create({
+      message: t('marketplace.shareFailed'),
+      duration: 2000,
+      color: 'danger',
+    })
+    await toast.present()
+  }
+  finally {
+    isSharing.value = false
   }
 }
 
@@ -534,15 +573,26 @@ function onSortChange(mode: SortMode) {
           </div>
 
           <!-- Install button -->
-          <button
-            class="market-detail__install"
-            :disabled="isInstalling || !selectedItem.packageKey"
-            @click="handleInstall"
-          >
-            <IonSpinner v-if="isInstalling" name="dots" />
-            <IonIcon v-else :icon="cloudDownloadOutline" />
-            {{ isInstalling ? t('marketplace.installing') : t('marketplace.install') }}
-          </button>
+          <div class="market-detail__actions">
+            <button
+              class="market-detail__install"
+              :disabled="isInstalling || !selectedItem.packageKey"
+              @click="handleInstall"
+            >
+              <IonSpinner v-if="isInstalling" name="dots" />
+              <IonIcon v-else :icon="cloudDownloadOutline" />
+              {{ isInstalling ? t('marketplace.installing') : t('marketplace.install') }}
+            </button>
+            <button
+              class="market-detail__share"
+              :disabled="isSharing"
+              @click="handleShare"
+            >
+              <IonSpinner v-if="isSharing" name="dots" />
+              <IonIcon v-else :icon="shareSocialOutline" />
+              {{ t('marketplace.share') }}
+            </button>
+          </div>
 
           <!-- Reviews section -->
           <div class="reviews-section">
@@ -866,6 +916,12 @@ function onSortChange(mode: SortMode) {
   justify-content: center;
 }
 
+.market-detail__actions {
+  display: flex;
+  gap: var(--adv-space-sm);
+  margin-top: var(--adv-space-md);
+}
+
 .market-detail__install {
   display: flex;
   align-items: center;
@@ -878,10 +934,24 @@ function onSortChange(mode: SortMode) {
   font-weight: 600;
   border: none;
   cursor: pointer;
-  margin-top: var(--adv-space-md);
 }
 
-.market-detail__install:disabled {
+.market-detail__share {
+  display: flex;
+  align-items: center;
+  gap: var(--adv-space-sm);
+  padding: 12px 24px;
+  border-radius: var(--adv-radius-lg);
+  background: var(--adv-surface-elevated);
+  color: var(--adv-text-primary);
+  font-size: var(--adv-font-body);
+  font-weight: 600;
+  border: 1px solid var(--adv-border-subtle);
+  cursor: pointer;
+}
+
+.market-detail__install:disabled,
+.market-detail__share:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }

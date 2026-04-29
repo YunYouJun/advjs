@@ -38,7 +38,7 @@
 - **L3 可视化** ✅ — 地点关系图（纯 SVG）、AST 地点引用打通、CLI `adv check` 集成
 
 ::: tip 里程碑统计
-80+ 组件、34 页面、13 Store、16 单测文件、8 E2E 测试、22 composables、40+ 工具函数。
+80+ 组件、35 页面、13 Store、17 单测文件、9 E2E 测试、24 composables、40+ 工具函数。
 :::
 
 ---
@@ -189,14 +189,14 @@ Phase N（核心体验冲刺，N1-N8）✅
     ↓ 达到「可发布品质」
 Phase 13（账号系统 — CloudBase 云乐坊统一认证）✅
     ↓ 用户身份基础设施
-Phase 14（世界/故事市场）← 当前
+Phase 14（世界/故事市场）✅
     ↓ 社区生态
-Phase 15（协作与插件）
+Phase 15（协作与插件）← 当前
     ↓ 多人协作 + 引擎扩展
 ```
 
 ::: tip 战略决策（已定）
-N1-N8 已全部完成。Phase 13 战略决策如下：
+N1-N8 已全部完成。Phase 13 账号系统 ✅、Phase 14 世界/故事市场 ✅ 均已完成。
 
 - **账号模式**：可选。保持 Local-First 产品定位，未登录可完整使用，登录后解锁云同步和发布
 - **后端选型**：**CloudBase**（腾讯云开发）—— 与云乐坊（yunle.fun）共享同一 CloudBase 环境和用户池
@@ -205,7 +205,7 @@ N1-N8 已全部完成。Phase 13 战略决策如下：
 
 :::
 
-### Phase 13：账号系统（云乐坊统一认证） {#phase-13}
+### Phase 13：账号系统（云乐坊统一认证） ✅ {#phase-13}
 
 ADV.JS Studio 接入云乐坊 CloudBase 账号体系，作为子应用共享用户池。
 
@@ -216,10 +216,10 @@ ADV.JS Studio 接入云乐坊 CloudBase 账号体系，作为子应用共享用�
 - [x] **项目云端绑定** — `useCloudBinding` composable 实现项目元数据与 CloudBase 数据库（`advjs_projects` 集合）的双向绑定：`bindProject()` 创建/更新云端记录（关联用户 UID + 项目 slug），`fetchMyProjects()` 获取全部云端项目，`togglePublished()` 切换公开/私密状态。`StudioProject` 接口扩展 `cloudId` / `ownerId` / `syncedAt` 三个字段，序列化/反序列化已同步更新
 - [x] **个人作品集页面** — `PortfolioPage.vue`（`/tabs/me/portfolio`）展示当前用户的云端项目列表：2×2 统计面板（项目/角色/章节/场景总数）、一键绑定当前项目按钮、项目卡片列表（封面/名称/简介/统计/日期）、公开/私密切换按钮（`eyeOutline`/`eyeOffOutline`）。`MePage.vue` 已登录态新增「我的作品集」导航入口（`ribbonOutline` 图标），中英文 i18n 文案完整
 
-### Phase 14：世界/故事市场 {#phase-14}
+### Phase 14：世界/故事市场 ✅ {#phase-14}
 
 ::: tip 前置依赖
-需要 Phase 13 账号系统完成后实施。✅
+Phase 13 账号系统已完成。✅
 :::
 
 让用户发布和发现其他创作者的世界与故事，一键加载开始游玩。
@@ -233,7 +233,36 @@ ADV.JS Studio 接入云乐坊 CloudBase 账号体系，作为子应用共享用�
 
 ### Phase 15：协作与扩展 {#phase-15}
 
-- [ ] **多人协作 / 实时同步** — 基于 CRDT（Yjs）的协同编辑，支持多人同时编辑章节/角色/场景，冲突自动合并
-- [ ] **插件系统** — 定义 `AdvPlugin` 接口，支持注册自定义 AI Provider / TTS Provider / 渲染引擎（Babylon/Three/Pixi）/ 数据导出格式
-- [ ] **Capacitor 原生打包** — iOS/Android 原生应用发布（App Store / Google Play），包含推送通知、原生分享、Siri 快捷指令
+Phase 15 分为两个独立子阶段：先做协作（15a），再做插件系统（15b）。
+
+#### Phase 15a：多人协作 / 实时同步 {#phase-15a}
+
+基于 CloudBase 实时数据库 `watch()` + Yjs CRDT，实现零额外部署的协作编辑。
+
+- [x] **协作房间模型** — `useCollabStore` Pinia store + `advjs_collab_rooms` 集合（房间 CRUD、成员管理、角色权限 owner/editor/viewer）、`advjs_collab_state` 在线心跳（10s 周期）
+- [x] **y-cloudbase Provider** — 自定义 Yjs 同步 provider（`y-cloudbase.ts`）：增量 base64 写入 `advjs_collab_updates` 集合，`watch()` 实时订阅远端更新，300ms debounce flush，每 200 条自动 snapshot 压缩
+- [x] **useCollabRoom composable** — 封装 Yjs Doc 生命周期、房间加入/创建/离开、`getSharedText()`/`getSharedMap()`/`getSharedArray()` 共享类型 API
+- [x] **Monaco Yjs binding** — `FilePreview` 接入 `y-monaco`，Content Editor 的 Markdown Tab 可将 `.adv.md` / `.character.md` / `.md` 绑定到 `Y.Text` 实时协同；同时保留单人编辑模式
+- [x] **协作状态条（MVP）** — `ContentEditorModal` Markdown Tab 顶部提供启用/离开协作、连接状态与在线人数展示
+- [x] **协作设置 UI** — `CollabSettingsPage.vue`（`/tabs/workspace/collab`）：成员列表（头像/昵称/角色/在线状态指示灯）、邀请成员（输入 UID + 选择角色）、移除成员（滑动删除，仅 owner）、角色切换（editor/viewer），从协作状态条齿轮图标导航进入
+- [x] **权限与发布闭环** — `collab-auth` 云函数封装 invite/remove/updateRole 三个 action，通过 `context.auth.uid` 校验调用者为 owner；`useCollabStore` 的成员管理改为 `callFunction()` 调用，不再客户端直写数据库
+- [x] **状态数据协同** — `useCollabSync` composable 双向桥接 Pinia Store ↔ Yjs 共享类型：角色状态走 `Y.Map`（`state:characterStates`）、世界时钟走 `Y.Map`（`state:worldClock`）、对话消息走 `Y.Array`（`state:chatMessages`），含 transaction origin 防回环、断线自动停止/重连恢复、`useCollabRoom` 在 `synced` 事件时自动启动
+- [ ] **E2E 端到端测试增强** — 双客户端收敛、断线重连数据一致性、权限拒绝场景（需 CloudBase 真实环境，暂 mock 覆盖 UI 流程）
+- [x] **离线缓存** — `y-indexeddb` 集成，Yjs 文档本地持久化，断线后继续编辑，重连自动合并
+- [x] **Presence TTL 清理** — 心跳记录超过 60s 自动清理，避免永久脏数据
+- [x] **Viewer 只读降级** — viewer 角色进入协作时 Monaco readonly，不写入本地变更到 Y.Doc
+
+#### Phase M11：短链分发与示范作品 {#phase-m11}
+
+- [x] **Marketplace 短链分享** — 详情 Modal 增加 Share 按钮，调用 shortlink 云函数生成短链，一键复制到剪贴板
+- [x] **history-talk 示范作品（主打）** — `examples/ai-contest/history-talk/` AI 历史人物对谈（孔子/图灵/达芬奇 × 3 章节 + 3 角色 + 3 场景 + 知识参考），Demo 视频主展示案例
+- [x] **murder-mystery 示范作品（辅助）** — `examples/ai-contest/murder-mystery/` AI 剧本杀（6 NPC + 线索矩阵 + 世界时钟 × 3 章节 + 3 场景），技术深度展示案例
+
+#### Phase 15b：插件系统 {#phase-15b}
+
+- [x] **StudioPlugin 接口** — `pluginTypes.ts` 定义统一 `StudioPlugin` 基础接口（id/name/type/version/description），`StudioPluginType = 'ai-provider' | 'tts-provider' | 'export-format'`
+- [x] **AI Provider 插件化** — `aiProviderRegistry.ts` 实现注册式 AI Provider 管理（`registerAiProvider`/`getAiProvider`/`listAiProviders`），6 个内置 Provider 自动注册，`useAiSettingsStore` 改为从 registry 获取
+- [x] **插件注册表** — `usePluginRegistry` composable：聚合 AI + TTS 注册表，提供 `listPlugins`/`getPlugin`/`registerPlugin`/`unregisterPlugin` 统一 API
+- [ ] **内置 TTS 插件元数据** — TTS provider 增加 version/description 字段
+- [ ] **Capacitor 原生打包** — iOS/Android 原生应用发布（App Store / Google Play），包含推送通知、原生分享
 - [ ] **位置驱动剧情** — 在 Flow 编辑器中支持"角色到达某地点"作为分支条件（需 editor/studio 数据层统一后实施）

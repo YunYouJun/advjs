@@ -1,8 +1,8 @@
 import type { UserModule } from '@advjs/client/types'
-import setups from '#advjs/setups/adv'
 import { advConfigSymbol, advDataSymbol, gameConfigSymbol, themeConfigSymbol } from '@advjs/core'
-
 import { consola, LogLevels } from 'consola'
+
+import setups from '#advjs/setups/adv'
 
 import { initAdvContext, initAdvData } from '../compiler'
 import { injectionAdvContext } from '../constants'

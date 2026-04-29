@@ -1,13 +1,13 @@
 import type { App } from 'vue'
-import setups from '#advjs/setups/main'
-
 import { createHead } from '@unhead/vue/client'
+
 import { MotionPlugin } from '@vueuse/motion'
 import { setupLayouts } from 'virtual:generated-layouts'
-
 import { createRouter, createWebHashHistory } from 'vue-router'
+
 // @ts-expect-error - routes export is available at runtime
 import { routes } from 'vue-router/auto-routes'
+import setups from '#advjs/setups/main'
 // unocss
 import '@unocss/reset/tailwind.css'
 import 'uno.css'

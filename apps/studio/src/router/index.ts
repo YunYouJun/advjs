@@ -60,6 +60,10 @@ const routes: Array<RouteRecordRaw> = [
         path: 'workspace/marketplace',
         component: () => import('@/views/workspace/MarketplacePage.vue'),
       },
+      {
+        path: 'workspace/collab',
+        component: () => import('@/views/workspace/CollabSettingsPage.vue'),
+      },
       // Legacy redirects
       {
         path: 'projects',

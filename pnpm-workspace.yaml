@@ -16,8 +16,8 @@ packages:
   - apps/*
 
 catalog:
-  '@aws-sdk/client-s3': ^3.1036.0
-  '@aws-sdk/s3-request-presigner': ^3.1036.0
+  '@aws-sdk/client-s3': ^3.1039.0
+  '@aws-sdk/s3-request-presigner': ^3.1039.0
   '@capacitor/app': 8.1.0
   '@capacitor/cli': 8.3.0
   '@capacitor/core': 8.3.0
@@ -25,13 +25,13 @@ catalog:
   '@capacitor/haptics': 8.0.2
   '@capacitor/keyboard': 8.0.2
   '@capacitor/status-bar': 8.0.2
-  '@cloudbase/js-sdk': ^3.3.4
+  '@cloudbase/js-sdk': ^3.3.5
   '@dagrejs/dagre': ^2.0.4
-  '@ionic/vue': ^8.8.4
-  '@ionic/vue-router': ^8.8.4
-  '@larksuiteoapi/node-sdk': ^1.61.1
+  '@ionic/vue': ^8.8.5
+  '@ionic/vue-router': ^8.8.5
+  '@larksuiteoapi/node-sdk': ^1.62.1
   '@mozilla/readability': ^0.6.0
-  '@nuxtjs/i18n': ^10.2.4
+  '@nuxtjs/i18n': ^10.3.0
   '@octokit/core': ^7.0.6
   '@octokit/rest': ^22.0.1
   '@rollup/pluginutils': ^5.3.0
@@ -59,14 +59,14 @@ catalog:
   express: ^5.2.1
   floating-vue: ^5.2.2
   ionicons: ^8.0.13
-  jsdom: ^29.0.2
+  jsdom: ^29.1.0
   jszip: ^3.10.1
   mermaid: ^11.14.0
   mlly: ^1.8.2
   nuxt-auth-utils: 0.5.20
   nuxt-monaco-editor: ^1.4.0
   obs-websocket-js: ^5.0.8
-  pdfjs-dist: ^4.8.69
+  pdfjs-dist: ^4.10.38
   qrcode: ^1.5.4
   simple-git: ^3.36.0
   tencentcloud-sdk-nodejs-hunyuan: ^4.1.188
@@ -79,10 +79,14 @@ catalog:
   vitefu: ^1.1.3
   vitepress-plugin-group-icons: ^1.7.5
   vitepress-plugin-mermaid: ^2.0.17
+  y-indexeddb: ^9.0.12
+  y-monaco: ^0.1.6
+  y-protocols: ^1.0.7
+  yjs: ^13.6.30
   zod: ^3.25.76
 catalogs:
   ai:
-    openai: ^6.34.0
+    openai: ^6.35.0
   babylon:
     '@babylonjs/core': 5.19.0
     '@babylonjs/gui': 5.19.0
@@ -90,7 +94,7 @@ catalogs:
     '@babylonjs/materials': 5.19.0
     babylon-vrm-loader: ^2.0.0
   build:
-    '@intlify/unplugin-vue-i18n': ^11.0.7
+    '@intlify/unplugin-vue-i18n': ^11.1.2
     '@nuxt/devtools': ^3.2.4
     '@nuxtjs/color-mode': ^4.0.0
     '@pinia/nuxt': ^0.11.3
@@ -104,7 +108,7 @@ catalogs:
     beasties: ^0.4.2
     markdown-it: ^14.1.1
     markdown-it-link-attributes: ^4.0.1
-    nuxt: ^4.4.2
+    nuxt: ^4.4.4
     rollup: ^4.60.2
     sass: ^1.99.0
     shiki: ^3.23.0
@@ -135,7 +139,7 @@ catalogs:
     prompts: ^2.4.2
     yargs: ^18.0.0
   dev:
-    '@antfu/eslint-config': ^7.7.3
+    '@antfu/eslint-config': ^8.2.0
     '@faker-js/faker': ^10.4.0
     '@unocss/eslint-plugin': ^66.6.8
     eslint: ^10.2.1
@@ -173,9 +177,9 @@ catalogs:
     pixi.js: 8.0.4
     reka-ui: ^2.9.6
     splitpanes: ^4.0.4
-    swiper: ^12.1.3
+    swiper: ^12.1.4
     vue: ^3.5.33
-    vue-i18n: ^11.3.2
+    vue-i18n: ^11.4.0
     vue-router: ^5.0.6
     wc-github-corners: ^0.1.6
   icons:
@@ -188,11 +192,11 @@ catalogs:
     '@iconify-json/ri': ^1.2.10
     '@iconify-json/svg-spinners': ^1.2.4
     '@iconify-json/twemoji': ^1.2.5
-    '@iconify-json/vscode-icons': ^1.2.46
+    '@iconify-json/vscode-icons': ^1.2.47
     '@iconify/vue': ^5.0.0
   test:
     '@playwright/test': ^1.59.1
-    '@vue/test-utils': ^2.4.6
+    '@vue/test-utils': ^2.4.9
     vitest: ^4.1.5
   types:
     '@types/cli-progress': ^3.11.6

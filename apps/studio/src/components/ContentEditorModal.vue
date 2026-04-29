@@ -12,9 +12,12 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/vue'
-import { closeOutline, saveOutline } from 'ionicons/icons'
-import { ref, watch } from 'vue'
+import { closeOutline, cloudDoneOutline, cloudOfflineOutline, peopleOutline, saveOutline, settingsOutline } from 'ionicons/icons'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+import { useCollabRoom } from '../composables/useCollabRoom'
+import { useAuthStore } from '../stores/useAuthStore'
 import FilePreview from './FilePreview.vue'
 
 const props = defineProps<{
@@ -37,8 +40,32 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const router = useRouter()
+const authStore = useAuthStore()
+const collab = useCollabRoom()
 const activeTab = ref<'form' | 'markdown' | 'ai'>('form')
 const localMarkdown = ref('')
+const isCollabToggling = ref(false)
+
+const collabFilename = computed(() => props.monacoFilename || 'content.md')
+const collabText = computed(() => {
+  if (activeTab.value !== 'markdown' || !collab.isSynced.value)
+    return null
+  return collab.getSharedText(collabFilename.value)
+})
+const onlineCount = computed(() => collab.onlineUsers.value.filter(user => user.online).length)
+const collabStatusLabel = computed(() => {
+  if (!collab.isAvailable.value)
+    return authStore.isLoggedIn ? t('contentEditor.collabUnavailable') : t('contentEditor.collabLoginRequired')
+  if (collab.connectionState.value === 'connecting' || isCollabToggling.value)
+    return t('contentEditor.collabConnecting')
+  if (collab.isSynced.value)
+    return t('contentEditor.collabConnected')
+  if (collab.connectionState.value === 'error')
+    return t('contentEditor.collabFailed')
+  return t('contentEditor.collabIdle')
+})
+const collabStatusIcon = computed(() => collab.isSynced.value ? cloudDoneOutline : cloudOfflineOutline)
 
 watch(() => props.markdown, v => localMarkdown.value = v)
 
@@ -46,6 +73,9 @@ watch(() => props.isOpen, (open) => {
   if (open) {
     activeTab.value = 'form'
     localMarkdown.value = props.markdown
+  }
+  else if (collab.isInRoom.value) {
+    collab.leaveRoom()
   }
 })
 
@@ -61,6 +91,26 @@ function handleTabChange(newTab: 'form' | 'markdown' | 'ai') {
 function handleMarkdownUpdate(value: string) {
   localMarkdown.value = value
   emit('update:markdown', value)
+}
+
+async function handleCollabToggle() {
+  if (!collab.isAvailable.value || isCollabToggling.value)
+    return
+
+  isCollabToggling.value = true
+  try {
+    if (collab.isInRoom.value) {
+      collab.leaveRoom()
+      return
+    }
+
+    const joined = await collab.joinRoom()
+    if (!joined)
+      await collab.createAndJoinRoom()
+  }
+  finally {
+    isCollabToggling.value = false
+  }
 }
 
 function handleCancel() {
@@ -130,10 +180,38 @@ function handleSave() {
 
       <!-- Markdown -->
       <div v-show="activeTab === 'markdown'" class="cem-panel cem-panel--monaco">
+        <div class="cem-collab-bar">
+          <div class="cem-collab-bar__status">
+            <IonIcon :icon="collabStatusIcon" />
+            <span>{{ collabStatusLabel }}</span>
+            <span v-if="collab.isSynced.value" class="cem-collab-bar__online">
+              <IonIcon :icon="peopleOutline" />
+              {{ t('contentEditor.collabOnline', { count: onlineCount }) }}
+            </span>
+          </div>
+          <IonButton
+            fill="outline"
+            size="small"
+            :disabled="!collab.isAvailable.value || isCollabToggling"
+            @click="handleCollabToggle"
+          >
+            {{ collab.isInRoom.value ? t('contentEditor.collabStop') : t('contentEditor.collabStart') }}
+          </IonButton>
+          <IonButton
+            v-if="collab.isInRoom.value"
+            fill="clear"
+            size="small"
+            :aria-label="t('contentEditor.collabSettings')"
+            @click="router.push('/tabs/workspace/collab')"
+          >
+            <IonIcon :icon="settingsOutline" />
+          </IonButton>
+        </div>
         <FilePreview
           :content="localMarkdown"
-          :readonly="false"
-          :filename="monacoFilename || 'content.md'"
+          :readonly="collab.myRole.value === 'viewer'"
+          :filename="collabFilename"
+          :collab-text="collabText"
           @update:content="handleMarkdownUpdate"
           @save="handleSave"
         />
@@ -159,6 +237,35 @@ function handleSave() {
   height: 100%;
   display: flex;
   flex-direction: column;
+}
+
+.cem-collab-bar {
+  min-height: 44px;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--adv-border-subtle, rgba(127, 127, 127, 0.18));
+  background: var(--adv-surface-card, var(--ion-background-color));
+}
+
+.cem-collab-bar__status,
+.cem-collab-bar__online {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cem-collab-bar__status {
+  min-width: 0;
+  color: var(--adv-text-secondary, var(--ion-color-medium));
+  font-size: 13px;
+}
+
+.cem-collab-bar__online {
+  color: var(--ion-color-success);
+  white-space: nowrap;
 }
 
 .cem-panel--form {

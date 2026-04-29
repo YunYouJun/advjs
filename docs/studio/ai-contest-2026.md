@@ -3,7 +3,7 @@
 > 📅 2026-04-23 立项 · 2026-04-27 代码完工
 > 📌 参赛主体：ADV.JS Studio（`apps/studio`）
 > 🎯 参赛形态：**Source-to-Project Pipeline**（素材一键成交互剧情）
-> 🏆 主攻赛道：**AI 向善 · 时光忆站** · 副攻赛道：**AI 提效 · 企业培训**
+> 🏆 主攻赛道：**AI 向善 · 时光忆站** · 副攻赛道：**AI 向善 · 教育创新**
 > 📎 技术计划：见 [Phase M10](./next-phase-plan.md#phase-m10)
 
 ---
@@ -38,7 +38,8 @@ ADV.JS Studio 的交互叙事天然属于"实践操作"区间——用户在剧�
 ### 2.2 深度优先策略
 
 - **life-story** 一条线打到端到端极致：故事完整、情感饱满、交互可信、展示稳定
-- **training-drill** 作为副攻演示：同一个引擎、同一套 UI，只换 Template YAML 就得到完全不同赛道的产品形态
+- **history-talk**（主打 Demo）：AI 历史人物对谈——与孔子/图灵/达芬奇跨时空对话，90s Demo 主展示案例
+- **murder-mystery**（技术深度展示）：AI 剧本杀——6 个 NPC 各有秘密和说谎策略，完整展示协作 + 状态系统 + 世界时钟 + 分支叙事
 
 ---
 
@@ -216,10 +217,11 @@ idle → parsing → generating (characters → chapters → scenes → knowledg
 
 ### 5.1 参赛 Template
 
-| Template                    | 输入素材                    | 产出形态                   | 对接赛题                      | 状态               |
-| --------------------------- | --------------------------- | -------------------------- | ----------------------------- | ------------------ |
-| **life-story** 人生故事     | 老人口述录音转写 / 回忆文字 | 多章人生 ADV，温柔克制叙事 | **AI 向善·课题5（时光忆站）** | ✅ 主攻 + 示范作品 |
-| **training-drill** 企业培训 | 销售手册 / SOP / 合规红线   | 员工角色扮演练习 + 评分    | AI 提效                       | ✅ 副攻演示        |
+| Template                  | 输入素材                    | 产出形态                   | 对接赛题                      | 状态               |
+| ------------------------- | --------------------------- | -------------------------- | ----------------------------- | ------------------ |
+| **life-story** 人生故事   | 老人口述录音转写 / 回忆文字 | 多章人生 ADV，温柔克制叙事 | **AI 向善·课题5（时光忆站）** | ✅ 主攻 + 示范作品 |
+| **history-talk** 历史对谈 | 历史人物公开资料            | 跨时空 AI 对话，教育+创意  | AI 向善 · 教育创新            | ✅ 主打 Demo 展示  |
+| **murder-mystery** 剧本杀 | 原创推理剧本                | 多人推理 + AI NPC 动态线索 | 技术深度展示                  | ✅ 辅助案例        |
 
 同一个 `projectGenerator.ts` + 同一套 UI，只换 Template YAML 就得到完全不同赛道的产品形态。
 
@@ -321,7 +323,8 @@ examples/ai-contest/life-story/
 
 同一个引擎换 Template YAML 即切换赛道：
 
-- `training-drill`：销售 SOP → 「愤怒客户 vs 客服新人」角色扮演练习
+- `history-talk`：与孔子/图灵/达芬奇跨时空对话 → 教育+AI+创意三重价值，Demo 即时震撼
+- `murder-mystery`：AI 剧本杀 → 6 个 NPC 各有秘密，展示协作/状态系统/世界时钟/分支叙事全栈能力
 - 传统互动课件 2 周外包、数万块 → 5 分钟生成、边际成本 < ¥1
 - 传统 eLearning 完课率 <30% → 沉浸式角色扮演，留存率 >75%
 
@@ -354,24 +357,25 @@ examples/ai-contest/life-story/
 
 ### 9.1 已完成
 
-| #   | 交付物                            | 模块                                      | 状态                                                 |
-| --- | --------------------------------- | ----------------------------------------- | ---------------------------------------------------- |
-| 1   | **ImportSourcePage.vue** 导入向导 | `views/workspace/ImportSourcePage.vue`    | ✅ 5 种素材格式全部跑通，UX 7 条规格全部达标         |
-| 2   | **Source-to-Project Pipeline**    | `sourceParser.ts` + `projectGenerator.ts` | ✅ 单项目 < 60s，Cache Hit >70%，AiBridge 测试覆盖   |
-| 3   | **life-story 示范作品**           | `examples/ai-contest/life-story/`         | ✅ 15 文件完整可玩 ADV + 12 case 集成测试            |
-| 4   | **Demo 分镜 + Dogfood 脚本**      | `docs/studio/demo-script.md`              | ✅ 90s 分镜 + 中英双语解说 + 录制清单 + Dogfood 脚本 |
-| 5   | **用户文档**                      | `docs/guide/studio/index.md`              | ✅ 3 Step 操作说明 + Provider 配置说明               |
-| 6   | **6 个 Template YAML**            | `apps/studio/src/templates/`              | ✅ life-story + training-drill + 4 个扩展 Template   |
-| 7   | **本参赛文档**                    | `docs/studio/ai-contest-2026.md`          | ✅ 架构设计 + 赛道叙事 + Demo 方案                   |
+| #   | 交付物                            | 模块                                      | 状态                                                              |
+| --- | --------------------------------- | ----------------------------------------- | ----------------------------------------------------------------- |
+| 1   | **ImportSourcePage.vue** 导入向导 | `views/workspace/ImportSourcePage.vue`    | ✅ 5 种素材格式全部跑通，UX 7 条规格全部达标                      |
+| 2   | **Source-to-Project Pipeline**    | `sourceParser.ts` + `projectGenerator.ts` | ✅ 单项目 < 60s，Cache Hit >70%，AiBridge 测试覆盖                |
+| 3   | **life-story 示范作品**           | `examples/ai-contest/life-story/`         | ✅ 15 文件完整可玩 ADV + 12 case 集成测试                         |
+| 4   | **Demo 分镜 + Dogfood 脚本**      | `docs/studio/demo-script.md`              | ✅ 90s 分镜 + 中英双语解说 + 录制清单 + Dogfood 脚本              |
+| 5   | **用户文档**                      | `docs/guide/studio/index.md`              | ✅ 3 Step 操作说明 + Provider 配置说明                            |
+| 6   | **6 个 Template YAML**            | `apps/studio/src/templates/`              | ✅ life-story + history-talk + murder-mystery + 3 个扩展 Template |
+| 7   | **本参赛文档**                    | `docs/studio/ai-contest-2026.md`          | ✅ 架构设计 + 赛道叙事 + Demo 方案                                |
 
 ### 9.2 加分项（已实现）
 
-| #   | 加分项                       | 说明                                        |
-| --- | ---------------------------- | ------------------------------------------- |
-| A   | training-drill Template 演示 | 同引擎不同 Template 的对比展示              |
-| B   | 无障碍支持                   | 进度树 aria-live + radiogroup + region 语义 |
-| C   | PDF / URL 素材入口           | pdfjs-dist 动态导入 + readability 网页抽取  |
-| D   | 离线可用                     | PWA + Capacitor 离线运行                    |
+| #   | 加分项                  | 说明                                        |
+| --- | ----------------------- | ------------------------------------------- |
+| A   | history-talk Demo 展示  | 与孔子/图灵/达芬奇对话，展示 AI 角色个性化  |
+| A2  | murder-mystery 技术演示 | AI 剧本杀，展示协作+状态+时钟全栈能力       |
+| B   | 无障碍支持              | 进度树 aria-live + radiogroup + region 语义 |
+| C   | PDF / URL 素材入口      | pdfjs-dist 动态导入 + readability 网页抽取  |
+| D   | 离线可用                | PWA + Capacitor 离线运行                    |
 
 ### 9.3 待人工执行
 
@@ -383,16 +387,44 @@ examples/ai-contest/life-story/
 
 ### 9.4 后续规划（Phase M11+）
 
-| 项                       | 阶段       | 说明                                    |
-| ------------------------ | ---------- | --------------------------------------- |
-| 二维码 / 短链分发        | Phase M11  | 评审现场暂用 `.advpkg` + 本地 Play 兜底 |
-| Marketplace 上架         | Phase 14   | 账号系统 Phase 13 前置                  |
-| 更多示范作品             | Phase M11  | 多个 Template 各一份                    |
-| 扩展 Template 端到端验收 | Phase M11+ | touch-book / anti-fraud 等              |
-| 图文 OCR / 语音 ASR      | Phase M11+ | 需集成 VLM / Whisper                    |
-| TTS 音色自动分配         | Phase M11+ | 按 characterArchetypes voiceHint 映射   |
-| Agent 平台 Skill         | Phase M11+ | 独立 skill 仓库                         |
-| 学习数据看板             | Phase M11+ | 玩家选择轨迹、卡点分析                  |
+| 项                       | 阶段       | 说明                                                                   |
+| ------------------------ | ---------- | ---------------------------------------------------------------------- |
+| 二维码 / 短链分发        | Phase M11  | 评审现场暂用 `.advpkg` + 本地 Play 兜底                                |
+| Marketplace 上架         | Phase 14   | 账号系统 Phase 13 前置                                                 |
+| 更多示范作品             | Phase M11  | 多个 Template 各一份                                                   |
+| 扩展 Template 端到端验收 | Phase M11+ | touch-book / anti-fraud 等                                             |
+| 图文 OCR / 语音 ASR      | Phase M11+ | 需集成 VLM / Whisper                                                   |
+| TTS 音色自动分配         | Phase M11+ | 按 characterArchetypes voiceHint 映射                                  |
+| Agent 平台 Skill         | Phase M11+ | 独立 skill 仓库                                                        |
+| 学习数据看板             | Phase M11+ | 玩家选择轨迹、卡点分析                                                 |
+| 多人协作 / 实时同步      | Phase 15a  | ✅ 协作 MVP 已完成（设置 UI + 云函数权限 + 状态数据协同），详见 9.5 节 |
+
+### 9.5 多人协作实现现状
+
+当前多人协作已从底层验证原型推进到 **协作 MVP 可用** 状态。Phase 15a 全部核心功能已完成：
+
+| 功能                 | 状态 | 说明                                                                                    |
+| -------------------- | ---- | --------------------------------------------------------------------------------------- |
+| 协作房间模型         | ✅   | `useCollabStore` + `advjs_collab_rooms` 集合（房间 CRUD、角色权限 owner/editor/viewer） |
+| y-cloudbase Provider | ✅   | 自定义 Yjs 同步 provider，增量 base64 + watch() + snapshot 压缩                         |
+| Monaco Yjs binding   | ✅   | Content Editor Markdown Tab 接入 `y-monaco` 实时协同                                    |
+| 协作设置 UI          | ✅   | `CollabSettingsPage.vue`：成员列表、邀请、移除、角色切换                                |
+| 云函数权限闭环       | ✅   | `collab-auth` 云函数封装 invite/remove/updateRole，服务端 UID 校验                      |
+| 状态数据协同         | ✅   | `useCollabSync` 双向桥接：角色状态/世界时钟走 Y.Map，对话消息走 Y.Array                 |
+| 协作状态条           | ✅   | 连接状态、在线人数、启用/离开按钮、设置导航入口                                         |
+
+协作功能现已具备完整的用户可达链路（创建房间 → 邀请成员 → 实时编辑 + 状态同步 → 权限管理），可作为加分项展示。
+
+**继续生产化的路径**：
+
+| 方向     | 当前做法                                  | 推荐最佳实践                                                                              |
+| -------- | ----------------------------------------- | ----------------------------------------------------------------------------------------- |
+| 同步通道 | CloudBase `watch()` + 自定义 Yjs Provider | 小规模/零部署可保留；高并发或强一致场景建议升级为 Hocuspocus / `y-websocket` 专用同步服务 |
+| 更新序列 | 客户端本地 `seq++`                        | 避免多端并发序号碰撞；改用服务端分配版本、事务写入或基于 update id / timestamp 的幂等排序 |
+| 快照压缩 | 每 200 条写入 snapshot 并清理旧 update    | snapshot 与增量更新分集合/分版本管理，压缩过程加锁或幂等标记，保证断线恢复可重放          |
+| 离线恢复 | 依赖远端 updates 重放                     | 增加 `y-indexeddb` 本地缓存、重连重放、弱网提示与只读降级                                 |
+| Presence | 心跳集合 + 自定义 awareness               | 在线状态保留 TTL；光标/选区尽量复用 Yjs awareness 语义，避免长期脏数据                    |
+| 质量保障 | 协作 UI E2E + 单元测试                    | 增加双客户端收敛测试、watch replay 去重、snapshot 恢复、断线重连 E2E                      |
 
 ---
 

@@ -48,7 +48,11 @@
     "splitpanes": "catalog:frontend",
     "vue": "catalog:frontend",
     "vue-i18n": "catalog:frontend",
-    "vue-router": "catalog:frontend"
+    "vue-router": "catalog:frontend",
+    "y-indexeddb": "catalog:",
+    "y-monaco": "catalog:",
+    "y-protocols": "catalog:",
+    "yjs": "catalog:"
   },
   "devDependencies": {
     "@capacitor/cli": "catalog:",
