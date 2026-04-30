@@ -993,7 +993,7 @@ function getFileIconClass(name: string): string {
 
 /* Primary hero card — gradient background */
 .hero-card--primary {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: var(--adv-gradient-primary);
   border-color: transparent;
   color: #fff;
 }
@@ -1036,7 +1036,7 @@ function getFileIconClass(name: string): string {
   justify-content: center;
   flex-shrink: 0;
   color: var(--ion-color-primary);
-  font-size: 22px;
+  font-size: var(--adv-font-lg);
 }
 
 .hero-card__icon--filled {
@@ -1123,11 +1123,11 @@ function getFileIconClass(name: string): string {
   align-items: center;
   justify-content: center;
   color: var(--ion-color-primary);
-  font-size: 18px;
+  font-size: var(--adv-font-subtitle);
 }
 
 .sec-btn__label {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   font-weight: 500;
   color: var(--adv-text-secondary);
   text-align: center;
@@ -1144,7 +1144,7 @@ function getFileIconClass(name: string): string {
   font-size: 8px;
   font-weight: 700;
   padding: 1px 4px;
-  border-radius: 4px;
+  border-radius: var(--adv-radius-xs);
   background: linear-gradient(135deg, #fbbf24, #f59e0b);
   color: #78350f;
   text-transform: uppercase;
@@ -1157,36 +1157,7 @@ function getFileIconClass(name: string): string {
   padding-bottom: var(--adv-space-md);
 }
 
-/* ===== Empty State ===== */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--adv-space-lg, 24px) var(--adv-space-md);
-  text-align: center;
-  opacity: 0.7;
-}
-
-.empty-state__illustration {
-  font-size: 48px;
-  color: var(--adv-text-secondary);
-  margin-bottom: var(--adv-space-sm);
-}
-
-.empty-state__title {
-  font-size: var(--adv-font-body, 15px);
-  font-weight: 600;
-  color: var(--adv-text-primary);
-  margin: 0 0 var(--adv-space-xs, 4px);
-}
-
-.empty-state__description {
-  font-size: var(--adv-font-body-sm, 13px);
-  color: var(--adv-text-secondary);
-  margin: 0;
-  max-width: 280px;
-}
+/* ===== Empty State — uses shared.css .empty-state ===== */
 
 /* Workspace segment */
 .workspace-segment {
@@ -1246,7 +1217,7 @@ function getFileIconClass(name: string): string {
 }
 
 .modal-file-icon {
-  font-size: 18px;
+  font-size: var(--adv-font-subtitle);
   width: 18px;
   height: 18px;
   flex-shrink: 0;

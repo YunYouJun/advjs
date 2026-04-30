@@ -218,15 +218,15 @@ function hasCategoryFixable(issues: ValidationIssue[]): boolean {
   align-items: center;
   gap: 8px;
   padding: 12px 16px;
-  border-radius: 12px;
+  border-radius: var(--adv-radius-md);
   background: rgba(16, 185, 129, 0.08);
   color: #10b981;
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 500;
 }
 
 .health-panel__passed-icon {
-  font-size: 20px;
+  font-size: var(--adv-font-title);
   flex-shrink: 0;
 }
 
@@ -244,7 +244,7 @@ function hasCategoryFixable(issues: ValidationIssue[]): boolean {
 }
 
 .health-group__icon {
-  font-size: 16px;
+  font-size: var(--adv-font-body);
   color: #f59e0b;
   flex-shrink: 0;
 }
@@ -254,7 +254,7 @@ function hasCategoryFixable(issues: ValidationIssue[]): boolean {
 }
 
 .health-group__label {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 700;
   color: var(--adv-text-primary);
   text-transform: uppercase;
@@ -268,10 +268,10 @@ function hasCategoryFixable(issues: ValidationIssue[]): boolean {
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
-  border-radius: 9px;
+  border-radius: var(--adv-radius-sm);
   background: rgba(239, 68, 68, 0.1);
   color: #ef4444;
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   font-weight: 700;
 }
 
@@ -281,11 +281,11 @@ function hasCategoryFixable(issues: ValidationIssue[]): boolean {
   align-items: center;
   gap: 4px;
   padding: 2px 8px;
-  border-radius: 6px;
+  border-radius: var(--adv-radius-xs);
   border: 1px solid rgba(16, 185, 129, 0.3);
   background: rgba(16, 185, 129, 0.06);
   color: #10b981;
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -293,7 +293,7 @@ function hasCategoryFixable(issues: ValidationIssue[]): boolean {
 }
 
 .health-group__fix-all ion-icon {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
 }
 
 .health-group__fix-all:hover {
@@ -310,7 +310,7 @@ function hasCategoryFixable(issues: ValidationIssue[]): boolean {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  border-radius: 10px;
+  border-radius: var(--adv-radius-md);
   border: 1px solid var(--adv-border-subtle);
   background: var(--adv-surface-card);
   cursor: pointer;
@@ -348,7 +348,7 @@ function hasCategoryFixable(issues: ValidationIssue[]): boolean {
 }
 
 .health-issue__file {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -356,7 +356,7 @@ function hasCategoryFixable(issues: ValidationIssue[]): boolean {
 }
 
 .health-issue__msg {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   color: var(--adv-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -364,7 +364,7 @@ function hasCategoryFixable(issues: ValidationIssue[]): boolean {
 }
 
 .health-issue__arrow {
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   color: var(--adv-text-tertiary);
   flex-shrink: 0;
   opacity: 0.4;
@@ -384,7 +384,7 @@ function hasCategoryFixable(issues: ValidationIssue[]): boolean {
   border: 1px solid rgba(16, 185, 129, 0.2);
   background: rgba(16, 185, 129, 0.06);
   color: #10b981;
-  font-size: 16px;
+  font-size: var(--adv-font-body);
   cursor: pointer;
   flex-shrink: 0;
   transition: all 0.15s ease;
@@ -402,7 +402,7 @@ function hasCategoryFixable(issues: ValidationIssue[]): boolean {
 }
 
 .health-group__more {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary);
   padding-left: 12px;
 }

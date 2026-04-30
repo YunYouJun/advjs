@@ -637,7 +637,7 @@ onMounted(() => {
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  border-radius: 16px;
+  border-radius: var(--adv-radius-lg);
   background: transparent;
   color: var(--ion-color-medium, #92949c);
   font-size: 0.85rem;
@@ -671,13 +671,13 @@ onMounted(() => {
   gap: 8px;
   margin: var(--adv-space-md, 16px);
   padding: 10px 14px;
-  border-radius: 8px;
+  border-radius: var(--adv-radius-sm);
   background: color-mix(in srgb, var(--ion-color-warning, #ffc409) 15%, transparent);
   color: var(--ion-color-warning-shade, var(--ion-color-warning));
   font-size: 0.85rem;
 }
 .import-page__error ion-icon {
-  font-size: 20px;
+  font-size: var(--adv-font-title);
   flex-shrink: 0;
 }
 
@@ -751,12 +751,12 @@ onMounted(() => {
   gap: 10px;
   padding: 12px;
   background: color-mix(in srgb, var(--ion-color-danger, #eb445a) 12%, transparent);
-  border-radius: 8px;
+  border-radius: var(--adv-radius-sm);
   font-size: 0.85rem;
   color: var(--ion-color-danger, #eb445a);
 }
 .import-page__generate-error > ion-icon {
-  font-size: 20px;
+  font-size: var(--adv-font-title);
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -795,14 +795,14 @@ onMounted(() => {
   padding: 4px 10px;
   background: color-mix(in srgb, var(--ion-color-primary) 90%, transparent);
   color: white;
-  border-radius: 12px;
+  border-radius: var(--adv-radius-md);
   font-size: 0.72rem;
   font-weight: 500;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
   animation: file-counter-pop 0.3s ease-out;
 }
 .import-page__preview-counter ion-icon {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
 }
 @keyframes file-counter-pop {
   from {
@@ -867,6 +867,6 @@ onMounted(() => {
   color: var(--ion-color-medium, #92949c);
   background: color-mix(in srgb, var(--ion-color-primary) 12%, transparent);
   padding: 2px 8px;
-  border-radius: 10px;
+  border-radius: var(--adv-radius-md);
 }
 </style>

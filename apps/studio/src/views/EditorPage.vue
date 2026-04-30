@@ -467,7 +467,7 @@ async function save() {
   border: 1px solid var(--adv-border-subtle);
   background: var(--adv-surface-elevated);
   color: var(--adv-text-primary);
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -500,7 +500,7 @@ async function save() {
 }
 
 .editor-toolbar__btn ion-icon {
-  font-size: 16px;
+  font-size: var(--adv-font-body);
 }
 
 .editor-toolbar__divider {
@@ -520,7 +520,7 @@ async function save() {
   padding: var(--adv-space-md);
   padding-bottom: calc(var(--adv-space-md) + env(safe-area-inset-bottom, 0px));
   font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   line-height: 1.6;
   background: var(--ion-background-color, #fff);
   color: var(--ion-text-color, #000);
@@ -582,7 +582,7 @@ async function save() {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: var(--adv-font-lg);
   color: var(--ion-color-primary);
 }
 
@@ -601,7 +601,7 @@ async function save() {
 
 .create-guide__filename {
   font-family: 'SF Mono', 'Fira Code', monospace;
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   color: var(--adv-text-tertiary);
   background: var(--adv-surface-elevated);
   border: 1px solid var(--adv-border-subtle);
@@ -633,7 +633,7 @@ async function save() {
 }
 
 .create-guide__ai-label-icon {
-  font-size: 14px;
-  color: #8b5cf6;
+  font-size: var(--adv-font-body-sm);
+  color: var(--adv-primary);
 }
 </style>

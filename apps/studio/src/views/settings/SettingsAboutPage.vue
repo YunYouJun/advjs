@@ -172,7 +172,7 @@ async function onLogoTap() {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  font-size: var(--adv-font-display);
   color: #fff;
   box-shadow: var(--adv-shadow-glow);
   margin-bottom: var(--adv-space-md);
@@ -246,7 +246,7 @@ async function onLogoTap() {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 18px;
+  font-size: var(--adv-font-subtitle);
 }
 
 .link-item__icon--docs {
@@ -283,7 +283,7 @@ async function onLogoTap() {
 }
 
 .link-item__open {
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   color: var(--adv-text-tertiary);
   flex-shrink: 0;
 }

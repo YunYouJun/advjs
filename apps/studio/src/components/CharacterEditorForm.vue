@@ -575,7 +575,7 @@ async function handleAiImage(target: 'avatar' | 'tachie' = 'avatar') {
 }
 
 .cef-btn--ai {
-  --color: #8b5cf6;
+  --color: var(--adv-primary);
   --border-color: rgba(139, 92, 246, 0.3);
 }
 
@@ -631,9 +631,9 @@ async function handleAiImage(target: 'avatar' | 'tachie' = 'avatar') {
 }
 
 .cef-avatar__initials {
-  font-size: 28px;
+  font-size: var(--adv-font-display);
   font-weight: 800;
-  color: #8b5cf6;
+  color: var(--adv-primary);
   text-transform: uppercase;
   letter-spacing: -0.02em;
 }
@@ -650,7 +650,7 @@ async function handleAiImage(target: 'avatar' | 'tachie' = 'avatar') {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   border: 2px solid var(--ion-background-color, #fff);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
@@ -713,7 +713,7 @@ async function handleAiImage(target: 'avatar' | 'tachie' = 'avatar') {
 }
 
 .cef-tachie__placeholder-icon {
-  font-size: 28px;
+  font-size: var(--adv-font-display);
   color: var(--adv-text-tertiary);
   opacity: 0.5;
 }
@@ -726,14 +726,14 @@ async function handleAiImage(target: 'avatar' | 'tachie' = 'avatar') {
 }
 
 .cef-tachie__name {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 600;
   color: var(--adv-text-primary);
   line-height: 1.3;
 }
 
 .cef-tachie__desc {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary);
   line-height: 1.3;
   display: -webkit-box;
@@ -758,7 +758,7 @@ async function handleAiImage(target: 'avatar' | 'tachie' = 'avatar') {
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(4px);
   color: white;
-  font-size: 18px;
+  font-size: var(--adv-font-subtitle);
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.15s ease;
@@ -788,7 +788,7 @@ async function handleAiImage(target: 'avatar' | 'tachie' = 'avatar') {
 }
 
 .cef-tachie-empty__icon {
-  font-size: 40px;
+  font-size: var(--adv-font-display-lg);
   opacity: 0.3;
 }
 

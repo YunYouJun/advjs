@@ -149,11 +149,11 @@ const navItems = [
 }
 
 .sidebar-nav__icon {
-  font-size: 22px;
+  font-size: var(--adv-font-lg);
 }
 
 .sidebar-nav__label {
-  font-size: 10px;
+  font-size: var(--adv-font-caption);
   font-weight: 500;
   line-height: 1;
   white-space: nowrap;

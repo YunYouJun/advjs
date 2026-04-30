@@ -87,19 +87,19 @@ function handleGoHome() {
 }
 
 .error-boundary__icon {
-  font-size: 48px;
+  font-size: var(--adv-font-display-xl);
   margin-bottom: 16px;
 }
 
 .error-boundary__title {
-  font-size: 20px;
+  font-size: var(--adv-font-title);
   font-weight: 700;
   color: var(--adv-text-primary, #1e293b);
   margin: 0 0 8px;
 }
 
 .error-boundary__message {
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   color: var(--adv-text-secondary, #64748b);
   margin: 0 0 16px;
   line-height: 1.5;
@@ -112,7 +112,7 @@ function handleGoHome() {
 }
 
 .error-boundary__details summary {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   color: var(--adv-text-tertiary, #94a3b8);
   cursor: pointer;
   margin-bottom: 8px;
@@ -120,7 +120,7 @@ function handleGoHome() {
 
 .error-boundary__details code {
   display: block;
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-danger, #ef4444);
   background: var(--adv-surface-elevated, #f1f5f9);
   padding: 8px 12px;
@@ -142,7 +142,7 @@ function handleGoHome() {
 .error-boundary__btn {
   padding: 10px 24px;
   border-radius: var(--adv-radius-lg, 12px);
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 600;
   border: none;
   cursor: pointer;

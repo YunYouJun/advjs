@@ -1,14 +1,7 @@
 <script setup lang="ts">
 import {
   alertController,
-  IonBackButton,
-  IonButtons,
-  IonContent,
-  IonHeader,
   IonIcon,
-  IonPage,
-  IonTitle,
-  IonToolbar,
   toastController,
 } from '@ionic/vue'
 import {
@@ -20,8 +13,10 @@ import {
 } from 'ionicons/icons'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import LayoutPage from '../../components/common/LayoutPage.vue'
 import NavGroup from '../../components/ui/NavGroup.vue'
 import NavItem from '../../components/ui/NavItem.vue'
+import SButton from '../../components/ui/SButton.vue'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -90,62 +85,43 @@ const serviceItems = [
 </script>
 
 <template>
-  <IonPage>
-    <IonHeader>
-      <IonToolbar>
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonButtons slot="start">
-          <IonBackButton :text="t('common.back')" default-href="/tabs/me" />
-        </IonButtons>
-        <IonTitle>{{ t('me.settings') }}</IonTitle>
-      </IonToolbar>
-    </IonHeader>
-    <IonContent :fullscreen="true">
-      <IonHeader collapse="condense">
-        <IonToolbar>
-          <IonTitle size="large">
-            {{ t('me.settings') }}
-          </IonTitle>
-        </IonToolbar>
-      </IonHeader>
+  <LayoutPage :title="t('me.settings')" show-back-button default-href="/tabs/me">
+    <div class="page-container">
+      <!-- General: Appearance & Language -->
+      <NavGroup>
+        <NavItem
+          v-for="item in generalItems"
+          :key="item.key"
+          :icon="item.icon"
+          :icon-color="`var(${item.color})`"
+          :label="t(item.labelKey)"
+          :desc="t(item.descKey)"
+          @click="router.push(item.route)"
+        />
+      </NavGroup>
 
-      <div class="page-container">
-        <!-- General: Appearance & Language -->
-        <NavGroup>
-          <NavItem
-            v-for="item in generalItems"
-            :key="item.key"
-            :icon="item.icon"
-            :icon-color="`var(${item.color})`"
-            :label="t(item.labelKey)"
-            :desc="t(item.descKey)"
-            @click="router.push(item.route)"
-          />
-        </NavGroup>
+      <!-- Services: AI & Cloud Sync -->
+      <NavGroup>
+        <NavItem
+          v-for="item in serviceItems"
+          :key="item.key"
+          :icon="item.icon"
+          :icon-color="`var(${item.color})`"
+          :label="t(item.labelKey)"
+          :desc="t(item.descKey)"
+          @click="router.push(item.route)"
+        />
+      </NavGroup>
 
-        <!-- Services: AI & Cloud Sync -->
-        <NavGroup>
-          <NavItem
-            v-for="item in serviceItems"
-            :key="item.key"
-            :icon="item.icon"
-            :icon-color="`var(${item.color})`"
-            :label="t(item.labelKey)"
-            :desc="t(item.descKey)"
-            @click="router.push(item.route)"
-          />
-        </NavGroup>
-
-        <!-- Danger Zone -->
-        <div class="danger-section">
-          <button class="danger-btn" @click="clearCache">
-            <IonIcon :icon="trashOutline" />
-            <span>{{ t('settings.clearCache') }}</span>
-          </button>
-        </div>
+      <!-- Danger Zone -->
+      <div class="danger-section">
+        <SButton variant="danger" block @click="clearCache">
+          <IonIcon :icon="trashOutline" />
+          <span>{{ t('settings.clearCache') }}</span>
+        </SButton>
       </div>
-    </IonContent>
-  </IonPage>
+    </div>
+  </LayoutPage>
 </template>
 
 <style scoped>
@@ -157,42 +133,14 @@ const serviceItems = [
   max-width: 560px;
   margin: 0 auto;
 
-  --nav-icon-ai: #a855f7;
+  --nav-icon-ai: var(--adv-primary);
   --nav-icon-appearance: #f59e0b;
   --nav-icon-language: #10b981;
-  --nav-icon-cloud: #6366f1;
+  --nav-icon-cloud: var(--adv-primary);
 }
 
 /* ── Danger Section ── */
 .danger-section {
   padding-top: var(--adv-space-sm);
-}
-
-.danger-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--adv-space-xs);
-  width: 100%;
-  height: 44px;
-  border-radius: var(--adv-radius-md);
-  border: 1.5px solid rgba(239, 68, 68, 0.2);
-  background: transparent;
-  color: var(--ion-color-danger);
-  font-size: var(--adv-font-body-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    background var(--adv-duration-fast) var(--adv-ease-default),
-    transform var(--adv-duration-fast) var(--adv-ease-default);
-  -webkit-tap-highlight-color: transparent;
-}
-
-.danger-btn:hover {
-  background: rgba(239, 68, 68, 0.04);
-}
-
-.danger-btn:active {
-  transform: scale(0.98);
 }
 </style>

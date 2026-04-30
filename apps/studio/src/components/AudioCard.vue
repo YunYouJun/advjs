@@ -8,7 +8,7 @@ import {
   IonCardTitle,
   IonIcon,
 } from '@ionic/vue'
-import { musicalNoteOutline, pauseOutline, playOutline } from 'ionicons/icons'
+import { bookOutline, filmOutline, musicalNoteOutline, pauseOutline, playOutline } from 'ionicons/icons'
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useProjectContent } from '../composables/useProjectContent'
 
@@ -155,10 +155,10 @@ onUnmounted(() => {
           {{ tag }}
         </span>
         <span v-if="audio.linkedScenes?.length" class="audio-card__link">
-          🎬 {{ audio.linkedScenes.length }}
+          <IonIcon :icon="filmOutline" /> {{ audio.linkedScenes.length }}
         </span>
         <span v-if="audio.linkedChapters?.length" class="audio-card__link">
-          📖 {{ audio.linkedChapters.length }}
+          <IonIcon :icon="bookOutline" /> {{ audio.linkedChapters.length }}
         </span>
       </div>
     </IonCardContent>
@@ -205,7 +205,7 @@ onUnmounted(() => {
 .audio-card__icon-wrap {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: var(--adv-radius-md);
   background: rgba(139, 92, 246, 0.1);
   display: flex;
   align-items: center;
@@ -213,8 +213,8 @@ onUnmounted(() => {
 }
 
 .audio-card__icon {
-  font-size: 18px;
-  color: #8b5cf6;
+  font-size: var(--adv-font-subtitle);
+  color: var(--adv-primary);
 }
 
 .audio-card__info {
@@ -277,17 +277,17 @@ onUnmounted(() => {
 }
 
 .audio-card__tag {
-  font-size: 10px;
+  font-size: var(--adv-font-caption);
   line-height: 1;
   padding: 2px 7px;
-  border-radius: 99px;
+  border-radius: var(--adv-radius-full);
   background: rgba(139, 92, 246, 0.08);
-  color: #8b5cf6;
+  color: var(--adv-primary);
   white-space: nowrap;
 }
 
 .audio-card__link {
-  font-size: 10px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary);
   white-space: nowrap;
 }

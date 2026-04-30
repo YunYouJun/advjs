@@ -154,20 +154,20 @@ function getNodeIcon(type: string) {
 }
 
 .node-item__index {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 600;
   color: var(--adv-text-tertiary);
   min-width: 28px;
 }
 
 .node-item__type {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 500;
   text-transform: capitalize;
 }
 
 .node-item__preview {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   color: var(--adv-text-secondary);
   white-space: nowrap;
   overflow: hidden;

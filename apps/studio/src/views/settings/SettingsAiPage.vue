@@ -680,13 +680,13 @@ const IMAGE_PROVIDERS = [
   width: 44px;
   height: 44px;
   border-radius: var(--adv-radius-md);
-  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  background: var(--adv-gradient-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   color: #fff;
-  font-size: 22px;
+  font-size: var(--adv-font-lg);
   box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
 }
 
@@ -723,12 +723,12 @@ const IMAGE_PROVIDERS = [
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 18px;
+  font-size: var(--adv-font-subtitle);
 }
 
 .section-card__icon--provider {
   background: rgba(139, 92, 246, 0.1);
-  color: #8b5cf6;
+  color: var(--adv-primary);
 }
 
 .section-card__icon--key {
@@ -772,7 +772,7 @@ const IMAGE_PROVIDERS = [
   appearance: none;
   -webkit-appearance: none;
   background: var(--adv-border-subtle);
-  border-radius: 12px;
+  border-radius: var(--adv-radius-md);
   position: relative;
   cursor: pointer;
   transition: background 0.2s;
@@ -840,7 +840,7 @@ const IMAGE_PROVIDERS = [
 }
 
 .provider-chip--active {
-  border-color: #8b5cf6;
+  border-color: var(--adv-primary);
   background: rgba(139, 92, 246, 0.08);
 }
 
@@ -851,12 +851,12 @@ const IMAGE_PROVIDERS = [
 }
 
 .provider-chip__badge {
-  font-size: 10px;
+  font-size: var(--adv-font-caption);
   font-weight: 500;
   color: #10b981;
   background: rgba(16, 185, 129, 0.1);
   padding: 1px 6px;
-  border-radius: 10px;
+  border-radius: var(--adv-radius-md);
 }
 
 /* ── Registration Link ── */
@@ -875,7 +875,7 @@ const IMAGE_PROVIDERS = [
 }
 
 .registration-link__icon {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
 }
 
 /* ── Form Inputs ── */
@@ -903,7 +903,7 @@ const IMAGE_PROVIDERS = [
 }
 
 .input-field__label-icon {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
 }
 
 .input-field__value {

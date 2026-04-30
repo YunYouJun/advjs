@@ -572,7 +572,7 @@ async function handleDelete() {
   padding: 10px 14px;
   border: none;
   background: none;
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 500;
   color: var(--ion-color-medium, #92949c);
   cursor: pointer;
@@ -593,7 +593,7 @@ async function handleDelete() {
 }
 
 .tabs-trigger-icon {
-  font-size: 15px;
+  font-size: var(--adv-font-body);
 }
 
 /* ── Panel ── */
@@ -604,7 +604,7 @@ async function handleDelete() {
 /* ── Card ── */
 .card {
   background: var(--ion-item-background, #fff);
-  border-radius: 12px;
+  border-radius: var(--adv-radius-md);
   padding: 16px;
   margin-bottom: 16px;
 }
@@ -615,7 +615,7 @@ async function handleDelete() {
 }
 
 .card-title {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -638,7 +638,7 @@ async function handleDelete() {
 
 .field--clickable {
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: var(--adv-radius-sm);
   margin: 0 -8px 18px;
   padding: 8px;
   transition: background 0.15s;
@@ -654,7 +654,7 @@ async function handleDelete() {
 
 .field-label {
   display: block;
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 500;
   color: var(--ion-color-medium, #92949c);
   margin-bottom: 6px;
@@ -665,10 +665,10 @@ async function handleDelete() {
   display: block;
   width: 100%;
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: var(--adv-radius-sm);
   border: 1px solid var(--ion-border-color, #d7d8da);
   background: var(--ion-background-color, #fff);
-  font-size: 15px;
+  font-size: var(--adv-font-body);
   line-height: 1.4;
   color: var(--ion-text-color, #1a1a1a);
   outline: none;
@@ -688,7 +688,7 @@ async function handleDelete() {
 }
 
 .field-value {
-  font-size: 15px;
+  font-size: var(--adv-font-body);
   color: var(--ion-text-color, #1a1a1a);
   line-height: 1.5;
 }
@@ -699,7 +699,7 @@ async function handleDelete() {
 
 .field-value--mono {
   font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   word-break: break-all;
 }
 
@@ -711,7 +711,7 @@ async function handleDelete() {
 
 .field-action-icon {
   flex-shrink: 0;
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   color: var(--ion-color-medium, #92949c);
   margin-top: 2px;
   margin-left: auto;
@@ -725,11 +725,11 @@ async function handleDelete() {
   gap: 6px;
   width: 100%;
   padding: 10px 16px;
-  border-radius: 8px;
+  border-radius: var(--adv-radius-sm);
   border: 1px solid var(--ion-color-danger, #eb445a);
   background: transparent;
   color: var(--ion-color-danger, #eb445a);
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 500;
   cursor: pointer;
   transition: background 0.15s;
@@ -742,7 +742,7 @@ async function handleDelete() {
 
 /* ── Hints ── */
 .hint {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   color: var(--ion-color-medium, #92949c);
   line-height: 1.6;
   margin: 0;
@@ -756,7 +756,7 @@ async function handleDelete() {
 .empty-state {
   text-align: center;
   color: var(--ion-color-medium, #92949c);
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   padding: 16px 0 0;
   margin: 0;
 }
@@ -773,7 +773,7 @@ async function handleDelete() {
 .cover-preview {
   position: relative;
   margin-bottom: 12px;
-  border-radius: 10px;
+  border-radius: var(--adv-radius-md);
   overflow: hidden;
   max-height: 180px;
 }
@@ -784,7 +784,7 @@ async function handleDelete() {
   max-height: 180px;
   object-fit: cover;
   display: block;
-  border-radius: 10px;
+  border-radius: var(--adv-radius-md);
 }
 
 .cover-preview__remove {
@@ -801,7 +801,7 @@ async function handleDelete() {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   transition: background 0.15s;
 }
 
@@ -817,11 +817,11 @@ async function handleDelete() {
   gap: 6px;
   width: 100%;
   padding: 10px 16px;
-  border-radius: 8px;
+  border-radius: var(--adv-radius-sm);
   border: 1px dashed var(--ion-border-color, #d7d8da);
   background: transparent;
   color: var(--ion-color-primary, #3880ff);
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 500;
   cursor: pointer;
   transition:
@@ -847,11 +847,11 @@ async function handleDelete() {
   gap: 6px;
   width: 100%;
   padding: 10px 16px;
-  border-radius: 8px;
+  border-radius: var(--adv-radius-sm);
   border: none;
-  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  background: var(--adv-gradient-primary);
   color: #fff;
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 600;
   cursor: pointer;
   transition:

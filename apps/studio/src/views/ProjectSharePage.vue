@@ -17,21 +17,16 @@
 import type { AdvCharacter } from '@advjs/types'
 import { parseCharacterMd } from '@advjs/parser'
 import {
-  IonBackButton,
   IonButton,
-  IonButtons,
-  IonContent,
-  IonHeader,
   IonIcon,
-  IonPage,
-  IonTitle,
-  IonToolbar,
 } from '@ionic/vue'
 import { chatbubbleOutline, linkOutline, openOutline, shareOutline } from 'ionicons/icons'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import LayoutPage from '../components/common/LayoutPage.vue'
 import QRCodeGenerator from '../components/QRCodeGenerator.vue'
+import SButton from '../components/ui/SButton.vue'
 import { useShortLink } from '../composables/useShortLink'
 import { createFileSystem } from '../utils/fs'
 import { buildImportUrl, setProjectOgMeta } from '../utils/ogMeta'
@@ -200,159 +195,146 @@ async function handleShare() {
 </script>
 
 <template>
-  <IonPage>
-    <IonHeader>
-      <IonToolbar>
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic requires native slot -->
-        <IonButtons slot="start">
-          <IonBackButton default-href="/" />
-        </IonButtons>
-        <IonTitle>{{ summary?.name || 'Shared Project' }}</IonTitle>
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic requires native slot -->
-        <IonButtons slot="end">
-          <IonButton fill="clear" @click="handleShare">
-            <IonIcon :icon="shareOutline" />
-          </IonButton>
-        </IonButtons>
-      </IonToolbar>
-    </IonHeader>
+  <LayoutPage :title="summary?.name || 'Shared Project'" show-back-button default-href="/">
+    <template #end>
+      <IonButton fill="clear" @click="handleShare">
+        <IonIcon :icon="shareOutline" />
+      </IonButton>
+    </template>
+    <!-- Loading -->
+    <div v-if="isLoading" class="share-loading">
+      {{ t('sharePreview.loading') || 'Loading preview...' }}
+    </div>
 
-    <IonContent :fullscreen="true">
-      <!-- Loading -->
-      <div v-if="isLoading" class="share-loading">
-        {{ t('sharePreview.loading') || 'Loading preview...' }}
+    <!-- Not found -->
+    <div v-else-if="notFound" class="share-empty">
+      <div class="share-empty__icon">
+        📭
       </div>
+      <h3>{{ t('sharePreview.notFoundTitle') || 'Project not available on this device' }}</h3>
+      <p>
+        {{ t('sharePreview.notFoundDesc') || 'The project data is stored locally per device. The creator can export it as .advpkg to share across devices.' }}
+      </p>
+      <SButton variant="outline" @click="router.push('/')">
+        {{ t('sharePreview.backToStudio') || 'Go to Studio' }}
+      </SButton>
+    </div>
 
-      <!-- Not found -->
-      <div v-else-if="notFound" class="share-empty">
-        <div class="share-empty__icon">
-          📭
+    <!-- Preview -->
+    <div v-else-if="summary" class="share-main">
+      <!-- Hero -->
+      <header class="share-hero">
+        <div
+          class="share-hero__cover"
+          :style="summary.cover ? { backgroundImage: `url(${summary.cover})` } : {}"
+        >
+          <div v-if="!summary.cover" class="share-hero__placeholder">
+            📖
+          </div>
         </div>
-        <h3>{{ t('sharePreview.notFoundTitle') || 'Project not available on this device' }}</h3>
-        <p>
-          {{ t('sharePreview.notFoundDesc') || 'The project data is stored locally per device. The creator can export it as .advpkg to share across devices.' }}
-        </p>
-        <IonButton router-link="/" fill="outline">
-          {{ t('sharePreview.backToStudio') || 'Go to Studio' }}
-        </IonButton>
-      </div>
-
-      <!-- Preview -->
-      <div v-else-if="summary" class="share-main">
-        <!-- Hero -->
-        <header class="share-hero">
-          <div
-            class="share-hero__cover"
-            :style="summary.cover ? { backgroundImage: `url(${summary.cover})` } : {}"
-          >
-            <div v-if="!summary.cover" class="share-hero__placeholder">
-              📖
-            </div>
-          </div>
-          <div class="share-hero__meta">
-            <h1 class="share-hero__title">
-              {{ summary.name }}
-            </h1>
-            <p v-if="summary.description" class="share-hero__desc">
-              {{ summary.description }}
-            </p>
-            <div class="share-hero__stats">
-              <span>👥 {{ summary.characters.length }} {{ t('sharePreview.characters') || 'Characters' }}</span>
-              <span>📄 {{ summary.chapterFiles.length }} {{ t('sharePreview.chapters') || 'Chapters' }}</span>
-            </div>
-          </div>
-        </header>
-
-        <!-- Primary CTA -->
-        <div class="share-cta">
-          <button class="share-cta__btn" @click="handleOpenInStudio">
-            <IonIcon :icon="openOutline" />
-            {{ t('sharePreview.openInStudio') || 'Open in Studio' }}
-          </button>
-        </div>
-
-        <!-- Characters -->
-        <section v-if="summary.characters.length > 0" class="share-section">
-          <h2 class="share-section__title">
-            {{ t('sharePreview.charactersTitle') || 'Characters' }}
-          </h2>
-          <div class="share-char-grid">
-            <div
-              v-for="c in summary.characters.slice(0, 12)"
-              :key="c.id"
-              class="share-char-card"
-            >
-              <div class="share-char-card__avatar">
-                <img v-if="c.avatar" :src="c.avatar" :alt="c.name">
-                <span v-else>{{ (c.name || c.id || '?').slice(0, 1) }}</span>
-              </div>
-              <div class="share-char-card__name">
-                {{ c.name }}
-              </div>
-              <p v-if="c.personality" class="share-char-card__desc">
-                {{ c.personality.slice(0, 40) }}{{ c.personality.length > 40 ? '…' : '' }}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <!-- Chapters -->
-        <section v-if="summary.chapterFiles.length > 0" class="share-section">
-          <h2 class="share-section__title">
-            {{ t('sharePreview.chaptersTitle') || 'Chapters' }}
-          </h2>
-          <ol class="share-chapter-list">
-            <li v-for="file in summary.chapterFiles.slice(0, 20)" :key="file">
-              <IonIcon :icon="chatbubbleOutline" class="share-chapter-list__icon" />
-              {{ file.replace(/\.adv\.md$/, '') }}
-            </li>
-          </ol>
-        </section>
-
-        <!-- QR Code + share -->
-        <section class="share-section share-section--center">
-          <h2 class="share-section__title">
-            {{ t('sharePreview.scanTitle') || 'Scan to Open on Another Device' }}
-          </h2>
-          <div class="share-qr-box">
-            <QRCodeGenerator :value="qrValue" :size="180" :show-actions="false" />
-          </div>
-          <p class="share-qr-hint">
-            {{ t('sharePreview.scanHint') || 'QR code points to the import URL for this project' }}
+        <div class="share-hero__meta">
+          <h1 class="share-hero__title">
+            {{ summary.name }}
+          </h1>
+          <p v-if="summary.description" class="share-hero__desc">
+            {{ summary.description }}
           </p>
-
-          <!-- Short link generation -->
-          <div v-if="cloudApp" class="share-shortlink">
-            <template v-if="shortUrl">
-              <div class="share-shortlink__url">
-                {{ shortUrl }}
-              </div>
-              <IonButton size="small" fill="clear" @click="handleCopyShortLink">
-                <IonIcon slot="start" :icon="linkOutline" />
-                {{ t('sharePreview.copyShortLink') }}
-              </IonButton>
-            </template>
-            <IonButton
-              v-else
-              size="small"
-              fill="outline"
-              :disabled="isCreatingShortLink"
-              @click="handleGenerateShortLink"
-            >
-              <IonIcon slot="start" :icon="linkOutline" />
-              {{ t('sharePreview.generateShortLink') }}
-            </IonButton>
+          <div class="share-hero__stats">
+            <span>👥 {{ summary.characters.length }} {{ t('sharePreview.characters') || 'Characters' }}</span>
+            <span>📄 {{ summary.chapterFiles.length }} {{ t('sharePreview.chapters') || 'Chapters' }}</span>
           </div>
-        </section>
+        </div>
+      </header>
 
-        <!-- Footer -->
-        <footer class="share-footer">
-          <span>Created with</span>
-          <a href="https://studio.advjs.org" target="_blank" rel="noopener">ADV.JS Studio</a>
-        </footer>
+      <!-- Primary CTA -->
+      <div class="share-cta">
+        <SButton variant="primary" block @click="handleOpenInStudio">
+          <IonIcon :icon="openOutline" />
+          {{ t('sharePreview.openInStudio') || 'Open in Studio' }}
+        </SButton>
       </div>
-    </IonContent>
-  </IonPage>
+
+      <!-- Characters -->
+      <section v-if="summary.characters.length > 0" class="share-section">
+        <h2 class="share-section__title">
+          {{ t('sharePreview.charactersTitle') || 'Characters' }}
+        </h2>
+        <div class="share-char-grid">
+          <div
+            v-for="c in summary.characters.slice(0, 12)"
+            :key="c.id"
+            class="share-char-card"
+          >
+            <div class="share-char-card__avatar">
+              <img v-if="c.avatar" :src="c.avatar" :alt="c.name">
+              <span v-else>{{ (c.name || c.id || '?').slice(0, 1) }}</span>
+            </div>
+            <div class="share-char-card__name">
+              {{ c.name }}
+            </div>
+            <p v-if="c.personality" class="share-char-card__desc">
+              {{ c.personality.slice(0, 40) }}{{ c.personality.length > 40 ? '…' : '' }}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Chapters -->
+      <section v-if="summary.chapterFiles.length > 0" class="share-section">
+        <h2 class="share-section__title">
+          {{ t('sharePreview.chaptersTitle') || 'Chapters' }}
+        </h2>
+        <ol class="share-chapter-list">
+          <li v-for="file in summary.chapterFiles.slice(0, 20)" :key="file">
+            <IonIcon :icon="chatbubbleOutline" class="share-chapter-list__icon" />
+            {{ file.replace(/\.adv\.md$/, '') }}
+          </li>
+        </ol>
+      </section>
+
+      <!-- QR Code + share -->
+      <section class="share-section share-section--center">
+        <h2 class="share-section__title">
+          {{ t('sharePreview.scanTitle') || 'Scan to Open on Another Device' }}
+        </h2>
+        <div class="share-qr-box">
+          <QRCodeGenerator :value="qrValue" :size="180" :show-actions="false" />
+        </div>
+        <p class="share-qr-hint">
+          {{ t('sharePreview.scanHint') || 'QR code points to the import URL for this project' }}
+        </p>
+
+        <!-- Short link generation -->
+        <div v-if="cloudApp" class="share-shortlink">
+          <template v-if="shortUrl">
+            <div class="share-shortlink__url">
+              {{ shortUrl }}
+            </div>
+            <SButton variant="ghost" size="sm" @click="handleCopyShortLink">
+              <IonIcon :icon="linkOutline" />
+              {{ t('sharePreview.copyShortLink') }}
+            </SButton>
+          </template>
+          <SButton
+            v-else
+            variant="outline"
+            size="sm"
+            :disabled="isCreatingShortLink"
+            @click="handleGenerateShortLink"
+          >
+            <IonIcon :icon="linkOutline" />
+            {{ t('sharePreview.generateShortLink') }}
+          </SButton>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="share-footer">
+        <span>Created with</span>
+        <a href="https://studio.advjs.org" target="_blank" rel="noopener">ADV.JS Studio</a>
+      </footer>
+    </div>
+  </LayoutPage>
 </template>
 
 <style scoped>
@@ -363,9 +345,9 @@ async function handleShare() {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 48px 24px;
-  gap: 16px;
-  color: var(--adv-text-secondary, #64748b);
+  padding: var(--adv-space-2xl) var(--adv-space-lg);
+  gap: var(--adv-space-md);
+  color: var(--adv-text-secondary);
 }
 
 .share-empty__icon {
@@ -375,37 +357,37 @@ async function handleShare() {
 
 .share-empty h3 {
   margin: 0;
-  font-size: 18px;
-  color: var(--adv-text-primary, #1a1a2e);
+  font-size: var(--adv-font-subtitle);
+  color: var(--adv-text-primary);
 }
 
 .share-empty p {
   max-width: 360px;
   line-height: 1.6;
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   margin: 0;
 }
 
 .share-main {
   max-width: 680px;
   margin: 0 auto;
-  padding: 0 0 40px;
+  padding: 0 0 var(--adv-space-xl);
 }
 
 /* ── Hero ── */
 .share-hero {
-  padding: 20px 16px;
+  padding: var(--adv-space-md);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--adv-space-md);
 }
 
 .share-hero__cover {
   aspect-ratio: 16 / 9;
   background-size: cover;
   background-position: center;
-  background-color: linear-gradient(135deg, #8b5cf6, #6366f1);
-  border-radius: 12px;
+  background: var(--adv-gradient-primary);
+  border-radius: var(--adv-radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -418,62 +400,35 @@ async function handleShare() {
 }
 
 .share-hero__title {
-  font-size: 28px;
+  font-size: var(--adv-font-display);
   font-weight: 800;
   margin: 0;
-  color: var(--adv-text-primary, #1a1a2e);
+  color: var(--adv-text-primary);
 }
 
 .share-hero__desc {
-  font-size: 15px;
+  font-size: var(--adv-font-body);
   line-height: 1.6;
-  color: var(--adv-text-secondary, #64748b);
+  color: var(--adv-text-secondary);
   margin: 0;
 }
 
 .share-hero__stats {
   display: flex;
-  gap: 16px;
-  font-size: 13px;
-  color: var(--adv-text-tertiary, #94a3b8);
+  gap: var(--adv-space-md);
+  font-size: var(--adv-font-body-sm);
+  color: var(--adv-text-tertiary);
 }
 
 /* ── CTA ── */
 .share-cta {
-  padding: 0 16px 24px;
-}
-
-.share-cta__btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 14px 16px;
-  border-radius: 12px;
-  border: none;
-  background: linear-gradient(135deg, #8b5cf6, #6366f1);
-  color: #fff;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    opacity 0.15s,
-    transform 0.15s;
-}
-
-.share-cta__btn:hover {
-  opacity: 0.92;
-}
-
-.share-cta__btn:active {
-  transform: scale(0.98);
+  padding: 0 var(--adv-space-md) var(--adv-space-lg);
 }
 
 /* ── Sections ── */
 .share-section {
-  padding: 20px 16px;
-  border-top: 1px solid var(--adv-border-subtle, rgba(0, 0, 0, 0.06));
+  padding: var(--adv-space-md);
+  border-top: 1px solid var(--adv-border-subtle);
 }
 
 .share-section--center {
@@ -481,38 +436,38 @@ async function handleShare() {
 }
 
 .share-section__title {
-  font-size: 18px;
+  font-size: var(--adv-font-subtitle);
   font-weight: 700;
-  margin: 0 0 16px;
-  color: var(--adv-text-primary, #1a1a2e);
+  margin: 0 0 var(--adv-space-md);
+  color: var(--adv-text-primary);
 }
 
 /* ── Character grid ── */
 .share-char-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 12px;
+  gap: var(--adv-space-sm);
 }
 
 .share-char-card {
-  padding: 12px;
-  border-radius: 10px;
-  background: var(--adv-surface-elevated, #f8fafc);
+  padding: var(--adv-space-sm);
+  border-radius: var(--adv-radius-md);
+  background: var(--adv-surface-elevated);
   text-align: center;
 }
 
 .share-char-card__avatar {
   width: 56px;
   height: 56px;
-  margin: 0 auto 8px;
+  margin: 0 auto var(--adv-space-sm);
   border-radius: 50%;
   overflow: hidden;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(99, 102, 241, 0.2));
+  background: var(--adv-gradient-surface);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #8b5cf6;
-  font-size: 22px;
+  color: var(--adv-primary);
+  font-size: var(--adv-font-lg);
   font-weight: 700;
 }
 
@@ -523,16 +478,16 @@ async function handleShare() {
 }
 
 .share-char-card__name {
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 600;
-  color: var(--adv-text-primary, #1a1a2e);
+  color: var(--adv-text-primary);
 }
 
 .share-char-card__desc {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   line-height: 1.4;
-  color: var(--adv-text-tertiary, #94a3b8);
-  margin: 4px 0 0;
+  color: var(--adv-text-tertiary);
+  margin: var(--adv-space-xs) 0 0;
 }
 
 /* ── Chapter list ── */
@@ -542,69 +497,69 @@ async function handleShare() {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--adv-space-xs);
 }
 
 .share-chapter-list li {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: var(--adv-surface-elevated, #f8fafc);
-  font-size: 14px;
-  color: var(--adv-text-secondary, #475569);
+  gap: var(--adv-space-sm);
+  padding: var(--adv-space-sm);
+  border-radius: var(--adv-radius-sm);
+  background: var(--adv-surface-elevated);
+  font-size: var(--adv-font-body-sm);
+  color: var(--adv-text-secondary);
 }
 
 .share-chapter-list__icon {
   flex-shrink: 0;
-  color: #8b5cf6;
-  font-size: 16px;
+  color: var(--adv-primary);
+  font-size: var(--adv-font-body);
 }
 
 /* ── QR Code ── */
 .share-qr-box {
   display: inline-block;
-  padding: 12px;
+  padding: var(--adv-space-sm);
   background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  border-radius: var(--adv-radius-md);
+  box-shadow: var(--adv-shadow-card);
 }
 
 .share-qr-hint {
-  margin: 12px 0 0;
-  font-size: 12px;
-  color: var(--adv-text-tertiary, #94a3b8);
+  margin: var(--adv-space-sm) 0 0;
+  font-size: var(--adv-font-body-sm);
+  color: var(--adv-text-tertiary);
 }
 
 .share-shortlink {
-  margin-top: 16px;
+  margin-top: var(--adv-space-md);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: var(--adv-space-sm);
 }
 
 .share-shortlink__url {
-  padding: 8px 16px;
-  background: var(--adv-surface-elevated, #f8fafc);
-  border-radius: 8px;
+  padding: var(--adv-space-sm) var(--adv-space-md);
+  background: var(--adv-surface-elevated);
+  border-radius: var(--adv-radius-sm);
   font-family: monospace;
-  font-size: 14px;
-  color: #8b5cf6;
+  font-size: var(--adv-font-body-sm);
+  color: var(--adv-primary);
   user-select: all;
 }
 
 /* ── Footer ── */
 .share-footer {
   text-align: center;
-  padding: 24px 16px;
-  font-size: 12px;
-  color: var(--adv-text-tertiary, #94a3b8);
+  padding: var(--adv-space-lg) var(--adv-space-md);
+  font-size: var(--adv-font-body-sm);
+  color: var(--adv-text-tertiary);
 }
 
 .share-footer a {
-  color: #8b5cf6;
+  color: var(--adv-primary);
   font-weight: 600;
   margin-left: 4px;
   text-decoration: none;
@@ -616,7 +571,7 @@ async function handleShare() {
 
 :root.dark .share-char-card,
 :root.dark .share-chapter-list li {
-  background: var(--adv-surface-elevated, #252536);
+  background: var(--adv-surface-elevated);
 }
 
 :root.dark .share-qr-box {

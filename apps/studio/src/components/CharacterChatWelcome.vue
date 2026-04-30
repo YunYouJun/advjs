@@ -105,9 +105,9 @@ const suggestedTopics = computed(() => {
 }
 
 .ccw-avatar__initials {
-  font-size: 32px;
+  font-size: var(--adv-font-display);
   font-weight: 800;
-  color: #8b5cf6;
+  color: var(--adv-primary);
   text-transform: uppercase;
   letter-spacing: -0.02em;
 }

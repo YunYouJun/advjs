@@ -258,7 +258,7 @@ onBeforeUnmount(() => {
   <div class="file-preview">
     <div v-if="!content && !filename" class="file-preview__empty">
       <div class="file-preview__empty-icon">
-        <span class="i-vscode-icons-default-file" style="font-size: 48px; width: 48px; height: 48px;" />
+        <span class="i-vscode-icons-default-file" style="font-size: var(--adv-font-display-xl); width: 48px; height: 48px;" />
       </div>
       <p>{{ t('workspace.selectFile') }}</p>
     </div>
@@ -294,14 +294,14 @@ onBeforeUnmount(() => {
 }
 
 .file-preview__type-icon {
-  font-size: 18px;
+  font-size: var(--adv-font-subtitle);
   width: 18px;
   height: 18px;
   flex-shrink: 0;
 }
 
 .file-preview__filename {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 500;
   color: var(--adv-text-primary, #333);
   overflow: hidden;
@@ -312,12 +312,12 @@ onBeforeUnmount(() => {
 }
 
 .file-preview__type-badge {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   font-weight: 500;
   color: var(--adv-text-secondary, #666);
   background: var(--adv-border-subtle, #f0f0f0);
   padding: 2px 8px;
-  border-radius: 10px;
+  border-radius: var(--adv-radius-md);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -342,7 +342,7 @@ onBeforeUnmount(() => {
 }
 
 .file-preview__empty p {
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   margin: 0;
 }
 </style>

@@ -179,7 +179,7 @@ function handleFileClick(item: FSFileItem) {
 .tree-node {
   --min-height: 36px;
   --inner-padding-end: 8px;
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
 }
 
 .tree-slot-start {
@@ -189,7 +189,7 @@ function handleFileClick(item: FSFileItem) {
 }
 
 .tree-chevron {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   margin-right: 2px;
   transition: transform 0.2s ease;
   flex-shrink: 0;
@@ -207,7 +207,7 @@ function handleFileClick(item: FSFileItem) {
 }
 
 .tree-icon {
-  font-size: 18px;
+  font-size: var(--adv-font-subtitle);
   width: 18px;
   height: 18px;
   flex-shrink: 0;

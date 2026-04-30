@@ -140,7 +140,7 @@ defineExpose({ inputRef })
   border-radius: 50%;
   background: var(--adv-surface-elevated);
   color: var(--adv-text-tertiary);
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   line-height: 1;
   cursor: pointer;
   flex-shrink: 0;

@@ -289,7 +289,7 @@ async function signIn() {
   height: 240px;
   bottom: 10%;
   left: -60px;
-  background: #a78bfa;
+  background: var(--adv-primary);
   animation: login-float 10s ease-in-out infinite alternate-reverse;
 }
 

@@ -64,6 +64,7 @@ async function confirmDelete(diaryId: string) {
   <LayoutPage :title="t('characters.diaryTitle', { name: characterName })" show-back-button :default-href="`/tabs/world/chat/${characterId}`">
     <template #end>
       <IonButton
+        fill="clear"
         :disabled="isDiaryGenerating"
         @click="handleGenerate"
       >
@@ -132,8 +133,9 @@ async function confirmDelete(diaryId: string) {
 .diary-item {
   background: var(--adv-surface-card, #fff);
   border: 1px solid var(--adv-border-subtle, #e2e8f0);
-  border-radius: var(--adv-radius-lg, 14px);
+  border-radius: var(--adv-radius-lg, 16px);
   padding: var(--adv-space-md, 16px);
+  box-shadow: var(--adv-shadow-subtle);
 }
 
 :root.dark .diary-item {
@@ -161,10 +163,10 @@ async function confirmDelete(diaryId: string) {
 
 .diary-item__mood {
   font-size: var(--adv-font-caption, 11px);
-  color: #8b5cf6;
+  color: var(--adv-primary);
   background: rgba(139, 92, 246, 0.08);
   padding: 1px 8px;
-  border-radius: 999px;
+  border-radius: var(--adv-radius-full);
 }
 
 .diary-item__delete {
@@ -173,7 +175,7 @@ async function confirmDelete(diaryId: string) {
   background: none;
   color: var(--adv-text-tertiary, #94a3b8);
   cursor: pointer;
-  font-size: 18px;
+  font-size: var(--adv-font-subtitle);
   line-height: 1;
   padding: 0 4px;
 }
@@ -200,7 +202,7 @@ async function confirmDelete(diaryId: string) {
 }
 
 .diary-empty__icon {
-  font-size: 48px;
+  font-size: var(--adv-font-display-xl);
   opacity: 0.6;
 }
 

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { AdvCharacter } from '@advjs/types'
+import { IonIcon } from '@ionic/vue'
+import { peopleOutline } from 'ionicons/icons'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
@@ -16,7 +18,7 @@ const { t } = useI18n()
 <template>
   <aside class="world-sidebar" role="navigation" :aria-label="t('world.viewAllCharacters')">
     <div class="world-sidebar__header">
-      👥 {{ t('world.viewAllCharacters') }}
+      <IonIcon :icon="peopleOutline" /> {{ t('world.viewAllCharacters') }}
     </div>
     <div class="world-sidebar__list" role="list">
       <button
@@ -93,7 +95,7 @@ const { t } = useI18n()
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 600;
   flex-shrink: 0;
 }

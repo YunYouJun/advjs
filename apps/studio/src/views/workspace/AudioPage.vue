@@ -188,7 +188,7 @@ async function handleFileImport(event: Event) {
 <template>
   <LayoutPage :title="t('audio.title')" show-back-button default-href="/tabs/workspace">
     <template #end>
-      <IonButton @click="triggerImport">
+      <IonButton fill="clear" @click="triggerImport">
         <IonIcon :icon="cloudUploadOutline" />
       </IonButton>
     </template>
@@ -327,7 +327,7 @@ async function handleFileImport(event: Event) {
 }
 
 .empty-state__illustration {
-  font-size: 48px;
+  font-size: var(--adv-font-display-xl);
   opacity: 0.6;
 }
 

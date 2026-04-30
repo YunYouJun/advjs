@@ -1,6 +1,6 @@
 /* Shared component styles — ADV.JS design system */
 
-/* Empty state — reusable across pages */
+/* ── Empty state — reusable across pages ── */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -19,11 +19,12 @@
   align-items: center;
   justify-content: center;
   margin-bottom: var(--adv-space-lg);
+  animation: empty-float 3s ease-in-out infinite;
 }
 
 .empty-state__illustration ion-icon {
-  font-size: 36px;
-  color: var(--ion-color-primary);
+  font-size: var(--adv-font-display-lg);
+  color: var(--adv-primary, var(--ion-color-primary));
 }
 
 .empty-state__title {
@@ -39,4 +40,167 @@
   max-width: 300px;
   line-height: 1.5;
   margin: 0;
+}
+
+.empty-state__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--adv-space-sm);
+  width: 100%;
+  max-width: 280px;
+  margin-top: var(--adv-space-lg);
+}
+
+.empty-state__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--adv-space-sm);
+  height: 44px;
+  padding: 0 var(--adv-space-lg);
+  border-radius: var(--adv-radius-md);
+  font-size: var(--adv-font-body);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background var(--adv-duration-fast) var(--adv-ease-default),
+    box-shadow var(--adv-duration-fast) var(--adv-ease-default),
+    transform var(--adv-duration-fast) var(--adv-ease-default);
+  border: 1.5px solid var(--adv-border-light, #e5e7eb);
+  background: var(--adv-surface-card);
+  color: var(--adv-text-primary);
+}
+
+.empty-state__action:active {
+  transform: scale(0.98);
+}
+
+.empty-state__action--primary {
+  background: var(--adv-gradient-primary, var(--ion-color-primary));
+  border-color: transparent;
+  color: var(--ion-color-primary-contrast, #fff);
+  box-shadow: var(--adv-shadow-glow);
+}
+
+.empty-state__action--primary:hover {
+  filter: brightness(1.05);
+}
+
+@keyframes empty-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .empty-state__illustration {
+    animation: none;
+  }
+}
+
+/* ── Standard card — reusable container ── */
+.adv-card {
+  background: var(--adv-surface-card);
+  border-radius: var(--adv-radius-lg);
+  border: 1px solid var(--adv-border-subtle);
+  box-shadow: var(--adv-shadow-subtle);
+  padding: var(--adv-space-md);
+  transition: box-shadow var(--adv-duration-fast) var(--adv-ease-default);
+}
+
+.adv-card--elevated {
+  box-shadow: var(--adv-shadow-medium);
+}
+
+.adv-card--interactive:hover {
+  box-shadow: var(--adv-shadow-medium);
+}
+
+.adv-card--interactive:active {
+  transform: scale(0.98);
+}
+
+/* ── Section — content group with title ── */
+.adv-section {
+  margin-bottom: var(--adv-space-lg);
+}
+
+.adv-section__title {
+  font-size: var(--adv-font-body-sm);
+  font-weight: 600;
+  color: var(--adv-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0 var(--adv-space-md);
+  margin-bottom: var(--adv-space-sm);
+}
+
+.adv-section__content {
+  background: var(--adv-surface-card);
+  border-radius: var(--adv-radius-lg);
+  border: 1px solid var(--adv-border-subtle);
+  box-shadow: var(--adv-shadow-subtle);
+  overflow: hidden;
+}
+
+/* ── Badge — semantic status indicators ── */
+.adv-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--adv-space-xs);
+  padding: 2px var(--adv-space-sm);
+  border-radius: var(--adv-radius-full);
+  font-size: var(--adv-font-caption);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.adv-badge--primary {
+  background: var(--adv-primary-light);
+  color: var(--adv-primary);
+}
+
+.adv-badge--success {
+  background: var(--adv-success-light);
+  color: var(--adv-success);
+}
+
+.adv-badge--warning {
+  background: var(--adv-warning-light);
+  color: var(--adv-warning);
+}
+
+.adv-badge--info {
+  background: var(--adv-info-light);
+  color: var(--adv-info);
+}
+
+.adv-badge--danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--adv-danger);
+}
+
+/* ── Divider ── */
+.adv-divider {
+  height: 1px;
+  background: var(--adv-border-subtle);
+  margin: var(--adv-space-md) 0;
+}
+
+/* ── Text utilities ── */
+.adv-text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adv-text-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

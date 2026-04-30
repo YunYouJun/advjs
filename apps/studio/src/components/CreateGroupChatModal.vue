@@ -111,10 +111,10 @@ function generateDefaultName(ids: string[]): string {
       </IonList>
 
       <div style="padding: 8px 16px;">
-        <p style="font-size: 13px; font-weight: 600; color: var(--adv-text-secondary);">
+        <p style="font-size: var(--adv-font-body-sm); font-weight: 600; color: var(--adv-text-secondary);">
           {{ t('world.selectCharacters') }}
         </p>
-        <p v-if="!canCreate && selectedIds.size > 0" style="font-size: 11px; color: var(--adv-text-tertiary);">
+        <p v-if="!canCreate && selectedIds.size > 0" style="font-size: var(--adv-font-caption); color: var(--adv-text-tertiary);">
           {{ t('world.minParticipants') }}
         </p>
       </div>

@@ -35,7 +35,7 @@ const emit = defineEmits<{
   align-items: center;
   gap: 6px;
   padding: 14px 8px 12px;
-  border-radius: 14px;
+  border-radius: var(--adv-radius-lg);
   border: 1px solid var(--adv-border-subtle);
   background: var(--adv-surface-card);
   cursor: pointer;
@@ -81,17 +81,17 @@ const emit = defineEmits<{
 .stats__icon {
   width: 36px;
   height: 36px;
-  border-radius: 10px;
+  border-radius: var(--adv-radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: var(--adv-font-subtitle);
   background: rgba(var(--_a), 0.1);
   color: rgb(var(--_a));
 }
 
 .stats__value {
-  font-size: 24px;
+  font-size: var(--adv-font-lg);
   font-weight: 800;
   color: var(--adv-text-primary);
   line-height: 1;
@@ -99,7 +99,7 @@ const emit = defineEmits<{
 }
 
 .stats__label {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   font-weight: 500;
   color: var(--adv-text-tertiary);
   text-transform: uppercase;
@@ -111,7 +111,7 @@ const emit = defineEmits<{
   right: 8px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   color: var(--adv-text-tertiary);
   opacity: 0;
   transition: opacity 0.2s ease;
@@ -124,11 +124,11 @@ const emit = defineEmits<{
 /* ─── Responsive ─── */
 @media (max-width: 767px) {
   .stats__value {
-    font-size: 20px;
+    font-size: var(--adv-font-title);
   }
 
   .stats__label {
-    font-size: 10px;
+    font-size: var(--adv-font-caption);
   }
 }
 

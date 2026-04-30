@@ -147,7 +147,7 @@ const themeOptions = [
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: var(--adv-font-title);
   color: var(--adv-text-secondary);
   transition:
     color var(--adv-duration-fast) var(--adv-ease-default),

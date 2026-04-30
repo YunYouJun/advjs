@@ -89,7 +89,7 @@ function onDelete() {
   border: none;
   background: transparent;
   color: var(--adv-text-secondary);
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   cursor: pointer;
   transition:
     background 0.15s ease,
@@ -105,7 +105,7 @@ function onDelete() {
 
 .cca-btn:hover {
   background: rgba(139, 92, 246, 0.06);
-  color: #8b5cf6;
+  color: var(--adv-primary);
 }
 
 .cca-btn:active {
@@ -113,7 +113,7 @@ function onDelete() {
 }
 
 .cca-btn__icon {
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   flex-shrink: 0;
 }
 
@@ -142,7 +142,7 @@ function onDelete() {
 
 :root.dark .cca-btn:hover {
   background: rgba(139, 92, 246, 0.12);
-  color: #a78bfa;
+  color: var(--adv-primary);
 }
 
 :root.dark .cca-btn--danger:hover {

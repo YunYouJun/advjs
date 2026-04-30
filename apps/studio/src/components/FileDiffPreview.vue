@@ -113,7 +113,7 @@ function filename(path: string): string {
   border: 1px solid var(--adv-border-subtle, rgba(0, 0, 0, 0.1));
   border-radius: var(--adv-radius-md, 8px);
   overflow: hidden;
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
 }
 
 .fdp__header {
@@ -156,7 +156,7 @@ function filename(path: string): string {
 .fdp__filename {
   font-weight: 600;
   color: var(--adv-text-primary, #222);
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   flex: 1;
   min-width: 0;
   overflow: hidden;
@@ -169,9 +169,9 @@ function filename(path: string): string {
 }
 
 .fdp__badge {
-  font-size: 10px;
+  font-size: var(--adv-font-caption);
   padding: 1px 6px;
-  border-radius: 10px;
+  border-radius: var(--adv-radius-md);
   flex-shrink: 0;
 }
 
@@ -192,10 +192,10 @@ function filename(path: string): string {
 }
 
 .fdp__stat {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   font-weight: 600;
   padding: 0 4px;
-  border-radius: 4px;
+  border-radius: var(--adv-radius-xs);
 }
 
 .fdp__stat--added {
@@ -219,7 +219,7 @@ function filename(path: string): string {
 }
 
 .fdp__no-change {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary, #999);
 }
 
@@ -261,7 +261,7 @@ function filename(path: string): string {
   padding: 1px 0;
   white-space: pre;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   line-height: 1.6;
 }
 
@@ -311,7 +311,7 @@ function filename(path: string): string {
   padding: 2px 10px;
   color: var(--adv-text-tertiary, #aaa);
   background: var(--adv-surface-card, #fff);
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   letter-spacing: 2px;
   text-align: center;
   user-select: none;

@@ -88,20 +88,20 @@ onMounted(async () => {
 }
 
 .shortlink-page__icon {
-  font-size: 48px;
+  font-size: var(--adv-font-display-xl);
   opacity: 0.4;
 }
 
 .shortlink-page__error h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: var(--adv-font-title);
   color: var(--adv-text-primary, #1a1a2e);
 }
 
 .shortlink-page__error p {
   max-width: 320px;
   line-height: 1.6;
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   margin: 0;
 }
 </style>

@@ -22,6 +22,12 @@ export const useAuthStore = defineStore('auth', () => {
 
   const userInfo = ref<cloudbase.auth.IUserInfo>({})
 
+  /**
+   * Whether the auth state is being restored from CloudBase SDK.
+   * True on startup until refreshLoginState finishes.
+   */
+  const isRestoring = ref(loginState.value !== null)
+
   const isLoggedIn = computed(() => {
     return loginState.value !== null && Object.keys(userInfo.value).length > 0
   })
@@ -91,6 +97,9 @@ export const useAuthStore = defineStore('auth', () => {
       loginState.value = null
       userInfo.value = {}
     }
+    finally {
+      isRestoring.value = false
+    }
   }
 
   /**
@@ -111,6 +120,7 @@ export const useAuthStore = defineStore('auth', () => {
     loginState,
     userInfo,
     isLoggedIn,
+    isRestoring,
     displayName,
     maskedPhone,
     setLoginState,

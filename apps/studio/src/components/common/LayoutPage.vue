@@ -76,9 +76,10 @@ defineExpose({
 
 <style scoped>
 .layout-page-subtitle {
-  font-size: 0.7rem;
+  font-size: var(--adv-font-caption);
   font-weight: normal;
-  opacity: 0.6;
+  color: var(--adv-text-tertiary);
   line-height: 1.2;
+  margin-top: 2px;
 }
 </style>

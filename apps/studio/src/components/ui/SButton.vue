@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 
 const props = withDefaults(defineProps<{
-  variant?: 'primary' | 'outline' | 'ghost' | 'danger'
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'icon'
   size?: 'sm' | 'md' | 'lg'
   block?: boolean
   disabled?: boolean
@@ -49,6 +49,7 @@ const classes = computed(() => [
   white-space: nowrap;
   cursor: pointer;
   user-select: none;
+  box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
   transition:
     background var(--adv-duration-fast) var(--adv-ease-default),
@@ -97,6 +98,17 @@ const classes = computed(() => [
   filter: brightness(1.05);
 }
 
+.s-button--secondary {
+  background: var(--adv-primary-light);
+  color: var(--adv-primary);
+  border: 1px solid rgba(var(--adv-primary-rgb), 0.15);
+}
+
+.s-button--secondary:hover:not(:disabled) {
+  background: rgba(var(--adv-primary-rgb), 0.12);
+  box-shadow: 0 2px 8px rgba(var(--adv-primary-rgb), 0.1);
+}
+
 .s-button--outline {
   background: transparent;
   color: var(--ion-color-primary);
@@ -124,6 +136,33 @@ const classes = computed(() => [
 
 .s-button--danger:hover:not(:disabled) {
   opacity: 0.9;
+}
+
+.s-button--icon {
+  background: transparent;
+  color: var(--adv-text-secondary);
+  border-radius: var(--adv-radius-md);
+  padding: 0;
+}
+
+.s-button--icon.s-button--sm {
+  width: 32px;
+  height: 32px;
+}
+
+.s-button--icon.s-button--md {
+  width: 40px;
+  height: 40px;
+}
+
+.s-button--icon.s-button--lg {
+  width: 48px;
+  height: 48px;
+}
+
+.s-button--icon:hover:not(:disabled) {
+  background: var(--adv-surface-hover);
+  color: var(--adv-primary);
 }
 
 /* ── Block ── */

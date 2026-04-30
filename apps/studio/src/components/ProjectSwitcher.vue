@@ -217,7 +217,7 @@ async function handleOpenLocal() {
 .project-switcher__trigger {
   --padding-start: 8px;
   --padding-end: 8px;
-  font-size: 18px;
+  font-size: var(--adv-font-subtitle);
   transition: opacity var(--adv-duration-fast, 150ms) var(--adv-ease-default, ease);
 }
 
@@ -274,7 +274,7 @@ async function handleOpenLocal() {
 }
 
 .project-switcher__item-icon {
-  font-size: 18px;
+  font-size: var(--adv-font-subtitle);
   color: var(--adv-text-tertiary, #9ca3af);
 }
 
@@ -290,7 +290,7 @@ async function handleOpenLocal() {
 }
 
 .project-switcher__meta-icon {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
 }
 
 /* --- Empty state --- */

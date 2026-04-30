@@ -682,7 +682,7 @@ function onSortChange(mode: SortMode) {
   border: 1.5px solid var(--ion-color-primary);
   background: transparent;
   color: var(--ion-color-primary);
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -783,7 +783,7 @@ function onSortChange(mode: SortMode) {
 }
 
 .market-card__cover-fallback {
-  font-size: 32px;
+  font-size: var(--adv-font-display);
   font-weight: 700;
   color: var(--adv-text-tertiary);
   opacity: 0.3;
@@ -812,7 +812,7 @@ function onSortChange(mode: SortMode) {
   display: flex;
   gap: var(--adv-space-sm);
   margin-top: var(--adv-space-xs);
-  font-size: 10px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary);
 }
 
@@ -826,7 +826,7 @@ function onSortChange(mode: SortMode) {
 .market-close-btn {
   background: none;
   border: none;
-  font-size: 18px;
+  font-size: var(--adv-font-subtitle);
   color: var(--adv-text-secondary);
   cursor: pointer;
   padding: 8px;
@@ -858,7 +858,7 @@ function onSortChange(mode: SortMode) {
 }
 
 .market-detail__cover-fallback {
-  font-size: 32px;
+  font-size: var(--adv-font-display);
   font-weight: 700;
   color: var(--adv-text-tertiary);
   opacity: 0.3;
@@ -988,7 +988,7 @@ function onSortChange(mode: SortMode) {
 .star-btn {
   background: none;
   border: none;
-  font-size: 20px;
+  font-size: var(--adv-font-title);
   color: var(--adv-text-tertiary);
   cursor: pointer;
   padding: 0;
@@ -1005,7 +1005,7 @@ function onSortChange(mode: SortMode) {
   border: none;
   background: var(--ion-color-primary);
   color: #fff;
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 600;
   cursor: pointer;
 }
@@ -1037,7 +1037,7 @@ function onSortChange(mode: SortMode) {
   font-weight: 600;
 }
 .review-item__stars {
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   color: #f59e0b;
 }
 .review-item__stars .dimmed {
@@ -1053,7 +1053,7 @@ function onSortChange(mode: SortMode) {
 .review-item__footer {
   display: flex;
   justify-content: space-between;
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary);
 }
 
@@ -1064,7 +1064,7 @@ function onSortChange(mode: SortMode) {
   background: none;
   border: none;
   color: var(--adv-text-tertiary);
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   cursor: pointer;
 }
 

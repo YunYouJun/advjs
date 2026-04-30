@@ -279,14 +279,14 @@ function affinityClass(affinity: number): string {
 }
 
 .ci-hero__initials {
-  font-size: 28px;
+  font-size: var(--adv-font-display);
   font-weight: 800;
-  color: #8b5cf6;
+  color: var(--adv-primary);
   text-transform: uppercase;
 }
 
 .ci-hero__name {
-  font-size: 20px;
+  font-size: var(--adv-font-title);
   font-weight: 700;
   color: var(--adv-text-primary);
   margin: 0;
@@ -306,11 +306,11 @@ function affinityClass(affinity: number): string {
 }
 
 .ci-hero__tag {
-  font-size: 10px;
+  font-size: var(--adv-font-caption);
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: var(--adv-radius-full);
   background: rgba(139, 92, 246, 0.08);
-  color: #8b5cf6;
+  color: var(--adv-primary);
 }
 
 /* ── Quick actions ── */
@@ -321,9 +321,9 @@ function affinityClass(affinity: number): string {
 }
 
 .ci-quick-actions ion-button {
-  --color: #8b5cf6;
+  --color: var(--adv-primary);
   --border-color: rgba(139, 92, 246, 0.3);
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
 }
 
 /* ── Sections ── */
@@ -336,8 +336,9 @@ function affinityClass(affinity: number): string {
 .ci-section {
   background: var(--adv-surface-card, #fff);
   border: 1px solid var(--adv-border-subtle, #e2e8f0);
-  border-radius: var(--adv-radius-lg, 14px);
+  border-radius: var(--adv-radius-lg, 16px);
   padding: var(--adv-space-md, 16px);
+  box-shadow: var(--adv-shadow-subtle);
 }
 
 :root.dark .ci-section {
@@ -430,7 +431,7 @@ function affinityClass(affinity: number): string {
 }
 
 .ci-bar__fill--high {
-  background: #8b5cf6;
+  background: var(--adv-primary);
 }
 .ci-bar__fill--mid {
   background: #06b6d4;
@@ -455,7 +456,7 @@ function affinityClass(affinity: number): string {
 .ci-mood-badge {
   display: inline-block;
   font-size: var(--adv-font-caption, 11px);
-  color: #8b5cf6;
+  color: var(--adv-primary);
   background: rgba(139, 92, 246, 0.1);
   padding: 2px 10px;
   border-radius: var(--adv-radius-sm, 6px);
@@ -498,7 +499,7 @@ function affinityClass(affinity: number): string {
 
 .ci-rel__type {
   font-size: var(--adv-font-caption, 11px);
-  color: #8b5cf6;
+  color: var(--adv-primary);
   background: rgba(139, 92, 246, 0.08);
   padding: 2px 8px;
   border-radius: var(--adv-radius-sm, 6px);
@@ -540,7 +541,7 @@ function affinityClass(affinity: number): string {
 
 .ci-diary-mood {
   font-size: var(--adv-font-caption, 11px);
-  color: #8b5cf6;
+  color: var(--adv-primary);
   background: rgba(139, 92, 246, 0.08);
   padding: 1px 6px;
   border-radius: var(--adv-radius-sm, 4px);

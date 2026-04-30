@@ -1,7 +1,7 @@
 /* ═══ Player Creator Page ═══ */
 
 .pc-page {
-  --pc-accent: #8b5cf6;
+  --pc-accent: var(--adv-primary);
   --pc-accent-light: rgba(139, 92, 246, 0.12);
   --pc-accent-border: rgba(139, 92, 246, 0.25);
   padding: var(--adv-space-md);
@@ -43,7 +43,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 700;
   background: var(--adv-surface-elevated);
   border: 2px solid var(--adv-border-subtle);
@@ -130,11 +130,11 @@
 
 .pc-suggestion-tag {
   padding: 6px 14px;
-  border-radius: 20px;
+  border-radius: var(--adv-radius-xl);
   border: 1px solid var(--pc-accent-border);
   background: var(--pc-accent-light);
   color: var(--pc-accent);
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -197,7 +197,7 @@
   border-radius: var(--adv-radius-lg);
   background: var(--adv-surface-elevated);
   font-family: monospace;
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   color: var(--adv-text-secondary);
   max-height: 200px;
   overflow-y: auto;
@@ -240,7 +240,7 @@
 }
 
 .pc-card__initials {
-  font-size: 22px;
+  font-size: var(--adv-font-lg);
   font-weight: 800;
   color: var(--pc-accent);
 }
@@ -251,14 +251,14 @@
 }
 
 .pc-card__name {
-  font-size: 18px;
+  font-size: var(--adv-font-subtitle);
   font-weight: 700;
   color: var(--adv-text-primary);
   margin-bottom: 4px;
 }
 
 .pc-card__meta {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   color: var(--adv-text-secondary);
   line-height: 1.5;
 }
@@ -313,7 +313,7 @@
 }
 
 .pc-success__title {
-  font-size: 20px;
+  font-size: var(--adv-font-title);
   font-weight: 700;
   color: var(--adv-text-primary);
   margin-bottom: var(--adv-space-xs);

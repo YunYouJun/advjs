@@ -155,7 +155,7 @@ function formatRating(ratingSum: number, ratingCount: number): string {
 }
 
 .analytics-empty__icon {
-  font-size: 48px;
+  font-size: var(--adv-font-display-xl);
   opacity: 0.3;
 }
 
@@ -186,19 +186,19 @@ function formatRating(ratingSum: number, ratingCount: number): string {
 }
 
 .analytics-card__icon {
-  font-size: 24px;
+  font-size: var(--adv-font-lg);
   color: var(--ion-color-primary);
   opacity: 0.7;
 }
 
 .analytics-card__value {
-  font-size: 28px;
+  font-size: var(--adv-font-display);
   font-weight: 800;
   color: var(--adv-text-primary, #1a1a2e);
 }
 
 .analytics-card__label {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   color: var(--adv-text-tertiary, #94a3b8);
   text-align: center;
 }
@@ -211,7 +211,7 @@ function formatRating(ratingSum: number, ratingCount: number): string {
 .analytics-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
 }
 
 .analytics-table th {
@@ -219,7 +219,7 @@ function formatRating(ratingSum: number, ratingCount: number): string {
   padding: 10px 12px;
   border-bottom: 2px solid var(--adv-border-subtle, rgba(120, 120, 120, 0.15));
   color: var(--adv-text-tertiary, #94a3b8);
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.03em;

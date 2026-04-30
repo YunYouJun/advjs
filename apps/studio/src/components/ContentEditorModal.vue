@@ -134,7 +134,7 @@ function handleSave() {
       <IonToolbar>
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
         <IonButtons slot="start">
-          <IonButton :aria-label="t('common.cancel')" @click="handleCancel">
+          <IonButton fill="clear" :aria-label="t('common.cancel')" @click="handleCancel">
             <IonIcon :icon="closeOutline" />
           </IonButton>
         </IonButtons>
@@ -260,7 +260,7 @@ function handleSave() {
 .cem-collab-bar__status {
   min-width: 0;
   color: var(--adv-text-secondary, var(--ion-color-medium));
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
 }
 
 .cem-collab-bar__online {

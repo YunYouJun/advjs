@@ -127,7 +127,7 @@ async function handleQuickStart() {
   justify-content: center;
   flex-shrink: 0;
   color: #fff;
-  font-size: 24px;
+  font-size: var(--adv-font-lg);
 }
 
 .quick-start-btn__text {

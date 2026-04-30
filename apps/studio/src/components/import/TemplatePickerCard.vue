@@ -119,13 +119,13 @@ function select(id: string) {
 .template-picker__icon {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: var(--adv-radius-md);
   background: color-mix(in srgb, var(--ion-color-primary) 12%, transparent);
   color: var(--ion-color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: var(--adv-font-lg);
   flex-shrink: 0;
 }
 
@@ -148,7 +148,7 @@ function select(id: string) {
   font-size: 0.65rem;
   font-weight: 500;
   padding: 2px 7px;
-  border-radius: 10px;
+  border-radius: var(--adv-radius-md);
   background: color-mix(in srgb, var(--ion-color-primary) 15%, transparent);
   color: var(--ion-color-primary);
   text-transform: uppercase;
@@ -162,7 +162,7 @@ function select(id: string) {
 }
 
 .template-picker__check {
-  font-size: 22px;
+  font-size: var(--adv-font-lg);
   color: var(--ion-color-primary);
   flex-shrink: 0;
 }

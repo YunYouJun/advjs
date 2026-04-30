@@ -106,7 +106,7 @@ const statusIcon = computed(() => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 18px;
+  font-size: var(--adv-font-subtitle);
 }
 
 .progress-node[data-status='complete'] .progress-node__icon {
@@ -152,7 +152,7 @@ const statusIcon = computed(() => {
   color: var(--ion-color-primary);
   cursor: pointer;
   padding: 4px;
-  border-radius: 4px;
+  border-radius: var(--adv-radius-xs);
   display: inline-flex;
   align-items: center;
 }
@@ -189,7 +189,7 @@ const statusIcon = computed(() => {
 }
 
 .progress-node__child-icon {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   flex-shrink: 0;
 }
 

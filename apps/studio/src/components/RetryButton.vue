@@ -60,7 +60,7 @@ function handleRetry() {
   gap: 6px;
   margin-top: 6px;
   padding: 8px 10px;
-  border-radius: 8px;
+  border-radius: var(--adv-radius-sm);
   background: var(--adv-bg-danger-subtle, rgba(235, 68, 68, 0.08));
   border: 1px solid var(--adv-border-danger, rgba(235, 68, 68, 0.2));
 }
@@ -88,7 +88,7 @@ function handleRetry() {
   gap: 4px;
   padding: 4px 10px;
   border: 1px solid var(--adv-border-danger, rgba(235, 68, 68, 0.3));
-  border-radius: 6px;
+  border-radius: var(--adv-radius-xs);
   background: var(--adv-bg-danger-subtle, rgba(235, 68, 68, 0.06));
   color: var(--adv-text-danger, #d93025);
   font-size: 0.8em;

@@ -10,7 +10,7 @@ import {
   IonPopover,
   toastController,
 } from '@ionic/vue'
-import { expandOutline, folderOpenOutline, refreshOutline, settingsOutline, shareOutline } from 'ionicons/icons'
+import { bookOutline, expandOutline, folderOpenOutline, refreshOutline, settingsOutline, shareOutline } from 'ionicons/icons'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -235,15 +235,15 @@ async function handleShare() {
       />
     </template>
     <template v-if="studioStore.currentProject" #end>
-      <IonButton size="small" fill="clear" :aria-label="t('preview.settings')" @click="openSettings">
+      <IonButton fill="clear" :aria-label="t('preview.settings')" @click="openSettings">
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
         <IonIcon slot="icon-only" :icon="settingsOutline" />
       </IonButton>
-      <IonButton size="small" fill="clear" :aria-label="t('preview.share')" @click="handleShare">
+      <IonButton fill="clear" :aria-label="t('preview.share')" @click="handleShare">
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
         <IonIcon slot="icon-only" :icon="shareOutline" />
       </IonButton>
-      <IonButton size="small" fill="clear" aria-label="Fullscreen" @click="toggleFullscreen">
+      <IonButton fill="clear" aria-label="Fullscreen" @click="toggleFullscreen">
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
         <IonIcon slot="icon-only" :icon="expandOutline" />
       </IonButton>
@@ -266,7 +266,7 @@ async function handleShare() {
           :aria-label="t('preview.chapters')"
           @click="showChapterPanel = true"
         >
-          📖 {{ chapters.length }}
+          <IonIcon :icon="bookOutline" /> {{ chapters.length }}
         </button>
       </div>
 
@@ -355,20 +355,24 @@ async function handleShare() {
   top: 12px;
   left: 12px;
   z-index: 10;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
   padding: 6px 12px;
-  border-radius: 20px;
+  border-radius: var(--adv-radius-xl);
   border: none;
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(8px);
   color: rgba(255, 255, 255, 0.8);
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 600;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: background 0.15s ease;
+}
+
+.play-chapter-fab ion-icon {
+  font-size: var(--adv-font-body-sm);
 }
 
 .play-chapter-fab:active {
@@ -398,7 +402,7 @@ async function handleShare() {
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px;
-  border-radius: 10px;
+  border-radius: var(--adv-radius-md);
   border: 1px solid transparent;
   background: transparent;
   color: var(--adv-text-primary);
@@ -431,7 +435,7 @@ async function handleShare() {
 
 .play-chapter-panel__badge {
   color: var(--ion-color-primary);
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   flex-shrink: 0;
 }
 
@@ -449,7 +453,7 @@ async function handleShare() {
 }
 
 .adv-popover-menu ion-item ion-icon {
-  font-size: 18px;
+  font-size: var(--adv-font-subtitle);
   color: var(--adv-text-secondary);
   margin-inline-end: var(--adv-space-sm);
 }

@@ -118,6 +118,6 @@ watch(() => props.content, v => localContent.value = v || '')
 .knowledge-textarea {
   --padding-start: 0;
   font-family: 'SF Mono', 'Fira Code', monospace;
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
 }
 </style>

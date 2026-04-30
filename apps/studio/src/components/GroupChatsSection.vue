@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { IonIcon } from '@ionic/vue'
+import { chatbubblesOutline } from 'ionicons/icons'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useGroupChatStore } from '../stores/useGroupChatStore'
@@ -38,7 +40,7 @@ function getParticipantCount(room: { participantIds: string[] }): number {
         class="group-chat-item"
         @click="emit('openGroup', room.id)"
       >
-        <span class="group-chat-item-icon">🗨️</span>
+        <IonIcon :icon="chatbubblesOutline" class="group-chat-item-icon" />
         <div class="group-chat-item-info">
           <div class="group-chat-item-name">
             {{ room.name }}

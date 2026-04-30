@@ -22,6 +22,7 @@ import { useRouter } from 'vue-router'
 import LayoutPage from '../components/common/LayoutPage.vue'
 import NavGroup from '../components/ui/NavGroup.vue'
 import NavItem from '../components/ui/NavItem.vue'
+import SButton from '../components/ui/SButton.vue'
 import { useCloudbase } from '../composables/useCloudbase'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useSettingsStore } from '../stores/useSettingsStore'
@@ -112,8 +113,17 @@ const infoItems = [
 
     <div class="page-container">
       <!-- Account Section -->
+      <!-- Restoring auth state — show skeleton -->
+      <div v-if="authStore.isRestoring" class="account-skeleton">
+        <div class="account-skeleton__avatar" />
+        <div class="account-skeleton__lines">
+          <div class="account-skeleton__line account-skeleton__line--short" />
+          <div class="account-skeleton__line account-skeleton__line--long" />
+        </div>
+      </div>
+
       <!-- Logged-in state -->
-      <div v-if="authStore.isLoggedIn" class="account-card">
+      <div v-else-if="authStore.isLoggedIn" class="account-card">
         <div class="account-card__user">
           <div class="account-card__avatar">
             <img v-if="settingsStore.account.avatar" :src="settingsStore.account.avatar" alt="avatar">
@@ -198,10 +208,10 @@ const infoItems = [
 
       <!-- Logout -->
       <div v-if="authStore.isLoggedIn" class="danger-section">
-        <button class="danger-btn" @click="handleLogout">
+        <SButton variant="danger" block @click="handleLogout">
           <IonIcon :icon="logOutOutline" />
           <span>{{ t('me.logout') }}</span>
-        </button>
+        </SButton>
       </div>
     </div>
   </LayoutPage>
@@ -221,7 +231,60 @@ const infoItems = [
   --nav-icon-portfolio: #f59e0b;
   --nav-icon-about: #10b981;
   --nav-icon-feedback: #f97316;
-  --nav-icon-developer: #8b5cf6;
+  --nav-icon-developer: var(--adv-primary);
+}
+
+/* ── Account Skeleton (Loading) ── */
+.account-skeleton {
+  padding: var(--adv-space-lg);
+  border-radius: var(--adv-radius-lg);
+  background: var(--adv-surface-card);
+  border: 1px solid var(--adv-border-subtle);
+  display: flex;
+  align-items: center;
+  gap: var(--adv-space-md);
+}
+
+.account-skeleton__avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--adv-border-subtle);
+  flex-shrink: 0;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.account-skeleton__lines {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.account-skeleton__line {
+  height: 14px;
+  border-radius: var(--adv-radius-sm);
+  background: var(--adv-border-subtle);
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.account-skeleton__line--short {
+  width: 40%;
+}
+
+.account-skeleton__line--long {
+  width: 65%;
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
 }
 
 /* ── Logged-in Account Card ── */
@@ -297,7 +360,7 @@ const infoItems = [
 }
 
 .account-card__chevron {
-  font-size: 16px;
+  font-size: var(--adv-font-body);
   color: var(--adv-text-tertiary);
   flex-shrink: 0;
 }
@@ -355,7 +418,7 @@ const infoItems = [
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
+  font-size: var(--adv-font-display);
   margin-bottom: var(--adv-space-md);
 }
 

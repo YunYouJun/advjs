@@ -169,7 +169,7 @@ function getNarrationText(node: Child): string {
   display: block;
   padding: var(--adv-space-sm) var(--adv-space-md);
   font-family: monospace;
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   color: var(--adv-text-tertiary);
 }
 

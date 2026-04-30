@@ -130,11 +130,11 @@ function handleExportTimeline() {
 
 .world-view-btn {
   padding: 3px 10px;
-  border-radius: 999px;
+  border-radius: var(--adv-radius-full);
   border: 1px solid var(--adv-border-subtle, #e2e8f0);
   background: var(--adv-surface-elevated, #f8fafc);
   color: var(--adv-text-tertiary, #94a3b8);
-  font-size: 10px;
+  font-size: var(--adv-font-caption);
   cursor: pointer;
   transition: all 0.15s;
 }
@@ -147,7 +147,7 @@ function handleExportTimeline() {
 .world-view-btn.active {
   background: rgba(139, 92, 246, 0.1);
   border-color: rgba(139, 92, 246, 0.4);
-  color: #8b5cf6;
+  color: var(--adv-primary);
   font-weight: 600;
 }
 
@@ -159,7 +159,7 @@ function handleExportTimeline() {
 :root.dark .world-view-btn.active {
   background: rgba(139, 92, 246, 0.2);
   border-color: rgba(139, 92, 246, 0.4);
-  color: #a78bfa;
+  color: var(--adv-primary);
 }
 
 .world-events-header {
@@ -177,7 +177,7 @@ function handleExportTimeline() {
 }
 
 .world-events-toggle {
-  font-size: 10px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary, #94a3b8);
 }
 
@@ -203,7 +203,7 @@ function handleExportTimeline() {
 
 .world-event-icon {
   flex-shrink: 0;
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   line-height: 1.5;
 }
 

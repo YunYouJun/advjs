@@ -1,14 +1,7 @@
 <script setup lang="ts">
 import {
   alertController,
-  IonBackButton,
-  IonButtons,
-  IonContent,
-  IonHeader,
   IonIcon,
-  IonPage,
-  IonTitle,
-  IonToolbar,
   toastController,
 } from '@ionic/vue'
 import {
@@ -22,6 +15,7 @@ import {
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import LayoutPage from '../../components/common/LayoutPage.vue'
 import NavGroup from '../../components/ui/NavGroup.vue'
 import NavItem from '../../components/ui/NavItem.vue'
 import { useSettingsStore } from '../../stores/useSettingsStore'
@@ -117,112 +111,93 @@ const debugInfo = {
 </script>
 
 <template>
-  <IonPage>
-    <IonHeader>
-      <IonToolbar>
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonButtons slot="start">
-          <IonBackButton :text="t('common.back')" default-href="/tabs/me" />
-        </IonButtons>
-        <IonTitle>{{ t('developer.title') }}</IonTitle>
-      </IonToolbar>
-    </IonHeader>
-    <IonContent :fullscreen="true">
-      <IonHeader collapse="condense">
-        <IonToolbar>
-          <IonTitle size="large">
-            {{ t('developer.title') }}
-          </IonTitle>
-        </IonToolbar>
-      </IonHeader>
-
-      <div class="page-container">
-        <!-- Debug Tools -->
-        <div class="section-title">
-          {{ t('developer.tools') }}
-        </div>
-        <NavGroup>
-          <NavItem
-            :icon="bugOutline"
-            icon-variant="blue"
-            :label="t('developer.debugInfo')"
-            :badge="showDebugInfo ? 'ON' : 'OFF'"
-            :chevron="false"
-            @click="toggleDebugInfo"
-          />
-          <NavItem
-            :icon="terminalOutline"
-            icon-variant="teal"
-            :label="t('developer.copyDebug')"
-            :chevron="false"
-            @click="copyDebugInfo"
-          />
-          <NavItem
-            :icon="refreshOutline"
-            icon-variant="green"
-            :label="t('developer.reload')"
-            :chevron="false"
-            @click="reloadApp"
-          />
-        </NavGroup>
-
-        <!-- Debug Info Panel -->
-        <div v-if="showDebugInfo" class="debug-panel">
-          <div class="debug-panel__title">
-            <IonIcon :icon="serverOutline" />
-            {{ t('developer.systemInfo') }}
-          </div>
-          <div class="debug-panel__row">
-            <span class="debug-panel__key">Version</span>
-            <span class="debug-panel__val">{{ debugInfo.version }}</span>
-          </div>
-          <div class="debug-panel__row">
-            <span class="debug-panel__key">Platform</span>
-            <span class="debug-panel__val">{{ debugInfo.platform }}</span>
-          </div>
-          <div class="debug-panel__row">
-            <span class="debug-panel__key">Language</span>
-            <span class="debug-panel__val">{{ debugInfo.language }}</span>
-          </div>
-          <div class="debug-panel__row">
-            <span class="debug-panel__key">Storage</span>
-            <span class="debug-panel__val">{{ debugInfo.storageUsed }}</span>
-          </div>
-          <div class="debug-panel__row">
-            <span class="debug-panel__key">Theme</span>
-            <span class="debug-panel__val">{{ settingsStore.theme }}</span>
-          </div>
-          <div class="debug-panel__row debug-panel__row--ua">
-            <span class="debug-panel__key">UA</span>
-            <span class="debug-panel__val">{{ debugInfo.userAgent }}</span>
-          </div>
-        </div>
-
-        <!-- Danger Zone -->
-        <div class="section-title section-title--danger">
-          {{ t('developer.dangerZone') }}
-        </div>
-        <NavGroup danger>
-          <NavItem
-            :icon="closeCircleOutline"
-            icon-variant="orange"
-            :label="t('developer.disable')"
-            danger
-            :chevron="false"
-            @click="disableDeveloperMode"
-          />
-          <NavItem
-            :icon="trashOutline"
-            icon-variant="red"
-            :label="t('developer.resetAll')"
-            danger
-            :chevron="false"
-            @click="clearAllData"
-          />
-        </NavGroup>
+  <LayoutPage :title="t('developer.title')" show-back-button default-href="/tabs/me">
+    <div class="page-container">
+      <!-- Debug Tools -->
+      <div class="section-title">
+        {{ t('developer.tools') }}
       </div>
-    </IonContent>
-  </IonPage>
+      <NavGroup>
+        <NavItem
+          :icon="bugOutline"
+          icon-variant="blue"
+          :label="t('developer.debugInfo')"
+          :badge="showDebugInfo ? 'ON' : 'OFF'"
+          :chevron="false"
+          @click="toggleDebugInfo"
+        />
+        <NavItem
+          :icon="terminalOutline"
+          icon-variant="teal"
+          :label="t('developer.copyDebug')"
+          :chevron="false"
+          @click="copyDebugInfo"
+        />
+        <NavItem
+          :icon="refreshOutline"
+          icon-variant="green"
+          :label="t('developer.reload')"
+          :chevron="false"
+          @click="reloadApp"
+        />
+      </NavGroup>
+
+      <!-- Debug Info Panel -->
+      <div v-if="showDebugInfo" class="debug-panel">
+        <div class="debug-panel__title">
+          <IonIcon :icon="serverOutline" />
+          {{ t('developer.systemInfo') }}
+        </div>
+        <div class="debug-panel__row">
+          <span class="debug-panel__key">Version</span>
+          <span class="debug-panel__val">{{ debugInfo.version }}</span>
+        </div>
+        <div class="debug-panel__row">
+          <span class="debug-panel__key">Platform</span>
+          <span class="debug-panel__val">{{ debugInfo.platform }}</span>
+        </div>
+        <div class="debug-panel__row">
+          <span class="debug-panel__key">Language</span>
+          <span class="debug-panel__val">{{ debugInfo.language }}</span>
+        </div>
+        <div class="debug-panel__row">
+          <span class="debug-panel__key">Storage</span>
+          <span class="debug-panel__val">{{ debugInfo.storageUsed }}</span>
+        </div>
+        <div class="debug-panel__row">
+          <span class="debug-panel__key">Theme</span>
+          <span class="debug-panel__val">{{ settingsStore.theme }}</span>
+        </div>
+        <div class="debug-panel__row debug-panel__row--ua">
+          <span class="debug-panel__key">UA</span>
+          <span class="debug-panel__val">{{ debugInfo.userAgent }}</span>
+        </div>
+      </div>
+
+      <!-- Danger Zone -->
+      <div class="section-title section-title--danger">
+        {{ t('developer.dangerZone') }}
+      </div>
+      <NavGroup danger>
+        <NavItem
+          :icon="closeCircleOutline"
+          icon-variant="orange"
+          :label="t('developer.disable')"
+          danger
+          :chevron="false"
+          @click="disableDeveloperMode"
+        />
+        <NavItem
+          :icon="trashOutline"
+          icon-variant="red"
+          :label="t('developer.resetAll')"
+          danger
+          :chevron="false"
+          @click="clearAllData"
+        />
+      </NavGroup>
+    </div>
+  </LayoutPage>
 </template>
 
 <style scoped>
@@ -299,7 +274,7 @@ const debugInfo = {
 
 .debug-panel__row--ua .debug-panel__val {
   text-align: left;
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   line-height: 1.4;
   opacity: 0.7;
 }

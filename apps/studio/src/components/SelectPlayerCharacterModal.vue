@@ -11,7 +11,7 @@ import {
   IonToolbar,
   toastController,
 } from '@ionic/vue'
-import { addOutline, closeOutline, sparklesOutline, trashOutline } from 'ionicons/icons'
+import { addOutline, closeOutline, peopleOutline, personOutline, sparklesOutline, trashOutline } from 'ionicons/icons'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -175,7 +175,7 @@ async function saveNewCharacter() {
         <!-- Project characters section -->
         <div v-if="filteredProjectCharacters.length > 0" class="spc-section">
           <div class="spc-section__header">
-            👥 {{ t('world.projectCharacters') }}
+            <IonIcon :icon="peopleOutline" /> {{ t('world.projectCharacters') }}
           </div>
           <div class="spc-list">
             <div
@@ -206,7 +206,7 @@ async function saveNewCharacter() {
         <!-- Custom characters section -->
         <div v-if="filteredCustomCharacters.length > 0" class="spc-section">
           <div class="spc-section__header">
-            🎭 {{ t('world.customCharacters') }}
+            <IonIcon :icon="personOutline" /> {{ t('world.customCharacters') }}
           </div>
           <div class="spc-list">
             <div
@@ -265,7 +265,7 @@ async function saveNewCharacter() {
         <!-- Empty state when no characters at all and no search -->
         <div v-if="projectCharacters.length === 0 && viewModeStore.customCharacters.length === 0" class="spc-empty">
           <div class="spc-empty__icon">
-            🎭
+            <IonIcon :icon="personOutline" />
           </div>
           <p>{{ t('world.selectPlayerDesc') }}</p>
         </div>

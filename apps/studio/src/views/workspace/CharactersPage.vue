@@ -206,10 +206,10 @@ async function handleExportCSV() {
       <IonButton fill="clear" @click="handleExportCSV">
         <IonIcon :icon="downloadOutline" />
       </IonButton>
-      <IonButton router-link="/tabs/workspace/batch-import" fill="clear">
+      <IonButton fill="clear" router-link="/tabs/workspace/batch-import">
         <IonIcon :icon="cloudUploadOutline" />
       </IonButton>
-      <IonButton @click="characterEditor.openCreate()">
+      <IonButton fill="clear" @click="characterEditor.openCreate()">
         <IonIcon :icon="addOutline" />
       </IonButton>
     </template>
@@ -335,7 +335,7 @@ async function handleExportCSV() {
 }
 
 .empty-state__illustration {
-  font-size: 48px;
+  font-size: var(--adv-font-display-xl);
   opacity: 0.6;
 }
 

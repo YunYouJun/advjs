@@ -297,7 +297,7 @@ async function handleDelete(entry: KnowledgeEntry) {
 }
 
 .empty-state__icon {
-  font-size: 48px;
+  font-size: var(--adv-font-display-xl);
   color: var(--adv-text-tertiary);
   margin-bottom: var(--adv-space-md);
 }

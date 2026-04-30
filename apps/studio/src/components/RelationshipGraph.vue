@@ -183,7 +183,7 @@ function handleNodeClick(id: string) {
   fill: var(--adv-text-tertiary, #94a3b8);
 }
 .graph-edge-label {
-  font-size: 10px;
+  font-size: var(--adv-font-caption);
   fill: var(--adv-text-secondary, #64748b);
   pointer-events: none;
 }
@@ -210,13 +210,13 @@ function handleNodeClick(id: string) {
   pointer-events: none;
 }
 .graph-node-initials {
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 600;
   fill: var(--adv-primary, #8b5cf6);
   pointer-events: none;
 }
 .graph-node-name {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   fill: var(--adv-text-primary, #1e293b);
   pointer-events: none;
 }

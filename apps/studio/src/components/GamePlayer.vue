@@ -449,7 +449,7 @@ defineExpose({ goToNode, restart, next, prev, renderableNodes, currentIndex })
 }
 
 .game-player__end-text {
-  font-size: 24px;
+  font-size: var(--adv-font-lg);
   font-weight: 300;
   letter-spacing: 0.2em;
   color: rgba(255, 255, 255, 0.5);
@@ -470,14 +470,14 @@ defineExpose({ goToNode, restart, next, prev, renderableNodes, currentIndex })
   right: 16px;
   background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(8px);
-  border-radius: 12px;
+  border-radius: var(--adv-radius-md);
   padding: 16px 20px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   min-height: 100px;
 }
 
 .game-player__character-name {
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 700;
   color: #60a5fa;
   text-transform: uppercase;
@@ -491,7 +491,7 @@ defineExpose({ goToNode, restart, next, prev, renderableNodes, currentIndex })
 }
 
 .game-player__dialog-text {
-  font-size: 16px;
+  font-size: var(--adv-font-body);
   line-height: 1.7;
   color: #f0f0f0;
 }
@@ -522,7 +522,7 @@ defineExpose({ goToNode, restart, next, prev, renderableNodes, currentIndex })
 
 .game-player__narration-text {
   text-align: center;
-  font-size: 18px;
+  font-size: var(--adv-font-subtitle);
   line-height: 2;
   color: rgba(255, 255, 255, 0.9);
   max-width: 600px;
@@ -546,7 +546,7 @@ defineExpose({ goToNode, restart, next, prev, renderableNodes, currentIndex })
 }
 
 .game-player__choice-btn {
-  --border-radius: 8px;
+  --border-radius: var(--adv-radius-sm);
   --color: #f0f0f0;
   --border-color: rgba(255, 255, 255, 0.3);
   --background-hover: rgba(96, 165, 250, 0.2);
@@ -570,7 +570,7 @@ defineExpose({ goToNode, restart, next, prev, renderableNodes, currentIndex })
 }
 
 .game-player__chapter-name {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: rgba(255, 255, 255, 0.25);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -579,7 +579,7 @@ defineExpose({ goToNode, restart, next, prev, renderableNodes, currentIndex })
 }
 
 .game-player__progress {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   color: rgba(255, 255, 255, 0.3);
   font-variant-numeric: tabular-nums;
 }
@@ -654,12 +654,12 @@ defineExpose({ goToNode, restart, next, prev, renderableNodes, currentIndex })
   }
 
   .game-player__narration-text {
-    font-size: 16px;
+    font-size: var(--adv-font-body);
     padding: 12px;
   }
 
   .game-player__dialog-text {
-    font-size: 15px;
+    font-size: var(--adv-font-body);
   }
 }
 </style>

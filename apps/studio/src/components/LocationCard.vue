@@ -99,10 +99,10 @@ const typeIcon = computed(() => {
 }
 
 .location-card__tag {
-  font-size: 10px;
+  font-size: var(--adv-font-caption);
   line-height: 1;
   padding: 2px 7px;
-  border-radius: 99px;
+  border-radius: var(--adv-radius-full);
   background: rgba(16, 185, 129, 0.08);
   color: #10b981;
   white-space: nowrap;

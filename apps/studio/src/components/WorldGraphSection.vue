@@ -64,7 +64,7 @@ const showGraph = ref(false)
 }
 
 .world-graph-toggle-icon {
-  font-size: 10px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary, #94a3b8);
 }
 

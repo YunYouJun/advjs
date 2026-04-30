@@ -105,11 +105,11 @@ function truncate(text: string, max = 200): string {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: var(--adv-gradient-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: var(--adv-font-lg);
   font-weight: 800;
   color: white;
   flex-shrink: 0;
@@ -122,14 +122,14 @@ function truncate(text: string, max = 200): string {
 }
 
 .snapshot-card__name {
-  font-size: 22px;
+  font-size: var(--adv-font-lg);
   font-weight: 700;
   margin: 0;
   color: #f1f5f9;
 }
 
 .snapshot-card__project {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   color: #94a3b8;
 }
 
@@ -155,7 +155,7 @@ function truncate(text: string, max = 200): string {
 .snapshot-card__bubble {
   max-width: 85%;
   padding: 10px 14px;
-  border-radius: 14px;
+  border-radius: var(--adv-radius-lg);
   position: relative;
 }
 
@@ -170,14 +170,14 @@ function truncate(text: string, max = 200): string {
 }
 
 .snapshot-card__text {
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   line-height: 1.5;
   margin: 0;
   word-break: break-word;
 }
 
 .snapshot-card__time {
-  font-size: 10px;
+  font-size: var(--adv-font-caption);
   color: #64748b;
   margin-top: 4px;
   display: block;
@@ -194,14 +194,14 @@ function truncate(text: string, max = 200): string {
 }
 
 .snapshot-card__watermark {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 700;
   color: rgba(139, 92, 246, 0.5);
   letter-spacing: 0.1em;
 }
 
 .snapshot-card__count {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: #64748b;
 }
 </style>

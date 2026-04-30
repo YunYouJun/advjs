@@ -134,12 +134,12 @@ function getAvatar(entry: RecentCharacterEntry): string {
 }
 
 .recent-chars__header-icon {
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   color: var(--ion-color-primary, #6366f1);
 }
 
 .recent-chars__title {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 700;
   color: var(--adv-text-secondary);
   text-transform: uppercase;
@@ -157,7 +157,7 @@ function getAvatar(entry: RecentCharacterEntry): string {
   align-items: center;
   gap: 10px;
   padding: 8px 10px;
-  border-radius: 10px;
+  border-radius: var(--adv-radius-md);
   border: 1px solid transparent;
   background: var(--adv-surface-card);
   cursor: pointer;
@@ -205,7 +205,7 @@ function getAvatar(entry: RecentCharacterEntry): string {
 }
 
 .recent-char__name {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 600;
   color: var(--adv-text-primary);
   white-space: nowrap;
@@ -214,7 +214,7 @@ function getAvatar(entry: RecentCharacterEntry): string {
 }
 
 .recent-char__preview {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary);
   white-space: nowrap;
   overflow: hidden;
@@ -222,7 +222,7 @@ function getAvatar(entry: RecentCharacterEntry): string {
 }
 
 .recent-char__time {
-  font-size: 10px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary);
   white-space: nowrap;
   flex-shrink: 0;
@@ -230,7 +230,7 @@ function getAvatar(entry: RecentCharacterEntry): string {
 
 .recent-chars__empty {
   padding: 8px 10px;
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   color: var(--adv-text-tertiary);
 }
 

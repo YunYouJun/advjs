@@ -147,7 +147,7 @@ function getAvatarUrl(item: RecentItem): string {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 600;
   color: var(--adv-text-tertiary);
   text-transform: uppercase;
@@ -156,7 +156,7 @@ function getAvatarUrl(item: RecentItem): string {
 }
 
 .section-label ion-icon {
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
 }
 
 /* ─── Track (horizontal scroll) ─── */
@@ -179,7 +179,7 @@ function getAvatarUrl(item: RecentItem): string {
   align-items: center;
   gap: 6px;
   padding: 6px 12px 6px 8px;
-  border-radius: 20px;
+  border-radius: var(--adv-radius-xl);
   background: var(--adv-surface-card);
   border: 1px solid var(--adv-border-subtle);
   cursor: pointer;
@@ -208,7 +208,7 @@ function getAvatarUrl(item: RecentItem): string {
 
 /* ─── Emoji icon ─── */
 .recent__emoji {
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   line-height: 1;
 }
 
@@ -223,7 +223,7 @@ function getAvatarUrl(item: RecentItem): string {
 }
 
 .recent__name {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 600;
   color: var(--adv-text-primary);
   max-width: 100px;
@@ -232,7 +232,7 @@ function getAvatarUrl(item: RecentItem): string {
 }
 
 .recent__time {
-  font-size: 10px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary);
 }
 

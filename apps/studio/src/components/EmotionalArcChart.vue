@@ -250,7 +250,7 @@ function hideTooltip() {
   padding: 24px 16px;
   text-align: center;
   color: var(--ion-color-medium);
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
 }
 
 .eac-chart-wrapper {
@@ -262,7 +262,7 @@ function hideTooltip() {
   gap: 16px;
   justify-content: center;
   margin-bottom: 4px;
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   color: var(--ion-color-medium);
 }
 
@@ -332,7 +332,7 @@ function hideTooltip() {
 }
 
 .eac-axis-label {
-  font-size: 10px;
+  font-size: var(--adv-font-caption);
   fill: var(--ion-color-medium, #999);
 }
 
@@ -341,8 +341,8 @@ function hideTooltip() {
   background: rgba(0, 0, 0, 0.8);
   color: #fff;
   padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 11px;
+  border-radius: var(--adv-radius-xs);
+  font-size: var(--adv-font-caption);
   white-space: nowrap;
   pointer-events: none;
   z-index: 10;

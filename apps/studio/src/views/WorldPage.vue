@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { TimelineEntry } from '../types/timeline'
+import { IonIcon } from '@ionic/vue'
+import { globeOutline, personCircleOutline, personOutline } from 'ionicons/icons'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -8,6 +10,7 @@ import CreateGroupChatModal from '../components/CreateGroupChatModal.vue'
 import GroupChatsSection from '../components/GroupChatsSection.vue'
 import RecentCharacterPopover from '../components/RecentCharacterPopover.vue'
 import SelectPlayerCharacterModal from '../components/SelectPlayerCharacterModal.vue'
+import SButton from '../components/ui/SButton.vue'
 import ViewModeSwitcher from '../components/ViewModeSwitcher.vue'
 import WorldClockBar from '../components/WorldClockBar.vue'
 import WorldEventsSection from '../components/WorldEventsSection.vue'
@@ -151,14 +154,14 @@ const timelineEntries = computed<TimelineEntry[]>(() => {
 <template>
   <LayoutPage :title="t('world.title')">
     <!-- No project state -->
-    <div v-if="!hasProject" class="world-empty">
-      <div class="world-empty__icon">
-        🌍
+    <div v-if="!hasProject" class="empty-state">
+      <div class="empty-state__illustration">
+        <IonIcon :icon="globeOutline" />
       </div>
-      <h3 class="world-empty__title">
+      <h3 class="empty-state__title">
         {{ t('world.noProjectTitle') }}
       </h3>
-      <p class="world-empty__desc">
+      <p class="empty-state__description">
         {{ t('world.noProjectDesc') }}
       </p>
     </div>
@@ -167,14 +170,14 @@ const timelineEntries = computed<TimelineEntry[]>(() => {
     <WorldSkeleton v-else-if="isLoading" />
 
     <!-- No characters -->
-    <div v-else-if="characters.length === 0" class="world-empty">
-      <div class="world-empty__icon">
-        👤
+    <div v-else-if="characters.length === 0" class="empty-state">
+      <div class="empty-state__illustration">
+        <IonIcon :icon="personOutline" />
       </div>
-      <h3 class="world-empty__title">
+      <h3 class="empty-state__title">
         {{ t('world.noCharacters') }}
       </h3>
-      <p class="world-empty__desc">
+      <p class="empty-state__description">
         {{ t('world.noCharactersDesc') }}
       </p>
     </div>
@@ -220,7 +223,7 @@ const timelineEntries = computed<TimelineEntry[]>(() => {
           </div>
 
           <button v-else class="player-select-prompt" @click="showSelectPlayerModal = true">
-            <span>🎭</span>
+            <IonIcon :icon="personCircleOutline" />
             <span class="player-select-prompt__text">{{ t('world.selectPlayerCharacter') }}</span>
           </button>
         </div>
@@ -252,10 +255,9 @@ const timelineEntries = computed<TimelineEntry[]>(() => {
 
         <!-- Quick link to characters page (mobile only) -->
         <div v-if="!isDesktop" class="world-characters-link">
-          <button class="world-characters-link-btn" @click="router.push('/tabs/workspace/characters')">
+          <SButton variant="secondary" block @click="router.push('/tabs/workspace/characters')">
             👥 {{ t('world.viewAllCharacters') }}
-            <span class="world-characters-link-arrow">→</span>
-          </button>
+          </SButton>
         </div>
       </div>
     </div>

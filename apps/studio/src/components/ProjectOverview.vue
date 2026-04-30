@@ -637,7 +637,7 @@ async function handleExport() {
             name="crescent"
             style="width: 16px; height: 16px"
           />
-          <span v-else style="font-size: 12px">{{
+          <span v-else style="font-size: var(--adv-font-body-sm)">{{
             t("validation.recheck")
           }}</span>
         </button>
@@ -823,7 +823,7 @@ async function handleExport() {
 }
 
 .health-section__title {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 700;
   color: var(--adv-text-primary);
   text-transform: uppercase;
@@ -842,7 +842,7 @@ async function handleExport() {
 .overview__header--card {
   margin: var(--adv-space-sm) var(--adv-space-md) 0;
   padding: 8px 12px;
-  border-radius: 12px;
+  border-radius: var(--adv-radius-md);
   background: var(--adv-surface-card);
   border: 1px solid var(--adv-border-subtle);
   justify-content: stretch;
@@ -866,13 +866,13 @@ async function handleExport() {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   color: var(--adv-text-tertiary);
   white-space: nowrap;
 }
 
 .overview__sync-icon {
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   flex-shrink: 0;
 }
 
@@ -890,13 +890,13 @@ async function handleExport() {
   justify-content: center;
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  border-radius: var(--adv-radius-sm);
   border: 1px solid transparent;
   background: transparent;
   color: var(--adv-text-tertiary);
   cursor: pointer;
   flex-shrink: 0;
-  font-size: 16px;
+  font-size: var(--adv-font-body);
   transition:
     color 0.15s ease,
     border-color 0.15s ease,
@@ -938,7 +938,7 @@ async function handleExport() {
 }
 
 .resources-header__title {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 700;
   color: var(--adv-text-primary);
   text-transform: uppercase;
@@ -949,7 +949,7 @@ async function handleExport() {
   display: flex;
   gap: 2px;
   padding: 2px;
-  border-radius: 8px;
+  border-radius: var(--adv-radius-sm);
   background: var(--adv-surface-elevated);
 }
 
@@ -960,10 +960,10 @@ async function handleExport() {
   width: 30px;
   height: 28px;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--adv-radius-xs);
   background: transparent;
   color: var(--adv-text-tertiary);
-  font-size: 16px;
+  font-size: var(--adv-font-body);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition:
@@ -994,7 +994,7 @@ async function handleExport() {
   flex-direction: column;
   gap: 6px;
   padding: 12px;
-  border-radius: 14px;
+  border-radius: var(--adv-radius-lg);
   background: var(--adv-surface-card);
   border: 1px solid var(--adv-border-subtle);
   text-align: left;
@@ -1041,18 +1041,18 @@ async function handleExport() {
 .res-card__icon {
   width: 28px;
   height: 28px;
-  border-radius: 8px;
+  border-radius: var(--adv-radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   flex-shrink: 0;
   background: rgba(var(--_a), 0.1);
   color: rgb(var(--_a));
 }
 
 .res-card__title {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 700;
   color: var(--adv-text-primary);
   flex: 1;
@@ -1069,16 +1069,16 @@ async function handleExport() {
   min-width: 20px;
   height: 20px;
   padding: 0 6px;
-  border-radius: 10px;
+  border-radius: var(--adv-radius-md);
   background: rgba(var(--_a), 0.1);
   color: rgb(var(--_a));
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   font-weight: 700;
   flex-shrink: 0;
 }
 
 .res-card__preview {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-secondary);
   line-height: 1.5;
   margin: 0;
@@ -1099,13 +1099,13 @@ async function handleExport() {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: rgba(var(--_a), 0.6);
   font-weight: 500;
 }
 
 .res-card__empty-icon {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
 }
 
 /* ─── Resource List ─── */
@@ -1121,7 +1121,7 @@ async function handleExport() {
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  border-radius: 12px;
+  border-radius: var(--adv-radius-md);
   border: 1px solid var(--adv-border-subtle);
   background: var(--adv-surface-card);
   text-align: left;
@@ -1145,11 +1145,11 @@ async function handleExport() {
 .res-row__icon {
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  border-radius: var(--adv-radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 15px;
+  font-size: var(--adv-font-body);
   flex-shrink: 0;
   background: rgba(var(--_a), 0.1);
   color: rgb(var(--_a));
@@ -1164,7 +1164,7 @@ async function handleExport() {
 }
 
 .res-row__title {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 600;
   color: var(--adv-text-primary);
   overflow: hidden;
@@ -1173,7 +1173,7 @@ async function handleExport() {
 }
 
 .res-row__meta {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1193,16 +1193,16 @@ async function handleExport() {
   min-width: 22px;
   height: 22px;
   padding: 0 7px;
-  border-radius: 11px;
+  border-radius: var(--adv-radius-md);
   background: rgba(var(--_a), 0.1);
   color: rgb(var(--_a));
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   font-weight: 700;
   flex-shrink: 0;
 }
 
 .res-row__arrow {
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   color: var(--adv-text-tertiary);
   flex-shrink: 0;
   opacity: 0.4;
@@ -1216,11 +1216,11 @@ async function handleExport() {
 /* Shared Chips */
 .chip {
   display: inline-block;
-  font-size: 10px;
+  font-size: var(--adv-font-caption);
   font-weight: 500;
   line-height: 1;
   padding: 4px 8px;
-  border-radius: 6px;
+  border-radius: var(--adv-radius-xs);
   background: rgba(var(--_a), 0.08);
   color: rgb(var(--_a));
   white-space: nowrap;

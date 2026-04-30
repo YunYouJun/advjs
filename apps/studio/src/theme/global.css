@@ -41,14 +41,61 @@ ion-list-header ion-label {
   color: var(--adv-text-tertiary);
 }
 
-/* Tab bar refinement */
-ion-tab-bar {
-  border-top: 1px solid var(--adv-border-subtle);
+/* ── Toolbar — unified across header & footer ── */
+
+/* Header toolbar */
+ion-header ion-toolbar {
+  --background: var(--ion-background-color, #fff);
+  --border-width: 0;
+  --border-color: transparent;
+  --padding-start: var(--adv-space-xs);
+  --padding-end: var(--adv-space-xs);
+}
+
+/* Footer toolbar — elevated above content */
+ion-footer ion-toolbar {
+  --background: var(--adv-surface-card);
+  --border-width: 0;
+  --padding-start: var(--adv-space-xs);
+  --padding-end: var(--adv-space-xs);
+  box-shadow:
+    0 -1px 6px rgba(0, 0, 0, 0.06),
+    0 -1px 2px rgba(0, 0, 0, 0.04);
+}
+
+::root.dark ion-footer ion-toolbar {
+  box-shadow:
+    0 -1px 8px rgba(0, 0, 0, 0.3),
+    0 -1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Toolbar buttons — compact & clear style */
+ion-toolbar ion-button {
+  --padding-start: 6px;
+  --padding-end: 6px;
+  --padding-top: 6px;
+  --padding-bottom: 6px;
+  font-size: var(--adv-font-body-sm);
+}
+
+/* Toolbar icon-only buttons — minimal chrome */
+ion-toolbar ion-buttons ion-button {
+  --border-radius: var(--adv-radius-sm);
+}
+
+/* Toolbar icons — consistent size */
+ion-toolbar ion-icon {
+  font-size: var(--adv-font-title);
+}
+
+/* Footer safe area */
+ion-footer ion-toolbar:last-child {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* Footer safe area (chat input, etc.) */
-ion-footer ion-toolbar:last-child {
+/* Tab bar refinement */
+ion-tab-bar {
+  border-top: 1px solid var(--adv-border-subtle);
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 

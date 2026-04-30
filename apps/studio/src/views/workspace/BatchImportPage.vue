@@ -645,7 +645,7 @@ function reset() {
   justify-content: center;
   min-height: 120px;
   border: 2px dashed var(--ion-color-medium);
-  border-radius: 12px;
+  border-radius: var(--adv-radius-md);
   cursor: pointer;
   padding: 16px;
   transition: border-color 0.2s;
@@ -668,7 +668,7 @@ function reset() {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   cursor: pointer;
 }
 
@@ -688,8 +688,8 @@ function reset() {
   flex: 1;
   --padding-start: 8px;
   --padding-end: 8px;
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   border: 1px solid var(--adv-border-subtle, #e2e8f0);
-  border-radius: 8px;
+  border-radius: var(--adv-radius-sm);
 }
 </style>

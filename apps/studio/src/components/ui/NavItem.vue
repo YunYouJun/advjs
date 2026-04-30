@@ -62,10 +62,10 @@ defineEmits<{
   display: flex;
   align-items: center;
   gap: var(--adv-space-sm);
-  padding: 10px var(--adv-space-md);
-  min-height: 44px;
+  padding: 12px var(--adv-space-md);
   border: none;
   background: transparent;
+  font-size: var(--adv-font-body);
   cursor: pointer;
   text-align: left;
   text-decoration: none;
@@ -89,19 +89,19 @@ defineEmits<{
 .nav-item__icon {
   width: 30px;
   height: 30px;
-  border-radius: 7px;
+  border-radius: var(--adv-radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 16px;
+  font-size: var(--adv-font-body);
   color: var(--icon-color, var(--adv-text-primary));
   background: color-mix(in srgb, var(--icon-color, var(--adv-text-primary)) 10%, transparent);
 }
 
 /* Named color variants (for cases without dynamic --icon-color) */
 .nav-item__icon--blue {
-  --icon-color: #6366f1;
+  --icon-color: var(--adv-primary);
 }
 
 .nav-item__icon--teal {
@@ -148,7 +148,7 @@ defineEmits<{
 
 /* ── Trailing ── */
 .nav-item__chevron {
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   color: var(--adv-text-tertiary);
   flex-shrink: 0;
 }

@@ -172,7 +172,7 @@ const groupedFiles = computed(() => {
   gap: 12px;
 }
 .preview-pane__empty-icon {
-  font-size: 48px;
+  font-size: var(--adv-font-display-xl);
   opacity: 0.4;
 }
 
@@ -223,7 +223,7 @@ const groupedFiles = computed(() => {
 }
 .preview-pane__group-count {
   background: var(--adv-border-subtle, rgba(120, 120, 120, 0.2));
-  border-radius: 6px;
+  border-radius: var(--adv-radius-xs);
   padding: 0 5px;
   font-size: 0.65rem;
 }
@@ -242,7 +242,7 @@ const groupedFiles = computed(() => {
   padding: 6px 8px;
   background: transparent;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--adv-radius-xs);
   cursor: pointer;
   text-align: left;
   font-size: 0.8rem;

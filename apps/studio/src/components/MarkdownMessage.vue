@@ -218,7 +218,7 @@ function toggleDiffExpand(filename: string) {
 
 .markdown-body :deep(pre) {
   background: var(--ion-color-step-100, rgba(0, 0, 0, 0.06));
-  border-radius: 8px;
+  border-radius: var(--adv-radius-sm);
   padding: 0.75em 1em;
   overflow-x: auto;
   margin: 0.5em 0;
@@ -244,7 +244,7 @@ function toggleDiffExpand(filename: string) {
 
 .markdown-body :deep(:not(pre) > code) {
   background: var(--ion-color-step-100, rgba(0, 0, 0, 0.06));
-  border-radius: 4px;
+  border-radius: var(--adv-radius-xs);
   padding: 0.15em 0.4em;
 }
 
@@ -305,7 +305,7 @@ function toggleDiffExpand(filename: string) {
 
 .markdown-body :deep(img) {
   max-width: 100%;
-  border-radius: 6px;
+  border-radius: var(--adv-radius-xs);
 }
 
 /* Save blocks */
@@ -329,7 +329,7 @@ function toggleDiffExpand(filename: string) {
 }
 
 .save-block__btn {
-  --border-radius: 8px;
+  --border-radius: var(--adv-radius-sm);
   text-transform: none;
   font-weight: 500;
 }
@@ -339,11 +339,11 @@ function toggleDiffExpand(filename: string) {
   align-items: center;
   gap: 4px;
   padding: 4px 8px;
-  border-radius: 6px;
+  border-radius: var(--adv-radius-xs);
   border: 1px solid var(--adv-border-subtle, rgba(0, 0, 0, 0.1));
   background: transparent;
   cursor: pointer;
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   font-weight: 600;
   -webkit-tap-highlight-color: transparent;
   transition: background 0.15s;
@@ -370,7 +370,7 @@ function toggleDiffExpand(filename: string) {
 }
 
 .save-block__path {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary, #999);
   padding-left: 4px;
   font-family: 'SF Mono', 'Fira Code', monospace;

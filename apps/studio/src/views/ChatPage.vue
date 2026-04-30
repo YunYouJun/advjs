@@ -8,7 +8,7 @@ import {
   IonToolbar,
   toastController,
 } from '@ionic/vue'
-import { addOutline, clipboardOutline, codeOutline, folderOpenOutline, gameControllerOutline, sendOutline, settingsOutline, sparklesOutline, stopOutline, trashOutline } from 'ionicons/icons'
+import { addOutline, bookOutline, clipboardOutline, codeOutline, filmOutline, folderOpenOutline, gameControllerOutline, peopleOutline, sendOutline, settingsOutline, sparklesOutline, statsChartOutline, stopOutline, trashOutline } from 'ionicons/icons'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -17,6 +17,7 @@ import LayoutPage from '../components/common/LayoutPage.vue'
 import MarkdownMessage from '../components/MarkdownMessage.vue'
 import MessageActions from '../components/MessageActions.vue'
 import RetryButton from '../components/RetryButton.vue'
+import SButton from '../components/ui/SButton.vue'
 import VirtualMessageList from '../components/VirtualMessageList.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useResponsive } from '../composables/useResponsive'
@@ -285,6 +286,7 @@ async function handleSaveContent(payload: { type: string, content: string, filen
   <LayoutPage ref="layoutPageRef" :title="t('chat.title')">
     <template #end>
       <IonButton
+        fill="clear"
         :aria-label="t('chat.toggleWrap')"
         :color="settingsStore.chatWordWrap ? 'primary' : undefined"
         @click="settingsStore.chatWordWrap = !settingsStore.chatWordWrap"
@@ -292,11 +294,12 @@ async function handleSaveContent(payload: { type: string, content: string, filen
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
         <IonIcon slot="icon-only" :icon="codeOutline" />
       </IonButton>
-      <IonButton aria-label="Copy context" @click="copyContext">
+      <IonButton fill="clear" aria-label="Copy context" @click="copyContext">
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
         <IonIcon slot="icon-only" :icon="clipboardOutline" />
       </IonButton>
       <IonButton
+        fill="clear"
         color="danger"
         aria-label="Clear messages"
         @click="chatStore.clearMessages()"
@@ -311,17 +314,17 @@ async function handleSaveContent(payload: { type: string, content: string, filen
       <aside v-if="isDesktop && hasProject" class="chat-sidebar">
         <div class="chat-sidebar__section">
           <div class="chat-sidebar__title">
-            📊 {{ t('workspace.overview') }}
+            <IonIcon :icon="statsChartOutline" /> {{ t('workspace.overview') }}
           </div>
           <div class="chat-sidebar__stats">
-            <span>📖 {{ stats.chapters }} {{ t('preview.chaptersCount') }}</span>
-            <span>👥 {{ stats.characters }} {{ t('preview.charactersCount') }}</span>
-            <span>🎬 {{ stats.scenes }} {{ t('scenes.title') }}</span>
+            <span><IonIcon :icon="bookOutline" /> {{ stats.chapters }} {{ t('preview.chaptersCount') }}</span>
+            <span><IonIcon :icon="peopleOutline" /> {{ stats.characters }} {{ t('preview.charactersCount') }}</span>
+            <span><IonIcon :icon="filmOutline" /> {{ stats.scenes }} {{ t('scenes.title') }}</span>
           </div>
         </div>
         <div v-if="characters.length > 0" class="chat-sidebar__section">
           <div class="chat-sidebar__title">
-            👥 {{ t('characters.title') }}
+            <IonIcon :icon="peopleOutline" /> {{ t('characters.title') }}
           </div>
           <div class="chat-sidebar__chips">
             <span v-for="c in characters.slice(0, 10)" :key="c.id" class="chat-sidebar__chip">
@@ -333,22 +336,22 @@ async function handleSaveContent(payload: { type: string, content: string, filen
 
       <div class="messages-container">
         <!-- No project state -->
-        <div v-if="!hasProject" class="chat-no-project">
-          <div class="chat-no-project__icon">
+        <div v-if="!hasProject" class="empty-state">
+          <div class="empty-state__illustration">
             <IonIcon :icon="folderOpenOutline" />
           </div>
-          <h3 class="chat-no-project__title">
+          <h3 class="empty-state__title">
             {{ t('chat.noProjectTitle') }}
           </h3>
-          <p class="chat-no-project__desc">
+          <p class="empty-state__description">
             {{ t('chat.noProjectDesc') }}
           </p>
-          <div class="chat-no-project__actions">
-            <button class="chat-no-project__btn chat-no-project__btn--primary" @click="goToProjects">
+          <div class="empty-state__actions">
+            <button class="empty-state__action empty-state__action--primary" @click="goToProjects">
               <IonIcon :icon="addOutline" />
               {{ t('projects.createProject') }}
             </button>
-            <button class="chat-no-project__btn" @click="goToProjects">
+            <button class="empty-state__action" @click="goToProjects">
               <IonIcon :icon="folderOpenOutline" />
               {{ t('projects.openProject') }}
             </button>
@@ -364,10 +367,10 @@ async function handleSaveContent(payload: { type: string, content: string, filen
             <span class="ai-banner__title">{{ t('chat.aiNotConfigured') }}</span>
             <span class="ai-banner__desc">{{ t('chat.aiNotConfiguredDesc') }}</span>
           </div>
-          <button class="ai-banner__btn" @click="goToAiSettings">
+          <SButton variant="secondary" size="sm" @click="goToAiSettings">
             <IonIcon :icon="settingsOutline" />
             {{ t('chat.configureAi') }}
-          </button>
+          </SButton>
         </div>
 
         <!-- Virtual scrolled message list -->
@@ -521,85 +524,6 @@ async function handleSaveContent(payload: { type: string, content: string, filen
 </template>
 
 <style scoped>
-/* No project state */
-.chat-no-project {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: var(--adv-space-2xl) var(--adv-space-lg);
-  text-align: center;
-}
-
-.chat-no-project__icon {
-  width: 80px;
-  height: 80px;
-  border-radius: var(--adv-radius-xl);
-  background: var(--adv-gradient-surface);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: var(--adv-space-lg);
-}
-
-.chat-no-project__icon ion-icon {
-  font-size: 36px;
-  color: var(--adv-text-tertiary);
-}
-
-.chat-no-project__title {
-  font-size: var(--adv-font-subtitle);
-  font-weight: 700;
-  color: var(--adv-text-primary);
-  margin: 0 0 var(--adv-space-sm);
-}
-
-.chat-no-project__desc {
-  font-size: var(--adv-font-body-sm);
-  color: var(--adv-text-secondary);
-  margin: 0 0 var(--adv-space-xl);
-  max-width: 280px;
-  line-height: 1.5;
-}
-
-.chat-no-project__actions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--adv-space-sm);
-  width: 100%;
-  max-width: 260px;
-}
-
-.chat-no-project__btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--adv-space-sm);
-  height: 44px;
-  border-radius: var(--adv-radius-md);
-  border: 1.5px solid var(--adv-border-subtle);
-  background: var(--adv-surface-card);
-  color: var(--adv-text-primary);
-  font-size: var(--adv-font-body);
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    transform var(--adv-duration-fast) var(--adv-ease-default),
-    box-shadow var(--adv-duration-fast) var(--adv-ease-default);
-  -webkit-tap-highlight-color: transparent;
-}
-
-.chat-no-project__btn:active {
-  transform: scale(0.98);
-}
-
-.chat-no-project__btn--primary {
-  background: var(--adv-gradient-primary);
-  border-color: transparent;
-  color: #fff;
-  font-weight: 600;
-  box-shadow: var(--adv-shadow-glow);
-}
-
 /* Welcome state */
 .chat-welcome {
   display: flex;
@@ -610,10 +534,11 @@ async function handleSaveContent(payload: { type: string, content: string, filen
 }
 
 .chat-welcome__icon {
-  width: 80px;
-  height: 80px;
+  width: 88px;
+  height: 88px;
   border-radius: var(--adv-radius-xl);
   background: var(--adv-gradient-surface);
+  box-shadow: var(--adv-shadow-glow);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -622,22 +547,22 @@ async function handleSaveContent(payload: { type: string, content: string, filen
 }
 
 .chat-welcome__icon ion-icon {
-  font-size: 36px;
-  color: var(--ion-color-primary);
+  font-size: var(--adv-font-display-lg);
+  color: var(--adv-primary, var(--ion-color-primary));
 }
 
 .chat-welcome__title {
-  font-size: var(--adv-font-subtitle);
+  font-size: var(--adv-font-title);
   font-weight: 700;
   color: var(--adv-text-primary);
   margin: 0 0 var(--adv-space-sm);
 }
 
 .chat-welcome__hint {
-  font-size: var(--adv-font-body-sm);
+  font-size: var(--adv-font-body);
   color: var(--adv-text-secondary);
   margin: 0 0 var(--adv-space-lg);
-  max-width: 280px;
+  max-width: 300px;
   line-height: 1.5;
 }
 
@@ -657,22 +582,6 @@ async function handleSaveContent(payload: { type: string, content: string, filen
     transform: translateY(-8px);
   }
 }
-
-/* Footer toolbar — elevated above content */
-ion-footer ion-toolbar {
-  --background: var(--adv-surface-card);
-  --border-width: 0;
-  box-shadow:
-    0 -1px 6px rgba(0, 0, 0, 0.06),
-    0 -1px 2px rgba(0, 0, 0, 0.04);
-}
-
-:root.dark ion-footer ion-toolbar {
-  box-shadow:
-    0 -1px 8px rgba(0, 0, 0, 0.3),
-    0 -1px 2px rgba(0, 0, 0, 0.2);
-}
-
 /* Input bar */
 .chat-input-bar {
   display: flex;
@@ -712,8 +621,8 @@ ion-footer ion-toolbar {
 }
 
 .ai-banner__icon {
-  font-size: 20px;
-  color: #8b5cf6;
+  font-size: var(--adv-font-title);
+  color: var(--adv-primary);
   flex-shrink: 0;
 }
 
@@ -744,7 +653,7 @@ ion-footer ion-toolbar {
   border-radius: var(--adv-radius-sm);
   border: 1.5px solid rgba(139, 92, 246, 0.3);
   background: rgba(139, 92, 246, 0.08);
-  color: #8b5cf6;
+  color: var(--adv-primary);
   font-size: var(--adv-font-caption);
   font-weight: 600;
   cursor: pointer;
@@ -823,6 +732,13 @@ ion-footer ion-toolbar {
   font-size: var(--adv-font-body-sm, 13px);
   font-weight: 600;
   color: var(--adv-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--adv-space-xs);
+}
+
+.chat-sidebar__title ion-icon {
+  font-size: var(--adv-font-body-sm);
 }
 
 .chat-sidebar__stats {
@@ -831,6 +747,16 @@ ion-footer ion-toolbar {
   gap: 4px;
   font-size: var(--adv-font-caption, 12px);
   color: var(--adv-text-tertiary);
+}
+
+.chat-sidebar__stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chat-sidebar__stats ion-icon {
+  font-size: var(--adv-font-body-sm);
 }
 
 .chat-sidebar__chips {
@@ -844,7 +770,7 @@ ion-footer ion-toolbar {
   padding: 2px 8px;
   border-radius: var(--adv-radius-lg, 12px);
   background: var(--adv-surface-elevated, #f1f5f9);
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-secondary);
 }
 

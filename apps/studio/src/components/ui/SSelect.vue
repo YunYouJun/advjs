@@ -179,7 +179,7 @@ defineEmits<{
   align-items: center;
   justify-content: space-between;
   padding: 8px 10px;
-  border-radius: 6px;
+  border-radius: var(--adv-radius-xs);
   font-size: var(--adv-font-body, 15px);
   color: var(--adv-text-primary, #111827);
   cursor: pointer;

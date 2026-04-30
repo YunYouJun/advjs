@@ -218,7 +218,7 @@ function formatTime(ts: number): string {
 
 .snapshot-tree__label {
   font-weight: 600;
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   color: var(--adv-text-primary, #1e293b);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -226,13 +226,13 @@ function formatTime(ts: number): string {
 }
 
 .snapshot-tree__meta {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary, #94a3b8);
   flex-shrink: 0;
 }
 
 .snapshot-tree__time {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary, #94a3b8);
   margin-top: 2px;
 }
@@ -247,7 +247,7 @@ function formatTime(ts: number): string {
   border: none;
   border-radius: var(--adv-radius-sm, 4px);
   padding: 2px 8px;
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   cursor: pointer;
   transition: background 0.2s;
 }
@@ -264,7 +264,7 @@ function formatTime(ts: number): string {
 .snapshot-tree__btn--delete {
   background: transparent;
   color: var(--adv-text-tertiary, #94a3b8);
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   line-height: 1;
 }
 

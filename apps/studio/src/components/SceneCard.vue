@@ -146,7 +146,7 @@ onUnmounted(() => {
 }
 
 .scene-card__gen-btn {
-  --color: #8b5cf6;
+  --color: var(--adv-primary);
   font-size: var(--adv-font-caption);
   font-weight: 600;
 }
@@ -189,12 +189,12 @@ onUnmounted(() => {
 }
 
 .scene-card__tag {
-  font-size: 10px;
+  font-size: var(--adv-font-caption);
   line-height: 1;
   padding: 2px 7px;
-  border-radius: 99px;
+  border-radius: var(--adv-radius-full);
   background: rgba(139, 92, 246, 0.08);
-  color: #8b5cf6;
+  color: var(--adv-primary);
   white-space: nowrap;
 }
 </style>

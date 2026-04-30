@@ -47,7 +47,7 @@
   gap: 12px;
   align-items: center;
   padding: 12px 16px;
-  border-radius: var(--adv-radius-lg, 14px);
+  border-radius: var(--adv-radius-lg, 16px);
   background: var(--adv-surface-card, #f8f9fa);
   animation: world-skeleton-pulse 1.6s ease-in-out infinite;
 }
@@ -69,7 +69,7 @@
   align-items: center;
   gap: 12px;
   padding: 12px;
-  border-radius: var(--adv-radius-lg, 14px);
+  border-radius: var(--adv-radius-lg, 16px);
   background: var(--adv-surface-card, #f8f9fa);
   animation: world-skeleton-pulse 1.6s ease-in-out infinite;
 }
@@ -101,7 +101,7 @@
 
 .world-skeleton__bar {
   height: 10px;
-  border-radius: 5px;
+  border-radius: var(--adv-radius-xs);
   background: var(--adv-border-subtle, rgba(0, 0, 0, 0.06));
 }
 

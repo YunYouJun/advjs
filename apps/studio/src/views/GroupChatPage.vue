@@ -7,8 +7,6 @@ import {
   alertController,
   IonButton,
   IonIcon,
-  IonTextarea,
-  IonToolbar,
   toastController,
 } from '@ionic/vue'
 import {
@@ -16,8 +14,6 @@ import {
   cameraOutline,
   downloadOutline,
   searchOutline,
-  sendOutline,
-  stopOutline,
   trashOutline,
   volumeHighOutline,
   volumeMuteOutline,
@@ -26,11 +22,14 @@ import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import ChatHistorySearch from '../components/ChatHistorySearch.vue'
+import ChatInputBar from '../components/ChatInputBar.vue'
 import LayoutPage from '../components/common/LayoutPage.vue'
+import EmptyState from '../components/EmptyState.vue'
 import MarkdownMessage from '../components/MarkdownMessage.vue'
 import MessageActions from '../components/MessageActions.vue'
 import RetryButton from '../components/RetryButton.vue'
 import SnapshotTree from '../components/SnapshotTree.vue'
+import SButton from '../components/ui/SButton.vue'
 import VirtualMessageList from '../components/VirtualMessageList.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useWorldContext } from '../composables/useWorldContext'
@@ -238,13 +237,6 @@ async function confirmDelete() {
     ],
   })
   await alert.present()
-}
-
-function handleKeydown(event: KeyboardEvent) {
-  if (event.key === 'Enter' && !event.shiftKey) {
-    event.preventDefault()
-    send()
-  }
 }
 
 // --- Search ---
@@ -499,25 +491,25 @@ async function handleDeleteSnapshot(snapshotId: string) {
 <template>
   <LayoutPage ref="layoutPageRef" :title="room?.name || roomId">
     <template #start>
-      <IonButton @click="goBack">
+      <IonButton fill="clear" @click="goBack">
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
         <IonIcon slot="icon-only" :icon="arrowBackOutline" />
       </IonButton>
     </template>
     <template #end>
-      <IonButton @click="showSearch = !showSearch">
+      <IonButton fill="clear" @click="showSearch = !showSearch">
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
         <IonIcon slot="icon-only" :icon="searchOutline" />
       </IonButton>
-      <IonButton :disabled="allMessages.length === 0" @click="handleExport">
+      <IonButton fill="clear" :disabled="allMessages.length === 0" @click="handleExport">
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
         <IonIcon slot="icon-only" :icon="downloadOutline" />
       </IonButton>
-      <IonButton @click="showSnapshots = !showSnapshots">
+      <IonButton fill="clear" @click="showSnapshots = !showSnapshots">
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
         <IonIcon slot="icon-only" :icon="cameraOutline" />
       </IonButton>
-      <IonButton color="danger" @click="confirmDelete">
+      <IonButton fill="clear" color="danger" @click="confirmDelete">
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
         <IonIcon slot="icon-only" :icon="trashOutline" />
       </IonButton>
@@ -553,13 +545,14 @@ async function handleDeleteSnapshot(snapshotId: string) {
                 {{ t('world.snapshotTreeView') }}
               </button>
             </div>
-            <button
-              class="snapshot-create-btn"
+            <SButton
+              variant="secondary"
+              size="sm"
               :disabled="allMessages.length === 0"
               @click="handleCreateSnapshot"
             >
               + {{ t('world.createSnapshot') }}
-            </button>
+            </SButton>
           </div>
         </div>
 
@@ -592,12 +585,12 @@ async function handleDeleteSnapshot(snapshotId: string) {
                 </div>
               </div>
               <div class="snapshot-item__actions">
-                <button class="snapshot-btn snapshot-btn--restore" @click="handleRestoreSnapshot(snap.id)">
+                <SButton variant="outline" size="sm" @click="handleRestoreSnapshot(snap.id)">
                   {{ t('world.restoreSnapshot') }}
-                </button>
-                <button class="snapshot-btn snapshot-btn--delete" @click="handleDeleteSnapshot(snap.id)">
+                </SButton>
+                <SButton variant="danger" size="sm" @click="handleDeleteSnapshot(snap.id)">
                   ✕
-                </button>
+                </SButton>
               </div>
             </div>
           </div>
@@ -629,20 +622,24 @@ async function handleDeleteSnapshot(snapshotId: string) {
 
     <div class="group-messages-container">
       <!-- Room not found fallback -->
-      <div v-if="!room" class="empty-state" style="text-align: center; padding: 40px 20px;">
-        <p style="font-size: 1.2em; margin-bottom: 8px;">
-          ⚠️
-        </p>
-        <p>{{ t('world.noGroupChats') }}</p>
-        <IonButton fill="outline" size="small" @click="router.push('/tabs/world')">
-          {{ t('common.back') }}
-        </IonButton>
-      </div>
+      <EmptyState
+        v-if="!room"
+        icon="alert-circle-outline"
+        title="⚠️"
+        :description="t('world.noGroupChats')"
+      >
+        <template #actions>
+          <IonButton fill="outline" size="small" @click="router.push('/tabs/world')">
+            {{ t('common.back') }}
+          </IonButton>
+        </template>
+      </EmptyState>
 
       <!-- Empty state -->
-      <div v-else-if="messages.length === 0 && !groupChatStore.isLoading" style="text-align: center; padding: 40px 20px; color: var(--adv-text-tertiary);">
-        <p>{{ t('world.groupChatPlaceholder') }}</p>
-      </div>
+      <EmptyState
+        v-else-if="messages.length === 0 && !groupChatStore.isLoading"
+        :description="t('world.groupChatPlaceholder')"
+      />
 
       <!-- Load earlier messages button -->
 
@@ -734,9 +731,16 @@ async function handleDeleteSnapshot(snapshotId: string) {
     </div>
 
     <template #footer>
-      <IonToolbar>
-        <div class="chat-input-bar">
-          <!-- Continue button -->
+      <ChatInputBar
+        v-model="inputText"
+        :placeholder="t('world.groupChatPlaceholder')"
+        :disabled="!room"
+        :is-loading="groupChatStore.isLoading"
+        @send="send"
+        @stop="groupChatStore.stopGeneration()"
+        @focus="scrollToBottomOnFocus"
+      >
+        <template #prepend>
           <button
             class="group-continue-btn"
             :disabled="groupChatStore.isLoading || participants.length === 0"
@@ -744,58 +748,13 @@ async function handleDeleteSnapshot(snapshotId: string) {
           >
             {{ t('world.continueChat') }}
           </button>
-
-          <IonTextarea
-            v-model="inputText"
-            :placeholder="t('world.groupChatPlaceholder')"
-            :disabled="!room"
-            :auto-grow="true"
-            :rows="1"
-            class="chat-input"
-            @keydown="handleKeydown"
-            @ion-focus="scrollToBottomOnFocus"
-          />
-          <IonButton
-            v-if="groupChatStore.isLoading"
-            shape="round"
-            fill="solid"
-            color="danger"
-            class="chat-send-btn"
-            :aria-label="t('world.stopGeneration')"
-            @click="groupChatStore.stopGeneration()"
-          >
-            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-            <IonIcon slot="icon-only" :icon="stopOutline" />
-          </IonButton>
-          <IonButton
-            v-else
-            shape="round"
-            fill="solid"
-            class="chat-send-btn"
-            :disabled="!inputText.trim() || !room"
-            :aria-label="t('world.send')"
-            @click="send"
-          >
-            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-            <IonIcon slot="icon-only" :icon="sendOutline" />
-          </IonButton>
-        </div>
-      </IonToolbar>
+        </template>
+      </ChatInputBar>
     </template>
   </LayoutPage>
 </template>
 
 <style scoped>
-/* Reuse ChatPage footer styles */
-ion-footer ion-toolbar {
-  --background: var(--adv-surface-card);
-  --border-width: 0;
-  box-shadow:
-    0 -1px 6px rgba(0, 0, 0, 0.06),
-    0 -1px 2px rgba(0, 0, 0, 0.04);
-}
-
-/* Show msg-actions on group-message hover */
 :deep(.group-message:hover .msg-actions),
 :deep(.group-message .msg-actions:focus-within) {
   opacity: 1;
@@ -863,9 +822,9 @@ ion-footer ion-toolbar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+  background: var(--adv-gradient-primary);
   color: #fff;
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 600;
 }
 
@@ -879,39 +838,8 @@ ion-footer ion-toolbar {
 }
 
 .gc-chip-mood {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   line-height: 1;
-}
-
-:root.dark ion-footer ion-toolbar {
-  box-shadow:
-    0 -1px 8px rgba(0, 0, 0, 0.3),
-    0 -1px 2px rgba(0, 0, 0, 0.2);
-}
-
-.chat-input-bar {
-  display: flex;
-  align-items: center;
-  padding: var(--adv-space-sm) var(--adv-space-md);
-  gap: var(--adv-space-sm);
-}
-
-.chat-input {
-  flex: 1;
-  --background: var(--adv-surface-elevated);
-  --border-radius: var(--adv-radius-xl);
-  --padding-start: var(--adv-space-md);
-  --padding-end: var(--adv-space-md);
-  --min-height: 44px;
-  height: 44px;
-}
-
-.chat-send-btn {
-  --padding-start: 10px;
-  --padding-end: 10px;
-  width: 44px;
-  height: 44px;
-  flex-shrink: 0;
 }
 
 .load-earlier {
@@ -928,7 +856,7 @@ ion-footer ion-toolbar {
   border: 1px solid var(--adv-border-light);
   border-radius: var(--adv-radius-lg);
   padding: 6px 16px;
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   cursor: pointer;
   transition: background 0.2s;
 }
@@ -938,7 +866,7 @@ ion-footer ion-toolbar {
 }
 
 .load-earlier-hint {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary);
 }
 </style>

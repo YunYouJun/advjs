@@ -134,7 +134,7 @@ function handleCreate() {
       <IonToolbar>
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
         <IonButtons slot="start">
-          <IonButton @click="emit('close')">
+          <IonButton fill="clear" @click="emit('close')">
             <IonIcon :icon="closeOutline" />
           </IonButton>
         </IonButtons>
@@ -321,7 +321,7 @@ function handleCreate() {
   justify-content: center;
   flex-shrink: 0;
   color: var(--ion-color-primary);
-  font-size: 22px;
+  font-size: var(--adv-font-lg);
   transition: background-color 200ms ease;
 }
 

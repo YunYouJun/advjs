@@ -440,11 +440,11 @@ const EVENT_TYPE_EMOJI: Record<string, string> = {
 .wt-load-more-btn {
   border: none;
   background: none;
-  color: #8b5cf6;
+  color: var(--adv-primary);
   font-size: var(--adv-font-caption, 11px);
   cursor: pointer;
   padding: 4px 12px;
-  border-radius: 999px;
+  border-radius: var(--adv-radius-full);
   border: 1px solid rgba(139, 92, 246, 0.3);
 }
 
@@ -489,7 +489,7 @@ const EVENT_TYPE_EMOJI: Record<string, string> = {
 }
 
 .wt-period-label {
-  font-size: 10px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary, #94a3b8);
   padding: 2px 0 4px 24px;
 }
@@ -529,7 +529,7 @@ const EVENT_TYPE_EMOJI: Record<string, string> = {
 }
 
 .wt-entry--diary .wt-dot {
-  background: #a78bfa;
+  background: var(--adv-primary);
 }
 
 /* Card */
@@ -554,18 +554,18 @@ const EVENT_TYPE_EMOJI: Record<string, string> = {
 }
 
 .wt-event-icon {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   flex-shrink: 0;
 }
 
 .wt-event-type {
-  font-size: 10px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary, #94a3b8);
   text-transform: capitalize;
 }
 
 .wt-diary-icon {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   flex-shrink: 0;
 }
 
@@ -576,11 +576,11 @@ const EVENT_TYPE_EMOJI: Record<string, string> = {
 }
 
 .wt-diary-mood {
-  font-size: 10px;
-  color: #8b5cf6;
+  font-size: var(--adv-font-caption);
+  color: var(--adv-primary);
   background: rgba(139, 92, 246, 0.08);
   padding: 1px 6px;
-  border-radius: 999px;
+  border-radius: var(--adv-radius-full);
 }
 
 .wt-card__body {
@@ -615,7 +615,7 @@ const EVENT_TYPE_EMOJI: Record<string, string> = {
 
 .wt-avatar--initials {
   background: rgba(139, 92, 246, 0.15);
-  color: #8b5cf6;
+  color: var(--adv-primary);
   font-size: 8px;
   font-weight: 700;
   display: flex;

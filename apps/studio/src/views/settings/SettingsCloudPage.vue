@@ -404,7 +404,7 @@ const syncIntervalOptions = [5, 10, 15, 30]
   justify-content: center;
   flex-shrink: 0;
   color: #fff;
-  font-size: 22px;
+  font-size: var(--adv-font-lg);
   box-shadow: var(--adv-shadow-glow);
 }
 
@@ -523,7 +523,7 @@ const syncIntervalOptions = [5, 10, 15, 30]
 }
 
 .guide-link__icon {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
 }
 
 /* ── Section Card ── */
@@ -559,7 +559,7 @@ const syncIntervalOptions = [5, 10, 15, 30]
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 18px;
+  font-size: var(--adv-font-subtitle);
 }
 
 .section-card__icon--key {
@@ -611,7 +611,7 @@ const syncIntervalOptions = [5, 10, 15, 30]
 }
 
 .input-field__label-icon {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
 }
 
 .input-field__input {
@@ -728,7 +728,7 @@ const syncIntervalOptions = [5, 10, 15, 30]
 }
 
 .cors-hint__icon {
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   flex-shrink: 0;
 }
 
@@ -772,7 +772,7 @@ const syncIntervalOptions = [5, 10, 15, 30]
   position: relative;
   width: 48px;
   height: 28px;
-  border-radius: 14px;
+  border-radius: var(--adv-radius-lg);
   border: none;
   background: var(--adv-border-subtle);
   cursor: pointer;
@@ -819,7 +819,7 @@ const syncIntervalOptions = [5, 10, 15, 30]
 }
 
 .interval-section__icon {
-  font-size: 16px;
+  font-size: var(--adv-font-body);
 }
 
 .interval-chips {
@@ -869,7 +869,7 @@ const syncIntervalOptions = [5, 10, 15, 30]
 }
 
 .sync-time-row__icon {
-  font-size: 15px;
+  font-size: var(--adv-font-body);
   color: var(--adv-text-tertiary);
 }
 

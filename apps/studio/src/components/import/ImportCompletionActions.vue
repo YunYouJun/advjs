@@ -88,7 +88,7 @@ defineEmits<{
   margin-bottom: var(--adv-space-md, 16px);
 }
 .completion-actions__header-icon {
-  font-size: 32px;
+  font-size: var(--adv-font-display);
   color: var(--ion-color-success, #2dd36f);
   flex-shrink: 0;
 }
@@ -139,6 +139,6 @@ defineEmits<{
   transform: scale(0.98);
 }
 .completion-actions__card ion-icon {
-  font-size: 24px;
+  font-size: var(--adv-font-lg);
 }
 </style>

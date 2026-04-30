@@ -174,7 +174,7 @@ function formatDownloads(n: number): string {
 }
 
 .creator-stat ion-icon {
-  font-size: 18px;
+  font-size: var(--adv-font-subtitle);
   color: var(--adv-text-tertiary);
 }
 .creator-stat strong {
@@ -182,7 +182,7 @@ function formatDownloads(n: number): string {
   font-weight: 700;
 }
 .creator-stat span {
-  font-size: 10px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary);
   text-align: center;
 }
@@ -213,7 +213,7 @@ function formatDownloads(n: number): string {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: var(--adv-font-lg);
   font-weight: 700;
   color: var(--adv-text-tertiary);
   opacity: 0.3;
@@ -247,7 +247,7 @@ function formatDownloads(n: number): string {
   white-space: nowrap;
 }
 .work-card__meta {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary);
 }
 

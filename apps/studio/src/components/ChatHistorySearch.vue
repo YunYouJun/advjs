@@ -129,7 +129,7 @@ function onInput() {
 }
 
 .chs-bar__icon {
-  font-size: 18px;
+  font-size: var(--adv-font-subtitle);
   color: var(--adv-text-tertiary);
   flex-shrink: 0;
 }
@@ -140,11 +140,11 @@ function onInput() {
   --padding-start: 4px;
   --min-height: 36px;
   height: 36px;
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
 }
 
 .chs-bar__count {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   color: var(--adv-text-secondary);
   white-space: nowrap;
   flex-shrink: 0;
@@ -161,7 +161,7 @@ function onInput() {
   background: var(--adv-surface-elevated);
   border-radius: var(--adv-radius-sm);
   color: var(--adv-text-secondary);
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -179,7 +179,7 @@ function onInput() {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: var(--adv-font-subtitle);
   flex-shrink: 0;
 }
 
@@ -199,7 +199,7 @@ function onInput() {
   width: 100%;
   text-align: left;
   cursor: pointer;
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   color: var(--adv-text-secondary);
   line-height: 1.4;
 }
@@ -214,7 +214,7 @@ function onInput() {
 
 .chs-match__role {
   flex-shrink: 0;
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
 }
 
 .chs-match__snippet {

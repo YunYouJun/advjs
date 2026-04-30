@@ -38,7 +38,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 700;
   color: #fff;
   flex-shrink: 0;
@@ -46,7 +46,7 @@
 
 /* Color palette for character avatars (by index) */
 .group-avatar--0 {
-  background: #8b5cf6;
+  background: var(--adv-primary);
 }
 .group-avatar--1 {
   background: #06b6d4;
@@ -72,7 +72,7 @@
 }
 
 .group-speaker-name--0 {
-  color: #8b5cf6;
+  color: var(--adv-primary);
 }
 .group-speaker-name--1 {
   color: #06b6d4;
@@ -94,7 +94,7 @@
 .group-bubble {
   max-width: 80%;
   padding: 10px 14px;
-  border-radius: 18px;
+  border-radius: var(--adv-radius-xl);
   line-height: 1.5;
   word-break: break-word;
   transition:
@@ -238,7 +238,7 @@
   background: var(--adv-surface-elevated, #f1f5f9);
   border-radius: var(--adv-radius-md, 8px);
   cursor: pointer;
-  font-size: 16px;
+  font-size: var(--adv-font-body);
   transition: background-color 0.2s;
 }
 
@@ -272,7 +272,7 @@
 }
 
 .group-chat-item-icon {
-  font-size: 16px;
+  font-size: var(--adv-font-body);
 }
 
 .group-chat-item-info {
@@ -332,7 +332,7 @@
 .group-message--highlight .group-bubble {
   outline: 2px solid var(--adv-primary, #8b5cf6);
   outline-offset: 2px;
-  border-radius: 18px;
+  border-radius: var(--adv-radius-xl);
   transition: outline 0.3s ease;
 }
 
@@ -361,7 +361,7 @@
 }
 
 .snapshot-create-btn {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   padding: 3px 10px;
   background: var(--adv-primary, #8b5cf6);
   color: #fff;
@@ -409,7 +409,7 @@
 }
 
 .snapshot-item__label {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 500;
   color: var(--adv-text-primary);
   white-space: nowrap;
@@ -418,7 +418,7 @@
 }
 
 .snapshot-item__meta {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary, #94a3b8);
 }
 
@@ -429,7 +429,7 @@
 }
 
 .snapshot-btn {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   padding: 3px 8px;
   border: none;
   border-radius: var(--adv-radius-sm, 4px);

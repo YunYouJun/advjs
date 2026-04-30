@@ -195,7 +195,7 @@ function isMoodActive(mood: string) {
   white-space: nowrap;
   flex-shrink: 0;
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: var(--adv-radius-full);
   border: 1px solid var(--adv-border-subtle, #e2e8f0);
   background: var(--adv-surface-elevated, #f8fafc);
   color: var(--adv-text-secondary);
@@ -215,7 +215,7 @@ function isMoodActive(mood: string) {
 .tf-pill.active {
   background: rgba(139, 92, 246, 0.12);
   border-color: rgba(139, 92, 246, 0.5);
-  color: #8b5cf6;
+  color: var(--adv-primary);
   font-weight: 600;
 }
 
@@ -228,11 +228,11 @@ function isMoodActive(mood: string) {
 :root.dark .tf-pill.active {
   background: rgba(139, 92, 246, 0.2);
   border-color: rgba(139, 92, 246, 0.5);
-  color: #a78bfa;
+  color: var(--adv-primary);
 }
 
 .tf-pill--sm {
-  font-size: 10px;
+  font-size: var(--adv-font-caption);
   padding: 3px 8px;
 }
 
@@ -253,7 +253,7 @@ function isMoodActive(mood: string) {
   height: 16px;
   border-radius: 50%;
   background: rgba(139, 92, 246, 0.15);
-  color: #8b5cf6;
+  color: var(--adv-primary);
   font-size: 9px;
   font-weight: 700;
   display: flex;

@@ -4,6 +4,8 @@
  * Renders parsed AST as character dialogue bubbles + scene annotations.
  */
 import type { AdvAst } from '@advjs/types'
+import { IonIcon } from '@ionic/vue'
+import { filmOutline } from 'ionicons/icons'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -82,7 +84,7 @@ const items = computed(() => {
       <template v-for="(item, idx) in items" :key="idx">
         <!-- Scene marker -->
         <div v-if="item.type === 'scene'" class="preview-scene">
-          <span class="preview-scene__icon">🎬</span>
+          <IonIcon :icon="filmOutline" class="preview-scene__icon" />
           <span class="preview-scene__text">
             {{ (item.node as any).place }}
             <template v-if="(item.node as any).time">
@@ -150,7 +152,7 @@ const items = computed(() => {
 .adv-preview__header {
   padding: 8px 16px;
   border-bottom: 1px solid var(--adv-border-subtle, #e2e8f0);
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 600;
   color: var(--adv-text-secondary, #64748b);
 }
@@ -158,14 +160,14 @@ const items = computed(() => {
 .adv-preview__error {
   padding: 16px;
   color: var(--ion-color-danger, #ef4444);
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
 }
 
 .adv-preview__empty {
   padding: 32px 16px;
   text-align: center;
   color: var(--adv-text-tertiary, #94a3b8);
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
 }
 
 .adv-preview__content {
@@ -186,13 +188,13 @@ const items = computed(() => {
   background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(59, 130, 246, 0.08));
   border-left: 3px solid var(--adv-primary, #8b5cf6);
   border-radius: 0 8px 8px 0;
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 600;
   color: var(--adv-primary, #8b5cf6);
 }
 
 .preview-scene__icon {
-  font-size: 16px;
+  font-size: var(--adv-font-body);
 }
 
 /* Dialog bubble */
@@ -203,7 +205,7 @@ const items = computed(() => {
 }
 
 .preview-dialog__name {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 600;
   color: var(--ion-color-primary, #3880ff);
   padding-left: 4px;
@@ -211,9 +213,9 @@ const items = computed(() => {
 
 .preview-dialog__bubble {
   background: var(--adv-surface-elevated, #f1f5f9);
-  border-radius: 12px 12px 12px 4px;
+  border-radius: var(--adv-radius-md) 12px 12px 4px;
   padding: 10px 14px;
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   line-height: 1.5;
   color: var(--adv-text-primary, #1e293b);
   max-width: 85%;
@@ -229,7 +231,7 @@ const items = computed(() => {
   color: var(--adv-text-secondary, #64748b);
   padding: 8px 16px;
   border-left: 2px solid var(--adv-border-subtle, #e2e8f0);
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   line-height: 1.5;
 }
 
@@ -244,15 +246,15 @@ const items = computed(() => {
   padding: 8px 14px;
   background: rgba(139, 92, 246, 0.06);
   border: 1px solid rgba(139, 92, 246, 0.2);
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: var(--adv-radius-sm);
+  font-size: var(--adv-font-body-sm);
   color: var(--adv-primary, #8b5cf6);
   cursor: default;
 }
 
 /* Heading */
 .preview-heading {
-  font-size: 16px;
+  font-size: var(--adv-font-body);
   font-weight: 700;
   color: var(--adv-text-primary, #1e293b);
   padding: 4px 0;
@@ -260,7 +262,7 @@ const items = computed(() => {
 
 /* Fallback text */
 .preview-text {
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   line-height: 1.5;
   color: var(--adv-text-primary, #1e293b);
 }

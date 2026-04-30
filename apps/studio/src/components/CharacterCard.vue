@@ -89,7 +89,7 @@ const domainIcon = computed(() => getDomainIcon(props.character.knowledgeDomain 
 .cc-wrapper {
   width: 100%;
   min-width: 0;
-  border-radius: var(--adv-radius-lg, 14px);
+  border-radius: var(--adv-radius-lg, 16px);
   border: 1px solid var(--adv-border-subtle);
   background: var(--adv-surface-card);
   overflow: hidden;
@@ -166,9 +166,9 @@ const domainIcon = computed(() => getDomainIcon(props.character.knowledgeDomain 
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: var(--adv-font-title);
   font-weight: 800;
-  color: #8b5cf6;
+  color: var(--adv-primary);
   text-transform: uppercase;
   letter-spacing: -0.02em;
 }
@@ -177,7 +177,7 @@ const domainIcon = computed(() => getDomainIcon(props.character.knowledgeDomain 
   position: absolute;
   bottom: -2px;
   right: -2px;
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   line-height: 1;
   background: var(--adv-surface-card, #fff);
   border-radius: 50%;
@@ -200,7 +200,7 @@ const domainIcon = computed(() => getDomainIcon(props.character.knowledgeDomain 
 }
 
 .cc-name {
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 700;
   color: var(--adv-text-primary);
   line-height: 1.3;
@@ -211,7 +211,7 @@ const domainIcon = computed(() => getDomainIcon(props.character.knowledgeDomain 
 }
 
 .cc-faction {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary);
   line-height: 1.3;
   width: 100%;
@@ -223,8 +223,8 @@ const domainIcon = computed(() => getDomainIcon(props.character.knowledgeDomain 
 .cc-domain {
   display: inline-block;
   max-width: 100%;
-  font-size: 10px;
-  color: #8b5cf6;
+  font-size: var(--adv-font-caption);
+  color: var(--adv-primary);
   background: rgba(139, 92, 246, 0.08);
   padding: 2px 7px;
   border-radius: var(--adv-radius-sm, 6px);
@@ -235,7 +235,7 @@ const domainIcon = computed(() => getDomainIcon(props.character.knowledgeDomain 
 }
 
 .cc-desc {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-secondary);
   line-height: 1.4;
   margin: 2px 0 0;
@@ -247,7 +247,7 @@ const domainIcon = computed(() => getDomainIcon(props.character.knowledgeDomain 
 }
 
 .cc-location {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary);
   line-height: 1.3;
 }
@@ -273,12 +273,12 @@ const domainIcon = computed(() => getDomainIcon(props.character.knowledgeDomain 
 }
 
 .cc-tag {
-  font-size: 10px;
+  font-size: var(--adv-font-caption);
   line-height: 1;
   padding: 2px 7px;
-  border-radius: 99px;
+  border-radius: var(--adv-radius-full);
   background: rgba(139, 92, 246, 0.08);
-  color: #8b5cf6;
+  color: var(--adv-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -290,14 +290,14 @@ const domainIcon = computed(() => getDomainIcon(props.character.knowledgeDomain 
   display: flex;
   align-items: center;
   gap: 2px;
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary);
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .cc-sprites ion-icon {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
 }
 
 /* ── Actions slot (full-width row below card body) ── */

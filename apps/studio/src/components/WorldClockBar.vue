@@ -96,7 +96,7 @@ function toggleClock() {
 
 .world-auto-diary-hint {
   font-size: var(--adv-font-caption, 11px);
-  color: #8b5cf6;
+  color: var(--adv-primary);
   animation: pulse 1.5s ease-in-out infinite;
 }
 
@@ -121,7 +121,7 @@ function toggleClock() {
   background: var(--adv-surface-elevated, #f1f5f9);
   border-radius: var(--adv-radius-md, 8px);
   cursor: pointer;
-  font-size: 16px;
+  font-size: var(--adv-font-body);
   transition: background-color 0.2s;
 }
 

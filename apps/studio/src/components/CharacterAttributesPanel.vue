@@ -692,7 +692,7 @@ function updateCustomType(key: string, type: CustomValueType) {
 .cap-note {
   display: block;
   padding: 0 var(--adv-space-md) var(--adv-space-sm);
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   color: var(--adv-text-tertiary);
   line-height: 1.4;
 }
@@ -751,7 +751,7 @@ function updateCustomType(key: string, type: CustomValueType) {
 }
 
 .cap-stats__label {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   text-transform: uppercase;
   color: var(--adv-text-tertiary);
   letter-spacing: 0.08em;
@@ -763,7 +763,7 @@ function updateCustomType(key: string, type: CustomValueType) {
   --padding-end: 0;
   --padding-top: 0;
   --padding-bottom: 0;
-  font-size: 16px;
+  font-size: var(--adv-font-body);
   font-weight: 600;
   min-height: 28px;
 }
@@ -826,7 +826,7 @@ function updateCustomType(key: string, type: CustomValueType) {
 }
 
 .cap-custom__key {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary);
   font-family: var(--ion-font-family-mono, monospace);
 }
@@ -834,7 +834,7 @@ function updateCustomType(key: string, type: CustomValueType) {
 .cap-custom__key code {
   background: var(--adv-surface-elevated);
   padding: 1px 6px;
-  border-radius: 4px;
+  border-radius: var(--adv-radius-xs);
 }
 
 .cap-custom-add {

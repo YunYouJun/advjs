@@ -39,7 +39,7 @@ const { t } = useI18n()
 }
 
 .workspace-reconnect__icon {
-  font-size: 48px;
+  font-size: var(--adv-font-display-xl);
   color: var(--adv-text-tertiary);
   opacity: 0.5;
 }

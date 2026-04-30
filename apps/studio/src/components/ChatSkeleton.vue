@@ -50,7 +50,7 @@ defineProps<{
   flex-direction: column;
   gap: 8px;
   padding: 14px 16px;
-  border-radius: 18px;
+  border-radius: var(--adv-radius-xl);
   min-height: 36px;
   animation: skeleton-pulse 1.6s ease-in-out infinite;
 }
@@ -67,7 +67,7 @@ defineProps<{
 
 .chat-skeleton__line {
   height: 10px;
-  border-radius: 5px;
+  border-radius: var(--adv-radius-xs);
   background: var(--adv-border-subtle, rgba(0, 0, 0, 0.06));
 }
 

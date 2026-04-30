@@ -9,10 +9,12 @@ import {
   IonButton,
   IonContent,
   IonHeader,
+  IonIcon,
   IonModal,
   IonTitle,
   IonToolbar,
 } from '@ionic/vue'
+import { bookOutline } from 'ionicons/icons'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DiaryEntryContent from './DiaryEntryContent.vue'
@@ -310,7 +312,7 @@ function affinityClass(affinity: number): string {
         <section class="ci-section">
           <div class="ci-diary-header">
             <h4 class="ci-section__title">
-              📓 {{ t("world.diary") }}
+              <IonIcon :icon="bookOutline" /> {{ t("world.diary") }}
             </h4>
             <IonButton
               fill="outline"
@@ -405,7 +407,7 @@ function affinityClass(affinity: number): string {
 
 .ci-rel__type {
   font-size: var(--adv-font-caption);
-  color: #8b5cf6;
+  color: var(--adv-primary);
   background: rgba(139, 92, 246, 0.08);
   padding: 2px 8px;
   border-radius: var(--adv-radius-sm);
@@ -462,12 +464,12 @@ function affinityClass(affinity: number): string {
 .ci-state__attr-value {
   font-size: var(--adv-font-caption);
   font-weight: 600;
-  color: #8b5cf6;
+  color: var(--adv-primary);
 }
 
 .ci-knowledge-btn {
   margin-top: var(--adv-space-xs);
-  --color: #8b5cf6;
+  --color: var(--adv-primary);
   --border-color: rgba(139, 92, 246, 0.3);
 }
 
@@ -483,7 +485,7 @@ function affinityClass(affinity: number): string {
 }
 
 .ci-diary-generate-btn {
-  --color: #8b5cf6;
+  --color: var(--adv-primary);
   --border-color: rgba(139, 92, 246, 0.3);
 }
 
@@ -517,7 +519,7 @@ function affinityClass(affinity: number): string {
 
 .ci-diary-mood {
   font-size: var(--adv-font-caption, 11px);
-  color: #8b5cf6;
+  color: var(--adv-primary);
   background: rgba(139, 92, 246, 0.08);
   padding: 1px 6px;
   border-radius: var(--adv-radius-sm, 4px);
@@ -529,7 +531,7 @@ function affinityClass(affinity: number): string {
   background: none;
   color: var(--adv-text-tertiary, #94a3b8);
   cursor: pointer;
-  font-size: 16px;
+  font-size: var(--adv-font-body);
   line-height: 1;
   padding: 0 2px;
 }
@@ -580,7 +582,7 @@ function affinityClass(affinity: number): string {
 }
 
 .ci-bar__fill--high {
-  background: #8b5cf6;
+  background: var(--adv-primary);
 }
 
 .ci-bar__fill--mid {
@@ -609,7 +611,7 @@ function affinityClass(affinity: number): string {
 .ci-mood-badge {
   display: inline-block;
   font-size: var(--adv-font-caption);
-  color: #8b5cf6;
+  color: var(--adv-primary);
   background: rgba(139, 92, 246, 0.1);
   padding: 2px 10px;
   border-radius: var(--adv-radius-sm);

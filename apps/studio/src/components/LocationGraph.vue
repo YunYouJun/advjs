@@ -260,7 +260,7 @@ function handleNodeClick(id: string) {
   pointer-events: none;
 }
 .loc-graph-node-name {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   fill: var(--adv-text-primary, #1e293b);
   pointer-events: none;
 }

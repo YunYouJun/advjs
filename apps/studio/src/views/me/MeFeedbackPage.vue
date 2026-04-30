@@ -1,18 +1,10 @@
 <script setup lang="ts">
 import {
-  IonBackButton,
-  IonButtons,
-  IonContent,
-  IonHeader,
-  IonPage,
-  IonTitle,
-  IonToolbar,
-} from '@ionic/vue'
-import {
   logoGithub,
   openOutline,
 } from 'ionicons/icons'
 import { useI18n } from 'vue-i18n'
+import LayoutPage from '../../components/common/LayoutPage.vue'
 import NavGroup from '../../components/ui/NavGroup.vue'
 import NavItem from '../../components/ui/NavItem.vue'
 
@@ -20,39 +12,20 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <IonPage>
-    <IonHeader>
-      <IonToolbar>
-        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-        <IonButtons slot="start">
-          <IonBackButton :text="t('common.back')" default-href="/tabs/me" />
-        </IonButtons>
-        <IonTitle>{{ t('feedback.title') }}</IonTitle>
-      </IonToolbar>
-    </IonHeader>
-    <IonContent :fullscreen="true">
-      <IonHeader collapse="condense">
-        <IonToolbar>
-          <IonTitle size="large">
-            {{ t('feedback.title') }}
-          </IonTitle>
-        </IonToolbar>
-      </IonHeader>
-
-      <div class="page-container">
-        <NavGroup>
-          <NavItem
-            :icon="logoGithub"
-            :label="t('feedback.github')"
-            :desc="t('feedback.githubDesc')"
-            :trailing-icon="openOutline"
-            :chevron="false"
-            href="https://github.com/YunYouJun/advjs/issues/new"
-          />
-        </NavGroup>
-      </div>
-    </IonContent>
-  </IonPage>
+  <LayoutPage :title="t('feedback.title')" show-back-button default-href="/tabs/me">
+    <div class="page-container">
+      <NavGroup>
+        <NavItem
+          :icon="logoGithub"
+          :label="t('feedback.github')"
+          :desc="t('feedback.githubDesc')"
+          :trailing-icon="openOutline"
+          :chevron="false"
+          href="https://github.com/YunYouJun/advjs/issues/new"
+        />
+      </NavGroup>
+    </div>
+  </LayoutPage>
 </template>
 
 <style scoped>

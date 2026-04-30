@@ -172,7 +172,7 @@ const glowStyle = computed(() => ({
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: var(--adv-radius-lg);
 }
 
 .snippet-card__glow {
@@ -195,13 +195,13 @@ const glowStyle = computed(() => ({
 }
 
 .snippet-card__title {
-  font-size: 22px;
+  font-size: var(--adv-font-lg);
   font-weight: 800;
   margin: 0;
 }
 
 .snippet-card__count {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   flex-shrink: 0;
 }
 
@@ -218,25 +218,25 @@ const glowStyle = computed(() => ({
   flex-direction: column;
   gap: 4px;
   padding: 10px 14px;
-  border-radius: 12px;
+  border-radius: var(--adv-radius-md);
 }
 
 .snippet-msg__role {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 
 .snippet-msg__text {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   line-height: 1.6;
   margin: 0;
 }
 
 .snippet-card__more {
   text-align: center;
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   padding: 8px 0;
   font-style: italic;
 }
@@ -250,12 +250,12 @@ const glowStyle = computed(() => ({
 }
 
 .snippet-card__project {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 500;
 }
 
 .snippet-card__watermark {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 700;
   letter-spacing: 0.1em;
 }

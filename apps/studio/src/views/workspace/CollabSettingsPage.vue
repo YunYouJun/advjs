@@ -318,7 +318,7 @@ async function handleRoleChange(uid: string, newRole: CollabRole) {
   background: var(--adv-surface-elevated);
   color: var(--adv-text-secondary);
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -331,7 +331,7 @@ async function handleRoleChange(uid: string, newRole: CollabRole) {
 }
 
 .member-uid {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   color: var(--adv-text-tertiary);
 }
 

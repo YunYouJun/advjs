@@ -398,7 +398,7 @@ function handleAudioDrop(ev: DragEvent) {
   align-items: center;
   gap: 6px;
   padding: 7px 12px;
-  border-radius: 8px;
+  border-radius: var(--adv-radius-sm);
   background: color-mix(in srgb, var(--ion-color-primary) 10%, transparent);
   color: var(--ion-color-primary);
   border: 1px dashed color-mix(in srgb, var(--ion-color-primary) 40%, transparent);
@@ -443,7 +443,7 @@ function handleAudioDrop(ev: DragEvent) {
   gap: var(--adv-space-sm, 8px);
   min-height: 160px;
   border: 2px dashed color-mix(in srgb, var(--ion-color-primary) 35%, transparent);
-  border-radius: 12px;
+  border-radius: var(--adv-radius-md);
   background: color-mix(in srgb, var(--ion-color-primary) 5%, transparent);
   cursor: pointer;
   padding: var(--adv-space-lg, 24px);
@@ -461,7 +461,7 @@ function handleAudioDrop(ev: DragEvent) {
 }
 
 .source-input__drop-zone ion-icon {
-  font-size: 32px;
+  font-size: var(--adv-font-display);
   color: var(--ion-color-primary);
   opacity: 0.6;
 }
@@ -469,7 +469,7 @@ function handleAudioDrop(ev: DragEvent) {
 .source-input__image-preview {
   max-width: 100%;
   max-height: 200px;
-  border-radius: 8px;
+  border-radius: var(--adv-radius-sm);
   object-fit: contain;
 }
 </style>

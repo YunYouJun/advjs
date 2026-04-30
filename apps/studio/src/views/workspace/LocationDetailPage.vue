@@ -133,7 +133,7 @@ function goToCharacter(characterId: string) {
 <template>
   <LayoutPage :title="location?.name || locationId" show-back-button default-href="/tabs/workspace/locations">
     <template #end>
-      <IonButton @click="openEdit">
+      <IonButton fill="clear" @click="openEdit">
         <IonIcon :icon="createOutline" />
       </IonButton>
     </template>
@@ -262,13 +262,13 @@ function goToCharacter(characterId: string) {
 }
 
 .detail__icon {
-  font-size: 36px;
+  font-size: var(--adv-font-display-lg);
   color: #10b981;
   flex-shrink: 0;
 }
 
 .detail__name {
-  font-size: 20px;
+  font-size: var(--adv-font-title);
   font-weight: 700;
   margin: 0;
   color: var(--adv-text-primary);
@@ -308,10 +308,10 @@ function goToCharacter(characterId: string) {
   min-width: 20px;
   height: 20px;
   padding: 0 6px;
-  border-radius: 10px;
+  border-radius: var(--adv-radius-md);
   background: rgba(16, 185, 129, 0.1);
   color: #10b981;
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   font-weight: 700;
 }
 
@@ -326,7 +326,7 @@ function goToCharacter(characterId: string) {
   flex-direction: column;
   gap: 2px;
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: var(--adv-radius-md);
   border: 1px solid var(--adv-border-subtle);
   background: var(--adv-surface-card);
   text-align: left;

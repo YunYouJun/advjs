@@ -24,7 +24,7 @@
 .bubble {
   max-width: 80%;
   padding: 10px 14px;
-  border-radius: 18px;
+  border-radius: var(--adv-radius-xl);
   line-height: 1.5;
   word-break: break-word;
   transition:
@@ -170,7 +170,7 @@
     color 0.2s,
     background 0.2s;
   flex-shrink: 0;
-  font-size: 16px;
+  font-size: var(--adv-font-body);
 }
 
 .tts-btn:hover {

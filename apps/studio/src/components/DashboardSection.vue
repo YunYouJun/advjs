@@ -51,7 +51,7 @@ const { t } = useI18n()
 }
 
 .dashboard-section__icon {
-  font-size: 18px;
+  font-size: var(--adv-font-subtitle);
   flex-shrink: 0;
 }
 

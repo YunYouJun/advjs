@@ -113,7 +113,7 @@ watch([currentStep, isActive], async () => {
 
 .onboarding-highlight {
   position: fixed;
-  border-radius: 12px;
+  border-radius: var(--adv-radius-md);
   box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
   border: 2px solid var(--ion-color-primary, #6366f1);
   z-index: 100000;
@@ -138,20 +138,20 @@ watch([currentStep, isActive], async () => {
 }
 
 .onboarding-tooltip__step {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary, #94a3b8);
   margin-bottom: 4px;
 }
 
 .onboarding-tooltip__title {
-  font-size: 15px;
+  font-size: var(--adv-font-body);
   font-weight: 700;
   color: var(--adv-text-primary, #1e293b);
   margin: 0 0 6px;
 }
 
 .onboarding-tooltip__desc {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   color: var(--adv-text-secondary, #64748b);
   margin: 0 0 14px;
   line-height: 1.5;
@@ -166,7 +166,7 @@ watch([currentStep, isActive], async () => {
 .onboarding-tooltip__btn {
   padding: 6px 14px;
   border-radius: var(--adv-radius-md, 8px);
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 600;
   border: none;
   cursor: pointer;

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { IonIcon } from '@ionic/vue'
+import { wifiOutline } from 'ionicons/icons'
 import { useI18n } from 'vue-i18n'
 import { useNetworkStatus } from '../composables/useNetworkStatus'
 
@@ -9,7 +11,7 @@ const { isOnline } = useNetworkStatus()
 <template>
   <Transition name="offline-banner">
     <div v-if="!isOnline" class="offline-banner">
-      <span class="offline-banner__icon">📡</span>
+      <IonIcon :icon="wifiOutline" class="offline-banner__icon" />
       <span class="offline-banner__text">{{ t('offline.banner') }}</span>
     </div>
   </Transition>
@@ -24,7 +26,7 @@ const { isOnline } = useNetworkStatus()
   padding: 8px 16px;
   background: var(--adv-warning-bg, #fef3c7);
   color: var(--adv-warning-text, #92400e);
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 500;
   z-index: 999;
   position: relative;
@@ -36,7 +38,7 @@ const { isOnline } = useNetworkStatus()
 }
 
 .offline-banner__icon {
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   flex-shrink: 0;
 }
 

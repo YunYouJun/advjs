@@ -236,7 +236,7 @@ async function handleDeleteChapter(file: string) {
 }
 
 .empty-state__illustration {
-  font-size: 48px;
+  font-size: var(--adv-font-display-xl);
   opacity: 0.6;
 }
 

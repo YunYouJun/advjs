@@ -136,9 +136,9 @@ const initials = computed(() => getCharacterInitials(props.character.name || pro
 }
 
 .share-card__avatar-initials {
-  font-size: 28px;
+  font-size: var(--adv-font-display);
   font-weight: 800;
-  color: #a78bfa;
+  color: var(--adv-primary);
   text-transform: uppercase;
 }
 
@@ -149,10 +149,10 @@ const initials = computed(() => getCharacterInitials(props.character.name || pro
 }
 
 .share-card__name {
-  font-size: 28px;
+  font-size: var(--adv-font-display);
   font-weight: 800;
   margin: 0;
-  background: linear-gradient(135deg, #e2e8f0, #a78bfa);
+  background: linear-gradient(135deg, #e2e8f0, var(--adv-primary));
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -160,16 +160,16 @@ const initials = computed(() => getCharacterInitials(props.character.name || pro
 }
 
 .share-card__faction {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   color: #94a3b8;
 }
 
 .share-card__lang {
-  font-size: 11px;
-  color: #a78bfa;
+  font-size: var(--adv-font-caption);
+  color: var(--adv-primary);
   background: rgba(139, 92, 246, 0.12);
   padding: 2px 8px;
-  border-radius: 4px;
+  border-radius: var(--adv-radius-xs);
   width: fit-content;
 }
 
@@ -180,9 +180,9 @@ const initials = computed(() => getCharacterInitials(props.character.name || pro
 }
 
 .share-card__tag {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   padding: 4px 12px;
-  border-radius: 99px;
+  border-radius: var(--adv-radius-full);
   background: rgba(139, 92, 246, 0.12);
   color: #c4b5fd;
   border: 1px solid rgba(139, 92, 246, 0.2);
@@ -202,16 +202,16 @@ const initials = computed(() => getCharacterInitials(props.character.name || pro
 }
 
 .share-card__section-title {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   font-weight: 700;
-  color: #8b5cf6;
+  color: var(--adv-primary);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin: 0;
 }
 
 .share-card__section-text {
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   line-height: 1.6;
   color: #cbd5e1;
   margin: 0;
@@ -230,9 +230,9 @@ const initials = computed(() => getCharacterInitials(props.character.name || pro
 }
 
 .share-card__rel {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   padding: 4px 10px;
-  border-radius: 6px;
+  border-radius: var(--adv-radius-xs);
   background: rgba(99, 102, 241, 0.1);
   color: #a5b4fc;
   border: 1px solid rgba(99, 102, 241, 0.15);
@@ -240,7 +240,7 @@ const initials = computed(() => getCharacterInitials(props.character.name || pro
 
 .share-card__watermark {
   text-align: right;
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   color: rgba(139, 92, 246, 0.4);
   font-weight: 700;
   letter-spacing: 0.1em;

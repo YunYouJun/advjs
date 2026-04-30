@@ -199,7 +199,7 @@ function toggleExpand(file: string) {
 }
 
 .km-entry__chevron {
-  font-size: 18px;
+  font-size: var(--adv-font-subtitle);
   color: var(--adv-text-tertiary);
   transition: transform 0.2s ease;
   flex-shrink: 0;
@@ -224,7 +224,7 @@ function toggleExpand(file: string) {
 .km-section__heading {
   font-size: var(--adv-font-caption);
   font-weight: 600;
-  color: #8b5cf6;
+  color: var(--adv-primary);
   display: block;
   margin-bottom: 2px;
 }

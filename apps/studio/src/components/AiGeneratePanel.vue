@@ -283,8 +283,8 @@ function handleKeydown(e: KeyboardEvent) {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
-  color: #8b5cf6;
+  font-size: var(--adv-font-lg);
+  color: var(--adv-primary);
   margin-bottom: var(--adv-space-md);
 }
 
@@ -318,10 +318,10 @@ function handleKeydown(e: KeyboardEvent) {
 }
 
 .agp-chip {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   height: 30px;
   --background: rgba(139, 92, 246, 0.06);
-  --color: #8b5cf6;
+  --color: var(--adv-primary);
   cursor: pointer;
   transition:
     background 0.15s ease,
@@ -341,7 +341,7 @@ function handleKeydown(e: KeyboardEvent) {
 }
 
 .agp-chip ion-icon {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   margin-right: 2px;
 }
 
@@ -366,7 +366,7 @@ function handleKeydown(e: KeyboardEvent) {
   box-sizing: border-box;
   width: 100%;
   padding: var(--adv-space-md) var(--adv-space-md) var(--adv-space-sm);
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
   font-family: inherit;
   line-height: 1.6;
   color: inherit;
@@ -388,7 +388,7 @@ function handleKeydown(e: KeyboardEvent) {
 }
 
 .agp-prompt__hint {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary);
   margin-right: auto;
   font-family: 'SF Mono', 'Fira Code', monospace;
@@ -411,9 +411,9 @@ function handleKeydown(e: KeyboardEvent) {
 }
 
 .agp-btn--primary {
-  --background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
-  --background-hover: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
-  --background-activated: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+  --background: var(--adv-gradient-primary);
+  --background-hover: var(--adv-gradient-warm);
+  --background-activated: var(--adv-gradient-warm);
   position: relative;
   overflow: hidden;
 }
@@ -453,7 +453,7 @@ function handleKeydown(e: KeyboardEvent) {
 }
 
 .agp-output__title {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -463,7 +463,7 @@ function handleKeydown(e: KeyboardEvent) {
 .agp-output__spinner {
   width: 16px;
   height: 16px;
-  color: #8b5cf6;
+  color: var(--adv-primary);
 }
 
 .agp-output__body {
@@ -483,7 +483,7 @@ function handleKeydown(e: KeyboardEvent) {
   font-size: 0.9em;
   animation: agp-blink 0.8s step-end infinite;
   opacity: 0.8;
-  color: #8b5cf6;
+  color: var(--adv-primary);
   margin-left: 1px;
 }
 

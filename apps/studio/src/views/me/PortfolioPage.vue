@@ -334,7 +334,7 @@ function formatDate(ts: number): string {
   justify-content: center;
   flex-shrink: 0;
   overflow: hidden;
-  font-size: 20px;
+  font-size: var(--adv-font-title);
   color: var(--adv-text-tertiary);
 }
 
@@ -370,7 +370,7 @@ function formatDate(ts: number): string {
 }
 
 .project-item__meta {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary);
   display: flex;
   align-items: center;
@@ -378,7 +378,7 @@ function formatDate(ts: number): string {
 }
 
 .project-item__meta ion-icon {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
 }
 
 .project-item__visibility {
@@ -387,7 +387,7 @@ function formatDate(ts: number): string {
   border: none;
   background: transparent;
   color: var(--adv-text-tertiary);
-  font-size: 18px;
+  font-size: var(--adv-font-subtitle);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -409,7 +409,7 @@ function formatDate(ts: number): string {
 }
 
 .empty-state__icon {
-  font-size: 48px;
+  font-size: var(--adv-font-display-xl);
   color: var(--adv-text-tertiary);
   margin-bottom: var(--adv-space-md);
 }

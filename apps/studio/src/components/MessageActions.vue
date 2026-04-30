@@ -161,11 +161,11 @@ function onTouchStart() {
   --padding-bottom: 4px;
   width: 28px;
   height: 28px;
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
 }
 
 .msg-action-btn ion-icon {
-  font-size: 14px;
+  font-size: var(--adv-font-body-sm);
 }
 
 .msg-action-btn--active {

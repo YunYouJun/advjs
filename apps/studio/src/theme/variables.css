@@ -24,6 +24,7 @@
   --adv-space-2xl: 48px;
 
   /* Border radius */
+  --adv-radius-xs: 4px;
   --adv-radius-sm: 8px;
   --adv-radius-md: 12px;
   --adv-radius-lg: 16px;
@@ -36,7 +37,10 @@
   --adv-font-body: 15px;
   --adv-font-subtitle: 17px;
   --adv-font-title: 20px;
+  --adv-font-lg: 22px;
   --adv-font-display: 28px;
+  --adv-font-display-lg: 36px;
+  --adv-font-display-xl: 48px;
 
   /* Shadows — light mode */
   --adv-shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
@@ -55,6 +59,29 @@
 
   /* Borders — light mode */
   --adv-border-subtle: rgba(0, 0, 0, 0.06);
+  --adv-border-light: #e5e7eb;
+  --adv-border: #d1d5db;
+  --adv-border-danger: rgba(239, 68, 68, 0.25);
+
+  /* Brand — explicit */
+  --adv-primary: #6366f1;
+  --adv-primary-rgb: 99, 102, 241;
+  --adv-primary-light: #eef2ff;
+  --adv-danger: #ef4444;
+
+  /* Semantic colors — purple-based */
+  --adv-success: #7c3aed;
+  --adv-success-rgb: 124, 58, 237;
+  --adv-success-light: rgba(124, 58, 237, 0.1);
+  --adv-warning: #c026d3;
+  --adv-warning-rgb: 192, 38, 211;
+  --adv-warning-light: rgba(192, 38, 211, 0.1);
+  --adv-info: #6366f1;
+  --adv-info-rgb: 99, 102, 241;
+  --adv-info-light: rgba(99, 102, 241, 0.1);
+
+  /* Surface hover — light mode */
+  --adv-surface-hover: #f3f4f6;
 
   /* Duration & easing */
   --adv-duration-fast: 150ms;
@@ -80,4 +107,25 @@
   --adv-text-tertiary: #6b7280;
 
   --adv-border-subtle: rgba(255, 255, 255, 0.08);
+  --adv-border-light: #374151;
+  --adv-border: #4b5563;
+  --adv-border-danger: rgba(239, 68, 68, 0.4);
+
+  --adv-primary: #818cf8;
+  --adv-primary-rgb: 129, 140, 248;
+  --adv-primary-light: rgba(99, 102, 241, 0.12);
+  --adv-danger: #f87171;
+
+  /* Semantic colors — dark mode */
+  --adv-success: #a78bfa;
+  --adv-success-rgb: 167, 139, 250;
+  --adv-success-light: rgba(167, 139, 250, 0.12);
+  --adv-warning: #e879f9;
+  --adv-warning-rgb: 232, 121, 249;
+  --adv-warning-light: rgba(232, 121, 249, 0.12);
+  --adv-info: #818cf8;
+  --adv-info-rgb: 129, 140, 248;
+  --adv-info-light: rgba(129, 140, 248, 0.12);
+
+  --adv-surface-hover: #2a2a3e;
 }

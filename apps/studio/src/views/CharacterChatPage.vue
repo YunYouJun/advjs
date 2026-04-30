@@ -46,6 +46,7 @@ import MarkdownMessage from '../components/MarkdownMessage.vue'
 import MessageActions from '../components/MessageActions.vue'
 import RetryButton from '../components/RetryButton.vue'
 import SnapshotTree from '../components/SnapshotTree.vue'
+import SButton from '../components/ui/SButton.vue'
 import VirtualMessageList from '../components/VirtualMessageList.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useSnippetShare } from '../composables/useSnippetShare'
@@ -977,7 +978,7 @@ async function handleDeleteDiary(diaryId: string) {
 <template>
   <LayoutPage ref="layoutPageRef">
     <template #start>
-      <IonButton @click="goBack">
+      <IonButton fill="clear" @click="goBack">
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
         <IonIcon slot="icon-only" :icon="arrowBackOutline" />
       </IonButton>
@@ -987,11 +988,11 @@ async function handleDeleteDiary(diaryId: string) {
       <span v-if="messages.length > 0" class="header-mood">{{ moodEmoji }}</span>
     </template>
     <template #end>
-      <IonButton @click="showSearch = !showSearch">
+      <IonButton fill="clear" @click="showSearch = !showSearch">
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
         <IonIcon slot="icon-only" :icon="searchOutline" />
       </IonButton>
-      <IonButton @click="showMoreActions">
+      <IonButton fill="clear" @click="showMoreActions">
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
         <IonIcon slot="icon-only" :icon="ellipsisVertical" />
       </IonButton>
@@ -1027,13 +1028,14 @@ async function handleDeleteDiary(diaryId: string) {
                 {{ t('world.snapshotTreeView') }}
               </button>
             </div>
-            <button
-              class="snapshot-create-btn"
+            <SButton
+              variant="secondary"
+              size="sm"
               :disabled="messages.length === 0"
               @click="handleCreateSnapshot"
             >
               + {{ t('world.createSnapshot') }}
-            </button>
+            </SButton>
           </div>
         </div>
 
@@ -1066,12 +1068,12 @@ async function handleDeleteDiary(diaryId: string) {
                 </div>
               </div>
               <div class="snapshot-item__actions">
-                <button class="snapshot-btn snapshot-btn--restore" @click="handleRestoreSnapshot(snap.id)">
+                <SButton variant="outline" size="sm" @click="handleRestoreSnapshot(snap.id)">
                   {{ t('world.restoreSnapshot') }}
-                </button>
-                <button class="snapshot-btn snapshot-btn--delete" @click="handleDeleteSnapshot(snap.id)">
+                </SButton>
+                <SButton variant="danger" size="sm" @click="handleDeleteSnapshot(snap.id)">
                   ✕
-                </button>
+                </SButton>
               </div>
             </div>
           </div>
@@ -1082,13 +1084,17 @@ async function handleDeleteDiary(diaryId: string) {
     <div class="messages-container" role="log" aria-live="polite" :aria-label="t('world.chatMessages')">
       <!-- Character not found fallback -->
       <div v-if="!character && !characterChatStore.isLoading" class="empty-state">
-        <p style="font-size: 1.2em; margin-bottom: 8px;">
+        <p class="empty-state__title">
           ⚠️
         </p>
-        <p>{{ t('world.noCharacters') }}</p>
-        <IonButton fill="outline" size="small" @click="goBack">
-          {{ t('common.back') }}
-        </IonButton>
+        <p class="empty-state__description">
+          {{ t('world.noCharacters') }}
+        </p>
+        <div class="empty-state__actions">
+          <IonButton fill="outline" size="small" @click="goBack">
+            {{ t('common.back') }}
+          </IonButton>
+        </div>
       </div>
 
       <!-- Loading skeleton -->
@@ -1353,23 +1359,8 @@ async function handleDeleteDiary(diaryId: string) {
 
 <style scoped>
 .header-mood {
-  font-size: 16px;
+  font-size: var(--adv-font-body);
   margin-left: 4px;
-}
-
-/* Reuse ChatPage footer styles */
-ion-footer ion-toolbar {
-  --background: var(--adv-surface-card);
-  --border-width: 0;
-  box-shadow:
-    0 -1px 6px rgba(0, 0, 0, 0.06),
-    0 -1px 2px rgba(0, 0, 0, 0.04);
-}
-
-:root.dark ion-footer ion-toolbar {
-  box-shadow:
-    0 -1px 8px rgba(0, 0, 0, 0.3),
-    0 -1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .chat-input-bar {
@@ -1425,7 +1416,7 @@ ion-footer ion-toolbar {
   border: 1px solid var(--adv-border-light);
   border-radius: var(--adv-radius-lg);
   padding: 6px 16px;
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   cursor: pointer;
   transition: background 0.2s;
 }
@@ -1435,7 +1426,7 @@ ion-footer ion-toolbar {
 }
 
 .load-earlier-hint {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary);
 }
 
@@ -1478,7 +1469,7 @@ ion-footer ion-toolbar {
   border: none;
   background: transparent;
   padding: 2px 8px;
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   cursor: pointer;
   color: var(--adv-text-tertiary, #94a3b8);
   transition:
@@ -1492,7 +1483,7 @@ ion-footer ion-toolbar {
 }
 
 .snapshot-create-btn {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   padding: 3px 10px;
   background: var(--adv-primary, #8b5cf6);
   color: #fff;
@@ -1540,7 +1531,7 @@ ion-footer ion-toolbar {
 }
 
 .snapshot-item__label {
-  font-size: 13px;
+  font-size: var(--adv-font-body-sm);
   font-weight: 500;
   color: var(--adv-text-primary);
   white-space: nowrap;
@@ -1549,7 +1540,7 @@ ion-footer ion-toolbar {
 }
 
 .snapshot-item__meta {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary, #94a3b8);
 }
 
@@ -1560,7 +1551,7 @@ ion-footer ion-toolbar {
 }
 
 .snapshot-btn {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   padding: 3px 8px;
   border: none;
   border-radius: var(--adv-radius-sm, 4px);
@@ -1601,7 +1592,7 @@ ion-footer ion-toolbar {
 }
 
 .snippet-preview-hint {
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   color: var(--adv-text-tertiary, #94a3b8);
   text-align: center;
   max-width: 320px;
@@ -1657,7 +1648,7 @@ ion-footer ion-toolbar {
 
 .archive-batch__summary::before {
   content: '▶';
-  font-size: 10px;
+  font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary, #94a3b8);
   transition: transform 0.2s;
 }
@@ -1672,7 +1663,7 @@ ion-footer ion-toolbar {
 }
 
 .archive-batch__badge {
-  font-size: 11px;
+  font-size: var(--adv-font-caption);
   background: var(--adv-primary-light, #ede9fe);
   color: var(--adv-primary, #8b5cf6);
   padding: 1px 8px;
@@ -1687,7 +1678,7 @@ ion-footer ion-toolbar {
 .archive-batch__text {
   width: 100%;
   margin: 2px 0 0;
-  font-size: 12px;
+  font-size: var(--adv-font-body-sm);
   color: var(--adv-text-secondary, #64748b);
   white-space: nowrap;
   overflow: hidden;
