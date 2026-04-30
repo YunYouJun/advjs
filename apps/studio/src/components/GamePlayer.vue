@@ -14,6 +14,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   ended: []
+  /** Emitted when a choice targets a different chapter file. */
+  loadChapter: [file: string]
 }>()
 
 const { t } = useI18n()
@@ -22,6 +24,9 @@ const ast = ref<AdvAst.Root>()
 const currentIndex = ref(0)
 const isLoading = ref(false)
 const error = ref('')
+
+// Scene-name → node-index lookup table for intra-chapter jumps.
+const sceneIndex = ref<Map<string, number>>(new Map())
 
 // Touch swipe support
 const touchStartX = ref(0)
@@ -41,6 +46,19 @@ watch(() => props.content, async (content) => {
 
   try {
     ast.value = await parseAst(content)
+    // Build scene-name → index lookup for choice.target jumps.
+    const idx = new Map<string, number>()
+    if (ast.value) {
+      for (let i = 0; i < ast.value.children.length; i++) {
+        const node = ast.value.children[i]
+        if (node.type === 'scene') {
+          const sceneNode = node as AdvAst.SceneInfo
+          if (sceneNode.place)
+            idx.set(sceneNode.place, i)
+        }
+      }
+    }
+    sceneIndex.value = idx
   }
   catch (e) {
     error.value = e instanceof Error ? e.message : String(e)
@@ -161,9 +179,47 @@ function restart() {
   currentIndex.value = 0
 }
 
-function handleChoice(_choice: AdvAst.Choice) {
-  // For now, just advance to next node
+function handleChoice(choice: AdvAst.Choice) {
+  // 1. If the choice has a target, try to jump to that scene within this chapter.
+  if (choice.target) {
+    const targetIdx = sceneIndex.value.get(choice.target)
+    if (targetIdx !== undefined) {
+      // Jump to the scene node, then advance past it to the first displayable node.
+      currentIndex.value = targetIdx
+      skipNonRenderable()
+      return
+    }
+
+    // 2. If target looks like a chapter file reference (e.g. "02-turning" or
+    //    "02-turning.adv.md"), emit load-chapter so PlayPage can switch chapters.
+    if (choice.target.includes('-') || choice.target.endsWith('.adv.md')) {
+      const file = choice.target.endsWith('.adv.md')
+        ? `adv/chapters/${choice.target}`
+        : `adv/chapters/${choice.target}.adv.md`
+      emit('loadChapter', file)
+      return
+    }
+  }
+
+  // 3. Fallback: just advance to the next node.
   next()
+}
+
+/**
+ * Skip non-renderable nodes forward from currentIndex (used after a jump).
+ */
+function skipNonRenderable() {
+  if (!ast.value)
+    return
+  while (currentIndex.value < ast.value.children.length) {
+    const node = ast.value.children[currentIndex.value]
+    if (node.type === 'scene' || node.type === 'code' || node.type === 'unknown')
+      currentIndex.value++
+    else
+      break
+  }
+  if (currentIndex.value >= ast.value.children.length)
+    emit('ended')
 }
 
 function prev() {

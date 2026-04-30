@@ -14,41 +14,43 @@ import {
   IonLabel,
   IonList,
   IonModal,
-  IonNote,
   IonSegment,
   IonSegmentButton,
   IonTitle,
   IonToolbar,
   toastController,
 } from '@ionic/vue'
-import { addOutline, cloudDownloadOutline, cloudUploadOutline, downloadOutline, folderOpenOutline, linkOutline, saveOutline, sparklesOutline, storefrontOutline, trashOutline } from 'ionicons/icons'
+import { addOutline, cloudDownloadOutline, cloudUploadOutline, downloadOutline, folderOpenOutline, linkOutline, rocketOutline, saveOutline, sparklesOutline, storefrontOutline, trashOutline } from 'ionicons/icons'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import LayoutPage from '../components/common/LayoutPage.vue'
 import CreateProjectModal from '../components/CreateProjectModal.vue'
 import FilePreview from '../components/FilePreview.vue'
 import MobileFileTree from '../components/MobileFileTree.vue'
 import ProjectOverview from '../components/ProjectOverview.vue'
 import ProjectSwitcher from '../components/ProjectSwitcher.vue'
-import QuickStartButton from '../components/QuickStartButton.vue'
 import WorkspaceReconnect from '../components/WorkspaceReconnect.vue'
 import { useFileChanges } from '../composables/useFileChanges'
 import { importProject } from '../composables/useProjectExport'
+import { useResponsive } from '../composables/useResponsive'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { listCloudFiles, uploadProjectToCloud } from '../utils/cloudSync'
 import { restoreAndVerifyHandle } from '../utils/dirHandleStore'
 import { createFileSystem, detectAdvProject, openProjectDirectory } from '../utils/fs'
 import { BrowserFsAdapter } from '../utils/fs/BrowserFsAdapter'
-import { createProjectFromTemplate } from '../utils/projectTemplate'
+import { createProjectFromTemplate, quickStartTemplate } from '../utils/projectTemplate'
 import { toSlug } from '../utils/slug'
 
 const ZIP_EXT_RE = /\.advpkg\.zip$|\.zip$/i
 
 const { t } = useI18n()
+const router = useRouter()
 const studioStore = useStudioStore()
 const settingsStore = useSettingsStore()
 const { hasChange, getChange } = useFileChanges()
+const { isDesktop } = useResponsive()
 const TRAILING_SLASH_RE = /\/$/
 
 const showCreateModal = ref(false)
@@ -66,22 +68,62 @@ const isMobilePreviewOpen = ref(false)
 const rootDir = ref<FSDirItem>()
 const curDir = ref<FSDirItem>()
 
-// Responsive detection
-const isMobile = ref(window.innerWidth < 768)
+// Responsive — use composable instead of manual resize listener
+const isMobile = computed(() => !isDesktop.value)
 
 // Edit state
 const isDirty = ref(false)
 const editedContent = ref('')
 
+// QuickStart inline state
+const isQuickStarting = ref(false)
+
+async function handleQuickStart() {
+  if (isQuickStarting.value)
+    return
+  isQuickStarting.value = true
+  try {
+    const projectId = `quickstart-${Date.now()}`
+    const projectName = t('projects.quickStart')
+    const { MemoryFsAdapter } = await import('../utils/fs/MemoryFsAdapter')
+    const memFs = new MemoryFsAdapter(projectId)
+    await memFs.init()
+    const files = quickStartTemplate.files(projectName)
+    memFs.bulkLoad(files)
+    await memFs.persist()
+    await studioStore.switchProject({
+      projectId,
+      name: projectName,
+      source: 'local',
+      description: t('projects.quickStartDesc'),
+      lastOpened: Date.now(),
+    })
+    const toast = await toastController.create({
+      message: t('projects.quickStartReady'),
+      duration: 2000,
+      position: 'top',
+      color: 'success',
+    })
+    await toast.present()
+    router.push('/tabs/world')
+  }
+  catch {
+    const toast = await toastController.create({
+      message: t('projects.quickStartFailed'),
+      duration: 2500,
+      position: 'top',
+      color: 'danger',
+    })
+    await toast.present()
+  }
+  finally {
+    isQuickStarting.value = false
+  }
+}
+
 // Auto-restore last project on mount
 onMounted(async () => {
-  window.addEventListener('resize', () => {
-    isMobile.value = window.innerWidth < 768
-  })
-
   // Handle deep-link import: /?import=<projectId>
-  // If the project already exists locally, switch to it.
-  // If not found, show a friendly toast explaining local-only storage.
   try {
     const params = new URLSearchParams(window.location.search)
     const importId = params.get('import')
@@ -99,7 +141,6 @@ onMounted(async () => {
         })
         await toast.present()
       }
-      // Clean URL so refresh doesn't re-trigger
       const url = new URL(window.location.href)
       url.searchParams.delete('import')
       window.history.replaceState({}, '', url.toString())
@@ -145,9 +186,6 @@ async function autoLoadReadme(fs: import('../utils/fs').IFileSystem) {
   }
 }
 const hasProject = computed(() => !!studioStore.currentProject || studioStore.isRestoring)
-
-const featuredProjects = computed(() => studioStore.projects.slice(0, 3))
-const remainingProjects = computed(() => studioStore.projects.slice(3))
 
 function normalizeCosPrefix(projectRoot: string, projectName: string): string {
   const root = projectRoot.replace(TRAILING_SLASH_RE, '')
@@ -650,15 +688,6 @@ async function handleSaveFile() {
 function getFileIconClass(name: string): string {
   return getIconFromFileType(getFileTypeFromPath(name))
 }
-
-function getGradientForIndex(index: number): string {
-  const gradients = [
-    'linear-gradient(135deg, #6366f1, #8b5cf6)',
-    'linear-gradient(135deg, #ec4899, #f43f5e)',
-    'linear-gradient(135deg, #14b8a6, #06b6d4)',
-  ]
-  return gradients[index % gradients.length]
-}
 </script>
 
 <template>
@@ -684,148 +713,103 @@ function getGradientForIndex(index: number): string {
 
     <!-- ==================== View A: Welcome Page ==================== -->
     <template v-else-if="!hasProject">
-      <!-- Quick Start (one-click experience) -->
-      <div class="quick-start-section">
-        <QuickStartButton />
-      </div>
+      <!-- Hero: Primary Actions Grid -->
+      <h3 class="section-title">
+        {{ t('workspace.startCreating') }}
+      </h3>
+      <div class="hero-actions">
+        <!-- QuickStart (inline) -->
+        <button class="hero-card hero-card--primary" :disabled="isQuickStarting" @click="handleQuickStart">
+          <span class="hero-card__icon hero-card__icon--filled">
+            <IonIcon :icon="rocketOutline" />
+            <span v-if="isQuickStarting" class="hero-card__spinner" />
+          </span>
+          <strong class="hero-card__title">{{ isQuickStarting ? t('projects.quickStartCreating') : t('projects.quickStart') }}</strong>
+          <span class="hero-card__desc">{{ t('projects.quickStartDesc') }}</span>
+        </button>
 
-      <!-- Action cards -->
-      <div class="action-cards">
-        <button class="action-card" @click="showCreateModal = true">
-          <span class="action-card__icon">
+        <!-- Create Project -->
+        <button class="hero-card" @click="showCreateModal = true">
+          <span class="hero-card__icon">
             <IonIcon :icon="addOutline" />
           </span>
-          <span class="action-card__text">
-            <strong>{{ t('projects.createProject') }}</strong>
-            <span>{{ t('projects.createProjectDesc') }}</span>
-          </span>
+          <strong class="hero-card__title">{{ t('projects.createProject') }}</strong>
+          <span class="hero-card__desc">{{ t('projects.createProjectDesc') }}</span>
         </button>
-        <button class="action-card action-card--highlight" @click="$router.push('/tabs/workspace/import-source')">
-          <span class="action-card__icon">
+
+        <!-- AI Import -->
+        <button class="hero-card hero-card--accent" @click="$router.push('/tabs/workspace/import-source')">
+          <span class="hero-card__icon">
             <IonIcon :icon="sparklesOutline" />
           </span>
-          <span class="action-card__text">
-            <strong>{{ t('importSource.entryCard') }}</strong>
-            <span>{{ t('importSource.entryCardDesc') }}</span>
-          </span>
-        </button>
-        <button class="action-card" @click="handleOpenLocal">
-          <span class="action-card__icon">
-            <IonIcon :icon="folderOpenOutline" />
-          </span>
-          <span class="action-card__text">
-            <strong>{{ t('projects.openLocal') }}</strong>
-            <span>{{ t('projects.openLocalDesc') }}</span>
-          </span>
-        </button>
-        <button class="action-card" @click="handleLoadUrl">
-          <span class="action-card__icon">
-            <IonIcon :icon="linkOutline" />
-          </span>
-          <span class="action-card__text">
-            <strong>{{ t('projects.loadUrl') }}</strong>
-            <span>{{ t('projects.loadUrlDesc') }}</span>
-          </span>
-        </button>
-        <button class="action-card" @click="handleLoadCloud">
-          <span class="action-card__icon">
-            <IonIcon :icon="cloudDownloadOutline" />
-          </span>
-          <span class="action-card__text">
-            <strong>{{ t('projects.loadCloud') }}</strong>
-            <span>{{ t('projects.loadCloudDesc') }}</span>
-          </span>
-        </button>
-        <button class="action-card" @click="handleImportProject">
-          <span class="action-card__icon">
-            <IonIcon :icon="downloadOutline" />
-          </span>
-          <span class="action-card__text">
-            <strong>{{ t('projects.importProject') }}</strong>
-            <span>{{ t('projects.importProjectDesc') }}</span>
-          </span>
-        </button>
-        <input
-          ref="importFileInput"
-          type="file"
-          accept=".zip,.advpkg"
-          style="display: none"
-          @change="handleImportFileSelected"
-        >
-        <button class="action-card" @click="$router.push('/tabs/workspace/marketplace')">
-          <span class="action-card__icon">
-            <IonIcon :icon="storefrontOutline" />
-          </span>
-          <span class="action-card__text">
-            <strong>{{ t('marketplace.browse') }}</strong>
-            <span>{{ t('marketplace.browseDesc') }}</span>
-          </span>
-          <span class="action-card__badge">{{ t('marketplace.comingSoonBadge') }}</span>
+          <strong class="hero-card__title">{{ t('importSource.entryCard') }}</strong>
+          <span class="hero-card__desc">{{ t('importSource.entryCardDesc') }}</span>
         </button>
       </div>
 
-      <!-- Featured projects (large cards) -->
-      <div v-if="featuredProjects.length > 0" class="featured-section">
+      <!-- Secondary Actions: compact icon buttons -->
+      <h3 class="section-title">
+        {{ t('workspace.moreWays') }}
+      </h3>
+      <div class="secondary-actions">
+        <button class="sec-btn" @click="handleOpenLocal">
+          <span class="sec-btn__icon"><IonIcon :icon="folderOpenOutline" /></span>
+          <span class="sec-btn__label">{{ t('projects.openLocal') }}</span>
+        </button>
+        <button class="sec-btn" @click="handleLoadUrl">
+          <span class="sec-btn__icon"><IonIcon :icon="linkOutline" /></span>
+          <span class="sec-btn__label">{{ t('projects.loadUrl') }}</span>
+        </button>
+        <button class="sec-btn" @click="handleLoadCloud">
+          <span class="sec-btn__icon"><IonIcon :icon="cloudDownloadOutline" /></span>
+          <span class="sec-btn__label">{{ t('projects.loadCloud') }}</span>
+        </button>
+        <button class="sec-btn" @click="handleImportProject">
+          <span class="sec-btn__icon"><IonIcon :icon="downloadOutline" /></span>
+          <span class="sec-btn__label">{{ t('projects.importProject') }}</span>
+        </button>
+        <button class="sec-btn sec-btn--badge" @click="$router.push('/tabs/workspace/marketplace')">
+          <span class="sec-btn__icon"><IonIcon :icon="storefrontOutline" /></span>
+          <span class="sec-btn__label">{{ t('marketplace.browse') }}</span>
+          <span class="sec-btn__badge">{{ t('marketplace.comingSoonBadge') }}</span>
+        </button>
+      </div>
+      <input
+        ref="importFileInput"
+        type="file"
+        accept=".zip,.advpkg"
+        style="display: none"
+        @change="handleImportFileSelected"
+      >
+
+      <!-- Unified Project List -->
+      <template v-if="studioStore.projects.length > 0">
         <h3 class="section-title">
-          {{ t('workspace.featuredProjects') }}
+          {{ t('workspace.recentProjects') }}
         </h3>
-        <div class="featured-cards">
-          <button
-            v-for="(project, index) in featuredProjects"
-            :key="project.name + project.lastOpened"
-            class="featured-card"
-            :style="{ background: project.cover ? `url(${project.cover}) center/cover no-repeat` : getGradientForIndex(index) }"
-            @click="handleSelectProject(project)"
-          >
-            <div class="featured-card__content">
-              <h3 class="featured-card__name">
-                {{ project.name }}
-              </h3>
-              <p v-if="project.description" class="featured-card__desc">
-                {{ project.description }}
-              </p>
-              <div class="featured-card__meta">
-                <span class="featured-card__source">{{ getSourceLabel(project) }}</span>
-                <span class="featured-card__time">{{ formatTime(project.lastOpened) }}</span>
-              </div>
-            </div>
-            <div class="featured-card__decoration" />
-          </button>
-        </div>
-      </div>
-
-      <!-- Remaining project list -->
-      <IonList v-if="remainingProjects.length > 0">
-        <IonItemSliding v-for="(project, index) in remainingProjects" :key="project.name + project.lastOpened">
-          <IonItem button @click="handleSelectProject(project)">
-            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-            <IonIcon slot="start" :icon="getProjectIcon(project)" />
-            <IonLabel>
-              <h2>{{ project.name }}</h2>
-              <p v-if="project.url">
-                {{ project.url }}
-              </p>
-              <p v-if="project.source === 'cos' && project.cosPrefix">
-                COS: {{ project.cosPrefix }}
-              </p>
-            </IonLabel>
-            <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-            <IonNote slot="end">
-              {{ formatTime(project.lastOpened) }}
-            </IonNote>
-          </IonItem>
-          <IonItemOptions side="end">
-            <IonItemOption color="danger" @click="handleDeleteProject(index + 3)">
-              <template #icon-only>
-                <IonIcon :icon="trashOutline" />
-              </template>
-            </IonItemOption>
-          </IonItemOptions>
-        </IonItemSliding>
-      </IonList>
+        <IonList class="project-list">
+          <IonItemSliding v-for="(project, index) in studioStore.projects" :key="project.projectId + project.lastOpened">
+            <IonItem button @click="handleSelectProject(project)">
+              <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+              <IonIcon slot="start" :icon="getProjectIcon(project)" />
+              <IonLabel>
+                <h2>{{ project.name }}</h2>
+                <p>{{ getSourceLabel(project) }} · {{ formatTime(project.lastOpened) }}</p>
+              </IonLabel>
+            </IonItem>
+            <IonItemOptions side="end">
+              <IonItemOption color="danger" @click="handleDeleteProject(index)">
+                <template #icon-only>
+                  <IonIcon :icon="trashOutline" />
+                </template>
+              </IonItemOption>
+            </IonItemOptions>
+          </IonItemSliding>
+        </IonList>
+      </template>
 
       <!-- Empty state -->
-      <div v-if="studioStore.projects.length === 0" class="empty-state">
+      <div v-else class="empty-state">
         <div class="empty-state__illustration">
           <IonIcon :icon="folderOpenOutline" />
         </div>
@@ -950,26 +934,36 @@ function getGradientForIndex(index: number): string {
 </template>
 
 <style scoped>
-/* Quick start section */
-.quick-start-section {
-  padding: var(--adv-space-md) var(--adv-space-md) 0;
+/* ===== Section Title ===== */
+.section-title {
+  font-size: var(--adv-font-body-sm, 13px);
+  font-weight: 600;
+  color: var(--adv-text-secondary);
+  padding: var(--adv-space-lg, 20px) var(--adv-space-md) var(--adv-space-sm, 8px);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
-/* Action cards */
-.action-cards {
+.section-title:first-child {
+  padding-top: var(--adv-space-md, 16px);
+}
+
+/* ===== Hero Actions Grid ===== */
+.hero-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--adv-space-sm, 8px);
+  padding: 0 var(--adv-space-md) var(--adv-space-sm);
+}
+
+.hero-card {
   display: flex;
   flex-direction: column;
-  gap: var(--adv-space-sm);
+  align-items: flex-start;
+  gap: var(--adv-space-sm, 8px);
   padding: var(--adv-space-md);
-}
-
-.action-card {
-  display: flex;
-  align-items: center;
-  gap: var(--adv-space-md);
-  position: relative;
-  padding: var(--adv-space-md);
-  min-height: 44px;
+  min-height: 110px;
   border-radius: var(--adv-radius-lg);
   border: 1px solid var(--adv-border-subtle);
   background: var(--adv-surface-card);
@@ -978,36 +972,63 @@ function getGradientForIndex(index: number): string {
   text-align: left;
   transition:
     transform var(--adv-duration-fast) var(--adv-ease-default),
-    box-shadow var(--adv-duration-fast) var(--adv-ease-default);
+    box-shadow var(--adv-duration-fast) var(--adv-ease-default),
+    border-color var(--adv-duration-fast) var(--adv-ease-default);
   -webkit-tap-highlight-color: transparent;
 }
 
-.action-card:active {
-  transform: scale(0.98);
+.hero-card:not(:disabled):active {
+  transform: scale(0.97);
 }
 
-/* Highlight variant used by the AI "from source" entry — slightly
-   pronounced border + gradient icon background to draw attention without
-   breaking the overall card rhythm. */
-.action-card--highlight {
-  border-color: color-mix(in srgb, var(--ion-color-primary) 50%, transparent);
-  box-shadow:
-    var(--adv-shadow-subtle),
-    0 0 0 1px color-mix(in srgb, var(--ion-color-primary) 15%, transparent) inset;
+.hero-card:not(:disabled):hover {
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.12);
+  border-color: color-mix(in srgb, var(--ion-color-primary) 40%, transparent);
 }
 
-.action-card--highlight .action-card__icon {
+.hero-card:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+/* Primary hero card — gradient background */
+.hero-card--primary {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-color: transparent;
+  color: #fff;
+}
+
+.hero-card--primary:not(:disabled):hover {
+  box-shadow: 0 6px 24px rgba(99, 102, 241, 0.35);
+  border-color: transparent;
+}
+
+.hero-card--primary .hero-card__title,
+.hero-card--primary .hero-card__desc {
+  color: #fff;
+}
+
+.hero-card--primary .hero-card__desc {
+  opacity: 0.85;
+}
+
+/* Accent hero card — subtle highlight */
+.hero-card--accent {
+  border-color: color-mix(in srgb, var(--ion-color-primary) 35%, transparent);
+}
+
+.hero-card--accent .hero-card__icon {
   background: linear-gradient(
     135deg,
     color-mix(in srgb, var(--ion-color-primary) 18%, transparent),
     color-mix(in srgb, var(--ion-color-tertiary, var(--ion-color-primary)) 22%, transparent)
   );
-  color: var(--ion-color-primary);
 }
 
-.action-card__icon {
-  width: 44px;
-  height: 44px;
+.hero-card__icon {
+  position: relative;
+  width: 40px;
+  height: 40px;
   border-radius: var(--adv-radius-md);
   background: rgba(99, 102, 241, 0.1);
   display: flex;
@@ -1018,131 +1039,153 @@ function getGradientForIndex(index: number): string {
   font-size: 22px;
 }
 
-.action-card__text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.hero-card__icon--filled {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
 }
 
-.action-card__text strong {
-  font-size: var(--adv-font-body);
-  font-weight: 600;
-  color: var(--adv-text-primary);
-}
-
-.action-card__text span {
-  font-size: var(--adv-font-body-sm);
-  color: var(--adv-text-secondary);
-}
-
-.action-card__badge {
+.hero-card__spinner {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: var(--adv-radius-sm, 4px);
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
-  color: #78350f;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
+  inset: -3px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: hero-spin 0.8s linear infinite;
 }
 
-/* Section title */
-.section-title {
-  font-size: var(--adv-font-body);
-  font-weight: 600;
+@keyframes hero-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.hero-card__title {
+  font-size: var(--adv-font-body, 15px);
+  font-weight: 700;
+  color: var(--adv-text-primary);
+  line-height: 1.2;
+}
+
+.hero-card__desc {
+  font-size: var(--adv-font-caption, 12px);
   color: var(--adv-text-secondary);
-  padding: var(--adv-space-sm) var(--adv-space-md) 0;
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-/* Featured projects */
-.featured-section {
-  margin-bottom: var(--adv-space-sm);
-}
-
-.featured-cards {
-  display: flex;
-  flex-direction: column;
-  gap: var(--adv-space-sm);
-  padding: var(--adv-space-sm) var(--adv-space-md);
-}
-
-.featured-card {
-  position: relative;
-  overflow: hidden;
-  padding: var(--adv-space-lg);
-  border-radius: var(--adv-radius-lg);
-  color: white;
-  cursor: pointer;
-  border: none;
-  text-align: left;
-  box-shadow: var(--adv-shadow-glow);
-  transition: transform var(--adv-duration-fast) var(--adv-ease-default);
-  -webkit-tap-highlight-color: transparent;
-}
-
-.featured-card:active {
-  transform: scale(0.98);
-}
-
-.featured-card__content {
-  position: relative;
-  z-index: 1;
-}
-
-.featured-card__name {
-  font-size: var(--adv-font-title);
-  font-weight: 700;
-  margin: 0 0 var(--adv-space-xs, 4px);
-}
-
-.featured-card__desc {
-  font-size: var(--adv-font-caption);
-  opacity: 0.85;
-  margin: 0 0 var(--adv-space-sm);
-  line-height: 1.3;
+  line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.featured-card__meta {
+/* ===== Secondary Actions Row ===== */
+.secondary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--adv-space-sm, 8px);
+  padding: 0 var(--adv-space-md) var(--adv-space-md);
+}
+
+.sec-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 72px;
+  max-width: 88px;
+  flex: 0 0 auto;
+  padding: var(--adv-space-sm, 8px) 6px;
+  border: 1px solid var(--adv-border-subtle);
+  border-radius: var(--adv-radius-lg);
+  background: var(--adv-surface-card);
+  cursor: pointer;
+  transition:
+    background var(--adv-duration-fast) var(--adv-ease-default),
+    box-shadow var(--adv-duration-fast) var(--adv-ease-default);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sec-btn:active {
+  transform: scale(0.95);
+}
+
+.sec-btn:hover {
+  background: color-mix(in srgb, var(--ion-color-primary) 6%, var(--adv-surface-card));
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.08);
+}
+
+.sec-btn__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--adv-radius-md, 8px);
+  background: rgba(99, 102, 241, 0.08);
   display: flex;
   align-items: center;
-  gap: var(--adv-space-sm);
+  justify-content: center;
+  color: var(--ion-color-primary);
+  font-size: 18px;
 }
 
-.featured-card__source {
-  display: inline-block;
-  font-size: var(--adv-font-caption);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  background: rgba(255, 255, 255, 0.2);
-  padding: 2px 8px;
-  border-radius: var(--adv-radius-full);
+.sec-btn__label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--adv-text-secondary);
+  text-align: center;
+  line-height: 1.3;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
-.featured-card__time {
-  font-size: var(--adv-font-caption);
-  opacity: 0.8;
-}
-
-.featured-card__decoration {
+.sec-btn__badge {
   position: absolute;
-  right: -10%;
-  top: -30%;
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  pointer-events: none;
+  top: 2px;
+  right: 2px;
+  font-size: 8px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #78350f;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  line-height: 1.3;
+}
+
+/* ===== Unified Project List ===== */
+.project-list {
+  padding-bottom: var(--adv-space-md);
+}
+
+/* ===== Empty State ===== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--adv-space-lg, 24px) var(--adv-space-md);
+  text-align: center;
+  opacity: 0.7;
+}
+
+.empty-state__illustration {
+  font-size: 48px;
+  color: var(--adv-text-secondary);
+  margin-bottom: var(--adv-space-sm);
+}
+
+.empty-state__title {
+  font-size: var(--adv-font-body, 15px);
+  font-weight: 600;
+  color: var(--adv-text-primary);
+  margin: 0 0 var(--adv-space-xs, 4px);
+}
+
+.empty-state__description {
+  font-size: var(--adv-font-body-sm, 13px);
+  color: var(--adv-text-secondary);
+  margin: 0;
+  max-width: 280px;
 }
 
 /* Workspace segment */

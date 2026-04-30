@@ -25,7 +25,7 @@ catalog:
   '@capacitor/haptics': 8.0.2
   '@capacitor/keyboard': 8.0.2
   '@capacitor/status-bar': 8.0.2
-  '@cloudbase/js-sdk': ^3.3.5
+  '@cloudbase/js-sdk': ^3.3.6
   '@dagrejs/dagre': ^2.0.4
   '@ionic/vue': ^8.8.5
   '@ionic/vue-router': ^8.8.5
@@ -59,7 +59,7 @@ catalog:
   express: ^5.2.1
   floating-vue: ^5.2.2
   ionicons: ^8.0.13
-  jsdom: ^29.1.0
+  jsdom: ^29.1.1
   jszip: ^3.10.1
   mermaid: ^11.14.0
   mlly: ^1.8.2
@@ -196,7 +196,7 @@ catalogs:
     '@iconify/vue': ^5.0.0
   test:
     '@playwright/test': ^1.59.1
-    '@vue/test-utils': ^2.4.9
+    '@vue/test-utils': ^2.4.10
     vitest: ^4.1.5
   types:
     '@types/cli-progress': ^3.11.6

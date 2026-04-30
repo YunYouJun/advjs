@@ -145,6 +145,21 @@ function handleSelectChapter(file: string) {
   loadChapterForPlay(file)
 }
 
+/** Handle branch-choice requesting a different chapter. */
+function handleLoadChapter(file: string) {
+  // Try exact match first, then fuzzy match by basename.
+  const exact = chapters.value.find(f => f === file)
+  if (exact) {
+    loadChapterForPlay(exact)
+    return
+  }
+  // Fuzzy: strip path prefix and extension for matching.
+  const targetBase = file.split('/').pop()?.replace('.adv.md', '') ?? ''
+  const fuzzy = chapters.value.find(f => f.split('/').pop()?.replace('.adv.md', '') === targetBase)
+  if (fuzzy)
+    loadChapterForPlay(fuzzy)
+}
+
 function handleSelectNode(index: number) {
   gamePlayerRef.value?.goToNode(index)
 }
@@ -241,6 +256,7 @@ async function handleShare() {
           ref="gamePlayerRef"
           :content="gameContent"
           :chapter-name="gameChapterName"
+          @load-chapter="handleLoadChapter"
         />
 
         <!-- Floating chapter list button (mobile) -->

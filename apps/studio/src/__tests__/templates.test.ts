@@ -2,16 +2,15 @@ import { describe, expect, it } from 'vitest'
 import { getTemplate, listTemplates, suggestTemplateFor } from '../utils/templates/loadTemplate'
 
 describe('template registry', () => {
-  it('loads all 6 templates (W1 + M11)', () => {
+  it('loads all 5 templates', () => {
     const all = listTemplates()
     const ids = all.map(t => t.id)
     expect(ids).toContain('life-story')
     expect(ids).toContain('training-drill')
     expect(ids).toContain('touch-book')
     expect(ids).toContain('anti-fraud')
-    expect(ids).toContain('customer-service')
     expect(ids).toContain('medical-comm')
-    expect(all).toHaveLength(6)
+    expect(all).toHaveLength(5)
   })
 
   it('every template has the required fields populated', () => {
@@ -83,7 +82,6 @@ describe('template registry', () => {
     // IDs referenced in sourceParser.ts TEMPLATE_HEURISTICS
     const heuristicIds = [
       'training-drill',
-      'customer-service',
       'anti-fraud',
       'medical-comm',
       'touch-book',

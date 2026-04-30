@@ -110,6 +110,17 @@ export interface GenerateOptions {
    * production to use `useAiSettingsStore()` + `streamChat`.
    */
   aiBridge?: AiBridge
+  /**
+   * Steps that already completed in a prior run. When set, the generator
+   * skips those steps and resumes from the first non-listed step.
+   * Used by `retryCurrentStep()` in `useProjectImport`.
+   */
+  resumeAfter?: GenerationStep[]
+  /**
+   * Files carried over from a prior run's completed steps. Merged into
+   * the result so the final `files[]` includes both old and new.
+   */
+  existingFiles?: TemplateFile[]
 }
 
 // ---------------------------------------------------------------------------
@@ -162,6 +173,7 @@ function createDefaultAiBridge(): AiBridge {
 export async function generateProject(opts: GenerateOptions): Promise<GenerateResult> {
   const { source, template, projectName, projectSlug, onProgress, signal } = opts
   const aiBridge = opts.aiBridge ?? createDefaultAiBridge()
+  const skipSteps = new Set(opts.resumeAfter ?? [])
 
   if (!aiBridge.isConfigured())
     throw new AiApiError('AI provider is not configured', 'auth')
@@ -173,7 +185,7 @@ export async function generateProject(opts: GenerateOptions): Promise<GenerateRe
     catch { /* swallow listener errors */ }
   }
 
-  const files: TemplateFile[] = []
+  const files: TemplateFile[] = [...(opts.existingFiles ?? [])]
   const stats: GenerateStats = { characters: 0, chapters: 0, scenes: 0, locations: 0, knowledge: 0 }
   const failedSteps: GenerationStep[] = []
 
@@ -183,120 +195,157 @@ export async function generateProject(opts: GenerateOptions): Promise<GenerateRe
 
   const logStart = new Date().toISOString()
 
-  // --------------------------- Step 1 · characters ---------------------------
-  emit({ step: 'characters', phase: 'start', message: '提取角色中…' })
-  let characters: GeneratedCharacter[]
-  try {
-    const data = await runStep<CharactersJson>(
-      aiBridge,
-      [
-        { role: 'system', content: sharedSystem },
-        { role: 'user', content: sharedUser },
-        { role: 'user', content: buildCharactersInstruction(template) },
-      ],
-      validateCharactersJson,
-      STEP_TOKEN_BUDGET.characters,
-      signal,
-    )
-    if (!data)
-      throw new Error('LLM did not return valid characters JSON')
-    characters = data.characters
-  }
-  catch (err) {
-    emit({ step: 'characters', phase: 'error', message: `角色生成失败：${(err as Error).message}`, errorRecoverable: false })
-    throw err
+  // Count stats from carried-over files so downstream steps see correct counts.
+  if (opts.existingFiles) {
+    for (const f of opts.existingFiles) {
+      if (f.path.startsWith('adv/characters/'))
+        stats.characters++
+      else if (f.path.startsWith('adv/chapters/'))
+        stats.chapters++
+      else if (f.path.startsWith('adv/scenes/'))
+        stats.scenes++
+      else if (f.path.startsWith('adv/locations/'))
+        stats.locations++
+      else if (f.path.startsWith('adv/knowledge/'))
+        stats.knowledge++
+    }
   }
 
-  for (const c of characters) {
-    const file = characterToFile(c)
-    files.push(file)
+  // --------------------------- Step 1 · characters ---------------------------
+  let characters: GeneratedCharacter[]
+  if (skipSteps.has('characters')) {
+    // Reconstruct minimal character list from carried-over files for downstream prompts.
+    characters = reconstructCharactersFromFiles(files)
+    emit({ step: 'characters', phase: 'complete', message: `已跳过（${characters.length} 个角色）`, partialFiles: [...files] })
   }
-  stats.characters = characters.length
-  emit({ step: 'characters', phase: 'complete', message: `已生成 ${characters.length} 个角色`, partialFiles: [...files] })
+  else {
+    emit({ step: 'characters', phase: 'start', message: '提取角色中…' })
+    try {
+      const data = await runStep<CharactersJson>(
+        aiBridge,
+        [
+          { role: 'system', content: sharedSystem },
+          { role: 'user', content: sharedUser },
+          { role: 'user', content: buildCharactersInstruction(template) },
+        ],
+        validateCharactersJson,
+        STEP_TOKEN_BUDGET.characters,
+        signal,
+      )
+      if (!data)
+        throw new Error('LLM did not return valid characters JSON')
+      characters = data.characters
+    }
+    catch (err) {
+      emit({ step: 'characters', phase: 'error', message: `角色生成失败：${(err as Error).message}`, errorRecoverable: false })
+      throw err
+    }
+
+    for (const c of characters) {
+      const file = characterToFile(c)
+      files.push(file)
+    }
+    stats.characters = characters.length
+    emit({ step: 'characters', phase: 'complete', message: `已生成 ${characters.length} 个角色`, partialFiles: [...files] })
+  }
 
   // --------------------------- Step 2 · chapters -----------------------------
-  emit({ step: 'chapters', phase: 'start', message: `生成 ${template.chapterStructure.length} 个章节…` })
   const chapters: GeneratedChapter[] = []
-  for (let i = 0; i < template.chapterStructure.length; i++) {
-    if (signal?.aborted)
-      throw new DOMException('aborted', 'AbortError')
-    try {
-      const data = await runStep<ChapterJson>(
-        aiBridge,
-        [
-          { role: 'system', content: sharedSystem },
-          { role: 'user', content: sharedUser },
-          { role: 'user', content: buildChapterInstruction(template, i, characters) },
-        ],
-        validateChapterJson,
-        STEP_TOKEN_BUDGET.chapters,
-        signal,
-      )
-      if (!data)
-        throw new Error(`chapter ${i + 1} JSON invalid`)
-      chapters.push(data.chapter)
-      const filename = normalizeChapterFilename(data.chapter.filename, i + 1)
-      files.push(chapterToFile(filename, data.chapter))
-      emit({
-        step: 'chapters',
-        phase: 'chunk',
-        message: `章节 ${i + 1}/${template.chapterStructure.length} 完成：${data.chapter.title}`,
-        partialFiles: [...files],
-      })
-    }
-    catch (err) {
-      emit({
-        step: 'chapters',
-        phase: 'error',
-        message: `章节 ${i + 1} 生成失败：${(err as Error).message}`,
-        errorRecoverable: true,
-      })
-      if (!failedSteps.includes('chapters'))
-        failedSteps.push('chapters')
-      // continue with remaining chapters
-    }
+  if (skipSteps.has('chapters')) {
+    // Chapters were already generated — stats already counted from existingFiles.
+    emit({ step: 'chapters', phase: 'complete', message: `已跳过（${stats.chapters} 章）`, partialFiles: [...files] })
   }
-  stats.chapters = chapters.length
-  emit({ step: 'chapters', phase: 'complete', message: `章节阶段完成（${chapters.length} 章）`, partialFiles: [...files] })
+  else {
+    emit({ step: 'chapters', phase: 'start', message: `生成 ${template.chapterStructure.length} 个章节…` })
+    for (let i = 0; i < template.chapterStructure.length; i++) {
+      if (signal?.aborted)
+        throw new DOMException('aborted', 'AbortError')
+      try {
+        const data = await runStep<ChapterJson>(
+          aiBridge,
+          [
+            { role: 'system', content: sharedSystem },
+            { role: 'user', content: sharedUser },
+            { role: 'user', content: buildChapterInstruction(template, i, characters) },
+          ],
+          validateChapterJson,
+          STEP_TOKEN_BUDGET.chapters,
+          signal,
+        )
+        if (!data)
+          throw new Error(`chapter ${i + 1} JSON invalid`)
+        chapters.push(data.chapter)
+        const filename = normalizeChapterFilename(data.chapter.filename, i + 1)
+        files.push(chapterToFile(filename, data.chapter))
+        emit({
+          step: 'chapters',
+          phase: 'chunk',
+          message: `章节 ${i + 1}/${template.chapterStructure.length} 完成：${data.chapter.title}`,
+          partialFiles: [...files],
+        })
+      }
+      catch (err) {
+        emit({
+          step: 'chapters',
+          phase: 'error',
+          message: `章节 ${i + 1} 生成失败：${(err as Error).message}`,
+          errorRecoverable: true,
+        })
+        if (!failedSteps.includes('chapters'))
+          failedSteps.push('chapters')
+      // continue with remaining chapters
+      }
+    }
+    stats.chapters = chapters.length || stats.chapters
+    emit({ step: 'chapters', phase: 'complete', message: `章节阶段完成（${stats.chapters} 章）`, partialFiles: [...files] })
+  }
 
   // --------------------------- Step 3 · scenes -------------------------------
-  emit({ step: 'scenes', phase: 'start', message: '生成场景与地点中…' })
   let scenes: GeneratedScene[] = []
   let locations: GeneratedLocation[] = []
-  if (chapters.length > 0) {
-    try {
-      const data = await runStep<ScenesJson>(
-        aiBridge,
-        [
-          { role: 'system', content: sharedSystem },
-          { role: 'user', content: sharedUser },
-          { role: 'user', content: buildScenesInstruction(template, chapters) },
-        ],
-        validateScenesJson,
-        STEP_TOKEN_BUDGET.scenes,
-        signal,
-      )
-      if (!data)
-        throw new Error('scenes JSON invalid')
-      scenes = data.scenes
-      locations = data.locations ?? []
-    }
-    catch (err) {
-      emit({ step: 'scenes', phase: 'error', message: `场景生成失败：${(err as Error).message}`, errorRecoverable: true })
-      if (!failedSteps.includes('scenes'))
-        failedSteps.push('scenes')
-    }
+  if (skipSteps.has('scenes')) {
+    emit({ step: 'scenes', phase: 'complete', message: `已跳过（${stats.scenes} 个场景）`, partialFiles: [...files] })
   }
-  for (const s of scenes)
-    files.push(sceneToFile(s))
-  for (const l of locations)
-    files.push(locationToFile(l))
-  stats.scenes = scenes.length
-  stats.locations = locations.length
-  emit({ step: 'scenes', phase: 'complete', message: `已生成 ${scenes.length} 个场景、${locations.length} 个地点`, partialFiles: [...files] })
+  else {
+    emit({ step: 'scenes', phase: 'start', message: '生成场景与地点中…' })
+    if (chapters.length > 0 || stats.chapters > 0) {
+      try {
+        const data = await runStep<ScenesJson>(
+          aiBridge,
+          [
+            { role: 'system', content: sharedSystem },
+            { role: 'user', content: sharedUser },
+            { role: 'user', content: buildScenesInstruction(template, chapters) },
+          ],
+          validateScenesJson,
+          STEP_TOKEN_BUDGET.scenes,
+          signal,
+        )
+        if (!data)
+          throw new Error('scenes JSON invalid')
+        scenes = data.scenes
+        locations = data.locations ?? []
+      }
+      catch (err) {
+        emit({ step: 'scenes', phase: 'error', message: `场景生成失败：${(err as Error).message}`, errorRecoverable: true })
+        if (!failedSteps.includes('scenes'))
+          failedSteps.push('scenes')
+      }
+    }
+    for (const s of scenes)
+      files.push(sceneToFile(s))
+    for (const l of locations)
+      files.push(locationToFile(l))
+    stats.scenes = scenes.length || stats.scenes
+    stats.locations = locations.length || stats.locations
+    emit({ step: 'scenes', phase: 'complete', message: `已生成 ${stats.scenes} 个场景、${stats.locations} 个地点`, partialFiles: [...files] })
+  }
 
   // --------------------------- Step 4 · knowledge ----------------------------
-  if (template.knowledgeExtraction) {
+  if (skipSteps.has('knowledge')) {
+    emit({ step: 'knowledge', phase: 'complete', message: `已跳过（${stats.knowledge} 条知识）`, partialFiles: [...files] })
+  }
+  else if (template.knowledgeExtraction) {
     emit({ step: 'knowledge', phase: 'start', message: '沉淀知识条目…' })
     try {
       const data = await runStep<KnowledgeJson>(
@@ -579,4 +628,30 @@ function normalizeChapterFilename(suggested: string | undefined, index: number):
   if (!trimmed)
     return fallback
   return trimmed.endsWith('.adv.md') ? trimmed : `${trimmed.replace(NORMALIZE_CHAPTER_MD_RE, '')}.adv.md`
+}
+
+/**
+ * Reconstruct a minimal GeneratedCharacter[] from carried-over character files.
+ * Used when resuming from a prior run where characters already succeeded — we
+ * need the list for downstream prompts (chapter/scenes) that reference characters.
+ */
+function reconstructCharactersFromFiles(files: TemplateFile[]): GeneratedCharacter[] {
+  return files
+    .filter(f => f.path.startsWith('adv/characters/') && f.path.endsWith('.character.md'))
+    .map((f) => {
+      const id = f.path.replace('adv/characters/', '').replace('.character.md', '')
+      // Extract name from the first `name:` line in the character markdown frontmatter.
+      const nameLine = f.content.split('\n').find(l => l.startsWith('name:'))
+      const rawName = nameLine?.replace(/^name:\s*/, '')?.trim()?.replace(/^['"]|['"]$/g, '')
+      return {
+        id,
+        name: rawName ?? id,
+        tags: [],
+        appearance: '',
+        personality: '',
+        background: '',
+        concept: '',
+        speechStyle: '',
+      }
+    })
 }

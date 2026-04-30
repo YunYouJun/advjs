@@ -182,8 +182,8 @@ catalogs:
       specifier: 8.0.2
       version: 8.0.2
     '@cloudbase/js-sdk':
-      specifier: ^3.3.5
-      version: 3.3.5
+      specifier: ^3.3.6
+      version: 3.3.6
     '@dagrejs/dagre':
       specifier: ^2.0.4
       version: 2.0.4
@@ -281,8 +281,8 @@ catalogs:
       specifier: ^8.0.13
       version: 8.0.13
     jsdom:
-      specifier: ^29.1.0
-      version: 29.1.0
+      specifier: ^29.1.1
+      version: 29.1.1
     jszip:
       specifier: ^3.10.1
       version: 3.10.1
@@ -340,6 +340,9 @@ catalogs:
     vitepress-plugin-mermaid:
       specifier: ^2.0.17
       version: 2.0.17
+    y-indexeddb:
+      specifier: ^9.0.12
+      version: 9.0.12
     y-monaco:
       specifier: ^0.1.6
       version: 0.1.6
@@ -514,8 +517,8 @@ catalogs:
       specifier: ^1.59.1
       version: 1.59.1
     '@vue/test-utils':
-      specifier: ^2.4.9
-      version: 2.4.9
+      specifier: ^2.4.10
+      version: 2.4.10
     vitest:
       specifier: ^4.1.5
       version: 4.1.5
@@ -701,7 +704,7 @@ importers:
         version: link:packages/types
       '@antfu/eslint-config':
         specifier: catalog:dev
-        version: 8.2.0(@typescript-eslint/rule-tester@8.57.0(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3))(@typescript-eslint/typescript-estree@8.59.1(typescript@5.9.3))(@typescript-eslint/utils@8.59.1(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3))(@unocss/eslint-plugin@66.6.8(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3))(@vue/compiler-sfc@3.5.33)(eslint-plugin-format@2.0.1(eslint@10.2.1(jiti@2.6.1)))(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3)(vitest@4.1.5(@types/node@24.12.2)(jsdom@29.1.0)(msw@2.12.10(@types/node@24.12.2)(typescript@5.9.3))(vite@8.0.10(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3)))
+        version: 8.2.0(@typescript-eslint/rule-tester@8.57.0(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3))(@typescript-eslint/typescript-estree@8.59.1(typescript@5.9.3))(@typescript-eslint/utils@8.59.1(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3))(@unocss/eslint-plugin@66.6.8(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3))(@vue/compiler-sfc@3.5.33)(eslint-plugin-format@2.0.1(eslint@10.2.1(jiti@2.6.1)))(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3)(vitest@4.1.5(@types/node@24.12.2)(jsdom@29.1.1)(msw@2.12.10(@types/node@24.12.2)(typescript@5.9.3))(vite@8.0.10(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3)))
       '@antfu/ni':
         specifier: catalog:utils
         version: 30.1.0
@@ -782,7 +785,7 @@ importers:
         version: 8.0.10(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3)
       vitest:
         specifier: catalog:test
-        version: 4.1.5(@types/node@24.12.2)(jsdom@29.1.0)(msw@2.12.10(@types/node@24.12.2)(typescript@5.9.3))(vite@8.0.10(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3))
+        version: 4.1.5(@types/node@24.12.2)(jsdom@29.1.1)(msw@2.12.10(@types/node@24.12.2)(typescript@5.9.3))(vite@8.0.10(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3))
       vue-tsc:
         specifier: catalog:dev
         version: 3.2.7(typescript@5.9.3)
@@ -876,6 +879,9 @@ importers:
       vue-router:
         specifier: catalog:frontend
         version: 5.0.6(@vue/compiler-sfc@3.5.33)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.33(typescript@5.9.3)))(vue@3.5.33(typescript@5.9.3))
+      y-indexeddb:
+        specifier: 'catalog:'
+        version: 9.0.12(yjs@13.6.30)
       y-monaco:
         specifier: 'catalog:'
         version: 0.1.6(monaco-editor@0.55.1)(yjs@13.6.30)
@@ -891,7 +897,7 @@ importers:
         version: 8.3.0
       '@cloudbase/js-sdk':
         specifier: 'catalog:'
-        version: 3.3.5(ws@8.19.0(bufferutil@4.1.0))
+        version: 3.3.6(ws@8.19.0(bufferutil@4.1.0))
       '@iconify-json/vscode-icons':
         specifier: catalog:icons
         version: 1.2.47
@@ -909,10 +915,10 @@ importers:
         version: 6.0.6(vite@8.0.10(@types/node@25.4.0)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3))(vue@3.5.33(typescript@5.9.3))
       '@vue/test-utils':
         specifier: catalog:test
-        version: 2.4.9(@vue/compiler-dom@3.5.33)(@vue/server-renderer@3.5.33(vue@3.5.33(typescript@5.9.3)))(vue@3.5.33(typescript@5.9.3))
+        version: 2.4.10(@vue/compiler-dom@3.5.33)(@vue/server-renderer@3.5.33(vue@3.5.33(typescript@5.9.3)))(vue@3.5.33(typescript@5.9.3))
       jsdom:
         specifier: 'catalog:'
-        version: 29.1.0
+        version: 29.1.1
       terser:
         specifier: 'catalog:'
         version: 5.46.2
@@ -930,7 +936,7 @@ importers:
         version: 1.2.0(vite@8.0.10(@types/node@25.4.0)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3))(workbox-build@7.4.0)(workbox-window@7.4.0)
       vitest:
         specifier: catalog:test
-        version: 4.1.5(@types/node@25.4.0)(jsdom@29.1.0)(msw@2.12.10(@types/node@25.4.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.4.0)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3))
+        version: 4.1.5(@types/node@25.4.0)(jsdom@29.1.1)(msw@2.12.10(@types/node@25.4.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.4.0)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3))
       vue-tsc:
         specifier: catalog:dev
         version: 3.2.7(typescript@5.9.3)
@@ -1981,7 +1987,7 @@ importers:
         version: 6.0.6(vite@8.0.10(@types/node@25.4.0)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3))(vue@3.5.33(typescript@5.9.3))
       '@vue/test-utils':
         specifier: catalog:test
-        version: 2.4.9(@vue/compiler-dom@3.5.33)(@vue/server-renderer@3.5.33(vue@3.5.33(typescript@5.9.3)))(vue@3.5.33(typescript@5.9.3))
+        version: 2.4.10(@vue/compiler-dom@3.5.33)(@vue/server-renderer@3.5.33(vue@3.5.33(typescript@5.9.3)))(vue@3.5.33(typescript@5.9.3))
       '@webcontainer/api':
         specifier: catalog:build
         version: 1.6.4
@@ -2056,7 +2062,7 @@ importers:
         version: 0.10.0
       vitest:
         specifier: catalog:test
-        version: 4.1.5(@types/node@25.4.0)(jsdom@29.1.0)(msw@2.12.10(@types/node@25.4.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.4.0)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3))
+        version: 4.1.5(@types/node@25.4.0)(jsdom@29.1.1)(msw@2.12.10(@types/node@25.4.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.4.0)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3))
       vue-tsc:
         specifier: catalog:dev
         version: 3.2.7(typescript@5.9.3)
@@ -2125,7 +2131,7 @@ importers:
         version: 4.21.0
       vitest:
         specifier: catalog:test
-        version: 4.1.5(@types/node@25.4.0)(jsdom@29.1.0)(msw@2.12.10(@types/node@25.4.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.4.0)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3))
+        version: 4.1.5(@types/node@25.4.0)(jsdom@29.1.1)(msw@2.12.10(@types/node@25.4.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.4.0)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3))
 
   plugins/plugin-obs:
     dependencies:
@@ -3196,17 +3202,17 @@ packages:
   '@cloudbase/adapter-wx_mp@1.3.1':
     resolution: {integrity: sha512-rS0N1aD1a0zc421ds17/HzM4RChQ6T2ixMz87bhPJ1yveqJt/KUqYxiXJDWhZ803wwTmJs8aqNkgugsNusNhbg==}
 
-  '@cloudbase/ai@3.3.5':
-    resolution: {integrity: sha512-cHboSmS/rtMuJ5a4GEnjZdnDK6tcVm107216e4AOPQ4Zf5MffWPrToohr24aHPqlN+fCqvLgWjuqFdTo99k7wQ==}
+  '@cloudbase/ai@3.3.6':
+    resolution: {integrity: sha512-OAQCRWN7TwMnRBPgDHuCrZIR6dWcpswGpGnrTpPtO71jjrvnErF7ziSSv3hmpZgH4yAv18PBGX9NRnYBIRvmdQ==}
 
-  '@cloudbase/analytics@3.3.5':
-    resolution: {integrity: sha512-S6wPhaMejqSggBIuEcbI80ouLsBJpZ1AhbJIWUmbaOqwM1yBGIIM/Qi42vqeUPPAFgaT4t1jlOcOyp9vsi9XbQ==}
+  '@cloudbase/analytics@3.3.6':
+    resolution: {integrity: sha512-qQgd0fCoCqZldf7+m4PMQm1H0/s5gaRH0zXAZ9LQWy2dDemY+zn35poB1utDoA2nY7uyeE1IsIuocJdgFCuSyA==}
 
-  '@cloudbase/apis@3.3.5':
-    resolution: {integrity: sha512-HaU8zgcVTPt/SgrKDgH3l0p1Pk5mDMnUJeYkSBGK0j/FPoJ6ENntj709zJQVkcR/11OwL/Z8gC2jXB//kq69eg==}
+  '@cloudbase/apis@3.3.6':
+    resolution: {integrity: sha512-jXyLreFCD/DlvdoPB/c9m+/A1zKjE73110c3p4TwIwbZj5R++hGjb3047clZudjwMoN2IsKKJ+zw7EZU+O6hlQ==}
 
-  '@cloudbase/app@3.3.5':
-    resolution: {integrity: sha512-KHNicHp4cPViFWY2PzyYA56LK0evg1xRpf4+smVBlVcX7CpLhPwKdwvOjrMdVmSDy1TinVJ6aSyPe+TUTwUinA==}
+  '@cloudbase/app@3.3.6':
+    resolution: {integrity: sha512-obu2EbW7v+pl1bQWVwH3ubOAEaNNwOqnDBQSWCPFsoLpOoKXmEsCTPsqORgnVkXRp0N0qHpPnuJ7WizcEb597g==}
     peerDependencies:
       '@cloudbase/signature-nodejs': '>=1.0.0'
       jsonwebtoken: '>=8.0.0'
@@ -3219,49 +3225,49 @@ packages:
       ws:
         optional: true
 
-  '@cloudbase/auth@3.3.5':
-    resolution: {integrity: sha512-0DfaV+R0TG1DPZ/nVZIO90BZPdcQxnMgr9SUM0/R6W5Ui5UApWPrJmI950/rXf5mLjb1/bcli8Ka4FV0a9I2HQ==}
+  '@cloudbase/auth@3.3.6':
+    resolution: {integrity: sha512-6z0WwHmRTE8U7S28jklVf5q4g4GVJ/6poDzUSDsjfgQh0EpWFSJWqXITe+aIT/pkOKoL9rpgAh/WyX0XXnea7A==}
 
-  '@cloudbase/cloudrun@3.3.5':
-    resolution: {integrity: sha512-Uwin0HF4xJK3PbHfAbIhr4mRcAlc354tZZLUjpKQ+CB7bBh92tsBjq58sz+EckY6wbLizui2xCbF+YJo2hyHlQ==}
+  '@cloudbase/cloudrun@3.3.6':
+    resolution: {integrity: sha512-UBvdpECLy+3nafC+qarcbKsj4NNo1ii6JMHg8/nDbqVMrWnj2d0NwAUdfZbu2NZr5Q4X6dCMi7YeTwg1T2C+zw==}
 
-  '@cloudbase/database@0.12.0':
-    resolution: {integrity: sha512-E08LFhBdzSd8oQoOKshdAEYJGNAW2XBUVcZKKUNeDBhqEj4Fcu34zKpNVzEYe9hkLGYB3euvnovXPHprCp66SA==}
+  '@cloudbase/database@0.12.1':
+    resolution: {integrity: sha512-SLZ1j0t6IIkTNdXnqIvLZLHNARtLREIuXP/TuR17Fssa00KYCkm3HS6gkEx3ve7qf6VH79G3vpTD4ODKq4efLA==}
 
-  '@cloudbase/functions@3.3.5':
-    resolution: {integrity: sha512-xELhff7uGc5p/8PhwF4NRofmIz7Nr8x0y/Ryvm7WU+hfHixiCrqAEydUQd07hZDfLrwpkXJgWODTWuTGg7mjhQ==}
+  '@cloudbase/functions@3.3.6':
+    resolution: {integrity: sha512-7GRt6sj8EIasq7ALRfNMcJRgS7zLwrjtEfVShAvGOz2OjgNENY+SCOBVTmeciGWsltSIRXqld5Gi54WDXAjebA==}
 
-  '@cloudbase/js-sdk@3.3.5':
-    resolution: {integrity: sha512-YjPwDuQlD2SCurCvgZEzNW7ayLOxPN01RTgqsCv8CjMr1RIaKOcnpIgy+ddsfM2At81ghWSckb2mfmxozJ0fWQ==}
+  '@cloudbase/js-sdk@3.3.6':
+    resolution: {integrity: sha512-zVuvYcCD41Yu+DsbNOcs1Kh5lrZjhF8uRgKLJZgdoXcNN1BW5Rkc/PnZo0P+ugMWE211s11hkBoIC6xLKG7crg==}
 
-  '@cloudbase/model@3.3.5':
-    resolution: {integrity: sha512-QPCnygs0M/kBH27w/8eq3XD4rKycFrdH6kY6nkMYn5WKe4fXmWntU1EexAwmkWVpoKBOuo+6BQczW+fjBOX1qw==}
+  '@cloudbase/model@3.3.6':
+    resolution: {integrity: sha512-Jp7utevGpBfXYVh8m43sxfgyidBDTiAyTuOIeGq4FX9JhrBZDyGHfQvEWPia3IeL2egjaW75eiGejlrejoNUPw==}
 
-  '@cloudbase/mysql@3.3.5':
-    resolution: {integrity: sha512-xAdG9vhGWI7ysq5kXFaVfFNhgiWFoeNs6E9fi8qZPf2g51k0X2gGs5yd4Ip0wDahJ3llK37vjPTp9/V7OFfVcA==}
+  '@cloudbase/mysql@3.3.6':
+    resolution: {integrity: sha512-k0RKY2QdrGZmsciesDCGp20IbBXDbddK3aO0/VdS9BHRuqEw7a9IImqx+20UqdPzdLYlvuONkrwZqslsaI7qpg==}
 
-  '@cloudbase/oauth@3.3.5':
-    resolution: {integrity: sha512-Ddm1X7fWE0ufvBwPpaBTu3nV+p2GB1U8+AwVD9y0jM9dEVY/2BP9h362a7NMhwJY8TUkT8NhJRPwf+7Qu/atLw==}
+  '@cloudbase/oauth@3.3.6':
+    resolution: {integrity: sha512-6juY45Zsb8YXLbPN55DjQ5gjB9MkmiReHn6iL839Wib0qZeDHF/ArFbqEFQcLCr1aHcCAH7BWvFQ/E8bMqcWqQ==}
     peerDependencies:
       '@cloudbase/utilities': 2.25.0
 
-  '@cloudbase/realtime@3.3.5':
-    resolution: {integrity: sha512-RSVDlLPaL42cpAm3MnhcOCaO6iCCZNAyKnia8GSCEpHz5gEAuMZ5gFHXYQv7wGWyZQnM9SZFrdcc7VsZiw8ZvQ==}
+  '@cloudbase/realtime@3.3.6':
+    resolution: {integrity: sha512-pXVZhayKKvuxaGbxJiFKGv3UqIQ96PE438Ufv9GYChHiUa++pkBCO+SdbJMNxgwtHCCv3W4RK8u7Hjh41SZSFQ==}
 
-  '@cloudbase/storage@3.3.5':
-    resolution: {integrity: sha512-2pCw4k6PAlHS9igBX1NJhlUpOKexwOFvfYVks5iU/NmAxs8h6xDRa+4ZxJhgNTH6fYZQ1rBAosaayDpnR4umIg==}
+  '@cloudbase/storage@3.3.6':
+    resolution: {integrity: sha512-lMR4rD6OPmrcFAhZU/p3b7VyHui89HaZRkY7i/v2F1MupnriARrpiiFGeDjJf8VqZ7h8IhahlpekTOi0Cs4gdA==}
 
   '@cloudbase/types@2.20.3':
     resolution: {integrity: sha512-oBFj5hJ4eFc32OoOiE8UopL5lDacZReg56yNlbPGhoRLGbNe2Wk4QV+VeIo2n/TtVzo6Ctb7hQGmJ+peECIiuQ==}
 
-  '@cloudbase/types@3.3.5':
-    resolution: {integrity: sha512-q0dk8kRpAzRT8EfmSvZy0W62awUV2hWTi3MjrmHHmasOu9N4wxFOn0f2rnsAYP74Aqn4SgUnS2iIe9VmssLUvQ==}
+  '@cloudbase/types@3.3.6':
+    resolution: {integrity: sha512-dXufLSJdOADdpgQHgSL/XnTeZh3bKWK/EgufY4pah30v6XzuZv+ctkc7jQWOwcWxbWTpqcXa8evl1wjC4+XnEQ==}
 
   '@cloudbase/utilities@2.20.3':
     resolution: {integrity: sha512-SjRok91CfqiEHk1Mjzc9uW61CewssW3c8pjs+EPHb2et/C764W5mt3Gr2SP5yEw23X1HS50uNHXfWZu7ZbG4AQ==}
 
-  '@cloudbase/utilities@3.3.5':
-    resolution: {integrity: sha512-Yqp2Z1LwNcVoYH5G69dv3MqH7uNIncktgmaspEpPdAo7K8Vp/oVIX8B/EDni5StQx9NJKoE1Q650WM0mtiUIoA==}
+  '@cloudbase/utilities@3.3.6':
+    resolution: {integrity: sha512-Wrt594Qiu/j2hjlkNSE1myqgtnnDE9zkAeEzSVg4CRjqXjniEWUeJCQMWWGMbMYN+FIGUsVMosvbnYcrb+pnqQ==}
 
   '@cloudbase/wx-cloud-client-sdk@1.8.6-beta.1':
     resolution: {integrity: sha512-KHu2Pe11Cgu+AZJ7kNZtsana0nG/1xpj1vsaydkMpVLnmdfWNk4PttkItpTPHxhhd1Saxvn3ztj+j5QxzaNtqg==}
@@ -7529,8 +7535,8 @@ packages:
   '@vue/shared@3.5.33':
     resolution: {integrity: sha512-5vR2QIlmaLG77Ygd4pMP6+SGQ5yox9VhtnbDWTy9DzMzdmeLxZ1QqxrywEZ9sa1AVubfIJyaCG3ytyWU81ufcQ==}
 
-  '@vue/test-utils@2.4.9':
-    resolution: {integrity: sha512-YwgowiO1mPleZqpgAGfxvWu/A5A8nkLrbyH2SqiQRkyzCIaDzzo27/2uS/F1g7fRLvl8BUY0+Sr1eC+6+IHfrw==}
+  '@vue/test-utils@2.4.10':
+    resolution: {integrity: sha512-SmoZ5EA1kYiAFs9NkYdiFFQF+cSnUwnvlYEbY+DogWQZUiqOm/Y29eSbc5T6yi75SgSF9863SBeXniIEoPajCA==}
     peerDependencies:
       '@vue/compiler-dom': 3.x
       '@vue/server-renderer': 3.x
@@ -10477,8 +10483,8 @@ packages:
       canvas:
         optional: true
 
-  jsdom@29.1.0:
-    resolution: {integrity: sha512-YNUc7fB9QuvSSQWfrH0xF+TyABkxUwx8sswgIDaCrw4Hol8BghdZDkITtZheRJeMtzWlnTfsM3bBBusRvpO1wg==}
+  jsdom@29.1.1:
+    resolution: {integrity: sha512-ECi4Fi2f7BdJtUKTflYRTiaMxIB0O6zfR1fX0GXpUrf6flp8QIYn1UT20YQqdSOfk2dfkCwS8LAFoJDEppNK5Q==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24.0.0}
     peerDependencies:
       canvas: ^3.0.0
@@ -14319,6 +14325,12 @@ packages:
   xmlchars@2.2.0:
     resolution: {integrity: sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw==}
 
+  y-indexeddb@9.0.12:
+    resolution: {integrity: sha512-9oCFRSPPzBK7/w5vOkJBaVCQZKHXB/v6SIT+WYhnJxlEC61juqG0hBrAf+y3gmSMLFLwICNH9nQ53uscuse6Hg==}
+    engines: {node: '>=16.0.0', npm: '>=8.0.0'}
+    peerDependencies:
+      yjs: ^13.0.0
+
   y-monaco@0.1.6:
     resolution: {integrity: sha512-sYRywMmcylt+Nupl+11AvizD2am06ST8lkVbUXuaEmrtV6Tf+TD4rsEm6u9YGGowYue+Vfg1IJ97SUP2J+PVXg==}
     engines: {node: '>=12.0.0', npm: '>=6.0.0'}
@@ -14447,7 +14459,7 @@ snapshots:
       '@phc/format': 1.0.0
       '@poppinss/utils': 6.10.1
 
-  '@antfu/eslint-config@8.2.0(@typescript-eslint/rule-tester@8.57.0(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3))(@typescript-eslint/typescript-estree@8.59.1(typescript@5.9.3))(@typescript-eslint/utils@8.59.1(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3))(@unocss/eslint-plugin@66.6.8(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3))(@vue/compiler-sfc@3.5.33)(eslint-plugin-format@2.0.1(eslint@10.2.1(jiti@2.6.1)))(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3)(vitest@4.1.5(@types/node@24.12.2)(jsdom@29.1.0)(msw@2.12.10(@types/node@24.12.2)(typescript@5.9.3))(vite@8.0.10(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3)))':
+  '@antfu/eslint-config@8.2.0(@typescript-eslint/rule-tester@8.57.0(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3))(@typescript-eslint/typescript-estree@8.59.1(typescript@5.9.3))(@typescript-eslint/utils@8.59.1(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3))(@unocss/eslint-plugin@66.6.8(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3))(@vue/compiler-sfc@3.5.33)(eslint-plugin-format@2.0.1(eslint@10.2.1(jiti@2.6.1)))(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3)(vitest@4.1.5(@types/node@24.12.2)(jsdom@29.1.1)(msw@2.12.10(@types/node@24.12.2)(typescript@5.9.3))(vite@8.0.10(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3)))':
     dependencies:
       '@antfu/install-pkg': 1.1.0
       '@clack/prompts': 1.2.0
@@ -14457,7 +14469,7 @@ snapshots:
       '@stylistic/eslint-plugin': 5.10.0(eslint@10.2.1(jiti@2.6.1))
       '@typescript-eslint/eslint-plugin': 8.59.1(@typescript-eslint/parser@8.59.1(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3))(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3)
       '@typescript-eslint/parser': 8.59.1(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3)
-      '@vitest/eslint-plugin': 1.6.16(@typescript-eslint/eslint-plugin@8.59.1(@typescript-eslint/parser@8.59.1(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3))(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3))(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3)(vitest@4.1.5(@types/node@24.12.2)(jsdom@29.1.0)(msw@2.12.10(@types/node@24.12.2)(typescript@5.9.3))(vite@8.0.10(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3)))
+      '@vitest/eslint-plugin': 1.6.16(@typescript-eslint/eslint-plugin@8.59.1(@typescript-eslint/parser@8.59.1(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3))(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3))(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3)(vitest@4.1.5(@types/node@24.12.2)(jsdom@29.1.1)(msw@2.12.10(@types/node@24.12.2)(typescript@5.9.3))(vite@8.0.10(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3)))
       ansis: 4.2.0
       cac: 7.0.0
       eslint: 10.2.1(jiti@2.6.1)
@@ -15880,109 +15892,109 @@ snapshots:
       '@cloudbase/adapter-interface': 0.7.1
       web-streams-polyfill: 4.2.0
 
-  '@cloudbase/ai@3.3.5':
+  '@cloudbase/ai@3.3.6':
     dependencies:
-      '@cloudbase/types': 3.3.5
-      '@cloudbase/utilities': 3.3.5
+      '@cloudbase/types': 3.3.6
+      '@cloudbase/utilities': 3.3.6
       '@mattiasbuelens/web-streams-adapter': 0.1.0
       text-encoding-shim: 1.0.5
       web-streams-polyfill: 4.2.0
 
-  '@cloudbase/analytics@3.3.5':
+  '@cloudbase/analytics@3.3.6':
     dependencies:
-      '@cloudbase/types': 3.3.5
-      '@cloudbase/utilities': 3.3.5
+      '@cloudbase/types': 3.3.6
+      '@cloudbase/utilities': 3.3.6
 
-  '@cloudbase/apis@3.3.5':
+  '@cloudbase/apis@3.3.6':
     dependencies:
-      '@cloudbase/types': 3.3.5
-      '@cloudbase/utilities': 3.3.5
+      '@cloudbase/types': 3.3.6
+      '@cloudbase/utilities': 3.3.6
 
-  '@cloudbase/app@3.3.5(ws@8.19.0(bufferutil@4.1.0))':
+  '@cloudbase/app@3.3.6(ws@8.19.0(bufferutil@4.1.0))':
     dependencies:
       '@cloudbase/adapter-interface': 0.7.1
       '@cloudbase/adapter-wx_mp': 1.3.1
-      '@cloudbase/types': 3.3.5
-      '@cloudbase/utilities': 3.3.5
+      '@cloudbase/types': 3.3.6
+      '@cloudbase/utilities': 3.3.6
     optionalDependencies:
       ws: 8.19.0(bufferutil@4.1.0)
 
-  '@cloudbase/auth@3.3.5':
+  '@cloudbase/auth@3.3.6':
     dependencies:
       '@cloudbase/adapter-wx_mp': 1.3.1
-      '@cloudbase/oauth': 3.3.5(@cloudbase/utilities@3.3.5)
-      '@cloudbase/utilities': 3.3.5
+      '@cloudbase/oauth': 3.3.6(@cloudbase/utilities@3.3.6)
+      '@cloudbase/utilities': 3.3.6
 
-  '@cloudbase/cloudrun@3.3.5':
+  '@cloudbase/cloudrun@3.3.6':
     dependencies:
       '@cloudbase/adapter-interface': 0.7.1
-      '@cloudbase/types': 3.3.5
-      '@cloudbase/utilities': 3.3.5
+      '@cloudbase/types': 3.3.6
+      '@cloudbase/utilities': 3.3.6
 
-  '@cloudbase/database@0.12.0':
+  '@cloudbase/database@0.12.1':
     dependencies:
       bson: 7.2.0
 
-  '@cloudbase/functions@3.3.5':
+  '@cloudbase/functions@3.3.6':
     dependencies:
       '@cloudbase/adapter-interface': 0.7.1
-      '@cloudbase/cloudrun': 3.3.5
-      '@cloudbase/types': 3.3.5
-      '@cloudbase/utilities': 3.3.5
+      '@cloudbase/cloudrun': 3.3.6
+      '@cloudbase/types': 3.3.6
+      '@cloudbase/utilities': 3.3.6
 
-  '@cloudbase/js-sdk@3.3.5(ws@8.19.0(bufferutil@4.1.0))':
+  '@cloudbase/js-sdk@3.3.6(ws@8.19.0(bufferutil@4.1.0))':
     dependencies:
       '@cloudbase/adapter-interface': 0.7.1
-      '@cloudbase/ai': 3.3.5
-      '@cloudbase/analytics': 3.3.5
-      '@cloudbase/apis': 3.3.5
-      '@cloudbase/app': 3.3.5(ws@8.19.0(bufferutil@4.1.0))
-      '@cloudbase/auth': 3.3.5
-      '@cloudbase/cloudrun': 3.3.5
-      '@cloudbase/database': 0.12.0
-      '@cloudbase/functions': 3.3.5
-      '@cloudbase/model': 3.3.5
-      '@cloudbase/mysql': 3.3.5
-      '@cloudbase/realtime': 3.3.5
-      '@cloudbase/storage': 3.3.5
-      '@cloudbase/types': 3.3.5
-      '@cloudbase/utilities': 3.3.5
+      '@cloudbase/ai': 3.3.6
+      '@cloudbase/analytics': 3.3.6
+      '@cloudbase/apis': 3.3.6
+      '@cloudbase/app': 3.3.6(ws@8.19.0(bufferutil@4.1.0))
+      '@cloudbase/auth': 3.3.6
+      '@cloudbase/cloudrun': 3.3.6
+      '@cloudbase/database': 0.12.1
+      '@cloudbase/functions': 3.3.6
+      '@cloudbase/model': 3.3.6
+      '@cloudbase/mysql': 3.3.6
+      '@cloudbase/realtime': 3.3.6
+      '@cloudbase/storage': 3.3.6
+      '@cloudbase/types': 3.3.6
+      '@cloudbase/utilities': 3.3.6
     transitivePeerDependencies:
       - '@cloudbase/signature-nodejs'
       - jsonwebtoken
       - ws
 
-  '@cloudbase/model@3.3.5':
+  '@cloudbase/model@3.3.6':
     dependencies:
-      '@cloudbase/types': 3.3.5
-      '@cloudbase/utilities': 3.3.5
+      '@cloudbase/types': 3.3.6
+      '@cloudbase/utilities': 3.3.6
       '@cloudbase/wx-cloud-client-sdk': 1.8.8
 
-  '@cloudbase/mysql@3.3.5':
+  '@cloudbase/mysql@3.3.6':
     dependencies:
       '@cloudbase/types': 2.20.3
       '@cloudbase/utilities': 2.20.3
       '@cloudbase/wx-cloud-client-sdk': 1.8.6-beta.1
 
-  '@cloudbase/oauth@3.3.5(@cloudbase/utilities@3.3.5)':
+  '@cloudbase/oauth@3.3.6(@cloudbase/utilities@3.3.6)':
     dependencies:
-      '@cloudbase/utilities': 3.3.5
+      '@cloudbase/utilities': 3.3.6
 
-  '@cloudbase/realtime@3.3.5':
+  '@cloudbase/realtime@3.3.6':
     dependencies:
-      '@cloudbase/types': 3.3.5
+      '@cloudbase/types': 3.3.6
       lodash: 4.17.23
 
-  '@cloudbase/storage@3.3.5':
+  '@cloudbase/storage@3.3.6':
     dependencies:
-      '@cloudbase/types': 3.3.5
-      '@cloudbase/utilities': 3.3.5
+      '@cloudbase/types': 3.3.6
+      '@cloudbase/utilities': 3.3.6
 
   '@cloudbase/types@2.20.3':
     dependencies:
       '@cloudbase/adapter-interface': 0.7.1
 
-  '@cloudbase/types@3.3.5':
+  '@cloudbase/types@3.3.6':
     dependencies:
       '@cloudbase/adapter-interface': 0.7.1
 
@@ -15992,10 +16004,10 @@ snapshots:
       '@cloudbase/types': 2.20.3
       jwt-decode: 3.1.2
 
-  '@cloudbase/utilities@3.3.5':
+  '@cloudbase/utilities@3.3.6':
     dependencies:
       '@cloudbase/adapter-interface': 0.7.1
-      '@cloudbase/types': 3.3.5
+      '@cloudbase/types': 3.3.6
       jwt-decode: 3.1.2
 
   '@cloudbase/wx-cloud-client-sdk@1.8.6-beta.1':
@@ -20072,7 +20084,7 @@ snapshots:
       vite: 8.0.10(@types/node@25.4.0)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3)
       vue: 3.5.33(typescript@5.9.3)
 
-  '@vitest/eslint-plugin@1.6.16(@typescript-eslint/eslint-plugin@8.59.1(@typescript-eslint/parser@8.59.1(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3))(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3))(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3)(vitest@4.1.5(@types/node@24.12.2)(jsdom@29.1.0)(msw@2.12.10(@types/node@24.12.2)(typescript@5.9.3))(vite@8.0.10(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3)))':
+  '@vitest/eslint-plugin@1.6.16(@typescript-eslint/eslint-plugin@8.59.1(@typescript-eslint/parser@8.59.1(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3))(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3))(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3)(vitest@4.1.5(@types/node@24.12.2)(jsdom@29.1.1)(msw@2.12.10(@types/node@24.12.2)(typescript@5.9.3))(vite@8.0.10(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3)))':
     dependencies:
       '@typescript-eslint/scope-manager': 8.58.2
       '@typescript-eslint/utils': 8.58.2(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3)
@@ -20080,7 +20092,7 @@ snapshots:
     optionalDependencies:
       '@typescript-eslint/eslint-plugin': 8.59.1(@typescript-eslint/parser@8.59.1(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3))(eslint@10.2.1(jiti@2.6.1))(typescript@5.9.3)
       typescript: 5.9.3
-      vitest: 4.1.5(@types/node@24.12.2)(jsdom@29.1.0)(msw@2.12.10(@types/node@24.12.2)(typescript@5.9.3))(vite@8.0.10(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3))
+      vitest: 4.1.5(@types/node@24.12.2)(jsdom@29.1.1)(msw@2.12.10(@types/node@24.12.2)(typescript@5.9.3))(vite@8.0.10(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3))
     transitivePeerDependencies:
       - supports-color
 
@@ -20458,7 +20470,7 @@ snapshots:
 
   '@vue/shared@3.5.33': {}
 
-  '@vue/test-utils@2.4.9(@vue/compiler-dom@3.5.33)(@vue/server-renderer@3.5.33(vue@3.5.33(typescript@5.9.3)))(vue@3.5.33(typescript@5.9.3))':
+  '@vue/test-utils@2.4.10(@vue/compiler-dom@3.5.33)(@vue/server-renderer@3.5.33(vue@3.5.33(typescript@5.9.3)))(vue@3.5.33(typescript@5.9.3))':
     dependencies:
       '@vue/compiler-dom': 3.5.33
       js-beautify: 1.15.4
@@ -23809,7 +23821,7 @@ snapshots:
       - '@noble/hashes'
       - supports-color
 
-  jsdom@29.1.0:
+  jsdom@29.1.1:
     dependencies:
       '@asamuzakjp/css-color': 5.1.11
       '@asamuzakjp/dom-selector': 7.1.1
@@ -28326,7 +28338,7 @@ snapshots:
       - universal-cookie
       - yaml
 
-  vitest@4.1.5(@types/node@24.12.2)(jsdom@29.1.0)(msw@2.12.10(@types/node@24.12.2)(typescript@5.9.3))(vite@8.0.10(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3)):
+  vitest@4.1.5(@types/node@24.12.2)(jsdom@29.1.1)(msw@2.12.10(@types/node@24.12.2)(typescript@5.9.3))(vite@8.0.10(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3)):
     dependencies:
       '@vitest/expect': 4.1.5
       '@vitest/mocker': 4.1.5(msw@2.12.10(@types/node@24.12.2)(typescript@5.9.3))(vite@8.0.10(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3))
@@ -28350,11 +28362,11 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 24.12.2
-      jsdom: 29.1.0
+      jsdom: 29.1.1
     transitivePeerDependencies:
       - msw
 
-  vitest@4.1.5(@types/node@25.4.0)(jsdom@29.1.0)(msw@2.12.10(@types/node@25.4.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.4.0)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3)):
+  vitest@4.1.5(@types/node@25.4.0)(jsdom@29.1.1)(msw@2.12.10(@types/node@25.4.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.4.0)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3)):
     dependencies:
       '@vitest/expect': 4.1.5
       '@vitest/mocker': 4.1.5(msw@2.12.10(@types/node@25.4.0)(typescript@5.9.3))(vite@8.0.10(@types/node@25.4.0)(esbuild@0.28.0)(jiti@2.6.1)(sass@1.99.0)(terser@5.46.2)(tsx@4.21.0)(yaml@2.8.3))
@@ -28378,7 +28390,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 25.4.0
-      jsdom: 29.1.0
+      jsdom: 29.1.1
     transitivePeerDependencies:
       - msw
 
@@ -28546,7 +28558,7 @@ snapshots:
       '@webassemblyjs/wasm-parser': 1.14.1
       acorn: 8.16.0
       acorn-import-phases: 1.0.4(acorn@8.16.0)
-      browserslist: 4.28.1
+      browserslist: 4.28.2
       chrome-trace-event: 1.0.4
       enhanced-resolve: 5.20.0
       es-module-lexer: 2.0.0
@@ -28817,6 +28829,11 @@ snapshots:
   xmlbuilder@15.1.1: {}
 
   xmlchars@2.2.0: {}
+
+  y-indexeddb@9.0.12(yjs@13.6.30):
+    dependencies:
+      lib0: 0.2.117
+      yjs: 13.6.30
 
   y-monaco@0.1.6(monaco-editor@0.55.1)(yjs@13.6.30):
     dependencies:

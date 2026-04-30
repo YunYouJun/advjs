@@ -58,8 +58,8 @@ describe('parseSource — chat-log', () => {
     expect(src.type).toBe('chat-log')
     expect(src.metadata.speakerCount).toBe(2)
     expect(src.metadata.messageCount).toBe(3)
-    // Chat logs always suggest the customer-service template
-    expect(src.suggestedTemplateId).toBe('customer-service')
+    // Chat logs always suggest the training-drill template
+    expect(src.suggestedTemplateId).toBe('training-drill')
   })
 
   it('parses plain "Speaker: message" transcripts', async () => {

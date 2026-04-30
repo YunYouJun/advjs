@@ -18,7 +18,7 @@ const routes: Array<RouteRecordRaw> = [
       },
       {
         path: 'workspace',
-        component: () => import('@/views/ProjectsPage.vue'),
+        component: () => import('@/views/WorkspacePage.vue'),
       },
       {
         path: 'workspace/chapters',

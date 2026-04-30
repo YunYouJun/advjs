@@ -387,6 +387,14 @@ function sidebarAbout(): DefaultTheme.SidebarItem[] {
           link: '/about/design/index',
         },
         {
+          text: '设计系统',
+          link: '/about/design/design-system',
+        },
+        {
+          text: 'Studio 组件规范',
+          link: '/about/design/studio-components',
+        },
+        {
           text: '存储系统',
           link: '/about/design/storage',
         },

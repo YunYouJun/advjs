@@ -78,6 +78,9 @@ release
 
 # codebuddy
 .codebuddy/memory
+.codebuddy/plans
 
 # claude code
 .claude/scheduled_tasks.json
+
+.superpowers

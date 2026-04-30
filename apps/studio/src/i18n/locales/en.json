@@ -144,7 +144,10 @@
     "save": "Save",
     "saved": "Saved",
     "saveFailed": "Save Failed",
-    "modified": "Modified"
+    "modified": "Modified",
+    "startCreating": "Start Creating",
+    "moreWays": "More Options",
+    "recentProjects": "Recent Projects"
   },
   "chat": {
     "title": "AI Chat",
@@ -1315,8 +1318,6 @@
     "touch-book-desc": "Accessible interactive storybook for young readers",
     "anti-fraud": "Anti-Fraud Theater",
     "anti-fraud-desc": "Anti-telecom-fraud interactive scenario education",
-    "customer-service": "CS Training Script",
-    "customer-service-desc": "Customer service role-play drill",
     "medical-comm": "Medical Communication",
     "medical-comm-desc": "Doctor-patient communication scenarios"
   },

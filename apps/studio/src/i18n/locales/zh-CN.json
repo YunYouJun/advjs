@@ -144,7 +144,10 @@
     "save": "保存",
     "saved": "已保存",
     "saveFailed": "保存失败",
-    "modified": "已修改"
+    "modified": "已修改",
+    "startCreating": "开始创作",
+    "moreWays": "更多方式",
+    "recentProjects": "最近项目"
   },
   "chat": {
     "title": "AI 聊天",
@@ -1315,8 +1318,6 @@
     "touch-book-desc": "为视障儿童设计的无障碍互动绘本",
     "anti-fraud": "反诈剧场",
     "anti-fraud-desc": "中老年反电信诈骗互动情景教育",
-    "customer-service": "客服话术训练",
-    "customer-service-desc": "客诉模拟角色扮演训练",
     "medical-comm": "医患沟通",
     "medical-comm-desc": "医患沟通情境模拟训练"
   },

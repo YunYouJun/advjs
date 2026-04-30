@@ -280,10 +280,10 @@
 
 #### M6.2 项目导入 UI 补全 ✅
 
-- ProjectsPage 新增「导入 .advpkg」action-card
+- WorkspacePage 新增「导入 .advpkg」action-card
 - 文件选择器 + dirHandle 选择 → `importProject()` → 自动切换项目
 
-**修改文件**: `ProjectsPage.vue`
+**修改文件**: `WorkspacePage.vue`
 
 #### M6.3 PWA 离线模式 ✅
 
@@ -451,7 +451,7 @@
 > 📅 2026-04-23 立项 · 2026-04-24 聚焦收窄 · 目标：参赛 2026 AI 应用大赛
 >
 > 主攻赛道：**AI 向善 · 时光忆站**（life-story Template 主打）
-> 副攻演示：**AI 提效 · 企业培训**（training-drill Template 同引擎切换）
+> 副攻展示：**AI 向善 · 教育创新**（history-talk 主打 Demo）+ **技术深度展示**（murder-mystery 辅助案例）
 >
 > 实施策略：**单 Template 端到端闭环** + **流式增量预览**（左进度树 / 右文件）+ **分发能力延后到 Phase M11**
 >
@@ -490,7 +490,7 @@ Studio 项目（可玩 / 可编辑 / 可导出 .advpkg）
 | ------------------------------------------------------ | --------- | -------------------------------------------------------------------------- |
 | `apps/studio/src/composables/useProjectImport.ts`      | 🚧 Week 1 | 订阅 `GenerateProgressEvent` 的响应式状态机 + previewFiles + confirm/abort |
 | `apps/studio/src/views/workspace/ImportSourcePage.vue` | 🚧 Week 1 | **左进度树 + 右流式预览** 向导（本次参赛的核心差异化体验）                 |
-| 路由接入 + ProjectsPage 入口卡片 + i18n                | 🚧 Week 1 | `/tabs/workspace/import-source`                                            |
+| 路由接入 + WorkspacePage 入口卡片 + i18n               | 🚧 Week 1 | `/tabs/workspace/import-source`                                            |
 
 复用基础设施：
 
@@ -505,13 +505,20 @@ Studio 项目（可玩 / 可编辑 / 可导出 .advpkg）
 | 文件                                            | 状态      | 角色                                   |
 | ----------------------------------------------- | --------- | -------------------------------------- |
 | `apps/studio/src/templates/life-story.yaml`     | ✅ 已就绪 | **主攻**：人生故事（AI 向善·时光忆站） |
-| `apps/studio/src/templates/training-drill.yaml` | ✅ 已就绪 | **副攻演示**：企业培训（AI 提效）      |
+| `apps/studio/src/templates/training-drill.yaml` | ✅ 已就绪 | 产品模板：企业培训（AI 提效）          |
+
+**比赛示范作品**：
+
+| 目录                                  | 角色                           |
+| ------------------------------------- | ------------------------------ |
+| `examples/ai-contest/life-story/`     | **主攻**：人生故事端到端闭环   |
+| `examples/ai-contest/history-talk/`   | **主打 Demo**：AI 历史人物对谈 |
+| `examples/ai-contest/murder-mystery/` | **技术深度展示**：AI 剧本杀    |
 
 **赛后扩展**（本届明确不做，仅占位说明引擎可扩展）：
 
 - `touch-book.yaml` 触摸绘本
 - `anti-fraud.yaml` 防诈剧场
-- `customer-service.yaml` 客诉话术
 - `medical-comm.yaml` 医患沟通
 
 每个 Template 规定：系统 Prompt、默认角色 archetypes、章节节奏、推荐 TTS 音色、推荐配图风格。
@@ -535,7 +542,7 @@ Studio 项目（可玩 / 可编辑 / 可导出 .advpkg）
 | life-story 示范作品           | `examples/ai-contest/life-story/`               | 一段真实或合成口述 → 完整可玩 ADV，作为评审 Fallback   |
 | Demo 视频（90s） + 本参赛文档 | 赛事材料 + `docs/studio/ai-contest-2026.md`     | 贴素材 → 左进度右预览 → 进入 Play                      |
 
-**加分项**（做到就加，不阻塞交付）：training-drill 演示（Week 2 已纳入计划）· 无障碍 · TTS 音色自动分配 · Agent 平台 Skill · 学习数据看板 · 离线可用
+**加分项**（做到就加，不阻塞交付）：history-talk Demo 演示 + murder-mystery 技术演示 · 无障碍 · TTS 音色自动分配 · Agent 平台 Skill · 学习数据看板 · 离线可用
 
 ---
 

@@ -207,7 +207,7 @@ function parseChatLog(
     title,
     segments,
     metadata,
-    suggestedTemplateId: 'customer-service',
+    suggestedTemplateId: 'training-drill',
     raw,
   }
 }
@@ -629,8 +629,7 @@ function deriveTitleFromFilename(filename?: string): string | undefined {
 // ---------------------------------------------------------------------------
 
 const TEMPLATE_HEURISTICS: Array<{ id: string, keywords: RegExp }> = [
-  { id: 'training-drill', keywords: /(SOP|流程|规范|合规|话术|培训|上岗|手册|规章)/i },
-  { id: 'customer-service', keywords: /(客诉|客服|工单|投诉|FAQ|咨询|售后)/i },
+  { id: 'training-drill', keywords: /(SOP|流程|规范|合规|话术|培训|上岗|手册|规章|客诉|客服|工单|投诉|FAQ|咨询|售后)/i },
   { id: 'anti-fraud', keywords: /(诈骗|反诈|防骗|冒充|转账|诈欺|电信诈)/ },
   { id: 'medical-comm', keywords: /(病例|诊断|病人|主诉|病情|告知|医患|医院|诊室)/ },
   { id: 'touch-book', keywords: /(绘本|触摸|盲文|视障|盲童|插图|陪读)/ },

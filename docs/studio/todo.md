@@ -69,7 +69,7 @@ Source-to-Project Pipeline 核心后端能力全部就绪。
 - [ ] 观察 Provider 控制台的 cache hit rate
 - [ ] 如 <70%，调整 `prompts.ts` 中 shared prefix 的组装顺序，确保跨 step 完全字节一致
 
-**验收条件**：本地 `pnpm -F @advjs/studio dev` 中，用户从 `/tabs/workspace` 选"导入素材一键生成"，粘贴 `apps/studio/tests/fixtures/m10/*.md` → <60s 出项目 → ProjectsPage 立即可见 → Play Tab 可玩。
+**验收条件**：本地 `pnpm -F @advjs/studio dev` 中，用户从 `/tabs/workspace` 选"导入素材一键生成"，粘贴 `apps/studio/tests/fixtures/m10/*.md` → <60s 出项目 → WorkspacePage 立即可见 → Play Tab 可玩。
 
 ---
 
@@ -78,7 +78,6 @@ Source-to-Project Pipeline 核心后端能力全部就绪。
 ### W3.1 更多 Template
 
 - [ ] `apps/studio/src/templates/anti-fraud.yaml`（防诈剧场，AI 向善）
-- [ ] `apps/studio/src/templates/customer-service.yaml`（客诉话术，AI 提效）
 - [ ] `apps/studio/src/templates/medical-comm.yaml`（医患沟通，AI 向善）
 
 ### W3.2 PDF 解析
@@ -99,7 +98,8 @@ Source-to-Project Pipeline 核心后端能力全部就绪。
 在 `examples/ai-contest/` 目录下：
 
 - [ ] `examples/ai-contest/life-story-demo/` — 真实人生故事 Demo
-- [ ] `examples/ai-contest/training-drill-demo/` — 客服培训 Demo
+- [ ] `examples/ai-contest/history-talk-demo/` — AI 历史人物对谈 Demo
+- [ ] `examples/ai-contest/murder-mystery-demo/` — AI 剧本杀 Demo
 - [ ] `examples/ai-contest/touch-book-demo/` — 绘本教学 Demo
 - [ ] 每个 Demo 附生成素材、生成日志、QR 图
 

@@ -142,26 +142,27 @@ ADV.JS Studio 是一个完整的交互叙事创作平台，包含以下已实现
 | 1   | 首屏可见时间 | 点"生成"后 **< 10 秒**内右侧开始出现第一个角色名                   |
 | 2   | 进度粒度     | 左侧进度树 **4 级**：步骤 → 子项（角色/章节个数）→ 状态 → 错误详情 |
 | 3   | 可中断性     | 随时点"取消"，AbortController 立即停止下一步 LLM 调用              |
-| 4   | 错误可恢复   | 单步失败只弹 inline 错误卡 + 重试按钮，不清空已生成内容            |
+| 4   | 错误可恢复   | 单步失败显示 inline 重试按钮，保留已完成步骤的文件，仅重跑失败步骤 |
 | 5   | 预览可读性   | 右侧 Markdown 风格渲染，而非裸 JSON                                |
 | 6   | 完成态引导   | 生成完成后三张动作卡：`去试玩` / `继续编辑` / `导出包`             |
 | 7   | 草稿模式     | 某步失败进入 `draftMode` 时，确认按钮变为"保存草稿项目"            |
+| 8   | 移动端预览   | `<768px` 下预览面板使用底部 sheet（IonModal breakpoint）展示       |
 
 ### 4.2 UI 布局
 
 ```
 桌面（≥768px）：                         移动（<768px）：
 ┌──────────────┬─────────────────────┐   ┌─────────────────────┐
-│ ⚙ 生成进度    │ 📄 预览              │   │ ⚙ 生成进度（展开式） │
+│ ⚙ 生成进度    │ 📄 预览              │   │ ⚙ 生成进度           │
 ├──────────────┼─────────────────────┤   ├─────────────────────┤
 │ ✓ 素材解析    │  # 第一章 · 初次见面 │   │ ✓ 素材解析           │
 │ ✓ 主题提取    │  @小张：早上好…     │   │ ✓ 主题提取           │
 │ ● 角色提取    │  @客户：我有个问题… │   │ ● 角色提取（2/?）    │
-│   ├ 小张      │  （流式生成中…）    │   ├─────────────────────┤
-│   └ 客户      │                      │   │ 📄 预览（下拉 sheet）│
-│ ○ 章节骨架    │                      │   │  # 第一章 · 初次见面 │
-│ ○ 场景切分    │                      │   │  @小张：早上好…     │
-│ ○ 知识沉淀    │                      │   │  （流式生成中…）    │
+│   ├ 小张      │  （流式生成中…）    │   │ [📄 查看预览 (3)]    │
+│   └ 客户      │                      │   ├─────────────────────┤
+│ ○ 章节骨架    │                      │   │ ↕ 底部 Sheet 预览     │
+│ ○ 场景切分    │                      │   │  # 第一章 · 初次见面 │
+│ ○ 知识沉淀    │                      │   │  （可拖拽展开/收起）  │
 ├──────────────┴─────────────────────┤   ├─────────────────────┤
 │  [取消生成]   [跳到 Play]  [保存]   │   │ [取消] [保存/草稿]   │
 └─────────────────────────────────────┘   └─────────────────────┘
@@ -170,12 +171,14 @@ ADV.JS Studio 是一个完整的交互叙事创作平台，包含以下已实现
 ### 4.3 状态机
 
 ```
-idle → parsing → generating (characters → chapters → scenes → knowledge)
-      ↓              ↓                         ↓
-      error          draftMode (可恢复)        done → writing → project-ready
+idle → parsing → generating → previewing → writing → done
+      ↓              ↓            ↓           ↓
+      error          error       (user)      error
+                       ↑
+                  retryCurrentStep (保留已完成步骤，从失败处恢复)
 ```
 
-`useProjectImport.ts` 内部维护 `{ status, currentStep, previewFiles, error, draftMode }` 响应式对象，UI 纯粹订阅显示。
+`useProjectImport.ts` 内部维护 `{ status, currentStep, previewFiles, error, draftMode }` 响应式对象，UI 纯粹订阅显示。`retryCurrentStep()` 在错误或草稿模式下可用，跳过已完成的 Pipeline 步骤，仅重跑失败步骤。
 
 ### 4.4 组件架构
 
@@ -229,12 +232,12 @@ idle → parsing → generating (characters → chapters → scenes → knowledg
 
 以下 Template YAML 已在 `apps/studio/src/templates/` 中，`listTemplates()` 自动识别：
 
-| Template           | 赛题方向              | 状态         |
-| ------------------ | --------------------- | ------------ |
-| `touch-book`       | 触摸绘本教学（课题1） | ✅ YAML 就绪 |
-| `anti-fraud`       | 防诈剧场（老年人）    | ✅ YAML 就绪 |
-| `customer-service` | 客诉话术（客服）      | ✅ YAML 就绪 |
-| `medical-comm`     | 医患沟通（医疗）      | ✅ YAML 就绪 |
+| Template         | 赛题方向              | 状态            |
+| ---------------- | --------------------- | --------------- |
+| `touch-book`     | 触摸绘本教学（课题1） | ✅ YAML 就绪    |
+| `anti-fraud`     | 防诈剧场（老年人）    | ✅ YAML 就绪    |
+| `training-drill` | 企业培训（含客服）    | ✅ YAML v2 就绪 |
+| `medical-comm`   | 医患沟通（医疗）      | ✅ YAML 就绪    |
 
 ### 5.3 Template 文件格式（life-story 为例）
 

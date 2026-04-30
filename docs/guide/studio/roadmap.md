@@ -66,7 +66,7 @@
 - [x] **离线状态感知** — 基于 `@vueuse/core` `useOnline()` 的 `OfflineBanner` 组件，离线时顶部显示提示横幅
 - [x] **编辑器 Undo/Redo** — `useUndoHistory` composable（基于 `useDebouncedRefHistory`，debounce 500ms，50 步容量），EditorPage 工具栏 + ⌘Z/⌘⇧Z 快捷键
 - [x] **首次使用引导** — `OnboardingOverlay` 5 步 tooltip tour（QuickStart → World → Chat → Play → Me），localStorage 记录完成状态
-- [x] **Marketplace 标记** — 页面顶部 Coming Soon 横幅 + ProjectsPage 入口卡片角标
+- [x] **Marketplace 标记** — 页面顶部 Coming Soon 横幅 + WorkspacePage 入口卡片角标
 
 ---
 

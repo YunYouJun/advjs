@@ -28,7 +28,9 @@ import type { SourceType } from '../../utils/sourceParser'
 import {
   alertController,
   IonButton,
+  IonContent,
   IonIcon,
+  IonModal,
   IonProgressBar,
   IonSpinner,
 } from '@ionic/vue'
@@ -63,6 +65,9 @@ const router = useRouter()
 const studioStore = useStudioStore()
 const aiSettings = useAiSettingsStore()
 const { isDesktop } = useResponsive()
+
+// ---------- Mobile preview bottom sheet ------------------------------------
+const showMobilePreview = ref(false)
 
 // ---------- Composable (state machine) --------------------------------------
 const imp = useProjectImport()
@@ -233,8 +238,32 @@ function handleCancel() {
 }
 
 function handleRetry() {
-  imp.reset()
-  void runGeneration()
+  // If there are completed steps, use retryCurrentStep (keeps completed work).
+  // Otherwise fall back to full reset + re-run.
+  const hasCompletedSteps = imp.visibleProgressNodes.value.some(n => n.status === 'complete')
+  if (hasCompletedSteps) {
+    void retryFromFailedStep()
+  }
+  else {
+    imp.reset()
+    void runGeneration()
+  }
+}
+
+async function retryFromFailedStep() {
+  try {
+    await imp.retryCurrentStep()
+  }
+  catch (err: any) {
+    if (err?.name !== 'AbortError') {
+      // no-op — error state already set by composable
+    }
+  }
+}
+
+function handleRetryStep(_key: string) {
+  // ProgressTree emits retry with the step key — use the same smart retry.
+  handleRetry()
 }
 
 // ---------- Confirm write ----------------------------------------------------
@@ -463,7 +492,8 @@ onMounted(() => {
           <ProgressTree
             :nodes="progressNodes"
             :title="t('importSource.progressTitle')"
-            :can-retry="false"
+            :can-retry="true"
+            @retry="handleRetryStep"
           />
           <div v-if="imp.error.value" class="import-page__generate-error">
             <IonIcon :icon="alertCircleOutline" />
@@ -490,10 +520,22 @@ onMounted(() => {
               </IonButton>
             </div>
           </div>
+
+          <!-- Mobile: button to open preview sheet -->
+          <IonButton
+            v-if="!isDesktop && imp.previewFiles.value.length > 0"
+            expand="block"
+            fill="outline"
+            class="import-page__mobile-preview-btn"
+            @click="showMobilePreview = true"
+          >
+            <IonIcon slot="start" :icon="sparklesOutline" />
+            {{ t('importSource.previewTitle') }} ({{ imp.previewFiles.value.length }})
+          </IonButton>
         </div>
 
-        <!-- Preview -->
-        <div class="import-page__preview">
+        <!-- Desktop: inline preview pane -->
+        <div v-if="isDesktop" class="import-page__preview">
           <div v-if="imp.previewFiles.value.length > 0" class="import-page__preview-counter">
             <IonIcon :icon="sparklesOutline" />
             <span>{{ t('importSource.fileCount', { count: imp.previewFiles.value.length }) }}</span>
@@ -501,6 +543,28 @@ onMounted(() => {
           <GenerationPreviewPane :files="imp.previewFiles.value" auto-follow />
         </div>
       </div>
+
+      <!-- Mobile: bottom-sheet preview -->
+      <IonModal
+        v-if="!isDesktop"
+        :is-open="showMobilePreview"
+        :initial-breakpoint="0.65"
+        :breakpoints="[0, 0.4, 0.65, 0.95]"
+        class="import-page__preview-modal"
+        @did-dismiss="showMobilePreview = false"
+      >
+        <IonContent>
+          <div class="import-page__preview-sheet">
+            <div class="import-page__preview-sheet-header">
+              <h3>{{ t('importSource.previewTitle') }}</h3>
+              <span class="import-page__preview-sheet-count">
+                {{ t('importSource.fileCount', { count: imp.previewFiles.value.length }) }}
+              </span>
+            </div>
+            <GenerationPreviewPane :files="imp.previewFiles.value" auto-follow />
+          </div>
+        </IonContent>
+      </IonModal>
 
       <!-- Completion actions (after done) -->
       <ImportCompletionActions
@@ -774,5 +838,35 @@ onMounted(() => {
   width: 1px;
   height: 1px;
   overflow: hidden;
+}
+
+/* ----- Mobile preview bottom-sheet ----- */
+.import-page__mobile-preview-btn {
+  margin-top: var(--adv-space-sm, 8px);
+}
+
+.import-page__preview-sheet {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--adv-space-md, 16px);
+}
+.import-page__preview-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--adv-space-sm, 8px);
+}
+.import-page__preview-sheet-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.import-page__preview-sheet-count {
+  font-size: 0.75rem;
+  color: var(--ion-color-medium, #92949c);
+  background: color-mix(in srgb, var(--ion-color-primary) 12%, transparent);
+  padding: 2px 8px;
+  border-radius: 10px;
 }
 </style>

@@ -95,7 +95,6 @@ const TEMPLATE_CATEGORIES = [
   { id: 'training-drill', label: 'templates.training-drill', icon: '🏢' },
   { id: 'touch-book', label: 'templates.touch-book', icon: '📚' },
   { id: 'anti-fraud', label: 'templates.anti-fraud', icon: '🛡' },
-  { id: 'customer-service', label: 'templates.customer-service', icon: '🎧' },
   { id: 'medical-comm', label: 'templates.medical-comm', icon: '🏥' },
 ] as const
 
