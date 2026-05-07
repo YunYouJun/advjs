@@ -53,6 +53,10 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/views/workspace/BatchImportPage.vue'),
       },
       {
+        path: 'workspace/import',
+        redirect: '/tabs/workspace/import-source',
+      },
+      {
         path: 'workspace/import-source',
         component: () => import('@/views/workspace/ImportSourcePage.vue'),
       },

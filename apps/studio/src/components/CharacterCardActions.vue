@@ -46,27 +46,27 @@ function onDelete() {
 
 <template>
   <div class="cca">
-    <button class="cca-btn" :title="t('characters.editCharacter')" @click.stop="onEdit">
+    <button type="button" class="cca-btn" :title="t('characters.editCharacter')" @click.stop="onEdit">
       <IonIcon :icon="createOutline" class="cca-btn__icon" />
       <span class="cca-btn__label">{{ t('characters.actionEdit') }}</span>
     </button>
-    <button class="cca-btn" :title="t('characters.chatWithCharacter', { name: character.name })" @click.stop="onChat">
+    <button type="button" class="cca-btn" :title="t('characters.chatWithCharacter', { name: character.name })" @click.stop="onChat">
       <IonIcon :icon="chatbubbleOutline" class="cca-btn__icon" />
       <span class="cca-btn__label">{{ t('characters.actionChat') }}</span>
     </button>
-    <button class="cca-btn" :title="t('characters.viewDiary')" @click.stop="onDiary">
+    <button type="button" class="cca-btn" :title="t('characters.viewDiary')" @click.stop="onDiary">
       <IonIcon :icon="journalOutline" class="cca-btn__icon" />
       <span class="cca-btn__label">{{ t('characters.actionDiary') }}</span>
     </button>
-    <button class="cca-btn" :title="t('characters.viewDetails')" @click.stop="onInfo">
+    <button type="button" class="cca-btn" :title="t('characters.viewDetails')" @click.stop="onInfo">
       <IonIcon :icon="informationCircleOutline" class="cca-btn__icon" />
       <span class="cca-btn__label">{{ t('characters.actionInfo') }}</span>
     </button>
-    <button class="cca-btn" :title="t('characters.actionShare')" @click.stop="onShare">
+    <button type="button" class="cca-btn" :title="t('characters.actionShare')" @click.stop="onShare">
       <IonIcon :icon="shareOutline" class="cca-btn__icon" />
       <span class="cca-btn__label">{{ t('characters.actionShare') }}</span>
     </button>
-    <button class="cca-btn cca-btn--danger" :title="t('characters.actionDelete')" @click.stop="onDelete">
+    <button type="button" class="cca-btn cca-btn--danger" :title="t('characters.actionDelete')" @click.stop="onDelete">
       <IonIcon :icon="trashOutline" class="cca-btn__icon" />
       <span class="cca-btn__label">{{ t('characters.actionDelete') }}</span>
     </button>

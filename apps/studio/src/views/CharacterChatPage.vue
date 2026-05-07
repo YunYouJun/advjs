@@ -509,7 +509,7 @@ async function shareSnippetImage() {
   const blob = await snippet.renderToBlob(snippetCardRef.value)
   if (!blob) {
     const toast = await toastController.create({
-      message: t('chat.shareFailed') || 'Share image failed',
+      message: t('chatSnippet.shareFailed'),
       duration: 2000,
       color: 'danger',
     })
@@ -519,7 +519,7 @@ async function shareSnippetImage() {
   try {
     await snippet.shareBlob(blob, `${character.value?.name || 'chat'}-snippet.png`)
     const ok = await toastController.create({
-      message: t('chat.shareSuccess') || 'Saved',
+      message: t('chatSnippet.shareSuccess'),
       duration: 1500,
       color: 'success',
     })
@@ -531,7 +531,7 @@ async function shareSnippetImage() {
     if (err instanceof Error && err.name === 'AbortError')
       return
     const toast = await toastController.create({
-      message: t('chat.shareFailed') || 'Share image failed',
+      message: t('chatSnippet.shareFailed'),
       duration: 2000,
       color: 'danger',
     })

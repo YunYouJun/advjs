@@ -42,8 +42,11 @@ watch(() => studioStore.currentProject, () => {
   loadChapters()
 }, { immediate: true })
 
-// Handle URL query params: ?file=xxx
-onMounted(() => {
+// Auto-restore last project on page reload (in case user lands directly on PlayPage)
+onMounted(async () => {
+  if (!studioStore.currentProject)
+    await studioStore.autoRestoreLastProject()
+
   const fileParam = route.query.file as string
   if (fileParam)
     loadChapterForPlay(fileParam)

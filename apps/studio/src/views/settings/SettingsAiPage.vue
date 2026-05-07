@@ -169,6 +169,7 @@ const IMAGE_PROVIDERS = [
             <button
               v-for="provider in AI_PROVIDERS"
               :key="provider.id"
+              type="button"
               class="provider-chip"
               :class="{ 'provider-chip--active': aiStore.config.providerId === provider.id }"
               @click="selectProvider(provider.id)"
@@ -241,6 +242,7 @@ const IMAGE_PROVIDERS = [
                 <button
                   v-for="model in aiStore.availableModels"
                   :key="model"
+                  type="button"
                   class="model-chip"
                   :class="{ 'model-chip--active': aiStore.config.model === model }"
                   @click="aiStore.config.model = model"
@@ -261,6 +263,7 @@ const IMAGE_PROVIDERS = [
 
           <!-- Test Connection -->
           <button
+            type="button"
             class="test-btn"
             :class="{
               'test-btn--success': testResult === 'success',
@@ -290,7 +293,7 @@ const IMAGE_PROVIDERS = [
         </div>
 
         <!-- Advanced Settings (Collapsible) -->
-        <button class="guide-toggle" @click="isAdvancedExpanded = !isAdvancedExpanded">
+        <button type="button" class="guide-toggle" @click="isAdvancedExpanded = !isAdvancedExpanded">
           <span class="guide-toggle__label">
             <IonIcon :icon="settingsOutline" />
             {{ t('settings.aiAdvanced') }}
@@ -350,7 +353,7 @@ const IMAGE_PROVIDERS = [
         </Transition>
 
         <!-- Image Generation (Collapsible) -->
-        <button class="guide-toggle" @click="isImageExpanded = !isImageExpanded">
+        <button type="button" class="guide-toggle" @click="isImageExpanded = !isImageExpanded">
           <span class="guide-toggle__label">
             <IonIcon :icon="imageOutline" />
             {{ t('settings.aiImageGeneration') }}
@@ -373,6 +376,7 @@ const IMAGE_PROVIDERS = [
               <button
                 v-for="ip in IMAGE_PROVIDERS"
                 :key="ip.id"
+                type="button"
                 class="provider-chip"
                 :class="{ 'provider-chip--active': aiStore.config.imageProvider === ip.id }"
                 @click="(aiStore.config.imageProvider as string) = ip.id"
@@ -417,7 +421,7 @@ const IMAGE_PROVIDERS = [
         </Transition>
 
         <!-- TTS Settings (Collapsible) -->
-        <button class="guide-toggle" @click="isTtsExpanded = !isTtsExpanded">
+        <button type="button" class="guide-toggle" @click="isTtsExpanded = !isTtsExpanded">
           <span class="guide-toggle__label">
             <IonIcon :icon="volumeHighOutline" />
             {{ t('settings.tts') }}
@@ -440,6 +444,7 @@ const IMAGE_PROVIDERS = [
               <button
                 v-for="tp in ttsProviders"
                 :key="tp.id"
+                type="button"
                 class="provider-chip"
                 :class="{ 'provider-chip--active': aiStore.config.ttsProvider === tp.id }"
                 @click="aiStore.config.ttsProvider = tp.id"
@@ -500,6 +505,7 @@ const IMAGE_PROVIDERS = [
                   <button
                     v-for="model in ttsAvailableModels"
                     :key="model"
+                    type="button"
                     class="model-chip"
                     :class="{ 'model-chip--active': aiStore.config.ttsModel === model }"
                     @click="aiStore.config.ttsModel = model"
@@ -518,6 +524,7 @@ const IMAGE_PROVIDERS = [
                   <button
                     v-for="voice in ttsAvailableVoices"
                     :key="voice"
+                    type="button"
                     class="model-chip"
                     :class="{ 'model-chip--active': aiStore.config.ttsVoice === voice }"
                     @click="aiStore.config.ttsVoice = voice"
@@ -552,7 +559,7 @@ const IMAGE_PROVIDERS = [
         </Transition>
 
         <!-- Embedding Settings (Collapsible) -->
-        <button class="guide-toggle" @click="isEmbeddingExpanded = !isEmbeddingExpanded">
+        <button type="button" class="guide-toggle" @click="isEmbeddingExpanded = !isEmbeddingExpanded">
           <span class="guide-toggle__label">
             <IonIcon :icon="searchOutline" />
             {{ t('settings.embedding') }}
@@ -589,6 +596,7 @@ const IMAGE_PROVIDERS = [
                 <button
                   v-for="ep in EMBEDDING_PROVIDERS"
                   :key="ep.id"
+                  type="button"
                   class="provider-chip"
                   :class="{ 'provider-chip--active': aiStore.config.embeddingProvider === ep.id }"
                   @click="aiStore.config.embeddingProvider = ep.id"
@@ -634,6 +642,7 @@ const IMAGE_PROVIDERS = [
                     <button
                       v-for="model in embeddingAvailableModels"
                       :key="model"
+                      type="button"
                       class="model-chip"
                       :class="{ 'model-chip--active': aiStore.config.embeddingModel === model }"
                       @click="aiStore.config.embeddingModel = model"

@@ -14,7 +14,9 @@ import {
   checkmarkCircle,
   createOutline,
   downloadOutline,
+  imageOutline,
   playCircleOutline,
+  shareSocialOutline,
 } from 'ionicons/icons'
 
 defineProps<{
@@ -28,41 +30,58 @@ defineProps<{
   draftMode?: boolean
   /** Whether to show the Export button (requires dirHandle). */
   showExport?: boolean
+  /** Whether to show the share preview action. */
+  showShare?: boolean
+  /**
+   * Whether to show the "Save QR card" action. Independent of share preview
+   * since it produces a downloadable PNG even without short-link infra.
+   */
+  showSaveCard?: boolean
 }>()
 
 defineEmits<{
   play: []
   edit: []
   export: []
+  share: []
+  saveCard: []
 }>()
 </script>
 
 <template>
   <section class="completion-actions">
     <header class="completion-actions__header">
-      <IonIcon :icon="checkmarkCircle" class="completion-actions__header-icon" />
+      <IonIcon :icon="checkmarkCircle" class="completion-actions__header-icon" aria-hidden="true" />
       <div>
         <h3>{{ $t('importSource.done') }}</h3>
         <p v-if="draftMode" class="completion-actions__draft-notice">
           {{ $t('importSource.draftNotice') }}
         </p>
         <p v-else-if="stats" class="completion-actions__stats">
-          {{ stats.characters }} characters · {{ stats.chapters }} chapters · {{ stats.scenes }} scenes · {{ stats.knowledge }} knowledge
+          {{ $t('importSource.completionStats', stats) }}
         </p>
       </div>
     </header>
 
     <div class="completion-actions__cards">
-      <button class="completion-actions__card" @click="$emit('play')">
-        <IonIcon :icon="playCircleOutline" />
+      <button type="button" class="completion-actions__card" @click="$emit('play')">
+        <IonIcon :icon="playCircleOutline" aria-hidden="true" />
         <span>{{ $t('importSource.actionPlay') }}</span>
       </button>
-      <button class="completion-actions__card" @click="$emit('edit')">
-        <IonIcon :icon="createOutline" />
+      <button type="button" class="completion-actions__card" @click="$emit('edit')">
+        <IonIcon :icon="createOutline" aria-hidden="true" />
         <span>{{ $t('importSource.actionEdit') }}</span>
       </button>
-      <button v-if="showExport" class="completion-actions__card" @click="$emit('export')">
-        <IonIcon :icon="downloadOutline" />
+      <button v-if="showShare" type="button" class="completion-actions__card" @click="$emit('share')">
+        <IonIcon :icon="shareSocialOutline" aria-hidden="true" />
+        <span>{{ $t('importSource.actionShare') }}</span>
+      </button>
+      <button v-if="showSaveCard" type="button" class="completion-actions__card" @click="$emit('saveCard')">
+        <IonIcon :icon="imageOutline" aria-hidden="true" />
+        <span>{{ $t('importSource.actionSaveCard') }}</span>
+      </button>
+      <button v-if="showExport" type="button" class="completion-actions__card" @click="$emit('export')">
+        <IonIcon :icon="downloadOutline" aria-hidden="true" />
         <span>{{ $t('importSource.actionExport') }}</span>
       </button>
     </div>

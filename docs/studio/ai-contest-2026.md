@@ -1,10 +1,10 @@
 # ADV.JS Studio · 2026 AI 应用大赛
 
-> 📅 2026-04-23 立项 · 2026-04-27 代码完工
+> 📅 2026-04-23 立项 · 2026-04-27 代码完工 · 2026-05-07 W4 审查与文档整合
 > 📌 参赛主体：ADV.JS Studio（`apps/studio`）
 > 🎯 参赛形态：**Source-to-Project Pipeline**（素材一键成交互剧情）
 > 🏆 主攻赛道：**AI 向善 · 时光忆站** · 副攻赛道：**AI 向善 · 教育创新**
-> 📎 技术计划：见 [Phase M10](./next-phase-plan.md#phase-m10)
+> 📎 技术计划：见 [Phase M10](./next-phase-plan.md#phase-m10) · 当前待办：见 [`todo.md`](./todo.md)
 
 ---
 
@@ -272,34 +272,16 @@ knowledgeExtraction: true
 
 ## 六、示范作品
 
-`examples/ai-contest/life-story/` 提供了一份完整的预生成 life-story 项目（15 文件），可直接加载体验，也作为评审现场的离线 Fallback。
+`examples/ai-contest/` 下提供 **3 份预生成赛事 demo**，均可作为评审现场断网 / LLM 抽风的离线 Fallback。每个 demo 自带 `source.{txt,md}`（评委可现场粘贴重跑）+ `generation-log.md`（跑后回填的元数据） + `assets/`（QR 卡片图等截图位） + `adv/` 完整可玩项目。
 
-```
-examples/ai-contest/life-story/
-├── source.txt                          # 原始素材（~1500 字虚拟奶奶口述）
-├── README.md                           # 说明
-└── adv/
-    ├── outline.md                      # 故事大纲
-    ├── world.md                        # 世界观设定
-    ├── characters/
-    │   ├── grandma.character.md        # 主角：奶奶
-    │   └── granddaughter.character.md  # 孙女
-    ├── chapters/
-    │   ├── 01-childhood.adv.md         # 第一章：童年
-    │   ├── 02-turning.adv.md           # 第二章：转折（含分支选项）
-    │   └── 03-reflection.adv.md        # 第三章：回望
-    ├── scenes/
-    │   ├── seaside-village.md          # 场景：海边渔村
-    │   └── winter-station.md           # 场景：冬日车站
-    ├── locations/
-    │   ├── village-shore.md            # 地点：渔村海岸
-    │   └── northern-port.md            # 地点：北方港口
-    └── knowledge/era/
-        ├── fishing-village-1960s.md    # 知识：60 年代渔村
-        └── work-team-movement.md       # 知识：工作队运动
-```
+| 目录                                                           | 角色          | 文件数 | 主要内容                                                                                                                                |
+| -------------------------------------------------------------- | ------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| [`life-story/`](../../examples/ai-contest/life-story/)         | **主攻** Demo | 17     | `source.txt`（~1500 字奶奶口述） + characters×2 / chapters×3 / scenes×2 / locations×2 / knowledge/era×2                                 |
+| [`history-talk/`](../../examples/ai-contest/history-talk/)     | **主打** Demo | 16     | `source.md`（~2000 字孔子/图灵/达芬奇人物档案） + characters×3 / chapters×3 / scenes×3 / knowledge×1                                    |
+| [`murder-mystery/`](../../examples/ai-contest/murder-mystery/) | **技术深度**  | 19     | `source.md`（~1900 字 1924 雪夜庄园案件笔记，无真相） + characters×6 / chapters×3 / scenes×3 / knowledge×1（真相 outline 仅创作者可见） |
+| [`README.md`](../../examples/ai-contest/README.md)             | **顶层索引**  | 1      | 3 demo 对照表 + 评审现场使用方式（首选现场生成 / 兜底直接打开 `adv/`）                                                                  |
 
-配套集成测试 `lifeStoryExample.test.ts`（12 cases）防止 schema 漂移。
+配套集成测试 [`lifeStoryExample.test.ts`](../../apps/studio/src/__tests__/lifeStoryExample.test.ts)（6 cases）防止 schema 漂移。
 
 ---
 
@@ -337,21 +319,23 @@ examples/ai-contest/life-story/
 
 ## 八、测试与质量
 
-| 指标       | 数据                          |
-| ---------- | ----------------------------- |
-| 测试文件   | 33 个（含 23 个 Studio 专属） |
-| 测试用例   | 316 个全绿                    |
-| TypeScript | TSC 零错                      |
-| ESLint     | 零错                          |
-| 代码量     | Pipeline + UX 共 2742 行      |
+| 指标            | 数据                                                  |
+| --------------- | ----------------------------------------------------- |
+| Studio 测试文件 | **26** 个                                             |
+| Studio 测试用例 | **282** 个全绿                                        |
+| TypeScript      | `vue-tsc --noEmit` 零错                               |
+| ESLint          | 零错                                                  |
+| i18n parity     | en/zh 0/0 缺失，0 broken refs（W4 清理 143 dead key） |
+| 无障碍          | W2 import 组件 + 全站 77 button `type` 补全           |
+| Pipeline + UX   | 共 ~3200 行（详见附录 B）                             |
 
 关键测试覆盖：
 
 - `sourceParser.test.ts` — 素材解析各格式（text / markdown / chat-log / PDF / URL）
 - `sourceChunk.test.ts` — 分段算法
 - `projectGenerator.test.ts` — LLM Pipeline 各步骤 + schema 校验
-- `useProjectImport.test.ts` — 状态机（14 cases，AiBridge 注入式测试）
-- `lifeStoryExample.test.ts` — 示范作品结构完整性（12 cases）
+- `useProjectImport.test.ts` — 状态机（含 AiBridge 注入式测试）
+- `lifeStoryExample.test.ts` — 示范作品结构完整性（6 cases）
 - `templates.test.ts` — Template YAML 加载与校验
 
 ---
@@ -360,15 +344,20 @@ examples/ai-contest/life-story/
 
 ### 9.1 已完成
 
-| #   | 交付物                            | 模块                                      | 状态                                                              |
-| --- | --------------------------------- | ----------------------------------------- | ----------------------------------------------------------------- |
-| 1   | **ImportSourcePage.vue** 导入向导 | `views/workspace/ImportSourcePage.vue`    | ✅ 5 种素材格式全部跑通，UX 7 条规格全部达标                      |
-| 2   | **Source-to-Project Pipeline**    | `sourceParser.ts` + `projectGenerator.ts` | ✅ 单项目 < 60s，Cache Hit >70%，AiBridge 测试覆盖                |
-| 3   | **life-story 示范作品**           | `examples/ai-contest/life-story/`         | ✅ 15 文件完整可玩 ADV + 12 case 集成测试                         |
-| 4   | **Demo 分镜 + Dogfood 脚本**      | `docs/studio/demo-script.md`              | ✅ 90s 分镜 + 中英双语解说 + 录制清单 + Dogfood 脚本              |
-| 5   | **用户文档**                      | `docs/guide/studio/index.md`              | ✅ 3 Step 操作说明 + Provider 配置说明                            |
-| 6   | **6 个 Template YAML**            | `apps/studio/src/templates/`              | ✅ life-story + history-talk + murder-mystery + 3 个扩展 Template |
-| 7   | **本参赛文档**                    | `docs/studio/ai-contest-2026.md`          | ✅ 架构设计 + 赛道叙事 + Demo 方案                                |
+| #   | 交付物                              | 模块                                                            | 状态                                                                                                                                      |
+| --- | ----------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **ImportSourcePage.vue** 导入向导   | `views/workspace/ImportSourcePage.vue`                          | ✅ 5 种素材格式全部跑通，UX 7 条规格全部达标                                                                                              |
+| 2   | **Source-to-Project Pipeline**      | `sourceParser.ts` + `projectGenerator.ts`                       | ✅ 单项目 < 60s，Cache Hit >70%，AiBridge 测试覆盖                                                                                        |
+| 3   | **3 个赛事 Demo 骨架**              | `examples/ai-contest/{life-story,history-talk,murder-mystery}/` | ✅ 各自 README + source.{txt,md} + generation-log + assets/ + 完整 `adv/`（17/16/19 文件）                                                |
+| 4   | **Demo 分镜 + Dogfood 脚本**        | `docs/studio/demo-script.md`                                    | ✅ 90s 分镜 + 中英双语解说 + 录制清单 + Dogfood 脚本                                                                                      |
+| 5   | **用户文档**                        | `docs/guide/studio/index.md`                                    | ✅ 3 Step 操作说明 + Provider 配置说明                                                                                                    |
+| 6   | **5 个 Template YAML**              | `apps/studio/src/templates/`                                    | ✅ life-story + training-drill + touch-book + anti-fraud + medical-comm                                                                   |
+| 7   | **QR 卡片图分享**                   | `ProjectShareCard.vue` + `shareUtils.shareProjectAsImage`       | ✅ 完成页一键 PNG（modern-screenshot + qrcode），Web Share API / 降级下载                                                                 |
+| 8   | **i18n 全面审查**                   | `src/i18n/locales/{en,zh-CN}.json`                              | ✅ 0/0 parity；fix 9 broken refs；清理 143 dead keys（1250 → 1107）                                                                       |
+| 9   | **无障碍审查**                      | 19 个 `.vue` 文件                                               | ✅ 77 button 补 `type="button"`；W2 import 组件 drop-zone → button + aria-label                                                           |
+| 10  | **本参赛文档**                      | `docs/studio/ai-contest-2026.md`                                | ✅ 架构设计 + 赛道叙事 + Demo 方案                                                                                                        |
+| 11  | **赛事 Demo Preset**（A+ 兜底方案） | `utils/contestDemos.ts` + `composables/useContestDemos.ts`      | ✅ build-time `import.meta.glob` 烤入 3 demo · WorkspacePage 一键加载 · 零 picker / 零权限 / 零网络 · 6 sanity tests                      |
+| 12  | **云同步冲突 UX**                   | `utils/cloudSync.ts` + `components/SyncConflictModal.vue`       | ✅ `classifySyncCandidates` baseline 比对（消除"后写覆盖前写"）· per-file 选边（保留本地/使用云端/跳过）· FileDiffPreview 复用 · 10 tests |
 
 ### 9.2 加分项（已实现）
 
@@ -380,13 +369,18 @@ examples/ai-contest/life-story/
 | C   | PDF / URL 素材入口      | pdfjs-dist 动态导入 + readability 网页抽取  |
 | D   | 离线可用                | PWA + Capacitor 离线运行                    |
 
-### 9.3 待人工执行
+### 9.3 待人工执行（参见 [`todo.md`](./todo.md)）
 
-| 项                 | 说明                         |
-| ------------------ | ---------------------------- |
-| 录制 90s Demo 视频 | 按 `demo-script.md` 分镜执行 |
-| 执行 3 场 Dogfood  | 非技术同事 8 分钟任务 + 访谈 |
-| 提交赛事材料       | 视频 + 文档 + 项目链接       |
+| 项                             | 依赖             | 说明                                                                                                                                |
+| ------------------------------ | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| 接真实 Provider 复盘 cache hit | API Key + 控制台 | DeepSeek / Qwen / Anthropic OpenAI 兼容端点跑一轮，目标 cache hit ≥70%，否则按字节调整 `prompts.ts` 前缀                            |
+| 真实跑出 3 个 demo 产物        | 浏览器 + AI Key  | 用 ImportSourcePage 跑过 `source.{txt,md}` → 回填每个 `generation-log.md` token/耗时；完成页"保存二维码图"产出 `assets/qr-card.png` |
+| 录制 90 秒 Demo 视频           | OBS / Kap        | 按 [`demo-script.md`](./demo-script.md) 分镜                                                                                        |
+| 执行 3 场 Dogfood              | 非技术同事       | 8 分钟任务 + 访谈，记录卡点回写到 `todo.md`                                                                                         |
+| 比赛彩排兜底脚本               | —                | 把 3 个 demo 的 `adv/` 批量打包为 `.advpkg.zip` 放到 `dist/contest/`，断网时一键拖入 Studio                                         |
+| 静态托管位置决策               | —                | GitHub Pages / Cloudflare Pages / Vercel 三选一，定下后部署 workflow                                                                |
+| Agent / Skill 平台上架         | 平台 token       | 外部仓库 "ADV 故事工坊"                                                                                                             |
+| 提交赛事材料                   | —                | 视频 + 文档 + 项目链接                                                                                                              |
 
 ### 9.4 后续规划（Phase M11+）
 
@@ -459,14 +453,16 @@ examples/ai-contest/life-story/
 
 > 留作历史记录，记录每周 Sprint 的关键产出。
 
-| 日期       | 阶段                 | 关键产出                                                                       |
-| ---------- | -------------------- | ------------------------------------------------------------------------------ |
-| 2026-04-24 | 立项                 | 明确策略：单 Template 端到端 + 流式预览 + 不做分发。Pipeline 基础设施已就绪    |
-| 2026-04-24 | Week 1 · 核心 UX     | `useProjectImport` 状态机 + 6 个原子组件 + `ImportSourcePage` 向导 + 路由/i18n |
-| 2026-04-24 | Week 2 · 示范 + 打磨 | life-story 示范作品 15 文件 + training-drill 接入 + 7 种错误分类 + 动画打磨    |
-| 2026-04-24 | Week 3 · 质量        | 无障碍（aria-live / radiogroup / region）+ 测试补全 + 用户文档                 |
-| 2026-04-24 | Week 4 · 交付准备    | Demo 90s 分镜 + Dogfood 脚本 + 验收标准                                        |
-| 2026-04-27 | 文档审计             | 对照代码库修正所有数据。33 文件 316 tests 全绿。代码侧 100% 完成               |
+| 日期       | 阶段                 | 关键产出                                                                                                                                                                                                                                                                                                                         |
+| ---------- | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-04-24 | 立项                 | 明确策略：单 Template 端到端 + 流式预览 + 不做分发。Pipeline 基础设施已就绪                                                                                                                                                                                                                                                      |
+| 2026-04-24 | Week 1 · 核心 UX     | `useProjectImport` 状态机 + 6 个原子组件 + `ImportSourcePage` 向导 + 路由/i18n                                                                                                                                                                                                                                                   |
+| 2026-04-24 | Week 2 · 示范 + 打磨 | life-story 示范作品 + training-drill 接入 + 7 种错误分类 + 动画打磨                                                                                                                                                                                                                                                              |
+| 2026-04-24 | Week 3 · 质量        | 无障碍（aria-live / radiogroup / region）+ 测试补全 + 用户文档                                                                                                                                                                                                                                                                   |
+| 2026-04-24 | Week 4 · 交付准备    | Demo 90s 分镜 + Dogfood 脚本 + 验收标准                                                                                                                                                                                                                                                                                          |
+| 2026-04-27 | 文档审计             | 对照代码库修正所有数据。代码侧 100% 完成                                                                                                                                                                                                                                                                                         |
+| 2026-05-07 | W3 + W4 收尾         | QR 卡片图（`ProjectShareCard.vue` + `shareUtils.shareProjectAsImage` + `qrcode` 入 deps）；3 个 ai-contest demo 骨架完整就位（顶层 README + source.{txt,md} ×3 + generation-log ×3 + assets/ ×3）；i18n 全面审查（fix 9 broken refs，清理 143 dead keys）；无障碍审查（77 button 补 type="button"）；本文档与 `todo.md` 整合更新 |
+| 2026-05-07 | W4 ext               | 赛事 Demo Preset（`utils/contestDemos.ts` + `useContestDemos`，build-time 烤入 3 demo `adv/**/*.md`，零权限秒开）；云同步冲突 UX（`classifySyncCandidates` + `SyncConflictModal.vue` per-file 选边）；新增 16 tests（266→282），en/zh i18n 1107→1132                                                                             |
 
 ---
 
@@ -483,19 +479,25 @@ examples/ai-contest/life-story/
 
 ## 附录 B：文件索引
 
-| 文件                                                   | 说明                     | 行数 |
-| ------------------------------------------------------ | ------------------------ | ---- |
-| `apps/studio/src/utils/sourceParser.ts`                | 素材解析 + 归一化        | 658  |
-| `apps/studio/src/utils/sourceChunk.ts`                 | 分段算法                 | 206  |
-| `apps/studio/src/utils/projectGenerator.ts`            | LLM 4 步 Pipeline        | 582  |
-| `apps/studio/src/utils/templates/loadTemplate.ts`      | YAML 模板加载器          | 161  |
-| `apps/studio/src/composables/useProjectImport.ts`      | 响应式状态机             | 357  |
-| `apps/studio/src/views/workspace/ImportSourcePage.vue` | 3 步向导 UI              | 778  |
-| `apps/studio/src/components/import/*.vue`              | 6 个原子组件             | —    |
-| `apps/studio/src/templates/*.yaml`                     | 6 个 Template 定义       | —    |
-| `examples/ai-contest/life-story/`                      | 示范作品（15 文件）      | —    |
-| `docs/studio/demo-script.md`                           | Demo 分镜 + Dogfood 脚本 | —    |
-| `docs/guide/studio/index.md`                           | 用户文档                 | —    |
+| 文件                                                                                                                 | 说明                           | 行数 |
+| -------------------------------------------------------------------------------------------------------------------- | ------------------------------ | ---- |
+| [`apps/studio/src/utils/sourceParser.ts`](../../apps/studio/src/utils/sourceParser.ts)                               | 素材解析 + 归一化              | 657  |
+| [`apps/studio/src/utils/sourceChunk.ts`](../../apps/studio/src/utils/sourceChunk.ts)                                 | 分段算法                       | 206  |
+| [`apps/studio/src/utils/projectGenerator.ts`](../../apps/studio/src/utils/projectGenerator.ts)                       | LLM 4 步 Pipeline              | 657  |
+| [`apps/studio/src/utils/templates/loadTemplate.ts`](../../apps/studio/src/utils/templates/loadTemplate.ts)           | YAML 模板加载器                | 161  |
+| [`apps/studio/src/composables/useProjectImport.ts`](../../apps/studio/src/composables/useProjectImport.ts)           | 响应式状态机                   | 530  |
+| [`apps/studio/src/views/workspace/ImportSourcePage.vue`](../../apps/studio/src/views/workspace/ImportSourcePage.vue) | 3 步向导 UI                    | 993  |
+| [`apps/studio/src/components/import/*.vue`](../../apps/studio/src/components/import/)                                | 6 个原子组件                   | —    |
+| [`apps/studio/src/components/ProjectShareCard.vue`](../../apps/studio/src/components/ProjectShareCard.vue)           | QR 卡片图（被截图）            | —    |
+| [`apps/studio/src/utils/shareUtils.ts`](../../apps/studio/src/utils/shareUtils.ts)                                   | `shareProjectAsImage` helper   | —    |
+| [`apps/studio/src/utils/contestDemos.ts`](../../apps/studio/src/utils/contestDemos.ts)                               | 赛事 Demo build-time bundle    | —    |
+| [`apps/studio/src/composables/useContestDemos.ts`](../../apps/studio/src/composables/useContestDemos.ts)             | Demo Preset 安装器（MemoryFs） | —    |
+| [`apps/studio/src/components/SyncConflictModal.vue`](../../apps/studio/src/components/SyncConflictModal.vue)         | 云同步冲突 per-file 选边 UI    | —    |
+| [`apps/studio/src/templates/*.yaml`](../../apps/studio/src/templates/)                                               | 5 个 Template 定义             | —    |
+| [`examples/ai-contest/`](../../examples/ai-contest/)                                                                 | 3 个赛事 demo + 顶层索引       | —    |
+| [`docs/studio/demo-script.md`](./demo-script.md)                                                                     | Demo 分镜 + Dogfood 脚本       | —    |
+| [`docs/studio/todo.md`](./todo.md)                                                                                   | 当前 Sprint 待办               | —    |
+| [`docs/guide/studio/index.md`](../guide/studio/index.md)                                                             | 用户文档                       | —    |
 
 ## 附录 C：参考
 

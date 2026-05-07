@@ -45,6 +45,7 @@ import { autoFixIssues, validateProject } from '../utils/projectValidation'
 import ProjectHealthPanel from './ProjectHealthPanel.vue'
 import ProjectSettingsModal from './ProjectSettingsModal.vue'
 import RecentActivity from './RecentActivity.vue'
+import SyncConflictModal from './SyncConflictModal.vue'
 
 const SAFE_NAME_RE = /[^a-z0-9\u4E00-\u9FFF]+/g
 
@@ -78,8 +79,19 @@ const {
 } = useProjectDescription()
 
 const worldEventStore = useWorldEventStore()
-const { syncStatus, isSyncing, lastSyncTime, isCosConfigured, performSync }
-  = useCloudSync()
+const {
+  syncStatus,
+  isSyncing,
+  lastSyncTime,
+  isCosConfigured,
+  performSync,
+  pendingConflicts,
+  resolveConflicts,
+  dismissConflicts,
+} = useCloudSync()
+
+// Conflict modal state — opens whenever performSync surfaces conflicts.
+const showConflictModal = ref(false)
 
 const syncIcon = computed(() => {
   if (isSyncing.value)
@@ -94,14 +106,21 @@ const syncIcon = computed(() => {
 async function handleSync() {
   if (!isCosConfigured()) {
     const toast = await toastController.create({
-      message: t('project.noSyncConfig'),
+      message: t('projectSettings.noSyncConfig'),
       duration: 2000,
       position: 'top',
     })
     await toast.present()
     return
   }
-  const { uploaded, downloaded } = await performSync()
+  const { uploaded, downloaded, conflicts } = await performSync()
+  // Conflicts → open the SyncConflictModal so the user picks per-file. The
+  // syncStatus stays at `idle` in this case (not success), because sync
+  // hasn't actually completed until resolutions are applied.
+  if (conflicts > 0) {
+    showConflictModal.value = true
+    return
+  }
   const toast = await toastController.create({
     message:
       syncStatus.value === 'success'
@@ -112,6 +131,25 @@ async function handleSync() {
     color: syncStatus.value === 'success' ? 'success' : 'danger',
   })
   await toast.present()
+}
+
+async function handleConflictResolve(resolutions: Map<string, 'use-local' | 'use-cloud' | 'skip'>) {
+  showConflictModal.value = false
+  const { resolved, skipped } = await resolveConflicts(resolutions)
+  const toast = await toastController.create({
+    message: skipped > 0
+      ? t('syncConflict.resolvedPartial', { resolved, skipped })
+      : t('syncConflict.resolvedAll', { resolved }),
+    duration: 2000,
+    position: 'top',
+    color: skipped > 0 ? 'warning' : 'success',
+  })
+  await toast.present()
+}
+
+function handleConflictDismiss() {
+  showConflictModal.value = false
+  dismissConflicts()
 }
 
 // --- Project Validation ---
@@ -751,6 +789,14 @@ async function handleExport() {
 
     <!-- Project Settings Modal -->
     <ProjectSettingsModal :open="showSettings" @close="showSettings = false" />
+
+    <!-- Sync Conflict Modal — opens when performSync detects per-file conflicts -->
+    <SyncConflictModal
+      :is-open="showConflictModal"
+      :conflicts="pendingConflicts"
+      @resolve="handleConflictResolve"
+      @dismiss="handleConflictDismiss"
+    />
   </div>
 </template>
 

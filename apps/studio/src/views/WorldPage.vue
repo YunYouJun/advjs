@@ -217,12 +217,12 @@ const timelineEntries = computed<TimelineEntry[]>(() => {
                 {{ viewModeStore.playerCharacter.personality.slice(0, 60) }}{{ viewModeStore.playerCharacter.personality.length > 60 ? '...' : '' }}
               </div>
             </div>
-            <button class="player-character-card__action" @click="showSelectPlayerModal = true">
+            <button type="button" class="player-character-card__action" @click="showSelectPlayerModal = true">
               {{ t('world.changeCharacter') }}
             </button>
           </div>
 
-          <button v-else class="player-select-prompt" @click="showSelectPlayerModal = true">
+          <button v-else type="button" class="player-select-prompt" @click="showSelectPlayerModal = true">
             <IonIcon :icon="personCircleOutline" />
             <span class="player-select-prompt__text">{{ t('world.selectPlayerCharacter') }}</span>
           </button>

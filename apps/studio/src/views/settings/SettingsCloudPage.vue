@@ -113,7 +113,7 @@ const syncIntervalOptions = [5, 10, 15, 30]
         </div>
 
         <!-- Setup Guide (Collapsible) -->
-        <button class="guide-toggle" @click="isGuideExpanded = !isGuideExpanded">
+        <button type="button" class="guide-toggle" @click="isGuideExpanded = !isGuideExpanded">
           <span class="guide-toggle__label">{{ t('settings.cosGuideTitle') }}</span>
           <IonIcon :icon="isGuideExpanded ? chevronUpOutline : chevronDownOutline" />
         </button>
@@ -261,6 +261,7 @@ const syncIntervalOptions = [5, 10, 15, 30]
 
           <!-- Test Connection -->
           <button
+            type="button"
             class="test-btn"
             :class="{
               'test-btn--success': testResult === 'success',
@@ -314,6 +315,7 @@ const syncIntervalOptions = [5, 10, 15, 30]
               <span class="toggle-row__desc">{{ t('settings.autoSaveDesc') }}</span>
             </div>
             <button
+              type="button"
               class="toggle-switch"
               :class="{ 'toggle-switch--active': settingsStore.cos.autoSave }"
               role="switch"
@@ -331,6 +333,7 @@ const syncIntervalOptions = [5, 10, 15, 30]
               <span class="toggle-row__desc">{{ t('settings.autoSyncDesc') }}</span>
             </div>
             <button
+              type="button"
               class="toggle-switch"
               :class="{ 'toggle-switch--active': settingsStore.cos.autoSync }"
               role="switch"
@@ -351,6 +354,7 @@ const syncIntervalOptions = [5, 10, 15, 30]
               <button
                 v-for="n in syncIntervalOptions"
                 :key="n"
+                type="button"
                 class="interval-chip"
                 :class="{ 'interval-chip--active': settingsStore.cos.syncInterval === n }"
                 @click="settingsStore.cos.syncInterval = n"

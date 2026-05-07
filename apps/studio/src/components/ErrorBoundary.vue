@@ -43,10 +43,10 @@ function handleGoHome() {
         <code>{{ errorMessage }}</code>
       </details>
       <div class="error-boundary__actions">
-        <button class="error-boundary__btn error-boundary__btn--primary" @click="handleRetry">
+        <button type="button" class="error-boundary__btn error-boundary__btn--primary" @click="handleRetry">
           {{ t('errorBoundary.retry') }}
         </button>
-        <button class="error-boundary__btn error-boundary__btn--secondary" @click="handleGoHome">
+        <button type="button" class="error-boundary__btn error-boundary__btn--secondary" @click="handleGoHome">
           {{ t('errorBoundary.goHome') }}
         </button>
       </div>

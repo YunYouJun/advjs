@@ -90,10 +90,10 @@ watch([currentStep, isActive], async () => {
             {{ t(currentStep.descKey) }}
           </p>
           <div class="onboarding-tooltip__actions">
-            <button class="onboarding-tooltip__btn onboarding-tooltip__btn--skip" @click="skip">
+            <button type="button" class="onboarding-tooltip__btn onboarding-tooltip__btn--skip" @click="skip">
               {{ t('onboarding.skip') }}
             </button>
-            <button class="onboarding-tooltip__btn onboarding-tooltip__btn--next" @click="next">
+            <button type="button" class="onboarding-tooltip__btn onboarding-tooltip__btn--next" @click="next">
               {{ currentIndex === totalSteps - 1 ? t('onboarding.done') : t('onboarding.next') }}
             </button>
           </div>

@@ -59,7 +59,7 @@ function formatRelativeTime(timestamp: number): string {
     return `${hours}h`
   if (minutes > 0)
     return `${minutes}m`
-  return t('projects.justNow', 'Just now')
+  return t('time.justNow')
 }
 
 /** Icon per source type */

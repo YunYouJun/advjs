@@ -246,20 +246,23 @@ function handleAudioDrop(ev: DragEvent) {
 
     <!-- PDF file upload -->
     <div v-if="sourceType === 'pdf'" class="source-input__drop-wrapper">
-      <div
+      <button
+        type="button"
         class="source-input__drop-zone"
+        :aria-label="t('importSource.uploadPdfLabel')"
         @dragover.prevent
         @drop.prevent="handlePdfDrop"
         @click="pdfFileInput?.click()"
       >
-        <IonIcon :icon="documentTextOutline" />
+        <IonIcon :icon="documentTextOutline" aria-hidden="true" />
         <span>{{ pdfFileName || t('importSource.dropPdfHint') }}</span>
-      </div>
+      </button>
       <input
         ref="pdfFileInput"
         type="file"
         accept=".pdf"
         class="source-input__file-input"
+        :aria-label="t('importSource.uploadPdfLabel')"
         @change="handlePdfFileChange"
       >
     </div>
@@ -279,43 +282,49 @@ function handleAudioDrop(ev: DragEvent) {
 
     <!-- Image file upload -->
     <div v-else-if="sourceType === 'image'" class="source-input__drop-wrapper">
-      <div
+      <button
+        type="button"
         class="source-input__drop-zone"
+        :aria-label="t('importSource.uploadImageLabel')"
         @dragover.prevent
         @drop.prevent="handleImageDrop"
         @click="imageFileInput?.click()"
       >
-        <img v-if="imagePreviewUrl" :src="imagePreviewUrl" class="source-input__image-preview">
+        <img v-if="imagePreviewUrl" :src="imagePreviewUrl" class="source-input__image-preview" alt="">
         <template v-else>
-          <IonIcon :icon="imageOutline" />
+          <IonIcon :icon="imageOutline" aria-hidden="true" />
           <span>{{ t('importSource.dropImageHint') }}</span>
         </template>
-      </div>
+      </button>
       <input
         ref="imageFileInput"
         type="file"
         accept="image/*"
         class="source-input__file-input"
+        :aria-label="t('importSource.uploadImageLabel')"
         @change="handleImageFileChange"
       >
     </div>
 
     <!-- Audio file upload -->
     <div v-else-if="sourceType === 'audio'" class="source-input__drop-wrapper">
-      <div
+      <button
+        type="button"
         class="source-input__drop-zone"
+        :aria-label="t('importSource.uploadAudioLabel')"
         @dragover.prevent
         @drop.prevent="handleAudioDrop"
         @click="audioFileInput?.click()"
       >
-        <IonIcon :icon="micOutline" />
+        <IonIcon :icon="micOutline" aria-hidden="true" />
         <span>{{ audioFileName || t('importSource.dropAudioHint') }}</span>
-      </div>
+      </button>
       <input
         ref="audioFileInput"
         type="file"
         accept="audio/*,.mp3,.wav,.m4a,.ogg,.flac"
         class="source-input__file-input"
+        :aria-label="t('importSource.uploadAudioLabel')"
         @change="handleAudioFileChange"
       >
     </div>
@@ -337,8 +346,8 @@ function handleAudioDrop(ev: DragEvent) {
 
       <!-- Upload + stats row -->
       <div class="source-input__actions">
-        <button class="source-input__upload" @click="fileInput?.click()">
-          <IonIcon :icon="cloudUploadOutline" />
+        <button type="button" class="source-input__upload" @click="fileInput?.click()">
+          <IonIcon :icon="cloudUploadOutline" aria-hidden="true" />
           <span>{{ t('importSource.uploadFile') }}</span>
         </button>
         <input
@@ -441,7 +450,9 @@ function handleAudioDrop(ev: DragEvent) {
   align-items: center;
   justify-content: center;
   gap: var(--adv-space-sm, 8px);
+  width: 100%;
   min-height: 160px;
+  box-sizing: border-box;
   border: 2px dashed color-mix(in srgb, var(--ion-color-primary) 35%, transparent);
   border-radius: var(--adv-radius-md);
   background: color-mix(in srgb, var(--ion-color-primary) 5%, transparent);
@@ -449,10 +460,15 @@ function handleAudioDrop(ev: DragEvent) {
   padding: var(--adv-space-lg, 24px);
   text-align: center;
   color: var(--ion-color-medium, #92949c);
+  font: inherit;
   font-size: 0.9rem;
   transition:
     border-color 0.15s,
     background 0.15s;
+}
+.source-input__drop-zone:focus-visible {
+  outline: 2px solid var(--ion-color-primary);
+  outline-offset: 2px;
 }
 
 .source-input__drop-zone:hover {

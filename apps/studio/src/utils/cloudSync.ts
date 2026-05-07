@@ -22,6 +22,105 @@ export interface CloudFileInfo {
   size: number
 }
 
+/**
+ * One file flagged as a sync conflict — both the local and cloud copy were
+ * modified after the last successful sync, so neither side is clearly newer
+ * than a shared baseline. We can't auto-resolve; the user picks per-file.
+ */
+export interface ConflictFile {
+  /** Project-relative path, no `/` prefix (e.g. "adv/world.md"). */
+  path: string
+  localContent: string
+  cloudContent: string
+  /** Local mtime in epoch ms. */
+  localMtime: number
+  /** Cloud lastModified parsed to epoch ms. */
+  cloudMtime: number
+}
+
+/**
+ * Per-path classification produced by `classifySyncCandidates`. A path can
+ * be in exactly one of these states relative to the previous sync baseline.
+ */
+export type SyncDecision
+  = | 'upload' // only local changed since baseline
+    | 'download' // only cloud changed since baseline
+    | 'noop' // neither side changed since baseline
+    | 'conflict' // both sides changed since baseline → ConflictFile
+
+export interface SyncCandidate {
+  path: string
+  decision: SyncDecision
+  localMtime?: number
+  cloudMtime?: number
+}
+
+/**
+ * Pure conflict-detection step.
+ *
+ * Compares each shared path against the project's last-synced baseline:
+ *   - both changed since baseline  → 'conflict'
+ *   - only local changed           → 'upload'
+ *   - only cloud changed           → 'download'
+ *   - neither changed              → 'noop'
+ *
+ * Files only on one side are transferred without prompting (not a conflict).
+ *
+ * If `baselineMs` is missing (first sync ever), we have no shared point of
+ * reference — fall back to the legacy "newer wins" comparison so first-time
+ * sync behaves identically to before this feature landed.
+ */
+export function classifySyncCandidates(opts: {
+  localPaths: Map<string, number>
+  cloudPaths: Map<string, number>
+  baselineMs: number | undefined
+}): SyncCandidate[] {
+  const { localPaths, cloudPaths, baselineMs } = opts
+  const allPaths = new Set<string>([...localPaths.keys(), ...cloudPaths.keys()])
+  const out: SyncCandidate[] = []
+
+  for (const path of allPaths) {
+    const local = localPaths.get(path)
+    const cloud = cloudPaths.get(path)
+
+    if (local !== undefined && cloud === undefined) {
+      out.push({ path, decision: 'upload', localMtime: local })
+      continue
+    }
+    if (local === undefined && cloud !== undefined) {
+      out.push({ path, decision: 'download', cloudMtime: cloud })
+      continue
+    }
+    if (local === undefined || cloud === undefined)
+      continue
+
+    if (baselineMs === undefined) {
+      // Legacy newer-wins for first-time sync.
+      if (local > cloud)
+        out.push({ path, decision: 'upload', localMtime: local, cloudMtime: cloud })
+      else if (cloud > local)
+        out.push({ path, decision: 'download', localMtime: local, cloudMtime: cloud })
+      else
+        out.push({ path, decision: 'noop', localMtime: local, cloudMtime: cloud })
+      continue
+    }
+
+    const localChanged = local > baselineMs
+    const cloudChanged = cloud > baselineMs
+
+    if (localChanged && cloudChanged)
+      out.push({ path, decision: 'conflict', localMtime: local, cloudMtime: cloud })
+    else if (localChanged)
+      out.push({ path, decision: 'upload', localMtime: local, cloudMtime: cloud })
+    else if (cloudChanged)
+      out.push({ path, decision: 'download', localMtime: local, cloudMtime: cloud })
+    else
+      out.push({ path, decision: 'noop', localMtime: local, cloudMtime: cloud })
+  }
+
+  return out
+}
+
 const COS_KEY_REGEX = /<Key>(.*?)<\/Key>/g
 const COS_LAST_MODIFIED_REGEX = /<LastModified>(.*?)<\/LastModified>/g
 const COS_SIZE_REGEX = /<Size>(.*?)<\/Size>/g

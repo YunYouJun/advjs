@@ -54,11 +54,13 @@ const statusIcon = computed(() => {
       <span class="progress-node__label">{{ node.label }}</span>
       <button
         v-if="canRetry && node.status === 'failed'"
+        type="button"
         class="progress-node__retry"
         :title="$t('importSource.retryStep')"
+        :aria-label="$t('importSource.retryStep')"
         @click="$emit('retry', node.key)"
       >
-        <IonIcon :icon="refreshOutline" />
+        <IonIcon :icon="refreshOutline" aria-hidden="true" />
       </button>
     </div>
     <div v-if="node.message" class="progress-node__message">

@@ -44,6 +44,7 @@ function select(id: string) {
     <button
       v-for="tpl in templates"
       :key="tpl.id"
+      type="button"
       class="template-picker__card"
       :class="{
         'is-selected': tpl.id === selectedId,
@@ -54,7 +55,7 @@ function select(id: string) {
       @click="select(tpl.id)"
     >
       <div class="template-picker__icon">
-        <IonIcon :icon="iconFor(tpl.id)" />
+        <IonIcon :icon="iconFor(tpl.id)" aria-hidden="true" />
       </div>
       <div class="template-picker__body">
         <div class="template-picker__title">

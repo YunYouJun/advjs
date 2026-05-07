@@ -175,7 +175,7 @@ function goToCharacter(characterId: string) {
         </IonCardHeader>
         <IonCardContent>
           <div class="detail__list">
-            <button v-for="scene in linkedScenes" :key="scene.file" class="detail__item" @click="goToScene(scene)">
+            <button v-for="scene in linkedScenes" :key="scene.file" type="button" class="detail__item" @click="goToScene(scene)">
               <span class="detail__item-name">{{ scene.name }}</span>
               <span v-if="scene.description" class="detail__item-desc">{{ scene.description }}</span>
             </button>
@@ -193,7 +193,7 @@ function goToCharacter(characterId: string) {
         </IonCardHeader>
         <IonCardContent>
           <div class="detail__list">
-            <button v-for="char in charactersHere" :key="char.id" class="detail__item" @click="goToCharacter(char.id)">
+            <button v-for="char in charactersHere" :key="char.id" type="button" class="detail__item" @click="goToCharacter(char.id)">
               <span class="detail__item-name">{{ char.name }}</span>
             </button>
           </div>
@@ -210,7 +210,7 @@ function goToCharacter(characterId: string) {
         </IonCardHeader>
         <IonCardContent>
           <div class="detail__list">
-            <button v-for="char in linkedCharacters" :key="char.id" class="detail__item" @click="goToCharacter(char.id)">
+            <button v-for="char in linkedCharacters" :key="char.id" type="button" class="detail__item" @click="goToCharacter(char.id)">
               <span class="detail__item-name">{{ char.name }}</span>
             </button>
           </div>

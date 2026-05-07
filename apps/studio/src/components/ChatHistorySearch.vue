@@ -88,13 +88,13 @@ function onInput() {
       <span v-else-if="query && matchCount === 0" class="chs-bar__count chs-bar__count--empty">
         0
       </span>
-      <button v-if="matchCount > 1" class="chs-bar__nav" @click="prevMatch">
+      <button v-if="matchCount > 1" type="button" class="chs-bar__nav" @click="prevMatch">
         ▲
       </button>
-      <button v-if="matchCount > 1" class="chs-bar__nav" @click="nextMatch">
+      <button v-if="matchCount > 1" type="button" class="chs-bar__nav" @click="nextMatch">
         ▼
       </button>
-      <button class="chs-bar__close" @click="emit('close')">
+      <button type="button" class="chs-bar__close" @click="emit('close')">
         <IonIcon :icon="closeOutline" />
       </button>
     </div>
@@ -104,6 +104,7 @@ function onInput() {
       <button
         v-for="(match, i) in matches"
         :key="match.index"
+        type="button"
         class="chs-match"
         :class="{ 'chs-match--active': i === currentMatchIndex }"
         @click="currentMatchIndex = i; jumpToCurrent()"

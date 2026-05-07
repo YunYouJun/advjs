@@ -347,11 +347,11 @@ async function handleSaveContent(payload: { type: string, content: string, filen
             {{ t('chat.noProjectDesc') }}
           </p>
           <div class="empty-state__actions">
-            <button class="empty-state__action empty-state__action--primary" @click="goToProjects">
+            <button type="button" class="empty-state__action empty-state__action--primary" @click="goToProjects">
               <IonIcon :icon="addOutline" />
               {{ t('projects.createProject') }}
             </button>
-            <button class="empty-state__action" @click="goToProjects">
+            <button type="button" class="empty-state__action" @click="goToProjects">
               <IonIcon :icon="folderOpenOutline" />
               {{ t('projects.openProject') }}
             </button>

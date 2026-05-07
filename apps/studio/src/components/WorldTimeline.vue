@@ -256,6 +256,7 @@ const EVENT_TYPE_EMOJI: Record<string, string> = {
                     <button
                       v-for="cid in (flatRows[vItem.index] as any).entry.characterIds.slice(0, 4)"
                       :key="cid"
+                      type="button"
                       class="wt-avatar-btn"
                       :title="characterMap.get(cid)?.name || cid"
                       @click="emit('selectCharacter', cid)"
@@ -283,6 +284,7 @@ const EVENT_TYPE_EMOJI: Record<string, string> = {
                   <span class="wt-diary-icon">📓</span>
                   <button
                     v-if="(flatRows[vItem.index] as any).entry.characterId"
+                    type="button"
                     class="wt-avatar-btn"
                     :title="characterMap.get((flatRows[vItem.index] as any).entry.characterId)?.name || (flatRows[vItem.index] as any).entry.characterId"
                     @click="emit('selectCharacter', (flatRows[vItem.index] as any).entry.characterId)"
@@ -318,7 +320,7 @@ const EVENT_TYPE_EMOJI: Record<string, string> = {
     <template v-else>
       <!-- Load more (top, shows hidden older entries) -->
       <div v-if="hasMore" class="wt-load-more">
-        <button class="wt-load-more-btn" @click="loadMore">
+        <button type="button" class="wt-load-more-btn" @click="loadMore">
           {{ t('world.timelineLoadMore', { count: hiddenCount }) }}
         </button>
       </div>
@@ -354,6 +356,7 @@ const EVENT_TYPE_EMOJI: Record<string, string> = {
                         <button
                           v-for="cid in entry.characterIds.slice(0, 4)"
                           :key="cid"
+                          type="button"
                           class="wt-avatar-btn"
                           :title="characterMap.get(cid)?.name || cid"
                           @click="emit('selectCharacter', cid)"
@@ -381,6 +384,7 @@ const EVENT_TYPE_EMOJI: Record<string, string> = {
                       <span class="wt-diary-icon">📓</span>
                       <button
                         v-if="entry.characterId"
+                        type="button"
                         class="wt-avatar-btn"
                         :title="characterMap.get(entry.characterId)?.name || entry.characterId"
                         @click="emit('selectCharacter', entry.characterId)"

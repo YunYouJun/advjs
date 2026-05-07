@@ -123,12 +123,13 @@ const groupedFiles = computed(() => {
               :key="f.path"
             >
               <button
+                type="button"
                 class="preview-pane__item"
                 :class="{ 'is-active': f.path === effectivePath }"
                 :aria-current="f.path === effectivePath ? 'true' : undefined"
                 @click="userSelectedPath = f.path"
               >
-                <IonIcon :icon="iconForPath(f.path)" />
+                <IonIcon :icon="iconForPath(f.path)" aria-hidden="true" />
                 <span class="preview-pane__item-label">{{ labelForPath(f.path) }}</span>
               </button>
             </li>

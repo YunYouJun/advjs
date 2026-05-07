@@ -407,12 +407,12 @@ async function handleDelete() {
             </h3>
             <div v-if="project?.cover" class="cover-preview">
               <img :src="project.cover" alt="Cover" class="cover-preview__img">
-              <button class="cover-preview__remove" @click="handleCoverRemove">
+              <button type="button" class="cover-preview__remove" @click="handleCoverRemove">
                 <div class="i-carbon-close" />
               </button>
             </div>
             <div class="field">
-              <button class="btn-upload" @click="coverFileInput?.click()">
+              <button type="button" class="btn-upload" @click="coverFileInput?.click()">
                 <div class="i-carbon-image" />
                 {{ project?.cover ? t('projectSettings.coverUpload') : t('projectSettings.coverUpload') }}
               </button>
@@ -435,6 +435,7 @@ async function handleDelete() {
                 :disabled="isGeneratingCover"
               />
               <button
+                type="button"
                 class="btn-ai-cover"
                 :disabled="isGeneratingCover || !canAiGenerateCover"
                 :title="canAiGenerateCover ? '' : t('projectSettings.coverAiNoConfig')"
@@ -515,7 +516,7 @@ async function handleDelete() {
             <h3 class="card-title">
               {{ t('projectSettings.share') }}
             </h3>
-            <button class="btn-upload" @click="handleOpenSharePage">
+            <button type="button" class="btn-upload" @click="handleOpenSharePage">
               <div class="i-carbon-share" />
               {{ t('projectSettings.openSharePage') }}
             </button>
@@ -529,7 +530,7 @@ async function handleDelete() {
               {{ t('projectSettings.dangerZone') }}
             </h3>
 
-            <button class="btn-danger" @click="handleDelete">
+            <button type="button" class="btn-danger" @click="handleDelete">
               <div class="i-carbon-trash-can" />
               {{ t('projectSettings.removeProject') }}
             </button>

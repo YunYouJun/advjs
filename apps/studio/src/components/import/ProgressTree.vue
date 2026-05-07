@@ -6,9 +6,10 @@
 -->
 <script setup lang="ts">
 import type { ProgressTreeNodeView } from './ProgressTreeNode.vue'
+import { computed } from 'vue'
 import ProgressTreeNode from './ProgressTreeNode.vue'
 
-defineProps<{
+const props = defineProps<{
   nodes: ProgressTreeNodeView[]
   canRetry?: boolean
   title?: string
@@ -17,6 +18,8 @@ defineProps<{
 defineEmits<{
   retry: [key: string]
 }>()
+
+const isBusy = computed(() => props.nodes.some(n => n.status === 'running'))
 </script>
 
 <template>
@@ -24,7 +27,7 @@ defineEmits<{
     <header v-if="title" class="progress-tree__title">
       {{ title }}
     </header>
-    <ul class="progress-tree__list" role="list" aria-live="polite" aria-busy="true">
+    <ul class="progress-tree__list" role="list" aria-live="polite" :aria-busy="isBusy">
       <ProgressTreeNode
         v-for="node in nodes"
         :key="node.key"

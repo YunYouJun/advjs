@@ -14,7 +14,7 @@ import type { IFileSystem } from '../utils/fs'
 import type { AiBridge } from '../utils/projectGenerator'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { useProjectImport } from '../composables/useProjectImport'
+import { resolveProjectDirectoryConflict, useProjectImport } from '../composables/useProjectImport'
 import { getTemplate } from '../utils/templates/loadTemplate'
 
 // ---------------------------------------------------------------------------
@@ -109,12 +109,70 @@ function createMemoryFs(): IFileSystem & { _files: Map<string, string> } {
   } as unknown as IFileSystem & { _files: Map<string, string> }
 }
 
+function createParentDir(existing: string[] = []) {
+  const dirs = new Set(existing)
+  const handle = {
+    dirs,
+    async getDirectoryHandle(name: string, options?: { create?: boolean }) {
+      if (dirs.has(name))
+        return { name } as FileSystemDirectoryHandle
+      if (options?.create) {
+        dirs.add(name)
+        return { name } as FileSystemDirectoryHandle
+      }
+      throw new DOMException('not found', 'NotFoundError')
+    },
+    async removeEntry(name: string) {
+      dirs.delete(name)
+    },
+  }
+  return handle
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
 beforeEach(() => {
   setActivePinia(createPinia())
+})
+
+describe('resolveProjectDirectoryConflict', () => {
+  it('creates a new directory when slug is available', async () => {
+    const parent = createParentDir()
+    const result = await resolveProjectDirectoryConflict(parent, 'new-story', 'rename')
+
+    expect(result.status).toBe('created')
+    expect(result.slug).toBe('new-story')
+    expect(parent.dirs.has('new-story')).toBe(true)
+  })
+
+  it('skips writing when the target exists and strategy=skip', async () => {
+    const parent = createParentDir(['story'])
+    const result = await resolveProjectDirectoryConflict(parent, 'story', 'skip')
+
+    expect(result.status).toBe('skipped')
+    expect(result.dirHandle).toBeUndefined()
+    expect(parent.dirs.has('story')).toBe(true)
+  })
+
+  it('renames to the next free suffix when strategy=rename', async () => {
+    const parent = createParentDir(['story', 'story-2'])
+    const result = await resolveProjectDirectoryConflict(parent, 'story', 'rename')
+
+    expect(result.status).toBe('renamed')
+    expect(result.slug).toBe('story-3')
+    expect(parent.dirs.has('story-3')).toBe(true)
+  })
+
+  it('removes and recreates the target when strategy=overwrite', async () => {
+    const parent = createParentDir(['story'])
+    const result = await resolveProjectDirectoryConflict(parent, 'story', 'overwrite')
+
+    expect(result.status).toBe('overwritten')
+    expect(result.slug).toBe('story')
+    expect(parent.dirs.has('story')).toBe(true)
+  })
 })
 
 describe('useProjectImport — state machine', () => {

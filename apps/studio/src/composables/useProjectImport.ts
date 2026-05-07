@@ -96,6 +96,82 @@ export interface ImportWriteParams {
   fs: IFileSystem
 }
 
+export type ProjectSlugConflictStrategy = 'skip' | 'rename' | 'overwrite'
+
+export interface ProjectSlugConflictResult {
+  status: 'created' | 'skipped' | 'renamed' | 'overwritten'
+  slug: string
+  dirHandle?: FileSystemDirectoryHandle
+}
+
+interface WritableDirectoryHandle {
+  getDirectoryHandle: FileSystemDirectoryHandle['getDirectoryHandle']
+  removeEntry: FileSystemDirectoryHandle['removeEntry']
+}
+
+// ---------------------------------------------------------------------------
+// Slug conflict helpers
+// ---------------------------------------------------------------------------
+
+const MAX_RENAME_ATTEMPTS = 1000
+
+async function directoryExists(parentDir: WritableDirectoryHandle, slug: string): Promise<boolean> {
+  try {
+    await parentDir.getDirectoryHandle(slug)
+    return true
+  }
+  catch (err) {
+    if ((err as DOMException)?.name === 'NotFoundError')
+      return false
+    throw err
+  }
+}
+
+export async function resolveProjectDirectoryConflict(
+  parentDir: WritableDirectoryHandle,
+  desiredSlug: string,
+  strategy: ProjectSlugConflictStrategy,
+): Promise<ProjectSlugConflictResult> {
+  const slug = desiredSlug.trim()
+  if (!slug)
+    throw new Error('[useProjectImport] project slug is required')
+
+  const exists = await directoryExists(parentDir, slug)
+  if (!exists) {
+    return {
+      status: 'created',
+      slug,
+      dirHandle: await parentDir.getDirectoryHandle(slug, { create: true }),
+    }
+  }
+
+  if (strategy === 'skip') {
+    return { status: 'skipped', slug }
+  }
+
+  if (strategy === 'overwrite') {
+    await parentDir.removeEntry(slug, { recursive: true })
+    return {
+      status: 'overwritten',
+      slug,
+      dirHandle: await parentDir.getDirectoryHandle(slug, { create: true }),
+    }
+  }
+
+  for (let i = 2; i <= MAX_RENAME_ATTEMPTS; i++) {
+    const candidate = `${slug}-${i}`
+    if (!(await directoryExists(parentDir, candidate))) {
+      return {
+        status: 'renamed',
+        slug: candidate,
+        dirHandle: await parentDir.getDirectoryHandle(candidate, { create: true }),
+      }
+    }
+  }
+
+  throw new Error(`[useProjectImport] cannot find an available slug for "${slug}"`)
+}
+
 // ---------------------------------------------------------------------------
 // Step metadata (labels are plain text; page translates via t() on display)
 // ---------------------------------------------------------------------------

@@ -153,10 +153,10 @@ const infoItems = [
             {{ t('me.accountDesc') }}
           </p>
           <div class="account-hero__actions">
-            <button class="hero-btn hero-btn--primary" @click.stop="handleLogin">
+            <button type="button" class="hero-btn hero-btn--primary" @click.stop="handleLogin">
               {{ t('me.login') }}
             </button>
-            <button class="hero-btn hero-btn--ghost" @click.stop="handleRegister">
+            <button type="button" class="hero-btn hero-btn--ghost" @click.stop="handleRegister">
               {{ t('me.register') }}
             </button>
           </div>

@@ -74,7 +74,7 @@ function filename(path: string): string {
 <template>
   <div class="fdp">
     <!-- Header -->
-    <button class="fdp__header" @click="expanded = !expanded">
+    <button type="button" class="fdp__header" @click="expanded = !expanded">
       <span class="fdp__chevron" :class="{ 'fdp__chevron--collapsed': !expanded }">▶</span>
       <span class="fdp__filename">{{ filename(diff.filename) }}</span>
       <span v-if="isNewFile" class="fdp__badge fdp__badge--new">{{ t('chat.diffNewFile') }}</span>

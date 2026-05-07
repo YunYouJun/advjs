@@ -14,7 +14,7 @@ defineProps<{
   chevron?: boolean
   /** Custom trailing icon (overrides chevron) */
   trailingIcon?: string
-  /** Render as <a> instead of <button> */
+  /** Render as <a> instead of <button type="button"> */
   href?: string
 }>()
 

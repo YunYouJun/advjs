@@ -2,6 +2,7 @@
 import type { FSDirItem, FSFileItem } from '@advjs/gui'
 import { AGUIAssetsExplorer, getDirItemFromHandle, getFileTypeFromPath, getIconFromFileType } from '@advjs/gui'
 import {
+  actionSheetController,
   alertController,
   IonButton,
   IonContent,
@@ -20,7 +21,7 @@ import {
   IonToolbar,
   toastController,
 } from '@ionic/vue'
-import { addOutline, cloudDownloadOutline, cloudUploadOutline, downloadOutline, folderOpenOutline, linkOutline, rocketOutline, saveOutline, sparklesOutline, storefrontOutline, trashOutline } from 'ionicons/icons'
+import { addOutline, cloudDownloadOutline, cloudUploadOutline, downloadOutline, folderOpenOutline, libraryOutline, linkOutline, rocketOutline, saveOutline, sparklesOutline, storefrontOutline, trashOutline } from 'ionicons/icons'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -31,6 +32,7 @@ import MobileFileTree from '../components/MobileFileTree.vue'
 import ProjectOverview from '../components/ProjectOverview.vue'
 import ProjectSwitcher from '../components/ProjectSwitcher.vue'
 import WorkspaceReconnect from '../components/WorkspaceReconnect.vue'
+import { useContestDemos } from '../composables/useContestDemos'
 import { useFileChanges } from '../composables/useFileChanges'
 import { importProject } from '../composables/useProjectExport'
 import { useResponsive } from '../composables/useResponsive'
@@ -77,6 +79,62 @@ const editedContent = ref('')
 
 // QuickStart inline state
 const isQuickStarting = ref(false)
+
+// Contest demo loader
+const { demos: contestDemos, installDemo } = useContestDemos()
+const isLoadingDemo = ref(false)
+
+async function handleLoadContestDemo() {
+  if (isLoadingDemo.value)
+    return
+  // Present an action sheet so the presenter / user can pick which demo —
+  // 3 contest demos + cancel. Native action sheet looks identical on iOS,
+  // Android, and desktop, so we don't need a custom modal.
+  const sheet = await actionSheetController.create({
+    header: t('contestDemo.pickerTitle'),
+    buttons: [
+      ...contestDemos.map(meta => ({
+        text: t(meta.nameKey ?? '', meta.name),
+        data: { slug: meta.slug },
+      })),
+      { text: t('common.cancel'), role: 'cancel' },
+    ],
+  })
+  await sheet.present()
+  const { data, role } = await sheet.onDidDismiss<{ slug: string }>()
+  if (role === 'cancel' || !data?.slug)
+    return
+
+  const meta = contestDemos.find(d => d.slug === data.slug)
+  if (!meta)
+    return
+
+  isLoadingDemo.value = true
+  try {
+    const result = await installDemo(meta)
+    const toast = await toastController.create({
+      message: result.installed
+        ? t('contestDemo.installed', { name: meta.name, count: result.fileCount })
+        : t('contestDemo.activated', { name: meta.name }),
+      duration: 1800,
+      color: 'success',
+      position: 'top',
+    })
+    await toast.present()
+  }
+  catch (err) {
+    const toast = await toastController.create({
+      message: t('contestDemo.failed', { message: (err as Error).message }),
+      duration: 2500,
+      color: 'danger',
+      position: 'top',
+    })
+    await toast.present()
+  }
+  finally {
+    isLoadingDemo.value = false
+  }
+}
 
 async function handleQuickStart() {
   if (isQuickStarting.value)
@@ -195,6 +253,11 @@ function normalizeCosPrefix(projectRoot: string, projectName: string): string {
 function isCosConfigured(): boolean {
   const { bucket, region, secretId, secretKey } = settingsStore.cos
   return !!(bucket && region && secretId && secretKey)
+}
+
+function handleCreateFromSource() {
+  showCreateModal.value = false
+  router.push('/tabs/workspace/import-source')
 }
 
 async function handleCreateProject(payload: { displayName: string, slug: string, templateId: string }) {
@@ -719,7 +782,7 @@ function getFileIconClass(name: string): string {
       </h3>
       <div class="hero-actions">
         <!-- QuickStart (inline) -->
-        <button class="hero-card hero-card--primary" :disabled="isQuickStarting" @click="handleQuickStart">
+        <button type="button" class="hero-card hero-card--primary" :disabled="isQuickStarting" @click="handleQuickStart">
           <span class="hero-card__icon hero-card__icon--filled">
             <IonIcon :icon="rocketOutline" />
             <span v-if="isQuickStarting" class="hero-card__spinner" />
@@ -729,7 +792,7 @@ function getFileIconClass(name: string): string {
         </button>
 
         <!-- Create Project -->
-        <button class="hero-card" @click="showCreateModal = true">
+        <button type="button" class="hero-card" @click="showCreateModal = true">
           <span class="hero-card__icon">
             <IonIcon :icon="addOutline" />
           </span>
@@ -738,7 +801,7 @@ function getFileIconClass(name: string): string {
         </button>
 
         <!-- AI Import -->
-        <button class="hero-card hero-card--accent" @click="$router.push('/tabs/workspace/import-source')">
+        <button type="button" class="hero-card hero-card--accent" @click="$router.push('/tabs/workspace/import-source')">
           <span class="hero-card__icon">
             <IonIcon :icon="sparklesOutline" />
           </span>
@@ -752,23 +815,27 @@ function getFileIconClass(name: string): string {
         {{ t('workspace.moreWays') }}
       </h3>
       <div class="secondary-actions">
-        <button class="sec-btn" @click="handleOpenLocal">
+        <button type="button" class="sec-btn" @click="handleOpenLocal">
           <span class="sec-btn__icon"><IonIcon :icon="folderOpenOutline" /></span>
           <span class="sec-btn__label">{{ t('projects.openLocal') }}</span>
         </button>
-        <button class="sec-btn" @click="handleLoadUrl">
+        <button type="button" class="sec-btn" @click="handleLoadUrl">
           <span class="sec-btn__icon"><IonIcon :icon="linkOutline" /></span>
           <span class="sec-btn__label">{{ t('projects.loadUrl') }}</span>
         </button>
-        <button class="sec-btn" @click="handleLoadCloud">
+        <button type="button" class="sec-btn" @click="handleLoadCloud">
           <span class="sec-btn__icon"><IonIcon :icon="cloudDownloadOutline" /></span>
           <span class="sec-btn__label">{{ t('projects.loadCloud') }}</span>
         </button>
-        <button class="sec-btn" @click="handleImportProject">
+        <button type="button" class="sec-btn" @click="handleImportProject">
           <span class="sec-btn__icon"><IonIcon :icon="downloadOutline" /></span>
           <span class="sec-btn__label">{{ t('projects.importProject') }}</span>
         </button>
-        <button class="sec-btn sec-btn--badge" @click="$router.push('/tabs/workspace/marketplace')">
+        <button type="button" class="sec-btn" :disabled="isLoadingDemo" @click="handleLoadContestDemo">
+          <span class="sec-btn__icon"><IonIcon :icon="libraryOutline" /></span>
+          <span class="sec-btn__label">{{ isLoadingDemo ? t('contestDemo.loading') : t('contestDemo.entryLabel') }}</span>
+        </button>
+        <button type="button" class="sec-btn sec-btn--badge" @click="$router.push('/tabs/workspace/marketplace')">
           <span class="sec-btn__icon"><IonIcon :icon="storefrontOutline" /></span>
           <span class="sec-btn__label">{{ t('marketplace.browse') }}</span>
           <span class="sec-btn__badge">{{ t('marketplace.comingSoonBadge') }}</span>
@@ -929,6 +996,7 @@ function getFileIconClass(name: string): string {
       :open="showCreateModal"
       @close="showCreateModal = false"
       @create="handleCreateProject"
+      @from-source="handleCreateFromSource"
     />
   </LayoutPage>
 </template>

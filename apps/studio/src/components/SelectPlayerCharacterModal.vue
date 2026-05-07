@@ -229,6 +229,7 @@ async function saveNewCharacter() {
                 </div>
               </div>
               <button
+                type="button"
                 class="spc-item__delete"
                 :aria-label="t('common.clear')"
                 @click.stop="removeCharacter(char.id)"
@@ -246,7 +247,7 @@ async function saveNewCharacter() {
           </div>
 
           <!-- AI Create button -->
-          <button class="spc-create-btn spc-create-btn--ai" @click="goToAiCreate">
+          <button type="button" class="spc-create-btn spc-create-btn--ai" @click="goToAiCreate">
             <span class="spc-create-btn__icon">
               <IonIcon :icon="sparklesOutline" />
             </span>
@@ -254,7 +255,7 @@ async function saveNewCharacter() {
           </button>
 
           <!-- Manual Create button -->
-          <button class="spc-create-btn" @click="startCreate">
+          <button type="button" class="spc-create-btn" @click="startCreate">
             <span class="spc-create-btn__icon">
               <IonIcon :icon="addOutline" />
             </span>

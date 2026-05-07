@@ -10,7 +10,7 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/vue'
-import { bookOutline, closeOutline, createOutline, flowerOutline, heartOutline, planetOutline, searchOutline } from 'ionicons/icons'
+import { bookOutline, closeOutline, createOutline, flowerOutline, heartOutline, planetOutline, searchOutline, sparklesOutline } from 'ionicons/icons'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { SLUG_RE, toSlug } from '../utils/slug'
@@ -22,6 +22,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'close'): void
   (e: 'create', payload: { displayName: string, slug: string, templateId: string }): void
+  (e: 'fromSource'): void
 }>()
 
 const { t } = useI18n()
@@ -213,17 +214,28 @@ function handleCreate() {
           </p>
         </section>
 
-        <!-- Create Button -->
-        <IonButton
-          expand="block"
-          class="create-modal__submit"
-          :disabled="!canCreate"
-          @click="handleCreate"
-        >
-          <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-          <IonIcon slot="start" :icon="createOutline" />
-          {{ t('projects.createProject') }}
-        </IonButton>
+        <div class="create-modal__actions">
+          <IonButton
+            expand="block"
+            fill="outline"
+            class="create-modal__from-source"
+            @click="emit('fromSource')"
+          >
+            <IonIcon slot="start" :icon="sparklesOutline" />
+            {{ t('importSource.entryCard') }}
+          </IonButton>
+
+          <!-- Create Button -->
+          <IonButton
+            expand="block"
+            class="create-modal__submit"
+            :disabled="!canCreate"
+            @click="handleCreate"
+          >
+            <IonIcon slot="start" :icon="createOutline" />
+            {{ t('projects.createProject') }}
+          </IonButton>
+        </div>
       </div>
     </IonContent>
   </IonModal>
@@ -368,9 +380,15 @@ function handleCreate() {
   margin: 0;
 }
 
-/* Submit */
+/* Actions */
+.create-modal__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--adv-space-sm, 8px);
+}
+
+.create-modal__from-source,
 .create-modal__submit {
-  margin-top: var(--adv-space-sm, 8px);
   --border-radius: var(--adv-radius-lg, 12px);
   min-height: 48px;
   font-weight: 600;

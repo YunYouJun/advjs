@@ -409,6 +409,7 @@ function onSortChange(mode: SortMode) {
       <!-- Publish button -->
       <button
         v-if="authStore.isLoggedIn"
+        type="button"
         class="publish-btn"
         :disabled="isPublishing || !studioStore.currentProject"
         @click="handlePublish"
@@ -463,6 +464,7 @@ function onSortChange(mode: SortMode) {
         <button
           v-for="item in featuredItems"
           :key="item._id"
+          type="button"
           class="market-card market-card--featured"
           @click="selectItem(item)"
         >
@@ -487,6 +489,7 @@ function onSortChange(mode: SortMode) {
       <button
         v-for="item in filteredItems"
         :key="item._id"
+        type="button"
         class="market-card"
         @click="selectItem(item)"
       >
@@ -522,7 +525,7 @@ function onSortChange(mode: SortMode) {
         <IonToolbar>
           <IonTitle>{{ selectedItem?.name }}</IonTitle>
           <IonButtons slot="end">
-            <button class="market-close-btn" @click="selectedItem = null">
+            <button type="button" class="market-close-btn" @click="selectedItem = null">
               ✕
             </button>
           </IonButtons>
@@ -537,7 +540,7 @@ function onSortChange(mode: SortMode) {
           <h2 class="market-detail__title">
             {{ selectedItem.name }}
           </h2>
-          <button class="market-detail__author-link" @click="navigateToCreator(selectedItem.ownerId)">
+          <button type="button" class="market-detail__author-link" @click="navigateToCreator(selectedItem.ownerId)">
             <IonIcon :icon="personOutline" />
             {{ selectedItem.authorName }}
           </button>
@@ -574,6 +577,7 @@ function onSortChange(mode: SortMode) {
           <!-- Install button -->
           <div class="market-detail__actions">
             <button
+              type="button"
               class="market-detail__install"
               :disabled="isInstalling || !selectedItem.packageKey"
               @click="handleInstall"
@@ -583,6 +587,7 @@ function onSortChange(mode: SortMode) {
               {{ isInstalling ? t('marketplace.installing') : t('marketplace.install') }}
             </button>
             <button
+              type="button"
               class="market-detail__share"
               :disabled="isSharing"
               @click="handleShare"
@@ -603,6 +608,7 @@ function onSortChange(mode: SortMode) {
                 <button
                   v-for="star in 5"
                   :key="star"
+                  type="button"
                   class="star-btn"
                   :class="{ 'star-btn--active': star <= reviewRating }"
                   @click="reviewRating = star"
@@ -617,6 +623,7 @@ function onSortChange(mode: SortMode) {
                 :auto-grow="true"
               />
               <button
+                type="button"
                 class="review-submit-btn"
                 :disabled="isBusy || !reviewComment.trim()"
                 @click="handleSubmitReview"
@@ -642,7 +649,7 @@ function onSortChange(mode: SortMode) {
                 </p>
                 <div class="review-item__footer">
                   <span>{{ new Date(review.createdAt).toLocaleDateString() }}</span>
-                  <button class="review-like-btn" @click="handleLikeReview(review._id!)">
+                  <button type="button" class="review-like-btn" @click="handleLikeReview(review._id!)">
                     <IonIcon :icon="heartOutline" />
                     {{ review.likes }}
                   </button>

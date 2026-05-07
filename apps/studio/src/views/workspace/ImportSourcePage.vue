@@ -24,14 +24,20 @@
     7. Draft mode relabels the confirm button
 -->
 <script setup lang="ts">
+import type { ProjectSlugConflictStrategy } from '../../composables/useProjectImport'
 import type { SourceType } from '../../utils/sourceParser'
 import {
   alertController,
   IonButton,
   IonContent,
   IonIcon,
+  IonInput,
+  IonItem,
+  IonLabel,
   IonModal,
   IonProgressBar,
+  IonRadio,
+  IonRadioGroup,
   IonSpinner,
 } from '@ionic/vue'
 import {
@@ -50,12 +56,15 @@ import ImportCompletionActions from '../../components/import/ImportCompletionAct
 import ProgressTree from '../../components/import/ProgressTree.vue'
 import SourceInputForm from '../../components/import/SourceInputForm.vue'
 import TemplatePickerCard from '../../components/import/TemplatePickerCard.vue'
-import { useProjectImport } from '../../composables/useProjectImport'
+import { useProjectContent } from '../../composables/useProjectContent'
+import { resolveProjectDirectoryConflict, useProjectImport } from '../../composables/useProjectImport'
 import { useResponsive } from '../../composables/useResponsive'
 import { useAiSettingsStore } from '../../stores/useAiSettingsStore'
 import { useStudioStore } from '../../stores/useStudioStore'
 import { openProjectDirectory } from '../../utils/fs'
 import { BrowserFsAdapter } from '../../utils/fs/BrowserFsAdapter'
+import { buildImportUrl } from '../../utils/ogMeta'
+import { shareProjectAsImage } from '../../utils/shareUtils'
 import { toSlug } from '../../utils/slug'
 import { listTemplates, suggestTemplateFor } from '../../utils/templates/loadTemplate'
 import { showToast } from '../../utils/toast'
@@ -97,17 +106,16 @@ const sourceInput = ref<{
   projectName: '',
 })
 
+const conflictStrategy = ref<ProjectSlugConflictStrategy>('rename')
+
+const isBlobBasedSource = computed(() => ['pdf', 'image', 'audio'].includes(sourceInput.value.sourceType))
+const hasSourceContent = computed(() => isBlobBasedSource.value
+  ? !!sourceInput.value.sourceBlob
+  : sourceInput.value.sourceText.trim().length > 20,
+)
 const canAdvanceToStep2 = computed(() => !!selectedTemplate.value)
 const canAdvanceToStep3 = computed(
-  () => {
-    if (!selectedTemplate.value || !sourceInput.value.projectName.trim())
-      return false
-    // Blob-based sources (PDF, image, audio) only need a blob
-    if (['pdf', 'image', 'audio'].includes(sourceInput.value.sourceType))
-      return !!sourceInput.value.sourceBlob
-    // Text-based sources need sufficient text
-    return sourceInput.value.sourceText.trim().length > 20
-  },
+  () => !!selectedTemplate.value && !!sourceInput.value.projectName.trim() && hasSourceContent.value,
 )
 
 // ---------- Derived: slug + AI readiness -------------------------------------
@@ -170,12 +178,16 @@ function advance() {
     currentWizardStep.value = 2
   }
   else if (currentWizardStep.value === 2) {
-    if (!sourceInput.value.sourceText.trim()) {
+    if (!hasSourceContent.value) {
       localError.value = t('importSource.errorEmptySource')
       return
     }
     if (!sourceInput.value.projectName.trim()) {
       localError.value = t('importSource.errorNoProjectName')
+      return
+    }
+    if (!projectSlug.value) {
+      localError.value = t('projects.slugRequired')
       return
     }
     currentWizardStep.value = 3
@@ -287,27 +299,23 @@ async function handleConfirm() {
       throw err
     }
 
-    // 2. Create the child dir for this project (slug as folder name).
-    //    If it already exists, warn the user and abort — we don't overwrite.
-    let alreadyExists = false
-    try {
-      await parentDir.getDirectoryHandle(projectSlug.value)
-      alreadyExists = true
-    }
-    catch (e: any) {
-      if (e?.name !== 'NotFoundError')
-        throw e
-    }
-    if (alreadyExists) {
+    // 2. Create/resolve the child dir for this project (slug as folder name).
+    const target = await resolveProjectDirectoryConflict(
+      parentDir,
+      projectSlug.value,
+      conflictStrategy.value,
+    )
+    if (target.status === 'skipped') {
       const alert = await alertController.create({
-        header: t('importSource.errorProjectExists', { slug: projectSlug.value }),
+        header: t('importSource.writeSkippedTitle'),
+        message: t('importSource.writeSkippedMessage', { slug: target.slug }),
         buttons: [t('common.ok')],
       })
       await alert.present()
       return
     }
 
-    const projectDir = await parentDir.getDirectoryHandle(projectSlug.value, { create: true })
+    const projectDir = target.dirHandle!
     const fs = new BrowserFsAdapter(projectDir)
 
     // 3. Write files through the composable.
@@ -315,14 +323,20 @@ async function handleConfirm() {
 
     // 4. Switch studio project so the user sees it immediately.
     await studioStore.switchProject({
-      projectId: projectSlug.value,
+      projectId: target.slug,
       name: sourceInput.value.projectName,
       dirHandle: projectDir,
       source: 'local',
       lastOpened: Date.now(),
     })
+    await useProjectContent().reload()
 
-    await showToast(t('importSource.writeSuccess'), 'success')
+    await showToast(
+      target.status === 'renamed'
+        ? t('importSource.writeSuccessRenamed', { slug: target.slug })
+        : t('importSource.writeSuccess'),
+      'success',
+    )
   }
   catch (err: any) {
     await showToast(t('importSource.errorWrite', { message: err?.message ?? String(err) }), 'danger')
@@ -339,6 +353,48 @@ function goPlay() {
 
 function goEdit() {
   void router.push('/tabs/workspace')
+}
+
+function goShare() {
+  const projectId = studioStore.currentProject?.projectId
+  if (projectId)
+    void router.push(`/share/${projectId}`)
+}
+
+/**
+ * Generate a QR card PNG of the just-imported project and either share via the
+ * Web Share API (mobile) or download it (desktop). Stays as a one-shot action;
+ * we considered an in-page preview modal but chose to keep the completion
+ * surface lightweight — modern-screenshot already produces a reliable image,
+ * and on mobile the native share sheet renders a preview by itself.
+ */
+async function goSaveCard() {
+  const project = studioStore.currentProject
+  if (!project?.projectId) {
+    await showToast(t('importSource.errorWrite', { message: 'no project' }), 'danger')
+    return
+  }
+  try {
+    const result = await shareProjectAsImage({
+      name: project.name || sourceInput.value.projectName,
+      description: project.description,
+      cover: project.cover,
+      qrUrl: buildImportUrl(project.projectId),
+      stats: imp.stats.value,
+    })
+    await showToast(
+      result.shared
+        ? t('importSource.cardShared')
+        : t('importSource.cardDownloaded'),
+      'success',
+    )
+  }
+  catch (err: any) {
+    await showToast(
+      t('importSource.cardFailed', { message: err?.message ?? String(err) }),
+      'danger',
+    )
+  }
 }
 
 async function goExport() {
@@ -429,7 +485,7 @@ onMounted(() => {
 <template>
   <LayoutPage :title="t('importSource.title')" :subtitle="t('importSource.subtitle')" show-back-button default-href="/tabs/workspace">
     <!-- Step header (breadcrumbs) -->
-    <header class="import-page__stepper" aria-label="wizard steps">
+    <header class="import-page__stepper" :aria-label="t('importSource.wizardStepsLabel')">
       <div
         v-for="step in [1, 2, 3] as const"
         :key="step"
@@ -482,6 +538,40 @@ onMounted(() => {
         {{ t('importSource.step2') }}
       </h2>
       <SourceInputForm v-model="sourceInput" />
+
+      <section class="import-page__target-card" aria-labelledby="import-target-title">
+        <h3 id="import-target-title" class="import-page__target-title">
+          {{ t('importSource.targetFolder') }}
+        </h3>
+        <IonItem lines="none" class="import-page__target-slug">
+          <IonLabel position="stacked">
+            {{ t('projects.projectSlug') }}
+          </IonLabel>
+          <IonInput :value="projectSlug" readonly />
+        </IonItem>
+        <div class="import-page__conflict">
+          <div class="import-page__conflict-title">
+            {{ t('importSource.conflictStrategy') }}
+          </div>
+          <IonRadioGroup v-model="conflictStrategy">
+            <IonItem lines="none">
+              <IonRadio slot="start" value="skip" />
+              <IonLabel>{{ t('importSource.strategySkip') }}</IonLabel>
+            </IonItem>
+            <IonItem lines="none">
+              <IonRadio slot="start" value="rename" />
+              <IonLabel>{{ t('importSource.strategyRename') }}</IonLabel>
+            </IonItem>
+            <IonItem lines="none">
+              <IonRadio slot="start" value="overwrite" />
+              <IonLabel>{{ t('importSource.strategyOverwrite') }}</IonLabel>
+            </IonItem>
+          </IonRadioGroup>
+          <p class="import-page__conflict-hint">
+            {{ t('importSource.conflictHint') }}
+          </p>
+        </div>
+      </section>
     </section>
 
     <!-- Step 3: Generate + preview -->
@@ -571,9 +661,13 @@ onMounted(() => {
         v-if="imp.status.value === 'done'"
         :stats="imp.stats.value"
         :draft-mode="imp.draftMode.value"
+        :show-share="!!studioStore.currentProject?.projectId"
+        :show-save-card="!!studioStore.currentProject?.projectId"
         :show-export="!!studioStore.currentProject?.dirHandle"
         @play="goPlay"
         @edit="goEdit"
+        @share="goShare"
+        @save-card="goSaveCard"
         @export="goExport"
       />
     </section>
@@ -703,6 +797,33 @@ onMounted(() => {
 .import-page__section-hint {
   margin: 0 0 var(--adv-space-md, 16px);
   font-size: 0.85rem;
+  color: var(--ion-color-medium, #92949c);
+}
+
+.import-page__target-card {
+  margin-top: var(--adv-space-md, 16px);
+  padding: var(--adv-space-md, 16px);
+  border: 1px solid var(--adv-border-subtle, rgba(120, 120, 120, 0.15));
+  border-radius: var(--adv-radius-lg, 12px);
+  background: var(--adv-surface-card, var(--ion-background-color));
+}
+
+.import-page__target-title,
+.import-page__conflict-title {
+  margin: 0 0 var(--adv-space-sm, 8px);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ion-color-medium, #92949c);
+}
+
+.import-page__target-slug {
+  --background: transparent;
+  margin-bottom: var(--adv-space-sm, 8px);
+}
+
+.import-page__conflict-hint {
+  margin: 6px 0 0;
+  font-size: 0.78rem;
   color: var(--ion-color-medium, #92949c);
 }
 

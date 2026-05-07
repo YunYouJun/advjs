@@ -129,10 +129,10 @@ function formatTime(ts: number): string {
           {{ formatTime(node.snapshot.createdAt) }}
         </div>
         <div class="snapshot-tree__actions">
-          <button class="snapshot-tree__btn snapshot-tree__btn--restore" @click="emit('restore', node.snapshot.id)">
-            {{ t('world.snapshotRestore') }}
+          <button type="button" class="snapshot-tree__btn snapshot-tree__btn--restore" @click="emit('restore', node.snapshot.id)">
+            {{ t('world.restoreSnapshot') }}
           </button>
-          <button class="snapshot-tree__btn snapshot-tree__btn--delete" @click="emit('delete', node.snapshot.id)">
+          <button type="button" class="snapshot-tree__btn snapshot-tree__btn--delete" @click="emit('delete', node.snapshot.id)">
             &times;
           </button>
         </div>

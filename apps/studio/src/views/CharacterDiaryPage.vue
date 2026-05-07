@@ -89,7 +89,7 @@ async function confirmDelete(diaryId: string) {
           <span v-if="entry.mood" class="diary-item__mood">
             {{ entry.mood }}
           </span>
-          <button class="diary-item__delete" @click="confirmDelete(entry.id)">
+          <button type="button" class="diary-item__delete" @click="confirmDelete(entry.id)">
             ×
           </button>
         </div>

@@ -1,138 +1,82 @@
 # Studio · TODO
 
-> 📅 最后更新：2026-04-23
+> 📅 最后更新：2026-05-07
 >
-> 本文件跟踪 Studio 下一步要做的具体任务清单。历史完成的阶段见 [`next-phase-plan.md`](./next-phase-plan.md)；2026 AI 应用大赛的产品活动计划见 [`ai-contest-2026.md`](./ai-contest-2026.md)。
+> 本文件只跟踪 **当前 Sprint 内仍未完成** 的任务。
+>
+> - 历史完成的阶段计划见 [`next-phase-plan.md`](./next-phase-plan.md)
+> - 2026 AI 应用大赛产品/活动计划见 [`ai-contest-2026.md`](./ai-contest-2026.md)
 
 ---
 
-## ✅ Phase M10 · W1 已完成（2026-04-23）
+## ✅ Phase M10 已完成里程碑（折叠）
 
-Source-to-Project Pipeline 核心后端能力全部就绪。
+| Sprint                  | 范围                        | 关键产出                                                                                                                                                                                                                                                                                                                                                     |
+| ----------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **W1** · 2026-04-23     | 后端 Pipeline               | `sourceParser.ts` (657) · `sourceChunk.ts` (206) · `projectGenerator.ts` (657) · 4 步 LLM Pipeline + zod schema · `prompts.ts` cache-friendly 前缀 · YAML 模板加载器 · 46 W1 单测                                                                                                                                                                            |
+| **W2** · 2026-04-24     | UI + 路由                   | `useProjectImport` (530) 状态机 · 6 个 `import/` 原子组件 · `ImportSourcePage.vue` (993) 三步向导 · 路由 `/tabs/workspace/import` · `importSource.*` i18n + en/zh 同步                                                                                                                                                                                       |
+| **W3** · 2026-04-26→    | 扩源 + 分发                 | `anti-fraud` / `medical-comm` Template；PDF 解析（动态 import `pdfjs-dist`）；QR 卡片图：`ProjectShareCard.vue` + `shareUtils.shareProjectAsImage` + `qrcode` / `@types/qrcode` 入 deps；3 个 ai-contest demo 骨架（life-story/history-talk/murder-mystery，含 `source.{txt,md}` + `generation-log.md` + `assets/`）                                         |
+| **W4** · 2026-05-07     | 赛事打磨（部分）            | i18n 全面审查 — fix 9 broken refs，清理 143 dead keys（en/zh 同步，1250 → 1107）；无障碍审查 — 77 button 补 `type="button"`（19 文件），W2 import 组件 a11y 单独细化（drop zone → button、aria-label、focus-visible 等）                                                                                                                                     |
+| **W4 ext** · 2026-05-07 | Demo Preset + 云同步冲突 UX | **赛事 Demo Preset**（`utils/contestDemos.ts` + `useContestDemos.ts`，build-time `import.meta.glob` 烤入 3 demo `adv/**/*.md`，零权限秒开 + 6 sanity tests，**取代 `.advpkg.zip` 兜底**）；**云同步冲突 UX**（`classifySyncCandidates` baseline 比对 + `SyncConflictModal.vue` per-file 选边 + `resolveConflicts()` + 10 classifier tests），en/zh i18n 同步 |
 
-| 交付                                     | 文件                                                                          | 状态 |
-| ---------------------------------------- | ----------------------------------------------------------------------------- | ---- |
-| `writeTemplateFiles` 重构                | `apps/studio/src/utils/projectTemplate.ts`                                    | ✅   |
-| 素材分段                                 | `apps/studio/src/utils/sourceChunk.ts`                                        | ✅   |
-| 素材归一化（text / markdown / chat-log） | `apps/studio/src/utils/sourceParser.ts`                                       | ✅   |
-| 人生故事模板                             | `apps/studio/src/templates/life-story.yaml`                                   | ✅   |
-| 企业培训模板                             | `apps/studio/src/templates/training-drill.yaml`                               | ✅   |
-| YAML 加载器                              | `apps/studio/src/utils/templates/loadTemplate.ts`                             | ✅   |
-| JSON 校验器（4 步）                      | `apps/studio/src/utils/projectGenerator/schemas.ts`                           | ✅   |
-| Prompt 构造（cache-prefix-friendly）     | `apps/studio/src/utils/projectGenerator/prompts.ts`                           | ✅   |
-| 4 步 LLM Pipeline                        | `apps/studio/src/utils/projectGenerator.ts`                                   | ✅   |
-| W1 单测 46 tests                         | `src/__tests__/{sourceChunk,sourceParser,templates,projectGenerator}.test.ts` | ✅   |
-
-**验收**：`pnpm -F @advjs/studio test` → 216 tests passed；`vue-tsc --noEmit` 无错；`projectGenerator` 在 Memory fs 下端到端产出 life-story / training-drill 项目。
+**当前测试 / 类型状态**：`pnpm -F @advjs/studio test:unit --run` → **282 tests passed (26 files)**；`vue-tsc --noEmit` → exit 0；en/zh i18n parity 0/0；broken refs 0。
 
 ---
 
-## 🚧 Phase M10 · W2 待办（UI + 路由对接）
-
-目标：**UI 粘贴文本 → 60 秒内获得可玩项目**。
-
-### W2.1 导入状态机 composable
-
-- [ ] 新建 `apps/studio/src/composables/useProjectImport.ts`
-  - 状态机：`idle → parsing → ready → generating → preview → writing → done|error`
-  - 封装 `parseSource` / `generateProject` / `writeTemplateFiles`
-  - slug 冲突检测（三策略：skip / rename / overwrite）
-  - 写盘完成后调用 `useProjectContent().reload()`
-  - 支持 `AbortSignal`（向下透传给 `generateProject`）
-- [ ] 新建 `apps/studio/src/__tests__/useProjectImport.test.ts`（Memory fs 单测，3 种冲突策略）
-
-### W2.2 向导 UI（Stepper）
-
-参考 `views/workspace/BatchImportPage.vue` 的多步骤 + 冲突选择模式。**所有 Ionic slot 必须用原生 `slot="..."`**（见 `apps/studio/AGENTS.md`）。
-
-- [ ] `apps/studio/src/views/workspace/ImportSourcePage.vue`（5 步 Stepper 主框架）
-- [ ] `apps/studio/src/components/ImportSourceUpload.vue`（步骤 1：类型 Segment + 文件/粘贴/拖拽）
-- [ ] `apps/studio/src/components/ImportTemplateCard.vue`（步骤 2：卡片选择，suggestedTemplateId 默认高亮）
-- [ ] `apps/studio/src/components/ImportProgressLog.vue`（步骤 3：流式进度日志，绑定 `GenerateProgressEvent`）
-- [ ] `apps/studio/src/components/ImportFilePreviewTree.vue`（步骤 4：生成文件树，只读）
-- [ ] 步骤 5：项目名 + slug + 冲突策略（inline 在主 Page 内）
-
-### W2.3 接入既有入口
-
-- [ ] `apps/studio/src/router/index.ts` 新增 `workspace/import` 路由
-- [ ] `apps/studio/src/views/ProjectsPage.vue` 新增 "导入素材一键生成" action-card
-- [ ] `apps/studio/src/components/CreateProjectModal.vue` footer 增加 "From Source…" 入口跳转到向导
-- [ ] `apps/studio/src/i18n/locales/{en,zh-CN}.json` 新增 `importSource.*` 文案键
-
-### W2.4 新增 Template
-
-- [ ] `apps/studio/src/templates/touch-book.yaml`（触摸绘本教学，AI 向善·课题1）
-
-### W2.5 Prompt 前缀稳定性复盘
+## 🔜 W2.5 Prompt 前缀稳定性复盘 · 需要真实 Provider
 
 - [ ] 接一个真实 Provider（DeepSeek / Qwen / Anthropic OpenAI 兼容端点）
 - [ ] 观察 Provider 控制台的 cache hit rate
-- [ ] 如 <70%，调整 `prompts.ts` 中 shared prefix 的组装顺序，确保跨 step 完全字节一致
+- [ ] 如 <70%，调整 [`prompts.ts`](../../apps/studio/src/utils/projectGenerator/prompts.ts) 中 shared prefix 的组装顺序，确保跨 step 完全字节一致
 
-**验收条件**：本地 `pnpm -F @advjs/studio dev` 中，用户从 `/tabs/workspace` 选"导入素材一键生成"，粘贴 `apps/studio/tests/fixtures/m10/*.md` → <60s 出项目 → WorkspacePage 立即可见 → Play Tab 可玩。
-
----
-
-## 🔜 Phase M10 · W3 待办（扩源 + 分发 + Demo）
-
-### W3.1 更多 Template
-
-- [ ] `apps/studio/src/templates/anti-fraud.yaml`（防诈剧场，AI 向善）
-- [ ] `apps/studio/src/templates/medical-comm.yaml`（医患沟通，AI 向善）
-
-### W3.2 PDF 解析
-
-- [ ] `sourceParser.ts` 加 `type: 'pdf'` 分支
-- [ ] 动态 import `pdfjs-dist`（避免 bundle 膨胀）
-- [ ] `apps/studio/package.json` 按需增加依赖
-- [ ] 补 `sourceParser.test.ts` 的 PDF 测试样本
-
-### W3.3 分发（二维码 + 静态托管）
-
-- [ ] 新增 "项目分享" 入口：生成项目后自动生成短链 + QR
-- [ ] 决定静态托管位置（可选：GitHub Pages / 自建 / 内部静态资源）
-- [ ] 复用 `modern-screenshot` 生成 QR 卡片图
-
-### W3.4 Demo 作品
-
-在 `examples/ai-contest/` 目录下：
-
-- [ ] `examples/ai-contest/life-story-demo/` — 真实人生故事 Demo
-- [ ] `examples/ai-contest/history-talk-demo/` — AI 历史人物对谈 Demo
-- [ ] `examples/ai-contest/murder-mystery-demo/` — AI 剧本杀 Demo
-- [ ] `examples/ai-contest/touch-book-demo/` — 绘本教学 Demo
-- [ ] 每个 Demo 附生成素材、生成日志、QR 图
-
-**验收条件**：3 个 QR 扫码 3 秒内打开 Play 页；6 个 Template × 3 个源类型矩阵通过冒烟测试。
+需要：API Key + 控制台访问。直接对接赛事 §9 Critical Success Criteria 中的 cache hit ≥70% 指标。
 
 ---
 
-## 🔜 Phase M10 · W4 待办（赛事打磨）
+## 🔜 W3.3 残留 · 静态托管位置决策
 
-- [ ] Agent / Skill 平台上架 "ADV 故事工坊"（外部仓库）
-- [ ] 90 秒 Demo 视频录制
-- [ ] i18n 全面审查（en / zh-CN 覆盖 M10 新增键）
-- [ ] 无障碍审查（延续 Phase M8.5 规范）
-- [ ] 内部 Dogfood + bug fix
-- [ ] 比赛彩排：准备 3 个预生成项目作为网络故障兜底
-- [ ] `docs/studio/ai-contest-2026.md` "下一步行动" 清单逐一勾选
+- [ ] 三选一：GitHub Pages（绑 `studio.advjs.org` 子路径）/ Cloudflare Pages（接 GitHub）/ Vercel
+- [ ] 决策落定后写部署脚本 + GitHub Actions workflow
 
-**验收条件**：Skill 调用返回可用项目链接；内部 Dogfood 无阻塞；Critical Success Criteria（见 `ai-contest-2026.md` §8）全部打勾。
+仅决策项，定下来后代码侧可以一次推完。
 
 ---
 
-## 🧊 赛后沉淀（不在本里程碑交付）
+## 🔜 W3.4 残留 · 真实跑出 demo 产物（需要带屏 + AI Key）
 
-- [ ] Anthropic 原生 `cache_control` 分支（目前依赖 Provider 端前缀缓存）
-- [ ] 素材分段后的 Embedding 去重（当前 W1 已就绪 `embeddingClient.ts`，待接入）
-- [ ] VLM 图文 OCR（绘本图片直接识别）
-- [ ] ASR 语音转文字（老人口述直接录）
-- [ ] Flow 编辑器 + 项目生成 Pipeline 联动（地点驱动分支）
+- [ ] 用 ImportSourcePage 真实跑过 3 个 demo 的 `source.{txt,md}`，回填每个 [`generation-log.md`](../../examples/ai-contest/) 的 token / cache hit / 耗时表
+- [ ] 在完成页点"保存二维码图"产出每个 demo 的 `assets/qr-card.png`
+- [ ] 录每个 demo 的关键场景截图（按 [`assets/README.md`](../../examples/ai-contest/life-story/assets/README.md) 文件清单）
+
+---
+
+## 🔜 W4 残留
+
+- [ ] **90 秒 Demo 视频录制**：按 [`demo-script.md`](./demo-script.md) 分镜执行（OBS / Kap）
+- [ ] **内部 Dogfood + bug fix**：找 3 位非技术同事按 [`demo-script.md`](./demo-script.md) §"Dogfood 脚本模板" 8 分钟任务清单走完整流程，记录卡点
+
+**验收条件**：内部 Dogfood 无阻塞；[`ai-contest-2026.md`](./ai-contest-2026.md) §9 Critical Success Criteria 全部打勾。
+
+---
+
+## 🧊 Phase M11+ 赛后沉淀（不在本里程碑交付 · 触发条件出现再做）
+
+| 项                                                                                                           | 触发条件                                                                                     |
+| ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| Anthropic 原生 `cache_control` 分支                                                                          | 想脱离 Provider 端前缀缓存依赖；或评估期发现 cache hit 不稳定                                |
+| 素材分段后的 Embedding 去重（[`embeddingClient.ts`](../../apps/studio/src/utils/embeddingClient.ts) 已就绪） | 用户出现"相似素材重复生成"投诉；或长素材成本超预算                                           |
+| VLM 图文 OCR（绘本图片直接识别）                                                                             | 触摸绘本 demo 启动；或用户上传图片素材频次起来                                               |
+| ASR 语音转文字（老人口述直接录）                                                                             | 时光忆站老用户调研显示"打字门槛"是首要卡点                                                   |
+| Flow 编辑器 + 项目生成 Pipeline 联动                                                                         | 用户开始要求"自定义分支结构"；或 Flow 编辑器单独 GA                                          |
+| 二维码 / 短链分发 + Marketplace 上架                                                                         | 前置 Phase 13 账号系统就绪；或第一批"想分享自己作品"用户出现                                 |
+| `.advpkg.zip` 批量分发脚本（`scripts/build-contest-bundles.ts`）                                             | 想发 GitHub Release 让社区下载；或评委/同事直接问要 zip；或加 CI release artifact 流程       |
+| `examples/ai-contest/touch-book/` 完整 demo                                                                  | `touch-book.yaml` Template 进生产；或 AI 向善课题 1 单独立项                                 |
+| Agent / Skill 平台上架 "ADV 故事工坊"（外部仓库）                                                            | 平台 token 可用；外部仓库结构敲定                                                            |
+| `autoResolveStrategy` sync 设置（B 的 fast-follow）                                                          | 高频用户反馈"每次 sync 都要选很烦"；可加 `prefer-local` / `prefer-cloud` / `always-ask` 选项 |
 
 ---
 
 ## 📌 备注
 
 - 实施计划详见 `.claude-internal/plans/quirky-wibbling-wreath.md`（不在仓库里，仅 Claude Code session 可见）
-- 产品活动计划：`docs/studio/ai-contest-2026.md`
-- 历史阶段计划：`docs/studio/next-phase-plan.md` 的 Phase M10 章节
+- W1–W3 详细 checklist 历史归档：见 git log（`docs/studio/todo.md` 在 2026-05-07 之前的版本）
