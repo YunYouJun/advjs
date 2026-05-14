@@ -32,6 +32,9 @@ describe('ttsClient registry', () => {
   it('web-speech provider does not generate blobs', () => {
     const ws = getTtsProvider('web-speech')
     expect(ws).toBeDefined()
+    expect(ws!.type).toBe('tts-provider')
+    expect(ws!.version).toBe('1.0.0')
+    expect(ws!.description).toContain('Browser-native')
     expect(ws!.canGenerateBlob).toBe(false)
     expect(ws!.needsKey).toBe(false)
   })
@@ -40,6 +43,9 @@ describe('ttsClient registry', () => {
     const custom: TtsProvider = {
       id: 'test-provider',
       name: 'Test',
+      type: 'tts-provider',
+      version: '1.0.0',
+      description: 'Test provider',
       needsKey: false,
       canGenerateBlob: true,
       generate: async () => new Blob(['test'], { type: 'audio/mp3' }),

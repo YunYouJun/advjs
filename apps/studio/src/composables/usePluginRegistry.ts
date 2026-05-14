@@ -1,6 +1,6 @@
 import type { StudioPlugin, StudioPluginType } from '../utils/pluginTypes'
 import { listAiProviders, registerAiProvider, unregisterAiProvider } from '../utils/aiProviderRegistry'
-import { listTtsProviders } from '../utils/ttsClient'
+import { listTtsProviders, registerTtsProvider, unregisterTtsProvider } from '../utils/ttsClient'
 
 /**
  * Unified plugin registry composable.
@@ -24,12 +24,7 @@ export function usePluginRegistry() {
 
     if (!type || type === 'tts-provider') {
       for (const p of listTtsProviders()) {
-        plugins.push({
-          id: p.id,
-          name: p.name,
-          type: 'tts-provider',
-          version: '1.0.0',
-        })
+        plugins.push(p)
       }
     }
 
@@ -44,14 +39,17 @@ export function usePluginRegistry() {
   }
 
   /**
-   * Register a new plugin. Currently only AI providers support dynamic registration.
+   * Register a new plugin.
    */
   function registerPlugin(plugin: StudioPlugin & Record<string, any>): boolean {
     if (plugin.type === 'ai-provider') {
       registerAiProvider(plugin as any)
       return true
     }
-    // TTS providers: use registerTtsProvider() directly from ttsClient.ts
+    if (plugin.type === 'tts-provider') {
+      registerTtsProvider(plugin as any)
+      return true
+    }
     // Export formats: reserved for future
     return false
   }
@@ -62,6 +60,8 @@ export function usePluginRegistry() {
   function unregisterPlugin(type: StudioPluginType, id: string): boolean {
     if (type === 'ai-provider')
       return unregisterAiProvider(id)
+    if (type === 'tts-provider')
+      return unregisterTtsProvider(id)
     return false
   }
 

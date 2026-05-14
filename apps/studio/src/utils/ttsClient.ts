@@ -11,6 +11,8 @@
  * New providers can be added without modifying existing code.
  */
 
+import type { StudioPlugin } from './pluginTypes'
+
 const TRAILING_SLASHES = /\/+$/
 
 // --- Plugin Interface ---
@@ -37,9 +39,8 @@ export interface TtsPlaybackControl {
   onEnd: Promise<void>
 }
 
-export interface TtsProvider {
-  id: string
-  name: string
+export interface TtsProvider extends StudioPlugin {
+  type: 'tts-provider'
   needsKey: boolean
   baseURL?: string
   models?: string[]
@@ -69,6 +70,10 @@ export function listTtsProviders(): TtsProvider[] {
   return [...ttsProviderRegistry.values()]
 }
 
+export function unregisterTtsProvider(id: string): boolean {
+  return ttsProviderRegistry.delete(id)
+}
+
 // --- Built-in Providers ---
 
 // 1. Web Speech API (browser built-in)
@@ -76,6 +81,9 @@ export function listTtsProviders(): TtsProvider[] {
 const webSpeechProvider: TtsProvider = {
   id: 'web-speech',
   name: 'Web Speech API',
+  type: 'tts-provider',
+  version: '1.0.0',
+  description: 'Browser-native speech synthesis with no API key required',
   needsKey: false,
   canGenerateBlob: false,
 
@@ -172,6 +180,9 @@ async function openaiCompatibleGenerate(options: TtsGenerateOptions): Promise<Bl
 const openaiTtsProvider: TtsProvider = {
   id: 'openai',
   name: 'OpenAI TTS',
+  type: 'tts-provider',
+  version: '1.0.0',
+  description: 'OpenAI text-to-speech API with saveable MP3 output',
   needsKey: true,
   baseURL: 'https://api.openai.com/v1',
   models: ['tts-1', 'tts-1-hd'],
@@ -186,6 +197,9 @@ const openaiTtsProvider: TtsProvider = {
 const doubaoTtsProvider: TtsProvider = {
   id: 'doubao',
   name: 'Doubao TTS',
+  type: 'tts-provider',
+  version: '1.0.0',
+  description: 'ByteDance Doubao speech synthesis via OpenAI-compatible requests',
   needsKey: true,
   baseURL: 'https://openspeech.bytedance.com/api/v1',
   models: [
@@ -207,6 +221,9 @@ const doubaoTtsProvider: TtsProvider = {
 const customTtsProvider: TtsProvider = {
   id: 'custom',
   name: 'Custom',
+  type: 'tts-provider',
+  version: '1.0.0',
+  description: 'Custom OpenAI-compatible text-to-speech endpoint',
   needsKey: false,
   canGenerateBlob: true,
   generate: openaiCompatibleGenerate,
