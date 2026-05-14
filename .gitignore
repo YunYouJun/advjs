@@ -82,5 +82,6 @@ release
 
 # claude code
 .claude/scheduled_tasks.json
+.claude/worktrees
 
 .superpowers
