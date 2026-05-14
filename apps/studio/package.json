@@ -20,6 +20,7 @@
     "cap:run:android": "npm run build && cap sync android && cap run android"
   },
   "dependencies": {
+    "@advjs/client": "workspace:*",
     "@advjs/core": "workspace:*",
     "@advjs/gui": "workspace:*",
     "@advjs/parser": "workspace:*",
