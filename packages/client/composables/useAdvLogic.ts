@@ -59,17 +59,19 @@ export function useAdvLogic($adv: AdvContext) {
     /**
      * Jump to the Nth child of the current fountain AST and render it.
      *
-     * External hosts (Studio, editor) use this for click-to-jump in node lists.
-     * Mirrors `go()` semantics: skip-types are auto-advanced past.
+     * Used by external hosts (Studio, editor) for click-to-jump in node lists
+     * and by AdvChoice for in-fountain scene targets.
      */
-    async function goToFountainOrder(order: number): Promise<void> {
-      if (!store.ast)
+    function goToFountainOrder(order: number): void {
+      const fountain = store.curFlowNode
+      if (!fountain || fountain.type !== 'fountain')
         return
-      const max = store.ast.children.length
-      if (order < 0 || order >= max)
+      const ast = fountain.ast
+      if (!ast)
         return
-      store.cur.order = order - 1
-      await next()
+      if (order < 0 || order >= ast.children.length)
+        return
+      fountain.order = order
     }
 
     return {
