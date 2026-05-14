@@ -1,4 +1,4 @@
-import { useToggle } from '@vueuse/core'
+import { useStorage, useToggle } from '@vueuse/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
 // @vueuse/sound not reactive
@@ -9,13 +9,19 @@ import { useSound } from '../composables'
 /**
  * audio system store
  */
-export const useAudioStore = defineStore('audio', () => {
+export const useAudioStore = defineStore('@advjs/client/audio', () => {
   const defaultSoundVolume = 0.25
+  const defaultBgmVolume = 0.5
   const soundVolume = ref(defaultSoundVolume)
 
   const [isSoundMuted, toggleSoundMuted] = useToggle(false)
 
   const sVolume = computed(() => isSoundMuted.value ? 0 : soundVolume.value)
+
+  /**
+   * persisted master bgm volume, synced with $adv.$bgm.volume
+   */
+  const bgmVolume = useStorage('advjs-bgm-volume', defaultBgmVolume)
 
   const bgmUrl = ref(assets.audios.popUpOnUrl)
 
@@ -29,6 +35,7 @@ export const useAudioStore = defineStore('audio', () => {
 
   const reset = () => {
     soundVolume.value = defaultSoundVolume
+    bgmVolume.value = defaultBgmVolume
   }
 
   return {
@@ -37,6 +44,7 @@ export const useAudioStore = defineStore('audio', () => {
     isSoundMuted,
 
     soundVolume,
+    bgmVolume,
 
     toggleSoundMuted,
 

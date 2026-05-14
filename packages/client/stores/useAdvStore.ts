@@ -35,7 +35,7 @@ export interface AdvGameRecordMeta extends StorageMeta {
   memo?: string
 }
 
-export const useAdvStore = defineStore('adv', () => {
+export const useAdvStore = defineStore('@advjs/client/adv', () => {
   /**
    * 语法树
    */

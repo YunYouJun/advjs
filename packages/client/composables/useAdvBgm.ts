@@ -5,6 +5,13 @@ import { getBgmSrcUrl } from '@advjs/core'
 import { Howl } from 'howler'
 import { ref } from 'vue'
 
+const DEFAULT_FADE_IN = 800
+const DEFAULT_FADE_OUT = 600
+
+interface BgmFadeOptions {
+  fade?: number
+}
+
 /**
  * adv bgm system & utilities
  * @param $adv
@@ -17,6 +24,10 @@ export function useAdvBgm($adv: AdvContext) {
 
   const volume = ref(0.5)
   const isMuted = ref(false)
+
+  function targetVolume() {
+    return isMuted.value ? 0 : volume.value
+  }
 
   /**
    * 获取背景音乐的源地址
@@ -31,22 +42,26 @@ export function useAdvBgm($adv: AdvContext) {
   }
 
   /**
-   * play bgm by src
+   * play bgm by src with fade-in
    */
-  function playBgmBySrc(src: string) {
+  function playBgmBySrc(src: string, options: BgmFadeOptions = {}) {
+    const fade = options.fade ?? DEFAULT_FADE_IN
     if (bgmMap.has(src)) {
       const sound = bgmMap.get(src)
       if (sound && !sound.playing()) {
+        sound.volume(0)
         sound.play()
+        sound.fade(0, targetVolume(), fade)
       }
     }
     else {
       const sound = new Howl({
         src: [src],
-        volume: isMuted.value ? 0 : volume.value,
+        volume: 0,
         loop: true,
       })
       sound.play()
+      sound.fade(0, targetVolume(), fade)
       bgmMap.set(src, sound)
     }
   }
@@ -54,10 +69,11 @@ export function useAdvBgm($adv: AdvContext) {
   /**
    * 停止之外的所有背景音乐
    */
-  function stopOtherBgmBySrc(src: string) {
+  function stopOtherBgmBySrc(src: string, options: BgmFadeOptions = {}) {
     for (const [key, sound] of bgmMap.entries()) {
       if (key !== src && sound.playing()) {
-        sound.stop()
+        stopBgmBySrc(key, options)
+        // note: actual stop happens in fade callback below
       }
     }
   }
@@ -73,14 +89,42 @@ export function useAdvBgm($adv: AdvContext) {
   }
 
   /**
-   * stop bgm by src
+   * stop bgm by src with fade-out
    */
-  function stopBgmBySrc(src: string) {
+  function stopBgmBySrc(src: string, options: BgmFadeOptions = {}) {
+    const fade = options.fade ?? DEFAULT_FADE_OUT
     const sound = bgmMap.get(src)
-    if (sound) {
+    if (!sound)
+      return
+    if (fade <= 0 || !sound.playing()) {
       sound.stop()
       bgmMap.delete(src)
+      return
     }
+    const cur = sound.volume() as number
+    sound.once('fade', () => {
+      sound.stop()
+      bgmMap.delete(src)
+    })
+    sound.fade(cur, 0, fade)
+  }
+
+  /**
+   * apply current master volume to all live tracks
+   */
+  function applyVolumeToAll() {
+    const v = targetVolume()
+    for (const sound of bgmMap.values()) {
+      sound.volume(v)
+    }
+  }
+
+  /**
+   * set master bgm volume (0..1)
+   */
+  function setVolume(v: number) {
+    volume.value = Math.min(1, Math.max(0, v))
+    applyVolumeToAll()
   }
 
   return {
@@ -91,15 +135,14 @@ export function useAdvBgm($adv: AdvContext) {
 
     /**
      * 播放指定的背景音乐
-     * @param bgmId
      */
-    playBgm: (bgmId: string) => {
+    playBgm: (bgmId: string, options?: BgmFadeOptions) => {
       const bgmLibrary = $adv.gameConfig.value.bgm?.library || {}
       const bgm = (bgmLibrary as Record<string, AdvMusic>)[bgmId]
       const bgmSrc = getBgmSrc(bgm.name)
-      stopOtherBgmBySrc(bgmSrc)
+      stopOtherBgmBySrc(bgmSrc, options)
 
-      playBgmBySrc(bgmSrc)
+      playBgmBySrc(bgmSrc, options)
     },
 
     pauseBgm: (bgmId: string) => {
@@ -108,11 +151,11 @@ export function useAdvBgm($adv: AdvContext) {
       const bgmSrc = getBgmSrc(bgm.name)
       pauseBgmBySrc(bgmSrc)
     },
-    stopBgm: (bgmId: string) => {
+    stopBgm: (bgmId: string, options?: BgmFadeOptions) => {
       const bgmLibrary = $adv.gameConfig.value.bgm?.library || {}
       const bgm = (bgmLibrary as Record<string, AdvMusic>)[bgmId]
       const bgmSrc = getBgmSrc(bgm.name)
-      stopBgmBySrc(bgmSrc)
+      stopBgmBySrc(bgmSrc, options)
     },
     play() {
       for (const sound of bgmMap.values()) {
@@ -124,14 +167,14 @@ export function useAdvBgm($adv: AdvContext) {
     /**
      * stop all bgms
      */
-    stop() {
-      for (const sound of bgmMap.values()) {
-        if (sound.playing()) {
-          sound.stop()
-        }
+    stop(options?: BgmFadeOptions) {
+      for (const src of [...bgmMap.keys()]) {
+        stopBgmBySrc(src, options)
       }
     },
     isMuted,
+    volume,
+    setVolume,
     /**
      * mute
      */

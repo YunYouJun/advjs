@@ -71,6 +71,7 @@ const curWords = computed(() => {
         :animation="animation"
         :speed="settings.storage.text.curSpeed"
         :words="curWords"
+        @end="$adv.$auto.notifyPrintDone()"
       />
       <span
         v-if="showNextCursor"

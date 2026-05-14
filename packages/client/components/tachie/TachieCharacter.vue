@@ -43,12 +43,15 @@ const characterClass = computed(() => {
 <template>
   <Transition appear>
     <div class="flex flex-col col-span-1 h-full items-center justify-end overflow-hidden">
-      <img
-        class="tachie-character inline-flex transform"
-        :class="characterClass"
-        :style="curTachie?.style"
-        :src="curTachie?.src"
-      >
+      <Transition name="adv-tachie-status" mode="out-in">
+        <img
+          :key="curTachie?.src"
+          class="tachie-character inline-flex transform"
+          :class="characterClass"
+          :style="curTachie?.style"
+          :src="curTachie?.src"
+        >
+      </Transition>
     </div>
   </Transition>
 </template>
@@ -63,5 +66,21 @@ const characterClass = computed(() => {
   &.active {
     filter: brightness(100%);
   }
+}
+
+.adv-tachie-status-enter-active,
+.adv-tachie-status-leave-active {
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+.adv-tachie-status-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.adv-tachie-status-leave-to {
+  opacity: 0;
 }
 </style>

@@ -76,6 +76,7 @@ watch(() => props.content, () => {
         v-model:printed="printed"
         :type-interval="typeInterval" m="2"
         :words="item as any"
+        @end="$adv.$auto.notifyPrintDone()"
       />
     </div>
   </div>

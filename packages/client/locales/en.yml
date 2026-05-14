@@ -41,6 +41,7 @@ settings:
   animation_duration: Animation Duration
   sound_volume: Sound Volume
   music_volume: Music Volume
+  music_volume_level: Music Volume Level
 
   history:
     empty: 暂无历史记录

@@ -2,6 +2,7 @@ export * from './config'
 export * from './dark'
 export * from './sound'
 
+export * from './useAdvAuto'
 export * from './useAdvBgm'
 export * from './useAdvCamera'
 export * from './useAdvContext'

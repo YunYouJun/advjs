@@ -37,6 +37,16 @@ const app = useAppStore()
         <div v-else i-mdi-music-note-off-outline />
       </AdvIconButton>
 
+      <AdvIconButton :title="$adv.$auto.enabled.value ? 'Auto: ON' : 'Auto: OFF'" @click="$adv.$auto.toggle()">
+        <div v-if="$adv.$auto.enabled.value" i-ri-play-circle-fill class="text-green-400" />
+        <div v-else i-ri-play-circle-line />
+      </AdvIconButton>
+
+      <AdvIconButton :title="$adv.$auto.skipEnabled.value ? 'Skip: ON' : 'Skip: OFF'" @click="$adv.$auto.toggleSkip()">
+        <div v-if="$adv.$auto.skipEnabled.value" i-ri-skip-forward-fill class="text-yellow-400" />
+        <div v-else i-ri-skip-forward-line />
+      </AdvIconButton>
+
       <template v-if="showHelper">
         <AdvHelper text="white" />
         <AdvFullscreenBtn />
