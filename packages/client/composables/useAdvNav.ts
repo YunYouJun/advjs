@@ -53,6 +53,12 @@ export function useAdvNav($adv: AdvContext) {
     const fountainNodes = nodes.filter(node => node.type === 'fountain')
     // promise.all
     await Promise.all(fountainNodes.map(async (node) => {
+      // External hosts (Studio, editor) may pre-populate `ast`. Skip HTTP fetch in that case.
+      if (node.ast) {
+        nodesMap.set(node.id, node)
+        return
+      }
+
       const src = node.src
       // fetch and parse src
       const md = await fetch(src).then(res => res.text())
