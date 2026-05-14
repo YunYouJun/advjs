@@ -6,7 +6,7 @@
  * YAML frontmatter block of a character file:
  *
  * - At the top level of `attributes:`, suggest `template`, `profile`,
- *   `galgame`, `rpg`, `custom`, `ai`.
+ *   `galgame`, `rpg`, `mystery`, `custom`, `ai`.
  * - Inside each namespace, suggest the specific field names from the schema.
  * - When typing `template:`, suggest the enum values.
  *
@@ -36,10 +36,11 @@ export interface FieldDef {
  * Top-level `attributes` keys.
  */
 const ATTRIBUTES_ROOT: FieldDef[] = [
-  { key: 'template', detail: 'enum', doc: 'Which template UI to show in Studio. One of: universal, galgame, rpg.', enumValues: ['universal', 'galgame', 'rpg'] },
+  { key: 'template', detail: 'enum', doc: 'Which template UI to show in Studio. One of: universal, galgame, rpg, mystery.', enumValues: ['universal', 'galgame', 'rpg', 'mystery'] },
   { key: 'profile', detail: 'object', doc: 'Universal profile fields shared by every template.' },
   { key: 'galgame', detail: 'object', doc: 'Romance / visual-novel extension fields.' },
   { key: 'rpg', detail: 'object', doc: 'Fantasy / RPG extension fields.' },
+  { key: 'mystery', detail: 'object', doc: 'Mystery / script-killer clue and secret fields.' },
   { key: 'custom', detail: 'record', doc: 'User-defined custom fields, keyed by identifier.' },
   { key: 'ai', detail: 'object', doc: 'Controls how attributes are injected into AI prompts.' },
 ]
@@ -96,10 +97,24 @@ const RPG_STATS_FIELDS: FieldDef[] = [
 ]
 
 /**
+ * Fields inside `attributes.mystery`.
+ */
+const MYSTERY_FIELDS: FieldDef[] = [
+  { key: 'publicIdentity', detail: 'string', doc: 'Public-facing role or identity.' },
+  { key: 'secret', detail: 'string', doc: 'Hidden secret. Pair with ai.visibility: gm-only for GM-only context.' },
+  { key: 'motive', detail: 'string' },
+  { key: 'alibi', detail: 'string' },
+  { key: 'clues', detail: 'string[]' },
+  { key: 'redHerrings', detail: 'string[]' },
+  { key: 'suspicionInitial', detail: 'number', doc: 'Initial suspicion score. Runtime changes belong in dynamicState.' },
+]
+
+/**
  * Fields inside `attributes.ai`.
  */
 const AI_FIELDS: FieldDef[] = [
   { key: 'promptInject', detail: 'boolean', doc: 'When false, attributes are excluded from the AI system prompt.' },
+  { key: 'visibility', detail: 'enum', doc: 'public or gm-only. GM-only fields are intended for narrator/GM contexts.', enumValues: ['public', 'gm-only'] },
   { key: 'excludeFields', detail: 'string[]', doc: 'Field paths (e.g. `galgame.bloodType`) to hide from AI prompts.' },
 ]
 
@@ -111,6 +126,7 @@ const NAMESPACE_FIELDS: Record<string, FieldDef[]> = {
   'galgame': GALGAME_FIELDS,
   'rpg': RPG_FIELDS,
   'rpg.stats': RPG_STATS_FIELDS,
+  'mystery': MYSTERY_FIELDS,
   'ai': AI_FIELDS,
 }
 

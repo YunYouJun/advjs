@@ -61,6 +61,19 @@ export const CharacterRpgAttrsSchema = z.object({
 }).strict()
 
 /**
+ * Mystery / script-killer fields.
+ */
+export const CharacterMysteryAttrsSchema = z.object({
+  publicIdentity: z.string().optional(),
+  secret: z.string().optional(),
+  motive: z.string().optional(),
+  alibi: z.string().optional(),
+  clues: z.array(z.string()).optional(),
+  redHerrings: z.array(z.string()).optional(),
+  suspicionInitial: z.number().optional(),
+}).strict()
+
+/**
  * One user-defined custom field.
  */
 export const CharacterCustomFieldSchema = z.object({
@@ -73,6 +86,7 @@ export const CharacterCustomFieldSchema = z.object({
  */
 export const CharacterAttributesAiSchema = z.object({
   promptInject: z.boolean().optional(),
+  visibility: z.enum(['public', 'gm-only']).optional(),
   excludeFields: z.array(z.string()).optional(),
 }).strict()
 
@@ -84,6 +98,7 @@ export const CharacterAttributesSchema = z.object({
   profile: CharacterProfileSchema.optional(),
   galgame: CharacterGalgameAttrsSchema.optional(),
   rpg: CharacterRpgAttrsSchema.optional(),
+  mystery: CharacterMysteryAttrsSchema.optional(),
   custom: z.record(z.string(), CharacterCustomFieldSchema).optional(),
   ai: CharacterAttributesAiSchema.optional(),
 }).strict()

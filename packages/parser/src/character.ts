@@ -45,6 +45,13 @@ const BODY_SECTION_ORDER: { field: keyof AdvCharacterBody, heading: string }[] =
   { field: 'expertisePrompt', heading: '专业提示' },
 ]
 
+const ATTRIBUTE_TEMPLATE_LABELS: Record<string, string> = {
+  universal: '通用',
+  galgame: '恋爱',
+  rpg: 'RPG',
+  mystery: '悬疑',
+}
+
 /**
  * Frontmatter 字段列表（用于从 AdvCharacter 中提取 frontmatter）
  */
@@ -205,6 +212,108 @@ function pruneEmpty(value: any): any {
   return value
 }
 
+function isPresentAttributeValue(value: unknown): boolean {
+  if (value === undefined || value === null || value === '')
+    return false
+  if (Array.isArray(value))
+    return value.length > 0
+  return true
+}
+
+function formatAttributeValue(value: unknown): string {
+  if (Array.isArray(value))
+    return value.join(', ')
+  if (typeof value === 'object' && value !== null) {
+    return Object.entries(value)
+      .filter(([, v]) => isPresentAttributeValue(v))
+      .map(([k, v]) => `${k}=${formatAttributeValue(v)}`)
+      .join(', ')
+  }
+  return String(value)
+}
+
+function pushAttributeLine(
+  lines: string[],
+  excluded: Set<string>,
+  path: string,
+  label: string,
+  value: unknown,
+): void {
+  if (excluded.has(path) || !isPresentAttributeValue(value))
+    return
+  lines.push(`- **${label}**: ${formatAttributeValue(value)}`)
+}
+
+function appendAttributesForAI(lines: string[], character: AdvCharacter): void {
+  const attrs = character.attributes
+  if (!attrs || attrs.ai?.promptInject === false)
+    return
+
+  const excluded = new Set(attrs.ai?.excludeFields ?? [])
+  const attrLines: string[] = []
+
+  if (attrs.template)
+    pushAttributeLine(attrLines, excluded, 'template', '模板', ATTRIBUTE_TEMPLATE_LABELS[attrs.template] ?? attrs.template)
+  if (attrs.ai?.visibility)
+    pushAttributeLine(attrLines, excluded, 'ai.visibility', '可见性', attrs.ai.visibility)
+
+  const profile = attrs.profile
+  if (profile) {
+    pushAttributeLine(attrLines, excluded, 'profile.age', '年龄', profile.age)
+    pushAttributeLine(attrLines, excluded, 'profile.gender', '性别', profile.gender)
+    pushAttributeLine(attrLines, excluded, 'profile.occupation', '职业 / 身份', profile.occupation)
+    pushAttributeLine(attrLines, excluded, 'profile.personalityTags', '性格关键词', profile.personalityTags)
+    pushAttributeLine(attrLines, excluded, 'profile.appearanceSummary', '外貌一句话', profile.appearanceSummary)
+  }
+
+  const galgame = attrs.galgame
+  if (galgame) {
+    pushAttributeLine(attrLines, excluded, 'galgame.birthday', '生日', galgame.birthday)
+    pushAttributeLine(attrLines, excluded, 'galgame.bloodType', '血型', galgame.bloodType)
+    pushAttributeLine(attrLines, excluded, 'galgame.zodiac', '星座', galgame.zodiac)
+    pushAttributeLine(attrLines, excluded, 'galgame.height', '身高', galgame.height)
+    pushAttributeLine(attrLines, excluded, 'galgame.likes', '喜好', galgame.likes)
+    pushAttributeLine(attrLines, excluded, 'galgame.dislikes', '讨厌', galgame.dislikes)
+    pushAttributeLine(attrLines, excluded, 'galgame.affinityInitial', '初始好感度', galgame.affinityInitial)
+  }
+
+  const rpg = attrs.rpg
+  if (rpg) {
+    pushAttributeLine(attrLines, excluded, 'rpg.race', '种族', rpg.race)
+    pushAttributeLine(attrLines, excluded, 'rpg.class', '职业', rpg.class)
+    pushAttributeLine(attrLines, excluded, 'rpg.level', '等级', rpg.level)
+    pushAttributeLine(attrLines, excluded, 'rpg.stats', '六维属性', rpg.stats)
+    pushAttributeLine(attrLines, excluded, 'rpg.hpInitial', 'HP 初始值', rpg.hpInitial)
+    pushAttributeLine(attrLines, excluded, 'rpg.mpInitial', 'MP 初始值', rpg.mpInitial)
+    pushAttributeLine(attrLines, excluded, 'rpg.skills', '技能', rpg.skills)
+    pushAttributeLine(attrLines, excluded, 'rpg.equipment', '装备', rpg.equipment)
+    pushAttributeLine(attrLines, excluded, 'rpg.alignment', '阵营', rpg.alignment)
+  }
+
+  const mystery = attrs.mystery
+  if (mystery) {
+    pushAttributeLine(attrLines, excluded, 'mystery.publicIdentity', '公开身份', mystery.publicIdentity)
+    pushAttributeLine(attrLines, excluded, 'mystery.secret', '隐藏秘密', mystery.secret)
+    pushAttributeLine(attrLines, excluded, 'mystery.motive', '动机', mystery.motive)
+    pushAttributeLine(attrLines, excluded, 'mystery.alibi', '不在场证明', mystery.alibi)
+    pushAttributeLine(attrLines, excluded, 'mystery.clues', '关联线索', mystery.clues)
+    pushAttributeLine(attrLines, excluded, 'mystery.redHerrings', '误导信息', mystery.redHerrings)
+    pushAttributeLine(attrLines, excluded, 'mystery.suspicionInitial', '初始嫌疑度', mystery.suspicionInitial)
+  }
+
+  if (attrs.custom) {
+    for (const [key, field] of Object.entries(attrs.custom))
+      pushAttributeLine(attrLines, excluded, `custom.${key}`, field.label, field.value)
+  }
+
+  if (attrLines.length) {
+    lines.push('## 结构化属性')
+    lines.push('')
+    lines.push(...attrLines)
+    lines.push('')
+  }
+}
+
 /**
  * 导出为 AI 友好的纯净 markdown（去掉 tachies/avatar 等视觉字段）
  */
@@ -233,6 +342,8 @@ export function exportCharacterForAI(character: AdvCharacter): string {
     lines.push(...meta)
     lines.push('')
   }
+
+  appendAttributesForAI(lines, character)
 
   // Body sections
   for (const { field, heading } of BODY_SECTION_ORDER) {

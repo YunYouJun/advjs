@@ -8,7 +8,7 @@
  * Design notes:
  * - The whole panel is opt-in: if the user never enables it, the character
  *   file stays visually identical to before.
- * - Template selection (universal / galgame / rpg) controls which groups of
+ * - Template selection (universal / galgame / rpg / mystery) controls which groups of
  *   fields are rendered; a user can opt into multiple templates by keeping
  *   data on legacy fields.
  * - Runtime state (current affinity, HP, etc.) does NOT belong here — it
@@ -19,6 +19,7 @@ import type {
   AdvCharacterAttributes,
   AdvCharacterCustomField,
   AdvCharacterGalgameAttrs,
+  AdvCharacterMysteryAttrs,
   AdvCharacterProfile,
   AdvCharacterRpgAttrs,
   AdvCharacterRpgStats,
@@ -88,6 +89,9 @@ function patchGalgame(patch: Partial<AdvCharacterGalgameAttrs>) {
 function patchRpg(patch: Partial<AdvCharacterRpgAttrs>) {
   patchAttrs({ rpg: { ...(attrs.value.rpg ?? {}), ...patch } })
 }
+function patchMystery(patch: Partial<AdvCharacterMysteryAttrs>) {
+  patchAttrs({ mystery: { ...(attrs.value.mystery ?? {}), ...patch } })
+}
 function patchStats(patch: Partial<AdvCharacterRpgStats>) {
   const rpg = attrs.value.rpg ?? {}
   patchRpg({ stats: { ...(rpg.stats ?? {}), ...patch } })
@@ -123,6 +127,11 @@ const profileAge = computed({
 const promptInject = computed({
   get: () => attrs.value.ai?.promptInject ?? true,
   set: (v: boolean) => patchAttrs({ ai: { ...(attrs.value.ai ?? {}), promptInject: v } }),
+})
+
+const aiVisibility = computed({
+  get: () => attrs.value.ai?.visibility ?? 'public',
+  set: (visibility: 'public' | 'gm-only') => patchAttrs({ ai: { ...(attrs.value.ai ?? {}), visibility } }),
 })
 
 // ─── Custom fields ───
@@ -276,6 +285,9 @@ function updateCustomType(key: string, type: CustomValueType) {
         </IonSegmentButton>
         <IonSegmentButton value="rpg">
           <IonLabel>{{ t('contentEditor.attributes.templates.rpg') }}</IonLabel>
+        </IonSegmentButton>
+        <IonSegmentButton value="mystery">
+          <IonLabel>{{ t('contentEditor.attributes.templates.mystery') }}</IonLabel>
         </IonSegmentButton>
       </IonSegment>
 
@@ -520,6 +532,85 @@ function updateCustomType(key: string, type: CustomValueType) {
         </IonList>
       </div>
 
+      <!-- ═══ Mystery: attributes.mystery.* ═══ -->
+      <div v-if="template === 'mystery'" class="cap-section">
+        <IonListHeader class="cap-section__header">
+          <IonLabel>{{ t('contentEditor.attributes.mystery.heading') }}</IonLabel>
+        </IonListHeader>
+        <IonList class="cap-list">
+          <IonItem>
+            <IonInput
+              :value="attrs.mystery?.publicIdentity ?? ''"
+              :label="t('contentEditor.attributes.mystery.publicIdentity')"
+              label-placement="stacked"
+              :placeholder="t('contentEditor.attributes.mystery.publicIdentityPlaceholder')"
+              @ion-input="(e: any) => patchMystery({ publicIdentity: stringFromInput(e.detail.value) })"
+            />
+          </IonItem>
+          <IonItem>
+            <IonInput
+              :value="attrs.mystery?.secret ?? ''"
+              :label="t('contentEditor.attributes.mystery.secret')"
+              label-placement="stacked"
+              :placeholder="t('contentEditor.attributes.mystery.secretPlaceholder')"
+              @ion-input="(e: any) => patchMystery({ secret: stringFromInput(e.detail.value) })"
+            />
+          </IonItem>
+          <IonItem>
+            <IonInput
+              :value="attrs.mystery?.motive ?? ''"
+              :label="t('contentEditor.attributes.mystery.motive')"
+              label-placement="stacked"
+              :placeholder="t('contentEditor.attributes.mystery.motivePlaceholder')"
+              @ion-input="(e: any) => patchMystery({ motive: stringFromInput(e.detail.value) })"
+            />
+          </IonItem>
+          <IonItem>
+            <IonInput
+              :value="attrs.mystery?.alibi ?? ''"
+              :label="t('contentEditor.attributes.mystery.alibi')"
+              label-placement="stacked"
+              :placeholder="t('contentEditor.attributes.mystery.alibiPlaceholder')"
+              @ion-input="(e: any) => patchMystery({ alibi: stringFromInput(e.detail.value) })"
+            />
+          </IonItem>
+          <IonItem>
+            <div class="cap-field">
+              <IonLabel position="stacked">
+                {{ t('contentEditor.attributes.mystery.clues') }}
+              </IonLabel>
+              <TagsInput
+                :model-value="attrs.mystery?.clues ?? []"
+                :placeholder="t('contentEditor.attributes.mystery.cluesPlaceholder')"
+                @update:model-value="(v) => patchMystery({ clues: v.length ? v : undefined })"
+              />
+            </div>
+          </IonItem>
+          <IonItem>
+            <div class="cap-field">
+              <IonLabel position="stacked">
+                {{ t('contentEditor.attributes.mystery.redHerrings') }}
+              </IonLabel>
+              <TagsInput
+                :model-value="attrs.mystery?.redHerrings ?? []"
+                :placeholder="t('contentEditor.attributes.mystery.redHerringsPlaceholder')"
+                @update:model-value="(v) => patchMystery({ redHerrings: v.length ? v : undefined })"
+              />
+            </div>
+          </IonItem>
+          <IonItem>
+            <IonInput
+              type="number"
+              :value="attrs.mystery?.suspicionInitial ?? ''"
+              :label="t('contentEditor.attributes.mystery.suspicionInitial')"
+              label-placement="stacked"
+              :helper-text="t('contentEditor.attributes.mystery.suspicionInitialHelper')"
+              @ion-input="(e: any) => patchMystery({ suspicionInitial: numberFromInput(e.detail.value) })"
+            />
+          </IonItem>
+        </IonList>
+      </div>
+
       <!-- ═══ Custom: attributes.custom.* ═══ -->
       <div class="cap-section">
         <IonListHeader class="cap-section__header">
@@ -656,6 +747,17 @@ function updateCustomType(key: string, type: CustomValueType) {
             <IonLabel>{{ t('contentEditor.attributes.ai.promptInject') }}</IonLabel>
             <IonToggle slot="end" v-model="promptInject" />
           </IonItem>
+          <IonItem>
+            <IonLabel>{{ t('contentEditor.attributes.ai.visibility') }}</IonLabel>
+            <IonSegment slot="end" v-model="aiVisibility" class="cap-ai-visibility">
+              <IonSegmentButton value="public">
+                <IonLabel>{{ t('contentEditor.attributes.ai.visibilityPublic') }}</IonLabel>
+              </IonSegmentButton>
+              <IonSegmentButton value="gm-only">
+                <IonLabel>{{ t('contentEditor.attributes.ai.visibilityGmOnly') }}</IonLabel>
+              </IonSegmentButton>
+            </IonSegment>
+          </IonItem>
         </IonList>
         <IonNote class="cap-note cap-note--sub">
           {{ t('contentEditor.attributes.ai.promptInjectHelper') }}
@@ -699,6 +801,10 @@ function updateCustomType(key: string, type: CustomValueType) {
 
 .cap-note--sub {
   padding-top: 4px;
+}
+
+.cap-ai-visibility {
+  min-width: 180px;
 }
 
 .cap-body {

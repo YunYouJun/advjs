@@ -22,8 +22,9 @@ export interface AdvCharacterRelationship {
  * - `universal` 通用基础字段
  * - `galgame`   恋爱/视觉小说向扩展
  * - `rpg`       奇幻 / RPG 六维属性
+ * - `mystery`   悬疑 / 剧本杀线索属性
  */
-export type AdvCharacterTemplate = 'universal' | 'galgame' | 'rpg'
+export type AdvCharacterTemplate = 'universal' | 'galgame' | 'rpg' | 'mystery'
 
 /**
  * Universal 通用属性（所有模板共享的基础字段）
@@ -106,6 +107,28 @@ export interface AdvCharacterRpgAttrs {
 }
 
 /**
+ * Mystery / 剧本杀扩展字段
+ */
+export interface AdvCharacterMysteryAttrs {
+  /** 公开身份 */
+  publicIdentity?: string
+  /** 隐藏秘密（可配合 ai.visibility = gm-only 使用） */
+  secret?: string
+  /** 动机 */
+  motive?: string
+  /** 不在场证明 */
+  alibi?: string
+  /** 关联线索 */
+  clues?: string[]
+  /** 烟雾弹 / 误导信息 */
+  redHerrings?: string[]
+  /** 初始嫌疑度（运行时变化放 dynamicState） */
+  suspicionInitial?: number
+}
+
+export type AdvCharacterAttributesVisibility = 'public' | 'gm-only'
+
+/**
  * 自定义字段条目（用户扩展）
  */
 export interface AdvCharacterCustomField {
@@ -124,6 +147,11 @@ export interface AdvCharacterAttributesAi {
    * @default true
    */
   promptInject?: boolean
+  /**
+   * 属性可见性。`gm-only` 适合悬疑/剧本杀中的隐藏设定，由视角系统决定是否展示给玩家。
+   * @default 'public'
+   */
+  visibility?: AdvCharacterAttributesVisibility
   /**
    * 字段级黑名单（以 `path.to.field` 表示，如 `galgame.bloodType`）
    * 列表中的字段不会注入 AI 上下文
@@ -148,6 +176,8 @@ export interface AdvCharacterAttributes {
   galgame?: AdvCharacterGalgameAttrs
   /** RPG 扩展字段 */
   rpg?: AdvCharacterRpgAttrs
+  /** Mystery / 剧本杀扩展字段 */
+  mystery?: AdvCharacterMysteryAttrs
   /** 自定义字段（key = 字段标识） */
   custom?: Record<string, AdvCharacterCustomField>
   /** AI 控制 */

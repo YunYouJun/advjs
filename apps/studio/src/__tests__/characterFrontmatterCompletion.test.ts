@@ -21,6 +21,8 @@ attributes:
   rpg:
     stats:
       str: 14
+  mystery:
+    secret: knows the truth
   ai:
     promptInject: true
 ---
@@ -108,6 +110,7 @@ describe('getFieldsForPath', () => {
     expect(fields!.map(f => f.key)).toContain('template')
     expect(fields!.map(f => f.key)).toContain('profile')
     expect(fields!.map(f => f.key)).toContain('rpg')
+    expect(fields!.map(f => f.key)).toContain('mystery')
   })
 
   it('returns profile fields', () => {
@@ -132,6 +135,12 @@ describe('getFieldsForPath', () => {
     expect(fields!.map(f => f.key)).toEqual(['str', 'dex', 'int', 'con', 'wis', 'cha'])
   })
 
+  it('returns mystery fields', () => {
+    const fields = getFieldsForPath('attributes.mystery')
+    expect(fields!.map(f => f.key)).toContain('secret')
+    expect(fields!.map(f => f.key)).toContain('suspicionInitial')
+  })
+
   it('returns null for unknown paths', () => {
     expect(getFieldsForPath('attributes.unknown')).toBeNull()
     expect(getFieldsForPath('unrelated.path')).toBeNull()
@@ -140,6 +149,12 @@ describe('getFieldsForPath', () => {
   it('exposes enum values on template', () => {
     const fields = getFieldsForPath('attributes')!
     const template = fields.find(f => f.key === 'template')
-    expect(template?.enumValues).toEqual(['universal', 'galgame', 'rpg'])
+    expect(template?.enumValues).toEqual(['universal', 'galgame', 'rpg', 'mystery'])
+  })
+
+  it('exposes enum values on ai.visibility', () => {
+    const fields = getFieldsForPath('attributes.ai')!
+    const visibility = fields.find(f => f.key === 'visibility')
+    expect(visibility?.enumValues).toEqual(['public', 'gm-only'])
   })
 })

@@ -887,7 +887,8 @@
       "templates": {
         "universal": "Universal",
         "galgame": "Romance",
-        "rpg": "RPG"
+        "rpg": "RPG",
+        "mystery": "Mystery"
       },
       "profile": "Profile",
       "age": "Age",
@@ -936,9 +937,29 @@
         "alignment": "Alignment",
         "alignmentPlaceholder": "Lawful Good / Chaotic Neutral / …"
       },
+      "mystery": {
+        "heading": "Mystery / Script-Killer",
+        "publicIdentity": "Public identity",
+        "publicIdentityPlaceholder": "e.g. the victim's doctor",
+        "secret": "Hidden secret",
+        "secretPlaceholder": "Key secret visible to GM / AI only",
+        "motive": "Motive",
+        "motivePlaceholder": "Why the character is involved",
+        "alibi": "Alibi",
+        "alibiPlaceholder": "Where they claim to have been",
+        "clues": "Linked clues",
+        "cluesPlaceholder": "Add clue tags",
+        "redHerrings": "Red herrings",
+        "redHerringsPlaceholder": "Add decoys",
+        "suspicionInitial": "Initial suspicion",
+        "suspicionInitialHelper": "Starting value. Runtime changes live in dynamic state."
+      },
       "ai": {
         "heading": "AI control",
         "promptInject": "Inject into AI system prompt",
+        "visibility": "Visibility",
+        "visibilityPublic": "Public",
+        "visibilityGmOnly": "GM only",
         "promptInjectHelper": "When off, attribute fields are not included in the AI roleplay context."
       },
       "custom": {

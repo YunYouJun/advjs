@@ -887,7 +887,8 @@
       "templates": {
         "universal": "通用",
         "galgame": "恋爱",
-        "rpg": "奇幻"
+        "rpg": "奇幻",
+        "mystery": "悬疑"
       },
       "profile": "基础资料",
       "age": "年龄",
@@ -936,9 +937,29 @@
         "alignment": "阵营",
         "alignmentPlaceholder": "守序善良 / 混乱中立 / …"
       },
+      "mystery": {
+        "heading": "悬疑 / 剧本杀",
+        "publicIdentity": "公开身份",
+        "publicIdentityPlaceholder": "例如 受害者的医生",
+        "secret": "隐藏秘密",
+        "secretPlaceholder": "仅 GM/AI 可见的关键秘密",
+        "motive": "动机",
+        "motivePlaceholder": "角色为何卷入事件",
+        "alibi": "不在场证明",
+        "alibiPlaceholder": "案发时声称所在位置",
+        "clues": "关联线索",
+        "cluesPlaceholder": "添加线索标签",
+        "redHerrings": "误导信息",
+        "redHerringsPlaceholder": "添加烟雾弹",
+        "suspicionInitial": "初始嫌疑度",
+        "suspicionInitialHelper": "初始值。运行时变化走动态状态，不写入文件。"
+      },
       "ai": {
         "heading": "AI 控制",
         "promptInject": "注入系统提示词",
+        "visibility": "可见性",
+        "visibilityPublic": "公开",
+        "visibilityGmOnly": "GM",
         "promptInjectHelper": "关闭后，属性字段不会进入 AI 角色扮演上下文。"
       },
       "custom": {
