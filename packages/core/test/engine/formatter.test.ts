@@ -155,4 +155,19 @@ describe('formatAsText', () => {
     })
     expect(text).toBe('\n— END —\n')
   })
+
+  it('should prepend stage hints when available', () => {
+    const text = formatAsText({
+      type: 'dialog',
+      text: '你好！',
+      character: '云游君',
+      stage: {
+        background: 'school.png',
+        bgm: 'theme-a',
+        tachies: { 云游君: { status: 'smile' } },
+        tachieAscii: ['[云游君:smile]'],
+      },
+    })
+    expect(text).toBe('[BG school.png] [BGM theme-a] [Tachie [云游君:smile]]\n云游君: 你好！')
+  })
 })

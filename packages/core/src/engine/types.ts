@@ -11,21 +11,38 @@ export interface PlaySession {
   choices: Record<number, number> // {nodeIndex: choiceIndex}
   tachies: Record<string, { status: string }>
   background: string
+  bgm: string
   status: 'playing' | 'waiting_choice' | 'ended'
   createdAt: number
   updatedAt: number
+}
+
+export interface PlaySessionSnapshot {
+  session: PlaySession
+  ast: string
+}
+
+export interface PlayStageState {
+  background: string
+  bgm: string
+  tachies: Record<string, { status: string }>
+  tachieAscii: string[]
+}
+
+export interface FormattedOutputMeta {
+  stage?: PlayStageState
 }
 
 /**
  * Formatted output types for CLI display
  */
 export type FormattedOutput
-  = | { type: 'dialog', text: string, character: string, status?: string }
-    | { type: 'narration', text: string }
-    | { type: 'choices', text: string, options: { index: number, label: string }[] }
-    | { type: 'scene', text: string, place?: string, time?: string }
-    | { type: 'text', text: string }
-    | { type: 'end', text: string }
+  = | ({ type: 'dialog', text: string, character: string, status?: string } & FormattedOutputMeta)
+    | ({ type: 'narration', text: string } & FormattedOutputMeta)
+    | ({ type: 'choices', text: string, options: { index: number, label: string }[] } & FormattedOutputMeta)
+    | ({ type: 'scene', text: string, place?: string, time?: string } & FormattedOutputMeta)
+    | ({ type: 'text', text: string } & FormattedOutputMeta)
+    | ({ type: 'end', text: string } & FormattedOutputMeta)
 
 /**
  * Play engine configuration

@@ -23,6 +23,31 @@ title: Test Story
 故事结束了。
 `
 
+const stageScript = `---
+title: Stage Story
+---
+
+\`\`\`yaml
+type: background
+url: school-rooftop.png
+\`\`\`
+
+\`\`\`yaml
+type: bgm
+name: afternoon-theme
+\`\`\`
+
+\`\`\`yaml
+type: tachie
+enter:
+  - name: 云游君
+    status: smile
+\`\`\`
+
+@云游君(smile)
+舞台状态已经就绪。
+`
+
 function createEngine() {
   // Use a unique temp directory for each test to avoid conflicts
   const sessionDir = path.join(tmpdir(), `advjs-test-${Date.now()}-${Math.random().toString(36).slice(2)}`)
@@ -87,6 +112,20 @@ describe('advPlayEngine', () => {
     expect(status.sessionId).toBe('test-session')
     expect(status.status).toBeDefined()
     expect(status.totalNodes).toBeGreaterThan(0)
+  })
+
+  it('should include stage state, BGM, and tachie ASCII hints', async () => {
+    const engine = createEngine()
+    const first = await engine.loadScript(stageScript, 'stage.adv.md', 'stage-session')
+
+    expect(first?.type).toBe('dialog')
+    expect(first?.stage?.background).toBe('school-rooftop.png')
+    expect(first?.stage?.bgm).toBe('afternoon-theme')
+    expect(first?.stage?.tachieAscii).toContain('[云游君:smile]')
+
+    const status = engine.getStatus()
+    expect(status.bgm).toBe('afternoon-theme')
+    expect(status.tachieAscii).toContain('[云游君:smile]')
   })
 
   it('should detect end of story', async () => {

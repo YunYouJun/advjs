@@ -68,6 +68,29 @@ describe('sessionManager', () => {
     expect(keys).toHaveLength(2)
   })
 
+  it('should export and import session snapshots', async () => {
+    const mgr = tracked()
+    const session = await mgr.getOrCreate('save-me', '/a.adv.md', '{"type":"adv-root"}')
+    session.currentIndex = 3
+    session.background = 'school'
+    session.bgm = 'opening-theme'
+    session.tachies = { aria: { status: 'smile' } }
+    await mgr.save(session)
+
+    const snapshot = await mgr.exportSnapshot('save-me')
+    expect(snapshot).not.toBeNull()
+    expect(snapshot!.session.currentIndex).toBe(3)
+    expect(snapshot!.session.bgm).toBe('opening-theme')
+
+    const restored = await mgr.importSnapshot(snapshot!, 'loaded-save')
+    expect(restored.id).toBe('loaded-save')
+    expect(restored.currentIndex).toBe(3)
+
+    const loaded = await mgr.get('loaded-save')
+    expect(loaded!.background).toBe('school')
+    expect(loaded!.tachies.aria.status).toBe('smile')
+  })
+
   it('should return null for non-existent session', async () => {
     const mgr = tracked()
     expect(await mgr.get('nope')).toBeNull()

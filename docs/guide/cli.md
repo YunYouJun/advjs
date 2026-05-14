@@ -221,6 +221,12 @@ adv play choose <number> --session-id <id> [--json]
 # 查看会话状态
 adv play status --session-id <id> [--json]
 
+# 保存当前会话快照到 JSON 文件
+adv play save --session-id <id> --output save-01.json
+
+# 从 JSON 快照恢复会话，可指定新的 session-id
+adv play load save-01.json --session-id <id> [--json]
+
 # 列出所有活跃会话
 adv play list [--json]
 
@@ -242,6 +248,10 @@ adv play next --session-id story-1 --json
 
 # Agent 模式 - 选择
 adv play choose 1 --session-id story-1 --json
+
+# 保存/读档
+adv play save --session-id story-1 --output save-01.json
+adv play load save-01.json --session-id story-1-restored --json
 
 # 列出会话
 adv play list --json

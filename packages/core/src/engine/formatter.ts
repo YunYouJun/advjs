@@ -1,5 +1,5 @@
 import type { AdvAst } from '@advjs/types'
-import type { AstChild, FormattedOutput } from './types'
+import type { AstChild, FormattedOutput, PlayStageState } from './types'
 import { tf } from './i18n'
 
 /**
@@ -15,6 +15,21 @@ function extractText(children: AdvAst.PhrasingContent[]): string {
       return ''
     })
     .join('')
+}
+
+function formatStage(stage?: PlayStageState): string {
+  if (!stage)
+    return ''
+
+  const parts: string[] = []
+  if (stage.background)
+    parts.push(`[BG ${stage.background}]`)
+  if (stage.bgm)
+    parts.push(`[BGM ${stage.bgm}]`)
+  if (stage.tachieAscii.length)
+    parts.push(`[Tachie ${stage.tachieAscii.join(' ')}]`)
+
+  return parts.length ? `${parts.join(' ')}\n` : ''
 }
 
 /**
@@ -103,21 +118,23 @@ export function formatNode(node: AstChild): FormattedOutput | null {
  * Format output as plain text for CLI
  */
 export function formatAsText(output: FormattedOutput): string {
+  const stage = formatStage(output.stage)
+
   switch (output.type) {
     case 'dialog':
-      return output.status
+      return stage + (output.status
         ? `${output.character}(${output.status}): ${output.text}`
-        : `${output.character}: ${output.text}`
+        : `${output.character}: ${output.text}`)
     case 'narration':
-      return `  "${output.text}"`
+      return `${stage}  "${output.text}"`
     case 'choices':
-      return output.text
+      return stage + output.text
     case 'scene':
-      return output.text
+      return stage + output.text
     case 'text':
-      return output.text
+      return stage + output.text
     case 'end':
-      return `\n${output.text}\n`
+      return `${stage}\n${output.text}\n`
     default:
       return ''
   }

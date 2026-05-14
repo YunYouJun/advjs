@@ -28,6 +28,22 @@ export interface Background {
   url?: string
 }
 
+export interface Bgm {
+  type: 'bgm'
+  /**
+   * load from audio library by name
+   */
+  name?: string
+  /**
+   * load by URL or local path
+   */
+  src?: string
+  /**
+   * stop current background music
+   */
+  stop?: boolean
+}
+
 export interface Go extends Node {
   type: 'go'
   target: string
@@ -215,7 +231,7 @@ export interface PhrasingContentMap {
 
 export type PhrasingContent = PhrasingContentMap[keyof PhrasingContentMap]
 
-export type CodeOperation = Camera | Tachie | Background | Go
+export type CodeOperation = Camera | Tachie | Background | Bgm | Go
 export type Item = Unknown | Paragraph | Narration | Character | Words | Text | SceneInfo | Dialog | Choices | Code
 
 export type Child = Item

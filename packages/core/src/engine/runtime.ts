@@ -1,5 +1,5 @@
 import type { AdvAst } from '@advjs/types'
-import type { FormattedOutput, PlaySession } from './types'
+import type { FormattedOutput, PlaySession, PlayStageState } from './types'
 import { parseAst } from '@advjs/parser'
 import { formatNode } from './formatter'
 import { SessionManager } from './session'
@@ -29,11 +29,11 @@ export class AdvPlayEngine {
     this.ast = await parseAst(content)
 
     const id = sessionId || `play-${Date.now()}`
-    this.session = await this.sessionManager.getOrCreate(
+    this.session = this.normalizeSession(await this.sessionManager.getOrCreate(
       id,
       scriptPath,
       JSON.stringify(this.ast),
-    )
+    ))
 
     // If resuming an existing session, restore AST
     if (this.session.currentIndex > 0) {
@@ -51,6 +51,7 @@ export class AdvPlayEngine {
     this.session = await this.sessionManager.get(sessionId)
     if (!this.session)
       return null
+    this.session = this.normalizeSession(this.session)
 
     this.ast = JSON.parse(this.session.ast)
     return this.advanceToNextDisplayable()
@@ -64,10 +65,10 @@ export class AdvPlayEngine {
       return null
 
     if (this.session.status === 'ended')
-      return { type: 'end', text: '— END —' }
+      return this.withStage({ type: 'end', text: '— END —' })
 
     if (this.session.status === 'waiting_choice')
-      return formatNode(this.ast.children[this.session.currentIndex])
+      return this.withStage(formatNode(this.ast.children[this.session.currentIndex]))
 
     this.session.currentIndex++
     return this.advanceToNextDisplayable()
@@ -115,9 +116,9 @@ export class AdvPlayEngine {
       return null
 
     if (this.session.currentIndex >= this.ast.children.length)
-      return { type: 'end', text: '— END —' }
+      return this.withStage({ type: 'end', text: '— END —' })
 
-    return formatNode(this.ast.children[this.session.currentIndex])
+    return this.withStage(formatNode(this.ast.children[this.session.currentIndex]))
   }
 
   /**
@@ -142,7 +143,9 @@ export class AdvPlayEngine {
         currentIndex: 0,
         totalNodes: 0,
         background: '',
+        bgm: '',
         tachies: {},
+        tachieAscii: [],
       }
     }
 
@@ -152,7 +155,9 @@ export class AdvPlayEngine {
       currentIndex: this.session.currentIndex,
       totalNodes: this.ast.children.length,
       background: this.session.background,
+      bgm: this.session.bgm,
       tachies: this.session.tachies,
+      tachieAscii: this.getTachieAscii(),
     }
   }
 
@@ -187,7 +192,7 @@ export class AdvPlayEngine {
 
       if (output) {
         await this.sessionManager.save(this.session)
-        return output
+        return this.withStage(output)
       }
 
       // Silent node, auto-advance
@@ -197,7 +202,7 @@ export class AdvPlayEngine {
     // Reached the end
     this.session.status = 'ended'
     await this.sessionManager.save(this.session)
-    return { type: 'end', text: '— END —' }
+    return this.withStage({ type: 'end', text: '— END —' })
   }
 
   /**
@@ -235,6 +240,11 @@ export class AdvPlayEngine {
           if ('url' in op)
             this.session.background = (op as AdvAst.Background).url || ''
           break
+        case 'bgm': {
+          const bgm = op as AdvAst.Bgm
+          this.session.bgm = bgm.stop ? '' : (bgm.name || bgm.src || '')
+          break
+        }
         case 'tachie': {
           const tachie = op as AdvAst.Tachie
           if (tachie.enter) {
@@ -263,5 +273,41 @@ export class AdvPlayEngine {
         // camera operations are visual-only, no state to track in CLI
       }
     }
+  }
+
+  private normalizeSession(session: PlaySession): PlaySession {
+    return {
+      ...session,
+      tachies: session.tachies ?? {},
+      background: session.background ?? '',
+      bgm: session.bgm ?? '',
+      choices: session.choices ?? {},
+    }
+  }
+
+  private getTachieAscii(): string[] {
+    if (!this.session)
+      return []
+    return Object.entries(this.session.tachies)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([name, tachie]) => tachie.status ? `[${name}:${tachie.status}]` : `[${name}]`)
+  }
+
+  private getStage(): PlayStageState {
+    return {
+      background: this.session?.background ?? '',
+      bgm: this.session?.bgm ?? '',
+      tachies: { ...(this.session?.tachies ?? {}) },
+      tachieAscii: this.getTachieAscii(),
+    }
+  }
+
+  private withStage<T extends FormattedOutput | null>(output: T): T {
+    if (!output)
+      return output
+    return {
+      ...output,
+      stage: this.getStage(),
+    } as T
   }
 }

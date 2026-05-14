@@ -1,5 +1,5 @@
 /* eslint-disable node/prefer-global/process */
-import type { PlaySession } from './types'
+import type { PlaySession, PlaySessionSnapshot } from './types'
 import { createStorage, prefixStorage } from 'unstorage'
 
 function isNode(): boolean {
@@ -21,6 +21,16 @@ export class SessionManager {
     // Start with memory storage, upgrade to fs when init() completes
     const raw = createStorage()
     this.storage = prefixStorage(raw, 'session')
+  }
+
+  private normalizeSession(session: PlaySession): PlaySession {
+    return {
+      ...session,
+      tachies: session.tachies ?? {},
+      background: session.background ?? '',
+      bgm: session.bgm ?? '',
+      choices: session.choices ?? {},
+    }
   }
 
   /**
@@ -65,6 +75,7 @@ export class SessionManager {
       choices: {},
       tachies: {},
       background: '',
+      bgm: '',
       status: 'playing',
       createdAt: Date.now(),
       updatedAt: Date.now(),
@@ -79,7 +90,8 @@ export class SessionManager {
    */
   async get(id: string): Promise<PlaySession | null> {
     await this.init()
-    return await this.storage.getItem(id) as PlaySession | null
+    const session = await this.storage.getItem(id) as PlaySession | null
+    return session ? this.normalizeSession(session) : null
   }
 
   /**
@@ -88,7 +100,33 @@ export class SessionManager {
   async save(session: PlaySession): Promise<void> {
     await this.init()
     session.updatedAt = Date.now()
-    await this.storage.setItem(session.id, session)
+    await this.storage.setItem(session.id, this.normalizeSession(session))
+  }
+
+  /**
+   * Export a session into a portable snapshot.
+   */
+  async exportSnapshot(id: string): Promise<PlaySessionSnapshot | null> {
+    const session = await this.get(id)
+    if (!session)
+      return null
+    return {
+      session,
+      ast: session.ast,
+    }
+  }
+
+  /**
+   * Import a portable snapshot. Optionally restore it under a new session ID.
+   */
+  async importSnapshot(snapshot: PlaySessionSnapshot, sessionId?: string): Promise<PlaySession> {
+    const session = this.normalizeSession({
+      ...snapshot.session,
+      id: sessionId || snapshot.session.id,
+      ast: snapshot.ast || snapshot.session.ast,
+    })
+    await this.save(session)
+    return session
   }
 
   /**

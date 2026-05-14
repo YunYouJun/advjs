@@ -1,5 +1,5 @@
 import type { Argv } from 'yargs'
-import { readFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import process from 'node:process'
 import * as readline from 'node:readline'
@@ -23,6 +23,13 @@ function output(data: unknown, json: boolean) {
     console.log(JSON.stringify(data, null, 2))
   else if (data && typeof data === 'object' && 'type' in data)
     console.log(formatAsText(data as any))
+}
+
+function printSnapshot(snapshot: unknown, json: boolean) {
+  if (json)
+    console.log(JSON.stringify(snapshot, null, 2))
+  else
+    console.log(JSON.stringify(snapshot, null, 2))
 }
 
 /**
@@ -168,6 +175,56 @@ export function installPlayCommand(cli: Argv) {
           console.log(JSON.stringify(status, null, 2))
         else
           consola.info(t('play.session_status'), status)
+      })
+      .command('save', t('play.save_desc'), (yargs) => {
+        return yargs
+          .option('session-id', { type: 'string', demandOption: true, describe: t('play.session_id_desc') })
+          .option('output', { alias: 'o', type: 'string', describe: t('play.save_output_desc') })
+          .option('json', { type: 'boolean', default: false })
+      }, async (argv) => {
+        const eng = getEngine()
+        const snapshot = await eng.getSessionManager().exportSnapshot(argv.sessionId as string)
+        if (!snapshot) {
+          consola.error(t('play.session_not_found', argv.sessionId as string))
+          process.exit(1)
+        }
+
+        const outputPath = argv.output as string | undefined
+        if (outputPath) {
+          await writeFile(resolve(process.cwd(), outputPath), JSON.stringify(snapshot, null, 2), 'utf-8')
+          if (argv.json)
+            console.log(JSON.stringify({ sessionId: snapshot.session.id, output: outputPath }, null, 2))
+          else
+            consola.success(t('play.session_saved', outputPath))
+        }
+        else {
+          printSnapshot(snapshot, argv.json as boolean)
+        }
+      })
+      .command('load <file>', t('play.load_desc'), (yargs) => {
+        return yargs
+          .positional('file', { type: 'string', demandOption: true, describe: t('play.load_file_desc') })
+          .option('session-id', { type: 'string', describe: t('play.session_id_desc') })
+          .option('json', { type: 'boolean', default: false })
+      }, async (argv) => {
+        const file = resolve(process.cwd(), argv.file as string)
+        const raw = await readFile(file, 'utf-8')
+        const snapshot = JSON.parse(raw)
+        const eng = getEngine()
+        const session = await eng.getSessionManager().importSnapshot(snapshot, argv.sessionId as string | undefined)
+        const resumed = await eng.resumeSession(session.id)
+        if (argv.json) {
+          console.log(JSON.stringify({
+            sessionId: session.id,
+            status: eng.getStatus(),
+            current: resumed,
+          }, null, 2))
+        }
+        else {
+          consola.success(t('play.session_loaded', session.id))
+          if (resumed)
+            console.log(formatAsText(resumed))
+        }
       })
       .command('list', t('play.list_desc'), (yargs) => {
         return yargs
