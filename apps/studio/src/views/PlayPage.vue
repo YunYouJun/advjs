@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { DbPlaySaveSlot } from '../utils/db'
 import {
   IonButton,
   IonContent,
@@ -10,13 +11,30 @@ import {
   IonPopover,
   toastController,
 } from '@ionic/vue'
-import { bookOutline, expandOutline, folderOpenOutline, refreshOutline, settingsOutline, shareOutline } from 'ionicons/icons'
-import { computed, onMounted, ref, watch } from 'vue'
+import {
+  arrowUndoOutline,
+  bookOutline,
+  expandOutline,
+  folderOpenOutline,
+  gitNetworkOutline,
+  imageOutline,
+  refreshOutline,
+  saveOutline,
+  settingsOutline,
+  shareOutline,
+  statsChartOutline,
+} from 'ionicons/icons'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import BranchGraphModal from '../components/BranchGraphModal.vue'
+import CgGalleryModal from '../components/CgGalleryModal.vue'
 import LayoutPage from '../components/common/LayoutPage.vue'
 import GamePlayer from '../components/GamePlayer.vue'
+import LoadSlotModal from '../components/LoadSlotModal.vue'
 import NodeSelector from '../components/NodeSelector.vue'
+import SaveSlotModal from '../components/SaveSlotModal.vue'
+import StoryStatsModal from '../components/StoryStatsModal.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
@@ -37,6 +55,11 @@ const currentChapterFile = ref('')
 const settingsPopover = ref(false)
 const settingsPopoverEvent = ref<Event>()
 const showChapterPanel = ref(false)
+const saveModalOpen = ref(false)
+const loadModalOpen = ref(false)
+const cgModalOpen = ref(false)
+const statsModalOpen = ref(false)
+const branchModalOpen = ref(false)
 
 watch(() => studioStore.currentProject, () => {
   loadChapters()
@@ -69,6 +92,63 @@ const playerNodes = computed(() => {
 const playerCurrentIndex = computed(() => {
   return gamePlayerRef.value?.currentIndex ?? 0
 })
+
+const playerTotalNodes = computed(() => gamePlayerRef.value?.totalNodes ?? 0)
+const playerVisitedOrders = computed<number[]>(() => gamePlayerRef.value?.visitedOrders ?? [])
+const playerHistoryStack = computed<number[]>(() => gamePlayerRef.value?.historyStack ?? [])
+const playerUnlockedCGs = computed<string[]>(() => gamePlayerRef.value?.unlockedCGs ?? [])
+const playerChapterAst = computed(() => gamePlayerRef.value?.currentChapterAst)
+const canRollback = computed(() => playerHistoryStack.value.length > 1)
+
+function getCurrentSnapshot() {
+  // Fall back to a stub if the player isn't ready; SaveSlotModal blocks the save call separately
+  return gamePlayerRef.value?.getCurrentSnapshot() ?? {
+    chapterFile: currentChapterFile.value,
+    order: 0,
+    totalNodes: 0,
+    chapterTitle: gameChapterName.value,
+    previewText: undefined,
+    background: '',
+    tachies: new Map(),
+  }
+}
+
+async function handleLoadSlot(row: DbPlaySaveSlot) {
+  // Switch to the saved chapter, then jump to its order and hydrate per-chapter progress.
+  await loadChapterForPlay(row.chapterFile)
+  await nextTick()
+  // Wait for the chapter AST to be ready before jumping.
+  let tries = 0
+  while (!gamePlayerRef.value?.totalNodes && tries < 30) {
+    await new Promise(r => setTimeout(r, 50))
+    tries++
+  }
+  gamePlayerRef.value?.goToNode(row.order)
+  gamePlayerRef.value?.hydrateProgress(row.chapterFile, {
+    visitedOrders: row.visitedOrders,
+    history: row.history,
+    unlockedCGs: row.unlockedCGs,
+  })
+  const toast = await toastController.create({
+    message: t('preview.loadSuccess', { slot: row.slot }),
+    duration: 1500,
+    position: 'top',
+    color: 'success',
+  })
+  await toast.present()
+}
+
+async function handleRollback() {
+  const newOrder = gamePlayerRef.value?.rollback(1) ?? null
+  if (newOrder === null) {
+    const toast = await toastController.create({
+      message: t('preview.rollbackUnavailable'),
+      duration: 1200,
+      position: 'top',
+    })
+    await toast.present()
+  }
+}
 
 /** List available chapters from project */
 async function loadChapters() {
@@ -238,6 +318,26 @@ async function handleShare() {
       />
     </template>
     <template v-if="studioStore.currentProject" #end>
+      <IonButton fill="clear" :aria-label="t('preview.save')" @click="saveModalOpen = true">
+        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+        <IonIcon slot="icon-only" :icon="saveOutline" />
+      </IonButton>
+      <IonButton fill="clear" :aria-label="t('preview.load')" @click="loadModalOpen = true">
+        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+        <IonIcon slot="icon-only" :icon="folderOpenOutline" />
+      </IonButton>
+      <IonButton fill="clear" :aria-label="t('preview.cgGallery')" @click="cgModalOpen = true">
+        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+        <IonIcon slot="icon-only" :icon="imageOutline" />
+      </IonButton>
+      <IonButton fill="clear" :aria-label="t('preview.stats')" @click="statsModalOpen = true">
+        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+        <IonIcon slot="icon-only" :icon="statsChartOutline" />
+      </IonButton>
+      <IonButton fill="clear" :aria-label="t('preview.branchGraph')" @click="branchModalOpen = true">
+        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+        <IonIcon slot="icon-only" :icon="gitNetworkOutline" />
+      </IonButton>
       <IonButton fill="clear" :aria-label="t('preview.settings')" @click="openSettings">
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
         <IonIcon slot="icon-only" :icon="settingsOutline" />
@@ -259,6 +359,7 @@ async function handleShare() {
           ref="gamePlayerRef"
           :content="gameContent"
           :chapter-name="gameChapterName"
+          :chapter-file="currentChapterFile"
           @load-chapter="handleLoadChapter"
         />
 
@@ -270,6 +371,18 @@ async function handleShare() {
           @click="showChapterPanel = true"
         >
           <IonIcon :icon="bookOutline" /> {{ chapters.length }}
+        </button>
+
+        <!-- Rollback FAB (only when history is non-empty) -->
+        <button
+          v-if="canRollback"
+          class="play-rollback-fab"
+          :aria-label="t('preview.rollback')"
+          :title="t('preview.rollback')"
+          @click="handleRollback"
+        >
+          <IonIcon :icon="arrowUndoOutline" />
+          {{ t('preview.rollbackButton') }}
         </button>
       </div>
 
@@ -342,6 +455,42 @@ async function handleShare() {
         </IonItem>
       </IonList>
     </IonPopover>
+
+    <!-- Save / Load / CG / Stats modals (Phase 17a) -->
+    <SaveSlotModal
+      v-if="studioStore.currentProject"
+      v-model:open="saveModalOpen"
+      :get-snapshot="getCurrentSnapshot"
+      :visited-orders="playerVisitedOrders"
+      :history="playerHistoryStack"
+      :unlocked-cgs="playerUnlockedCGs"
+    />
+    <LoadSlotModal
+      v-if="studioStore.currentProject"
+      v-model:open="loadModalOpen"
+      @select="handleLoadSlot"
+    />
+    <CgGalleryModal
+      v-if="studioStore.currentProject"
+      v-model:open="cgModalOpen"
+      :unlocked-cgs="playerUnlockedCGs"
+    />
+    <StoryStatsModal
+      v-if="studioStore.currentProject"
+      v-model:open="statsModalOpen"
+      :chapter-title="gameChapterName"
+      :total-nodes="playerTotalNodes"
+      :visited-orders="playerVisitedOrders"
+      :unlocked-cgs="playerUnlockedCGs"
+      :chapter-ast="playerChapterAst"
+    />
+    <BranchGraphModal
+      v-if="studioStore.currentProject"
+      v-model:open="branchModalOpen"
+      :ast="playerChapterAst"
+      :current-order="playerCurrentIndex"
+      :visited-orders="playerVisitedOrders"
+    />
   </LayoutPage>
 </template>
 
@@ -380,6 +529,42 @@ async function handleShare() {
 
 .play-chapter-fab:active {
   background: rgba(0, 0, 0, 0.8);
+}
+
+/* Rollback FAB (bottom-right, mirrors chapter FAB visual) */
+.play-rollback-fab {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+  border-radius: var(--adv-radius-xl);
+  border: none;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: var(--adv-font-body-sm);
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background 0.15s ease,
+    transform 0.1s ease;
+}
+
+.play-rollback-fab ion-icon {
+  font-size: var(--adv-font-body);
+}
+
+.play-rollback-fab:hover {
+  background: rgba(0, 0, 0, 0.75);
+}
+
+.play-rollback-fab:active {
+  transform: scale(0.96);
 }
 
 /* Chapter panel */

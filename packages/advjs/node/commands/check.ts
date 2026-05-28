@@ -1,14 +1,19 @@
-import { existsSync, readFileSync } from 'node:fs'
-import { basename, join, resolve } from 'node:path'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { basename, dirname, join } from 'node:path'
 import process from 'node:process'
 import { extractCharacterRefs, extractSceneRefs, parseCharacterMd } from '@advjs/parser'
 import { consola } from 'consola'
 import { colors } from 'consola/utils'
 import { t } from '../cli/i18n'
-import { parseSceneFrontmatter, scanFiles } from './utils'
+import { parseSceneFrontmatter, resolveGameRoot, sanitizeFilename, scanFiles } from './utils'
 
 export interface CheckOptions {
   root?: string
+  /**
+   * When true, generate stub files for unresolved character/scene
+   * references after the report. Existing files are never overwritten.
+   */
+  fix?: boolean
 }
 
 export interface CheckIssue {
@@ -27,30 +32,9 @@ export interface CheckResult {
   locationRefCount: number
 }
 
-/**
- * Resolve the game content root directory.
- * Priority: --root flag > adv.config.json root field > ./adv
- */
-export function resolveGameRoot(cwd: string, optionRoot?: string): string {
-  if (optionRoot)
-    return resolve(cwd, optionRoot)
-
-  // Try reading adv.config.json
-  const configPath = join(cwd, 'adv.config.json')
-  if (existsSync(configPath)) {
-    try {
-      const config = JSON.parse(readFileSync(configPath, 'utf-8'))
-      if (config.root)
-        return resolve(cwd, config.root)
-    }
-    catch (e: unknown) {
-      // warn about parse errors but fall through to default
-      consola.warn(`Failed to parse ${configPath}: ${e instanceof Error ? e.message : String(e)}`)
-    }
-  }
-
-  return resolve(cwd, 'adv')
-}
+// Re-exported from utils for backwards compatibility (callers used to import
+// `resolveGameRoot` from this module).
+export { resolveGameRoot } from './utils'
 
 const log = consola.log.bind(consola)
 
@@ -248,6 +232,74 @@ export async function runCheck(options: CheckOptions & { cwd?: string }): Promis
   }
 }
 
+export interface FixSummary {
+  created: string[]
+  skipped: string[]
+}
+
+/**
+ * Generate stub files for unresolved character/scene references.
+ *
+ * Conservative — only creates new files; never modifies existing ones.
+ * Returns the list of created paths (relative to cwd) and skipped paths
+ * (when a same-named file already exists, e.g. from an earlier run).
+ */
+export async function applyFixes(result: CheckResult, gameRoot: string, cwd: string = process.cwd()): Promise<FixSummary> {
+  const created: string[] = []
+  const skipped: string[] = []
+
+  const charactersDir = join(gameRoot, 'characters')
+  const scenesDir = join(gameRoot, 'scenes')
+
+  const seenCharacters = new Set<string>()
+  for (const issue of result.issues) {
+    if (issue.category !== 'character')
+      continue
+    if (seenCharacters.has(issue.message))
+      continue
+    seenCharacters.add(issue.message)
+
+    const safe = sanitizeFilename(issue.message)
+    const filePath = join(charactersDir, `${safe}.character.md`)
+    const rel = filePath.replace(`${cwd}/`, '')
+
+    if (existsSync(filePath)) {
+      skipped.push(rel)
+      continue
+    }
+
+    mkdirSync(dirname(filePath), { recursive: true })
+    const stub = `---\nid: ${safe}\nname: ${issue.message}\n---\n\n# ${issue.message}\n\n> TODO: 描述这个角色（外貌、性格、背景）。由 \`adv check --fix\` 自动生成。\n`
+    writeFileSync(filePath, stub, 'utf-8')
+    created.push(rel)
+  }
+
+  const seenScenes = new Set<string>()
+  for (const issue of result.issues) {
+    if (issue.category !== 'scene')
+      continue
+    if (seenScenes.has(issue.message))
+      continue
+    seenScenes.add(issue.message)
+
+    const safe = sanitizeFilename(issue.message)
+    const filePath = join(scenesDir, `${safe}.md`)
+    const rel = filePath.replace(`${cwd}/`, '')
+
+    if (existsSync(filePath)) {
+      skipped.push(rel)
+      continue
+    }
+
+    mkdirSync(dirname(filePath), { recursive: true })
+    const stub = `---\nid: ${safe}\nname: ${issue.message}\n---\n\n# ${issue.message}\n\n> TODO: 描述这个场景。由 \`adv check --fix\` 自动生成。\n`
+    writeFileSync(filePath, stub, 'utf-8')
+    created.push(rel)
+  }
+
+  return { created, skipped }
+}
+
 /**
  * Error class for check command failures.
  * Allows CLI layer to distinguish expected errors from unexpected crashes.
@@ -330,13 +382,39 @@ export async function advCheck(options: CheckOptions) {
     }
   }
 
+  // Auto-fix pass (creates stub files for unresolved character/scene refs)
+  let fixSummary: FixSummary | null = null
+  if (options.fix && (charIssues.length > 0 || sceneIssues.length > 0)) {
+    process.stdout.write('\n')
+    consola.start(t('check.fix_start'))
+    const cwd = process.cwd()
+    const gameRoot = resolveGameRoot(cwd, options.root)
+    fixSummary = await applyFixes(result, gameRoot, cwd)
+    if (fixSummary.created.length) {
+      consola.success(t('check.fix_created', fixSummary.created.length))
+      for (const file of fixSummary.created)
+        log(colors.green(`  + ${file}`))
+    }
+    if (fixSummary.skipped.length) {
+      consola.info(t('check.fix_skipped', fixSummary.skipped.length))
+      for (const file of fixSummary.skipped)
+        log(colors.dim(`  - ${file}`))
+    }
+  }
+
   // Summary
   process.stdout.write('\n')
+  // After --fix, recompute "passed" by ignoring issues that have a created stub
+  const fixedIssues = fixSummary?.created.length ?? 0
+  const remainingIssues = result.issues.length - fixedIssues
   if (result.passed) {
     consola.success(colors.green(t('check.summary_pass')))
   }
+  else if (remainingIssues <= 0) {
+    consola.success(colors.green(t('check.summary_pass_after_fix', fixedIssues)))
+  }
   else {
-    consola.error(colors.red(t('check.summary_fail', result.issues.length)))
-    throw new CheckError(t('check.summary_fail', result.issues.length), result.issues.length)
+    consola.error(colors.red(t('check.summary_fail', remainingIssues)))
+    throw new CheckError(t('check.summary_fail', remainingIssues), remainingIssues)
   }
 }

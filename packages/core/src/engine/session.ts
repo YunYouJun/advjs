@@ -1,6 +1,12 @@
 /* eslint-disable node/prefer-global/process */
-import type { PlaySession, PlaySessionSnapshot } from './types'
+import type { PlaySession, PlaySessionSnapshot, SaveSlotEntry, SaveSlotMeta } from './types'
 import { createStorage, prefixStorage } from 'unstorage'
+
+const SLOT_NAME_RE = /^[\w-]{1,40}$/
+
+export function isValidSlotName(slot: string): boolean {
+  return SLOT_NAME_RE.test(slot)
+}
 
 function isNode(): boolean {
   return typeof globalThis.process !== 'undefined'
@@ -14,6 +20,7 @@ function isNode(): boolean {
  */
 export class SessionManager {
   private storage
+  private slotStorage
   private initialized = false
   private initPromise: Promise<void> | null = null
 
@@ -21,6 +28,7 @@ export class SessionManager {
     // Start with memory storage, upgrade to fs when init() completes
     const raw = createStorage()
     this.storage = prefixStorage(raw, 'session')
+    this.slotStorage = prefixStorage(raw, 'save-slot')
   }
 
   private normalizeSession(session: PlaySession): PlaySession {
@@ -30,6 +38,9 @@ export class SessionManager {
       background: session.background ?? '',
       bgm: session.bgm ?? '',
       choices: session.choices ?? {},
+      visitedNodes: session.visitedNodes ?? [],
+      unlockedCGs: session.unlockedCGs ?? [],
+      history: session.history ?? [],
     }
   }
 
@@ -46,11 +57,17 @@ export class SessionManager {
       if (isNode()) {
         const fsDriverModule = await import('unstorage/drivers/fs')
         const fsDriver = fsDriverModule.default
-        const baseDir = this.baseDir || `${globalThis.process.env.HOME || '~'}/.advjs/play-sessions`
-        const raw = createStorage({
-          driver: fsDriver({ base: baseDir }),
-        })
-        this.storage = prefixStorage(raw, 'session')
+        const home = globalThis.process.env.HOME || '~'
+        const sessionBase = this.baseDir || `${home}/.advjs/play-sessions`
+        const slotBase = this.baseDir
+          ? `${this.baseDir.replace(/\/play-sessions$/, '')}/save-slots`
+          : `${home}/.advjs/save-slots`
+
+        const sessionRaw = createStorage({ driver: fsDriver({ base: sessionBase }) })
+        this.storage = prefixStorage(sessionRaw, 'session')
+
+        const slotRaw = createStorage({ driver: fsDriver({ base: slotBase }) })
+        this.slotStorage = prefixStorage(slotRaw, 'save-slot')
       }
       this.initialized = true
     })()
@@ -77,6 +94,9 @@ export class SessionManager {
       background: '',
       bgm: '',
       status: 'playing',
+      visitedNodes: [],
+      unlockedCGs: [],
+      history: [],
       createdAt: Date.now(),
       updatedAt: Date.now(),
     }
@@ -143,5 +163,112 @@ export class SessionManager {
   async list(): Promise<string[]> {
     await this.init()
     return await this.storage.getKeys()
+  }
+
+  /**
+   * Rollback a session by popping the most recent entries off its history stack.
+   *
+   * The top of `history` is the currently displayed node. Popping `steps` entries
+   * jumps `currentIndex` back to the deepest remaining entry. If history is empty
+   * or smaller than `steps`, rolls back as far as possible (no-op if empty).
+   *
+   * `status` is forced to `'playing'` so a rolled-back session can advance again
+   * even if it had reached `'waiting_choice'` or `'ended'`.
+   */
+  async rollback(sessionId: string, steps = 1): Promise<PlaySession | null> {
+    if (steps < 1)
+      return this.get(sessionId)
+
+    const session = await this.get(sessionId)
+    if (!session)
+      return null
+
+    const history = [...(session.history ?? [])]
+    if (history.length === 0)
+      return session
+
+    // Pop up to `steps` entries; the remaining top is the new currentIndex.
+    const popCount = Math.min(steps, history.length - 1 < 0 ? 0 : history.length)
+    for (let i = 0; i < popCount; i++)
+      history.pop()
+
+    const newIndex = history.length > 0 ? history[history.length - 1] : 0
+
+    session.history = history
+    session.currentIndex = newIndex
+    session.status = 'playing'
+    await this.save(session)
+    return session
+  }
+
+  /**
+   * Build the slot storage key (`<sessionId>:<slot>`).
+   *
+   * unstorage uses `:` as a path separator under the fs driver, so each
+   * session's slots end up under their own subdirectory on disk.
+   */
+  private slotKey(sessionId: string, slot: string): string {
+    return `${sessionId}:${slot}`
+  }
+
+  /**
+   * Persist a named save slot for a session.
+   */
+  async saveSlot(sessionId: string, slot: string, meta: Omit<SaveSlotMeta, 'slot' | 'sessionId' | 'createdAt'>): Promise<SaveSlotMeta> {
+    if (!isValidSlotName(slot))
+      throw new Error(`Invalid slot name "${slot}" — use letters, digits, "-" or "_" (max 40 chars)`)
+
+    const snapshot = await this.exportSnapshot(sessionId)
+    if (!snapshot)
+      throw new Error(`Session not found: ${sessionId}`)
+
+    await this.init()
+    const fullMeta: SaveSlotMeta = {
+      ...meta,
+      slot,
+      sessionId,
+      createdAt: Date.now(),
+    }
+    const entry: SaveSlotEntry = { meta: fullMeta, snapshot }
+    await this.slotStorage.setItem(this.slotKey(sessionId, slot), entry)
+    return fullMeta
+  }
+
+  /**
+   * Load a named save slot.
+   */
+  async loadSlot(sessionId: string, slot: string): Promise<SaveSlotEntry | null> {
+    await this.init()
+    const entry = await this.slotStorage.getItem(this.slotKey(sessionId, slot)) as SaveSlotEntry | null
+    return entry
+  }
+
+  /**
+   * List slots for a given session, ordered newest first.
+   */
+  async listSlots(sessionId: string): Promise<SaveSlotMeta[]> {
+    await this.init()
+    const prefix = `${sessionId}:`
+    const keys = await this.slotStorage.getKeys(prefix)
+    const results: SaveSlotMeta[] = []
+    for (const key of keys) {
+      const entry = await this.slotStorage.getItem(key) as SaveSlotEntry | null
+      if (entry?.meta)
+        results.push(entry.meta)
+    }
+    return results.sort((a, b) => b.createdAt - a.createdAt)
+  }
+
+  /**
+   * Delete a single slot. Returns whether the slot existed.
+   */
+  async deleteSlot(sessionId: string, slot: string): Promise<boolean> {
+    await this.init()
+    const key = this.slotKey(sessionId, slot)
+    const existing = await this.slotStorage.getItem(key)
+    if (!existing)
+      return false
+    await this.slotStorage.removeItem(key)
+    return true
   }
 }

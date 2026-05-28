@@ -26,7 +26,21 @@
     "hint_next": "enter/next",
     "no_sessions": "No active sessions.",
     "active_sessions": "Active sessions:",
-    "session_status": "Session status:"
+    "session_status": "Session status:",
+    "root_desc": "Game content root directory (default: from adv.config.json or ./adv)",
+    "save_slot_desc": "Named save slot (letters, digits, '-' or '_', max 40 chars)",
+    "save_note_desc": "Optional note attached to the save slot",
+    "saves_desc": "List named save slots for a session",
+    "delete_save_desc": "Delete a named save slot",
+    "load_slot_desc": "Load from a named save slot (requires --session-id)",
+    "slot_saved": "Save slot \"{0}\" saved for session {1}",
+    "slot_loaded": "Save slot \"{0}\" loaded into session {1}",
+    "slot_deleted": "Save slot \"{0}\" deleted from session {1}",
+    "slot_not_found": "Save slot \"{0}\" not found for session {1}",
+    "no_saves": "No save slots for session {0}",
+    "saves_for": "Save slots for session {0}:",
+    "load_slot_needs_session": "--slot requires --session-id to locate the save.",
+    "load_needs_file_or_slot": "Provide either a snapshot file path or --slot <name> --session-id <id>."
   },
   "dev": {
     "desc": "Start a local server for ADV.JS",
@@ -84,7 +98,12 @@
     "locations_errors": "Location references ({0} unresolved)",
     "location_unresolved": "{0}: place \"{1}\" has no matching scenes/*.md or locations/*.md",
     "summary_pass": "All checks passed!",
-    "summary_fail": "{0} issue(s) found"
+    "summary_pass_after_fix": "All checks passed after auto-fix ({0} stub(s) created)!",
+    "summary_fail": "{0} issue(s) found",
+    "fix_desc": "Auto-generate stub files for unresolved character/scene references",
+    "fix_start": "Auto-fix: generating stub files...",
+    "fix_created": "Created {0} stub file(s):",
+    "fix_skipped": "Skipped {0} file(s) that already exist:"
   },
   "context": {
     "desc": "Export project context for AI consumption",
@@ -123,6 +142,15 @@
     "option_fallback": "Option {0}",
     "choices_prompt": "Please choose:",
     "scene_label": "[Scene]"
+  },
+  "debug": {
+    "desc": "Inspect & analyze project internals (branches, AST, etc.)",
+    "subcommand_required": "Specify a debug subcommand. Available: branches",
+    "branches_desc": "Generate a branch graph (choices/go targets) for a script",
+    "branches_script_desc": "Path to the .adv.md script to analyze",
+    "branches_format_desc": "Output format: mermaid (default), json, text",
+    "branches_output_desc": "Write output to a file. Omit to print to stdout",
+    "branches_written": "Branch graph written to {0}"
   },
   "init": {
     "desc": "Initialize a new ADV.JS project from template",

@@ -1,95 +1,135 @@
 /// <reference types="vitest" />
 
-import legacy from '@vitejs/plugin-legacy'
-import vue from '@vitejs/plugin-vue'
-import UnoCSS from 'unocss/vite'
-import { defineConfig } from 'vite'
-import { VitePWA } from 'vite-plugin-pwa'
+import path from 'node:path'
+
+const legacyPluginPackage: string = '@vitejs/plugin-legacy'
+const vuePluginPackage: string = '@vitejs/plugin-vue'
+const unocssPluginPackage: string = 'unocss/vite'
+const pwaPluginPackage: string = 'vite-plugin-pwa'
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [
-    UnoCSS(),
-    vue(),
-    legacy(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico'],
-      manifest: {
-        name: 'ADV.JS Studio',
-        short_name: 'ADV Studio',
-        description: 'Visual novel creation studio',
-        theme_color: '#8b5cf6',
-        background_color: '#ffffff',
-        display: 'standalone',
-        orientation: 'any',
-        start_url: '/',
-        icons: [
-          {
-            src: '/pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png',
-          },
-          {
-            src: '/pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable',
-          },
-        ],
+export default async function createViteConfig() {
+  // Keep Vite plugin imports dynamic so editors using legacy moduleResolution do not fail on package .d.ts/.d.mts exports.
+  const [
+    { default: legacy },
+    { default: vue },
+    { default: UnoCSS },
+    { VitePWA },
+  ] = await Promise.all([
+    import(legacyPluginPackage),
+    import(vuePluginPackage),
+    import(unocssPluginPackage),
+    import(pwaPluginPackage),
+  ])
+
+  return {
+    // `__DEV__` is referenced inside `@advjs/client` and `@advjs/parser` source
+    // (originally meant for their own Vite-driven builds). When those packages
+    // are consumed via path aliases here, the constant is unresolved unless we
+    // declare it ourselves. `import.meta.env.DEV` resolves to true in dev /
+    // false in build.
+    define: {
+      __DEV__: 'import.meta.env.DEV',
+    },
+    plugins: [
+      // `/@advjs/locales` is a virtual module owned by `@advjs/vite-plugin-adv`,
+      // which Studio does not load (Studio has its own i18n via vue-i18n + JSON
+      // locales). The embedded `@advjs/client` runtime still imports it inside
+      // `modules/i18n.ts`, so we stub it to an empty messages map to satisfy
+      // the bundler.
+      {
+        name: 'advjs-studio:stub-virtual-locales',
+        resolveId(id: string) {
+          if (id === '/@advjs/locales')
+            return '\0virtual:advjs-locales'
+        },
+        load(id: string) {
+          if (id === '\0virtual:advjs-locales')
+            return 'export default { "zh-CN": {}, en: {} }'
+        },
       },
-      workbox: {
-        // Monaco editor ts.worker.js ~7MB, editor.api2 ~4MB
-        maximumFileSizeToCacheInBytes: 10 * 1000 * 1000,
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        runtimeCaching: [
-          {
-            // Cache app shell and static assets
-            urlPattern: /^https:\/\/.*\.(js|css|html|png|svg|ico|woff2)$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'static-assets',
-              expiration: {
-                maxEntries: 200,
-                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+      UnoCSS(),
+      vue(),
+      legacy(),
+      VitePWA({
+        registerType: 'prompt',
+        includeAssets: ['favicon.ico'],
+        manifest: {
+          name: 'ADV.JS Studio',
+          short_name: 'ADV Studio',
+          description: 'Visual novel creation studio',
+          theme_color: '#8b5cf6',
+          background_color: '#ffffff',
+          display: 'standalone',
+          orientation: 'any',
+          start_url: '/',
+          icons: [
+            {
+              src: '/pwa-192x192.png',
+              sizes: '192x192',
+              type: 'image/png',
+            },
+            {
+              src: '/pwa-512x512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'any maskable',
+            },
+          ],
+        },
+        workbox: {
+          // Monaco editor ts.worker.js ~7MB, editor.api2 ~4MB
+          maximumFileSizeToCacheInBytes: 10 * 1000 * 1000,
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+          runtimeCaching: [
+            {
+              // Cache app shell and static assets
+              urlPattern: /^https:\/\/.*\.(js|css|html|png|svg|ico|woff2)$/,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'static-assets',
+                expiration: {
+                  maxEntries: 200,
+                  maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+                },
               },
             },
+            {
+              // AI API calls: network first (never serve stale AI responses)
+              urlPattern: /^https:\/\/api\.(deepseek|openai|siliconflow|openrouter)\./,
+              handler: 'NetworkOnly',
+            },
+          ],
+        },
+      }),
+    ],
+    build: {
+      chunkSizeWarningLimit: 5000,
+      rollupOptions: {
+        output: {
+          manualChunks(id: string) {
+            // Monaco Editor — largest dependency, cache separately
+            if (id.includes('monaco-editor'))
+              return 'monaco-editor'
+            // Ionic UI — shared across almost every page
+            if (id.includes('@ionic/vue') || id.includes('@ionic/core') || id.includes('ionicons'))
+              return 'ionic'
           },
-          {
-            // AI API calls: network first (never serve stale AI responses)
-            urlPattern: /^https:\/\/api\.(deepseek|openai|siliconflow|openrouter)\./,
-            handler: 'NetworkOnly',
-          },
-        ],
-      },
-    }),
-  ],
-  build: {
-    chunkSizeWarningLimit: 5000,
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          // Monaco Editor — largest dependency, cache separately
-          if (id.includes('monaco-editor'))
-            return 'monaco-editor'
-          // Ionic UI — shared across almost every page
-          if (id.includes('@ionic/vue') || id.includes('@ionic/core') || id.includes('ionicons'))
-            return 'ionic'
         },
       },
     },
-  },
-  resolve: {
-    alias: {
-      '@': `${import.meta.dirname}/src`,
-      '@advjs/types': `${import.meta.dirname}/../../packages/types/src/index.ts`,
-      '@advjs/parser': `${import.meta.dirname}/../../packages/parser/src/index.ts`,
+    resolve: {
+      alias: {
+        '@': path.join(import.meta.dirname, 'src'),
+        '@advjs/types': path.join(import.meta.dirname, '../../packages/types/src/index.ts'),
+        '@advjs/parser': path.join(import.meta.dirname, '../../packages/parser/src/index.ts'),
+      },
     },
-  },
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    include: ['src/**/*.{test,spec}.{ts,tsx}'],
-    exclude: ['tests/**', 'src/**/*.e2e.*'],
-  },
-})
+    test: {
+      globals: true,
+      environment: 'jsdom',
+      include: ['src/**/*.{test,spec}.{ts,tsx}'],
+      exclude: ['tests/**', 'src/**/*.e2e.*'],
+    },
+  }
+}

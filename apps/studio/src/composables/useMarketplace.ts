@@ -2,6 +2,9 @@ import type cloudbase from '@cloudbase/js-sdk'
 import type { StudioProject } from '../stores/useStudioStore'
 import { ref } from 'vue'
 import { useAuthStore } from '../stores/useAuthStore'
+import { createNotifications } from '../stores/useNotificationsStore'
+import { track } from '../utils/telemetry'
+import { useFollow } from './useFollow'
 
 /**
  * CloudBase collection names for the marketplace.
@@ -75,11 +78,39 @@ export interface ReviewRecord {
  */
 export function useMarketplace() {
   const authStore = useAuthStore()
+  const { listFollowers } = useFollow()
   const isBusy = ref(false)
   const error = ref<string | null>(null)
 
   function getDb(cloudApp: cloudbase.app.App) {
     return cloudApp.database()
+  }
+
+  /**
+   * After a first-time publish, notify each follower with a `new_project`
+   * entry in `advjs_notifications`. Best-effort; bounded by the 500-follower
+   * cap in `useFollow.listFollowers`.
+   */
+  async function fanOutNewProject(
+    cloudApp: cloudbase.app.App,
+    authorId: string,
+    marketDocId: string,
+    record: Omit<MarketplaceRecord, '_id'>,
+  ): Promise<void> {
+    const followers = await listFollowers(cloudApp, authorId)
+    const recipientIds = followers.map(f => f.followerId).filter(Boolean)
+    if (recipientIds.length === 0)
+      return
+    await createNotifications(cloudApp, recipientIds, {
+      type: 'new_project',
+      refId: marketDocId,
+      payload: {
+        actorId: authorId,
+        actorName: record.authorName,
+        projectName: record.name,
+        cover: record.cover,
+      },
+    })
   }
 
   /**
@@ -135,15 +166,28 @@ export function useMarketplace() {
         updatedAt: now,
       }
 
+      let docId: string
+      let firstPublish = false
       if (existing.data && existing.data.length > 0) {
-        const docId = (existing.data[0] as MarketplaceRecord)._id!
+        docId = (existing.data[0] as MarketplaceRecord)._id!
         await collection.doc(docId).update(record)
-        return docId
+        track('project_published', { projectId: project.projectId, version: record.version, tags: options.tags })
       }
       else {
         const result = await collection.add(record)
-        return result.id as string
+        docId = result.id as string
+        firstPublish = true
+        track('project_published', { projectId: project.projectId, version: record.version, tags: options.tags, firstTime: true })
       }
+
+      // Fan-out a `new_project` notification to all followers on first publish
+      // only — bumping a version shouldn't spam everyone again.
+      if (firstPublish) {
+        await fanOutNewProject(cloudApp, uid, docId, record).catch(() => {
+          // Notification fan-out is best-effort; don't fail the publish.
+        })
+      }
+      return docId
     }
     catch (err) {
       error.value = err instanceof Error ? err.message : String(err)

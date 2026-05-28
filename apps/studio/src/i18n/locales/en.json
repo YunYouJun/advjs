@@ -190,7 +190,47 @@
     "shareCopied": "Link copied",
     "nodes": "Nodes",
     "restart": "Restart",
-    "goSettings": "Open Settings"
+    "goSettings": "Open Settings",
+    "save": "Save",
+    "load": "Load",
+    "cgGallery": "CG Gallery",
+    "stats": "Stats",
+    "rollback": "Rollback",
+    "branchGraph": "Branch Graph",
+    "noProject": "No project selected",
+    "saveSlotTitle": "Save Slots",
+    "loadSlotTitle": "Load Slot",
+    "emptySlot": "Empty",
+    "newSlot": "New Save",
+    "overwriteSlot": "Overwrite {slot}",
+    "slotNote": "Note (optional)",
+    "slotNotePlaceholder": "Before a major choice…",
+    "saveSuccess": "Saved to {slot}",
+    "saveError": "Save failed",
+    "loadSuccess": "Loaded {slot}",
+    "loadError": "Load failed",
+    "deleteSlot": "Delete slot",
+    "deleteConfirm": "Delete this slot?",
+    "noSlots": "No saves yet",
+    "cgGalleryTitle": "CG Gallery",
+    "cgNoUnlocks": "No CGs unlocked yet. Keep playing — scene backgrounds collect here!",
+    "cgClickToView": "Click to view",
+    "statsTitle": "Story Stats",
+    "statsCompletion": "Chapter completion",
+    "statsCgCollected": "CGs collected",
+    "statsChoicesMade": "Choices made",
+    "statsBranchesExplored": "Branches explored",
+    "statsTotalNodes": "Total nodes",
+    "statsVisitedNodes": "Visited nodes",
+    "rollbackSuccess": "Rolled back",
+    "rollbackUnavailable": "No history to roll back",
+    "branchGraphTitle": "Branch Graph",
+    "branchGraphLoading": "Generating…",
+    "branchGraphError": "Failed to render branch graph",
+    "branchGraphLegend": "Visited / Current / Unvisited",
+    "savedAt": "Saved {time}",
+    "currentNode": "Node {order}/{total}",
+    "rollbackButton": "Back"
   },
   "editor": {
     "back": "Back",
@@ -252,7 +292,8 @@
     "feedback": "Feedback",
     "about": "About",
     "developer": "Developer Options",
-    "portfolio": "My Portfolio"
+    "portfolio": "My Portfolio",
+    "analytics": "My Stats"
   },
   "developer": {
     "title": "Developer Options",
@@ -680,7 +721,10 @@
     "exportSuccess": "Project exported as .advpkg.zip",
     "exportFailed": "Export failed",
     "importSuccess": "Project \"{name}\" imported successfully",
-    "importFailed": "Import failed"
+    "importFailed": "Import failed",
+    "standaloneExport": "Export as standalone site",
+    "standaloneSuccess": "Standalone PWA bundle exported",
+    "standaloneFailed": "Standalone export failed"
   },
   "marketplace": {
     "title": "Story Market",
@@ -1269,5 +1313,149 @@
     "inviteFailed": "Invite failed",
     "inviteUidRequired": "Please enter a user UID",
     "remove": "Remove"
+  },
+  "aiAuthoring": {
+    "toolsMenu": "AI Tools",
+    "shortDesc": {
+      "plot": "AI suggests 3 plot branches for this chapter",
+      "roleplay": "AI roleplay with selected characters toward a goal",
+      "draft": "AI drafts the chapter body from world + outline",
+      "consistency": "Scan for character drift, timeline issues, unresolved hooks"
+    },
+    "error": {
+      "title": "AI request failed",
+      "retry": "Retry",
+      "gotoSettings": "AI Settings",
+      "auth": "Authentication failed",
+      "rateLimit": "Rate limit exceeded",
+      "network": "Network error",
+      "timeout": "Request timed out",
+      "notFound": "Model not found",
+      "aborted": "Cancelled",
+      "notConfigured": "AI provider not configured",
+      "unknown": "Request failed"
+    },
+    "outline": {
+      "generate": "AI Generate Outline",
+      "regenerate": "Regenerate",
+      "cancel": "Generating… tap to cancel",
+      "modalTitle": "AI Generate Story Outline",
+      "contextTitle": "Context",
+      "contextWorld": "world.md: {n} chars",
+      "contextCharacters": "Characters: {n}",
+      "hintLabel": "Author hint (optional)",
+      "hintPlaceholder": "e.g. cyberpunk tone, female protagonist, focus on foreshadowing",
+      "previewLabel": "AI draft",
+      "writeBack": "Write back to outline.md",
+      "openInEditor": "Write back and open in editor",
+      "writeBackSuccess": "outline.md updated",
+      "notConfigured": "AI provider not configured. Open Me → AI Settings to configure.",
+      "aborted": "Generation cancelled",
+      "failed": "Generation failed. Please retry."
+    },
+    "chapter": {
+      "draft": "AI Draft",
+      "generate": "AI Draft Chapter",
+      "regenerate": "Regenerate",
+      "cancel": "Generating… tap to cancel",
+      "modalTitle": "AI Draft Chapter Body",
+      "selectCharacters": "Characters in scene",
+      "hintLabel": "Author hint (optional)",
+      "hintPlaceholder": "e.g. detective interrogates the suspect, tense mood, leave a hook at the end",
+      "previewLabel": "AdvScript draft",
+      "replace": "Replace current body",
+      "append": "Append to body",
+      "copy": "Copy to clipboard",
+      "copied": "Copied to clipboard",
+      "notConfigured": "AI provider not configured. Open Me → AI Settings to configure.",
+      "aborted": "Generation cancelled",
+      "failed": "Generation failed. Please retry."
+    },
+    "plot": {
+      "suggest": "Plot Ideas",
+      "generate": "Suggest 3 branches",
+      "regenerate": "Regenerate",
+      "modalTitle": "AI Plot Branch Suggestions",
+      "hintLabel": "Author hint (optional)",
+      "hintPlaceholder": "e.g. need a twist, resolve a hook from chapter 1",
+      "hookPrefix": "Hook: ",
+      "notConfigured": "AI provider not configured. Open Me → AI Settings to configure.",
+      "failed": "Generation failed. Please retry."
+    },
+    "roleplay": {
+      "run": "AI Roleplay",
+      "rerun": "Re-simulate",
+      "cancel": "Running… tap to cancel",
+      "modalTitle": "AI Character Roleplay",
+      "goalLabel": "Scene goal",
+      "goalPlaceholder": "e.g. detective first interrogates the suspect, aiming to extract an alibi",
+      "roundsLabel": "Rounds (1-20)",
+      "selectCharacters": "Participants",
+      "appendToChapter": "Append to current chapter",
+      "copy": "Copy as AdvScript",
+      "copied": "Copied AdvScript to clipboard",
+      "notConfigured": "AI provider not configured. Open Me → AI Settings to configure.",
+      "failed": "Simulation failed or cancelled"
+    },
+    "consistency": {
+      "run": "Consistency Check",
+      "recheck": "Re-check",
+      "modalTitle": "AI Consistency Gate",
+      "passed": "✅ No consistency issues found in this chapter",
+      "notConfigured": "AI provider not configured. Open Me → AI Settings to configure.",
+      "failed": "Check failed. Please retry.",
+      "severity": {
+        "info": "Info",
+        "warn": "Warn",
+        "error": "Error"
+      },
+      "kind": {
+        "character-drift": "Character drift",
+        "timeline": "Timeline",
+        "world-conflict": "World conflict",
+        "unresolved-foreshadow": "Unresolved hook",
+        "continuity": "Continuity",
+        "other": "Other"
+      }
+    }
+  },
+  "pwa": {
+    "updateAvailable": "A new version is available",
+    "updateNow": "Update now",
+    "updateLater": "Later",
+    "offlineReady": "App is ready to work offline"
+  },
+  "telemetry": {
+    "optInTitle": "Help us improve Studio",
+    "optInMessage": "Anonymous usage stats + crash reports (no project content). Disable any time via Me → Privacy.",
+    "optIn": "Allow",
+    "optOut": "Decline"
+  },
+  "myStats": {
+    "title": "My Stats",
+    "totalProjects": "Published works",
+    "totalDownloads": "Total downloads",
+    "totalCharacters": "Characters",
+    "averageRating": "Average rating",
+    "noPublished": "No published works yet. Bind a project and publish it to the Marketplace to see stats here."
+  },
+  "follow": {
+    "follow": "Follow",
+    "unfollow": "Following",
+    "followers": "Followers",
+    "following": "Following",
+    "loginRequired": "Please log in to follow creators"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet",
+    "markAllRead": "Mark all read",
+    "someone": "Someone",
+    "newProject": "{actor} published a new work: {project}",
+    "followReceived": "{actor} started following you",
+    "justNow": "just now",
+    "minutesAgo": "{n}m ago",
+    "hoursAgo": "{n}h ago",
+    "daysAgo": "{n}d ago"
   }
 }

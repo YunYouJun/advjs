@@ -1,20 +1,65 @@
+import type { AdvCharacter } from '@advjs/types'
 import type { Argv } from 'yargs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { readFile, writeFile } from 'node:fs/promises'
-import { resolve } from 'node:path'
+import { basename, join, resolve } from 'node:path'
 import process from 'node:process'
 import * as readline from 'node:readline'
 import { AdvPlayEngine, formatAsText } from '@advjs/core'
+import { parseCharacterMd } from '@advjs/parser'
 import { consola } from 'consola'
 import { colors } from 'consola/utils'
+import { resolveGameRoot } from '../commands/utils'
 import { t } from './i18n'
 
 const CHOICE_RE = /^(?:choose\s+)?(\d+)$/
+const PLOT_SUMMARY_RE = /^plotSummary:(.*)$/m
 
 let engine: AdvPlayEngine | null = null
 
-function getEngine(sessionDir?: string): AdvPlayEngine {
-  if (!engine)
-    engine = new AdvPlayEngine(sessionDir)
+/**
+ * Build a character lookup from the resolved game root so the engine can
+ * enrich tachie state with `appearance` from `.character.md`.
+ */
+function loadCharacterDirectory(gameRoot: string): Map<string, AdvCharacter> {
+  const dir = join(gameRoot, 'characters')
+  const map = new Map<string, AdvCharacter>()
+  if (!existsSync(dir))
+    return map
+  for (const file of readdirSync(dir)) {
+    if (!file.endsWith('.character.md'))
+      continue
+    try {
+      const character = parseCharacterMd(readFileSync(join(dir, file), 'utf-8'))
+      // index by id, name, and aliases
+      map.set(character.id, character)
+      map.set(character.name, character)
+      for (const alias of character.aliases ?? [])
+        map.set(alias, character)
+    }
+    catch {
+      // skip invalid character files — `adv check` will surface them
+    }
+  }
+  return map
+}
+
+function getEngine(opts?: { sessionDir?: string, root?: string }): AdvPlayEngine {
+  if (!engine) {
+    engine = new AdvPlayEngine(opts?.sessionDir)
+    const gameRoot = resolveGameRoot(process.cwd(), opts?.root)
+    if (existsSync(gameRoot)) {
+      const characters = loadCharacterDirectory(gameRoot)
+      engine.setHooks({
+        getCharacterMeta: (name) => {
+          const char = characters.get(name)
+          if (!char)
+            return undefined
+          return char.appearance ? { appearance: char.appearance } : {}
+        },
+      })
+    }
+  }
   return engine
 }
 
@@ -26,19 +71,34 @@ function output(data: unknown, json: boolean) {
 }
 
 function printSnapshot(snapshot: unknown, json: boolean) {
-  if (json)
-    console.log(JSON.stringify(snapshot, null, 2))
-  else
-    console.log(JSON.stringify(snapshot, null, 2))
+  // snapshot is JSON either way; `json` flag kept for symmetry.
+  void json
+  console.log(JSON.stringify(snapshot, null, 2))
+}
+
+/**
+ * Best-effort chapter title from script frontmatter (`plotSummary` field).
+ */
+function extractChapterTitle(scriptPath: string): string | undefined {
+  try {
+    const content = readFileSync(scriptPath, 'utf-8')
+    const match = content.match(PLOT_SUMMARY_RE)
+    if (match)
+      return match[1].trim().replace(/^['"]|['"]$/g, '')
+  }
+  catch {
+    // missing or unreadable script — chapter title is best-effort only
+  }
+  return basename(scriptPath, '.adv.md')
 }
 
 /**
  * Interactive play mode - reads stdin for next/choose commands
  */
-async function interactivePlay(scriptPath: string, sessionId?: string) {
+async function interactivePlay(scriptPath: string, sessionId?: string, root?: string) {
   const absPath = resolve(process.cwd(), scriptPath)
   const content = await readFile(absPath, 'utf-8')
-  const eng = getEngine()
+  const eng = getEngine({ root })
 
   const result = await eng.loadScript(content, absPath, sessionId)
   if (result) {
@@ -125,6 +185,10 @@ export function installPlayCommand(cli: Argv) {
         type: 'string',
         describe: t('play.session_id_desc'),
       })
+      .option('root', {
+        type: 'string',
+        describe: t('play.root_desc'),
+      })
       .option('json', {
         type: 'boolean',
         default: false,
@@ -133,9 +197,10 @@ export function installPlayCommand(cli: Argv) {
       .command('next', t('play.next_desc'), (yargs) => {
         return yargs
           .option('session-id', { type: 'string', demandOption: true, describe: t('play.session_id_desc') })
+          .option('root', { type: 'string', describe: t('play.root_desc') })
           .option('json', { type: 'boolean', default: false })
       }, async (argv) => {
-        const eng = getEngine()
+        const eng = getEngine({ root: argv.root as string | undefined })
         const result = await eng.resumeSession(argv.sessionId as string)
         if (!result) {
           consola.error(t('play.session_not_found', argv.sessionId as string))
@@ -148,9 +213,10 @@ export function installPlayCommand(cli: Argv) {
         return yargs
           .positional('number', { type: 'number', demandOption: true, describe: t('play.choice_number_desc') })
           .option('session-id', { type: 'string', demandOption: true, describe: t('play.session_id_desc') })
+          .option('root', { type: 'string', describe: t('play.root_desc') })
           .option('json', { type: 'boolean', default: false })
       }, async (argv) => {
-        const eng = getEngine()
+        const eng = getEngine({ root: argv.root as string | undefined })
         const result = await eng.resumeSession(argv.sessionId as string)
         if (!result) {
           consola.error(t('play.session_not_found', argv.sessionId as string))
@@ -162,9 +228,10 @@ export function installPlayCommand(cli: Argv) {
       .command('status', t('play.status_desc'), (yargs) => {
         return yargs
           .option('session-id', { type: 'string', demandOption: true, describe: t('play.session_id_desc') })
+          .option('root', { type: 'string', describe: t('play.root_desc') })
           .option('json', { type: 'boolean', default: false })
       }, async (argv) => {
-        const eng = getEngine()
+        const eng = getEngine({ root: argv.root as string | undefined })
         const result = await eng.resumeSession(argv.sessionId as string)
         if (!result) {
           consola.error(t('play.session_not_found', argv.sessionId as string))
@@ -180,40 +247,113 @@ export function installPlayCommand(cli: Argv) {
         return yargs
           .option('session-id', { type: 'string', demandOption: true, describe: t('play.session_id_desc') })
           .option('output', { alias: 'o', type: 'string', describe: t('play.save_output_desc') })
+          .option('slot', { type: 'string', describe: t('play.save_slot_desc') })
+          .option('note', { type: 'string', describe: t('play.save_note_desc') })
+          .option('root', { type: 'string', describe: t('play.root_desc') })
           .option('json', { type: 'boolean', default: false })
       }, async (argv) => {
-        const eng = getEngine()
-        const snapshot = await eng.getSessionManager().exportSnapshot(argv.sessionId as string)
+        const eng = getEngine({ root: argv.root as string | undefined })
+        const sessionId = argv.sessionId as string
+        const slot = argv.slot as string | undefined
+        const json = argv.json as boolean
+
+        // Slot mode: persist a named save with metadata
+        if (slot) {
+          const resumed = await eng.resumeSession(sessionId)
+          if (!resumed) {
+            consola.error(t('play.session_not_found', sessionId))
+            process.exit(1)
+          }
+          const status = eng.getStatus()
+          const session = (await eng.getSessionManager().get(sessionId))!
+          const meta = await eng.getSessionManager().saveSlot(sessionId, slot, {
+            scriptPath: session.scriptPath,
+            currentIndex: session.currentIndex,
+            totalNodes: status.totalNodes as number,
+            chapterTitle: extractChapterTitle(session.scriptPath),
+            previewText: eng.getCurrentPreviewText(),
+            note: argv.note as string | undefined,
+          })
+          if (json)
+            console.log(JSON.stringify(meta, null, 2))
+          else
+            consola.success(t('play.slot_saved', slot, sessionId))
+          return
+        }
+
+        const snapshot = await eng.getSessionManager().exportSnapshot(sessionId)
         if (!snapshot) {
-          consola.error(t('play.session_not_found', argv.sessionId as string))
+          consola.error(t('play.session_not_found', sessionId))
           process.exit(1)
         }
 
         const outputPath = argv.output as string | undefined
         if (outputPath) {
           await writeFile(resolve(process.cwd(), outputPath), JSON.stringify(snapshot, null, 2), 'utf-8')
-          if (argv.json)
+          if (json)
             console.log(JSON.stringify({ sessionId: snapshot.session.id, output: outputPath }, null, 2))
           else
             consola.success(t('play.session_saved', outputPath))
         }
         else {
-          printSnapshot(snapshot, argv.json as boolean)
+          printSnapshot(snapshot, json)
         }
       })
-      .command('load <file>', t('play.load_desc'), (yargs) => {
+      .command('load [file]', t('play.load_desc'), (yargs) => {
         return yargs
-          .positional('file', { type: 'string', demandOption: true, describe: t('play.load_file_desc') })
+          .positional('file', { type: 'string', describe: t('play.load_file_desc') })
           .option('session-id', { type: 'string', describe: t('play.session_id_desc') })
+          .option('slot', { type: 'string', describe: t('play.load_slot_desc') })
+          .option('root', { type: 'string', describe: t('play.root_desc') })
           .option('json', { type: 'boolean', default: false })
       }, async (argv) => {
-        const file = resolve(process.cwd(), argv.file as string)
-        const raw = await readFile(file, 'utf-8')
+        const eng = getEngine({ root: argv.root as string | undefined })
+        const slot = argv.slot as string | undefined
+        const sessionId = argv.sessionId as string | undefined
+        const file = argv.file as string | undefined
+        const json = argv.json as boolean
+
+        // Slot mode requires both --slot and the source --session-id
+        if (slot) {
+          if (!sessionId) {
+            consola.error(t('play.load_slot_needs_session'))
+            process.exit(1)
+          }
+          const entry = await eng.getSessionManager().loadSlot(sessionId, slot)
+          if (!entry) {
+            consola.error(t('play.slot_not_found', slot, sessionId))
+            process.exit(1)
+          }
+          const session = await eng.getSessionManager().importSnapshot(entry.snapshot, sessionId)
+          const resumed = await eng.resumeSession(session.id)
+          if (json) {
+            console.log(JSON.stringify({
+              sessionId: session.id,
+              slot,
+              meta: entry.meta,
+              status: eng.getStatus(),
+              current: resumed,
+            }, null, 2))
+          }
+          else {
+            consola.success(t('play.slot_loaded', slot, session.id))
+            if (resumed)
+              console.log(formatAsText(resumed))
+          }
+          return
+        }
+
+        if (!file) {
+          consola.error(t('play.load_needs_file_or_slot'))
+          process.exit(1)
+        }
+
+        const filePath = resolve(process.cwd(), file)
+        const raw = await readFile(filePath, 'utf-8')
         const snapshot = JSON.parse(raw)
-        const eng = getEngine()
-        const session = await eng.getSessionManager().importSnapshot(snapshot, argv.sessionId as string | undefined)
+        const session = await eng.getSessionManager().importSnapshot(snapshot, sessionId)
         const resumed = await eng.resumeSession(session.id)
-        if (argv.json) {
+        if (json) {
           console.log(JSON.stringify({
             sessionId: session.id,
             status: eng.getStatus(),
@@ -224,6 +364,50 @@ export function installPlayCommand(cli: Argv) {
           consola.success(t('play.session_loaded', session.id))
           if (resumed)
             console.log(formatAsText(resumed))
+        }
+      })
+      .command('saves', t('play.saves_desc'), (yargs) => {
+        return yargs
+          .option('session-id', { type: 'string', demandOption: true, describe: t('play.session_id_desc') })
+          .option('json', { type: 'boolean', default: false })
+      }, async (argv) => {
+        const eng = getEngine()
+        const sessionId = argv.sessionId as string
+        const slots = await eng.getSessionManager().listSlots(sessionId)
+        if (argv.json) {
+          console.log(JSON.stringify(slots, null, 2))
+        }
+        else if (slots.length === 0) {
+          consola.info(t('play.no_saves', sessionId))
+        }
+        else {
+          consola.info(t('play.saves_for', sessionId))
+          for (const meta of slots) {
+            const created = new Date(meta.createdAt).toISOString()
+            const note = meta.note ? colors.dim(` — ${meta.note}`) : ''
+            const preview = meta.previewText ? colors.dim(` "${meta.previewText}"`) : ''
+            console.log(`  • ${colors.cyan(meta.slot)} ${colors.dim(`(${created})`)} ${meta.chapterTitle ?? ''} [${meta.currentIndex}/${meta.totalNodes}]${note}${preview}`)
+          }
+        }
+      })
+      .command('delete-save', t('play.delete_save_desc'), (yargs) => {
+        return yargs
+          .option('session-id', { type: 'string', demandOption: true, describe: t('play.session_id_desc') })
+          .option('slot', { type: 'string', demandOption: true, describe: t('play.save_slot_desc') })
+          .option('json', { type: 'boolean', default: false })
+      }, async (argv) => {
+        const eng = getEngine()
+        const sessionId = argv.sessionId as string
+        const slot = argv.slot as string
+        const removed = await eng.getSessionManager().deleteSlot(sessionId, slot)
+        if (argv.json) {
+          console.log(JSON.stringify({ sessionId, slot, removed }, null, 2))
+        }
+        else if (removed) {
+          consola.success(t('play.slot_deleted', slot, sessionId))
+        }
+        else {
+          consola.warn(t('play.slot_not_found', slot, sessionId))
         }
       })
       .command('list', t('play.list_desc'), (yargs) => {
@@ -256,7 +440,7 @@ export function installPlayCommand(cli: Argv) {
   }, async (argv) => {
     // Default: interactive play mode
     if (argv.script) {
-      await interactivePlay(argv.script as string, argv.sessionId as string | undefined)
+      await interactivePlay(argv.script as string, argv.sessionId as string | undefined, argv.root as string | undefined)
     }
     else {
       consola.error(`${t('play.no_script_prefix')} ${colors.cyan('adv play')} ${colors.dim('<script.adv.md>')}`)

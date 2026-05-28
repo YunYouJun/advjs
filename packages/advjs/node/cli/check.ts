@@ -11,6 +11,11 @@ export function installCheckCommand(cli: Argv) {
         type: 'string',
         describe: t('check.root_desc'),
       })
+      .option('fix', {
+        type: 'boolean',
+        default: false,
+        describe: t('check.fix_desc'),
+      })
       .strict()
       .help(),
     async (argv) => {
@@ -18,6 +23,7 @@ export function installCheckCommand(cli: Argv) {
       try {
         await advCheck({
           root: argv.root as string | undefined,
+          fix: argv.fix as boolean,
         })
       }
       catch (err) {

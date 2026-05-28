@@ -37,6 +37,194 @@ function textContent(text: string) {
   return { content: [{ type: 'text' as const, text }] }
 }
 
+// ----------------- Asset builders (pure, no fs) -----------------
+
+export interface CharacterCreateInput {
+  id: string
+  name: string
+  tags?: string[]
+  aliases?: string[]
+  personality?: string
+  appearance?: string
+  background?: string
+  concept?: string
+  speechStyle?: string
+}
+
+export interface ChapterCreateInput {
+  filename: string
+  title?: string
+  plotSummary?: string
+  content?: string
+}
+
+export interface SceneCreateInput {
+  id: string
+  name?: string
+  imagePrompt?: string
+  tags?: string[]
+  description?: string
+  atmosphere?: string
+  chapters?: string[]
+}
+
+/**
+ * Build a chapter .adv.md file body. If `content` is provided, return as-is;
+ * otherwise emit a frontmatter-only stub. Shared by `create_chapter` and the
+ * bulk variant.
+ */
+export function buildChapterContent(params: ChapterCreateInput): string {
+  if (params.content)
+    return params.content
+  const fmParts: string[] = []
+  if (params.title)
+    fmParts.push(`title: ${params.title}`)
+  if (params.plotSummary)
+    fmParts.push(`plotSummary: ${params.plotSummary}`)
+  return fmParts.length > 0
+    ? `---\n${fmParts.join('\n')}\n---\n`
+    : ''
+}
+
+// YAML escape helpers. Scene frontmatter is hand-serialized to avoid pulling
+// js-yaml into mcp-server — `parseSceneFrontmatter` reads id/name via regex and
+// the engine never reads imagePrompt, so the format only needs to round-trip
+// via standard YAML rules.
+
+function yamlQuoteString(value: string): string {
+  // Use double quotes; escape backslashes and double quotes.
+  const escaped = value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+  return `"${escaped}"`
+}
+
+function yamlSerializeString(value: string, indent = 0): string {
+  if (value.includes('\n')) {
+    // Folded scalar with strip chomping (>-) so the field doesn't trail blank lines.
+    const pad = ' '.repeat(indent + 2)
+    const lines = value.split('\n').map(line => `${pad}${line}`)
+    return `>-\n${lines.join('\n')}`
+  }
+  return yamlQuoteString(value)
+}
+
+function yamlSerializeArray(values: string[], indent = 0): string {
+  const pad = ' '.repeat(indent + 2)
+  return `\n${values.map(v => `${pad}- ${yamlQuoteString(v)}`).join('\n')}`
+}
+
+/**
+ * Build a scene .md file: YAML frontmatter (id, name, imagePrompt, tags) plus
+ * the three conventional body sections (描述 / 氛围 / 出现章节).
+ *
+ * The scene engine itself only reads `imagePrompt` / `id` / `name` from
+ * frontmatter; body sections are for AI / human readers.
+ */
+export function buildSceneMd(params: SceneCreateInput): string {
+  const fmLines: string[] = ['---']
+  fmLines.push(`id: ${params.id}`)
+  if (params.name)
+    fmLines.push(`name: ${params.name}`)
+  if (params.imagePrompt)
+    fmLines.push(`imagePrompt: ${yamlSerializeString(params.imagePrompt)}`)
+  if (params.tags?.length)
+    fmLines.push(`tags:${yamlSerializeArray(params.tags)}`)
+  fmLines.push('---', '')
+
+  const bodyParts: string[] = []
+  bodyParts.push(`# ${params.name || params.id}`)
+  if (params.description) {
+    bodyParts.push('', '## 描述', '', params.description.trim())
+  }
+  if (params.atmosphere) {
+    bodyParts.push('', '## 氛围', '', params.atmosphere.trim())
+  }
+  if (params.chapters?.length) {
+    bodyParts.push('', '## 出现章节', '')
+    for (const ch of params.chapters)
+      bodyParts.push(`- ${ch}`)
+  }
+
+  return `${fmLines.join('\n')}${bodyParts.join('\n')}\n`
+}
+
+function normalizeChapterFilename(name: string): string {
+  let fname = sanitizeFilename(name)
+  if (!fname.endsWith('.adv.md'))
+    fname = `${fname}.adv.md`
+  return fname
+}
+
+function normalizeSceneFilename(id: string): string {
+  let fname = sanitizeFilename(id)
+  if (!fname.endsWith('.md'))
+    fname = `${fname}.md`
+  return fname
+}
+
+export function buildCharacterMd(params: CharacterCreateInput): string {
+  return stringifyCharacterMd({
+    id: params.id,
+    name: params.name,
+    tags: params.tags,
+    aliases: params.aliases,
+    personality: params.personality,
+    appearance: params.appearance,
+    background: params.background,
+    concept: params.concept,
+    speechStyle: params.speechStyle,
+  })
+}
+
+export interface BulkPlanEntry {
+  /** Absolute filesystem path */
+  path: string
+  /** Path relative to the project root (for human-readable output) */
+  rel: string
+  /** File content to write */
+  content: string
+}
+
+export interface BulkPlan {
+  planned: BulkPlanEntry[]
+  conflicts: string[]
+}
+
+/**
+ * Compute a bulk-write plan for a batch of assets.
+ *
+ * Pure: never touches the filesystem itself. Callers should write the planned
+ * entries only if `conflicts` is empty (atomic semantics).
+ *
+ * @param items input objects
+ * @param resolve maps an item to its `{ relativePath, content }`, where
+ *        relativePath is a stable identifier used for duplicate-detection and
+ *        as the lookup for filesystem existence checks
+ * @param toAbsolutePath maps the relative path to an absolute path
+ * @param exists predicate that reports whether a file already exists at the
+ *        absolute path; injected so this function stays pure and testable
+ */
+export function planBulkWrites<T>(
+  items: T[],
+  resolve: (item: T) => { rel: string, content: string },
+  toAbsolutePath: (rel: string) => string,
+  exists: (path: string) => boolean,
+): BulkPlan {
+  const planned: BulkPlanEntry[] = []
+  const seen = new Set<string>()
+  const conflicts: string[] = []
+  for (const item of items) {
+    const { rel, content } = resolve(item)
+    if (seen.has(rel))
+      conflicts.push(`Duplicate path in batch: ${rel}`)
+    seen.add(rel)
+    const path = toAbsolutePath(rel)
+    if (exists(path))
+      conflicts.push(`${rel} already exists`)
+    planned.push({ path, rel, content })
+  }
+  return { planned, conflicts }
+}
+
 /** For resource callbacks: { contents: [{ uri, text }] } */
 function resourceTextContent(uri: URL | string, text: string) {
   return { contents: [{ uri: uri.toString(), text }] }
@@ -264,17 +452,7 @@ export function createAdvMcpServer() {
       concept: z.string().optional().describe('Core concept or beliefs'),
       speechStyle: z.string().optional().describe('Speaking style description'),
     },
-    async (params: {
-      id: string
-      name: string
-      tags?: string[]
-      aliases?: string[]
-      personality?: string
-      appearance?: string
-      background?: string
-      concept?: string
-      speechStyle?: string
-    }) => {
+    async (params: CharacterCreateInput) => {
       const dir = join(gameRoot, 'characters')
       const filePath = join(dir, `${sanitizeFilename(params.id)}.character.md`)
 
@@ -282,20 +460,7 @@ export function createAdvMcpServer() {
         return { content: [{ type: 'text', text: `Character "${params.id}" already exists at ${relative(gameRoot, filePath)}. Use edit_character to modify.` }], isError: true }
 
       mkdirSync(dir, { recursive: true })
-
-      const content = stringifyCharacterMd({
-        id: params.id,
-        name: params.name,
-        tags: params.tags,
-        aliases: params.aliases,
-        personality: params.personality,
-        appearance: params.appearance,
-        background: params.background,
-        concept: params.concept,
-        speechStyle: params.speechStyle,
-      })
-
-      writeFileSync(filePath, content, 'utf-8')
+      writeFileSync(filePath, buildCharacterMd(params), 'utf-8')
       return textContent(`Created character "${params.name}" at characters/${params.id}.character.md`)
     },
   )
@@ -358,35 +523,16 @@ export function createAdvMcpServer() {
       plotSummary: z.string().optional().describe('Brief plot summary for frontmatter'),
       content: z.string().optional().describe('Full chapter content in .adv.md format. If provided, title/plotSummary are ignored.'),
     },
-    async (params: { filename: string, title?: string, plotSummary?: string, content?: string }) => {
+    async (params: ChapterCreateInput) => {
       const dir = join(gameRoot, 'chapters')
-      let fname = sanitizeFilename(params.filename)
-      if (!fname.endsWith('.adv.md'))
-        fname = `${fname}.adv.md`
+      const fname = normalizeChapterFilename(params.filename)
 
       const filePath = join(dir, fname)
       if (existsSync(filePath))
         return { content: [{ type: 'text', text: `Chapter "${fname}" already exists. Use edit_chapter to modify.` }], isError: true }
 
       mkdirSync(dir, { recursive: true })
-
-      let fileContent: string
-      if (params.content) {
-        fileContent = params.content
-      }
-      else {
-        // Generate from frontmatter
-        const fmParts: string[] = []
-        if (params.title)
-          fmParts.push(`title: ${params.title}`)
-        if (params.plotSummary)
-          fmParts.push(`plotSummary: ${params.plotSummary}`)
-        fileContent = fmParts.length > 0
-          ? `---\n${fmParts.join('\n')}\n---\n`
-          : ''
-      }
-
-      writeFileSync(filePath, fileContent, 'utf-8')
+      writeFileSync(filePath, buildChapterContent(params), 'utf-8')
       return textContent(`Created chapter at chapters/${fname}`)
     },
   )
@@ -410,6 +556,154 @@ export function createAdvMcpServer() {
 
       writeFileSync(filePath, params.content, 'utf-8')
       return textContent(`Updated chapter at chapters/${fname}`)
+    },
+  )
+
+  // --- create_scene ---
+  server.tool(
+    'create_scene',
+    'Create a new scene file (scenes/<id>.md) with optional imagePrompt for AI image generation. When you have a vivid visual description, always populate imagePrompt so downstream tooling can render the scene.',
+    {
+      id: z.string().describe('Scene ID (used as filename; lowercase with dashes recommended)'),
+      name: z.string().optional().describe('Display name (Chinese OK)'),
+      imagePrompt: z.string().optional().describe('AI image-generation prompt. English keywords work best (style + subject + mood + lighting).'),
+      tags: z.array(z.string()).optional().describe('Free-form tags (e.g. 内景, 户外, 夜晚)'),
+      description: z.string().optional().describe('Reader-facing scene description (rendered as the "## 描述" body section)'),
+      atmosphere: z.string().optional().describe('Mood/atmosphere notes (rendered as the "## 氛围" body section)'),
+      chapters: z.array(z.string()).optional().describe('Chapter references (rendered as a "## 出现章节" bullet list)'),
+    },
+    async (params: SceneCreateInput) => {
+      const dir = join(gameRoot, 'scenes')
+      const fname = normalizeSceneFilename(params.id)
+      const filePath = join(dir, fname)
+      if (existsSync(filePath))
+        return { content: [{ type: 'text', text: `Scene "${params.id}" already exists at scenes/${fname}. Use edit_scene to modify.` }], isError: true }
+
+      mkdirSync(dir, { recursive: true })
+      writeFileSync(filePath, buildSceneMd(params), 'utf-8')
+      return textContent(`Created scene "${params.name || params.id}" at scenes/${fname}`)
+    },
+  )
+
+  // --- edit_scene ---
+  //
+  // Like edit_chapter: replaces the whole file with the supplied content. The
+  // scene markdown body is free-form so a field-level merge would need a
+  // dedicated parser; AI agents that want field-level edits can call
+  // get_resource → modify → edit_scene.
+  server.tool(
+    'edit_scene',
+    'Edit an existing scene file (scenes/<id>.md) by replacing its full content',
+    {
+      id: z.string().describe('Scene ID (filename without .md)'),
+      content: z.string().describe('New full scene content (replaces entire file)'),
+    },
+    async (params: { id: string, content: string }) => {
+      const fname = normalizeSceneFilename(params.id)
+      const filePath = join(gameRoot, 'scenes', fname)
+      if (!existsSync(filePath))
+        return { content: [{ type: 'text', text: `Scene "${params.id}" not found at scenes/${fname}` }], isError: true }
+      writeFileSync(filePath, params.content, 'utf-8')
+      return textContent(`Updated scene at scenes/${fname}`)
+    },
+  )
+
+  // --- create_characters (bulk) ---
+  //
+  // Atomic: validates the entire batch first (no duplicate ids, no existing
+  // files), then writes everything. Any conflict aborts the write so the
+  // project tree stays consistent.
+  server.tool(
+    'create_characters',
+    'Create multiple character cards atomically. Validates the whole batch first — if any item would conflict (duplicate id within the batch, or file already exists), nothing is written.',
+    {
+      items: z.array(z.object({
+        id: z.string(),
+        name: z.string(),
+        tags: z.array(z.string()).optional(),
+        aliases: z.array(z.string()).optional(),
+        personality: z.string().optional(),
+        appearance: z.string().optional(),
+        background: z.string().optional(),
+        concept: z.string().optional(),
+        speechStyle: z.string().optional(),
+      })).min(1).describe('List of characters to create'),
+    },
+    async ({ items }: { items: CharacterCreateInput[] }) => {
+      const dir = join(gameRoot, 'characters')
+      const { planned, conflicts } = planBulkWrites(
+        items,
+        item => ({ rel: `characters/${sanitizeFilename(item.id)}.character.md`, content: buildCharacterMd(item) }),
+        rel => join(gameRoot, rel),
+        existsSync,
+      )
+      if (conflicts.length)
+        return { content: [{ type: 'text', text: `Aborted (no files written):\n${conflicts.join('\n')}` }], isError: true }
+      mkdirSync(dir, { recursive: true })
+      for (const p of planned)
+        writeFileSync(p.path, p.content, 'utf-8')
+      return textContent(`Created ${planned.length} character(s):\n${planned.map(p => `  + ${p.rel}`).join('\n')}`)
+    },
+  )
+
+  // --- create_chapters (bulk) ---
+  server.tool(
+    'create_chapters',
+    'Create multiple chapter scripts atomically. See create_characters for atomicity semantics.',
+    {
+      items: z.array(z.object({
+        filename: z.string(),
+        title: z.string().optional(),
+        plotSummary: z.string().optional(),
+        content: z.string().optional(),
+      })).min(1),
+    },
+    async ({ items }: { items: ChapterCreateInput[] }) => {
+      const dir = join(gameRoot, 'chapters')
+      const { planned, conflicts } = planBulkWrites(
+        items,
+        item => ({ rel: `chapters/${normalizeChapterFilename(item.filename)}`, content: buildChapterContent(item) }),
+        rel => join(gameRoot, rel),
+        existsSync,
+      )
+      if (conflicts.length)
+        return { content: [{ type: 'text', text: `Aborted (no files written):\n${conflicts.join('\n')}` }], isError: true }
+      mkdirSync(dir, { recursive: true })
+      for (const p of planned)
+        writeFileSync(p.path, p.content, 'utf-8')
+      return textContent(`Created ${planned.length} chapter(s):\n${planned.map(p => `  + ${p.rel}`).join('\n')}`)
+    },
+  )
+
+  // --- create_scenes (bulk) ---
+  server.tool(
+    'create_scenes',
+    'Create multiple scenes atomically. Encourage filling imagePrompt for every scene — that is the single biggest accelerant for downstream AI image generation.',
+    {
+      items: z.array(z.object({
+        id: z.string(),
+        name: z.string().optional(),
+        imagePrompt: z.string().optional(),
+        tags: z.array(z.string()).optional(),
+        description: z.string().optional(),
+        atmosphere: z.string().optional(),
+        chapters: z.array(z.string()).optional(),
+      })).min(1),
+    },
+    async ({ items }: { items: SceneCreateInput[] }) => {
+      const dir = join(gameRoot, 'scenes')
+      const { planned, conflicts } = planBulkWrites(
+        items,
+        item => ({ rel: `scenes/${normalizeSceneFilename(item.id)}`, content: buildSceneMd(item) }),
+        rel => join(gameRoot, rel),
+        existsSync,
+      )
+      if (conflicts.length)
+        return { content: [{ type: 'text', text: `Aborted (no files written):\n${conflicts.join('\n')}` }], isError: true }
+      mkdirSync(dir, { recursive: true })
+      for (const p of planned)
+        writeFileSync(p.path, p.content, 'utf-8')
+      return textContent(`Created ${planned.length} scene(s):\n${planned.map(p => `  + ${p.rel}`).join('\n')}`)
     },
   )
 

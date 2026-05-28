@@ -1,5 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
+import { consola } from 'consola'
 
 // Module-level regex patterns (per e18e/prefer-static-regex)
 const FRONTMATTER_ID_RE = /^id:\s*(\S.*)$/m
@@ -31,6 +32,51 @@ export function scanFiles(dir: string, ext: string): string[] {
     }
   }
   return results
+}
+
+/**
+ * Sanitize a string into a filesystem-safe filename.
+ *
+ * Used by both auto-fix (`adv check --fix`) and the MCP server's create_*
+ * tools to keep arbitrary user/AI-supplied names from escaping the project
+ * directory or producing invalid filenames.
+ */
+// CJK Unified Ideographs (U+4E00–U+9FFF) are explicitly allowed so Chinese
+// names round-trip; everything else collapses into a single underscore.
+const FILENAME_BLOCKLIST_RE = /[^\w\u4E00-\u9FFF.-]+/g
+const FILENAME_TRIM_RE = /^[._-]+|[._-]+$/g
+export function sanitizeFilename(input: string): string {
+  const cleaned = input
+    .normalize('NFKC')
+    .replace(FILENAME_BLOCKLIST_RE, '_')
+    .replace(FILENAME_TRIM_RE, '')
+  return cleaned || 'untitled'
+}
+
+/**
+ * Resolve the game content root directory.
+ * Priority: explicit option > adv.config.json `root` field > `./adv`.
+ *
+ * Shared by `check`, `play`, and `debug` subcommands so they all agree on
+ * which `adv/` tree to operate against.
+ */
+export function resolveGameRoot(cwd: string, optionRoot?: string): string {
+  if (optionRoot)
+    return resolve(cwd, optionRoot)
+
+  const configPath = join(cwd, 'adv.config.json')
+  if (existsSync(configPath)) {
+    try {
+      const config = JSON.parse(readFileSync(configPath, 'utf-8'))
+      if (config.root)
+        return resolve(cwd, config.root)
+    }
+    catch (e: unknown) {
+      consola.warn(`Failed to parse ${configPath}: ${e instanceof Error ? e.message : String(e)}`)
+    }
+  }
+
+  return resolve(cwd, 'adv')
 }
 
 /**

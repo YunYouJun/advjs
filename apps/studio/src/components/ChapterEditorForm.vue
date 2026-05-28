@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import type { PlotSuggestion } from '../utils/aiAuthoring/plotSuggester'
 import type { ChapterFormData } from '../utils/chapterMd'
 import {
+  IonButton,
+  IonIcon,
   IonInput,
   IonItem,
   IonLabel,
@@ -8,13 +11,56 @@ import {
   IonListHeader,
   IonTextarea,
 } from '@ionic/vue'
+import { bulbOutline, chevronDownOutline, peopleOutline, shieldCheckmarkOutline, sparklesOutline } from 'ionicons/icons'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useProjectContent } from '../composables/useProjectContent'
+import { useAiSettingsStore } from '../stores/useAiSettingsStore'
+import AiToolsPopover from './AiToolsPopover.vue'
+import ChapterDraftModal from './ChapterDraftModal.vue'
+import ConsistencyCheckModal from './ConsistencyCheckModal.vue'
+import PlotSuggestionModal from './PlotSuggestionModal.vue'
+import RoleplaySimulationModal from './RoleplaySimulationModal.vue'
 
 const { t } = useI18n()
+const aiSettings = useAiSettingsStore()
+const { characters } = useProjectContent()
 const model = defineModel<ChapterFormData>({ required: true })
+
+const showDraftModal = ref(false)
+const showPlotModal = ref(false)
+const showRoleplayModal = ref(false)
+const showConsistencyModal = ref(false)
 
 function updateField<K extends keyof ChapterFormData>(field: K, value: ChapterFormData[K]) {
   model.value = { ...model.value, [field]: value }
+}
+
+function applyDraft({ mode, text }: { mode: 'replace' | 'append', text: string }) {
+  if (mode === 'replace') {
+    updateField('content', text)
+  }
+  else {
+    const sep = model.value.content && !model.value.content.endsWith('\n') ? '\n\n' : '\n'
+    updateField('content', `${model.value.content}${sep}${text}`)
+  }
+}
+
+function applyPlotSuggestion(s: PlotSuggestion) {
+  const block = [
+    '',
+    `<!-- AI 提议：${s.label} -->`,
+    `<!-- 梗概：${s.synopsis} -->`,
+    s.hook ? `<!-- 关键事件：${s.hook} -->` : '',
+    '',
+  ].filter(Boolean).join('\n')
+  const sep = model.value.content && !model.value.content.endsWith('\n') ? '\n' : ''
+  updateField('content', `${model.value.content}${sep}${block}`)
+}
+
+function applyRoleplayTranscript(advScript: string) {
+  const sep = model.value.content && !model.value.content.endsWith('\n') ? '\n\n' : '\n'
+  updateField('content', `${model.value.content}${sep}${advScript}`)
 }
 </script>
 
@@ -55,8 +101,49 @@ function updateField<K extends keyof ChapterFormData>(field: K, value: ChapterFo
       </IonItem>
     </IonList>
 
-    <IonListHeader>
+    <IonListHeader class="chapter-content-header">
       <IonLabel>{{ t('contentEditor.chapterContent') }}</IonLabel>
+      <!-- Mobile: collapsed popover (< 768px) -->
+      <div v-if="aiSettings.isConfigured" class="chapter-content-actions chapter-content-actions--mobile">
+        <IonButton id="ai-tools-trigger" size="small" fill="clear">
+          <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+          <IonIcon slot="start" :icon="sparklesOutline" />
+          {{ t('aiAuthoring.toolsMenu') }}
+          <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+          <IonIcon slot="end" :icon="chevronDownOutline" />
+        </IonButton>
+        <AiToolsPopover
+          trigger="ai-tools-trigger"
+          @pick-plot="showPlotModal = true"
+          @pick-roleplay="showRoleplayModal = true"
+          @pick-draft="showDraftModal = true"
+          @pick-consistency="showConsistencyModal = true"
+        />
+      </div>
+
+      <!-- Desktop: 4 inline buttons (≥ 768px) -->
+      <div v-if="aiSettings.isConfigured" class="chapter-content-actions chapter-content-actions--desktop">
+        <IonButton size="small" fill="clear" @click="showPlotModal = true">
+          <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+          <IonIcon slot="start" :icon="bulbOutline" />
+          {{ t('aiAuthoring.plot.suggest') }}
+        </IonButton>
+        <IonButton size="small" fill="clear" @click="showRoleplayModal = true">
+          <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+          <IonIcon slot="start" :icon="peopleOutline" />
+          {{ t('aiAuthoring.roleplay.run') }}
+        </IonButton>
+        <IonButton size="small" fill="clear" @click="showDraftModal = true">
+          <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+          <IonIcon slot="start" :icon="sparklesOutline" />
+          {{ t('aiAuthoring.chapter.draft') }}
+        </IonButton>
+        <IonButton size="small" fill="clear" @click="showConsistencyModal = true">
+          <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+          <IonIcon slot="start" :icon="shieldCheckmarkOutline" />
+          {{ t('aiAuthoring.consistency.run') }}
+        </IonButton>
+      </div>
     </IonListHeader>
     <IonList>
       <IonItem>
@@ -72,6 +159,33 @@ function updateField<K extends keyof ChapterFormData>(field: K, value: ChapterFo
         />
       </IonItem>
     </IonList>
+
+    <ChapterDraftModal
+      :is-open="showDraftModal"
+      :chapter="model"
+      @close="showDraftModal = false"
+      @apply="applyDraft"
+    />
+
+    <PlotSuggestionModal
+      :is-open="showPlotModal"
+      :chapter="model"
+      @close="showPlotModal = false"
+      @pick="applyPlotSuggestion"
+    />
+
+    <RoleplaySimulationModal
+      :is-open="showRoleplayModal"
+      :characters="characters"
+      @close="showRoleplayModal = false"
+      @export="applyRoleplayTranscript"
+    />
+
+    <ConsistencyCheckModal
+      :is-open="showConsistencyModal"
+      :chapter="model"
+      @close="showConsistencyModal = false"
+    />
   </div>
 </template>
 
@@ -83,5 +197,35 @@ function updateField<K extends keyof ChapterFormData>(field: K, value: ChapterFo
 .chapter-content-textarea {
   font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, monospace;
   font-size: 0.875em;
+}
+
+.chapter-content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chapter-content-actions {
+  gap: var(--adv-space-xs);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.chapter-content-actions--desktop {
+  display: none;
+}
+
+.chapter-content-actions--mobile {
+  display: flex;
+}
+
+@media (min-width: 768px) {
+  .chapter-content-actions--desktop {
+    display: flex;
+  }
+
+  .chapter-content-actions--mobile {
+    display: none;
+  }
 }
 </style>

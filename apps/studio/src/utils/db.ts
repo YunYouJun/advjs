@@ -126,6 +126,27 @@ export interface DbQualityEvaluation {
   }
 }
 
+export interface DbPlaySaveSlot {
+  projectId: string
+  slot: string
+  chapterFile: string
+  order: number
+  totalNodes: number
+  chapterTitle?: string
+  previewText?: string
+  note?: string
+  savedAt: number
+  background: string
+  /** Serialised `Map<string, { status: string }>` for tachies. */
+  tachies: Array<[string, { status: string }]>
+  /** Per-chapter visited orders at the time of save. */
+  visitedOrders: number[]
+  /** Per-chapter history stack. */
+  history: number[]
+  /** Project-wide unlocked CG identifiers (background urls). */
+  unlockedCGs: string[]
+}
+
 // --- Database ---
 
 class StudioDatabase extends Dexie {
@@ -146,6 +167,7 @@ class StudioDatabase extends Dexie {
   archivedBatches!: Dexie.Table<DbArchivedBatch, [string, string]>
   knowledgeEmbeddings!: Dexie.Table<DbKnowledgeEmbedding, [string, string]>
   qualityEvaluations!: Dexie.Table<DbQualityEvaluation, [string, string]>
+  playSaveSlots!: Dexie.Table<DbPlaySaveSlot, [string, string]>
 
   constructor() {
     super('advjs-studio')
@@ -376,6 +398,28 @@ class StudioDatabase extends Dexie {
       knowledgeEmbeddings: '[projectId+sectionKey]',
       memfsNodes: 'key',
       qualityEvaluations: '[projectId+id], [projectId+characterId]',
+    })
+
+    // v14: add playSaveSlots table for Studio Play Tab save/load (Phase 17a)
+    this.version(14).stores({
+      characterChats: '[projectId+characterId]',
+      characterMemories: '[projectId+characterId]',
+      groupChats: '[projectId+id]',
+      worldEvents: '[projectId+id]',
+      characterStates: '[projectId+characterId]',
+      worldClocks: 'projectId',
+      viewModes: 'projectId',
+      dirHandles: 'projectName',
+      conversationSnapshots: '[projectId+id], [projectId+characterId]',
+      characterDiaries: '[projectId+id], [projectId+characterId], [projectId+characterId+date+period]',
+      chatMessages: '[projectId+id]',
+      groupChatSnapshots: '[projectId+id], [projectId+roomId]',
+      characterAiConfigs: '[projectId+characterId]',
+      archivedBatches: '[projectId+batchId], [projectId+characterId]',
+      knowledgeEmbeddings: '[projectId+sectionKey]',
+      memfsNodes: 'key',
+      qualityEvaluations: '[projectId+id], [projectId+characterId]',
+      playSaveSlots: '[projectId+slot]',
     })
   }
 }

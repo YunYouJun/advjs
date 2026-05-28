@@ -2,29 +2,37 @@
 import type { MarketplaceRecord } from '../composables/useMarketplace'
 import {
   IonBackButton,
+  IonButton,
   IonButtons,
   IonHeader,
   IonIcon,
   IonSpinner,
   IonTitle,
   IonToolbar,
+  toastController,
 } from '@ionic/vue'
 import {
   bookOutline,
   downloadOutline,
+  heartOutline,
   peopleOutline,
+  personAddOutline,
   starOutline,
 } from 'ionicons/icons'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import LayoutPage from '../components/common/LayoutPage.vue'
 import { useCloudbase } from '../composables/useCloudbase'
+import { useFollow } from '../composables/useFollow'
 import { useMarketplace } from '../composables/useMarketplace'
+import { useAuthStore } from '../stores/useAuthStore'
 
 const { t } = useI18n()
 const route = useRoute()
 const { fetchCreatorProjects } = useMarketplace()
+const { follow, unfollow, isFollowing, countFollowers } = useFollow()
+const authStore = useAuthStore()
 
 let cloudApp: ReturnType<typeof useCloudbase>['app'] | null = null
 try {
@@ -37,6 +45,11 @@ catch {
 const creatorId = computed(() => route.params.uid as string)
 const projects = ref<MarketplaceRecord[]>([])
 const isLoading = ref(false)
+const following = ref(false)
+const followerCount = ref(0)
+const followBusy = ref(false)
+
+const isSelf = computed(() => authStore.userInfo.uid === creatorId.value)
 
 const creatorName = computed(() => {
   return projects.value[0]?.authorName || t('marketplace.unknownCreator')
@@ -61,16 +74,58 @@ const totalStats = computed(() => {
   }
 })
 
+async function refreshFollowState() {
+  if (!cloudApp || !creatorId.value)
+    return
+  followerCount.value = await countFollowers(cloudApp, creatorId.value)
+  if (authStore.userInfo.uid && authStore.userInfo.uid !== creatorId.value)
+    following.value = await isFollowing(cloudApp, creatorId.value)
+  else
+    following.value = false
+}
+
+async function handleFollowToggle() {
+  if (!cloudApp || !creatorId.value || followBusy.value)
+    return
+  if (!authStore.userInfo.uid) {
+    const toast = await toastController.create({
+      message: t('follow.loginRequired'),
+      duration: 1500,
+      position: 'top',
+    })
+    await toast.present()
+    return
+  }
+  followBusy.value = true
+  try {
+    const ok = following.value
+      ? await unfollow(cloudApp, creatorId.value)
+      : await follow(cloudApp, creatorId.value)
+    if (ok) {
+      following.value = !following.value
+      followerCount.value += following.value ? 1 : -1
+    }
+  }
+  finally {
+    followBusy.value = false
+  }
+}
+
 onMounted(async () => {
   if (!cloudApp || !creatorId.value)
     return
   isLoading.value = true
   try {
     projects.value = await fetchCreatorProjects(cloudApp, creatorId.value)
+    await refreshFollowState()
   }
   finally {
     isLoading.value = false
   }
+})
+
+watch(() => authStore.userInfo.uid, () => {
+  void refreshFollowState()
 })
 
 function formatDownloads(n: number): string {
@@ -94,6 +149,30 @@ function formatDownloads(n: number): string {
     </IonHeader>
 
     <div class="page-container">
+      <!-- Follow row (hidden when viewing own profile) -->
+      <div v-if="!isSelf" class="follow-row">
+        <IonButton
+          :fill="following ? 'outline' : 'solid'"
+          :color="following ? 'medium' : 'primary'"
+          :disabled="followBusy"
+          size="small"
+          @click="handleFollowToggle"
+        >
+          <IonIcon slot="start" :icon="following ? heartOutline : personAddOutline" />
+          {{ following ? t('follow.unfollow') : t('follow.follow') }}
+        </IonButton>
+        <span class="follow-row__count">
+          <strong>{{ followerCount }}</strong>
+          {{ t('follow.followers') }}
+        </span>
+      </div>
+      <div v-else class="follow-row follow-row--self">
+        <span class="follow-row__count">
+          <strong>{{ followerCount }}</strong>
+          {{ t('follow.followers') }}
+        </span>
+      </div>
+
       <!-- Stats -->
       <div class="creator-stats">
         <div class="creator-stat">
@@ -154,6 +233,32 @@ function formatDownloads(n: number): string {
   gap: var(--adv-space-md);
   max-width: 560px;
   margin: 0 auto;
+}
+
+.follow-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--adv-space-md);
+  padding: var(--adv-space-sm) var(--adv-space-md);
+  border-radius: var(--adv-radius-md);
+  background: var(--adv-surface-card);
+  border: 1px solid var(--adv-border-subtle);
+}
+
+.follow-row--self {
+  justify-content: center;
+}
+
+.follow-row__count {
+  font-size: var(--adv-font-body-sm);
+  color: var(--adv-text-secondary);
+}
+
+.follow-row__count strong {
+  color: var(--adv-text-primary);
+  font-size: var(--adv-font-body);
+  margin-right: 4px;
 }
 
 .creator-stats {

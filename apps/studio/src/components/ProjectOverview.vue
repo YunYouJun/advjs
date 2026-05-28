@@ -29,6 +29,7 @@ import {
   settingsOutline,
   shareOutline,
   shieldCheckmarkOutline,
+  sparklesOutline,
   timeOutline,
   warningOutline,
 } from 'ionicons/icons'
@@ -39,9 +40,13 @@ import { useCloudSync } from '../composables/useCloudSync'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useProjectDescription } from '../composables/useProjectDescription'
 import { downloadBlob, exportProject } from '../composables/useProjectExport'
+import { buildStandaloneBundle } from '../composables/useStandaloneBuild'
+import { useAiSettingsStore } from '../stores/useAiSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { useWorldEventStore } from '../stores/useWorldEventStore'
 import { autoFixIssues, validateProject } from '../utils/projectValidation'
+import { track } from '../utils/telemetry'
+import OutlineGenerateModal from './OutlineGenerateModal.vue'
 import ProjectHealthPanel from './ProjectHealthPanel.vue'
 import ProjectSettingsModal from './ProjectSettingsModal.vue'
 import RecentActivity from './RecentActivity.vue'
@@ -52,7 +57,9 @@ const SAFE_NAME_RE = /[^a-z0-9\u4E00-\u9FFF]+/g
 const { t } = useI18n()
 const router = useRouter()
 const studioStore = useStudioStore()
+const aiSettings = useAiSettingsStore()
 const showSettings = ref(false)
+const showOutlineModal = ref(false)
 
 const {
   chapters,
@@ -516,6 +523,7 @@ async function handleShare() {
 }
 
 const isExporting = ref(false)
+const isExportingStandalone = ref(false)
 
 async function handleExport() {
   const project = studioStore.currentProject
@@ -549,6 +557,43 @@ async function handleExport() {
   }
   finally {
     isExporting.value = false
+  }
+}
+
+async function handleStandaloneExport() {
+  const project = studioStore.currentProject
+  const fs = getFs()
+  if (!project || !fs)
+    return
+
+  isExportingStandalone.value = true
+  try {
+    const blob = await buildStandaloneBundle(fs, project.name || 'project', {
+      description: project.description,
+      cover: project.cover,
+    })
+    const safeName = (project.name || 'project').toLowerCase().replace(SAFE_NAME_RE, '-')
+    downloadBlob(blob, `${safeName}-standalone.zip`)
+    track('standalone_exported', { project: safeName })
+    const toast = await toastController.create({
+      message: t('project.standaloneSuccess'),
+      duration: 2000,
+      position: 'top',
+      color: 'success',
+    })
+    await toast.present()
+  }
+  catch {
+    const toast = await toastController.create({
+      message: t('project.standaloneFailed'),
+      duration: 2500,
+      position: 'top',
+      color: 'danger',
+    })
+    await toast.present()
+  }
+  finally {
+    isExportingStandalone.value = false
   }
 }
 </script>
@@ -641,6 +686,27 @@ async function handleExport() {
             style="width: 18px; height: 18px"
           />
           <IonIcon v-else :icon="cloudDownloadOutline" />
+        </button>
+        <button
+          class="overview__icon-btn"
+          :title="t('project.standaloneExport')"
+          :disabled="isExportingStandalone"
+          @click="handleStandaloneExport"
+        >
+          <IonSpinner
+            v-if="isExportingStandalone"
+            name="crescent"
+            style="width: 18px; height: 18px"
+          />
+          <IonIcon v-else :icon="globeOutline" />
+        </button>
+        <button
+          v-if="aiSettings.isConfigured"
+          class="overview__icon-btn"
+          :title="t('aiAuthoring.outline.generate')"
+          @click="showOutlineModal = true"
+        >
+          <IonIcon :icon="sparklesOutline" />
         </button>
         <button
           class="overview__icon-btn"
@@ -796,6 +862,12 @@ async function handleExport() {
       :conflicts="pendingConflicts"
       @resolve="handleConflictResolve"
       @dismiss="handleConflictDismiss"
+    />
+
+    <!-- AI Outline Generation Modal (Phase 16) -->
+    <OutlineGenerateModal
+      :is-open="showOutlineModal"
+      @close="showOutlineModal = false"
     />
   </div>
 </template>

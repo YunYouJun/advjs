@@ -41,6 +41,7 @@
     "ionicons": "catalog:",
     "jszip": "catalog:",
     "markdown-it": "catalog:build",
+    "mermaid": "catalog:",
     "modern-screenshot": "catalog:frontend",
     "monaco-editor": "catalog:frontend",
     "pdfjs-dist": "catalog:",

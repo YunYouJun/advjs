@@ -1,7 +1,7 @@
 ---
 name: adv-story
 description: Interactive ADV narrative player for ADV.JS visual novel engine
-version: 0.2.0
+version: 0.3.0
 author: YunYouJun
 tools:
   - adv context [--root] [--chapter <n>]
@@ -9,6 +9,10 @@ tools:
   - adv play next --session-id <id> --json
   - adv play choose <number> --session-id <id> --json
   - adv play status --session-id <id> --json
+  - adv play save --session-id <id> --slot <name> [--note "..."]
+  - adv play load --session-id <id> --slot <name> --json
+  - adv play saves --session-id <id> --json
+  - adv play delete-save --session-id <id> --slot <name>
   - adv play list --json
   - adv play reset --session-id <id>
 ---
@@ -91,6 +95,29 @@ adv play reset --session-id <id>
 
 Deletes a session to start fresh.
 
+### Save / Load Named Slots (v0.3)
+
+Named save slots let you bookmark the session before risky branches and recall
+the state later — independent from the live working session.
+
+```bash
+# Save before a critical choice
+adv play save --session-id story-ch01 --slot before-fork --note "before BAD END"
+
+# List all named saves for a session
+adv play saves --session-id story-ch01 --json
+
+# Restore — re-hydrates the engine into the saved state
+adv play load --session-id story-ch01 --slot before-fork --json
+
+# Cleanup
+adv play delete-save --session-id story-ch01 --slot before-fork
+```
+
+Slot names: letters, digits, `-` and `_` (max 40 chars). Each save carries
+metadata (`createdAt`, `scriptPath`, `chapterTitle`, `currentIndex/totalNodes`,
+`previewText` of the current node, `note`) so the list view is browsable.
+
 ## Output Format (JSON)
 
 All commands with `--json` return structured JSON:
@@ -148,6 +175,33 @@ All commands with `--json` return structured JSON:
 }
 ```
 
+### Stage State (v0.3)
+
+Every output node carries a `stage` field describing the visual/audio stage:
+
+```json
+{
+  "type": "dialog",
+  "character": "艾莉亚",
+  "text": "...",
+  "stage": {
+    "background": "/img/school.png",
+    "bgm": "calm-afternoon",
+    "bgmHint": "calm",
+    "tachieAscii": ["[艾莉亚:smile]"],
+    "tachieRich": [
+      { "name": "艾莉亚", "status": "smile", "appearance": "Short-haired girl in a school uniform with a white scarf." }
+    ]
+  }
+}
+```
+
+- `tachieAscii` is always present; safe for text-only environments.
+- `tachieRich` is populated when the engine can load `.character.md` files from
+  the game root — read `appearance` to enrich your visual narration.
+- `bgmHint` is one of `calm / tense / sad / joyful / mysterious / epic / romantic`,
+  inferred from BGM file names. Use it to tune narrative tone.
+
 ## Workflow
 
 1. **Context**: Run `adv context` to understand the project world and characters
@@ -184,8 +238,10 @@ When presenting dialog:
 
 - For **dialog**: Present as the character speaking, include their name and emotional state. Use the character's personality from context to enrich delivery.
 - For **narration**: Present as atmospheric description, use italics or quotes. Enhance with scene details from `scenes/*.md` when available.
-- For **choices**: Present all options clearly and ask the user to choose. Hint at consequences if the context suggests different outcomes.
+- For **choices**: Present all options clearly and ask the user to choose. Hint at consequences if the context suggests different outcomes. Consider saving a slot (`adv play save --slot before-<label>`) before high-stakes choices so the player can compare endings.
 - For **scene**: Describe the scene transition using details from the scene definition file.
+- Use **`stage.tachieRich[].appearance`** to describe characters' visual presence in the moment.
+- Use **`stage.bgmHint`** to tune the emotional register of your narration (e.g. lean into uncertainty on `tense`, soften the pacing on `sad`).
 - Keep the narrative immersive and engaging.
 - Between chapters, provide a brief recap of key events and choices made.
 

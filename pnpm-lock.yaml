@@ -855,6 +855,9 @@ importers:
       markdown-it:
         specifier: catalog:build
         version: 14.1.1
+      mermaid:
+        specifier: 'catalog:'
+        version: 11.15.0
       modern-screenshot:
         specifier: catalog:frontend
         version: 4.7.0

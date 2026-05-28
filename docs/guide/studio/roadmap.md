@@ -185,18 +185,24 @@ attributes:
 ## 远期路线
 
 ```
-Phase N（核心体验冲刺，N1-N8）✅
-    ↓ 达到「可发布品质」
-Phase 13（账号系统 — CloudBase 云乐坊统一认证）✅
+Phase N（核心体验冲刺 N1-N8）✅
+    ↓ 「可发布品质」
+Phase 13（账号系统 — CloudBase 统一认证）✅
     ↓ 用户身份基础设施
 Phase 14（世界/故事市场）✅
     ↓ 社区生态
-Phase 15（协作与插件）← 当前
+Phase 15a（多人协作） / 15b（插件系统）✅
     ↓ 多人协作 + 引擎扩展
+Phase 16（AI Agent 自主创作）✅
+    ↓ AI 深度参与创作
+Phase 17（运行时与发布）✅
+    ↓ 让作品「真正可玩、可分发」
+Phase 18（协作与社区强化）← 下一阶段
+    ↓ 标签体系 / 评论 / 创作者激励
 ```
 
 ::: tip 战略决策（已定）
-N1-N8 已全部完成。Phase 13 账号系统 ✅、Phase 14 世界/故事市场 ✅ 均已完成。
+N1-N8 已全部完成；Phase 13 账号系统、Phase 14 世界/故事市场、Phase 15a 多人协作、Phase 15b 插件系统、Phase 16 AI Agent 自主创作、Phase 17 运行时与发布主体均已完成。下一步进入 **Phase 18：协作与社区强化**。
 
 - **账号模式**：可选。保持 Local-First 产品定位，未登录可完整使用，登录后解锁云同步和发布
 - **后端选型**：**CloudBase**（腾讯云开发）—— 与云乐坊（yunle.fun）共享同一 CloudBase 环境和用户池
@@ -263,6 +269,82 @@ Phase 15 分为两个独立子阶段：先做协作（15a），再做插件系�
 - [x] **StudioPlugin 接口** — `pluginTypes.ts` 定义统一 `StudioPlugin` 基础接口（id/name/type/version/description），`StudioPluginType = 'ai-provider' | 'tts-provider' | 'export-format'`
 - [x] **AI Provider 插件化** — `aiProviderRegistry.ts` 实现注册式 AI Provider 管理（`registerAiProvider`/`getAiProvider`/`listAiProviders`），6 个内置 Provider 自动注册，`useAiSettingsStore` 改为从 registry 获取
 - [x] **插件注册表** — `usePluginRegistry` composable：聚合 AI + TTS 注册表，提供 `listPlugins`/`getPlugin`/`registerPlugin`/`unregisterPlugin` 统一 API
-- [ ] **内置 TTS 插件元数据** — TTS provider 增加 version/description 字段
-- [ ] **Capacitor 原生打包** — iOS/Android 原生应用发布（App Store / Google Play），包含推送通知、原生分享
-- [ ] **位置驱动剧情** — 在 Flow 编辑器中支持"角色到达某地点"作为分支条件（需 editor/studio 数据层统一后实施）
+- [x] **内置 TTS 插件元数据** — `ttsClient.ts` 4 个内置 provider（web-speech / openai / doubao / custom）统一带上 `id` / `name` / `type` / `version` / `description` 元数据，与 `aiProviderRegistry.ts` 的 AI Provider 注册表对齐，可被 `usePluginRegistry` 聚合枚举
+
+---
+
+### 运行时与引擎集成
+
+Studio Play Tab 已接入 `@advjs/client` 的 `AdvGame` 运行时（commit `cb91c8f` / `5d35317`），可直接在创作环境内试玩当前项目。底层引擎能力（存档槽位、分支可视化、`adv check --fix` 自动修复、MCP bulk 工具等）的迭代路线见 [AI 路线图](../../ai/skills/roadmap.md)；Studio 仅以「依赖」关系承接，不在本文档展开。
+
+---
+
+### Phase 16：AI Agent 自主创作 {#phase-16}
+
+目标：让 AI 从「被动回答」变为「主动创作」，缩短作者从灵感到可玩 demo 的链路。
+
+- [x] **章节大纲一键生成** — `utils/aiAuthoring/outlineGenerator.ts` + `OutlineGenerateModal.vue`：基于 `world.md` + 角色卡流式生成 outline.md，可写回项目或写回后跳到 Monaco 编辑；入口在 `ProjectOverview` 顶部工具栏（受 `useAiSettingsStore.isConfigured` 控制）
+- [x] **场景脚本草稿** — `utils/aiAuthoring/chapterDraftGenerator.ts` + `ChapterDraftModal.vue`：给定章节 + 选定角色集 → 流式生成符合 AdvScript 语法的 chapter body，支持「替换 / 追加 / 复制」三种应用方式；入口在 `ChapterEditorForm` 的章节正文 section 头部
+- [x] **角色互动模拟** — `utils/aiAuthoring/roleplaySimulator.ts` + `RoleplaySimulationModal.vue`：作者指定场景目标 + 参与角色 + 轮数（1-20），AI round-robin 自演，可一键导出为 AdvScript 追加到当前章节
+- [x] **剧情提议器** — `utils/aiAuthoring/plotSuggester.ts` + `PlotSuggestionModal.vue`：基于当前章节正文 + 角色 + `useWorldEventStore` 最近 5 条事件，AI 给出 3 条差异化走向（label / synopsis / hook），点击一条即追加为 HTML 注释块到章节末
+- [x] **一致性守门** — `utils/aiAuthoring/consistencyChecker.ts` + `ConsistencyCheckModal.vue`：对当前章节做 6 类问题扫描（人设漂移 / 时间线 / 世界观冲突 / 伏笔未回收 / 连贯性 / 其他），输出带严重度（info / warn / error）的 issues 列表
+- [x] **Agent 工具化** — `utils/aiAuthoring/agentRegistry.ts`：5 个能力以稳定 id（`generate-outline` / `generate-chapter-draft` / `suggest-plot` / `simulate-roleplay` / `check-consistency`）注册到统一 registry，`invokeAgentTool(id, input)` 提供类型安全的调用入口，便于未来对外暴露给 MCP / Agent SDK
+
+**打磨与稳定性**（Phase 16 后续）：
+
+- [x] **结构化错误处理** — 新增 `utils/aiAuthoring/result.ts`（`AiAuthoringError` + `classifyError`），5 个 generator 返回类型从 `T | null` 改为 `{ data: T } | { error: AiAuthoringError }`，保留 `AiApiError.type`（auth / rate_limit / network / timeout / aborted / not_found / not_configured / unknown）。新增 `AiErrorBanner.vue` 通用错误展示组件：含错误类型 i18n 文案 + 「重试」按钮（`retryable` 时显示）+ 「跳转 AI 设置」按钮（auth / not_configured 时显示）。5 个 modal 全部用 banner 替换原通用 toast
+- [x] **移动端 AI 工具菜单** — `ChapterEditorForm` 章节正文头部 4 个 AI 按钮在窄屏（< 768px）折叠为单按钮「✨ AI 工具 ▾」+ `AiToolsPopover.vue`（4 项 IonItem 含一行说明文案），桌面端（≥ 768px）保留原 4 按钮一字排开。CSS media query 切换，无 JS 重计算开销
+
+---
+
+### Phase 17：运行时与发布 ✅ {#phase-17}
+
+目标：让作品「真正可玩、可分发」。承接 Play Tab 与 Capacitor 已完成的基础设施。
+
+#### Phase 17a：Play Tab 完整化 ✅
+
+- [x] **引擎层扩展** — `PlaySession` 新增 `visitedNodes` / `unlockedCGs` / `history` 三个可选字段（[`types.ts`](https://github.com/YunYouJun/advjs/blob/main/packages/core/src/engine/types.ts)），runtime 在 advance 时自动追踪节点访问 + 背景 CG 解锁；`SessionManager.rollback(sessionId, steps?)` API 弹出 history 栈顶并跳回（7 个单测覆盖单步/批量/历史不足/状态强制 playing 等场景）
+- [x] **Studio 进度跟踪** — `usePlayProgress(projectId)` composable 用 `useStorage` 持久化 visited/history/unlockedCGs 到 localStorage（per-project + per-chapter），`usePlaySaveSlots(projectId)` 用 Dexie v14 `playSaveSlots` 表存档槽位（每槽位嵌入完整快照）
+- [x] **Play Tab UI 接入** — `PlayPage.vue` 工具栏新增 5 个按钮（存档 / 读档 / CG 回廊 / 剧情统计 / 分支图）+ 底部回滚 FAB（仅当 history 非空时显示）；`SaveSlotModal.vue`（12 槽位 2-3 列网格 + 备注 + 删除）、`LoadSlotModal.vue`（按时间排序的列表）、`CgGalleryModal.vue`（4 列网格 + Lightbox）、`StoryStatsModal.vue`（完成度% + CG% + 分支% 三栏进度条）、`BranchGraphModal.vue`（mermaid 渲染 + 当前节点/已访问路径高亮）
+- [x] **分支可视化模块化** — `analyzeBranches` / `formatMermaid` / `formatJson` / `formatText` 从 `packages/advjs/node/commands/branches.ts` 抽到 `@advjs/core/engine/branches.ts`，浏览器与 CLI 共享同一份纯逻辑（CLI 仅保留 `analyzeBranchesFromFile` 文件 IO 包装）
+- [x] **跳过已读** — skip 模式在踩到未访问节点时自动关闭（`GamePlayer.vue` 在 `currentIndex` watcher 里比对 `progress.isVisited`，未读则关 `$adv.$auto.skipEnabled`）
+- [x] **i18n + E2E** — 中英文新增 30+ `preview.*` 文案；`tests/e2e/play-tab.spec.ts` 覆盖 5 个工具栏按钮可见性、CG/Stats 弹层、localStorage 进度跨刷新持久化
+
+#### Phase 17b：独立 build 导出 + PWA 更新提示 ✅
+
+- [x] **独立 build 导出** — `useStandaloneBuild.ts` 生成 `<project>-standalone.zip`，含 index.html 着陆页（封面 + 简介 + 「在 Studio 中打开」深链）、`_redirects`（Netlify SPA 兜底）、`vercel.json`（rewrites）、`manifest.webmanifest`、README。`ProjectOverview.vue` 工具栏「Export」旁新增「导出独立站点」按钮（`globeOutline` 图标），与 `.advpkg.zip` 并列
+- [x] **PWA 更新提示** — `vite.config.ts` `registerType: 'autoUpdate'` 改为 `'prompt'`；`UpdatePrompt.vue` 通过 `virtual:pwa-register/vue` 监听 `needRefresh` 弹「立即刷新」Toast、`offlineReady` 首装时弹「应用已支持离线」Toast，全局挂载于 `App.vue`
+
+#### Phase 17c：埋点与崩溃监控 ✅
+
+- [x] **Telemetry 客户端** — `utils/telemetry.ts`：默认 OFF + 首启 `TelemetryOptInPrompt.vue` 询问；`track(name, props?)` 写入 localStorage 队列，30s 周期 + 50 条阈值 + tab 关闭 flush 到 CloudBase 云函数 `advjs-telemetry`（缺函数环境静默降级）；props 过滤长字符串与非原始类型，避免项目内容泄漏；关键路径埋点：`project_published`（useMarketplace）/ `standalone_exported`（ProjectOverview）/ `error.vue` / `error.promise` / `error.boundary`
+- [x] **崩溃上报** — `main.ts` 的 `errorHandler` 与 `unhandledrejection` + `ErrorBoundary.vue` 的 `onErrorCaptured` 均调 `track('error.*')`（截断 stack 至 800 字符）
+- [x] **创作者仪表盘** — 复用既有 `CreatorAnalyticsPage.vue`（`/tabs/me/analytics`），`MePage.vue` 已登录态新增「我的数据」导航入口（与「我的作品集」并列）
+
+#### 范围外（明确不做，承接 Phase 18 之后）
+
+- ~~**Capacitor iOS/Android 上架**~~ — 脚手架已就绪（`apps/studio/CAPACITOR.md`），本阶段不做真机上架（成本 / 商店审核）；后续小迭代或 Phase 18 之后启动
+- ~~**PWA 离线包细化**~~ — 当前 `vite-plugin-pwa` Workbox 配置（30 天 CacheFirst + AI API NetworkOnly）已足够，后续视用量再分级（covers/scenes/audio 分级缓存）
+
+---
+
+### Phase 18：协作与社区强化 {#phase-18}
+
+目标：承接 Phase 14 / 15a 已搭好的市场与协作骨架，做生态运营。
+
+- [x] **关注与订阅 + 站内通知中心** — `advjs_follows` 集合（[`useFollow.ts`](https://github.com/YunYouJun/advjs/blob/main/apps/studio/src/composables/useFollow.ts) follow/unfollow/isFollowing/listFollowers/countFollowers），`advjs_notifications` 集合（[`useNotificationsStore.ts`](https://github.com/YunYouJun/advjs/blob/main/apps/studio/src/stores/useNotificationsStore.ts) 30s 轮询 + 标记已读 + bulk fan-out helper）；`CreatorPage` 头部 Follow / Unfollow 按钮 + 实时粉丝数；`publishProject` 首次发布后自动向所有关注者写入 `new_project` 通知；`MePage` 标题栏 🔔 图标 + 未读红点徽章；[`NotificationCenter.vue`](https://github.com/YunYouJun/advjs/blob/main/apps/studio/src/components/NotificationCenter.vue) 列表 + 「全部已读」 + 相对时间 + 点击跳转作品详情或创作者主页。**不做** Web Push / Capacitor 原生推送，纯站内通知中心路线
+- [ ] **协作 E2E 补全**（承接 Phase 15a 待办） — 双客户端收敛、断线重连一致性、权限拒绝场景，覆盖 `tests/e2e/collab.spec.ts`
+- [ ] **市场分类与标签体系** — 人工策展 + AI 自动打标，支持按题材 / 风格 / 时长筛选
+- [ ] **评论与回复** — `advjs_reviews` 集合扩展为楼中楼，作者可回复评价；含敏感词过滤
+- [ ] **举报与审核** — 内容举报 → 云函数走人工审核队列；违规作品下架机制
+- [ ] **创作者激励** — 下载量 / 评分排行榜、徽章体系、月度精选；与云乐坊统一积分体系打通
+
+---
+
+### 待孵化方向
+
+短期不阻塞、需前置依赖成熟后再启动的方向：
+
+- **位置驱动剧情** — 在 Flow 编辑器中支持「角色到达某地点」作为分支条件。**前置依赖**：Flow 节点系统重构（自定义节点类型 / AST 双向绑定）。当前 `packages/flow/` 仍是骨架，预计 Phase 17 之后再启动
+- **Mystery 角色属性模板** — `attributes.template: mystery` + `ai.visibility: 'gm-only'` 字段级可见性，与 Phase 10 视角系统联动（继承自 N8 后续计划）
+- **AI 从 Markdown 描述回填 attributes** — 一键把作者手写的角色描述结构化到 frontmatter（继承自 N8 后续计划，复用 Phase N6 的 `keyEvents` 压缩思路）

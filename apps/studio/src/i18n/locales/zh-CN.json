@@ -190,7 +190,47 @@
     "shareCopied": "链接已复制",
     "nodes": "节点",
     "restart": "重新开始",
-    "goSettings": "打开设置"
+    "goSettings": "打开设置",
+    "save": "存档",
+    "load": "读档",
+    "cgGallery": "CG 回廊",
+    "stats": "剧情统计",
+    "rollback": "回滚一步",
+    "branchGraph": "分支图",
+    "noProject": "未选择项目",
+    "saveSlotTitle": "存档槽位",
+    "loadSlotTitle": "选择读档",
+    "emptySlot": "空槽位",
+    "newSlot": "新建存档",
+    "overwriteSlot": "覆盖 {slot}",
+    "slotNote": "备注（可选）",
+    "slotNotePlaceholder": "重要选择前的存档",
+    "saveSuccess": "已保存到 {slot}",
+    "saveError": "保存失败",
+    "loadSuccess": "已读取 {slot}",
+    "loadError": "读取失败",
+    "deleteSlot": "删除槽位",
+    "deleteConfirm": "确认删除该槽位？",
+    "noSlots": "暂无存档",
+    "cgGalleryTitle": "CG 回廊",
+    "cgNoUnlocks": "尚未解锁任何 CG。继续游玩并触发场景背景以收集！",
+    "cgClickToView": "点击查看大图",
+    "statsTitle": "剧情统计",
+    "statsCompletion": "本章完成度",
+    "statsCgCollected": "CG 收集",
+    "statsChoicesMade": "已做选择",
+    "statsBranchesExplored": "已探索分支",
+    "statsTotalNodes": "总节点",
+    "statsVisitedNodes": "已读节点",
+    "rollbackSuccess": "已回滚",
+    "rollbackUnavailable": "无可回滚的历史",
+    "branchGraphTitle": "分支可视化",
+    "branchGraphLoading": "生成中…",
+    "branchGraphError": "生成分支图失败",
+    "branchGraphLegend": "已访问 / 当前 / 未访问",
+    "savedAt": "保存于 {time}",
+    "currentNode": "节点 {order}/{total}",
+    "rollbackButton": "回滚"
   },
   "editor": {
     "back": "返回",
@@ -252,7 +292,8 @@
     "feedback": "反馈",
     "about": "关于",
     "developer": "开发者选项",
-    "portfolio": "我的作品集"
+    "portfolio": "我的作品集",
+    "analytics": "我的数据"
   },
   "developer": {
     "title": "开发者选项",
@@ -680,7 +721,10 @@
     "exportSuccess": "项目已导出为 .advpkg.zip",
     "exportFailed": "导出失败",
     "importSuccess": "项目「{name}」已导入成功",
-    "importFailed": "导入失败"
+    "importFailed": "导入失败",
+    "standaloneExport": "导出为独立站点",
+    "standaloneSuccess": "已导出为独立 PWA 站点",
+    "standaloneFailed": "独立站点导出失败"
   },
   "portfolio": {
     "title": "我的作品集",
@@ -1269,5 +1313,149 @@
     "inviteFailed": "邀请失败",
     "inviteUidRequired": "请输入用户 UID",
     "remove": "移除"
+  },
+  "aiAuthoring": {
+    "toolsMenu": "AI 工具",
+    "shortDesc": {
+      "plot": "基于当前章节 AI 提议 3 条后续走向",
+      "roleplay": "选定角色 + 场景目标，AI 自演 N 轮对白",
+      "draft": "根据世界与大纲 AI 草拟章节正文",
+      "consistency": "扫描人设漂移 / 时间线 / 伏笔等问题"
+    },
+    "error": {
+      "title": "AI 请求失败",
+      "retry": "重试",
+      "gotoSettings": "AI 设置",
+      "auth": "认证失败",
+      "rateLimit": "请求过于频繁",
+      "network": "网络异常",
+      "timeout": "请求超时",
+      "notFound": "模型未找到",
+      "aborted": "已取消",
+      "notConfigured": "未配置 AI Provider",
+      "unknown": "请求失败"
+    },
+    "outline": {
+      "generate": "AI 生成大纲",
+      "regenerate": "重新生成",
+      "cancel": "正在生成…点击取消",
+      "modalTitle": "AI 生成故事大纲",
+      "contextTitle": "上下文",
+      "contextWorld": "world.md：{n} 字",
+      "contextCharacters": "角色卡：{n} 个",
+      "hintLabel": "作者引导（可选）",
+      "hintPlaceholder": "例如：赛博朋克基调、女主视角、注重伏笔回收",
+      "previewLabel": "AI 草拟内容",
+      "writeBack": "写回 outline.md",
+      "openInEditor": "写回并打开编辑器",
+      "writeBackSuccess": "outline.md 已更新",
+      "notConfigured": "未配置 AI Provider。请前往「我的 → AI 设置」配置。",
+      "aborted": "已取消生成",
+      "failed": "生成失败，请稍后重试"
+    },
+    "chapter": {
+      "draft": "AI 草拟正文",
+      "generate": "AI 草拟正文",
+      "regenerate": "重新生成",
+      "cancel": "正在生成…点击取消",
+      "modalTitle": "AI 草拟章节正文",
+      "selectCharacters": "出场角色",
+      "hintLabel": "作者引导（可选）",
+      "hintPlaceholder": "例如：侦探询问嫌疑人，氛围紧张，结尾留一个伏笔",
+      "previewLabel": "AdvScript 草稿",
+      "replace": "替换当前正文",
+      "append": "追加到正文末尾",
+      "copy": "复制到剪贴板",
+      "copied": "已复制到剪贴板",
+      "notConfigured": "未配置 AI Provider。请前往「我的 → AI 设置」配置。",
+      "aborted": "已取消生成",
+      "failed": "生成失败，请稍后重试"
+    },
+    "plot": {
+      "suggest": "AI 剧情提议",
+      "generate": "生成 3 条走向",
+      "regenerate": "重新提议",
+      "modalTitle": "AI 剧情走向提议",
+      "hintLabel": "作者引导（可选）",
+      "hintPlaceholder": "例如：希望出现意外反转、需要回收第 1 章的伏笔",
+      "hookPrefix": "关键事件：",
+      "notConfigured": "未配置 AI Provider。请前往「我的 → AI 设置」配置。",
+      "failed": "生成失败，请稍后重试"
+    },
+    "roleplay": {
+      "run": "AI 角色自演",
+      "rerun": "重新模拟",
+      "cancel": "正在模拟…点击取消",
+      "modalTitle": "AI 角色互动模拟",
+      "goalLabel": "场景目标",
+      "goalPlaceholder": "例如：侦探初次询问嫌疑人，目标是套出关键不在场证明",
+      "roundsLabel": "轮数 (1-20)",
+      "selectCharacters": "参与角色",
+      "appendToChapter": "追加到当前章节",
+      "copy": "复制为 AdvScript",
+      "copied": "已复制 AdvScript 到剪贴板",
+      "notConfigured": "未配置 AI Provider。请前往「我的 → AI 设置」配置。",
+      "failed": "模拟失败或被取消"
+    },
+    "consistency": {
+      "run": "一致性检查",
+      "recheck": "重新检查",
+      "modalTitle": "AI 一致性守门",
+      "passed": "✅ 当前章节未发现一致性问题",
+      "notConfigured": "未配置 AI Provider。请前往「我的 → AI 设置」配置。",
+      "failed": "检查失败，请稍后重试",
+      "severity": {
+        "info": "提示",
+        "warn": "警告",
+        "error": "错误"
+      },
+      "kind": {
+        "character-drift": "人设漂移",
+        "timeline": "时间线",
+        "world-conflict": "世界观冲突",
+        "unresolved-foreshadow": "伏笔未回收",
+        "continuity": "连贯性",
+        "other": "其他"
+      }
+    }
+  },
+  "pwa": {
+    "updateAvailable": "新版本可用",
+    "updateNow": "立即刷新",
+    "updateLater": "稍后",
+    "offlineReady": "应用已支持离线使用"
+  },
+  "telemetry": {
+    "optInTitle": "帮助我们改进 Studio",
+    "optInMessage": "匿名上报使用统计与崩溃信息（不含项目内容）。可在「我的 → 隐私」中随时关闭。",
+    "optIn": "同意",
+    "optOut": "拒绝"
+  },
+  "myStats": {
+    "title": "我的数据",
+    "totalProjects": "已发布作品",
+    "totalDownloads": "总下载",
+    "totalCharacters": "角色总数",
+    "averageRating": "平均评分",
+    "noPublished": "尚未发布作品。绑定项目并发布到 Marketplace 后即可在此查看数据。"
+  },
+  "follow": {
+    "follow": "关注",
+    "unfollow": "已关注",
+    "followers": "粉丝",
+    "following": "关注中",
+    "loginRequired": "请先登录后再关注"
+  },
+  "notifications": {
+    "title": "通知",
+    "empty": "暂无通知",
+    "markAllRead": "全部已读",
+    "someone": "某人",
+    "newProject": "{actor} 发布了新作品「{project}」",
+    "followReceived": "{actor} 关注了你",
+    "justNow": "刚刚",
+    "minutesAgo": "{n} 分钟前",
+    "hoursAgo": "{n} 小时前",
+    "daysAgo": "{n} 天前"
   }
 }

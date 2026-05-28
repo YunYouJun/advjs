@@ -1,11 +1,12 @@
 ---
 name: adv-debug
 description: Debug and analyze ADV.JS project for branch coverage, dead paths, and consistency
-version: 0.1.0
+version: 0.3.0
 author: YunYouJun
 tools:
-  - adv check [--root]
+  - adv check [--root] [--fix]
   - adv context [--root] [--full]
+  - adv debug branches <script.adv.md> [--format=mermaid|json|text] [-o <file>]
   - adv play <script> --session-id <id> --json
   - adv play next --session-id <id> --json
   - adv play choose <n> --session-id <id> --json
@@ -31,6 +32,14 @@ adv check
 
 Collect the validation results: syntax errors, unresolved character references, missing scene definitions.
 
+If the only issues are unresolved character / scene refs and you want stubs auto-generated:
+
+```bash
+adv check --fix
+```
+
+`--fix` creates `.character.md` / `scenes/*.md` stub files for every unresolved reference. Existing files are never overwritten. Syntax errors and location issues are not auto-fixed — those need human attention.
+
 ### Step 2: Load Full Context
 
 ```bash
@@ -46,20 +55,47 @@ Read the full project context to understand:
 
 ### Step 3: Analyze Branch Structure
 
-For each chapter, examine the `.adv.md` files and identify:
+For each chapter, generate a branch graph from the AST — don't eyeball the `.adv.md`. The CLI exposes three formats:
 
-- **Branch points**: Lines with `- Choice text` options
-- **Number of choices** at each branch point
-- **Branch depth**: How deeply nested branches go
+```bash
+# Default — mermaid flowchart (embed in reports)
+adv debug branches adv/chapters/chapter_01.adv.md
 
-Present as a summary table:
+# Structured graph (drive automated path traversal)
+adv debug branches adv/chapters/chapter_01.adv.md --format=json
+
+# Indented outline (terminal-friendly)
+adv debug branches adv/chapters/chapter_01.adv.md --format=text
+```
+
+The JSON shape is:
+
+```json
+{
+  "nodes": [
+    { "id": "start", "kind": "start", "label": "START" },
+    { "id": "scene_3", "kind": "scene", "label": "学校", "astIndex": 3 },
+    { "id": "choices_42", "kind": "choices", "label": "Choice (2 options)", "astIndex": 42 },
+    { "id": "choices_42_opt1", "kind": "option", "label": "好的，麻烦你了" },
+    { "id": "end", "kind": "end", "label": "END" }
+  ],
+  "edges": [{ "from": "start", "to": "scene_3" }],
+  "deadOptions": 0,
+  "sceneCount": 5
+}
+```
+
+Note: `kind: "dead"` nodes appear for options that have no resolvable next node — those are dead paths to fix.
+
+Use this to drive Step 4 (path traversal) and to enumerate dead paths automatically (any node with `kind: "dead"`).
+
+Present a summary table per chapter:
 
 ```
-| Chapter | Branch Points | Total Choices | Estimated Paths |
-|---------|--------------|---------------|-----------------|
-| CH01    | 2            | 4             | 4               |
-| CH02    | 1            | 2             | 2               |
-| CH03    | 1            | 2             | 2               |
+| Chapter | Scenes | Choice Points | Options | Dead Paths |
+|---------|--------|---------------|---------|------------|
+| CH01    | 3      | 2             | 4       | 0          |
+| CH02    | 2      | 1             | 2       | 1          |
 ```
 
 ### Step 4: Test Branch Paths via Play
@@ -146,12 +182,12 @@ adv play reset --session-id debug-ch01-path2
 ## Analysis Checklist
 
 - [ ] All `.adv.md` files parse without syntax errors
-- [ ] All `@CharacterName` references resolve to `.character.md` files
-- [ ] All `【Place】` references resolve to `scenes/*.md` files
-- [ ] All branches have content after each choice
+- [ ] All `@CharacterName` references resolve to `.character.md` files (or run `adv check --fix`)
+- [ ] All `【Place】` references resolve to `scenes/*.md` files (or run `adv check --fix`)
+- [ ] No `kind: "dead"` nodes in any chapter's branch graph
 - [ ] Character dialog matches personality descriptions
 - [ ] Terminology matches glossary definitions
-- [ ] Each chapter has at least one meaningful branch point
+- [ ] Each chapter has at least one meaningful branch point (see `choicePoints` in branch graph)
 - [ ] Story transitions between chapters are smooth
 - [ ] All ending paths (TRUE/NORMAL/BAD) are reachable
 
@@ -160,4 +196,6 @@ adv play reset --session-id debug-ch01-path2
 - Be thorough but prioritize critical issues (dead paths, syntax errors) over style suggestions
 - Present findings clearly with file paths and line references
 - Offer concrete fix suggestions, not just problem descriptions
+- Prefer `adv debug branches --format=json` over hand-counting branches — the AST never lies
+- For trivially auto-fixable issues (unresolved character/scene refs), run `adv check --fix` first and report what remains
 - Ask the user if they want you to fix the issues found

@@ -3,7 +3,7 @@ import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import App from './App.vue'
 /* CloudBase auth restore */
-import { useCloudbaseAuth } from './composables/useCloudbase'
+import { useCloudbaseApp, useCloudbaseAuth } from './composables/useCloudbase'
 import i18n from './i18n'
 
 import router from './router'
@@ -18,6 +18,9 @@ import { cloudbasePlugin } from './utils/cloudbase'
 
 /* Ensure IndexedDB is open (with auto-recovery) before mounting */
 import { dbReady } from './utils/db'
+
+/* Telemetry (opt-in, default OFF) */
+import { attachCloudbase, startTelemetry, track } from './utils/telemetry'
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/vue/css/core.css'
@@ -71,11 +74,20 @@ const app = createApp(App)
 /* Global error handler — catches uncaught errors from components */
 app.config.errorHandler = (err, _instance, info) => {
   console.error(`[Vue Error] ${info}:`, err)
+  track('error.vue', {
+    info,
+    msg: err instanceof Error ? err.message : String(err),
+    stack: err instanceof Error ? (err.stack || '').slice(0, 800) : undefined,
+  })
 }
 
 /* Catch unhandled promise rejections globally */
 window.addEventListener('unhandledrejection', (event) => {
   console.error('[Unhandled Rejection]', event.reason)
+  track('error.promise', {
+    msg: event.reason instanceof Error ? event.reason.message : String(event.reason),
+    stack: event.reason instanceof Error ? (event.reason.stack || '').slice(0, 800) : undefined,
+  })
 })
 
 Promise.all([router.isReady(), dbReady]).then(() => {
@@ -91,4 +103,14 @@ Promise.all([router.isReady(), dbReady]).then(() => {
   catch {
     // CloudBase not configured — skip auth restore
   }
+
+  // Wire telemetry — opt-in dialog is shown by `TelemetryOptInPrompt.vue`.
+  try {
+    const cloudApp = app.runWithContext(() => useCloudbaseApp())
+    attachCloudbase(cloudApp)
+  }
+  catch {
+    // CloudBase not configured — telemetry stays in queue-only mode
+  }
+  startTelemetry()
 })

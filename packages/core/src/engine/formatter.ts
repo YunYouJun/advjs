@@ -25,7 +25,7 @@ function formatStage(stage?: PlayStageState): string {
   if (stage.background)
     parts.push(`[BG ${stage.background}]`)
   if (stage.bgm)
-    parts.push(`[BGM ${stage.bgm}]`)
+    parts.push(stage.bgmHint ? `[BGM ${stage.bgm} (${stage.bgmHint})]` : `[BGM ${stage.bgm}]`)
   if (stage.tachieAscii.length)
     parts.push(`[Tachie ${stage.tachieAscii.join(' ')}]`)
 

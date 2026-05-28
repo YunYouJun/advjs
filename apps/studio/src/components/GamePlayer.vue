@@ -7,7 +7,9 @@ import { setupAdvContext } from '@advjs/client/setup/context'
 import { IonButton } from '@ionic/vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { usePlayProgress } from '../composables/usePlayProgress'
 import { useStudioAdvConfig } from '../composables/useStudioAdvConfig'
+import { useStudioStore } from '../stores/useStudioStore'
 import { buildRenderableNodes } from '../utils/advPreview'
 
 const props = defineProps<{
@@ -15,6 +17,8 @@ const props = defineProps<{
   content?: string
   /** Chapter file name (e.g. "01"), used to navigate within the loaded gameConfig. */
   chapterName?: string
+  /** Chapter file path — used for per-chapter progress tracking. */
+  chapterFile?: string
 }>()
 
 const emit = defineEmits<{
@@ -24,6 +28,9 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+
+const studioStore = useStudioStore()
+const progress = usePlayProgress(() => studioStore.currentProject?.projectId)
 
 const { gameConfigRef, configRef, refresh, dispose } = useStudioAdvConfig()
 
@@ -50,6 +57,93 @@ const currentIndex = computed(() => {
   const cur = $adv.store.curFlowNode
   return cur && cur.type === 'fountain' ? (cur.order ?? 0) : 0
 })
+
+const totalNodes = computed(() => {
+  const cur = $adv.store.curFlowNode
+  if (cur && cur.type === 'fountain' && cur.ast)
+    return cur.ast.children.length
+  return 0
+})
+
+const currentChapterAst = computed(() => {
+  const cur = $adv.store.curFlowNode
+  if (cur && cur.type === 'fountain' && cur.ast)
+    return cur.ast
+  return undefined
+})
+
+const visitedOrders = computed(() => {
+  if (!props.chapterFile)
+    return [] as number[]
+  return progress.getChapter(props.chapterFile).visitedOrders
+})
+
+const historyStack = computed(() => {
+  if (!props.chapterFile)
+    return [] as number[]
+  return progress.getChapter(props.chapterFile).history
+})
+
+const unlockedCGs = progress.unlockedCGs
+
+// Track visit + history every time the cursor moves while a chapter is loaded.
+// When skip-read mode is active, halt as soon as we step into fresh (unvisited)
+// territory so the player isn't whisked past new content.
+watch(currentIndex, (order) => {
+  if (!ready.value || !props.chapterFile)
+    return
+  const wasVisited = progress.isVisited(props.chapterFile, order)
+  progress.markVisit(props.chapterFile, order)
+  if (!wasVisited && $adv.$auto.skipEnabled.value)
+    $adv.$auto.skipEnabled.value = false
+}, { immediate: false })
+
+// Track CG unlocks when the stage background changes.
+watch(() => $adv.store.cur.background, (bg) => {
+  if (!ready.value || !bg)
+    return
+  progress.unlockCG(bg)
+})
+
+function getCurrentSnapshot() {
+  const cur = $adv.store.curFlowNode
+  const order = cur && cur.type === 'fountain' ? (cur.order ?? 0) : 0
+  const total = totalNodes.value
+  const dialog = $adv.store.cur.dialog
+  const previewText = extractPreviewText(dialog)
+  return {
+    chapterFile: props.chapterFile ?? '',
+    order,
+    totalNodes: total,
+    chapterTitle: props.chapterName,
+    previewText,
+    background: $adv.store.cur.background,
+    tachies: new Map($adv.store.cur.tachies),
+  }
+}
+
+function extractPreviewText(dialog: any): string | undefined {
+  if (!dialog)
+    return undefined
+  // dialogues / dialog: pull first child text
+  const children = (dialog.children ?? dialog.dialogues ?? []) as any[]
+  for (const c of children) {
+    const text = (c?.value || c?.text || '').toString()
+    if (text)
+      return text.length > 80 ? `${text.slice(0, 79)}…` : text
+  }
+  return undefined
+}
+
+function rollback(steps = 1): number | null {
+  if (!props.chapterFile)
+    return null
+  const newOrder = progress.rollback(props.chapterFile, steps)
+  if (newOrder === null)
+    return null
+  $adv.$logic.goToFountainOrder(newOrder)
+  return newOrder
+}
 
 async function startTargetChapter(chapterTitle: string | undefined) {
   const chapters = gameConfigRef.value.chapters
@@ -117,7 +211,22 @@ function goToNode(index: number) {
 
 onBeforeUnmount(() => dispose())
 
-defineExpose({ goToNode, restart, next, prev, renderableNodes, currentIndex })
+defineExpose({
+  goToNode,
+  restart,
+  next,
+  prev,
+  renderableNodes,
+  currentIndex,
+  totalNodes,
+  currentChapterAst,
+  visitedOrders,
+  historyStack,
+  unlockedCGs,
+  getCurrentSnapshot,
+  rollback,
+  hydrateProgress: progress.hydrate,
+})
 </script>
 
 <template>

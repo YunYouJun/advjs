@@ -4,25 +4,26 @@
 
 ## 命令列表
 
-| 命令                                           | 说明               |
-| ---------------------------------------------- | ------------------ |
-| `adv check [--root]`                           | 验证项目完整性     |
-| `adv context [--root] [--full]`                | 读取完整项目上下文 |
-| `adv play <script> --session-id <id> --json`   | 加载剧本测试       |
-| `adv play next --session-id <id> --json`       | 推进到下一节点     |
-| `adv play choose <n> --session-id <id> --json` | 选择分支路径       |
-| `adv play list --json`                         | 列出测试会话       |
-| `adv play reset --session-id <id>`             | 清理测试会话       |
+| 命令                                                                     | 说明                       |
+| ------------------------------------------------------------------------ | -------------------------- |
+| `adv check [--root] [--fix]`                                             | 验证项目完整性，可自动补桩 |
+| `adv context [--root] [--full]`                                          | 读取完整项目上下文         |
+| `adv debug branches <script> [--format=mermaid\|json\|text] [-o <file>]` | 生成剧本分支图             |
+| `adv play <script> --session-id <id> --json`                             | 加载剧本测试               |
+| `adv play next --session-id <id> --json`                                 | 推进到下一节点             |
+| `adv play choose <n> --session-id <id> --json`                           | 选择分支路径               |
+| `adv play list --json`                                                   | 列出测试会话               |
+| `adv play reset --session-id <id>`                                       | 清理测试会话               |
 
 ## 工作流
 
 ```
-1. Validate  → adv check 获取基础验证结果
+1. Validate  → adv check 获取基础验证结果（必要时加 --fix 自动补桩）
 2. Context   → adv context --full 读取全部内容
-3. Analyze   → 分析分支结构，统计每章的分支点和选项
-4. Test      → adv play 自动遍历所有分支路径
-5. Report    → 生成覆盖率报告（表格形式）
-6. Fix       → 标注问题并给出修复建议
+3. Analyze   → adv debug branches <script> --format=json 获取分支图结构
+4. Test      → 按图驱动 adv play 遍历所有路径
+5. Report    → 生成覆盖率报告（表格 + 嵌入 mermaid 图）
+6. Fix       → adv check --fix 修可自动化的；剩下的人工补全
 ```
 
 ## 检查项目
@@ -44,6 +45,32 @@
 - 角色对话是否符合 `.character.md` 中的性格描述
 - 术语使用是否与 `glossary.md` 一致
 - 章节过渡是否流畅
+
+## 分支图
+
+`adv debug branches` 直接解析 AST 输出分支图，是覆盖率分析的起点：
+
+```bash
+# 默认输出 mermaid
+adv debug branches adv/chapters/01.adv.md
+
+# 结构化数据，便于驱动遍历
+adv debug branches adv/chapters/01.adv.md --format=json
+
+# 终端友好的缩进树
+adv debug branches adv/chapters/01.adv.md --format=text
+```
+
+`json` 形态会标注 `kind: "dead"` 的死路径（选择后没有任何后续节点），是死路径检测的依据。
+
+## 自动修复
+
+```bash
+# 给未定义的 @角色 / 【场景】 自动生成 stub 文件
+adv check --fix
+```
+
+注意：`--fix` 只创建新文件、永不覆盖；语法错误等需要人工修复。
 
 ## 输出示例
 

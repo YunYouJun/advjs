@@ -2,19 +2,24 @@
 
 `adv-story` 是 ADV.JS 的核心 Skill，允许 AI Agent 通过 CLI 命令驱动互动叙事。
 
-v0.2 新增：上下文感知、多章节导航、角色一致性。
+- v0.2：上下文感知、多章节导航、角色一致性。
+- v0.3：命名存档槽位、立绘 / BGM 富语义描述。
 
 ## 命令列表
 
-| 命令                                           | 说明               |
-| ---------------------------------------------- | ------------------ |
-| `adv context [--chapter <n>]`                  | 加载项目上下文     |
-| `adv play <script> --session-id <id> --json`   | 加载剧本并启动播放 |
-| `adv play next --session-id <id> --json`       | 推进到下一个节点   |
-| `adv play choose <n> --session-id <id> --json` | 在选项中做出选择   |
-| `adv play status --session-id <id> --json`     | 查看当前会话状态   |
-| `adv play list --json`                         | 列出所有活跃会话   |
-| `adv play reset --session-id <id>`             | 重置（删除）会话   |
+| 命令                                                           | 说明                     |
+| -------------------------------------------------------------- | ------------------------ |
+| `adv context [--chapter <n>]`                                  | 加载项目上下文           |
+| `adv play <script> --session-id <id> --json`                   | 加载剧本并启动播放       |
+| `adv play next --session-id <id> --json`                       | 推进到下一个节点         |
+| `adv play choose <n> --session-id <id> --json`                 | 在选项中做出选择         |
+| `adv play status --session-id <id> --json`                     | 查看当前会话状态         |
+| `adv play save --session-id <id> --slot <name> [--note "..."]` | 保存命名存档（含元数据） |
+| `adv play load --session-id <id> --slot <name> --json`         | 从命名存档恢复           |
+| `adv play saves --session-id <id> --json`                      | 列出该会话的所有存档槽位 |
+| `adv play delete-save --session-id <id> --slot <name>`         | 删除命名存档             |
+| `adv play list --json`                                         | 列出所有活跃会话         |
+| `adv play reset --session-id <id>`                             | 重置（删除）会话         |
 
 ## JSON 输出类型
 
@@ -73,6 +78,30 @@ v0.2 新增：上下文感知、多章节导航、角色一致性。
 }
 ```
 
+**舞台状态 `stage`（v0.3）**
+
+每个输出节点都附带 `stage`，描述当前的视觉/听觉舞台：
+
+```json
+{
+  "type": "dialog",
+  "character": "艾莉亚",
+  "text": "...",
+  "stage": {
+    "background": "/img/school.png",
+    "bgm": "calm-afternoon",
+    "bgmHint": "calm",
+    "tachieAscii": ["[艾莉亚:smile]"],
+    "tachieRich": [
+      { "name": "艾莉亚", "status": "smile", "appearance": "短发少女，校服外套白色围巾。" }
+    ]
+  }
+}
+```
+
+- `tachieAscii` 始终存在，便于纯文本环境引用。
+- `tachieRich`、`bgmHint` 仅在能从游戏目录读到 `.character.md` / 识别出 BGM 关键词时出现。
+
 ## 工作流
 
 ```
@@ -117,6 +146,28 @@ v0.2 新增：上下文感知、多章节导航、角色一致性。
 - **narration** — 作为氛围描写呈现，使用斜体或引号
 - **choices** — 清晰展示所有选项并请求用户选择
 - **scene** — 结合 `scenes/*.md` 描述场景转换
+- **stage.tachieRich** — 引用 `appearance` 字段调整人物视觉描写
+- **stage.bgmHint** — `calm / tense / sad / joyful / mysterious / epic / romantic` 等情绪标签，可调整叙述语气
+
+## 存档与读档（v0.3）
+
+命名存档槽位适用于「重要选择前留底」「让玩家对比 BAD/GOOD END」等场景：
+
+```bash
+# 在关键选择前保存
+adv play save --session-id story1 --slot before-fork --note "进入抉择前的存档"
+
+# 列出所有存档
+adv play saves --session-id story1 --json
+
+# 想回到之前的状态
+adv play load --session-id story1 --slot before-fork --json
+
+# 用过的存档不再需要
+adv play delete-save --session-id story1 --slot before-fork
+```
+
+存档元数据包含：`slot`、`createdAt`、`scriptPath`、`chapterTitle`、`currentIndex / totalNodes`、`previewText`、`note`。
 
 ## 剧本格式
 

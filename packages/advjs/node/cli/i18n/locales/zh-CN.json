@@ -26,7 +26,21 @@
     "hint_next": "回车/next",
     "no_sessions": "没有活跃的会话。",
     "active_sessions": "活跃会话：",
-    "session_status": "会话状态："
+    "session_status": "会话状态：",
+    "root_desc": "游戏内容根目录（默认：从 adv.config.json 读取或 ./adv）",
+    "save_slot_desc": "命名存档槽位（字母、数字、'-' 或 '_'，最多 40 字符）",
+    "save_note_desc": "存档槽位的可选备注",
+    "saves_desc": "列出会话的所有命名存档槽位",
+    "delete_save_desc": "删除指定的命名存档槽位",
+    "load_slot_desc": "从命名存档槽位加载（需要 --session-id）",
+    "slot_saved": "存档「{0}」已保存到会话 {1}",
+    "slot_loaded": "存档「{0}」已加载到会话 {1}",
+    "slot_deleted": "存档「{0}」已从会话 {1} 删除",
+    "slot_not_found": "未找到会话 {1} 的存档「{0}」",
+    "no_saves": "会话 {0} 没有存档槽位",
+    "saves_for": "会话 {0} 的存档槽位：",
+    "load_slot_needs_session": "--slot 需要 --session-id 来定位存档。",
+    "load_needs_file_or_slot": "请提供快照文件路径，或同时使用 --slot <名称> --session-id <id>。"
   },
   "dev": {
     "desc": "启动 ADV.JS 本地服务器",
@@ -84,7 +98,12 @@
     "locations_errors": "地点引用完整性（{0} 个未解析）",
     "location_unresolved": "{0}：地点「{1}」没有匹配的 scenes/*.md 或 locations/*.md",
     "summary_pass": "所有检查均已通过！",
-    "summary_fail": "发现 {0} 个问题"
+    "summary_pass_after_fix": "自动修复后所有检查均已通过（生成 {0} 个桩文件）！",
+    "summary_fail": "发现 {0} 个问题",
+    "fix_desc": "自动为未解析的角色/场景引用生成桩文件",
+    "fix_start": "自动修复：正在生成桩文件...",
+    "fix_created": "已创建 {0} 个桩文件：",
+    "fix_skipped": "已跳过 {0} 个已存在的文件："
   },
   "context": {
     "desc": "导出项目上下文供 AI 使用",
@@ -123,6 +142,15 @@
     "option_fallback": "选项 {0}",
     "choices_prompt": "请选择：",
     "scene_label": "[场景]"
+  },
+  "debug": {
+    "desc": "检查与分析项目内部（分支、AST 等）",
+    "subcommand_required": "请指定 debug 子命令。可用：branches",
+    "branches_desc": "为剧本生成分支图（选项 / go 跳转）",
+    "branches_script_desc": "要分析的 .adv.md 剧本路径",
+    "branches_format_desc": "输出格式：mermaid（默认）、json、text",
+    "branches_output_desc": "将输出写入文件。省略时输出到 stdout",
+    "branches_written": "分支图已写入 {0}"
   },
   "init": {
     "desc": "从模板初始化新的 ADV.JS 项目",

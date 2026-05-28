@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onErrorCaptured, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { track } from '../utils/telemetry'
 
 const { t } = useI18n()
 
@@ -11,6 +12,10 @@ onErrorCaptured((err: Error) => {
   hasError.value = true
   errorMessage.value = err.message || 'Unknown error'
   console.error('[ErrorBoundary]', err)
+  track('error.boundary', {
+    msg: err.message,
+    stack: (err.stack || '').slice(0, 800),
+  })
   return false
 })
 

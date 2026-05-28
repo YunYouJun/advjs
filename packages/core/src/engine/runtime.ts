@@ -1,8 +1,45 @@
 import type { AdvAst } from '@advjs/types'
-import type { FormattedOutput, PlaySession, PlayStageState } from './types'
+import type { FormattedOutput, PlaySession, PlayStageState, TachieRich } from './types'
 import { parseAst } from '@advjs/parser'
 import { formatNode } from './formatter'
 import { SessionManager } from './session'
+import { PLAY_HISTORY_MAX } from './types'
+
+const PREVIEW_MAX = 80
+
+/**
+ * Loose mood mapping inferred from BGM file names.
+ * Order matters — first match wins.
+ */
+const BGM_MOOD_TABLE: { re: RegExp, hint: string }[] = [
+  { re: /tense|battle|fight|combat|stress|chase/i, hint: 'tense' },
+  { re: /sad|sorrow|melanchol|grief|lament|cry/i, hint: 'sad' },
+  { re: /happy|joy|cheer|fun|playful|bright/i, hint: 'joyful' },
+  { re: /calm|peace|gentle|soft|quiet|slow|relax/i, hint: 'calm' },
+  { re: /myster|tense|dark|suspense|unease|creep/i, hint: 'mysterious' },
+  { re: /epic|heroic|grand|triumph/i, hint: 'epic' },
+  { re: /romance|love|warm|tender/i, hint: 'romantic' },
+]
+
+function inferBgmHint(bgm: string): string | undefined {
+  if (!bgm)
+    return undefined
+  for (const { re, hint } of BGM_MOOD_TABLE) {
+    if (re.test(bgm))
+      return hint
+  }
+  return undefined
+}
+
+/**
+ * Optional adapter — lets the engine read game project files (characters,
+ * etc.) without taking a hard dependency on Node fs. Browser callers can
+ * leave it unset.
+ */
+export interface EngineHooks {
+  /** Look up enriched info for a tachie character by display name. */
+  getCharacterMeta?: (name: string) => { appearance?: string } | undefined
+}
 
 /**
  * ADV Play Engine - Pure state machine for CLI interactive narrative
@@ -17,9 +54,19 @@ export class AdvPlayEngine {
   private ast: AdvAst.Root | null = null
   private session: PlaySession | null = null
   private sessionManager: SessionManager
+  private hooks: EngineHooks = {}
 
-  constructor(sessionDir?: string) {
+  constructor(sessionDir?: string, hooks?: EngineHooks) {
     this.sessionManager = new SessionManager(sessionDir)
+    if (hooks)
+      this.hooks = hooks
+  }
+
+  /**
+   * Update hooks after construction (e.g. once the CLI has resolved game root).
+   */
+  setHooks(hooks: EngineHooks): void {
+    this.hooks = { ...this.hooks, ...hooks }
   }
 
   /**
@@ -191,6 +238,7 @@ export class AdvPlayEngine {
       const output = this.processNode(node)
 
       if (output) {
+        this.trackVisit(this.session.currentIndex)
         await this.sessionManager.save(this.session)
         return this.withStage(output)
       }
@@ -237,8 +285,11 @@ export class AdvPlayEngine {
     for (const op of operations) {
       switch (op.type) {
         case 'background':
-          if ('url' in op)
-            this.session.background = (op as AdvAst.Background).url || ''
+          if ('url' in op) {
+            const url = (op as AdvAst.Background).url || ''
+            this.session.background = url
+            this.trackCGUnlock(url)
+          }
           break
         case 'bgm': {
           const bgm = op as AdvAst.Bgm
@@ -282,7 +333,42 @@ export class AdvPlayEngine {
       background: session.background ?? '',
       bgm: session.bgm ?? '',
       choices: session.choices ?? {},
+      visitedNodes: session.visitedNodes ?? [],
+      unlockedCGs: session.unlockedCGs ?? [],
+      history: session.history ?? [],
     }
+  }
+
+  /**
+   * Mark a node as visited and push it on the rollback history stack.
+   * Idempotent for `visitedNodes`; history collapses consecutive duplicates so
+   * silent re-displays (e.g. a `next()` that lands on the same index) don't
+   * pollute the rollback target.
+   */
+  private trackVisit(index: number): void {
+    if (!this.session)
+      return
+    this.session.visitedNodes ??= []
+    this.session.history ??= []
+    if (!this.session.visitedNodes.includes(index))
+      this.session.visitedNodes.push(index)
+    const top = this.session.history[this.session.history.length - 1]
+    if (top !== index) {
+      this.session.history.push(index)
+      if (this.session.history.length > PLAY_HISTORY_MAX)
+        this.session.history.shift()
+    }
+  }
+
+  /**
+   * Record a CG unlock (background image). Deduped.
+   */
+  private trackCGUnlock(url: string): void {
+    if (!this.session || !url)
+      return
+    this.session.unlockedCGs ??= []
+    if (!this.session.unlockedCGs.includes(url))
+      this.session.unlockedCGs.push(url)
   }
 
   private getTachieAscii(): string[] {
@@ -293,13 +379,62 @@ export class AdvPlayEngine {
       .map(([name, tachie]) => tachie.status ? `[${name}:${tachie.status}]` : `[${name}]`)
   }
 
+  private getTachieRich(): TachieRich[] | undefined {
+    if (!this.session || !this.hooks.getCharacterMeta)
+      return undefined
+    return Object.entries(this.session.tachies)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([name, tachie]) => {
+        const meta = this.hooks.getCharacterMeta!(name)
+        const rich: TachieRich = { name }
+        if (tachie.status)
+          rich.status = tachie.status
+        if (meta?.appearance)
+          rich.appearance = meta.appearance
+        return rich
+      })
+  }
+
   private getStage(): PlayStageState {
-    return {
+    const bgm = this.session?.bgm ?? ''
+    const stage: PlayStageState = {
       background: this.session?.background ?? '',
-      bgm: this.session?.bgm ?? '',
+      bgm,
       tachies: { ...(this.session?.tachies ?? {}) },
       tachieAscii: this.getTachieAscii(),
     }
+    const tachieRich = this.getTachieRich()
+    if (tachieRich && tachieRich.length)
+      stage.tachieRich = tachieRich
+    const bgmHint = inferBgmHint(bgm)
+    if (bgmHint)
+      stage.bgmHint = bgmHint
+    return stage
+  }
+
+  /**
+   * Return a short preview of the current node text for save-slot metadata.
+   */
+  getCurrentPreviewText(): string | undefined {
+    const node = this.getCurrentNode()
+    if (!node)
+      return undefined
+    const text = (node.type === 'dialog' || node.type === 'narration' || node.type === 'text' || node.type === 'scene')
+      ? node.text
+      : ''
+    if (!text)
+      return undefined
+    const collapsed = text.replace(/\s+/g, ' ').trim()
+    return collapsed.length > PREVIEW_MAX
+      ? `${collapsed.slice(0, PREVIEW_MAX - 1)}…`
+      : collapsed
+  }
+
+  /**
+   * Expose runtime AST for debug/branches analysis without re-parsing.
+   */
+  getAst(): AdvAst.Root | null {
+    return this.ast
   }
 
   private withStage<T extends FormattedOutput | null>(output: T): T {

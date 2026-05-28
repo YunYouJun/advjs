@@ -23,32 +23,37 @@ skills/
 
 ## Available Skills
 
-### adv-story (v0.2.0)
+### adv-story (v0.3.0)
 
-Interactive ADV narrative player with context awareness and multi-chapter navigation.
+Interactive ADV narrative player with context awareness, multi-chapter navigation, named save slots, and rich stage state.
 
 - **Context**: `adv context` — Load project world and characters
 - **Load a script**: `adv play <script.adv.md>`
 - **Advance**: `adv play next --session-id <id>`
 - **Choose**: `adv play choose <number> --session-id <id>`
 - **Status**: `adv play status --session-id <id>`
+- **Save / Load** (v0.3): `adv play save|load|saves|delete-save --slot <name>` — named bookmarks before risky branches
+- **Stage state** (v0.3): every output node carries `stage.tachieRich` (with `appearance`) and `stage.bgmHint` (mood tag)
 
-### adv-create (v0.1.0)
+### adv-create (v0.3.0)
 
-Create a complete ADV.JS visual novel project from a concept description.
+Create a complete ADV.JS visual novel project from a concept description, using MCP bulk-creation tools.
 
 - **Initialize**: `adv init <dir> --name <name>`
-- **Customize**: Edit world, characters, outline, scenes
-- **Validate**: `adv check`
+- **World prose**: hand-write `world.md` / `outline.md` / `glossary.md`
+- **Bulk creation** (v0.3, via MCP): `create_characters`, `create_scenes`, `create_chapters` — atomic batch writes
+- **imagePrompt** (v0.3): every scene carries an English image-generation prompt for downstream AI art
+- **Validate**: `adv check` (or MCP `adv_validate`)
 
-### adv-debug (v0.1.0)
+### adv-debug (v0.3.0)
 
 Debug and analyze ADV.JS projects for branch coverage, dead paths, and consistency.
 
-- **Validate**: `adv check`
+- **Validate + auto-fix** (v0.3): `adv check [--fix]` — stub generation for unresolved character/scene refs
+- **Branch graph** (v0.3): `adv debug branches <script> [--format=mermaid|json|text]` — AST-derived graph; `kind: "dead"` flags dead options
 - **Analyze**: `adv context --full`
 - **Test paths**: `adv play` through all branches
-- **Report**: Coverage tables and fix suggestions
+- **Report**: Coverage tables with embedded mermaid diagrams
 
 ## Creating New Skills
 

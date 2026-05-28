@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+  IonButton,
   IonHeader,
   IonIcon,
   IonTitle,
@@ -12,37 +13,65 @@ import {
   codeSlashOutline,
   informationCircleOutline,
   logOutOutline,
+  notificationsOutline,
   personCircleOutline,
   ribbonOutline,
   settingsOutline,
 } from 'ionicons/icons'
-import { onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import LayoutPage from '../components/common/LayoutPage.vue'
+import NotificationCenter from '../components/NotificationCenter.vue'
 import NavGroup from '../components/ui/NavGroup.vue'
 import NavItem from '../components/ui/NavItem.vue'
 import SButton from '../components/ui/SButton.vue'
 import { useCloudbase } from '../composables/useCloudbase'
 import { useAuthStore } from '../stores/useAuthStore'
+import { useNotificationsStore } from '../stores/useNotificationsStore'
 import { useSettingsStore } from '../stores/useSettingsStore'
 
 const { t } = useI18n()
 const settingsStore = useSettingsStore()
 const authStore = useAuthStore()
+const notificationsStore = useNotificationsStore()
+const { unreadCount } = storeToRefs(notificationsStore)
 const router = useRouter()
 
 let auth: ReturnType<typeof useCloudbase>['auth'] | null = null
+let cloudApp: ReturnType<typeof useCloudbase>['app'] | null = null
 try {
-  auth = useCloudbase().auth
+  const cb = useCloudbase()
+  auth = cb.auth
+  cloudApp = cb.app
 }
 catch {
   // CloudBase not configured, auth features unavailable
 }
 
+const notificationsOpen = ref(false)
+
+function startNotificationPolling() {
+  if (cloudApp && authStore.userInfo.uid)
+    notificationsStore.startPolling(cloudApp)
+}
+
 onMounted(async () => {
   if (auth)
     await authStore.refreshLoginState(auth)
+  startNotificationPolling()
+})
+
+watch(() => authStore.userInfo.uid, (uid) => {
+  if (uid)
+    startNotificationPolling()
+  else
+    notificationsStore.stopPolling()
+})
+
+onBeforeUnmount(() => {
+  notificationsStore.stopPolling()
 })
 
 function handleLogin() {
@@ -85,6 +114,13 @@ const portfolioItem = {
   route: '/tabs/me/portfolio',
 }
 
+const analyticsItem = {
+  key: 'analytics',
+  icon: ribbonOutline,
+  color: '--nav-icon-portfolio',
+  route: '/tabs/me/analytics',
+}
+
 const infoItems = [
   {
     key: 'feedback',
@@ -103,6 +139,20 @@ const infoItems = [
 
 <template>
   <LayoutPage :title="t('me.title')">
+    <template v-if="authStore.isLoggedIn" #end>
+      <IonButton
+        fill="clear"
+        :aria-label="t('notifications.title')"
+        class="me-bell"
+        @click="notificationsOpen = true"
+      >
+        <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+        <IonIcon slot="icon-only" :icon="notificationsOutline" />
+        <span v-if="unreadCount > 0" class="me-bell__dot" aria-hidden="true">
+          {{ unreadCount > 99 ? '99+' : unreadCount }}
+        </span>
+      </IonButton>
+    </template>
     <IonHeader collapse="condense">
       <IonToolbar>
         <IonTitle size="large">
@@ -171,6 +221,12 @@ const infoItems = [
           :label="t(`me.${portfolioItem.key}`)"
           @click="navigateTo(portfolioItem.route)"
         />
+        <NavItem
+          :icon="analyticsItem.icon"
+          :icon-color="`var(${analyticsItem.color})`"
+          :label="t(`me.${analyticsItem.key}`)"
+          @click="navigateTo(analyticsItem.route)"
+        />
       </NavGroup>
 
       <NavGroup>
@@ -214,10 +270,35 @@ const infoItems = [
         </SButton>
       </div>
     </div>
+
+    <NotificationCenter v-model:open="notificationsOpen" />
   </LayoutPage>
 </template>
 
 <style scoped>
+.me-bell {
+  position: relative;
+}
+
+.me-bell__dot {
+  position: absolute;
+  top: 6px;
+  right: 4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--ion-color-danger);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  border: 2px solid var(--ion-background-color, #fff);
+}
+
 .page-container {
   padding: var(--adv-space-md);
   display: flex;
