@@ -40,7 +40,11 @@
     "no_saves": "会话 {0} 没有存档槽位",
     "saves_for": "会话 {0} 的存档槽位：",
     "load_slot_needs_session": "--slot 需要 --session-id 来定位存档。",
-    "load_needs_file_or_slot": "请提供快照文件路径，或同时使用 --slot <名称> --session-id <id>。"
+    "load_needs_file_or_slot": "请提供快照文件路径，或同时使用 --slot <名称> --session-id <id>。",
+    "back_desc": "回退到之前访问过的节点（撤销最近的推进）",
+    "back_steps_desc": "回退步数（默认 1）",
+    "back_done": "已回退 {0} 步。",
+    "back_no_history": "没有可回退的历史 —— 历史为空或已在最早节点。"
   },
   "dev": {
     "desc": "启动 ADV.JS 本地服务器",

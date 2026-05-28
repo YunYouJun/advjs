@@ -40,7 +40,11 @@
     "no_saves": "No save slots for session {0}",
     "saves_for": "Save slots for session {0}:",
     "load_slot_needs_session": "--slot requires --session-id to locate the save.",
-    "load_needs_file_or_slot": "Provide either a snapshot file path or --slot <name> --session-id <id>."
+    "load_needs_file_or_slot": "Provide either a snapshot file path or --slot <name> --session-id <id>.",
+    "back_desc": "Roll back to a previously visited node (undo recent advances)",
+    "back_steps_desc": "Number of history steps to pop (default 1)",
+    "back_done": "Rolled back {0} step(s).",
+    "back_no_history": "Nothing to roll back — history is empty or already at the earliest node."
   },
   "dev": {
     "desc": "Start a local server for ADV.JS",

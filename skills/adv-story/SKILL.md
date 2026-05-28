@@ -8,6 +8,7 @@ tools:
   - adv play <script.adv.md> --session-id <id> --json
   - adv play next --session-id <id> --json
   - adv play choose <number> --session-id <id> --json
+  - adv play back --session-id <id> [--steps N] --json
   - adv play status --session-id <id> --json
   - adv play save --session-id <id> --slot <name> [--note "..."]
   - adv play load --session-id <id> --slot <name> --json
@@ -70,6 +71,24 @@ adv play choose <number> --session-id <id> --json
 ```
 
 When the story presents choices, select one by number (1-based).
+
+### Roll back (undo)
+
+```bash
+adv play back --session-id <id> --json
+adv play back --session-id <id> --steps 3 --json
+```
+
+Pop the rollback history stack and jump back to the previous displayable
+node. Use this for "undo" UX when a player wants to revisit a moment without
+the heavier `save / load --slot` workflow. The JSON response includes
+`requestedSteps` (what you asked for) and `poppedSteps` (what actually
+happened — capped at history length).
+
+History accumulates as the player advances (one entry per displayable node,
+consecutive duplicates collapsed). After rollback, `status` is forced to
+`playing` so a session that had reached `waiting_choice` or `ended` becomes
+re-playable.
 
 ### Check status
 

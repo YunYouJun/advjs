@@ -2,51 +2,53 @@
 
 ADV.JS Skills 体系的发展方向。
 
-## 当前版本 (v0.2)
+## 当前版本 (v0.3)
 
-- ✅ `adv-story` v0.2 — 互动叙事播放（上下文感知 + 多章节导航 + 角色一致性）
-- ✅ `adv-create` v0.1 — 从概念描述创建完整项目
-- ✅ `adv-debug` v0.1 — 分支覆盖分析和一致性检查
-- ✅ CLI `adv init` 命令 — 项目初始化
-- ✅ CLI `adv play` 命令组 — JSON 输出 + 会话持久化
-- ✅ CLI `adv check` 命令 — 语法/角色/场景验证
-- ✅ CLI `adv context` 命令 — AI 上下文导出
-- ✅ MCP Server — 标准化 AI 交互接口
+### Skills
 
-## 已完成版本 (v0.1)
+- ✅ `adv-story` v0.3 — 互动叙事播放 + 命名存档槽位 + 立绘/BGM 富语义 + 回退（undo）
+- ✅ `adv-create` v0.3 — MCP 驱动的项目创建 + 强制 imagePrompt + 原子批量
+- ✅ `adv-debug` v0.3 — 分支图（Mermaid/JSON/Text）+ 自动补桩
 
-- ✅ `adv-story` v0.1 — 基础互动叙事播放
-- ✅ CLI `adv play` 命令组
-- ✅ JSON 输出格式支持
-- ✅ 会话持久化
+### CLI
 
-## 近期计划 (v0.3)
+- ✅ `adv init` — 项目初始化
+- ✅ `adv play` 命令组 — JSON 输出 + 会话持久化 + 命名存档槽位 + 回退
+- ✅ `adv check [--fix]` — 语法/角色/场景验证 + 自动桩生成
+- ✅ `adv context` — AI 上下文导出
+- ✅ `adv debug branches` — AST 分支图导出
 
-### 增强 adv-story
+### MCP Server
 
-- [x] 存档/读档功能（命名槽位 + 元数据，`adv play save/load/saves/delete-save --slot`）
-- [x] 角色立绘状态富语义描述（`stage.tachieRich`，含 `appearance`）
-- [x] 背景音乐情绪提示（`stage.bgmHint`）
+- ✅ Resources：`adv://project/overview`、`adv://characters/*`、`adv://chapters/*`、`adv://scenes`
+- ✅ 创建工具：`create_character / create_chapter / create_scene`（单条）
+- ✅ 批量原子工具：`create_characters / create_chapters / create_scenes`
+- ✅ 编辑工具：`edit_character / edit_chapter / edit_scene`
+- ✅ `adv_validate`、`project_stats`、`search_content`、`list_files`
 
-### 增强 adv-create
+## 已完成版本
 
-- [x] 自动生成 imagePrompt（MCP `create_scene` / `create_scenes` 含 `imagePrompt` 字段，由 AI Agent 直接填写）
-- [x] 批量场景/角色创建（MCP `create_characters` / `create_chapters` / `create_scenes` 原子批量工具）
-- [ ] ~~交互式模板选择~~ → 推迟到 v0.4，权衡：多模板维护成本 vs 单模板 + AI 填充
+### v0.2
 
-### 增强 adv-debug
+- adv-story 加入上下文感知 + 多章节导航 + 角色一致性
 
-- [x] 自动修复简单问题（`adv check --fix`，自动生成角色/场景桩）
-- [x] 分支路径可视化（`adv debug branches`，支持 Mermaid / JSON / Text）
-- [ ] ~~对话质量评分~~ → 推迟到 v0.4，需先做评分 schema 与 LLM 集成设计
+### v0.1
 
-## v0.3.x 完成总结
+- 三个 skill 雏形 + 基础 CLI（init/play/check/context）+ MCP 雏形
 
-- adv-story：命名存档槽位、立绘 / BGM 富语义
-- adv-debug：`adv debug branches`（Mermaid / JSON / Text）、`adv check --fix` 自动补桩
-- adv-create：MCP `create_scene` / `edit_scene` + 三个域的原子批量工具，场景写入强制 imagePrompt
+## 近期计划 (v0.4)
 
-剩余 2 项（交互式模板 / 对话质量评分）推迟到 v0.4。
+### 推迟自 v0.3 的两项
+
+- [ ] adv-create 交互式模板选择（多类型模板）—— 需先解决「模板腐烂」问题：用单模板 + AI 填充 vs 维护多套
+- [ ] adv-debug 对话质量评分 —— 需先设计 LLM rubric + 评分 schema + 误报抑制
+
+### 待规划
+
+- [ ] 自动存档触发器（章节切换/选择前自动 quicksave）—— 现已有槽位存储，缺触发策略
+- [ ] character `imagePrompt` 字段 —— 当前只有 scene 有 imagePrompt；扩展到角色立绘
+- [ ] `adv debug coverage` —— 走完所有分支后输出覆盖率报告（结合现有 branches 图）
+- [ ] MCP `adv://branches/{chapter}` resource —— 把 `adv debug branches` 输出做成 MCP resource
 
 ## 长期目标
 
@@ -57,8 +59,8 @@ ADV.JS Skills 体系的发展方向。
 
 ### 创作工具
 
-- [ ] `adv-art` — AI 辅助资源生成（场景背景、角色立绘）
-- [ ] `adv-audio` — 音效/BGM 智能推荐
+- [ ] `adv-art` — AI 辅助资源生成（消费现有 scene.imagePrompt）
+- [ ] `adv-audio` — 音效/BGM 智能推荐（消费现有 bgmHint）
 - [ ] `adv-review` — AI 剧本质量审查
 
 ### 平台支持

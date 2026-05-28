@@ -13,6 +13,7 @@
 | `adv play <script> --session-id <id> --json`                   | 加载剧本并启动播放       |
 | `adv play next --session-id <id> --json`                       | 推进到下一个节点         |
 | `adv play choose <n> --session-id <id> --json`                 | 在选项中做出选择         |
+| `adv play back --session-id <id> [--steps N] --json`           | 回退到之前访问过的节点   |
 | `adv play status --session-id <id> --json`                     | 查看当前会话状态         |
 | `adv play save --session-id <id> --slot <name> [--note "..."]` | 保存命名存档（含元数据） |
 | `adv play load --session-id <id> --slot <name> --json`         | 从命名存档恢复           |
@@ -148,6 +149,31 @@
 - **scene** — 结合 `scenes/*.md` 描述场景转换
 - **stage.tachieRich** — 引用 `appearance` 字段调整人物视觉描写
 - **stage.bgmHint** — `calm / tense / sad / joyful / mysterious / epic / romantic` 等情绪标签，可调整叙述语气
+
+## 回退（undo）
+
+`adv play back` 用于「撤销最近一次推进」—— 比 `save/load --slot` 更轻量的反悔操作。
+
+```bash
+# 回退 1 步
+adv play back --session-id story1 --json
+
+# 回退 3 步
+adv play back --session-id story1 --steps 3 --json
+```
+
+返回 JSON 含 `requestedSteps` 与 `poppedSteps` —— 后者是实际回退步数（历史不够时静默截断）。回退后 `status` 强制回到 `playing`，即使会话已 `ended` 或 `waiting_choice` 也能继续推进。
+
+适用场景：
+
+- 玩家「想再听一遍刚才那段台词」
+- AI Agent 检测到误推进，自我纠正
+- 调试时回退几步对比效果
+
+与存档槽位的区别：
+
+- `back` 是栈式 undo，按时间线性回退
+- `save/load --slot` 是命名快照，可任意跳转
 
 ## 存档与读档（v0.3）
 

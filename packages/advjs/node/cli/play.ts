@@ -225,6 +225,53 @@ export function installPlayCommand(cli: Argv) {
         const choice = await eng.choose(argv.number as number)
         output(choice, argv.json as boolean)
       })
+      .command('back', t('play.back_desc'), (yargs) => {
+        return yargs
+          .option('session-id', { type: 'string', demandOption: true, describe: t('play.session_id_desc') })
+          .option('steps', { type: 'number', default: 1, describe: t('play.back_steps_desc') })
+          .option('root', { type: 'string', describe: t('play.root_desc') })
+          .option('json', { type: 'boolean', default: false })
+      }, async (argv) => {
+        const eng = getEngine({ root: argv.root as string | undefined })
+        const sessionId = argv.sessionId as string
+        const steps = argv.steps as number
+
+        // Snapshot history length before rollback so we can report how many
+        // steps actually occurred (rollback caps silently at history length).
+        const before = await eng.getSessionManager().get(sessionId)
+        if (!before) {
+          consola.error(t('play.session_not_found', sessionId))
+          process.exit(1)
+        }
+        const beforeHistoryLen = before.history?.length ?? 0
+
+        const updated = await eng.getSessionManager().rollback(sessionId, steps)
+        if (!updated) {
+          consola.error(t('play.session_not_found', sessionId))
+          process.exit(1)
+        }
+        const popped = beforeHistoryLen - (updated.history?.length ?? 0)
+
+        // Re-hydrate engine from storage and emit the current node.
+        const current = await eng.resumeSession(sessionId)
+        if (argv.json) {
+          console.log(JSON.stringify({
+            sessionId,
+            requestedSteps: steps,
+            poppedSteps: popped,
+            currentIndex: updated.currentIndex,
+            current,
+          }, null, 2))
+        }
+        else {
+          if (popped > 0)
+            consola.success(t('play.back_done', popped))
+          else
+            consola.info(t('play.back_no_history'))
+          if (current)
+            console.log(formatAsText(current))
+        }
+      })
       .command('status', t('play.status_desc'), (yargs) => {
         return yargs
           .option('session-id', { type: 'string', demandOption: true, describe: t('play.session_id_desc') })
