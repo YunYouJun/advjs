@@ -39,7 +39,6 @@
     "@iconify-json/radix-icons": "catalog:icons",
     "@iconify-json/vscode-icons": "catalog:icons",
     "@iconify/vue": "catalog:icons",
-    "@types/splitpanes": "catalog:types",
     "@types/wicg-file-system-access": "catalog:types",
     "@vueuse/core": "catalog:frontend",
     "colord": "catalog:frontend",

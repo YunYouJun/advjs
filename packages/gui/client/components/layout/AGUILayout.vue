@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { SplitpanesResizePayload } from 'splitpanes'
 import type { AGUILayoutType } from './types'
 import { Pane, Splitpanes } from 'splitpanes'
 import { computed } from 'vue'
@@ -25,14 +26,13 @@ function getChildrenNames(children: AGUILayoutType['children']): string[] {
  */
 const slotNames = computed(() => getChildrenNames(props.layout.children))
 
-function onResize(e: { size: number }[]) {
-  if (Array.isArray(e)) {
-    const children = props.layout.children
-    e.forEach((item, i) => {
-      if (children)
-        children[i].size = item.size
-    })
-  }
+function onResize(payload: SplitpanesResizePayload) {
+  const children = props.layout.children
+  if (!children)
+    return
+  payload.panes.forEach((pane, i) => {
+    children[i].size = pane.size
+  })
 }
 </script>
 

@@ -63,7 +63,6 @@
     "@iconify-json/vscode-icons": "catalog:icons",
     "@playwright/test": "catalog:test",
     "@types/qrcode": "catalog:types",
-    "@types/splitpanes": "catalog:types",
     "@vitejs/plugin-legacy": "catalog:",
     "@vitejs/plugin-vue": "catalog:build",
     "@vue/test-utils": "catalog:test",

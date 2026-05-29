@@ -176,7 +176,7 @@ catalogs:
     pixi-painter: ^0.1.6-beta.1
     pixi.js: 8.0.4
     reka-ui: ^2.9.7
-    splitpanes: ^4.0.4
+    splitpanes: ^4.1.2
     swiper: ^12.1.4
     vue: ^3.5.34
     vue-i18n: ^11.4.2
@@ -209,7 +209,6 @@ catalogs:
     '@types/prompts': ^2.4.9
     '@types/qrcode': ^1.5.6
     '@types/semver': ^7.7.1
-    '@types/splitpanes': ^2.2.6
     '@types/unist': ^3.0.3
     '@types/wicg-file-system-access': ^2023.10.7
     '@types/xml2js': ^0.4.14
