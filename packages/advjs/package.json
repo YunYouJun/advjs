@@ -33,7 +33,8 @@
     "bin",
     "client",
     "dist",
-    "template"
+    "template",
+    "template-galgame"
   ],
   "engines": {
     "node": "^20.19.0 || >=22.12.0"

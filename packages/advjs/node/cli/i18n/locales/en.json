@@ -167,6 +167,7 @@
     "dir_desc": "Target directory (default: current directory)",
     "name_desc": "Project name (replaces {{projectName}} placeholders)",
     "force_desc": "Overwrite existing files",
+    "template_desc": "Template variant: default (school romance) or galgame (dating sim with affection routes)",
     "already_exists": "Target directory already contains ADV.JS files: {0}. Use --force to overwrite.",
     "creating": "Creating project in {0}...",
     "done": "Project created successfully ({0} files)",

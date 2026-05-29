@@ -4,7 +4,7 @@ description: Create a new ADV.JS visual novel project from a concept description
 version: 0.3.0
 author: YunYouJun
 tools:
-  - adv init [dir] --name <name>
+  - adv init [dir] --name <name> [--template default|galgame]
   - adv context --root <dir>/adv
   - adv check --root <dir>/adv [--fix]
 mcp_tools:
@@ -47,7 +47,20 @@ If the user gives a brief description, infer reasonable defaults and confirm.
 adv init <dir> --name "<project-name>"
 ```
 
-This creates the project skeleton from the built-in template.
+This creates the project skeleton from the built-in template. Pick a template
+that matches the concept:
+
+- `--template default` (default) — school-romance skeleton, single heroine.
+- `--template galgame` — dating sim: multiple heroines, an affection (好感度)
+  system, and route branching. Character cards use
+  `attributes.template: galgame` (birthday / blood type / likes / affinity).
+
+```bash
+adv init <dir> --name "<project-name>" --template galgame
+```
+
+If the user describes a multi-heroine / route-based galgame, start from the
+galgame template so the affection scaffolding is already in place.
 
 ### Step 3: World-building Files (hand-written)
 

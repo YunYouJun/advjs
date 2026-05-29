@@ -9,11 +9,11 @@
 
 ### CLI 命令
 
-| 命令                           | 说明           |
-| ------------------------------ | -------------- |
-| `adv init [dir] --name <name>` | 初始化项目骨架 |
-| `adv context --root <dir>/adv` | 查看项目上下文 |
-| `adv check --root <dir>/adv`   | 验证项目完整性 |
+| 命令                                                         | 说明                       |
+| ------------------------------------------------------------ | -------------------------- |
+| `adv init [dir] --name <name> [--template default\|galgame]` | 初始化项目骨架（可选模板） |
+| `adv context --root <dir>/adv`                               | 查看项目上下文             |
+| `adv check --root <dir>/adv`                                 | 验证项目完整性             |
 
 ### MCP 工具
 

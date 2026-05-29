@@ -10,7 +10,17 @@ export interface InitOptions {
   root?: string
   name?: string
   force?: boolean
+  /** Template variant. `default` (school-romance) or `galgame` (dating sim). */
+  template?: string
 }
+
+/** Template name → bundled directory (relative to the package root). */
+const TEMPLATES: Record<string, string> = {
+  default: 'template',
+  galgame: 'template-galgame',
+}
+
+export const AVAILABLE_TEMPLATES = Object.keys(TEMPLATES)
 
 /**
  * Error class for init command failures.
@@ -25,12 +35,21 @@ export class InitError extends Error {
 
 /**
  * Resolve the template directory bundled with the CLI package.
+ *
+ * @param template template name (defaults to `default`)
  */
-function resolveTemplateDir(): string {
+function resolveTemplateDir(template: string = 'default'): string {
+  const dirName = TEMPLATES[template]
+  if (!dirName) {
+    throw new InitError(
+      `Unknown template "${template}". Available: ${AVAILABLE_TEMPLATES.join(', ')}`,
+    )
+  }
+
   const currentDir = fileURLToPath(new URL('.', import.meta.url))
-  // Walk up from node/commands/ to package root, then into template/
+  // Walk up from node/commands/ to package root, then into the template dir.
   const packageRoot = resolve(currentDir, '..', '..')
-  const templateDir = join(packageRoot, 'template')
+  const templateDir = join(packageRoot, dirName)
 
   if (!existsSync(templateDir)) {
     throw new InitError(`Template directory not found: ${templateDir}`)
@@ -83,7 +102,7 @@ export async function advInit(options: InitOptions = {}): Promise<void> {
     throw new InitError(t('init.already_exists', targetDir))
   }
 
-  const templateDir = resolveTemplateDir()
+  const templateDir = resolveTemplateDir(options.template)
 
   consola.start(t('init.creating', targetDir))
 
