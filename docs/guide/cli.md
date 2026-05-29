@@ -18,13 +18,19 @@ pnpm add advjs
 adv [command] [options]
 ```
 
-| 命令              | 说明                           |
-| ----------------- | ------------------------------ |
-| `adv` / `adv dev` | 启动本地开发服务器（默认命令） |
-| `adv build`       | 构建可托管的 SPA               |
-| `adv export`      | 导出为视频                     |
-| `adv config`      | 合并配置到单个 JSON 文件       |
-| `adv play`        | 互动叙事播放                   |
+| 命令              | 说明                                 |
+| ----------------- | ------------------------------------ |
+| `adv` / `adv dev` | 启动本地开发服务器（默认命令）       |
+| `adv init`        | 从模板初始化新项目                   |
+| `adv build`       | 构建可托管的 SPA                     |
+| `adv export`      | 导出为视频                           |
+| `adv config`      | 合并配置到单个 JSON 文件             |
+| `adv play`        | 互动叙事播放（含存档 / 回退）        |
+| `adv check`       | 验证剧本 / 角色 / 场景（可自动修复） |
+| `adv context`     | 导出项目上下文供 AI 使用             |
+| `adv debug`       | 分支图 / 覆盖率分析                  |
+
+其中 `adv play`、`adv check`、`adv context`、`adv debug` 主要面向 AI Agent 协作（[Work with AI](/ai/skills/)），同时也可供人工使用。
 
 全局选项：
 
@@ -34,6 +40,31 @@ adv [command] [options]
 | `--lang`        | 语言（支持 `en`、`zh-CN`） |
 | `-v, --version` | 显示版本号                 |
 | `-h, --help`    | 显示帮助信息               |
+
+## `adv init`
+
+从内置模板初始化一个新的 ADV.JS 项目。
+
+```bash
+adv init [dir] [options]
+```
+
+### 选项
+
+| 选项      | 默认值  | 说明                                              |
+| --------- | ------- | ------------------------------------------------- |
+| `--name`  | -       | 项目名称（替换模板中的 `{{projectName}}` 占位符） |
+| `--force` | `false` | 覆盖已存在的文件                                  |
+
+### 示例
+
+```bash
+# 在当前目录初始化
+adv init
+
+# 初始化到指定目录并命名
+adv init my-game --name "我的游戏"
+```
 
 ## `adv dev`
 
@@ -218,14 +249,11 @@ adv play next --session-id <id> [--json]
 # 做出选择（编号从 1 开始）
 adv play choose <number> --session-id <id> [--json]
 
+# 回退到之前访问过的节点（撤销最近的推进）
+adv play back --session-id <id> [--steps N] [--json]
+
 # 查看会话状态
 adv play status --session-id <id> [--json]
-
-# 保存当前会话快照到 JSON 文件
-adv play save --session-id <id> --output save-01.json
-
-# 从 JSON 快照恢复会话，可指定新的 session-id
-adv play load save-01.json --session-id <id> [--json]
 
 # 列出所有活跃会话
 adv play list [--json]
@@ -233,6 +261,45 @@ adv play list [--json]
 # 重置（删除）会话
 adv play reset --session-id <id>
 ```
+
+### 存档与读档
+
+支持两种方式：
+
+**单文件快照**（便于分享 / 备份）：
+
+```bash
+# 导出快照到 JSON 文件（省略 --output 时打印到 stdout）
+adv play save --session-id <id> --output save-01.json
+
+# 从 JSON 快照恢复，可指定新的 session-id
+adv play load save-01.json --session-id <id> [--json]
+```
+
+**命名存档槽位**（v0.3，适合「重要选择前留底」）：
+
+```bash
+# 保存到命名槽位（带备注）
+adv play save --session-id <id> --slot before-fork --note "进入抉择前"
+
+# 列出该会话的所有槽位（含元数据）
+adv play saves --session-id <id> [--json]
+
+# 从命名槽位恢复
+adv play load --session-id <id> --slot before-fork [--json]
+
+# 删除槽位
+adv play delete-save --session-id <id> --slot before-fork
+```
+
+槽位名规则：字母、数字、`-`、`_`，最长 40 字符。每个槽位附带元数据（`chapterTitle`、`currentIndex/totalNodes`、`previewText`、`note`、`createdAt`）。
+
+### 回退 vs 存档
+
+| 方式                        | 适用场景                          |
+| --------------------------- | --------------------------------- |
+| `adv play back`             | 栈式 undo，按时间线性回退最近几步 |
+| `adv play save/load --slot` | 命名快照，可在任意书签点之间跳转  |
 
 ### 示例
 
@@ -263,6 +330,138 @@ adv play reset --session-id story-1
 ### JSON 输出
 
 Agent 模式下返回结构化 JSON，详见 [Skills - JSON 输出类型](/ai/skills/adv-story#json-输出类型)。
+
+## `adv check`
+
+验证项目的剧本语法、角色引用一致性和场景完整性。
+
+```bash
+adv check [options]
+```
+
+### 选项
+
+| 选项     | 默认值  | 说明                                                       |
+| -------- | ------- | ---------------------------------------------------------- |
+| `--root` | -       | 游戏内容根目录（默认从 `adv.config.json` 或 `./adv` 读取） |
+| `--fix`  | `false` | 为未解析的 `@角色` / `【场景】` 引用自动生成桩文件         |
+
+`--fix` 只创建新文件、**永不覆盖**已有文件；语法错误等需要人工修复。
+
+### 示例
+
+```bash
+# 检查项目
+adv check
+
+# 指定内容根目录
+adv check --root ./game/adv
+
+# 自动补齐缺失的角色 / 场景桩
+adv check --fix
+```
+
+## `adv context`
+
+导出项目上下文（世界观、角色、大纲、场景）供 AI 使用。
+
+```bash
+adv context [options]
+```
+
+### 选项
+
+| 选项        | 说明                                   |
+| ----------- | -------------------------------------- |
+| `--root`    | 游戏内容根目录                         |
+| `--full`    | 包含所有文件完整内容（角色/章节/场景） |
+| `--chapter` | 仅输出指定章节编号的上下文             |
+
+### 示例
+
+```bash
+# 输出项目概览
+adv context
+
+# 输出完整内容
+adv context --full
+
+# 仅输出第 2 章上下文
+adv context --chapter 2
+```
+
+## `adv debug`
+
+剧本分支分析工具，纯静态解析 AST，无需运行播放。
+
+```bash
+adv debug <subcommand> <script.adv.md> [options]
+```
+
+### `adv debug branches`
+
+生成剧本的分支图（选项 / `go` 跳转）。
+
+```bash
+adv debug branches <script.adv.md> [options]
+```
+
+| 选项           | 默认值    | 说明                                  |
+| -------------- | --------- | ------------------------------------- |
+| `--format`     | `mermaid` | 输出格式：`mermaid` / `json` / `text` |
+| `-o, --output` | -         | 写入文件（省略时输出到 stdout）       |
+
+```bash
+# 默认输出 Mermaid 流程图
+adv debug branches adv/chapters/01.adv.md
+
+# 结构化 JSON（便于驱动遍历）
+adv debug branches adv/chapters/01.adv.md --format=json
+
+# 写入文件
+adv debug branches adv/chapters/01.adv.md -o branches.mmd
+```
+
+`json` / `text` 形态会标注 `kind: "dead"` 的死路径（选择后无任何后续节点）。
+
+### `adv debug coverage`
+
+在分支图基础上做静态可达性分析，给出汇总覆盖率指标。
+
+```bash
+adv debug coverage <script.adv.md> [options]
+```
+
+| 选项           | 默认值 | 说明                      |
+| -------------- | ------ | ------------------------- |
+| `--format`     | `text` | 输出格式：`text` / `json` |
+| `-o, --output` | -      | 写入文件                  |
+
+```bash
+adv debug coverage adv/chapters/01.adv.md
+adv debug coverage adv/chapters/01.adv.md --format=json
+```
+
+文本输出示例：
+
+```
+# Branch Coverage
+
+Scenes reachable : 3/3 (100%)
+Choice points    : 2
+Options          : 4
+Endings reachable: 2
+Distinct paths   : 4
+Dead options     : 0
+
+✓ No orphan scenes or dead paths detected.
+```
+
+指标含义：
+
+- `distinctPaths` —— 从 START 到终点的无环路径数（环会被剪枝；超大分支超过 5000 上限时 `pathsTruncated: true`）
+- `orphanScenes` —— 被卡在 `choices` 节点之后、无任何选项指向的孤立场景
+- `deadOptions` —— 选择后无后续节点的死选项
 
 ## 国际化
 
