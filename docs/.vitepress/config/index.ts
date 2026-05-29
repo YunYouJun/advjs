@@ -143,6 +143,9 @@ function sidebarAI(): DefaultTheme.SidebarItem[] {
       items: [
         { text: '介绍', link: '/ai/skills/' },
         { text: 'adv-story', link: '/ai/skills/adv-story' },
+        { text: 'adv-create', link: '/ai/skills/adv-create' },
+        { text: 'adv-debug', link: '/ai/skills/adv-debug' },
+        { text: 'adv-review', link: '/ai/skills/adv-review' },
         { text: 'OpenClaw 集成', link: '/ai/skills/openclaw' },
         { text: '路线图', link: '/ai/skills/roadmap' },
       ],

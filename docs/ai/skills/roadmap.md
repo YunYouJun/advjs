@@ -8,7 +8,8 @@ ADV.JS Skills 体系的发展方向。
 
 - ✅ `adv-story` v0.3 — 互动叙事播放 + 命名存档槽位 + 立绘/BGM 富语义 + 回退（undo）
 - ✅ `adv-create` v0.3 — MCP 驱动的项目创建 + 强制 imagePrompt + 原子批量
-- ✅ `adv-debug` v0.3 — 分支图（Mermaid/JSON/Text）+ 自动补桩
+- ✅ `adv-debug` v0.3 — 分支图（Mermaid/JSON/Text）+ 覆盖率 + 自动补桩
+- ✅ `adv-review` v0.1 — AI 内容质量审查（9 维 rubric，纯 skill 驱动，无 LLM 内置）
 
 ### CLI
 
@@ -45,10 +46,11 @@ ADV.JS Skills 体系的发展方向。
 - [x] character `imagePrompt` 字段 —— 已扩展到角色立绘（类型 / parser / MCP create/edit 全链路），与 scene.imagePrompt 对齐
 - [x] MCP `adv://branches/{id}` / `adv://coverage/{id}` resource —— 分支图 / 覆盖率已做成 MCP resource（外部 MCP 客户端可直接读取）
 
+- [x] 对话质量评分 —— 已并入 `adv-review` v0.1（「角色口吻一致性」+「对话自然度」两维 + 误报抑制规则）
+
 ### 阻塞中（需先决策，不宜强行实现）
 
 - [ ] adv-create 交互式模板选择（多类型模板）—— **阻塞：需产品决策**。要先定哪些题材模板值得长期维护（galgame / 悬疑 / RPG…），否则陷入「模板腐烂」。当前策略是单模板 + AI 填充，已能产出差异化项目
-- [ ] adv-debug 对话质量评分 —— **并入下方 `adv-review`**。质量评分本质需要 LLM 判断（现有 adv-debug 全是确定性静态分析），静态启发式会误导；与长期目标的 `adv-review` 是同一件事，合并推进
 
 ### 待规划
 
@@ -65,7 +67,7 @@ ADV.JS Skills 体系的发展方向。
 
 - [ ] `adv-art` — AI 辅助资源生成（消费现有 scene.imagePrompt / character.imagePrompt）
 - [ ] `adv-audio` — 音效/BGM 智能推荐（消费现有 bgmHint）
-- [ ] `adv-review` — AI 剧本质量审查（含「对话质量评分」：LLM rubric + 评分 schema + 误报抑制）
+- [x] `adv-review` — AI 剧本质量审查（已落地 v0.1，见上方「当前版本」）
 
 ### 平台支持
 

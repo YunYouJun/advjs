@@ -17,8 +17,10 @@ skills/
 │   ├── SKILL.md          # Project creation workflow
 │   └── examples/
 │       └── session-demo.md  # Example session
-└── adv-debug/
-    └── SKILL.md          # Debug and analysis
+├── adv-debug/
+│   └── SKILL.md          # Structural debug and analysis
+└── adv-review/
+    └── SKILL.md          # AI content-quality review
 ```
 
 ## Available Skills
@@ -55,6 +57,16 @@ Debug and analyze ADV.JS projects for branch coverage, dead paths, and consisten
 - **Analyze**: `adv context --full`
 - **Test paths**: `adv play` through all branches
 - **Report**: Coverage tables with embedded mermaid diagrams
+
+### adv-review (v0.1.0)
+
+AI content-quality review — the narrative equivalent of a code review. Judges
+quality, not structure (that's adv-debug's job).
+
+- **Ground in facts**: consumes `adv check` + `adv debug` output as truth, then applies judgment
+- **9-dimension rubric**: character voice consistency, dialogue naturalness, narration (show vs tell), pacing, choice meaningfulness, branch balance, emotional arc, lore consistency, setup & payoff
+- **False-positive suppression**: verify voice claims against `.character.md`, defer structure to adv-debug, respect intentional style
+- **Output**: scored report with must-fix items + concrete rewrites
 
 ## Creating New Skills
 

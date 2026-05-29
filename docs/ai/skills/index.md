@@ -27,19 +27,22 @@ skills/
 │   ├── SKILL.md          # 项目创建工作流
 │   └── examples/
 │       └── session-demo.md
-└── adv-debug/
-    └── SKILL.md          # 调试与分析
+├── adv-debug/
+│   └── SKILL.md          # 结构调试与分析
+└── adv-review/
+    └── SKILL.md          # AI 内容质量审查
 ```
 
 每个 Skill 是一个子目录，包含 `SKILL.md` 定义文件和可选的 `examples/` 示例目录。
 
 ## 已有 Skills
 
-| Skill                      | 版本   | 描述                                       |
-| -------------------------- | ------ | ------------------------------------------ |
-| [adv-story](./adv-story)   | v0.2.0 | 互动叙事播放器，支持多章节导航和上下文感知 |
-| [adv-create](./adv-create) | v0.1.0 | 从概念描述创建完整 ADV.JS 视觉小说项目     |
-| [adv-debug](./adv-debug)   | v0.1.0 | 调试和分析项目的分支覆盖、死路径和一致性   |
+| Skill                      | 版本   | 描述                                            |
+| -------------------------- | ------ | ----------------------------------------------- |
+| [adv-story](./adv-story)   | v0.3.0 | 互动叙事播放器：多章节导航、存档槽位、回退      |
+| [adv-create](./adv-create) | v0.3.0 | 从概念创建项目：MCP 批量创建、imagePrompt       |
+| [adv-debug](./adv-debug)   | v0.3.0 | 结构分析：分支图、覆盖率、自动补桩（确定性）    |
+| [adv-review](./adv-review) | v0.1.0 | AI 内容质量审查：口吻一致性、对话、节奏（判断） |
 
 ## 创建新 Skill
 
