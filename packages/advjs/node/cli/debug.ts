@@ -49,6 +49,45 @@ export function installDebugCommand(cli: Argv) {
           }
         },
       )
+      .command(
+        'coverage <script>',
+        t('debug.coverage_desc'),
+        y => y
+          .positional('script', {
+            type: 'string',
+            demandOption: true,
+            describe: t('debug.coverage_script_desc'),
+          })
+          .option('format', {
+            type: 'string',
+            choices: ['text', 'json'] as const,
+            default: 'text' as const,
+            describe: t('debug.coverage_format_desc'),
+          })
+          .option('output', {
+            alias: 'o',
+            type: 'string',
+            describe: t('debug.coverage_output_desc'),
+          })
+          .strict()
+          .help(),
+        async (argv) => {
+          const { analyzeCoverageFromFile } = await import('../commands/branches')
+          const scriptPath = resolve(process.cwd(), argv.script as string)
+          const out = await analyzeCoverageFromFile({
+            scriptPath,
+            format: argv.format as 'text' | 'json',
+          })
+          const outputPath = argv.output as string | undefined
+          if (outputPath) {
+            await writeFile(resolve(process.cwd(), outputPath), out, 'utf-8')
+            consola.success(t('debug.coverage_written', outputPath))
+          }
+          else {
+            console.log(out)
+          }
+        },
+      )
       .demandCommand(1, t('debug.subcommand_required'))
       .strict()
       .help(),

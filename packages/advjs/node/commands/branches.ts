@@ -1,13 +1,13 @@
 import type { AdvAst } from '@advjs/types'
 import { readFileSync } from 'node:fs'
 import { basename } from 'node:path'
-import { analyzeBranches, formatJson, formatMermaid, formatText } from '@advjs/core'
+import { analyzeBranches, analyzeCoverage, formatCoverageText, formatJson, formatMermaid, formatText } from '@advjs/core'
 import { parseAst } from '@advjs/parser'
 
 // Pure graph + formatter logic lives in @advjs/core so the browser-side Studio
 // can reuse it. This file only adds the CLI file-IO wrapper.
-export type { BranchEdge, BranchGraph, BranchNode, BranchNodeKind } from '@advjs/core'
-export { analyzeBranches, formatJson, formatMermaid, formatText } from '@advjs/core'
+export type { BranchEdge, BranchGraph, BranchNode, BranchNodeKind, CoverageReport } from '@advjs/core'
+export { analyzeBranches, analyzeCoverage, formatCoverageText, formatJson, formatMermaid, formatText } from '@advjs/core'
 
 export interface BranchAnalyzeOptions {
   scriptPath: string
@@ -34,4 +34,23 @@ export async function analyzeBranchesFromFile(options: BranchAnalyzeOptions): Pr
     case 'text':
       return formatText(graph)
   }
+}
+
+export interface CoverageAnalyzeOptions {
+  scriptPath: string
+  format: 'text' | 'json'
+}
+
+/**
+ * Parse a script file, build its branch graph, and emit a coverage report.
+ */
+export async function analyzeCoverageFromFile(options: CoverageAnalyzeOptions): Promise<string> {
+  const content = readFileSync(options.scriptPath, 'utf-8')
+  const ast = await parseAst(content) as AdvAst.Root
+  const graph = analyzeBranches(ast)
+  const report = analyzeCoverage(graph)
+  if (options.format === 'json') {
+    return JSON.stringify({ ...report, scriptName: basename(options.scriptPath) }, null, 2)
+  }
+  return formatCoverageText(report)
 }

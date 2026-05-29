@@ -190,6 +190,153 @@ export function analyzeBranches(ast: AdvAst.Root): BranchGraph {
 }
 
 /**
+ * Static coverage analysis derived purely from the branch graph.
+ *
+ * Unlike a `play`-driven traversal, this never executes the script — it walks
+ * the directed graph produced by {@link analyzeBranches}. That makes it fast
+ * and deterministic, at the cost of not knowing runtime-only facts (e.g. a
+ * `go` target computed from a variable).
+ */
+export interface CoverageReport {
+  /** Total scene anchors declared in the script. */
+  totalScenes: number
+  /** Scene anchors reachable by following edges from `start`. */
+  reachableScenes: number
+  /** Labels of scenes that exist but can never be reached from `start`. */
+  orphanScenes: string[]
+  /** Number of `choices` fork nodes. */
+  choicePoints: number
+  /** Number of selectable options across all fork nodes. */
+  totalOptions: number
+  /** Options that dead-end (no resolvable next node). */
+  deadOptions: number
+  /** Distinct terminal nodes (END + dead ends) reachable from `start`. */
+  endings: number
+  /** Count of distinct acyclic paths from `start` to a terminal. */
+  distinctPaths: number
+  /** True when path enumeration hit {@link MAX_ENUMERATED_PATHS}. */
+  pathsTruncated: boolean
+  /** Node ids unreachable from `start` (orphan scenes plus their subgraphs). */
+  unreachableNodes: string[]
+}
+
+/** Safety cap on path enumeration — branchy scripts can be exponential. */
+export const MAX_ENUMERATED_PATHS = 5000
+
+function buildAdjacency(graph: BranchGraph): Map<string, string[]> {
+  const adjacency = new Map<string, string[]>()
+  for (const edge of graph.edges) {
+    if (!adjacency.has(edge.from))
+      adjacency.set(edge.from, [])
+    adjacency.get(edge.from)!.push(edge.to)
+  }
+  return adjacency
+}
+
+/**
+ * Compute reachability + path-coverage metrics for a branch graph.
+ */
+export function analyzeCoverage(graph: BranchGraph): CoverageReport {
+  const adjacency = buildAdjacency(graph)
+
+  // 1. Reachability — BFS from the synthetic start node.
+  const reachable = new Set<string>()
+  const queue: string[] = ['start']
+  while (queue.length) {
+    const id = queue.shift()!
+    if (reachable.has(id))
+      continue
+    reachable.add(id)
+    for (const next of adjacency.get(id) ?? [])
+      queue.push(next)
+  }
+
+  // 2. Terminals = nodes with no outgoing edges (END + dead ends).
+  const terminals = graph.nodes.filter(n => !(adjacency.get(n.id)?.length))
+  const reachableTerminals = terminals.filter(n => reachable.has(n.id))
+
+  // 3. Path enumeration — DFS pruning cycles (don't revisit a node already on
+  //    the current path). Counts distinct acyclic start→terminal walks.
+  let distinctPaths = 0
+  let pathsTruncated = false
+  const onPath = new Set<string>()
+  const dfs = (id: string) => {
+    if (pathsTruncated)
+      return
+    const outgoing = adjacency.get(id) ?? []
+    if (outgoing.length === 0) {
+      distinctPaths++
+      if (distinctPaths >= MAX_ENUMERATED_PATHS)
+        pathsTruncated = true
+      return
+    }
+    onPath.add(id)
+    for (const next of outgoing) {
+      if (onPath.has(next))
+        continue // prune cycle
+      dfs(next)
+    }
+    onPath.delete(id)
+  }
+  dfs('start')
+
+  // 4. Scene-level metrics.
+  const sceneNodes = graph.nodes.filter(n => n.kind === 'scene')
+  const orphanScenes = sceneNodes.filter(n => !reachable.has(n.id)).map(n => n.label)
+  const unreachableNodes = graph.nodes.filter(n => !reachable.has(n.id)).map(n => n.id)
+
+  return {
+    totalScenes: sceneNodes.length,
+    reachableScenes: sceneNodes.length - orphanScenes.length,
+    orphanScenes,
+    choicePoints: graph.nodes.filter(n => n.kind === 'choices').length,
+    totalOptions: graph.nodes.filter(n => n.kind === 'option').length,
+    deadOptions: graph.deadOptions,
+    endings: reachableTerminals.length,
+    distinctPaths,
+    pathsTruncated,
+    unreachableNodes,
+  }
+}
+
+/**
+ * Render a coverage report as a human-readable text summary.
+ */
+export function formatCoverageText(report: CoverageReport): string {
+  const lines: string[] = []
+  lines.push('# Branch Coverage')
+  lines.push('')
+  const scenePct = report.totalScenes > 0
+    ? Math.round((report.reachableScenes / report.totalScenes) * 100)
+    : 100
+  lines.push(`Scenes reachable : ${report.reachableScenes}/${report.totalScenes} (${scenePct}%)`)
+  lines.push(`Choice points    : ${report.choicePoints}`)
+  lines.push(`Options          : ${report.totalOptions}`)
+  lines.push(`Endings reachable: ${report.endings}`)
+  lines.push(`Distinct paths   : ${report.distinctPaths}${report.pathsTruncated ? '+ (truncated)' : ''}`)
+  lines.push(`Dead options     : ${report.deadOptions}`)
+
+  if (report.orphanScenes.length) {
+    lines.push('')
+    lines.push('⚠ Orphan scenes (unreachable from start):')
+    for (const label of report.orphanScenes)
+      lines.push(`  - ${label}`)
+  }
+
+  if (report.deadOptions > 0) {
+    lines.push('')
+    lines.push(`✗ ${report.deadOptions} dead option(s) — choices with no resolvable next node.`)
+  }
+
+  if (!report.orphanScenes.length && report.deadOptions === 0) {
+    lines.push('')
+    lines.push('✓ No orphan scenes or dead paths detected.')
+  }
+
+  return lines.join('\n')
+}
+
+/**
  * Render the graph as a Mermaid flowchart definition.
  */
 export function formatMermaid(graph: BranchGraph): string {

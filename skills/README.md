@@ -51,6 +51,7 @@ Debug and analyze ADV.JS projects for branch coverage, dead paths, and consisten
 
 - **Validate + auto-fix** (v0.3): `adv check [--fix]` — stub generation for unresolved character/scene refs
 - **Branch graph** (v0.3): `adv debug branches <script> [--format=mermaid|json|text]` — AST-derived graph; `kind: "dead"` flags dead options
+- **Coverage report** (v0.3): `adv debug coverage <script> [--format=text|json]` — reachable scenes, distinct paths, orphan scenes, dead options
 - **Analyze**: `adv context --full`
 - **Test paths**: `adv play` through all branches
 - **Report**: Coverage tables with embedded mermaid diagrams

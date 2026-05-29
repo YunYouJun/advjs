@@ -7,6 +7,7 @@ tools:
   - adv check [--root] [--fix]
   - adv context [--root] [--full]
   - adv debug branches <script.adv.md> [--format=mermaid|json|text] [-o <file>]
+  - adv debug coverage <script.adv.md> [--format=text|json] [-o <file>]
   - adv play <script> --session-id <id> --json
   - adv play next --session-id <id> --json
   - adv play choose <n> --session-id <id> --json
@@ -89,13 +90,45 @@ Note: `kind: "dead"` nodes appear for options that have no resolvable next node 
 
 Use this to drive Step 4 (path traversal) and to enumerate dead paths automatically (any node with `kind: "dead"`).
 
-Present a summary table per chapter:
+For a quick aggregate instead of the full graph, use `coverage` — it runs the same static analysis and reports the headline numbers:
+
+```bash
+adv debug coverage adv/chapters/chapter_01.adv.md
+# or machine-readable:
+adv debug coverage adv/chapters/chapter_01.adv.md --format=json
+```
+
+Text output:
 
 ```
-| Chapter | Scenes | Choice Points | Options | Dead Paths |
-|---------|--------|---------------|---------|------------|
-| CH01    | 3      | 2             | 4       | 0          |
-| CH02    | 2      | 1             | 2       | 1          |
+# Branch Coverage
+
+Scenes reachable : 3/3 (100%)
+Choice points    : 2
+Options          : 4
+Endings reachable: 2
+Distinct paths   : 4
+Dead options     : 0
+
+✓ No orphan scenes or dead paths detected.
+```
+
+JSON adds `orphanScenes`, `unreachableNodes`, `distinctPaths`, and
+`pathsTruncated` (true when a very branchy script exceeds the 5000-path
+enumeration cap). `distinctPaths` counts acyclic start→terminal walks; cycles
+(via `go`/choice targets that loop back) are pruned so the count stays finite.
+
+> Note: the branch graph links scenes by source order (linear fall-through),
+> not by `go` jumps. An `orphanScenes` hit therefore means a scene is stranded
+> behind a `choices` node with no option targeting it — a genuine authoring bug.
+
+Present a summary table per chapter using these numbers:
+
+```
+| Chapter | Scenes | Choice Points | Options | Paths | Dead |
+|---------|--------|---------------|---------|-------|------|
+| CH01    | 3      | 2             | 4       | 4     | 0    |
+| CH02    | 2      | 1             | 2       | 2     | 1    |
 ```
 
 ### Step 4: Test Branch Paths via Play

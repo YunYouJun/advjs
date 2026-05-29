@@ -17,6 +17,7 @@ ADV.JS Skills 体系的发展方向。
 - ✅ `adv check [--fix]` — 语法/角色/场景验证 + 自动桩生成
 - ✅ `adv context` — AI 上下文导出
 - ✅ `adv debug branches` — AST 分支图导出
+- ✅ `adv debug coverage` — 分支覆盖率报告（可达场景 / 路径数 / 孤立场景 / 死路径）
 
 ### MCP Server
 
@@ -47,8 +48,7 @@ ADV.JS Skills 体系的发展方向。
 
 - [ ] 自动存档触发器（章节切换/选择前自动 quicksave）—— 现已有槽位存储，缺触发策略
 - [ ] character `imagePrompt` 字段 —— 当前只有 scene 有 imagePrompt；扩展到角色立绘
-- [ ] `adv debug coverage` —— 走完所有分支后输出覆盖率报告（结合现有 branches 图）
-- [ ] MCP `adv://branches/{chapter}` resource —— 把 `adv debug branches` 输出做成 MCP resource
+- [ ] MCP `adv://branches/{chapter}` / `adv://coverage/{chapter}` resource —— 把分支图 / 覆盖率做成 MCP resource
 
 ## 长期目标
 

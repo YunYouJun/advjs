@@ -9,6 +9,7 @@
 | `adv check [--root] [--fix]`                                             | 验证项目完整性，可自动补桩 |
 | `adv context [--root] [--full]`                                          | 读取完整项目上下文         |
 | `adv debug branches <script> [--format=mermaid\|json\|text] [-o <file>]` | 生成剧本分支图             |
+| `adv debug coverage <script> [--format=text\|json] [-o <file>]`          | 生成分支覆盖率报告         |
 | `adv play <script> --session-id <id> --json`                             | 加载剧本测试               |
 | `adv play next --session-id <id> --json`                                 | 推进到下一节点             |
 | `adv play choose <n> --session-id <id> --json`                           | 选择分支路径               |
@@ -62,6 +63,36 @@ adv debug branches adv/chapters/01.adv.md --format=text
 ```
 
 `json` 形态会标注 `kind: "dead"` 的死路径（选择后没有任何后续节点），是死路径检测的依据。
+
+## 覆盖率报告
+
+`adv debug coverage` 在分支图基础上做静态可达性分析，一条命令给出汇总指标：
+
+```bash
+adv debug coverage adv/chapters/01.adv.md
+adv debug coverage adv/chapters/01.adv.md --format=json
+```
+
+文本输出：
+
+```
+# Branch Coverage
+
+Scenes reachable : 3/3 (100%)
+Choice points    : 2
+Options          : 4
+Endings reachable: 2
+Distinct paths   : 4
+Dead options     : 0
+
+✓ No orphan scenes or dead paths detected.
+```
+
+指标说明：
+
+- `distinctPaths` —— 从 START 到终点的无环路径数；`go`/选项目标造成的环会被剪枝，保证有限。超大分支超过 5000 条路径上限时 `pathsTruncated: true`
+- `orphanScenes` —— 被卡在 `choices` 节点之后、又没有任何选项指向它的孤立场景（真实的剧本 bug）
+- `deadOptions` —— 选择后无任何后续节点的死选项
 
 ## 自动修复
 
