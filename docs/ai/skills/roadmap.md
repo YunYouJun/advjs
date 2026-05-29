@@ -40,16 +40,19 @@ ADV.JS Skills 体系的发展方向。
 
 ## 近期计划 (v0.4)
 
-### 推迟自 v0.3 的两项
+### 已完成
 
-- [ ] adv-create 交互式模板选择（多类型模板）—— 需先解决「模板腐烂」问题：用单模板 + AI 填充 vs 维护多套
-- [ ] adv-debug 对话质量评分 —— 需先设计 LLM rubric + 评分 schema + 误报抑制
+- [x] character `imagePrompt` 字段 —— 已扩展到角色立绘（类型 / parser / MCP create/edit 全链路），与 scene.imagePrompt 对齐
+- [x] MCP `adv://branches/{id}` / `adv://coverage/{id}` resource —— 分支图 / 覆盖率已做成 MCP resource（外部 MCP 客户端可直接读取）
+
+### 阻塞中（需先决策，不宜强行实现）
+
+- [ ] adv-create 交互式模板选择（多类型模板）—— **阻塞：需产品决策**。要先定哪些题材模板值得长期维护（galgame / 悬疑 / RPG…），否则陷入「模板腐烂」。当前策略是单模板 + AI 填充，已能产出差异化项目
+- [ ] adv-debug 对话质量评分 —— **并入下方 `adv-review`**。质量评分本质需要 LLM 判断（现有 adv-debug 全是确定性静态分析），静态启发式会误导；与长期目标的 `adv-review` 是同一件事，合并推进
 
 ### 待规划
 
 - [ ] 自动存档触发器（章节切换/选择前自动 quicksave）—— 现已有槽位存储 + history 栈隐式 checkpoint，边际价值已降低
-- [x] character `imagePrompt` 字段 —— 已扩展到角色立绘（类型 / parser / MCP create/edit 全链路），与 scene.imagePrompt 对齐
-- [x] MCP `adv://branches/{id}` / `adv://coverage/{id}` resource —— 分支图 / 覆盖率已做成 MCP resource（外部 MCP 客户端可直接读取）
 
 ## 长期目标
 
@@ -60,9 +63,9 @@ ADV.JS Skills 体系的发展方向。
 
 ### 创作工具
 
-- [ ] `adv-art` — AI 辅助资源生成（消费现有 scene.imagePrompt）
+- [ ] `adv-art` — AI 辅助资源生成（消费现有 scene.imagePrompt / character.imagePrompt）
 - [ ] `adv-audio` — 音效/BGM 智能推荐（消费现有 bgmHint）
-- [ ] `adv-review` — AI 剧本质量审查
+- [ ] `adv-review` — AI 剧本质量审查（含「对话质量评分」：LLM rubric + 评分 schema + 误报抑制）
 
 ### 平台支持
 
