@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { analyzeBranches, analyzeCoverage, formatCoverageText } from '../../packages/advjs/node/commands/branches'
+import { aggregateCoverage, analyzeBranches, analyzeCoverage, formatCoverageText, formatProjectCoverageText } from '../../packages/advjs/node/commands/branches'
 
 function build(ast: any): any {
   return ast
@@ -162,5 +162,67 @@ describe('analyzeCoverage', () => {
     expect(out).toContain('Branch Coverage')
     expect(out).toContain('Scenes reachable')
     expect(out).toContain('Distinct paths')
+  })
+})
+
+describe('aggregateCoverage', () => {
+  function reportFor(ast: any) {
+    return analyzeCoverage(analyzeBranches(build(ast)))
+  }
+
+  const linear = {
+    type: 'adv-root',
+    children: [
+      { type: 'scene', place: 'A', time: '', inOrOut: '' },
+      { type: 'dialog', character: { type: 'character', name: 'X' }, children: [] },
+    ],
+    scene: { A: 0 },
+    functions: {},
+  }
+
+  const withDeadOption = {
+    type: 'adv-root',
+    children: [
+      { type: 'choices', choices: [{ type: 'choice', text: '虚空', target: 'nowhere' }] },
+    ],
+    scene: {},
+    functions: {},
+  }
+
+  it('sums per-chapter metrics into project totals', () => {
+    const project = aggregateCoverage([
+      { name: 'ch01.adv.md', report: reportFor(linear) },
+      { name: 'ch02.adv.md', report: reportFor(withDeadOption) },
+    ])
+    expect(project.totals.chapters).toBe(2)
+    expect(project.totals.scenes).toBe(1) // only ch01 has a scene
+    expect(project.totals.deadOptions).toBe(1) // from ch02
+    expect(project.totals.chaptersWithIssues).toBe(1)
+  })
+
+  it('reports zero issues for an all-clean project', () => {
+    const project = aggregateCoverage([
+      { name: 'ch01.adv.md', report: reportFor(linear) },
+    ])
+    expect(project.totals.chaptersWithIssues).toBe(0)
+    const out = formatProjectCoverageText(project)
+    expect(out).toContain('Project Branch Coverage')
+    expect(out).toContain('| **Total** |')
+    expect(out).toContain('clean')
+  })
+
+  it('lists chapters with issues in the text report', () => {
+    const project = aggregateCoverage([
+      { name: 'ch01.adv.md', report: reportFor(linear) },
+      { name: 'ch02.adv.md', report: reportFor(withDeadOption) },
+    ])
+    const out = formatProjectCoverageText(project)
+    expect(out).toContain('ch02.adv.md')
+    expect(out).toContain('dead')
+  })
+
+  it('handles an empty project', () => {
+    const out = formatProjectCoverageText(aggregateCoverage([]))
+    expect(out).toContain('No chapters found.')
   })
 })

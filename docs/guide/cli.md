@@ -426,23 +426,30 @@ adv debug branches adv/chapters/01.adv.md -o branches.mmd
 
 ### `adv debug coverage`
 
-在分支图基础上做静态可达性分析，给出汇总覆盖率指标。
+在分支图基础上做静态可达性分析，给出汇总覆盖率指标。**省略剧本路径时聚合整个项目的所有章节**。
 
 ```bash
-adv debug coverage <script.adv.md> [options]
+adv debug coverage [script.adv.md] [options]
 ```
 
-| 选项           | 默认值 | 说明                      |
-| -------------- | ------ | ------------------------- |
-| `--format`     | `text` | 输出格式：`text` / `json` |
-| `-o, --output` | -      | 写入文件                  |
+| 选项           | 默认值 | 说明                                                         |
+| -------------- | ------ | ------------------------------------------------------------ |
+| `--root`       | -      | 游戏内容根目录（项目模式；默认 `adv.config.json` / `./adv`） |
+| `--format`     | `text` | 输出格式：`text` / `json`                                    |
+| `-o, --output` | -      | 写入文件                                                     |
 
 ```bash
+# 单章节
 adv debug coverage adv/chapters/01.adv.md
-adv debug coverage adv/chapters/01.adv.md --format=json
+
+# 整个项目（扫描 chapters/ 下所有 .adv.md，输出汇总表）
+adv debug coverage
+
+# 指定内容根目录
+adv debug coverage --root ./game/adv --format=json
 ```
 
-文本输出示例：
+单章节文本输出示例：
 
 ```
 # Branch Coverage
@@ -455,6 +462,20 @@ Distinct paths   : 4
 Dead options     : 0
 
 ✓ No orphan scenes or dead paths detected.
+```
+
+项目模式（无剧本参数）输出汇总表：
+
+```
+# Project Branch Coverage
+
+| Chapter                    | Scenes | Choices | Options | Paths | Dead | Orphan |
+| -------------------------- | ------ | ------- | ------- | ----- | ---- | ------ |
+| chapters/chapter_01.adv.md | 2/2    | 2       | 4       | 4     | 0    | 0      |
+| chapters/chapter_02.adv.md | 1/1    | 1       | 2       | 2     | 0    | 0      |
+| **Total**                  | 3/3    | 3       | 6       | 6     | 0    | 0      |
+
+✓ 2 chapter(s) clean — no orphan scenes or dead paths.
 ```
 
 指标含义：

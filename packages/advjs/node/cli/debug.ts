@@ -50,13 +50,16 @@ export function installDebugCommand(cli: Argv) {
         },
       )
       .command(
-        'coverage <script>',
+        'coverage [script]',
         t('debug.coverage_desc'),
         y => y
           .positional('script', {
             type: 'string',
-            demandOption: true,
             describe: t('debug.coverage_script_desc'),
+          })
+          .option('root', {
+            type: 'string',
+            describe: t('debug.coverage_root_desc'),
           })
           .option('format', {
             type: 'string',
@@ -72,12 +75,18 @@ export function installDebugCommand(cli: Argv) {
           .strict()
           .help(),
         async (argv) => {
-          const { analyzeCoverageFromFile } = await import('../commands/branches')
-          const scriptPath = resolve(process.cwd(), argv.script as string)
-          const out = await analyzeCoverageFromFile({
-            scriptPath,
-            format: argv.format as 'text' | 'json',
-          })
+          const { analyzeCoverageFromFile, analyzeProjectCoverage } = await import('../commands/branches')
+          const script = argv.script as string | undefined
+          // Script given → single chapter; omitted → whole project (all chapters).
+          const out = script
+            ? await analyzeCoverageFromFile({
+                scriptPath: resolve(process.cwd(), script),
+                format: argv.format as 'text' | 'json',
+              })
+            : await analyzeProjectCoverage({
+                root: argv.root as string | undefined,
+                format: argv.format as 'text' | 'json',
+              })
           const outputPath = argv.output as string | undefined
           if (outputPath) {
             await writeFile(resolve(process.cwd(), outputPath), out, 'utf-8')

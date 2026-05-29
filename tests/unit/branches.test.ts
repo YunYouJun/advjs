@@ -42,6 +42,40 @@ describe('analyzeBranches', () => {
     expect(targetEdge).toBeTruthy()
   })
 
+  it('handles duplicate scene place names without dangling edges (regression)', () => {
+    // Two 【学校】 headers — ast.scene collapses them to a single index, but
+    // every scene occurrence must still get its own node and every edge must
+    // resolve to a real target (no `to: undefined`).
+    const ast = build({
+      type: 'adv-root',
+      children: [
+        { type: 'scene', place: '学校', time: '白天', inOrOut: '内景' }, // idx 0
+        { type: 'dialog', character: { type: 'character', name: 'A' }, children: [] },
+        { type: 'scene', place: '学校', time: '傍晚', inOrOut: '内景' }, // idx 2 — same name
+        { type: 'dialog', character: { type: 'character', name: 'A' }, children: [] },
+      ],
+      // parser keeps only the last occurrence under the place key
+      scene: { 学校: 2 },
+      functions: {},
+    })
+
+    const graph = analyzeBranches(ast)
+
+    // Both scene occurrences become distinct nodes.
+    const sceneNodes = graph.nodes.filter(n => n.kind === 'scene')
+    expect(sceneNodes).toHaveLength(2)
+
+    // No edge may dangle (every edge has a resolvable `to`).
+    const nodeIds = new Set(graph.nodes.map(n => n.id))
+    for (const edge of graph.edges) {
+      expect(edge.to).toBeTruthy()
+      expect(nodeIds.has(edge.to)).toBe(true)
+    }
+
+    // start must connect to the first scene.
+    expect(graph.edges.some(e => e.from === 'start' && e.to === 'scene_0')).toBe(true)
+  })
+
   it('marks unresolved choice targets as dead when no fall-through exists', () => {
     const ast = build({
       type: 'adv-root',

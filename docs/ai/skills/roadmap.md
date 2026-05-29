@@ -17,7 +17,7 @@ ADV.JS Skills 体系的发展方向。
 - ✅ `adv check [--fix]` — 语法/角色/场景验证 + 自动桩生成
 - ✅ `adv context` — AI 上下文导出
 - ✅ `adv debug branches` — AST 分支图导出
-- ✅ `adv debug coverage` — 分支覆盖率报告（可达场景 / 路径数 / 孤立场景 / 死路径）
+- ✅ `adv debug coverage` — 分支覆盖率报告（单章节 / 全项目聚合；可达场景 / 路径数 / 孤立场景 / 死路径）
 
 ### MCP Server
 

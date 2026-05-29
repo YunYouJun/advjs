@@ -96,10 +96,18 @@ export function analyzeBranches(ast: AdvAst.Root): BranchGraph {
   const endId = 'end'
   nodes.push({ id: startId, kind: 'start', label: 'START' })
 
-  for (const [place, index] of Object.entries(ast.scene)) {
-    const id = `scene_${index}`
-    sceneIdsByIndex.set(index, id)
-    nodes.push({ id, kind: 'scene', label: place, astIndex: index })
+  // Build a scene node for EVERY scene occurrence in the AST — not from
+  // `ast.scene`, which is keyed by place name and so collapses repeated
+  // headers (e.g. two 【学校】 blocks). Keying by AST index keeps every
+  // occurrence distinct and guarantees `findNextAnchorIndex` always resolves
+  // to an existing node id (otherwise edges dangle with no `to`).
+  for (let i = 0; i < ast.children.length; i++) {
+    const node = ast.children[i]
+    if (node?.type === 'scene') {
+      const id = `scene_${i}`
+      sceneIdsByIndex.set(i, id)
+      nodes.push({ id, kind: 'scene', label: (node as AdvAst.SceneInfo).place, astIndex: i })
+    }
   }
 
   const choicesIdsByIndex = new Map<number, string>()
@@ -297,6 +305,107 @@ export function analyzeCoverage(graph: BranchGraph): CoverageReport {
     pathsTruncated,
     unreachableNodes,
   }
+}
+
+/** A coverage report paired with the chapter it came from. */
+export interface NamedCoverage {
+  name: string
+  report: CoverageReport
+}
+
+export interface ProjectCoverage {
+  chapters: NamedCoverage[]
+  totals: {
+    chapters: number
+    scenes: number
+    reachableScenes: number
+    choicePoints: number
+    options: number
+    deadOptions: number
+    distinctPaths: number
+    orphanScenes: number
+    /** Chapters with at least one orphan scene or dead option. */
+    chaptersWithIssues: number
+  }
+}
+
+/**
+ * Aggregate per-chapter coverage reports into a project-wide summary.
+ *
+ * Pure: takes already-computed reports so it can be reused browser-side
+ * (Studio) without any filesystem access.
+ */
+export function aggregateCoverage(chapters: NamedCoverage[]): ProjectCoverage {
+  const totals = {
+    chapters: chapters.length,
+    scenes: 0,
+    reachableScenes: 0,
+    choicePoints: 0,
+    options: 0,
+    deadOptions: 0,
+    distinctPaths: 0,
+    orphanScenes: 0,
+    chaptersWithIssues: 0,
+  }
+  for (const { report } of chapters) {
+    totals.scenes += report.totalScenes
+    totals.reachableScenes += report.reachableScenes
+    totals.choicePoints += report.choicePoints
+    totals.options += report.totalOptions
+    totals.deadOptions += report.deadOptions
+    totals.distinctPaths += report.distinctPaths
+    totals.orphanScenes += report.orphanScenes.length
+    if (report.orphanScenes.length > 0 || report.deadOptions > 0)
+      totals.chaptersWithIssues++
+  }
+  return { chapters, totals }
+}
+
+/**
+ * Render a project-wide coverage report as a Markdown table + totals.
+ */
+export function formatProjectCoverageText(project: ProjectCoverage): string {
+  const lines: string[] = []
+  lines.push('# Project Branch Coverage')
+  lines.push('')
+
+  if (project.chapters.length === 0) {
+    lines.push('No chapters found.')
+    return lines.join('\n')
+  }
+
+  lines.push('| Chapter | Scenes | Choices | Options | Paths | Dead | Orphan |')
+  lines.push('|---------|--------|---------|---------|-------|------|--------|')
+  for (const { name, report } of project.chapters) {
+    const sceneCell = `${report.reachableScenes}/${report.totalScenes}`
+    const paths = `${report.distinctPaths}${report.pathsTruncated ? '+' : ''}`
+    lines.push(
+      `| ${name} | ${sceneCell} | ${report.choicePoints} | ${report.totalOptions} | ${paths} | ${report.deadOptions} | ${report.orphanScenes.length} |`,
+    )
+  }
+
+  const t = project.totals
+  lines.push(`| **Total** | ${t.reachableScenes}/${t.scenes} | ${t.choicePoints} | ${t.options} | ${t.distinctPaths} | ${t.deadOptions} | ${t.orphanScenes} |`)
+
+  lines.push('')
+  if (t.chaptersWithIssues === 0) {
+    lines.push(`✓ ${t.chapters} chapter(s) clean — no orphan scenes or dead paths.`)
+  }
+  else {
+    lines.push(`⚠ ${t.chaptersWithIssues}/${t.chapters} chapter(s) have orphan scenes or dead paths:`)
+    for (const { name, report } of project.chapters) {
+      if (report.orphanScenes.length === 0 && report.deadOptions === 0)
+        continue
+      const parts: string[] = []
+      if (report.deadOptions > 0)
+        parts.push(`${report.deadOptions} dead`)
+      if (report.orphanScenes.length > 0)
+        parts.push(`orphans: ${report.orphanScenes.join(', ')}`)
+      lines.push(`  - ${name}: ${parts.join('; ')}`)
+    }
+  }
+
+  return lines.join('\n')
 }
 
 /**

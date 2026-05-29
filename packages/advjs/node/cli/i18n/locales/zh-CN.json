@@ -155,8 +155,9 @@
     "branches_format_desc": "输出格式：mermaid（默认）、json、text",
     "branches_output_desc": "将输出写入文件。省略时输出到 stdout",
     "branches_written": "分支图已写入 {0}",
-    "coverage_desc": "报告剧本的分支覆盖率（可达场景、路径、死路径）",
-    "coverage_script_desc": "要分析的 .adv.md 剧本路径",
+    "coverage_desc": "报告分支覆盖率。省略剧本时聚合所有章节",
+    "coverage_script_desc": ".adv.md 剧本路径。省略时扫描整个项目",
+    "coverage_root_desc": "游戏内容根目录（项目模式；默认从 adv.config.json 或 ./adv 读取）",
     "coverage_format_desc": "输出格式：text（默认）、json",
     "coverage_output_desc": "将输出写入文件。省略时输出到 stdout",
     "coverage_written": "覆盖率报告已写入 {0}"

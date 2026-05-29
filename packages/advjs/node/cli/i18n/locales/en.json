@@ -155,8 +155,9 @@
     "branches_format_desc": "Output format: mermaid (default), json, text",
     "branches_output_desc": "Write output to a file. Omit to print to stdout",
     "branches_written": "Branch graph written to {0}",
-    "coverage_desc": "Report branch coverage (reachable scenes, paths, dead ends) for a script",
-    "coverage_script_desc": "Path to the .adv.md script to analyze",
+    "coverage_desc": "Report branch coverage. Omit the script to aggregate all chapters",
+    "coverage_script_desc": "Path to a .adv.md script. Omit to scan the whole project",
+    "coverage_root_desc": "Game content root directory (project mode; default: from adv.config.json or ./adv)",
     "coverage_format_desc": "Output format: text (default), json",
     "coverage_output_desc": "Write output to a file. Omit to print to stdout",
     "coverage_written": "Coverage report written to {0}"

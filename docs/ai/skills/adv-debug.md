@@ -4,17 +4,17 @@
 
 ## 命令列表
 
-| 命令                                                                     | 说明                       |
-| ------------------------------------------------------------------------ | -------------------------- |
-| `adv check [--root] [--fix]`                                             | 验证项目完整性，可自动补桩 |
-| `adv context [--root] [--full]`                                          | 读取完整项目上下文         |
-| `adv debug branches <script> [--format=mermaid\|json\|text] [-o <file>]` | 生成剧本分支图             |
-| `adv debug coverage <script> [--format=text\|json] [-o <file>]`          | 生成分支覆盖率报告         |
-| `adv play <script> --session-id <id> --json`                             | 加载剧本测试               |
-| `adv play next --session-id <id> --json`                                 | 推进到下一节点             |
-| `adv play choose <n> --session-id <id> --json`                           | 选择分支路径               |
-| `adv play list --json`                                                   | 列出测试会话               |
-| `adv play reset --session-id <id>`                                       | 清理测试会话               |
+| 命令                                                                     | 说明                                   |
+| ------------------------------------------------------------------------ | -------------------------------------- |
+| `adv check [--root] [--fix]`                                             | 验证项目完整性，可自动补桩             |
+| `adv context [--root] [--full]`                                          | 读取完整项目上下文                     |
+| `adv debug branches <script> [--format=mermaid\|json\|text] [-o <file>]` | 生成剧本分支图                         |
+| `adv debug coverage [script] [--format=text\|json] [-o <file>]`          | 分支覆盖率报告（省略剧本则聚合全项目） |
+| `adv play <script> --session-id <id> --json`                             | 加载剧本测试                           |
+| `adv play next --session-id <id> --json`                                 | 推进到下一节点                         |
+| `adv play choose <n> --session-id <id> --json`                           | 选择分支路径                           |
+| `adv play list --json`                                                   | 列出测试会话                           |
+| `adv play reset --session-id <id>`                                       | 清理测试会话                           |
 
 ## 工作流
 
@@ -69,8 +69,12 @@ adv debug branches adv/chapters/01.adv.md --format=text
 `adv debug coverage` 在分支图基础上做静态可达性分析，一条命令给出汇总指标：
 
 ```bash
+# 单章节
 adv debug coverage adv/chapters/01.adv.md
 adv debug coverage adv/chapters/01.adv.md --format=json
+
+# 整个项目（省略剧本参数，扫描所有章节输出汇总表）
+adv debug coverage
 ```
 
 文本输出：

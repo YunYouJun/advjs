@@ -7,7 +7,7 @@ tools:
   - adv check [--root] [--fix]
   - adv context [--root] [--full]
   - adv debug branches <script.adv.md> [--format=mermaid|json|text] [-o <file>]
-  - adv debug coverage <script.adv.md> [--format=text|json] [-o <file>]
+  - adv debug coverage [script.adv.md] [--format=text|json] [-o <file>]
   - adv play <script> --session-id <id> --json
   - adv play next --session-id <id> --json
   - adv play choose <n> --session-id <id> --json
@@ -98,6 +98,15 @@ adv debug coverage adv/chapters/chapter_01.adv.md
 adv debug coverage adv/chapters/chapter_01.adv.md --format=json
 ```
 
+**Project-wide mode**: omit the script to scan every chapter and get an
+aggregate table in one call — this is the fastest way to produce the Step 6
+coverage report:
+
+```bash
+adv debug coverage                 # all chapters under the game root
+adv debug coverage --format=json   # machine-readable totals + per-chapter
+```
+
 Text output:
 
 ```
@@ -178,7 +187,9 @@ Look for these common problems:
 
 ### Step 6: Generate Coverage Report
 
-Present findings in a structured report:
+Start from the project-wide aggregate (`adv debug coverage`), then annotate
+chapters that the table flags (non-zero Dead / Orphan). Present findings in a
+structured report:
 
 ```
 ## Branch Coverage Report
