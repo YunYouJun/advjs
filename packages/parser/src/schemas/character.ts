@@ -132,6 +132,7 @@ export const CharacterFrontmatterSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   avatar: z.string().optional(),
+  imagePrompt: z.string().optional(),
   actor: z.string().optional(),
   cv: z.string().optional(),
   aliases: z.array(z.string()).optional(),

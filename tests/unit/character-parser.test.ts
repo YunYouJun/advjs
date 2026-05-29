@@ -175,6 +175,14 @@ name: Simple Character
       expect(output).toContain('id: a')
       expect(output).toContain('name: A')
     })
+
+    it('should round-trip the imagePrompt field', () => {
+      const prompt = 'anime portrait of a short-haired girl, white scarf, gentle smile, watercolor'
+      const output = stringifyCharacterMd({ id: 'aria', name: '艾莉亚', imagePrompt: prompt })
+      expect(output).toContain('imagePrompt:')
+      const reparsed = parseCharacterMd(output)
+      expect(reparsed.imagePrompt).toBe(prompt)
+    })
   })
 
   describe('exportCharacterForAI', () => {

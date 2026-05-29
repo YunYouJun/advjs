@@ -22,7 +22,8 @@ ADV.JS Skills 体系的发展方向。
 ### MCP Server
 
 - ✅ Resources：`adv://project/overview`、`adv://characters/*`、`adv://chapters/*`、`adv://scenes`
-- ✅ 创建工具：`create_character / create_chapter / create_scene`（单条）
+- ✅ 分析 Resources：`adv://branches/{id}`、`adv://coverage/{id}`（分支图 / 覆盖率 JSON）
+- ✅ 创建工具：`create_character / create_chapter / create_scene`（单条，含 imagePrompt）
 - ✅ 批量原子工具：`create_characters / create_chapters / create_scenes`
 - ✅ 编辑工具：`edit_character / edit_chapter / edit_scene`
 - ✅ `adv_validate`、`project_stats`、`search_content`、`list_files`
@@ -46,9 +47,9 @@ ADV.JS Skills 体系的发展方向。
 
 ### 待规划
 
-- [ ] 自动存档触发器（章节切换/选择前自动 quicksave）—— 现已有槽位存储，缺触发策略
-- [ ] character `imagePrompt` 字段 —— 当前只有 scene 有 imagePrompt；扩展到角色立绘
-- [ ] MCP `adv://branches/{chapter}` / `adv://coverage/{chapter}` resource —— 把分支图 / 覆盖率做成 MCP resource
+- [ ] 自动存档触发器（章节切换/选择前自动 quicksave）—— 现已有槽位存储 + history 栈隐式 checkpoint，边际价值已降低
+- [x] character `imagePrompt` 字段 —— 已扩展到角色立绘（类型 / parser / MCP create/edit 全链路），与 scene.imagePrompt 对齐
+- [x] MCP `adv://branches/{id}` / `adv://coverage/{id}` resource —— 分支图 / 覆盖率已做成 MCP resource（外部 MCP 客户端可直接读取）
 
 ## 长期目标
 

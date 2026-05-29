@@ -61,6 +61,10 @@ Write the project-level prose files directly — these don't fit neatly into MCP
 
 Submit the whole cast in one shot via the `create_characters` MCP tool. Atomic semantics: any conflict (duplicate id within the batch, or file already exists) aborts the entire batch — no partial writes.
 
+Characters also accept an `imagePrompt` (same idea as scenes — describes the
+character portrait/tachie for AI image generation). Populate it whenever you
+have a clear visual for the character.
+
 ```js
 create_characters({
   items: [
@@ -68,6 +72,7 @@ create_characters({
       id: 'aria',
       name: '艾莉亚',
       tags: ['主角', '女主'],
+      imagePrompt: 'anime portrait of a curious short-haired high-school girl, navy blazer over a white scarf, bright eyes, soft watercolor',
       personality: '活泼好奇，对未知事物充满热情。',
       appearance: '短发少女，常穿深蓝色校服外套白色围巾。',
       background: '转学生，过去笼罩在迷雾中。',

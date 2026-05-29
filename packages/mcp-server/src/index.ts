@@ -2,7 +2,8 @@ import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'no
 import { createRequire } from 'node:module'
 import { basename, join, relative } from 'node:path'
 import process from 'node:process'
-import { parseCharacterMd, stringifyCharacterMd } from '@advjs/parser'
+import { analyzeBranches, analyzeCoverage } from '@advjs/core'
+import { parseAst, parseCharacterMd, stringifyCharacterMd } from '@advjs/parser'
 import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { resolveGameRoot, scanFiles } from 'advjs'
@@ -42,6 +43,7 @@ function textContent(text: string) {
 export interface CharacterCreateInput {
   id: string
   name: string
+  imagePrompt?: string
   tags?: string[]
   aliases?: string[]
   personality?: string
@@ -165,6 +167,7 @@ export function buildCharacterMd(params: CharacterCreateInput): string {
   return stringifyCharacterMd({
     id: params.id,
     name: params.name,
+    imagePrompt: params.imagePrompt,
     tags: params.tags,
     aliases: params.aliases,
     personality: params.personality,
@@ -359,6 +362,45 @@ export function createAdvMcpServer() {
     },
   )
 
+  // Resolve a chapter id (with or without the .adv.md suffix) to its file.
+  const resolveChapterPath = (id: string): string | undefined => {
+    for (const path of [join(gameRoot, 'chapters', `${id}.adv.md`), join(gameRoot, 'chapters', id)]) {
+      if (existsSync(path))
+        return path
+    }
+    return undefined
+  }
+
+  server.resource(
+    'chapter-branches',
+    new ResourceTemplate('adv://branches/{id}', { list: undefined }),
+    { description: 'Branch graph (nodes + edges) for a chapter, as JSON' },
+    async (uri: URL) => {
+      const id = decodeURIComponent(uri.pathname.split('/').pop() || '')
+      const path = resolveChapterPath(id)
+      if (!path)
+        return resourceTextContent(uri, `Chapter "${id}" not found.`)
+      const ast = await parseAst(readFileSync(path, 'utf-8'))
+      const graph = analyzeBranches(ast as Parameters<typeof analyzeBranches>[0])
+      return resourceTextContent(uri, JSON.stringify({ chapter: id, ...graph }, null, 2))
+    },
+  )
+
+  server.resource(
+    'chapter-coverage',
+    new ResourceTemplate('adv://coverage/{id}', { list: undefined }),
+    { description: 'Branch coverage report for a chapter, as JSON' },
+    async (uri: URL) => {
+      const id = decodeURIComponent(uri.pathname.split('/').pop() || '')
+      const path = resolveChapterPath(id)
+      if (!path)
+        return resourceTextContent(uri, `Chapter "${id}" not found.`)
+      const ast = await parseAst(readFileSync(path, 'utf-8'))
+      const report = analyzeCoverage(analyzeBranches(ast as Parameters<typeof analyzeBranches>[0]))
+      return resourceTextContent(uri, JSON.stringify({ chapter: id, ...report }, null, 2))
+    },
+  )
+
   // --------------- Tools ---------------
 
   server.tool(
@@ -444,6 +486,7 @@ export function createAdvMcpServer() {
     {
       id: z.string().describe('Character ID (lowercase, no spaces, used as filename)'),
       name: z.string().describe('Character display name'),
+      imagePrompt: z.string().optional().describe('AI image prompt for the character portrait/tachie (English keywords recommended)'),
       tags: z.array(z.string()).optional().describe('Character tags'),
       aliases: z.array(z.string()).optional().describe('Alternative names'),
       personality: z.string().optional().describe('Personality description'),
@@ -472,6 +515,7 @@ export function createAdvMcpServer() {
     {
       id: z.string().describe('Character ID to edit'),
       name: z.string().optional().describe('New display name'),
+      imagePrompt: z.string().optional().describe('New AI image prompt for the character portrait/tachie'),
       tags: z.array(z.string()).optional().describe('Replace tags'),
       aliases: z.array(z.string()).optional().describe('Replace aliases'),
       personality: z.string().optional().describe('New personality description'),
@@ -483,6 +527,7 @@ export function createAdvMcpServer() {
     async (params: {
       id: string
       name?: string
+      imagePrompt?: string
       tags?: string[]
       aliases?: string[]
       personality?: string
@@ -620,6 +665,7 @@ export function createAdvMcpServer() {
       items: z.array(z.object({
         id: z.string(),
         name: z.string(),
+        imagePrompt: z.string().optional(),
         tags: z.array(z.string()).optional(),
         aliases: z.array(z.string()).optional(),
         personality: z.string().optional(),

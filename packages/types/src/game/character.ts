@@ -202,6 +202,13 @@ export interface AdvCharacterFrontmatter {
    */
   avatar?: string
   /**
+   * Image Prompt
+   * @zh 立绘提示词
+   * @description 生成角色立绘 / 头像的 AI 提示词（英文为佳）。与 scene.imagePrompt 对应
+   * @example "anime portrait of a short-haired high-school girl, white scarf, gentle smile, watercolor"
+   */
+  imagePrompt?: string
+  /**
    * @zh 演员
    */
   actor?: string

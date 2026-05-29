@@ -58,6 +58,8 @@ Resources are read-only data the AI can access:
 | `adv://chapters`         | Chapters overview (chapters/README.md)                       |
 | `adv://chapters/{id}`    | Individual chapter script (e.g. `adv://chapters/chapter_01`) |
 | `adv://scenes`           | Scenes overview (scenes/README.md)                           |
+| `adv://branches/{id}`    | Branch graph (nodes + edges) for a chapter, as JSON          |
+| `adv://coverage/{id}`    | Branch coverage report for a chapter, as JSON                |
 
 ### Reading a Character
 

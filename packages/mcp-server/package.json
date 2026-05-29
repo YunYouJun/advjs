@@ -36,6 +36,7 @@
     "dev": "unbuild --stub"
   },
   "dependencies": {
+    "@advjs/core": "workspace:*",
     "@advjs/parser": "workspace:*",
     "@modelcontextprotocol/sdk": "catalog:cli",
     "advjs": "workspace:*",

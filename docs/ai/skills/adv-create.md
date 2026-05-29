@@ -45,7 +45,7 @@
 
 ## imagePrompt 撰写指南
 
-`AdvScene.imagePrompt` 是给 AI 画图的提示词，与 `description`（给读者看的散文）正交。**创建场景时永远填这个字段**，未来 `adv-art` 等工具可直接复用。
+`AdvScene.imagePrompt`（场景背景）和 `AdvCharacter.imagePrompt`（角色立绘）都是给 AI 画图的提示词，与 `description`（给读者看的散文）正交。**创建场景 / 角色时尽量填这个字段**，未来 `adv-art` 等工具可直接复用。
 
 ### 公式
 
