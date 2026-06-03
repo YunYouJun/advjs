@@ -98,6 +98,8 @@
     "scenes_ok": "Scene references (all valid)",
     "scenes_errors": "Scene references ({0} unresolved)",
     "scene_unresolved": "{0}: scene \"{1}\" has no matching scenes/*.md",
+    "scene_frontmatter_errors": "Scene frontmatter ({0} file(s) with invalid fields)",
+    "scene_frontmatter_detail": "{0}: {1}",
     "locations_ok": "Location references ({0} locations, all valid)",
     "locations_errors": "Location references ({0} unresolved)",
     "location_unresolved": "{0}: place \"{1}\" has no matching scenes/*.md or locations/*.md",

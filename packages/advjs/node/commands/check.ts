@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
 import process from 'node:process'
-import { extractCharacterRefs, extractSceneRefs, parseCharacterMd } from '@advjs/parser'
+import { extractCharacterRefs, extractSceneRefs, parseCharacterMd, validateSceneFrontmatter } from '@advjs/parser'
 import { consola } from 'consola'
 import { colors } from 'consola/utils'
 import { t } from '../cli/i18n'
@@ -18,7 +18,7 @@ export interface CheckOptions {
 
 export interface CheckIssue {
   type: 'error' | 'warning'
-  category: 'syntax' | 'character' | 'scene' | 'location'
+  category: 'syntax' | 'character' | 'scene' | 'scene-frontmatter' | 'location'
   file: string
   message: string
 }
@@ -161,6 +161,7 @@ export async function runCheck(options: CheckOptions & { cwd?: string }): Promis
   for (const file of sceneFiles) {
     const content = readFileSync(file, 'utf-8')
     const scene = parseSceneFrontmatter(content)
+    const relPath = file.replace(`${cwd}/`, '')
 
     if (scene.id)
       knownScenes.add(scene.id)
@@ -170,6 +171,18 @@ export async function runCheck(options: CheckOptions & { cwd?: string }): Promis
     // Also use filename without extension as scene identifier
     const fileName = basename(file, '.md')
     knownScenes.add(fileName)
+
+    // Validate scene frontmatter against the schema (catches malformed
+    // `type` enum, non-string fields, missing id — format-freeze hardening).
+    const validation = validateSceneFrontmatter(content)
+    if (!validation.success) {
+      issues.push({
+        type: 'warning',
+        category: 'scene-frontmatter',
+        file: relPath,
+        message: validation.error ?? 'invalid frontmatter',
+      })
+    }
   }
 
   for (const [place, files] of allSceneRefs) {
@@ -366,6 +379,15 @@ export async function advCheck(options: CheckOptions) {
     consola.fail(t('check.scenes_errors', unresolvedScenes.size))
     for (const issue of sceneIssues) {
       log(colors.yellow(`  ⚠ ${t('check.scene_unresolved', issue.file, issue.message)}`))
+    }
+  }
+
+  // Report scene frontmatter schema results
+  const sceneFmIssues = result.issues.filter(i => i.category === 'scene-frontmatter')
+  if (sceneFmIssues.length > 0) {
+    consola.fail(t('check.scene_frontmatter_errors', sceneFmIssues.length))
+    for (const issue of sceneFmIssues) {
+      log(colors.yellow(`  ⚠ ${t('check.scene_frontmatter_detail', issue.file, issue.message)}`))
     }
   }
 
