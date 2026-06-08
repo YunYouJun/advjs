@@ -1,7 +1,7 @@
 {
   "name": "@advjs/studio",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
   "description": "ADV.JS Studio - visual novel editor app",
   "scripts": {
@@ -13,11 +13,13 @@
     "lint": "eslint .",
     "cap:init:ios": "cap add ios",
     "cap:init:android": "cap add android",
+    "cap:assets": "capacitor-assets generate --iconBackgroundColor '#8b5cf6' --iconBackgroundColorDark '#1f1730' --splashBackgroundColor '#ffffff' --splashBackgroundColorDark '#0f0f17'",
     "cap:sync": "cap sync",
     "cap:open:ios": "cap open ios",
     "cap:open:android": "cap open android",
     "cap:run:ios": "npm run build && cap sync ios && cap run ios",
-    "cap:run:android": "npm run build && cap sync android && cap run android"
+    "cap:run:android": "npm run build && cap sync android && cap run android",
+    "release:ios": "npm run build && cap sync ios && npm run cap:open:ios"
   },
   "dependencies": {
     "@advjs/client": "workspace:*",
@@ -25,10 +27,12 @@
     "@advjs/gui": "workspace:*",
     "@advjs/parser": "workspace:*",
     "@advjs/types": "workspace:*",
+    "@advjs/unocss": "workspace:*",
     "@capacitor/app": "catalog:",
     "@capacitor/core": "catalog:",
     "@capacitor/filesystem": "catalog:",
     "@capacitor/haptics": "catalog:",
+    "@capacitor/ios": "catalog:",
     "@capacitor/keyboard": "catalog:",
     "@capacitor/status-bar": "catalog:",
     "@ionic/vue": "catalog:",
@@ -58,6 +62,7 @@
     "yjs": "catalog:"
   },
   "devDependencies": {
+    "@capacitor/assets": "catalog:",
     "@capacitor/cli": "catalog:",
     "@cloudbase/js-sdk": "catalog:",
     "@iconify-json/vscode-icons": "catalog:icons",
@@ -70,6 +75,7 @@
     "terser": "catalog:",
     "typescript": "catalog:dev",
     "unocss": "catalog:build",
+    "unplugin-vue-components": "catalog:build",
     "vite": "catalog:build",
     "vite-plugin-pwa": "catalog:build",
     "vitest": "catalog:test",

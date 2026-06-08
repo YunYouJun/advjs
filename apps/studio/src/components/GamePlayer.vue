@@ -4,7 +4,7 @@ import type { AdvConfig, AdvFountainNode, AdvGameConfig } from '@advjs/types'
 import { injectionAdvContext } from '@advjs/client'
 import AdvGame from '@advjs/client/components/game/AdvGame.vue'
 import { setupAdvContext } from '@advjs/client/setup/context'
-import { IonButton } from '@ionic/vue'
+import { IonButton, onIonViewDidEnter } from '@ionic/vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePlayProgress } from '../composables/usePlayProgress'
@@ -164,7 +164,17 @@ async function gotoTargetChapter(chapterTitle: string | undefined) {
     await $adv.$nav.go({ chapterId: target.id, nodeId: target.startNodeId! })
 }
 
-onMounted(async () => {
+// Heavy game init (content load + engine init + Pixi canvas + first chapter).
+// Deferred to `ionViewDidEnter` so it runs AFTER the Ionic page-enter
+// transition completes: the container then has its final size, so
+// AdvContainer's `useElementSize`-driven scale is measured correctly (running
+// during the transition risks a collapsed/blank canvas). `onMounted` is kept as
+// a fallback for contexts where the Ionic view lifecycle never fires.
+let initStarted = false
+async function initGame() {
+  if (initStarted)
+    return
+  initStarted = true
   try {
     await refresh()
     await nextTick() // Pixi needs the AdvGame canvas in the DOM
@@ -175,6 +185,20 @@ onMounted(async () => {
   catch (e) {
     error.value = e instanceof Error ? e.message : String(e)
   }
+}
+
+onIonViewDidEnter(() => {
+  initGame()
+})
+
+onMounted(() => {
+  // Fallback: if the Ionic view-enter lifecycle hasn't fired shortly after
+  // mount (e.g. when GamePlayer is hosted outside an IonPage transition),
+  // initialize anyway so the game still loads.
+  setTimeout(() => {
+    if (!initStarted)
+      initGame()
+  }, 700)
 })
 
 watch(() => props.chapterName, async (name) => {

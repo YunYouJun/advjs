@@ -40,7 +40,7 @@ import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { listCloudFiles, uploadProjectToCloud } from '../utils/cloudSync'
 import { restoreAndVerifyHandle } from '../utils/dirHandleStore'
-import { createFileSystem, detectAdvProject, openProjectDirectory } from '../utils/fs'
+import { createFileSystem, detectAdvProject, openProjectDirectory, supportsFileSystemAccess } from '../utils/fs'
 import { BrowserFsAdapter } from '../utils/fs/BrowserFsAdapter'
 import { createProjectFromTemplate, quickStartTemplate } from '../utils/projectTemplate'
 import { toSlug } from '../utils/slug'
@@ -265,12 +265,29 @@ async function handleCreateProject(payload: { displayName: string, slug: string,
   const { displayName, slug, templateId } = payload
 
   try {
-    const parentDir = await openProjectDirectory()
-    const projectDir = await parentDir.getDirectoryHandle(slug, { create: true })
-    const fs = new BrowserFsAdapter(projectDir)
-    await createProjectFromTemplate(fs, slug, templateId)
-
     const cosPrefix = normalizeCosPrefix(settingsStore.cos.projectRoot, slug)
+
+    // Only ask for a local directory when the File System Access API is
+    // available (desktop Chromium). On Safari / Firefox / iOS / Android the
+    // picker doesn't exist, so fall back to the platform adapter
+    // (MemoryFs / Capacitor) — same path QuickStart already uses — instead of
+    // throwing and leaving the user with no project.
+    let projectDir: FileSystemDirectoryHandle | undefined
+    let fs: import('../utils/fs').IFileSystem
+    if (supportsFileSystemAccess()) {
+      const parentDir = await openProjectDirectory()
+      projectDir = await parentDir.getDirectoryHandle(slug, { create: true })
+      fs = new BrowserFsAdapter(projectDir)
+    }
+    else {
+      fs = await createFileSystem({ projectId: slug })
+    }
+
+    await createProjectFromTemplate(fs, slug, templateId)
+    // Memory-backed adapters need an explicit persist to survive a reload.
+    if (!projectDir && 'persist' in fs && typeof (fs as any).persist === 'function')
+      await (fs as any).persist()
+
     await studioStore.switchProject({
       projectId: slug,
       name: displayName,

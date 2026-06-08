@@ -6,6 +6,7 @@ const legacyPluginPackage: string = '@vitejs/plugin-legacy'
 const vuePluginPackage: string = '@vitejs/plugin-vue'
 const unocssPluginPackage: string = 'unocss/vite'
 const pwaPluginPackage: string = 'vite-plugin-pwa'
+const componentsPluginPackage: string = 'unplugin-vue-components/vite'
 
 // https://vitejs.dev/config/
 export default async function createViteConfig() {
@@ -15,12 +16,26 @@ export default async function createViteConfig() {
     { default: vue },
     { default: UnoCSS },
     { VitePWA },
+    { default: Components },
   ] = await Promise.all([
     import(legacyPluginPackage),
     import(vuePluginPackage),
     import(unocssPluginPackage),
     import(pwaPluginPackage),
+    import(componentsPluginPackage),
   ])
+
+  // The embedded `@advjs/client` runtime (Play tab) renders `AdvGame.vue`,
+  // whose template references game components (AdvContainer / AdvDialogBox /
+  // AdvChoice / AdvGameUI / ...) **without importing them** — the main advjs
+  // app resolves these via unplugin-vue-components auto-import over both the
+  // client component tree and the active theme's components (AdvIcon et al.
+  // live in theme-default). Studio embeds the runtime directly, so without the
+  // same auto-import those children fail to resolve and the game renders blank.
+  const advComponentDirs = [
+    path.join(import.meta.dirname, '../../packages/client/components'),
+    path.join(import.meta.dirname, '../../themes/theme-default/components'),
+  ]
 
   return {
     // `__DEV__` is referenced inside `@advjs/client` and `@advjs/parser` source
@@ -49,6 +64,15 @@ export default async function createViteConfig() {
         },
       },
       UnoCSS(),
+      Components({
+        // Scope strictly to the @advjs/client component tree. Studio's own
+        // components are explicitly imported, so we deliberately do NOT scan
+        // src/components here to avoid surprise global auto-registration.
+        dirs: advComponentDirs,
+        extensions: ['vue'],
+        include: [/\.vue$/, /\.vue\?vue/],
+        dts: false,
+      }),
       vue(),
       legacy(),
       VitePWA({

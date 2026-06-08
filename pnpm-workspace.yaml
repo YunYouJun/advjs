@@ -1,6 +1,12 @@
 shellEmulator: true
-# eslint-disable-next-line pnpm/yaml-enforce-settings
-trustPolicy: off
+
+trustPolicy: no-downgrade
+# Ignore trust downgrades for packages published more than 7 days (10080 min)
+# ago. Established transitive deps (e.g. semver@6.3.1, rollup@2.80.0 via
+# vite-plugin-pwa / @capacitor/assets) simply predate provenance attestation,
+# which `no-downgrade` would otherwise flag. New/just-published packages are
+# still checked, so protection against fresh supply-chain attacks is retained.
+trustPolicyIgnoreAfter: 10080
 
 packages:
   - demo/*
@@ -19,10 +25,12 @@ catalog:
   '@aws-sdk/client-s3': ^3.1046.0
   '@aws-sdk/s3-request-presigner': ^3.1046.0
   '@capacitor/app': 8.1.0
+  '@capacitor/assets': ^3.0.5
   '@capacitor/cli': 8.3.0
   '@capacitor/core': 8.3.0
   '@capacitor/filesystem': 8.1.2
   '@capacitor/haptics': 8.0.2
+  '@capacitor/ios': 8.3.0
   '@capacitor/keyboard': 8.0.2
   '@capacitor/status-bar': 8.0.2
   '@cloudbase/js-sdk': ^3.3.9
@@ -255,3 +263,5 @@ ignoredBuiltDependencies:
   - bufferutil
   - esbuild
   - unrs-resolver
+onlyBuiltDependencies:
+  - sharp
