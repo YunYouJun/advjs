@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { MarketplaceRecord, ReviewRecord, SortMode } from '../../composables/useMarketplace'
+import type { MarketDuration, MarketGenre, MarketStyle } from '../../utils/marketTaxonomy'
 import {
   IonButtons,
   IonChip,
@@ -18,13 +19,17 @@ import {
   cloudDownloadOutline,
   cloudUploadOutline,
   heartOutline,
+  optionsOutline,
   personOutline,
   shareSocialOutline,
+  starOutline,
+  star as starSolid,
 } from 'ionicons/icons'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import LayoutPage from '../../components/common/LayoutPage.vue'
+import MarketPublishModal from '../../components/marketplace/MarketPublishModal.vue'
 import { useCloudbase } from '../../composables/useCloudbase'
 import { useMarketplace } from '../../composables/useMarketplace'
 import { useProjectContent } from '../../composables/useProjectContent'
@@ -33,12 +38,20 @@ import { useShortLink } from '../../composables/useShortLink'
 import { useAuthStore } from '../../stores/useAuthStore'
 import { useStudioStore } from '../../stores/useStudioStore'
 import { MemoryFsAdapter } from '../../utils/fs/MemoryFsAdapter'
+import {
+  durationLabelKey,
+  genreLabelKey,
+  MARKET_DURATIONS,
+  MARKET_GENRES,
+  MARKET_STYLES,
+  styleLabelKey,
+} from '../../utils/marketTaxonomy'
 
 const { t } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
 const studioStore = useStudioStore()
-const { getFs, stats: projectStats } = useProjectContent()
+const { getFs, characters, stats: projectStats } = useProjectContent()
 const {
   isBusy,
   browseMarket,
@@ -47,6 +60,7 @@ const {
   fetchReviews,
   likeReview,
   publishProject,
+  setFeatured,
 } = useMarketplace()
 
 let cloudApp: ReturnType<typeof useCloudbase>['app'] | null = null
@@ -61,7 +75,10 @@ const items = ref<MarketplaceRecord[]>([])
 const isLoading = ref(false)
 const searchQuery = ref('')
 const selectedTag = ref<string | null>(null)
-const selectedCategory = ref<string | null>(null)
+const selectedGenre = ref<MarketGenre | null>(null)
+const selectedStyle = ref<MarketStyle | null>(null)
+const selectedDuration = ref<MarketDuration | null>(null)
+const showFilters = ref(false)
 const sortMode = ref<SortMode>('newest')
 const selectedItem = ref<MarketplaceRecord | null>(null)
 
@@ -78,6 +95,8 @@ const { createShortLink } = useShortLink()
 
 // Publish state
 const isPublishing = ref(false)
+const showPublishModal = ref(false)
+const publishWorldMd = ref('')
 
 const allTags = computed(() => {
   const tags = new Set<string>()
@@ -88,15 +107,17 @@ const allTags = computed(() => {
   return [...tags]
 })
 
-// Template-based category list
-const TEMPLATE_CATEGORIES = [
-  { id: null, label: 'world.timelineFilterAll', icon: '🌐' },
-  { id: 'life-story', label: 'templates.life-story', icon: '📖' },
-  { id: 'training-drill', label: 'templates.training-drill', icon: '🏢' },
-  { id: 'touch-book', label: 'templates.touch-book', icon: '📚' },
-  { id: 'anti-fraud', label: 'templates.anti-fraud', icon: '🛡' },
-  { id: 'medical-comm', label: 'templates.medical-comm', icon: '🏥' },
-] as const
+const GENRE_OPTIONS = MARKET_GENRES
+const STYLE_OPTIONS = MARKET_STYLES
+const DURATION_OPTIONS = MARKET_DURATIONS
+
+const hasActiveFilter = computed(() =>
+  !!(selectedGenre.value || selectedStyle.value || selectedDuration.value || searchQuery.value),
+)
+
+const activeFilterCount = computed(() =>
+  [selectedGenre.value, selectedStyle.value, selectedDuration.value].filter(Boolean).length,
+)
 
 const featuredItems = computed(() =>
   items.value.filter(i => i.featured).slice(0, 4),
@@ -105,9 +126,14 @@ const featuredItems = computed(() =>
 const filteredItems = computed(() => {
   let result = items.value
 
-  // Filter by category (templateId)
-  if (selectedCategory.value)
-    result = result.filter(i => i.templateId === selectedCategory.value)
+  // Structured taxonomy filters (genre / style / duration) — client-side over
+  // the loaded page so chip taps feel instant without extra round-trips.
+  if (selectedGenre.value)
+    result = result.filter(i => i.genre === selectedGenre.value)
+  if (selectedStyle.value)
+    result = result.filter(i => i.style === selectedStyle.value)
+  if (selectedDuration.value)
+    result = result.filter(i => i.duration === selectedDuration.value)
 
   // Filter by search query
   if (searchQuery.value) {
@@ -279,7 +305,7 @@ async function handleSubmitReview() {
   }
 }
 
-async function handlePublish() {
+async function openPublishModal() {
   if (!cloudApp || !authStore.isLoggedIn)
     return
 
@@ -293,6 +319,32 @@ async function handlePublish() {
     await toast.present()
     return
   }
+
+  // Best-effort read of world.md to give the AI tagger more context.
+  publishWorldMd.value = ''
+  try {
+    const fs = getFs()
+    if (fs && await fs.exists('adv/world.md'))
+      publishWorldMd.value = await fs.readFile('adv/world.md')
+  }
+  catch {
+    // world.md is optional; tagger falls back to name + description + characters.
+  }
+  showPublishModal.value = true
+}
+
+async function doPublish(payload: {
+  tags: string[]
+  genre?: MarketGenre
+  style?: MarketStyle
+  duration: MarketDuration
+}) {
+  if (!cloudApp || !authStore.isLoggedIn)
+    return
+
+  const project = studioStore.currentProject
+  if (!project)
+    return
 
   isPublishing.value = true
   try {
@@ -319,7 +371,10 @@ async function handlePublish() {
       throw new Error(t('marketplace.publishFailed'))
 
     const marketId = await publishProject(cloudApp, project, {
-      tags: [],
+      tags: payload.tags,
+      genre: payload.genre,
+      style: payload.style,
+      duration: payload.duration,
       stats: realStats,
       version: '1.0.0',
       packageKey: uploadResult.fileID,
@@ -329,6 +384,7 @@ async function handlePublish() {
     if (!marketId)
       throw new Error(t('marketplace.publishFailed'))
 
+    showPublishModal.value = false
     const toast = await toastController.create({
       message: t('marketplace.publishSuccess'),
       duration: 2000,
@@ -370,8 +426,46 @@ function onTagChange(tag: string | null) {
   loadMarket()
 }
 
-function onCategoryChange(catId: string | null) {
-  selectedCategory.value = catId
+function toggleGenre(id: MarketGenre) {
+  selectedGenre.value = selectedGenre.value === id ? null : id
+}
+
+function toggleStyle(id: MarketStyle) {
+  selectedStyle.value = selectedStyle.value === id ? null : id
+}
+
+function toggleDuration(id: MarketDuration) {
+  selectedDuration.value = selectedDuration.value === id ? null : id
+}
+
+function clearFilters() {
+  selectedGenre.value = null
+  selectedStyle.value = null
+  selectedDuration.value = null
+}
+
+const isOwner = computed(() =>
+  !!(selectedItem.value && authStore.userInfo.uid && selectedItem.value.ownerId === authStore.userInfo.uid),
+)
+
+async function handleToggleFeatured() {
+  if (!cloudApp || !selectedItem.value?._id)
+    return
+  const next = !selectedItem.value.featured
+  const ok = await setFeatured(cloudApp, selectedItem.value._id, next)
+  if (ok) {
+    selectedItem.value.featured = next
+    // Keep the loaded list in sync so the Featured row reflects the change.
+    const inList = items.value.find(i => i._id === selectedItem.value!._id)
+    if (inList)
+      inList.featured = next
+    const toast = await toastController.create({
+      message: next ? t('marketplace.featuredOn') : t('marketplace.featuredOff'),
+      duration: 1500,
+      position: 'top',
+    })
+    await toast.present()
+  }
 }
 
 function onSortChange(mode: SortMode) {
@@ -412,7 +506,7 @@ function onSortChange(mode: SortMode) {
         type="button"
         class="publish-btn"
         :disabled="isPublishing || !studioStore.currentProject"
-        @click="handlePublish"
+        @click="openPublishModal"
       >
         <IonIcon :icon="cloudUploadOutline" />
         {{ t('marketplace.publish') }}
@@ -420,16 +514,69 @@ function onSortChange(mode: SortMode) {
       </button>
     </div>
 
-    <!-- Category chips (template-based) -->
-    <div class="category-chips">
-      <IonChip
-        v-for="cat in TEMPLATE_CATEGORIES"
-        :key="cat.id ?? 'all'"
-        :color="selectedCategory === cat.id ? 'primary' : undefined"
-        @click="onCategoryChange(cat.id)"
+    <!-- Filter toggle -->
+    <div class="filter-bar">
+      <button
+        type="button"
+        class="filter-toggle"
+        :class="{ 'filter-toggle--active': activeFilterCount > 0 }"
+        @click="showFilters = !showFilters"
       >
-        {{ cat.icon }} {{ t(cat.label) }}
-      </IonChip>
+        <IonIcon :icon="optionsOutline" />
+        {{ t('marketplace.filters') }}
+        <span v-if="activeFilterCount > 0" class="filter-badge">{{ activeFilterCount }}</span>
+      </button>
+      <button
+        v-if="activeFilterCount > 0"
+        type="button"
+        class="filter-clear"
+        @click="clearFilters"
+      >
+        {{ t('marketplace.clearFilters') }}
+      </button>
+    </div>
+
+    <!-- Structured taxonomy filters -->
+    <div v-if="showFilters" class="filter-panel">
+      <div class="filter-group">
+        <span class="filter-group__label">{{ t('marketplace.genreLabel') }}</span>
+        <div class="filter-group__chips">
+          <IonChip
+            v-for="opt in GENRE_OPTIONS"
+            :key="opt.id"
+            :color="selectedGenre === opt.id ? 'primary' : undefined"
+            @click="toggleGenre(opt.id)"
+          >
+            {{ opt.icon }} {{ t(opt.labelKey) }}
+          </IonChip>
+        </div>
+      </div>
+      <div class="filter-group">
+        <span class="filter-group__label">{{ t('marketplace.styleLabel') }}</span>
+        <div class="filter-group__chips">
+          <IonChip
+            v-for="opt in STYLE_OPTIONS"
+            :key="opt.id"
+            :color="selectedStyle === opt.id ? 'primary' : undefined"
+            @click="toggleStyle(opt.id)"
+          >
+            {{ opt.icon }} {{ t(opt.labelKey) }}
+          </IonChip>
+        </div>
+      </div>
+      <div class="filter-group">
+        <span class="filter-group__label">{{ t('marketplace.durationLabel') }}</span>
+        <div class="filter-group__chips">
+          <IonChip
+            v-for="opt in DURATION_OPTIONS"
+            :key="opt.id"
+            :color="selectedDuration === opt.id ? 'primary' : undefined"
+            @click="toggleDuration(opt.id)"
+          >
+            {{ opt.icon }} {{ t(opt.labelKey) }}
+          </IonChip>
+        </div>
+      </div>
     </div>
 
     <!-- Tag filter chips -->
@@ -456,9 +603,9 @@ function onSortChange(mode: SortMode) {
     </div>
 
     <!-- Featured section -->
-    <div v-if="featuredItems.length > 0 && !searchQuery && !selectedCategory" class="market-featured">
+    <div v-if="featuredItems.length > 0 && !hasActiveFilter" class="market-featured">
       <h3 class="market-featured__title">
-        {{ t('marketplace.featured') }}
+        ⭐ {{ t('marketplace.featured') }}
       </h3>
       <div class="market-featured__row">
         <button
@@ -485,7 +632,7 @@ function onSortChange(mode: SortMode) {
     </div>
 
     <!-- Card grid -->
-    <div v-else-if="filteredItems.length > 0" class="market-grid">
+    <div v-if="filteredItems.length > 0" class="market-grid">
       <button
         v-for="item in filteredItems"
         :key="item._id"
@@ -504,6 +651,11 @@ function onSortChange(mode: SortMode) {
           <div class="market-card__author">
             {{ item.authorName }}
           </div>
+          <div v-if="item.genre || item.style || item.duration" class="market-card__taxonomy">
+            <span v-if="item.genre">{{ t(genreLabelKey(item.genre)) }}</span>
+            <span v-if="item.style">{{ t(styleLabelKey(item.style)) }}</span>
+            <span v-if="item.duration">{{ t(durationLabelKey(item.duration)) }}</span>
+          </div>
           <div class="market-card__meta">
             <span>👥 {{ item.stats.characters }}</span>
             <span>📖 {{ item.stats.chapters }}</span>
@@ -515,7 +667,7 @@ function onSortChange(mode: SortMode) {
     </div>
 
     <!-- Empty -->
-    <div v-else class="market-empty">
+    <div v-else-if="!isLoading" class="market-empty">
       <p>{{ t('marketplace.empty') }}</p>
     </div>
 
@@ -568,6 +720,22 @@ function onSortChange(mode: SortMode) {
             </div>
           </div>
 
+          <!-- Taxonomy chips (genre / style / duration) -->
+          <div
+            v-if="selectedItem.genre || selectedItem.style || selectedItem.duration"
+            class="market-detail__tags"
+          >
+            <IonChip v-if="selectedItem.genre" color="primary" @click="toggleGenre(selectedItem.genre); selectedItem = null; showFilters = true">
+              {{ t(genreLabelKey(selectedItem.genre)) }}
+            </IonChip>
+            <IonChip v-if="selectedItem.style" color="primary" @click="toggleStyle(selectedItem.style); selectedItem = null; showFilters = true">
+              {{ t(styleLabelKey(selectedItem.style)) }}
+            </IonChip>
+            <IonChip v-if="selectedItem.duration" color="primary" @click="toggleDuration(selectedItem.duration); selectedItem = null; showFilters = true">
+              {{ t(durationLabelKey(selectedItem.duration)) }}
+            </IonChip>
+          </div>
+
           <div v-if="selectedItem.tags.length" class="market-detail__tags">
             <IonChip v-for="tag in selectedItem.tags" :key="tag" color="medium">
               {{ tag }}
@@ -597,6 +765,17 @@ function onSortChange(mode: SortMode) {
               {{ t('marketplace.share') }}
             </button>
           </div>
+
+          <!-- Owner curation: feature / unfeature -->
+          <button
+            v-if="isOwner"
+            type="button"
+            class="market-detail__feature"
+            @click="handleToggleFeatured"
+          >
+            <IonIcon :icon="selectedItem.featured ? starSolid : starOutline" />
+            {{ selectedItem.featured ? t('marketplace.unfeature') : t('marketplace.feature') }}
+          </button>
 
           <!-- Reviews section -->
           <div class="reviews-section">
@@ -663,6 +842,19 @@ function onSortChange(mode: SortMode) {
         </div>
       </IonContent>
     </IonModal>
+
+    <!-- Publish modal: taxonomy + tags + AI auto-tag -->
+    <MarketPublishModal
+      :is-open="showPublishModal"
+      :project-name="studioStore.currentProject?.name || ''"
+      :description="studioStore.currentProject?.description"
+      :chapter-count="projectStats.chapters"
+      :characters="characters"
+      :world-md="publishWorldMd"
+      :is-publishing="isPublishing"
+      @close="showPublishModal = false"
+      @publish="doPublish"
+    />
   </LayoutPage>
 </template>
 
@@ -709,12 +901,107 @@ function onSortChange(mode: SortMode) {
   -webkit-overflow-scrolling: touch;
 }
 
-.category-chips {
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--adv-space-sm);
+  padding: var(--adv-space-sm) var(--adv-space-md) 0;
+}
+
+.filter-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: var(--adv-radius-sm);
+  border: 1px solid var(--adv-border-subtle);
+  background: var(--adv-surface-card);
+  color: var(--adv-text-secondary);
+  font-size: var(--adv-font-body-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.filter-toggle--active {
+  border-color: var(--ion-color-primary);
+  color: var(--ion-color-primary);
+}
+
+.filter-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--ion-color-primary);
+  color: #fff;
+  font-size: var(--adv-font-caption);
+}
+
+.filter-clear {
+  background: none;
+  border: none;
+  color: var(--adv-text-tertiary);
+  font-size: var(--adv-font-body-sm);
+  cursor: pointer;
+}
+
+.filter-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--adv-space-sm);
+  padding: var(--adv-space-sm) var(--adv-space-md) 0;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.filter-group__label {
+  font-size: var(--adv-font-caption);
+  font-weight: 600;
+  color: var(--adv-text-tertiary);
+}
+
+.filter-group__chips {
   display: flex;
   gap: 4px;
-  padding: var(--adv-space-sm) var(--adv-space-md) 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+.market-card__taxonomy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: var(--adv-space-xs);
+}
+
+.market-card__taxonomy span {
+  font-size: var(--adv-font-caption);
+  color: var(--ion-color-primary);
+  background: var(--adv-surface-elevated);
+  border-radius: var(--adv-radius-sm);
+  padding: 1px 6px;
+}
+
+.market-detail__feature {
+  display: flex;
+  align-items: center;
+  gap: var(--adv-space-xs);
+  margin-top: var(--adv-space-sm);
+  padding: 8px 16px;
+  border-radius: var(--adv-radius-md);
+  background: var(--adv-surface-elevated);
+  color: var(--adv-text-primary);
+  font-size: var(--adv-font-body-sm);
+  font-weight: 600;
+  border: 1px solid var(--adv-border-subtle);
+  cursor: pointer;
 }
 
 .market-featured {

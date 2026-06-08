@@ -140,6 +140,10 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/views/settings/SettingsAboutPage.vue'),
       },
       {
+        path: 'me/settings/privacy',
+        component: () => import('@/views/settings/SettingsPrivacyPage.vue'),
+      },
+      {
         path: 'me/developer',
         component: () => import('@/views/me/DeveloperPage.vue'),
       },

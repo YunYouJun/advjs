@@ -10,14 +10,17 @@ export default antfu(
   {
     ignores: [
       '**/.adv/**',
+      '**/.codex/**',
       '**/cache/**',
       '**/test-results/**',
       '**/CAPACITOR.md',
+      '**/*.svg',
       // Capacitor native projects are generated/native code — never lint them.
       // Without this, `eslint .` floods the stylish formatter and crashes with
       // `RangeError: Invalid string length`.
       'apps/studio/ios/**',
       'apps/studio/android/**',
+      'apps/studio/ios-templates/**/*.xml',
       'MATERIAL_*.md',
       'MISSING_*.md',
       'TEMPLATE_*.md',

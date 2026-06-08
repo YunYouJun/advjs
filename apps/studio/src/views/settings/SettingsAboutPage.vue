@@ -92,7 +92,7 @@ async function onLogoTap() {
           <h2 class="identity-card__name">
             ADV.JS Studio
           </h2>
-          <span class="identity-card__version">v0.0.1</span>
+          <span class="identity-card__version">v0.1.0</span>
           <p class="identity-card__tagline">
             Visual Novel Engine
           </p>

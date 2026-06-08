@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  PrivacyInfo.xcprivacy
+  ─────────────────────
+  Required since iOS 17 / App Store Connect (May 2024) for any app that uses
+  certain "Required Reason API" categories — UserDefaults (used by Ionic/Capacitor),
+  file timestamps (used by Capacitor Filesystem), and disk-space queries.
+
+  Drop this file into ios/App/App/PrivacyInfo.xcprivacy and add it to the
+  App target's "Copy Bundle Resources" phase in Xcode.
+
+  ADV.JS Studio does NOT collect any personal data from users. All telemetry
+  is anonymous, opt-in, and described in Settings → Me → Privacy.
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- We do not track users across apps/websites owned by other companies. -->
+    <key>NSPrivacyTracking</key>
+    <false/>
+
+    <!-- No tracking domains. -->
+    <key>NSPrivacyTrackingDomains</key>
+    <array/>
+
+    <!-- Data collection summary.
+         Empty array = we do not collect personal data covered by Apple's
+         data-types list. The Studio app stores everything on-device unless
+         the user explicitly opts into Cloud Sync, where they configure their
+         own COS / CloudBase credentials.
+
+         If you later add a feature that collects data (e.g. account-bound
+         analytics, server-side AI proxy), add the corresponding entries
+         here AND update the App Store Connect "App Privacy" questionnaire. -->
+    <key>NSPrivacyCollectedDataTypes</key>
+    <array/>
+
+    <!-- Required-reason APIs.
+         Each entry declares an API category we use and the official
+         Apple-approved reason code for using it. -->
+    <key>NSPrivacyAccessedAPITypes</key>
+    <array>
+        <!-- UserDefaults — Ionic/Capacitor uses this for its own preference
+             storage. Reason CA92.1 = "access user defaults to read/write
+             information that is only accessible to the app itself". -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>CA92.1</string>
+            </array>
+        </dict>
+
+        <!-- File timestamp — Capacitor Filesystem reads modification times
+             when listing project folders. Reason C617.1 = "display file
+             timestamp(s) to the user". -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>C617.1</string>
+            </array>
+        </dict>
+
+        <!-- System boot time — used internally by some logging libraries to
+             compute relative timestamps. Reason 35F9.1 = "compute time intervals
+             for events that happen within the app". -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategorySystemBootTime</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>35F9.1</string>
+            </array>
+        </dict>
+
+        <!-- Disk space — for any "out of storage" hint when saving large
+             project files. Reason E174.1 = "display free space to the user". -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryDiskSpace</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>E174.1</string>
+            </array>
+        </dict>
+    </array>
+</dict>
+</plist>

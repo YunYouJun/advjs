@@ -496,6 +496,13 @@ const userConfig = defineConfig({
 
   head,
 
+  // Pretty URLs for legal/static pages — `advjs.org/privacy` is referenced
+  // from the iOS app and from `apps/studio/src/views/settings/SettingsPrivacyPage.vue`,
+  // so the canonical link must resolve without `/about/` in the path.
+  rewrites: {
+    'about/privacy.md': 'privacy.md',
+  },
+
   // todo
   // algolia: {
   //   appId: "",

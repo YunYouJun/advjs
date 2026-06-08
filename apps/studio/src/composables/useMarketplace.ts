@@ -1,5 +1,6 @@
 import type cloudbase from '@cloudbase/js-sdk'
 import type { StudioProject } from '../stores/useStudioStore'
+import type { MarketDuration, MarketGenre, MarketStyle } from '../utils/marketTaxonomy'
 import { ref } from 'vue'
 import { useAuthStore } from '../stores/useAuthStore'
 import { createNotifications } from '../stores/useNotificationsStore'
@@ -36,6 +37,12 @@ export interface MarketplaceRecord {
   status: MarketStatus
   /** Template ID used to generate this project (for category filtering) */
   templateId?: string
+  /** Curation taxonomy — theme/genre (Phase 18) */
+  genre?: MarketGenre
+  /** Curation taxonomy — narrative style (Phase 18) */
+  style?: MarketStyle
+  /** Curation taxonomy — length bucket, defaults derived from chapter count */
+  duration?: MarketDuration
   /** Featured flag (admin-set) */
   featured?: boolean
   /** Stats snapshot */
@@ -125,6 +132,9 @@ export function useMarketplace() {
       version?: string
       packageKey?: string
       packageSize?: number
+      genre?: MarketGenre
+      style?: MarketStyle
+      duration?: MarketDuration
     },
   ): Promise<string | null> {
     const uid = authStore.userInfo.uid
@@ -154,6 +164,10 @@ export function useMarketplace() {
         description: project.description,
         cover: project.cover,
         tags: options.tags,
+        // Only persist taxonomy keys that are set — CloudBase rejects `undefined`.
+        ...(options.genre ? { genre: options.genre } : {}),
+        ...(options.style ? { style: options.style } : {}),
+        ...(options.duration ? { duration: options.duration } : {}),
         packageKey: options.packageKey,
         packageSize: options.packageSize,
         status: 'published',
@@ -171,13 +185,13 @@ export function useMarketplace() {
       if (existing.data && existing.data.length > 0) {
         docId = (existing.data[0] as MarketplaceRecord)._id!
         await collection.doc(docId).update(record)
-        track('project_published', { projectId: project.projectId, version: record.version, tags: options.tags })
+        track('project_published', { projectId: project.projectId, version: record.version, tags: options.tags, genre: options.genre, style: options.style })
       }
       else {
         const result = await collection.add(record)
         docId = result.id as string
         firstPublish = true
-        track('project_published', { projectId: project.projectId, version: record.version, tags: options.tags, firstTime: true })
+        track('project_published', { projectId: project.projectId, version: record.version, tags: options.tags, genre: options.genre, style: options.style, firstTime: true })
       }
 
       // Fan-out a `new_project` notification to all followers on first publish
@@ -206,6 +220,9 @@ export function useMarketplace() {
     options?: {
       search?: string
       tag?: string
+      genre?: MarketGenre
+      style?: MarketStyle
+      duration?: MarketDuration
       sort?: SortMode
       limit?: number
       offset?: number
@@ -216,13 +233,21 @@ export function useMarketplace() {
 
     try {
       const db = getDb(cloudApp)
-      let query = db.collection(COLLECTION_MARKET)
-        .where({ status: 'published' })
 
-      if (options?.tag) {
-        query = db.collection(COLLECTION_MARKET)
-          .where({ status: 'published', tags: options.tag })
-      }
+      // Compose an equality filter from the structured dimensions. CloudBase
+      // ANDs the fields in a single `where()` object; `tags: value` matches
+      // membership in the array field.
+      const condition: Record<string, unknown> = { status: 'published' }
+      if (options?.tag)
+        condition.tags = options.tag
+      if (options?.genre)
+        condition.genre = options.genre
+      if (options?.style)
+        condition.style = options.style
+      if (options?.duration)
+        condition.duration = options.duration
+
+      let query = db.collection(COLLECTION_MARKET).where(condition)
 
       // Sort
       const sortField = options?.sort === 'popular'
@@ -433,6 +458,30 @@ export function useMarketplace() {
   }
 
   /**
+   * Toggle the `featured` curation flag on a marketplace item (Phase 18).
+   *
+   * Manual curation MVP: gated in the UI to the record owner. A future
+   * moderation role can reuse the same write path via a cloud function.
+   */
+  async function setFeatured(
+    cloudApp: cloudbase.app.App,
+    marketId: string,
+    featured: boolean,
+  ): Promise<boolean> {
+    try {
+      const db = getDb(cloudApp)
+      await db.collection(COLLECTION_MARKET)
+        .doc(marketId)
+        .update({ featured, updatedAt: Date.now() })
+      return true
+    }
+    catch (err) {
+      error.value = err instanceof Error ? err.message : String(err)
+      return false
+    }
+  }
+
+  /**
    * Unlist (unpublish) a marketplace item.
    */
   async function unlistProject(
@@ -463,6 +512,7 @@ export function useMarketplace() {
     submitReview,
     fetchReviews,
     likeReview,
+    setFeatured,
     unlistProject,
   }
 }

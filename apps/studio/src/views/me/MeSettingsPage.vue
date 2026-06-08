@@ -8,6 +8,7 @@ import {
   cloudOutline,
   colorPaletteOutline,
   globeOutline,
+  shieldCheckmarkOutline,
   sparklesOutline,
   trashOutline,
 } from 'ionicons/icons'
@@ -82,6 +83,17 @@ const serviceItems = [
     route: '/tabs/me/settings/cloud',
   },
 ]
+
+const privacyItems = [
+  {
+    key: 'privacy',
+    labelKey: 'settings.privacy.title',
+    descKey: 'settings.privacy.desc',
+    icon: shieldCheckmarkOutline,
+    color: '--nav-icon-privacy',
+    route: '/tabs/me/settings/privacy',
+  },
+]
 </script>
 
 <template>
@@ -104,6 +116,32 @@ const serviceItems = [
       <NavGroup>
         <NavItem
           v-for="item in serviceItems"
+          :key="item.key"
+          :icon="item.icon"
+          :icon-color="`var(${item.color})`"
+          :label="t(item.labelKey)"
+          :desc="t(item.descKey)"
+          @click="router.push(item.route)"
+        />
+      </NavGroup>
+
+      <!-- Privacy & Data -->
+      <NavGroup>
+        <NavItem
+          v-for="item in privacyItems"
+          :key="item.key"
+          :icon="item.icon"
+          :icon-color="`var(${item.color})`"
+          :label="t(item.labelKey)"
+          :desc="t(item.descKey)"
+          @click="router.push(item.route)"
+        />
+      </NavGroup>
+
+      <!-- Privacy & Data -->
+      <NavGroup>
+        <NavItem
+          v-for="item in privacyItems"
           :key="item.key"
           :icon="item.icon"
           :icon-color="`var(${item.color})`"
@@ -137,6 +175,7 @@ const serviceItems = [
   --nav-icon-appearance: #f59e0b;
   --nav-icon-language: #10b981;
   --nav-icon-cloud: var(--adv-primary);
+  --nav-icon-privacy: #6366f1;
 }
 
 /* ── Danger Section ── */

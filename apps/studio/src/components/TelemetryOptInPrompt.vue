@@ -1,47 +1,27 @@
 <script setup lang="ts">
-import { alertController } from '@ionic/vue'
 import { onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { getOptIn, setOptIn } from '../utils/telemetry'
 
-const { t } = useI18n()
-
 /**
- * Show a one-time alert on first launch asking the user whether to enable
- * anonymous telemetry. Privacy default is OFF — no events are sent until the
- * user explicitly chooses "Allow".
+ * Silent privacy default.
  *
- * The user's choice persists in localStorage; this component is a no-op on
- * subsequent launches once they have answered.
+ * Historically this component showed a one-time alert on first launch asking
+ * the user whether to enable anonymous telemetry. That UX created friction
+ * (and made the App Store reviewer path noisier than necessary), so we now
+ * default-deny on first launch and surface the toggle inside
+ * `Me → Privacy` (`SettingsPrivacyPage.vue`) where users can opt in any time.
+ *
+ * Privacy contract is unchanged:
+ * - Default OFF — no events leave the device unless the user explicitly
+ *   flips the switch in the privacy settings page.
+ * - User's choice persists in `localStorage` (`advjs-studio:telemetry-opt-in`).
+ *
+ * This component intentionally renders nothing; it exists only to seed the
+ * default `'deny'` value if the user has never made a choice.
  */
-async function maybePrompt() {
-  if (getOptIn() !== 'unset')
-    return
-  const alert = await alertController.create({
-    header: t('telemetry.optInTitle'),
-    message: t('telemetry.optInMessage'),
-    backdropDismiss: false,
-    buttons: [
-      {
-        text: t('telemetry.optOut'),
-        role: 'cancel',
-        handler: () => setOptIn('deny'),
-      },
-      {
-        text: t('telemetry.optIn'),
-        role: 'confirm',
-        handler: () => setOptIn('allow'),
-      },
-    ],
-  })
-  await alert.present()
-}
-
 onMounted(() => {
-  // Delay slightly so the prompt doesn't fight with onboarding overlays.
-  setTimeout(() => {
-    void maybePrompt()
-  }, 1500)
+  if (getOptIn() === 'unset')
+    setOptIn('deny')
 })
 </script>
 
