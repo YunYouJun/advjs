@@ -1,6 +1,7 @@
 /// <reference types="vitest" />
 
 import path from 'node:path'
+import process from 'node:process'
 
 const legacyPluginPackage: string = '@vitejs/plugin-legacy'
 const vuePluginPackage: string = '@vitejs/plugin-vue'
@@ -42,9 +43,11 @@ export default async function createViteConfig() {
     // (originally meant for their own Vite-driven builds). When those packages
     // are consumed via path aliases here, the constant is unresolved unless we
     // declare it ourselves. `import.meta.env.DEV` resolves to true in dev /
-    // false in build.
+    // false in build. Under Vitest the config is loaded outside a module
+    // context where `import.meta` cannot be evaluated ("Cannot use 'import.meta'
+    // outside a module"), so fall back to a plain literal there.
     define: {
-      __DEV__: 'import.meta.env.DEV',
+      __DEV__: process.env.VITEST ? 'true' : 'import.meta.env.DEV',
     },
     plugins: [
       // `/@advjs/locales` is a virtual module owned by `@advjs/vite-plugin-adv`,
