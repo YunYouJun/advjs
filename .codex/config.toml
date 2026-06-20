@@ -1,0 +1,3 @@
+[mcp_servers.advjs]
+command = "npx"
+args = ["@advjs/mcp-server"]
