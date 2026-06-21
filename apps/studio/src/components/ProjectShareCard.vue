@@ -102,7 +102,7 @@ const truncatedDesc = computed(() => {
   gap: 20px;
   padding: 28px;
   box-sizing: border-box;
-  background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 60%, #6366f1 100%);
+  background: linear-gradient(135deg, #2e1065 0%, #6d28d9 60%, #8b5cf6 100%);
   color: #ffffff;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
   border-radius: 16px;

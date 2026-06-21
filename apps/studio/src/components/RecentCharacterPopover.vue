@@ -135,7 +135,7 @@ function getAvatar(entry: RecentCharacterEntry): string {
 
 .recent-chars__header-icon {
   font-size: var(--adv-font-body-sm);
-  color: var(--ion-color-primary, #6366f1);
+  color: var(--ion-color-primary, #7c3aed);
 }
 
 .recent-chars__title {

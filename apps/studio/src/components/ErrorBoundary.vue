@@ -159,7 +159,7 @@ function handleGoHome() {
 }
 
 .error-boundary__btn--primary {
-  background: var(--ion-color-primary, #6366f1);
+  background: var(--ion-color-primary, #7c3aed);
   color: #fff;
 }
 

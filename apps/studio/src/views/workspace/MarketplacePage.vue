@@ -1289,7 +1289,7 @@ function onSortChange(mode: SortMode) {
 }
 
 .star-btn--active {
-  color: #f59e0b;
+  color: var(--adv-accent);
 }
 
 .review-submit-btn {
@@ -1332,7 +1332,7 @@ function onSortChange(mode: SortMode) {
 }
 .review-item__stars {
   font-size: var(--adv-font-body-sm);
-  color: #f59e0b;
+  color: var(--adv-accent);
 }
 .review-item__stars .dimmed {
   color: var(--adv-text-tertiary);

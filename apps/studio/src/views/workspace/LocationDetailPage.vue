@@ -263,7 +263,7 @@ function goToCharacter(characterId: string) {
 
 .detail__icon {
   font-size: var(--adv-font-display-lg);
-  color: #10b981;
+  color: var(--adv-success);
   flex-shrink: 0;
 }
 
@@ -310,7 +310,7 @@ function goToCharacter(characterId: string) {
   padding: 0 6px;
   border-radius: var(--adv-radius-md);
   background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
+  color: var(--adv-success);
   font-size: var(--adv-font-caption);
   font-weight: 700;
 }

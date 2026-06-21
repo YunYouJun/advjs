@@ -178,7 +178,7 @@ async function signIn() {
               <path d="M12 26L20 14L28 26H12Z" fill="white" fill-opacity="0.9" />
               <defs>
                 <linearGradient id="logo-grad" x1="0" y1="0" x2="40" y2="40">
-                  <stop stop-color="#6366f1" />
+                  <stop stop-color="#7c3aed" />
                   <stop offset="1" stop-color="#a78bfa" />
                 </linearGradient>
               </defs>
@@ -280,7 +280,7 @@ async function signIn() {
   height: 320px;
   top: -60px;
   right: -80px;
-  background: var(--ion-color-primary, #6366f1);
+  background: var(--ion-color-primary, #7c3aed);
   animation: login-float 12s ease-in-out infinite alternate;
 }
 

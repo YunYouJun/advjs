@@ -190,7 +190,7 @@ defineEmits<{
 
 .s-select-item[data-highlighted] {
   background: rgba(var(--ion-color-primary-rgb, 99, 102, 241), 0.08);
-  color: var(--ion-color-primary, #6366f1);
+  color: var(--ion-color-primary, #7c3aed);
 }
 
 .s-select-item[data-state='checked'] {
@@ -205,6 +205,6 @@ defineEmits<{
 .s-select-item__check {
   display: flex;
   align-items: center;
-  color: var(--ion-color-primary, #6366f1);
+  color: var(--ion-color-primary, #7c3aed);
 }
 </style>

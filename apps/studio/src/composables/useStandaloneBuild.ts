@@ -117,8 +117,8 @@ export async function buildStandaloneBundle(
       text-decoration: none;
       transition: background 0.15s ease;
     }
-    a.primary { background: #6366f1; color: white; }
-    a.primary:hover { background: #4f46e5; }
+    a.primary { background: #7c3aed; color: white; }
+    a.primary:hover { background: #6d28d9; }
     a.secondary { background: transparent; color: #94a3b8; border: 1px solid #334155; }
     a.secondary:hover { background: #334155; }
     footer { margin-top: 24px; font-size: 12px; color: #64748b; text-align: center; }
@@ -159,8 +159,8 @@ export async function buildStandaloneBundle(
     description: options.description ?? '',
     start_url: '/',
     display: 'standalone',
-    background_color: '#0f172a',
-    theme_color: '#6366f1',
+    background_color: '#0f0f1a',
+    theme_color: '#7c3aed',
     icons: options.cover ? [{ src: options.cover, sizes: '512x512', type: 'image/png' }] : [],
   }, null, 2))
 

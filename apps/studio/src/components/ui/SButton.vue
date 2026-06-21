@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 
 const props = withDefaults(defineProps<{
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'icon'
+  variant?: 'primary' | 'accent' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'icon'
   size?: 'sm' | 'md' | 'lg'
   block?: boolean
   disabled?: boolean
@@ -96,6 +96,18 @@ const classes = computed(() => [
     var(--adv-shadow-medium),
     0 4px 20px rgba(var(--ion-color-primary-rgb), 0.3);
   filter: brightness(1.05);
+}
+
+/* ── Accent (冒险金) ── */
+.s-button--accent {
+  background: var(--adv-gradient-gold);
+  color: #7a4a05;
+  box-shadow: var(--adv-shadow-subtle), var(--adv-shadow-gold);
+}
+
+.s-button--accent:hover:not(:disabled) {
+  box-shadow: var(--adv-shadow-medium), var(--adv-shadow-gold);
+  filter: brightness(1.04);
 }
 
 .s-button--secondary {

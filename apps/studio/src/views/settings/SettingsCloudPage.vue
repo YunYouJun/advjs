@@ -573,7 +573,7 @@ const syncIntervalOptions = [5, 10, 15, 30]
 
 .section-card__icon--sync {
   background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
+  color: var(--adv-success);
 }
 
 .section-card__title {

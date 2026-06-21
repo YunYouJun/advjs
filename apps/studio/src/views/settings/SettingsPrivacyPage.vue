@@ -256,7 +256,7 @@ async function clearTelemetryQueue() {
   position: absolute;
   left: 0;
   top: 0;
-  color: #10b981;
+  color: var(--adv-success);
   font-weight: 700;
 }
 

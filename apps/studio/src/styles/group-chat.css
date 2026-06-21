@@ -46,22 +46,22 @@
 
 /* Color palette for character avatars (by index) */
 .group-avatar--0 {
-  background: var(--adv-primary);
+  background: var(--adv-character-1);
 }
 .group-avatar--1 {
-  background: #06b6d4;
+  background: var(--adv-character-2);
 }
 .group-avatar--2 {
-  background: #f59e0b;
+  background: var(--adv-character-3);
 }
 .group-avatar--3 {
-  background: #ef4444;
+  background: var(--adv-character-4);
 }
 .group-avatar--4 {
-  background: #10b981;
+  background: var(--adv-character-5);
 }
 .group-avatar--5 {
-  background: #ec4899;
+  background: var(--adv-character-6);
 }
 
 /* Character name label */
@@ -72,22 +72,22 @@
 }
 
 .group-speaker-name--0 {
-  color: var(--adv-primary);
+  color: var(--adv-character-1);
 }
 .group-speaker-name--1 {
-  color: #06b6d4;
+  color: var(--adv-character-2);
 }
 .group-speaker-name--2 {
-  color: #f59e0b;
+  color: var(--adv-character-3);
 }
 .group-speaker-name--3 {
-  color: #ef4444;
+  color: var(--adv-character-4);
 }
 .group-speaker-name--4 {
-  color: #10b981;
+  color: var(--adv-character-5);
 }
 .group-speaker-name--5 {
-  color: #ec4899;
+  color: var(--adv-character-6);
 }
 
 /* Bubble */

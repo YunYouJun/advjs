@@ -115,7 +115,7 @@ watch([currentStep, isActive], async () => {
   position: fixed;
   border-radius: var(--adv-radius-md);
   box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
-  border: 2px solid var(--ion-color-primary, #6366f1);
+  border: 2px solid var(--ion-color-primary, #7c3aed);
   z-index: 100000;
   pointer-events: none;
   transition: all 0.3s ease;
@@ -178,7 +178,7 @@ watch([currentStep, isActive], async () => {
 }
 
 .onboarding-tooltip__btn--next {
-  background: var(--ion-color-primary, #6366f1);
+  background: var(--ion-color-primary, #7c3aed);
   color: #fff;
 }
 

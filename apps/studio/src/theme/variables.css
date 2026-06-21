@@ -1,19 +1,48 @@
 /* For information on how to create your own theme, please refer to:
    http://ionicframework.com/docs/theming/ */
 
+/* ADV.JS Studio 「紫幕金章」design tokens.
+   Primary = Royal Purple #7c3aed (品牌主色), Accent = Adventure Gold #f59e0b.
+   See docs/about/design/design-system.md for the full system. */
+
 :root {
-  /* Ionic primary */
-  --ion-color-primary: #6366f1;
-  --ion-color-primary-rgb: 99, 102, 241;
+  /* Ionic primary — 紫幕 Royal Purple */
+  --ion-color-primary: #7c3aed;
+  --ion-color-primary-rgb: 124, 58, 237;
   --ion-color-primary-contrast: #ffffff;
   --ion-color-primary-contrast-rgb: 255, 255, 255;
-  --ion-color-primary-shade: #4f46e5;
-  --ion-color-primary-tint: #818cf8;
+  --ion-color-primary-shade: #6d28d9;
+  --ion-color-primary-tint: #8b5cf6;
+
+  /* Brand — Primary (深紫) */
+  --adv-primary: #7c3aed;
+  --adv-primary-rgb: 124, 58, 237;
+  --adv-primary-shade: #6d28d9;
+  --adv-primary-tint: #8b5cf6;
+  --adv-primary-light: #ede9fe;
+  --adv-primary-soft: #a78bfa;
+  --adv-danger: #ef4444;
+
+  /* Brand — Accent (冒险金 Adventure Gold) */
+  --adv-accent: #f59e0b;
+  --adv-accent-rgb: 245, 158, 11;
+  --adv-accent-shade: #d97706;
+  --adv-accent-tint: #fbbf24;
+  --adv-accent-subtle: #fef3c7;
 
   /* Gradients */
-  --adv-gradient-primary: linear-gradient(135deg, #6366f1, #818cf8, #a78bfa);
-  --adv-gradient-warm: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
-  --adv-gradient-surface: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.04));
+  --adv-gradient-primary: linear-gradient(135deg, #7c3aed, #8b5cf6, #a78bfa);
+  --adv-gradient-warm: linear-gradient(135deg, #7c3aed, #8b5cf6, #a855f7);
+  --adv-gradient-epic: linear-gradient(140deg, #7c3aed, #6d28d9, #4c1d95);
+  --adv-gradient-gold: linear-gradient(135deg, #f59e0b, #fbbf24);
+  --adv-gradient-surface: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(139, 92, 246, 0.04));
+
+  /* Fonts */
+  --adv-font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Noto Sans SC',
+    sans-serif;
+  --adv-font-serif: 'ZCOOL XiaoWei', 'Songti SC', 'Noto Serif SC', STZhongsong, Georgia, serif;
+  --adv-font-mono: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', Consolas, monospace;
 
   /* Spacing */
   --adv-space-xs: 4px;
@@ -42,15 +71,24 @@
   --adv-font-display-lg: 36px;
   --adv-font-display-xl: 48px;
 
+  /* Icon sizes */
+  --adv-font-icon-sm: 18px;
+  --adv-font-icon-md: 24px;
+  --adv-font-icon-lg: 36px;
+  --adv-font-icon-xl: 48px;
+
   /* Shadows — light mode */
   --adv-shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
   --adv-shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
   --adv-shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.06);
-  --adv-shadow-glow: 0 4px 20px rgba(99, 102, 241, 0.2);
+  --adv-shadow-glow: 0 4px 20px rgba(124, 58, 237, 0.25);
+  --adv-shadow-gold: 0 4px 16px rgba(245, 158, 11, 0.2);
 
   /* Surfaces — light mode */
+  --adv-surface-page: #fafafa;
   --adv-surface-card: #ffffff;
-  --adv-surface-elevated: #fafafa;
+  --adv-surface-elevated: #f5f5f5;
+  --adv-surface-hover: #f3f4f6;
 
   /* Text — light mode */
   --adv-text-primary: #111827;
@@ -63,44 +101,58 @@
   --adv-border: #d1d5db;
   --adv-border-danger: rgba(239, 68, 68, 0.25);
 
-  /* Brand — explicit */
-  --adv-primary: #6366f1;
-  --adv-primary-rgb: 99, 102, 241;
-  --adv-primary-light: #eef2ff;
-  --adv-danger: #ef4444;
-
-  /* Semantic colors — purple-based */
-  --adv-success: #7c3aed;
-  --adv-success-rgb: 124, 58, 237;
-  --adv-success-light: rgba(124, 58, 237, 0.1);
-  --adv-warning: #c026d3;
-  --adv-warning-rgb: 192, 38, 211;
-  --adv-warning-light: rgba(192, 38, 211, 0.1);
+  /* Semantic colors */
+  --adv-success: #10b981;
+  --adv-success-rgb: 16, 185, 129;
+  --adv-success-light: rgba(16, 185, 129, 0.1);
+  --adv-warning: #f59e0b;
+  --adv-warning-rgb: 245, 158, 11;
+  --adv-warning-light: rgba(245, 158, 11, 0.1);
   --adv-info: #6366f1;
   --adv-info-rgb: 99, 102, 241;
   --adv-info-light: rgba(99, 102, 241, 0.1);
 
-  /* Surface hover — light mode */
-  --adv-surface-hover: #f3f4f6;
+  /* Character distinction palette — multi-speaker / group chat differentiation */
+  --adv-character-1: #7c3aed;
+  --adv-character-2: #06b6d4;
+  --adv-character-3: #f59e0b;
+  --adv-character-4: #ef4444;
+  --adv-character-5: #10b981;
+  --adv-character-6: #ec4899;
 
   /* Duration & easing */
   --adv-duration-fast: 150ms;
   --adv-duration-normal: 250ms;
   --adv-duration-slow: 400ms;
   --adv-ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --adv-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --adv-ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --adv-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Z-index layers */
+  --adv-z-sticky: 10;
+  --adv-z-dropdown: 100;
+  --adv-z-overlay: 1000;
+  --adv-z-modal: 1001;
+  --adv-z-toast: 2000;
+  --adv-z-tooltip: 9999;
 }
 
-/* Dark mode — class-based (for manual toggle & system preference) */
+/* Dark mode — class-based (toggled via .dark on <html>, see useSettingsStore) */
 :root.dark {
-  --adv-gradient-surface: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.06));
+  --adv-gradient-epic: linear-gradient(140deg, #6d28d9, #4c1d95, #2e1065);
+  --adv-gradient-surface: linear-gradient(135deg, rgba(124, 58, 237, 0.16), rgba(139, 92, 246, 0.06));
 
   --adv-shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.16);
   --adv-shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
   --adv-shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.4), 0 4px 8px rgba(0, 0, 0, 0.24);
-  --adv-shadow-glow: 0 4px 24px rgba(99, 102, 241, 0.35);
+  --adv-shadow-glow: 0 4px 24px rgba(124, 58, 237, 0.4);
+  --adv-shadow-gold: 0 4px 18px rgba(245, 158, 11, 0.28);
 
+  --adv-surface-page: #0f0f1a;
   --adv-surface-card: #1e1e2e;
   --adv-surface-elevated: #2a2a3e;
+  --adv-surface-hover: #2a2a3e;
 
   --adv-text-primary: #f3f4f6;
   --adv-text-secondary: #9ca3af;
@@ -111,21 +163,32 @@
   --adv-border: #4b5563;
   --adv-border-danger: rgba(239, 68, 68, 0.4);
 
-  --adv-primary: #818cf8;
-  --adv-primary-rgb: 129, 140, 248;
-  --adv-primary-light: rgba(99, 102, 241, 0.12);
+  --adv-primary: #a78bfa;
+  --adv-primary-rgb: 167, 139, 250;
+  --adv-primary-light: rgba(124, 58, 237, 0.18);
+  --adv-primary-soft: #c4b5fd;
   --adv-danger: #f87171;
 
-  /* Semantic colors — dark mode */
-  --adv-success: #a78bfa;
-  --adv-success-rgb: 167, 139, 250;
-  --adv-success-light: rgba(167, 139, 250, 0.12);
-  --adv-warning: #e879f9;
-  --adv-warning-rgb: 232, 121, 249;
-  --adv-warning-light: rgba(232, 121, 249, 0.12);
+  --adv-accent: #fbbf24;
+  --adv-accent-rgb: 251, 191, 36;
+  --adv-accent-shade: #f59e0b;
+  --adv-accent-subtle: rgba(245, 158, 11, 0.16);
+
+  --adv-success: #34d399;
+  --adv-success-rgb: 52, 211, 153;
+  --adv-success-light: rgba(52, 211, 153, 0.12);
+  --adv-warning: #fbbf24;
+  --adv-warning-rgb: 251, 191, 36;
+  --adv-warning-light: rgba(251, 191, 36, 0.12);
   --adv-info: #818cf8;
   --adv-info-rgb: 129, 140, 248;
   --adv-info-light: rgba(129, 140, 248, 0.12);
 
-  --adv-surface-hover: #2a2a3e;
+  /* Character palette — lightened for dark surfaces */
+  --adv-character-1: #a78bfa;
+  --adv-character-2: #22d3ee;
+  --adv-character-3: #fbbf24;
+  --adv-character-4: #f87171;
+  --adv-character-5: #34d399;
+  --adv-character-6: #f472b6;
 }

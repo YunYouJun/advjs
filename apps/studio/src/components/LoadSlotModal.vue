@@ -193,7 +193,7 @@ async function handleDelete(row: DbPlaySaveSlot, ev: Event) {
 
 .load-card__del:hover {
   background: rgba(244, 67, 54, 0.08);
-  color: #f44336;
+  color: var(--adv-danger);
 }
 
 .load-card__title {

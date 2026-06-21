@@ -243,7 +243,7 @@ function handleNodeClick(id: string) {
 }
 .loc-graph-node-circle {
   fill: var(--adv-surface-elevated, #f1f5f9);
-  stroke: var(--ion-color-tertiary, #6366f1);
+  stroke: var(--ion-color-tertiary, #8b5cf6);
   stroke-width: 2;
   transition: fill 0.2s;
 }

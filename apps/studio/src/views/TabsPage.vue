@@ -144,8 +144,8 @@ const navItems = [
 }
 
 .sidebar-nav__item--active {
-  color: var(--ion-color-primary, #3880ff);
-  background: rgba(var(--ion-color-primary-rgb, 56, 128, 255), 0.08);
+  color: var(--ion-color-primary, #7c3aed);
+  background: rgba(var(--ion-color-primary-rgb, 124, 58, 237), 0.08);
 }
 
 .sidebar-nav__icon {

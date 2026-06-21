@@ -54,7 +54,7 @@
 
 .view-mode-segment__btn--active {
   background: var(--adv-surface-card, #fff);
-  color: var(--ion-color-primary, #6366f1);
+  color: var(--ion-color-primary, #7c3aed);
   font-weight: 600;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
@@ -87,7 +87,7 @@
   background: var(--adv-surface-card, #fff);
   border-radius: var(--adv-radius-lg, 12px);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  border-left: 3px solid var(--ion-color-primary, #6366f1);
+  border-left: 3px solid var(--ion-color-primary, #7c3aed);
 }
 
 :root.dark .player-character-card {
@@ -97,7 +97,7 @@
 
 .player-character-card__label {
   font-size: var(--adv-font-caption, 11px);
-  color: var(--ion-color-primary, #6366f1);
+  color: var(--ion-color-primary, #7c3aed);
   font-weight: 600;
   margin-bottom: var(--adv-space-xs, 4px);
   display: flex;
@@ -145,7 +145,7 @@
   background: transparent;
   border-radius: var(--adv-radius-md, 8px);
   font-size: var(--adv-font-body-sm, 13px);
-  color: var(--ion-color-primary, #6366f1);
+  color: var(--ion-color-primary, #7c3aed);
   cursor: pointer;
   transition: background-color 0.2s;
   -webkit-tap-highlight-color: transparent;
@@ -179,13 +179,13 @@
 }
 
 .player-select-prompt:hover {
-  border-color: var(--ion-color-primary, #6366f1);
+  border-color: var(--ion-color-primary, #7c3aed);
   background: rgba(99, 102, 241, 0.04);
 }
 
 .player-select-prompt__text {
   font-size: var(--adv-font-body-sm, 13px);
-  color: var(--ion-color-primary, #6366f1);
+  color: var(--ion-color-primary, #7c3aed);
   font-weight: 500;
 }
 
@@ -215,7 +215,7 @@
 }
 
 .spc-create-btn:hover {
-  border-color: var(--ion-color-primary, #6366f1);
+  border-color: var(--ion-color-primary, #7c3aed);
   background: rgba(99, 102, 241, 0.04);
 }
 
@@ -246,13 +246,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--ion-color-primary, #6366f1);
+  color: var(--ion-color-primary, #7c3aed);
   font-size: var(--adv-font-title);
 }
 
 .spc-create-btn__text {
   font-size: var(--adv-font-body, 14px);
-  color: var(--ion-color-primary, #6366f1);
+  color: var(--ion-color-primary, #7c3aed);
   font-weight: 500;
 }
 
@@ -274,7 +274,7 @@
 }
 
 .spc-search__input:focus {
-  border-color: var(--ion-color-primary, #6366f1);
+  border-color: var(--ion-color-primary, #7c3aed);
 }
 
 :root.dark .spc-search__input {
@@ -365,7 +365,7 @@
 }
 
 .spc-item__check {
-  color: var(--ion-color-primary, #6366f1);
+  color: var(--ion-color-primary, #7c3aed);
   font-weight: 700;
 }
 

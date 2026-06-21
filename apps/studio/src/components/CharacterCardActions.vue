@@ -124,7 +124,7 @@ function onDelete() {
 
 .cca-btn--danger:hover {
   background: rgba(239, 68, 68, 0.06);
-  color: #ef4444;
+  color: var(--adv-danger);
 }
 
 .cca-btn--danger:active {
