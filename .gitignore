@@ -81,6 +81,8 @@ release
 .codebuddy/plans
 
 # claude code
+.claude/settings.local.json
+.claude/launch.json
 .claude/scheduled_tasks.json
 .claude/worktrees
 
