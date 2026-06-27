@@ -37,6 +37,9 @@
       "@advjs/theme-default": [
         "themes/theme-default/index.ts"
       ],
+      "@advjs/plugin-*": [
+        "./plugins/plugin-*/src/index.ts"
+      ],
       "@advjs/client": [
         "./packages/client/index.ts"
       ],

@@ -173,13 +173,13 @@ export async function advSync(options: SyncOptions) {
   const cos = await loadCosStorage()
 
   // Collect local files
-  const localFiles = new Set(collectFiles(gameRoot))
+  const localFiles = new Set<string>(collectFiles(gameRoot))
 
   // Collect remote files
-  const remoteFiles = new Set(await cos.list())
+  const remoteFiles = new Set<string>(await cos.list())
 
   // All unique files
-  const allFiles = new Set([...localFiles, ...remoteFiles])
+  const allFiles = new Set<string>([...localFiles, ...remoteFiles])
 
   let uploaded = 0
   let downloaded = 0
