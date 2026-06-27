@@ -855,7 +855,7 @@ function getFileIconClass(name: string): string {
         <button type="button" class="sec-btn sec-btn--badge" @click="$router.push('/tabs/workspace/marketplace')">
           <span class="sec-btn__icon"><IonIcon :icon="storefrontOutline" /></span>
           <span class="sec-btn__label">{{ t('marketplace.browse') }}</span>
-          <span class="sec-btn__badge">{{ t('marketplace.comingSoonBadge') }}</span>
+          <span class="sec-btn__badge">{{ t('marketplace.newBadge') }}</span>
         </button>
       </div>
       <input

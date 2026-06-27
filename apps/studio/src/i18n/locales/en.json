@@ -312,7 +312,16 @@
     "stepsRemaining": "{n} more taps to enable developer options",
     "enabled": "Developer options enabled!",
     "disabled": "Developer options disabled",
-    "disable": "Disable Developer Options"
+    "disable": "Disable Developer Options",
+    "marketTools": "Marketplace Tools",
+    "seedMarket": "Seed demo marketplace",
+    "seedMarketDesc": "Insert a few demo records so the market isn't empty",
+    "seedMarketDone": "Seeded {inserted}, skipped {skipped} existing",
+    "seedMarketFailed": "Operation failed",
+    "seedNeedsLogin": "Please sign in first",
+    "clearSeed": "Clear my demo data",
+    "clearSeedConfirm": "This deletes all demo- records under your account. Continue?",
+    "clearSeedDone": "Removed {removed} demo records"
   },
   "feedback": {
     "title": "Feedback",
@@ -776,7 +785,7 @@
     "noCreatorWorks": "This creator has no public works yet",
     "unknownCreator": "Creator",
     "browse": "Browse Market",
-    "comingSoonBadge": "Coming Soon",
+    "newBadge": "New",
     "featured": "Featured",
     "filters": "Filters",
     "clearFilters": "Clear",

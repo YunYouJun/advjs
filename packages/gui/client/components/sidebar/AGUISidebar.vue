@@ -5,11 +5,7 @@ defineProps<{
   menu: AGUISidebarMenuItem[]
 }>()
 
-const activeKey = defineModel('active-key', {
-  type: String,
-  default: false,
-  required: false,
-})
+const activeKey = defineModel<string>('active-key')
 </script>
 
 <template>

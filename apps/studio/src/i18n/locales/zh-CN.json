@@ -312,7 +312,16 @@
     "stepsRemaining": "再点击 {n} 次开启开发者选项",
     "enabled": "开发者选项已开启！",
     "disabled": "开发者选项已关闭",
-    "disable": "关闭开发者选项"
+    "disable": "关闭开发者选项",
+    "marketTools": "市场工具",
+    "seedMarket": "填充示例市场数据",
+    "seedMarketDesc": "向故事市场写入几条示例记录，避免空市场",
+    "seedMarketDone": "已写入 {inserted} 条，跳过 {skipped} 条已存在",
+    "seedMarketFailed": "操作失败",
+    "seedNeedsLogin": "请先登录",
+    "clearSeed": "清除我的示例数据",
+    "clearSeedConfirm": "将删除你账号下所有以 demo- 开头的市场记录，确定吗？",
+    "clearSeedDone": "已删除 {removed} 条示例数据"
   },
   "feedback": {
     "title": "反馈",
@@ -794,7 +803,7 @@
     "noCreatorWorks": "该创作者暂无公开作品",
     "unknownCreator": "创作者",
     "browse": "浏览市场",
-    "comingSoonBadge": "即将上线",
+    "newBadge": "新",
     "featured": "精选推荐",
     "filters": "筛选",
     "clearFilters": "清除",

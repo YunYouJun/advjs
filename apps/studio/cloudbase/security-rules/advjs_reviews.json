@@ -1,0 +1,4 @@
+{
+  "read": true,
+  "write": "auth.uid == doc.reviewerId"
+}

@@ -75,6 +75,8 @@ export interface ReviewRecord {
   /** Likes count */
   likes: number
   createdAt: number
+  /** Last edit time (set by the `marketStats` function when a review is updated) */
+  updatedAt?: number
 }
 
 /**
@@ -91,6 +93,31 @@ export function useMarketplace() {
 
   function getDb(cloudApp: cloudbase.app.App) {
     return cloudApp.database()
+  }
+
+  /** Shape returned by the `marketStats` cloud function. */
+  interface MarketStatsResult {
+    error?: string
+    ok?: boolean
+    counted?: boolean
+    downloads?: number
+    likes?: number
+    liked?: boolean
+    updated?: boolean
+  }
+
+  /**
+   * Call the privileged `marketStats` cloud function. It runs with admin
+   * privileges and is the *only* writer allowed past the owner-only security
+   * rules for the cross-user counters (downloads / rating aggregate / review
+   * likes). See `cloudbase/README.md` → 「跨用户计数写入」.
+   */
+  async function callMarketStats(
+    cloudApp: cloudbase.app.App,
+    data: Record<string, unknown>,
+  ): Promise<MarketStatsResult> {
+    const res = await cloudApp.callFunction({ name: 'marketStats', data })
+    return (res.result || {}) as MarketStatsResult
   }
 
   /**
@@ -311,11 +338,10 @@ export function useMarketplace() {
     marketId: string,
   ): Promise<void> {
     try {
-      const db = getDb(cloudApp)
-      const _ = db.command
-      await db.collection(COLLECTION_MARKET)
-        .doc(marketId)
-        .update({ downloads: _.inc(1) })
+      // Cross-user write: the installer is not the owner, so the owner-only
+      // rule rejects a direct write. Route through the privileged function,
+      // which also dedups to count at most once per (item, user).
+      await callMarketStats(cloudApp, { action: 'incrementDownloads', marketId })
     }
     catch {
       // non-critical
@@ -363,48 +389,21 @@ export function useMarketplace() {
     error.value = null
 
     try {
-      const db = getDb(cloudApp)
-      const _ = db.command
-
-      // Check if already reviewed
-      const existing = await db.collection(COLLECTION_REVIEWS)
-        .where({ marketId, reviewerId: uid })
-        .get()
-
-      if (existing.data && existing.data.length > 0) {
-        // Update existing review
-        const oldReview = existing.data[0] as ReviewRecord
-        const ratingDiff = rating - oldReview.rating
-        await db.collection(COLLECTION_REVIEWS)
-          .doc(oldReview._id!)
-          .update({ rating, comment, createdAt: Date.now() })
-
-        // Update aggregate on marketplace record
-        await db.collection(COLLECTION_MARKET)
-          .doc(marketId)
-          .update({ ratingSum: _.inc(ratingDiff) })
+      // The function owns the review-doc write *and* the market rating
+      // aggregate, so the whole mutation is atomic and the aggregate diff
+      // can't be forged. The reviewer's review doc itself is owner-writable,
+      // but the cross-user aggregate on the market record is not.
+      const data = await callMarketStats(cloudApp, {
+        action: 'submitReview',
+        marketId,
+        rating,
+        comment,
+        reviewerName: authStore.displayName,
+      })
+      if (data.error) {
+        error.value = data.error
+        return false
       }
-      else {
-        // Create new review
-        await db.collection(COLLECTION_REVIEWS).add({
-          marketId,
-          reviewerId: uid,
-          reviewerName: authStore.displayName,
-          rating,
-          comment,
-          likes: 0,
-          createdAt: Date.now(),
-        })
-
-        // Update aggregate
-        await db.collection(COLLECTION_MARKET)
-          .doc(marketId)
-          .update({
-            ratingSum: _.inc(rating),
-            ratingCount: _.inc(1),
-          })
-      }
-
       return true
     }
     catch (err) {
@@ -439,21 +438,23 @@ export function useMarketplace() {
   }
 
   /**
-   * Like a review (increment likes).
+   * Like a review (idempotent — at most once per user). Routed through the
+   * privileged function since likes are a cross-user write blocked by the
+   * owner-only rule. Returns the authoritative new like count, or `null` if the
+   * like was rejected/failed, so the caller can reconcile instead of blindly +1.
    */
   async function likeReview(
     cloudApp: cloudbase.app.App,
     reviewId: string,
-  ): Promise<void> {
+  ): Promise<number | null> {
     try {
-      const db = getDb(cloudApp)
-      const _ = db.command
-      await db.collection(COLLECTION_REVIEWS)
-        .doc(reviewId)
-        .update({ likes: _.inc(1) })
+      const data = await callMarketStats(cloudApp, { action: 'likeReview', reviewId })
+      if (data.error || typeof data.likes !== 'number')
+        return null
+      return data.likes
     }
     catch {
-      // non-critical
+      return null
     }
   }
 

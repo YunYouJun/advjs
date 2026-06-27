@@ -1,0 +1,4 @@
+{
+  "read": "doc.status == 'published' || auth.uid == doc.ownerId",
+  "write": "auth.uid == doc.ownerId"
+}

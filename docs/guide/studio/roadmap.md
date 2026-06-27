@@ -66,7 +66,7 @@
 - [x] **离线状态感知** — 基于 `@vueuse/core` `useOnline()` 的 `OfflineBanner` 组件，离线时顶部显示提示横幅
 - [x] **编辑器 Undo/Redo** — `useUndoHistory` composable（基于 `useDebouncedRefHistory`，debounce 500ms，50 步容量），EditorPage 工具栏 + ⌘Z/⌘⇧Z 快捷键
 - [x] **首次使用引导** — `OnboardingOverlay` 5 步 tooltip tour（QuickStart → World → Chat → Play → Me），localStorage 记录完成状态
-- [x] **Marketplace 标记** — 页面顶部 Coming Soon 横幅 + WorkspacePage 入口卡片角标
+- [x] **Marketplace 标记**（已被 Phase 14 取代）— 早期用 Coming Soon 横幅 + 入口卡片角标占位；Phase 14 市场上线后横幅与「即将上线」角标均已移除，入口卡片改为「新」角标直达市场
 
 ---
 
@@ -236,6 +236,8 @@ Phase 13 账号系统已完成。✅
 - [x] **角色预览** — 详情 Modal 展示角色数/章节数/下载量/评分四维统计面板，作者名可点击跳转创作者主页，标签 chips 展示项目分类
 - [x] **评价系统** — `advjs_reviews` 集合：`submitReview()` 创建/更新评价（1-5 星 + 文字评论），自动更新 `advjs_marketplace` 的 `ratingSum` / `ratingCount` 聚合字段，`fetchReviews()` 按时间倒序查询。UI 包含星级选择器 + 文本输入 + 评价列表（作者/星级/内容/日期/点赞按钮）
 - [x] **创作者主页** — `CreatorPage.vue`（`/creator/:uid` 路由）展示指定用户的公开作品列表：四维统计面板（作品数/下载量/角色数/平均评分）+ 作品卡片列表（封面/名称/简介/统计），`useMarketplace.fetchCreatorProjects()` 查询 `advjs_marketplace` 集合中该用户的 published 记录
+
+- [x] **市场上线（go-live）** — 入口卡片「即将上线」角标改为「新」直达市场；`apps/studio/cloudbase/` 版本化 4 个集合的安全规则（`advjs_marketplace` / `advjs_reviews` / `advjs_market_installs` / `advjs_review_likes`）+ `marketStats` 云函数与控制台/CLI 配置说明；开发者选项新增「市场工具」一键填充/清除示例数据（`utils/seedMarketplace.ts`）。下载量、评分聚合、评价点赞这类跨用户写入已统一走云函数原子更新，并通过去重台账保证登录用户幂等计数
 
 ### Phase 15：协作与扩展 {#phase-15}
 

@@ -1,0 +1,12 @@
+{
+  "name": "advjs-studio-cloudbase-scripts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Provisioning scripts for the Story Market CloudBase backend (collections + security rules).",
+  "scripts": {
+    "provision": "node provision-db.js"
+  },
+  "dependencies": {
+    "@cloudbase/manager-node": "catalog:"
+  }
+}

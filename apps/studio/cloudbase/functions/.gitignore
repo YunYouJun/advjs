@@ -1,0 +1,4 @@
+# Event Functions auto-install dependencies from package.json at deploy time,
+# so dependencies are never committed or shipped with the source.
+node_modules/
+**/node_modules/

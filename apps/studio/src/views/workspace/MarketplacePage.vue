@@ -414,11 +414,14 @@ function navigateToCreator(ownerId: string) {
 async function handleLikeReview(reviewId: string) {
   if (!cloudApp)
     return
-  await likeReview(cloudApp, reviewId)
-  // Optimistic update
-  const review = reviews.value.find(r => r._id === reviewId)
-  if (review)
-    review.likes += 1
+  // The function returns the authoritative like count; like-once means a repeat
+  // tap is a no-op server-side, so reconcile instead of blindly incrementing.
+  const likes = await likeReview(cloudApp, reviewId)
+  if (typeof likes === 'number') {
+    const review = reviews.value.find(r => r._id === reviewId)
+    if (review)
+      review.likes = likes
+  }
 }
 
 function onTagChange(tag: string | null) {

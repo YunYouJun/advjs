@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { AccordionRootProps } from 'reka-ui'
-import type { PropType } from 'vue'
 import type { AGUIAccordionProps } from './types'
 import { AccordionRoot } from 'reka-ui'
 
@@ -17,16 +16,13 @@ withDefaults(
   },
 )
 
-const modelValue = defineModel('modelValue', {
-  type: [String, Array] as PropType<string | string[]>,
-  default: () => [],
-})
+const modelValue = defineModel<string | string[]>('modelValue')
 </script>
 
 <template>
   <AccordionRoot
     v-bind="$props"
-    :model-value="modelValue"
+    :model-value="modelValue ?? []"
     class="AccordionRoot"
     collapsible
     :type="type"

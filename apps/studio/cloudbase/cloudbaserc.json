@@ -1,0 +1,14 @@
+{
+  "version": "2.0",
+  "envId": "yunlefun-8g7ybcxc7345c490",
+  "functionRoot": "./functions",
+  "functions": [
+    {
+      "name": "marketStats",
+      "timeout": 30,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main",
+      "installDependency": true
+    }
+  ]
+}

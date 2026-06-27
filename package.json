@@ -98,6 +98,7 @@
     "@types/wicg-file-system-access": "catalog:types",
     "@types/yargs": "catalog:types",
     "@unocss/eslint-plugin": "catalog:dev",
+    "@vitest/ui": "catalog:test",
     "@webgpu/types": "catalog:types",
     "advjs": "workspace:*",
     "bumpp": "catalog:utils",
@@ -114,6 +115,8 @@
     "typescript-json-schema": "catalog:",
     "unbuild": "catalog:build",
     "vite": "catalog:build",
+    "vite-plugin-pwa": "catalog:build",
+    "vite-plugin-vue-layouts": "catalog:build",
     "vitest": "catalog:test",
     "vue-tsc": "catalog:dev"
   },

@@ -1,13 +1,6 @@
 shellEmulator: true
 
 trustPolicy: no-downgrade
-# Ignore trust downgrades for packages published more than 7 days (10080 min)
-# ago. Established transitive deps (e.g. semver@6.3.1, rollup@2.80.0 via
-# vite-plugin-pwa / @capacitor/assets) simply predate provenance attestation,
-# which `no-downgrade` would otherwise flag. New/just-published packages are
-# still checked, so protection against fresh supply-chain attacks is retained.
-trustPolicyIgnoreAfter: 10080
-
 packages:
   - demo/*
   - docs
@@ -20,10 +13,12 @@ packages:
   - themes/*
   - playground
   - apps/*
+  - apps/studio/cloudbase/functions/*
+  - apps/studio/cloudbase/scripts
 
 catalog:
-  '@aws-sdk/client-s3': ^3.1046.0
-  '@aws-sdk/s3-request-presigner': ^3.1046.0
+  '@aws-sdk/client-s3': ^3.1075.0
+  '@aws-sdk/s3-request-presigner': ^3.1075.0
   '@capacitor/app': 8.1.0
   '@capacitor/assets': ^3.0.5
   '@capacitor/cli': 8.3.0
@@ -33,43 +28,45 @@ catalog:
   '@capacitor/ios': 8.3.0
   '@capacitor/keyboard': 8.0.2
   '@capacitor/status-bar': 8.0.2
-  '@cloudbase/js-sdk': ^3.3.9
+  '@cloudbase/js-sdk': ^3.5.4
+  '@cloudbase/manager-node': ^5.5.6
+  '@cloudbase/node-sdk': ^3.18.3
   '@dagrejs/dagre': ^2.0.4
-  '@ionic/vue': ^8.8.7
-  '@ionic/vue-router': ^8.8.7
-  '@larksuiteoapi/node-sdk': ^1.63.1
+  '@ionic/vue': ^8.8.12
+  '@ionic/vue-router': ^8.8.12
+  '@larksuiteoapi/node-sdk': ^1.68.0
   '@mozilla/readability': ^0.6.0
-  '@nuxtjs/i18n': ^10.3.0
+  '@nuxtjs/i18n': ^10.4.0
   '@octokit/core': ^7.0.6
   '@octokit/rest': ^22.0.1
-  '@rollup/pluginutils': ^5.3.0
-  '@runware/sdk-js': ^1.2.10
+  '@rollup/pluginutils': ^5.4.0
+  '@runware/sdk-js': ^1.3.2
   '@shikijs/vitepress-twoslash': ^3.23.0
-  '@tanstack/vue-virtual': ^3.13.24
+  '@tanstack/vue-virtual': ^3.13.30
   '@types/body-parser': ^1.19.6
 
   '@types/express': ^5.0.6
   '@types/minimist': ^1.2.5
   '@unocss/extractor-mdc': 66.1.0-beta.5
-  '@vitejs/plugin-legacy': ^8.0.1
+  '@vitejs/plugin-legacy': ^8.1.0
   '@vue-flow/background': ^1.3.2
   '@vue-flow/controls': ^1.1.3
   '@vue-flow/minimap': ^1.5.4
   '@vue-flow/node-resizer': ^1.5.1
   '@xterm/addon-fit': 0.11.0-beta.115
   '@yunyoujun/docs': ^0.1.14
-  axios: ^1.16.1
-  body-parser: ^2.2.2
+  axios: ^1.18.1
+  body-parser: ^2.3.0
   cos-js-sdk-v5: ^1.10.1
-  cos-nodejs-sdk-v5: ^2.16.0-beta.8
-  dexie: ^4.4.2
+  cos-nodejs-sdk-v5: 2.16.0-beta.9
+  dexie: ^4.4.4
   diff: ^9.0.0
   express: ^5.2.1
   floating-vue: ^5.2.2
   ionicons: ^8.0.13
   jsdom: ^29.1.1
   jszip: ^3.10.1
-  mermaid: ^11.15.0
+  mermaid: ^11.16.0
   mlly: ^1.8.2
   nuxt-auth-utils: 0.5.20
   nuxt-monaco-editor: ^1.4.0
@@ -78,11 +75,11 @@ catalog:
   qrcode: ^1.5.4
   simple-git: ^3.36.0
   tencentcloud-sdk-nodejs-hunyuan: ^4.1.188
-  terser: ^5.47.1
-  typedoc-plugin-markdown: ^4.11.0
-  typedoc-vitepress-theme: ^1.1.2
-  typescript-json-schema: ^0.67.2
-  ua-parser-js: ^2.0.9
+  terser: ^5.48.0
+  typedoc-plugin-markdown: ^4.12.0
+  typedoc-vitepress-theme: ^1.1.3
+  typescript-json-schema: ^0.67.4
+  ua-parser-js: ^2.0.10
   vite-plugin-singlefile: ^2.3.3
   vitefu: ^1.1.3
   vitepress-plugin-group-icons: ^1.7.5
@@ -90,11 +87,11 @@ catalog:
   y-indexeddb: ^9.0.12
   y-monaco: ^0.1.6
   y-protocols: ^1.0.7
-  yjs: ^13.6.30
+  yjs: ^13.6.31
   zod: ^4.4.3
 catalogs:
   ai:
-    openai: ^6.37.0
+    openai: ^6.45.0
   babylon:
     '@babylonjs/core': 5.19.0
     '@babylonjs/gui': 5.19.0
@@ -102,36 +99,36 @@ catalogs:
     '@babylonjs/materials': 5.19.0
     babylon-vrm-loader: ^2.0.0
   build:
-    '@intlify/unplugin-vue-i18n': ^11.2.0
+    '@intlify/unplugin-vue-i18n': ^11.2.4
     '@nuxt/devtools': ^3.2.4
-    '@nuxtjs/color-mode': ^4.0.0
+    '@nuxtjs/color-mode': ^4.0.1
     '@pinia/nuxt': ^0.11.3
     '@shikijs/markdown-it': ^3.23.0
-    '@unocss/eslint-config': ^66.6.8
-    '@unocss/nuxt': ^66.6.8
+    '@unocss/eslint-config': ^66.7.3
+    '@unocss/nuxt': ^66.7.3
     '@vite-pwa/nuxt': ^1.1.1
-    '@vitejs/plugin-vue': ^6.0.6
+    '@vitejs/plugin-vue': ^6.0.7
     '@vueuse/nuxt': ^14.3.0
     '@webcontainer/api': ^1.6.4
     beasties: ^0.4.2
-    markdown-it: ^14.1.1
+    markdown-it: ^14.2.0
     markdown-it-link-attributes: ^4.0.1
-    nuxt: ^4.4.5
-    rollup: ^4.60.3
-    sass: ^1.99.0
+    nuxt: ^4.4.8
+    rollup: ^4.62.2
+    sass: ^1.101.0
     shiki: ^3.23.0
     unbuild: ^3.6.1
-    unocss: ^66.6.8
+    unocss: ^66.7.3
     unplugin-auto-import: ^21.0.0
-    unplugin-vue-components: ^32.0.0
+    unplugin-vue-components: ^32.1.0
     unplugin-vue-markdown: ^30.0.0
-    vite: ^8.0.12
+    vite: ^8.1.0
     vite-bundle-visualizer: ^1.2.1
     vite-plugin-css-injected-by-js: ^4.0.1
     vite-plugin-dts: ^4.5.4
-    vite-plugin-inspect: ^11.3.3
+    vite-plugin-inspect: ^11.4.1
     vite-plugin-pwa: ^1.3.0
-    vite-plugin-vue-devtools: ^8.1.2
+    vite-plugin-vue-devtools: ^8.1.4
     vite-plugin-vue-layouts: ^0.11.0
     vite-ssg: ^28.3.0
     vite-ssg-sitemap: ^0.10.0
@@ -148,27 +145,27 @@ catalogs:
     yargs: ^18.0.0
   dev:
     '@antfu/eslint-config': ^8.3.0
-    '@faker-js/faker': ^10.4.0
-    '@unocss/eslint-plugin': ^66.6.8
-    eslint: ^10.3.0
+    '@faker-js/faker': ^10.5.0
+    '@unocss/eslint-plugin': ^66.7.3
+    eslint: ^10.6.0
     eslint-plugin-format: ^2.0.1
     https-localhost: ^4.7.1
     husky: ^9.1.7
-    lint-staged: ^17.0.4
+    lint-staged: ^17.0.8
     nodemon: ^3.1.14
-    taze: ^19.11.0
-    tsx: ^4.21.0
+    taze: ^19.14.1
+    tsx: ^4.22.4
     typescript: ^5.9.3
-    unplugin-mockery: ^0.4.0-beta.13
-    vue-tsc: ^3.2.9
+    unplugin-mockery: 0.4.0-beta.13
+    vue-tsc: ^3.3.5
   docs:
     typedoc: ^0.28.19
     typedoc-plugin-merge-modules: ^7.0.0
-    vitepress: ^2.0.0-alpha.17
+    vitepress: 2.0.0-alpha.17
   frontend:
-    '@google/model-viewer': ^4.2.0
+    '@google/model-viewer': ^4.3.1
     '@unhead/vue': ^2.1.15
-    '@unocss/reset': ^66.6.8
+    '@unocss/reset': ^66.7.3
     '@vue-flow/core': ^1.48.2
     '@vueuse/core': ^14.3.0
     '@vueuse/motion': ^3.0.3
@@ -181,17 +178,17 @@ catalogs:
     monaco-editor: ^0.55.1
     nprogress: ^0.2.0
     pinia: ^3.0.4
-    pixi-painter: ^0.1.6-beta.1
+    pixi-painter: 0.1.6-beta.1
     pixi.js: 8.0.4
-    reka-ui: ^2.9.7
+    reka-ui: ^2.10.1
     splitpanes: ^4.1.2
-    swiper: ^12.1.4
-    vue: ^3.5.34
-    vue-i18n: ^11.4.2
-    vue-router: ^5.0.7
+    swiper: ^12.2.0
+    vue: ^3.5.39
+    vue-i18n: ^11.4.6
+    vue-router: ^5.1.0
     wc-github-corners: ^0.1.6
   icons:
-    '@iconify-json/carbon': ^1.2.21
+    '@iconify-json/carbon': ^1.2.23
     '@iconify-json/ep': ^1.2.4
     '@iconify-json/file-icons': ^1.2.2
     '@iconify-json/logos': ^1.2.11
@@ -200,19 +197,20 @@ catalogs:
     '@iconify-json/ri': ^1.2.10
     '@iconify-json/svg-spinners': ^1.2.4
     '@iconify-json/twemoji': ^1.2.5
-    '@iconify-json/vscode-icons': ^1.2.49
+    '@iconify-json/vscode-icons': ^1.2.62
     '@iconify/vue': ^5.0.1
   test:
-    '@playwright/test': ^1.60.0
-    '@vue/test-utils': ^2.4.10
-    vitest: ^4.1.6
+    '@playwright/test': ^1.61.1
+    '@vitest/ui': ^4.1.9
+    '@vue/test-utils': ^2.4.11
+    vitest: ^4.1.9
   types:
     '@types/cli-progress': ^3.11.6
-    '@types/howler': ^2.2.12
+    '@types/howler': ^2.2.13
     '@types/js-yaml': ^4.0.9
     '@types/markdown-it-link-attributes': ^3.0.5
     '@types/mdast': ^4.0.4
-    '@types/node': ^24.12.4
+    '@types/node': ^24.13.2
     '@types/nprogress': ^0.2.3
     '@types/prompts': ^2.4.9
     '@types/qrcode': ^1.5.6
@@ -221,7 +219,7 @@ catalogs:
     '@types/wicg-file-system-access': ^2023.10.7
     '@types/xml2js': ^0.4.14
     '@types/yargs': ^17.0.35
-    '@webgpu/types': ^0.1.70
+    '@webgpu/types': ^0.1.71
   unified:
     hast-util-to-html: ^9.0.5
     mdast-util-to-hast: ^13.2.1
@@ -237,13 +235,13 @@ catalogs:
     unist-util-visit: ^5.1.0
     vfile-matter: ^5.0.1
   utils:
-    '@antfu/ni': ^30.1.0
+    '@antfu/ni': ^30.2.0
     '@antfu/utils': ^9.3.0
     benny: ^3.7.1
     bumpp: ^11.1.0
     c12: ^3.3.4
     cross-env: ^10.1.0
-    dayjs: ^1.11.20
+    dayjs: ^1.11.21
     debug: ^4.4.3
     defu: ^6.1.7
     fast-deep-equal: ^3.1.3
@@ -251,11 +249,11 @@ catalogs:
     honeycomb-grid: ^4.1.5
     hookable: ^6.1.1
     jiti: ^2.7.0
-    js-yaml: ^4.1.1
+    js-yaml: ^4.3.0
     open: ^11.0.0
     pathe: ^2.0.3
     resolve-global: ^2.0.0
-    semver: ^7.8.0
+    semver: ^7.8.5
     unstorage: ^1.17.5
     xml2js: ^0.6.2
 ignoredBuiltDependencies:
@@ -265,3 +263,9 @@ ignoredBuiltDependencies:
   - unrs-resolver
 onlyBuiltDependencies:
   - sharp
+# Ignore trust downgrades for packages published more than 7 days (10080 min)
+# ago. Established transitive deps (e.g. semver@6.3.1, rollup@2.80.0 via
+# vite-plugin-pwa / @capacitor/assets) simply predate provenance attestation,
+# which `no-downgrade` would otherwise flag. New/just-published packages are
+# still checked, so protection against fresh supply-chain attacks is retained.
+trustPolicyIgnoreAfter: 10080

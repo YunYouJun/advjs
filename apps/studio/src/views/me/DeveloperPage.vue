@@ -9,6 +9,7 @@ import {
   closeCircleOutline,
   refreshOutline,
   serverOutline,
+  storefrontOutline,
   terminalOutline,
   trashOutline,
 } from 'ionicons/icons'
@@ -18,13 +19,86 @@ import { useRouter } from 'vue-router'
 import LayoutPage from '../../components/common/LayoutPage.vue'
 import NavGroup from '../../components/ui/NavGroup.vue'
 import NavItem from '../../components/ui/NavItem.vue'
+import { useCloudbase } from '../../composables/useCloudbase'
+import { useAuthStore } from '../../stores/useAuthStore'
 import { useSettingsStore } from '../../stores/useSettingsStore'
+import { clearSeedMarketplace, seedMarketplace } from '../../utils/seedMarketplace'
 
 const { t } = useI18n()
 const settingsStore = useSettingsStore()
+const authStore = useAuthStore()
 const router = useRouter()
 
 const showDebugInfo = ref(false)
+
+// CloudBase may not be configured (no VITE_TCB_ENV_ID); the market tools hide
+// when it's unavailable. Same defensive pattern as MarketplacePage.
+let cloudApp: ReturnType<typeof useCloudbase>['app'] | null = null
+try {
+  cloudApp = useCloudbase().app
+}
+catch {
+  // CloudBase not configured
+}
+const hasCloud = ref(!!cloudApp)
+const isSeeding = ref(false)
+
+async function presentToast(message: string) {
+  const toast = await toastController.create({ message, duration: 2000, position: 'top' })
+  await toast.present()
+}
+
+async function handleSeedMarket() {
+  if (!cloudApp || isSeeding.value)
+    return
+  if (!authStore.isLoggedIn) {
+    await presentToast(t('developer.seedNeedsLogin'))
+    return
+  }
+  isSeeding.value = true
+  try {
+    const { inserted, skipped } = await seedMarketplace(
+      cloudApp,
+      authStore.userInfo.uid!,
+      authStore.displayName,
+    )
+    await presentToast(t('developer.seedMarketDone', { inserted, skipped }))
+  }
+  catch (err) {
+    await presentToast(`${t('developer.seedMarketFailed')}: ${err instanceof Error ? err.message : String(err)}`)
+  }
+  finally {
+    isSeeding.value = false
+  }
+}
+
+async function handleClearSeed() {
+  if (!cloudApp || !authStore.isLoggedIn) {
+    await presentToast(t('developer.seedNeedsLogin'))
+    return
+  }
+  const alert = await alertController.create({
+    header: t('developer.clearSeed'),
+    message: t('developer.clearSeedConfirm'),
+    buttons: [
+      { text: t('common.cancel'), role: 'cancel' },
+      {
+        text: t('developer.clearSeed'),
+        role: 'destructive',
+        handler: async () => {
+          try {
+            const { removed } = await clearSeedMarketplace(cloudApp!, authStore.userInfo.uid!)
+            await presentToast(t('developer.clearSeedDone', { removed }))
+          }
+          catch (err) {
+            await presentToast(`${t('developer.seedMarketFailed')}: ${err instanceof Error ? err.message : String(err)}`)
+          }
+        },
+      },
+    ],
+  })
+  await alert.present()
+}
 
 function toggleDebugInfo() {
   showDebugInfo.value = !showDebugInfo.value
@@ -173,6 +247,31 @@ const debugInfo = {
           <span class="debug-panel__val">{{ debugInfo.userAgent }}</span>
         </div>
       </div>
+
+      <!-- Marketplace Tools -->
+      <template v-if="hasCloud">
+        <div class="section-title">
+          {{ t('developer.marketTools') }}
+        </div>
+        <NavGroup>
+          <NavItem
+            :icon="storefrontOutline"
+            icon-variant="blue"
+            :label="t('developer.seedMarket')"
+            :desc="t('developer.seedMarketDesc')"
+            :badge="isSeeding ? '…' : undefined"
+            :chevron="false"
+            @click="handleSeedMarket"
+          />
+          <NavItem
+            :icon="trashOutline"
+            icon-variant="orange"
+            :label="t('developer.clearSeed')"
+            :chevron="false"
+            @click="handleClearSeed"
+          />
+        </NavGroup>
+      </template>
 
       <!-- Danger Zone -->
       <div class="section-title section-title--danger">
