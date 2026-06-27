@@ -274,12 +274,12 @@ knowledgeExtraction: true
 
 `examples/ai-contest/` 下提供 **3 份预生成赛事 demo**，均可作为评审现场断网 / LLM 抽风的离线 Fallback。每个 demo 自带 `source.{txt,md}`（评委可现场粘贴重跑）+ `generation-log.md`（跑后回填的元数据） + `assets/`（QR 卡片图等截图位） + `adv/` 完整可玩项目。
 
-| 目录                                                           | 角色          | 文件数 | 主要内容                                                                                                                                |
-| -------------------------------------------------------------- | ------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------- |
-| [`life-story/`](../../examples/ai-contest/life-story/)         | **主攻** Demo | 17     | `source.txt`（~1500 字奶奶口述） + characters×2 / chapters×3 / scenes×2 / locations×2 / knowledge/era×2                                 |
-| [`history-talk/`](../../examples/ai-contest/history-talk/)     | **主打** Demo | 16     | `source.md`（~2000 字孔子/图灵/达芬奇人物档案） + characters×3 / chapters×3 / scenes×3 / knowledge×1                                    |
-| [`murder-mystery/`](../../examples/ai-contest/murder-mystery/) | **技术深度**  | 19     | `source.md`（~1900 字 1924 雪夜庄园案件笔记，无真相） + characters×6 / chapters×3 / scenes×3 / knowledge×1（真相 outline 仅创作者可见） |
-| [`README.md`](../../examples/ai-contest/README.md)             | **顶层索引**  | 1      | 3 demo 对照表 + 评审现场使用方式（首选现场生成 / 兜底直接打开 `adv/`）                                                                  |
+| 目录                                                                                                | 角色          | 文件数 | 主要内容                                                                                                                                |
+| --------------------------------------------------------------------------------------------------- | ------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| [`life-story/`](https://github.com/YunYouJun/advjs/tree/dev/examples/ai-contest/life-story)         | **主攻** Demo | 17     | `source.txt`（~1500 字奶奶口述） + characters×2 / chapters×3 / scenes×2 / locations×2 / knowledge/era×2                                 |
+| [`history-talk/`](https://github.com/YunYouJun/advjs/tree/dev/examples/ai-contest/history-talk)     | **主打** Demo | 16     | `source.md`（~2000 字孔子/图灵/达芬奇人物档案） + characters×3 / chapters×3 / scenes×3 / knowledge×1                                    |
+| [`murder-mystery/`](https://github.com/YunYouJun/advjs/tree/dev/examples/ai-contest/murder-mystery) | **技术深度**  | 19     | `source.md`（~1900 字 1924 雪夜庄园案件笔记，无真相） + characters×6 / chapters×3 / scenes×3 / knowledge×1（真相 outline 仅创作者可见） |
+| [`README.md`](https://github.com/YunYouJun/advjs/blob/dev/examples/ai-contest/README.md)            | **顶层索引**  | 1      | 3 demo 对照表 + 评审现场使用方式（首选现场生成 / 兜底直接打开 `adv/`）                                                                  |
 
 配套集成测试 [`lifeStoryExample.test.ts`](../../apps/studio/src/__tests__/lifeStoryExample.test.ts)（6 cases）防止 schema 漂移。
 
@@ -479,29 +479,29 @@ knowledgeExtraction: true
 
 ## 附录 B：文件索引
 
-| 文件                                                                                                                 | 说明                           | 行数 |
-| -------------------------------------------------------------------------------------------------------------------- | ------------------------------ | ---- |
-| [`apps/studio/src/utils/sourceParser.ts`](../../apps/studio/src/utils/sourceParser.ts)                               | 素材解析 + 归一化              | 657  |
-| [`apps/studio/src/utils/sourceChunk.ts`](../../apps/studio/src/utils/sourceChunk.ts)                                 | 分段算法                       | 206  |
-| [`apps/studio/src/utils/projectGenerator.ts`](../../apps/studio/src/utils/projectGenerator.ts)                       | LLM 4 步 Pipeline              | 657  |
-| [`apps/studio/src/utils/templates/loadTemplate.ts`](../../apps/studio/src/utils/templates/loadTemplate.ts)           | YAML 模板加载器                | 161  |
-| [`apps/studio/src/composables/useProjectImport.ts`](../../apps/studio/src/composables/useProjectImport.ts)           | 响应式状态机                   | 530  |
-| [`apps/studio/src/views/workspace/ImportSourcePage.vue`](../../apps/studio/src/views/workspace/ImportSourcePage.vue) | 3 步向导 UI                    | 993  |
-| [`apps/studio/src/components/import/*.vue`](../../apps/studio/src/components/import/)                                | 6 个原子组件                   | —    |
-| [`apps/studio/src/components/ProjectShareCard.vue`](../../apps/studio/src/components/ProjectShareCard.vue)           | QR 卡片图（被截图）            | —    |
-| [`apps/studio/src/utils/shareUtils.ts`](../../apps/studio/src/utils/shareUtils.ts)                                   | `shareProjectAsImage` helper   | —    |
-| [`apps/studio/src/utils/contestDemos.ts`](../../apps/studio/src/utils/contestDemos.ts)                               | 赛事 Demo build-time bundle    | —    |
-| [`apps/studio/src/composables/useContestDemos.ts`](../../apps/studio/src/composables/useContestDemos.ts)             | Demo Preset 安装器（MemoryFs） | —    |
-| [`apps/studio/src/components/SyncConflictModal.vue`](../../apps/studio/src/components/SyncConflictModal.vue)         | 云同步冲突 per-file 选边 UI    | —    |
-| [`apps/studio/src/templates/*.yaml`](../../apps/studio/src/templates/)                                               | 5 个 Template 定义             | —    |
-| [`examples/ai-contest/`](../../examples/ai-contest/)                                                                 | 3 个赛事 demo + 顶层索引       | —    |
-| [`docs/studio/demo-script.md`](./demo-script.md)                                                                     | Demo 分镜 + Dogfood 脚本       | —    |
-| [`docs/studio/todo.md`](./todo.md)                                                                                   | 当前 Sprint 待办               | —    |
-| [`docs/guide/studio/index.md`](../guide/studio/index.md)                                                             | 用户文档                       | —    |
+| 文件                                                                                                                                                       | 说明                           | 行数 |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ | ---- |
+| [`apps/studio/src/utils/sourceParser.ts`](../../apps/studio/src/utils/sourceParser.ts)                                                                     | 素材解析 + 归一化              | 657  |
+| [`apps/studio/src/utils/sourceChunk.ts`](../../apps/studio/src/utils/sourceChunk.ts)                                                                       | 分段算法                       | 206  |
+| [`apps/studio/src/utils/projectGenerator.ts`](../../apps/studio/src/utils/projectGenerator.ts)                                                             | LLM 4 步 Pipeline              | 657  |
+| [`apps/studio/src/utils/templates/loadTemplate.ts`](../../apps/studio/src/utils/templates/loadTemplate.ts)                                                 | YAML 模板加载器                | 161  |
+| [`apps/studio/src/composables/useProjectImport.ts`](../../apps/studio/src/composables/useProjectImport.ts)                                                 | 响应式状态机                   | 530  |
+| [`apps/studio/src/views/workspace/ImportSourcePage.vue`](https://github.com/YunYouJun/advjs/blob/dev/apps/studio/src/views/workspace/ImportSourcePage.vue) | 3 步向导 UI                    | 993  |
+| [`apps/studio/src/components/import/*.vue`](https://github.com/YunYouJun/advjs/tree/dev/apps/studio/src/components/import)                                 | 6 个原子组件                   | —    |
+| [`apps/studio/src/components/ProjectShareCard.vue`](https://github.com/YunYouJun/advjs/blob/dev/apps/studio/src/components/ProjectShareCard.vue)           | QR 卡片图（被截图）            | —    |
+| [`apps/studio/src/utils/shareUtils.ts`](../../apps/studio/src/utils/shareUtils.ts)                                                                         | `shareProjectAsImage` helper   | —    |
+| [`apps/studio/src/utils/contestDemos.ts`](../../apps/studio/src/utils/contestDemos.ts)                                                                     | 赛事 Demo build-time bundle    | —    |
+| [`apps/studio/src/composables/useContestDemos.ts`](../../apps/studio/src/composables/useContestDemos.ts)                                                   | Demo Preset 安装器（MemoryFs） | —    |
+| [`apps/studio/src/components/SyncConflictModal.vue`](https://github.com/YunYouJun/advjs/blob/dev/apps/studio/src/components/SyncConflictModal.vue)         | 云同步冲突 per-file 选边 UI    | —    |
+| [`apps/studio/src/templates/*.yaml`](https://github.com/YunYouJun/advjs/tree/dev/apps/studio/src/templates)                                                | 5 个 Template 定义             | —    |
+| [`examples/ai-contest/`](https://github.com/YunYouJun/advjs/tree/dev/examples/ai-contest)                                                                  | 3 个赛事 demo + 顶层索引       | —    |
+| [`docs/studio/demo-script.md`](./demo-script.md)                                                                                                           | Demo 分镜 + Dogfood 脚本       | —    |
+| [`docs/studio/todo.md`](./todo.md)                                                                                                                         | 当前 Sprint 待办               | —    |
+| [`docs/guide/studio/index.md`](../guide/studio/index.md)                                                                                                   | 用户文档                       | —    |
 
 ## 附录 C：参考
 
 - [Phase M10 技术计划](./next-phase-plan.md#phase-m10)
-- [Studio AGENTS.md](../../apps/studio/AGENTS.md)
+- [Studio AGENTS.md](https://github.com/YunYouJun/advjs/blob/dev/apps/studio/AGENTS.md)
 - [`@advjs/parser` 语法树](https://parser.advjs.org)
 - 大赛赛题：AI 向善课题 1/5 + AI 提效自命题

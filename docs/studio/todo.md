@@ -44,9 +44,9 @@
 
 ## 🔜 W3.4 残留 · 真实跑出 demo 产物（需要带屏 + AI Key）
 
-- [ ] 用 ImportSourcePage 真实跑过 3 个 demo 的 `source.{txt,md}`，回填每个 [`generation-log.md`](../../examples/ai-contest/) 的 token / cache hit / 耗时表
+- [ ] 用 ImportSourcePage 真实跑过 3 个 demo 的 `source.{txt,md}`，回填每个 [`generation-log.md`](https://github.com/YunYouJun/advjs/tree/dev/examples/ai-contest) 的 token / cache hit / 耗时表
 - [ ] 在完成页点"保存二维码图"产出每个 demo 的 `assets/qr-card.png`
-- [ ] 录每个 demo 的关键场景截图（按 [`assets/README.md`](../../examples/ai-contest/life-story/assets/README.md) 文件清单）
+- [ ] 录每个 demo 的关键场景截图（按 [`assets/README.md`](https://github.com/YunYouJun/advjs/blob/dev/examples/ai-contest/life-story/assets/README.md) 文件清单）
 
 ---
 
