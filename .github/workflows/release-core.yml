@@ -52,4 +52,4 @@ jobs:
         run: pnpm -C packages/core pack --pack-destination ../../artifacts
 
       - name: Publish core
-        run: npm publish artifacts/advjs-core-*.tgz
+        run: npm publish ./artifacts/advjs-core-*.tgz --provenance --access public
