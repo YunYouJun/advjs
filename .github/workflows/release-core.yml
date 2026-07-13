@@ -1,0 +1,55 @@
+name: Release Core
+
+on:
+  push:
+    tags:
+      - 'core-v*'
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: release-core
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: https://registry.npmjs.org/
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify release version
+        run: >-
+          node -e 'const version = require("./packages/core/package.json").version;
+          const tag = process.env.GITHUB_REF_NAME;
+          if (tag !== "core-v" + version)
+          throw new Error("Tag " + tag + " does not match @advjs/core " + version)'
+
+      - name: Test core
+        run: pnpm vitest run packages/core/test
+
+      - name: Build core dependency chain
+        run: pnpm types:build && pnpm parser:build && pnpm core:build
+
+      - name: Pack core
+        run: pnpm -C packages/core pack --pack-destination ../../artifacts
+
+      - name: Publish core
+        run: npm publish artifacts/advjs-core-*.tgz
