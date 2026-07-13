@@ -1649,6 +1649,9 @@ importers:
       consola:
         specifier: catalog:cli
         version: 3.4.2
+      dayjs:
+        specifier: catalog:utils
+        version: 1.11.21
       unstorage:
         specifier: catalog:utils
         version: 1.17.5(db0@0.3.4)(ioredis@5.11.1)

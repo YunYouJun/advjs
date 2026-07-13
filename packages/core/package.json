@@ -23,6 +23,7 @@
     "@advjs/types": "workspace:*",
     "@types/mdast": "catalog:types",
     "consola": "catalog:cli",
+    "dayjs": "catalog:utils",
     "unstorage": "catalog:utils"
   },
   "devDependencies": {
