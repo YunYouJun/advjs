@@ -55,7 +55,11 @@ export class SessionManager {
 
     this.initPromise = (async () => {
       if (isNode()) {
-        const fsDriverModule = await import('unstorage/drivers/fs')
+        // Keep the Node-only driver out of browser dependency graphs. A literal
+        // dynamic import is still pre-bundled by Vite even though this branch is
+        // unreachable in browsers.
+        const fsDriverId = 'unstorage/drivers/fs'
+        const fsDriverModule = await import(/* @vite-ignore */ fsDriverId) as typeof import('unstorage/drivers/fs')
         const fsDriver = fsDriverModule.default
         const home = globalThis.process.env.HOME || '~'
         const sessionBase = this.baseDir || `${home}/.advjs/play-sessions`
