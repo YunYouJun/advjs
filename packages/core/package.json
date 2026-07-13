@@ -1,8 +1,16 @@
 {
   "name": "@advjs/core",
   "type": "module",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Core library for AdvJS, providing essential functionalities and utilities.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YunYouJun/advjs.git",
+    "directory": "packages/core"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.mts",
