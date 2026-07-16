@@ -18,6 +18,7 @@
     "@advjs/core": "workspace:*",
     "@advjs/devtools": "workspace:*",
     "@advjs/plugin-babylon": "workspace:*",
+    "@advjs/plugin-interactions": "workspace:*",
     "@advjs/theme-default": "workspace:*",
     "advjs": "workspace:*",
     "https-localhost": "catalog:dev",

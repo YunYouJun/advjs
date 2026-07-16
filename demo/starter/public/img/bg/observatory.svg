@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="抽象观测室与星图">
+  <defs>
+    <radialGradient id="sky"><stop stop-color="#1d4ed8"/><stop offset="1" stop-color="#020617"/></radialGradient>
+    <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse"><path d="M80 0H0V80" fill="none" stroke="#38bdf8" stroke-opacity=".12"/></pattern>
+  </defs>
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <rect width="1600" height="900" fill="url(#grid)"/>
+  <g fill="#e0f2fe">
+    <circle cx="250" cy="180" r="6"/><circle cx="460" cy="310" r="4"/><circle cx="690" cy="140" r="8"/>
+    <circle cx="920" cy="250" r="5"/><circle cx="1190" cy="130" r="7"/><circle cx="1380" cy="360" r="4"/>
+  </g>
+  <g fill="none" stroke="#7dd3fc" stroke-opacity=".55" stroke-width="3">
+    <path d="M250 180 460 310 690 140 920 250 1190 130 1380 360"/>
+    <ellipse cx="800" cy="450" rx="560" ry="300"/>
+  </g>
+  <path d="M0 720Q400 620 800 720T1600 720V900H0Z" fill="#020617" fill-opacity=".88"/>
+</svg>
