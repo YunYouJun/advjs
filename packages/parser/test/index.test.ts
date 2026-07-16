@@ -8,8 +8,8 @@ const testAdvPath = path.resolve(import.meta.dirname, '../../shared/examples/tes
 it('main', async () => {
   const testAdv = await readFile(testAdvPath, 'utf-8')
   const advAst = await parseAst(testAdv)
-  expect(advAst.children).toContainEqual({
+  expect(advAst.children).toContainEqual(expect.objectContaining({
     type: 'text',
     value: '我：喂，你说世界上真的有外星人吗？',
-  })
+  }))
 })

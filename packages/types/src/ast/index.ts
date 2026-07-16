@@ -1,7 +1,12 @@
 import type * as MdAst from 'mdast'
+import type { Position } from 'unist'
 
 export interface Node {
   type: string
+  /** Stable author-defined node identifier. */
+  id?: string
+  /** Original Markdown source location. */
+  position?: Position
 }
 
 export interface Unknown extends Node {
@@ -11,12 +16,12 @@ export interface Unknown extends Node {
 /**
  * 普通文本
  */
-export interface Text {
+export interface Text extends Node {
   type: 'text'
   value: string
 }
 
-export interface Background {
+export interface Background extends Node {
   type: 'background'
   /**
    * load from assets by name
@@ -28,7 +33,7 @@ export interface Background {
   url?: string
 }
 
-export interface Bgm {
+export interface Bgm extends Node {
   type: 'bgm'
   /**
    * load from audio library by name
@@ -107,6 +112,7 @@ export interface Paragraph extends Node {
 export interface Heading extends Node {
   type: 'heading'
   depth: number
+  value: string
 }
 
 export interface SceneInfo extends Node {
@@ -137,7 +143,7 @@ export interface Narration extends Node {
   children: string[]
 }
 
-export interface Code extends Omit<MdAst.Code, 'value'> {
+export interface Code extends Omit<MdAst.Code, 'value' | 'position'>, Node {
   type: 'code'
   value: CodeOperation[] | string | null
 }
@@ -232,7 +238,7 @@ export interface PhrasingContentMap {
 export type PhrasingContent = PhrasingContentMap[keyof PhrasingContentMap]
 
 export type CodeOperation = Camera | Tachie | Background | Bgm | Go
-export type Item = Unknown | Paragraph | Narration | Character | Words | Text | SceneInfo | Dialog | Choices | Code
+export type Item = Unknown | Paragraph | Narration | Character | Words | Text | SceneInfo | Dialog | Choices | Code | Heading
 
 export type Child = Item
 export type ChildWithMd = Item | MdAst.Content

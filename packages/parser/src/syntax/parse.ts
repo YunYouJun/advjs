@@ -2,6 +2,27 @@ import type { AdvAst } from '@advjs/types'
 
 const scenePattern = /^【.+】$/
 const narrationPattern = /^（.+）$/
+const stableAnchorPattern = /^(.*\S)[ \t]+\{#((?!_)\w[\w.-]*)\}[ \t]*$/u
+
+export interface StableAnchorResult {
+  id?: string
+  value: string
+}
+
+/**
+ * Read a trailing, explicitly authored stable node ID without consuming
+ * unsupported anchors or ordinary text.
+ */
+export function parseStableAnchor(text: string): StableAnchorResult {
+  const match = text.match(stableAnchorPattern)
+  if (!match)
+    return { value: text }
+
+  return {
+    id: match[2],
+    value: match[1],
+  }
+}
 
 export function parseScene(text: string) {
   // 匹配场景

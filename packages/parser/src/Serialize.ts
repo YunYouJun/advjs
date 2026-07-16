@@ -1,7 +1,7 @@
 import type { AdvAst } from '@advjs/types'
 import type * as Mdast from 'mdast'
 
-import { parseText } from './syntax'
+import { parseStableAnchor, parseText } from './syntax'
 import { advNodeMap, parseAdvCode, scriptSuffix } from './syntax/code'
 
 /**
@@ -29,19 +29,28 @@ export class Serialize {
       case 'list':
         node = this.list(child)
         break
+      case 'heading':
+        node = this.heading(child)
+        break
       default:
         break
     }
-    if (node)
+    if (node) {
+      node.position = child.position
       return node
+    }
   }
 
   /**
    * 处理标题
    */
   heading(node: Mdast.Heading): AdvAst.Heading {
+    const anchor = parseStableAnchor(phrasingText(node.children))
     const info: AdvAst.Heading = {
-      ...node,
+      type: 'heading',
+      depth: node.depth,
+      value: anchor.value,
+      id: anchor.id,
     }
     return info
   }
@@ -102,8 +111,18 @@ export class Serialize {
    * 处理段落
    */
   paragraph(node: Mdast.Paragraph) {
-    if (node.children.length === 1 && node.children[0].type === 'text')
-      return this.text(node.children[0])
+    if (node.children.length === 1 && node.children[0].type === 'text') {
+      const text = node.children[0]
+      const anchor = parseStableAnchor(text.value)
+      if (anchor.id) {
+        const anchored = this.text({ ...text, value: anchor.value })
+        if (anchored.type === 'scene') {
+          anchored.id = anchor.id
+          return anchored
+        }
+      }
+      return this.text(text)
+    }
 
     // parse 'character: some words'
     let astNode: AdvAst.Child = { type: 'unknown' }
@@ -134,7 +153,6 @@ export class Serialize {
    * - [x] xxx
    */
   list(node: Mdast.List): AdvAst.Choices | undefined {
-    // todo
     const advNode: AdvAst.Choices = {
       type: 'choices',
       choices: [],
@@ -147,18 +165,20 @@ export class Serialize {
         const choice: AdvAst.Choice = {
           type: 'choice',
           text: '',
-          do: {
-            type: 'code',
-            value: '',
-          },
+          position: item.position,
         }
         if (item.children[0].type === 'paragraph') {
-          const text = (item.children[0].children[0] as Mdast.Text).value
-          // const do = 'advFunc'
-          choice.text = text
+          const paragraph = item.children[0]
+          const first = paragraph.children[0]
+          choice.text = phrasingText(paragraph.children)
+          if (paragraph.children.length === 1 && first?.type === 'link')
+            choice.target = first.url
         }
-        if (item.children[1]?.type === 'code')
-          choice.do = item.children[1]
+        if (item.children[1]?.type === 'code') {
+          const action = this.code(item.children[1])
+          if (action)
+            choice.do = action
+        }
 
         advNode.choices.push(choice)
       }
@@ -166,4 +186,16 @@ export class Serialize {
 
     return advNode
   }
+}
+
+function phrasingText(nodes: Mdast.PhrasingContent[]): string {
+  return nodes.map((node) => {
+    if ('value' in node)
+      return String(node.value)
+    if (node.type === 'image')
+      return node.alt ?? ''
+    if ('children' in node)
+      return phrasingText(node.children as Mdast.PhrasingContent[])
+    return ''
+  }).join('')
 }
