@@ -11,13 +11,16 @@
   "main": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "files": [
-    "dist",
-    "client"
+    "client",
+    "dist"
   ],
   "scripts": {
     "build": "unbuild",
     "dev": "unbuild --stub",
     "test": "vitest"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0"
   },
   "dependencies": {
     "@advjs/core": "workspace:*",
@@ -30,8 +33,5 @@
     "unbuild": "catalog:build",
     "vitest": "catalog:test",
     "vue": "catalog:frontend"
-  },
-  "peerDependencies": {
-    "vue": "^3.5.0"
   }
 }

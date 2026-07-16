@@ -26,6 +26,7 @@
 ### Task 1: Define the shared JSON trace and variable-diff contract
 
 **Files:**
+
 - Create: `packages/types/src/runtime/trace.ts`
 - Modify: `packages/types/src/runtime/index.ts`
 - Create: `packages/core/src/runtime/trace.ts`
@@ -33,6 +34,7 @@
 - Test: `tests/unit/runtime-trace.test.ts`
 
 **Interfaces:**
+
 - Produces: `RuntimeCommandName`, `RuntimeTraceInput`, `RuntimeVariableChange`, `RuntimeTraceEntry`, `diffRuntimeVariables()`.
 
 - [ ] **Step 1: Write variable-diff tests**
@@ -109,6 +111,7 @@ git commit -m "feat(runtime): define command trace contract"
 ### Task 2: Emit bounded traces from every Core runtime command
 
 **Files:**
+
 - Modify: `packages/core/src/runtime/create.ts`
 - Modify: `packages/core/src/runtime/transition.ts`
 - Modify: `packages/core/src/runtime/index.ts`
@@ -116,6 +119,7 @@ git commit -m "feat(runtime): define command trace contract"
 - Test: `tests/unit/runtime-host-conformance.test.ts`
 
 **Interfaces:**
+
 - Extends `AdvRuntimeOptions` with `maxTraceEntries?: number`.
 - Extends `AdvRuntime` with `trace(): RuntimeTraceEntry[]` and `subscribeTrace(subscriber)`.
 
@@ -133,7 +137,7 @@ Expected: FAIL because `trace()` and `subscribeTrace()` do not exist.
 
 Export `RuntimeCommand` from the runtime index. Add an internal projector that maps:
 
-```ts
+```text
 { type: 'choose', choiceId } -> { command: 'choose', input: { choiceId } }
 { type: 'go', target } -> { command: 'go', input: { target } }
 { type: 'complete-activity' } -> {
@@ -168,6 +172,7 @@ git commit -m "feat(runtime): record bounded command traces"
 ### Task 3: Reuse Core trace in CLI and share inspector projection
 
 **Files:**
+
 - Modify: `packages/advjs/node/runtime/player.ts`
 - Modify: `packages/advjs/node/runtime/index.ts`
 - Modify: `packages/client/composables/useAdvRuntime.ts`
@@ -179,6 +184,7 @@ git commit -m "feat(runtime): record bounded command traces"
 - Test: `tests/unit/client-runtime-inspector.test.ts`
 
 **Interfaces:**
+
 - Produces: `RuntimeInspectorModel`, `projectRuntimeInspector()`, `createRuntimeDebugReport()`.
 - `RuntimeCliTrace` becomes a deprecated alias for shared `RuntimeTraceEntry`.
 
@@ -187,7 +193,7 @@ git commit -m "feat(runtime): record bounded command traces"
 Assert the projected inspector exposes address, status, current node kind/ID, variables, stage, choices, visited, pending activity, checkpoints, and trace. Assert the report JSON contains:
 
 ```ts
-{
+const report = {
   schemaVersion: 1,
   engine: 'advjs',
   program: { id: 'fixture', hash: '...' },
@@ -248,6 +254,7 @@ git commit -m "refactor(devtools): share runtime inspector model"
 ### Task 4: Build reusable inspector Vue components
 
 **Files:**
+
 - Create: `packages/client/components/devtools/RuntimeJsonTree.vue`
 - Create: `packages/client/components/devtools/RuntimeTraceList.vue`
 - Create: `packages/client/components/devtools/RuntimeInspectorPanel.vue`
@@ -255,6 +262,7 @@ git commit -m "refactor(devtools): share runtime inspector model"
 - Test: `tests/unit/runtime-inspector-components.test.ts`
 
 **Interfaces:**
+
 - `RuntimeInspectorPanel` consumes `model: RuntimeInspectorModel` and emits `export`.
 - Tabs: Overview, Variables, Stage, Trace.
 
@@ -308,6 +316,7 @@ git commit -m "feat(devtools): add interactive runtime inspector"
 ### Task 5: Integrate inspector and safe report export in Studio playback
 
 **Files:**
+
 - Create: `apps/studio/src/components/RuntimeInspectorDrawer.vue`
 - Create: `apps/studio/src/utils/runtimeReport.ts`
 - Create: `apps/studio/src/__tests__/runtimeReport.test.ts`
@@ -316,6 +325,7 @@ git commit -m "feat(devtools): add interactive runtime inspector"
 - Modify: `apps/studio/src/i18n/locales/zh-CN.json`
 
 **Interfaces:**
+
 - Studio drawer wraps the shared Client panel and adds copy/download controls.
 - Downloads `advjs-runtime-report.json` with no project source content.
 
@@ -358,6 +368,7 @@ git commit -m "feat(studio): add runtime inspector drawer"
 ### Task 6: Add live Program and Diagnostics views to the chapter editor
 
 **Files:**
+
 - Create: `apps/studio/src/utils/runtimeAuthoring.ts`
 - Create: `apps/studio/src/__tests__/runtimeAuthoring.test.ts`
 - Create: `apps/studio/src/components/RuntimeAuthoringPanel.vue`
@@ -370,6 +381,7 @@ git commit -m "feat(studio): add runtime inspector drawer"
 - Modify: `apps/studio/src/i18n/locales/zh-CN.json`
 
 **Interfaces:**
+
 - Produces: `compileRuntimeAuthoringProject(chapters, settings, override)`.
 - `override`: `{ file: string, content: string }` for the unsaved buffer.
 - Program rows expose chapter, node ID, kind, next target, source file/line.
@@ -435,12 +447,14 @@ git commit -m "feat(studio): compile scripts while editing"
 ### Task 7: Document debugging workflow and verify end to end
 
 **Files:**
+
 - Modify: `docs/guide/runtime/debugging-and-migration.md`
 - Modify: `docs/guide/studio/architecture.md`
 - Modify: `docs/.vitepress/config/index.ts`
 - Create: `apps/studio/tests/e2e/runtime-debugging.spec.ts`
 
 **Interfaces:**
+
 - Documents trace semantics, report privacy boundary, Studio authoring tabs, and plugin diagnostics.
 
 - [ ] **Step 1: Write the Studio E2E scenario**

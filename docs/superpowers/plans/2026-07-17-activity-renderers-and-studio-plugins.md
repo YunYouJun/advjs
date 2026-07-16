@@ -22,18 +22,20 @@
 ### Task 1: Add serializable activity-renderer descriptors to plugin metadata
 
 **Files:**
+
 - Modify: `packages/types/src/config/plugin.ts`
 - Modify: `packages/advjs/node/virtual/runtime-plugins.ts`
 - Test: `tests/unit/runtime-plugin-virtual.test.ts`
 
 **Interfaces:**
+
 - Consumes: existing `AdvRuntimePluginClientReference.module/export/options`.
 - Produces: `AdvRuntimeActivityRendererReference` and virtual plugins with `activityRenderers: Record<string, Component>`.
 
 - [ ] **Step 1: Extend the virtual-module test with a static renderer import**
 
 ```ts
-client: {
+const client = {
   module: '@advjs/plugin-interactions',
   export: 'starMap',
   options: { tolerance: 0.82 },
@@ -43,13 +45,13 @@ client: {
       export: 'default',
     },
   },
-},
+}
 ```
 
 Assert that generated code contains the component import and:
 
 ```ts
-Object.assign(__advRuntimePlugin0({"tolerance":0.82}),{"activityRenderers":{"star-map/compare":__advActivityRenderer0}})
+Object.assign(__advRuntimePlugin0({ tolerance: 0.82 }), { activityRenderers: { 'star-map/compare': __advActivityRenderer0 } })
 ```
 
 - [ ] **Step 2: Run the test and verify RED**
@@ -96,6 +98,7 @@ git commit -m "feat(plugin): load activity renderers"
 ### Task 2: Create the client activity-renderer registry
 
 **Files:**
+
 - Create: `packages/client/types/activity.ts`
 - Create: `packages/client/runtime/activity-renderers.ts`
 - Modify: `packages/client/types/index.ts`
@@ -103,14 +106,15 @@ git commit -m "feat(plugin): load activity renderers"
 - Test: `tests/unit/client-activity-renderers.test.ts`
 
 **Interfaces:**
+
 - Consumes: `AdvRuntimePlugin` and Vue `Component`.
 - Produces: `AdvClientRuntimePlugin`, `ActivityRendererRegistry`, `createActivityRendererRegistry()`.
 
 - [ ] **Step 1: Write registry tests**
 
 ```ts
-import { defineComponent } from 'vue'
 import { describe, expect, it } from 'vitest'
+import { defineComponent } from 'vue'
 import { createActivityRendererRegistry } from '../../packages/client/runtime/activity-renderers'
 
 const renderer = defineComponent({ name: 'TestRenderer', template: '<div />' })
@@ -118,7 +122,9 @@ const renderer = defineComponent({ name: 'TestRenderer', template: '<div />' })
 describe('activity renderer registry', () => {
   it('resolves a namespaced renderer', () => {
     const registry = createActivityRendererRegistry([{
-      name: 'test', version: '1.0.0', activityRenderers: { 'test/open': renderer },
+      name: 'test',
+      version: '1.0.0',
+      activityRenderers: { 'test/open': renderer },
     }])
     expect(registry.resolve('test/open')).toBe(renderer)
   })
@@ -202,12 +208,14 @@ git commit -m "feat(client): register activity renderers"
 ### Task 3: Inject the registry into AdvContext
 
 **Files:**
+
 - Modify: `packages/client/types/context.ts`
 - Modify: `packages/client/setup/context.ts`
 - Modify: `packages/client/compiler/index.ts`
 - Test: `tests/unit/client-activity-renderers.test.ts`
 
 **Interfaces:**
+
 - Consumes: `AdvClientRuntimePlugin[]` and `createActivityRendererRegistry()`.
 - Produces: `$adv.activityRenderers` and typed `setupAdvContext({ runtimePlugins })`.
 
@@ -251,12 +259,14 @@ git commit -m "refactor(client): expose activity renderer registry"
 ### Task 4: Replace hard-coded activity branches with a generic shell
 
 **Files:**
+
 - Create: `packages/client/components/adv/activity/GenericActivityDebug.vue`
 - Create: `packages/client/components/adv/activity/UnsupportedActivity.vue`
 - Modify: `packages/client/components/adv/AdvActivity.vue`
 - Test: `tests/unit/component.test.ts`
 
 **Interfaces:**
+
 - Consumes: `$adv.store.state.pendingActivity`, `$adv.activityRenderers`, `$adv.runtime.completeActivity()`, `$adv.runtime.back()`.
 - Produces: generic dynamic renderer behavior with dev/prod fallbacks.
 
@@ -315,6 +325,7 @@ git commit -m "refactor(client): render plugin activities generically"
 ### Task 5: Ship renderer SFCs from plugin-interactions
 
 **Files:**
+
 - Create: `plugins/plugin-interactions/client/StarMapActivity.vue`
 - Create: `plugins/plugin-interactions/client/CivilizationActivity.vue`
 - Create: `plugins/plugin-interactions/client/style.css`
@@ -324,6 +335,7 @@ git commit -m "refactor(client): render plugin activities generically"
 - Test: `plugins/plugin-interactions/test/activity-components.test.ts`
 
 **Interfaces:**
+
 - Consumes: `AdvRuntimePluginClientReference.activities`.
 - Produces: raw Vite-consumable SFC subpaths and JSON activity results.
 
@@ -353,12 +365,12 @@ The star-map form initializes its score from `activity.input.tolerance` when num
 Add to each existing `client` object:
 
 ```ts
-activities: {
+const activities = {
   compare: {
     module: '@advjs/plugin-interactions/client/StarMapActivity.vue',
     export: 'default',
   },
-},
+}
 ```
 
 and the corresponding `initialize` descriptor.
@@ -406,6 +418,7 @@ git commit -m "feat(interactions): provide activity renderers"
 ### Task 6: Load classic chapters and game settings in Studio
 
 **Files:**
+
 - Create: `apps/studio/src/utils/projectRuntimeFiles.ts`
 - Create: `apps/studio/src/__tests__/projectRuntimeFiles.test.ts`
 - Modify: `apps/studio/src/composables/useProjectContent.ts`
@@ -413,6 +426,7 @@ git commit -m "feat(interactions): provide activity renderers"
 - Modify: `apps/studio/src/views/PlayPage.vue`
 
 **Interfaces:**
+
 - Produces: `discoverRuntimeChapterFiles(fs)` and `loadStudioGameSettings(fs)`.
 - Settings path: `adv/settings/game.json`.
 
@@ -469,6 +483,7 @@ git commit -m "feat(studio): load classic runtime projects"
 ### Task 7: Install trusted official runtime plugins in Studio
 
 **Files:**
+
 - Create: `apps/studio/src/utils/studioRuntimePlugins.ts`
 - Create: `apps/studio/src/__tests__/studioRuntimePlugins.test.ts`
 - Modify: `apps/studio/src/components/GamePlayer.vue`
@@ -476,6 +491,7 @@ git commit -m "feat(studio): load classic runtime projects"
 - Modify: `pnpm-lock.yaml`
 
 **Interfaces:**
+
 - Produces: `createStudioRuntimePlugins(): AdvClientRuntimePlugin[]`.
 - Supports only bundled `star-map@1.0.0` and `civilization@1.0.0` in this milestone.
 
@@ -532,11 +548,13 @@ git commit -m "feat(studio): support official runtime plugins"
 ### Task 8: Document and verify the foundation
 
 **Files:**
+
 - Modify: `docs/guide/runtime/plugins-and-activities.md`
 - Modify: `docs/guide/studio/architecture.md`
 - Test: existing focused suites.
 
 **Interfaces:**
+
 - Documents production fallback, raw SFC packaging, trusted Studio allowlist, and `adv/settings/game.json`.
 
 - [ ] **Step 1: Add exact authoring examples**

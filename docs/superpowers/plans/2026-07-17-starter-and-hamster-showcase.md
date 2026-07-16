@@ -26,11 +26,13 @@
 ### Task 1: Lock the two-demo contract with a repository test
 
 **Files:**
+
 - Create: `tests/unit/demo-project-layout.test.ts`
 - Modify: `package.json`
 - Modify: `tests/unit/hamster-demo-runtime.test.ts`
 
 **Interfaces:**
+
 - Produces: stable scripts and structural rules for `demo/starter` and `demo/hamster`.
 
 - [ ] **Step 1: Write the layout contract test**
@@ -93,6 +95,7 @@ git commit -m "chore(demo): split hamster from starter"
 ### Task 2: Reduce starter to a neutral minimal game
 
 **Files:**
+
 - Modify: `demo/starter/package.json`
 - Modify: `demo/starter/adv.config.ts`
 - Modify: `demo/starter/README.md`
@@ -106,6 +109,7 @@ git commit -m "chore(demo): split hamster from starter"
 - Test: `tests/unit/demo-project-layout.test.ts`
 
 **Interfaces:**
+
 - Produces: a dependency-light one-chapter sample with background, narration, dialogue, one choice, and one variable action.
 
 - [ ] **Step 1: Extend the contract test for minimalism**
@@ -188,6 +192,7 @@ git commit -m "refactor(demo): minimize starter project"
 ### Task 3: Define hamster authoring metadata and content catalog
 
 **Files:**
+
 - Create: `demo/hamster/adv/settings/game.json`
 - Create: `demo/hamster/adv/characters/observer.character.md`
 - Create: `demo/hamster/adv/characters/reader.character.md`
@@ -198,6 +203,7 @@ git commit -m "refactor(demo): minimize starter project"
 - Modify: `tests/unit/demo-project-layout.test.ts`
 
 **Interfaces:**
+
 - Settings are consumed by Studio; `adv.config.ts` is consumed by CLI/Vite.
 - Stable variables: `curiosity`, `empathy`, `control`, `observationCount`, `starMatched`, `starMatchScore`, `civilizationLevel`, `civilization`, `ending`.
 
@@ -244,12 +250,12 @@ The two character files define player-facing name, avatar, and default tachie. S
 
 Use IDs and sources:
 
-| Chapter | Node | Source |
-| --- | --- | --- |
-| `chapter-1` | `cage` | `/md/chapters/01-cage.adv.md` |
-| `chapter-2` | `last-night` | `/md/chapters/02-last-night.adv.md` |
+| Chapter     | Node          | Source                               |
+| ----------- | ------------- | ------------------------------------ |
+| `chapter-1` | `cage`        | `/md/chapters/01-cage.adv.md`        |
+| `chapter-2` | `last-night`  | `/md/chapters/02-last-night.adv.md`  |
 | `chapter-3` | `common-life` | `/md/chapters/03-common-life.adv.md` |
-| `chapter-4` | `dim-stars` | `/md/chapters/04-dim-stars.adv.md` |
+| `chapter-4` | `dim-stars`   | `/md/chapters/04-dim-stars.adv.md`   |
 
 Keep both `starMap({ tolerance: 0.82 })` and `civilization({ defaultLevel: 1 })`, and mirror the exact settings variables/required plugin versions.
 
@@ -269,12 +275,14 @@ git commit -m "feat(hamster): define showcase game model"
 ### Task 4: Add stable authored choice IDs to Markdown compilation
 
 **Files:**
+
 - Modify: `packages/core/src/compiler/markdown.ts`
 - Modify: `packages/core/src/compiler/link.ts`
 - Create: `tests/unit/runtime-markdown-choice-id.test.ts`
 - Modify: `docs/guide/runtime/conditions-and-actions.md`
 
 **Interfaces:**
+
 - Consumes optional `id` in a choice's YAML metadata block.
 - Produces stable `RuntimeChoice.id` values and duplicate/invalid-ID diagnostics.
 
@@ -283,6 +291,8 @@ git commit -m "feat(hamster): define showcase game model"
 Compile:
 
 ````md
+## 星图 {#star-map}
+
 - [继续观察](#star-map)
 
   ```yaml
@@ -327,12 +337,14 @@ git commit -m "feat(compiler): support authored choice ids"
 ### Task 5: Author chapters one and two with star-map state
 
 **Files:**
+
 - Create: `demo/hamster/public/md/chapters/01-cage.adv.md`
 - Create: `demo/hamster/public/md/chapters/02-last-night.adv.md`
 - Delete: `demo/hamster/public/md/chapters/1/仓鼠的笼子.adv.md`
 - Test: `tests/unit/hamster-demo-runtime.test.ts`
 
 **Interfaces:**
+
 - Chapter 1 introduces the cage and star-map activity.
 - Chapter 2 branches on the player's attitude and always converges on chapter 3.
 
@@ -379,11 +391,11 @@ Both activity outcomes must progress; a failed match must not loop forever.
 
 Adapt the end-of-world conversation without reproducing long source passages verbatim. Demonstrate conditional blocks based on `starMatched`, nested choice actions, background transition to `cage`, and three attitude choices:
 
-| Choice ID | State effect |
-| --- | --- |
-| `open-the-door` | `empathy += 2` |
-| `keep-observing` | `curiosity += 1`, `observationCount += 1` |
-| `preserve-control` | `control += 2` |
+| Choice ID          | State effect                              |
+| ------------------ | ----------------------------------------- |
+| `open-the-door`    | `empathy += 2`                            |
+| `keep-observing`   | `curiosity += 1`, `observationCount += 1` |
+| `preserve-control` | `control += 2`                            |
 
 All choices target `chapter-3#birth`.
 
@@ -403,12 +415,14 @@ git commit -m "feat(hamster): author cage and last-night chapters"
 ### Task 6: Author chapters three and four with deterministic endings
 
 **Files:**
+
 - Create: `demo/hamster/public/md/chapters/03-common-life.adv.md`
 - Create: `demo/hamster/public/md/chapters/04-dim-stars.adv.md`
 - Delete: `demo/hamster/public/md/chapters/2/仓生.adv.md`
 - Modify: `tests/unit/hamster-demo-runtime.test.ts`
 
 **Interfaces:**
+
 - Chapter 3 owns `civilization/initialize` and records its JSON result.
 - Chapter 4 exposes exactly one `继续` option, selected by mutually exclusive conditions, and sets one ending ID.
 
@@ -416,11 +430,11 @@ git commit -m "feat(hamster): author cage and last-night chapters"
 
 Create a helper that runs to the final conditional choice and returns visible options. Cover:
 
-| Ending | Condition | Stored value |
-| --- | --- | --- |
-| Still gazing | `starMatched && curiosity + empathy >= control + 2` | `still-gazing` |
-| Endless wheel | not still-gazing and `control >= curiosity + empathy` | `endless-wheel` |
-| Common hamster | otherwise | `common-hamster` |
+| Ending         | Condition                                             | Stored value     |
+| -------------- | ----------------------------------------------------- | ---------------- |
+| Still gazing   | `starMatched && curiosity + empathy >= control + 2`   | `still-gazing`   |
+| Endless wheel  | not still-gazing and `control >= curiosity + empathy` | `endless-wheel`  |
+| Common hamster | otherwise                                             | `common-hamster` |
 
 For each route, assert exactly one option labeled `继续`, choose it, assert the ending prose marker and stored `ending`, then run `next()` until `status === 'ended'`. Assert snapshot JSON round-trips.
 
@@ -468,6 +482,7 @@ git commit -m "feat(hamster): add civilization and three endings"
 ### Task 7: Add original local visuals and ambient audio
 
 **Files:**
+
 - Create: `demo/hamster/public/img/bg/cage.svg`
 - Modify: `demo/hamster/public/img/bg/observatory.svg`
 - Modify: `demo/hamster/public/img/bg/civilization.svg`
@@ -480,6 +495,7 @@ git commit -m "feat(hamster): add civilization and three endings"
 - Modify: `tests/unit/demo-project-layout.test.ts`
 
 **Interfaces:**
+
 - All game assets are local and deployable offline.
 - `assets:audio` deterministically regenerates the committed WAV.
 
@@ -532,6 +548,7 @@ git commit -m "feat(hamster): add original audiovisual assets"
 ### Task 8: Add flagship browser coverage and author documentation
 
 **Files:**
+
 - Create: `tests/e2e/hamster.spec.ts`
 - Modify: `playwright.config.ts`
 - Modify: `demo/hamster/README.md`
@@ -541,6 +558,7 @@ git commit -m "feat(hamster): add original audiovisual assets"
 - Modify: `docs/.vitepress/config/index.ts`
 
 **Interfaces:**
+
 - A second Playwright web server starts the flagship on port 3334; existing browser projects remain unchanged.
 - Docs explain the `examples`/`demo` distinction and provide exact run commands.
 
