@@ -1,5 +1,5 @@
 import type { AdvAst } from '@advjs/types'
-import type { AstChild, FormattedOutput, PlayStageState } from './types'
+import type { FormattedOutput, PlayStageState } from './types'
 import { tf } from './i18n'
 
 /**
@@ -37,7 +37,7 @@ function formatStage(stage?: PlayStageState): string {
  *
  * Returns `null` for nodes that should be silently processed (code operations, etc.)
  */
-export function formatNode(node: AstChild): FormattedOutput | null {
+export function formatNode(node: AdvAst.Child): FormattedOutput | null {
   if (!node || !node.type)
     return null
 
