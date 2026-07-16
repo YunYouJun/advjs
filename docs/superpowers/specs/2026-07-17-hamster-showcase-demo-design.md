@@ -1,6 +1,6 @@
 # 仓鼠旗舰 Demo 与创作调试体验设计
 
-状态：待用户审阅
+状态：已由用户确认，进入实施准备
 
 日期：2026-07-17
 
@@ -135,7 +135,7 @@ hamster 是独立 workspace 包，拥有自己的脚本、部署配置、素材�
   civilization: null,
   civilizationLevel: 0,
   memories: [],
-  ending: null,
+  ending: '',
 }
 ```
 
@@ -206,15 +206,15 @@ Studio 试玩和浏览器开发模式使用相同数据模型，替换原始 JSO
 - **变量**：树状展示变量，并突出最近一步发生变化的路径；
 - **舞台**：背景、BGM、立绘状态；
 - **分支/活动**：可见选择、已选择记录、pending activity 与输入；
-- **轨迹**：最近 100 条命令、地址、状态、Effects 与变量差异。
+- **轨迹**：最近 200 条命令、地址、状态、Effects 与变量差异。
 
 第一版 Inspector 只读。调试动作复用正式 Runtime API：下一步、回退、跳到显式节点、重启、复制快照、复制问题报告。不会通过 Vue DevTools 或对象引用直接改写 RuntimeState。
 
 ### 9.3 共享 trace 数据
 
-CLI 现有 `RuntimeCliTrace` 提升为宿主无关的纯数据 trace contract，至少包含 command、timestamp、address、status、effects 和变量差异。CLI JSON Lines、Studio Inspector 与浏览器 DevTools 复用该结构；各宿主可以添加展示元数据，但不得改变命令含义。
+CLI 现有 `RuntimeCliTrace` 提升为宿主无关的纯数据 trace contract，至少包含递增 sequence、command、from/to address、status、effects 和变量差异。CLI JSON Lines、Studio Inspector 与浏览器 DevTools 复用该结构；各宿主可以添加展示元数据，但不得改变命令含义。首版不记录墙钟时间，以便相同命令序列产生可比较的确定性轨迹。
 
-trace 使用固定上限的内存环形列表，不写入 `RuntimeSnapshot`。问题报告导出时包含 Program id/hash、当前 Snapshot、最近 trace 和编译诊断，并排除素材文件与用户隐私数据。
+trace 使用固定上限的内存环形列表，不写入 `RuntimeSnapshot`。问题报告导出时包含 Program id/hash、当前 Snapshot、最近 trace 和编译诊断，并排除素材文件与故事源码。Snapshot 与变量差异可能包含作者写入变量的业务数据，因此复制或下载前必须明确提示用户检查报告内容，不宣称能够自动识别所有隐私字段。
 
 ### 9.4 Vue 组件边界
 
@@ -278,8 +278,8 @@ trace 使用固定上限的内存环形列表，不写入 `RuntimeSnapshot`。�
 
 ## 13. 实施顺序
 
-1. 先建立目录和测试身份：复制现有仓鼠内容到 `demo/hamster`，恢复最小 starter，修正脚本与文档入口。
-2. 以测试驱动补齐插件 activity renderer registry，再把两个硬编码 UI 迁出 Client。
+1. 先以测试驱动补齐插件 activity renderer registry、Studio 经典目录发现与可信插件加载，解除旗舰 Demo 的运行阻塞。
+2. 建立目录和测试身份：复制现有仓鼠内容到 `demo/hamster`，恢复最小 starter，修正脚本与文档入口。
 3. 扩展四章剧情、状态模型、素材和结局路径，并同步增加运行时路径测试。
 4. 建立共享 trace contract、Inspector 数据投影和可复用 Vue 面板。
 5. 把诊断、Program 与 Inspector 接入 Studio 编辑/试玩和浏览器 DevTools。
