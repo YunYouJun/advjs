@@ -1,5 +1,5 @@
 {
-  "name": "@advjs/demo-starter",
+  "name": "@advjs/demo-hamster",
   "type": "module",
   "private": true,
   "author": {
@@ -14,6 +14,7 @@
     "preview": "vite preview --host"
   },
   "devDependencies": {
+    "@advjs/plugin-interactions": "workspace:*",
     "@advjs/theme-default": "workspace:*",
     "advjs": "workspace:*"
   }

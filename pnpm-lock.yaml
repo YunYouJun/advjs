@@ -1035,6 +1035,18 @@ importers:
         specifier: catalog:dev
         version: 3.1.14
 
+  demo/hamster:
+    devDependencies:
+      '@advjs/plugin-interactions':
+        specifier: workspace:*
+        version: link:../../plugins/plugin-interactions
+      '@advjs/theme-default':
+        specifier: workspace:*
+        version: link:../../themes/theme-default
+      advjs:
+        specifier: workspace:*
+        version: link:../../packages/advjs
+
   demo/love:
     devDependencies:
       '@advjs/theme-default':
@@ -1052,30 +1064,12 @@ importers:
 
   demo/starter:
     devDependencies:
-      '@advjs/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@advjs/devtools':
-        specifier: workspace:*
-        version: link:../../packages/devtools
-      '@advjs/plugin-babylon':
-        specifier: workspace:*
-        version: link:../../plugins/plugin-babylon
-      '@advjs/plugin-interactions':
-        specifier: workspace:*
-        version: link:../../plugins/plugin-interactions
       '@advjs/theme-default':
         specifier: workspace:*
         version: link:../../themes/theme-default
       advjs:
         specifier: workspace:*
         version: link:../../packages/advjs
-      https-localhost:
-        specifier: catalog:dev
-        version: 4.7.1
-      nodemon:
-        specifier: catalog:dev
-        version: 3.1.14
 
   demo/use-dialog-box:
     dependencies:

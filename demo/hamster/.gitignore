@@ -1,0 +1,8 @@
+public/assets/
+
+node_modules
+dist
+
+auto-imports.d.ts
+
+.adv

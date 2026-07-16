@@ -1,10 +1,14 @@
-# wlwz demo
+# ADV.JS Starter
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/e33bbdbd-31e5-4421-b112-c423b83f4c5c/deploy-status)](https://app.netlify.com/sites/advjs-wlwz/deploys)
+一个一眼能读完、可直接复制的 ADV.JS 项目。
 
-## 内容与素材授权
+```bash
+pnpm install
+pnpm dev
+```
 
-- [非软件内容许可](./LICENSE.content.md)
-- [素材来源清单](./ASSETS.md)
+- 游戏配置：`adv.config.ts`
+- 剧本：`public/md/chapters/hello.adv.md`
+- 本地背景：`public/img/room.svg`
 
-代码许可与故事、图片等内容许可彼此独立。分发或复用本 Demo 前，请先检查素材清单中的授权状态；标记为“待确认”或“未获再分发授权”的内容不应被视为可自由复用。
+示例只保留背景、旁白、对话、选择、变量动作和条件文本。需要查看插件活动、多章节分支和完整调试链路，请运行 `pnpm demo:hamster`。

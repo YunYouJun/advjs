@@ -16,11 +16,11 @@ describe('hamster demo runtime', () => {
       chapters: [
         {
           id: 'chapter-1',
-          content: await readFile(resolve(root, 'demo/starter/public/md/chapters/1/仓鼠的笼子.adv.md'), 'utf8'),
+          content: await readFile(resolve(root, 'demo/hamster/public/md/chapters/1/仓鼠的笼子.adv.md'), 'utf8'),
         },
         {
           id: 'chapter-2',
-          content: await readFile(resolve(root, 'demo/starter/public/md/chapters/2/仓生.adv.md'), 'utf8'),
+          content: await readFile(resolve(root, 'demo/hamster/public/md/chapters/2/仓生.adv.md'), 'utf8'),
         },
       ],
     })
