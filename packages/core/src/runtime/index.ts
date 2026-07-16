@@ -1,5 +1,5 @@
 export { createAdvRuntime } from './create'
-export type { AdvRuntime, AdvRuntimeOptions, RuntimeSubscriber } from './create'
+export type { AdvRuntime, AdvRuntimeOptions, RuntimeSubscriber, RuntimeTraceSubscriber } from './create'
 export {
   evaluateRuntimeExpression,
   parseRuntimeExpression,
@@ -31,3 +31,4 @@ export {
 export { createInitialRuntimeState, getRuntimeNode, runtimeAddressKey } from './state'
 export { diffRuntimeVariables } from './trace'
 export { projectRuntimeNode, visibleRuntimeChoices } from './transition'
+export type { RuntimeCommand } from './transition'

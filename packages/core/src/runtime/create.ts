@@ -8,6 +8,8 @@ import type {
   RuntimeProgram,
   RuntimeSnapshot,
   RuntimeState,
+  RuntimeTraceEntry,
+  RuntimeTraceInput,
   RuntimeUpdate,
 } from '@advjs/types'
 import type { AdvRuntimePlugin } from './registry'
@@ -21,12 +23,14 @@ import {
   validateRuntimeSnapshot,
 } from './snapshot'
 import { createInitialRuntimeState, getRuntimeNode } from './state'
+import { diffRuntimeVariables } from './trace'
 import { projectRuntimeNode, transitionRuntime } from './transition'
 
 export interface AdvRuntimeOptions {
   program: RuntimeProgram
   initialVariables?: JsonObject
   maxCheckpoints?: number
+  maxTraceEntries?: number
   now?: () => number
   plugins?: readonly AdvRuntimePlugin[]
 }
@@ -35,6 +39,8 @@ export type RuntimeSubscriber = (
   state: Readonly<RuntimeState>,
   effects: readonly RuntimeEffect[],
 ) => void
+
+export type RuntimeTraceSubscriber = (entry: Readonly<RuntimeTraceEntry>) => void
 
 export interface AdvRuntime {
   readonly state: Readonly<RuntimeState>
@@ -48,6 +54,8 @@ export interface AdvRuntime {
   restore: (snapshot: RuntimeSnapshot) => RuntimeUpdate
   completeActivity: (result: JsonValue) => Promise<RuntimeUpdate>
   subscribe: (subscriber: RuntimeSubscriber) => () => void
+  trace: () => RuntimeTraceEntry[]
+  subscribeTrace: (subscriber: RuntimeTraceSubscriber) => () => void
 }
 
 function runtimeApiError(code: string, message: string): Error {
@@ -57,15 +65,63 @@ function runtimeApiError(code: string, message: string): Error {
 export function createAdvRuntime(options: AdvRuntimeOptions): AdvRuntime {
   const program = cloneJsonData(options.program)
   const maxCheckpoints = options.maxCheckpoints ?? 100
+  const maxTraceEntries = options.maxTraceEntries ?? 200
   const now = options.now ?? Date.now
   const registry = createRuntimeRegistry(options.plugins, program.requiredPlugins)
   if (!Number.isInteger(maxCheckpoints) || maxCheckpoints < 0)
     throw new TypeError('maxCheckpoints must be a non-negative integer')
+  if (!Number.isInteger(maxTraceEntries) || maxTraceEntries < 0)
+    throw new TypeError('maxTraceEntries must be a non-negative integer')
 
   let state = createInitialRuntimeState(program, options.initialVariables)
   let checkpoints: RuntimeCheckpoint[] = []
   let checkpointSequence = 0
+  let traceSequence = 0
+  const traceEntries: RuntimeTraceEntry[] = []
   const subscribers = new Set<RuntimeSubscriber>()
+  const traceSubscribers = new Set<RuntimeTraceSubscriber>()
+
+  const commandMetadata = (
+    command: RuntimeCommand,
+    previous: Readonly<RuntimeState>,
+  ): { command: RuntimeTraceEntry['command'], input?: RuntimeTraceInput } => {
+    if (command.type === 'choose')
+      return { command: 'choose', input: { choiceId: command.choiceId } }
+    if (command.type === 'go')
+      return { command: 'go', input: { target: structuredClone(command.target) } }
+    if (command.type === 'complete-activity') {
+      return {
+        command: 'complete-activity',
+        ...(previous.pendingActivity
+          ? { input: { activityType: previous.pendingActivity.type } }
+          : {}),
+      }
+    }
+    return { command: command.type }
+  }
+
+  const recordTrace = (
+    metadata: { command: RuntimeTraceEntry['command'], input?: RuntimeTraceInput },
+    previous: Readonly<RuntimeState>,
+    update: RuntimeUpdate,
+  ): void => {
+    if (maxTraceEntries === 0)
+      return
+    const entry: RuntimeTraceEntry = {
+      sequence: ++traceSequence,
+      ...metadata,
+      from: structuredClone(previous.cursor),
+      to: structuredClone(update.state.cursor),
+      status: update.state.status,
+      effects: structuredClone(update.effects),
+      variableChanges: diffRuntimeVariables(previous.variables, update.state.variables),
+    }
+    traceEntries.push(entry)
+    if (traceEntries.length > maxTraceEntries)
+      traceEntries.splice(0, traceEntries.length - maxTraceEntries)
+    for (const subscriber of traceSubscribers)
+      subscriber(structuredClone(entry))
+  }
 
   const publish = (update: RuntimeUpdate): RuntimeUpdate => {
     const published = structuredClone(update)
@@ -109,11 +165,13 @@ export function createAdvRuntime(options: AdvRuntimeOptions): AdvRuntime {
   }
 
   const dispatch = async (command: RuntimeCommand): Promise<RuntimeUpdate> => {
+    const previous = structuredClone(state)
     const checkpoint = shouldCheckpoint(command) ? structuredClone(state) : undefined
     const update = transitionRuntime(program, state, command, registry)
     if (checkpoint)
       addCheckpoint(checkpoint)
     state = update.state
+    recordTrace(commandMetadata(command, previous), previous, update)
     return publish(update)
   }
 
@@ -163,6 +221,7 @@ export function createAdvRuntime(options: AdvRuntimeOptions): AdvRuntime {
     completeActivity: result => dispatch({ type: 'complete-activity', result: structuredClone(result) }),
     go: async target => dispatch({ type: 'go', target: resolveTarget(target) }),
     back() {
+      const previous = structuredClone(state)
       const checkpoint = checkpoints.pop()
       if (!checkpoint) {
         throw runtimeApiError(
@@ -171,13 +230,16 @@ export function createAdvRuntime(options: AdvRuntimeOptions): AdvRuntime {
         )
       }
       state = structuredClone(checkpoint.state)
-      return publish({
+      const update = {
         state,
         effects: [{ type: 'runtime.back' }],
-      })
+      } satisfies RuntimeUpdate
+      recordTrace({ command: 'back' }, previous, update)
+      return publish(update)
     },
     snapshot: () => createRuntimeSnapshot(program, state, checkpoints, now()),
     restore(snapshot) {
+      const previous = structuredClone(state)
       const restored = validateRuntimeSnapshot(snapshot, program)
       state = restored.state
       checkpoints = restored.checkpoints
@@ -189,14 +251,21 @@ export function createAdvRuntime(options: AdvRuntimeOptions): AdvRuntime {
           payload: structuredClone(state.pendingActivity) as unknown as JsonValue,
         })
       }
-      return publish({
+      const update = {
         state,
         effects,
-      })
+      }
+      recordTrace({ command: 'restore' }, previous, update)
+      return publish(update)
     },
     subscribe(subscriber) {
       subscribers.add(subscriber)
       return () => subscribers.delete(subscriber)
+    },
+    trace: () => structuredClone(traceEntries),
+    subscribeTrace(subscriber) {
+      traceSubscribers.add(subscriber)
+      return () => traceSubscribers.delete(subscriber)
     },
   }
 }
