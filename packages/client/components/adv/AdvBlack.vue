@@ -27,7 +27,7 @@ function clearTimers() {
 function playSentencesAnimation() {
   clearTimers()
   const values = sentences()
-  displaySentences.value = Array.from({ length: values.length }).fill('')
+  displaySentences.value = Array.from({ length: values.length }).fill('') as string[]
   let beforeLength = 0
   values.forEach((value, index) => {
     const timer = setTimeout(() => {
