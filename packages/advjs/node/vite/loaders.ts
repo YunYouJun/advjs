@@ -10,6 +10,7 @@ import { templates } from '../virtual'
 import { templateConfigs } from '../virtual/configs'
 import { templateData } from '../virtual/data'
 import { templateGames } from '../virtual/game'
+import { templateRuntimePlugins } from '../virtual/runtime-plugins'
 
 interface AdvHmrPayload {
   data: AdvData
@@ -148,6 +149,7 @@ export function createAdvVirtualLoader(advOptions: ResolvedAdvOptions, serverOpt
           moduleIds.add(game.id)
         })
         moduleIds.add(templateData.id)
+        moduleIds.add(templateRuntimePlugins.id)
       }
 
       moduleIds.add('/@advjs/drama.adv.md')

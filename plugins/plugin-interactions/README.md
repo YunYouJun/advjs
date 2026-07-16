@@ -8,3 +8,5 @@ reference implementations for custom plugins:
 
 Both pause the Runtime with an `activity.request` effect. Browser or CLI hosts
 render the interaction and submit a JSON result with `runtime.completeActivity()`.
+Each factory also includes a static client-module descriptor, so ADV.JS can
+recreate the same plugin in the browser without serializing functions.

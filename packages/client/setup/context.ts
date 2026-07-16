@@ -54,13 +54,14 @@ export function setupAdvContext(ctx: {
   themeConfig: AdvContext['themeConfig']
   pinia?: Pinia
   fetcher?: CompileClientRuntimeProgramOptions['fetcher']
+  runtimePlugins?: unknown
 }) {
   const store = useAdvStore(ctx.pinia)
   let advContext: AdvContext
 
   const runtime = createAdvRuntimeHost({
     program: BOOTSTRAP_PROGRAM,
-    plugins: runtimePlugins(ctx.config.value.plugins),
+    plugins: runtimePlugins(ctx.runtimePlugins),
     onState(state, current, program) {
       store.$syncRuntime(state, current, program)
       syncRuntimePresentation(state, ctx.gameConfig.value, ADV_RUNTIME)

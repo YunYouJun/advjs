@@ -1,4 +1,4 @@
-import type { AdvData, AdvEntryOptions, ResolvedAdvOptions, RootsInfo } from '@advjs/types'
+import type { AdvData, AdvEntryOptions, AdvPlugin, ResolvedAdvOptions, RootsInfo } from '@advjs/types'
 
 import { dirname, join, resolve } from 'node:path'
 import process from 'node:process'
@@ -137,7 +137,8 @@ export async function resolveOptions(
 
   debug(advOptions)
 
-  advOptions.plugins = await resolvePlugins(config.plugins, advOptions.userRoot)
+  const buildPlugins = config.plugins.filter((plugin): plugin is AdvPlugin => !('version' in plugin))
+  advOptions.plugins = await resolvePlugins(buildPlugins, advOptions.userRoot)
   // await
   for (const plugin of advOptions.plugins) {
     if (plugin.optionsResolved)

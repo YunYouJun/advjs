@@ -19,6 +19,11 @@ export function starMap(options: StarMapOptions = {}) {
   return defineAdvPlugin({
     name: 'star-map',
     version: '1.0.0',
+    client: {
+      module: '@advjs/plugin-interactions',
+      export: 'starMap',
+      options: { ...options },
+    },
     nodes: {
       compare({ activity, node }) {
         activity('compare', {

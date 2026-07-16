@@ -16,6 +16,13 @@ export function starMap(options: { tolerance?: number } = {}) {
     name: 'star-map',
     version: '1.0.0',
 
+    // 浏览器入口由 Vite 静态导入；相对路径以项目根目录为基准。
+    client: {
+      module: './runtime-plugins/star-map',
+      export: 'starMap',
+      options: { ...options },
+    },
+
     actions: {
       mark({ state }, args) {
         state.variables.lastMark = args.value ?? null
@@ -46,6 +53,8 @@ export function starMap(options: { tolerance?: number } = {}) {
 短名称会注册为 `star-map/mark`、`star-map/compare`。插件名和能力名使用小写字母、数字与连字符；重复插件、重复能力、缺失插件和版本不匹配都会在 Runtime 创建时立即报错。
 
 节点和动作必须同步执行，只能修改 Runtime 提供的 JSON draft。网络、计时器、文件、DOM、音频或复杂 UI 属于宿主活动，不应放入状态转移处理器。
+
+`client` 是浏览器重建插件所需的静态工厂描述，不包含可执行字符串。Vite 会生成普通 `import` 并调用对应工厂，因此闭包不会经过 JSON 序列化，也不需要 `eval` 或 `new Function`。直接调用 `createAdvRuntime({ plugins })` 的 Node/测试场景不要求该字段；发布给浏览器使用的插件应提供它。包插件通常把 `module` 写成包名，本地插件可写相对项目根目录的路径。
 
 ## 安装与声明依赖
 
@@ -99,3 +108,5 @@ adv play activity '{"matched":true,"score":0.91}' \
 - `civilization()`：注册 `civilization/initialize`，写入文明对象和 `civilizationLevel`。
 
 它们用于仓鼠 Demo 验证通用活动接口，不把星图或文明规则写入 Core。证物、路线锁、战斗和小游戏也应优先以独立插件组合变量、条件、动作和活动，而不是扩大基础运行时 API。
+
+参考插件已经内置客户端工厂描述，所以使用侧仍只有 `plugins: [starMap(), civilization()]`，不需要额外注册浏览器入口。

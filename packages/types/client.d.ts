@@ -9,6 +9,13 @@ declare module '#advjs/styles' {
   // side-effects only
 }
 
+declare module '#advjs/runtime-plugins' {
+  import type { AdvRuntimePlugin } from '@advjs/core'
+
+  const plugins: AdvRuntimePlugin[]
+  export default plugins
+}
+
 // setups
 
 declare module '#advjs/setups/main' {

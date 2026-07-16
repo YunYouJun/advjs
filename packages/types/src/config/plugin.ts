@@ -1,4 +1,17 @@
+import type { JsonObject } from '../runtime'
 import type { ResolvedAdvOptions } from './options'
+
+export interface AdvRuntimePluginClientReference {
+  module: string
+  export?: string
+  options?: JsonObject
+}
+
+export interface AdvRuntimePluginReference {
+  name: string
+  version: string
+  client?: AdvRuntimePluginClientReference
+}
 
 /**
  * official: @advjs/plugin-

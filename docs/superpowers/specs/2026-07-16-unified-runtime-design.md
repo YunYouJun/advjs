@@ -248,6 +248,11 @@ export function starMap(options: StarMapOptions = {}) {
   return defineAdvPlugin({
     name: 'star-map',
     version: '1.0.0',
+    client: {
+      module: '@advjs/plugin-interactions',
+      export: 'starMap',
+      options: { ...options },
+    },
 
     nodes: {
       compare({ activity, node }) {
@@ -282,6 +287,7 @@ const runtime = createAdvRuntime({
 - `name` 必填；`nodes/actions/activities` 的短名称自动转换为 `plugin-name/name`。
 - 插件安装顺序稳定；能力重名立即报错，不静默覆盖。
 - Program/Snapshot 只保存能力字符串和纯数据参数，不保存处理函数。
+- 浏览器通过插件的静态客户端工厂描述生成普通模块 import；不序列化函数，不执行字符串代码。
 - 缺失 Program 所需插件时，Runtime 在启动前返回明确诊断。
 - `nodes` 和 `actions` 必须同步、确定且不执行外部副作用；异步或非确定性工作只能进入 `activities`。
 - 宿主只能以纯 JSON 完成 activity；注册的完成处理器在 Runtime draft 中同步应用结果，提交后仍会执行 JSON 校验。

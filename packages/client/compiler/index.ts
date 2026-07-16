@@ -1,6 +1,7 @@
 import type { initAdvData } from './data'
 
 import { computed } from 'vue'
+import configuredRuntimePlugins from '#advjs/runtime-plugins'
 import { setupAdvContext } from '../setup/context'
 
 export * from './data'
@@ -15,6 +16,7 @@ export function initAdvContext(advData: ReturnType<typeof initAdvData>) {
     config: advConfig,
     gameConfig,
     themeConfig,
+    runtimePlugins: configuredRuntimePlugins,
   })
 
   return advContext

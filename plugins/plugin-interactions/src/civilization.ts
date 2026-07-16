@@ -19,6 +19,11 @@ export function civilization(options: CivilizationOptions = {}) {
   return defineAdvPlugin({
     name: 'civilization',
     version: '1.0.0',
+    client: {
+      module: '@advjs/plugin-interactions',
+      export: 'civilization',
+      options: { ...options },
+    },
     nodes: {
       initialize({ activity, node }) {
         activity('initialize', {

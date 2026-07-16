@@ -1,4 +1,5 @@
 import type {
+  AdvRuntimePluginReference,
   JsonObject,
   JsonValue,
   RuntimeActionCall,
@@ -38,9 +39,7 @@ export type AdvActivityHandler = (
   result: JsonValue,
 ) => void
 
-export interface AdvRuntimePlugin {
-  name: string
-  version: string
+export interface AdvRuntimePlugin extends AdvRuntimePluginReference {
   actions?: Record<string, AdvActionHandler>
   nodes?: Record<string, AdvNodeHandler>
   activities?: Record<string, AdvActivityHandler>
