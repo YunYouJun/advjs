@@ -1,4 +1,5 @@
 import type { JsonObject, RuntimeAddress, RuntimeNode, RuntimeProgram, RuntimeState } from '@advjs/types'
+import { cloneJsonData } from '../utils/json'
 
 export function runtimeAddressKey(address: RuntimeAddress): string {
   return `${address.chapterId}#${address.nodeId}`
@@ -12,7 +13,7 @@ export function createInitialRuntimeState(program: RuntimeProgram, variables: Js
   return {
     status: 'idle',
     cursor: structuredClone(program.entry),
-    variables: structuredClone(variables),
+    variables: cloneJsonData(variables),
     stage: {
       background: '',
       bgm: '',

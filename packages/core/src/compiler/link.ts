@@ -17,6 +17,7 @@ import type {
 } from './types'
 import { RUNTIME_SCHEMA_VERSION } from '@advjs/types'
 import { parseRuntimeExpression, RuntimeExpressionError } from '../runtime/expression'
+import { cloneJsonData } from '../utils/json'
 import { isRuntimeIdentifier, parseRuntimeTarget } from './address'
 import { hashRuntimeProgram } from './hash'
 
@@ -74,7 +75,7 @@ export async function linkRuntimeProgram(input: RuntimeProgramInput): Promise<{
     if (!condition)
       return undefined
     if (typeof condition !== 'string')
-      return structuredClone(condition)
+      return cloneJsonData(condition)
     try {
       return parseRuntimeExpression(condition)
     }
@@ -113,13 +114,13 @@ export async function linkRuntimeProgram(input: RuntimeProgramInput): Promise<{
       nodes[node.id] = {
         id: node.id,
         kind: node.kind,
-        data: node.data ? structuredClone(node.data) : undefined,
+        data: node.data ? cloneJsonData(node.data) : undefined,
         when: compileCondition(
           node.when,
           `${chapterInput.id}#${node.id}`,
           node.whenSource ?? node.source,
         ),
-        actions: node.actions ? structuredClone(node.actions) : undefined,
+        actions: node.actions ? cloneJsonData(node.actions) : undefined,
       }
       inputs.set(node.id, node)
       order.push(node.id)
@@ -240,10 +241,10 @@ export async function linkRuntimeProgram(input: RuntimeProgramInput): Promise<{
                   choice.source ?? nodeInput.source,
                 ) }
               : {}),
-            ...(choice.actions ? { actions: structuredClone(choice.actions) } : {}),
+            ...(choice.actions ? { actions: cloneJsonData(choice.actions) } : {}),
           }
         })
-        const data = structuredClone(node.data ?? {})
+        const data = cloneJsonData(node.data ?? {})
         data.options = options as unknown as JsonValue
         node.data = data
       }
@@ -256,9 +257,9 @@ export async function linkRuntimeProgram(input: RuntimeProgramInput): Promise<{
   const withoutHash: Omit<RuntimeProgram, 'hash'> = {
     schemaVersion: RUNTIME_SCHEMA_VERSION,
     id: input.id,
-    entry: structuredClone(input.entry),
+    entry: cloneJsonData(input.entry),
     chapters,
-    requiredPlugins: structuredClone(input.requiredPlugins ?? {}),
+    requiredPlugins: cloneJsonData(input.requiredPlugins ?? {}),
   }
   const hash = await hashRuntimeProgram(withoutHash)
 

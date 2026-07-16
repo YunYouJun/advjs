@@ -1,5 +1,6 @@
 import type { RuntimeEffect, RuntimeProgram, RuntimeState } from '@advjs/types'
 import { describe, expect, it } from 'vitest'
+import { reactive } from 'vue'
 import { createAdvRuntime } from '../../src/runtime'
 
 const program: RuntimeProgram = {
@@ -50,6 +51,19 @@ describe('createAdvRuntime', () => {
     expect(updates).toHaveLength(2)
 
     stop()
+  })
+
+  it('accepts reactive host input at the pure-data boundary', async () => {
+    const runtime = createAdvRuntime({
+      program: reactive(program),
+      initialVariables: reactive({ count: 1 }),
+    })
+
+    await runtime.start()
+
+    expect(runtime.current?.id).toBe('first')
+    expect(runtime.state.variables).toEqual({ count: 1 })
+    expect(() => structuredClone(runtime.snapshot())).not.toThrow()
   })
 
   it('accepts exact string addresses without fuzzy matching', async () => {

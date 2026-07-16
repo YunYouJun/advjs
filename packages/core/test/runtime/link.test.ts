@@ -1,5 +1,6 @@
 import type { JsonObject } from '@advjs/types'
 import { describe, expect, it } from 'vitest'
+import { reactive } from 'vue'
 import { linkRuntimeProgram } from '../../src/compiler'
 
 describe('linkRuntimeProgram', () => {
@@ -25,6 +26,23 @@ describe('linkRuntimeProgram', () => {
     expect(first.program?.hash).toMatch(/^[a-f0-9]{64}$/)
     expect(second.program?.hash).toBe(first.program?.hash)
     expect(first.program?.chapters['chapter-1'].nodes.start.kind).toBe('text')
+  })
+
+  it('normalizes reactive configuration into a pure-data program', async () => {
+    const result = await linkRuntimeProgram({
+      id: 'reactive-config',
+      entry: { chapterId: 'chapter-1', nodeId: 'start' },
+      chapters: [{
+        id: 'chapter-1',
+        entry: 'start',
+        nodes: [{ id: 'start', kind: 'end' }],
+      }],
+      requiredPlugins: reactive({ 'star-map': '1.0.0' }),
+    })
+
+    expect(result.diagnostics).toEqual([])
+    expect(result.program?.requiredPlugins).toEqual({ 'star-map': '1.0.0' })
+    expect(() => structuredClone(result.program)).not.toThrow()
   })
 
   it('ignores object key insertion order when hashing', async () => {

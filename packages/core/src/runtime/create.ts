@@ -13,6 +13,7 @@ import type {
 import type { AdvRuntimePlugin } from './registry'
 import type { RuntimeCommand } from './transition'
 import { isRuntimeIdentifier, parseRuntimeTarget } from '../compiler/address'
+import { cloneJsonData } from '../utils/json'
 import { createRuntimeRegistry } from './registry'
 import {
   createRuntimeSnapshot,
@@ -54,7 +55,7 @@ function runtimeApiError(code: string, message: string): Error {
 }
 
 export function createAdvRuntime(options: AdvRuntimeOptions): AdvRuntime {
-  const program = structuredClone(options.program)
+  const program = cloneJsonData(options.program)
   const maxCheckpoints = options.maxCheckpoints ?? 100
   const now = options.now ?? Date.now
   const registry = createRuntimeRegistry(options.plugins, program.requiredPlugins)
