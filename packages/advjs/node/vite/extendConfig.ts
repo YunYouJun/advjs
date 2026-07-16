@@ -14,6 +14,7 @@ import setupIndexHtml from '../setups/indexHtml'
 
 const vueRuntimePath = 'vue/dist/vue.runtime.esm-bundler.js'
 const vuePattern = /^vue$/
+const vueRouterPattern = /^vue-router$/
 const vueI18nPattern = /vue-i18n/
 const ADVJS_PATTERN = /^#advjs\/(.*)/
 const ADVJS_CLIENT_PATTERN = /^@advjs\/client$/
@@ -86,7 +87,7 @@ export async function getAlias(options: ResolvedAdvOptions): Promise<Alias[]> {
   const resolveClientDep = createResolve({
     // Same as Vite's default resolve conditions
     conditions: ['import', 'module', 'browser', 'default', options.mode === 'build' ? 'production' : 'development'],
-    url: pathToFileURL(options.clientRoot),
+    url: pathToFileURL(join(options.clientRoot, 'package.json')),
   })
 
   const alias: Alias[] = [
@@ -128,6 +129,11 @@ export async function getAlias(options: ResolvedAdvOptions): Promise<Alias[]> {
       find: vuePattern,
       replacement: await resolveImportPath(vueRuntimePath, true),
     },
+    {
+      // vue-router injection keys must come from the same physical module.
+      find: vueRouterPattern,
+      replacement: fileURLToPath(await resolveClientDep('vue-router')),
+    },
   )
   alias.push(
     ...(isInstalledGlobally.value
@@ -159,7 +165,7 @@ export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
         define: getDefine(options),
         resolve: {
           alias: await getAlias(options),
-          dedupe: ['vue'],
+          dedupe: ['vue', 'vue-router'],
         },
         optimizeDeps: {
           include: INCLUDE_LOCAL,
