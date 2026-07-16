@@ -19,36 +19,33 @@ async function advanceTo(current: Locator, next: Locator) {
 }
 
 test.describe('Demo Starter', () => {
-  test('runs the hamster story through the star-map activity', async ({ page }) => {
+  test('runs the minimal story and opens settings', async ({ page }) => {
     await page.goto('http://localhost:3333/')
     expect(page.url()).toContain('http://localhost:3333/')
 
     await expect(page.locator('text=Made with ADV.JS')).toBeVisible()
-    await expect(page.getByRole('heading', { name: '仓鼠：星海回声' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'ADV.JS Starter' })).toBeVisible()
 
     await page.locator('.start-menu-item').first().click()
     await expect(page).toHaveURL(hashRootPattern)
 
     const narration = page.locator('.adv-black')
     const dialog = page.locator('.adv-dialog-box')
-    await expect(narration).toContainText('透明笼中的仓鼠踩动转轮')
-    await advanceTo(narration, dialog.filter({ hasText: '你相信笼子外面还有别的世界吗？' }))
+    await expect(narration).toContainText('这段旁白直接来自一个')
+    await advanceTo(narration, dialog.filter({ hasText: '欢迎来到 ADV.JS' }))
 
-    await expect(dialog).toContainText('你相信笼子外面还有别的世界吗？')
-    await advanceTo(dialog, dialog.filter({ hasText: '仓鼠看不见两米之外' }))
-    await expect(dialog).toContainText('仓鼠看不见两米之外')
-    const starMapChoice = page.getByRole('button', { name: '继续观察星图' })
-    await advanceTo(dialog, starMapChoice)
+    const syntaxChoice = page.getByRole('button', { name: '看看语法' })
+    await advanceTo(dialog, syntaxChoice)
+    await syntaxChoice.click()
 
-    await starMapChoice.click()
-    await expect(dialog).toContainText('这组星点不属于今天的天空')
-    const starMapActivity = page.getByRole('heading', { name: '星图比对' })
-    await advanceTo(dialog, starMapActivity)
+    await expect(narration).toContainText('标题可以作为稳定锚点')
+    const continueChoice = page.getByRole('button', { name: '继续' })
+    await advanceTo(narration, continueChoice)
+    await continueChoice.click()
 
-    await expect(starMapActivity).toBeVisible()
-    await page.getByRole('button', { name: '确认匹配' }).click()
-    await expect(dialog).toContainText('轮廓重合了')
+    await expect(dialog).toContainText('最小项目已经跑通')
 
     await page.locator('.menu-setting-button').first().click()
+    await expect(page.getByRole('tab', { name: '设置' })).toBeVisible()
   })
 })
