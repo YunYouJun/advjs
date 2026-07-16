@@ -75,7 +75,7 @@ test.describe('Hamster flagship demo', () => {
     await continueChoice.click()
     await expect(narration).toContainText('我们仍在仰望')
 
-    await page.getByRole('button', { name: '⚔️' }).click()
+    await page.getByRole('button', { name: 'Open runtime inspector' }).click()
     await expect(page.getByRole('heading', { name: 'Runtime Inspector' })).toBeVisible()
     await page.locator('div[class*="z-9998"]').click({ position: { x: 20, y: 20 } })
 
