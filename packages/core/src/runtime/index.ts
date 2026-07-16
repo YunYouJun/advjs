@@ -29,4 +29,5 @@ export {
   validateRuntimeSnapshot,
 } from './snapshot'
 export { createInitialRuntimeState, getRuntimeNode, runtimeAddressKey } from './state'
+export { diffRuntimeVariables } from './trace'
 export { projectRuntimeNode, visibleRuntimeChoices } from './transition'
