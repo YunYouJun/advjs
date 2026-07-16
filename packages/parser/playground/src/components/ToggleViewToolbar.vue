@@ -16,6 +16,16 @@ const parserItems: { title: string, value: OutputType, icon: string }[] = [
     icon: 'i-ri-video-chat-line',
   },
   {
+    title: 'RuntimeProgram',
+    value: 'runtime',
+    icon: 'i-ri-route-line',
+  },
+  {
+    title: 'Runtime Diagnostics',
+    value: 'diagnostics',
+    icon: 'i-ri-bug-line',
+  },
+  {
     title: 'HTML Source',
     value: 'html',
     icon: 'i-ri-html5-line',

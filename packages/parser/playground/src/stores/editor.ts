@@ -1,13 +1,14 @@
-import type { AdvAst } from '@advjs/types'
+import type { CompileDiagnostic } from '@advjs/core'
+import type { AdvAst, RuntimeProgram } from '@advjs/types'
 import type { Root as MdRoot } from 'mdast'
-import { ns } from '@advjs/core'
+import { compileMarkdownProgram, ns } from '@advjs/core'
 import { convertMdToAdv, mdParse, mdRender } from '@advjs/parser'
 
 import { useDebounceFn, useStorage } from '@vueuse/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { ref } from 'vue'
 
-export type OutputType = 'adv' | 'preview' | 'html' | 'markdown-it'
+export type OutputType = 'adv' | 'runtime' | 'diagnostics' | 'preview' | 'html' | 'markdown-it'
 
 export const useEditorStore = defineStore('editor', () => {
   const delayTime = ref(0)
@@ -34,6 +35,8 @@ export const useEditorStore = defineStore('editor', () => {
   const parsedTokens = ref<MdRoot>()
   // 被解析后的 AdvScript 语法树
   const parsedAdv = ref<AdvAst.Root>()
+  const runtimeProgram = ref<RuntimeProgram>()
+  const runtimeDiagnostics = ref<CompileDiagnostic[]>([])
 
   /**
    * 处理输入文本
@@ -45,6 +48,17 @@ export const useEditorStore = defineStore('editor', () => {
     parsedTokens.value = await mdParse(markdown)
     parsedAdv.value = convertMdToAdv(parsedTokens.value)
     parsedHtml.value = await mdRender(markdown)
+    const compiled = await compileMarkdownProgram({
+      id: 'parser-playground',
+      chapters: [{
+        id: 'chapter-1',
+        title: 'Playground',
+        content: markdown,
+        sourcePath: 'playground.adv.md',
+      }],
+    })
+    runtimeProgram.value = compiled.program
+    runtimeDiagnostics.value = compiled.diagnostics
 
     const endTime = new Date().valueOf()
     delayTime.value = endTime - startTime
@@ -72,6 +86,8 @@ export const useEditorStore = defineStore('editor', () => {
     parsedHtml,
     parsedTokens,
     parsedAdv,
+    runtimeProgram,
+    runtimeDiagnostics,
 
     handleInputText,
     setInputText,

@@ -23,6 +23,16 @@ const content = computed(() => {
       // eslint-disable-next-line vue/no-side-effects-in-computed-properties
       type.value = 'json'
       break
+    case 'runtime':
+      txt = JSON.stringify(editorStore.runtimeProgram ?? null, null, 2)
+      // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+      type.value = 'json'
+      break
+    case 'diagnostics':
+      txt = JSON.stringify(editorStore.runtimeDiagnostics, null, 2)
+      // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+      type.value = 'json'
+      break
     case 'html':
       txt = editorStore.parsedHtml
       // eslint-disable-next-line vue/no-side-effects-in-computed-properties
@@ -66,7 +76,7 @@ const content = computed(() => {
           <div class="p-4" v-html="editorStore.parsedHtml" />
         </div>
         <PreviewEditor
-          v-show="['markdown-it', 'adv', 'html'].includes(editorStore.options.outputType)"
+          v-show="['markdown-it', 'adv', 'runtime', 'diagnostics', 'html'].includes(editorStore.options.outputType)"
           :content="content"
           :type="type"
         />
