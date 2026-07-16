@@ -46,6 +46,29 @@ Studio 不执行项目中的 `adv.config.ts`。需要在编辑器与试玩中共
 
 可执行插件使用明确的内置允许列表。当前 Studio 只装载随应用发布的 `star-map@1.0.0` 和 `civilization@1.0.0` 及其 Vue renderer，不根据项目文本动态 import 模块。CLI/Vite 项目仍从项目所有者信任的 `adv.config.ts` 静态生成插件 import。
 
+这项限制是 Studio 的安全边界，而不是 Runtime 插件系统的能力上限：浏览器编辑器会读取不受信任的项目内容，因此只允许执行随 Studio 构建、经过审核的官方插件；未知插件仍参与编译校验并产生诊断，但不会被动态下载或执行。
+
+## 创作与调试数据流
+
+Studio 编辑器不会只编译当前文件。项目加载后，`useProjectContent` 持有全部章节；当前未保存的 textarea 内容作为 overlay 替换对应章节，再与 `adv/settings/game.json` 一起编译和链接：
+
+```mermaid
+flowchart LR
+    FS["项目文件系统"] --> Content["全部章节与 game.json"]
+    Buffer["当前未保存文本"] --> Overlay["内存 overlay"]
+    Content --> Overlay
+    Overlay --> Compiler["Parser + Linker + Plugin 校验"]
+    Compiler --> Program["程序结构与源码地址"]
+    Compiler --> Diagnostics["带文件/行/列的诊断"]
+    Program --> Player["Studio Runtime 试玩"]
+    Player --> Inspector["Snapshot + Trace + Diagnostics"]
+    Inspector --> Report["可复制/下载的 JSON 报告"]
+```
+
+程序结构中的每个规范地址都保留来源文件位置，点击节点或诊断会在当前 textarea 中定位，或导航到另一个章节后再定位。刷新后直接进入 `/editor?file=...` 时，Editor 会先恢复最近项目并等待其文件系统完成加载，避免用空缓冲区覆盖诊断输入。
+
+试玩 Inspector 与普通 ADV.JS 客户端共用 `@advjs/client` 的投影模型和组件，因此地址、变量、舞台、选择、checkpoint、pending activity 与 trace 的定义一致。Studio 只额外负责抽屉交互、国际化，以及把 Program ID/hash、快照、诊断和轨迹序列化为调试报告；报告不携带章节原文和 File System Access handle，但作者变量仍需在分享前人工检查。
+
 ## 云同步
 
 使用腾讯云 COS（对象存储）实现项目云同步：

@@ -39,7 +39,51 @@ adv play activity '{"level":1,"name":"仓生"}' \
 
 ## Studio Inspector
 
-Studio 试玩预览使用同一 Vue Runtime host。Inspector 展示规范地址、状态、变量、舞台、可见选择、已读节点、checkpoint 数量和 pending activity；Studio 保存的数据也是 `RuntimeSnapshot` 加 UI 元数据。
+Studio 试玩预览使用同一 Vue Runtime host。Inspector 展示规范地址、状态、变量、舞台、可见选择、已读节点、checkpoint 数量、pending activity 和本次会话的命令轨迹；Studio 保存的数据也是 `RuntimeSnapshot` 加 UI 元数据。
+
+编辑 `.adv.md` 时，右侧面板提供三种视图：
+
+- **预览**：检查当前 Markdown 的展示结果；
+- **程序结构**：查看完整项目编译后的 `chapterId#nodeId`、节点类型和 `next` 地址。点击任一行可跳回对应源码，即使目标位于另一个章节；
+- **诊断**：显示当前未保存文本参与全项目编译后的错误。点击诊断可定位到文件、行和列。
+
+诊断来源可按阶段理解：
+
+| 阶段    | 发现的问题                                              | 常见处理位置               |
+| ------- | ------------------------------------------------------- | -------------------------- |
+| Parser  | Markdown/Frontmatter 无法解析、脚本结构无效             | 当前 `.adv.md` 文件        |
+| Linker  | 重复 ID、未知章节/节点、断开的选择目标、非法条件或动作  | 程序结构与跨章节源码链接   |
+| Plugin  | `requiredPlugins` 缺失、版本或 action/activity 能力不符 | `adv/settings/game.json`   |
+| Runtime | 命令执行失败、存档不兼容、活动返回无效或状态异常        | 试玩 Inspector、轨迹与报告 |
+
+### Trace 命令语义
+
+Runtime 对公开导航命令使用同一套有序轨迹。每条记录包含序号、输入、执行前后地址、结束状态、Effects 和变量差异：
+
+| 命令                | 含义                                                          |
+| ------------------- | ------------------------------------------------------------- |
+| `start`             | 从 Program 入口启动，并推进到第一个需要用户或宿主处理的节点   |
+| `next`              | 推进当前叙事节点；需要时创建可回退 checkpoint                 |
+| `choose`            | 按稳定 choice ID 执行动作并跳转到其规范目标                   |
+| `go`                | 显式跳转到已经校验的 `chapterId#nodeId`                       |
+| `back`              | 弹出最近 checkpoint 并恢复其状态                              |
+| `restore`           | 校验 schema、Program ID/hash 后恢复完整快照                   |
+| `complete-activity` | 把宿主返回的 JSON 交给等待中的插件 activity，然后继续推进剧情 |
+
+### 分享调试报告
+
+Inspector 的“复制报告”和“下载报告”生成完全相同的 `advjs-runtime-report.json`。报告包含 Program ID/hash、完整 `RuntimeSnapshot`、编译诊断和有界 trace；不会主动加入章节原文或文件系统 handle。
+
+`snapshot.state.variables` 和 trace 的变量差异属于作者自定义数据，仍可能包含昵称、输入内容或业务字段。分享前必须检查 JSON；界面顶部也会持续提示这一点。
+
+### 用仓鼠 Demo 复现
+
+1. 运行 `pnpm studio`，在 Workspace 打开 `demo/hamster`；
+2. 在编辑器中打开任一 `.adv.md`，临时把选择目标改成不存在的 `missing#ending`；
+3. 在“诊断”页点击 `ADV_RUNTIME_UNKNOWN_TARGET`，确认光标回到错误链接；
+4. 撤销修改并进入试玩，完成一次选择或星图活动；
+5. 打开 Runtime Inspector 的 Trace 页，核对 `choose` / `complete-activity` 的地址、Effects 与变量变化；
+6. 复制或下载报告，用 Program hash 和命令序号固定这次复现上下文。
 
 ## 破坏性迁移
 
