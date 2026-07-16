@@ -11,6 +11,7 @@ import { usePlayProgress } from '../composables/usePlayProgress'
 import { useRuntimeInspector } from '../composables/useRuntimeInspector'
 import { useStudioAdvConfig } from '../composables/useStudioAdvConfig'
 import { useStudioStore } from '../stores/useStudioStore'
+import { createStudioRuntimePlugins } from '../utils/studioRuntimePlugins'
 
 const props = defineProps<{
   chapterName?: string
@@ -38,11 +39,13 @@ const {
 const config = computed<AdvConfig>(() => configRef.value as AdvConfig)
 const gameConfig = computed<AdvGameConfig>(() => gameConfigRef.value as AdvGameConfig)
 const themeConfig = computed(() => ({} as Record<string, string | number>))
+const runtimePlugins = createStudioRuntimePlugins()
 const $adv: AdvContext = setupAdvContext({
   config,
   gameConfig,
   themeConfig,
   fetcher: fetchChapter,
+  runtimePlugins,
 })
 provide(injectionAdvContext, $adv)
 

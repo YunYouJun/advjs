@@ -826,6 +826,9 @@ importers:
       '@advjs/parser':
         specifier: workspace:*
         version: link:../../packages/parser
+      '@advjs/plugin-interactions':
+        specifier: workspace:*
+        version: link:../../plugins/plugin-interactions
       '@advjs/types':
         specifier: workspace:*
         version: link:../../packages/types

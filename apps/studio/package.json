@@ -26,6 +26,7 @@
     "@advjs/core": "workspace:*",
     "@advjs/gui": "workspace:*",
     "@advjs/parser": "workspace:*",
+    "@advjs/plugin-interactions": "workspace:*",
     "@advjs/types": "workspace:*",
     "@advjs/unocss": "workspace:*",
     "@capacitor/app": "catalog:",
