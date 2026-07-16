@@ -25,6 +25,20 @@ const MD_REGEX = /\.md$/
 const HTTPS_REGEX = /^https?:\/\//
 const VUE_I18N_PATTERN = 'vue-i18n'
 
+function vrmManualChunks(id: string) {
+  const normalizedId = id.replaceAll('\\', '/')
+  if (normalizedId.includes('@babylonjs/core'))
+    return 'babylonjs-core'
+  if (normalizedId.includes('@babylonjs/gui'))
+    return 'babylonjs-gui'
+  if (normalizedId.includes('@babylonjs/loaders'))
+    return 'babylonjs-loaders'
+  if (normalizedId.includes('@babylonjs/materials'))
+    return 'babylonjs-materials'
+  if (normalizedId.includes('babylon-vrm-loader'))
+    return 'babylon-vrm-loader'
+}
+
 export default defineConfig((config) => {
   return {
     define: {
@@ -36,10 +50,10 @@ export default defineConfig((config) => {
       },
     },
     resolve: {
-      alias: {
-        '~/': `${path.resolve(__dirname, 'src')}/`,
+      alias: [
+        { find: '~/', replacement: `${path.resolve(__dirname, 'src')}/` },
         ...commonAlias,
-      },
+      ],
     },
 
     build: {
@@ -48,13 +62,7 @@ export default defineConfig((config) => {
           ...ADV_VIRTUAL_MODULES,
         ],
         output: {
-          manualChunks: {
-            'babylonjs-core': ['@babylonjs/core'],
-            'babylonjs-gui': ['@babylonjs/gui'],
-            'babylonjs-loaders': ['@babylonjs/loaders'],
-            'babylonjs-materials': ['@babylonjs/materials'],
-            'babylon-vrm-loader': ['babylon-vrm-loader'],
-          },
+          manualChunks: vrmManualChunks,
         },
       },
     },

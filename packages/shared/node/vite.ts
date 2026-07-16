@@ -28,7 +28,7 @@ export const commonAlias: Alias[] = [
   { find: '@advjs/gui', replacement: `${resolve(packagesDir, 'gui/client/')}` },
   { find: '@advjs/parser/fs', replacement: `${resolve(packagesDir, 'parser/src')}/fs.ts` },
   { find: '@advjs/shared/', replacement: `${resolve(packagesDir, 'shared/src')}/` },
-  { find: '@advjs/plugin-babylon', replacement: `${resolve(packagesDir, 'plugin-babylon/src')}/` },
+  { find: '@advjs/plugin-babylon', replacement: `${resolve(pluginsDir, 'plugin-babylon/src')}/` },
 
   { find: '@advjs/flow', replacement: `${resolve(packagesDir, 'flow')}/index.ts` },
   { find: '@advjs/flow/', replacement: `${resolve(packagesDir, 'flow')}/` },
