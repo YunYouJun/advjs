@@ -19,6 +19,33 @@ Studio 支持多种项目来源：
 | URL   | 从远程 URL 加载项目                   | 所有平台         |
 | COS   | 腾讯云对象存储同步                    | 所有平台         |
 
+## Runtime 项目兼容层
+
+Studio 按以下优先级发现 `.adv.md` 章节，并在命中第一组后停止，避免同时加载镜像副本：
+
+1. `adv/chapters/**`；
+2. `adv/**`；
+3. `public/md/chapters/**`；
+4. `public/md/**`。
+
+前两种适合 Studio 原生创作项目，后两种兼容 CLI/Vite Demo。发现过程递归处理子目录，因此 `public/md/chapters/1/intro.adv.md` 可以直接进入 Studio 试玩。
+
+Studio 不执行项目中的 `adv.config.ts`。需要在编辑器与试玩中共享的纯数据配置写入 `adv/settings/game.json`：
+
+```json
+{
+  "title": "仓鼠：星海回声",
+  "description": "完整能力示例",
+  "variables": { "curiosity": 0, "starMatched": false },
+  "requiredPlugins": {
+    "star-map": "1.0.0",
+    "civilization": "1.0.0"
+  }
+}
+```
+
+可执行插件使用明确的内置允许列表。当前 Studio 只装载随应用发布的 `star-map@1.0.0` 和 `civilization@1.0.0` 及其 Vue renderer，不根据项目文本动态 import 模块。CLI/Vite 项目仍从项目所有者信任的 `adv.config.ts` 静态生成插件 import。
+
 ## 云同步
 
 使用腾讯云 COS（对象存储）实现项目云同步：

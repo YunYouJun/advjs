@@ -21,6 +21,12 @@ export function starMap(options: { tolerance?: number } = {}) {
       module: './runtime-plugins/star-map',
       export: 'starMap',
       options: { ...options },
+      activities: {
+        compare: {
+          module: './runtime-plugins/StarMapActivity.vue',
+          export: 'default',
+        },
+      },
     },
 
     actions: {
@@ -55,6 +61,38 @@ export function starMap(options: { tolerance?: number } = {}) {
 节点和动作必须同步执行，只能修改 Runtime 提供的 JSON draft。网络、计时器、文件、DOM、音频或复杂 UI 属于宿主活动，不应放入状态转移处理器。
 
 `client` 是浏览器重建插件所需的静态工厂描述，不包含可执行字符串。Vite 会生成普通 `import` 并调用对应工厂，因此闭包不会经过 JSON 序列化，也不需要 `eval` 或 `new Function`。直接调用 `createAdvRuntime({ plugins })` 的 Node/测试场景不要求该字段；发布给浏览器使用的插件应提供它。包插件通常把 `module` 写成包名，本地插件可写相对项目根目录的路径。
+
+`client.activities` 同样只描述静态模块。键是插件内的活动短名称，最终注册为完整的 `plugin-name/activity-name`。Vue renderer 接收只读 `activity` prop，并通过 `complete` 或 `back` 事件返回纯 JSON 或回退：
+
+```vue
+<script setup lang="ts">
+import type { AdvActivityRendererEmits, AdvActivityRendererProps } from '@advjs/client'
+
+const props = defineProps<AdvActivityRendererProps>()
+const emit = defineEmits<AdvActivityRendererEmits>()
+</script>
+
+<template>
+  <button @click="emit('complete', { accepted: true, id: props.activity.id })">
+    完成
+  </button>
+</template>
+```
+
+发布 Vue renderer 时可以把原始 SFC 作为包子路径导出，让使用方 Vite 负责编译；Runtime 工厂仍由 unbuild 输出为纯 TypeScript/JavaScript，不把 Vue 引入 Core。`@advjs/plugin-interactions` 使用的包结构如下：
+
+```json
+{
+  "exports": {
+    ".": "./dist/index.mjs",
+    "./client/*": "./client/*"
+  },
+  "files": ["dist", "client"],
+  "peerDependencies": { "vue": "^3.5.0" }
+}
+```
+
+renderer 名称冲突会在 Client 初始化时失败。renderer 缺失时，开发环境提供 JSON 调试表单；生产环境不会伪造活动结果，Runtime 保持 `waiting-activity`，玩家只能回退到已有 checkpoint。
 
 ## 安装与声明依赖
 
