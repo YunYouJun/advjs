@@ -1,10 +1,14 @@
+import type { AdvRuntimePlugin } from '@advjs/core'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { basename, dirname, join } from 'node:path'
+import { basename, dirname, join, relative } from 'node:path'
 import process from 'node:process'
+import { validateRuntimeProgramPlugins } from '@advjs/core'
 import { extractCharacterRefs, extractSceneRefs, parseCharacterMd, validateSceneFrontmatter } from '@advjs/parser'
 import { consola } from 'consola'
 import { colors } from 'consola/utils'
 import { t } from '../cli/i18n'
+import { loadAdvConfig } from '../config'
+import { compileRuntimeChapterFiles, discoverRuntimeChapterFiles } from '../runtime'
 import { parseSceneFrontmatter, resolveGameRoot, sanitizeFilename, scanFiles } from './utils'
 
 export interface CheckOptions {
@@ -14,13 +18,18 @@ export interface CheckOptions {
    * references after the report. Existing files are never overwritten.
    */
   fix?: boolean
+  requiredPlugins?: Record<string, string>
+  runtimePlugins?: readonly AdvRuntimePlugin[]
 }
 
 export interface CheckIssue {
   type: 'error' | 'warning'
-  category: 'syntax' | 'character' | 'scene' | 'scene-frontmatter' | 'location'
+  category: 'syntax' | 'runtime' | 'character' | 'scene' | 'scene-frontmatter' | 'location'
   file: string
   message: string
+  code?: string
+  line?: number
+  column?: number
 }
 
 export interface CheckResult {
@@ -74,7 +83,7 @@ export async function runCheck(options: CheckOptions & { cwd?: string }): Promis
 
   // Also check root level .adv.md files
   const rootScripts = scanFiles(gameRoot, '.adv.md')
-  const allScripts = [...scriptFiles, ...rootScripts]
+  const allScripts = [...new Set([...scriptFiles, ...rootScripts])].sort()
 
   // 2. Syntax check — parse each script
   const syntaxErrorFiles = new Set<string>()
@@ -114,6 +123,65 @@ export async function runCheck(options: CheckOptions & { cwd?: string }): Promis
       if (!allSceneRefs.has(place))
         allSceneRefs.set(place, new Set())
       allSceneRefs.get(place)!.add(relPath)
+    }
+  }
+
+  // Compile and link the complete story, so exact targets, conditions, actions,
+  // and required plugin capabilities are checked together rather than file by file.
+  if (allScripts.length > 0 && syntaxErrorFiles.size === 0) {
+    const nestedChapters = scriptFiles.length
+      ? await discoverRuntimeChapterFiles(scriptFiles[0])
+      : []
+    const nestedPaths = new Set(nestedChapters.flatMap(chapter => chapter.paths))
+    const extraChapters = allScripts
+      .filter(file => !nestedPaths.has(file))
+      .map((file, index) => ({
+        id: `chapter-root-${index + 1}`,
+        title: basename(file, '.adv.md'),
+        paths: [file],
+      }))
+
+    try {
+      const compiled = await compileRuntimeChapterFiles({
+        id: `adv-check:${relative(cwd, gameRoot) || 'game'}`,
+        chapters: [...nestedChapters, ...extraChapters],
+        requiredPlugins: options.requiredPlugins,
+      })
+      for (const diagnostic of compiled.diagnostics) {
+        const file = diagnostic.source?.file
+        issues.push({
+          type: diagnostic.severity,
+          category: 'runtime',
+          code: diagnostic.code,
+          file: file ? relative(cwd, file) : relative(cwd, gameRoot),
+          line: diagnostic.source?.line,
+          column: diagnostic.source?.column,
+          message: diagnostic.message,
+        })
+      }
+      if (compiled.program) {
+        for (const diagnostic of validateRuntimeProgramPlugins(
+          compiled.program,
+          options.runtimePlugins,
+        )) {
+          issues.push({
+            type: diagnostic.severity,
+            category: 'runtime',
+            code: diagnostic.code,
+            file: relative(cwd, gameRoot),
+            message: diagnostic.message,
+          })
+        }
+      }
+    }
+    catch (error) {
+      issues.push({
+        type: 'error',
+        category: 'runtime',
+        code: 'ADV_RUNTIME_COMPILE_FAILED',
+        file: relative(cwd, gameRoot),
+        message: error instanceof Error ? error.message : String(error),
+      })
     }
   }
 
@@ -331,7 +399,20 @@ export async function advCheck(options: CheckOptions) {
   consola.start(t('check.scanning'))
   process.stdout.write('\n')
 
-  const result = await runCheck(options)
+  const { config } = await loadAdvConfig({ userRoot: process.cwd() })
+  const runtimePlugins = Array.isArray(config.plugins)
+    ? config.plugins.filter((plugin): plugin is AdvRuntimePlugin => Boolean(
+        plugin
+        && typeof plugin === 'object'
+        && typeof (plugin as AdvRuntimePlugin).name === 'string'
+        && typeof (plugin as AdvRuntimePlugin).version === 'string',
+      ))
+    : []
+  const result = await runCheck({
+    ...options,
+    requiredPlugins: config.gameConfig?.requiredPlugins,
+    runtimePlugins,
+  })
 
   // Handle missing root as fatal error
   if (result.scriptCount === 0 && result.issues.some(i => i.message.startsWith('Game content root not found'))) {
@@ -353,6 +434,20 @@ export async function advCheck(options: CheckOptions) {
     consola.fail(t('check.syntax_errors', syntaxIssues.length, syntaxFiles.size))
     for (const issue of syntaxIssues) {
       log(colors.red(`  ✗ ${t('check.syntax_error_detail', issue.file, issue.message)}`))
+    }
+  }
+
+  const runtimeIssues = result.issues.filter(i => i.category === 'runtime')
+  if (runtimeIssues.length === 0) {
+    consola.success(t('check.runtime_ok'))
+  }
+  else {
+    consola.fail(t('check.runtime_errors', runtimeIssues.length))
+    for (const issue of runtimeIssues) {
+      const location = issue.line
+        ? `${issue.file}:${issue.line}:${issue.column ?? 1}`
+        : issue.file
+      log(colors.red(`  ✗ ${t('check.runtime_error_detail', location, issue.code ?? 'ADV_RUNTIME_ERROR', issue.message)}`))
     }
   }
 
