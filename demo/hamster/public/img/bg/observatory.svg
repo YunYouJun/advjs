@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="抽象观测室与星图">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title">
+  <title id="title">深蓝星海观测室与旋转星图</title>
   <defs>
     <radialGradient id="sky"><stop stop-color="#1d4ed8"/><stop offset="1" stop-color="#020617"/></radialGradient>
     <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse"><path d="M80 0H0V80" fill="none" stroke="#38bdf8" stroke-opacity=".12"/></pattern>

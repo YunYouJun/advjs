@@ -8,6 +8,7 @@
     "email": "me@yunyoujun.cn"
   },
   "scripts": {
+    "assets:audio": "node scripts/generate-ambient.mjs",
     "build": "adv build",
     "build:singlefile": "adv build --singlefile",
     "dev": "adv --open=false --log=info",

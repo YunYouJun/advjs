@@ -111,4 +111,49 @@ describe('demo project layout', () => {
       }
     }
   })
+
+  it('ships local, documented, and reproducible hamster assets', async () => {
+    const demoRoot = resolve(root, 'demo/hamster')
+    const contentFiles = ['adv.config.ts', 'ASSETS.md', 'LICENSE.content.md']
+    for (const directory of ['adv', 'public/md']) {
+      const files = await readdir(resolve(demoRoot, directory), { recursive: true })
+      contentFiles.push(...files
+        .filter(file => /\.(?:json|md)$/u.test(file))
+        .map(file => `${directory}/${file}`))
+    }
+    const contents = await Promise.all(
+      contentFiles.map(file => readFile(resolve(demoRoot, file), 'utf8')),
+    )
+    const referencedAssets = new Set(
+      contents.flatMap(content => [...content.matchAll(/\/(?:audio|img)\/[^\s'"`)]+/gu)]
+        .map(match => match[0])
+        .filter(asset => !asset.includes('*'))),
+    )
+
+    expect([...referencedAssets].sort()).toEqual([
+      '/audio/observatory.wav',
+      '/img/bg/cage.svg',
+      '/img/bg/civilization.svg',
+      '/img/bg/observatory.svg',
+      '/img/characters/hamster.svg',
+      '/img/characters/observer.svg',
+    ])
+    for (const asset of referencedAssets)
+      expect(existsSync(resolve(demoRoot, `public${asset}`)), asset).toBe(true)
+
+    for (const asset of [...referencedAssets].filter(asset => asset.endsWith('.svg')))
+      expect(await readFile(resolve(demoRoot, `public${asset}`), 'utf8'), asset).toMatch(/<title(?:\s|>)/u)
+
+    const wav = await readFile(resolve(demoRoot, 'public/audio/observatory.wav'))
+    expect(wav.toString('ascii', 0, 4)).toBe('RIFF')
+    expect(wav.toString('ascii', 8, 12)).toBe('WAVE')
+    expect(wav.readUInt16LE(22)).toBe(1)
+    expect(wav.readUInt32LE(24)).toBe(22_050)
+    expect(wav.readUInt16LE(34)).toBe(16)
+
+    const assets = await source('demo/hamster/ASSETS.md')
+    expect(assets).toContain('scripts/generate-ambient.mjs')
+    expect(assets).toContain('https://www.yunyoujun.cn/posts/hamster')
+    expect(assets).toContain('https://www.yunyoujun.cn/posts/the-common-hamster')
+  })
 })

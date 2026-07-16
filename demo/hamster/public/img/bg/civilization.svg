@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="抽象新生行星黎明">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title">
+  <title id="title">琥珀晨光下的新生行星与记忆幼苗</title>
   <defs><linearGradient id="dawn" x2="0" y2="1"><stop stop-color="#312e81"/><stop offset=".55" stop-color="#f97316"/><stop offset="1" stop-color="#fde68a"/></linearGradient></defs>
   <rect width="1600" height="900" fill="url(#dawn)"/>
   <circle cx="1210" cy="220" r="105" fill="#fef3c7" fill-opacity=".9"/>

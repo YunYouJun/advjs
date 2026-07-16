@@ -1,4 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 820" role="img" aria-label="抽象仓鼠与读书人立绘">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 820" role="img" aria-labelledby="title">
+  <title id="title">抱着打开书本的琥珀色仓鼠读书人立绘</title>
   <circle cx="142" cy="138" r="70" fill="#d97706"/><circle cx="338" cy="138" r="70" fill="#d97706"/>
   <ellipse cx="240" cy="245" rx="155" ry="170" fill="#fbbf24"/>
   <ellipse cx="240" cy="270" rx="112" ry="122" fill="#fef3c7"/>
