@@ -1,12 +1,14 @@
 # ADV.JS 统一运行时与扩展体系设计
 
-状态：已确认；运行时基础阶段已实现
+状态：已实现；浏览器、CLI、Studio、工具链与仓鼠 Demo 已统一
 
 日期：2026-07-16
 
+实现范围：纯数据 Program/Snapshot、精确跳转、声明式逻辑、插件注册表、活动协议、跨宿主适配、Parser Playground、`adv check` 与参考互动插件均已落地。后续复杂证物、路线锁、战斗或小游戏继续作为独立插件演进。
+
 ## 1. 背景
 
-ADV.JS 当前存在两套执行语义：
+改造前 ADV.JS 存在两套执行语义：
 
 - `@advjs/core` 的 `AdvPlayEngine` 面向 CLI，以单个 Markdown AST 和 `PlaySession` 推进剧情，已经具备基础舞台状态、存档槽位和索引历史回退。
 - `@advjs/client` 通过 Pinia、`useAdvLogic`、`useAdvNav` 和 Flow/Fountain 节点驱动浏览器；选择跳转、章节加载、存档和代码执行均有独立实现。
@@ -86,7 +88,7 @@ interface RuntimeNode {
   kind: string
   data?: JsonObject
   next?: RuntimeAddress
-  when?: string
+  when?: RuntimeExpression
   actions?: RuntimeActionCall[]
 }
 
@@ -248,23 +250,18 @@ export function starMap(options: StarMapOptions = {}) {
     version: '1.0.0',
 
     nodes: {
-      compare(ctx, node) {
-        return ctx.activity('compare', node.input)
-      },
-    },
-
-    actions: {
-      record(state, result) {
-        state.variables.starMatched = result.matched
+      compare({ activity, node }) {
+        activity('compare', {
+          tolerance: options.tolerance ?? 0.8,
+          ...node.data,
+        })
       },
     },
 
     activities: {
-      compare(ctx, input) {
-        return ctx.host.runActivity('star-map/compare', {
-          tolerance: options.tolerance ?? 0.8,
-          ...input,
-        })
+      compare({ state }, result) {
+        state.variables.starMatched = result.matched === true
+        state.variables.starMatchScore = result.score ?? 0
       },
     },
   })
@@ -287,7 +284,7 @@ const runtime = createAdvRuntime({
 - Program/Snapshot 只保存能力字符串和纯数据参数，不保存处理函数。
 - 缺失 Program 所需插件时，Runtime 在启动前返回明确诊断。
 - `nodes` 和 `actions` 必须同步、确定且不执行外部副作用；异步或非确定性工作只能进入 `activities`。
-- `activities` 只能返回纯 JSON 结果，不能直接修改 RuntimeState；结果由后续 action 写入状态。
+- 宿主只能以纯 JSON 完成 activity；注册的完成处理器在 Runtime draft 中同步应用结果，提交后仍会执行 JSON 校验。
 - 第一版不提供复杂生命周期。后续确有资源释放需求时再加入可选 `setup()`。
 
 ## 10. 宿主适配

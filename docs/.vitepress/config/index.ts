@@ -271,6 +271,28 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
           link: '/guide/cli',
         },
         {
+          text: '统一运行时',
+          link: '/guide/runtime/navigation-and-saves',
+          items: [
+            {
+              text: '导航与存档',
+              link: '/guide/runtime/navigation-and-saves',
+            },
+            {
+              text: '条件与动作',
+              link: '/guide/runtime/conditions-and-actions',
+            },
+            {
+              text: '插件与活动',
+              link: '/guide/runtime/plugins-and-activities',
+            },
+            {
+              text: '调试与迁移',
+              link: '/guide/runtime/debugging-and-migration',
+            },
+          ],
+        },
+        {
           text: '录制视频',
           link: '/guide/record/video',
         },

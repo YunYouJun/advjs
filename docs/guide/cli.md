@@ -232,6 +232,7 @@ adv play <script.adv.md> [options]
 | -------------- | -------------------------------- |
 | `--session-id` | 用于持久化的会话 ID              |
 | `--json`       | 以 JSON 格式输出（默认 `false`） |
+| `--trace`      | 向 stderr 输出 Runtime JSON Lines trace |
 
 ### 交互模式
 
@@ -247,6 +248,7 @@ adv play story.adv.md
 | --------------------- | ------------------------- |
 | `Enter` / `next`      | 推进故事                  |
 | `choose <n>` / `<n>`  | 选择选项（编号从 1 开始） |
+| `activity <json>`      | 完成当前待处理活动         |
 | `status`              | 查看会话状态              |
 | `reset`               | 重置会话                  |
 | `quit` / `q` / `exit` | 退出                      |
@@ -259,6 +261,9 @@ adv play next --session-id <id> [--json]
 
 # 做出选择（编号从 1 开始）
 adv play choose <number> --session-id <id> [--json]
+
+# 用 JSON 结果完成待处理活动
+adv play activity '<json>' --session-id <id> [--json]
 
 # 回退到之前访问过的节点（撤销最近的推进）
 adv play back --session-id <id> [--steps N] [--json]
@@ -303,7 +308,7 @@ adv play load --session-id <id> --slot before-fork [--json]
 adv play delete-save --session-id <id> --slot before-fork
 ```
 
-槽位名规则：字母、数字、`-`、`_`，最长 40 字符。每个槽位附带元数据（`chapterTitle`、`currentIndex/totalNodes`、`previewText`、`note`、`createdAt`）。
+槽位名规则：字母、数字、`-`、`_`，最长 40 字符。每个槽位附带元数据（`chapterTitle`、规范 `address`、`visitedCount`、`previewText`、`note` 和更新时间）。剧情执行状态完整保存在 `RuntimeSnapshot` 中。
 
 ### 回退 vs 存档
 
@@ -344,7 +349,7 @@ Agent 模式下返回结构化 JSON，详见 [Skills - JSON 输出类型](/ai/sk
 
 ## `adv check`
 
-验证项目的剧本语法、角色引用一致性和场景完整性。
+验证完整 RuntimeProgram、插件能力、剧本语法、角色引用一致性和场景完整性。
 
 ```bash
 adv check [options]
@@ -358,6 +363,8 @@ adv check [options]
 | `--fix`  | `false` | 为未解析的 `@角色` / `【场景】` 引用自动生成桩文件         |
 
 `--fix` 只创建新文件、**永不覆盖**已有文件；语法错误等需要人工修复。
+
+Runtime 检查会把所有章节一起编译和链接，报告重复稳定 ID、无效跳转、非法条件/action/activity、未知插件能力和缺失插件。诊断使用稳定错误码，并在可用时输出源码文件、行和列。
 
 ### 示例
 
