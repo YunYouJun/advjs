@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { RuntimeSnapshot } from '@advjs/types'
 import type { DbPlaySaveSlot } from '../utils/db'
 import {
   IonButton,
@@ -24,6 +25,7 @@ const props = defineProps<{
   open: boolean
   /** Resolves the current snapshot at save time (called when a slot is clicked). */
   getSnapshot: () => {
+    runtime: RuntimeSnapshot
     chapterFile: string
     order: number
     totalNodes: number

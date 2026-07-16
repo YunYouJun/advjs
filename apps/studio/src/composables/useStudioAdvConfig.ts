@@ -29,6 +29,9 @@ export function useStudioAdvConfig() {
   const gameConfigRef = ref<Partial<AdvGameConfig>>({})
   const configRef = ref<AdvConfig | null>(null)
   const ready = ref(false)
+  const chapterSources = new Map<string, string>()
+  const chapterFileToId = new Map<string, string>()
+  const chapterIdToFile = new Map<string, string>()
 
   /** Track blob URLs for revocation on dispose. Filesystem-backed only. */
   const blobUrls = new Set<string>()
@@ -97,9 +100,11 @@ export function useStudioAdvConfig() {
     )
     const bgmLibrary: Record<string, AdvMusic> = Object.fromEntries(bgmEntries)
 
-    // Chapters — pre-parse AST so useAdvNav.loadChapter short-circuits the HTTP fetch
+    // Chapters keep their authoring AST for editor-only visualizations. Runtime
+    // compilation reads the same source through `fetchChapter` below.
+    const usedChapterIds = new Set<string>()
     const chapters: AdvChapter[] = await Promise.all(
-      project.chapters.value.map(async (ch) => {
+      project.chapters.value.map(async (ch, index) => {
         let content = ch.content
         if (!content) {
           const fs = project.getFs()
@@ -107,14 +112,30 @@ export function useStudioAdvConfig() {
             content = await fs.readFile(ch.file)
         }
         const ast = content ? await parseAst(content) : undefined
+        chapterSources.set(ch.file, content ?? '')
         const fountainNode: AdvFountainNode = {
           id: 'fountain-0',
           type: 'fountain',
           src: ch.file,
           ast,
         }
+        const basename = ch.file.split('/').pop()?.replace(/\.adv\.md$/, '') ?? ''
+        const baseId = basename
+          .normalize('NFKD')
+          .replace(/[^\w.-]+/g, '-')
+          .replace(/^-+|-+$/g, '') || `chapter-${index + 1}`
+        let chapterId = /^\w/.test(baseId) && !baseId.startsWith('_')
+          ? baseId
+          : `chapter-${baseId}`
+        const uniqueBaseId = chapterId
+        let suffix = 2
+        while (usedChapterIds.has(chapterId))
+          chapterId = `${uniqueBaseId}-${suffix++}`
+        usedChapterIds.add(chapterId)
+        chapterFileToId.set(ch.file, chapterId)
+        chapterIdToFile.set(chapterId, ch.file)
         return {
-          id: ch.file,
+          id: chapterId,
           title: ch.name,
           startNodeId: 'fountain-0',
           nodes: [fountainNode],
@@ -179,10 +200,32 @@ export function useStudioAdvConfig() {
 
   async function refresh() {
     ready.value = false
+    chapterSources.clear()
+    chapterFileToId.clear()
+    chapterIdToFile.clear()
     const gc = await buildGameConfig()
     gameConfigRef.value = gc
     configRef.value = buildMinimalConfig(gc)
     ready.value = true
+  }
+
+  function chapterIdForFile(file: string): string | undefined {
+    return chapterFileToId.get(file)
+  }
+
+  function chapterFileForId(id: string): string | undefined {
+    return chapterIdToFile.get(id)
+  }
+
+  async function fetchChapter(url: string) {
+    const source = chapterSources.get(url)
+    return {
+      ok: source !== undefined,
+      status: source !== undefined ? 200 : 404,
+      async text() {
+        return source ?? ''
+      },
+    }
   }
 
   function dispose() {
@@ -196,6 +239,9 @@ export function useStudioAdvConfig() {
     configRef,
     ready,
     refresh,
+    fetchChapter,
+    chapterIdForFile,
+    chapterFileForId,
     dispose,
   }
 }

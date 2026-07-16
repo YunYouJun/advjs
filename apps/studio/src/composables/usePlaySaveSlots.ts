@@ -1,3 +1,4 @@
+import type { RuntimeSnapshot } from '@advjs/types'
 import type { DbPlaySaveSlot } from '../utils/db'
 import { computed, ref } from 'vue'
 import { db } from '../utils/db'
@@ -9,6 +10,7 @@ export function isValidSlotName(slot: string): boolean {
 }
 
 export interface PlaySaveSnapshot {
+  runtime: RuntimeSnapshot
   chapterFile: string
   order: number
   totalNodes: number
@@ -32,6 +34,7 @@ function snapshotToRow(projectId: string, slot: string, snapshot: PlaySaveSnapsh
     previewText: snapshot.previewText,
     note,
     savedAt: Date.now(),
+    snapshot: structuredClone(snapshot.runtime),
     background: snapshot.background,
     tachies: Array.from(snapshot.tachies.entries()),
     visitedOrders: [...snapshot.visitedOrders],
@@ -42,6 +45,7 @@ function snapshotToRow(projectId: string, slot: string, snapshot: PlaySaveSnapsh
 
 function rowToSnapshot(row: DbPlaySaveSlot): PlaySaveSnapshot {
   return {
+    runtime: structuredClone(row.snapshot),
     chapterFile: row.chapterFile,
     order: row.order,
     totalNodes: row.totalNodes,

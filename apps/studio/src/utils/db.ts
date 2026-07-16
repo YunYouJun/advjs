@@ -1,4 +1,4 @@
-import type { AdvCharacter, AdvCharacterDynamicState, WorldClockState, WorldEvent } from '@advjs/types'
+import type { AdvCharacter, AdvCharacterDynamicState, RuntimeSnapshot, WorldClockState, WorldEvent } from '@advjs/types'
 import type { CharacterChatMessage, CharacterConversation, ConversationSnapshot } from '../stores/useCharacterChatStore'
 import type { CharacterMemory } from '../stores/useCharacterMemoryStore'
 import type { GroupChatRoom, GroupChatRoomSnapshot } from '../stores/useGroupChatStore'
@@ -136,6 +136,8 @@ export interface DbPlaySaveSlot {
   previewText?: string
   note?: string
   savedAt: number
+  /** Complete, portable runtime state. UI fields below are display metadata. */
+  snapshot: RuntimeSnapshot
   background: string
   /** Serialised `Map<string, { status: string }>` for tachies. */
   tachies: Array<[string, { status: string }]>

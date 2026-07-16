@@ -24,7 +24,7 @@ import {
   shareOutline,
   statsChartOutline,
 } from 'ionicons/icons'
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import BranchGraphModal from '../components/BranchGraphModal.vue'
@@ -38,7 +38,7 @@ import StoryStatsModal from '../components/StoryStatsModal.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
-import { downloadFromCloud, listCloudFiles } from '../utils/cloudSync'
+import { listCloudFiles } from '../utils/cloudSync'
 
 const { t } = useI18n()
 const studioStore = useStudioStore()
@@ -47,7 +47,6 @@ const route = useRoute()
 const router = useRouter()
 
 // State
-const gameContent = ref('')
 const gameChapterName = ref('')
 const gamePlayerRef = ref<InstanceType<typeof GamePlayer>>()
 const chapters = ref<string[]>([])
@@ -98,32 +97,20 @@ const playerVisitedOrders = computed<number[]>(() => gamePlayerRef.value?.visite
 const playerHistoryStack = computed<number[]>(() => gamePlayerRef.value?.historyStack ?? [])
 const playerUnlockedCGs = computed<string[]>(() => gamePlayerRef.value?.unlockedCGs ?? [])
 const playerChapterAst = computed(() => gamePlayerRef.value?.currentChapterAst)
-const canRollback = computed(() => playerHistoryStack.value.length > 1)
+const canRollback = computed(() => playerHistoryStack.value.length > 0)
 
 function getCurrentSnapshot() {
-  // Fall back to a stub if the player isn't ready; SaveSlotModal blocks the save call separately
-  return gamePlayerRef.value?.getCurrentSnapshot() ?? {
-    chapterFile: currentChapterFile.value,
-    order: 0,
-    totalNodes: 0,
-    chapterTitle: gameChapterName.value,
-    previewText: undefined,
-    background: '',
-    tachies: new Map(),
-  }
+  const snapshot = gamePlayerRef.value?.getCurrentSnapshot()
+  if (!snapshot)
+    throw new Error('Runtime is not ready')
+  return snapshot
 }
 
 async function handleLoadSlot(row: DbPlaySaveSlot) {
-  // Switch to the saved chapter, then jump to its order and hydrate per-chapter progress.
-  await loadChapterForPlay(row.chapterFile)
-  await nextTick()
-  // Wait for the chapter AST to be ready before jumping.
-  let tries = 0
-  while (!gamePlayerRef.value?.totalNodes && tries < 30) {
-    await new Promise(r => setTimeout(r, 50))
-    tries++
-  }
-  gamePlayerRef.value?.goToNode(row.order)
+  if (!row.snapshot)
+    throw new Error('This save uses the legacy Studio format')
+  gamePlayerRef.value?.restore(row.snapshot)
+  handleRuntimeChapterChange(row.chapterFile)
   gamePlayerRef.value?.hydrateProgress(row.chapterFile, {
     visitedOrders: row.visitedOrders,
     history: row.history,
@@ -188,7 +175,7 @@ async function loadChapters() {
   }
 
   // Auto-load first chapter if no URL param
-  if (!gameContent.value && chapters.value.length > 0)
+  if (!currentChapterFile.value && chapters.value.length > 0)
     await loadChapterForPlay(chapters.value[0])
 }
 
@@ -200,47 +187,17 @@ async function loadChapterForPlay(file: string) {
 
   currentChapterFile.value = file
   gameChapterName.value = file.split('/').pop()?.replace('.adv.md', '') || file
-
-  try {
-    if (project.source === 'cos') {
-      gameContent.value = await downloadFromCloud(settingsStore.cos, file)
-    }
-    else {
-      const { getFs } = useProjectContent()
-      const fs = getFs()
-      if (fs)
-        gameContent.value = await fs.readFile(file)
-    }
-  }
-  catch {
-    gameContent.value = ''
-    const toast = await toastController.create({
-      message: t('preview.readError'),
-      duration: 2000,
-      position: 'top',
-      color: 'danger',
-    })
-    await toast.present()
-  }
 }
 
 function handleSelectChapter(file: string) {
   loadChapterForPlay(file)
 }
 
-/** Handle branch-choice requesting a different chapter. */
-function handleLoadChapter(file: string) {
-  // Try exact match first, then fuzzy match by basename.
-  const exact = chapters.value.find(f => f === file)
-  if (exact) {
-    loadChapterForPlay(exact)
+function handleRuntimeChapterChange(chapterId: string) {
+  if (!chapters.value.includes(chapterId))
     return
-  }
-  // Fuzzy: strip path prefix and extension for matching.
-  const targetBase = file.split('/').pop()?.replace('.adv.md', '') ?? ''
-  const fuzzy = chapters.value.find(f => f.split('/').pop()?.replace('.adv.md', '') === targetBase)
-  if (fuzzy)
-    loadChapterForPlay(fuzzy)
+  currentChapterFile.value = chapterId
+  gameChapterName.value = chapterId.split('/').pop()?.replace('.adv.md', '') || chapterId
 }
 
 function handleSelectNode(index: number) {
@@ -357,10 +314,9 @@ async function handleShare() {
       <div class="play-game-container">
         <GamePlayer
           ref="gamePlayerRef"
-          :content="gameContent"
           :chapter-name="gameChapterName"
           :chapter-file="currentChapterFile"
-          @load-chapter="handleLoadChapter"
+          @chapter-change="handleRuntimeChapterChange"
         />
 
         <!-- Floating chapter list button (mobile) -->
