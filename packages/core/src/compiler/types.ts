@@ -1,4 +1,9 @@
-import type { JsonObject, RuntimeAddress } from '@advjs/types'
+import type {
+  JsonObject,
+  RuntimeActionCall,
+  RuntimeAddress,
+  RuntimeExpression,
+} from '@advjs/types'
 
 export interface CompileSourceLocation {
   file?: string
@@ -24,6 +29,8 @@ export interface RuntimeChoiceInput {
   id: string
   label: string
   target?: RuntimeTargetInput
+  when?: string | RuntimeExpression
+  actions?: RuntimeActionCall[]
   source?: CompileSourceLocation
 }
 
@@ -33,6 +40,8 @@ export interface RuntimeNodeInput {
   data?: JsonObject
   next?: RuntimeTargetInput
   choices?: RuntimeChoiceInput[]
+  when?: string | RuntimeExpression
+  actions?: RuntimeActionCall[]
   source?: CompileSourceLocation
 }
 

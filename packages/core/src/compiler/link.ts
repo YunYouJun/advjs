@@ -4,6 +4,7 @@ import type {
   RuntimeAddress,
   RuntimeChapter,
   RuntimeChoice,
+  RuntimeExpression,
   RuntimeProgram,
 } from '@advjs/types'
 import type {
@@ -15,6 +16,7 @@ import type {
   RuntimeTargetInput,
 } from './types'
 import { RUNTIME_SCHEMA_VERSION } from '@advjs/types'
+import { parseRuntimeExpression, RuntimeExpressionError } from '../runtime/expression'
 import { isRuntimeIdentifier, parseRuntimeTarget } from './address'
 import { hashRuntimeProgram } from './hash'
 
@@ -45,6 +47,12 @@ function choicesFromData(data: JsonObject | undefined): RuntimeChoiceInput[] | u
       target: typeof value.target === 'string' || isAddress(value.target)
         ? value.target
         : undefined,
+      when: typeof value.when === 'string' || (value.when && typeof value.when === 'object' && !Array.isArray(value.when))
+        ? value.when as unknown as RuntimeExpression
+        : undefined,
+      actions: Array.isArray(value.actions)
+        ? value.actions as unknown as RuntimeChoiceInput['actions']
+        : undefined,
     }
   })
 }
@@ -57,6 +65,28 @@ export async function linkRuntimeProgram(input: RuntimeProgramInput): Promise<{
   const chapters = Object.create(null) as Record<string, RuntimeChapter>
   const chapterInputs = new Map<string, RuntimeProgramInput['chapters'][number]>()
   const nodeInputs = new Map<string, Map<string, RuntimeNodeInput>>()
+
+  const compileCondition = (
+    condition: string | RuntimeExpression | undefined,
+    context: string,
+    source?: CompileSourceLocation,
+  ): RuntimeExpression | undefined => {
+    if (!condition)
+      return undefined
+    if (typeof condition !== 'string')
+      return structuredClone(condition)
+    try {
+      return parseRuntimeExpression(condition)
+    }
+    catch (cause) {
+      diagnostics.push(error(
+        'ADV_RUNTIME_INVALID_CONDITION',
+        `Invalid condition in ${context}: ${cause instanceof RuntimeExpressionError ? cause.message : String(cause)}`,
+        source,
+      ))
+      return undefined
+    }
+  }
 
   for (const chapterInput of input.chapters) {
     if (Object.hasOwn(chapters, chapterInput.id)) {
@@ -84,6 +114,8 @@ export async function linkRuntimeProgram(input: RuntimeProgramInput): Promise<{
         id: node.id,
         kind: node.kind,
         data: node.data ? structuredClone(node.data) : undefined,
+        when: compileCondition(node.when, `${chapterInput.id}#${node.id}`, node.source),
+        actions: node.actions ? structuredClone(node.actions) : undefined,
       }
       inputs.set(node.id, node)
       order.push(node.id)
@@ -197,6 +229,14 @@ export async function linkRuntimeProgram(input: RuntimeProgramInput): Promise<{
             id: choice.id,
             label: choice.label,
             ...(resolved ? { target: resolved } : {}),
+            ...(choice.when
+              ? { when: compileCondition(
+                  choice.when,
+                  `${chapterId}#${nodeId} choice ${choice.id}`,
+                  choice.source ?? nodeInput.source,
+                ) }
+              : {}),
+            ...(choice.actions ? { actions: structuredClone(choice.actions) } : {}),
           }
         })
         const data = structuredClone(node.data ?? {})

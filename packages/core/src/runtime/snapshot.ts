@@ -86,6 +86,23 @@ function assertRuntimeState(value: unknown, program: RuntimeProgram, path: strin
   }
   if (!Array.isArray(value.choices) || !Array.isArray(value.visited))
     invalid(`${path} history is invalid`)
+  if (value.pendingActivity !== undefined) {
+    if (!isRecord(value.pendingActivity)
+      || typeof value.pendingActivity.id !== 'string'
+      || typeof value.pendingActivity.type !== 'string'
+      || !isRecord(value.pendingActivity.input)
+      || !isRecord(value.pendingActivity.node)
+      || typeof value.pendingActivity.node.chapterId !== 'string'
+      || typeof value.pendingActivity.node.nodeId !== 'string') {
+      invalid(`${path}.pendingActivity is invalid`)
+    }
+    if (!getRuntimeNode(program, {
+      chapterId: value.pendingActivity.node.chapterId,
+      nodeId: value.pendingActivity.node.nodeId,
+    })) {
+      invalid(`${path}.pendingActivity references an unknown node`)
+    }
+  }
 }
 
 function compareKeys(left: string, right: string): number {

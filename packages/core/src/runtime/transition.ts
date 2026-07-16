@@ -8,6 +8,9 @@ import type {
   RuntimeState,
   RuntimeUpdate,
 } from '@advjs/types'
+import type { RuntimeRegistry } from './registry'
+import { runtimeConditionMatches } from './expression'
+import { createRuntimeRegistry } from './registry'
 import { getRuntimeNode, runtimeAddressKey } from './state'
 
 export type RuntimeCommand
@@ -15,6 +18,7 @@ export type RuntimeCommand
     | { type: 'next' }
     | { type: 'choose', choiceId: string }
     | { type: 'go', target: RuntimeAddress }
+    | { type: 'complete-activity', result: JsonValue }
 
 interface Operation extends JsonObject {
   type: string
@@ -61,7 +65,11 @@ function applyOperation(state: RuntimeState, operation: Operation): RuntimeEffec
   return { type: `stage.${operation.type}`, payload: structuredClone(operation) }
 }
 
-function enterUntilPause(program: RuntimeProgram, state: RuntimeState): RuntimeUpdate {
+function enterUntilPause(
+  program: RuntimeProgram,
+  state: RuntimeState,
+  registry: RuntimeRegistry,
+): RuntimeUpdate {
   const effects: RuntimeEffect[] = []
   let silentSteps = 0
 
@@ -76,9 +84,39 @@ function enterUntilPause(program: RuntimeProgram, state: RuntimeState): RuntimeU
       return { state, effects }
     }
 
+    if (!runtimeConditionMatches(node.when, state.variables)) {
+      moveToNext(state, node.next)
+      if (state.status === 'ended')
+        return { state, effects }
+      silentSteps++
+      continue
+    }
+
     const address = runtimeAddressKey(state.cursor)
     if (!state.visited.includes(address))
       state.visited.push(address)
+
+    if (node.actions?.length)
+      registry.runActions(state, node.actions)
+
+    if (registry.runNode(state, node, effects)) {
+      if (state.status === 'waiting-activity')
+        return { state, effects }
+      moveToNext(state, node.next)
+      if (state.status === 'ended')
+        return { state, effects }
+      silentSteps++
+      continue
+    }
+
+    if (node.kind.includes('/')) {
+      state.status = 'error'
+      state.error = {
+        code: 'ADV_RUNTIME_UNKNOWN_NODE',
+        message: `No plugin registered runtime node: ${node.kind}`,
+      }
+      return { state, effects }
+    }
 
     if (node.kind === 'anchor') {
       moveToNext(state, node.next)
@@ -94,6 +132,22 @@ function enterUntilPause(program: RuntimeProgram, state: RuntimeState): RuntimeU
         if (value && typeof value === 'object' && !Array.isArray(value))
           effects.push(applyOperation(state, value as Operation))
       }
+      moveToNext(state, node.next)
+      if (state.status === 'ended')
+        return { state, effects }
+      silentSteps++
+      continue
+    }
+
+    if (node.kind === 'actions') {
+      moveToNext(state, node.next)
+      if (state.status === 'ended')
+        return { state, effects }
+      silentSteps++
+      continue
+    }
+
+    if (node.kind === 'choices' && visibleRuntimeChoices(node.data, state).length === 0) {
       moveToNext(state, node.next)
       if (state.status === 'ended')
         return { state, effects }
@@ -126,36 +180,86 @@ function readChoices(nodeData: JsonValue | undefined): RuntimeChoice[] {
   return Array.isArray(options) ? options as unknown as RuntimeChoice[] : []
 }
 
+export function visibleRuntimeChoices(
+  nodeData: JsonValue | undefined,
+  state: Readonly<RuntimeState>,
+): RuntimeChoice[] {
+  return readChoices(nodeData).filter(choice => (
+    runtimeConditionMatches(choice.when, state.variables)
+  ))
+}
+
+export function projectRuntimeNode(
+  node: RuntimeProgram['chapters'][string]['nodes'][string] | undefined,
+  state: Readonly<RuntimeState>,
+) {
+  if (!node)
+    return undefined
+  const projected = structuredClone(node)
+  if (projected.kind === 'choices') {
+    const data = structuredClone(projected.data ?? {})
+    data.options = visibleRuntimeChoices(projected.data, state) as unknown as JsonValue
+    projected.data = data
+  }
+  return projected
+}
+
 export function transitionRuntime(
   program: RuntimeProgram,
   previous: RuntimeState,
   command: RuntimeCommand,
+  registry: RuntimeRegistry = createRuntimeRegistry(),
 ): RuntimeUpdate {
   const state = structuredClone(previous)
 
   if (command.type === 'start')
-    return enterUntilPause(program, state)
+    return enterUntilPause(program, state, registry)
 
   if (command.type === 'go') {
     state.cursor = structuredClone(command.target)
-    return enterUntilPause(program, state)
+    return enterUntilPause(program, state, registry)
+  }
+
+  if (command.type === 'complete-activity') {
+    const effects: RuntimeEffect[] = []
+    const pending = state.pendingActivity
+    if (state.status !== 'waiting-activity' || !pending)
+      throw new Error('ADV_RUNTIME_NO_PENDING_ACTIVITY: No activity is waiting for a result')
+    registry.completeActivity(state, pending, command.result)
+    delete state.pendingActivity
+    effects.push({
+      type: 'activity.complete',
+      payload: {
+        id: pending.id,
+        type: pending.type,
+        result: structuredClone(command.result),
+      },
+    })
+    const activityNode = getRuntimeNode(program, pending.node)
+    moveToNext(state, activityNode?.next)
+    if (!activityNode?.next)
+      return { state, effects }
+    const next = enterUntilPause(program, state, registry)
+    return { state: next.state, effects: [...effects, ...next.effects] }
   }
 
   const current = getRuntimeNode(program, state.cursor)
   if (!current)
-    return enterUntilPause(program, state)
+    return enterUntilPause(program, state, registry)
 
   if (command.type === 'next') {
     if (state.status === 'waiting-choice')
       throw new Error('A choice must be selected before advancing')
+    if (state.status === 'waiting-activity')
+      throw new Error('ADV_RUNTIME_ACTIVITY_PENDING: The activity must be completed before advancing')
     moveToNext(state, current.next)
-    return state.status === 'ended' ? { state, effects: [] } : enterUntilPause(program, state)
+    return state.status === 'ended' ? { state, effects: [] } : enterUntilPause(program, state, registry)
   }
 
   if (current.kind !== 'choices')
     throw new Error(`Cannot choose from node kind: ${current.kind}`)
 
-  const choice = readChoices(current.data).find(item => item.id === command.choiceId)
+  const choice = visibleRuntimeChoices(current.data, state).find(item => item.id === command.choiceId)
   if (!choice)
     throw new Error(`Unknown choice: ${command.choiceId}`)
 
@@ -163,8 +267,10 @@ export function transitionRuntime(
     node: structuredClone(state.cursor),
     choiceId: choice.id,
   })
+  if (choice.actions?.length)
+    registry.runActions(state, choice.actions)
   moveToNext(state, choice.target ?? current.next)
-  return state.status === 'ended' ? { state, effects: [] } : enterUntilPause(program, state)
+  return state.status === 'ended' ? { state, effects: [] } : enterUntilPause(program, state, registry)
 }
 
 export { createInitialRuntimeState } from './state'

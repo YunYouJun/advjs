@@ -1,5 +1,6 @@
 import type {
   JsonObject,
+  JsonValue,
   RuntimeAddress,
   RuntimeCheckpoint,
   RuntimeEffect,
@@ -9,21 +10,24 @@ import type {
   RuntimeState,
   RuntimeUpdate,
 } from '@advjs/types'
+import type { AdvRuntimePlugin } from './registry'
 import type { RuntimeCommand } from './transition'
 import { isRuntimeIdentifier, parseRuntimeTarget } from '../compiler/address'
+import { createRuntimeRegistry } from './registry'
 import {
   createRuntimeSnapshot,
   runtimeStatesEqual,
   validateRuntimeSnapshot,
 } from './snapshot'
 import { createInitialRuntimeState, getRuntimeNode } from './state'
-import { transitionRuntime } from './transition'
+import { projectRuntimeNode, transitionRuntime } from './transition'
 
 export interface AdvRuntimeOptions {
   program: RuntimeProgram
   initialVariables?: JsonObject
   maxCheckpoints?: number
   now?: () => number
+  plugins?: readonly AdvRuntimePlugin[]
 }
 
 export type RuntimeSubscriber = (
@@ -41,6 +45,7 @@ export interface AdvRuntime {
   back: () => RuntimeUpdate
   snapshot: () => RuntimeSnapshot
   restore: (snapshot: RuntimeSnapshot) => RuntimeUpdate
+  completeActivity: (result: JsonValue) => Promise<RuntimeUpdate>
   subscribe: (subscriber: RuntimeSubscriber) => () => void
 }
 
@@ -52,6 +57,7 @@ export function createAdvRuntime(options: AdvRuntimeOptions): AdvRuntime {
   const program = structuredClone(options.program)
   const maxCheckpoints = options.maxCheckpoints ?? 100
   const now = options.now ?? Date.now
+  const registry = createRuntimeRegistry(options.plugins, program.requiredPlugins)
   if (!Number.isInteger(maxCheckpoints) || maxCheckpoints < 0)
     throw new TypeError('maxCheckpoints must be a non-negative integer')
 
@@ -93,7 +99,7 @@ export function createAdvRuntime(options: AdvRuntimeOptions): AdvRuntime {
   const shouldCheckpoint = (command: RuntimeCommand): boolean => {
     if (state.status === 'idle' || state.status === 'ended' || state.status === 'error')
       return false
-    if (command.type === 'choose' || command.type === 'go')
+    if (command.type === 'choose' || command.type === 'go' || command.type === 'complete-activity')
       return true
     if (command.type !== 'next')
       return false
@@ -103,7 +109,7 @@ export function createAdvRuntime(options: AdvRuntimeOptions): AdvRuntime {
 
   const dispatch = async (command: RuntimeCommand): Promise<RuntimeUpdate> => {
     const checkpoint = shouldCheckpoint(command) ? structuredClone(state) : undefined
-    const update = transitionRuntime(program, state, command)
+    const update = transitionRuntime(program, state, command, registry)
     if (checkpoint)
       addCheckpoint(checkpoint)
     state = update.state
@@ -148,11 +154,12 @@ export function createAdvRuntime(options: AdvRuntimeOptions): AdvRuntime {
     },
     get current() {
       const node = getRuntimeNode(program, state.cursor)
-      return node ? structuredClone(node) : undefined
+      return projectRuntimeNode(node, state)
     },
     start: () => dispatch({ type: 'start' }),
     next: () => dispatch({ type: 'next' }),
     choose: choiceId => dispatch({ type: 'choose', choiceId }),
+    completeActivity: result => dispatch({ type: 'complete-activity', result: structuredClone(result) }),
     go: async target => dispatch({ type: 'go', target: resolveTarget(target) }),
     back() {
       const checkpoint = checkpoints.pop()
@@ -174,9 +181,16 @@ export function createAdvRuntime(options: AdvRuntimeOptions): AdvRuntime {
       state = restored.state
       checkpoints = restored.checkpoints
       checkpointSequence = checkpoints.length
+      const effects: RuntimeEffect[] = [{ type: 'runtime.restore' }]
+      if (state.pendingActivity) {
+        effects.push({
+          type: 'activity.request',
+          payload: structuredClone(state.pendingActivity) as unknown as JsonValue,
+        })
+      }
       return publish({
         state,
-        effects: [{ type: 'runtime.restore' }],
+        effects,
       })
     },
     subscribe(subscriber) {

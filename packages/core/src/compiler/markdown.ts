@@ -1,4 +1,10 @@
-import type { AdvAst, JsonValue, RuntimeProgram } from '@advjs/types'
+import type {
+  AdvAst,
+  JsonObject,
+  JsonValue,
+  RuntimeActionCall,
+  RuntimeProgram,
+} from '@advjs/types'
 import type {
   CompileDiagnostic,
   CompileResult,
@@ -32,6 +38,65 @@ function phrasingText(children: Array<AdvAst.PhrasingContent | AdvAst.Dialog>): 
 
 function json(value: unknown): JsonValue {
   return JSON.parse(JSON.stringify(value)) as JsonValue
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value))
+}
+
+function normalizeAction(value: unknown): RuntimeActionCall | undefined {
+  if (!isRecord(value) || typeof value.type !== 'string' || !value.type.includes('/'))
+    return undefined
+  const explicitArgs = isRecord(value.args) ? value.args : undefined
+  const args = explicitArgs ?? Object.fromEntries(
+    Object.entries(value).filter(([key, child]) => (
+      !['type', 'when', 'condition', 'actions'].includes(key) && child !== undefined
+    )),
+  )
+  const call: RuntimeActionCall = { type: value.type }
+  if (Object.keys(args).length)
+    call.args = json(args) as JsonObject
+  return call
+}
+
+function blockLogic(value: unknown): {
+  actions: RuntimeActionCall[]
+  operations: JsonValue[]
+  when?: string
+  conditionMarker?: string
+  activity?: { type: string, input: JsonObject }
+} {
+  const values = Array.isArray(value) ? value : []
+  const first = isRecord(values[0]) ? values[0] : undefined
+  const when = typeof first?.when === 'string' ? first.when : undefined
+  const conditionMarker = first?.type === 'when' && typeof first.condition === 'string'
+    ? first.condition
+    : undefined
+  const activity = first?.type === 'activity' && typeof first.use === 'string'
+    ? {
+        type: first.use,
+        input: isRecord(first.input) ? json(first.input) as JsonObject : {},
+      }
+    : undefined
+  const nestedActions = Array.isArray(first?.actions)
+    ? first.actions.map(normalizeAction).filter((action): action is RuntimeActionCall => Boolean(action))
+    : []
+  const directActions = values.map(normalizeAction).filter((action): action is RuntimeActionCall => Boolean(action))
+  const operations = values.filter((operation) => {
+    if (!isRecord(operation))
+      return false
+    return operation.type !== 'actions'
+      && operation.type !== 'when'
+      && operation.type !== 'activity'
+      && !normalizeAction(operation)
+  }).map(json)
+  return {
+    actions: [...nestedActions, ...directActions],
+    operations,
+    when,
+    conditionMarker,
+    activity,
+  }
 }
 
 function sourceLocation(
@@ -95,9 +160,9 @@ function compileNode(
         data: { depth: node.depth, text: node.value },
       })
     case 'choices': {
-      const hasExecutableChoice = node.choices.some(choice => Boolean(choice.do?.value))
+      const hasExecutableChoice = node.choices.some(choice => typeof choice.do?.value === 'string')
       if (hasExecutableChoice) {
-        const executable = node.choices.find(choice => Boolean(choice.do?.value))
+        const executable = node.choices.find(choice => typeof choice.do?.value === 'string')
         diagnostics.push({
           code: 'ADV_RUNTIME_EXECUTABLE_CHOICE_ACTION',
           severity: 'error',
@@ -108,15 +173,20 @@ function compileNode(
       return withSource({
         id,
         kind: 'choices',
-        choices: node.choices.map((choice, index) => ({
-          id: `choice-${index + 1}`,
-          label: choice.text,
-          target: choice.target,
-          source: sourceLocation(choice, sourcePath),
-        })),
+        choices: node.choices.map((choice, index) => {
+          const logic = blockLogic(choice.do?.value)
+          return {
+            id: `choice-${index + 1}`,
+            label: choice.text,
+            target: choice.target,
+            when: logic.when,
+            actions: logic.actions.length ? logic.actions : undefined,
+            source: sourceLocation(choice, sourcePath),
+          }
+        }),
       })
     }
-    case 'code':
+    case 'code': {
       if (typeof node.value === 'string') {
         diagnostics.push({
           code: 'ADV_RUNTIME_EXECUTABLE_SCRIPT',
@@ -126,9 +196,33 @@ function compileNode(
         })
         return null
       }
-      return node.value?.length
-        ? withSource({ id, kind: 'effects', data: { operations: json(node.value) } })
-        : null
+      if (!node.value?.length)
+        return null
+      const logic = blockLogic(node.value)
+      if (logic.conditionMarker) {
+        return withSource({
+          id,
+          kind: '$condition',
+          data: { condition: logic.conditionMarker },
+        })
+      }
+      if (logic.activity) {
+        return withSource({
+          id,
+          kind: logic.activity.type,
+          data: logic.activity.input,
+          when: logic.when,
+          actions: logic.actions.length ? logic.actions : undefined,
+        })
+      }
+      return withSource({
+        id,
+        kind: logic.operations.length ? 'effects' : 'actions',
+        data: logic.operations.length ? { operations: logic.operations } : undefined,
+        when: logic.when,
+        actions: logic.actions.length ? logic.actions : undefined,
+      })
+    }
     default:
       return null
   }
@@ -140,14 +234,38 @@ export async function compileMarkdownProgram(source: MarkdownProgramSource): Pro
 
   for (const chapterSource of source.chapters) {
     const ast = await parseAst(chapterSource.content)
-    const nodes = ast.children
-      .map((node, index) => compileNode(
+    const nodes: RuntimeNodeInput[] = []
+    let pendingCondition: { value: string, source?: CompileSourceLocation } | undefined
+    ast.children.forEach((node, index) => {
+      const compiled = compileNode(
         node,
         node.id ?? `node-${index}`,
         diagnostics,
         chapterSource.sourcePath,
-      ))
-      .filter((node): node is RuntimeNodeInput => node !== null)
+      )
+      if (!compiled)
+        return
+      if (compiled.kind === '$condition') {
+        const value = compiled.data?.condition
+        if (typeof value === 'string')
+          pendingCondition = { value, source: compiled.source }
+        return
+      }
+      if (pendingCondition) {
+        compiled.when = pendingCondition.value
+        pendingCondition = undefined
+      }
+      nodes.push(compiled)
+    })
+
+    if (pendingCondition) {
+      diagnostics.push({
+        code: 'ADV_RUNTIME_DANGLING_CONDITION',
+        severity: 'error',
+        message: 'A when block must be followed by a runtime node',
+        source: pendingCondition.source,
+      })
+    }
 
     nodes.push({ id: 'end', kind: 'end' })
     nodes.forEach((node, index) => {

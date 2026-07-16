@@ -1,10 +1,15 @@
 import type { AssetsManifest } from 'pixi.js'
 import type { AdvChapter, AdvCharacter, AdvMusic, AdvScene } from '../game'
+import type { JsonObject } from '../runtime'
 
 /**
  * 描述游戏具体内容的配置
  */
 export interface AdvGameConfig {
+  /** Initial JSON-only variables installed into the deterministic runtime. */
+  variables?: JsonObject
+  /** Runtime plugin names and exact versions required by the compiled Program. */
+  requiredPlugins?: Record<string, string>
   /**
    * @zh 游戏标题
    * @default 'ADV.JS'

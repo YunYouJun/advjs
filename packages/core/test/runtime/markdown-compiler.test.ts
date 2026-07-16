@@ -64,6 +64,91 @@ describe('compileMarkdownProgram', () => {
     expect(result.diagnostics[0]?.code).toBe('ADV_RUNTIME_EXECUTABLE_CHOICE_ACTION')
   })
 
+  it('compiles declarative conditions and actions from YAML blocks', async () => {
+    const result = await compileMarkdownProgram({
+      id: 'declarative-logic',
+      chapters: [{
+        id: 'chapter-1',
+        content: [
+          '```yaml',
+          'type: actions',
+          'actions:',
+          '  - type: variables/increment',
+          '    key: observationCount',
+          '    by: 1',
+          '```',
+          '',
+          '```yaml',
+          'type: when',
+          'condition: observationCount > 0',
+          '```',
+          '',
+          '@我',
+          '看见了星光。',
+          '',
+          '- 继续',
+          '- [初始化文明](#civilization)',
+          '',
+          '  ```yaml',
+          '  when: observationCount > 0',
+          '  actions:',
+          '    - type: variables/set',
+          '      key: initialized',
+          '      value: true',
+          '  ```',
+          '',
+          '## 文明 {#civilization}',
+        ].join('\n'),
+      }],
+    })
+
+    expect(result.diagnostics).toEqual([])
+    const chapter = result.program!.chapters['chapter-1']
+    expect(chapter.nodes['node-0'].actions).toEqual([{
+      type: 'variables/increment',
+      args: { key: 'observationCount', by: 1 },
+    }])
+    expect(chapter.nodes['node-2'].when).toEqual(expect.objectContaining({ type: 'binary' }))
+    expect(chapter.nodes['node-3'].data?.options).toEqual([
+      { id: 'choice-1', label: '继续' },
+      expect.objectContaining({
+        id: 'choice-2',
+        label: '初始化文明',
+        when: expect.objectContaining({ type: 'binary' }),
+        actions: [{
+          type: 'variables/set',
+          args: { key: 'initialized', value: true },
+        }],
+      }),
+    ])
+  })
+
+  it('compiles plugin activity blocks as namespaced runtime nodes', async () => {
+    const result = await compileMarkdownProgram({
+      id: 'activity',
+      requiredPlugins: { 'star-map': '1.0.0' },
+      chapters: [{
+        id: 'chapter-1',
+        content: [
+          '```yaml',
+          'type: activity',
+          'use: star-map/compare',
+          'input:',
+          '  tolerance: 0.8',
+          '  stars: 5',
+          '```',
+        ].join('\n'),
+      }],
+    })
+
+    expect(result.diagnostics).toEqual([])
+    expect(result.program?.chapters['chapter-1'].nodes['node-0']).toMatchObject({
+      kind: 'star-map/compare',
+      data: { tolerance: 0.8, stars: 5 },
+    })
+    expect(result.program?.requiredPlugins).toEqual({ 'star-map': '1.0.0' })
+  })
+
   it('links local, chapter-entry, and cross-chapter choice targets exactly', async () => {
     const result = await compileMarkdownProgram({
       id: 'navigation',

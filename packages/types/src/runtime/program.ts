@@ -11,6 +11,31 @@ export interface RuntimeChoice {
   id: string
   label: string
   target?: RuntimeAddress
+  when?: RuntimeExpression
+  actions?: RuntimeActionCall[]
+}
+
+export type RuntimeUnaryOperator = '!' | '-'
+export type RuntimeBinaryOperator
+  = | '&&' | '||'
+    | '==' | '!='
+    | '<' | '<=' | '>' | '>='
+    | '+' | '-' | '*' | '/' | '%'
+
+export type RuntimeExpression
+  = | { type: 'literal', value: JsonValue }
+    | { type: 'variable', path: string[] }
+    | { type: 'unary', operator: RuntimeUnaryOperator, argument: RuntimeExpression }
+    | {
+      type: 'binary'
+      operator: RuntimeBinaryOperator
+      left: RuntimeExpression
+      right: RuntimeExpression
+    }
+
+export interface RuntimeActionCall {
+  type: string
+  args?: JsonObject
 }
 
 export interface RuntimeNode {
@@ -18,6 +43,8 @@ export interface RuntimeNode {
   kind: string
   data?: JsonObject
   next?: RuntimeAddress
+  when?: RuntimeExpression
+  actions?: RuntimeActionCall[]
 }
 
 export interface RuntimeChapter {

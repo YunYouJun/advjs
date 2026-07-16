@@ -31,6 +31,13 @@ export interface RuntimeChoiceRecord {
   choiceId: string
 }
 
+export interface RuntimePendingActivity {
+  id: string
+  type: string
+  input: JsonObject
+  node: RuntimeAddress
+}
+
 export interface RuntimeState {
   status: RuntimeStatus
   cursor: RuntimeAddress
@@ -38,6 +45,7 @@ export interface RuntimeState {
   stage: RuntimeStageState
   choices: RuntimeChoiceRecord[]
   visited: string[]
+  pendingActivity?: RuntimePendingActivity
   error?: RuntimeErrorData
 }
 
