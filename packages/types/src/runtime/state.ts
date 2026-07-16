@@ -1,6 +1,8 @@
 import type { JsonObject } from './json'
 import type { RuntimeAddress, RuntimeEffect } from './program'
 
+export const RUNTIME_SNAPSHOT_SCHEMA_VERSION = 1 as const
+
 export type RuntimeStatus
   = | 'idle'
     | 'playing'
@@ -42,4 +44,21 @@ export interface RuntimeState {
 export interface RuntimeUpdate {
   state: RuntimeState
   effects: RuntimeEffect[]
+}
+
+export interface RuntimeCheckpoint {
+  id: string
+  state: RuntimeState
+  createdAt: number
+}
+
+export interface RuntimeSnapshot {
+  schemaVersion: typeof RUNTIME_SNAPSHOT_SCHEMA_VERSION
+  program: {
+    id: string
+    hash: string
+  }
+  state: RuntimeState
+  checkpoints: RuntimeCheckpoint[]
+  createdAt: number
 }

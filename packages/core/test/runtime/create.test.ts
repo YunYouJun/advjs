@@ -51,4 +51,33 @@ describe('createAdvRuntime', () => {
 
     stop()
   })
+
+  it('accepts exact string addresses without fuzzy matching', async () => {
+    const navigationProgram: RuntimeProgram = {
+      ...program,
+      chapters: {
+        ...program.chapters,
+        'chapter-2': {
+          id: 'chapter-2',
+          entry: 'arrival',
+          order: ['arrival', 'result'],
+          nodes: {
+            arrival: { id: 'arrival', kind: 'text' },
+            result: { id: 'result', kind: 'text' },
+          },
+        },
+      },
+    }
+    const runtime = createAdvRuntime({ program: navigationProgram })
+
+    await runtime.go('#first')
+    expect(runtime.state.cursor).toEqual({ chapterId: 'chapter-1', nodeId: 'first' })
+    await runtime.go('chapter-2')
+    expect(runtime.state.cursor).toEqual({ chapterId: 'chapter-2', nodeId: 'arrival' })
+    await runtime.go('chapter-2#result')
+    expect(runtime.state.cursor).toEqual({ chapterId: 'chapter-2', nodeId: 'result' })
+
+    await expect(runtime.go('第二章')).rejects.toThrow(/ADV_RUNTIME_INVALID_TARGET/)
+    await expect(runtime.go('chapter-2#missing')).rejects.toThrow(/ADV_RUNTIME_UNKNOWN_TARGET/)
+  })
 })
