@@ -19,22 +19,22 @@
 ## 1. 安装依赖与原生工程
 
 ```bash
+# 以下命令均从 ADV.JS 仓库根目录执行
+
 # 1. 同步 catalog 中新增的 @capacitor/ios 与 @capacitor/assets
-cd /Users/yunyou/repos/gh/yyj/advjs
 pnpm install
 
 # 2. 构建 Web 产物
-cd apps/studio
-pnpm build
+pnpm -C apps/studio build
 
 # 3. 创建 ios/ 原生工程(首次)
-pnpm cap:init:ios
+pnpm -C apps/studio cap:init:ios
 
 # 4. 生成图标 / 启动页全套尺寸
-pnpm cap:assets
+pnpm -C apps/studio cap:assets
 
 # 5. 同步 Web 产物 + 插件配置进 ios/
-pnpm cap:sync ios
+pnpm -C apps/studio cap:sync ios
 ```
 
 校验:`apps/studio/ios/App/App/Info.plist` 与 `apps/studio/ios/App/App/Assets.xcassets/AppIcon.appiconset/` 都已生成。
@@ -68,7 +68,7 @@ pnpm cap:sync ios
 ### 2.3 Pod 安装
 
 ```bash
-cd ios/App
+cd apps/studio/ios/App
 pod install --repo-update
 ```
 
@@ -154,9 +154,8 @@ pod install --repo-update
 # 改 Info.plist 中的 CFBundleVersion(自增 1)
 # 改 package.json 与 SettingsAboutPage.vue 的版本号(若是 marketing 版本变化)
 
-cd apps/studio
-pnpm build
-pnpm cap:sync ios
+pnpm -C apps/studio build
+pnpm -C apps/studio cap:sync ios
 
 # 然后 Xcode → Product → Archive → Distribute App → Upload
 ```
