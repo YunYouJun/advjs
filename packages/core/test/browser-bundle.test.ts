@@ -1,3 +1,4 @@
+import type { Rolldown } from 'vite'
 import path from 'node:path'
 import { build } from 'vite'
 import { describe, expect, it } from 'vitest'
@@ -9,7 +10,7 @@ describe('@advjs/core browser bundle', () => {
       logLevel: 'silent',
       build: {
         lib: {
-          entry: path.resolve(import.meta.dirname, '../src/engine/runtime.ts'),
+          entry: path.resolve(import.meta.dirname, '../src/runtime/index.ts'),
           formats: ['es'],
           name: 'AdvJsCoreBrowserTest',
         },
@@ -18,13 +19,14 @@ describe('@advjs/core browser bundle', () => {
       },
     })
 
-    const outputs = Array.isArray(result) ? result : [result]
+    const outputs = (Array.isArray(result) ? result : [result])
+      .filter((output): output is Rolldown.RolldownOutput => 'output' in output)
     const code = outputs.flatMap(output => output.output)
       .filter(item => item.type === 'chunk')
       .map(item => item.code)
       .join('\n')
 
-    expect(code).toContain('AdvPlayEngine = class')
+    expect(code).toContain('createAdvRuntime')
     expect(code).not.toContain('__vite-browser-external')
     expect(code).not.toContain('node:fs')
     expect(code).not.toContain('node:path')
