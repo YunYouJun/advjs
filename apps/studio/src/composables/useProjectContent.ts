@@ -81,6 +81,7 @@ const loadErrors = ref<string[]>([])
 let lastFs: IFileSystem | null = null
 let lastCosConfig: { bucket: string, region: string, secretId: string, secretKey: string } | null = null
 let lastCosPrefix: string | null = null
+let currentLoad: Promise<void> = Promise.resolve()
 
 let watchInitialized = false
 
@@ -469,6 +470,10 @@ export function useProjectContent() {
     return lastFs
   }
 
+  async function whenReady(): Promise<void> {
+    await currentLoad
+  }
+
   function $reset() {
     chapters.value = []
     characters.value = []
@@ -489,23 +494,25 @@ export function useProjectContent() {
     const studioStore = useStudioStore()
     const settingsStore = useSettingsStore()
 
-    watch(() => studioStore.currentProject, async (project) => {
-      if (!project) {
-        $reset()
-        return
-      }
-      if (project.source === 'cos' && project.cosPrefix) {
-        await loadFromCos(settingsStore.cos, project.cosPrefix)
-      }
-      else {
-        // Local (dirHandle), memory, or capacitor FS
-        const fs = await createFsForProject({
-          dirHandle: project.dirHandle,
-          projectId: project.projectId || project.name,
-          source: project.source,
-        })
-        await loadFromFs(fs)
-      }
+    watch(() => studioStore.currentProject, (project) => {
+      currentLoad = (async () => {
+        if (!project) {
+          $reset()
+          return
+        }
+        if (project.source === 'cos' && project.cosPrefix) {
+          await loadFromCos(settingsStore.cos, project.cosPrefix)
+        }
+        else {
+          // Local (dirHandle), memory, or capacitor FS
+          const fs = await createFsForProject({
+            dirHandle: project.dirHandle,
+            projectId: project.projectId || project.name,
+            source: project.source,
+          })
+          await loadFromFs(fs)
+        }
+      })()
     }, { immediate: true })
   }
 
@@ -523,6 +530,7 @@ export function useProjectContent() {
     loadFromCos,
     reload,
     getFs,
+    whenReady,
     $reset,
   }
 }

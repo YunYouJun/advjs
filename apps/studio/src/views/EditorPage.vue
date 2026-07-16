@@ -183,12 +183,20 @@ async function loadFile(path: string) {
   if (!path)
     return
 
-  const project = studioStore.currentProject
+  let project = studioStore.currentProject
+  if (!project) {
+    await studioStore.autoRestoreLastProject()
+    project = studioStore.currentProject
+  }
   if (!project)
     return
 
   fileNotFound.value = false
   try {
+    await nextTick()
+    await projectContent.whenReady()
+    if (token !== loadToken)
+      return
     if (project.source === 'cos') {
       content.value = await downloadFromCloud(settingsStore.cos, path)
     }
