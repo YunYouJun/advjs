@@ -44,6 +44,7 @@ import { buildStandaloneBundle } from '../composables/useStandaloneBuild'
 import { useAiSettingsStore } from '../stores/useAiSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { useWorldEventStore } from '../stores/useWorldEventStore'
+import { loadStudioGameSettings } from '../utils/projectRuntimeFiles'
 import { autoFixIssues, validateProject } from '../utils/projectValidation'
 import { track } from '../utils/telemetry'
 import OutlineGenerateModal from './OutlineGenerateModal.vue'
@@ -174,12 +175,15 @@ const validationIcon = computed(() => {
 async function handleValidation() {
   isValidating.value = true
   try {
+    const fs = getFs()
+    const runtimeSettings = fs ? await loadStudioGameSettings(fs) : {}
     validationResult.value = await validateProject(
       chapters.value,
       characters.value,
       scenes.value,
       audios.value,
       locations.value,
+      runtimeSettings,
     )
     const r = validationResult.value
     const errors = r.issues.filter(i => i.type === 'error').length
@@ -245,12 +249,15 @@ async function handleValidationSilent() {
     return
   isValidating.value = true
   try {
+    const fs = getFs()
+    const runtimeSettings = fs ? await loadStudioGameSettings(fs) : {}
     validationResult.value = await validateProject(
       chapters.value,
       characters.value,
       scenes.value,
       audios.value,
       locations.value,
+      runtimeSettings,
     )
   }
   catch {

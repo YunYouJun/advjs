@@ -62,6 +62,7 @@ const categoryLabels: Record<string, string> = {
   scene: 'Scenes',
   audio: 'Audio',
   location: 'Locations',
+  runtime: 'Runtime',
 }
 
 const categoryIcons: Record<string, string> = {
@@ -70,12 +71,23 @@ const categoryIcons: Record<string, string> = {
   scene: warningOutline,
   audio: warningOutline,
   location: warningOutline,
+  runtime: alertCircleOutline,
 }
 
 function jumpToIssue(issue: ValidationIssue) {
   switch (issue.category) {
     case 'syntax':
       router.push(`/editor?file=${encodeURIComponent(issue.file)}`)
+      break
+    case 'runtime':
+      router.push({
+        path: '/editor',
+        query: {
+          file: issue.file,
+          ...(issue.line ? { line: String(issue.line) } : {}),
+          ...(issue.column ? { column: String(issue.column) } : {}),
+        },
+      })
       break
     case 'character':
       router.push('/tabs/workspace/characters')

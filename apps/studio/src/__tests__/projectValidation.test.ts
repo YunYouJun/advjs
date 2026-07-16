@@ -103,4 +103,32 @@ describe('validateProject', () => {
       locations: 1,
     })
   })
+
+  it('reports cross-file runtime target errors with source context', async () => {
+    const result = await validateProject([
+      makeChapter('adv/chapters/one.adv.md', '# One {#start}\n\n- [Break](two#missing)'),
+      makeChapter('adv/chapters/two.adv.md', '# Two {#arrival}'),
+    ], [], [], [])
+
+    expect(result.issues).toContainEqual(expect.objectContaining({
+      type: 'error',
+      category: 'runtime',
+      code: 'ADV_RUNTIME_UNKNOWN_TARGET',
+      file: 'adv/chapters/one.adv.md',
+      line: 3,
+    }))
+  })
+
+  it('reports unavailable required runtime plugins', async () => {
+    const result = await validateProject([
+      makeChapter('adv/chapters/one.adv.md', '# One {#start}'),
+    ], [], [], [], [], {
+      requiredPlugins: { unavailable: '1.0.0' },
+    })
+
+    expect(result.issues).toContainEqual(expect.objectContaining({
+      category: 'runtime',
+      code: 'ADV_RUNTIME_MISSING_PLUGIN',
+    }))
+  })
 })

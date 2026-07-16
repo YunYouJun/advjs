@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { StudioGameSettings } from '../utils/projectRuntimeFiles'
 import {
   IonBackButton,
   IonButton,
@@ -7,11 +8,12 @@ import {
   toastController,
 } from '@ionic/vue'
 import { arrowRedoOutline, arrowUndoOutline, createOutline, sparklesOutline } from 'ionicons/icons'
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import AiGeneratePanel from '../components/AiGeneratePanel.vue'
 import LayoutPage from '../components/common/LayoutPage.vue'
+import RuntimeAuthoringPanel from '../components/RuntimeAuthoringPanel.vue'
 import { useCloudSync } from '../composables/useCloudSync'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useUndoHistory } from '../composables/useUndoHistory'
@@ -19,17 +21,22 @@ import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { downloadFromCloud } from '../utils/cloudSync'
 import { downloadAsFile } from '../utils/fs'
+import { loadStudioGameSettings } from '../utils/projectRuntimeFiles'
 
 const BLOCK_LEVEL_RE = /^(?:## |[-*] |> |---|【)/
 
 const { t, locale } = useI18n()
 const route = useRoute()
+const router = useRouter()
 const studioStore = useStudioStore()
 const settingsStore = useSettingsStore()
+const projectContent = useProjectContent()
 const content = ref('')
 const isSaving = ref(false)
 const initialContent = ref('')
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
+const runtimeSettings = ref<StudioGameSettings>({})
+const mobileAuthoringView = ref<'editor' | 'preview'>('editor')
 
 const { undo, redo, canUndo, canRedo } = useUndoHistory(content)
 
@@ -108,6 +115,7 @@ const filePath = computed(() => {
 const fileName = computed(() => {
   return filePath.value.split('/').pop() || 'Untitled'
 })
+const isAdvScript = computed(() => filePath.value.endsWith('.adv.md'))
 
 /**
  * AI system prompt: locale-aware, scoped to file creation context.
@@ -169,27 +177,41 @@ function isNotFoundError(err: unknown): boolean {
   return false
 }
 
-onMounted(async () => {
-  if (!filePath.value)
+let loadToken = 0
+async function loadFile(path: string) {
+  const token = ++loadToken
+  if (!path)
     return
 
   const project = studioStore.currentProject
   if (!project)
     return
 
+  fileNotFound.value = false
   try {
     if (project.source === 'cos') {
-      content.value = await downloadFromCloud(settingsStore.cos, filePath.value)
+      content.value = await downloadFromCloud(settingsStore.cos, path)
     }
-    else if (project.dirHandle) {
-      const { getFs } = useProjectContent()
-      const fs = getFs()
+    else {
+      const fs = projectContent.getFs()
       if (fs)
-        content.value = await fs.readFile(filePath.value)
+        content.value = await fs.readFile(path)
     }
+    if (token !== loadToken)
+      return
     initialContent.value = content.value
+
+    const fs = projectContent.getFs()
+    runtimeSettings.value = fs ? await loadStudioGameSettings(fs) : {}
+    await nextTick()
+    focusSourcePosition(
+      Number(route.query.line) || 1,
+      Number(route.query.column) || 1,
+    )
   }
   catch (err) {
+    if (token !== loadToken)
+      return
     if (isNotFoundError(err)) {
       fileNotFound.value = true
     }
@@ -204,7 +226,9 @@ onMounted(async () => {
       await toast.present()
     }
   }
-})
+}
+
+watch(filePath, path => void loadFile(path), { immediate: true })
 
 // Watch content changes for auto-save
 watch(content, (newVal) => {
@@ -246,6 +270,45 @@ function applyAiOutput(markdown: string) {
   fileNotFound.value = false
 }
 
+function focusSourcePosition(line: number, column: number) {
+  const textarea = textareaRef.value
+  if (!textarea)
+    return
+  const lines = content.value.split('\n')
+  const safeLine = Math.min(Math.max(line, 1), Math.max(lines.length, 1))
+  const lineStart = lines.slice(0, safeLine - 1).reduce((total, value) => total + value.length + 1, 0)
+  const position = Math.min(
+    lineStart + Math.max(column - 1, 0),
+    lineStart + (lines[safeLine - 1]?.length ?? 0),
+  )
+  textarea.focus()
+  textarea.setSelectionRange(position, position)
+}
+
+async function selectRuntimeSource(file: string, line: number, column: number) {
+  if (file === filePath.value) {
+    mobileAuthoringView.value = 'editor'
+    await nextTick()
+    focusSourcePosition(line, column)
+    return
+  }
+  await router.push({
+    path: '/editor',
+    query: { file, line: String(line), column: String(column) },
+  })
+}
+
+watch(
+  [() => route.query.line, () => route.query.column],
+  async ([line, column]) => {
+    if (!line)
+      return
+    mobileAuthoringView.value = 'editor'
+    await nextTick()
+    focusSourcePosition(Number(line) || 1, Number(column) || 1)
+  },
+)
+
 async function save() {
   isSaving.value = true
 
@@ -264,10 +327,9 @@ async function save() {
       })
       await toast.present()
     }
-    else if (project?.dirHandle && filePath.value) {
+    else if (project && filePath.value) {
       // Write back to file system
-      const { getFs } = useProjectContent()
-      const fs = getFs()
+      const fs = projectContent.getFs()
       if (fs) {
         await fs.writeFile(filePath.value, content.value)
       }
@@ -370,7 +432,12 @@ async function save() {
     </div>
 
     <!-- Normal editor -->
-    <div v-else class="editor-container">
+    <div
+      v-else
+      class="editor-container"
+      :class="{ 'editor-container--split': isAdvScript }"
+      :data-mobile-view="mobileAuthoringView"
+    >
       <!-- Quick-insert toolbar -->
       <div class="editor-toolbar">
         <button
@@ -400,13 +467,42 @@ async function save() {
           {{ item.label }}
         </button>
       </div>
-      <textarea
-        ref="textareaRef"
-        v-model="content"
-        class="editor-textarea"
-        :placeholder="t('editor.editPlaceholder', { file: fileName })"
-        spellcheck="false"
-      />
+
+      <div v-if="isAdvScript" class="editor-mobile-tabs" role="group" :aria-label="t('runtimeAuthoring.mobileView')">
+        <button
+          type="button"
+          :aria-pressed="mobileAuthoringView === 'editor'"
+          @click="mobileAuthoringView = 'editor'"
+        >
+          {{ t('runtimeAuthoring.editor') }}
+        </button>
+        <button
+          type="button"
+          :aria-pressed="mobileAuthoringView === 'preview'"
+          @click="mobileAuthoringView = 'preview'"
+        >
+          {{ t('runtimeAuthoring.preview') }}
+        </button>
+      </div>
+
+      <div class="editor-main">
+        <textarea
+          ref="textareaRef"
+          v-model="content"
+          class="editor-textarea"
+          :placeholder="t('editor.editPlaceholder', { file: fileName })"
+          spellcheck="false"
+        />
+        <RuntimeAuthoringPanel
+          v-if="isAdvScript"
+          class="editor-preview"
+          :content="content"
+          :file="filePath"
+          :chapters="projectContent.chapters.value"
+          :settings="runtimeSettings"
+          @select-source="selectRuntimeSource"
+        />
+      </div>
     </div>
   </LayoutPage>
 </template>
@@ -432,6 +528,10 @@ async function save() {
   flex: 1;
   min-width: 0;
   max-width: 50%;
+}
+
+.editor-mobile-tabs {
+  display: none;
 }
 
 .editor-main {
@@ -526,6 +626,44 @@ async function save() {
   color: var(--ion-text-color, #000);
   box-sizing: border-box;
   transition: background-color var(--adv-duration-slow) var(--adv-ease-default);
+}
+
+@media (width <= 767px) {
+  .editor-mobile-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 0.35rem;
+    border-bottom: 1px solid var(--adv-border-subtle);
+    background: var(--adv-surface-card);
+  }
+
+  .editor-mobile-tabs button {
+    padding: 0.45rem;
+    border: 0;
+    border-radius: var(--adv-radius-sm);
+    background: transparent;
+    color: var(--adv-text-secondary);
+  }
+
+  .editor-mobile-tabs button[aria-pressed='true'] {
+    background: rgb(99 102 241 / 12%);
+    color: var(--ion-color-primary);
+  }
+
+  .editor-container--split .editor-main {
+    flex-direction: column;
+  }
+
+  .editor-container--split .editor-textarea,
+  .editor-container--split .editor-preview {
+    width: 100%;
+    max-width: none;
+  }
+
+  .editor-container--split[data-mobile-view='editor'] .editor-preview,
+  .editor-container--split[data-mobile-view='preview'] .editor-textarea {
+    display: none;
+  }
 }
 
 .save-status {

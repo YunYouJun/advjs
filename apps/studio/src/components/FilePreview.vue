@@ -12,6 +12,8 @@ const props = withDefaults(defineProps<{
   readonly?: boolean
   filename?: string
   collabText?: YText | null
+  revealLine?: number
+  revealColumn?: number
 }>(), {
   content: '',
   originalContent: undefined,
@@ -19,6 +21,8 @@ const props = withDefaults(defineProps<{
   readonly: true,
   filename: '',
   collabText: null,
+  revealLine: undefined,
+  revealColumn: undefined,
 })
 
 const emit = defineEmits<{
@@ -196,7 +200,20 @@ async function initEditor() {
         emit('save')
       })
     }
+    revealSourcePosition()
   }
+}
+
+function revealSourcePosition() {
+  if (!editor || props.originalContent !== undefined || !props.revealLine)
+    return
+  const position = {
+    lineNumber: props.revealLine,
+    column: props.revealColumn ?? 1,
+  }
+  editor.revealPositionInCenter(position)
+  editor.setPosition(position)
+  editor.focus()
 }
 
 function disposeEditor() {
@@ -244,6 +261,8 @@ watch(() => props.content, (value) => {
   if (editorModel && value !== editorModel.getValue())
     editorModel.setValue(value)
 })
+
+watch([() => props.revealLine, () => props.revealColumn], revealSourcePosition)
 
 onMounted(() => {
   void initEditor()

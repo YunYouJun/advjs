@@ -245,6 +245,18 @@
     "retry": "Retry preview",
     "reviewNotice": "The report can contain author-defined variable values. Review it before sharing."
   },
+  "runtimeAuthoring": {
+    "preview": "Preview",
+    "program": "Program",
+    "diagnostics": "Diagnostics",
+    "editor": "Editor",
+    "compiling": "Compiling…",
+    "noDiagnostics": "No runtime diagnostics",
+    "noProgram": "No runtime program is available",
+    "sourceUnknown": "Unknown source",
+    "tabsLabel": "Runtime authoring views",
+    "mobileView": "Editor view"
+  },
   "editor": {
     "back": "Back",
     "save": "Save",

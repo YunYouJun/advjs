@@ -13,17 +13,22 @@ import type {
   SceneInfo,
 } from '../composables/useProjectContent'
 import type { IFileSystem } from './fs'
+import type { StudioGameSettings } from './projectRuntimeFiles'
 import {
   extractCharacterRefs,
   extractSceneRefs,
   parseAst,
 } from '@advjs/parser'
+import { compileRuntimeAuthoringProject } from './runtimeAuthoring'
 
 export interface ValidationIssue {
   type: 'error' | 'warning'
-  category: 'syntax' | 'character' | 'scene' | 'audio' | 'location'
+  category: 'syntax' | 'character' | 'scene' | 'audio' | 'location' | 'runtime'
   file: string
   message: string
+  code?: string
+  line?: number
+  column?: number
 }
 
 export interface ValidationResult {
@@ -48,6 +53,7 @@ export async function validateProject(
   scenes: SceneInfo[],
   audios: AudioInfo[],
   locations: LocationInfo[] = [],
+  settings: StudioGameSettings = {},
 ): Promise<ValidationResult> {
   const issues: ValidationIssue[] = []
 
@@ -211,6 +217,22 @@ export async function validateProject(
           })
         }
       }
+    }
+  }
+
+  // 6. Whole-project runtime compilation catches cross-file links and plugin requirements.
+  if (chapters.length > 0) {
+    const runtime = await compileRuntimeAuthoringProject(chapters, settings)
+    for (const diagnostic of runtime.diagnostics) {
+      issues.push({
+        type: diagnostic.severity,
+        category: 'runtime',
+        file: diagnostic.source?.file ?? chapters[0].file,
+        message: diagnostic.message,
+        code: diagnostic.code,
+        line: diagnostic.source?.line,
+        column: diagnostic.source?.column,
+      })
     }
   }
 

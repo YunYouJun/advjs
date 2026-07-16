@@ -245,6 +245,18 @@
     "retry": "重试预览",
     "reviewNotice": "报告可能包含作者定义的变量值，分享前请检查内容。"
   },
+  "runtimeAuthoring": {
+    "preview": "预览",
+    "program": "程序结构",
+    "diagnostics": "诊断",
+    "editor": "编辑器",
+    "compiling": "编译中…",
+    "noDiagnostics": "没有运行时诊断",
+    "noProgram": "暂无可用的运行程序",
+    "sourceUnknown": "未知来源",
+    "tabsLabel": "运行时创作视图",
+    "mobileView": "编辑器视图"
+  },
   "editor": {
     "back": "返回",
     "save": "保存",

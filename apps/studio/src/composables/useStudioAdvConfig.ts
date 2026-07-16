@@ -12,6 +12,7 @@ import { parseAst } from '@advjs/parser'
 import { ref } from 'vue'
 import { useStudioStore } from '../stores/useStudioStore'
 import { applyStudioGameSettings, loadStudioGameSettings } from '../utils/projectRuntimeFiles'
+import { createStudioChapterIdMap } from '../utils/runtimeAuthoring'
 import { useProjectContent } from './useProjectContent'
 
 /**
@@ -105,9 +106,9 @@ export function useStudioAdvConfig() {
 
     // Chapters keep their authoring AST for editor-only visualizations. Runtime
     // compilation reads the same source through `fetchChapter` below.
-    const usedChapterIds = new Set<string>()
+    const chapterIds = createStudioChapterIdMap(project.chapters.value.map(chapter => chapter.file))
     const chapters: AdvChapter[] = await Promise.all(
-      project.chapters.value.map(async (ch, index) => {
+      project.chapters.value.map(async (ch) => {
         let content = ch.content
         if (!content) {
           const fs = project.getFs()
@@ -122,19 +123,7 @@ export function useStudioAdvConfig() {
           src: ch.file,
           ast,
         }
-        const basename = ch.file.split('/').pop()?.replace(/\.adv\.md$/, '') ?? ''
-        const baseId = basename
-          .normalize('NFKD')
-          .replace(/[^\w.-]+/g, '-')
-          .replace(/^-+|-+$/g, '') || `chapter-${index + 1}`
-        let chapterId = /^\w/.test(baseId) && !baseId.startsWith('_')
-          ? baseId
-          : `chapter-${baseId}`
-        const uniqueBaseId = chapterId
-        let suffix = 2
-        while (usedChapterIds.has(chapterId))
-          chapterId = `${uniqueBaseId}-${suffix++}`
-        usedChapterIds.add(chapterId)
+        const chapterId = chapterIds.get(ch.file)!
         chapterFileToId.set(ch.file, chapterId)
         chapterIdToFile.set(chapterId, ch.file)
         return {
