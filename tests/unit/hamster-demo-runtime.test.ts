@@ -50,8 +50,9 @@ describe('hamster demo runtime', () => {
 
     await runtime.choose('choice-1')
     expect(runtime.state.cursor.chapterId).toBe('chapter-2')
+    expect(runtime.current?.data?.text).toContain('若把旧人类的记忆')
     await runtime.next()
-    await runtime.next()
+    expect(runtime.current?.data?.text).toContain('先别替它们写好结局')
     await runtime.next()
     expect(runtime.state.status).toBe('waiting-activity')
     await runtime.completeActivity({ name: '仓生', level: 2, principle: 'memory' })

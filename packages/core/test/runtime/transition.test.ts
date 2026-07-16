@@ -82,6 +82,41 @@ describe('transitionRuntime', () => {
     expect(update.state.cursor.nodeId).toBe('dialog')
   })
 
+  it('passes through scene metadata before pausing on content', () => {
+    const sceneProgram: RuntimeProgram = {
+      ...program,
+      entry: { chapterId: 'chapter-1', nodeId: 'scene' },
+      chapters: {
+        'chapter-1': {
+          ...program.chapters['chapter-1'],
+          entry: 'scene',
+          order: ['scene', 'dialog'],
+          nodes: {
+            scene: {
+              id: 'scene',
+              kind: 'scene',
+              data: { place: '观测室', time: '午后', inOrOut: '内景' },
+              next: { chapterId: 'chapter-1', nodeId: 'dialog' },
+            },
+            dialog: program.chapters['chapter-1'].nodes.dialog,
+          },
+        },
+      },
+    }
+
+    const update = transitionRuntime(
+      sceneProgram,
+      createInitialRuntimeState(sceneProgram),
+      { type: 'start' },
+    )
+
+    expect(update.state.cursor.nodeId).toBe('dialog')
+    expect(update.state.visited).toEqual([
+      'chapter-1#scene',
+      'chapter-1#dialog',
+    ])
+  })
+
   it('waits for a choice and records the selected option', () => {
     const started = transitionRuntime(program, createInitialRuntimeState(program), { type: 'start' })
     const choices = transitionRuntime(program, started.state, { type: 'next' })

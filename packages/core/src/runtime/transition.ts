@@ -118,7 +118,7 @@ function enterUntilPause(
       return { state, effects }
     }
 
-    if (node.kind === 'anchor') {
+    if (node.kind === 'anchor' || node.kind === 'scene') {
       moveToNext(state, node.next)
       if (state.status === 'ended')
         return { state, effects }
