@@ -4,6 +4,7 @@ import type {
 } from '@advjs/core'
 import type {
   JsonObject,
+  JsonValue,
   RuntimeAddress,
   RuntimeChoice,
   RuntimeEffect,
@@ -15,7 +16,7 @@ import type {
 import { createAdvRuntime } from '@advjs/core'
 
 export interface RuntimeCliTrace {
-  command: 'start' | 'next' | 'choose' | 'go' | 'back' | 'restore'
+  command: 'start' | 'next' | 'choose' | 'go' | 'back' | 'restore' | 'activity'
   address: RuntimeAddress
   status: RuntimeState['status']
   effects: RuntimeEffect[]
@@ -68,6 +69,14 @@ export function formatRuntimeCliOutput(
   }
   if (!node || state.status === 'ended')
     return { ...base, type: 'end', text: '— END —' }
+
+  if (state.status === 'waiting-activity' && state.pendingActivity) {
+    return {
+      ...base,
+      type: 'activity',
+      text: `${state.pendingActivity.type} ${JSON.stringify(state.pendingActivity.input)}`,
+    }
+  }
 
   if (node.kind === 'dialog') {
     return {
@@ -156,6 +165,12 @@ export class RuntimeCliPlayer {
   async go(target: RuntimeAddress | string): Promise<RuntimeCliOutput> {
     const update = await this.runtime.go(target)
     this.emitTrace('go', update.effects)
+    return this.current()
+  }
+
+  async completeActivity(result: JsonValue): Promise<RuntimeCliOutput> {
+    const update = await this.runtime.completeActivity(result)
+    this.emitTrace('activity', update.effects)
     return this.current()
   }
 

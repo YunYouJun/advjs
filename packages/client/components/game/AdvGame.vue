@@ -14,6 +14,9 @@ defineProps<{
 const { $adv } = useAdvContext()
 
 const curNode = computed(() => $adv.store.current)
+const showsDialog = computed(() => (
+  curNode.value?.kind === 'dialog' || curNode.value?.kind === 'text'
+))
 
 // 添加提示，防止意外退出
 if (!import.meta.env.DEV && typeof __DEV__ !== 'undefined' && !__DEV__)
@@ -42,7 +45,7 @@ const app = useAppStore()
       <BaseLayer v-if="!app.showUi" />
 
       <Transition enter-active-class="animate-fade-in-up" leave-active-class="animate-fade-out-down">
-        <AdvDialogBox v-if="curNode" v-show="app.showUi" :node="curNode" class="z-2 animate-duration-200" />
+        <AdvDialogBox v-if="curNode && showsDialog" v-show="app.showUi" :node="curNode" class="z-2 animate-duration-200" />
       </Transition>
 
       <Transition enter-active-class="animate-fade-in-up" leave-active-class="animate-fade-out-down">
@@ -60,6 +63,8 @@ const app = useAppStore()
       <Transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
         <AdvEnd v-if="$adv.store.state.status === 'ended'" />
       </Transition>
+
+      <AdvActivity v-if="$adv.store.state.status === 'waiting-activity'" />
 
       <AdvGameModals />
     </div>

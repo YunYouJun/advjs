@@ -1,9 +1,11 @@
 import type {
   AdvRuntime,
   AdvRuntimeOptions,
+  AdvRuntimePlugin,
 } from '@advjs/core'
 import type {
   JsonObject,
+  JsonValue,
   RuntimeAddress,
   RuntimeEffect,
   RuntimeNode,
@@ -20,6 +22,7 @@ export interface AdvRuntimeHostInstallOptions {
   initialVariables?: JsonObject
   maxCheckpoints?: number
   now?: () => number
+  plugins?: readonly AdvRuntimePlugin[]
 }
 
 export interface CreateAdvRuntimeHostOptions extends AdvRuntimeHostInstallOptions {
@@ -40,6 +43,7 @@ export interface AdvRuntimeHost {
   start: () => Promise<RuntimeUpdate>
   next: () => Promise<RuntimeUpdate>
   choose: (choiceId: string) => Promise<RuntimeUpdate>
+  completeActivity: (result: JsonValue) => Promise<RuntimeUpdate>
   go: (target: RuntimeAddress | string) => Promise<RuntimeUpdate>
   back: () => RuntimeUpdate
   snapshot: () => RuntimeSnapshot
@@ -90,6 +94,7 @@ export function createAdvRuntimeHost(options: CreateAdvRuntimeHostOptions): AdvR
       initialVariables: installOptions.initialVariables ?? options.initialVariables,
       maxCheckpoints: installOptions.maxCheckpoints ?? options.maxCheckpoints,
       now: installOptions.now ?? options.now,
+      plugins: installOptions.plugins ?? options.plugins,
     }
     runtime = createAdvRuntime(runtimeOptions)
     unsubscribe = runtime.subscribe((nextState, effects) => {
@@ -109,6 +114,7 @@ export function createAdvRuntimeHost(options: CreateAdvRuntimeHostOptions): AdvR
     start: () => requireRuntime().start(),
     next: () => requireRuntime().next(),
     choose: choiceId => requireRuntime().choose(choiceId),
+    completeActivity: result => requireRuntime().completeActivity(result),
     go: target => requireRuntime().go(target),
     back: () => requireRuntime().back(),
     snapshot: () => requireRuntime().snapshot(),

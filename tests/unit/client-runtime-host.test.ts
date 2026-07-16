@@ -1,6 +1,7 @@
 import type { RuntimeProgram } from '@advjs/types'
 import { describe, expect, it } from 'vitest'
 import { createAdvRuntimeHost } from '../../packages/client/composables/useAdvRuntime'
+import { defineAdvPlugin } from '../../packages/core/src/runtime'
 
 const program: RuntimeProgram = {
   schemaVersion: 1,
@@ -83,5 +84,48 @@ describe('client runtime host', () => {
     expect(host.state.value.status).toBe('idle')
     expect(host.state.value.variables).toEqual({})
     expect(host.program.value?.id).toBe('replacement')
+  })
+
+  it('forwards activity completion through the host', async () => {
+    const plugin = defineAdvPlugin({
+      name: 'test',
+      version: '1.0.0',
+      nodes: {
+        activity({ activity }) {
+          activity('activity')
+        },
+      },
+      activities: {
+        activity({ state }, result) {
+          state.variables.result = result
+        },
+      },
+    })
+    const activityProgram: RuntimeProgram = {
+      ...program,
+      requiredPlugins: { test: '1.0.0' },
+      entry: { chapterId: 'chapter-1', nodeId: 'activity' },
+      chapters: {
+        'chapter-1': {
+          id: 'chapter-1',
+          entry: 'activity',
+          order: ['activity', 'end'],
+          nodes: {
+            activity: {
+              id: 'activity',
+              kind: 'test/activity',
+              next: { chapterId: 'chapter-1', nodeId: 'end' },
+            },
+            end: { id: 'end', kind: 'end' },
+          },
+        },
+      },
+    }
+    const host = createAdvRuntimeHost({ program: activityProgram, plugins: [plugin] })
+
+    await host.start()
+    expect(host.state.value.status).toBe('waiting-activity')
+    await host.completeActivity({ ok: true })
+    expect(host.state.value.variables.result).toEqual({ ok: true })
   })
 })

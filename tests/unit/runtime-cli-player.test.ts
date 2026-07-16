@@ -3,7 +3,7 @@
 import type { RuntimeProgram } from '@advjs/types'
 import { describe, expect, it } from 'vitest'
 import { RuntimeCliPlayer } from '../../packages/advjs/node/runtime/player'
-import { createAdvRuntime } from '../../packages/core/src/runtime'
+import { createAdvRuntime, defineAdvPlugin } from '../../packages/core/src/runtime'
 
 const program: RuntimeProgram = {
   schemaVersion: 1,
@@ -120,6 +120,62 @@ describe('runtimeCliPlayer', () => {
       { command: 'start', address: { chapterId: 'chapter-1', nodeId: 'line' }, status: 'playing' },
       { command: 'next', address: { chapterId: 'chapter-1', nodeId: 'choice' }, status: 'waiting-choice' },
       { command: 'restore', address: { chapterId: 'chapter-1', nodeId: 'line' }, status: 'playing' },
+    ])
+  })
+
+  it('formats and completes plugin activities through the CLI host', async () => {
+    const traces: unknown[] = []
+    const observer = defineAdvPlugin({
+      name: 'observer',
+      version: '1.0.0',
+      nodes: {
+        compare({ activity }) {
+          activity('compare', { tolerance: 0.8 })
+        },
+      },
+      activities: {
+        compare({ state }, result) {
+          state.variables.result = result
+        },
+      },
+    })
+    const activityProgram: RuntimeProgram = {
+      schemaVersion: 1,
+      id: 'cli-activity',
+      hash: 'cli-activity-v1',
+      entry: { chapterId: 'chapter-1', nodeId: 'compare' },
+      requiredPlugins: { observer: '1.0.0' },
+      chapters: {
+        'chapter-1': {
+          id: 'chapter-1',
+          entry: 'compare',
+          order: ['compare', 'end'],
+          nodes: {
+            compare: {
+              id: 'compare',
+              kind: 'observer/compare',
+              next: { chapterId: 'chapter-1', nodeId: 'end' },
+            },
+            end: { id: 'end', kind: 'end' },
+          },
+        },
+      },
+    }
+    const player = new RuntimeCliPlayer({
+      program: activityProgram,
+      plugins: [observer],
+      trace: trace => traces.push(trace),
+    })
+
+    expect(await player.start()).toMatchObject({
+      type: 'activity',
+      text: 'observer/compare {"tolerance":0.8}',
+    })
+    expect(await player.completeActivity({ matched: true })).toMatchObject({ type: 'end' })
+    expect(player.status().variables.result).toEqual({ matched: true })
+    expect(traces).toMatchObject([
+      { command: 'start', status: 'waiting-activity' },
+      { command: 'activity', status: 'ended' },
     ])
   })
 })

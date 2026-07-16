@@ -1,4 +1,4 @@
-import type { RuntimeSaveRecord, RuntimeStorage } from '@advjs/core'
+import type { AdvRuntimePlugin, RuntimeSaveRecord, RuntimeStorage } from '@advjs/core'
 import type { AdvChapter, JsonObject } from '@advjs/types'
 import type { Argv } from 'yargs'
 import { readFile, writeFile } from 'node:fs/promises'
@@ -68,6 +68,17 @@ function traceReporter(enabled: boolean) {
     : undefined
 }
 
+function runtimePlugins(value: unknown): AdvRuntimePlugin[] {
+  if (!Array.isArray(value))
+    return []
+  return value.filter((plugin): plugin is AdvRuntimePlugin => Boolean(
+    plugin
+    && typeof plugin === 'object'
+    && typeof (plugin as AdvRuntimePlugin).name === 'string'
+    && typeof (plugin as AdvRuntimePlugin).version === 'string',
+  ))
+}
+
 async function loadPlayer(scriptPath: string, trace = false): Promise<RuntimeCliPlayer> {
   const absoluteScript = resolve(process.cwd(), scriptPath)
   let chapters = await discoverRuntimeChapterFiles(absoluteScript)
@@ -91,11 +102,14 @@ async function loadPlayer(scriptPath: string, trace = false): Promise<RuntimeCli
     id: `adv-play:${chapters.map(chapter => chapter.id).join('+')}`,
     chapters,
     entryChapterId,
+    requiredPlugins: config.gameConfig?.requiredPlugins,
   })
   if (!result.program)
     throw formatCompilerFailure(result.diagnostics)
   return new RuntimeCliPlayer({
     program: result.program,
+    initialVariables: config.gameConfig?.variables,
+    plugins: runtimePlugins(config.plugins),
     trace: traceReporter(trace),
   })
 }
@@ -221,7 +235,10 @@ async function interactivePlay(
     rl.once('close', done)
     const prompt = () => {
       const waiting = player.status().status === 'waiting-choice'
-      const hint = waiting ? colors.yellow(t('play.hint_choose')) : colors.dim(t('play.hint_next'))
+      const waitingActivity = player.status().status === 'waiting-activity'
+      const hint = waitingActivity
+        ? colors.yellow('activity <json>')
+        : (waiting ? colors.yellow(t('play.hint_choose')) : colors.dim(t('play.hint_next')))
       rl.question(`\n${colors.dim('>')} (${hint}): `, async (input) => {
         const trimmed = input.trim().toLowerCase()
         if (trimmed === 'quit' || trimmed === 'q' || trimmed === 'exit') {
@@ -242,10 +259,16 @@ async function interactivePlay(
 
         try {
           const choice = CHOICE_RE.exec(trimmed)
-          if (choice && waiting)
+          if (waitingActivity) {
+            const rawResult = input.trim().replace(/^activity\s+/i, '')
+            await player.completeActivity(JSON.parse(rawResult))
+          }
+          else if (choice && waiting) {
             await player.choose(Number.parseInt(choice[1]))
-          else
+          }
+          else {
             await player.next()
+          }
           await persistSession(id, absoluteScript, player)
           printFramedPlayer(player)
         }
@@ -303,6 +326,20 @@ export function installPlayCommand(cli: Argv) {
           return
         }
         await resumed.player.choose(argv.number as number)
+        await persistSession(sessionId, resumed.scriptPath, resumed.player)
+        outputPlayer(resumed.player, argv.json as boolean)
+      })
+      .command('activity <result>', 'Complete the pending activity with a JSON result', y => y
+        .positional('result', { type: 'string', demandOption: true })
+        .option('session-id', { type: 'string', demandOption: true })
+        .option('json', { type: 'boolean', default: false }), async (argv) => {
+        const sessionId = argv.sessionId as string
+        const resumed = await resumeSession(sessionId, argv.trace as boolean)
+        if (!resumed) {
+          missingSession(sessionId)
+          return
+        }
+        await resumed.player.completeActivity(JSON.parse(argv.result as string))
         await persistSession(sessionId, resumed.scriptPath, resumed.player)
         outputPlayer(resumed.player, argv.json as boolean)
       })

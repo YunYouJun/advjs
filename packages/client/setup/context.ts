@@ -1,3 +1,4 @@
+import type { AdvRuntimePlugin } from '@advjs/core'
 import type { RuntimeProgram } from '@advjs/types'
 import type { Pinia } from 'pinia'
 import type { CompileClientRuntimeProgramOptions } from '../runtime'
@@ -36,6 +37,17 @@ function compilerError(diagnostics: Array<{ code: string, message: string }>): E
   return new Error(diagnostics.map(item => `${item.code}: ${item.message}`).join('\n'))
 }
 
+function runtimePlugins(value: unknown): AdvRuntimePlugin[] {
+  if (!Array.isArray(value))
+    return []
+  return value.filter((plugin): plugin is AdvRuntimePlugin => Boolean(
+    plugin
+    && typeof plugin === 'object'
+    && typeof (plugin as AdvRuntimePlugin).name === 'string'
+    && typeof (plugin as AdvRuntimePlugin).version === 'string',
+  ))
+}
+
 export function setupAdvContext(ctx: {
   config: AdvContext['config']
   gameConfig: AdvContext['gameConfig']
@@ -48,6 +60,7 @@ export function setupAdvContext(ctx: {
 
   const runtime = createAdvRuntimeHost({
     program: BOOTSTRAP_PROGRAM,
+    plugins: runtimePlugins(ctx.config.value.plugins),
     onState(state, current, program) {
       store.$syncRuntime(state, current, program)
       syncRuntimePresentation(state, ctx.gameConfig.value, ADV_RUNTIME)
@@ -73,10 +86,13 @@ export function setupAdvContext(ctx: {
         id: `adv-browser:${ctx.gameConfig.value.title || 'game'}`,
         chapters: ctx.gameConfig.value.chapters,
         fetcher: ctx.fetcher,
+        requiredPlugins: ctx.gameConfig.value.requiredPlugins,
       })
       if (!result.program)
         throw compilerError(result.diagnostics)
-      runtime.install(result.program)
+      runtime.install(result.program, {
+        initialVariables: ctx.gameConfig.value.variables,
+      })
       advContext.pixiGame = await initPixi(advContext)
     },
 
