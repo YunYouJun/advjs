@@ -23,6 +23,12 @@ export function starMap(options: StarMapOptions = {}) {
       module: '@advjs/plugin-interactions',
       export: 'starMap',
       options: { ...options },
+      activities: {
+        compare: {
+          module: '@advjs/plugin-interactions/client/StarMapActivity.vue',
+          export: 'default',
+        },
+      },
     },
     nodes: {
       compare({ activity, node }) {

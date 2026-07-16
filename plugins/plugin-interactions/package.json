@@ -5,12 +5,14 @@
   "description": "Lightweight activity plugins for ADV.JS runtime demos",
   "license": "MPL-2.0",
   "exports": {
-    ".": "./dist/index.mjs"
+    ".": "./dist/index.mjs",
+    "./client/*": "./client/*"
   },
   "main": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "client"
   ],
   "scripts": {
     "build": "unbuild",
@@ -22,7 +24,14 @@
     "@advjs/types": "workspace:*"
   },
   "devDependencies": {
+    "@advjs/client": "workspace:*",
+    "@vue/test-utils": "catalog:test",
+    "jsdom": "catalog:",
     "unbuild": "catalog:build",
-    "vitest": "catalog:test"
+    "vitest": "catalog:test",
+    "vue": "catalog:frontend"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0"
   }
 }

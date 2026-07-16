@@ -23,6 +23,12 @@ export function civilization(options: CivilizationOptions = {}) {
       module: '@advjs/plugin-interactions',
       export: 'civilization',
       options: { ...options },
+      activities: {
+        initialize: {
+          module: '@advjs/plugin-interactions/client/CivilizationActivity.vue',
+          export: 'default',
+        },
+      },
     },
     nodes: {
       initialize({ activity, node }) {

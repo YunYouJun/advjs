@@ -2203,12 +2203,24 @@ importers:
         specifier: workspace:*
         version: link:../../packages/types
     devDependencies:
+      '@advjs/client':
+        specifier: workspace:*
+        version: link:../../packages/client
+      '@vue/test-utils':
+        specifier: catalog:test
+        version: 2.4.11(@vue/compiler-dom@3.5.39)(@vue/server-renderer@3.5.39(vue@3.5.39(typescript@5.9.3)))(vue@3.5.39(typescript@5.9.3))
+      jsdom:
+        specifier: 'catalog:'
+        version: 29.1.1
       unbuild:
         specifier: catalog:build
         version: 3.6.1(sass@1.101.0)(typescript@5.9.3)(vue-tsc@3.3.5(typescript@5.9.3))(vue@3.5.39(typescript@5.9.3))
       vitest:
         specifier: catalog:test
         version: 4.1.9(@types/node@26.0.1)(@vitest/ui@4.1.9)(jsdom@29.1.1)(msw@2.14.6(@types/node@26.0.1)(typescript@5.9.3))(vite@8.1.0(@types/node@26.0.1)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))
+      vue:
+        specifier: catalog:frontend
+        version: 3.5.39(typescript@5.9.3)
 
   plugins/plugin-obs:
     dependencies:

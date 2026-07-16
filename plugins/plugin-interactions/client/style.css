@@ -1,0 +1,40 @@
+.interaction-activity {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.interaction-activity__title,
+.interaction-activity__description {
+  margin: 0;
+}
+
+.interaction-activity__field {
+  display: grid;
+  grid-template-columns: minmax(5rem, auto) 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.interaction-activity__field input,
+.interaction-activity__field select {
+  min-width: 0;
+  padding: 0.5rem;
+  border: 1px solid rgb(148 163 184 / 40%);
+  border-radius: 0.4rem;
+  background: rgb(2 6 23 / 70%);
+  color: inherit;
+}
+
+.interaction-activity__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+@media (width <= 480px) {
+  .interaction-activity__field {
+    grid-template-columns: 1fr;
+  }
+}
