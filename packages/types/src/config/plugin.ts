@@ -1,10 +1,16 @@
 import type { JsonObject } from '../runtime'
 import type { ResolvedAdvOptions } from './options'
 
+export interface AdvRuntimeActivityRendererReference {
+  module: string
+  export?: string
+}
+
 export interface AdvRuntimePluginClientReference {
   module: string
   export?: string
   options?: JsonObject
+  activities?: Record<string, AdvRuntimeActivityRendererReference>
 }
 
 export interface AdvRuntimePluginReference {
