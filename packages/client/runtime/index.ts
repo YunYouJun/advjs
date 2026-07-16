@@ -1,3 +1,4 @@
+export { createActivityRendererRegistry } from './activity-renderers'
 export {
   applyRuntimePresentationEffects,
   syncRuntimePresentation,

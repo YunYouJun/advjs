@@ -7,6 +7,7 @@ import type { AdvRuntimeHost } from '../composables/useAdvRuntime'
 import type { PixiGame } from '../pixi/game'
 import type { AdvStore } from '../stores'
 import type { ADV_RUNTIME } from '../utils'
+import type { ActivityRendererRegistry } from './activity'
 
 /**
  * start with $ means it's a system functions
@@ -29,6 +30,8 @@ export interface AdvContext {
    * 运行时变量
    */
   runtime: AdvRuntimeHost
+  /** Presentation-only renderers registered by client runtime plugins. */
+  activityRenderers: ActivityRendererRegistry
   /** Presentation-only character and tachie resources. */
   resources: typeof ADV_RUNTIME
   pixiGame?: PixiGame

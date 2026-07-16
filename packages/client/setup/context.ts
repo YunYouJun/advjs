@@ -1,8 +1,7 @@
-import type { AdvRuntimePlugin } from '@advjs/core'
 import type { RuntimeProgram } from '@advjs/types'
 import type { Pinia } from 'pinia'
 import type { CompileClientRuntimeProgramOptions } from '../runtime'
-import type { AdvContext } from '../types'
+import type { AdvClientRuntimePlugin, AdvContext } from '../types'
 import { $t } from '@advjs/client/modules/i18n'
 import { watch } from 'vue'
 import { useAdvAuto, useAdvBgm, useAdvTachies } from '../composables'
@@ -12,6 +11,7 @@ import { initPixi } from '../pixi'
 import {
   applyRuntimePresentationEffects,
   compileClientRuntimeProgram,
+  createActivityRendererRegistry,
   syncRuntimePresentation,
 } from '../runtime'
 import { useAdvStore, useAudioStore } from '../stores'
@@ -37,14 +37,14 @@ function compilerError(diagnostics: Array<{ code: string, message: string }>): E
   return new Error(diagnostics.map(item => `${item.code}: ${item.message}`).join('\n'))
 }
 
-function runtimePlugins(value: unknown): AdvRuntimePlugin[] {
+function runtimePlugins(value: unknown): AdvClientRuntimePlugin[] {
   if (!Array.isArray(value))
     return []
-  return value.filter((plugin): plugin is AdvRuntimePlugin => Boolean(
+  return value.filter((plugin): plugin is AdvClientRuntimePlugin => Boolean(
     plugin
     && typeof plugin === 'object'
-    && typeof (plugin as AdvRuntimePlugin).name === 'string'
-    && typeof (plugin as AdvRuntimePlugin).version === 'string',
+    && typeof (plugin as AdvClientRuntimePlugin).name === 'string'
+    && typeof (plugin as AdvClientRuntimePlugin).version === 'string',
   ))
 }
 
@@ -57,11 +57,13 @@ export function setupAdvContext(ctx: {
   runtimePlugins?: unknown
 }) {
   const store = useAdvStore(ctx.pinia)
+  const plugins = runtimePlugins(ctx.runtimePlugins)
+  const activityRenderers = createActivityRendererRegistry(plugins)
   let advContext: AdvContext
 
   const runtime = createAdvRuntimeHost({
     program: BOOTSTRAP_PROGRAM,
-    plugins: runtimePlugins(ctx.runtimePlugins),
+    plugins,
     onState(state, current, program) {
       store.$syncRuntime(state, current, program)
       syncRuntimePresentation(state, ctx.gameConfig.value, ADV_RUNTIME)
@@ -79,6 +81,7 @@ export function setupAdvContext(ctx: {
     themeConfig: ctx.themeConfig,
     functions: {},
     runtime,
+    activityRenderers,
     resources: ADV_RUNTIME,
 
     async init() {
