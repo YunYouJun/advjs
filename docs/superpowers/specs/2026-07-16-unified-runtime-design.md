@@ -1,6 +1,6 @@
 # ADV.JS 统一运行时与扩展体系设计
 
-状态：待书面复核
+状态：已确认；运行时基础阶段已实现
 
 日期：2026-07-16
 
@@ -73,7 +73,7 @@ interface RuntimeProgram {
   hash: string
   entry: RuntimeAddress
   chapters: Record<string, RuntimeChapter>
-  requiredPlugins: Record<string, string | undefined>
+  requiredPlugins: Record<string, string>
 }
 
 interface RuntimeAddress {
@@ -91,7 +91,7 @@ interface RuntimeNode {
 }
 
 type JsonValue = null | boolean | number | string | JsonValue[] | JsonObject
-type JsonObject = { [key: string]: JsonValue }
+interface JsonObject { [key: string]: JsonValue }
 ```
 
 `hash` 根据除 `hash` 字段本身以外、会影响执行语义的规范化 Program 数据生成，用于存档兼容性校验。节点地址在编译期标准化为 `{ chapterId, nodeId }`，运行时不再猜测标题、文件名或场景名。
@@ -168,9 +168,11 @@ const stop = runtime.subscribe((state, effects) => {
 
 ## 7. Markdown 选择与章节跳转
 
-Markdown 选择使用普通链接表达目标：
+### Star Map
 
-```md
+Markdown 选择使用普通链接表达目标，以下用星图节点作为示例：
+
+```text
 - 留在当前场景
 - [观察星图](#star-map)
 - [进入第二章](chapter-2)
