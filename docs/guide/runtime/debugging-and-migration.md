@@ -45,13 +45,13 @@ Studio 试玩预览使用同一 Vue Runtime host。Inspector 展示规范地址�
 
 本次升级不保留双执行路径：
 
-| 旧方式 | 新方式 |
-| --- | --- |
-| JS/TS 代码块与 `$adv.$logic` | `variables` + `when` + 声明式 `actions` |
-| `$adv.$nav.next()` 或标题模糊跳转 | Markdown 链接 + `{#stable-id}` |
-| 浏览器局部状态 / CLI AST 存档 | 完整、版本化 `RuntimeSnapshot` |
-| 自定义代码直接打开 UI 或网络请求 | 插件 node 请求宿主 `activity` |
-| 各宿主独立推进剧情 | 共用 `createAdvRuntime()` |
+| 旧方式                            | 新方式                                  |
+| --------------------------------- | --------------------------------------- |
+| JS/TS 代码块与 `$adv.$logic`      | `variables` + `when` + 声明式 `actions` |
+| `$adv.$nav.next()` 或标题模糊跳转 | Markdown 链接 + `{#stable-id}`          |
+| 浏览器局部状态 / CLI AST 存档     | 完整、版本化 `RuntimeSnapshot`          |
+| 自定义代码直接打开 UI 或网络请求  | 插件 node 请求宿主 `activity`           |
+| 各宿主独立推进剧情                | 共用 `createAdvRuntime()`               |
 
 迁移步骤：
 

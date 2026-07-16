@@ -131,10 +131,10 @@ interface RuntimeSnapshot {
 
 interface AdvRuntime {
   // existing API
-  go(target: RuntimeAddress | string): Promise<RuntimeUpdate>
-  back(): RuntimeUpdate
-  snapshot(): RuntimeSnapshot
-  restore(snapshot: RuntimeSnapshot): RuntimeUpdate
+  go: (target: RuntimeAddress | string) => Promise<RuntimeUpdate>
+  back: () => RuntimeUpdate
+  snapshot: () => RuntimeSnapshot
+  restore: (snapshot: RuntimeSnapshot) => RuntimeUpdate
 }
 ```
 
@@ -174,10 +174,10 @@ interface RuntimeSaveRecord {
 }
 
 interface RuntimeStorage {
-  list(): Promise<RuntimeSaveRecord[]>
-  get(id: string): Promise<RuntimeSaveRecord | undefined>
-  set(record: RuntimeSaveRecord): Promise<void>
-  remove(id: string): Promise<void>
+  list: () => Promise<RuntimeSaveRecord[]>
+  get: (id: string) => Promise<RuntimeSaveRecord | undefined>
+  set: (record: RuntimeSaveRecord) => Promise<void>
+  remove: (id: string) => Promise<void>
 }
 ```
 

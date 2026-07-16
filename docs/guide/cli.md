@@ -228,10 +228,10 @@ adv play <script.adv.md> [options]
 
 ### 选项
 
-| 选项           | 说明                             |
-| -------------- | -------------------------------- |
-| `--session-id` | 用于持久化的会话 ID              |
-| `--json`       | 以 JSON 格式输出（默认 `false`） |
+| 选项           | 说明                                    |
+| -------------- | --------------------------------------- |
+| `--session-id` | 用于持久化的会话 ID                     |
+| `--json`       | 以 JSON 格式输出（默认 `false`）        |
 | `--trace`      | 向 stderr 输出 Runtime JSON Lines trace |
 
 ### 交互模式
@@ -248,7 +248,7 @@ adv play story.adv.md
 | --------------------- | ------------------------- |
 | `Enter` / `next`      | 推进故事                  |
 | `choose <n>` / `<n>`  | 选择选项（编号从 1 开始） |
-| `activity <json>`      | 完成当前待处理活动         |
+| `activity <json>`     | 完成当前待处理活动        |
 | `status`              | 查看会话状态              |
 | `reset`               | 重置会话                  |
 | `quit` / `q` / `exit` | 退出                      |

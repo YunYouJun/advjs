@@ -63,14 +63,14 @@ actions:
 ```
 ````
 
-| 动作 | 参数 | 行为 |
-| --- | --- | --- |
-| `variables/set` | `key`, `value` | 设置值，可创建安全的嵌套路径 |
-| `variables/increment` | `key`, `by?` | 数字增加，`by` 默认 1 |
-| `variables/decrement` | `key`, `by?` | 数字减少，`by` 默认 1 |
-| `variables/toggle` | `key` | 切换布尔值 |
-| `variables/push` | `key`, `value` | 向数组追加 JSON 值 |
-| `variables/remove` | `key`, `index?` 或 `value?` | 按索引或 JSON 值删除 |
+| 动作                  | 参数                        | 行为                         |
+| --------------------- | --------------------------- | ---------------------------- |
+| `variables/set`       | `key`, `value`              | 设置值，可创建安全的嵌套路径 |
+| `variables/increment` | `key`, `by?`                | 数字增加，`by` 默认 1        |
+| `variables/decrement` | `key`, `by?`                | 数字减少，`by` 默认 1        |
+| `variables/toggle`    | `key`                       | 切换布尔值                   |
+| `variables/push`      | `key`, `value`              | 向数组追加 JSON 值           |
+| `variables/remove`    | `key`, `index?` 或 `value?` | 按索引或 JSON 值删除         |
 
 `key` 使用点号路径，但禁止原型链相关字段。类型不匹配会产生 `ADV_RUNTIME_INVALID_ACTION`，不会静默转换。
 

@@ -4,13 +4,13 @@
 
 ## 当前直接使用
 
-| 使用位置 | 来源与作者 | 许可 | 状态与备注 |
-| --- | --- | --- | --- |
-| `public/md/chapters/1/仓鼠的笼子.adv.md` | YunYouJun，《[仓鼠](https://www.yunyoujun.cn/posts/hamster)》 | [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh) | **已确认**。重新编排并增加交互分支 |
-| `public/md/chapters/2/仓生.adv.md` | YunYouJun，《[仓生（普通仓鼠）](https://www.yunyoujun.cn/posts/the-common-hamster)》 | CC BY-NC-SA 4.0 | **已确认**。节选主题并重新创作 Demo 台词 |
-| `public/img/bg/observatory.svg`、`civilization.svg` | 本 Demo 新绘制的抽象 SVG | CC BY-NC-SA 4.0 | **已确认**。无外部图片依赖 |
-| `public/img/characters/observer.svg`、`hamster.svg` | 本 Demo 新绘制的抽象 SVG | CC BY-NC-SA 4.0 | **已确认**。无真人肖像或第三方角色素材 |
-| `public/favicon.svg`、`public/img/icons/safari-pinned-tab.svg` | [Remix Icon](https://github.com/Remix-Design/RemixIcon) `video-chat-line` | 引入时适用 [Apache-2.0](https://github.com/Remix-Design/RemixIcon/blob/v2.5.0/License) | **已确认** |
+| 使用位置                                                       | 来源与作者                                                                           | 许可                                                                                   | 状态与备注                               |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- | ---------------------------------------- |
+| `public/md/chapters/1/仓鼠的笼子.adv.md`                       | YunYouJun，《[仓鼠](https://www.yunyoujun.cn/posts/hamster)》                        | [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh)           | **已确认**。重新编排并增加交互分支       |
+| `public/md/chapters/2/仓生.adv.md`                             | YunYouJun，《[仓生（普通仓鼠）](https://www.yunyoujun.cn/posts/the-common-hamster)》 | CC BY-NC-SA 4.0                                                                        | **已确认**。节选主题并重新创作 Demo 台词 |
+| `public/img/bg/observatory.svg`、`civilization.svg`            | 本 Demo 新绘制的抽象 SVG                                                             | CC BY-NC-SA 4.0                                                                        | **已确认**。无外部图片依赖               |
+| `public/img/characters/observer.svg`、`hamster.svg`            | 本 Demo 新绘制的抽象 SVG                                                             | CC BY-NC-SA 4.0                                                                        | **已确认**。无真人肖像或第三方角色素材   |
+| `public/favicon.svg`、`public/img/icons/safari-pinned-tab.svg` | [Remix Icon](https://github.com/Remix-Design/RemixIcon) `video-chat-line`            | 引入时适用 [Apache-2.0](https://github.com/Remix-Design/RemixIcon/blob/v2.5.0/License) | **已确认**                               |
 
 ## 仓库内未被当前 Demo 引用的历史文件
 

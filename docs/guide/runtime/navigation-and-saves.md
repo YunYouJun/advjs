@@ -10,7 +10,7 @@ ADV.JS 会先把 Markdown 或 Flow 编译成纯数据 `RuntimeProgram`，再由�
 
 可被链接的标题或场景使用 `{#node-id}` 声明稳定 ID：
 
-```md
+```text
 【天文台，夜，内景】 {#observatory}
 
 ## 比对结果 {#compare-result}
@@ -18,18 +18,18 @@ ADV.JS 会先把 Markdown 或 Flow 编译成纯数据 `RuntimeProgram`，再由�
 
 选择使用普通 Markdown 链接：
 
-```md
+```text
 - 留在当前场景
 - [观察星图](#observatory)
 - [进入第二章](chapter-2)
 - [直接查看结果](chapter-2#compare-result)
 ```
 
-| 目标 | 含义 |
-| --- | --- |
-| 无链接 | 按剧本顺序继续 |
-| `#node-id` | 当前章节的稳定节点 |
-| `chapter-id` | 目标章节入口 |
+| 目标                 | 含义               |
+| -------------------- | ------------------ |
+| 无链接               | 按剧本顺序继续     |
+| `#node-id`           | 当前章节的稳定节点 |
+| `chapter-id`         | 目标章节入口       |
 | `chapter-id#node-id` | 目标章节的稳定节点 |
 
 目标在编译阶段解析为 `{ chapterId, nodeId }`。未知章节、未知节点、重复 ID、空 fragment 和多个 `#` 都会阻止 Program 生成；运行时不会按标题或文件名模糊匹配。
@@ -85,10 +85,10 @@ interface RuntimeSaveRecord {
 }
 
 interface RuntimeStorage {
-  list(): Promise<RuntimeSaveRecord[]>
-  get(id: string): Promise<RuntimeSaveRecord | undefined>
-  set(record: RuntimeSaveRecord): Promise<void>
-  remove(id: string): Promise<void>
+  list: () => Promise<RuntimeSaveRecord[]>
+  get: (id: string) => Promise<RuntimeSaveRecord | undefined>
+  set: (record: RuntimeSaveRecord) => Promise<void>
+  remove: (id: string) => Promise<void>
 }
 ```
 
