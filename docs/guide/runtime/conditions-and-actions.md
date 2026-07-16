@@ -82,6 +82,7 @@ actions:
 - [初始化文明](chapter-2#initialize)
 
   ```yaml
+  id: initialize-civilization
   when: starMatched && observationCount >= 1
   actions:
     - type: variables/increment
@@ -89,6 +90,8 @@ actions:
       by: 1
   ```
 ````
+
+`id` 是可选的作者 ID，适合路线测试、调试追踪和长期存档。它只能包含字母、数字、点、下划线与连字符，并且同一组选择内不能重复；省略时仍生成向后兼容的 `choice-1`、`choice-2`。
 
 条件不成立的选项不会暴露给浏览器或 CLI；动作在记录选择后、进入目标节点前执行。
 

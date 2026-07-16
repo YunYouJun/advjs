@@ -62,6 +62,7 @@ function normalizeAction(value: unknown): RuntimeActionCall | undefined {
 }
 
 function blockLogic(value: unknown): {
+  id?: string
   actions: RuntimeActionCall[]
   operations: JsonValue[]
   when?: string
@@ -101,6 +102,7 @@ function blockLogic(value: unknown): {
       && !normalizeAction(operation)
   }).map(json)
   return {
+    id: typeof first?.id === 'string' ? first.id : undefined,
     actions: [...nestedActions, ...directActions],
     operations,
     when,
@@ -197,7 +199,7 @@ function compileNode(
             })
           }
           return {
-            id: `choice-${index + 1}`,
+            id: logic.id ?? `choice-${index + 1}`,
             label: choice.text,
             target: choice.target,
             when: logic.when,

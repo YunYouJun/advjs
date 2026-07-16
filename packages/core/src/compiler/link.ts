@@ -214,6 +214,7 @@ export async function linkRuntimeProgram(input: RuntimeProgramInput): Promise<{
 
       const choiceInputs = nodeInput.choices ?? choicesFromData(nodeInput.data)
       if (choiceInputs) {
+        const choiceIds = new Set<string>()
         const options: RuntimeChoice[] = choiceInputs.map((choice) => {
           if (!choice.id || !choice.label) {
             diagnostics.push(error(
@@ -221,6 +222,23 @@ export async function linkRuntimeProgram(input: RuntimeProgramInput): Promise<{
               `Choice in ${chapterId}#${nodeId} requires non-empty id and label`,
               choice.source ?? nodeInput.source,
             ))
+          }
+          if (choice.id && !isRuntimeIdentifier(choice.id)) {
+            diagnostics.push(error(
+              'ADV_RUNTIME_INVALID_CHOICE_ID',
+              `Invalid choice id in ${chapterId}#${nodeId}: ${choice.id}`,
+              choice.source ?? nodeInput.source,
+            ))
+          }
+          if (choiceIds.has(choice.id)) {
+            diagnostics.push(error(
+              'ADV_RUNTIME_DUPLICATE_CHOICE_ID',
+              `Duplicate choice id in ${chapterId}#${nodeId}: ${choice.id}`,
+              choice.source ?? nodeInput.source,
+            ))
+          }
+          else {
+            choiceIds.add(choice.id)
           }
           const resolved = choice.target
             ? resolveTarget(
