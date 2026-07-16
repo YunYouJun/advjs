@@ -1,5 +1,6 @@
 import { civilization, starMap } from '@advjs/plugin-interactions'
 import { defineAdvConfig } from 'advjs'
+import gameSettings from './adv/settings/game.json'
 
 export default defineAdvConfig({
   theme: 'default',
@@ -11,30 +12,20 @@ export default defineAdvConfig({
     babylon: false,
   },
   gameConfig: {
-    title: '仓鼠：星海回声',
-    variables: {
-      observationCount: 0,
-      starMatched: false,
-      starMatchScore: 0,
-      civilizationLevel: 0,
-    },
-    requiredPlugins: {
-      'star-map': '1.0.0',
-      'civilization': '1.0.0',
-    },
+    ...gameSettings,
     chapters: [
       {
         id: 'chapter-1',
         title: '第一章：笼外星光',
         nodes: [
           {
-            id: 'node-1',
+            id: 'cage',
             type: 'fountain',
-            src: '/md/chapters/1/仓鼠的笼子.adv.md',
+            src: '/md/chapters/01-cage.adv.md',
             order: 0,
             target: {
               chapterId: 'chapter-2',
-              nodeId: 'node-2',
+              nodeId: 'last-night',
             },
           },
         ],
@@ -44,9 +35,41 @@ export default defineAdvConfig({
         title: '第二章：普通仓鼠的文明',
         nodes: [
           {
-            id: 'node-2',
+            id: 'last-night',
             type: 'fountain',
-            src: '/md/chapters/2/仓生.adv.md',
+            src: '/md/chapters/02-last-night.adv.md',
+            order: 0,
+            target: {
+              chapterId: 'chapter-3',
+              nodeId: 'common-life',
+            },
+          },
+        ],
+      },
+      {
+        id: 'chapter-3',
+        title: '第三章：一只普通仓鼠的一生',
+        nodes: [
+          {
+            id: 'common-life',
+            type: 'fountain',
+            src: '/md/chapters/03-common-life.adv.md',
+            order: 0,
+            target: {
+              chapterId: 'chapter-4',
+              nodeId: 'dim-stars',
+            },
+          },
+        ],
+      },
+      {
+        id: 'chapter-4',
+        title: '第四章：群星黯淡以后',
+        nodes: [
+          {
+            id: 'dim-stars',
+            type: 'fountain',
+            src: '/md/chapters/04-dim-stars.adv.md',
             order: 0,
           },
         ],
