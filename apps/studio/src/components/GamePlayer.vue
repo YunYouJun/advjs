@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { AdvContext } from '@advjs/client'
-import type { AdvConfig, AdvFountainNode, AdvGameConfig, RuntimeChoice, RuntimeNode, RuntimeSnapshot } from '@advjs/types'
+import type { AdvConfig, AdvFountainNode, AdvGameConfig, JsonValue, RuntimeChoice, RuntimeNode, RuntimeSnapshot } from '@advjs/types'
 import { injectionAdvContext } from '@advjs/client'
 import AdvGame from '@advjs/client/components/game/AdvGame.vue'
 import { setupAdvContext } from '@advjs/client/setup/context'
-import { IonButton, onIonViewDidEnter } from '@ionic/vue'
+import { onIonViewDidEnter } from '@ionic/vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, provide, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { usePlayProgress } from '../composables/usePlayProgress'
@@ -12,6 +12,7 @@ import { useRuntimeInspector } from '../composables/useRuntimeInspector'
 import { useStudioAdvConfig } from '../composables/useStudioAdvConfig'
 import { useStudioStore } from '../stores/useStudioStore'
 import { createStudioRuntimePlugins } from '../utils/studioRuntimePlugins'
+import RuntimeDiagnosticsOverlay from './RuntimeDiagnosticsOverlay.vue'
 import RuntimeInspectorDrawer from './RuntimeInspectorDrawer.vue'
 
 const props = defineProps<{
@@ -130,6 +131,13 @@ const runtimeTrace = computed(() => {
   return $adv.runtime.trace()
 })
 const currentRuntimeNode = computed(() => $adv.store.current)
+const compileDiagnostics = $adv.compileDiagnostics
+const reportDiagnostics = computed<JsonValue[]>(() => compileDiagnostics.value.map(diagnostic => ({
+  code: diagnostic.code,
+  severity: diagnostic.severity,
+  message: diagnostic.message,
+  ...(diagnostic.source ? { source: { ...diagnostic.source } } : {}),
+})))
 const inspector = useRuntimeInspector(
   () => runtimeSnapshot.value,
   () => currentRuntimeNode.value,
@@ -189,6 +197,14 @@ async function initGame() {
   catch (cause) {
     error.value = cause instanceof Error ? cause.message : String(cause)
   }
+}
+
+async function retryInit() {
+  initStarted = false
+  ready.value = false
+  error.value = ''
+  compileDiagnostics.value = []
+  await initGame()
 }
 
 onIonViewDidEnter(initGame)
@@ -286,12 +302,12 @@ defineExpose({
       <p>{{ t('preview.loadingGame') }}</p>
     </div>
 
-    <div v-else-if="error" class="game-player__center game-player__error">
-      <p>{{ error }}</p>
-      <IonButton size="small" fill="outline" @click="restart">
-        {{ t('preview.restart') }}
-      </IonButton>
-    </div>
+    <RuntimeDiagnosticsOverlay
+      v-else-if="error"
+      :diagnostics="compileDiagnostics"
+      :error="error"
+      @retry="retryInit"
+    />
 
     <AdvGame v-if="ready" class="game-player__game" />
 
@@ -302,6 +318,7 @@ defineExpose({
       @click="runtimeInspectorOpen = true"
     >
       {{ t('runtimeInspector.open') }}
+      <span v-if="compileDiagnostics.length"> · {{ compileDiagnostics.length }}</span>
     </button>
 
     <RuntimeInspectorDrawer
@@ -310,6 +327,7 @@ defineExpose({
       :snapshot="runtimeSnapshot"
       :current="currentRuntimeNode"
       :trace="runtimeTrace"
+      :diagnostics="reportDiagnostics"
       @close="runtimeInspectorOpen = false"
     />
 
@@ -354,10 +372,6 @@ defineExpose({
   border-top-color: var(--ion-color-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
-}
-
-.game-player__error {
-  color: #f87171;
 }
 
 .game-player__footer {

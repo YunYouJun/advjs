@@ -1,6 +1,7 @@
+import type { CompileDiagnostic } from '@advjs/core'
 import type { AdvConfig, AdvGameConfig } from '@advjs/types'
 
-import type { ComputedRef } from 'vue'
+import type { ComputedRef, ShallowRef } from 'vue'
 import type { useAdvAuto, useAdvBgm, useAdvTachies } from '../composables'
 import type { useAdvCharacters } from '../composables/useAdvCharacters'
 import type { AdvRuntimeHost } from '../composables/useAdvRuntime'
@@ -30,6 +31,8 @@ export interface AdvContext {
    * 运行时变量
    */
   runtime: AdvRuntimeHost
+  /** Diagnostics produced by the most recent runtime compilation. */
+  compileDiagnostics: ShallowRef<CompileDiagnostic[]>
   /** Presentation-only renderers registered by client runtime plugins. */
   activityRenderers: ActivityRendererRegistry
   /** Presentation-only character and tachie resources. */

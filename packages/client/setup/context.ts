@@ -1,9 +1,10 @@
+import type { CompileDiagnostic } from '@advjs/core'
 import type { RuntimeProgram } from '@advjs/types'
 import type { Pinia } from 'pinia'
 import type { CompileClientRuntimeProgramOptions } from '../runtime'
 import type { AdvClientRuntimePlugin, AdvContext } from '../types'
 import { $t } from '@advjs/client/modules/i18n'
-import { watch } from 'vue'
+import { shallowRef, watch } from 'vue'
 import { useAdvAuto, useAdvBgm, useAdvTachies } from '../composables'
 import { useAdvCharacters } from '../composables/useAdvCharacters'
 import { createAdvRuntimeHost } from '../composables/useAdvRuntime'
@@ -59,6 +60,7 @@ export function setupAdvContext(ctx: {
   const store = useAdvStore(ctx.pinia)
   const plugins = runtimePlugins(ctx.runtimePlugins)
   const activityRenderers = createActivityRendererRegistry(plugins)
+  const compileDiagnostics = shallowRef<CompileDiagnostic[]>([])
   let advContext: AdvContext
 
   const runtime = createAdvRuntimeHost({
@@ -81,10 +83,12 @@ export function setupAdvContext(ctx: {
     themeConfig: ctx.themeConfig,
     functions: {},
     runtime,
+    compileDiagnostics,
     activityRenderers,
     resources: ADV_RUNTIME,
 
     async init() {
+      compileDiagnostics.value = []
       await initGameRuntime(advContext)
       const result = await compileClientRuntimeProgram({
         id: `adv-browser:${ctx.gameConfig.value.title || 'game'}`,
@@ -92,6 +96,7 @@ export function setupAdvContext(ctx: {
         fetcher: ctx.fetcher,
         requiredPlugins: ctx.gameConfig.value.requiredPlugins,
       })
+      compileDiagnostics.value = structuredClone(result.diagnostics)
       if (!result.program)
         throw compilerError(result.diagnostics)
       runtime.install(result.program, {

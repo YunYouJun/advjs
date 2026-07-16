@@ -30,6 +30,12 @@ function exportReport() {
   const report = createRuntimeDebugReport({
     snapshot: $adv.runtime.snapshot(),
     trace: $adv.runtime.trace(),
+    diagnostics: $adv.compileDiagnostics.value.map(diagnostic => ({
+      code: diagnostic.code,
+      severity: diagnostic.severity,
+      message: diagnostic.message,
+      ...(diagnostic.source ? { source: { ...diagnostic.source } } : {}),
+    })),
   })
   const url = URL.createObjectURL(new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' }))
   const anchor = document.createElement('a')

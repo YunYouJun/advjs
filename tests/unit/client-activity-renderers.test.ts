@@ -59,6 +59,7 @@ describe('activity renderer registry', () => {
     })
 
     expect(context.activityRenderers.resolve('test/open')).toBe(renderer)
+    expect(context.compileDiagnostics.value).toEqual([])
     context.runtime.dispose()
   })
 })

@@ -240,6 +240,9 @@
     "download": "Download report",
     "copied": "Copied",
     "emptyTrace": "No runtime commands yet",
+    "compileFailed": "Preview could not compile",
+    "genericError": "Preview failed",
+    "retry": "Retry preview",
     "reviewNotice": "The report can contain author-defined variable values. Review it before sharing."
   },
   "editor": {
