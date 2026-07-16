@@ -86,6 +86,32 @@ describe('client runtime host', () => {
     expect(host.program.value?.id).toBe('replacement')
   })
 
+  it('keeps host trace subscriptions across runtime replacement', async () => {
+    const host = createAdvRuntimeHost({ program, maxTraceEntries: 1 })
+    const commands: string[] = []
+    const stop = host.subscribeTrace(entry => commands.push(entry.command))
+
+    await host.start()
+    expect(host.trace()).toEqual([
+      expect.objectContaining({ sequence: 1, command: 'start' }),
+    ])
+
+    host.install({ ...program, id: 'replacement', hash: 'replacement-v1' })
+    await host.start()
+    expect(commands).toEqual(['start', 'start'])
+    expect(host.trace()).toEqual([
+      expect.objectContaining({ sequence: 1, command: 'start' }),
+    ])
+
+    stop()
+    await host.next()
+    expect(commands).toEqual(['start', 'start'])
+    expect(host.trace()).toEqual([
+      expect.objectContaining({ sequence: 2, command: 'next' }),
+    ])
+    host.dispose()
+  })
+
   it('forwards activity completion through the host', async () => {
     const plugin = defineAdvPlugin({
       name: 'test',

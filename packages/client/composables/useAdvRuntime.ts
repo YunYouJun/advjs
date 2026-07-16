@@ -2,6 +2,7 @@ import type {
   AdvRuntime,
   AdvRuntimeOptions,
   AdvRuntimePlugin,
+  RuntimeTraceSubscriber,
 } from '@advjs/core'
 import type {
   JsonObject,
@@ -12,6 +13,7 @@ import type {
   RuntimeProgram,
   RuntimeSnapshot,
   RuntimeState,
+  RuntimeTraceEntry,
   RuntimeUpdate,
 } from '@advjs/types'
 import type { DeepReadonly, Ref } from 'vue'
@@ -21,6 +23,7 @@ import { readonly, shallowRef } from 'vue'
 export interface AdvRuntimeHostInstallOptions {
   initialVariables?: JsonObject
   maxCheckpoints?: number
+  maxTraceEntries?: number
   now?: () => number
   plugins?: readonly AdvRuntimePlugin[]
 }
@@ -48,6 +51,8 @@ export interface AdvRuntimeHost {
   back: () => RuntimeUpdate
   snapshot: () => RuntimeSnapshot
   restore: (snapshot: RuntimeSnapshot) => RuntimeUpdate
+  trace: () => RuntimeTraceEntry[]
+  subscribeTrace: (subscriber: RuntimeTraceSubscriber) => () => void
   dispose: () => void
 }
 
@@ -68,6 +73,8 @@ export function createAdvRuntimeHost(options: CreateAdvRuntimeHostOptions): AdvR
   const program = shallowRef<RuntimeProgram>()
   let runtime: AdvRuntime | undefined
   let unsubscribe: (() => void) | undefined
+  let unsubscribeTrace: (() => void) | undefined
+  const traceSubscribers = new Set<RuntimeTraceSubscriber>()
 
   const sync = () => {
     if (!runtime || !program.value)
@@ -88,11 +95,13 @@ export function createAdvRuntimeHost(options: CreateAdvRuntimeHostOptions): AdvR
     installOptions: AdvRuntimeHostInstallOptions = {},
   ) => {
     unsubscribe?.()
+    unsubscribeTrace?.()
     program.value = structuredClone(installedProgram)
     const runtimeOptions: AdvRuntimeOptions = {
       program: installedProgram,
       initialVariables: installOptions.initialVariables ?? options.initialVariables,
       maxCheckpoints: installOptions.maxCheckpoints ?? options.maxCheckpoints,
+      maxTraceEntries: installOptions.maxTraceEntries ?? options.maxTraceEntries,
       now: installOptions.now ?? options.now,
       plugins: installOptions.plugins ?? options.plugins,
     }
@@ -100,6 +109,10 @@ export function createAdvRuntimeHost(options: CreateAdvRuntimeHostOptions): AdvR
     unsubscribe = runtime.subscribe((nextState, effects) => {
       sync()
       options.onEffects?.(effects, nextState)
+    })
+    unsubscribeTrace = runtime.subscribeTrace((entry) => {
+      for (const subscriber of traceSubscribers)
+        subscriber(structuredClone(entry))
     })
     sync()
   }
@@ -119,9 +132,17 @@ export function createAdvRuntimeHost(options: CreateAdvRuntimeHostOptions): AdvR
     back: () => requireRuntime().back(),
     snapshot: () => requireRuntime().snapshot(),
     restore: snapshot => requireRuntime().restore(snapshot),
+    trace: () => requireRuntime().trace(),
+    subscribeTrace(subscriber) {
+      traceSubscribers.add(subscriber)
+      return () => traceSubscribers.delete(subscriber)
+    },
     dispose() {
       unsubscribe?.()
+      unsubscribeTrace?.()
       unsubscribe = undefined
+      unsubscribeTrace = undefined
+      traceSubscribers.clear()
       runtime = undefined
     },
   }

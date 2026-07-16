@@ -3,25 +3,19 @@ import type {
   AdvRuntimeOptions,
 } from '@advjs/core'
 import type {
-  JsonObject,
   JsonValue,
   RuntimeAddress,
   RuntimeChoice,
-  RuntimeEffect,
   RuntimeNode,
   RuntimeSnapshot,
   RuntimeStageState,
   RuntimeState,
+  RuntimeTraceEntry,
 } from '@advjs/types'
 import { createAdvRuntime } from '@advjs/core'
 
-export interface RuntimeCliTrace {
-  command: 'start' | 'next' | 'choose' | 'go' | 'back' | 'restore' | 'activity'
-  address: RuntimeAddress
-  status: RuntimeState['status']
-  effects: RuntimeEffect[]
-  variables: JsonObject
-}
+/** @deprecated Use RuntimeTraceEntry from @advjs/types. */
+export type RuntimeCliTrace = RuntimeTraceEntry
 
 export interface RuntimeCliOutput {
   type: string
@@ -120,11 +114,12 @@ export function formatRuntimeCliOutput(
 
 export class RuntimeCliPlayer {
   readonly runtime: AdvRuntime
-  private readonly trace?: (trace: RuntimeCliTrace) => void
 
   constructor(options: RuntimeCliPlayerOptions) {
-    this.runtime = createAdvRuntime(options)
-    this.trace = options.trace
+    const { trace, ...runtimeOptions } = options
+    this.runtime = createAdvRuntime(runtimeOptions)
+    if (trace)
+      this.runtime.subscribeTrace(trace)
   }
 
   current(): RuntimeCliOutput {
@@ -140,14 +135,12 @@ export class RuntimeCliPlayer {
   }
 
   async start(): Promise<RuntimeCliOutput> {
-    const update = await this.runtime.start()
-    this.emitTrace('start', update.effects)
+    await this.runtime.start()
     return this.current()
   }
 
   async next(): Promise<RuntimeCliOutput> {
-    const update = await this.runtime.next()
-    this.emitTrace('next', update.effects)
+    await this.runtime.next()
     return this.current()
   }
 
@@ -157,20 +150,17 @@ export class RuntimeCliPlayer {
     const choiceId = typeof choice === 'number' ? options[choice - 1]?.id : choice
     if (!choiceId)
       throw new Error(`ADV_RUNTIME_UNKNOWN_CHOICE: ${String(choice)}`)
-    const update = await this.runtime.choose(choiceId)
-    this.emitTrace('choose', update.effects)
+    await this.runtime.choose(choiceId)
     return this.current()
   }
 
   async go(target: RuntimeAddress | string): Promise<RuntimeCliOutput> {
-    const update = await this.runtime.go(target)
-    this.emitTrace('go', update.effects)
+    await this.runtime.go(target)
     return this.current()
   }
 
   async completeActivity(result: JsonValue): Promise<RuntimeCliOutput> {
-    const update = await this.runtime.completeActivity(result)
-    this.emitTrace('activity', update.effects)
+    await this.runtime.completeActivity(result)
     return this.current()
   }
 
@@ -178,9 +168,8 @@ export class RuntimeCliPlayer {
     let poppedSteps = 0
     for (let index = 0; index < Math.max(0, steps); index++) {
       try {
-        const update = this.runtime.back()
+        this.runtime.back()
         poppedSteps++
-        this.emitTrace('back', update.effects)
       }
       catch (error) {
         if (error instanceof Error && error.message.includes('ADV_RUNTIME_NO_CHECKPOINT'))
@@ -192,21 +181,7 @@ export class RuntimeCliPlayer {
   }
 
   restore(snapshot: RuntimeSnapshot): RuntimeCliOutput {
-    const update = this.runtime.restore(snapshot)
-    this.emitTrace('restore', update.effects)
+    this.runtime.restore(snapshot)
     return this.current()
-  }
-
-  private emitTrace(command: RuntimeCliTrace['command'], effects: RuntimeEffect[]): void {
-    if (!this.trace)
-      return
-    const state = this.runtime.state
-    this.trace({
-      command,
-      address: structuredClone(state.cursor),
-      status: state.status,
-      effects: structuredClone(effects),
-      variables: structuredClone(state.variables),
-    })
   }
 }

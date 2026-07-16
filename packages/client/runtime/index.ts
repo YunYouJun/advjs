@@ -4,6 +4,15 @@ export {
   syncRuntimePresentation,
 } from './effects'
 export type { AdvPresentationResources } from './effects'
+export {
+  createRuntimeDebugReport,
+  projectRuntimeInspector,
+} from './inspector'
+export type {
+  RuntimeDebugReport,
+  RuntimeDebugReportOptions,
+  RuntimeInspectorModel,
+} from './inspector'
 export { compileClientRuntimeProgram } from './program'
 export type {
   CompileClientRuntimeProgramOptions,

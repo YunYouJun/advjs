@@ -117,9 +117,9 @@ describe('runtimeCliPlayer', () => {
 
     expect(player.current()).toMatchObject({ type: 'dialog' })
     expect(traces).toMatchObject([
-      { command: 'start', address: { chapterId: 'chapter-1', nodeId: 'line' }, status: 'playing' },
-      { command: 'next', address: { chapterId: 'chapter-1', nodeId: 'choice' }, status: 'waiting-choice' },
-      { command: 'restore', address: { chapterId: 'chapter-1', nodeId: 'line' }, status: 'playing' },
+      { command: 'start', to: { chapterId: 'chapter-1', nodeId: 'line' }, status: 'playing' },
+      { command: 'next', to: { chapterId: 'chapter-1', nodeId: 'choice' }, status: 'waiting-choice' },
+      { command: 'restore', to: { chapterId: 'chapter-1', nodeId: 'line' }, status: 'playing' },
     ])
   })
 
@@ -175,7 +175,12 @@ describe('runtimeCliPlayer', () => {
     expect(player.status().variables.result).toEqual({ matched: true })
     expect(traces).toMatchObject([
       { command: 'start', status: 'waiting-activity' },
-      { command: 'activity', status: 'ended' },
+      {
+        command: 'complete-activity',
+        input: { activityType: 'observer/compare' },
+        status: 'ended',
+        variableChanges: [{ path: 'result', after: { matched: true } }],
+      },
     ])
   })
 })
