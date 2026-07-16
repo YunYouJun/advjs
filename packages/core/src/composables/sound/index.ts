@@ -13,7 +13,7 @@ import type {
   ReturnedValue,
 } from './types'
 import { isClient } from '@vueuse/core'
-import { onMounted, ref, unref, watch } from 'vue'
+import { ref, unref, watch } from 'vue'
 
 export function useSound(
   url: MaybeRef<string>,
@@ -31,25 +31,20 @@ export function useSound(
   const duration = ref<number | null>(null)
   const sound = ref<Howl | null>(null)
 
-  onMounted(() => {
-    const curUrl = unref(url)
-    if (!curUrl)
+  async function loadSound(curUrl: string) {
+    if (!curUrl || !isClient)
       return
 
-    if (isClient) {
-      import('howler').then((mod) => {
-        HowlConstructor.value = mod.Howl
-
-        sound.value = new HowlConstructor.value({
-          src: [curUrl],
-          volume: unref(volume),
-          rate: unref(playbackRate),
-          onload: handleLoad,
-          ...delegated,
-        })
-      })
-    }
-  })
+    const mod = await import('howler')
+    HowlConstructor.value = mod.Howl
+    sound.value = new HowlConstructor.value({
+      src: [curUrl],
+      volume: unref(volume),
+      rate: unref(playbackRate),
+      onload: handleLoad,
+      ...delegated,
+    })
+  }
 
   function handleLoad(this: Howl) {
     if (typeof onload === 'function')
@@ -60,18 +55,11 @@ export function useSound(
   }
 
   watch(
-    () => [url],
-    () => {
-      if (url && HowlConstructor && HowlConstructor.value && sound && sound.value) {
-        sound.value = new HowlConstructor.value({
-          src: [unref(url)],
-          volume: unref(volume),
-          rate: unref(playbackRate),
-          onload: handleLoad,
-          ...delegated,
-        })
-      }
+    () => unref(url),
+    (curUrl) => {
+      void loadSound(curUrl)
     },
+    { immediate: true },
   )
 
   watch(
