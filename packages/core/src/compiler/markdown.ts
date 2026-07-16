@@ -1,5 +1,11 @@
-import type { AdvAst, JsonValue, RuntimeNode, RuntimeProgram } from '@advjs/types'
-import type { CompileDiagnostic, CompileResult, RuntimeChapterInput } from './types'
+import type { AdvAst, JsonValue, RuntimeProgram } from '@advjs/types'
+import type {
+  CompileDiagnostic,
+  CompileResult,
+  CompileSourceLocation,
+  RuntimeChapterInput,
+  RuntimeNodeInput,
+} from './types'
 import { parseAst } from '@advjs/parser'
 import { linkRuntimeProgram } from './link'
 
@@ -28,15 +34,34 @@ function json(value: unknown): JsonValue {
   return JSON.parse(JSON.stringify(value)) as JsonValue
 }
 
+function sourceLocation(
+  node: AdvAst.Node,
+  sourcePath?: string,
+): CompileSourceLocation | undefined {
+  if (!sourcePath && !node.position)
+    return undefined
+  return {
+    file: sourcePath,
+    line: node.position?.start.line,
+    column: node.position?.start.column,
+  }
+}
+
 function compileNode(
   node: AdvAst.Child,
   id: string,
   diagnostics: CompileDiagnostic[],
   sourcePath?: string,
-): RuntimeNode | null {
+): RuntimeNodeInput | null {
+  const source = sourceLocation(node, sourcePath)
+  const withSource = (compiled: RuntimeNodeInput): RuntimeNodeInput => ({
+    ...compiled,
+    source,
+  })
+
   switch (node.type) {
     case 'dialog':
-      return {
+      return withSource({
         id,
         kind: 'dialog',
         data: {
@@ -44,17 +69,17 @@ function compileNode(
           status: node.character.status ?? '',
           text: phrasingText(node.children),
         },
-      }
+      })
     case 'narration':
-      return { id, kind: 'narration', data: { text: node.children.join('\n') } }
+      return withSource({ id, kind: 'narration', data: { text: node.children.join('\n') } })
     case 'text':
-      return { id, kind: 'text', data: { text: node.value } }
+      return withSource({ id, kind: 'text', data: { text: node.value } })
     case 'paragraph': {
       const text = phrasingText(node.children)
-      return text.trim() ? { id, kind: 'text', data: { text } } : null
+      return text.trim() ? withSource({ id, kind: 'text', data: { text } }) : null
     }
     case 'scene':
-      return {
+      return withSource({
         id,
         kind: 'scene',
         data: {
@@ -62,27 +87,34 @@ function compileNode(
           time: node.time,
           inOrOut: node.inOrOut,
         },
-      }
+      })
+    case 'heading':
+      return withSource({
+        id,
+        kind: 'anchor',
+        data: { depth: node.depth, text: node.value },
+      })
     case 'choices': {
-      const hasExecutableChoice = node.choices.some(choice => Boolean(choice.target || choice.do?.value))
+      const hasExecutableChoice = node.choices.some(choice => Boolean(choice.do?.value))
       if (hasExecutableChoice) {
+        const executable = node.choices.find(choice => Boolean(choice.do?.value))
         diagnostics.push({
-          code: 'ADV_RUNTIME_CHOICE_LINK_REQUIRED',
+          code: 'ADV_RUNTIME_EXECUTABLE_CHOICE_ACTION',
           severity: 'error',
-          message: 'Choice targets and actions must be linked before RuntimeProgram execution',
-          source: sourcePath ? { file: sourcePath } : undefined,
+          message: 'Executable choice actions are not supported by RuntimeProgram',
+          source: executable ? sourceLocation(executable, sourcePath) : source,
         })
       }
-      return {
+      return withSource({
         id,
         kind: 'choices',
-        data: {
-          options: node.choices.map((choice, index) => ({
-            id: `choice-${index + 1}`,
-            label: choice.text,
-          })),
-        },
-      }
+        choices: node.choices.map((choice, index) => ({
+          id: `choice-${index + 1}`,
+          label: choice.text,
+          target: choice.target,
+          source: sourceLocation(choice, sourcePath),
+        })),
+      })
     }
     case 'code':
       if (typeof node.value === 'string') {
@@ -95,7 +127,7 @@ function compileNode(
         return null
       }
       return node.value?.length
-        ? { id, kind: 'effects', data: { operations: json(node.value) } }
+        ? withSource({ id, kind: 'effects', data: { operations: json(node.value) } })
         : null
     default:
       return null
@@ -109,8 +141,13 @@ export async function compileMarkdownProgram(source: MarkdownProgramSource): Pro
   for (const chapterSource of source.chapters) {
     const ast = await parseAst(chapterSource.content)
     const nodes = ast.children
-      .map((node, index) => compileNode(node, `node-${index}`, diagnostics, chapterSource.sourcePath))
-      .filter((node): node is RuntimeNode => node !== null)
+      .map((node, index) => compileNode(
+        node,
+        node.id ?? `node-${index}`,
+        diagnostics,
+        chapterSource.sourcePath,
+      ))
+      .filter((node): node is RuntimeNodeInput => node !== null)
 
     nodes.push({ id: 'end', kind: 'end' })
     nodes.forEach((node, index) => {

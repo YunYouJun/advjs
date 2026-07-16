@@ -51,6 +51,37 @@ describe('transitionRuntime', () => {
     })
   })
 
+  it('passes through heading anchor nodes before pausing on content', () => {
+    const anchorProgram: RuntimeProgram = {
+      ...program,
+      entry: { chapterId: 'chapter-1', nodeId: 'anchor' },
+      chapters: {
+        'chapter-1': {
+          ...program.chapters['chapter-1'],
+          entry: 'anchor',
+          order: ['anchor', 'dialog'],
+          nodes: {
+            anchor: {
+              id: 'anchor',
+              kind: 'anchor',
+              data: { depth: 2, text: '比对结果' },
+              next: { chapterId: 'chapter-1', nodeId: 'dialog' },
+            },
+            dialog: program.chapters['chapter-1'].nodes.dialog,
+          },
+        },
+      },
+    }
+
+    const update = transitionRuntime(
+      anchorProgram,
+      createInitialRuntimeState(anchorProgram),
+      { type: 'start' },
+    )
+
+    expect(update.state.cursor.nodeId).toBe('dialog')
+  })
+
   it('waits for a choice and records the selected option', () => {
     const started = transitionRuntime(program, createInitialRuntimeState(program), { type: 'start' })
     const choices = transitionRuntime(program, started.state, { type: 'next' })

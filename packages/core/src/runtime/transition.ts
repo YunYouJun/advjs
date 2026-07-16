@@ -80,6 +80,14 @@ function enterUntilPause(program: RuntimeProgram, state: RuntimeState): RuntimeU
     if (!state.visited.includes(address))
       state.visited.push(address)
 
+    if (node.kind === 'anchor') {
+      moveToNext(state, node.next)
+      if (state.status === 'ended')
+        return { state, effects }
+      silentSteps++
+      continue
+    }
+
     if (node.kind === 'effects') {
       const data = node.data as { operations?: JsonValue[] } | undefined
       for (const value of data?.operations ?? []) {

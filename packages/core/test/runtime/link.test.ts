@@ -85,4 +85,43 @@ describe('linkRuntimeProgram', () => {
 
     expect(result.diagnostics[0]?.code).toBe('ADV_RUNTIME_UNKNOWN_TARGET')
   })
+
+  it('resolves raw choice targets before emitting a program', async () => {
+    const result = await linkRuntimeProgram({
+      id: 'choice-targets',
+      entry: { chapterId: 'chapter-1', nodeId: 'choose' },
+      chapters: [
+        {
+          id: 'chapter-1',
+          entry: 'choose',
+          nodes: [{
+            id: 'choose',
+            kind: 'choices',
+            data: {
+              options: [
+                { id: 'local', label: 'Local', target: '#choose' },
+                { id: 'chapter', label: 'Chapter', target: 'chapter-2' },
+                { id: 'exact', label: 'Exact', target: 'chapter-2#result' },
+              ],
+            },
+          }],
+        },
+        {
+          id: 'chapter-2',
+          entry: 'start',
+          nodes: [
+            { id: 'start', kind: 'text' },
+            { id: 'result', kind: 'end' },
+          ],
+        },
+      ],
+    })
+
+    expect(result.diagnostics).toEqual([])
+    expect(result.program?.chapters['chapter-1'].nodes.choose.data?.options).toEqual([
+      { id: 'local', label: 'Local', target: { chapterId: 'chapter-1', nodeId: 'choose' } },
+      { id: 'chapter', label: 'Chapter', target: { chapterId: 'chapter-2', nodeId: 'start' } },
+      { id: 'exact', label: 'Exact', target: { chapterId: 'chapter-2', nodeId: 'result' } },
+    ])
+  })
 })

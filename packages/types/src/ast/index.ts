@@ -1,12 +1,13 @@
 import type * as MdAst from 'mdast'
-import type { Position } from 'unist'
+
+type SourcePosition = NonNullable<MdAst.Root['position']>
 
 export interface Node {
   type: string
   /** Stable author-defined node identifier. */
   id?: string
   /** Original Markdown source location. */
-  position?: Position
+  position?: SourcePosition
 }
 
 export interface Unknown extends Node {
