@@ -10,7 +10,10 @@ describe('@advjs/core browser bundle', () => {
       logLevel: 'silent',
       build: {
         lib: {
-          entry: path.resolve(import.meta.dirname, '../src/runtime/index.ts'),
+          entry: {
+            runtime: path.resolve(import.meta.dirname, '../src/runtime/index.ts'),
+            storage: path.resolve(import.meta.dirname, '../src/storage/index.ts'),
+          },
           formats: ['es'],
           name: 'AdvJsCoreBrowserTest',
         },
@@ -27,6 +30,7 @@ describe('@advjs/core browser bundle', () => {
       .join('\n')
 
     expect(code).toContain('createAdvRuntime')
+    expect(code).toContain('createMemoryRuntimeStorage')
     expect(code).not.toContain('__vite-browser-external')
     expect(code).not.toContain('node:fs')
     expect(code).not.toContain('node:path')

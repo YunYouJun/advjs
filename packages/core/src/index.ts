@@ -7,6 +7,7 @@ export * from './compiler'
 export * from './constants'
 export * from './engine'
 export * from './runtime'
+export * from './storage'
 
 export * from './utils'
 export * from './vrm'
