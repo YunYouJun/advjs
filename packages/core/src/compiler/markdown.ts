@@ -44,8 +44,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value))
 }
 
+const capabilityPattern = /^[a-z][a-z0-9-]*\/[a-z][a-z0-9-]*$/u
+
 function normalizeAction(value: unknown): RuntimeActionCall | undefined {
-  if (!isRecord(value) || typeof value.type !== 'string' || !value.type.includes('/'))
+  if (!isRecord(value) || typeof value.type !== 'string' || !capabilityPattern.test(value.type))
     return undefined
   const explicitArgs = isRecord(value.args) ? value.args : undefined
   const args = explicitArgs ?? Object.fromEntries(
@@ -65,6 +67,8 @@ function blockLogic(value: unknown): {
   when?: string
   conditionMarker?: string
   activity?: { type: string, input: JsonObject }
+  invalidActionCount: number
+  invalidActivity: boolean
 } {
   const values = Array.isArray(value) ? value : []
   const first = isRecord(values[0]) ? values[0] : undefined
@@ -72,15 +76,21 @@ function blockLogic(value: unknown): {
   const conditionMarker = first?.type === 'when' && typeof first.condition === 'string'
     ? first.condition
     : undefined
-  const activity = first?.type === 'activity' && typeof first.use === 'string'
+  const activity = first?.type === 'activity'
+    && typeof first.use === 'string'
+    && capabilityPattern.test(first.use)
     ? {
         type: first.use,
         input: isRecord(first.input) ? json(first.input) as JsonObject : {},
       }
     : undefined
-  const nestedActions = Array.isArray(first?.actions)
-    ? first.actions.map(normalizeAction).filter((action): action is RuntimeActionCall => Boolean(action))
-    : []
+  const nestedActionValues = Array.isArray(first?.actions) ? first.actions : []
+  const nestedActions = nestedActionValues
+    .map(normalizeAction)
+    .filter((action): action is RuntimeActionCall => Boolean(action))
+  const directActionValues = values.filter(value => (
+    isRecord(value) && typeof value.type === 'string' && value.type.includes('/')
+  ))
   const directActions = values.map(normalizeAction).filter((action): action is RuntimeActionCall => Boolean(action))
   const operations = values.filter((operation) => {
     if (!isRecord(operation))
@@ -96,6 +106,9 @@ function blockLogic(value: unknown): {
     when,
     conditionMarker,
     activity,
+    invalidActionCount: nestedActionValues.filter(value => !normalizeAction(value)).length
+      + directActionValues.filter(value => !normalizeAction(value)).length,
+    invalidActivity: first?.type === 'activity' && !activity,
   }
 }
 
@@ -175,6 +188,14 @@ function compileNode(
         kind: 'choices',
         choices: node.choices.map((choice, index) => {
           const logic = blockLogic(choice.do?.value)
+          if (logic.invalidActionCount > 0) {
+            diagnostics.push({
+              code: 'ADV_RUNTIME_INVALID_ACTION',
+              severity: 'error',
+              message: 'Choice actions require a namespaced type such as variables/set or plugin/action',
+              source: sourceLocation(choice, sourcePath),
+            })
+          }
           return {
             id: `choice-${index + 1}`,
             label: choice.text,
@@ -199,6 +220,22 @@ function compileNode(
       if (!node.value?.length)
         return null
       const logic = blockLogic(node.value)
+      if (logic.invalidActionCount > 0) {
+        diagnostics.push({
+          code: 'ADV_RUNTIME_INVALID_ACTION',
+          severity: 'error',
+          message: 'Actions require a namespaced type such as variables/set or plugin/action',
+          source,
+        })
+      }
+      if (logic.invalidActivity) {
+        diagnostics.push({
+          code: 'ADV_RUNTIME_INVALID_ACTIVITY',
+          severity: 'error',
+          message: 'Activities require a namespaced use value such as plugin/activity',
+          source,
+        })
+      }
       if (logic.conditionMarker) {
         return withSource({
           id,
@@ -253,6 +290,7 @@ export async function compileMarkdownProgram(source: MarkdownProgramSource): Pro
       }
       if (pendingCondition) {
         compiled.when = pendingCondition.value
+        compiled.whenSource = pendingCondition.source
         pendingCondition = undefined
       }
       nodes.push(compiled)

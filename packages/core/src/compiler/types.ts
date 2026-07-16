@@ -41,6 +41,7 @@ export interface RuntimeNodeInput {
   next?: RuntimeTargetInput
   choices?: RuntimeChoiceInput[]
   when?: string | RuntimeExpression
+  whenSource?: CompileSourceLocation
   actions?: RuntimeActionCall[]
   source?: CompileSourceLocation
 }

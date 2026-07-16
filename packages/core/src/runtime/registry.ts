@@ -5,6 +5,7 @@ import type {
   RuntimeEffect,
   RuntimeNode,
   RuntimePendingActivity,
+  RuntimeProgram,
   RuntimeState,
 } from '@advjs/types'
 
@@ -54,6 +55,13 @@ export interface RuntimeRegistry {
     pending: RuntimePendingActivity,
     result: JsonValue,
   ) => void
+}
+
+export interface RuntimePluginDiagnostic {
+  code: string
+  severity: 'error'
+  message: string
+  address?: { chapterId: string, nodeId: string }
 }
 
 const blockedPathSegments = new Set(['__proto__', 'prototype', 'constructor'])
@@ -173,6 +181,79 @@ function assertJson(
 
 export function defineAdvPlugin<const T extends AdvRuntimePlugin>(plugin: T): T {
   return plugin
+}
+
+function pluginDiagnostic(error: unknown): RuntimePluginDiagnostic {
+  const message = error instanceof Error ? error.message : String(error)
+  const match = /^([A-Z][A-Z0-9_]+): (.*)$/u.exec(message)
+  return {
+    code: match?.[1] ?? 'ADV_RUNTIME_INVALID_PLUGIN',
+    severity: 'error',
+    message: match?.[2] ?? message,
+  }
+}
+
+export function validateRuntimeProgramPlugins(
+  program: RuntimeProgram,
+  plugins: readonly AdvRuntimePlugin[] = [],
+): RuntimePluginDiagnostic[] {
+  try {
+    createRuntimeRegistry(plugins, program.requiredPlugins)
+  }
+  catch (error) {
+    return [pluginDiagnostic(error)]
+  }
+
+  const actions = new Set(Object.keys(builtinActions))
+  const nodes = new Set<string>()
+  for (const plugin of plugins) {
+    for (const name of Object.keys(plugin.actions ?? {}))
+      actions.add(`${plugin.name}/${name}`)
+    for (const name of Object.keys(plugin.nodes ?? {}))
+      nodes.add(`${plugin.name}/${name}`)
+  }
+
+  const diagnostics: RuntimePluginDiagnostic[] = []
+  const validateActions = (
+    calls: readonly RuntimeActionCall[] | undefined,
+    address: { chapterId: string, nodeId: string },
+  ) => {
+    for (const call of calls ?? []) {
+      if (!actions.has(call.type)) {
+        diagnostics.push({
+          code: 'ADV_RUNTIME_UNKNOWN_ACTION',
+          severity: 'error',
+          message: `Unknown action at ${address.chapterId}#${address.nodeId}: ${call.type}`,
+          address,
+        })
+      }
+    }
+  }
+
+  for (const chapter of Object.values(program.chapters)) {
+    for (const nodeId of chapter.order) {
+      const node = chapter.nodes[nodeId]
+      const address = { chapterId: chapter.id, nodeId }
+      if (node.kind.includes('/') && !nodes.has(node.kind)) {
+        diagnostics.push({
+          code: 'ADV_RUNTIME_UNKNOWN_NODE',
+          severity: 'error',
+          message: `Unknown plugin node at ${chapter.id}#${nodeId}: ${node.kind}`,
+          address,
+        })
+      }
+      validateActions(node.actions, address)
+      const options = node.data?.options
+      if (Array.isArray(options)) {
+        for (const option of options) {
+          if (option && typeof option === 'object' && !Array.isArray(option) && Array.isArray(option.actions))
+            validateActions(option.actions as unknown as RuntimeActionCall[], address)
+        }
+      }
+    }
+  }
+
+  return diagnostics
 }
 
 export function createRuntimeRegistry(

@@ -6,7 +6,11 @@ export {
   runtimeConditionMatches,
   RuntimeExpressionError,
 } from './expression'
-export { createRuntimeRegistry, defineAdvPlugin } from './registry'
+export {
+  createRuntimeRegistry,
+  defineAdvPlugin,
+  validateRuntimeProgramPlugins,
+} from './registry'
 export type {
   AdvActionContext,
   AdvActionHandler,
@@ -15,6 +19,7 @@ export type {
   AdvNodeContext,
   AdvNodeHandler,
   AdvRuntimePlugin,
+  RuntimePluginDiagnostic,
   RuntimeRegistry,
 } from './registry'
 export {

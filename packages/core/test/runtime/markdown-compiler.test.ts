@@ -149,6 +149,30 @@ describe('compileMarkdownProgram', () => {
     expect(result.program?.requiredPlugins).toEqual({ 'star-map': '1.0.0' })
   })
 
+  it.each([
+    [
+      'invalid action',
+      ['```yaml', 'type: actions', 'actions:', '  - type: set', '    key: score', '```'].join('\n'),
+      'ADV_RUNTIME_INVALID_ACTION',
+    ],
+    [
+      'invalid activity',
+      ['```yaml', 'type: activity', 'use: compare', '```'].join('\n'),
+      'ADV_RUNTIME_INVALID_ACTIVITY',
+    ],
+  ])('reports %s declarations instead of ignoring them', async (_name, content, code) => {
+    const result = await compileMarkdownProgram({
+      id: 'invalid-declaration',
+      chapters: [{ id: 'chapter-1', sourcePath: 'invalid.adv.md', content }],
+    })
+
+    expect(result.program).toBeUndefined()
+    expect(result.diagnostics).toContainEqual(expect.objectContaining({
+      code,
+      source: expect.objectContaining({ file: 'invalid.adv.md', line: 1 }),
+    }))
+  })
+
   it('links local, chapter-entry, and cross-chapter choice targets exactly', async () => {
     const result = await compileMarkdownProgram({
       id: 'navigation',

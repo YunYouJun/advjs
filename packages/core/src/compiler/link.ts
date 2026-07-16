@@ -114,7 +114,11 @@ export async function linkRuntimeProgram(input: RuntimeProgramInput): Promise<{
         id: node.id,
         kind: node.kind,
         data: node.data ? structuredClone(node.data) : undefined,
-        when: compileCondition(node.when, `${chapterInput.id}#${node.id}`, node.source),
+        when: compileCondition(
+          node.when,
+          `${chapterInput.id}#${node.id}`,
+          node.whenSource ?? node.source,
+        ),
         actions: node.actions ? structuredClone(node.actions) : undefined,
       }
       inputs.set(node.id, node)
