@@ -8,6 +8,7 @@ import { parseAudioMd } from '../utils/audioMd'
 import { downloadFromCloud, listCloudFiles } from '../utils/cloudSync'
 import { AUDIO_EXTENSIONS, createFsForProject } from '../utils/fs'
 import { parseLocationMd } from '../utils/locationMd'
+import { discoverRuntimeChapterFiles } from '../utils/projectRuntimeFiles'
 import { parseSceneMd } from '../utils/sceneMd'
 import { useKnowledgeBase } from './useKnowledgeBase'
 
@@ -104,23 +105,7 @@ export function useProjectContent() {
     loadErrors.value = []
     try {
       // Load chapters
-      const chapterFiles: string[] = []
-      try {
-        const files = await fs.listFiles('adv/chapters', '.adv.md')
-        chapterFiles.push(...files)
-      }
-      catch { /* no chapters dir */ }
-
-      try {
-        const rootFiles = await fs.listFiles('adv', '.adv.md')
-        for (const f of rootFiles) {
-          if (!chapterFiles.includes(f))
-            chapterFiles.push(f)
-        }
-      }
-      catch { /* no root adv.md files */ }
-
-      chapterFiles.sort()
+      const chapterFiles = await discoverRuntimeChapterFiles(fs)
 
       const chapterInfos: ChapterInfo[] = []
       for (const file of chapterFiles) {

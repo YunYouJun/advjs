@@ -39,6 +39,7 @@ import { useProjectContent } from '../composables/useProjectContent'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { listCloudFiles } from '../utils/cloudSync'
+import { discoverRuntimeChapterFiles } from '../utils/projectRuntimeFiles'
 
 const { t } = useI18n()
 const studioStore = useStudioStore()
@@ -155,23 +156,8 @@ async function loadChapters() {
   else {
     const { getFs } = useProjectContent()
     const fs = getFs()
-    if (fs) {
-      const files: string[] = []
-      try {
-        const chapterFiles = await fs.listFiles('adv/chapters', '.adv.md')
-        files.push(...chapterFiles)
-      }
-      catch { /* no chapters dir */ }
-      try {
-        const rootFiles = await fs.listFiles('adv', '.adv.md')
-        for (const f of rootFiles) {
-          if (!files.includes(f))
-            files.push(f)
-        }
-      }
-      catch { /* no root .adv.md */ }
-      chapters.value = files.sort()
-    }
+    if (fs)
+      chapters.value = await discoverRuntimeChapterFiles(fs)
   }
 
   // Auto-load first chapter if no URL param

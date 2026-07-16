@@ -11,6 +11,7 @@ import type { AssetsManifest } from 'pixi.js'
 import { parseAst } from '@advjs/parser'
 import { ref } from 'vue'
 import { useStudioStore } from '../stores/useStudioStore'
+import { applyStudioGameSettings, loadStudioGameSettings } from '../utils/projectRuntimeFiles'
 import { useProjectContent } from './useProjectContent'
 
 /**
@@ -55,6 +56,8 @@ export function useStudioAdvConfig() {
   }
 
   async function buildGameConfig(): Promise<Partial<AdvGameConfig>> {
+    const fs = project.getFs()
+    const settings = fs ? await loadStudioGameSettings(fs) : {}
     // Resolve characters' tachies to blob URLs
     const characters: AdvCharacter[] = await Promise.all(
       project.characters.value.map(async (c) => {
@@ -163,7 +166,7 @@ export function useStudioAdvConfig() {
       ],
     }
 
-    return {
+    return applyStudioGameSettings({
       title: studioStore.currentProject?.name ?? 'Studio Project',
       description: '',
       favicon: '',
@@ -175,7 +178,7 @@ export function useStudioAdvConfig() {
       chapters,
       characters,
       scenes,
-    }
+    }, settings)
   }
 
   function buildMinimalConfig(gameConfig: Partial<AdvGameConfig>): AdvConfig {
