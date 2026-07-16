@@ -2,10 +2,13 @@
 import type { RuntimeCommandName, RuntimeTraceEntry } from '@advjs/types'
 import { computed, shallowRef } from 'vue'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   entries: RuntimeTraceEntry[]
   selectedSequence?: number
-}>()
+  emptyLabel?: string
+}>(), {
+  emptyLabel: 'No trace entries',
+})
 
 const emit = defineEmits<{
   select: [entry: RuntimeTraceEntry]
@@ -57,7 +60,7 @@ function address(value: RuntimeTraceEntry['from']) {
         <small>{{ entry.effects.length }} effects · {{ entry.variableChanges.length }} diffs</small>
       </button>
       <p v-if="filtered.length === 0">
-        No trace entries
+        {{ emptyLabel }}
       </p>
     </div>
   </div>

@@ -12,6 +12,7 @@ import { useRuntimeInspector } from '../composables/useRuntimeInspector'
 import { useStudioAdvConfig } from '../composables/useStudioAdvConfig'
 import { useStudioStore } from '../stores/useStudioStore'
 import { createStudioRuntimePlugins } from '../utils/studioRuntimePlugins'
+import RuntimeInspectorDrawer from './RuntimeInspectorDrawer.vue'
 
 const props = defineProps<{
   chapterName?: string
@@ -51,6 +52,11 @@ provide(injectionAdvContext, $adv)
 
 const ready = shallowRef(false)
 const error = shallowRef('')
+const runtimeInspectorOpen = shallowRef(false)
+const runtimeRevision = shallowRef(0)
+const stopRuntimeTrace = $adv.runtime.subscribeTrace(() => {
+  runtimeRevision.value += 1
+})
 const currentChapterId = computed(() => $adv.store.state.cursor.chapterId)
 const currentChapter = computed(() => $adv.store.program?.chapters[currentChapterId.value])
 
@@ -115,9 +121,19 @@ const historyStack = computed(() => {
   })
 })
 const unlockedCGs = progress.unlockedCGs
+const runtimeSnapshot = computed(() => {
+  void runtimeRevision.value
+  return $adv.runtime.snapshot()
+})
+const runtimeTrace = computed(() => {
+  void runtimeRevision.value
+  return $adv.runtime.trace()
+})
+const currentRuntimeNode = computed(() => $adv.store.current)
 const inspector = useRuntimeInspector(
-  () => $adv.runtime.snapshot(),
-  () => $adv.store.current,
+  () => runtimeSnapshot.value,
+  () => currentRuntimeNode.value,
+  () => runtimeTrace.value,
 )
 
 watch(currentIndex, (order) => {
@@ -183,6 +199,7 @@ onMounted(() => {
   }, 700)
 })
 onBeforeUnmount(() => {
+  stopRuntimeTrace()
   $adv.runtime.dispose()
   dispose()
 })
@@ -278,10 +295,23 @@ defineExpose({
 
     <AdvGame v-if="ready" class="game-player__game" />
 
-    <details v-if="ready" class="runtime-inspector">
-      <summary>Runtime</summary>
-      <pre>{{ inspector }}</pre>
-    </details>
+    <button
+      v-if="ready"
+      type="button"
+      class="runtime-inspector-button"
+      @click="runtimeInspectorOpen = true"
+    >
+      {{ t('runtimeInspector.open') }}
+    </button>
+
+    <RuntimeInspectorDrawer
+      v-if="ready"
+      :open="runtimeInspectorOpen"
+      :snapshot="runtimeSnapshot"
+      :current="currentRuntimeNode"
+      :trace="runtimeTrace"
+      @close="runtimeInspectorOpen = false"
+    />
 
     <div v-if="chapterName" class="game-player__footer">
       {{ chapterName }}
@@ -338,23 +368,18 @@ defineExpose({
   pointer-events: none;
 }
 
-.runtime-inspector {
+.runtime-inspector-button {
   position: absolute;
   top: 12px;
   right: 12px;
   z-index: 12;
-  max-width: min(420px, 70vw);
-  max-height: 50%;
   padding: 6px 10px;
-  overflow: auto;
-  border-radius: 8px;
+  border: 1px solid rgb(255 255 255 / 24%);
+  border-radius: 999px;
   background: rgb(0 0 0 / 75%);
-  color: #d1d5db;
-  font-size: 11px;
-}
-
-.runtime-inspector pre {
-  white-space: pre-wrap;
+  color: #e2e8f0;
+  cursor: pointer;
+  font-size: 12px;
 }
 
 @keyframes spin {

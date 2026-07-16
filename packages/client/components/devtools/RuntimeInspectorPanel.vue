@@ -5,9 +5,14 @@ import { computed, shallowRef } from 'vue'
 import RuntimeJsonTree from './RuntimeJsonTree.vue'
 import RuntimeTraceList from './RuntimeTraceList.vue'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   model: RuntimeInspectorModel
-}>()
+  showExport?: boolean
+  emptyTraceLabel?: string
+}>(), {
+  showExport: true,
+  emptyTraceLabel: 'No trace entries',
+})
 
 defineEmits<{
   export: []
@@ -41,7 +46,7 @@ function value(value: JsonValue | undefined) {
         <h2>Runtime Inspector</h2>
         <p>{{ model.address.chapterId }}#{{ model.address.nodeId }}</p>
       </div>
-      <button type="button" aria-label="Export runtime report" @click="$emit('export')">
+      <button v-if="showExport" type="button" aria-label="Export runtime report" @click="$emit('export')">
         Export
       </button>
     </header>
@@ -107,6 +112,7 @@ function value(value: JsonValue | undefined) {
       <RuntimeTraceList
         :entries="model.trace"
         :selected-sequence="selectedSequence"
+        :empty-label="emptyTraceLabel"
         @select="selectedSequence = $event.sequence"
       />
       <article v-if="selected" class="runtime-inspector-panel__trace-detail" aria-label="Selected trace details">

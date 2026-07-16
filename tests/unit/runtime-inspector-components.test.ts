@@ -87,4 +87,18 @@ describe('runtimeInspectorPanel', () => {
     expect(wrapper.findAll('[role="tab"]')).toHaveLength(4)
     expect(wrapper.get('[role="tab"][aria-selected="true"]').text()).toBe('Overview')
   })
+
+  it('lets an embedding host provide its own export action and empty-trace label', async () => {
+    const wrapper = mount(RuntimeInspectorPanel, {
+      props: {
+        model: { ...model, trace: [] },
+        showExport: false,
+        emptyTraceLabel: '尚无运行轨迹',
+      },
+    })
+
+    expect(wrapper.find('button[aria-label="Export runtime report"]').exists()).toBe(false)
+    await wrapper.get('[role="tab"][aria-controls="runtime-trace"]').trigger('click')
+    expect(wrapper.text()).toContain('尚无运行轨迹')
+  })
 })

@@ -232,6 +232,16 @@
     "currentNode": "节点 {order}/{total}",
     "rollbackButton": "回滚"
   },
+  "runtimeInspector": {
+    "title": "运行时检查器",
+    "open": "运行状态",
+    "close": "关闭",
+    "copy": "复制报告",
+    "download": "下载报告",
+    "copied": "已复制",
+    "emptyTrace": "暂无运行命令",
+    "reviewNotice": "报告可能包含作者定义的变量值，分享前请检查内容。"
+  },
   "editor": {
     "back": "返回",
     "save": "保存",

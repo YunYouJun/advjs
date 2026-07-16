@@ -232,6 +232,16 @@
     "currentNode": "Node {order}/{total}",
     "rollbackButton": "Back"
   },
+  "runtimeInspector": {
+    "title": "Runtime inspector",
+    "open": "Runtime",
+    "close": "Close",
+    "copy": "Copy report",
+    "download": "Download report",
+    "copied": "Copied",
+    "emptyTrace": "No runtime commands yet",
+    "reviewNotice": "The report can contain author-defined variable values. Review it before sharing."
+  },
   "editor": {
     "back": "Back",
     "save": "Save",
