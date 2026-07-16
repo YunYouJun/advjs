@@ -91,16 +91,11 @@ export const usePlayStore = defineStore('@advjs/play', () => {
    * 开始游戏
    */
   async function startGame() {
-    const firstChapter = gameConfig.value.chapters[0]
-    const startNodeId = firstChapter.startNodeId || firstChapter.nodes[0]?.id
-    if (startNodeId) {
+    if (gameConfig.value.chapters.length) {
       await $adv.init()
       consola.info('Game config loaded successfully:', gameConfig.value)
       clientGameStore.loadStatus = AdvGameLoadStatusEnum.SUCCESS
-
-      await $adv.$nav.start({
-        nodeId: startNodeId,
-      })
+      await $adv.runtime.start()
     }
   }
 

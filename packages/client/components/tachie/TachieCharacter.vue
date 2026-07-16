@@ -13,19 +13,20 @@ const { $adv } = useAdvContext()
 const advStore = $adv.store
 
 const active = computed(() => {
-  const curDialog = advStore.cur.dialog
-  if (curDialog.type === 'dialog') {
+  const node = advStore.current
+  if (node?.kind === 'dialog') {
     const character = $adv.gameConfig?.value?.characters?.find(item => item.id === props.characterId)
     if (!character)
       return false
-    if (curDialog.character && (character.id === curDialog.character.name || character.aliases?.includes(curDialog.character.name)))
+    const speaker = typeof node.data?.character === 'string' ? node.data.character : ''
+    if (character.id === speaker || character.name === speaker || character.aliases?.includes(speaker))
       return true
   }
   return false
 })
 
 const curTachie = computed(() => {
-  return $adv.runtime.charactersMap.get(props.characterId)?.tachies?.[props.tachie.status]
+  return $adv.resources.charactersMap.get(props.characterId)?.tachies?.[props.tachie.status]
 })
 
 const characterClass = computed(() => {

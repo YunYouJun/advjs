@@ -35,7 +35,7 @@ export function useAdvKeys($adv: AdvContext) {
 
   watch(space, (v) => {
     if (v && !uiBlocked())
-      $adv.$nav.next()
+      $adv.runtime.next()
   })
 
   // press `a` to toggle auto-play mode (ignore when typing in a menu)

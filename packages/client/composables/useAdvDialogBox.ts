@@ -1,146 +1,60 @@
-import type { AdvDialoguesNode } from '@advjs/types'
-import { speak, useAdvContext, useDialogStore, useSettingsStore } from '@advjs/client'
-import { computed, ref, unref, watch } from 'vue'
+import { speak, useAdvContext, useSettingsStore } from '@advjs/client'
+import { computed, shallowRef, unref, watch } from 'vue'
 
 export function useAdvDialogBox() {
   const { $adv } = useAdvContext()
-
   const settings = useSettingsStore()
-  const store = $adv.store
 
-  const dialogStore = useDialogStore()
-
-  /**
-   * dialogues 包含多个对话子节点
-   */
-  const dialoguesNode = computed(() => $adv.store.cur.dialog)
   const curDialog = computed(() => {
-    if (store.cur.dialog) {
-      // 如果当前对话是单个对话节点
-      if (store.cur.dialog.type === 'dialog') {
-        return store.cur.dialog as any
-      }
-      // 如果当前对话是对话组
-      if (store.cur.dialog.type === 'dialogues') {
-        return (store.cur.dialog as AdvDialoguesNode).dialogues[dialogStore.iOrder]
-      }
-    }
-    return null
-  })
-
-  // watch order, update dialog
-  watch(() => store.curNode, () => {
-    if (store.curNode?.type === 'dialogues') {
-      store.cur.dialog = store.curNode as AdvDialoguesNode
-      dialogStore.iOrder = 0
-    }
-    else if (store.curNode?.type === 'dialog') {
-      store.cur.dialog = store.curNode
-    }
-    else {
-      store.cur.dialog = {
-        id: '',
-        type: 'dialogues',
-        dialogues: [],
-      }
+    const node = $adv.store.current
+    if (!node || (node.kind !== 'dialog' && node.kind !== 'text'))
+      return null
+    return {
+      character: typeof node.data?.character === 'string' ? node.data.character : '',
+      text: typeof node.data?.text === 'string' ? node.data.text : '',
     }
   })
 
-  watch(
-    () => curDialog?.value,
-    (val) => {
-      const lang = settings.storage.speechOptions.lang
-      // 若开启了语音合成
-      if (settings.storage.speech) {
-        speechSynthesis.cancel()
-        speak(val?.text, unref((typeof lang === 'function' ? lang() : lang)) || 'zh-CN')
-      }
-    },
-  )
+  watch(curDialog, (dialog) => {
+    if (!settings.storage.speech || !dialog?.text)
+      return
+    const lang = settings.storage.speechOptions.lang
+    speechSynthesis.cancel()
+    speak(dialog.text, unref((typeof lang === 'function' ? lang() : lang)) || 'zh-CN')
+  })
 
-  const printed = ref(false)
-  const animation = ref(true)
+  const printed = shallowRef(false)
+  const animation = shallowRef(true)
+  watch(() => $adv.store.current?.id, () => {
+    printed.value = false
+    animation.value = true
+  })
 
-  /**
-   * 用户点击下一页按钮时触发
-   */
   async function next() {
-    /**
-     * 如果文字未打印完毕，则先打印完毕
-     */
     if (!printed.value) {
       printed.value = true
       return
     }
-
-    /**
-     * 如果当前节点非对话节点，则直接跳转到下一个节点
-     */
-    if (store.curFlowNode.type !== 'dialogues') {
-      await $adv.$nav.next()
-      return
-    }
-
-    // temp for flow node
-    // if ($adv.store.status.isEnd)
-    // return
-
-    // if (!end.value && animation.value) {
-    //   animation.value = false
-    //   return
-    // }
-    // else {
-    //   // reset
-    //   animation.value = true
-    //   end.value = false
-    // }
-
-    if (dialoguesNode.value.type === 'dialogues') {
-      if (dialoguesNode.value.dialogues) {
-        const length = dialoguesNode.value.dialogues.length
-
-        if (dialogStore.iOrder + 1 >= length) {
-          await $adv.$nav.next()
-        }
-        else {
-          dialogStore.iOrder++
-        }
-      }
-    }
+    await $adv.runtime.next()
   }
 
-  /**
-   * 当前对话的角色
-   */
   const curCharacter = computed(() => {
-    if (curDialog.value?.character) {
-      // 如果当前对话是单个对话节点
-      return curDialog.value.character
-    }
-
-    const characterID = curDialog.value?.speaker
-    const character = $adv.gameConfig?.value?.characters?.find(item => item.id === characterID)
-    return character
+    const name = curDialog.value?.character ?? ''
+    return $adv.gameConfig.value.characters.find(character => (
+      character.id === name || character.name === name || character.aliases?.includes(name)
+    )) ?? (name ? { id: name, name } : undefined)
   })
 
-  /**
-   * 当前对话的角色头像
-   */
   const characterAvatar = computed(() => {
-    const advConfig = $adv.config.value
-    const gameConfig = $adv.gameConfig.value
-    const curName = curCharacter.value ? curCharacter.value.name : ''
-    const avatar = gameConfig.characters?.find(item => item.name === curName || item.aliases?.includes(curName))?.avatar
-
-    if (avatar && advConfig.cdn.enable && !avatar?.startsWith('http')) {
-      const prefix = advConfig.cdn.prefix || ''
-      return prefix + avatar
-    }
+    const avatar = curCharacter.value && 'avatar' in curCharacter.value
+      ? curCharacter.value.avatar
+      : undefined
+    if (avatar && $adv.config.value.cdn.enable && !avatar.startsWith('http'))
+      return `${$adv.config.value.cdn.prefix || ''}${avatar}`
     return avatar
   })
 
-  // trigger transition
-  const transitionFlag = ref(true)
+  const transitionFlag = shallowRef(true)
   watch(() => curCharacter.value?.name, () => {
     transitionFlag.value = false
     setTimeout(() => {
@@ -148,30 +62,21 @@ export function useAdvDialogBox() {
     }, 1)
   })
 
-  const fontSizeClass = computed(() => {
-    return `text-${settings.storage.text.curFontSize}`
-  })
-
-  /**
-   * 是否显示下一页光标
-   */
+  const fontSizeClass = computed(() => `text-${settings.storage.text.curFontSize}`)
   const showNextCursor = computed(() => {
-    if (dialoguesNode.value.type === 'dialogues') {
-      return dialogStore.iOrder < (dialoguesNode.value.dialogues.length - 1) && store.curFlowNode.type !== 'end'
-    }
-    return true
+    const kind = $adv.store.current?.kind
+    return kind !== 'choices' && kind !== 'end'
   })
 
   return {
-    curDialog,
-    curCharacter,
-    characterAvatar,
-    dialoguesNode,
     animation,
+    characterAvatar,
+    curCharacter,
+    curDialog,
+    fontSizeClass,
+    next,
     printed,
     showNextCursor,
-    next,
     transitionFlag,
-    fontSizeClass,
   }
 }

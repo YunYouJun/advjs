@@ -1,9 +1,9 @@
 import type { AdvConfig, AdvGameConfig } from '@advjs/types'
 
 import type { ComputedRef } from 'vue'
-import type { useAdvAuto, useAdvBgm, useAdvLogic, useAdvNav, useAdvTachies } from '../composables'
+import type { useAdvAuto, useAdvBgm, useAdvTachies } from '../composables'
 import type { useAdvCharacters } from '../composables/useAdvCharacters'
-import type { useAdvNodes } from '../composables/useAdvNodes'
+import type { AdvRuntimeHost } from '../composables/useAdvRuntime'
 import type { PixiGame } from '../pixi/game'
 import type { AdvStore } from '../stores'
 import type { ADV_RUNTIME } from '../utils'
@@ -19,19 +19,18 @@ export interface AdvContext {
   functions: Record<string, () => void>
 
   $t: typeof import('../compiler').$t
-  $nav: ReturnType<typeof useAdvNav>
-  $logic: ReturnType<typeof useAdvLogic>
   $tachies: ReturnType<typeof useAdvTachies>
   $characters: ReturnType<typeof useAdvCharacters>
   $bgm: ReturnType<typeof useAdvBgm>
   $auto: ReturnType<typeof useAdvAuto>
-  $nodes: ReturnType<typeof useAdvNodes>
 
   init: () => Promise<void>
   /**
    * 运行时变量
    */
-  runtime: typeof ADV_RUNTIME
+  runtime: AdvRuntimeHost
+  /** Presentation-only character and tachie resources. */
+  resources: typeof ADV_RUNTIME
   pixiGame?: PixiGame
 }
 

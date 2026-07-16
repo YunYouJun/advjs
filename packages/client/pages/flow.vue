@@ -9,14 +9,12 @@ const isDev = import.meta.env.DEV
 
 onMounted(async () => {
   await $adv.init()
-  await $adv.$nav.start({
-    nodeId: 'background_01',
-  })
+  await $adv.runtime.start()
 })
 </script>
 
 <template>
-  <AdvGame class="h-screen w-screen" :config="advConfig" />
+  <AdvGame class="h-screen w-screen" :frontmatter="advConfig" />
   <AdvDevTools v-if="isDev" />
 </template>
 

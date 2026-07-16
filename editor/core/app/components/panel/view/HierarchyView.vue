@@ -2,7 +2,7 @@
 <script lang="ts" setup>
 import type { TreeNode, Trees } from '@advjs/gui'
 import type { AdvDialoguesNode } from '@advjs/types'
-import { useAdvContext, useDialogStore } from '@advjs/client'
+import { useAdvContext } from '@advjs/client'
 import AGUITree from '@advjs/gui/client/components/tree/AGUITree.vue'
 import { ref, watch } from 'vue'
 
@@ -26,7 +26,7 @@ watch(() => $adv.gameConfig.value.chapters, () => {
     }
 
     if (node.type === 'dialogues') {
-      treeNode.children = (node as unknown as AdvDialoguesNode).children.map(child => ({
+      treeNode.children = (node as unknown as AdvDialoguesNode).dialogues.map(child => ({
         name: child.speaker,
         children: [],
       }))
@@ -36,13 +36,14 @@ watch(() => $adv.gameConfig.value.chapters, () => {
   treeData.value = nodes
 }, { deep: true, immediate: true })
 
-const dialogStore = useDialogStore()
-watch(() => [$adv.store.curFlowNode, dialogStore.iOrder], () => {
-  const curNode = $adv.store.curFlowNode
-  if (!curNode)
+watch(() => $adv.store.state.cursor.nodeId, (nodeId) => {
+  if (!nodeId)
     return
 
-  const treeNode = treeData.value.find(node => node.id === curNode.id)
+  const match = nodeId.match(/\.dialog-(\d+)$/)
+  const flowNodeId = nodeId.split('.dialog-')[0]
+  const dialogIndex = match ? Number(match[1]) - 1 : 0
+  const treeNode = treeData.value.find(node => node.id === flowNodeId)
   if (treeNode) {
     // reset all nodes
     treeData.value.forEach((node) => {
@@ -60,7 +61,7 @@ watch(() => [$adv.store.curFlowNode, dialogStore.iOrder], () => {
         child.match = false
       })
       treeNode.expanded = true
-      const curDialogNode = treeNode.children[dialogStore.iOrder]
+      const curDialogNode = treeNode.children[dialogIndex]
       if (curDialogNode) {
         curDialogNode.match = true
       }

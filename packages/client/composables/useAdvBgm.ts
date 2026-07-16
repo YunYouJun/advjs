@@ -132,6 +132,16 @@ export function useAdvBgm($adv: AdvContext) {
     pauseBgmBySrc,
     stopBgmBySrc,
     stopOtherBgmBySrc,
+    sync(value: string) {
+      if (!value) {
+        for (const src of [...bgmMap.keys()])
+          stopBgmBySrc(src)
+        return
+      }
+      const src = getBgmSrc(value)
+      stopOtherBgmBySrc(src)
+      playBgmBySrc(src)
+    },
 
     /**
      * 播放指定的背景音乐

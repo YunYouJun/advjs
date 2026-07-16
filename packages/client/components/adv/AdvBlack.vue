@@ -1,69 +1,65 @@
-<script lang="ts" setup>
-// import { toHast } from 'mdast-util-to-hast'
-// import { toHtml } from 'hast-util-to-html'
-
-import type { AdvAst } from '@advjs/types'
+<script setup lang="ts">
+import type { RuntimeNode } from '@advjs/types'
 import { useAdvContext } from '@advjs/client'
-import { onMounted, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, shallowRef, watch } from 'vue'
 
 const props = defineProps<{
-  content: AdvAst.Narration
+  node: RuntimeNode
 }>()
 
 const { $adv } = useAdvContext()
-
-// const blackHtml = computed(() => {
-//   const content = Object.assign({}, props.content)
-//   // @ts-ignore
-//   content.type = 'root'
-//   const hast = toHast(content as MdastNode)
-//   return toHtml(hast || [])
-// })
-
-const displaySentences = ref(Array.from({ length: props.content.children.length }).fill(''))
-
-// const sentences = computed(() => {
-//   if (!props.content || props.content.type !== 'narration') return
-//   return props.content.children.map((item: any) => item.children[0].value)
-// })
-
+const displaySentences = shallowRef<string[]>([])
+const printed = shallowRef(false)
 const typeInterval = 50
-const printed = ref(false)
+const timers = new Set<ReturnType<typeof setTimeout>>()
 
-function next() {
-  if (!printed.value) {
-    printed.value = true
-  }
-  else {
-    $adv.$nav.next()
-  }
+function sentences(): string[] {
+  const text = props.node.data?.text
+  return typeof text === 'string' ? text.split('\n') : []
+}
+
+function clearTimers() {
+  for (const timer of timers)
+    clearTimeout(timer)
+  timers.clear()
 }
 
 function playSentencesAnimation() {
-  const sentences = props.content.children
-  let beforeLen = 0
-  sentences.forEach((item, i) => {
-    setTimeout(() => {
-      displaySentences.value[i] = item
-    }, beforeLen * typeInterval)
-    beforeLen += (item.length + 1)
+  clearTimers()
+  const values = sentences()
+  displaySentences.value = Array.from({ length: values.length }).fill('')
+  let beforeLength = 0
+  values.forEach((value, index) => {
+    const timer = setTimeout(() => {
+      const next = [...displaySentences.value]
+      next[index] = value
+      displaySentences.value = next
+      timers.delete(timer)
+    }, beforeLength * typeInterval)
+    timers.add(timer)
+    beforeLength += value.length + 1
   })
 }
 
-onMounted(() => {
-  playSentencesAnimation()
-})
+function next() {
+  if (!printed.value)
+    printed.value = true
+  else
+    $adv.runtime.next()
+}
 
-watch(() => props.content, () => {
-  displaySentences.value = Array.from({ length: props.content.children.length }).fill('')
+onMounted(playSentencesAnimation)
+onBeforeUnmount(clearTimers)
+watch(() => props.node.id, () => {
+  printed.value = false
   playSentencesAnimation()
 })
 </script>
 
 <template>
   <div
-    flex="~ col"
     class="adv-black items-center justify-center absolute"
+    flex="~ col"
     w="full"
     h="full"
     text="5xl"
@@ -72,21 +68,23 @@ watch(() => props.content, () => {
   >
     <div class="words-wrapper relative" text="left">
       <PrintWords
-        v-for="(item, i) in displaySentences" :key="i"
+        v-for="(item, index) in displaySentences"
+        :key="index"
         v-model:printed="printed"
-        :type-interval="typeInterval" m="2"
-        :words="item as any"
+        :type-interval="typeInterval"
+        m="2"
+        :words="item"
         @end="$adv.$auto.notifyPrintDone()"
       />
     </div>
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .adv-black {
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: rgb(0 0 0 / 80%);
 
-  p {
+  :deep(p) {
     margin: 0.5rem;
   }
 }

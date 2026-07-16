@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 // Game Instance
-import type { AdvAst, AdvConfig } from '@advjs/types'
+import type { AdvConfig } from '@advjs/types'
 
 import { useAppStore } from '@advjs/client'
 import { computed } from 'vue'
@@ -9,13 +9,11 @@ import { useAdvContext } from '../../composables/useAdvContext'
 
 defineProps<{
   frontmatter?: AdvConfig
-  ast?: AdvAst.Root
 }>()
 
 const { $adv } = useAdvContext()
 
-// const curNode = computed(() => $adv.store.curNode)
-const curNode = computed(() => $adv.store.curNode)
+const curNode = computed(() => $adv.store.current)
 
 // 添加提示，防止意外退出
 if (!import.meta.env.DEV && typeof __DEV__ !== 'undefined' && !__DEV__)
@@ -33,9 +31,9 @@ const app = useAppStore()
       <AdvScene />
       <AdvPixiCanvas />
       <slot name="scene" />
-      <AdvTachieBox class="z-1" :tachies-map="$adv.runtime.tachiesMapRef.value" />
+      <AdvTachieBox class="z-1" :tachies-map="$adv.resources.tachiesMapRef.value" />
 
-      <AdvBlack v-if="curNode && curNode.type === 'narration'" class="z-9" :content="curNode" />
+      <AdvBlack v-if="curNode?.kind === 'narration'" class="z-9" :node="curNode" />
 
       <slot />
     </div>
@@ -48,7 +46,7 @@ const app = useAppStore()
       </Transition>
 
       <Transition enter-active-class="animate-fade-in-up" leave-active-class="animate-fade-out-down">
-        <AdvChoice v-if="curNode" v-show="curNode?.type === 'choices'" :node="curNode" class="z-3 animate-duration-200" />
+        <AdvChoice v-if="curNode" v-show="curNode.kind === 'choices'" :node="curNode" class="z-3 animate-duration-200" />
       </Transition>
 
       <Transition v-if="app.showDialogControls" enter-active-class="animate-fade-in-up" leave-active-class="animate-fade-out-down">
@@ -60,7 +58,7 @@ const app = useAppStore()
       </Transition>
 
       <Transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-        <AdvEnd v-if="curNode?.type === 'end'" />
+        <AdvEnd v-if="$adv.store.state.status === 'ended'" />
       </Transition>
 
       <AdvGameModals />

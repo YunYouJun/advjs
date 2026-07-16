@@ -1,91 +1,90 @@
 import type { AdvGameRecord, AdvGameRecordMeta } from '@advjs/client'
+import type { RuntimeStorage } from '@advjs/core'
+import type { JsonObject } from '@advjs/types'
 import { AdvGameLoadStatusEnum } from '@advjs/client'
+import { createMemoryRuntimeStorage } from '@advjs/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { createRecordsStorage } from '../utils'
+import { createBrowserRuntimeStorage } from '../runtime'
 
-/**
- * runtime game store
- */
+function createRecordsStorage(): RuntimeStorage {
+  return typeof window === 'undefined'
+    ? createMemoryRuntimeStorage()
+    : createBrowserRuntimeStorage({ prefix: 'advjs:records:' })
+}
+
+function readMetadata(metadata?: JsonObject): AdvGameRecordMeta {
+  return {
+    createdAt: typeof metadata?.createdAt === 'number' ? metadata.createdAt : 0,
+    thumbnail: typeof metadata?.thumbnail === 'string' ? metadata.thumbnail : undefined,
+    memo: typeof metadata?.memo === 'string' ? metadata.memo : undefined,
+  }
+}
+
+/** Browser save slots backed by the shared RuntimeStorage contract. */
 export const useGameStore = defineStore('@advjs/client:game', () => {
-  /**
-   * 游戏加载状态
-   * Load game from JSON file
-   */
   const loadStatus = ref<AdvGameLoadStatusEnum>(AdvGameLoadStatusEnum.IDLE)
-  /**
-   * 正在加载
-   */
   const isLoading = computed(() => {
     return ![AdvGameLoadStatusEnum.SUCCESS, AdvGameLoadStatusEnum.FAIL].includes(loadStatus.value)
   })
 
-  /**
-   * 游戏开始章节
-   */
-  const startChapter = ref()
-  /**
-   * 游戏开始节点
-   */
-  const startNode = ref()
-
+  const startChapter = ref<string>()
+  const startNode = ref<string>()
   const recordsStorage = createRecordsStorage()
-  // 0 for temp save
-  // const recordsMap = useStorage<boolean[]>(`${namespace}::records`, [])
 
-  /**
-   * init game map
-   */
-
-  /**
-   * 存储记录
-   * @param index
-   * @param data
-   */
-  const saveRecord = (index: number, data: AdvGameRecord) => {
-    const key = index.toString()
-    recordsStorage.setMeta(key, { createdAt: (new Date()).valueOf() })
-    return recordsStorage.setItem(key, data)
+  async function saveRecord(index: number, snapshot: AdvGameRecord) {
+    const id = index.toString()
+    const previous = await recordsStorage.get(id)
+    const updatedAt = Date.now()
+    await recordsStorage.set({
+      id,
+      snapshot,
+      updatedAt,
+      metadata: {
+        ...previous?.metadata,
+        createdAt: previous?.metadata?.createdAt ?? updatedAt,
+      },
+    })
   }
 
-  const saveRecordMeta = async (index: number, meta: Partial<AdvGameRecordMeta>) => {
-    const key = index.toString()
-    return await recordsStorage.setMeta(key, { createdAt: (new Date()).valueOf(), ...meta })
+  async function saveRecordMeta(index: number, meta: Partial<AdvGameRecordMeta>) {
+    const id = index.toString()
+    const previous = await recordsStorage.get(id)
+    if (!previous)
+      return
+    const metadata: JsonObject = {
+      ...previous.metadata,
+      createdAt: meta.createdAt ?? previous.metadata?.createdAt ?? previous.updatedAt,
+    }
+    if (meta.thumbnail !== undefined)
+      metadata.thumbnail = meta.thumbnail
+    if (meta.memo !== undefined)
+      metadata.memo = meta.memo
+    await recordsStorage.set({
+      ...previous,
+      metadata,
+      updatedAt: Date.now(),
+    })
   }
 
-  /**
-   * 读取记录
-   * @param index
-   */
-  const readRecord = async (index: number) => {
-    const key = index.toString()
-    const data = (await recordsStorage.getItem(key)) as AdvGameRecord
-    return data
+  async function readRecord(index: number) {
+    return (await recordsStorage.get(index.toString()))?.snapshot
   }
 
-  const readRecordMeta = async (index: number) => {
-    const key = index.toString()
-    const meta = (await recordsStorage.getMeta(key)) as AdvGameRecordMeta
-    return meta
+  async function readRecordMeta(index: number) {
+    const record = await recordsStorage.get(index.toString())
+    return readMetadata(record?.metadata)
   }
 
-  /**
-   * 删除记录
-   * @param index
-   */
-  const deleteRecord = (index: number) => {
-    const key = index.toString()
-    // default remove meta
-    return recordsStorage.removeItem(key)
+  function deleteRecord(index: number) {
+    return recordsStorage.remove(index.toString())
   }
 
   return {
     loadStatus,
     isLoading,
-
     startChapter,
     startNode,
-
     readRecord,
     readRecordMeta,
     saveRecord,

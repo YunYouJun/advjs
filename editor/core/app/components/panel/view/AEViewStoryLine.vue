@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AdvDialoguesNode } from '@advjs/types'
-import { useAdvContext, useDialogStore } from '@advjs/client'
+import { useAdvContext } from '@advjs/client'
 import { TreeItem, TreeRoot } from 'reka-ui'
 
 const { $adv } = useAdvContext()
@@ -12,7 +12,12 @@ export interface TreeNode {
   children?: TreeNode[]
 }
 
-const dialogStore = useDialogStore()
+const activeNodeId = computed(() => $adv.store.state.cursor.nodeId)
+const activeFlowNodeId = computed(() => activeNodeId.value.split('.dialog-')[0])
+const activeDialogIndex = computed(() => {
+  const match = activeNodeId.value.match(/\.dialog-(\d+)$/)
+  return match ? Number(match[1]) - 1 : 0
+})
 
 const items = computed(() => {
   const curChapter = $adv.gameConfig.value.chapters?.[0]
@@ -64,13 +69,11 @@ const items = computed(() => {
 
 const expanded = ref<string[]>([])
 watch(
-  () => $adv.store.curFlowNode,
-  (curNode) => {
-    if (!curNode)
+  activeFlowNodeId,
+  (nodeId) => {
+    if (!nodeId)
       return
-
-    const curId = curNode.id
-    expanded.value = [curId]
+    expanded.value = [nodeId]
   },
   { immediate: true },
 )
@@ -93,8 +96,8 @@ watch(
       :style="{ 'padding-left': `${item.level - 0.5}rem` }"
       class="flex cursor-pointer items-center px-2 py-1 text-xs outline-none data-[selected]:bg-blue-600"
       :class="{
-        'bg-dark-600': item.value.id === $adv.store.curFlowNode?.id,
-        'bg-dark-700': item.value.id === `${$adv.store.curFlowNode?.id}-${dialogStore.iOrder}`,
+        'bg-dark-600': item.value.id === activeFlowNodeId,
+        'bg-dark-700': item.value.id === `${activeFlowNodeId}-${activeDialogIndex}`,
       }"
     >
       <template v-if="item.hasChildren">

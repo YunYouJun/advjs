@@ -1,36 +1,39 @@
-<script lang="ts" setup>
+<script setup lang="ts">
 import { useAdvContext, useAppStore } from '@advjs/client'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, watch } from 'vue'
 
 const { $adv } = useAdvContext()
 const app = useAppStore()
+const background = computed(() => $adv.store.state.stage.background)
+const advGameStyle = computed(() => ({
+  backgroundImage: `url("${background.value}")`,
+}))
 
-const bgImage = ref('')
-const advGameStyle = computed(() => {
-  return {
-    backgroundImage: `url("${bgImage.value}")`,
-  }
-})
-
-watch(() => $adv.store.cur.background, (val) => {
+watch(background, (value, previous) => {
+  if (!value || value === previous)
+    return
   if (app.showBg)
     app.toggleBg()
-
-  setTimeout(() => {
-    bgImage.value = val
-    app.toggleBg()
-  }, 1000)
-})
-
-onMounted(() => {
-  const url = $adv.store.cur.background
-  if (url)
-    bgImage.value = url
-})
+  setTimeout(() => app.toggleBg(), 200)
+}, { immediate: true })
 </script>
 
 <template>
   <Transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-    <div v-if="app.showBg" h="full" w="full" class="absolute animate-duration-200" bg="cover center no-repeat" :style="advGameStyle" />
+    <div
+      v-if="app.showBg && background"
+      class="adv-background absolute animate-duration-200"
+      h="full"
+      w="full"
+      bg="cover center no-repeat"
+      :style="advGameStyle"
+    />
   </Transition>
 </template>
+
+<style scoped>
+.adv-background {
+  background-position: center;
+  background-size: cover;
+}
+</style>

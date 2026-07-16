@@ -1,6 +1,6 @@
-import type { AdvCharacter, AdvFlowNode } from '@advjs/types'
+import type { AdvCharacter } from '@advjs/types'
 import type { Ref } from 'vue'
-import type { AdvContext, ChaptersMap } from '../types'
+import type { AdvContext } from '../types'
 import { consola } from 'consola'
 import { ref } from 'vue'
 
@@ -18,10 +18,6 @@ export interface TachieState {
  */
 export const ADV_RUNTIME: {
   /**
-   * 章节节点映射
-   */
-  chaptersMap: ChaptersMap
-  /**
    * 角色映射
    */
   charactersMap: Map<string, AdvCharacter>
@@ -32,7 +28,6 @@ export const ADV_RUNTIME: {
    */
   tachiesMapRef: Ref<Map<string, TachieState>>
 } = {
-  chaptersMap: new Map(),
   charactersMap: new Map(),
   tachiesMapRef: ref(new Map()),
 }
@@ -44,79 +39,25 @@ export const ADV_RUNTIME: {
  * - 建立 Map 关系，优化性能
  */
 export async function initGameRuntime($adv: AdvContext) {
-  (window as any).$adv = $adv
+  if (typeof window !== 'undefined')
+    (window as any).$adv = $adv
   const gameConfig = $adv.gameConfig.value
   consola.debug('Init Game Runtime', $adv.gameConfig)
-
-  /**
-   * init map
-   * 初始化章节节点映射关系
-   */
-  function initChaptersMap() {
-    consola.debug('Init Chapters Map')
-    const { chaptersMap } = ADV_RUNTIME
-    gameConfig.chapters?.forEach((chapter) => {
-      const chapterNodesMap = new Map<string, AdvFlowNode>()
-      chapter.nodes.forEach((node) => {
-        chapterNodesMap.set(node.id, node)
-      })
-
-      chaptersMap.set(chapter.id, {
-        loaded: false,
-        nodesMap: chapterNodesMap,
-      })
-    })
-
-    // set prev
-    gameConfig.chapters.forEach((chapter) => {
-      chapter.nodes.forEach((node) => {
-        let nextChapterId = chapter.id
-        let nextNodeId = ''
-        if (typeof node.next === 'object') {
-          nextChapterId = node.next.chapterId || chapter.id
-          nextNodeId = node.next.nodeId || ''
-        }
-        else {
-          nextNodeId = node.next || ''
-        }
-
-        const chapterMap = chaptersMap.get(nextChapterId)
-        const targetNode = chapterMap?.nodesMap.get(nextNodeId)
-        if (targetNode) {
-          if (nextChapterId !== chapter.id) {
-            targetNode.prev = {
-              chapterId: chapter.id,
-              nodeId: node.id,
-            }
-          }
-          else {
-            targetNode.prev = node.id
-          }
-        }
-      })
-    })
-  }
 
   /**
    * init characters map
    */
   function initCharactersMap() {
     const { charactersMap } = ADV_RUNTIME
+    charactersMap.clear()
     gameConfig.characters?.forEach((character) => {
       charactersMap.set(character.id, character)
     })
   }
 
-  initChaptersMap()
   initCharactersMap()
+  ADV_RUNTIME.tachiesMapRef.value = new Map()
 
-  // init first chapter nodes
-  consola.debug('Init First Chapter Nodes')
-  const firstChapter = gameConfig.chapters?.[0]
-  if (firstChapter) {
-    await $adv.$nav.loadChapter(firstChapter.id)
-  }
-
-  consola.debug('Game Runtime Initialized', ADV_RUNTIME.chaptersMap.size)
+  consola.debug('Game presentation resources initialized')
   return ADV_RUNTIME
 }

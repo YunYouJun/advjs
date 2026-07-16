@@ -1,6 +1,6 @@
 import type { AdvContext } from '../types'
 import { useStorage } from '@vueuse/core'
-import { ref, watch } from 'vue'
+import { shallowRef, watch } from 'vue'
 
 /**
  * Auto-play and skip mode controller.
@@ -11,8 +11,8 @@ import { ref, watch } from 'vue'
  * Both modes are mutually exclusive. Choices and end nodes always halt both.
  */
 export function useAdvAuto($adv: AdvContext) {
-  const enabled = ref(false)
-  const skipEnabled = ref(false)
+  const enabled = shallowRef(false)
+  const skipEnabled = shallowRef(false)
   const delay = useStorage('advjs-auto-delay', 2000)
   const skipInterval = useStorage('advjs-skip-interval', 80)
 
@@ -26,10 +26,10 @@ export function useAdvAuto($adv: AdvContext) {
   }
 
   function shouldHalt() {
-    const node = $adv.store.curNode
+    const node = $adv.store.current
     if (!node)
       return true
-    return node.type === 'choices' || node.type === 'end'
+    return node.kind === 'choices' || node.kind === 'end'
   }
 
   /**
@@ -41,20 +41,20 @@ export function useAdvAuto($adv: AdvContext) {
     if (shouldHalt())
       return
     if (skipEnabled.value) {
-      timer = setTimeout(() => $adv.$nav.next(), skipInterval.value)
+      timer = setTimeout(() => $adv.runtime.next(), skipInterval.value)
       return
     }
     if (!enabled.value)
       return
-    timer = setTimeout(() => $adv.$nav.next(), delay.value)
+    timer = setTimeout(() => $adv.runtime.next(), delay.value)
   }
 
   // Skip mode keeps the flow running even if a node has no typewriter
   // (scene transitions, narration without PrintWords, etc.).
-  watch(() => $adv.store.curNode, () => {
+  watch(() => $adv.store.current, () => {
     clearTimer()
     if (skipEnabled.value && !shouldHalt())
-      timer = setTimeout(() => $adv.$nav.next(), skipInterval.value)
+      timer = setTimeout(() => $adv.runtime.next(), skipInterval.value)
   })
 
   watch([enabled, skipEnabled], ([e, s]) => {

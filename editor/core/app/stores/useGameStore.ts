@@ -95,12 +95,8 @@ export const useGameStore = defineStore('@advjs/editor:game', () => {
     await $adv.init()
     clientGameStore.loadStatus = AdvGameLoadStatusEnum.SUCCESS
 
-    const startNodeId = config.chapters[0]?.nodes[0]?.id
-    if (startNodeId) {
-      await $adv.$nav.start({
-        nodeId: startNodeId,
-      })
-    }
+    if (config.chapters.length)
+      await $adv.runtime.start()
   }
 
   return {

@@ -1,20 +1,30 @@
 <script setup lang="ts">
 import { useDraggable } from '@vueuse/core'
-import { ref, useTemplateRef } from 'vue'
+import { computed, shallowRef, useTemplateRef } from 'vue'
 import { useAdvContext } from '../../composables'
-import { ADV_RUNTIME } from '../../utils'
 
-const buttonRef = useTemplateRef('buttonRef')
-
+const buttonRef = useTemplateRef<HTMLElement>('buttonRef')
+const viewportWidth = typeof window === 'undefined' ? 1024 : window.innerWidth
+const viewportHeight = typeof window === 'undefined' ? 768 : window.innerHeight
 const { style } = useDraggable(buttonRef, {
   initialValue: {
-    x: window.innerWidth - 80,
-    y: window.innerHeight - 80,
+    x: viewportWidth - 80,
+    y: viewportHeight - 80,
   },
 })
-const showDevTools = ref(false)
-
+const showDevTools = shallowRef(false)
 const { $adv } = useAdvContext()
+
+const inspector = computed(() => ({
+  address: $adv.store.state.cursor,
+  status: $adv.store.state.status,
+  current: $adv.store.current,
+  variables: $adv.store.state.variables,
+  stage: $adv.store.state.stage,
+  choices: $adv.store.state.choices,
+  visited: $adv.store.state.visited,
+  checkpoints: $adv.runtime.snapshot().checkpoints.length,
+}))
 </script>
 
 <template>
@@ -27,51 +37,19 @@ const { $adv } = useAdvContext()
     ⚔️
   </button>
 
-  <!-- overlay -->
   <div
     v-if="showDevTools"
-    class="bg-black/50 bottom-0 left-0 right-0 top-0 absolute z-9998"
+    class="bg-black/50 bottom-0 left-0 right-0 top-0 fixed z-9998"
     @click="showDevTools = false"
   />
 
-  <div
-    v-if="showDevTools" absolute
+  <aside
+    v-if="showDevTools"
     class="text-white p-4 bg-dark max-w-2xl min-w-md bottom-0 right-0 top-0 fixed z-9999 overflow-auto"
   >
-    <div class="text-left items-start" flex="~ col" gap="4">
-      <div>
-        <h3 class="text-lg font-bold">
-          CurNode:
-        </h3>
-        <pre>{{ $adv.store.curNode }}</pre>
-      </div>
-      <div>
-        <h3 class="text-lg font-bold">
-          FlowNode:
-        </h3>
-        <pre>{{ $adv.store.curFlowNode }}</pre>
-      </div>
-
-      <div>
-        <h3 class="text-lg font-bold">
-          Cur Dialog
-        </h3>
-        <pre>{{ $adv.store.cur.dialog }}</pre>
-      </div>
-
-      <div>
-        <h3 class="text-lg font-bold">
-          Tachies:
-        </h3>
-        <pre>{{ ADV_RUNTIME.tachiesMapRef }}</pre>
-      </div>
-
-      <div>
-        <h3 class="text-lg font-bold">
-          Config:
-        </h3>
-        <pre>{{ $adv.config }}</pre>
-      </div>
-    </div>
-  </div>
+    <h2 class="text-xl font-bold mb-4">
+      Runtime Inspector
+    </h2>
+    <pre class="text-left whitespace-pre-wrap">{{ inspector }}</pre>
+  </aside>
 </template>

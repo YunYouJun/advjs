@@ -4,7 +4,7 @@ import { screenshotGameThumb, useAdvContext, useAppStore, useGameStore } from '@
 import { assets } from '@advjs/theme-default'
 
 import dayjs from 'dayjs'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, shallowRef } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 const props = withDefaults(defineProps<{
@@ -25,17 +25,29 @@ const app = useAppStore()
 
 const game = useGameStore()
 
-const record = ref<AdvGameRecord>()
-const meta = ref<AdvGameRecordMeta>()
-const memo = ref('')
-const isEditing = ref(false)
+const record = shallowRef<AdvGameRecord>()
+const meta = shallowRef<AdvGameRecordMeta>()
+const memo = shallowRef('')
+const isEditing = shallowRef(false)
+
+const preview = computed(() => {
+  const snapshot = record.value
+  if (!snapshot)
+    return undefined
+  const { chapterId, nodeId } = snapshot.state.cursor
+  const node = $adv.store.program?.chapters[chapterId]?.nodes[nodeId]
+  return {
+    character: typeof node?.data?.character === 'string' ? node.data.character : '',
+    text: typeof node?.data?.text === 'string' ? node.data.text : '',
+  }
+})
 
 onMounted(async () => {
   const savedRecord = await game.readRecord(props.no)
   record.value = savedRecord
   const savedMeta = await game.readRecordMeta(props.no)
   meta.value = savedMeta
-  memo.value = savedMeta.memo || ''
+  memo.value = savedMeta?.memo || ''
 })
 
 async function saveCardMeta() {
@@ -50,7 +62,7 @@ async function saveCardMeta() {
  */
 async function saveToCard() {
   const dataUrl = await screenshotGameThumb()
-  const curRecord = $adv.store.cur
+  const curRecord = $adv.runtime.snapshot()
   try {
     await game.saveRecord(props.no, curRecord)
     record.value = curRecord
@@ -69,23 +81,23 @@ async function saveToCard() {
 const route = useRoute()
 const router = useRouter()
 
-function loadFromCard() {
+async function loadFromCard() {
   if (!record.value)
     return
-  $adv.store.cur = record.value
+  $adv.runtime.restore(record.value)
 
   // 关闭加载菜单
   app.toggleShowLoadMenu()
 
   if (route.path !== '/game')
-    router.push('/game')
+    await router.push('/game')
 }
 
-function onCardClick() {
+async function onCardClick() {
   if (props.type === 'save')
-    saveToCard()
+    await saveToCard()
   else
-    loadFromCard()
+    await loadFromCard()
 }
 </script>
 
@@ -101,8 +113,8 @@ function onCardClick() {
       </h3>
       <p class="preview-narration" flex="~ col" h="full" bg="white" @click="onCardClick">
         <template v-if="record">
-          <span class="flex truncate" text="xs" m="1">{{ record.dialog?.character.name }}</span>
-          <span class="truncate" m="x-1">{{ record.dialog?.children[0].value }}</span>
+          <span class="flex truncate" text="xs" m="1">{{ preview?.character }}</span>
+          <span class="truncate" m="x-1">{{ preview?.text }}</span>
         </template>
       </p>
       <h3 text="base" class="flex items-center justify-between" bg="white">

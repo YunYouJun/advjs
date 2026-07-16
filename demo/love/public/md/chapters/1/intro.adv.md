@@ -19,17 +19,8 @@ enter: 小云
 @小云
 你高兴吗？
 
-- [ ] 高兴！
-
-  ```ts
-  $adv.$nav.next()
-  ```
-
-- [ ] 很高兴！
-
-  ```ts
-  $adv.$nav.next()
-  ```
+- 高兴！
+- 很高兴！
 
 ```yaml
 type: background

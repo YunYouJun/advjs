@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { AdvAst, AdvDialogNode } from '@advjs/types'
+import type { RuntimeNode } from '@advjs/types'
 import { useAdvContext, useSettingsStore } from '@advjs/client'
 import { computed } from 'vue'
 import { useAdvDialogBox } from '../../../composables/useAdvDialogBox'
 
 const props = defineProps<{
-  node: AdvDialogNode | AdvAst.Dialog | AdvAst.Text
+  node: RuntimeNode
 }>()
 
 const { $adv } = useAdvContext()
@@ -26,21 +26,8 @@ const {
 
 // 当前对话框中的台词
 const curWords = computed(() => {
-  if (props.node) {
-    if (props.node.type === 'dialog') {
-      return (props.node as AdvAst.Dialog).children.map((child) => {
-        if (child.type === 'text') {
-          return child.value
-        }
-        return ''
-      }).join('')
-    }
-    if (props.node.type === 'text') {
-      return props.node.value
-    }
-  }
-
-  return curDialog.value?.text
+  const text = props.node.data?.text
+  return typeof text === 'string' ? text : curDialog.value?.text
 })
 </script>
 

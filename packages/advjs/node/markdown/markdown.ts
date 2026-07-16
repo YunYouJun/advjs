@@ -1,5 +1,4 @@
 /* eslint-disable regexp/no-contradiction-with-assertion */
-import type { AdvAst } from '@advjs/types'
 import type { ResolvedMdOptions } from './types'
 import { read } from 'to-vfile'
 import { matter } from 'vfile-matter'
@@ -24,25 +23,6 @@ function extractScriptSetup(html: string) {
   })
 
   return { html, scripts }
-}
-
-function extractAdvScriptSetup(ast: AdvAst.Root) {
-  const scripts: string[] = []
-
-  /**
-   * mount func to $adv.functions
-   * @param name
-   * @param value
-   */
-  function mountFunc(name: string, value: string) {
-    scripts.push(`function ${name}(){${value}}`)
-    scripts.push(`$adv.functions.${name} = ${name}`)
-  }
-
-  for (const funcName in ast.functions)
-    mountFunc(funcName, ast.functions[funcName])
-
-  return scripts
 }
 
 function extractCustomBlock(html: string, options: ResolvedMdOptions) {
@@ -90,7 +70,7 @@ export function createMarkdown(options: ResolvedMdOptions) {
     const wrapperComponent = 'AdvGame'
     html = `<${wrapperComponent}${
       options.frontmatter ? ' :frontmatter="frontmatter"' : ''
-    } :ast="advAst" class="w-full h-full">${html}</${wrapperComponent}>`
+    } class="w-full h-full">${html}</${wrapperComponent}>`
 
     if (transforms.after)
       html = transforms.after(html, id)
@@ -100,15 +80,7 @@ export function createMarkdown(options: ResolvedMdOptions) {
     const customBlocks = extractCustomBlock(html, options)
     html = customBlocks.html
 
-    const scriptLines: string[] = [
-      'import { useAdvContext } from "@advjs/client"',
-      'const { $adv } = useAdvContext()',
-    ]
-
-    const { parseAst } = await import('@advjs/parser')
-    const advAst = await parseAst(raw)
-    scriptLines.push(`const advAst = ${transformObject(advAst)}`)
-    scriptLines.push('$adv.$logic.loadAst(advAst)')
+    const scriptLines: string[] = []
 
     if (options.frontmatter) {
       const { head, frontmatter } = frontmatterPreprocess(file.data || {}, options)
@@ -130,8 +102,6 @@ export function createMarkdown(options: ResolvedMdOptions) {
       '<script setup>',
       ...scriptLines,
       ...hoistScripts.scripts,
-      // extract adv.md code script
-      ...extractAdvScriptSetup(advAst),
       '</script>',
       '',
       '<template>',

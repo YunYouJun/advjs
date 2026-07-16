@@ -31,7 +31,12 @@ const fileLanguage = computed(() => {
 })
 
 function goToNode() {
-  $adv.$nav.start(gameStore.startNode)
+  if (!gameStore.startChapter || !gameStore.startNode)
+    return
+  $adv.runtime.go({
+    chapterId: gameStore.startChapter,
+    nodeId: gameStore.startNode,
+  })
 }
 </script>
 
