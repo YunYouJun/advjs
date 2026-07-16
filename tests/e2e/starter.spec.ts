@@ -1,3 +1,4 @@
+import type { Locator } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 
 test.use({
@@ -6,34 +7,48 @@ test.use({
 
 const hashRootPattern = /.*\/#\//
 
+async function advanceTo(current: Locator, next: Locator) {
+  await current.click()
+  try {
+    await next.waitFor({ state: 'visible', timeout: 500 })
+    return
+  }
+  catch {}
+  await current.click()
+  await expect(next).toBeVisible()
+}
+
 test.describe('Demo Starter', () => {
-  test('basic nav', async ({ page }) => {
+  test('runs the hamster story through the star-map activity', async ({ page }) => {
     await page.goto('http://localhost:3333/')
-    // Verify the initial URL
     expect(page.url()).toContain('http://localhost:3333/')
 
-    // Check for the presence of the text 'Made with ADV.JS'
     await expect(page.locator('text=Made with ADV.JS')).toBeVisible()
+    await expect(page.getByRole('heading', { name: '仓鼠：星海回声' })).toBeVisible()
 
-    // Click the first start menu item
     await page.locator('.start-menu-item').first().click()
     await expect(page).toHaveURL(hashRootPattern)
 
-    // Check for the presence of the first dialog text
-    await expect(page.locator('text=你说世界上真的有外星人吗？')).toBeVisible()
+    const narration = page.locator('.adv-black')
+    const dialog = page.locator('.adv-dialog-box')
+    await expect(narration).toContainText('透明笼中的仓鼠踩动转轮')
+    await advanceTo(narration, dialog.filter({ hasText: '你相信笼子外面还有别的世界吗？' }))
 
-    // Click the settings button
+    await expect(dialog).toContainText('你相信笼子外面还有别的世界吗？')
+    await advanceTo(dialog, dialog.filter({ hasText: '仓鼠看不见两米之外' }))
+    await expect(dialog).toContainText('仓鼠看不见两米之外')
+    const starMapChoice = page.getByRole('button', { name: '继续观察星图' })
+    await advanceTo(dialog, starMapChoice)
+
+    await starMapChoice.click()
+    await expect(dialog).toContainText('这组星点不属于今天的天空')
+    const starMapActivity = page.getByRole('heading', { name: '星图比对' })
+    await advanceTo(dialog, starMapActivity)
+
+    await expect(starMapActivity).toBeVisible()
+    await page.getByRole('button', { name: '确认匹配' }).click()
+    await expect(dialog).toContainText('轮廓重合了')
+
     await page.locator('.menu-setting-button').first().click()
-
-    // Check for the presence of the settings text
-    // await expect(page.getByRole('heading', { name: '设置' })).toBeVisible()
   })
-
-  // Uncomment and modify the following test if needed
-  // test('markdown', async ({ page }) => {
-  //   await page.locator('[data-test-id="about"]').click();
-  //   await expect(page).toHaveURL('http://localhost:3333/about');
-
-  //   await expect(page.locator('.shiki')).toBeVisible();
-  // });
 })
