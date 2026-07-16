@@ -76,9 +76,16 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  webServer: {
-    command: 'npm run demo',
-    url: 'http://127.0.0.1:3333',
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: [
+    {
+      command: 'pnpm -C demo/starter run dev --port 3333',
+      url: 'http://127.0.0.1:3333',
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      command: 'pnpm -C demo/hamster run dev --port 3334',
+      url: 'http://127.0.0.1:3334',
+      reuseExistingServer: !process.env.CI,
+    },
+  ],
 })

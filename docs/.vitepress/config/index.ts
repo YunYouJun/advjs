@@ -255,6 +255,10 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
           link: '/guide/quick-start',
         },
         {
+          text: 'Demo 与 Examples',
+          link: '/guide/demos',
+        },
+        {
           text: '项目结构',
           link: '/guide/project-structure',
         },

@@ -29,6 +29,17 @@ adv your.adv.md
 # dev your game
 ```
 
+## Demos
+
+仓库提供两个不同层级的完整项目：
+
+```bash
+pnpm demo           # 最小、可复制的 demo/starter
+pnpm demo:hamster   # 四章、三结局、带插件活动的旗舰 Demo
+```
+
+`examples/` 用于单个 API、语法或特定创作场景的聚焦样例；`demo/starter` 是最短可运行项目；`demo/hamster` 同时承担完整能力展示与端到端回归。详见 [Demo 与 Examples](./docs/guide/demos.md)。
+
 ## docs | 文档
 
 [![GitHub deployments](https://img.shields.io/github/deployments/YunYouJun/advjs/Production%20%E2%80%93%20advjs?label=vercel&logo=vercel&logoColor=white)](https://github.com/YunYouJun/advjs/deployments/activity_log?environment=Production+%E2%80%93+advjs)
