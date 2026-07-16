@@ -2,6 +2,11 @@
 import { useDraggable } from '@vueuse/core'
 import { computed, shallowRef, useTemplateRef } from 'vue'
 import { useAdvContext } from '../../composables'
+import {
+  createRuntimeDebugReport,
+  projectRuntimeInspector,
+} from '../../runtime'
+import RuntimeInspectorPanel from './RuntimeInspectorPanel.vue'
 
 const buttonRef = useTemplateRef<HTMLElement>('buttonRef')
 const viewportWidth = typeof window === 'undefined' ? 1024 : window.innerWidth
@@ -15,21 +20,31 @@ const { style } = useDraggable(buttonRef, {
 const showDevTools = shallowRef(false)
 const { $adv } = useAdvContext()
 
-const inspector = computed(() => ({
-  address: $adv.store.state.cursor,
-  status: $adv.store.state.status,
-  current: $adv.store.current,
-  variables: $adv.store.state.variables,
-  stage: $adv.store.state.stage,
-  choices: $adv.store.state.choices,
-  visited: $adv.store.state.visited,
-  checkpoints: $adv.runtime.snapshot().checkpoints.length,
-}))
+const inspector = computed(() => projectRuntimeInspector(
+  $adv.runtime.snapshot(),
+  $adv.store.current,
+  $adv.runtime.trace(),
+))
+
+function exportReport() {
+  const report = createRuntimeDebugReport({
+    snapshot: $adv.runtime.snapshot(),
+    trace: $adv.runtime.trace(),
+  })
+  const url = URL.createObjectURL(new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' }))
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = 'advjs-runtime-report.json'
+  anchor.click()
+  URL.revokeObjectURL(url)
+}
 </script>
 
 <template>
   <button
     ref="buttonRef"
+    type="button"
+    aria-label="Open runtime inspector"
     class="rounded-full bg-dark flex size-12 shadow items-center bottom-6 right-6 justify-center fixed z-9999"
     :style="style"
     @click="showDevTools = !showDevTools"
@@ -45,11 +60,9 @@ const inspector = computed(() => ({
 
   <aside
     v-if="showDevTools"
-    class="text-white p-4 bg-dark max-w-2xl min-w-md bottom-0 right-0 top-0 fixed z-9999 overflow-auto"
+    class="text-white p-4 bg-dark max-w-3xl min-w-md bottom-0 right-0 top-0 fixed z-9999 overflow-auto"
+    aria-label="Runtime inspector"
   >
-    <h2 class="text-xl font-bold mb-4">
-      Runtime Inspector
-    </h2>
-    <pre class="text-left whitespace-pre-wrap">{{ inspector }}</pre>
+    <RuntimeInspectorPanel :model="inspector" @export="exportReport" />
   </aside>
 </template>
