@@ -1,5 +1,6 @@
 export * from './device'
 export * from './init'
+export * from './scene'
 export * from './screenshots'
 export * from './speech'
 export * from './statement'

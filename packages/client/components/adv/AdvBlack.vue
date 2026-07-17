@@ -62,8 +62,6 @@ watch(() => props.node.id, () => {
     flex="~ col"
     w="full"
     h="full"
-    text="5xl"
-    font="bold"
     @click="next"
   >
     <div class="words-wrapper relative" text="left">
@@ -82,10 +80,21 @@ watch(() => props.node.id, () => {
 
 <style lang="scss" scoped>
 .adv-black {
+  inset: 0;
+  box-sizing: border-box;
   background-color: rgb(0 0 0 / 80%);
+  padding: clamp(2rem, 8vw, 9rem);
+  font-size: clamp(1.4rem, 3vw, 3rem);
+  font-weight: 600;
+  line-height: 1.75;
+  letter-spacing: 0.035em;
+
+  .words-wrapper {
+    width: min(100%, 72rem);
+  }
 
   :deep(p) {
-    margin: 0.5rem;
+    margin: 0.75rem 0;
   }
 }
 </style>

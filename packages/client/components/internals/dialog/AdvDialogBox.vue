@@ -89,6 +89,8 @@ const curWords = computed(() => {
 
   .dialog-content {
     color: white;
+    line-height: 1.75;
+    letter-spacing: 0.025em;
 
     text-shadow: 0 0 0.2rem black;
   }

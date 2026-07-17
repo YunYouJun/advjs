@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { useAdvContext, useAppStore } from '@advjs/client'
+import { resolveSceneBackground, useAdvContext, useAppStore } from '@advjs/client'
 import { computed, watch } from 'vue'
 
 const { $adv } = useAdvContext()
 const app = useAppStore()
 const background = computed(() => $adv.store.state.stage.background)
+const backgroundSource = computed(() => resolveSceneBackground(
+  background.value,
+  $adv.gameConfig.value.scenes,
+))
 const advGameStyle = computed(() => ({
-  backgroundImage: `url("${background.value}")`,
+  backgroundImage: `url("${backgroundSource.value}")`,
 }))
 
 watch(background, (value, previous) => {

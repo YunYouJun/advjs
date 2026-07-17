@@ -92,4 +92,10 @@ provideLocal(injectionAdvContent, advContentRef)
 #adv-content {
   @apply overflow-hidden left-1/2 top-1/2;
 }
+
+.adv-screen {
+  // `overflow: hidden` still allows focused choices to scroll this canvas.
+  // A clipped canvas keeps the centered 16:9 stage fixed after interactions.
+  overflow: clip;
+}
 </style>

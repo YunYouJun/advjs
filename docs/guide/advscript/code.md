@@ -13,9 +13,11 @@ ADV.JS 使用 JSON/YAML 代码块声明舞台效果、变量动作、条件和�
 ````md
 ```yaml
 type: background
-url: /img/bg/observatory.svg
+name: observatory
 ```
 ````
+
+`name` 优先匹配 `gameConfig.scenes` 中的场景 ID；也可以用 `url` 直接提供图片地址。
 
 立绘进入与退出：
 
@@ -38,6 +40,8 @@ type: bgm
 name: observatory
 ```
 ````
+
+`name` 会从公共 BGM 曲库解析；项目自带音频可改用 `src: /audio/observatory.wav`。以 `/`、`./`、`../` 或协议开头的地址会保持原样，不再追加 CDN 前缀和 `.mp3`。
 
 宿主把这些纯数据操作转换为背景、音频、Pixi 或其他展示效果；它们不直接改变剧情游标。
 
