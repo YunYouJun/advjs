@@ -11,6 +11,10 @@ my-game/
 │
 ├── public/                      # 静态资源（直接serve，不经构建处理）
 │   └── favicon.svg              # 游戏图标
+├── pages/                       # 可选：覆盖主题页面，如 pages/start.vue
+├── layouts/                     # 可选：项目专属页面布局
+├── styles/                      # 可选：项目级全局样式
+│   └── index.scss
 │
 ├── adv/                         # 游戏内容根目录
 │   ├── index.adv.json           # 游戏入口（章节、剧情索引）
@@ -88,6 +92,12 @@ my-game/
 静态资源目录，文件会被直接 serve，不经过构建处理，路径保持不变。常用于放置游戏图标、Open Graph 图片等。
 
 - `favicon.svg` — 游戏图标，显示在浏览器标签页
+
+### `pages/`、`layouts/` 与 `styles/`
+
+这些目录用于项目级界面定制。`pages/start.vue` 可以覆盖当前主题的默认开始页，`layouts/` 可以补充专属布局，`styles/index.css` 或 `styles/index.scss` 会在主题样式之后加载。
+
+开始页菜单不必依赖具体主题；使用 `@advjs/client` 提供的 `useAdvStartActions()` 即可进入游戏、打开读档与设置。完整示例参见[自定义开始界面](/guide/customization/start-screen)。
 
 ### `adv/`
 

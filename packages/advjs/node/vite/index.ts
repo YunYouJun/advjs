@@ -15,6 +15,7 @@ import { ensureDirSync } from '../utils/fs'
 import { createComponentsPlugin } from './components'
 import { createConfigPlugin } from './extendConfig'
 import { createAdvLoader } from './loaders'
+import { createRoutesFolders } from './routes'
 // import { createClientSetupPlugin } from './setupClient'
 import { createUnocssPlugin } from './unocss'
 import { createVuePlugin } from './vue'
@@ -39,7 +40,7 @@ export async function ViteAdvPlugin(
     // https://github.com/posva/unplugin-vue-router
     VueRouter({
       extensions: ['.vue', '.md'],
-      routesFolder: options.roots.map(root => join(root, 'pages')),
+      routesFolder: createRoutesFolders(options.roots),
       exclude: ['**/*.adv.md'],
       dts: resolve(options.tempRoot, 'typed-router.d.ts'),
     }),

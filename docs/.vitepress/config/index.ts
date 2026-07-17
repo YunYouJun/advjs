@@ -263,6 +263,10 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
           link: '/guide/project-structure',
         },
         {
+          text: '自定义开始界面',
+          link: '/guide/customization/start-screen',
+        },
+        {
           text: '运行与编译',
           link: '/guide/mode',
         },
