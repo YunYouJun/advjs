@@ -63,11 +63,13 @@ Core Runtime 不读取 `localStorage`，也不知道某个字段是否持久化�
 
 改变持久字段的含义或 JSON 形状时，提高 `version`：
 
-```ts
-progression: {
-  id: 'my-game',
-  version: 2,
-  keys: ['canonicalCompleted', 'unlockedEndings'],
+```json
+{
+  "progression": {
+    "id": "my-game",
+    "version": 2,
+    "keys": ["canonicalCompleted", "unlockedEndings"]
+  }
 }
 ```
 

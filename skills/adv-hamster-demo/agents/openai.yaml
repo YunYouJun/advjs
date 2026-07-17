@@ -1,4 +1,4 @@
 interface:
-  display_name: "ADV Hamster Demo"
-  short_description: "Maintain the full hamster showcase adaptation contract"
-  default_prompt: "Use $adv-hamster-demo to continue the full demo/hamster adaptation safely."
+  display_name: ADV Hamster Demo
+  short_description: Maintain the full hamster showcase adaptation contract
+  default_prompt: Use $adv-hamster-demo to continue the full demo/hamster adaptation safely.

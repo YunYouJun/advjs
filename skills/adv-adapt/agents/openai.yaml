@@ -1,4 +1,4 @@
 interface:
-  display_name: "ADV Source Adaptation"
-  short_description: "Audit source-to-script fidelity for ADV.JS adaptations"
-  default_prompt: "Use $adv-adapt to adapt a source work into a traceable ADV.JS script."
+  display_name: ADV Source Adaptation
+  short_description: Audit source-to-script fidelity for ADV.JS adaptations
+  default_prompt: Use $adv-adapt to adapt a source work into a traceable ADV.JS script.
