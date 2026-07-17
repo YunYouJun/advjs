@@ -9,7 +9,7 @@ tags:
   - 模拟人类
   - 读书人
 imagePrompt: >-
-  Full-body visual novel tachie of a quiet bookish young man from a simulated near-future Earth, short dark hair, thin rectangular glasses, soft summer shirt with rolled sleeves and dark trousers, holding a bookmarked science-fiction novel, gentle dryly skeptical expression, clean anime-inspired painterly rendering, transparent background, consistent front three-quarter pose
+  Full-body visual novel tachie of a quiet bookish young man from a simulated near-future Earth, short dark hair, unobstructed dark eyes with no glasses or facial accessories, soft summer shirt with rolled sleeves and dark trousers, holding a bookmarked science-fiction novel, gentle dryly skeptical expression, clean anime-inspired painterly rendering, transparent background, consistent front three-quarter pose
 relationships:
   - targetId: observer
     type: 被观测者、朋友与助手
@@ -21,7 +21,7 @@ relationships:
 
 ## 外貌
 
-戴细框眼镜的年轻男性，常拿着尚未读完的科幻小说。衣着普通整洁，神态安静，在失重宇宙里也会下意识保护书本和怀中的微型恒星。
+不戴眼镜的年轻男性，短发、深色眼睛，常拿着尚未读完的科幻小说。衣着普通整洁，神态安静，在失重宇宙里也会下意识保护书本和怀中的微型恒星。
 
 ## 性格
 
