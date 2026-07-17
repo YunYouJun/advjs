@@ -6,11 +6,21 @@ title: 我们的征途是星辰大海
 
 ## 神迹之后 {#after-seed-rain}
 
-【向日葵城，星际时代前夜，内景】
+<!-- scene: sunflower-city / 星际时代前夜 / 内景 -->
 
 ```yaml
 type: background
-url: /img/bg/civilization.svg
+name: sunflower-city
+```
+
+```yaml
+type: tachie
+enter:
+  - name: 探索王
+    status: resolute
+exit:
+  - 观测者
+  - 读书人
 ```
 
 > 瓜子雨后，质疑神存在的学派尽数消亡。笃信自然科学的牛仓、提出转轮永动机的托马斯·仓、驱动电力的特斯仓与点亮世界的爱迪仓，也都把余生投入神学。

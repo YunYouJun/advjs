@@ -6,11 +6,11 @@ title: 星空的狂想
 
 ## 证据 {#proof}
 
-【模拟宇宙与地球轨道，三日倒计时，外景】
+<!-- scene: simulated-orbit / 三日倒计时 / 外景 -->
 
 ```yaml
 type: background
-url: /img/bg/observatory.svg
+name: simulated-orbit
 ```
 
 @读书人

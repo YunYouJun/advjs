@@ -6,11 +6,22 @@ title: 残暴的蜥蜴王
 
 ## 雷克斯暴龙 {#rex}
 
-【史前草原与森林，白垩纪，外景】
+<!-- scene: prehistoric-grassland / 白垩纪 / 外景 -->
 
 ```yaml
 type: background
-url: /img/bg/civilization.svg
+name: prehistoric-grassland
+```
+
+```yaml
+type: tachie
+enter:
+  - name: 观测者
+    status: curious
+  - name: 读书人
+    status: worried
+exit:
+  - 小仓鼠
 ```
 
 @读书人
@@ -36,6 +47,13 @@ url: /img/bg/civilization.svg
 
 ## 巴 {#ba-appears}
 
+```yaml
+type: tachie
+enter:
+  - name: 巴
+    status: afraid
+```
+
 > 读书人指向她脚边。一只棕褐色仓鼠蜷成一团，因霸王龙与巨大神明而瑟瑟发抖。它的前肢已趋于细长灵活，也能够直立行走。
 
 @观测者
@@ -49,6 +67,13 @@ url: /img/bg/civilization.svg
 
 @巴
 遵命，神小姐。
+
+```yaml
+type: tachie
+enter:
+  - name: 巴
+    status: hopeful
+```
 
 > 她没有让巴步行，而是把它直接放到霸王龙头上。伴着半空中的惨叫，两位神明、巴和霸王龙夫妇向未知方向出发。
 

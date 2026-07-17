@@ -6,11 +6,22 @@ title: 白昼之光，岂知夜色之深
 
 ## 第四十二次 {#forty-second}
 
-【夏日模拟室，第 42 次回滚，午后】
+<!-- scene: summer-room / 第 42 次回滚 / 午后 -->
 
 ```yaml
 type: background
-url: /img/bg/cage.svg
+name: summer-room
+```
+
+```yaml
+type: tachie
+enter:
+  - name: 观测者
+    status: curious
+  - name: 读书人
+    status: default
+  - name: 小仓鼠
+    status: sleepy
 ```
 
 > 我们因凝视星空而成为人，还是因为是人，才会凝视星空？如果没有星空，这个问题也不会诞生；于是，星空也在凝视人类。
@@ -62,6 +73,15 @@ duration: 1600
 
 @观测者
 欢迎光临——我的宇宙。
+
+```yaml
+type: tachie
+enter:
+  - name: 观测者
+    status: smile
+  - name: 读书人
+    status: worried
+```
 
 - [听唯一神解释这个世界](cocoon#only-god)
 

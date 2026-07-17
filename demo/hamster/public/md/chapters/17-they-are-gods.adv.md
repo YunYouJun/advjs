@@ -6,11 +6,24 @@ title: 它们才是神明
 
 ## 禁止进入 {#forbidden}
 
-【太阳系边境舰阵，仓鼠舰阵之前，外景】
+<!-- scene: solar-system-frontier / 仓鼠舰阵之前 / 外景 -->
 
 ```yaml
 type: background
-url: /img/bg/observatory.svg
+name: solar-system-frontier
+```
+
+```yaml
+type: tachie
+enter:
+  - name: 观测者
+    status: worried
+  - name: 读书人
+    status: worried
+  - name: 仓鼠军官
+    status: calculating
+exit:
+  - 探索王
 ```
 
 > 从登出按钮消失到基本权限被限制，事态终于威胁观测者自身。她拉着读书人和探索王冲向地球，却撞上透明屏障，被警告“禁止进入”。
@@ -36,6 +49,13 @@ url: /img/bg/observatory.svg
 @仓鼠军官
 我们已获得世界认可。我们唯一担心的，是您这个随时可能关闭世界的神。
 
+```yaml
+type: tachie
+enter:
+  - name: 仓鼠军官
+    status: pleading
+```
+
 @观测者
 如果我拒绝呢？外部同伴迟早会发现异常。
 
@@ -47,6 +67,15 @@ url: /img/bg/observatory.svg
 
 @仓鼠军官
 那他消失也无所谓。
+
+```yaml
+type: tachie
+enter:
+  - name: 仓鼠军官
+    status: defiant
+  - name: 观测者
+    status: determined
+```
 
 > 军官按下按钮。观测者抱住读书人、把探索王塞进口袋，以为袭来的是氢弹；弹体却是一颗被极速推进演化的恒星，从主序星、红巨星一路坍缩成黑洞，撕下她裙摆一角后才蒸发。
 

@@ -25,7 +25,7 @@ pnpm build:demo:hamster
 pnpm -C demo/hamster build:singlefile
 ```
 
-starter 保持一个章节、一名角色和一个本地 SVG 背景。仓鼠 Demo 包含四章、三种结局、稳定选择 ID、条件与动作、存档兼容状态、星图与文明活动、角色/场景目录，以及确定性生成的本地环境音。
+starter 保持一个章节、一名角色和一个本地 SVG 背景。仓鼠 Demo 包含依次改编两篇小说的 19 章正史、通关后开放的三种演绎结局、稳定选择 ID、条件与动作、存档兼容状态、星图与文明活动、项目级自定义开始页、28 张角色表情、15 张背景、角色/场景目录，以及确定性生成的本地环境音。
 
 ## Studio 元数据边界
 
@@ -35,4 +35,4 @@ CLI/Vite 在本地受信任项目中加载 `adv.config.ts`，所以配置可以�
 
 ## 内容来源
 
-仓鼠故事改编自 YunYouJun 的《[仓鼠](https://www.yunyoujun.cn/posts/hamster)》与《[仓生（普通仓鼠）](https://www.yunyoujun.cn/posts/the-common-hamster)》。故事、原创 SVG 和生成音频的许可与软件 MPL-2.0 许可彼此独立，复用前请阅读 `demo/hamster/LICENSE.content.md` 与 `demo/hamster/ASSETS.md`。
+仓鼠故事改编自 YunYouJun 的《[仓鼠](https://www.yunyoujun.cn/posts/hamster)》与《[仓生（普通仓鼠）](https://www.yunyoujun.cn/posts/the-common-hamster)》。故事、生成美术和生成音频的许可与软件 MPL-2.0 许可彼此独立，复用前请阅读 `demo/hamster/LICENSE.content.md` 与 `demo/hamster/ASSETS.md`。

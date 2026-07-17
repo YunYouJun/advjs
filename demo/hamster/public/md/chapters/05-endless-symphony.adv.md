@@ -6,11 +6,22 @@ title: 无尽的交响乐章
 
 ## 学院报告 {#academy-report}
 
-【学院终端，年末，内景】
+<!-- scene: academy-terminal / 年末 / 内景 -->
 
 ```yaml
 type: background
-url: /img/bg/observatory.svg
+name: academy-terminal
+```
+
+```yaml
+type: tachie
+enter:
+  - name: 观测者
+    status: smile
+  - name: 读书人
+    status: default
+exit:
+  - 小仓鼠
 ```
 
 > 观测者向学院提交报告：黑域中的人类因害怕资源枯竭，尝试建造戴森球；为取得材料而引爆行星，却使星系平衡破坏、整体位移并脱离黑域。人类最终死于脱离过程中的引力场与辐射。

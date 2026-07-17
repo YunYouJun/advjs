@@ -6,11 +6,22 @@ title: 黯淡的星空
 
 ## 最终答复 {#final-answer}
 
-【太阳系边境舰阵，恒星舰队包围中，外景】
+<!-- scene: solar-system-frontier / 恒星舰队包围中 / 外景 -->
 
 ```yaml
 type: background
-url: /img/bg/observatory.svg
+name: solar-system-frontier
+```
+
+```yaml
+type: tachie
+enter:
+  - name: 观测者
+    status: determined
+  - name: 读书人
+    status: worried
+  - name: 仓鼠军官
+    status: defiant
 ```
 
 ```yaml
@@ -45,7 +56,23 @@ duration: 1800
 
 ## 现实工作站 {#workstation}
 
-【现实工作站与仓鼠笼，关机之后，内景】
+<!-- scene: real-workstation / 关机之后 / 内景 -->
+
+```yaml
+type: background
+name: real-workstation
+```
+
+```yaml
+type: tachie
+enter:
+  - name: 小仓鼠
+    status: running
+exit:
+  - 观测者
+  - 读书人
+  - 仓鼠军官
+```
 
 > 超频保护。不论多昂贵的工作站，超过频率或温度都会自动关机——正如发展失控的文明。
 

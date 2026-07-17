@@ -4,9 +4,9 @@ title: 仓鼠的笼子
 
 <!-- source:hamster/hamster-cage -->
 
-## 游玩模式 {#mode-select}
+## 选择观测协议 {#mode-select}
 
-> 《仓鼠》与《仓生》的原作主线按发表顺序完整展开。首次游玩只能进入原作模式；通关后会在这里解锁明确标注为非原作的演绎模式。
+> 第一份观测记录已经就绪。沿着它，可以一直抵达群星黯淡之处。
 
 - [从《仓鼠》开始原作主线](#summer-afternoon)
 
@@ -18,7 +18,7 @@ title: 仓鼠的笼子
       value: canonical
     - type: variables/set
       key: ending
-      value: ""
+      value: ''
   ```
 
 - [进入 A+ 演绎模式](#interpretive-mode)
@@ -32,16 +32,16 @@ title: 仓鼠的笼子
       value: interpretive
     - type: variables/set
       key: ending
-      value: ""
+      value: ''
   ```
 
 ## 夏日午后 {#summer-afternoon}
 
-【夏日模拟室，午后，内景】
+<!-- scene: summer-room / 午后 / 内景 -->
 
 ```yaml
 type: background
-url: /img/bg/cage.svg
+name: summer-room
 ```
 
 ```yaml
@@ -56,6 +56,8 @@ enter:
     status: curious
   - name: 读书人
     status: default
+  - name: 小仓鼠
+    status: running
 ```
 
 > 冷气把盛夏挡在玻璃幕墙之外。观测者喂着一只毛茸茸的小仓鼠，读书人仍埋在书页里。
@@ -121,6 +123,17 @@ enter:
 @观测者
 请等一下。明天务必再来，我有一个秘密要告诉你。
 
+```yaml
+type: tachie
+enter:
+  - name: 观测者
+    status: determined
+  - name: 读书人
+    status: curious
+  - name: 小仓鼠
+    status: sleepy
+```
+
 > 他惊讶片刻，还是点头。夕阳穿过单向玻璃，为屋内染上与笑容相似的暖色。
 
 @读书人
@@ -134,16 +147,27 @@ enter:
   id: continue-to-world-destruction
   ```
 
-## A+ 演绎模式 {#interpretive-mode}
+## 回声演算 {#interpretive-mode}
 
-【星空模拟室，非原作演绎，内景】
+<!-- scene: starfield-room / 非正史演绎 / 内景 -->
 
 ```yaml
 type: background
-url: /img/bg/observatory.svg
+name: starfield-room
 ```
 
-> 此路线是完整通关后开放的主题变奏，不属于两篇原作。你可以重排一次星图回声，再选择如何保存这段文明记忆。
+```yaml
+type: tachie
+enter:
+  - name: 观测者
+    status: determined
+  - name: 读书人
+    status: default
+exit:
+  - 小仓鼠
+```
+
+> 全部观测结束后，一组新的星图坐标浮出档案。旧世界留下的回声，正等待另一种回答。
 
 ```yaml
 type: activity
@@ -238,4 +262,4 @@ condition: '!starMatched || starMatchScore < 0.82'
 
 ## 演绎结束 {#interpretive-end}
 
-> A+ 演绎记录已保存。原作主线不会被这次选择改写。
+> 星图缓缓熄灭。这次回答被收进一颗小小的记忆结晶。

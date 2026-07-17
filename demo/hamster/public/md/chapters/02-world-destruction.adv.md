@@ -6,11 +6,22 @@ title: 关于世界毁灭的二三事
 
 ## 久违的星空 {#starry-room}
 
-【星空模拟室，次日，内景】
+<!-- scene: starfield-room / 次日 / 内景 -->
 
 ```yaml
 type: background
-url: /img/bg/observatory.svg
+name: starfield-room
+```
+
+```yaml
+type: tachie
+enter:
+  - name: 观测者
+    status: default
+  - name: 读书人
+    status: default
+exit:
+  - 小仓鼠
 ```
 
 ```yaml
@@ -67,6 +78,15 @@ duration: 1000
 
 @观测者
 距离世界毁灭，还有三天。
+
+```yaml
+type: tachie
+enter:
+  - name: 观测者
+    status: worried
+  - name: 读书人
+    status: curious
+```
 
 > 读书人的神情从期待凝成呆滞。他以为那只是一个过分的玩笑，可她没有笑。
 

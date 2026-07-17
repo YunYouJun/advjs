@@ -1046,6 +1046,9 @@ importers:
       advjs:
         specifier: workspace:*
         version: link:../../packages/advjs
+      cross-env:
+        specifier: catalog:utils
+        version: 10.1.0
 
   demo/love:
     devDependencies:

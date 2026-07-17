@@ -47,14 +47,14 @@
 
 ## 表情矩阵
 
-| 角色 | 必需差分 |
-| --- | --- |
-| `observer` | `default`, `smile`, `curious`, `worried`, `sad`, `determined` |
-| `reader` | `default`, `smile`, `curious`, `worried`, `sad`, `determined` |
-| `pet-hamster` | `default`, `sleepy`, `startled`, `running` |
-| `ba` | `default`, `afraid`, `hopeful`, `proud` |
-| `explorer-king` | `default`, `resolute`, `awakened`, `reverent` |
-| `hamster-commander` | `default`, `calculating`, `pleading`, `defiant` |
+| 角色                | 必需差分                                                      |
+| ------------------- | ------------------------------------------------------------- |
+| `observer`          | `default`, `smile`, `curious`, `worried`, `sad`, `determined` |
+| `reader`            | `default`, `smile`, `curious`, `worried`, `sad`, `determined` |
+| `pet-hamster`       | `default`, `sleepy`, `startled`, `running`                    |
+| `ba`                | `default`, `afraid`, `hopeful`, `proud`                       |
+| `explorer-king`     | `default`, `resolute`, `awakened`, `reverent`                 |
+| `hamster-commander` | `default`, `calculating`, `pleading`, `defiant`               |
 
 ## 背景规范
 

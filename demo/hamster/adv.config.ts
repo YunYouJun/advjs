@@ -1,6 +1,61 @@
+import process from 'node:process'
+import { fileURLToPath } from 'node:url'
 import { civilization, starMap } from '@advjs/plugin-interactions'
 import { defineAdvConfig } from 'advjs'
+import artManifest from './adv/assets.json'
 import gameSettings from './adv/settings/game.json'
+
+const requestedAssetBaseUrl = process.env.ADV_HAMSTER_ASSET_BASE_URL || artManifest.publicBaseUrl
+const localReleaseRoot = fileURLToPath(new URL('../../temp/hamster-art/release-current/', import.meta.url))
+const assetBaseUrl = requestedAssetBaseUrl === 'local'
+  ? `/@fs/${localReleaseRoot}`
+  : requestedAssetBaseUrl
+
+function assetUrl(id: string) {
+  const asset = artManifest.assets.find(item => item.id === id)
+  if (!asset)
+    throw new Error(`[hamster] Missing art manifest entry: ${id}`)
+
+  if (assetBaseUrl.startsWith('/'))
+    return `${assetBaseUrl.replace(/\/$/, '')}/${asset.objectKey}`
+
+  return new URL(asset.objectKey, assetBaseUrl).href
+}
+
+const characterSpecs = [
+  { id: 'observer', name: '观测者', aliases: ['我', '神小姐', '女神大人', '太阳女神'] },
+  { id: 'reader', name: '读书人', aliases: ['他', '助手君', '助手先生'] },
+  { id: 'pet-hamster', name: '小仓鼠', aliases: ['仓鼠', '宠物仓鼠', '最初的祖先'] },
+  { id: 'ba', name: '巴', aliases: ['巴先生'] },
+  { id: 'explorer-king', name: '探索王', aliases: [] },
+  { id: 'hamster-commander', name: '仓鼠军官', aliases: ['舰队指挥官'] },
+] as const
+
+const characters = characterSpecs.map((character) => {
+  const assets = artManifest.assets.filter(asset => (
+    asset.kind === 'character' && asset.characterId === character.id
+  ))
+  const defaultAsset = assets.find(asset => asset.expression === 'default')
+  if (!defaultAsset)
+    throw new Error(`[hamster] Missing default tachie: ${character.id}`)
+
+  return {
+    ...character,
+    avatar: assetUrl(defaultAsset.id),
+    tachies: Object.fromEntries(assets.map(asset => [
+      asset.expression,
+      { src: assetUrl(asset.id) },
+    ])),
+  }
+})
+
+const scenes = artManifest.assets
+  .filter(asset => asset.kind === 'background')
+  .map(asset => ({
+    id: asset.id.replace('background/', ''),
+    type: 'image' as const,
+    src: assetUrl(asset.id),
+  }))
 
 const hamsterChapters = [
   { id: 'hamster-cage', title: '仓鼠的笼子', entry: 'mode-select', src: '/md/chapters/01-hamster-cage.adv.md' },
@@ -26,6 +81,11 @@ const hamsterChapters = [
 
 export default defineAdvConfig({
   theme: 'default',
+  pages: {
+    start: {
+      bg: assetUrl('background/starfield-room'),
+    },
+  },
   plugins: [
     starMap({ tolerance: 0.82 }),
     civilization({ defaultLevel: 1 }),
@@ -35,6 +95,7 @@ export default defineAdvConfig({
   },
   gameConfig: {
     ...gameSettings,
+    cover: assetUrl('background/starfield-room'),
     chapters: hamsterChapters.map((chapter, index) => {
       const next = hamsterChapters[index + 1]
       return {
@@ -58,27 +119,7 @@ export default defineAdvConfig({
         ],
       }
     }),
-    characters: [
-      {
-        id: 'observer',
-        name: '观测者',
-        avatar: '/img/characters/observer.svg',
-        tachies: {
-          default: {
-            src: '/img/characters/observer.svg',
-          },
-        },
-      },
-      {
-        id: 'reader',
-        name: '读书人',
-        avatar: '/img/characters/hamster.svg',
-        tachies: {
-          default: {
-            src: '/img/characters/hamster.svg',
-          },
-        },
-      },
-    ],
+    characters,
+    scenes,
   },
 })

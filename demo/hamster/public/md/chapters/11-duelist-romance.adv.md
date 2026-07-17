@@ -6,11 +6,22 @@ title: 决斗者的浪漫
 
 ## 新生地球 {#new-earth}
 
-【新生地球，创世初期，外景】
+<!-- scene: newborn-earth / 创世初期 / 外景 -->
 
 ```yaml
 type: background
-url: /img/bg/civilization.svg
+name: newborn-earth
+```
+
+```yaml
+type: tachie
+enter:
+  - name: 观测者
+    status: smile
+  - name: 读书人
+    status: default
+  - name: 小仓鼠
+    status: running
 ```
 
 > 光覆盖地球，空气、海与陆地依次部署。读书人仍舍不得那颗黄色恒星；仓鼠醒来后，竟在光球表面把它当作转轮。
@@ -56,7 +67,7 @@ actions:
     value: 记忆结晶让经验跑得比短暂生命更远
 ```
 
-> 档案名称可以由玩家记录，但原作中的物种称谓仍是“仓人”。时间再次加速，投影里仓人已能用石木长矛反过来狩猎始盗龙。
+> 记忆结晶被收进第一份文明档案。时间再次加速，投影里仓人已能用石木长矛反过来狩猎始盗龙。
 
 @观测者
 我们下去看看。照这个速度，也许能遇见一群普通仓鼠模样的家伙，正在捕猎各种恐龙。

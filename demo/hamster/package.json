@@ -11,12 +11,13 @@
     "assets:audio": "node scripts/generate-ambient.mjs",
     "build": "adv build",
     "build:singlefile": "adv build --singlefile",
-    "dev": "adv --open=false --log=info",
+    "dev": "cross-env ADV_HAMSTER_ASSET_BASE_URL=local adv --open=false --log=info",
     "preview": "vite preview --host"
   },
   "devDependencies": {
     "@advjs/plugin-interactions": "workspace:*",
     "@advjs/theme-default": "workspace:*",
-    "advjs": "workspace:*"
+    "advjs": "workspace:*",
+    "cross-env": "catalog:utils"
   }
 }

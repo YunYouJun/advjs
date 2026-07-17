@@ -6,11 +6,22 @@ title: 相遇
 
 ## 探索王苏醒 {#awakening}
 
-【探索号外的星海，时间不明，外景】
+<!-- scene: exploration-space / 时间不明 / 外景 -->
 
 ```yaml
 type: background
-url: /img/bg/observatory.svg
+name: exploration-space
+```
+
+```yaml
+type: tachie
+enter:
+  - name: 探索王
+    status: awakened
+  - name: 观测者
+    status: curious
+  - name: 读书人
+    status: default
 ```
 
 > 探索王睁眼，没有看到仪器面板，只有触手可及的星河。赤裸的身体直接漂浮在宇宙中，探索号已被拆成一圈机械残骸。
@@ -30,6 +41,13 @@ url: /img/bg/observatory.svg
 
 @探索王
 是您救了我吗？
+
+```yaml
+type: tachie
+enter:
+  - name: 探索王
+    status: reverent
+```
 
 ## 被拆开的探索号 {#dismantled-ship}
 

@@ -1,0 +1,172 @@
+:root {
+  --hamster-void: #070a12;
+  --hamster-panel: rgb(9 14 27 / 88%);
+  --hamster-line: rgb(117 221 235 / 30%);
+  --hamster-ink: #f3eee4;
+  --hamster-muted: #aeb8ce;
+  --hamster-amber: #f6c96b;
+  --hamster-cyan: #75ddeb;
+}
+
+.adv-game {
+  background: var(--hamster-void);
+}
+
+.adv-background {
+  filter: saturate(0.88) contrast(1.04);
+}
+
+.adv-background::after {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 40%, transparent 42%, rgb(4 7 14 / 46%) 100%),
+    linear-gradient(0deg, rgb(4 7 14 / 38%), transparent 45%);
+  content: '';
+  pointer-events: none;
+}
+
+.adv-dialog-box {
+  right: 4.5rem !important;
+  bottom: 2.3rem !important;
+  left: 4.5rem !important;
+  height: 15rem !important;
+  border: 1px solid var(--hamster-line);
+  border-radius: 0.25rem;
+  background: linear-gradient(105deg, rgb(7 10 18 / 96%), rgb(12 21 42 / 86%)), var(--hamster-panel) !important;
+  padding-top: 3.2rem !important;
+  box-shadow: 0 1.5rem 5rem rgb(0 0 0 / 55%) !important;
+  backdrop-filter: blur(1rem);
+}
+
+.adv-dialog-box::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 9rem;
+  height: 2px;
+  background: linear-gradient(90deg, var(--hamster-amber), transparent);
+  content: '';
+}
+
+.adv-dialog-box .dialog-name {
+  color: var(--hamster-amber) !important;
+  font-family: 'Songti SC', STSong, serif;
+  font-size: 2rem !important;
+  letter-spacing: 0.14em;
+}
+
+.adv-dialog-box .dialog-content {
+  padding-right: 5rem !important;
+  color: var(--hamster-ink) !important;
+  font-family: 'Songti SC', STSong, serif;
+  font-size: clamp(1.55rem, 2vw, 2rem) !important;
+  font-weight: 500;
+  line-height: 1.8 !important;
+  letter-spacing: 0.045em !important;
+}
+
+.adv-black {
+  background: radial-gradient(circle at 50% 45%, rgb(18 27 58 / 50%), rgb(7 10 18 / 86%) 72%) !important;
+  color: var(--hamster-ink);
+  font-family: 'Songti SC', STSong, serif;
+  font-weight: 500 !important;
+  line-height: 1.82 !important;
+  text-shadow: 0 0.2rem 1.4rem rgb(0 0 0 / 70%);
+}
+
+.adv-black .words-wrapper::before {
+  display: block;
+  width: 4.5rem;
+  height: 1px;
+  margin-bottom: 1.5rem;
+  background: var(--hamster-amber);
+  content: '';
+}
+
+.adv-choice {
+  background: rgb(4 7 14 / 54%);
+  backdrop-filter: blur(0.35rem);
+}
+
+.adv-option {
+  width: min(52rem, 72%) !important;
+  margin: 0.45rem !important;
+  border: 1px solid rgb(117 221 235 / 38%) !important;
+  background: linear-gradient(90deg, rgb(9 14 27 / 94%), rgb(18 27 58 / 84%)) !important;
+  padding: 1.05rem 1.5rem !important;
+  color: var(--hamster-ink) !important;
+  font-family: 'Songti SC', STSong, serif;
+  font-size: 1.25rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+
+.adv-option:hover,
+.adv-option:focus-visible {
+  border-color: var(--hamster-amber) !important;
+  background: linear-gradient(90deg, rgb(45 42 38 / 96%), rgb(18 27 58 / 92%)) !important;
+  outline: none;
+  transform: translateX(0.4rem);
+}
+
+.adv-game-ui--header {
+  padding: 1.5rem 2rem !important;
+  background: linear-gradient(180deg, rgb(4 7 14 / 68%), transparent) !important;
+}
+
+.adv-game-ui--header .adv-icon-button {
+  border: 1px solid rgb(174 184 206 / 18%);
+  background: rgb(7 10 18 / 42%);
+  padding: 0.72rem;
+  color: var(--hamster-muted);
+  backdrop-filter: blur(0.5rem);
+}
+
+.adv-game-ui--header .adv-icon-button:hover {
+  border-color: var(--hamster-line);
+  color: var(--hamster-cyan);
+}
+
+.tachie-character {
+  max-width: min(38vw, 43rem) !important;
+  max-height: 96%;
+  object-fit: contain;
+  object-position: bottom center;
+  filter: brightness(42%) saturate(0.72) drop-shadow(0 1rem 2rem rgb(0 0 0 / 54%)) !important;
+  transition:
+    filter 220ms ease,
+    transform 220ms ease !important;
+}
+
+.tachie-character.active {
+  filter: brightness(100%) saturate(0.96) drop-shadow(0 1rem 2rem rgb(0 0 0 / 56%)) !important;
+  transform: translateY(-0.7rem) !important;
+}
+
+@media (max-width: 800px) {
+  .adv-dialog-box {
+    right: 1rem !important;
+    bottom: 1rem !important;
+    left: 1rem !important;
+    height: 12.5rem !important;
+    padding-top: 2.7rem !important;
+  }
+
+  .adv-dialog-box .dialog-content {
+    padding-right: 1.5rem !important;
+    font-size: 1.25rem !important;
+  }
+
+  .adv-option {
+    width: 88% !important;
+    font-size: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tachie-character,
+  .adv-option {
+    transition: none !important;
+  }
+}

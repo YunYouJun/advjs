@@ -6,11 +6,22 @@ title: 仓鼠们今天也在努力进化着
 
 ## 重返太空 {#return-to-space}
 
-【模拟宇宙与地球轨道，年代加速中，外景】
+<!-- scene: simulated-orbit / 年代加速中 / 外景 -->
 
 ```yaml
 type: background
-url: /img/bg/observatory.svg
+name: simulated-orbit
+```
+
+```yaml
+type: tachie
+enter:
+  - name: 观测者
+    status: smile
+  - name: 读书人
+    status: default
+exit:
+  - 巴
 ```
 
 @观测者
@@ -26,11 +37,11 @@ url: /img/bg/observatory.svg
 
 ## 向日葵城 {#sunflower-city}
 
-【向日葵城，近现代，正午】
+<!-- scene: sunflower-city / 近现代 / 正午 -->
 
 ```yaml
 type: background
-url: /img/bg/civilization.svg
+name: sunflower-city
 ```
 
 > 同一坐标已经没有草原与森林，只有低矮向日葵组成的花海。一架玩具大小的双翼机从头顶盘旋而过，仓鼠飞行员像在观察来客，又以缓慢速度引路。

@@ -6,11 +6,20 @@ title: 世界的终焉
 
 ## 无法否认的第四天 {#fourth-day}
 
-【模拟宇宙与地球轨道，第四日，外景】
+<!-- scene: simulated-orbit / 第四日 / 外景 -->
 
 ```yaml
 type: background
-url: /img/bg/observatory.svg
+name: simulated-orbit
+```
+
+```yaml
+type: tachie
+enter:
+  - name: 观测者
+    status: worried
+  - name: 读书人
+    status: determined
 ```
 
 > 倒计时归零，太阳仍照常升起，蝉鸣依旧聒噪。这是无法否认的第四天。
@@ -63,6 +72,17 @@ condition: '!starMatched || starMatchScore < 0.82'
 
 @观测者
 无论模拟成功与否，我都要重启世界，用新猜想再推演一次。谢谢你的提示，小仓鼠。
+
+```yaml
+type: tachie
+enter:
+  - name: 观测者
+    status: smile
+  - name: 读书人
+    status: smile
+  - name: 小仓鼠
+    status: sleepy
+```
 
 @读书人
 当人类开始仰望时，空无一物的世界会让人失望。谢谢你让我拥有这片星空的幻想——也谢谢款待。

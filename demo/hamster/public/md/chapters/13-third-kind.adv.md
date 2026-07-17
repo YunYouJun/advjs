@@ -6,11 +6,22 @@ title: 第三类接触
 
 ## 群居文明 {#hamster-society}
 
-【仓鼠村落，森林，外景】
+<!-- scene: hamster-village / 森林 / 外景 -->
 
 ```yaml
 type: background
-url: /img/bg/civilization.svg
+name: hamster-village
+```
+
+```yaml
+type: tachie
+enter:
+  - name: 观测者
+    status: default
+  - name: 读书人
+    status: default
+  - name: 巴
+    status: proud
 ```
 
 > 仓鼠原本是强势的独居动物。拥有人类智慧后，它们为了在危险世界生存，进化为合作的群居生物；石器、火与记忆结晶让经验和历史得以传承，霸王龙却仍是巨大威胁。
@@ -71,6 +82,13 @@ url: /img/bg/civilization.svg
 
 @巴
 谢谢……神明大人！
+
+```yaml
+type: tachie
+enter:
+  - name: 巴
+    status: hopeful
+```
 
 > 临别时，观测者终于抢回仪式主导权。她与巴伸出手指，指尖轻触；画面定格，一个君权神授的封建专制时代拉开序幕。
 

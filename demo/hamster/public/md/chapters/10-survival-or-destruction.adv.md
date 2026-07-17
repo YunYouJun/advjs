@@ -6,11 +6,11 @@ title: 生存还是毁灭
 
 ## 空白世界 {#empty-world}
 
-【初始化中的空白地球，时间不明，外景】
+<!-- scene: empty-earth / 时间不明 / 外景 -->
 
 ```yaml
 type: background
-url: /img/bg/civilization.svg
+name: empty-earth
 ```
 
 > 某个意识在刺眼白光中睁眼。平坦大地光滑得没有纹理，天空白得看不出高度，世界只剩亮与暗。它不知道自己是谁、从哪里来，又要到哪里去。
@@ -27,7 +27,20 @@ url: /img/bg/civilization.svg
 
 ## 王安 {#wang-an}
 
-【医院病房，初始化进度 0%—99%，内景】
+<!-- scene: hospital-room / 初始化进度 0%—99% / 内景 -->
+
+```yaml
+type: background
+name: hospital-room
+```
+
+```yaml
+type: tachie
+exit:
+  - 观测者
+  - 读书人
+  - 小仓鼠
+```
 
 > 医生再次询问是否确定。王安缓慢点头。
 
@@ -50,12 +63,31 @@ url: /img/bg/civilization.svg
 
 > 初始化 98%。医院花园里，一辆电动轮椅从背后撞来。
 
+```yaml
+type: background
+name: hospital-garden
+```
+
 @轮椅姑娘
 实在对不起。
 
 > 初始化 99%。在世界陷入漆黑之前，王安仍觉得这个世界糟透了。他不会知道下一秒本可能改变看法。
 
 ## 百分之百 {#one-hundred}
+
+```yaml
+type: background
+name: empty-earth
+```
+
+```yaml
+type: tachie
+enter:
+  - name: 观测者
+    status: determined
+  - name: 读书人
+    status: worried
+```
 
 > 初始化 100%。原本蓝绿斑驳的地球成为纯黑球体，所有美好与丑恶、努力与放弃一同被擦除，不留痕迹。毁灭永远比创造轻松。
 

@@ -6,11 +6,22 @@ title: 作茧自缚
 
 ## 唯一神 {#only-god}
 
-【模拟宇宙与地球轨道，深空，外景】
+<!-- scene: simulated-orbit / 深空 / 外景 -->
 
 ```yaml
 type: background
-url: /img/bg/observatory.svg
+name: simulated-orbit
+```
+
+```yaml
+type: tachie
+enter:
+  - name: 观测者
+    status: determined
+  - name: 读书人
+    status: worried
+  - name: 小仓鼠
+    status: sleepy
 ```
 
 @观测者
@@ -49,6 +60,15 @@ url: /img/bg/observatory.svg
 
 @观测者
 我们毁灭世界吧。
+
+```yaml
+type: tachie
+enter:
+  - name: 观测者
+    status: smile
+  - name: 读书人
+    status: curious
+```
 
 - [问她毁灭之后要做什么](survival-or-destruction#empty-world)
 
