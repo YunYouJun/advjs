@@ -10,6 +10,9 @@ ADV.JS Skills 体系的发展方向。
 - ✅ `adv-create` v0.3 — MCP 驱动的项目创建 + 强制 imagePrompt + 原子批量
 - ✅ `adv-debug` v0.3 — 分支图（Mermaid/JSON/Text）+ 覆盖率 + 自动补桩
 - ✅ `adv-review` v0.1 — AI 内容质量审查（9 维 rubric，纯 skill 驱动，无 LLM 内置）
+- ✅ `adv-adapt` — 来源授权、章节映射、人物/场景清单与来源锚点覆盖审计
+- ✅ `adv-art` — 角色表情矩阵、素材来源/许可、内容哈希 URL 与发布清单审计
+- ✅ `adv-hamster-demo` — 仓鼠完整改编的 A+ 双模式、COS 路径和项目级验收约束
 
 ### CLI
 
@@ -62,7 +65,7 @@ ADV.JS Skills 体系的发展方向。
 
 ### 创作工具
 
-- [ ] `adv-art` — AI 辅助资源生成（消费现有 scene.imagePrompt / character.imagePrompt）
+- [x] `adv-art` — 已落地素材规划、来源/许可、哈希 URL 与清单审计；具体图片生成由可用的图像工具执行
 - [ ] `adv-audio` — 音效/BGM 智能推荐（消费现有 bgmHint）
 - [x] `adv-review` — AI 剧本质量审查（已落地 v0.1，见上方「当前版本」）
 

@@ -19,8 +19,22 @@ skills/
 │       └── session-demo.md  # Example session
 ├── adv-debug/
 │   └── SKILL.md          # Structural debug and analysis
-└── adv-review/
-    └── SKILL.md          # AI content-quality review
+├── adv-review/
+│   └── SKILL.md          # AI content-quality review
+├── adv-adapt/
+│   ├── SKILL.md          # Source-to-script adaptation workflow
+│   ├── agents/openai.yaml
+│   ├── references/adaptation-manifest.md
+│   └── scripts/audit-coverage.mjs
+├── adv-art/
+│   ├── SKILL.md          # Visual asset and publishing workflow
+│   ├── agents/openai.yaml
+│   ├── references/
+│   └── scripts/audit-assets.mjs
+└── adv-hamster-demo/
+    ├── SKILL.md          # Repository-only hamster composition workflow
+    ├── agents/openai.yaml
+    └── references/demo-contract.md
 ```
 
 ## Available Skills
@@ -68,25 +82,46 @@ quality, not structure (that's adv-debug's job).
 - **False-positive suppression**: verify voice claims against `.character.md`, defer structure to adv-debug, respect intentional style
 - **Output**: scored report with must-fix items + concrete rewrites
 
+### adv-adapt
+
+Adapt an existing source work into ADV.JS with an explicit source order,
+section-to-script anchors, cast/scene inventories, and a deterministic coverage
+audit. The audit proves traceability while `adv-review` remains responsible for
+semantic and writing-quality judgments.
+
+### adv-art
+
+Plan character expressions, backgrounds, and CGs; record provenance and
+licenses; validate immutable content-hashed URLs; and publish through a
+provider-specific storage Skill such as `tencent-cloud-cos`.
+
+### adv-hamster-demo
+
+Repository-only composition Skill for `demo/hamster`. It fixes the sequential
+source works, A+ canonical/interpretive mode, public COS prefix, art minimums,
+and release gates without duplicating the generic `adv-adapt` and `adv-art`
+workflows.
+
 ## Creating New Skills
 
 1. Create a new directory under `skills/`
 2. Add a `SKILL.md` file with YAML frontmatter and Markdown instructions
-3. Include example files in an `examples/` subdirectory
+3. Generate `agents/openai.yaml` for discovery metadata
+4. Add only the `scripts/`, `references/`, or `assets/` resources the workflow needs
 
 `SKILL.md` format:
 
 ```yaml
 ---
 name: my-skill
-description: My custom skill description
-version: 0.1.0
-tools:
-  - command-1
-  - command-2
+description: What this Skill does and the concrete situations that should trigger it
 ---
 
 # My Skill
 
 Skill instructions for the AI Agent...
 ```
+
+Keep trigger frontmatter limited to `name` and `description`. Store UI metadata
+in `agents/openai.yaml`, detailed schemas in `references/`, and deterministic
+automation in `scripts/`.

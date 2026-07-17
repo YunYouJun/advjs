@@ -29,40 +29,53 @@ skills/
 │       └── session-demo.md
 ├── adv-debug/
 │   └── SKILL.md          # 结构调试与分析
-└── adv-review/
-    └── SKILL.md          # AI 内容质量审查
+├── adv-review/
+│   └── SKILL.md          # AI 内容质量审查
+├── adv-adapt/
+│   ├── SKILL.md          # 来源改编与覆盖审计
+│   └── scripts/          # 确定性的来源锚点审计
+├── adv-art/
+│   ├── SKILL.md          # 美术生产与发布清单
+│   └── scripts/          # 素材完整性审计
+└── adv-hamster-demo/
+    └── SKILL.md          # 仅限仓鼠旗舰 Demo 的组合约束
 ```
 
-每个 Skill 是一个子目录，包含 `SKILL.md` 定义文件和可选的 `examples/` 示例目录。
+每个 Skill 是一个子目录，包含 `SKILL.md` 定义文件、推荐的
+`agents/openai.yaml` 发现元数据，以及按需添加的 `scripts/`、`references/`
+或 `assets/`。
 
 ## 已有 Skills
 
-| Skill                      | 版本   | 描述                                            |
-| -------------------------- | ------ | ----------------------------------------------- |
-| [adv-story](./adv-story)   | v0.3.0 | 互动叙事播放器：多章节导航、存档槽位、回退      |
-| [adv-create](./adv-create) | v0.3.0 | 从概念创建项目：MCP 批量创建、imagePrompt       |
-| [adv-debug](./adv-debug)   | v0.3.0 | 结构分析：分支图、覆盖率、自动补桩（确定性）    |
-| [adv-review](./adv-review) | v0.1.0 | AI 内容质量审查：口吻一致性、对话、节奏（判断） |
+| Skill                                                                                         | 版本   | 描述                                                     |
+| --------------------------------------------------------------------------------------------- | ------ | -------------------------------------------------------- |
+| [adv-story](./adv-story)                                                                      | v0.3.0 | 互动叙事播放器：多章节导航、存档槽位、回退               |
+| [adv-create](./adv-create)                                                                    | v0.3.0 | 从概念创建项目：MCP 批量创建、imagePrompt                |
+| [adv-debug](./adv-debug)                                                                      | v0.3.0 | 结构分析：分支图、覆盖率、自动补桩（确定性）             |
+| [adv-review](./adv-review)                                                                    | v0.1.0 | AI 内容质量审查：口吻一致性、对话、节奏（判断）          |
+| [`adv-adapt`](https://github.com/YunYouJun/advjs/blob/main/skills/adv-adapt/SKILL.md)           | —      | 既有作品改编：来源顺序、章节映射与确定性来源覆盖审计     |
+| [`adv-art`](https://github.com/YunYouJun/advjs/blob/main/skills/adv-art/SKILL.md)               | —      | 立绘/表情/背景/CG 流水线、来源许可与不可变素材清单       |
+| [`adv-hamster-demo`](https://github.com/YunYouJun/advjs/blob/main/skills/adv-hamster-demo/SKILL.md) | —   | 仅限 `demo/hamster` 的 A+ 模式、COS 路径与发布验收约束   |
 
 ## 创建新 Skill
 
 1. 在 `skills/` 下创建新目录
 2. 添加 `SKILL.md` 文件，包含 YAML frontmatter 和 Markdown 指令
-3. 在 `examples/` 中添加示例文件
+3. 生成 `agents/openai.yaml` 供支持的 Agent UI 发现
+4. 只添加工作流需要的 `scripts/`、`references/` 或 `assets/`
 
 `SKILL.md` 格式示例：
 
 ```yaml
 ---
 name: my-skill
-description: My custom skill description
-version: 0.1.0
-tools:
-  - command-1
-  - command-2
+description: 说明能力，以及应触发该 Skill 的具体任务和文件类型
 ---
 
 # My Skill
 
 Skill instructions for the AI Agent...
 ```
+
+新的 Skill frontmatter 只保留 `name` 与 `description`。版本属于文档元数据，
+界面文案放在 `agents/openai.yaml`，详细规范和确定性脚本按需渐进加载。
