@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 import { describe, expect, it } from 'vitest'
@@ -86,6 +86,27 @@ describe('hamster complete adaptation contract', () => {
     expect(chapters).toHaveLength(19)
     expect(new Set(chapters).size).toBe(19)
     expect(chapters.every(chapter => /^\d{2}-[a-z0-9-]+\.adv\.md$/u.test(chapter))).toBe(true)
+  })
+
+  it('maps every source section to exactly one ordered chapter anchor', () => {
+    const manifest = loadManifest()
+    const expected = manifest.sources.flatMap(source => source.sections.map(section => ({
+      file: section.chapters[0],
+      key: `${source.id}/${section.id}`,
+    })))
+    const chaptersDirectory = resolve(root, 'demo/hamster/public/md/chapters')
+    const files = readdirSync(chaptersDirectory)
+      .filter(file => file.endsWith('.adv.md'))
+      .sort()
+
+    expect(files).toEqual(expected.map(section => section.file))
+
+    const anchors = files.flatMap((file) => {
+      const content = readFileSync(resolve(chaptersDirectory, file), 'utf8')
+      return [...content.matchAll(/<!--\s*source:([a-z0-9-]+\/[a-z0-9-]+)\s*-->/gu)]
+        .map(match => match[1])
+    })
+    expect(anchors).toEqual(expected.map(section => section.key))
   })
 
   it('catalogs every visible or speaking source character with a card', () => {

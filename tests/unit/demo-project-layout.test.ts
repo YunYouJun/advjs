@@ -82,11 +82,26 @@ describe('demo project layout', () => {
     expect(config).toContain('import gameSettings from \'./adv/settings/game.json\'')
     expect(config).toContain('...gameSettings')
     for (const chapterSource of [
-      '/md/chapters/01-cage.adv.md',
-      '/md/chapters/02-last-night.adv.md',
-      '/md/chapters/03-common-life.adv.md',
-      '/md/chapters/04-dim-stars.adv.md',
-    ]) {
+      '01-hamster-cage.adv.md',
+      '02-world-destruction.adv.md',
+      '03-starry-fantasy.adv.md',
+      '04-world-ending.adv.md',
+      '05-endless-symphony.adv.md',
+      '06-hamster-postscript.adv.md',
+      '07-common-hamster-preface.adv.md',
+      '08-daylight.adv.md',
+      '09-cocoon.adv.md',
+      '10-survival-or-destruction.adv.md',
+      '11-duelist-romance.adv.md',
+      '12-lizard-king.adv.md',
+      '13-third-kind.adv.md',
+      '14-evolution.adv.md',
+      '15-stars-sea.adv.md',
+      '16-encounter.adv.md',
+      '17-they-are-gods.adv.md',
+      '18-dim-stars.adv.md',
+      '19-common-hamster-postscript.adv.md',
+    ].map(file => `/md/chapters/${file}`)) {
       expect(config).toContain(`src: '${chapterSource}'`)
     }
 

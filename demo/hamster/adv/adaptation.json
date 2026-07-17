@@ -472,6 +472,13 @@
       "needsBackground": true
     },
     {
+      "id": "work-archive",
+      "name": "作品档案",
+      "firstSourceSection": "hamster/postscript",
+      "scriptCard": "adv/scenes/work-archive.md",
+      "needsBackground": true
+    },
+    {
       "id": "empty-earth",
       "name": "初始化中的空白地球",
       "firstSourceSection": "the-common-hamster/survival-or-destruction",

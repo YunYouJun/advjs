@@ -8,24 +8,33 @@ import { civilization, starMap } from '../../plugins/plugin-interactions/src'
 
 const root = resolve(import.meta.dirname, '../..')
 
+async function sourceChapters() {
+  const manifest = JSON.parse(
+    await readFile(resolve(root, 'demo/hamster/adv/adaptation.json'), 'utf8'),
+  ) as {
+    sources: Array<{
+      sections: Array<{ chapters: string[] }>
+    }>
+  }
+
+  return Promise.all(manifest.sources.flatMap(source => source.sections).map(async (section) => {
+    const file = section.chapters[0]
+    return {
+      id: file.replace(/^\d+-/u, '').replace(/\.adv\.md$/u, ''),
+      sourcePath: `demo/hamster/public/md/chapters/${file}`,
+      content: await readFile(resolve(root, `demo/hamster/public/md/chapters/${file}`), 'utf8'),
+    }
+  }))
+}
+
 async function compileHamsterProgram() {
-  const chapter = async (id: string, file: string) => ({
-    id,
-    sourcePath: `demo/hamster/public/md/chapters/${file}`,
-    content: await readFile(resolve(root, `demo/hamster/public/md/chapters/${file}`), 'utf8'),
-  })
   return compileMarkdownProgram({
     id: 'hamster-demo',
     requiredPlugins: {
       'star-map': '1.0.0',
       'civilization': '1.0.0',
     },
-    chapters: [
-      await chapter('chapter-1', '01-cage.adv.md'),
-      await chapter('chapter-2', '02-last-night.adv.md'),
-      await chapter('chapter-3', '03-common-life.adv.md'),
-      await chapter('chapter-4', '04-dim-stars.adv.md'),
-    ],
+    chapters: await sourceChapters(),
   })
 }
 
@@ -47,161 +56,177 @@ async function createHamsterRuntime(variableOverrides: Record<string, any> = {})
 
 type HamsterRuntime = Awaited<ReturnType<typeof createHamsterRuntime>>
 
-async function reachOpeningChoice(runtime: HamsterRuntime) {
-  await runtime.start()
-  expect(runtime.current?.data?.text).toContain('透明笼中的仓鼠')
-  await runtime.next()
-  await runtime.next()
-  await runtime.next()
-  expect(runtime.state.status).toBe('waiting-choice')
-}
-
-async function advanceUntil(
+async function advanceUntilPause(
   runtime: HamsterRuntime,
-  predicate: () => boolean,
+  status: 'waiting-choice' | 'waiting-activity' | 'ended',
+  limit = 200,
 ) {
-  for (let step = 0; step < 30; step++) {
-    if (predicate())
+  for (let step = 0; step < limit; step++) {
+    if (runtime.state.status === status)
       return
     if (runtime.state.status !== 'playing')
-      throw new Error(`Cannot advance from ${runtime.state.status} at ${runtime.state.cursor.chapterId}#${runtime.state.cursor.nodeId}`)
+      throw new Error(`Unexpected ${runtime.state.status} at ${runtime.state.cursor.chapterId}#${runtime.state.cursor.nodeId}`)
     await runtime.next()
   }
-  throw new Error('Runtime did not reach the expected state within 30 steps')
+  throw new Error(`Runtime did not reach ${status} within ${limit} steps`)
 }
 
-async function reachEndingChoice(runtime: HamsterRuntime) {
-  await runtime.go('chapter-3#birth')
-  await advanceUntil(runtime, () => runtime.state.status === 'waiting-activity')
-  expect(runtime.state.pendingActivity?.type).toBe('civilization/initialize')
+async function completeCurrentActivity(runtime: HamsterRuntime, matched = true) {
+  if (runtime.state.pendingActivity?.type === 'star-map/compare') {
+    await runtime.completeActivity({ matched, score: matched ? 0.91 : 0.61 })
+    return 'star-map/compare'
+  }
+  if (runtime.state.pendingActivity?.type === 'civilization/initialize') {
+    await runtime.completeActivity({ name: '仓人文明档案', level: 2, principle: 'memory' })
+    return 'civilization/initialize'
+  }
+  throw new Error(`Unexpected activity: ${runtime.state.pendingActivity?.type}`)
+}
 
-  await runtime.completeActivity({ name: '仓生', level: 2, principle: 'memory' })
-  expect(runtime.state.variables).toMatchObject({
-    civilizationLevel: 2,
-    civilization: { name: '仓生', level: 2, principle: 'memory' },
-  })
-  expect(runtime.state.variables.memories).toContain('文明把短暂生命写进共同记忆')
+async function playCanonical(runtime: HamsterRuntime, matched = true) {
+  const chapters = new Set<string>()
+  const activities: string[] = []
 
-  await advanceUntil(runtime, () => runtime.state.status === 'waiting-choice')
-  await runtime.choose('enter-dim-stars')
-  expect(runtime.state.cursor.chapterId).toBe('chapter-4')
-  await advanceUntil(runtime, () => runtime.state.status === 'waiting-choice')
+  for (let step = 0; step < 800; step++) {
+    chapters.add(runtime.state.cursor.chapterId)
+    if (runtime.state.status === 'ended')
+      return { chapters: [...chapters], activities }
+    if (runtime.state.status === 'playing') {
+      await runtime.next()
+      continue
+    }
+    if (runtime.state.status === 'waiting-choice') {
+      const option = runtime.current?.data?.options?.[0]
+      if (!option || typeof option !== 'object' || Array.isArray(option) || typeof option.id !== 'string')
+        throw new Error('Canonical route exposed no selectable option')
+      await runtime.choose(option.id)
+      continue
+    }
+    if (runtime.state.status === 'waiting-activity') {
+      activities.push(await completeCurrentActivity(runtime, matched))
+      continue
+    }
+    throw new Error(`Unexpected Runtime status: ${runtime.state.status}`)
+  }
+  throw new Error('Canonical route did not end within 800 transitions')
 }
 
 describe('hamster demo runtime', () => {
-  it('runs chapters one and two through the curious star-map path', async () => {
+  it('compiles all 19 source chapters into a linked runtime program', async () => {
+    const result = await compileHamsterProgram()
+
+    expect(result.diagnostics).toEqual([])
+    expect(Object.keys(result.program!.chapters)).toEqual([
+      'hamster-cage',
+      'world-destruction',
+      'starry-fantasy',
+      'world-ending',
+      'endless-symphony',
+      'hamster-postscript',
+      'common-hamster-preface',
+      'daylight',
+      'cocoon',
+      'survival-or-destruction',
+      'duelist-romance',
+      'lizard-king',
+      'third-kind',
+      'evolution',
+      'stars-sea',
+      'encounter',
+      'they-are-gods',
+      'dim-stars',
+      'common-hamster-postscript',
+    ])
+  })
+
+  it('forces first-play canonical mode through every source chapter and both activities', async () => {
     const runtime = await createHamsterRuntime()
-    await reachOpeningChoice(runtime)
+    await runtime.start()
+    await advanceUntilPause(runtime, 'waiting-choice')
 
     expect(runtime.current?.data?.options).toEqual([
-      expect.objectContaining({ id: 'continue-observing' }),
-      expect.objectContaining({ id: 'leave-room' }),
+      expect.objectContaining({ id: 'start-canonical' }),
     ])
-    await runtime.choose('continue-observing')
-    expect(runtime.current?.data?.text).toContain('不属于今天的天空')
-    await runtime.next()
-    expect(runtime.state.status).toBe('waiting-activity')
-    expect(runtime.state.pendingActivity?.type).toBe('star-map/compare')
 
-    await runtime.completeActivity({ matched: true, score: 0.91 })
-    expect(runtime.current?.data?.text).toContain('轮廓重合')
+    const result = await playCanonical(runtime)
+
+    expect(result.chapters).toHaveLength(19)
+    expect(result.activities).toEqual(['star-map/compare', 'civilization/initialize'])
     expect(runtime.state.variables).toMatchObject({
-      curiosity: 1,
-      observationCount: 2,
+      canonicalCompleted: true,
+      storyMode: 'canonical',
+      ending: 'canonical',
       starMatched: true,
       starMatchScore: 0.91,
+      civilizationLevel: 2,
     })
-
-    await runtime.next()
-    await runtime.choose('carry-signal-forward')
-    expect(runtime.state.cursor.chapterId).toBe('chapter-2')
-    expect(runtime.state.status).not.toBe('waiting-activity')
-
-    await runtime.next()
-    await runtime.next()
-    await runtime.next()
-    expect(runtime.current?.data?.options).toEqual([
-      expect.objectContaining({ id: 'open-the-door' }),
-      expect.objectContaining({ id: 'keep-observing' }),
-      expect.objectContaining({ id: 'preserve-control' }),
-    ])
-    await runtime.choose('keep-observing')
-    expect(runtime.state.cursor.chapterId).toBe('chapter-3')
-    expect(runtime.state.variables).toMatchObject({
-      curiosity: 2,
-      observationCount: 3,
-    })
+    expect(runtime.state.variables.unlockedEndings).toEqual(['canonical'])
   })
 
-  it('can leave the room without entering the star-map activity', async () => {
+  it('keeps the canonical story complete after an imperfect star-map comparison', async () => {
     const runtime = await createHamsterRuntime()
-    await reachOpeningChoice(runtime)
+    await runtime.start()
+    await advanceUntilPause(runtime, 'waiting-choice')
+    const result = await playCanonical(runtime, false)
 
-    await runtime.choose('leave-room')
-
-    expect(runtime.state.cursor.chapterId).toBe('chapter-2')
+    expect(result.chapters).toHaveLength(19)
     expect(runtime.state.variables).toMatchObject({
-      control: 1,
-      observationCount: 1,
+      canonicalCompleted: true,
       starMatched: false,
+      starMatchScore: 0.61,
     })
-    expect(runtime.state.pendingActivity).toBeUndefined()
-    expect(runtime.state.status).not.toBe('waiting-activity')
   })
 
-  it('continues after an unsuccessful star-map comparison', async () => {
-    const runtime = await createHamsterRuntime()
-    await reachOpeningChoice(runtime)
+  it('unlocks the labeled interpretive route only on a later playthrough', async () => {
+    const runtime = await createHamsterRuntime({
+      canonicalCompleted: true,
+      unlockedEndings: ['canonical'],
+    })
+    await runtime.start()
+    await advanceUntilPause(runtime, 'waiting-choice')
 
-    await runtime.choose('continue-observing')
-    await runtime.next()
-    await runtime.completeActivity({ matched: false, score: 0.61 })
-
-    expect(runtime.current?.data?.text).toContain('误差同样是一条消息')
-    await runtime.next()
     expect(runtime.current?.data?.options).toEqual([
-      expect.objectContaining({ id: 'carry-signal-forward-failed' }),
+      expect.objectContaining({ id: 'start-canonical' }),
+      expect.objectContaining({ id: 'start-interpretive' }),
     ])
-    await runtime.choose('carry-signal-forward-failed')
-    expect(runtime.state.cursor.chapterId).toBe('chapter-2')
-    expect(runtime.state.status).not.toBe('waiting-activity')
-  })
 
-  it.each([
-    {
-      name: 'still gazing',
-      variables: { starMatched: true, curiosity: 2, empathy: 1, control: 1 },
-      choiceId: 'continue-gazing',
+    await runtime.choose('start-interpretive')
+    await advanceUntilPause(runtime, 'waiting-activity')
+    expect(await completeCurrentActivity(runtime)).toBe('star-map/compare')
+    await advanceUntilPause(runtime, 'waiting-choice')
+    expect(runtime.current?.data?.options).toEqual([
+      expect.objectContaining({ id: 'unlock-still-gazing' }),
+      expect.objectContaining({ id: 'unlock-endless-wheel' }),
+      expect.objectContaining({ id: 'unlock-common-hamster' }),
+    ])
+
+    await runtime.choose('unlock-still-gazing')
+    await advanceUntilPause(runtime, 'waiting-choice')
+    await runtime.choose('close-still-gazing')
+    await advanceUntilPause(runtime, 'ended')
+
+    expect(runtime.state.variables).toMatchObject({
+      canonicalCompleted: true,
+      storyMode: 'interpretive',
       ending: 'still-gazing',
-      marker: '我们仍在仰望',
-    },
-    {
-      name: 'endless wheel',
-      variables: { starMatched: false, curiosity: 0, empathy: 0, control: 2 },
-      choiceId: 'continue-wheel',
-      ending: 'endless-wheel',
-      marker: '转轮没有停下',
-    },
-    {
-      name: 'common hamster',
-      variables: { starMatched: false, curiosity: 2, empathy: 1, control: 1 },
-      choiceId: 'continue-common',
-      ending: 'common-hamster',
-      marker: '它只是一只普通仓鼠',
-    },
-  ])('reaches the $name ending deterministically', async ({ variables, choiceId, ending, marker }) => {
-    const runtime = await createHamsterRuntime(variables)
-    await reachEndingChoice(runtime)
+    })
+    expect(runtime.state.variables.unlockedEndings).toEqual(['canonical', 'still-gazing'])
+    expect(runtime.state.visited.every(address => address.startsWith('hamster-cage#'))).toBe(true)
+  })
 
-    expect(runtime.current?.data?.options).toEqual([
-      expect.objectContaining({ id: choiceId, label: '继续' }),
-    ])
-    await runtime.choose(choiceId)
-    expect(runtime.state.variables.ending).toBe(ending)
-    expect(runtime.current?.data?.text).toContain(marker)
+  it('does not duplicate a previously unlocked interpretive ending', async () => {
+    const runtime = await createHamsterRuntime({
+      canonicalCompleted: true,
+      unlockedEndings: ['canonical', 'still-gazing'],
+    })
+    await runtime.start()
+    await advanceUntilPause(runtime, 'waiting-choice')
+    await runtime.choose('start-interpretive')
+    await advanceUntilPause(runtime, 'waiting-activity')
+    await completeCurrentActivity(runtime)
+    await advanceUntilPause(runtime, 'waiting-choice')
+    await runtime.choose('unlock-still-gazing')
 
-    await advanceUntil(runtime, () => runtime.state.status === 'ended')
-    const snapshot = runtime.snapshot()
-    expect(JSON.parse(JSON.stringify(snapshot))).toEqual(snapshot)
+    expect(runtime.state.variables.unlockedEndings).toEqual(['canonical', 'still-gazing'])
   })
 })
