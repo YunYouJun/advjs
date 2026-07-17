@@ -1,0 +1,557 @@
+{
+  "schemaVersion": 1,
+  "adaptationMode": "canonical-plus",
+  "sources": [
+    {
+      "id": "hamster",
+      "title": "仓鼠",
+      "author": "YunYouJun",
+      "url": "https://www.yunyoujun.cn/posts/hamster",
+      "sourceUrl": "https://raw.githubusercontent.com/YunYouJun/yunyoujun.github.io/4a09ad4b730518144bd3d4b72fb584e83003c335/pages/posts/hamster.md",
+      "revision": "4a09ad4b730518144bd3d4b72fb584e83003c335",
+      "sha256": "f18d252fe769f3afaed50e5aeae891a70d899757cf9802d33cda736c56c40c5f",
+      "license": "CC BY-NC-SA 4.0",
+      "order": 1,
+      "sections": [
+        {
+          "id": "hamster-cage",
+          "title": "仓鼠的笼子",
+          "required": true,
+          "chapters": [
+            "01-hamster-cage.adv.md"
+          ]
+        },
+        {
+          "id": "world-destruction",
+          "title": "关于世界毁灭的二三事",
+          "required": true,
+          "chapters": [
+            "02-world-destruction.adv.md"
+          ]
+        },
+        {
+          "id": "starry-fantasy",
+          "title": "星空的狂想",
+          "required": true,
+          "chapters": [
+            "03-starry-fantasy.adv.md"
+          ]
+        },
+        {
+          "id": "world-ending",
+          "title": "世界的终焉",
+          "required": true,
+          "chapters": [
+            "04-world-ending.adv.md"
+          ]
+        },
+        {
+          "id": "endless-symphony",
+          "title": "无尽的交响乐章",
+          "required": true,
+          "chapters": [
+            "05-endless-symphony.adv.md"
+          ]
+        },
+        {
+          "id": "postscript",
+          "title": "后记",
+          "required": true,
+          "chapters": [
+            "06-hamster-postscript.adv.md"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the-common-hamster",
+      "title": "仓生",
+      "author": "YunYouJun",
+      "url": "https://www.yunyoujun.cn/posts/the-common-hamster",
+      "sourceUrl": "https://raw.githubusercontent.com/YunYouJun/yunyoujun.github.io/4a09ad4b730518144bd3d4b72fb584e83003c335/pages/posts/the-common-hamster.md",
+      "revision": "4a09ad4b730518144bd3d4b72fb584e83003c335",
+      "sha256": "f60363782f9c22e72f63d4bbf481dd83eb1f9e7780460e8b63dee419ed900fc6",
+      "license": "CC BY-NC-SA 4.0",
+      "order": 2,
+      "sections": [
+        {
+          "id": "preface",
+          "title": "前言",
+          "required": true,
+          "chapters": [
+            "07-common-hamster-preface.adv.md"
+          ]
+        },
+        {
+          "id": "daylight",
+          "title": "白昼之光，岂知夜色之深。",
+          "required": true,
+          "chapters": [
+            "08-daylight.adv.md"
+          ]
+        },
+        {
+          "id": "cocoon",
+          "title": "作茧自缚",
+          "required": true,
+          "chapters": [
+            "09-cocoon.adv.md"
+          ]
+        },
+        {
+          "id": "survival-or-destruction",
+          "title": "生存还是毁灭",
+          "required": true,
+          "chapters": [
+            "10-survival-or-destruction.adv.md"
+          ]
+        },
+        {
+          "id": "duelist-romance",
+          "title": "决斗者的浪漫",
+          "required": true,
+          "chapters": [
+            "11-duelist-romance.adv.md"
+          ]
+        },
+        {
+          "id": "lizard-king",
+          "title": "残暴的蜥蜴王",
+          "required": true,
+          "chapters": [
+            "12-lizard-king.adv.md"
+          ]
+        },
+        {
+          "id": "third-kind",
+          "title": "第三类接触",
+          "required": true,
+          "chapters": [
+            "13-third-kind.adv.md"
+          ]
+        },
+        {
+          "id": "evolution",
+          "title": "仓鼠们今天也在努力进化着。",
+          "required": true,
+          "chapters": [
+            "14-evolution.adv.md"
+          ]
+        },
+        {
+          "id": "stars-sea",
+          "title": "我们的征途是星辰大海",
+          "required": true,
+          "chapters": [
+            "15-stars-sea.adv.md"
+          ]
+        },
+        {
+          "id": "encounter",
+          "title": "相遇",
+          "required": true,
+          "chapters": [
+            "16-encounter.adv.md"
+          ]
+        },
+        {
+          "id": "they-are-gods",
+          "title": "它们才是神明",
+          "required": true,
+          "chapters": [
+            "17-they-are-gods.adv.md"
+          ]
+        },
+        {
+          "id": "dim-stars",
+          "title": "黯淡的星空",
+          "required": true,
+          "chapters": [
+            "18-dim-stars.adv.md"
+          ]
+        },
+        {
+          "id": "postscript",
+          "title": "后记",
+          "required": true,
+          "chapters": [
+            "19-common-hamster-postscript.adv.md"
+          ]
+        }
+      ]
+    }
+  ],
+  "characters": [
+    {
+      "id": "observer",
+      "name": "观测者",
+      "aliases": [
+        "我",
+        "神小姐",
+        "女神大人",
+        "太阳女神"
+      ],
+      "kind": "principal",
+      "firstSourceSection": "hamster/hamster-cage",
+      "scriptCard": "adv/characters/observer.character.md",
+      "needsTachie": true,
+      "requiredExpressions": [
+        "default",
+        "smile",
+        "curious",
+        "worried",
+        "sad",
+        "determined"
+      ]
+    },
+    {
+      "id": "reader",
+      "name": "读书人",
+      "aliases": [
+        "他",
+        "助手君",
+        "助手先生"
+      ],
+      "kind": "principal",
+      "firstSourceSection": "hamster/hamster-cage",
+      "scriptCard": "adv/characters/reader.character.md",
+      "needsTachie": true,
+      "requiredExpressions": [
+        "default",
+        "smile",
+        "curious",
+        "worried",
+        "sad",
+        "determined"
+      ]
+    },
+    {
+      "id": "pet-hamster",
+      "name": "小仓鼠",
+      "aliases": [
+        "仓鼠",
+        "宠物仓鼠",
+        "最初的祖先"
+      ],
+      "kind": "creature",
+      "firstSourceSection": "hamster/hamster-cage",
+      "scriptCard": "adv/characters/pet-hamster.character.md",
+      "needsTachie": true,
+      "requiredExpressions": [
+        "default",
+        "sleepy",
+        "startled",
+        "running"
+      ]
+    },
+    {
+      "id": "wang-an",
+      "name": "王安",
+      "aliases": [],
+      "kind": "supporting",
+      "firstSourceSection": "the-common-hamster/survival-or-destruction",
+      "scriptCard": "adv/characters/wang-an.character.md",
+      "needsTachie": false
+    },
+    {
+      "id": "wang-an-father",
+      "name": "王安的父亲",
+      "aliases": [
+        "父亲"
+      ],
+      "kind": "supporting",
+      "firstSourceSection": "the-common-hamster/survival-or-destruction",
+      "scriptCard": "adv/characters/wang-an-father.character.md",
+      "needsTachie": false
+    },
+    {
+      "id": "doctor",
+      "name": "医生",
+      "aliases": [
+        "白大褂男人"
+      ],
+      "kind": "supporting",
+      "firstSourceSection": "the-common-hamster/survival-or-destruction",
+      "scriptCard": "adv/characters/doctor.character.md",
+      "needsTachie": false
+    },
+    {
+      "id": "wheelchair-girl",
+      "name": "轮椅姑娘",
+      "aliases": [],
+      "kind": "supporting",
+      "firstSourceSection": "the-common-hamster/survival-or-destruction",
+      "scriptCard": "adv/characters/wheelchair-girl.character.md",
+      "needsTachie": false
+    },
+    {
+      "id": "ba",
+      "name": "巴",
+      "aliases": [
+        "巴先生"
+      ],
+      "kind": "supporting",
+      "firstSourceSection": "the-common-hamster/lizard-king",
+      "scriptCard": "adv/characters/ba.character.md",
+      "needsTachie": true,
+      "requiredExpressions": [
+        "default",
+        "afraid",
+        "hopeful",
+        "proud"
+      ]
+    },
+    {
+      "id": "deputy-chief",
+      "name": "仓鼠副首领",
+      "aliases": [
+        "副首领"
+      ],
+      "kind": "supporting",
+      "firstSourceSection": "the-common-hamster/third-kind",
+      "scriptCard": "adv/characters/deputy-chief.character.md",
+      "needsTachie": false
+    },
+    {
+      "id": "fat-sentry",
+      "name": "胖哨兵",
+      "aliases": [],
+      "kind": "supporting",
+      "firstSourceSection": "the-common-hamster/third-kind",
+      "scriptCard": "adv/characters/fat-sentry.character.md",
+      "needsTachie": false
+    },
+    {
+      "id": "thin-sentry",
+      "name": "瘦哨兵",
+      "aliases": [],
+      "kind": "supporting",
+      "firstSourceSection": "the-common-hamster/third-kind",
+      "scriptCard": "adv/characters/thin-sentry.character.md",
+      "needsTachie": false
+    },
+    {
+      "id": "hamster-child",
+      "name": "仓鼠孩子",
+      "aliases": [],
+      "kind": "supporting",
+      "firstSourceSection": "the-common-hamster/evolution",
+      "scriptCard": "adv/characters/hamster-child.character.md",
+      "needsTachie": false
+    },
+    {
+      "id": "hamster-mayor",
+      "name": "仓鼠市长",
+      "aliases": [
+        "市长大人"
+      ],
+      "kind": "supporting",
+      "firstSourceSection": "the-common-hamster/evolution",
+      "scriptCard": "adv/characters/hamster-mayor.character.md",
+      "needsTachie": false
+    },
+    {
+      "id": "explorer-king",
+      "name": "探索王",
+      "aliases": [
+        "父王",
+        "探索号驾驶者"
+      ],
+      "kind": "supporting",
+      "firstSourceSection": "the-common-hamster/stars-sea",
+      "scriptCard": "adv/characters/explorer-king.character.md",
+      "needsTachie": true,
+      "requiredExpressions": [
+        "default",
+        "resolute",
+        "awakened",
+        "reverent"
+      ]
+    },
+    {
+      "id": "hamster-commander",
+      "name": "仓鼠军官",
+      "aliases": [
+        "舰队指挥官"
+      ],
+      "kind": "supporting",
+      "firstSourceSection": "the-common-hamster/they-are-gods",
+      "scriptCard": "adv/characters/hamster-commander.character.md",
+      "needsTachie": true,
+      "requiredExpressions": [
+        "default",
+        "calculating",
+        "pleading",
+        "defiant"
+      ]
+    },
+    {
+      "id": "hamster-crowd",
+      "name": "仓鼠众",
+      "aliases": [
+        "村民",
+        "市民",
+        "舰队成员"
+      ],
+      "kind": "ensemble",
+      "firstSourceSection": "the-common-hamster/third-kind",
+      "scriptCard": "adv/characters/hamster-crowd.character.md",
+      "needsTachie": false
+    },
+    {
+      "id": "tyrannosaurus-pair",
+      "name": "霸王龙夫妇",
+      "aliases": [
+        "雷克斯暴龙"
+      ],
+      "kind": "creature",
+      "firstSourceSection": "the-common-hamster/lizard-king",
+      "scriptCard": "adv/characters/tyrannosaurus-pair.character.md",
+      "needsTachie": false
+    },
+    {
+      "id": "niu-cang",
+      "name": "牛仓",
+      "aliases": [],
+      "kind": "mentioned",
+      "firstSourceSection": "the-common-hamster/stars-sea",
+      "needsTachie": false
+    },
+    {
+      "id": "thomas-cang",
+      "name": "托马斯·仓",
+      "aliases": [],
+      "kind": "mentioned",
+      "firstSourceSection": "the-common-hamster/stars-sea",
+      "needsTachie": false
+    },
+    {
+      "id": "tesla-cang",
+      "name": "特斯仓",
+      "aliases": [],
+      "kind": "mentioned",
+      "firstSourceSection": "the-common-hamster/stars-sea",
+      "needsTachie": false
+    },
+    {
+      "id": "edison-cang",
+      "name": "爱迪仓",
+      "aliases": [],
+      "kind": "mentioned",
+      "firstSourceSection": "the-common-hamster/stars-sea",
+      "needsTachie": false
+    }
+  ],
+  "scenes": [
+    {
+      "id": "summer-room",
+      "name": "夏日模拟室",
+      "firstSourceSection": "hamster/hamster-cage",
+      "scriptCard": "adv/scenes/summer-room.md",
+      "needsBackground": true
+    },
+    {
+      "id": "starfield-room",
+      "name": "星空模拟室",
+      "firstSourceSection": "hamster/world-destruction",
+      "scriptCard": "adv/scenes/starfield-room.md",
+      "needsBackground": true
+    },
+    {
+      "id": "simulated-orbit",
+      "name": "模拟宇宙与地球轨道",
+      "firstSourceSection": "hamster/starry-fantasy",
+      "scriptCard": "adv/scenes/simulated-orbit.md",
+      "needsBackground": true
+    },
+    {
+      "id": "academy-terminal",
+      "name": "学院终端",
+      "firstSourceSection": "hamster/endless-symphony",
+      "scriptCard": "adv/scenes/academy-terminal.md",
+      "needsBackground": true
+    },
+    {
+      "id": "empty-earth",
+      "name": "初始化中的空白地球",
+      "firstSourceSection": "the-common-hamster/survival-or-destruction",
+      "scriptCard": "adv/scenes/empty-earth.md",
+      "needsBackground": true
+    },
+    {
+      "id": "hospital-room",
+      "name": "医院病房",
+      "firstSourceSection": "the-common-hamster/survival-or-destruction",
+      "scriptCard": "adv/scenes/hospital-room.md",
+      "needsBackground": true
+    },
+    {
+      "id": "hospital-garden",
+      "name": "医院花园",
+      "firstSourceSection": "the-common-hamster/survival-or-destruction",
+      "scriptCard": "adv/scenes/hospital-garden.md",
+      "needsBackground": true
+    },
+    {
+      "id": "newborn-earth",
+      "name": "新生地球",
+      "firstSourceSection": "the-common-hamster/duelist-romance",
+      "scriptCard": "adv/scenes/newborn-earth.md",
+      "needsBackground": true
+    },
+    {
+      "id": "prehistoric-grassland",
+      "name": "史前草原与森林",
+      "firstSourceSection": "the-common-hamster/lizard-king",
+      "scriptCard": "adv/scenes/prehistoric-grassland.md",
+      "needsBackground": true
+    },
+    {
+      "id": "hamster-village",
+      "name": "仓鼠村落",
+      "firstSourceSection": "the-common-hamster/third-kind",
+      "scriptCard": "adv/scenes/hamster-village.md",
+      "needsBackground": true
+    },
+    {
+      "id": "sunflower-city",
+      "name": "向日葵城",
+      "firstSourceSection": "the-common-hamster/evolution",
+      "scriptCard": "adv/scenes/sunflower-city.md",
+      "needsBackground": true
+    },
+    {
+      "id": "exploration-space",
+      "name": "探索号外的星海",
+      "firstSourceSection": "the-common-hamster/encounter",
+      "scriptCard": "adv/scenes/exploration-space.md",
+      "needsBackground": true
+    },
+    {
+      "id": "solar-system-frontier",
+      "name": "太阳系边境舰阵",
+      "firstSourceSection": "the-common-hamster/they-are-gods",
+      "scriptCard": "adv/scenes/solar-system-frontier.md",
+      "needsBackground": true
+    },
+    {
+      "id": "real-workstation",
+      "name": "现实工作站与仓鼠笼",
+      "firstSourceSection": "the-common-hamster/dim-stars",
+      "scriptCard": "adv/scenes/real-workstation.md",
+      "needsBackground": true
+    }
+  ],
+  "addedMaterial": [
+    {
+      "id": "interpretive-mode",
+      "kind": "post-canonical-route-set",
+      "canon": false,
+      "description": "首次完整通关后解锁的星图、文明与替代结局路线。"
+    }
+  ],
+  "assetPolicy": {
+    "publicBaseUrl": "https://cos.advjs.yunle.fun/",
+    "objectPrefix": "games/hamster/v1/"
+  }
+}
