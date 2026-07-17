@@ -366,6 +366,8 @@ adv check [options]
 
 Runtime 检查会把所有章节一起编译和链接，报告重复稳定 ID、无效跳转、非法条件/action/activity、未知插件能力和缺失插件。诊断使用稳定错误码，并在可用时输出源码文件、行和列。
 
+默认执行时还会读取 `gameConfig.chapters`，检查其中声明在 `public/` 或其他项目路径下的 fountain 源；配置文件缺失会报告 `ADV_RUNTIME_CHAPTER_NOT_FOUND`。只有未提供章节配置时，才退回扫描内容根目录。
+
 ### 示例
 
 ```bash

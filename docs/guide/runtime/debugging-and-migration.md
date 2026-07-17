@@ -22,6 +22,8 @@ Parser Playground 现在提供六种视图：Markdown 预览、ADV AST、`Runtim
 
 诊断包含稳定错误码；编译期错误尽可能附带文件、行和列。`--fix` 仍只创建缺失的角色/场景桩，不会自动改写运行时逻辑。
 
+检查器优先读取 `gameConfig.chapters` 中声明的 fountain 源，因此 `/md/chapters/*.adv.md` 这类位于 `public/` 下的可运行脚本也会进入同一 Program 检查；配置指向不存在的文件会产生 `ADV_RUNTIME_CHAPTER_NOT_FOUND`，不会再以“0 个脚本”假通过。未配置章节时仍兼容扫描 `adv/chapters`。
+
 ## CLI trace
 
 `adv play --trace` 会向 stderr 输出 JSON Lines，每条包含命令、规范地址、状态、Effects 和变量。它适合比较浏览器与 CLI 行为，或让 Agent 保存可重放问题报告。

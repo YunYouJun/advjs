@@ -13,6 +13,7 @@ function project(chapters: Record<string, string>): { cwd: string, root: string 
   const cwd = mkdtempSync(join(tmpdir(), 'advjs-runtime-check-'))
   roots.push(cwd)
   const root = join(cwd, 'adv')
+  mkdirSync(root, { recursive: true })
   for (const [path, content] of Object.entries(chapters)) {
     const file = join(root, 'chapters', path)
     mkdirSync(join(file, '..'), { recursive: true })
@@ -27,6 +28,38 @@ afterEach(() => {
 })
 
 describe('adv check runtime diagnostics', () => {
+  it('checks chapter sources declared by config outside the adv directory', async () => {
+    const { cwd, root } = project({})
+    const chaptersDirectory = join(cwd, 'public/md/chapters')
+    mkdirSync(chaptersDirectory, { recursive: true })
+    writeFileSync(
+      join(chaptersDirectory, 'one.adv.md'),
+      '## One {#one}\n\n- [Next](chapter-two#two)\n',
+      'utf8',
+    )
+    writeFileSync(join(chaptersDirectory, 'two.adv.md'), '## Two {#two}\n', 'utf8')
+
+    const result = await runCheck({
+      cwd,
+      root,
+      chapters: [
+        {
+          id: 'chapter-one',
+          title: 'One',
+          nodes: [{ id: 'one', type: 'fountain', src: '/md/chapters/one.adv.md' }],
+        },
+        {
+          id: 'chapter-two',
+          title: 'Two',
+          nodes: [{ id: 'two', type: 'fountain', src: '/md/chapters/two.adv.md' }],
+        },
+      ],
+    })
+
+    expect(result.scriptCount).toBe(2)
+    expect(result.issues.filter(issue => issue.category === 'runtime')).toEqual([])
+  })
+
   it('reports compiler codes and source positions for the whole program', async () => {
     const { cwd, root } = project({
       '1/one.adv.md': [

@@ -1,4 +1,5 @@
 import type { AdvRuntimePlugin } from '@advjs/core'
+import type { AdvChapter } from '@advjs/types'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { basename, dirname, join, relative } from 'node:path'
 import process from 'node:process'
@@ -8,7 +9,7 @@ import { consola } from 'consola'
 import { colors } from 'consola/utils'
 import { t } from '../cli/i18n'
 import { loadAdvConfig } from '../config'
-import { compileRuntimeChapterFiles, discoverRuntimeChapterFiles } from '../runtime'
+import { compileRuntimeChapterFiles, discoverRuntimeChapterFiles, resolveConfiguredRuntimeChapterFiles } from '../runtime'
 import { parseSceneFrontmatter, resolveGameRoot, sanitizeFilename, scanFiles } from './utils'
 
 export interface CheckOptions {
@@ -20,6 +21,8 @@ export interface CheckOptions {
   fix?: boolean
   requiredPlugins?: Record<string, string>
   runtimePlugins?: readonly AdvRuntimePlugin[]
+  /** Chapter sources declared by gameConfig, including files outside the adv content root. */
+  chapters?: AdvChapter[]
 }
 
 export interface CheckIssue {
@@ -78,12 +81,36 @@ export async function runCheck(options: CheckOptions & { cwd?: string }): Promis
   const scenesDir = join(gameRoot, 'scenes')
   const locationsDir = join(gameRoot, 'locations')
 
+  const configuredChapters = options.chapters?.length
+    ? resolveConfiguredRuntimeChapterFiles({
+      cwd,
+      scriptPath: join(cwd, '__adv_check_entry__.adv.md'),
+      chapters: options.chapters,
+    }).chapters
+    : []
+  const configuredPaths = configuredChapters.flatMap(chapter => chapter.paths)
+  for (const file of configuredPaths) {
+    if (!existsSync(file)) {
+      issues.push({
+        type: 'error',
+        category: 'runtime',
+        code: 'ADV_RUNTIME_CHAPTER_NOT_FOUND',
+        file: relative(cwd, file),
+        message: `Configured chapter source not found: ${relative(cwd, file)}`,
+      })
+    }
+  }
+
   // 1. Find all .adv.md script files
   const scriptFiles = scanFiles(chaptersDir, '.adv.md')
 
   // Also check root level .adv.md files
   const rootScripts = scanFiles(gameRoot, '.adv.md')
-  const allScripts = [...new Set([...scriptFiles, ...rootScripts])].sort()
+  const allScripts = [...new Set([
+    ...scriptFiles,
+    ...rootScripts,
+    ...configuredPaths.filter(existsSync),
+  ])].sort()
 
   // 2. Syntax check — parse each script
   const syntaxErrorFiles = new Set<string>()
@@ -129,9 +156,9 @@ export async function runCheck(options: CheckOptions & { cwd?: string }): Promis
   // Compile and link the complete story, so exact targets, conditions, actions,
   // and required plugin capabilities are checked together rather than file by file.
   if (allScripts.length > 0 && syntaxErrorFiles.size === 0) {
-    const nestedChapters = scriptFiles.length
-      ? await discoverRuntimeChapterFiles(scriptFiles[0])
-      : []
+    const nestedChapters = configuredChapters.length
+      ? configuredChapters.filter(chapter => chapter.paths.every(existsSync))
+      : (scriptFiles.length ? await discoverRuntimeChapterFiles(scriptFiles[0]) : [])
     const nestedPaths = new Set(nestedChapters.flatMap(chapter => chapter.paths))
     const extraChapters = allScripts
       .filter(file => !nestedPaths.has(file))
@@ -412,6 +439,7 @@ export async function advCheck(options: CheckOptions) {
     ...options,
     requiredPlugins: config.gameConfig?.requiredPlugins,
     runtimePlugins,
+    chapters: config.gameConfig?.chapters,
   })
 
   // Handle missing root as fatal error
