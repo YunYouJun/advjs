@@ -1,0 +1,869 @@
+{
+  "schemaVersion": 1,
+  "publicBaseUrl": "https://cos.advjs.yunle.fun/",
+  "objectPrefix": "games/hamster/v1/",
+  "characters": [
+    {
+      "id": "observer",
+      "requiredExpressions": [
+        "default",
+        "smile",
+        "curious",
+        "worried",
+        "sad",
+        "determined"
+      ]
+    },
+    {
+      "id": "reader",
+      "requiredExpressions": [
+        "default",
+        "smile",
+        "curious",
+        "worried",
+        "sad",
+        "determined"
+      ]
+    },
+    {
+      "id": "pet-hamster",
+      "requiredExpressions": [
+        "default",
+        "sleepy",
+        "startled",
+        "running"
+      ]
+    },
+    {
+      "id": "ba",
+      "requiredExpressions": [
+        "default",
+        "afraid",
+        "hopeful",
+        "proud"
+      ]
+    },
+    {
+      "id": "explorer-king",
+      "requiredExpressions": [
+        "default",
+        "resolute",
+        "awakened",
+        "reverent"
+      ]
+    },
+    {
+      "id": "hamster-commander",
+      "requiredExpressions": [
+        "default",
+        "calculating",
+        "pleading",
+        "defiant"
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "id": "character/observer/default",
+      "kind": "character",
+      "characterId": "observer",
+      "expression": "default",
+      "objectKey": "games/hamster/v1/characters/observer/standing/default.43b61c8b2f21.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/observer/standing/default.43b61c8b2f21.webp",
+      "sha256": "43b61c8b2f215805fec98a98d6d4a322ca69f6a28861ac613d302910e2d2e38e",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 189696,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/observer/smile",
+      "kind": "character",
+      "characterId": "observer",
+      "expression": "smile",
+      "objectKey": "games/hamster/v1/characters/observer/standing/smile.9cd1fe383e63.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/observer/standing/smile.9cd1fe383e63.webp",
+      "sha256": "9cd1fe383e63c5ef23cd49faed6a7960214fabda794ae1ae924cf50f610a266c",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 127526,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/observer/curious",
+      "kind": "character",
+      "characterId": "observer",
+      "expression": "curious",
+      "objectKey": "games/hamster/v1/characters/observer/standing/curious.f8beddfac329.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/observer/standing/curious.f8beddfac329.webp",
+      "sha256": "f8beddfac32911246aafb05999839862279e62ac063945e207904b8c5b885c1e",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 148780,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/observer/worried",
+      "kind": "character",
+      "characterId": "observer",
+      "expression": "worried",
+      "objectKey": "games/hamster/v1/characters/observer/standing/worried.17395455513c.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/observer/standing/worried.17395455513c.webp",
+      "sha256": "17395455513ce157c15e69fc39728ca55bf474fea70caa618a65254d7adab637",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 124914,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/observer/sad",
+      "kind": "character",
+      "characterId": "observer",
+      "expression": "sad",
+      "objectKey": "games/hamster/v1/characters/observer/standing/sad.cef8b7aad21f.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/observer/standing/sad.cef8b7aad21f.webp",
+      "sha256": "cef8b7aad21f35458b2765e6bad83e16c7dbc2d1e6a78782e52aad18c9acf6c0",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 124874,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/observer/determined",
+      "kind": "character",
+      "characterId": "observer",
+      "expression": "determined",
+      "objectKey": "games/hamster/v1/characters/observer/standing/determined.d6222f696865.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/observer/standing/determined.d6222f696865.webp",
+      "sha256": "d6222f6968654c2b9291ac4462eef1a21cad364a8a2511ecfce5122f3296e4f4",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 127206,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/reader/default",
+      "kind": "character",
+      "characterId": "reader",
+      "expression": "default",
+      "objectKey": "games/hamster/v1/characters/reader/standing/default.97254802fc43.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/reader/standing/default.97254802fc43.webp",
+      "sha256": "97254802fc43126f065ec49d783b27c0544ac498f3cfccaab0f624c05e30d4f6",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 47254,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/reader/smile",
+      "kind": "character",
+      "characterId": "reader",
+      "expression": "smile",
+      "objectKey": "games/hamster/v1/characters/reader/standing/smile.b74e047e41b5.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/reader/standing/smile.b74e047e41b5.webp",
+      "sha256": "b74e047e41b5deb525a640231cc08a6c9871a13930f058bf6978626c1bb189d2",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 49218,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/reader/curious",
+      "kind": "character",
+      "characterId": "reader",
+      "expression": "curious",
+      "objectKey": "games/hamster/v1/characters/reader/standing/curious.842944b7c50b.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/reader/standing/curious.842944b7c50b.webp",
+      "sha256": "842944b7c50b3f376e431a4c21230b5f3e1f1d1d9a9088bfb749660f37162688",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 47896,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/reader/worried",
+      "kind": "character",
+      "characterId": "reader",
+      "expression": "worried",
+      "objectKey": "games/hamster/v1/characters/reader/standing/worried.972786613c05.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/reader/standing/worried.972786613c05.webp",
+      "sha256": "972786613c054c698b7c3931d08f3a587d95e9317ebc47d8dc1e8db96c2e9bed",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 48502,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/reader/sad",
+      "kind": "character",
+      "characterId": "reader",
+      "expression": "sad",
+      "objectKey": "games/hamster/v1/characters/reader/standing/sad.b185530017b3.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/reader/standing/sad.b185530017b3.webp",
+      "sha256": "b185530017b3b49f5f4a79a29512253c36386df453213927de373327dac1f287",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 48126,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/reader/determined",
+      "kind": "character",
+      "characterId": "reader",
+      "expression": "determined",
+      "objectKey": "games/hamster/v1/characters/reader/standing/determined.95e7edee120e.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/reader/standing/determined.95e7edee120e.webp",
+      "sha256": "95e7edee120e2963f8a76e40e1c9ce2cb862655370b2eee3f3b1c76e60f6dbf8",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 48824,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/pet-hamster/default",
+      "kind": "character",
+      "characterId": "pet-hamster",
+      "expression": "default",
+      "objectKey": "games/hamster/v1/characters/pet-hamster/standing/default.64e264be0fe7.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/pet-hamster/standing/default.64e264be0fe7.webp",
+      "sha256": "64e264be0fe7d2e1b3fe1255a28dc0da4857e394b08d2aa0aed63d541fdb6c4a",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 112160,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/pet-hamster/sleepy",
+      "kind": "character",
+      "characterId": "pet-hamster",
+      "expression": "sleepy",
+      "objectKey": "games/hamster/v1/characters/pet-hamster/standing/sleepy.83681ce117a7.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/pet-hamster/standing/sleepy.83681ce117a7.webp",
+      "sha256": "83681ce117a787442cd617acd2a92f5032682811a4866358d8b30359f3543e35",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 95784,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/pet-hamster/startled",
+      "kind": "character",
+      "characterId": "pet-hamster",
+      "expression": "startled",
+      "objectKey": "games/hamster/v1/characters/pet-hamster/standing/startled.89f45803bc35.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/pet-hamster/standing/startled.89f45803bc35.webp",
+      "sha256": "89f45803bc35e97bfd76cf8ad8053cf7194d5db53b00cf1bbb8f8420bd27963d",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 126828,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/pet-hamster/running",
+      "kind": "character",
+      "characterId": "pet-hamster",
+      "expression": "running",
+      "objectKey": "games/hamster/v1/characters/pet-hamster/standing/running.4f1a397ca6d6.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/pet-hamster/standing/running.4f1a397ca6d6.webp",
+      "sha256": "4f1a397ca6d66a75e1537b3c31e86b98b2c191674f6d601ad47c44af88c2f8dc",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 80888,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/ba/default",
+      "kind": "character",
+      "characterId": "ba",
+      "expression": "default",
+      "objectKey": "games/hamster/v1/characters/ba/standing/default.de1f76cca0ee.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/ba/standing/default.de1f76cca0ee.webp",
+      "sha256": "de1f76cca0ee8bd20d51d10f35fdf49dcda626e84c45555af586af1b476edb10",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 118496,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/ba/afraid",
+      "kind": "character",
+      "characterId": "ba",
+      "expression": "afraid",
+      "objectKey": "games/hamster/v1/characters/ba/standing/afraid.af9b3261e6da.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/ba/standing/afraid.af9b3261e6da.webp",
+      "sha256": "af9b3261e6da51b068c0b9e4e0e0f42367743968894982f1f7ee1c1e8c5df81b",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 107678,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/ba/hopeful",
+      "kind": "character",
+      "characterId": "ba",
+      "expression": "hopeful",
+      "objectKey": "games/hamster/v1/characters/ba/standing/hopeful.97d3ac2594fa.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/ba/standing/hopeful.97d3ac2594fa.webp",
+      "sha256": "97d3ac2594fad862540c47c4ee8017b10bbc995c816e38fa7805978fc0b66213",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 106184,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/ba/proud",
+      "kind": "character",
+      "characterId": "ba",
+      "expression": "proud",
+      "objectKey": "games/hamster/v1/characters/ba/standing/proud.2429f291b3e3.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/ba/standing/proud.2429f291b3e3.webp",
+      "sha256": "2429f291b3e38b04c28f59e9897df0acb99168b852318d4ecae5989b9eac8b0e",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 106782,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/explorer-king/default",
+      "kind": "character",
+      "characterId": "explorer-king",
+      "expression": "default",
+      "objectKey": "games/hamster/v1/characters/explorer-king/standing/default.b6a1d4693ac2.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/explorer-king/standing/default.b6a1d4693ac2.webp",
+      "sha256": "b6a1d4693ac2ab9775b4602c1d54cf786ceba88dc531dc9ad858240e8ac07ff7",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 108994,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/explorer-king/resolute",
+      "kind": "character",
+      "characterId": "explorer-king",
+      "expression": "resolute",
+      "objectKey": "games/hamster/v1/characters/explorer-king/standing/resolute.9ca81ff66e64.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/explorer-king/standing/resolute.9ca81ff66e64.webp",
+      "sha256": "9ca81ff66e6447c8ca9b909d71276544970cb2ac0a01f3947094eb02816a9494",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 106874,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/explorer-king/awakened",
+      "kind": "character",
+      "characterId": "explorer-king",
+      "expression": "awakened",
+      "objectKey": "games/hamster/v1/characters/explorer-king/standing/awakened.5cde059b3cc1.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/explorer-king/standing/awakened.5cde059b3cc1.webp",
+      "sha256": "5cde059b3cc1b453e6ad600c1125f6b3846749547645f592a5e49a2ce20f78fb",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 106538,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/explorer-king/reverent",
+      "kind": "character",
+      "characterId": "explorer-king",
+      "expression": "reverent",
+      "objectKey": "games/hamster/v1/characters/explorer-king/standing/reverent.6be83dc38083.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/explorer-king/standing/reverent.6be83dc38083.webp",
+      "sha256": "6be83dc38083200fb3527e9279f65cc94c3bd5657e03839c318fc099b6c3914b",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 106010,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/hamster-commander/default",
+      "kind": "character",
+      "characterId": "hamster-commander",
+      "expression": "default",
+      "objectKey": "games/hamster/v1/characters/hamster-commander/standing/default.d3a32675bff8.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/hamster-commander/standing/default.d3a32675bff8.webp",
+      "sha256": "d3a32675bff8510373f93fbda7bb11d505481d329e2dd5a5f8c888090b50953e",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 65648,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/hamster-commander/calculating",
+      "kind": "character",
+      "characterId": "hamster-commander",
+      "expression": "calculating",
+      "objectKey": "games/hamster/v1/characters/hamster-commander/standing/calculating.8aaf0f242541.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/hamster-commander/standing/calculating.8aaf0f242541.webp",
+      "sha256": "8aaf0f2425410a153bcae41cdf447ae3ccbcfd71ce38dd6768476729278ed9f4",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 64600,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/hamster-commander/pleading",
+      "kind": "character",
+      "characterId": "hamster-commander",
+      "expression": "pleading",
+      "objectKey": "games/hamster/v1/characters/hamster-commander/standing/pleading.60f172a9e507.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/hamster-commander/standing/pleading.60f172a9e507.webp",
+      "sha256": "60f172a9e507d29fd067624d6ebc1d21a68d53b9207f500d77409382ec785140",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 64706,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "character/hamster-commander/defiant",
+      "kind": "character",
+      "characterId": "hamster-commander",
+      "expression": "defiant",
+      "objectKey": "games/hamster/v1/characters/hamster-commander/standing/defiant.24f0c28007cc.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/characters/hamster-commander/standing/defiant.24f0c28007cc.webp",
+      "sha256": "24f0c28007cc8e78f5a02b9c348183eaa72a048988db24036daa08b938640d0a",
+      "width": 1024,
+      "height": 1536,
+      "bytes": 62618,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "background/summer-room",
+      "kind": "background",
+      "sceneId": "summer-room",
+      "objectKey": "games/hamster/v1/backgrounds/summer-room.06c590d23200.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/backgrounds/summer-room.06c590d23200.webp",
+      "sha256": "06c590d232007bebfbaca8f7e83c780569f59af8bf94b42a9bf6ae06846f1f02",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 170780,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "background/starfield-room",
+      "kind": "background",
+      "sceneId": "starfield-room",
+      "objectKey": "games/hamster/v1/backgrounds/starfield-room.43d77ac6d759.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/backgrounds/starfield-room.43d77ac6d759.webp",
+      "sha256": "43d77ac6d7595625d08ccdbc2403813994b6050212a0b59ec18fd9ea589bb78b",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 248664,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "background/simulated-orbit",
+      "kind": "background",
+      "sceneId": "simulated-orbit",
+      "objectKey": "games/hamster/v1/backgrounds/simulated-orbit.47be4ca0d26f.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/backgrounds/simulated-orbit.47be4ca0d26f.webp",
+      "sha256": "47be4ca0d26f483c80bbf3810a6e269c319ae58681db567968d54b12d5da3f7d",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 267194,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "background/academy-terminal",
+      "kind": "background",
+      "sceneId": "academy-terminal",
+      "objectKey": "games/hamster/v1/backgrounds/academy-terminal.b8f1153f86d5.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/backgrounds/academy-terminal.b8f1153f86d5.webp",
+      "sha256": "b8f1153f86d53682add98044156a405328f0c02c9a91c77f53fa0a530db60e9b",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 181830,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "background/work-archive",
+      "kind": "background",
+      "sceneId": "work-archive",
+      "objectKey": "games/hamster/v1/backgrounds/work-archive.74da5b1a1da3.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/backgrounds/work-archive.74da5b1a1da3.webp",
+      "sha256": "74da5b1a1da39b7e1272121ea6a7b228ba4fb05b3ec1b7e47bc448c25e4f3c9e",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 99654,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "background/empty-earth",
+      "kind": "background",
+      "sceneId": "empty-earth",
+      "objectKey": "games/hamster/v1/backgrounds/empty-earth.c2e2e5aac075.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/backgrounds/empty-earth.c2e2e5aac075.webp",
+      "sha256": "c2e2e5aac0750549d057a6cba33871d0e8b9b3ce23f7b28e1204fdd262a3e590",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 10066,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "background/hospital-room",
+      "kind": "background",
+      "sceneId": "hospital-room",
+      "objectKey": "games/hamster/v1/backgrounds/hospital-room.ff748c35dcbc.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/backgrounds/hospital-room.ff748c35dcbc.webp",
+      "sha256": "ff748c35dcbc05e859147dbf6b2041c13d6f4a0d4fba0d98acbbe121ac793476",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 110416,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "background/hospital-garden",
+      "kind": "background",
+      "sceneId": "hospital-garden",
+      "objectKey": "games/hamster/v1/backgrounds/hospital-garden.b5001b76e4b5.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/backgrounds/hospital-garden.b5001b76e4b5.webp",
+      "sha256": "b5001b76e4b5b60cb931fc9689127d58c4a2ede9b308074ddb27695a578537ac",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 290194,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "background/newborn-earth",
+      "kind": "background",
+      "sceneId": "newborn-earth",
+      "objectKey": "games/hamster/v1/backgrounds/newborn-earth.d3f3a75d39bd.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/backgrounds/newborn-earth.d3f3a75d39bd.webp",
+      "sha256": "d3f3a75d39bd21d66e1435521fdfb5587f4483f28e3e58103f22648ce9612e31",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 297912,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "background/prehistoric-grassland",
+      "kind": "background",
+      "sceneId": "prehistoric-grassland",
+      "objectKey": "games/hamster/v1/backgrounds/prehistoric-grassland.5f1bd4dd8cf9.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/backgrounds/prehistoric-grassland.5f1bd4dd8cf9.webp",
+      "sha256": "5f1bd4dd8cf9eb7c9a8f3382505746c96d6d430a8b95a43f94c764ff77e94319",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 319090,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "background/hamster-village",
+      "kind": "background",
+      "sceneId": "hamster-village",
+      "objectKey": "games/hamster/v1/backgrounds/hamster-village.af3e1c5f1372.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/backgrounds/hamster-village.af3e1c5f1372.webp",
+      "sha256": "af3e1c5f1372bf65789c12779515c7908f92d9f64713a69cbc8d20cc83e92610",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 461956,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "background/sunflower-city",
+      "kind": "background",
+      "sceneId": "sunflower-city",
+      "objectKey": "games/hamster/v1/backgrounds/sunflower-city.ec1ff68082b2.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/backgrounds/sunflower-city.ec1ff68082b2.webp",
+      "sha256": "ec1ff68082b2530e536c559a659ba031a9ece349b7c4f8939bf06017987e2a5d",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 408478,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "background/exploration-space",
+      "kind": "background",
+      "sceneId": "exploration-space",
+      "objectKey": "games/hamster/v1/backgrounds/exploration-space.95554794e76b.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/backgrounds/exploration-space.95554794e76b.webp",
+      "sha256": "95554794e76b750e0b72a59341157704a7cede75f9a0982d7ea23baa211f4dbf",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 271758,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "background/solar-system-frontier",
+      "kind": "background",
+      "sceneId": "solar-system-frontier",
+      "objectKey": "games/hamster/v1/backgrounds/solar-system-frontier.05a7a57f2eb3.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/backgrounds/solar-system-frontier.05a7a57f2eb3.webp",
+      "sha256": "05a7a57f2eb3a4952f4e1108268f1f1491f7d850a5397791b5307d57a55ab3ae",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 147378,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    },
+    {
+      "id": "background/real-workstation",
+      "kind": "background",
+      "sceneId": "real-workstation",
+      "objectKey": "games/hamster/v1/backgrounds/real-workstation.3f219f558de4.webp",
+      "url": "https://cos.advjs.yunle.fun/games/hamster/v1/backgrounds/real-workstation.3f219f558de4.webp",
+      "sha256": "3f219f558de40952694b41c5f956e0643d63af2328416288c08a13f72082113a",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 88922,
+      "license": "CC BY-NC-SA 4.0",
+      "source": {
+        "type": "generated",
+        "model": "imagegen-built-in",
+        "promptVersion": "hamster-art-bible-v1",
+        "createdAt": "2026-07-17"
+      }
+    }
+  ]
+}

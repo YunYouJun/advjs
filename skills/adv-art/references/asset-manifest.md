@@ -19,11 +19,12 @@
   ],
   "assets": [
     {
-      "id": "character:hero/default",
+      "id": "character/hero/default",
       "kind": "character",
       "characterId": "hero",
       "pose": "standing",
       "expression": "default",
+      "objectKey": "games/example/v1/characters/hero/standing/default.0123456789ab.webp",
       "url": "https://assets.example.com/games/example/v1/characters/hero/standing/default.0123456789ab.webp",
       "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
       "width": 1024,

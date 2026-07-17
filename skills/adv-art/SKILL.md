@@ -35,6 +35,7 @@ Inspect each result before accepting it. Reject identity drift, accidental text,
 ### 4. Normalize release derivatives
 
 - Export tachie with alpha, consistent canvas dimensions, ground line, and framing.
+- For generated transparency, choose a flat chroma color with strong separation from the subject. Warm golden fur may require a blue key instead of magenta; inspect both color spill and partially transparent pixel counts rather than reusing one threshold blindly.
 - Export backgrounds and CG in the game's target aspect ratio.
 - Prefer WebP for broad browser compatibility; add AVIF only when the runtime provides a tested fallback.
 - Strip unnecessary metadata while retaining provenance in the manifest.
@@ -42,7 +43,33 @@ Inspect each result before accepting it. Reject identity drift, accidental text,
 
 Do not publish editable source files, rejected generations, or secret prompts embedded with credentials.
 
-### 5. Validate the manifest
+### 5. Prepare the release
+
+When an adaptation inventory and normalized WebP directory are available, generate content-hashed objects and the manifest together:
+
+```bash
+node skills/adv-art/scripts/prepare-release.mjs \
+  --adaptation <project>/adv/adaptation.json \
+  --asset-root <local-art-root> \
+  --release-root <local-release-root> \
+  --manifest <project>/adv/assets.json \
+  --public-base-url https://assets.example.com/ \
+  --object-prefix games/example/v1/ \
+  --license 'CC BY-NC-SA 4.0' \
+  --model imagegen-built-in \
+  --prompt-version example-art-bible-v1 \
+  --created-at 2026-07-17
+```
+
+The local art root must contain `characters/{id}/standing/{expression}.webp` and `backgrounds/{scene-id}.webp`. The script fails on missing required expressions/backgrounds, reads WebP dimensions, computes SHA-256, copies hashed release objects, and writes `assets.json`.
+
+Run its regression tests after changing release behavior:
+
+```bash
+pnpm vitest run skills/adv-art/tests/prepare-release.test.mjs
+```
+
+### 6. Validate the manifest
 
 Run:
 
@@ -52,13 +79,13 @@ node skills/adv-art/scripts/audit-assets.mjs <project>/adv/assets.json
 
 Require exit code `0` and an empty `errors` list before replacing local placeholders or publishing.
 
-### 6. Publish safely
+### 7. Publish safely
 
 Read [references/cos-publishing.md](references/cos-publishing.md) when the target is Tencent COS. Delegate bucket inspection, CORS changes, upload, and HEAD verification to the `tencent-cloud-cos` Skill rather than copying its SDK or credential workflow.
 
 Publish immutable objects first, verify their metadata and public reads, then update the manifest/config. Never overwrite an object at a URL already shipped with an immutable cache policy.
 
-### 7. Integrate and playtest
+### 8. Integrate and playtest
 
 Update character `avatar`/`tachies`, scene backgrounds, and CG references from logical manifest entries. Verify missing-media fallbacks, cross-origin Canvas/WebGL use, common viewport crops, transitions, and expression changes in a real browser. Run `adv-debug` and game E2E tests after asset replacement.
 
