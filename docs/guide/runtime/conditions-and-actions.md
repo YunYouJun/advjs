@@ -70,9 +70,11 @@ actions:
 | `variables/decrement` | `key`, `by?`                | 数字减少，`by` 默认 1        |
 | `variables/toggle`    | `key`                       | 切换布尔值                   |
 | `variables/push`      | `key`, `value`              | 向数组追加 JSON 值           |
+| `variables/push-unique` | `key`, `value`            | 值不存在时才向数组追加       |
 | `variables/remove`    | `key`, `index?` 或 `value?` | 按索引或 JSON 值删除         |
 
 `key` 使用点号路径，但禁止原型链相关字段。类型不匹配会产生 `ADV_RUNTIME_INVALID_ACTION`，不会静默转换。
+`push-unique` 使用 JSON 值相等性判断重复项，适合结局、CG 或成就 ID 等需要幂等解锁的数组。
 
 ## 条件选择与选择动作
 

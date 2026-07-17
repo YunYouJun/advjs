@@ -77,4 +77,44 @@ describe('runtime conditions and built-in actions', () => {
       code: 'ADV_RUNTIME_INVALID_CONDITION',
     }))
   })
+
+  it('pushes unique JSON values without duplicating existing unlocks', async () => {
+    const linked = await linkRuntimeProgram({
+      id: 'unique-unlocks',
+      entry: { chapterId: 'one', nodeId: 'unlock' },
+      chapters: [{
+        id: 'one',
+        entry: 'unlock',
+        nodes: [
+          {
+            id: 'unlock',
+            kind: 'actions',
+            actions: [
+              { type: 'variables/push-unique', args: { key: 'endings', value: 'still-gazing' } },
+              { type: 'variables/push-unique', args: { key: 'endings', value: 'still-gazing' } },
+              { type: 'variables/push-unique', args: { key: 'records', value: { id: 'star', score: 1 } } },
+              { type: 'variables/push-unique', args: { key: 'records', value: { id: 'star', score: 1 } } },
+            ],
+            next: { chapterId: 'one', nodeId: 'end' },
+          },
+          { id: 'end', kind: 'end' },
+        ],
+      }],
+    } as any)
+    expect(linked.diagnostics).toEqual([])
+
+    const runtime = createAdvRuntime({
+      program: linked.program!,
+      initialVariables: {
+        endings: ['common-hamster'],
+        records: [],
+      },
+    })
+    await runtime.start()
+
+    expect(runtime.state.variables).toEqual({
+      endings: ['common-hamster', 'still-gazing'],
+      records: [{ id: 'star', score: 1 }],
+    })
+  })
 })

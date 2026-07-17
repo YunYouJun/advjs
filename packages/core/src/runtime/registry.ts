@@ -97,7 +97,7 @@ function parentAtPath(variables: JsonObject, path: string[]): [JsonObject, strin
 }
 
 function variableAction(
-  operation: 'set' | 'increment' | 'decrement' | 'toggle' | 'push' | 'remove',
+  operation: 'set' | 'increment' | 'decrement' | 'toggle' | 'push' | 'push-unique' | 'remove',
 ): AdvActionHandler {
   return ({ state }, args) => {
     const path = pathFromArgs(args)
@@ -121,11 +121,15 @@ function variableAction(
       parent[key] = !current
       return
     }
-    if (operation === 'push') {
+    if (operation === 'push' || operation === 'push-unique') {
       const values = current === undefined ? [] : current
       if (!Array.isArray(values))
-        throw registryError('ADV_RUNTIME_INVALID_ACTION', 'push requires an array value')
-      parent[key] = [...values, structuredClone(args.value ?? null)]
+        throw registryError('ADV_RUNTIME_INVALID_ACTION', `${operation} requires an array value`)
+      const value = structuredClone(args.value ?? null)
+      const serialized = JSON.stringify(value)
+      if (operation === 'push-unique' && values.some(item => JSON.stringify(item) === serialized))
+        return
+      parent[key] = [...values, value]
       return
     }
     if (!Array.isArray(current))
@@ -145,6 +149,7 @@ const builtinActions: Record<string, AdvActionHandler> = {
   'variables/decrement': variableAction('decrement'),
   'variables/toggle': variableAction('toggle'),
   'variables/push': variableAction('push'),
+  'variables/push-unique': variableAction('push-unique'),
   'variables/remove': variableAction('remove'),
 }
 
