@@ -48,6 +48,7 @@ const $adv: AdvContext = setupAdvContext({
   themeConfig,
   fetcher: fetchChapter,
   runtimePlugins,
+  progressionStorage: false,
 })
 provide(injectionAdvContext, $adv)
 

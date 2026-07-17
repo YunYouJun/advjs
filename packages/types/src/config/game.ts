@@ -2,12 +2,23 @@ import type { AssetsManifest } from 'pixi.js'
 import type { AdvChapter, AdvCharacter, AdvMusic, AdvScene } from '../game'
 import type { JsonObject } from '../runtime'
 
+export interface AdvGameProgressionConfig {
+  /** Stable storage namespace for this game. */
+  id: string
+  /** Persistence schema version. Increment when stored value shapes change. */
+  version?: number
+  /** Top-level runtime variable keys persisted across new sessions. */
+  keys: string[]
+}
+
 /**
  * 描述游戏具体内容的配置
  */
 export interface AdvGameConfig {
   /** Initial JSON-only variables installed into the deterministic runtime. */
   variables?: JsonObject
+  /** Host-owned variables persisted across new runtime sessions. */
+  progression?: AdvGameProgressionConfig
   /** Runtime plugin names and exact versions required by the compiled Program. */
   requiredPlugins?: Record<string, string>
   /**

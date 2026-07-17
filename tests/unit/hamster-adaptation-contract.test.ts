@@ -159,4 +159,20 @@ describe('hamster complete adaptation contract', () => {
       objectPrefix: 'games/hamster/v1/',
     })
   })
+
+  it('persists only cross-playthrough unlocks for A+ mode', () => {
+    const settings = JSON.parse(readFileSync(resolve(root, 'demo/hamster/adv/settings/game.json'), 'utf8'))
+
+    expect(settings.variables).toMatchObject({
+      canonicalCompleted: false,
+      storyMode: 'canonical',
+      unlockedEndings: [],
+    })
+    expect(settings.progression).toEqual({
+      id: 'hamster',
+      version: 1,
+      keys: ['canonicalCompleted', 'unlockedEndings'],
+    })
+    expect(settings.progression.keys).not.toContain('storyMode')
+  })
 })

@@ -18,5 +18,10 @@ export type {
   CompileClientRuntimeProgramOptions,
   RuntimeChapterFetchResponse,
 } from './program'
+export { createBrowserRuntimeProgression } from './progression'
+export type {
+  BrowserRuntimeProgressionOptions,
+  RuntimeProgressionController,
+} from './progression'
 export { createBrowserRuntimeStorage } from './storage'
 export type { BrowserRuntimeStorageOptions } from './storage'

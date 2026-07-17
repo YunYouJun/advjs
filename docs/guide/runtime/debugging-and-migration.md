@@ -107,4 +107,8 @@ Inspector 的“复制报告”和“下载报告”生成完全相同的 `advjs
 6. 运行 `adv check`，再在 Playground、Studio 和 `adv play --trace` 中验证；
 7. 删除旧存档，或显式导出/转换；Runtime 不会自动接受 Program hash 不匹配的快照。
 
+跨周目 progression 与存档分开版本化。修改 `gameConfig.progression.keys`
+所指变量的含义或 JSON 形状时，应提高 progression `version` 或提供显式迁移；
+不要依赖 Runtime 存档迁移顺便修正浏览器元进度。详见[跨周目进度](/guide/runtime/meta-progression)。
+
 旧 JS/TS 故事代码会产生 `ADV_RUNTIME_EXECUTABLE_SCRIPT` 或 `ADV_RUNTIME_EXECUTABLE_CHOICE_ACTION`，不会进入兼容执行器。

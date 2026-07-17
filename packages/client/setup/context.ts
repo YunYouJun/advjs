@@ -13,6 +13,7 @@ import {
   applyRuntimePresentationEffects,
   compileClientRuntimeProgram,
   createActivityRendererRegistry,
+  createBrowserRuntimeProgression,
   syncRuntimePresentation,
 } from '../runtime'
 import { useAdvStore, useAudioStore } from '../stores'
@@ -56,6 +57,7 @@ export function setupAdvContext(ctx: {
   pinia?: Pinia
   fetcher?: CompileClientRuntimeProgramOptions['fetcher']
   runtimePlugins?: unknown
+  progressionStorage?: Storage | false
 }) {
   const store = useAdvStore(ctx.pinia)
   const plugins = runtimePlugins(ctx.runtimePlugins)
@@ -69,6 +71,14 @@ export function setupAdvContext(ctx: {
     onState(state, current, program) {
       store.$syncRuntime(state, current, program)
       syncRuntimePresentation(state, ctx.gameConfig.value, ADV_RUNTIME)
+      if (advContext?.progression) {
+        try {
+          advContext.progression.capture(state.variables)
+        }
+        catch (error) {
+          console.warn('[advjs] Failed to persist meta progression', error)
+        }
+      }
     },
     onEffects(effects) {
       if (advContext)
@@ -99,8 +109,19 @@ export function setupAdvContext(ctx: {
       compileDiagnostics.value = structuredClone(result.diagnostics)
       if (!result.program)
         throw compilerError(result.diagnostics)
+
+      const progressionConfig = ctx.gameConfig.value.progression
+      const progressionStorage = ctx.progressionStorage === false
+        ? undefined
+        : ctx.progressionStorage ?? (typeof localStorage === 'undefined' ? undefined : localStorage)
+      advContext.progression = progressionConfig && progressionStorage
+        ? createBrowserRuntimeProgression(progressionConfig, { storage: progressionStorage })
+        : undefined
+      const initialVariables = advContext.progression
+        ? advContext.progression.restore(ctx.gameConfig.value.variables ?? {})
+        : ctx.gameConfig.value.variables
       runtime.install(result.program, {
-        initialVariables: ctx.gameConfig.value.variables,
+        initialVariables,
       })
       advContext.pixiGame = await initPixi(advContext)
     },

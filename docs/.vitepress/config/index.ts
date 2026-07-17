@@ -287,6 +287,10 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
               link: '/guide/runtime/conditions-and-actions',
             },
             {
+              text: '跨周目进度',
+              link: '/guide/runtime/meta-progression',
+            },
+            {
               text: '插件与活动',
               link: '/guide/runtime/plugins-and-activities',
             },

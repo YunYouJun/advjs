@@ -6,6 +6,7 @@ import type { useAdvAuto, useAdvBgm, useAdvTachies } from '../composables'
 import type { useAdvCharacters } from '../composables/useAdvCharacters'
 import type { AdvRuntimeHost } from '../composables/useAdvRuntime'
 import type { PixiGame } from '../pixi/game'
+import type { RuntimeProgressionController } from '../runtime/progression'
 import type { AdvStore } from '../stores'
 import type { ADV_RUNTIME } from '../utils'
 import type { ActivityRendererRegistry } from './activity'
@@ -37,6 +38,8 @@ export interface AdvContext {
   activityRenderers: ActivityRendererRegistry
   /** Presentation-only character and tachie resources. */
   resources: typeof ADV_RUNTIME
+  /** Optional host-owned variables persisted across new runtime sessions. */
+  progression?: RuntimeProgressionController
   pixiGame?: PixiGame
 }
 

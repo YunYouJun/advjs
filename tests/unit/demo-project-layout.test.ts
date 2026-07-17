@@ -53,8 +53,11 @@ describe('demo project layout', () => {
 
     expect(settings).toEqual({
       title: '仓鼠：星海回声',
-      description: '改编自《仓鼠》与《一只普通仓鼠的一生》的 ADV.JS 完整能力示例',
+      description: '完整改编自《仓鼠》与续作《仓生》的 ADV.JS 旗舰示例',
       variables: {
+        canonicalCompleted: false,
+        storyMode: 'canonical',
+        unlockedEndings: [],
         curiosity: 0,
         empathy: 0,
         control: 0,
@@ -65,6 +68,11 @@ describe('demo project layout', () => {
         civilization: null,
         memories: [],
         ending: '',
+      },
+      progression: {
+        id: 'hamster',
+        version: 1,
+        keys: ['canonicalCompleted', 'unlockedEndings'],
       },
       requiredPlugins: {
         'star-map': '1.0.0',
