@@ -9,6 +9,13 @@
       "runtime": "Nodejs18.15",
       "handler": "index.main",
       "installDependency": true
+    },
+    {
+      "name": "advjsAssets",
+      "timeout": 300,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main",
+      "installDependency": true
     }
   ]
 }

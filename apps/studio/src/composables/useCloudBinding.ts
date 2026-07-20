@@ -106,7 +106,9 @@ export function useCloudBinding() {
       if (existing.data && existing.data.length > 0) {
         // Update existing record
         const docId = (existing.data[0] as CloudProjectRecord)._id!
-        await collection.doc(docId).update(record)
+        const updated = await collection.where({ _id: docId, ownerId: uid }).update(record)
+        if (!updated.updated)
+          throw new Error('Cloud project update was rejected')
         return docId
       }
       else {
@@ -145,9 +147,11 @@ export function useCloudBinding() {
         .get()
 
       if (existing.data && existing.data.length > 0) {
-        await db.collection(COLLECTION)
-          .doc((existing.data[0] as CloudProjectRecord)._id!)
+        const removed = await db.collection(COLLECTION)
+          .where({ _id: (existing.data[0] as CloudProjectRecord)._id!, ownerId: uid })
           .remove()
+        if (!removed.deleted)
+          throw new Error('Cloud project removal was rejected')
       }
       return true
     }
@@ -244,9 +248,11 @@ export function useCloudBinding() {
         .get()
 
       if (existing.data && existing.data.length > 0) {
-        await db.collection(COLLECTION)
-          .doc((existing.data[0] as CloudProjectRecord)._id!)
-          .update({ published, updatedAt: Date.now() })
+        const updated = await db.collection(COLLECTION)
+          .where({ _id: (existing.data[0] as CloudProjectRecord)._id!, ownerId: uid })
+          .update({ ownerId: uid, published, updatedAt: Date.now() })
+        if (!updated.updated)
+          throw new Error('Cloud project visibility update was rejected')
         return true
       }
       return false

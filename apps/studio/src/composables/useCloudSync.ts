@@ -5,11 +5,12 @@ import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import {
   classifySyncCandidates,
-  downloadFromCloud,
+  collectProjectFilesForSync,
+  downloadBlobFromCloud,
   listCloudFilesDetailed,
   uploadToCloud,
 } from '../utils/cloudSync'
-import { createFsForProject } from '../utils/fs'
+import { createFsForProject, isTextFile } from '../utils/fs'
 
 export type SyncStatus = 'idle' | 'syncing' | 'success' | 'failed'
 
@@ -37,16 +38,16 @@ export function useCloudSync() {
    * Get COS config stripped of non-COS fields (for passing to cloudSync utils).
    */
   function getCosConfig(): CosConfig {
-    const { bucket, region, secretId, secretKey } = settingsStore.cos
-    return { bucket, region, secretId, secretKey }
+    const { bucket, region } = settingsStore.cos
+    return { bucket, region }
   }
 
   /**
    * Check if COS is properly configured.
    */
   function isCosConfigured(): boolean {
-    const { bucket, region, secretId, secretKey } = settingsStore.cos
-    return !!(bucket && region && secretId && secretKey)
+    const { bucket, region } = settingsStore.cos
+    return !!(bucket && region)
   }
 
   /**
@@ -104,6 +105,8 @@ export function useCloudSync() {
   let conflictFs: IFileSystem | null = null
   /** Internal: cached config + prefix for resolveConflicts to use. */
   let conflictContext: { config: CosConfig, prefix: string } | null = null
+  /** Binary payloads remain outside the text diff contract until resolution. */
+  const binaryConflictPayloads = new Map<string, { cloud: Blob, local: Blob }>()
 
   /**
    * Perform a full bidirectional sync.
@@ -129,6 +132,7 @@ export function useCloudSync() {
     pendingConflicts.value = []
     conflictFs = null
     conflictContext = null
+    binaryConflictPayloads.clear()
 
     try {
       const config = getCosConfig()
@@ -155,22 +159,20 @@ export function useCloudSync() {
         return { uploaded: 0, downloaded: 0, conflicts: 0 }
       }
 
-      const localFileEntries = await fs.collectAllFiles('')
+      const localFileEntries = await collectProjectFilesForSync(fs)
 
       // Map paths → mtime (epoch ms) for the classifier.
       const cloudPaths = new Map<string, number>()
-      const cloudByPath = new Map<string, { lastModified: Date }>()
       for (const cf of cloudFiles) {
         const rel = cf.key.startsWith(prefix) ? cf.key.slice(prefix.length) : cf.key
         if (!rel || rel.endsWith('/'))
           continue
         const ms = new Date(cf.lastModified).getTime()
         cloudPaths.set(rel, ms)
-        cloudByPath.set(rel, { lastModified: new Date(cf.lastModified) })
       }
 
       const localPaths = new Map<string, number>()
-      const localByPath = new Map<string, { content: string, mtime: number }>()
+      const localByPath = new Map<string, { content: Blob, mtime: number }>()
       for (const lf of localFileEntries) {
         const ms = lf.lastModified.getTime()
         localPaths.set(lf.path, ms)
@@ -200,8 +202,11 @@ export function useCloudSync() {
         }
         else if (c.decision === 'download') {
           try {
-            const content = await downloadFromCloud(config, prefix + c.path)
-            await fs.writeFile(c.path, content)
+            const content = await downloadBlobFromCloud(config, prefix + c.path)
+            if (isTextFile(c.path))
+              await fs.writeFile(c.path, await content.text())
+            else
+              await fs.writeBlob(c.path, content)
             downloaded++
           }
           catch {
@@ -213,21 +218,36 @@ export function useCloudSync() {
           // re-fetching. Conflict files are usually a small handful, so
           // upfront download is fine.
           const local = localByPath.get(c.path)
-          let cloudContent = ''
+          if (!local)
+            continue
+          let cloud: Blob
           try {
-            cloudContent = await downloadFromCloud(config, prefix + c.path)
+            cloud = await downloadBlobFromCloud(config, prefix + c.path)
           }
           catch {
             // Cloud read failed — skip rather than block other conflicts.
             continue
           }
-          conflicts.push({
-            path: c.path,
-            localContent: local?.content ?? '',
-            cloudContent,
-            localMtime: c.localMtime ?? 0,
-            cloudMtime: c.cloudMtime ?? 0,
-          })
+          if (isTextFile(c.path)) {
+            conflicts.push({
+              path: c.path,
+              localContent: await local.content.text(),
+              cloudContent: await cloud.text(),
+              localMtime: c.localMtime ?? 0,
+              cloudMtime: c.cloudMtime ?? 0,
+            })
+          }
+          else {
+            binaryConflictPayloads.set(c.path, { cloud, local: local.content })
+            conflicts.push({
+              binary: true,
+              path: c.path,
+              localContent: '',
+              cloudContent: '',
+              localMtime: c.localMtime ?? 0,
+              cloudMtime: c.cloudMtime ?? 0,
+            })
+          }
         }
       }
 
@@ -284,10 +304,16 @@ export function useCloudSync() {
         continue
       }
       try {
-        if (choice === 'use-local')
-          await uploadToCloud(config, prefix + conflict.path, conflict.localContent)
-        else // use-cloud
+        const binary = binaryConflictPayloads.get(conflict.path)
+        if (choice === 'use-local') {
+          await uploadToCloud(config, prefix + conflict.path, binary?.local ?? conflict.localContent)
+        }
+        else if (binary) {
+          await fs.writeBlob(conflict.path, binary.cloud)
+        }
+        else {
           await fs.writeFile(conflict.path, conflict.cloudContent)
+        }
         resolved++
       }
       catch {
@@ -307,6 +333,7 @@ export function useCloudSync() {
 
     conflictFs = null
     conflictContext = null
+    binaryConflictPayloads.clear()
     return { resolved, skipped }
   }
 
@@ -318,6 +345,7 @@ export function useCloudSync() {
     pendingConflicts.value = []
     conflictFs = null
     conflictContext = null
+    binaryConflictPayloads.clear()
   }
 
   /**

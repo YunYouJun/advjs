@@ -12,14 +12,10 @@ import {
 } from '@ionic/vue'
 import {
   checkmarkCircleOutline,
-  chevronDownOutline,
-  chevronUpOutline,
   closeCircleOutline,
   cloudOutline,
   folderOutline,
-  keyOutline,
   lockClosedOutline,
-  openOutline,
   refreshOutline,
   serverOutline,
   shieldCheckmarkOutline,
@@ -28,31 +24,25 @@ import {
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useCloudSync } from '../../composables/useCloudSync'
+import { useAuthStore } from '../../stores/useAuthStore'
 import { useSettingsStore } from '../../stores/useSettingsStore'
 import { testConnection } from '../../utils/cloudSync'
 
 const { t } = useI18n()
 const settingsStore = useSettingsStore()
+const authStore = useAuthStore()
 const { lastSyncTime } = useCloudSync()
 
 const isTesting = ref(false)
 const testResult = ref<'idle' | 'success' | 'failed'>('idle')
 const testError = ref('')
-const isGuideExpanded = ref(false)
-
-const isCredentialsFilled = computed(() => {
-  const { bucket, region, secretId, secretKey } = settingsStore.cos
-  return !!(bucket && region && secretId && secretKey)
-})
-
-const credentialProgress = computed(() => {
-  const { bucket, region, secretId, secretKey } = settingsStore.cos
-  return [bucket, region, secretId, secretKey].filter(Boolean).length
-})
+const isManagedStorageReady = computed(() => authStore.isLoggedIn
+  && !!settingsStore.cos.bucket
+  && !!settingsStore.cos.region)
 
 async function handleTestConnection() {
-  const { bucket, region, secretId, secretKey } = settingsStore.cos
-  if (!bucket || !region || !secretId || !secretKey)
+  const { bucket, region } = settingsStore.cos
+  if (!isManagedStorageReady.value)
     return
 
   isTesting.value = true
@@ -60,7 +50,7 @@ async function handleTestConnection() {
   testError.value = ''
 
   try {
-    await testConnection({ bucket, region, secretId, secretKey })
+    await testConnection({ bucket, region })
     testResult.value = 'success'
   }
   catch (err) {
@@ -112,76 +102,18 @@ const syncIntervalOptions = [5, 10, 15, 30]
           </p>
         </div>
 
-        <!-- Setup Guide (Collapsible) -->
-        <button type="button" class="guide-toggle" @click="isGuideExpanded = !isGuideExpanded">
-          <span class="guide-toggle__label">{{ t('settings.cosGuideTitle') }}</span>
-          <IonIcon :icon="isGuideExpanded ? chevronUpOutline : chevronDownOutline" />
-        </button>
-
-        <Transition name="guide">
-          <div v-show="isGuideExpanded" class="guide-panel">
-            <ol class="guide-steps">
-              <li class="guide-step">
-                <span class="guide-step__number">1</span>
-                <div class="guide-step__content">
-                  <i18n-t keypath="settings.cosGuideStep1" tag="span">
-                    <template #console>
-                      <a
-                        href="https://console.cloud.tencent.com/cos/bucket"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="guide-link"
-                      >{{ t('settings.cosConsoleLink') }}
-                        <IonIcon :icon="openOutline" class="guide-link__icon" /></a>
-                    </template>
-                  </i18n-t>
-                </div>
-              </li>
-              <li class="guide-step">
-                <span class="guide-step__number">2</span>
-                <div class="guide-step__content">
-                  <span><strong>Bucket</strong> — {{ t('settings.cosGuideStep2Bucket') }}</span>
-                  <span><strong>Region</strong> — {{ t('settings.cosGuideStep2Region') }}</span>
-                </div>
-              </li>
-              <li class="guide-step">
-                <span class="guide-step__number">3</span>
-                <div class="guide-step__content">
-                  <i18n-t keypath="settings.cosGuideStep3" tag="span">
-                    <template #camConsole>
-                      <a
-                        href="https://console.cloud.tencent.com/cam/capi"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="guide-link"
-                      >{{ t('settings.camConsoleLink') }}
-                        <IonIcon :icon="openOutline" class="guide-link__icon" /></a>
-                    </template>
-                  </i18n-t>
-                </div>
-              </li>
-              <li class="guide-step">
-                <span class="guide-step__number">4</span>
-                <div class="guide-step__content">
-                  <span>{{ t('settings.cosGuideStep4Cors') }}</span>
-                </div>
-              </li>
-            </ol>
-          </div>
-        </Transition>
-
-        <!-- Credentials Card -->
+        <!-- Managed Storage Card -->
         <div class="section-card">
           <div class="section-card__header">
             <div class="section-card__icon section-card__icon--key">
-              <IonIcon :icon="keyOutline" />
+              <IonIcon :icon="lockClosedOutline" />
             </div>
             <div class="section-card__header-text">
               <h3 class="section-card__title">
-                {{ t('settings.cloudSyncDesc') }}
+                {{ t('settings.managedStorage') }}
               </h3>
               <p class="section-card__subtitle">
-                {{ credentialProgress }}/4
+                {{ isManagedStorageReady ? t('settings.managedStorageReady') : t('settings.managedStorageLogin') }}
               </p>
             </div>
           </div>
@@ -192,13 +124,9 @@ const syncIntervalOptions = [5, 10, 15, 30]
                 <IonIcon :icon="serverOutline" class="input-field__label-icon" />
                 {{ t('settings.bucket') }}
               </label>
-              <input
-                v-model.trim="settingsStore.cos.bucket"
-                class="input-field__input"
-                type="text"
-                placeholder="my-bucket-1250000000"
-                autocomplete="off"
-              >
+              <div class="managed-value">
+                {{ settingsStore.cos.bucket }}
+              </div>
             </div>
 
             <div class="input-field">
@@ -206,13 +134,9 @@ const syncIntervalOptions = [5, 10, 15, 30]
                 <IonIcon :icon="serverOutline" class="input-field__label-icon" />
                 {{ t('settings.region') }}
               </label>
-              <input
-                v-model.trim="settingsStore.cos.region"
-                class="input-field__input"
-                type="text"
-                placeholder="ap-guangzhou"
-                autocomplete="off"
-              >
+              <div class="managed-value">
+                {{ settingsStore.cos.region }} · Shanghai
+              </div>
             </div>
 
             <div class="input-field">
@@ -230,33 +154,10 @@ const syncIntervalOptions = [5, 10, 15, 30]
               <span class="input-field__hint">{{ t('settings.projectRootDesc') }}</span>
             </div>
 
-            <div class="input-field">
-              <label class="input-field__label">
-                <IonIcon :icon="lockClosedOutline" class="input-field__label-icon" />
-                {{ t('settings.secretId') }}
-              </label>
-              <input
-                v-model.trim="settingsStore.cos.secretId"
-                class="input-field__input"
-                type="password"
-                placeholder="AKIDxxxxxxxx"
-                autocomplete="off"
-              >
-            </div>
-
-            <div class="input-field">
-              <label class="input-field__label">
-                <IonIcon :icon="lockClosedOutline" class="input-field__label-icon" />
-                {{ t('settings.secretKey') }}
-              </label>
-              <input
-                v-model.trim="settingsStore.cos.secretKey"
-                class="input-field__input"
-                type="password"
-                placeholder="xxxxxxxx"
-                autocomplete="off"
-              >
-            </div>
+            <p class="managed-security-note">
+              <IonIcon :icon="shieldCheckmarkOutline" />
+              {{ t('settings.managedStorageSecurity') }}
+            </p>
           </div>
 
           <!-- Test Connection -->
@@ -268,7 +169,7 @@ const syncIntervalOptions = [5, 10, 15, 30]
               'test-btn--failed': testResult === 'failed',
               'test-btn--loading': isTesting,
             }"
-            :disabled="isTesting || !isCredentialsFilled"
+            :disabled="isTesting || !isManagedStorageReady"
             @click="handleTestConnection"
           >
             <IonSpinner v-if="isTesting" name="crescent" class="test-btn__spinner" />
@@ -291,9 +192,9 @@ const syncIntervalOptions = [5, 10, 15, 30]
             {{ testError }}
           </p>
 
-          <p class="cors-hint">
+          <p v-if="!authStore.isLoggedIn" class="cors-hint">
             <IonIcon :icon="shieldCheckmarkOutline" class="cors-hint__icon" />
-            {{ t('settings.corsHint') }}
+            {{ t('settings.managedStorageLogin') }}
           </p>
         </div>
 
@@ -649,6 +550,36 @@ const syncIntervalOptions = [5, 10, 15, 30]
   font-size: var(--adv-font-caption);
   color: var(--adv-text-tertiary);
   line-height: 1.3;
+}
+
+.managed-value {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--adv-space-md);
+  border: 1px solid var(--adv-border-subtle);
+  border-radius: var(--adv-radius-md);
+  background: var(--adv-surface-elevated);
+  color: var(--adv-text-primary);
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+  font-size: var(--adv-font-body-sm);
+  overflow-wrap: anywhere;
+}
+
+.managed-security-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--adv-space-xs);
+  margin: var(--adv-space-xs) 0 0;
+  color: var(--adv-text-secondary);
+  font-size: var(--adv-font-caption);
+  line-height: 1.45;
+}
+
+.managed-security-note ion-icon {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--adv-success);
 }
 
 /* ── Test Connection Button ── */

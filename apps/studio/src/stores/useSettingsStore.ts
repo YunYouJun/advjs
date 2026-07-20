@@ -6,7 +6,9 @@ import { useAuthStore } from './useAuthStore'
 export interface CosConfig {
   bucket: string
   region: string
+  /** @deprecated Managed storage never persists browser COS credentials. */
   secretId: string
+  /** @deprecated Managed storage never persists browser COS credentials. */
   secretKey: string
   projectRoot: string
   autoSave: boolean
@@ -25,8 +27,8 @@ export const useSettingsStore = defineStore('settings', () => {
   const theme = ref<'light' | 'dark' | 'system'>('system')
   const locale = ref<string>(i18n.global.locale.value || 'en')
   const cos = ref<CosConfig>({
-    bucket: '',
-    region: '',
+    bucket: 'yunlefun-advjs-prod-1325586649',
+    region: 'ap-shanghai',
     secretId: '',
     secretKey: '',
     projectRoot: 'adv-projects/',
@@ -64,15 +66,23 @@ export const useSettingsStore = defineStore('settings', () => {
       if (savedCos) {
         const parsed = JSON.parse(savedCos)
         cos.value = {
-          bucket: parsed.bucket || '',
-          region: parsed.region || '',
-          secretId: parsed.secretId || '',
-          secretKey: parsed.secretKey || '',
+          bucket: 'yunlefun-advjs-prod-1325586649',
+          region: 'ap-shanghai',
+          secretId: '',
+          secretKey: '',
           projectRoot: parsed.projectRoot ?? 'adv-projects/',
           autoSave: parsed.autoSave ?? true,
           autoSync: parsed.autoSync ?? false,
           syncInterval: parsed.syncInterval ?? 5,
         }
+        localStorage.setItem('advjs-studio-cos', JSON.stringify({
+          autoSave: cos.value.autoSave,
+          autoSync: cos.value.autoSync,
+          bucket: cos.value.bucket,
+          projectRoot: cos.value.projectRoot,
+          region: cos.value.region,
+          syncInterval: cos.value.syncInterval,
+        }))
       }
     }
     catch {
@@ -116,7 +126,14 @@ export const useSettingsStore = defineStore('settings', () => {
   })
 
   watch(cos, (val) => {
-    localStorage.setItem('advjs-studio-cos', JSON.stringify(val))
+    localStorage.setItem('advjs-studio-cos', JSON.stringify({
+      autoSave: val.autoSave,
+      autoSync: val.autoSync,
+      bucket: 'yunlefun-advjs-prod-1325586649',
+      projectRoot: val.projectRoot,
+      region: 'ap-shanghai',
+      syncInterval: val.syncInterval,
+    }))
   }, { deep: true })
 
   // Initialize

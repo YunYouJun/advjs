@@ -1,11 +1,11 @@
-# CloudBase 后端配置（Story Market 上线）
+# CloudBase 后端配置（Story Market 与托管资源）
 
-Studio 的故事市场（浏览 / 发布 / 安装 / 评价 / 创作者主页）完全跑在 CloudBase
+Studio 的故事市场（浏览 / 发布 / 安装 / 评价 / 创作者主页）与游戏资源 catalog 跑在 CloudBase
 （腾讯云开发，env：`VITE_TCB_ENV_ID`）之上，所有读写都走客户端 `@cloudbase/js-sdk`。
-代码已就绪，要让市场真正「上线」只剩两件事：**建集合** + **配安全规则**。
+数据库结构、安全规则、索引和 Event 函数均在本目录版本化。
 
-> 这些规则不在代码里生效——CloudBase 的数据库安全规则在控制台按集合配置。
-> 本目录把规则以 JSON 形式版本化，便于审阅与复制粘贴。
+> 这些规则不在前端代码里生效。使用 `scripts/provision-db.js` 应用版本化规则和索引，
+> 不要只在控制台手工维护线上状态。
 
 ## 1. 需要的集合
 
@@ -17,9 +17,17 @@ Studio 的故事市场（浏览 / 发布 / 安装 / 评价 / 创作者主页）�
 | `advjs_reviews`         | 评价（1–5 星 + 评论 + 点赞）            | `marketStats` 云函数（评价正文 + `likes`）                                  |
 | `advjs_market_installs` | 安装去重台账（每「item × 用户」一行）   | 仅 `marketStats` 云函数                                                     |
 | `advjs_review_likes`    | 点赞去重台账（每「review × 用户」一行） | 仅 `marketStats` 云函数                                                     |
+| `advjs_assets`          | 已完成上传的游戏资源 catalog            | 仅 `advjsAssets` 云函数                                                     |
+| `advjs_asset_paths`     | owner + game + path 的并发锁            | 仅 `advjsAssets` 云函数                                                     |
+| `advjs_asset_uploads`   | 短时上传预留与完成状态                  | 仅 `advjsAssets` 云函数                                                     |
+| `advjs_quota_accounts`  | 用户资源配额、已用和预留字节            | 仅 `advjsAssets` 云函数                                                     |
 
 > `advjs_market_installs` / `advjs_review_likes` 是 `marketStats` 用来做「一次去重」
 > 的台账（见 §3），客户端从不直接读写，规则设为全拒绝即可（见 §2）。
+
+`advjs_assets`、`advjs_asset_paths`、`advjs_asset_uploads`、`advjs_quota_accounts`
+同样只允许管理端访问。`advjs_projects` 允许 owner 读写自己的项目，且只允许读取
+`published == true` 的他人项目；资源字节与 catalog 仍不直接开放给客户端数据库查询。
 
 > 市场还会顺带读写这些已有集合（账号/分享/通知阶段已建）：`advjs_projects`、
 > `advjs_notifications`、`advjs_shortlinks`。本次上线不改它们的规则。
@@ -95,6 +103,7 @@ apps/studio/cloudbase/
 │       ├── index.js        #   exports.main = async (event, context)（Event 函数）
 │       └── package.json    #   声明依赖（@cloudbase/node-sdk）
 ├── security-rules/         # 各集合安全规则 JSON（文件名 = 集合名）
+├── database-indexes.json   # 资源 catalog 的唯一索引与查询索引
 └── scripts/                # 运维脚本
     └── provision-db.js     #   建集合 + 应用安全规则（幂等，由 security-rules/ 驱动）
 ```
@@ -108,11 +117,12 @@ apps/studio/cloudbase/
 
 ### 部署云函数（二选一）
 
-A. CloudBase CLI（`@cloudbase/cli`，先 `tcb login`）——`cloudbaserc.json` 已声明 `marketStats`：
+A. CloudBase CLI（`@cloudbase/cli`，先 `tcb login`）——`cloudbaserc.json` 已声明两个函数：
 
 ```
 cd apps/studio/cloudbase
 tcb fn deploy marketStats --force          # envId 取自 cloudbaserc.json
+tcb fn deploy advjsAssets --force
 ```
 
 B. CloudBase MCP（若环境可用）——`functionRootPath` 指向**父目录** `functions/`：
@@ -124,20 +134,20 @@ manageFunctions(action="createFunction",
 # 之后只改代码 → action="updateFunctionCode"
 ```
 
-### 建集合 + 配安全规则（一条命令）
+### 建集合 + 配安全规则和索引（一条命令）
 
-§1 的 4 个集合与 §2 的安全规则可由 `scripts/provision-db.js` 一次性创建并应用（幂等，
-由 `security-rules/*.json` 驱动；凭据取自 `tcb login` 登录态或 `TENCENTCLOUD_*` 环境变量）：
+所有集合、安全规则和 `database-indexes.json` 声明的索引可由
+`scripts/provision-db.js` 一次性创建并应用（幂等；凭据取自 `tcb login` 登录态或
+`TENCENTCLOUD_*` 环境变量）：
 
 ```
-cd apps/studio/cloudbase/scripts
-npm install
-node provision-db.js          # envId 取自参数 / $VITE_TCB_ENV_ID / cloudbaserc.json
+pnpm install
+pnpm --dir apps/studio/cloudbase/scripts provision
 ```
 
-> **当前线上环境（`yunlefun-8g7ybcxc7345c490`）已完成全部步骤**：4 个集合已建、安全规则
-> 已应用并经 `DescribeResourcePermission` 校验、`marketStats` 已部署并通过 `downloads`
-> 自增的端到端回归（5 → 6）。函数无需对外 HTTP 访问，保持默认（仅 `callFunction`）即可。
+> **当前线上环境（`yunlefun-8g7ybcxc7345c490`）已完成全部步骤**：市场与资源集合已建、
+> 安全规则和资源索引已应用；`marketStats` 已通过 `downloads` 自增回归，`advjsAssets`
+> 已通过服务身份 HEAD 新桶的健康检查。函数无需对外 HTTP 访问，保持 Event `callFunction` 即可。
 > 其余既有云函数（`shortlink`、`collab-auth`）后续也应迁入 `functions/` 以统一管理。
 
 ## 5. 灌示例数据（可选）
@@ -149,3 +159,38 @@ node provision-db.js          # envId 取自参数 / $VITE_TCB_ENV_ID / cloudbas
 需先登录。示例记录 `ownerId` = 当前用户、`projectId` 以 `demo-` 开头、无安装包
 （安装按钮对其禁用），可用同页「清除我的示例数据」一键删除。
 这一步同时验证了发布写入路径与安全规则是否真的放行。
+
+## 6. AdvJS 托管游戏资源
+
+新上传统一进入私有桶 `yunlefun-advjs-prod-1325586649`（`ap-shanghai`）。历史桶
+`advjs-1325586649`（`ap-guangzhou`）保持不变，不作为新写入目标，也不在本次接入中迁移。
+
+浏览器不再配置或保存 COS SecretId/SecretKey。上传链路为：
+
+1. Studio 使用 CloudBase 登录态调用 `advjsAssets.reserveUpload`。
+2. 云函数从可信上下文派生 uid，校验 `adv-projects/<gameId>/<path>`、MIME、最大 512 MiB
+   和用户配额，并在事务内预留路径与字节。
+3. 浏览器只获得 15 分钟、限定到单个 staging 对象、固定 Content-Type/Content-Length 的 PUT URL。
+4. `finalizeUpload` 对 HEAD 结果、字节、类型与 SHA-256 做完整性校验，再写入私有稳定 Key 与 catalog。
+5. Drive 从 `advjs_assets` 读取完成态资源；用户选中资源时，Drive 服务端调用
+   `createDrivePreview` 换取 5 分钟签名预览 URL。
+
+Catalog 同时保存 COS `versionId`，预览固定到该不可变版本；provider copy 成功但数据库事务失败时，
+旧 catalog 仍指向旧版本。Catalog 提交成功后才尽力删除 staging，失败时可安全重试，生命周期负责兜底回收。
+
+桶策略要求：默认私有、版本控制 Enabled、AES256 默认加密；清理未完成分片和 7 天 staging，
+保留 private/derived 非当前版本 30 天，绝不自动过期 `published/sha256/`。CORS 仅允许
+`https://studio.advjs.org` 的 PUT/GET/HEAD 与 `https://drive.yunle.fun` 的 GET/HEAD。
+
+`advjsAssets` 使用平台运行身份访问 COS，不配置浏览器云密钥。仅服务端环境变量：
+
+| 变量                        | 说明                                     |
+| --------------------------- | ---------------------------------------- |
+| `ADVJS_ASSET_BUCKET`        | `yunlefun-advjs-prod-1325586649`         |
+| `ADVJS_ASSET_REGION`        | `ap-shanghai`                            |
+| `ADVJS_DEFAULT_QUOTA_BYTES` | 默认每用户 5 GiB，可由 quota 文档覆盖    |
+| `ADVJS_DRIVE_PREVIEW_TOKEN` | Drive 与函数共享的高熵、可轮换服务端密钥 |
+
+部署后使用 `serviceHealth`（必须携带 preview token）验证函数运行身份可以 HEAD 桶；不要通过
+函数详情、日志或前端配置回显 token。删除只允许未发布、无活动消费者引用的 private 源对象，
+并且永不删除 immutable published copy。

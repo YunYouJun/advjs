@@ -151,7 +151,10 @@ function handleDismiss() {
             </span>
           </header>
 
-          <FileDiffPreview :diff="diffFor(c)" />
+          <p v-if="c.binary" class="conflict-card__binary">
+            {{ t('syncConflict.binaryPreviewUnavailable') }}
+          </p>
+          <FileDiffPreview v-else :diff="diffFor(c)" />
 
           <div class="conflict-card__actions" role="radiogroup" :aria-label="c.path">
             <button
@@ -289,6 +292,14 @@ function handleDismiss() {
   display: inline-flex;
   gap: 6px;
   flex-wrap: wrap;
+}
+
+.conflict-card__binary {
+  margin: 0;
+  padding: var(--adv-space-md, 16px);
+  color: var(--ion-color-medium, #92949c);
+  font-size: 0.82rem;
+  line-height: 1.5;
 }
 
 .conflict-card__actions {

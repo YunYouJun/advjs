@@ -1,6 +1,6 @@
 /**
- * Provision the Story Market CloudBase backend: create the marketplace
- * collections and apply their version-controlled security rules.
+ * Provision the Studio CloudBase backend: create collections, apply their
+ * version-controlled security rules, and create declared indexes.
  *
  * Idempotent — safe to re-run. Collections are auto-discovered from the sibling
  * `../security-rules/*.json` files: one file per collection, where the filename
@@ -9,8 +9,8 @@
  *
  * Usage:
  *   cd apps/studio/cloudbase/scripts
- *   npm install
- *   node provision-db.js [envId]
+ *   pnpm install
+ *   pnpm --dir apps/studio/cloudbase/scripts provision -- [envId]
  *
  * envId resolution:   argv[2] → $VITE_TCB_ENV_ID → ../cloudbaserc.json "envId".
  * Credentials:        $TENCENTCLOUD_SECRETID + $TENCENTCLOUD_SECRETKEY
@@ -18,7 +18,7 @@
  *                     CloudBase CLI login at ~/.config/.cloudbase/auth.json
  *                     (run `tcb login` first).
  *
- * Deploy the `marketStats` cloud function separately — see ../README.md §4.
+ * Deploy Event functions separately — see ../README.md §4 and §6.
  */
 const fs = require('node:fs')
 const os = require('node:os')
@@ -27,6 +27,7 @@ const process = require('node:process')
 const CloudBase = require('@cloudbase/manager-node')
 
 const RULES_DIR = path.resolve(__dirname, '../security-rules')
+const INDEXES_PATH = path.resolve(__dirname, '../database-indexes.json')
 
 function resolveEnvId() {
   if (process.argv[2])
@@ -61,6 +62,7 @@ async function main() {
   const app = init({ ...resolveCredentials(), envId })
 
   const files = fs.readdirSync(RULES_DIR).filter(f => f.endsWith('.json')).sort()
+  const indexes = JSON.parse(fs.readFileSync(INDEXES_PATH, 'utf8'))
   console.log(`Provisioning ${files.length} collections on ${envId}:\n`)
 
   for (const file of files) {
@@ -76,6 +78,24 @@ async function main() {
         securityRule: rule,
       })
       console.log(`  ✓ ${name}  ${rule}`)
+
+      for (const index of indexes[name] || []) {
+        const exists = await app.database.checkIndexExists(name, index.name)
+        if (exists.Exists) {
+          console.log(`    = index ${index.name}`)
+          continue
+        }
+        await app.database.updateCollection(name, {
+          CreateIndexes: [{
+            IndexName: index.name,
+            MgoKeySchema: {
+              MgoIndexKeys: index.keys.map(key => ({ Direction: key.direction, Name: key.name })),
+              MgoIsUnique: index.unique,
+            },
+          }],
+        })
+        console.log(`    + index ${index.name}`)
+      }
     }
     catch (err) {
       console.log(`  ✗ ${name}  ${err.code || ''} ${err.message}`)

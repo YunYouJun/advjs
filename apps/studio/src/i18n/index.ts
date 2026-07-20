@@ -6,11 +6,11 @@ import zhCN from './locales/zh-CN.json'
  * Detect initial locale from browser or localStorage.
  */
 function getInitialLocale(): string {
-  const saved = localStorage.getItem('advjs-studio-locale')
+  const saved = globalThis.localStorage?.getItem('advjs-studio-locale')
   if (saved)
     return saved
 
-  const browserLang = navigator.language
+  const browserLang = globalThis.navigator?.language || 'en'
   if (browserLang.startsWith('zh'))
     return 'zh-CN'
 

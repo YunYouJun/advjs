@@ -1,0 +1,69 @@
+{
+  "advjs_assets": [
+    {
+      "name": "owner_project_path",
+      "unique": true,
+      "keys": [
+        { "name": "ownerId", "direction": "1" },
+        { "name": "projectId", "direction": "1" },
+        { "name": "relativePath", "direction": "1" }
+      ]
+    },
+    {
+      "name": "owner_status_updated",
+      "unique": false,
+      "keys": [
+        { "name": "ownerId", "direction": "1" },
+        { "name": "status", "direction": "1" },
+        { "name": "updatedAt", "direction": "-1" }
+      ]
+    }
+  ],
+  "advjs_asset_uploads": [
+    {
+      "name": "owner_status_expires",
+      "unique": false,
+      "keys": [
+        { "name": "ownerId", "direction": "1" },
+        { "name": "status", "direction": "1" },
+        { "name": "expiresAt", "direction": "1" }
+      ]
+    }
+  ],
+  "advjs_quota_accounts": [
+    {
+      "name": "uid",
+      "unique": true,
+      "keys": [
+        { "name": "uid", "direction": "1" }
+      ]
+    }
+  ],
+  "advjs_projects": [
+    {
+      "name": "owner_project",
+      "unique": true,
+      "keys": [
+        { "name": "ownerId", "direction": "1" },
+        { "name": "projectId", "direction": "1" }
+      ]
+    },
+    {
+      "name": "owner_updated",
+      "unique": false,
+      "keys": [
+        { "name": "ownerId", "direction": "1" },
+        { "name": "updatedAt", "direction": "-1" }
+      ]
+    },
+    {
+      "name": "owner_published_updated",
+      "unique": false,
+      "keys": [
+        { "name": "ownerId", "direction": "1" },
+        { "name": "published", "direction": "1" },
+        { "name": "updatedAt", "direction": "-1" }
+      ]
+    }
+  ]
+}

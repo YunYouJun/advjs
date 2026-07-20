@@ -1,0 +1,15 @@
+{
+  "name": "advjs-studio-assets",
+  "type": "commonjs",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Owner-scoped AdvJS asset upload, catalog, and preview authority.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test test/*.node.cjs"
+  },
+  "dependencies": {
+    "@cloudbase/node-sdk": "3.18.3",
+    "cos-nodejs-sdk-v5": "2.16.0-beta.9"
+  }
+}
