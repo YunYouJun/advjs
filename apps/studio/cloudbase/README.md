@@ -194,3 +194,19 @@ Catalog 同时保存 COS `versionId`，预览固定到该不可变版本；provi
 部署后使用 `serviceHealth`（必须携带 preview token）验证函数运行身份可以 HEAD 桶；不要通过
 函数详情、日志或前端配置回显 token。删除只允许未发布、无活动消费者引用的 private 源对象，
 并且永不删除 immutable published copy。
+
+## 7. Studio Pages 生产发布
+
+Cloudflare Pages 项目名为 `advjs-studio`，生产分支为 `dev`。Monorepo 中的 Studio 依赖
+`packages/*` 构建产物，平台构建配置必须保持为：
+
+| 配置       | 值                                          |
+| ---------- | ------------------------------------------- |
+| 构建命令   | `pnpm run build && pnpm run studio:build`   |
+| 输出目录   | `apps/studio/dist`                          |
+| 生产环境 ID | `VITE_TCB_ENV_ID=yunlefun-8g7ybcxc7345c490` |
+
+不能只执行 `pnpm run studio:build`，否则干净构建环境中尚未生成 `@advjs/types`、
+`@advjs/core` 与 `@advjs/parser` 的类型和入口文件。紧急恢复时可以在本地完成同一构建顺序后，
+将 `apps/studio/dist` 直传到现有 `advjs-studio` 项目；不要新建同名站点或绕过
+`studio.advjs.org` 的 Pages 自定义域绑定。
