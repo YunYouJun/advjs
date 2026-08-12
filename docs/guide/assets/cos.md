@@ -38,14 +38,14 @@ games/{game-id}/v{major}/
 
 下一次破坏性音频迁移会把上方简单的 `audio/bgm`、`audio/sfx` 分支升级为统一音频域。规范形式为：
 
-~~~text
+```text
 {projectPrefix}/audio/
 ├── voice/{locale}/{speakerId}/{lineId}/{takeId}.{hash}.{ext}
 ├── bgm/{assetId}.{hash}.{ext}
 ├── ambience/{assetId}.{hash}.{ext}
 ├── sfx/{assetId}.{hash}.{ext}
 └── ui/{assetId}.{hash}.{ext}
-~~~
+```
 
 `projectPrefix` 由 Asset Catalog Profile 决定：托管创作空间可以使用 `private/accounts/{accountId}/projects/{projectId}`，公共游戏发布可以继续使用 `games/{game-id}/v{major}`。不论外层 namespace 如何选择，`audio/voice/{locale}/{speakerId}` 的相对顺序固定。
 

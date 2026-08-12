@@ -26,14 +26,14 @@ ADV.JS 采用统一的多轨音频与 AI 配音架构，并进行一次破坏性
 
 ### 一个 AudioEngine 子系统
 
-~~~mermaid
+```mermaid
 flowchart LR
     Runtime["Runtime 目标状态与效果"] --> Director["Audio Director"]
     Director --> Mixer["Audio Mixer"]
     Mixer --> Backend["Audio Backend"]
     Backend --> Long["MediaElement：长音频"]
     Backend --> Short["AudioBuffer：短音频"]
-~~~
+```
 
 Audio Director 管理 BGM、环境音、语音和瞬时音效的生命周期；Audio Mixer 管理 `master / music / ambience / voice / sfx / ui` 总线；Backend 隔离浏览器、原生容器和测试实现。
 
@@ -41,13 +41,13 @@ Audio Director 管理 BGM、环境音、语音和瞬时音效的生命周期；A
 
 ### 持续状态与一次性事件
 
-| 类型 | Runtime Snapshot | 默认并发 | 回退/读档 |
-| --- | --- | --- | --- |
-| BGM | 保存目标轨道 | 1 个逻辑主轨 | 恢复目标状态 |
-| 环境音 | 保存命名槽位 | 默认最多 4 层 | 恢复各槽位 |
-| Voice | 不作为长期舞台状态 | 1 个前景语音 | 停止旧语音，目标台词按规则播放 |
-| SFX | 不保存 | 分组限流 | 默认不重放 |
-| UI | 不保存 | 独立短音效 | 不受剧情回退影响 |
+| 类型   | Runtime Snapshot   | 默认并发      | 回退/读档                      |
+| ------ | ------------------ | ------------- | ------------------------------ |
+| BGM    | 保存目标轨道       | 1 个逻辑主轨  | 恢复目标状态                   |
+| 环境音 | 保存命名槽位       | 默认最多 4 层 | 恢复各槽位                     |
+| Voice  | 不作为长期舞台状态 | 1 个前景语音  | 停止旧语音，目标台词按规则播放 |
+| SFX    | 不保存             | 分组限流      | 默认不重放                     |
+| UI     | 不保存             | 独立短音效    | 不受剧情回退影响               |
 
 Voice 只 duck music 和 ambience，不影响 sfx 与 ui。
 
@@ -67,10 +67,10 @@ Voice 只 duck music 和 ambience，不影响 sfx 与 ui。
 
 ### 创作账本与运行清单分离
 
-~~~text
+```text
 adv/audio/voice-ledger.json  → 全部 take、fingerprint、生成与权利信息
 adv/assets/audio.json        → 最终选中、可由 Runtime 播放的资产
-~~~
+```
 
 账本进入 Git，但不包含密钥、任务锁、瞬时进度或签名 URL。构建清单不包含未采用 take、成本历史或 Provider 私有响应。
 
@@ -84,14 +84,14 @@ adv/assets/audio.json        → 最终选中、可由 Runtime 播放的资产
 
 音频对象键的规范形式：
 
-~~~text
+```text
 {projectPrefix}/audio/
 ├── voice/{locale}/{speakerId}/{lineId}/{takeId}.{hash}.{ext}
 ├── bgm/{assetId}.{hash}.{ext}
 ├── ambience/{assetId}.{hash}.{ext}
 ├── sfx/{assetId}.{hash}.{ext}
 └── ui/{assetId}.{hash}.{ext}
-~~~
+```
 
 `projectPrefix` 由 Asset Catalog Profile 提供，例如私有 `private/accounts/{accountId}/projects/{projectId}` 或公共 `games/{game-id}/v{major}`。voice 域中 locale 优先于 speaker，因为语言包发布、缺失统计和质检是主要批处理维度。普通角色的 `speakerId` 等于 `characterId`，旁白使用保留值 `narrator`；显示名只进入元数据。
 

@@ -22,19 +22,19 @@ ADV.JS 的目标音频系统统一管理背景音乐、环境音、角色配音�
 
 ## 目标音频类型
 
-| 类型 | 用途 | 播放规则 |
-| --- | --- | --- |
-| BGM | 场景主音乐 | 单一逻辑主轨，切换时交叉淡化 |
-| Ambience | 风雨、人群、室内底噪 | 按命名槽位叠加 |
-| Voice | 角色台词和旁白 | 一次只播放当前台词 |
-| SFX | 脚步、关门、撞击 | 多声部，按并发组限流 |
-| UI | 确认、悬停、系统提示 | 独立于剧情时间线 |
+| 类型     | 用途                 | 播放规则                     |
+| -------- | -------------------- | ---------------------------- |
+| BGM      | 场景主音乐           | 单一逻辑主轨，切换时交叉淡化 |
+| Ambience | 风雨、人群、室内底噪 | 按命名槽位叠加               |
+| Voice    | 角色台词和旁白       | 一次只播放当前台词           |
+| SFX      | 脚步、关门、撞击     | 多声部，按并发组限流         |
+| UI       | 确认、悬停、系统提示 | 独立于剧情时间线             |
 
 ## 目标项目文件
 
 推荐把音频资源目录作为 Asset Catalog 分片：
 
-~~~text
+```text
 adv/
 ├── assets.json
 ├── assets/
@@ -45,7 +45,7 @@ adv/
 │   └── voice-ledger.json
 ├── characters/
 └── chapters/
-~~~
+```
 
 职责：
 
@@ -81,23 +81,23 @@ Editor 将提供完整媒体检查与批量处理；Studio 将提供适合移动
 
 ## 目标 BGM 协议
 
-~~~yaml
+```yaml
 type: bgm
 action: set
 asset: bgm.observatory
 fade:
   in: 1200
   out: 700
-~~~
+```
 
 停止 BGM：
 
-~~~yaml
+```yaml
 type: bgm
 action: clear
 fade:
   out: 700
-~~~
+```
 
 `asset` 必须是 Asset Catalog 中 `kind: bgm` 的稳定 ID。新协议不接受 `src` 或未经目录管理的 URL。
 
@@ -112,7 +112,7 @@ fade:
 
 设置雨声：
 
-~~~yaml
+```yaml
 type: ambience
 action: set
 slot: weather
@@ -120,19 +120,19 @@ asset: ambience.rain
 fade:
   in: 800
   out: 800
-~~~
+```
 
 替换同一槽位时，旧音频与新音频交叉淡化。其他槽位保持不变。
 
 清除雨声：
 
-~~~yaml
+```yaml
 type: ambience
 action: clear
 slot: weather
 fade:
   out: 500
-~~~
+```
 
 场景切换时可以在可视化面板选择：
 
@@ -141,13 +141,13 @@ fade:
 
 ## 目标 SFX 协议
 
-~~~yaml
+```yaml
 type: sfx
 action: play
 asset: sfx.door-close
 group: environment
 priority: 50
-~~~
+```
 
 SFX 是一次性事件。正常前进时触发；回退或读档默认不重放。并发达到上限时，系统先淘汰最低优先级，再淘汰最旧实例。
 
@@ -157,7 +157,7 @@ SFX 是一次性事件。正常前进时触发；回退或读档默认不重放�
 
 目标角色 Voice Profile：
 
-~~~yaml
+```yaml
 voiceProfile:
   intent:
     ageImpression: young-adult
@@ -175,7 +175,7 @@ voiceProfile:
           voiceId: voice_abc123
           source: designed
           model: speech-02-hd
-~~~
+```
 
 在 Editor 中：
 
@@ -202,12 +202,12 @@ Studio 使用同一 Voice Profile，但以简化卡片展示候选和已选音�
 
 目标源码示例：
 
-~~~md
+```md
 @mitsuha
 你好，我们又见面了。 {#line_019c...}
 
 > 夜色渐渐沉下来。 {#line_019d...}
-~~~
+```
 
 `{#line_<uuidv7>}` 必须位于一个对话或旁白节点最后一个物理行的末尾。它不会进入展示文本或朗读文本。角色台词的 ledger 记录保存角色 `characterId`；旁白使用项目级保留 profile `narrator`。
 
@@ -253,10 +253,10 @@ Provider 无法提供可靠价格时，费用显示为“未知”，不得显�
 
 例如：
 
-~~~text
+```text
 displayText: **欢迎回来**，{{ playerName }}。
 spokenText: 欢迎回来，小云。
-~~~
+```
 
 规范化器会移除展示标记并应用项目发音词典。作者可以逐句覆盖 `spokenText`，并使用 Provider 无关的情绪、停顿和重音字段。
 
@@ -319,20 +319,20 @@ Studio 将显示简化的生成、上传和播放失败状态，不提供完整�
 
 ### 存储边界
 
-| 内容 | 默认位置 |
-| --- | --- |
-| 母版、全部 take、未发布变体 | 私有 COS |
-| 内容哈希发布变体 | 公共 COS/CDN |
-| 任务中间文件 | 临时 COS 前缀 |
-| Asset Catalog 与语音账本 | Git |
-| 密钥 | 服务端密钥系统或本机安全存储 |
-| 本地试听缓存 | 本机缓存，不提交 |
+| 内容                        | 默认位置                     |
+| --------------------------- | ---------------------------- |
+| 母版、全部 take、未发布变体 | 私有 COS                     |
+| 内容哈希发布变体            | 公共 COS/CDN                 |
+| 任务中间文件                | 临时 COS 前缀                |
+| Asset Catalog 与语音账本    | Git                          |
+| 密钥                        | 服务端密钥系统或本机安全存储 |
+| 本地试听缓存                | 本机缓存，不提交             |
 
 ### 对象键
 
-~~~text
+```text
 {projectPrefix}/audio/voice/{locale}/{speakerId}/{lineId}/{takeId}.{hash}.{ext}
-~~~
+```
 
 `projectPrefix` 由 Asset Catalog Profile 决定，例如私有托管空间中的 `private/accounts/{accountId}/projects/{projectId}`，或公共发布的 `games/{game-id}/v{major}`。角色显示名和台词原文不进入对象键。普通角色的 `speakerId` 等于稳定 ASCII `characterId`，旁白使用 `narrator`；复杂查询由资产索引完成。
 
@@ -361,15 +361,15 @@ Studio 将显示简化的生成、上传和播放失败状态，不提供完整�
 
 :::
 
-~~~bash
+```bash
 adv migrate audio --report temp/audio-migration.json
-~~~
+```
 
 无法确定的旧 URL 或 BGM 引用会标为 Unresolved，并阻止 apply。作者把选择写入 `adv/migrations/audio-v1.json` 后执行：
 
-~~~bash
+```bash
 adv migrate audio --resolutions adv/migrations/audio-v1.json --apply
-~~~
+```
 
 Apply 会先完整验证目标项目，再原子替换文本文件；失败时根据 journal 恢复本次写入。迁移不上传 COS、不删除原音频，重复执行 canonical 项目不会产生新 diff。
 
@@ -398,10 +398,10 @@ Apply 会先完整验证目标项目，再原子替换文本文件；失败时�
 
 运行：
 
-~~~bash
+```bash
 adv check
 adv build
-~~~
+```
 
 构建会阻止：
 

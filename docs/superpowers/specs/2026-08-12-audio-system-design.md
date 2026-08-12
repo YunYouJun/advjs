@@ -65,7 +65,7 @@ ADV.JS 当前的浏览器音频能力以 BGM 专用组合式函数和 Howler 实
 
 ## 5. 总体架构
 
-~~~text
+```text
 Markdown / Flow / Character Voice Profile
                     │
                     ▼
@@ -88,7 +88,7 @@ Markdown / Flow / Character Voice Profile
                     ▼
          Browser Audio Backend
      MediaElement         AudioBuffer
-~~~
+```
 
 职责边界：
 
@@ -100,14 +100,14 @@ Markdown / Flow / Character Voice Profile
 
 ## 6. 音频总线与并发
 
-~~~text
+```text
 master
 ├── music       单一逻辑主轨，允许切轨交叉淡化
 ├── ambience    命名槽位分层，默认最多 4 层
 ├── voice       单一前景语音，新台词替换旧语音
 ├── sfx         多声部，按并发组限流
 └── ui          独立短音效，不参与剧情暂停与 voice ducking
-~~~
+```
 
 默认规则：
 
@@ -121,12 +121,12 @@ master
 
 环境音采用命名槽位，而不是无限叠加：
 
-| 槽位 | 典型用途 |
-| --- | --- |
-| `bed` | 室内、森林、城市等基础底噪 |
-| `weather` | 风、雨、雷 |
-| `crowd` | 人群、咖啡馆、车站 |
-| `detail` | 虫鸣、机器、电流 |
+| 槽位      | 典型用途                   |
+| --------- | -------------------------- |
+| `bed`     | 室内、森林、城市等基础底噪 |
+| `weather` | 风、雨、雷                 |
+| `crowd`   | 人群、咖啡馆、车站         |
+| `detail`  | 虫鸣、机器、电流           |
 
 同一槽位的新资产交叉淡化并替换旧资产；不同槽位可以同时播放。未提及的槽位保持不变，清空必须显式执行。场景切换可以声明继承或整体重置。
 
@@ -134,7 +134,7 @@ master
 
 目标 Runtime 舞台状态只保存可恢复的音频状态：
 
-~~~ts
+```ts
 interface RuntimeAudioStageState {
   music?: {
     assetId: string
@@ -145,20 +145,20 @@ interface RuntimeAudioStageState {
     loop: boolean
   }>
 }
-~~~
+```
 
 目标 AdvScript operation：
 
-~~~yaml
+```yaml
 type: bgm
 action: set
 asset: bgm.observatory
 fade:
   in: 1200
   out: 700
-~~~
+```
 
-~~~yaml
+```yaml
 type: ambience
 action: set
 slot: weather
@@ -166,24 +166,24 @@ asset: ambience.rain
 fade:
   in: 800
   out: 800
-~~~
+```
 
-~~~yaml
+```yaml
 type: sfx
 action: play
 asset: sfx.door-close
 group: environment
-~~~
+```
 
 停止使用显式 action：
 
-~~~yaml
+```yaml
 type: ambience
 action: clear
 slot: weather
 fade:
   out: 500
-~~~
+```
 
 新协议不接受直接 `src`、隐式公共 BGM 名称或 Provider URL。语音不通过普通 operation 写入，而是由当前台词的 `lineId + locale + selectedTake` 解析。
 
@@ -201,12 +201,12 @@ UI 音效不写入剧情 operation。项目或主题在 `audio/mixer.json` 中�
 
 稳定 ID 的源码语法冻结为行尾属性标记：
 
-~~~md
+```md
 @mitsuha
 你好，我们又见面了。 {#line_019c...}
 
 > 夜色渐渐沉下来。 {#line_019d...}
-~~~
+```
 
 规则：
 
@@ -221,12 +221,12 @@ UI 音效不写入剧情 operation。项目或主题在 `audio/mixer.json` 中�
 
 语音按以下地址管理：
 
-~~~text
+```text
 lineId
 └── locale
     ├── selectedTake
     └── takes[]
-~~~
+```
 
 规则：
 
@@ -254,7 +254,7 @@ lineId
 
 `voiceId` 属于角色管理，但不作为裸字段散落在台词节点中。角色拥有 Provider 无关意图和 Provider 绑定：
 
-~~~ts
+```ts
 interface CharacterVoiceProfile {
   intent: {
     ageImpression?: string
@@ -272,7 +272,7 @@ interface CharacterVoiceProfile {
     }>
   }>
 }
-~~~
+```
 
 AI 可以结合角色的年龄印象、性格、背景、说话风格和语言生成音色意图。第一版支持系统音色匹配与 MiniMax Voice Design；候选必须试听并人工确认后才能绑定角色。克隆音色只预留 `source: cloned`。
 
@@ -282,7 +282,7 @@ AI 可以结合角色的年龄印象、性格、背景、说话风格和语言�
 
 Provider 使用能力声明，而不是由 UI 硬编码供应商名称：
 
-~~~ts
+```ts
 interface TtsProviderCapabilities {
   synthesis: boolean
   voiceCatalog: boolean
@@ -293,7 +293,7 @@ interface TtsProviderCapabilities {
   streaming: boolean
   outputFormats: string[]
 }
-~~~
+```
 
 统一 Adapter 接收 Provider 无关请求，返回音频母版、时间戳、Provider 结果摘要和可审计元数据。MiniMax、OpenAI、豆包分别实现 Adapter。Web Speech 只用于本机临时试听，不作为可发布生成来源。
 
@@ -324,7 +324,7 @@ interface TtsProviderCapabilities {
 
 建议项目文件：
 
-~~~text
+```text
 adv/
 ├── assets.json
 ├── assets/audio.json
@@ -332,7 +332,7 @@ adv/
     ├── mixer.json
     ├── toolchain.json
     └── voice-ledger.json
-~~~
+```
 
 ### 15.1 创作期语音账本
 
@@ -359,14 +359,14 @@ adv/
 
 音频对象键的规范形式：
 
-~~~text
+```text
 {projectPrefix}/audio/
 ├── voice/{locale}/{speakerId}/{lineId}/{takeId}.{hash}.{ext}
 ├── bgm/{assetId}.{hash}.{ext}
 ├── ambience/{assetId}.{hash}.{ext}
 ├── sfx/{assetId}.{hash}.{ext}
 └── ui/{assetId}.{hash}.{ext}
-~~~
+```
 
 关键规则：
 
@@ -513,10 +513,10 @@ Trace 只记录逻辑 ID、序列、时长、状态和错误码，不记录密�
 
 迁移命令固定为：
 
-~~~bash
+```bash
 adv migrate audio --report temp/audio-migration.json
 adv migrate audio --resolutions adv/migrations/audio-v1.json --apply
-~~~
+```
 
 报告 schema 逐项保存源文件/行列、旧引用、推断 kind、候选资产、`resolved | unresolved | already-canonical` 状态和原文件 SHA-256。作者把人工选择写入可审查的 resolution 文件后重新 dry-run。
 

@@ -87,18 +87,18 @@ The regression seam is `tests/unit/client-bgm.test.ts` plus `tests/unit/client-r
 - [ ] Export shared types and validators.
 - [ ] Run:
 
-~~~bash
+```bash
 pnpm vitest run tests/unit/audio-contracts.test.ts
 pnpm --filter @advjs/types build
 pnpm --filter @advjs/audio build
 pnpm build:advjs
-~~~
+```
 
 Suggested commit:
 
-~~~text
+```text
 feat(audio): define shared audio contracts
-~~~
+```
 
 ## Task 2: Add deterministic IDs, fingerprints and object keys
 
@@ -117,9 +117,9 @@ feat(audio): define shared audio contracts
 - Fingerprint canonical spoken text, locale, speaker voice binding, model and generation parameters.
 - Build the canonical shape:
 
-~~~text
+```text
 {projectPrefix}/audio/voice/{locale}/{speakerId}/{lineId}/{takeId}.{hash}.{ext}
-~~~
+```
 
 - Validate ASCII slugs for project and speaker path segments; ordinary speaker IDs equal character IDs and narration uses the reserved `narrator` value.
 - Never derive IDs from display names, line numbers or prose.
@@ -132,15 +132,15 @@ feat(audio): define shared audio contracts
 - [ ] Verify voice keys place locale before speaker, including `narrator`, while shared BGM/ambience/SFX/UI keys have no locale segment.
 - [ ] Run:
 
-~~~bash
+```bash
 pnpm vitest run tests/unit/audio-identity.test.ts
-~~~
+```
 
 Suggested commit:
 
-~~~text
+```text
 feat(audio): add stable audio identity helpers
-~~~
+```
 
 ## Task 3: Compile canonical audio operations and stable dialogue IDs
 
@@ -176,18 +176,18 @@ feat(audio): add stable audio identity helpers
 - [ ] Add explicit audio diagnostic codes and map them through `adv check`.
 - [ ] Run:
 
-~~~bash
+```bash
 pnpm vitest run packages/core/test/runtime/markdown-compiler.test.ts
 pnpm vitest run packages/core/test/runtime/flow-compiler.test.ts
 pnpm vitest run packages/core/test/runtime/transition.test.ts
 pnpm vitest run tests/unit/runtime-audio-state.test.ts tests/unit/check-runtime.test.ts
-~~~
+```
 
 Suggested commit:
 
-~~~text
+```text
 feat(runtime): compile canonical audio effects
-~~~
+```
 
 ## Task 4: Implement Audio Director, Mixer and Fake Backend
 
@@ -224,15 +224,15 @@ feat(runtime): compile canonical audio effects
 - [ ] Ensure stale callbacks cannot mutate director state or revive a stopped track.
 - [ ] Run:
 
-~~~bash
+```bash
 pnpm vitest run tests/unit/audio-director.test.ts tests/unit/audio-mixer.test.ts tests/unit/audio-concurrency.test.ts
-~~~
+```
 
 Suggested commit:
 
-~~~text
+```text
 feat(client): add deterministic audio director
-~~~
+```
 
 ## Task 5: Add browser backend, migrate repository audio and replace BGM orchestration
 
@@ -287,17 +287,17 @@ feat(client): add deterministic audio director
 - [ ] Remove Howler if no remaining consumer requires it; otherwise document its isolated adapter scope.
 - [ ] Run:
 
-~~~bash
+```bash
 pnpm vitest run tests/unit/client-audio-host.test.ts tests/unit/client-runtime-presentation.test.ts tests/unit/audio-migration.test.ts
 pnpm exec playwright test tests/e2e/audio-runtime.spec.ts
 pnpm typecheck
-~~~
+```
 
 Suggested commit:
 
-~~~text
+```text
 refactor(client): replace bgm orchestration with audio engine
-~~~
+```
 
 ## Task 6: Implement voice ledger, Voice Profile and Provider capabilities
 
@@ -333,16 +333,16 @@ refactor(client): replace bgm orchestration with audio engine
 - [ ] Add a hard failure test for clone without consent records.
 - [ ] Run:
 
-~~~bash
+```bash
 pnpm vitest run tests/unit/voice-ledger.test.ts tests/unit/character-voice-profile.test.ts
 pnpm --filter @advjs/studio test:unit -- src/__tests__/ttsClient.test.ts
-~~~
+```
 
 Suggested commit:
 
-~~~text
+```text
 feat(audio): add voice ledger and provider capabilities
-~~~
+```
 
 ## Task 7: Add generation queue and MiniMax adapter
 
@@ -383,17 +383,17 @@ feat(audio): add voice ledger and provider capabilities
 - [ ] Verify hosted endpoints enforce account/project scope and quotas.
 - [ ] Run:
 
-~~~bash
+```bash
 pnpm vitest run tests/unit/audio-job-planner.test.ts tests/unit/minimax-provider.test.ts
 pnpm --filter @advjs/studio test:unit
 pnpm --filter @advjs/editor typecheck
-~~~
+```
 
 Suggested commit:
 
-~~~text
+```text
 feat(audio): add controlled minimax generation jobs
-~~~
+```
 
 ## Task 8: Add non-destructive processing and COS publication
 
@@ -445,19 +445,19 @@ feat(audio): add controlled minimax generation jobs
 - [ ] Add secret scanning assertions over release plan and logs.
 - [ ] Run:
 
-~~~bash
+```bash
 pnpm vitest run tests/unit/audio-release-plan.test.ts tests/unit/audio-processing.test.ts
 pnpm vitest run plugins/plugin-cos/test/asset-standard.test.ts
 pnpm vitest run apps/audio-worker/test/worker.test.ts
 pnpm --filter @advjs/audio-worker build
 CI=1 pnpm exec playwright test tests/e2e/audio-runtime.spec.ts --project=chromium --project=webkit
-~~~
+```
 
 Suggested commit:
 
-~~~text
+```text
 feat(audio): add immutable audio release pipeline
-~~~
+```
 
 ## Task 9: Build the professional Editor workflow
 
@@ -488,17 +488,17 @@ feat(audio): add immutable audio release pipeline
 - [ ] Add an end-to-end local project journey without live TTS/COS.
 - [ ] Run:
 
-~~~bash
+```bash
 pnpm --filter @advjs/editor typecheck
 pnpm --filter @advjs/editor build
 pnpm exec playwright test tests/e2e/editor-local.spec.ts
-~~~
+```
 
 Suggested commit:
 
-~~~text
+```text
 feat(editor): add visual audio authoring
-~~~
+```
 
 ## Task 10: Build the mobile Studio workflow
 
@@ -530,17 +530,17 @@ feat(editor): add visual audio authoring
 - [ ] Add an E2E journey using Fake Provider and Fake Object Storage.
 - [ ] Run:
 
-~~~bash
+```bash
 pnpm --filter @advjs/studio test:unit
 pnpm --filter @advjs/studio test:e2e -- audio-authoring.spec.ts
 pnpm --filter @advjs/studio build
-~~~
+```
 
 Suggested commit:
 
-~~~text
+```text
 feat(studio): add mobile audio authoring
-~~~
+```
 
 ## Task 11: Audit migration receipts and legacy removal
 
@@ -566,18 +566,18 @@ feat(studio): add mobile audio authoring
 - [ ] Verify the Task 5 repository migration left no production legacy reference.
 - [ ] Run:
 
-~~~bash
+```bash
 pnpm vitest run tests/unit/audio-migration.test.ts tests/unit/hamster-demo-runtime.test.ts
 pnpm build:advjs
 pnpm typecheck
 pnpm lint
-~~~
+```
 
 Suggested commit:
 
-~~~text
+```text
 test(cli): audit audio migration workflow
-~~~
+```
 
 ## Task 12: Complete diagnostics, docs and cross-host acceptance
 
@@ -609,20 +609,20 @@ test(cli): audit audio migration workflow
 - [ ] Remove all “待实施” warnings only after features and tests pass.
 - [ ] Run full verification:
 
-~~~bash
+```bash
 pnpm vitest run
 pnpm e2e
 pnpm typecheck
 pnpm lint
 pnpm build
 pnpm -C docs build
-~~~
+```
 
 Suggested commit:
 
-~~~text
+```text
 docs(audio): publish audio authoring workflow
-~~~
+```
 
 ## Final audit
 
