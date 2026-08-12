@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
 import { execFile } from 'node:child_process'
-import { createHash } from 'node:crypto'
 import { mkdir, readFile } from 'node:fs/promises'
 import { basename, resolve } from 'node:path'
 import process from 'node:process'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { promisify } from 'node:util'
 import { gunzipSync } from 'node:zlib'
+import { digest } from './integrity.mjs'
 
 const execFileAsync = promisify(execFile)
 
@@ -199,7 +199,7 @@ export async function createPackageManifest(options = {}) {
 
     packages.push({
       dependencies: sortedObject(publicDependencies),
-      integrity: `sha512-${createHash('sha512').update(tarball).digest('base64')}`,
+      integrity: `sha512-${digest('sha512', tarball, 'base64')}`,
       name: spec.name,
       path: spec.path,
       publishOrder: index + 1,

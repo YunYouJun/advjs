@@ -1,19 +1,15 @@
 #!/usr/bin/env node
 
 import { execFile } from 'node:child_process'
-import { createHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
 import { promisify } from 'node:util'
 import { calculateReleaseManifestIntegrity } from './create-manifest.mjs'
+import { digest } from './integrity.mjs'
 
 const execFileAsync = promisify(execFile)
-
-function digest(algorithm, content, encoding = 'hex') {
-  return createHash(algorithm).update(content).digest(encoding)
-}
 
 async function verifyRegistryPackage(pkg, registry, fetchImpl) {
   const url = `${registry.replace(/\/$/u, '')}/${encodeURIComponent(pkg.name)}`

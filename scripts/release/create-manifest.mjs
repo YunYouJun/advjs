@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
 import { execFile } from 'node:child_process'
-import { createHash } from 'node:crypto'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, relative, resolve } from 'node:path'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
 import { promisify } from 'node:util'
 import { generateChangelog } from './changelog.mjs'
+import { sha256 } from './integrity.mjs'
 import { createPackageManifest } from './package-manifest.mjs'
 
 const execFileAsync = promisify(execFile)
@@ -24,10 +24,6 @@ function sorted(value) {
 
 export function serializeReleaseJson(value) {
   return `${JSON.stringify(sorted(value), null, 2)}\n`
-}
-
-function sha256(content) {
-  return createHash('sha256').update(content).digest('hex')
 }
 
 export function calculateReleaseManifestIntegrity(manifest) {
