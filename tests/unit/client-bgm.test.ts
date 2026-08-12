@@ -1,5 +1,8 @@
+import type { AdvGameConfig, RuntimeState } from '@advjs/types'
 import { describe, expect, it, vi } from 'vitest'
+import { ref } from 'vue'
 import { useAdvBgm } from '../../packages/client/composables/useAdvBgm'
+import { applyRuntimePresentationEffects } from '../../packages/client/runtime/effects'
 
 const howler = vi.hoisted(() => ({
   instances: [] as Array<{
@@ -315,5 +318,51 @@ describe('client BGM presentation', () => {
     expect(howler.instances[0].playing()).toBe(true)
     expect(howler.instances[0].stopped).toBe(false)
     expect(howler.instances[0].fades.at(-1)).toEqual([0, 0.5, 250])
+  })
+
+  it('restores saved bgm through a running crossfade with the fixed history fade', () => {
+    howler.instances.length = 0
+    const gameConfig = {
+      bgm: {
+        library: {
+          summer: { name: 'Summer', src: 'https://assets.example/summer.ogg' },
+          space: { name: 'Space', src: 'https://assets.example/space.ogg' },
+        },
+      },
+    } as AdvGameConfig
+    const bgm = createBgm(gameConfig)
+
+    bgm.syncWithOptions('summer', { fade: 0 })
+    bgm.syncWithOptions('space', { fadeIn: 0, fadeOut: 650 })
+    howler.instances[0].finishFade()
+
+    const restoredState = {
+      status: 'playing',
+      cursor: { chapterId: 'one', nodeId: 'line' },
+      variables: {},
+      stage: { background: '', bgm: 'summer', tachies: {} },
+      choices: [],
+      visited: [],
+    } as RuntimeState
+    applyRuntimePresentationEffects(
+      [{ type: 'runtime.restore' }],
+      restoredState,
+      bgm,
+      {
+        charactersMap: new Map(),
+        tachiesMapRef: ref(new Map()),
+        backgroundCueRef: ref(),
+        cgCueRef: ref(),
+        transitionCueRef: ref(),
+        tachieCueRef: ref(),
+      },
+      gameConfig,
+    )
+
+    howler.instances[0].flushFadeEvents()
+    expect(howler.instances[0].playing()).toBe(true)
+    expect(howler.instances[0].unloaded).toBe(false)
+    expect(howler.instances[0].fades.at(-1)).toEqual([0, 0.5, 120])
+    expect(howler.instances[1].fades.at(-1)).toEqual([0.5, 0, 120])
   })
 })
