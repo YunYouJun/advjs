@@ -3,7 +3,7 @@ import type { AdvConfig } from '@advjs/types'
 import type { UserModule } from '~/types'
 import { injectionAdvContext } from '@advjs/client'
 import { advConfigSymbol, gameConfigSymbol, themeConfigSymbol } from '@advjs/core'
-import { initAdvContext } from '../../../packages/client/runtime'
+import { initAdvContext } from '../../../packages/client/compiler'
 
 const customAdvConfig: Partial<AdvConfig> = {
   showCharacterAvatar: true,

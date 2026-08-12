@@ -15,12 +15,34 @@ export type StepStatus = 'starting' | 'mounting' | 'installing' | 'building' | '
  */
 export type StageStatus = 'running' | 'done' | ''
 
+export interface AdvWebContainerOptions {
+  now?: () => number
+}
+
+export function createHtmlDownloadFilename(title?: string) {
+  const invalidCharacters = '<>:"/\\|?*'
+  const basename = (title?.trim() ?? '').replace(/\.html?$/iu, '')
+  const sanitized = Array.from(basename, (character) => {
+    const codePoint = character.codePointAt(0) ?? 0
+    return codePoint < 32 || codePoint === 127 || invalidCharacters.includes(character)
+      ? '-'
+      : character
+  }).join('')
+  const name = sanitized
+    .replace(/\s+/gu, ' ')
+    .trim()
+    .replace(/[. ]+$/gu, '')
+
+  return `${name || 'index'}.html`
+}
+
 /**
  * adv webContainer
  *
  * mount()
  */
-export function useAdvWebContainer() {
+export function useAdvWebContainer(options: AdvWebContainerOptions = {}) {
+  const now = options.now ?? (() => performance.now())
   const storyId = ref('')
 
   const webContainerRef = shallowRef<WebContainer>()
@@ -44,12 +66,26 @@ export function useAdvWebContainer() {
      * 构建状态
      */
     build: StageStatus
+    /**
+     * 安装依赖耗时（毫秒）
+     */
+    installDurationMs: number | null
+    /**
+     * 构建耗时（毫秒）
+     */
+    buildDurationMs: number | null
   }>({
     status: 'starting' as StepStatus,
     mount: '',
     installDependencies: '',
     build: '',
+    installDurationMs: null,
+    buildDurationMs: null,
   })
+
+  function elapsedSince(startedAt: number) {
+    return Math.max(0, Math.round(now() - startedAt))
+  }
 
   /**
    * 初始化终端
@@ -125,9 +161,12 @@ export function useAdvWebContainer() {
 
     state.value.status = 'installing'
     state.value.installDependencies = 'running'
+    state.value.installDurationMs = null
+    const startedAt = now()
     // Logic to install dependencies
     const installProcess = await webContainerRef.value.spawn('pnpm', ['install'])
     const installExitCode = await installProcess.exit
+    state.value.installDurationMs = elapsedSince(startedAt)
 
     if (installExitCode !== 0) {
       console.error('Failed to install dependencies', installExitCode)
@@ -156,8 +195,11 @@ export function useAdvWebContainer() {
 
     state.value.status = 'building'
     state.value.build = 'running'
+    state.value.buildDurationMs = null
+    const startedAt = now()
     const buildProcess = await webContainerRef.value.spawn('pnpm', ['build'])
     const buildExitCode = await buildProcess.exit
+    state.value.buildDurationMs = elapsedSince(startedAt)
 
     if (buildExitCode !== 0) {
       console.error('Failed to build project', buildExitCode)
@@ -179,7 +221,7 @@ export function useAdvWebContainer() {
     }))
   }
 
-  async function downloadIndexHtml() {
+  async function downloadIndexHtml(title?: string) {
     if (!webContainerRef.value) {
       throw new Error('WebContainer is not initialized. Call mount() first.')
     }
@@ -190,7 +232,7 @@ export function useAdvWebContainer() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'index.html'
+    a.download = createHtmlDownloadFilename(title)
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)

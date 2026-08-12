@@ -56,7 +56,9 @@ onMounted(async () => {
       id: pominisId,
       token,
     })
-    await playStore.loadGameFromConfig(data)
+    await playStore.loadGameFromConfig(data, {
+      recordNamespace: `pominis:${pominisId}`,
+    })
     playStore.loading = false
 
     route.meta.title = data.title || '游戏标题'

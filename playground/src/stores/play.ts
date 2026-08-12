@@ -5,10 +5,13 @@ import { convertPominisAItoAdvConfig } from '@advjs/plugin-pominis'
 import { useStorage } from '@vueuse/core'
 import { consola } from 'consola'
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { gameConfig } from '../../../packages/client/runtime'
 import { DEFAULT_BGM_LIBRARY_URL } from '../config'
 
 const cdnUrl = ''
+
+interface LoadGameFromConfigOptions {
+  recordNamespace?: string
+}
 
 /**
  * editor game store
@@ -33,8 +36,12 @@ export const usePlayStore = defineStore('@advjs/play', () => {
   const startNode = ref()
 
   const { $adv } = useAdvContext()
+  const gameConfig = $adv.gameConfig
 
-  async function loadGameFromConfig(config: AdvGameConfig) {
+  async function loadGameFromConfig(
+    config: AdvGameConfig,
+    options: LoadGameFromConfigOptions = {},
+  ) {
     try {
       switch (curAdapter.value) {
         case 'default':
@@ -83,6 +90,7 @@ export const usePlayStore = defineStore('@advjs/play', () => {
       return
     }
 
+    clientGameStore.setRecordNamespace(options.recordNamespace)
     gameConfig.value = config
     clientGameStore.loadStatus = AdvGameLoadStatusEnum.CONFIG_LOADED
   }

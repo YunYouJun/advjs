@@ -48,26 +48,45 @@ const curStatusDesc = computed(() => {
 
 const terminalStatus = ref<StageStatus>('')
 
+function formatDuration(durationMs: number | null) {
+  if (durationMs === null)
+    return ''
+
+  const totalSeconds = Math.round(durationMs / 1000)
+  if (totalSeconds < 60)
+    return t('webcontainer.duration.seconds', { value: totalSeconds })
+
+  return t('webcontainer.duration.minutes', {
+    minutes: Math.floor(totalSeconds / 60),
+    seconds: totalSeconds % 60,
+  })
+}
+
 const statusList = computed<{
   status: StageStatus
   desc: string
+  duration: string
 }[]>(() => {
   return [
     {
       status: state.value.mount,
       desc: t('webcontainer.step.mount'),
+      duration: '',
     },
     {
       status: terminalStatus.value,
       desc: t('webcontainer.step.start'),
+      duration: '',
     },
     {
       status: state.value.installDependencies,
       desc: t('webcontainer.step.install-dependencies'),
+      duration: formatDuration(state.value.installDurationMs),
     },
     {
       status: state.value.build,
       desc: t('webcontainer.step.build'),
+      duration: formatDuration(state.value.buildDurationMs),
     },
   ]
 })
@@ -120,6 +139,10 @@ async function installAndBuild() {
   await installDependencies()
   await build()
 }
+
+async function downloadGame() {
+  await downloadIndexHtml(pominisStore.curPominisStory?.title)
+}
 </script>
 
 <template>
@@ -145,13 +168,16 @@ async function installAndBuild() {
         </h3>
 
         <div class="flex flex-col">
-          <span v-for="status in statusList" :key="status.status" class="flex items-center gap-2 text-sm">
+          <span v-for="status in statusList" :key="status.desc" class="flex items-center gap-2 text-sm">
             <div v-if="status.status === 'running'" class="i-svg-spinners:3-dots-scale" />
             <div v-else-if="status.status === 'done'" class="i-ri-check-line text-green-500" />
             <div v-else class="i-ri-circle-line op-0" />
 
             <span>
               {{ status.desc }}
+            </span>
+            <span v-if="status.duration" class="op-60">
+              {{ status.duration }}
             </span>
           </span>
         </div>
@@ -169,7 +195,7 @@ async function installAndBuild() {
 
         <TooltipProvider />
 
-        <AdvButton v-if="state.build === 'done'" @click="downloadIndexHtml()">
+        <AdvButton v-if="state.build === 'done'" @click="downloadGame()">
           {{ t('webcontainer.download') }}
         </AdvButton>
 

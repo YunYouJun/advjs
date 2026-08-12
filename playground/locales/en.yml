@@ -25,6 +25,9 @@ webcontainer:
     installing: Installing dependencies...
     building: Building...
     ready: Ready
+  duration:
+    seconds: '{value} s'
+    minutes: '{minutes} min {seconds} s'
   install-and-build: Install and build
   download: Download
   download-disabled-tip: Download is available after the game is built successfully.
