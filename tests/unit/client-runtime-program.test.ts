@@ -54,6 +54,26 @@ describe('client runtime program compiler', () => {
     })
   })
 
+  it('starts a built Flow chapter from startNodeId instead of array order', async () => {
+    const result = await compileClientRuntimeProgram({
+      id: 'ordered-flow-browser',
+      chapters: [{
+        id: 'chapter-1',
+        title: 'Flow',
+        startNodeId: 'start',
+        nodes: [
+          { id: 'out-of-order', type: 'dialogues', dialogues: [{ text: 'Not the entry' }] },
+          { id: 'start', type: 'start', next: 'dialogues' },
+          { id: 'dialogues', type: 'dialogues', dialogues: [{ text: 'The entry path' }] },
+        ],
+      }],
+    })
+
+    expect(result.diagnostics).toEqual([])
+    expect(result.program?.entry).toEqual({ chapterId: 'chapter-1', nodeId: 'start' })
+    expect(result.program?.chapters['chapter-1'].entry).toBe('start')
+  })
+
   it('returns a source diagnostic for failed chapter fetches', async () => {
     const result = await compileClientRuntimeProgram({
       id: 'failed-browser',
