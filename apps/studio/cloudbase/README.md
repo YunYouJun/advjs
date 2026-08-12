@@ -213,10 +213,10 @@ Catalog 同时保存 COS `versionId`，预览固定到该不可变版本；provi
 Cloudflare Pages 项目名为 `advjs-studio`，生产分支为 `dev`。Monorepo 中的 Studio 依赖
 `packages/*` 构建产物，平台构建配置必须保持为：
 
-| 配置       | 值                                          |
-| ---------- | ------------------------------------------- |
-| 构建命令   | `pnpm run build && pnpm run studio:build`   |
-| 输出目录   | `apps/studio/dist`                          |
+| 配置        | 值                                          |
+| ----------- | ------------------------------------------- |
+| 构建命令    | `pnpm run build && pnpm run studio:build`   |
+| 输出目录    | `apps/studio/dist`                          |
 | 生产环境 ID | `VITE_TCB_ENV_ID=yunlefun-8g7ybcxc7345c490` |
 
 不能只执行 `pnpm run studio:build`，否则干净构建环境中尚未生成 `@advjs/types`、
