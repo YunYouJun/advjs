@@ -70,6 +70,25 @@ describe('compileProject', () => {
     expect(result.diagnostics.every(diagnostic => diagnostic.path)).toBe(true)
   })
 
+  it('resolves character references declared inline in the game config', async () => {
+    const result = await compileProject({
+      id: 'inline-character-project',
+      files: {
+        'adv.config.json': JSON.stringify({ format: 'adv-md', root: './adv' }),
+        'game.config.json': JSON.stringify({
+          characters: [{ id: 'guide', name: '向导', aliases: ['引路人'] }],
+          chapters: [{ id: 'intro', sources: ['/md/chapters/intro.adv.md'] }],
+        }),
+        'public/md/chapters/intro.adv.md': '@向导\n你好。\n\n@引路人\n继续前进。\n',
+      },
+    })
+
+    expect(result.diagnostics.filter(diagnostic => diagnostic.severity === 'error')).toEqual([])
+    expect(result.project.characters).toEqual([
+      expect.objectContaining({ id: 'guide', name: '向导', aliases: ['引路人'] }),
+    ])
+  })
+
   it('honors explicit multi-chapter sources and entry while preserving bounded extensions', async () => {
     const result = await compileProject({
       id: 'multi-project',

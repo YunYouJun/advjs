@@ -331,28 +331,43 @@ function collectChapters(
 function collectCharacters(
   files: Map<string, string>,
   root: string,
+  gameConfig: JsonObject,
+  gameConfigPath: string | undefined,
   diagnostics: AdvProjectDiagnostic[],
   sourceMap: AdvProjectSourceMap,
 ) {
   const characters: AdvCharacter[] = []
   const known = new Set<string>()
+
+  function registerCharacter(character: AdvCharacter, path: string) {
+    if (sourceMap.characters[character.id]) {
+      diagnostics.push({
+        code: 'ADV_PROJECT_DUPLICATE_CHARACTER',
+        severity: 'error',
+        message: `Duplicate character id: ${character.id}`,
+        path,
+      })
+    }
+    characters.push(character)
+    sourceMap.characters[character.id] = path
+    known.add(character.id)
+    known.add(character.name)
+    for (const alias of character.aliases ?? [])
+      known.add(alias)
+  }
+
+  if (Array.isArray(gameConfig.characters)) {
+    for (const value of gameConfig.characters) {
+      if (!isRecord(value) || typeof value.id !== 'string' || typeof value.name !== 'string')
+        continue
+      registerCharacter(value as unknown as AdvCharacter, gameConfigPath ?? 'game.config.json')
+    }
+  }
+
   for (const path of [...files.keys()].filter(path => path.startsWith(`${root}/characters/`) && path.endsWith('.character.md')).sort(compareText)) {
     try {
       const character = parseCharacterMd(files.get(path) ?? '')
-      if (sourceMap.characters[character.id]) {
-        diagnostics.push({
-          code: 'ADV_PROJECT_DUPLICATE_CHARACTER',
-          severity: 'error',
-          message: `Duplicate character id: ${character.id}`,
-          path,
-        })
-      }
-      characters.push(character)
-      sourceMap.characters[character.id] = path
-      known.add(character.id)
-      known.add(character.name)
-      for (const alias of character.aliases ?? [])
-        known.add(alias)
+      registerCharacter(character, path)
     }
     catch (error) {
       diagnostics.push({
@@ -672,7 +687,7 @@ export async function compileProject(
     })
   }
 
-  const characterResult = collectCharacters(files, root, diagnostics, sourceMap)
+  const characterResult = collectCharacters(files, root, gameConfig, gameConfigPath, diagnostics, sourceMap)
   const sceneResult = collectScenes(files, root, diagnostics, sourceMap)
   if (options.validateContentReferences !== false)
     diagnostics.push(...collectReferenceDiagnostics(files, chapters, characterResult.known, sceneResult.known))
