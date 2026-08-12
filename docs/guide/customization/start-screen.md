@@ -37,13 +37,21 @@ meta:
 
 `useAdvStartActions()` 提供主题无关的开始页动作：
 
-- `startGame()`：进入游戏；
+- `startGame()`：进入默认入口；`startGame({ chapterId, nodeId })` 可启动指定章节/节点；
 - `openLoadGame()`：打开读档界面；
 - `openFlowChart()`：进入流程图；
 - `openSettings()`：打开设置；
 - `openHelp()`：进入帮助页。
 
 使用读档或设置动作时需要保留 `<AdvGameModals />`，否则状态会更新但弹窗没有挂载点。
+
+通关后入口可以这样指向二周目：
+
+```ts
+actions.startGame({ chapterId: 'echo', nodeId: 'simulation-start' })
+```
+
+项目还可创建 `components/AdvSettingsPanel.vue` 覆盖默认设置界面，通过 `useAdvSettingsControls()` 读写动态效果、字号、速度、全屏与横屏状态。
 
 ## 项目级样式
 

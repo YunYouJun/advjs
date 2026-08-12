@@ -1,7 +1,3 @@
----
-outline: deep
----
-
 # 插件与活动
 
 运行时插件采用接近 Vite/Pinia 的普通对象 API。`defineAdvPlugin()` 只提供类型推导，不创建容器类或隐藏生命周期。
@@ -51,6 +47,11 @@ export function starMap(options: { tolerance?: number } = {}) {
         state.variables.starMatchScore = value.score ?? 0
         state.variables.lastTolerance = input.tolerance ?? null
       },
+    },
+
+    // 默认 supported；确实无法恢复的外部活动必须显式声明。
+    activityRollback: {
+      compare: 'supported',
     },
   })
 }
@@ -130,6 +131,8 @@ input:
 5. 注册的活动完成处理器把纯 JSON 结果写入变量，Runtime 继续到下一节点。
 
 等待活动时，普通 `next()` 会返回 `ADV_RUNTIME_ACTIVITY_PENDING`，因此活动不会被误跳过。活动完成前会建立 checkpoint，`back()` 可以回到待处理状态。
+
+back/forward/restore 恢复到等待活动时，会重新发出带 `resume: true` 的 `activity.request`。宿主应重建界面，但不得重复已提交的外部副作用。若活动无法安全恢复，插件应声明 `activityRollback: { activityName: 'unsupported' }`；Runtime 会以 `ADV_RUNTIME_ACTIVITY_ROLLBACK_UNSUPPORTED` 阻止跨越该 checkpoint。
 
 CLI 示例：
 

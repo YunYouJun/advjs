@@ -1,46 +1,34 @@
 # 指南
 
-::: info
-尚未发布。愿能在未来的冒险世界中与你相遇
-:::
+ADV.JS 是面向 AI 时代的 Markdown 文字冒险游戏引擎。创作的事实源是可被 Git 审阅、可由 Agent 直接修改的 `.adv.md`、角色卡、场景卡和资源目录；CLI、Editor、Studio 与正式游戏共用同一编译结果。
 
-ADV.JS 是一个面向未来与前端的 ADV 文字冒险游戏引擎。
+## 从一句话到可分享游戏
 
-你可以使用 JavaScript/TypeScript 与极少学习成本的 [AdvScript](/guide/advscript/) 像写小说一样制作你的文字冒险游戏。
+首发推荐一条固定路径：
 
-::: details 命名由来
+1. 安装 `advjs` 与 `@advjs/mcp-server`；
+2. 用 `adv init` 建立标准 Markdown 项目；
+3. 把 ADV.JS Skills 和 MCP 安装进 Codex、Claude Code 或 Cursor；
+4. 让 Agent 生成角色、场景与章节，并用 `adv check` 校验；
+5. 用本地 `@advjs/editor` 打开同一目录，精修、保存和试玩；
+6. 用 `adv build` 生成静态游戏；
+7. 用 `adv deploy` Direct Upload 到 Cloudflare Pages，得到 HTTPS URL。
 
-`ADV.JS` = `ADV` (Adventure Game) + `JS` (JavaScript)
+从[快速开始](./quick-start)执行这条路径。项目目录与可移植边界见[项目结构](./project-structure)，文本语法见 [AdvScript](./advscript/)。
 
-> 冒险游戏（英语：adventure game，缩写为 `AVG` 或 `ADV`）是电子游戏中最早出现的类型之一。
-> 此类型游戏采取玩家输入或选择指令以改变行动的交互形式，强调收集信息、发掘线索、探索未知、解决谜题等元素，主要考验玩家的观察力和分析能力，富有叙事性与探索性。
->
-> - [冒险游戏｜维基百科](https://zh.wikipedia.org/wiki/%E5%86%92%E9%99%A9%E6%B8%B8%E6%88%8F)
-> - [ADV｜百度百科](https://baike.baidu.com/item/ADV/5109709)
+## 产品边界
 
-- `A` : Adventure、AI
-- `D` : Document、Dialogue
-- `V` : Virtual、Vision
+- `advjs` 是核心引擎、编译器与 CLI；
+- `@advjs/editor` 面向 PC 专业创作和团队工作流，可与本地 Skills、MCP 及其他 Agent 协作；
+- `@advjs/studio` 面向移动端账号型 AI SaaS，可承接公共 AI 积分，但不是本地首发闭环的前置条件；
+- Skills 是可安装的 Agent 工作流，不是第四套游戏格式。
 
-:::
+首发支持 Chromium Stable。Ubuntu 覆盖完整路径，macOS/Windows 覆盖 smoke；Firefox、Safari、Studio 云端计费与跨设备团队同步不属于本地首发承诺。
 
-## Features
+## 核心能力
 
-::: tip
-ADV.JS 支持基础 AVG/Galgame 的开发，但不仅如此。
-
-基于 Web 的可能性，它还有很多特性和自己的探索。
-:::
-
-- 📝 文本驱动 — 类 Markdown 的 AdvScript 语法，像写小说一样制作 ADV 游戏！
-- ✏️ 内置脚本 — 内嵌 JavaScript/TypeScript，零迁移学习成本，尝试 Meta 的无限可能性！
-- 🎨 灵活多彩 — 继承或覆盖布局，任意自定义你的 UI 主题！
-- 🔥 热更新 — 你的剧本脚本的改变可以即刻反应到你的游戏中！
-- 📦 3D 扩展 — 通过插件提供 3D 能力（BabylonJS+VRM）探索 Web Galgame 的可能性！
-- 🔧 脚手架 — 完备的脚手架工具包，一行命令新建游戏开发模版！
-- 📤 跨平台 — 导出单页应用、或一个跨平台客户端！
-- 📊 图形编辑器（Todo）— 可视化的编辑器与资源管理
-
-## Demo
-
-来看看 [Demo](/resources/showcases.md) 吧！
+- Markdown 驱动的角色、场景、章节与选择；
+- 稳定的编译诊断、Runtime、存档与回退；
+- 本地 Editor 无损保存、外部文件刷新和源码试玩；
+- Agent Skills、MCP 工具与机器可读 CLI 输出；
+- 可复现构建、部署 receipt 与 archive 恢复。

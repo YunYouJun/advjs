@@ -97,4 +97,4 @@ Key aliases defined in `tsconfig.json`:
 
 ## Node Version
 
-Requires Node.js `^20.19.0 || >=22.12.0`.
+Requires Node.js `^22.12.0 || ^24.0.0`.

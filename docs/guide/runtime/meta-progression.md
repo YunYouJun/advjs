@@ -1,7 +1,3 @@
----
-outline: deep
----
-
 # 跨周目进度
 
 普通 Runtime 变量属于一次游玩：创建新 Runtime 时会从 `gameConfig.variables` 重新开始。需要在完整通关后解锁新路线、结局画廊或周目选项时，可以用 `gameConfig.progression` 明确声明少量跨周目变量。
@@ -12,20 +8,20 @@ import { defineAdvConfig } from 'advjs'
 export default defineAdvConfig({
   gameConfig: {
     variables: {
-      canonicalCompleted: false,
-      storyMode: 'canonical',
+      mainCompleted: false,
+      storyMode: 'main',
       unlockedEndings: [],
     },
     progression: {
       id: 'my-game',
       version: 1,
-      keys: ['canonicalCompleted', 'unlockedEndings'],
+      keys: ['mainCompleted', 'unlockedEndings'],
     },
   },
 })
 ```
 
-`id` 是稳定的游戏存储命名空间，`version` 是进度数据版本，`keys` 只接受顶层 Runtime 变量名。上例不会保存 `storyMode`，因此每次新游戏仍从原作模式开始，但已经完成的主线和结局解锁会被保留。
+`id` 是稳定的游戏存储命名空间，`version` 是进度数据版本，`keys` 只接受顶层 Runtime 变量名。上例不会保存 `storyMode`，因此每次新游戏仍从主线开始，但已经完成的主线和结局解锁会被保留。
 
 ## 生命周期与确定性边界
 
@@ -68,7 +64,7 @@ Core Runtime 不读取 `localStorage`，也不知道某个字段是否持久化�
   "progression": {
     "id": "my-game",
     "version": 2,
-    "keys": ["canonicalCompleted", "unlockedEndings"]
+    "keys": ["mainCompleted", "unlockedEndings"]
   }
 }
 ```
@@ -85,11 +81,11 @@ $adv.progression?.clear()
 
 ## Studio 与调试
 
-Studio 试玩默认禁用浏览器 progression，始终从项目 `variables` 开始，避免作者机器上的通关记录让测试不可复现。要测试已解锁路线，可以在 Studio 的测试配置或快照中显式把 `canonicalCompleted` 设为 `true`。
+Studio 试玩默认禁用浏览器 progression，始终从项目 `variables` 开始，避免作者机器上的通关记录让测试不可复现。要测试已解锁路线，可以在 Studio 的测试配置或快照中显式把 `mainCompleted` 设为 `true`。
 
 浏览器开发模式的 Runtime Inspector 会像其他变量一样展示持久字段和变化轨迹。问题报告可能包含这些值，分享前仍需检查其内容。
 
-## 仓鼠 Demo 的 A+ 模式
+## 仓鼠 Demo 的通关后入口
 
 `demo/hamster` 只持久化：
 
@@ -101,4 +97,4 @@ Studio 试玩默认禁用浏览器 progression，始终从项目 `variables` 开
 }
 ```
 
-首次游玩从两篇原作的完整主线开始。脚本在第二篇原作结尾设置 `canonicalCompleted: true`；下一次新游戏才显示演绎模式入口。`storyMode` 不持久化，避免玩家被永久留在某条路线中。
+首次游玩进入一条连续的 16 章主线。终章设置内部完成标记 `canonicalCompleted: true`，标题页随后开放世界内的“回声演算”；来源作品的分段关系不会进入游戏展示。`storyMode` 不持久化，避免玩家被永久留在通关后演算中。

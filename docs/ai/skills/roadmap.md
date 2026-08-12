@@ -12,7 +12,7 @@ ADV.JS Skills 体系的发展方向。
 - ✅ `adv-review` v0.1 — AI 内容质量审查（9 维 rubric，纯 skill 驱动，无 LLM 内置）
 - ✅ `adv-adapt` — 来源授权、章节映射、人物/场景清单与来源锚点覆盖审计
 - ✅ `adv-art` — 角色表情矩阵、素材来源/许可、内容哈希 URL 与发布清单审计
-- ✅ `adv-hamster-demo` — 仓鼠完整改编的 A+ 双模式、COS 路径和项目级验收约束
+- ✅ `adv-hamster-demo` — 仓鼠完整改编的无缝主线、回声演算、COS 路径和项目级验收约束
 
 ### CLI
 

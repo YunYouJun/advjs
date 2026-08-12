@@ -1,7 +1,3 @@
----
-outline: deep
----
-
 # 运行时导航与存档
 
 ADV.JS 会先把 Markdown 或 Flow 编译成纯数据 `RuntimeProgram`，再由浏览器、CLI 和 Studio 共用的 `createAdvRuntime()` 执行。宿主只负责输入、渲染和存储，不再各自解释章节跳转。
@@ -52,6 +48,7 @@ await runtime.go('chapter-2#compare-result')
 
 const snapshot = runtime.snapshot()
 runtime.back()
+runtime.forward()
 runtime.restore(snapshot)
 ```
 
@@ -67,6 +64,10 @@ runtime.restore(snapshot)
 - schema 版本和创建时间。
 
 在离开可见内容、应用选择、执行显式跳转和完成活动前，Runtime 会建立 checkpoint。`back()` 恢复最近一个 checkpoint；连续相同状态会折叠，默认最多保存 100 个。
+
+`back()` 后的当前会话会保留 redo 状态。此时 `next()` 优先恢复下一份历史状态，显式 `forward()` 也可完成同样操作；恢复到时间线前端后，`next()` 才继续执行新剧情。回退后执行新的选择、跳转或活动结果会清空 redo 并形成新分支。redo 不写入存档，`restore()` 后为空。
+
+`go()` 是正式剧情命令：它保留当前变量和舞台，再把游标移到精确地址。Studio 的任意节点预览不是 `go()`；它通过 `derivePresentationState(program, target, variables)` 从源码顺序推导隔离的演出态，不执行 action、选择、插件活动或持久化副作用。
 
 恢复前会校验 schema、Program ID、Program hash、JSON 数据和所有游标。剧本执行语义改变后，旧快照会以 `ADV_RUNTIME_SNAPSHOT_MISMATCH` 被拒绝，而不是在错误节点继续执行。
 

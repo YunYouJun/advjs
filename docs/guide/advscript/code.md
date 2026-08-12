@@ -1,7 +1,3 @@
----
-outline: deep
----
-
 # 扩展语法
 
 ADV.JS 使用 JSON/YAML 代码块声明舞台效果、变量动作、条件和插件活动。故事内容中的 JavaScript/TypeScript 不会执行，以保证浏览器、CLI、Studio、存档和回退具有相同语义。

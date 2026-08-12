@@ -25,11 +25,11 @@ pnpm build:demo:hamster
 pnpm -C demo/hamster build:singlefile
 ```
 
-starter 保持一个章节、一名角色和一个本地 SVG 背景。仓鼠 Demo 包含依次改编两篇小说的 19 章正史、通关后开放的三种演绎结局、稳定选择 ID、条件与动作、存档兼容状态、星图与文明活动、项目级自定义开始页、28 张角色表情、15 张背景、角色/场景目录，以及确定性生成的本地环境音。
+starter 保持一个章节、一名角色和一个本地 SVG 背景。仓鼠 Demo 将来源内容整理为一条无缝的 16 章完整航线，通关后解锁世界内的“回声演算”。它集成稳定选择 ID、条件与动作、跨章导航、双层背景转场、立绘槽位与逐帧动画、8 张 CG 画廊、8 首可循环 BGM、星图与文明互动、自定义标题/设置 UI，以及完整的 Studio 诊断链路。
 
 ## Studio 元数据边界
 
-CLI/Vite 在本地受信任项目中加载 `adv.config.ts`，所以配置可以导入 TypeScript 插件。Studio 面向可能来自导入包或浏览器存储的项目，不会执行任意配置代码；它读取 `adv/settings/game.json` 中的纯 JSON 标题、变量和必需插件，再仅运行 Studio 明确允许的插件。
+CLI/Vite 在本地受信任项目中加载 `adv.config.ts`，所以配置可以导入 TypeScript 插件。Studio 面向可能来自导入包或浏览器存储的项目，不会执行任意配置代码；它读取 `adv/settings/game.json` 中的纯 JSON 标题、变量、跨周目进度、CG 画廊和必需插件，再仅运行 Studio 明确允许的插件。
 
 仓鼠 Demo 让 `adv.config.ts` 直接导入同一份 `game.json`，避免两套变量和插件版本发生漂移。
 

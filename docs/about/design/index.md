@@ -11,5 +11,6 @@
 
 ## 模块分类
 
+- [资源系统](/about/design/assets)
 - [存储系统](/about/design/storage)
 - [角色管理系统](/about/design/character)

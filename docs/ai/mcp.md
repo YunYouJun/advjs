@@ -4,34 +4,42 @@ ADV.JS MCP (Model Context Protocol) Server — lets AI editors like Claude Code 
 
 ## Installation
 
-### Option 1: npx (recommended)
-
-Add to your project's `.mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "advjs": {
-      "command": "npx",
-      "args": ["@advjs/mcp-server"]
-    }
-  }
-}
-```
-
-### Option 2: Global install
+Install the two fixed launch entry packages, then let `adv` merge the Skills and
+MCP settings for the target Agent client:
 
 ```bash
-npm install -g @advjs/mcp-server
+npm install --global "advjs@0.1.2" "@advjs/mcp-server@0.1.2"
+adv agent install --client codex --skills default --mcp --json
+adv doctor . --client codex --json
 ```
 
-Then in `.mcp.json`:
+Supported clients are `codex`, `claude-code`, and `cursor`. The installer reads
+the integrity-checked catalog shipped inside the installed `advjs` package; it
+does not fetch Skills from the repository. Use `--dry-run` to inspect every
+target path before writing. Repeated installation is idempotent and updates only
+the ADV.JS-managed MCP entry:
+
+| Client      | Skills directory    | MCP configuration                         |
+| ----------- | ------------------- | ----------------------------------------- |
+| Codex       | `~/.agents/skills/` | `~/.codex/config.toml` managed block      |
+| Claude Code | `~/.claude/skills/` | `~/.claude.json` → `mcpServers.advjs`     |
+| Cursor      | `~/.cursor/skills/` | `~/.cursor/mcp.json` → `mcpServers.advjs` |
+
+To install only optional workflows, use `--skills optional`; use `--skills all`
+for both groups. Existing files are backed up with a content-hash suffix before
+an atomic replacement.
+
+### Manual MCP configuration
+
+When automatic installation is unsuitable, add the globally installed binary
+to the client's MCP JSON configuration:
 
 ```json
 {
   "mcpServers": {
     "advjs": {
-      "command": "adv-mcp-server"
+      "command": "adv-mcp-server",
+      "args": []
     }
   }
 }
@@ -83,22 +91,9 @@ Validates the project: checks script syntax, character reference consistency, an
 
 **Returns:** Validation results with pass/fail status and detailed issue list.
 
-**Example output:**
-
-```
-All checks passed!
-- 3 scripts checked
-- 5 character references
-- 2 scene references
-```
-
-Or on failure:
-
-```
-Found 2 issue(s):
-✗ [character] chapters/chapter_01.adv.md: Unknown
-⚠ [scene] chapters/chapter_02.adv.md: library
-```
+Use the structured MCP result as the source of truth. For CLI automation, run
+`adv check --json`; its success and failure envelopes are validated against the
+frozen [CLI Output v1 Schema](https://github.com/YunYouJun/advjs/blob/dev/tests/launch/contracts/cli-output.schema.json).
 
 ## Prompts
 

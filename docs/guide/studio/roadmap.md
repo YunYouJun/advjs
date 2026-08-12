@@ -4,19 +4,19 @@
 
 ### 核心功能（Phase 1-27）
 
-| 阶段          | 主题                | 核心交付                                                                                                                            |
-| ------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| **Phase 1-5** | 基础 Mobile Studio  | Ionic Vue 五 Tab 框架、项目 CRUD、文件树 + Monaco 预览、AI 聊天、COS 云同步、i18n、内容编辑器、设置系统                             |
-| **Phase 6**   | 角色记忆            | `useCharacterMemoryStore`（自动提取 facts/preferences/emotion）、Smart Context Window、对话导出、消息搜索                           |
-| **Phase 7**   | 动态角色状态        | `useCharacterStateStore`（位置/健康/活动/自定义属性）、角色卡片位置 + 心情展示                                                      |
-| **Phase 8**   | 世界时间系统        | `useWorldClockStore`（日期/时段/天气）、`useWorldEventStore`（AI 生成事件）、时钟上下文注入对话                                     |
-| **Phase 9**   | 多角色群聊          | `useGroupChatStore`（AI 自动选人轮流发言）、群聊 UI、创建群聊 Modal                                                                 |
-| **Phase 10**  | 视角与玩家角色      | 三种视角模式（角色/上帝/访客）、玩家角色创建（AI 或手动）、视角切换控件                                                             |
-| **Phase 11**  | 专业角色知识库      | RAG 检索增强生成（`adv/knowledge/` → `##` 拆分 → 关键词/向量检索 → 注入系统提示词）；详见 [知识库使用](./index.md#专业角色与知识库) |
-| **Phase 12**  | 数据持久化迁移      | 全量 Store 迁入 IndexedDB（Dexie v2→v6），项目级数据隔离，通用持久化 composable                                                     |
-| **Phase 25**  | 关系图谱 + 对话存档 | 角色关系 SVG 图谱、AI 记忆提取重试、对话快照（保存/恢复/分支树）                                                                    |
-| **Phase 26**  | 角色自主日记        | AI 生成内心独白/日记（融合记忆+状态+事件），World 页一键生成，角色详情查看                                                          |
-| **Phase 27**  | 世界时间线          | 统一时间轴视图（事件+日记），三级过滤器（类型/事件类/角色），纯 CSS 实现                                                            |
+| 阶段          | 主题                | 核心交付                                                                                                                         |
+| ------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **Phase 1-5** | 基础 Mobile Studio  | Ionic Vue 五 Tab 框架、项目 CRUD、文件树 + Monaco 预览、AI 聊天、COS 云同步、i18n、内容编辑器、设置系统                          |
+| **Phase 6**   | 角色记忆            | `useCharacterMemoryStore`（自动提取 facts/preferences/emotion）、Smart Context Window、对话导出、消息搜索                        |
+| **Phase 7**   | 动态角色状态        | `useCharacterStateStore`（位置/健康/活动/自定义属性）、角色卡片位置 + 心情展示                                                   |
+| **Phase 8**   | 世界时间系统        | `useWorldClockStore`（日期/时段/天气）、`useWorldEventStore`（AI 生成事件）、时钟上下文注入对话                                  |
+| **Phase 9**   | 多角色群聊          | `useGroupChatStore`（AI 自动选人轮流发言）、群聊 UI、创建群聊 Modal                                                              |
+| **Phase 10**  | 视角与玩家角色      | 三种视角模式（角色/上帝/访客）、玩家角色创建（AI 或手动）、视角切换控件                                                          |
+| **Phase 11**  | 专业角色知识库      | RAG 检索增强生成（`adv/knowledge/` → `##` 拆分 → 关键词/向量检索 → 注入系统提示词）；详见 [知识库使用](./index#专业角色与知识库) |
+| **Phase 12**  | 数据持久化迁移      | 全量 Store 迁入 IndexedDB（Dexie v2→v6），项目级数据隔离，通用持久化 composable                                                  |
+| **Phase 25**  | 关系图谱 + 对话存档 | 角色关系 SVG 图谱、AI 记忆提取重试、对话快照（保存/恢复/分支树）                                                                 |
+| **Phase 26**  | 角色自主日记        | AI 生成内心独白/日记（融合记忆+状态+事件），World 页一键生成，角色详情查看                                                       |
+| **Phase 27**  | 世界时间线          | 统一时间轴视图（事件+日记），三级过滤器（类型/事件类/角色），纯 CSS 实现                                                         |
 
 ### 移动端迭代（M1-M17）
 
@@ -184,7 +184,7 @@ attributes:
 
 ## 远期路线
 
-```
+```text
 Phase N（核心体验冲刺 N1-N8）✅
     ↓ 「可发布品质」
 Phase 13（账号系统 — CloudBase 统一认证）✅
@@ -197,12 +197,12 @@ Phase 16（AI Agent 自主创作）✅
     ↓ AI 深度参与创作
 Phase 17（运行时与发布）✅
     ↓ 让作品「真正可玩、可分发」
-Phase 18（协作与社区强化）← 下一阶段
-    ↓ 标签体系 / 评论 / 创作者激励
+Phase 18（协作与社区强化）✅
+    ↓ 标签体系 / 评论 / 社区安全
 ```
 
 ::: tip 战略决策（已定）
-N1-N8 已全部完成；Phase 13 账号系统、Phase 14 世界/故事市场、Phase 15a 多人协作、Phase 15b 插件系统、Phase 16 AI Agent 自主创作、Phase 17 运行时与发布主体均已完成。下一步进入 **Phase 18：协作与社区强化**。
+N1-N8 与 Phase 13-18 的仓库内 MVP 均已完成；后续以真实运营数据驱动增量迭代，不再预建复杂社区基础设施。
 
 - **账号模式**：可选。保持 Local-First 产品定位，未登录可完整使用，登录后解锁云同步和发布
 - **后端选型**：**CloudBase**（腾讯云开发）—— 与云乐坊（yunle.fun）共享同一 CloudBase 环境和用户池
@@ -277,7 +277,7 @@ Phase 15 分为两个独立子阶段：先做协作（15a），再做插件系�
 
 ### 运行时与引擎集成
 
-Studio Play Tab 已接入 `@advjs/client` 的 `AdvGame` 运行时（commit `cb91c8f` / `5d35317`），可直接在创作环境内试玩当前项目。底层引擎能力（存档槽位、分支可视化、`adv check --fix` 自动修复、MCP bulk 工具等）的迭代路线见 [AI 路线图](../../ai/skills/roadmap.md)；Studio 仅以「依赖」关系承接，不在本文档展开。
+Studio Play Tab 已接入 `@advjs/client` 的 `AdvGame` 运行时（commit `cb91c8f` / `5d35317`），可直接在创作环境内试玩当前项目。底层引擎能力（存档槽位、分支可视化、`adv check --fix` 自动修复、MCP bulk 工具等）的迭代路线见 [AI 路线图](../../ai/skills/roadmap)；Studio 仅以「依赖」关系承接，不在本文档展开。
 
 ---
 
@@ -330,16 +330,16 @@ Studio Play Tab 已接入 `@advjs/client` 的 `AdvGame` 运行时（commit `cb91
 
 ---
 
-### Phase 18：协作与社区强化 {#phase-18}
+### Phase 18：协作与社区强化 ✅ {#phase-18}
 
 目标：承接 Phase 14 / 15a 已搭好的市场与协作骨架，做生态运营。
 
 - [x] **关注与订阅 + 站内通知中心** — `advjs_follows` 集合（[`useFollow.ts`](https://github.com/YunYouJun/advjs/blob/main/apps/studio/src/composables/useFollow.ts) follow/unfollow/isFollowing/listFollowers/countFollowers），`advjs_notifications` 集合（[`useNotificationsStore.ts`](https://github.com/YunYouJun/advjs/blob/main/apps/studio/src/stores/useNotificationsStore.ts) 30s 轮询 + 标记已读 + bulk fan-out helper）；`CreatorPage` 头部 Follow / Unfollow 按钮 + 实时粉丝数；`publishProject` 首次发布后自动向所有关注者写入 `new_project` 通知；`MePage` 标题栏 🔔 图标 + 未读红点徽章；[`NotificationCenter.vue`](https://github.com/YunYouJun/advjs/blob/main/apps/studio/src/components/NotificationCenter.vue) 列表 + 「全部已读」 + 相对时间 + 点击跳转作品详情或创作者主页。**不做** Web Push / Capacitor 原生推送，纯站内通知中心路线
-- [ ] **协作 E2E 补全**（承接 Phase 15a 待办） — 双客户端收敛、断线重连一致性、权限拒绝场景，覆盖 `tests/e2e/collab.spec.ts`
+- [x] **协作 E2E 补全**（承接 Phase 15a 待办） — [`collab.spec.ts`](https://github.com/YunYouJun/advjs/blob/main/apps/studio/tests/e2e/collab.spec.ts) 已覆盖协作设置入口、双客户端收敛、断线重连后追平并继续发布，以及观察者写入被拒且不污染编辑者；测试使用浏览器内确定性 CloudBase 传输夹具，不依赖线上账号或共享测试数据
 - [x] **市场分类与标签体系** — [`marketTaxonomy.ts`](https://github.com/YunYouJun/advjs/blob/main/apps/studio/src/utils/marketTaxonomy.ts) 定义题材（10）/ 风格（5）/ 时长（3）三维结构化分类的单一事实源（id + i18n labelKey + icon + `deriveDuration` 按章节数推断时长 + `normalize*` 校验器），由发布表单、市场筛选器、AI 打标共享。`MarketplaceRecord` 扩展 `genre` / `style` / `duration` 字段，`browseMarket` 支持服务端等值筛选，`MarketplacePage` 新增可折叠筛选面板（三维 chip + 激活计数徽章 + 一键清除）与卡片/详情页分类徽章（点击徽章回填筛选）。AI 自动打标 [`marketTagger.ts`](https://github.com/YunYouJun/advjs/blob/main/apps/studio/src/utils/aiAuthoring/marketTagger.ts) 复用 `runAiJsonExtractionResult`，依据项目名/简介/world.md/角色卡输出受枚举约束的 genre/style + 自由 tags（去重 + 截断 + 上限 6）。人工策展：`setFeatured` + 详情页 owner-only「设为精选」开关驱动精选位。新增 [`MarketPublishModal.vue`](https://github.com/YunYouJun/advjs/blob/main/apps/studio/src/components/marketplace/MarketPublishModal.vue) 取代一键发布（标签 chip 输入 + 三维选择 + AI 打标按钮），中英文 i18n 完整，11 单测覆盖 taxonomy 与 tagger 校验
-- [ ] **评论与回复** — `advjs_reviews` 集合扩展为楼中楼，作者可回复评价；含敏感词过滤
-- [ ] **举报与审核** — 内容举报 → 云函数走人工审核队列；违规作品下架机制
-- [ ] **创作者激励** — 下载量 / 评分排行榜、徽章体系、月度精选；与云乐坊统一积分体系打通
+- [x] **评论与回复（最简实现）** — 每条 `advjs_reviews` 记录允许一个 `authorReply`，作者可新增或覆盖回复；评价与回复均由 `marketStats` 做长度和敏感词校验，不引入任意层级评论树
+- [x] **举报与审核（最简实现）** — `reportProject` 将去重后的举报写入私有 `advjs_reports` pending 队列；配置 `ADVJS_MODERATOR_UIDS` 后，`moderateReport` 只提供 `dismiss` / `unlist` 两种人工决策，下架直接复用市场 `unlisted` 状态
+- [x] **创作者激励（确认延期）** — 当前真实发布量与运营数据不足，不预建徽章、月度精选或积分账本；保留既有热门/好评排序、创作者数据页和人工精选，待运营需求与云乐坊积分 API 明确后再实现
 
 ---
 

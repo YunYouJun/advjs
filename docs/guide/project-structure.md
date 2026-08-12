@@ -1,69 +1,69 @@
 # 项目结构
 
-ADV.JS 游戏工程遵循约定优于配置的原则，参考游戏引擎工程（如 Unity、Godot）的目录分层实践，将不同职责的文件归入对应目录。
+ADV.JS 将可移植的游戏内容、可信的 Web 宿主、可复现素材流程和本地工具状态分层存放。同一份 `adv/` 内容可以被 Studio、CLI 和 Vite 游戏读取，而不会要求 Studio 执行项目中的任意 TypeScript。
 
 ## 推荐结构
 
-```
+```text
 my-game/
-├── adv.config.json              # 工程配置（编辑器识别锚点，root 指向 adv/）
-├── package.json                 # 项目元信息（名称、版本、依赖）
+├── adv.config.json              # 项目标识与内容根目录
+├── adv.config.ts                # 可选：可信 CLI/Vite 宿主配置
+├── package.json                 # Web 工程元信息与依赖
 │
-├── public/                      # 静态资源（直接serve，不经构建处理）
-│   └── favicon.svg              # 游戏图标
-├── pages/                       # 可选：覆盖主题页面，如 pages/start.vue
-├── layouts/                     # 可选：项目专属页面布局
-├── styles/                      # 可选：项目级全局样式
-│   └── index.scss
+├── adv/                         # 可移植的游戏内容
+│   ├── index.adv.json           # 章节与入口索引
+│   ├── settings/
+│   │   └── game.json            # Studio 可读取的纯 JSON 设置
+│   ├── assets.json              # 唯一资源目录根：内联 assets 或 includes
+│   ├── cos-release.json         # 生成的精确 COS 发布计划
+│   ├── assets/                  # 本地媒体与可选资源分片
+│   │   ├── characters.json
+│   │   ├── backgrounds.json
+│   │   ├── cg.json
+│   │   └── audio.json
+│   │
+│   ├── world.md                 # 世界观、规则与叙事基调
+│   ├── outline.md               # 故事大纲与分支结构
+│   ├── glossary.md              # 可选：项目术语表
+│   ├── chapters/                # `.adv.md` 剧本
+│   ├── characters/              # `.character.md` 角色卡
+│   ├── scenes/                  # 场景描述与生成提示
+│   ├── locations/               # 可选：世界观地点
+│   └── audio/                   # 音频描述卡或项目内音频
 │
-├── adv/                         # 游戏内容根目录
-│   ├── index.adv.json           # 游戏入口（章节、剧情索引）
-│   │
-│   ├── world.md                 # 世界观圣经（设定、规则、基调、美术风格）
-│   ├── outline.md               # 故事大纲（幕、章、情节节点、分支结构）
-│   ├── glossary.md              # 术语表（可选，大型世界观项目）
-│   │
-│   ├── chapters/                # 剧本脚本（按章节拆分）
-│   │   ├── README.md            # AI 上下文摘要 — 各章概要和创作状态
-│   │   ├── chapter_01.adv.md   # 第一章
-│   │   ├── chapter_02.adv.md   # 第二章
-│   │   └── ...
-│   │
-│   ├── characters/              # 角色卡片库
-│   │   ├── README.md            # AI 上下文摘要 — 角色关系图谱概览
-│   │   ├── aria.character.md
-│   │   └── kai.character.md
-│   │
-│   ├── scenes/                  # 场景定义
-│   │   ├── README.md            # AI 上下文摘要 — 场景总览
-│   │   └── school.md            # 场景描述文件
-│   │
-│   ├── locations/               # 地点定义（可选）
-│   │   └── shibuya-cafe.md      # 地点描述文件
-│   │
-│   ├── bgm/                     # 背景音乐（引用路径）
-│   │
-│   ├── assets/                  # 素材资源（立绘、背景、音效、UI 等）
-│   │   ├── backgrounds/         # 场景背景图
-│   │   ├── tachies/             # 角色立绘
-│   │   ├── sfx/                 # 音效
-│   │   └── ui/                  # UI 素材
-│   │
-│   └── settings/                # 游戏运行时设置
-│       └── game.json            # 全局参数（文字速度、音量等）
+├── pages/                       # 可选：覆盖开始页等主题页面
+├── layouts/                     # 可选：项目专属布局
+├── components/                  # 可选：项目专属组件
+├── styles/                      # 可选：项目级样式
+├── public/                      # 应用壳静态文件
+│   └── favicon.svg
 │
-├── .adv/                        # ADV.JS 专属目录（可加入 .gitignore）
-│   ├── editor/                  # 编辑器配置（布局、偏好等）
-│   └── temp/                    # 临时文件（自动生成，勿手动修改）
-│
-└── README.md                    # 项目说明
+├── scripts/                     # 可复现的素材生成与校准脚本
+├── temp/                        # 忽略：原图、QA 与待发布包
+├── .adv/                        # 忽略或按需提交：工具状态
+│   └── editor/
+└── README.md
 ```
 
-## 目录说明
+小型项目可以省略未使用的目录，并把资源直接内联到 `adv/assets.json`。正式发布不要求把图片和音频复制到 `public/`；带内容哈希的成品由构建后的扁平资源目录映射到公共对象存储。
+
+## 分层模型
+
+| 层级         | 主要文件或目录                            | 消费者                   | 是否执行代码 |
+| ------------ | ----------------------------------------- | ------------------------ | ------------ |
+| 项目标识     | `adv.config.json`                         | Studio、编辑器、CLI      | 否           |
+| 可移植内容   | `adv/`、`adv/settings/game.json`          | Studio、CLI、正式游戏    | 否           |
+| 可信宿主     | `adv.config.ts`、`pages/`、`components/`  | CLI/Vite 构建            | 是           |
+| 素材与发布   | `adv/assets.json`、`adv/cos-release.json` | 素材脚本、宿主、发布工具 | 否           |
+| 本地工作状态 | `temp/`、`.adv/`                          | 素材工具、编辑器         | 不进入游戏   |
+
+这层边界解决两个常见问题：Studio 可以安全打开导入的项目；正式游戏仍可以使用插件、主题和 Vue 页面等可信代码能力。
+
+## 配置文件职责
 
 ### `adv.config.json`
 
-**工程级**配置，编辑器识别项目类型的锚点文件，必须位于根目录。编辑器启动时通过 `getFileHandle('adv.config.json')` 直接在根目录查找。通过 `root` 字段指定游戏内容目录（默认为 `adv/`）。
+`adv.config.json` 是项目识别锚点，位于项目根目录，声明内容格式和内容根目录。Studio、编辑器和 CLI 可以在不执行代码的前提下读取它。
 
 ```json
 {
@@ -72,199 +72,208 @@ my-game/
 }
 ```
 
-> **为什么不放进 `adv/settings/`？**
-> `adv.config.json` 是编辑器的"项目识别凭证"，类比 Unity 的 `.uproject` 或 Godot 的 `project.godot`，必须在根目录。`settings/` 下的文件是游戏运行时参数，两者职责层次不同。
+它不保存玩家设置、剧情变量或素材 URL。
 
-### `package.json`
+### `adv/settings/game.json`
 
-项目元信息，记录游戏名称、版本号、作者等，也可声明依赖的扩展包。
+`adv/settings/game.json` 保存需要在 Studio 与正式游戏之间共享的纯数据，例如标题、初始变量、跨周目键、画廊展示数据和必需插件版本。
 
 ```json
 {
-  "name": "my-adventure",
-  "version": "0.1.0",
-  "description": "我的文字冒险游戏"
+  "title": "我的文字冒险",
+  "description": "一段可以在 Studio 中试玩的故事",
+  "variables": {
+    "chapterCompleted": false
+  },
+  "progression": {
+    "id": "my-game",
+    "version": 1,
+    "keys": ["chapterCompleted"]
+  },
+  "requiredPlugins": {
+    "star-map": "1.0.0"
+  }
 }
 ```
 
-### `public/`
+Studio 不执行 `adv.config.ts`，所以跨宿主共享的数据不能只存在于 TypeScript 中。由素材清单派生的画廊 URL 应由工具同步到该文件，不应形成第二份人工维护的事实源。
 
-静态资源目录，文件会被直接 serve，不经过构建处理，路径保持不变。常用于放置游戏图标、Open Graph 图片等。
+### `adv.config.ts`
 
-- `favicon.svg` — 游戏图标，显示在浏览器标签页
+`adv.config.ts` 是可信 CLI/Vite 项目的组装层。它负责导入主题和插件、注册项目组件，并把纯数据配置与素材清单转换成运行时 `gameConfig`。以下是省略章节和角色字段的素材组装片段：
 
-### `pages/`、`layouts/` 与 `styles/`
+```ts
+import { createAdvAssetCatalog } from '@advjs/core'
+import { defineAdvConfig } from 'advjs'
+import artManifest from './adv/assets.json'
+import gameSettings from './adv/settings/game.json'
 
-这些目录用于项目级界面定制。`pages/start.vue` 可以覆盖当前主题的默认开始页，`layouts/` 可以补充专属布局，`styles/index.css` 或 `styles/index.scss` 会在主题样式之后加载。
+const assets = createAdvAssetCatalog(artManifest)
+const cover = (await assets.resolve('background/title')).src
 
-开始页菜单不必依赖具体主题；使用 `@advjs/client` 提供的 `useAdvStartActions()` 即可进入游戏、打开读档与设置。完整示例参见[自定义开始界面](/guide/customization/start-screen)。
+export default defineAdvConfig({
+  gameConfig: {
+    ...gameSettings,
+    cover,
+    // chapters、characters、scenes 与 bgm 继续由内容和清单组装
+  },
+})
+```
 
-### `adv/`
+不要在 `adv.config.ts` 和多个内容卡中重复手写同一组带哈希 URL。
 
-游戏内容根目录，存放所有剧情脚本、角色数据、场景定义和运行时设置。与工程配置（`adv.config.json`、`package.json`）分离，保持根目录整洁。
+### 配置优先级
 
-类比：Unity 的 `Assets/`、Next.js 的 `src/`、Nuxt 的 `app/`。
+| 文件                     | 权威职责                                    | 维护方式             |
+| ------------------------ | ------------------------------------------- | -------------------- |
+| `adv.config.json`        | 项目格式与内容根目录                        | 人工维护             |
+| `adv/settings/game.json` | Studio 可读取的可移植游戏数据               | 人工或 Studio 维护   |
+| `adv.config.ts`          | 可信宿主的插件、主题和运行时组装            | 人工维护             |
+| `adv/assets.json`        | 唯一素材根、Profile、逻辑 ID 或分片入口     | Studio、人工或工具   |
+| `adv/cos-release.json`   | 一次发布的对象、HTTP 元数据和 manifest 顺序 | 发布流程生成，不手改 |
+
+## 游戏内容目录
 
 ### `adv/index.adv.json`
 
-游戏入口文件，定义章节列表和起始节点。编辑器以此为主入口加载项目。
+内容入口定义章节、节点或其他可移植索引。Studio 原生项目以它为主要入口；CLI/Vite 项目也可以在 `adv.config.ts` 中显式组装位于 `public/` 的章节，但应避免维护两套章节事实。
 
 ### `adv/chapters/`
 
-存放所有 `.adv.md` 剧本脚本，按章节或场景拆分。适合多人协作和 AI 辅助生成，每个文件保持单一职责。
+每个 `.adv.md` 文件承担一个章节或场景。可链接节点使用稳定 ID，跨章节跳转不依赖显示标题或文件排序。具体语法参见 [AdvScript](/guide/advscript/)。
 
-### `adv/world.md`
+### `adv/world.md`、`outline.md` 与 `glossary.md`
 
-**世界观圣经**，定义整个游戏的基础设定：时代背景、主要地点、核心规则、美术风格和叙事原则。AI 创作任何内容前应先读取此文件了解世界观基调。
+- `world.md` 定义时代、规则、美术和叙事原则；
+- `outline.md` 定义幕、章节、分支与结局；
+- `glossary.md` 记录必须保持一致的项目术语。
 
-### `adv/outline.md`
-
-**故事大纲**，以多幕结构描述故事骨架：各章概要、关键事件、分支点、创作状态和结局分支。AI 扩写新章节时以此为结构参考。
-
-### `adv/glossary.md`（可选）
-
-**术语表**，大型世界观项目使用，确保 AI 创作时术语一致。表格包含术语、定义和备注（如「不要使用」的变体写法）。
-
-### `adv/*/README.md` — AI 上下文摘要
-
-每个子目录（`chapters/`、`characters/`、`scenes/`）都包含一个 `README.md`，作为 AI 高效扫描的入口。README 在 GitHub 上自动渲染，也方便人类浏览。引擎运行时不读取这些文件。
-
-类似于 `CLAUDE.md` 对代码仓库的作用，但在游戏内容层面分层存在。
-
-### `adv/scenes/`
-
-**场景描述文件**，每个场景一个 `.md` 文件。使用 YAML frontmatter 定义 `id`、`name`、`imagePrompt`（AI 图片生成提示词）和 `tags`。正文描述场景的视觉细节、氛围和出现章节。
-
-场景通过 `【场景名，时间，内外】` 语法在剧本中引用，`adv check` 会检查引用一致性。
-
-> 详细格式规范参见 [AI 创作文件格式规范](/ai/formats)。
-
-### `adv/locations/`
-
-**地点描述文件**（可选），每个地点一个 `.md` 文件。使用 YAML frontmatter 定义 `id`、`name`、`type`（indoor/outdoor/virtual/other）、`tags`，以及 `linkedScenes` 和 `linkedCharacters` 关联字段。
-
-地点与场景是互补概念：**场景**是叙事层的视觉单元（包含背景图片和时间），**地点**是世界观层的地理实体（包含关联关系和地理分类）。一个地点可以对应多个场景（不同时间段的同一地方）。
-
-```md
----
-id: shibuya-cafe
-name: 涩谷咖啡厅
-type: indoor
-tags:
-  - 主线
-linkedScenes:
-  - cafe-morning
-  - cafe-evening
-linkedCharacters:
-  - jane
----
-
-位于涩谷中心的温馨咖啡厅。
-```
-
-> 详细格式规范参见 [AI 创作文件格式规范](/ai/formats)。
+这些文件服务于创作和 AI 上下文，引擎运行时不直接读取。格式参见 [AI 创作文件格式规范](/ai/formats)。
 
 ### `adv/characters/`
 
-**角色卡片库**，每个角色对应一个 `.character.md` 文件。
-
-文件格式为 **YAML frontmatter + Markdown 正文**：
-
-- frontmatter 定义结构化属性（ID、名称、标签、立绘路径、角色关系等），供编辑器和运行时解析
-- 正文用自然语言描述角色外貌、性格、背景，便于 AI 理解和续写
+每个角色使用一个 `.character.md` 文件。YAML frontmatter 保存稳定 ID、名称、别名、关系和生成字段；正文描述外貌、性格、背景和说话方式。
 
 ```md
 ---
 id: aria
 name: 艾莉亚
-avatar: /adv/characters/aria.png
+aliases:
+  - 银星旅者
 tags:
   - 主角
-  - 女性
-tachies:
-  default:
-    src: /adv/characters/aria.png
-relationships:
-  - targetId: kai
-    type: 伙伴
 ---
 
 ## 外貌
 
-银发碧眼，身着旅行者的斗篷……
+银发碧眼，身着旅行者斗篷。
 
-## 性格
+## 说话风格
 
-好奇心旺盛，勇于探索未知……
+语句简短，描述星空时会使用航海隐喻。
 ```
 
-将角色卡片平铺在 `adv/characters/` 下的好处：
+角色卡记录创作事实；正式立绘 URL 由 `adv/assets.json` 和宿主配置组装。
 
-- 与脚本分离，角色数据可独立复用于多个剧情
-- 方便批量导入/导出，或在项目间共享角色库
-- AI 可单独读取此目录生成符合人设的对话
+### `adv/scenes/` 与 `adv/locations/`
 
-### `adv/assets/`
+场景是可切换的视觉单元，地点是世界观中的地理实体。一个地点可以关联清晨、夜晚或灾变后的多个场景。
 
-游戏**素材资源**统一存放目录，包括立绘、背景图、音效、UI 素材等。按资源类型分子目录，便于管理和引用。
+```md
+---
+id: school-rooftop
+name: 学校天台
+imagePrompt: >-
+  Wide visual novel background, school rooftop at sunset,
+  warm light, no characters, 16:9
+tags:
+  - 学校
+  - 户外
+---
 
-| 子目录         | 用途        |
-| -------------- | ----------- |
-| `backgrounds/` | 场景背景图  |
-| `tachies/`     | 角色立绘    |
-| `sfx/`         | 音效        |
-| `ui/`          | UI 相关素材 |
+## 氛围
 
-> 与 `public/` 的区别：`assets/` 中的资源属于游戏内容，会被引擎加载和管理；`public/` 中的文件是工程级静态资源（如 favicon），直接 serve 不经处理。
-
-### `adv/settings/`
-
-存放游戏**运行时**全局参数，如文字速度、音量默认值、起始章节等。
-
-|        | `adv.config.json`             | `adv/settings/game.json`        |
-| ------ | ----------------------------- | ------------------------------- |
-| 职责   | 工程格式声明，编辑器识别用    | 游戏运行时参数                  |
-| 类比   | `.uproject` / `project.godot` | `ProjectSettings/` 内的具体配置 |
-| 修改者 | 开发者                        | 开发者 / 可暴露给玩家           |
-
-```json
-{
-  "title": "我的文字冒险",
-  "startChapter": "chapter_1",
-  "ui": {
-    "textSpeed": 50,
-    "autoPlayDelay": 2000
-  },
-  "audio": {
-    "bgmVolume": 0.8,
-    "sfxVolume": 1.0
-  }
-}
+海风越过围栏，城市噪声被拉成遥远的底色。
 ```
+
+可复用背景不得包含前景人物；场景卡保存描述和提示词，最终图片仍由素材清单管理。
+
+### `adv/audio/`
+
+`adv/audio/` 保存 Studio 可编辑的音频描述卡；二进制音频位于 `adv/assets/audio/`，由资源目录管理。描述卡只使用稳定 `assetId`，正式 BGM 与 SFX 的本地路径、对象键和哈希在资源目录中登记。
+
+```md
+---
+name: summer-day
+assetId: bgm/summer-day
+duration: 24
+tags:
+  - 日常
+  - 循环
+---
+```
+
+旧项目中的 `src` 仍可读取，但新项目不要在描述卡中重复保存路径或 URL。
+
+## 素材与发布
+
+### `adv/assets.json`
+
+素材清单是逻辑素材的唯一根入口。每项至少包含稳定 `id`、语义 `kind`、媒体 `type`；进入发布阶段后由工具补充对象键、完整 SHA-256、字节数、尺寸或时长、许可和来源。绝对 URL 由 Profile 解析，不在每项重复保存。
+
+剧情、场景调度和 UI 使用 `background/summer-room`、`character/aria/default`、`cg/finale` 等逻辑 ID；宿主再从清单解析实际 URL。
+
+大型项目仍使用 `adv/assets.json` 作为唯一根，但将 `assets` 替换为指向 `adv/assets/*.json` 的 `includes`。Studio 与构建器在内存中合并分片，扁平结果只进入构建或发布目录。完整 Schema、Profile、Bundle 和兼容规则参见[资源目录协议](./assets/catalog)。
+
+### `adv/cos-release.json`
+
+发布计划精确列出本次需要上传的物理对象、HTTP 元数据和顺序。同一张 CG 的原图与缩略图是两个对象，因此发布对象数可以多于逻辑素材数。稳定 manifest 必须最后上传。
+
+完整目录、缓存、CORS 和发布验收参见 [COS 素材发布规范](./assets/cos)。
+
+### `ASSETS.md`
+
+项目根目录的 `ASSETS.md` 面向人类记录来源、作者、许可、生成方式和最后核验日期。它不重复列出每个对象的哈希；机器可验证字段保留在资源目录条目或构建 manifest 中。
+
+## Web 宿主与本地状态
+
+### `pages/`、`layouts/`、`components/` 与 `styles/`
+
+这些目录用于项目级界面覆盖。`pages/start.vue` 可以替换默认开始页，`components/` 可以覆盖设置或活动组件，`styles/index.scss` 在主题样式之后加载。
+
+开始页应通过 `useAdvStartActions()` 进入章节、打开读档或设置。完整示例参见 [自定义开始界面](./customization/start-screen)。
+
+### `public/`
+
+`public/` 中的文件会原样随 Web 应用部署，适合 favicon、PWA 图标和 Open Graph 图片。正式立绘、背景、CG 与 BGM 不应同时复制到 `public/` 和 COS。
+
+### `scripts/` 与 `temp/`
+
+可复现的生成、抠图、音频归一化、清单生成和审计脚本放在 `scripts/`。原图、QA contact sheet、WAV 中间文件和待发布包写入被 Git 忽略的 `temp/{game-id}-art/`。
 
 ### `.adv/`
 
-ADV.JS 专属目录，存放与项目内容无关的工具状态，建议加入 `.gitignore`（类比 `.vscode/` 或 `.idea/`）。命名空间设计便于未来扩展。
-
-```
-.adv/
-├── editor/     # 编辑器布局、偏好设置（可按需提交到 git）
-└── temp/       # 自动生成的临时文件，勿手动修改
-```
+`.adv/` 保存编辑器布局、缓存和其他工具状态，不属于游戏运行时内容。默认加入 `.gitignore`；团队确需共享的编辑器设置可以按文件选择性提交。
 
 ## 最小结构
 
-对于简单的单文件游戏，只需要：
+便携的单章节项目至少需要：
 
-```
+```text
 my-game/
 ├── adv.config.json
 └── adv/
-    └── index.adv.json
+    ├── index.adv.json
+    └── chapters/
+        └── start.adv.md
 ```
+
+需要构建为定制 Web 游戏时，再增加 `package.json`、`adv.config.ts` 和界面覆盖目录。
 
 ## 参考
 
-- [Unity 项目结构最佳实践](https://docs.unity3d.com/Manual/cus-layout.html)
-- [Godot 项目组织建议](https://docs.godotengine.org/en/stable/tutorials/best_practices/project_organization.html)
-- [角色管理](./editor/character) — 在编辑器中管理角色卡片
+- [文档写作指南](/contributing/writing-guide)
+- [COS 素材发布规范](./assets/cos)
+- [资源目录协议](./assets/catalog)
+- [角色管理](./editor/character)
+- [Studio 技术架构](./studio/architecture)

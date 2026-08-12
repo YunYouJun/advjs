@@ -9,6 +9,14 @@
 
 > 愿能在未来的冒险时间中与你相遇
 
+## 产品定位
+
+ADV.JS 采用“一个平台、两个创作产品、一个 Skills 生态”的产品结构。Editor 面向专业生产，Studio 面向个人 AI 创作；两者共享同一种项目格式和开放工具链。
+
+详见 [ADV.JS 产品定位](/about/product-positioning)。
+
+正式上线所需的能力、优先级与验收门槛见 [首发能力补齐计划](/about/launch-readiness-plan)。
+
 ## Why ADV.JS?
 
 More info [https://www.yunyoujun.cn/posts/make-an-avg-engine/](https://www.yunyoujun.cn/posts/make-an-avg-engine/).

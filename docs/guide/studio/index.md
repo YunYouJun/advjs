@@ -139,7 +139,7 @@ linkedCharacters:
 
 ### 从素材生成项目（AI 一键创建）
 
-> 📘 Phase M10 新功能 · Source-to-Project Pipeline。详见 [赛事设计文档](/studio/ai-contest-2026.md)。
+> 📘 Phase M10 新功能 · Source-to-Project Pipeline。详见 [赛事设计文档](/studio/ai-contest-2026)。
 
 把一段文字素材（老人口述回忆、企业 SOP、培训手册等）一键变成可玩的 ADV 项目。
 
@@ -165,12 +165,14 @@ linkedCharacters:
 
 **要求**：使用前需先在 `我的 → 设置 → AI` 配置 OpenAI 兼容 Provider 的 API Key。任何支持 `/v1/chat/completions` 接口的服务都可以（DeepSeek、通义、智谱、豆包、Kimi 等）。
 
-### 云同步设置
+### 托管资源存储
 
-1. 前往「我的」→「设置」→「云同步（COS）」
-2. 填写腾讯云 COS 配置（Bucket、Region、SecretId、SecretKey）
-3. 测试连接确认配置正确
-4. 可选开启自动同步
+1. 本地打开项目并导入或生成媒体；Studio 会写入 `adv/assets/` 并登记稳定 `assetId`。
+2. 登录 Studio 账号。
+3. 在场景或音频资源卡点击发布按钮；浏览器只获得当前对象的短期 PUT 地址。
+4. 服务端校验大小、MIME 和 SHA-256 后写入私有资源目录；可在「我的」→「设置」→「资源存储」检测服务状态。
+
+Studio 不再要求用户填写 COS SecretId/SecretKey，旧版本保存过的长期密钥会在升级后从本地设置中移除。项目源文件默认保持本地；团队源文件同步与二进制资源发布是两个独立能力。
 
 ### 专业角色与知识库
 
@@ -201,5 +203,5 @@ adv/knowledge/
 
 ## 更多
 
-- [技术架构](./architecture.md) — Store 设计、数据流、技术栈详情
-- [开发路线](./roadmap.md) — Phase N 核心体验冲刺（N0-N7）、已完成阶段回顾、远期规划（账号/市场/协作）
+- [技术架构](./architecture) — Store 设计、数据流、技术栈详情
+- [开发路线](./roadmap) — Phase N 核心体验冲刺（N0-N7）、已完成阶段回顾、远期规划（账号/市场/协作）

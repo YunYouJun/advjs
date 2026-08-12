@@ -12,7 +12,8 @@
   "homepage": "https://docs.advjs.org",
   "scripts": {
     "dev": "vitepress dev .",
-    "build": "pnpm run predocs && vitepress build .",
+    "build": "pnpm run check && pnpm run predocs && vitepress build .",
+    "check": "node ../scripts/check-docs.mjs",
     "serve": "vitepress serve .",
     "predocs": "typedoc"
   },

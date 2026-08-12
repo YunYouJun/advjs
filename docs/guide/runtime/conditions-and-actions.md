@@ -1,7 +1,3 @@
----
-outline: deep
----
-
 # Variables、Conditions 与 Actions
 
 运行时逻辑使用可重放的纯数据声明，不执行故事中的 JavaScript/TypeScript。

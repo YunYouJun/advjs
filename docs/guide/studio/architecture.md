@@ -69,13 +69,11 @@ flowchart LR
 
 试玩 Inspector 与普通 ADV.JS 客户端共用 `@advjs/client` 的投影模型和组件，因此地址、变量、舞台、选择、checkpoint、pending activity 与 trace 的定义一致。Studio 只额外负责抽屉交互、国际化，以及把 Program ID/hash、快照、诊断和轨迹序列化为调试报告；报告不携带章节原文和 File System Access handle，但作者变量仍需在分享前人工检查。
 
-## 云同步
+## 本地项目与托管资源
 
-使用腾讯云 COS（对象存储）实现项目云同步：
+Studio 保持 Local-First：章节、角色卡、设置与资源分片通过统一文件系统适配器读写本地项目。`adv/assets.json` 是唯一资源根，可以内联资源，也可以通过 `includes` 引用 `adv/assets/*.json`；Studio 将两种形式规范化为同一个 catalog。本地 Profile 解析为 Blob URL，正式游戏 Profile 解析为 HTTP URL。
 
-- 手动推送/拉取
-- 定时自动同步
-- 编辑后自动保存到云端
+二进制资源的托管发布走 CloudBase `advjsAssets`：账号鉴权 → 单对象短期 PUT → 服务端 HEAD 校验 → 私有内容寻址目录。浏览器不持有永久 COS 密钥。旧的“浏览器永久密钥直连 COS 同步整个项目”只保留代码兼容层，不再作为产品入口或推荐部署方式。
 
 ## 状态管理
 
@@ -85,7 +83,7 @@ Studio 使用 13 个 Pinia Store 管理全局状态，全部 IndexedDB（Dexie�
 | ------------------------- | ------------------------------------------- |
 | `useStudioStore`          | 当前项目信息、项目列表                      |
 | `useAiSettingsStore`      | AI 服务商配置（API Key、模型、Base URL）    |
-| `useSettingsStore`        | 用户设置（外观、语言、COS 配置）            |
+| `useSettingsStore`        | 用户设置（外观、语言、非敏感存储偏好）      |
 | `useCharacterChatStore`   | 角色 1v1 对话（消息、流式生成、上下文窗口） |
 | `useChatStore`            | 通用 AI 聊天（项目创作辅助）                |
 | `useCharacterMemoryStore` | 角色记忆（事实、偏好、情感状态提取）        |

@@ -263,6 +263,14 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
           link: '/guide/project-structure',
         },
         {
+          text: '资源目录协议',
+          link: '/guide/assets/catalog',
+        },
+        {
+          text: 'COS 素材发布规范',
+          link: '/guide/assets/cos',
+        },
+        {
           text: '自定义开始界面',
           link: '/guide/customization/start-screen',
         },
@@ -285,6 +293,10 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
             {
               text: '导航与存档',
               link: '/guide/runtime/navigation-and-saves',
+            },
+            {
+              text: '场景演出与素材',
+              link: '/guide/runtime/presentation',
             },
             {
               text: '条件与动作',
@@ -432,6 +444,10 @@ function sidebarAbout(): DefaultTheme.SidebarItem[] {
           link: '/about/design/studio-components',
         },
         {
+          text: '资源系统',
+          link: '/about/design/assets',
+        },
+        {
           text: '存储系统',
           link: '/about/design/storage',
         },
@@ -550,6 +566,7 @@ const userConfig = defineConfig({
   themeConfig: {
     ...vpConfig.themeConfig,
     logo: '/favicon.svg',
+    outline: 'deep',
 
     editLink: {
       pattern: 'https://github.com/YunYouJun/advjs/edit/main/docs/:path',

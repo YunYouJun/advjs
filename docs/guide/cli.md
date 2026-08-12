@@ -471,7 +471,7 @@ adv debug coverage --root ./game/adv --format=json
 
 单章节文本输出示例：
 
-```
+```text
 # Branch Coverage
 
 Scenes reachable : 3/3 (100%)
@@ -486,7 +486,7 @@ Dead options     : 0
 
 项目模式（无剧本参数）输出汇总表：
 
-```
+```text
 # Project Branch Coverage
 
 | Chapter                    | Scenes | Choices | Options | Paths | Dead | Orphan |
