@@ -7,6 +7,7 @@ import { dumpYamlFrontmatter, parseFrontmatterAndBody } from './mdFrontmatter'
  */
 const AUDIO_FRONTMATTER_KEYS: (keyof AdvMusic)[] = [
   'name',
+  'assetId',
   'description',
   'src',
   'duration',
@@ -36,6 +37,7 @@ export function parseAudioMd(content: string): AudioFormData {
 
   const audio: AudioFormData = {
     name: fm.name,
+    assetId: fm.assetId,
     description: fm.description || body.trim() || undefined,
     src: fm.src,
     duration: fm.duration,

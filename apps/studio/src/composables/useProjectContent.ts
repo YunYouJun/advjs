@@ -29,6 +29,7 @@ export interface SceneInfo {
   imagePrompt?: string
   type?: 'image' | 'model'
   tags?: string[]
+  assetId?: string
   src?: string
   linkedLocation?: string
 }
@@ -38,6 +39,7 @@ export interface AudioInfo {
   file: string
   name: string
   description?: string
+  assetId?: string
   /** Audio file path within the project */
   src?: string
   duration?: number
@@ -169,6 +171,7 @@ export function useProjectContent() {
               imagePrompt: parsed.imagePrompt,
               type: parsed.type,
               tags: parsed.tags,
+              assetId: parsed.assetId,
               src: parsed.src,
               linkedLocation: parsed.linkedLocation,
             })
@@ -231,6 +234,7 @@ export function useProjectContent() {
               file,
               name: parsed.name,
               description: parsed.description,
+              assetId: parsed.assetId,
               src: parsed.src,
               duration: parsed.duration,
               tags: parsed.tags,
@@ -352,6 +356,7 @@ export function useProjectContent() {
             imagePrompt: parsed.imagePrompt,
             type: parsed.type,
             tags: parsed.tags,
+            assetId: parsed.assetId,
             src: parsed.src,
             linkedLocation: parsed.linkedLocation,
           })
@@ -411,6 +416,7 @@ export function useProjectContent() {
             file,
             name: parsed.name,
             description: parsed.description,
+            assetId: parsed.assetId,
             src: parsed.src,
             duration: parsed.duration,
             tags: parsed.tags,

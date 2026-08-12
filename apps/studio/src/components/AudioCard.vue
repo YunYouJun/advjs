@@ -8,16 +8,19 @@ import {
   IonCardTitle,
   IonIcon,
 } from '@ionic/vue'
-import { bookOutline, filmOutline, musicalNoteOutline, pauseOutline, playOutline } from 'ionicons/icons'
+import { bookOutline, cloudUploadOutline, filmOutline, musicalNoteOutline, pauseOutline, playOutline } from 'ionicons/icons'
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useProjectContent } from '../composables/useProjectContent'
+import { loadStudioAssetCatalog } from '../utils/projectAssets'
 
 const props = defineProps<{
   audio: AudioInfo
+  isPublishing?: boolean
 }>()
 
 defineEmits<{
   click: [audio: AudioInfo]
+  publish: [audio: AudioInfo]
 }>()
 
 const audioEl = ref<HTMLAudioElement | null>(null)
@@ -25,6 +28,7 @@ const isPlaying = ref(false)
 const currentTime = ref(0)
 const duration = ref(0)
 const blobUrl = ref<string | null>(null)
+let disposeCatalog: (() => void) | undefined
 
 const formattedDuration = computed(() => {
   const d = props.audio.duration || duration.value
@@ -36,10 +40,26 @@ const formattedDuration = computed(() => {
 })
 
 // Load audio blob URL for local files
-watch(() => props.audio.src, async (src) => {
+watch(() => [props.audio.src, props.audio.assetId] as const, async ([src, assetId]) => {
   if (blobUrl.value) {
     URL.revokeObjectURL(blobUrl.value)
     blobUrl.value = null
+  }
+  disposeCatalog?.()
+  disposeCatalog = undefined
+
+  const { getFs } = useProjectContent()
+  const fs = getFs()
+  if (assetId && fs) {
+    try {
+      const catalog = await loadStudioAssetCatalog(fs)
+      if (catalog) {
+        blobUrl.value = (await catalog.resolve(assetId)).src
+        disposeCatalog = () => catalog.dispose()
+        return
+      }
+    }
+    catch { /* fall through to legacy src */ }
   }
 
   if (!src)
@@ -49,8 +69,6 @@ watch(() => props.audio.src, async (src) => {
     return
   }
 
-  const { getFs } = useProjectContent()
-  const fs = getFs()
   if (!fs)
     return
 
@@ -100,6 +118,7 @@ function onSeek(event: Event) {
 }
 
 onUnmounted(() => {
+  disposeCatalog?.()
   if (blobUrl.value && !props.audio.src?.startsWith('http'))
     URL.revokeObjectURL(blobUrl.value)
 })
@@ -134,6 +153,16 @@ onUnmounted(() => {
       <span v-if="formattedDuration" class="audio-card__duration">
         {{ formattedDuration }}
       </span>
+      <IonButton
+        v-if="audio.assetId"
+        fill="clear"
+        size="small"
+        :disabled="isPublishing"
+        :aria-label="$t('assetStorage.publish')"
+        @click.stop="$emit('publish', audio)"
+      >
+        <IonIcon :icon="cloudUploadOutline" />
+      </IonButton>
     </IonCardHeader>
 
     <!-- Progress bar -->

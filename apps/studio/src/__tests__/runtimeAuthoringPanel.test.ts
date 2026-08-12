@@ -14,6 +14,7 @@ const messages = {
       noDiagnostics: 'No diagnostics',
       noProgram: 'No program',
       sourceUnknown: 'Unknown source',
+      tabsLabel: 'Runtime authoring sections',
     },
   },
 }

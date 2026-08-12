@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { AdvGalleryItem } from '@advjs/types'
 import {
   IonButton,
   IonButtons,
@@ -15,6 +16,7 @@ import { useI18n } from 'vue-i18n'
 
 const props = defineProps<{
   open: boolean
+  items: AdvGalleryItem[]
   unlockedCgs: string[]
 }>()
 
@@ -23,18 +25,20 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const lightboxUrl = ref<string | null>(null)
+const selected = ref<AdvGalleryItem>()
+const unlocked = (item: AdvGalleryItem) => props.unlockedCgs.includes(item.id)
 
 function close() {
   emit('update:open', false)
 }
 
-function openLightbox(url: string) {
-  lightboxUrl.value = url
+function openLightbox(item: AdvGalleryItem) {
+  if (unlocked(item))
+    selected.value = item
 }
 
 function closeLightbox() {
-  lightboxUrl.value = null
+  selected.value = undefined
 }
 </script>
 
@@ -51,34 +55,44 @@ function closeLightbox() {
       </IonToolbar>
     </IonHeader>
     <IonContent class="ion-padding">
-      <div v-if="props.unlockedCgs.length === 0" class="cg-empty">
+      <div v-if="props.items.length === 0" class="cg-empty">
         <IonIcon :icon="imageOutline" />
         <p>{{ t('preview.cgNoUnlocks') }}</p>
       </div>
       <div v-else class="cg-grid">
         <button
-          v-for="url in props.unlockedCgs"
-          :key="url"
+          v-for="item in props.items"
+          :key="item.id"
           type="button"
           class="cg-cell"
-          :title="t('preview.cgClickToView')"
-          @click="openLightbox(url)"
+          :class="{ 'cg-cell--locked': !unlocked(item) }"
+          :disabled="!unlocked(item)"
+          :title="unlocked(item) ? t('preview.cgClickToView') : item.title"
+          @click="openLightbox(item)"
         >
-          <img :src="url" :alt="url" class="cg-cell__img" loading="lazy">
+          <img
+            v-if="unlocked(item)"
+            :src="item.thumbnail || item.src"
+            :alt="item.alt || item.title"
+            class="cg-cell__img"
+            loading="lazy"
+          >
+          <span v-else class="cg-cell__lock">?</span>
+          <span class="cg-cell__title">{{ unlocked(item) ? item.title : 'LOCKED' }}</span>
         </button>
       </div>
     </IonContent>
 
     <!-- Lightbox overlay -->
     <div
-      v-if="lightboxUrl"
+      v-if="selected"
       class="cg-lightbox"
       role="button"
       tabindex="0"
       @click="closeLightbox"
       @keydown.escape="closeLightbox"
     >
-      <img :src="lightboxUrl" :alt="lightboxUrl" class="cg-lightbox__img">
+      <img :src="selected.src" :alt="selected.alt || selected.title" class="cg-lightbox__img">
     </div>
   </IonModal>
 </template>
@@ -134,6 +148,33 @@ function closeLightbox() {
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.cg-cell--locked {
+  cursor: default;
+  opacity: 0.58;
+}
+
+.cg-cell__lock {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  background: linear-gradient(145deg, #0f172a, #1e293b);
+  color: #64748b;
+  font: 600 2rem/1 monospace;
+}
+
+.cg-cell__title {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 0.35rem 0.5rem;
+  background: linear-gradient(transparent, rgb(2 6 23 / 88%));
+  color: #f8fafc;
+  font-size: 0.75rem;
+  text-align: left;
 }
 
 .cg-lightbox {

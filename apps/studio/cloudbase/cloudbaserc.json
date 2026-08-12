@@ -9,6 +9,17 @@
       "runtime": "Nodejs18.15",
       "handler": "index.main",
       "installDependency": true
+    },
+    {
+      "name": "advjsAssets",
+      "timeout": 60,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main",
+      "installDependency": true,
+      "envVariables": {
+        "ADVJS_ASSET_BUCKET": "yunlefun-advjs-prod-1325586649",
+        "ADVJS_ASSET_REGION": "ap-shanghai"
+      }
     }
   ]
 }

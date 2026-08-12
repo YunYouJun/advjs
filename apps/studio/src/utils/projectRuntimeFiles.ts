@@ -1,4 +1,9 @@
-import type { AdvGameConfig, JsonObject } from '@advjs/types'
+import type {
+  AdvGameConfig,
+  AdvGameGalleryConfig,
+  AdvGameProgressionConfig,
+  JsonObject,
+} from '@advjs/types'
 import type { IFileSystem } from './fs'
 
 const RUNTIME_CHAPTER_ROOTS = [
@@ -8,10 +13,30 @@ const RUNTIME_CHAPTER_ROOTS = [
   'public/md',
 ] as const
 
+export interface StudioGalleryItem {
+  id: string
+  /** Stable reference resolved through adv/assets.json. */
+  assetId?: string
+  /** Optional thumbnail variant name in the asset catalog. */
+  thumbnailVariant?: string
+  title?: string
+  src?: string
+  thumbnail?: string
+  alt?: string
+  chapterId?: string
+}
+
+export interface StudioGameGalleryConfig {
+  id: string
+  version?: number
+  allowDownload?: boolean
+  items: StudioGalleryItem[]
+}
+
 export type StudioGameSettings = Partial<Pick<
   AdvGameConfig,
-  'title' | 'description' | 'variables' | 'requiredPlugins'
->>
+  'title' | 'description' | 'variables' | 'progression' | 'requiredPlugins'
+>> & { gallery?: StudioGameGalleryConfig }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value))
@@ -70,6 +95,42 @@ export async function loadStudioGameSettings(fs: IFileSystem): Promise<StudioGam
       throw invalidSettings('variables must be an object')
     settings.variables = structuredClone(value.variables) as JsonObject
   }
+  if (value.progression !== undefined) {
+    if (!isRecord(value.progression)
+      || typeof value.progression.id !== 'string'
+      || !Array.isArray(value.progression.keys)
+      || value.progression.keys.some(key => typeof key !== 'string')
+      || (value.progression.version !== undefined
+        && (!Number.isInteger(value.progression.version) || Number(value.progression.version) < 1))) {
+      throw invalidSettings('progression must declare id, string keys, and an optional positive version')
+    }
+    settings.progression = structuredClone(value.progression) as unknown as AdvGameProgressionConfig
+  }
+  if (value.gallery !== undefined) {
+    const gallery = value.gallery
+    if (!isRecord(gallery)
+      || typeof gallery.id !== 'string'
+      || !Array.isArray(gallery.items)
+      || gallery.items.some(item => (
+        !isRecord(item)
+        || typeof item.id !== 'string'
+        || (typeof item.assetId !== 'string'
+          && (typeof item.title !== 'string' || typeof item.src !== 'string'))
+        || (item.assetId !== undefined && typeof item.assetId !== 'string')
+        || (item.title !== undefined && typeof item.title !== 'string')
+        || (item.src !== undefined && typeof item.src !== 'string')
+        || (item.thumbnail !== undefined && typeof item.thumbnail !== 'string')
+        || (item.thumbnailVariant !== undefined && typeof item.thumbnailVariant !== 'string')
+        || (item.alt !== undefined && typeof item.alt !== 'string')
+        || (item.chapterId !== undefined && typeof item.chapterId !== 'string')
+      ))
+      || (gallery.version !== undefined
+        && (!Number.isInteger(gallery.version) || Number(gallery.version) < 1))
+      || (gallery.allowDownload !== undefined && typeof gallery.allowDownload !== 'boolean')) {
+      throw invalidSettings('gallery must declare id and valid CG items')
+    }
+    settings.gallery = structuredClone(gallery) as unknown as StudioGameGalleryConfig
+  }
   if (value.requiredPlugins !== undefined) {
     if (!isRecord(value.requiredPlugins)
       || Object.values(value.requiredPlugins).some(version => typeof version !== 'string')) {
@@ -83,7 +144,7 @@ export async function loadStudioGameSettings(fs: IFileSystem): Promise<StudioGam
 
 export function applyStudioGameSettings(
   generated: Partial<AdvGameConfig>,
-  settings: StudioGameSettings,
+  settings: Omit<StudioGameSettings, 'gallery'> & { gallery?: AdvGameGalleryConfig },
 ): Partial<AdvGameConfig> {
   return {
     ...generated,

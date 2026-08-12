@@ -135,6 +135,13 @@ export class YCloudbaseProvider {
     if (this.isConnected)
       return
 
+    // disconnect() detaches the listener so a stopped provider cannot retain
+    // the Y.Doc. Reattach it when the same provider instance reconnects.
+    // Yjs de-duplicates identical listeners, but off/on also keeps this safe
+    // across implementations of the observable API.
+    this.doc.off('update', this.onLocalUpdate)
+    this.doc.on('update', this.onLocalUpdate)
+
     this.isConnected = true
     this.emit('status', [{ status: 'connecting' }])
 
@@ -531,6 +538,7 @@ export class YCloudbaseProvider {
           this.pendingUpdate = update
         }
       }
+      this.emit('write-error', [err])
       console.warn('[y-cloudbase] Failed to flush update:', err)
     }
   }

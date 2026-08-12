@@ -12,7 +12,7 @@ const snapshot: RuntimeSnapshot = {
     status: 'playing',
     cursor: { chapterId: 'chapter-1', nodeId: 'line-1' },
     variables: { route: 'observe' },
-    stage: { background: 'night.svg', bgm: '', tachies: {} },
+    stage: { background: 'night.svg', bgm: '', tachies: {}, cg: '' },
     choices: [],
     visited: ['chapter-1#line-1'],
   },

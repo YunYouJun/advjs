@@ -1,10 +1,9 @@
 import { useStorage } from '@vueuse/core'
-import { computed } from 'vue'
 
 /**
  * Per-chapter / per-project play progress tracking for Studio Play Tab.
  *
- * Persisted to localStorage so reloads keep visited / history / CG state without
+ * Persisted to localStorage so reloads keep visited / history state without
  * relying on Dexie migration churn. Save slots use Dexie separately and embed a
  * frozen snapshot of these fields.
  *
@@ -21,7 +20,10 @@ interface ChapterProgress {
 interface ProjectProgress {
   /** Chapter file path → progress. */
   chapters: Record<string, ChapterProgress>
-  /** Project-wide unlocked CG identifiers (background URLs). */
+  /**
+   * Legacy Studio CG values. New unlocks are owned by RuntimeGalleryController
+   * and use stable IDs declared in gameConfig.gallery.
+   */
   unlockedCGs: string[]
 }
 
@@ -89,15 +91,6 @@ export function usePlayProgress(projectId: () => string | undefined) {
     return next.length > 0 ? next[next.length - 1] : 0
   }
 
-  function unlockCG(url: string): void {
-    const id = pid()
-    if (!id || !url)
-      return
-    const proj = ensureProject(id)
-    if (!proj.unlockedCGs.includes(url))
-      proj.unlockedCGs = [...proj.unlockedCGs, url]
-  }
-
   function resetChapter(chapterFile: string): void {
     const id = pid()
     if (!id)
@@ -129,22 +122,13 @@ export function usePlayProgress(projectId: () => string | undefined) {
     }
   }
 
-  const unlockedCGs = computed<string[]>(() => {
-    const id = pid()
-    if (!id)
-      return []
-    return progressMap.value[id]?.unlockedCGs ?? []
-  })
-
   return {
     getChapter,
     markVisit,
     isVisited,
     rollback,
-    unlockCG,
     resetChapter,
     resetProject,
     hydrate,
-    unlockedCGs,
   }
 }

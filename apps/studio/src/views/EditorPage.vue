@@ -508,7 +508,11 @@ async function save() {
           :file="filePath"
           :chapters="projectContent.chapters.value"
           :settings="runtimeSettings"
+          :scenes="projectContent.scenes.value"
+          :characters="projectContent.characters.value"
+          :audios="projectContent.audios.value"
           @select-source="selectRuntimeSource"
+          @insert-snippet="insertAtCursor"
         />
       </div>
     </div>

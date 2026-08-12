@@ -31,6 +31,11 @@ describe('studio runtime project files', () => {
       'adv/settings/game.json': JSON.stringify({
         title: '仓鼠：星海回声',
         variables: { curiosity: 0 },
+        progression: { id: 'hamster', version: 1, keys: ['canonicalCompleted'] },
+        gallery: {
+          id: 'hamster',
+          items: [{ id: 'star-in-hand', title: '恒星在手', src: 'cg/star.webp' }],
+        },
         requiredPlugins: { 'star-map': '1.0.0' },
       }),
     })
@@ -42,6 +47,11 @@ describe('studio runtime project files', () => {
     expect(await loadStudioGameSettings(fs)).toEqual({
       title: '仓鼠：星海回声',
       variables: { curiosity: 0 },
+      progression: { id: 'hamster', version: 1, keys: ['canonicalCompleted'] },
+      gallery: {
+        id: 'hamster',
+        items: [{ id: 'star-in-hand', title: '恒星在手', src: 'cg/star.webp' }],
+      },
       requiredPlugins: { 'star-map': '1.0.0' },
     })
   })
@@ -59,6 +69,24 @@ describe('studio runtime project files', () => {
 
   it('returns empty settings for a missing file', async () => {
     expect(await loadStudioGameSettings(createFs({}))).toEqual({})
+  })
+
+  it('accepts gallery asset references without duplicating release URLs', async () => {
+    const fs = createFs({
+      'adv/settings/game.json': JSON.stringify({
+        gallery: {
+          id: 'demo',
+          items: [{ id: 'ending', assetId: 'cg/ending', chapterId: 'finale' }],
+        },
+      }),
+    })
+
+    await expect(loadStudioGameSettings(fs)).resolves.toEqual({
+      gallery: {
+        id: 'demo',
+        items: [{ id: 'ending', assetId: 'cg/ending', chapterId: 'finale' }],
+      },
+    })
   })
 
   it('rejects a non-object settings root', async () => {

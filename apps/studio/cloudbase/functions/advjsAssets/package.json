@@ -1,0 +1,12 @@
+{
+  "name": "advjs-studio-assets",
+  "type": "commonjs",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Managed ADV.JS asset upload reservations and verified catalog records.",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "catalog:",
+    "cos-nodejs-sdk-v5": "catalog:"
+  }
+}

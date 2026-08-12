@@ -20,7 +20,7 @@ test.describe('Play Tab — Phase 17a', () => {
     })
 
     if (!hasProject) {
-      const quickStartBtn = page.getByText('一键体验').or(page.getByText('Quick Start')).or(page.getByText('quick-start'))
+      const quickStartBtn = page.getByRole('button', { name: /立即体验|一键体验|Quick Start|quick-start/ })
       if (await quickStartBtn.isVisible({ timeout: 3000 })) {
         await quickStartBtn.click()
         await page.waitForTimeout(2500)
@@ -73,6 +73,21 @@ test.describe('Play Tab — Phase 17a', () => {
 
     // Look for percentage symbol — completion bar must render.
     await expect(page.getByText(/%/).first()).toBeVisible({ timeout: 3000 })
+  })
+
+  test('node selection opens an isolated authoring seek preview', async ({ page }) => {
+    await page.goto('/tabs/play')
+    await page.waitForTimeout(3000)
+
+    const nodes = page.getByRole('button', { name: /节点|Nodes/ }).first()
+    await nodes.click()
+    const firstNode = page.locator('.node-item__title').first()
+    await expect(firstNode).toBeVisible({ timeout: 5000 })
+    await firstNode.click()
+
+    await expect(page.getByText(/创作跳转预览中|Authoring seek preview/)).toBeVisible()
+    await page.getByRole('button', { name: /返回游玩|Return to play/ }).click()
+    await expect(page.getByText(/创作跳转预览中|Authoring seek preview/)).toBeHidden()
   })
 
   test('Play progress persists in localStorage across reload', async ({ page }) => {

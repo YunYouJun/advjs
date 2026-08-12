@@ -1,106 +1,53 @@
+import type { Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 
+type CollabScenario = 'convergence' | 'reconnect' | 'permission-denied'
+
+interface CollabScenarioResult {
+  ownerText: string
+  peerText: string
+  rejectedWrites: number
+  writeErrors: number
+}
+
+async function runCollabScenario(page: Page, scenario: CollabScenario) {
+  await page.goto('/')
+  return page.evaluate(async (requestedScenario) => {
+    const { runCollabScenario } = await import('/tests/e2e/fixtures/collab-harness.ts')
+    return runCollabScenario(requestedScenario)
+  }, scenario) as Promise<CollabScenarioResult>
+}
+
 test.describe('Collaboration', () => {
-  test('collab settings page is accessible', async ({ page }) => {
+  test('collab settings explains when no room is active', async ({ page }) => {
     await page.goto('/tabs/workspace/collab')
-    await page.waitForTimeout(1000)
 
-    // Should show the page title
-    const title = page.getByText('协作设置').or(page.getByText('Collaboration Settings'))
-    await expect(title.first()).toBeVisible()
+    await expect(page.getByRole('banner').filter({ hasText: /协作设置|Collaboration Settings/ })).toBeVisible()
+    await expect(page.getByText(/当前未加入协作房间|Not in a collaboration room/)).toBeVisible()
   })
 
-  test('collab settings shows no-room hint when not in a room', async ({ page }) => {
-    await page.goto('/tabs/workspace/collab')
-    await page.waitForTimeout(1000)
+  test('two clients converge after editing the same document', async ({ page }) => {
+    const result = await runCollabScenario(page, 'convergence')
 
-    // Should show the "no room" message
-    const noRoomHint = page.getByText('当前未加入协作房间').or(page.getByText('Not in a collaboration room'))
-    await expect(noRoomHint.first()).toBeVisible()
+    expect(result.ownerText).toBe('owner-editor')
+    expect(result.peerText).toBe(result.ownerText)
+    expect(result.rejectedWrites).toBe(0)
   })
 
-  test('collab bar appears in content editor markdown tab', async ({ page }) => {
-    await page.goto('/tabs/workspace')
-    await page.waitForTimeout(1000)
+  test('a disconnected client catches up and can publish after reconnecting', async ({ page }) => {
+    const result = await runCollabScenario(page, 'reconnect')
 
-    // Create or select a project first
-    const createBtn = page.getByText('创建项目').or(page.getByText('Create Project')).first()
-    if (await createBtn.isVisible()) {
-      await createBtn.click()
-      await page.waitForTimeout(500)
-    }
-
-    // Navigate to chapters
-    const chaptersBtn = page.getByText('章节').or(page.getByText('Chapters')).first()
-    if (await chaptersBtn.isVisible()) {
-      await chaptersBtn.click()
-      await page.waitForTimeout(500)
-
-      // Look for collab-related UI in the editor
-      const collabBar = page.locator('.cem-collab-bar')
-      // The collab bar is only visible when markdown tab is active
-      // This test verifies the element exists in the DOM
-      const markdownTab = page.getByText('Markdown').first()
-      if (await markdownTab.isVisible()) {
-        await markdownTab.click()
-        await page.waitForTimeout(500)
-        await expect(collabBar.first()).toBeVisible()
-      }
-    }
+    expect(result.ownerText).toBe('before-offline-after-reconnect')
+    expect(result.peerText).toBe(result.ownerText)
+    expect(result.rejectedWrites).toBe(0)
   })
 
-  test('collab status shows idle when not connected', async ({ page }) => {
-    await page.goto('/tabs/workspace')
-    await page.waitForTimeout(1000)
+  test('a viewer write is rejected and never reaches the editor', async ({ page }) => {
+    const result = await runCollabScenario(page, 'permission-denied')
 
-    // Navigate to a content editor
-    const chaptersBtn = page.getByText('章节').or(page.getByText('Chapters')).first()
-    if (await chaptersBtn.isVisible()) {
-      await chaptersBtn.click()
-      await page.waitForTimeout(500)
-
-      const markdownTab = page.getByText('Markdown').first()
-      if (await markdownTab.isVisible()) {
-        await markdownTab.click()
-        await page.waitForTimeout(500)
-
-        // Should show idle or login required status
-        const idleText = page.getByText('单人编辑').or(page.getByText('Solo editing'))
-        const loginText = page.getByText('登录后可启用协作').or(page.getByText('Sign in to collaborate'))
-        const unavailText = page.getByText('暂不可协作').or(page.getByText('unavailable'))
-
-        const hasIdle = await idleText.first().isVisible().catch(() => false)
-        const hasLogin = await loginText.first().isVisible().catch(() => false)
-        const hasUnavail = await unavailText.first().isVisible().catch(() => false)
-
-        expect(hasIdle || hasLogin || hasUnavail).toBeTruthy()
-      }
-    }
-  })
-
-  test('collab start button exists in markdown editor', async ({ page }) => {
-    await page.goto('/tabs/workspace')
-    await page.waitForTimeout(1000)
-
-    const chaptersBtn = page.getByText('章节').or(page.getByText('Chapters')).first()
-    if (await chaptersBtn.isVisible()) {
-      await chaptersBtn.click()
-      await page.waitForTimeout(500)
-
-      const markdownTab = page.getByText('Markdown').first()
-      if (await markdownTab.isVisible()) {
-        await markdownTab.click()
-        await page.waitForTimeout(500)
-
-        // Should have a start/stop collaboration button
-        const startBtn = page.getByText('启用协作').or(page.getByText('Start collaboration'))
-        const stopBtn = page.getByText('离开协作').or(page.getByText('Leave collaboration'))
-
-        const hasStart = await startBtn.first().isVisible().catch(() => false)
-        const hasStop = await stopBtn.first().isVisible().catch(() => false)
-
-        expect(hasStart || hasStop).toBeTruthy()
-      }
-    }
+    expect(result.ownerText).toBe('published')
+    expect(result.peerText).toBe('published-forbidden')
+    expect(result.rejectedWrites).toBe(1)
+    expect(result.writeErrors).toBe(1)
   })
 })

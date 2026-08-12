@@ -15,6 +15,7 @@ const COLLECTION_REVIEWS = 'advjs_reviews'
 
 export type MarketStatus = 'draft' | 'published' | 'unlisted'
 export type SortMode = 'newest' | 'popular' | 'rating'
+export type ReportReason = 'spam' | 'abuse' | 'copyright' | 'other'
 
 export interface MarketplaceRecord {
   _id?: string
@@ -77,6 +78,13 @@ export interface ReviewRecord {
   createdAt: number
   /** Last edit time (set by the `marketStats` function when a review is updated) */
   updatedAt?: number
+  /** One-level project-author reply (Phase 18 MVP). */
+  authorReply?: {
+    authorId: string
+    authorName: string
+    comment: string
+    createdAt: number
+  }
 }
 
 /**
@@ -458,6 +466,47 @@ export function useMarketplace() {
     }
   }
 
+  /** Create or replace the project author's one-level reply to a review. */
+  async function replyToReview(
+    cloudApp: cloudbase.app.App,
+    reviewId: string,
+    comment: string,
+  ): Promise<boolean> {
+    try {
+      const data = await callMarketStats(cloudApp, { action: 'replyReview', reviewId, comment })
+      if (data.error) {
+        error.value = data.error
+        return false
+      }
+      return true
+    }
+    catch (err) {
+      error.value = err instanceof Error ? err.message : String(err)
+      return false
+    }
+  }
+
+  /** Submit one pending report per user and project. */
+  async function reportProject(
+    cloudApp: cloudbase.app.App,
+    marketId: string,
+    reason: ReportReason,
+    details = '',
+  ): Promise<boolean> {
+    try {
+      const data = await callMarketStats(cloudApp, { action: 'reportProject', marketId, reason, details })
+      if (data.error) {
+        error.value = data.error
+        return false
+      }
+      return true
+    }
+    catch (err) {
+      error.value = err instanceof Error ? err.message : String(err)
+      return false
+    }
+  }
+
   /**
    * Toggle the `featured` curation flag on a marketplace item (Phase 18).
    *
@@ -513,6 +562,8 @@ export function useMarketplace() {
     submitReview,
     fetchReviews,
     likeReview,
+    replyToReview,
+    reportProject,
     setFeatured,
     unlistProject,
   }

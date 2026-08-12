@@ -30,20 +30,25 @@ import { useContentDelete } from '../../composables/useContentDelete'
 import { useContentEditor } from '../../composables/useContentEditor'
 import { useContentSave } from '../../composables/useContentSave'
 import { useIncrementalList } from '../../composables/useIncrementalList'
+import { useManagedAssetStorage } from '../../composables/useManagedAssetStorage'
 import { useProjectContent } from '../../composables/useProjectContent'
 import { useRecentActivity } from '../../composables/useRecentActivity'
 import { useAiSettingsStore } from '../../stores/useAiSettingsStore'
+import { useStudioStore } from '../../stores/useStudioStore'
 import { generateImage, isImageGenerationAvailable } from '../../utils/aiImageClient'
+import { upsertStudioProjectAsset } from '../../utils/projectAssets'
 import { parseSceneMd, stringifySceneMd } from '../../utils/sceneMd'
 import { showToast } from '../../utils/toast'
 
 const { t } = useI18n()
 const aiSettings = useAiSettingsStore()
+const studioStore = useStudioStore()
 
 const { scenes, reload, getFs } = useProjectContent()
 const { isSaving, saveContent } = useContentSave()
 const { deleteFile } = useContentDelete()
 const { trackAccess } = useRecentActivity()
+const managedAssets = useManagedAssetStorage()
 
 const generatingSceneIds = ref(new Set<string>())
 const aiImageAvailable = computed(() => isImageGenerationAvailable(aiSettings.config))
@@ -68,15 +73,26 @@ async function handleGenerateImage(scene: SceneInfo) {
       const response = await fetch(result.url)
       const blob = await response.blob()
       const ext = blob.type.includes('webp') ? 'webp' : blob.type.includes('png') ? 'png' : 'jpg'
-      const imagePath = `adv/scenes/${sceneId}.${ext}`
+      const imagePath = `adv/assets/backgrounds/${sceneId}.${ext}`
+      const assetId = `background/${sceneId}`
       await fs.writeBlob(imagePath, blob)
+      await upsertStudioProjectAsset(fs, {
+        id: assetId,
+        kind: 'background',
+        type: 'image',
+        path: `backgrounds/${sceneId}.${ext}`,
+        mimeType: blob.type || undefined,
+        bytes: blob.size,
+        sceneId,
+      }, { catalogId: studioStore.currentProjectId })
 
-      // Update scene frontmatter with src
+      // Scripts reference the stable catalog ID, never the physical path.
       const sceneMdPath = `adv/scenes/${sceneId}.md`
       try {
         const content = await fs.readFile(sceneMdPath)
         const parsed = parseSceneMd(content)
-        parsed.src = `${sceneId}.${ext}`
+        parsed.assetId = assetId
+        parsed.src = undefined
         const newContent = stringifySceneMd(parsed)
         await fs.writeFile(sceneMdPath, newContent)
       }
@@ -86,7 +102,7 @@ async function handleGenerateImage(scene: SceneInfo) {
           id: sceneId,
           name: scene.name,
           imagePrompt: scene.imagePrompt,
-          src: `${sceneId}.${ext}`,
+          assetId,
           type: 'image',
         })
         await fs.writeFile(sceneMdPath, newContent)
@@ -154,6 +170,8 @@ function handleEditScene(scene: SceneInfo) {
   const sceneData: SceneFormData = {
     id: scene.id || scene.name,
     name: scene.name,
+    assetId: scene.assetId,
+    src: scene.src,
     description: scene.description,
     imagePrompt: scene.imagePrompt,
     type: scene.type || 'image',
@@ -198,6 +216,18 @@ async function handleDeleteScene(scene: SceneFormData) {
     sceneEditor.close()
   }
 }
+
+async function handlePublishScene(scene: SceneInfo) {
+  if (!scene.assetId)
+    return
+  try {
+    await managedAssets.publish(scene.assetId)
+    await showToast(t('assetStorage.publishSuccess'))
+  }
+  catch (error) {
+    await showToast(t('assetStorage.publishFailed', { error: error instanceof Error ? error.message : String(error) }), 'danger')
+  }
+}
 </script>
 
 <template>
@@ -231,9 +261,11 @@ async function handleDeleteScene(scene: SceneFormData) {
         <SceneCard
           :scene="scene"
           :is-generating="generatingSceneIds.has(scene.id || '')"
+          :is-publishing="managedAssets.isPublishing(scene.assetId)"
           :ai-available="aiImageAvailable"
           @click="handleEditScene(scene)"
           @generate-image="handleGenerateImage"
+          @publish="handlePublishScene"
         />
         <IonItemOptions side="end">
           <IonItemOption color="danger" @click="handleDeleteScene({ id: scene.id || scene.name, name: scene.name, description: scene.description, imagePrompt: scene.imagePrompt, type: scene.type || 'image', tags: scene.tags })">

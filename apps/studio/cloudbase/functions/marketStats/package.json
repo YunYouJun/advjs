@@ -1,7 +1,7 @@
 {
   "name": "advjs-studio-market-stats",
   "version": "1.0.0",
-  "description": "Privileged Story Market counter writer (downloads / rating aggregate / review likes).",
+  "description": "Privileged Story Market writer for counters, reviews, replies, and reports.",
   "main": "index.js",
   "dependencies": {
     "@cloudbase/node-sdk": "catalog:"

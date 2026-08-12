@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { AdvContext } from '@advjs/client'
-import type { AdvConfig, AdvFountainNode, AdvGameConfig, JsonValue, RuntimeChoice, RuntimeNode, RuntimeSnapshot } from '@advjs/types'
+import type { AdvConfig, AdvFountainNode, AdvGameConfig, JsonObject, JsonValue, RuntimeAddress, RuntimeChoice, RuntimeNode, RuntimeSnapshot, RuntimeStatus } from '@advjs/types'
 import { injectionAdvContext } from '@advjs/client'
 import AdvGame from '@advjs/client/components/game/AdvGame.vue'
 import { setupAdvContext } from '@advjs/client/setup/context'
+import { derivePresentationState, runtimeConditionMatches } from '@advjs/core'
 import { onIonViewDidEnter } from '@ionic/vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, provide, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -28,6 +29,22 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const studioStore = useStudioStore()
 const progress = usePlayProgress(() => studioStore.currentProject?.projectId)
+
+function createSessionStorage(): Storage {
+  const values = new Map<string, string>()
+  return {
+    get length() {
+      return values.size
+    },
+    clear: () => values.clear(),
+    getItem: key => values.get(key) ?? null,
+    key: index => [...values.keys()][index] ?? null,
+    removeItem: key => values.delete(key),
+    setItem: (key, value) => values.set(key, value),
+  }
+}
+
+const galleryStorage = createSessionStorage()
 const {
   gameConfigRef,
   configRef,
@@ -49,6 +66,7 @@ const $adv: AdvContext = setupAdvContext({
   fetcher: fetchChapter,
   runtimePlugins,
   progressionStorage: false,
+  galleryStorage,
 })
 provide(injectionAdvContext, $adv)
 
@@ -56,6 +74,10 @@ const ready = shallowRef(false)
 const error = shallowRef('')
 const runtimeInspectorOpen = shallowRef(false)
 const runtimeRevision = shallowRef(0)
+const previewVariables = shallowRef<JsonObject>({})
+const authoringSeekActive = shallowRef(false)
+let authoringSeekOrigin: RuntimeSnapshot | undefined
+let authoringSeekTarget: RuntimeAddress | undefined
 const stopRuntimeTrace = $adv.runtime.subscribeTrace(() => {
   runtimeRevision.value += 1
 })
@@ -122,7 +144,8 @@ const historyStack = computed(() => {
     return index >= 0 ? [index] : []
   })
 })
-const unlockedCGs = progress.unlockedCGs
+const unlockedCGs = computed<string[]>(() => [...($adv.gallery?.unlocked.value ?? [])])
+const galleryItems = computed(() => gameConfig.value.gallery?.items ?? [])
 const runtimeSnapshot = computed(() => {
   void runtimeRevision.value
   return $adv.runtime.snapshot()
@@ -146,17 +169,12 @@ const inspector = useRuntimeInspector(
 )
 
 watch(currentIndex, (order) => {
-  if (!ready.value || !props.chapterFile || order < 0)
+  if (!ready.value || authoringSeekActive.value || !props.chapterFile || order < 0)
     return
   const wasVisited = progress.isVisited(props.chapterFile, order)
   progress.markVisit(props.chapterFile, order)
   if (!wasVisited && $adv.$auto.skipEnabled.value)
     $adv.$auto.skipEnabled.value = false
-})
-
-watch(() => $adv.store.state.stage.background, (background) => {
-  if (ready.value && background)
-    progress.unlockCG(background)
 })
 
 watch(currentChapterId, (chapterId) => {
@@ -166,11 +184,16 @@ watch(currentChapterId, (chapterId) => {
 })
 
 watch(() => $adv.store.status.isEnd, (ended) => {
-  if (ended)
+  if (ended && !authoringSeekActive.value)
     emit('ended')
 })
 
 async function goToChapter(chapterFile?: string) {
+  if (authoringSeekOrigin)
+    $adv.runtime.restore(authoringSeekOrigin)
+  authoringSeekActive.value = false
+  authoringSeekOrigin = undefined
+  authoringSeekTarget = undefined
   const program = $adv.store.program
   if (!program)
     return
@@ -190,6 +213,7 @@ async function initGame() {
   initStarted = true
   try {
     await refresh()
+    previewVariables.value = structuredClone(gameConfigRef.value.variables ?? {})
     await nextTick()
     await $adv.init()
     await goToChapter(props.chapterFile)
@@ -227,14 +251,16 @@ watch(() => props.chapterFile, async (chapterId) => {
 })
 
 function getCurrentSnapshot() {
-  const runtime = $adv.runtime.snapshot()
-  const node = $adv.store.current
+  const runtime = authoringSeekOrigin ?? $adv.runtime.snapshot()
+  const chapter = $adv.store.program?.chapters[runtime.state.cursor.chapterId]
+  const node = chapter?.nodes[runtime.state.cursor.nodeId]
+  const order = chapter?.order.indexOf(runtime.state.cursor.nodeId) ?? -1
   return {
     runtime,
     chapterFile: chapterFileForId(runtime.state.cursor.chapterId) ?? runtime.state.cursor.chapterId,
-    order: currentIndex.value,
-    totalNodes: totalNodes.value,
-    chapterTitle: currentChapter.value?.title ?? props.chapterName,
+    order,
+    totalNodes: chapter?.order.length ?? 0,
+    chapterTitle: chapter?.title ?? props.chapterName,
     previewText: typeof node?.data?.text === 'string' ? node.data.text.slice(0, 80) : undefined,
     background: runtime.state.stage.background,
     tachies: new Map(Object.entries(runtime.state.stage.tachies)),
@@ -242,6 +268,8 @@ function getCurrentSnapshot() {
 }
 
 function rollback(steps = 1): number | null {
+  if (authoringSeekActive.value)
+    return null
   try {
     for (let index = 0; index < steps; index++)
       $adv.runtime.back()
@@ -265,15 +293,128 @@ async function restart() {
   await goToChapter(props.chapterFile)
 }
 
+const silentPreviewKinds = new Set(['anchor', 'scene', 'effects', 'actions'])
+const previewDiagnosticCodes = new Set([
+  'ADV_RUNTIME_PREVIEW_SCENE_BASELINE_MISSING',
+  'ADV_RUNTIME_PREVIEW_BACKGROUND_MISSING',
+  'ADV_RUNTIME_PREVIEW_DERIVATION_FAILED',
+])
+
+function previewCursor(chapter: NonNullable<typeof currentChapter.value>, startIndex: number): RuntimeAddress {
+  for (let index = startIndex; index < chapter.order.length; index++) {
+    const nodeId = chapter.order[index]
+    const node = chapter.nodes[nodeId]
+    if (!node || !runtimeConditionMatches(node.when, previewVariables.value))
+      continue
+    if (!silentPreviewKinds.has(node.kind))
+      return { chapterId: chapter.id, nodeId }
+  }
+  return { chapterId: chapter.id, nodeId: chapter.order.at(-1) ?? chapter.entry }
+}
+
+function previewStatus(node: RuntimeNode | undefined): RuntimeStatus {
+  if (node?.kind === 'choices')
+    return 'waiting-choice'
+  if (node?.kind === 'end')
+    return 'ended'
+  return 'playing'
+}
+
+function clearPreviewDiagnostics() {
+  $adv.compileDiagnostics.value = $adv.compileDiagnostics.value.filter(item => (
+    !previewDiagnosticCodes.has(item.code)
+  ))
+}
+
+function seekToAddress(target: RuntimeAddress) {
+  const program = $adv.store.program
+  const chapter = program?.chapters[target.chapterId]
+  const index = chapter?.order.indexOf(target.nodeId) ?? -1
+  if (!program || !chapter || index < 0)
+    return
+
+  const origin = authoringSeekOrigin ?? $adv.runtime.snapshot()
+  let cursor: RuntimeAddress
+  let derived: ReturnType<typeof derivePresentationState>
+  try {
+    cursor = previewCursor(chapter, index)
+    derived = derivePresentationState(program, cursor, previewVariables.value)
+  }
+  catch (cause) {
+    clearPreviewDiagnostics()
+    $adv.compileDiagnostics.value = [
+      ...$adv.compileDiagnostics.value,
+      {
+        code: 'ADV_RUNTIME_PREVIEW_DERIVATION_FAILED',
+        severity: 'error',
+        message: cause instanceof Error ? cause.message : String(cause),
+      },
+    ]
+    return
+  }
+  authoringSeekOrigin ??= origin
+  const snapshot: RuntimeSnapshot = {
+    ...structuredClone(origin),
+    state: {
+      status: previewStatus(chapter.nodes[cursor.nodeId]),
+      cursor,
+      variables: structuredClone(previewVariables.value),
+      stage: structuredClone(derived.stage),
+      choices: [],
+      visited: [`${cursor.chapterId}#${cursor.nodeId}`],
+    },
+    checkpoints: [],
+    createdAt: Date.now(),
+  }
+  authoringSeekTarget = structuredClone(target)
+  authoringSeekActive.value = true
+  clearPreviewDiagnostics()
+  $adv.compileDiagnostics.value = [
+    ...$adv.compileDiagnostics.value,
+    ...derived.diagnostics.map(item => ({
+      code: item.code,
+      severity: item.severity,
+      message: item.message,
+    })),
+  ]
+  return $adv.runtime.restore(snapshot)
+}
+
 function goToNode(index: number) {
   const chapter = currentChapter.value
   const nodeId = chapter?.order[index]
   if (chapter && nodeId)
-    return $adv.runtime.go({ chapterId: chapter.id, nodeId })
+    return seekToAddress({ chapterId: chapter.id, nodeId })
+}
+
+function exitAuthoringSeek() {
+  if (!authoringSeekOrigin)
+    return
+  const snapshot = authoringSeekOrigin
+  authoringSeekOrigin = undefined
+  authoringSeekTarget = undefined
+  authoringSeekActive.value = false
+  clearPreviewDiagnostics()
+  $adv.runtime.restore(snapshot)
+}
+
+function updatePreviewVariables(value: JsonObject) {
+  previewVariables.value = structuredClone(value)
+  if (authoringSeekActive.value && authoringSeekTarget)
+    seekToAddress(authoringSeekTarget)
 }
 
 function restore(snapshot: RuntimeSnapshot) {
   return $adv.runtime.restore(snapshot)
+}
+
+function hydrateProgress(
+  chapterFile: string,
+  snapshot: { visitedOrders: number[], history: number[], unlockedCGs: string[] },
+) {
+  progress.hydrate(chapterFile, snapshot)
+  for (const id of snapshot.unlockedCGs)
+    $adv.gallery?.unlock(id)
 }
 
 defineExpose({
@@ -289,10 +430,13 @@ defineExpose({
   visitedOrders,
   historyStack,
   unlockedCGs,
+  galleryItems,
   inspector,
   getCurrentSnapshot,
   rollback,
-  hydrateProgress: progress.hydrate,
+  hydrateProgress,
+  authoringSeekActive,
+  exitAuthoringSeek,
 })
 </script>
 
@@ -310,7 +454,18 @@ defineExpose({
       @retry="retryInit"
     />
 
-    <AdvGame v-if="ready" class="game-player__game" />
+    <AdvGame
+      v-if="ready"
+      class="game-player__game"
+      :class="{ 'game-player__game--seek-preview': authoringSeekActive }"
+    />
+
+    <div v-if="ready && authoringSeekActive" class="authoring-seek-banner" role="status">
+      <span>{{ t('runtimeInspector.seekPreview') }}</span>
+      <button type="button" @click="exitAuthoringSeek">
+        {{ t('runtimeInspector.returnToPlay') }}
+      </button>
+    </div>
 
     <button
       v-if="ready"
@@ -329,7 +484,9 @@ defineExpose({
       :current="currentRuntimeNode"
       :trace="runtimeTrace"
       :diagnostics="reportDiagnostics"
+      :preview-variables="previewVariables"
       @close="runtimeInspectorOpen = false"
+      @update-preview-variables="updatePreviewVariables"
     />
 
     <div v-if="chapterName" class="game-player__footer">
@@ -351,6 +508,36 @@ defineExpose({
 .game-player__game {
   width: 100%;
   height: 100%;
+}
+
+.game-player__game--seek-preview {
+  pointer-events: none;
+}
+
+.authoring-seek-banner {
+  position: absolute;
+  z-index: 13;
+  top: 12px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid rgb(125 211 252 / 45%);
+  border-radius: 999px;
+  background: rgb(2 6 23 / 88%);
+  color: #bae6fd;
+  font-size: 0.75rem;
+  transform: translateX(-50%);
+}
+
+.authoring-seek-banner button {
+  padding: 0.2rem 0.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: #0ea5e9;
+  color: white;
+  cursor: pointer;
 }
 
 .game-player__center {

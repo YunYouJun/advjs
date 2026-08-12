@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { MarketplaceRecord, ReviewRecord, SortMode } from '../../composables/useMarketplace'
+import type { MarketplaceRecord, ReportReason, ReviewRecord, SortMode } from '../../composables/useMarketplace'
 import type { MarketDuration, MarketGenre, MarketStyle } from '../../utils/marketTaxonomy'
 import {
   IonButtons,
@@ -18,6 +18,7 @@ import {
 import {
   cloudDownloadOutline,
   cloudUploadOutline,
+  flagOutline,
   heartOutline,
   optionsOutline,
   personOutline,
@@ -54,11 +55,14 @@ const studioStore = useStudioStore()
 const { getFs, characters, stats: projectStats } = useProjectContent()
 const {
   isBusy,
+  error: marketplaceError,
   browseMarket,
   incrementDownloads,
   submitReview,
   fetchReviews,
   likeReview,
+  replyToReview,
+  reportProject,
   publishProject,
   setFeatured,
 } = useMarketplace()
@@ -87,6 +91,11 @@ const reviews = ref<ReviewRecord[]>([])
 const reviewRating = ref(5)
 const reviewComment = ref('')
 const isReviewLoading = ref(false)
+const replyingReviewId = ref<string | null>(null)
+const replyDraft = ref('')
+const reportReason = ref<ReportReason>('spam')
+const reportDetails = ref('')
+const reportSubmitted = ref(false)
 
 // Install state
 const isInstalling = ref(false)
@@ -170,6 +179,11 @@ async function loadMarket() {
 
 async function selectItem(item: MarketplaceRecord) {
   selectedItem.value = item
+  replyingReviewId.value = null
+  replyDraft.value = ''
+  reportReason.value = 'spam'
+  reportDetails.value = ''
+  reportSubmitted.value = false
   if (cloudApp && item._id) {
     isReviewLoading.value = true
     reviews.value = await fetchReviews(cloudApp, item._id)
@@ -303,6 +317,53 @@ async function handleSubmitReview() {
     })
     await toast.present()
   }
+  else {
+    const toast = await toastController.create({
+      message: marketplaceError.value || t('marketplace.reviewFailed'),
+      duration: 2000,
+      color: 'danger',
+      position: 'top',
+    })
+    await toast.present()
+  }
+}
+
+function startReply(review: ReviewRecord) {
+  replyingReviewId.value = review._id || null
+  replyDraft.value = review.authorReply?.comment || ''
+}
+
+async function handleReplyReview(reviewId: string) {
+  if (!cloudApp || !selectedItem.value?._id || !replyDraft.value.trim())
+    return
+  const ok = await replyToReview(cloudApp, reviewId, replyDraft.value)
+  if (ok) {
+    reviews.value = await fetchReviews(cloudApp, selectedItem.value._id)
+    replyingReviewId.value = null
+    replyDraft.value = ''
+  }
+  const toast = await toastController.create({
+    message: ok ? t('marketplace.replySaved') : (marketplaceError.value || t('marketplace.replyFailed')),
+    duration: 1800,
+    color: ok ? 'success' : 'danger',
+    position: 'top',
+  })
+  await toast.present()
+}
+
+async function handleReportProject() {
+  if (!cloudApp || !selectedItem.value?._id || reportSubmitted.value)
+    return
+  const ok = await reportProject(cloudApp, selectedItem.value._id, reportReason.value, reportDetails.value)
+  if (ok)
+    reportSubmitted.value = true
+  const toast = await toastController.create({
+    message: ok ? t('marketplace.reportSubmitted') : (marketplaceError.value || t('marketplace.reportFailed')),
+    duration: 1800,
+    color: ok ? 'success' : 'danger',
+    position: 'top',
+  })
+  await toast.present()
 }
 
 async function openPublishModal() {
@@ -780,6 +841,37 @@ function onSortChange(mode: SortMode) {
             {{ selectedItem.featured ? t('marketplace.unfeature') : t('marketplace.feature') }}
           </button>
 
+          <!-- Minimal report form: one pending report per user/project. -->
+          <details v-if="authStore.isLoggedIn && !isOwner" class="market-report">
+            <summary>
+              <IonIcon :icon="flagOutline" />
+              {{ t('marketplace.report') }}
+            </summary>
+            <select v-model="reportReason" :aria-label="t('marketplace.reportReason')">
+              <option value="spam">
+                {{ t('marketplace.reportReasons.spam') }}
+              </option>
+              <option value="abuse">
+                {{ t('marketplace.reportReasons.abuse') }}
+              </option>
+              <option value="copyright">
+                {{ t('marketplace.reportReasons.copyright') }}
+              </option>
+              <option value="other">
+                {{ t('marketplace.reportReasons.other') }}
+              </option>
+            </select>
+            <IonTextarea
+              v-model="reportDetails"
+              :placeholder="t('marketplace.reportDetails')"
+              :rows="2"
+              :auto-grow="true"
+            />
+            <button type="button" :disabled="reportSubmitted" @click="handleReportProject">
+              {{ reportSubmitted ? t('marketplace.reportSubmitted') : t('marketplace.submitReport') }}
+            </button>
+          </details>
+
           <!-- Reviews section -->
           <div class="reviews-section">
             <h3>{{ t('marketplace.reviews') }} ({{ reviews.length }})</h3>
@@ -829,6 +921,34 @@ function onSortChange(mode: SortMode) {
                 <p class="review-item__comment">
                   {{ review.comment }}
                 </p>
+                <div v-if="review.authorReply" class="review-reply">
+                  <strong>{{ t('marketplace.authorReply') }} · {{ review.authorReply.authorName }}</strong>
+                  <p>{{ review.authorReply.comment }}</p>
+                </div>
+                <button
+                  v-if="isOwner && review._id && replyingReviewId !== review._id"
+                  type="button"
+                  class="review-reply-btn"
+                  @click="startReply(review)"
+                >
+                  {{ review.authorReply ? t('marketplace.editReply') : t('marketplace.reply') }}
+                </button>
+                <div v-if="review._id && replyingReviewId === review._id" class="review-reply-form">
+                  <IonTextarea
+                    v-model="replyDraft"
+                    :placeholder="t('marketplace.replyPlaceholder')"
+                    :rows="2"
+                    :auto-grow="true"
+                  />
+                  <div>
+                    <button type="button" @click="replyingReviewId = null">
+                      {{ t('common.cancel') }}
+                    </button>
+                    <button type="button" :disabled="!replyDraft.trim()" @click="handleReplyReview(review._id)">
+                      {{ t('common.save') }}
+                    </button>
+                  </div>
+                </div>
                 <div class="review-item__footer">
                   <span>{{ new Date(review.createdAt).toLocaleDateString() }}</span>
                   <button type="button" class="review-like-btn" @click="handleLikeReview(review._id!)">
@@ -1252,6 +1372,34 @@ function onSortChange(mode: SortMode) {
   cursor: not-allowed;
 }
 
+.market-report {
+  width: 100%;
+  max-width: 500px;
+  margin-top: var(--adv-space-sm);
+  padding: var(--adv-space-sm);
+  border: 1px solid var(--adv-border-subtle);
+  border-radius: var(--adv-radius-sm);
+  text-align: left;
+}
+
+.market-report summary {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--adv-text-secondary);
+  cursor: pointer;
+}
+
+.market-report select,
+.market-report button {
+  margin-top: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--adv-border-subtle);
+  border-radius: var(--adv-radius-sm);
+  background: var(--adv-surface-card);
+  color: var(--adv-text-primary);
+}
+
 /* Reviews */
 .reviews-section {
   width: 100%;
@@ -1346,6 +1494,37 @@ function onSortChange(mode: SortMode) {
   color: var(--adv-text-primary);
   margin: 4px 0;
   line-height: 1.5;
+}
+
+.review-reply {
+  margin: 8px 0;
+  padding: 8px;
+  border-left: 3px solid var(--ion-color-primary);
+  border-radius: 0 var(--adv-radius-sm) var(--adv-radius-sm) 0;
+  background: color-mix(in srgb, var(--ion-color-primary) 8%, transparent);
+  font-size: var(--adv-font-body-sm);
+}
+
+.review-reply p {
+  margin: 4px 0 0;
+}
+
+.review-reply-btn,
+.review-reply-form button {
+  border: none;
+  background: none;
+  color: var(--ion-color-primary);
+  cursor: pointer;
+}
+
+.review-reply-form {
+  margin: 8px 0;
+}
+
+.review-reply-form > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 .review-item__footer {
   display: flex;

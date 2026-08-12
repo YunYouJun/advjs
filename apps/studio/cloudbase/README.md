@@ -1,4 +1,4 @@
-# CloudBase 后端配置（Story Market 上线）
+# CloudBase 后端配置（Story Market 与资源存储）
 
 Studio 的故事市场（浏览 / 发布 / 安装 / 评价 / 创作者主页）完全跑在 CloudBase
 （腾讯云开发，env：`VITE_TCB_ENV_ID`）之上，所有读写都走客户端 `@cloudbase/js-sdk`。
@@ -17,6 +17,9 @@ Studio 的故事市场（浏览 / 发布 / 安装 / 评价 / 创作者主页）�
 | `advjs_reviews`         | 评价（1–5 星 + 评论 + 点赞）            | `marketStats` 云函数（评价正文 + `likes`）                                  |
 | `advjs_market_installs` | 安装去重台账（每「item × 用户」一行）   | 仅 `marketStats` 云函数                                                     |
 | `advjs_review_likes`    | 点赞去重台账（每「review × 用户」一行） | 仅 `marketStats` 云函数                                                     |
+| `advjs_reports`         | 作品举报与人工审核队列                  | 仅 `marketStats` 云函数                                                     |
+| `advjs_asset_uploads`   | 单对象上传预约、状态和审计台账          | 仅 `advjsAssets` 云函数                                                     |
+| `advjs_assets`          | 账号/项目隔离的私有资源目录             | 仅 `advjsAssets` 云函数                                                     |
 
 > `advjs_market_installs` / `advjs_review_likes` 是 `marketStats` 用来做「一次去重」
 > 的台账（见 §3），客户端从不直接读写，规则设为全拒绝即可（见 §2）。
@@ -39,9 +42,13 @@ Studio 的故事市场（浏览 / 发布 / 安装 / 评价 / 创作者主页）�
     规则保持「仅本人可写」作为纵深防御；实际写评价正文与 `likes` 改由 `marketStats`
     云函数（管理员权限，绕过规则）完成，客户端不再直接写。
 - [`security-rules/advjs_market_installs.json`](./security-rules/advjs_market_installs.json)
-  与 [`security-rules/advjs_review_likes.json`](./security-rules/advjs_review_likes.json)
-  - **读/写**：全部 `false`。这两个去重台账只有 `marketStats` 云函数（管理员权限）
+  、[`security-rules/advjs_review_likes.json`](./security-rules/advjs_review_likes.json)
+  与 [`security-rules/advjs_reports.json`](./security-rules/advjs_reports.json)
+  - **读/写**：全部 `false`。这些内部台账只有 `marketStats` 云函数（管理员权限）
     访问，客户端无需也不应直接读写。控制台预置项等价物：「仅管理端可读写」。
+- [`security-rules/advjs_asset_uploads.json`](./security-rules/advjs_asset_uploads.json)
+  与 [`security-rules/advjs_assets.json`](./security-rules/advjs_assets.json)
+  - **读/写**：全部 `false`。资源物理坐标、预约和所有权只能由 `advjsAssets` 校验后读写；客户端通过云函数取得脱敏目录记录和短期预览 URL。
 
 ### 变量名兼容性
 
@@ -64,6 +71,12 @@ Studio 的故事市场（浏览 / 发布 / 安装 / 评价 / 创作者主页）�
 | 安装计数 | `useMarketplace.incrementDownloads` | `incrementDownloads` | `advjs_marketplace.downloads`                                          | 登录用户每「item × 用户」只计一次（`advjs_market_installs`）；匿名安装按次计 |
 | 评分聚合 | `useMarketplace.submitReview`       | `submitReview`       | `advjs_reviews`（评价正文）+ `advjs_marketplace.ratingSum/ratingCount` | 需登录；rating 限 1–5 整数；同一用户重复评价 → 更新并按差值修正聚合          |
 | 评价点赞 | `useMarketplace.likeReview`         | `likeReview`         | `advjs_reviews.likes`                                                  | 需登录；每「review × 用户」只点一次（`advjs_review_likes`），幂等            |
+| 作者回复 | `useMarketplace.replyToReview`      | `replyReview`        | `advjs_reviews.authorReply`                                            | 仅作品作者；单层回复；敏感词与长度校验                                       |
+| 作品举报 | `useMarketplace.reportProject`      | `reportProject`      | `advjs_reports`                                                        | 需登录；每「item × 用户」一条 pending 记录；原因枚举                         |
+
+举报审核保持最小流程：在 `marketStats` 云函数配置逗号分隔的
+`ADVJS_MODERATOR_UIDS` 环境变量，审核端调用 `moderateReport`，decision 仅支持
+`dismiss` 或 `unlist`。后者把对应市场记录改为 `unlisted`，不引入额外工作流服务。
 
 约定：
 
@@ -91,9 +104,13 @@ apps/studio/cloudbase/
 ├── cloudbaserc.json        # tcb CLI 部署配置（envId + functionRoot + 函数声明）
 ├── functions/              # 云函数源码（约定：functions/<name>/）
 │   ├── .gitignore          #   忽略 node_modules（依赖部署时自动安装）
-│   └── marketStats/
-│       ├── index.js        #   exports.main = async (event, context)（Event 函数）
-│       └── package.json    #   声明依赖（@cloudbase/node-sdk）
+│   ├── marketStats/
+│   │   ├── index.js        #   exports.main = async (event, context)（Event 函数）
+│   │   └── package.json    #   声明依赖（@cloudbase/node-sdk）
+│   └── advjsAssets/
+│       ├── contract.js     #   输入校验、隔离对象键和脱敏投影
+│       ├── index.js        #   reserve/complete/list/preview Event 函数
+│       └── package.json    #   CloudBase + COS Node SDK（只运行于服务端）
 ├── security-rules/         # 各集合安全规则 JSON（文件名 = 集合名）
 └── scripts/                # 运维脚本
     └── provision-db.js     #   建集合 + 应用安全规则（幂等，由 security-rules/ 驱动）
@@ -124,9 +141,58 @@ manageFunctions(action="createFunction",
 # 之后只改代码 → action="updateFunctionCode"
 ```
 
+## 5. 私有素材上传：`advjsAssets`
+
+Studio 的资源发布使用以下固定契约：
+
+```text
+local asset + assetId
+  → reserveUpload
+  → exact-object presigned PUT (15 min)
+  → completeUpload
+  → HEAD + actual SHA-256 verification
+  → private content-addressed object + catalog row
+```
+
+支持的 action：
+
+| action           | 用途                                     | 是否访问 COS |
+| ---------------- | ---------------------------------------- | ------------ |
+| `health`         | 登录态与函数可用性检测                   | 否           |
+| `reserveUpload`  | 校验请求、写预约、签发一个对象的 PUT     | 是           |
+| `completeUpload` | 校验 staging、服务端复制、登记目录       | 是           |
+| `listAssets`     | 返回不含 bucket/key/owner 的项目资源记录 | 否           |
+| `getPreviewUrl`  | 为调用者自己的一个资源签发短期 GET       | 是           |
+
+函数环境变量：
+
+```text
+ADVJS_ASSET_BUCKET=yunlefun-advjs-prod-1325586649
+ADVJS_ASSET_REGION=ap-shanghai
+ADVJS_ASSET_PUT_TTL=900          # 可选，限制在 60—1800 秒
+ADVJS_ASSET_PREVIEW_TTL=300      # 可选，限制在 60—1800 秒
+ADVJS_ASSET_MAX_BYTES=...        # 可选，全局上限；仍受媒体类型上限约束
+ADVJS_ASSET_MAX_PENDING=20       # 可选，每个账号的并发预约上限
+```
+
+COS 凭据只能由云函数运行角色提供，或作为服务端 `TENCENTCLOUD_SECRETID`、`TENCENTCLOUD_SECRETKEY`、`TENCENTCLOUD_SESSIONTOKEN` 注入。不得使用 `VITE_*`，不得复制到 Studio 设置、数据库记录或部署日志。
+
+推荐桶配置：默认私有；仅函数角色可读写 `staging/accounts/*` 与 `private/accounts/*`；staging 一天生命周期清理；CORS 只允许正式 Studio Origin 与本地开发 Origin 的 `PUT,GET,HEAD`，请求头允许 `Content-Type,x-cos-meta-*`。不要把该私有桶直接绑定到公共素材 CDN。
+
+部署前需要显式确认目标环境和桶。仓库声明函数与规则不代表线上已部署；检查后再运行：
+
+```bash
+cd apps/studio/cloudbase
+tcb fn deploy advjsAssets --force
+
+cd scripts
+npm install
+node provision-db.js
+```
+
 ### 建集合 + 配安全规则（一条命令）
 
-§1 的 4 个集合与 §2 的安全规则可由 `scripts/provision-db.js` 一次性创建并应用（幂等，
+§1 的 6 个集合与 §2 的安全规则可由 `scripts/provision-db.js` 一次性创建并应用（幂等，
 由 `security-rules/*.json` 驱动；凭据取自 `tcb login` 登录态或 `TENCENTCLOUD_*` 环境变量）：
 
 ```
@@ -135,12 +201,14 @@ npm install
 node provision-db.js          # envId 取自参数 / $VITE_TCB_ENV_ID / cloudbaserc.json
 ```
 
-> **当前线上环境（`yunlefun-8g7ybcxc7345c490`）已完成全部步骤**：4 个集合已建、安全规则
-> 已应用并经 `DescribeResourcePermission` 校验、`marketStats` 已部署并通过 `downloads`
-> 自增的端到端回归（5 → 6）。函数无需对外 HTTP 访问，保持默认（仅 `callFunction`）即可。
+> **市场链路的当前线上环境（`yunlefun-8g7ybcxc7345c490`）已完成既有步骤**：5 个市场集合已建，
+> 其中 `advjs_reports` 于 2026-08-11 创建并设为客户端不可读写；`marketStats` 已部署评论校验、作者单层回复、
+> 举报和 `dismiss` / `unlist` 审核 action，并配置审核员 UID。部署后已核对线上源码、函数状态与 CLS 执行日志，
+> 无登录态探针均按预期被拒绝且举报集合保持空。新增加的 2 个资源集合与 `advjsAssets` 仍需按本节单独部署和验证；
+> 函数无需对外 HTTP 访问，保持默认（仅 `callFunction`）即可。
 > 其余既有云函数（`shortlink`、`collab-auth`）后续也应迁入 `functions/` 以统一管理。
 
-## 5. 灌示例数据（可选）
+## 6. 灌示例数据（可选）
 
 不想空市场上线，可在 App 内灌几条 demo：
 

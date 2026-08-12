@@ -23,7 +23,9 @@
  *   advjs_market_installs, advjs_review_likes   — dedup ledgers, this function only
  */
 
+const process = require('node:process')
 const cloud = require('@cloudbase/node-sdk')
+const { validateCommunityText, validateReportReason } = require('./contract')
 
 const app = cloud.init({ env: cloud.SYMBOL_CURRENT_ENV })
 const db = app.database()
@@ -35,6 +37,8 @@ const COLLECTION_REVIEWS = 'advjs_reviews'
 const COLLECTION_INSTALLS = 'advjs_market_installs'
 /** Dedup ledger: one row per (reviewId, uid) like. */
 const COLLECTION_REVIEW_LIKES = 'advjs_review_likes'
+/** Manual moderation queue: one row per (marketId, reporterId). */
+const COLLECTION_REPORTS = 'advjs_reports'
 
 function fail(message) {
   return { error: message }
@@ -113,13 +117,17 @@ async function submitReview(event, uid) {
 
   const marketId = String(event.marketId || '')
   const rating = Number(event.rating)
-  const comment = typeof event.comment === 'string' ? event.comment : ''
+  const checkedComment = validateCommunityText(event.comment, { required: true, maxLength: 1000 })
   const reviewerName = typeof event.reviewerName === 'string' ? event.reviewerName : ''
 
   if (!marketId)
     return fail('marketId is required')
   if (!Number.isInteger(rating) || rating < 1 || rating > 5)
     return fail('rating must be an integer between 1 and 5')
+  if (!checkedComment.ok)
+    return fail(checkedComment.error)
+
+  const comment = checkedComment.text
 
   const market = db.collection(COLLECTION_MARKET).doc(marketId)
   const found = await market.get()
@@ -151,6 +159,124 @@ async function submitReview(event, uid) {
   })
   await market.update({ ratingSum: _.inc(rating), ratingCount: _.inc(1) })
   return { ok: true, updated: false }
+}
+
+/**
+ * Store one author reply directly on the review. This intentionally supports
+ * one level only: it covers author feedback without introducing a generic
+ * comment-tree collection.
+ */
+async function replyReview(event, uid) {
+  if (!uid)
+    return fail('Login required to reply')
+
+  const reviewId = String(event.reviewId || '')
+  const checkedComment = validateCommunityText(event.comment, { required: true, maxLength: 500 })
+  if (!reviewId)
+    return fail('reviewId is required')
+  if (!checkedComment.ok)
+    return fail(checkedComment.error)
+
+  const review = db.collection(COLLECTION_REVIEWS).doc(reviewId)
+  const foundReview = await review.get()
+  const reviewRecord = foundReview.data && foundReview.data[0]
+  if (!reviewRecord)
+    return fail('Review not found')
+
+  const market = db.collection(COLLECTION_MARKET).doc(reviewRecord.marketId)
+  const foundMarket = await market.get()
+  const marketRecord = foundMarket.data && foundMarket.data[0]
+  if (!marketRecord)
+    return fail('Market item not found')
+  if (marketRecord.ownerId !== uid)
+    return fail('Only the project author can reply')
+
+  const authorReply = {
+    authorId: uid,
+    authorName: marketRecord.authorName || 'Author',
+    comment: checkedComment.text,
+    createdAt: Date.now(),
+  }
+  await review.update({ authorReply, updatedAt: Date.now() })
+  return { ok: true, authorReply }
+}
+
+/** Add one pending report per user and market item. */
+async function reportProject(event, uid) {
+  if (!uid)
+    return fail('Login required to report a project')
+
+  const marketId = String(event.marketId || '')
+  const reason = validateReportReason(event.reason)
+  const checkedDetails = validateCommunityText(event.details, { maxLength: 500 })
+  if (!marketId)
+    return fail('marketId is required')
+  if (!reason)
+    return fail('Invalid report reason')
+  if (!checkedDetails.ok)
+    return fail(checkedDetails.error)
+
+  const foundMarket = await db.collection(COLLECTION_MARKET).doc(marketId).get()
+  const marketRecord = foundMarket.data && foundMarket.data[0]
+  if (!marketRecord)
+    return fail('Market item not found')
+  if (marketRecord.ownerId === uid)
+    return fail('Authors cannot report their own project')
+
+  const reports = db.collection(COLLECTION_REPORTS)
+  const key = `${marketId}_${uid}`
+  if (await alreadyRecorded(COLLECTION_REPORTS, key))
+    return { ok: true, reported: true, counted: false }
+
+  await reports.add({
+    key,
+    marketId,
+    projectId: marketRecord.projectId,
+    ownerId: marketRecord.ownerId,
+    reporterId: uid,
+    reason,
+    details: checkedDetails.text,
+    status: 'pending',
+    createdAt: Date.now(),
+  })
+  return { ok: true, reported: true, counted: true }
+}
+
+/**
+ * Resolve a report with the only two MVP decisions: dismiss or unlist.
+ * Moderator UIDs are configured as a comma-separated environment variable.
+ */
+async function moderateReport(event, uid) {
+  const moderators = String(process.env.ADVJS_MODERATOR_UIDS || '')
+    .split(',')
+    .map(value => value.trim())
+    .filter(Boolean)
+  if (!uid || !moderators.includes(uid))
+    return fail('Moderator access required')
+
+  const reportId = String(event.reportId || '')
+  const decision = event.decision === 'unlist' ? 'unlist' : event.decision === 'dismiss' ? 'dismiss' : ''
+  if (!reportId || !decision)
+    return fail('reportId and a valid decision are required')
+
+  const report = db.collection(COLLECTION_REPORTS).doc(reportId)
+  const found = await report.get()
+  const record = found.data && found.data[0]
+  if (!record)
+    return fail('Report not found')
+
+  if (decision === 'unlist') {
+    await db.collection(COLLECTION_MARKET).doc(record.marketId).update({
+      status: 'unlisted',
+      updatedAt: Date.now(),
+    })
+  }
+  await report.update({
+    status: decision === 'unlist' ? 'accepted' : 'dismissed',
+    moderatorId: uid,
+    resolvedAt: Date.now(),
+  })
+  return { ok: true, decision }
 }
 
 /**
@@ -197,6 +323,12 @@ exports.main = async (event, context) => {
         return await submitReview(payload, uid)
       case 'likeReview':
         return await likeReview(payload, uid)
+      case 'replyReview':
+        return await replyReview(payload, uid)
+      case 'reportProject':
+        return await reportProject(payload, uid)
+      case 'moderateReport':
+        return await moderateReport(payload, uid)
       default:
         return fail(`Unknown action: ${String(payload.action)}`)
     }

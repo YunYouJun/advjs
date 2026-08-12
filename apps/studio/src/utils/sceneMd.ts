@@ -12,6 +12,7 @@ const SCENE_FRONTMATTER_KEYS: string[] = [
   'imagePrompt',
   'type',
   'alias',
+  'assetId',
   'src',
   'linkedLocation',
 ]
@@ -20,6 +21,8 @@ const SCENE_FRONTMATTER_KEYS: string[] = [
  * Extended scene data for Studio editing
  */
 export interface SceneFormData extends AdvBaseScene {
+  /** Stable ID in adv/assets.json. */
+  assetId?: string
   /** Image source path or URL (from AdvSceneImage) */
   src?: string
   tags?: string[]
@@ -45,6 +48,7 @@ export function parseSceneMd(content: string): SceneFormData {
     imagePrompt: fm.imagePrompt,
     type: fm.type || 'image',
     alias: fm.alias,
+    assetId: fm.assetId,
     src: fm.src,
     tags: fm.tags,
     linkedLocation: fm.linkedLocation,

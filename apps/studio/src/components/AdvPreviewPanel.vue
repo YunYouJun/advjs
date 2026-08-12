@@ -64,6 +64,40 @@ const items = computed(() => {
     return { type, node }
   })
 })
+
+function codeOperations(node: AdvAst.Item): AdvAst.CodeOperation[] {
+  if (node.type !== 'code' || !Array.isArray(node.value))
+    return []
+  return node.value
+}
+
+function operationSummary(operation: AdvAst.CodeOperation): string {
+  const value = operation as unknown as Record<string, unknown>
+  if (operation.type === 'background') {
+    const transition = typeof value.transition === 'string'
+      ? value.transition
+      : (value.transition as Record<string, unknown> | undefined)?.name
+    return `${String(value.name ?? '')}${transition ? ` · ${String(transition)}` : ''}`
+  }
+  if (operation.type === 'transition')
+    return `${String(value.name ?? 'crossfade')} · ${String(value.duration ?? 800)}ms`
+  if (operation.type === 'cg')
+    return `${String(value.action ?? 'show')} · ${String(value.id ?? '')}`
+  if (operation.type === 'bgm') {
+    const fade = value.fade as Record<string, unknown> | undefined
+    return `${String(value.stop ? 'stop' : value.name ?? '')}${fade ? ` · in ${String(fade.in ?? 0)} / out ${String(fade.out ?? 0)}ms` : ''}`
+  }
+  if (operation.type === 'tachie') {
+    const enter = Array.isArray(value.enter) ? value.enter : [value.enter]
+    return enter.filter(Boolean).map((item) => {
+      if (typeof item === 'string')
+        return item
+      const state = item as Record<string, unknown>
+      return `${String(state.name ?? '')}:${String(state.status ?? 'default')}@${String(state.position ?? 'center')}${state.motion ? `/${String(state.motion)}` : ''}`
+    }).join(', ')
+  }
+  return JSON.stringify(value)
+}
 </script>
 
 <template>
@@ -129,6 +163,19 @@ const items = computed(() => {
         <!-- Heading / text -->
         <div v-else-if="item.type === 'heading'" class="preview-heading">
           {{ (item.node as any).value || '' }}
+        </div>
+
+        <!-- Presentation command cards -->
+        <div v-else-if="item.type === 'code' && codeOperations(item.node).length" class="preview-operations">
+          <div
+            v-for="(operation, operationIndex) in codeOperations(item.node)"
+            :key="operationIndex"
+            class="preview-operation"
+            :data-operation="operation.type"
+          >
+            <strong>{{ operation.type }}</strong>
+            <span>{{ operationSummary(operation) }}</span>
+          </div>
         </div>
 
         <!-- Fallback: raw text -->
@@ -258,6 +305,30 @@ const items = computed(() => {
   font-weight: 700;
   color: var(--adv-text-primary, #1e293b);
   padding: 4px 0;
+}
+
+.preview-operations {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.preview-operation {
+  display: grid;
+  grid-template-columns: 6rem 1fr;
+  gap: 0.5rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--adv-primary, #8b5cf6) 24%, transparent);
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, var(--adv-primary, #8b5cf6) 7%, transparent);
+  color: var(--adv-text-secondary, #64748b);
+  font:
+    0.75rem/1.4 ui-monospace,
+    monospace;
+}
+
+.preview-operation strong {
+  color: var(--adv-primary, #8b5cf6);
+  text-transform: uppercase;
 }
 
 /* Fallback text */

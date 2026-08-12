@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CompileDiagnostic } from '@advjs/core'
-import type { ChapterInfo } from '../composables/useProjectContent'
+import type { AdvCharacter } from '@advjs/types'
+import type { AudioInfo, ChapterInfo, SceneInfo } from '../composables/useProjectContent'
 import type { StudioGameSettings } from '../utils/projectRuntimeFiles'
 import type { RuntimeAuthoringResult, RuntimeProgramRow } from '../utils/runtimeAuthoring'
 import { computed, onBeforeUnmount, shallowRef, watch } from 'vue'
@@ -13,10 +14,14 @@ const props = defineProps<{
   file: string
   chapters: ChapterInfo[]
   settings: StudioGameSettings
+  scenes?: SceneInfo[]
+  characters?: AdvCharacter[]
+  audios?: AudioInfo[]
 }>()
 
 const emit = defineEmits<{
   selectSource: [file: string, line: number, column: number]
+  insertSnippet: [snippet: string]
 }>()
 
 type Tab = 'preview' | 'program' | 'diagnostics'
@@ -41,6 +46,104 @@ const programGroups = computed(() => {
   }
   return [...groups.entries()].map(([chapterId, rows]) => ({ chapterId, rows }))
 })
+const transitionPresets = ['cut', 'crossfade', 'fade', 'dissolve', 'wipe-left', 'wipe-right', 'rise', 'flash-white']
+const motionPresets = ['fade', 'slide-left', 'slide-right', 'emphasis', 'shake', 'hop']
+
+const resourceCatalog = computed(() => {
+  const tachies: Record<string, string[]> = {}
+  for (const character of props.characters ?? []) {
+    const statuses = Object.keys(character.tachies ?? {})
+    for (const name of [character.id, character.name, ...(character.aliases ?? [])])
+      tachies[name] = statuses
+  }
+  return {
+    backgrounds: (props.scenes ?? []).map(scene => scene.id ?? scene.file),
+    cgs: props.settings.gallery?.items.map(item => item.id) ?? [],
+    bgms: (props.audios ?? []).map(audio => audio.name),
+    tachies,
+  }
+})
+
+const cueGroups = computed(() => [
+  {
+    id: 'background',
+    label: 'Background',
+    options: (props.scenes ?? []).map(scene => ({ label: scene.name, value: scene.id ?? scene.file })),
+  },
+  {
+    id: 'transition',
+    label: 'Transition',
+    options: transitionPresets.map(value => ({ label: value, value })),
+  },
+  {
+    id: 'tachie',
+    label: 'Tachie',
+    options: (props.characters ?? []).flatMap(character => Object.keys(character.tachies ?? {}).map(status => ({
+      label: `${character.name} / ${status}`,
+      value: `${character.name}\u0000${status}`,
+    }))),
+  },
+  {
+    id: 'motion',
+    label: 'Motion',
+    options: motionPresets.map(value => ({ label: value, value })),
+  },
+  {
+    id: 'cg',
+    label: 'CG',
+    options: (props.settings.gallery?.items ?? []).map(item => ({ label: item.title, value: item.id })),
+  },
+  {
+    id: 'bgm',
+    label: 'BGM',
+    options: (props.audios ?? []).map(audio => ({ label: audio.name, value: audio.name })),
+  },
+])
+
+function fencedYaml(lines: string[]) {
+  return `\n\`\`\`yaml\n${lines.join('\n')}\n\`\`\`\n`
+}
+
+function insertCue(group: string, event: Event) {
+  const select = event.target as HTMLSelectElement
+  const value = select.value
+  if (!value)
+    return
+  const snippets: Record<string, () => string> = {
+    background: () => fencedYaml(['type: background', `name: ${value}`, 'transition: crossfade']),
+    transition: () => fencedYaml(['type: transition', `name: ${value}`, 'duration: 800']),
+    tachie: () => {
+      const [name, status] = value.split('\u0000')
+      return fencedYaml([
+        'type: tachie',
+        'enter:',
+        `  - name: ${name}`,
+        `    status: ${status}`,
+        '    position: center',
+        '    motion: fade',
+      ])
+    },
+    motion: () => fencedYaml([
+      'type: tachie',
+      'enter:',
+      '  - name: 角色名',
+      '    status: default',
+      '    position: center',
+      `    motion: ${value}`,
+    ]),
+    cg: () => fencedYaml(['type: cg', 'action: show', `id: ${value}`, 'transition: crossfade']),
+    bgm: () => fencedYaml([
+      'type: bgm',
+      `name: ${value}`,
+      'loop: true',
+      'fade:',
+      '  in: 1000',
+      '  out: 700',
+    ]),
+  }
+  emit('insertSnippet', snippets[group]?.() ?? '')
+  select.value = ''
+}
 
 function scheduleCompile() {
   const token = ++compileToken
@@ -51,6 +154,7 @@ function scheduleCompile() {
       props.chapters,
       props.settings,
       { file: props.file, content: props.content },
+      resourceCatalog.value,
     )
     if (token !== compileToken)
       return
@@ -104,6 +208,18 @@ onBeforeUnmount(() => {
         <span v-if="tab.count">{{ tab.count }}</span>
       </button>
       <small v-if="compiling">{{ t('runtimeAuthoring.compiling') }}</small>
+    </div>
+
+    <div v-if="currentTab === 'preview'" class="runtime-authoring-panel__cues" aria-label="Presentation cue selectors">
+      <label v-for="group in cueGroups" :key="group.id">
+        <span>{{ group.label }}</span>
+        <select :disabled="group.options.length === 0" :aria-label="`${group.label} cue`" @change="insertCue(group.id, $event)">
+          <option value="">Insert…</option>
+          <option v-for="option in group.options" :key="option.value" :value="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </label>
     </div>
 
     <div class="runtime-authoring-panel__content">
@@ -176,6 +292,30 @@ onBeforeUnmount(() => {
   padding: 0.35rem 0.5rem;
   border-bottom: 1px solid var(--adv-border-subtle);
   overflow-x: auto;
+}
+
+.runtime-authoring-panel__cues {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.45rem 0.5rem;
+  border-bottom: 1px solid var(--adv-border-subtle);
+  overflow-x: auto;
+}
+
+.runtime-authoring-panel__cues label {
+  display: grid;
+  gap: 0.15rem;
+  color: var(--adv-text-secondary);
+  font-size: 0.68rem;
+}
+
+.runtime-authoring-panel__cues select {
+  min-width: 7.5rem;
+  padding: 0.3rem;
+  border: 1px solid var(--adv-border-subtle);
+  border-radius: 0.35rem;
+  background: var(--ion-background-color, #fff);
+  color: inherit;
 }
 
 .runtime-authoring-panel__tabs button {

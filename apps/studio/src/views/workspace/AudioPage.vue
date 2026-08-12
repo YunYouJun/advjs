@@ -27,20 +27,25 @@ import ContentEditorModal from '../../components/ContentEditorModal.vue'
 import { useContentDelete } from '../../composables/useContentDelete'
 import { useContentEditor } from '../../composables/useContentEditor'
 import { useContentSave } from '../../composables/useContentSave'
+import { useManagedAssetStorage } from '../../composables/useManagedAssetStorage'
 import { useProjectContent } from '../../composables/useProjectContent'
 import { useAiSettingsStore } from '../../stores/useAiSettingsStore'
+import { useStudioStore } from '../../stores/useStudioStore'
 import { parseAudioMd, stringifyAudioMd } from '../../utils/audioMd'
 import { isAudioFile } from '../../utils/fs'
+import { upsertStudioProjectAsset } from '../../utils/projectAssets'
 import { showToast } from '../../utils/toast'
 
 const FILE_NAME_RE = /[^\w\u4E00-\u9FFF-]/g
 
 const { t } = useI18n()
 const aiSettings = useAiSettingsStore()
+const studioStore = useStudioStore()
 
 const { audios, reload, getFs } = useProjectContent()
 const { isSaving } = useContentSave()
 const { deleteFile } = useContentDelete()
+const managedAssets = useManagedAssetStorage()
 
 // --- Search ---
 const searchQuery = ref('')
@@ -87,6 +92,7 @@ function handleAiApplyAudio(md: string) {
 function handleEditAudio(audio: AudioInfo) {
   const formData: AudioFormData = {
     name: audio.name,
+    assetId: audio.assetId,
     description: audio.description,
     src: audio.src,
     duration: audio.duration,
@@ -163,8 +169,25 @@ async function handleFileImport(event: Event) {
     if (!isAudioFile(file.name))
       continue
     try {
-      const path = `adv/audio/${file.name}`
+      const safeFileName = file.name.replace(FILE_NAME_RE, '_').toLowerCase()
+      const stem = safeFileName.replace(/\.[^.]+$/u, '')
+      const path = `adv/assets/audio/${safeFileName}`
+      const assetId = `audio/${stem}`
       await fs.writeBlob(path, file)
+      await upsertStudioProjectAsset(fs, {
+        id: assetId,
+        kind: 'audio',
+        type: 'audio',
+        path: `audio/${safeFileName}`,
+        mimeType: file.type || undefined,
+        bytes: file.size,
+      }, { catalogId: studioStore.currentProjectId })
+
+      const metadataPath = `adv/audio/${stem}.md`
+      const metadata = await fs.exists(metadataPath)
+        ? parseAudioMd(await fs.readFile(metadataPath))
+        : { name: stem }
+      await fs.writeFile(metadataPath, stringifyAudioMd({ ...metadata, assetId, src: undefined }))
       imported++
     }
     catch {
@@ -181,6 +204,18 @@ async function handleFileImport(event: Event) {
   }
   else {
     await showToast(t('audio.importFailed'), 'warning')
+  }
+}
+
+async function handlePublishAudio(audio: AudioInfo) {
+  if (!audio.assetId)
+    return
+  try {
+    await managedAssets.publish(audio.assetId)
+    await showToast(t('assetStorage.publishSuccess'))
+  }
+  catch (error) {
+    await showToast(t('assetStorage.publishFailed', { error: error instanceof Error ? error.message : String(error) }), 'danger')
   }
 }
 </script>
@@ -220,7 +255,9 @@ async function handleFileImport(event: Event) {
       <IonItemSliding v-for="audio in filteredAudios" :key="audio.file">
         <AudioCard
           :audio="audio"
+          :is-publishing="managedAssets.isPublishing(audio.assetId)"
           @click="handleEditAudio"
+          @publish="handlePublishAudio"
         />
         <IonItemOptions side="end">
           <IonItemOption color="danger" @click="handleDeleteAudio(audio)">

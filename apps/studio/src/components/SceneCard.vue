@@ -9,22 +9,26 @@ import {
   IonIcon,
   IonSpinner,
 } from '@ionic/vue'
-import { imageOutline, sparklesOutline } from 'ionicons/icons'
+import { cloudUploadOutline, imageOutline, sparklesOutline } from 'ionicons/icons'
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useProjectContent } from '../composables/useProjectContent'
+import { loadStudioAssetCatalog } from '../utils/projectAssets'
 
 const props = defineProps<{
   scene: SceneInfo
   isGenerating?: boolean
+  isPublishing?: boolean
   aiAvailable?: boolean
 }>()
 
 defineEmits<{
   click: [scene: SceneInfo]
   generateImage: [scene: SceneInfo]
+  publish: [scene: SceneInfo]
 }>()
 
 const thumbnailUrl = ref<string | null>(null)
+let disposeCatalog: (() => void) | undefined
 
 const isRemoteUrl = computed(() => {
   const src = props.scene.src
@@ -40,18 +44,32 @@ const displayUrl = computed(() => {
 })
 
 // Load local image as blob URL when src is a relative path
-watch(() => props.scene.src, async (src) => {
+watch(() => [props.scene.src, props.scene.assetId] as const, async ([src, assetId]) => {
   // Revoke previous blob URL
   if (thumbnailUrl.value) {
     URL.revokeObjectURL(thumbnailUrl.value)
     thumbnailUrl.value = null
   }
+  disposeCatalog?.()
+  disposeCatalog = undefined
+
+  const { getFs } = useProjectContent()
+  const fs = getFs()
+  if (assetId && fs) {
+    try {
+      const catalog = await loadStudioAssetCatalog(fs)
+      if (catalog) {
+        thumbnailUrl.value = (await catalog.resolve(assetId)).src
+        disposeCatalog = () => catalog.dispose()
+        return
+      }
+    }
+    catch { /* fall through to legacy src */ }
+  }
 
   if (!src || isRemoteUrl.value)
     return
 
-  const { getFs } = useProjectContent()
-  const fs = getFs()
   if (!fs)
     return
 
@@ -70,6 +88,7 @@ watch(() => props.scene.src, async (src) => {
 }, { immediate: true })
 
 onUnmounted(() => {
+  disposeCatalog?.()
   if (thumbnailUrl.value)
     URL.revokeObjectURL(thumbnailUrl.value)
 })
@@ -96,6 +115,18 @@ onUnmounted(() => {
       </IonButton>
     </div>
 
+    <IonButton
+      v-if="scene.assetId"
+      class="scene-card__publish"
+      fill="solid"
+      size="small"
+      :disabled="isPublishing"
+      :aria-label="$t('assetStorage.publish')"
+      @click.stop="$emit('publish', scene)"
+    >
+      <IonIcon :icon="cloudUploadOutline" />
+    </IonButton>
+
     <IonCardHeader>
       <IonCardTitle class="scene-card__title">
         <IonIcon :icon="imageOutline" class="scene-card__icon" />
@@ -120,8 +151,19 @@ onUnmounted(() => {
 
 <style scoped>
 .scene-card {
+  position: relative;
   margin: 0;
   overflow: hidden;
+}
+
+.scene-card__publish {
+  position: absolute;
+  z-index: 2;
+  top: 8px;
+  right: 8px;
+  --border-radius: 999px;
+  --padding-start: 8px;
+  --padding-end: 8px;
 }
 
 .scene-card__thumb {

@@ -1,3 +1,4 @@
+import type { AdvAssetCatalog } from '@advjs/core'
 import type {
   AdvChapter,
   AdvCharacter,
@@ -11,6 +12,7 @@ import type { AssetsManifest } from 'pixi.js'
 import { parseAst } from '@advjs/parser'
 import { ref } from 'vue'
 import { useStudioStore } from '../stores/useStudioStore'
+import { loadStudioAssetCatalog } from '../utils/projectAssets'
 import { applyStudioGameSettings, loadStudioGameSettings } from '../utils/projectRuntimeFiles'
 import { createStudioChapterIdMap } from '../utils/runtimeAuthoring'
 import { useProjectContent } from './useProjectContent'
@@ -34,6 +36,7 @@ export function useStudioAdvConfig() {
   const chapterSources = new Map<string, string>()
   const chapterFileToId = new Map<string, string>()
   const chapterIdToFile = new Map<string, string>()
+  let assetCatalog: AdvAssetCatalog | null = null
 
   /** Track blob URLs for revocation on dispose. Filesystem-backed only. */
   const blobUrls = new Set<string>()
@@ -59,27 +62,68 @@ export function useStudioAdvConfig() {
   async function buildGameConfig(): Promise<Partial<AdvGameConfig>> {
     const fs = project.getFs()
     const settings = fs ? await loadStudioGameSettings(fs) : {}
+    assetCatalog?.dispose()
+    assetCatalog = fs ? await loadStudioAssetCatalog(fs) : null
+
+    async function resolveCatalogAsset(assetId: string, variant?: string): Promise<string | undefined> {
+      if (!assetCatalog)
+        return undefined
+      return (await assetCatalog.resolve(assetId, { variant })).src
+    }
+
     // Resolve characters' tachies to blob URLs
     const characters: AdvCharacter[] = await Promise.all(
       project.characters.value.map(async (c) => {
-        if (!c.tachies)
-          return c
-        const tachieEntries = await Promise.all(
-          Object.entries(c.tachies).map(async ([status, t]) => [
+        const tachies = Object.fromEntries(await Promise.all(
+          Object.entries(c.tachies ?? {}).map(async ([status, t]) => [
             status,
             { ...t, src: (await resolveBlobUrl(t.src)) ?? t.src },
           ] as const),
-        )
-        return { ...c, tachies: Object.fromEntries(tachieEntries) }
+        ))
+
+        const catalogTachies = assetCatalog?.list({ kind: 'character' })
+          .filter(asset => asset.characterId === c.id && asset.expression) ?? []
+        for (const asset of catalogTachies) {
+          const status = asset.expression!
+          const animation = assetCatalog?.list({ kind: 'animation' })
+            .find(item => item.characterId === c.id && item.state === status)
+          const resolved = animation
+            ? await assetCatalog!.resolve(animation.id)
+            : await assetCatalog!.resolve(asset.id)
+          tachies[status] = animation
+            ? {
+                src: resolved.src,
+                sprite: {
+                  frameWidth: animation.frameWidth!,
+                  frameHeight: animation.frameHeight!,
+                  frames: animation.frames!,
+                  fps: animation.fps!,
+                  loop: animation.loop,
+                },
+              }
+            : { src: resolved.src }
+        }
+
+        const defaultTachie = tachies.default
+        return {
+          ...c,
+          avatar: defaultTachie?.src ?? (await resolveBlobUrl(c.avatar)) ?? c.avatar,
+          tachies: Object.keys(tachies).length > 0 ? tachies : c.tachies,
+        }
       }),
     )
 
     // Scenes — type: 'image' is required by AdvSceneImage
     const scenes: AdvScene[] = await Promise.all(
       project.scenes.value.map(async (s) => {
-        const src = (await resolveBlobUrl(s.src)) ?? ''
+        const id = s.id ?? s.file
+        const conventionalAssetId = `background/${id}`
+        const assetId = s.assetId ?? (assetCatalog?.get(conventionalAssetId) ? conventionalAssetId : undefined)
+        const src = assetId
+          ? (await resolveCatalogAsset(assetId)) ?? ''
+          : (await resolveBlobUrl(s.src)) ?? ''
         return {
-          id: s.id ?? s.file,
+          id,
           name: s.name,
           type: 'image' as const,
           src,
@@ -90,19 +134,76 @@ export function useStudioAdvConfig() {
     )
 
     // BGM library — keyed by audio.name so fountain scripts can reference by name
+    const audioSpecs = [...project.audios.value]
+    for (const asset of assetCatalog?.list({ kind: 'bgm' }) ?? []) {
+      const name = asset.id.replace(/^bgm\//u, '')
+      if (!audioSpecs.some(audio => audio.assetId === asset.id || audio.name === name)) {
+        audioSpecs.push({
+          file: `adv/assets.json#${asset.id}`,
+          name,
+          assetId: asset.id,
+          description: asset.title,
+          duration: asset.duration,
+        })
+      }
+    }
     const bgmEntries: [string, AdvMusic][] = await Promise.all(
-      project.audios.value.map(async a => [
-        a.name,
+      audioSpecs.map(async (a) => {
+        const conventionalAssetId = `bgm/${a.name}`
+        const assetId = a.assetId ?? (assetCatalog?.get(conventionalAssetId) ? conventionalAssetId : undefined)
+        const asset = assetId ? assetCatalog?.get(assetId) : undefined
+        return [
+          a.name,
         {
           name: a.name,
-          description: a.description,
-          src: (await resolveBlobUrl(a.src)) ?? '',
-          duration: a.duration,
+          description: a.description ?? asset?.title,
+          src: assetId
+            ? (await resolveCatalogAsset(assetId)) ?? ''
+            : (await resolveBlobUrl(a.src)) ?? '',
+          duration: a.duration ?? asset?.duration,
           tags: a.tags,
         } satisfies AdvMusic,
-      ] as [string, AdvMusic]),
+        ] as [string, AdvMusic]
+      }),
     )
     const bgmLibrary: Record<string, AdvMusic> = Object.fromEntries(bgmEntries)
+
+    const gallery = settings.gallery
+      ? {
+          ...settings.gallery,
+          items: await Promise.all(settings.gallery.items.map(async (item) => {
+            if (item.assetId) {
+              if (!assetCatalog)
+                throw new Error(`ADV_ASSET_CATALOG_MISSING: ${item.assetId}`)
+              const asset = assetCatalog.get(item.assetId)
+              if (!asset)
+                throw new Error(`ADV_ASSET_NOT_FOUND: ${item.assetId}`)
+              const src = await resolveCatalogAsset(item.assetId)
+              const thumbnailVariant = item.thumbnailVariant
+                ?? (asset.variants?.thumbnail ? 'thumbnail' : undefined)
+              const thumbnail = thumbnailVariant
+                ? await resolveCatalogAsset(item.assetId, thumbnailVariant)
+                : src
+              return {
+                id: item.id,
+                title: item.title ?? asset.title ?? item.id,
+                src: src!,
+                thumbnail,
+                alt: item.alt ?? asset.alt,
+                chapterId: item.chapterId ?? asset.chapterId,
+              }
+            }
+            return {
+              id: item.id,
+              title: item.title!,
+              src: (await resolveBlobUrl(item.src)) ?? item.src!,
+              thumbnail: (await resolveBlobUrl(item.thumbnail)) ?? item.thumbnail,
+              alt: item.alt,
+              chapterId: item.chapterId,
+            }
+          })),
+        }
+      : undefined
 
     // Chapters keep their authoring AST for editor-only visualizations. Runtime
     // compilation reads the same source through `fetchChapter` below.
@@ -167,7 +268,10 @@ export function useStudioAdvConfig() {
       chapters,
       characters,
       scenes,
-    }, settings)
+    }, {
+      ...settings,
+      gallery,
+    })
   }
 
   function buildMinimalConfig(gameConfig: Partial<AdvGameConfig>): AdvConfig {
@@ -179,6 +283,7 @@ export function useStudioAdvConfig() {
       features: { babylon: false },
       aspectRatio: 16 / 9,
       canvasWidth: 1920,
+      viewportFit: 'contain',
       selectable: true,
       pages: { start: { bg: '' } },
       showCharacterAvatar: true,
@@ -221,6 +326,8 @@ export function useStudioAdvConfig() {
   }
 
   function dispose() {
+    assetCatalog?.dispose()
+    assetCatalog = null
     for (const url of blobUrls)
       URL.revokeObjectURL(url)
     blobUrls.clear()

@@ -97,6 +97,7 @@ const playerTotalNodes = computed(() => gamePlayerRef.value?.totalNodes ?? 0)
 const playerVisitedOrders = computed<number[]>(() => gamePlayerRef.value?.visitedOrders ?? [])
 const playerHistoryStack = computed<number[]>(() => gamePlayerRef.value?.historyStack ?? [])
 const playerUnlockedCGs = computed<string[]>(() => gamePlayerRef.value?.unlockedCGs ?? [])
+const playerGalleryItems = computed(() => gamePlayerRef.value?.galleryItems ?? [])
 const playerChapterAst = computed(() => gamePlayerRef.value?.currentChapterAst)
 const canRollback = computed(() => playerHistoryStack.value.length > 0)
 
@@ -415,6 +416,7 @@ async function handleShare() {
     <CgGalleryModal
       v-if="studioStore.currentProject"
       v-model:open="cgModalOpen"
+      :items="playerGalleryItems"
       :unlocked-cgs="playerUnlockedCGs"
     />
     <StoryStatsModal

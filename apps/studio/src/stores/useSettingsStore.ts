@@ -14,6 +14,50 @@ export interface CosConfig {
   syncInterval: number
 }
 
+const DEFAULT_COS_CONFIG: CosConfig = {
+  bucket: '',
+  region: '',
+  secretId: '',
+  secretKey: '',
+  projectRoot: 'adv-projects/',
+  autoSave: true,
+  autoSync: false,
+  syncInterval: 5,
+}
+
+/** Compatibility reader that deliberately discards credentials from old releases. */
+export function parsePersistedCosConfig(serialized: string): CosConfig {
+  try {
+    const parsed = JSON.parse(serialized) as Partial<CosConfig>
+    return {
+      ...DEFAULT_COS_CONFIG,
+      bucket: typeof parsed.bucket === 'string' ? parsed.bucket : '',
+      region: typeof parsed.region === 'string' ? parsed.region : '',
+      projectRoot: typeof parsed.projectRoot === 'string' ? parsed.projectRoot : DEFAULT_COS_CONFIG.projectRoot,
+      autoSave: typeof parsed.autoSave === 'boolean' ? parsed.autoSave : DEFAULT_COS_CONFIG.autoSave,
+      autoSync: typeof parsed.autoSync === 'boolean' ? parsed.autoSync : DEFAULT_COS_CONFIG.autoSync,
+      syncInterval: Number.isFinite(parsed.syncInterval) ? Number(parsed.syncInterval) : DEFAULT_COS_CONFIG.syncInterval,
+      secretId: '',
+      secretKey: '',
+    }
+  }
+  catch {
+    return { ...DEFAULT_COS_CONFIG }
+  }
+}
+
+/** Persist only non-sensitive legacy sync preferences. */
+export function serializeCosConfig(config: CosConfig): string {
+  return JSON.stringify({
+    bucket: config.bucket,
+    region: config.region,
+    projectRoot: config.projectRoot,
+    autoSave: config.autoSave,
+    autoSync: config.autoSync,
+    syncInterval: config.syncInterval,
+  })
+}
+
 export interface AccountInfo {
   isLoggedIn: boolean
   username: string
@@ -24,16 +68,7 @@ export interface AccountInfo {
 export const useSettingsStore = defineStore('settings', () => {
   const theme = ref<'light' | 'dark' | 'system'>('system')
   const locale = ref<string>(i18n.global.locale.value || 'en')
-  const cos = ref<CosConfig>({
-    bucket: '',
-    region: '',
-    secretId: '',
-    secretKey: '',
-    projectRoot: 'adv-projects/',
-    autoSave: true,
-    autoSync: false,
-    syncInterval: 5,
-  })
+  const cos = ref<CosConfig>({ ...DEFAULT_COS_CONFIG })
 
   /**
    * Account proxy — delegates to useAuthStore for backward compatibility.
@@ -62,17 +97,9 @@ export const useSettingsStore = defineStore('settings', () => {
 
       const savedCos = localStorage.getItem('advjs-studio-cos')
       if (savedCos) {
-        const parsed = JSON.parse(savedCos)
-        cos.value = {
-          bucket: parsed.bucket || '',
-          region: parsed.region || '',
-          secretId: parsed.secretId || '',
-          secretKey: parsed.secretKey || '',
-          projectRoot: parsed.projectRoot ?? 'adv-projects/',
-          autoSave: parsed.autoSave ?? true,
-          autoSync: parsed.autoSync ?? false,
-          syncInterval: parsed.syncInterval ?? 5,
-        }
+        cos.value = parsePersistedCosConfig(savedCos)
+        // Rewrite once so credentials saved by older versions are actively removed.
+        localStorage.setItem('advjs-studio-cos', serializeCosConfig(cos.value))
       }
     }
     catch {
@@ -116,7 +143,7 @@ export const useSettingsStore = defineStore('settings', () => {
   })
 
   watch(cos, (val) => {
-    localStorage.setItem('advjs-studio-cos', JSON.stringify(val))
+    localStorage.setItem('advjs-studio-cos', serializeCosConfig(val))
   }, { deep: true })
 
   // Initialize

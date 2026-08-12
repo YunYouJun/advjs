@@ -1,6 +1,7 @@
 import type {
   CompileDiagnostic,
   CompileSourceLocation,
+  MarkdownResourceCatalog,
 } from '@advjs/core'
 import type { RuntimeAddress, RuntimeProgram } from '@advjs/types'
 import type { ChapterInfo } from '../composables/useProjectContent'
@@ -97,6 +98,7 @@ export async function compileRuntimeAuthoringProject(
   chapters: readonly ChapterInfo[],
   settings: StudioGameSettings,
   override?: RuntimeAuthoringOverride,
+  resources?: MarkdownResourceCatalog,
 ): Promise<RuntimeAuthoringResult> {
   const sources = authoringChapters(chapters, override)
   const sourceByAddress = new Map<string, CompileSourceLocation>()
@@ -133,6 +135,7 @@ export async function compileRuntimeAuthoringProject(
         sourcePath: chapter.file,
       })),
       requiredPlugins: settings.requiredPlugins,
+      resources,
     })
   }
   catch (error) {
