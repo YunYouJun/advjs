@@ -271,6 +271,10 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
           link: '/guide/assets/cos',
         },
         {
+          text: '音频创作与 AI 配音',
+          link: '/guide/audio',
+        },
+        {
           text: '自定义开始界面',
           link: '/guide/customization/start-screen',
         },
@@ -446,6 +450,10 @@ function sidebarAbout(): DefaultTheme.SidebarItem[] {
         {
           text: '资源系统',
           link: '/about/design/assets',
+        },
+        {
+          text: '音频与 AI 配音',
+          link: '/about/design/audio',
         },
         {
           text: '存储系统',

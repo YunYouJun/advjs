@@ -34,6 +34,25 @@ games/{game-id}/v{major}/
 
 `game-id`、角色、场景和状态均使用小写 ASCII kebab-case。路径不得包含空格、中文、来源作品分卷、`latest/`、查询串版本号或可编辑源文件。素材内容变化后生成新的 SHA-256 文件名；已经发布为 immutable 的对象绝不覆盖。破坏性目录变化或清单契约变化时升级到 `v2/`。
 
+### 已确认的音频对象键扩展
+
+下一次破坏性音频迁移会把上方简单的 `audio/bgm`、`audio/sfx` 分支升级为统一音频域。规范形式为：
+
+~~~text
+{projectPrefix}/audio/
+├── voice/{locale}/{speakerId}/{lineId}/{takeId}.{hash}.{ext}
+├── bgm/{assetId}.{hash}.{ext}
+├── ambience/{assetId}.{hash}.{ext}
+├── sfx/{assetId}.{hash}.{ext}
+└── ui/{assetId}.{hash}.{ext}
+~~~
+
+`projectPrefix` 由 Asset Catalog Profile 决定：托管创作空间可以使用 `private/accounts/{accountId}/projects/{projectId}`，公共游戏发布可以继续使用 `games/{game-id}/v{major}`。不论外层 namespace 如何选择，`audio/voice/{locale}/{speakerId}` 的相对顺序固定。
+
+locale 在 voice 域中优先于 speaker，以支持按语言发布、质检、统计和最小权限任务。普通角色的 `speakerId` 等于 `characterId`，旁白使用 `narrator`。项目文件使用规范 BCP 47（如 `zh-CN`），对象键使用规范化小写（如 `zh-cn`）。角色显示名、台词原文、Provider 名称和签名参数不进入对象键。
+
+该扩展当前处于已确认、待实施状态。完整边界见[音频资产与 AI 配音决策](/about/design/audio)和[音频系统设计](/superpowers/specs/2026-08-12-audio-system-design)。
+
 ## 清单与发布计划
 
 项目以 `adv/assets.json` 作为唯一资源根，保存 Profile，并内联逻辑资源或引用分片。每项不再重复保存可由 `baseUrl + objectKey` 推导的绝对 URL。构建器将源目录规范化为扁平的 `manifests/assets.json`；该稳定入口总是最后上传。

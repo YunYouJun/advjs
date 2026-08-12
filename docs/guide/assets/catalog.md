@@ -175,4 +175,16 @@ duration: 24
 
 详细架构取舍见[资源系统设计](/about/design/assets)，发布目录与缓存规则见 [COS 存储与发布规范](./cos)。
 
+## 已确认的音频扩展
+
+多轨音频与 AI 配音会在下一次破坏性 Asset Catalog 升级中使用同一个资源根，并增加：
+
+- `bgm`、`ambience`、`voice`、`sfx`、`ui` 五类音频资产；
+- 独立的 `adv/audio/voice-ledger.json`，保存全部生成 take 与创作元数据；
+- 运行时 `adv/assets/audio.json` 分片，只暴露最终选中的可播放资产；
+- `lineId + locale + selectedTake` 的稳定语音绑定；
+- 禁止剧情、角色卡和 Flow 节点直接写入 `src` 或 Provider URL。
+
+创作账本与运行时目录不会合并成一个文件：前者用于生成审计和版本选择，后者保持最小、可发布。完整目标协议见[音频系统设计](/superpowers/specs/2026-08-12-audio-system-design)和[音频创作指南](/guide/audio)。在实施计划完成前，本节不代表当前 Schema v2 已经支持这些字段。
+
 参考：[Unity Addressables](https://docs.unity3d.com/Packages/com.unity.addressables@1.21/manual/AddressableAssetsOverview.html)、[Godot 导入流程](https://docs.godotengine.org/en/latest/tutorials/assets_pipeline/import_process.html)、[Cocos Asset Bundle](https://docs.cocos.com/creator/3.8/manual/en/asset/bundle.html)。
