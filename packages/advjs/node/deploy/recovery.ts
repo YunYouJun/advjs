@@ -1,12 +1,12 @@
 import type { Buffer } from 'node:buffer'
 import type { CanonicalContentManifest } from '../cli/contracts'
 import type { ArtifactReceipt, DeployProvider } from './index'
-import { createHash } from 'node:crypto'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import process from 'node:process'
 import { serializeCanonicalContentManifest } from '../cli/contracts'
+import { sha256 } from '../utils/hash'
 import { readTarGzip } from './archive'
 import {
   assertSafeProviderResult,
@@ -50,10 +50,6 @@ export interface DeployArtifactOptions extends VerifyDeploymentArtifactOptions {
 }
 
 const SHA256_RE = /^[a-f0-9]{64}$/u
-
-function sha256(content: string | Uint8Array) {
-  return createHash('sha256').update(content).digest('hex')
-}
 
 function validationError(message: string, cause?: unknown) {
   return new DeployProjectError('ADV_VALIDATION', message, cause === undefined ? undefined : { cause })

@@ -1,7 +1,6 @@
 import type { AdvBuildResult } from '../commands/build'
 import type { CheckResult } from '../commands/check'
 import { Buffer } from 'node:buffer'
-import { createHash } from 'node:crypto'
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, join, relative, resolve } from 'node:path'
 import process from 'node:process'
@@ -13,6 +12,8 @@ import {
 import { advBuild } from '../commands/build'
 import { runCheck } from '../commands/check'
 import { loadProject } from '../project'
+import { pathExists } from '../utils/fs'
+import { sha256 } from '../utils/hash'
 import { createDeterministicTarGzip } from './archive'
 
 export type DeployErrorCode = 'ADV_AUTH' | 'ADV_BUILD' | 'ADV_DEPLOY' | 'ADV_NETWORK' | 'ADV_VALIDATION'
@@ -92,10 +93,6 @@ export class DeployProjectError extends Error {
   }
 }
 
-function sha256(content: string | Uint8Array) {
-  return createHash('sha256').update(content).digest('hex')
-}
-
 function stableJson(value: unknown): unknown {
   if (Array.isArray(value))
     return value.map(stableJson)
@@ -106,14 +103,6 @@ function stableJson(value: unknown): unknown {
 
 function serializeJson(value: unknown) {
   return `${JSON.stringify(stableJson(value), null, 2)}\n`
-}
-
-async function pathExists(path: string) {
-  return await readFile(path).then(() => true).catch((error: NodeJS.ErrnoException) => {
-    if (error.code === 'ENOENT')
-      return false
-    throw error
-  })
 }
 
 export async function writeImmutable(path: string, content: string | Uint8Array) {

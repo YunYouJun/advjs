@@ -4,6 +4,8 @@ import { createRequire } from 'node:module'
 import { homedir } from 'node:os'
 import { basename, dirname, join, resolve } from 'node:path'
 import process from 'node:process'
+import { pathExists } from '../utils/fs'
+import { sha256 } from '../utils/hash'
 
 export const ADV_AGENT_CLIENTS = ['codex', 'claude-code', 'cursor'] as const
 export type AdvAgentClient = typeof ADV_AGENT_CLIENTS[number]
@@ -120,14 +122,6 @@ const CLIENT_ADAPTERS: Record<AdvAgentClient, ClientAdapter> = {
   },
 }
 
-async function pathExists(path: string) {
-  return await lstat(path).then(() => true).catch((error: NodeJS.ErrnoException) => {
-    if (error.code === 'ENOENT')
-      return false
-    throw error
-  })
-}
-
 export async function calculateSkillIntegrity(directory: string) {
   const files: string[] = []
   async function walk(current: string, prefix = ''): Promise<void> {
@@ -155,7 +149,7 @@ export async function calculateSkillIntegrity(directory: string) {
 }
 
 async function backupFile(path: string, content: string) {
-  const digest = createHash('sha256').update(content).digest('hex').slice(0, 12)
+  const digest = sha256(content).slice(0, 12)
   const backup = `${path}.advjs-backup.${digest}`
   if (!await pathExists(backup))
     await copyFile(path, backup)

@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto'
+import { sha256 } from '../utils/hash'
 
 export const ADV_CLI_SCHEMA_VERSION = 1 as const
 
@@ -141,10 +141,6 @@ function toCanonicalJson(value: unknown, omittedFields: ReadonlySet<string>): Ca
   }
 
   throw new TypeError(`Unsupported canonical JSON value: ${typeof value}`)
-}
-
-function sha256(value: string | Uint8Array) {
-  return createHash(ADV_CONTENT_REVISION_ALGORITHM).update(value).digest('hex')
 }
 
 export function createCanonicalContentManifest(input: ContentRevisionInput): CanonicalContentManifest {

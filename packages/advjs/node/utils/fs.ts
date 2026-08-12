@@ -2,7 +2,7 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from
 /**
  * File system utilities to replace fs-extra with native Node.js APIs
  */
-import { access, copyFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { copyFile, lstat, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname } from 'node:path'
 
 const newlinePattern = /\n/g
@@ -12,11 +12,13 @@ const newlinePattern = /\n/g
  */
 export async function pathExists(path: string): Promise<boolean> {
   try {
-    await access(path)
+    await lstat(path)
     return true
   }
-  catch {
-    return false
+  catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT')
+      return false
+    throw error
   }
 }
 
