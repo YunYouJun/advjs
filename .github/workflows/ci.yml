@@ -3,87 +3,167 @@ name: ADV.JS CI
 on:
   push:
     branches:
+      - dev
       - main
-
   pull_request:
     branches:
+      - dev
       - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
+    name: build (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node:
+          - '22'
+          - '24'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          node-version: ${{ matrix.node }}
           cache: pnpm
-
-      - name: Install
-        run: pnpm install
-
-      - name: Build
-        run: npm run build
-
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-          cache: pnpm
-
-      - name: Install Dependencies
-        run: pnpm install
-
-      - name: Build
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build packages
         run: pnpm build
 
-      - name: Lint
-        run: pnpm run lint
+  editor-pages-build:
+    name: editor-pages-build
+    runs-on: ubuntu-latest
+    env:
+      NODE_VERSION: '24'
+      PNPM_VERSION: 10.34.1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Reproduce Cloudflare Pages build command
+        run: npm run editor:build
+      - name: Verify Cloudflare Pages output directory
+        run: test -f editor/core/dist/index.html
+
+  unit:
+    name: unit (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node:
+          - '22'
+          - '24'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run unit tests
+        run: pnpm vitest run tests/unit --reporter=default
 
   typecheck:
+    name: typecheck (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node:
+          - '22'
+          - '24'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm typecheck
+
+  lint:
+    name: lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          node-version: '24'
           cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Lint
+        run: pnpm lint
 
-      - name: Install
-        run: pnpm install
+  editor-smoke:
+    name: editor-smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck Editor
+        run: pnpm --filter @advjs/editor typecheck
+      - name: Build Editor
+        run: pnpm --filter @advjs/editor build
 
-      - name: Typecheck
-        run: pnpm run typecheck
+  packed-smoke:
+    name: packed-smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run packed install, CLI, Editor lifecycle, and build smoke
+        run: pnpm vitest run tests/launch/packed-build.test.ts tests/launch/packed-install.test.ts --no-file-parallelism --reporter=default
 
-  # test:
-  #   runs-on: ${{ matrix.os }}
-
-  #   strategy:
-  #     matrix:
-  #       node-version: lts/*
-  #       os: [ubuntu-latest]
-  #     fail-fast: false
-
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: pnpm/action-setup@v2
-  #     - name: Use Node.js ${{ matrix.node-version }}
-  #       uses: actions/setup-node@v3
-  #       with:
-  #         node-version: ${{ matrix.node-version }}
-  #         registry-url: https://registry.npmjs.org/
-  #         cache: pnpm
-
-  #     - run: pnpm install
-  #     - run: pnpm run test:unit --if-present
-
-  test-e2e:
+  e2e:
+    name: e2e
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
@@ -91,23 +171,127 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          node-version: '24'
           cache: pnpm
-
-      - name: Install
-        run: pnpm install
-
-      - name: Build ADV.JS Lib
-        run: pnpm build
-
-      - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
-      - name: Run Playwright tests
-        run: pnpm e2e
-
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build packages
+        run: pnpm build && pnpm editor:build
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Run Chromium tests
+        run: pnpm exec playwright test --project=chromium
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: playwright-report
           path: playwright-report/
           retention-days: 30
+
+  editor-e2e:
+    name: editor-e2e (Chromium)
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build Editor launch chain
+        run: pnpm build && pnpm editor:build
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Run Editor lifecycle and security tests
+        run: pnpm exec playwright test tests/e2e/editor-local.spec.ts tests/e2e/editor-security.spec.ts --project=chromium
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: editor-playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+  agent-install-smoke:
+    name: agent-install-smoke
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    env:
+      ADV_LAUNCH_ARTIFACTS_DIR: ${{ github.workspace }}/artifacts/agent-install-smoke
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run packed Agent installation smoke
+        run: pnpm vitest run tests/launch/agent-install-smoke.test.ts --reporter=default
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agent-install-smoke
+          path: artifacts/agent-install-smoke/
+          retention-days: 30
+
+  launch-journey:
+    name: launch-journey
+    runs-on: ubuntu-latest
+    env:
+      ADV_LAUNCH_ARTIFACTS_DIR: ${{ github.workspace }}/artifacts/launch-journey
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Run complete launch journey
+        run: pnpm test:launch
+      - name: Upload launch journey evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: launch-journey-${{ github.run_id }}
+          path: artifacts/launch-journey/
+          if-no-files-found: warn
+          retention-days: 30
+
+  launch-required:
+    name: launch-required
+    if: always()
+    needs:
+      - build
+      - editor-pages-build
+      - unit
+      - typecheck
+      - lint
+      - editor-smoke
+      - packed-smoke
+      - e2e
+      - editor-e2e
+      - agent-install-smoke
+      - launch-journey
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every launch check
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: |
+          node --input-type=module -e '
+            const jobs = Object.entries(JSON.parse(process.env.NEEDS_JSON));
+            const failed = jobs.filter(([, job]) => job.result !== "success");
+            if (failed.length) {
+              console.error("Required launch checks failed:", failed.map(([name, job]) => `${name}=${job.result}`).join(", "));
+              process.exit(1);
+            }
+            console.log("All required launch checks passed");
+          '

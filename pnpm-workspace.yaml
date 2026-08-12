@@ -55,6 +55,8 @@ catalog:
   '@vue-flow/node-resizer': ^1.5.1
   '@xterm/addon-fit': 0.11.0-beta.115
   '@yunyoujun/docs': ^0.1.14
+  ajv: ^8.20.0
+  ajv-formats: ^3.0.1
   axios: ^1.18.1
   body-parser: ^2.3.0
   cos-js-sdk-v5: ^1.10.1
@@ -84,9 +86,11 @@ catalog:
   vitefu: ^1.1.3
   vitepress-plugin-group-icons: ^1.7.5
   vitepress-plugin-mermaid: ^2.0.17
+  wrangler: 4.120.1
   y-indexeddb: ^9.0.12
   y-monaco: ^0.1.6
   y-protocols: ^1.0.7
+  yaml: ^2.9.0
   yjs: ^13.6.31
   zod: ^4.4.3
 catalogs:

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "algorithm": "sha256",
+  "canonicalization": {
+    "encoding": "utf8",
+    "pathSeparator": "/",
+    "sortObjectKeys": true,
+    "sortProjectFilesBy": "path",
+    "sortRegisteredAssetsBy": [
+      "id",
+      "path",
+      "sha256"
+    ]
+  },
+  "nondeterministicFields": [
+    "createdAt",
+    "updatedAt",
+    "generatedAt",
+    "builtAt",
+    "deployedAt",
+    "deploymentId",
+    "deploymentUrl",
+    "durationMs"
+  ],
+  "criticalDeploymentResources": [
+    "index.html",
+    "html-referenced-js",
+    "html-referenced-css",
+    "build-manifest-entry-assets",
+    "spa-fallback"
+  ],
+  "goldenContentRevision": "17640b8f5a2ebfc9ca3c338e215ccf1deb24736c3b3f0e9c0d7537e3ade426bb"
+}

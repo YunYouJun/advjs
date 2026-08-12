@@ -3,34 +3,30 @@ name: ADV.JS Demo
 on:
   push:
     branches:
+      - dev
       - main
-
   pull_request:
     branches:
+      - dev
       - main
 
-jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        # os: [ubuntu-latest, windows-latest, macos-latest]
-        os: [ubuntu-latest]
-      fail-fast: false
+permissions:
+  contents: read
 
+jobs:
+  demo:
+    name: demo-build
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          node-version: '24'
           cache: pnpm
-
-      - name: 📦 Install
-        run: pnpm install
-
-      - name: 🔧 Build ADV.JS CLI
-        run: pnpm run build:advjs
-
-      - name: 🎮 Build ADV.JS Demo
-        run: pnpm run build:demo
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build ADV.JS package chain
+        run: pnpm build:advjs
+      - name: Build demo
+        run: pnpm build:demo

@@ -1,7 +1,10 @@
 {
   "name": "@advjs/unocss",
   "type": "module",
-  "version": "0.1.1",
+  "version": "0.1.2",
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": "./dist/index.mjs",
     "./package.json": "./package.json"
@@ -9,6 +12,12 @@
   "main": "dist/index.mjs",
   "module": "dist/index.mjs",
   "types": "dist/index.d.mts",
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": "^22.12.0 || ^24.0.0"
+  },
   "scripts": {
     "build": "unbuild",
     "dev": "unbuild --stub",
@@ -17,8 +26,10 @@
   "peerDependencies": {
     "unocss": "*"
   },
+  "dependencies": {
+    "defu": "catalog:utils"
+  },
   "devDependencies": {
-    "defu": "catalog:utils",
     "unocss": "catalog:build"
   }
 }

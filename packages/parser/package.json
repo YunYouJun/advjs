@@ -1,7 +1,7 @@
 {
   "name": "@advjs/parser",
   "type": "module",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A parser for advjs.",
   "author": {
     "name": "YunYouJun",
@@ -16,6 +16,9 @@
     "ast"
   ],
   "readme": "https://github.com/YunYouJun/advjs/tree/main/packages/parser#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     "./package.json": "./package.json",
     ".": "./dist/index.mjs",
@@ -32,7 +35,7 @@
     "dist"
   ],
   "engines": {
-    "node": "^20.19.0 || >=22.12.0"
+    "node": "^22.12.0 || ^24.0.0"
   },
   "scripts": {
     "build": "unbuild",
@@ -44,8 +47,8 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@advjs/types": "workspace:*",
-    "@advjs/unocss": "workspace:*",
+    "@advjs/types": "workspace:0.1.2",
+    "@advjs/unocss": "workspace:0.1.2",
     "@types/mdast": "catalog:types",
     "consola": "catalog:cli",
     "floating-vue": "catalog:",

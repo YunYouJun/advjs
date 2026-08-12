@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 2,
+  "id": "rainy-letter",
+  "defaultProfile": "local",
+  "profiles": {
+    "local": {
+      "provider": "project",
+      "root": "adv/assets"
+    }
+  },
+  "assets": []
+}

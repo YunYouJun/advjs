@@ -1,43 +1,103 @@
-name: Release
+name: Release promotion transaction
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      candidate_run_id:
+        description: Successful release-candidate workflow run ID
+        required: true
+        type: string
+      artifact_name:
+        description: Immutable candidate artifact name
+        required: true
+        type: string
+      manifest:
+        description: Manifest path inside the candidate artifact
+        default: manifest.json
+        required: true
+        type: string
+      evidence_json:
+        description: Signed L6-07 browser evidence JSON (required for promotion)
+        required: false
+        type: string
+      operation:
+        description: Resume promotion or abort before the irreversible point
+        default: promote
+        required: true
+        type: choice
+        options:
+          - promote
+          - abort
+      dry_run:
+        description: Validate and print the transaction plan without mutations
+        default: true
+        required: true
+        type: boolean
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: advjs-release
+  cancel-in-progress: false
 
 jobs:
-  release:
+  transaction:
     runs-on: ubuntu-latest
+    environment: release-production
     steps:
-      - name: Checkout with depth
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          # for changelog
           fetch-depth: 0
-
       - uses: pnpm/action-setup@v4
-        name: Install pnpm
         with:
-          run_install: false
-
-      - name: Install Node.js LTS
-        uses: actions/setup-node@v4
+          version: 10.34.1
+      - uses: actions/setup-node@v4
         with:
-          node-version: lts/*
-          registry-url: https://registry.npmjs.org/
+          node-version: '24'
           cache: pnpm
-
       - name: Install dependencies
-        run: pnpm install
-
-      - name: Build ADV.JS
-        run: pnpm run build:advjs
-
-      # https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
-      - run: npm run ci:publish
+        run: pnpm install --frozen-lockfile
+      - name: Download immutable candidate artifact
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-
-      - run: npx changelogithub
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh run download ${{ inputs.candidate_run_id }}
+          --name "${{ inputs.artifact_name }}"
+          --dir release-transaction
+      - name: Verify immutable release manifest
+        run: node scripts/release/verify-manifest.mjs "release-transaction/${{ inputs.manifest }}"
+      - name: Materialize signed approval evidence
+        if: inputs.operation == 'promote' && !inputs.dry_run
         env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          RELEASE_EVIDENCE_JSON: ${{ inputs.evidence_json }}
+        run: node -e "require('node:fs').writeFileSync('release-evidence.json', process.env.RELEASE_EVIDENCE_JSON)"
+      - name: Dry-run promotion
+        if: inputs.operation == 'promote' && inputs.dry_run
+        run: node scripts/release/promote.mjs "release-transaction/${{ inputs.manifest }}" --dry-run
+      - name: Promote or resume the exact candidate
+        if: inputs.operation == 'promote' && !inputs.dry_run
+        run: >-
+          node scripts/release/promote.mjs
+          "release-transaction/${{ inputs.manifest }}"
+          --evidence release-evidence.json
+      - name: Dry-run abort
+        if: inputs.operation == 'abort' && inputs.dry_run
+        run: node scripts/release/abort.mjs "release-transaction/${{ inputs.manifest }}" --dry-run
+      - name: Abort before the irreversible point
+        if: inputs.operation == 'abort' && !inputs.dry_run
+        run: node scripts/release/abort.mjs "release-transaction/${{ inputs.manifest }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-transaction-${{ inputs.candidate_run_id }}
+          path: release-transaction/
+          if-no-files-found: error
+          retention-days: 90
+    env:
+      ADV_RELEASE_BOT_ACTOR: ${{ vars.ADV_RELEASE_BOT_ACTOR }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

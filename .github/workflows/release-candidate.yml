@@ -1,0 +1,89 @@
+name: Release candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Exact dev commit SHA to package
+        required: true
+        type: string
+      version:
+        description: Immutable candidate version
+        required: true
+        type: string
+      state_json:
+        description: Read-only Git/npm/Pages state snapshot JSON
+        required: true
+        type: string
+      registry_url:
+        description: npm-compatible registry (use a local registry for rehearsal)
+        default: https://registry.npmjs.org
+        required: true
+        type: string
+      dry_run:
+        description: Build and verify without publishing
+        default: true
+        required: true
+        type: boolean
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: advjs-release
+  cancel-in-progress: false
+
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.dry_run && 'release-dry-run' || 'release-candidate' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.source_sha }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+          registry-url: ${{ inputs.registry_url }}
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Materialize read-only release state
+        env:
+          RELEASE_STATE_JSON: ${{ inputs.state_json }}
+        run: node -e "require('node:fs').writeFileSync('.release-state.json', process.env.RELEASE_STATE_JSON)"
+      - name: Build immutable package set and manifest
+        run: >-
+          node scripts/release/create-manifest.mjs
+          --source-sha ${{ inputs.source_sha }}
+          --version ${{ inputs.version }}
+          --state .release-state.json
+          --output release/${{ inputs.version }}/manifest.json
+      - name: Verify local manifest and package integrity
+        run: node scripts/release/verify-manifest.mjs release/${{ inputs.version }}/manifest.json
+      - name: Rehearse idempotent candidate publication
+        if: inputs.dry_run
+        run: >-
+          node scripts/release/publish-candidate.mjs
+          release/${{ inputs.version }}/manifest.json
+          --registry ${{ inputs.registry_url }}
+          --dry-run
+      - name: Publish candidate once
+        if: ${{ !inputs.dry_run }}
+        run: >-
+          node scripts/release/publish-candidate.mjs
+          release/${{ inputs.version }}/manifest.json
+          --registry ${{ inputs.registry_url }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-candidate-${{ inputs.version }}
+          path: release/${{ inputs.version }}/
+          if-no-files-found: error
+          retention-days: 90

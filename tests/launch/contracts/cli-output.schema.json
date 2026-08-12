@@ -1,0 +1,824 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://advjs.org/schemas/cli-output.v1.json",
+  "$defs": {
+    "message": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "details": {
+          "type": "object"
+        }
+      }
+    },
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "enum": [
+            "ADV_USAGE",
+            "ADV_VALIDATION",
+            "ADV_BUILD",
+            "ADV_EDITOR",
+            "ADV_AUTH",
+            "ADV_DEPLOY",
+            "ADV_NETWORK",
+            "ADV_INTERNAL"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "details": {
+          "type": "object"
+        }
+      }
+    },
+    "envelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "command",
+        "ok",
+        "data",
+        "warnings",
+        "errors"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "command": {
+          "enum": [
+            "init",
+            "check",
+            "build",
+            "editor",
+            "agent.install",
+            "doctor",
+            "deploy",
+            "deploy.artifact"
+          ]
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "data": {},
+        "warnings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/message"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/error"
+          }
+        }
+      }
+    },
+    "failure": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "ok": {
+              "const": false
+            },
+            "data": {
+              "type": "null"
+            },
+            "errors": {
+              "type": "array",
+              "minItems": 1
+            }
+          }
+        }
+      ]
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "severity",
+        "code",
+        "message"
+      ],
+      "properties": {
+        "severity": {
+          "enum": [
+            "warning",
+            "error"
+          ]
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "string"
+        }
+      }
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "initData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "root",
+        "template",
+        "files"
+      ],
+      "properties": {
+        "root": {
+          "type": "string",
+          "minLength": 1
+        },
+        "template": {
+          "enum": [
+            "default",
+            "galgame"
+          ]
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "checkData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "root",
+        "diagnostics"
+      ],
+      "properties": {
+        "root": {
+          "type": "string",
+          "minLength": 1
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/diagnostic"
+          }
+        }
+      }
+    },
+    "buildData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "root",
+        "outDir",
+        "assets"
+      ],
+      "properties": {
+        "root": {
+          "type": "string",
+          "minLength": 1
+        },
+        "outDir": {
+          "type": "string",
+          "minLength": 1
+        },
+        "assets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "path",
+              "bytes",
+              "sha256"
+            ],
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "bytes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "sha256": {
+                "$ref": "#/$defs/sha256"
+              }
+            }
+          }
+        }
+      }
+    },
+    "editorData": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "event",
+            "root",
+            "url"
+          ],
+          "properties": {
+            "event": {
+              "const": "ready"
+            },
+            "root": {
+              "type": "string",
+              "minLength": 1
+            },
+            "url": {
+              "type": "string",
+              "format": "uri"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "event"
+          ],
+          "properties": {
+            "event": {
+              "const": "stopped"
+            }
+          }
+        }
+      ]
+    },
+    "agentInstallData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "client",
+        "dryRun",
+        "changed",
+        "configPath",
+        "skills",
+        "mcp"
+      ],
+      "properties": {
+        "client": {
+          "enum": [
+            "codex",
+            "claude-code",
+            "cursor"
+          ]
+        },
+        "dryRun": {
+          "type": "boolean"
+        },
+        "changed": {
+          "type": "boolean"
+        },
+        "configPath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "skills": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "revision",
+              "integrity"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "revision": {
+                "type": "string",
+                "minLength": 1
+              },
+              "integrity": {
+                "$ref": "#/$defs/sha256"
+              }
+            }
+          }
+        },
+        "mcp": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "installed",
+            "command"
+          ],
+          "properties": {
+            "installed": {
+              "type": "boolean"
+            },
+            "command": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "diff": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "path"
+            ],
+            "properties": {
+              "kind": {
+                "enum": [
+                  "create",
+                  "update",
+                  "unchanged"
+                ]
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "doctorData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "checks"
+      ],
+      "properties": {
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "status",
+              "message"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "status": {
+                "enum": [
+                  "pass",
+                  "warn",
+                  "fail"
+                ]
+              },
+              "message": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "deploymentData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "project",
+        "contentRevision",
+        "deploymentId",
+        "url",
+        "receipt"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "project": {
+          "type": "string",
+          "minLength": 1
+        },
+        "contentRevision": {
+          "$ref": "#/$defs/sha256"
+        },
+        "deploymentId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "receipt": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "artifactDeploymentData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "project",
+        "contentRevision",
+        "deploymentId",
+        "url",
+        "receipt",
+        "archiveSha256",
+        "artifactReceipt"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "project": {
+          "type": "string",
+          "minLength": 1
+        },
+        "contentRevision": {
+          "$ref": "#/$defs/sha256"
+        },
+        "deploymentId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "receipt": {
+          "type": "string",
+          "minLength": 1
+        },
+        "archiveSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "artifactReceipt": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "initSuccess": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "init"
+            },
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/initData"
+            },
+            "errors": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      ]
+    },
+    "initFailure": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/failure"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "init"
+            }
+          }
+        }
+      ]
+    },
+    "checkSuccess": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "check"
+            },
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/checkData"
+            },
+            "errors": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      ]
+    },
+    "checkFailure": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/failure"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "check"
+            }
+          }
+        }
+      ]
+    },
+    "buildSuccess": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "build"
+            },
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/buildData"
+            },
+            "errors": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      ]
+    },
+    "buildFailure": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/failure"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "build"
+            }
+          }
+        }
+      ]
+    },
+    "editorSuccess": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "editor"
+            },
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/editorData"
+            },
+            "errors": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      ]
+    },
+    "editorFailure": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/failure"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "editor"
+            }
+          }
+        }
+      ]
+    },
+    "agentInstallSuccess": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "agent.install"
+            },
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/agentInstallData"
+            },
+            "errors": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      ]
+    },
+    "agentInstallFailure": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/failure"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "agent.install"
+            }
+          }
+        }
+      ]
+    },
+    "doctorSuccess": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "doctor"
+            },
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/doctorData"
+            },
+            "errors": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      ]
+    },
+    "doctorFailure": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/failure"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "doctor"
+            }
+          }
+        }
+      ]
+    },
+    "deploySuccess": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "deploy"
+            },
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/deploymentData"
+            },
+            "errors": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      ]
+    },
+    "deployFailure": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/failure"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "deploy"
+            }
+          }
+        }
+      ]
+    },
+    "deployArtifactSuccess": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "deploy.artifact"
+            },
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/artifactDeploymentData"
+            },
+            "errors": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      ]
+    },
+    "deployArtifactFailure": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/failure"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "deploy.artifact"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "node": [
+    "22.x",
+    "24.x"
+  ],
+  "operatingSystems": [
+    {
+      "name": "ubuntu",
+      "tier": "full",
+      "checks": [
+        "launch-journey"
+      ]
+    },
+    {
+      "name": "macos",
+      "tier": "smoke",
+      "checks": [
+        "packed-install",
+        "cli",
+        "editor-lifecycle",
+        "build"
+      ]
+    },
+    {
+      "name": "windows",
+      "tier": "smoke",
+      "checks": [
+        "packed-install",
+        "cli",
+        "editor-lifecycle",
+        "build"
+      ]
+    }
+  ],
+  "packageManagers": [
+    {
+      "name": "npm",
+      "executors": [
+        "npm",
+        "npx"
+      ]
+    },
+    {
+      "name": "pnpm",
+      "version": "10.x",
+      "executors": [
+        "pnpm",
+        "pnpm dlx"
+      ]
+    }
+  ],
+  "browsers": {
+    "supported": [
+      "chromium-stable"
+    ],
+    "unsupported": [
+      "firefox",
+      "safari"
+    ]
+  },
+  "templates": [
+    "default",
+    "galgame"
+  ],
+  "packages": {
+    "entrypoints": [
+      "advjs",
+      "@advjs/editor",
+      "@advjs/mcp-server"
+    ],
+    "dependencyClosure": [
+      "@advjs/client",
+      "@advjs/core",
+      "@advjs/devtools",
+      "@advjs/gui",
+      "@advjs/parser",
+      "@advjs/theme-default",
+      "@advjs/types",
+      "@advjs/unocss"
+    ]
+  },
+  "skills": {
+    "default": [
+      "adv-create",
+      "adv-debug",
+      "adv-review",
+      "adv-art"
+    ],
+    "optional": [
+      "adv-story",
+      "adv-adapt"
+    ],
+    "repositoryOnly": [
+      "adv-hamster-demo"
+    ]
+  },
+  "agentClients": [
+    "codex",
+    "claude-code",
+    "cursor"
+  ]
+}

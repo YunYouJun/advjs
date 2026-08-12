@@ -1,7 +1,7 @@
 {
   "name": "@advjs/theme-default",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.1.2",
   "description": "Default Theme for ADV.JS",
   "author": {
     "name": "YunYouJun",
@@ -13,13 +13,30 @@
     "advjs-theme",
     "advjs"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": "./index.ts",
     "./*": "./*"
   },
   "main": "index.ts",
+  "files": [
+    "assets",
+    "client",
+    "components",
+    "composables",
+    "index.ts",
+    "layouts",
+    "node",
+    "pages",
+    "stores",
+    "styles",
+    "types",
+    "uno.config.ts"
+  ],
   "engines": {
-    "node": "^20.19.0 || >=22.12.0",
+    "node": "^22.12.0 || ^24.0.0",
     "advjs": ">=0.0.1"
   },
   "advjs": {
@@ -29,7 +46,7 @@
     "@iconify-json/ri": "catalog:icons"
   },
   "devDependencies": {
-    "@advjs/core": "workspace:*",
-    "advjs": "workspace:*"
+    "@advjs/core": "workspace:0.1.2",
+    "advjs": "workspace:0.1.2"
   }
 }

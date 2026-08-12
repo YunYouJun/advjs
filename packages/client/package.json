@@ -1,7 +1,7 @@
 {
   "name": "@advjs/client",
   "type": "module",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "ADV.JS Client",
   "author": {
     "email": "me@yunyoujun.cn",
@@ -16,6 +16,9 @@
     "url": "https://github.com/YunYouJun/advjs"
   },
   "bugs": "https://github.com/YunYouJun/advjs/issues",
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     "./package.json": "./package.json",
     ".": "./index.ts",
@@ -23,23 +26,29 @@
   },
   "main": "index.ts",
   "engines": {
-    "node": "^20.19.0 || >=22.12.0"
+    "node": "^22.12.0 || ^24.0.0"
   },
   "dependencies": {
-    "@advjs/core": "workspace:*",
-    "@advjs/parser": "workspace:*",
-    "@advjs/types": "workspace:*",
+    "@advjs/core": "workspace:0.1.2",
+    "@advjs/parser": "workspace:0.1.2",
+    "@advjs/types": "workspace:0.1.2",
+    "@advjs/unocss": "workspace:0.1.2",
     "@antfu/utils": "catalog:utils",
+    "@dagrejs/dagre": "catalog:",
     "@iconify-json/carbon": "catalog:icons",
     "@iconify-json/mdi": "catalog:icons",
     "@iconify-json/ri": "catalog:icons",
     "@unhead/vue": "catalog:frontend",
+    "@unocss/reset": "catalog:frontend",
+    "@vue-flow/background": "catalog:",
+    "@vue-flow/core": "catalog:frontend",
     "@vueuse/core": "catalog:frontend",
     "@vueuse/motion": "catalog:frontend",
     "@vueuse/sound": "catalog:frontend",
     "animate.css": "catalog:frontend",
     "consola": "catalog:cli",
     "dayjs": "catalog:utils",
+    "defu": "catalog:utils",
     "howler": "catalog:frontend",
     "html2canvas": "catalog:frontend",
     "nprogress": "catalog:frontend",
@@ -47,6 +56,7 @@
     "pixi.js": "catalog:frontend",
     "reka-ui": "catalog:frontend",
     "swiper": "catalog:frontend",
+    "unocss": "catalog:build",
     "unstorage": "catalog:utils",
     "vue": "catalog:frontend",
     "vue-router": "catalog:frontend"

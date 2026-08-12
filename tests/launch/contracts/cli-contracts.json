@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "schema": "cli-output.schema.json",
+  "examples": "cli-output.examples.json",
+  "commands": {
+    "init": {
+      "success": "https://advjs.org/schemas/cli-output.v1.json#/$defs/initSuccess",
+      "failure": "https://advjs.org/schemas/cli-output.v1.json#/$defs/initFailure"
+    },
+    "check": {
+      "success": "https://advjs.org/schemas/cli-output.v1.json#/$defs/checkSuccess",
+      "failure": "https://advjs.org/schemas/cli-output.v1.json#/$defs/checkFailure"
+    },
+    "build": {
+      "success": "https://advjs.org/schemas/cli-output.v1.json#/$defs/buildSuccess",
+      "failure": "https://advjs.org/schemas/cli-output.v1.json#/$defs/buildFailure"
+    },
+    "editor": {
+      "success": "https://advjs.org/schemas/cli-output.v1.json#/$defs/editorSuccess",
+      "failure": "https://advjs.org/schemas/cli-output.v1.json#/$defs/editorFailure"
+    },
+    "agent.install": {
+      "success": "https://advjs.org/schemas/cli-output.v1.json#/$defs/agentInstallSuccess",
+      "failure": "https://advjs.org/schemas/cli-output.v1.json#/$defs/agentInstallFailure"
+    },
+    "doctor": {
+      "success": "https://advjs.org/schemas/cli-output.v1.json#/$defs/doctorSuccess",
+      "failure": "https://advjs.org/schemas/cli-output.v1.json#/$defs/doctorFailure"
+    },
+    "deploy": {
+      "success": "https://advjs.org/schemas/cli-output.v1.json#/$defs/deploySuccess",
+      "failure": "https://advjs.org/schemas/cli-output.v1.json#/$defs/deployFailure"
+    },
+    "deploy.artifact": {
+      "success": "https://advjs.org/schemas/cli-output.v1.json#/$defs/deployArtifactSuccess",
+      "failure": "https://advjs.org/schemas/cli-output.v1.json#/$defs/deployArtifactFailure"
+    }
+  }
+}

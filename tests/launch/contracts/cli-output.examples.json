@@ -1,0 +1,250 @@
+{
+  "init": {
+    "success": {
+      "schemaVersion": 1,
+      "command": "init",
+      "ok": true,
+      "data": {
+        "root": "/tmp/my-game",
+        "template": "default",
+        "files": [
+          "adv.config.json",
+          "adv/chapters/chapter_01.adv.md"
+        ]
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "failure": {
+      "schemaVersion": 1,
+      "command": "init",
+      "ok": false,
+      "data": null,
+      "warnings": [],
+      "errors": [
+        {
+          "code": "ADV_VALIDATION",
+          "message": "The target already contains an ADV.JS project."
+        }
+      ]
+    }
+  },
+  "check": {
+    "success": {
+      "schemaVersion": 1,
+      "command": "check",
+      "ok": true,
+      "data": {
+        "root": "/tmp/my-game",
+        "diagnostics": []
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "failure": {
+      "schemaVersion": 1,
+      "command": "check",
+      "ok": false,
+      "data": null,
+      "warnings": [],
+      "errors": [
+        {
+          "code": "ADV_VALIDATION",
+          "message": "Project validation failed."
+        }
+      ]
+    }
+  },
+  "build": {
+    "success": {
+      "schemaVersion": 1,
+      "command": "build",
+      "ok": true,
+      "data": {
+        "root": "/tmp/my-game",
+        "outDir": "/tmp/my-game/dist",
+        "assets": [
+          {
+            "path": "index.html",
+            "bytes": 512,
+            "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          }
+        ]
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "failure": {
+      "schemaVersion": 1,
+      "command": "build",
+      "ok": false,
+      "data": null,
+      "warnings": [],
+      "errors": [
+        {
+          "code": "ADV_BUILD",
+          "message": "The production build failed."
+        }
+      ]
+    }
+  },
+  "editor": {
+    "success": {
+      "schemaVersion": 1,
+      "command": "editor",
+      "ok": true,
+      "data": {
+        "event": "ready",
+        "root": "/tmp/my-game",
+        "url": "http://127.0.0.1:3000/"
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "failure": {
+      "schemaVersion": 1,
+      "command": "editor",
+      "ok": false,
+      "data": null,
+      "warnings": [],
+      "errors": [
+        {
+          "code": "ADV_EDITOR",
+          "message": "The local editor could not start."
+        }
+      ]
+    }
+  },
+  "agent.install": {
+    "success": {
+      "schemaVersion": 1,
+      "command": "agent.install",
+      "ok": true,
+      "data": {
+        "client": "codex",
+        "dryRun": false,
+        "changed": true,
+        "configPath": "/tmp/home/.codex/config.toml",
+        "skills": [
+          {
+            "name": "adv-create",
+            "revision": "1",
+            "integrity": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          }
+        ],
+        "mcp": {
+          "installed": true,
+          "command": "adv-mcp-server"
+        }
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "failure": {
+      "schemaVersion": 1,
+      "command": "agent.install",
+      "ok": false,
+      "data": null,
+      "warnings": [],
+      "errors": [
+        {
+          "code": "ADV_USAGE",
+          "message": "Unsupported Agent client."
+        }
+      ]
+    }
+  },
+  "doctor": {
+    "success": {
+      "schemaVersion": 1,
+      "command": "doctor",
+      "ok": true,
+      "data": {
+        "checks": [
+          {
+            "id": "node-version",
+            "status": "pass",
+            "message": "Node.js is supported."
+          }
+        ]
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "failure": {
+      "schemaVersion": 1,
+      "command": "doctor",
+      "ok": false,
+      "data": null,
+      "warnings": [],
+      "errors": [
+        {
+          "code": "ADV_INTERNAL",
+          "message": "Diagnostics could not complete."
+        }
+      ]
+    }
+  },
+  "deploy": {
+    "success": {
+      "schemaVersion": 1,
+      "command": "deploy",
+      "ok": true,
+      "data": {
+        "provider": "cloudflare-pages",
+        "project": "my-game",
+        "contentRevision": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "deploymentId": "deployment-1",
+        "url": "https://my-game.pages.dev/",
+        "receipt": ".advjs/deployments/revision.deployment-1.deployment.json"
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "failure": {
+      "schemaVersion": 1,
+      "command": "deploy",
+      "ok": false,
+      "data": null,
+      "warnings": [],
+      "errors": [
+        {
+          "code": "ADV_DEPLOY",
+          "message": "The provider rejected the deployment."
+        }
+      ]
+    }
+  },
+  "deploy.artifact": {
+    "success": {
+      "schemaVersion": 1,
+      "command": "deploy.artifact",
+      "ok": true,
+      "data": {
+        "provider": "cloudflare-pages",
+        "project": "my-game",
+        "contentRevision": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "deploymentId": "deployment-2",
+        "url": "https://my-game.pages.dev/",
+        "receipt": ".advjs/deployments/revision.deployment-2.deployment.json",
+        "archiveSha256": "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789",
+        "artifactReceipt": ".advjs/releases/revision.release.json"
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "failure": {
+      "schemaVersion": 1,
+      "command": "deploy.artifact",
+      "ok": false,
+      "data": null,
+      "warnings": [],
+      "errors": [
+        {
+          "code": "ADV_VALIDATION",
+          "message": "The artifact receipt does not match the archive."
+        }
+      ]
+    }
+  }
+}

@@ -1,7 +1,10 @@
 {
   "name": "@advjs/devtools",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Devtools for ADV.JS",
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": {
       "types": "./dist/vite.d.ts",
@@ -11,6 +14,12 @@
   },
   "module": "dist/vite.mjs",
   "types": "./dist/vite.d.ts",
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": "^22.12.0 || ^24.0.0"
+  },
   "scripts": {
     "build": "unbuild",
     "dev": "unbuild --stub"

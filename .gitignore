@@ -73,8 +73,12 @@ resources
 
 # temp
 packages/mcp
+packages/advjs/skills
 
-release
+/release/
+
+# local deployment receipts and immutable recovery archives
+.advjs/
 
 # codebuddy
 .codebuddy/memory

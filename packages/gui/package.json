@@ -1,10 +1,13 @@
 {
   "name": "@advjs/gui",
   "type": "module",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "repository": {
     "url": "https://github.com/YunYouJun/advjs/tree/main/packages/gui",
     "type": "git"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "exports": {
     "./client/*": "./client/*",
@@ -26,6 +29,17 @@
   "main": "./index.ts",
   "module": "./index.ts",
   "types": "./index.ts",
+  "files": [
+    "client",
+    "dist",
+    "index.ts",
+    "node",
+    "nuxt.mjs",
+    "unocss"
+  ],
+  "engines": {
+    "node": "^22.12.0 || ^24.0.0"
+  },
   "scripts": {
     "build": "pnpm run build:lib && pnpm run build:icons && pnpm run build:node",
     "build:node": "unbuild",

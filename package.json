@@ -17,7 +17,7 @@
     "url": "https://github.com/YunYouJun/advjs"
   },
   "engines": {
-    "node": "^20.19.0 || >=22.12.0"
+    "node": "^22.12.0 || ^24.0.0"
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
@@ -52,6 +52,7 @@
     "core:dev": "pnpm -C packages/core dev",
     "docs": "pnpm -C docs dev",
     "docs:build": "pnpm -C docs build",
+    "docs:check": "node scripts/check-docs.mjs",
     "docs:dev": "pnpm -C docs dev",
     "docs:pre": "pnpm -C docs predocs",
     "docs:serve": "pnpm -C docs serve",
@@ -79,6 +80,7 @@
     "e2e": "playwright test",
     "e2e:ui": "pnpm exec playwright test --ui",
     "test": "vitest",
+    "test:launch": "vitest run tests/launch --no-file-parallelism",
     "test:unit": "vitest",
     "prepare": "husky"
   },
@@ -103,6 +105,8 @@
     "@vitest/ui": "catalog:test",
     "@webgpu/types": "catalog:types",
     "advjs": "workspace:*",
+    "ajv": "catalog:",
+    "ajv-formats": "catalog:",
     "bumpp": "catalog:utils",
     "consola": "catalog:cli",
     "cross-env": "catalog:utils",
@@ -120,7 +124,8 @@
     "vite-plugin-pwa": "catalog:build",
     "vite-plugin-vue-layouts": "catalog:build",
     "vitest": "catalog:test",
-    "vue-tsc": "catalog:dev"
+    "vue-tsc": "catalog:dev",
+    "yaml": "catalog:"
   },
   "resolutions": {
     "sharp": "^0.33.5",
