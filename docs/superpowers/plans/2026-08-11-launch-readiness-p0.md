@@ -1,6 +1,6 @@
 # ADV.JS 首发 P0 执行清单
 
-> 状态：In progress（仓库级实现已完成；真实 Agent、RC 与正式晋级待执行）
+> 状态：In progress（仓库级实现与真实 Agent 本地 packed 验收已完成；真实 RC 与正式晋级待执行）
 > 目标分支：`dev`
 > 上游计划：[ADV.JS 首发能力补齐计划](/about/launch-readiness-plan)
 > 适用范围：Platform、Editor、Skills/MCP、Cloudflare Pages 与发布门禁
@@ -593,7 +593,7 @@ pnpm exec playwright test tests/e2e/editor-local.spec.ts
 
 - [x] 从 packed `advjs`、`@advjs/mcp-server` 安装，不读取根目录 Skills。
 - [x] 三个客户端分别验证 Skill 可发现、MCP 可启动、配置不覆盖已有字段。
-- [ ] 至少一个支持的 Agent 执行固定一句话请求，并通过 MCP 创建最小项目。当前自动化只验证已安装 `adv-create` 与 MCP 的确定性直连，真实 Agent/模型执行必须在 L6-07 的受控凭据环境完成。
+- [x] 至少一个支持的 Agent 执行固定一句话请求，并通过 MCP 创建最小项目。2026-08-12 已用 Codex CLI 0.147.0、packed `advjs@0.1.2`、packed `@advjs/mcp-server@0.1.2` 与 `adv-create@0.1.2` 在隔离环境完成：固定一句话生成 1 个角色、1 个场景、1 个章节，`adv_validate` 与独立 `adv check --json` 均通过。L6-07 仍须针对真实 `rc` dist-tag 重复并将证据保存为不可变 workflow artifact。
 - [x] 最终以 `adv_validate` 和 `adv check --json` 判断确定性成功。
 - [x] 保存精确包版本、Skill revision 和客户端版本。
 
