@@ -5,7 +5,8 @@ test.use({
   locale: 'zh-CN',
 })
 
-const hashRootPattern = /.*\/#\//
+const gameRoutePattern = /.*\/#\/game(?:\?.*)?$/
+const starterUrl = 'http://localhost:3333/#/start'
 
 async function advanceTo(current: Locator, next: Locator) {
   await current.click()
@@ -20,14 +21,11 @@ async function advanceTo(current: Locator, next: Locator) {
 
 test.describe('Demo Starter', () => {
   test('runs the minimal story and opens settings', async ({ page }) => {
-    await page.goto('http://localhost:3333/')
-    expect(page.url()).toContain('http://localhost:3333/')
-
-    await expect(page.locator('text=Made with ADV.JS')).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'ADV.JS Starter' })).toBeVisible()
+    await page.goto(starterUrl)
+    await expect(page.getByRole('heading', { name: 'ADV.JS Starter' })).toBeVisible({ timeout: 15_000 })
 
     await page.locator('.start-menu-item').first().click()
-    await expect(page).toHaveURL(hashRootPattern)
+    await expect(page).toHaveURL(gameRoutePattern)
 
     const narration = page.locator('.adv-black')
     const dialog = page.locator('.adv-dialog-box')

@@ -44,8 +44,11 @@ describe('launch journey', () => {
   })
 
   it('fails closed when a required launch capability has no executor', async () => {
+    const artifactsDirectory = await mkdtemp(join(tmpdir(), 'advjs-launch-artifacts-'))
+    temporaryDirectories.push(artifactsDirectory)
     const journey = await createLaunchJourney({
       packageSource: { kind: 'tarball', value: await createTarball() },
+      artifactsDirectory,
     })
     temporaryDirectories.push(journey.workspaceRoot)
 

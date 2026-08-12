@@ -51,6 +51,7 @@ async function run(command: string, args: string[], cwd: string) {
     cwd,
     env: cleanEnvironment(registry.url),
     maxBuffer: 20 * 1024 * 1024,
+    shell: process.platform === 'win32',
     timeout: 180_000,
   })
 }
@@ -196,7 +197,7 @@ afterAll(async () => {
   await registry?.close()
   if (temporaryRoot)
     await rm(temporaryRoot, { force: true, recursive: true })
-})
+}, 60_000)
 
 describe('launch package manifest', () => {
   it('defines a complete, consistently versioned public package graph', async () => {

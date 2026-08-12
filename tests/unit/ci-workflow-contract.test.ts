@@ -38,6 +38,15 @@ function runCommands(job: WorkflowJob) {
   return job.steps.flatMap(step => step.run ? [step.run] : [])
 }
 
+function expectCommandBefore(job: WorkflowJob, prerequisite: string, command: string) {
+  const commands = runCommands(job)
+  expect(commands, `${prerequisite} must run before ${command}`).toEqual(expect.arrayContaining([
+    prerequisite,
+    command,
+  ]))
+  expect(commands.indexOf(prerequisite)).toBeLessThan(commands.indexOf(command))
+}
+
 describe('github Actions launch baseline', () => {
   it('runs dev and main validation through stable, pnpm-only jobs', () => {
     const workflows = ['ci', 'demo', 'docs'].map(readWorkflow)
@@ -83,7 +92,9 @@ describe('github Actions launch baseline', () => {
 
     expect(runCommands(ci.jobs.build)).toContain('pnpm build')
     expect(runCommands(ci.jobs.unit)).toContain('pnpm vitest run tests/unit --reporter=default')
+    expectCommandBefore(ci.jobs.unit, 'pnpm build', 'pnpm vitest run tests/unit --reporter=default')
     expect(runCommands(ci.jobs.typecheck)).toContain('pnpm typecheck')
+    expectCommandBefore(ci.jobs['editor-smoke'], 'pnpm build && pnpm -C editor/core exec nuxt prepare', 'pnpm --filter @advjs/editor typecheck')
     expect(runCommands(ci.jobs['editor-smoke'])).toEqual(expect.arrayContaining([
       'pnpm --filter @advjs/editor typecheck',
       'pnpm --filter @advjs/editor build',
@@ -95,6 +106,8 @@ describe('github Actions launch baseline', () => {
       'pnpm exec playwright install --with-deps chromium',
       'pnpm exec playwright test --project=chromium',
     ]))
+    expectCommandBefore(ci.jobs.e2e, 'pnpm build && pnpm build:plugins && pnpm editor:build', 'pnpm exec playwright test --project=chromium')
+    expectCommandBefore(ci.jobs['editor-e2e'], 'pnpm build && pnpm build:plugins && pnpm editor:build', 'pnpm exec playwright test tests/e2e/editor-local.spec.ts tests/e2e/editor-security.spec.ts --project=chromium')
     expect(ci.jobs['launch-journey']['continue-on-error']).toBeUndefined()
     expect(ci.jobs['launch-journey']['runs-on']).toBe('ubuntu-latest')
     expect(runCommands(ci.jobs['launch-journey'])).toContain('pnpm exec playwright install --with-deps chromium')

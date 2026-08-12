@@ -71,6 +71,7 @@ async function runPnpm(args: readonly string[], cwd: string): Promise<CommandRes
       cwd,
       env: cleanEnvironment(),
       maxBuffer: 20 * 1024 * 1024,
+      shell: process.platform === 'win32',
     })
   }
   catch (error) {
@@ -193,7 +194,8 @@ describe('packed advjs build', () => {
     ])
 
     expect(isAbsolute(temporaryRoot)).toBe(true)
-    expect(relative(repositoryRoot, temporaryRoot)).toMatch(/^\.\./u)
+    const relativeTemporaryRoot = relative(repositoryRoot, temporaryRoot)
+    expect(isAbsolute(relativeTemporaryRoot) || relativeTemporaryRoot.split(/[\\/]/u)[0] === '..').toBe(true)
 
     for (const command of buildCommands)
       await runPnpm(command, repositoryRoot)

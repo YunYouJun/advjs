@@ -79,6 +79,8 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Build test dependencies
+        run: pnpm build
       - name: Run unit tests
         run: pnpm vitest run tests/unit --reporter=default
 
@@ -136,6 +138,8 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Prepare Editor dependencies
+        run: pnpm build && pnpm -C editor/core exec nuxt prepare
       - name: Typecheck Editor
         run: pnpm --filter @advjs/editor typecheck
       - name: Build Editor
@@ -176,7 +180,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Build packages
-        run: pnpm build && pnpm editor:build
+        run: pnpm build && pnpm build:plugins && pnpm editor:build
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Run Chromium tests
@@ -202,7 +206,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Build Editor launch chain
-        run: pnpm build && pnpm editor:build
+        run: pnpm build && pnpm build:plugins && pnpm editor:build
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Run Editor lifecycle and security tests

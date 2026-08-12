@@ -140,6 +140,7 @@ async function runPnpm(root, args, options = {}) {
     cwd: root,
     env: { ...process.env, CI: process.env.CI || '1', NODE_ENV: 'production' },
     maxBuffer: 50 * 1024 * 1024,
+    shell: process.platform === 'win32',
   })
   if (options.forwardOutput && stdout)
     process.stderr.write(stdout)
