@@ -4,6 +4,11 @@
     "types": [
       "@types/wicg-file-system-access"
     ],
+    "noUncheckedIndexedAccess": false,
     "verbatimModuleSyntax": true
-  }
+  },
+  "files": [
+    "../../packages/global.d.ts",
+    "../../packages/types/client.d.ts"
+  ]
 }

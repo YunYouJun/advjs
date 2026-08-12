@@ -10,7 +10,7 @@
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const config = useRuntimeConfig()
-  const client = useFeishuClient()
+  const client = await useFeishuClient()
   const appToken = (query.app_token as string) || config.feishu.bitableAppToken
   const tableId = query.table_id as string
 

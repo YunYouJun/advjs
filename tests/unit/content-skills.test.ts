@@ -1,9 +1,12 @@
 import { spawnSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import {
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -41,6 +44,29 @@ function readFrontmatterKeys(content: string) {
     .sort()
 }
 
+function skillIntegrity(directory: string) {
+  const hash = createHash('sha256')
+  const files: string[] = []
+  function walk(current: string, prefix = '') {
+    for (const entry of readdirSync(current).sort()) {
+      const path = prefix ? `${prefix}/${entry}` : entry
+      const absolutePath = join(current, entry)
+      if (statSync(absolutePath).isDirectory())
+        walk(absolutePath, path)
+      else
+        files.push(path)
+    }
+  }
+  walk(directory)
+  for (const file of files) {
+    hash.update(file)
+    hash.update('\0')
+    hash.update(readFileSync(join(directory, file)))
+    hash.update('\0')
+  }
+  return hash.digest('hex')
+}
+
 function runJsonScript(script: string, args: string[]) {
   const result = spawnSync(process.execPath, [resolve(root, script), ...args], {
     cwd: root,
@@ -65,6 +91,7 @@ function createValidAssetManifest() {
     schemaVersion: 1,
     publicBaseUrl: 'https://assets.example.com/',
     objectPrefix: 'games/example/v1/',
+    manifestObjectKey: 'games/example/v1/manifests/assets.json',
     characters: [
       {
         id: 'hero',
@@ -73,10 +100,11 @@ function createValidAssetManifest() {
     ],
     assets: [
       {
-        id: 'character:hero/default',
+        id: 'character/hero/default',
         kind: 'character',
         characterId: 'hero',
         expression: 'default',
+        objectKey: `games/example/v1/characters/hero/default.${validSha256.slice(0, 12)}.webp`,
         url: `https://assets.example.com/games/example/v1/characters/hero/default.${validSha256.slice(0, 12)}.webp`,
         sha256: validSha256,
         width: 1024,
@@ -91,8 +119,9 @@ function createValidAssetManifest() {
         license: 'CC BY-NC-SA 4.0',
       },
       {
-        id: 'background:observatory',
+        id: 'background/observatory',
         kind: 'background',
+        objectKey: `games/example/v1/backgrounds/observatory.${validSha256.slice(0, 8)}.webp`,
         url: `https://assets.example.com/games/example/v1/backgrounds/observatory.${validSha256.slice(0, 8)}.webp`,
         sha256: validSha256,
         width: 1920,
@@ -111,6 +140,53 @@ function createValidAssetManifest() {
 }
 
 describe('adv content Skills', () => {
+  it('publishes a complete integrity-checked Skill catalog', () => {
+    const catalog = JSON.parse(readFileSync(resolve(root, 'skills/catalog.json'), 'utf8'))
+    const expectedGroups = {
+      default: ['adv-art', 'adv-create', 'adv-debug', 'adv-review'],
+      optional: ['adv-adapt', 'adv-story'],
+      repositoryOnly: ['adv-hamster-demo'],
+    }
+
+    expect(catalog).toMatchObject({
+      schemaVersion: 1,
+      groups: expectedGroups,
+    })
+    expect(catalog.skills.map((skill: { name: string }) => skill.name).sort()).toEqual(Object.values(expectedGroups).flat().sort())
+
+    for (const skill of catalog.skills) {
+      expect(skill.revision).toBe('0.1.2')
+      expect(skill.integrity).toBe(skillIntegrity(resolve(root, 'skills', skill.name)))
+      expect(readFrontmatterKeys(readSkill(skill.name))).toEqual(['description', 'name'])
+      if (skill.group !== 'repository-only') {
+        const metadata = readFileSync(resolve(root, 'skills', skill.name, 'agents/openai.yaml'), 'utf8')
+        expect(metadata).toContain(`$${skill.name}`)
+      }
+    }
+  })
+
+  it('prepares only public Skills for the advjs tarball', () => {
+    const output = createTemporaryDirectory()
+    const result = spawnSync(process.execPath, [resolve(root, 'packages/advjs/scripts/prepare-skills.mjs'), '--output', output], {
+      cwd: root,
+      encoding: 'utf8',
+    })
+
+    expect(result.status, result.stderr).toBe(0)
+    expect(readdirSync(output).sort()).toEqual([
+      'README.md',
+      'adv-adapt',
+      'adv-art',
+      'adv-create',
+      'adv-debug',
+      'adv-review',
+      'adv-story',
+      'catalog.json',
+    ])
+    expect(readFileSync(join(output, 'catalog.json'), 'utf8')).not.toContain('demo/hamster')
+    expect(JSON.parse(readFileSync(resolve(root, 'packages/advjs/package.json'), 'utf8')).files).toContain('skills')
+  })
+
   it('publishes modern metadata and isolates hamster constants', () => {
     const skillNames = ['adv-adapt', 'adv-art', 'adv-hamster-demo']
 
@@ -265,6 +341,7 @@ describe('adv content Skills', () => {
     {
       name: 'object names without a content hash',
       mutate: (manifest: ReturnType<typeof createValidAssetManifest>) => {
+        manifest.assets[0].objectKey = 'games/example/v1/characters/hero/default.webp'
         manifest.assets[0].url = 'https://assets.example.com/games/example/v1/characters/hero/default.webp'
       },
       expected: 'content hash',

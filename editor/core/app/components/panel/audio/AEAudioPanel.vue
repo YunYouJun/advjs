@@ -48,7 +48,6 @@ function getAudioSrcByKey(bgmKey: string) {
     </div>
 
     <ul class="flex flex-col gap-2 py-4 pl-5 text-sm">
-      <!-- @vue-expect-error i -->
       <li v-for="(item, key, i) in (audioStore.bgmLibraryData as any)" :key="key" class="relative">
         <div class="absolute w-5 text-right op-80 -left-6">
           {{ (i || 0) + 1 }}.

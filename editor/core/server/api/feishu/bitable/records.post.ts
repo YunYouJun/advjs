@@ -6,7 +6,7 @@
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const config = useRuntimeConfig()
-  const client = useFeishuClient()
+  const client = await useFeishuClient()
   const appToken = body.app_token || config.feishu.bitableAppToken
   const tableId = body.table_id
 

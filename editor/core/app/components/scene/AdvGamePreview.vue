@@ -11,6 +11,11 @@ const fileStore = useFileStore()
 const projectStore = useProjectStore()
 const show = computed(() => gameStore.client.loadStatus >= AdvGameLoadStatusEnum.CONFIG_LOADED)
 
+async function startSourcePreview() {
+  if (projectStore.project)
+    await gameStore.loadGameFromConfig(projectStore.project.previewConfig)
+}
+
 proxyLog()
 
 /**
@@ -22,7 +27,7 @@ let lastCheckTimestamps = new Map<string, number>()
 let checkInterval: ReturnType<typeof setInterval> | null = null
 
 async function checkForFileChanges() {
-  if (!projectStore.rootDir?.handle)
+  if (projectStore.workspaceMode === 'local' || !projectStore.rootDir?.handle)
     return
 
   try {
@@ -92,16 +97,13 @@ async function checkForFileChanges() {
 
 async function refreshPreview() {
   hasFileChanges.value = false
-
-  // Reload entry file if available
-  if (projectStore.entryFileHandle) {
-    await projectStore.setEntryFileHandle(projectStore.entryFileHandle)
-  }
+  await projectStore.refreshProject()
 }
 
 onMounted(async () => {
   // Start file change detection (check every 5 seconds)
-  checkInterval = setInterval(checkForFileChanges, 5000)
+  if (projectStore.workspaceMode === 'browser')
+    checkInterval = setInterval(checkForFileChanges, 5000)
 })
 
 onUnmounted(() => {
@@ -115,7 +117,14 @@ onUnmounted(() => {
 <template>
   <div class="h-full w-full flex items-center justify-center" relative>
     <AdvGame v-if="show" class="h-full w-full" />
-    <AEOpenProject v-else />
+    <AEOpenProject v-else-if="!projectStore.project" />
+    <button
+      v-else
+      class="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+      @click="startSourcePreview"
+    >
+      Start source preview
+    </button>
 
     <!-- File Changes Refresh Button -->
     <Transition name="fade">

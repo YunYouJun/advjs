@@ -15,6 +15,7 @@ export const defaultAdvConfig: AdvConfig = {
 
   aspectRatio: 16 / 9,
   canvasWidth: 1920, // 1920*1080
+  viewportFit: 'contain',
   // canvasWidth: 2560, // 2560*1440
   // 开发模式下，可选中
   // import.meta.env.DEV

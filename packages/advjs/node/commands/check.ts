@@ -1,5 +1,5 @@
 import type { AdvRuntimePlugin } from '@advjs/core'
-import type { AdvChapter } from '@advjs/types'
+import type { AdvChapter, AdvProjectCompileResult } from '@advjs/types'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { basename, dirname, join, relative } from 'node:path'
 import process from 'node:process'
@@ -9,7 +9,9 @@ import { consola } from 'consola'
 import { colors } from 'consola/utils'
 import { t } from '../cli/i18n'
 import { loadAdvConfig } from '../config'
+import { loadProject } from '../project'
 import { compileRuntimeChapterFiles, discoverRuntimeChapterFiles, resolveConfiguredRuntimeChapterFiles } from '../runtime'
+import { AdvCommandError } from './errors'
 import { parseSceneFrontmatter, resolveGameRoot, sanitizeFilename, scanFiles } from './utils'
 
 export interface CheckOptions {
@@ -42,6 +44,7 @@ export interface CheckResult {
   characterRefCount: number
   sceneRefCount: number
   locationRefCount: number
+  compilation?: AdvProjectCompileResult
 }
 
 // Re-exported from utils for backwards compatibility (callers used to import
@@ -75,6 +78,18 @@ export async function runCheck(options: CheckOptions & { cwd?: string }): Promis
       locationRefCount: 0,
     }
   }
+
+  const loadedProject = options.root
+    ? undefined
+    : await loadProject({
+        root: cwd,
+        plugins: options.runtimePlugins
+          ? Object.fromEntries(options.runtimePlugins.map(plugin => [plugin.name, plugin.version]))
+          : undefined,
+      })
+  const compilation = loadedProject?.config.format === 'synthetic'
+    ? undefined
+    : loadedProject?.result
 
   const chaptersDir = join(gameRoot, 'chapters')
   const charactersDir = join(gameRoot, 'characters')
@@ -155,7 +170,43 @@ export async function runCheck(options: CheckOptions & { cwd?: string }): Promis
 
   // Compile and link the complete story, so exact targets, conditions, actions,
   // and required plugin capabilities are checked together rather than file by file.
-  if (allScripts.length > 0 && syntaxErrorFiles.size === 0) {
+  if (compilation) {
+    const compatibilityDiagnostics = new Set([
+      'ADV_PROJECT_INVALID_SCENE_FRONTMATTER',
+      'ADV_PROJECT_UNKNOWN_CHARACTER',
+      'ADV_PROJECT_UNKNOWN_SCENE',
+    ])
+    for (const diagnostic of compilation.diagnostics) {
+      if (compatibilityDiagnostics.has(diagnostic.code))
+        continue
+      issues.push({
+        type: diagnostic.severity,
+        category: diagnostic.code.startsWith('ADV_RUNTIME_') || diagnostic.code.includes('PLUGIN')
+          ? 'runtime'
+          : 'syntax',
+        code: diagnostic.code,
+        file: diagnostic.path ?? relative(cwd, gameRoot),
+        line: diagnostic.line,
+        column: diagnostic.column,
+        message: diagnostic.message,
+      })
+    }
+    if (compilation.project.program) {
+      for (const diagnostic of validateRuntimeProgramPlugins(
+        compilation.project.program,
+        options.runtimePlugins,
+      )) {
+        issues.push({
+          type: diagnostic.severity,
+          category: 'runtime',
+          code: diagnostic.code,
+          file: relative(cwd, gameRoot),
+          message: diagnostic.message,
+        })
+      }
+    }
+  }
+  else if (allScripts.length > 0 && syntaxErrorFiles.size === 0) {
     const nestedChapters = configuredChapters.length
       ? configuredChapters.filter(chapter => chapter.paths.every(existsSync))
       : (scriptFiles.length ? await discoverRuntimeChapterFiles(scriptFiles[0]) : [])
@@ -337,6 +388,7 @@ export async function runCheck(options: CheckOptions & { cwd?: string }): Promis
     characterRefCount: allCharacterRefs.size,
     sceneRefCount: allSceneRefs.size,
     locationRefCount: knownLocations.size,
+    compilation,
   }
 }
 
@@ -412,9 +464,13 @@ export async function applyFixes(result: CheckResult, gameRoot: string, cwd: str
  * Error class for check command failures.
  * Allows CLI layer to distinguish expected errors from unexpected crashes.
  */
-export class CheckError extends Error {
-  constructor(message: string, public issueCount: number = 0) {
-    super(message)
+export class CheckError extends AdvCommandError {
+  constructor(
+    message: string,
+    public issueCount: number = 0,
+    public result?: CheckResult,
+  ) {
+    super('ADV_VALIDATION', message)
     this.name = 'CheckError'
   }
 }
@@ -445,7 +501,7 @@ export async function advCheck(options: CheckOptions) {
   // Handle missing root as fatal error
   if (result.scriptCount === 0 && result.issues.some(i => i.message.startsWith('Game content root not found'))) {
     consola.error(t('check.no_root', result.issues[0].file))
-    throw new CheckError(t('check.no_root', result.issues[0].file))
+    throw new CheckError(t('check.no_root', result.issues[0].file), result.issues.length, result)
   }
 
   if (result.scriptCount === 0) {
@@ -560,6 +616,8 @@ export async function advCheck(options: CheckOptions) {
   }
   else {
     consola.error(colors.red(t('check.summary_fail', remainingIssues)))
-    throw new CheckError(t('check.summary_fail', remainingIssues), remainingIssues)
+    throw new CheckError(t('check.summary_fail', remainingIssues), remainingIssues, result)
   }
+
+  return result
 }

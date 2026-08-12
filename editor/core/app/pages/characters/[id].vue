@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AdvCharacter } from '@advjs/types'
-import { Toast } from '@advjs/gui/client/composables'
+import { Toast } from '@advjs/gui'
 
 definePageMeta({
   layout: 'default',

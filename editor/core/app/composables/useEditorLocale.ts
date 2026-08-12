@@ -2,14 +2,14 @@ import { useStorage } from '@vueuse/core'
 
 export function useEditorLocale() {
   const { locale, setLocale, locales } = useI18n()
-  const savedLocale = useStorage('advjs:editor:locale', 'en')
+  const savedLocale = useStorage<'en' | 'zh-CN'>('advjs:editor:locale', 'en')
 
   function initLocale() {
     if (savedLocale.value && savedLocale.value !== locale.value)
       setLocale(savedLocale.value)
   }
 
-  function changeLocale(code: string) {
+  function changeLocale(code: 'en' | 'zh-CN') {
     setLocale(code)
     savedLocale.value = code
   }

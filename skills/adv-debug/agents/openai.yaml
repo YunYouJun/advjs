@@ -1,0 +1,4 @@
+interface:
+  display_name: ADV Project Debugger
+  short_description: Validate scripts, branches, and route coverage
+  default_prompt: Use $adv-debug to diagnose this ADV.JS project with deterministic checks.

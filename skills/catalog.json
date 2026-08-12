@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "groups": {
+    "default": [
+      "adv-art",
+      "adv-create",
+      "adv-debug",
+      "adv-review"
+    ],
+    "optional": [
+      "adv-adapt",
+      "adv-story"
+    ],
+    "repositoryOnly": [
+      "adv-hamster-demo"
+    ]
+  },
+  "skills": [
+    {
+      "name": "adv-adapt",
+      "group": "optional",
+      "revision": "0.1.2",
+      "integrity": "28715ea6f2275b3bab2556447234d0ea5f19edaae899b57cd7ac712e367cba26"
+    },
+    {
+      "name": "adv-art",
+      "group": "default",
+      "revision": "0.1.2",
+      "integrity": "b2f54be08cb935e73f80ae60757c348210625a4065daa721fdbea371ebc9a2b2"
+    },
+    {
+      "name": "adv-create",
+      "group": "default",
+      "revision": "0.1.2",
+      "integrity": "756d9f6592e34dc8516a3e42d39826f466511d1d373cf5c3469545afa302e218"
+    },
+    {
+      "name": "adv-debug",
+      "group": "default",
+      "revision": "0.1.2",
+      "integrity": "dd32780446fc6f8e0c51d9c11b1f870385c6f8c7bb0046b4644f22f8772567b8"
+    },
+    {
+      "name": "adv-hamster-demo",
+      "group": "repository-only",
+      "revision": "0.1.2",
+      "integrity": "9bfde18bc88322fc8de71c411e502f8a00aaea054b25a4246d7f33453c08d289"
+    },
+    {
+      "name": "adv-review",
+      "group": "default",
+      "revision": "0.1.2",
+      "integrity": "fd15335a9776989a279b2e8fcb6df8fa49050b6dedf401bfca3ea82935df2d82"
+    },
+    {
+      "name": "adv-story",
+      "group": "optional",
+      "revision": "0.1.2",
+      "integrity": "1b6931e03c5641e763dd0f56c80842e56f95906b193b040d403b9aae562e0ba4"
+    }
+  ]
+}

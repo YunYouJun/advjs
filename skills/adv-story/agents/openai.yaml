@@ -1,0 +1,4 @@
+interface:
+  display_name: ADV Interactive Story
+  short_description: Play and narrate an ADV.JS story session
+  default_prompt: Use $adv-story to play this ADV.JS visual novel interactively.

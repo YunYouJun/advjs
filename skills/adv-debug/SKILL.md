@@ -1,18 +1,6 @@
 ---
 name: adv-debug
-description: Debug and analyze ADV.JS project for branch coverage, dead paths, and consistency
-version: 0.3.0
-author: YunYouJun
-tools:
-  - adv check [--root] [--fix]
-  - adv context [--root] [--full]
-  - adv debug branches <script.adv.md> [--format=mermaid|json|text] [-o <file>]
-  - adv debug coverage [script.adv.md] [--format=text|json] [-o <file>]
-  - adv play <script> --session-id <id> --json
-  - adv play next --session-id <id> --json
-  - adv play choose <n> --session-id <id> --json
-  - adv play list --json
-  - adv play reset --session-id <id>
+description: Debug and analyze an ADV.JS project using deterministic checks. Use when validating scripts, resolving missing character or scene references, finding dead branches or orphan scenes, measuring route coverage, inspecting compiled project context, or replaying a failing narrative path.
 ---
 
 # ADV Debug Skill

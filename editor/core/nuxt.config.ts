@@ -1,4 +1,5 @@
 import path, { resolve } from 'node:path'
+import process from 'node:process'
 import { simpleGit } from 'simple-git'
 import { resolveOptions } from '../../packages/advjs/node/options/utils'
 
@@ -6,6 +7,13 @@ import { commonAliasMap, packagesDir, themesDir } from '../../packages/shared/no
 import ADV from '../../packages/vite-plugin-adv/src'
 import { pwa } from './app/config/pwa'
 import { appDescription } from './app/constants/index'
+import { editorBuildContract } from './build-contract'
+import { resolveEditorCapabilities } from './capabilities'
+
+const editorCapabilities = resolveEditorCapabilities(process.env)
+const clarityId = editorCapabilities.integrations.analytics
+  ? process.env.ADVJS_EDITOR_CLARITY_ID
+  : undefined
 
 const options = await resolveOptions({
   env: 'plugin',
@@ -94,6 +102,23 @@ export default defineNuxtConfig({
   },
 
   nitro: {
+    preset: editorBuildContract.preset,
+    ignore: [
+      ...editorCapabilities.integrations.feishu
+        ? []
+        : ['api/auth/feishu.get.ts', 'api/auth/feishu/**', 'api/feishu/**'],
+      ...editorCapabilities.integrations.github
+        ? []
+        : ['api/auth/github.get.ts'],
+      ...editorCapabilities.integrations.analytics
+        ? []
+        : ['api/pageview.ts'],
+    ],
+    output: {
+      dir: editorBuildContract.outputDirectory,
+      publicDir: editorBuildContract.publicDirectory,
+      serverDir: editorBuildContract.serverDirectory,
+    },
     esbuild: {
       options: {
         target: 'esnext',
@@ -120,14 +145,14 @@ export default defineNuxtConfig({
       ],
       script: [
         // https://clarity.microsoft.com/
-        ...import.meta.env.NODE_ENV === 'production'
+        ...clarityId
           ? [{
               type: 'text/javascript',
               innerHTML: `(function(c,l,a,r,i,t,y){
             c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
             t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
             y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-        })(window, document, "clarity", "script", "kq50mx5ttn");`,
+        })(window, document, "clarity", "script", ${JSON.stringify(clarityId)});`,
             }]
           : [],
       ],
@@ -143,7 +168,10 @@ export default defineNuxtConfig({
     { path: path.resolve(themesDir, 'theme-default/components'), pathPrefix: false, priority: 2 },
   ],
 
-  pwa,
+  pwa: {
+    ...pwa,
+    disable: editorCapabilities.mode === 'local',
+  },
 
   devtools: {
     enabled: true,
@@ -206,6 +234,9 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
+    public: {
+      editorCapabilities,
+    },
     feishu: {
       appId: '',
       appSecret: '',

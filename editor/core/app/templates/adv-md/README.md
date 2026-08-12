@@ -15,8 +15,7 @@
 │   └── favicon.svg              # 游戏图标
 │
 ├── adv/                         # 游戏内容根目录
-│   ├── index.adv.json           # 游戏入口
-│   ├── chapters/                # 剧本脚本（按章节拆分）
+│   ├── chapters/                # 剧本脚本（按章节拆分，首章即默认入口）
 │   │   └── 1.chapter.md        # 第一章
 │   ├── characters/              # 角色卡片库
 │   │   ├── aria.character.md    # 角色 Aria

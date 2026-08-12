@@ -33,14 +33,20 @@ const characterStore = useCharacterStore()
 const app = useAppStore()
 
 function onRename(item: FSItem, newName: string) {
+  if (projectStore.workspaceMode === 'local')
+    return false
   consola.info('onRename', item.name, '->', newName)
 }
 
 function onDelete(items: FSItem[]) {
+  if (projectStore.workspaceMode === 'local')
+    return false
   consola.info('onDelete', items.map(i => i.name))
 }
 
 function onCreate(parentDir: FSDirItem, name: string, kind: 'file' | 'directory') {
+  if (projectStore.workspaceMode === 'local')
+    return false
   consola.info('onCreate', kind, name, 'in', parentDir.name)
 }
 
@@ -81,49 +87,35 @@ async function onFileDblClick(item: FSFileItem) {
   }
 }
 
+async function onLocalFileDblClick(path: string) {
+  const handle = await projectStore.getLocalFileHandle(path)
+  await onFileDblClick({
+    name: handle.name,
+    kind: 'file',
+    handle: handle as unknown as FileSystemFileHandle,
+  })
+}
+
 /**
  * 校验项目目录内容
  */
 async function beforeOpenRootDir(dirHandle: FileSystemDirectoryHandle) {
-  const files = dirHandle.values()
-  // valid adv project
-  type ProjectFileName = 'adv.config.json' | 'index.adv.json'
-  const projectFiles: Record<ProjectFileName, FileSystemFileHandle> = {
-    'adv.config.json': undefined!,
-    'index.adv.json': undefined!,
-  }
-  for await (const entry of files) {
-    if (entry.kind === 'file') {
-      const fileName = entry.name
-      switch (fileName) {
-        case 'adv.config.json':
-        case 'index.adv.json':
-          projectFiles[fileName] = entry
-          break
-        default:
-          break
-      }
+  try {
+    const project = await projectStore.openBrowserProject(dirHandle)
+    if (project.mode === 'legacy-json') {
+      Toast({
+        title: 'Migration required',
+        description: project.migrationNotice,
+        type: 'warning',
+      })
+      return false
     }
-    else if (entry.kind === 'directory' && entry.name === 'adv') {
-      // index.adv.json moved to adv/index.adv.json
-      for await (const subEntry of (entry as FileSystemDirectoryHandle).values()) {
-        if (subEntry.kind === 'file' && subEntry.name === 'index.adv.json') {
-          projectFiles['index.adv.json'] = subEntry
-        }
-      }
-    }
+    return !project.compilation.diagnostics.some(item => item.severity === 'error')
   }
-
-  if (projectFiles['index.adv.json'] && projectFiles['adv.config.json']) {
-    // set config firstly
-    await projectStore.setAdvConfigFileHandle(projectFiles['adv.config.json'])
-    await projectStore.setEntryFileHandle(projectFiles['index.adv.json'])
-    return true
-  }
-  else {
+  catch (error) {
     Toast({
       title: 'Error',
-      description: 'This is not a valid adv project. `adv.config.json` and `adv/index.adv.json` are required',
+      description: error instanceof Error ? error.message : 'Failed to open Markdown project',
       type: 'error',
     })
     return false
@@ -142,7 +134,37 @@ function onOpenRootDir(dir?: FSDirItem) {
   <AGUIPanel w="full" h="full">
     <AGUITabs v-model="curTab" :list="tabList">
       <AGUITabPanel value="project">
+        <div v-if="projectStore.project" class="border-b border-white/8 p-2 text-xs">
+          <div class="mb-1 flex gap-3 op-70">
+            <span>{{ projectStore.workspaceMode === 'local' ? 'Live local workspace' : 'Browser workspace' }}</span>
+            <span>{{ projectStore.chapters.length }} chapters</span>
+            <span>{{ projectStore.characters.length }} characters</span>
+            <span>{{ projectStore.scenes.length }} scenes</span>
+          </div>
+          <div
+            v-for="diagnostic in projectStore.diagnostics"
+            :key="`${diagnostic.code}:${diagnostic.path}:${diagnostic.line}`"
+            class="truncate"
+            :class="diagnostic.severity === 'error' ? 'text-red-400' : 'text-amber-400'"
+            :title="diagnostic.message"
+          >
+            {{ diagnostic.code }} · {{ diagnostic.path || 'project' }} · {{ diagnostic.message }}
+          </div>
+        </div>
+        <div v-if="projectStore.workspaceMode === 'local'" class="h-full overflow-auto p-2">
+          <button
+            v-for="path in projectStore.localFilePaths"
+            :key="path"
+            class="block w-full truncate rounded px-2 py-1 text-left text-xs hover:bg-white/8"
+            :title="path"
+            @dblclick="onLocalFileDblClick(path)"
+          >
+            <span i-ri-file-text-line class="mr-1 inline-block" />
+            {{ path }}
+          </button>
+        </div>
         <AGUIAssetsExplorer
+          v-else
           id="adv-explorer"
           v-model:cur-dir="curDir"
           v-model:root-dir="projectStore.rootDir"

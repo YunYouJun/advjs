@@ -1,4 +1,5 @@
-import type { AdvCharacter } from '@advjs/types'
+import type { AdvCharacter, JsonValue } from '@advjs/types'
+import { applyProjectPatches } from '@advjs/core'
 import { parseCharacterMd, stringifyCharacterMd } from '@advjs/parser'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
@@ -390,7 +391,29 @@ export const useCharacterStore = defineStore('editor:character', () => {
   async function updateCharacterToHandle(character: AdvCharacter, fileHandle: FileSystemFileHandle) {
     loading.value = true
     try {
-      const mdContent = stringifyCharacterMd(character)
+      const original = await fileHandle.getFile().then(file => file.text())
+      const fields = [
+        'id',
+        'name',
+        'avatar',
+        'imagePrompt',
+        'actor',
+        'cv',
+        'aliases',
+        'tags',
+        'faction',
+        'language',
+        'tachies',
+        'relationships',
+        'attributes',
+      ] as const
+      const patches = fields.map(key => ({
+        kind: 'frontmatter-set' as const,
+        path: fileHandle.name,
+        key,
+        value: character[key] as JsonValue | undefined,
+      }))
+      const mdContent = applyProjectPatches({ [fileHandle.name]: original }, patches).files[fileHandle.name]
       const writable = await fileHandle.createWritable()
       await writable.write(mdContent)
       await writable.close()

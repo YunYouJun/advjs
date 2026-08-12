@@ -6,6 +6,7 @@ import { consola } from 'consola'
 import { colors } from 'consola/utils'
 import equal from 'fast-deep-equal'
 import { createMarkdown, resolveMdOptions } from '../markdown'
+import { resolveImportPath } from '../resolver'
 import { templates } from '../virtual'
 import { templateConfigs } from '../virtual/configs'
 import { templateData } from '../virtual/data'
@@ -78,7 +79,10 @@ export function createAdvVirtualLoader(advOptions: ResolvedAdvOptions, serverOpt
       updateServerWatcher()
     },
 
-    resolveId(id) {
+    async resolveId(id, importer) {
+      if (importer === '/@advjs/locales' && id === 'defu')
+        return await resolveImportPath(id, true)
+
       const virtualPrefixes = [
         '/@advjs/',
         '#advjs/',

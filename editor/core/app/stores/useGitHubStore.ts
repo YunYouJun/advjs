@@ -1,6 +1,8 @@
 import type { RestEndpointMethodTypes } from '@octokit/rest'
-import { Octokit } from '@octokit/rest'
 import { acceptHMRUpdate, defineStore } from 'pinia'
+import { useEditorCapabilities } from '../composables/useEditorCapabilities'
+
+type OctokitClient = InstanceType<typeof import('@octokit/rest').Octokit>
 
 export type GitHubRepo = RestEndpointMethodTypes['repos']['listForAuthenticatedUser']['response']['data'][number] | RestEndpointMethodTypes['repos']['listForOrg']['response']['data'][number]
 export type GitHubRepoInfo = RestEndpointMethodTypes['repos']['get']['response']['data']
@@ -26,7 +28,8 @@ export const useGitHubStore = defineStore('github', () => {
   const projectStore = useProjectStore()
 
   const { user } = useUserSession()
-  const octokit = shallowRef<Octokit>()
+  const capabilities = useEditorCapabilities()
+  const octokit = shallowRef<OctokitClient>()
   // Create a personal access token at https://github.com/settings/tokens/new?scopes=repo
   // const octokit = new Octokit({ auth: `personal-access-token123` })
 
@@ -42,7 +45,7 @@ export const useGitHubStore = defineStore('github', () => {
 
   watch(() => user.value?.github?.access_token, () => {
     if (user.value?.github?.access_token)
-      initOctokit()
+      void initOctokit()
     selectedOwner.value = user.value?.github
   }, { immediate: true })
 
@@ -59,7 +62,10 @@ export const useGitHubStore = defineStore('github', () => {
     })
   })
 
-  function initOctokit() {
+  async function initOctokit() {
+    if (!capabilities.integrations.github)
+      return
+    const { Octokit } = await import('@octokit/rest')
     octokit.value = new Octokit({
       auth: user.value?.github?.access_token,
     })

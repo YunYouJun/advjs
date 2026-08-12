@@ -1,6 +1,6 @@
 import type { Argv } from 'yargs'
-import process from 'node:process'
 import { t } from './i18n'
+import { createCliError, runCliCommand } from './output'
 
 export function installInitCommand(cli: Argv) {
   cli.command(
@@ -30,19 +30,19 @@ export function installInitCommand(cli: Argv) {
       .help(),
     async (argv) => {
       const { InitError, advInit } = await import('../commands/init')
-      try {
-        await advInit({
+      await runCliCommand({
+        command: 'init',
+        json: Boolean(argv.json),
+        run: async () => await advInit({
           root: argv.dir as string | undefined,
           name: argv.name as string | undefined,
           force: argv.force as boolean,
           template: argv.template as string | undefined,
-        })
-      }
-      catch (err) {
-        if (err instanceof InitError)
-          process.exit(1)
-        throw err
-      }
+        }),
+        mapError: error => error instanceof InitError
+          ? createCliError('ADV_VALIDATION', error)
+          : createCliError('ADV_INTERNAL', error),
+      })
     },
   )
 }

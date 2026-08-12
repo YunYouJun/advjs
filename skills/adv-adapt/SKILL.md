@@ -18,6 +18,8 @@ Record every source work before writing scripts:
 - heading-level section inventory with stable lowercase IDs;
 - requested fidelity mode: complete canonical, faithful compression, or free reinterpretation.
 
+Separate story prose from author metadata at this point. Forewords, postscripts, contest notes, revision notes, source-order explanations, and license/attribution text belong in the manifest or About page unless the user explicitly wants them dramatized. Record exclusions with `required: false` and an `excludedReason`; do not silently delete them.
+
 Stop and resolve missing rights or contradictory source versions before copying text or publishing assets.
 
 ### 2. Create the adaptation manifest
@@ -35,6 +37,8 @@ Before drafting chapters:
 - create an outline that maps source sections to ADV chapters and names all added branches;
 - distinguish source-derived dialogue, staging adaptations, and wholly new material.
 
+Create a scene-by-scene staging table before final scripting. Each row should record chapter/node, background, characters entering or leaving, expression/position/motion changes, BGM cue and fades, transition, optional CG, interaction, and the source section. A character enters only when the scene first needs them and exits when the shot no longer contains them; do not populate the stage with the chapter's entire cast.
+
 Use `adv-create` for project/resource creation when it is available.
 
 ### 4. Author canonical content first
@@ -48,6 +52,14 @@ Add exactly one marker when the corresponding required source section begins:
 Keep the marker beside the adapted content, not in an unrelated chapter header. In complete-canonical mode, choices may change perspective, optional dialogue, presentation, or tracked state, but must not skip required sections. Rejoin canonical branches before the next required marker.
 
 Write reinterpretive routes only after the canonical path is continuous and reviewable. Label them in the manifest so reviewers do not mistake new material for the source.
+
+Before considering the script presentation-complete, run a beat review:
+
+- every scene change has an intentional transition and reduced-motion fallback;
+- every chapter explicitly selects a suitable BGM or intentional silence;
+- recurring characters change expression and stage position at story beats rather than only at chapter starts;
+- CGs are reserved for plot-critical shots and return cleanly to reusable backgrounds;
+- author metadata, internal adaptation labels, source anchors, and production comments are not rendered to players.
 
 ### 5. Audit traceability
 
@@ -78,4 +90,4 @@ Then use `adv-review` chapter by chapter. Compare each chapter with its mapped s
 - Never use source markers as a substitute for line-by-line editorial review.
 - Never introduce a route that silently changes canonical facts; label reinterpretive content.
 - Preserve attribution and content-license notices separately from the engine's software license.
-- Report excluded source material explicitly, including the user's decision that allowed the exclusion.
+- Report excluded source material explicitly, including the user's decision that allowed the exclusion. Keep attribution and links available outside the playable prose.

@@ -1,4 +1,3 @@
-import type { FSDirItem } from '@advjs/gui'
 import type { ProjectTemplateMeta } from '../templates'
 import { Toast } from '@advjs/gui'
 import { consola } from 'consola'
@@ -114,30 +113,12 @@ export function useCreateProject() {
         }
       }
 
-      let advConfigFileHandle: FileSystemFileHandle | undefined
-      let entryFileHandle: FileSystemFileHandle | undefined
-
       for (const file of template.files) {
         const content = file.content.replace(RE_PROJECT_NAME, dirHandle.name)
-        const fileHandle = await writeFile(dirHandle, file.name, content)
-        if (file.isAdvConfig)
-          advConfigFileHandle = fileHandle
-        if (file.isEntry)
-          entryFileHandle = fileHandle
+        await writeFile(dirHandle, file.name, content)
       }
 
-      // Set rootDir
-      projectStore.rootDir = {
-        name: dirHandle.name,
-        kind: 'directory',
-        handle: dirHandle,
-      } as FSDirItem
-
-      // Load into editor
-      if (advConfigFileHandle)
-        await projectStore.setAdvConfigFileHandle(advConfigFileHandle)
-      if (entryFileHandle)
-        await projectStore.setEntryFileHandle(entryFileHandle)
+      await projectStore.openBrowserProject(dirHandle)
 
       // Save to recent projects
       addRecentProject({

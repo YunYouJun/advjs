@@ -1,6 +1,7 @@
 import type { Argv } from 'yargs'
 import process from 'node:process'
 import { t } from './i18n'
+import { createCliError, runCliCommand } from './output'
 
 export function installCheckCommand(cli: Argv) {
   cli.command(
@@ -20,17 +21,31 @@ export function installCheckCommand(cli: Argv) {
       .help(),
     async (argv) => {
       const { CheckError, advCheck } = await import('../commands/check')
-      try {
-        await advCheck({
-          root: argv.root as string | undefined,
-          fix: argv.fix as boolean,
-        })
-      }
-      catch (err) {
-        if (err instanceof CheckError)
-          process.exit(1)
-        throw err
-      }
+      await runCliCommand({
+        command: 'check',
+        json: Boolean(argv.json),
+        run: async () => {
+          const result = await advCheck({
+            root: argv.root as string | undefined,
+            fix: argv.fix as boolean,
+          })
+          return {
+            root: process.cwd(),
+            diagnostics: result.issues.map(issue => ({
+              severity: issue.type,
+              code: issue.code ?? `ADV_${issue.category.replaceAll('-', '_').toUpperCase()}`,
+              message: issue.message,
+              path: issue.file,
+            })),
+          }
+        },
+        mapError: error => error instanceof CheckError
+          ? createCliError('ADV_VALIDATION', error, {
+              issueCount: error.issueCount,
+              diagnostics: error.result?.issues ?? [],
+            })
+          : createCliError('ADV_INTERNAL', error),
+      })
     },
   )
 }

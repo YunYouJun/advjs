@@ -1,5 +1,7 @@
+import type { LocalBridgeAdapter, LocalFileHandle } from '../adapters/local'
 import type { AdvConfigAdapterType } from '../types'
 import type { MonacoEditorLanguage } from './useMonacoStore'
+import { applyProjectPatches } from '@advjs/core'
 import { useStorage } from '@vueuse/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
@@ -13,6 +15,9 @@ export const useFileStore = defineStore('file', () => {
    * 一次只有一个
    */
   const openedFileHandle = shallowRef<FileSystemFileHandle>()
+  const openedFilePath = ref('')
+  const savedFileContent = ref('')
+  const externalConflict = ref<{ content: string, path: string }>()
 
   /**
    * rawConfigFile
@@ -31,6 +36,7 @@ export const useFileStore = defineStore('file', () => {
    */
   const fileName = ref<string>('')
   const monacoStore = useMonacoStore()
+  const isDirty = computed(() => Boolean(openedFileHandle.value) && monacoStore.fileContent !== savedFileContent.value)
 
   watch(() => showRawConfigFile.value, (val) => {
     monacoStore.fileContent = val ? rawConfigFileContent.value : JSON.stringify(gameStore.gameConfig, null, 2)
@@ -117,6 +123,11 @@ export const useFileStore = defineStore('file', () => {
 
     const fileContent = await fileHandle.getFile().then(file => file.text())
     monacoStore.fileContent = fileContent
+    savedFileContent.value = fileContent
+    openedFilePath.value = 'path' in fileHandle
+      ? (fileHandle as unknown as LocalFileHandle).path
+      : fileHandle.name
+    externalConflict.value = undefined
 
     const ext = fileHandle.name.split('.').pop() || ''
     const extLangMap: Record<string, MonacoEditorLanguage> = {
@@ -131,8 +142,60 @@ export const useFileStore = defineStore('file', () => {
     monacoStore.language = lang
   }
 
+  async function saveOpenedFile(content = monacoStore.fileContent) {
+    const fileHandle = openedFileHandle.value
+    if (!fileHandle)
+      throw new Error('No local file is open')
+    const file = await fileHandle.getFile()
+    const path = openedFilePath.value || file.name
+    const result = applyProjectPatches({ [path]: await file.text() }, [{
+      kind: 'raw-text',
+      path,
+      content,
+    }])
+    const writable = await fileHandle.createWritable()
+    await writable.write(result.files[path])
+    await writable.close()
+    savedFileContent.value = content
+    externalConflict.value = undefined
+    await useProjectStore().refreshProject()
+    consoleStore.success('Markdown file saved', { fileName: path })
+  }
+
+  async function handleExternalChange(adapter: LocalBridgeAdapter, path: string) {
+    if (!openedFileHandle.value || openedFilePath.value !== path)
+      return
+    const content = await adapter.readFile(path)
+    if (isDirty.value) {
+      externalConflict.value = { content, path }
+      consoleStore.warn('External file change conflicts with unsaved edits', { fileName: path })
+      return
+    }
+    monacoStore.fileContent = content
+    savedFileContent.value = content
+    rawConfigFileContent.value = content
+    externalConflict.value = undefined
+  }
+
+  function acceptExternalChange() {
+    const conflict = externalConflict.value
+    if (!conflict)
+      return
+    monacoStore.fileContent = conflict.content
+    savedFileContent.value = conflict.content
+    rawConfigFileContent.value = conflict.content
+    externalConflict.value = undefined
+  }
+
+  async function keepLocalChange() {
+    await saveOpenedFile()
+  }
+
   return {
     fileName,
+    openedFilePath,
+    isDirty,
+    externalConflict,
 
     openedFileHandle,
     rawConfigFileContent,
@@ -145,6 +208,10 @@ export const useFileStore = defineStore('file', () => {
     onlineAdvConfigFileDialogOpen,
 
     setOpenedFileHandle,
+    saveOpenedFile,
+    handleExternalChange,
+    acceptExternalChange,
+    keepLocalChange,
   }
 })
 

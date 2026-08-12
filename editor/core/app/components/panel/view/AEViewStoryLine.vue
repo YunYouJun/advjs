@@ -34,7 +34,7 @@ const items = computed(() => {
       icon: 'lucide:file',
     }
 
-    switch (node.type) {
+    switch (String(node.type)) {
       case 'background':
         treeNode.icon = 'i-ri:signpost-line'
         break

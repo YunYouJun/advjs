@@ -70,10 +70,10 @@ function openDirectory() {
         <div class="i-ri-user-3-line text-2xl" />
         <span class="text-center text-xs">{{ $t('characters.emptyHint') }}</span>
         <div class="flex gap-2">
-          <AGUIButton size="small" icon="i-ri-add-line" @click="createNewCharacter">
+          <AGUIButton size="mini" icon="i-ri-add-line" @click="createNewCharacter">
             {{ $t('characters.createNew') }}
           </AGUIButton>
-          <AGUIButton size="small" icon="i-ri-folder-open-line" @click="openDirectory">
+          <AGUIButton size="mini" icon="i-ri-folder-open-line" @click="openDirectory">
             {{ $t('characters.openDir') }}
           </AGUIButton>
         </div>

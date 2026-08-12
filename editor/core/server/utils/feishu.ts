@@ -1,12 +1,15 @@
-import * as lark from '@larksuiteoapi/node-sdk'
+import type { Client } from '@larksuiteoapi/node-sdk'
+import { assertEditorServerCapability } from './capabilities'
 
-let _client: lark.Client | null = null
+let _client: Client | null = null
 
 /**
  * Get or create Feishu (Lark) SDK client for server-side usage
  */
-export function useFeishuClient() {
+export async function useFeishuClient() {
+  assertEditorServerCapability('feishu')
   if (!_client) {
+    const lark = await import('@larksuiteoapi/node-sdk')
     const config = useRuntimeConfig()
     _client = new lark.Client({
       appId: config.feishu?.appId || '',

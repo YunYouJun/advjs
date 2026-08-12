@@ -1,21 +1,6 @@
 ---
 name: adv-story
-description: Interactive ADV narrative player for ADV.JS visual novel engine
-version: 0.3.0
-author: YunYouJun
-tools:
-  - adv context [--root] [--chapter <n>]
-  - adv play <script.adv.md> --session-id <id> --json
-  - adv play next --session-id <id> --json
-  - adv play choose <number> --session-id <id> --json
-  - adv play back --session-id <id> [--steps N] --json
-  - adv play status --session-id <id> --json
-  - adv play save --session-id <id> --slot <name> [--note "..."]
-  - adv play load --session-id <id> --slot <name> --json
-  - adv play saves --session-id <id> --json
-  - adv play delete-save --session-id <id> --slot <name>
-  - adv play list --json
-  - adv play reset --session-id <id>
+description: Play and narrate an ADV.JS visual novel through its deterministic runtime. Use when an agent must load project context, advance dialogue, choose branches, inspect stage state, move backward, manage named saves, replay a route, or present an interactive story session to a user.
 ---
 
 # ADV Story Skill

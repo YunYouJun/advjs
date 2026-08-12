@@ -1,10 +1,12 @@
+import type { AdvProjectCompileResult } from '@advjs/types'
 import { existsSync, readFileSync } from 'node:fs'
-import { basename, join } from 'node:path'
+import { basename, dirname, join, resolve } from 'node:path'
 import process from 'node:process'
 import { parseCharacterMd } from '@advjs/parser'
 import { consola } from 'consola'
 import { colors } from 'consola/utils'
 import { t } from '../cli/i18n'
+import { loadProject } from '../project'
 import { resolveGameRoot } from './check'
 import { parseSceneFrontmatter, readOptionalFile, scanFiles } from './utils'
 
@@ -19,6 +21,7 @@ export interface ProjectContext {
   characters?: { id: string, name: string, file: string, content?: string }[]
   chapters?: { file: string, content?: string }[]
   scenes?: { id?: string, name?: string, file: string, content?: string }[]
+  compilation?: AdvProjectCompileResult
 }
 
 export interface ContextOptions {
@@ -32,6 +35,51 @@ export interface ContextOptions {
  * Used by both CLI (`adv context`) and MCP Server.
  */
 export async function resolveProjectContext(root: string, options?: { full?: boolean, chapter?: number }): Promise<ProjectContext> {
+  const projectRoot = dirname(resolve(root))
+  const loaded = await loadProject({ root: projectRoot })
+  if (
+    loaded.config.format !== 'synthetic'
+    && resolve(loaded.root, loaded.result.project.root) === resolve(root)
+  ) {
+    const { files, result } = loaded
+    const contentRoot = result.project.root
+    const content = (path: string) => files[`${contentRoot}/${path}`]
+    const chapterSources = result.project.chapters.flatMap(chapter => chapter.sources)
+    const selectedChapterSources = options?.chapter
+      ? chapterSources.slice(options.chapter - 1, options.chapter)
+      : chapterSources
+    return {
+      root,
+      world: content('world.md'),
+      outline: content('outline.md'),
+      glossary: content('glossary.md'),
+      chaptersReadme: content('chapters/README.md'),
+      charactersReadme: content('characters/README.md'),
+      scenesReadme: content('scenes/README.md'),
+      characters: result.project.characters.map(character => ({
+        id: character.id,
+        name: character.name,
+        file: basename(result.sourceMap.characters[character.id] ?? `${character.id}.character.md`),
+        ...(options?.full
+          ? { content: files[result.sourceMap.characters[character.id]] }
+          : {}),
+      })),
+      chapters: selectedChapterSources.map(source => ({
+        file: basename(source),
+        ...(options?.full || options?.chapter ? { content: files[source] } : {}),
+      })),
+      scenes: result.project.scenes.map(scene => ({
+        id: scene.id,
+        name: scene.name,
+        file: basename(result.sourceMap.scenes[scene.id] ?? `${scene.id}.md`),
+        ...(options?.full
+          ? { content: files[result.sourceMap.scenes[scene.id]] }
+          : {}),
+      })),
+      compilation: result,
+    }
+  }
+
   const chaptersDir = join(root, 'chapters')
   const charactersDir = join(root, 'characters')
   const scenesDir = join(root, 'scenes')

@@ -1,63 +1,85 @@
 {
   "name": "@advjs/editor",
   "type": "module",
-  "version": "0.0.1",
-  "private": true,
+  "version": "0.1.2",
   "description": "ADV.JS Editor",
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "adv-editor": "./bin/adv-editor.mjs"
+  },
+  "files": [
+    "bin",
+    "build-contract.ts",
+    "dist"
+  ],
+  "advjsEditor": {
+    "artifacts": {
+      "outputDirectory": ".output",
+      "publicDirectory": ".output/public",
+      "serverDirectory": ".output/server",
+      "serverEntry": ".output/server/index.mjs",
+      "packagePublicDirectory": "dist",
+      "packageServerEntry": "bin/adv-editor.mjs",
+      "preset": "node-server"
+    }
+  },
+  "engines": {
+    "node": "^22.12.0 || ^24.0.0"
+  },
   "scripts": {
-    "build": "nuxt build",
+    "build": "nuxt build && node scripts/prepare-package.mjs",
     "dev": "nuxt dev --port 3000",
     "dev:pwa": "VITE_PLUGIN_PWA=true nuxt dev",
     "start": "node .output/server/index.mjs",
+    "start:package": "node bin/adv-editor.mjs",
     "typecheck": "vue-tsc --noEmit",
     "lint": "eslint .",
-    "postinstall": "nuxt prepare",
     "preview": "nuxt preview",
     "generate": "nuxt generate",
     "start:generate": "npx serve .output/public"
   },
-  "dependencies": {
-    "@dagrejs/dagre": "catalog:",
-    "@google/model-viewer": "catalog:frontend",
-    "@larksuiteoapi/node-sdk": "catalog:",
-    "@octokit/core": "catalog:",
-    "@octokit/rest": "catalog:",
-    "@vue-flow/background": "catalog:",
-    "@vue-flow/controls": "catalog:",
-    "@vue-flow/core": "catalog:frontend",
-    "@vue-flow/minimap": "catalog:",
-    "@vue-flow/node-resizer": "catalog:",
-    "@vueuse/core": "catalog:frontend",
-    "cos-js-sdk-v5": "catalog:",
-    "pixi-painter": "catalog:frontend",
-    "qrcode": "catalog:",
-    "ua-parser-js": "catalog:"
-  },
   "devDependencies": {
     "@advjs/core": "workspace:*",
     "@advjs/gui": "workspace:*",
+    "@dagrejs/dagre": "catalog:",
+    "@google/model-viewer": "catalog:frontend",
     "@iconify-json/carbon": "catalog:icons",
     "@iconify-json/ep": "catalog:icons",
     "@iconify-json/mdi": "catalog:icons",
     "@iconify-json/ri": "catalog:icons",
     "@iconify-json/svg-spinners": "catalog:icons",
     "@iconify-json/twemoji": "catalog:icons",
+    "@larksuiteoapi/node-sdk": "catalog:",
     "@nuxt/devtools": "catalog:build",
     "@nuxtjs/color-mode": "catalog:build",
     "@nuxtjs/i18n": "catalog:",
+    "@octokit/core": "catalog:",
+    "@octokit/rest": "catalog:",
     "@pinia/nuxt": "catalog:build",
     "@types/qrcode": "catalog:types",
     "@unocss/eslint-config": "catalog:build",
     "@unocss/nuxt": "catalog:build",
     "@vite-pwa/nuxt": "catalog:build",
+    "@vue-flow/background": "catalog:",
+    "@vue-flow/controls": "catalog:",
+    "@vue-flow/core": "catalog:frontend",
+    "@vue-flow/minimap": "catalog:",
+    "@vue-flow/node-resizer": "catalog:",
+    "@vueuse/core": "catalog:frontend",
     "@vueuse/nuxt": "catalog:build",
     "consola": "catalog:cli",
+    "cos-js-sdk-v5": "catalog:",
     "honeycomb-grid": "catalog:utils",
     "monaco-editor": "catalog:frontend",
     "nuxt": "catalog:build",
     "nuxt-auth-utils": "catalog:",
     "nuxt-monaco-editor": "catalog:",
     "pinia": "catalog:frontend",
-    "simple-git": "catalog:"
+    "pixi-painter": "catalog:frontend",
+    "qrcode": "catalog:",
+    "simple-git": "catalog:",
+    "ua-parser-js": "catalog:"
   }
 }

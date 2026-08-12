@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { Buffer } from 'node:buffer'
 import { createHash } from 'node:crypto'
 import { copyFile, mkdir, readFile, stat, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
@@ -68,6 +69,98 @@ function validateUrlConfig(publicBaseUrl, objectPrefix) {
   return new URL(objectPrefix, publicBaseUrl).toString()
 }
 
+const IMMUTABLE_CACHE_CONTROL = 'public, max-age=31536000, immutable'
+const MANIFEST_CACHE_CONTROL = 'public, max-age=60, must-revalidate'
+
+function contentTypeForObjectKey(objectKey) {
+  if (objectKey.endsWith('.webp'))
+    return 'image/webp'
+  if (objectKey.endsWith('.ogg'))
+    return 'audio/ogg'
+  if (objectKey.endsWith('.json'))
+    return 'application/json; charset=utf-8'
+  throw new Error(`unsupported release object type: ${objectKey}`)
+}
+
+function releasePlanObject({ bytes, id, objectKey, role = 'asset', sha256 }) {
+  return {
+    id,
+    role,
+    objectKey,
+    file: objectKey,
+    bytes,
+    sha256,
+    headers: {
+      'Content-Type': contentTypeForObjectKey(objectKey),
+      'Cache-Control': role === 'manifest' ? MANIFEST_CACHE_CONTROL : IMMUTABLE_CACHE_CONTROL,
+      'x-cos-meta-advjs-id': id,
+      'x-cos-meta-advjs-schema': '2',
+      'x-cos-meta-sha256': sha256,
+    },
+  }
+}
+
+export async function writeCosReleasePlan({ manifest, manifestJson, planPath, releaseRoot }) {
+  const objects = []
+  for (const asset of manifest.assets) {
+    objects.push(releasePlanObject({
+      id: asset.id,
+      objectKey: asset.objectKey,
+      sha256: asset.sha256,
+      bytes: asset.bytes,
+    }))
+    if (asset.kind === 'cg' && asset.variants?.thumbnail) {
+      const thumbnail = asset.variants.thumbnail
+      objects.push(releasePlanObject({
+        id: `${asset.id}/thumbnail`,
+        objectKey: thumbnail.objectKey,
+        sha256: thumbnail.sha256,
+        bytes: thumbnail.bytes,
+      }))
+    }
+  }
+
+  const manifestBytes = Buffer.from(manifestJson)
+  const manifestSha256 = createHash('sha256').update(manifestBytes).digest('hex')
+  const manifestObject = releasePlanObject({
+    id: 'manifest/assets',
+    role: 'manifest',
+    objectKey: manifest.manifestObjectKey,
+    sha256: manifestSha256,
+    bytes: manifestBytes.length,
+  })
+  const releaseManifestPath = join(releaseRoot, manifest.manifestObjectKey)
+  await mkdir(dirname(releaseManifestPath), { recursive: true })
+  await writeFile(releaseManifestPath, manifestBytes)
+
+  const plan = {
+    schemaVersion: 2,
+    provider: 'tencent-cos',
+    publicBaseUrl: manifest.profiles.production.baseUrl,
+    objectPrefix: manifest.release.objectPrefix,
+    policy: {
+      publicMethods: ['GET', 'HEAD'],
+      cors: {
+        allowedOrigins: ['*'],
+        allowedMethods: ['GET', 'HEAD'],
+        exposeHeaders: [
+          'Cache-Control',
+          'Content-Length',
+          'Content-Type',
+          'ETag',
+          'x-cos-meta-advjs-id',
+          'x-cos-meta-sha256',
+        ],
+        maxAgeSeconds: 86400,
+      },
+    },
+    objects: [...objects, manifestObject],
+  }
+  await mkdir(dirname(planPath), { recursive: true })
+  await writeFile(planPath, `${JSON.stringify(plan, null, 2)}\n`)
+  return plan
+}
+
 async function prepareAsset({
   assetRoot,
   characterId,
@@ -78,7 +171,6 @@ async function prepareAsset({
   model,
   objectPrefix,
   promptVersion,
-  publicBaseUrl,
   releaseRoot,
   sceneId,
 }) {
@@ -114,9 +206,10 @@ async function prepareAsset({
       ? `character/${characterId}/${expression}`
       : `background/${sceneId}`,
     kind,
+    type: 'image',
+    bundle: kind === 'character' ? 'characters' : 'backgrounds',
     ...(characterId ? { characterId, expression } : { sceneId }),
     objectKey,
-    url: new URL(objectKey, publicBaseUrl).toString(),
     sha256,
     width: dimensions.width,
     height: dimensions.height,
@@ -131,9 +224,143 @@ async function prepareAsset({
   }
 }
 
+async function copyHashedFile({ sourcePath, releaseRoot, objectPrefix, relativeStem, extension }) {
+  let bytes
+  try {
+    bytes = await readFile(sourcePath)
+  }
+  catch (error) {
+    if (error && typeof error === 'object' && error.code === 'ENOENT')
+      throw new Error(`required asset is missing: ${sourcePath}`)
+    throw error
+  }
+  const sha256 = createHash('sha256').update(bytes).digest('hex')
+  const relativeObject = `${relativeStem}.${sha256.slice(0, 12)}.${extension}`
+  const objectKey = `${objectPrefix}${relativeObject}`
+  const releasePath = join(releaseRoot, objectKey)
+  await mkdir(dirname(releasePath), { recursive: true })
+  await copyFile(sourcePath, releasePath)
+  return {
+    bytes: (await stat(releasePath)).size,
+    contents: bytes,
+    objectKey,
+    sha256,
+  }
+}
+
+async function prepareCgAsset({ assetRoot, createdAt, license, model, objectPrefix, promptVersion, releaseRoot, spec }) {
+  const primary = await copyHashedFile({
+    sourcePath: join(assetRoot, `cg/${spec.id}.webp`),
+    releaseRoot,
+    objectPrefix,
+    relativeStem: `cg/${spec.id}`,
+    extension: 'webp',
+  })
+  const thumbnail = await copyHashedFile({
+    sourcePath: join(assetRoot, `cg/${spec.id}.thumbnail.webp`),
+    releaseRoot,
+    objectPrefix,
+    relativeStem: `cg/${spec.id}.thumbnail`,
+    extension: 'webp',
+  })
+  const dimensions = readWebpDimensions(primary.contents)
+  const thumbnailDimensions = readWebpDimensions(thumbnail.contents)
+  return {
+    id: `cg/${spec.id}`,
+    kind: 'cg',
+    type: 'image',
+    bundle: 'cg',
+    title: spec.title,
+    alt: spec.alt,
+    chapterId: spec.chapterId,
+    objectKey: primary.objectKey,
+    sha256: primary.sha256,
+    width: dimensions.width,
+    height: dimensions.height,
+    bytes: primary.bytes,
+    variants: {
+      thumbnail: {
+        objectKey: thumbnail.objectKey,
+        sha256: thumbnail.sha256,
+        width: thumbnailDimensions.width,
+        height: thumbnailDimensions.height,
+        bytes: thumbnail.bytes,
+        mimeType: 'image/webp',
+      },
+    },
+    license,
+    source: { type: 'generated', model, promptVersion, createdAt },
+  }
+}
+
+async function prepareAnimationAsset({ assetRoot, createdAt, license, model, objectPrefix, promptVersion, releaseRoot, spec }) {
+  const file = await copyHashedFile({
+    sourcePath: join(assetRoot, `characters/${spec.characterId}/animations/${spec.state}.webp`),
+    releaseRoot,
+    objectPrefix,
+    relativeStem: `characters/${spec.characterId}/animations/${spec.state}`,
+    extension: 'webp',
+  })
+  const dimensions = readWebpDimensions(file.contents)
+  if (dimensions.width !== spec.frameWidth * spec.frames || dimensions.height !== spec.frameHeight)
+    throw new Error(`animation ${spec.id} dimensions do not match its frame metadata`)
+  return {
+    id: `animation/${spec.id}`,
+    kind: 'animation',
+    type: 'image',
+    bundle: 'characters',
+    characterId: spec.characterId,
+    state: spec.state,
+    objectKey: file.objectKey,
+    sha256: file.sha256,
+    width: dimensions.width,
+    height: dimensions.height,
+    bytes: file.bytes,
+    frameWidth: spec.frameWidth,
+    frameHeight: spec.frameHeight,
+    frames: spec.frames,
+    fps: spec.fps,
+    loop: spec.loop !== false,
+    license,
+    source: { type: 'generated', model, promptVersion, createdAt },
+  }
+}
+
+async function prepareBgmAsset({ assetRoot, createdAt, license, objectPrefix, releaseRoot, spec }) {
+  const file = await copyHashedFile({
+    sourcePath: join(assetRoot, `audio/bgm/${spec.id}.ogg`),
+    releaseRoot,
+    objectPrefix,
+    relativeStem: `audio/bgm/${spec.id}`,
+    extension: 'ogg',
+  })
+  return {
+    id: `bgm/${spec.id}`,
+    kind: 'bgm',
+    type: 'audio',
+    bundle: 'audio',
+    title: spec.title,
+    objectKey: file.objectKey,
+    sha256: file.sha256,
+    bytes: file.bytes,
+    duration: spec.duration,
+    loop: spec.loop !== false,
+    mimeType: 'audio/ogg',
+    license,
+    source: {
+      type: 'generated',
+      model: 'deterministic-additive-synthesis',
+      promptVersion: 'hamster-bgm-v1',
+      createdAt,
+    },
+  }
+}
+
 export async function prepareRelease({
   adaptationPath,
   assetRoot,
+  catalogId,
+  cosReleasePlanPath,
   createdAt,
   license,
   manifestPath,
@@ -166,7 +393,6 @@ export async function prepareRelease({
         model,
         objectPrefix,
         promptVersion,
-        publicBaseUrl,
         releaseRoot,
       }))
     }
@@ -180,21 +406,78 @@ export async function prepareRelease({
       model,
       objectPrefix,
       promptVersion,
-      publicBaseUrl,
       releaseRoot,
       sceneId: scene.id,
     }))
   }
+  for (const spec of adaptation.gallery ?? []) {
+    assets.push(await prepareCgAsset({
+      assetRoot,
+      createdAt,
+      license,
+      model,
+      objectPrefix,
+      promptVersion,
+      releaseRoot,
+      spec,
+    }))
+  }
+  for (const spec of adaptation.animations ?? []) {
+    assets.push(await prepareAnimationAsset({
+      assetRoot,
+      createdAt,
+      license,
+      model,
+      objectPrefix,
+      promptVersion,
+      releaseRoot,
+      spec,
+    }))
+  }
+  for (const spec of adaptation.bgm ?? []) {
+    assets.push(await prepareBgmAsset({
+      assetRoot,
+      createdAt,
+      license,
+      objectPrefix,
+      releaseRoot,
+      spec,
+    }))
+  }
 
   const manifest = {
-    schemaVersion: 1,
-    publicBaseUrl,
-    objectPrefix,
+    schemaVersion: 2,
+    id: catalogId,
+    defaultProfile: 'production',
+    profiles: {
+      production: {
+        provider: 'http',
+        baseUrl: publicBaseUrl,
+      },
+    },
+    release: {
+      provider: 'tencent-cos',
+      objectPrefix,
+    },
+    bundles: [
+      { id: 'characters' },
+      { id: 'backgrounds', preload: true },
+      { id: 'cg' },
+      { id: 'audio' },
+    ],
+    manifestObjectKey: `${objectPrefix}manifests/assets.json`,
     characters,
     assets,
   }
+  const manifestJson = `${JSON.stringify(manifest, null, 2)}\n`
   await mkdir(dirname(manifestPath), { recursive: true })
-  await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`)
+  await writeFile(manifestPath, manifestJson)
+  await writeCosReleasePlan({
+    manifest,
+    manifestJson,
+    planPath: cosReleasePlanPath ?? join(dirname(manifestPath), 'cos-release.json'),
+    releaseRoot,
+  })
   return manifest
 }
 
@@ -216,6 +499,7 @@ async function main() {
     const required = [
       'adaptation',
       'asset-root',
+      'catalog-id',
       'created-at',
       'license',
       'manifest',
@@ -232,6 +516,8 @@ async function main() {
     const manifest = await prepareRelease({
       adaptationPath: args.adaptation,
       assetRoot: args['asset-root'],
+      catalogId: args['catalog-id'],
+      cosReleasePlanPath: args['cos-release-plan'],
       createdAt: args['created-at'],
       license: args.license,
       manifestPath: args.manifest,
@@ -243,6 +529,7 @@ async function main() {
     })
     process.stdout.write(`${JSON.stringify({
       assetCount: manifest.assets.length,
+      cosReleasePlan: args['cos-release-plan'] ?? join(dirname(args.manifest), 'cos-release.json'),
       manifest: args.manifest,
       releaseRoot: args['release-root'],
     }, null, 2)}\n`)

@@ -1,0 +1,4 @@
+interface:
+  display_name: ADV Project Creator
+  short_description: Generate complete standard ADV.JS projects
+  default_prompt: Use $adv-create to generate and validate a standard ADV.JS visual novel project.

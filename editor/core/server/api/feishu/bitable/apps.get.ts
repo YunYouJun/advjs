@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const client = useFeishuClient()
+  const client = await useFeishuClient()
 
   try {
     const res = await client.bitable.appTable.list({

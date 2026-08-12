@@ -1,10 +1,11 @@
 import { cpSync, existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
-import { join, resolve } from 'node:path'
+import { join, relative, resolve } from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { consola } from 'consola'
 import { colors } from 'consola/utils'
 import { t } from '../cli/i18n'
+import { AdvCommandError } from './errors'
 
 export interface InitOptions {
   root?: string
@@ -12,6 +13,12 @@ export interface InitOptions {
   force?: boolean
   /** Template variant. `default` (school-romance) or `galgame` (dating sim). */
   template?: string
+}
+
+export interface InitResult {
+  root: string
+  template: 'default' | 'galgame'
+  files: string[]
 }
 
 /** Template name → bundled directory (relative to the package root). */
@@ -26,9 +33,9 @@ export const AVAILABLE_TEMPLATES = Object.keys(TEMPLATES)
  * Error class for init command failures.
  * Allows CLI layer to distinguish expected errors from unexpected crashes.
  */
-export class InitError extends Error {
+export class InitError extends AdvCommandError {
   constructor(message: string) {
-    super(message)
+    super('ADV_VALIDATION', message)
     this.name = 'InitError'
   }
 }
@@ -89,7 +96,7 @@ function walkFiles(dir: string): string[] {
 /**
  * Core init logic — creates a new ADV.JS project from the built-in template.
  */
-export async function advInit(options: InitOptions = {}): Promise<void> {
+export async function advInit(options: InitOptions = {}): Promise<InitResult> {
   const cwd = process.cwd()
   const targetDir = options.root ? resolve(cwd, options.root) : cwd
 
@@ -102,7 +109,8 @@ export async function advInit(options: InitOptions = {}): Promise<void> {
     throw new InitError(t('init.already_exists', targetDir))
   }
 
-  const templateDir = resolveTemplateDir(options.template)
+  const template = options.template ?? 'default'
+  const templateDir = resolveTemplateDir(template)
 
   consola.start(t('init.creating', targetDir))
 
@@ -132,4 +140,12 @@ export async function advInit(options: InitOptions = {}): Promise<void> {
   consola.log(`  ${colors.cyan('adv check')}   — ${t('init.hint_check')}`)
   consola.log(`  ${colors.cyan('adv context')} — ${t('init.hint_context')}`)
   consola.log(`  ${colors.cyan('adv dev')}     — ${t('init.hint_dev')}`)
+
+  return {
+    root: targetDir,
+    template: template as InitResult['template'],
+    files: allFiles
+      .map(file => relative(targetDir, file).replaceAll('\\', '/'))
+      .sort(),
+  }
 }

@@ -35,8 +35,11 @@ Inspect each result before accepting it. Reject identity drift, accidental text,
 ### 4. Normalize release derivatives
 
 - Export tachie with alpha, consistent canvas dimensions, ground line, and framing.
-- For generated transparency, choose a flat chroma color with strong separation from the subject. Warm golden fur may require a blue key instead of magenta; inspect both color spill and partially transparent pixel counts rather than reusing one threshold blindly.
+- For generated transparency, choose a flat chroma color with strong separation from the subject. Remove only color regions connected to canvas edges; never erase every similar pixel across the image, because faces, eyes, fabric highlights, or accessories may share the key hue. Apply spill removal and feathering only around the resulting alpha boundary.
+- Use `scripts/key-connected-chroma.mjs` for the repository hamster pipeline or implement the same edge-connected flood-fill contract. Generate checker, black, white, warm, and cool composites plus an alpha report. Reject face/body holes, opaque mats, colored halos, and disconnected floating pixels.
 - Export backgrounds and CG in the game's target aspect ratio.
+- Build one background contact sheet and one CG contact sheet. Review palette, line quality, camera height, light direction, saturation, and prohibited foreground characters across the full set rather than accepting images one at a time.
+- For spritesheets, normalize every frame to the same canvas, visual volume, bottom-center anchor, ground line, and shadow. Record frame width/height, count, FPS, loop policy, and total sheet dimensions; preview the actual runtime animation before release.
 - Prefer WebP for broad browser compatibility; add AVIF only when the runtime provides a tested fallback.
 - Strip unnecessary metadata while retaining provenance in the manifest.
 - Compute SHA-256 after final optimization and include an 8–64 character prefix in the public filename.
@@ -53,6 +56,7 @@ node skills/adv-art/scripts/prepare-release.mjs \
   --asset-root <local-art-root> \
   --release-root <local-release-root> \
   --manifest <project>/adv/assets.json \
+  --cos-release-plan <project>/adv/cos-release.json \
   --public-base-url https://assets.example.com/ \
   --object-prefix games/example/v1/ \
   --license 'CC BY-NC-SA 4.0' \
@@ -61,7 +65,7 @@ node skills/adv-art/scripts/prepare-release.mjs \
   --created-at 2026-07-17
 ```
 
-The local art root must contain `characters/{id}/standing/{expression}.webp` and `backgrounds/{scene-id}.webp`. The script fails on missing required expressions/backgrounds, reads WebP dimensions, computes SHA-256, copies hashed release objects, and writes `assets.json`.
+The local art root may contain `characters/{id}/standing/{expression}.webp`, `characters/{id}/animations/{state}.webp`, `backgrounds/{scene-id}.webp`, `cg/{shot-id}.webp` with thumbnails, and `audio/bgm/{track-id}.ogg`. The script fails on missing declared assets or invalid sprite dimensions, reads image/audio metadata, computes SHA-256, copies hashed release objects, writes `assets.json`, copies the stable public manifest, and emits a credential-free `cos-release.json` with exact upload order and HTTP metadata.
 
 Run its regression tests after changing release behavior:
 
@@ -75,9 +79,11 @@ Run:
 
 ```bash
 node skills/adv-art/scripts/audit-assets.mjs <project>/adv/assets.json
+node skills/adv-art/scripts/audit-cos-release.mjs <project>/adv/cos-release.json <local-release-root>
+node skills/adv-art/scripts/audit-cos-remote.mjs <project>/adv/cos-release.json
 ```
 
-Require exit code `0` and an empty `errors` list before replacing local placeholders or publishing.
+The first two commands validate the local catalog and exact upload plan. Run the remote audit after publication; it downloads every current object, recomputes SHA-256, sends identity-encoded HEAD requests, and verifies MIME, cache semantics, byte length, checksum metadata, GET/HEAD CORS, and exposed headers. Require exit code `0` and an empty `errors` list before replacing local placeholders or declaring publication complete.
 
 ### 7. Publish safely
 
@@ -91,7 +97,7 @@ Update character `avatar`/`tachies`, scene backgrounds, and CG references from l
 
 ## Completion rules
 
-- Every shipped asset has a logical ID, dimensions, byte size, SHA-256, provenance, license, and immutable URL.
+- Every shipped asset has a logical ID, dimensions or audio duration, byte size, SHA-256, provenance, license, and immutable URL.
 - Every declared required expression has exactly one matching character asset.
 - Public URLs are versioned and content-hashed; never use `latest/` in game configuration.
 - Credentials never enter source control, prompts, manifests, logs, or Skill files.

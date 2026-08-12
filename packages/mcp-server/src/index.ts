@@ -6,7 +6,7 @@ import { analyzeBranches, analyzeCoverage } from '@advjs/core'
 import { parseAst, parseCharacterMd, stringifyCharacterMd } from '@advjs/parser'
 import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
-import { resolveGameRoot, scanFiles } from 'advjs'
+import { loadProject, resolveGameRoot, scanFiles } from 'advjs'
 import { z } from 'zod'
 
 // Re-export for external use
@@ -68,6 +68,10 @@ export interface SceneCreateInput {
   description?: string
   atmosphere?: string
   chapters?: string[]
+}
+
+export interface CreateAdvMcpServerOptions {
+  projectLoader?: typeof loadProject
 }
 
 /**
@@ -236,9 +240,10 @@ function resourceTextContent(uri: URL | string, text: string) {
 /**
  * Create and start the ADV.JS MCP Server.
  */
-export function createAdvMcpServer() {
+export function createAdvMcpServer(options: CreateAdvMcpServerOptions = {}) {
   const cwd = process.cwd()
   const gameRoot = resolveGameRoot(cwd)
+  const projectLoader = options.projectLoader ?? loadProject
 
   const server = new McpServer({
     name: 'advjs',
@@ -246,6 +251,16 @@ export function createAdvMcpServer() {
   })
 
   // --------------- Resources ---------------
+
+  server.resource(
+    'compiled-project',
+    'adv://project/compiled',
+    { description: 'Normalized project, diagnostics, and source map from the standard compiler' },
+    async (uri: URL) => {
+      const loaded = await projectLoader({ root: cwd })
+      return resourceTextContent(uri, JSON.stringify(loaded.result, null, 2))
+    },
+  )
 
   server.resource(
     'project-overview',

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { AdvCharacter } from '@advjs/types'
 import type { FileTreeNode } from '~/stores/useCharacterStore'
-import { Toast } from '@advjs/gui/client/composables'
+import { Toast } from '@advjs/gui'
 
 definePageMeta({
   layout: 'default',
@@ -98,7 +98,7 @@ const hasSource = computed(() => !!cStore.dirHandle || !!cStore.charactersDir)
         </AGUIButton>
 
         <!-- Language toggle -->
-        <AGUIButton variant="outline" size="small" @click="toggleLocale">
+        <AGUIButton variant="outline" size="mini" @click="toggleLocale">
           <div class="i-ri-global-line mr-1" />
           {{ locale === 'en' ? 'EN' : '中' }}
         </AGUIButton>
@@ -126,7 +126,7 @@ const hasSource = computed(() => !!cStore.dirHandle || !!cStore.charactersDir)
         </div>
         <div v-else class="flex flex-1 flex-col items-center justify-center gap-3 p-4">
           <div class="i-ri-folder-open-line text-3xl op-30" />
-          <AGUIButton theme="primary" size="small" @click="onOpenDirectory">
+          <AGUIButton theme="primary" size="mini" @click="onOpenDirectory">
             <div class="i-ri-folder-add-line mr-1" />
             {{ $t('characters.openLocalDir') }}
           </AGUIButton>

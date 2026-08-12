@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AdvCharacter } from '@advjs/types'
-import { Toast } from '@advjs/gui/client/composables'
+import { Toast } from '@advjs/gui'
 
 const props = defineProps<{
   character?: Partial<AdvCharacter>
@@ -188,7 +188,7 @@ function onSubmit() {
 
     <!-- Sticky bottom buttons -->
     <div class="sticky bottom-0 flex justify-end gap-2 border-t border-dark-200 bg-dark-300 px-4 py-3">
-      <AGUIButton v-if="mode === 'create'" size="small" @click="saveDraft">
+      <AGUIButton v-if="mode === 'create'" size="mini" @click="saveDraft">
         {{ $t('characters.form.saveDraft') }}
       </AGUIButton>
       <AGUIButton @click="$emit('cancel')">

@@ -1,5 +1,6 @@
 import type { Argv } from 'yargs'
 import { t } from './i18n'
+import { createCliError, createStderrViteLogger, runCliCommand } from './output'
 import { commonOptions } from './utils'
 
 export async function installBuildCommand(cli: Argv) {
@@ -23,13 +24,31 @@ export async function installBuildCommand(cli: Argv) {
       })
       .strict()
       .help(),
-    async ({ theme, base, outDir, singlefile }) => {
+    async ({ theme, base, outDir, singlefile, json }) => {
       const { advBuild } = await import('../commands/build')
-      await advBuild({
-        base,
-        outDir,
-        theme,
-        singlefile,
+      await runCliCommand({
+        command: 'build',
+        json: Boolean(json),
+        run: async () => await advBuild({
+          base,
+          outDir,
+          theme,
+          singlefile,
+          ...(json
+            ? {
+                vite: {
+                  customLogger: await createStderrViteLogger(),
+                  logLevel: 'silent' as const,
+                },
+              }
+            : {}),
+        }),
+        mapError: error => createCliError(
+          error instanceof Error && 'code' in error && error.code === 'ADV_BUILD'
+            ? error.code
+            : 'ADV_BUILD',
+          error,
+        ),
       })
     },
   )

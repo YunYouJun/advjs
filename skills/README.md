@@ -2,6 +2,12 @@
 
 OpenClaw / Claude Code Skills for ADV.JS interactive narrative engine.
 
+`catalog.json` is the machine-readable launch catalog. `default` Skills are
+installed for the standard AI authoring workflow, `optional` Skills are added
+on request, and `repositoryOnly` Skills are never copied into the `advjs` npm
+tarball. Every catalog entry pins release revision `0.1.2` and the SHA-256 of
+its deterministically ordered directory contents.
+
 ## Directory Structure
 
 Each skill is a subdirectory containing a `SKILL.md` definition file:

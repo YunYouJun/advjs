@@ -1,13 +1,6 @@
 ---
 name: adv-review
-description: AI quality review for ADV.JS scripts — character voice, dialogue, pacing, choices, and lore consistency
-version: 0.1.0
-author: YunYouJun
-tools:
-  - adv context [--root] [--full] [--chapter <n>]
-  - adv check [--root]
-  - adv debug branches <script.adv.md> --format=json
-  - adv debug coverage [script.adv.md] --format=json
+description: Review ADV.JS narrative quality after deterministic validation. Use when assessing character voice, dialogue, pacing, choice meaning, branch balance, emotional arcs, lore consistency, setup and payoff, or when producing grounded must-fix feedback and concrete script rewrites.
 ---
 
 # ADV Review Skill

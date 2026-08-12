@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const client = useFeishuClient()
+  const client = await useFeishuClient()
 
   try {
     // 使用 Lark SDK 换取 user_access_token
@@ -34,6 +34,12 @@ export default defineEventHandler(async (event) => {
     }
 
     const tokenData = tokenRes.data
+    const userRes = await client.authen.userInfo.get({}, {
+      headers: {
+        Authorization: `Bearer ${tokenData.access_token}`,
+      },
+    })
+    const userData = userRes.data ?? {}
 
     // 存入 session（复用 nuxt-auth-utils 的 setUserSession）
     const existingSession = await getUserSession(event)
@@ -41,11 +47,11 @@ export default defineEventHandler(async (event) => {
       user: {
         ...existingSession?.user,
         feishu: {
-          open_id: tokenData.open_id || '',
-          union_id: tokenData.union_id || '',
-          name: tokenData.name || '',
-          avatar_url: tokenData.avatar_url || '',
-          email: tokenData.email || '',
+          open_id: userData.open_id || '',
+          union_id: userData.union_id || '',
+          name: userData.name || '',
+          avatar_url: userData.avatar_url || '',
+          email: userData.email || '',
           user_access_token: tokenData.access_token || '',
           token_type: tokenData.token_type || '',
           expires_in: tokenData.expires_in || 0,

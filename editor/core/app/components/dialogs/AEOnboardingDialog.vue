@@ -11,7 +11,7 @@ const open = defineModel('open', {
 
 const onboarded = useStorage('advjs:editor:onboarded', false)
 
-function selectLocale(code: string) {
+function selectLocale(code: 'en' | 'zh-CN') {
   changeLocale(code)
   onboarded.value = true
   open.value = false
@@ -34,14 +34,14 @@ function skip() {
 
       <div class="flex gap-4">
         <AGUIButton
-          size="default"
+          size=""
           class="min-w-32 px-6 py-3 text-base"
           @click="selectLocale('en')"
         >
           English
         </AGUIButton>
         <AGUIButton
-          size="default"
+          size=""
           class="min-w-32 px-6 py-3 text-base"
           @click="selectLocale('zh-CN')"
         >

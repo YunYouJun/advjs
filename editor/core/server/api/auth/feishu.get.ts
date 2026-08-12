@@ -1,3 +1,5 @@
+import { assertEditorServerCapability } from '../../utils/capabilities'
+
 /**
  * 飞书 OAuth 授权入口
  *
@@ -5,6 +7,7 @@
  * @see https://open.feishu.cn/document/authentication-management/access-token/obtain-oauth-code
  */
 export default defineEventHandler((event) => {
+  assertEditorServerCapability('feishu')
   const config = useRuntimeConfig()
   const { appId, redirectUri } = config.feishu
 

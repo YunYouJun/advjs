@@ -2,12 +2,12 @@
 const { t } = useI18n()
 const { locale, changeLocale } = useEditorLocale()
 
-const localeOptions = [
+const localeOptions: Array<{ label: string, value: 'en' | 'zh-CN' }> = [
   { label: 'English', value: 'en' },
   { label: '中文（简体）', value: 'zh-CN' },
 ]
 
-const localeState = reactive({
+const localeState = reactive<{ language: 'en' | 'zh-CN' }>({
   language: locale.value,
 })
 

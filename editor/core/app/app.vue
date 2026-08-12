@@ -1,10 +1,10 @@
 <script setup lang="ts">
+import { configureAudioAssets, initAdvContext, initAdvData } from '@advjs/client'
 import { advConfigSymbol, gameConfigSymbol, themeConfigSymbol } from '@advjs/core'
 import { mountCssVarsRootStyle } from '@advjs/gui/client'
 import { appName } from '~/constants'
 
 import { injectionAdvContext } from '../../../packages/client/constants'
-import { initAdvContext } from '../../../packages/client/runtime'
 import './styles'
 
 useHead({
@@ -12,21 +12,37 @@ useHead({
 })
 
 const consoleStore = useConsoleStore()
+const capabilities = useEditorCapabilities()
+
+if (capabilities.mode === 'local') {
+  configureAudioAssets({
+    popDownUrl: '',
+    popUpOffUrl: '',
+    popUpOnUrl: '',
+  })
+}
 
 // advjs context
 const nuxtApp = useNuxtApp()
-const advContext = initAdvContext(undefined, nuxtApp.$pinia)
+const advContext = initAdvContext(initAdvData())
 nuxtApp.vueApp.provide(injectionAdvContext, advContext)
 nuxtApp.vueApp.provide(advConfigSymbol, advContext.config || {})
 nuxtApp.vueApp.provide(gameConfigSymbol, advContext.gameConfig)
 nuxtApp.vueApp.provide(themeConfigSymbol, advContext.themeConfig)
+const projectStore = useProjectStore()
 
-onMounted(() => {
+onMounted(async () => {
   // @advjs/gui
   mountCssVarsRootStyle()
 
   consoleStore.info('ADVJS Context initialized.')
+  if (await projectStore.connectLocalBridgeFromLaunch()) {
+    window.history.replaceState(window.history.state, '', `${window.location.pathname}${window.location.search}`)
+    consoleStore.success('Local workspace connected')
+  }
 })
+
+onBeforeUnmount(() => projectStore.disconnectLocalBridge())
 </script>
 
 <template>

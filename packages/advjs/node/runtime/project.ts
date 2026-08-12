@@ -3,7 +3,7 @@ import type { AdvChapter, RuntimeProgram } from '@advjs/types'
 import { existsSync } from 'node:fs'
 import { readdir, readFile } from 'node:fs/promises'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
-import { compileMarkdownProgram, isRuntimeIdentifier } from '@advjs/core'
+import { compileProject, isRuntimeIdentifier } from '@advjs/core'
 
 export interface RuntimeChapterFiles {
   id: string
@@ -114,25 +114,41 @@ export function resolveConfiguredRuntimeChapterFiles(
 export async function compileRuntimeChapterFiles(
   options: CompileRuntimeChapterFilesOptions,
 ): Promise<CompileResult<RuntimeProgram>> {
-  const entryIndex = options.entryChapterId
-    ? options.chapters.findIndex(chapter => chapter.id === options.entryChapterId)
-    : 0
-  const chapters = [...options.chapters]
-  if (entryIndex > 0) {
-    const [entry] = chapters.splice(entryIndex, 1)
-    chapters.unshift(entry)
+  const files: Record<string, string> = {
+    'adv.config.json': JSON.stringify({ format: 'adv-md', root: './adv' }),
   }
-
-  const sources = await Promise.all(chapters.map(async chapter => ({
+  const originalPaths = new Map<string, string>()
+  const chapters = await Promise.all(options.chapters.map(async chapter => ({
     id: chapter.id,
     title: chapter.title,
-    content: (await Promise.all(chapter.paths.map(path => readFile(path, 'utf8')))).join('\n\n'),
-    sourcePath: chapter.paths.length === 1 ? chapter.paths[0] : chapter.paths.join(', '),
+    sources: await Promise.all(chapter.paths.map(async (path, index) => {
+      const projectPath = `adv/chapters/${chapter.id}/${index + 1}.adv.md`
+      files[projectPath] = await readFile(path, 'utf8')
+      originalPaths.set(projectPath, path)
+      return `chapters/${chapter.id}/${index + 1}.adv.md`
+    })),
   })))
-
-  return compileMarkdownProgram({
-    id: options.id,
-    chapters: sources,
+  files['adv/settings/game.json'] = JSON.stringify({
+    entryChapterId: options.entryChapterId,
     requiredPlugins: options.requiredPlugins,
+    chapters,
   })
+
+  const result = await compileProject(
+    { id: options.id, files },
+    { validateContentReferences: false },
+  )
+  return {
+    program: result.project.program,
+    diagnostics: result.diagnostics.map(diagnostic => ({
+      code: diagnostic.code,
+      severity: diagnostic.severity,
+      message: diagnostic.message,
+      source: {
+        file: diagnostic.path ? (originalPaths.get(diagnostic.path) ?? diagnostic.path) : undefined,
+        line: diagnostic.line,
+        column: diagnostic.column,
+      },
+    })),
+  }
 }

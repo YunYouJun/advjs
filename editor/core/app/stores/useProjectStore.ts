@@ -1,8 +1,12 @@
 import type { FSDirItem, TreeNode } from '@advjs/gui'
 import type { AdvConfig } from '@advjs/types'
+import type { BrowserProjectDirectory, EditorProjectModel } from '../adapters/browser/project'
+import type { LocalBridgeAdapter, LocalBridgeWatch, LocalDirectoryHandle, LocalFileHandle } from '../adapters/local'
 import type { AdvConfigAdapterType } from '../types'
 import { defaultAdvConfig } from 'advjs'
 import { consola } from 'consola'
+import { compileEditorProject, createEditorProjectModel, readBrowserProjectFiles } from '../adapters/browser/project'
+import { createLocalBridgeAdapter, parseLocalEditorSession } from '../adapters/local'
 import { PLATFORM_MAP } from '../constants'
 
 /**
@@ -30,6 +34,18 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
    * adv.config
    */
   const advConfig = ref<AdvConfig>(defaultAdvConfig)
+  const project = shallowRef<EditorProjectModel>()
+  const workspaceMode = ref<'browser' | 'local'>('browser')
+  const localAdapter = shallowRef<LocalBridgeAdapter>()
+  const localRootHandle = shallowRef<LocalDirectoryHandle>()
+  const localFilePaths = computed(() => Object.keys(project.value?.files ?? {}).sort())
+  let localWatch: LocalBridgeWatch | undefined
+  let localRefreshTimer: ReturnType<typeof setTimeout> | undefined
+  const pendingLocalChanges = new Set<string>()
+  const diagnostics = computed(() => project.value?.compilation.diagnostics ?? [])
+  const chapters = computed(() => project.value?.compilation.project.chapters ?? [])
+  const characters = computed(() => project.value?.compilation.project.characters ?? [])
+  const scenes = computed(() => project.value?.compilation.project.scenes ?? [])
 
   /**
    * current config tab
@@ -88,6 +104,130 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
    */
   async function loadAdvConfigJSON(text: string) {
     await loadAdvConfig(JSON.parse(text) as AdvConfig)
+  }
+
+  async function activateProject(nextProject: EditorProjectModel, nextRootDir: FSDirItem) {
+    if (workspaceMode.value === 'browser')
+      rootDir.value = nextRootDir
+    project.value = nextProject
+
+    if (nextProject.files['adv.config.json'])
+      await loadAdvConfigJSON(nextProject.files['adv.config.json'])
+
+    const errors = nextProject.compilation.diagnostics.filter(item => item.severity === 'error')
+    if (workspaceMode.value !== 'local' && nextProject.mode === 'standard-markdown' && errors.length === 0) {
+      void gameStore.loadGameFromConfig(nextProject.previewConfig).catch((error) => {
+        consoleStore.error('Preview failed to load', { error: String(error) })
+      })
+    }
+
+    if (nextProject.migrationNotice) {
+      consoleStore.warn(nextProject.migrationNotice, { fileName: 'index.adv.json' })
+    }
+    else if (errors.length > 0) {
+      consoleStore.error('Project compilation failed', { diagnostics: errors })
+    }
+    else {
+      consoleStore.success('Markdown project loaded', {
+        chapters: nextProject.compilation.project.chapters.length,
+        characters: nextProject.compilation.project.characters.length,
+        scenes: nextProject.compilation.project.scenes.length,
+      })
+    }
+
+    return nextProject
+  }
+
+  async function openBrowserProject(dirHandle: FileSystemDirectoryHandle) {
+    const files = await readBrowserProjectFiles(dirHandle as unknown as BrowserProjectDirectory)
+    const nextProject = await compileEditorProject({ files, id: dirHandle.name })
+    workspaceMode.value = 'browser'
+    return await activateProject(nextProject, {
+      name: dirHandle.name,
+      kind: 'directory',
+      handle: dirHandle,
+    } as FSDirItem)
+  }
+
+  async function refreshBrowserProject() {
+    const handle = rootDir.value?.handle as FileSystemDirectoryHandle | undefined
+    return handle ? await openBrowserProject(handle) : undefined
+  }
+
+  async function refreshLocalProject() {
+    const adapter = localAdapter.value
+    if (!adapter)
+      return
+    const loaded = await adapter.loadProject()
+    const name = loaded.root.split(/[\\/]/u).filter(Boolean).at(-1) ?? 'project'
+    const nextProject = createEditorProjectModel(loaded.result, loaded.files)
+    const handle = adapter.createDirectoryHandle(loaded.files, name)
+    localRootHandle.value = handle
+    workspaceMode.value = 'local'
+    return await activateProject(nextProject, {
+      name,
+      kind: 'directory',
+      handle: handle as unknown as FileSystemDirectoryHandle,
+    })
+  }
+
+  async function getLocalFileHandle(path: string): Promise<LocalFileHandle> {
+    const segments = path.split('/').filter(Boolean)
+    const fileName = segments.pop()
+    if (!fileName || !localRootHandle.value)
+      throw new Error(`Local project file is unavailable: ${path}`)
+    let directory = localRootHandle.value
+    for (const segment of segments)
+      directory = await directory.getDirectoryHandle(segment)
+    return await directory.getFileHandle(fileName)
+  }
+
+  function scheduleLocalRefresh(path: string) {
+    if (path)
+      pendingLocalChanges.add(path)
+    if (localRefreshTimer)
+      clearTimeout(localRefreshTimer)
+    localRefreshTimer = setTimeout(async () => {
+      const adapter = localAdapter.value
+      const changedPaths = [...pendingLocalChanges].sort()
+      pendingLocalChanges.clear()
+      if (!adapter)
+        return
+      for (const changedPath of changedPaths)
+        await fileStore.handleExternalChange(adapter, changedPath).catch(() => {})
+      await refreshLocalProject()
+    }, 150)
+  }
+
+  async function connectLocalBridgeFromLaunch(url = window.location.href) {
+    const session = parseLocalEditorSession(url)
+    if (!session)
+      return false
+    localWatch?.stop()
+    localAdapter.value = createLocalBridgeAdapter(session)
+    await refreshLocalProject()
+    localWatch = localAdapter.value.watch(change => scheduleLocalRefresh(change.path))
+    void localWatch.done.catch((error) => {
+      consoleStore.error('Local workspace watcher stopped', { error: String(error) })
+    })
+    return true
+  }
+
+  function disconnectLocalBridge() {
+    localWatch?.stop()
+    localWatch = undefined
+    localAdapter.value = undefined
+    localRootHandle.value = undefined
+    if (localRefreshTimer)
+      clearTimeout(localRefreshTimer)
+    localRefreshTimer = undefined
+    pendingLocalChanges.clear()
+  }
+
+  async function refreshProject() {
+    return workspaceMode.value === 'local'
+      ? await refreshLocalProject()
+      : await refreshBrowserProject()
   }
 
   /**
@@ -190,6 +330,14 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
 
     advConfig,
     curAdvConfigTab,
+    project,
+    workspaceMode,
+    localAdapter,
+    localFilePaths,
+    diagnostics,
+    chapters,
+    characters,
+    scenes,
 
     entryFileHandle,
     setEntryFileHandle,
@@ -197,6 +345,13 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
 
     loadIndexAdvJSON,
     loadAdvConfigJSON,
+    openBrowserProject,
+    refreshBrowserProject,
+    refreshLocalProject,
+    refreshProject,
+    connectLocalBridgeFromLaunch,
+    disconnectLocalBridge,
+    getLocalFileHandle,
 
     online,
   }

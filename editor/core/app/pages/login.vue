@@ -1,14 +1,17 @@
 <script setup lang="ts">
+import { useEditorCapabilities } from '../composables/useEditorCapabilities'
+
 const online = useOnline()
+const capabilities = useEditorCapabilities()
 </script>
 
 <template>
   <div>
     <Suspense>
       <ClientOnly>
-        <PageView v-if="online" />
+        <PageView v-if="online && capabilities.integrations.analytics" />
         <div v-else text-gray:80>
-          You're offline
+          Online services are unavailable
         </div>
       </ClientOnly>
       <template #fallback>

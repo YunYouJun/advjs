@@ -9,11 +9,11 @@
 ```json
 {
   "schemaVersion": 1,
-  "adaptationMode": "canonical-plus",
+  "adaptationMode": "seamless-main",
   "sources": [
     {
       "id": "work-id",
-      "title": "Canonical title",
+      "title": "Source title",
       "author": "Author name",
       "url": "https://example.com/canonical-source",
       "revision": "2026-07-17 or a commit hash",
@@ -50,10 +50,10 @@
   ],
   "addedMaterial": [
     {
-      "id": "interpretive-ending",
-      "kind": "interpretive-route",
-      "chapters": ["20-interpretive-ending"],
-      "canon": false
+      "id": "postgame-simulation",
+      "kind": "postgame-route",
+      "chapters": ["01-opening#postgame-simulation"],
+      "sourceMapped": false
     }
   ]
 }
@@ -74,8 +74,10 @@ Required sections must occur exactly once. Optional sections may occur zero or o
 ## Modeling rules
 
 - Use source headings as the initial section boundary; split only when a single heading contains independently mapped scenes.
-- Preserve the works' canonical order with integer `order` values.
+- Preserve the sources' declared order with integer `order` values.
 - Record a stable source revision so future upstream edits do not silently change the fidelity target.
 - Include non-speaking people in `characters` when staging, relationships, or continuity depend on them.
-- Keep `addedMaterial` explicit. Never map newly written interpretive content to a source section merely to raise coverage.
+- Keep `addedMaterial` explicit. Never map newly written postgame or bridging content to a source section merely to raise coverage.
 - Treat the manifest as authored content: review changes and keep it in version control.
+- For author metadata intentionally excluded from play, keep the section with `required: false`, omit `chapters`, and add an explicit `excludedReason` such as `author-metadata`.
+- Several sources may be edited into one seamless game route. Preserve their `order` internally, but do not require source boundaries, work titles, or adaptation terminology to appear in chapter titles or player-facing UI.

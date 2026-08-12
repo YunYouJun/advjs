@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { FSDirItem } from '@advjs/gui'
 import { PROJECT_TEMPLATES } from '~/composables/useCreateProject'
 
 const { createAndLoadProject, isCreating } = useCreateProject()
@@ -10,24 +9,24 @@ const fileStore = useFileStore()
 const res = useFileSystemAccess({
   dataType: 'Text',
   types: [{
-    description: 'ADV Project Entry',
+    description: 'ADV Markdown Chapter',
     accept: {
-      'application/json': ['.adv.json'],
+      'text/markdown': ['.adv.md'],
     },
   }],
   excludeAcceptAllOption: true,
 })
 
 /**
- * create `*.adv.json` file
+ * Create an `*.adv.md` chapter file.
  */
-async function createAdvJSONFile() {
+async function createAdvMarkdownFile() {
   await res.create()
 }
 
 /**
  * open adv project
- * `<root>/index.adv.json` file is required
+ * Opens a standard Markdown project directory.
  */
 function openAdvProject() {
   // trigger open directory dialog
@@ -45,29 +44,7 @@ async function reopenRecentProject(project: { name: string, templateId: string }
   try {
     const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' })
 
-    projectStore.rootDir = {
-      name: dirHandle.name,
-      kind: 'directory',
-      handle: dirHandle,
-    } as FSDirItem
-
-    // try to load adv.config.json
-    try {
-      const configHandle = await dirHandle.getFileHandle('adv.config.json')
-      await projectStore.setAdvConfigFileHandle(configHandle)
-    }
-    catch {
-      // no config file, skip
-    }
-
-    // try to load index.adv.json
-    try {
-      const entryHandle = await dirHandle.getFileHandle('index.adv.json')
-      await projectStore.setEntryFileHandle(entryHandle)
-    }
-    catch {
-      // no entry file, skip
-    }
+    await projectStore.openBrowserProject(dirHandle)
 
     addRecentProject({
       name: dirHandle.name,
@@ -189,17 +166,17 @@ function getTemplateName(templateId: string): string {
         </button>
         <button
           class="card-base group flex items-center gap-2.5 px-4 py-3"
-          @click="createAdvJSONFile"
+          @click="createAdvMarkdownFile"
         >
           <div class="card-icon-sm">
             <div class="i-ri-file-add-line" />
           </div>
           <div class="text-left">
             <div class="text-xs font-medium op-80 transition-opacity group-hover:op-100">
-              新建 ADV 文件
+              新建 ADV Markdown
             </div>
             <div class="text-11px op-35 transition-opacity group-hover:op-50">
-              创建 .adv.json 文件
+              创建 .adv.md 剧本文件
             </div>
           </div>
         </button>

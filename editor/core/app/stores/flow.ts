@@ -1,12 +1,12 @@
 import type { FlowExportObject } from '@vue-flow/core'
 // import type { FlowExportObject, VueFlowStore } from '@vue-flow/core'
-import type { AdvFlowItem } from '../../types'
+import type { AdvFlowItem } from '../types'
 import { MarkerType, useVueFlow } from '@vue-flow/core'
 import { useStorage } from '@vueuse/core'
 import { consola } from 'consola'
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { defaultElements, yourNameData } from '../../constants'
-import { useFlowLayout } from '../flow'
+import { useFlowLayout } from '../composables/flow'
+import { defaultElements, yourNameData } from '../constants'
 
 export const useFlowStore = defineStore('flow', () => {
   // const flowInstance = shallowRef<VueFlowStore>()
@@ -80,8 +80,10 @@ export const useFlowStore = defineStore('flow', () => {
     }
     postFlowData(yourNameData as unknown as FlowExportObject)
 
-    // @ts-expect-error ignore
-    curItem.value.data.nodes = yourNameData.nodes
+    curItem.value.data.nodes = yourNameData.nodes.map(node => ({
+      ...node,
+      position: { x: 0, y: 0 },
+    }))
     curItem.value.data.edges = yourNameData.edges
 
     layoutGraph('LR')

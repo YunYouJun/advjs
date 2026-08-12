@@ -7,6 +7,7 @@ import process from 'node:process'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { loadProject } from '../../packages/advjs/node/project'
 import { createAdvMcpServer } from '../../packages/mcp-server/src/index'
 
 // End-to-end coverage for the branches/coverage MCP resources: wires a real
@@ -34,6 +35,7 @@ describe('mcp branches/coverage resources', () => {
     dir = mkdtempSync(join(tmpdir(), 'advjs-mcp-res-'))
     const chapters = join(dir, 'adv', 'chapters')
     mkdirSync(chapters, { recursive: true })
+    writeFileSync(join(dir, 'adv.config.json'), JSON.stringify({ format: 'adv-md', root: './adv' }), 'utf-8')
     writeFileSync(join(chapters, 'ch01.adv.md'), CHAPTER, 'utf-8')
     // The server resolves gameRoot from cwd → <cwd>/adv.
     prevCwd = process.cwd()
@@ -46,7 +48,7 @@ describe('mcp branches/coverage resources', () => {
   })
 
   async function withClient<T>(fn: (client: Client) => Promise<T>): Promise<T> {
-    const server = createAdvMcpServer()
+    const server = createAdvMcpServer({ projectLoader: loadProject })
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair()
     const client = new Client({ name: 'test', version: '0.0.0' })
     await Promise.all([
@@ -91,5 +93,15 @@ describe('mcp branches/coverage resources', () => {
       return (res.contents[0] as { text: string }).text
     })
     expect(text).toContain('not found')
+  })
+
+  it('exposes the same normalized compiler result used by the Node project loader', async () => {
+    const expected = await loadProject({ root: dir })
+    const compiled = await withClient(async (client) => {
+      const res = await client.readResource({ uri: 'adv://project/compiled' })
+      return JSON.parse((res.contents[0] as { text: string }).text)
+    })
+
+    expect(compiled).toEqual(expected.result)
   })
 })

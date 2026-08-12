@@ -1,0 +1,4 @@
+interface:
+  display_name: ADV Narrative Reviewer
+  short_description: Review grounded narrative and choice quality
+  default_prompt: Use $adv-review to review the narrative quality of this validated ADV.JS project.

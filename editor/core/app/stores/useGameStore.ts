@@ -1,11 +1,11 @@
 import type { AdvGameConfig } from '@advjs/types'
-import { AdvGameLoadStatusEnum, useAdvContext, useGameStore as useClientGameStore } from '@advjs/client'
+import { advDataRef, AdvGameLoadStatusEnum, useAdvContext, useGameStore as useClientGameStore } from '@advjs/client'
 import { Toast } from '@advjs/gui'
 import { useStorage } from '@vueuse/core'
 import { consola } from 'consola'
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { gameConfig } from '../../../../packages/client/runtime'
-import { DEFAULT_BGM_LIBRARY_URL } from '../constants'
+import { shouldFetchEditorResource } from '../../capabilities'
+import { useEditorCapabilities } from '../composables/useEditorCapabilities'
 
 /**
  * editor game store
@@ -27,8 +27,15 @@ export const useGameStore = defineStore('@advjs/editor:game', () => {
 
   const onlineStore = useOnlineStore()
   const projectStore = useProjectStore()
+  const capabilities = useEditorCapabilities()
 
   const { $adv } = useAdvContext()
+  const gameConfig = computed({
+    get: () => advDataRef.value.gameConfig,
+    set: (value: AdvGameConfig) => {
+      advDataRef.value = { ...advDataRef.value, gameConfig: value }
+    },
+  })
   async function loadGameFromJSONStr(jsonStr: string) {
     try {
       gameConfig.value = JSON.parse(jsonStr)
@@ -61,28 +68,31 @@ export const useGameStore = defineStore('@advjs/editor:game', () => {
         ...config,
 
         bgm: {
-          autoplay: true,
-          library: DEFAULT_BGM_LIBRARY_URL,
+          ...$adv.gameConfig?.value?.bgm,
+          ...config.bgm,
         },
       }
 
       // post
       const bgmLibrary = config.bgm.library
-      if (typeof bgmLibrary === 'string') {
-        fetch(bgmLibrary)
-          .then(res => res.json())
-          .then((data) => {
-            config.bgm.library = data
-          })
+      const currentOrigin = globalThis.location?.origin
+      if (
+        typeof bgmLibrary === 'string'
+        && shouldFetchEditorResource(bgmLibrary, capabilities, currentOrigin)
+      ) {
+        const response = await fetch(bgmLibrary)
+        config.bgm.library = await response.json()
       }
     }
     catch (e) {
+      const message = e instanceof Error ? e.message : String(e)
       consola.error('Failed to adapt game config:', e)
+      useConsoleStore().error('Failed to adapt game config', { error: message })
       clientGameStore.loadStatus = AdvGameLoadStatusEnum.FAIL
 
       Toast({
         title: 'Error Game Config Format',
-        description: 'Failed to adapt game config, please check the console for more details.',
+        description: message,
         type: 'error',
       })
 

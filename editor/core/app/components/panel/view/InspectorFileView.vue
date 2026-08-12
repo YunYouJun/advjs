@@ -52,6 +52,12 @@ function goToNode() {
 
       <div class="flex items-center gap-2">
         <AGUIButton
+          v-if="fileStore.openedFileHandle && fileName?.endsWith('.md')"
+          @click="fileStore.saveOpenedFile()"
+        >
+          Save
+        </AGUIButton>
+        <AGUIButton
           v-if="fileName?.endsWith('.adv.json')"
           @click="gameStore.loadGameFromJSONStr(fileStore.rawConfigFileContent)"
         >
@@ -65,6 +71,22 @@ function goToNode() {
 
     <AEAdvConfigActions v-if="gameStore.client.loadStatus === AdvGameLoadStatusEnum.SUCCESS" />
 
+    <div
+      v-if="fileStore.externalConflict"
+      class="flex items-center justify-between gap-3 border-b border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200"
+      role="alert"
+    >
+      <span>This file changed outside the Editor while you have unsaved edits.</span>
+      <span class="flex gap-2">
+        <AGUIButton @click="fileStore.acceptExternalChange()">
+          Use external
+        </AGUIButton>
+        <AGUIButton @click="fileStore.keepLocalChange()">
+          Keep mine
+        </AGUIButton>
+      </span>
+    </div>
+
     <ClientOnly>
       <LazyMonacoEditor
         class="flex flex-grow"
@@ -72,6 +94,7 @@ function goToNode() {
         :lang="monacoStore.language || fileLanguage"
         :options="monacoStore.options"
         :editor-options="{ automaticLayout: true }"
+        @update:model-value="monacoStore.fileContent = $event"
       />
       <template #fallback>
         <div class="flex flex-1 items-center justify-center op-50">

@@ -1,7 +1,7 @@
 {
   "name": "advjs",
   "type": "module",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "ADV.JS - A front-end visual novel game engine",
   "author": {
     "name": "YunYouJun",
@@ -13,6 +13,9 @@
   "homepage": "https://advjs.org",
   "repository": {
     "url": "https://github.com/YunYouJun/advjs"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "exports": {
     "./client": "./dist/client/index.mjs",
@@ -33,25 +36,29 @@
     "bin",
     "client",
     "dist",
+    "skills",
     "template",
     "template-galgame"
   ],
   "engines": {
-    "node": "^20.19.0 || >=22.12.0"
+    "node": "^22.12.0 || ^24.0.0"
   },
   "scripts": {
-    "build": "unbuild",
+    "build": "unbuild && node scripts/prepare-skills.mjs",
     "dev": "unbuild --stub",
+    "prepack": "node scripts/prepare-skills.mjs",
     "prepublishOnly": "npm run build",
     "start": "tsx node/cli/index.ts",
     "export": "tsx node/cli/index.ts export"
   },
   "dependencies": {
-    "@advjs/client": "workspace:*",
-    "@advjs/core": "workspace:*",
-    "@advjs/devtools": "workspace:*",
-    "@advjs/parser": "workspace:*",
-    "@advjs/types": "workspace:*",
+    "@advjs/client": "workspace:0.1.2",
+    "@advjs/core": "workspace:0.1.2",
+    "@advjs/devtools": "workspace:0.1.2",
+    "@advjs/editor": "workspace:0.1.2",
+    "@advjs/parser": "workspace:0.1.2",
+    "@advjs/theme-default": "workspace:0.1.2",
+    "@advjs/types": "workspace:0.1.2",
     "@antfu/ni": "catalog:utils",
     "@antfu/utils": "catalog:utils",
     "@intlify/unplugin-vue-i18n": "catalog:build",
@@ -87,6 +94,7 @@
     "vue": "catalog:frontend",
     "vue-i18n": "catalog:frontend",
     "vue-router": "catalog:frontend",
+    "wrangler": "catalog:",
     "yargs": "catalog:cli"
   },
   "devDependencies": {

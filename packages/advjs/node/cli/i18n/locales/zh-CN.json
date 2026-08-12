@@ -61,6 +61,18 @@
     "outdir_desc": "输出目录",
     "base_desc": "输出 base 路径"
   },
+  "deploy": {
+    "desc": "校验、构建并部署到 Cloudflare Pages",
+    "root_desc": "项目根目录",
+    "provider_desc": "部署 Provider",
+    "project_desc": "Cloudflare Pages 项目名",
+    "account_desc": "Cloudflare 账号 ID（存在多个账号时必填）",
+    "branch_desc": "部署分支",
+    "production_branch_desc": "创建 Pages 项目时使用的生产分支",
+    "artifact_desc": "此前生成的不可变部署归档",
+    "receipt_desc": "与 --artifact 匹配的 artifact receipt",
+    "complete": "部署完成"
+  },
   "export": {
     "desc": "导出为视频",
     "opening_page": "正在打开页面",

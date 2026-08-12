@@ -61,6 +61,18 @@
     "outdir_desc": "Output directory",
     "base_desc": "output base"
   },
+  "deploy": {
+    "desc": "Validate, build, and deploy to Cloudflare Pages",
+    "root_desc": "Project root",
+    "provider_desc": "Deployment provider",
+    "project_desc": "Cloudflare Pages project name",
+    "account_desc": "Cloudflare account ID (required when multiple accounts are available)",
+    "branch_desc": "Deployment branch",
+    "production_branch_desc": "Production branch used when creating a Pages project",
+    "artifact_desc": "Previously generated immutable deployment archive",
+    "receipt_desc": "Artifact receipt matching --artifact",
+    "complete": "Deployment complete"
+  },
   "export": {
     "desc": "Export to Video",
     "opening_page": "Opening page",

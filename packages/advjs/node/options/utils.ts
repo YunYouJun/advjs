@@ -81,8 +81,7 @@ export async function resolveOptions(
    */
 
   if (!await packageExists(themePkgName)) {
-    console.error(`Theme "${themePkgName}" not found, have you installed it?`)
-    process.exit(1)
+    throw new Error(`Theme "${themePkgName}" not found, have you installed it?`)
   }
 
   const advOptions: ResolvedAdvOptions = {

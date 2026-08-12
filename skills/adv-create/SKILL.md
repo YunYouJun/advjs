@@ -1,20 +1,6 @@
 ---
 name: adv-create
-description: Create a new ADV.JS visual novel project from a concept description
-version: 0.3.0
-author: YunYouJun
-tools:
-  - adv init [dir] --name <name> [--template default|galgame]
-  - adv context --root <dir>/adv
-  - adv check --root <dir>/adv [--fix]
-mcp_tools:
-  - create_character / create_characters
-  - edit_character
-  - create_chapter / create_chapters
-  - edit_chapter
-  - create_scene / create_scenes
-  - edit_scene
-  - adv_validate
+description: Create a new ADV.JS visual novel from a concept. Use when an agent must initialize a standard Markdown project; define its world, cast, scenes, outline, and chapters; generate resources through ADV.JS MCP tools; or validate a newly generated game before editing and deployment.
 ---
 
 # ADV Create Skill

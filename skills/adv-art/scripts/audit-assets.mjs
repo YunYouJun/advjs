@@ -23,16 +23,23 @@ function validateManifest(manifest) {
   const ids = new Set()
   const countsByKind = {}
 
-  if (manifest?.schemaVersion !== 1)
-    errors.push('schemaVersion must be 1')
+  if (manifest?.schemaVersion !== 1 && manifest?.schemaVersion !== 2)
+    errors.push('schemaVersion must be 1 or 2')
 
   let expectedPrefix = ''
+  let objectPrefix = ''
+  let publicBaseUrl = ''
   try {
-    if (typeof manifest?.publicBaseUrl !== 'string' || !manifest.publicBaseUrl.endsWith('/'))
+    const isV2 = manifest?.schemaVersion === 2
+    publicBaseUrl = isV2 ? manifest?.profiles?.production?.baseUrl : manifest?.publicBaseUrl
+    objectPrefix = isV2 ? manifest?.release?.objectPrefix : manifest?.objectPrefix
+    if (typeof publicBaseUrl !== 'string' || !publicBaseUrl.endsWith('/'))
       throw new Error('publicBaseUrl must be an absolute URL ending with /')
-    if (typeof manifest?.objectPrefix !== 'string' || manifest.objectPrefix.startsWith('/') || !manifest.objectPrefix.endsWith('/'))
+    if (typeof objectPrefix !== 'string' || objectPrefix.startsWith('/') || !objectPrefix.endsWith('/'))
       throw new Error('objectPrefix must be a relative path ending with /')
-    expectedPrefix = new URL(manifest.objectPrefix, manifest.publicBaseUrl).toString()
+    expectedPrefix = new URL(objectPrefix, publicBaseUrl).toString()
+    if (manifest.manifestObjectKey !== `${objectPrefix}manifests/assets.json`)
+      errors.push('manifestObjectKey must be objectPrefix + manifests/assets.json')
   }
   catch (error) {
     errors.push(error instanceof Error ? error.message : String(error))
@@ -55,15 +62,29 @@ function validateManifest(manifest) {
     else
       countsByKind[asset.kind] = (countsByKind[asset.kind] ?? 0) + 1
 
-    if (typeof asset?.url !== 'string' || !expectedPrefix || !asset.url.startsWith(expectedPrefix))
+    if (typeof asset?.objectKey !== 'string' || !asset.objectKey.startsWith(objectPrefix))
+      errors.push(`${id || 'unknown asset'}: objectKey is outside objectPrefix`)
+    if (manifest.schemaVersion === 2) {
+      if (asset.url !== undefined)
+        errors.push(`${id || 'unknown asset'}: schema v2 derives URLs from profiles and objectKey`)
+      if (typeof asset.type !== 'string' || !asset.type)
+        errors.push(`${id || 'unknown asset'}: type is required by schema v2`)
+      if (typeof asset.bundle !== 'string' || !asset.bundle)
+        errors.push(`${id || 'unknown asset'}: bundle is required by schema v2`)
+    }
+    else if (typeof asset?.url !== 'string' || !expectedPrefix || !asset.url.startsWith(expectedPrefix)) {
       errors.push(`${id || 'unknown asset'}: URL is outside publicBaseUrl/objectPrefix`)
+    }
+    else if (typeof asset?.objectKey === 'string' && asset.url !== new URL(asset.objectKey, publicBaseUrl).toString()) {
+      errors.push(`${id || 'unknown asset'}: URL must exactly match publicBaseUrl + objectKey`)
+    }
 
     if (!SHA256_PATTERN.test(asset?.sha256 ?? ''))
       errors.push(`${id || 'unknown asset'}: sha256 must be 64 lowercase hex characters`)
 
     let filename = ''
     try {
-      filename = new URL(asset.url).pathname.split('/').at(-1) ?? ''
+      filename = asset.objectKey?.split('/').at(-1) ?? ''
     }
     catch {
       // The URL-prefix diagnostic above already explains malformed URLs.
@@ -74,7 +95,7 @@ function validateManifest(manifest) {
     else if (SHA256_PATTERN.test(asset?.sha256 ?? '') && !asset.sha256.startsWith(filenameHash))
       errors.push(`${id || 'unknown asset'}: filename content hash must match the declared sha256 prefix`)
 
-    if (!isPositiveInteger(asset?.width) || !isPositiveInteger(asset?.height))
+    if (asset?.kind !== 'bgm' && (!isPositiveInteger(asset?.width) || !isPositiveInteger(asset?.height)))
       errors.push(`${id || 'unknown asset'}: width and height must be positive integers`)
     if (!isPositiveInteger(asset?.bytes))
       errors.push(`${id || 'unknown asset'}: bytes must be a positive integer`)
@@ -103,6 +124,53 @@ function validateManifest(manifest) {
         errors.push(`${id || 'unknown asset'}: characterId is required for character assets`)
       if (typeof asset?.expression !== 'string' || !asset.expression)
         errors.push(`${id || 'unknown asset'}: expression is required for character assets`)
+    }
+    else if (asset?.kind === 'animation') {
+      if (!isPositiveInteger(asset.frameWidth) || !isPositiveInteger(asset.frameHeight) || !isPositiveInteger(asset.frames))
+        errors.push(`${id || 'unknown asset'}: animation frame dimensions/count must be positive integers`)
+      else if (asset.width !== asset.frameWidth * asset.frames || asset.height !== asset.frameHeight)
+        errors.push(`${id || 'unknown asset'}: spritesheet dimensions do not match frame metadata`)
+      if (typeof asset.characterId !== 'string' || typeof asset.state !== 'string')
+        errors.push(`${id || 'unknown asset'}: animation characterId and state are required`)
+      if (!isPositiveInteger(asset.fps))
+        errors.push(`${id || 'unknown asset'}: animation fps must be a positive integer`)
+    }
+    else if (asset?.kind === 'cg') {
+      const thumbnail = manifest.schemaVersion === 2
+        ? asset.variants?.thumbnail
+        : {
+            objectKey: asset.thumbnailObjectKey,
+            url: asset.thumbnailUrl,
+            sha256: asset.thumbnailSha256,
+            width: asset.thumbnailWidth,
+            height: asset.thumbnailHeight,
+            bytes: asset.thumbnailBytes,
+          }
+      if (typeof thumbnail?.objectKey !== 'string' || !thumbnail.objectKey.startsWith(objectPrefix))
+        errors.push(`${id || 'unknown asset'}: thumbnailObjectKey is outside objectPrefix`)
+      if (manifest.schemaVersion === 2) {
+        if (thumbnail?.url !== undefined)
+          errors.push(`${id || 'unknown asset'}: schema v2 derives thumbnail URLs from profiles and objectKey`)
+      }
+      else if (typeof thumbnail?.url !== 'string' || !thumbnail.url.startsWith(expectedPrefix)) {
+        errors.push(`${id || 'unknown asset'}: thumbnail URL is outside publicBaseUrl/objectPrefix`)
+      }
+      else if (typeof thumbnail.objectKey === 'string' && thumbnail.url !== new URL(thumbnail.objectKey, publicBaseUrl).toString()) {
+        errors.push(`${id || 'unknown asset'}: thumbnail URL must exactly match publicBaseUrl + thumbnailObjectKey`)
+      }
+      if (!SHA256_PATTERN.test(thumbnail?.sha256 ?? ''))
+        errors.push(`${id || 'unknown asset'}: thumbnailSha256 must be 64 lowercase hex characters`)
+      const thumbnailHash = thumbnail?.objectKey?.split('/').at(-1)?.match(HASHED_FILENAME_PATTERN)?.[1]
+      if (!thumbnailHash || !thumbnail?.sha256?.startsWith(thumbnailHash))
+        errors.push(`${id || 'unknown asset'}: thumbnail filename content hash must match thumbnailSha256`)
+      if (!isPositiveInteger(thumbnail?.width) || !isPositiveInteger(thumbnail?.height) || !isPositiveInteger(thumbnail?.bytes))
+        errors.push(`${id || 'unknown asset'}: thumbnail dimensions and bytes must be positive integers`)
+    }
+    else if (asset?.kind === 'bgm') {
+      if (asset.mimeType !== 'audio/ogg')
+        errors.push(`${id || 'unknown asset'}: BGM mimeType must be audio/ogg`)
+      if (typeof asset.duration !== 'number' || asset.duration <= 0)
+        errors.push(`${id || 'unknown asset'}: BGM duration must be positive`)
     }
   }
 

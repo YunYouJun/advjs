@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { ToolbarItem } from '@advjs/gui'
+import { useEditorCapabilities } from '../../composables/useEditorCapabilities'
 
 const app = useAppStore()
+const capabilities = useEditorCapabilities()
 const userStore = useUserStore()
-const githubStore = useGitHubStore()
+const githubStore = capabilities.integrations.github ? useGitHubStore() : undefined
 
 const dialogStore = useDialogStore()
 
@@ -41,7 +43,16 @@ const tools = computed<ToolbarItem[]>(() => {
     },
   ]
 
-  if (userStore.loggedIn) {
+  if (!capabilities.account) {
+    items.unshift({
+      type: 'button',
+      icon: 'i-ri-computer-line',
+      name: 'Local workspace',
+      title: 'Cloud accounts are unavailable in local mode',
+      onClick: () => {},
+    })
+  }
+  else if (userStore.loggedIn) {
     items.unshift({
       // type: 'button',
       type: 'dropdown',
@@ -74,7 +85,7 @@ const tools = computed<ToolbarItem[]>(() => {
         dialogStore.openStates.githubRepos = true
       },
     }
-    if (githubStore.connectedRepo) {
+    if (githubStore?.connectedRepo) {
       connectGitHubRepoItem.name = `${githubStore.connectedRepo.owner.login}/${githubStore.connectedRepo.name}`
       connectGitHubRepoItem.icon = 'i-ri-git-repository-fill'
     }
