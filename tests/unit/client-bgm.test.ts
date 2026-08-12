@@ -7,6 +7,7 @@ const howler = vi.hoisted(() => ({
     fades: Array<[number, number, number]>
     finishFade: () => void
     flushFadeEvents: () => void
+    muted: boolean
     playing: () => boolean
     stopped: boolean
     unloaded: boolean
@@ -18,6 +19,7 @@ vi.mock('howler', () => ({
   Howl: class MockHowl {
     options: Record<string, any>
     fades: Array<[number, number, number]> = []
+    muted: boolean
     stopped = false
     unloaded = false
     private playingValue = false
@@ -28,6 +30,7 @@ vi.mock('howler', () => ({
 
     constructor(options: Record<string, any>) {
       this.options = options
+      this.muted = options.mute === true
       howler.instances.push(this)
     }
 
@@ -96,7 +99,9 @@ vi.mock('howler', () => ({
       this.playingValue = false
     }
 
-    mute() {}
+    mute(value: boolean) {
+      this.muted = value
+    }
   },
 }))
 
@@ -139,6 +144,37 @@ describe('client BGM presentation', () => {
     expect(howler.instances[0].unloaded).toBe(true)
     expect(howler.instances[1].options.loop).toBe(false)
     expect(howler.instances[1].fades).toEqual([[0, 0.5, 900]])
+  })
+
+  it('stops only the active track while the previous crossfade retires', () => {
+    howler.instances.length = 0
+    const bgm = createBgm()
+
+    bgm.playBgmBySrc('https://assets.example/summer.ogg', { fade: 0 })
+    bgm.playBgmBySrc('https://assets.example/space.ogg', { fadeIn: 0, fadeOut: 650 })
+    bgm.syncWithOptions('', { fadeOut: 250 })
+
+    expect(howler.instances[0].unloaded).toBe(false)
+    expect(howler.instances[0].fades).toEqual([[0.5, 0, 650]])
+    expect(howler.instances[1].fades.at(-1)).toEqual([0.5, 0, 250])
+
+    howler.instances[0].finishFade()
+    howler.instances[0].flushFadeEvents()
+    expect(howler.instances[0].unloaded).toBe(true)
+  })
+
+  it('keeps earlier retirements intact across rapid track switches', () => {
+    howler.instances.length = 0
+    const bgm = createBgm()
+
+    bgm.playBgmBySrc('https://assets.example/summer.ogg', { fade: 0 })
+    bgm.playBgmBySrc('https://assets.example/space.ogg', { fadeIn: 0, fadeOut: 650 })
+    bgm.playBgmBySrc('https://assets.example/rain.ogg', { fadeIn: 0, fadeOut: 250 })
+
+    expect(howler.instances[0].unloaded).toBe(false)
+    expect(howler.instances[0].fades).toEqual([[0.5, 0, 650]])
+    expect(howler.instances[1].fades.at(-1)).toEqual([0.5, 0, 250])
+    expect(howler.instances[2].playing()).toBe(true)
   })
 
   it('keeps direct-source playback exclusive', () => {
@@ -220,11 +256,29 @@ describe('client BGM presentation', () => {
 
     bgm.mute()
     bgm.playBgmBySrc('https://assets.example/summer.ogg', { fade: 0 })
-    expect(howler.instances[0].volume()).toBe(0)
+    expect(howler.instances[0].muted).toBe(true)
+    expect(howler.instances[0].volume()).toBe(0.5)
 
     bgm.unmute()
 
+    expect(howler.instances[0].muted).toBe(false)
     expect(howler.instances[0].volume()).toBe(0.5)
+  })
+
+  it('unmutes every track participating in a crossfade without changing its volume', () => {
+    howler.instances.length = 0
+    const bgm = createBgm()
+
+    bgm.playBgmBySrc('https://assets.example/summer.ogg', { fade: 0 })
+    bgm.playBgmBySrc('https://assets.example/space.ogg', { fadeIn: 900, fadeOut: 650 })
+    const volumesBeforeMute = howler.instances.map(instance => instance.volume())
+
+    bgm.mute()
+    expect(howler.instances.map(instance => instance.muted)).toEqual([true, true])
+
+    bgm.unmute()
+    expect(howler.instances.map(instance => instance.muted)).toEqual([false, false])
+    expect(howler.instances.map(instance => instance.volume())).toEqual(volumesBeforeMute)
   })
 
   it('releases active and retiring tracks when disposed', () => {

@@ -36,7 +36,7 @@ export function useAdvBgm($adv: AdvContext) {
   const isMuted = ref(false)
 
   function targetVolume() {
-    return isMuted.value ? 0 : volume.value
+    return volume.value
   }
 
   /**
@@ -133,12 +133,8 @@ export function useAdvBgm($adv: AdvContext) {
   }
 
   function stopOtherTracks(src: string, options: BgmFadeOptions = {}) {
-    for (const key of tracks.keys()) {
-      if (key !== src) {
-        stopTrack(key, options)
-        // note: actual stop happens in fade callback below
-      }
-    }
+    if (activeSrc && activeSrc !== src)
+      stopTrack(activeSrc, options)
   }
 
   function switchTrack(src: string, options: BgmFadeOptions = {}) {
@@ -201,8 +197,8 @@ export function useAdvBgm($adv: AdvContext) {
 
   function sync(value: string, options: BgmFadeOptions = {}) {
     if (!value) {
-      for (const src of [...tracks.keys()])
-        stopTrack(src, { fade: options.fadeOut ?? options.fade })
+      if (activeSrc)
+        stopTrack(activeSrc, { fade: options.fadeOut ?? options.fade })
       return
     }
     switchTrack(getBgmSrc(value), options)
@@ -284,12 +280,8 @@ export function useAdvBgm($adv: AdvContext) {
      */
     unmute() {
       isMuted.value = false
-      if (!activeSrc)
-        return
-      const track = tracks.get(activeSrc)
-      if (track) {
+      for (const track of tracks.values()) {
         track.sound.mute(false)
-        track.sound.volume(volume.value)
       }
     },
     /**
