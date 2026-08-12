@@ -1,7 +1,7 @@
 // @vitest-environment node
 
 import { spawn } from 'node:child_process'
-import { mkdir, mkdtemp, realpath, rm, stat, symlink, writeFile } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, realpath, rm, stat, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import process from 'node:process'
@@ -19,7 +19,12 @@ interface CliResult {
 
 const repositoryRoot = resolve(import.meta.dirname, '../..')
 const cliEntry = resolve(repositoryRoot, 'packages/advjs/node/cli/index.ts')
+const defaultTemplate = resolve(repositoryRoot, 'packages/advjs/template')
 const tsxCli = fileURLToPath(import.meta.resolve('tsx/cli'))
+const CLI_PROCESS_TIMEOUT_MS = 15_000
+const CLI_TEST_TIMEOUT_MS = 20_000
+const CLI_BUILD_PROCESS_TIMEOUT_MS = 50_000
+const CLI_BUILD_TEST_TIMEOUT_MS = 60_000
 const ajv = new Ajv2020({ allErrors: true, strict: true })
 addFormats(ajv)
 ajv.addSchema(cliOutputSchema)
@@ -27,7 +32,7 @@ const validateEnvelope = ajv.getSchema(`${cliOutputSchema.$id}#/$defs/envelope`)
 
 let temporaryRoot = ''
 
-function runCli(args: string[], cwd: string): Promise<CliResult> {
+function runCli(args: string[], cwd: string, timeoutMs = CLI_PROCESS_TIMEOUT_MS): Promise<CliResult> {
   return new Promise((resolveResult, reject) => {
     const environment = {
       ...process.env,
@@ -46,13 +51,41 @@ function runCli(args: string[], cwd: string): Promise<CliResult> {
     })
     let stdout = ''
     let stderr = ''
+    let timedOut = false
+    let forceKillTimer: ReturnType<typeof setTimeout> | undefined
+    const timeoutTimer = setTimeout(() => {
+      timedOut = true
+      child.kill('SIGTERM')
+      forceKillTimer = setTimeout(() => child.kill('SIGKILL'), 1_000)
+    }, timeoutMs)
+    const clearTimers = () => {
+      clearTimeout(timeoutTimer)
+      if (forceKillTimer)
+        clearTimeout(forceKillTimer)
+    }
     child.stdout.setEncoding('utf8')
     child.stderr.setEncoding('utf8')
     child.stdout.on('data', chunk => stdout += chunk)
     child.stderr.on('data', chunk => stderr += chunk)
-    child.once('error', reject)
-    child.once('close', code => resolveResult({ exitCode: code ?? 1, stderr, stdout }))
+    child.once('error', (error) => {
+      clearTimers()
+      reject(error)
+    })
+    child.once('close', (code) => {
+      clearTimers()
+      if (timedOut) {
+        reject(new Error(`adv ${args.join(' ')} timed out after ${timeoutMs}ms`))
+        return
+      }
+      resolveResult({ exitCode: code ?? 1, stderr, stdout })
+    })
   })
+}
+
+async function createProjectFixture(name: string) {
+  const projectRoot = join(temporaryRoot, name)
+  await cp(defaultTemplate, projectRoot, { recursive: true })
+  return projectRoot
 }
 
 function parseOnlyEnvelope(result: CliResult) {
@@ -96,11 +129,10 @@ describe('adv CLI JSON output', () => {
     expect(initEnvelope.data).toMatchObject({ root: projectRoot, template: 'default' })
     expect(initEnvelope.data.files).toEqual([...initEnvelope.data.files].sort())
     expectSchemaDefinition('initData', initEnvelope.data)
-  })
+  }, CLI_TEST_TIMEOUT_MS)
 
   it('returns structured check diagnostics without stdout log noise', async () => {
-    const projectRoot = join(temporaryRoot, 'check-success-project')
-    await runCli(['init', projectRoot, '--template', 'default'], temporaryRoot)
+    const projectRoot = await createProjectFixture('check-success-project')
     const checkResult = await runCli(['check', '--json'], projectRoot)
     expect(checkResult.exitCode).toBe(0)
     const checkEnvelope = parseOnlyEnvelope(checkResult)
@@ -112,12 +144,11 @@ describe('adv CLI JSON output', () => {
       errors: [],
     })
     expectSchemaDefinition('checkData', checkEnvelope.data)
-  }, 20_000)
+  }, CLI_TEST_TIMEOUT_MS)
 
   it('returns a structured build asset summary without stdout log noise', async () => {
-    const projectRoot = join(temporaryRoot, 'build-success-project')
-    await runCli(['init', projectRoot, '--template', 'default'], temporaryRoot)
-    const buildResult = await runCli(['build', '--json'], projectRoot)
+    const projectRoot = await createProjectFixture('build-success-project')
+    const buildResult = await runCli(['build', '--json'], projectRoot, CLI_BUILD_PROCESS_TIMEOUT_MS)
     expect(buildResult.exitCode, buildResult.stderr).toBe(0)
     const buildEnvelope = parseOnlyEnvelope(buildResult)
     expect(buildEnvelope).toMatchObject({
@@ -138,7 +169,7 @@ describe('adv CLI JSON output', () => {
       expect.objectContaining({ path: '_redirects', bytes: expect.any(Number), sha256: expect.stringMatching(/^[a-f0-9]{64}$/u) }),
     ]))
     expectSchemaDefinition('buildData', buildEnvelope.data)
-  }, 60_000)
+  }, CLI_BUILD_TEST_TIMEOUT_MS)
 
   it('keeps the default human-readable output when --json is absent', async () => {
     const projectRoot = join(temporaryRoot, 'human-output-project')
@@ -146,7 +177,7 @@ describe('adv CLI JSON output', () => {
     expect(result.exitCode).toBe(0)
     expect((await stat(join(projectRoot, 'adv.config.json'))).isFile()).toBe(true)
     expect(() => JSON.parse(result.stdout)).toThrow()
-  })
+  }, CLI_TEST_TIMEOUT_MS)
 
   it('maps usage and validation failures to stable codes and non-zero exits', async () => {
     const usageResult = await runCli(['init', '--unknown-option', '--json'], temporaryRoot)
@@ -159,7 +190,7 @@ describe('adv CLI JSON output', () => {
     })
 
     const projectRoot = join(temporaryRoot, 'validation-project')
-    await runCli(['init', projectRoot, '--json'], temporaryRoot)
+    await mkdir(join(projectRoot, 'adv'), { recursive: true })
     const validationResult = await runCli(['init', projectRoot, '--json'], temporaryRoot)
     expect(validationResult.exitCode).not.toBe(0)
     expect(parseOnlyEnvelope(validationResult)).toMatchObject({
@@ -168,7 +199,7 @@ describe('adv CLI JSON output', () => {
       data: null,
       errors: [{ code: 'ADV_VALIDATION' }],
     })
-  }, 20_000)
+  }, CLI_TEST_TIMEOUT_MS)
 
   it('maps command build failures and unexpected internal failures separately', async () => {
     const invalidBuildRoot = join(temporaryRoot, 'invalid-build-project')
@@ -182,12 +213,14 @@ describe('adv CLI JSON output', () => {
       writeFile(join(invalidCheckRoot, 'adv.config.json'), '{ invalid json', 'utf8'),
     ])
 
-    const buildResult = await runCli(['build', '--json'], invalidBuildRoot)
+    const [buildResult, checkResult] = await Promise.all([
+      runCli(['build', '--json'], invalidBuildRoot),
+      runCli(['check', '--json'], invalidCheckRoot),
+    ])
     expect(buildResult.exitCode).not.toBe(0)
     expect(parseOnlyEnvelope(buildResult)).toMatchObject({ errors: [{ code: 'ADV_BUILD' }] })
 
-    const checkResult = await runCli(['check', '--json'], invalidCheckRoot)
     expect(checkResult.exitCode).not.toBe(0)
     expect(parseOnlyEnvelope(checkResult)).toMatchObject({ errors: [{ code: 'ADV_INTERNAL' }] })
-  })
+  }, CLI_TEST_TIMEOUT_MS)
 })
