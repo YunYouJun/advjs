@@ -15,15 +15,22 @@ export interface BgmFadeOptions {
   loop?: boolean
 }
 
+type BgmTrackPhase = 'active' | 'paused' | 'retiring'
+
+interface BgmTrack {
+  generation: number
+  phase: BgmTrackPhase
+  sound: Howl
+  stopListener?: () => void
+}
+
 /**
- * adv bgm system & utilities
+ * Manages one logical BGM track, plus retiring tracks during crossfades.
  * @param $adv
  */
 export function useAdvBgm($adv: AdvContext) {
-  /**
-   * key is src
-   */
-  const bgmMap = new Map<string, Howl>()
+  const tracks = new Map<string, BgmTrack>()
+  let activeSrc: string | undefined
 
   const volume = ref(0.5)
   const isMuted = ref(false)
@@ -44,95 +51,144 @@ export function useAdvBgm($adv: AdvContext) {
     return getBgmSrcUrl({ cdnUrl, bgmName })
   }
 
-  /**
-   * play bgm by src with fade-in
-   */
-  function playBgmBySrc(src: string, options: BgmFadeOptions = {}) {
-    const fade = options.fade ?? DEFAULT_FADE_IN
-    if (bgmMap.has(src)) {
-      const sound = bgmMap.get(src)
-      if (sound && !sound.playing()) {
-        sound.loop(options.loop !== false)
-        sound.volume(0)
-        sound.play()
-        sound.fade(0, targetVolume(), fade)
-      }
+  function cancelRetirement(track: BgmTrack) {
+    const wasRetiring = track.phase === 'retiring'
+    track.generation += 1
+    if (track.stopListener) {
+      track.sound.off('fade', track.stopListener)
+      track.stopListener = undefined
     }
-    else {
-      const sound = new Howl({
-        src: [src],
-        volume: 0,
-        loop: options.loop !== false,
-        onloaderror: (_id, error) => {
-          $adv.compileDiagnostics.value = [
-            ...$adv.compileDiagnostics.value.filter(diagnostic => (
-              diagnostic.code !== 'ADV_RUNTIME_RESOURCE_LOAD_FAILED' || !diagnostic.message.includes(src)
-            )),
-            {
-              code: 'ADV_RUNTIME_RESOURCE_LOAD_FAILED',
-              severity: 'warning',
-              message: `Unable to load BGM: ${src} (${String(error)})`,
-            },
-          ]
-        },
-      })
-      sound.play()
-      sound.fade(0, targetVolume(), fade)
-      bgmMap.set(src, sound)
-    }
+    return wasRetiring
   }
 
-  /**
-   * 停止之外的所有背景音乐
-   */
-  function stopOtherBgmBySrc(src: string, options: BgmFadeOptions = {}) {
-    for (const [key, sound] of bgmMap.entries()) {
-      if (key !== src && sound.playing()) {
-        stopBgmBySrc(key, options)
+  function releaseTrack(src: string, track: BgmTrack, generation?: number) {
+    if (tracks.get(src) !== track || (generation !== undefined && track.generation !== generation))
+      return
+    cancelRetirement(track)
+    track.sound.unload()
+    tracks.delete(src)
+    if (activeSrc === src)
+      activeSrc = undefined
+  }
+
+  function fadeTo(sound: Howl, from: number, to: number, duration: number) {
+    if (duration <= 0 || from === to) {
+      sound.volume(to)
+      return
+    }
+    sound.fade(from, to, duration)
+  }
+
+  function startTrack(src: string, options: BgmFadeOptions = {}) {
+    activeSrc = src
+    const fade = options.fade ?? DEFAULT_FADE_IN
+    const existingTrack = tracks.get(src)
+    if (existingTrack) {
+      const wasRetiring = cancelRetirement(existingTrack)
+      existingTrack.phase = 'active'
+      existingTrack.sound.loop(options.loop !== false)
+      if (wasRetiring)
+        existingTrack.sound.mute(isMuted.value)
+      if (!existingTrack.sound.playing()) {
+        existingTrack.sound.volume(0)
+        existingTrack.sound.play()
+        fadeTo(existingTrack.sound, 0, targetVolume(), fade)
+      }
+      else if (wasRetiring) {
+        fadeTo(
+          existingTrack.sound,
+          existingTrack.sound.volume() as number,
+          targetVolume(),
+          fade,
+        )
+      }
+      return
+    }
+
+    const sound = new Howl({
+      src: [src],
+      volume: 0,
+      loop: options.loop !== false,
+      mute: isMuted.value,
+      onloaderror: (_id, error) => {
+        $adv.compileDiagnostics.value = [
+          ...$adv.compileDiagnostics.value.filter(diagnostic => (
+            diagnostic.code !== 'ADV_RUNTIME_RESOURCE_LOAD_FAILED' || !diagnostic.message.includes(src)
+          )),
+          {
+            code: 'ADV_RUNTIME_RESOURCE_LOAD_FAILED',
+            severity: 'warning',
+            message: `Unable to load BGM: ${src} (${String(error)})`,
+          },
+        ]
+      },
+    })
+    tracks.set(src, {
+      generation: 0,
+      phase: 'active',
+      sound,
+    })
+    sound.play()
+    fadeTo(sound, 0, targetVolume(), fade)
+  }
+
+  function stopOtherTracks(src: string, options: BgmFadeOptions = {}) {
+    for (const key of tracks.keys()) {
+      if (key !== src) {
+        stopTrack(key, options)
         // note: actual stop happens in fade callback below
       }
     }
   }
 
-  /**
-   * pause bgm by src
-   */
-  function pauseBgmBySrc(src: string) {
-    const sound = bgmMap.get(src)
-    if (sound) {
-      sound.pause()
-    }
-  }
-
-  /**
-   * stop bgm by src with fade-out
-   */
-  function stopBgmBySrc(src: string, options: BgmFadeOptions = {}) {
-    const fade = options.fade ?? DEFAULT_FADE_OUT
-    const sound = bgmMap.get(src)
-    if (!sound)
-      return
-    if (fade <= 0 || !sound.playing()) {
-      sound.stop()
-      bgmMap.delete(src)
-      return
-    }
-    const cur = sound.volume() as number
-    sound.once('fade', () => {
-      sound.stop()
-      bgmMap.delete(src)
+  function switchTrack(src: string, options: BgmFadeOptions = {}) {
+    stopOtherTracks(src, { fade: options.fadeOut ?? options.fade })
+    startTrack(src, {
+      fade: options.fadeIn ?? options.fade,
+      loop: options.loop,
     })
-    sound.fade(cur, 0, fade)
   }
 
-  /**
-   * apply current master volume to all live tracks
-   */
-  function applyVolumeToAll() {
-    const v = targetVolume()
-    for (const sound of bgmMap.values()) {
-      sound.volume(v)
+  function pauseTrack(src: string) {
+    const track = tracks.get(src)
+    if (!track)
+      return
+    track.sound.pause()
+    if (activeSrc === src)
+      track.phase = 'paused'
+  }
+
+  function stopTrack(src: string, options: BgmFadeOptions = {}) {
+    const fade = options.fade ?? DEFAULT_FADE_OUT
+    const track = tracks.get(src)
+    if (!track)
+      return
+    if (activeSrc === src)
+      activeSrc = undefined
+    cancelRetirement(track)
+    if (fade <= 0 || !track.sound.playing()) {
+      releaseTrack(src, track)
+      return
     }
+    const currentVolume = track.sound.volume() as number
+    if (currentVolume <= 0) {
+      releaseTrack(src, track)
+      return
+    }
+    track.phase = 'retiring'
+    const generation = ++track.generation
+    const listener = () => {
+      releaseTrack(src, track, generation)
+    }
+    track.sound.fade(currentVolume, 0, fade)
+    track.stopListener = listener
+    track.sound.once('fade', listener)
+  }
+
+  function applyVolumeToActiveTrack() {
+    if (!activeSrc)
+      return
+    tracks.get(activeSrc)?.sound.volume(targetVolume())
   }
 
   /**
@@ -140,28 +196,23 @@ export function useAdvBgm($adv: AdvContext) {
    */
   function setVolume(v: number) {
     volume.value = Math.min(1, Math.max(0, v))
-    applyVolumeToAll()
+    applyVolumeToActiveTrack()
   }
 
   function sync(value: string, options: BgmFadeOptions = {}) {
     if (!value) {
-      for (const src of [...bgmMap.keys()])
-        stopBgmBySrc(src, { fade: options.fadeOut ?? options.fade })
+      for (const src of [...tracks.keys()])
+        stopTrack(src, { fade: options.fadeOut ?? options.fade })
       return
     }
-    const src = getBgmSrc(value)
-    stopOtherBgmBySrc(src, { fade: options.fadeOut ?? options.fade })
-    playBgmBySrc(src, {
-      fade: options.fadeIn ?? options.fade,
-      loop: options.loop,
-    })
+    switchTrack(getBgmSrc(value), options)
   }
 
   return {
-    playBgmBySrc,
-    pauseBgmBySrc,
-    stopBgmBySrc,
-    stopOtherBgmBySrc,
+    playBgmBySrc: switchTrack,
+    pauseBgmBySrc: pauseTrack,
+    stopBgmBySrc: stopTrack,
+    stopOtherBgmBySrc: stopOtherTracks,
     sync(value: string) {
       return sync(value)
     },
@@ -176,38 +227,45 @@ export function useAdvBgm($adv: AdvContext) {
     playBgm: (bgmId: string, options?: BgmFadeOptions) => {
       const bgmLibrary = $adv.gameConfig.value.bgm?.library || {}
       const bgm = (bgmLibrary as Record<string, AdvMusic>)[bgmId]
-      const bgmSrc = getBgmSrc(bgm.name)
-      stopOtherBgmBySrc(bgmSrc, options)
-
-      playBgmBySrc(bgmSrc, options)
+      switchTrack(getBgmSrc(bgm.name), options)
     },
 
     pauseBgm: (bgmId: string) => {
       const bgmLibrary = $adv.gameConfig.value.bgm?.library || {}
       const bgm = (bgmLibrary as Record<string, AdvMusic>)[bgmId]
       const bgmSrc = getBgmSrc(bgm.name)
-      pauseBgmBySrc(bgmSrc)
+      pauseTrack(bgmSrc)
     },
     stopBgm: (bgmId: string, options?: BgmFadeOptions) => {
       const bgmLibrary = $adv.gameConfig.value.bgm?.library || {}
       const bgm = (bgmLibrary as Record<string, AdvMusic>)[bgmId]
       const bgmSrc = getBgmSrc(bgm.name)
-      stopBgmBySrc(bgmSrc, options)
+      stopTrack(bgmSrc, options)
     },
     play() {
-      for (const sound of bgmMap.values()) {
-        if (!sound.playing()) {
-          sound.play()
-        }
+      if (!activeSrc)
+        return
+      const track = tracks.get(activeSrc)
+      if (track && !track.sound.playing()) {
+        track.sound.play()
+        track.phase = 'active'
       }
     },
     /**
      * stop all bgms
      */
     stop(options?: BgmFadeOptions) {
-      for (const src of [...bgmMap.keys()]) {
-        stopBgmBySrc(src, options)
+      for (const src of [...tracks.keys()]) {
+        stopTrack(src, options)
       }
+    },
+    dispose() {
+      for (const track of tracks.values()) {
+        cancelRetirement(track)
+        track.sound.unload()
+      }
+      tracks.clear()
+      activeSrc = undefined
     },
     isMuted,
     volume,
@@ -216,19 +274,23 @@ export function useAdvBgm($adv: AdvContext) {
      * mute
      */
     mute() {
-      for (const sound of bgmMap.values()) {
-        sound.mute(true)
-      }
       isMuted.value = true
+      for (const track of tracks.values()) {
+        track.sound.mute(true)
+      }
     },
     /**
      * 解除静音
      */
     unmute() {
-      for (const sound of bgmMap.values()) {
-        sound.mute(false)
-      }
       isMuted.value = false
+      if (!activeSrc)
+        return
+      const track = tracks.get(activeSrc)
+      if (track) {
+        track.sound.mute(false)
+        track.sound.volume(volume.value)
+      }
     },
     /**
      * 切换静音状态

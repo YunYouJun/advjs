@@ -241,6 +241,7 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
   stopRuntimeTrace()
+  $adv.$bgm.dispose()
   $adv.runtime.dispose()
   dispose()
 })
