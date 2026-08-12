@@ -8,10 +8,11 @@
  * 运行: npx tsx scripts/create-characters-bitable.ts
  */
 
-import { client } from '../src'
+import { getClient } from '../src'
 import { SPACE_NODE, WIKI_ID } from './config'
 
 async function main() {
+  const client = getClient()
   // 1. 在知识库节点下创建多维表格
   console.log('正在创建角色管理多维表格...')
   const createRes = await client.wiki.spaceNode.create({

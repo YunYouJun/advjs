@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.1.1",
   "private": true,
-  "packageManager": "pnpm@10.34.1",
+  "packageManager": "pnpm@11.20.0",
   "description": "面向未来与前端的 ADV 文字冒险游戏引擎。",
   "author": {
     "name": "YunYouJun",
@@ -17,7 +17,7 @@
     "url": "https://github.com/YunYouJun/advjs"
   },
   "engines": {
-    "node": "^22.12.0 || ^24.0.0"
+    "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
@@ -121,7 +121,9 @@
     "execa": "catalog:cli",
     "husky": "catalog:dev",
     "lint-staged": "catalog:dev",
+    "lodash.set": "catalog:utils",
     "npm-run-all2": "catalog:cli",
+    "oxc-parser": "catalog:build",
     "tsx": "catalog:dev",
     "typedoc": "catalog:docs",
     "typescript": "catalog:dev",
@@ -129,15 +131,10 @@
     "unbuild": "catalog:build",
     "vite": "catalog:build",
     "vite-plugin-pwa": "catalog:build",
-    "vite-plugin-vue-layouts": "catalog:build",
+    "vite-plugin-vue-layouts-next": "catalog:build",
     "vitest": "catalog:test",
     "vue-tsc": "catalog:dev",
     "yaml": "catalog:"
-  },
-  "resolutions": {
-    "sharp": "^0.33.5",
-    "typescript": "catalog:dev",
-    "vite": "catalog:build"
   },
   "lint-staged": {
     "*.{js,ts,vue}": [

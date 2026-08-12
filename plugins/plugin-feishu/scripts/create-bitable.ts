@@ -4,10 +4,11 @@
  * [ADV.JS/数据源](https://yunlefun.feishu.cn/wiki/FU4jwsDIOie6DekdWXrcRXZunle)
  */
 
-import { client } from '../src'
+import { getClient } from '../src'
 import { SPACE_NODE, WIKI_ID } from './config'
 
 async function main() {
+  const client = getClient()
   // try {
   //   const res = await client.bitable.app.create({
   //     data: {

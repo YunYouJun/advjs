@@ -24,6 +24,9 @@ export default defineConfig({
   test: {
     name: 'advjs',
     exclude: [...defaultExclude, '**/e2e/**'],
+    // Several launch tests build and package the same workspace artifacts.
+    // Running test files concurrently races on dist/ and Nuxt's build lock.
+    fileParallelism: false,
 
     reporters: [process.env.CI ? 'html' : 'default'],
     outputFile: 'vitest-report/index.html',

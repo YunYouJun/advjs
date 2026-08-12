@@ -2,7 +2,7 @@ import process from 'node:process'
 import * as lark from '@larksuiteoapi/node-sdk'
 import bodyParser from 'body-parser'
 import express from 'express'
-import { client } from './client'
+import { getClient } from './client'
 
 /**
  *
@@ -11,12 +11,18 @@ import { client } from './client'
  * ```
  */
 export function createServer() {
+  const appId = process.env.FEISHU_APP_ID
+  const appSecret = process.env.FEISHU_APP_SECRET
+  if (!appId || !appSecret)
+    throw new Error('FEISHU_APP_ID and FEISHU_APP_SECRET are required')
+
+  const client = getClient()
   const server = express()
   server.use(bodyParser.json())
 
   const wsClient = new lark.WSClient({
-    appId: process.env.FEISHU_APP_ID || '',
-    appSecret: process.env.FEISHU_APP_SECRET || '',
+    appId,
+    appSecret,
     loggerLevel: lark.LoggerLevel.info,
   })
 

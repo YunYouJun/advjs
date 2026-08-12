@@ -14,7 +14,13 @@ import {
   PACKAGE_SPECS,
   validateWorkspacePackageGraph,
 } from '../../scripts/release/package-manifest.mjs'
-import { createLaunchRegistry, runLaunchCommand, shouldRemoveLaunchTemporaryRoot } from './helpers/registry'
+import {
+  createLaunchRegistry,
+  runLaunchCommand,
+  shouldRemoveLaunchTemporaryRoot,
+  writeLaunchRegistryConfig,
+  writeLaunchWorkspaceConfig,
+} from './helpers/registry'
 
 const repositoryRoot = resolve(import.meta.dirname, '../..')
 const pnpmExecutable = 'pnpm'
@@ -33,6 +39,7 @@ function cleanEnvironment(registryUrl: string) {
     npm_config_audit: 'false',
     npm_config_fund: 'false',
     npm_config_registry: registryUrl,
+    npm_config_userconfig: join(temporaryRoot, 'registry.npmrc'),
     npm_config_update_notifier: 'false',
     npm_config_cache: temporaryRoot ? join(temporaryRoot, 'npm-cache') : undefined,
     pnpm_config_store_dir: temporaryRoot ? join(temporaryRoot, 'pnpm-store') : undefined,
@@ -79,6 +86,8 @@ beforeAll(async () => {
     root: repositoryRoot,
   })
   registry = await createLaunchRegistry(manifest, packageDirectory)
+  await writeLaunchRegistryConfig(temporaryRoot, registry.url)
+  await writeLaunchWorkspaceConfig(installDirectory)
 }, 300_000)
 
 afterAll(async () => {

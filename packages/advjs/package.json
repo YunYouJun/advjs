@@ -41,7 +41,7 @@
     "template-galgame"
   ],
   "engines": {
-    "node": "^22.12.0 || ^24.0.0"
+    "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
   },
   "scripts": {
     "build": "unbuild && node scripts/prepare-skills.mjs",
@@ -90,7 +90,7 @@
     "vite": "catalog:build",
     "vite-plugin-singlefile": "catalog:",
     "vite-plugin-vue-devtools": "catalog:build",
-    "vite-plugin-vue-layouts": "catalog:build",
+    "vite-plugin-vue-layouts-next": "catalog:build",
     "vitefu": "catalog:",
     "vue": "catalog:frontend",
     "vue-i18n": "catalog:frontend",

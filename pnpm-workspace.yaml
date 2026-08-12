@@ -1,6 +1,26 @@
+strictPeerDependencies: false
+linkWorkspacePackages: true
+sharedWorkspaceLockfile: true
+resolvePeersFromWorkspaceRoot: true
+sideEffectsCache: false
+catalogMode: strict
+cleanupUnusedCatalogs: true
+saveWorkspaceProtocol: rolling
+minimumReleaseAge: 10080
+# Security releases may need to bypass the age gate after their exact versions
+# have been reviewed and pinned below.
+minimumReleaseAgeExclude:
+  - nanoid@3.3.18
+shamefullyHoist: true
 shellEmulator: true
-
+minimumReleaseAgeStrict: true
 trustPolicy: no-downgrade
+pmOnFail: download
+# lodash.set has no published 4.3.3 release. The pinned 4.3.2 package is
+# patched below with Lodash's upstream unsafe-path guard and regression-tested.
+auditConfig:
+  ignoreGhsas:
+    - GHSA-p6mc-m468-83gw
 packages:
   - demo/*
   - docs
@@ -16,87 +36,114 @@ packages:
   - apps/studio/cloudbase/functions/*
   - apps/studio/cloudbase/scripts
 
+# pnpm 11 reads dependency overrides from the workspace manifest. Keep shared
+# toolchain versions coherent and pin compatible security fixes for transitive
+# dependencies whose parents have not yet refreshed their ranges.
+overrides:
+  '@trpc/server@>=11 <12': 11.8.0
+  axios@<0.33.0: 0.33.0
+  brace-expansion@<2: 1.1.18
+  brace-expansion@>=5 <6: 5.0.9
+  fast-uri@>=3 <4: 3.1.5
+  fast-xml-parser@>=4 <5: 4.5.7
+  form-data@>=2 <3: 2.5.6
+  ip-address@>=10 <11: 10.4.0
+  js-yaml@>=3 <4: 3.15.1
+  linkify-it@>=5 <6: 5.0.2
+  minimatch@>=3 <4: 3.1.4
+  nanoid@>=3 <4: 3.3.18
+  postcss@>=8 <9: 8.5.25
+  sharp: 0.35.3
+  svgo@>=4 <5: 4.0.2
+  tar: 7.5.22
+  typescript: 5.9.3
+  undici@>=7 <8: 7.29.0
+  vite: 8.2.0
+
+patchedDependencies:
+  lodash.set@4.3.2: patches/lodash.set@4.3.2.patch
 catalog:
-  '@aws-sdk/client-s3': ^3.1075.0
-  '@aws-sdk/s3-request-presigner': ^3.1075.0
-  '@capacitor/app': 8.1.0
+  '@aws-sdk/client-s3': ^3.1103.0
+  '@aws-sdk/s3-request-presigner': ^3.1103.0
+  '@capacitor/app': 8.1.1
   '@capacitor/assets': ^3.0.5
-  '@capacitor/cli': 8.3.0
-  '@capacitor/core': 8.3.0
+  '@capacitor/cli': 8.5.0
+  '@capacitor/core': 8.5.0
   '@capacitor/filesystem': 8.1.2
   '@capacitor/haptics': 8.0.2
-  '@capacitor/ios': 8.3.0
-  '@capacitor/keyboard': 8.0.2
-  '@capacitor/status-bar': 8.0.2
-  '@cloudbase/js-sdk': ^3.5.4
-  '@cloudbase/manager-node': ^5.5.6
+  '@capacitor/ios': 8.5.0
+  '@capacitor/keyboard': 8.0.5
+  '@capacitor/status-bar': 8.0.3
+  '@cloudbase/js-sdk': ^3.7.1
+  '@cloudbase/manager-node': ^5.6.7
   '@cloudbase/node-sdk': ^3.18.3
-  '@dagrejs/dagre': ^2.0.4
-  '@ionic/vue': ^8.8.12
-  '@ionic/vue-router': ^8.8.12
-  '@larksuiteoapi/node-sdk': ^1.68.0
+  '@dagrejs/dagre': ^3.1.0
+  '@ionic/vue': ^8.8.16
+  '@ionic/vue-router': ^8.8.16
+  '@larksuiteoapi/node-sdk': ^1.72.0
   '@mozilla/readability': ^0.6.0
-  '@nuxtjs/i18n': ^10.4.0
-  '@octokit/core': ^7.0.6
+  '@nuxtjs/i18n': ^10.6.0
+  '@octokit/core': ^7.0.7
   '@octokit/rest': ^22.0.1
   '@rollup/pluginutils': ^5.4.0
   '@runware/sdk-js': ^1.3.2
-  '@shikijs/vitepress-twoslash': ^3.23.0
-  '@tanstack/vue-virtual': ^3.13.30
+  '@shikijs/vitepress-twoslash': ^4.4.2
+  '@tanstack/vue-virtual': ^3.13.35
   '@types/body-parser': ^1.19.6
 
   '@types/express': ^5.0.6
   '@types/minimist': ^1.2.5
-  '@unocss/extractor-mdc': 66.1.0-beta.5
-  '@vitejs/plugin-legacy': ^8.1.0
+  '@unocss/extractor-mdc': 66.7.5
+  '@vitejs/plugin-legacy': ^8.2.2
   '@vue-flow/background': ^1.3.2
   '@vue-flow/controls': ^1.1.3
   '@vue-flow/minimap': ^1.5.4
   '@vue-flow/node-resizer': ^1.5.1
-  '@xterm/addon-fit': 0.11.0-beta.115
+  '@xterm/addon-fit': 0.11.0
   '@yunyoujun/docs': ^0.1.14
   ajv: ^8.20.0
   ajv-formats: ^3.0.1
-  axios: ^1.18.1
+  axios: ^1.19.0
   body-parser: ^2.3.0
   cos-js-sdk-v5: ^1.10.1
-  cos-nodejs-sdk-v5: 2.16.0-beta.9
+  cos-nodejs-sdk-v5: 3.0.0
   dexie: ^4.4.4
   diff: ^9.0.0
   express: ^5.2.1
   floating-vue: ^5.2.2
-  ionicons: ^8.0.13
-  jsdom: ^29.1.1
+  ionicons: ^8.1.0
+  jsdom: ^30.0.1
   jszip: ^3.10.1
-  mermaid: ^11.16.0
+  mermaid: ^11.16.1
   mlly: ^1.8.2
-  nuxt-auth-utils: 0.5.20
-  nuxt-monaco-editor: ^1.4.0
+  nuxt-auth-utils: 0.5.30
+  nuxt-monaco-editor: ^1.4.1
   obs-websocket-js: ^5.0.8
-  pdfjs-dist: ^5.7.284
+  pdfjs-dist: ^6.2.108
   qrcode: ^1.5.4
   simple-git: ^3.36.0
   tencentcloud-sdk-nodejs-hunyuan: ^4.1.188
-  terser: ^5.48.0
+  terser: ^5.49.2
   typedoc-plugin-markdown: ^4.12.0
   typedoc-vitepress-theme: ^1.1.3
-  typescript-json-schema: ^0.67.4
+  typescript-json-schema: ^0.68.0
   ua-parser-js: ^2.0.10
   vite-plugin-singlefile: ^2.3.3
   vitefu: ^1.1.3
-  vitepress-plugin-group-icons: ^1.7.5
+  vitepress-plugin-group-icons: ^1.7.6
   vitepress-plugin-mermaid: ^2.0.17
-  wrangler: 4.120.1
+  wrangler: 4.119.0
   y-indexeddb: ^9.0.12
   y-monaco: ^0.1.6
   y-protocols: ^1.0.7
   yaml: ^2.9.0
-  yjs: ^13.6.31
+  yjs: ^13.6.32
   zod: ^4.4.3
 catalogs:
   ai:
-    openai: ^6.45.0
+    openai: ^7.4.0
   babylon:
+    # babylon-vrm-loader 2.x peers require Babylon 5.x.
     '@babylonjs/core': 5.19.0
     '@babylonjs/gui': 5.19.0
     '@babylonjs/loaders': 5.19.0
@@ -104,120 +151,123 @@ catalogs:
     babylon-vrm-loader: ^2.0.0
   build:
     '@intlify/unplugin-vue-i18n': ^11.2.4
-    '@nuxt/devtools': ^3.2.4
+    '@nuxt/devtools': ^3.4.1
     '@nuxtjs/color-mode': ^4.0.1
-    '@pinia/nuxt': ^0.11.3
-    '@shikijs/markdown-it': ^3.23.0
-    '@unocss/eslint-config': ^66.7.3
-    '@unocss/nuxt': ^66.7.3
+    '@pinia/nuxt': ^1.0.1
+    '@shikijs/markdown-it': ^4.4.2
+    '@unocss/eslint-config': ^66.7.5
+    '@unocss/nuxt': ^66.7.5
     '@vite-pwa/nuxt': ^1.1.1
-    '@vitejs/plugin-vue': ^6.0.7
-    '@vueuse/nuxt': ^14.3.0
+    '@vitejs/plugin-vue': ^6.0.8
+    '@vueuse/nuxt': ^14.4.0
     '@webcontainer/api': ^1.6.4
-    beasties: ^0.4.2
-    markdown-it: ^14.2.0
+    beasties: ^0.3.5
+    markdown-it: ^15.0.0
     markdown-it-link-attributes: ^4.0.1
-    nuxt: ^4.4.8
-    rollup: ^4.62.2
-    sass: ^1.101.0
-    shiki: ^3.23.0
+    nuxt: ^4.5.1
+    oxc-parser: ^0.141.0
+    rollup: ^4.62.4
+    sass: ^1.102.0
+    shiki: ^4.4.2
     unbuild: ^3.6.1
-    unocss: ^66.7.3
-    unplugin-auto-import: ^21.0.0
+    unocss: ^66.7.5
+    unplugin-auto-import: ^21.1.0
     unplugin-vue-components: ^32.1.0
-    unplugin-vue-markdown: ^30.0.0
-    vite: ^8.1.0
+    unplugin-vue-markdown: ^32.0.0
+    vite: ^8.2.0
     vite-bundle-visualizer: ^1.2.1
-    vite-plugin-css-injected-by-js: ^4.0.1
-    vite-plugin-dts: ^4.5.4
-    vite-plugin-inspect: ^11.4.1
+    vite-plugin-css-injected-by-js: ^5.0.2
+    vite-plugin-dts: ^5.0.3
+    vite-plugin-inspect: ^12.0.2
     vite-plugin-pwa: ^1.3.0
-    vite-plugin-vue-devtools: ^8.1.4
-    vite-plugin-vue-layouts: ^0.11.0
+    vite-plugin-vue-devtools: ^8.2.1
+    vite-plugin-vue-layouts-next: ^2.1.0
     vite-ssg: ^28.3.0
     vite-ssg-sitemap: ^0.10.0
   cli:
-    '@modelcontextprotocol/sdk': ^1.29.0
+    '@modelcontextprotocol/sdk': ^1.30.0
     '@xterm/xterm': ^6.0.0
     cli-progress: ^3.12.0
     consola: ^3.4.2
     dotenv: ^17.4.2
-    execa: ^9.6.1
+    execa: ^10.0.1
     minimist: ^1.2.8
-    npm-run-all2: ^8.0.4
+    npm-run-all2: ^9.0.3
     prompts: ^2.4.2
-    yargs: ^18.0.0
+    yargs: ^18.1.0
   dev:
-    '@antfu/eslint-config': ^8.3.0
+    '@antfu/eslint-config': ^9.2.0
     '@faker-js/faker': ^10.5.0
-    '@unocss/eslint-plugin': ^66.7.3
-    eslint: ^10.6.0
+    '@unocss/eslint-plugin': ^66.7.5
+    eslint: ^10.8.0
     eslint-plugin-format: ^2.0.1
     https-localhost: ^4.7.1
     husky: ^9.1.7
-    lint-staged: ^17.0.8
+    lint-staged: ^17.3.0
     nodemon: ^3.1.14
-    taze: ^19.14.1
-    tsx: ^4.22.4
+    taze: ^19.17.2
+    tsx: ^4.23.7
+    # Vue language-tools and unbuild's declaration pipeline do not yet support TS 7.
     typescript: ^5.9.3
     unplugin-mockery: 0.4.0-beta.13
-    vue-tsc: ^3.3.5
+    vue-tsc: ^3.3.9
   docs:
-    typedoc: ^0.28.19
+    typedoc: ^0.28.20
     typedoc-plugin-merge-modules: ^7.0.0
-    vitepress: 2.0.0-alpha.17
+    vitepress: 2.0.0-alpha.19
   frontend:
     '@google/model-viewer': ^4.3.1
-    '@unhead/vue': ^2.1.15
-    '@unocss/reset': ^66.7.3
+    '@unhead/vue': ^3.3.1
+    '@unocss/reset': ^66.7.5
     '@vue-flow/core': ^1.48.2
-    '@vueuse/core': ^14.3.0
+    '@vueuse/core': ^14.4.0
     '@vueuse/motion': ^3.0.3
     '@vueuse/sound': ^2.1.3
     animate.css: ^4.1.1
     colord: ^2.9.3
     howler: ^2.2.4
     modern-screenshot: ^4.7.0
+    # y-monaco 0.1.6 still imports a subpath removed from Monaco 0.56 exports.
     monaco-editor: ^0.55.1
     nprogress: ^0.2.0
-    pinia: ^3.0.4
+    pinia: ^4.0.2
     pixi-painter: 0.1.6-beta.1
-    pixi.js: 8.0.4
+    pixi.js: 8.19.0
     reka-ui: ^2.10.1
     splitpanes: ^4.1.2
-    swiper: ^12.2.0
-    vue: ^3.5.39
-    vue-i18n: ^11.4.6
-    vue-router: ^5.1.0
+    swiper: ^14.0.7
+    vue: ^3.5.41
+    vue-i18n: ^11.4.8
+    vue-router: ^5.2.0
     wc-github-corners: ^0.1.6
   icons:
-    '@iconify-json/carbon': ^1.2.23
+    '@iconify-json/carbon': ^1.2.25
     '@iconify-json/ep': ^1.2.4
     '@iconify-json/file-icons': ^1.2.2
-    '@iconify-json/logos': ^1.2.11
+    '@iconify-json/logos': ^1.2.12
     '@iconify-json/mdi': ^1.2.3
     '@iconify-json/radix-icons': ^1.2.6
     '@iconify-json/ri': ^1.2.10
     '@iconify-json/svg-spinners': ^1.2.4
     '@iconify-json/twemoji': ^1.2.5
-    '@iconify-json/vscode-icons': ^1.2.62
+    '@iconify-json/vscode-icons': ^1.2.68
     '@iconify/vue': ^5.0.1
   test:
-    '@playwright/test': ^1.61.1
-    '@vitest/ui': ^4.1.9
+    '@playwright/test': ^1.62.1
+    '@vitest/ui': ^4.1.10
     '@vue/test-utils': ^2.4.11
-    vitest: ^4.1.9
+    vitest: ^4.1.10
   types:
     '@types/cli-progress': ^3.11.6
     '@types/howler': ^2.2.13
     '@types/js-yaml': ^4.0.9
     '@types/markdown-it-link-attributes': ^3.0.5
     '@types/mdast': ^4.0.4
-    '@types/node': ^24.13.2
+    '@types/node': ^24.13.3
     '@types/nprogress': ^0.2.3
     '@types/prompts': ^2.4.9
     '@types/qrcode': ^1.5.6
-    '@types/semver': ^7.7.1
+    '@types/semver': ^7.8.0
     '@types/unist': ^3.0.3
     '@types/wicg-file-system-access': ^2023.10.7
     '@types/xml2js': ^0.4.14
@@ -238,10 +288,10 @@ catalogs:
     unist-util-visit: ^5.1.0
     vfile-matter: ^5.0.1
   utils:
-    '@antfu/ni': ^30.2.0
+    '@antfu/ni': ^30.3.0
     '@antfu/utils': ^9.3.0
     benny: ^3.7.1
-    bumpp: ^11.1.0
+    bumpp: ^12.1.1
     c12: ^3.3.4
     cross-env: ^10.1.0
     dayjs: ^1.11.21
@@ -252,20 +302,35 @@ catalogs:
     honeycomb-grid: ^4.1.5
     hookable: ^6.1.1
     jiti: ^2.7.0
-    js-yaml: ^4.3.0
+    js-yaml: ^5.2.3
+    lodash.set: 4.3.2
     open: ^11.0.0
     pathe: ^2.0.3
     resolve-global: ^2.0.0
     semver: ^7.8.5
     unstorage: ^1.17.5
     xml2js: ^0.6.2
-ignoredBuiltDependencies:
-  - '@parcel/watcher'
-  - bufferutil
-  - esbuild
-  - unrs-resolver
-onlyBuiltDependencies:
-  - sharp
+peerDependencyRules:
+  allowedVersions:
+    # These integrations support the current runtime in practice, but their
+    # published peer ranges have not caught up with the upstream major yet.
+    '@stencil/vue-output-target>vue-router': ^5.2.0
+    unplugin-mockery>rollup: ^4.62.4
+    vitepress-plugin-mermaid>vitepress: 2.0.0-alpha.19
+
+allowBuilds:
+  '@parcel/watcher': false
+  bufferutil: false
+  core-js: false
+  core-js-pure: false
+  cos-js-sdk-v5: false
+  esbuild: false
+  msw: false
+  protobufjs: false
+  sharp: true
+  unrs-resolver: false
+  vue-demi: true
+  workerd: true
 # Ignore trust downgrades for packages published more than 7 days (10080 min)
 # ago. Established transitive deps (e.g. semver@6.3.1, rollup@2.80.0 via
 # vite-plugin-pwa / @capacitor/assets) simply predate provenance attestation,

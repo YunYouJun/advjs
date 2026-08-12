@@ -1,5 +1,6 @@
 import type { AdvGameConfig } from '@advjs/types'
-import { advDataRef, AdvGameLoadStatusEnum, useAdvContext, useGameStore as useClientGameStore } from '@advjs/client'
+import { AdvGameLoadStatusEnum, useAdvContext, useGameStore as useClientGameStore } from '@advjs/client'
+import { advDataRef } from '@advjs/client/compiler'
 import { Toast } from '@advjs/gui'
 import { useStorage } from '@vueuse/core'
 import { consola } from 'consola'

@@ -1,8 +1,9 @@
 import { consola } from 'consola'
 import { colors } from 'consola/utils'
-import { authorize, client, createServer } from '../src'
+import { authorize, createServer, getClient } from '../src'
 
 async function main() {
+  const client = getClient()
   const server = createServer()
   server.get('/api/oauth/callback', async (req, res) => {
     // todo

@@ -1,5 +1,5 @@
 import { Buffer } from 'node:buffer'
-import { readFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { createServer } from 'node:http'
 import { basename, join } from 'node:path'
 import process from 'node:process'
@@ -34,22 +34,53 @@ export function launchRegistryEnvironment(registryUrl: string, temporaryRoot: st
     CI: '1',
     npm_config_audit: 'false',
     npm_config_cache: join(temporaryRoot, 'npm-cache'),
-    npm_config_cache_dir: join(temporaryRoot, 'pnpm-cache'),
     npm_config_fund: 'false',
     npm_config_registry: registryUrl,
-    npm_config_store_dir: join(temporaryRoot, 'pnpm-store'),
+    npm_config_userconfig: join(temporaryRoot, 'registry.npmrc'),
     npm_config_update_notifier: 'false',
+    pnpm_config_store_dir: join(temporaryRoot, 'pnpm-store'),
   }
   delete environment.NODE_PATH
   delete environment.PNPM_HOME
   return environment
 }
 
+export async function writeLaunchRegistryConfig(temporaryRoot: string, registryUrl: string) {
+  await writeFile(
+    join(temporaryRoot, 'registry.npmrc'),
+    `registry=${registryUrl}\naudit=false\nfund=false\nupdate-notifier=false\n`,
+    'utf8',
+  )
+}
+
+export async function writeLaunchWorkspaceConfig(directory: string, overrides?: Record<string, string>) {
+  // Mirror the repository's explicit pnpm 11 lifecycle-script decisions in
+  // isolated consumer workspaces. Unknown scripts must still fail closed.
+  const allowBuilds = {
+    '@parcel/watcher': false,
+    'bufferutil': false,
+    'core-js': false,
+    'core-js-pure': false,
+    'cos-js-sdk-v5': false,
+    'esbuild': false,
+    'msw': false,
+    'protobufjs': false,
+    'sharp': true,
+    'unrs-resolver': false,
+    'vue-demi': true,
+    'workerd': true,
+  }
+  await writeFile(
+    join(directory, 'pnpm-workspace.yaml'),
+    `${JSON.stringify({ allowBuilds, overrides }, null, 2)}\n`,
+    'utf8',
+  )
+}
+
 export async function runLaunchCommand(command: string, args: string[], cwd: string, registryUrl: string, temporaryRoot: string, environment: NodeJS.ProcessEnv = {}) {
   const commandEnvironment = { ...launchRegistryEnvironment(registryUrl, temporaryRoot), ...environment }
   if (command === 'npx') {
-    delete commandEnvironment.npm_config_cache_dir
-    delete commandEnvironment.npm_config_store_dir
+    delete commandEnvironment.pnpm_config_store_dir
   }
   const options = {
     cwd,

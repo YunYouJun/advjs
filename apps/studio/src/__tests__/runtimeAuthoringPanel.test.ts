@@ -46,7 +46,10 @@ describe('runtimeAuthoringPanel', () => {
     ], file, '# One {#start}\n\n- [Broken](two#missing)')
 
     await vi.advanceTimersByTimeAsync(301)
-    await flushPromises()
+    await vi.waitFor(async () => {
+      await flushPromises()
+      expect(wrapper.text()).not.toContain('Compiling')
+    })
     await wrapper.get('[data-authoring-tab="diagnostics"]').trigger('click')
 
     expect(wrapper.text()).toContain('ADV_RUNTIME_UNKNOWN_TARGET')
@@ -62,7 +65,10 @@ describe('runtimeAuthoringPanel', () => {
     ], file, '# One {#start}\n\nHello.')
 
     await vi.advanceTimersByTimeAsync(301)
-    await flushPromises()
+    await vi.waitFor(async () => {
+      await flushPromises()
+      expect(wrapper.text()).not.toContain('Compiling')
+    })
     await wrapper.get('[data-authoring-tab="program"]').trigger('click')
 
     expect(wrapper.text()).toContain('one')

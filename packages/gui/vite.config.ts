@@ -22,7 +22,7 @@ export default defineConfig({
     // css in js
     cssInjectedByJsPlugin(),
 
-    dts(),
+    dts({ processor: 'vue' }),
   ],
 
   build: {

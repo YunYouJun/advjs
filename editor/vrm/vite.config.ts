@@ -10,7 +10,7 @@ import { defineConfig } from 'vite'
 import Inspect from 'vite-plugin-inspect'
 
 import { VitePWA } from 'vite-plugin-pwa'
-import Layouts from 'vite-plugin-vue-layouts'
+import Layouts from 'vite-plugin-vue-layouts-next'
 import VueRouter from 'vue-router/vite'
 
 import { ADV_VIRTUAL_MODULES } from '../../packages/advjs/node'
@@ -78,7 +78,7 @@ export default defineConfig((config) => {
         dts: 'src/route-map.d.ts',
       }),
 
-      // https://github.com/JohnCampionJr/vite-plugin-vue-layouts
+      // https://github.com/loicduong/vite-plugin-vue-layouts-next
       Layouts(),
 
       // https://github.com/antfu/unplugin-vue-components

@@ -9,7 +9,7 @@
  */
 
 import type { SourceType } from '../sourceParser'
-import yaml from 'js-yaml'
+import * as yaml from 'js-yaml'
 
 export interface CharacterArchetype {
   role: string

@@ -8,7 +8,7 @@ import { resolve } from 'pathe'
 import Markdown from 'unplugin-vue-markdown/vite'
 
 import vueDevTools from 'vite-plugin-vue-devtools'
-import Layouts from 'vite-plugin-vue-layouts'
+import Layouts from 'vite-plugin-vue-layouts-next'
 import VueRouter from 'vue-router/vite'
 
 import { ensureDirSync } from '../utils/fs'
@@ -45,7 +45,7 @@ export async function ViteAdvPlugin(
       dts: resolve(options.tempRoot, 'typed-router.d.ts'),
     }),
 
-    // https://github.com/JohnCampionJr/vite-plugin-vue-layouts
+    // https://github.com/loicduong/vite-plugin-vue-layouts-next
     Layouts({
       layoutsDirs: options.roots.map(root => join(root, 'layouts')),
     }),

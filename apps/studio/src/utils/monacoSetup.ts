@@ -8,6 +8,11 @@
 
 import type * as Monaco from 'monaco-editor'
 import type { AdvCompletionContext } from './advLanguage'
+import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
+import CssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker'
+import HtmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker'
+import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
+import TsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
 
 let _monaco: typeof Monaco | null = null
 let _advRegistered = false
@@ -27,38 +32,19 @@ export async function getMonaco(): Promise<typeof Monaco> {
   ;(globalThis as any).MonacoEnvironment = {
     getWorker(_workerId: string, label: string) {
       // JSON language service
-      if (label === 'json') {
-        return new Worker(
-          new URL('monaco-editor/esm/vs/language/json/json.worker.js', import.meta.url),
-          { type: 'module' },
-        )
-      }
+      if (label === 'json')
+        return new JsonWorker()
       // TypeScript / JavaScript language service
-      if (label === 'typescript' || label === 'javascript') {
-        return new Worker(
-          new URL('monaco-editor/esm/vs/language/typescript/ts.worker.js', import.meta.url),
-          { type: 'module' },
-        )
-      }
+      if (label === 'typescript' || label === 'javascript')
+        return new TsWorker()
       // CSS / SCSS / LESS
-      if (label === 'css' || label === 'scss' || label === 'less') {
-        return new Worker(
-          new URL('monaco-editor/esm/vs/language/css/css.worker.js', import.meta.url),
-          { type: 'module' },
-        )
-      }
+      if (label === 'css' || label === 'scss' || label === 'less')
+        return new CssWorker()
       // HTML (also handles handlebars / razor)
-      if (label === 'html' || label === 'handlebars' || label === 'razor') {
-        return new Worker(
-          new URL('monaco-editor/esm/vs/language/html/html.worker.js', import.meta.url),
-          { type: 'module' },
-        )
-      }
+      if (label === 'html' || label === 'handlebars' || label === 'razor')
+        return new HtmlWorker()
       // Default editor worker (tokenization, text operations)
-      return new Worker(
-        new URL('monaco-editor/esm/vs/editor/editor.worker.js', import.meta.url),
-        { type: 'module' },
-      )
+      return new EditorWorker()
     },
   }
 

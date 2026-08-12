@@ -7,7 +7,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
-    "types": ["node", "vite/client", "vite-plugin-vue-layouts/client"],
+    "types": ["node", "vite/client", "vite-plugin-vue-layouts-next/client"],
     "strict": true,
     "strictNullChecks": true,
     "noUnusedLocals": true,

@@ -3,6 +3,8 @@ import type { App } from 'vue'
 import type { Router } from 'vue-router'
 import type { AdvContext } from '../types'
 
+export { setupAdvContext } from './context'
+
 export interface AppContext {
   app: App
   router: Router

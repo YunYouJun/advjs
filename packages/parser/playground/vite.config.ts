@@ -10,7 +10,7 @@ import { defineConfig } from 'vite'
 import Inspect from 'vite-plugin-inspect'
 import { VitePWA } from 'vite-plugin-pwa'
 
-import Layouts from 'vite-plugin-vue-layouts'
+import Layouts from 'vite-plugin-vue-layouts-next'
 import VueRouter from 'vue-router/vite'
 
 import { commonAlias } from '../../shared/node'
@@ -44,7 +44,7 @@ export default defineConfig({
       dts: 'src/route-map.d.ts',
     }),
 
-    // https://github.com/JohnCampionJr/vite-plugin-vue-layouts
+    // https://github.com/loicduong/vite-plugin-vue-layouts-next
     Layouts(),
 
     // https://github.com/antfu/unplugin-vue-components
@@ -67,15 +67,15 @@ export default defineConfig({
       wrapperClasses: markdownWrapperClasses,
       headEnabled: true,
       async markdownItSetup(md) {
-        // @ts-expect-error - LinkAttributes type mismatch with markdown-exit
-        md.use(LinkAttributes, {
+        // markdown-exit is runtime-compatible with markdown-it plugins, but its
+        // rewritten parser types are intentionally not structurally identical.
+        md.use(LinkAttributes as never, {
           pattern: httpsPattern,
           attrs: {
             target: '_blank',
             rel: 'noopener',
           },
         })
-        // @ts-expect-error - Shiki type mismatch with markdown-exit
         md.use(await Shiki({
           defaultColor: false,
           themes: {

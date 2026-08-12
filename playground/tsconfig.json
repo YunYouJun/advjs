@@ -34,7 +34,7 @@
     "types": [
       "vitest",
       "vite/client",
-      "vite-plugin-vue-layouts/client",
+      "vite-plugin-vue-layouts-next/client",
       "vite-plugin-pwa/client"
     ],
     "allowJs": true,

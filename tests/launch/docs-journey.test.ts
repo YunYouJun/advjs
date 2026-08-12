@@ -11,7 +11,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { verifyDeploymentUrl } from '../../packages/advjs/node/deploy'
 import { createPackageManifest, LAUNCH_VERSION } from '../../scripts/release/package-manifest.mjs'
 import { createLaunchJourney } from './helpers'
-import { createLaunchRegistry, launchRegistryEnvironment, runLaunchCommand } from './helpers/registry'
+import { createLaunchRegistry, launchRegistryEnvironment, runLaunchCommand, writeLaunchRegistryConfig, writeLaunchWorkspaceConfig } from './helpers/registry'
 
 const repositoryRoot = resolve(import.meta.dirname, '../..')
 const pnpmExecutable = 'pnpm'
@@ -58,10 +58,12 @@ beforeAll(async () => {
   const manifest = await createPackageManifest({ build: process.env.ADVJS_DOCS_JOURNEY_SKIP_BUILD !== '1', outputDirectory: packageRoot, root: repositoryRoot })
   advTarball = join(packageRoot, manifest.packages.find(pkg => pkg.name === 'advjs')!.tarball!)
   registry = await createLaunchRegistry(manifest, packageRoot)
+  await writeLaunchRegistryConfig(temporaryRoot, registry.url)
+  await writeLaunchWorkspaceConfig(installRoot)
   await writeFile(join(installRoot, 'package.json'), '{"name":"advjs-docs-journey","private":true}\n', 'utf8')
   await runLaunchCommand(pnpmExecutable, [
-    `--registry=${registry.url}`,
     'add',
+    `--registry=${registry.url}`,
     `advjs@${LAUNCH_VERSION}`,
     `@advjs/mcp-server@${LAUNCH_VERSION}`,
   ], installRoot, registry.url, temporaryRoot)

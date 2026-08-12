@@ -1,0 +1,12 @@
+diff --git a/index.js b/index.js
+index 9f3ed6b18d9028814128879c8a47c903b8f2c985..849bd17123f822022087cd89d7403fe5ad0fb3ef 100644
+--- a/index.js
++++ b/index.js
+@@ -512,3 +512,7 @@ function baseSet(object, path, value, customizer) {
++    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
++      return object;
++    }
++
+     if (index != lastIndex) {
+       var objValue = nested[key];
+       newValue = customizer ? customizer(objValue, key, nested) : undefined;

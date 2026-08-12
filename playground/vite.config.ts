@@ -40,11 +40,6 @@ export default defineConfig(async ({ mode }) => {
       },
     },
 
-    build: {
-      // temp for debug
-      minify: false,
-    },
-
     server: {
       cors: true,
 
@@ -166,7 +161,9 @@ export default defineConfig(async ({ mode }) => {
 
     ssr: {
       // TODO: workaround until they support native ESM
-      noExternal: ['workbox-window', VUE_I18N_REGEX],
+      // Pinia 4 reads Vue compile-time feature flags and therefore must pass
+      // through Vite instead of being executed as an untouched SSR external.
+      noExternal: ['pinia', 'workbox-window', VUE_I18N_REGEX],
     },
   }
 })

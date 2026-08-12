@@ -16,12 +16,12 @@ describe('editor Cloudflare Pages build contract', () => {
     const workflow = parse(workflowSource)
     const pagesJob = workflow.jobs['editor-pages-build']
 
-    expect(rootPackage.packageManager).toBe('pnpm@10.34.1')
+    expect(rootPackage.packageManager).toBe('pnpm@11.20.0')
     expect(rootPackage.scripts['editor:build']).toBe('pnpm -C editor/core build')
     expect(editorBuildContract.packagePublicDirectory).toBe('dist')
     expect(editorPackage.advjsEditor.artifacts).toEqual(editorBuildContract)
     expect(pagesJob.name).toBe('editor-pages-build')
-    expect(pagesJob.env).toEqual({ NODE_VERSION: '24', PNPM_VERSION: '10.34.1' })
+    expect(pagesJob.env).toEqual({ NODE_VERSION: '24', PNPM_VERSION: '11.20.0' })
     expect(pagesJob.steps.map((step: { run?: string }) => step.run).filter(Boolean)).toEqual(expect.arrayContaining([
       'npm run editor:build',
       'test -f editor/core/dist/index.html',

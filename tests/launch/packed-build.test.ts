@@ -8,6 +8,7 @@ import process from 'node:process'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { createPackageManifest } from '../../scripts/release/package-manifest.mjs'
 import { runPnpm as executePnpm, runCommand } from '../../scripts/release/run-command.mjs'
+import { writeLaunchWorkspaceConfig } from './helpers/registry'
 
 const repositoryRoot = resolve(import.meta.dirname, '../..')
 
@@ -27,6 +28,7 @@ const packedBuildPackages = new Set([
 const launchPackageManifests = [
   'packages/advjs/package.json',
   'packages/assets/package.json',
+  'packages/character/package.json',
   'packages/client/package.json',
   'packages/core/package.json',
   'packages/devtools/package.json',
@@ -147,10 +149,10 @@ async function verifyStaticBuild(distDirectory: string) {
 }
 
 describe('launch package runtimes', () => {
-  it('supports Node 22 and 24 without claiming Node 20 support', async () => {
+  it('supports maintained Node releases without claiming unsupported minors', async () => {
     for (const manifestPath of launchPackageManifests) {
       const manifest = JSON.parse(await readFile(resolve(repositoryRoot, manifestPath), 'utf8'))
-      expect(manifest.engines?.node, manifest.name).toBe('^22.12.0 || ^24.0.0')
+      expect(manifest.engines?.node, manifest.name).toBe('^22.22.2 || ^24.15.0 || >=26.0.0')
     }
   })
 })
@@ -191,8 +193,8 @@ describe('packed advjs build', () => {
       private: true,
       type: 'module',
       dependencies,
-      pnpm: { overrides: dependencies },
     }, null, 2)}\n`, 'utf8')
+    await writeLaunchWorkspaceConfig(installRoot, dependencies)
     await runPnpm(['install', '--no-frozen-lockfile'], installRoot)
 
     const [canonicalInstallRoot, installedStore] = await Promise.all([

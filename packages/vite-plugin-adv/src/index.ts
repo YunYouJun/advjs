@@ -4,7 +4,7 @@ import type { AdvPluginOptions } from '../../advjs/node'
 import path from 'node:path'
 import process from 'node:process'
 import VueI18n from '@intlify/unplugin-vue-i18n/vite'
-import Layouts from 'vite-plugin-vue-layouts'
+import Layouts from 'vite-plugin-vue-layouts-next'
 
 import { createComponentsPlugin } from '../../advjs/node/vite/components'
 import { createConfigPlugin } from '../../advjs/node/vite/extendConfig'
@@ -37,7 +37,7 @@ export default function advFramework(options: ResolvedAdvOptions, pluginOptions:
     vitePluginAdv(),
     advVirtualLoader,
 
-    // https://github.com/JohnCampionJr/vite-plugin-vue-layouts
+    // https://github.com/loicduong/vite-plugin-vue-layouts-next
     Layouts({
       layoutsDirs: roots.map(root => path.join(root, 'layouts')),
     }),

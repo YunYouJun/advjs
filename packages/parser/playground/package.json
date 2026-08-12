@@ -37,6 +37,6 @@
     "vite": "catalog:build",
     "vite-plugin-inspect": "catalog:build",
     "vite-plugin-pwa": "catalog:build",
-    "vite-plugin-vue-layouts": "catalog:build"
+    "vite-plugin-vue-layouts-next": "catalog:build"
   }
 }

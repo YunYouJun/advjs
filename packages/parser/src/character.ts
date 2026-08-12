@@ -1,6 +1,6 @@
 import type { AdvCharacter, AdvCharacterBody, AdvCharacterFrontmatter } from '@advjs/types'
 import { LANGUAGE_LABELS } from '@advjs/types'
-import yaml from 'js-yaml'
+import * as yaml from 'js-yaml'
 import { CharacterFrontmatterSchema, formatCharacterFrontmatterError } from './schemas/character'
 
 /**
@@ -165,7 +165,6 @@ export function stringifyCharacterMd(character: AdvCharacter): string {
     indent: 2,
     lineWidth: -1,
     noRefs: true,
-    quotingType: '\'',
     forceQuotes: false,
   }).trim()
 

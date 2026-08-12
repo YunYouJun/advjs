@@ -58,7 +58,7 @@ export async function resolveThemeName(name?: string) {
   // fallback to prompt install
   if (officialThemes[name] != null)
     return officialThemes[name]
-  if (name.indexOf('@') === 0 && name.includes('/'))
+  if (name.startsWith('@') && name.includes('/'))
     return name
   return `advjs-theme-${name}`
 }

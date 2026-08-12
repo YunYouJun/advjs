@@ -13,7 +13,7 @@
 - `vite-plugin-vue-i18n`
 - `unplugin-vue-router`
 - `unplugin-vue-components`
-- `vite-plugin-vue-layouts`
+- `vite-plugin-vue-layouts-next`
 - `unocss`
 
 ```ts

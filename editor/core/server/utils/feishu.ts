@@ -11,9 +11,17 @@ export async function useFeishuClient() {
   if (!_client) {
     const lark = await import('@larksuiteoapi/node-sdk')
     const config = useRuntimeConfig()
+    const appId = config.feishu?.appId
+    const appSecret = config.feishu?.appSecret
+    if (!appId || !appSecret) {
+      throw createError({
+        statusCode: 503,
+        message: 'Feishu integration is missing appId or appSecret',
+      })
+    }
     _client = new lark.Client({
-      appId: config.feishu?.appId || '',
-      appSecret: config.feishu?.appSecret || '',
+      appId,
+      appSecret,
       appType: lark.AppType.SelfBuild,
       domain: lark.Domain.Feishu,
     })

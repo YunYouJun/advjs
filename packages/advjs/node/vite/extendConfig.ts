@@ -256,6 +256,9 @@ export function getDefine(options: ResolvedAdvOptions): Record<string, string> {
   return {
     __ADV_CLIENT_ROOT__: JSON.stringify(toAtFS(options.clientRoot)),
     __DEV__: options.mode === 'dev' ? 'true' : 'false',
+    // Pinia 4 evaluates Vue's production devtools feature flag at runtime.
+    // Define it explicitly so SSR/SSG builds do not leak an unresolved global.
+    __VUE_PROD_DEVTOOLS__: 'false',
     // __DEV__: options.mode === 'development' ? 'true' : 'false',
   }
 }

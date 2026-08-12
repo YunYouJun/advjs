@@ -10,7 +10,7 @@
     "types": [
       "node",
       "vite/client",
-      "vite-plugin-vue-layouts/client"
+      "vite-plugin-vue-layouts-next/client"
     ],
     "strict": true,
     "strictNullChecks": true,

@@ -73,6 +73,7 @@
     "@vitejs/plugin-vue": "catalog:build",
     "@vue/test-utils": "catalog:test",
     "jsdom": "catalog:",
+    "oxc-parser": "catalog:build",
     "terser": "catalog:",
     "typescript": "catalog:dev",
     "unocss": "catalog:build",

@@ -2,6 +2,7 @@ import type { CompileDiagnostic } from '@advjs/core'
 import type { AdvConfig, AdvGameConfig } from '@advjs/types'
 
 import type { ComputedRef, ShallowRef } from 'vue'
+import type { ComposerTranslation } from 'vue-i18n'
 import type { useAdvAuto, useAdvBgm, useAdvTachies } from '../composables'
 import type { useAdvCharacters } from '../composables/useAdvCharacters'
 import type { AdvRuntimeHost } from '../composables/useAdvRuntime'
@@ -22,7 +23,7 @@ export interface AdvContext {
   themeConfig: ComputedRef<AdvConfig['themeConfig']>
   functions: Record<string, () => void>
 
-  $t: typeof import('../compiler').$t
+  $t: ComposerTranslation
   $tachies: ReturnType<typeof useAdvTachies>
   $characters: ReturnType<typeof useAdvCharacters>
   $bgm: ReturnType<typeof useAdvBgm>

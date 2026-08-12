@@ -238,7 +238,7 @@ export async function validateProject(
 
   return {
     issues,
-    passed: issues.filter(i => i.type === 'error').length === 0,
+    passed: !issues.some(i => i.type === 'error'),
     stats: {
       scripts: chapters.length,
       characters: characters.length,

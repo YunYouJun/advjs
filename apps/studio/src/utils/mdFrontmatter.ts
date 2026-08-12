@@ -1,4 +1,4 @@
-import yaml from 'js-yaml'
+import * as yaml from 'js-yaml'
 
 /**
  * Shared frontmatter parsing and serialization utilities.
@@ -14,7 +14,6 @@ export function dumpYamlFrontmatter(fm: Record<string, unknown>): string {
     indent: 2,
     lineWidth: -1,
     noRefs: true,
-    quotingType: '\'',
     forceQuotes: false,
   }).trim()
 }

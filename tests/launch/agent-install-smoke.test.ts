@@ -8,7 +8,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { createPackageManifest, LAUNCH_VERSION } from '../../scripts/release/package-manifest.mjs'
-import { createLaunchRegistry, launchRegistryEnvironment, runLaunchCommand } from './helpers/registry'
+import { createLaunchRegistry, launchRegistryEnvironment, runLaunchCommand, writeLaunchRegistryConfig, writeLaunchWorkspaceConfig } from './helpers/registry'
 
 const repositoryRoot = resolve(import.meta.dirname, '../..')
 const fixturesRoot = resolve(repositoryRoot, 'tests/fixtures/agent-configs')
@@ -80,10 +80,12 @@ beforeAll(async () => {
     root: repositoryRoot,
   })
   registry = await createLaunchRegistry(manifest, packageDirectory)
+  await writeLaunchRegistryConfig(temporaryRoot, registry.url)
+  await writeLaunchWorkspaceConfig(installDirectory)
   await writeFile(join(installDirectory, 'package.json'), '{"name":"advjs-agent-smoke","private":true}\n', 'utf8')
   await runLaunchCommand(pnpmExecutable, [
-    `--registry=${registry.url}`,
     'add',
+    `--registry=${registry.url}`,
     `advjs@${LAUNCH_VERSION}`,
     `@advjs/mcp-server@${LAUNCH_VERSION}`,
   ], installDirectory, registry.url, temporaryRoot)
