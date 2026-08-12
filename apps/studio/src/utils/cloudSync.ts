@@ -1,13 +1,15 @@
-/**
- * Cloud sync utilities for Tencent COS (browser-side).
- * Uses fetch + Web Crypto API for HMAC-SHA1 signing.
- */
+import type cloudbase from '@cloudbase/js-sdk'
+import type { IFileSystem } from './fs'
+
+/** Cloud sync utilities backed by the authenticated AdvJS asset authority. */
 
 export interface CosConfig {
   bucket: string
   region: string
-  secretId: string
-  secretKey: string
+  /** @deprecated Permanent credentials are ignored and must never be stored in the browser. */
+  secretId?: string
+  /** @deprecated Permanent credentials are ignored and must never be stored in the browser. */
+  secretKey?: string
 }
 
 export interface SyncResult {
@@ -17,9 +19,42 @@ export interface SyncResult {
 }
 
 export interface CloudFileInfo {
+  contentType?: string
   key: string
   lastModified: string
   size: number
+}
+
+export interface ProjectSyncFile {
+  content: Blob
+  lastModified: Date
+  path: string
+}
+
+/** Recursively collects both text and binary project files for managed sync. */
+export async function collectProjectFilesForSync(
+  fs: Pick<IFileSystem, 'readBlob' | 'readdir'>,
+  basePath = '',
+): Promise<ProjectSyncFile[]> {
+  const files: ProjectSyncFile[] = []
+  for (const entry of await fs.readdir(basePath)) {
+    if (entry.type === 'directory') {
+      if (!entry.name.startsWith('.') && entry.name !== 'node_modules')
+        files.push(...await collectProjectFilesForSync(fs, entry.path))
+      continue
+    }
+    try {
+      files.push({
+        content: await fs.readBlob(entry.path),
+        lastModified: new Date(entry.mtime),
+        path: entry.path,
+      })
+    }
+    catch {
+      // One unreadable file must not prevent the remaining project from syncing.
+    }
+  }
+  return files
 }
 
 /**
@@ -28,6 +63,8 @@ export interface CloudFileInfo {
  * than a shared baseline. We can't auto-resolve; the user picks per-file.
  */
 export interface ConflictFile {
+  /** Binary conflicts carry opaque payloads outside the diff model. */
+  binary?: boolean
   /** Project-relative path, no `/` prefix (e.g. "adv/world.md"). */
   path: string
   localContent: string
@@ -121,305 +158,158 @@ export function classifySyncCandidates(opts: {
   return out
 }
 
-const COS_KEY_REGEX = /<Key>(.*?)<\/Key>/g
-const COS_LAST_MODIFIED_REGEX = /<LastModified>(.*?)<\/LastModified>/g
-const COS_SIZE_REGEX = /<Size>(.*?)<\/Size>/g
+let managedCloudApp: cloudbase.app.App | undefined
 
-/**
- * Classify COS errors for better user feedback.
- */
-function classifyCosError(status: number, statusText: string, url: string): string {
-  if (status === 403)
-    return 'Access denied (403). Check your SecretId/SecretKey and bucket permissions.'
-  if (status === 404)
-    return 'Not found (404). Check your bucket name and region.'
-  if (status === 0)
-    return 'Network error. Check your internet connection and CORS configuration.'
-  return `COS error: ${status} ${statusText} (${url})`
+interface AssetFunctionError {
+  code?: string
+  message?: string
 }
 
-/**
- * Generate HMAC-SHA1 signature using Web Crypto API.
- */
-async function hmacSha1(key: string, message: string): Promise<string> {
-  const encoder = new TextEncoder()
-  const cryptoKey = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(key),
-    { name: 'HMAC', hash: 'SHA-1' },
-    false,
-    ['sign'],
-  )
-  const signature = await crypto.subtle.sign('HMAC', cryptoKey, encoder.encode(message))
-  return Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, '0')).join('')
-}
-
-/**
- * Generate SHA-1 hash of content.
- */
-async function sha1Hash(content: string): Promise<string> {
-  const encoder = new TextEncoder()
-  const hash = await crypto.subtle.digest('SHA-1', encoder.encode(content))
-  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('')
-}
-
-/**
- * Build COS authorization header.
- * Implements a simplified COS XML API v5 signing scheme.
- *
- * @param config - COS configuration object.
- * @param method - HTTP method (e.g. 'GET', 'PUT').
- * @param path - Request path.
- * @param queryParams - Query parameters to include in the signature (e.g. { 'max-keys': '1' }).
- *   These MUST match the query parameters sent in the actual request, otherwise COS returns 403.
- */
-async function buildAuthorization(
-  config: CosConfig,
-  method: string,
-  path: string,
-  queryParams: Record<string, string> = {},
-): Promise<string> {
-  const secretId = config.secretId.trim()
-  const secretKey = config.secretKey.trim()
-
-  const now = Math.floor(Date.now() / 1000)
-  const expiry = now + 600 // 10 minutes
-  const keyTime = `${now};${expiry}`
-
-  // Sort query param keys and build the signed strings
-  const sortedKeys = Object.keys(queryParams).sort()
-  const qUrlParamList = sortedKeys.join(';')
-  const queryString = sortedKeys
-    .map(k => `${k}=${encodeURIComponent(queryParams[k])}`)
-    .join('&')
-
-  const signKey = await hmacSha1(secretKey, keyTime)
-  const httpString = `${method.toLowerCase()}\n${path}\n${queryString}\n\n`
-  const httpStringHash = await sha1Hash(httpString)
-  const stringToSign = `sha1\n${keyTime}\n${httpStringHash}\n`
-  const signature = await hmacSha1(signKey, stringToSign)
-
-  return `q-sign-algorithm=sha1&q-ak=${secretId}&q-sign-time=${keyTime}&q-key-time=${keyTime}&q-header-list=&q-url-param-list=${qUrlParamList}&q-signature=${signature}`
-}
-
-function getCosHost(config: CosConfig): string {
-  return `${config.bucket}.cos.${config.region}.myqcloud.com`
-}
-
-/**
- * Test connection to COS bucket.
- * Performs a HEAD request on the bucket root.
- */
-export async function testConnection(config: CosConfig): Promise<boolean> {
-  const authorization = await buildAuthorization(config, 'GET', '/', { 'max-keys': '1' })
-  const host = getCosHost(config)
-
-  try {
-    const response = await fetch(`https://${host}/?max-keys=1`, {
-      method: 'GET',
-      headers: {
-        Authorization: authorization,
-      },
-    })
-
-    if (!response.ok)
-      throw new Error(classifyCosError(response.status, response.statusText, `https://${host}/`))
-
-    return true
-  }
-  catch (err) {
-    if (err instanceof TypeError) {
-      // Network/CORS error
-      throw new Error('Network error. Check your internet connection and ensure CORS is configured on the COS bucket.')
-    }
-    throw err
+interface AssetFunctionEnvelope {
+  error?: AssetFunctionError
+  files?: CloudFileInfo[]
+  ok?: boolean
+  preview?: { expiresAt: string, url: string }
+  upload?: {
+    expiresAt: string
+    headers: Record<string, string>
+    uploadId: string
+    url: string
   }
 }
 
-/**
- * Upload content to COS.
- */
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+}
+
+const CONTENT_TYPES: Record<string, string> = {
+  avif: 'image/avif',
+  css: 'text/css; charset=utf-8',
+  flac: 'audio/flac',
+  gif: 'image/gif',
+  jpeg: 'image/jpeg',
+  jpg: 'image/jpeg',
+  json: 'application/json',
+  m4a: 'audio/mp4',
+  md: 'text/markdown; charset=utf-8',
+  mp3: 'audio/mpeg',
+  mp4: 'video/mp4',
+  ogg: 'audio/ogg',
+  png: 'image/png',
+  svg: 'image/svg+xml',
+  txt: 'text/plain; charset=utf-8',
+  wav: 'audio/wav',
+  webm: 'video/webm',
+  webp: 'image/webp',
+  yaml: 'application/yaml',
+  yml: 'application/yaml',
+}
+
+function inferContentType(key: string, content: Blob | string): string {
+  if (content instanceof Blob && content.type && content.type !== 'application/octet-stream')
+    return content.type
+  const extension = key.split('.').at(-1)?.toLowerCase() || ''
+  return CONTENT_TYPES[extension] || (typeof content === 'string'
+    ? 'text/plain; charset=utf-8'
+    : 'application/octet-stream')
+}
+
+/** Installs the single CloudBase app used by all managed asset calls. */
+export function configureManagedCloudSync(app: cloudbase.app.App): void {
+  managedCloudApp = app
+}
+
+async function callAssets(data: Record<string, unknown>): Promise<AssetFunctionEnvelope> {
+  if (!managedCloudApp)
+    throw new Error('Cloud sync is unavailable because CloudBase is not configured.')
+  const response = await managedCloudApp.callFunction({ name: 'advjsAssets', data }) as unknown
+  const payload = isRecord(response) && isRecord(response.result) ? response.result : undefined
+  if (!payload)
+    throw new Error('AdvJS asset service returned an invalid response.')
+  const envelope = payload as AssetFunctionEnvelope
+  if (envelope.error)
+    throw new Error(envelope.error.message || envelope.error.code || 'AdvJS asset service failed.')
+  if (!envelope.ok)
+    throw new Error('AdvJS asset service rejected the request.')
+  return envelope
+}
+
+/** Checks the authenticated managed-storage authority. */
+export async function testConnection(_config: CosConfig): Promise<boolean> {
+  await callAssets({ action: 'health' })
+  return true
+}
+
+/** Uploads through an exact-object short-lived capability and finalizes metadata. */
 export async function uploadToCloud(
-  config: CosConfig,
+  _config: CosConfig,
   key: string,
-  content: string,
+  content: Blob | string,
 ): Promise<void> {
-  const path = `/${key}`
-  const authorization = await buildAuthorization(config, 'PUT', path)
-  const host = getCosHost(config)
-
-  try {
-    const response = await fetch(`https://${host}${path}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': authorization,
-        'Content-Type': 'text/plain; charset=utf-8',
-      },
-      body: content,
-    })
-
-    if (!response.ok)
-      throw new Error(classifyCosError(response.status, response.statusText, `https://${host}${path}`))
-  }
-  catch (err) {
-    if (err instanceof TypeError)
-      throw new Error('Network error during upload. Check your connection and CORS configuration.')
-    throw err
-  }
+  const contentType = inferContentType(key, content)
+  const body = content instanceof Blob ? content : new Blob([content], { type: contentType })
+  const reservation = await callAssets({
+    action: 'reserveUpload',
+    bytes: body.size,
+    contentType,
+    key,
+  })
+  if (!reservation.upload)
+    throw new Error('AdvJS asset service did not return an upload capability.')
+  const response = await fetch(reservation.upload.url, {
+    body,
+    headers: reservation.upload.headers,
+    method: 'PUT',
+  })
+  if (!response.ok)
+    throw new Error(`Managed upload failed (${response.status}).`)
+  await callAssets({ action: 'finalizeUpload', uploadId: reservation.upload.uploadId })
 }
 
-/**
- * Download content from COS.
- */
+/** Downloads binary-safe bytes through a freshly authorized private URL. */
+export async function downloadBlobFromCloud(
+  _config: CosConfig,
+  key: string,
+): Promise<Blob> {
+  const result = await callAssets({ action: 'createPreview', key })
+  if (!result.preview)
+    throw new Error('AdvJS asset service did not return a download capability.')
+  const response = await fetch(result.preview.url)
+  if (!response.ok)
+    throw new Error(`Managed download failed (${response.status}).`)
+  return response.blob()
+}
+
+/** Downloads and decodes one text resource. */
 export async function downloadFromCloud(
   config: CosConfig,
   key: string,
 ): Promise<string> {
-  const path = `/${key}`
-  const authorization = await buildAuthorization(config, 'GET', path)
-  const host = getCosHost(config)
-
-  try {
-    const response = await fetch(`https://${host}${path}`, {
-      method: 'GET',
-      headers: {
-        Authorization: authorization,
-      },
-    })
-
-    if (!response.ok)
-      throw new Error(classifyCosError(response.status, response.statusText, `https://${host}${path}`))
-
-    return response.text()
-  }
-  catch (err) {
-    if (err instanceof TypeError)
-      throw new Error('Network error during download. Check your connection and CORS configuration.')
-    throw err
-  }
+  return (await downloadBlobFromCloud(config, key)).text()
 }
 
-/**
- * Delete a file from COS.
- */
+/** Deletes only unreferenced, unpublished private source assets. */
 export async function deleteFromCloud(
-  config: CosConfig,
+  _config: CosConfig,
   key: string,
 ): Promise<void> {
-  const path = `/${key}`
-  const authorization = await buildAuthorization(config, 'DELETE', path)
-  const host = getCosHost(config)
-
-  try {
-    const response = await fetch(`https://${host}${path}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: authorization,
-      },
-    })
-
-    // COS returns 204 for successful delete, 404 if already gone
-    if (!response.ok && response.status !== 404)
-      throw new Error(classifyCosError(response.status, response.statusText, `https://${host}${path}`))
-  }
-  catch (err) {
-    if (err instanceof TypeError)
-      throw new Error('Network error during delete. Check your connection and CORS configuration.')
-    throw err
-  }
+  await callAssets({ action: 'deleteAsset', key })
 }
 
-/**
- * List files in COS bucket under a prefix.
- * Returns file keys as strings.
- */
+/** Lists owner-scoped logical keys from the AdvJS metadata catalog. */
 export async function listCloudFiles(
-  config: CosConfig,
+  _config: CosConfig,
   prefix: string,
 ): Promise<string[]> {
-  const queryParams = { prefix }
-  const authorization = await buildAuthorization(config, 'GET', '/', queryParams)
-  const host = getCosHost(config)
-  const queryString = `prefix=${encodeURIComponent(prefix)}`
-
-  try {
-    const response = await fetch(`https://${host}/?${queryString}`, {
-      method: 'GET',
-      headers: {
-        Authorization: authorization,
-      },
-    })
-
-    if (!response.ok)
-      throw new Error(classifyCosError(response.status, response.statusText, `https://${host}/`))
-
-    const xml = await response.text()
-    const keys: string[] = []
-    const matches = xml.matchAll(COS_KEY_REGEX)
-    for (const match of matches)
-      keys.push(match[1])
-
-    return keys
-  }
-  catch (err) {
-    if (err instanceof TypeError)
-      throw new Error('Network error listing files. Check your connection and CORS configuration.')
-    throw err
-  }
+  return (await listCloudFilesDetailed(_config, prefix)).map(file => file.key)
 }
 
-/**
- * List files in COS bucket with metadata (last modified time, size).
- */
+/** Lists owner-scoped logical keys with verified metadata. */
 export async function listCloudFilesDetailed(
-  config: CosConfig,
+  _config: CosConfig,
   prefix: string,
 ): Promise<CloudFileInfo[]> {
-  const queryParams = { 'prefix': prefix, 'max-keys': '1000' }
-  const authorization = await buildAuthorization(config, 'GET', '/', queryParams)
-  const host = getCosHost(config)
-  const queryString = `prefix=${encodeURIComponent(prefix)}&max-keys=1000`
-
-  try {
-    const response = await fetch(`https://${host}/?${queryString}`, {
-      method: 'GET',
-      headers: {
-        Authorization: authorization,
-      },
-    })
-
-    if (!response.ok)
-      throw new Error(classifyCosError(response.status, response.statusText, `https://${host}/`))
-
-    const xml = await response.text()
-    const files: CloudFileInfo[] = []
-
-    const keys: string[] = []
-    const lastModifieds: string[] = []
-    const sizes: number[] = []
-
-    for (const match of xml.matchAll(COS_KEY_REGEX))
-      keys.push(match[1])
-    for (const match of xml.matchAll(COS_LAST_MODIFIED_REGEX))
-      lastModifieds.push(match[1])
-    for (const match of xml.matchAll(COS_SIZE_REGEX))
-      sizes.push(Number.parseInt(match[1], 10))
-
-    for (let i = 0; i < keys.length; i++) {
-      files.push({
-        key: keys[i],
-        lastModified: lastModifieds[i] || '',
-        size: sizes[i] || 0,
-      })
-    }
-
-    return files
-  }
-  catch (err) {
-    if (err instanceof TypeError)
-      throw new Error('Network error listing files. Check your connection and CORS configuration.')
-    throw err
-  }
+  return (await callAssets({ action: 'listFiles', prefix })).files ?? []
 }
 
 /**
@@ -429,7 +319,7 @@ export async function listCloudFilesDetailed(
 export async function uploadProjectToCloud(
   config: CosConfig,
   prefix: string,
-  files: { path: string, content: string }[],
+  files: { path: string, content: Blob | string }[],
 ): Promise<SyncResult> {
   const result: SyncResult = { uploaded: 0, downloaded: 0, failed: [] }
 

@@ -1,0 +1,6 @@
+{
+  "read": "doc.published == true || auth.uid == doc.ownerId",
+  "create": "auth.uid != null && request.data.ownerId == auth.uid",
+  "update": "auth.uid != null && doc.ownerId == auth.uid && request.data.ownerId == auth.uid",
+  "delete": "auth.uid != null && doc.ownerId == auth.uid"
+}

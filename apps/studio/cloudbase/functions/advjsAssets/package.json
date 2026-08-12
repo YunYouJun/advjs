@@ -3,10 +3,13 @@
   "type": "commonjs",
   "version": "1.0.0",
   "private": true,
-  "description": "Managed ADV.JS asset upload reservations and verified catalog records.",
+  "description": "Owner-scoped AdvJS asset upload, catalog, and preview authority.",
   "main": "index.js",
+  "scripts": {
+    "test": "node --test test/*.node.cjs"
+  },
   "dependencies": {
-    "@cloudbase/node-sdk": "catalog:",
-    "cos-nodejs-sdk-v5": "catalog:"
+    "@cloudbase/node-sdk": "3.18.3",
+    "cos-nodejs-sdk-v5": "2.16.0-beta.9"
   }
 }

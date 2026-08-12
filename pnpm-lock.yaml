@@ -265,12 +265,6 @@ catalogs:
     '@yunyoujun/docs':
       specifier: ^0.1.14
       version: 0.1.14
-    ajv:
-      specifier: ^8.20.0
-      version: 8.20.0
-    ajv-formats:
-      specifier: ^3.0.1
-      version: 3.0.1
     axios:
       specifier: ^1.18.1
       version: 1.18.1
@@ -358,9 +352,6 @@ catalogs:
     vitepress-plugin-mermaid:
       specifier: ^2.0.17
       version: 2.0.17
-    wrangler:
-      specifier: 4.120.1
-      version: 4.120.1
     y-indexeddb:
       specifier: ^9.0.12
       version: 9.0.12
@@ -370,9 +361,6 @@ catalogs:
     y-protocols:
       specifier: ^1.0.7
       version: 1.0.7
-    yaml:
-      specifier: ^2.9.0
-      version: 2.9.0
     yjs:
       specifier: ^13.6.31
       version: 13.6.31
@@ -769,12 +757,6 @@ importers:
       advjs:
         specifier: workspace:*
         version: link:packages/advjs
-      ajv:
-        specifier: 'catalog:'
-        version: 8.20.0
-      ajv-formats:
-        specifier: 'catalog:'
-        version: 3.0.1(ajv@8.20.0)
       bumpp:
         specifier: catalog:utils
         version: 11.1.0
@@ -829,9 +811,6 @@ importers:
       vue-tsc:
         specifier: catalog:dev
         version: 3.3.5(typescript@5.9.3)
-      yaml:
-        specifier: 'catalog:'
-        version: 2.9.0
 
   apps/studio:
     dependencies:
@@ -847,9 +826,6 @@ importers:
       '@advjs/parser':
         specifier: workspace:*
         version: link:../../packages/parser
-      '@advjs/plugin-interactions':
-        specifier: workspace:*
-        version: link:../../plugins/plugin-interactions
       '@advjs/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -1011,10 +987,10 @@ importers:
   apps/studio/cloudbase/functions/advjsAssets:
     dependencies:
       '@cloudbase/node-sdk':
-        specifier: 'catalog:'
+        specifier: 3.18.3
         version: 3.18.3(ws@8.21.0(bufferutil@4.1.0))
       cos-nodejs-sdk-v5:
-        specifier: 'catalog:'
+        specifier: 2.16.0-beta.9
         version: 2.16.0-beta.9
 
   apps/studio/cloudbase/functions/marketStats:
@@ -1065,21 +1041,6 @@ importers:
         specifier: catalog:dev
         version: 3.1.14
 
-  demo/hamster:
-    devDependencies:
-      '@advjs/plugin-interactions':
-        specifier: workspace:*
-        version: link:../../plugins/plugin-interactions
-      '@advjs/theme-default':
-        specifier: workspace:*
-        version: link:../../themes/theme-default
-      advjs:
-        specifier: workspace:*
-        version: link:../../packages/advjs
-      cross-env:
-        specifier: catalog:utils
-        version: 10.1.0
-
   demo/love:
     devDependencies:
       '@advjs/theme-default':
@@ -1097,12 +1058,30 @@ importers:
 
   demo/starter:
     devDependencies:
+      '@advjs/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@advjs/devtools':
+        specifier: workspace:*
+        version: link:../../packages/devtools
+      '@advjs/plugin-babylon':
+        specifier: workspace:*
+        version: link:../../plugins/plugin-babylon
+      '@advjs/plugin-interactions':
+        specifier: workspace:*
+        version: link:../../plugins/plugin-interactions
       '@advjs/theme-default':
         specifier: workspace:*
         version: link:../../themes/theme-default
       advjs:
         specifier: workspace:*
         version: link:../../packages/advjs
+      https-localhost:
+        specifier: catalog:dev
+        version: 4.7.1
+      nodemon:
+        specifier: catalog:dev
+        version: 3.1.14
 
   demo/use-dialog-box:
     dependencies:
@@ -1169,70 +1148,22 @@ importers:
         version: 2.0.17(mermaid@11.16.0)(vitepress@2.0.0-alpha.17(@types/node@26.0.1)(axios@1.18.1)(change-case@5.4.4)(esbuild@0.28.1)(fuse.js@7.4.2)(jiti@2.7.0)(nprogress@0.2.0)(oxc-minify@0.133.0)(postcss@8.5.15)(qrcode@1.5.4)(sass@1.101.0)(sortablejs@1.15.7)(terser@5.48.0)(tsx@4.22.4)(typescript@5.9.3)(yaml@2.9.0))
 
   editor/core:
-    devDependencies:
-      '@advjs/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@advjs/gui':
-        specifier: workspace:*
-        version: link:../../packages/gui
+    dependencies:
       '@dagrejs/dagre':
         specifier: 'catalog:'
         version: 2.0.4
       '@google/model-viewer':
         specifier: catalog:frontend
         version: 4.3.1(three@0.172.0)
-      '@iconify-json/carbon':
-        specifier: catalog:icons
-        version: 1.2.23
-      '@iconify-json/ep':
-        specifier: catalog:icons
-        version: 1.2.4
-      '@iconify-json/mdi':
-        specifier: catalog:icons
-        version: 1.2.3
-      '@iconify-json/ri':
-        specifier: catalog:icons
-        version: 1.2.10
-      '@iconify-json/svg-spinners':
-        specifier: catalog:icons
-        version: 1.2.4
-      '@iconify-json/twemoji':
-        specifier: catalog:icons
-        version: 1.2.5
       '@larksuiteoapi/node-sdk':
         specifier: 'catalog:'
         version: 1.68.0(bufferutil@4.1.0)
-      '@nuxt/devtools':
-        specifier: catalog:build
-        version: 3.2.4(bufferutil@4.1.0)(vite@8.1.0(@types/node@26.0.1)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
-      '@nuxtjs/color-mode':
-        specifier: catalog:build
-        version: 4.0.1(magicast@0.5.3)
-      '@nuxtjs/i18n':
-        specifier: 'catalog:'
-        version: 10.4.0(db0@0.3.4)(esbuild@0.28.1)(eslint@10.6.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rolldown@1.1.3)(rollup@4.62.2)(typescript@5.9.3)(vite@8.1.0(@types/node@26.0.1)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))(webpack@5.105.4(esbuild@0.28.1)(postcss@8.5.15))
       '@octokit/core':
         specifier: 'catalog:'
         version: 7.0.6
       '@octokit/rest':
         specifier: 'catalog:'
         version: 22.0.1
-      '@pinia/nuxt':
-        specifier: catalog:build
-        version: 0.11.3(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))
-      '@types/qrcode':
-        specifier: catalog:types
-        version: 1.5.6
-      '@unocss/eslint-config':
-        specifier: catalog:build
-        version: 66.7.3(eslint@10.6.0(jiti@2.7.0))(typescript@5.9.3)
-      '@unocss/nuxt':
-        specifier: catalog:build
-        version: 66.7.3(esbuild@0.28.1)(magicast@0.5.3)(rolldown@1.1.3)(rollup@4.62.2)(vite@8.1.0(@types/node@26.0.1)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))(webpack@5.105.4(esbuild@0.28.1)(postcss@8.5.15))
-      '@vite-pwa/nuxt':
-        specifier: catalog:build
-        version: 1.1.1(magicast@0.5.3)(vite@8.1.0(@types/node@26.0.1)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))(workbox-build@7.4.0)(workbox-window@7.4.0)
       '@vue-flow/background':
         specifier: 'catalog:'
         version: 1.3.2(@vue-flow/core@1.48.2(vue@3.5.39(typescript@5.9.3)))(vue@3.5.39(typescript@5.9.3))
@@ -1251,15 +1182,73 @@ importers:
       '@vueuse/core':
         specifier: catalog:frontend
         version: 14.3.0(vue@3.5.39(typescript@5.9.3))
+      cos-js-sdk-v5:
+        specifier: 'catalog:'
+        version: 1.10.1
+      pixi-painter:
+        specifier: catalog:frontend
+        version: 0.1.6-beta.1(@pixi/core@7.3.3)
+      qrcode:
+        specifier: 'catalog:'
+        version: 1.5.4
+      ua-parser-js:
+        specifier: 'catalog:'
+        version: 2.0.10
+    devDependencies:
+      '@advjs/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@advjs/gui':
+        specifier: workspace:*
+        version: link:../../packages/gui
+      '@iconify-json/carbon':
+        specifier: catalog:icons
+        version: 1.2.23
+      '@iconify-json/ep':
+        specifier: catalog:icons
+        version: 1.2.4
+      '@iconify-json/mdi':
+        specifier: catalog:icons
+        version: 1.2.3
+      '@iconify-json/ri':
+        specifier: catalog:icons
+        version: 1.2.10
+      '@iconify-json/svg-spinners':
+        specifier: catalog:icons
+        version: 1.2.4
+      '@iconify-json/twemoji':
+        specifier: catalog:icons
+        version: 1.2.5
+      '@nuxt/devtools':
+        specifier: catalog:build
+        version: 3.2.4(bufferutil@4.1.0)(vite@8.1.0(@types/node@26.0.1)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
+      '@nuxtjs/color-mode':
+        specifier: catalog:build
+        version: 4.0.1(magicast@0.5.3)
+      '@nuxtjs/i18n':
+        specifier: 'catalog:'
+        version: 10.4.0(db0@0.3.4)(esbuild@0.28.1)(eslint@10.6.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rolldown@1.1.3)(rollup@4.62.2)(typescript@5.9.3)(vite@8.1.0(@types/node@26.0.1)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))(webpack@5.105.4(esbuild@0.28.1)(postcss@8.5.15))
+      '@pinia/nuxt':
+        specifier: catalog:build
+        version: 0.11.3(magicast@0.5.3)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))
+      '@types/qrcode':
+        specifier: catalog:types
+        version: 1.5.6
+      '@unocss/eslint-config':
+        specifier: catalog:build
+        version: 66.7.3(eslint@10.6.0(jiti@2.7.0))(typescript@5.9.3)
+      '@unocss/nuxt':
+        specifier: catalog:build
+        version: 66.7.3(esbuild@0.28.1)(magicast@0.5.3)(rolldown@1.1.3)(rollup@4.62.2)(vite@8.1.0(@types/node@26.0.1)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))(webpack@5.105.4(esbuild@0.28.1)(postcss@8.5.15))
+      '@vite-pwa/nuxt':
+        specifier: catalog:build
+        version: 1.1.1(magicast@0.5.3)(vite@8.1.0(@types/node@26.0.1)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))(workbox-build@7.4.0)(workbox-window@7.4.0)
       '@vueuse/nuxt':
         specifier: catalog:build
         version: 14.3.0(magicast@0.5.3)(nuxt@4.4.8(@babel/plugin-proposal-decorators@7.29.7(@babel/core@7.29.7))(@babel/plugin-syntax-jsx@7.29.7(@babel/core@7.29.7))(@babel/plugin-syntax-typescript@7.29.7(@babel/core@7.29.7))(@parcel/watcher@2.5.6)(@types/node@26.0.1)(@vue/compiler-sfc@3.5.39)(bufferutil@4.1.0)(cac@6.7.14)(db0@0.3.4)(esbuild@0.28.1)(eslint@10.6.0(jiti@2.7.0))(ioredis@5.11.1)(magicast@0.5.3)(meow@13.2.0)(optionator@0.9.4)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rolldown@1.1.3)(rollup-plugin-visualizer@7.0.1(rolldown@1.1.3)(rollup@4.62.2))(rollup@4.62.2)(sass@1.101.0)(srvx@0.11.17)(terser@5.48.0)(tsx@4.22.4)(typescript@5.9.3)(vite@8.1.0(@types/node@26.0.1)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))(vue-tsc@3.3.5(typescript@5.9.3))(webpack@5.105.4(esbuild@0.28.1)(postcss@8.5.15))(xml2js@0.6.2)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))
       consola:
         specifier: catalog:cli
         version: 3.4.2
-      cos-js-sdk-v5:
-        specifier: 'catalog:'
-        version: 1.10.1
       honeycomb-grid:
         specifier: catalog:utils
         version: 4.1.5
@@ -1278,18 +1267,9 @@ importers:
       pinia:
         specifier: catalog:frontend
         version: 3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3))
-      pixi-painter:
-        specifier: catalog:frontend
-        version: 0.1.6-beta.1(@pixi/core@7.3.3)
-      qrcode:
-        specifier: 'catalog:'
-        version: 1.5.4
       simple-git:
         specifier: 'catalog:'
         version: 3.36.0
-      ua-parser-js:
-        specifier: 'catalog:'
-        version: 2.0.10
 
   editor/vrm:
     dependencies:
@@ -1400,25 +1380,19 @@ importers:
   packages/advjs:
     dependencies:
       '@advjs/client':
-        specifier: workspace:0.1.2
+        specifier: workspace:*
         version: link:../client
       '@advjs/core':
-        specifier: workspace:0.1.2
+        specifier: workspace:*
         version: link:../core
       '@advjs/devtools':
-        specifier: workspace:0.1.2
+        specifier: workspace:*
         version: link:../devtools
-      '@advjs/editor':
-        specifier: workspace:0.1.2
-        version: link:../../editor/core
       '@advjs/parser':
-        specifier: workspace:0.1.2
+        specifier: workspace:*
         version: link:../parser
-      '@advjs/theme-default':
-        specifier: workspace:0.1.2
-        version: link:../../themes/theme-default
       '@advjs/types':
-        specifier: workspace:0.1.2
+        specifier: workspace:*
         version: link:../types
       '@antfu/ni':
         specifier: catalog:utils
@@ -1525,9 +1499,6 @@ importers:
       vue-router:
         specifier: catalog:frontend
         version: 5.1.0(@vue/compiler-sfc@3.5.39)(esbuild@0.28.1)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rolldown@1.1.3)(rollup@4.62.2)(vite@8.1.0(@types/node@26.0.1)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))(webpack@5.105.4(esbuild@0.28.1)(postcss@8.5.15))
-      wrangler:
-        specifier: 'catalog:'
-        version: 4.120.1(bufferutil@4.1.0)
       yargs:
         specifier: catalog:cli
         version: 18.0.0
@@ -1600,23 +1571,17 @@ importers:
   packages/client:
     dependencies:
       '@advjs/core':
-        specifier: workspace:0.1.2
+        specifier: workspace:*
         version: link:../core
       '@advjs/parser':
-        specifier: workspace:0.1.2
+        specifier: workspace:*
         version: link:../parser
       '@advjs/types':
-        specifier: workspace:0.1.2
+        specifier: workspace:*
         version: link:../types
-      '@advjs/unocss':
-        specifier: workspace:0.1.2
-        version: link:../unocss
       '@antfu/utils':
         specifier: catalog:utils
         version: 9.3.0
-      '@dagrejs/dagre':
-        specifier: 'catalog:'
-        version: 2.0.4
       '@iconify-json/carbon':
         specifier: catalog:icons
         version: 1.2.23
@@ -1629,15 +1594,6 @@ importers:
       '@unhead/vue':
         specifier: catalog:frontend
         version: 2.1.15(vue@3.5.39(typescript@5.9.3))
-      '@unocss/reset':
-        specifier: catalog:frontend
-        version: 66.7.3
-      '@vue-flow/background':
-        specifier: 'catalog:'
-        version: 1.3.2(@vue-flow/core@1.48.2(vue@3.5.39(typescript@5.9.3)))(vue@3.5.39(typescript@5.9.3))
-      '@vue-flow/core':
-        specifier: catalog:frontend
-        version: 1.48.2(vue@3.5.39(typescript@5.9.3))
       '@vueuse/core':
         specifier: catalog:frontend
         version: 14.3.0(vue@3.5.39(typescript@5.9.3))
@@ -1656,9 +1612,6 @@ importers:
       dayjs:
         specifier: catalog:utils
         version: 1.11.21
-      defu:
-        specifier: catalog:utils
-        version: 6.1.7
       howler:
         specifier: catalog:frontend
         version: 2.2.4
@@ -1680,9 +1633,6 @@ importers:
       swiper:
         specifier: catalog:frontend
         version: 12.2.0
-      unocss:
-        specifier: catalog:build
-        version: 66.7.3(@unocss/webpack@66.7.3(esbuild@0.28.1)(rolldown@1.1.3)(rollup@4.62.2)(vite@8.1.0(@types/node@26.0.1)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))(webpack@5.105.4(esbuild@0.28.1)))(vite@8.1.0(@types/node@26.0.1)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))
       unstorage:
         specifier: catalog:utils
         version: 1.17.5(db0@0.3.4)(ioredis@5.11.1)
@@ -1700,10 +1650,10 @@ importers:
   packages/core:
     dependencies:
       '@advjs/parser':
-        specifier: workspace:0.1.2
+        specifier: workspace:*
         version: link:../parser
       '@advjs/types':
-        specifier: workspace:0.1.2
+        specifier: workspace:*
         version: link:../types
       '@types/mdast':
         specifier: catalog:types
@@ -1811,16 +1761,16 @@ importers:
   packages/mcp-server:
     dependencies:
       '@advjs/core':
-        specifier: workspace:0.1.2
+        specifier: workspace:*
         version: link:../core
       '@advjs/parser':
-        specifier: workspace:0.1.2
+        specifier: workspace:*
         version: link:../parser
       '@modelcontextprotocol/sdk':
         specifier: catalog:cli
         version: 1.29.0(zod@4.4.3)
       advjs:
-        specifier: workspace:0.1.2
+        specifier: workspace:*
         version: link:../advjs
       zod:
         specifier: 'catalog:'
@@ -1833,10 +1783,10 @@ importers:
   packages/parser:
     dependencies:
       '@advjs/types':
-        specifier: workspace:0.1.2
+        specifier: workspace:*
         version: link:../types
       '@advjs/unocss':
-        specifier: workspace:0.1.2
+        specifier: workspace:*
         version: link:../unocss
       '@types/mdast':
         specifier: catalog:types
@@ -1997,11 +1947,10 @@ importers:
         version: 5.1.0(@vue/compiler-sfc@3.5.39)(esbuild@0.28.1)(pinia@3.0.4(typescript@5.9.3)(vue@3.5.39(typescript@5.9.3)))(rolldown@1.1.3)(rollup@4.62.2)(vite@8.1.0(@types/node@26.0.1)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))(vue@3.5.39(typescript@5.9.3))(webpack@5.105.4(esbuild@0.28.1))
 
   packages/unocss:
-    dependencies:
+    devDependencies:
       defu:
         specifier: catalog:utils
         version: 6.1.7
-    devDependencies:
       unocss:
         specifier: catalog:build
         version: 66.7.3(@unocss/webpack@66.7.3(esbuild@0.28.1)(rolldown@1.1.3)(rollup@4.62.2)(vite@8.1.0(@types/node@26.0.1)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))(webpack@5.105.4(esbuild@0.28.1)))(vite@8.1.0(@types/node@26.0.1)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))
@@ -2263,24 +2212,12 @@ importers:
         specifier: workspace:*
         version: link:../../packages/types
     devDependencies:
-      '@advjs/client':
-        specifier: workspace:*
-        version: link:../../packages/client
-      '@vue/test-utils':
-        specifier: catalog:test
-        version: 2.4.11(@vue/compiler-dom@3.5.39)(@vue/server-renderer@3.5.39(vue@3.5.39(typescript@5.9.3)))(vue@3.5.39(typescript@5.9.3))
-      jsdom:
-        specifier: 'catalog:'
-        version: 29.1.1
       unbuild:
         specifier: catalog:build
         version: 3.6.1(sass@1.101.0)(typescript@5.9.3)(vue-tsc@3.3.5(typescript@5.9.3))(vue@3.5.39(typescript@5.9.3))
       vitest:
         specifier: catalog:test
         version: 4.1.9(@types/node@26.0.1)(@vitest/ui@4.1.9)(jsdom@29.1.1)(msw@2.14.6(@types/node@26.0.1)(typescript@5.9.3))(vite@8.1.0(@types/node@26.0.1)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.101.0)(terser@5.48.0)(tsx@4.22.4)(yaml@2.9.0))
-      vue:
-        specifier: catalog:frontend
-        version: 3.5.39(typescript@5.9.3)
 
   plugins/plugin-obs:
     dependencies:
@@ -2378,10 +2315,10 @@ importers:
         version: 1.2.10
     devDependencies:
       '@advjs/core':
-        specifier: workspace:0.1.2
+        specifier: workspace:*
         version: link:../../packages/core
       advjs:
-        specifier: workspace:0.1.2
+        specifier: workspace:*
         version: link:../../packages/advjs
 
   themes/theme-pominis:
@@ -3357,49 +3294,6 @@ packages:
   '@cloudflare/kv-asset-handler@0.4.2':
     resolution: {integrity: sha512-SIOD2DxrRRwQ+jgzlXCqoEFiKOFqaPjhnNTGKXSRLvp1HiOvapLaFG2kEr9dYQTYe8rKrd9uvDUzmAITeNyaHQ==}
     engines: {node: '>=18.0.0'}
-
-  '@cloudflare/kv-asset-handler@0.5.0':
-    resolution: {integrity: sha512-jxQYkj8dSIzc0cD6cMMNdOc1UVjqSqu8BZdor5s8cGjW2I8BjODt/kWPVdY+u9zj3ms75Q5qaZgnxUad83+eAg==}
-    engines: {node: '>=22.0.0'}
-
-  '@cloudflare/unenv-preset@2.16.1':
-    resolution: {integrity: sha512-ECxObrMfyTl5bhQf/lZCXwo5G6xX9IAUo+nDMKK4SZ8m4Jvvxp52vilxyySSWh2YTZz8+HQ07qGH/2rEom1vDw==}
-    peerDependencies:
-      unenv: 2.0.0-rc.24
-      workerd: '>1.20260305.0 <2.0.0-0'
-    peerDependenciesMeta:
-      workerd:
-        optional: true
-
-  '@cloudflare/workerd-darwin-64@1.20260804.1':
-    resolution: {integrity: sha512-191/PPEFicRK2wK69eXzSjnLgHL79k7zR2VUpyIr8rhFgGns1b5bTHgnBuUrgU2LPbEtwbE5eL2hJ0uhLAFEow==}
-    engines: {node: '>=16'}
-    cpu: [x64]
-    os: [darwin]
-
-  '@cloudflare/workerd-darwin-arm64@1.20260804.1':
-    resolution: {integrity: sha512-aI2cAFLsrNkSz3kLSQrgrO9ICTfY7jb2h0jgaWDE9mQLQQDfpXeYrKWt07tTgMmeNP79o9w3NZe3aqtt8mTGHQ==}
-    engines: {node: '>=16'}
-    cpu: [arm64]
-    os: [darwin]
-
-  '@cloudflare/workerd-linux-64@1.20260804.1':
-    resolution: {integrity: sha512-KBCjxBIlN2jucfQGaTK4EgmPsWzQgYR/zYhPfi3mkWwdoTyG1dgrt2aizKps/SYse85ci/SOxojKk0/K7vstPw==}
-    engines: {node: '>=16'}
-    cpu: [x64]
-    os: [linux]
-
-  '@cloudflare/workerd-linux-arm64@1.20260804.1':
-    resolution: {integrity: sha512-7lswfarBZ7xkHpTFrNb74ExwOltIalVaASc+GOYfCNtnwFxK/JZSVByfm/hnZEBtrHU7fMY2z7dYT64rwS0pHg==}
-    engines: {node: '>=16'}
-    cpu: [arm64]
-    os: [linux]
-
-  '@cloudflare/workerd-windows-64@1.20260804.1':
-    resolution: {integrity: sha512-GOgRWYtxISN5rAWfx3K7zubt3xEn0/ZPFrbcLL+GwT4ouCKyNoHqfT1cPNB6Nx7t8BHEjnuTG7gkHO4Wd5ORdg==}
-    engines: {node: '>=16'}
-    cpu: [x64]
-    os: [win32]
 
   '@colordx/core@5.5.0':
     resolution: {integrity: sha512-3PxTH8itZzltK0U9jTwVVnjLXvnDYuq3m+QXsHkENxWiPRh4WaoLcs1SQjqgZ55kS+QyirpH5BVwzP2gMVG6EQ==}
@@ -5908,9 +5802,6 @@ packages:
   '@poppinss/colors@4.1.6':
     resolution: {integrity: sha512-H9xkIdFswbS8n1d6vmRd8+c10t2Qe+rZITbbDHHkQixH5+2x1FDGmi/0K+WgWiqQFKPSlIYB7jlH6Kpfn6Fleg==}
 
-  '@poppinss/dumper@0.6.5':
-    resolution: {integrity: sha512-NBdYIb90J7LfOI32dOewKI1r7wnkiH6m920puQ3qHUeZkxNkQiFnXVWoE6YtFSv6QOiPPf7ys6i+HWWecDz7sw==}
-
   '@poppinss/dumper@0.7.0':
     resolution: {integrity: sha512-0UTYalzk2t6S4rA2uHOz5bSSW2CHdv4vggJI6Alg90yvl0UgXs6XSXpH96OH+bRkX4J/06djv29pqXJ0lq5Kag==}
 
@@ -7932,9 +7823,6 @@ packages:
 
   bl@4.1.0:
     resolution: {integrity: sha512-1W07cM9gS6DcLperZfFSj+bWLtaPGSOHWhPiGzXmvVJbRLdG82sH/Kn8EtW1VqWVA54AKf2h5k5BbnIbwF3h6w==}
-
-  blake3-wasm@2.1.5:
-    resolution: {integrity: sha512-F1+K8EbfOZE49dtoPtmxUQrpXaBIl3ICvasLh+nJta0xkz+9kF/7uet9fLnwKqhDrmj6g+6K3Tw9yQPUg2ka5g==}
 
   bluebird@3.7.2:
     resolution: {integrity: sha512-XpNj6GDQzdfW+r2Wnn7xiSAd7TM3jzkxGXBGTtWKuSXv1xUV+azxAm8jdWZN06QTQk+2N2XB9jRDkvbmQmcRtg==}
@@ -11341,10 +11229,6 @@ packages:
     resolution: {integrity: sha512-I9jwMn07Sy/IwOj3zVkVik2JTvgpaykDZEigL6Rx6N9LbMywwUSMtxET+7lVoDLLd3O3IXwJwvuuns8UB/HeAg==}
     engines: {node: '>=4'}
 
-  miniflare@5.20260804.0-alpha:
-    resolution: {integrity: sha512-UDegnTukIpJCI/lNyQXU7B8kYFLcMZihlxqqOocnc62tV8AO6XofmFmZm3ZLDXTWZpkZnLLJ2sKCSlTIEXO3dQ==}
-    engines: {node: '>=22.0.0'}
-
   minimalistic-assert@1.0.1:
     resolution: {integrity: sha512-UtJcAD4yEaGtjPezWuO9wC4nwUnVH/8/Im3yEHQP4b67cXlD/Qr9hdITCU1xDbSEXg2XKNaP8jsReV7vQd00/A==}
 
@@ -13865,10 +13749,6 @@ packages:
     resolution: {integrity: sha512-cRZYrTDwWznlnRiPjggAGxZXanty6M8RV1ff8Wm4LWXBp7/IG8v5DnOm74DtUBp9OONpK75YlPnIjQqX0dBDtA==}
     engines: {node: '>=20.18.1'}
 
-  undici@7.29.0:
-    resolution: {integrity: sha512-IDxfleLmmbSskfWSUATiN1nfn2rDuvnMOqb5CWR92iIfojA0Ud+ulOAAEQ57LPr9rWmsreUyf5lwyao+7GNNVw==}
-    engines: {node: '>=20.18.1'}
-
   unenv@2.0.0-rc.24:
     resolution: {integrity: sha512-i7qRCmY42zmCwnYlh9H2SvLEypEFGye5iRmEMKjcGi7zk9UquigRjFtTLz0TYqr0ZGLZhaMHl/foy1bZR+Cwlw==}
 
@@ -14738,21 +14618,6 @@ packages:
   workbox-window@7.4.0:
     resolution: {integrity: sha512-/bIYdBLAVsNR3v7gYGaV4pQW3M3kEPx5E8vDxGvxo6khTrGtSSCS7QiFKv9ogzBgZiy0OXLP9zO28U/1nF1mfw==}
 
-  workerd@1.20260804.1:
-    resolution: {integrity: sha512-b0P38g5/ssemwWxd/mafNYggEZ0ere7PCiUH6RCHkgqjRhhXTP45nDiL2L3iIvi8uF2IjNrGpVgMXEunCaeY/w==}
-    engines: {node: '>=16'}
-    hasBin: true
-
-  wrangler@4.120.1:
-    resolution: {integrity: sha512-rQJ38rY02XiVITbSBWHC7oap3M2evcXgsC4CdlIX4WQENUZMMnue9j2vXO4aIi39KR+jDH+UHK8JNqp1+UjkRQ==}
-    engines: {node: '>=22.0.0'}
-    hasBin: true
-    peerDependencies:
-      '@cloudflare/workers-types': ^5.20260804.1
-    peerDependenciesMeta:
-      '@cloudflare/workers-types':
-        optional: true
-
   wrap-ansi@10.0.0:
     resolution: {integrity: sha512-SGcvg80f0wUy2/fXES19feHMz8E0JoXv2uNgHOu4Dgi2OrCy1lqwFYEJz1BLbDI0exjPMe/ZdzZ/YpGECBG/aQ==}
     engines: {node: '>=20'}
@@ -14957,9 +14822,6 @@ packages:
 
   youch-core@0.3.3:
     resolution: {integrity: sha512-ho7XuGjLaJ2hWHoK8yFnsUGy2Y5uDpqSTq1FkHLK4/oqKtyUU1AFbOOxY4IpC9f0fTLjwYbslUz0Po5BpD1wrA==}
-
-  youch@4.1.0-beta.10:
-    resolution: {integrity: sha512-rLfVLB4FgQneDr0dv1oddCVZmKjcJ6yX6mS4pU82Mq/Dt9a3cLZQ62pDBL4AUO+uVrCvtWz3ZFUL2HFAFJ/BXQ==}
 
   youch@4.1.1:
     resolution: {integrity: sha512-mxW3qiSnl+GRxXsaUMzv2Mbada1Y8CDltET9UxejDQe6DBYlSekghl5U5K0ReAikcHDi0G1vKZEmmo/NWAGKLA==}
@@ -16357,29 +16219,6 @@ snapshots:
 
   '@cloudflare/kv-asset-handler@0.4.2': {}
 
-  '@cloudflare/kv-asset-handler@0.5.0': {}
-
-  '@cloudflare/unenv-preset@2.16.1(unenv@2.0.0-rc.24)(workerd@1.20260804.1)':
-    dependencies:
-      unenv: 2.0.0-rc.24
-    optionalDependencies:
-      workerd: 1.20260804.1
-
-  '@cloudflare/workerd-darwin-64@1.20260804.1':
-    optional: true
-
-  '@cloudflare/workerd-darwin-arm64@1.20260804.1':
-    optional: true
-
-  '@cloudflare/workerd-linux-64@1.20260804.1':
-    optional: true
-
-  '@cloudflare/workerd-linux-arm64@1.20260804.1':
-    optional: true
-
-  '@cloudflare/workerd-windows-64@1.20260804.1':
-    optional: true
-
   '@colordx/core@5.5.0': {}
 
   '@cspotcode/source-map-support@0.8.1':
@@ -17102,7 +16941,7 @@ snapshots:
     dependencies:
       '@ionic/utils-object': 2.1.6
       '@ionic/utils-terminal': 2.3.4
-      debug: 4.3.4
+      debug: 4.4.3(supports-color@5.5.0)
       signal-exit: 3.0.7
       tree-kill: 1.2.2
       tslib: 2.8.1
@@ -17122,7 +16961,7 @@ snapshots:
 
   '@ionic/utils-stream@3.1.6':
     dependencies:
-      debug: 4.3.4
+      debug: 4.4.3(supports-color@5.5.0)
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
@@ -17163,7 +17002,7 @@ snapshots:
   '@ionic/utils-terminal@2.3.4':
     dependencies:
       '@types/slice-ansi': 4.0.0
-      debug: 4.3.4
+      debug: 4.4.3(supports-color@5.5.0)
       signal-exit: 3.0.7
       slice-ansi: 4.0.0
       string-width: 4.2.3
@@ -18678,12 +18517,6 @@ snapshots:
   '@poppinss/colors@4.1.6':
     dependencies:
       kleur: 4.1.5
-
-  '@poppinss/dumper@0.6.5':
-    dependencies:
-      '@poppinss/colors': 4.1.6
-      '@sindresorhus/is': 7.2.0
-      supports-color: 10.2.2
 
   '@poppinss/dumper@0.7.0':
     dependencies:
@@ -21102,8 +20935,6 @@ snapshots:
       buffer: 5.7.1
       inherits: 2.0.4
       readable-stream: 3.6.2
-
-  blake3-wasm@2.1.5: {}
 
   bluebird@3.7.2: {}
 
@@ -24137,7 +23968,7 @@ snapshots:
       saxes: 6.0.0
       symbol-tree: 3.2.4
       tough-cookie: 6.0.1
-      undici: 7.29.0
+      undici: 7.28.0
       w3c-xmlserializer: 5.0.0
       webidl-conversions: 8.0.1
       whatwg-mimetype: 5.0.0
@@ -25106,18 +24937,6 @@ snapshots:
   mimic-function@5.0.1: {}
 
   min-indent@1.0.1: {}
-
-  miniflare@5.20260804.0-alpha(bufferutil@4.1.0):
-    dependencies:
-      '@cspotcode/source-map-support': 0.8.1
-      sharp: 0.33.5
-      undici: 7.29.0
-      workerd: 1.20260804.1
-      ws: 8.21.0(bufferutil@4.1.0)
-      youch: 4.1.0-beta.10
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
 
   minimalistic-assert@1.0.1: {}
 
@@ -28312,8 +28131,6 @@ snapshots:
 
   undici@7.28.0: {}
 
-  undici@7.29.0: {}
-
   unenv@2.0.0-rc.24:
     dependencies:
       pathe: 2.0.3
@@ -29797,30 +29614,6 @@ snapshots:
       '@types/trusted-types': 2.0.7
       workbox-core: 7.4.0
 
-  workerd@1.20260804.1:
-    optionalDependencies:
-      '@cloudflare/workerd-darwin-64': 1.20260804.1
-      '@cloudflare/workerd-darwin-arm64': 1.20260804.1
-      '@cloudflare/workerd-linux-64': 1.20260804.1
-      '@cloudflare/workerd-linux-arm64': 1.20260804.1
-      '@cloudflare/workerd-windows-64': 1.20260804.1
-
-  wrangler@4.120.1(bufferutil@4.1.0):
-    dependencies:
-      '@cloudflare/kv-asset-handler': 0.5.0
-      '@cloudflare/unenv-preset': 2.16.1(unenv@2.0.0-rc.24)(workerd@1.20260804.1)
-      blake3-wasm: 2.1.5
-      esbuild: 0.28.1
-      miniflare: 5.20260804.0-alpha(bufferutil@4.1.0)
-      path-to-regexp: 6.3.0
-      unenv: 2.0.0-rc.24
-      workerd: 1.20260804.1
-    optionalDependencies:
-      fsevents: 2.3.3
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-
   wrap-ansi@10.0.0:
     dependencies:
       ansi-styles: 6.2.3
@@ -30024,14 +29817,6 @@ snapshots:
     dependencies:
       '@poppinss/exception': 1.2.3
       error-stack-parser-es: 1.0.5
-
-  youch@4.1.0-beta.10:
-    dependencies:
-      '@poppinss/colors': 4.1.6
-      '@poppinss/dumper': 0.6.5
-      '@speed-highlight/core': 1.2.17
-      cookie: 1.1.1
-      youch-core: 0.3.3
 
   youch@4.1.1:
     dependencies:

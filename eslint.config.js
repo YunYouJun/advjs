@@ -34,7 +34,10 @@ export default antfu(
     },
   },
   {
-    files: ['apps/studio/cloud/functions/**/package.json'],
+    files: [
+      'apps/studio/cloud/functions/**/package.json',
+      'apps/studio/cloudbase/functions/**/package.json',
+    ],
     rules: {
       // CloudBase functions are not workspace packages; catalog is unavailable
       'pnpm/json-enforce-catalog': 'off',

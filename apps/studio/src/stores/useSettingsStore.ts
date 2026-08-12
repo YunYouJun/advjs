@@ -6,7 +6,9 @@ import { useAuthStore } from './useAuthStore'
 export interface CosConfig {
   bucket: string
   region: string
+  /** @deprecated Managed storage never persists browser COS credentials. */
   secretId: string
+  /** @deprecated Managed storage never persists browser COS credentials. */
   secretKey: string
   projectRoot: string
   autoSave: boolean
@@ -14,9 +16,12 @@ export interface CosConfig {
   syncInterval: number
 }
 
+const MANAGED_BUCKET = 'yunlefun-advjs-prod-1325586649'
+const MANAGED_REGION = 'ap-shanghai'
+
 const DEFAULT_COS_CONFIG: CosConfig = {
-  bucket: '',
-  region: '',
+  bucket: MANAGED_BUCKET,
+  region: MANAGED_REGION,
   secretId: '',
   secretKey: '',
   projectRoot: 'adv-projects/',
@@ -25,20 +30,16 @@ const DEFAULT_COS_CONFIG: CosConfig = {
   syncInterval: 5,
 }
 
-/** Compatibility reader that deliberately discards credentials from old releases. */
+/** Compatibility reader that drops credentials and provider overrides from old releases. */
 export function parsePersistedCosConfig(serialized: string): CosConfig {
   try {
     const parsed = JSON.parse(serialized) as Partial<CosConfig>
     return {
       ...DEFAULT_COS_CONFIG,
-      bucket: typeof parsed.bucket === 'string' ? parsed.bucket : '',
-      region: typeof parsed.region === 'string' ? parsed.region : '',
       projectRoot: typeof parsed.projectRoot === 'string' ? parsed.projectRoot : DEFAULT_COS_CONFIG.projectRoot,
       autoSave: typeof parsed.autoSave === 'boolean' ? parsed.autoSave : DEFAULT_COS_CONFIG.autoSave,
       autoSync: typeof parsed.autoSync === 'boolean' ? parsed.autoSync : DEFAULT_COS_CONFIG.autoSync,
       syncInterval: Number.isFinite(parsed.syncInterval) ? Number(parsed.syncInterval) : DEFAULT_COS_CONFIG.syncInterval,
-      secretId: '',
-      secretKey: '',
     }
   }
   catch {
@@ -46,14 +47,14 @@ export function parsePersistedCosConfig(serialized: string): CosConfig {
   }
 }
 
-/** Persist only non-sensitive legacy sync preferences. */
+/** Persist only non-sensitive managed-sync preferences. */
 export function serializeCosConfig(config: CosConfig): string {
   return JSON.stringify({
-    bucket: config.bucket,
-    region: config.region,
-    projectRoot: config.projectRoot,
     autoSave: config.autoSave,
     autoSync: config.autoSync,
+    bucket: MANAGED_BUCKET,
+    projectRoot: config.projectRoot,
+    region: MANAGED_REGION,
     syncInterval: config.syncInterval,
   })
 }
@@ -98,7 +99,7 @@ export const useSettingsStore = defineStore('settings', () => {
       const savedCos = localStorage.getItem('advjs-studio-cos')
       if (savedCos) {
         cos.value = parsePersistedCosConfig(savedCos)
-        // Rewrite once so credentials saved by older versions are actively removed.
+        // Rewrite once so credentials and provider overrides from older versions are removed.
         localStorage.setItem('advjs-studio-cos', serializeCosConfig(cos.value))
       }
     }

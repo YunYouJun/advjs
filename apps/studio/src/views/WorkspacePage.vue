@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { FSDirItem, FSFileItem } from '@advjs/gui'
+import type { IFileSystem } from '../utils/fs'
 import { AGUIAssetsExplorer, getDirItemFromHandle, getFileTypeFromPath, getIconFromFileType } from '@advjs/gui'
 import {
   actionSheetController,
@@ -250,9 +251,22 @@ function normalizeCosPrefix(projectRoot: string, projectName: string): string {
   return `${root}/${projectName}/`
 }
 
+async function collectProjectAssets(fs: IFileSystem, basePath = ''): Promise<Array<{ content: Blob, path: string }>> {
+  const files: Array<{ content: Blob, path: string }> = []
+  for (const entry of await fs.readdir(basePath)) {
+    if (entry.type === 'directory') {
+      if (!entry.name.startsWith('.') && entry.name !== 'node_modules')
+        files.push(...await collectProjectAssets(fs, entry.path))
+      continue
+    }
+    files.push({ content: await fs.readBlob(entry.path), path: entry.path })
+  }
+  return files
+}
+
 function isCosConfigured(): boolean {
-  const { bucket, region, secretId, secretKey } = settingsStore.cos
-  return !!(bucket && region && secretId && secretKey)
+  const { bucket, region } = settingsStore.cos
+  return !!(bucket && region)
 }
 
 function handleCreateFromSource() {
@@ -308,13 +322,10 @@ async function handleCreateProject(payload: { displayName: string, slug: string,
     // Auto-sync to COS if configured (non-blocking)
     if (isCosConfigured()) {
       try {
-        const fileEntries = await fs.collectAllFiles('')
-        const files = fileEntries.map(f => ({ path: f.path, content: f.content }))
+        const files = await collectProjectAssets(fs)
         const config = {
           bucket: settingsStore.cos.bucket,
           region: settingsStore.cos.region,
-          secretId: settingsStore.cos.secretId,
-          secretKey: settingsStore.cos.secretKey,
         }
         await uploadProjectToCloud(config, cosPrefix, files)
 
@@ -424,7 +435,7 @@ async function handleLoadUrl() {
 
 async function handleLoadCloud() {
   const { cos } = settingsStore
-  if (!cos.bucket || !cos.region || !cos.secretId || !cos.secretKey) {
+  if (!cos.bucket || !cos.region) {
     const toast = await toastController.create({
       message: t('projects.cosNotConfigured'),
       duration: 2500,

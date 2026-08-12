@@ -31,7 +31,8 @@ describe('studio COS settings security', () => {
 
     expect(config.secretId).toBe('')
     expect(config.secretKey).toBe('')
-    expect(config.bucket).toBe('legacy-bucket')
+    expect(config.bucket).toBe('yunlefun-advjs-prod-1325586649')
+    expect(config.region).toBe('ap-shanghai')
     expect(config.autoSave).toBe(false)
   })
 })

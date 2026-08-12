@@ -1,6 +1,7 @@
 import type { Plugin } from 'vue'
 import cloudbase from '@cloudbase/js-sdk'
 import { cloudbaseAppInjectionKey, cloudbaseAuthInjectionKey } from '../composables/useCloudbase'
+import { configureManagedCloudSync } from './cloudSync'
 
 /**
  * CloudBase Vue Plugin
@@ -20,6 +21,7 @@ export const cloudbasePlugin: Plugin = {
 
     const cloudApp = cloudbase.init({ env: envId })
     const auth = cloudApp.auth()
+    configureManagedCloudSync(cloudApp)
 
     app.provide(cloudbaseAppInjectionKey, cloudApp)
     app.provide(cloudbaseAuthInjectionKey, auth)
