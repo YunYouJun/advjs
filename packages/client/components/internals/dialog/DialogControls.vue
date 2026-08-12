@@ -1,8 +1,14 @@
 <script lang="ts" setup>
-import { useAppStore } from '@advjs/client'
+import { useAdvContext, useAppStore, useGameStore } from '@advjs/client'
 import { screenshotGame } from '../../../utils'
 
 const app = useAppStore()
+const game = useGameStore()
+const { $adv } = useAdvContext()
+
+async function quickSave() {
+  await game.saveRecord(1, $adv.runtime.snapshot())
+}
 
 async function doScreenshot() {
   screenshotGame()
@@ -15,7 +21,7 @@ function openLoadMenu() {
 
 <template>
   <div class="dialog-controls flex justify-center">
-    <AdvIconButton title="快速存档">
+    <AdvIconButton title="快速存档" @click="quickSave">
       <div i-ri-save-line />
     </AdvIconButton>
     <AdvIconButton title="截屏" @click="doScreenshot">

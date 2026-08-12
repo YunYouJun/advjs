@@ -14,7 +14,7 @@ const snapshot: RuntimeSnapshot = {
     status: 'waiting-choice',
     cursor: { chapterId: 'chapter-1', nodeId: 'choice' },
     variables: { profile: { mood: 'curious' } },
-    stage: { background: 'night.svg', bgm: 'ambient.wav', tachies: {} },
+    stage: { background: 'night.svg', bgm: 'ambient.wav', cg: '', tachies: {} },
     choices: [{
       node: { chapterId: 'chapter-1', nodeId: 'choice' },
       choiceId: 'observe',
@@ -28,7 +28,7 @@ const snapshot: RuntimeSnapshot = {
       status: 'playing',
       cursor: { chapterId: 'chapter-1', nodeId: 'line' },
       variables: {},
-      stage: { background: '', bgm: '', tachies: {} },
+      stage: { background: '', bgm: '', cg: '', tachies: {} },
       choices: [],
       visited: [],
     },

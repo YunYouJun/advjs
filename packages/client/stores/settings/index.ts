@@ -27,6 +27,7 @@ export const useSettingsStore = defineStore('@advjs/client/settings', () => {
       },
       animation: {
         duration: 1000,
+        motion: 'full',
       },
     }
     return defaultSettings

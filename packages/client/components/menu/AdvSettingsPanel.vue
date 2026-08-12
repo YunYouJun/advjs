@@ -1,0 +1,3 @@
+<template>
+  <AdvMenuPanel />
+</template>

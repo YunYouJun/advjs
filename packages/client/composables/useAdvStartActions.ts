@@ -1,6 +1,11 @@
 import { useRouter } from 'vue-router'
 import { useAppStore } from '../stores'
 
+export interface AdvStartTarget {
+  chapterId: string
+  nodeId?: string
+}
+
 /**
  * Common actions for project-defined start pages.
  *
@@ -12,7 +17,17 @@ export function useAdvStartActions() {
   const app = useAppStore()
 
   return {
-    startGame: () => router.push('/game'),
+    startGame: (target?: AdvStartTarget) => router.push({
+      path: '/game',
+      ...(target
+        ? {
+            query: {
+              chapter: target.chapterId,
+              ...(target.nodeId ? { node: target.nodeId } : {}),
+            },
+          }
+        : {}),
+    }),
     openLoadGame: () => app.toggleShowLoadMenu(),
     openFlowChart: () => router.push('/flow-chart'),
     openSettings: () => {

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { AdvMenuItemProps } from '@advjs/theme-default'
+import type { AdvMenuItemProps } from '@advjs/client'
 
 // import { useSettingsStore } from '@advjs/client'
 

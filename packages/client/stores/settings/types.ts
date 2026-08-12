@@ -9,8 +9,11 @@ export interface SettingOptions {
   speechOptions: UseSpeechSynthesisOptions
   animation: {
     duration: number
+    motion: MotionPreference
   }
 }
+
+export type MotionPreference = 'full' | 'reduced' | 'none'
 
 export type DisplayMode = 'type' | 'soft'
 export type DisplaySpeed = 'normal' | 'fast' | 'slow' | 'very_fast'

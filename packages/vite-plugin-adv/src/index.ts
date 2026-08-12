@@ -28,8 +28,9 @@ export default function advFramework(options: ResolvedAdvOptions, pluginOptions:
   ]
 
   const advVirtualLoader = createAdvVirtualLoader({
+    ...options,
     roots,
-  } as any, {})
+  }, {})
 
   return [
     createConfigPlugin(options),

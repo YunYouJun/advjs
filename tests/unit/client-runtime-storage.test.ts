@@ -40,7 +40,7 @@ function record(id: string, updatedAt: number): RuntimeSaveRecord {
         status: 'playing',
         cursor: { chapterId: 'chapter-1', nodeId: 'line' },
         variables: {},
-        stage: { background: '', bgm: '', tachies: {} },
+        stage: { background: '', bgm: '', cg: '', tachies: {} },
         choices: [],
         visited: [],
       },

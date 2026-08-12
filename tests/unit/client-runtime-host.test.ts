@@ -74,6 +74,8 @@ describe('client runtime host', () => {
     await host.next()
     host.back()
     expect(host.current.value?.id).toBe('line')
+    host.forward()
+    expect(host.current.value?.id).toBe('choice')
   })
 
   it('can replace the installed program without leaking subscriptions', async () => {

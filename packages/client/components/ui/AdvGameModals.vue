@@ -17,7 +17,7 @@ const app = useAppStore()
     v-model:open="app.menus.settings"
     @close="app.menus.settings = false"
   >
-    <AdvMenuPanel />
+    <AdvSettingsPanel />
   </AdvModal>
 
   <AdvModal

@@ -44,10 +44,6 @@ function back() {
 <template>
   <section v-if="pending" class="adv-activity" aria-live="polite">
     <div class="adv-activity__panel">
-      <p class="adv-activity__eyebrow">
-        {{ pending.type }}
-      </p>
-
       <component
         :is="renderer"
         :activity="pending"
@@ -65,7 +61,8 @@ function back() {
 <style scoped>
 .adv-activity {
   position: absolute;
-  z-index: 20;
+  /* Activities own the interaction and cover the regular HUD. */
+  z-index: 120;
   inset: 0;
   display: grid;
   place-items: center;
@@ -75,13 +72,15 @@ function back() {
 
 .adv-activity__panel {
   display: flex;
-  width: min(560px, 86vw);
+  width: min(780px, 92vw);
+  max-height: 90vh;
+  overflow: auto;
   flex-direction: column;
   gap: 1rem;
   padding: 2rem;
   border: 1px solid rgb(148 163 184 / 35%);
-  border-radius: 1rem;
-  background: rgb(15 23 42 / 94%);
+  border-radius: 0.35rem;
+  background: linear-gradient(120deg, rgb(7 10 18 / 98%), rgb(12 24 46 / 94%)), rgb(15 23 42 / 94%);
   box-shadow: 0 24px 80px rgb(0 0 0 / 45%);
   color: white;
 }
@@ -93,15 +92,16 @@ function back() {
   background: rgb(14 116 144 / 70%);
 }
 
-.adv-activity__eyebrow {
-  color: #7dd3fc;
-  font-family: monospace;
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 .adv-activity__error {
   color: #fca5a5;
+}
+
+@media (max-width: 640px) {
+  .adv-activity__panel {
+    box-sizing: border-box;
+    width: calc(100% - 2rem);
+    max-height: calc(100dvh - 2rem);
+    padding: 1.25rem;
+  }
 }
 </style>

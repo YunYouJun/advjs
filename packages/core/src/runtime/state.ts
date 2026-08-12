@@ -17,6 +17,7 @@ export function createInitialRuntimeState(program: RuntimeProgram, variables: Js
     stage: {
       background: '',
       bgm: '',
+      cg: '',
       tachies: {},
     },
     choices: [],

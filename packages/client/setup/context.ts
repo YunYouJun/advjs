@@ -1,20 +1,23 @@
-import type { CompileDiagnostic } from '@advjs/core'
-import type { RuntimeProgram } from '@advjs/types'
+import type { CompileDiagnostic, MarkdownResourceCatalog } from '@advjs/core'
+import type { AdvGameConfig, RuntimeProgram } from '@advjs/types'
 import type { Pinia } from 'pinia'
 import type { CompileClientRuntimeProgramOptions } from '../runtime'
 import type { AdvClientRuntimePlugin, AdvContext } from '../types'
-import { $t } from '@advjs/client/modules/i18n'
 import { shallowRef, watch } from 'vue'
 import { useAdvAuto, useAdvBgm, useAdvTachies } from '../composables'
 import { useAdvCharacters } from '../composables/useAdvCharacters'
 import { createAdvRuntimeHost } from '../composables/useAdvRuntime'
+import { $t } from '../modules/i18n'
 import { initPixi } from '../pixi'
 import {
   applyRuntimePresentationEffects,
   compileClientRuntimeProgram,
   createActivityRendererRegistry,
+  createBrowserGalleryController,
   createBrowserRuntimeProgression,
   syncRuntimePresentation,
+  validateSpritesheetDeclarations,
+  validateSpritesheetImages,
 } from '../runtime'
 import { useAdvStore, useAudioStore } from '../stores'
 import { ADV_RUNTIME, initGameRuntime } from '../utils'
@@ -50,6 +53,24 @@ function runtimePlugins(value: unknown): AdvClientRuntimePlugin[] {
   ))
 }
 
+function markdownResources(gameConfig: AdvGameConfig): MarkdownResourceCatalog {
+  const tachies: Record<string, string[]> = {}
+  for (const character of gameConfig.characters ?? []) {
+    const statuses = Object.keys(character.tachies ?? {})
+    for (const name of [character.id, character.name, ...(character.aliases ?? [])])
+      tachies[name] = statuses
+  }
+  const library = gameConfig.bgm?.library
+  return {
+    backgrounds: (gameConfig.scenes ?? []).map(scene => scene.id),
+    cgs: gameConfig.gallery?.items.map(item => item.id) ?? [],
+    bgms: library && typeof library === 'object' && !Array.isArray(library)
+      ? Object.keys(library)
+      : undefined,
+    tachies,
+  }
+}
+
 export function setupAdvContext(ctx: {
   config: AdvContext['config']
   gameConfig: AdvContext['gameConfig']
@@ -58,11 +79,18 @@ export function setupAdvContext(ctx: {
   fetcher?: CompileClientRuntimeProgramOptions['fetcher']
   runtimePlugins?: unknown
   progressionStorage?: Storage | false
+  galleryStorage?: Storage | false
 }) {
   const store = useAdvStore(ctx.pinia)
   const plugins = runtimePlugins(ctx.runtimePlugins)
   const activityRenderers = createActivityRendererRegistry(plugins)
   const compileDiagnostics = shallowRef<CompileDiagnostic[]>([])
+  const progressionStorage = ctx.progressionStorage === false
+    ? undefined
+    : ctx.progressionStorage ?? (typeof localStorage === 'undefined' ? undefined : localStorage)
+  const galleryStorage = ctx.galleryStorage === false
+    ? undefined
+    : ctx.galleryStorage ?? (typeof localStorage === 'undefined' ? undefined : localStorage)
   let advContext: AdvContext
 
   const runtime = createAdvRuntimeHost({
@@ -80,9 +108,17 @@ export function setupAdvContext(ctx: {
         }
       }
     },
-    onEffects(effects) {
-      if (advContext)
-        applyRuntimePresentationEffects(effects, advContext.$bgm)
+    onEffects(effects, state) {
+      if (advContext) {
+        applyRuntimePresentationEffects(
+          effects,
+          state,
+          advContext.$bgm,
+          ADV_RUNTIME,
+          ctx.gameConfig.value,
+          advContext.gallery,
+        )
+      }
     },
   })
 
@@ -96,6 +132,12 @@ export function setupAdvContext(ctx: {
     compileDiagnostics,
     activityRenderers,
     resources: ADV_RUNTIME,
+    progression: ctx.gameConfig.value.progression && progressionStorage
+      ? createBrowserRuntimeProgression(ctx.gameConfig.value.progression, { storage: progressionStorage })
+      : undefined,
+    gallery: ctx.gameConfig.value.gallery && galleryStorage
+      ? createBrowserGalleryController(ctx.gameConfig.value.gallery, { storage: galleryStorage })
+      : undefined,
 
     async init() {
       compileDiagnostics.value = []
@@ -105,18 +147,29 @@ export function setupAdvContext(ctx: {
         chapters: ctx.gameConfig.value.chapters,
         fetcher: ctx.fetcher,
         requiredPlugins: ctx.gameConfig.value.requiredPlugins,
+        resources: markdownResources(ctx.gameConfig.value),
       })
-      compileDiagnostics.value = structuredClone(result.diagnostics)
-      if (!result.program)
-        throw compilerError(result.diagnostics)
+      const spritesheetDiagnostics = [
+        ...validateSpritesheetDeclarations(ctx.gameConfig.value),
+        ...await validateSpritesheetImages(ctx.gameConfig.value),
+      ]
+      compileDiagnostics.value = structuredClone([...result.diagnostics, ...spritesheetDiagnostics])
+      const errors = compileDiagnostics.value.filter(item => item.severity === 'error')
+      if (!result.program || errors.length > 0)
+        throw compilerError(errors.length > 0 ? errors : result.diagnostics)
 
       const progressionConfig = ctx.gameConfig.value.progression
-      const progressionStorage = ctx.progressionStorage === false
-        ? undefined
-        : ctx.progressionStorage ?? (typeof localStorage === 'undefined' ? undefined : localStorage)
-      advContext.progression = progressionConfig && progressionStorage
-        ? createBrowserRuntimeProgression(progressionConfig, { storage: progressionStorage })
-        : undefined
+      if (progressionConfig && progressionStorage) {
+        const expectedKey = `advjs:progression:${encodeURIComponent(progressionConfig.id)}:v${progressionConfig.version ?? 1}`
+        if (advContext.progression?.storageKey !== expectedKey)
+          advContext.progression = createBrowserRuntimeProgression(progressionConfig, { storage: progressionStorage })
+      }
+      const galleryConfig = ctx.gameConfig.value.gallery
+      if (galleryConfig && galleryStorage) {
+        const expectedKey = `advjs:gallery:${encodeURIComponent(galleryConfig.id)}:v${galleryConfig.version ?? 1}`
+        if (advContext.gallery?.storageKey !== expectedKey)
+          advContext.gallery = createBrowserGalleryController(galleryConfig, { storage: galleryStorage })
+      }
       const initialVariables = advContext.progression
         ? advContext.progression.restore(ctx.gameConfig.value.variables ?? {})
         : ctx.gameConfig.value.variables

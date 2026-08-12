@@ -7,6 +7,23 @@ export {
   RuntimeExpressionError,
 } from './expression'
 export {
+  AdvMarkdownRuntimeError,
+  createAdvMarkdownRuntime,
+} from './markdown'
+export type {
+  AdvMarkdownRuntimeDiagnostic,
+  AdvMarkdownRuntimeOptions,
+  AdvMarkdownRuntimeResult,
+} from './markdown'
+export {
+  applyRuntimeStageOperation,
+  derivePresentationState,
+} from './presentation'
+export type {
+  RuntimePresentationDerivation,
+  RuntimePresentationDiagnostic,
+} from './presentation'
+export {
   createRuntimeRegistry,
   defineAdvPlugin,
   validateRuntimeProgramPlugins,

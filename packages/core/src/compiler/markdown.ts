@@ -26,6 +26,15 @@ export interface MarkdownProgramSource {
   id: string
   chapters: MarkdownChapterSource[]
   requiredPlugins?: Record<string, string>
+  resources?: MarkdownResourceCatalog
+}
+
+export interface MarkdownResourceCatalog {
+  backgrounds?: string[]
+  bgms?: string[]
+  cgs?: string[]
+  /** Character id/name/alias to available tachie statuses. */
+  tachies?: Record<string, string[]>
 }
 
 function phrasingText(children: Array<AdvAst.PhrasingContent | AdvAst.Dialog>): string {
@@ -45,6 +54,165 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 const capabilityPattern = /^[a-z][a-z0-9-]*\/[a-z][a-z0-9-]*$/u
+const transitionPresets = new Set([
+  'cut',
+  'crossfade',
+  'fade',
+  'dissolve',
+  'wipe-left',
+  'wipe-right',
+  'rise',
+  'flash-white',
+])
+
+function validateDuration(
+  value: unknown,
+  diagnostics: CompileDiagnostic[],
+  source: CompileSourceLocation | undefined,
+): void {
+  if (value === undefined)
+    return
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > 60_000) {
+    diagnostics.push({
+      code: 'ADV_RUNTIME_INVALID_TRANSITION_DURATION',
+      severity: 'error',
+      message: 'Transition duration must be a finite number between 0 and 60000 milliseconds',
+      source,
+    })
+  }
+}
+
+function validateTransition(
+  value: unknown,
+  diagnostics: CompileDiagnostic[],
+  source: CompileSourceLocation | undefined,
+): void {
+  const name = typeof value === 'string'
+    ? value
+    : isRecord(value) && typeof value.name === 'string'
+      ? value.name
+      : undefined
+  if (!name || !transitionPresets.has(name)) {
+    diagnostics.push({
+      code: 'ADV_RUNTIME_UNKNOWN_TRANSITION',
+      severity: 'error',
+      message: `Unknown scene transition: ${name ?? String(value)}`,
+      source,
+    })
+  }
+  if (isRecord(value))
+    validateDuration(value.duration, diagnostics, source)
+}
+
+function validateEffectOperation(
+  value: JsonValue,
+  diagnostics: CompileDiagnostic[],
+  source: CompileSourceLocation | undefined,
+  resources?: MarkdownResourceCatalog,
+): void {
+  if (!isRecord(value) || typeof value.type !== 'string')
+    return
+
+  if (value.type === 'transition') {
+    validateTransition(value, diagnostics, source)
+    return
+  }
+  if (value.type === 'background') {
+    if (value.transition !== undefined)
+      validateTransition(value.transition, diagnostics, source)
+    if (typeof value.name === 'string' && resources?.backgrounds && !resources.backgrounds.includes(value.name)) {
+      diagnostics.push({
+        code: 'ADV_RUNTIME_UNKNOWN_BACKGROUND',
+        severity: 'error',
+        message: `Unknown background: ${value.name}`,
+        source,
+      })
+    }
+  }
+  if (value.type === 'cg') {
+    const action = value.action ?? 'show'
+    if (action !== 'show' && action !== 'hide') {
+      diagnostics.push({
+        code: 'ADV_RUNTIME_INVALID_CG_ACTION',
+        severity: 'error',
+        message: 'CG action must be show or hide',
+        source,
+      })
+    }
+    if (action !== 'hide' && (typeof value.id !== 'string' || !value.id.trim())) {
+      diagnostics.push({
+        code: 'ADV_RUNTIME_MISSING_CG_ID',
+        severity: 'error',
+        message: 'A CG show operation requires a stable id',
+        source,
+      })
+    }
+    if (value.transition !== undefined)
+      validateTransition(value.transition, diagnostics, source)
+    if (action !== 'hide' && typeof value.id === 'string' && resources?.cgs && !resources.cgs.includes(value.id)) {
+      diagnostics.push({
+        code: 'ADV_RUNTIME_UNKNOWN_CG',
+        severity: 'error',
+        message: `Unknown CG: ${value.id}`,
+        source,
+      })
+    }
+  }
+  if (value.type === 'bgm') {
+    if (isRecord(value.fade)) {
+      for (const timing of [value.fade.in, value.fade.out]) {
+        if (timing !== undefined && (typeof timing !== 'number' || !Number.isFinite(timing) || timing < 0)) {
+          diagnostics.push({
+            code: 'ADV_RUNTIME_INVALID_BGM_FADE',
+            severity: 'error',
+            message: 'BGM fade timings must be non-negative finite milliseconds',
+            source,
+          })
+          break
+        }
+      }
+    }
+    if (!value.stop && typeof value.name === 'string' && resources?.bgms && !resources.bgms.includes(value.name)) {
+      diagnostics.push({
+        code: 'ADV_RUNTIME_UNKNOWN_BGM',
+        severity: 'error',
+        message: `Unknown BGM: ${value.name}`,
+        source,
+      })
+    }
+  }
+  if (value.type === 'tachie' && resources?.tachies) {
+    const entries = Array.isArray(value.enter) ? value.enter : [value.enter]
+    for (const item of entries) {
+      const name = typeof item === 'string'
+        ? item
+        : isRecord(item) && typeof item.name === 'string'
+          ? item.name
+          : ''
+      if (!name)
+        continue
+      const statuses = resources.tachies[name]
+      if (!statuses) {
+        diagnostics.push({
+          code: 'ADV_RUNTIME_UNKNOWN_CHARACTER',
+          severity: 'error',
+          message: `Unknown tachie character: ${name}`,
+          source,
+        })
+        continue
+      }
+      const status = isRecord(item) && typeof item.status === 'string' ? item.status : 'default'
+      if (!statuses.includes(status)) {
+        diagnostics.push({
+          code: 'ADV_RUNTIME_MISSING_TACHIE_STATUS',
+          severity: 'error',
+          message: `Missing tachie status: ${name}/${status}`,
+          source,
+        })
+      }
+    }
+  }
+}
 
 function normalizeAction(value: unknown): RuntimeActionCall | undefined {
   if (!isRecord(value) || typeof value.type !== 'string' || !capabilityPattern.test(value.type))
@@ -132,6 +300,7 @@ function compileNode(
   id: string,
   diagnostics: CompileDiagnostic[],
   sourcePath?: string,
+  resources?: MarkdownResourceCatalog,
 ): RuntimeNodeInput | null {
   const source = sourceLocation(node, sourcePath)
   const withSource = (compiled: RuntimeNodeInput): RuntimeNodeInput => ({
@@ -238,6 +407,7 @@ function compileNode(
           source,
         })
       }
+      logic.operations.forEach(operation => validateEffectOperation(operation, diagnostics, source, resources))
       if (logic.conditionMarker) {
         return withSource({
           id,
@@ -281,6 +451,7 @@ export async function compileMarkdownProgram(source: MarkdownProgramSource): Pro
         node.id ?? `node-${index}`,
         diagnostics,
         chapterSource.sourcePath,
+        source.resources,
       )
       if (!compiled)
         return

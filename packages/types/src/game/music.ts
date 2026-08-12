@@ -1,4 +1,6 @@
 export interface AdvMusic {
+  /** Stable catalog address. Resolved before the runtime consumes `src`. */
+  assetId?: string
   /**
    * @zh 音乐名称
    */

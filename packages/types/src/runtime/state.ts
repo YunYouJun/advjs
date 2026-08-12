@@ -1,3 +1,4 @@
+import type { TachiePosition } from '../ast'
 import type { JsonObject } from './json'
 import type { RuntimeAddress, RuntimeEffect } from './program'
 
@@ -13,11 +14,15 @@ export type RuntimeStatus
 
 export interface RuntimeTachieState {
   status: string
+  position?: TachiePosition
+  scale?: number
+  mirror?: boolean
 }
 
 export interface RuntimeStageState {
   background: string
   bgm: string
+  cg: string
   tachies: Record<string, RuntimeTachieState>
 }
 

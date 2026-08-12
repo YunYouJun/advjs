@@ -8,6 +8,7 @@ export type RuntimeCommandName
     | 'choose'
     | 'go'
     | 'back'
+    | 'forward'
     | 'restore'
     | 'complete-activity'
 

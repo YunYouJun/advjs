@@ -1,4 +1,4 @@
-import type { UserModule } from '@advjs/client/types'
+import type { UserModule } from '../types'
 import { createI18n } from 'vue-i18n'
 
 // Import i18n resources

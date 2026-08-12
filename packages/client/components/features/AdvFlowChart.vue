@@ -1,14 +1,15 @@
 <script lang="ts" setup>
+import type { Edge, Node } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { Panel, useVueFlow, VueFlow } from '@vue-flow/core'
-import { nextTick, ref } from 'vue'
-import { useFlowLayout } from '../../../flow/composables/useFlowLayout'
+import { nextTick, shallowRef } from 'vue'
+import { useFlowLayout } from '../../composables/useFlowLayout'
 
 import { initialEdges, initialNodes } from './temp-data'
 
-const nodes = ref(initialNodes)
+const nodes = shallowRef<Node[]>(initialNodes)
 
-const edges = ref(initialEdges)
+const edges = shallowRef<Edge[]>(initialEdges)
 
 const { layout } = useFlowLayout()
 

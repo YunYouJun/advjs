@@ -34,7 +34,8 @@ const app = useAppStore()
       <AdvScene />
       <AdvPixiCanvas />
       <slot name="scene" />
-      <AdvTachieBox class="z-1" :tachies-map="$adv.resources.tachiesMapRef.value" />
+      <AdvCg />
+      <AdvTachieBox v-show="!$adv.store.state.stage.cg" class="z-1" :tachies-map="$adv.resources.tachiesMapRef.value" />
 
       <AdvBlack v-if="curNode?.kind === 'narration'" class="z-9" :node="curNode" />
 

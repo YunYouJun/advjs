@@ -149,6 +149,68 @@ describe('compileMarkdownProgram', () => {
     expect(result.program?.requiredPlugins).toEqual({ 'star-map': '1.0.0' })
   })
 
+  it('preserves validated scene, CG, tachie, and BGM presentation options', async () => {
+    const content = [
+      '```yaml',
+      '- type: background',
+      '  name: observatory',
+      '  transition:',
+      '    name: dissolve',
+      '    duration: 900',
+      '- type: tachie',
+      '  enter:',
+      '    - name: 观测者',
+      '      status: curious',
+      '      position: left',
+      '      motion: slide-left',
+      '  exit: []',
+      '- type: bgm',
+      '  name: star-proof',
+      '  loop: true',
+      '  fade:',
+      '    in: 1200',
+      '    out: 700',
+      '- type: cg',
+      '  id: star-in-hand',
+      '  transition: crossfade',
+      '```',
+    ].join('\n')
+    const result = await compileMarkdownProgram({
+      id: 'presentation',
+      chapters: [{ id: 'chapter-1', content }],
+    })
+
+    expect(result.diagnostics).toEqual([])
+    expect(result.program?.chapters['chapter-1'].nodes['node-0'].data?.operations).toEqual([
+      expect.objectContaining({ type: 'background', transition: { name: 'dissolve', duration: 900 } }),
+      expect.objectContaining({ type: 'tachie' }),
+      expect.objectContaining({ type: 'bgm', fade: { in: 1200, out: 700 } }),
+      expect.objectContaining({ type: 'cg', id: 'star-in-hand', transition: 'crossfade' }),
+    ])
+  })
+
+  it.each([
+    ['unknown transition', ['type: transition', 'name: spin'], 'ADV_RUNTIME_UNKNOWN_TRANSITION'],
+    ['invalid transition duration', ['type: transition', 'name: fade', 'duration: -1'], 'ADV_RUNTIME_INVALID_TRANSITION_DURATION'],
+    ['missing CG id', ['type: cg', 'action: show'], 'ADV_RUNTIME_MISSING_CG_ID'],
+    ['invalid BGM fade', ['type: bgm', 'name: calm', 'fade:', '  in: -10'], 'ADV_RUNTIME_INVALID_BGM_FADE'],
+  ])('reports %s with source context', async (_name, lines, code) => {
+    const result = await compileMarkdownProgram({
+      id: 'invalid-presentation',
+      chapters: [{
+        id: 'chapter-1',
+        sourcePath: 'chapters/presentation.adv.md',
+        content: ['```yaml', ...lines, '```'].join('\n'),
+      }],
+    })
+
+    expect(result.program).toBeUndefined()
+    expect(result.diagnostics).toContainEqual(expect.objectContaining({
+      code,
+      source: expect.objectContaining({ file: 'chapters/presentation.adv.md', line: 1 }),
+    }))
+  })
+
   it.each([
     [
       'invalid action',

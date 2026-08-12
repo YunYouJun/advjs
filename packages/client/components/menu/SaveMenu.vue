@@ -1,9 +1,15 @@
 <script lang="ts" setup>
-import type { Swiper } from 'swiper'
-import type { CreativeEffectOptions } from 'swiper/types'
+import type { CreativeEffectOptions, Swiper as SwiperClass } from 'swiper/types'
+
+import { EffectCreative } from 'swiper/modules'
+import { Swiper, SwiperSlide } from 'swiper/vue'
 import { ref } from 'vue'
 
-const swiperRef = ref<Swiper>()
+import 'swiper/css/effect-creative'
+import 'swiper/css'
+
+const swiperRef = ref<SwiperClass>()
+const modules = [EffectCreative]
 const perPageNum = ref(6)
 
 const curPage = ref(1)
@@ -14,7 +20,7 @@ function togglePage(page: number) {
   swiperRef.value.slideTo(page - 1)
 }
 
-function onInit(swiper: Swiper) {
+function onInit(swiper: SwiperClass) {
   swiperRef.value = swiper
 }
 
@@ -43,24 +49,25 @@ const creativeEffect: CreativeEffectOptions = {
 </script>
 
 <template>
-  <div class="menu-panel flex flex-col justify-between" gap="x-2 y-0" h="full" text="2xl">
-    <div col="span-12">
-      <VSwiper
+  <div class="menu-panel flex flex-col size-full justify-between" gap="x-2 y-0" text="2xl">
+    <div class="flex flex-grow" col="span-12">
+      <Swiper
         effect="creative"
         :grab-cursor="true"
         :creative-effect="creativeEffect"
         class="mySwiper"
+        :modules="modules"
         @init="onInit"
         @slide-change="onSlideChange"
       >
-        <VSwiperSlide v-for="i in 10" :key="i">
+        <SwiperSlide v-for="i in 10" :key="i">
           <div grid="~ cols-2 gap-4" p="2">
             <div v-for="j in 6" :key="(i - 1) * 6 + j">
               <SavedCard type="save" class="animate__animated animate__fadeInDown" :style="{ 'animation-delay': `${j * 50}ms` }" :no="(i - 1) * perPageNum + j" />
             </div>
           </div>
-        </VSwiperSlide>
-      </VSwiper>
+        </SwiperSlide>
+      </Swiper>
     </div>
 
     <HorizontalDivider />

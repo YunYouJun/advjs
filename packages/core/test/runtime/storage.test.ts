@@ -11,7 +11,7 @@ function snapshot(id = 'program'): RuntimeSnapshot {
       status: 'playing',
       cursor: { chapterId: 'chapter-1', nodeId: 'line' },
       variables: { count: 1 },
-      stage: { background: '', bgm: '', tachies: {} },
+      stage: { background: '', bgm: '', cg: '', tachies: {} },
       choices: [],
       visited: ['chapter-1#line'],
     },

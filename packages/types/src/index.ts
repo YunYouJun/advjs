@@ -6,9 +6,11 @@
  */
 
 export * as AdvAst from './ast'
+export type { SceneTransition, SceneTransitionOptions, SceneTransitionPreset, TachieMotion, TachiePosition } from './ast'
 export * from './config'
 export * from './flow'
 export * from './game'
+export * from './project'
 export * from './runtime'
 export * from './setups'
 export * from './types'

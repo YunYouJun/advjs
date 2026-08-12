@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AdvMenuItemProps } from '@advjs/theme-default'
+import type { AdvMenuItemProps } from '@advjs/client'
 import { useFullscreen } from '@vueuse/core'
 
 import { TabsContent, TabsIndicator, TabsList, TabsRoot } from 'reka-ui'
@@ -75,6 +75,9 @@ const currentTab = ref('common')
 
             <HorizontalDivider />
             <AudioVolume />
+
+            <HorizontalDivider />
+            <AdvMotionSettings />
 
             <!-- <HorizontalDivider /> -->
             <!-- <GameSettings /> -->

@@ -99,9 +99,50 @@ describe('runtime plugins', () => {
     expect(runtime.state.pendingActivity).toBeUndefined()
     expect(runtime.state.status).toBe('ended')
 
-    runtime.back()
+    const resumed = runtime.back()
     expect(runtime.state.status).toBe('waiting-activity')
     expect(runtime.state.pendingActivity?.type).toBe('observer/compare')
+    expect(resumed.effects).toContainEqual(expect.objectContaining({
+      type: 'activity.request',
+      payload: expect.objectContaining({ resume: true }),
+    }))
+  })
+
+  it('blocks history navigation across explicitly non-resumable activities', async () => {
+    const observer = defineAdvPlugin({
+      name: 'observer',
+      version: '1.0.0',
+      nodes: {
+        compare({ activity }) {
+          activity('compare')
+        },
+      },
+      activities: {
+        compare() {},
+      },
+      activityRollback: {
+        compare: 'unsupported',
+      },
+    })
+    const linked = await linkRuntimeProgram({
+      id: 'non-resumable-activity',
+      entry: { chapterId: 'one', nodeId: 'compare' },
+      requiredPlugins: { observer: '1.0.0' },
+      chapters: [{
+        id: 'one',
+        entry: 'compare',
+        nodes: [
+          { id: 'compare', kind: 'observer/compare', next: { chapterId: 'one', nodeId: 'end' } },
+          { id: 'end', kind: 'end' },
+        ],
+      }],
+    })
+    const runtime = createAdvRuntime({ program: linked.program!, plugins: [observer] })
+
+    await runtime.start()
+    await runtime.completeActivity(null)
+    expect(() => runtime.back()).toThrow(/ADV_RUNTIME_ACTIVITY_ROLLBACK_UNSUPPORTED/)
+    expect(runtime.state.status).toBe('ended')
   })
 
   it('fails fast for missing required plugins and duplicate capabilities', async () => {

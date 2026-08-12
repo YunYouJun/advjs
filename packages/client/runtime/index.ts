@@ -4,6 +4,11 @@ export {
   syncRuntimePresentation,
 } from './effects'
 export type { AdvPresentationResources } from './effects'
+export { createBrowserGalleryController } from './gallery'
+export type {
+  BrowserGalleryOptions,
+  RuntimeGalleryController,
+} from './gallery'
 export {
   createRuntimeDebugReport,
   projectRuntimeInspector,
@@ -23,5 +28,13 @@ export type {
   BrowserRuntimeProgressionOptions,
   RuntimeProgressionController,
 } from './progression'
+export {
+  validateSpritesheetDeclarations,
+  validateSpritesheetImages,
+} from './resource-diagnostics'
+export type {
+  LoadedImageDimensions,
+  RuntimeImageProbe,
+} from './resource-diagnostics'
 export { createBrowserRuntimeStorage } from './storage'
 export type { BrowserRuntimeStorageOptions } from './storage'

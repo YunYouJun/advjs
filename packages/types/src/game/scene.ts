@@ -40,6 +40,8 @@ export interface AdvSceneImage extends AdvBaseScene {
    * @example "/img/your-name/scene-1.jpg"
    */
   src: string
+  /** Stable catalog address used by authoring tools before `src` is resolved. */
+  assetId?: string
 }
 
 export interface AdvSceneModel extends AdvBaseScene {

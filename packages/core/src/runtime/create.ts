@@ -50,6 +50,7 @@ export interface AdvRuntime {
   choose: (choiceId: string) => Promise<RuntimeUpdate>
   go: (target: RuntimeAddress | string) => Promise<RuntimeUpdate>
   back: () => RuntimeUpdate
+  forward: () => RuntimeUpdate
   snapshot: () => RuntimeSnapshot
   restore: (snapshot: RuntimeSnapshot) => RuntimeUpdate
   completeActivity: (result: JsonValue) => Promise<RuntimeUpdate>
@@ -75,6 +76,7 @@ export function createAdvRuntime(options: AdvRuntimeOptions): AdvRuntime {
 
   let state = createInitialRuntimeState(program, options.initialVariables)
   let checkpoints: RuntimeCheckpoint[] = []
+  let futureStates: RuntimeState[] = []
   let checkpointSequence = 0
   let traceSequence = 0
   const traceEntries: RuntimeTraceEntry[] = []
@@ -171,7 +173,57 @@ export function createAdvRuntime(options: AdvRuntimeOptions): AdvRuntime {
     if (checkpoint)
       addCheckpoint(checkpoint)
     state = update.state
+    futureStates = []
     recordTrace(commandMetadata(command, previous), previous, update)
+    return publish(update)
+  }
+
+  const assertActivityRollbackSupported = (activityState: Readonly<RuntimeState>): void => {
+    const pending = activityState.pendingActivity
+    if (pending && !registry.activitySupportsRollback(pending.type)) {
+      throw runtimeApiError(
+        'ADV_RUNTIME_ACTIVITY_ROLLBACK_UNSUPPORTED',
+        `Activity cannot be restored across history navigation: ${pending.type}`,
+      )
+    }
+  }
+
+  const historyEffects = (
+    type: 'runtime.back' | 'runtime.forward' | 'runtime.restore',
+    restoredState: Readonly<RuntimeState>,
+  ): RuntimeEffect[] => {
+    const effects: RuntimeEffect[] = [{ type }]
+    if (restoredState.pendingActivity) {
+      effects.push({
+        type: 'activity.request',
+        payload: {
+          ...structuredClone(restoredState.pendingActivity),
+          resume: true,
+        } as unknown as JsonValue,
+      })
+    }
+    return effects
+  }
+
+  const moveForward = (): RuntimeUpdate => {
+    const previous = structuredClone(state)
+    const next = futureStates.at(-1)
+    if (!next) {
+      throw runtimeApiError(
+        'ADV_RUNTIME_NO_FUTURE',
+        'No runtime future state is available',
+      )
+    }
+    assertActivityRollbackSupported(previous)
+    assertActivityRollbackSupported(next)
+    addCheckpoint(previous)
+    futureStates.pop()
+    state = structuredClone(next)
+    const update = {
+      state,
+      effects: historyEffects('runtime.forward', state),
+    } satisfies RuntimeUpdate
+    recordTrace({ command: 'forward' }, previous, update)
     return publish(update)
   }
 
@@ -216,41 +268,44 @@ export function createAdvRuntime(options: AdvRuntimeOptions): AdvRuntime {
       return projectRuntimeNode(node, state)
     },
     start: () => dispatch({ type: 'start' }),
-    next: () => dispatch({ type: 'next' }),
+    next: async () => futureStates.length > 0
+      ? moveForward()
+      : dispatch({ type: 'next' }),
     choose: choiceId => dispatch({ type: 'choose', choiceId }),
     completeActivity: result => dispatch({ type: 'complete-activity', result: structuredClone(result) }),
     go: async target => dispatch({ type: 'go', target: resolveTarget(target) }),
     back() {
       const previous = structuredClone(state)
-      const checkpoint = checkpoints.pop()
+      const checkpoint = checkpoints.at(-1)
       if (!checkpoint) {
         throw runtimeApiError(
           'ADV_RUNTIME_NO_CHECKPOINT',
           'No runtime checkpoint is available',
         )
       }
+      assertActivityRollbackSupported(previous)
+      assertActivityRollbackSupported(checkpoint.state)
+      checkpoints.pop()
+      futureStates.push(previous)
       state = structuredClone(checkpoint.state)
       const update = {
         state,
-        effects: [{ type: 'runtime.back' }],
+        effects: historyEffects('runtime.back', state),
       } satisfies RuntimeUpdate
       recordTrace({ command: 'back' }, previous, update)
       return publish(update)
     },
+    forward: moveForward,
     snapshot: () => createRuntimeSnapshot(program, state, checkpoints, now()),
     restore(snapshot) {
       const previous = structuredClone(state)
       const restored = validateRuntimeSnapshot(snapshot, program)
+      assertActivityRollbackSupported(restored.state)
       state = restored.state
       checkpoints = restored.checkpoints
+      futureStates = []
       checkpointSequence = checkpoints.length
-      const effects: RuntimeEffect[] = [{ type: 'runtime.restore' }]
-      if (state.pendingActivity) {
-        effects.push({
-          type: 'activity.request',
-          payload: structuredClone(state.pendingActivity) as unknown as JsonValue,
-        })
-      }
+      const effects = historyEffects('runtime.restore', state)
       const update = {
         state,
         effects,

@@ -94,4 +94,86 @@ describe('createAdvRuntime', () => {
     await expect(runtime.go('第二章')).rejects.toThrow(/ADV_RUNTIME_INVALID_TARGET/)
     await expect(runtime.go('chapter-2#missing')).rejects.toThrow(/ADV_RUNTIME_UNKNOWN_TARGET/)
   })
+
+  it('uses session history for forward and clears abandoned futures', async () => {
+    const historyProgram: RuntimeProgram = {
+      ...program,
+      chapters: {
+        'chapter-1': {
+          id: 'chapter-1',
+          entry: 'first',
+          order: ['first', 'second', 'third'],
+          nodes: {
+            first: { id: 'first', kind: 'text', next: { chapterId: 'chapter-1', nodeId: 'second' } },
+            second: { id: 'second', kind: 'text', next: { chapterId: 'chapter-1', nodeId: 'third' } },
+            third: { id: 'third', kind: 'text' },
+          },
+        },
+      },
+    }
+    const runtime = createAdvRuntime({ program: historyProgram })
+
+    await runtime.start()
+    await runtime.next()
+    await runtime.next()
+    runtime.back()
+    expect(runtime.state.cursor.nodeId).toBe('second')
+
+    const restored = await runtime.next()
+    expect(restored.state.cursor.nodeId).toBe('third')
+    expect(restored.effects).toEqual([{ type: 'runtime.forward' }])
+    expect(runtime.trace().at(-1)?.command).toBe('forward')
+
+    runtime.back()
+    await runtime.go('#first')
+    expect(() => runtime.forward()).toThrow(/ADV_RUNTIME_NO_FUTURE/)
+  })
+
+  it('clears the session future when restoring a save snapshot', async () => {
+    const runtime = createAdvRuntime({ program })
+    await runtime.start()
+    const snapshot = runtime.snapshot()
+    await runtime.next()
+    runtime.back()
+
+    runtime.restore(snapshot)
+    expect(() => runtime.forward()).toThrow(/ADV_RUNTIME_NO_FUTURE/)
+  })
+
+  it('moves through a previously chosen future before requiring a new choice', async () => {
+    const choiceProgram: RuntimeProgram = {
+      ...program,
+      entry: { chapterId: 'chapter-1', nodeId: 'line' },
+      chapters: {
+        'chapter-1': {
+          id: 'chapter-1',
+          entry: 'line',
+          order: ['line', 'choice', 'end'],
+          nodes: {
+            line: { id: 'line', kind: 'text', next: { chapterId: 'chapter-1', nodeId: 'choice' } },
+            choice: {
+              id: 'choice',
+              kind: 'choices',
+              data: { options: [{ id: 'continue', label: 'Continue' }] },
+              next: { chapterId: 'chapter-1', nodeId: 'end' },
+            },
+            end: { id: 'end', kind: 'end' },
+          },
+        },
+      },
+    }
+    const runtime = createAdvRuntime({ program: choiceProgram })
+    await runtime.start()
+    await runtime.next()
+    await runtime.choose('continue')
+
+    runtime.back()
+    expect(runtime.state.status).toBe('waiting-choice')
+    await runtime.next()
+    expect(runtime.state.status).toBe('ended')
+
+    runtime.back()
+    await runtime.choose('continue')
+    expect(() => runtime.forward()).toThrow(/ADV_RUNTIME_NO_FUTURE/)
+  })
 })

@@ -81,6 +81,7 @@ function assertRuntimeState(value: unknown, program: RuntimeProgram, path: strin
   if (!isRecord(value.stage)
     || typeof value.stage.background !== 'string'
     || typeof value.stage.bgm !== 'string'
+    || typeof value.stage.cg !== 'string'
     || !isRecord(value.stage.tachies)) {
     invalid(`${path}.stage is invalid`)
   }

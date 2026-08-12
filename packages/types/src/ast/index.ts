@@ -32,6 +32,30 @@ export interface Background extends Node {
    * load by url
    */
   url?: string
+  /** Optional transition used while replacing the previous background. */
+  transition?: SceneTransition
+}
+
+export type SceneTransitionPreset
+  = | 'cut'
+    | 'crossfade'
+    | 'fade'
+    | 'dissolve'
+    | 'wipe-left'
+    | 'wipe-right'
+    | 'rise'
+    | 'flash-white'
+
+export interface SceneTransitionOptions {
+  name: SceneTransitionPreset
+  duration?: number
+  easing?: string
+}
+
+export type SceneTransition = SceneTransitionPreset | SceneTransitionOptions
+
+export interface Transition extends Node, SceneTransitionOptions {
+  type: 'transition'
 }
 
 export interface Bgm extends Node {
@@ -48,6 +72,21 @@ export interface Bgm extends Node {
    * stop current background music
    */
   stop?: boolean
+  /** Loop the selected track. Defaults to true. */
+  loop?: boolean
+  /** Cross-fade timing in milliseconds. */
+  fade?: {
+    in?: number
+    out?: number
+  }
+}
+
+export interface Cg extends Node {
+  type: 'cg'
+  id?: string
+  action?: 'show' | 'hide'
+  unlock?: boolean
+  transition?: SceneTransition
 }
 
 export interface Go extends Node {
@@ -171,11 +210,28 @@ export interface Tachie extends Node {
   /**
    * enter character
    */
-  enter: (Omit<Character, 'type'> | string)[] | string
+  enter: (TachieEnter | string)[] | TachieEnter | string
   /**
    * exit character
    */
-  exit: string[]
+  exit: (TachieExit | string)[]
+}
+
+export type TachiePosition = 'left' | 'center' | 'right' | number
+export type TachieMotion = 'fade' | 'slide-left' | 'slide-right' | 'emphasis' | 'shake' | 'hop'
+
+export interface TachieEnter {
+  name: string
+  status?: string
+  position?: TachiePosition
+  scale?: number
+  mirror?: boolean
+  motion?: TachieMotion
+}
+
+export interface TachieExit {
+  name: string
+  motion?: TachieMotion
 }
 
 // content
@@ -238,7 +294,7 @@ export interface PhrasingContentMap {
 
 export type PhrasingContent = PhrasingContentMap[keyof PhrasingContentMap]
 
-export type CodeOperation = Camera | Tachie | Background | Bgm | Go
+export type CodeOperation = Camera | Tachie | Background | Bgm | Cg | Transition | Go
 export type Item = Unknown | Paragraph | Narration | Character | Words | Text | SceneInfo | Dialog | Choices | Code | Heading
 
 export type Child = Item

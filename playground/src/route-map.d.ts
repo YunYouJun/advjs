@@ -20,9 +20,9 @@ import type {
 
 declare module 'vue-router' {
   interface TypesConfig {
-    ParamParsers:
-      | never
+    _ParamParsers: {}
     RouteNamedMap: import('vue-router/auto-routes').RouteNamedMap
+    _RouteFileInfoMap: import('vue-router/auto-routes')._RouteFileInfoMap
   }
 }
 
@@ -126,17 +126,23 @@ declare module 'vue-router/auto-routes' {
         | '/'
       views:
         | never
+      pathParamNames:
+        | never
     }
     'src/pages/[...all].vue': {
       routes:
         | '/[...all]'
       views:
         | never
+      pathParamNames:
+        | 'all'
     }
     'src/pages/about.md': {
       routes:
         | '/about'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/pages/debug.vue': {
@@ -144,11 +150,15 @@ declare module 'vue-router/auto-routes' {
         | '/debug'
       views:
         | never
+      pathParamNames:
+        | never
     }
     'src/pages/download.vue': {
       routes:
         | '/download'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/pages/game.vue': {
@@ -156,11 +166,15 @@ declare module 'vue-router/auto-routes' {
         | '/game'
       views:
         | never
+      pathParamNames:
+        | never
     }
     'src/pages/README.md': {
       routes:
         | '/README'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/pages/restart.vue': {
@@ -168,11 +182,15 @@ declare module 'vue-router/auto-routes' {
         | '/restart'
       views:
         | never
+      pathParamNames:
+        | never
     }
     'src/pages/start.vue': {
       routes:
         | '/start'
       views:
+        | never
+      pathParamNames:
         | never
     }
     'src/pages/stories/[id].vue': {
@@ -180,11 +198,15 @@ declare module 'vue-router/auto-routes' {
         | '/stories/[id]'
       views:
         | never
+      pathParamNames:
+        | 'id'
     }
     'src/pages/webcontainer.vue': {
       routes:
         | '/webcontainer'
       views:
+        | never
+      pathParamNames:
         | never
     }
   }

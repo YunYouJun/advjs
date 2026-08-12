@@ -10,6 +10,7 @@ import type {
 } from '@advjs/types'
 import type { RuntimeRegistry } from './registry'
 import { runtimeConditionMatches } from './expression'
+import { applyRuntimeStageOperation } from './presentation'
 import { createRuntimeRegistry } from './registry'
 import { getRuntimeNode, runtimeAddressKey } from './state'
 
@@ -24,6 +25,14 @@ interface Operation extends JsonObject {
   type: string
 }
 
+function transitionPayload(value: JsonValue | undefined): JsonValue | undefined {
+  if (typeof value === 'string')
+    return { name: value }
+  if (value && typeof value === 'object' && !Array.isArray(value))
+    return structuredClone(value)
+  return undefined
+}
+
 function moveToNext(state: RuntimeState, next?: RuntimeAddress): void {
   if (next)
     state.cursor = structuredClone(next)
@@ -32,34 +41,63 @@ function moveToNext(state: RuntimeState, next?: RuntimeAddress): void {
 }
 
 function applyOperation(state: RuntimeState, operation: Operation): RuntimeEffect {
+  applyRuntimeStageOperation(state.stage, operation)
+
   if (operation.type === 'background') {
     const url = String(operation.url ?? operation.name ?? '')
-    state.stage.background = url
-    return { type: 'stage.background', payload: { url } }
+    const transition = transitionPayload(operation.transition)
+    return {
+      type: 'stage.background',
+      payload: {
+        url,
+        ...(transition ? { transition } : {}),
+      },
+    }
   }
 
   if (operation.type === 'bgm') {
     const value = operation.stop ? '' : String(operation.name ?? operation.src ?? '')
-    state.stage.bgm = value
-    return { type: 'stage.bgm', payload: { value } }
+    return {
+      type: 'stage.bgm',
+      payload: {
+        value,
+        loop: operation.loop !== false,
+        ...(operation.fade && typeof operation.fade === 'object' && !Array.isArray(operation.fade)
+          ? { fade: structuredClone(operation.fade) }
+          : {}),
+      },
+    }
   }
 
   if (operation.type === 'tachie') {
-    const enter = Array.isArray(operation.enter) ? operation.enter : [operation.enter]
-    for (const item of enter) {
-      if (typeof item === 'string') {
-        state.stage.tachies[item] = { status: '' }
-      }
-      else if (item && typeof item === 'object' && !Array.isArray(item)) {
-        const name = String(item.name ?? '')
-        if (name)
-          state.stage.tachies[name] = { status: String(item.status ?? '') }
-      }
-    }
-    const exits = Array.isArray(operation.exit) ? operation.exit : []
-    for (const name of exits)
-      delete state.stage.tachies[String(name)]
     return { type: 'stage.tachie', payload: structuredClone(operation) }
+  }
+
+  if (operation.type === 'cg') {
+    const action = operation.action === 'hide' ? 'hide' : 'show'
+    const id = action === 'hide' ? '' : String(operation.id ?? '')
+    return {
+      type: 'stage.cg',
+      payload: {
+        id,
+        action,
+        unlock: action === 'show' && operation.unlock !== false,
+        ...(transitionPayload(operation.transition)
+          ? { transition: transitionPayload(operation.transition)! }
+          : {}),
+      },
+    }
+  }
+
+  if (operation.type === 'transition') {
+    return {
+      type: 'stage.transition',
+      payload: {
+        name: String(operation.name ?? 'crossfade'),
+        ...(typeof operation.duration === 'number' ? { duration: operation.duration } : {}),
+        ...(typeof operation.easing === 'string' ? { easing: operation.easing } : {}),
+      },
+    }
   }
 
   return { type: `stage.${operation.type}`, payload: structuredClone(operation) }

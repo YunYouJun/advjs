@@ -51,6 +51,140 @@ describe('transitionRuntime', () => {
     })
   })
 
+  it('keeps durable stage state separate from one-shot presentation effects', () => {
+    const effectsProgram: RuntimeProgram = {
+      ...program,
+      entry: { chapterId: 'chapter-1', nodeId: 'effects' },
+      chapters: {
+        'chapter-1': {
+          ...program.chapters['chapter-1'],
+          entry: 'effects',
+          order: ['effects', 'dialog'],
+          nodes: {
+            effects: {
+              id: 'effects',
+              kind: 'effects',
+              data: {
+                operations: [
+                  {
+                    type: 'background',
+                    url: 'orbit.webp',
+                    transition: { name: 'dissolve', duration: 900 },
+                  },
+                  {
+                    type: 'tachie',
+                    enter: [{
+                      name: '观测者',
+                      status: 'curious',
+                      position: 'left',
+                      scale: 0.92,
+                      mirror: true,
+                      motion: 'slide-left',
+                    }],
+                    exit: [],
+                  },
+                  {
+                    type: 'bgm',
+                    name: 'star-proof',
+                    loop: true,
+                    fade: { in: 1200, out: 700 },
+                  },
+                  {
+                    type: 'cg',
+                    id: 'star-in-hand',
+                    transition: 'crossfade',
+                  },
+                  { type: 'transition', name: 'flash-white', duration: 360 },
+                ],
+              },
+              next: { chapterId: 'chapter-1', nodeId: 'dialog' },
+            },
+            dialog: program.chapters['chapter-1'].nodes.dialog,
+          },
+        },
+      },
+    }
+
+    const update = transitionRuntime(
+      effectsProgram,
+      createInitialRuntimeState(effectsProgram),
+      { type: 'start' },
+    )
+
+    expect(update.state.stage).toEqual({
+      background: 'orbit.webp',
+      bgm: 'star-proof',
+      cg: 'star-in-hand',
+      tachies: {
+        观测者: {
+          status: 'curious',
+          position: 'left',
+          scale: 0.92,
+          mirror: true,
+        },
+      },
+    })
+    expect(update.effects).toContainEqual({
+      type: 'stage.background',
+      payload: {
+        url: 'orbit.webp',
+        transition: { name: 'dissolve', duration: 900 },
+      },
+    })
+    expect(update.effects).toContainEqual({
+      type: 'stage.cg',
+      payload: {
+        id: 'star-in-hand',
+        action: 'show',
+        unlock: true,
+        transition: { name: 'crossfade' },
+      },
+    })
+    expect(update.effects).toContainEqual({
+      type: 'stage.transition',
+      payload: { name: 'flash-white', duration: 360 },
+    })
+    expect(JSON.stringify(update.state)).not.toContain('slide-left')
+    expect(JSON.stringify(update.state)).not.toContain('flash-white')
+  })
+
+  it('clears an active CG on the next background and accepts rich exits', () => {
+    const initial = createInitialRuntimeState(program)
+    initial.stage.cg = 'old-cg'
+    initial.stage.tachies = {
+      观测者: { status: 'default' },
+      读书人: { status: 'default' },
+    }
+    const effectsProgram: RuntimeProgram = {
+      ...program,
+      chapters: {
+        'chapter-1': {
+          ...program.chapters['chapter-1'],
+          entry: 'background',
+          order: ['background', 'dialog'],
+          nodes: {
+            background: {
+              id: 'background',
+              kind: 'effects',
+              data: {
+                operations: [
+                  { type: 'background', url: 'next.webp' },
+                  { type: 'tachie', enter: [], exit: [{ name: '读书人', motion: 'fade' }] },
+                ],
+              },
+              next: { chapterId: 'chapter-1', nodeId: 'dialog' },
+            },
+            dialog: program.chapters['chapter-1'].nodes.dialog,
+          },
+        },
+      },
+    }
+
+    const update = transitionRuntime(effectsProgram, initial, { type: 'start' })
+    expect(update.state.stage.cg).toBe('')
+    expect(update.state.stage.tachies).toEqual({ 观测者: { status: 'default' } })
+  })
+
   it('passes through heading anchor nodes before pausing on content', () => {
     const anchorProgram: RuntimeProgram = {
       ...program,

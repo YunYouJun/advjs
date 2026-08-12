@@ -29,6 +29,10 @@ const currentTab = shallowRef<Tab>('overview')
 const selectedSequence = shallowRef<number>()
 const selected = computed(() => props.model.trace.find(entry => entry.sequence === selectedSequence.value))
 const stage = computed(() => structuredClone(props.model.stage) as unknown as JsonValue)
+const tachieSlots = computed(() => Object.entries(props.model.stage.tachies).map(([name, state]) => (
+  `${name}@${state.position ?? 'center'}`
+)))
+const latestEffects = computed(() => [...props.model.trace].reverse().find(entry => entry.effects.length)?.effects ?? [])
 
 function address(value: RuntimeTraceEntry['from']) {
   return `${value.chapterId}#${value.nodeId}`
@@ -79,6 +83,17 @@ function value(value: JsonValue | undefined) {
         <dt>Node</dt><dd>{{ model.current?.kind ?? 'none' }} · {{ model.current?.id ?? 'none' }}</dd>
         <dt>History</dt><dd>{{ model.checkpointCount }} checkpoints · {{ model.visited.length }} visited</dd>
         <dt>Pending activity</dt><dd>{{ model.pendingActivity?.type ?? 'none' }}</dd>
+        <dt>Current CG</dt><dd>{{ model.stage.cg || 'none' }}</dd>
+        <dt>Tachie slots</dt><dd>{{ tachieSlots.join(', ') || 'none' }}</dd>
+        <dt>Latest effects</dt>
+        <dd>
+          <ol v-if="latestEffects.length" class="runtime-inspector-panel__effects">
+            <li v-for="(effect, index) in latestEffects" :key="`${index}:${effect.type}`">
+              {{ effect.type }}
+            </li>
+          </ol>
+          <span v-else>none</span>
+        </dd>
       </dl>
     </div>
 
@@ -181,6 +196,11 @@ function value(value: JsonValue | undefined) {
 
 .runtime-inspector-panel__overview dd {
   margin: 0;
+}
+
+.runtime-inspector-panel__effects {
+  margin: 0;
+  padding-left: 1.25rem;
 }
 
 .runtime-inspector-panel__trace {

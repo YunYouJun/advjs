@@ -43,6 +43,8 @@ export interface AdvRuntimePlugin extends AdvRuntimePluginReference {
   actions?: Record<string, AdvActionHandler>
   nodes?: Record<string, AdvNodeHandler>
   activities?: Record<string, AdvActivityHandler>
+  /** Activities are resumable by default; declare the exceptional cases explicitly. */
+  activityRollback?: Record<string, 'supported' | 'unsupported'>
 }
 
 export interface RuntimeRegistry {
@@ -54,6 +56,7 @@ export interface RuntimeRegistry {
     pending: RuntimePendingActivity,
     result: JsonValue,
   ) => void
+  activitySupportsRollback: (type: string) => boolean
 }
 
 export interface RuntimePluginDiagnostic {
@@ -268,6 +271,7 @@ export function createRuntimeRegistry(
   const actions = new Map<string, AdvActionHandler>(Object.entries(builtinActions))
   const nodes = new Map<string, { plugin: string, handler: AdvNodeHandler }>()
   const activities = new Map<string, AdvActivityHandler>()
+  const activityRollback = new Map<string, 'supported' | 'unsupported'>()
 
   for (const plugin of plugins) {
     if (!/^[a-z][a-z0-9-]*$/u.test(plugin.name) || !plugin.version)
@@ -298,6 +302,7 @@ export function createRuntimeRegistry(
       if (activities.has(capability))
         throw registryError('ADV_RUNTIME_PLUGIN_CONFLICT', `Activity already registered: ${capability}`)
       activities.set(capability, handler)
+      activityRollback.set(capability, plugin.activityRollback?.[name] ?? 'supported')
     }
   }
 
@@ -365,6 +370,9 @@ export function createRuntimeRegistry(
         node: structuredClone(pending.node),
       }, structuredClone(result))
       assertJson(state.variables)
+    },
+    activitySupportsRollback(type) {
+      return activityRollback.get(type) !== 'unsupported'
     },
   }
 }

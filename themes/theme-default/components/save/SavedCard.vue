@@ -61,20 +61,26 @@ async function saveCardMeta() {
  * 存储至该卡片
  */
 async function saveToCard() {
-  const dataUrl = await screenshotGameThumb()
   const curRecord = $adv.runtime.snapshot()
   try {
     await game.saveRecord(props.no, curRecord)
     record.value = curRecord
-
-    game.saveRecordMeta(props.no, {
-      thumbnail: dataUrl,
-    })
-
     meta.value = await game.readRecordMeta(props.no)
   }
   catch (e) {
     console.error(e)
+    return
+  }
+
+  // A thumbnail is useful metadata, never a prerequisite for a valid save.
+  // Cross-origin media or unsupported CSS can make DOM capture fail.
+  try {
+    const dataUrl = await screenshotGameThumb()
+    await game.saveRecordMeta(props.no, { thumbnail: dataUrl })
+    meta.value = await game.readRecordMeta(props.no)
+  }
+  catch (e) {
+    console.warn('[advjs] Save created without a thumbnail', e)
   }
 }
 

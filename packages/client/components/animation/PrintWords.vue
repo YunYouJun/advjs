@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { DisplayMode } from '@advjs/client'
+import type { DisplayMode, DisplaySpeed } from '@advjs/client'
 import { onMounted, ref, watch } from 'vue'
 
 const props = withDefaults(defineProps<{
-  speed?: 'normal' | 'fast' | 'slow'
+  speed?: DisplaySpeed
   words?: string
   /**
    * 打印间隔
@@ -34,6 +34,7 @@ const speedMap = {
   slow: 100,
   normal: 50,
   fast: 25,
+  very_fast: 10,
 }
 
 const len = ref(0)

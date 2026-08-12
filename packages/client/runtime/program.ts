@@ -1,4 +1,4 @@
-import type { CompileResult } from '@advjs/core'
+import type { CompileResult, MarkdownResourceCatalog } from '@advjs/core'
 import type { AdvChapter, RuntimeProgram } from '@advjs/types'
 import { compileFlowProgram, compileMarkdownProgram } from '@advjs/core'
 
@@ -13,6 +13,7 @@ export interface CompileClientRuntimeProgramOptions {
   chapters: AdvChapter[]
   entryChapterId?: string
   requiredPlugins?: Record<string, string>
+  resources?: MarkdownResourceCatalog
   fetcher?: (url: string) => Promise<RuntimeChapterFetchResponse>
 }
 
@@ -100,5 +101,6 @@ export async function compileClientRuntimeProgram(
     id: options.id,
     chapters: sources.filter(source => source !== undefined),
     requiredPlugins: options.requiredPlugins,
+    resources: options.resources,
   })
 }

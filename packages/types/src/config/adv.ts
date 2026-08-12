@@ -74,6 +74,19 @@ export interface AdvConfig<ThemeConfig = AdvThemeConfig> {
    */
   canvasWidth: number
   /**
+   * How the virtual stage fits the browser viewport.
+   *
+   * - `contain`: keep the fixed canvas size and letterbox when necessary.
+   * - `responsive`: use the available DOM viewport so UI, text, and scene
+   *   composition can reflow on portrait and narrow screens.
+   *
+   * `responsive` is recommended for DOM-based visual novels. Canvas and 3D
+   * games that depend on fixed coordinates can keep the default `contain`.
+   *
+   * @default 'contain'
+   */
+  viewportFit: 'contain' | 'responsive'
+  /**
    * Controls whether texts in slides are selectable
    *
    * @default false when debug is true

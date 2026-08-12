@@ -22,6 +22,7 @@ const commands: Array<'all' | RuntimeCommandName> = [
   'choose',
   'go',
   'back',
+  'forward',
   'restore',
   'complete-activity',
 ]

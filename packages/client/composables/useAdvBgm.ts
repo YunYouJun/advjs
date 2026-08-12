@@ -8,8 +8,11 @@ import { ref } from 'vue'
 const DEFAULT_FADE_IN = 800
 const DEFAULT_FADE_OUT = 600
 
-interface BgmFadeOptions {
+export interface BgmFadeOptions {
   fade?: number
+  fadeIn?: number
+  fadeOut?: number
+  loop?: boolean
 }
 
 /**
@@ -49,6 +52,7 @@ export function useAdvBgm($adv: AdvContext) {
     if (bgmMap.has(src)) {
       const sound = bgmMap.get(src)
       if (sound && !sound.playing()) {
+        sound.loop(options.loop !== false)
         sound.volume(0)
         sound.play()
         sound.fade(0, targetVolume(), fade)
@@ -58,7 +62,19 @@ export function useAdvBgm($adv: AdvContext) {
       const sound = new Howl({
         src: [src],
         volume: 0,
-        loop: true,
+        loop: options.loop !== false,
+        onloaderror: (_id, error) => {
+          $adv.compileDiagnostics.value = [
+            ...$adv.compileDiagnostics.value.filter(diagnostic => (
+              diagnostic.code !== 'ADV_RUNTIME_RESOURCE_LOAD_FAILED' || !diagnostic.message.includes(src)
+            )),
+            {
+              code: 'ADV_RUNTIME_RESOURCE_LOAD_FAILED',
+              severity: 'warning',
+              message: `Unable to load BGM: ${src} (${String(error)})`,
+            },
+          ]
+        },
       })
       sound.play()
       sound.fade(0, targetVolume(), fade)
@@ -127,20 +143,31 @@ export function useAdvBgm($adv: AdvContext) {
     applyVolumeToAll()
   }
 
+  function sync(value: string, options: BgmFadeOptions = {}) {
+    if (!value) {
+      for (const src of [...bgmMap.keys()])
+        stopBgmBySrc(src, { fade: options.fadeOut ?? options.fade })
+      return
+    }
+    const src = getBgmSrc(value)
+    stopOtherBgmBySrc(src, { fade: options.fadeOut ?? options.fade })
+    playBgmBySrc(src, {
+      fade: options.fadeIn ?? options.fade,
+      loop: options.loop,
+    })
+  }
+
   return {
     playBgmBySrc,
     pauseBgmBySrc,
     stopBgmBySrc,
     stopOtherBgmBySrc,
     sync(value: string) {
-      if (!value) {
-        for (const src of [...bgmMap.keys()])
-          stopBgmBySrc(src)
-        return
-      }
-      const src = getBgmSrc(value)
-      stopOtherBgmBySrc(src)
-      playBgmBySrc(src)
+      return sync(value)
+    },
+
+    syncWithOptions(value: string, options: BgmFadeOptions = {}) {
+      return sync(value, options)
     },
 
     /**

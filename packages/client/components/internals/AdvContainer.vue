@@ -24,15 +24,26 @@ const advAspect = computed(() => props.config?.aspectRatio || (16 / 9))
 const advWidth = computed(() => props.config?.canvasWidth || 1920)
 // To honor the aspect ratio more as possible, we need to approximate the height to the next integer.
 const advHeight = computed(() => Math.ceil(advWidth.value / advAspect.value))
+const responsive = computed(() => props.config?.viewportFit === 'responsive')
 
 const width = computed(() => props.width ? props.width : containerSize.width.value)
 const height = computed(() => props.width ? props.width / advAspect.value : containerSize.height.value)
+const contentWidth = computed(() => responsive.value
+  ? app.isHorizontal ? width.value : height.value
+  : advWidth.value,
+)
+const contentHeight = computed(() => responsive.value
+  ? app.isHorizontal ? height.value : width.value
+  : advHeight.value,
+)
 
 const screenAspect = computed(() => app.isHorizontal ? width.value / height.value : height.value / width.value)
 
 const scale = computed(() => {
   if (props.scale)
     return props.scale
+  if (responsive.value)
+    return 1
 
   if (screenAspect.value < advAspect.value)
     return app.isHorizontal ? (width.value / advWidth.value) : (height.value / advWidth.value)
@@ -50,8 +61,8 @@ const containerStyle = computed(() => props.width
 
 const contentStyle = computed(() => ({
   ...props.contentStyle,
-  '--adv-screen-width': `${advWidth.value}px`,
-  '--adv-screen-height': `${advHeight.value}px`,
+  '--adv-screen-width': `${contentWidth.value}px`,
+  '--adv-screen-height': `${contentHeight.value}px`,
   '--adv-screen-scale': scale.value,
   'transform': `translate(-50%, -50%) scale(${scale.value}) rotate(${app.rotation}deg)`,
 }))

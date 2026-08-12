@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { MenuButtonItem } from '~/types/menu'
+import type { MenuButtonItem } from '../../types/menu'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'

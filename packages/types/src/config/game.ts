@@ -2,6 +2,23 @@ import type { AssetsManifest } from 'pixi.js'
 import type { AdvChapter, AdvCharacter, AdvMusic, AdvScene } from '../game'
 import type { JsonObject } from '../runtime'
 
+export interface AdvGalleryItem {
+  id: string
+  title: string
+  src: string
+  thumbnail?: string
+  alt?: string
+  chapterId?: string
+}
+
+export interface AdvGameGalleryConfig {
+  /** Stable browser-storage namespace for gallery unlocks. */
+  id: string
+  version?: number
+  allowDownload?: boolean
+  items: AdvGalleryItem[]
+}
+
 export interface AdvGameProgressionConfig {
   /** Stable storage namespace for this game. */
   id: string
@@ -19,6 +36,8 @@ export interface AdvGameConfig {
   variables?: JsonObject
   /** Host-owned variables persisted across new runtime sessions. */
   progression?: AdvGameProgressionConfig
+  /** Optional CG collection displayed by the client gallery. */
+  gallery?: AdvGameGalleryConfig
   /** Runtime plugin names and exact versions required by the compiled Program. */
   requiredPlugins?: Record<string, string>
   /**

@@ -5,6 +5,7 @@
  * @module @advjs/client
  */
 export * from './assets'
+export * from './compiler'
 export * from './composables'
 export * from './constants'
 export * from './pixi'

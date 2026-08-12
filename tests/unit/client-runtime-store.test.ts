@@ -23,7 +23,7 @@ const state: RuntimeState = {
   status: 'playing',
   cursor: { chapterId: 'chapter-1', nodeId: 'line' },
   variables: {},
-  stage: { background: 'night.webp', bgm: '', tachies: {} },
+  stage: { background: 'night.webp', bgm: '', cg: '', tachies: {} },
   choices: [],
   visited: ['chapter-1#line'],
 }

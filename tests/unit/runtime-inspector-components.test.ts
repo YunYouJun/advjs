@@ -8,7 +8,7 @@ const model: RuntimeInspectorModel = {
   status: 'waiting-choice',
   current: { id: 'choice', kind: 'choices' },
   variables: { profile: { mood: 'curious' }, score: 2 },
-  stage: { background: 'night.svg', bgm: 'ambient.wav', tachies: {} },
+  stage: { background: 'night.svg', bgm: 'ambient.wav', cg: '', tachies: {} },
   choices: [],
   visited: ['chapter-1#line', 'chapter-1#choice'],
   checkpointCount: 2,
@@ -52,6 +52,9 @@ describe('runtimeInspectorPanel', () => {
     expect(wrapper.text()).toContain('waiting-choice')
     expect(wrapper.text()).toContain('choices')
     expect(wrapper.text()).toContain('2 checkpoints')
+    expect(wrapper.text()).toContain('Current CG')
+    expect(wrapper.text()).toContain('Latest effects')
+    expect(wrapper.text()).toContain('stage.background')
     await wrapper.get('button[aria-label="Export runtime report"]').trigger('click')
     expect(wrapper.emitted('export')).toHaveLength(1)
   })

@@ -1,16 +1,51 @@
-import type { AdvCharacter } from '@advjs/types'
+import type {
+  AdvCharacter,
+  RuntimeTachieState,
+  SceneTransition,
+  TachieMotion,
+} from '@advjs/types'
 import type { Ref } from 'vue'
 import type { AdvContext } from '../types'
 import { consola } from 'consola'
 import { ref } from 'vue'
 
-export interface TachieState {
+export interface TachieState extends RuntimeTachieState {
   /**
    * 立绘状态
    * @description
    * - 例如：`normal`, `happy`, `sad` 等
    */
-  status: string
+  motion?: TachieMotion
+}
+
+export interface PresentationCue<T> {
+  sequence: number
+  value: T
+}
+
+export interface BackgroundPresentation {
+  url: string
+  transition?: SceneTransition
+}
+
+export interface CgPresentation {
+  id: string
+  action: 'show' | 'hide'
+  unlock: boolean
+  transition?: SceneTransition
+}
+
+export interface TransitionPresentation {
+  name: string
+  duration?: number
+  easing?: string
+}
+
+export interface TachiePresentation {
+  enter: Array<{ name: string, motion?: TachieMotion }>
+  exit: Array<{ name: string, motion?: TachieMotion }>
+  /** Restore final state without replaying author-declared motion. */
+  instant?: boolean
 }
 
 /**
@@ -27,9 +62,17 @@ export const ADV_RUNTIME: {
    * ref for reactivity
    */
   tachiesMapRef: Ref<Map<string, TachieState>>
+  backgroundCueRef: Ref<PresentationCue<BackgroundPresentation> | undefined>
+  cgCueRef: Ref<PresentationCue<CgPresentation> | undefined>
+  transitionCueRef: Ref<PresentationCue<TransitionPresentation> | undefined>
+  tachieCueRef: Ref<PresentationCue<TachiePresentation> | undefined>
 } = {
   charactersMap: new Map(),
   tachiesMapRef: ref(new Map()),
+  backgroundCueRef: ref(),
+  cgCueRef: ref(),
+  transitionCueRef: ref(),
+  tachieCueRef: ref(),
 }
 
 /**
@@ -57,6 +100,10 @@ export async function initGameRuntime($adv: AdvContext) {
 
   initCharactersMap()
   ADV_RUNTIME.tachiesMapRef.value = new Map()
+  ADV_RUNTIME.backgroundCueRef.value = undefined
+  ADV_RUNTIME.cgCueRef.value = undefined
+  ADV_RUNTIME.transitionCueRef.value = undefined
+  ADV_RUNTIME.tachieCueRef.value = undefined
 
   consola.debug('Game presentation resources initialized')
   return ADV_RUNTIME

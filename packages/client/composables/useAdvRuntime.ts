@@ -49,6 +49,7 @@ export interface AdvRuntimeHost {
   completeActivity: (result: JsonValue) => Promise<RuntimeUpdate>
   go: (target: RuntimeAddress | string) => Promise<RuntimeUpdate>
   back: () => RuntimeUpdate
+  forward: () => RuntimeUpdate
   snapshot: () => RuntimeSnapshot
   restore: (snapshot: RuntimeSnapshot) => RuntimeUpdate
   trace: () => RuntimeTraceEntry[]
@@ -61,7 +62,7 @@ function initialState(program: RuntimeProgram): RuntimeState {
     status: 'idle',
     cursor: structuredClone(program.entry),
     variables: {},
-    stage: { background: '', bgm: '', tachies: {} },
+    stage: { background: '', bgm: '', cg: '', tachies: {} },
     choices: [],
     visited: [],
   }
@@ -107,8 +108,8 @@ export function createAdvRuntimeHost(options: CreateAdvRuntimeHostOptions): AdvR
     }
     runtime = createAdvRuntime(runtimeOptions)
     unsubscribe = runtime.subscribe((nextState, effects) => {
-      sync()
       options.onEffects?.(effects, nextState)
+      sync()
     })
     unsubscribeTrace = runtime.subscribeTrace((entry) => {
       for (const subscriber of traceSubscribers)
@@ -130,6 +131,7 @@ export function createAdvRuntimeHost(options: CreateAdvRuntimeHostOptions): AdvR
     completeActivity: result => requireRuntime().completeActivity(result),
     go: target => requireRuntime().go(target),
     back: () => requireRuntime().back(),
+    forward: () => requireRuntime().forward(),
     snapshot: () => requireRuntime().snapshot(),
     restore: snapshot => requireRuntime().restore(snapshot),
     trace: () => requireRuntime().trace(),

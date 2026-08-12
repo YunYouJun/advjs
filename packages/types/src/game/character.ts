@@ -341,6 +341,14 @@ export interface AdvTachie {
    * when 3d: pose json data url
    */
   src: string
+  /** Optional horizontal spritesheet metadata for animated tachie variants. */
+  sprite?: {
+    frameWidth: number
+    frameHeight: number
+    frames: number
+    fps: number
+    loop?: boolean
+  }
   class?: string | string[]
   style?: Record<string, string>
 }

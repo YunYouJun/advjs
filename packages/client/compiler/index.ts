@@ -4,8 +4,8 @@ import { computed } from 'vue'
 import configuredRuntimePlugins from '#advjs/runtime-plugins'
 import { setupAdvContext } from '../setup/context'
 
+export { $t } from '../modules/i18n'
 export * from './data'
-export { $t } from '@advjs/client/modules/i18n'
 
 export function initAdvContext(advData: ReturnType<typeof initAdvData>) {
   const advConfig = computed(() => advData.value.config)

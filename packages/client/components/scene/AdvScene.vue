@@ -5,4 +5,5 @@
 
 <template>
   <AdvBg />
+  <AdvTransitionOverlay />
 </template>
