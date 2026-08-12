@@ -11,6 +11,18 @@ title: 决斗者的浪漫
 ```yaml
 type: background
 name: newborn-earth
+transition:
+  name: flash-white
+  duration: 900
+```
+
+```yaml
+type: bgm
+name: world-restart
+loop: true
+fade:
+  in: 1000
+  out: 800
 ```
 
 ```yaml
@@ -18,13 +30,28 @@ type: tachie
 enter:
   - name: 观测者
     status: smile
+    position: right
+    motion: slide-right
   - name: 读书人
     status: default
+    position: left
+    motion: slide-left
   - name: 小仓鼠
     status: running
+    position: 55
+    scale: 0.42
+    motion: hop
 ```
 
 > 光覆盖地球，空气、海与陆地依次部署。读书人仍舍不得那颗黄色恒星；仓鼠醒来后，竟在光球表面把它当作转轮。
+
+```yaml
+type: cg
+id: newborn-earth
+transition:
+  name: dissolve
+  duration: 1200
+```
 
 @观测者
 发动融合效果。

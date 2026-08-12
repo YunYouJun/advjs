@@ -1,6 +1,7 @@
 ---
 id: hospital-garden
 name: 医院花园
+assetId: background/hospital-garden
 description: 王安离开病房散心时与轮椅姑娘相撞的花园，也是世界负反馈机制安排的新转折点。
 imagePrompt: >-
   Small hospital garden in contemporary China, accessible paved path, simple benches and sparse summer greenery, hospital facade in the distance, quiet late-afternoon light, bittersweet grounded visual novel background, no people, 16:9

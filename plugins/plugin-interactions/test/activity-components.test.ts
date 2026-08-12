@@ -19,12 +19,13 @@ describe('interaction activity components', () => {
       props: { activity: activity('star-map/compare', { tolerance: 0.82 }) },
     })
 
-    await wrapper.get('input[type="range"]').setValue('0.91')
-    const confirm = wrapper.findAll('button').find(button => button.text() === '确认匹配')
+    await wrapper.get('[data-testid="rotation"]').setValue('0')
+    await wrapper.get('[data-testid="scale"]').setValue('1')
+    const confirm = wrapper.findAll('button').find(button => button.text() === '确认轨迹')
     await confirm!.trigger('click')
 
     expect(wrapper.emitted('complete')).toEqual([[
-      { matched: true, score: 0.91 },
+      { matched: true, score: 1 },
     ]])
   })
 
@@ -41,7 +42,8 @@ describe('interaction activity components', () => {
 
     await wrapper.get('input[type="text"]').setValue('仓生')
     await wrapper.get('input[type="number"]').setValue('2')
-    await wrapper.get('select').setValue('memory')
+    const memory = wrapper.findAll('button').find(button => button.text().includes('memory'))
+    await memory!.trigger('click')
     await wrapper.get('button[type="submit"]').trigger('submit')
 
     expect(wrapper.emitted('complete')).toEqual([[

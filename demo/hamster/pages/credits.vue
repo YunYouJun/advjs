@@ -11,20 +11,20 @@ const gameConfig = useGameConfig()
         ← 返回标题
       </RouterLink>
       <p class="hamster-credits__eyebrow">
-        CREATIVE ARCHIVE
+        ABOUT THE ARCHIVE
       </p>
-      <h1>创作档案</h1>
+      <h1>关于</h1>
       <p class="hamster-credits__lead">
         游戏内只呈现故事。来源、改编边界与许可集中保存在这里。
       </p>
 
       <section>
-        <h2>原作顺序</h2>
-        <ol>
+        <h2>故事来源</h2>
+        <ul>
           <li><a href="https://www.yunyoujun.cn/posts/hamster" target="_blank" rel="noreferrer">YunYouJun《仓鼠》</a></li>
           <li><a href="https://www.yunyoujun.cn/posts/the-common-hamster" target="_blank" rel="noreferrer">YunYouJun《仓生》</a></li>
-        </ol>
-        <p>正史模式依次覆盖两篇作品；A+ 演绎模式仅在正史通关后开放，并明确作为新增内容。</p>
+        </ul>
+        <p>本作将两份故事文本整理为一条连续航线；通关后开放独立的“回声演算”。</p>
       </section>
 
       <section>

@@ -11,6 +11,18 @@ title: 它们才是神明
 ```yaml
 type: background
 name: solar-system-frontier
+transition:
+  name: wipe-left
+  duration: 1200
+```
+
+```yaml
+type: bgm
+name: deep-space
+loop: true
+fade:
+  in: 900
+  out: 800
 ```
 
 ```yaml
@@ -18,12 +30,20 @@ type: tachie
 enter:
   - name: 观测者
     status: worried
+    position: right
+    motion: slide-right
   - name: 读书人
     status: worried
+    position: left
+    motion: slide-left
   - name: 仓鼠军官
     status: calculating
+    position: center
+    scale: 0.72
+    motion: fade
 exit:
-  - 探索王
+  - name: 探索王
+    motion: fade
 ```
 
 > 从登出按钮消失到基本权限被限制，事态终于威胁观测者自身。她拉着读书人和探索王冲向地球，却撞上透明屏障，被警告“禁止进入”。
@@ -54,6 +74,9 @@ type: tachie
 enter:
   - name: 仓鼠军官
     status: pleading
+    position: center
+    scale: 0.72
+    motion: emphasis
 ```
 
 @观测者
@@ -73,8 +96,13 @@ type: tachie
 enter:
   - name: 仓鼠军官
     status: defiant
+    position: center
+    scale: 0.72
+    motion: emphasis
   - name: 观测者
     status: determined
+    position: right
+    motion: shake
 ```
 
 > 军官按下按钮。观测者抱住读书人、把探索王塞进口袋，以为袭来的是氢弹；弹体却是一颗被极速推进演化的恒星，从主序星、红巨星一路坍缩成黑洞，撕下她裙摆一角后才蒸发。

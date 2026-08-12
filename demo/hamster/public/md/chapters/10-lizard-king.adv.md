@@ -11,6 +11,18 @@ title: 残暴的蜥蜴王
 ```yaml
 type: background
 name: prehistoric-grassland
+transition:
+  name: wipe-right
+  duration: 1000
+```
+
+```yaml
+type: bgm
+name: prehistoric
+loop: true
+fade:
+  in: 800
+  out: 600
 ```
 
 ```yaml
@@ -18,10 +30,15 @@ type: tachie
 enter:
   - name: 观测者
     status: curious
+    position: right
+    motion: slide-right
   - name: 读书人
     status: worried
+    position: left
+    motion: hop
 exit:
-  - 小仓鼠
+  - name: 小仓鼠
+    motion: fade
 ```
 
 @读书人
@@ -45,6 +62,14 @@ exit:
 
 > 两只霸王龙各自咬住饭团，听令蹲下，长尾耷拉在地。猛兽之王转眼成了坐骑。
 
+```yaml
+type: cg
+id: tyrannosaurus-encounter
+transition:
+  name: wipe-left
+  duration: 900
+```
+
 ## 巴 {#ba-appears}
 
 ```yaml
@@ -52,6 +77,9 @@ type: tachie
 enter:
   - name: 巴
     status: afraid
+    position: center
+    scale: 0.7
+    motion: shake
 ```
 
 > 读书人指向她脚边。一只棕褐色仓鼠蜷成一团，因霸王龙与巨大神明而瑟瑟发抖。它的前肢已趋于细长灵活，也能够直立行走。
@@ -73,6 +101,9 @@ type: tachie
 enter:
   - name: 巴
     status: hopeful
+    position: center
+    scale: 0.7
+    motion: hop
 ```
 
 > 她没有让巴步行，而是把它直接放到霸王龙头上。伴着半空中的惨叫，两位神明、巴和霸王龙夫妇向未知方向出发。

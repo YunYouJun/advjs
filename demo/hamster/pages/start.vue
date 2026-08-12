@@ -1,14 +1,26 @@
 <script setup lang="ts">
-import { useAdvStartActions, useGameConfig } from '@advjs/client'
+import { useAdvContext, useAdvStartActions, useGameConfig } from '@advjs/client'
 import { computed } from 'vue'
 
 const gameConfig = useGameConfig()
 const actions = useAdvStartActions()
+const { $adv } = useAdvContext()
 
 const observer = computed(() => gameConfig.value.characters.find(character => character.id === 'observer'))
 const hamster = computed(() => gameConfig.value.characters.find(character => character.id === 'pet-hamster'))
 const observerTachie = computed(() => observer.value?.tachies?.curious?.src || observer.value?.tachies?.default?.src)
 const hamsterTachie = computed(() => hamster.value?.tachies?.default?.src)
+const echoUnlocked = computed(() => Boolean(
+  $adv.progression?.restore(gameConfig.value.variables ?? {}).canonicalCompleted,
+))
+
+function startMainStory() {
+  actions.startGame({ chapterId: 'hamster-cage', nodeId: 'summer-afternoon' })
+}
+
+function startEchoSimulation() {
+  actions.startGame({ chapterId: 'hamster-cage', nodeId: 'echo-simulation' })
+}
 </script>
 
 <template>
@@ -21,7 +33,7 @@ const hamsterTachie = computed(() => hamster.value?.tachies?.default?.src)
 
     <header class="hamster-start__meta">
       <span>ADV.JS · FEATURE DEMO</span>
-      <span>CANON 01—19</span>
+      <span>ORBITAL ARCHIVE · 01—16</span>
     </header>
 
     <section class="hamster-start__hero">
@@ -32,7 +44,7 @@ const hamsterTachie = computed(() => hamster.value?.tachies?.default?.src)
       </div>
 
       <p class="hamster-start__eyebrow">
-        两篇小说 · 一次完整航行
+        一次观测 · 一条完整航线
       </p>
       <h1>
         <span>仓鼠</span>
@@ -41,10 +53,9 @@ const hamsterTachie = computed(() => hamster.value?.tachies?.default?.src)
       <p class="hamster-start__intro">
         从两米远的笼子出发，穿过被模拟的地球、仓人的文明与黯淡群星。
       </p>
-      <div class="hamster-start__canon">
-        <span>正史模式首次开放</span>
-        <span>A+ 演绎将在通关后解锁</span>
-      </div>
+      <p class="hamster-start__route">
+        从盛夏午后启程，直到最后一颗恒星熄灭。
+      </p>
     </section>
 
     <div class="hamster-start__cast" aria-hidden="true">
@@ -56,12 +67,22 @@ const hamsterTachie = computed(() => hamster.value?.tachies?.default?.src)
     </div>
 
     <nav class="hamster-start__menu" aria-label="开始菜单">
-      <button class="hamster-start__primary" type="button" @click="actions.startGame">
+      <button class="hamster-start__primary" type="button" @click="startMainStory">
         <span class="hamster-start__play" aria-hidden="true">▶</span>
         <span>
           <b>开始观测</b>
-          <small>从《仓鼠》进入正史主线</small>
+          <small>从夏日午后驶向黯淡群星</small>
         </span>
+      </button>
+
+      <button
+        v-if="echoUnlocked"
+        class="hamster-start__echo"
+        type="button"
+        @click="startEchoSimulation"
+      >
+        <span>回声演算</span>
+        <small>载入第四十三组星图参数</small>
       </button>
 
       <div class="hamster-start__secondary">
@@ -74,14 +95,17 @@ const hamsterTachie = computed(() => hamster.value?.tachies?.default?.src)
         <button type="button" @click="actions.openSettings">
           设置
         </button>
+        <RouterLink to="/gallery">
+          CG 回廊
+        </RouterLink>
         <RouterLink to="/credits">
-          创作档案
+          关于
         </RouterLink>
       </div>
     </nav>
 
     <footer class="hamster-start__footer">
-      <span>YunYouJun《仓鼠》→《仓生》</span>
+      <span>ORBITAL MEMORY LAB · HAMSTER</span>
       <span>CC BY-NC-SA 4.0</span>
     </footer>
 
@@ -226,6 +250,13 @@ meta:
   letter-spacing: 0.08em;
 }
 
+.hamster-start__route {
+  margin: 1.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+}
+
 .hamster-orbit {
   position: absolute;
   top: -8.5rem;
@@ -344,6 +375,32 @@ meta:
   background: linear-gradient(100deg, rgb(246 201 107 / 28%), rgb(7 10 18 / 88%) 72%);
   outline: none;
   transform: translateX(-0.4rem);
+}
+
+.hamster-start__echo {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: baseline;
+  border: 1px solid rgb(117 221 235 / 48%);
+  margin-top: 0.65rem;
+  background: linear-gradient(100deg, rgb(117 221 235 / 16%), rgb(7 10 18 / 82%));
+  padding: 0.85rem 1.2rem;
+  color: var(--cyan);
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  text-align: left;
+}
+
+.hamster-start__echo small {
+  color: var(--muted);
+  font-size: 0.66rem;
+}
+
+.hamster-start__echo:hover,
+.hamster-start__echo:focus-visible {
+  border-color: var(--cyan);
+  outline: none;
 }
 
 .hamster-start__play {
@@ -493,11 +550,11 @@ meta:
   }
 
   .hamster-start__cast {
-    top: 20%;
-    right: -14%;
-    width: 78%;
-    height: 58%;
-    opacity: 0.7;
+    top: 34%;
+    right: -20%;
+    width: 70%;
+    height: 43%;
+    opacity: 0.54;
   }
 
   .hamster-start__menu {

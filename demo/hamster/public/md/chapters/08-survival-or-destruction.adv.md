@@ -11,6 +11,18 @@ title: 生存还是毁灭
 ```yaml
 type: background
 name: empty-earth
+transition:
+  name: fade
+  duration: 1300
+```
+
+```yaml
+type: bgm
+name: world-restart
+loop: true
+fade:
+  in: 1200
+  out: 900
 ```
 
 > 某个意识在刺眼白光中睁眼。平坦大地光滑得没有纹理，天空白得看不出高度，世界只剩亮与暗。它不知道自己是谁、从哪里来，又要到哪里去。
@@ -32,6 +44,9 @@ name: empty-earth
 ```yaml
 type: background
 name: hospital-room
+transition:
+  name: dissolve
+  duration: 1000
 ```
 
 ```yaml
@@ -66,6 +81,9 @@ exit:
 ```yaml
 type: background
 name: hospital-garden
+transition:
+  name: crossfade
+  duration: 900
 ```
 
 @轮椅姑娘
@@ -78,6 +96,9 @@ name: hospital-garden
 ```yaml
 type: background
 name: empty-earth
+transition:
+  name: fade
+  duration: 1100
 ```
 
 ```yaml
@@ -85,8 +106,12 @@ type: tachie
 enter:
   - name: 观测者
     status: determined
+    position: right
+    motion: slide-right
   - name: 读书人
     status: worried
+    position: left
+    motion: slide-left
 ```
 
 > 初始化 100%。原本蓝绿斑驳的地球成为纯黑球体，所有美好与丑恶、努力与放弃一同被擦除，不留痕迹。毁灭永远比创造轻松。

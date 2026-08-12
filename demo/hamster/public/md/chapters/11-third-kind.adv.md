@@ -11,6 +11,18 @@ title: 第三类接触
 ```yaml
 type: background
 name: hamster-village
+transition:
+  name: wipe-left
+  duration: 1000
+```
+
+```yaml
+type: bgm
+name: civilization-rise
+loop: true
+fade:
+  in: 900
+  out: 700
 ```
 
 ```yaml
@@ -18,10 +30,17 @@ type: tachie
 enter:
   - name: 观测者
     status: default
+    position: right
+    motion: slide-right
   - name: 读书人
     status: default
+    position: left
+    motion: slide-left
   - name: 巴
     status: proud
+    position: center
+    scale: 0.68
+    motion: hop
 ```
 
 > 仓鼠原本是强势的独居动物。拥有人类智慧后，它们为了在危险世界生存，进化为合作的群居生物；石器、火与记忆结晶让经验和历史得以传承，霸王龙却仍是巨大威胁。
@@ -88,9 +107,20 @@ type: tachie
 enter:
   - name: 巴
     status: hopeful
+    position: center
+    scale: 0.68
+    motion: emphasis
 ```
 
 > 临别时，观测者终于抢回仪式主导权。她与巴伸出手指，指尖轻触；画面定格，一个君权神授的封建专制时代拉开序幕。
+
+```yaml
+type: cg
+id: fingertip-sunflower
+transition:
+  name: dissolve
+  duration: 1100
+```
 
 - [观察文明继续加速](evolution#return-to-space)
 

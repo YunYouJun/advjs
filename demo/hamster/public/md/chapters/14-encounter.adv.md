@@ -11,6 +11,18 @@ title: 相遇
 ```yaml
 type: background
 name: exploration-space
+transition:
+  name: rise
+  duration: 1400
+```
+
+```yaml
+type: bgm
+name: deep-space
+loop: true
+fade:
+  in: 1200
+  out: 900
 ```
 
 ```yaml
@@ -18,13 +30,28 @@ type: tachie
 enter:
   - name: 探索王
     status: awakened
+    position: center
+    scale: 0.76
+    motion: fade
   - name: 观测者
     status: curious
+    position: right
+    motion: slide-right
   - name: 读书人
     status: default
+    position: left
+    motion: slide-left
 ```
 
 > 探索王睁眼，没有看到仪器面板，只有触手可及的星河。赤裸的身体直接漂浮在宇宙中，探索号已被拆成一圈机械残骸。
+
+```yaml
+type: cg
+id: explorer-awakening
+transition:
+  name: dissolve
+  duration: 1200
+```
 
 > 两个与仓人一样拥有四肢、体型却无比巨大的生物出现在眼前。父辈的记忆结晶产生共鸣，唤醒了古老礼节。
 
@@ -47,6 +74,9 @@ type: tachie
 enter:
   - name: 探索王
     status: reverent
+    position: center
+    scale: 0.76
+    motion: emphasis
 ```
 
 ## 被拆开的探索号 {#dismantled-ship}

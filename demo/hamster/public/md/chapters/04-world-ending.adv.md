@@ -11,6 +11,18 @@ title: 世界的终焉
 ```yaml
 type: background
 name: simulated-orbit
+transition:
+  name: crossfade
+  duration: 900
+```
+
+```yaml
+type: bgm
+name: final-echo
+loop: true
+fade:
+  in: 1000
+  out: 900
 ```
 
 ```yaml
@@ -18,8 +30,12 @@ type: tachie
 enter:
   - name: 观测者
     status: worried
+    position: right
+    motion: fade
   - name: 读书人
     status: determined
+    position: left
+    motion: fade
 ```
 
 > 倒计时归零，太阳仍照常升起，蝉鸣依旧聒噪。这是无法否认的第四天。
@@ -78,16 +94,29 @@ type: tachie
 enter:
   - name: 观测者
     status: smile
+    position: right
   - name: 读书人
     status: smile
+    position: left
   - name: 小仓鼠
     status: sleepy
+    position: 56
+    scale: 0.4
+    motion: fade
 ```
 
 @读书人
 当人类开始仰望时，空无一物的世界会让人失望。谢谢你让我拥有这片星空的幻想——也谢谢款待。
 
 > 她把半睡半醒的小仓鼠交给他。他问起名字；她说，有了名字，分别时会更伤感。随后虚拟身躯散去，旧世界如预料般分崩离析。
+
+```yaml
+type: cg
+id: old-world-collapse
+transition:
+  name: dissolve
+  duration: 1600
+```
 
 - [读取观测者的课程报告](endless-symphony#academy-report)
 

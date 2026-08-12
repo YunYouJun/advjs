@@ -11,6 +11,18 @@ title: 关于世界毁灭的二三事
 ```yaml
 type: background
 name: starfield-room
+transition:
+  name: crossfade
+  duration: 1000
+```
+
+```yaml
+type: bgm
+name: terminal-doubt
+loop: true
+fade:
+  in: 900
+  out: 700
 ```
 
 ```yaml
@@ -18,16 +30,15 @@ type: tachie
 enter:
   - name: 观测者
     status: default
+    position: right
+    motion: slide-right
   - name: 读书人
     status: default
+    position: left
+    motion: slide-left
 exit:
-  - 小仓鼠
-```
-
-```yaml
-type: transition
-name: fade
-duration: 1000
+  - name: 小仓鼠
+    motion: fade
 ```
 
 > 今日的房间不再透明简洁。繁星罩着长满嫩草的山坡，远处留着昨日黄昏的余色；散落的家具却让两人像无家可归的旅人。
@@ -84,8 +95,12 @@ type: tachie
 enter:
   - name: 观测者
     status: worried
+    position: right
+    motion: shake
   - name: 读书人
     status: curious
+    position: left
+    motion: emphasis
 ```
 
 > 读书人的神情从期待凝成呆滞。他以为那只是一个过分的玩笑，可她没有笑。

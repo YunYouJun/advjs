@@ -4,37 +4,6 @@ title: 仓鼠的笼子
 
 <!-- source:hamster/hamster-cage -->
 
-## 选择观测协议 {#mode-select}
-
-> 第一份观测记录已经就绪。沿着它，可以一直抵达群星黯淡之处。
-
-- [从《仓鼠》开始原作主线](#summer-afternoon)
-
-  ```yaml
-  id: start-canonical
-  actions:
-    - type: variables/set
-      key: storyMode
-      value: canonical
-    - type: variables/set
-      key: ending
-      value: ''
-  ```
-
-- [进入 A+ 演绎模式](#interpretive-mode)
-
-  ```yaml
-  id: start-interpretive
-  when: canonicalCompleted
-  actions:
-    - type: variables/set
-      key: storyMode
-      value: interpretive
-    - type: variables/set
-      key: ending
-      value: ''
-  ```
-
 ## 夏日午后 {#summer-afternoon}
 
 <!-- scene: summer-room / 午后 / 内景 -->
@@ -42,11 +11,18 @@ title: 仓鼠的笼子
 ```yaml
 type: background
 name: summer-room
+transition:
+  name: crossfade
+  duration: 900
 ```
 
 ```yaml
 type: bgm
-src: /audio/observatory.wav
+name: summer-day
+loop: true
+fade:
+  in: 1000
+  out: 700
 ```
 
 ```yaml
@@ -54,13 +30,25 @@ type: tachie
 enter:
   - name: 观测者
     status: curious
-  - name: 读书人
-    status: default
+    position: right
+    motion: slide-right
   - name: 小仓鼠
     status: running
+    position: 58
+    scale: 0.42
+    motion: hop
 ```
 
 > 冷气把盛夏挡在玻璃幕墙之外。观测者喂着一只毛茸茸的小仓鼠，读书人仍埋在书页里。
+
+```yaml
+type: tachie
+enter:
+  - name: 读书人
+    status: default
+    position: left
+    motion: slide-left
+```
 
 @观测者
 你说，世界上真的有外星人吗？
@@ -128,10 +116,15 @@ type: tachie
 enter:
   - name: 观测者
     status: determined
+    position: right
+    motion: emphasis
   - name: 读书人
     status: curious
+    position: left
   - name: 小仓鼠
     status: sleepy
+    position: 58
+    scale: 0.42
 ```
 
 > 他惊讶片刻，还是点头。夕阳穿过单向玻璃，为屋内染上与笑容相似的暖色。
@@ -147,13 +140,33 @@ enter:
   id: continue-to-world-destruction
   ```
 
-## 回声演算 {#interpretive-mode}
+## 回声演算 {#echo-simulation}
 
-<!-- scene: starfield-room / 非正史演绎 / 内景 -->
+<!-- scene: starfield-room / 演算时间未定义 / 内景 -->
 
 ```yaml
 type: background
 name: starfield-room
+transition:
+  name: dissolve
+  duration: 1200
+```
+
+```yaml
+type: actions
+actions:
+  - type: variables/set
+    key: storyMode
+    value: echo
+```
+
+```yaml
+type: bgm
+name: final-echo
+loop: true
+fade:
+  in: 1200
+  out: 900
 ```
 
 ```yaml
@@ -161,13 +174,17 @@ type: tachie
 enter:
   - name: 观测者
     status: determined
+    position: right
+    motion: slide-right
   - name: 读书人
     status: default
+    position: left
+    motion: slide-left
 exit:
   - 小仓鼠
 ```
 
-> 全部观测结束后，一组新的星图坐标浮出档案。旧世界留下的回声，正等待另一种回答。
+> 观测者把工作站切入低功耗沙盒。第四十三组参数从记忆结晶里展开：这一次，星图可以由他们亲手校准。
 
 ```yaml
 type: activity
@@ -182,14 +199,14 @@ type: when
 condition: starMatched && starMatchScore >= 0.82
 ```
 
-> 星点完全重合。旧世界并没有要求被复原，只留下一个可以回应的方向。
+> 星点完全重合。演算沿着新的轨迹稳定下来，黑域边缘第一次出现可供航行的微光。
 
 ```yaml
 type: when
 condition: '!starMatched || starMatchScore < 0.82'
 ```
 
-> 星点仍有误差。误差没有让档案失效，反而提醒观测者：解释永远不是原作本身。
+> 星点仍有误差。观测者保留了偏差：世界并不需要重复某次答案，也能继续运转。
 
 - [把星光交还给仍在仰望者](#ending-still-gazing)
 
@@ -234,7 +251,7 @@ condition: '!starMatched || starMatchScore < 0.82'
 
 > 星图没有许诺答案。好奇与善意却使黑暗之外始终保留方向。
 
-- [收起这次演绎](#interpretive-end)
+- [结束本次演算](#echo-end)
 
   ```yaml
   id: close-still-gazing
@@ -244,7 +261,7 @@ condition: '!starMatched || starMatchScore < 0.82'
 
 > 每一次稳定记录都复制上一次选择。世界安全、精确，也再没有意外。
 
-- [收起这次演绎](#interpretive-end)
+- [结束本次演算](#echo-end)
 
   ```yaml
   id: close-endless-wheel
@@ -254,12 +271,12 @@ condition: '!starMatched || starMatchScore < 0.82'
 
 > 它活过、忘记，又把一点记忆交给后来者。普通因此不再等于徒劳。
 
-- [收起这次演绎](#interpretive-end)
+- [结束本次演算](#echo-end)
 
   ```yaml
   id: close-common-hamster
   ```
 
-## 演绎结束 {#interpretive-end}
+## 演算结束 {#echo-end}
 
 > 星图缓缓熄灭。这次回答被收进一颗小小的记忆结晶。

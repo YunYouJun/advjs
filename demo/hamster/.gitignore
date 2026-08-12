@@ -1,5 +1,9 @@
 public/assets/
 
+# Game media is published to COS. Reproducible local outputs live in /temp.
+public/audio/
+public/img/
+
 node_modules
 dist
 

@@ -1,9 +1,9 @@
 {
   "title": "仓鼠：星海回声",
-  "description": "完整改编自《仓鼠》与续作《仓生》的 ADV.JS 旗舰示例",
+  "description": "一条从盛夏午后驶向黯淡群星的 ADV.JS 旗舰示例",
   "variables": {
     "canonicalCompleted": false,
-    "storyMode": "canonical",
+    "storyMode": "main",
     "unlockedEndings": [],
     "curiosity": 0,
     "empathy": 0,
@@ -22,6 +22,53 @@
     "keys": [
       "canonicalCompleted",
       "unlockedEndings"
+    ]
+  },
+  "gallery": {
+    "id": "hamster",
+    "version": 1,
+    "allowDownload": true,
+    "items": [
+      {
+        "id": "star-in-hand",
+        "assetId": "cg/star-in-hand",
+        "chapterId": "starry-fantasy"
+      },
+      {
+        "id": "old-world-collapse",
+        "assetId": "cg/old-world-collapse",
+        "chapterId": "world-ending"
+      },
+      {
+        "id": "newborn-earth",
+        "assetId": "cg/newborn-earth",
+        "chapterId": "duelist-romance"
+      },
+      {
+        "id": "tyrannosaurus-encounter",
+        "assetId": "cg/tyrannosaurus-encounter",
+        "chapterId": "lizard-king"
+      },
+      {
+        "id": "fingertip-sunflower",
+        "assetId": "cg/fingertip-sunflower",
+        "chapterId": "third-kind"
+      },
+      {
+        "id": "explorer-awakening",
+        "assetId": "cg/explorer-awakening",
+        "chapterId": "encounter"
+      },
+      {
+        "id": "stars-volley",
+        "assetId": "cg/stars-volley",
+        "chapterId": "dim-stars"
+      },
+      {
+        "id": "reality-workstation",
+        "assetId": "cg/reality-workstation",
+        "chapterId": "dim-stars"
+      }
     ]
   },
   "requiredPlugins": {

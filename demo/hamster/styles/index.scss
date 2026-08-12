@@ -30,11 +30,13 @@
   right: 4.5rem !important;
   bottom: 2.3rem !important;
   left: 4.5rem !important;
-  height: 15rem !important;
+  height: auto !important;
+  min-height: clamp(11rem, 23vh, 14rem) !important;
+  max-height: min(46vh, 24rem);
   border: 1px solid var(--hamster-line);
   border-radius: 0.25rem;
   background: linear-gradient(105deg, rgb(7 10 18 / 96%), rgb(12 21 42 / 86%)), var(--hamster-panel) !important;
-  padding-top: 3.2rem !important;
+  padding-top: clamp(2rem, 4vh, 3rem) !important;
   box-shadow: 0 1.5rem 5rem rgb(0 0 0 / 55%) !important;
   backdrop-filter: blur(1rem);
 }
@@ -52,7 +54,8 @@
 .adv-dialog-box .dialog-name {
   color: var(--hamster-amber) !important;
   font-family: 'Songti SC', STSong, serif;
-  font-size: 2rem !important;
+  font-size: clamp(1.1rem, 1.5vw, 1.45rem) !important;
+  line-height: 1.8 !important;
   letter-spacing: 0.14em;
 }
 
@@ -60,7 +63,7 @@
   padding-right: 5rem !important;
   color: var(--hamster-ink) !important;
   font-family: 'Songti SC', STSong, serif;
-  font-size: clamp(1.55rem, 2vw, 2rem) !important;
+  font-size: clamp(1.15rem, 1.55vw, 1.55rem) !important;
   font-weight: 500;
   line-height: 1.8 !important;
   letter-spacing: 0.045em !important;
@@ -71,8 +74,12 @@
   color: var(--hamster-ink);
   font-family: 'Songti SC', STSong, serif;
   font-weight: 500 !important;
-  line-height: 1.82 !important;
+  line-height: 1.9 !important;
   text-shadow: 0 0.2rem 1.4rem rgb(0 0 0 / 70%);
+}
+
+.adv-black .words-wrapper {
+  width: min(100%, 56rem) !important;
 }
 
 .adv-black .words-wrapper::before {
@@ -85,8 +92,7 @@
 }
 
 .adv-choice {
-  background: rgb(4 7 14 / 54%);
-  backdrop-filter: blur(0.35rem);
+  background: radial-gradient(circle at 50% 48%, transparent 18%, rgb(4 7 14 / 34%) 100%), rgb(4 7 14 / 18%);
 }
 
 .adv-option {
@@ -128,6 +134,35 @@
   color: var(--hamster-cyan);
 }
 
+.modal-container:has(.hamster-settings) {
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 15%, rgb(28 61 83 / 42%), transparent 42%), rgb(2 5 12 / 86%) !important;
+  padding: clamp(1rem, 5vh, 4rem) clamp(1rem, 5vw, 5rem);
+  backdrop-filter: blur(1.1rem);
+}
+
+.modal-container:has(.hamster-settings) .modal-body {
+  flex-grow: 0 !important;
+  align-items: center;
+  overflow: visible !important;
+}
+
+.modal-container:has(.hamster-settings) .modal-close-button {
+  z-index: 2;
+  top: clamp(1rem, 3vh, 2.25rem) !important;
+  right: clamp(1rem, 3vw, 2.5rem) !important;
+  border: 1px solid rgb(117 221 235 / 32%);
+  background: rgb(7 10 18 / 82%);
+  padding: 0.4rem;
+  color: var(--hamster-cyan);
+}
+
+.modal-container:has(.hamster-settings) .modal-close-button > span > div {
+  font-size: 2rem !important;
+}
+
 .tachie-character {
   max-width: min(38vw, 43rem) !important;
   max-height: 96%;
@@ -141,21 +176,45 @@
 
 .tachie-character.active {
   filter: brightness(100%) saturate(0.96) drop-shadow(0 1rem 2rem rgb(0 0 0 / 56%)) !important;
-  transform: translateY(-0.7rem) !important;
+  transform: translateY(-0.7rem) scaleX(var(--adv-tachie-mirror)) scale(var(--adv-tachie-scale)) !important;
 }
 
 @media (max-width: 800px) {
+  .adv-game-ui--header {
+    align-items: flex-start;
+    padding: 0.75rem !important;
+  }
+
+  .adv-game-ui--header .adv-icon-button {
+    padding: 0.55rem;
+  }
+
+  .adv-game-ui--actions {
+    gap: 0.35rem !important;
+  }
+
+  .modal-container:has(.hamster-settings) {
+    justify-content: flex-start;
+    padding: 3.5rem 0.5rem 0.5rem;
+  }
+
+  .modal-container:has(.hamster-settings) .modal-body {
+    width: 100%;
+    overflow: auto !important;
+  }
+
   .adv-dialog-box {
     right: 1rem !important;
     bottom: 1rem !important;
     left: 1rem !important;
-    height: 12.5rem !important;
-    padding-top: 2.7rem !important;
+    min-height: 10rem !important;
+    max-height: 48vh;
+    padding-top: 1.45rem !important;
   }
 
   .adv-dialog-box .dialog-content {
     padding-right: 1.5rem !important;
-    font-size: 1.25rem !important;
+    font-size: 1.08rem !important;
   }
 
   .adv-option {

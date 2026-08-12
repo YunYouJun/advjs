@@ -1,6 +1,7 @@
 ---
 id: simulated-orbit
 name: 模拟宇宙与地球轨道
+assetId: background/simulated-orbit
 description: 城市、云层与蓝色地球缩至脚下，恒星和星云可被观测者随手拉近成可触摸的数据气团。
 imagePrompt: >-
   Expansive simulated Earth orbit for a visual novel, blue planet below, luminous miniature stars and colorful nebula data clouds within reach, subtle holographic grid and floating interface fragments, majestic but intentionally too gentle to be real space, indigo black and amber light, no characters, 16:9

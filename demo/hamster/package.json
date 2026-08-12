@@ -8,10 +8,16 @@
     "email": "me@yunyoujun.cn"
   },
   "scripts": {
-    "assets:audio": "node scripts/generate-ambient.mjs",
+    "assets:audio": "node scripts/generate-bgm.mjs",
+    "assets:audit": "node ../../skills/adv-art/scripts/audit-assets.mjs adv/assets.json && node ../../skills/adv-art/scripts/audit-cos-release.mjs adv/cos-release.json ../../temp/hamster-art/release-current",
+    "assets:audit:remote": "node ../../skills/adv-art/scripts/audit-cos-remote.mjs adv/cos-release.json",
+    "assets:media": "node scripts/prepare-media.mjs",
+    "assets:release": "node ../../skills/adv-art/scripts/prepare-release.mjs --catalog-id hamster --adaptation adv/adaptation.json --asset-root ../../temp/hamster-art --release-root ../../temp/hamster-art/release-current --manifest adv/assets.json --cos-release-plan adv/cos-release.json --public-base-url https://cos.advjs.yunle.fun/ --object-prefix games/hamster/v1/ --license 'CC BY-NC-SA 4.0' --model imagegen-built-in --prompt-version hamster-art-bible-v1 --created-at 2026-07-18",
     "build": "adv build",
     "build:singlefile": "adv build --singlefile",
-    "dev": "cross-env ADV_HAMSTER_ASSET_BASE_URL=local adv --open=false --log=info",
+    "dev": "adv --open=false --log=info",
+    "dev:local-assets": "cross-env ADV_HAMSTER_ASSET_BASE_URL=local adv --open=false --log=info",
+    "playtest:capture": "node scripts/capture-playtest.mjs",
     "preview": "vite preview --host"
   },
   "devDependencies": {

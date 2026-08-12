@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 820" role="img" aria-labelledby="title">
-  <title id="title">身穿靛蓝观测服的观测者立绘</title>
-  <circle cx="240" cy="170" r="110" fill="#fde68a"/>
-  <path d="M112 170Q130 20 240 30t128 140q-62-58-128-58t-128 58" fill="#0f172a"/>
-  <path d="M74 820Q86 330 240 310t166 510" fill="#312e81"/>
-  <circle cx="202" cy="170" r="9" fill="#0f172a"/><circle cx="278" cy="170" r="9" fill="#0f172a"/>
-  <path d="M205 225q35 25 70 0" fill="none" stroke="#9a3412" stroke-width="8" stroke-linecap="round"/>
-  <circle cx="240" cy="500" r="92" fill="none" stroke="#7dd3fc" stroke-width="10" stroke-dasharray="12 18"/>
-</svg>

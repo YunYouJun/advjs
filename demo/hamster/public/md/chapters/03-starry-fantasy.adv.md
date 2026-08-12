@@ -11,6 +11,18 @@ title: 星空的狂想
 ```yaml
 type: background
 name: simulated-orbit
+transition:
+  name: rise
+  duration: 1400
+```
+
+```yaml
+type: bgm
+name: star-revelation
+loop: true
+fade:
+  in: 1200
+  out: 900
 ```
 
 @读书人
@@ -32,8 +44,12 @@ type: tachie
 enter:
   - name: 观测者
     status: determined
+    position: right
+    motion: slide-right
   - name: 读书人
     status: worried
+    position: left
+    motion: slide-left
 ```
 
 > 为证明一切，她拉住他的手。草坡下沉，房间壁障、城市和云层依次缩小，蓝色地球悬在脚下。
@@ -48,6 +64,12 @@ enter:
 无关的变数不会改变“抵达公司”这件事。何况模拟根本不必超出太阳系——你们无论如何也飞不出去。
 
 > 她把一颗恒星缩成乒乓球般的光团，推到他面前，仿佛那就是人类努力观测的一整个宇宙。
+
+```yaml
+type: cg
+id: star-in-hand
+transition: flash-white
+```
 
 @观测者
 如果你不安，我可以消除这段记忆。

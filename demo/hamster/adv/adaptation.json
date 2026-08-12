@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "adaptationMode": "canonical-plus",
+  "adaptationMode": "seamless-route",
   "sources": [
     {
       "id": "hamster",
@@ -56,10 +56,9 @@
         {
           "id": "postscript",
           "title": "后记",
-          "required": true,
-          "chapters": [
-            "06-hamster-postscript.adv.md"
-          ]
+          "required": false,
+          "chapters": [],
+          "excludedReason": "author-metadata"
         }
       ]
     },
@@ -77,17 +76,16 @@
         {
           "id": "preface",
           "title": "前言",
-          "required": true,
-          "chapters": [
-            "07-common-hamster-preface.adv.md"
-          ]
+          "required": false,
+          "chapters": [],
+          "excludedReason": "author-metadata"
         },
         {
           "id": "daylight",
           "title": "白昼之光，岂知夜色之深。",
           "required": true,
           "chapters": [
-            "08-daylight.adv.md"
+            "06-daylight.adv.md"
           ]
         },
         {
@@ -95,7 +93,7 @@
           "title": "作茧自缚",
           "required": true,
           "chapters": [
-            "09-cocoon.adv.md"
+            "07-cocoon.adv.md"
           ]
         },
         {
@@ -103,7 +101,7 @@
           "title": "生存还是毁灭",
           "required": true,
           "chapters": [
-            "10-survival-or-destruction.adv.md"
+            "08-survival-or-destruction.adv.md"
           ]
         },
         {
@@ -111,7 +109,7 @@
           "title": "决斗者的浪漫",
           "required": true,
           "chapters": [
-            "11-duelist-romance.adv.md"
+            "09-duelist-romance.adv.md"
           ]
         },
         {
@@ -119,7 +117,7 @@
           "title": "残暴的蜥蜴王",
           "required": true,
           "chapters": [
-            "12-lizard-king.adv.md"
+            "10-lizard-king.adv.md"
           ]
         },
         {
@@ -127,7 +125,7 @@
           "title": "第三类接触",
           "required": true,
           "chapters": [
-            "13-third-kind.adv.md"
+            "11-third-kind.adv.md"
           ]
         },
         {
@@ -135,7 +133,7 @@
           "title": "仓鼠们今天也在努力进化着。",
           "required": true,
           "chapters": [
-            "14-evolution.adv.md"
+            "12-evolution.adv.md"
           ]
         },
         {
@@ -143,7 +141,7 @@
           "title": "我们的征途是星辰大海",
           "required": true,
           "chapters": [
-            "15-stars-sea.adv.md"
+            "13-stars-sea.adv.md"
           ]
         },
         {
@@ -151,7 +149,7 @@
           "title": "相遇",
           "required": true,
           "chapters": [
-            "16-encounter.adv.md"
+            "14-encounter.adv.md"
           ]
         },
         {
@@ -159,7 +157,7 @@
           "title": "它们才是神明",
           "required": true,
           "chapters": [
-            "17-they-are-gods.adv.md"
+            "15-they-are-gods.adv.md"
           ]
         },
         {
@@ -167,19 +165,90 @@
           "title": "黯淡的星空",
           "required": true,
           "chapters": [
-            "18-dim-stars.adv.md"
+            "16-dim-stars.adv.md"
           ]
         },
         {
           "id": "postscript",
           "title": "后记",
-          "required": true,
-          "chapters": [
-            "19-common-hamster-postscript.adv.md"
-          ]
+          "required": false,
+          "chapters": [],
+          "excludedReason": "author-metadata"
         }
       ]
     }
+  ],
+  "gallery": [
+    {
+      "id": "star-in-hand",
+      "title": "恒星在手",
+      "alt": "观测者把一颗温暖恒星托到读书人面前",
+      "chapterId": "starry-fantasy"
+    },
+    {
+      "id": "old-world-collapse",
+      "title": "旧世界崩解",
+      "alt": "观测者、读书人与仓鼠在夕阳中化为数据碎片",
+      "chapterId": "world-ending"
+    },
+    {
+      "id": "newborn-earth",
+      "title": "新生地球",
+      "alt": "创世光芒覆盖地球，仓鼠绕着恒星奔跑",
+      "chapterId": "duelist-romance"
+    },
+    {
+      "id": "tyrannosaurus-encounter",
+      "title": "霸王龙相遇",
+      "alt": "观测者、读书人与巴遭遇两只霸王龙",
+      "chapterId": "lizard-king"
+    },
+    {
+      "id": "fingertip-sunflower",
+      "title": "接手礼与向日葵",
+      "alt": "观测者在向日葵下与巴完成指尖礼",
+      "chapterId": "third-kind"
+    },
+    {
+      "id": "explorer-awakening",
+      "title": "探索王苏醒",
+      "alt": "探索王在飞船残骸与银河之间向观测者伸手",
+      "chapterId": "encounter"
+    },
+    {
+      "id": "stars-volley",
+      "title": "万星齐发",
+      "alt": "仓人舰队把万千恒星射向观测者与读书人",
+      "chapterId": "dim-stars"
+    },
+    {
+      "id": "reality-workstation",
+      "title": "现实工作站与仓鼠",
+      "alt": "关机后的现实工作站旁，一只仓鼠在笼中等待喂食",
+      "chapterId": "dim-stars"
+    }
+  ],
+  "animations": [
+    {
+      "id": "pet-hamster/running",
+      "characterId": "pet-hamster",
+      "state": "running",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "frames": 6,
+      "fps": 10,
+      "loop": true
+    }
+  ],
+  "bgm": [
+    { "id": "summer-day", "title": "盛夏日常", "duration": 24, "loop": true },
+    { "id": "terminal-doubt", "title": "末日疑云", "duration": 24, "loop": true },
+    { "id": "star-revelation", "title": "星空揭示", "duration": 24, "loop": true },
+    { "id": "world-restart", "title": "文明重启", "duration": 24, "loop": true },
+    { "id": "prehistoric", "title": "史前喜剧", "duration": 24, "loop": true },
+    { "id": "civilization-rise", "title": "文明跃迁", "duration": 24, "loop": true },
+    { "id": "deep-space", "title": "深空危机", "duration": 24, "loop": true },
+    { "id": "final-echo", "title": "终焉余响", "duration": 24, "loop": true }
   ],
   "characters": [
     {
@@ -551,8 +620,8 @@
   ],
   "addedMaterial": [
     {
-      "id": "interpretive-mode",
-      "kind": "post-canonical-route-set",
+      "id": "echo-simulation",
+      "kind": "postgame-simulation",
       "canon": false,
       "description": "首次完整通关后解锁的星图、文明与替代结局路线。"
     }

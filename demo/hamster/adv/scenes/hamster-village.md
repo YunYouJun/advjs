@@ -1,6 +1,7 @@
 ---
 id: hamster-village
 name: 仓鼠村落
+assetId: background/hamster-village
 description: 森林、溪流、柔软土壤与树上哨岗保护着石器时代仓人，村落中心后来长出第一株向日葵。
 imagePrompt: >-
   Stone-age sapient hamster village hidden in a forest beside a clear stream, burrow homes in soft earth, tiny tree lookout platforms, miniature stone tools and spears, central clearing prepared for a towering sunflower, clean anime-inspired painterly visual novel background, no characters, 16:9

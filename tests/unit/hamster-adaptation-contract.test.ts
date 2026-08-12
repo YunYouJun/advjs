@@ -45,11 +45,11 @@ function loadManifest() {
 }
 
 describe('hamster complete adaptation contract', () => {
-  it('locks both source works, their order, and all 19 sections', () => {
+  it('locks both source works while keeping author metadata outside the 16 playable chapters', () => {
     const manifest = loadManifest()
 
     expect(manifest.schemaVersion).toBe(1)
-    expect(manifest.adaptationMode).toBe('canonical-plus')
+    expect(manifest.adaptationMode).toBe('seamless-route')
     expect(manifest.sources.map(source => ({
       id: source.id,
       order: source.order,
@@ -78,22 +78,30 @@ describe('hamster complete adaptation contract', () => {
       sourceId: source.id,
     })))
     const sourceKeys = sections.map(section => `${section.sourceId}/${section.id}`)
-    const chapters = sections.flatMap(section => section.chapters)
+    const playableSections = sections.filter(section => section.required)
+    const chapters = playableSections.flatMap(section => section.chapters)
 
     expect(sections).toHaveLength(19)
-    expect(sections.every(section => section.required)).toBe(true)
+    expect(playableSections).toHaveLength(16)
+    expect(sections.filter(section => !section.required).map(section => section.id)).toEqual([
+      'postscript',
+      'preface',
+      'postscript',
+    ])
     expect(new Set(sourceKeys).size).toBe(19)
-    expect(chapters).toHaveLength(19)
-    expect(new Set(chapters).size).toBe(19)
+    expect(chapters).toHaveLength(16)
+    expect(new Set(chapters).size).toBe(16)
     expect(chapters.every(chapter => /^\d{2}-[a-z0-9-]+\.adv\.md$/u.test(chapter))).toBe(true)
   })
 
   it('maps every source section to exactly one ordered chapter anchor', () => {
     const manifest = loadManifest()
-    const expected = manifest.sources.flatMap(source => source.sections.map(section => ({
-      file: section.chapters[0],
-      key: `${source.id}/${section.id}`,
-    })))
+    const expected = manifest.sources.flatMap(source => source.sections
+      .filter(section => section.required)
+      .map(section => ({
+        file: section.chapters[0],
+        key: `${source.id}/${section.id}`,
+      })))
     const chaptersDirectory = resolve(root, 'demo/hamster/public/md/chapters')
     const files = readdirSync(chaptersDirectory)
       .filter(file => file.endsWith('.adv.md'))
@@ -181,12 +189,12 @@ describe('hamster complete adaptation contract', () => {
     })
   })
 
-  it('persists only cross-playthrough unlocks for A+ mode', () => {
+  it('persists only cross-playthrough unlocks for the echo simulation', () => {
     const settings = JSON.parse(readFileSync(resolve(root, 'demo/hamster/adv/settings/game.json'), 'utf8'))
 
     expect(settings.variables).toMatchObject({
       canonicalCompleted: false,
-      storyMode: 'canonical',
+      storyMode: 'main',
       unlockedEndings: [],
     })
     expect(settings.progression).toEqual({
@@ -195,5 +203,24 @@ describe('hamster complete adaptation contract', () => {
       keys: ['canonicalCompleted', 'unlockedEndings'],
     })
     expect(settings.progression.keys).not.toContain('storyMode')
+  })
+
+  it('keeps the playable route free of author notes and configures chapter presentation beats', () => {
+    const chaptersDirectory = resolve(root, 'demo/hamster/public/md/chapters')
+    const files = readdirSync(chaptersDirectory).filter(file => file.endsWith('.adv.md')).sort()
+    const forbidden = ['前言', '后记', '比赛', '第一篇', '续作', '原作主线', '正史', 'A+']
+
+    expect(files).toHaveLength(16)
+    for (const file of files) {
+      const source = readFileSync(resolve(chaptersDirectory, file), 'utf8')
+      const visible = source.replace(/<!--.*?-->/gsu, '')
+      expect(visible, file).toContain('type: bgm')
+      expect(visible, file).toContain('transition:')
+      for (const phrase of forbidden)
+        expect(visible, `${file}: ${phrase}`).not.toContain(phrase)
+    }
+
+    const all = files.map(file => readFileSync(resolve(chaptersDirectory, file), 'utf8')).join('\n')
+    expect([...all.matchAll(/^type: cg$/gmu)]).toHaveLength(8)
   })
 })

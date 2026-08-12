@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title">
-  <title id="title">琥珀晨光下的新生行星与记忆幼苗</title>
-  <defs><linearGradient id="dawn" x2="0" y2="1"><stop stop-color="#312e81"/><stop offset=".55" stop-color="#f97316"/><stop offset="1" stop-color="#fde68a"/></linearGradient></defs>
-  <rect width="1600" height="900" fill="url(#dawn)"/>
-  <circle cx="1210" cy="220" r="105" fill="#fef3c7" fill-opacity=".9"/>
-  <path d="M0 620 240 430 430 590 670 360 890 610 1130 410 1600 650V900H0Z" fill="#172554" fill-opacity=".88"/>
-  <path d="M0 710Q300 620 560 700T1100 680T1600 730V900H0Z" fill="#052e16"/>
-  <g fill="#facc15"><circle cx="660" cy="690" r="10"/><path d="M660 690V595M660 625l-34-24M660 640l38-28" stroke="#facc15" stroke-width="10" stroke-linecap="round"/></g>
-</svg>

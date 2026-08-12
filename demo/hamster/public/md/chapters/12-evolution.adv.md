@@ -11,6 +11,18 @@ title: 仓鼠们今天也在努力进化着
 ```yaml
 type: background
 name: simulated-orbit
+transition:
+  name: rise
+  duration: 1100
+```
+
+```yaml
+type: bgm
+name: civilization-rise
+loop: true
+fade:
+  in: 900
+  out: 700
 ```
 
 ```yaml
@@ -18,10 +30,15 @@ type: tachie
 enter:
   - name: 观测者
     status: smile
+    position: right
+    motion: slide-right
   - name: 读书人
     status: default
+    position: left
+    motion: slide-left
 exit:
-  - 巴
+  - name: 巴
+    motion: fade
 ```
 
 @观测者
@@ -42,6 +59,9 @@ exit:
 ```yaml
 type: background
 name: sunflower-city
+transition:
+  name: dissolve
+  duration: 1200
 ```
 
 > 同一坐标已经没有草原与森林，只有低矮向日葵组成的花海。一架玩具大小的双翼机从头顶盘旋而过，仓鼠飞行员像在观察来客，又以缓慢速度引路。

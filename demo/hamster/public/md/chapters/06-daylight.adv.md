@@ -11,6 +11,18 @@ title: 白昼之光，岂知夜色之深
 ```yaml
 type: background
 name: summer-room
+transition:
+  name: crossfade
+  duration: 1100
+```
+
+```yaml
+type: bgm
+name: summer-day
+loop: true
+fade:
+  in: 1000
+  out: 700
 ```
 
 ```yaml
@@ -18,10 +30,17 @@ type: tachie
 enter:
   - name: 观测者
     status: curious
+    position: right
+    motion: slide-right
   - name: 读书人
     status: default
+    position: left
+    motion: slide-left
   - name: 小仓鼠
     status: sleepy
+    position: 58
+    scale: 0.42
+    motion: fade
 ```
 
 > 我们因凝视星空而成为人，还是因为是人，才会凝视星空？如果没有星空，这个问题也不会诞生；于是，星空也在凝视人类。
@@ -37,7 +56,7 @@ enter:
 @观测者
 提问时间、摸仓鼠的动作、书架的位置，我明明都没有改。这个弱类型、破绽百出的开源模拟框架，真该提几个 Issue。
 
-> 她嘲弄框架，却也承认：正因为无法预测，世界才会有惊喜。继续为一个普通人回滚并不明智，她划开菜单，准备登出。
+> 她嘲弄模拟器的混沌误差，却也承认：正因为无法预测，世界才会有惊喜。继续为一个普通人回滚并不明智，她划开控制界面，准备登出。
 
 @观测者
 顺带一提，外星人绝对存在。比如我就是。
@@ -79,8 +98,12 @@ type: tachie
 enter:
   - name: 观测者
     status: smile
+    position: right
+    motion: emphasis
   - name: 读书人
     status: worried
+    position: left
+    motion: shake
 ```
 
 - [听唯一神解释这个世界](cocoon#only-god)

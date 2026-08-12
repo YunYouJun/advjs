@@ -1,0 +1,1067 @@
+{
+  "schemaVersion": 2,
+  "provider": "tencent-cos",
+  "publicBaseUrl": "https://cos.advjs.yunle.fun/",
+  "objectPrefix": "games/hamster/v1/",
+  "policy": {
+    "publicMethods": [
+      "GET",
+      "HEAD"
+    ],
+    "cors": {
+      "allowedOrigins": [
+        "*"
+      ],
+      "allowedMethods": [
+        "GET",
+        "HEAD"
+      ],
+      "exposeHeaders": [
+        "Cache-Control",
+        "Content-Length",
+        "Content-Type",
+        "ETag",
+        "x-cos-meta-advjs-id",
+        "x-cos-meta-sha256"
+      ],
+      "maxAgeSeconds": 86400
+    }
+  },
+  "objects": [
+    {
+      "id": "character/observer/default",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/observer/standing/default.87d271cf3e9a.webp",
+      "file": "games/hamster/v1/characters/observer/standing/default.87d271cf3e9a.webp",
+      "bytes": 190662,
+      "sha256": "87d271cf3e9add81c3766cd086f66ff38e8933c9d6e7703e09ff06452ecad5fb",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/observer/default",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "87d271cf3e9add81c3766cd086f66ff38e8933c9d6e7703e09ff06452ecad5fb"
+      }
+    },
+    {
+      "id": "character/observer/smile",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/observer/standing/smile.f5249a5b4950.webp",
+      "file": "games/hamster/v1/characters/observer/standing/smile.f5249a5b4950.webp",
+      "bytes": 190748,
+      "sha256": "f5249a5b4950afe7482e592eb6fcbb899d6a7d7ff7658ba6c8ef5e127642a52e",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/observer/smile",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "f5249a5b4950afe7482e592eb6fcbb899d6a7d7ff7658ba6c8ef5e127642a52e"
+      }
+    },
+    {
+      "id": "character/observer/curious",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/observer/standing/curious.1c7f169d122f.webp",
+      "file": "games/hamster/v1/characters/observer/standing/curious.1c7f169d122f.webp",
+      "bytes": 186810,
+      "sha256": "1c7f169d122f2de3d21857007825bfe5b8be5fcfc3f15eafe85f0e108438649c",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/observer/curious",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "1c7f169d122f2de3d21857007825bfe5b8be5fcfc3f15eafe85f0e108438649c"
+      }
+    },
+    {
+      "id": "character/observer/worried",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/observer/standing/worried.5bfda55da69b.webp",
+      "file": "games/hamster/v1/characters/observer/standing/worried.5bfda55da69b.webp",
+      "bytes": 184458,
+      "sha256": "5bfda55da69be31b4ebc52d20b1f7af33289ec16ed813c3ad0cf9dc439d0cf03",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/observer/worried",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "5bfda55da69be31b4ebc52d20b1f7af33289ec16ed813c3ad0cf9dc439d0cf03"
+      }
+    },
+    {
+      "id": "character/observer/sad",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/observer/standing/sad.6c93bebca9d6.webp",
+      "file": "games/hamster/v1/characters/observer/standing/sad.6c93bebca9d6.webp",
+      "bytes": 184020,
+      "sha256": "6c93bebca9d625c10cc9bb75850fde8aa889dd344176b6973226e850422337ff",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/observer/sad",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "6c93bebca9d625c10cc9bb75850fde8aa889dd344176b6973226e850422337ff"
+      }
+    },
+    {
+      "id": "character/observer/determined",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/observer/standing/determined.85f855c68be4.webp",
+      "file": "games/hamster/v1/characters/observer/standing/determined.85f855c68be4.webp",
+      "bytes": 190888,
+      "sha256": "85f855c68be4c5fd0fdeb1d9f5e9818b6a9a631ac6db766e018ee8837a75142d",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/observer/determined",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "85f855c68be4c5fd0fdeb1d9f5e9818b6a9a631ac6db766e018ee8837a75142d"
+      }
+    },
+    {
+      "id": "character/reader/default",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/reader/standing/default.52a52351c9f5.webp",
+      "file": "games/hamster/v1/characters/reader/standing/default.52a52351c9f5.webp",
+      "bytes": 80278,
+      "sha256": "52a52351c9f58d8181e89a3ef8ae94300392e13d9ade2926cae238c32afbd713",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/reader/default",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "52a52351c9f58d8181e89a3ef8ae94300392e13d9ade2926cae238c32afbd713"
+      }
+    },
+    {
+      "id": "character/reader/smile",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/reader/standing/smile.d5c428069146.webp",
+      "file": "games/hamster/v1/characters/reader/standing/smile.d5c428069146.webp",
+      "bytes": 81902,
+      "sha256": "d5c4280691468600f00eab284ae6484fe757f289abf4a7b20df7a6cc179b852a",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/reader/smile",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "d5c4280691468600f00eab284ae6484fe757f289abf4a7b20df7a6cc179b852a"
+      }
+    },
+    {
+      "id": "character/reader/curious",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/reader/standing/curious.956a29a8500c.webp",
+      "file": "games/hamster/v1/characters/reader/standing/curious.956a29a8500c.webp",
+      "bytes": 82766,
+      "sha256": "956a29a8500cf37a66abb7a7bb5b276bebe69c942a9b8b91e72be1fd717750f9",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/reader/curious",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "956a29a8500cf37a66abb7a7bb5b276bebe69c942a9b8b91e72be1fd717750f9"
+      }
+    },
+    {
+      "id": "character/reader/worried",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/reader/standing/worried.1702b9f4c557.webp",
+      "file": "games/hamster/v1/characters/reader/standing/worried.1702b9f4c557.webp",
+      "bytes": 77774,
+      "sha256": "1702b9f4c55710b3db950e2193cca09b7033d8e1a74ed277a90c1099d531f4a9",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/reader/worried",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "1702b9f4c55710b3db950e2193cca09b7033d8e1a74ed277a90c1099d531f4a9"
+      }
+    },
+    {
+      "id": "character/reader/sad",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/reader/standing/sad.103762de78aa.webp",
+      "file": "games/hamster/v1/characters/reader/standing/sad.103762de78aa.webp",
+      "bytes": 77240,
+      "sha256": "103762de78aa694a36e57b33bca61944aa83c854691bf0dae2a224678be311d0",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/reader/sad",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "103762de78aa694a36e57b33bca61944aa83c854691bf0dae2a224678be311d0"
+      }
+    },
+    {
+      "id": "character/reader/determined",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/reader/standing/determined.4e7f2172db67.webp",
+      "file": "games/hamster/v1/characters/reader/standing/determined.4e7f2172db67.webp",
+      "bytes": 82330,
+      "sha256": "4e7f2172db670dfdf60fe17bbe0ff60251a0d8cc22f75ddc7ce85bae692a7fc3",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/reader/determined",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "4e7f2172db670dfdf60fe17bbe0ff60251a0d8cc22f75ddc7ce85bae692a7fc3"
+      }
+    },
+    {
+      "id": "character/pet-hamster/default",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/pet-hamster/standing/default.4c2aaea60aec.webp",
+      "file": "games/hamster/v1/characters/pet-hamster/standing/default.4c2aaea60aec.webp",
+      "bytes": 199760,
+      "sha256": "4c2aaea60aec9d8a12ef25e7c0e7b9f716dbceb9e3f3c05a602037701d3ca5cb",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/pet-hamster/default",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "4c2aaea60aec9d8a12ef25e7c0e7b9f716dbceb9e3f3c05a602037701d3ca5cb"
+      }
+    },
+    {
+      "id": "character/pet-hamster/sleepy",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/pet-hamster/standing/sleepy.9ae8f8fc2c88.webp",
+      "file": "games/hamster/v1/characters/pet-hamster/standing/sleepy.9ae8f8fc2c88.webp",
+      "bytes": 174246,
+      "sha256": "9ae8f8fc2c888ace6296e63996f4fc3afce432cea178a567d88512537ad0a1bc",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/pet-hamster/sleepy",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "9ae8f8fc2c888ace6296e63996f4fc3afce432cea178a567d88512537ad0a1bc"
+      }
+    },
+    {
+      "id": "character/pet-hamster/startled",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/pet-hamster/standing/startled.b4cf9a57e3cb.webp",
+      "file": "games/hamster/v1/characters/pet-hamster/standing/startled.b4cf9a57e3cb.webp",
+      "bytes": 211950,
+      "sha256": "b4cf9a57e3cb1028355c3d7b50e5df4c292b33f0e5faf767afe670d02f227aad",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/pet-hamster/startled",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "b4cf9a57e3cb1028355c3d7b50e5df4c292b33f0e5faf767afe670d02f227aad"
+      }
+    },
+    {
+      "id": "character/pet-hamster/running",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/pet-hamster/standing/running.2bd21bd43764.webp",
+      "file": "games/hamster/v1/characters/pet-hamster/standing/running.2bd21bd43764.webp",
+      "bytes": 135352,
+      "sha256": "2bd21bd437646a427adf228d821378dbf678c274b0df967d5154c27c315898c7",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/pet-hamster/running",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "2bd21bd437646a427adf228d821378dbf678c274b0df967d5154c27c315898c7"
+      }
+    },
+    {
+      "id": "character/ba/default",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/ba/standing/default.12876c5d83a3.webp",
+      "file": "games/hamster/v1/characters/ba/standing/default.12876c5d83a3.webp",
+      "bytes": 209022,
+      "sha256": "12876c5d83a3cad3ceb7292ebfa8ed83283627fd2e45a617b9a4985e64115918",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/ba/default",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "12876c5d83a3cad3ceb7292ebfa8ed83283627fd2e45a617b9a4985e64115918"
+      }
+    },
+    {
+      "id": "character/ba/afraid",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/ba/standing/afraid.272e3f41f451.webp",
+      "file": "games/hamster/v1/characters/ba/standing/afraid.272e3f41f451.webp",
+      "bytes": 195358,
+      "sha256": "272e3f41f4514d6d0bd57bba6ae35b9751778ac9e2ec02bdab822cf59f442813",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/ba/afraid",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "272e3f41f4514d6d0bd57bba6ae35b9751778ac9e2ec02bdab822cf59f442813"
+      }
+    },
+    {
+      "id": "character/ba/hopeful",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/ba/standing/hopeful.19b730ccead9.webp",
+      "file": "games/hamster/v1/characters/ba/standing/hopeful.19b730ccead9.webp",
+      "bytes": 194730,
+      "sha256": "19b730ccead990e4c4aff28f906b5f80a4f723cb75a4b615a7c5620ef6054f64",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/ba/hopeful",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "19b730ccead990e4c4aff28f906b5f80a4f723cb75a4b615a7c5620ef6054f64"
+      }
+    },
+    {
+      "id": "character/ba/proud",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/ba/standing/proud.607421404823.webp",
+      "file": "games/hamster/v1/characters/ba/standing/proud.607421404823.webp",
+      "bytes": 195480,
+      "sha256": "607421404823e757a7299d9911d82f5cbeb3142dc1d340977f19b9a39cab4e05",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/ba/proud",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "607421404823e757a7299d9911d82f5cbeb3142dc1d340977f19b9a39cab4e05"
+      }
+    },
+    {
+      "id": "character/explorer-king/default",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/explorer-king/standing/default.110a1e5f4d47.webp",
+      "file": "games/hamster/v1/characters/explorer-king/standing/default.110a1e5f4d47.webp",
+      "bytes": 182796,
+      "sha256": "110a1e5f4d470e71e495a6a00d979a3c93c56747f054982b5acc7c6e47ca3a54",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/explorer-king/default",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "110a1e5f4d470e71e495a6a00d979a3c93c56747f054982b5acc7c6e47ca3a54"
+      }
+    },
+    {
+      "id": "character/explorer-king/resolute",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/explorer-king/standing/resolute.6e9d055a2f9c.webp",
+      "file": "games/hamster/v1/characters/explorer-king/standing/resolute.6e9d055a2f9c.webp",
+      "bytes": 175714,
+      "sha256": "6e9d055a2f9c327bca7bcbe295be7806259fb37e711d3f4b7a8eb7d1901142da",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/explorer-king/resolute",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "6e9d055a2f9c327bca7bcbe295be7806259fb37e711d3f4b7a8eb7d1901142da"
+      }
+    },
+    {
+      "id": "character/explorer-king/awakened",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/explorer-king/standing/awakened.a5fde4797fd2.webp",
+      "file": "games/hamster/v1/characters/explorer-king/standing/awakened.a5fde4797fd2.webp",
+      "bytes": 174944,
+      "sha256": "a5fde4797fd2ec1f5cce7c74adf5f94b28eb3900788e59d81a86864e11b708a0",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/explorer-king/awakened",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "a5fde4797fd2ec1f5cce7c74adf5f94b28eb3900788e59d81a86864e11b708a0"
+      }
+    },
+    {
+      "id": "character/explorer-king/reverent",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/explorer-king/standing/reverent.a722a1097ec1.webp",
+      "file": "games/hamster/v1/characters/explorer-king/standing/reverent.a722a1097ec1.webp",
+      "bytes": 176102,
+      "sha256": "a722a1097ec1c69ac563475a95c56748eb1e655915333cf8aab92736a1951c2b",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/explorer-king/reverent",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "a722a1097ec1c69ac563475a95c56748eb1e655915333cf8aab92736a1951c2b"
+      }
+    },
+    {
+      "id": "character/hamster-commander/default",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/hamster-commander/standing/default.5035ce17d27f.webp",
+      "file": "games/hamster/v1/characters/hamster-commander/standing/default.5035ce17d27f.webp",
+      "bytes": 122232,
+      "sha256": "5035ce17d27fedd88aefa9d76888afcb7ad11c676f02668fea6f59dd0a20c15e",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/hamster-commander/default",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "5035ce17d27fedd88aefa9d76888afcb7ad11c676f02668fea6f59dd0a20c15e"
+      }
+    },
+    {
+      "id": "character/hamster-commander/calculating",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/hamster-commander/standing/calculating.6eae160024dd.webp",
+      "file": "games/hamster/v1/characters/hamster-commander/standing/calculating.6eae160024dd.webp",
+      "bytes": 119954,
+      "sha256": "6eae160024dd4907db73195e8a46671f67b781a31d55e259a70769a1db37560a",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/hamster-commander/calculating",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "6eae160024dd4907db73195e8a46671f67b781a31d55e259a70769a1db37560a"
+      }
+    },
+    {
+      "id": "character/hamster-commander/pleading",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/hamster-commander/standing/pleading.1cc2224dcfd2.webp",
+      "file": "games/hamster/v1/characters/hamster-commander/standing/pleading.1cc2224dcfd2.webp",
+      "bytes": 117948,
+      "sha256": "1cc2224dcfd2d9319da9a63ec8600b9a32b701a003b970a956b0bfc45916182e",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/hamster-commander/pleading",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "1cc2224dcfd2d9319da9a63ec8600b9a32b701a003b970a956b0bfc45916182e"
+      }
+    },
+    {
+      "id": "character/hamster-commander/defiant",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/hamster-commander/standing/defiant.4f15eed84ecc.webp",
+      "file": "games/hamster/v1/characters/hamster-commander/standing/defiant.4f15eed84ecc.webp",
+      "bytes": 116130,
+      "sha256": "4f15eed84ecc8f9aa2c438affa51ec72fe64700d5674f3d1589a95278fafcaf4",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "character/hamster-commander/defiant",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "4f15eed84ecc8f9aa2c438affa51ec72fe64700d5674f3d1589a95278fafcaf4"
+      }
+    },
+    {
+      "id": "background/summer-room",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/backgrounds/summer-room.8d43b88b54c6.webp",
+      "file": "games/hamster/v1/backgrounds/summer-room.8d43b88b54c6.webp",
+      "bytes": 212324,
+      "sha256": "8d43b88b54c60bdc1ed4002eaabc5c01b34a1b5c61c95721967b08a769750fdf",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "background/summer-room",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "8d43b88b54c60bdc1ed4002eaabc5c01b34a1b5c61c95721967b08a769750fdf"
+      }
+    },
+    {
+      "id": "background/starfield-room",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/backgrounds/starfield-room.b0db7083c166.webp",
+      "file": "games/hamster/v1/backgrounds/starfield-room.b0db7083c166.webp",
+      "bytes": 328926,
+      "sha256": "b0db7083c1667b1efd31861d9b9d4bc35a988a9161058a23e9bc19c247d7d0aa",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "background/starfield-room",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "b0db7083c1667b1efd31861d9b9d4bc35a988a9161058a23e9bc19c247d7d0aa"
+      }
+    },
+    {
+      "id": "background/simulated-orbit",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/backgrounds/simulated-orbit.40f7fbd775e6.webp",
+      "file": "games/hamster/v1/backgrounds/simulated-orbit.40f7fbd775e6.webp",
+      "bytes": 366536,
+      "sha256": "40f7fbd775e6cf8eeb7b8db334adafa6763c46821bc197edc444f74d9be82336",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "background/simulated-orbit",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "40f7fbd775e6cf8eeb7b8db334adafa6763c46821bc197edc444f74d9be82336"
+      }
+    },
+    {
+      "id": "background/academy-terminal",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/backgrounds/academy-terminal.de634b4d7682.webp",
+      "file": "games/hamster/v1/backgrounds/academy-terminal.de634b4d7682.webp",
+      "bytes": 240640,
+      "sha256": "de634b4d76829ffa1e0c9205e594a7eb24268838d37e4fd6824ec850e4c38b23",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "background/academy-terminal",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "de634b4d76829ffa1e0c9205e594a7eb24268838d37e4fd6824ec850e4c38b23"
+      }
+    },
+    {
+      "id": "background/work-archive",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/backgrounds/work-archive.4a2ee2c6d82e.webp",
+      "file": "games/hamster/v1/backgrounds/work-archive.4a2ee2c6d82e.webp",
+      "bytes": 126108,
+      "sha256": "4a2ee2c6d82eb01a90c0a576150f7a9a8e5ddc03eabce0bda1a61139c646af98",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "background/work-archive",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "4a2ee2c6d82eb01a90c0a576150f7a9a8e5ddc03eabce0bda1a61139c646af98"
+      }
+    },
+    {
+      "id": "background/empty-earth",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/backgrounds/empty-earth.7cc97c9e9ba9.webp",
+      "file": "games/hamster/v1/backgrounds/empty-earth.7cc97c9e9ba9.webp",
+      "bytes": 115260,
+      "sha256": "7cc97c9e9ba97b507abf013878a40db4dc72ffe03c9d6d7efdedaac1ecd49a2b",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "background/empty-earth",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "7cc97c9e9ba97b507abf013878a40db4dc72ffe03c9d6d7efdedaac1ecd49a2b"
+      }
+    },
+    {
+      "id": "background/hospital-room",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/backgrounds/hospital-room.479deed26f32.webp",
+      "file": "games/hamster/v1/backgrounds/hospital-room.479deed26f32.webp",
+      "bytes": 149724,
+      "sha256": "479deed26f32ebb4361e2657696d3f919e2f3f28353b926d3d09e0c7cae5eb13",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "background/hospital-room",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "479deed26f32ebb4361e2657696d3f919e2f3f28353b926d3d09e0c7cae5eb13"
+      }
+    },
+    {
+      "id": "background/hospital-garden",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/backgrounds/hospital-garden.a8292000986c.webp",
+      "file": "games/hamster/v1/backgrounds/hospital-garden.a8292000986c.webp",
+      "bytes": 386194,
+      "sha256": "a8292000986c2ffa3b099f7b7b2a524817d6dc7f16b8a5d9eb89c789e2523c91",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "background/hospital-garden",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "a8292000986c2ffa3b099f7b7b2a524817d6dc7f16b8a5d9eb89c789e2523c91"
+      }
+    },
+    {
+      "id": "background/newborn-earth",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/backgrounds/newborn-earth.f9246de9780a.webp",
+      "file": "games/hamster/v1/backgrounds/newborn-earth.f9246de9780a.webp",
+      "bytes": 378100,
+      "sha256": "f9246de9780aea8ce87d061d454144b889886138e1c6362cf6f365b22b97519b",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "background/newborn-earth",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "f9246de9780aea8ce87d061d454144b889886138e1c6362cf6f365b22b97519b"
+      }
+    },
+    {
+      "id": "background/prehistoric-grassland",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/backgrounds/prehistoric-grassland.c7c3761d790c.webp",
+      "file": "games/hamster/v1/backgrounds/prehistoric-grassland.c7c3761d790c.webp",
+      "bytes": 397118,
+      "sha256": "c7c3761d790cc4d4999152652960c6fc9f08c117b686920d5c229be98ead2203",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "background/prehistoric-grassland",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "c7c3761d790cc4d4999152652960c6fc9f08c117b686920d5c229be98ead2203"
+      }
+    },
+    {
+      "id": "background/hamster-village",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/backgrounds/hamster-village.df6b88857cbc.webp",
+      "file": "games/hamster/v1/backgrounds/hamster-village.df6b88857cbc.webp",
+      "bytes": 572698,
+      "sha256": "df6b88857cbcb50ef5ccdfb5483daf90734162c0e4f3a42b849d184e04975374",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "background/hamster-village",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "df6b88857cbcb50ef5ccdfb5483daf90734162c0e4f3a42b849d184e04975374"
+      }
+    },
+    {
+      "id": "background/sunflower-city",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/backgrounds/sunflower-city.0c002a4400e9.webp",
+      "file": "games/hamster/v1/backgrounds/sunflower-city.0c002a4400e9.webp",
+      "bytes": 234860,
+      "sha256": "0c002a4400e98cb832a32a936bceae4e6841b7cbc5d2b08327b72dbd3b58c3ce",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "background/sunflower-city",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "0c002a4400e98cb832a32a936bceae4e6841b7cbc5d2b08327b72dbd3b58c3ce"
+      }
+    },
+    {
+      "id": "background/exploration-space",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/backgrounds/exploration-space.d872fd92cd82.webp",
+      "file": "games/hamster/v1/backgrounds/exploration-space.d872fd92cd82.webp",
+      "bytes": 367634,
+      "sha256": "d872fd92cd823b07c5336c7136c9e3e0b09fd8799bc544c5c9793479981f18ef",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "background/exploration-space",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "d872fd92cd823b07c5336c7136c9e3e0b09fd8799bc544c5c9793479981f18ef"
+      }
+    },
+    {
+      "id": "background/solar-system-frontier",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/backgrounds/solar-system-frontier.d955642f0908.webp",
+      "file": "games/hamster/v1/backgrounds/solar-system-frontier.d955642f0908.webp",
+      "bytes": 205438,
+      "sha256": "d955642f0908c1883334cc70d1efc8339d72f12be173ca5a77e4d5a5b91f7245",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "background/solar-system-frontier",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "d955642f0908c1883334cc70d1efc8339d72f12be173ca5a77e4d5a5b91f7245"
+      }
+    },
+    {
+      "id": "background/real-workstation",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/backgrounds/real-workstation.5289eac96951.webp",
+      "file": "games/hamster/v1/backgrounds/real-workstation.5289eac96951.webp",
+      "bytes": 120828,
+      "sha256": "5289eac96951958573aa47f40861e2deb16246e325595eb2dd7c11b91bd693ef",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "background/real-workstation",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "5289eac96951958573aa47f40861e2deb16246e325595eb2dd7c11b91bd693ef"
+      }
+    },
+    {
+      "id": "cg/star-in-hand",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/cg/star-in-hand.21cc8736264b.webp",
+      "file": "games/hamster/v1/cg/star-in-hand.21cc8736264b.webp",
+      "bytes": 346812,
+      "sha256": "21cc8736264b958e40933fe4494539dabaf8965503797c6ccea5a8e98564ce41",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "cg/star-in-hand",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "21cc8736264b958e40933fe4494539dabaf8965503797c6ccea5a8e98564ce41"
+      }
+    },
+    {
+      "id": "cg/star-in-hand/thumbnail",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/cg/star-in-hand.thumbnail.09c73c044d74.webp",
+      "file": "games/hamster/v1/cg/star-in-hand.thumbnail.09c73c044d74.webp",
+      "bytes": 16572,
+      "sha256": "09c73c044d74d35ef526f341e75e062cec6c265be0d2c5f1caaae21830c2c618",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "cg/star-in-hand/thumbnail",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "09c73c044d74d35ef526f341e75e062cec6c265be0d2c5f1caaae21830c2c618"
+      }
+    },
+    {
+      "id": "cg/old-world-collapse",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/cg/old-world-collapse.07f73a08eeb5.webp",
+      "file": "games/hamster/v1/cg/old-world-collapse.07f73a08eeb5.webp",
+      "bytes": 491374,
+      "sha256": "07f73a08eeb539425c1785a36a523e759736f5088f078422739746ebc43a9c88",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "cg/old-world-collapse",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "07f73a08eeb539425c1785a36a523e759736f5088f078422739746ebc43a9c88"
+      }
+    },
+    {
+      "id": "cg/old-world-collapse/thumbnail",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/cg/old-world-collapse.thumbnail.9ca73ce2aba0.webp",
+      "file": "games/hamster/v1/cg/old-world-collapse.thumbnail.9ca73ce2aba0.webp",
+      "bytes": 24548,
+      "sha256": "9ca73ce2aba08eb26dd7ded0e36ef5f4e5f39824c26aeadcccfcd237f892f436",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "cg/old-world-collapse/thumbnail",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "9ca73ce2aba08eb26dd7ded0e36ef5f4e5f39824c26aeadcccfcd237f892f436"
+      }
+    },
+    {
+      "id": "cg/newborn-earth",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/cg/newborn-earth.59609771c9ab.webp",
+      "file": "games/hamster/v1/cg/newborn-earth.59609771c9ab.webp",
+      "bytes": 541948,
+      "sha256": "59609771c9abe9436a31f467be1c408a964d6e7187afb51557d49217f7cea034",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "cg/newborn-earth",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "59609771c9abe9436a31f467be1c408a964d6e7187afb51557d49217f7cea034"
+      }
+    },
+    {
+      "id": "cg/newborn-earth/thumbnail",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/cg/newborn-earth.thumbnail.8887f81a6cd2.webp",
+      "file": "games/hamster/v1/cg/newborn-earth.thumbnail.8887f81a6cd2.webp",
+      "bytes": 28758,
+      "sha256": "8887f81a6cd2da40ddce82068dc735877bc95a54fa6b210e316534d8e9518f65",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "cg/newborn-earth/thumbnail",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "8887f81a6cd2da40ddce82068dc735877bc95a54fa6b210e316534d8e9518f65"
+      }
+    },
+    {
+      "id": "cg/tyrannosaurus-encounter",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/cg/tyrannosaurus-encounter.c3e308bb03b3.webp",
+      "file": "games/hamster/v1/cg/tyrannosaurus-encounter.c3e308bb03b3.webp",
+      "bytes": 487958,
+      "sha256": "c3e308bb03b3066805ded891c7464f120d448ae3786f20c9639f9921a6d0f684",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "cg/tyrannosaurus-encounter",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "c3e308bb03b3066805ded891c7464f120d448ae3786f20c9639f9921a6d0f684"
+      }
+    },
+    {
+      "id": "cg/tyrannosaurus-encounter/thumbnail",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/cg/tyrannosaurus-encounter.thumbnail.f40ee8d0ed0d.webp",
+      "file": "games/hamster/v1/cg/tyrannosaurus-encounter.thumbnail.f40ee8d0ed0d.webp",
+      "bytes": 29024,
+      "sha256": "f40ee8d0ed0db874806a94559bffb55eb68f3a916875137f59856aaae02ca576",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "cg/tyrannosaurus-encounter/thumbnail",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "f40ee8d0ed0db874806a94559bffb55eb68f3a916875137f59856aaae02ca576"
+      }
+    },
+    {
+      "id": "cg/fingertip-sunflower",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/cg/fingertip-sunflower.547d5aee8411.webp",
+      "file": "games/hamster/v1/cg/fingertip-sunflower.547d5aee8411.webp",
+      "bytes": 444650,
+      "sha256": "547d5aee8411e020360769e09329ae48ee5683caef575da795507608aade2a69",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "cg/fingertip-sunflower",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "547d5aee8411e020360769e09329ae48ee5683caef575da795507608aade2a69"
+      }
+    },
+    {
+      "id": "cg/fingertip-sunflower/thumbnail",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/cg/fingertip-sunflower.thumbnail.7ea8055db2ef.webp",
+      "file": "games/hamster/v1/cg/fingertip-sunflower.thumbnail.7ea8055db2ef.webp",
+      "bytes": 27680,
+      "sha256": "7ea8055db2ef8dc0155060d648574a12ce0b9876eaa9750577ef534917f9f312",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "cg/fingertip-sunflower/thumbnail",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "7ea8055db2ef8dc0155060d648574a12ce0b9876eaa9750577ef534917f9f312"
+      }
+    },
+    {
+      "id": "cg/explorer-awakening",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/cg/explorer-awakening.876e1c7573c0.webp",
+      "file": "games/hamster/v1/cg/explorer-awakening.876e1c7573c0.webp",
+      "bytes": 412410,
+      "sha256": "876e1c7573c0bbdc8b1d20cb38a0fa020ca01f676d8a4a25bdb771e0a19faa3d",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "cg/explorer-awakening",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "876e1c7573c0bbdc8b1d20cb38a0fa020ca01f676d8a4a25bdb771e0a19faa3d"
+      }
+    },
+    {
+      "id": "cg/explorer-awakening/thumbnail",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/cg/explorer-awakening.thumbnail.71baa779ec92.webp",
+      "file": "games/hamster/v1/cg/explorer-awakening.thumbnail.71baa779ec92.webp",
+      "bytes": 22610,
+      "sha256": "71baa779ec92804676ecc4b540edb3986fa3c0d3050510f431db066a4a7ab505",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "cg/explorer-awakening/thumbnail",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "71baa779ec92804676ecc4b540edb3986fa3c0d3050510f431db066a4a7ab505"
+      }
+    },
+    {
+      "id": "cg/stars-volley",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/cg/stars-volley.d415ce095ca8.webp",
+      "file": "games/hamster/v1/cg/stars-volley.d415ce095ca8.webp",
+      "bytes": 519206,
+      "sha256": "d415ce095ca8e0dcd5968835e80d57d3112d6d943b3beb85707604b8e3b9152c",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "cg/stars-volley",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "d415ce095ca8e0dcd5968835e80d57d3112d6d943b3beb85707604b8e3b9152c"
+      }
+    },
+    {
+      "id": "cg/stars-volley/thumbnail",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/cg/stars-volley.thumbnail.2b319fb341ed.webp",
+      "file": "games/hamster/v1/cg/stars-volley.thumbnail.2b319fb341ed.webp",
+      "bytes": 24450,
+      "sha256": "2b319fb341eda3167170e8c3dd05f26fd9c441df39a458854f6aba900dece381",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "cg/stars-volley/thumbnail",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "2b319fb341eda3167170e8c3dd05f26fd9c441df39a458854f6aba900dece381"
+      }
+    },
+    {
+      "id": "cg/reality-workstation",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/cg/reality-workstation.417e3aac5935.webp",
+      "file": "games/hamster/v1/cg/reality-workstation.417e3aac5935.webp",
+      "bytes": 168230,
+      "sha256": "417e3aac593576d3ef65202c52ade01ee8c624fb37cdae1195ccd3f545274809",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "cg/reality-workstation",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "417e3aac593576d3ef65202c52ade01ee8c624fb37cdae1195ccd3f545274809"
+      }
+    },
+    {
+      "id": "cg/reality-workstation/thumbnail",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/cg/reality-workstation.thumbnail.db47f42040b9.webp",
+      "file": "games/hamster/v1/cg/reality-workstation.thumbnail.db47f42040b9.webp",
+      "bytes": 9530,
+      "sha256": "db47f42040b93e72945b68d6f175fd9b60f1ad8c8654cead7fb24cedb3002624",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "cg/reality-workstation/thumbnail",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "db47f42040b93e72945b68d6f175fd9b60f1ad8c8654cead7fb24cedb3002624"
+      }
+    },
+    {
+      "id": "animation/pet-hamster/running",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/characters/pet-hamster/animations/running.1b055ddfa195.webp",
+      "file": "games/hamster/v1/characters/pet-hamster/animations/running.1b055ddfa195.webp",
+      "bytes": 214742,
+      "sha256": "1b055ddfa1953a9d3fa39f227401aead114efe87695e330dc05d1b7781faf1c0",
+      "headers": {
+        "Content-Type": "image/webp",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "animation/pet-hamster/running",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "1b055ddfa1953a9d3fa39f227401aead114efe87695e330dc05d1b7781faf1c0"
+      }
+    },
+    {
+      "id": "bgm/summer-day",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/audio/bgm/summer-day.04355b2bedda.ogg",
+      "file": "games/hamster/v1/audio/bgm/summer-day.04355b2bedda.ogg",
+      "bytes": 119009,
+      "sha256": "04355b2bedda18a4b1d017c934342e9af8f142b40253f5e19bb2e4bc182ea7b0",
+      "headers": {
+        "Content-Type": "audio/ogg",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "bgm/summer-day",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "04355b2bedda18a4b1d017c934342e9af8f142b40253f5e19bb2e4bc182ea7b0"
+      }
+    },
+    {
+      "id": "bgm/terminal-doubt",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/audio/bgm/terminal-doubt.abf2b48d28b9.ogg",
+      "file": "games/hamster/v1/audio/bgm/terminal-doubt.abf2b48d28b9.ogg",
+      "bytes": 103328,
+      "sha256": "abf2b48d28b926db2081bf81dad1137c1f28b67512fe32c8e0c5f6f90220fc20",
+      "headers": {
+        "Content-Type": "audio/ogg",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "bgm/terminal-doubt",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "abf2b48d28b926db2081bf81dad1137c1f28b67512fe32c8e0c5f6f90220fc20"
+      }
+    },
+    {
+      "id": "bgm/star-revelation",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/audio/bgm/star-revelation.921ff2405c88.ogg",
+      "file": "games/hamster/v1/audio/bgm/star-revelation.921ff2405c88.ogg",
+      "bytes": 115648,
+      "sha256": "921ff2405c88f6b42afa98485330e38fe9faa68f76b67cb13b704ac85371e4b5",
+      "headers": {
+        "Content-Type": "audio/ogg",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "bgm/star-revelation",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "921ff2405c88f6b42afa98485330e38fe9faa68f76b67cb13b704ac85371e4b5"
+      }
+    },
+    {
+      "id": "bgm/world-restart",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/audio/bgm/world-restart.c044fae5f332.ogg",
+      "file": "games/hamster/v1/audio/bgm/world-restart.c044fae5f332.ogg",
+      "bytes": 106243,
+      "sha256": "c044fae5f332279ee489188417eb44e20e5ae56ed60c4126f986f95a1665c263",
+      "headers": {
+        "Content-Type": "audio/ogg",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "bgm/world-restart",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "c044fae5f332279ee489188417eb44e20e5ae56ed60c4126f986f95a1665c263"
+      }
+    },
+    {
+      "id": "bgm/prehistoric",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/audio/bgm/prehistoric.c247171f5b84.ogg",
+      "file": "games/hamster/v1/audio/bgm/prehistoric.c247171f5b84.ogg",
+      "bytes": 100871,
+      "sha256": "c247171f5b841559f11a6e6b18099a43c2dde653e6d07626fcdcfb24f11c6199",
+      "headers": {
+        "Content-Type": "audio/ogg",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "bgm/prehistoric",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "c247171f5b841559f11a6e6b18099a43c2dde653e6d07626fcdcfb24f11c6199"
+      }
+    },
+    {
+      "id": "bgm/civilization-rise",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/audio/bgm/civilization-rise.78b1d80088f7.ogg",
+      "file": "games/hamster/v1/audio/bgm/civilization-rise.78b1d80088f7.ogg",
+      "bytes": 109875,
+      "sha256": "78b1d80088f7dc7649999456c8d51e40854126fb0b3974470eebb12a70d75234",
+      "headers": {
+        "Content-Type": "audio/ogg",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "bgm/civilization-rise",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "78b1d80088f7dc7649999456c8d51e40854126fb0b3974470eebb12a70d75234"
+      }
+    },
+    {
+      "id": "bgm/deep-space",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/audio/bgm/deep-space.a1724805d16d.ogg",
+      "file": "games/hamster/v1/audio/bgm/deep-space.a1724805d16d.ogg",
+      "bytes": 99898,
+      "sha256": "a1724805d16dbf8a0d02cd0751e6c79004169020f511f1624d8995fea8fdaf56",
+      "headers": {
+        "Content-Type": "audio/ogg",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "bgm/deep-space",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "a1724805d16dbf8a0d02cd0751e6c79004169020f511f1624d8995fea8fdaf56"
+      }
+    },
+    {
+      "id": "bgm/final-echo",
+      "role": "asset",
+      "objectKey": "games/hamster/v1/audio/bgm/final-echo.336f29e2af21.ogg",
+      "file": "games/hamster/v1/audio/bgm/final-echo.336f29e2af21.ogg",
+      "bytes": 102008,
+      "sha256": "336f29e2af21f4a03259d72a181c65fb56731e4e5dd6f7b87f4ead47ee1b4e82",
+      "headers": {
+        "Content-Type": "audio/ogg",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "x-cos-meta-advjs-id": "bgm/final-echo",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "336f29e2af21f4a03259d72a181c65fb56731e4e5dd6f7b87f4ead47ee1b4e82"
+      }
+    },
+    {
+      "id": "manifest/assets",
+      "role": "manifest",
+      "objectKey": "games/hamster/v1/manifests/assets.json",
+      "file": "games/hamster/v1/manifests/assets.json",
+      "bytes": 43425,
+      "sha256": "d0ccc717d0fe7ef4418a890c4a2e8e8bd101babd5a6970cb30820d12a04b4269",
+      "headers": {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "public, max-age=60, must-revalidate",
+        "x-cos-meta-advjs-id": "manifest/assets",
+        "x-cos-meta-advjs-schema": "2",
+        "x-cos-meta-sha256": "d0ccc717d0fe7ef4418a890c4a2e8e8bd101babd5a6970cb30820d12a04b4269"
+      }
+    }
+  ]
+}

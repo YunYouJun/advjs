@@ -1,6 +1,7 @@
 ---
 id: hospital-room
 name: 医院病房
+assetId: background/hospital-room
 description: 王安父亲接受终末治疗的病房，呼吸机、冷光与不断减少的费用共同压缩选择空间。
 imagePrompt: >-
   Respectful modern Chinese hospital room for a visual novel, elderly patient bed with respiratory equipment shown without graphic detail, empty visitor chair, bills and folded coat on a side table, cool daylight, restrained muted palette, no visible people, 16:9

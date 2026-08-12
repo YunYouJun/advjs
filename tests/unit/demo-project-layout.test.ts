@@ -51,12 +51,12 @@ describe('demo project layout', () => {
     const settings = await json('demo/hamster/adv/settings/game.json')
     const config = await source('demo/hamster/adv.config.ts')
 
-    expect(settings).toEqual({
+    expect(settings).toMatchObject({
       title: '仓鼠：星海回声',
-      description: '完整改编自《仓鼠》与续作《仓生》的 ADV.JS 旗舰示例',
+      description: '一条从盛夏午后驶向黯淡群星的 ADV.JS 旗舰示例',
       variables: {
         canonicalCompleted: false,
-        storyMode: 'canonical',
+        storyMode: 'main',
         unlockedEndings: [],
         curiosity: 0,
         empathy: 0,
@@ -79,6 +79,22 @@ describe('demo project layout', () => {
         'civilization': '1.0.0',
       },
     })
+    expect(settings.gallery).toMatchObject({
+      id: 'hamster',
+      version: 1,
+      allowDownload: true,
+    })
+    expect(settings.gallery.items).toHaveLength(8)
+    expect(settings.gallery.items.map((item: Record<string, any>) => item.id)).toEqual([
+      'star-in-hand',
+      'old-world-collapse',
+      'newborn-earth',
+      'tyrannosaurus-encounter',
+      'fingertip-sunflower',
+      'explorer-awakening',
+      'stars-volley',
+      'reality-workstation',
+    ])
     expect(config).toContain('import gameSettings from \'./adv/settings/game.json\'')
     expect(config).toContain('...gameSettings')
     for (const chapterSource of [
@@ -87,20 +103,17 @@ describe('demo project layout', () => {
       '03-starry-fantasy.adv.md',
       '04-world-ending.adv.md',
       '05-endless-symphony.adv.md',
-      '06-hamster-postscript.adv.md',
-      '07-common-hamster-preface.adv.md',
-      '08-daylight.adv.md',
-      '09-cocoon.adv.md',
-      '10-survival-or-destruction.adv.md',
-      '11-duelist-romance.adv.md',
-      '12-lizard-king.adv.md',
-      '13-third-kind.adv.md',
-      '14-evolution.adv.md',
-      '15-stars-sea.adv.md',
-      '16-encounter.adv.md',
-      '17-they-are-gods.adv.md',
-      '18-dim-stars.adv.md',
-      '19-common-hamster-postscript.adv.md',
+      '06-daylight.adv.md',
+      '07-cocoon.adv.md',
+      '08-survival-or-destruction.adv.md',
+      '09-duelist-romance.adv.md',
+      '10-lizard-king.adv.md',
+      '11-third-kind.adv.md',
+      '12-evolution.adv.md',
+      '13-stars-sea.adv.md',
+      '14-encounter.adv.md',
+      '15-they-are-gods.adv.md',
+      '16-dim-stars.adv.md',
     ].map(file => `/md/chapters/${file}`)) {
       expect(config).toContain(`src: '${chapterSource}'`)
     }
@@ -135,47 +148,46 @@ describe('demo project layout', () => {
     }
   })
 
-  it('ships local, documented, and reproducible hamster assets', async () => {
+  it('ships documented and reproducible COS-backed hamster assets', async () => {
     const demoRoot = resolve(root, 'demo/hamster')
-    const contentFiles = ['adv.config.ts', 'ASSETS.md', 'LICENSE.content.md']
-    for (const directory of ['adv', 'public/md']) {
-      const files = await readdir(resolve(demoRoot, directory), { recursive: true })
-      contentFiles.push(...files
-        .filter(file => /\.(?:json|md)$/u.test(file))
-        .map(file => `${directory}/${file}`))
+    const manifest = JSON.parse(await source('demo/hamster/adv/assets.json')) as {
+      schemaVersion: number
+      profiles: { production: { provider: string, baseUrl: string } }
+      release: { provider: string, objectPrefix: string }
+      assets: Array<{ id: string, objectKey: string, url?: string }>
     }
-    const contents = await Promise.all(
-      contentFiles.map(file => readFile(resolve(demoRoot, file), 'utf8')),
-    )
-    const referencedAssets = new Set(
-      contents.flatMap(content => [...content.matchAll(/\/(?:audio|img)\/[^\s'"`)]+/gu)]
-        .map(match => match[0])
-        .filter(asset => !asset.includes('*'))),
-    )
 
-    expect([...referencedAssets].sort()).toEqual([
-      '/audio/observatory.wav',
-      '/img/bg/cage.svg',
-      '/img/bg/civilization.svg',
-      '/img/bg/observatory.svg',
-      '/img/characters/hamster.svg',
-      '/img/characters/observer.svg',
-    ])
-    for (const asset of referencedAssets)
-      expect(existsSync(resolve(demoRoot, `public${asset}`)), asset).toBe(true)
+    expect(manifest.schemaVersion).toBe(2)
+    expect(manifest.profiles.production).toEqual({
+      provider: 'http',
+      baseUrl: 'https://cos.advjs.yunle.fun/',
+    })
+    expect(manifest.release).toEqual({
+      provider: 'tencent-cos',
+      objectPrefix: 'games/hamster/v1/',
+    })
+    expect(manifest.assets).toHaveLength(60)
+    for (const asset of manifest.assets) {
+      expect(asset.objectKey).toMatch(/^games\/hamster\/v1\//u)
+      expect(asset.url).toBeUndefined()
+    }
 
-    for (const asset of [...referencedAssets].filter(asset => asset.endsWith('.svg')))
-      expect(await readFile(resolve(demoRoot, `public${asset}`), 'utf8'), asset).toMatch(/<title(?:\s|>)/u)
+    expect(existsSync(resolve(demoRoot, 'public/audio'))).toBe(false)
+    expect(existsSync(resolve(demoRoot, 'public/img'))).toBe(false)
 
-    const wav = await readFile(resolve(demoRoot, 'public/audio/observatory.wav'))
-    expect(wav.toString('ascii', 0, 4)).toBe('RIFF')
-    expect(wav.toString('ascii', 8, 12)).toBe('WAVE')
-    expect(wav.readUInt16LE(22)).toBe(1)
-    expect(wav.readUInt32LE(24)).toBe(22_050)
-    expect(wav.readUInt16LE(34)).toBe(16)
+    const packageJson = JSON.parse(await source('demo/hamster/package.json')) as {
+      scripts: Record<string, string>
+    }
+    expect(packageJson.scripts.dev).not.toContain('ADV_HAMSTER_ASSET_BASE_URL=local')
+    expect(packageJson.scripts['dev:local-assets']).toContain('ADV_HAMSTER_ASSET_BASE_URL=local')
+
+    const generator = await source('demo/hamster/scripts/generate-bgm.mjs')
+    expect(generator).toContain('temp/hamster-art/audio/bgm')
+    expect(generator).not.toContain('public/audio')
 
     const assets = await source('demo/hamster/ASSETS.md')
-    expect(assets).toContain('scripts/generate-ambient.mjs')
+    expect(assets).toContain('scripts/generate-bgm.mjs')
+    expect(assets).toContain('scripts/prepare-media.mjs')
     expect(assets).toContain('https://www.yunyoujun.cn/posts/hamster')
     expect(assets).toContain('https://www.yunyoujun.cn/posts/the-common-hamster')
   })

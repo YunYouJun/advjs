@@ -1,7 +1,8 @@
 ---
 id: summer-room
 name: 夏日模拟室
-description: 凉意凛然的透明室内，书架、座椅、墙幕、沙漏与仓鼠笼共同构成第一篇的日常世界。
+assetId: background/summer-room
+description: 凉意凛然的透明室内，书架、座椅、墙幕、沙漏与仓鼠笼共同构成故事开场的日常世界。
 imagePrompt: >-
   Wide visual novel background of a cool futuristic apartment on a lazy summer afternoon, transparent glass wall catching warm sunset, wall-sized display, bookshelf and reclining chair, hourglass on a table, detailed hamster cage with wheel in the foreground, indigo and amber palette, clean anime-inspired painterly style, no people, 16:9
 tags:

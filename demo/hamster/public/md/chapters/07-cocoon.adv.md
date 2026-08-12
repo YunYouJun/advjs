@@ -11,6 +11,18 @@ title: 作茧自缚
 ```yaml
 type: background
 name: simulated-orbit
+transition:
+  name: rise
+  duration: 1300
+```
+
+```yaml
+type: bgm
+name: deep-space
+loop: true
+fade:
+  in: 1100
+  out: 800
 ```
 
 ```yaml
@@ -18,10 +30,17 @@ type: tachie
 enter:
   - name: 观测者
     status: determined
+    position: right
+    motion: slide-right
   - name: 读书人
     status: worried
+    position: left
+    motion: slide-left
   - name: 小仓鼠
     status: sleepy
+    position: 56
+    scale: 0.4
+    motion: fade
 ```
 
 @观测者
@@ -66,8 +85,11 @@ type: tachie
 enter:
   - name: 观测者
     status: smile
+    position: right
+    motion: emphasis
   - name: 读书人
     status: curious
+    position: left
 ```
 
 - [问她毁灭之后要做什么](survival-or-destruction#empty-world)

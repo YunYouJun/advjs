@@ -11,6 +11,18 @@ title: 我们的征途是星辰大海
 ```yaml
 type: background
 name: sunflower-city
+transition:
+  name: crossfade
+  duration: 1000
+```
+
+```yaml
+type: bgm
+name: civilization-rise
+loop: true
+fade:
+  in: 900
+  out: 700
 ```
 
 ```yaml
@@ -18,9 +30,14 @@ type: tachie
 enter:
   - name: 探索王
     status: resolute
+    position: center
+    scale: 0.84
+    motion: slide-right
 exit:
-  - 观测者
-  - 读书人
+  - name: 观测者
+    motion: fade
+  - name: 读书人
+    motion: fade
 ```
 
 > 瓜子雨后，质疑神存在的学派尽数消亡。笃信自然科学的牛仓、提出转轮永动机的托马斯·仓、驱动电力的特斯仓与点亮世界的爱迪仓，也都把余生投入神学。

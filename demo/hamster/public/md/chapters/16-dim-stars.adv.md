@@ -11,6 +11,18 @@ title: 黯淡的星空
 ```yaml
 type: background
 name: solar-system-frontier
+transition:
+  name: fade
+  duration: 1400
+```
+
+```yaml
+type: bgm
+name: final-echo
+loop: true
+fade:
+  in: 1200
+  out: 900
 ```
 
 ```yaml
@@ -18,10 +30,17 @@ type: tachie
 enter:
   - name: 观测者
     status: determined
+    position: right
+    motion: fade
   - name: 读书人
     status: worried
+    position: left
+    motion: fade
   - name: 仓鼠军官
     status: defiant
+    position: center
+    scale: 0.72
+    motion: fade
 ```
 
 ```yaml
@@ -45,6 +64,12 @@ duration: 1800
 
 > 最大的 Danger 按钮被按下。成千上万艘军舰同时加速恒星演变，数万光点向观测者汇集，黯淡星空刹那间比任何时候都耀眼。
 
+```yaml
+type: cg
+id: stars-volley
+transition: flash-white
+```
+
 @观测者
 只有真正的神明才能毁灭你们。可你们已经成为神明——所以能毁灭你们的，也只有你们自己。
 
@@ -61,6 +86,9 @@ duration: 1800
 ```yaml
 type: background
 name: real-workstation
+transition:
+  name: fade
+  duration: 1800
 ```
 
 ```yaml
@@ -68,18 +96,42 @@ type: tachie
 enter:
   - name: 小仓鼠
     status: running
+    position: center
+    scale: 0.48
+    motion: hop
 exit:
-  - 观测者
-  - 读书人
-  - 仓鼠军官
+  - name: 观测者
+    motion: fade
+  - name: 读书人
+    motion: fade
+  - name: 仓鼠军官
+    motion: fade
 ```
 
 > 超频保护。不论多昂贵的工作站，超过频率或温度都会自动关机——正如发展失控的文明。
 
 > 桌旁真实的仓鼠正撕咬笼子。大概该喂食了。
 
-- [读完《仓生》后记](common-hamster-postscript#common-afterword)
+```yaml
+type: cg
+id: reality-workstation
+transition:
+  name: crossfade
+  duration: 1200
+```
 
-  ```yaml
-  id: read-common-afterword
-  ```
+```yaml
+type: actions
+actions:
+  - type: variables/set
+    key: canonicalCompleted
+    value: true
+  - type: variables/set
+    key: ending
+    value: starlight-echo
+  - type: variables/push-unique
+    key: unlockedEndings
+    value: starlight-echo
+```
+
+> 工作站冷却后重新亮起待机灯。记忆结晶里仍保存着无数次仰望；下一次演算，可以从另一组星图参数开始。
