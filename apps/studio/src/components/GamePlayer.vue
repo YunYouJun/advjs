@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { AdvContext } from '@advjs/client'
+import type { AdvContext } from '@advjs/client/types'
 import type { AdvConfig, AdvFountainNode, AdvGameConfig, JsonObject, JsonValue, RuntimeAddress, RuntimeChoice, RuntimeNode, RuntimeSnapshot, RuntimeStatus } from '@advjs/types'
-import { injectionAdvContext } from '@advjs/client'
 import AdvGame from '@advjs/client/components/game/AdvGame.vue'
+import { injectionAdvContext } from '@advjs/client/constants'
 import { setupAdvContext } from '@advjs/client/setup/context'
 import { derivePresentationState, runtimeConditionMatches } from '@advjs/core'
 import { onIonViewDidEnter } from '@ionic/vue'

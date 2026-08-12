@@ -1,4 +1,4 @@
-import type { AdvClientRuntimePlugin } from '@advjs/client'
+import type { AdvClientRuntimePlugin } from '@advjs/client/types'
 import { civilization, starMap } from '@advjs/plugin-interactions'
 import CivilizationActivity from '@advjs/plugin-interactions/client/CivilizationActivity.vue'
 import StarMapActivity from '@advjs/plugin-interactions/client/StarMapActivity.vue'

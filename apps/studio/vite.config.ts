@@ -146,11 +146,18 @@ export default async function createViteConfig() {
       },
     },
     resolve: {
-      alias: {
-        '@': path.join(import.meta.dirname, 'src'),
-        '@advjs/types': path.join(import.meta.dirname, '../../packages/types/src/index.ts'),
-        '@advjs/parser': path.join(import.meta.dirname, '../../packages/parser/src/index.ts'),
-      },
+      alias: [
+        // Client and theme components still use the package's public barrel.
+        // Point only that exact import at the embed-safe surface; subpath
+        // imports continue to resolve through the package exports normally.
+        {
+          find: /^@advjs\/client$/,
+          replacement: path.join(import.meta.dirname, '../../packages/client/embed.ts'),
+        },
+        { find: '@', replacement: path.join(import.meta.dirname, 'src') },
+        { find: '@advjs/types', replacement: path.join(import.meta.dirname, '../../packages/types/src/index.ts') },
+        { find: '@advjs/parser', replacement: path.join(import.meta.dirname, '../../packages/parser/src/index.ts') },
+      ],
     },
     test: {
       globals: true,
