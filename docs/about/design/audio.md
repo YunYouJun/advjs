@@ -1,14 +1,22 @@
 # 音频资产与 AI 配音决策
 
-状态：已采纳，待实施
+状态：已采纳，分阶段实施中
 
 日期：2026-08-12
 
+最近更新：2026-08-13
+
 完整技术细节见[多轨音频与 AI 配音系统设计](/superpowers/specs/2026-08-12-audio-system-design)。
+
+## 当前落地状态
+
+现有 `useAdvBgm` 已完成兼容期生命周期加固：逻辑主轨切换不会重复接管更早的退场轨道，过期淡化回调不能卸载重新选中的曲目，脚本停止只处理当前曲目，静音状态覆盖交叉淡化中的全部物理轨道，历史恢复统一使用 120ms 短淡化。Studio 也会在卸载播放器时释放活动与退场轨道。
+
+这组改动解决了旧 BGM 路径的竞态并建立迁移前基线，但不代表本决策中的统一 AudioEngine 已经完成。`@advjs/audio`、Audio Director、Mixer、多总线、Ambience、Voice、SFX、UI cue、Fake/Browser Backend 与 AI 配音账本仍按[实施计划](/superpowers/plans/2026-08-12-audio-system-implementation)推进；在迁移完成前，`useAdvBgm` 仍是兼容实现，不是新架构的长期公共接口。
 
 ## 问题
 
-现有 BGM 播放器以 Howler 实例和 Vue 组合式状态为中心。它无法自然表达环境音分层、前景语音、SFX 并发和总线混音，异步淡化回调还会产生轨道竞态。
+现有 BGM 播放器以 Howler 实例和 Vue 组合式状态为中心。它无法自然表达环境音分层、前景语音、SFX 并发和总线混音；兼容路径此前还会受异步淡化回调竞态影响，现已加固，但这些职责仍不适合继续堆叠在单个 Vue composable 中。
 
 Studio 已能调用部分 TTS Provider 并管理音频素材，但生成结果没有稳定绑定台词，也缺少多语言 take、角色音色、成本控制、权利记录和确定性发布协议。Editor、Studio、Runtime 和 COS 如果继续分别演进，将形成多套事实源。
 
@@ -94,15 +102,15 @@ adv/assets/audio.json        → 最终选中、可由 Runtime 播放的资产
 - 永久 COS 密钥只允许最小权限子账号作为本地降级方案；
 - 主账号密钥禁止使用；
 - 项目、日志、trace 和构建产物不保存密钥或临时签名 URL。
-- §adv/audio/toolchain.json§ 只能选择平台签名或服务端 allowlist 中的发布工具链；托管服务不得拉取项目任意指定的容器镜像。
+- `adv/audio/toolchain.json` 只能选择平台签名或服务端 allowlist 中的发布工具链；托管服务不得拉取项目任意指定的容器镜像。
 
 ### Editor 与 Studio
 
-两端共享协议和创作服务，但界面分级：
+目标状态下，两端共享协议和创作服务，但界面分级：
 
-- Editor 提供完整 Audio Studio、Mixer、批量生成、Flow cue 与 Runtime 音频 Inspector；
-- Studio 提供移动端角色音色、生成队列、资产试听、COS 发布和简化混音；
-- 两端都直接修改同一 ADVScript、角色文件、Asset Catalog 和语音账本，不使用编辑器私有数据库保存项目语义。
+- Editor 将提供完整 Audio Studio、Mixer、批量生成、Flow cue 与 Runtime 音频 Inspector；
+- Studio 将提供移动端角色音色、生成队列、资产试听、COS 发布和简化混音；
+- 两端都将直接修改同一 ADVScript、角色文件、Asset Catalog 和语音账本，不使用编辑器私有数据库保存项目语义。
 
 ## 后果
 

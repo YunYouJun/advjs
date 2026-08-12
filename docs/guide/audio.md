@@ -1,14 +1,26 @@
 # 音频创作与 AI 配音
 
-::: warning 设计已确认，功能待实施
+::: warning 设计已确认，正在分阶段实施
 
-本页描述已经采纳的目标工作流。当前版本仍使用旧 BGM 与 Studio TTS 能力；在[实施计划](/superpowers/plans/2026-08-12-audio-system-implementation)完成前，请不要把下列新 schema 当作已发布 API。
+本页描述已经采纳的目标工作流。当前版本仍使用兼容期 BGM，以及 Studio 已有的单点 TTS 与音频素材能力；这些 Studio 能力尚未形成稳定台词绑定、多语言 take、Voice Profile、创作账本或确定性发布协议。BGM 切换、停止、静音和历史恢复的生命周期竞态已经修复，但统一 AudioEngine 和下列新 schema 尚未发布。在[实施计划](/superpowers/plans/2026-08-12-audio-system-implementation)完成前，请不要把目标格式用于正式项目。
 
 :::
 
 ADV.JS 的目标音频系统统一管理背景音乐、环境音、角色配音、剧情音效和 UI 音效。作者通过稳定资产 ID 创作，Editor/Studio 负责维护素材文件、语音 take 和 COS 发布信息。
 
-## 音频类型
+## 当前可用能力
+
+当前 Runtime 支持音乐库名称、单一逻辑 BGM 主轨、交叉淡化、停止当前曲目、暂停/恢复、全局静音以及回退/读档同步。切换期间可短暂保留多条物理音轨完成淡出，但只有最新选择是逻辑活动轨；过期淡化回调不会停止后来重新选中的曲目。
+
+当前项目继续使用[场景演出、立绘、CG 与音频](/guide/runtime/presentation#bgm-交叉淡化)中的 BGM 写法。Ambience、Voice、SFX、UI 总线、Mixer 文件和本页后续的 `asset` 协议均属于目标能力。
+
+::: danger 以下章节是尚未发布的目标工作流
+
+从“目标音频类型”到“目标协议常见问题”的 schema、界面、命令和播放行为均不可用于当前正式项目。每个标题保留“目标”前缀，方便从搜索或深链接进入时识别状态。
+
+:::
+
+## 目标音频类型
 
 | 类型 | 用途 | 播放规则 |
 | --- | --- | --- |
@@ -18,7 +30,7 @@ ADV.JS 的目标音频系统统一管理背景音乐、环境音、角色配音�
 | SFX | 脚步、关门、撞击 | 多声部，按并发组限流 |
 | UI | 确认、悬停、系统提示 | 独立于剧情时间线 |
 
-## 项目文件
+## 目标项目文件
 
 推荐把音频资源目录作为 Asset Catalog 分片：
 
@@ -46,7 +58,7 @@ adv/
 
 通常不需要手工维护账本。Editor 与 Studio 的可视化操作会规范化写回这些文件。
 
-## 导入音频
+## 目标导入流程
 
 ### Editor
 
@@ -65,9 +77,9 @@ adv/
 3. 试听并补充元数据。
 4. 保存到项目资产目录；需要协作或发布时再上传 COS。
 
-Editor 提供完整媒体检查与批量处理；Studio 提供适合移动端的核心导入、试听和发布状态。
+Editor 将提供完整媒体检查与批量处理；Studio 将提供适合移动端的核心导入、试听和发布状态。
 
-## 配置 BGM
+## 目标 BGM 协议
 
 ~~~yaml
 type: bgm
@@ -89,7 +101,7 @@ fade:
 
 `asset` 必须是 Asset Catalog 中 `kind: bgm` 的稳定 ID。新协议不接受 `src` 或未经目录管理的 URL。
 
-## 配置环境音
+## 目标环境音协议
 
 环境音通过槽位叠加。默认槽位：
 
@@ -127,7 +139,7 @@ fade:
 - **Inherit**：继承未修改槽位；
 - **Reset all**：清空全部环境音后应用新配置。
 
-## 播放 SFX
+## 目标 SFX 协议
 
 ~~~yaml
 type: sfx
@@ -139,7 +151,7 @@ priority: 50
 
 SFX 是一次性事件。正常前进时触发；回退或读档默认不重放。并发达到上限时，系统先淘汰最低优先级，再淘汰最旧实例。
 
-## 配置角色音色
+## 目标角色音色
 
 角色的音色在角色管理中维护，不在每句台词中重复 `voiceId`。
 
@@ -182,7 +194,7 @@ Studio 使用同一 Voice Profile，但以简化卡片展示候选和已选音�
 
 :::
 
-## 生成台词配音
+## 目标台词配音
 
 ### 为台词建立稳定 ID
 
@@ -222,7 +234,7 @@ take 会固化生成时实际使用的 Provider、`voiceId`、模型和 Voice Pr
 
 ### 批量生成
 
-在 **Audio Studio → Voice Jobs** 中可以：
+目标 **Audio Studio → Voice Jobs** 界面将支持：
 
 - 扫描全项目、章节或角色；
 - 筛选 Missing、Stale、Ready、Failed；
@@ -235,7 +247,7 @@ Provider 无法提供可靠价格时，费用显示为“未知”，不得显�
 
 托管任务状态保存在服务端，本地 Editor 保存在操作系统应用数据目录，Studio 离线任务保存在不会随项目导出的 IndexedDB 应用状态中。项目账本只在一个 take 已完整生成、校验并提交后记录最终结果。
 
-## 展示文本与朗读文本
+## 目标展示文本与朗读文本
 
 展示文本可以包含 Markdown 和变量；朗读文本只包含实际发音内容。
 
@@ -254,7 +266,7 @@ spokenText: 欢迎回来，小云。
 - 改写为确定文本；
 - 保持没有配音。
 
-## 多语言
+## 目标多语言行为
 
 语音按 `lineId + locale` 独立管理。切换语言时：
 
@@ -265,9 +277,9 @@ spokenText: 欢迎回来，小云。
 
 项目文件使用规范 BCP 47，如 `zh-CN`、`ja-JP`。COS 对象键使用规范化小写 `zh-cn`、`ja-jp`。
 
-## Mixer
+## 目标 Mixer
 
-在 **Audio Studio → Mixer** 中配置项目默认值：
+目标 **Audio Studio → Mixer** 界面将配置项目默认值：
 
 - `master / music / ambience / voice / sfx / ui` 音量；
 - Voice ducking 的目标衰减、attack 和 release；
@@ -280,9 +292,9 @@ spokenText: 欢迎回来，小云。
 
 玩家仍可以覆盖六个总线音量、关闭自动配音，并选择 Auto 是否等待语音。玩家设置按设备保存，不写入项目或剧情存档。
 
-## Flow 可视化编辑
+## 目标 Flow 可视化编辑
 
-Flow 编辑器提供与 ADVScript operation 等价的节点或属性卡：
+Flow 编辑器将提供与 ADVScript operation 等价的节点或属性卡：
 
 - **BGM State**：选择资产、set/clear、循环与淡化；
 - **Ambience State**：选择槽位、资产、继承/重置与淡化；
@@ -291,9 +303,9 @@ Flow 编辑器提供与 ADVScript operation 等价的节点或属性卡：
 
 可视化编辑最终写回规范项目数据，不创建只能由 Flow Editor 读取的私有音频字段。
 
-## 试听与调试
+## 目标试听与调试
 
-Editor 的 Runtime 音频 Inspector 显示：
+Editor 的 Runtime 音频 Inspector 将显示：
 
 - 各总线有效音量与 ducking；
 - 正在播放的 BGM、环境音槽位和语音；
@@ -301,9 +313,9 @@ Editor 的 Runtime 音频 Inspector 显示：
 - 加载、播放、停止、替换和失败 trace；
 - locale、Auto、Skip、回退和读档模拟。
 
-Studio 显示简化的生成、上传和播放失败状态，不提供完整调音控制台。
+Studio 将显示简化的生成、上传和播放失败状态，不提供完整调音控制台。
 
-## 发布到 COS
+## 目标 COS 发布
 
 ### 存储边界
 
@@ -339,9 +351,15 @@ Studio 显示简化的生成、上传和播放失败状态，不提供完整调�
 
 托管服务只运行平台签名或服务端 allowlist 中的 toolchain profile 和 image digest。项目不能通过 `toolchain.json` 指定任意容器；缺失 lock、schema 非法、未知 profile 或 digest 不匹配都会阻止正式发布。
 
-## 迁移旧项目
+## 目标旧项目迁移
 
 新音频系统采用破坏性迁移，不保留旧 Runtime 解释分支。先生成报告：
+
+::: warning 命令尚未发布
+
+以下 `adv migrate audio` 命令是已批准的目标 CLI 契约，当前版本尚不可执行。
+
+:::
 
 ~~~bash
 adv migrate audio --report temp/audio-migration.json
@@ -355,7 +373,7 @@ adv migrate audio --resolutions adv/migrations/audio-v1.json --apply
 
 Apply 会先完整验证目标项目，再原子替换文本文件；失败时根据 journal 恢复本次写入。迁移不上传 COS、不删除原音频，重复执行 canonical 项目不会产生新 diff。
 
-## Player 播放行为
+## 目标 Player 播放行为
 
 默认行为：
 
@@ -370,7 +388,13 @@ Apply 会先完整验证目标项目，再原子替换文本文件；失败时�
 
 首次用户交互前，浏览器可能阻止音频。AudioEngine 会在首次交互统一解锁；已经过期的语音不会延迟补播。
 
-## 校验
+## 目标校验
+
+::: warning 校验规则尚未发布
+
+以下音频 schema 诊断是目标行为；当前 `adv check` 和 `adv build` 尚不保证执行这些规则。
+
+:::
 
 运行：
 
@@ -389,7 +413,7 @@ adv build
 
 缺少某语言配音或 selected take 已过期通常是警告。游戏仍显示文本，不因可选语音缺失而崩溃。
 
-## 常见问题
+## 目标协议常见问题
 
 ### 为什么不能直接写音频 URL？
 
@@ -405,11 +429,11 @@ AI 配音需要比较和回退。只有作者明确清理，或资产垃圾回�
 
 ### 可以完全离线吗？
 
-可以。本地 Editor 可以使用 `provider: project` 的 Asset Catalog Profile 和本机 Provider 配置。没有 COS 时，发布构建打包本地音频；密钥仍不能写入项目。
+目标架构允许完全离线。本地 Editor 将使用 `provider: project` 的 Asset Catalog Profile 和本机 Provider 配置。没有 COS 时，发布构建打包本地音频；密钥仍不能写入项目。
 
 ### Editor 和 Studio 会产生不同项目吗？
 
-不会。Editor 提供完整专业界面，Studio 提供移动端核心界面，但两端写入同一套项目 schema。
+目标协议不允许产生不同项目语义。Editor 将提供完整专业界面，Studio 将提供移动端核心界面，但两端写入同一套项目 schema。
 
 ## 相关文档
 

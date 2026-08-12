@@ -1,6 +1,6 @@
 # Multi-track Audio and AI Voice Implementation Plan
 
-> Status: approved design, implementation not started.
+> Status: in progress. The compatibility BGM lifecycle baseline is complete; the unified AudioEngine tasks below have not started.
 
 **Goal:** Replace the BGM-only orchestration with a deterministic multi-track AudioEngine, add asset-addressed BGM/ambience/voice/SFX/UI semantics, and deliver Git-friendly AI voice authoring in Editor and Studio.
 
@@ -9,6 +9,20 @@
 **Tech Stack:** TypeScript, Vue 3, Nuxt, Ionic Vue, Web Audio API, HTMLMediaElement, Vitest, Vue Test Utils, Playwright, Tencent COS/STS, capability-checked FFmpeg for local preview and a build-fingerprint/image-digest-locked FFmpeg toolchain for release.
 
 **Design:** [`2026-08-12-audio-system-design.md`](../specs/2026-08-12-audio-system-design)
+
+## Implemented migration baseline
+
+Before the breaking migration starts, the existing `useAdvBgm` path now provides a deterministic compatibility baseline:
+
+- only the logical active track is selected for a new retirement; earlier crossfade retirements keep their original envelope;
+- stop semantics affect the current authored track rather than every physical track still fading out;
+- mute and unmute cover every physical track participating in a crossfade without resetting its volume envelope;
+- generation checks prevent stale fade callbacks from unloading a track selected again;
+- back, forward and restore reselect saved BGM with the fixed 120ms history fade;
+- dispose unloads active and retiring tracks;
+- Studio builds against an embed-safe client surface and injects its runtime plugins explicitly.
+
+The regression seam is `tests/unit/client-bgm.test.ts` plus `tests/unit/client-runtime-presentation.test.ts`. This baseline does not complete Task 4 or Task 5: there is still no shared Audio Director, Mixer, Fake Backend, Browser Backend, multi-bus runtime or `useAdvAudio()` API.
 
 ## Global constraints
 
