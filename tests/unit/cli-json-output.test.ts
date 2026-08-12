@@ -21,8 +21,10 @@ const repositoryRoot = resolve(import.meta.dirname, '../..')
 const cliEntry = resolve(repositoryRoot, 'packages/advjs/node/cli/index.ts')
 const defaultTemplate = resolve(repositoryRoot, 'packages/advjs/template')
 const tsxCli = fileURLToPath(import.meta.resolve('tsx/cli'))
+// Keep the subprocess deadline inside Vitest's deadline so cleanup can finish before the runner aborts.
 const CLI_PROCESS_TIMEOUT_MS = 15_000
 const CLI_TEST_TIMEOUT_MS = 20_000
+// A production build performs substantially more I/O than the other CLI contracts.
 const CLI_BUILD_PROCESS_TIMEOUT_MS = 50_000
 const CLI_BUILD_TEST_TIMEOUT_MS = 60_000
 const ajv = new Ajv2020({ allErrors: true, strict: true })
@@ -40,6 +42,7 @@ function runCli(args: string[], cwd: string, timeoutMs = CLI_PROCESS_TIMEOUT_MS)
       NODE_ENV: 'production',
       NO_COLOR: '1',
     }
+    // Exercise the CLI as an external consumer, without inherited Vitest worker identity.
     delete environment.VITEST
     delete environment.VITEST_MODE
     delete environment.VITEST_POOL_ID
@@ -56,6 +59,7 @@ function runCli(args: string[], cwd: string, timeoutMs = CLI_PROCESS_TIMEOUT_MS)
     const timeoutTimer = setTimeout(() => {
       timedOut = true
       child.kill('SIGTERM')
+      // Avoid leaving an orphan behind when a command does not handle graceful termination.
       forceKillTimer = setTimeout(() => child.kill('SIGKILL'), 1_000)
     }, timeoutMs)
     const clearTimers = () => {
@@ -84,6 +88,7 @@ function runCli(args: string[], cwd: string, timeoutMs = CLI_PROCESS_TIMEOUT_MS)
 
 async function createProjectFixture(name: string) {
   const projectRoot = join(temporaryRoot, name)
+  // Check/build own separate contracts; seeding them directly avoids retesting init and another tsx startup.
   await cp(defaultTemplate, projectRoot, { recursive: true })
   return projectRoot
 }
