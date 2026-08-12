@@ -27,6 +27,34 @@ menu:
   help: Help
   quit: Quit
 
+save:
+  quick_save: Quick Save
+  quick_load: Quick Load
+  quick_slot: Quick Save
+  auto_slot: 'Auto Save #{index}'
+  manual_slot: 'Save #{index}'
+  system_page: Quick and Auto Saves
+  system_page_short: Auto
+  system_managed: System-managed save
+  page_navigation: Save pages
+  manual_page: 'Manual save page {page}'
+  empty_manual: Select to create a save
+  empty_quick: No quick save yet
+  empty_auto: Created at key story moments
+  saved_position: Saved story position
+  save_to_slot: 'Save to {slot}'
+  load_from_slot: 'Load {slot}'
+  saving: Saving
+  loading: Loading
+  memo: Note
+  memo_placeholder: Add a note
+  save_memo: Save
+  quick_saved: Quick save created
+  quick_loaded: Quick save loaded
+  quick_empty: No quick save yet
+  quick_save_failed: Quick save failed
+  quick_load_failed: Quick load failed
+
 settings:
   title: Settings
   fullscreen: Full Screen

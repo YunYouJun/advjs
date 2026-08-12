@@ -207,7 +207,6 @@ export default defineNuxtConfig({
         '@iconify/vue',
         'dayjs', // CJS
         'howler', // CJS
-        'html2canvas', // CJS
         'js-yaml',
         'rehype-stringify',
         'remark-frontmatter',

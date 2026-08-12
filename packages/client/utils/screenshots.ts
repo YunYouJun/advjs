@@ -1,6 +1,5 @@
-import type { Options } from 'html2canvas'
+import type { Options } from 'modern-screenshot'
 import dayjs from 'dayjs'
-import html2canvas from 'html2canvas'
 
 /**
  * 将 DataUrl 下载为图片
@@ -17,8 +16,8 @@ export function downloadDataUrlAsImage(dataUrl: string, filename: string) {
  * 截图
  */
 export async function screenshot(el: HTMLElement, options: Partial<Options> = {}) {
-  const canvas = await html2canvas(el, options)
-  return canvas.toDataURL()
+  const { domToPng } = await import('modern-screenshot')
+  return domToPng(el, options)
 }
 
 /**
@@ -46,6 +45,11 @@ export async function screenshotGame(options: Partial<Options> = {}) {
  */
 export async function screenshotGameThumb(options: Partial<Options> = {}) {
   const advContent = getGameViewDom()
-  const dataUrl = await screenshot(advContent, { scale: 0.2, ...options })
+  const dataUrl = await screenshot(advContent, {
+    backgroundColor: '#000',
+    scale: 0.2,
+    timeout: 10_000,
+    ...options,
+  })
   return dataUrl
 }

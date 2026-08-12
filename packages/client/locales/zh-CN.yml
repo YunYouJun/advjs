@@ -28,6 +28,34 @@ menu:
   help: 帮助
   quit: 退出
 
+save:
+  quick_save: 快速存档
+  quick_load: 快速读档
+  quick_slot: 快速存档
+  auto_slot: '自动存档 #{index}'
+  manual_slot: '存档 #{index}'
+  system_page: 快速与自动存档
+  system_page_short: 自动
+  system_managed: 系统管理的存档
+  page_navigation: 存档分页
+  manual_page: '手动存档第 {page} 页'
+  empty_manual: 选择此处创建存档
+  empty_quick: 暂无快速存档
+  empty_auto: 将在关键剧情节点生成
+  saved_position: 已保存的剧情位置
+  save_to_slot: '保存到{slot}'
+  load_from_slot: '读取{slot}'
+  saving: 正在保存
+  loading: 正在读取
+  memo: 备注
+  memo_placeholder: 添加存档备注
+  save_memo: 保存
+  quick_saved: 已快速存档
+  quick_loaded: 已加载快速存档
+  quick_empty: 暂无快速存档
+  quick_save_failed: 快速存档失败
+  quick_load_failed: 快速读档失败
+
 # settings
 settings:
   title: 设置

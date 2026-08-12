@@ -1,103 +1,58 @@
 <script lang="ts" setup>
-import type { CreativeEffectOptions, Swiper as SwiperClass } from 'swiper/types'
-
-import { EffectCreative } from 'swiper/modules'
+import type { AdvGameSaveSlot } from '@advjs/client'
+import { AUTO_SAVE_SLOT_COUNT, createAutoSaveSlot, createManualSaveSlot, MANUAL_SAVE_SLOT_COUNT, QUICK_SAVE_SLOT, SAVE_SLOTS_PER_PAGE } from '@advjs/client'
 import { Swiper, SwiperSlide } from 'swiper/vue'
-import { ref } from 'vue'
+import { useSavePager } from '../../composables/useSavePager'
 
-import 'swiper/css/effect-creative'
 import 'swiper/css'
-
-const swiperRef = ref<SwiperClass>()
-const modules = [EffectCreative]
 
 /**
  * 总页数
  */
-const pages = ref(10)
+const pages = MANUAL_SAVE_SLOT_COUNT / SAVE_SLOTS_PER_PAGE
 /**
  * 每页显示的存档数量
  */
-const perPageNum = ref(6)
+const perPageNum = SAVE_SLOTS_PER_PAGE
 
-const curPage = ref(1)
-
-function togglePage(page: number) {
-  if (!swiperRef.value)
-    return
-  swiperRef.value.slideTo(page - 1)
-}
-
-function onInit(swiper: SwiperClass) {
-  if (!swiper)
-    return
-  swiperRef.value = swiper
-  swiper.slideTo(curPage.value - 1)
-}
-
-function onSlideChange() {
-  if (!swiperRef.value)
-    return
-  curPage.value = swiperRef.value.activeIndex + 1
-}
-
-const creativeEffect: CreativeEffectOptions = {
-  prev: {
-    shadow: true,
-    translate: [
-      0,
-      0,
-      -400,
-    ],
-  },
-  next: {
-    translate: [
-      '100%',
-      0,
-      0,
-    ],
-  },
-}
+const systemSlots: AdvGameSaveSlot[] = [
+  QUICK_SAVE_SLOT,
+  ...Array.from({ length: AUTO_SAVE_SLOT_COUNT }, (_, index) => createAutoSaveSlot(index + 1)),
+]
+const { currentPage, goToPage, motion, onInit, onSlideChange, speed } = useSavePager({ firstPage: 0 })
 </script>
 
 <template>
-  <div class="menu-panel flex flex-col size-full justify-between" gap="x-2 y-0" text="2xl">
-    <div class="flex flex-grow" col="span-12">
-      <Swiper
-        effect="creative"
-        :grab-cursor="true"
-        :creative-effect="creativeEffect"
-        class="mySwiper"
-        :modules="modules"
-        @init="onInit"
-        @slide-change="onSlideChange"
-      >
-        <SwiperSlide v-for="i in pages" :key="i">
-          <div grid="~ cols-2 gap-4" p="2" class="items-center justify-center">
-            <SavedCard
-              v-for="j in perPageNum" :key="(i - 1) * perPageNum + j" type="load"
-              class="animate-fade-in-up animate-duration-200"
-              :style="{ 'animation-delay': `${j * 50}ms` }" :no="(i - 1) * perPageNum + j"
-            />
-          </div>
-        </SwiperSlide>
-      </Swiper>
-    </div>
+  <SaveMenuLayout :motion="motion">
+    <Swiper
+      :grab-cursor="true"
+      :speed="speed"
+      class="save-menu__swiper"
+      @init="onInit"
+      @slide-change="onSlideChange"
+    >
+      <SwiperSlide>
+        <SaveSlotsGrid>
+          <SavedCard
+            v-for="slot in systemSlots"
+            :key="slot.kind === 'quick' ? slot.kind : `${slot.kind}:${slot.index}`"
+            type="load"
+            :record-slot="slot"
+          />
+        </SaveSlotsGrid>
+      </SwiperSlide>
+      <SwiperSlide v-for="i in pages" :key="i">
+        <SaveSlotsGrid>
+          <SavedCard
+            v-for="j in perPageNum" :key="(i - 1) * perPageNum + j" type="load"
+            :record-slot="createManualSaveSlot((i - 1) * perPageNum + j)"
+          />
+        </SaveSlotsGrid>
+      </SwiperSlide>
+    </Swiper>
 
-    <HorizontalDivider />
-
-    <div class="adv-pagination-container text-4xl py-4">
-      <AdvTextButton
-        v-for="i in 10" :key="i"
-        :active="curPage === i"
-        class="mx-4 w-20 animate-fade-in-down animate-duration-200"
-        :style="{ 'animation-delay': `${i * 20}ms` }"
-        :font="(curPage === i) && 'bold'"
-        bg="blue-500 opacity-5"
-        @click="togglePage(i)"
-      >
-        {{ i }}
-      </AdvTextButton>
-    </div>
-  </div>
+    <template #pagination>
+      <SavePagination :current-page="currentPage" :pages="pages" has-system-page @change="goToPage" />
+    </template>
+  </SaveMenuLayout>
 </template>

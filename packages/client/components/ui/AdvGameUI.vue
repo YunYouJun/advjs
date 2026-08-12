@@ -27,6 +27,8 @@ const { t } = useI18n()
         <div i-ri-message-2-line />
       </AdvIconButton>
 
+      <QuickSaveControls />
+
       <AdvIconButton :title="t('menu.save_game')" @click="app.toggleShowSaveMenu()">
         <div i-ri-folder-download-line />
       </AdvIconButton>

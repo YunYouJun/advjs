@@ -95,4 +95,34 @@ interface RuntimeStorage {
 
 截图、备注和槽位名放在 `metadata`，不进入执行快照。Core 提供 clone-safe 内存实现，浏览器使用本地存储适配器，CLI 使用原子写入的 JSON 文件适配器。
 
+## 浏览器存档槽位
+
+浏览器客户端在 `RuntimeStorage` 之上使用统一的 `GameSaveController`，手动、快速和自动存档保存的都是同一种 `RuntimeSnapshot`：
+
+| 类型     | 默认数量 | 写入方式                                     |
+| -------- | -------: | -------------------------------------------- |
+| 手动存档 |       60 | 玩家在存档菜单中选择槽位，可保存备注和缩略图 |
+| 快速存档 |        1 | 游戏界面的快速存档按钮覆盖该槽位             |
+| 自动存档 |        5 | 写满后覆盖最旧的自动槽位                     |
+
+自动存档只在适合恢复的稳定位置创建：开始或显式跳转、进入新章节、等待选择、等待或完成互动活动，以及剧情结束。`restore()`、`back()` 和 `forward()` 不会反向制造新自动存档。
+
+```ts
+import {
+  createGameSaveController,
+  createManualSaveSlot,
+  QUICK_SAVE_SLOT,
+} from '@advjs/client'
+
+const saves = createGameSaveController({ storage })
+
+await saves.save(createManualSaveSlot(1), runtime.snapshot(), {
+  memo: '进入分支前',
+})
+await saves.save(QUICK_SAVE_SLOT, runtime.snapshot())
+await saves.autoSave(runtime.snapshot())
+```
+
+存储命名空间由宿主提供稳定游戏 ID；因此 `play` 加载不同的 `pominisId` 时会使用彼此隔离的槽位。未指定命名空间的普通项目继续使用默认槽位。槽位到具体 storage key 的编码属于客户端实现细节，不应由主题或游戏脚本自行拼接。
+
 CLI 的保存、恢复和回退命令见 [CLI](/guide/cli#adv-play)。

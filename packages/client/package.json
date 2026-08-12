@@ -50,7 +50,7 @@
     "dayjs": "catalog:utils",
     "defu": "catalog:utils",
     "howler": "catalog:frontend",
-    "html2canvas": "catalog:frontend",
+    "modern-screenshot": "catalog:frontend",
     "nprogress": "catalog:frontend",
     "pinia": "catalog:frontend",
     "pixi.js": "catalog:frontend",

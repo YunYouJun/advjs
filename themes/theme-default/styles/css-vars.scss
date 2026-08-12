@@ -4,4 +4,12 @@
 :root {
   --adv-theme-name: 'default';
   --adv-theme-color: var(--adv-c-primary);
+  --adv-modal-motion-duration: 180ms;
+  --adv-save-border-color: rgb(128 128 128 / 28%);
+  --adv-save-card-bg: var(--adv-c-bg-alt);
+  --adv-save-card-radius: 0.3rem;
+  --adv-save-card-shadow: 4px 4px 16px rgb(0 0 0 / 10%);
+  --adv-save-card-shadow-hover: 8px 8px 28px rgb(0 0 0 / 16%);
+  --adv-save-control-radius: 0.25rem;
+  --adv-save-motion-duration: 180ms;
 }

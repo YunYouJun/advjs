@@ -15,11 +15,12 @@ import {
   createActivityRendererRegistry,
   createBrowserGalleryController,
   createBrowserRuntimeProgression,
+  shouldCreateAutoSave,
   syncRuntimePresentation,
   validateSpritesheetDeclarations,
   validateSpritesheetImages,
 } from '../runtime'
-import { useAdvStore, useAudioStore } from '../stores'
+import { useAdvStore, useAudioStore, useGameStore } from '../stores'
 import { ADV_RUNTIME, initGameRuntime } from '../utils'
 
 const BOOTSTRAP_PROGRAM: RuntimeProgram = {
@@ -82,6 +83,7 @@ export function setupAdvContext(ctx: {
   galleryStorage?: Storage | false
 }) {
   const store = useAdvStore(ctx.pinia)
+  const game = useGameStore(ctx.pinia)
   const plugins = runtimePlugins(ctx.runtimePlugins)
   const activityRenderers = createActivityRendererRegistry(plugins)
   const compileDiagnostics = shallowRef<CompileDiagnostic[]>([])
@@ -189,6 +191,14 @@ export function setupAdvContext(ctx: {
   advContext.$characters = useAdvCharacters(advContext)
   advContext.$bgm = useAdvBgm(advContext)
   advContext.$auto = useAdvAuto(advContext)
+
+  runtime.subscribeTrace((entry) => {
+    if (!shouldCreateAutoSave(entry))
+      return
+    void game.autoSave(runtime.snapshot()).catch((error) => {
+      console.warn('[advjs] Automatic save failed', error)
+    })
+  })
 
   const audio = useAudioStore()
   advContext.$bgm.setVolume(audio.bgmVolume)

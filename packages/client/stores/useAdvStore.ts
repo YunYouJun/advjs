@@ -9,12 +9,6 @@ import { computed, shallowRef } from 'vue'
 
 export type AdvGameRecord = RuntimeSnapshot
 
-export interface AdvGameRecordMeta {
-  createdAt: number
-  thumbnail?: string
-  memo?: string
-}
-
 function createEmptyRuntimeState(): RuntimeState {
   return {
     status: 'idle',

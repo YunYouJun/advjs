@@ -1,83 +1,79 @@
-import type { AdvGameRecord, AdvGameRecordMeta } from '@advjs/client'
 import type { RuntimeStorage } from '@advjs/core'
-import type { JsonObject } from '@advjs/types'
+import type {
+  AdvGameRecordMeta,
+  AdvGameSaveKind,
+  AdvGameSaveSlot,
+  AutoSaveOptions,
+  GameSaveController,
+} from '../runtime'
+import type { AdvGameRecord } from './useAdvStore'
 import { AdvGameLoadStatusEnum } from '@advjs/client'
 import { createMemoryRuntimeStorage } from '@advjs/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { computed, ref } from 'vue'
-import { createBrowserRuntimeStorage } from '../runtime'
+import { computed, shallowRef } from 'vue'
+import { createBrowserRuntimeStorage, createGameSaveController } from '../runtime'
 
-function createRecordsStorage(): RuntimeStorage {
+const RECORDS_STORAGE_PREFIX = 'advjs:records:'
+
+function createRecordsStorage(namespace?: string): RuntimeStorage {
+  const prefix = namespace
+    ? `${RECORDS_STORAGE_PREFIX}${encodeURIComponent(namespace)}:`
+    : RECORDS_STORAGE_PREFIX
+
   return typeof window === 'undefined'
     ? createMemoryRuntimeStorage()
-    : createBrowserRuntimeStorage({ prefix: 'advjs:records:' })
-}
-
-function readMetadata(metadata?: JsonObject): AdvGameRecordMeta {
-  return {
-    createdAt: typeof metadata?.createdAt === 'number' ? metadata.createdAt : 0,
-    thumbnail: typeof metadata?.thumbnail === 'string' ? metadata.thumbnail : undefined,
-    memo: typeof metadata?.memo === 'string' ? metadata.memo : undefined,
-  }
+    : createBrowserRuntimeStorage({ prefix })
 }
 
 /** Browser save slots backed by the shared RuntimeStorage contract. */
 export const useGameStore = defineStore('@advjs/client:game', () => {
-  const loadStatus = ref<AdvGameLoadStatusEnum>(AdvGameLoadStatusEnum.IDLE)
+  const loadStatus = shallowRef<AdvGameLoadStatusEnum>(AdvGameLoadStatusEnum.IDLE)
   const isLoading = computed(() => {
     return ![AdvGameLoadStatusEnum.SUCCESS, AdvGameLoadStatusEnum.FAIL].includes(loadStatus.value)
   })
 
-  const startChapter = ref<string>()
-  const startNode = ref<string>()
-  const recordsStorage = createRecordsStorage()
+  const startChapter = shallowRef<string>()
+  const startNode = shallowRef<string>()
+  const recordNamespace = shallowRef<string>()
+  const controllersByNamespace = new Map<string, GameSaveController>()
 
-  async function saveRecord(index: number, snapshot: AdvGameRecord) {
-    const id = index.toString()
-    const previous = await recordsStorage.get(id)
-    const updatedAt = Date.now()
-    await recordsStorage.set({
-      id,
-      snapshot,
-      updatedAt,
-      metadata: {
-        ...previous?.metadata,
-        createdAt: previous?.metadata?.createdAt ?? updatedAt,
-      },
-    })
+  function setRecordNamespace(namespace?: string) {
+    recordNamespace.value = namespace || undefined
   }
 
-  async function saveRecordMeta(index: number, meta: Partial<AdvGameRecordMeta>) {
-    const id = index.toString()
-    const previous = await recordsStorage.get(id)
-    if (!previous)
-      return
-    const metadata: JsonObject = {
-      ...previous.metadata,
-      createdAt: meta.createdAt ?? previous.metadata?.createdAt ?? previous.updatedAt,
+  function getController() {
+    const namespace = recordNamespace.value
+    const key = namespace ?? ''
+    let controller = controllersByNamespace.get(key)
+    if (!controller) {
+      controller = createGameSaveController({ storage: createRecordsStorage(namespace) })
+      controllersByNamespace.set(key, controller)
     }
-    if (meta.thumbnail !== undefined)
-      metadata.thumbnail = meta.thumbnail
-    if (meta.memo !== undefined)
-      metadata.memo = meta.memo
-    await recordsStorage.set({
-      ...previous,
-      metadata,
-      updatedAt: Date.now(),
-    })
+    return controller
   }
 
-  async function readRecord(index: number) {
-    return (await recordsStorage.get(index.toString()))?.snapshot
+  function save(slot: AdvGameSaveSlot, snapshot: AdvGameRecord, meta?: Partial<AdvGameRecordMeta>) {
+    return getController().save(slot, snapshot, meta)
   }
 
-  async function readRecordMeta(index: number) {
-    const record = await recordsStorage.get(index.toString())
-    return readMetadata(record?.metadata)
+  function read(slot: AdvGameSaveSlot) {
+    return getController().read(slot)
   }
 
-  function deleteRecord(index: number) {
-    return recordsStorage.remove(index.toString())
+  function updateMeta(slot: AdvGameSaveSlot, meta: Partial<AdvGameRecordMeta>) {
+    return getController().updateMeta(slot, meta)
+  }
+
+  function remove(slot: AdvGameSaveSlot) {
+    return getController().remove(slot)
+  }
+
+  function list(kind?: AdvGameSaveKind) {
+    return getController().list(kind)
+  }
+
+  function autoSave(snapshot: AdvGameRecord, options?: AutoSaveOptions) {
+    return getController().autoSave(snapshot, options)
   }
 
   return {
@@ -85,11 +81,14 @@ export const useGameStore = defineStore('@advjs/client:game', () => {
     isLoading,
     startChapter,
     startNode,
-    readRecord,
-    readRecordMeta,
-    saveRecord,
-    saveRecordMeta,
-    deleteRecord,
+    recordNamespace,
+    setRecordNamespace,
+    save,
+    read,
+    updateMeta,
+    remove,
+    list,
+    autoSave,
   }
 })
 

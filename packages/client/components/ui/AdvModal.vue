@@ -6,6 +6,7 @@
 
 import { onKeyStroke } from '@vueuse/core'
 import { onMounted } from 'vue'
+import { useAdvMotionPreference } from '../../composables/useAdvMotionPreference'
 
 withDefaults(defineProps<{
   icon?: string
@@ -16,6 +17,7 @@ withDefaults(defineProps<{
 })
 
 const emit = defineEmits(['close'])
+const motion = useAdvMotionPreference()
 
 const open = defineModel('open', {
   type: Boolean,
@@ -32,7 +34,7 @@ onMounted(() => {
 
 <template>
   <Transition name="modal">
-    <div v-if="open" class="modal-mask">
+    <div v-if="open" class="modal-mask" :data-motion="motion">
       <div class="modal-container flex flex-col size-full z-9999">
         <AdvIconButton v-if="!header" class="modal-close-button right-4 top-4 absolute" @click="emit('close')">
           <div i-ri-close-line class="text-6xl" />
@@ -77,12 +79,14 @@ onMounted(() => {
   bottom: -1px;
   backdrop-filter: blur(100px);
   background-color: var(--adv-modal-bg-color);
-  transition: all 0.2s ease;
+  transition: opacity var(--adv-modal-motion-duration, 180ms) ease;
 }
 
 .modal-container {
   /* padding: 1rem; */
-  transition: all 0.2s ease;
+  transition:
+    opacity var(--adv-modal-motion-duration, 180ms) ease,
+    transform var(--adv-modal-motion-duration, 180ms) ease;
 }
 
 .modal-close-button {
@@ -98,17 +102,50 @@ onMounted(() => {
  * these styles.
  */
 
-.modal-enter-active,
-.modal-leave-active {
+.modal-enter-from,
+.modal-leave-to {
   opacity: 0;
 }
 
-.modal-enter-active .modal-container {
-  -webkit-transform: scale(0.9);
-  transform: scale(0.9);
+.modal-enter-from .modal-container {
+  opacity: 0;
+  transform: scale(0.97);
 }
 
-.modal-leave-active .modal-container {
-  transform: translate(0, 50px);
+.modal-leave-to .modal-container {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.modal-mask[data-motion='reduced'] .modal-container {
+  transform: none;
+}
+
+.modal-mask[data-motion='none'],
+.modal-mask[data-motion='none'] .modal-container {
+  transition: none;
+}
+
+.modal-mask[data-motion='none'].modal-enter-from,
+.modal-mask[data-motion='none'].modal-leave-to,
+.modal-mask[data-motion='none'].modal-enter-from .modal-container,
+.modal-mask[data-motion='none'].modal-leave-to .modal-container {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-mask,
+  .modal-container {
+    transition: none;
+  }
+
+  .modal-enter-from,
+  .modal-leave-to,
+  .modal-enter-from .modal-container,
+  .modal-leave-to .modal-container {
+    opacity: 1;
+    transform: none;
+  }
 }
 </style>

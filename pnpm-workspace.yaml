@@ -177,7 +177,6 @@ catalogs:
     animate.css: ^4.1.1
     colord: ^2.9.3
     howler: ^2.2.4
-    html2canvas: ^1.4.1
     modern-screenshot: ^4.7.0
     monaco-editor: ^0.55.1
     nprogress: ^0.2.0
