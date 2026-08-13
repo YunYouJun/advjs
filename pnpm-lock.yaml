@@ -1409,22 +1409,22 @@ importers:
         specifier: workspace:0.1.2
         version: link:../assets
       '@advjs/client':
-        specifier: workspace:^0.1.2
+        specifier: workspace:0.1.2
         version: link:../client
       '@advjs/core':
-        specifier: workspace:^0.1.2
+        specifier: workspace:0.1.2
         version: link:../core
       '@advjs/devtools':
-        specifier: workspace:^0.1.3
+        specifier: workspace:0.1.2
         version: link:../devtools
       '@advjs/editor':
-        specifier: workspace:^0.1.3
+        specifier: workspace:0.1.2
         version: link:../../editor/core
       '@advjs/parser':
-        specifier: workspace:^0.1.3
+        specifier: workspace:0.1.2
         version: link:../parser
       '@advjs/theme-default':
-        specifier: workspace:^0.1.3
+        specifier: workspace:0.1.2
         version: link:../../themes/theme-default
       '@advjs/types':
         specifier: workspace:0.1.2
@@ -1619,10 +1619,10 @@ importers:
   packages/character:
     dependencies:
       '@advjs/parser':
-        specifier: workspace:0.1.2
+        specifier: workspace:^0.1.3
         version: link:../parser
       '@advjs/types':
-        specifier: workspace:0.1.2
+        specifier: workspace:^0.1.3
         version: link:../types
     devDependencies:
       unbuild:
@@ -1871,10 +1871,10 @@ importers:
   packages/parser:
     dependencies:
       '@advjs/types':
-        specifier: workspace:0.1.2
+        specifier: workspace:^0.1.3
         version: link:../types
       '@advjs/unocss':
-        specifier: workspace:0.1.2
+        specifier: workspace:^0.1.3
         version: link:../unocss
       '@types/mdast':
         specifier: catalog:types
