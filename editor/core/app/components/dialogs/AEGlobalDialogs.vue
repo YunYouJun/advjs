@@ -6,6 +6,7 @@ const AESettingsDialog = defineAsyncComponent(() => import('./AESettingsDialog.v
 const AEProjectSettingsDialog = defineAsyncComponent(() => import('./AEProjectSettingsDialog.vue'))
 const AEGitHubReposDialog = defineAsyncComponent(() => import('./AEGitHubReposDialog.vue'))
 const AEPreferencesDialog = defineAsyncComponent(() => import('./AEPreferencesDialog.vue'))
+const AECodexWorkflowDialog = defineAsyncComponent(() => import('./AECodexWorkflowDialog.vue'))
 
 const dialogStore = useDialogStore()
 const capabilities = useEditorCapabilities()
@@ -17,4 +18,5 @@ const capabilities = useEditorCapabilities()
   <AEProjectSettingsDialog v-if="dialogStore.openStates.projectSettings" v-model:open="dialogStore.openStates.projectSettings" />
   <AEGitHubReposDialog v-if="capabilities.integrations.github && dialogStore.openStates.githubRepos" v-model:open="dialogStore.openStates.githubRepos" />
   <AEPreferencesDialog v-if="dialogStore.openStates.preferences" v-model:open="dialogStore.openStates.preferences" />
+  <AECodexWorkflowDialog v-if="dialogStore.openStates.codexWorkflow" v-model:open="dialogStore.openStates.codexWorkflow" />
 </template>

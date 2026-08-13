@@ -23,7 +23,7 @@
     "preinstall": "npx only-allow pnpm",
     "build": "pnpm build:packages",
     "prepublishOnly": "pnpm run build:schema",
-    "build:advjs": "pnpm types:build && pnpm unocss:build && pnpm parser:build && pnpm core:build && pnpm advjs:build",
+    "build:advjs": "pnpm types:build && pnpm assets:build && pnpm unocss:build && pnpm parser:build && pnpm core:build && pnpm advjs:build",
     "build:demo": "pnpm -C demo/starter run build",
     "build:demo:hamster": "pnpm -C demo/hamster run build",
     "build:packages": "pnpm -r --filter=\"./packages/*\" run build",
@@ -48,6 +48,8 @@
     "preview": "pnpm -C packages/advjs preview",
     "advjs:build": "pnpm -C packages/advjs run build",
     "advjs:dev": "pnpm -C packages/advjs run dev",
+    "assets:build": "pnpm -C packages/assets build",
+    "assets:dev": "pnpm -C packages/assets dev",
     "core:build": "pnpm -C packages/core build",
     "core:dev": "pnpm -C packages/core dev",
     "docs": "pnpm -C docs dev",
@@ -88,6 +90,7 @@
     "prepare": "husky"
   },
   "devDependencies": {
+    "@advjs/assets": "workspace:*",
     "@advjs/core": "workspace:*",
     "@advjs/gui": "workspace:*",
     "@advjs/parser": "workspace:*",

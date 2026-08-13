@@ -23,6 +23,10 @@
       "success": "https://advjs.org/schemas/cli-output.v1.json#/$defs/agentInstallSuccess",
       "failure": "https://advjs.org/schemas/cli-output.v1.json#/$defs/agentInstallFailure"
     },
+    "assets": {
+      "success": "https://advjs.org/schemas/cli-output.v1.json#/$defs/assetsSuccess",
+      "failure": "https://advjs.org/schemas/cli-output.v1.json#/$defs/assetsFailure"
+    },
     "doctor": {
       "success": "https://advjs.org/schemas/cli-output.v1.json#/$defs/doctorSuccess",
       "failure": "https://advjs.org/schemas/cli-output.v1.json#/$defs/doctorFailure"

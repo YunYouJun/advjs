@@ -1,5 +1,6 @@
 // @vitest-environment node
 
+import { Buffer } from 'node:buffer'
 import { mkdir, mkdtemp, realpath, rm, symlink, writeFile } from 'node:fs/promises'
 import { createServer as createHttpServer } from 'node:http'
 import { tmpdir } from 'node:os'
@@ -25,6 +26,7 @@ async function fixture() {
     writeFile(join(publicRoot, 'index.html'), '<main>ADV.JS Editor</main>', 'utf8'),
     writeFile(join(projectRoot, 'adv.config.json'), '{"root":"./adv"}\n', 'utf8'),
     writeFile(join(projectRoot, 'adv', 'chapter.adv.md'), '# Chapter\n', 'utf8'),
+    writeFile(join(projectRoot, 'adv', 'preview.webp'), Buffer.from('RIFFxxxxWEBP')),
     writeFile(join(temporaryRoot, 'outside.txt'), 'private', 'utf8'),
   ])
   await symlink(join(temporaryRoot, 'outside.txt'), join(projectRoot, 'outside-link.txt'))
@@ -55,6 +57,16 @@ describe('editor bridge', () => {
         commands.push(command)
         return { command, passed: true }
       },
+      getAgentStatus: async () => ({
+        client: 'codex',
+        ready: true,
+        checks: [
+          { id: 'skills', status: 'pass', message: 'Skills current.' },
+          { id: 'mcp', status: 'pass', message: 'MCP configured.' },
+        ],
+        installCommand: 'adv agent install --client codex --skills default --mcp',
+        doctorCommand: 'adv doctor . --client codex',
+      }),
     })
 
     const ready = await bridge.start()
@@ -70,6 +82,12 @@ describe('editor bridge', () => {
     expect(readResponse.status).toBe(200)
     expect(await readResponse.text()).toBe('{"root":"./adv"}\n')
 
+    const assetResponse = await fetch(new URL('/__advjs/api/asset?path=adv/preview.webp', ready.url), {
+      headers: apiHeaders(bridge.token),
+    })
+    expect(assetResponse.status).toBe(200)
+    expect(assetResponse.headers.get('content-type')).toBe('image/webp')
+
     const projectResponse = await fetch(new URL('/__advjs/api/project', ready.url), {
       headers: apiHeaders(bridge.token),
     })
@@ -80,6 +98,12 @@ describe('editor bridge', () => {
         'adv/chapter.adv.md': '# Chapter\n',
       },
     })
+
+    const agentResponse = await fetch(new URL('/__advjs/api/agent/codex', ready.url), {
+      headers: apiHeaders(bridge.token),
+    })
+    expect(agentResponse.status).toBe(200)
+    expect(await agentResponse.json()).toMatchObject({ client: 'codex', ready: true })
 
     const writeResponse = await fetch(apiUrl, {
       body: '{"root":"./adv","title":"Changed"}\n',

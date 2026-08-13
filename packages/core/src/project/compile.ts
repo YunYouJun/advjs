@@ -699,6 +699,19 @@ export async function compileProject(
     gameConfigPath ?? configPath ?? 'adv.config.json',
   ))
   const assets = loadAssetManifest(files, assetsPath, diagnostics)
+  if (assets) {
+    const assetIds = new Set(assets.assets.map(asset => asset.id))
+    for (const scene of sceneResult.scenes) {
+      if (scene.assetId && !assetIds.has(scene.assetId)) {
+        diagnostics.push({
+          code: 'ADV_PROJECT_UNKNOWN_SCENE_ASSET',
+          severity: 'error',
+          message: `Scene "${scene.id}" references unknown asset: ${scene.assetId}`,
+          path: sourceMap.scenes[scene.id],
+        })
+      }
+    }
+  }
 
   let program
   if (format === 'adv-md') {

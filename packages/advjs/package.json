@@ -52,6 +52,7 @@
     "export": "tsx node/cli/index.ts export"
   },
   "dependencies": {
+    "@advjs/assets": "workspace:0.1.2",
     "@advjs/client": "workspace:0.1.2",
     "@advjs/core": "workspace:0.1.2",
     "@advjs/devtools": "workspace:0.1.2",

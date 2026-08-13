@@ -6,7 +6,15 @@ import { analyzeBranches, analyzeCoverage } from '@advjs/core'
 import { parseAst, parseCharacterMd, stringifyCharacterMd } from '@advjs/parser'
 import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
-import { loadProject, resolveGameRoot, scanFiles } from 'advjs'
+import {
+  acceptAssetGenerationCandidate,
+  ingestAssetGenerationCandidate,
+  loadProject,
+  planBackgroundAssetGeneration,
+  rejectAssetGenerationCandidate,
+  resolveGameRoot,
+  scanFiles,
+} from 'advjs'
 import { z } from 'zod'
 
 // Re-export for external use
@@ -36,6 +44,18 @@ function readOptionalFile(path: string): string | undefined {
 /** For tool/prompt callbacks: { content: [...] } */
 function textContent(text: string) {
   return { content: [{ type: 'text' as const, text }] }
+}
+
+async function toolResult<T>(operation: () => Promise<T>, serialize: (value: T) => unknown) {
+  try {
+    return textContent(JSON.stringify(serialize(await operation()), null, 2))
+  }
+  catch (error) {
+    return {
+      content: [{ type: 'text' as const, text: error instanceof Error ? error.message : String(error) }],
+      isError: true,
+    }
+  }
 }
 
 // ----------------- Asset builders (pure, no fs) -----------------
@@ -447,6 +467,102 @@ export function createAdvMcpServer(options: CreateAdvMcpServerOptions = {}) {
         content: [{ type: 'text', text: lines.join('\n') }],
         isError: true,
       }
+    },
+  )
+
+  server.tool(
+    'adv_asset_plan_background',
+    'Create a provider-neutral background generation task from a scene imagePrompt. This creates only an ignored candidate workspace, never a formal asset.',
+    {
+      sceneId: z.string().describe('Existing scene id with a non-empty imagePrompt'),
+      width: z.number().int().positive().default(1536),
+      height: z.number().int().positive().default(864),
+    },
+    async ({ sceneId, width, height }: { sceneId: string, width: number, height: number }) => {
+      return await toolResult(
+        () => planBackgroundAssetGeneration({ root: cwd, sceneId, width, height }),
+        result => ({
+          taskId: result.task.id,
+          status: result.task.status,
+          prompt: result.task.prompt,
+          target: result.task.target,
+          candidateDirectory: result.candidateDirectory,
+        }),
+      )
+    },
+  )
+
+  server.tool(
+    'adv_asset_ingest_candidate',
+    'Validate and attach one generated PNG, JPEG, or WebP candidate already copied into the owning task candidate directory. This does not register the asset.',
+    {
+      taskId: z.string(),
+      candidatePath: z.string().describe('Project-relative path returned by the generation workflow'),
+      candidateId: z.string().optional(),
+      executor: z.string().default('codex-imagegen'),
+      model: z.string().optional(),
+    },
+    async (params: { taskId: string, candidatePath: string, candidateId?: string, executor: string, model?: string }) => {
+      return await toolResult(
+        () => ingestAssetGenerationCandidate({
+          root: cwd,
+          taskId: params.taskId,
+          candidatePath: params.candidatePath,
+          candidateId: params.candidateId,
+          executor: { id: params.executor, model: params.model },
+        }),
+        result => ({ taskId: result.task.id, status: result.task.status, candidate: result.candidate }),
+      )
+    },
+  )
+
+  server.tool(
+    'adv_asset_reject_candidate',
+    'Record a human rejection reason for a generated candidate. Rejected candidates never enter the formal catalog.',
+    {
+      taskId: z.string(),
+      candidateId: z.string(),
+      reason: z.string().min(1),
+    },
+    async (params: { taskId: string, candidateId: string, reason: string }) => {
+      return await toolResult(
+        () => rejectAssetGenerationCandidate({ root: cwd, ...params }),
+        result => ({ taskId: result.task.id, status: result.task.status }),
+      )
+    },
+  )
+
+  server.tool(
+    'adv_asset_accept_candidate',
+    'After visual review, explicitly register one candidate, write its immutable hashed file and receipt, update the catalog, and bind the scene. confirm must be true; generation success alone is never approval.',
+    {
+      taskId: z.string(),
+      candidateId: z.string(),
+      confirm: z.boolean().describe('Must be true only after a human visually reviewed this exact candidate'),
+      replaceExisting: z.boolean().default(false).describe('Separate approval for replacing an existing stable asset id'),
+    },
+    async (params: { taskId: string, candidateId: string, confirm: boolean, replaceExisting: boolean }) => {
+      if (!params.confirm) {
+        return {
+          content: [{ type: 'text', text: 'Explicit confirmation is required after visual review; generation success is not approval.' }],
+          isError: true,
+        }
+      }
+      return await toolResult(
+        () => acceptAssetGenerationCandidate({
+          root: cwd,
+          taskId: params.taskId,
+          candidateId: params.candidateId,
+          replaceExisting: params.replaceExisting,
+        }),
+        result => ({
+          taskId: result.task.id,
+          status: result.task.status,
+          asset: result.asset,
+          receipt: result.receipt.registration.receiptPath,
+          writes: result.writes,
+        }),
+      )
     },
   )
 

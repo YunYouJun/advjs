@@ -8,6 +8,7 @@ export const ADV_CLI_COMMANDS = [
   'build',
   'editor',
   'agent.install',
+  'assets',
   'doctor',
   'deploy',
   'deploy.artifact',
@@ -226,6 +227,7 @@ export const ADV_LAUNCH_SUPPORT = {
   packages: {
     entrypoints: ['advjs', '@advjs/editor', '@advjs/mcp-server'],
     dependencyClosure: [
+      '@advjs/assets',
       '@advjs/client',
       '@advjs/core',
       '@advjs/devtools',

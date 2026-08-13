@@ -154,6 +154,35 @@
       ]
     }
   },
+  "assets": {
+    "success": {
+      "schemaVersion": 1,
+      "command": "assets",
+      "ok": true,
+      "data": {
+        "action": "plan",
+        "root": "/tmp/my-game",
+        "taskId": "20260813-library-a1b2c3d4",
+        "status": "planned",
+        "candidateDirectory": ".adv/generated/tasks/20260813-library-a1b2c3d4/candidates"
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "failure": {
+      "schemaVersion": 1,
+      "command": "assets",
+      "ok": false,
+      "data": null,
+      "warnings": [],
+      "errors": [
+        {
+          "code": "ADV_USAGE",
+          "message": "adv assets accept requires --confirm after visual review"
+        }
+      ]
+    }
+  },
   "doctor": {
     "success": {
       "schemaVersion": 1,

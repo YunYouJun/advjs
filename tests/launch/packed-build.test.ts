@@ -13,6 +13,7 @@ const repositoryRoot = resolve(import.meta.dirname, '../..')
 
 const packedBuildPackages = new Set([
   '@advjs/types',
+  '@advjs/assets',
   '@advjs/unocss',
   '@advjs/parser',
   '@advjs/core',
@@ -25,6 +26,7 @@ const packedBuildPackages = new Set([
 
 const launchPackageManifests = [
   'packages/advjs/package.json',
+  'packages/assets/package.json',
   'packages/client/package.json',
   'packages/core/package.json',
   'packages/devtools/package.json',

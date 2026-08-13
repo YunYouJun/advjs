@@ -5,6 +5,7 @@
  * @advjs/types
  */
 
+export * from './agent'
 export * as AdvAst from './ast'
 export type { SceneTransition, SceneTransitionOptions, SceneTransitionPreset, TachieMotion, TachiePosition } from './ast'
 export * from './config'

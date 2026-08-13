@@ -1,4 +1,4 @@
 interface:
   display_name: ADV Art Pipeline
-  short_description: 'Plan, validate, and publish ADV.JS game artwork'
-  default_prompt: Use $adv-art to build a traceable visual asset pipeline for this ADV.JS project.
+  short_description: 'Generate, review, and publish traceable ADV.JS artwork'
+  default_prompt: Use $adv-art to generate provider-neutral candidates, obtain explicit visual approval, and register traceable ADV.JS assets.

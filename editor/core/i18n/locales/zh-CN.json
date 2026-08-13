@@ -37,6 +37,7 @@
     "packageManager": "包管理器",
     "cdn": "CDN",
     "story": "故事",
+    "codexWorkflow": "Codex 工作流",
     "create": "创建",
     "createWorldview": "世界观",
     "createScene": "场景",
@@ -51,6 +52,23 @@
     "sourceCode": "源代码",
     "joinDiscord": "加入 Discord",
     "discussOnGitHub": "在 GitHub 上讨论"
+  },
+  "codex": {
+    "title": "Codex 工作流",
+    "localOnly": "请使用 `adv editor .` 启动编辑器，以检查本地 Codex 集成并接收外部文件变更。",
+    "readiness": "本地集成就绪状态",
+    "refresh": "刷新",
+    "statusError": "无法检查 Codex 集成",
+    "copied": "已复制",
+    "copyInstall": "复制修复命令",
+    "copyDoctor": "复制诊断命令",
+    "installCopied": "已复制 Codex 安装命令",
+    "doctorCopied": "已复制 ADV.JS 诊断命令",
+    "taskPrompt": "背景资源任务提示",
+    "copyTask": "复制 Codex 任务",
+    "taskCopied": "已复制 Codex 任务提示",
+    "refreshProject": "刷新项目",
+    "noPromptScenes": "当前没有包含 imagePrompt 的场景，请先在场景卡中补充。"
   },
   "preferences": {
     "title": "偏好设置",

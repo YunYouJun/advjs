@@ -115,7 +115,7 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
       await loadAdvConfigJSON(nextProject.files['adv.config.json'])
 
     const errors = nextProject.compilation.diagnostics.filter(item => item.severity === 'error')
-    if (workspaceMode.value !== 'local' && nextProject.mode === 'standard-markdown' && errors.length === 0) {
+    if (nextProject.mode === 'standard-markdown' && errors.length === 0) {
       void gameStore.loadGameFromConfig(nextProject.previewConfig).catch((error) => {
         consoleStore.error('Preview failed to load', { error: String(error) })
       })
@@ -161,6 +161,10 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
     const loaded = await adapter.loadProject()
     const name = loaded.root.split(/[\\/]/u).filter(Boolean).at(-1) ?? 'project'
     const nextProject = createEditorProjectModel(loaded.result, loaded.files)
+    nextProject.previewConfig = await adapter.resolvePreviewConfig(
+      nextProject.compilation,
+      nextProject.previewConfig,
+    )
     const handle = adapter.createDirectoryHandle(loaded.files, name)
     localRootHandle.value = handle
     workspaceMode.value = 'local'

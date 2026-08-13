@@ -1,12 +1,12 @@
 {
-  "name": "@advjs/core",
+  "name": "@advjs/assets",
   "type": "module",
   "version": "0.1.2",
-  "description": "Core library for AdvJS, providing essential functionalities and utilities.",
+  "description": "Platform-neutral asset catalog and authoring workflow primitives for ADV.JS.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/YunYouJun/advjs.git",
-    "directory": "packages/core"
+    "directory": "packages/assets"
   },
   "publishConfig": {
     "access": "public"
@@ -30,19 +30,12 @@
   "scripts": {
     "build": "unbuild",
     "dev": "unbuild --stub",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@advjs/assets": "workspace:0.1.2",
-    "@advjs/parser": "workspace:0.1.2",
-    "@advjs/types": "workspace:0.1.2",
-    "@types/mdast": "catalog:types",
-    "consola": "catalog:cli",
-    "dayjs": "catalog:utils",
-    "unstorage": "catalog:utils"
+    "@advjs/types": "workspace:0.1.2"
   },
   "devDependencies": {
-    "unbuild": "catalog:build",
-    "vue": "catalog:frontend"
+    "unbuild": "catalog:build"
   }
 }

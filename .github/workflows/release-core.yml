@@ -38,18 +38,26 @@ jobs:
       - name: Verify release version
         run: >-
           node -e 'const version = require("./packages/core/package.json").version;
+          const assetsVersion = require("./packages/assets/package.json").version;
           const tag = process.env.GITHUB_REF_NAME;
+          if (assetsVersion !== version)
+          throw new Error("@advjs/assets " + assetsVersion + " does not match @advjs/core " + version);
           if (tag !== "core-v" + version)
           throw new Error("Tag " + tag + " does not match @advjs/core " + version)'
 
       - name: Build core dependency chain
-        run: pnpm types:build && pnpm parser:build && pnpm core:build
+        run: pnpm types:build && pnpm assets:build && pnpm parser:build && pnpm core:build
 
       - name: Test core
         run: pnpm vitest run packages/core/test --reporter=default
 
-      - name: Pack core
-        run: pnpm -C packages/core pack --pack-destination ../../artifacts
+      - name: Pack core dependency chain
+        run: >-
+          pnpm -C packages/assets pack --pack-destination ../../artifacts &&
+          pnpm -C packages/core pack --pack-destination ../../artifacts
 
-      - name: Publish core
-        run: npm publish ./artifacts/advjs-core-*.tgz --provenance --access public
+      - name: Publish core dependency chain
+        run: |
+          ASSETS_VERSION=$(node -p 'require("./packages/assets/package.json").version')
+          npm view "@advjs/assets@$ASSETS_VERSION" version >/dev/null 2>&1 || npm publish ./artifacts/advjs-assets-*.tgz --provenance --access public
+          npm publish ./artifacts/advjs-core-*.tgz --provenance --access public

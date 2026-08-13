@@ -279,6 +279,13 @@ export function useEditorMenubar() {
       name: t('menu.story'),
       items: [
         {
+          label: t('menu.codexWorkflow'),
+          onClick: () => {
+            dialogStore.openStates.codexWorkflow = true
+          },
+        },
+        { type: 'separator' },
+        {
           type: 'submenu',
           label: t('menu.create'),
           children: [

@@ -4,6 +4,7 @@ import { hideBin } from 'yargs/helpers'
 
 import { version } from '../../package.json'
 import { installAgentCommand } from './agent'
+import { installAssetsCommand } from './assets'
 import { installBuildCommand } from './build'
 import { installCheckCommand } from './check'
 import { installConfigCommand } from './config'
@@ -50,6 +51,7 @@ const cli = yargs(rawArguments)
 
 installEditorCommand(cli)
 installAgentCommand(cli)
+installAssetsCommand(cli)
 installDoctorCommand(cli)
 installDeployCommand(cli)
 installDevCommand(cli)

@@ -17,6 +17,7 @@ export const SceneFrontmatterSchema = z.object({
   imagePrompt: z.string().optional(),
   type: z.enum(['image', 'model']).optional(),
   src: z.string().optional(),
+  assetId: z.string().optional(),
   tags: z.array(z.string()).optional(),
 })
 

@@ -706,6 +706,9 @@ importers:
 
   .:
     devDependencies:
+      '@advjs/assets':
+        specifier: workspace:*
+        version: link:packages/assets
       '@advjs/core':
         specifier: workspace:*
         version: link:packages/core
@@ -1170,6 +1173,9 @@ importers:
 
   editor/core:
     devDependencies:
+      '@advjs/assets':
+        specifier: workspace:*
+        version: link:../../packages/assets
       '@advjs/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -1399,6 +1405,9 @@ importers:
 
   packages/advjs:
     dependencies:
+      '@advjs/assets':
+        specifier: workspace:0.1.2
+        version: link:../assets
       '@advjs/client':
         specifier: workspace:^0.1.2
         version: link:../client
@@ -1573,6 +1582,16 @@ importers:
         specifier: catalog:build
         version: 3.6.1(sass@1.101.0)(typescript@5.9.3)(vue-tsc@3.3.5(typescript@5.9.3))(vue@3.5.39(typescript@5.9.3))
 
+  packages/assets:
+    dependencies:
+      '@advjs/types':
+        specifier: workspace:0.1.2
+        version: link:../types
+    devDependencies:
+      unbuild:
+        specifier: catalog:build
+        version: 3.6.1(sass@1.101.0)(typescript@5.9.3)(vue-tsc@3.3.5(typescript@5.9.3))(vue@3.5.39(typescript@5.9.3))
+
   packages/benchmarks:
     devDependencies:
       '@faker-js/faker':
@@ -1715,6 +1734,9 @@ importers:
 
   packages/core:
     dependencies:
+      '@advjs/assets':
+        specifier: workspace:0.1.2
+        version: link:../assets
       '@advjs/parser':
         specifier: workspace:0.1.2
         version: link:../parser

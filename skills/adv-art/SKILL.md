@@ -32,6 +32,8 @@ When an image-generation capability is available, generate original assets from 
 
 Inspect each result before accepting it. Reject identity drift, accidental text, extra limbs, clipped ears/hands/tails, inconsistent costume details, opaque halos, or backgrounds embedded in tachie. Preserve the model/tool name, prompt version, generation date, and content license in provenance metadata.
 
+For scene backgrounds in a local Codex workflow, read [references/codex-authoring.md](references/codex-authoring.md) and use the task/candidate protocol. Codex built-in image generation is the preferred first executor when available, but it is not part of the asset domain contract. A successful generation is only a candidate; never register it before the user visually confirms that exact file.
+
 ### 4. Normalize release derivatives
 
 - Export tachie with alpha, consistent canvas dimensions, ground line, and framing.

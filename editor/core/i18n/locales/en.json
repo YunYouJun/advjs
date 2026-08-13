@@ -37,6 +37,7 @@
     "packageManager": "Package Manager",
     "cdn": "CDN",
     "story": "Story",
+    "codexWorkflow": "Codex Workflow",
     "create": "Create",
     "createWorldview": "Worldview",
     "createScene": "Scene",
@@ -51,6 +52,23 @@
     "sourceCode": "Source Code",
     "joinDiscord": "Join Discord",
     "discussOnGitHub": "Discuss on GitHub"
+  },
+  "codex": {
+    "title": "Codex Workflow",
+    "localOnly": "Start Editor with `adv editor .` to inspect the local Codex integration and use external file refresh.",
+    "readiness": "Local integration readiness",
+    "refresh": "Refresh",
+    "statusError": "Could not inspect Codex integration",
+    "copied": "Copied",
+    "copyInstall": "Copy repair command",
+    "copyDoctor": "Copy doctor command",
+    "installCopied": "Codex installation command copied",
+    "doctorCopied": "ADV.JS doctor command copied",
+    "taskPrompt": "Background task prompt",
+    "copyTask": "Copy Codex task",
+    "taskCopied": "Codex task prompt copied",
+    "refreshProject": "Refresh project",
+    "noPromptScenes": "No scene with an imagePrompt is available yet. Add one to a scene card first."
   },
   "preferences": {
     "title": "Preferences",

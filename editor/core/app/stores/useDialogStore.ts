@@ -13,6 +13,7 @@ export const useDialogStore = defineStore('@advjs/editor:dialog', () => {
     settings: false,
     projectSettings: false,
     preferences: false,
+    codexWorkflow: false,
 
     githubRepos: false,
   })

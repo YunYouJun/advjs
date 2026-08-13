@@ -70,6 +70,7 @@
       "@advjs/mcp-server"
     ],
     "dependencyClosure": [
+      "@advjs/assets",
       "@advjs/client",
       "@advjs/core",
       "@advjs/devtools",

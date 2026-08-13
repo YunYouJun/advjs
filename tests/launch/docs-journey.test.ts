@@ -186,8 +186,9 @@ describe('published launch documentation journey', () => {
             throw error
           })
           const startSourcePreview = page.getByRole('button', { name: 'Start source preview' })
-          await startSourcePreview.click()
-          await startSourcePreview.waitFor({ state: 'hidden', timeout: 15_000 })
+          if (await startSourcePreview.isVisible().catch(() => false))
+            await startSourcePreview.click()
+          await page.locator('.adv-game').waitFor({ state: 'visible', timeout: 15_000 })
 
           await page.getByText(chapterRelativePath, { exact: true }).dblclick()
           const editor = page.locator('.monaco-editor').last()
@@ -211,7 +212,7 @@ describe('published launch documentation journey', () => {
           throw new Error(`Packed Editor stopped with ${exitCode}`)
         await writeFile(journey.artifacts.editorLog, output.join(''), 'utf8')
         expect(output.join('')).toContain('"event":"stopped"')
-        return { summary: 'Playwright edited, saved, and started source play in the packed local Editor' }
+        return { summary: 'Playwright verified source play, edited, and saved in the packed local Editor' }
       },
       'build': async () => {
         await runDocumented(commandByPrefix('adv build '))

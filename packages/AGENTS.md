@@ -2,7 +2,7 @@
 
 ## Build Chain (order matters)
 
-`@advjs/types` → `@advjs/parser` → `@advjs/core` → `advjs`
+`@advjs/types` → `@advjs/assets` / `@advjs/parser` → `@advjs/core` → `advjs`
 
 Run `pnpm build:advjs` from repo root to build in order. All publishable packages use **unbuild**; dev mode is `unbuild --stub`.
 

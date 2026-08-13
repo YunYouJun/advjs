@@ -53,6 +53,7 @@ describe('launch CLI contracts', () => {
       'build',
       'editor',
       'agent.install',
+      'assets',
       'doctor',
       'deploy',
       'deploy.artifact',
@@ -87,6 +88,7 @@ describe('launch CLI contracts', () => {
       packages: {
         entrypoints: ['advjs', '@advjs/editor', '@advjs/mcp-server'],
         dependencyClosure: [
+          '@advjs/assets',
           '@advjs/client',
           '@advjs/core',
           '@advjs/devtools',

@@ -31,7 +31,7 @@ pnpm docs                       # Run docs dev server
 ## Build Order
 
 Packages have dependencies that require ordered builds:
-`@advjs/types` → `@advjs/parser` → `@advjs/core` → `advjs`
+`@advjs/types` → `@advjs/assets` / `@advjs/parser` → `@advjs/core` → `advjs`
 
 Use `pnpm build:advjs` to build the full chain in order.
 
@@ -42,6 +42,7 @@ Managed with pnpm workspaces. Dependency versions use pnpm catalogs (defined in 
 ### Key Packages (`packages/`)
 
 - **`@advjs/types`** — Shared TypeScript type declarations for the entire project
+- **`@advjs/assets`** — Platform-neutral asset catalog and authoring workflow primitives
 - **`@advjs/parser`** — Markdown-to-AST parser using unified/remark ecosystem. Parses `.adv.md` files into a structured AST for the game engine
 - **`@advjs/core`** — Core engine library: game engine runtime, session management, i18n, VRM model support
 - **`advjs`** — Main entry package with CLI (`adv` binary), Vite plugin integration, node/client split architecture, theme resolution

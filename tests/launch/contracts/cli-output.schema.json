@@ -74,6 +74,7 @@
             "build",
             "editor",
             "agent.install",
+            "assets",
             "doctor",
             "deploy",
             "deploy.artifact"
@@ -417,6 +418,123 @@
         }
       }
     },
+    "assetsData": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "action",
+            "root",
+            "taskId",
+            "status",
+            "candidateDirectory"
+          ],
+          "properties": {
+            "action": {
+              "const": "plan"
+            },
+            "root": {
+              "type": "string",
+              "minLength": 1
+            },
+            "taskId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "status": {
+              "const": "planned"
+            },
+            "candidateDirectory": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "action",
+            "root",
+            "taskId",
+            "status",
+            "candidateId"
+          ],
+          "properties": {
+            "action": {
+              "enum": [
+                "ingest",
+                "reject"
+              ]
+            },
+            "root": {
+              "type": "string",
+              "minLength": 1
+            },
+            "taskId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "status": {
+              "enum": [
+                "generated",
+                "reviewed"
+              ]
+            },
+            "candidateId": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "action",
+            "root",
+            "taskId",
+            "status",
+            "candidateId",
+            "assetId",
+            "writes"
+          ],
+          "properties": {
+            "action": {
+              "const": "accept"
+            },
+            "root": {
+              "type": "string",
+              "minLength": 1
+            },
+            "taskId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "status": {
+              "const": "registered"
+            },
+            "candidateId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "assetId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "writes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            }
+          }
+        }
+      ]
+    },
     "deploymentData": {
       "type": "object",
       "additionalProperties": false,
@@ -695,6 +813,46 @@
           "properties": {
             "command": {
               "const": "agent.install"
+            }
+          }
+        }
+      ]
+    },
+    "assetsSuccess": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "assets"
+            },
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/assetsData"
+            },
+            "errors": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      ]
+    },
+    "assetsFailure": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/failure"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "assets"
             }
           }
         }

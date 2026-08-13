@@ -1,3 +1,4 @@
+import type { AdvAgentIntegrationStatus } from '@advjs/types'
 import type { FSWatcher } from 'node:fs'
 import type { Server, ServerResponse } from 'node:http'
 import { Buffer } from 'node:buffer'
@@ -12,7 +13,7 @@ import {
 } from 'node:fs/promises'
 import { createServer } from 'node:http'
 import { createRequire } from 'node:module'
-import { dirname, extname, isAbsolute, relative, resolve, sep } from 'node:path'
+import { dirname, extname, isAbsolute, relative, resolve, sep } from 'pathe'
 
 export type EditorBridgeCommand = 'build' | 'check'
 
@@ -22,6 +23,7 @@ export interface EditorBridgeOptions {
   projectRoot: string
   publicRoot?: string
   runCommand?: (command: EditorBridgeCommand) => Promise<unknown>
+  getAgentStatus?: () => Promise<AdvAgentIntegrationStatus>
 }
 
 export interface EditorBridgeReadyEvent {
@@ -68,6 +70,8 @@ const MIME_TYPES: Record<string, string> = {
   '.css': 'text/css; charset=utf-8',
   '.html': 'text/html; charset=utf-8',
   '.ico': 'image/x-icon',
+  '.jpeg': 'image/jpeg',
+  '.jpg': 'image/jpeg',
   '.js': 'text/javascript; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
   '.map': 'application/json; charset=utf-8',
@@ -77,6 +81,7 @@ const MIME_TYPES: Record<string, string> = {
   '.webmanifest': 'application/manifest+json',
   '.woff': 'font/woff',
   '.woff2': 'font/woff2',
+  '.webp': 'image/webp',
 }
 
 class EditorHttpError extends Error {
@@ -192,6 +197,38 @@ async function defaultRunCommand(command: EditorBridgeCommand, projectRoot: stri
   return await advBuild({ userRoot: projectRoot })
 }
 
+async function defaultAgentStatus(projectRoot: string): Promise<AdvAgentIntegrationStatus> {
+  const { installAgentIntegration } = await import('../agent')
+  const result = await installAgentIntegration({
+    client: 'codex',
+    dryRun: true,
+    mcp: true,
+    skills: 'default',
+  })
+  const configOperation = result.diff.find(operation => operation.path === result.configPath)
+  const skillOperations = result.diff.filter(operation => operation.path !== result.configPath)
+  const skillsReady = skillOperations.every(operation => operation.kind === 'unchanged')
+  const mcpReady = configOperation?.kind === 'unchanged'
+  return {
+    client: 'codex',
+    ready: skillsReady && mcpReady,
+    checks: [
+      {
+        id: 'skills',
+        status: skillsReady ? 'pass' : 'repair',
+        message: skillsReady ? 'ADV.JS default Skills are current.' : 'ADV.JS default Skills need installation or refresh.',
+      },
+      {
+        id: 'mcp',
+        status: mcpReady ? 'pass' : 'repair',
+        message: mcpReady ? 'The ADV.JS MCP server is configured for Codex.' : 'The ADV.JS MCP configuration needs installation or refresh.',
+      },
+    ],
+    installCommand: 'adv agent install --client codex --skills default --mcp',
+    doctorCommand: `adv doctor ${JSON.stringify(projectRoot)} --client codex`,
+  }
+}
+
 export async function createEditorBridge(options: EditorBridgeOptions): Promise<EditorBridge> {
   const host = options.host ?? '127.0.0.1'
   const port = options.port ?? 3000
@@ -250,6 +287,22 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
       response.end(body)
       return
     }
+    if (apiPath === 'asset' && request.method === 'GET') {
+      const { normalized, target } = await resolveSafeProjectFile(projectRoot, url.searchParams.get('path') ?? '')
+      const body = await readFile(target)
+      const contentType = MIME_TYPES[extname(target)]
+      if (!contentType?.startsWith('image/'))
+        throw new EditorHttpError(415, `Editor preview does not support this asset type: ${normalized}`)
+      response.writeHead(200, {
+        ...SECURITY_HEADERS,
+        'cache-control': 'no-store',
+        'content-length': body.byteLength,
+        'content-type': contentType,
+        'x-advjs-project-path': encodeURIComponent(normalized),
+      })
+      response.end(body)
+      return
+    }
     if (apiPath === 'file' && request.method === 'PUT') {
       const { normalized, target } = await resolveSafeProjectFile(projectRoot, url.searchParams.get('path') ?? '', true)
       const body = await readRequestBody(request)
@@ -272,6 +325,12 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
         result: project.result,
         root: project.root,
       })
+      return
+    }
+    if (apiPath === 'agent/codex' && request.method === 'GET') {
+      writeJson(response, 200, await (options.getAgentStatus
+        ? options.getAgentStatus()
+        : defaultAgentStatus(projectRoot)))
       return
     }
     if (apiPath === 'events' && request.method === 'GET') {

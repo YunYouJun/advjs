@@ -7,14 +7,6 @@ export default defineBuildConfig({
   ],
   clean: true,
   externals: [
-    'advjs',
-    '@advjs/assets',
-    '@advjs/parser',
     '@advjs/types',
-    'consola',
-    'unstorage',
-
-    // vue
-    'vue',
   ],
 })

@@ -1,5 +1,6 @@
-import type { AdvProjectCompileResult, AdvProjectFileMap } from '@advjs/types'
+import type { AdvAgentIntegrationStatus, AdvGameConfig, AdvProjectCompileResult, AdvProjectFileMap } from '@advjs/types'
 import type { BrowserProjectDirectory, BrowserProjectFile } from '../browser/project'
+import { createAdvAssetCatalog } from '@advjs/assets'
 
 export interface LocalEditorSession {
   origin: string
@@ -66,6 +67,7 @@ function joinPath(parent: string, name: string) {
 
 export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
   const fetcher = options.fetch ?? globalThis.fetch.bind(globalThis)
+  const assetBlobUrls = new Set<string>()
 
   async function request(path: string, init: RequestInit = {}) {
     const response = await fetcher(`${options.origin}${API_PREFIX}${path}`, {
@@ -86,8 +88,56 @@ export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
     return await (await request('project')).json() as LocalBridgeProject
   }
 
+  async function loadCodexStatus() {
+    return await (await request('agent/codex')).json() as AdvAgentIntegrationStatus
+  }
+
   async function readFile(path: string) {
     return await (await request(`file?path=${encodeURIComponent(path)}`)).text()
+  }
+
+  async function readAssetBlobUrl(path: string) {
+    const blob = await (await request(`asset?path=${encodeURIComponent(path)}`)).blob()
+    const url = URL.createObjectURL(blob)
+    assetBlobUrls.add(url)
+    return url
+  }
+
+  async function resolvePreviewConfig(
+    compilation: AdvProjectCompileResult,
+    previewConfig: AdvGameConfig,
+  ): Promise<AdvGameConfig> {
+    for (const url of assetBlobUrls)
+      URL.revokeObjectURL(url)
+    assetBlobUrls.clear()
+    const manifest = compilation.project.assets
+    if (!manifest)
+      return previewConfig
+    const catalog = createAdvAssetCatalog(manifest, {
+      profile: manifest.profiles.local ? 'local' : undefined,
+      adapter: {
+        async resolve(asset) {
+          if (asset.provider === 'project')
+            return await readAssetBlobUrl(asset.location)
+          if (/^(?:https?:|blob:|data:)/u.test(asset.location))
+            return asset.location
+          if (!asset.baseUrl)
+            throw new Error(`Asset profile "${asset.profile}" has no baseUrl`)
+          return new URL(asset.location, asset.baseUrl).href
+        },
+      },
+    })
+    const projectScenes = new Map(compilation.project.scenes.map(scene => [scene.id, scene]))
+    return {
+      ...previewConfig,
+      scenes: await Promise.all(previewConfig.scenes.map(async (scene) => {
+        const assetId = projectScenes.get(scene.id)?.assetId
+        if (!assetId)
+          return scene
+        const resolved = await catalog.resolve(assetId)
+        return { ...scene, src: resolved.src }
+      })),
+    }
   }
 
   async function writeProjectFile(path: string, content: string) {
@@ -210,9 +260,11 @@ export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
 
   return {
     createDirectoryHandle,
+    loadCodexStatus,
     loadProject,
     origin: options.origin,
     readFile,
+    resolvePreviewConfig,
     token: options.token,
     watch,
     writeFile: writeProjectFile,

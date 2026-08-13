@@ -11,6 +11,7 @@ export const ENTRY_PACKAGES = Object.freeze(['advjs', '@advjs/editor', '@advjs/m
 
 export const PACKAGE_SPECS = Object.freeze([
   { name: '@advjs/types', path: 'packages/types', build: true, requiredFiles: ['dist/index.mjs', 'client.d.ts'] },
+  { name: '@advjs/assets', path: 'packages/assets', build: true, requiredFiles: ['dist/index.mjs'] },
   { name: '@advjs/unocss', path: 'packages/unocss', build: true, requiredFiles: ['dist/index.mjs'] },
   { name: '@advjs/parser', path: 'packages/parser', build: true, requiredFiles: ['dist/index.mjs'] },
   { name: '@advjs/core', path: 'packages/core', build: true, requiredFiles: ['dist/index.mjs'] },

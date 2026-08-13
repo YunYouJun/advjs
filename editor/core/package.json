@@ -41,6 +41,7 @@
     "start:generate": "npx serve .output/public"
   },
   "devDependencies": {
+    "@advjs/assets": "workspace:*",
     "@advjs/core": "workspace:*",
     "@advjs/gui": "workspace:*",
     "@dagrejs/dagre": "catalog:",
