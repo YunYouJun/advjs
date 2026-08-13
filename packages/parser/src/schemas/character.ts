@@ -94,7 +94,7 @@ export const CharacterAttributesAiSchema = z.object({
  * Structured character attributes (nested under `attributes.*` in frontmatter).
  */
 export const CharacterAttributesSchema = z.object({
-  template: z.enum(['universal', 'galgame', 'rpg']).optional(),
+  template: z.enum(['universal', 'galgame', 'rpg', 'mystery']).optional(),
   profile: CharacterProfileSchema.optional(),
   galgame: CharacterGalgameAttrsSchema.optional(),
   rpg: CharacterRpgAttrsSchema.optional(),
