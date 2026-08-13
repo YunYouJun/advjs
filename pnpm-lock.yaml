@@ -1406,16 +1406,16 @@ importers:
         specifier: workspace:^0.1.2
         version: link:../core
       '@advjs/devtools':
-        specifier: workspace:0.1.2
+        specifier: workspace:^0.1.3
         version: link:../devtools
       '@advjs/editor':
-        specifier: workspace:0.1.2
+        specifier: workspace:^0.1.3
         version: link:../../editor/core
       '@advjs/parser':
-        specifier: workspace:0.1.2
+        specifier: workspace:^0.1.3
         version: link:../parser
       '@advjs/theme-default':
-        specifier: workspace:0.1.2
+        specifier: workspace:^0.1.3
         version: link:../../themes/theme-default
       '@advjs/types':
         specifier: workspace:0.1.2
