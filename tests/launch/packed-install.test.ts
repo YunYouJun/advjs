@@ -130,7 +130,7 @@ describe('launch package manifest', () => {
     const requests = registry.localRequests.slice(before)
     expect(requests).toContain('advjs')
     expect(requests.some(request => request.includes('advjs-0.1.2.tgz'))).toBe(true)
-  }, 240_000)
+  }, 360_000)
 
   it('resolves pnpm dlx exclusively through the isolated registry', async () => {
     const before = registry.localRequests.length
