@@ -9,7 +9,7 @@ describe('launch registry lifecycle', () => {
   it('leaves large package-manager caches to ephemeral Windows runners', () => {
     expect(shouldRemoveLaunchTemporaryRoot('win32', 'true')).toBe(false)
     expect(shouldRemoveLaunchTemporaryRoot('win32', '1')).toBe(false)
-    expect(shouldRemoveLaunchTemporaryRoot('win32', undefined)).toBe(true)
+    expect(shouldRemoveLaunchTemporaryRoot('win32', '')).toBe(true)
     expect(shouldRemoveLaunchTemporaryRoot('darwin', 'true')).toBe(true)
   })
 
