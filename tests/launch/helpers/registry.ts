@@ -30,10 +30,11 @@ export function launchRegistryEnvironment(registryUrl: string, temporaryRoot: st
     CI: '1',
     npm_config_audit: 'false',
     npm_config_cache: join(temporaryRoot, 'npm-cache'),
+    npm_config_cache_dir: join(temporaryRoot, 'pnpm-cache'),
     npm_config_fund: 'false',
     npm_config_registry: registryUrl,
+    npm_config_store_dir: join(temporaryRoot, 'pnpm-store'),
     npm_config_update_notifier: 'false',
-    pnpm_config_store_dir: join(temporaryRoot, 'pnpm-store'),
   }
   delete environment.NODE_PATH
   delete environment.PNPM_HOME
@@ -45,7 +46,7 @@ export async function runLaunchCommand(command: string, args: string[], cwd: str
     cwd,
     env: { ...launchRegistryEnvironment(registryUrl, temporaryRoot), ...environment },
     maxBuffer: 20 * 1024 * 1024,
-    timeout: command === 'npx' ? 300_000 : 180_000,
+    timeout: 180_000,
   }
   if (command === 'pnpm')
     return await runPnpm(args, options)
@@ -149,6 +150,9 @@ export async function createLaunchRegistry(packageManifest: PackedManifest, tarb
   return {
     localRequests,
     url,
-    close: async () => await new Promise<void>((resolveClose, reject) => server.close(error => error ? reject(error) : resolveClose())),
+    close: async () => {
+      server.closeAllConnections()
+      await new Promise<void>((resolveClose, reject) => server.close(error => error ? reject(error) : resolveClose()))
+    },
   }
 }

@@ -124,13 +124,13 @@ describe('launch package manifest', () => {
 
   it('resolves npx exclusively through the isolated registry', async () => {
     const before = registry.localRequests.length
-    const npx = await run(npxExecutable, ['--yes', `advjs@${LAUNCH_VERSION}`, '--version'], temporaryRoot)
+    const npx = await run(npxExecutable, ['--yes', '--legacy-peer-deps', `advjs@${LAUNCH_VERSION}`, '--version'], temporaryRoot)
     expect(npx.stdout.trim()).toBe(LAUNCH_VERSION)
 
     const requests = registry.localRequests.slice(before)
     expect(requests).toContain('advjs')
     expect(requests.some(request => request.includes('advjs-0.1.2.tgz'))).toBe(true)
-  }, 360_000)
+  }, 240_000)
 
   it('resolves pnpm dlx exclusively through the isolated registry', async () => {
     const before = registry.localRequests.length
