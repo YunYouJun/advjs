@@ -787,6 +787,9 @@ importers:
       eslint-plugin-format:
         specifier: catalog:dev
         version: 2.0.1(eslint@10.6.0(jiti@2.7.0))
+      execa:
+        specifier: catalog:cli
+        version: 9.6.1
       husky:
         specifier: catalog:dev
         version: 9.1.7

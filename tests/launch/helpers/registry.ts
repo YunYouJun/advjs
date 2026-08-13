@@ -1,13 +1,10 @@
 import { Buffer } from 'node:buffer'
-import { execFile } from 'node:child_process'
 import { readFile } from 'node:fs/promises'
 import { createServer } from 'node:http'
 import { basename, join } from 'node:path'
 import process from 'node:process'
-import { promisify } from 'node:util'
 import { readTarEntries } from '../../../scripts/release/package-manifest.mjs'
-
-const execFileAsync = promisify(execFile)
+import { runCommand, runNpx, runPnpm } from '../../../scripts/release/run-command.mjs'
 
 interface PackedManifestItem {
   integrity: string
@@ -44,12 +41,17 @@ export function launchRegistryEnvironment(registryUrl: string, temporaryRoot: st
 }
 
 export async function runLaunchCommand(command: string, args: string[], cwd: string, registryUrl: string, temporaryRoot: string, environment: NodeJS.ProcessEnv = {}) {
-  return await execFileAsync(command, args, {
+  const options = {
     cwd,
     env: { ...launchRegistryEnvironment(registryUrl, temporaryRoot), ...environment },
     maxBuffer: 20 * 1024 * 1024,
     timeout: 180_000,
-  })
+  }
+  if (command === 'pnpm')
+    return await runPnpm(args, options)
+  if (command === 'npx')
+    return await runNpx(args, options)
+  return await runCommand(command, args, options)
 }
 
 export async function createLaunchRegistry(packageManifest: PackedManifest, tarballDirectory: string) {

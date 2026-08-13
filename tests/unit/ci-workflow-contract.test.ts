@@ -92,26 +92,30 @@ describe('github Actions launch baseline', () => {
 
     expect(runCommands(ci.jobs.build)).toContain('pnpm build')
     expect(runCommands(ci.jobs.unit)).toContain('pnpm vitest run tests/unit --reporter=default')
-    expectCommandBefore(ci.jobs.unit, 'pnpm build', 'pnpm vitest run tests/unit --reporter=default')
+    expectCommandBefore(ci.jobs.unit, 'pnpm prepare:workspace unit', 'pnpm vitest run tests/unit --reporter=default')
     expect(runCommands(ci.jobs.typecheck)).toContain('pnpm typecheck')
-    expectCommandBefore(ci.jobs['editor-smoke'], 'pnpm build && pnpm -C editor/core exec nuxt prepare', 'pnpm --filter @advjs/editor typecheck')
+    expectCommandBefore(ci.jobs.lint, 'pnpm prepare:workspace lint', 'pnpm lint')
+    expectCommandBefore(ci.jobs['editor-smoke'], 'pnpm prepare:workspace editor', 'pnpm --filter @advjs/editor typecheck')
     expect(runCommands(ci.jobs['editor-smoke'])).toEqual(expect.arrayContaining([
       'pnpm --filter @advjs/editor typecheck',
       'pnpm --filter @advjs/editor build',
     ]))
-    expect(runCommands(ci.jobs['packed-smoke'])).toContain(
-      'pnpm vitest run tests/launch/packed-build.test.ts tests/launch/packed-install.test.ts --no-file-parallelism --reporter=default',
-    )
+    expect(runCommands(ci.jobs['packed-smoke'])).toEqual(expect.arrayContaining([
+      'pnpm vitest run tests/launch/packed-build.test.ts --no-file-parallelism --reporter=default',
+      'pnpm vitest run tests/launch/packed-install.test.ts --no-file-parallelism --reporter=default',
+    ]))
     expect(runCommands(ci.jobs.e2e)).toEqual(expect.arrayContaining([
       'pnpm exec playwright install --with-deps chromium',
       'pnpm exec playwright test --project=chromium',
     ]))
-    expectCommandBefore(ci.jobs.e2e, 'pnpm build && pnpm build:plugins && pnpm editor:build', 'pnpm exec playwright test --project=chromium')
-    expectCommandBefore(ci.jobs['editor-e2e'], 'pnpm build && pnpm build:plugins && pnpm editor:build', 'pnpm exec playwright test tests/e2e/editor-local.spec.ts tests/e2e/editor-security.spec.ts --project=chromium')
+    expectCommandBefore(ci.jobs.e2e, 'pnpm prepare:workspace editor && pnpm editor:build', 'pnpm exec playwright test --project=chromium')
+    expectCommandBefore(ci.jobs['editor-e2e'], 'pnpm prepare:workspace editor && pnpm editor:build', 'pnpm exec playwright test tests/e2e/editor-local.spec.ts tests/e2e/editor-security.spec.ts --project=chromium')
     expect(ci.jobs['launch-journey']['continue-on-error']).toBeUndefined()
     expect(ci.jobs['launch-journey']['runs-on']).toBe('ubuntu-latest')
     expect(runCommands(ci.jobs['launch-journey'])).toContain('pnpm exec playwright install --with-deps chromium')
-    expect(runCommands(ci.jobs['launch-journey'])).toContain('pnpm test:launch')
+    expect(ci.jobs['launch-journey'].env.ADVJS_DOCS_JOURNEY_SKIP_BUILD).toBe('1')
+    expectCommandBefore(ci.jobs['launch-journey'], 'pnpm prepare:workspace launch', 'pnpm test:launch:journey')
+    expect(runCommands(ci.jobs['launch-journey'])).toContain('pnpm test:launch:journey')
 
     const required = ci.jobs['launch-required']
     expect(required.if).toBe('always()')

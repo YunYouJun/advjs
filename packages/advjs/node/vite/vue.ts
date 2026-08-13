@@ -2,6 +2,7 @@ import type { ResolvedAdvOptions } from '@advjs/types'
 import type { Plugin } from 'vite'
 import type { AdvPluginOptions } from '../options'
 import Vue from '@vitejs/plugin-vue'
+import * as VueCompiler from 'vue/compiler-sfc'
 import { customElements } from '../constants'
 
 const vueIncludePatterns = [/\.vue$/, /\.vue\?vue/, /\.vue\?v=/, /\.md$/, /\.md\?vue/]
@@ -15,6 +16,7 @@ export async function createVuePlugin(
   } = pluginOptions
 
   const VuePlugin = Vue({
+    compiler: VueCompiler,
     include: vueIncludePatterns,
     exclude: [],
     ...vueOptions,

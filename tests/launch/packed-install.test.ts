@@ -1,13 +1,10 @@
 // @vitest-environment node
 
-import { Buffer } from 'node:buffer'
-import { execFile, spawn } from 'node:child_process'
+import { spawn } from 'node:child_process'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
-import { createServer } from 'node:http'
 import { tmpdir } from 'node:os'
-import { basename, join, resolve } from 'node:path'
+import { join, resolve } from 'node:path'
 import process from 'node:process'
-import { promisify } from 'node:util'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
@@ -15,20 +12,19 @@ import {
   createPackageManifest,
   LAUNCH_VERSION,
   PACKAGE_SPECS,
-  readTarEntries,
   validateWorkspacePackageGraph,
 } from '../../scripts/release/package-manifest.mjs'
+import { createLaunchRegistry, runLaunchCommand } from './helpers/registry'
 
 const repositoryRoot = resolve(import.meta.dirname, '../..')
-const execFileAsync = promisify(execFile)
-const pnpmExecutable = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm'
-const npxExecutable = process.platform === 'win32' ? 'npx.cmd' : 'npx'
+const pnpmExecutable = 'pnpm'
+const npxExecutable = 'npx'
 
 let temporaryRoot = ''
 let packageDirectory = ''
 let installDirectory = ''
 let manifest: Awaited<ReturnType<typeof createPackageManifest>>
-let registry: Awaited<ReturnType<typeof startRegistry>>
+let registry: Awaited<ReturnType<typeof createLaunchRegistry>>
 
 function cleanEnvironment(registryUrl: string) {
   const environment = {
@@ -47,115 +43,7 @@ function cleanEnvironment(registryUrl: string) {
 }
 
 async function run(command: string, args: string[], cwd: string) {
-  return await execFileAsync(command, args, {
-    cwd,
-    env: cleanEnvironment(registry.url),
-    maxBuffer: 20 * 1024 * 1024,
-    shell: process.platform === 'win32',
-    timeout: 180_000,
-  })
-}
-
-async function requestBody(request: import('node:http').IncomingMessage) {
-  const chunks: Buffer[] = []
-  for await (const chunk of request)
-    chunks.push(Buffer.from(chunk))
-  return chunks.length ? Buffer.concat(chunks) : undefined
-}
-
-async function startRegistry(packageManifest: typeof manifest, tarballDirectory: string) {
-  const metadata = new Map<string, Record<string, any>>()
-  const tarballs = new Map<string, Buffer>()
-  const localRequests: string[] = []
-  let url = ''
-
-  for (const item of packageManifest.packages) {
-    const tarball = await readFile(join(tarballDirectory, item.tarball))
-    const entries = readTarEntries(tarball)
-    const packedPackage = JSON.parse(entries.get('package/package.json')!.toString('utf8'))
-    const tarballPath = `/${encodeURIComponent(item.name)}/-/${basename(item.tarball)}`
-    metadata.set(item.name, { item, packedPackage, tarballPath })
-    tarballs.set(tarballPath, tarball)
-  }
-
-  const server = createServer(async (request, response) => {
-    try {
-      const requestUrl = new URL(request.url || '/', 'http://registry.local')
-      const localTarball = tarballs.get(requestUrl.pathname)
-      if (localTarball) {
-        localRequests.push(requestUrl.pathname)
-        response.writeHead(200, { 'content-length': localTarball.length, 'content-type': 'application/octet-stream' })
-        response.end(localTarball)
-        return
-      }
-
-      const packageName = decodeURIComponent(requestUrl.pathname.slice(1))
-      const localPackage = metadata.get(packageName)
-      if (localPackage && request.method === 'GET') {
-        localRequests.push(packageName)
-        const { item, packedPackage, tarballPath } = localPackage
-        const version = {
-          ...packedPackage,
-          dist: {
-            integrity: item.integrity,
-            shasum: '',
-            tarball: `${url}${tarballPath}`,
-          },
-        }
-        const publishedAt = '2026-08-11T00:00:00.000Z'
-        const body = Buffer.from(JSON.stringify({
-          '_id': packageName,
-          'dist-tags': { latest: item.version },
-          'name': packageName,
-          'time': {
-            [item.version]: publishedAt,
-            created: publishedAt,
-            modified: publishedAt,
-          },
-          'versions': { [item.version]: version },
-        }))
-        response.writeHead(200, { 'content-length': body.length, 'content-type': 'application/json' })
-        response.end(body)
-        return
-      }
-
-      const upstream = await fetch(`https://registry.npmjs.org${request.url || '/'}`, {
-        body: request.method === 'GET' || request.method === 'HEAD' ? undefined : await requestBody(request),
-        headers: {
-          'accept': request.headers.accept || 'application/json',
-          'content-type': request.headers['content-type'] || 'application/json',
-          'user-agent': 'advjs-local-registry/1',
-        },
-        method: request.method,
-      })
-      const body = Buffer.from(await upstream.arrayBuffer())
-      response.writeHead(upstream.status, {
-        'cache-control': upstream.headers.get('cache-control') || 'no-cache',
-        'content-length': body.length,
-        'content-type': upstream.headers.get('content-type') || 'application/octet-stream',
-      })
-      response.end(body)
-    }
-    catch (error) {
-      response.statusCode = 502
-      response.end(error instanceof Error ? error.stack : String(error))
-    }
-  })
-
-  await new Promise<void>((resolveListen, reject) => {
-    server.once('error', reject)
-    server.listen(0, '127.0.0.1', resolveListen)
-  })
-  const address = server.address()
-  if (!address || typeof address === 'string')
-    throw new Error('Local registry did not expose a TCP port')
-  url = `http://127.0.0.1:${address.port}`
-
-  return {
-    localRequests,
-    url,
-    close: async () => await new Promise<void>((resolveClose, reject) => server.close(error => error ? reject(error) : resolveClose())),
-  }
+  return await runLaunchCommand(command, args, cwd, registry.url, temporaryRoot)
 }
 
 async function waitForJsonLine(stream: NodeJS.ReadableStream, event: string) {
@@ -190,7 +78,7 @@ beforeAll(async () => {
     outputDirectory: packageDirectory,
     root: repositoryRoot,
   })
-  registry = await startRegistry(manifest, packageDirectory)
+  registry = await createLaunchRegistry(manifest, packageDirectory)
 }, 300_000)
 
 afterAll(async () => {

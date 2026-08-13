@@ -12,7 +12,7 @@ import { createLaunchRegistry, launchRegistryEnvironment, runLaunchCommand } fro
 
 const repositoryRoot = resolve(import.meta.dirname, '../..')
 const fixturesRoot = resolve(repositoryRoot, 'tests/fixtures/agent-configs')
-const pnpmExecutable = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm'
+const pnpmExecutable = 'pnpm'
 const clients = ['codex', 'claude-code', 'cursor'] as const
 const clientContracts = {
   'codex': {

@@ -1,15 +1,12 @@
 #!/usr/bin/env node
 
-import { execFile } from 'node:child_process'
 import { mkdir, readFile } from 'node:fs/promises'
 import { basename, resolve } from 'node:path'
 import process from 'node:process'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { promisify } from 'node:util'
 import { gunzipSync } from 'node:zlib'
 import { digest } from './integrity.mjs'
-
-const execFileAsync = promisify(execFile)
+import { runPnpm as executePnpm } from './run-command.mjs'
 
 export const LAUNCH_VERSION = '0.1.2'
 export const ENTRY_PACKAGES = Object.freeze(['advjs', '@advjs/editor', '@advjs/mcp-server'])
@@ -30,10 +27,6 @@ export const PACKAGE_SPECS = Object.freeze([
 
 const PUBLIC_DEPENDENCY_FIELDS = ['dependencies', 'optionalDependencies', 'peerDependencies']
 const FORBIDDEN_PACKED_SPEC = /^(?:workspace:|file:|link:)|(?:^|[/\\])node_modules(?:[/\\]|$)/u
-
-function packageManagerExecutable() {
-  return process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm'
-}
 
 function sortedObject(value) {
   if (Array.isArray(value))
@@ -136,11 +129,10 @@ export function inspectPackedTarball(tarball, spec) {
 }
 
 async function runPnpm(root, args, options = {}) {
-  const { stderr, stdout } = await execFileAsync(packageManagerExecutable(), args, {
+  const { stderr, stdout } = await executePnpm(args, {
     cwd: root,
     env: { ...process.env, CI: process.env.CI || '1', NODE_ENV: 'production' },
     maxBuffer: 50 * 1024 * 1024,
-    shell: process.platform === 'win32',
   })
   if (options.forwardOutput && stdout)
     process.stderr.write(stdout)

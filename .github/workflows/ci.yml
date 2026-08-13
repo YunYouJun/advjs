@@ -80,7 +80,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Build test dependencies
-        run: pnpm build
+        run: pnpm prepare:workspace unit
       - name: Run unit tests
         run: pnpm vitest run tests/unit --reporter=default
 
@@ -117,6 +117,8 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Prepare lint dependencies
+        run: pnpm prepare:workspace lint
       - name: Lint
         run: pnpm lint
 
@@ -139,7 +141,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Prepare Editor dependencies
-        run: pnpm build && pnpm -C editor/core exec nuxt prepare
+        run: pnpm prepare:workspace editor
       - name: Typecheck Editor
         run: pnpm --filter @advjs/editor typecheck
       - name: Build Editor
@@ -163,8 +165,12 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Run packed install, CLI, Editor lifecycle, and build smoke
-        run: pnpm vitest run tests/launch/packed-build.test.ts tests/launch/packed-install.test.ts --no-file-parallelism --reporter=default
+      - name: Run packed CLI and build smoke
+        run: pnpm vitest run tests/launch/packed-build.test.ts --no-file-parallelism --reporter=default
+      - name: Run packed install and Editor lifecycle smoke
+        env:
+          ADVJS_PACKED_INSTALL_SKIP_BUILD: '1'
+        run: pnpm vitest run tests/launch/packed-install.test.ts --no-file-parallelism --reporter=default
 
   e2e:
     name: e2e
@@ -180,7 +186,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Build packages
-        run: pnpm build && pnpm build:plugins && pnpm editor:build
+        run: pnpm prepare:workspace editor && pnpm editor:build
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Run Chromium tests
@@ -206,7 +212,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Build Editor launch chain
-        run: pnpm build && pnpm build:plugins && pnpm editor:build
+        run: pnpm prepare:workspace editor && pnpm editor:build
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Run Editor lifecycle and security tests
@@ -246,6 +252,7 @@ jobs:
     name: launch-journey
     runs-on: ubuntu-latest
     env:
+      ADVJS_DOCS_JOURNEY_SKIP_BUILD: '1'
       ADV_LAUNCH_ARTIFACTS_DIR: ${{ github.workspace }}/artifacts/launch-journey
     steps:
       - uses: actions/checkout@v4
@@ -256,10 +263,12 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Prepare launch dependencies
+        run: pnpm prepare:workspace launch
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Run complete launch journey
-        run: pnpm test:launch
+        run: pnpm test:launch:journey
       - name: Upload launch journey evidence
         uses: actions/upload-artifact@v4
         if: always()

@@ -1,29 +1,27 @@
 // @vitest-environment node
 
-import { execFile } from 'node:child_process'
-import { mkdir, mkdtemp, readdir, readFile, realpath, rm, stat, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, realpath, rm, stat, writeFile } from 'node:fs/promises'
 import { createServer } from 'node:http'
 import { tmpdir } from 'node:os'
 import { extname, isAbsolute, join, relative, resolve } from 'node:path'
 import process from 'node:process'
-import { promisify } from 'node:util'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { createPackageManifest } from '../../scripts/release/package-manifest.mjs'
+import { runPnpm as executePnpm, runCommand } from '../../scripts/release/run-command.mjs'
 
-const execFileAsync = promisify(execFile)
 const repositoryRoot = resolve(import.meta.dirname, '../..')
-const packageManagerExecutable = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm'
 
-const packedPackages = [
-  ['@advjs/types', 'packages/types'],
-  ['@advjs/unocss', 'packages/unocss'],
-  ['@advjs/parser', 'packages/parser'],
-  ['@advjs/core', 'packages/core'],
-  ['@advjs/devtools', 'packages/devtools'],
-  ['@advjs/client', 'packages/client'],
-  ['@advjs/theme-default', 'themes/theme-default'],
-  ['@advjs/editor', 'editor/core'],
-  ['advjs', 'packages/advjs'],
-] as const
+const packedBuildPackages = new Set([
+  '@advjs/types',
+  '@advjs/unocss',
+  '@advjs/parser',
+  '@advjs/core',
+  '@advjs/devtools',
+  '@advjs/client',
+  '@advjs/theme-default',
+  '@advjs/editor',
+  'advjs',
+])
 
 const launchPackageManifests = [
   'packages/advjs/package.json',
@@ -37,16 +35,6 @@ const launchPackageManifests = [
   'packages/unocss/package.json',
   'themes/theme-default/package.json',
   'editor/core/package.json',
-] as const
-
-const buildCommands = [
-  ['-C', 'packages/types', 'build'],
-  ['-C', 'packages/unocss', 'build'],
-  ['-C', 'packages/parser', 'build'],
-  ['-C', 'packages/core', 'build'],
-  ['-C', 'packages/devtools', 'build'],
-  ['-C', 'editor/core', 'build'],
-  ['-C', 'packages/advjs', 'build'],
 ] as const
 
 interface CommandResult {
@@ -67,11 +55,10 @@ function cleanEnvironment() {
 
 async function runPnpm(args: readonly string[], cwd: string): Promise<CommandResult> {
   try {
-    return await execFileAsync(packageManagerExecutable, [...args], {
+    return await executePnpm([...args], {
       cwd,
       env: cleanEnvironment(),
       maxBuffer: 20 * 1024 * 1024,
-      shell: process.platform === 'win32',
     })
   }
   catch (error) {
@@ -81,25 +68,11 @@ async function runPnpm(args: readonly string[], cwd: string): Promise<CommandRes
 }
 
 async function runAdv(args: readonly string[], cwd: string): Promise<CommandResult> {
-  return await execFileAsync(process.execPath, [advBin, ...args], {
+  return await runCommand(process.execPath, [advBin, ...args], {
     cwd,
     env: cleanEnvironment(),
     maxBuffer: 20 * 1024 * 1024,
   })
-}
-
-async function findTarball(directory: string, before: Set<string>) {
-  const files = await readdir(directory)
-  const tarball = files.find(file => file.endsWith('.tgz') && !before.has(file))
-  if (!tarball)
-    throw new Error(`pnpm pack did not create a tarball in ${directory}`)
-  return join(directory, tarball)
-}
-
-async function packWorkspacePackage(packageDirectory: string, destination: string) {
-  const before = new Set(await readdir(destination))
-  await runPnpm(['pack', '--pack-destination', destination], resolve(repositoryRoot, packageDirectory))
-  return await findTarball(destination, before)
 }
 
 function contentType(file: string) {
@@ -197,12 +170,18 @@ describe('packed advjs build', () => {
     const relativeTemporaryRoot = relative(repositoryRoot, temporaryRoot)
     expect(isAbsolute(relativeTemporaryRoot) || relativeTemporaryRoot.split(/[\\/]/u)[0] === '..').toBe(true)
 
-    for (const command of buildCommands)
-      await runPnpm(command, repositoryRoot)
-
+    const manifest = await createPackageManifest({
+      outputDirectory: packDirectory,
+      root: repositoryRoot,
+    })
     const tarballs: Record<string, string> = {}
-    for (const [name, packageDirectory] of packedPackages)
-      tarballs[name] = await packWorkspacePackage(packageDirectory, packDirectory)
+    for (const item of manifest.packages) {
+      if (!packedBuildPackages.has(item.name))
+        continue
+      if (!item.tarball)
+        throw new Error(`${item.name} has no packed tarball`)
+      tarballs[item.name] = join(packDirectory, item.tarball)
+    }
 
     const dependencies = Object.fromEntries(Object.entries(tarballs).map(([name, tarball]) => [name, `file:${tarball}`]))
     await writeFile(join(installRoot, 'package.json'), `${JSON.stringify({
@@ -221,12 +200,12 @@ describe('packed advjs build', () => {
     expect(relative(canonicalInstallRoot, installedStore)).not.toMatch(/^\.\./u)
     advBin = join(installRoot, 'node_modules/advjs/bin/adv.mjs')
     expect((await stat(advBin)).isFile()).toBe(true)
-  }, 240_000)
+  }, 600_000)
 
   afterAll(async () => {
     if (temporaryRoot)
       await rm(temporaryRoot, { force: true, recursive: true })
-  })
+  }, 120_000)
 
   for (const template of ['default', 'galgame'] as const) {
     it(`builds and serves the ${template} template from installed tarballs`, async () => {

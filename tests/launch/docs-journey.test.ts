@@ -14,7 +14,7 @@ import { createLaunchJourney } from './helpers'
 import { createLaunchRegistry, launchRegistryEnvironment, runLaunchCommand } from './helpers/registry'
 
 const repositoryRoot = resolve(import.meta.dirname, '../..')
-const pnpmExecutable = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm'
+const pnpmExecutable = 'pnpm'
 let temporaryRoot = ''
 let installRoot = ''
 let advTarball = ''
