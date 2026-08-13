@@ -5,6 +5,7 @@ import {
   prepareWorkspace,
   WORKSPACE_PREPARATION_PROFILES,
 } from '../../scripts/prepare-workspace.mjs'
+import { resolveNpxInvocation } from '../../scripts/release/run-command.mjs'
 
 describe('workspace preparation profiles', () => {
   it('keeps every clean-runner prerequisite in one explicit contract', () => {
@@ -56,5 +57,15 @@ describe('workspace preparation profiles', () => {
 
   it('rejects missing or unknown profiles', async () => {
     await expect(prepareWorkspace('unknown')).rejects.toThrow('Unknown workspace preparation profile')
+  })
+
+  it('bypasses the Windows npx command shim without enabling a shell', () => {
+    expect(resolveNpxInvocation(['--yes', 'advjs@0.1.2', '--version'], {
+      execPath: 'C:\\node\\node.exe',
+      platform: 'win32',
+    })).toEqual({
+      args: ['C:\\node\\node_modules\\npm\\bin\\npx-cli.js', '--yes', 'advjs@0.1.2', '--version'],
+      command: 'C:\\node\\node.exe',
+    })
   })
 })
