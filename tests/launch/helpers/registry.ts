@@ -64,6 +64,8 @@ export async function createLaunchRegistry(packageManifest: PackedManifest, tarb
   const metadata = new Map<string, { item: PackedManifestItem, packedPackage: Record<string, unknown>, tarballPath: string }>()
   const tarballs = new Map<string, Buffer>()
   const localRequests: string[] = []
+  const sockets = new Set<import('node:net').Socket>()
+  const upstreamController = new AbortController()
   let url = ''
 
   for (const item of packageManifest.packages) {
@@ -128,6 +130,7 @@ export async function createLaunchRegistry(packageManifest: PackedManifest, tarb
           'user-agent': 'advjs-local-registry/1',
         },
         method: request.method,
+        signal: upstreamController.signal,
       })
       const body = Buffer.from(await upstream.arrayBuffer())
       response.writeHead(upstream.status, {
@@ -141,6 +144,10 @@ export async function createLaunchRegistry(packageManifest: PackedManifest, tarb
       response.statusCode = 502
       response.end(error instanceof Error ? error.stack : String(error))
     }
+  })
+  server.on('connection', (socket) => {
+    sockets.add(socket)
+    socket.once('close', () => sockets.delete(socket))
   })
 
   await new Promise<void>((resolveListen, reject) => {
@@ -156,8 +163,11 @@ export async function createLaunchRegistry(packageManifest: PackedManifest, tarb
     localRequests,
     url,
     close: async () => await new Promise<void>((resolveClose, reject) => {
+      upstreamController.abort()
       server.close(error => error ? reject(error) : resolveClose())
       server.closeAllConnections()
+      for (const socket of sockets)
+        socket.destroy()
     }),
   }
 }
