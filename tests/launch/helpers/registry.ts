@@ -162,12 +162,13 @@ export async function createLaunchRegistry(packageManifest: PackedManifest, tarb
   return {
     localRequests,
     url,
-    close: async () => await new Promise<void>((resolveClose, reject) => {
+    close: async () => {
       upstreamController.abort()
-      server.close(error => error ? reject(error) : resolveClose())
+      server.close()
       server.closeAllConnections()
       for (const socket of sockets)
         socket.destroy()
-    }),
+      server.unref()
+    },
   }
 }
