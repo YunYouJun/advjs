@@ -3,9 +3,16 @@
 import { once } from 'node:events'
 import { createConnection } from 'node:net'
 import { describe, expect, it } from 'vitest'
-import { createLaunchRegistry } from '../launch/helpers/registry'
+import { createLaunchRegistry, shouldRemoveLaunchTemporaryRoot } from '../launch/helpers/registry'
 
 describe('launch registry lifecycle', () => {
+  it('leaves large package-manager caches to ephemeral Windows runners', () => {
+    expect(shouldRemoveLaunchTemporaryRoot('win32', 'true')).toBe(false)
+    expect(shouldRemoveLaunchTemporaryRoot('win32', '1')).toBe(false)
+    expect(shouldRemoveLaunchTemporaryRoot('win32', undefined)).toBe(true)
+    expect(shouldRemoveLaunchTemporaryRoot('darwin', 'true')).toBe(true)
+  })
+
   it('closes without waiting for incomplete client connections', async () => {
     const registry = await createLaunchRegistry({ packages: [] }, '.')
     const registryUrl = new URL(registry.url)

@@ -14,7 +14,7 @@ import {
   PACKAGE_SPECS,
   validateWorkspacePackageGraph,
 } from '../../scripts/release/package-manifest.mjs'
-import { createLaunchRegistry, runLaunchCommand } from './helpers/registry'
+import { createLaunchRegistry, runLaunchCommand, shouldRemoveLaunchTemporaryRoot } from './helpers/registry'
 
 const repositoryRoot = resolve(import.meta.dirname, '../..')
 const pnpmExecutable = 'pnpm'
@@ -83,9 +83,9 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await registry?.close()
-  if (temporaryRoot)
+  if (temporaryRoot && shouldRemoveLaunchTemporaryRoot())
     await rm(temporaryRoot, { force: true, maxRetries: 5, recursive: true, retryDelay: 200 })
-}, 60_000)
+}, process.platform === 'win32' ? 300_000 : 60_000)
 
 describe('launch package manifest', () => {
   it('defines a complete, consistently versioned public package graph', async () => {

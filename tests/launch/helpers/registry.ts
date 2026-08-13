@@ -17,6 +17,10 @@ interface PackedManifest {
   packages: PackedManifestItem[]
 }
 
+export function shouldRemoveLaunchTemporaryRoot(platform = process.platform, ci = process.env.CI) {
+  return platform !== 'win32' || !['1', 'true'].includes(ci || '')
+}
+
 async function requestBody(request: import('node:http').IncomingMessage) {
   const chunks: Buffer[] = []
   for await (const chunk of request)
