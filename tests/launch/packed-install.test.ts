@@ -84,7 +84,7 @@ beforeAll(async () => {
 afterAll(async () => {
   await registry?.close()
   if (temporaryRoot)
-    await rm(temporaryRoot, { force: true, recursive: true })
+    await rm(temporaryRoot, { force: true, maxRetries: 5, recursive: true, retryDelay: 200 })
 }, 60_000)
 
 describe('launch package manifest', () => {
@@ -122,16 +122,23 @@ describe('launch package manifest', () => {
     expect(packageJson.scripts.postinstall).toBeUndefined()
   })
 
-  it('resolves npx and pnpm dlx exclusively through the isolated registry', async () => {
+  it('resolves npx exclusively through the isolated registry', async () => {
     const before = registry.localRequests.length
     const npx = await run(npxExecutable, ['--yes', `advjs@${LAUNCH_VERSION}`, '--version'], temporaryRoot)
     expect(npx.stdout.trim()).toBe(LAUNCH_VERSION)
 
+    const requests = registry.localRequests.slice(before)
+    expect(requests).toContain('advjs')
+    expect(requests.some(request => request.includes('advjs-0.1.2.tgz'))).toBe(true)
+  }, 240_000)
+
+  it('resolves pnpm dlx exclusively through the isolated registry', async () => {
+    const before = registry.localRequests.length
     const pnpm = await run(pnpmExecutable, ['dlx', `advjs@${LAUNCH_VERSION}`, '--version'], temporaryRoot)
     expect(pnpm.stdout.trim()).toBe(LAUNCH_VERSION)
 
     const requests = registry.localRequests.slice(before)
-    expect(requests.filter(request => request === 'advjs').length).toBeGreaterThanOrEqual(2)
+    expect(requests).toContain('advjs')
     expect(requests.some(request => request.includes('advjs-0.1.2.tgz'))).toBe(true)
   }, 240_000)
 
