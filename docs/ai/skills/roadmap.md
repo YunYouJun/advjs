@@ -11,7 +11,7 @@ ADV.JS Skills 体系的发展方向。
 - ✅ `adv-debug` v0.3 — 分支图（Mermaid/JSON/Text）+ 覆盖率 + 自动补桩
 - ✅ `adv-review` v0.1 — AI 内容质量审查（9 维 rubric，纯 skill 驱动，无 LLM 内置）
 - ✅ `adv-adapt` — 来源授权、章节映射、人物/场景清单与来源锚点覆盖审计
-- ✅ `adv-art` — 角色表情矩阵、素材来源/许可、内容哈希 URL 与发布清单审计
+- ✅ `adv-art` — 角色表情矩阵、Codex 候选生成/显式接纳、素材来源/许可、内容哈希 URL 与发布清单审计
 - ✅ `adv-hamster-demo` — 仓鼠完整改编的无缝主线、回声演算、COS 路径和项目级验收约束
 
 ### CLI
@@ -22,6 +22,7 @@ ADV.JS Skills 体系的发展方向。
 - ✅ `adv context` — AI 上下文导出
 - ✅ `adv debug branches` — AST 分支图导出
 - ✅ `adv debug coverage` — 分支覆盖率报告（单章节 / 全项目聚合；可达场景 / 路径数 / 孤立场景 / 死路径）
+- ✅ `adv assets` 命令组 — 背景生成任务、候选导入、拒绝与显式接纳
 
 ### MCP Server
 
@@ -31,6 +32,7 @@ ADV.JS Skills 体系的发展方向。
 - ✅ 批量原子工具：`create_characters / create_chapters / create_scenes`
 - ✅ 编辑工具：`edit_character / edit_chapter / edit_scene`
 - ✅ `adv_validate`、`project_stats`、`search_content`、`list_files`
+- ✅ 资产工具：`adv_asset_plan_background`、`adv_asset_ingest_candidate`、`adv_asset_reject_candidate`、`adv_asset_accept_candidate`
 
 ## 已完成版本
 
@@ -66,6 +68,7 @@ ADV.JS Skills 体系的发展方向。
 ### 创作工具
 
 - [x] `adv-art` — 已落地素材规划、来源/许可、哈希 URL 与清单审计；具体图片生成由可用的图像工具执行
+- [ ] Studio 云端 Agent / AG-UI / 私有 COS 审核工作台——复用本地任务协议，详见 [Codex 资产工作流与云端 Agent 路线图](/superpowers/specs/2026-08-13-codex-asset-workflow-roadmap)
 - [ ] `adv-audio` — 音效/BGM 智能推荐（消费现有 bgmHint）
 - [x] `adv-review` — AI 剧本质量审查（已落地 v0.1，见上方「当前版本」）
 

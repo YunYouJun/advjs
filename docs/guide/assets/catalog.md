@@ -173,6 +173,18 @@ duration: 24
 3. 发布工具生成内容寻址对象与 `cos-release.json`，先上传不可变对象，最后上传稳定 manifest；
 4. Schema v1 的 `publicBaseUrl` 与每项绝对 `url` 保持只读兼容；旧的嵌套索引由 Studio 读取，并在下一次资源写入时迁移到单一根文件。
 
+## Codex 本地生成工作流
+
+场景包含 `imagePrompt` 后，可以在安装 ADV.JS Skills 与 MCP 的 Codex 环境中使用：
+
+```bash
+adv assets plan --scene summer-room --json
+```
+
+候选仅保存在 Git 忽略的 `.adv/generated/`，导入候选不会修改正式目录。只有用户预览并明确确认后，`adv assets accept --confirm` 才会写入内容哈希文件、资源清单、场景 `assetId` 和 `adv/generations/{taskId}.json` 回执。拒绝和重试不会污染正式资源。
+
+Editor 通过 `adv editor .` 的本地桥接提供 Codex 就绪状态、任务提示复制、外部变更刷新和本地资源预览；它不内嵌 Codex 或重复实现 Agent。完整阶段边界与云端延期事项见 [Codex 资产工作流与云端 Agent 路线图](/superpowers/specs/2026-08-13-codex-asset-workflow-roadmap)。
+
 详细架构取舍见[资源系统设计](/about/design/assets)，发布目录与缓存规则见 [COS 存储与发布规范](./cos)。
 
 ## 已确认的音频扩展
