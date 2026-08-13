@@ -45,7 +45,7 @@ export async function runLaunchCommand(command: string, args: string[], cwd: str
     cwd,
     env: { ...launchRegistryEnvironment(registryUrl, temporaryRoot), ...environment },
     maxBuffer: 20 * 1024 * 1024,
-    timeout: 180_000,
+    timeout: command === 'npx' ? 300_000 : 180_000,
   }
   if (command === 'pnpm')
     return await runPnpm(args, options)
