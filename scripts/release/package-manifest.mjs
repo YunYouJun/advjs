@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import { mkdir, readFile } from 'node:fs/promises'
 import { basename, resolve } from 'node:path'
 import process from 'node:process'
