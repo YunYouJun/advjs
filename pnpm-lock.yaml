@@ -1400,10 +1400,10 @@ importers:
   packages/advjs:
     dependencies:
       '@advjs/client':
-        specifier: workspace:0.1.2
+        specifier: workspace:^0.1.2
         version: link:../client
       '@advjs/core':
-        specifier: workspace:0.1.2
+        specifier: workspace:^0.1.2
         version: link:../core
       '@advjs/devtools':
         specifier: workspace:0.1.2

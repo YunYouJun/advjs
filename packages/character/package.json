@@ -41,8 +41,8 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@advjs/parser": "workspace:0.1.2",
-    "@advjs/types": "workspace:0.1.2"
+    "@advjs/parser": "workspace:^0.1.2",
+    "@advjs/types": "workspace:^0.1.2"
   },
   "devDependencies": {
     "unbuild": "catalog:build",
