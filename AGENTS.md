@@ -98,4 +98,4 @@ Key aliases defined in `tsconfig.json`:
 
 ## Node Version
 
-Requires Node.js `^22.22.2 || ^24.15.0 || >=26.0.0`.
+Requires the current Node.js LTS (`>=24.15.0`).

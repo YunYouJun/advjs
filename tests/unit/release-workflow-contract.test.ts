@@ -25,7 +25,10 @@ describe('release workflow contracts', () => {
     for (const workflowPath of workflows) {
       const source = await readFile(resolve(root, workflowPath), 'utf8')
       expect(source).not.toContain('ci:publish')
+      expect(source).toContain('version: 11.20.0')
+      expect(source).toContain('node-version: \'lts/*\'')
       const commands = collectRunCommands(parse(source))
+      expect(commands.some(command => /\bnpm(?:\s|$)/u.test(command))).toBe(false)
       for (const command of commands) {
         for (const match of command.matchAll(/\bnode\s+(scripts\/[\w./-]+)/gu))
           await expect(access(resolve(root, match[1]))).resolves.toBeUndefined()

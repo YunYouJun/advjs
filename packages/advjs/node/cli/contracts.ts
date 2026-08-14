@@ -190,7 +190,7 @@ export function calculateContentRevision(input: ContentRevisionInput) {
 
 export const ADV_LAUNCH_SUPPORT = {
   schemaVersion: 1,
-  node: ['22.x', '24.x'],
+  node: ['lts/*'],
   operatingSystems: [
     {
       name: 'ubuntu',
@@ -215,7 +215,7 @@ export const ADV_LAUNCH_SUPPORT = {
     },
     {
       name: 'pnpm',
-      version: '10.x',
+      version: '11.20.0',
       executors: ['pnpm', 'pnpm dlx'],
     },
   ],

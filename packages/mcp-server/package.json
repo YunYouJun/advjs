@@ -1,7 +1,7 @@
 {
   "name": "@advjs/mcp-server",
   "type": "module",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "MCP Server for ADV.JS — exposes game project context to AI editors",
   "author": {
     "name": "YunYouJun",
@@ -32,17 +32,17 @@
     "dist"
   ],
   "engines": {
-    "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
+    "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
     "build": "unbuild",
     "dev": "unbuild --stub"
   },
   "dependencies": {
-    "@advjs/core": "workspace:0.1.2",
-    "@advjs/parser": "workspace:0.1.2",
+    "@advjs/core": "workspace:0.1.4",
+    "@advjs/parser": "workspace:0.1.4",
     "@modelcontextprotocol/sdk": "catalog:cli",
-    "advjs": "workspace:0.1.2",
+    "advjs": "workspace:0.1.4",
     "zod": "catalog:"
   },
   "devDependencies": {

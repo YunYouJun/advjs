@@ -182,7 +182,7 @@ async function mcpHandshake(command: string, args: string[], cwd: string) {
 
 function nodeVersionSupported(nodeVersion: string) {
   const [major, minor] = nodeVersion.split('.').map(Number)
-  return (major === 22 && minor >= 12) || major === 24
+  return (major === 20 && minor >= 19) || major > 22 || (major === 22 && minor >= 12)
 }
 
 export async function runDoctor(options: RunDoctorOptions = {}) {
@@ -192,7 +192,7 @@ export async function runDoctor(options: RunDoctorOptions = {}) {
 
   checks.push(nodeVersionSupported(process.versions.node)
     ? check('node-version', 'pass', `Node.js ${process.versions.node} is supported.`)
-    : check('node-version', 'fail', `Node.js ${process.versions.node} is unsupported; install Node.js 22.12+ or 24.x.`))
+    : check('node-version', 'fail', `Node.js ${process.versions.node} is unsupported; install Node.js 20.19+ or 22.12+.`))
 
   checks.push(version
     ? check('cli-package', 'pass', `advjs ${version} is installed.`)

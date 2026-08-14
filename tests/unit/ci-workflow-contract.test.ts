@@ -9,10 +9,13 @@ const root = resolve(import.meta.dirname, '../..')
 
 interface WorkflowStep {
   run?: string
+  uses?: string
+  with?: Record<string, string>
 }
 
 interface WorkflowJob {
   'continue-on-error'?: boolean
+  'env'?: Record<string, string>
   'if'?: string
   'needs'?: string[]
   'runs-on': string
@@ -47,6 +50,16 @@ function expectCommandBefore(job: WorkflowJob, prerequisite: string, command: st
   expect(commands.indexOf(prerequisite)).toBeLessThan(commands.indexOf(command))
 }
 
+function expectCurrentLts(job: WorkflowJob) {
+  const setupNode = job.steps.find(step => step.uses?.startsWith('actions/setup-node@'))
+  expect(setupNode, 'job must configure Node.js').toBeDefined()
+  const declaredVersion = setupNode?.with?.['node-version']
+  const resolvedVersion = declaredVersion?.includes('env.NODE_VERSION')
+    ? job.env?.NODE_VERSION
+    : declaredVersion
+  expect(resolvedVersion).toBe('lts/*')
+}
+
 describe('github Actions launch baseline', () => {
   it('runs dev and main validation through stable, pnpm-only jobs', () => {
     const workflows = ['ci', 'demo', 'docs'].map(readWorkflow)
@@ -61,7 +74,9 @@ describe('github Actions launch baseline', () => {
         if (jobName !== 'launch-required')
           expect(commands).toContain('pnpm install --frozen-lockfile')
         const npmCommands = commands.filter(command => /(?:^|\n)\s*(?:npm|npx)\s/u.test(command))
-        expect(npmCommands).toEqual(jobName === 'editor-pages-build' ? ['npm run editor:build'] : [])
+        expect(npmCommands).toEqual([])
+        if (jobName !== 'launch-required')
+          expectCurrentLts(job)
       }
     }
 
@@ -82,7 +97,7 @@ describe('github Actions launch baseline', () => {
 
     for (const jobName of ['build', 'unit', 'typecheck'] as const) {
       expect(ci.jobs[jobName]['runs-on']).toBe('ubuntu-latest')
-      expect(ci.jobs[jobName].strategy?.matrix?.node).toEqual(['22', '24'])
+      expect(ci.jobs[jobName].strategy).toBeUndefined()
     }
 
     for (const jobName of ['editor-smoke', 'packed-smoke'] as const) {
@@ -95,6 +110,7 @@ describe('github Actions launch baseline', () => {
     expectCommandBefore(ci.jobs.unit, 'pnpm prepare:workspace unit', 'pnpm vitest run tests/unit --reporter=default')
     expect(runCommands(ci.jobs.typecheck)).toContain('pnpm typecheck')
     expectCommandBefore(ci.jobs.lint, 'pnpm prepare:workspace lint', 'pnpm lint')
+    expectCommandBefore(ci.jobs['editor-pages-build'], 'pnpm prepare:workspace editor', 'pnpm editor:build')
     expectCommandBefore(ci.jobs['editor-smoke'], 'pnpm prepare:workspace editor', 'pnpm --filter @advjs/editor typecheck')
     expect(runCommands(ci.jobs['editor-smoke'])).toEqual(expect.arrayContaining([
       'pnpm --filter @advjs/editor typecheck',

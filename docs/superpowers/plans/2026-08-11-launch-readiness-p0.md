@@ -79,7 +79,7 @@ Studio、自动图片生成、视频导出、内容社区和第二部署供应�
 
 **待办：**
 
-- [x] 将 Node 22/24、Ubuntu/macOS/Windows、npm/npx、pnpm/dlx、Chromium、default/galgame、公开包、Skills 与 Agent 客户端固化为机器可读 support matrix fixture。
+- [x] 将 Node `lts/*`、Ubuntu/macOS/Windows、npm/npx、pnpm/dlx、Chromium、default/galgame、公开包、Skills 与 Agent 客户端固化为机器可读 support matrix fixture。
 - [x] 固定 CLI envelope 的 `schemaVersion`、`command`、`ok`、`data`、`warnings`、`errors`。
 - [x] 固定 `ADV_USAGE`、`ADV_VALIDATION`、`ADV_BUILD`、`ADV_EDITOR`、`ADV_AUTH`、`ADV_DEPLOY`、`ADV_NETWORK`、`ADV_INTERNAL`。
 - [x] 固定 `contentRevision` canonical manifest 算法、关键部署资源和非确定性字段列表。
@@ -108,7 +108,7 @@ pnpm vitest run tests/unit/cli-contracts.test.ts
 
 - [x] 先复现 packed tarball 安装后 `/@advjs/locales` 无法解析 `defu` 的失败。
 - [x] 修正运行时依赖归属和虚拟模块解析，禁止依赖 monorepo hoist 偶然成功。
-- [x] 从所有首发包的 `engines` 移除 Node.js 20，仅声明 Node.js 22/24。
+- [x] 首发包的 `engines` 与 Vite 最低运行版本对齐；仓库源码构建与 CI 使用当前 LTS。
 - [x] 用 `default`、`galgame` 两个模板分别执行 `init → check → build`。
 - [x] 用静态服务器验证 HTML、JS、CSS、构建入口和 SPA fallback。
 
@@ -187,7 +187,7 @@ pnpm -C packages/advjs pack --pack-destination ../../artifacts
 **待办：**
 
 - [x] 将 push/PR 主集成目标从仅 `main` 调整为 `dev`，同时保留 `main` 的生产校验。
-- [x] 恢复 unit job，Node.js 22/24 在 Ubuntu 运行 build、unit、typecheck。
+- [x] 恢复 unit job，Node.js `lts/*` 在 Ubuntu 运行 build、unit、typecheck。
 - [x] macOS/Windows 先运行安装、CLI、Editor 启停和 build smoke，不提前承诺完整 E2E。
 - [x] 使用 `pnpm install --frozen-lockfile`，统一 workflow 中混用的 npm/pnpm 命令。
 - [x] 为 build、unit、typecheck、Editor、packed smoke 预留稳定 job 名称，供 branch protection 引用。

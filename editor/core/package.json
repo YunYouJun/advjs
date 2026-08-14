@@ -1,7 +1,7 @@
 {
   "name": "@advjs/editor",
   "type": "module",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "ADV.JS Editor",
   "publishConfig": {
     "access": "public"
@@ -26,7 +26,7 @@
     }
   },
   "engines": {
-    "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
+    "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
     "build": "nuxt build && node scripts/prepare-package.mjs",

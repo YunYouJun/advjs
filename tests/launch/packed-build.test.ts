@@ -149,10 +149,10 @@ async function verifyStaticBuild(distDirectory: string) {
 }
 
 describe('launch package runtimes', () => {
-  it('supports maintained Node releases without claiming unsupported minors', async () => {
+  it('aligns published package runtimes with the Vite Node.js floor', async () => {
     for (const manifestPath of launchPackageManifests) {
       const manifest = JSON.parse(await readFile(resolve(repositoryRoot, manifestPath), 'utf8'))
-      expect(manifest.engines?.node, manifest.name).toBe('^22.22.2 || ^24.15.0 || >=26.0.0')
+      expect(manifest.engines?.node, manifest.name).toBe('^20.19.0 || >=22.12.0')
     }
   })
 })

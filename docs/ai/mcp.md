@@ -8,7 +8,7 @@ Install the two fixed launch entry packages, then let `adv` merge the Skills and
 MCP settings for the target Agent client:
 
 ```bash
-npm install --global "advjs@0.1.2" "@advjs/mcp-server@0.1.2"
+npm install --global "advjs@0.1.4" "@advjs/mcp-server@0.1.4"
 adv agent install --client codex --skills default --mcp --json
 adv doctor . --client codex --json
 ```

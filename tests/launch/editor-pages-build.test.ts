@@ -21,9 +21,10 @@ describe('editor Cloudflare Pages build contract', () => {
     expect(editorBuildContract.packagePublicDirectory).toBe('dist')
     expect(editorPackage.advjsEditor.artifacts).toEqual(editorBuildContract)
     expect(pagesJob.name).toBe('editor-pages-build')
-    expect(pagesJob.env).toEqual({ NODE_VERSION: '24', PNPM_VERSION: '11.20.0' })
+    expect(pagesJob.env).toEqual({ NODE_VERSION: 'lts/*', PNPM_VERSION: '11.20.0' })
     expect(pagesJob.steps.map((step: { run?: string }) => step.run).filter(Boolean)).toEqual(expect.arrayContaining([
-      'npm run editor:build',
+      'pnpm prepare:workspace editor',
+      'pnpm editor:build',
       'test -f editor/core/dist/index.html',
     ]))
   })

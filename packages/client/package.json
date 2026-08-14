@@ -1,7 +1,7 @@
 {
   "name": "@advjs/client",
   "type": "module",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "ADV.JS Client",
   "author": {
     "email": "me@yunyoujun.cn",
@@ -31,13 +31,13 @@
   },
   "main": "index.ts",
   "engines": {
-    "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
+    "node": "^20.19.0 || >=22.12.0"
   },
   "dependencies": {
-    "@advjs/core": "workspace:0.1.2",
-    "@advjs/parser": "workspace:0.1.2",
-    "@advjs/types": "workspace:0.1.2",
-    "@advjs/unocss": "workspace:0.1.2",
+    "@advjs/core": "workspace:0.1.4",
+    "@advjs/parser": "workspace:0.1.4",
+    "@advjs/types": "workspace:0.1.4",
+    "@advjs/unocss": "workspace:0.1.4",
     "@antfu/utils": "catalog:utils",
     "@dagrejs/dagre": "catalog:",
     "@iconify-json/carbon": "catalog:icons",

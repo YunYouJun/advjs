@@ -45,10 +45,10 @@ jobs:
           ref: ${{ inputs.source_sha }}
       - uses: pnpm/action-setup@v4
         with:
-          version: 10.34.1
+          version: 11.20.0
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: 'lts/*'
           cache: pnpm
           registry-url: ${{ inputs.registry_url }}
       - name: Install dependencies

@@ -98,7 +98,7 @@ afterAll(async () => {
 
 describe('launch package manifest', () => {
   it('defines a complete, consistently versioned public package graph', async () => {
-    expect(LAUNCH_VERSION).toBe('0.1.2')
+    expect(LAUNCH_VERSION).toBe('0.1.4')
     expect(PACKAGE_SPECS.map(spec => spec.name)).toEqual([
       '@advjs/types',
       '@advjs/assets',
@@ -139,7 +139,7 @@ describe('launch package manifest', () => {
 
     const requests = registry.localRequests.slice(before)
     expect(requests).toContain('advjs')
-    expect(requests.some(request => request.includes('advjs-0.1.2.tgz'))).toBe(true)
+    expect(requests.some(request => request.includes(`advjs-${LAUNCH_VERSION}.tgz`))).toBe(true)
   }, 360_000)
 
   it('resolves pnpm dlx exclusively through the isolated registry', async () => {
@@ -149,7 +149,7 @@ describe('launch package manifest', () => {
 
     const requests = registry.localRequests.slice(before)
     expect(requests).toContain('advjs')
-    expect(requests.some(request => request.includes('advjs-0.1.2.tgz'))).toBe(true)
+    expect(requests.some(request => request.includes(`advjs-${LAUNCH_VERSION}.tgz`))).toBe(true)
   }, 240_000)
 
   it('installs and starts the Editor artifact and MCP server from registry packages', async () => {

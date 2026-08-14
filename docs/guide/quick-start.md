@@ -1,13 +1,13 @@
 # 快速开始
 
-这条路径从空目录开始，最终得到可公开访问的 Cloudflare Pages 游戏 URL。需要 Node.js 22 或 24；首发浏览器为 Chromium Stable。
+这条路径从空目录开始，最终得到可公开访问的 Cloudflare Pages 游戏 URL。推荐使用当前 Node.js LTS；发布包的最低运行版本与 Vite 对齐（`^20.19.0 || >=22.12.0`）。首发浏览器为 Chromium Stable。
 
 ## 安装与初始化
 
 安装同一版本的 CLI 与 MCP Server：
 
 ```bash
-npm install --global advjs@0.1.2 @advjs/mcp-server@0.1.2
+npm install --global advjs@0.1.4 @advjs/mcp-server@0.1.4
 ```
 
 以下命令块也是 launch 文档测试的事实源。

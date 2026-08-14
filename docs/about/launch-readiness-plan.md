@@ -89,20 +89,20 @@ pnpm --filter @advjs/editor build
 
 P0 issue 创建前先固定以下默认值；若需要改变，必须更新本计划和黄金路径 fixture：
 
-| 项目             | 首发契约                                                                                                                                                                   |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Node.js          | 支持仍处于维护期的 `22.x` 与 `24.x` LTS；根据 [Node.js 官方发布计划](https://github.com/nodejs/Release#release-schedule)，当前已 EOL 的 Node.js 20 从 `engines` 和文档移除 |
-| 操作系统         | Ubuntu 执行完整 launch journey；macOS 与 Windows 执行公开包安装、CLI、Editor 启停和构建 smoke                                                                              |
-| 包管理器         | npm/npx 与 pnpm/pnpm dlx；项目内部锁定 pnpm 10                                                                                                                             |
-| 浏览器           | 本地 Editor 首发支持最新稳定版 Chromium；Firefox 与 Safari 不作首发承诺                                                                                                    |
-| 模板             | `default` 与 `galgame`                                                                                                                                                     |
-| 用户入口包       | `advjs`、`@advjs/editor`、`@advjs/mcp-server`；其他 `@advjs/*` 作为依赖发布                                                                                                |
-| 默认公开 Skills  | `adv-create`、`adv-debug`、`adv-review`、`adv-art`                                                                                                                         |
-| 可选公开 Skills  | `adv-story`、`adv-adapt`                                                                                                                                                   |
-| 仓库专用 Skill   | `adv-hamster-demo`，不进入默认公共安装集合                                                                                                                                 |
-| Agent/MCP 客户端 | Codex、Claude Code、Cursor                                                                                                                                                 |
-| 内容版本         | 对排序后的项目源文件、资产清单和本地登记资产哈希生成 canonical manifest，再计算 SHA-256 `contentRevision`                                                                  |
-| 关键部署资源     | `index.html`、HTML 引用的全部 JS/CSS、构建清单声明的入口资源和 SPA fallback                                                                                                |
+| 项目             | 首发契约                                                                                                                  |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Node.js          | CI 仅验证 `lts/*` 指向的当前最新 LTS；发布包 `engines` 与 Vite 对齐为 `^20.19.0 \|\| >=22.12.0`，仓库源码构建要求当前 LTS |
+| 操作系统         | Ubuntu 执行完整 launch journey；macOS 与 Windows 执行公开包安装、CLI、Editor 启停和构建 smoke                             |
+| 包管理器         | npm/npx 与 pnpm/pnpm dlx；项目内部锁定 pnpm 11.20.0                                                                       |
+| 浏览器           | 本地 Editor 首发支持最新稳定版 Chromium；Firefox 与 Safari 不作首发承诺                                                   |
+| 模板             | `default` 与 `galgame`                                                                                                    |
+| 用户入口包       | `advjs`、`@advjs/editor`、`@advjs/mcp-server`；其他 `@advjs/*` 作为依赖发布                                               |
+| 默认公开 Skills  | `adv-create`、`adv-debug`、`adv-review`、`adv-art`                                                                        |
+| 可选公开 Skills  | `adv-story`、`adv-adapt`                                                                                                  |
+| 仓库专用 Skill   | `adv-hamster-demo`，不进入默认公共安装集合                                                                                |
+| Agent/MCP 客户端 | Codex、Claude Code、Cursor                                                                                                |
+| 内容版本         | 对排序后的项目源文件、资产清单和本地登记资产哈希生成 canonical manifest，再计算 SHA-256 `contentRevision`                 |
+| 关键部署资源     | `index.html`、HTML 引用的全部 JS/CSS、构建清单声明的入口资源和 SPA fallback                                               |
 
 结构化 CLI 输出统一使用带版本号的 envelope，至少包含 `schemaVersion`、`command`、`ok`、`data`、`warnings` 和 `errors`。P0-0 必须为每个命令建立 JSON Schema，并固定错误码：`ADV_USAGE`、`ADV_VALIDATION`、`ADV_BUILD`、`ADV_EDITOR`、`ADV_AUTH`、`ADV_DEPLOY`、`ADV_NETWORK`、`ADV_INTERNAL`。
 
@@ -388,7 +388,7 @@ Editor 命令是长驻进程：journey 等待 `ready` 事件后，由 Playwright
 
 2026-08-11 只读核查结果：Cloudflare 项目 `advjs` 已绑定 GitHub `YunYouJun/advjs`，生产分支为 `main`，构建命令为 `npm run editor:build`，输出目录为 `editor/core/dist`，域名为 `editor.advjs.org`；`advjs-studio` 绑定同一仓库，生产分支为 `dev`，域名为 `studio.advjs.org`。
 
-2026-08-12 仓库侧复现合同：Cloudflare Pages 使用 Node `24`、pnpm `10.34.1`，在仓库根目录运行 `npm run editor:build`，输出 `editor/core/dist`。相同命令已由 `editor-pages-build` CI job 固定，并在本地确认生成 `editor/core/dist/index.html` 与 `_nuxt/` 静态资源。此前 npm 包专用的 `dist/public` 层级已移除，使 `@advjs/editor` 本地静态服务与 Pages 共用同一产物根目录。远端 `dev` preview URL、GitHub PR check 和 commit 对应关系必须在该改动 push 到 `dev` 后只读核验；本轮没有修改 `main` 或 `editor.advjs.org` 的生产 deployment。
+2026-08-12 仓库侧复现合同：Cloudflare Pages 使用 Node `lts/*`、pnpm `11.20.0`，在仓库根目录依次运行 `pnpm prepare:workspace editor` 与 `pnpm editor:build`，输出 `editor/core/dist`。相同命令已由 `editor-pages-build` CI job 固定，并在本地确认生成 `editor/core/dist/index.html` 与 `_nuxt/` 静态资源。此前 npm 包专用的 `dist/public` 层级已移除，使 `@advjs/editor` 本地静态服务与 Pages 共用同一产物根目录。远端 `dev` preview URL、GitHub PR check 和 commit 对应关系必须在该改动 push 到 `dev` 后只读核验；本轮没有修改 `main` 或 `editor.advjs.org` 的生产 deployment。
 
 ### 代码晋级策略
 

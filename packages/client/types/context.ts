@@ -2,10 +2,10 @@ import type { CompileDiagnostic } from '@advjs/core'
 import type { AdvConfig, AdvGameConfig } from '@advjs/types'
 
 import type { ComputedRef, ShallowRef } from 'vue'
-import type { ComposerTranslation } from 'vue-i18n'
 import type { useAdvAuto, useAdvBgm, useAdvTachies } from '../composables'
 import type { useAdvCharacters } from '../composables/useAdvCharacters'
 import type { AdvRuntimeHost } from '../composables/useAdvRuntime'
+import type { AdvTranslation } from '../modules/i18n'
 import type { PixiGame } from '../pixi/game'
 import type { RuntimeGalleryController } from '../runtime/gallery'
 import type { RuntimeProgressionController } from '../runtime/progression'
@@ -23,7 +23,7 @@ export interface AdvContext {
   themeConfig: ComputedRef<AdvConfig['themeConfig']>
   functions: Record<string, () => void>
 
-  $t: ComposerTranslation
+  $t: AdvTranslation
   $tachies: ReturnType<typeof useAdvTachies>
   $characters: ReturnType<typeof useAdvCharacters>
   $bgm: ReturnType<typeof useAdvBgm>

@@ -21,10 +21,10 @@ Editor 和 Studio 使用同一套 Markdown 项目与 Runtime，不是两套内�
 
 ## 快速开始
 
-要求 Node.js 22 或 24。安装固定版本的 CLI 与 MCP Server：
+推荐使用当前 Node.js LTS；发布包的最低运行版本与 Vite 对齐（`^20.19.0 || >=22.12.0`）。安装固定版本的 CLI 与 MCP Server：
 
 ```bash
-npm install --global advjs@0.1.2 @advjs/mcp-server@0.1.2
+npm install --global advjs@0.1.4 @advjs/mcp-server@0.1.4
 adv init rain-letter --template default --name 雨夜来信 --json
 cd rain-letter
 adv agent install --client codex --skills default --mcp --json

@@ -1,8 +1,7 @@
 {
   "schemaVersion": 1,
   "node": [
-    "22.x",
-    "24.x"
+    "lts/*"
   ],
   "operatingSystems": [
     {
@@ -43,7 +42,7 @@
     },
     {
       "name": "pnpm",
-      "version": "10.x",
+      "version": "11.20.0",
       "executors": [
         "pnpm",
         "pnpm dlx"

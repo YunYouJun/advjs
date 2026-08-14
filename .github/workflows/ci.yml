@@ -19,20 +19,14 @@ concurrency:
 
 jobs:
   build:
-    name: build (Node ${{ matrix.node }})
+    name: build (Node LTS)
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        node:
-          - '22'
-          - '24'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 'lts/*'
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -43,7 +37,7 @@ jobs:
     name: editor-pages-build
     runs-on: ubuntu-latest
     env:
-      NODE_VERSION: '24'
+      NODE_VERSION: 'lts/*'
       PNPM_VERSION: 11.20.0
     steps:
       - uses: actions/checkout@v4
@@ -56,26 +50,22 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Prepare Editor dependencies
+        run: pnpm prepare:workspace editor
       - name: Reproduce Cloudflare Pages build command
-        run: npm run editor:build
+        run: pnpm editor:build
       - name: Verify Cloudflare Pages output directory
         run: test -f editor/core/dist/index.html
 
   unit:
-    name: unit (Node ${{ matrix.node }})
+    name: unit (Node LTS)
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        node:
-          - '22'
-          - '24'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 'lts/*'
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -85,20 +75,14 @@ jobs:
         run: pnpm vitest run tests/unit --reporter=default
 
   typecheck:
-    name: typecheck (Node ${{ matrix.node }})
+    name: typecheck (Node LTS)
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        node:
-          - '22'
-          - '24'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 'lts/*'
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -113,7 +97,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: 'lts/*'
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -136,7 +120,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: 'lts/*'
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -161,7 +145,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: 'lts/*'
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -181,7 +165,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: 'lts/*'
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -207,7 +191,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: 'lts/*'
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -235,7 +219,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: 'lts/*'
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -259,7 +243,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: 'lts/*'
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

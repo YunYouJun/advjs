@@ -24,6 +24,7 @@ const i18n = createI18n({
 })
 
 export const $t = i18n.global.t
+export type AdvTranslation = typeof $t
 
 export const install: UserModule = ({ app }) => {
   app.use(i18n)

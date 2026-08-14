@@ -1,7 +1,7 @@
 {
   "name": "advjs",
   "type": "module",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "ADV.JS - A front-end visual novel game engine",
   "author": {
     "name": "YunYouJun",
@@ -41,7 +41,7 @@
     "template-galgame"
   ],
   "engines": {
-    "node": "^22.22.2 || ^24.15.0 || >=26.0.0"
+    "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
     "build": "unbuild && node scripts/prepare-skills.mjs",
@@ -52,14 +52,14 @@
     "export": "tsx node/cli/index.ts export"
   },
   "dependencies": {
-    "@advjs/assets": "workspace:0.1.2",
-    "@advjs/client": "workspace:0.1.2",
-    "@advjs/core": "workspace:0.1.2",
-    "@advjs/devtools": "workspace:0.1.2",
-    "@advjs/editor": "workspace:0.1.2",
-    "@advjs/parser": "workspace:0.1.2",
-    "@advjs/theme-default": "workspace:0.1.2",
-    "@advjs/types": "workspace:0.1.2",
+    "@advjs/assets": "workspace:0.1.4",
+    "@advjs/client": "workspace:0.1.4",
+    "@advjs/core": "workspace:0.1.4",
+    "@advjs/devtools": "workspace:0.1.4",
+    "@advjs/editor": "workspace:0.1.4",
+    "@advjs/parser": "workspace:0.1.4",
+    "@advjs/theme-default": "workspace:0.1.4",
+    "@advjs/types": "workspace:0.1.4",
     "@antfu/ni": "catalog:utils",
     "@antfu/utils": "catalog:utils",
     "@intlify/unplugin-vue-i18n": "catalog:build",

@@ -70,7 +70,7 @@ describe('launch CLI contracts', () => {
     ])
     expect(ADV_LAUNCH_SUPPORT).toEqual({
       schemaVersion: 1,
-      node: ['22.x', '24.x'],
+      node: ['lts/*'],
       operatingSystems: [
         { name: 'ubuntu', tier: 'full', checks: ['launch-journey'] },
         { name: 'macos', tier: 'smoke', checks: ['packed-install', 'cli', 'editor-lifecycle', 'build'] },
@@ -78,7 +78,7 @@ describe('launch CLI contracts', () => {
       ],
       packageManagers: [
         { name: 'npm', executors: ['npm', 'npx'] },
-        { name: 'pnpm', version: '10.x', executors: ['pnpm', 'pnpm dlx'] },
+        { name: 'pnpm', version: '11.20.0', executors: ['pnpm', 'pnpm dlx'] },
       ],
       browsers: {
         supported: ['chromium-stable'],
