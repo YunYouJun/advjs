@@ -1,11 +1,15 @@
 // @vitest-environment node
 
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
   prepareWorkspace,
   WORKSPACE_PREPARATION_PROFILES,
 } from '../../scripts/prepare-workspace.mjs'
 import { resolveNpxInvocation } from '../../scripts/release/run-command.mjs'
+
+const root = resolve(import.meta.dirname, '../..')
 
 describe('workspace preparation profiles', () => {
   it('keeps every clean-runner prerequisite in one explicit contract', () => {
@@ -22,6 +26,10 @@ describe('workspace preparation profiles', () => {
       ],
       lint: [
         ['pnpm', ['unocss:build']],
+      ],
+      studio: [
+        ['pnpm', ['build']],
+        ['pnpm', ['build:plugins']],
       ],
       unit: [
         ['pnpm', ['build']],
@@ -53,6 +61,19 @@ describe('workspace preparation profiles', () => {
       },
     ])
     expect(calls.every(call => !('shell' in call.options))).toBe(true)
+  })
+
+  it('keeps deployment build entrypoints self-contained', () => {
+    const packageJson = JSON.parse(readFileSync(resolve(root, 'package.json'), 'utf8'))
+    const parserPackageJson = JSON.parse(readFileSync(resolve(root, 'packages/parser/package.json'), 'utf8'))
+
+    expect(packageJson.scripts).toMatchObject({
+      'build:demo': 'pnpm build:advjs && pnpm -C demo/starter run build',
+      'editor:build': 'pnpm prepare:workspace editor && pnpm -C editor/core build',
+      'parser:play:build': 'pnpm types:build && pnpm assets:build && pnpm parser:build && pnpm core:build && pnpm -C packages/parser play:build',
+      'studio:build': 'pnpm prepare:workspace studio && pnpm -C apps/studio run build',
+    })
+    expect(parserPackageJson.scripts['play:build']).toBe('pnpm run copy && pnpm -C playground run build')
   })
 
   it('rejects missing or unknown profiles', async () => {

@@ -10,6 +10,10 @@ const workflows = [
   '.github/workflows/release-candidate.yml',
   '.github/workflows/release.yml',
 ]
+const actionWorkflows = [
+  ...workflows,
+  '.github/workflows/release-core.yml',
+]
 
 function collectRunCommands(value: unknown): string[] {
   if (Array.isArray(value))
@@ -20,6 +24,17 @@ function collectRunCommands(value: unknown): string[] {
 }
 
 describe('release workflow contracts', () => {
+  it('uses current Node 24-based GitHub Actions', async () => {
+    for (const workflowPath of actionWorkflows) {
+      const source = await readFile(resolve(root, workflowPath), 'utf8')
+      expect(source).toContain('uses: actions/checkout@v7')
+      expect(source).toContain('uses: pnpm/action-setup@v6')
+      expect(source).toContain('uses: actions/setup-node@v7')
+      if (source.includes('actions/upload-artifact@'))
+        expect(source).toContain('uses: actions/upload-artifact@v7')
+    }
+  })
+
   it('references only existing repository scripts and never calls the removed ci:publish command', async () => {
     const packageJson = JSON.parse(await readFile(resolve(root, 'package.json'), 'utf8'))
     for (const workflowPath of workflows) {

@@ -22,9 +22,9 @@ jobs:
     name: build (Node LTS)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 'lts/*'
           cache: pnpm
@@ -40,18 +40,16 @@ jobs:
       NODE_VERSION: 'lts/*'
       PNPM_VERSION: 11.20.0
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
         with:
           version: ${{ env.PNPM_VERSION }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Prepare Editor dependencies
-        run: pnpm prepare:workspace editor
       - name: Reproduce Cloudflare Pages build command
         run: pnpm editor:build
       - name: Verify Cloudflare Pages output directory
@@ -61,9 +59,9 @@ jobs:
     name: unit (Node LTS)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 'lts/*'
           cache: pnpm
@@ -78,9 +76,9 @@ jobs:
     name: typecheck (Node LTS)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 'lts/*'
           cache: pnpm
@@ -93,9 +91,9 @@ jobs:
     name: lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 'lts/*'
           cache: pnpm
@@ -116,9 +114,9 @@ jobs:
           - macos-latest
           - windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 'lts/*'
           cache: pnpm
@@ -141,9 +139,9 @@ jobs:
           - macos-latest
           - windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 'lts/*'
           cache: pnpm
@@ -161,21 +159,21 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 'lts/*'
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Build packages
-        run: pnpm prepare:workspace editor && pnpm editor:build
+        run: pnpm editor:build
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Run Chromium tests
         run: pnpm exec playwright test --project=chromium
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: playwright-report
@@ -187,21 +185,21 @@ jobs:
     timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 'lts/*'
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Build Editor launch chain
-        run: pnpm prepare:workspace editor && pnpm editor:build
+        run: pnpm editor:build
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Run Editor lifecycle and security tests
         run: pnpm exec playwright test tests/e2e/editor-local.spec.ts tests/e2e/editor-security.spec.ts --project=chromium
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: editor-playwright-report
@@ -215,9 +213,9 @@ jobs:
     env:
       ADV_LAUNCH_ARTIFACTS_DIR: ${{ github.workspace }}/artifacts/agent-install-smoke
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 'lts/*'
           cache: pnpm
@@ -225,7 +223,7 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Run packed Agent installation smoke
         run: pnpm vitest run tests/launch/agent-install-smoke.test.ts --reporter=default
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: agent-install-smoke
@@ -239,9 +237,9 @@ jobs:
       ADVJS_DOCS_JOURNEY_SKIP_BUILD: '1'
       ADV_LAUNCH_ARTIFACTS_DIR: ${{ github.workspace }}/artifacts/launch-journey
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 'lts/*'
           cache: pnpm
@@ -254,7 +252,7 @@ jobs:
       - name: Run complete launch journey
         run: pnpm test:launch:journey
       - name: Upload launch journey evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: launch-journey-${{ github.run_id }}

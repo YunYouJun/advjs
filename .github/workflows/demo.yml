@@ -18,15 +18,13 @@ jobs:
     name: demo-build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 'lts/*'
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Build ADV.JS package chain
-        run: pnpm build:advjs
-      - name: Build demo
+      - name: Build self-contained demo target
         run: pnpm build:demo

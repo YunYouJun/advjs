@@ -53,11 +53,21 @@ function expectCommandBefore(job: WorkflowJob, prerequisite: string, command: st
 function expectCurrentLts(job: WorkflowJob) {
   const setupNode = job.steps.find(step => step.uses?.startsWith('actions/setup-node@'))
   expect(setupNode, 'job must configure Node.js').toBeDefined()
+  expect(setupNode?.uses).toBe('actions/setup-node@v7')
   const declaredVersion = setupNode?.with?.['node-version']
   const resolvedVersion = declaredVersion?.includes('env.NODE_VERSION')
     ? job.env?.NODE_VERSION
     : declaredVersion
   expect(resolvedVersion).toBe('lts/*')
+}
+
+function expectCurrentActions(job: WorkflowJob) {
+  expect(job.steps.some(step => step.uses === 'actions/checkout@v7')).toBe(true)
+  expect(job.steps.some(step => step.uses === 'pnpm/action-setup@v6')).toBe(true)
+  for (const step of job.steps) {
+    if (step.uses?.startsWith('actions/upload-artifact@'))
+      expect(step.uses).toBe('actions/upload-artifact@v7')
+  }
 }
 
 describe('github Actions launch baseline', () => {
@@ -75,8 +85,10 @@ describe('github Actions launch baseline', () => {
           expect(commands).toContain('pnpm install --frozen-lockfile')
         const npmCommands = commands.filter(command => /(?:^|\n)\s*(?:npm|npx)\s/u.test(command))
         expect(npmCommands).toEqual([])
-        if (jobName !== 'launch-required')
+        if (jobName !== 'launch-required') {
+          expectCurrentActions(job)
           expectCurrentLts(job)
+        }
       }
     }
 
@@ -110,7 +122,7 @@ describe('github Actions launch baseline', () => {
     expectCommandBefore(ci.jobs.unit, 'pnpm prepare:workspace unit', 'pnpm vitest run tests/unit --reporter=default')
     expect(runCommands(ci.jobs.typecheck)).toContain('pnpm typecheck')
     expectCommandBefore(ci.jobs.lint, 'pnpm prepare:workspace lint', 'pnpm lint')
-    expectCommandBefore(ci.jobs['editor-pages-build'], 'pnpm prepare:workspace editor', 'pnpm editor:build')
+    expect(runCommands(ci.jobs['editor-pages-build'])).toContain('pnpm editor:build')
     expectCommandBefore(ci.jobs['editor-smoke'], 'pnpm prepare:workspace editor', 'pnpm --filter @advjs/editor typecheck')
     expect(runCommands(ci.jobs['editor-smoke'])).toEqual(expect.arrayContaining([
       'pnpm --filter @advjs/editor typecheck',
@@ -124,8 +136,8 @@ describe('github Actions launch baseline', () => {
       'pnpm exec playwright install --with-deps chromium',
       'pnpm exec playwright test --project=chromium',
     ]))
-    expectCommandBefore(ci.jobs.e2e, 'pnpm prepare:workspace editor && pnpm editor:build', 'pnpm exec playwright test --project=chromium')
-    expectCommandBefore(ci.jobs['editor-e2e'], 'pnpm prepare:workspace editor && pnpm editor:build', 'pnpm exec playwright test tests/e2e/editor-local.spec.ts tests/e2e/editor-security.spec.ts --project=chromium')
+    expectCommandBefore(ci.jobs.e2e, 'pnpm editor:build', 'pnpm exec playwright test --project=chromium')
+    expectCommandBefore(ci.jobs['editor-e2e'], 'pnpm editor:build', 'pnpm exec playwright test tests/e2e/editor-local.spec.ts tests/e2e/editor-security.spec.ts --project=chromium')
     expect(ci.jobs['launch-journey']['continue-on-error']).toBeUndefined()
     expect(ci.jobs['launch-journey']['runs-on']).toBe('ubuntu-latest')
     expect(runCommands(ci.jobs['launch-journey'])).toContain('pnpm exec playwright install --with-deps chromium')

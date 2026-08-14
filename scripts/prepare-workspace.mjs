@@ -21,6 +21,10 @@ export const WORKSPACE_PREPARATION_PROFILES = Object.freeze({
   lint: Object.freeze([
     Object.freeze(['pnpm', Object.freeze(['unocss:build'])]),
   ]),
+  studio: Object.freeze([
+    Object.freeze(['pnpm', Object.freeze(['build'])]),
+    Object.freeze(['pnpm', Object.freeze(['build:plugins'])]),
+  ]),
   unit: Object.freeze([
     Object.freeze(['pnpm', Object.freeze(['build'])]),
     Object.freeze(['pnpm', Object.freeze(['-C', 'editor/core', 'exec', 'nuxt', 'prepare'])]),

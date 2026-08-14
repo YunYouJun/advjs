@@ -390,6 +390,8 @@ Editor 命令是长驻进程：journey 等待 `ready` 事件后，由 Playwright
 
 2026-08-12 仓库侧复现合同：Cloudflare Pages 使用 Node `lts/*`、pnpm `11.20.0`，在仓库根目录依次运行 `pnpm prepare:workspace editor` 与 `pnpm editor:build`，输出 `editor/core/dist`。相同命令已由 `editor-pages-build` CI job 固定，并在本地确认生成 `editor/core/dist/index.html` 与 `_nuxt/` 静态资源。此前 npm 包专用的 `dist/public` 层级已移除，使 `@advjs/editor` 本地静态服务与 Pages 共用同一产物根目录。远端 `dev` preview URL、GitHub PR check 和 commit 对应关系必须在该改动 push 到 `dev` 后只读核验；本轮没有修改 `main` 或 `editor.advjs.org` 的生产 deployment。
 
+2026-08-14 部署构建合同收敛：`editor:build`、`studio:build`、`build:demo` 与 `parser:play:build` 均改为可在干净 runner 独立执行的入口，GitHub Actions 和托管平台不再重复拼装依赖构建步骤。Cloudflare 项目 `advjs` / `advjs-studio` 的构建命令分别更新为 `pnpm editor:build` / `pnpm studio:build`，两种环境固定 Node `24.15.0` 与 pnpm `11.20.0`。Vercel 项目 `advjs` / `advjs-demo` / `advjs-parser` 启用 Corepack、Node `24.x` 和 frozen pnpm 安装，并分别使用 `pnpm docs:build`、`pnpm build:demo`、`pnpm parser:play:build`。这些设置将在下一次 `dev` push 后由对应远端 deployment 验证。
+
 ### 代码晋级策略
 
 已确认所有首发前迭代都进入 `dev`，最后一次通过完整门禁的 RC 才 fast-forward 到 `main` 并触发正式部署。`main` 不承担日常集成职责。
