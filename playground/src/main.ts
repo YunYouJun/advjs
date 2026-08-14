@@ -7,7 +7,6 @@ import App from './App.vue'
 
 import { install as installAdv } from './setup/adv'
 
-import '@unocss/reset/tailwind.css'
 import './styles/main.css'
 import 'uno.css'
 

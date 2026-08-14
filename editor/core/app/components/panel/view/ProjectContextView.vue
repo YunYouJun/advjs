@@ -38,8 +38,8 @@ onMounted(() => {
 <template>
   <div class="project-context-view" p-3>
     <!-- Stats Cards -->
-    <div v-if="hasContext" class="stats-grid" grid grid-cols-3 mb-4 gap-2>
-      <div class="stat-card" rounded-lg bg-blue-500:10 p-3 text-center>
+    <div v-if="hasContext" class="stats-grid" mb-4 gap-2 grid grid-cols-3>
+      <div class="stat-card" p-3 text-center rounded-lg bg-blue-500:10>
         <div text-2xl text-blue font-bold>
           {{ contextStore.stats.chapters }}
         </div>
@@ -47,7 +47,7 @@ onMounted(() => {
           Chapters
         </div>
       </div>
-      <div class="stat-card" rounded-lg bg-green-500:10 p-3 text-center>
+      <div class="stat-card" p-3 text-center rounded-lg bg-green-500:10>
         <div text-2xl text-green font-bold>
           {{ contextStore.stats.characters }}
         </div>
@@ -55,7 +55,7 @@ onMounted(() => {
           Characters
         </div>
       </div>
-      <div class="stat-card" rounded-lg bg-purple-500:10 p-3 text-center>
+      <div class="stat-card" p-3 text-center rounded-lg bg-purple-500:10>
         <div text-2xl text-purple font-bold>
           {{ contextStore.stats.scenes }}
         </div>
@@ -68,8 +68,8 @@ onMounted(() => {
     <!-- Actions -->
     <div mb-4 flex gap-2>
       <button
-        class="btn" flex-1 rounded bg-blue-600 px-3 py-1.5 text-sm text-white
-        hover:bg-blue-700
+        class="adv-btn"
+        text-sm text-white px-3 py-1.5 rounded bg-blue-600 flex-1 hover:bg-blue-700
         @click="loadFromProject"
       >
         <div i-ri-refresh-line mr-1 inline-block />
@@ -77,8 +77,8 @@ onMounted(() => {
       </button>
       <button
         v-if="hasContext"
-        class="btn" flex-1 rounded bg-green-600 px-3 py-1.5 text-sm text-white
-        hover:bg-green-700
+        class="adv-btn"
+        text-sm text-white px-3 py-1.5 rounded bg-green-600 flex-1 hover:bg-green-700
         @click="copyContextForAI"
       >
         <div i-ri-clipboard-line mr-1 inline-block />
@@ -89,62 +89,62 @@ onMounted(() => {
     <template v-if="hasContext">
       <!-- World -->
       <details v-if="contextStore.worldContent" open mb-3>
-        <summary class="cursor-pointer select-none font-bold" mb-1>
+        <summary class="font-bold cursor-pointer select-none" mb-1>
           <div i-ri-earth-line mr-1 inline-block />
           World
         </summary>
-        <pre class="context-block" overflow-auto rounded bg-gray-100 p-2 text-xs dark:bg-gray-800>{{ contextStore.worldContent }}</pre>
+        <pre class="context-block" text-xs p-2 rounded bg-gray-100 overflow-auto dark:bg-gray-800>{{ contextStore.worldContent }}</pre>
       </details>
 
       <!-- Outline -->
       <details v-if="contextStore.outlineContent" open mb-3>
-        <summary class="cursor-pointer select-none font-bold" mb-1>
+        <summary class="font-bold cursor-pointer select-none" mb-1>
           <div i-ri-file-list-3-line mr-1 inline-block />
           Outline
         </summary>
-        <pre class="context-block" overflow-auto rounded bg-gray-100 p-2 text-xs dark:bg-gray-800>{{ contextStore.outlineContent }}</pre>
+        <pre class="context-block" text-xs p-2 rounded bg-gray-100 overflow-auto dark:bg-gray-800>{{ contextStore.outlineContent }}</pre>
       </details>
 
       <!-- Chapters README -->
       <details v-if="contextStore.chaptersReadme" mb-3>
-        <summary class="cursor-pointer select-none font-bold" mb-1>
+        <summary class="font-bold cursor-pointer select-none" mb-1>
           <div i-ri-book-open-line mr-1 inline-block />
           Chapters
         </summary>
-        <pre class="context-block" overflow-auto rounded bg-gray-100 p-2 text-xs dark:bg-gray-800>{{ contextStore.chaptersReadme }}</pre>
+        <pre class="context-block" text-xs p-2 rounded bg-gray-100 overflow-auto dark:bg-gray-800>{{ contextStore.chaptersReadme }}</pre>
       </details>
 
       <!-- Characters README -->
       <details v-if="contextStore.charsReadme" mb-3>
-        <summary class="cursor-pointer select-none font-bold" mb-1>
+        <summary class="font-bold cursor-pointer select-none" mb-1>
           <div i-ri-user-line mr-1 inline-block />
           Characters
         </summary>
-        <pre class="context-block" overflow-auto rounded bg-gray-100 p-2 text-xs dark:bg-gray-800>{{ contextStore.charsReadme }}</pre>
+        <pre class="context-block" text-xs p-2 rounded bg-gray-100 overflow-auto dark:bg-gray-800>{{ contextStore.charsReadme }}</pre>
       </details>
 
       <!-- Scenes README -->
       <details v-if="contextStore.scenesReadme" mb-3>
-        <summary class="cursor-pointer select-none font-bold" mb-1>
+        <summary class="font-bold cursor-pointer select-none" mb-1>
           <div i-ri-landscape-line mr-1 inline-block />
           Scenes
         </summary>
-        <pre class="context-block" overflow-auto rounded bg-gray-100 p-2 text-xs dark:bg-gray-800>{{ contextStore.scenesReadme }}</pre>
+        <pre class="context-block" text-xs p-2 rounded bg-gray-100 overflow-auto dark:bg-gray-800>{{ contextStore.scenesReadme }}</pre>
       </details>
 
       <!-- Glossary -->
       <details v-if="contextStore.glossaryContent" mb-3>
-        <summary class="cursor-pointer select-none font-bold" mb-1>
+        <summary class="font-bold cursor-pointer select-none" mb-1>
           <div i-ri-book-2-line mr-1 inline-block />
           Glossary
         </summary>
-        <pre class="context-block" overflow-auto rounded bg-gray-100 p-2 text-xs dark:bg-gray-800>{{ contextStore.glossaryContent }}</pre>
+        <pre class="context-block" text-xs p-2 rounded bg-gray-100 overflow-auto dark:bg-gray-800>{{ contextStore.glossaryContent }}</pre>
       </details>
     </template>
 
     <!-- Empty State -->
-    <div v-else flex flex-col items-center justify-center py-8 op-50>
-      <div i-ri-folder-open-line mb-2 text-4xl />
+    <div v-else py-8 op-50 flex flex-col items-center justify-center>
+      <div i-ri-folder-open-line text-4xl mb-2 />
       <p text-sm>
         Open a project to view context
       </p>

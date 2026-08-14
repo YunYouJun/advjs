@@ -61,7 +61,7 @@ ADV.JS 是一个**文字冒险游戏创作平台**，它的用户既是创作者
 | **正文字号** | 15px (`--adv-font-body`)                       | `small` (浏览器默认约 13px)                              |
 | **交互**     | 触控：滑动、长按、Sheet                        | 键鼠：拖拽、右键菜单、快捷键                             |
 | **组件库**   | S-Components + Ionic                           | AGUI + reka-ui                                           |
-| **CSS 方案** | CSS 变量 (`--adv-*`) + Scoped CSS              | UnoCSS (presetWind3 + presetAdv) + AGUI SCSS             |
+| **CSS 方案** | CSS 变量 (`--adv-*`) + Scoped CSS              | UnoCSS (presetWind4 + presetAdv) + AGUI SCSS             |
 | **图标**     | Ionicons                                       | Carbon + RI + MDI + EP + Twemoji                         |
 
 ### 三大原则
@@ -447,7 +447,7 @@ ion-fab[vertical='bottom'] {
 | **代码编辑** | Monaco Editor（`vs-dark` 主题），通过 `nuxt-monaco-editor` 集成               |
 | **流程图**   | `@vue-flow` 节点编辑器 + `@dagrejs/dagre` 自动布局                            |
 | **组件库**   | AGUI 组件库（`AGUIPanel`, `AGUITabs`, `AGUIButton`, `AGUIInput` 等 45+ 引用） |
-| **CSS 方案** | UnoCSS (`presetWind3` + `presetAdv`) + AGUI SCSS 变量 (`--agui-*`)            |
+| **CSS 方案** | UnoCSS (`presetWind4` + `presetAdv`) + AGUI SCSS 变量 (`--agui-*`)            |
 | **交互模式** | 键鼠为主——拖拽面板、右键上下文菜单、键盘快捷键                                |
 
 #### CSS 变量层级

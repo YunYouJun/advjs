@@ -21,13 +21,10 @@
   "scripts": {
     "build": "unbuild",
     "dev": "unbuild --stub",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "pnpm run build"
   },
   "peerDependencies": {
     "unocss": "*"
-  },
-  "dependencies": {
-    "defu": "catalog:utils"
   },
   "devDependencies": {
     "unocss": "catalog:build"

@@ -1,14 +1,13 @@
+import { presetAdv } from '@advjs/unocss'
 import {
   defineConfig,
   presetAttributify,
   presetIcons,
   presetTypography,
-  presetWind3,
+  presetWind4,
   transformerDirectives,
   transformerVariantGroup,
 } from 'unocss'
-
-import { presetAdv } from '../../packages/unocss/src'
 
 const safelist = 'm-auto text-left'.split(' ')
 
@@ -20,7 +19,7 @@ export default defineConfig({
   },
 
   presets: [
-    presetWind3(),
+    presetWind4(),
     presetAttributify(),
     presetIcons({
       scale: 1.2,

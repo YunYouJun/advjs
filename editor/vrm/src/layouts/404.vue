@@ -7,7 +7,7 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <main class="px-4 py-10 text-center text-teal-700 dark:text-gray-200">
+  <main class="text-teal-700 px-4 py-10 text-center dark:text-gray-200">
     <div>
       <p class="text-4xl">
         <CarbonWarning class="inline-block" />
@@ -16,7 +16,7 @@ const { t } = useI18n()
     <RouterView />
     <div>
       <button
-        class="m-3 mt-8 btn text-sm"
+        class="text-sm adv-btn m-3 mt-8"
         @click="router.back()"
       >
         {{ t('button.back') }}

@@ -5,8 +5,6 @@ import { ViteSSG } from 'vite-ssg'
 import { routes } from 'vue-router/auto-routes'
 import App from './App.vue'
 
-import '@unocss/reset/tailwind.css'
-
 // your custom styles here
 import './styles/main.css'
 import './styles/index.scss'

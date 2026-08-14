@@ -1,3 +1,4 @@
+import { presetAdv } from '@advjs/unocss'
 import {
   createLocalFontProcessor,
 } from '@unocss/preset-web-fonts/local'
@@ -7,12 +8,10 @@ import {
   presetIcons,
   presetTypography,
   presetWebFonts,
-  presetWind3,
+  presetWind4,
   transformerDirectives,
   transformerVariantGroup,
 } from 'unocss'
-
-import { presetAdv } from '../packages/unocss/src'
 
 export default defineConfig({
   shortcuts: [
@@ -21,7 +20,7 @@ export default defineConfig({
   ],
   presets: [
     presetAdv(),
-    presetWind3(),
+    presetWind4(),
     presetAttributify(),
     presetIcons({
       scale: 1.2,

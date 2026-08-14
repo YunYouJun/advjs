@@ -44,6 +44,7 @@
     "@advjs/assets": "workspace:*",
     "@advjs/core": "workspace:*",
     "@advjs/gui": "workspace:*",
+    "@advjs/unocss": "workspace:*",
     "@dagrejs/dagre": "catalog:",
     "@google/model-viewer": "catalog:frontend",
     "@iconify-json/carbon": "catalog:icons",

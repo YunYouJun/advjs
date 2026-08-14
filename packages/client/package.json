@@ -44,7 +44,6 @@
     "@iconify-json/mdi": "catalog:icons",
     "@iconify-json/ri": "catalog:icons",
     "@unhead/vue": "catalog:frontend",
-    "@unocss/reset": "catalog:frontend",
     "@vue-flow/background": "catalog:",
     "@vue-flow/core": "catalog:frontend",
     "@vueuse/core": "catalog:frontend",

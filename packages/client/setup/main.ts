@@ -9,7 +9,6 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import { routes } from 'vue-router/auto-routes'
 import setups from '#advjs/setups/main'
 // unocss
-import '@unocss/reset/tailwind.css'
 import 'uno.css'
 // load client & theme styles
 import '#advjs/styles'

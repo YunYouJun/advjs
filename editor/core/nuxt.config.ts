@@ -90,7 +90,6 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-08-14',
 
   css: [
-    '@unocss/reset/tailwind.css',
   ],
 
   colorMode: {

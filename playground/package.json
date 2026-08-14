@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "@unhead/vue": "catalog:frontend",
-    "@unocss/reset": "catalog:frontend",
     "@vueuse/core": "catalog:frontend",
     "axios": "catalog:",
     "defu": "catalog:utils",
@@ -31,6 +30,7 @@
     "@advjs/theme-default": "workspace:*",
     "@advjs/theme-pominis": "workspace:*",
     "@advjs/types": "workspace:*",
+    "@advjs/unocss": "workspace:*",
     "@iconify-json/carbon": "catalog:icons",
     "@iconify-json/ri": "catalog:icons",
     "@iconify-json/svg-spinners": "catalog:icons",
