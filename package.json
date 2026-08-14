@@ -63,7 +63,7 @@
     "parser:build": "pnpm -C packages/parser build",
     "parser:dev": "pnpm -C packages/parser dev",
     "parser:play": "pnpm -C packages/parser play",
-    "parser:play:build": "pnpm types:build && pnpm assets:build && pnpm parser:build && pnpm core:build && pnpm -C packages/parser play:build",
+    "parser:play:build": "pnpm types:build && pnpm assets:build && pnpm unocss:build && pnpm parser:build && pnpm core:build && pnpm -C packages/parser play:build",
     "plugins:build": "pnpm -r --filter=\"./plugins/plugin-*\" run build",
     "prepare:workspace": "node scripts/prepare-workspace.mjs",
     "play:build": "pnpm -C playground build",

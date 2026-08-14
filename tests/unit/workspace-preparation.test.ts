@@ -70,7 +70,7 @@ describe('workspace preparation profiles', () => {
     expect(packageJson.scripts).toMatchObject({
       'build:demo': 'pnpm build:advjs && pnpm -C demo/starter run build',
       'editor:build': 'pnpm prepare:workspace editor && pnpm -C editor/core build',
-      'parser:play:build': 'pnpm types:build && pnpm assets:build && pnpm parser:build && pnpm core:build && pnpm -C packages/parser play:build',
+      'parser:play:build': 'pnpm types:build && pnpm assets:build && pnpm unocss:build && pnpm parser:build && pnpm core:build && pnpm -C packages/parser play:build',
       'studio:build': 'pnpm prepare:workspace studio && pnpm -C apps/studio run build',
     })
     expect(parserPackageJson.scripts['play:build']).toBe('pnpm run copy && pnpm -C playground run build')
