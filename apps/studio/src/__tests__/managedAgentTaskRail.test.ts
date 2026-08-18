@@ -1,10 +1,9 @@
-import type { AgentRun, AgentRuntime, AgentTaskSnapshot } from '../agent/core/contracts'
+import type { AgentRun, AgentRuntime, AgentTaskSnapshot } from '@advjs/agent'
+import { AGENT_PROTOCOL_VERSION, parseManagedAgentPointsAccount } from '@advjs/agent'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
-import { AGENT_PROTOCOL_VERSION } from '../agent/core/contracts'
-import { parseManagedAgentPointsAccount } from '../agent/managed/points'
 import ManagedAgentConsole from '../components/agent/ManagedAgentConsole.vue'
 import {
   resolveManagedAgentApplicationId,

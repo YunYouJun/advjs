@@ -1,0 +1,39 @@
+{
+  "name": "@advjs/agent",
+  "type": "module",
+  "version": "0.1.4",
+  "private": true,
+  "description": "Private workspace module for ADV.JS client-side agent workflows.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    },
+    "./byok-dev": {
+      "types": "./dist/byok-dev/index.d.mts",
+      "default": "./dist/byok-dev/index.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "engines": {
+    "node": ">=24.15.0"
+  },
+  "scripts": {
+    "build": "unbuild",
+    "dev": "unbuild --stub",
+    "test": "vitest run --config vitest.config.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@advjs/core": "workspace:0.1.4",
+    "@advjs/types": "workspace:0.1.4"
+  },
+  "devDependencies": {
+    "typescript": "catalog:dev",
+    "unbuild": "catalog:build",
+    "vitest": "catalog:test"
+  }
+}

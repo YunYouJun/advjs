@@ -28,4 +28,23 @@ describe('studio Vite config', () => {
     expect(clientAlias).toBeDefined()
     expect(clientAlias && existsSync(clientAlias.replacement)).toBe(true)
   })
+
+  it('uses the private agent workspace source for exact top-level imports', async () => {
+    const config = await resolveStudioConfig()
+    const aliases = config.resolve?.alias
+
+    expect(aliases).toBeInstanceOf(Array)
+    if (!Array.isArray(aliases))
+      return
+
+    const agentAlias = aliases.find(alias => (
+      typeof alias === 'object'
+      && alias.find instanceof RegExp
+      && alias.find.test('@advjs/agent')
+      && !alias.find.test('@advjs/agent/byok-dev')
+    ))
+
+    expect(agentAlias).toBeDefined()
+    expect(agentAlias && existsSync(agentAlias.replacement)).toBe(true)
+  })
 })

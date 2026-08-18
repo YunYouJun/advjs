@@ -1,12 +1,11 @@
-import type { AgentProposalCandidate } from '../agent/proposals/candidate'
-import type { FsEntry, IFileSystem } from '../utils/fs'
+import type { AgentProjectFileSystem, AgentProposalCandidate } from '../src'
 import { describe, expect, it } from 'vitest'
 import {
   AgentProposalReviewError,
   AgentProposalReviewService,
   computeAgentProjectRevision,
   createStudioAgentProjectWorkspace,
-} from '../agent/proposals/review'
+} from '../src'
 
 const initialFiles = {
   'adv.config.json': JSON.stringify({ format: 'adv-md', root: 'adv' }),
@@ -15,7 +14,7 @@ const initialFiles = {
   'adv/outline.md': '# Outline\n\nOld outline.\n',
 }
 
-class FakeFileSystem implements IFileSystem {
+class FakeFileSystem implements AgentProjectFileSystem {
   readonly backend = 'memory' as const
   readonly files: Record<string, string>
   failWriteOnceAt?: string
@@ -50,7 +49,7 @@ class FakeFileSystem implements IFileSystem {
   async exists(path: string) { return path in this.files }
   async readBlob(): Promise<Blob> { throw new Error('not used') }
   async readdir() { return [] }
-  async stat(): Promise<FsEntry> { throw new Error('not used') }
+  async stat() { throw new Error('not used') }
   async writeBlob() { throw new Error('not used') }
   async mkdir() {}
   async deleteFile() { throw new Error('not used') }

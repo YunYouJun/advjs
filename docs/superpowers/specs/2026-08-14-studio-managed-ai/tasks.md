@@ -6,7 +6,7 @@
 >
 > 技术设计：[design.md](./design.md)
 
-> 迁移说明（2026-08-18）：本文记录最初按 `www.yunle.fun/services/advjs-ai-runtime` 实施的历史路径。共享平台 Runtime 现已迁移到 `YunLeFun/api/services/ai-runtime`，ADV.JS v1 兼容层位于 `YunLeFun/api/packages/ai-runtime-advjs`；`www.yunle.fun` 仅保留冻结契约 fixture。文中的旧路径用于追溯，不代表当前部署拓扑。
+> 迁移说明（2026-08-18）：本文记录最初按 `www.yunle.fun/services/advjs-ai-runtime` 实施的历史路径。共享平台 Runtime 现已迁移到 `YunLeFun/api/services/ai-runtime`，ADV.JS v1 兼容层位于 `YunLeFun/api/packages/ai-runtime-advjs`；`www.yunle.fun` 仅保留冻结契约 fixture。客户端 Agent 代码也已从下文记录的 Studio 内部路径抽取为私有 workspace 模块 `packages/agent`。文中的旧路径用于追溯，不代表当前部署或发布边界。
 
 ## 1. 执行边界
 

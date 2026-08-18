@@ -22,6 +22,7 @@
     "release:ios": "npm run build && cap sync ios && npm run cap:open:ios"
   },
   "dependencies": {
+    "@advjs/agent": "workspace:*",
     "@advjs/client": "workspace:*",
     "@advjs/core": "workspace:*",
     "@advjs/gui": "workspace:*",

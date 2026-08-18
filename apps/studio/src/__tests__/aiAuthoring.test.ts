@@ -1,5 +1,5 @@
+import type { AgentRequest, AgentRuntime } from '@advjs/agent'
 import type { AdvCharacter } from '@advjs/types'
-import type { AgentRequest, AgentRuntime } from '../agent/core/contracts'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
 import {

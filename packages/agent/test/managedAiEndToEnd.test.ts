@@ -1,14 +1,13 @@
-import type { AgentEventEnvelope, AgentProposal, AgentTaskSnapshot, AgentUsageSummary } from '../agent/core/contracts'
-import type { FsEntry, IFileSystem } from '../utils/fs'
+import type { AgentEventEnvelope, AgentProjectFileSystem, AgentProposal, AgentTaskSnapshot, AgentUsageSummary } from '../src'
 import { describe, expect, it } from 'vitest'
-import { AGENT_PROTOCOL_VERSION } from '../agent/core/contracts'
-import { ManagedAgentRuntime } from '../agent/managed/runtime'
-import { toAgentProposalCandidate } from '../agent/proposals/candidate'
 import {
+  AGENT_PROTOCOL_VERSION,
   AgentProposalReviewService,
   computeAgentProjectRevision,
   createStudioAgentProjectWorkspace,
-} from '../agent/proposals/review'
+  ManagedAgentRuntime,
+  toAgentProposalCandidate,
+} from '../src'
 
 const initialFiles = {
   'adv.config.json': JSON.stringify({ format: 'adv-md', root: 'adv' }),
@@ -17,7 +16,7 @@ const initialFiles = {
   'adv/outline.md': '# Outline\n\nOld fixture outline.\n',
 }
 
-class FakeFileSystem implements IFileSystem {
+class FakeFileSystem implements AgentProjectFileSystem {
   readonly backend = 'memory' as const
   readonly files: Record<string, string>
 
@@ -40,7 +39,7 @@ class FakeFileSystem implements IFileSystem {
   async exists(path: string) { return path in this.files }
   async readBlob(): Promise<Blob> { throw new Error('not used') }
   async readdir() { return [] }
-  async stat(): Promise<FsEntry> { throw new Error('not used') }
+  async stat() { throw new Error('not used') }
   async writeBlob() { throw new Error('not used') }
   async mkdir() {}
   async deleteFile() { throw new Error('not used') }

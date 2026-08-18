@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ChapterFormData } from '../utils/chapterMd'
+import { toManagedChapterPath } from '@advjs/agent'
 import {
   IonButton,
   IonButtons,
@@ -17,7 +18,6 @@ import {
 } from '@ionic/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { toManagedChapterPath } from '../agent/capabilities'
 import { useManagedAuthoring } from '../composables/useManagedAuthoring'
 import { useWorldEventStore } from '../stores/useWorldEventStore'
 import { showToast } from '../utils/toast'

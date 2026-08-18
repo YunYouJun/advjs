@@ -1,7 +1,7 @@
 import type { ProjectSourcePatch } from '@advjs/core'
 import type { AdvProjectDiagnostic, AdvProjectFileMap } from '@advjs/types'
-import type { IFileSystem } from '../../utils/fs'
 import type { AgentProposalCandidate } from './candidate'
+import type { AgentProjectFileSystem } from './file-system'
 import { applyProjectPatches, compileProject } from '@advjs/core'
 
 export type AgentProposalReviewErrorCode
@@ -125,7 +125,7 @@ function fileMap(entries: readonly { content: string, path: string }[]): AdvProj
 }
 
 async function rollback(
-  fs: IFileSystem,
+  fs: AgentProjectFileSystem,
   paths: readonly string[],
   files: Readonly<AdvProjectFileMap>,
 ): Promise<void> {
@@ -135,7 +135,7 @@ async function rollback(
 
 /** Adapts Studio's active filesystem to a revision-checked project workspace. */
 export function createStudioAgentProjectWorkspace(
-  fs: IFileSystem,
+  fs: AgentProjectFileSystem,
   projectId: string,
 ): AgentProjectWorkspace {
   async function snapshot(): Promise<AgentProjectWorkspaceSnapshot> {

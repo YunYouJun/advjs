@@ -202,6 +202,10 @@ export default async function createViteConfig() {
           find: /^@advjs\/client$/,
           replacement: path.join(import.meta.dirname, '../../packages/client/embed.ts'),
         },
+        {
+          find: /^@advjs\/agent$/,
+          replacement: path.join(import.meta.dirname, '../../packages/agent/src/index.ts'),
+        },
         { find: '@', replacement: path.join(import.meta.dirname, 'src') },
         { find: '@advjs/types', replacement: path.join(import.meta.dirname, '../../packages/types/src/index.ts') },
         { find: '@advjs/parser', replacement: path.join(import.meta.dirname, '../../packages/parser/src/index.ts') },

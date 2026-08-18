@@ -1,12 +1,12 @@
 import { createHash } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
-import fixture from '../agent/contracts/fixtures/agent-runtime-v1.json'
 import {
   parseAgentEventEnvelope,
   parseAgentTaskSnapshot,
   parseCreateTaskRequest,
   parseCreateTaskResponse,
-} from '../agent/core/contracts'
+} from '../src'
+import fixture from '../src/contracts/fixtures/agent-runtime-v1.json'
 
 describe('agent runtime v1 contracts', () => {
   it('pins the cross-repository fixture payload', () => {

@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
+  clearLegacyStudioAiCredentials,
   parseManagedCapabilityResult,
   selectManagedAgentProjectFiles,
   toManagedChapterPath,
-} from '../agent/capabilities'
-import { clearLegacyStudioAiCredentials } from '../agent/managed'
+} from '../src'
 
 const files = {
   'README.md': 'private project note',

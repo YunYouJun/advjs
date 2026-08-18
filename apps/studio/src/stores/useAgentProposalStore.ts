@@ -1,13 +1,7 @@
-import type { AgentProposalCandidate } from '../agent/proposals/candidate'
-import type {
-  AgentProjectWorkspace,
-  AgentProposalReview,
-  AgentProposalReviewErrorCode,
-  AppliedAgentProposal,
-} from '../agent/proposals/review'
+import type { AgentProjectWorkspace, AgentProposalCandidate, AgentProposalReview, AgentProposalReviewErrorCode, AppliedAgentProposal } from '@advjs/agent'
+import { AgentProposalReviewError, AgentProposalReviewService } from '@advjs/agent'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { AgentProposalReviewError, AgentProposalReviewService } from '../agent/proposals/review'
 
 export interface AgentProposalUiError {
   code: AgentProposalReviewErrorCode | 'workspace_unavailable' | 'unknown'

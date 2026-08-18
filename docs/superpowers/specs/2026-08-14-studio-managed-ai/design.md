@@ -1,6 +1,6 @@
 # ADV.JS Studio 托管 AI 与 Beta 点数账本技术设计
 
-> 迁移说明（2026-08-18）：本文保留最初以 `www.yunle.fun/services/advjs-ai-runtime` 为目标的历史设计。共享平台 Runtime 现由 `YunLeFun/api/services/ai-runtime` 承载，ADV.JS v1 兼容层位于 `YunLeFun/api/packages/ai-runtime-advjs`；旧路径不再是当前部署目标。
+> 迁移说明（2026-08-18）：本文保留最初以 `www.yunle.fun/services/advjs-ai-runtime` 为目标的历史设计。共享平台 Runtime 现由 `YunLeFun/api/services/ai-runtime` 承载，ADV.JS v1 兼容层位于 `YunLeFun/api/packages/ai-runtime-advjs`；客户端 Agent 代码也已从下文记录的 Studio 内部路径抽取为私有 workspace 模块 `packages/agent`。旧路径用于追溯，不代表当前部署或发布边界。
 
 ## 1. 设计结论
 

@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { AgentTaskStatus } from '../../agent/core/contracts'
+import type { AgentTaskStatus } from '@advjs/agent'
+import { parseManagedCapabilityResult } from '@advjs/agent'
 import { IonIcon, toastController } from '@ionic/vue'
 import { alertCircleOutline, checkmarkCircleOutline, copyOutline, refreshOutline, stopCircleOutline } from 'ionicons/icons'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { parseManagedCapabilityResult } from '../../agent/capabilities'
 import { useAgentProposalStore } from '../../stores/useAgentProposalStore'
 import { useManagedAgentStore } from '../../stores/useManagedAgentStore'
 import SButton from '../ui/SButton.vue'

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AgentProposalFileReview } from '../../agent/proposals/review'
+import type { AgentProposalFileReview } from '@advjs/agent'
 import { IonIcon, IonModal } from '@ionic/vue'
 import { alertCircleOutline, checkmarkCircleOutline, closeOutline, documentTextOutline, shieldCheckmarkOutline } from 'ionicons/icons'
 import { storeToRefs } from 'pinia'
