@@ -38,7 +38,9 @@ export function parseAuthenticatedCloudbaseSession(value: unknown): Authenticate
   const session = data && isRecord(data.session) ? data.session : undefined
   if (!session || isAnonymousSession(session) || !isRecord(session.user))
     return undefined
-  const uid = session.user.uid
+  const uid = typeof session.user.uid === 'string' && session.user.uid
+    ? session.user.uid
+    : session.user.id
   const accessToken = session.access_token
   if (typeof uid !== 'string' || !uid || typeof accessToken !== 'string' || !accessToken)
     return undefined
@@ -50,7 +52,10 @@ export function parseAuthenticatedCloudbaseSession(value: unknown): Authenticate
     accessToken,
     ...(expiresAt ? { expiresAt } : {}),
     ...(refreshToken ? { refreshToken } : {}),
-    user: session.user as cloudbase.auth.IUserInfo,
+    user: {
+      ...session.user,
+      uid,
+    } as cloudbase.auth.IUserInfo,
   }
 }
 

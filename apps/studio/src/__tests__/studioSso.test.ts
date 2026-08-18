@@ -44,6 +44,17 @@ const anonymousSession = {
   },
 }
 
+const cloudbaseV3Session = {
+  data: {
+    session: {
+      access_token: 'v3-access-token-fixture',
+      refresh_token: 'v3-refresh-token-fixture',
+      expires_at: 2_000_000_000,
+      user: { id: 'v3_user_fixture', name: 'V3 Fixture User', is_anonymous: false },
+    },
+  },
+}
+
 function createAuthorization(config = STUDIO_SSO_CONFIGS.production): SsoAuthorizationResult {
   return {
     ok: true,
@@ -276,6 +287,16 @@ describe('studio SSO v3 session', () => {
     expect(store.isLoggedIn).toBe(true)
     expect(store.userInfo.uid).toBe('uid_fixture')
     expect(localStorage.getItem('advjs-studio:loginState')).toBeNull()
+  })
+
+  it('normalizes the CloudBase v3 user id into the legacy uid field', () => {
+    expect(parseAuthenticatedCloudbaseSession(cloudbaseV3Session)).toMatchObject({
+      accessToken: 'v3-access-token-fixture',
+      user: {
+        id: 'v3_user_fixture',
+        uid: 'v3_user_fixture',
+      },
+    })
   })
 
   it('rejects anonymous session parsing and refreshes an expiring runtime token', async () => {
