@@ -82,10 +82,13 @@ function createSdk(overrides: Partial<StudioSsoSdk> = {}): StudioSsoSdk {
   }
 }
 
-function createAuth(getSession: () => Promise<unknown>): StudioSsoAuth {
+function createAuth(
+  getSession: () => Promise<unknown>,
+  signInWithCustomTicket: StudioSsoAuth['signInWithCustomTicket'] = async getTicket => getTicket(),
+): StudioSsoAuth {
   return {
     getSession,
-    signInWithCustomTicket: async getTicket => getTicket(),
+    signInWithCustomTicket,
   }
 }
 
@@ -234,6 +237,33 @@ describe('studio SSO v3 session', () => {
       STUDIO_SSO_CONFIGS.production,
       { browser: createBrowser(), sdk: createSdk() },
     )).resolves.toEqual({ status: 'rejected', reason: 'anonymous_or_missing_session' })
+  })
+
+  it('surfaces a custom-ticket sign-in error instead of misreporting an anonymous session', async () => {
+    const auth = createAuth(
+      async () => anonymousSession,
+      async (getTicket) => {
+        await getTicket()
+        return {
+          data: { session: null, user: null },
+          error: { message: 'custom ticket rejected' },
+        }
+      },
+    )
+
+    await expect(consumeStudioSsoCallback(
+      auth,
+      STUDIO_SSO_CONFIGS.production,
+      {
+        browser: createBrowser(),
+        sdk: createSdk({
+          adoptSsoCode: async (adoptionAuth) => {
+            await adoptionAuth.signInWithCustomTicket(async () => 'ticket-fixture')
+            return true
+          },
+        }),
+      },
+    )).resolves.toEqual({ status: 'rejected', reason: 'authorization_exchange_failed' })
   })
 
   it('uses getSession as identity source and safely restores a legacy SDK session', async () => {

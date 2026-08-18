@@ -47,6 +47,30 @@ export type StudioSsoStartResult
   = | { status: 'authenticated', returnPath: string }
     | { status: 'redirecting' }
 
+function hasCloudbaseAuthError(value: unknown): boolean {
+  return typeof value === 'object'
+    && value !== null
+    && 'error' in value
+    && value.error !== null
+    && value.error !== undefined
+}
+
+async function adoptStudioSsoCode(
+  auth: StudioSsoAuth,
+  authorization: SsoAuthorizationResult,
+  config: StudioSsoConfig,
+  sdk: StudioSsoSdk,
+): Promise<boolean> {
+  return sdk.adoptSsoCode({
+    signInWithCustomTicket: async (getTicket) => {
+      const result = await auth.signInWithCustomTicket(getTicket)
+      if (hasCloudbaseAuthError(result))
+        throw new Error('CloudBase custom-ticket sign-in failed')
+      return result
+    },
+  }, authorization, { exchangeUrl: config.exchangeUrl })
+}
+
 function defaultBrowser(): StudioSsoBrowser {
   return {
     getHash: () => window.location.hash,
@@ -165,7 +189,7 @@ export async function adoptStudioSsoFromHost(
   if (!matchesConfig(authorization, config))
     throw new SsoIdentityAdoptionError('Host authorization does not match the registered Studio client')
 
-  const adopted = await sdk.adoptSsoCode(auth, authorization, { exchangeUrl: config.exchangeUrl })
+  const adopted = await adoptStudioSsoCode(auth, authorization, config, sdk)
   if (!adopted || !await readAuthenticatedCloudbaseSession(auth))
     throw new SsoIdentityAdoptionError('Host authorization did not establish a Studio session')
   return true
@@ -193,7 +217,7 @@ export async function consumeStudioSsoCallback(
     return { status: 'rejected', reason: 'client_binding_invalid' }
 
   try {
-    const adopted = await sdk.adoptSsoCode(auth, authorization, { exchangeUrl: config.exchangeUrl })
+    const adopted = await adoptStudioSsoCode(auth, authorization, config, sdk)
     if (!adopted)
       return { status: 'rejected', reason: 'authorization_adoption_failed' }
     if (!await readAuthenticatedCloudbaseSession(auth))
