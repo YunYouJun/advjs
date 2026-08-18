@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="ADV.JS Studio">
+  <path fill="#7c3aed" fill-rule="evenodd" d="M7 56 24 8h16l17 48H45.5l-4.2-12H22.7l-4.2 12H7Zm19.1-22h11.8L32 17.2 26.1 34Z"/>
+  <path fill="none" stroke="#7c3aed" stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M32 25v9m0 5-8 8m8-8 8 8"/>
+  <circle cx="32" cy="38" r="5" fill="#ff6b5f" stroke="#fff" stroke-width="2"/>
+</svg>
