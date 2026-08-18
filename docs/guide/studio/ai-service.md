@@ -4,10 +4,18 @@ ADV.JS 为在线 Studio 和本地 Editor 采用不同的 AI 产品边界。两�
 
 Studio 的共享 AI Runtime 当前由 `YunLeFun/api` 仓库中的 `services/ai-runtime` 承载，ADV.JS v1 传输兼容层位于同仓库的 `packages/ai-runtime-advjs`。`www.yunle.fun` 只保留冻结的 v1 契约 fixture，不再承载独立 Runtime。
 
+Studio 的客户端 Agent 契约、传输、任务状态机和提案审阅集中在私有 workspace 模块 `@advjs/agent`。该模块当前不作为公共 npm 包发布；生产入口不导出 BYOK 适配器。
+
 | 产品   | 定位                             | AI 执行位置                                    | 身份与费用                                 | BYOK                 |
 | ------ | -------------------------------- | ---------------------------------------------- | ------------------------------------------ | -------------------- |
 | Studio | 面向普通创作者的 Web/移动端 SaaS | 云端托管 Runtime                               | 云乐坊 SSO；按 AI 点数预占并按实际用量结算 | 生产版不提供         |
 | Editor | 面向专业创作者的本地生产力工具   | Codex、Claude Code、Cursor 等本地 Agent 工作流 | 用户自行选择本地工具或供应商               | 可由本地开发工具管理 |
+
+## 计费策略归属
+
+托管 AI 的产品目标倍率为供应商实际成本的 1.5 倍。该倍率不是 Studio 常量，也不由 `@advjs/agent` 计算：`YunLeFun/api` 的共享 Runtime 通过版本化 pricing policy 决定预占与结算，`www.yunle.fun` 的 account-api 只执行 Runtime 给出的整数 microPoints 账务操作。Admin 只能通过受信的 Runtime 控制面变更策略，并记录操作者、原因、幂等键和审计信息。
+
+Studio 只展示服务端返回的预占、实际扣点和生效策略说明；当服务端没有返回可公开的计费策略时，客户端不得猜测倍率或展示硬编码价格。1.5 倍策略只有在 Runtime 新建 pricing version、完成单独的生产 Gate 并启用后才正式生效，历史任务继续保留调用时的 pricing snapshot。
 
 ## Studio 当前开放的能力
 

@@ -15,7 +15,7 @@ const apiRoot = resolve(process.env.YUNLEFUN_API_ROOT || resolve(advjsRoot, '../
 const adminRoot = resolve(process.env.YUNLEFUN_ADMIN_REPO_ROOT || resolve(advjsRoot, '../admin'))
 
 const fixtures = [
-  resolve(advjsRoot, 'apps/studio/src/agent/contracts/fixtures/agent-runtime-v1.json'),
+  resolve(advjsRoot, 'packages/agent/src/contracts/fixtures/agent-runtime-v1.json'),
   resolve(yunlefunRoot, 'tests/fixtures/ai-runtime/agent-runtime-v1.json'),
   resolve(apiRoot, 'packages/ai-runtime-advjs/src/contracts/fixtures/agent-runtime-v1.json'),
   resolve(adminRoot, 'tests/fixtures/agent-runtime-v1.json'),

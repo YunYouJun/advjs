@@ -45,6 +45,7 @@ Managed with pnpm workspaces. Dependency versions use pnpm catalogs (defined in 
 - **`@advjs/assets`** — Platform-neutral asset catalog and authoring workflow primitives
 - **`@advjs/parser`** — Markdown-to-AST parser using unified/remark ecosystem. Parses `.adv.md` files into a structured AST for the game engine
 - **`@advjs/core`** — Core engine library: game engine runtime, session management, i18n, VRM model support
+- **`@advjs/agent`** — Private workspace module for Studio agent contracts, managed transport, task state, capabilities, and proposal review; BYOK remains an explicit dev-only subpath
 - **`advjs`** — Main entry package with CLI (`adv` binary), Vite plugin integration, node/client split architecture, theme resolution
 - **`@advjs/client`** — Vue 3 client app: pages, layouts, components, composables, Pixi.js integration
 - **`@advjs/gui`** — GUI components (publishable)

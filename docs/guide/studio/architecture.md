@@ -77,7 +77,7 @@ Studio 保持 Local-First：章节、角色卡、设置与资源分片通过统�
 
 ## 托管 AI 状态与数据流
 
-Studio 生产版不再使用浏览器 Provider 配置 store。AI 状态分成两层：框架无关的 `AgentRuntime` 负责协议、SSE 恢复和任务状态机；Pinia 只负责把当前任务、点数和提案审阅状态投影到界面。
+Studio 生产版不再使用浏览器 Provider 配置 store。AI 状态分成两层：私有 workspace 模块 `@advjs/agent` 中框架无关的 `AgentRuntime` 负责协议、SSE 恢复和任务状态机；Pinia 只负责把当前任务、点数和提案审阅状态投影到界面。
 
 ```mermaid
 flowchart LR
@@ -94,12 +94,12 @@ flowchart LR
 
 核心职责：
 
-| 模块                    | 职责                                    | 持久化边界          |
-| ----------------------- | --------------------------------------- | ------------------- |
-| `useStudioStore`        | 当前项目、项目列表和 workspace 生命周期 | 项目元数据/本地句柄 |
-| `useSettingsStore`      | 外观、语言等非敏感偏好                  | 本地设置            |
-| `useManagedAgentStore`  | 点数、active task、SSE 恢复和取消       | 服务端任务是真源    |
-| `useAgentProposalStore` | 候选预览、显式应用和撤销                | 未确认候选不写项目  |
-| `AgentRuntime`          | 版本协议、错误归一、流恢复              | 不持有 Provider key |
+| 模块                    | 职责                                    | 持久化边界                             |
+| ----------------------- | --------------------------------------- | -------------------------------------- |
+| `useStudioStore`        | 当前项目、项目列表和 workspace 生命周期 | 项目元数据/本地句柄                    |
+| `useSettingsStore`      | 外观、语言等非敏感偏好                  | 本地设置                               |
+| `useManagedAgentStore`  | 点数、active task、SSE 恢复和取消       | 服务端任务是真源                       |
+| `useAgentProposalStore` | 候选预览、显式应用和撤销                | 未确认候选不写项目                     |
+| `@advjs/agent`          | 版本协议、错误归一、流恢复和提案审阅    | 私有 workspace 包；不持有 Provider key |
 
 模型、供应商、提示词、价格和安全策略都是服务端配置。生产构建同时扫描模块图和最终 JavaScript；旧 BYOK store、直连客户端或未批准供应商域名一旦进入 bundle 就会构建失败。暂未登记的聊天、抽取、Embedding、图片和 TTS 等能力保持隐藏或 fail closed。用户产品边界见 [Studio 托管 AI 与 Editor 本地 Agent](./ai-service)。

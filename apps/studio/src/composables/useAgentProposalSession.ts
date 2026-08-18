@@ -1,6 +1,6 @@
+import { createStudioAgentProjectWorkspace } from '@advjs/agent'
 import { storeToRefs } from 'pinia'
 import { onBeforeUnmount, watch } from 'vue'
-import { createStudioAgentProjectWorkspace } from '../agent/proposals/review'
 import { useAgentProposalStore } from '../stores/useAgentProposalStore'
 import { useManagedAgentStore } from '../stores/useManagedAgentStore'
 import { useStudioStore } from '../stores/useStudioStore'

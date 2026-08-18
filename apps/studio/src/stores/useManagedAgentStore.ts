@@ -1,10 +1,7 @@
-import type { AgentError, AgentRequest, AgentRuntime, AgentTaskStatus } from '../agent/core/contracts'
-import type { AgentTaskState } from '../agent/core/task-store'
-import type { ManagedAgentPointsAccount, ManagedAgentPointsReader } from '../agent/managed/points'
+import type { AgentError, AgentRequest, AgentRuntime, AgentTaskState, AgentTaskStatus, ManagedAgentPointsAccount, ManagedAgentPointsReader } from '@advjs/agent'
+import { AgentTaskStore, normalizeAgentRuntimeError } from '@advjs/agent'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { normalizeAgentRuntimeError } from '../agent/core/errors'
-import { AgentTaskStore } from '../agent/core/task-store'
 
 const ACTIVE_STATUSES = new Set<AgentTaskStatus>([
   'authorizing',

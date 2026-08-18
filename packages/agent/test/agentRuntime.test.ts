@@ -5,13 +5,11 @@ import type {
   AgentRuntime,
   AgentTaskSnapshot,
   AgentUsageSummary,
-} from '../agent/core/contracts'
+} from '../src'
 import { describe, expect, it } from 'vitest'
-import * as productionAgent from '../agent'
-import { ByokDevAgentRuntime } from '../agent/byok-dev/runtime'
-import { AGENT_PROTOCOL_VERSION } from '../agent/core/contracts'
-import { AgentTaskStore } from '../agent/core/task-store'
-import { ManagedAgentRuntime } from '../agent/managed/runtime'
+import * as productionAgent from '../src'
+import { AGENT_PROTOCOL_VERSION, AgentTaskStore, ManagedAgentRuntime } from '../src'
+import { ByokDevAgentRuntime } from '../src/byok-dev'
 
 const usage: AgentUsageSummary = {
   inputTokens: 1,

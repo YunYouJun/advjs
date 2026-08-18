@@ -1,7 +1,7 @@
+import { clearLegacyStudioAiCredentials } from '@advjs/agent'
 import { IonicVue } from '@ionic/vue'
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
-import { clearLegacyStudioAiCredentials } from './agent/managed'
 import App from './App.vue'
 import { resolveStudioSsoConfig } from './auth/sso-config'
 /* CloudBase auth restore */

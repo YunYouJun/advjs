@@ -1,11 +1,16 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 const studioRoot = resolve(import.meta.dirname, '../..')
+const repositoryRoot = resolve(studioRoot, '../..')
 
 function readStudioFile(path: string): string {
   return readFileSync(resolve(studioRoot, path), 'utf8')
+}
+
+function readRepositoryFile(path: string): string {
+  return readFileSync(resolve(repositoryRoot, path), 'utf8')
 }
 
 describe('studio managed AI production boundary', () => {
@@ -82,9 +87,11 @@ describe('studio managed AI production boundary', () => {
 
   it('runs the one-way credential cleanup before app services start', () => {
     const main = readStudioFile('src/main.ts')
-    const cleanup = readStudioFile('src/agent/managed/legacy-credentials.ts')
+    const cleanup = readRepositoryFile('packages/agent/src/managed/legacy-credentials.ts')
 
     expect(main.indexOf('clearLegacyStudioAiCredentials()')).toBeLessThan(main.indexOf('const pinia = createPinia()'))
+    expect(main).toContain('from \'@advjs/agent\'')
+    expect(existsSync(resolve(studioRoot, 'src/agent'))).toBe(false)
     expect(cleanup).toContain('storage.removeItem(key)')
     expect(cleanup).not.toContain('getItem')
   })

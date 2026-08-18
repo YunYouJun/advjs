@@ -1,6 +1,6 @@
 # ADV.JS Studio 托管 AI 与 Beta 点数账本技术设计
 
-> 迁移说明（2026-08-18）：本文保留最初以 `www.yunle.fun/services/advjs-ai-runtime` 为目标的历史设计。共享平台 Runtime 现由 `YunLeFun/api/services/ai-runtime` 承载，ADV.JS v1 兼容层位于 `YunLeFun/api/packages/ai-runtime-advjs`；旧路径不再是当前部署目标。
+> 迁移说明（2026-08-18）：本文保留最初以 `www.yunle.fun/services/advjs-ai-runtime` 为目标的历史设计。共享平台 Runtime 现由 `YunLeFun/api/services/ai-runtime` 承载，ADV.JS v1 兼容层位于 `YunLeFun/api/packages/ai-runtime-advjs`；客户端 Agent 代码也已从下文记录的 Studio 内部路径抽取为私有 workspace 模块 `packages/agent`。旧路径用于追溯，不代表当前部署或发布边界。
 
 ## 1. 设计结论
 
@@ -621,6 +621,8 @@ minimumCharge = 0
 ```
 
 即用户点数按实际供应商成本 1:1 映射，不额外加价。未来如果调整价格，只能新建 policy/pricing version；历史 usage 必须保留调用时快照。
+
+> 2026-08-18 产品决策：后续托管 AI 目标倍率调整为 1.5 倍，即新策略使用 `userRateBps = 15,000`。本节的 1:1 数值保留为首期 Beta 已实现基线，不得覆写历史 snapshot。新倍率由 `YunLeFun/api` Runtime 创建新的 pricing version，并经独立生产 Gate 启用；ADV.JS 客户端不得硬编码倍率或自行计算扣点。
 
 ### 10.3 预占事务
 

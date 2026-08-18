@@ -5,10 +5,10 @@ import type {
   StudioSsoBrowser,
   StudioSsoSdk,
 } from '../auth/studio-sso'
+import { ManagedAgentRuntime } from '@advjs/agent'
 import { SsoIdentityAdoptionError } from '@yunlefun/sso/browser'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { ManagedAgentRuntime } from '../agent/managed/runtime'
 import {
   createRuntimeAccessTokenGetter,
   getRuntimeAccessToken,

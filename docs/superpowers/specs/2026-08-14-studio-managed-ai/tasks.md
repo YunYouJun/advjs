@@ -6,7 +6,7 @@
 >
 > 技术设计：[design.md](./design.md)
 
-> 迁移说明（2026-08-18）：本文记录最初按 `www.yunle.fun/services/advjs-ai-runtime` 实施的历史路径。共享平台 Runtime 现已迁移到 `YunLeFun/api/services/ai-runtime`，ADV.JS v1 兼容层位于 `YunLeFun/api/packages/ai-runtime-advjs`；`www.yunle.fun` 仅保留冻结契约 fixture。文中的旧路径用于追溯，不代表当前部署拓扑。
+> 迁移说明（2026-08-18）：本文记录最初按 `www.yunle.fun/services/advjs-ai-runtime` 实施的历史路径。共享平台 Runtime 现已迁移到 `YunLeFun/api/services/ai-runtime`，ADV.JS v1 兼容层位于 `YunLeFun/api/packages/ai-runtime-advjs`；`www.yunle.fun` 仅保留冻结契约 fixture。客户端 Agent 代码也已从下文记录的 Studio 内部路径抽取为私有 workspace 模块 `packages/agent`。文中的旧路径用于追溯，不代表当前部署或发布边界。
 
 ## 1. 执行边界
 
@@ -405,7 +405,8 @@ _Requirements: R2-R10, R12, 8_
 
 ### T21. [Beta 放量门禁] 发放点数与逐能力开放
 
-- [ ] 确认 `initialGrantMicroPoints`、首批 uid 白名单、20 tasks/day、500 AI points/day 和 ¥50/day 平台硬上限。
+- [ ] 确认 `initialGrantMicroPoints`、首批 uid 白名单、20 tasks/day、500 AI points/day、¥50/day 平台硬上限，以及 1.5 倍目标倍率对应的新 pricing version（`userRateBps = 15,000`）。
+- [ ] 在 `YunLeFun/api` Runtime 的独立生产 Gate 中发布并启用新 pricing version；ADV.JS 只消费服务端预占/结算结果，不保存或计算倍率。
 - [ ] 通过 account-api 赠送交易发放 Beta 点数，不直接修改余额文档。
 - [ ] 先仅对管理员开启一个低成本能力，再逐项开启其余能力；每次开关变化留下审计记录。
 - [ ] 观察任务成功率、取消率、解析/安全失败、平台实际成本、用户扣点和对账差异。

@@ -6,17 +6,19 @@
  */
 
 import type {
+  AgentCapabilityId,
   AgentCapabilityInputMap,
   AgentCapabilityInvocation,
   AgentCapabilityMeta,
-} from '../../agent/capabilities/catalog'
-import type { AgentCapabilityId, AgentRun, AgentRuntime } from '../../agent/core/contracts'
+  AgentRun,
+  AgentRuntime,
+} from '@advjs/agent'
 import {
   AGENT_CAPABILITY_META,
   getAgentCapability,
   invokeAgentCapability,
   listAgentCapabilities,
-} from '../../agent/capabilities/catalog'
+} from '@advjs/agent'
 
 export type AgentToolId = AgentCapabilityId
 export type AgentToolCategory = AgentCapabilityMeta['category']

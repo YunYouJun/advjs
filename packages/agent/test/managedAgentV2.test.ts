@@ -1,7 +1,6 @@
-import type { AgentProposal, AgentUsageSummary } from '../agent/core/contracts'
+import type { AgentProposal, AgentUsageSummary } from '../src'
 import { describe, expect, it } from 'vitest'
-import { ManagedAgentPointsClient } from '../agent/managed/points'
-import { ManagedAgentRuntime } from '../agent/managed/runtime'
+import { ManagedAgentPointsClient, ManagedAgentRuntime } from '../src'
 
 const applicationId = 'ai-runtime-dev-synthetic'
 const taskId = 'task_v2_fixture'

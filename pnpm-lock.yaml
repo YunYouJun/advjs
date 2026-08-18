@@ -869,6 +869,9 @@ importers:
 
   apps/studio:
     dependencies:
+      '@advjs/agent':
+        specifier: workspace:*
+        version: link:../../packages/agent
       '@advjs/client':
         specifier: workspace:*
         version: link:../../packages/client
@@ -1596,6 +1599,25 @@ importers:
       unbuild:
         specifier: catalog:build
         version: 3.6.1(sass@1.102.0)(typescript@5.9.3)(vue-tsc@3.3.9(typescript@5.9.3))(vue@3.5.41(typescript@5.9.3))
+
+  packages/agent:
+    dependencies:
+      '@advjs/core':
+        specifier: workspace:0.1.4
+        version: link:../core
+      '@advjs/types':
+        specifier: workspace:0.1.4
+        version: link:../types
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+      unbuild:
+        specifier: catalog:build
+        version: 3.6.1(sass@1.102.0)(typescript@5.9.3)(vue-tsc@3.3.9(typescript@5.9.3))(vue@3.5.41(typescript@5.9.3))
+      vitest:
+        specifier: catalog:test
+        version: 4.1.10(@types/node@24.13.3)(@vitest/ui@4.1.10)(jsdom@30.0.1)(msw@2.15.0(@types/node@24.13.3)(typescript@5.9.3))(vite@8.2.0(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.102.0)(terser@5.49.2)(tsx@4.23.9)(yaml@2.9.0))
 
   packages/ai:
     dependencies:
