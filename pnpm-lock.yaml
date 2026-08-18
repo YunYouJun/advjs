@@ -265,6 +265,9 @@ catalogs:
     '@xterm/addon-fit':
       specifier: 0.11.0
       version: 0.11.0
+    '@yunlefun/sso':
+      specifier: ^0.6.2
+      version: 0.6.2
     '@yunyoujun/docs':
       specifier: ^0.1.14
       version: 0.1.14
@@ -923,6 +926,9 @@ importers:
       '@vueuse/core':
         specifier: catalog:frontend
         version: 14.4.0(vue@3.5.41(typescript@5.9.3))
+      '@yunlefun/sso':
+        specifier: 'catalog:'
+        version: 0.6.2
       dexie:
         specifier: 'catalog:'
         version: 4.4.4
@@ -7140,6 +7146,9 @@ packages:
 
   '@xtuc/long@4.2.2':
     resolution: {integrity: sha512-NuHqBY1PB/D8xU6s/thBgOAiAP7HOYDQ32+BFZILJ8ivkUkAHQnWfn6WhL79Owj1qmUnoN/YPhktdIoucipkAQ==}
+
+  '@yunlefun/sso@0.6.2':
+    resolution: {integrity: sha512-53XQA8uGpotYEo3ewgiP+osF/aZFfV24aNGK2vXXn4GYRnHdSS7/7M6WaGXiwO2VqBVJvRrHHbWIxgtuTctfiQ==}
 
   '@yunyoujun/docs@0.1.14':
     resolution: {integrity: sha512-SbSRB0QKLVzXDU6kkumAtEcLskPXD4GhWefYhbSokFiyD1sjB2Rogy6bymDvWmzD28T8UwmaekerXVBUBC1lpA==}
@@ -20014,6 +20023,10 @@ snapshots:
   '@xtuc/ieee754@1.2.0': {}
 
   '@xtuc/long@4.2.2': {}
+
+  '@yunlefun/sso@0.6.2':
+    dependencies:
+      jose: 6.2.8
 
   '@yunyoujun/docs@0.1.14(vite@8.2.0(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.102.0)(terser@5.49.2)(tsx@4.23.9)(yaml@2.9.0))':
     dependencies:

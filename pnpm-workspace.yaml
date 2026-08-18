@@ -100,6 +100,7 @@ catalog:
   '@vue-flow/minimap': ^1.5.4
   '@vue-flow/node-resizer': ^1.5.1
   '@xterm/addon-fit': 0.11.0
+  '@yunlefun/sso': ^0.6.2
   '@yunyoujun/docs': ^0.1.14
   ajv: ^8.20.0
   ajv-formats: ^3.0.1

@@ -163,7 +163,7 @@ async function clearTelemetryQueue() {
         <!-- External links -->
         <p class="footer-text">
           <a
-            href="https://advjs.org/privacy"
+            href="/privacy"
             target="_blank"
             rel="noopener noreferrer"
           >

@@ -2,7 +2,9 @@ import { IonicVue } from '@ionic/vue'
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import App from './App.vue'
+import { resolveStudioSsoConfig } from './auth/sso-config'
 /* CloudBase auth restore */
+import { adoptStudioSsoFromHost, consumeStudioSsoCallback } from './auth/studio-sso'
 import { useCloudbaseApp, useCloudbaseAuth } from './composables/useCloudbase'
 import i18n from './i18n'
 
@@ -71,6 +73,8 @@ const app = createApp(App)
   .use(i18n)
   .use(router)
 
+let hostIdentitySyncRegistered = false
+
 /* Global error handler — catches uncaught errors from components */
 app.config.errorHandler = (err, _instance, info) => {
   console.error(`[Vue Error] ${info}:`, err)
@@ -90,19 +94,62 @@ window.addEventListener('unhandledrejection', (event) => {
   })
 })
 
-Promise.all([router.isReady(), dbReady]).then(() => {
-  app.mount('#app')
-  initCapacitorPlugins()
-
-  // Restore CloudBase login session on app startup
+async function restoreCloudbaseSession(): Promise<void> {
   try {
     const auth = app.runWithContext(() => useCloudbaseAuth())
-    const authStore = useAuthStore()
-    authStore.refreshLoginState(auth)
+    const authStore = useAuthStore(pinia)
+    const ssoConfig = resolveStudioSsoConfig(window.location.origin)
+    const callback = ssoConfig
+      ? await consumeStudioSsoCallback(auth, ssoConfig)
+      : { status: 'none' as const }
+    await authStore.restoreSession(auth)
+    if (callback.status === 'authenticated') {
+      await router.replace(callback.returnPath)
+    }
+    else if (callback.status === 'rejected') {
+      authStore.setAuthError(callback.reason)
+      await router.replace({ path: '/login', query: { ssoError: callback.reason } })
+    }
+    registerHostIdentitySync(auth, authStore, ssoConfig)
   }
   catch {
     // CloudBase not configured — skip auth restore
   }
+}
+
+function registerHostIdentitySync(
+  auth: ReturnType<typeof useCloudbaseAuth>,
+  authStore: ReturnType<typeof useAuthStore>,
+  ssoConfig: ReturnType<typeof resolveStudioSsoConfig>,
+): void {
+  if (hostIdentitySyncRegistered)
+    return
+  hostIdentitySyncRegistered = true
+
+  window.addEventListener('ylf:identityChanged', () => {
+    void (async () => {
+      await auth.signOut().catch(() => undefined)
+      authStore.clearSession()
+      authStore.setAuthError()
+      if (!ssoConfig)
+        return
+
+      try {
+        if (await adoptStudioSsoFromHost(auth, ssoConfig))
+          await authStore.restoreSession(auth)
+      }
+      catch (error) {
+        authStore.setAuthError(error instanceof Error ? error.message : 'Could not synchronize the host account.')
+      }
+    })()
+  })
+}
+
+async function bootstrap(): Promise<void> {
+  await Promise.all([router.isReady(), dbReady])
+  await restoreCloudbaseSession()
+  app.mount('#app')
+  initCapacitorPlugins()
 
   // Wire telemetry — opt-in dialog is shown by `TelemetryOptInPrompt.vue`.
   try {
@@ -113,4 +160,6 @@ Promise.all([router.isReady(), dbReady]).then(() => {
     // CloudBase not configured — telemetry stays in queue-only mode
   }
   startTelemetry()
-})
+}
+
+void bootstrap()

@@ -166,6 +166,10 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('@/views/LoginPage.vue'),
   },
   {
+    path: '/privacy',
+    component: () => import('@/views/PrivacyPolicyPage.vue'),
+  },
+  {
     path: '/editor',
     component: () => import('@/views/EditorPage.vue'),
   },

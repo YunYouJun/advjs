@@ -19,8 +19,15 @@ export const cloudbasePlugin: Plugin = {
       return
     }
 
-    const cloudApp = cloudbase.init({ env: envId })
-    const auth = cloudApp.auth()
+    const region = import.meta.env.VITE_TCB_REGION || 'ap-shanghai'
+    const accessKey = import.meta.env.VITE_TCB_ACCESS_KEY
+    const cloudApp = cloudbase.init({
+      env: envId,
+      region,
+      auth: { detectSessionInUrl: false },
+      ...(accessKey ? { accessKey } : {}),
+    })
+    const auth = cloudApp.auth({ persistence: 'local' })
     configureManagedCloudSync(cloudApp)
 
     app.provide(cloudbaseAppInjectionKey, cloudApp)

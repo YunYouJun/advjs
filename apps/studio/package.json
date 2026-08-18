@@ -41,6 +41,7 @@
     "@mozilla/readability": "catalog:",
     "@tanstack/vue-virtual": "catalog:",
     "@vueuse/core": "catalog:frontend",
+    "@yunlefun/sso": "catalog:",
     "dexie": "catalog:",
     "diff": "catalog:",
     "ionicons": "catalog:",

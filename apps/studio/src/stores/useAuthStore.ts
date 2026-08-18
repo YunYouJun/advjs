@@ -1,131 +1,106 @@
 import type cloudbase from '@cloudbase/js-sdk'
-import { useStorage } from '@vueuse/core'
+import type { AuthenticatedCloudbaseSession } from '../auth/cloudbase-session'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import { readAuthenticatedCloudbaseSession } from '../auth/cloudbase-session'
+
+const LEGACY_LOGIN_STATE_KEY = 'advjs-studio:loginState'
 
 /**
- * Auth Store — manages CloudBase login state for ADV.JS Studio.
+ * CloudBase session view for ADV.JS Studio.
  *
- * Shares the same CloudBase environment as yunle.fun (云乐坊).
- * Login is optional: all features work offline, login unlocks
- * cloud sync and publishing.
+ * The SDK's persistent session is the storage source; this store only mirrors
+ * a verified, non-anonymous getSession() result for reactive UI consumers.
  */
 export const useAuthStore = defineStore('auth', () => {
-  /**
-   * Persisted login state for quick UI checks.
-   * CloudBase SDK also maintains its own token in localStorage.
-   */
-  const loginState = useStorage<cloudbase.auth.ILoginState | null>(
-    'advjs-studio:loginState',
-    null,
-  )
-
+  const session = ref<AuthenticatedCloudbaseSession>()
   const userInfo = ref<cloudbase.auth.IUserInfo>({})
+  const isRestoring = ref(true)
+  const authError = ref<string>()
 
-  /**
-   * Whether the auth state is being restored from CloudBase SDK.
-   * True on startup until refreshLoginState finishes.
-   */
-  const isRestoring = ref(loginState.value !== null)
+  const isLoggedIn = computed(() => Boolean(session.value && userInfo.value.uid))
 
-  const isLoggedIn = computed(() => {
-    return loginState.value !== null && Object.keys(userInfo.value).length > 0
-  })
-
-  /**
-   * Display name with fallback chain.
-   */
   const displayName = computed(() => {
     return userInfo.value.name
+      || userInfo.value.displayName
       || userInfo.value.username
       || '匿名用户'
   })
 
-  /**
-   * Masked phone number for display (e.g. 138****1234).
-   */
   const maskedPhone = computed(() => {
-    const phone = (userInfo.value as Record<string, any>).phone as string | undefined
-    if (!phone || phone.length < 7)
+    const source = userInfo.value as unknown as Record<string, unknown>
+    const phone = typeof source.phone_number === 'string'
+      ? source.phone_number
+      : typeof source.phone === 'string' ? source.phone : ''
+    if (phone.length < 7)
       return ''
     return `${phone.slice(0, 3)}****${phone.slice(-4)}`
   })
 
-  /**
-   * Set login state after successful sign-in.
-   */
-  function setLoginState(state: cloudbase.auth.ILoginState) {
-    loginState.value = state
+  function clearSession(): void {
+    session.value = undefined
+    userInfo.value = {}
   }
 
-  /**
-   * Load user info from CloudBase auth instance.
-   */
-  async function loadUserInfo(auth: cloudbase.auth.App) {
-    try {
-      const user = await auth.getUserInfo?.()
-      if (user)
-        userInfo.value = user
-    }
-    catch {
-      // ignore
-    }
+  function setAuthError(message?: string): void {
+    authError.value = message
   }
 
-  /**
-   * Refresh login state from CloudBase SDK.
-   * Call on app startup to restore session.
-   */
-  async function refreshLoginState(auth: cloudbase.auth.App) {
+  async function restoreSession(auth: cloudbase.auth.App): Promise<boolean> {
+    isRestoring.value = true
+    authError.value = undefined
     try {
-      let state: cloudbase.auth.ILoginState | null = null
-      if (typeof auth.hasLoginState === 'function')
-        state = auth.hasLoginState()
-      else if (typeof auth.getLoginState === 'function')
-        state = await auth.getLoginState()
-
-      if (state) {
-        loginState.value = state
-        await loadUserInfo(auth)
+      const current = await readAuthenticatedCloudbaseSession(auth)
+      if (!current) {
+        clearSession()
+        return false
       }
-      else {
-        loginState.value = null
-        userInfo.value = {}
-      }
+      session.value = current
+      userInfo.value = current.user
+      removeLegacyLoginStateMarker()
+      return true
     }
-    catch {
-      loginState.value = null
-      userInfo.value = {}
+    catch (error) {
+      clearSession()
+      authError.value = error instanceof Error ? error.message : 'Could not restore the CloudBase session.'
+      return false
     }
     finally {
       isRestoring.value = false
     }
   }
 
-  /**
-   * Sign out and clear all auth state.
-   */
-  async function logout(auth: cloudbase.auth.App) {
+  async function logout(auth: cloudbase.auth.App): Promise<void> {
     try {
-      await auth.signOut?.()
+      await auth.signOut()
     }
-    catch {
-      // ignore
+    finally {
+      clearSession()
+      authError.value = undefined
+      removeLegacyLoginStateMarker()
     }
-    loginState.value = null
-    userInfo.value = {}
   }
 
   return {
-    loginState,
+    session,
     userInfo,
     isLoggedIn,
     isRestoring,
+    authError,
     displayName,
     maskedPhone,
-    setLoginState,
-    loadUserInfo,
-    refreshLoginState,
+    clearSession,
+    setAuthError,
+    restoreSession,
     logout,
   }
 })
+
+function removeLegacyLoginStateMarker(): void {
+  try {
+    localStorage.removeItem(LEGACY_LOGIN_STATE_KEY)
+  }
+  catch {
+    // The SDK session remains authoritative when storage is unavailable.
+  }
+}

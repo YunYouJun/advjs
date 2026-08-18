@@ -1,0 +1,23 @@
+{
+  "clientId": "advjs-studio-web",
+  "appId": "advjs-studio",
+  "scope": ["identity:bootstrap"],
+  "production": {
+    "origin": "https://studio.advjs.org",
+    "redirectUri": "https://studio.advjs.org/",
+    "ssoOrigin": "https://www.yunle.fun",
+    "exchangeUrl": "https://api.yunle.fun/sso-ticket"
+  },
+  "firstPartyProduction": {
+    "origin": "https://advjs.yunle.fun",
+    "redirectUri": "https://advjs.yunle.fun/",
+    "ssoOrigin": "https://www.yunle.fun",
+    "exchangeUrl": "https://api.yunle.fun/sso-ticket"
+  },
+  "development": {
+    "origin": "https://advjs-studio.yunle.localhost:3455",
+    "redirectUri": "https://advjs-studio.yunle.localhost:3455/",
+    "ssoOrigin": "https://www.yunle.localhost:3000",
+    "exchangeUrl": "https://api.yunle.localhost:3000/sso-ticket"
+  }
+}
