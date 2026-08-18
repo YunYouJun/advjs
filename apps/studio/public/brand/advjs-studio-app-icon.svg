@@ -1,6 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="ADV.JS Studio">
-  <rect width="64" height="64" fill="#7c3aed"/>
-  <path fill="#fff" fill-rule="evenodd" d="M7 56 24 8h16l17 48H45.5l-4.2-12H22.7l-4.2 12H7Zm19.1-22h11.8L32 17.2 26.1 34Z"/>
-  <path fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M32 25v9m0 5-8 8m8-8 8 8"/>
-  <circle cx="32" cy="38" r="5" fill="#ff6b5f" stroke="#fff" stroke-width="2"/>
+  <defs>
+    <radialGradient id="a" cx="50%" cy="42%" r="72%">
+      <stop offset="0" stop-color="#5b2dd6"/>
+      <stop offset="1" stop-color="#3d247a"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" fill="url(#a)"/>
+  <path fill="#fff3d6" d="M34.2 5.5c4.8 6.9 4.9 14.9.8 22-2.6 4.5-.8 8.6 5.5 11.9 8.9 4.7 12 12.1 9.2 19.7-3.2 8.7-11.4 13.7-21.4 11.5l-9 8.1 2.2-11.2C12.6 62.7 9 53.7 12 44.6c2.7-8.1 9.4-13.9 15-21.4 4.2-5.7 6.9-11.5 7.2-17.7Z" transform="matrix(.74 0 0 .74 8 2)"/>
+  <path fill="#ff6a3d" d="M35.4 27.3c-.9 5.6 1.2 9.7 6.8 12.7 5.9 3.2 8.7 7.4 8.1 13-2.1-5-5.8-7.8-10.6-10.1-5.9-2.8-7.3-8.7-4.3-15.6Z" transform="matrix(.74 0 0 .74 8 2)"/>
+  <path fill="none" stroke="#ffb347" stroke-linecap="round" stroke-width="1.4" d="M36.2 29.4c-.2 5.4 2.3 8.7 7.2 11.4" transform="matrix(.74 0 0 .74 8 2)"/>
 </svg>
