@@ -622,6 +622,8 @@ minimumCharge = 0
 
 即用户点数按实际供应商成本 1:1 映射，不额外加价。未来如果调整价格，只能新建 policy/pricing version；历史 usage 必须保留调用时快照。
 
+> 2026-08-18 产品决策：后续托管 AI 目标倍率调整为 1.5 倍，即新策略使用 `userRateBps = 15,000`。本节的 1:1 数值保留为首期 Beta 已实现基线，不得覆写历史 snapshot。新倍率由 `YunLeFun/api` Runtime 创建新的 pricing version，并经独立生产 Gate 启用；ADV.JS 客户端不得硬编码倍率或自行计算扣点。
+
 ### 10.3 预占事务
 
 `reserveAiPointsForUser` 在一个 CloudBase 事务中：

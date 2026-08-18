@@ -405,7 +405,8 @@ _Requirements: R2-R10, R12, 8_
 
 ### T21. [Beta 放量门禁] 发放点数与逐能力开放
 
-- [ ] 确认 `initialGrantMicroPoints`、首批 uid 白名单、20 tasks/day、500 AI points/day 和 ¥50/day 平台硬上限。
+- [ ] 确认 `initialGrantMicroPoints`、首批 uid 白名单、20 tasks/day、500 AI points/day、¥50/day 平台硬上限，以及 1.5 倍目标倍率对应的新 pricing version（`userRateBps = 15,000`）。
+- [ ] 在 `YunLeFun/api` Runtime 的独立生产 Gate 中发布并启用新 pricing version；ADV.JS 只消费服务端预占/结算结果，不保存或计算倍率。
 - [ ] 通过 account-api 赠送交易发放 Beta 点数，不直接修改余额文档。
 - [ ] 先仅对管理员开启一个低成本能力，再逐项开启其余能力；每次开关变化留下审计记录。
 - [ ] 观察任务成功率、取消率、解析/安全失败、平台实际成本、用户扣点和对账差异。
