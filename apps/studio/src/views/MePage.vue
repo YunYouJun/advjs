@@ -59,7 +59,7 @@ function startNotificationPolling() {
 
 onMounted(async () => {
   if (auth)
-    await authStore.refreshLoginState(auth)
+    await authStore.restoreSession(auth)
   startNotificationPolling()
 })
 
