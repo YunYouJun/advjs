@@ -11,15 +11,12 @@ import {
   IonNote,
   IonSelect,
   IonSelectOption,
-  IonSpinner,
   IonTextarea,
   toastController,
 } from '@ionic/vue'
 import { addOutline, closeCircleOutline, imageOutline, sparklesOutline, trashOutline } from 'ionicons/icons'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useAiSettingsStore } from '../stores/useAiSettingsStore'
-import { buildImagePromptTemplate, generateImage, isImageGenerationAvailable } from '../utils/aiImageClient'
 import { getCharacterInitials, getValidAvatarUrl } from '../utils/chatUtils'
 import CharacterAttributesPanel from './CharacterAttributesPanel.vue'
 import RelationshipEditor from './RelationshipEditor.vue'
@@ -30,9 +27,7 @@ defineProps<{
 }>()
 
 const { t } = useI18n()
-const aiSettings = useAiSettingsStore()
 const model = defineModel<AdvCharacter>({ required: true })
-const isGeneratingImage = ref(false)
 
 function updateField<K extends keyof AdvCharacter>(field: K, value: AdvCharacter[K]) {
   model.value = { ...model.value, [field]: value }
@@ -148,10 +143,8 @@ function removeTachie(name: string) {
   model.value = updated
 }
 
-// --- AI image ---
-const canGenerateImage = computed(() => isImageGenerationAvailable(aiSettings.config))
-
-async function handleAiImage(target: 'avatar' | 'tachie' = 'avatar') {
+// Image generation is intentionally external until a managed image capability exists.
+async function copyImagePrompt() {
   const appearance = model.value.appearance || model.value.name || ''
   if (!appearance) {
     const toast = await toastController.create({
@@ -165,61 +158,14 @@ async function handleAiImage(target: 'avatar' | 'tachie' = 'avatar') {
   }
 
   const prompt = `character portrait of ${model.value.name}: ${appearance}, anime style, high quality, detailed`
-
-  if (canGenerateImage.value) {
-    isGeneratingImage.value = true
-    try {
-      const result = await generateImage(
-        {
-          prompt,
-          negativePrompt: 'low quality, blurry, deformed, ugly, watermark, text',
-          width: target === 'avatar' ? 512 : 768,
-          height: target === 'avatar' ? 512 : 1024,
-        },
-        aiSettings.config,
-      )
-      if (target === 'avatar') {
-        updateField('avatar', result.url)
-      }
-      else {
-        pendingTachieFile.value = { name: 'ai-generated.png', dataUri: result.url }
-      }
-      const toast = await toastController.create({
-        message: t('contentEditor.imageGenerated'),
-        duration: 1500,
-        position: 'top',
-        color: 'success',
-      })
-      await toast.present()
-    }
-    catch (err) {
-      const msg = err instanceof Error ? err.message : 'Unknown error'
-      const toast = await toastController.create({
-        message: `${t('contentEditor.imageGenerateFailed')}: ${msg}`,
-        duration: 3000,
-        position: 'top',
-        color: 'danger',
-      })
-      await toast.present()
-    }
-    finally {
-      isGeneratingImage.value = false
-    }
-  }
-  else {
-    const template = buildImagePromptTemplate(
-      `character portrait of ${model.value.name}: ${appearance}`,
-      'anime',
-    )
-    await navigator.clipboard.writeText(template.prompt)
-    const toast = await toastController.create({
-      message: t('contentEditor.imagePromptCopied'),
-      duration: 1500,
-      position: 'top',
-      color: 'success',
-    })
-    await toast.present()
-  }
+  await navigator.clipboard.writeText(prompt)
+  const toast = await toastController.create({
+    message: t('contentEditor.imagePromptCopied'),
+    duration: 1500,
+    position: 'top',
+    color: 'success',
+  })
+  await toast.present()
 }
 </script>
 
@@ -230,12 +176,6 @@ async function handleAiImage(target: 'avatar' | 'tachie' = 'avatar') {
       <button class="cef-avatar" type="button" :aria-label="t('contentEditor.uploadAvatar')" @click="triggerAvatarUpload">
         <img v-if="avatarPreviewUrl" :src="avatarPreviewUrl" class="cef-avatar__img" alt="">
         <span v-else class="cef-avatar__initials">{{ avatarInitials }}</span>
-        <!-- Loading overlay -->
-        <Transition name="cef-fade">
-          <div v-if="isGeneratingImage" class="cef-avatar__loading">
-            <IonSpinner name="crescent" color="light" />
-          </div>
-        </Transition>
         <!-- Camera badge -->
         <div class="cef-avatar__badge">
           <IonIcon :icon="imageOutline" />
@@ -248,10 +188,10 @@ async function handleAiImage(target: 'avatar' | 'tachie' = 'avatar') {
           <IonIcon slot="start" :icon="imageOutline" />
           {{ t('contentEditor.uploadAvatar') }}
         </IonButton>
-        <IonButton fill="outline" size="small" class="cef-btn cef-btn--ai" :disabled="isGeneratingImage" @click="handleAiImage('avatar')">
+        <IonButton fill="outline" size="small" class="cef-btn cef-btn--ai" @click="copyImagePrompt">
           <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
           <IonIcon slot="start" :icon="sparklesOutline" />
-          {{ isGeneratingImage ? t('contentEditor.generating') : (canGenerateImage ? t('contentEditor.aiGenerateImage') : t('contentEditor.aiImagePrompt')) }}
+          {{ t('contentEditor.aiImagePrompt') }}
         </IonButton>
         <IonButton v-if="model.avatar" fill="clear" size="small" color="danger" class="cef-btn--remove" :aria-label="t('common.delete')" @click="removeAvatar">
           <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
@@ -501,11 +441,6 @@ async function handleAiImage(target: 'avatar' | 'tachie' = 'avatar') {
               <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
               <IonIcon slot="start" :icon="imageOutline" />
               {{ pendingTachieFile ? pendingTachieFile.name : t('contentEditor.selectImage') }}
-            </IonButton>
-            <IonButton v-if="canGenerateImage" fill="outline" size="small" class="cef-btn cef-btn--ai" :disabled="isGeneratingImage" @click="handleAiImage('tachie')">
-              <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-              <IonIcon slot="start" :icon="sparklesOutline" />
-              {{ isGeneratingImage ? t('contentEditor.generating') : t('contentEditor.aiGenerateImage') }}
             </IonButton>
             <IonButton fill="solid" size="small" :disabled="!newTachieName.trim() || !pendingTachieFile" @click="addTachie">
               <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->

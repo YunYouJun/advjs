@@ -8,6 +8,7 @@ import type {
 import { SsoIdentityAdoptionError } from '@yunlefun/sso/browser'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { ManagedAgentRuntime } from '../agent/managed/runtime'
 import {
   createRuntimeAccessTokenGetter,
   getRuntimeAccessToken,
@@ -274,7 +275,7 @@ describe('studio SSO v3 session', () => {
       .toBe('refreshed-access-token')
   })
 
-  it('terminates token access when refresh fails', async () => {
+  it('terminates managed token access when refresh fails', async () => {
     let expired = false
     const getToken = createRuntimeAccessTokenGetter({
       getSession: async () => ({
@@ -289,6 +290,24 @@ describe('studio SSO v3 session', () => {
 
     await expect(getToken()).rejects.toThrow(/expired/i)
     expect(expired).toBe(true)
+
+    let fetched = false
+    const runtime = new ManagedAgentRuntime({
+      baseUrl: 'https://www.yunle.fun/account-api/ai-gateway',
+      getAccessToken: getToken,
+      fetch: async () => {
+        fetched = true
+        throw new Error('fetch must not run without a valid session')
+      },
+    })
+    await expect(runtime.start({
+      capability: 'generate-outline',
+      clientRequestId: 'expired_session_fixture',
+      input: {},
+      locale: 'zh-CN',
+      project: { id: 'project_fixture', revision: 'revision_fixture', files: {} },
+    })).rejects.toMatchObject({ detail: { code: 'unauthenticated' } })
+    expect(fetched).toBe(false)
   })
 
   it('never restores an external/login return path and removes direct SMS login from the entry', () => {

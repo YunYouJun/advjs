@@ -10,7 +10,7 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/vue'
-import { bookOutline, closeOutline, createOutline, flowerOutline, heartOutline, planetOutline, searchOutline, sparklesOutline } from 'ionicons/icons'
+import { bookOutline, closeOutline, createOutline, flowerOutline, heartOutline, planetOutline, searchOutline } from 'ionicons/icons'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { SLUG_RE, toSlug } from '../utils/slug'
@@ -22,7 +22,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'close'): void
   (e: 'create', payload: { displayName: string, slug: string, templateId: string }): void
-  (e: 'fromSource'): void
 }>()
 
 const { t } = useI18n()
@@ -215,16 +214,6 @@ function handleCreate() {
         </section>
 
         <div class="create-modal__actions">
-          <IonButton
-            expand="block"
-            fill="outline"
-            class="create-modal__from-source"
-            @click="emit('fromSource')"
-          >
-            <IonIcon slot="start" :icon="sparklesOutline" />
-            {{ t('importSource.entryCard') }}
-          </IonButton>
-
           <!-- Create Button -->
           <IonButton
             expand="block"

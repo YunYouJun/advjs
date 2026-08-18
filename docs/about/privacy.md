@@ -5,51 +5,43 @@ description: How ADV.JS Studio handles your data
 
 # ADV.JS Studio Privacy Policy
 
-_Last updated: 2025-05-31_
+_Last updated: 2026-08-14_
 
 ADV.JS Studio ("the App", "we") is an open-source visual novel creation tool published by the ADV.JS project. This page explains what data the App handles, where it lives, and what choices you have. The App is also available as a website at [studio.advjs.org](https://studio.advjs.org); the same policy applies to both the iOS app and the web app.
 
 ## TL;DR
 
-- **All your project data stays on your device by default.** Stories, characters, scenes, dialogues, and AI chat history live in your browser's IndexedDB / localStorage, or — when running as the iOS app — in the app's `Documents/` folder.
-- **We do not have a server that stores your projects.** Cloud sync is optional and uses **your own** Tencent COS bucket / CloudBase environment, configured by you.
-- **Third-party AI providers are called directly from your device using API keys you supply.** We never see those keys or the prompts you send.
+- **Your project files stay on your device by default.** Stories, characters, scenes, and asset references live in your chosen local workspace or the app's local storage unless you explicitly use a hosted feature.
+- **Studio AI is a managed service.** A signed-in AI task sends only the capability-specific saved project files needed for that request to the ADV.JS AI Runtime and its server-selected model provider.
+- **Studio production does not ask for or store model-provider API keys.** Legacy browser BYOK data is deleted locally during upgrade without being read or uploaded. Use the local Editor workflow when you want to manage your own provider.
 - **Anonymous telemetry is OFF by default.** You can turn it on in `Me → Privacy` if you want to help us improve the app.
 
 ## 1. Data the App stores on your device
 
 The App stores the following on-device:
 
-| Data                                                                                           | Location                                      | Purpose                                        |
-| ---------------------------------------------------------------------------------------------- | --------------------------------------------- | ---------------------------------------------- |
-| Project content (chapters, characters, scenes, audio refs)                                     | IndexedDB / Documents folder                  | Your visual novel projects                     |
-| App preferences (theme, language, layout)                                                      | localStorage                                  | Personalization                                |
-| **AI provider API keys** (DeepSeek, OpenAI, OpenRouter, SiliconFlow, custom OpenAI-compatible) | localStorage (`advjs-studio-ai`)              | Direct calls to the AI provider you configured |
-| TTS / Embedding keys                                                                           | localStorage (`advjs-studio-ai`)              | Same as above                                  |
-| Telemetry queue (only if telemetry is on)                                                      | localStorage (`advjs-studio:telemetry-queue`) | Buffer events until next flush                 |
+| Data                                                       | Location                                                      | Purpose                                  |
+| ---------------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------- |
+| Project content (chapters, characters, scenes, audio refs) | Local workspace / IndexedDB / Documents folder                | Your visual novel projects               |
+| App preferences (theme, language, layout)                  | localStorage                                                  | Personalization                          |
+| Managed task UI state and resumable cursor                 | App state; authoritative task state is on the managed Runtime | Resume task progress and show settlement |
+| Telemetry queue (only if telemetry is on)                  | localStorage (`advjs-studio:telemetry-queue`)                 | Buffer events until next flush           |
 
 Clearing your browser data (web) or deleting the app (iOS) removes all of the above.
 
 ## 2. Data sent off your device
 
-### 2.1 Third-party AI providers
+### 2.1 Managed AI service
 
-When you call AI features (chat, suggestions, image, TTS, embeddings), the App makes **direct HTTPS requests from your device** to the provider you selected in `Me → Settings → AI`. Your API key, prompts, and responses are subject to that provider's privacy policy:
+Studio's production AI features use the ADV.JS managed Runtime. The App sends the selected capability, semantic inputs, a project revision, and only the saved project files allowed for that capability. The Runtime chooses the model provider, enforces safety and usage limits, records task status and token usage, and settles AI points.
 
-- DeepSeek — <https://platform.deepseek.com/>
-- OpenAI — <https://openai.com/policies/privacy-policy/>
-- OpenRouter — <https://openrouter.ai/>
-- SiliconFlow — <https://siliconflow.cn/>
-- Tencent Hunyuan — <https://cloud.tencent.com/>
-- Runware — <https://runware.ai/>
+Generated output is returned as task results or reviewable proposals. A proposal does not modify your project until you explicitly apply it. Do not place credentials or secrets in project content you submit to a managed AI task.
 
-We do **not** proxy these calls and we do **not** see the contents.
-
-In a future release, signed-in users may purchase prepaid credits to use a hosted proxy without configuring their own keys. When that ships, this section will be updated to describe what the proxy logs and retains, and the feature will be opt-in.
+General chat, character chat, image generation, cloud TTS, managed ASR, content extraction, and remote embeddings are disabled until they have a registered managed capability. Studio does not silently fall back to direct browser calls. See [Studio managed AI and local Editor boundary](/guide/studio/ai-service).
 
 ### 2.2 Optional cloud sync
 
-If — and only if — you set up Cloud Sync in `Me → Settings → Cloud Sync`, the App uploads your project files to **your** Tencent COS bucket using credentials you provide. We never receive those credentials.
+Hosted asset publishing uses account authentication and a short-lived, single-object upload URL. The browser does not receive a permanent COS SecretId/SecretKey. Project source sync and binary asset publishing are separate features.
 
 ### 2.3 Anonymous telemetry (opt-in, OFF by default)
 
@@ -73,7 +65,7 @@ You can disable telemetry at any time in `Me → Privacy`. Disabling deletes the
 
 ### 2.4 Account features (optional)
 
-If you sign in to the optional ADV.JS account (CloudBase auth), we store your user-id, masked phone, display name, and avatar URL on our server. Sign-in is only required for community features (publishing to the marketplace, follow / notifications). The core editor works fully without an account.
+If you sign in through YunLeFun SSO, the Studio session is adopted by CloudBase Auth. Account identity is used for managed AI tasks, AI point settlement, and community features. Opening and editing a supported local project remains available without starting an AI task.
 
 ## 3. Tracking
 
@@ -89,15 +81,11 @@ The App is not directed at children under 13. We do not knowingly collect person
 - **Clear all local data**: `Me → Settings → Clear Cache`
 - **Clear pending telemetry queue**: `Me → Privacy → Clear pending telemetry queue`
 - **Delete your account** (if signed in): contact us at the email below
-- **Configure or disable cloud sync**: `Me → Settings → Cloud Sync`
+- **Review AI service status and points**: `Me → Settings → AI Service`
 
 ## 6. Security
 
-API keys live in `localStorage`, which is sandboxed per origin (web) or per app (iOS). We recommend:
-
-- Use API keys with the lowest possible scope (e.g. per-project DeepSeek key)
-- Rotate keys periodically
-- Don't share device passcodes with anyone you wouldn't trust with your projects
+Studio production does not persist provider API keys. On startup, it removes the legacy `advjs-studio-ai` localStorage entry without reading, parsing, logging, or uploading it. Provider credentials used with local Editor tooling should stay in that tool's protected configuration or operating-system environment and must not be committed into an ADV.JS project.
 
 ## 7. Open source
 

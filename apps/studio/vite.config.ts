@@ -9,6 +9,58 @@ const unocssPluginPackage: string = 'unocss/vite'
 const pwaPluginPackage: string = 'vite-plugin-pwa'
 const componentsPluginPackage: string = 'unplugin-vue-components/vite'
 
+const FORBIDDEN_PRODUCTION_AI_MODULES = [
+  '/agent/byok-dev/',
+  '/stores/useAiSettingsStore.ts',
+  '/utils/aiClient.ts',
+  '/utils/aiImageClient.ts',
+  '/utils/aiProviderRegistry.ts',
+  '/utils/embeddingClient.ts',
+  '/utils/resolveAiConfig.ts',
+  '/utils/ttsClient.ts',
+] as const
+
+const FORBIDDEN_PRODUCTION_AI_TEXT = [
+  'ByokDevAgentRuntime',
+  'advjs-studio-ai-settings',
+  'apiKey',
+  'aiApiKey',
+  'aiImageApiKey',
+  'ttsApiKey',
+  'embeddingApiKey',
+  'customBaseURL',
+  'api.deepseek.com',
+  'api.openai.com',
+  'api.siliconflow.cn',
+  'openrouter.ai/api',
+] as const
+
+function managedAiProductionGuard() {
+  return {
+    name: 'advjs-studio:managed-ai-production-guard',
+    generateBundle(_options: unknown, bundle: Record<string, { code?: string, modules?: Record<string, unknown> }>) {
+      const violations: string[] = []
+      for (const [fileName, output] of Object.entries(bundle)) {
+        for (const moduleId of Object.keys(output.modules ?? {})) {
+          const normalized = moduleId.replaceAll('\\', '/')
+          if (FORBIDDEN_PRODUCTION_AI_MODULES.some(fragment => normalized.includes(fragment)))
+            violations.push(`${fileName}: ${normalized}`)
+        }
+        for (const forbidden of FORBIDDEN_PRODUCTION_AI_TEXT) {
+          if (output.code?.includes(forbidden))
+            violations.push(`${fileName}: contains ${forbidden}`)
+        }
+      }
+      if (violations.length) {
+        throw new Error([
+          'Studio production output contains legacy BYOK or direct-provider code:',
+          ...[...new Set(violations)].sort().map(item => `- ${item}`),
+        ].join('\n'))
+      }
+    },
+  }
+}
+
 // https://vitejs.dev/config/
 export default async function createViteConfig() {
   // Keep Vite plugin imports dynamic so editors using legacy moduleResolution do not fail on package .d.ts/.d.mts exports.
@@ -78,6 +130,7 @@ export default async function createViteConfig() {
       }),
       vue(),
       ...(process.env.VITE_LEGACY_BUILD === 'false' ? [] : [legacy()]),
+      managedAiProductionGuard(),
       VitePWA({
         registerType: 'prompt',
         includeAssets: ['favicon.ico'],
@@ -120,11 +173,6 @@ export default async function createViteConfig() {
                   maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
                 },
               },
-            },
-            {
-              // AI API calls: network first (never serve stale AI responses)
-              urlPattern: /^https:\/\/api\.(deepseek|openai|siliconflow|openrouter)\./,
-              handler: 'NetworkOnly',
             },
           ],
         },

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { PlotSuggestion } from '../utils/aiAuthoring/plotSuggester'
 import type { ChapterFormData } from '../utils/chapterMd'
 import {
   IonButton,
@@ -12,10 +11,11 @@ import {
   IonTextarea,
 } from '@ionic/vue'
 import { bulbOutline, chevronDownOutline, peopleOutline, shieldCheckmarkOutline, sparklesOutline } from 'ionicons/icons'
+import { storeToRefs } from 'pinia'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useProjectContent } from '../composables/useProjectContent'
-import { useAiSettingsStore } from '../stores/useAiSettingsStore'
+import { useManagedAgentStore } from '../stores/useManagedAgentStore'
 import AiToolsPopover from './AiToolsPopover.vue'
 import ChapterDraftModal from './ChapterDraftModal.vue'
 import ConsistencyCheckModal from './ConsistencyCheckModal.vue'
@@ -23,7 +23,8 @@ import PlotSuggestionModal from './PlotSuggestionModal.vue'
 import RoleplaySimulationModal from './RoleplaySimulationModal.vue'
 
 const { t } = useI18n()
-const aiSettings = useAiSettingsStore()
+const managedStore = useManagedAgentStore()
+const { isConfigured: managedAiAvailable } = storeToRefs(managedStore)
 const { characters } = useProjectContent()
 const model = defineModel<ChapterFormData>({ required: true })
 
@@ -34,33 +35,6 @@ const showConsistencyModal = ref(false)
 
 function updateField<K extends keyof ChapterFormData>(field: K, value: ChapterFormData[K]) {
   model.value = { ...model.value, [field]: value }
-}
-
-function applyDraft({ mode, text }: { mode: 'replace' | 'append', text: string }) {
-  if (mode === 'replace') {
-    updateField('content', text)
-  }
-  else {
-    const sep = model.value.content && !model.value.content.endsWith('\n') ? '\n\n' : '\n'
-    updateField('content', `${model.value.content}${sep}${text}`)
-  }
-}
-
-function applyPlotSuggestion(s: PlotSuggestion) {
-  const block = [
-    '',
-    `<!-- AI 提议：${s.label} -->`,
-    `<!-- 梗概：${s.synopsis} -->`,
-    s.hook ? `<!-- 关键事件：${s.hook} -->` : '',
-    '',
-  ].filter(Boolean).join('\n')
-  const sep = model.value.content && !model.value.content.endsWith('\n') ? '\n' : ''
-  updateField('content', `${model.value.content}${sep}${block}`)
-}
-
-function applyRoleplayTranscript(advScript: string) {
-  const sep = model.value.content && !model.value.content.endsWith('\n') ? '\n\n' : '\n'
-  updateField('content', `${model.value.content}${sep}${advScript}`)
 }
 </script>
 
@@ -104,7 +78,7 @@ function applyRoleplayTranscript(advScript: string) {
     <IonListHeader class="chapter-content-header">
       <IonLabel>{{ t('contentEditor.chapterContent') }}</IonLabel>
       <!-- Mobile: collapsed popover (< 768px) -->
-      <div v-if="aiSettings.isConfigured" class="chapter-content-actions chapter-content-actions--mobile">
+      <div v-if="managedAiAvailable" class="chapter-content-actions chapter-content-actions--mobile">
         <IonButton id="ai-tools-trigger" size="small" fill="clear">
           <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
           <IonIcon slot="start" :icon="sparklesOutline" />
@@ -122,7 +96,7 @@ function applyRoleplayTranscript(advScript: string) {
       </div>
 
       <!-- Desktop: 4 inline buttons (≥ 768px) -->
-      <div v-if="aiSettings.isConfigured" class="chapter-content-actions chapter-content-actions--desktop">
+      <div v-if="managedAiAvailable" class="chapter-content-actions chapter-content-actions--desktop">
         <IonButton size="small" fill="clear" @click="showPlotModal = true">
           <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
           <IonIcon slot="start" :icon="bulbOutline" />
@@ -164,21 +138,18 @@ function applyRoleplayTranscript(advScript: string) {
       :is-open="showDraftModal"
       :chapter="model"
       @close="showDraftModal = false"
-      @apply="applyDraft"
     />
 
     <PlotSuggestionModal
       :is-open="showPlotModal"
       :chapter="model"
       @close="showPlotModal = false"
-      @pick="applyPlotSuggestion"
     />
 
     <RoleplaySimulationModal
       :is-open="showRoleplayModal"
       :characters="characters"
       @close="showRoleplayModal = false"
-      @export="applyRoleplayTranscript"
     />
 
     <ConsistencyCheckModal

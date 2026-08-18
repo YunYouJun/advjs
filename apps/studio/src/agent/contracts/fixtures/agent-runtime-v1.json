@@ -1,0 +1,169 @@
+{
+  "protocolVersion": 1,
+  "createRequest": {
+    "capability": "generate-outline",
+    "protocolVersion": 1,
+    "locale": "zh-CN",
+    "input": {
+      "goal": "fixture-outline"
+    },
+    "project": {
+      "id": "project_fixture_001",
+      "revision": "revision_fixture_001",
+      "files": {
+        "adv/outline.md": "# Fixture\n"
+      }
+    }
+  },
+  "createResponse": {
+    "taskId": "task_fixture_001",
+    "status": "queued",
+    "reservedMicroPoints": 12000,
+    "eventsUrl": "/v1/tasks/task_fixture_001/events"
+  },
+  "events": [
+    {
+      "protocolVersion": 1,
+      "id": "event_fixture_001",
+      "cursor": "1:0",
+      "event": {
+        "type": "run.started",
+        "taskId": "task_fixture_001"
+      }
+    },
+    {
+      "protocolVersion": 1,
+      "id": "event_fixture_002",
+      "cursor": "2:18",
+      "event": {
+        "type": "text.delta",
+        "taskId": "task_fixture_001",
+        "delta": "# Fixture outline\n",
+        "offset": 0
+      }
+    },
+    {
+      "protocolVersion": 1,
+      "id": "event_fixture_003",
+      "cursor": "3:18",
+      "event": {
+        "type": "proposal.ready",
+        "taskId": "task_fixture_001",
+        "proposal": {
+          "summary": "Create a fixture outline",
+          "projectRevision": "revision_fixture_001",
+          "patches": [
+            {
+              "kind": "raw-text",
+              "path": "adv/outline.md",
+              "content": "# Fixture outline\n"
+            }
+          ],
+          "diagnostics": []
+        }
+      }
+    },
+    {
+      "protocolVersion": 1,
+      "id": "event_fixture_004",
+      "cursor": "4:18",
+      "event": {
+        "type": "usage.settled",
+        "taskId": "task_fixture_001",
+        "usage": {
+          "inputTokens": 800,
+          "outputTokens": 120,
+          "totalTokens": 920,
+          "providerCostMicroCny": 12000,
+          "chargedMicroPoints": 12000
+        }
+      }
+    },
+    {
+      "protocolVersion": 1,
+      "id": "event_fixture_005",
+      "cursor": "5:18",
+      "event": {
+        "type": "run.finished",
+        "taskId": "task_fixture_001"
+      }
+    }
+  ],
+  "snapshot": {
+    "protocolVersion": 1,
+    "taskId": "task_fixture_001",
+    "capability": "generate-outline",
+    "status": "completed",
+    "billingStatus": "settled",
+    "projectId": "project_fixture_001",
+    "projectRevision": "revision_fixture_001",
+    "streamText": "# Fixture outline\n",
+    "streamRevision": 3,
+    "reservedMicroPoints": 12000,
+    "proposal": {
+      "summary": "Create a fixture outline",
+      "projectRevision": "revision_fixture_001",
+      "patches": [
+        {
+          "kind": "raw-text",
+          "path": "adv/outline.md",
+          "content": "# Fixture outline\n"
+        }
+      ],
+      "diagnostics": []
+    },
+    "usage": {
+      "inputTokens": 800,
+      "outputTokens": 120,
+      "totalTokens": 920,
+      "providerCostMicroCny": 12000,
+      "chargedMicroPoints": 12000
+    },
+    "points": {
+      "reservedMicroPoints": 0,
+      "chargedMicroPoints": 12000
+    },
+    "createdAt": 1786698000000,
+    "updatedAt": 1786698005000
+  },
+  "cancelledSnapshot": {
+    "protocolVersion": 1,
+    "taskId": "task_fixture_cancelled_001",
+    "capability": "generate-chapter-draft",
+    "status": "cancelled",
+    "billingStatus": "settled",
+    "projectId": "project_fixture_001",
+    "projectRevision": "revision_fixture_001",
+    "streamText": "Fixture partial",
+    "streamRevision": 2,
+    "reservedMicroPoints": 12000,
+    "usage": {
+      "inputTokens": 400,
+      "outputTokens": 40,
+      "totalTokens": 440,
+      "providerCostMicroCny": 4000,
+      "chargedMicroPoints": 4000
+    },
+    "points": {
+      "reservedMicroPoints": 0,
+      "chargedMicroPoints": 4000
+    },
+    "createdAt": 1786698010000,
+    "updatedAt": 1786698013000
+  },
+  "failedEvent": {
+    "protocolVersion": 1,
+    "id": "event_fixture_failed_001",
+    "cursor": "2:0",
+    "event": {
+      "type": "run.failed",
+      "taskId": "task_fixture_failed_001",
+      "error": {
+        "code": "parse_error",
+        "message": "No usable fixture candidate",
+        "retryable": false,
+        "requestId": "request_fixture_failed_001"
+      }
+    }
+  }
+}

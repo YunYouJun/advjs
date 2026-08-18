@@ -58,7 +58,7 @@ const routes: Array<RouteRecordRaw> = [
       },
       {
         path: 'workspace/import-source',
-        component: () => import('@/views/workspace/ImportSourcePage.vue'),
+        redirect: '/tabs/workspace',
       },
       {
         path: 'workspace/marketplace',
@@ -75,7 +75,7 @@ const routes: Array<RouteRecordRaw> = [
       },
       {
         path: 'chat',
-        component: () => import('@/views/ChatPage.vue'),
+        redirect: '/tabs/workspace',
       },
       {
         path: 'world',
@@ -83,7 +83,7 @@ const routes: Array<RouteRecordRaw> = [
       },
       {
         path: 'world/chat/:characterId',
-        component: () => import('@/views/CharacterChatPage.vue'),
+        redirect: to => `/tabs/world/info/${String(to.params.characterId)}`,
       },
       {
         path: 'world/diary/:characterId',
@@ -94,12 +94,8 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/views/CharacterInfoPage.vue'),
       },
       {
-        path: 'world/group/:roomId',
-        component: () => import('@/views/GroupChatPage.vue'),
-      },
-      {
         path: 'world/create-player',
-        component: () => import('@/views/PlayerCreatorPage.vue'),
+        redirect: '/tabs/workspace/characters',
       },
       {
         path: 'play',

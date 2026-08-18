@@ -87,6 +87,7 @@
     "test:launch": "vitest run tests/launch --no-file-parallelism --reporter=default",
     "test:launch:journey": "vitest run tests/launch/launch-journey.test.ts tests/launch/docs-journey.test.ts tests/launch/cloudflare-deploy.test.ts --no-file-parallelism --reporter=default",
     "test:unit": "vitest",
+    "verify:managed-ai": "node scripts/verify-managed-ai-release.mjs",
     "prepare": "husky"
   },
   "devDependencies": {

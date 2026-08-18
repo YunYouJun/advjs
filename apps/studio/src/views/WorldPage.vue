@@ -2,13 +2,10 @@
 import type { TimelineEntry } from '../types/timeline'
 import { IonIcon } from '@ionic/vue'
 import { globeOutline, personCircleOutline, personOutline } from 'ionicons/icons'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import LayoutPage from '../components/common/LayoutPage.vue'
-import CreateGroupChatModal from '../components/CreateGroupChatModal.vue'
-import GroupChatsSection from '../components/GroupChatsSection.vue'
-import RecentCharacterPopover from '../components/RecentCharacterPopover.vue'
 import SelectPlayerCharacterModal from '../components/SelectPlayerCharacterModal.vue'
 import SButton from '../components/ui/SButton.vue'
 import ViewModeSwitcher from '../components/ViewModeSwitcher.vue'
@@ -19,8 +16,6 @@ import WorldSidebar from '../components/WorldSidebar.vue'
 import WorldSkeleton from '../components/WorldSkeleton.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useResponsive } from '../composables/useResponsive'
-import { useWorldContext } from '../composables/useWorldContext'
-import { useCharacterChatStore } from '../stores/useCharacterChatStore'
 import { useCharacterDiaryStore } from '../stores/useCharacterDiaryStore'
 import { useCharacterMemoryStore } from '../stores/useCharacterMemoryStore'
 import { useStudioStore } from '../stores/useStudioStore'
@@ -39,47 +34,18 @@ const clockStore = useWorldClockStore()
 const eventStore = useWorldEventStore()
 const diaryStore = useCharacterDiaryStore()
 const { characters, isLoading } = useProjectContent()
-const { worldContext } = useWorldContext()
 const { isDesktop } = useResponsive()
 const viewModeStore = useViewModeStore()
 
-// Prefetch: eagerly initialize character chat and memory stores
-// so they start loading from IndexedDB before user clicks a character
-void useCharacterChatStore()
+// Prefetch local memory state used by the world overview.
 void useCharacterMemoryStore()
 
 const hasProject = computed(() => !!studioStore.currentProject)
-const showCreateGroupModal = ref(false)
 const showSelectPlayerModal = ref(false)
 
 const recentEvents = computed(() => eventStore.getRecentEvents(5))
 
-// Register clock advance listener to trigger event generation
 const autoDiaryInProgress = ref(false)
-
-async function onClockAdvance(dateChanged: boolean) {
-  const weather = await eventStore.generateEvents(
-    worldContext.value,
-    characters.value,
-    clockStore.clock,
-    dateChanged,
-  )
-  if (typeof weather === 'string')
-    clockStore.setWeather(weather)
-  if (dateChanged && characters.value.length > 0) {
-    autoDiaryInProgress.value = true
-    await Promise.all(characters.value.map(char => diaryStore.generateDiary(char)))
-    autoDiaryInProgress.value = false
-  }
-}
-
-onMounted(() => {
-  clockStore.onAdvance(onClockAdvance)
-})
-
-onUnmounted(() => {
-  clockStore.offAdvance(onClockAdvance)
-})
 
 onMounted(() => {
   if (!studioStore.currentProject)
@@ -87,11 +53,7 @@ onMounted(() => {
 })
 
 function openCharacterChat(character: { id: string }) {
-  router.push(`/tabs/world/chat/${character.id}`)
-}
-
-function openGroupChat(roomId: string) {
-  router.push(`/tabs/world/group/${roomId}`)
+  router.push(`/tabs/world/info/${character.id}`)
 }
 
 /**
@@ -228,23 +190,12 @@ const timelineEntries = computed<TimelineEntry[]>(() => {
           </button>
         </div>
 
-        <!-- Recent character chats (quick access) -->
-        <RecentCharacterPopover
-          :max="3"
-          @select="(id: string) => openCharacterChat({ id })"
-        />
-
         <WorldEventsSection
           :is-generating="eventStore.isGenerating"
           :recent-events="recentEvents"
           :timeline-entries="timelineEntries"
           :display-characters="displayCharacters"
           @select-character="(id: string) => openCharacterChat({ id })"
-        />
-
-        <GroupChatsSection
-          @open-group="openGroupChat"
-          @create-group="showCreateGroupModal = true"
         />
 
         <WorldGraphSection
@@ -261,12 +212,6 @@ const timelineEntries = computed<TimelineEntry[]>(() => {
         </div>
       </div>
     </div>
-
-    <CreateGroupChatModal
-      :is-open="showCreateGroupModal"
-      :characters="characters"
-      @close="showCreateGroupModal = false"
-    />
 
     <SelectPlayerCharacterModal
       :is-open="showSelectPlayerModal"

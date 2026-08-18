@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {
   alertController,
-  IonButton,
 } from '@ionic/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -10,7 +9,6 @@ import LayoutPage from '../components/common/LayoutPage.vue'
 import DiaryEntryContent from '../components/DiaryEntryContent.vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { useCharacterDiaryStore } from '../stores/useCharacterDiaryStore'
-import { showToast } from '../utils/toast'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -18,30 +16,8 @@ const diaryStore = useCharacterDiaryStore()
 const { characters } = useProjectContent()
 
 const characterId = computed(() => route.params.characterId as string)
-const character = computed(() => characters.value.find(c => c.id === characterId.value))
-const characterName = computed(() => character.value?.name || characterId.value)
+const characterName = computed(() => characters.value.find(c => c.id === characterId.value)?.name || characterId.value)
 const diaryEntries = computed(() => [...diaryStore.getDiaries(characterId.value)].reverse())
-const isDiaryGenerating = computed(() => diaryStore.isGenerating(characterId.value))
-
-async function handleGenerate() {
-  if (!character.value)
-    return
-
-  // dynamic import to avoid circular deps
-  const { useWorldClockStore } = await import('../stores/useWorldClockStore')
-  const clockStore = useWorldClockStore()
-  const { date, period } = clockStore.clock
-
-  if (diaryStore.hasDiary(characterId.value, date, period)) {
-    await showToast(t('world.diaryAlreadyExists'), 'warning')
-    return
-  }
-
-  const entry = await diaryStore.generateDiary(character.value)
-  if (!entry) {
-    await showToast(t('world.diaryGenerateFailed'), 'danger')
-  }
-}
 
 async function confirmDelete(diaryId: string) {
   const alert = await alertController.create({
@@ -61,17 +37,7 @@ async function confirmDelete(diaryId: string) {
 </script>
 
 <template>
-  <LayoutPage :title="t('characters.diaryTitle', { name: characterName })" show-back-button :default-href="`/tabs/world/chat/${characterId}`">
-    <template #end>
-      <IonButton
-        fill="clear"
-        :disabled="isDiaryGenerating"
-        @click="handleGenerate"
-      >
-        {{ isDiaryGenerating ? t('world.diaryGenerating') : t('world.diaryGenerate') }}
-      </IonButton>
-    </template>
-
+  <LayoutPage :title="t('characters.diaryTitle', { name: characterName })" show-back-button :default-href="`/tabs/world/info/${characterId}`">
     <!-- Diary list -->
     <div v-if="diaryEntries.length > 0" class="diary-list">
       <div
@@ -110,14 +76,6 @@ async function confirmDelete(diaryId: string) {
       <p class="diary-empty__hint">
         {{ t('characters.diaryEmptyHint') }}
       </p>
-      <IonButton
-        fill="outline"
-        size="small"
-        :disabled="isDiaryGenerating"
-        @click="handleGenerate"
-      >
-        {{ isDiaryGenerating ? t('world.diaryGenerating') : t('world.diaryGenerate') }}
-      </IonButton>
     </div>
   </LayoutPage>
 </template>

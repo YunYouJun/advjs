@@ -22,7 +22,7 @@ import {
   IonToolbar,
   toastController,
 } from '@ionic/vue'
-import { addOutline, cloudDownloadOutline, cloudUploadOutline, downloadOutline, folderOpenOutline, libraryOutline, linkOutline, rocketOutline, saveOutline, sparklesOutline, storefrontOutline, trashOutline } from 'ionicons/icons'
+import { addOutline, cloudDownloadOutline, cloudUploadOutline, downloadOutline, folderOpenOutline, libraryOutline, linkOutline, rocketOutline, saveOutline, storefrontOutline, trashOutline } from 'ionicons/icons'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -267,11 +267,6 @@ async function collectProjectAssets(fs: IFileSystem, basePath = ''): Promise<Arr
 function isCosConfigured(): boolean {
   const { bucket, region } = settingsStore.cos
   return !!(bucket && region)
-}
-
-function handleCreateFromSource() {
-  showCreateModal.value = false
-  router.push('/tabs/workspace/import-source')
 }
 
 async function handleCreateProject(payload: { displayName: string, slug: string, templateId: string }) {
@@ -827,15 +822,6 @@ function getFileIconClass(name: string): string {
           <strong class="hero-card__title">{{ t('projects.createProject') }}</strong>
           <span class="hero-card__desc">{{ t('projects.createProjectDesc') }}</span>
         </button>
-
-        <!-- AI Import -->
-        <button type="button" class="hero-card hero-card--accent" @click="$router.push('/tabs/workspace/import-source')">
-          <span class="hero-card__icon">
-            <IonIcon :icon="sparklesOutline" />
-          </span>
-          <strong class="hero-card__title">{{ t('importSource.entryCard') }}</strong>
-          <span class="hero-card__desc">{{ t('importSource.entryCardDesc') }}</span>
-        </button>
       </div>
 
       <!-- Secondary Actions: compact icon buttons -->
@@ -1024,7 +1010,6 @@ function getFileIconClass(name: string): string {
       :open="showCreateModal"
       @close="showCreateModal = false"
       @create="handleCreateProject"
-      @from-source="handleCreateFromSource"
     />
   </LayoutPage>
 </template>

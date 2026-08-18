@@ -21,7 +21,6 @@ import { addOutline, trashOutline } from 'ionicons/icons'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import AiGeneratePanel from '../../components/AiGeneratePanel.vue'
 import DraftRestoreBanner from '../../components/common/DraftRestoreBanner.vue'
 import LayoutPage from '../../components/common/LayoutPage.vue'
 import ContentEditorModal from '../../components/ContentEditorModal.vue'
@@ -34,13 +33,11 @@ import { useContentSave } from '../../composables/useContentSave'
 import { useIncrementalList } from '../../composables/useIncrementalList'
 import { useProjectContent } from '../../composables/useProjectContent'
 import { useRecentActivity } from '../../composables/useRecentActivity'
-import { useAiSettingsStore } from '../../stores/useAiSettingsStore'
 import { parseLocationMd, stringifyLocationMd } from '../../utils/locationMd'
 import { showToast } from '../../utils/toast'
 
 const { t } = useI18n()
 const router = useRouter()
-const aiSettings = useAiSettingsStore()
 
 const { locations, scenes, characters, reload, getFs } = useProjectContent()
 const { isSaving, saveContent } = useContentSave()
@@ -90,10 +87,6 @@ function markdownToLocation(md: string) {
   catch {
     // keep formData unchanged on parse failure
   }
-}
-
-function handleAiApplyLocation(md: string) {
-  markdownToLocation(md)
 }
 
 function handleViewLocation(location: LocationInfo) {
@@ -235,7 +228,6 @@ async function handleDeleteLocation(location: LocationFormData) {
       :title="locationEditor.mode.value === 'create' ? t('locations.createLocation') : t('locations.editLocation')"
       :mode="locationEditor.mode.value"
       :is-saving="isSaving"
-      :ai-enabled="aiSettings.isConfigured"
       :markdown="locationMarkdown"
       :monaco-filename="`${locationEditor.formData.value.id || 'location'}.md`"
       @update:is-open="(v: boolean) => { if (!v) locationEditor.close() }"
@@ -247,9 +239,6 @@ async function handleDeleteLocation(location: LocationFormData) {
     >
       <template #form>
         <LocationEditorForm v-model="locationEditor.formData.value" />
-      </template>
-      <template #ai>
-        <AiGeneratePanel content-type="location" @apply="handleAiApplyLocation" />
       </template>
       <template #header-actions>
         <IonButton

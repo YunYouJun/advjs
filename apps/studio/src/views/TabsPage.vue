@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { IonIcon, IonLabel, IonPage, IonRouterOutlet, IonTabBar, IonTabButton, IonTabs } from '@ionic/vue'
-import { chatbubbleOutline, globeOutline, layersOutline, personOutline, playOutline } from 'ionicons/icons'
+import { globeOutline, layersOutline, personOutline, playOutline } from 'ionicons/icons'
 import { onMounted } from 'vue'
+import ManagedAgentProposalReview from '../components/agent/ManagedAgentProposalReview.vue'
+import ManagedAgentTaskRail from '../components/agent/ManagedAgentTaskRail.vue'
 import { useResponsive } from '../composables/useResponsive'
 import { useStudioStore } from '../stores/useStudioStore'
 
@@ -16,7 +18,6 @@ onMounted(() => {
 
 const navItems = [
   { tab: 'workspace', href: '/tabs/workspace', icon: layersOutline, label: 'tabs.workspace' },
-  { tab: 'chat', href: '/tabs/chat', icon: chatbubbleOutline, label: 'tabs.chat' },
   { tab: 'world', href: '/tabs/world', icon: globeOutline, label: 'tabs.world' },
   { tab: 'play', href: '/tabs/play', icon: playOutline, label: 'tabs.play' },
   { tab: 'me', href: '/tabs/me', icon: personOutline, label: 'tabs.me' },
@@ -52,11 +53,6 @@ const navItems = [
               <IonLabel>{{ $t('tabs.workspace') }}</IonLabel>
             </IonTabButton>
 
-            <IonTabButton tab="chat" href="/tabs/chat">
-              <IonIcon aria-hidden="true" :icon="chatbubbleOutline" />
-              <IonLabel>{{ $t('tabs.chat') }}</IonLabel>
-            </IonTabButton>
-
             <IonTabButton tab="world" href="/tabs/world">
               <IonIcon aria-hidden="true" :icon="globeOutline" />
               <IonLabel>{{ $t('tabs.world') }}</IonLabel>
@@ -74,6 +70,9 @@ const navItems = [
           </IonTabBar>
         </IonTabs>
       </div>
+
+      <ManagedAgentProposalReview />
+      <ManagedAgentTaskRail />
     </div>
   </IonPage>
 </template>
@@ -90,9 +89,11 @@ const navItems = [
 }
 
 .tabs-layout__main {
+  position: relative;
   flex: 1;
   min-width: 0;
   min-height: 0;
+  overflow: hidden;
 }
 
 /* Hide bottom tabs on desktop */

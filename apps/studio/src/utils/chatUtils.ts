@@ -3,11 +3,24 @@
  */
 
 import type { Ref } from 'vue'
-import type { AiApiErrorType, ChatMessage } from './aiClient'
-import type { ResolvedAiConfig } from './resolveAiConfig'
 import i18n from '../i18n'
-import { useAiSettingsStore } from '../stores/useAiSettingsStore'
-import { AiApiError, buildStreamOptions, streamChat } from './aiClient'
+
+export type AiApiErrorType = 'auth' | 'rate_limit' | 'network' | 'timeout' | 'api_error'
+
+interface ChatMessage {
+  role: 'system' | 'user' | 'assistant'
+  content: string
+}
+
+interface LegacyAiErrorLike extends Error {
+  type: AiApiErrorType
+}
+
+function isLegacyAiError(err: unknown): err is LegacyAiErrorLike {
+  return err instanceof Error
+    && err.name === 'AiApiError'
+    && ['auth', 'rate_limit', 'network', 'timeout', 'api_error'].includes((err as LegacyAiErrorLike).type)
+}
 
 /**
  * Structured error info attached to a failed message.
@@ -22,7 +35,7 @@ export interface ChatMessageError {
 
 /** Determine if an error is retryable (network/timeout/api_error yes, auth/rate_limit/abort no) */
 function isRetryableError(err: unknown): boolean {
-  if (err instanceof AiApiError)
+  if (isLegacyAiError(err))
     return err.type === 'network' || err.type === 'timeout' || err.type === 'api_error'
   if (err instanceof DOMException && err.name === 'AbortError')
     return false
@@ -31,7 +44,7 @@ function isRetryableError(err: unknown): boolean {
 
 /** Build a structured ChatMessageError from a caught error */
 export function buildChatMessageError(err: unknown): ChatMessageError {
-  if (err instanceof AiApiError) {
+  if (isLegacyAiError(err)) {
     return {
       type: err.type,
       message: getAiErrorMessage(err),
@@ -173,7 +186,7 @@ export function getDomainIcon(domain: string): string {
  * Handles AiApiError subtypes, AbortError, and generic errors.
  */
 export function getAiErrorMessage(err: unknown): string {
-  if (err instanceof AiApiError) {
+  if (isLegacyAiError(err)) {
     const key = ({
       auth: 'errorAuth',
       rate_limit: 'errorRateLimit',
@@ -276,18 +289,17 @@ export function pushNotConfiguredFallback(
  */
 export async function streamToMessage(opts: {
   allMessages: ChatMessage[]
-  messageList: Array<{ role: string, content: string, timestamp: number }>
+  messageList: Array<{ role: string, content: string, timestamp: number, error?: ChatMessageError }>
   placeholderRole: ChatMessage['role']
   streamingContent: Ref<string>
   isLoading: Ref<boolean>
   currentAbortController: Ref<AbortController | null>
   onSuccess?: (accumulated: string) => void
-  /** Per-character AI config override. When provided, bypasses global aiSettings. */
-  resolvedConfig?: ResolvedAiConfig
+  /** Legacy development-only configuration. Ignored in production. */
+  resolvedConfig?: unknown
   /** Number of automatic retries on network/timeout errors (default: 2). */
   retries?: number
 }): Promise<void> {
-  const aiSettings = useAiSettingsStore()
   const abortController = new AbortController()
   opts.currentAbortController.value = abortController
 
@@ -299,46 +311,17 @@ export async function streamToMessage(opts: {
   })
   const msgIndex = opts.messageList.length - 1
 
-  try {
-    const streamRetries = opts.retries ?? 2
-
-    const options = opts.resolvedConfig
-      ? {
-          messages: opts.allMessages,
-          baseURL: opts.resolvedConfig.baseURL,
-          apiKey: opts.resolvedConfig.apiKey,
-          model: opts.resolvedConfig.model,
-          temperature: opts.resolvedConfig.temperature,
-          maxTokens: opts.resolvedConfig.maxTokens,
-          signal: abortController.signal,
-          retries: streamRetries,
-        }
-      : {
-          ...buildStreamOptions(
-            opts.allMessages,
-            aiSettings.config,
-            aiSettings.effectiveBaseURL,
-            aiSettings.effectiveModel,
-            abortController.signal,
-          ),
-          retries: streamRetries,
-        }
-
-    let accumulated = ''
-    for await (const delta of streamChat(options)) {
-      accumulated += delta
-      opts.streamingContent.value = accumulated
-      opts.messageList[msgIndex].content = accumulated
-    }
-
-    opts.streamingContent.value = ''
-    opts.onSuccess?.(accumulated)
+  const unavailable = i18n.global.t('chat.aiNotConfiguredMessage')
+  opts.messageList[msgIndex] = {
+    ...opts.messageList[msgIndex],
+    content: unavailable,
+    error: {
+      type: 'unknown',
+      message: unavailable,
+      retryable: false,
+    },
   }
-  catch (err) {
-    handleStreamError(err, opts.streamingContent, opts.messageList, msgIndex)
-  }
-  finally {
-    opts.isLoading.value = false
-    opts.currentAbortController.value = null
-  }
+  opts.streamingContent.value = ''
+  opts.isLoading.value = false
+  opts.currentAbortController.value = null
 }

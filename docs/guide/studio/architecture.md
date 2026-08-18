@@ -75,120 +75,31 @@ Studio 保持 Local-First：章节、角色卡、设置与资源分片通过统�
 
 二进制资源的托管发布走 CloudBase `advjsAssets`：账号鉴权 → 单对象短期 PUT → 服务端 HEAD 校验 → 私有内容寻址目录。浏览器不持有永久 COS 密钥。旧的“浏览器永久密钥直连 COS 同步整个项目”只保留代码兼容层，不再作为产品入口或推荐部署方式。
 
-## 状态管理
+## 托管 AI 状态与数据流
 
-Studio 使用 13 个 Pinia Store 管理全局状态，全部 IndexedDB（Dexie）持久化：
-
-| Store                     | 职责                                        |
-| ------------------------- | ------------------------------------------- |
-| `useStudioStore`          | 当前项目信息、项目列表                      |
-| `useAiSettingsStore`      | AI 服务商配置（API Key、模型、Base URL）    |
-| `useSettingsStore`        | 用户设置（外观、语言、非敏感存储偏好）      |
-| `useCharacterChatStore`   | 角色 1v1 对话（消息、流式生成、上下文窗口） |
-| `useChatStore`            | 通用 AI 聊天（项目创作辅助）                |
-| `useCharacterMemoryStore` | 角色记忆（事实、偏好、情感状态提取）        |
-| `useCharacterStateStore`  | 角色动态状态（位置、健康、活动、属性）      |
-| `useWorldClockStore`      | 世界时钟（日期、时段、天气）                |
-| `useWorldEventStore`      | 世界事件（日常/社交/意外/天气）             |
-| `useGroupChatStore`       | 多角色群聊（自动选人、轮流发言）            |
-| `useViewModeStore`        | 视角模式（角色/上帝/访客）                  |
-| `useCharacterDiaryStore`  | 角色日记（AI 生成内心独白、按日期存储）     |
-
-### Store 交互关系与数据流
-
-下图展示了 13 个 Store 间的依赖关系和数据流向：
+Studio 生产版不再使用浏览器 Provider 配置 store。AI 状态分成两层：框架无关的 `AgentRuntime` 负责协议、SSE 恢复和任务状态机；Pinia 只负责把当前任务、点数和提案审阅状态投影到界面。
 
 ```mermaid
-graph TB
-    subgraph Config["⚙️ 配置层（项目级）"]
-        StudioStore["useStudioStore<br/>📁 项目信息/列表"]
-        AiSettings["useAiSettingsStore<br/>🤖 AI 配置"]
-        Settings["useSettingsStore<br/>⚙️ 用户设置"]
-    end
-
-    subgraph Character["👤 角色层（核心）"]
-        CharChat["useCharacterChatStore<br/>💬 1v1 对话"]
-        CharMemory["useCharacterMemoryStore<br/>🧠 角色记忆"]
-        CharState["useCharacterStateStore<br/>📊 角色动态状态"]
-        CharDiary["useCharacterDiaryStore<br/>📔 角色日记"]
-    end
-
-    subgraph World["🌍 世界层（环境）"]
-        WorldClock["useWorldClockStore<br/>⏰ 世界时钟"]
-        WorldEvent["useWorldEventStore<br/>📰 世界事件"]
-        ViewMode["useViewModeStore<br/>👁️ 视角模式"]
-    end
-
-    subgraph Interaction["🎭 交互层（社交）"]
-        GroupChat["useGroupChatStore<br/>👥 多角色群聊"]
-        Chat["useChatStore<br/>🎨 创作助手"]
-    end
-
-    %% 配置层 → 其他层
-    StudioStore -->|Project Loaded| CharChat
-    StudioStore -->|Project Loaded| GroupChat
-    AiSettings -->|模型/API 配置| CharChat
-    AiSettings -->|模型/API 配置| GroupChat
-    AiSettings -->|模型/API 配置| Chat
-    Settings -->|外观/语言| CharChat
-
-    %% 角色对话 → 记忆 → 状态
-    CharChat -->|对话内容| CharMemory
-    CharMemory -->|提取关键信息| CharState
-    CharChat -->|直接更新| CharState
-
-    %% 世界系统的互动
-    WorldClock -->|时间推进事件| WorldEvent
-    WorldClock -->|时间上下文| CharChat
-    WorldEvent -->|事件发生| WorldEvent
-
-    %% 世界系统注入对话
-    WorldClock -->|系统提示词| CharChat
-    WorldEvent -->|事件上下文| CharChat
-    WorldClock -->|日期| CharDiary
-
-    %% 视角模式影响对话
-    ViewMode -->|系统提示词前缀| CharChat
-    ViewMode -->|系统提示词前缀| GroupChat
-
-    %% 群聊与单聊
-    GroupChat -->|群聊消息| WorldEvent
-    CharChat -->|个人对话| CharMemory
-
-    %% 日记生成依赖
-    CharState -->|角色信息| CharDiary
-    CharMemory -->|记忆信息| CharDiary
-
-    %% 创作助手
-    Chat -->|AI 回复| StudioStore
-
-    %% 样式
-    classDef config fill:#e1f5ff,stroke:#01579b,color:#000
-    classDef character fill:#f3e5f5,stroke:#4a148c,color:#000
-    classDef world fill:#e8f5e9,stroke:#1b5e20,color:#000
-    classDef interaction fill:#fff3e0,stroke:#e65100,color:#000
-
-    class StudioStore,AiSettings,Settings config
-    class CharChat,CharMemory,CharState,CharDiary character
-    class WorldClock,WorldEvent,ViewMode world
-    class GroupChat,Chat interaction
+flowchart LR
+    UI["五项创作入口"] --> Authoring["Managed authoring adapter"]
+    Authoring --> Context["能力级项目上下文裁剪"]
+    Context --> Runtime["ManagedAgentRuntime"]
+    Runtime --> Gateway["云端 AI Runtime"]
+    Gateway --> Events["可恢复 SSE + 点数结算"]
+    Events --> Rail["全局任务轨"]
+    Events --> Candidate["服务端已校验候选"]
+    Candidate --> Review["提案审阅"]
+    Review -->|明确确认| Workspace["ProjectWorkspace 事务写入"]
 ```
 
-**数据流说明**：
+核心职责：
 
-1. **配置层** → 所有其他层（初始化时注入配置）
-2. **角色层** 是核心：对话 → 提取记忆 → 更新状态 → 生成日记
-3. **世界层** 向角色对话注入上下文：时间、事件、视角模式等影响 AI 系统提示词
-4. **交互层** 扩展单人对话为多人群聊，但底层使用相同的 Store 机制
+| 模块                    | 职责                                    | 持久化边界          |
+| ----------------------- | --------------------------------------- | ------------------- |
+| `useStudioStore`        | 当前项目、项目列表和 workspace 生命周期 | 项目元数据/本地句柄 |
+| `useSettingsStore`      | 外观、语言等非敏感偏好                  | 本地设置            |
+| `useManagedAgentStore`  | 点数、active task、SSE 恢复和取消       | 服务端任务是真源    |
+| `useAgentProposalStore` | 候选预览、显式应用和撤销                | 未确认候选不写项目  |
+| `AgentRuntime`          | 版本协议、错误归一、流恢复              | 不持有 Provider key |
 
-### Store 使用场景速查
-
-| 场景                       | 需要的 Store                            | 数据流向                        |
-| -------------------------- | --------------------------------------- | ------------------------------- |
-| 玩家与角色 1v1 对话        | CharChat → CharMemory → CharState       | 消息流入 → 提取记忆 → 更新状态  |
-| 进行多角色群聊             | GroupChat → CharMemory（每个角色）      | 群聊管理 → 每个角色独立记忆     |
-| 推进世界时间               | WorldClock → WorldEvent → 所有 CharChat | 时间变化 → 生成事件 → 注入对话  |
-| 生成角色日记               | CharState + CharMemory → CharDiary      | 角色信息+记忆 → AI 生成日记     |
-| 切换视角（角色/上帝/访客） | ViewMode → CharChat / GroupChat         | 视角切换 → 改变系统提示词前缀   |
-| 角色回答专业问题           | KnowledgeBase + CharChat → 系统提示词   | 检索知识 → 注入提示词 → AI 回答 |
-| 保存/加载项目              | StudioStore + 所有 Store                | IndexedDB 持久化/读取           |
+模型、供应商、提示词、价格和安全策略都是服务端配置。生产构建同时扫描模块图和最终 JavaScript；旧 BYOK store、直连客户端或未批准供应商域名一旦进入 bundle 就会构建失败。暂未登记的聊天、抽取、Embedding、图片和 TTS 等能力保持隐藏或 fail closed。用户产品边界见 [Studio 托管 AI 与 Editor 本地 Agent](./ai-service)。

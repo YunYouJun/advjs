@@ -17,7 +17,6 @@ import { addOutline, cloudUploadOutline, downloadOutline, trashOutline } from 'i
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import AiGeneratePanel from '../../components/AiGeneratePanel.vue'
 import CharacterCard from '../../components/CharacterCard.vue'
 import CharacterCardActions from '../../components/CharacterCardActions.vue'
 import CharacterEditorForm from '../../components/CharacterEditorForm.vue'
@@ -30,7 +29,6 @@ import { useContentSave } from '../../composables/useContentSave'
 import { useIncrementalList } from '../../composables/useIncrementalList'
 import { useProjectContent } from '../../composables/useProjectContent'
 import { useRecentActivity } from '../../composables/useRecentActivity'
-import { useAiSettingsStore } from '../../stores/useAiSettingsStore'
 import { useCharacterStateStore } from '../../stores/useCharacterStateStore'
 import { exportCharactersToCSV, exportRelationshipsToCSV } from '../../utils/csvExport'
 import { downloadAsFile } from '../../utils/fs'
@@ -39,7 +37,6 @@ import { showToast } from '../../utils/toast'
 
 const { t } = useI18n()
 const router = useRouter()
-const aiSettings = useAiSettingsStore()
 const characterStateStore = useCharacterStateStore()
 
 const { characters, reload, getFs } = useProjectContent()
@@ -91,10 +88,6 @@ function markdownToCharacter(md: string) {
   catch {
     // If md is invalid, keep formData unchanged
   }
-}
-
-function handleAiApplyCharacter(md: string) {
-  markdownToCharacter(md)
 }
 
 function handleEditCharacter(character: AdvCharacter) {
@@ -284,7 +277,6 @@ async function handleExportCSV() {
       :title="characterEditor.mode.value === 'create' ? t('contentEditor.createCharacter') : t('contentEditor.editCharacter')"
       :mode="characterEditor.mode.value"
       :is-saving="isSaving"
-      :ai-enabled="aiSettings.isConfigured"
       :markdown="characterMarkdown"
       :monaco-filename="`${characterEditor.formData.value.id || 'character'}.character.md`"
       @update:is-open="(v: boolean) => { if (!v) characterEditor.close() }"
@@ -296,9 +288,6 @@ async function handleExportCSV() {
     >
       <template #form>
         <CharacterEditorForm v-model="characterEditor.formData.value" :characters="characters" />
-      </template>
-      <template #ai>
-        <AiGeneratePanel content-type="character" @apply="handleAiApplyCharacter" />
       </template>
       <template #header-actions>
         <IonButton

@@ -4,12 +4,9 @@ import { claimDefaultData, DEFAULT_PROJECT_ID, hasDefaultData } from '../utils/d
 import { loadDirHandle, restoreAndVerifyHandle, saveDirHandle } from '../utils/dirHandleStore'
 import { setProjectIdGetter } from '../utils/projectScope'
 import { toSlug } from '../utils/slug'
-import { useCharacterChatStore } from './useCharacterChatStore'
 import { useCharacterDiaryStore } from './useCharacterDiaryStore'
 import { useCharacterMemoryStore } from './useCharacterMemoryStore'
 import { useCharacterStateStore } from './useCharacterStateStore'
-import { useChatStore } from './useChatStore'
-import { useGroupChatStore } from './useGroupChatStore'
 import { useViewModeStore } from './useViewModeStore'
 import { useWorldClockStore } from './useWorldClockStore'
 import { useWorldEventStore } from './useWorldEventStore'
@@ -176,22 +173,17 @@ export const useStudioStore = defineStore('studio', () => {
    */
   async function switchProject(project: StudioProject | null) {
     // 1. Flush all pending writes for the current (old) project
-    const chatStore = useCharacterChatStore()
     const memoryStore = useCharacterMemoryStore()
     const stateStore = useCharacterStateStore()
-    const groupChatStore = useGroupChatStore()
     const eventStore = useWorldEventStore()
     const clockStore = useWorldClockStore()
-    const generalChatStore = useChatStore()
     const viewModeStore = useViewModeStore()
     const diaryStore = useCharacterDiaryStore()
 
     // Await all flush promises to ensure pending writes complete before reset
     await Promise.all([
-      chatStore.flush(),
       memoryStore.flush(),
       stateStore.flush(),
-      groupChatStore.flush(),
       eventStore.flush(),
       clockStore.flush(),
       viewModeStore.flush(),
@@ -199,13 +191,10 @@ export const useStudioStore = defineStore('studio', () => {
     ])
 
     // 2. Reset all project-scoped stores
-    chatStore.$reset()
     memoryStore.$reset()
     stateStore.$reset()
-    groupChatStore.$reset()
     eventStore.$reset()
     clockStore.$reset()
-    generalChatStore.$reset()
     viewModeStore.$reset()
     diaryStore.$reset()
 
@@ -228,10 +217,8 @@ export const useStudioStore = defineStore('studio', () => {
     // 6. Init all stores with the new project's data (in parallel)
     const pid = project.projectId
     await Promise.all([
-      chatStore.init(pid),
       memoryStore.init(pid),
       stateStore.init(pid),
-      groupChatStore.init(pid),
       eventStore.init(pid),
       clockStore.init(pid),
       viewModeStore.init(pid),

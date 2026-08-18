@@ -1,4 +1,5 @@
 import type { AdvCharacter } from '@advjs/types'
+import type { AgentRequest, AgentRuntime } from '../agent/core/contracts'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
@@ -315,19 +316,51 @@ describe('agentRegistry', () => {
     expect(getAgentTool('generate-outline')).toBeDefined()
   })
 
-  it('invokeAgentTool routes to the right handler (and respects unconfigured AI)', async () => {
-    const result = await invokeAgentTool('generate-outline', {
-      worldMd: 'w',
-      characters,
+  it('invokeAgentTool routes semantic input through the selected runtime', async () => {
+    let captured: AgentRequest<unknown> | undefined
+    const runtime: AgentRuntime = {
+      start: async (request) => {
+        captured = request
+        return {
+          taskId: 'task_registry_fixture',
+          events: (async function* () {})(),
+          result: Promise.resolve({
+            taskId: 'task_registry_fixture',
+            usage: {
+              inputTokens: 1,
+              outputTokens: 1,
+              totalTokens: 2,
+              providerCostMicroCny: 0,
+              chargedMicroPoints: 0,
+            },
+          }),
+        }
+      },
+      resume: async () => { throw new Error('not used') },
+      getTask: async () => { throw new Error('not used') },
+      cancel: async () => {},
+    }
+    const result = await invokeAgentTool(runtime, 'generate-outline', {
+      clientRequestId: 'registry_fixture_001',
+      input: { hint: '赛博朋克基调' },
+      locale: 'zh-CN',
+      project: {
+        id: 'project_fixture',
+        revision: 'revision_fixture',
+        files: { 'adv/world.md': 'world' },
+      },
     })
-    // Pinia store is fresh → AI not configured → handler returns structured error.
-    expect(result.error?.type).toBe('not_configured')
+    expect(result.taskId).toBe('task_registry_fixture')
+    expect(captured).toMatchObject({
+      capability: 'generate-outline',
+      input: { hint: '赛博朋克基调' },
+    })
   })
 
   it('invokeAgentTool throws on unknown id', async () => {
     await expect(
       // @ts-expect-error testing runtime guard
-      invokeAgentTool('made-up-tool', {}),
+      invokeAgentTool({} as AgentRuntime, 'made-up-tool', {}),
     ).rejects.toThrow(/Unknown agent tool/)
   })
 })

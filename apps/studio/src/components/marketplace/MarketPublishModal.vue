@@ -9,16 +9,12 @@ import {
   IonIcon,
   IonInput,
   IonModal,
-  IonSpinner,
   IonTitle,
   IonToolbar,
-  toastController,
 } from '@ionic/vue'
-import { closeOutline, sparklesOutline } from 'ionicons/icons'
-import { computed, ref, watch } from 'vue'
+import { closeOutline } from 'ionicons/icons'
+import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useAiSettingsStore } from '../../stores/useAiSettingsStore'
-import { suggestMarketTags } from '../../utils/aiAuthoring/marketTagger'
 import {
   deriveDuration,
   MARKET_DURATIONS,
@@ -47,16 +43,12 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const aiSettings = useAiSettingsStore()
 
 const tags = ref<string[]>([])
 const tagInput = ref('')
 const genre = ref<MarketGenre | undefined>(undefined)
 const style = ref<MarketStyle | undefined>(undefined)
 const duration = ref<MarketDuration>('short')
-const isTagging = ref(false)
-
-const aiEnabled = computed(() => aiSettings.isConfigured)
 
 // Reset the form each time the modal opens so a re-publish starts clean and
 // duration reflects the current chapter count.
@@ -94,45 +86,6 @@ function toggleStyle(id: MarketStyle) {
   style.value = style.value === id ? undefined : id
 }
 
-async function handleAiTag() {
-  if (!aiEnabled.value || isTagging.value)
-    return
-  isTagging.value = true
-  try {
-    const res = await suggestMarketTags({
-      name: props.projectName,
-      description: props.description,
-      worldMd: props.worldMd,
-      characters: props.characters,
-    })
-    if (res.error) {
-      const toast = await toastController.create({
-        message: t('marketplace.aiTagFailed'),
-        duration: 2000,
-        position: 'top',
-        color: 'danger',
-      })
-      await toast.present()
-      return
-    }
-    const { genre: g, style: s, tags: suggested } = res.data
-    if (g)
-      genre.value = g
-    if (s)
-      style.value = s
-    // Merge suggested tags with whatever the author already typed (dedup, cap 8).
-    for (const tag of suggested) {
-      if (tags.value.length >= 8)
-        break
-      if (!tags.value.some(t => t.toLowerCase() === tag.toLowerCase()))
-        tags.value.push(tag)
-    }
-  }
-  finally {
-    isTagging.value = false
-  }
-}
-
 function handlePublish() {
   emit('publish', {
     tags: tags.value,
@@ -161,19 +114,6 @@ function handlePublish() {
         <p class="pub-project">
           {{ projectName }}
         </p>
-
-        <!-- AI auto-tag -->
-        <button
-          v-if="aiEnabled"
-          type="button"
-          class="pub-ai-btn"
-          :disabled="isTagging"
-          @click="handleAiTag"
-        >
-          <IonSpinner v-if="isTagging" name="dots" />
-          <IonIcon v-else :icon="sparklesOutline" />
-          {{ isTagging ? t('marketplace.aiTagging') : t('marketplace.aiTag') }}
-        </button>
 
         <!-- Genre -->
         <section class="pub-section">

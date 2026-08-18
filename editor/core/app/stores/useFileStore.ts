@@ -1,7 +1,6 @@
-import type { LocalBridgeAdapter, LocalFileHandle } from '../adapters/local'
+import type { LocalFileHandle } from '../adapters/local'
 import type { AdvConfigAdapterType } from '../types'
 import type { MonacoEditorLanguage } from './useMonacoStore'
-import { applyProjectPatches } from '@advjs/core'
 import { useStorage } from '@vueuse/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
@@ -117,16 +116,16 @@ export const useFileStore = defineStore('file', () => {
   /**
    * set opened file handle
    */
-  async function setOpenedFileHandle(fileHandle: FileSystemFileHandle) {
+  async function setOpenedFileHandle(fileHandle: FileSystemFileHandle, projectPath?: string) {
     app.activeInspector = 'file'
     openedFileHandle.value = fileHandle
 
     const fileContent = await fileHandle.getFile().then(file => file.text())
     monacoStore.fileContent = fileContent
     savedFileContent.value = fileContent
-    openedFilePath.value = 'path' in fileHandle
+    openedFilePath.value = projectPath || ('path' in fileHandle
       ? (fileHandle as unknown as LocalFileHandle).path
-      : fileHandle.name
+      : fileHandle.name)
     externalConflict.value = undefined
 
     const ext = fileHandle.name.split('.').pop() || ''
@@ -146,26 +145,20 @@ export const useFileStore = defineStore('file', () => {
     const fileHandle = openedFileHandle.value
     if (!fileHandle)
       throw new Error('No local file is open')
-    const file = await fileHandle.getFile()
-    const path = openedFilePath.value || file.name
-    const result = applyProjectPatches({ [path]: await file.text() }, [{
+    const path = openedFilePath.value || fileHandle.name
+    await useProjectStore().commitProject([{
       kind: 'raw-text',
       path,
       content,
     }])
-    const writable = await fileHandle.createWritable()
-    await writable.write(result.files[path])
-    await writable.close()
     savedFileContent.value = content
     externalConflict.value = undefined
-    await useProjectStore().refreshProject()
     consoleStore.success('Markdown file saved', { fileName: path })
   }
 
-  async function handleExternalChange(adapter: LocalBridgeAdapter, path: string) {
+  async function handleExternalChange(path: string, content: string) {
     if (!openedFileHandle.value || openedFilePath.value !== path)
       return
-    const content = await adapter.readFile(path)
     if (isDirty.value) {
       externalConflict.value = { content, path }
       consoleStore.warn('External file change conflicts with unsaved edits', { fileName: path })

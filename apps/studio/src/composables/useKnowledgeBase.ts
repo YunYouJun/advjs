@@ -2,7 +2,6 @@ import type { ComputedRef, Ref } from 'vue'
 import type { IFileSystem } from '../utils/fs'
 import { computed, ref } from 'vue'
 import { downloadFromCloud, listCloudFiles } from '../utils/cloudSync'
-import { contentHash, generateEmbeddings, rankBySimilarity } from '../utils/embeddingClient'
 
 const TITLE_RE = /^#[ \t]+(\S[\S \t]*)$/m
 const MD_EXT_RE = /\.md$/
@@ -651,124 +650,13 @@ export function useKnowledgeBase() {
   async function selectRelevantKnowledgeV2(
     userMessage: string,
     domain: string,
-    embeddingConfig: {
-      baseURL: string
-      apiKey: string
-      model: string
-    },
-    projectId: string = '_default_',
+    _embeddingConfig: unknown,
+    _projectId: string = '_default_',
     maxChars: number = 3000,
   ): Promise<string> {
-    const domainEntries = getEntriesForDomain(domain)
-    if (domainEntries.length === 0)
-      return ''
-
-    const allSections = domainEntries.flatMap(e => e.sections)
-    if (allSections.length === 0)
-      return ''
-
-    try {
-      // Lazy-load db to avoid circular dependency
-      const { db } = await import('../utils/db')
-
-      // 1. Generate query embedding
-      const [queryEmbedding] = await generateEmbeddings({
-        texts: [userMessage],
-        ...embeddingConfig,
-      })
-
-      // 2. Load/refresh section embeddings from IndexedDB cache
-      const sectionEmbeddings: Array<{ index: number, embedding: number[] }> = []
-
-      for (let i = 0; i < allSections.length; i++) {
-        const section = allSections[i]
-        const sectionKey = `${section.entryTitle}#${section.heading}#${i}`
-        const hash = contentHash(section.content)
-
-        // Check cache
-        const cached = await db.knowledgeEmbeddings
-          .where('[projectId+sectionKey]')
-          .equals([projectId, sectionKey])
-          .first()
-
-        if (cached && cached.contentHash === hash && cached.model === embeddingConfig.model) {
-          sectionEmbeddings.push({ index: i, embedding: cached.embedding })
-        }
-        else {
-          // Generate and cache (batched below)
-          sectionEmbeddings.push({ index: i, embedding: [] }) // placeholder
-        }
-      }
-
-      // Batch generate missing embeddings
-      const missingIndices = sectionEmbeddings.filter(se => se.embedding.length === 0).map(se => se.index)
-      if (missingIndices.length > 0) {
-        const textsToEmbed = missingIndices.map((i) => {
-          const s = allSections[i]
-          return s.heading ? `${s.heading}: ${s.content}` : s.content
-        })
-
-        // Generate in batches of 20 to avoid API limits
-        const BATCH_SIZE = 20
-        for (let b = 0; b < textsToEmbed.length; b += BATCH_SIZE) {
-          const batchTexts = textsToEmbed.slice(b, b + BATCH_SIZE)
-          const batchIndices = missingIndices.slice(b, b + BATCH_SIZE)
-          const embeddings = await generateEmbeddings({
-            texts: batchTexts,
-            ...embeddingConfig,
-          })
-
-          for (let j = 0; j < batchIndices.length; j++) {
-            const idx = batchIndices[j]
-            const embedding = embeddings[j]
-            const se = sectionEmbeddings.find(s => s.index === idx)
-            if (se)
-              se.embedding = embedding
-
-            // Cache in IndexedDB
-            const section = allSections[idx]
-            const sectionKey = `${section.entryTitle}#${section.heading}#${idx}`
-            await db.knowledgeEmbeddings.put({
-              projectId,
-              sectionKey,
-              embedding,
-              contentHash: contentHash(section.content),
-              model: embeddingConfig.model,
-            }).catch(() => {}) // Silently fail caching
-          }
-        }
-      }
-
-      // 3. Rank by similarity
-      const validEmbeddings = sectionEmbeddings.filter(se => se.embedding.length > 0)
-      const ranked = rankBySimilarity(queryEmbedding, validEmbeddings, 10)
-
-      // 4. Accumulate top sections up to maxChars
-      const selectedParts: string[] = []
-      let totalChars = 0
-
-      for (const { index, score } of ranked) {
-        if (score < 0.3)
-          break // skip low-relevance sections
-
-        const section = allSections[index]
-        const part = section.heading
-          ? `## ${section.heading}\n\n${section.content}`
-          : section.content
-
-        if (totalChars + part.length > maxChars && selectedParts.length > 0)
-          break
-
-        selectedParts.push(part)
-        totalChars += part.length
-      }
-
-      return selectedParts.join('\n\n')
-    }
-    catch {
-      // Fallback to V1 on any error
-      return selectRelevantKnowledge(userMessage, domain, maxChars)
-    }
+    // Managed embeddings are not registered yet. Production fails closed to
+    // deterministic local keyword retrieval instead of calling a provider.
+    return selectRelevantKnowledge(userMessage, domain, maxChars)
   }
 
   /**

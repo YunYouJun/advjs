@@ -33,6 +33,7 @@ import {
   timeOutline,
   warningOutline,
 } from 'ionicons/icons'
+import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -41,7 +42,7 @@ import { useProjectContent } from '../composables/useProjectContent'
 import { useProjectDescription } from '../composables/useProjectDescription'
 import { downloadBlob, exportProject } from '../composables/useProjectExport'
 import { buildStandaloneBundle } from '../composables/useStandaloneBuild'
-import { useAiSettingsStore } from '../stores/useAiSettingsStore'
+import { useManagedAgentStore } from '../stores/useManagedAgentStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { useWorldEventStore } from '../stores/useWorldEventStore'
 import { loadStudioGameSettings } from '../utils/projectRuntimeFiles'
@@ -58,7 +59,8 @@ const SAFE_NAME_RE = /[^a-z0-9\u4E00-\u9FFF]+/g
 const { t } = useI18n()
 const router = useRouter()
 const studioStore = useStudioStore()
-const aiSettings = useAiSettingsStore()
+const managedStore = useManagedAgentStore()
+const { isConfigured: managedAiAvailable } = storeToRefs(managedStore)
 const showSettings = ref(false)
 const showOutlineModal = ref(false)
 
@@ -708,7 +710,7 @@ async function handleStandaloneExport() {
           <IonIcon v-else :icon="globeOutline" />
         </button>
         <button
-          v-if="aiSettings.isConfigured"
+          v-if="managedAiAvailable"
           class="overview__icon-btn"
           :title="t('aiAuthoring.outline.generate')"
           @click="showOutlineModal = true"

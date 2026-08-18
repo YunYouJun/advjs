@@ -1,6 +1,7 @@
 import { IonicVue } from '@ionic/vue'
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
+import { clearLegacyStudioAiCredentials } from './agent/managed'
 import App from './App.vue'
 import { resolveStudioSsoConfig } from './auth/sso-config'
 /* CloudBase auth restore */
@@ -61,6 +62,10 @@ import 'virtual:uno.css'
 
 /* AGUI Assets Explorer dependency */
 import 'splitpanes/dist/splitpanes.css'
+
+// One-way local migration: discard old provider credentials before any app
+// service starts. Values are never read, parsed, logged, or uploaded.
+clearLegacyStudioAiCredentials()
 
 const pinia = createPinia()
 

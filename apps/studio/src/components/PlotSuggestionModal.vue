@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { PlotSuggestion } from '../utils/aiAuthoring/plotSuggester'
-import type { AiAuthoringError } from '../utils/aiAuthoring/result'
 import type { ChapterFormData } from '../utils/chapterMd'
 import {
   IonButton,
@@ -11,6 +9,7 @@ import {
   IonLabel,
   IonList,
   IonModal,
+  IonNote,
   IonSpinner,
   IonTextarea,
   IonTitle,
@@ -18,13 +17,10 @@ import {
 } from '@ionic/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useProjectContent } from '../composables/useProjectContent'
-import { useProjectDescription } from '../composables/useProjectDescription'
-import { useAiSettingsStore } from '../stores/useAiSettingsStore'
+import { toManagedChapterPath } from '../agent/capabilities'
+import { useManagedAuthoring } from '../composables/useManagedAuthoring'
 import { useWorldEventStore } from '../stores/useWorldEventStore'
-import { suggestPlot } from '../utils/aiAuthoring/plotSuggester'
-import { notConfiguredError } from '../utils/aiAuthoring/result'
-import AiErrorBanner from './AiErrorBanner.vue'
+import { showToast } from '../utils/toast'
 
 const props = defineProps<{
   isOpen: boolean
@@ -33,21 +29,14 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: []
-  pick: [PlotSuggestion]
 }>()
 
 const { t } = useI18n()
-const aiSettings = useAiSettingsStore()
-const { characters } = useProjectContent()
-const { worldMd } = useProjectDescription()
+const managed = useManagedAuthoring()
 const worldEventStore = useWorldEventStore()
 
 const hint = ref('')
-const loading = ref(false)
-const suggestions = ref<PlotSuggestion[]>([])
-const lastError = ref<AiAuthoringError | null>(null)
-
-const canRun = computed(() => aiSettings.isConfigured && !loading.value)
+const canRun = computed(() => managed.canStartTask.value && !managed.isSubmitting.value)
 const recentEvents = computed(() =>
   worldEventStore.getRecentEvents(5).map((e: { date: string, period: string, summary: string }) =>
     `[${e.date} ${e.period}] ${e.summary}`,
@@ -57,40 +46,25 @@ const recentEvents = computed(() =>
 watch(() => props.isOpen, (open) => {
   if (open) {
     hint.value = ''
-    suggestions.value = []
-    loading.value = false
-    lastError.value = aiSettings.isConfigured ? null : notConfiguredError()
+    managed.clearError()
   }
 })
 
 async function run() {
   if (!canRun.value)
     return
-  suggestions.value = []
-  lastError.value = null
-  loading.value = true
   try {
-    const result = await suggestPlot({
-      chapter: props.chapter,
-      characters: characters.value,
-      worldMd: worldMd.value,
-      recentEvents: recentEvents.value,
-      hint: hint.value,
+    await managed.start('suggest-plot', {
+      chapterPath: toManagedChapterPath(props.chapter.filename),
+      ...(hint.value.trim() ? { hint: hint.value.trim() } : {}),
+      ...(recentEvents.value.length ? { recentEvents: recentEvents.value } : {}),
     })
-    if (result.error) {
-      lastError.value = result.error
-      return
-    }
-    suggestions.value = result.data
+    await showToast(t('managedAuthoring.submitted'), 'success')
+    emit('close')
   }
-  finally {
-    loading.value = false
+  catch {
+    // Stable error is rendered below. Result remains available in the task rail.
   }
-}
-
-function pick(s: PlotSuggestion) {
-  emit('pick', s)
-  emit('close')
 }
 </script>
 
@@ -126,7 +100,7 @@ function pick(s: PlotSuggestion) {
             :placeholder="t('aiAuthoring.plot.hintPlaceholder')"
             :auto-grow="true"
             :rows="2"
-            :disabled="loading"
+            :disabled="managed.isSubmitting.value"
           />
         </IonItem>
       </IonList>
@@ -137,41 +111,24 @@ function pick(s: PlotSuggestion) {
           expand="block"
           @click="run"
         >
-          <IonSpinner v-if="loading" name="crescent" style="margin-right: 8px; width: 16px; height: 16px;" />
-          {{ suggestions.length ? t('aiAuthoring.plot.regenerate') : t('aiAuthoring.plot.generate') }}
+          <IonSpinner v-if="managed.isSubmitting.value" name="crescent" style="margin-right: 8px; width: 16px; height: 16px;" />
+          {{ t('aiAuthoring.plot.generate') }}
         </IonButton>
+        <IonNote v-if="managed.errorCode.value" color="danger" class="managed-note">
+          {{ t(`managedAuthoring.errors.${managed.errorCode.value}`) }}
+        </IonNote>
+        <IonNote v-else class="managed-note">
+          {{ t('managedAuthoring.nonPatchResult') }}
+        </IonNote>
       </div>
-
-      <AiErrorBanner
-        v-if="lastError"
-        :error="lastError"
-        @retry="run"
-      />
-
-      <IonList v-if="suggestions.length">
-        <IonItem
-          v-for="(s, i) in suggestions"
-          :key="i"
-          button
-          @click="pick(s)"
-        >
-          <IonLabel class="ion-text-wrap">
-            <h3>{{ i + 1 }}. {{ s.label }}</h3>
-            <p>{{ s.synopsis }}</p>
-            <p v-if="s.hook" class="plot-hook">
-              <strong>{{ t('aiAuthoring.plot.hookPrefix') }}</strong>{{ s.hook }}
-            </p>
-          </IonLabel>
-        </IonItem>
-      </IonList>
     </IonContent>
   </IonModal>
 </template>
 
 <style scoped>
-.plot-hook {
+.managed-note {
+  display: block;
   margin-top: var(--adv-space-xs);
-  color: var(--adv-text-secondary);
-  font-size: var(--adv-font-caption);
+  line-height: 1.5;
 }
 </style>

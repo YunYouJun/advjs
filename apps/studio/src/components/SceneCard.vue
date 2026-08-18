@@ -7,23 +7,19 @@ import {
   IonCardHeader,
   IonCardTitle,
   IonIcon,
-  IonSpinner,
 } from '@ionic/vue'
-import { cloudUploadOutline, imageOutline, sparklesOutline } from 'ionicons/icons'
+import { cloudUploadOutline, imageOutline } from 'ionicons/icons'
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { loadStudioAssetCatalog } from '../utils/projectAssets'
 
 const props = defineProps<{
   scene: SceneInfo
-  isGenerating?: boolean
   isPublishing?: boolean
-  aiAvailable?: boolean
 }>()
 
 defineEmits<{
   click: [scene: SceneInfo]
-  generateImage: [scene: SceneInfo]
   publish: [scene: SceneInfo]
 }>()
 
@@ -100,20 +96,6 @@ onUnmounted(() => {
     <div v-if="displayUrl" class="scene-card__thumb">
       <img :src="displayUrl" alt="" class="scene-card__img" loading="lazy">
     </div>
-    <div v-else-if="isGenerating" class="scene-card__thumb scene-card__thumb--placeholder">
-      <IonSpinner name="crescent" />
-    </div>
-    <div v-else-if="scene.imagePrompt && aiAvailable" class="scene-card__thumb scene-card__thumb--placeholder">
-      <IonButton
-        fill="clear"
-        size="small"
-        class="scene-card__gen-btn"
-        @click.stop="$emit('generateImage', scene)"
-      >
-        <IonIcon :icon="sparklesOutline" />
-        {{ $t('scenes.generateImage') }}
-      </IonButton>
-    </div>
 
     <IonButton
       v-if="scene.assetId"
@@ -185,12 +167,6 @@ onUnmounted(() => {
   height: 100%;
   object-fit: cover;
   display: block;
-}
-
-.scene-card__gen-btn {
-  --color: var(--adv-primary);
-  font-size: var(--adv-font-caption);
-  font-weight: 600;
 }
 
 .scene-card__title {

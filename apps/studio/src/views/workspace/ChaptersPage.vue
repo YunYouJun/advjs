@@ -19,7 +19,6 @@ import { addOutline, trashOutline } from 'ionicons/icons'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import AiGeneratePanel from '../../components/AiGeneratePanel.vue'
 import ChapterCard from '../../components/ChapterCard.vue'
 import ChapterEditorForm from '../../components/ChapterEditorForm.vue'
 import DraftRestoreBanner from '../../components/common/DraftRestoreBanner.vue'
@@ -30,13 +29,11 @@ import { useContentEditor } from '../../composables/useContentEditor'
 import { useContentSave } from '../../composables/useContentSave'
 import { useProjectContent } from '../../composables/useProjectContent'
 import { useRecentActivity } from '../../composables/useRecentActivity'
-import { useAiSettingsStore } from '../../stores/useAiSettingsStore'
 import { stringifyChapterMd } from '../../utils/chapterMd'
 import { showToast } from '../../utils/toast'
 
 const { t } = useI18n()
 const router = useRouter()
-const aiSettings = useAiSettingsStore()
 
 const { chapters, reload, getFs } = useProjectContent()
 const { isSaving, saveContent } = useContentSave()
@@ -73,10 +70,6 @@ function markdownToChapter(md: string) {
     ...chapterEditor.formData.value,
     content: md,
   }
-}
-
-function handleAiApplyChapter(md: string) {
-  markdownToChapter(md)
 }
 
 // --- Navigation ---
@@ -197,7 +190,6 @@ async function handleDeleteChapter(file: string) {
       :title="chapterEditor.mode.value === 'create' ? t('contentEditor.createChapter') : t('contentEditor.editChapter')"
       :mode="chapterEditor.mode.value"
       :is-saving="isSaving"
-      :ai-enabled="aiSettings.isConfigured"
       :markdown="chapterMarkdown"
       :monaco-filename="`${chapterEditor.formData.value.filename || 'chapter'}.adv.md`"
       @update:is-open="(v: boolean) => { if (!v) chapterEditor.close() }"
@@ -209,9 +201,6 @@ async function handleDeleteChapter(file: string) {
     >
       <template #form>
         <ChapterEditorForm v-model="chapterEditor.formData.value" />
-      </template>
-      <template #ai>
-        <AiGeneratePanel content-type="chapter" @apply="handleAiApplyChapter" />
       </template>
     </ContentEditorModal>
   </LayoutPage>

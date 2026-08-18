@@ -18,7 +18,6 @@ import {
 import { addOutline, cloudUploadOutline, trashOutline } from 'ionicons/icons'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import AiGeneratePanel from '../../components/AiGeneratePanel.vue'
 import AudioCard from '../../components/AudioCard.vue'
 import AudioEditorForm from '../../components/AudioEditorForm.vue'
 import DraftRestoreBanner from '../../components/common/DraftRestoreBanner.vue'
@@ -29,7 +28,6 @@ import { useContentEditor } from '../../composables/useContentEditor'
 import { useContentSave } from '../../composables/useContentSave'
 import { useManagedAssetStorage } from '../../composables/useManagedAssetStorage'
 import { useProjectContent } from '../../composables/useProjectContent'
-import { useAiSettingsStore } from '../../stores/useAiSettingsStore'
 import { useStudioStore } from '../../stores/useStudioStore'
 import { parseAudioMd, stringifyAudioMd } from '../../utils/audioMd'
 import { isAudioFile } from '../../utils/fs'
@@ -39,7 +37,6 @@ import { showToast } from '../../utils/toast'
 const FILE_NAME_RE = /[^\w\u4E00-\u9FFF-]/g
 
 const { t } = useI18n()
-const aiSettings = useAiSettingsStore()
 const studioStore = useStudioStore()
 
 const { audios, reload, getFs } = useProjectContent()
@@ -83,10 +80,6 @@ function markdownToAudio(md: string) {
   catch {
     // keep formData unchanged on parse failure
   }
-}
-
-function handleAiApplyAudio(md: string) {
-  markdownToAudio(md)
 }
 
 function handleEditAudio(audio: AudioInfo) {
@@ -304,7 +297,6 @@ async function handlePublishAudio(audio: AudioInfo) {
       :title="audioEditor.mode.value === 'create' ? t('contentEditor.createAudio') : t('contentEditor.editAudio')"
       :mode="audioEditor.mode.value"
       :is-saving="isSaving"
-      :ai-enabled="aiSettings.isConfigured"
       :markdown="audioMarkdown"
       :monaco-filename="`${audioEditor.formData.value.name || 'audio'}.md`"
       @update:is-open="(v: boolean) => { if (!v) audioEditor.close() }"
@@ -316,9 +308,6 @@ async function handlePublishAudio(audio: AudioInfo) {
     >
       <template #form>
         <AudioEditorForm v-model="audioEditor.formData.value" />
-      </template>
-      <template #ai>
-        <AiGeneratePanel content-type="audio" @apply="handleAiApplyAudio" />
       </template>
       <template #header-actions>
         <IonButton

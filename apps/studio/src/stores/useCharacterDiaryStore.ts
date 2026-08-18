@@ -2,11 +2,9 @@ import type { AdvCharacter } from '@advjs/types'
 import type { DbCharacterDiary } from '../utils/db'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { runAiJsonExtraction } from '../utils/aiExtraction'
 import { db } from '../utils/db'
 import { useProjectPersistence } from '../utils/projectPersistence'
 import { getCurrentProjectId } from '../utils/projectScope'
-import { gatherCharacterPrompts } from '../utils/promptContext'
 
 export interface CharacterDiaryEntry {
   id: string
@@ -16,10 +14,6 @@ export interface CharacterDiaryEntry {
   content: string
   createdAt: number
   mood?: string
-}
-
-function generateId(): string {
-  return `diary-${crypto.randomUUID()}`
 }
 
 export const useCharacterDiaryStore = defineStore('characterDiary', () => {
@@ -111,87 +105,11 @@ export const useCharacterDiaryStore = defineStore('characterDiary', () => {
     return list.some(d => d.date === date && d.period === period)
   }
 
-  /**
-   * Generate a diary entry for the given character using AI.
-   * Returns the new entry or null if generation fails or a diary already exists for this period.
-   */
+  /** Managed diary generation is not registered yet and fails closed. */
   async function generateDiary(
-    character: AdvCharacter,
+    _character: AdvCharacter,
   ): Promise<CharacterDiaryEntry | null> {
-    const characterId = character.id
-    if (generatingSet.value.has(characterId))
-      return null
-
-    generatingSet.value = new Set([...generatingSet.value, characterId])
-
-    try {
-      // Use dynamic import to avoid potential circular deps
-      const { useWorldClockStore } = await import('./useWorldClockStore')
-      const clockStore = useWorldClockStore()
-      const { date, period } = clockStore.clock
-
-      // Avoid generating duplicate diary for the same date + period
-      if (hasDiary(characterId, date, period))
-        return null
-
-      const prompts = gatherCharacterPrompts(characterId)
-
-      const recentDiaries = getDiaries(characterId).slice(-3)
-      const recentDiariesText = recentDiaries.length > 0
-        ? recentDiaries.map(d => `[${d.date} ${d.period}] ${d.content}`).join('\n')
-        : ''
-
-      const prompt = `You are ${character.name || characterId}, a character with the following traits:
-${character.personality ? `Personality: ${character.personality}` : ''}
-${character.background ? `Background: ${character.background}` : ''}
-${prompts.statePrompt ? `\n${prompts.statePrompt}` : ''}
-${prompts.memoryPrompt ? `\n${prompts.memoryPrompt}` : ''}
-${prompts.clockPrompt ? `\n${prompts.clockPrompt}` : ''}
-${prompts.eventsPrompt ? `\n${prompts.eventsPrompt}` : ''}
-${recentDiariesText ? `\nRecent diary entries:\n${recentDiariesText}` : ''}
-
-Write a short personal diary entry (2-4 sentences) from ${character.name || characterId}'s perspective for today (${date}, ${period}).
-The entry should reflect their current mood, recent events, and inner thoughts. Write in first person.
-
-Return JSON: { "content": "diary text here", "mood": "optional mood word" }`
-
-      const result = await runAiJsonExtraction(
-        { prompt, maxTokens: 300, temperature: 0.8 },
-        (raw) => {
-          if (typeof raw.content !== 'string' || raw.content.length < 5)
-            throw new Error('invalid')
-          return {
-            content: raw.content as string,
-            mood: typeof raw.mood === 'string' ? raw.mood : undefined,
-          }
-        },
-        1,
-      )
-
-      if (!result)
-        return null
-
-      const entry: CharacterDiaryEntry = {
-        id: generateId(),
-        characterId,
-        date,
-        period,
-        content: result.content,
-        createdAt: Date.now(),
-        mood: result.mood,
-      }
-
-      addDiary(entry)
-      return entry
-    }
-    catch {
-      return null
-    }
-    finally {
-      const next = new Set(generatingSet.value)
-      next.delete(characterId)
-      generatingSet.value = next
-    }
+    return null
   }
 
   return {

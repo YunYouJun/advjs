@@ -35,12 +35,11 @@ watch(promptScenes, (scenes) => {
 }, { immediate: true })
 
 async function refreshStatus() {
-  const adapter = projectStore.localAdapter
-  if (!adapter)
+  if (projectStore.workspaceMode !== 'local')
     return
   loading.value = true
   try {
-    status.value = await adapter.loadCodexStatus()
+    status.value = await projectStore.loadLocalAgentStatus()
   }
   catch (error) {
     Toast({
@@ -67,8 +66,8 @@ watch(open, (isOpen) => {
 
 <template>
   <AGUIDialog v-model:open="open" :title="t('codex.title')" content-class="w-lg h-auto">
-    <div class="flex flex-col gap-4 p-4">
-      <div v-if="projectStore.workspaceMode !== 'local'" class="rounded bg-orange-500/10 p-3 text-sm text-orange-700 dark:text-orange-300">
+    <div class="p-4 flex flex-col gap-4">
+      <div v-if="projectStore.workspaceMode !== 'local'" class="text-sm text-orange-700 p-3 rounded bg-orange-500/10 dark:text-orange-300">
         {{ t('codex.localOnly') }}
       </div>
 
@@ -82,18 +81,18 @@ watch(open, (isOpen) => {
               {{ t('codex.refresh') }}
             </AGUIButton>
           </div>
-          <div v-if="status" class="flex flex-col gap-2 text-sm">
+          <div v-if="status" class="text-sm flex flex-col gap-2">
             <div
               v-for="check in status.checks"
               :key="check.id"
-              class="flex items-start gap-2 rounded bg-black/5 p-2 dark:bg-white/5"
+              class="p-2 rounded bg-black/5 flex gap-2 items-start dark:bg-white/5"
             >
               <span :class="check.status === 'pass' ? 'text-green-600' : 'text-orange-600'">
                 {{ check.status === 'pass' ? '✓' : '!' }}
               </span>
               <span>{{ check.message }}</span>
             </div>
-            <code v-if="!status.ready" class="select-all rounded bg-black/5 p-2 text-xs dark:bg-white/5">{{ status.installCommand }}</code>
+            <code v-if="!status.ready" class="text-xs p-2 rounded bg-black/5 select-all dark:bg-white/5">{{ status.installCommand }}</code>
             <div class="flex gap-2">
               <AGUIButton v-if="!status.ready" size="mini" @click="copyText(status.installCommand, t('codex.installCopied'))">
                 {{ t('codex.copyInstall') }}
@@ -105,11 +104,11 @@ watch(open, (isOpen) => {
           </div>
         </section>
 
-        <section class="flex flex-col gap-2 border-t border-black/10 pt-4 dark:border-white/10">
+        <section class="pt-4 border-t border-black/10 flex flex-col gap-2 dark:border-white/10">
           <h3 class="font-semibold">
             {{ t('codex.taskPrompt') }}
           </h3>
-          <select v-model="selectedSceneId" class="border border-black/20 rounded bg-transparent p-2 text-sm dark:border-white/20">
+          <select v-model="selectedSceneId" class="text-sm p-2 border border-black/20 rounded bg-transparent dark:border-white/20">
             <option v-for="scene in promptScenes" :key="scene.id" :value="scene.id">
               {{ scene.name || scene.id }}
             </option>
@@ -118,7 +117,7 @@ watch(open, (isOpen) => {
             :value="taskPrompt"
             readonly
             rows="9"
-            class="resize-none border border-black/20 rounded bg-black/3 p-2 text-xs dark:border-white/20 dark:bg-white/3"
+            class="text-xs p-2 border border-black/20 rounded bg-black/3 resize-none dark:border-white/20 dark:bg-white/3"
           />
           <div class="flex gap-2">
             <AGUIButton size="mini" :disabled="!taskPrompt" @click="copyText(taskPrompt, t('codex.taskCopied'))">

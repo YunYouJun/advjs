@@ -1,12 +1,15 @@
+import type { ProjectSourcePatch } from '@advjs/core'
 import type { FSDirItem, TreeNode } from '@advjs/gui'
-import type { AdvConfig } from '@advjs/types'
+import type { AdvAgentIntegrationStatus, AdvConfig } from '@advjs/types'
 import type { BrowserProjectDirectory, EditorProjectModel } from '../adapters/browser/project'
-import type { LocalBridgeAdapter, LocalBridgeWatch, LocalDirectoryHandle, LocalFileHandle } from '../adapters/local'
+import type { LocalBridgeAdapter, LocalDirectoryHandle, LocalFileHandle } from '../adapters/local'
 import type { AdvConfigAdapterType } from '../types'
+import type { ProjectWorkspace, ProjectWorkspaceSnapshot, ProjectWorkspaceSubscription } from '../workspaces/project'
 import { defaultAdvConfig } from 'advjs'
 import { consola } from 'consola'
-import { compileEditorProject, createEditorProjectModel, readBrowserProjectFiles } from '../adapters/browser/project'
+import { createBrowserProjectWorkspace } from '../adapters/browser/workspace'
 import { createLocalBridgeAdapter, parseLocalEditorSession } from '../adapters/local'
+import { createLocalProjectWorkspace } from '../adapters/local/workspace'
 import { PLATFORM_MAP } from '../constants'
 
 /**
@@ -35,11 +38,11 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
    */
   const advConfig = ref<AdvConfig>(defaultAdvConfig)
   const project = shallowRef<EditorProjectModel>()
-  const workspaceMode = ref<'browser' | 'local'>('browser')
-  const localAdapter = shallowRef<LocalBridgeAdapter>()
-  const localRootHandle = shallowRef<LocalDirectoryHandle>()
+  const workspace = shallowRef<ProjectWorkspace>()
+  const workspaceMode = computed(() => workspace.value?.kind ?? 'browser')
+  let localAdapter: LocalBridgeAdapter | undefined
   const localFilePaths = computed(() => Object.keys(project.value?.files ?? {}).sort())
-  let localWatch: LocalBridgeWatch | undefined
+  let workspaceSubscription: ProjectWorkspaceSubscription | undefined
   let localRefreshTimer: ReturnType<typeof setTimeout> | undefined
   const pendingLocalChanges = new Set<string>()
   const diagnostics = computed(() => project.value?.compilation.diagnostics ?? [])
@@ -106,9 +109,13 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
     await loadAdvConfig(JSON.parse(text) as AdvConfig)
   }
 
-  async function activateProject(nextProject: EditorProjectModel, nextRootDir: FSDirItem) {
-    if (workspaceMode.value === 'browser')
-      rootDir.value = nextRootDir
+  async function activateProject(snapshot: ProjectWorkspaceSnapshot) {
+    const nextProject = snapshot.project
+    rootDir.value = {
+      name: snapshot.name,
+      kind: 'directory',
+      handle: snapshot.root as unknown as FileSystemDirectoryHandle,
+    } as FSDirItem
     project.value = nextProject
 
     if (nextProject.files['adv.config.json'])
@@ -138,49 +145,34 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
     return nextProject
   }
 
-  async function openBrowserProject(dirHandle: FileSystemDirectoryHandle) {
-    const files = await readBrowserProjectFiles(dirHandle as unknown as BrowserProjectDirectory)
-    const nextProject = await compileEditorProject({ files, id: dirHandle.name })
-    workspaceMode.value = 'browser'
-    return await activateProject(nextProject, {
-      name: dirHandle.name,
-      kind: 'directory',
-      handle: dirHandle,
-    } as FSDirItem)
-  }
-
-  async function refreshBrowserProject() {
-    const handle = rootDir.value?.handle as FileSystemDirectoryHandle | undefined
-    return handle ? await openBrowserProject(handle) : undefined
-  }
-
-  async function refreshLocalProject() {
-    const adapter = localAdapter.value
-    if (!adapter)
-      return
-    const loaded = await adapter.loadProject()
-    const name = loaded.root.split(/[\\/]/u).filter(Boolean).at(-1) ?? 'project'
-    const nextProject = createEditorProjectModel(loaded.result, loaded.files)
-    nextProject.previewConfig = await adapter.resolvePreviewConfig(
-      nextProject.compilation,
-      nextProject.previewConfig,
-    )
-    const handle = adapter.createDirectoryHandle(loaded.files, name)
-    localRootHandle.value = handle
-    workspaceMode.value = 'local'
-    return await activateProject(nextProject, {
-      name,
-      kind: 'directory',
-      handle: handle as unknown as FileSystemDirectoryHandle,
+  async function activateWorkspace(nextWorkspace: ProjectWorkspace) {
+    const initial = await nextWorkspace.snapshot()
+    workspaceSubscription?.stop()
+    workspaceSubscription = undefined
+    workspace.value = nextWorkspace
+    const nextProject = await activateProject(initial)
+    workspaceSubscription = nextWorkspace.subscribe?.(change => scheduleLocalRefresh(change.path))
+    void workspaceSubscription?.done.catch((error) => {
+      consoleStore.error('Project workspace watcher stopped', { error: String(error) })
     })
+    return nextProject
+  }
+
+  async function openBrowserProject(dirHandle: FileSystemDirectoryHandle) {
+    const nextProject = await activateWorkspace(createBrowserProjectWorkspace(
+      dirHandle as unknown as BrowserProjectDirectory,
+    ))
+    localAdapter = undefined
+    return nextProject
   }
 
   async function getLocalFileHandle(path: string): Promise<LocalFileHandle> {
     const segments = path.split('/').filter(Boolean)
     const fileName = segments.pop()
-    if (!fileName || !localRootHandle.value)
+    const root = rootDir.value?.handle as unknown as LocalDirectoryHandle | undefined
+    if (!fileName || !root)
       throw new Error(`Local project file is unavailable: ${path}`)
-    let directory = localRootHandle.value
+    let directory = root
     for (const segment of segments)
       directory = await directory.getDirectoryHandle(segment)
     return await directory.getFileHandle(fileName)
@@ -192,14 +184,16 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
     if (localRefreshTimer)
       clearTimeout(localRefreshTimer)
     localRefreshTimer = setTimeout(async () => {
-      const adapter = localAdapter.value
       const changedPaths = [...pendingLocalChanges].sort()
       pendingLocalChanges.clear()
-      if (!adapter)
+      const nextProject = await refreshProject()
+      if (!nextProject)
         return
-      for (const changedPath of changedPaths)
-        await fileStore.handleExternalChange(adapter, changedPath).catch(() => {})
-      await refreshLocalProject()
+      for (const changedPath of changedPaths) {
+        const content = nextProject.files[changedPath]
+        if (content !== undefined)
+          await fileStore.handleExternalChange(changedPath, content).catch(() => {})
+      }
     }, 150)
   }
 
@@ -207,21 +201,16 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
     const session = parseLocalEditorSession(url)
     if (!session)
       return false
-    localWatch?.stop()
-    localAdapter.value = createLocalBridgeAdapter(session)
-    await refreshLocalProject()
-    localWatch = localAdapter.value.watch(change => scheduleLocalRefresh(change.path))
-    void localWatch.done.catch((error) => {
-      consoleStore.error('Local workspace watcher stopped', { error: String(error) })
-    })
+    const adapter = createLocalBridgeAdapter(session)
+    await activateWorkspace(createLocalProjectWorkspace(adapter))
+    localAdapter = adapter
     return true
   }
 
   function disconnectLocalBridge() {
-    localWatch?.stop()
-    localWatch = undefined
-    localAdapter.value = undefined
-    localRootHandle.value = undefined
+    workspaceSubscription?.stop()
+    workspaceSubscription = undefined
+    localAdapter = undefined
     if (localRefreshTimer)
       clearTimeout(localRefreshTimer)
     localRefreshTimer = undefined
@@ -229,9 +218,21 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
   }
 
   async function refreshProject() {
-    return workspaceMode.value === 'local'
-      ? await refreshLocalProject()
-      : await refreshBrowserProject()
+    return workspace.value
+      ? await activateProject(await workspace.value.snapshot())
+      : undefined
+  }
+
+  async function commitProject(patches: readonly ProjectSourcePatch[]) {
+    if (!workspace.value)
+      throw new Error('No project workspace is open')
+    return await activateProject(await workspace.value.commit(patches))
+  }
+
+  async function loadLocalAgentStatus(): Promise<AdvAgentIntegrationStatus> {
+    if (!localAdapter)
+      throw new Error('Local Agent integration requires a live local workspace')
+    return await localAdapter.loadCodexStatus()
   }
 
   /**
@@ -335,8 +336,8 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
     advConfig,
     curAdvConfigTab,
     project,
+    workspace,
     workspaceMode,
-    localAdapter,
     localFilePaths,
     diagnostics,
     chapters,
@@ -350,12 +351,12 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
     loadIndexAdvJSON,
     loadAdvConfigJSON,
     openBrowserProject,
-    refreshBrowserProject,
-    refreshLocalProject,
     refreshProject,
+    commitProject,
     connectLocalBridgeFromLaunch,
     disconnectLocalBridge,
     getLocalFileHandle,
+    loadLocalAgentStatus,
 
     online,
   }

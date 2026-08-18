@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import type { ConsistencyIssue } from '../utils/aiAuthoring/consistencyChecker'
-import type { AiAuthoringError } from '../utils/aiAuthoring/result'
 import type { ChapterFormData } from '../utils/chapterMd'
 import {
-  IonBadge,
   IonButton,
   IonButtons,
   IonContent,
@@ -17,14 +14,11 @@ import {
   IonTitle,
   IonToolbar,
 } from '@ionic/vue'
-import { computed, ref, watch } from 'vue'
+import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useProjectContent } from '../composables/useProjectContent'
-import { useProjectDescription } from '../composables/useProjectDescription'
-import { useAiSettingsStore } from '../stores/useAiSettingsStore'
-import { checkChapterConsistency } from '../utils/aiAuthoring/consistencyChecker'
-import { notConfiguredError } from '../utils/aiAuthoring/result'
-import AiErrorBanner from './AiErrorBanner.vue'
+import { toManagedChapterPath } from '../agent/capabilities'
+import { useManagedAuthoring } from '../composables/useManagedAuthoring'
+import { showToast } from '../utils/toast'
 
 const props = defineProps<{
   isOpen: boolean
@@ -36,56 +30,29 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const aiSettings = useAiSettingsStore()
-const { characters } = useProjectContent()
-const { worldMd, outlineMd } = useProjectDescription()
+const managed = useManagedAuthoring()
 
-const loading = ref(false)
-const issues = ref<ConsistencyIssue[] | null>(null)
-const lastError = ref<AiAuthoringError | null>(null)
-
-const canRun = computed(() => aiSettings.isConfigured && !loading.value)
-const hasResult = computed(() => issues.value !== null)
-const passed = computed(() => hasResult.value && issues.value!.length === 0)
+const canRun = computed(() => managed.canStartTask.value && !managed.isSubmitting.value)
 
 watch(() => props.isOpen, (open) => {
   if (open) {
-    issues.value = null
-    loading.value = false
-    lastError.value = aiSettings.isConfigured ? null : notConfiguredError()
+    managed.clearError()
   }
 })
 
 async function run() {
   if (!canRun.value)
     return
-  issues.value = null
-  lastError.value = null
-  loading.value = true
   try {
-    const result = await checkChapterConsistency({
-      chapter: props.chapter,
-      characters: characters.value,
-      worldMd: worldMd.value,
-      outlineMd: outlineMd.value,
+    await managed.start('check-consistency', {
+      chapterPath: toManagedChapterPath(props.chapter.filename),
     })
-    if (result.error) {
-      lastError.value = result.error
-      return
-    }
-    issues.value = result.data
+    await showToast(t('managedAuthoring.submitted'), 'success')
+    emit('close')
   }
-  finally {
-    loading.value = false
+  catch {
+    // Stable error is rendered below. Diagnostics open in the proposal review.
   }
-}
-
-function severityColor(s: ConsistencyIssue['severity']): string {
-  if (s === 'error')
-    return 'danger'
-  if (s === 'warn')
-    return 'warning'
-  return 'medium'
 }
 </script>
 
@@ -121,62 +88,24 @@ function severityColor(s: ConsistencyIssue['severity']): string {
           expand="block"
           @click="run"
         >
-          <IonSpinner v-if="loading" name="crescent" style="margin-right: 8px; width: 16px; height: 16px;" />
-          {{ hasResult ? t('aiAuthoring.consistency.recheck') : t('aiAuthoring.consistency.run') }}
+          <IonSpinner v-if="managed.isSubmitting.value" name="crescent" style="margin-right: 8px; width: 16px; height: 16px;" />
+          {{ t('aiAuthoring.consistency.run') }}
         </IonButton>
-      </div>
-
-      <AiErrorBanner
-        v-if="lastError"
-        :error="lastError"
-        @retry="run"
-      />
-
-      <div v-if="passed" class="consistency-pass">
-        <IonNote color="success">
-          {{ t('aiAuthoring.consistency.passed') }}
+        <IonNote v-if="managed.errorCode.value" color="danger" class="managed-note">
+          {{ t(`managedAuthoring.errors.${managed.errorCode.value}`) }}
+        </IonNote>
+        <IonNote v-else class="managed-note">
+          {{ t('managedAuthoring.consistencyResult') }}
         </IonNote>
       </div>
-
-      <IonList v-else-if="hasResult && issues!.length">
-        <IonItem v-for="(issue, i) in issues" :key="i">
-          <IonLabel class="ion-text-wrap">
-            <h3>
-              <IonBadge :color="severityColor(issue.severity)" style="margin-right: 6px;">
-                {{ t(`aiAuthoring.consistency.severity.${issue.severity}`) }}
-              </IonBadge>
-              {{ issue.title }}
-            </h3>
-            <p class="issue-kind">
-              {{ t(`aiAuthoring.consistency.kind.${issue.kind}`) }}
-              <span v-if="issue.characterId"> · @{{ issue.characterId }}</span>
-            </p>
-            <p>{{ issue.detail }}</p>
-            <p v-if="issue.suggestion" class="issue-suggest">
-              💡 {{ issue.suggestion }}
-            </p>
-          </IonLabel>
-        </IonItem>
-      </IonList>
     </IonContent>
   </IonModal>
 </template>
 
 <style scoped>
-.consistency-pass {
-  padding: var(--adv-space-md);
-  text-align: center;
-}
-
-.issue-kind {
-  font-size: var(--adv-font-caption);
-  color: var(--adv-text-tertiary);
-  margin: 2px 0;
-}
-
-.issue-suggest {
+.managed-note {
+  display: block;
   margin-top: var(--adv-space-xs);
-  color: var(--adv-text-secondary);
-  font-style: italic;
+  line-height: 1.5;
 }
 </style>

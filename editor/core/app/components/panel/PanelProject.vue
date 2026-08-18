@@ -50,7 +50,17 @@ function onCreate(parentDir: FSDirItem, name: string, kind: 'file' | 'directory'
   consola.info('onCreate', kind, name, 'in', parentDir.name)
 }
 
-async function onFileDblClick(item: FSFileItem) {
+function getProjectRelativePath(item: FSFileItem) {
+  const segments = [item.name]
+  let parent = item.parent
+  while (parent?.parent) {
+    segments.unshift(parent.name)
+    parent = parent.parent
+  }
+  return segments.join('/')
+}
+
+async function onFileDblClick(item: FSFileItem, projectPath = getProjectRelativePath(item)) {
   consola.info('onFileDblClick', item)
 
   // Handle .character.md files → open in Inspector with CharacterForm
@@ -76,7 +86,7 @@ async function onFileDblClick(item: FSFileItem) {
   }
 
   if (item.handle) {
-    fileStore.setOpenedFileHandle(item.handle)
+    fileStore.setOpenedFileHandle(item.handle, projectPath)
   }
   else {
     Toast({
@@ -93,7 +103,7 @@ async function onLocalFileDblClick(path: string) {
     name: handle.name,
     kind: 'file',
     handle: handle as unknown as FileSystemFileHandle,
-  })
+  }, path)
 }
 
 /**
@@ -134,8 +144,8 @@ function onOpenRootDir(dir?: FSDirItem) {
   <AGUIPanel w="full" h="full">
     <AGUITabs v-model="curTab" :list="tabList">
       <AGUITabPanel value="project">
-        <div v-if="projectStore.project" class="border-b border-white/8 p-2 text-xs">
-          <div class="mb-1 flex gap-3 op-70">
+        <div v-if="projectStore.project" class="text-xs p-2 border-b border-white/8">
+          <div class="mb-1 op-70 flex gap-3">
             <span>{{ projectStore.workspaceMode === 'local' ? 'Live local workspace' : 'Browser workspace' }}</span>
             <span>{{ projectStore.chapters.length }} chapters</span>
             <span>{{ projectStore.characters.length }} characters</span>
@@ -151,11 +161,11 @@ function onOpenRootDir(dir?: FSDirItem) {
             {{ diagnostic.code }} · {{ diagnostic.path || 'project' }} · {{ diagnostic.message }}
           </div>
         </div>
-        <div v-if="projectStore.workspaceMode === 'local'" class="h-full overflow-auto p-2">
+        <div v-if="projectStore.workspaceMode === 'local'" class="p-2 h-full overflow-auto">
           <button
             v-for="path in projectStore.localFilePaths"
             :key="path"
-            class="block w-full truncate rounded px-2 py-1 text-left text-xs hover:bg-white/8"
+            class="text-xs px-2 py-1 text-left rounded w-full block truncate hover:bg-white/8"
             :title="path"
             @dblclick="onLocalFileDblClick(path)"
           >

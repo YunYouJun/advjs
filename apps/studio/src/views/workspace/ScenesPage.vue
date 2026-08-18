@@ -20,7 +20,6 @@ import {
 import { addOutline, trashOutline } from 'ionicons/icons'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import AiGeneratePanel from '../../components/AiGeneratePanel.vue'
 import DraftRestoreBanner from '../../components/common/DraftRestoreBanner.vue'
 import LayoutPage from '../../components/common/LayoutPage.vue'
 import ContentEditorModal from '../../components/ContentEditorModal.vue'
@@ -33,92 +32,15 @@ import { useIncrementalList } from '../../composables/useIncrementalList'
 import { useManagedAssetStorage } from '../../composables/useManagedAssetStorage'
 import { useProjectContent } from '../../composables/useProjectContent'
 import { useRecentActivity } from '../../composables/useRecentActivity'
-import { useAiSettingsStore } from '../../stores/useAiSettingsStore'
-import { useStudioStore } from '../../stores/useStudioStore'
-import { generateImage, isImageGenerationAvailable } from '../../utils/aiImageClient'
-import { upsertStudioProjectAsset } from '../../utils/projectAssets'
 import { parseSceneMd, stringifySceneMd } from '../../utils/sceneMd'
 import { showToast } from '../../utils/toast'
 
 const { t } = useI18n()
-const aiSettings = useAiSettingsStore()
-const studioStore = useStudioStore()
-
 const { scenes, reload, getFs } = useProjectContent()
 const { isSaving, saveContent } = useContentSave()
 const { deleteFile } = useContentDelete()
 const { trackAccess } = useRecentActivity()
 const managedAssets = useManagedAssetStorage()
-
-const generatingSceneIds = ref(new Set<string>())
-const aiImageAvailable = computed(() => isImageGenerationAvailable(aiSettings.config))
-
-// --- AI Image Generation ---
-async function handleGenerateImage(scene: SceneInfo) {
-  if (!scene.imagePrompt || !scene.id)
-    return
-
-  const sceneId = scene.id
-  generatingSceneIds.value.add(sceneId)
-
-  try {
-    const result = await generateImage(
-      { prompt: scene.imagePrompt, width: 768, height: 432 },
-      aiSettings.config,
-    )
-
-    // Download the image and save to project
-    const fs = getFs()
-    if (fs && result.url) {
-      const response = await fetch(result.url)
-      const blob = await response.blob()
-      const ext = blob.type.includes('webp') ? 'webp' : blob.type.includes('png') ? 'png' : 'jpg'
-      const imagePath = `adv/assets/backgrounds/${sceneId}.${ext}`
-      const assetId = `background/${sceneId}`
-      await fs.writeBlob(imagePath, blob)
-      await upsertStudioProjectAsset(fs, {
-        id: assetId,
-        kind: 'background',
-        type: 'image',
-        path: `backgrounds/${sceneId}.${ext}`,
-        mimeType: blob.type || undefined,
-        bytes: blob.size,
-        sceneId,
-      }, { catalogId: studioStore.currentProjectId })
-
-      // Scripts reference the stable catalog ID, never the physical path.
-      const sceneMdPath = `adv/scenes/${sceneId}.md`
-      try {
-        const content = await fs.readFile(sceneMdPath)
-        const parsed = parseSceneMd(content)
-        parsed.assetId = assetId
-        parsed.src = undefined
-        const newContent = stringifySceneMd(parsed)
-        await fs.writeFile(sceneMdPath, newContent)
-      }
-      catch {
-        // Scene md not found — create one
-        const newContent = stringifySceneMd({
-          id: sceneId,
-          name: scene.name,
-          imagePrompt: scene.imagePrompt,
-          assetId,
-          type: 'image',
-        })
-        await fs.writeFile(sceneMdPath, newContent)
-      }
-
-      await reload()
-      await showToast(t('scenes.imageGenerated'))
-    }
-  }
-  catch (err) {
-    await showToast(t('scenes.imageGenerateFailed', { error: err instanceof Error ? err.message : 'Unknown' }), 'danger')
-  }
-  finally {
-    generatingSceneIds.value.delete(sceneId)
-  }
-}
 
 // --- Search ---
 const searchQuery = ref('')
@@ -159,10 +81,6 @@ function markdownToScene(md: string) {
   catch {
     // keep formData unchanged on parse failure
   }
-}
-
-function handleAiApplyScene(md: string) {
-  markdownToScene(md)
 }
 
 function handleEditScene(scene: SceneInfo) {
@@ -260,11 +178,8 @@ async function handlePublishScene(scene: SceneInfo) {
       <IonItemSliding v-for="scene in visibleScenes" :key="scene.file">
         <SceneCard
           :scene="scene"
-          :is-generating="generatingSceneIds.has(scene.id || '')"
           :is-publishing="managedAssets.isPublishing(scene.assetId)"
-          :ai-available="aiImageAvailable"
           @click="handleEditScene(scene)"
-          @generate-image="handleGenerateImage"
           @publish="handlePublishScene"
         />
         <IonItemOptions side="end">
@@ -310,7 +225,6 @@ async function handlePublishScene(scene: SceneInfo) {
       :title="sceneEditor.mode.value === 'create' ? t('contentEditor.createScene') : t('contentEditor.editScene')"
       :mode="sceneEditor.mode.value"
       :is-saving="isSaving"
-      :ai-enabled="aiSettings.isConfigured"
       :markdown="sceneMarkdown"
       :monaco-filename="`${sceneEditor.formData.value.id || 'scene'}.md`"
       @update:is-open="(v: boolean) => { if (!v) sceneEditor.close() }"
@@ -322,9 +236,6 @@ async function handlePublishScene(scene: SceneInfo) {
     >
       <template #form>
         <SceneEditorForm v-model="sceneEditor.formData.value" />
-      </template>
-      <template #ai>
-        <AiGeneratePanel content-type="scene" @apply="handleAiApplyScene" />
       </template>
       <template #header-actions>
         <IonButton

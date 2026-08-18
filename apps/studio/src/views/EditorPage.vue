@@ -7,11 +7,10 @@ import {
   IonNote,
   toastController,
 } from '@ionic/vue'
-import { arrowRedoOutline, arrowUndoOutline, createOutline, sparklesOutline } from 'ionicons/icons'
+import { arrowRedoOutline, arrowUndoOutline, createOutline } from 'ionicons/icons'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import AiGeneratePanel from '../components/AiGeneratePanel.vue'
 import LayoutPage from '../components/common/LayoutPage.vue'
 import RuntimeAuthoringPanel from '../components/RuntimeAuthoringPanel.vue'
 import { useCloudSync } from '../composables/useCloudSync'
@@ -25,7 +24,7 @@ import { loadStudioGameSettings } from '../utils/projectRuntimeFiles'
 
 const BLOCK_LEVEL_RE = /^(?:## |[-*] |> |---|【)/
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const studioStore = useStudioStore()
@@ -116,20 +115,6 @@ const fileName = computed(() => {
   return filePath.value.split('/').pop() || 'Untitled'
 })
 const isAdvScript = computed(() => filePath.value.endsWith('.adv.md'))
-
-/**
- * AI system prompt: locale-aware, scoped to file creation context.
- */
-const aiSystemPrompt = computed(() => {
-  return locale.value.startsWith('zh')
-    ? `你是 ADV.JS 视觉小说游戏引擎的创作助手。请根据用户的描述生成对应的文件内容，使用 Markdown 格式输出。`
-    : `You are a creative assistant for the ADV.JS visual novel engine. Generate file content based on the user's description in Markdown format.`
-})
-
-/**
- * User prefix: prepends file name context to every prompt.
- */
-const aiUserPrefix = computed(() => `File: ${fileName.value}\n\n`)
 
 /**
  * Whether auto-save should be active for current context.
@@ -267,13 +252,6 @@ onUnmounted(() => {
 /** Create an empty file and enter the editor */
 function createEmpty() {
   content.value = ''
-  initialContent.value = ''
-  fileNotFound.value = false
-}
-
-/** Called when AiGeneratePanel emits its generated markdown */
-function applyAiOutput(markdown: string) {
-  content.value = markdown
   initialContent.value = ''
   fileNotFound.value = false
 }
@@ -422,20 +400,6 @@ async function save() {
           <IonIcon slot="start" :icon="createOutline" />
           {{ t('editor.createEmpty') }}
         </IonButton>
-      </div>
-
-      <!-- AI section -->
-      <div class="create-guide__ai">
-        <div class="create-guide__ai-label">
-          <IonIcon :icon="sparklesOutline" class="create-guide__ai-label-icon" />
-          {{ t('editor.aiGenerate') }}
-        </div>
-        <AiGeneratePanel
-          :custom-system-prompt="aiSystemPrompt"
-          :user-prefix="aiUserPrefix"
-          :placeholder="t('editor.aiPromptPlaceholder')"
-          @apply="applyAiOutput"
-        />
       </div>
     </div>
 
