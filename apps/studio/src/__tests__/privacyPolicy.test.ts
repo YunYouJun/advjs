@@ -33,4 +33,12 @@ describe('studio privacy policy', () => {
       expect(policy).toContain(disclosure)
     }
   })
+
+  it('renders inside the Ionic scroll container', () => {
+    const policy = readStudioFile('views/PrivacyPolicyPage.vue')
+
+    expect(policy).toContain('import { IonContent, IonPage } from \'@ionic/vue\'')
+    expect(policy).toContain('<IonPage>')
+    expect(policy).toContain('<IonContent :fullscreen="true">')
+  })
 })
