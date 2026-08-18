@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="ADV.JS">
+  <defs>
+    <radialGradient id="advjs-bg" cx="54%" cy="38%" r="82%">
+      <stop stop-color="#232c4e"/>
+      <stop offset=".56" stop-color="#14182d"/>
+      <stop offset="1" stop-color="#090b16"/>
+    </radialGradient>
+    <linearGradient id="advjs-symbol" x1="4" y1="4" x2="18" y2="21" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22ffe9"/>
+      <stop offset="1" stop-color="#2595e9"/>
+    </linearGradient>
+    <radialGradient id="advjs-glow">
+      <stop stop-color="#32dbe8" stop-opacity=".3"/>
+      <stop offset="1" stop-color="#32dbe8" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="advjs-shadow" x="-35%" y="-35%" width="170%" height="180%">
+      <feDropShadow dx="0" dy=".32" stdDeviation=".42" flood-color="#02050d" flood-opacity=".48"/>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#advjs-bg)"/>
+  <circle cx="528" cy="487" r="386" fill="url(#advjs-glow)"/>
+  <g transform="translate(104 62) scale(34) rotate(-4 12 12)" filter="url(#advjs-shadow)">
+    <path fill="url(#advjs-symbol)" d="M14 10.25 17 8v6l-3-2.25V14H7V8h7v2.25ZM5.763 17H20V5H4v13.385L5.763 17Zm.692 2L2 22.5V4a1 1 0 0 1 1-1h18a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H6.455Z"/>
+  </g>
+</svg>

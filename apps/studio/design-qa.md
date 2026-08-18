@@ -1,8 +1,8 @@
 # ADV.JS Studio App Icon Design QA
 
-- Source visual truth: `apps/studio/design/advjs-studio-app-icon-concept.png`
+- Source visual truth: the gradient speech-frame and camera mark on `https://advjs.org/`
 - Implementation: `apps/studio/ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png`
-- Comparison artifact: `/tmp/advjs-icon-design-qa.png`
+- Family reference: `docs/public/brand/advjs-app-icon.svg`
 - Viewport: square app-icon canvas
 - Source pixels: 1254 × 1254, normalized to 1024 × 1024
 - Implementation pixels: 1024 × 1024
@@ -15,24 +15,24 @@
 No actionable P0, P1, or P2 differences remain.
 
 - Fonts and typography: not applicable; the icon contains no text.
-- Spacing and layout rhythm: the story-flame remains centered with generous square-canvas safe area. The vector implementation uses a slightly larger optical scale to preserve recognition at 16–64 px.
-- Colors and visual tokens: twilight violet, parchment, ember orange, and gold are preserved. The implementation deliberately reduces tonal variation for cleaner small-size rendering.
-- Image quality and asset fidelity: the unfolding page, flame, and speech-tail silhouette is preserved as the canonical scalable brand asset. Edges remain crisp at 1024 px and recognizable at 64 px.
+- Spacing and layout rhythm: the homepage speech-frame uses a generous square-canvas safe area and a slight counter-clockwise tilt. The silhouette remains recognizable at 16–64 px.
+- Colors and visual tokens: the homepage cyan-to-blue gradient remains the family anchor. Studio adds a warm amber-to-ember camera core and a violet-black backdrop without changing the outer silhouette.
+- Image quality and asset fidelity: the canonical homepage path is preserved rather than approximated. Separate gradients, a soft backdrop glow, and a low blurred shadow add depth without introducing hard decorative strokes.
 - Copy and content: not applicable; no app-specific text appears in the icon.
 
 ## Full-view comparison evidence
 
-The combined 2048 × 1024 comparison shows the selected concept on the left and the rendered implementation on the right. The composition, silhouette, palette hierarchy, and adventure-story metaphor remain consistent.
+The live homepage mark and both 512 px family renders were inspected side by side. ADV.JS retains the original cyan camera mark; ADV.JS Studio shares the speech-frame while using an orange-red creative core and violet backdrop.
 
 ## Focused-region comparison evidence
 
-A separate 64 × 64 render was inspected. The parchment silhouette and ember fold remain distinguishable; the gold seam appropriately becomes a tertiary detail. No additional crop was needed because the icon has one focal symbol and no typography.
+A separate 64 × 64 render was inspected. The speech tail, frame aperture, and warm Studio core remain distinct without relying on fine lines or typography.
 
 ## Comparison history
 
-- Initial vector pass: the source silhouette exceeded the canonical 64 × 64 canvas near the lower edge.
-- Fix: normalized all foreground layers with a shared 0.74 scale and optical translation.
-- Post-fix evidence: the 1024 px and 64 px renders retain safe-area clearance and no clipping.
+- Initial vector pass: the unfolding-page metaphor diverged from the established ADV.JS homepage mark and introduced an abrupt fold highlight.
+- Fix: restored the exact homepage speech-frame geometry, separated frame and camera fills for the Studio variant, and added only soft gradient depth.
+- Post-fix evidence: the 1024 px, 512 px, and 64 px renders retain safe-area clearance, smooth edges, and no clipping.
 
 ## Follow-up polish
 
