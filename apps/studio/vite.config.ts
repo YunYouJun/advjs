@@ -77,7 +77,7 @@ export default async function createViteConfig() {
         dts: false,
       }),
       vue(),
-      legacy(),
+      ...(process.env.VITE_LEGACY_BUILD === 'false' ? [] : [legacy()]),
       VitePWA({
         registerType: 'prompt',
         includeAssets: ['favicon.ico'],
