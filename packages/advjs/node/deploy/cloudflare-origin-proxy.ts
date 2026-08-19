@@ -138,7 +138,7 @@ export function createCloudflareOriginProxyWorkerSource(options: Pick<Cloudflare
   return `const ORIGIN = new URL(${JSON.stringify(origin)})
 const PUBLIC_HOSTNAME = ${JSON.stringify(domain)}
 
-function rewriteUrlHeader(value, publicUrl) {
+function rewriteUrlHeader(value, publicUrl, originOnly = false) {
   if (!value)
     return value
   try {
@@ -147,7 +147,7 @@ function rewriteUrlHeader(value, publicUrl) {
       return value
     url.protocol = ORIGIN.protocol
     url.host = ORIGIN.host
-    return url.toString()
+    return originOnly ? url.origin : url.toString()
   }
   catch {
     return value
@@ -195,8 +195,13 @@ export default {
     requestHeaders.delete('host')
     requestHeaders.set('x-forwarded-host', publicUrl.host)
     requestHeaders.set('x-forwarded-proto', publicUrl.protocol.slice(0, -1))
+    const clientIp = requestHeaders.get('cf-connecting-ip')
+    if (clientIp)
+      requestHeaders.set('x-forwarded-for', clientIp)
+    else
+      requestHeaders.delete('x-forwarded-for')
     for (const name of ['origin', 'referer']) {
-      const value = rewriteUrlHeader(requestHeaders.get(name), publicUrl)
+      const value = rewriteUrlHeader(requestHeaders.get(name), publicUrl, name === 'origin')
       if (value)
         requestHeaders.set(name, value)
     }

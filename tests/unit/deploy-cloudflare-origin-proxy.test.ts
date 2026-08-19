@@ -72,8 +72,10 @@ describe('cloudflare origin proxy', () => {
     const response = await worker.fetch(new Request('https://game.advjs.org/api/play?turn=3', {
       body: 'choice=left',
       headers: {
-        origin: 'https://game.advjs.org',
-        referer: 'https://game.advjs.org/chapter/1',
+        'cf-connecting-ip': '203.0.113.8',
+        'origin': 'https://game.advjs.org',
+        'referer': 'https://game.advjs.org/chapter/1',
+        'x-forwarded-for': '198.51.100.99',
       },
       method: 'POST',
     }))
@@ -84,8 +86,9 @@ describe('cloudflare origin proxy', () => {
     expect(upstreamRequest?.url).toBe('https://origin.example.com/api/play?turn=3')
     expect(upstreamRequest?.method).toBe('POST')
     await expect(upstreamRequest?.text()).resolves.toBe('choice=left')
-    expect(upstreamRequest?.headers.get('origin')).toBe('https://origin.example.com/')
+    expect(upstreamRequest?.headers.get('origin')).toBe('https://origin.example.com')
     expect(upstreamRequest?.headers.get('referer')).toBe('https://origin.example.com/chapter/1')
+    expect(upstreamRequest?.headers.get('x-forwarded-for')).toBe('203.0.113.8')
     expect(upstreamRequest?.headers.get('x-forwarded-host')).toBe('game.advjs.org')
     expect(upstreamRequest?.headers.get('x-forwarded-proto')).toBe('https')
   })
@@ -131,6 +134,21 @@ describe('cloudflare origin proxy', () => {
     await expect(failed.text()).resolves.toBe('Bad Gateway')
     expect(consoleError).toHaveBeenCalledWith(expect.stringContaining('"path":"/api"'))
     expect(consoleError).not.toHaveBeenCalledWith(expect.stringContaining('secret=no-log'))
+  })
+
+  it('drops an untrusted forwarding chain when no Cloudflare client IP exists', async () => {
+    let upstreamRequest: Request | undefined
+    vi.stubGlobal('fetch', vi.fn(async (request: Request) => {
+      upstreamRequest = request
+      return new Response('ok')
+    }))
+    const worker = await importWorker()
+
+    await worker.fetch(new Request('https://game.advjs.org/', {
+      headers: { 'x-forwarded-for': '198.51.100.99' },
+    }))
+
+    expect(upstreamRequest?.headers.has('x-forwarded-for')).toBe(false)
   })
 
   it.each([
