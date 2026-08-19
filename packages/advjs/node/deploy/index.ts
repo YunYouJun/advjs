@@ -351,6 +351,7 @@ export async function deployProject(options: DeployProjectOptions) {
 
 export * from './archive'
 export * from './cloudflare'
+export * from './cloudflare-origin-proxy'
 export * from './recovery'
 export * from './secrets'
 export * from './verify'
