@@ -70,15 +70,15 @@ export const useCollabStore = defineStore('collab', () => {
   // --- Computed ---
   const isInRoom = computed(() => currentRoom.value !== null)
   const isOwner = computed(() =>
-    currentRoom.value?.ownerId === authStore.userInfo.uid,
+    currentRoom.value?.ownerId === authStore.userId,
   )
   const myRole = computed<CollabRole | null>(() => {
-    if (!currentRoom.value || !authStore.userInfo.uid)
+    if (!currentRoom.value || !authStore.userId)
       return null
-    if (currentRoom.value.ownerId === authStore.userInfo.uid)
+    if (currentRoom.value.ownerId === authStore.userId)
       return 'owner'
     const member = currentRoom.value.members.find(
-      m => m.uid === authStore.userInfo.uid,
+      m => m.uid === authStore.userId,
     )
     return member?.role ?? null
   })
@@ -93,7 +93,7 @@ export const useCollabStore = defineStore('collab', () => {
     projectId: string,
     name: string,
   ): Promise<CollabRoom | null> {
-    const uid = authStore.userInfo.uid
+    const uid = authStore.userId
     if (!uid) {
       error.value = 'Not logged in'
       return null
@@ -147,7 +147,7 @@ export const useCollabStore = defineStore('collab', () => {
     cloudApp: cloudbase.app.App,
     projectId: string,
   ): Promise<CollabRoom | null> {
-    const uid = authStore.userInfo.uid
+    const uid = authStore.userId
     if (!uid)
       return null
 
@@ -314,14 +314,14 @@ export const useCollabStore = defineStore('collab', () => {
    * Start sending heartbeats and watching online presence.
    */
   async function startPresence(cloudApp: cloudbase.app.App) {
-    if (!currentRoom.value?._id || !authStore.userInfo.uid)
+    if (!currentRoom.value?._id || !authStore.userId)
       return
 
     stopPresence()
 
     const db = cloudApp.database()
     const roomId = currentRoom.value._id
-    const uid = authStore.userInfo.uid!
+    const uid = authStore.userId!
 
     // Send initial heartbeat
     await sendHeartbeat(db, roomId, uid)

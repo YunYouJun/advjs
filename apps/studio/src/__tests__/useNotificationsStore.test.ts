@@ -6,7 +6,7 @@ import { useNotificationsStore } from '../stores/useNotificationsStore'
 // Stub auth store so the notifications store can resolve the recipient uid.
 vi.mock('../stores/useAuthStore', () => ({
   useAuthStore: () => ({
-    userInfo: { uid: 'me' },
+    userId: 'me',
   }),
 }))
 

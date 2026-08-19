@@ -509,7 +509,7 @@ function clearFilters() {
 }
 
 const isOwner = computed(() =>
-  !!(selectedItem.value && authStore.userInfo.uid && selectedItem.value.ownerId === authStore.userInfo.uid),
+  !!(selectedItem.value && authStore.userId && selectedItem.value.ownerId === authStore.userId),
 )
 
 async function handleToggleFeatured() {

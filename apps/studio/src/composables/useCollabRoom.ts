@@ -83,7 +83,7 @@ export function useCollabRoom() {
     const p = new YCloudbaseProvider(doc, {
       cloudApp,
       roomId,
-      clientId: authStore.userInfo.uid || 'anonymous',
+      clientId: authStore.userId || 'anonymous',
       displayName: authStore.displayName,
     })
 

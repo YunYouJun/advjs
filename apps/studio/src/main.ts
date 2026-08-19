@@ -3,6 +3,7 @@ import { IonicVue } from '@ionic/vue'
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import App from './App.vue'
+import { getCloudbaseResponseError } from './auth/cloudbase-session'
 import { resolveStudioSsoConfig } from './auth/sso-config'
 /* CloudBase auth restore */
 import { adoptStudioSsoFromHost, consumeStudioSsoCallback } from './auth/studio-sso'
@@ -79,6 +80,7 @@ const app = createApp(App)
   .use(router)
 
 let hostIdentitySyncRegistered = false
+let cloudbaseAuthSyncRegistered = false
 
 /* Global error handler — catches uncaught errors from components */
 app.config.errorHandler = (err, _instance, info) => {
@@ -115,11 +117,24 @@ async function restoreCloudbaseSession(): Promise<void> {
       authStore.setAuthError(callback.reason)
       await router.replace({ path: '/login', query: { ssoError: callback.reason } })
     }
+    registerCloudbaseAuthSync(auth, authStore)
     registerHostIdentitySync(auth, authStore, ssoConfig)
   }
   catch {
     // CloudBase not configured — skip auth restore
   }
+}
+
+function registerCloudbaseAuthSync(
+  auth: ReturnType<typeof useCloudbaseAuth>,
+  authStore: ReturnType<typeof useAuthStore>,
+): void {
+  if (cloudbaseAuthSyncRegistered)
+    return
+  cloudbaseAuthSyncRegistered = true
+  auth.onAuthStateChange(() => {
+    void authStore.restoreSession(auth)
+  })
 }
 
 function registerHostIdentitySync(
@@ -133,7 +148,15 @@ function registerHostIdentitySync(
 
   window.addEventListener('ylf:identityChanged', () => {
     void (async () => {
-      await auth.signOut().catch(() => undefined)
+      try {
+        const response = await auth.signOut()
+        const error = getCloudbaseResponseError(response)
+        if (error)
+          throw error
+      }
+      catch {
+        // The host identity is still authoritative; clear the local mirror.
+      }
       authStore.clearSession()
       authStore.setAuthError()
       if (!ssoConfig)

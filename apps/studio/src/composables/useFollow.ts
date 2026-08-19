@@ -37,7 +37,7 @@ export function useFollow() {
   }
 
   async function follow(cloudApp: cloudbase.app.App, followeeId: string): Promise<boolean> {
-    const followerId = authStore.userInfo.uid
+    const followerId = authStore.userId
     if (!followerId || followerId === followeeId)
       return false
 
@@ -73,7 +73,7 @@ export function useFollow() {
   }
 
   async function unfollow(cloudApp: cloudbase.app.App, followeeId: string): Promise<boolean> {
-    const followerId = authStore.userInfo.uid
+    const followerId = authStore.userId
     if (!followerId)
       return false
 
@@ -102,7 +102,7 @@ export function useFollow() {
   }
 
   async function isFollowing(cloudApp: cloudbase.app.App, followeeId: string): Promise<boolean> {
-    const followerId = authStore.userInfo.uid
+    const followerId = authStore.userId
     if (!followerId)
       return false
     try {

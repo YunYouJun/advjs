@@ -70,7 +70,7 @@ export function useCloudBinding() {
     project: StudioProject,
     options?: { published?: boolean, stats?: CloudProjectRecord['stats'] },
   ): Promise<string | null> {
-    const uid = authStore.userInfo.uid
+    const uid = authStore.userId
     if (!uid) {
       error.value = 'Not logged in'
       return null
@@ -133,7 +133,7 @@ export function useCloudBinding() {
     cloudApp: cloudbase.app.App,
     projectId: string,
   ): Promise<boolean> {
-    const uid = authStore.userInfo.uid
+    const uid = authStore.userId
     if (!uid)
       return false
 
@@ -170,7 +170,7 @@ export function useCloudBinding() {
   async function fetchMyProjects(
     cloudApp: cloudbase.app.App,
   ): Promise<CloudProjectRecord[]> {
-    const uid = authStore.userInfo.uid
+    const uid = authStore.userId
     if (!uid)
       return []
 
@@ -203,7 +203,7 @@ export function useCloudBinding() {
     cloudApp: cloudbase.app.App,
     ownerId?: string,
   ): Promise<CloudProjectRecord[]> {
-    const uid = ownerId || authStore.userInfo.uid
+    const uid = ownerId || authStore.userId
     if (!uid)
       return []
 
@@ -237,7 +237,7 @@ export function useCloudBinding() {
     projectId: string,
     published: boolean,
   ): Promise<boolean> {
-    const uid = authStore.userInfo.uid
+    const uid = authStore.userId
     if (!uid)
       return false
 

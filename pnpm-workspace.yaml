@@ -10,6 +10,7 @@ minimumReleaseAge: 10080
 # Security releases may need to bypass the age gate after their exact versions
 # have been reviewed and pinned below.
 minimumReleaseAgeExclude:
+  - '@cloudbase/js-sdk@3.8.0'
   - nanoid@3.3.18
 shamefullyHoist: true
 shellEmulator: true
@@ -74,7 +75,7 @@ catalog:
   '@capacitor/ios': 8.5.0
   '@capacitor/keyboard': 8.0.5
   '@capacitor/status-bar': 8.0.3
-  '@cloudbase/js-sdk': ^3.7.1
+  '@cloudbase/js-sdk': 3.8.0
   '@cloudbase/manager-node': ^5.6.7
   '@cloudbase/node-sdk': ^3.18.3
   '@dagrejs/dagre': ^3.1.0

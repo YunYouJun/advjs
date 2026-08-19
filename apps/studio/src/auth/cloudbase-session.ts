@@ -1,4 +1,3 @@
-import type cloudbase from '@cloudbase/js-sdk'
 import { isAnonymousSession } from '@yunlefun/sso'
 
 type UnknownRecord = Record<string, unknown>
@@ -7,7 +6,19 @@ export interface AuthenticatedCloudbaseSession {
   accessToken: string
   expiresAt?: number
   refreshToken?: string
-  user: cloudbase.auth.IUserInfo
+  user: CloudbaseV3User
+}
+
+export interface CloudbaseV3User {
+  id: string
+  displayName?: string
+  email?: string
+  name?: string
+  phone?: string
+  phone_number?: string
+  picture?: string
+  username?: string
+  [key: string]: unknown
 }
 
 export interface CloudbaseSessionAuth {
@@ -27,6 +38,21 @@ function responseData(value: unknown): UnknownRecord | undefined {
   return isRecord(value.data) ? value.data : undefined
 }
 
+export function getCloudbaseResponseError(value: unknown): Error | undefined {
+  if (!isRecord(value) || !value.error)
+    return undefined
+  if (value.error instanceof Error)
+    return value.error
+  if (typeof value.error === 'string')
+    return new Error(value.error)
+  if (isRecord(value.error)) {
+    const message = value.error.message ?? value.error.error_description ?? value.error.msg
+    if (typeof message === 'string' && message)
+      return new Error(message)
+  }
+  return new Error('CloudBase authentication failed.')
+}
+
 function secondsToMilliseconds(value: unknown): number | undefined {
   if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0)
     return undefined
@@ -38,11 +64,9 @@ export function parseAuthenticatedCloudbaseSession(value: unknown): Authenticate
   const session = data && isRecord(data.session) ? data.session : undefined
   if (!session || isAnonymousSession(session) || !isRecord(session.user))
     return undefined
-  const uid = typeof session.user.uid === 'string' && session.user.uid
-    ? session.user.uid
-    : session.user.id
+  const userId = session.user.id
   const accessToken = session.access_token
-  if (typeof uid !== 'string' || !uid || typeof accessToken !== 'string' || !accessToken)
+  if (typeof userId !== 'string' || !userId || typeof accessToken !== 'string' || !accessToken)
     return undefined
   const refreshToken = typeof session.refresh_token === 'string' && session.refresh_token
     ? session.refresh_token
@@ -54,15 +78,19 @@ export function parseAuthenticatedCloudbaseSession(value: unknown): Authenticate
     ...(refreshToken ? { refreshToken } : {}),
     user: {
       ...session.user,
-      uid,
-    } as cloudbase.auth.IUserInfo,
+      id: userId,
+    } as CloudbaseV3User,
   }
 }
 
 export async function readAuthenticatedCloudbaseSession(
   auth: CloudbaseSessionAuth,
 ): Promise<AuthenticatedCloudbaseSession | undefined> {
-  return parseAuthenticatedCloudbaseSession(await auth.getSession())
+  const response = await auth.getSession()
+  const error = getCloudbaseResponseError(response)
+  if (error)
+    throw error
+  return parseAuthenticatedCloudbaseSession(response)
 }
 
 export async function getRuntimeAccessToken(
@@ -81,7 +109,11 @@ export async function getRuntimeAccessToken(
   if (!auth.refreshSession)
     throw new Error('The CloudBase session cannot be refreshed.')
 
-  const refreshed = parseAuthenticatedCloudbaseSession(await auth.refreshSession(session.refreshToken))
+  const refreshResponse = await auth.refreshSession(session.refreshToken)
+  const refreshError = getCloudbaseResponseError(refreshResponse)
+  if (refreshError)
+    throw refreshError
+  const refreshed = parseAuthenticatedCloudbaseSession(refreshResponse)
   if (!refreshed)
     throw new Error('The CloudBase session has expired. Sign in again.')
   session = refreshed

@@ -30,7 +30,7 @@ const realSession = {
       access_token: 'access-token-fixture',
       refresh_token: 'refresh-token-fixture',
       expires_at: 2_000_000_000,
-      user: { uid: 'uid_fixture', name: 'Fixture User', is_anonymous: false },
+      user: { id: 'uid_fixture', name: 'Fixture User', is_anonymous: false },
     },
   },
 }
@@ -39,7 +39,7 @@ const anonymousSession = {
   data: {
     session: {
       access_token: 'anonymous-token-fixture',
-      user: { uid: 'anonymous_fixture', is_anonymous: true },
+      user: { id: 'anonymous_fixture', is_anonymous: true },
     },
   },
 }
@@ -277,7 +277,7 @@ describe('studio SSO v3 session', () => {
     )).resolves.toEqual({ status: 'rejected', reason: 'authorization_exchange_failed' })
   })
 
-  it('uses getSession as identity source and safely restores a legacy SDK session', async () => {
+  it('uses the CloudBase v3 getSession result as the identity source', async () => {
     localStorage.setItem('advjs-studio:loginState', '{"stale":true}')
     const auth = createAuth(async () => realSession)
     const store = useAuthStore()
@@ -285,18 +285,43 @@ describe('studio SSO v3 session', () => {
     await expect(store.restoreSession(auth as unknown as cloudbase.auth.App)).resolves.toBe(true)
 
     expect(store.isLoggedIn).toBe(true)
-    expect(store.userInfo.uid).toBe('uid_fixture')
+    expect(store.userId).toBe('uid_fixture')
+    expect(store.userInfo?.id).toBe('uid_fixture')
     expect(localStorage.getItem('advjs-studio:loginState')).toBeNull()
   })
 
-  it('normalizes the CloudBase v3 user id into the legacy uid field', () => {
+  it('surfaces a CloudBase v3 getSession error', async () => {
+    const auth = createAuth(async () => ({
+      data: { session: null },
+      error: { message: 'session lookup failed' },
+    }))
+    const store = useAuthStore()
+
+    await expect(store.restoreSession(auth as unknown as cloudbase.auth.App)).resolves.toBe(false)
+
+    expect(store.isLoggedIn).toBe(false)
+    expect(store.authError).toBe('session lookup failed')
+  })
+
+  it('preserves the CloudBase v3 user id without creating a legacy uid field', () => {
     expect(parseAuthenticatedCloudbaseSession(cloudbaseV3Session)).toMatchObject({
       accessToken: 'v3-access-token-fixture',
       user: {
         id: 'v3_user_fixture',
-        uid: 'v3_user_fixture',
       },
     })
+    expect(parseAuthenticatedCloudbaseSession(cloudbaseV3Session)?.user).not.toHaveProperty('uid')
+  })
+
+  it('rejects a legacy uid-only user object', () => {
+    expect(parseAuthenticatedCloudbaseSession({
+      data: {
+        session: {
+          access_token: 'legacy-access-token',
+          user: { uid: 'legacy_uid', is_anonymous: false },
+        },
+      },
+    })).toBeUndefined()
   })
 
   it('rejects anonymous session parsing and refreshes an expiring runtime token', async () => {

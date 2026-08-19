@@ -1,8 +1,8 @@
 import type cloudbase from '@cloudbase/js-sdk'
-import type { AuthenticatedCloudbaseSession } from '../auth/cloudbase-session'
+import type { AuthenticatedCloudbaseSession, CloudbaseV3User } from '../auth/cloudbase-session'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { readAuthenticatedCloudbaseSession } from '../auth/cloudbase-session'
+import { getCloudbaseResponseError, readAuthenticatedCloudbaseSession } from '../auth/cloudbase-session'
 
 const LEGACY_LOGIN_STATE_KEY = 'advjs-studio:loginState'
 
@@ -14,21 +14,24 @@ const LEGACY_LOGIN_STATE_KEY = 'advjs-studio:loginState'
  */
 export const useAuthStore = defineStore('auth', () => {
   const session = ref<AuthenticatedCloudbaseSession>()
-  const userInfo = ref<cloudbase.auth.IUserInfo>({})
+  const userInfo = ref<CloudbaseV3User>()
   const isRestoring = ref(true)
   const authError = ref<string>()
 
-  const isLoggedIn = computed(() => Boolean(session.value && userInfo.value.uid))
+  const userId = computed(() => userInfo.value?.id)
+  const isLoggedIn = computed(() => Boolean(session.value && userId.value))
 
   const displayName = computed(() => {
-    return userInfo.value.name
-      || userInfo.value.displayName
-      || userInfo.value.username
+    return userInfo.value?.name
+      || userInfo.value?.displayName
+      || userInfo.value?.username
       || '匿名用户'
   })
 
   const maskedPhone = computed(() => {
-    const source = userInfo.value as unknown as Record<string, unknown>
+    const source = userInfo.value
+    if (!source)
+      return ''
     const phone = typeof source.phone_number === 'string'
       ? source.phone_number
       : typeof source.phone === 'string' ? source.phone : ''
@@ -39,7 +42,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   function clearSession(): void {
     session.value = undefined
-    userInfo.value = {}
+    userInfo.value = undefined
   }
 
   function setAuthError(message?: string): void {
@@ -72,7 +75,10 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function logout(auth: cloudbase.auth.App): Promise<void> {
     try {
-      await auth.signOut()
+      const response = await auth.signOut()
+      const error = getCloudbaseResponseError(response)
+      if (error)
+        throw error
     }
     finally {
       clearSession()
@@ -84,6 +90,7 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     session,
     userInfo,
+    userId,
     isLoggedIn,
     isRestoring,
     authError,

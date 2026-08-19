@@ -38,7 +38,7 @@ catch {
 }
 
 onMounted(async () => {
-  const uid = authStore.userInfo.uid
+  const uid = authStore.userId
   if (cloudApp && uid)
     await loadStats(cloudApp, uid)
 })

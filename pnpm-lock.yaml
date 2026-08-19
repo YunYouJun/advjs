@@ -191,8 +191,8 @@ catalogs:
       specifier: 8.0.3
       version: 8.0.3
     '@cloudbase/js-sdk':
-      specifier: ^3.7.1
-      version: 3.7.1
+      specifier: 3.8.0
+      version: 3.8.0
     '@cloudbase/manager-node':
       specifier: ^5.6.7
       version: 5.6.7
@@ -1001,7 +1001,7 @@ importers:
         version: 8.5.0(supports-color@10.2.2)
       '@cloudbase/js-sdk':
         specifier: 'catalog:'
-        version: 3.7.1
+        version: 3.8.0
       '@iconify-json/vscode-icons':
         specifier: catalog:icons
         version: 1.2.69
@@ -3402,8 +3402,8 @@ packages:
   '@cloudbase/database@1.4.3':
     resolution: {integrity: sha512-JzmdsGjy9LwzSQQ0Fv4OlNHNK61BRXdJSembTpy4408AQA3q2Ip3N5eB3v9OpAlFMvP/6MGmOQ/ZuUPKfJddJA==}
 
-  '@cloudbase/js-sdk@3.7.1':
-    resolution: {integrity: sha512-N4g7jMC4b3m5xkiGxOyiZk6XfddTkyyIJ9ZlAHzX7ORnGvaWYNPjnXP2m9mJ6/vT+8DGoUku0bbnUl7isngXAg==}
+  '@cloudbase/js-sdk@3.8.0':
+    resolution: {integrity: sha512-Rzug1QqzbANW740YMReuy/ZvViF++YP2ArWHCkKhYOmyujXcenK0RezgIyUqZjnf4IxcuN1nVsuhXBniz5wRWA==}
 
   '@cloudbase/manager-node@5.6.7':
     resolution: {integrity: sha512-ClhEwK8rYgCwVztIfZPwyPz6yBHjz2e44nxW2yaxX0QrWxSJK6J/RINqmRgFqz0k0ry8Sp1Ni1O57x7ixv7i3g==}
@@ -15895,7 +15895,7 @@ snapshots:
       lodash.set: 4.3.2(patch_hash=54157f99ddfe97fe6df797e26b1ab9e9020c0474246d2cc2f6170b45b8222a06)
       lodash.unset: 4.5.2
 
-  '@cloudbase/js-sdk@3.7.1':
+  '@cloudbase/js-sdk@3.8.0':
     dependencies:
       '@cloudbase/adapter-interface': 0.7.1
       '@cloudbase/adapter-wx_mp': 1.3.1
@@ -15907,6 +15907,10 @@ snapshots:
       regenerator-runtime: 0.14.1
       text-encoding-shim: 1.0.5
       web-streams-polyfill: 4.3.0
+    optionalDependencies:
+      node-fetch: 2.7.0
+    transitivePeerDependencies:
+      - encoding
 
   '@cloudbase/manager-node@5.6.7(bufferutil@4.1.0)(supports-color@10.2.2)':
     dependencies:

@@ -53,7 +53,7 @@ catch {
 const notificationsOpen = ref(false)
 
 function startNotificationPolling() {
-  if (cloudApp && authStore.userInfo.uid)
+  if (cloudApp && authStore.userId)
     notificationsStore.startPolling(cloudApp)
 }
 
@@ -63,7 +63,7 @@ onMounted(async () => {
   startNotificationPolling()
 })
 
-watch(() => authStore.userInfo.uid, (uid) => {
+watch(() => authStore.userId, (uid) => {
   if (uid)
     startNotificationPolling()
   else

@@ -59,7 +59,7 @@ async function handleSeedMarket() {
   try {
     const { inserted, skipped } = await seedMarketplace(
       cloudApp,
-      authStore.userInfo.uid!,
+      authStore.userId!,
       authStore.displayName,
     )
     await presentToast(t('developer.seedMarketDone', { inserted, skipped }))
@@ -87,7 +87,7 @@ async function handleClearSeed() {
         role: 'destructive',
         handler: async () => {
           try {
-            const { removed } = await clearSeedMarketplace(cloudApp!, authStore.userInfo.uid!)
+            const { removed } = await clearSeedMarketplace(cloudApp!, authStore.userId!)
             await presentToast(t('developer.clearSeedDone', { removed }))
           }
           catch (err) {

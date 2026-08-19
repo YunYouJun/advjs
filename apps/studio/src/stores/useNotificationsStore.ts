@@ -53,7 +53,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
   }
 
   async function load(cloudApp: cloudbase.app.App): Promise<void> {
-    const uid = authStore.userInfo.uid
+    const uid = authStore.userId
     if (!uid)
       return
     isLoading.value = true
@@ -86,7 +86,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
   }
 
   async function markAllRead(cloudApp: cloudbase.app.App): Promise<void> {
-    const uid = authStore.userInfo.uid
+    const uid = authStore.userId
     if (!uid)
       return
     const unread = notifications.value.filter(n => !n.read && n._id)
@@ -118,7 +118,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
       return
     void load(cloudApp)
     pollTimer = setInterval(() => {
-      if (authStore.userInfo.uid && pollCloudApp)
+      if (authStore.userId && pollCloudApp)
         void load(pollCloudApp)
     }, POLL_INTERVAL_MS)
   }

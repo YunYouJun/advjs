@@ -49,7 +49,7 @@ const following = ref(false)
 const followerCount = ref(0)
 const followBusy = ref(false)
 
-const isSelf = computed(() => authStore.userInfo.uid === creatorId.value)
+const isSelf = computed(() => authStore.userId === creatorId.value)
 
 const creatorName = computed(() => {
   return projects.value[0]?.authorName || t('marketplace.unknownCreator')
@@ -78,7 +78,7 @@ async function refreshFollowState() {
   if (!cloudApp || !creatorId.value)
     return
   followerCount.value = await countFollowers(cloudApp, creatorId.value)
-  if (authStore.userInfo.uid && authStore.userInfo.uid !== creatorId.value)
+  if (authStore.userId && authStore.userId !== creatorId.value)
     following.value = await isFollowing(cloudApp, creatorId.value)
   else
     following.value = false
@@ -87,7 +87,7 @@ async function refreshFollowState() {
 async function handleFollowToggle() {
   if (!cloudApp || !creatorId.value || followBusy.value)
     return
-  if (!authStore.userInfo.uid) {
+  if (!authStore.userId) {
     const toast = await toastController.create({
       message: t('follow.loginRequired'),
       duration: 1500,
@@ -124,7 +124,7 @@ onMounted(async () => {
   }
 })
 
-watch(() => authStore.userInfo.uid, () => {
+watch(() => authStore.userId, () => {
   void refreshFollowState()
 })
 

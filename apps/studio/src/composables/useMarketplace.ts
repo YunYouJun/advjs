@@ -172,7 +172,7 @@ export function useMarketplace() {
       duration?: MarketDuration
     },
   ): Promise<string | null> {
-    const uid = authStore.userInfo.uid
+    const uid = authStore.userId
     if (!uid) {
       error.value = 'Not logged in'
       return null
@@ -389,7 +389,7 @@ export function useMarketplace() {
     rating: number,
     comment: string,
   ): Promise<boolean> {
-    const uid = authStore.userInfo.uid
+    const uid = authStore.userId
     if (!uid)
       return false
 
