@@ -41,7 +41,7 @@ describe('cloudflare origin proxy', () => {
     })).toEqual({
       $schema: 'node_modules/wrangler/config-schema.json',
       account_id: accountId,
-      compatibility_date: '2026-08-20',
+      compatibility_date: '2026-08-19',
       compatibility_flags: ['nodejs_compat'],
       main: 'worker.mjs',
       name: 'advjs-game-advjs-org',

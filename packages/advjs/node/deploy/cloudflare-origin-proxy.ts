@@ -8,7 +8,7 @@ import { resolveBundledWrangler } from './cloudflare'
 import { DeployProjectError } from './index'
 
 const execFileAsync = promisify(execFile)
-const DEFAULT_COMPATIBILITY_DATE = '2026-08-20'
+const DEFAULT_COMPATIBILITY_DATE = '2026-08-19'
 
 export interface CloudflareOriginProxyOptions {
   accountId: string
