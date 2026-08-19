@@ -163,7 +163,12 @@ describe('cloudflare origin proxy', () => {
     temporaryDirectories.push(root)
     const scenarioPath = join(root, 'scenario.json')
     const logPath = join(root, 'wrangler.log')
-    await writeFile(scenarioPath, JSON.stringify({ versions: [{ id: 'version-20260820' }] }), 'utf8')
+    await writeFile(scenarioPath, JSON.stringify({
+      workerDeployments: [
+        { created_on: '2026-08-19T19:53:02.000Z', id: 'deployment-old' },
+        { created_on: '2026-08-19T20:00:18.000Z', id: 'deployment-new' },
+      ],
+    }), 'utf8')
     await writeFile(logPath, '', 'utf8')
 
     await expect(deployCloudflareOriginProxy({
@@ -178,7 +183,7 @@ describe('cloudflare origin proxy', () => {
       origin: 'https://origin.example.com',
     })).resolves.toEqual({
       accountId,
-      deploymentId: 'version-20260820',
+      deploymentId: 'deployment-new',
       domain: 'game.advjs.org',
       dryRun: false,
       name: 'advjs-game-advjs-org',
@@ -191,7 +196,7 @@ describe('cloudflare origin proxy', () => {
     expect(logs[0].accountId).toBe(accountId)
     expect(logs[0].args[0]).toBe('deploy')
     expect(logs[0].args).toContain('--strict')
-    expect(logs[1].args.slice(0, 4)).toEqual(['versions', 'list', '--name', 'advjs-game-advjs-org'])
+    expect(logs[1].args.slice(0, 4)).toEqual(['deployments', 'list', '--name', 'advjs-game-advjs-org'])
   })
 
   it('supports a compile-only dry run without looking up a remote version', async () => {

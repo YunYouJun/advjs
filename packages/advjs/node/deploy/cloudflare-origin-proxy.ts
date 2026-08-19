@@ -32,7 +32,8 @@ export interface CloudflareOriginProxyResult {
   url: string
 }
 
-interface CloudflareWorkerVersion {
+interface CloudflareWorkerDeployment {
+  created_on?: unknown
   id?: unknown
 }
 
@@ -78,21 +79,23 @@ function defaultWorkerName(domain: string) {
   return normalizeWorkerName(`advjs-${domain.replaceAll('.', '-')}`.slice(0, 63).replace(/-$/u, ''))
 }
 
-function parseVersions(output: string) {
+function parseDeployments(output: string) {
   const trimmed = output.trim()
   let value: unknown
   try {
     value = JSON.parse(trimmed)
   }
   catch {
-    throw new DeployProjectError('ADV_DEPLOY', 'Wrangler returned invalid JSON for the deployed Worker version')
+    throw new DeployProjectError('ADV_DEPLOY', 'Wrangler returned invalid JSON for the Worker deployment')
   }
-  const versions = Array.isArray(value)
+  const deployments = Array.isArray(value)
     ? value
     : value && typeof value === 'object' && Array.isArray((value as { result?: unknown }).result)
       ? (value as { result: unknown[] }).result
       : []
-  return versions as CloudflareWorkerVersion[]
+  return (deployments as CloudflareWorkerDeployment[])
+    .filter(deployment => typeof deployment.id === 'string')
+    .sort((left, right) => String(right.created_on || '').localeCompare(String(left.created_on || '')))
 }
 
 function mapWranglerError(error: unknown, label: string) {
@@ -292,13 +295,13 @@ export async function deployCloudflareOriginProxy(options: CloudflareOriginProxy
       }
     }
 
-    const versions = parseVersions((await run(
-      ['versions', 'list', '--name', config.name, '--config', configPath, '--json'],
-      `Cloudflare Worker version lookup for ${config.name}`,
+    const deployments = parseDeployments((await run(
+      ['deployments', 'list', '--name', config.name, '--config', configPath, '--json'],
+      `Cloudflare Worker deployment lookup for ${config.name}`,
     )).stdout)
-    const deploymentId = versions.find(version => typeof version.id === 'string')?.id
+    const deploymentId = deployments[0]?.id
     if (typeof deploymentId !== 'string')
-      throw new DeployProjectError('ADV_DEPLOY', `Cloudflare returned no deployed version for ${config.name}`)
+      throw new DeployProjectError('ADV_DEPLOY', `Cloudflare returned no deployment for ${config.name}`)
 
     return {
       accountId: options.accountId,

@@ -48,8 +48,8 @@ async function main() {
   else if (args[0] === 'deploy') {
     process.stdout.write('Worker deployment complete\n')
   }
-  else if (command.startsWith('versions list')) {
-    process.stdout.write(`${JSON.stringify(scenario.versions ?? [])}\n`)
+  else if (command.startsWith('deployments list')) {
+    process.stdout.write(`${JSON.stringify(scenario.workerDeployments ?? [])}\n`)
   }
   else {
     process.stderr.write(`Unexpected fake Wrangler command: ${command}\n`)
