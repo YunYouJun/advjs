@@ -17,12 +17,20 @@ export interface CloudbaseV3User {
   phone?: string
   phone_number?: string
   picture?: string
+  user_metadata?: {
+    avatarUrl?: string
+    name?: string
+    nickName?: string
+    username?: string
+    [key: string]: unknown
+  }
   username?: string
   [key: string]: unknown
 }
 
 export interface CloudbaseSessionAuth {
   getSession: () => Promise<unknown>
+  getUser?: () => Promise<unknown>
   refreshSession?: (refreshToken?: string) => Promise<unknown>
 }
 
@@ -59,14 +67,24 @@ function secondsToMilliseconds(value: unknown): number | undefined {
   return value < 10_000_000_000 ? value * 1_000 : value
 }
 
+function parseCloudbaseV3User(value: unknown): CloudbaseV3User | undefined {
+  if (!isRecord(value) || typeof value.id !== 'string' || !value.id)
+    return undefined
+  return {
+    ...value,
+    id: value.id,
+    user_metadata: isRecord(value.user_metadata) ? value.user_metadata : undefined,
+  }
+}
+
 export function parseAuthenticatedCloudbaseSession(value: unknown): AuthenticatedCloudbaseSession | undefined {
   const data = responseData(value)
   const session = data && isRecord(data.session) ? data.session : undefined
-  if (!session || isAnonymousSession(session) || !isRecord(session.user))
+  if (!session || isAnonymousSession(session))
     return undefined
-  const userId = session.user.id
+  const user = parseCloudbaseV3User(session.user)
   const accessToken = session.access_token
-  if (typeof userId !== 'string' || !userId || typeof accessToken !== 'string' || !accessToken)
+  if (!user || typeof accessToken !== 'string' || !accessToken)
     return undefined
   const refreshToken = typeof session.refresh_token === 'string' && session.refresh_token
     ? session.refresh_token
@@ -76,21 +94,38 @@ export function parseAuthenticatedCloudbaseSession(value: unknown): Authenticate
     accessToken,
     ...(expiresAt ? { expiresAt } : {}),
     ...(refreshToken ? { refreshToken } : {}),
-    user: {
-      ...session.user,
-      id: userId,
-    } as CloudbaseV3User,
+    user,
   }
 }
 
 export async function readAuthenticatedCloudbaseSession(
   auth: CloudbaseSessionAuth,
+  options: { refreshUser?: boolean } = {},
 ): Promise<AuthenticatedCloudbaseSession | undefined> {
   const response = await auth.getSession()
   const error = getCloudbaseResponseError(response)
   if (error)
     throw error
-  return parseAuthenticatedCloudbaseSession(response)
+  const session = parseAuthenticatedCloudbaseSession(response)
+  if (!session || !options.refreshUser || !auth.getUser)
+    return session
+
+  const userResponse = await auth.getUser()
+  if (getCloudbaseResponseError(userResponse))
+    return session
+  const data = responseData(userResponse)
+  const user = parseCloudbaseV3User(data?.user)
+  if (!user || user.id !== session.user.id)
+    return session
+
+  return {
+    ...session,
+    user: {
+      ...session.user,
+      ...user,
+      id: session.user.id,
+    },
+  }
 }
 
 export async function getRuntimeAccessToken(

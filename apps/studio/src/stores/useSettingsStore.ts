@@ -81,7 +81,7 @@ export const useSettingsStore = defineStore('settings', () => {
       isLoggedIn: authStore.isLoggedIn,
       username: authStore.displayName,
       email: authStore.userInfo?.email || '',
-      avatar: authStore.userInfo?.picture || '',
+      avatar: authStore.avatarUrl,
     }
   })
 

@@ -22,19 +22,24 @@ export const useAuthStore = defineStore('auth', () => {
   const isLoggedIn = computed(() => Boolean(session.value && userId.value))
 
   const displayName = computed(() => {
-    return userInfo.value?.name
+    return userInfo.value?.user_metadata?.nickName
+      || userInfo.value?.user_metadata?.name
+      || userInfo.value?.user_metadata?.username
+      || userInfo.value?.name
       || userInfo.value?.displayName
       || userInfo.value?.username
       || '匿名用户'
   })
 
+  const avatarUrl = computed(() => userInfo.value?.user_metadata?.avatarUrl || userInfo.value?.picture || '')
+
   const maskedPhone = computed(() => {
     const source = userInfo.value
     if (!source)
       return ''
-    const phone = typeof source.phone_number === 'string'
-      ? source.phone_number
-      : typeof source.phone === 'string' ? source.phone : ''
+    const phone = typeof source.phone === 'string'
+      ? source.phone
+      : typeof source.phone_number === 'string' ? source.phone_number : ''
     if (phone.length < 7)
       return ''
     return `${phone.slice(0, 3)}****${phone.slice(-4)}`
@@ -53,7 +58,7 @@ export const useAuthStore = defineStore('auth', () => {
     isRestoring.value = true
     authError.value = undefined
     try {
-      const current = await readAuthenticatedCloudbaseSession(auth)
+      const current = await readAuthenticatedCloudbaseSession(auth, { refreshUser: true })
       if (!current) {
         clearSession()
         return false
@@ -95,6 +100,7 @@ export const useAuthStore = defineStore('auth', () => {
     isRestoring,
     authError,
     displayName,
+    avatarUrl,
     maskedPhone,
     clearSession,
     setAuthError,

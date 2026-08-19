@@ -22,6 +22,7 @@ import {
   normalizeStudioReturnPath,
 } from '../auth/studio-sso'
 import { useAuthStore } from '../stores/useAuthStore'
+import { useSettingsStore } from '../stores/useSettingsStore'
 import loginPageSource from '../views/LoginPage.vue?raw'
 
 const realSession = {
@@ -107,6 +108,16 @@ describe('studio SSO v3 session', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     localStorage.clear()
+    window.matchMedia = query => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      addListener: () => {},
+      dispatchEvent: () => false,
+      removeEventListener: () => {},
+      removeListener: () => {},
+    })
   })
 
   it('registers exact public, first-party and development fixtures for advjs-studio-web', () => {
@@ -288,6 +299,70 @@ describe('studio SSO v3 session', () => {
     expect(store.userId).toBe('uid_fixture')
     expect(store.userInfo?.id).toBe('uid_fixture')
     expect(localStorage.getItem('advjs-studio:loginState')).toBeNull()
+  })
+
+  it('reads the YunLeFun profile metadata from CloudBase getUser', async () => {
+    let getUserCalls = 0
+    const auth = {
+      getSession: async () => ({
+        data: {
+          session: {
+            access_token: 'profile-access-token',
+            user: {
+              id: 'uid_profile',
+              is_anonymous: false,
+              phone: '+8613800000730',
+            },
+          },
+        },
+      }),
+      getUser: async () => {
+        getUserCalls += 1
+        return {
+          data: {
+            user: {
+              id: 'uid_profile',
+              phone: '+8613800000730',
+              user_metadata: {
+                nickName: '云游君',
+                avatarUrl: 'https://example.test/avatar.jpg',
+              },
+            },
+          },
+          error: null,
+        }
+      },
+    }
+    const store = useAuthStore()
+    const settingsStore = useSettingsStore()
+
+    await expect(store.restoreSession(auth as unknown as cloudbase.auth.App)).resolves.toBe(true)
+
+    expect(getUserCalls).toBe(1)
+    expect(store.displayName).toBe('云游君')
+    expect(store.avatarUrl).toBe('https://example.test/avatar.jpg')
+    expect(store.maskedPhone).toBe('+86****0730')
+    expect(settingsStore.account).toMatchObject({
+      avatar: 'https://example.test/avatar.jpg',
+      username: '云游君',
+    })
+  })
+
+  it('keeps the verified session profile when getUser fails', async () => {
+    const auth = {
+      getSession: async () => realSession,
+      getUser: async () => ({
+        data: { user: null },
+        error: { message: 'profile unavailable' },
+      }),
+    }
+    const store = useAuthStore()
+
+    await expect(store.restoreSession(auth as unknown as cloudbase.auth.App)).resolves.toBe(true)
+
+    expect(store.isLoggedIn).toBe(true)
+    expect(store.displayName).toBe('Fixture User')
+    expect(store.userId).toBe('uid_fixture')
   })
 
   it('surfaces a CloudBase v3 getSession error', async () => {
