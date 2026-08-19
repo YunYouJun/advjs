@@ -291,6 +291,10 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
           link: '/guide/cli',
         },
         {
+          text: 'Cloudflare 外部源站代理',
+          link: '/guide/deployment/cloudflare-origin-proxy',
+        },
+        {
           text: '统一运行时',
           link: '/guide/runtime/navigation-and-saves',
           items: [
