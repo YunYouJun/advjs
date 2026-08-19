@@ -133,14 +133,16 @@ describe('github Actions launch baseline', () => {
       'pnpm vitest run tests/launch/packed-install.test.ts --no-file-parallelism --reporter=default',
     ]))
     expect(runCommands(ci.jobs.e2e)).toEqual(expect.arrayContaining([
-      'pnpm exec playwright install --with-deps chromium',
+      'pnpm exec playwright install --with-deps --only-shell chromium',
       'pnpm exec playwright test --project=chromium',
     ]))
     expectCommandBefore(ci.jobs.e2e, 'pnpm editor:build', 'pnpm exec playwright test --project=chromium')
+    expect(runCommands(ci.jobs['editor-e2e'])).toContain('pnpm exec playwright install --with-deps --only-shell chromium')
     expectCommandBefore(ci.jobs['editor-e2e'], 'pnpm editor:build', 'pnpm exec playwright test tests/e2e/editor-local.spec.ts tests/e2e/editor-security.spec.ts --project=chromium')
     expect(ci.jobs['launch-journey']['continue-on-error']).toBeUndefined()
     expect(ci.jobs['launch-journey']['runs-on']).toBe('ubuntu-latest')
-    expect(runCommands(ci.jobs['launch-journey'])).toContain('pnpm exec playwright install --with-deps chromium')
+    expect(ci.jobs['launch-journey']['timeout-minutes']).toBe(20)
+    expect(runCommands(ci.jobs['launch-journey'])).toContain('pnpm exec playwright install --with-deps --only-shell chromium')
     expect(ci.jobs['launch-journey'].env.ADVJS_DOCS_JOURNEY_SKIP_BUILD).toBe('1')
     expectCommandBefore(ci.jobs['launch-journey'], 'pnpm prepare:workspace launch', 'pnpm test:launch:journey')
     expect(runCommands(ci.jobs['launch-journey'])).toContain('pnpm test:launch:journey')
