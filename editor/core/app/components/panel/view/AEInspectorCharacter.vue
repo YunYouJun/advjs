@@ -5,6 +5,7 @@ import { Toast } from '@advjs/gui'
 const { t } = useI18n()
 const characterStore = useCharacterStore()
 const app = useAppStore()
+const fileStore = useFileStore()
 
 const isEditing = ref(false)
 
@@ -25,6 +26,17 @@ function startEditing() {
 
 function stopEditing() {
   isEditing.value = false
+}
+
+async function editSource() {
+  if (!characterStore.selectedCharacterHandle)
+    return
+  try {
+    await fileStore.setOpenedFileHandle(characterStore.selectedCharacterHandle)
+  }
+  catch (error) {
+    Toast({ title: 'Unable to open character source', description: String(error), type: 'warning' })
+  }
 }
 
 async function onSave(data: Partial<AdvCharacter>) {
@@ -121,15 +133,18 @@ async function onRelationshipUpdate(relationships: AdvCharacterRelationship[]) {
 </script>
 
 <template>
-  <div class="h-full flex flex-col">
+  <div class="flex flex-col h-full">
     <!-- Header toolbar -->
-    <div class="flex items-center justify-between gap-2 border-b border-dark-300 p-2">
-      <div class="flex items-center gap-2">
+    <div class="p-2 border-b border-dark-300 flex gap-2 items-center justify-between">
+      <div class="flex gap-2 items-center">
         <div class="i-ri-user-line" />
         <span>{{ isCreateMode ? $t('characters.createNew') : $t('characters.title') }}</span>
       </div>
 
-      <div v-if="!isCreateMode && characterStore.selectedCharacter" class="flex items-center gap-1">
+      <div v-if="!isCreateMode && characterStore.selectedCharacter" class="flex gap-1 items-center">
+        <AGUIButton v-if="!isEditing && characterStore.selectedCharacterHandle" size="mini" @click="editSource">
+          {{ $t('characters.visual.source') }}
+        </AGUIButton>
         <AGUIIconButton
           v-if="!isEditing"
           size="mini"
@@ -189,7 +204,7 @@ async function onRelationshipUpdate(relationships: AdvCharacterRelationship[]) {
           />
 
           <!-- Tachie Manager -->
-          <div class="border-t border-dark-300 p-4">
+          <div class="p-4 border-t border-dark-300">
             <TachieManager
               :character="characterStore.selectedCharacter"
               @update="onTachieUpdate"
@@ -197,7 +212,7 @@ async function onRelationshipUpdate(relationships: AdvCharacterRelationship[]) {
           </div>
 
           <!-- Relationship Editor -->
-          <div class="border-t border-dark-300 p-4">
+          <div class="p-4 border-t border-dark-300">
             <RelationshipEditor
               :relationships="characterStore.selectedCharacter.relationships"
               @update="onRelationshipUpdate"
@@ -207,7 +222,7 @@ async function onRelationshipUpdate(relationships: AdvCharacterRelationship[]) {
       </template>
 
       <!-- No character selected -->
-      <div v-else class="flex items-center justify-center p-4 op-50">
+      <div v-else class="p-4 op-50 flex items-center justify-center">
         {{ $t('characters.selectToEdit') }}
       </div>
     </div>

@@ -31,6 +31,7 @@ export function createLocalProjectWorkspace(adapter: LocalBridgeAdapter): Projec
   return {
     kind: 'local',
     commit,
+    readAsset: path => adapter.readAsset(path),
     snapshot,
     subscribe: listener => adapter.watch(listener),
   }

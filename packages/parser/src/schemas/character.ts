@@ -1,13 +1,34 @@
 /**
  * Runtime schema for `.character.md` frontmatter.
  *
- * The schema intentionally uses `.passthrough()` / loose constraints on legacy
- * fields so existing character files keep parsing; the strict validation is
- * applied only to the newer structured `attributes.*` subtree. Callers should
+ * The parser preserves legacy fields even when schema validation warns. Strict
+ * validation applies to the structured `attributes` and `visual` subtrees. Callers should
  * use `safeParse` so malformed files surface a warning rather than throw.
  */
-import type { AdvCharacterFrontmatter } from '@advjs/types'
+import type { AdvCharacterFrontmatter, AdvCharacterVisual } from '@advjs/types'
 import { z } from 'zod'
+
+const NonBlankString = z.string().refine(value => value.trim().length > 0, 'Must not be blank')
+
+/** Authoring references use portable paths relative to the project root. */
+export const CharacterVisualReferenceSchema = z.object({
+  path: NonBlankString.refine(
+    value => value === value.trim()
+      && !/[\\:?#%]/u.test(value)
+      && [...value].every(character => character.charCodeAt(0) >= 32)
+      && value.split('/').every(segment => segment !== '' && segment !== '.' && segment !== '..'),
+    'Use a project-relative path without URLs, dot segments or encoded separators',
+  ),
+  description: NonBlankString.optional(),
+}).strict()
+
+/** Optional visual identity; legacy cards need no migration. */
+export const CharacterVisualSchema = z.object({
+  version: NonBlankString,
+  references: z.array(CharacterVisualReferenceSchema).optional(),
+  fixedTraits: z.array(NonBlankString).optional(),
+  allowedChanges: z.array(NonBlankString).optional(),
+}).strict() satisfies z.ZodType<AdvCharacterVisual, any, any>
 
 /**
  * Universal profile fields shared by every template.
@@ -126,13 +147,14 @@ const RelationshipSchema = z.object({
  * Full `.character.md` frontmatter schema.
  *
  * Note: legacy / free-form fields stay permissive so older files keep working.
- * Strict validation is enforced on the new `attributes` subtree.
+ * Strict validation is enforced on the `attributes` and `visual` subtrees.
  */
 export const CharacterFrontmatterSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   avatar: z.string().optional(),
   imagePrompt: z.string().optional(),
+  visual: CharacterVisualSchema.optional(),
   actor: z.string().optional(),
   cv: z.string().optional(),
   aliases: z.array(z.string()).optional(),

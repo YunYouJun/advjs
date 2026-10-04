@@ -158,6 +158,18 @@
     "createNew": "New Character",
     "openDir": "Open Directory",
     "emptyHint": "Click \"+\" to create a character or open a characters directory",
-    "backToDetail": "Back to Detail"
+    "backToDetail": "Back to Detail",
+    "visual": {
+      "title": "Visual identity",
+      "copy": "Copy visual brief",
+      "copied": "Visual brief copied",
+      "loading": "Loading reference…",
+      "fixed": "Fixed traits",
+      "allowed": "Allowed changes",
+      "empty": "No visual identity yet. Edit the character source to add a visual version and references.",
+      "prompt": "Image prompt",
+      "source": "Edit source",
+      "attachmentHint": "Reference paths are relative to the project root. Inspect and attach the actual images when generating; copying this brief does not attach them."
+    }
   }
 }

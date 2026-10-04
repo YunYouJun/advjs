@@ -8,3 +8,5 @@ import { parseCharacterCatalog } from '@advjs/character'
 const catalog = parseCharacterCatalog(characterSources)
 const songJiang = catalog.require('song-jiang')
 ```
+
+Visual identity is optional on existing cards. `AdvCharacterVisual` / `CharacterVisualSchema` define a design version, project-relative reference images, fixed traits and allowed changes. Use `exportCharacterVisualForAI(character)` to export the shared visual brief; the caller must still inspect and attach the actual images. `avatar` and `tachies` remain runtime presentation fields.

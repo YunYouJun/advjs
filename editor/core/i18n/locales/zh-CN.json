@@ -158,6 +158,18 @@
     "createNew": "新建角色",
     "openDir": "打开目录",
     "emptyHint": "点击「+」新建角色或「📂」打开角色目录",
-    "backToDetail": "返回详情"
+    "backToDetail": "返回详情",
+    "visual": {
+      "title": "视觉设定",
+      "copy": "复制视觉约束",
+      "copied": "视觉约束已复制",
+      "loading": "正在加载参考图…",
+      "fixed": "固定特征",
+      "allowed": "允许变化",
+      "empty": "尚无视觉设定。可在人物卡源码中添加 visual 版本与参考图。",
+      "prompt": "图像提示词",
+      "source": "编辑源码",
+      "attachmentHint": "参考图路径相对于项目根目录。生成前需打开并实际附上图像；复制视觉约束不会自动附图。"
+    }
   }
 }

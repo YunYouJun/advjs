@@ -54,6 +54,14 @@ export function createBrowserProjectWorkspace(root: BrowserProjectDirectory): Pr
   return {
     kind: 'browser',
     commit,
+    async readAsset(path) {
+      if (path.split('/').some(segment => !segment || segment === '.' || segment === '..') || path.includes('\\'))
+        throw new Error('Asset path must be relative to the project root')
+      const file = await (await getFileHandle(writableRoot, path)).getFile()
+      if (!(file instanceof Blob))
+        throw new Error('This workspace does not provide binary files')
+      return file
+    },
     snapshot,
   }
 }

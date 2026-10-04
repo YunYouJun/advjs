@@ -97,10 +97,14 @@ export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
   }
 
   async function readAssetBlobUrl(path: string) {
-    const blob = await (await request(`asset?path=${encodeURIComponent(path)}`)).blob()
+    const blob = await readAsset(path)
     const url = URL.createObjectURL(blob)
     assetBlobUrls.add(url)
     return url
+  }
+
+  async function readAsset(path: string): Promise<Blob> {
+    return await (await request(`asset?path=${encodeURIComponent(path)}`)).blob()
   }
 
   async function resolvePreviewConfig(
@@ -264,6 +268,7 @@ export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
     loadProject,
     origin: options.origin,
     readFile,
+    readAsset,
     resolvePreviewConfig,
     token: options.token,
     watch,

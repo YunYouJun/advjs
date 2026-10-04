@@ -1,7 +1,7 @@
 import type { AdvCharacter, AdvCharacterBody, AdvCharacterFrontmatter } from '@advjs/types'
 import { LANGUAGE_LABELS } from '@advjs/types'
 import * as yaml from 'js-yaml'
-import { CharacterFrontmatterSchema, formatCharacterFrontmatterError } from './schemas/character'
+import { CharacterFrontmatterSchema, CharacterVisualSchema, formatCharacterFrontmatterError } from './schemas/character'
 
 /**
  * Regex for matching ## heading lines (module-level for performance)
@@ -60,6 +60,7 @@ const FRONTMATTER_KEYS: (keyof AdvCharacterFrontmatter)[] = [
   'name',
   'avatar',
   'imagePrompt',
+  'visual',
   'actor',
   'cv',
   'aliases',
@@ -108,6 +109,7 @@ export function parseCharacterMd(content: string): AdvCharacter {
     name: fm.name,
     avatar: fm.avatar,
     imagePrompt: fm.imagePrompt,
+    visual: fm.visual,
     actor: fm.actor,
     cv: fm.cv,
     aliases: normalizedAliases,
@@ -346,6 +348,10 @@ export function exportCharacterForAI(character: AdvCharacter): string {
 
   appendAttributesForAI(lines, character)
 
+  const visual = exportCharacterVisualForAI(character)
+  if (visual)
+    lines.push(visual, '')
+
   // Body sections
   for (const { field, heading } of BODY_SECTION_ORDER) {
     const content = character[field]
@@ -369,6 +375,32 @@ export function exportCharacterForAI(character: AdvCharacter): string {
   }
 
   return `${lines.join('\n').trim()}\n`
+}
+
+/** Export a visual brief. Reference paths are instructions, not image attachments. */
+export function exportCharacterVisualForAI(character: AdvCharacter): string {
+  const parsed = CharacterVisualSchema.safeParse(character.visual)
+  if (!parsed.success && !character.imagePrompt?.trim())
+    return ''
+
+  const lines = [`## 视觉设定 · ${character.name}`]
+  if (parsed.success) {
+    const visual = parsed.data
+    lines.push(`- 造型版本：${visual.version}`)
+    if (visual.references?.length) {
+      lines.push('', '参考图（路径相对于项目根目录）：')
+      for (const reference of visual.references)
+        lines.push(`- ${reference.path}${reference.description ? ` — ${reference.description}` : ''}`)
+      lines.push('生成前必须打开并实际附上参考图；仅复制路径不会加载图像。')
+    }
+    if (visual.fixedTraits?.length)
+      lines.push('', '固定特征：', ...visual.fixedTraits.map(trait => `- ${trait}`))
+    if (visual.allowedChanges?.length)
+      lines.push('', '允许变化：', ...visual.allowedChanges.map(change => `- ${change}`))
+  }
+  if (character.imagePrompt?.trim())
+    lines.push('', '图像提示词：', character.imagePrompt.trim())
+  return `${lines.join('\n')}\n`
 }
 
 /**

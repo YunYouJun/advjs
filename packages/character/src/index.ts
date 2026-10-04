@@ -13,7 +13,10 @@ export {
   CharacterProfileSchema,
   CharacterRpgAttrsSchema,
   CharacterRpgStatsSchema,
+  CharacterVisualReferenceSchema,
+  CharacterVisualSchema,
   exportCharacterForAI,
+  exportCharacterVisualForAI,
   formatCharacterFrontmatterError,
   parseCharacterMd,
   stringifyCharacterMd,
@@ -27,4 +30,6 @@ export type {
   AdvCharacterFrontmatter,
   AdvCharacterRelationship,
   AdvCharacterTemplate,
+  AdvCharacterVisual,
+  AdvCharacterVisualReference,
 } from '@advjs/types'

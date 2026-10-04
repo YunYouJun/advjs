@@ -18,16 +18,16 @@ const displayAliases = computed(() => {
 </script>
 
 <template>
-  <div class="character-detail flex flex-col gap-4 p-4">
+  <div class="character-detail p-4 flex flex-col gap-4">
     <!-- Header -->
-    <div class="flex items-start gap-4">
+    <div class="flex gap-4 items-start">
       <img
         v-if="character.avatar"
-        class="size-20 rounded-lg object-cover"
+        class="rounded-lg size-20 object-cover"
         :src="character.avatar"
         :alt="character.name"
       >
-      <div v-else class="size-20 flex items-center justify-center rounded-lg bg-dark-300">
+      <div v-else class="rounded-lg bg-dark-300 flex size-20 items-center justify-center">
         <div class="i-ri-user-3-line text-3xl op-40" />
       </div>
 
@@ -38,7 +38,7 @@ const displayAliases = computed(() => {
         <div class="text-sm op-50">
           ID: {{ character.id }}
         </div>
-        <div v-if="character.faction" class="mt-1 text-sm op-70">
+        <div v-if="character.faction" class="text-sm mt-1 op-70">
           {{ character.faction }}
         </div>
       </div>
@@ -62,8 +62,10 @@ const displayAliases = computed(() => {
     </div>
 
     <!-- Info Sections -->
+    <CharacterVisualPanel v-if="character.visual || character.imagePrompt" :character="character" />
+
     <div v-if="character.personality" class="section">
-      <h3 class="mb-1 text-sm font-bold op-60">
+      <h3 class="text-sm font-bold mb-1 op-60">
         {{ $t('characters.detail.personality') }}
       </h3>
       <p class="text-sm">
@@ -72,7 +74,7 @@ const displayAliases = computed(() => {
     </div>
 
     <div v-if="character.appearance" class="section">
-      <h3 class="mb-1 text-sm font-bold op-60">
+      <h3 class="text-sm font-bold mb-1 op-60">
         {{ $t('characters.detail.appearance') }}
       </h3>
       <p class="text-sm">
@@ -81,7 +83,7 @@ const displayAliases = computed(() => {
     </div>
 
     <div v-if="character.background" class="section">
-      <h3 class="mb-1 text-sm font-bold op-60">
+      <h3 class="text-sm font-bold mb-1 op-60">
         {{ $t('characters.detail.background') }}
       </h3>
       <p class="text-sm">
@@ -90,7 +92,7 @@ const displayAliases = computed(() => {
     </div>
 
     <div v-if="character.concept" class="section">
-      <h3 class="mb-1 text-sm font-bold op-60">
+      <h3 class="text-sm font-bold mb-1 op-60">
         {{ $t('characters.detail.concept') }}
       </h3>
       <p class="text-sm">
@@ -99,7 +101,7 @@ const displayAliases = computed(() => {
     </div>
 
     <div v-if="character.speechStyle" class="section">
-      <h3 class="mb-1 text-sm font-bold op-60">
+      <h3 class="text-sm font-bold mb-1 op-60">
         {{ $t('characters.detail.speechStyle') }}
       </h3>
       <p class="text-sm">
@@ -107,9 +109,9 @@ const displayAliases = computed(() => {
       </p>
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
+    <div class="gap-4 grid grid-cols-2">
       <div v-if="character.cv" class="section">
-        <h3 class="mb-1 text-sm font-bold op-60">
+        <h3 class="text-sm font-bold mb-1 op-60">
           {{ $t('characters.detail.cv') }}
         </h3>
         <p class="text-sm">
@@ -118,7 +120,7 @@ const displayAliases = computed(() => {
       </div>
 
       <div v-if="character.actor" class="section">
-        <h3 class="mb-1 text-sm font-bold op-60">
+        <h3 class="text-sm font-bold mb-1 op-60">
           {{ $t('characters.detail.actor') }}
         </h3>
         <p class="text-sm">
@@ -128,7 +130,7 @@ const displayAliases = computed(() => {
     </div>
 
     <div v-if="displayAliases.length" class="section">
-      <h3 class="mb-1 text-sm font-bold op-60">
+      <h3 class="text-sm font-bold mb-1 op-60">
         {{ $t('characters.detail.aliases') }}
       </h3>
       <p class="text-sm">
@@ -138,7 +140,7 @@ const displayAliases = computed(() => {
 
     <!-- Tachies (Sprites) -->
     <div v-if="character.tachies && Object.keys(character.tachies).length" class="section">
-      <div class="mb-2 flex cursor-pointer items-center gap-2" @click="showTachies = !showTachies">
+      <div class="mb-2 flex gap-2 cursor-pointer items-center" @click="showTachies = !showTachies">
         <h3 class="text-sm font-bold op-60">
           {{ $t('characters.detail.tachies') }} ({{ Object.keys(character.tachies).length }})
         </h3>
@@ -148,7 +150,7 @@ const displayAliases = computed(() => {
         <div
           v-for="(tachie, key) in character.tachies"
           :key="key"
-          class="flex flex-col items-center gap-1 rounded bg-dark-300 p-2"
+          class="p-2 rounded bg-dark-300 flex flex-col gap-1 items-center"
         >
           <img v-if="tachie" class="h-20 object-contain" :src="tachie.src" :alt="String(key)">
           <span class="text-xs op-60">{{ key }}</span>
@@ -158,14 +160,14 @@ const displayAliases = computed(() => {
 
     <!-- Relationships -->
     <div v-if="character.relationships?.length" class="section">
-      <h3 class="mb-2 text-sm font-bold op-60">
+      <h3 class="text-sm font-bold mb-2 op-60">
         {{ $t('characters.detail.relationships') }}
       </h3>
       <div class="flex flex-col gap-1">
         <div
           v-for="(rel, idx) in character.relationships"
           :key="idx"
-          class="flex items-center gap-2 rounded bg-dark-300 p-2 text-sm"
+          class="text-sm p-2 rounded bg-dark-300 flex gap-2 items-center"
         >
           <span class="font-bold">{{ rel.targetId }}</span>
           <AGUITag theme="primary">

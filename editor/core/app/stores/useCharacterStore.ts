@@ -1,6 +1,6 @@
 import type { AdvCharacter, JsonValue } from '@advjs/types'
 import { applyProjectPatches } from '@advjs/core'
-import { parseCharacterMd, stringifyCharacterMd } from '@advjs/parser'
+import { exportCharacterForAI, parseCharacterMd, stringifyCharacterMd } from '@advjs/parser'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
 export interface CharacterFileEntry {
@@ -149,8 +149,9 @@ export const useCharacterStore = defineStore('editor:character', () => {
 
     // If we have a file handle for this character, use browser API
     const entry = fileEntries.value.get(character.id)
-    if (entry?.fileHandle) {
-      await updateCharacterToHandle(character, entry.fileHandle)
+    const fileHandle = entry?.fileHandle ?? (selectedCharacter.value?.id === character.id ? selectedCharacterHandle.value : undefined)
+    if (fileHandle) {
+      await updateCharacterToHandle(character, fileHandle)
       return
     }
 
@@ -208,6 +209,11 @@ export const useCharacterStore = defineStore('editor:character', () => {
    * 导出角色为 AI 友好格式
    */
   async function exportForAI(id: string): Promise<string | null> {
+    const localCharacter = selectedCharacter.value?.id === id
+      ? selectedCharacter.value
+      : characters.value.find(character => character.id === id)
+    if (localCharacter)
+      return exportCharacterForAI(localCharacter)
     if (!charactersDir.value || !id)
       return null
 
@@ -349,6 +355,8 @@ export const useCharacterStore = defineStore('editor:character', () => {
         id: data.id,
         name: data.name,
         avatar: data.avatar,
+        imagePrompt: data.imagePrompt,
+        visual: data.visual,
         actor: data.actor,
         cv: data.cv,
         aliases: data.aliases,
@@ -397,6 +405,7 @@ export const useCharacterStore = defineStore('editor:character', () => {
         'name',
         'avatar',
         'imagePrompt',
+        'visual',
         'actor',
         'cv',
         'aliases',

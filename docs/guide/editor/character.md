@@ -77,6 +77,8 @@ relationships:
 | --------------- | ---------------------------- | ---- | ------------------------ |
 | `id`            | `string`                     | ✅   | 唯一标识，需与文件名一致 |
 | `name`          | `string`                     | ✅   | 角色姓名                 |
+| `visual`        | `AdvCharacterVisual`         |      | 造型版本、参考图和一致性约束 |
+| `imagePrompt`   | `string`                    |      | 补充图像生成描述 |
 | `avatar`        | `string`                     |      | 头像图片路径             |
 | `actor`         | `string`                     |      | 演员                     |
 | `cv`            | `string`                     |      | 声优                     |
@@ -85,6 +87,31 @@ relationships:
 | `faction`       | `string`                     |      | 阵营/组织                |
 | `tachies`       | `Record<string, AdvTachie>`  |      | 立绘，key 为立绘名称     |
 | `relationships` | `AdvCharacterRelationship[]` |      | 角色关系                 |
+
+### 统一视觉设定
+
+```yaml
+visual:
+  version: workshop-v1
+  references:
+    - path: adv/assets/references/workshop-v1.png
+      description: 右栏人物，全身、正脸与侧脸
+  fixedTraits:
+    - 方脸、短络腮须、宽肩，保持参考图面部比例
+    - 赭褐粗布工作衣与深色腰带
+  allowedChanges:
+    - 表情、姿势、镜头角度与光照
+    - 与当前剧情相符的尘土和劳动污迹
+imagePrompt: Naturalistic historical game illustration, worn linen, soft daylight
+```
+
+所有角色、编辑器和 AI 工具共用 `AdvCharacterVisual` 与 `CharacterVisualSchema`。`version` 必填且非空，其他三个字段可省略。字段拼写错误、空特征和不安全路径会产生诊断。旧卡不需要添加 `visual`。
+
+参考图 `path` 相对于项目根目录（`adv.config.json` 所在目录），不是人物卡所在目录。禁止绝对路径、URL 和 `../`。`description` 指定多人图中的人物或视角；一张图可被多个人物卡引用。参考图无需登记为游戏背景。
+
+在文件树打开人物卡即可查看「视觉设定」，点「编辑源码」修改并保存；人物详情也复用相同面板。图片缺失时会保留路径及错误提示。头像、立绘仍使用 `avatar`、`tachies`，避免把整张设定总览当作游戏精灵图。
+
+「复制视觉约束」使用 `exportCharacterVisualForAI`。生成前必须打开并实际附上参考图片，复制路径不会自动附图。改变固定特征时建立新的造型版本，并保留旧图及其版本记录。
 
 ### Body Sections 说明
 
@@ -100,7 +127,7 @@ Markdown body 部分按 `## 标题` 分段，每个 section 映射到一个描�
 
 ### AI 导出格式
 
-使用「Copy for AI」按钮可以导出为 AI 友好的纯净 markdown（去掉 tachies/avatar 等视觉字段）：
+使用「Copy for AI」按钮可以导出为 AI 友好的纯净 markdown（去掉运行时 tachies/avatar，保留 visual 视觉身份与 imagePrompt）：
 
 ```markdown
 # 立花瀧

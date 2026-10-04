@@ -29,6 +29,8 @@ export interface ProjectWorkspaceSubscription {
  */
 export interface ProjectWorkspace {
   readonly kind: ProjectWorkspaceKind
+  /** Read an authoring image without changing runtime scene assets. */
+  readAsset?: (path: string) => Promise<Blob>
   commit: (patches: readonly ProjectSourcePatch[]) => Promise<ProjectWorkspaceSnapshot>
   snapshot: () => Promise<ProjectWorkspaceSnapshot>
   subscribe?: (listener: (change: ProjectWorkspaceChange) => void) => ProjectWorkspaceSubscription

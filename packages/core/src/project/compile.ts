@@ -14,6 +14,7 @@ import type {
 } from '@advjs/types'
 import type { MarkdownResourceCatalog } from '../compiler'
 import {
+  CharacterVisualSchema,
   extractCharacterRefs,
   extractSceneRefs,
   parseCharacterMd,
@@ -340,6 +341,17 @@ function collectCharacters(
   const known = new Set<string>()
 
   function registerCharacter(character: AdvCharacter, path: string) {
+    if (character.visual !== undefined) {
+      const visual = CharacterVisualSchema.safeParse(character.visual)
+      if (!visual.success) {
+        diagnostics.push({
+          code: 'ADV_PROJECT_INVALID_CHARACTER_VISUAL',
+          severity: 'error',
+          message: `Invalid visual identity for "${character.id}": ${visual.error.message}`,
+          path,
+        })
+      }
+    }
     if (sourceMap.characters[character.id]) {
       diagnostics.push({
         code: 'ADV_PROJECT_DUPLICATE_CHARACTER',

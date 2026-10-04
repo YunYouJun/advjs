@@ -3,7 +3,7 @@ import { createRequire } from 'node:module'
 import { basename, join, relative } from 'node:path'
 import process from 'node:process'
 import { analyzeBranches, analyzeCoverage } from '@advjs/core'
-import { parseAst, parseCharacterMd, stringifyCharacterMd } from '@advjs/parser'
+import { CharacterVisualSchema, parseAst, parseCharacterMd, stringifyCharacterMd } from '@advjs/parser'
 import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import {
@@ -16,6 +16,8 @@ import {
   scanFiles,
 } from 'advjs'
 import { z } from 'zod'
+
+type AdvCharacterVisual = z.infer<typeof CharacterVisualSchema>
 
 // Re-export for external use
 export { McpServer }
@@ -64,6 +66,7 @@ export interface CharacterCreateInput {
   id: string
   name: string
   imagePrompt?: string
+  visual?: AdvCharacterVisual
   tags?: string[]
   aliases?: string[]
   personality?: string
@@ -192,6 +195,7 @@ export function buildCharacterMd(params: CharacterCreateInput): string {
     id: params.id,
     name: params.name,
     imagePrompt: params.imagePrompt,
+    visual: params.visual,
     tags: params.tags,
     aliases: params.aliases,
     personality: params.personality,
@@ -618,6 +622,7 @@ export function createAdvMcpServer(options: CreateAdvMcpServerOptions = {}) {
       id: z.string().describe('Character ID (lowercase, no spaces, used as filename)'),
       name: z.string().describe('Character display name'),
       imagePrompt: z.string().optional().describe('AI image prompt for the character portrait/tachie (English keywords recommended)'),
+      visual: CharacterVisualSchema.optional().describe('Visual identity: design version, project-relative reference images, fixed traits and allowed changes'),
       tags: z.array(z.string()).optional().describe('Character tags'),
       aliases: z.array(z.string()).optional().describe('Alternative names'),
       personality: z.string().optional().describe('Personality description'),
@@ -647,6 +652,7 @@ export function createAdvMcpServer(options: CreateAdvMcpServerOptions = {}) {
       id: z.string().describe('Character ID to edit'),
       name: z.string().optional().describe('New display name'),
       imagePrompt: z.string().optional().describe('New AI image prompt for the character portrait/tachie'),
+      visual: CharacterVisualSchema.nullable().optional().describe('Replace the complete visual identity; null removes it; omission preserves it'),
       tags: z.array(z.string()).optional().describe('Replace tags'),
       aliases: z.array(z.string()).optional().describe('Replace aliases'),
       personality: z.string().optional().describe('New personality description'),
@@ -659,6 +665,7 @@ export function createAdvMcpServer(options: CreateAdvMcpServerOptions = {}) {
       id: string
       name?: string
       imagePrompt?: string
+      visual?: AdvCharacterVisual | null
       tags?: string[]
       aliases?: string[]
       personality?: string
@@ -797,6 +804,7 @@ export function createAdvMcpServer(options: CreateAdvMcpServerOptions = {}) {
         id: z.string(),
         name: z.string(),
         imagePrompt: z.string().optional(),
+        visual: CharacterVisualSchema.optional(),
         tags: z.array(z.string()).optional(),
         aliases: z.array(z.string()).optional(),
         personality: z.string().optional(),
