@@ -1,156 +1,98 @@
 <script setup lang="ts">
+import { computed, shallowRef } from 'vue'
+
 const contextStore = useProjectContextStore()
 const projectStore = useProjectStore()
+const hasContext = computed(() => contextStore.sections.length > 0)
+const isRefreshing = shallowRef(false)
+const message = shallowRef('')
+const error = shallowRef('')
+const statistics = computed(() => [
+  { label: 'Chapters', value: contextStore.stats.chapters },
+  { label: 'Characters', value: contextStore.stats.characters },
+  { label: 'Scenes', value: contextStore.stats.scenes },
+])
 
-const hasContext = computed(() => contextStore.isLoaded && (
-  contextStore.worldContent
-  || contextStore.outlineContent
-  || contextStore.chaptersReadme
-  || contextStore.charsReadme
-  || contextStore.scenesReadme
-))
-
-/**
- * Load context from current project directory
- */
-async function loadFromProject() {
-  const rootDir = projectStore.rootDir
-  if (rootDir?.handle) {
-    await contextStore.loadContext(rootDir.handle as FileSystemDirectoryHandle)
+async function loadFromProject(): Promise<void> {
+  isRefreshing.value = true
+  error.value = ''
+  message.value = ''
+  try {
+    await projectStore.refreshProject()
+  }
+  catch (cause) {
+    error.value = cause instanceof Error ? cause.message : 'Could not refresh project context'
+  }
+  finally {
+    isRefreshing.value = false
   }
 }
 
-/**
- * Copy merged context to clipboard for AI usage
- */
-async function copyContextForAI() {
-  const context = contextStore.getMergedContext()
-  await navigator.clipboard.writeText(context)
-}
-
-onMounted(() => {
-  if (!contextStore.isLoaded && projectStore.rootDir?.handle) {
-    loadFromProject()
+async function copyContextForAI(): Promise<void> {
+  error.value = ''
+  message.value = ''
+  try {
+    await navigator.clipboard.writeText(contextStore.getMergedContext())
+    message.value = 'Author context copied'
   }
-})
+  catch {
+    error.value = 'Could not copy author context. Check clipboard access and try again.'
+  }
+}
 </script>
 
 <template>
   <div class="project-context-view" p-3>
-    <!-- Stats Cards -->
-    <div v-if="hasContext" class="stats-grid" mb-4 gap-2 grid grid-cols-3>
-      <div class="stat-card" p-3 text-center rounded-lg bg-blue-500:10>
-        <div text-2xl text-blue font-bold>
-          {{ contextStore.stats.chapters }}
+    <p v-if="contextStore.isLoaded" class="text-xs mb-3 op-70">
+      {{ projectStore.rootDir?.name }} · Saved author context
+    </p>
+    <div v-if="contextStore.isLoaded" class="mb-4 gap-2 grid grid-cols-3">
+      <div v-for="stat in statistics" :key="stat.label" class="p-3 text-center rounded-lg bg-blue-500/10">
+        <div class="text-2xl text-blue-400 font-bold">
+          {{ stat.value }}
         </div>
-        <div text-xs op-70>
-          Chapters
-        </div>
-      </div>
-      <div class="stat-card" p-3 text-center rounded-lg bg-green-500:10>
-        <div text-2xl text-green font-bold>
-          {{ contextStore.stats.characters }}
-        </div>
-        <div text-xs op-70>
-          Characters
-        </div>
-      </div>
-      <div class="stat-card" p-3 text-center rounded-lg bg-purple-500:10>
-        <div text-2xl text-purple font-bold>
-          {{ contextStore.stats.scenes }}
-        </div>
-        <div text-xs op-70>
-          Scenes
+        <div class="text-xs op-70">
+          {{ stat.label }}
         </div>
       </div>
     </div>
-
-    <!-- Actions -->
-    <div mb-4 flex gap-2>
+    <div class="mb-4 flex gap-2">
       <button
-        class="adv-btn"
-        text-sm text-white px-3 py-1.5 rounded bg-blue-600 flex-1 hover:bg-blue-700
+        class="text-sm adv-btn text-white px-3 py-1.5 rounded bg-blue-600 flex-1 hover:bg-blue-700 disabled:op-50"
+        :disabled="!contextStore.isLoaded || isRefreshing"
         @click="loadFromProject"
       >
-        <div i-ri-refresh-line mr-1 inline-block />
-        Refresh
+        {{ isRefreshing ? 'Refreshing…' : 'Refresh' }}
       </button>
       <button
         v-if="hasContext"
-        class="adv-btn"
-        text-sm text-white px-3 py-1.5 rounded bg-green-600 flex-1 hover:bg-green-700
+        class="text-sm adv-btn text-white px-3 py-1.5 rounded bg-green-600 flex-1 hover:bg-green-700"
         @click="copyContextForAI"
       >
-        <div i-ri-clipboard-line mr-1 inline-block />
         Copy for AI
       </button>
     </div>
-
+    <p v-if="error" role="alert" class="text-sm text-red-400 mb-3">
+      {{ error }}
+    </p>
+    <p v-if="message" role="status" class="text-xs text-green-400 mb-3">
+      {{ message }}
+    </p>
     <template v-if="hasContext">
-      <!-- World -->
-      <details v-if="contextStore.worldContent" open mb-3>
-        <summary class="font-bold cursor-pointer select-none" mb-1>
-          <div i-ri-earth-line mr-1 inline-block />
-          World
+      <details
+        v-for="section in contextStore.sections"
+        :key="section.title"
+        :open="section.title === 'World' || section.title === 'Outline'"
+        class="mb-3"
+      >
+        <summary class="font-bold mb-1 cursor-pointer select-none">
+          {{ section.title }}
         </summary>
-        <pre class="context-block" text-xs p-2 rounded bg-gray-100 overflow-auto dark:bg-gray-800>{{ contextStore.worldContent }}</pre>
-      </details>
-
-      <!-- Outline -->
-      <details v-if="contextStore.outlineContent" open mb-3>
-        <summary class="font-bold cursor-pointer select-none" mb-1>
-          <div i-ri-file-list-3-line mr-1 inline-block />
-          Outline
-        </summary>
-        <pre class="context-block" text-xs p-2 rounded bg-gray-100 overflow-auto dark:bg-gray-800>{{ contextStore.outlineContent }}</pre>
-      </details>
-
-      <!-- Chapters README -->
-      <details v-if="contextStore.chaptersReadme" mb-3>
-        <summary class="font-bold cursor-pointer select-none" mb-1>
-          <div i-ri-book-open-line mr-1 inline-block />
-          Chapters
-        </summary>
-        <pre class="context-block" text-xs p-2 rounded bg-gray-100 overflow-auto dark:bg-gray-800>{{ contextStore.chaptersReadme }}</pre>
-      </details>
-
-      <!-- Characters README -->
-      <details v-if="contextStore.charsReadme" mb-3>
-        <summary class="font-bold cursor-pointer select-none" mb-1>
-          <div i-ri-user-line mr-1 inline-block />
-          Characters
-        </summary>
-        <pre class="context-block" text-xs p-2 rounded bg-gray-100 overflow-auto dark:bg-gray-800>{{ contextStore.charsReadme }}</pre>
-      </details>
-
-      <!-- Scenes README -->
-      <details v-if="contextStore.scenesReadme" mb-3>
-        <summary class="font-bold cursor-pointer select-none" mb-1>
-          <div i-ri-landscape-line mr-1 inline-block />
-          Scenes
-        </summary>
-        <pre class="context-block" text-xs p-2 rounded bg-gray-100 overflow-auto dark:bg-gray-800>{{ contextStore.scenesReadme }}</pre>
-      </details>
-
-      <!-- Glossary -->
-      <details v-if="contextStore.glossaryContent" mb-3>
-        <summary class="font-bold cursor-pointer select-none" mb-1>
-          <div i-ri-book-2-line mr-1 inline-block />
-          Glossary
-        </summary>
-        <pre class="context-block" text-xs p-2 rounded bg-gray-100 overflow-auto dark:bg-gray-800>{{ contextStore.glossaryContent }}</pre>
+        <pre class="context-block text-xs p-2 rounded bg-gray-100 dark:bg-gray-800">{{ section.content }}</pre>
       </details>
     </template>
-
-    <!-- Empty State -->
-    <div v-else py-8 op-50 flex flex-col items-center justify-center>
-      <div i-ri-folder-open-line text-4xl mb-2 />
-      <p text-sm>
-        Open a project to view context
-      </p>
-      <p text-xs op-70>
-        Reads world.md, outline.md, and README files from adv/ directory
-      </p>
+    <div v-else class="text-sm py-8 text-center op-50">
+      {{ contextStore.isLoaded ? 'This project has no author context yet.' : 'Open a project to view context' }}
     </div>
   </div>
 </template>
@@ -160,6 +102,7 @@ onMounted(() => {
   white-space: pre-wrap;
   word-break: break-word;
   max-height: 300px;
+  overflow: auto;
   font-family: ui-monospace, monospace;
   line-height: 1.5;
 }

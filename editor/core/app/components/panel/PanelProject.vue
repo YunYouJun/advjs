@@ -31,6 +31,7 @@ function onFileClick(item: FSFileItem) {
 const fileStore = useFileStore()
 const characterStore = useCharacterStore()
 const app = useAppStore()
+const openingLocalFile = shallowRef(false)
 
 function onRename(item: FSItem, newName: string) {
   if (projectStore.workspaceMode === 'local')
@@ -62,6 +63,16 @@ function getProjectRelativePath(item: FSFileItem) {
 
 async function onFileDblClick(item: FSFileItem, projectPath = getProjectRelativePath(item)) {
   consola.info('onFileDblClick', item)
+  app.inspectorTab = 'inspector'
+
+  if (fileStore.isDirty) {
+    if (fileStore.openedFilePath === projectPath) {
+      app.activeInspector = 'file'
+      return
+    }
+    Toast({ title: 'Unsaved changes', description: 'Save the current file before opening another file.', type: 'warning' })
+    return
+  }
 
   // Handle .character.md files → open in Inspector with CharacterForm
   if (item.name.endsWith('.character.md') && item.handle) {
@@ -86,7 +97,7 @@ async function onFileDblClick(item: FSFileItem, projectPath = getProjectRelative
   }
 
   if (item.handle) {
-    fileStore.setOpenedFileHandle(item.handle, projectPath)
+    await fileStore.setOpenedFileHandle(item.handle, projectPath)
   }
   else {
     Toast({
@@ -97,13 +108,24 @@ async function onFileDblClick(item: FSFileItem, projectPath = getProjectRelative
   }
 }
 
-async function onLocalFileDblClick(path: string) {
-  const handle = await projectStore.getLocalFileHandle(path)
-  await onFileDblClick({
-    name: handle.name,
-    kind: 'file',
-    handle: handle as unknown as FileSystemFileHandle,
-  }, path)
+async function onLocalFileClick(path: string) {
+  if (openingLocalFile.value)
+    return
+  openingLocalFile.value = true
+  try {
+    const handle = await projectStore.getLocalFileHandle(path)
+    await onFileDblClick({
+      name: handle.name,
+      kind: 'file',
+      handle: handle as unknown as FileSystemFileHandle,
+    }, path)
+  }
+  catch (error) {
+    Toast({ title: 'Cannot open file', description: error instanceof Error ? error.message : String(error), type: 'error' })
+  }
+  finally {
+    openingLocalFile.value = false
+  }
 }
 
 /**
@@ -167,7 +189,8 @@ function onOpenRootDir(dir?: FSDirItem) {
             :key="path"
             class="text-xs px-2 py-1 text-left rounded w-full block truncate hover:bg-white/8"
             :title="path"
-            @dblclick="onLocalFileDblClick(path)"
+            :disabled="openingLocalFile"
+            @click="onLocalFileClick(path)"
           >
             <span i-ri-file-text-line class="mr-1 inline-block" />
             {{ path }}

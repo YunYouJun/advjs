@@ -10,16 +10,15 @@ const tabList = ref([
 const app = useAppStore()
 
 const fileStore = useFileStore()
-
-const curTab = ref('inspector')
 </script>
 
 <template>
   <AGUIPanel h="full" w="full">
-    <AGUITabs v-model="curTab" :list="tabList" default-value="inspector">
+    <AGUITabs v-model="app.inspectorTab" :list="tabList" default-value="inspector">
       <AGUITabPanel overflow="auto" value="inspector">
         <InspectorFileView
           v-if="app.activeInspector === 'file'"
+          :key="fileStore.openedFilePath"
           :file-handle="fileStore.openedFileHandle"
         />
         <AEInspectorCharacter v-else-if="app.activeInspector === 'character' || app.activeInspector === 'character-create'" />

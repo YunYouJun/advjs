@@ -54,12 +54,14 @@ export const useAppStore = defineStore('@advjs/editor:app', () => {
    * 当前激活的 Inspector
    */
   const activeInspector = ref<'file' | 'character' | 'character-create' | 'node' | 'context'>()
+  const inspectorTab = ref('inspector')
 
   return {
     layout,
     pixiApp,
 
     activeInspector,
+    inspectorTab,
 
     // todo extract layout store & useAGUILayout
     resetLayout() {
