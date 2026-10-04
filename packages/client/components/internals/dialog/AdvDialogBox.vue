@@ -74,7 +74,7 @@ const curWords = computed(() => {
 .adv-dialog-box {
   --adv-dialog-name-width: clamp(8rem, 18vw, 13rem);
   --adv-dialog-min-height: 15rem;
-  --adv-dialog-padding-block: 3.4rem 2.25rem;
+  --adv-dialog-padding-block: 3.4rem calc(54px / var(--adv-screen-scale, 1));
   --adv-dialog-padding-inline: clamp(1.5rem, 6vw, 6rem);
   position: absolute;
   left: -1px;
@@ -85,7 +85,9 @@ const curWords = computed(() => {
   grid-template-columns: var(--adv-dialog-name-width) minmax(0, 1fr);
   align-items: start;
   column-gap: clamp(1.25rem, 3vw, 3rem);
-  padding: var(--adv-dialog-padding-block) var(--adv-dialog-padding-inline);
+  padding-block: var(--adv-dialog-padding-block);
+  padding-inline: var(--adv-dialog-padding-inline);
+  font-size: max(1rem, calc(12px / var(--adv-screen-scale, 1)));
 
   // background-color: rgba(0, 0, 0, 0.7);
   background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.75) 35%, black) repeat bottom;
@@ -122,13 +124,36 @@ const curWords = computed(() => {
 
     text-shadow: 0 0 0.2rem black;
   }
+
+  .dialog-content.text-xl {
+    font-size: max(1.25rem, calc(12px / var(--adv-screen-scale, 1)));
+  }
+
+  .dialog-content.text-2xl {
+    font-size: max(1.5rem, calc(13px / var(--adv-screen-scale, 1)));
+  }
+
+  .dialog-content.text-3xl {
+    font-size: max(1.875rem, calc(14px / var(--adv-screen-scale, 1)));
+  }
+
+  .dialog-content.text-4xl {
+    font-size: max(2.25rem, calc(16px / var(--adv-screen-scale, 1)));
+  }
+
+  .typed-cursor {
+    position: static;
+    display: block;
+    font-size: 0.6em;
+    text-align: right;
+  }
 }
 
-@media (max-width: 800px) {
+@container (max-width: 800px) {
   .adv-dialog-box {
     --adv-dialog-min-height: 12rem;
-    --adv-dialog-padding-block: 1.8rem 1.5rem;
-    --adv-dialog-padding-inline: 1.5rem;
+    --adv-dialog-padding-block: 1.8rem calc(54px / var(--adv-screen-scale, 1));
+    --adv-dialog-padding-inline: calc(24px / var(--adv-screen-scale, 1));
     grid-template-columns: 1fr;
     row-gap: 0.4rem;
 
@@ -137,10 +162,19 @@ const curWords = computed(() => {
       text-align: left;
     }
 
+    .dialog-name-wrap:empty {
+      display: none;
+    }
+
     .dialog-name {
       font-size: 1em;
       line-height: 1.45;
     }
+  }
+}
+@container (max-width: 380px) {
+  .adv-dialog-box {
+    padding-bottom: calc(86px / var(--adv-screen-scale, 1));
   }
 }
 </style>

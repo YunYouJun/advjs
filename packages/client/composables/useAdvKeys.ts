@@ -31,6 +31,7 @@ export function useAdvKeys($adv: AdvContext) {
 
   function uiBlocked() {
     return app.showHistory || app.showSaveMenu || app.showLoadMenu || app.menus.settings
+      || !!document.activeElement?.closest('button, input, textarea, select, summary, [contenteditable="true"]')
   }
 
   watch(space, (v) => {
@@ -48,11 +49,10 @@ export function useAdvKeys($adv: AdvContext) {
 
   // hold `ctrl` to skip; release stops skip
   watch(ctrl, (v) => {
-    if (uiBlocked())
-      return
-    if (v && !$adv.$auto.skipEnabled.value)
+    // Releasing must stop a held skip even if focus moved into a control/menu.
+    if (!v && $adv.$auto.skipEnabled.value)
       $adv.$auto.toggleSkip()
-    else if (!v && $adv.$auto.skipEnabled.value)
+    else if (v && !uiBlocked() && !$adv.$auto.skipEnabled.value)
       $adv.$auto.toggleSkip()
   })
 

@@ -27,7 +27,7 @@ export const useAppStore = defineStore('@advjs/client/app', () => {
   const [showBg, toggleBg] = useToggle(true)
 
   /**
-   * show dialog controls
+   * @deprecated Built-in playback controls now follow showUi. Kept for custom themes.
    */
   const showDialogControls = useStorage(ns('dialog-controls'), false)
 

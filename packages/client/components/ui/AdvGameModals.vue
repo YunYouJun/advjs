@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { useAppStore } from '@advjs/client'
+import { useGameControlsI18n } from '../../composables/useGameControlsI18n'
 
 const app = useAppStore()
+const { t } = useGameControlsI18n()
 </script>
 
 <template>
   <AdvModal
     v-model:open="app.showHistory"
-    header="历史记录" icon="i-ri-history-line"
+    :header="t('controls.history')" icon="i-ri-history-line"
     @close="app.toggleHistory"
   >
     <AdvHistory />
@@ -22,7 +24,7 @@ const app = useAppStore()
 
   <AdvModal
     v-model:open="app.showSaveMenu"
-    header="存储存档"
+    :header="t('controls.save')"
     @close="app.toggleShowSaveMenu"
   >
     <SaveMenu />
@@ -30,7 +32,7 @@ const app = useAppStore()
 
   <AdvModal
     v-model:open="app.showLoadMenu"
-    header="加载存档"
+    :header="t('controls.load')"
     @close="app.toggleShowLoadMenu"
   >
     <LoadMenu />

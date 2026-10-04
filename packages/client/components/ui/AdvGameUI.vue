@@ -1,107 +1,104 @@
 <script setup lang="ts">
 import { useAdvContext, useAppStore } from '@advjs/client'
-import { useI18n } from 'vue-i18n'
+import { onClickOutside, useFullscreen } from '@vueuse/core'
+import { computed, shallowRef, useTemplateRef } from 'vue'
 import { useRouter } from 'vue-router'
+import { useGameControlsI18n } from '../../composables/useGameControlsI18n'
+import QuickSaveControls from '../save/QuickSaveControls.vue'
 
-withDefaults(defineProps<{
-  showHelper?: boolean
-}>(), {
-  showHelper: true,
-})
+withDefaults(defineProps<{ showHelper?: boolean }>(), { showHelper: true })
 
 const { $adv } = useAdvContext()
 const app = useAppStore()
 const router = useRouter()
-const { t } = useI18n()
+const { t } = useGameControlsI18n()
+const open = shallowRef(false)
+const root = useTemplateRef<HTMLElement>('root')
+const screen = computed(() => root.value?.closest<HTMLElement>('.adv-screen'))
+const { isFullscreen, toggle: toggleFullscreen } = useFullscreen(screen)
+onClickOutside(root, () => {
+  open.value = false
+})
 
-// audio.setBgm($adv.gameConfig.value.bgm?.collection[0]?.src)
+function openSettings() {
+  open.value = false
+  app.menus.settings = true
+}
 </script>
 
 <template>
-  <!-- 渐变黑色背景 -->
-  <div
-    class="adv-game-ui--header flex w-full top-0 justify-between absolute" p="5"
-  >
-    <div class="adv-game-ui--actions inline-flex" gap="4">
-      <AdvIconButton @click="app.toggleHistory()">
-        <div i-ri-message-2-line />
-      </AdvIconButton>
-
-      <QuickSaveControls />
-
-      <AdvIconButton :title="t('menu.save_game')" @click="app.toggleShowSaveMenu()">
-        <div i-ri-folder-download-line />
-      </AdvIconButton>
-
-      <AdvIconButton :title="t('menu.load_game')" @click="app.toggleShowLoadMenu()">
-        <div i-ri-folder-upload-line />
-      </AdvIconButton>
-
-      <AdvIconButton @click="app.toggleUi()">
-        <div i-ri-eye-close-line />
-      </AdvIconButton>
-
-      <AdvIconButton @click="app.toggleTachie()">
-        <div v-if="app.showTachie" i-ri-file-user-line />
-        <div v-else i-ri-file-user-fill />
-      </AdvIconButton>
-
-      <AdvIconButton @click="$adv.$bgm.toggleMute()">
-        <div v-if="!$adv.$bgm.isMuted.value" i-mdi-music-note-outline />
-        <div v-else i-mdi-music-note-off-outline />
-      </AdvIconButton>
-
-      <AdvIconButton :title="$adv.$auto.enabled.value ? 'Auto: ON' : 'Auto: OFF'" @click="$adv.$auto.toggle()">
-        <div v-if="$adv.$auto.enabled.value" i-ri-play-circle-fill class="text-green-400" />
-        <div v-else i-ri-play-circle-line />
-      </AdvIconButton>
-
-      <AdvIconButton :title="$adv.$auto.skipEnabled.value ? 'Skip: ON' : 'Skip: OFF'" @click="$adv.$auto.toggleSkip()">
-        <div v-if="$adv.$auto.skipEnabled.value" i-ri-skip-forward-fill class="text-yellow-400" />
-        <div v-else i-ri-skip-forward-line />
-      </AdvIconButton>
-
-      <AdvIconButton v-if="$adv.gameConfig.value.gallery" title="CG 回廊" @click="router.push('/gallery')">
-        <div i-ri-gallery-line />
-      </AdvIconButton>
-
+  <div ref="root" class="adv-game-menu" @keydown.esc.stop="open = false">
+    <button type="button" class="game-menu-trigger" :aria-expanded="open" @click="open = !open">
+      {{ t('controls.more') }}
+    </button>
+    <div v-show="open" class="game-menu-popover" :aria-label="t('controls.more')">
+      <QuickSaveControls show-labels />
+      <button type="button" @click="openSettings">
+        {{ t('controls.settings') }}
+      </button>
+      <button type="button" :aria-pressed="$adv.$bgm.isMuted.value" @click="$adv.$bgm.toggleMute()">
+        {{ t($adv.$bgm.isMuted.value ? 'controls.unmute' : 'controls.mute') }}
+      </button>
+      <button type="button" :aria-pressed="!app.showTachie" @click="app.toggleTachie()">
+        {{ t(app.showTachie ? 'controls.hideCharacters' : 'controls.showCharacters') }}
+      </button>
+      <button v-if="$adv.gameConfig.value.gallery" type="button" @click="router.push('/gallery')">
+        {{ t('controls.gallery') }}
+      </button>
       <template v-if="showHelper">
-        <AdvHelper text="white" />
-        <AdvFullscreenBtn />
+        <button type="button" @click="app.rotate()">
+          {{ t('controls.rotate') }}
+        </button>
+        <button type="button" @click="toggleFullscreen()">
+          {{ t(isFullscreen ? 'controls.exitFullscreen' : 'controls.fullscreen') }}
+        </button>
       </template>
     </div>
-
-    <AdvIconButton class="menu-setting-button" @click="app.menus.settings = true">
-      <div i-ri-settings-3-line />
-    </AdvIconButton>
   </div>
 </template>
 
-<style lang="scss">
-.adv-game-ui--header {
-  background: linear-gradient(0deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5));
+<style scoped>
+.adv-game-menu {
+  position: relative;
 }
 
-@media (max-width: 800px) {
-  .adv-game-ui--header {
-    box-sizing: border-box;
-    gap: 0.5rem;
-  }
+.game-menu-trigger,
+.game-menu-popover > button {
+  min-height: calc(28px / var(--adv-screen-scale, 1));
+  padding: 0.25em 0.65em;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
 
-  .adv-game-ui--actions {
-    min-width: 0;
-    flex: 1 1 auto;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
+.game-menu-trigger:hover,
+.game-menu-trigger:focus-visible,
+.game-menu-popover > button:hover,
+.game-menu-popover > button:focus-visible {
+  background: rgb(255 255 255 / 12%);
+  outline: 1px solid currentColor;
+}
 
-  .adv-game-ui--actions::-webkit-scrollbar {
-    display: none;
-  }
+.game-menu-popover {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.5em);
+  display: flex;
+  flex-direction: column;
+  min-width: 12em;
+  max-height: calc(var(--adv-screen-height, 100vh) - 5em);
+  overflow-y: auto;
+  padding: 0.5em;
+  border: 1px solid rgb(217 189 131 / 30%);
+  border-radius: 0.5em;
+  background: rgb(24 23 21 / 97%);
+  box-shadow: 0 0.5em 2em rgb(0 0 0 / 35%);
+}
 
-  .adv-game-ui--actions > .adv-icon-button,
-  .adv-game-ui--header > .menu-setting-button {
-    flex: 0 0 auto;
-  }
+.game-menu-popover > button {
+  text-align: left;
 }
 </style>

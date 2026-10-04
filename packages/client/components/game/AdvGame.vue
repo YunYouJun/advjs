@@ -53,12 +53,8 @@ const app = useAppStore()
         <AdvChoice v-if="curNode" v-show="curNode.kind === 'choices'" :node="curNode" class="z-3 animate-duration-200" />
       </Transition>
 
-      <Transition v-if="app.showDialogControls" enter-active-class="animate-fade-in-up" leave-active-class="animate-fade-out-down">
-        <DialogControls v-show="app.showUi" class="bottom-1 left-0 right-0 absolute z-4 animate-duration-200" />
-      </Transition>
-
-      <Transition enter-active-class="animate-fade-in-down" leave-active-class="animate-fade-out-up">
-        <AdvGameUI v-show="app.showUi" class="z-99 animate-duration-200" />
+      <Transition enter-active-class="animate-fade-in-up" leave-active-class="animate-fade-out-down">
+        <DialogControls v-show="app.showUi" class="z-4 animate-duration-200" />
       </Transition>
 
       <Transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">

@@ -94,8 +94,8 @@ relationships:
 visual:
   version: workshop-v1
   references:
-    - path: adv/assets/references/workshop-v1.png
-      description: 右栏人物，全身、正脸与侧脸
+    - path: adv/assets/references/craftsman-v1.png
+      description: 单人人设卡，同一人物的全身、正脸与侧脸
   fixedTraits:
     - 方脸、短络腮须、宽肩，保持参考图面部比例
     - 赭褐粗布工作衣与深色腰带
@@ -108,6 +108,8 @@ imagePrompt: Naturalistic historical game illustration, worn linen, soft dayligh
 所有角色、编辑器和 AI 工具共用 `AdvCharacterVisual` 与 `CharacterVisualSchema`。`version` 必填且非空，其他三个字段可省略。字段拼写错误、空特征和不安全路径会产生诊断。旧卡不需要添加 `visual`。
 
 参考图 `path` 相对于项目根目录（`adv.config.json` 所在目录），不是人物卡所在目录。禁止绝对路径、URL 和 `../`。`description` 指定多人图中的人物或视角；一张图可被多个人物卡引用。参考图无需登记为游戏背景。
+
+推荐每个人物优先绑定独立的人设卡，包含全身、面部视角与配色；人物详情更易查看，给 AI 附图时也更容易确定身份。多人总览保留作体格、比例与画风对照。既有共用总览仍受支持，无需更换协议；多人镜头按人物分别附图。
 
 在文件树打开人物卡即可查看「视觉设定」，点「编辑源码」修改并保存；人物详情也复用相同面板。图片缺失时会保留路径及错误提示。头像、立绘仍使用 `avatar`、`tachies`，避免把整张设定总览当作游戏精灵图。
 

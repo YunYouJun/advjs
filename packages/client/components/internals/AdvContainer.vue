@@ -105,6 +105,7 @@ provideLocal(injectionAdvContent, advContentRef)
 }
 
 .adv-screen {
+  container-type: inline-size;
   // `overflow: hidden` still allows focused choices to scroll this canvas.
   // A clipped canvas keeps the centered 16:9 stage fixed after interactions.
   overflow: clip;
