@@ -217,7 +217,7 @@ export default defineNuxtConfig({
     },
 
     plugins: [
-      ADV(options, {}),
+      ADV(options, { i18n: false }),
     ],
   },
 
@@ -228,8 +228,8 @@ export default defineNuxtConfig({
     detectBrowserLanguage: false,
     langDir: 'locales',
     locales: [
-      { code: 'en', language: 'en', name: 'English', file: 'en.json' },
-      { code: 'zh-CN', language: 'zh-CN', name: '中文（简体）', file: 'zh-CN.json' },
+      { code: 'en', language: 'en', name: 'English', files: ['../../../../packages/client/locales/en.yml', 'en.json'] },
+      { code: 'zh-CN', language: 'zh-CN', name: '中文（简体）', files: ['../../../../packages/client/locales/zh-CN.yml', 'zh-CN.json'] },
     ],
   },
 

@@ -74,7 +74,10 @@ const curWords = computed(() => {
 .adv-dialog-box {
   --adv-dialog-name-width: clamp(8rem, 18vw, 13rem);
   --adv-dialog-min-height: 15rem;
-  --adv-dialog-padding-block: 3.4rem calc(54px / var(--adv-screen-scale, 1));
+  --adv-dialog-footer-space: calc(
+    var(--adv-dialog-controls-height, 32px) + var(--adv-control-bottom, 8px) + 12px / var(--adv-screen-scale, 1)
+  );
+  --adv-dialog-padding-block: 3.4rem var(--adv-dialog-footer-space);
   --adv-dialog-padding-inline: clamp(1.5rem, 6vw, 6rem);
   position: absolute;
   left: -1px;
@@ -152,8 +155,8 @@ const curWords = computed(() => {
 @container (max-width: 800px) {
   .adv-dialog-box {
     --adv-dialog-min-height: 12rem;
-    --adv-dialog-padding-block: 1.8rem calc(54px / var(--adv-screen-scale, 1));
-    --adv-dialog-padding-inline: calc(24px / var(--adv-screen-scale, 1));
+    --adv-dialog-padding-block: 1.8rem var(--adv-dialog-footer-space);
+    --adv-dialog-padding-inline: max(var(--adv-control-left, 16px), var(--adv-control-right, 16px));
     grid-template-columns: 1fr;
     row-gap: 0.4rem;
 
@@ -172,9 +175,10 @@ const curWords = computed(() => {
     }
   }
 }
-@container (max-width: 380px) {
-  .adv-dialog-box {
-    padding-bottom: calc(86px / var(--adv-screen-scale, 1));
+
+@container (max-width: 600px) {
+  .adv-dialog-box .dialog-content {
+    font-size: max(1em, calc(16px / var(--adv-screen-scale, 1)));
   }
 }
 </style>

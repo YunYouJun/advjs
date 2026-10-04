@@ -7,6 +7,7 @@
 import { onKeyStroke } from '@vueuse/core'
 import { onMounted } from 'vue'
 import { useAdvMotionPreference } from '../../composables/useAdvMotionPreference'
+import { useGameControlsI18n } from '../../composables/useGameControlsI18n'
 
 withDefaults(defineProps<{
   icon?: string
@@ -18,6 +19,7 @@ withDefaults(defineProps<{
 
 const emit = defineEmits(['close'])
 const motion = useAdvMotionPreference()
+const { t } = useGameControlsI18n()
 
 const open = defineModel('open', {
   type: Boolean,
@@ -36,9 +38,9 @@ onMounted(() => {
   <Transition name="modal">
     <div v-if="open" class="modal-mask" :data-motion="motion">
       <div class="modal-container flex flex-col size-full z-9999">
-        <AdvIconButton v-if="!header" class="modal-close-button right-4 top-4 absolute" @click="emit('close')">
-          <div i-ri-close-line class="text-6xl" />
-        </AdvIconButton>
+        <button v-if="!header" type="button" :aria-label="t('controls.close')" class="modal-close-button right-2 top-2 absolute" @click="emit('close')">
+          <span i-ri-close-line aria-hidden="true" />
+        </button>
 
         <slot name="header">
           <div v-if="header" class="flex items-center justify-between">
@@ -50,9 +52,9 @@ onMounted(() => {
               <span>{{ header }}</span>
             </h1>
 
-            <AdvIconButton class="modal-close-button" @click="emit('close')">
-              <div i-ri-close-line class="text-6xl" />
-            </AdvIconButton>
+            <button type="button" :aria-label="t('controls.close')" class="modal-close-button" @click="emit('close')">
+              <span i-ri-close-line aria-hidden="true" />
+            </button>
           </div>
 
           <HorizontalDivider v-if="header" />
@@ -83,14 +85,30 @@ onMounted(() => {
 }
 
 .modal-container {
-  /* padding: 1rem; */
+  position: relative;
   transition:
     opacity var(--adv-modal-motion-duration, 180ms) ease,
     transform var(--adv-modal-motion-duration, 180ms) ease;
 }
 
 .modal-close-button {
-  outline: none;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.modal-close-button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -2px;
 }
 
 /*

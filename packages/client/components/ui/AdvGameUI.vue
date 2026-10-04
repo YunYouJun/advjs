@@ -1,104 +1,104 @@
 <script setup lang="ts">
 import { useAdvContext, useAppStore } from '@advjs/client'
-import { onClickOutside, useFullscreen } from '@vueuse/core'
+import { useFullscreen } from '@vueuse/core'
 import { computed, shallowRef, useTemplateRef } from 'vue'
-import { useRouter } from 'vue-router'
 import { useGameControlsI18n } from '../../composables/useGameControlsI18n'
-import QuickSaveControls from '../save/QuickSaveControls.vue'
+import GameIconButton from './GameIconButton.vue'
+import GameMoreMenu from './GameMoreMenu.vue'
 
 withDefaults(defineProps<{ showHelper?: boolean }>(), { showHelper: true })
-
 const { $adv } = useAdvContext()
 const app = useAppStore()
-const router = useRouter()
 const { t } = useGameControlsI18n()
-const open = shallowRef(false)
 const root = useTemplateRef<HTMLElement>('root')
 const screen = computed(() => root.value?.closest<HTMLElement>('.adv-screen'))
-const { isFullscreen, toggle: toggleFullscreen } = useFullscreen(screen)
-onClickOutside(root, () => {
-  open.value = false
-})
+const { isFullscreen, isSupported, toggle } = useFullscreen(screen)
+const fullscreenPending = shallowRef(false)
+const fullscreenFailed = shallowRef(false)
 
-function openSettings() {
-  open.value = false
-  app.menus.settings = true
+async function toggleFullscreen() {
+  if (fullscreenPending.value)
+    return
+  fullscreenPending.value = true
+  fullscreenFailed.value = false
+  try {
+    await toggle()
+  }
+  catch {
+    fullscreenFailed.value = true
+  }
+  finally {
+    fullscreenPending.value = false
+  }
 }
 </script>
 
 <template>
-  <div ref="root" class="adv-game-menu" @keydown.esc.stop="open = false">
-    <button type="button" class="game-menu-trigger" :aria-expanded="open" @click="open = !open">
-      {{ t('controls.more') }}
-    </button>
-    <div v-show="open" class="game-menu-popover" :aria-label="t('controls.more')">
-      <QuickSaveControls show-labels />
-      <button type="button" @click="openSettings">
-        {{ t('controls.settings') }}
-      </button>
-      <button type="button" :aria-pressed="$adv.$bgm.isMuted.value" @click="$adv.$bgm.toggleMute()">
-        {{ t($adv.$bgm.isMuted.value ? 'controls.unmute' : 'controls.mute') }}
-      </button>
-      <button type="button" :aria-pressed="!app.showTachie" @click="app.toggleTachie()">
-        {{ t(app.showTachie ? 'controls.hideCharacters' : 'controls.showCharacters') }}
-      </button>
-      <button v-if="$adv.gameConfig.value.gallery" type="button" @click="router.push('/gallery')">
-        {{ t('controls.gallery') }}
-      </button>
-      <template v-if="showHelper">
-        <button type="button" @click="app.rotate()">
-          {{ t('controls.rotate') }}
-        </button>
-        <button type="button" @click="toggleFullscreen()">
-          {{ t(isFullscreen ? 'controls.exitFullscreen' : 'controls.fullscreen') }}
-        </button>
-      </template>
-    </div>
+  <div ref="root" class="game-toolbar" @click.stop @pointerdown.stop>
+    <nav class="game-toolbar-actions" :aria-label="t('controls.system')">
+      <GameMoreMenu :show-helper="showHelper" />
+      <GameIconButton :label="t($adv.$bgm.isMuted.value ? 'controls.unmute' : 'controls.mute')" :aria-pressed="$adv.$bgm.isMuted.value" @click="$adv.$bgm.toggleMute()">
+        <span v-if="$adv.$bgm.isMuted.value" i-ri-volume-mute-line />
+        <span v-else i-ri-volume-up-line />
+      </GameIconButton>
+      <GameIconButton v-if="showHelper && isSupported" :label="t(isFullscreen ? 'controls.exitFullscreen' : 'controls.fullscreen')" :aria-pressed="isFullscreen" :disabled="fullscreenPending" @click="toggleFullscreen">
+        <span v-if="isFullscreen" i-ri-fullscreen-exit-line />
+        <span v-else i-ri-fullscreen-line />
+      </GameIconButton>
+      <GameIconButton :label="t('controls.settings')" @click="app.menus.settings = true">
+        <span i-ri-settings-3-line />
+      </GameIconButton>
+    </nav>
+    <p v-if="fullscreenFailed" class="game-toolbar-feedback" role="status">
+      {{ t('controls.fullscreenFailed') }}
+    </p>
   </div>
 </template>
 
 <style scoped>
-.adv-game-menu {
-  position: relative;
-}
-
-.game-menu-trigger,
-.game-menu-popover > button {
-  min-height: calc(28px / var(--adv-screen-scale, 1));
-  padding: 0.25em 0.65em;
-  border: 1px solid transparent;
-  border-radius: 3px;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-}
-
-.game-menu-trigger:hover,
-.game-menu-trigger:focus-visible,
-.game-menu-popover > button:hover,
-.game-menu-popover > button:focus-visible {
-  background: rgb(255 255 255 / 12%);
-  outline: 1px solid currentColor;
-}
-
-.game-menu-popover {
+/* Outside the scaled stage: hit targets keep their physical size in previews. */
+.game-toolbar {
+  --adv-toolbar-target: 36px;
+  --adv-toolbar-top: max(10px, env(safe-area-inset-top, 0px));
+  --adv-toolbar-right: max(12px, env(safe-area-inset-right, 0px));
+  --adv-toolbar-left: max(12px, env(safe-area-inset-left, 0px));
   position: absolute;
-  right: 0;
-  bottom: calc(100% + 0.5em);
+  inset: 0;
+  z-index: 5;
   display: flex;
-  flex-direction: column;
-  min-width: 12em;
-  max-height: calc(var(--adv-screen-height, 100vh) - 5em);
-  overflow-y: auto;
-  padding: 0.5em;
-  border: 1px solid rgb(217 189 131 / 30%);
-  border-radius: 0.5em;
-  background: rgb(24 23 21 / 97%);
-  box-shadow: 0 0.5em 2em rgb(0 0 0 / 35%);
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: var(--adv-toolbar-top) var(--adv-toolbar-right) 0 var(--adv-toolbar-left);
+  color: white;
+  pointer-events: none;
 }
 
-.game-menu-popover > button {
-  text-align: left;
+.game-toolbar-actions {
+  display: flex;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.game-toolbar-feedback {
+  position: absolute;
+  top: calc(var(--adv-toolbar-top) + var(--adv-toolbar-target) + 8px);
+  right: var(--adv-toolbar-right);
+  max-width: calc(100% - var(--adv-toolbar-right) - var(--adv-toolbar-left));
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgb(24 23 21 / 95%);
+  font-size: 13px;
+}
+
+@container (max-width: 600px) {
+  .game-toolbar {
+    --adv-toolbar-target: 44px;
+  }
+}
+
+@media (any-pointer: coarse) {
+  .game-toolbar {
+    --adv-toolbar-target: 44px;
+  }
 }
 </style>

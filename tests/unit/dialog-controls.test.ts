@@ -5,6 +5,7 @@ import { defineComponent, h, nextTick, shallowRef } from 'vue'
 import { createI18n } from 'vue-i18n'
 import BaseLayer from '../../packages/client/components/base/BaseLayer.vue'
 import DialogControls from '../../packages/client/components/internals/dialog/DialogControls.vue'
+import AdvGameUI from '../../packages/client/components/ui/AdvGameUI.vue'
 import { useAdvKeys } from '../../packages/client/composables/useAdvKeys'
 import { useAppStore } from '../../packages/client/stores/app'
 
@@ -13,6 +14,11 @@ const enabled = shallowRef(false)
 const skipEnabled = shallowRef(false)
 const runtime = { snapshot: vi.fn(() => ({ cursor: 'opening' })), restore: vi.fn(), next: vi.fn() }
 const game = { save: vi.fn(async () => undefined), read: vi.fn(async () => undefined) }
+const fullscreen = {
+  isSupported: shallowRef(true),
+  isFullscreen: shallowRef(false),
+  toggle: vi.fn(async () => { fullscreen.isFullscreen.value = !fullscreen.isFullscreen.value }),
+}
 const adv = {
   runtime,
   $auto: {
@@ -21,7 +27,7 @@ const adv = {
     toggle: () => { enabled.value = !enabled.value },
     toggleSkip: () => { skipEnabled.value = !skipEnabled.value },
   },
-  $bgm: { isMuted: shallowRef(false), toggleMute: vi.fn() },
+  $bgm: { isMuted: shallowRef(false), toggleMute: vi.fn(() => { adv.$bgm.isMuted.value = !adv.$bgm.isMuted.value }) },
   gameConfig: shallowRef({}),
 }
 
@@ -32,6 +38,10 @@ vi.mock('@advjs/client', () => ({
   QUICK_SAVE_SLOT: { kind: 'quick' },
 }))
 vi.mock('vue-router', () => ({ useRouter: () => ({ push: vi.fn() }) }))
+vi.mock('@vueuse/core', async importOriginal => ({
+  ...await importOriginal<typeof import('@vueuse/core')>(),
+  useFullscreen: () => fullscreen,
+}))
 
 const wrappers: ReturnType<typeof mount>[] = []
 beforeEach(() => {
@@ -40,6 +50,9 @@ beforeEach(() => {
   app = useAppStore()
   enabled.value = false
   skipEnabled.value = false
+  adv.$bgm.isMuted.value = false
+  fullscreen.isSupported.value = true
+  fullscreen.isFullscreen.value = false
   vi.clearAllMocks()
 })
 afterEach(() => {
@@ -54,12 +67,12 @@ function renderControls(withKeys = false) {
     setup() {
       if (withKeys)
         useAdvKeys(adv as unknown as Parameters<typeof useAdvKeys>[0])
-      return () => h('div', { onClick: advance }, [app.showUi ? h(DialogControls) : h(BaseLayer)])
+      return () => h('div', { class: 'adv-screen', onClick: advance }, app.showUi ? [h(DialogControls), h(AdvGameUI)] : [h(BaseLayer)])
     },
   })
   const wrapper = mount(host, { attachTo: document.body, global: { plugins: [i18n] } })
   wrappers.push(wrapper)
-  const button = (text: string) => wrapper.findAll('button').find(item => item.text() === text)!
+  const button = (text: string) => wrapper.findAll('button').find(item => item.attributes('aria-label') === text || item.text() === text)!
   return { wrapper, button, advance, i18n }
 }
 
@@ -103,6 +116,63 @@ it('keeps secondary controls behind the menu and blocks duplicate quick saves', 
   expect(wrapper.get('[role="status"]').text()).toBe('已快速存档')
   await button('菜单').trigger('keydown', { key: 'Escape' })
   expect(button('快速存档').isVisible()).toBe(false)
+  expect(advance).not.toHaveBeenCalled()
+})
+
+it('exposes system icons directly and reflects mute/fullscreen state without advancing', async () => {
+  const { wrapper, button, advance, i18n } = renderControls()
+  expect(wrapper.get('.dialog-controls').find('[aria-label="设置"]').exists()).toBe(false)
+  expect(button('设置').isVisible()).toBe(true)
+  await button('关闭音乐').trigger('click')
+  expect(button('开启音乐').attributes('aria-pressed')).toBe('true')
+  await button('开启音乐').trigger('click')
+  expect(button('关闭音乐').attributes('aria-pressed')).toBe('false')
+  await button('全屏').trigger('click')
+  await flushPromises()
+  expect(button('退出全屏').attributes('aria-pressed')).toBe('true')
+  await button('退出全屏').trigger('click')
+  await flushPromises()
+  await button('设置').trigger('click')
+  expect(app.menus.settings).toBe(true)
+  expect(advance).not.toHaveBeenCalled()
+  i18n.global.locale.value = 'en'
+  await nextTick()
+  expect(button('Settings').attributes('title')).toBe('Settings')
+})
+
+it('hides unsupported fullscreen controls and reports a rejected request without getting stuck', async () => {
+  fullscreen.isSupported.value = false
+  const { wrapper, button } = renderControls()
+  expect(wrapper.find('button[aria-label="全屏"]').exists()).toBe(false)
+  fullscreen.isSupported.value = true
+  await nextTick()
+  fullscreen.toggle.mockRejectedValueOnce(new Error('Permission denied'))
+  await button('全屏').trigger('click')
+  await flushPromises()
+  expect(wrapper.get('.game-toolbar-feedback').text()).toContain('暂时无法进入全屏')
+  expect(button('全屏').attributes('disabled')).toBeUndefined()
+  await button('全屏').trigger('click')
+  await flushPromises()
+  expect(wrapper.find('.game-toolbar-feedback').exists()).toBe(false)
+})
+
+it('closes the menu with Escape and returns keyboard focus to its icon', async () => {
+  const { button } = renderControls()
+  await button('菜单').trigger('click')
+  button('快速存档').element.focus()
+  await button('快速存档').trigger('keydown', { key: 'Escape' })
+  expect(button('菜单').attributes('aria-expanded')).toBe('false')
+  expect(document.activeElement).toBe(button('菜单').element)
+})
+
+it('dismisses the menu without treating the outside click as a story action', async () => {
+  const { wrapper, button, advance } = renderControls()
+  await button('菜单').trigger('click')
+  await new Promise(resolve => setTimeout(resolve, 0))
+  await wrapper.get('.adv-screen').trigger('pointerdown')
+  wrapper.element.dispatchEvent(new MouseEvent('click', { detail: 1, bubbles: true }))
+  await nextTick()
+  expect(button('菜单').attributes('aria-expanded')).toBe('false')
   expect(advance).not.toHaveBeenCalled()
 })
 

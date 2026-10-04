@@ -26,7 +26,7 @@ withDefaults(defineProps<{
   </div>
   <div col="span-7" class="adv-menu-item--container flex items-center" p="x-2">
     <template v-if="item.type">
-      <AdvCheckbox v-if="item.type === 'Checkbox'" :props="item.props" />
+      <AdvCheckbox v-if="item.type === 'Checkbox'" :props="item.props" :aria-label="item.label" />
       <AdvRadioGroup v-if="item.type === 'RadioGroup'" :props="item.props" />
       <AdvSelect v-else-if="item.type === 'Select'" :props="item.props" />
       <!-- eslint-disable-next-line vue/no-mutating-props -->

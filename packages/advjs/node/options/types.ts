@@ -13,6 +13,8 @@ export interface AdvPluginOptions extends AdvEntryOptions {
   markdown?: ArgumentsType<typeof Markdown>[0]
   components?: ArgumentsType<typeof Components>[0]
   unocss?: UnoCSSConfig
+  /** Disable when the host (for example Nuxt I18n) already compiles locale resources. */
+  i18n?: boolean
   // remoteAssets?: ArgumentsType<typeof RemoteAssets>[0]
   // serverRef?: ArgumentsType<typeof ServerRef>[0]
 }

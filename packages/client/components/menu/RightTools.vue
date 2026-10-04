@@ -61,7 +61,7 @@ const menuItems = computed<MenuButtonItem[]>(() => {
 </script>
 
 <template>
-  <div col="span-6" class="flex flex-col items-start justify-center" h="full" m="l-4">
+  <div col="span-6" class="settings-tools flex flex-col items-start justify-center" h="full" m="l-4">
     <AdvButton
       v-for="(item, i) in menuItems"
       :key="i"

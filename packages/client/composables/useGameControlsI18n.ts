@@ -5,6 +5,7 @@ const messages = {
   'en': {
     controls: {
       label: 'Playback controls',
+      system: 'Game settings and display',
       history: 'History',
       auto: 'Auto',
       skip: 'Skip',
@@ -13,6 +14,7 @@ const messages = {
       hide: 'Hide UI',
       more: 'Menu',
       settings: 'Settings',
+      close: 'Close panel',
       mute: 'Mute music',
       unmute: 'Unmute music',
       hideCharacters: 'Hide characters',
@@ -21,6 +23,7 @@ const messages = {
       rotate: 'Rotate screen',
       fullscreen: 'Full screen',
       exitFullscreen: 'Exit full screen',
+      fullscreenFailed: 'Full screen could not open. Try again or use your browser controls.',
       restore: 'Show dialogue',
       quickSave: 'Quick save',
       quickLoad: 'Quick load',
@@ -34,6 +37,7 @@ const messages = {
   'zh-CN': {
     controls: {
       label: '剧情播放操作',
+      system: '游戏设置与显示',
       history: '回看',
       auto: '自动',
       skip: '快进',
@@ -42,6 +46,7 @@ const messages = {
       hide: '隐藏',
       more: '菜单',
       settings: '设置',
+      close: '关闭面板',
       mute: '关闭音乐',
       unmute: '开启音乐',
       hideCharacters: '隐藏立绘',
@@ -50,6 +55,7 @@ const messages = {
       rotate: '旋转画面',
       fullscreen: '全屏',
       exitFullscreen: '退出全屏',
+      fullscreenFailed: '暂时无法进入全屏，请重试或使用浏览器的全屏功能。',
       restore: '显示对话',
       quickSave: '快速存档',
       quickLoad: '快速读档',

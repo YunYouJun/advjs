@@ -3,7 +3,7 @@
 import type { AdvConfig } from '@advjs/types'
 
 import { useAppStore } from '@advjs/client'
-import { computed } from 'vue'
+import { computed, shallowRef } from 'vue'
 import { useBeforeUnload } from '../../composables'
 import { useAdvContext } from '../../composables/useAdvContext'
 
@@ -23,6 +23,8 @@ if (!import.meta.env.DEV && typeof __DEV__ !== 'undefined' && !__DEV__)
   useBeforeUnload()
 
 const app = useAppStore()
+const controlsHeight = shallowRef(0)
+const showToolbar = computed(() => app.showUi && !app.menus.settings && !app.showHistory && !app.showSaveMenu && !app.showLoadMenu)
 </script>
 
 <template>
@@ -42,7 +44,7 @@ const app = useAppStore()
       <slot />
     </div>
 
-    <div class="adv-ui absolute" w="full" h="full">
+    <div class="adv-ui absolute" w="full" h="full" :style="{ '--adv-dialog-controls-height': `${controlsHeight}px` }">
       <BaseLayer v-if="!app.showUi" />
 
       <Transition enter-active-class="animate-fade-in-up" leave-active-class="animate-fade-out-down">
@@ -54,7 +56,7 @@ const app = useAppStore()
       </Transition>
 
       <Transition enter-active-class="animate-fade-in-up" leave-active-class="animate-fade-out-down">
-        <DialogControls v-show="app.showUi" class="z-4 animate-duration-200" />
+        <DialogControls v-show="app.showUi" class="z-4 animate-duration-200" @resize="controlsHeight = $event" />
       </Transition>
 
       <Transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
@@ -62,8 +64,31 @@ const app = useAppStore()
       </Transition>
 
       <AdvActivity v-if="$adv.store.state.status === 'waiting-activity'" />
-
-      <AdvGameModals />
     </div>
+    <template #controls>
+      <AdvGameUI v-show="showToolbar" />
+      <AdvGameModals />
+    </template>
   </AdvContainer>
 </template>
+
+<style scoped>
+.adv-ui {
+  --adv-control-target: calc(32px / var(--adv-screen-scale, 1));
+  --adv-control-bottom: calc(max(8px, env(safe-area-inset-bottom, 0px)) / var(--adv-screen-scale, 1));
+  --adv-control-left: calc(max(16px, env(safe-area-inset-left, 0px)) / var(--adv-screen-scale, 1));
+  --adv-control-right: calc(max(16px, env(safe-area-inset-right, 0px)) / var(--adv-screen-scale, 1));
+}
+
+@container (max-width: 600px) {
+  .adv-ui {
+    --adv-control-target: calc(44px / var(--adv-screen-scale, 1));
+  }
+}
+
+@media (any-pointer: coarse) {
+  .adv-ui {
+    --adv-control-target: calc(44px / var(--adv-screen-scale, 1));
+  }
+}
+</style>

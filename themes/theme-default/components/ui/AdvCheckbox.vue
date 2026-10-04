@@ -22,12 +22,12 @@ watch(() => [p.props.checked], () => {
 </script>
 
 <template>
-  <span class="inline-flex cursor-pointer" @click="props.onClick">
+  <button type="button" role="checkbox" :aria-checked="props.checked" class="adv-checkbox inline-flex cursor-pointer items-center justify-center" @click="props.onClick">
     <AdvIcon v-if="props.checked">
       <div i-ri-checkbox-line />
     </AdvIcon>
     <AdvIcon v-else>
       <div i-ri-checkbox-blank-line />
     </AdvIcon>
-  </span>
+  </button>
 </template>
