@@ -187,6 +187,7 @@ catalogs:
     vite-ssg: ^28.3.0
     vite-ssg-sitemap: ^0.10.0
   cli:
+    '@modelcontextprotocol/ext-apps': ^1.7.5
     '@modelcontextprotocol/sdk': ^1.30.0
     '@xterm/xterm': ^6.0.0
     cli-progress: ^3.12.0

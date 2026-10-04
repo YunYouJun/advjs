@@ -16,6 +16,7 @@ import {
   scanFiles,
 } from 'advjs'
 import { z } from 'zod'
+import { registerAdvWorkspaceApp } from './workspace-app'
 
 type AdvCharacterVisual = z.infer<typeof CharacterVisualSchema>
 
@@ -272,6 +273,15 @@ export function createAdvMcpServer(options: CreateAdvMcpServerOptions = {}) {
   const server = new McpServer({
     name: 'advjs',
     version,
+  })
+
+  registerAdvWorkspaceApp(server, {
+    cwd,
+    projectLoader,
+    runCheck: async ({ cwd }) => {
+      const { runCheck } = await import('advjs')
+      return runCheck({ cwd })
+    },
   })
 
   // --------------- Resources ---------------

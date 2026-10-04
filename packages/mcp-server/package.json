@@ -41,8 +41,10 @@
   "dependencies": {
     "@advjs/core": "workspace:0.1.4",
     "@advjs/parser": "workspace:0.1.4",
+    "@modelcontextprotocol/ext-apps": "catalog:cli",
     "@modelcontextprotocol/sdk": "catalog:cli",
     "advjs": "workspace:0.1.4",
+    "pathe": "catalog:utils",
     "zod": "catalog:"
   },
   "devDependencies": {
