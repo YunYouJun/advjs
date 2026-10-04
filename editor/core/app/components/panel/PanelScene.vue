@@ -2,13 +2,14 @@
 import { useFullscreen, useStorage } from '@vueuse/core'
 import { ref } from 'vue'
 
-const tabList = ref([
-  { title: 'Game', key: 'game', icon: 'i-ri-gamepad-line' },
-  { title: 'Character', key: 'character', icon: 'i-ri-user-line' },
-  { title: 'Audio', key: 'audio', icon: 'i-ri-music-line' },
-  { title: 'Flow Editor', key: 'flow-editor', icon: 'i-ri-flow-chart' },
-  { title: 'Asset Store', key: 'asset-store', icon: 'i-ri-store-line' },
-  { title: 'Dashboard', key: 'dashboard', icon: 'i-ri-dashboard-line' },
+const { t } = useI18n()
+const tabList = computed(() => [
+  { title: t('panels.game'), key: 'game', icon: 'i-ri-gamepad-line' },
+  { title: t('panels.character'), key: 'character', icon: 'i-ri-user-line' },
+  { title: t('panels.audio'), key: 'audio', icon: 'i-ri-music-line' },
+  { title: t('panels.flow'), key: 'flow-editor', icon: 'i-ri-flow-chart' },
+  { title: t('panels.assets'), key: 'asset-store', icon: 'i-ri-store-line' },
+  { title: t('panels.dashboard'), key: 'dashboard', icon: 'i-ri-dashboard-line' },
 ])
 
 const app = useAppStore()
@@ -34,10 +35,10 @@ function toggleFullscreen() {
 <template>
   <AGUIPanel
     ref="fullscreenEl"
-    class="panel-scene relative flex-1" h="full" w="full"
+    class="panel-scene flex-1 relative" h="full" w="full"
   >
     <div
-      class="fullscreen-btn absolute right-0 top-0 z-1 size-5 inline-flex cursor-pointer items-center justify-center"
+      class="fullscreen-btn inline-flex size-5 cursor-pointer items-center right-0 top-0 justify-center absolute z-1"
       @click="toggleFullscreen"
     >
       <div

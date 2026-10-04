@@ -35,7 +35,7 @@ async function editSource() {
     await fileStore.setOpenedFileHandle(characterStore.selectedCharacterHandle)
   }
   catch (error) {
-    Toast({ title: 'Unable to open character source', description: String(error), type: 'warning' })
+    Toast({ title: t('characters.sourceFailed'), description: String(error), type: 'warning' })
   }
 }
 
@@ -168,7 +168,7 @@ async function onRelationshipUpdate(relationships: AdvCharacterRelationship[]) {
         <AGUIIconButton
           size="mini"
           icon="i-ri-delete-bin-line"
-          :title="$t('characters.deleted')"
+          :title="$t('characters.delete')"
           @click="onDelete(characterStore.selectedCharacter)"
         />
       </div>

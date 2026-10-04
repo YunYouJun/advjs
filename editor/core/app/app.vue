@@ -3,14 +3,20 @@ import { configureAudioAssets } from '@advjs/client'
 import { initAdvContext, initAdvData } from '@advjs/client/compiler'
 import { advConfigSymbol, gameConfigSymbol, themeConfigSymbol } from '@advjs/core'
 import { mountCssVarsRootStyle } from '@advjs/gui/client'
+import { useEventListener } from '@vueuse/core'
 import { appName } from '~/constants'
-
 import { injectionAdvContext } from '../../../packages/client/constants'
+
+import { useEditorLocale } from './composables/useEditorLocale'
 import './styles'
 
-useHead({
+const { locale, savedLocale, initLocale } = useEditorLocale()
+useHead(() => ({
   title: appName,
-})
+  htmlAttrs: { lang: locale.value },
+}))
+watch(savedLocale, () => void initLocale())
+useEventListener('languagechange', () => void initLocale())
 
 const consoleStore = useConsoleStore()
 const capabilities = useEditorCapabilities()
@@ -33,6 +39,7 @@ nuxtApp.vueApp.provide(themeConfigSymbol, advContext.themeConfig)
 const projectStore = useProjectStore()
 
 onMounted(async () => {
+  await initLocale()
   // @advjs/gui
   mountCssVarsRootStyle()
 

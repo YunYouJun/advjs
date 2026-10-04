@@ -7,14 +7,11 @@ definePageMeta({
 })
 
 const app = useAppStore()
-const { initLocale } = useEditorLocale()
+const { t } = useI18n()
 
 const showSplash = ref(true)
 const showOnboarding = ref(false)
 const onboarded = useStorage('advjs:editor:onboarded', false)
-
-// Restore saved locale on load
-initLocale()
 
 function onSplashComplete() {
   showSplash.value = false
@@ -24,8 +21,8 @@ function onSplashComplete() {
   }
   else {
     Toast({
-      title: 'Hello!',
-      description: 'Welcome to preview ADV.JS Editor!',
+      title: t('onboarding.welcome'),
+      description: t('onboarding.preview'),
       duration: 3000,
     })
   }
@@ -33,7 +30,7 @@ function onSplashComplete() {
 </script>
 
 <template>
-  <main class="h-screen w-screen flex flex-col">
+  <main class="flex flex-col h-screen w-screen">
     <AEEditorSplash :show="showSplash" @complete="onSplashComplete" />
 
     <EditorMenubar />

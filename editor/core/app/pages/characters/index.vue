@@ -7,7 +7,7 @@ definePageMeta({
   layout: 'default',
 })
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const cStore = useCharacterStore()
 const router = useRouter()
 
@@ -54,30 +54,26 @@ function onTreeNodeClick(node: FileTreeNode) {
   }
 }
 
-function toggleLocale() {
-  locale.value = locale.value === 'en' ? 'zh-CN' : 'en'
-}
-
 const hasSource = computed(() => !!cStore.dirHandle || !!cStore.charactersDir)
 </script>
 
 <template>
-  <div class="h-screen flex flex-col bg-dark-500 text-white">
+  <div class="text-white bg-dark-500 flex flex-col h-screen">
     <!-- Header -->
-    <div class="flex items-center justify-between border-b border-dark-300 px-6 py-4">
-      <div class="flex items-center gap-3">
+    <div class="px-6 py-4 border-b border-dark-300 flex items-center justify-between">
+      <div class="flex gap-3 items-center">
         <NuxtLink to="/" class="op-50 transition-opacity hover:op-100">
           <div class="i-ri-arrow-left-line text-lg" />
         </NuxtLink>
         <h1 class="text-lg font-bold">
           {{ $t('characters.title') }}
         </h1>
-        <span v-if="cStore.characters.length" class="rounded-full bg-dark-300 px-2 py-0.5 text-xs op-50">
+        <span v-if="cStore.characters.length" class="text-xs px-2 py-0.5 rounded-full bg-dark-300 op-50">
           {{ cStore.filteredCharacters.length }} / {{ cStore.characters.length }}
         </span>
       </div>
 
-      <div class="flex items-center gap-3">
+      <div class="flex gap-3 items-center">
         <AGUIInput
           v-model="cStore.searchQuery"
           :placeholder="$t('characters.search')"
@@ -98,20 +94,17 @@ const hasSource = computed(() => !!cStore.dirHandle || !!cStore.charactersDir)
         </AGUIButton>
 
         <!-- Language toggle -->
-        <AGUIButton variant="outline" size="mini" @click="toggleLocale">
-          <div class="i-ri-global-line mr-1" />
-          {{ locale === 'en' ? 'EN' : '中' }}
-        </AGUIButton>
+        <EditorLanguageSelect />
       </div>
     </div>
 
     <!-- Main content: left tree + right cards -->
     <div class="flex flex-1 overflow-hidden">
       <!-- Left sidebar: File tree -->
-      <div class="w-60 flex flex-col border-r border-dark-300">
+      <div class="border-r border-dark-300 flex flex-col w-60">
         <div v-if="cStore.dirHandle" class="flex-1 overflow-auto">
           <!-- Directory name header -->
-          <div class="flex items-center gap-2 border-b border-dark-300 px-3 py-2 text-xs op-60">
+          <div class="text-xs px-3 py-2 border-b border-dark-300 op-60 flex gap-2 items-center">
             <div class="i-ri-folder-open-line" />
             <span class="truncate">{{ cStore.dirHandle.name }}</span>
           </div>
@@ -124,13 +117,13 @@ const hasSource = computed(() => !!cStore.dirHandle || !!cStore.charactersDir)
             />
           </div>
         </div>
-        <div v-else class="flex flex-1 flex-col items-center justify-center gap-3 p-4">
+        <div v-else class="p-4 flex flex-1 flex-col gap-3 items-center justify-center">
           <div class="i-ri-folder-open-line text-3xl op-30" />
           <AGUIButton theme="primary" size="mini" @click="onOpenDirectory">
             <div class="i-ri-folder-add-line mr-1" />
             {{ $t('characters.openLocalDir') }}
           </AGUIButton>
-          <p class="text-center text-xs op-40">
+          <p class="text-xs text-center op-40">
             {{ $t('characters.dirHint') }}
           </p>
         </div>
@@ -139,14 +132,14 @@ const hasSource = computed(() => !!cStore.dirHandle || !!cStore.charactersDir)
       <!-- Right: Character cards or directory config -->
       <div class="flex-1 overflow-auto">
         <!-- Server-side dir config (when no browser handle and no server dir) -->
-        <div v-if="!hasSource" class="flex flex-col items-center justify-center gap-6 p-8">
+        <div v-if="!hasSource" class="p-8 flex flex-col gap-6 items-center justify-center">
           <div class="i-ri-folder-open-line text-4xl op-30" />
 
-          <div class="max-w-xl w-full flex flex-col gap-2">
+          <div class="flex flex-col gap-2 max-w-xl w-full">
             <p class="text-sm op-70">
               {{ $t('characters.dirHint') }}
             </p>
-            <div class="flex items-center gap-2">
+            <div class="flex gap-2 items-center">
               <AGUIInput
                 v-model="cStore.charactersDir"
                 :placeholder="$t('characters.dirPlaceholder')"
@@ -158,9 +151,9 @@ const hasSource = computed(() => !!cStore.dirHandle || !!cStore.charactersDir)
             </div>
           </div>
 
-          <div class="max-w-xl w-full text-xs op-40">
+          <div class="text-xs op-40 max-w-xl w-full">
             <p>{{ $t('characters.examplePaths') }}</p>
-            <p class="mt-1 font-mono">
+            <p class="font-mono mt-1">
               ./demo/flow/adv/characters
             </p>
             <p class="font-mono">

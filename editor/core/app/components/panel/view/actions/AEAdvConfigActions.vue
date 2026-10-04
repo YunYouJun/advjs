@@ -43,10 +43,10 @@ const nodeOptions = computed(() => {
       <AGUIFormItem>
         <template #label>
           <label
-            class="agui-label w-1/3 flex items-center gap-2 text-$agui-c-label"
+            class="agui-label text-$agui-c-label flex gap-2 w-1/3 items-center"
           >
             <div class="i-ri:book-line" />
-            <span>Start Chapter</span>
+            <span>{{ $t('workspace.startChapter') }}</span>
           </label>
         </template>
         <AGUISelect v-model="gameStore.startChapter" :options="chapterOptions" />
@@ -55,10 +55,10 @@ const nodeOptions = computed(() => {
       <AGUIFormItem>
         <template #label>
           <label
-            class="agui-label w-1/3 flex items-center gap-2 text-$agui-c-label"
+            class="agui-label text-$agui-c-label flex gap-2 w-1/3 items-center"
           >
             <div class="i-ri:git-commit-line" />
-            <span>Start Node</span>
+            <span>{{ $t('workspace.startNode') }}</span>
           </label>
         </template>
         <AGUISelect v-model="gameStore.startNode" :options="nodeOptions" />
@@ -67,10 +67,10 @@ const nodeOptions = computed(() => {
       <AGUIFormItem>
         <template #label>
           <label
-            class="agui-label w-1/3 flex items-center gap-2 text-$agui-c-label"
+            class="agui-label text-$agui-c-label flex gap-2 w-1/3 items-center"
           >
             <div class="i-ri:file-text-line" />
-            <span>Raw File</span>
+            <span>{{ $t('workspace.rawFile') }}</span>
           </label>
         </template>
         <AGUICheckbox v-model:checked="fileStore.showRawConfigFile" />

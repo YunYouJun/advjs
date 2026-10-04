@@ -8,13 +8,13 @@ const emit = defineEmits<{
 }>()
 
 const progress = ref(0)
-const statusText = ref('Initializing editor...')
+const statusText = ref('initializing')
 
 const stages = [
-  { target: 20, text: 'Initializing editor...' },
-  { target: 50, text: 'Loading core modules...' },
-  { target: 80, text: 'Preparing workspace...' },
-  { target: 95, text: 'Almost ready...' },
+  { target: 20, text: 'initializing' },
+  { target: 50, text: 'loading' },
+  { target: 80, text: 'preparing' },
+  { target: 95, text: 'almostReady' },
 ]
 
 let animationFrame: number | null = null
@@ -47,7 +47,7 @@ async function runProgress() {
     current = stage.target
   }
   // Final push to 100
-  await animateProgress(current, 100, 'Ready', 100)
+  await animateProgress(current, 100, 'ready', 100)
   // Small delay before fade out
   await new Promise(r => setTimeout(r, 100))
   emit('complete')
@@ -67,20 +67,20 @@ onUnmounted(() => {
   <Transition name="ae-splash-fade">
     <div
       v-if="show"
-      class="fixed inset-0 z-9999 flex flex-col items-center justify-center"
+      class="flex flex-col items-center inset-0 justify-center fixed z-9999"
       style="background: #1a1a2e;"
     >
       <!-- Logo area -->
-      <div class="mb-10 flex flex-col items-center gap-3">
+      <div class="mb-10 flex flex-col gap-3 items-center">
         <img
           src="/favicon.svg"
           alt="ADV.JS"
           class="h-16 w-16"
           style="filter: drop-shadow(0 0 20px rgba(30, 144, 255, 0.3));"
         >
-        <div class="flex items-center gap-2">
+        <div class="flex gap-2 items-center">
           <span
-            class="text-3xl font-bold tracking-wide"
+            class="text-3xl tracking-wide font-bold"
             style="color: #e0e0e0; letter-spacing: 0.05em;"
           >
             ADV.JS
@@ -89,19 +89,19 @@ onUnmounted(() => {
             class="text-lg font-light"
             style="color: rgba(255,255,255,0.5);"
           >
-            Editor
+            {{ $t('splash.editor') }}
           </span>
         </div>
       </div>
 
       <!-- Progress bar -->
-      <div class="w-80 flex flex-col items-center gap-3">
+      <div class="flex flex-col gap-3 w-80 items-center">
         <div
-          class="h-1 w-full overflow-hidden rounded-full"
+          class="rounded-full h-1 w-full overflow-hidden"
           style="background: rgba(255,255,255,0.1);"
         >
           <div
-            class="h-full rounded-full transition-none"
+            class="rounded-full h-full transition-none"
             style="background: dodgerblue;"
             :style="{ width: `${progress}%` }"
           />
@@ -110,13 +110,13 @@ onUnmounted(() => {
           class="text-xs"
           style="color: rgba(255,255,255,0.45);"
         >
-          {{ statusText }}
+          {{ $t(`splash.${statusText}`) }}
         </div>
       </div>
 
       <!-- Version -->
       <div
-        class="absolute bottom-6 right-6 text-xs"
+        class="text-xs bottom-6 right-6 absolute"
         style="color: rgba(255,255,255,0.2);"
       >
         v0.1.1

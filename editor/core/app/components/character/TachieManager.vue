@@ -35,7 +35,7 @@ function removeTachie(key: string) {
 <template>
   <div class="tachie-manager flex flex-col gap-3">
     <h3 class="text-sm font-bold op-60">
-      Tachie Management
+      {{ $t('characters.tachie.title') }}
     </h3>
 
     <!-- Existing tachies -->
@@ -43,7 +43,7 @@ function removeTachie(key: string) {
       <div
         v-for="(tachie, key) in tachies"
         :key="key"
-        class="flex items-center gap-3 rounded bg-dark-400 p-2"
+        class="p-2 rounded bg-dark-400 flex gap-3 items-center"
       >
         <img v-if="tachie" class="h-16 object-contain" :src="tachie.src" :alt="String(key)">
         <div class="flex-1">
@@ -59,20 +59,20 @@ function removeTachie(key: string) {
     </div>
 
     <div v-else class="text-sm op-40">
-      No tachies yet
+      {{ $t('characters.tachie.empty') }}
     </div>
 
     <!-- Add new tachie -->
-    <div class="flex items-end gap-2">
+    <div class="flex gap-2 items-end">
       <div class="flex-1">
-        <div class="mb-1 text-xs op-50">
-          Name
+        <div class="text-xs mb-1 op-50">
+          {{ $t('characters.form.name') }}
         </div>
-        <AGUIInput v-model="newTachieName" placeholder="e.g. normal, angry, smile" />
+        <AGUIInput v-model="newTachieName" :placeholder="$t('characters.tachie.namePlaceholder')" />
       </div>
       <div class="flex-2">
-        <div class="mb-1 text-xs op-50">
-          Image URL
+        <div class="text-xs mb-1 op-50">
+          {{ $t('characters.tachie.image') }}
         </div>
         <AGUIInput v-model="newTachieSrc" placeholder="https://..." />
       </div>

@@ -1,10 +1,11 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { computed } from 'vue'
 import InspectorFileView from './view/InspectorFileView.vue'
 
-const tabList = ref([
-  { title: 'Inspector', key: 'inspector', icon: 'i-ri-information-fill' },
-  { title: 'Context', key: 'context', icon: 'i-ri-earth-line' },
+const { t } = useI18n()
+const tabList = computed(() => [
+  { title: t('panels.inspector'), key: 'inspector', icon: 'i-ri-information-fill' },
+  { title: t('panels.context'), key: 'context', icon: 'i-ri-earth-line' },
 ])
 
 const app = useAppStore()

@@ -37,7 +37,7 @@ function removeRelationship(index: number) {
 <template>
   <div class="relationship-editor flex flex-col gap-3">
     <h3 class="text-sm font-bold op-60">
-      Relationships
+      {{ $t('characters.detail.relationships') }}
     </h3>
 
     <!-- Existing relationships -->
@@ -45,40 +45,40 @@ function removeRelationship(index: number) {
       <div
         v-for="(rel, idx) in list"
         :key="idx"
-        class="flex items-center gap-2 rounded bg-dark-400 p-2"
+        class="p-2 rounded bg-dark-400 flex gap-2 items-center"
       >
         <span class="text-sm font-bold">{{ rel.targetId }}</span>
         <AGUITag theme="primary">
           {{ rel.type }}
         </AGUITag>
-        <span v-if="rel.description" class="flex-1 text-xs op-60">{{ rel.description }}</span>
+        <span v-if="rel.description" class="text-xs op-60 flex-1">{{ rel.description }}</span>
         <AGUIButton theme="danger" variant="text" icon="i-ri-close-line" @click="removeRelationship(idx)" />
       </div>
     </div>
 
     <div v-else class="text-sm op-40">
-      No relationships
+      {{ $t('characters.relationship.empty') }}
     </div>
 
     <!-- Add new relationship -->
-    <div class="flex items-end gap-2">
+    <div class="flex gap-2 items-end">
       <div class="flex-1">
-        <div class="mb-1 text-xs op-50">
-          Target Character ID
+        <div class="text-xs mb-1 op-50">
+          {{ $t('characters.relationship.target') }}
         </div>
-        <AGUIInput v-model="newRel.targetId" placeholder="Character ID" />
+        <AGUIInput v-model="newRel.targetId" :placeholder="$t('characters.form.id')" />
       </div>
       <div class="flex-1">
-        <div class="mb-1 text-xs op-50">
-          Relationship Type
+        <div class="text-xs mb-1 op-50">
+          {{ $t('characters.relationship.type') }}
         </div>
-        <AGUIInput v-model="newRel.type" placeholder="e.g. 恋人, 宿敌" />
+        <AGUIInput v-model="newRel.type" :placeholder="$t('characters.relationship.typePlaceholder')" />
       </div>
       <div class="flex-1">
-        <div class="mb-1 text-xs op-50">
-          Description
+        <div class="text-xs mb-1 op-50">
+          {{ $t('characters.relationship.description') }}
         </div>
-        <AGUIInput v-model="newRel.description" placeholder="Optional" />
+        <AGUIInput v-model="newRel.description" :placeholder="$t('common.optional')" />
       </div>
       <AGUIButton theme="primary" icon="i-ri-add-line" :disabled="!newRel.targetId || !newRel.type" @click="addRelationship" />
     </div>

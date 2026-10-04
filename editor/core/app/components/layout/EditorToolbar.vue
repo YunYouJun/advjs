@@ -2,6 +2,7 @@
 import type { ToolbarItem } from '@advjs/gui'
 import { useEditorCapabilities } from '../../composables/useEditorCapabilities'
 
+const { t } = useI18n()
 const app = useAppStore()
 const capabilities = useEditorCapabilities()
 const userStore = useUserStore()
@@ -14,10 +15,10 @@ const tools = computed<ToolbarItem[]>(() => {
     {
       type: 'button',
       icon: 'i-ri-puzzle-line',
-      title: 'Manage Plugins',
+      title: t('toolbar.plugins'),
       onClick: () => {
       // eslint-disable-next-line no-alert
-        alert('WIP: Manage Plugins')
+        alert(t('toolbar.pluginsPending'))
       },
     },
     {
@@ -29,14 +30,14 @@ const tools = computed<ToolbarItem[]>(() => {
     {
       type: 'button',
       icon: 'i-ri-history-line',
-      title: 'Undo History',
+      title: t('toolbar.history'),
       onClick: () => {
       // app.showHistory()
       },
     },
     {
       type: 'button',
-      name: 'Reset Layout',
+      name: t('menu.resetLayout'),
       onClick: () => {
         app.resetLayout()
       },
@@ -47,8 +48,8 @@ const tools = computed<ToolbarItem[]>(() => {
     items.unshift({
       type: 'button',
       icon: 'i-ri-computer-line',
-      name: 'Local workspace',
-      title: 'Cloud accounts are unavailable in local mode',
+      name: t('workspace.local'),
+      title: t('toolbar.localAccountHint'),
       onClick: () => {},
     })
   }
@@ -61,14 +62,14 @@ const tools = computed<ToolbarItem[]>(() => {
       name: userStore.user?.github?.name,
       children: [
         {
-          label: 'My Account',
+          label: t('toolbar.account'),
           type: 'item',
           onClick: () => {
             dialogStore.openStates.login = true
           },
         },
         {
-          label: 'Sign Out',
+          label: t('toolbar.signOut'),
           type: 'item',
           onClick: () => {
             userStore.signOut()
@@ -80,7 +81,7 @@ const tools = computed<ToolbarItem[]>(() => {
     const connectGitHubRepoItem: ToolbarItem = {
       type: 'button',
       icon: 'i-ri-git-repository-line',
-      title: 'Connect to Git Repository',
+      title: t('toolbar.connectGit'),
       onClick: () => {
         dialogStore.openStates.githubRepos = true
       },
@@ -97,7 +98,7 @@ const tools = computed<ToolbarItem[]>(() => {
   else {
     items.unshift({
       type: 'button',
-      name: 'Sign In',
+      name: t('toolbar.signIn'),
       onClick: () => {
         dialogStore.openStates.login = true
       },
@@ -109,6 +110,10 @@ const tools = computed<ToolbarItem[]>(() => {
 </script>
 
 <template>
-  <AGUIToolbar :items="tools" />
+  <AGUIToolbar :items="tools">
+    <template #after-toolbar>
+      <EditorLanguageSelect />
+    </template>
+  </AGUIToolbar>
   <AELoginDialog v-model:open="dialogStore.openStates.login" />
 </template>

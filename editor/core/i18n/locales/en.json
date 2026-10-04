@@ -74,13 +74,16 @@
     "title": "Preferences",
     "interface": "Interface",
     "language": "Language",
-    "languageDescription": "Set the language of the editor interface"
+    "languageDescription": "Follow your browser language by default, or choose and remember a language for the editor.",
+    "followBrowser": "Follow browser",
+    "languageFailed": "Could not switch language"
   },
   "onboarding": {
     "welcome": "Welcome to ADV.JS Editor",
     "selectLanguage": "Choose your preferred language",
     "getStarted": "Get Started",
-    "skip": "Skip"
+    "skip": "Skip",
+    "preview": "Welcome to preview ADV.JS Editor!"
   },
   "characters": {
     "title": "Characters",
@@ -136,6 +139,7 @@
     },
     "created": "Character created",
     "updated": "Character updated",
+    "delete": "Delete character",
     "deleted": "Character deleted",
     "selectToEdit": "Select a character to edit",
     "detail": {
@@ -170,6 +174,104 @@
       "prompt": "Image prompt",
       "source": "Edit source",
       "attachmentHint": "Reference paths are relative to the project root. Inspect and attach the actual images when generating; copying this brief does not attach them."
+    },
+    "tachie": {
+      "title": "Tachie Management",
+      "empty": "No tachies yet",
+      "image": "Image URL",
+      "namePlaceholder": "e.g. normal, angry, smile"
+    },
+    "relationship": {
+      "empty": "No relationships",
+      "target": "Target Character ID",
+      "type": "Relationship Type",
+      "description": "Description",
+      "typePlaceholder": "e.g. friend, rival"
+    },
+    "sourceFailed": "Unable to open character source"
+  },
+  "common": {
+    "search": "Search",
+    "save": "Save",
+    "load": "Load",
+    "start": "Start",
+    "refresh": "Refresh",
+    "optional": "Optional",
+    "error": "Error",
+    "warning": "Warning"
+  },
+  "panels": {
+    "inspector": "Inspector",
+    "context": "Context",
+    "storyLine": "Story Line",
+    "characters": "Characters",
+    "character": "Character",
+    "game": "Game",
+    "audio": "Audio",
+    "flow": "Flow Editor",
+    "assets": "Asset Store",
+    "dashboard": "Dashboard",
+    "project": "Project",
+    "console": "Console"
+  },
+  "workspace": {
+    "local": "Local workspace",
+    "liveLocal": "Live local workspace",
+    "browser": "Browser workspace",
+    "chapterCount": "{count} chapters",
+    "characterCount": "{count} characters",
+    "sceneCount": "{count} scenes",
+    "chapters": "Chapters",
+    "scenes": "Scenes",
+    "unsaved": "Unsaved changes",
+    "saveBeforeOpening": "Save the current file before opening another file.",
+    "openFailed": "Cannot open file",
+    "parseCharacterFailed": "Failed to parse character file",
+    "unsupportedFile": "This file is not supported",
+    "migrationRequired": "Migration required",
+    "openProjectFailed": "Failed to open Markdown project",
+    "externalConflict": "This file changed outside the Editor while you have unsaved edits.",
+    "useExternal": "Use external",
+    "keepMine": "Keep mine",
+    "startChapter": "Start Chapter",
+    "startNode": "Start Node",
+    "rawFile": "Raw File",
+    "savedContext": "Saved author context",
+    "refreshing": "Refreshing…",
+    "refreshFailed": "Could not refresh project context",
+    "contextCopied": "Author context copied",
+    "copyFailed": "Could not copy author context. Check clipboard access and try again.",
+    "copyForAI": "Copy for AI",
+    "emptyContext": "This project has no author context yet.",
+    "openContext": "Open a project to view context",
+    "sections": {
+      "world": "World",
+      "outline": "Outline",
+      "glossary": "Glossary",
+      "chapters_index": "Chapters index",
+      "characters_index": "Characters index",
+      "scenes_index": "Scenes index",
+      "characters": "Characters",
+      "chapters": "Chapters",
+      "scenes": "Scenes"
     }
+  },
+  "toolbar": {
+    "plugins": "Manage Plugins",
+    "pluginsPending": "Plugin management is under development.",
+    "history": "Undo History",
+    "localAccountHint": "Cloud accounts are unavailable in local mode",
+    "account": "My Account",
+    "signOut": "Sign Out",
+    "signIn": "Sign In",
+    "connectGit": "Connect to Git Repository"
+  },
+  "splash": {
+    "editor": "Editor",
+    "initializing": "Initializing editor…",
+    "loading": "Loading core modules…",
+    "preparing": "Preparing workspace…",
+    "almostReady": "Almost ready…",
+    "ready": "Ready"
   }
 }

@@ -74,13 +74,16 @@
     "title": "偏好设置",
     "interface": "界面",
     "language": "语言",
-    "languageDescription": "设置编辑器界面的语言"
+    "languageDescription": "默认跟随浏览器语言，也可手动选择并记住编辑器语言。",
+    "followBrowser": "跟随浏览器",
+    "languageFailed": "暂时无法切换语言"
   },
   "onboarding": {
     "welcome": "欢迎使用 ADV.JS 编辑器",
     "selectLanguage": "选择你偏好的语言",
     "getStarted": "开始使用",
-    "skip": "跳过"
+    "skip": "跳过",
+    "preview": "欢迎体验 ADV.JS 编辑器！"
   },
   "characters": {
     "title": "角色",
@@ -136,6 +139,7 @@
     },
     "created": "角色已创建",
     "updated": "角色已更新",
+    "delete": "删除角色",
     "deleted": "角色已删除",
     "selectToEdit": "选择一个角色进行编辑",
     "detail": {
@@ -170,6 +174,104 @@
       "prompt": "图像提示词",
       "source": "编辑源码",
       "attachmentHint": "参考图路径相对于项目根目录。生成前需打开并实际附上图像；复制视觉约束不会自动附图。"
+    },
+    "tachie": {
+      "title": "立绘管理",
+      "empty": "暂无立绘",
+      "image": "图片地址",
+      "namePlaceholder": "例如：平常、愤怒、微笑"
+    },
+    "relationship": {
+      "empty": "暂无人物关系",
+      "target": "目标人物 ID",
+      "type": "关系类型",
+      "description": "关系说明",
+      "typePlaceholder": "例如：同伴、对手"
+    },
+    "sourceFailed": "无法打开人物卡源码"
+  },
+  "common": {
+    "search": "搜索",
+    "save": "保存",
+    "load": "加载",
+    "start": "开始",
+    "refresh": "刷新",
+    "optional": "选填",
+    "error": "错误",
+    "warning": "提示"
+  },
+  "panels": {
+    "inspector": "属性",
+    "context": "创作上下文",
+    "storyLine": "故事线",
+    "characters": "人物",
+    "character": "人物",
+    "game": "游戏预览",
+    "audio": "音频",
+    "flow": "流程编辑",
+    "assets": "素材库",
+    "dashboard": "概览",
+    "project": "项目",
+    "console": "控制台"
+  },
+  "workspace": {
+    "local": "本地工作区",
+    "liveLocal": "本地工作区 · 实时同步",
+    "browser": "浏览器工作区",
+    "chapterCount": "{count} 个章节",
+    "characterCount": "{count} 位人物",
+    "sceneCount": "{count} 个场景",
+    "chapters": "章节",
+    "scenes": "场景",
+    "unsaved": "有未保存的修改",
+    "saveBeforeOpening": "请先保存当前文件，再打开其他文件。",
+    "openFailed": "无法打开文件",
+    "parseCharacterFailed": "无法解析人物卡",
+    "unsupportedFile": "暂不支持此文件",
+    "migrationRequired": "需要迁移项目",
+    "openProjectFailed": "无法打开 Markdown 项目",
+    "externalConflict": "文件在编辑器外被修改，当前还有未保存的编辑。",
+    "useExternal": "使用外部版本",
+    "keepMine": "保留当前编辑",
+    "startChapter": "起始章节",
+    "startNode": "起始节点",
+    "rawFile": "原始文件",
+    "savedContext": "已保存的创作资料",
+    "refreshing": "正在刷新…",
+    "refreshFailed": "无法刷新创作上下文",
+    "contextCopied": "已复制创作上下文",
+    "copyFailed": "复制失败，请检查剪贴板权限后重试。",
+    "copyForAI": "复制给 AI",
+    "emptyContext": "此项目暂时没有创作资料。",
+    "openContext": "打开项目后查看创作上下文",
+    "sections": {
+      "world": "世界观",
+      "outline": "剧情大纲",
+      "glossary": "术语表",
+      "chapters_index": "章节索引",
+      "characters_index": "人物索引",
+      "scenes_index": "场景索引",
+      "characters": "人物卡",
+      "chapters": "章节",
+      "scenes": "场景"
     }
+  },
+  "toolbar": {
+    "plugins": "管理插件",
+    "pluginsPending": "插件管理功能正在开发中。",
+    "history": "操作历史",
+    "localAccountHint": "本地模式不启用云端账户",
+    "account": "我的账户",
+    "signOut": "退出登录",
+    "signIn": "登录",
+    "connectGit": "连接 Git 仓库"
+  },
+  "splash": {
+    "editor": "编辑器",
+    "initializing": "正在初始化编辑器…",
+    "loading": "正在加载核心模块…",
+    "preparing": "正在准备工作区…",
+    "almostReady": "即将就绪…",
+    "ready": "已就绪"
   }
 }

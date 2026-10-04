@@ -224,10 +224,12 @@ export default defineNuxtConfig({
   i18n: {
     strategy: 'no_prefix',
     defaultLocale: 'en',
+    // The editor owns persisted preferences and browser detection without route redirects.
+    detectBrowserLanguage: false,
     langDir: 'locales',
     locales: [
-      { code: 'en', file: 'en.json' },
-      { code: 'zh-CN', file: 'zh-CN.json' },
+      { code: 'en', language: 'en', name: 'English', file: 'en.json' },
+      { code: 'zh-CN', language: 'zh-CN', name: '中文（简体）', file: 'zh-CN.json' },
     ],
   },
 

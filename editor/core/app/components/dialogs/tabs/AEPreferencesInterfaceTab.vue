@@ -1,40 +1,11 @@
-<script setup lang="ts">
-const { t } = useI18n()
-const { locale, changeLocale } = useEditorLocale()
-
-const localeOptions: Array<{ label: string, value: 'en' | 'zh-CN' }> = [
-  { label: 'English', value: 'en' },
-  { label: '中文（简体）', value: 'zh-CN' },
-]
-
-const localeState = reactive<{ language: 'en' | 'zh-CN' }>({
-  language: locale.value,
-})
-
-watch(() => localeState.language, (code) => {
-  changeLocale(code)
-})
-
-const properties = computed(() => [
-  {
-    type: 'select' as const,
-    name: t('preferences.language'),
-    description: t('preferences.languageDescription'),
-    object: localeState,
-    key: 'language',
-    options: localeOptions,
-  },
-])
-</script>
-
 <template>
-  <div>
-    <div class="mb-1 flex items-center justify-between">
-      <h3 class="inline-flex text-lg font-bold">
-        {{ t('preferences.interface') }}
-      </h3>
-    </div>
-
-    <AGUIPropertiesForm :properties="properties" />
+  <div class="flex flex-col gap-3">
+    <h3 class="text-lg font-bold">
+      {{ $t('preferences.interface') }}
+    </h3>
+    <p class="text-sm op-70">
+      {{ $t('preferences.languageDescription') }}
+    </p>
+    <EditorLanguageSelect />
   </div>
 </template>

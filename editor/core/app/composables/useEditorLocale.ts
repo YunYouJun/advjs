@@ -1,17 +1,26 @@
+import type { EditorLocalePreference } from '../utils/editor-locale'
 import { useStorage } from '@vueuse/core'
+import { computed } from 'vue'
+import { isEditorLocalePreference, resolveEditorLocale } from '../utils/editor-locale'
 
 export function useEditorLocale() {
   const { locale, setLocale, locales } = useI18n()
-  const savedLocale = useStorage<'en' | 'zh-CN'>('advjs:editor:locale', 'en')
+  const storedPreference = useStorage<string>('advjs:editor:locale', 'auto', undefined, { writeDefaults: false })
+  const savedLocale = computed<EditorLocalePreference>(() => isEditorLocalePreference(storedPreference.value) ? storedPreference.value : 'auto')
 
-  function initLocale() {
-    if (savedLocale.value && savedLocale.value !== locale.value)
-      setLocale(savedLocale.value)
+  function browserLanguages(): readonly string[] {
+    return typeof navigator === 'undefined' ? [] : navigator.languages?.length ? navigator.languages : [navigator.language]
   }
 
-  function changeLocale(code: 'en' | 'zh-CN') {
-    setLocale(code)
-    savedLocale.value = code
+  async function initLocale(): Promise<void> {
+    const code = resolveEditorLocale(savedLocale.value, browserLanguages())
+    if (code !== locale.value)
+      await setLocale(code)
+  }
+
+  async function changeLocale(preference: EditorLocalePreference): Promise<void> {
+    await setLocale(resolveEditorLocale(preference, browserLanguages()))
+    storedPreference.value = preference
   }
 
   const availableLocales = computed(() => {

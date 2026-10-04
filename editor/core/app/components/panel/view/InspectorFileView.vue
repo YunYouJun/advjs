@@ -68,16 +68,16 @@ function goToNode() {
           v-if="fileStore.openedFileHandle && fileName?.endsWith('.md')"
           @click="fileStore.saveOpenedFile()"
         >
-          Save
+          {{ $t('common.save') }}
         </AGUIButton>
         <AGUIButton
           v-if="fileName?.endsWith('.adv.json')"
           @click="gameStore.loadGameFromJSONStr(fileStore.rawConfigFileContent)"
         >
-          Load
+          {{ $t('common.load') }}
         </AGUIButton>
         <AGUIButton v-if="gameStore.client.loadStatus === AdvGameLoadStatusEnum.SUCCESS" @click="goToNode">
-          Start
+          {{ $t('common.start') }}
         </AGUIButton>
       </div>
     </div>
@@ -89,13 +89,13 @@ function goToNode() {
       class="text-xs text-amber-200 px-3 py-2 border-b border-amber-500/30 bg-amber-500/10 flex gap-3 items-center justify-between"
       role="alert"
     >
-      <span>This file changed outside the Editor while you have unsaved edits.</span>
+      <span>{{ $t('workspace.externalConflict') }}</span>
       <span class="flex gap-2">
         <AGUIButton @click="fileStore.acceptExternalChange()">
-          Use external
+          {{ $t('workspace.useExternal') }}
         </AGUIButton>
         <AGUIButton @click="fileStore.keepLocalChange()">
-          Keep mine
+          {{ $t('workspace.keepMine') }}
         </AGUIButton>
       </span>
     </div>

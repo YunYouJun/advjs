@@ -5,9 +5,10 @@ import { parseCharacterMd } from '@advjs/parser'
 import consola from 'consola'
 import { ref } from 'vue'
 
-const tabList = ref([
-  { title: 'Project', key: 'project', icon: 'i-ri-folder-fill' },
-  { title: 'Console', key: 'console', icon: 'i-ri-terminal-box-fill' },
+const { t } = useI18n()
+const tabList = computed(() => [
+  { title: t('panels.project'), key: 'project', icon: 'i-ri-folder-fill' },
+  { title: t('panels.console'), key: 'console', icon: 'i-ri-terminal-box-fill' },
 ])
 
 const curTab = ref('project')
@@ -70,7 +71,7 @@ async function onFileDblClick(item: FSFileItem, projectPath = getProjectRelative
       app.activeInspector = 'file'
       return
     }
-    Toast({ title: 'Unsaved changes', description: 'Save the current file before opening another file.', type: 'warning' })
+    Toast({ title: t('workspace.unsaved'), description: t('workspace.saveBeforeOpening'), type: 'warning' })
     return
   }
 
@@ -88,8 +89,8 @@ async function onFileDblClick(item: FSFileItem, projectPath = getProjectRelative
     catch (e) {
       consola.error('Failed to parse character file:', e)
       Toast({
-        title: 'Error',
-        description: 'Failed to parse character file',
+        title: t('common.error'),
+        description: t('workspace.parseCharacterFailed'),
         type: 'error',
       })
       return
@@ -101,8 +102,8 @@ async function onFileDblClick(item: FSFileItem, projectPath = getProjectRelative
   }
   else {
     Toast({
-      title: 'Warning',
-      description: 'This file is not supported',
+      title: t('common.warning'),
+      description: t('workspace.unsupportedFile'),
       type: 'warning',
     })
   }
@@ -121,7 +122,7 @@ async function onLocalFileClick(path: string) {
     }, path)
   }
   catch (error) {
-    Toast({ title: 'Cannot open file', description: error instanceof Error ? error.message : String(error), type: 'error' })
+    Toast({ title: t('workspace.openFailed'), description: error instanceof Error ? error.message : String(error), type: 'error' })
   }
   finally {
     openingLocalFile.value = false
@@ -136,7 +137,7 @@ async function beforeOpenRootDir(dirHandle: FileSystemDirectoryHandle) {
     const project = await projectStore.openBrowserProject(dirHandle)
     if (project.mode === 'legacy-json') {
       Toast({
-        title: 'Migration required',
+        title: t('workspace.migrationRequired'),
         description: project.migrationNotice,
         type: 'warning',
       })
@@ -146,8 +147,8 @@ async function beforeOpenRootDir(dirHandle: FileSystemDirectoryHandle) {
   }
   catch (error) {
     Toast({
-      title: 'Error',
-      description: error instanceof Error ? error.message : 'Failed to open Markdown project',
+      title: t('common.error'),
+      description: error instanceof Error ? error.message : t('workspace.openProjectFailed'),
       type: 'error',
     })
     return false
@@ -168,10 +169,10 @@ function onOpenRootDir(dir?: FSDirItem) {
       <AGUITabPanel value="project">
         <div v-if="projectStore.project" class="text-xs p-2 border-b border-white/8">
           <div class="mb-1 op-70 flex gap-3">
-            <span>{{ projectStore.workspaceMode === 'local' ? 'Live local workspace' : 'Browser workspace' }}</span>
-            <span>{{ projectStore.chapters.length }} chapters</span>
-            <span>{{ projectStore.characters.length }} characters</span>
-            <span>{{ projectStore.scenes.length }} scenes</span>
+            <span>{{ projectStore.workspaceMode === 'local' ? t('workspace.liveLocal') : t('workspace.browser') }}</span>
+            <span>{{ t('workspace.chapterCount', { count: projectStore.chapters.length }) }}</span>
+            <span>{{ t('workspace.characterCount', { count: projectStore.characters.length }) }}</span>
+            <span>{{ t('workspace.sceneCount', { count: projectStore.scenes.length }) }}</span>
           </div>
           <div
             v-for="diagnostic in projectStore.diagnostics"
