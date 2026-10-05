@@ -32,6 +32,7 @@ const showToolbar = computed(() => app.showUi && !app.menus.settings && !app.sho
   <AdvContainer
     text="white"
     :config="$adv.config?.value"
+    :landscape="($adv.config?.value?.aspectRatio ?? 16 / 9) > 1"
     :controls-inset="app.showUi ? toolbarHeight : 0"
   >
     <div class="adv-game bg-black size-full absolute">
@@ -88,9 +89,16 @@ const showToolbar = computed(() => app.showUi && !app.menus.settings && !app.sho
   }
 }
 
-@media (any-pointer: coarse) {
+@media (any-pointer: coarse), (max-width: 1000px) and (max-height: 500px) {
   .adv-ui {
     --adv-control-target: calc(44px / var(--adv-screen-scale, 1));
   }
+}
+
+.is-landscape-phone .adv-ui {
+  --adv-control-target: calc(44px / var(--adv-screen-scale, 1));
+  --adv-control-left: calc(max(16px, env(safe-area-inset-top, 0px)) / var(--adv-screen-scale, 1));
+  --adv-control-right: calc(max(16px, env(safe-area-inset-bottom, 0px)) / var(--adv-screen-scale, 1));
+  --adv-control-bottom: calc(max(8px, env(safe-area-inset-right, 0px)) / var(--adv-screen-scale, 1));
 }
 </style>

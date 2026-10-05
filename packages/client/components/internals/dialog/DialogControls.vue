@@ -204,7 +204,7 @@ function onFocusOut(event: FocusEvent) {
   color: #c9bdac;
 }
 
-@container (max-width: 600px) {
+@container (max-width: 480px) {
   .dialog-controls {
     display: grid;
     grid-template-areas: 'playback utility' 'saves saves';

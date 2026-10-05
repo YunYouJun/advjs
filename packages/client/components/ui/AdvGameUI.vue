@@ -20,7 +20,7 @@ watch([actionsHeight, toolbarWidth, toolbarHeight], () => {
   if (root.value)
     emit('resize', actionsHeight.value + Number.parseFloat(getComputedStyle(root.value).paddingTop) + 8)
 })
-const screen = computed(() => root.value?.closest<HTMLElement>('.adv-screen'))
+const screen = computed(() => root.value?.closest<HTMLElement>('.adv-viewport') ?? root.value?.closest<HTMLElement>('.adv-screen'))
 const { isFullscreen, isSupported, toggle } = useFullscreen(screen)
 const fullscreenPending = shallowRef(false)
 const fullscreenFailed = shallowRef(false)
@@ -120,10 +120,18 @@ async function toggleFullscreen() {
   }
 }
 
-@media (any-pointer: coarse) {
+@media (any-pointer: coarse), (max-width: 1000px) and (max-height: 500px) {
   .game-toolbar {
     --adv-toolbar-target: 48px;
     --adv-toolbar-icon: 28px;
   }
+}
+
+.is-landscape-phone .game-toolbar {
+  --adv-toolbar-target: 48px;
+  --adv-toolbar-icon: 28px;
+  --adv-toolbar-right: max(12px, env(safe-area-inset-bottom, 0px));
+  --adv-toolbar-left: max(12px, env(safe-area-inset-top, 0px));
+  --adv-toolbar-top: max(10px, env(safe-area-inset-left, 0px));
 }
 </style>

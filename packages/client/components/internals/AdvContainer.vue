@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AdvConfig } from '@advjs/types'
-import { provideLocal, useElementSize } from '@vueuse/core'
+import { provideLocal, useElementSize, useMediaQuery } from '@vueuse/core'
 import { computed, ref } from 'vue'
 import { injectionAdvContent, injectionAdvScale } from '../../constants'
 import { useAppStore } from '../../stores'
@@ -11,6 +11,7 @@ const props = withDefaults(defineProps<{
   scale?: number
   contentStyle?: object
   controlsInset?: number
+  landscape?: boolean
 
   config?: AdvConfig
 }>(), {})
@@ -19,6 +20,9 @@ const app = useAppStore()
 const container = ref<HTMLDivElement>()
 const advContentRef = ref<HTMLDivElement>()
 const containerSize = useElementSize(container)
+const portraitPhone = useMediaQuery('(max-width: 600px) and (orientation: portrait)')
+// Rotate the entire player, including controls and panels, in a portrait phone viewport.
+const rotatedViewport = computed(() => props.landscape && portraitPhone.value && containerSize.height.value > containerSize.width.value)
 
 // aspect
 const advAspect = computed(() => props.config?.aspectRatio || (16 / 9))
@@ -27,8 +31,8 @@ const advWidth = computed(() => props.config?.canvasWidth || 1920)
 const advHeight = computed(() => Math.ceil(advWidth.value / advAspect.value))
 const responsive = computed(() => props.config?.viewportFit === 'responsive')
 
-const width = computed(() => props.width ? props.width : containerSize.width.value)
-const viewportHeight = computed(() => props.width ? props.width / advAspect.value : containerSize.height.value)
+const width = computed(() => props.width || (rotatedViewport.value ? containerSize.height.value : containerSize.width.value))
+const viewportHeight = computed(() => props.width ? props.width / advAspect.value : rotatedViewport.value ? containerSize.width.value : containerSize.height.value)
 // Rotated dialogue can reach the top edge; keep it below the unscaled toolbar.
 const controlsInset = computed(() => app.rotation % 360 === 0 ? 0 : Math.min(props.controlsInset ?? 0, viewportHeight.value / 2))
 const height = computed(() => viewportHeight.value - controlsInset.value)
@@ -63,6 +67,15 @@ const containerStyle = computed(() => props.width
   : {},
 )
 
+const viewportStyle = computed(() => rotatedViewport.value
+  ? {
+      width: `${containerSize.height.value}px`,
+      height: `${containerSize.width.value}px`,
+      transform: 'translate(-50%, -50%) rotate(90deg)',
+    }
+  : {},
+)
+
 const contentStyle = computed(() => ({
   ...props.contentStyle,
   '--adv-screen-width': `${contentWidth.value}px`,
@@ -83,22 +96,24 @@ provideLocal(injectionAdvContent, advContentRef)
 <template>
   <div
     ref="container"
-    class="adv-screen size-full relative overflow-hidden" bg="black"
+    class="adv-viewport size-full relative overflow-hidden" bg="black"
     :class="className"
     :style="containerStyle"
   >
-    <div
-      id="adv-content"
-      ref="advContentRef"
-      class="flex h-$adv-screen-height w-$adv-screen-width relative"
-      :class="{
-        transition: app.transition,
-      }"
-      :style="contentStyle"
-    >
-      <slot />
+    <div class="adv-screen" :class="{ 'is-landscape-phone': rotatedViewport }" :style="viewportStyle">
+      <div
+        id="adv-content"
+        ref="advContentRef"
+        class="flex h-$adv-screen-height w-$adv-screen-width relative"
+        :class="{
+          transition: app.transition,
+        }"
+        :style="contentStyle"
+      >
+        <slot />
+      </div>
+      <slot name="controls" />
     </div>
-    <slot name="controls" />
   </div>
 </template>
 
@@ -110,9 +125,20 @@ provideLocal(injectionAdvContent, advContentRef)
 }
 
 .adv-screen {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  height: 100%;
+  transform: translate(-50%, -50%);
   container-type: inline-size;
   // `overflow: hidden` still allows focused choices to scroll this canvas.
   // A clipped canvas keeps the centered 16:9 stage fixed after interactions.
   overflow: clip;
+}
+
+.adv-viewport:fullscreen {
+  width: 100%;
+  height: 100%;
 }
 </style>
