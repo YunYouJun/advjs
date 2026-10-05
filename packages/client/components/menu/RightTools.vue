@@ -2,14 +2,15 @@
 import type { MenuButtonItem } from '../../types/menu'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
-import { isDark, toggleDark } from '../../composables'
+import { useRouter } from 'vue-router'
+import { isDark, toggleDark, useAdvContext } from '../../composables'
 import { useAppStore, useSettingsStore } from '../../stores'
 
 const { t, locale, availableLocales } = useI18n()
 
 const app = useAppStore()
 const settings = useSettingsStore()
+const { $adv } = useAdvContext()
 
 function toggleLocales() {
   // change to some real logic
@@ -18,11 +19,11 @@ function toggleLocales() {
 }
 
 const router = useRouter()
-const route = useRoute()
+const hasPage = (path: string) => router.getRoutes().some(route => route.path === path)
 
 const menuItems = computed<MenuButtonItem[]>(() => {
   const items
-    = route.path === '/game'
+    = $adv.store.current
       ? [
           {
             title: t('menu.save_game'),
@@ -40,23 +41,27 @@ const menuItems = computed<MenuButtonItem[]>(() => {
       app.menus.settings = false
       app.toggleShowLoadMenu()
     },
-  }, {
-    title: t('menu.back_home'),
-    do: () => {
-      app.menus.settings = false
-      router.push('/start')
-    },
-  }, {
+  }, ...(hasPage('/start')
+    ? [{
+        title: t('menu.back_home'),
+        do: () => {
+          app.menus.settings = false
+          router.push('/start')
+        },
+      }]
+    : []), {
     title: t('menu.reset_settings'),
     do: () => {
       settings.resetSettings()
     },
-  }, {
-    title: t('menu.help'),
-    do: () => {
-      router.push('/help')
-    },
-  }]
+  }, ...(hasPage('/help')
+    ? [{
+        title: t('menu.help'),
+        do: () => {
+          router.push('/help')
+        },
+      }]
+    : [])]
 })
 </script>
 

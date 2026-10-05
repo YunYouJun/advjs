@@ -129,10 +129,11 @@ async function loadFromCard() {
     return
   $adv.runtime.restore(record.value.snapshot)
 
-  // 关闭加载菜单
-  app.toggleShowLoadMenu()
+  // Embedded players restore in place; only standalone menus need navigation.
+  const inGameMenu = app.showLoadMenu
+  app.showLoadMenu = false
 
-  if (route.path !== '/game')
+  if (!inGameMenu && route.path !== '/game')
     await router.push('/game')
 }
 

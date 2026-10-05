@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DisplayMode, DisplaySpeed } from '@advjs/client'
-import { onMounted, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const props = withDefaults(defineProps<{
   speed?: DisplaySpeed
@@ -45,7 +45,6 @@ function playWordsAnimation() {
     if (len.value === props.words.length) {
       clearInterval(intervalId.value)
       printed.value = true
-      emit('end')
     }
 
     len.value++
@@ -55,6 +54,7 @@ function playWordsAnimation() {
 onMounted(() => {
   playWordsAnimation()
 })
+onBeforeUnmount(() => clearInterval(intervalId.value))
 
 watch(() => props.words, () => {
   if (intervalId.value)
@@ -72,6 +72,7 @@ watch(() => printed.value, (newVal) => {
   if (newVal && intervalId.value) {
     clearInterval(intervalId.value)
     len.value = props.words.length
+    emit('end')
   }
 })
 

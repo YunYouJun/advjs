@@ -57,6 +57,7 @@ const curWords = computed(() => {
         v-model:printed="printed"
         :animation="animation"
         :speed="settings.storage.text.curSpeed"
+        :mode="settings.storage.text.curDisplayMode"
         :words="curWords"
         @end="$adv.$auto.notifyPrintDone()"
       />

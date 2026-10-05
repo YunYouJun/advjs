@@ -1,6 +1,6 @@
 import type { AdvContext } from '../types'
 import { useStorage } from '@vueuse/core'
-import { shallowRef, watch } from 'vue'
+import { getCurrentScope, onScopeDispose, shallowRef, watch } from 'vue'
 
 /**
  * Auto-play and skip mode controller.
@@ -17,6 +17,7 @@ export function useAdvAuto($adv: AdvContext) {
   const skipInterval = useStorage('advjs-skip-interval', 80)
 
   let timer: ReturnType<typeof setTimeout> | null = null
+  let printDone = false
 
   function clearTimer() {
     if (timer) {
@@ -32,35 +33,38 @@ export function useAdvAuto($adv: AdvContext) {
     return node.kind === 'choices' || node.kind === 'end'
   }
 
-  /**
-   * Called by AdvDialogBox when the PrintWords typewriter completes its current run.
-   * Drives auto-advance after the configured delay.
-   */
-  function notifyPrintDone() {
+  function scheduleAdvance() {
     clearTimer()
-    if (shouldHalt())
+    if (shouldHalt()) {
+      enabled.value = false
+      skipEnabled.value = false
       return
+    }
     if (skipEnabled.value) {
       timer = setTimeout(() => $adv.runtime.next(), skipInterval.value)
       return
     }
-    if (!enabled.value)
+    if (!enabled.value || !printDone)
       return
     timer = setTimeout(() => $adv.runtime.next(), delay.value)
+  }
+
+  /** Remember completion even when auto-play is enabled after the line finishes. */
+  function notifyPrintDone() {
+    printDone = true
+    scheduleAdvance()
   }
 
   // Skip mode keeps the flow running even if a node has no typewriter
   // (scene transitions, narration without PrintWords, etc.).
   watch(() => $adv.store.current, () => {
-    clearTimer()
-    if (skipEnabled.value && !shouldHalt())
-      timer = setTimeout(() => $adv.runtime.next(), skipInterval.value)
-  })
+    printDone = false
+    scheduleAdvance()
+  }, { flush: 'sync' })
 
-  watch([enabled, skipEnabled], ([e, s]) => {
-    if (!e && !s)
-      clearTimer()
-  })
+  watch([enabled, skipEnabled], scheduleAdvance)
+  if (getCurrentScope())
+    onScopeDispose(clearTimer)
 
   function toggle() {
     enabled.value = !enabled.value
