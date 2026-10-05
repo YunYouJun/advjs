@@ -28,7 +28,7 @@ async function copyBrief() {
 </script>
 
 <template>
-  <section class="text-sm p-4 flex flex-col gap-3">
+  <section class="character-visual-panel text-xs p-3 flex flex-col gap-3">
     <div class="flex gap-2 items-center justify-between">
       <h3 class="font-bold">
         {{ character.name }} · {{ $t('characters.visual.title') }}
@@ -41,7 +41,7 @@ async function copyBrief() {
       <div class="text-xs font-mono op-70">
         {{ visual.version }}
       </div>
-      <figure v-for="(reference, index) in previews" :key="`${index}:${reference.path}`" class="m-0 p-2 rounded-lg bg-black/10">
+      <figure v-for="(reference, index) in previews" :key="`${index}:${reference.path}`" class="character-reference m-0 p-2">
         <a v-if="reference.src" :href="reference.src" target="_blank" rel="noopener noreferrer">
           <img :src="reference.src" :alt="reference.description || character.name" class="rounded max-h-72 w-full object-contain">
         </a>
@@ -95,3 +95,13 @@ async function copyBrief() {
     </p>
   </section>
 </template>
+
+<style scoped>
+.character-visual-panel {
+  color: var(--agui-c-text);
+}
+.character-reference {
+  background: var(--agui-c-bg-soft);
+  border: 1px solid var(--agui-c-divider-light);
+}
+</style>

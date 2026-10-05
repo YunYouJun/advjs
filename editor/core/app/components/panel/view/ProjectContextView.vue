@@ -43,35 +43,30 @@ async function copyContextForAI(): Promise<void> {
 </script>
 
 <template>
-  <div class="project-context-view" p-3>
-    <p v-if="contextStore.isLoaded" class="text-xs mb-3 op-70">
+  <div class="project-context-view">
+    <p v-if="contextStore.isLoaded" class="context-heading">
       {{ projectStore.rootDir?.name }} · {{ $t('workspace.savedContext') }}
     </p>
-    <div v-if="contextStore.isLoaded" class="mb-4 gap-2 grid grid-cols-3">
-      <div v-for="stat in statistics" :key="stat.label" class="p-3 text-center rounded-lg bg-blue-500/10">
-        <div class="text-2xl text-blue-400 font-bold">
-          {{ stat.value }}
-        </div>
-        <div class="text-xs op-70">
-          {{ stat.label }}
-        </div>
+    <dl v-if="contextStore.isLoaded" class="context-statistics">
+      <div v-for="stat in statistics" :key="stat.label">
+        <dt>{{ stat.label }}</dt><dd>{{ stat.value }}</dd>
       </div>
-    </div>
-    <div class="mb-4 flex gap-2">
-      <button
-        class="text-sm adv-btn text-white px-3 py-1.5 rounded bg-blue-600 flex-1 hover:bg-blue-700 disabled:op-50"
+    </dl>
+    <div class="context-actions">
+      <AGUIButton
+        size="mini"
         :disabled="!contextStore.isLoaded || isRefreshing"
         @click="loadFromProject"
       >
         {{ $t(isRefreshing ? 'workspace.refreshing' : 'common.refresh') }}
-      </button>
-      <button
+      </AGUIButton>
+      <AGUIButton
         v-if="hasContext"
-        class="text-sm adv-btn text-white px-3 py-1.5 rounded bg-green-600 flex-1 hover:bg-green-700"
+        size="mini"
         @click="copyContextForAI"
       >
         {{ $t('workspace.copyForAI') }}
-      </button>
+      </AGUIButton>
     </div>
     <p v-if="error" role="alert" class="text-sm text-red-400 mb-3">
       {{ error }}
@@ -84,12 +79,12 @@ async function copyContextForAI(): Promise<void> {
         v-for="section in contextStore.sections"
         :key="section.title"
         :open="section.title === 'World' || section.title === 'Outline'"
-        class="mb-3"
+        class="context-section"
       >
-        <summary class="font-bold mb-1 cursor-pointer select-none">
+        <summary class="context-section-heading">
           {{ $t(`workspace.sections.${section.title.toLowerCase().replaceAll(' ', '_')}`) }}
         </summary>
-        <pre class="context-block text-xs p-2 rounded bg-gray-100 dark:bg-gray-800">{{ section.content }}</pre>
+        <pre class="context-block">{{ section.content }}</pre>
       </details>
     </template>
     <div v-else class="text-sm py-8 text-center op-50">
@@ -99,7 +94,61 @@ async function copyContextForAI(): Promise<void> {
 </template>
 
 <style scoped>
+.project-context-view {
+  padding: 10px;
+  color: var(--agui-c-text);
+  background: var(--agui-c-bg-panel);
+}
+.context-heading {
+  margin: 0 0 8px;
+  color: var(--agui-c-text-2);
+  font-size: 11px;
+}
+.context-statistics {
+  display: flex;
+  gap: 16px;
+  margin: 0 0 10px;
+  font-size: 11px;
+}
+.context-statistics > div {
+  display: flex;
+  gap: 5px;
+}
+.context-statistics dt {
+  color: var(--agui-c-text-2);
+}
+.context-statistics dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.context-actions {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.context-section {
+  border-top: 1px solid var(--agui-c-divider-light);
+}
+.context-section-heading {
+  padding: 7px 2px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+}
+.context-section-heading:hover {
+  background: var(--agui-c-bg-hover);
+}
+.context-section-heading:focus-visible {
+  outline: 1px solid var(--agui-c-focus);
+}
 .context-block {
+  margin: 0 0 8px;
+  padding: 8px;
+  font-size: 11px;
+  color: var(--agui-c-text-2);
+  background: var(--agui-c-bg-soft);
+  border: 1px solid var(--agui-c-divider-light);
   white-space: pre-wrap;
   word-break: break-word;
   max-height: 300px;

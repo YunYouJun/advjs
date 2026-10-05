@@ -4,6 +4,7 @@ import { Toast } from '@advjs/gui'
 import { parseCharacterMd } from '@advjs/parser'
 import consola from 'consola'
 import { ref } from 'vue'
+import ProjectFileTree from './ProjectFileTree.vue'
 
 const { t } = useI18n()
 const tabList = computed(() => [
@@ -33,6 +34,9 @@ const fileStore = useFileStore()
 const characterStore = useCharacterStore()
 const app = useAppStore()
 const openingLocalFile = shallowRef(false)
+const selectedPath = computed(() => app.activeInspector === 'character'
+  ? (characterStore.selectedCharacterHandle as unknown as { path?: string } | undefined)?.path
+  : fileStore.openedFilePath)
 
 function onRename(item: FSItem, newName: string) {
   if (projectStore.workspaceMode === 'local')
@@ -166,10 +170,14 @@ function onOpenRootDir(dir?: FSDirItem) {
 <template>
   <AGUIPanel w="full" h="full">
     <AGUITabs v-model="curTab" :list="tabList">
-      <AGUITabPanel value="project">
-        <div v-if="projectStore.project" class="text-xs p-2 border-b border-white/8">
-          <div class="mb-1 op-70 flex gap-3">
-            <span>{{ projectStore.workspaceMode === 'local' ? t('workspace.liveLocal') : t('workspace.browser') }}</span>
+      <AGUITabPanel value="project" class="project-content">
+        <div v-if="projectStore.project" class="project-summary">
+          <div class="project-summary-row">
+            <span i-ri-folder-open-line aria-hidden="true" />
+            <strong>{{ projectStore.rootDir?.name }}</strong>
+            <span class="project-mode">{{ projectStore.workspaceMode === 'local' ? t('workspace.liveLocal') : t('workspace.browser') }}</span>
+          </div>
+          <div class="project-summary-row project-counts">
             <span>{{ t('workspace.chapterCount', { count: projectStore.chapters.length }) }}</span>
             <span>{{ t('workspace.characterCount', { count: projectStore.characters.length }) }}</span>
             <span>{{ t('workspace.sceneCount', { count: projectStore.scenes.length }) }}</span>
@@ -184,18 +192,8 @@ function onOpenRootDir(dir?: FSDirItem) {
             {{ diagnostic.code }} · {{ diagnostic.path || 'project' }} · {{ diagnostic.message }}
           </div>
         </div>
-        <div v-if="projectStore.workspaceMode === 'local'" class="p-2 h-full overflow-auto">
-          <button
-            v-for="path in projectStore.localFilePaths"
-            :key="path"
-            class="text-xs px-2 py-1 text-left rounded w-full block truncate hover:bg-white/8"
-            :title="path"
-            :disabled="openingLocalFile"
-            @click="onLocalFileClick(path)"
-          >
-            <span i-ri-file-text-line class="mr-1 inline-block" />
-            {{ path }}
-          </button>
+        <div v-if="projectStore.workspaceMode === 'local'" class="project-files">
+          <ProjectFileTree :paths="projectStore.localFilePaths" :selected-path="selectedPath" :busy="openingLocalFile" @open="onLocalFileClick" />
         </div>
         <AGUIAssetsExplorer
           v-else
@@ -223,3 +221,43 @@ function onOpenRootDir(dir?: FSDirItem) {
     </AGUITabs>
   </AGUIPanel>
 </template>
+
+<style scoped>
+.project-content[data-state='active'] {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.project-summary {
+  flex: none;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: var(--agui-c-text-2);
+  border-bottom: 1px solid var(--agui-c-divider-light);
+  background: var(--agui-c-bg-panel);
+}
+.project-summary-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.project-summary-row strong {
+  font-weight: 500;
+  color: var(--agui-c-text);
+}
+.project-mode {
+  margin-left: auto;
+}
+.project-counts {
+  margin-top: 4px;
+}
+.project-files {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding-block: 4px;
+  background: var(--agui-c-bg-panel);
+}
+</style>
