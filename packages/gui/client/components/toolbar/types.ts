@@ -40,6 +40,7 @@ export interface ToolbarDropdown extends BaseToolbarItem {
     onClick: () => void
     icon?: string
     label?: string
+    disabled?: boolean
   }[]
 }
 

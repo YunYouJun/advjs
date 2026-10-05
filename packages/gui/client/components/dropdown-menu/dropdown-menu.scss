@@ -1,16 +1,15 @@
 .agui-dropdown-menu-content,
 .agui-dropdown-menu-sub-content {
   min-width: 220px;
-  background-color: rgba(22, 23, 24, 0.5);
-  backdrop-filter: blur(20px);
+  background-color: var(--agui-c-bg-soft);
   border: 1px solid var(--agui-c-divider);
 
-  border-radius: 6px;
+  border-radius: 4px;
   padding: 5px;
   box-shadow:
     0px 10px 38px -10px rgba(22, 23, 24, 0.35),
     0px 10px 20px -15px rgba(22, 23, 24, 0.8);
-  animation-duration: 400ms;
+  animation-duration: 150ms;
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform, opacity;
 
@@ -18,9 +17,8 @@
 }
 
 .agui-dropdown-menu-item {
-  color: var(--agui-c-text-1);
-
   all: unset;
+  color: var(--agui-c-text-1);
   font-size: 12px;
   line-height: 1;
   border-radius: 4px;
@@ -34,8 +32,18 @@
 }
 
 .agui-dropdown-menu-item {
+  &[data-disabled] {
+    opacity: 0.5;
+    pointer-events: none;
+  }
   &[data-highlighted] {
     background-color: var(--agui-c-active);
     color: white;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agui-dropdown-menu-content {
+    animation-duration: 0ms;
   }
 }

@@ -218,15 +218,23 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
   }
 
   async function refreshProject() {
-    return workspace.value
-      ? await activateProject(await workspace.value.snapshot())
-      : undefined
+    const source = workspace.value
+    if (!source)
+      return
+    const snapshot = await source.snapshot()
+    if (workspace.value !== source)
+      return
+    return await activateProject(snapshot)
   }
 
   async function commitProject(patches: readonly ProjectSourcePatch[]) {
     if (!workspace.value)
       throw new Error('No project workspace is open')
-    return await activateProject(await workspace.value.commit(patches))
+    const source = workspace.value
+    const snapshot = await source.commit(patches)
+    if (workspace.value !== source)
+      return
+    return await activateProject(snapshot)
   }
 
   async function loadLocalAgentStatus(): Promise<AdvAgentIntegrationStatus> {

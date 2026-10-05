@@ -13,7 +13,7 @@ const toggleGroupItemClasses
 
 <template>
   <ToolbarRoot
-    class="h-$agui-toolbar-height w-full flex gap-1 bg-$agui-c-bg px-1.5 py-1 shadow-black/70"
+    class="px-1.5 py-0.5 bg-$agui-c-bg flex gap-1 h-$agui-toolbar-height w-full shadow-black/70"
     aria-label="Formatting options"
   >
     <slot name="before-toolbar" />
@@ -23,12 +23,13 @@ const toggleGroupItemClasses
       <ToolbarSeparator
         v-else-if="item.type === 'separator'"
         :key="`separator:${key}`"
-        class="mx-1 my-2px w-1px bg-gray op-50"
+        class="mx-1 my-2px bg-gray op-50 w-1px"
       />
       <ToolbarButton
         v-else-if="item.type === 'button'"
         :key="item.name"
-        class="agui-button h-20px"
+        class="agui-button"
+        :aria-label="item.name || item.title"
         :title="item.title"
         @click="item.onClick"
       >

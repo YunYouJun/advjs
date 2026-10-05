@@ -5,46 +5,67 @@ import { TabsList, TabsRoot, TabsTrigger } from 'reka-ui'
 defineProps<{
   defaultValue?: string
   list: TabItem[]
+  label?: string
 }>()
+const model = defineModel<string | number>()
 </script>
 
 <template>
   <TabsRoot
-    class="agui-tab-group h-full w-full flex flex-col"
+    v-model="model"
+    class="agui-tab-group flex flex-col h-full min-h-0 min-w-0 w-full"
     :default-value="defaultValue"
   >
-    <TabsList
-      class="agui-tab-list flex justify-start bg-$agui-c-bg-soft"
-      aria-label="AETabs"
-    >
-      <TabsTrigger
-        v-for="item in list"
-        :key="item.title"
-        :value="item.key"
-        class="agui-tab-btn inline-flex border-none outline-none"
+    <div class="agui-tab-heading">
+      <TabsList
+        class="agui-tab-list bg-$agui-c-bg-soft flex justify-start"
+        :aria-label="label || 'AETabs'"
       >
-        <div
-          class="h-full inline-flex cursor-pointer items-center justify-center text-xs text-white"
-          mr-1 px-2
+        <TabsTrigger
+          v-for="item in list"
+          :key="item.key"
+          :value="item.key"
+          class="agui-tab-btn border-none inline-flex"
         >
-          <div v-if="item.icon" mr-1 :class="item.icon" />
-          <div>
-            {{ item.title }}
+          <div
+            class="text-xs text-$agui-c-text-1 inline-flex h-full cursor-pointer items-center justify-center"
+            mr-1 px-2
+          >
+            <div v-if="item.icon" mr-1 :class="item.icon" />
+            <div>
+              {{ item.title }}
+            </div>
           </div>
-        </div>
-      </TabsTrigger>
-    </TabsList>
+        </TabsTrigger>
+      </TabsList>
+      <slot name="actions" />
+    </div>
 
-    <div style="height:calc(100% - 20px)" overflow-y="auto">
+    <div class="flex-1 min-h-0 overflow-y-auto">
       <slot />
     </div>
   </TabsRoot>
 </template>
 
 <style lang="scss">
+.agui-tab-heading {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-width: 0;
+  background: var(--agui-c-bg-soft);
+}
 .agui-tab-list {
-  height: var(--agui-tab-list-height, 20px);
+  min-height: var(--agui-tab-list-height, 24px);
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
   line-height: 1.4;
+
+  .agui-tab-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
 
   .active {
     border-top-left-radius: 4px;

@@ -1,0 +1,17 @@
+{
+  "name": "@advjs/editor-sdk",
+  "type": "module",
+  "version": "0.1.4",
+  "description": "Typed UI extensions for the ADV.JS desktop editor",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YunYouJun/advjs.git",
+    "directory": "packages/editor-sdk"
+  },
+  "publishConfig": { "access": "public" },
+  "exports": { ".": { "types": "./dist/index.d.mts", "import": "./dist/index.mjs" } },
+  "files": ["dist"],
+  "scripts": { "build": "unbuild", "dev": "unbuild --stub", "prepublishOnly": "pnpm run build" },
+  "peerDependencies": { "vue": "catalog:frontend" },
+  "devDependencies": { "typescript": "catalog:dev", "unbuild": "catalog:build", "vue": "catalog:frontend" }
+}

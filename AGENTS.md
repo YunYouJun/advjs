@@ -86,6 +86,13 @@ External integrations: Babylon.js 3D (`plugin-babylon`), Three.js (`plugin-three
 - Lint-staged runs on `*.{js,ts,vue}` files via Husky pre-commit hooks
 - TypeScript strict mode with `verbatimModuleSyntax`
 
+## Editor UI Design
+
+- Before changing desktop editor UI in `editor/` or shared editor components in `packages/gui/`, read [the AGUI design specification](docs/agui/design.md). It is the authoritative visual specification for these surfaces.
+- Follow the Blender-inspired compact workspace: neutral surfaces, restrained blue interaction states, small controls, docked panels, and content-first hierarchy. Reuse AGUI components and `--agui-*` tokens; do not create a separate visual system inside a feature panel.
+- Desktop editor chrome must not inherit Studio's mobile card sizes, purple/gold brand surfaces, or decorative gradients. `apps/studio/` retains its own mobile-first design rules; game content and themes retain their art direction.
+- Keep detailed rules in the design specification, implementation values in shared tokens/components, and review UI changes with screenshots at normal and narrow panel widths. Existing inconsistent UI and generated design mockups are not design precedents.
+
 ## TSConfig Path Aliases
 
 Key aliases defined in `tsconfig.json`:

@@ -6,12 +6,13 @@ const props = defineProps<{
    * tab key
    */
   value: string | number
+  forceMount?: boolean
 }>()
 </script>
 
 <template>
   <TabsContent
-    class="relative h-full w-full text-sm text-white"
+    class="text-[13px] text-$agui-c-text-1 h-full w-full relative"
     v-bind="props"
     :value="value"
   >

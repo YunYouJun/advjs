@@ -34,167 +34,119 @@ const classes = computed(() => {
   <button
     :class="classes"
     :disabled="disabled || loading"
+    :aria-busy="loading || undefined"
+    type="button"
     class="agui-button"
   >
-    <div v-if="loading" class="i-svg-spinners:ring-resize mr-1 inline-flex text-xs" />
-    <div v-else-if="icon" class="mr-1 inline-flex" :class="icon" />
+    <div v-if="loading" aria-hidden="true" class="i-svg-spinners:ring-resize text-xs mr-1 inline-flex" />
+    <div v-else-if="icon" aria-hidden="true" class="mr-1 inline-flex" :class="icon" />
     <slot />
   </button>
 </template>
 
 <style lang="scss">
 .agui-button {
+  --button-bg: var(--agui-c-control);
+  --button-hover: var(--agui-c-control-hover);
+  --button-pressed: var(--agui-c-control-pressed);
+  --button-text: var(--agui-c-text-1);
+  --button-border: var(--agui-c-control-border);
   --border-radius: 2px;
-}
 
-.agui-button {
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
-  padding: 0 6px;
+  flex-shrink: 0;
+  min-height: var(--agui-control-height);
+  min-width: var(--agui-control-height);
+  padding: 2px 6px;
+  font-family: inherit;
   font-size: 12px;
-
+  font-weight: 400;
+  line-height: 16px;
   appearance: none;
-  background: rgba(88, 88, 88, 1) no-repeat center center;
-  color: #e6e6e6;
+  background: var(--button-bg);
+  color: var(--button-text);
   cursor: pointer;
-  border: 1px solid transparent;
-
+  border: 1px solid var(--button-border);
   border-radius: var(--border-radius);
-  box-shadow: 0 1px 1px rgba(black, 0.3);
-
   transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease;
+    background-color 150ms ease,
+    border-color 150ms ease;
 
-  &[data-location='ALONE'] {
-    border-radius: var(--border-radius);
-  }
   &[data-location='LEFT'] {
-    border-top-left-radius: var(--border-radius) var(--border-radius);
-    border-bottom-left-radius: var(--border-radius) var(--border-radius);
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
   }
   &[data-location='RIGHT'] {
-    border-top-right-radius: var(--border-radius) var(--border-radius);
-    border-bottom-right-radius: var(--border-radius) var(--border-radius);
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
   }
-
-  &:hover {
-    background: rgba(100, 100, 100, 1);
-    color: #ffffff;
+  &:hover:not(:disabled) {
+    background: var(--button-hover);
   }
-  &.pressed,
-  &:active {
-    background-color: #4772b3;
-    color: #ffffff;
+  &:active:not(:disabled),
+  &.pressed {
+    background: var(--button-pressed);
   }
-
+  &:focus-visible {
+    outline: 2px solid var(--agui-c-focus);
+    outline-offset: -2px;
+  }
   &.mini {
-    font-size: 9px;
+    font-size: 11px;
+  }
+  &.large {
+    min-height: 28px;
+    padding-inline: 8px;
   }
 
-  // Theme: primary
   &.theme-primary {
-    background-color: #4772b3;
-    color: #ffffff;
-
-    &:hover {
-      background-color: #5a85c6;
-    }
-    &:active {
-      background-color: #3a5f96;
-    }
+    --button-bg: var(--agui-c-primary);
+    --button-hover: var(--agui-c-primary-hover);
+    --button-pressed: var(--agui-c-primary-pressed);
+    --button-text: var(--agui-c-on-accent);
+    --button-border: var(--agui-c-primary);
   }
-
-  // Theme: danger
   &.theme-danger {
-    background-color: #b34747;
-    color: #ffffff;
-
-    &:hover {
-      background-color: #c65a5a;
-    }
-    &:active {
-      background-color: #963a3a;
-    }
+    --button-bg: var(--agui-c-danger);
+    --button-hover: var(--agui-c-danger-hover);
+    --button-pressed: var(--agui-c-danger-pressed);
+    --button-text: var(--agui-c-on-accent);
+    --button-border: var(--agui-c-danger);
   }
-
-  // Variant: outline
-  &.variant-outline {
-    background: transparent;
-    border: 1px solid #585858;
-    box-shadow: none;
-
-    &:hover {
-      border-color: #777;
-      background: rgba(100, 100, 100, 0.2);
-    }
-
-    &.theme-primary {
-      border-color: #4772b3;
-      color: #7ba4d9;
-      background: transparent;
-
-      &:hover {
-        background: rgba(71, 114, 179, 0.15);
-        border-color: #5a85c6;
-      }
-    }
-
-    &.theme-danger {
-      border-color: #b34747;
-      color: #d97b7b;
-      background: transparent;
-
-      &:hover {
-        background: rgba(179, 71, 71, 0.15);
-        border-color: #c65a5a;
-      }
-    }
-  }
-
-  // Variant: text
+  &.variant-outline,
   &.variant-text {
     background: transparent;
-    border: none;
-    box-shadow: none;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.1);
+    color: var(--agui-c-text-1);
+    &:hover:not(:disabled) {
+      background: var(--agui-c-bg-hover);
     }
-
+    &:active:not(:disabled) {
+      background: var(--agui-c-control-pressed);
+    }
     &.theme-primary {
-      color: #7ba4d9;
-      &:hover {
-        background: rgba(71, 114, 179, 0.15);
-      }
+      color: var(--agui-c-link);
     }
-
     &.theme-danger {
-      color: #d97b7b;
-      &:hover {
-        background: rgba(179, 71, 71, 0.15);
-      }
+      color: var(--agui-c-danger-text);
     }
   }
-
-  // Disabled
+  &.variant-text {
+    border-color: transparent;
+  }
   &.is-disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    pointer-events: none;
   }
-
-  // Loading
   &.is-loading {
     cursor: wait;
-    pointer-events: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .agui-button {
+    transition: none;
   }
 }
 </style>

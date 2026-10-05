@@ -4,8 +4,9 @@ import { initAdvContext, initAdvData } from '@advjs/client/compiler'
 import { advConfigSymbol, gameConfigSymbol, themeConfigSymbol } from '@advjs/core'
 import { mountCssVarsRootStyle } from '@advjs/gui/client'
 import { appName } from '~/constants'
-
 import { injectionAdvContext } from '../../../packages/client/constants'
+
+import { useEditorExtensions } from './composables/useEditorExtensions'
 import './styles'
 
 useHead({
@@ -31,6 +32,7 @@ nuxtApp.vueApp.provide(advConfigSymbol, advContext.config || {})
 nuxtApp.vueApp.provide(gameConfigSymbol, advContext.gameConfig)
 nuxtApp.vueApp.provide(themeConfigSymbol, advContext.themeConfig)
 const projectStore = useProjectStore()
+useEditorExtensions()
 
 onMounted(async () => {
   // @advjs/gui

@@ -384,6 +384,10 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
               text: '节点编辑器',
               link: '/guide/editor/flow',
             },
+            {
+              text: 'UI 插件',
+              link: '/guide/editor/ui-plugins',
+            },
           ],
         },
         {

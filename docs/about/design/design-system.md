@@ -2,7 +2,9 @@
 
 > 「紫幕金章」—— 以深紫为底色书写冒险，以金色点亮每一个创作灵感。
 
-ADV.JS Design System 是 ADV.JS 全平台的统一视觉语言，横跨 **Studio**（移动端 App）和 **Editor**（桌面端编辑器）两大产品形态。
+ADV.JS Design System 记录品牌语言与 **Studio**（移动端 App）、**Editor**（桌面端编辑器）的设计分工。两个产品共享品牌识别与内容语义，控件密度、外壳配色与交互模式按创作场景区分。
+
+> **桌面编辑器规范入口：** [AGUI 桌面编辑器设计规范](/agui/design)。`editor/` 与 `packages/gui/` 的 UI 以该规范为准。本页的紫金品牌色、渐变、卡片、字号与动效 token 主要面向 Studio 和品牌展示，不覆盖桌面编辑器的中性灰外壳、蓝色交互态及紧凑控件。
 
 ## 设计哲学
 
@@ -45,7 +47,7 @@ ADV.JS 是一个**文字冒险游戏创作平台**，它的用户既是创作者
 ├─────────────────────────────────────────────────────────────┤
 │  共享层                                                     │
 │  @advjs/core · @advjs/parser · @advjs/types                │
-│  品牌色 · 渐变 · 动效缓动 · 语义色 · 游戏渲染引擎          │
+│  品牌识别 · 内容语义 · 游戏渲染引擎                        │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -58,7 +60,7 @@ ADV.JS 是一个**文字冒险游戏创作平台**，它的用户既是创作者
 | **面板**     | IonModal Sheet / Push 页面                     | 内联 Splitpanes，可拖拽调整大小                          |
 | **色调**     | 亮/暗切换，品牌色点缀                          | 默认暗色，类 IDE 沉浸感                                  |
 | **信息密度** | 适中——卡片式布局、大触控区域                   | 高——树形列表、属性面板、控制台                           |
-| **正文字号** | 15px (`--adv-font-body`)                       | `small` (浏览器默认约 13px)                              |
+| **正文字号** | 15px (`--adv-font-body`)                       | 控件 12–13px；长篇创作资料 13–14px                       |
 | **交互**     | 触控：滑动、长按、Sheet                        | 键鼠：拖拽、右键菜单、快捷键                             |
 | **组件库**   | S-Components + Ionic                           | AGUI + reka-ui                                           |
 | **CSS 方案** | CSS 变量 (`--adv-*`) + Scoped CSS              | UnoCSS (presetWind4 + presetAdv) + AGUI SCSS             |
@@ -79,7 +81,7 @@ ADV.JS 是一个**文字冒险游戏创作平台**，它的用户既是创作者
 - **史诗感 (Epic)** — 紫色的神秘与金色的辉煌，如翻开一本古老的冒险之书
 - **匠艺感 (Craft)** — 干净的排版与精确的间距，如专业创作工具的克制与优雅
 
-Studio 偏向 **Epic**（品牌感更强、氛围更浓），Editor 偏向 **Craft**（效率更高、信息更密）
+Studio 偏向 **Epic**（品牌感更强、氛围更浓），Editor 偏向 **Craft**（效率更高、信息更密）。桌面编辑器通过布局、对齐、文本层级体现创作工具气质，紫金品牌表达保留在标识等品牌内容中。
 
 ---
 
@@ -156,6 +158,8 @@ Studio 偏向 **Epic**（品牌感更强、氛围更浓），Editor 偏向 **Cra
 | `--adv-border-subtle`    | `rgba(255, 255, 255, 0.08)` | 分割线               |
 
 ### 色彩使用规则
+
+以下规则适用于 Studio 与品牌展示；桌面 Editor 使用 [AGUI 色彩体系](/agui/design#色彩体系)，不使用紫色发光或装饰渐变。
 
 1. **60-30-10 法则** — 60% 中性色（Surface）、30% Primary 点缀、10% Accent 高亮
 2. **品牌色不铺满** — Primary 主要用于交互元素（按钮、链接、选中），不做大面积背景
@@ -285,7 +289,7 @@ Studio 偏向 **Epic**（品牌感更强、氛围更浓），Editor 偏向 **Cra
 ### Editor 图标
 
 - **主图标库**：[Carbon Icons](https://carbondesignsystem.com/guidelines/icons/library/) + [Remix Icon](https://remixicon.com/)（通过 UnoCSS `presetIcons`）
-- **补充图标**：Element Plus Icons (ep)、MDI、Twemoji（表情）、SVG Spinners（加载）
+- **已有补充图标**：Element Plus Icons (ep)、MDI、SVG Spinners（加载）。新 UI 沿用所在面板的图标族，Twemoji 仅用于内容表达，不作为通用工具栏图标。
 
 ### 通用规范
 
@@ -442,7 +446,7 @@ ion-fab[vertical='bottom'] {
 | 维度         | 规范                                                                          |
 | ------------ | ----------------------------------------------------------------------------- |
 | **默认主题** | 暗色模式（类 IDE），通过 `@nuxtjs/color-mode` 管理，class 前缀 `editor-`      |
-| **正文字号** | `font-size: small`（浏览器默认约 13px），更高信息密度                         |
+| **正文字号** | 控件 12–13px；长篇创作资料 13–14px，具体尺寸以 AGUI 规范为准                  |
 | **面板管理** | `AGUILayout` + `Splitpanes`，支持嵌套 horizontal/vertical 分割                |
 | **代码编辑** | Monaco Editor（`vs-dark` 主题），通过 `nuxt-monaco-editor` 集成               |
 | **流程图**   | `@vue-flow` 节点编辑器 + `@dagrejs/dagre` 自动布局                            |
@@ -452,33 +456,31 @@ ion-fab[vertical='bottom'] {
 
 #### CSS 变量层级
 
-Editor 的样式变量来自三层，按优先级覆盖：
+Editor 按用途选择变量，不通过品牌色覆盖整套工具界面：
 
-```
---agui-*          ← AGUI 组件库基础变量（背景、边框、面板）
-  └─ --adv-*      ← ADV.JS 共享变量（品牌色、渐变、语义色）
-      └─ --adv-editor-*  ← Editor 专属变量（编辑器品牌色等）
+```text
+--agui-*        ← 工具外壳、背景、边框、文本、焦点与选中态
+--adv-editor-*  ← AGUI 尚不能表达的编辑器专属语义，优先复用 AGUI token
+--adv-*         ← 品牌展示或内容主题，不覆盖编辑器控件视觉
 ```
 
 ### 共享设计基础
 
-Studio 和 Editor 虽然平台策略不同，但共享以下设计基础：
+Studio 和 Editor 共享品牌识别和内容基础，控件视觉分别由各自的设计系统负责：
 
-| 共享层   | 内容                                     |
-| -------- | ---------------------------------------- |
-| 品牌色   | `#7c3aed` (Primary) + `#f59e0b` (Accent) |
-| 语义色   | Success / Warning / Danger / Info        |
-| 渐变     | `--adv-gradient-primary/warm/epic/gold`  |
-| 动效缓动 | `--adv-ease-default/in/out/bounce`       |
-| 游戏渲染 | `@advjs/core` + `@advjs/client` 主题组件 |
-| 解析引擎 | `@advjs/parser` AdvScript 解析           |
-| 类型定义 | `@advjs/types` 共享数据结构              |
+| 共享层   | 内容                                                         |
+| -------- | ------------------------------------------------------------ |
+| 品牌识别 | Logo 与品牌展示；不要求两种产品使用相同控件颜色              |
+| 状态语义 | Success / Warning / Danger / Info，具体色值由各自 token 定义 |
+| 游戏渲染 | `@advjs/core` + `@advjs/client` 主题组件                     |
+| 解析引擎 | `@advjs/parser` AdvScript 解析                               |
+| 类型定义 | `@advjs/types` 共享数据结构                                  |
 
 ---
 
 ## 代码现状审计与改进路线
 
-> 基于 2026-04 对 `apps/studio/src/` 和 `editor/core/` 的全面审查。
+> 现状数字来自 2026-04 的历史审查，并非本次重新统计。Editor 设计方向于 2026-10-05 调整为以 AGUI 桌面规范为准。
 
 ### Studio 现状评估
 
@@ -496,14 +498,14 @@ Studio 和 Editor 虽然平台策略不同，但共享以下设计基础：
 
 ### Editor 现状评估
 
-| 维度          | 状态      | 说明                                                               |
-| ------------- | --------- | ------------------------------------------------------------------ |
-| 面板布局      | ✅ 良好   | Splitpanes 可拖拽、比例持久化、嵌套布局完整                        |
-| AGUI 组件使用 | ✅ 良好   | 45+ 处引用，组件化程度高                                           |
-| 暗色模式      | ✅ 良好   | 默认暗色，`@nuxtjs/color-mode` 管理                                |
-| CSS 变量体系  | ⚠️ 双轨   | `--agui-*` 和 `--adv-*` 两套体系共存，部分交叉                     |
-| 移动端适配    | ❌ 无     | 纯桌面端应用，无响应式（合理，PC-First 定位）                      |
-| 品牌色统一    | ⚠️ 待更新 | Editor 品牌色 `--adv-editor-xxx: #0078e7` 与 Studio 的紫色系不一致 |
+| 维度          | 状态      | 说明                                                                 |
+| ------------- | --------- | -------------------------------------------------------------------- |
+| 面板布局      | ✅ 良好   | Splitpanes 可拖拽、比例持久化、嵌套布局完整                          |
+| AGUI 组件使用 | ✅ 良好   | 45+ 处引用，组件化程度高                                             |
+| 暗色模式      | ✅ 良好   | 默认暗色，`@nuxtjs/color-mode` 管理                                  |
+| CSS 变量体系  | ⚠️ 双轨   | `--agui-*` 和 `--adv-*` 两套体系共存，部分交叉                       |
+| 移动端适配    | ❌ 无     | 纯桌面端应用，无响应式（合理，PC-First 定位）                        |
+| 交互色语义    | ⚠️ 待梳理 | 复用 AGUI 蓝色交互 token；占位名 `--adv-editor-xxx` 应按实际用途清理 |
 
 ### 重点问题
 
@@ -539,17 +541,17 @@ Studio 和 Editor 虽然平台策略不同，但共享以下设计基础：
 }
 ```
 
-#### 4. 双品牌色不统一 (跨产品)
+#### 4. 桌面编辑器规范与实现脱节
 
-Studio 使用 `#6366f1`（Indigo），Editor 使用 `#0078e7`（蓝色），两者与设计系统定义的 `#7c3aed`（深紫）均不一致。
+桌面编辑器的蓝色交互态与 Studio 的紫色品牌表达可以并存。需要修复的是同一编辑器内绕过 AGUI 的局部样式，例如 `ProjectContextView.vue` 的统计卡、蓝绿操作按钮和固定灰蓝内容背景。应复用组件和语义 token，而不是将编辑器全量改成紫色。
 
 ### 改进路线
 
-#### P0 — 品牌色统一
+#### P0 — 各产品内部视觉统一
 
 1. Studio `variables.css`：`--ion-color-primary` 从 `#6366f1` → `#7c3aed`
-2. Editor `css-vars.scss`：`--adv-editor-xxx` 从 `#0078e7` → 与品牌色对齐
-3. PWA `theme_color` 统一
+2. Editor：按 [AGUI 规范](/agui/design) 迁移局部面板，统一共享控件与 token，按实际用途清理占位变量
+3. PWA `theme_color`：与所属产品外壳一致
 
 #### P1 — Studio Token 覆盖率
 

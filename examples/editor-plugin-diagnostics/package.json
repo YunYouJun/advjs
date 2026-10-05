@@ -1,0 +1,8 @@
+{
+  "name": "@advjs/editor-plugin-diagnostics",
+  "type": "module",
+  "version": "0.1.4",
+  "private": true,
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": { "@advjs/editor-sdk": "workspace:*", "@advjs/gui": "workspace:*", "vue": "catalog:frontend" }
+}

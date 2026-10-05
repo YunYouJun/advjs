@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import type { ToolbarItem } from '@advjs/gui'
 import { useEditorCapabilities } from '../../composables/useEditorCapabilities'
+import { useEditorLayoutState } from '../../extensions/layout-state'
+import EditorCommandBar from '../extensions/EditorCommandBar.vue'
 
 const app = useAppStore()
+const viewLayout = useEditorLayoutState()
+const { t } = useI18n()
 const capabilities = useEditorCapabilities()
 const userStore = useUserStore()
 const githubStore = capabilities.integrations.github ? useGitHubStore() : undefined
@@ -14,10 +18,9 @@ const tools = computed<ToolbarItem[]>(() => {
     {
       type: 'button',
       icon: 'i-ri-puzzle-line',
-      title: 'Manage Plugins',
+      title: t('extensions.manage'),
       onClick: () => {
-      // eslint-disable-next-line no-alert
-        alert('WIP: Manage Plugins')
+        viewLayout.select('bottom', 'advjs.core/plugins')
       },
     },
     {
@@ -39,6 +42,7 @@ const tools = computed<ToolbarItem[]>(() => {
       name: 'Reset Layout',
       onClick: () => {
         app.resetLayout()
+        viewLayout.reset()
       },
     },
   ]
@@ -109,6 +113,10 @@ const tools = computed<ToolbarItem[]>(() => {
 </script>
 
 <template>
-  <AGUIToolbar :items="tools" />
+  <AGUIToolbar :items="tools">
+    <template #before-toolbar>
+      <EditorCommandBar toolbar />
+    </template>
+  </AGUIToolbar>
   <AELoginDialog v-model:open="dialogStore.openStates.login" />
 </template>

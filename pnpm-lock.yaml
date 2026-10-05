@@ -1219,9 +1219,18 @@ importers:
       '@advjs/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@advjs/editor-plugin-diagnostics':
+        specifier: workspace:*
+        version: link:../../examples/editor-plugin-diagnostics
+      '@advjs/editor-sdk':
+        specifier: workspace:*
+        version: link:../../packages/editor-sdk
       '@advjs/gui':
         specifier: workspace:*
         version: link:../../packages/gui
+      '@advjs/parser':
+        specifier: workspace:*
+        version: link:../../packages/parser
       '@advjs/unocss':
         specifier: workspace:*
         version: link:../../packages/unocss
@@ -1421,6 +1430,18 @@ importers:
       vite-ssg:
         specifier: catalog:build
         version: 28.3.0(beasties@0.3.5)(prettier@3.9.6)(supports-color@10.2.2)(unhead@2.1.17)(vite@8.2.0(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.102.0)(terser@5.49.2)(tsx@4.23.9)(yaml@2.9.0))(vue-router@5.2.0(@vue/compiler-sfc@3.5.41)(esbuild@0.28.1)(pinia@4.0.2(@vue/devtools-api@8.2.1)(typescript@5.9.3)(vue@3.5.41(typescript@5.9.3)))(rolldown@1.2.3)(rollup@4.62.4)(vite@8.2.0(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.102.0)(terser@5.49.2)(tsx@4.23.9)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))(webpack@5.109.2(clean-css@5.3.3)(cssnano@8.0.4(postcss@8.5.25))(csso@5.0.5)(esbuild@0.28.1)(html-minifier-terser@7.2.0)(lightningcss@1.33.0)(postcss@8.5.25)(uglify-js@3.19.3)))(vue@3.5.41(typescript@5.9.3))
+
+  examples/editor-plugin-diagnostics:
+    dependencies:
+      '@advjs/editor-sdk':
+        specifier: workspace:*
+        version: link:../../packages/editor-sdk
+      '@advjs/gui':
+        specifier: workspace:*
+        version: link:../../packages/gui
+      vue:
+        specifier: catalog:frontend
+        version: 3.5.41(typescript@5.9.3)
 
   examples/singlefile:
     devDependencies:
@@ -1852,6 +1873,18 @@ importers:
       vite:
         specifier: 8.2.0
         version: 8.2.0(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.102.0)(terser@5.49.2)(tsx@4.23.9)(yaml@2.9.0)
+
+  packages/editor-sdk:
+    devDependencies:
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+      unbuild:
+        specifier: catalog:build
+        version: 3.6.1(sass@1.102.0)(typescript@5.9.3)(vue-tsc@3.3.9(typescript@5.9.3))(vue@3.5.41(typescript@5.9.3))
+      vue:
+        specifier: catalog:frontend
+        version: 3.5.41(typescript@5.9.3)
 
   packages/gui:
     dependencies:

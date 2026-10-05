@@ -133,3 +133,37 @@
   --agui-c-text-inverse-4: var(--agui-c-text-light-4);
   --agui-c-brand-highlight: var(--agui-c-brand-light);
 }
+
+// Shared desktop controls. Keep action colors separate from content/brand colors.
+:root {
+  --agui-control-height: 24px;
+  --agui-c-control: #eeeeee;
+  --agui-c-control-hover: #e2e2e2;
+  --agui-c-control-pressed: #d4d4d4;
+  --agui-c-control-border: #b8b8b8;
+  --agui-c-primary: #35639a;
+  --agui-c-primary-hover: #2f5788;
+  --agui-c-primary-pressed: #25476f;
+  --agui-c-danger: #aa3b3b;
+  --agui-c-danger-hover: #963434;
+  --agui-c-danger-pressed: #802c2c;
+  --agui-c-danger-text: #a12c2c;
+  --agui-c-on-accent: #ffffff;
+  --agui-c-link: #245d9d;
+  --agui-c-bg-summary: var(--agui-c-bg-panel-title);
+}
+.dark {
+  --agui-c-control: #505050;
+  --agui-c-bg-summary: var(--agui-c-bg-panel-title);
+  --agui-c-control-hover: #5c5c5c;
+  --agui-c-control-pressed: #454545;
+  --agui-c-control-border: #646464;
+  --agui-c-primary: #3c659b;
+  --agui-c-primary-hover: #436fa8;
+  --agui-c-primary-pressed: #315480;
+  --agui-c-danger: #ab4141;
+  --agui-c-danger-hover: #b44848;
+  --agui-c-danger-pressed: #923636;
+  --agui-c-danger-text: #ffa6a6;
+  --agui-c-link: #8fbaf0;
+}

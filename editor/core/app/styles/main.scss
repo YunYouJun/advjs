@@ -4,7 +4,7 @@ body {
   font-size: small;
 }
 
-// Remove the outline on focus
-:focus-visible {
-  outline: none;
+#advjs-editor :focus-visible {
+  outline: 2px solid var(--agui-c-focus);
+  outline-offset: -2px;
 }

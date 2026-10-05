@@ -159,5 +159,30 @@
     "openDir": "打开目录",
     "emptyHint": "点击「+」新建角色或「📂」打开角色目录",
     "backToDetail": "返回详情"
+  },
+  "context": {
+    "title": "创作上下文",
+    "inspector": "属性",
+    "savedContext": "已保存的创作资料",
+    "refresh": "刷新",
+    "copy": "复制给 AI",
+    "loading": "正在读取创作资料…",
+    "refreshed": "创作资料已刷新",
+    "copied": "创作资料已复制",
+    "copyFailed": "复制失败，请检查剪贴板权限后重试。",
+    "loadFailed": "读取失败，请检查项目访问权限后重试。",
+    "openProject": "打开项目以查看创作资料",
+    "empty": "暂无创作资料",
+    "emptyHint": "在 adv/ 中添加 world.md、outline.md、glossary.md 或各目录的 README 文件。",
+    "world": "世界观",
+    "outline": "剧情大纲",
+    "chapters": "章节",
+    "characters": "人物",
+    "scenes": "场景",
+    "glossary": "术语表"
+  },
+  "extensions": {
+    "manage": "管理插件",
+    "selectObject": "选择文件或人物以查看和编辑属性。"
   }
 }

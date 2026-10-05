@@ -9,6 +9,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      '@advjs/editor-sdk': fileURLToPath(new URL('./packages/editor-sdk/src/index.ts', import.meta.url)),
       '@advjs/assets': fileURLToPath(new URL('./packages/assets/src/index.ts', import.meta.url)),
       '#advjs/data': fileURLToPath(new URL('./tests/fixtures/adv-data.ts', import.meta.url)),
       '#advjs/game/chapters': fileURLToPath(new URL('./tests/fixtures/empty-list.ts', import.meta.url)),

@@ -21,7 +21,7 @@ const toggleState = ref(false)
 <template>
   <DropdownMenuRoot v-model:open="toggleState">
     <DropdownMenuTrigger
-      class="agui-button h-20px"
+      class="agui-button"
       :aria-label="data.title"
     >
       <div
@@ -42,7 +42,8 @@ const toggleState = ref(false)
           <DropdownMenuItem
             v-if="item.type === 'item'"
             class="agui-dropdown-menu-item"
-            @click="item.onClick"
+            :disabled="item.disabled"
+            @select="item.onClick"
           >
             <div
               v-if="item.icon"

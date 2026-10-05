@@ -43,7 +43,10 @@
   "devDependencies": {
     "@advjs/assets": "workspace:*",
     "@advjs/core": "workspace:*",
+    "@advjs/editor-plugin-diagnostics": "workspace:*",
+    "@advjs/editor-sdk": "workspace:*",
     "@advjs/gui": "workspace:*",
+    "@advjs/parser": "workspace:*",
     "@advjs/unocss": "workspace:*",
     "@dagrejs/dagre": "catalog:",
     "@google/model-viewer": "catalog:frontend",

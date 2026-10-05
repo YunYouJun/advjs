@@ -1,166 +1,101 @@
 <script setup lang="ts">
-const contextStore = useProjectContextStore()
-const projectStore = useProjectStore()
+import AGUIAccordion from '@advjs/gui/components/accordion/AGUIAccordion.vue'
+import AGUIAccordionItem from '@advjs/gui/components/accordion/AGUIAccordionItem.vue'
+import { ref } from 'vue'
+import { useProjectContextPanel } from '../../../composables/useProjectContextPanel'
+import ContextDocument from '../context/ContextDocument.vue'
 
-const hasContext = computed(() => contextStore.isLoaded && (
-  contextStore.worldContent
-  || contextStore.outlineContent
-  || contextStore.chaptersReadme
-  || contextStore.charsReadme
-  || contextStore.scenesReadme
-))
-
-/**
- * Load context from current project directory
- */
-async function loadFromProject() {
-  const rootDir = projectStore.rootDir
-  if (rootDir?.handle) {
-    await contextStore.loadContext(rootDir.handle as FileSystemDirectoryHandle)
-  }
-}
-
-/**
- * Copy merged context to clipboard for AI usage
- */
-async function copyContextForAI() {
-  const context = contextStore.getMergedContext()
-  await navigator.clipboard.writeText(context)
-}
-
-onMounted(() => {
-  if (!contextStore.isLoaded && projectStore.rootDir?.handle) {
-    loadFromProject()
-  }
-})
+const { t, sections, hasProject, hasContext, projectName, stats } = useProjectContextPanel()
+const expanded = ref(['world', 'outline'])
 </script>
 
 <template>
-  <div class="project-context-view" p-3>
-    <!-- Stats Cards -->
-    <div v-if="hasContext" class="stats-grid" mb-4 gap-2 grid grid-cols-3>
-      <div class="stat-card" p-3 text-center rounded-lg bg-blue-500:10>
-        <div text-2xl text-blue font-bold>
-          {{ contextStore.stats.chapters }}
-        </div>
-        <div text-xs op-70>
-          Chapters
-        </div>
+  <section class="project-context-view" :aria-label="t('context.title')">
+    <header class="context-header">
+      <div class="context-toolbar">
+        <span class="context-project" :title="projectName">{{ projectName || t('context.title') }}</span>
       </div>
-      <div class="stat-card" p-3 text-center rounded-lg bg-green-500:10>
-        <div text-2xl text-green font-bold>
-          {{ contextStore.stats.characters }}
-        </div>
-        <div text-xs op-70>
-          Characters
-        </div>
-      </div>
-      <div class="stat-card" p-3 text-center rounded-lg bg-purple-500:10>
-        <div text-2xl text-purple font-bold>
-          {{ contextStore.stats.scenes }}
-        </div>
-        <div text-xs op-70>
-          Scenes
-        </div>
-      </div>
-    </div>
-
-    <!-- Actions -->
-    <div mb-4 flex gap-2>
-      <button
-        class="adv-btn"
-        text-sm text-white px-3 py-1.5 rounded bg-blue-600 flex-1 hover:bg-blue-700
-        @click="loadFromProject"
-      >
-        <div i-ri-refresh-line mr-1 inline-block />
-        Refresh
-      </button>
-      <button
-        v-if="hasContext"
-        class="adv-btn"
-        text-sm text-white px-3 py-1.5 rounded bg-green-600 flex-1 hover:bg-green-700
-        @click="copyContextForAI"
-      >
-        <div i-ri-clipboard-line mr-1 inline-block />
-        Copy for AI
-      </button>
-    </div>
-
-    <template v-if="hasContext">
-      <!-- World -->
-      <details v-if="contextStore.worldContent" open mb-3>
-        <summary class="font-bold cursor-pointer select-none" mb-1>
-          <div i-ri-earth-line mr-1 inline-block />
-          World
-        </summary>
-        <pre class="context-block" text-xs p-2 rounded bg-gray-100 overflow-auto dark:bg-gray-800>{{ contextStore.worldContent }}</pre>
-      </details>
-
-      <!-- Outline -->
-      <details v-if="contextStore.outlineContent" open mb-3>
-        <summary class="font-bold cursor-pointer select-none" mb-1>
-          <div i-ri-file-list-3-line mr-1 inline-block />
-          Outline
-        </summary>
-        <pre class="context-block" text-xs p-2 rounded bg-gray-100 overflow-auto dark:bg-gray-800>{{ contextStore.outlineContent }}</pre>
-      </details>
-
-      <!-- Chapters README -->
-      <details v-if="contextStore.chaptersReadme" mb-3>
-        <summary class="font-bold cursor-pointer select-none" mb-1>
-          <div i-ri-book-open-line mr-1 inline-block />
-          Chapters
-        </summary>
-        <pre class="context-block" text-xs p-2 rounded bg-gray-100 overflow-auto dark:bg-gray-800>{{ contextStore.chaptersReadme }}</pre>
-      </details>
-
-      <!-- Characters README -->
-      <details v-if="contextStore.charsReadme" mb-3>
-        <summary class="font-bold cursor-pointer select-none" mb-1>
-          <div i-ri-user-line mr-1 inline-block />
-          Characters
-        </summary>
-        <pre class="context-block" text-xs p-2 rounded bg-gray-100 overflow-auto dark:bg-gray-800>{{ contextStore.charsReadme }}</pre>
-      </details>
-
-      <!-- Scenes README -->
-      <details v-if="contextStore.scenesReadme" mb-3>
-        <summary class="font-bold cursor-pointer select-none" mb-1>
-          <div i-ri-landscape-line mr-1 inline-block />
-          Scenes
-        </summary>
-        <pre class="context-block" text-xs p-2 rounded bg-gray-100 overflow-auto dark:bg-gray-800>{{ contextStore.scenesReadme }}</pre>
-      </details>
-
-      <!-- Glossary -->
-      <details v-if="contextStore.glossaryContent" mb-3>
-        <summary class="font-bold cursor-pointer select-none" mb-1>
-          <div i-ri-book-2-line mr-1 inline-block />
-          Glossary
-        </summary>
-        <pre class="context-block" text-xs p-2 rounded bg-gray-100 overflow-auto dark:bg-gray-800>{{ contextStore.glossaryContent }}</pre>
-      </details>
-    </template>
-
-    <!-- Empty State -->
-    <div v-else py-8 op-50 flex flex-col items-center justify-center>
-      <div i-ri-folder-open-line text-4xl mb-2 />
-      <p text-sm>
-        Open a project to view context
+      <p v-if="hasProject" class="context-description">
+        {{ t('context.savedContext') }}
       </p>
-      <p text-xs op-70>
-        Reads world.md, outline.md, and README files from adv/ directory
+      <dl v-if="hasContext" class="context-stats">
+        <div v-for="stat in stats" :key="stat.label" class="context-stat">
+          <dt>{{ stat.label }}</dt>
+          <dd>{{ stat.count }}</dd>
+        </div>
+      </dl>
+    </header>
+
+    <AGUIAccordion v-if="hasContext" v-model="expanded" type="multiple">
+      <AGUIAccordionItem v-for="section in sections" :key="section.value" :item="section">
+        <ContextDocument :content="section.content" />
+      </AGUIAccordionItem>
+    </AGUIAccordion>
+    <div v-else class="context-empty">
+      <span class="i-ri-file-text-line context-empty-icon" aria-hidden="true" />
+      <p>{{ t(hasProject ? 'context.empty' : 'context.openProject') }}</p>
+      <p class="context-empty-hint">
+        {{ t('context.emptyHint') }}
       </p>
     </div>
-  </div>
+  </section>
 </template>
 
 <style scoped>
-.context-block {
-  white-space: pre-wrap;
-  word-break: break-word;
-  max-height: 300px;
-  font-family: ui-monospace, monospace;
+.project-context-view {
+  min-width: 0;
+  color: var(--agui-c-text-1);
+  font-size: 13px;
   line-height: 1.5;
+}
+.context-header {
+  padding: 8px 12px 4px;
+}
+.context-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.context-project {
+  flex: 1 1 120px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+.context-description {
+  margin: 4px 0 8px;
+  color: var(--agui-c-text-2);
+  font-size: 12px;
+}
+.context-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0;
+  font-size: 12px;
+}
+.context-stat {
+  display: flex;
+  gap: 8px;
+}
+.context-stat dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.context-empty {
+  padding: 24px 12px;
+}
+.context-empty-icon {
+  display: block;
+  font-size: 16px;
+}
+.context-empty p {
+  margin: 8px 0 0;
+}
+.context-empty-hint {
+  color: var(--agui-c-text-2);
+  font-size: 12px;
 }
 </style>

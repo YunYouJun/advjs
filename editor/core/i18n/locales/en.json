@@ -159,5 +159,30 @@
     "openDir": "Open Directory",
     "emptyHint": "Click \"+\" to create a character or open a characters directory",
     "backToDetail": "Back to Detail"
+  },
+  "context": {
+    "title": "Project context",
+    "inspector": "Inspector",
+    "savedContext": "Saved authoring material",
+    "refresh": "Refresh",
+    "copy": "Copy for AI",
+    "loading": "Loading context…",
+    "refreshed": "Context refreshed",
+    "copied": "Context copied",
+    "copyFailed": "Could not copy. Check clipboard access and try again.",
+    "loadFailed": "Could not read context. Check project access and try again.",
+    "openProject": "Open a project to view its context",
+    "empty": "No authoring context yet",
+    "emptyHint": "Add world.md, outline.md, glossary.md or README files under adv/.",
+    "world": "World",
+    "outline": "Outline",
+    "chapters": "Chapters",
+    "characters": "Characters",
+    "scenes": "Scenes",
+    "glossary": "Glossary"
+  },
+  "extensions": {
+    "manage": "Manage plugins",
+    "selectObject": "Select a file or character to inspect its properties."
   }
 }

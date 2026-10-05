@@ -6,6 +6,10 @@ export interface ProjectContextStats {
   scenes: number
 }
 
+function isMissingFile(error: unknown) {
+  return typeof error === 'object' && error !== null && 'name' in error && error.name === 'NotFoundError'
+}
+
 export const useProjectContextStore = defineStore('@advjs/editor:project-context', () => {
   const consoleStore = useConsoleStore()
 
@@ -23,6 +27,8 @@ export const useProjectContextStore = defineStore('@advjs/editor:project-context
   })
 
   const isLoaded = ref(false)
+  let loadVersion = 0
+  let loadedDirectory: FileSystemDirectoryHandle | undefined
 
   /**
    * Try to read a file from a directory handle, return empty string if not found
@@ -41,8 +47,10 @@ export const useProjectContextStore = defineStore('@advjs/editor:project-context
       const file = await fileHandle.getFile()
       return await file.text()
     }
-    catch {
-      return ''
+    catch (error) {
+      if (isMissingFile(error))
+        return ''
+      throw error
     }
   }
 
@@ -60,8 +68,10 @@ export const useProjectContextStore = defineStore('@advjs/editor:project-context
       }
       return count
     }
-    catch {
-      return 0
+    catch (error) {
+      if (isMissingFile(error))
+        return 0
+      throw error
     }
   }
 
@@ -69,13 +79,18 @@ export const useProjectContextStore = defineStore('@advjs/editor:project-context
    * Load all project context files from the adv/ directory
    */
   async function loadContext(dirHandle: FileSystemDirectoryHandle) {
+    const version = ++loadVersion
+    if (dirHandle !== loadedDirectory)
+      isLoaded.value = false
     try {
       // Try to find adv/ subdirectory first
       let advDir: FileSystemDirectoryHandle
       try {
         advDir = await dirHandle.getDirectoryHandle('adv')
       }
-      catch {
+      catch (error) {
+        if (!isMissingFile(error))
+          throw error
         // If no adv/ subdirectory, use root as adv dir
         advDir = dirHandle
       }
@@ -90,13 +105,6 @@ export const useProjectContextStore = defineStore('@advjs/editor:project-context
         tryReadFile(advDir, 'scenes/README.md'),
       ])
 
-      worldContent.value = world
-      outlineContent.value = outline
-      glossaryContent.value = glossary
-      chaptersReadme.value = chapters
-      charsReadme.value = chars
-      scenesReadme.value = scenes
-
       // Count stats
       const [chapterCount, characterCount, sceneCount] = await Promise.all([
         countEntries(advDir, 'chapters', '.adv.md'),
@@ -104,6 +112,15 @@ export const useProjectContextStore = defineStore('@advjs/editor:project-context
         countEntries(advDir, 'scenes', '.md'),
       ])
 
+      if (version !== loadVersion)
+        return false
+
+      worldContent.value = world
+      outlineContent.value = outline
+      glossaryContent.value = glossary
+      chaptersReadme.value = chapters
+      charsReadme.value = chars
+      scenesReadme.value = scenes
       stats.value = {
         chapters: chapterCount,
         characters: characterCount,
@@ -111,10 +128,13 @@ export const useProjectContextStore = defineStore('@advjs/editor:project-context
       }
 
       isLoaded.value = true
+      loadedDirectory = dirHandle
       consoleStore.success('Project context loaded')
+      return true
     }
     catch (error) {
       consoleStore.error('Failed to load project context', { error })
+      return false
     }
   }
 
