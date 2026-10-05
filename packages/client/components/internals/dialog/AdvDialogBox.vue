@@ -45,7 +45,7 @@ const curWords = computed(() => {
       </template>
       <template v-else>
         <Transition name="fade">
-          <span v-if="transitionFlag" class="dialog-name text-gray-200 font-medium">{{ curCharacter?.name }}</span>
+          <span v-if="transitionFlag" class="dialog-name font-medium">{{ curCharacter?.name }}</span>
         </Transition>
       </template>
     </div>
@@ -87,12 +87,14 @@ const curWords = computed(() => {
   column-gap: clamp(1.25rem, 3vw, 3rem);
   padding: var(--adv-dialog-padding-block) var(--adv-dialog-padding-inline);
 
-  // background-color: rgba(0, 0, 0, 0.7);
-  background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.75) 35%, black) repeat bottom;
+  background: var(
+    --adv-dialog-bg,
+    linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.75) 35%, black) repeat bottom
+  );
   // 硬件加速，修复 1px 空白问题
   transform: translateZ(0);
 
-  text-shadow: 0 0 0.2rem black;
+  text-shadow: var(--adv-dialog-text-shadow, 0 0 0.2rem black);
 
   .dialog-name-wrap {
     display: flex;
@@ -103,6 +105,7 @@ const curWords = computed(() => {
   }
 
   .dialog-name {
+    color: var(--adv-dialog-name-color, #e5e7eb);
     font-size: 1.25em;
     line-height: 1.75;
   }
@@ -116,15 +119,15 @@ const curWords = computed(() => {
   }
 
   .dialog-content {
-    color: white;
+    color: var(--adv-dialog-color, white);
     line-height: 1.75;
     letter-spacing: 0.025em;
 
-    text-shadow: 0 0 0.2rem black;
+    text-shadow: var(--adv-dialog-text-shadow, 0 0 0.2rem black);
   }
 }
 
-@media (max-width: 800px) {
+@mixin compact-dialog {
   .adv-dialog-box {
     --adv-dialog-min-height: 12rem;
     --adv-dialog-padding-block: 1.8rem 1.5rem;
@@ -142,5 +145,13 @@ const curWords = computed(() => {
       line-height: 1.45;
     }
   }
+}
+
+@media (max-width: 800px) {
+  @include compact-dialog;
+}
+
+@container adv-game (max-width: 800px) {
+  @include compact-dialog;
 }
 </style>

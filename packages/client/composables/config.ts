@@ -1,5 +1,15 @@
-import { advConfigSymbol, advDataSymbol, gameConfigSymbol } from '@advjs/core'
+import type { ThemeConfig } from '@advjs/types'
+import type { ComputedRef } from 'vue'
+import { advConfigSymbol, advDataSymbol, gameConfigSymbol, themeConfigSymbol } from '@advjs/core'
 import { inject } from 'vue'
+
+/** The selected theme supplies its concrete extension of the shared contract. */
+export function useThemeConfig<T extends object = ThemeConfig>() {
+  const config = inject(themeConfigSymbol)
+  if (!config)
+    throw new Error('[ADV.JS] theme config not properly injected in client.')
+  return config as ComputedRef<T & ThemeConfig>
+}
 
 /**
  * get game config in client

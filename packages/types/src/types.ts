@@ -1,5 +1,5 @@
 import type { VFile } from 'vfile'
-import type { AdvConfig, AdvGameConfig } from './config'
+import type { AdvConfig, AdvGameConfig, ThemeConfig as BaseThemeConfig } from './config'
 
 export interface AdvFeatureFlags {
   /**
@@ -19,7 +19,7 @@ export interface AdvThemeMeta {
   colorSchema?: 'dark' | 'light' | 'both'
 }
 
-export interface AdvData<ThemeConfig = any> {
+export interface AdvData<ThemeConfig = BaseThemeConfig> {
   file: VFile
   // advjs: AdvInfo[]
   raw: string
@@ -59,4 +59,5 @@ export interface AdvData<ThemeConfig = any> {
   themeConfigFile?: string
 }
 
-export type AdvThemeConfig = Record<string, string | number>
+/** Backwards-compatible name for the shared game theme contract. */
+export type AdvThemeConfig = BaseThemeConfig

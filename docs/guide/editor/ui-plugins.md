@@ -2,7 +2,7 @@
 
 UI 插件用于给桌面编辑器增加面板和操作。适合项目诊断、创作资料、资源工具等可以独立启停的功能：插件提供内容，编辑器统一提供标签、工具栏、布局恢复和 AGUI 外观。
 
-这与游戏运行时的[插件与活动](../runtime/plugins-and-activities.md)是两个入口。游戏交互仍使用 `defineAdvPlugin()`；编辑器扩展使用 `defineEditorPlugin()`。当前实现面向 `editor/core`，不自动影响移动端 Studio 或游戏主题。
+这与游戏运行时的[插件与活动](../runtime/plugins-and-activities)是两个入口。游戏交互仍使用 `defineAdvPlugin()`；编辑器扩展使用 `defineEditorPlugin()`。当前实现面向 `editor/core`，不自动影响移动端 Studio 或游戏主题。
 
 ## 查看面板
 
@@ -160,7 +160,7 @@ export function activate(ctx: EditorPluginContext) {
 
 ## 样式与验证
 
-遵循 [AGUI 设计规范](../../agui/design.md)：紧凑的中性控件、共享 token、可见键盘焦点，不用大统计卡片和饱和色按钮给插件另造一套视觉风格。面板内容不覆盖 `body`、宿主标签或全局 `button` 样式。
+遵循 [AGUI 设计规范](../../agui/design)：紧凑的中性控件、共享 token、可见键盘焦点，不用大统计卡片和饱和色按钮给插件另造一套视觉风格。面板内容不覆盖 `body`、宿主标签或全局 `button` 样式。
 
 新增插件至少验证：有项目/无项目、加载与执行失败、启停后资源释放、切换项目、刷新后的标签恢复，以及中文/英文、正常宽度/约 320px、键盘操作。注册表和面板行为测试位于 `tests/unit/editor-ui-plugins.test.ts`。
 
@@ -173,3 +173,7 @@ pnpm exec vitest run tests/unit/agui-controls.test.ts tests/unit/editor-ui-plugi
 干净检出执行编辑器 typecheck 时，也需要上面的 COS 插件产物：编辑器间接引用的 CLI 类型会解析该包。
 
 Vue 组件测试需要 Nuxt 生成的 `editor/core/.nuxt/tsconfig.json`。已有依赖产物但尚未构建编辑器时，可先执行 `pnpm --filter @advjs/editor exec nuxt prepare`；不要手写或提交 `.nuxt` 中的生成文件。
+
+## 游戏预览的样式归属
+
+插件面板及工具栏遵循 [AGUI 规范](/agui/design)。面板嵌入的游戏内容遵循 [游戏 UI 契约](/about/design/game-ui)，通过 `AdvContainer` 和局部 `ThemeConfig.ui` 配置主题；不得用游戏 token 改变外部编辑器控件。两者的分工见 [统一设计体系](/about/design/design-system)。

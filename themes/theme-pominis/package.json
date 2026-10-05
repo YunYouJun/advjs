@@ -28,6 +28,10 @@
   "scripts": {
     "release": "bumpp --no-commit --no-push --no-tag && pnpm -r publish --tag beta --no-git-checks"
   },
+  "dependencies": {
+    "@advjs/client": "workspace:0.1.4",
+    "@advjs/types": "workspace:0.1.4"
+  },
   "devDependencies": {
     "@advjs/core": "workspace:*",
     "advjs": "workspace:*"

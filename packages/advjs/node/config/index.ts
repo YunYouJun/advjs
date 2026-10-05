@@ -1,4 +1,4 @@
-import type { AdvConfig, AdvEntryOptions, AdvGameConfig } from '@advjs/types'
+import type { AdvConfig, AdvEntryOptions, AdvGameConfig, ThemeConfig } from '@advjs/types'
 import { loadConfig } from 'c12'
 import defu from 'defu'
 import { defaultAdvConfig, defaultGameConfig } from '../../shared'
@@ -32,8 +32,11 @@ export function defineGameConfig(config: Partial<AdvGameConfig>) {
 
 /**
  * `theme.config.ts`
+ * Infer custom fields without widening the reserved game UI contract.
  */
-export function defineThemeConfig<ThemeConfig>(config: Partial<ThemeConfig>) {
+export function defineThemeConfig<T extends object = ThemeConfig>(config: {
+  [K in keyof T]?: K extends 'ui' ? ThemeConfig['ui'] : T[K]
+} & Pick<ThemeConfig, 'ui'>) {
   return config
 }
 

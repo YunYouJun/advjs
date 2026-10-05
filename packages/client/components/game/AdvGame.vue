@@ -29,6 +29,7 @@ const app = useAppStore()
   <AdvContainer
     text="white"
     :config="$adv.config?.value"
+    :theme="$adv.themeConfig.value"
   >
     <div class="adv-game bg-black size-full absolute">
       <AdvScene />

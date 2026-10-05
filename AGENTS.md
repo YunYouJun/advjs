@@ -86,7 +86,14 @@ External integrations: Babylon.js 3D (`plugin-babylon`), Three.js (`plugin-three
 - Lint-staged runs on `*.{js,ts,vue}` files via Husky pre-commit hooks
 - TypeScript strict mode with `verbatimModuleSyntax`
 
-## Editor UI Design
+## UI Design System
+
+- Read [the ADV.JS design system](docs/about/design/design-system.md) before changing UI. Classify the surface as player-facing game UI or author-facing creation tools.
+- Game UI in `packages/client/`, `themes/`, and project overrides follows [the game UI contract](docs/about/design/game-ui.md). Use `ThemeConfig.ui`, documented game tokens, and `--adv-theme-*` extensions. Keep theme changes inside `AdvContainer`; do not change the host's global color mode.
+- Creation tools have two visual implementations: desktop Editor uses AGUI; mobile-first Studio follows [its visual specification](docs/about/design/studio-design.md) and [component contract](docs/about/design/studio-components.md).
+- Embedded game content uses the game contract; its surrounding authoring toolbar uses the host tool contract. Do not reuse skinned controls across these domains merely because both use Vue.
+
+### Desktop Editor
 
 - Before changing desktop editor UI in `editor/` or shared editor components in `packages/gui/`, read [the AGUI design specification](docs/agui/design.md). It is the authoritative visual specification for these surfaces.
 - Follow the Blender-inspired compact workspace: neutral surfaces, restrained blue interaction states, small controls, docked panels, and content-first hierarchy. Reuse AGUI components and `--agui-*` tokens; do not create a separate visual system inside a feature panel.

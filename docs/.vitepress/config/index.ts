@@ -452,6 +452,18 @@ function sidebarAbout(): DefaultTheme.SidebarItem[] {
           link: '/about/design/design-system',
         },
         {
+          text: '游戏 UI 规范',
+          link: '/about/design/game-ui',
+        },
+        {
+          text: '编辑器 UI 规范',
+          link: '/agui/design',
+        },
+        {
+          text: 'Studio 设计规范',
+          link: '/about/design/studio-design',
+        },
+        {
           text: 'Studio 组件规范',
           link: '/about/design/studio-components',
         },

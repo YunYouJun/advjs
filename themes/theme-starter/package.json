@@ -25,6 +25,10 @@
   "advjs": {
     "colorSchema": "both"
   },
+  "dependencies": {
+    "@advjs/client": "workspace:0.1.4",
+    "@advjs/types": "workspace:0.1.4"
+  },
   "devDependencies": {
     "advjs": "workspace:*"
   }

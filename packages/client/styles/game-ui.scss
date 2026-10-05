@@ -1,0 +1,20 @@
+// Embedded games keep their appearance inside their own container.
+// Shared light/dark values are defined once in css-vars.scss.
+@use './css-vars.scss';
+
+[data-adv-ui='game'] {
+  font-family: var(--adv-font-family, inherit);
+
+  :where(button, input, select, textarea, a[href], [tabindex]):focus-visible {
+    outline: 2px solid var(--adv-c-focus, var(--adv-c-primary));
+    outline-offset: 3px;
+  }
+}
+
+[data-adv-ui='game'][data-adv-color-scheme='light'] {
+  color-scheme: light;
+}
+
+[data-adv-ui='game'][data-adv-color-scheme='dark'] {
+  color-scheme: dark;
+}

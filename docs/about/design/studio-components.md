@@ -1,5 +1,7 @@
 # Studio 组件规范
 
+本页属于 [ADV.JS 统一设计体系](./design-system)的创作工具 UI，视觉基线见 [Studio 设计规范](./studio-design)。内嵌游戏画面使用 [游戏 UI 契约](./game-ui)。
+
 Studio 的组件体系分为三层：
 
 1. **Ionic 基础层** — `IonPage`、`IonHeader`、`IonContent`、`IonItem` 等，提供跨平台原生体验
@@ -298,6 +300,7 @@ CSS 类：`.empty-state` > `.empty-state__illustration` + `.empty-state__title` 
 
 ## 相关文档
 
-- [设计系统总览](/about/design/design-system) — 色彩、排版、间距等 Token 定义
+- [设计系统总览](./design-system) — 游戏 UI 与创作工具 UI 的职责边界
+- [Studio 设计规范](./studio-design) — 色彩、排版、间距等 Token 定义
 - [AGUI 组件库](/agui/) — 编辑器侧的 GUI 组件库
 - [Studio 技术架构](/guide/studio/architecture) — 应用整体架构

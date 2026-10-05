@@ -1,4 +1,4 @@
-import type { AdvEntryOptions } from '@advjs/types'
+import type { AdvEntryOptions, ThemeConfig } from '@advjs/types'
 import process from 'node:process'
 import { loadConfig } from 'c12'
 
@@ -6,7 +6,7 @@ import { loadConfig } from 'c12'
  * resolve theme config from special root
  */
 export async function resolveThemeConfigFromRoot(root: string) {
-  return loadConfig<any>({
+  return loadConfig<ThemeConfig>({
     cwd: root,
     configFile: 'theme.config',
     // defaultConfig:

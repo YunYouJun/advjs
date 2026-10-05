@@ -55,15 +55,17 @@ function choose(choice: RuntimeChoice) {
 .adv-option {
   width: 50%;
   margin: 1rem;
-  border: 1px solid white;
+  border: 1px solid var(--adv-choice-border, white);
+  border-radius: var(--adv-choice-radius, 0);
   padding: 1rem;
   cursor: pointer;
-  background-color: rgb(0 0 0 / 80%);
-  color: inherit;
+  background-color: var(--adv-choice-bg, rgb(0 0 0 / 80%));
+  color: var(--adv-choice-color, inherit);
   @apply shadow transition-all duration-200 ease-in-out;
 
   &:hover {
-    @apply shadow-lg bg-blue-500/80;
+    background-color: var(--adv-choice-hover-bg, rgb(59 130 246 / 80%));
+    @apply shadow-lg;
   }
 }
 </style>

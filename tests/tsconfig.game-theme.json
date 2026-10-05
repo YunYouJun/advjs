@@ -1,0 +1,9 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "paths": {},
+    "types": ["node"],
+    "skipLibCheck": true
+  },
+  "include": ["./types/game-theme.ts"]
+}

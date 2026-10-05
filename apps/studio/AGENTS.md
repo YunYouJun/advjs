@@ -1,5 +1,9 @@
 # ADV.JS Studio — Agent Guidelines
 
+## UI Design Scope
+
+Studio is the mobile-first creation-tool variant of [the ADV.JS design system](../../docs/about/design/design-system.md). Follow [Studio visual rules](../../docs/about/design/studio-design.md) and [component rules](../../docs/about/design/studio-components.md) for authoring UI. Embedded player content follows [the game UI contract](../../docs/about/design/game-ui.md); keep preview controls outside its theme scope. Do not apply Studio brand tokens to game themes or AGUI desktop controls.
+
 ## Ionic Vue Slot 规则
 
 Ionic Vue 组件底层是 Web Components，**必须使用原生 `slot` 属性**，不能用 Vue 的 `<template #slotName>` 语法。

@@ -2502,6 +2502,12 @@ importers:
 
   themes/theme-default:
     dependencies:
+      '@advjs/client':
+        specifier: workspace:0.1.4
+        version: link:../../packages/client
+      '@advjs/types':
+        specifier: workspace:0.1.4
+        version: link:../../packages/types
       '@iconify-json/ri':
         specifier: catalog:icons
         version: 1.2.10
@@ -2514,6 +2520,13 @@ importers:
         version: link:../../packages/advjs
 
   themes/theme-pominis:
+    dependencies:
+      '@advjs/client':
+        specifier: workspace:0.1.4
+        version: link:../../packages/client
+      '@advjs/types':
+        specifier: workspace:0.1.4
+        version: link:../../packages/types
     devDependencies:
       '@advjs/core':
         specifier: workspace:*
@@ -2523,6 +2536,13 @@ importers:
         version: link:../../packages/advjs
 
   themes/theme-starter:
+    dependencies:
+      '@advjs/client':
+        specifier: workspace:0.1.4
+        version: link:../../packages/client
+      '@advjs/types':
+        specifier: workspace:0.1.4
+        version: link:../../packages/types
     devDependencies:
       advjs:
         specifier: workspace:*

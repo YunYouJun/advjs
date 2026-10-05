@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import type { AdvConfig } from '@advjs/types'
+import type { AdvConfig, ThemeConfig } from '@advjs/types'
 import { provideLocal, useElementSize } from '@vueuse/core'
 import { computed, ref } from 'vue'
+import { useGameUiTheme } from '../../composables/useGameUiTheme'
 import { injectionAdvContent, injectionAdvScale } from '../../constants'
 import { useAppStore } from '../../stores'
+import '../../styles/game-ui.scss'
 
 const props = withDefaults(defineProps<{
   width?: number
@@ -12,8 +14,10 @@ const props = withDefaults(defineProps<{
   contentStyle?: object
 
   config?: AdvConfig
+  theme?: ThemeConfig
 }>(), {})
 const app = useAppStore()
+const { colorScheme, style: themeStyle } = useGameUiTheme(() => props.theme)
 
 const container = ref<HTMLDivElement>()
 const advContentRef = ref<HTMLDivElement>()
@@ -79,8 +83,10 @@ provideLocal(injectionAdvContent, advContentRef)
   <div
     ref="container"
     class="adv-screen size-full relative overflow-hidden" bg="black"
+    data-adv-ui="game"
+    :data-adv-color-scheme="colorScheme"
     :class="className"
-    :style="containerStyle"
+    :style="[themeStyle, containerStyle]"
   >
     <div
       id="adv-content"
@@ -102,6 +108,8 @@ provideLocal(injectionAdvContent, advContentRef)
 
 #adv-content {
   @apply overflow-hidden left-1/2 top-1/2;
+  // Match the logical game canvas, including responsive embedded previews.
+  container: adv-game / inline-size;
 }
 
 .adv-screen {
