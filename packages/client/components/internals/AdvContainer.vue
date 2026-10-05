@@ -10,6 +10,7 @@ const props = withDefaults(defineProps<{
   meta?: any
   scale?: number
   contentStyle?: object
+  controlsInset?: number
 
   config?: AdvConfig
 }>(), {})
@@ -27,7 +28,10 @@ const advHeight = computed(() => Math.ceil(advWidth.value / advAspect.value))
 const responsive = computed(() => props.config?.viewportFit === 'responsive')
 
 const width = computed(() => props.width ? props.width : containerSize.width.value)
-const height = computed(() => props.width ? props.width / advAspect.value : containerSize.height.value)
+const viewportHeight = computed(() => props.width ? props.width / advAspect.value : containerSize.height.value)
+// Rotated dialogue can reach the top edge; keep it below the unscaled toolbar.
+const controlsInset = computed(() => app.rotation % 360 === 0 ? 0 : Math.min(props.controlsInset ?? 0, viewportHeight.value / 2))
+const height = computed(() => viewportHeight.value - controlsInset.value)
 const contentWidth = computed(() => responsive.value
   ? app.isHorizontal ? width.value : height.value
   : advWidth.value,
@@ -64,6 +68,7 @@ const contentStyle = computed(() => ({
   '--adv-screen-width': `${contentWidth.value}px`,
   '--adv-screen-height': `${contentHeight.value}px`,
   '--adv-screen-scale': scale.value,
+  'top': `calc(50% + ${controlsInset.value / 2}px)`,
   'transform': `translate(-50%, -50%) scale(${scale.value}) rotate(${app.rotation}deg)`,
 }))
 

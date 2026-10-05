@@ -32,7 +32,7 @@ defineProps<{ label: string, description?: string }>()
 
 .game-icon {
   display: flex;
-  font-size: 24px;
+  font-size: var(--adv-toolbar-icon, 24px);
   filter: drop-shadow(0 1px 3px rgb(0 0 0 / 85%));
 }
 

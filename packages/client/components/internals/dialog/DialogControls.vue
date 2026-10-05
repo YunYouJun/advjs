@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { useAdvContext, useAppStore } from '@advjs/client'
 import { useElementSize } from '@vueuse/core'
-import { computed, nextTick, useId, useTemplateRef, watch } from 'vue'
+import { computed, nextTick, shallowRef, useId, useTemplateRef, watch } from 'vue'
 import { useDialogBarPreference } from '../../../composables/useDialogBarPreference'
 import { useDialogBarVisibility } from '../../../composables/useDialogBarVisibility'
 import { useGameControlsI18n } from '../../../composables/useGameControlsI18n'
+import QuickSaveControls from '../../save/QuickSaveControls.vue'
 import GameControlHint from '../../ui/GameControlHint.vue'
 
 const emit = defineEmits<{ resize: [height: number] }>()
@@ -15,17 +16,20 @@ const { $adv } = useAdvContext()
 const app = useAppStore()
 const { t } = useGameControlsI18n()
 const mode = useDialogBarPreference()
-const { visible, expand, collapse, setHover, focused, hintOpen } = useDialogBarVisibility(mode)
+const saveActive = shallowRef(false)
+const { visible, expand, collapse, setHover, focused, hintOpen } = useDialogBarVisibility(mode, saveActive)
 const rowId = useId()
 const playing = computed(() => $adv.$auto.enabled.value || $adv.$auto.skipEnabled.value)
+const groups = ['playback', 'saves', 'utility'] as const
 const actions = computed(() => [
-  { key: 'history', run: () => app.toggleHistory() },
-  { key: 'auto', pressed: $adv.$auto.enabled.value, run: () => $adv.$auto.toggle() },
-  { key: 'skip', pressed: $adv.$auto.skipEnabled.value, run: () => $adv.$auto.toggleSkip() },
-  { key: 'save', run: () => app.toggleShowSaveMenu() },
-  { key: 'load', run: () => app.toggleShowLoadMenu() },
-  { key: 'hide', run: () => app.toggleUi() },
+  { key: 'history', group: 'playback', run: () => app.toggleHistory() },
+  { key: 'auto', group: 'playback', pressed: $adv.$auto.enabled.value, run: () => $adv.$auto.toggle() },
+  { key: 'skip', group: 'playback', pressed: $adv.$auto.skipEnabled.value, run: () => $adv.$auto.toggleSkip() },
+  { key: 'save', group: 'saves', run: () => app.toggleShowSaveMenu() },
+  { key: 'load', group: 'saves', run: () => app.toggleShowLoadMenu() },
+  { key: 'hide', group: 'utility', run: () => app.toggleUi() },
 ])
+const actionGroups = computed(() => groups.map(key => ({ key, actions: actions.value.filter(action => action.group === key) })))
 
 function stopPlayback() {
   if ($adv.$auto.skipEnabled.value)
@@ -77,20 +81,23 @@ function onFocusOut(event: FocusEvent) {
       :id="rowId" class="dialog-controls" :class="{ 'is-collapsed': !visible }"
       :aria-label="t('controls.label')" :inert="!visible || undefined" :aria-hidden="!visible"
     >
-      <GameControlHint
-        v-for="action in actions" :key="action.key"
-        :label="t(`controls.${action.key}`)" :description="t(`hints.${action.key}`)" side="top"
-        :disabled="!visible" @open="hintOpen = $event"
-      >
-        <button type="button" class="dialog-control" :aria-pressed="action.pressed" @click="action.run">
-          {{ t(`controls.${action.key}`) }}
-        </button>
-      </GameControlHint>
-      <GameControlHint :label="t('controls.collapseBar')" :description="t('hints.collapseBar')" side="top" :disabled="!visible" @open="hintOpen = $event">
-        <button type="button" class="dialog-control dialog-fold-button" :aria-label="t('controls.collapseBar')" @click="fold">
-          <span i-ri-arrow-down-s-line aria-hidden="true" />
-        </button>
-      </GameControlHint>
+      <div v-for="group in actionGroups" :key="group.key" class="dialog-control-group" :class="`dialog-controls-${group.key}`">
+        <QuickSaveControls v-if="group.key === 'saves'" show-labels inline :hints-disabled="!visible" @active="saveActive = $event" @hint-open="hintOpen = $event" />
+        <GameControlHint
+          v-for="action in group.actions" :key="action.key"
+          :label="t(`controls.${action.key}`)" :description="t(`hints.${action.key}`)" side="top"
+          :disabled="!visible" @open="hintOpen = $event"
+        >
+          <button type="button" class="dialog-control" :aria-label="t(`controls.${action.key}`)" :aria-pressed="action.pressed" @click="action.run">
+            {{ t(action.key === 'hide' ? 'controls.hideShort' : `controls.${action.key}`) }}
+          </button>
+        </GameControlHint>
+        <GameControlHint v-if="group.key === 'utility'" :label="t('controls.collapseBar')" :description="t('hints.collapseBar')" side="top" :disabled="!visible" @open="hintOpen = $event">
+          <button type="button" class="dialog-control dialog-fold-button" :aria-label="t('controls.collapseBar')" @click="fold">
+            <span i-ri-arrow-down-s-line aria-hidden="true" />
+          </button>
+        </GameControlHint>
+      </div>
     </nav>
     <div v-if="!visible" class="dialog-controls-compact">
       <button v-if="playing" type="button" class="dialog-control playback-stop" @click="stopPlayback">
@@ -126,6 +133,12 @@ function onFocusOut(event: FocusEvent) {
   align-items: center;
   align-self: end;
   justify-content: flex-end;
+  gap: calc(4px / var(--adv-screen-scale, 1));
+}
+
+.dialog-control-group {
+  display: flex;
+  align-items: center;
   gap: calc(4px / var(--adv-screen-scale, 1));
 }
 
@@ -193,7 +206,21 @@ function onFocusOut(event: FocusEvent) {
 
 @container (max-width: 600px) {
   .dialog-controls {
+    display: grid;
+    grid-template-areas: 'playback utility' 'saves saves';
+    grid-template-columns: 1fr auto;
+    column-gap: calc(8px / var(--adv-screen-scale, 1));
+  }
+
+  .dialog-controls-playback {
+    grid-area: playback;
+  }
+  .dialog-controls-saves {
+    grid-area: saves;
     justify-content: center;
+  }
+  .dialog-controls-utility {
+    grid-area: utility;
   }
 }
 

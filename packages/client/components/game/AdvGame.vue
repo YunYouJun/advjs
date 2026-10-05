@@ -24,6 +24,7 @@ if (!import.meta.env.DEV && typeof __DEV__ !== 'undefined' && !__DEV__)
 
 const app = useAppStore()
 const controlsHeight = shallowRef(0)
+const toolbarHeight = shallowRef(0)
 const showToolbar = computed(() => app.showUi && !app.menus.settings && !app.showHistory && !app.showSaveMenu && !app.showLoadMenu)
 </script>
 
@@ -31,6 +32,7 @@ const showToolbar = computed(() => app.showUi && !app.menus.settings && !app.sho
   <AdvContainer
     text="white"
     :config="$adv.config?.value"
+    :controls-inset="app.showUi ? toolbarHeight : 0"
   >
     <div class="adv-game bg-black size-full absolute">
       <AdvScene />
@@ -66,7 +68,7 @@ const showToolbar = computed(() => app.showUi && !app.menus.settings && !app.sho
       <AdvActivity v-if="$adv.store.state.status === 'waiting-activity'" />
     </div>
     <template #controls>
-      <AdvGameUI v-show="showToolbar" />
+      <AdvGameUI v-show="showToolbar" @resize="toolbarHeight = $event" />
       <AdvGameModals />
     </template>
   </AdvContainer>

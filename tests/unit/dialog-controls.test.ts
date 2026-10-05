@@ -99,11 +99,10 @@ it('operates playback and hides/restores dialogue without advancing the story', 
   expect(button('History').isVisible()).toBe(true)
 })
 
-it('keeps secondary controls behind the menu and blocks duplicate quick saves', async () => {
+it('places quick saves in the dialogue bar and blocks duplicate writes', async () => {
   const { wrapper, button, advance } = renderControls()
-  expect(button('快速存档').isVisible()).toBe(false)
-  await button('菜单').trigger('click')
-  expect(button('快速存档').isVisible()).toBe(true)
+  expect(wrapper.get('.dialog-controls').get('[aria-label="快速存档"]').isVisible()).toBe(true)
+  expect(wrapper.find('.game-more-menu').exists()).toBe(false)
   let finish!: () => void
   game.save.mockImplementationOnce(() => new Promise<void>((resolve) => {
     finish = resolve
@@ -116,8 +115,6 @@ it('keeps secondary controls behind the menu and blocks duplicate quick saves', 
   finish()
   await flushPromises()
   expect(wrapper.get('[role="status"]').text()).toBe('已快速存档')
-  await button('菜单').trigger('keydown', { key: 'Escape' })
-  expect(button('快速存档').isVisible()).toBe(false)
   expect(advance).not.toHaveBeenCalled()
 })
 
@@ -158,24 +155,54 @@ it('hides unsupported fullscreen controls and reports a rejected request without
   expect(wrapper.find('.game-toolbar-feedback').exists()).toBe(false)
 })
 
-it('closes the menu with Escape and returns keyboard focus to its icon', async () => {
-  const { button } = renderControls()
-  await button('菜单').trigger('click')
-  button('快速存档').element.focus()
-  await button('快速存档').trigger('keydown', { key: 'Escape' })
-  expect(button('菜单').attributes('aria-expanded')).toBe('false')
-  expect(document.activeElement).toBe(button('菜单').element)
+it('toggles character sprites and rotates the canvas directly without advancing', async () => {
+  const { wrapper, button, advance } = renderControls()
+  expect(wrapper.get('.game-toolbar-actions').get('[aria-label="隐藏立绘"]').exists()).toBe(true)
+  await button('隐藏立绘').trigger('click')
+  expect(app.showTachie).toBe(false)
+  expect(button('显示立绘').attributes('aria-pressed')).toBe('true')
+  await button('显示立绘').trigger('click')
+  expect(app.showTachie).toBe(true)
+  for (let i = 1; i <= 4; i++) {
+    await button('旋转画面').trigger('click')
+    expect(app.rotation).toBe(i * 90)
+  }
+  expect(app.isHorizontal).toBe(true)
+  expect(advance).not.toHaveBeenCalled()
 })
 
-it('dismisses the menu without treating the outside click as a story action', async () => {
+it('reports an empty quick slot and restores its snapshot through the bottom controls', async () => {
   const { wrapper, button, advance } = renderControls()
-  await button('菜单').trigger('click')
-  await new Promise(resolve => setTimeout(resolve, 0))
-  await wrapper.get('.adv-screen').trigger('pointerdown')
-  wrapper.element.dispatchEvent(new MouseEvent('click', { detail: 1, bubbles: true }))
-  await nextTick()
-  expect(button('菜单').attributes('aria-expanded')).toBe('false')
+  await button('快速读档').trigger('click')
+  await flushPromises()
+  expect(wrapper.get('[role="status"]').text()).toBe('暂无快速存档')
+  expect(runtime.restore).not.toHaveBeenCalled()
+  const snapshot = { cursor: 'saved-position' }
+  game.read.mockResolvedValueOnce({ snapshot } as never)
+  await button('快速读档').trigger('click')
+  await flushPromises()
+  expect(runtime.restore).toHaveBeenCalledWith(snapshot)
+  expect(wrapper.get('[role="status"]').text()).toBe('已加载快速存档')
   expect(advance).not.toHaveBeenCalled()
+})
+
+it('keeps auto-hiding controls available while a quick save is pending or reporting its result', async () => {
+  vi.useFakeTimers()
+  const { wrapper, button } = renderControls()
+  useSettingsStore().storage.dialogBar = 'auto'
+  let finish!: () => void
+  game.save.mockImplementationOnce(() => new Promise<void>((resolve) => {
+    finish = resolve
+  }))
+  await button('快速存档').trigger('click')
+  await vi.advanceTimersByTimeAsync(4000)
+  expect(wrapper.get('.dialog-controls').attributes('inert')).toBeUndefined()
+  finish()
+  await vi.advanceTimersByTimeAsync(1000)
+  expect(wrapper.get('[role="status"]').text()).toBe('已快速存档')
+  expect(wrapper.get('.dialog-controls').attributes('inert')).toBeUndefined()
+  await vi.advanceTimersByTimeAsync(4000)
+  expect(wrapper.get('.dialog-controls').attributes('inert')).toBeDefined()
 })
 
 it('keeps keyboard playback shortcuts separate from focused controls', async () => {

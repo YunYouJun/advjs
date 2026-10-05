@@ -178,7 +178,15 @@ const curWords = computed(() => {
 
 @container (max-width: 600px) {
   .adv-dialog-box .dialog-content {
+    position: relative;
+    padding-inline-end: 1em;
     font-size: max(1em, calc(16px / var(--adv-screen-scale, 1)));
+  }
+
+  .adv-dialog-box .typed-cursor {
+    position: absolute;
+    right: 0;
+    bottom: 0;
   }
 }
 </style>

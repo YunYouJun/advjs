@@ -3,7 +3,7 @@ import type { DialogBarMode } from '../stores/settings/types'
 import { computed, onScopeDispose, shallowRef, watch } from 'vue'
 
 /** Keep auto-hiding controls available while the player is using them. */
-export function useDialogBarVisibility(mode: Ref<DialogBarMode>) {
+export function useDialogBarVisibility(mode: Ref<DialogBarMode>, holdOpen: Ref<boolean> = shallowRef(false)) {
   const expanded = shallowRef(mode.value !== 'collapsed')
   const hovered = shallowRef(false)
   const focused = shallowRef(false)
@@ -17,9 +17,9 @@ export function useDialogBarVisibility(mode: Ref<DialogBarMode>) {
   }
 
   watch(mode, value => expanded.value = value !== 'collapsed')
-  watch([mode, expanded, hovered, focused, hintOpen], () => {
+  watch([mode, expanded, hovered, focused, hintOpen, holdOpen], () => {
     clearTimer()
-    if (mode.value === 'auto' && expanded.value && !hovered.value && !focused.value && !hintOpen.value)
+    if (mode.value === 'auto' && expanded.value && !hovered.value && !focused.value && !hintOpen.value && !holdOpen.value)
       timer = setTimeout(() => expanded.value = false, 3000)
   }, { immediate: true })
   onScopeDispose(clearTimer)

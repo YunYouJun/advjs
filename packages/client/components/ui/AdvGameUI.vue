@@ -1,16 +1,25 @@
 <script setup lang="ts">
 import { useAdvContext, useAppStore } from '@advjs/client'
-import { useFullscreen } from '@vueuse/core'
-import { computed, shallowRef, useTemplateRef } from 'vue'
+import { useElementSize, useFullscreen } from '@vueuse/core'
+import { computed, shallowRef, useTemplateRef, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useGameControlsI18n } from '../../composables/useGameControlsI18n'
 import GameIconButton from './GameIconButton.vue'
-import GameMoreMenu from './GameMoreMenu.vue'
 
 withDefaults(defineProps<{ showHelper?: boolean }>(), { showHelper: true })
+const emit = defineEmits<{ resize: [height: number] }>()
 const { $adv } = useAdvContext()
 const app = useAppStore()
+const router = useRouter()
 const { t } = useGameControlsI18n()
 const root = useTemplateRef<HTMLElement>('root')
+const actions = useTemplateRef<HTMLElement>('actions')
+const { height: actionsHeight } = useElementSize(actions)
+const { width: toolbarWidth, height: toolbarHeight } = useElementSize(root)
+watch([actionsHeight, toolbarWidth, toolbarHeight], () => {
+  if (root.value)
+    emit('resize', actionsHeight.value + Number.parseFloat(getComputedStyle(root.value).paddingTop) + 8)
+})
 const screen = computed(() => root.value?.closest<HTMLElement>('.adv-screen'))
 const { isFullscreen, isSupported, toggle } = useFullscreen(screen)
 const fullscreenPending = shallowRef(false)
@@ -35,8 +44,17 @@ async function toggleFullscreen() {
 
 <template>
   <div ref="root" class="game-toolbar" @click.stop @pointerdown.stop>
-    <nav class="game-toolbar-actions" :aria-label="t('controls.system')">
-      <GameMoreMenu :show-helper="showHelper" />
+    <nav ref="actions" class="game-toolbar-actions" :aria-label="t('controls.system')">
+      <GameIconButton :label="t(app.showTachie ? 'controls.hideCharacters' : 'controls.showCharacters')" :description="t('hints.characters')" :aria-pressed="!app.showTachie" @click="app.toggleTachie()">
+        <span v-if="app.showTachie" i-ri-user-line />
+        <span v-else i-ri-user-unfollow-line />
+      </GameIconButton>
+      <GameIconButton v-if="showHelper" :label="t('controls.rotate')" :description="t('hints.rotate')" @click="app.rotate()">
+        <span i-ri-clockwise-line :style="{ transform: `rotate(${app.rotation}deg)` }" />
+      </GameIconButton>
+      <GameIconButton v-if="$adv.gameConfig.value.gallery" :label="t('controls.gallery')" :description="t('hints.gallery')" @click="router.push('/gallery')">
+        <span i-ri-gallery-line />
+      </GameIconButton>
       <GameIconButton :label="t($adv.$bgm.isMuted.value ? 'controls.unmute' : 'controls.mute')" :description="t('hints.music')" :aria-pressed="$adv.$bgm.isMuted.value" @click="$adv.$bgm.toggleMute()">
         <span v-if="$adv.$bgm.isMuted.value" i-ri-volume-mute-line />
         <span v-else i-ri-volume-up-line />
@@ -59,6 +77,7 @@ async function toggleFullscreen() {
 /* Outside the scaled stage: hit targets keep their physical size in previews. */
 .game-toolbar {
   --adv-toolbar-target: 36px;
+  --adv-toolbar-icon: 24px;
   --adv-toolbar-top: max(10px, env(safe-area-inset-top, 0px));
   --adv-toolbar-right: max(12px, env(safe-area-inset-right, 0px));
   --adv-toolbar-left: max(12px, env(safe-area-inset-left, 0px));
@@ -75,6 +94,8 @@ async function toggleFullscreen() {
 
 .game-toolbar-actions {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 8px;
   border-radius: 8px;
   background: radial-gradient(ellipse at center, rgb(0 0 0 / 16%), transparent 75%);
@@ -94,13 +115,15 @@ async function toggleFullscreen() {
 
 @container (max-width: 600px) {
   .game-toolbar {
-    --adv-toolbar-target: 44px;
+    --adv-toolbar-target: 48px;
+    --adv-toolbar-icon: 28px;
   }
 }
 
 @media (any-pointer: coarse) {
   .game-toolbar {
-    --adv-toolbar-target: 44px;
+    --adv-toolbar-target: 48px;
+    --adv-toolbar-icon: 28px;
   }
 }
 </style>
