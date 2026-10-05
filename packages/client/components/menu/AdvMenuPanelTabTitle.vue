@@ -9,7 +9,7 @@ defineProps<{
 
 <template>
   <TabsTrigger
-    class="leading-none p-6 outline-none rounded-tr bg-white flex flex-1 cursor-pointer items-center justify-center data-[state=active]:(text-blue-500 bg-$adv-c-primary-light) dark:bg-black/80 focus-visible:shadow-[0_0_0_2px]"
+    class="leading-none p-6 rounded-tr bg-$adv-c-bg flex flex-1 cursor-pointer items-center justify-center data-[state=active]:(text-$adv-c-primary bg-$adv-c-primary-light)"
     :value="value"
   >
     <slot>

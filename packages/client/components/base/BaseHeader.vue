@@ -1,7 +1,9 @@
 <script setup lang="ts">
 // import * as pkg from '~/../package.json'
 import { useI18n } from 'vue-i18n'
-import { isDark, toggleDark } from '../../composables'
+import { useGameColorMode } from '../../composables/useGameColorMode'
+
+const { isDark, toggle: toggleDark } = useGameColorMode()
 
 const { t, availableLocales, locale } = useI18n()
 
@@ -15,10 +17,8 @@ function toggleLocales() {
 <template>
   <nav class="text-xl p-4 flex w-full justify-between">
     <div class="flex gap-2">
-      <RouterLink to="/" :title="t('button.home')">
-        <AdvIconButton>
-          <div i-ri-home-2-line />
-        </AdvIconButton>
+      <RouterLink to="/" class="adv-icon-button" :title="t('button.home')" :aria-label="t('button.home')">
+        <div i-ri-home-2-line aria-hidden="true" />
       </RouterLink>
 
       <AdvIconButton :title="t('button.toggle_langs')" @click="toggleLocales">
@@ -26,30 +26,31 @@ function toggleLocales() {
       </AdvIconButton>
 
       <a
+        class="adv-icon-button"
         href="https://www.yunyoujun.cn/posts/make-an-avg-engine/"
         target="_blank"
         :title="t('button.about')"
+        :aria-label="t('button.about')"
       >
-        <AdvIconButton>
-          <div i-carbon-dicom-overlay />
-        </AdvIconButton>
+        <div i-carbon-dicom-overlay aria-hidden="true" />
       </a>
 
       <a
+        class="adv-icon-button"
         rel="noreferrer"
         href="https://github.com/YunYouJun/advjs"
         target="_blank"
         title="GitHub"
+        aria-label="GitHub"
       >
-        <AdvIconButton>
-          <div i-ri-github-line />
-        </AdvIconButton>
+        <div i-ri-github-line aria-hidden="true" />
       </a>
     </div>
 
     <div>
       <AdvIconButton
         :title="t('button.toggle_dark')"
+        :aria-pressed="isDark"
         @click="toggleDark()"
       >
         <div v-if="isDark" i-ri-moon-line />

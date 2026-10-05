@@ -23,7 +23,7 @@ const { t } = useI18n()
     class="adv-game-ui--header flex w-full top-0 justify-between absolute" p="5"
   >
     <div class="adv-game-ui--actions inline-flex" gap="4">
-      <AdvIconButton @click="app.toggleHistory()">
+      <AdvIconButton :title="t('ui.history')" @click="app.toggleHistory()">
         <div i-ri-message-2-line />
       </AdvIconButton>
 
@@ -37,26 +37,26 @@ const { t } = useI18n()
         <div i-ri-folder-upload-line />
       </AdvIconButton>
 
-      <AdvIconButton @click="app.toggleUi()">
+      <AdvIconButton :title="t('ui.hide_interface')" @click="app.toggleUi()">
         <div i-ri-eye-close-line />
       </AdvIconButton>
 
-      <AdvIconButton @click="app.toggleTachie()">
+      <AdvIconButton :title="t('ui.characters')" :aria-pressed="app.showTachie" @click="app.toggleTachie()">
         <div v-if="app.showTachie" i-ri-file-user-line />
         <div v-else i-ri-file-user-fill />
       </AdvIconButton>
 
-      <AdvIconButton @click="$adv.$bgm.toggleMute()">
+      <AdvIconButton :title="t('ui.mute_music')" :aria-pressed="$adv.$bgm.isMuted.value" @click="$adv.$bgm.toggleMute()">
         <div v-if="!$adv.$bgm.isMuted.value" i-mdi-music-note-outline />
         <div v-else i-mdi-music-note-off-outline />
       </AdvIconButton>
 
-      <AdvIconButton :title="$adv.$auto.enabled.value ? 'Auto: ON' : 'Auto: OFF'" @click="$adv.$auto.toggle()">
+      <AdvIconButton :aria-pressed="$adv.$auto.enabled.value" :title="$adv.$auto.enabled.value ? 'Auto: ON' : 'Auto: OFF'" @click="$adv.$auto.toggle()">
         <div v-if="$adv.$auto.enabled.value" i-ri-play-circle-fill class="text-green-400" />
         <div v-else i-ri-play-circle-line />
       </AdvIconButton>
 
-      <AdvIconButton :title="$adv.$auto.skipEnabled.value ? 'Skip: ON' : 'Skip: OFF'" @click="$adv.$auto.toggleSkip()">
+      <AdvIconButton :aria-pressed="$adv.$auto.skipEnabled.value" :title="$adv.$auto.skipEnabled.value ? 'Skip: ON' : 'Skip: OFF'" @click="$adv.$auto.toggleSkip()">
         <div v-if="$adv.$auto.skipEnabled.value" i-ri-skip-forward-fill class="text-yellow-400" />
         <div v-else i-ri-skip-forward-line />
       </AdvIconButton>
@@ -71,7 +71,7 @@ const { t } = useI18n()
       </template>
     </div>
 
-    <AdvIconButton class="menu-setting-button" @click="app.menus.settings = true">
+    <AdvIconButton class="menu-setting-button" :title="t('menu.settings')" @click="app.menus.settings = true">
       <div i-ri-settings-3-line />
     </AdvIconButton>
   </div>
@@ -82,7 +82,7 @@ const { t } = useI18n()
   background: linear-gradient(0deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.5));
 }
 
-@media (max-width: 800px) {
+@container adv-game (max-width: 800px) {
   .adv-game-ui--header {
     box-sizing: border-box;
     gap: 0.5rem;

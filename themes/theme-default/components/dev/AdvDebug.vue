@@ -12,7 +12,7 @@ watch(open, (value) => {
 
 <template>
   <div ref="el" class="debug" :class="{ open }">
-    <AdvIconButton class="fixed bottom-5 right-5" @click="open = !open">
+    <AdvIconButton title="Debug" :aria-expanded="open" class="fixed bottom-5 right-5" @click="open = !open">
       <div i-ri-bug-line color="white" />
     </AdvIconButton>
     <div v-show="open" p="2">

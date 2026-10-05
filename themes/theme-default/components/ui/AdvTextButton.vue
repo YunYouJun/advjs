@@ -11,15 +11,12 @@ function onClick(event: Event) {
 </script>
 
 <template>
-  <button class="adv-text-button" :class="active && 'active'" @click="onClick">
+  <button type="button" class="adv-text-button" :class="active && 'active'" @click="onClick">
     <slot />
   </button>
 </template>
 
 <style lang="scss">
-@use 'sass:map';
-@use '../../styles/vars.scss' as *;
-
 .adv-text-button {
   padding: 0.35rem 0.6rem 0.2rem 0.6rem;
   transition: 0.2s;
@@ -27,12 +24,12 @@ function onClick(event: Event) {
 
   &:hover {
     cursor: pointer;
-    border-bottom: 2px solid map.get($adv-colors, 'primary');
+    border-bottom: 2px solid var(--adv-c-primary);
   }
 
   &.active {
-    border-bottom: 2px solid map.get($adv-colors, 'primary');
-    background-color: rgba(map.get($adv-colors, 'primary'), 0.1);
+    border-bottom: 2px solid var(--adv-c-primary);
+    background-color: var(--adv-c-primary-light);
   }
 }
 </style>

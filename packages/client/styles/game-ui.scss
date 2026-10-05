@@ -3,6 +3,7 @@
 @use './css-vars.scss';
 
 [data-adv-ui='game'] {
+  color: var(--adv-c-text);
   font-family: var(--adv-font-family, inherit);
 
   :where(button, input, select, textarea, a[href], [tabindex]):focus-visible {

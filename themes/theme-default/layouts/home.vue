@@ -1,6 +1,6 @@
 <template>
-  <main class="px-4 py-5 text-center text-gray-700 dark:text-gray-200">
+  <AdvThemeScope as="main" class="px-4 py-5 text-center text-$adv-c-text">
     <BaseHeader />
     <RouterView />
-  </main>
+  </AdvThemeScope>
 </template>

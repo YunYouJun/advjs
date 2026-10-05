@@ -15,14 +15,14 @@ const themeStore = useThemeDefaultStore()
     <slot name="logo">
       <!-- custom logo -->
       <NewYunLogo
-        class="text-9xl text-blue-600 mix-blend-screen dark:text-blue-400"
+        class="text-9xl text-$adv-theme-logo-color mix-blend-screen"
         m="t-20" alt="YunYouJun Logo"
       />
     </slot>
 
     <slot name="title">
       <h1
-        class="adv-game-title gradient-text shadow-co z-1 mt-2 from-purple-500 to-blue-500 bg-gradient-to-r text-4xl text-shadow-lg dark:to-blue-300"
+        class="adv-game-title gradient-text shadow-co z-1 mt-2 from-purple-500 to-$adv-theme-title-gradient-end bg-gradient-to-r text-4xl text-shadow-lg"
         font="bold"
       >
         {{ gameConfig.title }}

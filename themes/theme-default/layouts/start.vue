@@ -1,6 +1,5 @@
 <script setup lang="ts">
 // Game Start Menu Page Layout
-import { isDark } from '@advjs/client'
 import { images } from '../assets'
 
 withDefaults(defineProps<{
@@ -18,15 +17,21 @@ withDefaults(defineProps<{
     <AdvAdblock />
     <AdvContainer class="h-full w-full">
       <div
-        class="adv-start-bg absolute h-full w-full -z-1" :class="isDark ? 'filter invert' : ''"
+        class="adv-start-bg absolute h-full w-full -z-1"
         bg="cover no-repeat center"
         :style="{ backgroundImage: `url(${bgImage})` }"
       />
       <main
-        class="page-start h-full w-full text-gray-900 dark:text-gray-200"
+        class="page-start h-full w-full text-$adv-c-text"
       >
         <RouterView />
       </main>
     </AdvContainer>
   </div>
 </template>
+
+<style scoped>
+.adv-start-bg {
+  filter: var(--adv-theme-start-bg-filter);
+}
+</style>

@@ -5,9 +5,11 @@ import { consola, LogLevels } from 'consola'
 import setups from '#advjs/setups/adv'
 
 import { initAdvContext, initAdvData } from '../compiler'
+import { gameColorModeStorageKey } from '../composables/useGameColorMode'
 import { injectionAdvContext } from '../constants'
 
 export const setupAdv: UserModule = async ({ app, router }) => {
+  app.provide(gameColorModeStorageKey, `advjs:game-color-mode:${import.meta.env.BASE_URL}`)
   // inject adv config before modules
   // const advConfig = initAdvConfig()
   const advData = initAdvData()

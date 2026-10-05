@@ -1,4 +1,6 @@
 button:
+  fullscreen: 切换全屏
+  rotate: 旋转画面
   about: 关于
   back: 返回
   close: 关闭
@@ -94,3 +96,10 @@ font_size:
 display_mode:
   type: 打字模式
   soft: 轻柔模式
+
+ui:
+  dialog: 游戏弹层
+  history: 历史记录
+  hide_interface: 隐藏界面
+  characters: 显示立绘
+  mute_music: 静音音乐

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { AdvConfig, ThemeConfig } from '@advjs/types'
+import { themeConfigSymbol } from '@advjs/core'
 import { provideLocal, useElementSize } from '@vueuse/core'
-import { computed, ref } from 'vue'
+import { computed, provide, ref } from 'vue'
+import { provideGameColorMode } from '../../composables/useGameColorMode'
 import { useGameUiTheme } from '../../composables/useGameUiTheme'
 import { injectionAdvContent, injectionAdvScale } from '../../constants'
 import { useAppStore } from '../../stores'
@@ -15,9 +17,12 @@ const props = withDefaults(defineProps<{
 
   config?: AdvConfig
   theme?: ThemeConfig
-}>(), {})
+  colorModeStorageKey?: string | false
+}>(), { colorModeStorageKey: undefined })
 const app = useAppStore()
-const { colorScheme, style: themeStyle } = useGameUiTheme(() => props.theme)
+const { colorScheme: themeColorScheme, style: themeStyle, config: themeConfig } = useGameUiTheme(() => props.theme)
+provide(themeConfigSymbol, themeConfig)
+const { colorScheme } = provideGameColorMode(themeColorScheme, props.colorModeStorageKey)
 
 const container = ref<HTMLDivElement>()
 const advContentRef = ref<HTMLDivElement>()

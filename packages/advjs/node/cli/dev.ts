@@ -107,7 +107,10 @@ export async function advDev(options: AdvDevOptions & AdvBaseEntryOptions) {
             const { themeConfig } = await loadAdvThemeConfig(options)
             return {
               ...data,
-              themeConfig,
+              themeConfig: {
+                ...themeConfig,
+                pkg: data.themeConfig.pkg,
+              },
             }
           }
 

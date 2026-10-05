@@ -1,5 +1,5 @@
 <template>
-  <main text="dark-200 dark:white">
+  <AdvThemeScope as="main" class="text-$adv-c-text">
     <RouterView />
-  </main>
+  </AdvThemeScope>
 </template>

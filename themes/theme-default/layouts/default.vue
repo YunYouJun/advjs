@@ -1,6 +1,6 @@
 <template>
-  <main class="size-full flex flex-col text-center text-gray-700 dark:text-gray-200">
+  <AdvThemeScope as="main" class="size-full flex flex-col text-center text-$adv-c-text">
     <BaseHeader />
     <RouterView />
-  </main>
+  </AdvThemeScope>
 </template>

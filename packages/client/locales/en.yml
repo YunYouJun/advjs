@@ -1,4 +1,6 @@
 button:
+  fullscreen: Toggle full screen
+  rotate: Rotate screen
   about: About
   back: Back
   close: Close
@@ -92,3 +94,10 @@ font_size:
 display_mode:
   type: Type Mode
   soft: Soft Mode
+
+ui:
+  dialog: Game dialog
+  history: History
+  hide_interface: Hide interface
+  characters: Show characters
+  mute_music: Mute music

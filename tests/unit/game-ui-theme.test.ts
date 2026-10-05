@@ -104,6 +104,26 @@ describe('game UI theme contract', () => {
       expect(root.style.getPropertyValue(property)).toBe('')
   })
 
+  it('provides each explicit container theme to descendant theme components', async () => {
+    const Consumer = defineComponent({
+      setup() {
+        const theme = useThemeConfig<{ paper: string }>()
+        return () => h('span', theme.value.paper)
+      },
+    })
+    const theme = shallowRef({ paper: 'Local' })
+    const host = document.createElement('div')
+    hosts.push(host)
+    const app = createApp({ render: () => h(AdvContainer, { theme: theme.value }, () => h(Consumer)) })
+    apps.push(app)
+    app.provide(themeConfigSymbol, computed(() => ({ paper: 'Host' })))
+    app.mount(host)
+    expect(host.textContent).toBe('Local')
+    theme.value = { paper: 'Updated' }
+    await nextTick()
+    expect(host.textContent).toBe('Updated')
+  })
+
   it('exposes typed theme extensions through the shared injection reader', async () => {
     interface PaperTheme extends ThemeConfig { paper: { grain: boolean } }
     const theme = shallowRef<PaperTheme>({ paper: { grain: true } })

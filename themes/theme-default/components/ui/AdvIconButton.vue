@@ -3,19 +3,24 @@ import { useSound } from '@advjs/client'
 import { computed } from 'vue'
 import { useThemeConfig } from '../../composables'
 
+defineProps<{
+  title?: string
+  disabled?: boolean
+}>()
+
 const themeConfig = useThemeConfig()
-const sVolume = computed(() => themeConfig.value?.audio?.volume || 0.5)
+const sVolume = computed(() => themeConfig.value?.audio?.volume ?? 0.5)
 const popDownUrl = computed(() => themeConfig.value?.assets?.audio?.popDownUrl || '')
 
 const popDown = useSound(popDownUrl, { volume: sVolume })
 </script>
 
 <template>
-  <div class="adv-icon-button" @click="popDown.play()">
-    <AdvIcon>
+  <button type="button" class="adv-icon-button" :disabled="disabled" :title="title" :aria-label="title" @click="popDown.play()">
+    <AdvIcon aria-hidden="true">
       <slot />
     </AdvIcon>
-  </div>
+  </button>
 </template>
 
 <style lang="scss">
@@ -24,14 +29,23 @@ const popDown = useSound(popDownUrl, { volume: sVolume })
   justify-content: center;
   align-items: center;
 
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
   border-radius: 50%;
   padding: 1rem;
   cursor: pointer;
 
   transition: 0.2s;
 
-  &:hover {
-    background: rgba(123, 123, 123, 0.2);
+  &:hover:not(:disabled) {
+    background: var(--adv-icon-button-hover-bg, rgb(123 123 123 / 20%));
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
   }
 }
 </style>

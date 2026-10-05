@@ -9,7 +9,8 @@ const tokens = new Set<string>(gameUiTokenNames)
 /** Derive local styles; no document mutations, global theme state or watchers. */
 export function useGameUiTheme(theme?: MaybeRefOrGetter<ThemeConfig | undefined>) {
   const injected = inject(themeConfigSymbol, undefined)
-  const ui = computed(() => (toValue(theme) ?? injected?.value)?.ui)
+  const config = computed(() => toValue(theme) ?? injected?.value ?? {})
+  const ui = computed(() => config.value.ui)
   const colorScheme = computed(() => {
     const value = ui.value?.colorScheme
     return value === 'light' || value === 'dark' ? value : undefined
@@ -22,5 +23,5 @@ export function useGameUiTheme(theme?: MaybeRefOrGetter<ThemeConfig | undefined>
     }
     return values
   })
-  return { colorScheme, style }
+  return { colorScheme, style, config }
 }

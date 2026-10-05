@@ -73,7 +73,7 @@ onMounted(async () => {
       </p>
     </div>
 
-    <div v-if="!history.length" class="text-6xl text-center flex h-full items-center justify-center dark:text-gray-200">
+    <div v-if="!history.length" class="text-6xl text-$adv-c-text text-center flex h-full items-center justify-center">
       {{ t('settings.history.empty') }}
     </div>
   </div>

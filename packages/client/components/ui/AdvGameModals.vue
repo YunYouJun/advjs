@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { useAppStore } from '@advjs/client'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const app = useAppStore()
 </script>
@@ -7,31 +10,28 @@ const app = useAppStore()
 <template>
   <AdvModal
     v-model:open="app.showHistory"
-    header="历史记录" icon="i-ri-history-line"
-    @close="app.toggleHistory"
+    :header="t('ui.history')" icon="i-ri-history-line"
   >
     <AdvHistory />
   </AdvModal>
 
   <AdvModal
     v-model:open="app.menus.settings"
-    @close="app.menus.settings = false"
+    :label="t('menu.settings')"
   >
     <AdvSettingsPanel />
   </AdvModal>
 
   <AdvModal
     v-model:open="app.showSaveMenu"
-    header="存储存档"
-    @close="app.toggleShowSaveMenu"
+    :header="t('menu.save_game')"
   >
     <SaveMenu />
   </AdvModal>
 
   <AdvModal
     v-model:open="app.showLoadMenu"
-    header="加载存档"
-    @close="app.toggleShowLoadMenu"
+    :header="t('menu.load_game')"
   >
     <LoadMenu />
   </AdvModal>

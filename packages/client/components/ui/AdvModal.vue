@@ -4,66 +4,95 @@
  * modal 覆盖的是游戏全屏
  */
 
-import { onKeyStroke } from '@vueuse/core'
-import { onMounted } from 'vue'
+import { DialogClose, DialogContent, DialogRoot, DialogTitle } from 'reka-ui'
+import { useI18n } from 'vue-i18n'
 import { useAdvMotionPreference } from '../../composables/useAdvMotionPreference'
 
 withDefaults(defineProps<{
   icon?: string
   header?: string
+  label?: string
 }>(), {
   icon: '',
   header: '',
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits<{ close: [] }>()
 const motion = useAdvMotionPreference()
+const { t } = useI18n()
+let returnFocus: HTMLElement | null = null
 
 const open = defineModel('open', {
   type: Boolean,
   default: false,
 })
 
-onMounted(() => {
-  onKeyStroke('Escape', (_e) => {
-    if (open.value)
-      emit('close')
-  })
-})
+function updateOpen(value: boolean) {
+  open.value = value
+  if (!value)
+    emit('close')
+}
+
+function rememberFocus() {
+  returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
+}
+
+function restoreFocus(event: Event) {
+  event.preventDefault()
+  if (returnFocus?.isConnected)
+    returnFocus.focus({ preventScroll: true })
+}
 </script>
 
 <template>
-  <Transition name="modal">
-    <div v-if="open" class="modal-mask" :data-motion="motion">
-      <div class="modal-container flex flex-col size-full z-9999">
-        <AdvIconButton v-if="!header" class="modal-close-button right-4 top-4 absolute" @click="emit('close')">
-          <div i-ri-close-line class="text-6xl" />
-        </AdvIconButton>
-
-        <slot name="header">
-          <div v-if="header" class="flex items-center justify-between">
-            <h1
-              class="adv-font-serif font-black p-6 flex gap-2 items-center"
-              text="6xl"
-            >
-              <div :class="icon" />
-              <span>{{ header }}</span>
-            </h1>
-
-            <AdvIconButton class="modal-close-button" @click="emit('close')">
+  <DialogRoot :open="open" @update:open="updateOpen">
+    <Transition name="modal">
+      <DialogContent
+        v-if="open"
+        force-mount
+        class="modal-mask"
+        :aria-describedby="undefined"
+        :data-motion="motion"
+        @open-auto-focus="rememberFocus"
+        @close-auto-focus="restoreFocus"
+      >
+        <DialogTitle class="adv-modal-accessible-title">
+          {{ label || header || t('ui.dialog') }}
+        </DialogTitle>
+        <div class="modal-container flex flex-col size-full z-9999">
+          <DialogClose v-if="!header" as-child>
+            <AdvIconButton :title="t('button.close')" class="modal-close-button right-4 top-4 absolute">
               <div i-ri-close-line class="text-6xl" />
             </AdvIconButton>
+          </DialogClose>
+
+          <slot name="header">
+            <div v-if="header" class="flex items-center justify-between">
+              <h1
+                class="adv-font-serif font-black p-6 flex gap-2 items-center"
+                text="6xl"
+              >
+                <div :class="icon" />
+                <span>{{ header }}</span>
+              </h1>
+
+              <DialogClose as-child>
+                <AdvIconButton :title="t('button.close')" class="modal-close-button">
+                  <div i-ri-close-line class="text-6xl" />
+                </AdvIconButton>
+              </DialogClose>
+            </div>
+
+            <HorizontalDivider v-if="header" />
+          </slot>
+
+          <div class="modal-body flex flex-grow min-h-0 w-full justify-center overflow-auto">
+            <slot />
           </div>
-
-          <HorizontalDivider v-if="header" />
-        </slot>
-
-        <div class="modal-body flex flex-grow w-full justify-center overflow-auto">
-          <slot />
         </div>
-      </div>
-    </div>
-  </Transition>
+      </DialogContent>
+    </Transition>
+  </DialogRoot>
 </template>
 
 <style>
@@ -89,8 +118,15 @@ onMounted(() => {
     transform var(--adv-modal-motion-duration, 180ms) ease;
 }
 
-.modal-close-button {
-  outline: none;
+.adv-modal-accessible-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /*

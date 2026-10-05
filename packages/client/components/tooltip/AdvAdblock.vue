@@ -24,7 +24,7 @@ function refresh() {
 <template>
   <Transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
     <div v-if="show" class="flex flex-col h-screen w-screen items-center justify-center absolute animate-duration-200">
-      <div class="text-gray-900 max-w-1000px shadow transition dark:text-gray-200 hover:shadow-md" p="4" m="4">
+      <div class="text-$adv-c-text max-w-1000px shadow transition hover:shadow-md" p="4" m="4">
         <h2 text="xl left" font="black">
           如果你可以看到这行字，就说明游戏<span text="red-500">没有加载成功</span>！
           <br>

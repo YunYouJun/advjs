@@ -3,13 +3,14 @@ import type { MenuButtonItem } from '../../types/menu'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { isDark, toggleDark } from '../../composables'
+import { useGameColorMode } from '../../composables/useGameColorMode'
 import { useAppStore, useSettingsStore } from '../../stores'
 
 const { t, locale, availableLocales } = useI18n()
 
 const app = useAppStore()
 const settings = useSettingsStore()
+const { isDark, toggle: toggleDark } = useGameColorMode()
 
 function toggleLocales() {
   // change to some real logic
@@ -72,7 +73,7 @@ const menuItems = computed<MenuButtonItem[]>(() => {
     </AdvButton>
 
     <div m="4" class="flex gap-1">
-      <AdvIconButton :title="t('button.toggle_dark')" @click="toggleDark()">
+      <AdvIconButton :title="t('button.toggle_dark')" :aria-pressed="isDark" @click="toggleDark()">
         <div v-if="isDark" i-ri-moon-line />
         <div v-else i-ri-sun-line />
       </AdvIconButton>

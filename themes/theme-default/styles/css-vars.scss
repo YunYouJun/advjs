@@ -1,7 +1,8 @@
 @use 'sass:map';
 @use './vars.scss' as *;
 
-:root {
+:root,
+[data-adv-ui='game'] {
   --adv-theme-name: 'default';
   --adv-theme-color: var(--adv-c-primary);
   --adv-modal-motion-duration: 180ms;
@@ -12,4 +13,18 @@
   --adv-save-card-shadow-hover: 8px 8px 28px rgb(0 0 0 / 16%);
   --adv-save-control-radius: 0.25rem;
   --adv-save-motion-duration: 180ms;
+}
+
+:root,
+[data-adv-ui='game'][data-adv-color-scheme='light'] {
+  --adv-theme-start-bg-filter: none;
+  --adv-theme-logo-color: #2563eb;
+  --adv-theme-title-gradient-end: #3b82f6;
+}
+
+.dark,
+[data-adv-ui='game'][data-adv-color-scheme='dark'] {
+  --adv-theme-start-bg-filter: invert(1);
+  --adv-theme-logo-color: #60a5fa;
+  --adv-theme-title-gradient-end: #93c5fd;
 }

@@ -87,7 +87,7 @@ export default defineThemeConfig<MyThemeConfig>({
 
 ## 容器与样式隔离
 
-`AdvGame` 自动把运行上下文中的 `themeConfig` 传给 `AdvContainer`。独立容器也可显式传入 `:theme="config"`；省略时使用已有 `themeConfigSymbol` 注入。`useGameUiTheme()` 提供响应式 `style` 与 `colorScheme`，供自定义游戏容器复用。
+`AdvGame` 自动把运行上下文中的 `themeConfig` 传给 `AdvContainer`。独立容器也可显式传入 `:theme="config"`；省略时使用已有 `themeConfigSymbol` 注入。容器也会把解析后的主题配置注入子组件，`useThemeConfig()` 因而读取当前实例的主题与扩展字段。`useGameUiTheme()` 提供响应式 `style`、`colorScheme` 与 `config`，供自定义游戏容器复用。
 
 ```vue
 <script setup lang="ts">
@@ -112,6 +112,38 @@ const theme: ThemeConfig = {
 
 同一文档内的 CSS 仍可跨选择器影响内容。`AdvContainer` 提供局部主题配置与默认焦点样式，不提供 Shadow DOM 沙箱。自定义弹层应留在容器内；Teleport 到 `body` 会丢失局部 token，需显式建立带相同主题的目标范围或使用独立文档。
 
+## 局部明暗模式与偏好
+
+`AdvContainer` 和不缩放内容的 `AdvThemeScope` 提供局部颜色模式。默认主题的标题页、普通页面、菜单使用同一契约；菜单调用 `useGameColorMode()` 的 `toggle()`，不会修改宿主的 `html.dark`。未配置模式时先继承宿主，玩家选择后覆盖 `themeConfig.ui.colorScheme`；`reset()` 清除玩家选择并恢复配置或继承。
+
+```vue
+<script setup lang="ts">
+import { useGameColorMode } from '@advjs/client'
+
+// 必须在 AdvContainer / AdvThemeScope 的子组件中调用。
+const { isDark, toggle, reset } = useGameColorMode()
+</script>
+
+<template>
+  <button type="button" :aria-pressed="isDark" @click="toggle">
+    深色模式
+  </button>
+  <button type="button" @click="reset">
+    跟随主题
+  </button>
+</template>
+```
+
+独立游戏在启动时提供 `gameColorModeStorageKey`，以部署 `BASE_URL` 为键保存到 localStorage，切换标题/游戏路由与刷新后保持选择。同源同部署路径共用偏好；需要区分多个游戏时，由宿主为容器设置稳定的 `colorModeStorageKey`。此 prop 是实例创建时的配置，切换项目身份时应重新挂载容器。
+
+嵌入预览默认只保存实例内的状态；`:color-mode-storage-key="false"` 可显式禁用继承来的持久化配置。两个实例不会互相同步玩家的切换。存储不可用时仍可在当前实例中切换。旧 `isDark` / `toggleDark` 保留为已弃用的宿主 API；导入 client 本身不再触发全局模式写入，显式调用旧 API 仍会修改宿主。
+
+## 按钮与游戏弹层
+
+默认 `AdvIconButton` 与开始菜单使用原生 `button type="button"`；图标操作通过 `title`（或显式 `aria-label`）命名。链接直接承担导航语义，不在链接里嵌套按钮。禁用图标按钮不会播放点击音效或触发操作。
+
+`AdvModal` 基于 Reka Dialog，使用 `v-model:open` 控制显示，`header` 或 `label` 提供名称。内容留在当前游戏容器中，支持焦点进入、Tab 循环、Escape 关闭和返回打开前的元素。关闭时先更新 `open` 再发出 `close` 通知；旧调用方不要再在 `@close` 中反转同一状态，改为只使用 `v-model:open`，或幂等地设为 `false`。
+
 ## 交互契约与验收
 
 - 对话能稳定推进，选择后走向对应分支，换肤不改变剧情状态或存档兼容性。
@@ -135,15 +167,13 @@ pnpm exec vitest run tests/unit/game-ui-theme.test.ts tests/unit/agui-controls.t
 
 CI 的 unit 作业在构建测试依赖后执行同一类型契约检查，再运行全部单测。类型检查覆盖旧主题接口、自定义字段推断、非法模式和混入工具 token；DOM 单测覆盖局部应用、响应式更新、默认恢复和相邻游戏隔离。两者不代替浏览器中的控件与样式验收。
 
-## 历史界面迁移顺序
+## 历史界面迁移进度
 
-统一契约与核心组件接入可以独立交付。迁移完整主题时，按下面的依赖关系补齐，不把现有行为误认为新契约已经覆盖：
+| 顺序 | 范围             | 当前状态                                                                                                                                                                         |
+| ---- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | 局部明暗与偏好   | 已接入容器、标题页和菜单；独立游戏持久化，嵌入实例隔离。                                                                                                                         |
+| 2    | 图标按钮与弹层   | 默认按钮、开始菜单、标题导航与游戏弹层已迁移；具备名称、禁用语义和焦点管理。                                                                                                     |
+| 3    | 历史颜色与作用域 | 默认布局、设置页签、文字按钮和标题美术已使用局部 token；Pominis 标题渐变保留美术方向并使用局部扩展 token。各主题剩余滑块、进度条、全局 reset 等仍需逐组件审计。                  |
+| 4    | 回归覆盖         | 单元覆盖模式隔离、持久化、存储异常、按钮和弹层；`tests/e2e/game-ui.spec.ts` 覆盖独立游戏刷新、路由和焦点流程。Editor / Studio 完整宿主场景与所有存档分支仍需持续扩展浏览器回归。 |
 
-| 顺序 | 入口                                                                                                  | 需要迁移的行为与验收条件                                                                                                                                                          |
-| ---- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | `packages/client/composables/dark.ts`、`components/menu/RightTools.vue`、默认主题 `layouts/start.vue` | 旧 `isDark` / `toggleDark` 仍操作全局模式。先迁移游戏内亮暗状态的读写，再让标题背景和菜单消费同一局部状态；切换游戏模式后宿主和相邻游戏保持不变，并明确独立游戏的偏好持久化方式。 |
-| 2    | `themes/theme-default/components/ui/AdvIconButton.vue`、`packages/client/components/ui/AdvModal.vue`  | 图标按钮仍使用可点击 `div`，弹层缺少完整的焦点管理。一起补原生按钮、可访问名称、对话框语义、焦点进入/约束/返回与 Escape 关闭；检查按钮调用处，避免嵌套交互元素。                  |
-| 3    | 默认主题 `components/ui/AdvTextButton.vue`、`layouts/*`、游戏菜单与各主题 `styles/*`                  | 把编译期颜色、宿主 `dark:` 变体和全局样式逐步迁入游戏 token 与容器作用域；保留各主题的美术风格，核对省略 `ui` 时的兼容外观。                                                      |
-| 4    | Starter、Editor 游戏预览、Studio `GamePlayer.vue`                                                     | 将手动验收覆盖的亮暗交叉、320px、键盘操作扩展为浏览器回归，并覆盖设置、存读档、历史和关闭弹层返回焦点。                                                                           |
-
-第一项完成前，不应声称旧游戏菜单的亮暗切换已与宿主完全隔离；当前隔离保证针对 `ThemeConfig.ui` 的容器配置应用。
+回归入口：`pnpm vitest run tests/unit/game-ui-theme.test.ts tests/unit/game-ui-interactions.test.ts tests/unit/agui-controls.test.ts`、`pnpm e2e tests/e2e/game-ui.spec.ts --project=chromium`。设计体系统一不要求移除主题的插画、渐变和剧情表现；这些应由游戏主题消费局部扩展 token，不能改变编辑器外壳。
