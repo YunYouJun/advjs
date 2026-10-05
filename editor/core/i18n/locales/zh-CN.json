@@ -143,6 +143,7 @@
     "deleted": "角色已删除",
     "selectToEdit": "选择一个角色进行编辑",
     "detail": {
+      "delete": "删除角色",
       "edit": "编辑",
       "personality": "性格",
       "appearance": "外貌",

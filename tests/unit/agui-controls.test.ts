@@ -1,10 +1,14 @@
 import type { App } from 'vue'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createApp, h, nextTick, ref } from 'vue'
+import AGUIDetails from '../../packages/gui/client/components/AGUIDetails.vue'
+import AGUIProperty from '../../packages/gui/client/components/AGUIProperty.vue'
+import AGUIIconButton from '../../packages/gui/client/components/button/AGUIIconButton.vue'
 import AGUIDialog from '../../packages/gui/client/components/dialog/AGUIDialog.vue'
 import AGUIInput from '../../packages/gui/client/components/input/AGUIInput.vue'
 import AGUISelect from '../../packages/gui/client/components/select/AGUISelect.vue'
 import AGUISwitch from '../../packages/gui/client/components/switch/AGUISwitch.vue'
+import AGUIToolbar from '../../packages/gui/client/components/toolbar/AGUIToolbar.vue'
 
 let app: App | undefined
 afterEach(() => {
@@ -67,5 +71,47 @@ describe('aGUI control contracts', () => {
     document.querySelector<HTMLButtonElement>('[aria-label=Close]')!.click()
     await nextTick()
     expect(open.value).toBe(false)
+  })
+
+  it('associates property labels and preserves native disclosure and icon button semantics', () => {
+    const action = vi.fn()
+    const container = mount(() => h(AGUIDetails, { title: 'Transform', open: true }, () => [
+      h(AGUIProperty, { label: 'Position', for: 'position' }, () => h(AGUIInput, { id: 'position' })),
+      h(AGUIIconButton, { title: 'Reset', disabled: true, onClick: action }),
+      h(AGUIIconButton, { title: 'Snap', active: true }),
+    ]))
+    expect(container.querySelector('details')!.open).toBe(true)
+    expect(container.querySelector('summary')!.textContent).toContain('Transform')
+    expect(container.querySelector('label')!.control).toBe(container.querySelector('input'))
+    const buttons = container.querySelectorAll('button')
+    expect(buttons[0].type).toBe('button')
+    expect(buttons[0].getAttribute('aria-label')).toBe('Reset')
+    expect(buttons[0].hasAttribute('aria-pressed')).toBe(false)
+    buttons[0].click()
+    expect(action).not.toHaveBeenCalled()
+    expect(buttons[1].getAttribute('aria-pressed')).toBe('true')
+  })
+
+  it('names toolbars and supports keyboard navigation and toggle state', async () => {
+    const items = ref([
+      { type: 'button' as const, title: 'Edit', onClick: vi.fn() },
+      { type: 'button' as const, title: 'Export', onClick: vi.fn() },
+      { type: 'toggle-group' as const, name: 'View', value: 'list', children: [
+        { value: 'list', label: 'List', icon: 'list', onClick: vi.fn() },
+        { value: 'grid', label: 'Grid', icon: 'grid', onClick: vi.fn() },
+      ] },
+    ])
+    const container = mount(() => h(AGUIToolbar, { label: 'Character tools', items: items.value }))
+    expect(container.querySelector('[role=toolbar]')!.getAttribute('aria-label')).toBe('Character tools')
+    const buttons = container.querySelectorAll('button')
+    await nextTick()
+    buttons[0].focus()
+    await nextTick()
+    buttons[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }))
+    await vi.waitFor(() => expect(document.activeElement).toBe(buttons[1]))
+    buttons[3].click()
+    await nextTick()
+    expect(buttons[3].getAttribute('aria-pressed')).toBe('true')
+    expect(buttons[2].getAttribute('aria-pressed')).toBe('false')
   })
 })

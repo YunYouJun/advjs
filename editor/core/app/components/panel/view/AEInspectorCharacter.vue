@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ToolbarItem } from '@advjs/gui'
 import type { AdvCharacter, AdvCharacterRelationship, AdvTachie } from '@advjs/types'
 import { Toast } from '@advjs/gui'
 
@@ -118,46 +119,28 @@ async function onRelationshipUpdate(relationships: AdvCharacterRelationship[]) {
   characterStore.selectedCharacter = updated
   Toast({ title: t('characters.updated'), type: 'success' })
 }
+const toolbarItems = computed<ToolbarItem[]>(() => {
+  if (isCreateMode.value || !characterStore.selectedCharacter)
+    return []
+  return [
+    { type: 'space' },
+    { type: 'button', icon: isEditing.value ? 'i-ri-arrow-left-line' : 'i-ri-edit-line', title: t(isEditing.value ? 'characters.backToDetail' : 'characters.detail.edit'), onClick: isEditing.value ? stopEditing : startEditing },
+    { type: 'button', icon: 'i-ri-file-text-line', title: t('characters.exportAI'), onClick: onExportAI },
+    { type: 'button', icon: 'i-ri-delete-bin-line', title: t('characters.detail.delete'), onClick: () => onDelete(characterStore.selectedCharacter!) },
+  ]
+})
 </script>
 
 <template>
-  <div class="h-full flex flex-col">
-    <!-- Header toolbar -->
-    <div class="flex items-center justify-between gap-2 border-b border-dark-300 p-2">
-      <div class="flex items-center gap-2">
-        <div class="i-ri-user-line" />
-        <span>{{ isCreateMode ? $t('characters.createNew') : $t('characters.title') }}</span>
-      </div>
-
-      <div v-if="!isCreateMode && characterStore.selectedCharacter" class="flex items-center gap-1">
-        <AGUIIconButton
-          v-if="!isEditing"
-          size="mini"
-          icon="i-ri-edit-line"
-          :title="$t('characters.detail.edit')"
-          @click="startEditing"
-        />
-        <AGUIIconButton
-          v-if="isEditing"
-          size="mini"
-          icon="i-ri-arrow-left-line"
-          :title="$t('characters.backToDetail')"
-          @click="stopEditing"
-        />
-        <AGUIIconButton
-          size="mini"
-          icon="i-ri-file-text-line"
-          :title="$t('characters.exportAI')"
-          @click="onExportAI"
-        />
-        <AGUIIconButton
-          size="mini"
-          icon="i-ri-delete-bin-line"
-          :title="$t('characters.deleted')"
-          @click="onDelete(characterStore.selectedCharacter)"
-        />
-      </div>
-    </div>
+  <div class="flex flex-col h-full">
+    <AGUIToolbar :items="toolbarItems" :label="t('characters.title')">
+      <template #before-toolbar>
+        <div class="flex gap-1 min-w-0 items-center">
+          <div class="i-ri-user-line shrink-0" aria-hidden="true" />
+          <span class="break-words">{{ isCreateMode ? $t('characters.createNew') : $t('characters.title') }}</span>
+        </div>
+      </template>
+    </AGUIToolbar>
 
     <div class="flex-1 overflow-auto">
       <!-- Create mode -->
@@ -189,7 +172,7 @@ async function onRelationshipUpdate(relationships: AdvCharacterRelationship[]) {
           />
 
           <!-- Tachie Manager -->
-          <div class="border-t border-dark-300 p-4">
+          <div class="p-3 border-t border-$agui-c-divider">
             <TachieManager
               :character="characterStore.selectedCharacter"
               @update="onTachieUpdate"
@@ -197,7 +180,7 @@ async function onRelationshipUpdate(relationships: AdvCharacterRelationship[]) {
           </div>
 
           <!-- Relationship Editor -->
-          <div class="border-t border-dark-300 p-4">
+          <div class="p-3 border-t border-$agui-c-divider">
             <RelationshipEditor
               :relationships="characterStore.selectedCharacter.relationships"
               @update="onRelationshipUpdate"
@@ -207,7 +190,7 @@ async function onRelationshipUpdate(relationships: AdvCharacterRelationship[]) {
       </template>
 
       <!-- No character selected -->
-      <div v-else class="flex items-center justify-center p-4 op-50">
+      <div v-else class="p-4 op-50 flex items-center justify-center">
         {{ $t('characters.selectToEdit') }}
       </div>
     </div>

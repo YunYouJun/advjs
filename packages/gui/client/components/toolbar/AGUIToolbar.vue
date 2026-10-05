@@ -1,20 +1,21 @@
 <script lang="ts" setup>
 import type { ToolbarItem } from './types'
 
-import { ToggleGroupItem, ToggleGroupRoot, ToolbarButton, ToolbarRoot, ToolbarSeparator } from 'reka-ui'
+import { ToolbarButton, ToolbarRoot, ToolbarSeparator, ToolbarToggleGroup, ToolbarToggleItem } from 'reka-ui'
+import AGUIButton from '../button/AGUIButton.vue'
+import AGUIIconButton from '../button/AGUIIconButton.vue'
+import AGUIDropdownMenu from '../dropdown-menu/AGUIDropdownMenu.vue'
 
-defineProps<{
+withDefaults(defineProps<{
   items: ToolbarItem[]
-}>()
-
-const toggleGroupItemClasses
-  = 'cursor-pointer bg-dark-200 shadow hover:bg-dark-100 text-mauve11 flex w-8 items-center justify-center text-base leading-4 first:rounded-l last:rounded-r focus:z-10 shadow focus:shadow-[0_0_0_1px] focus:shadow-dark-600 focus:outline-none'
+  label?: string
+}>(), { label: 'Tools' })
 </script>
 
 <template>
   <ToolbarRoot
-    class="px-1.5 py-0.5 bg-$agui-c-bg flex gap-1 h-$agui-toolbar-height w-full shadow-black/70"
-    aria-label="Formatting options"
+    class="agui-toolbar"
+    :aria-label="label"
   >
     <slot name="before-toolbar" />
 
@@ -23,42 +24,33 @@ const toggleGroupItemClasses
       <ToolbarSeparator
         v-else-if="item.type === 'separator'"
         :key="`separator:${key}`"
-        class="mx-1 my-2px bg-gray op-50 w-1px"
+        class="agui-toolbar-separator"
       />
       <ToolbarButton
         v-else-if="item.type === 'button'"
-        :key="item.name"
-        class="agui-button"
-        :aria-label="item.name || item.title"
-        :title="item.title"
-        @click="item.onClick"
+        :key="`button:${key}`"
+        as-child
       >
-        <div
-          v-if="item.icon"
-          :class="[item.icon, item.name && 'mr-1']"
-        />
-        <span>
+        <component :is="item.name ? AGUIButton : AGUIIconButton" :aria-label="item.name || item.title" :title="item.title" :icon="item.icon" @click="item.onClick">
           {{ item.name }}
-        </span>
+        </component>
       </ToolbarButton>
 
-      <ToggleGroupRoot
+      <ToolbarToggleGroup
         v-else-if="item.type === 'toggle-group'"
         :key="`group:${item.name}`"
         v-model="item.value"
         class="flex"
       >
-        <ToggleGroupItem
+        <ToolbarToggleItem
           v-for="bItem in item.children"
           :key="bItem.value"
           :value="bItem.value"
-          :aria-label="bItem.label"
-          :class="`${bItem.class} ${toggleGroupItemClasses}`"
-          @click="bItem.onClick"
+          as-child
         >
-          <div :class="bItem.icon" class="h-[15px] w-[15px]" />
-        </ToggleGroupItem>
-      </ToggleGroupRoot>
+          <AGUIIconButton :class="bItem.class" :icon="bItem.icon" :title="bItem.label" :active="item.value === bItem.value" @click="bItem.onClick" />
+        </ToolbarToggleItem>
+      </ToolbarToggleGroup>
 
       <AGUIDropdownMenu
         v-else-if="item.type === 'dropdown'"
@@ -70,3 +62,29 @@ const toggleGroupItemClasses
     <slot name="after-toolbar" />
   </ToolbarRoot>
 </template>
+
+<style lang="scss">
+.agui-toolbar {
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  min-width: 0;
+  min-height: 30px;
+  padding: 3px 6px;
+  color: var(--agui-c-text-1);
+  background: var(--agui-c-bg-panel-title);
+  border-bottom: 1px solid var(--agui-c-divider);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.agui-toolbar-separator {
+  align-self: stretch;
+  width: 1px;
+  margin: 2px 4px;
+  background: var(--agui-c-divider);
+}
+</style>

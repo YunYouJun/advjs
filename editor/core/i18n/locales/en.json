@@ -143,6 +143,7 @@
     "deleted": "Character deleted",
     "selectToEdit": "Select a character to edit",
     "detail": {
+      "delete": "Delete character",
       "edit": "Edit",
       "personality": "Personality",
       "appearance": "Appearance",

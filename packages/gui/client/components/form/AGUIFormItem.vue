@@ -1,5 +1,6 @@
 <script setup lang="ts">
 defineProps<{
+  for?: string
   label?: string
   labelClass?: string
   description?: string
@@ -18,6 +19,7 @@ defineProps<{
     <slot name="label">
       <label
         v-if="label"
+        :for="$props.for"
         class="agui-label"
         :class="labelClass"
         :title="description"

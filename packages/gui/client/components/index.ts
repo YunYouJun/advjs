@@ -76,3 +76,5 @@ export {
 
 // Imperative API
 export * from './toast/AGUIToast.vue'
+
+export type { ToolbarItem } from './toolbar/types'

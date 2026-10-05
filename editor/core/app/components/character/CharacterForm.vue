@@ -12,6 +12,8 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
+const fieldId = useId()
+
 const { t } = useI18n()
 
 const form = reactive<Partial<AdvCharacter>>({
@@ -96,98 +98,88 @@ function onSubmit() {
 </script>
 
 <template>
-  <div class="character-form h-full flex flex-col overflow-y-auto">
+  <div class="character-form flex flex-col h-full overflow-y-auto">
     <!-- Draft notice -->
-    <div v-if="hasDraft" class="flex items-center justify-between bg-yellow-900/30 px-4 py-2 text-sm text-yellow-200">
+    <div v-if="hasDraft" class="text-xs text-$agui-c-warning-text px-3 py-2 flex flex-wrap gap-2 items-center justify-between">
       <span>{{ $t('characters.draft.hasDraft') }}</span>
       <AGUIButton size="mini" @click="loadDraft">
         {{ $t('characters.form.loadDraft') }}
       </AGUIButton>
     </div>
 
-    <div class="flex-1 p-4">
+    <div class="flex-1">
       <AGUIForm @submit.prevent="onSubmit">
-        <!-- Basic Info Section -->
-        <h3 class="mb-3 text-sm font-bold tracking-wide uppercase op-60">
-          {{ $t('characters.form.basicInfo') }}
-        </h3>
+        <AGUIDetails :title="$t('characters.form.basicInfo')" open>
+          <AGUIProperty :for="`${fieldId}-id`" :label="$t('characters.form.id')">
+            <AGUIInput :id="`${fieldId}-id`" v-model="form.id" :placeholder="$t('characters.form.idPlaceholder')" :disabled="mode === 'edit'" />
+          </AGUIProperty>
 
-        <AGUIFormItem :label="$t('characters.form.id')" label-align="top">
-          <AGUIInput v-model="form.id" :placeholder="$t('characters.form.idPlaceholder')" :disabled="mode === 'edit'" />
-        </AGUIFormItem>
+          <AGUIProperty :for="`${fieldId}-name`" :label="$t('characters.form.name')">
+            <AGUIInput :id="`${fieldId}-name`" v-model="form.name" :placeholder="$t('characters.form.namePlaceholder')" />
+          </AGUIProperty>
 
-        <AGUIFormItem :label="$t('characters.form.name')" label-align="top">
-          <AGUIInput v-model="form.name" :placeholder="$t('characters.form.namePlaceholder')" />
-        </AGUIFormItem>
-
-        <AGUIFormItem :label="$t('characters.form.avatar')" label-align="top">
-          <div class="flex items-center gap-3">
-            <AGUIInput v-model="form.avatar" :placeholder="$t('characters.form.avatarPlaceholder')" class="flex-1" />
-            <img
-              v-if="form.avatar && avatarValid"
-              class="size-10 rounded-lg object-cover shadow"
-              :src="form.avatar"
-              :alt="form.name || 'avatar'"
-            >
-            <div v-else class="size-10 flex items-center justify-center rounded-lg bg-dark-200">
-              <div class="i-ri-image-line text-lg op-30" />
+          <AGUIProperty :for="`${fieldId}-avatar`" :label="$t('characters.form.avatar')">
+            <div class="flex gap-2 min-w-0 items-center">
+              <AGUIInput :id="`${fieldId}-avatar`" v-model="form.avatar" :placeholder="$t('characters.form.avatarPlaceholder')" class="flex-1 min-w-0" />
+              <img
+                v-if="form.avatar && avatarValid"
+                class="rounded size-8 object-cover"
+                :src="form.avatar"
+                :alt="form.name || 'avatar'"
+              >
+              <div v-else class="rounded bg-$agui-c-control flex size-8 items-center justify-center">
+                <div class="i-ri-image-line text-lg op-30" />
+              </div>
             </div>
-          </div>
-        </AGUIFormItem>
+          </AGUIProperty>
 
-        <div class="grid grid-cols-2 gap-4">
-          <AGUIFormItem :label="$t('characters.form.cv')" label-align="top">
-            <AGUIInput v-model="form.cv" :placeholder="$t('characters.form.cvPlaceholder')" />
+          <AGUIProperty :for="`${fieldId}-cv`" :label="$t('characters.form.cv')">
+            <AGUIInput :id="`${fieldId}-cv`" v-model="form.cv" :placeholder="$t('characters.form.cvPlaceholder')" />
+          </AGUIProperty>
+
+          <AGUIProperty :for="`${fieldId}-actor`" :label="$t('characters.form.actor')">
+            <AGUIInput :id="`${fieldId}-actor`" v-model="form.actor" :placeholder="$t('characters.form.actorPlaceholder')" />
+          </AGUIProperty>
+
+          <AGUIProperty :for="`${fieldId}-faction`" :label="$t('characters.form.faction')">
+            <AGUIInput :id="`${fieldId}-faction`" v-model="form.faction" :placeholder="$t('characters.form.factionPlaceholder')" />
+          </AGUIProperty>
+
+          <AGUIProperty :for="`${fieldId}-tags`" :label="$t('characters.form.tags')">
+            <AGUIInput :id="`${fieldId}-tags`" v-model="tagsInput" :placeholder="$t('characters.form.tagsPlaceholder')" />
+          </AGUIProperty>
+
+          <AGUIProperty :for="`${fieldId}-aliases`" :label="$t('characters.form.aliases')">
+            <AGUIInput :id="`${fieldId}-aliases`" v-model="aliasInput" :placeholder="$t('characters.form.aliasesPlaceholder')" />
+          </AGUIProperty>
+        </AGUIDetails>
+
+        <AGUIDetails :title="$t('characters.form.detailedDescription')" open>
+          <AGUIFormItem :for="`${fieldId}-personality`" :label="$t('characters.form.personality')" label-align="top">
+            <AGUITextarea :id="`${fieldId}-personality`" v-model="form.personality" :placeholder="$t('characters.form.personalityPlaceholder')" :rows="3" />
           </AGUIFormItem>
 
-          <AGUIFormItem :label="$t('characters.form.actor')" label-align="top">
-            <AGUIInput v-model="form.actor" :placeholder="$t('characters.form.actorPlaceholder')" />
-          </AGUIFormItem>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-          <AGUIFormItem :label="$t('characters.form.faction')" label-align="top">
-            <AGUIInput v-model="form.faction" :placeholder="$t('characters.form.factionPlaceholder')" />
+          <AGUIFormItem :for="`${fieldId}-appearance`" :label="$t('characters.form.appearance')" label-align="top">
+            <AGUITextarea :id="`${fieldId}-appearance`" v-model="form.appearance" :placeholder="$t('characters.form.appearancePlaceholder')" :rows="3" />
           </AGUIFormItem>
 
-          <AGUIFormItem :label="$t('characters.form.tags')" label-align="top">
-            <AGUIInput v-model="tagsInput" :placeholder="$t('characters.form.tagsPlaceholder')" />
+          <AGUIFormItem :for="`${fieldId}-background`" :label="$t('characters.form.background')" label-align="top">
+            <AGUITextarea :id="`${fieldId}-background`" v-model="form.background" :placeholder="$t('characters.form.backgroundPlaceholder')" :rows="3" />
           </AGUIFormItem>
-        </div>
 
-        <AGUIFormItem :label="$t('characters.form.aliases')" label-align="top">
-          <AGUIInput v-model="aliasInput" :placeholder="$t('characters.form.aliasesPlaceholder')" />
-        </AGUIFormItem>
+          <AGUIFormItem :for="`${fieldId}-concept`" :label="$t('characters.form.concept')" label-align="top">
+            <AGUIInput :id="`${fieldId}-concept`" v-model="form.concept" :placeholder="$t('characters.form.conceptPlaceholder')" />
+          </AGUIFormItem>
 
-        <!-- Detailed Description Section -->
-        <h3 class="mb-3 mt-6 text-sm font-bold tracking-wide uppercase op-60">
-          {{ $t('characters.form.detailedDescription') }}
-        </h3>
-
-        <AGUIFormItem :label="$t('characters.form.personality')" label-align="top">
-          <AGUITextarea v-model="form.personality" :placeholder="$t('characters.form.personalityPlaceholder')" :rows="3" />
-        </AGUIFormItem>
-
-        <AGUIFormItem :label="$t('characters.form.appearance')" label-align="top">
-          <AGUITextarea v-model="form.appearance" :placeholder="$t('characters.form.appearancePlaceholder')" :rows="3" />
-        </AGUIFormItem>
-
-        <AGUIFormItem :label="$t('characters.form.background')" label-align="top">
-          <AGUITextarea v-model="form.background" :placeholder="$t('characters.form.backgroundPlaceholder')" :rows="3" />
-        </AGUIFormItem>
-
-        <AGUIFormItem :label="$t('characters.form.concept')" label-align="top">
-          <AGUIInput v-model="form.concept" :placeholder="$t('characters.form.conceptPlaceholder')" />
-        </AGUIFormItem>
-
-        <AGUIFormItem :label="$t('characters.form.speechStyle')" label-align="top">
-          <AGUITextarea v-model="form.speechStyle" :placeholder="$t('characters.form.speechStylePlaceholder')" :rows="2" />
-        </AGUIFormItem>
+          <AGUIFormItem :for="`${fieldId}-speechStyle`" :label="$t('characters.form.speechStyle')" label-align="top">
+            <AGUITextarea :id="`${fieldId}-speechStyle`" v-model="form.speechStyle" :placeholder="$t('characters.form.speechStylePlaceholder')" :rows="2" />
+          </AGUIFormItem>
+        </AGUIDetails>
       </AGUIForm>
     </div>
 
     <!-- Sticky bottom buttons -->
-    <div class="sticky bottom-0 flex justify-end gap-2 border-t border-dark-200 bg-dark-300 px-4 py-3">
+    <div class="px-3 py-2 border-t border-$agui-c-divider bg-$agui-c-bg-panel flex flex-wrap gap-1 bottom-0 justify-end sticky">
       <AGUIButton v-if="mode === 'create'" size="mini" @click="saveDraft">
         {{ $t('characters.form.saveDraft') }}
       </AGUIButton>

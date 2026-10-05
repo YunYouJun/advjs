@@ -6,17 +6,11 @@ defineProps<{
 </script>
 
 <template>
-  <details class="agui-details w-full">
+  <details class="agui-details">
     <slot name="summary">
-      <summary
-        class="agui-summary text-$agui-c-text-1 leading-3 shadow-sm"
-        cursor-pointer text-xs
-      >
-        <!-- <div :class="collapse" /> -->
-        <div v-if="icon" class="mx-1 inline-block" :class="icon" />
-        <span ml-1 class="title">
-          {{ title }}
-        </span>
+      <summary class="agui-summary">
+        <span v-if="icon" class="agui-summary-icon" :class="icon" aria-hidden="true" />
+        <span class="title">{{ title }}</span>
       </summary>
     </slot>
     <div class="content">
@@ -27,43 +21,47 @@ defineProps<{
 
 <style lang="scss">
 .agui-details {
-  border-top: 1px solid var(--agui-c-border);
+  width: 100%;
+  min-width: 0;
+  border-top: 1px solid var(--agui-c-divider);
+  color: var(--agui-c-text-1);
+  font-size: 12px;
+  line-height: 1.5;
+  container: agui-properties / inline-size;
 
   &:first-child {
     border-top: none;
   }
 
-  .agui-summary {
-    // display: flex;
-    align-items: center;
-
-    // list-style: inside disclosure-closed;
-
+  > .agui-summary {
+    box-sizing: border-box;
+    min-height: 28px;
     margin: 0;
-    padding: 2px;
-    padding-left: 8px;
+    padding: 5px 8px;
+    cursor: pointer;
     user-select: none;
+    overflow-wrap: anywhere;
     background-color: var(--agui-c-bg-summary);
+
     &:hover {
       background-color: var(--agui-c-bg-hover);
     }
 
-    .title {
-      display: inline-flex;
-      line-height: 1.5;
+    &:focus-visible {
+      outline: 2px solid var(--agui-c-focus);
+      outline-offset: -2px;
     }
 
-    &::-webkit-details-marker {
-      color: red;
-      background: white;
+    .agui-summary-icon {
+      display: inline-block;
+      margin-right: 4px;
+      vertical-align: middle;
     }
   }
 
   > .content {
-    padding-left: 20px;
-    padding-right: 20px;
-    padding-top: 10px;
-    padding-bottom: 10px;
+    min-width: 0;
+    padding: 8px 12px;
   }
 }
 </style>

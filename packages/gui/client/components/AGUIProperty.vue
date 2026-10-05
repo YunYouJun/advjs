@@ -2,16 +2,17 @@
 defineProps<{
   label?: string
   hint?: string
+  for?: string
   group?: boolean
   size?: 'mini' | '' | 'large'
 }>()
 </script>
 
 <template>
-  <div :class="{ group, size }" class="agui-property">
-    <div class="label" :title="hint">
+  <div :class="[{ group }, size]" class="agui-property">
+    <component :is="$props.for ? 'label' : 'div'" class="label" :for="$props.for" :title="hint">
       {{ label }}
-    </div>
+    </component>
     <div class="value">
       <slot />
     </div>
@@ -20,37 +21,42 @@ defineProps<{
 
 <style lang="scss">
 .agui-property {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
   gap: 8px;
   align-items: center;
-  font-size: 0.75rem;
-  line-height: 1rem;
+  min-width: 0;
+  font-size: 12px;
+  line-height: 1.5;
 
   &:not(.group) {
     margin-bottom: 4px;
   }
 
   &.mini {
-    font-size: 0.625rem;
-    line-height: 0.75rem;
+    font-size: 11px;
   }
 
-  .label {
-    color: #eee;
-
+  > .label {
+    min-width: 0;
+    color: var(--agui-c-text-2);
     text-align: right;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    user-select: none;
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow-wrap: anywhere;
   }
-  .value {
-    // 0 for truncate text
-    width: 0;
-    flex: 2;
+
+  > .value {
+    min-width: 0;
+  }
+}
+
+@container agui-properties (max-width: 240px) {
+  .agui-property {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+
+    > .label {
+      text-align: left;
+    }
   }
 }
 </style>
