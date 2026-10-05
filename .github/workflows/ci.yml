@@ -69,6 +69,8 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build test dependencies
         run: pnpm prepare:workspace unit
+      - name: Check game theme type contracts
+        run: pnpm exec tsc -p tests/tsconfig.game-theme.json --noEmit
       - name: Run unit tests
         run: pnpm vitest run tests/unit --reporter=default
 
