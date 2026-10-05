@@ -1,11 +1,16 @@
 <script setup lang="ts">
-defineProps<{ label: string }>()
+import GameControlHint from './GameControlHint.vue'
+
+defineOptions({ inheritAttrs: false })
+defineProps<{ label: string, description?: string }>()
 </script>
 
 <template>
-  <button type="button" class="game-icon-button" :aria-label="label" :title="label">
-    <span class="game-icon" aria-hidden="true"><slot /></span>
-  </button>
+  <GameControlHint :label="label" :description="description">
+    <button v-bind="$attrs" type="button" class="game-icon-button" :aria-label="label">
+      <span class="game-icon" aria-hidden="true"><slot /></span>
+    </button>
+  </GameControlHint>
 </template>
 
 <style scoped>
@@ -17,9 +22,9 @@ defineProps<{ label: string }>()
   flex: none;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgb(255 255 255 / 18%);
+  border: 1px solid transparent;
   border-radius: 8px;
-  background: rgb(16 19 23 / 62%);
+  background: transparent;
   color: white;
   cursor: pointer;
   touch-action: manipulation;
@@ -27,11 +32,12 @@ defineProps<{ label: string }>()
 
 .game-icon {
   display: flex;
-  font-size: 20px;
+  font-size: 24px;
+  filter: drop-shadow(0 1px 3px rgb(0 0 0 / 85%));
 }
 
 .game-icon-button:hover {
-  background: rgb(16 19 23 / 85%);
+  background: rgb(16 19 23 / 55%);
 }
 
 .game-icon-button:focus-visible {
@@ -43,6 +49,7 @@ defineProps<{ label: string }>()
 .game-icon-button[aria-expanded='true'] {
   color: #f1d8a4;
   border-color: #d9bd83;
+  background: rgb(16 19 23 / 38%);
 }
 
 .game-icon-button:disabled {

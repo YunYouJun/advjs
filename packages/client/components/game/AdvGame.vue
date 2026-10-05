@@ -74,7 +74,7 @@ const showToolbar = computed(() => app.showUi && !app.menus.settings && !app.sho
 
 <style scoped>
 .adv-ui {
-  --adv-control-target: calc(32px / var(--adv-screen-scale, 1));
+  --adv-control-target: calc(36px / var(--adv-screen-scale, 1));
   --adv-control-bottom: calc(max(8px, env(safe-area-inset-bottom, 0px)) / var(--adv-screen-scale, 1));
   --adv-control-left: calc(max(16px, env(safe-area-inset-left, 0px)) / var(--adv-screen-scale, 1));
   --adv-control-right: calc(max(16px, env(safe-area-inset-right, 0px)) / var(--adv-screen-scale, 1));

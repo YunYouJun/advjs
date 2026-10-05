@@ -37,15 +37,15 @@ async function toggleFullscreen() {
   <div ref="root" class="game-toolbar" @click.stop @pointerdown.stop>
     <nav class="game-toolbar-actions" :aria-label="t('controls.system')">
       <GameMoreMenu :show-helper="showHelper" />
-      <GameIconButton :label="t($adv.$bgm.isMuted.value ? 'controls.unmute' : 'controls.mute')" :aria-pressed="$adv.$bgm.isMuted.value" @click="$adv.$bgm.toggleMute()">
+      <GameIconButton :label="t($adv.$bgm.isMuted.value ? 'controls.unmute' : 'controls.mute')" :description="t('hints.music')" :aria-pressed="$adv.$bgm.isMuted.value" @click="$adv.$bgm.toggleMute()">
         <span v-if="$adv.$bgm.isMuted.value" i-ri-volume-mute-line />
         <span v-else i-ri-volume-up-line />
       </GameIconButton>
-      <GameIconButton v-if="showHelper && isSupported" :label="t(isFullscreen ? 'controls.exitFullscreen' : 'controls.fullscreen')" :aria-pressed="isFullscreen" :disabled="fullscreenPending" @click="toggleFullscreen">
+      <GameIconButton v-if="showHelper && isSupported" :label="t(isFullscreen ? 'controls.exitFullscreen' : 'controls.fullscreen')" :description="t('hints.fullscreen')" :aria-pressed="isFullscreen" :disabled="fullscreenPending" @click="toggleFullscreen">
         <span v-if="isFullscreen" i-ri-fullscreen-exit-line />
         <span v-else i-ri-fullscreen-line />
       </GameIconButton>
-      <GameIconButton :label="t('controls.settings')" @click="app.menus.settings = true">
+      <GameIconButton :label="t('controls.settings')" :description="t('hints.settings')" @click="app.menus.settings = true">
         <span i-ri-settings-3-line />
       </GameIconButton>
     </nav>
@@ -75,7 +75,9 @@ async function toggleFullscreen() {
 
 .game-toolbar-actions {
   display: flex;
-  gap: 6px;
+  gap: 8px;
+  border-radius: 8px;
+  background: radial-gradient(ellipse at center, rgb(0 0 0 / 16%), transparent 75%);
   pointer-events: auto;
 }
 

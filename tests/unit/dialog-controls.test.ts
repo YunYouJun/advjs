@@ -8,6 +8,7 @@ import DialogControls from '../../packages/client/components/internals/dialog/Di
 import AdvGameUI from '../../packages/client/components/ui/AdvGameUI.vue'
 import { useAdvKeys } from '../../packages/client/composables/useAdvKeys'
 import { useAppStore } from '../../packages/client/stores/app'
+import { useSettingsStore } from '../../packages/client/stores/settings'
 
 let app: ReturnType<typeof useAppStore>
 const enabled = shallowRef(false)
@@ -58,6 +59,7 @@ beforeEach(() => {
 afterEach(() => {
   wrappers.splice(0).forEach(wrapper => wrapper.unmount())
   document.body.innerHTML = ''
+  vi.useRealTimers()
 })
 
 function renderControls(withKeys = false) {
@@ -137,7 +139,7 @@ it('exposes system icons directly and reflects mute/fullscreen state without adv
   expect(advance).not.toHaveBeenCalled()
   i18n.global.locale.value = 'en'
   await nextTick()
-  expect(button('Settings').attributes('title')).toBe('Settings')
+  expect(button('Settings').attributes('aria-label')).toBe('Settings')
 })
 
 it('hides unsupported fullscreen controls and reports a rejected request without getting stuck', async () => {
@@ -193,4 +195,51 @@ it('keeps keyboard playback shortcuts separate from focused controls', async () 
   button('自动').element.focus()
   await button('自动').trigger('keyup', { key: 'Control', code: 'ControlLeft', ctrlKey: false })
   expect(skipEnabled.value).toBe(false)
+})
+
+it('collapses only the controls and keeps playback stoppable without advancing', async () => {
+  const { wrapper, button, advance } = renderControls()
+  enabled.value = true
+  skipEnabled.value = true
+  await button('收起操作栏').trigger('click')
+  expect(app.showUi).toBe(true)
+  expect(useSettingsStore().storage.dialogBar).toBe('collapsed')
+  expect(wrapper.get('.dialog-controls').attributes('inert')).toBeDefined()
+  expect(button('展开操作栏').isVisible()).toBe(true)
+  await button('快进中 · 停止').trigger('click')
+  expect(skipEnabled.value).toBe(false)
+  expect(enabled.value).toBe(false)
+  await button('展开操作栏').trigger('click')
+  expect(wrapper.get('.dialog-controls').attributes('inert')).toBeUndefined()
+  expect(document.activeElement).toBe(button('回看').element)
+  expect(advance).not.toHaveBeenCalled()
+})
+
+it('shows explanatory hints on mouse hover, dismisses with Escape and ignores touch hover', async () => {
+  vi.useFakeTimers()
+  const { wrapper, button } = renderControls()
+  const music = button('关闭音乐')
+  await music.trigger('pointermove', { pointerType: 'touch' })
+  await vi.advanceTimersByTimeAsync(500)
+  expect(wrapper.find('[role="tooltip"]').exists()).toBe(false)
+  await music.trigger('pointermove', { pointerType: 'mouse' })
+  await vi.advanceTimersByTimeAsync(500)
+  expect(wrapper.get('[role="tooltip"]').text()).toContain('音效使用独立设置')
+  expect(music.attributes('aria-describedby')).toBeTruthy()
+  await music.trigger('keydown', { key: 'Escape' })
+  await nextTick()
+  expect(wrapper.find('[role="tooltip"]').exists()).toBe(false)
+})
+
+it('keeps the compact reveal button in place while the mouse approaches it', async () => {
+  vi.useFakeTimers()
+  const { wrapper, button } = renderControls()
+  useSettingsStore().storage.dialogBar = 'auto'
+  await nextTick()
+  await vi.advanceTimersByTimeAsync(3000)
+  const reveal = button('展开操作栏')
+  await reveal.trigger('pointerover', { pointerType: 'mouse' })
+  expect(wrapper.get('.dialog-controls').attributes('inert')).toBeDefined()
+  await reveal.trigger('click')
+  expect(wrapper.get('.dialog-controls').attributes('inert')).toBeUndefined()
 })

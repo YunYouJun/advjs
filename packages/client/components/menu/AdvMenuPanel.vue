@@ -4,6 +4,7 @@ import { ref } from 'vue'
 
 import { useI18n } from 'vue-i18n'
 import AudioVolume from './settings/AudioVolume.vue'
+import DialogBarSettings from './settings/DialogBarSettings.vue'
 
 const { t } = useI18n()
 
@@ -28,6 +29,8 @@ const currentTab = ref('common')
           value="common"
         >
           <div class="settings-fields">
+            <DialogBarSettings />
+            <HorizontalDivider />
             <TextPlayPreview />
 
             <HorizontalDivider />

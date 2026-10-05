@@ -13,6 +13,7 @@ export const useSettingsStore = defineStore('@advjs/client/settings', () => {
 
   const getDefaultSettings = () => {
     const defaultSettings: SettingOptions = {
+      dialogBar: 'always',
       text: {
         curSpeed: 'fast',
         curFontSize: '3xl',

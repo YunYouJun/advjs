@@ -1,6 +1,8 @@
 import type { UseSpeechSynthesisOptions } from '@vueuse/core'
 
 export interface SettingOptions {
+  /** Optional so settings saved by older players remain compatible. */
+  dialogBar?: DialogBarMode
   text: TextOptions
   play: {
     mdUrl: string
@@ -14,6 +16,7 @@ export interface SettingOptions {
 }
 
 export type MotionPreference = 'full' | 'reduced' | 'none'
+export type DialogBarMode = 'always' | 'auto' | 'collapsed'
 
 export type DisplayMode = 'type' | 'soft'
 export type DisplaySpeed = 'normal' | 'fast' | 'slow' | 'very_fast'

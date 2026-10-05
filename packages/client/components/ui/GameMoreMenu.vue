@@ -29,7 +29,7 @@ onClickOutside(root, (event) => {
   // Dismissing the menu must not also advance dialogue or choose an option.
   const target = event.target as Element | null
   if (target?.closest('.adv-screen') === root.value?.closest('.adv-screen')
-    && !target?.closest('.game-toolbar-actions, .dialog-controls')) {
+    && !target?.closest('.game-toolbar-actions, .dialog-controls-shell')) {
     event.stopPropagation()
   }
 })
@@ -41,7 +41,7 @@ watch(() => app.showUi && !app.menus.settings && !app.showHistory && !app.showSa
 
 <template>
   <div ref="root" class="game-more-menu" @keydown.esc.stop.prevent="close(true)">
-    <GameIconButton :label="t('controls.more')" :aria-expanded="open" :aria-controls="panelId" @click="open = !open">
+    <GameIconButton :label="t('controls.more')" :description="t('hints.more')" :aria-expanded="open" :aria-controls="panelId" @click="open = !open">
       <span i-ri-more-line />
     </GameIconButton>
     <div v-show="open" :id="panelId" class="game-menu-popover" role="group" :aria-label="t('controls.more')">

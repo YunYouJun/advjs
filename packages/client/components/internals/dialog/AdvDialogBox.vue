@@ -137,7 +137,7 @@ const curWords = computed(() => {
   }
 
   .dialog-content.text-3xl {
-    font-size: max(1.875rem, calc(14px / var(--adv-screen-scale, 1)));
+    font-size: max(1.875rem, calc(16px / var(--adv-screen-scale, 1)));
   }
 
   .dialog-content.text-4xl {
