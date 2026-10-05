@@ -1,17 +1,18 @@
 import type { Grid, Hex } from 'honeycomb-grid'
+import type { TilesMap } from './global'
 import { Direction } from 'honeycomb-grid'
 import { Sprite } from 'pixi.js'
-import { CustomHex, tilesMap } from './global'
+import { CustomHex } from './global'
 
 export function getNeighbourTiles(grid: Grid<Hex>, hex: Hex) {
   return [
-    grid.neighborOf(hex, Direction.W),
-    grid.neighborOf(hex, Direction.E),
-    grid.neighborOf(hex, Direction.NW),
-    grid.neighborOf(hex, Direction.NE),
-    grid.neighborOf(hex, Direction.SW),
-    grid.neighborOf(hex, Direction.SE),
-  ]
+    grid.neighborOf(hex, Direction.W, { allowOutside: false }),
+    grid.neighborOf(hex, Direction.E, { allowOutside: false }),
+    grid.neighborOf(hex, Direction.NW, { allowOutside: false }),
+    grid.neighborOf(hex, Direction.NE, { allowOutside: false }),
+    grid.neighborOf(hex, Direction.SW, { allowOutside: false }),
+    grid.neighborOf(hex, Direction.SE, { allowOutside: false }),
+  ].filter((hex): hex is Hex => hex !== undefined)
 }
 
 /**
@@ -19,7 +20,7 @@ export function getNeighbourTiles(grid: Grid<Hex>, hex: Hex) {
  * @param grid hex grid
  * @param hexes added hexes
  */
-export function updateBorderTiles(grid: Grid<Hex>, hexes: Hex | Hex[]) {
+export function updateBorderTiles(grid: Grid<Hex>, hexes: Hex | Hex[], tilesMap: TilesMap) {
   hexes = Array.isArray(hexes) ? hexes : [hexes]
   hexes.forEach((hex) => {
     const val = tilesMap.get(hex.toString())
@@ -44,7 +45,7 @@ export function hexFromString(str: string) {
   })
 }
 
-export function isEmptyTile(hex: Hex) {
+export function isEmptyTile(hex: Hex, tilesMap: TilesMap) {
   const key = hex.toString()
   return tilesMap.has(key) && tilesMap.get(key) === 'empty'
 }
