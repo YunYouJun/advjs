@@ -44,6 +44,13 @@ export interface LocalDirectoryHandle extends BrowserProjectDirectory {
 const LOOPBACK_HOSTS = new Set(['127.0.0.1', '[::1]', '::1', 'localhost'])
 const API_PREFIX = '/__advjs/api/'
 
+export class LocalBridgeRequestError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message)
+    this.name = 'LocalBridgeRequestError'
+  }
+}
+
 export function parseLocalEditorSession(value: string): LocalEditorSession | undefined {
   try {
     const url = new URL(value)
@@ -79,7 +86,7 @@ export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
     })
     if (!response.ok) {
       const detail = await response.json().catch(() => undefined) as { error?: string } | undefined
-      throw new Error(detail?.error ?? `Local Editor request failed (${response.status})`)
+      throw new LocalBridgeRequestError(detail?.error ?? `Local Editor request failed (${response.status})`, response.status)
     }
     return response
   }

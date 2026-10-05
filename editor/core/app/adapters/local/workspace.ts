@@ -16,6 +16,7 @@ export function createLocalProjectWorkspace(adapter: LocalBridgeAdapter): Projec
     return {
       kind: 'local',
       name,
+      identity: loaded.root,
       project,
       root: adapter.createDirectoryHandle(loaded.files, name),
     }

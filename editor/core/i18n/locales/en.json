@@ -226,6 +226,7 @@
     "unsaved": "Unsaved changes",
     "saveBeforeOpening": "Save the current file before opening another file.",
     "openFailed": "Cannot open file",
+    "reconnectLocal": "Reopen the launch link from the running Editor terminal to reconnect this workspace.",
     "parseCharacterFailed": "Failed to parse character file",
     "unsupportedFile": "This file is not supported",
     "migrationRequired": "Migration required",

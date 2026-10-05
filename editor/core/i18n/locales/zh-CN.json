@@ -226,6 +226,7 @@
     "unsaved": "有未保存的修改",
     "saveBeforeOpening": "请先保存当前文件，再打开其他文件。",
     "openFailed": "无法打开文件",
+    "reconnectLocal": "请重新打开正在运行的 Editor 终端中的启动链接，恢复本地工作区连接。",
     "parseCharacterFailed": "无法解析人物卡",
     "unsupportedFile": "暂不支持此文件",
     "migrationRequired": "需要迁移项目",

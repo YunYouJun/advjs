@@ -11,6 +11,7 @@ export interface ProjectWorkspaceChange {
 export interface ProjectWorkspaceSnapshot {
   kind: ProjectWorkspaceKind
   name: string
+  identity?: string
   project: EditorProjectModel
   root: BrowserProjectDirectory
 }

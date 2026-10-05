@@ -8,7 +8,8 @@ import type { ProjectWorkspace, ProjectWorkspaceSnapshot, ProjectWorkspaceSubscr
 import { defaultAdvConfig } from 'advjs'
 import { consola } from 'consola'
 import { createBrowserProjectWorkspace } from '../adapters/browser/workspace'
-import { createLocalBridgeAdapter, parseLocalEditorSession } from '../adapters/local'
+import { createLocalBridgeAdapter, LocalBridgeRequestError } from '../adapters/local'
+import { getEditorSessionStorage, rememberLocalEditorSession, resolveLocalEditorSession } from '../adapters/local/session'
 import { createLocalProjectWorkspace } from '../adapters/local/workspace'
 import { PLATFORM_MAP } from '../constants'
 
@@ -39,6 +40,7 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
   const advConfig = ref<AdvConfig>(defaultAdvConfig)
   const project = shallowRef<EditorProjectModel>()
   const workspace = shallowRef<ProjectWorkspace>()
+  const workspaceIdentity = shallowRef('')
   const workspaceMode = computed(() => workspace.value?.kind ?? 'browser')
   let localAdapter: LocalBridgeAdapter | undefined
   const localFilePaths = computed(() => Object.keys(project.value?.files ?? {}).sort())
@@ -117,6 +119,7 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
       handle: snapshot.root as unknown as FileSystemDirectoryHandle,
     } as FSDirItem
     project.value = nextProject
+    workspaceIdentity.value = snapshot.identity ?? ''
 
     if (nextProject.files['adv.config.json'])
       await loadAdvConfigJSON(nextProject.files['adv.config.json'])
@@ -163,6 +166,7 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
       dirHandle as unknown as BrowserProjectDirectory,
     ))
     localAdapter = undefined
+    rememberLocalEditorSession(undefined, getEditorSessionStorage())
     return nextProject
   }
 
@@ -198,12 +202,21 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
   }
 
   async function connectLocalBridgeFromLaunch(url = window.location.href) {
-    const session = parseLocalEditorSession(url)
+    const storage = getEditorSessionStorage()
+    const session = resolveLocalEditorSession(url, storage)
     if (!session)
       return false
     const adapter = createLocalBridgeAdapter(session)
-    await activateWorkspace(createLocalProjectWorkspace(adapter))
+    try {
+      await activateWorkspace(createLocalProjectWorkspace(adapter))
+    }
+    catch (error) {
+      if (error instanceof LocalBridgeRequestError && (error.status === 401 || error.status === 403))
+        rememberLocalEditorSession(undefined, storage)
+      throw error
+    }
     localAdapter = adapter
+    rememberLocalEditorSession(session, storage)
     return true
   }
 
@@ -337,6 +350,7 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
     curAdvConfigTab,
     project,
     workspace,
+    workspaceIdentity,
     workspaceMode,
     localFilePaths,
     diagnostics,

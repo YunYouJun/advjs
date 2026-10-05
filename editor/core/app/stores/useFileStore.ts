@@ -117,10 +117,10 @@ export const useFileStore = defineStore('file', () => {
    * set opened file handle
    */
   async function setOpenedFileHandle(fileHandle: FileSystemFileHandle, projectPath?: string) {
+    const fileContent = await fileHandle.getFile().then(file => file.text())
     app.activeInspector = 'file'
     openedFileHandle.value = fileHandle
-
-    const fileContent = await fileHandle.getFile().then(file => file.text())
+    fileName.value = fileHandle.name
     monacoStore.fileContent = fileContent
     savedFileContent.value = fileContent
     openedFilePath.value = projectPath || ('path' in fileHandle
@@ -139,6 +139,12 @@ export const useFileStore = defineStore('file', () => {
     }
     const lang = extLangMap[ext] || 'plaintext'
     monacoStore.language = lang
+  }
+
+  function restoreDraft(content: string, base: string) {
+    monacoStore.fileContent = content
+    if (savedFileContent.value !== base && savedFileContent.value !== content)
+      externalConflict.value = { path: openedFilePath.value, content: savedFileContent.value }
   }
 
   async function saveOpenedFile(content = monacoStore.fileContent) {
@@ -187,6 +193,7 @@ export const useFileStore = defineStore('file', () => {
   return {
     fileName,
     openedFilePath,
+    savedFileContent,
     isDirty,
     externalConflict,
 
@@ -201,6 +208,7 @@ export const useFileStore = defineStore('file', () => {
     onlineAdvConfigFileDialogOpen,
 
     setOpenedFileHandle,
+    restoreDraft,
     saveOpenedFile,
     handleExternalChange,
     acceptExternalChange,
