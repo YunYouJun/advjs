@@ -1,7 +1,9 @@
-:root {
-  --vf-node-text: var(--adv-c-text-1);
-  --vf-node-bg: var(--adv-c-bg-alt);
-
-  // connection line
-  // --vf-connection-path: red;
+.advjs-flow-editor {
+  --vf-node-text: var(--agui-c-text-1);
+  --vf-node-bg: var(--agui-c-bg-panel);
+  --vf-node-color: var(--agui-c-control-border);
+  --vf-node-box-shadow: none;
+  --vf-box-shadow: none;
+  --vf-handle: var(--agui-c-text-2);
+  --vf-connection-path: var(--agui-c-link);
 }

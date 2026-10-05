@@ -1,10 +1,30 @@
 <script setup lang="ts">
 import { AdvGameLoadStatusEnum } from '@advjs/client'
+import AGUIButton from '@advjs/gui/components/button/AGUIButton.vue'
 
-import { onMounted, onUnmounted } from 'vue'
+import { onUnmounted, watch } from 'vue'
 import '../../../../../themes/theme-default/styles'
 
+const props = withDefaults(defineProps<{ visible?: boolean }>(), { visible: true })
+
 const AELoadOnlineConfigFileDialog = defineAsyncComponent(() => import('../dialogs/AELoadOnlineConfigFileDialog.vue'))
+
+const { locale } = useI18n()
+const zh = computed(() => locale.value === 'zh-CN')
+const pending = ref(false)
+const previewError = ref('')
+
+async function runPreviewAction(action: () => Promise<unknown>) {
+  if (pending.value)
+    return
+  pending.value = true
+  previewError.value = ''
+  try {
+    await action()
+  }
+  catch (error) { previewError.value = error instanceof Error ? error.message : String(error) }
+  finally { pending.value = false }
+}
 
 const gameStore = useGameStore()
 const fileStore = useFileStore()
@@ -100,11 +120,11 @@ async function refreshPreview() {
   await projectStore.refreshProject()
 }
 
-onMounted(async () => {
-  // Start file change detection (check every 5 seconds)
-  if (projectStore.workspaceMode === 'browser')
-    checkInterval = setInterval(checkForFileChanges, 5000)
-})
+watch(() => [props.visible, projectStore.workspaceMode], () => {
+  if (checkInterval)
+    clearInterval(checkInterval)
+  checkInterval = props.visible && projectStore.workspaceMode === 'browser' ? setInterval(checkForFileChanges, 5000) : null
+}, { immediate: true })
 
 onUnmounted(() => {
   if (checkInterval) {
@@ -115,64 +135,56 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="h-full w-full flex items-center justify-center" relative>
+  <div class="flex h-full w-full items-center justify-center" relative>
     <AdvGame v-if="show" class="h-full w-full" />
     <AEOpenProject v-else-if="!projectStore.project" />
-    <button
-      v-else
-      class="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
-      @click="startSourcePreview"
-    >
-      Start source preview
-    </button>
-
-    <!-- File Changes Refresh Button -->
-    <Transition name="fade">
-      <button
-        v-if="hasFileChanges && show"
-        class="refresh-btn"
-        absolute bottom-4 left="50%" z-10
-        translate-x="-50%"
-        flex items-center gap-1
-        rounded-full bg-blue-600 px-4 py-2 text-sm text-white shadow-lg
-        hover:bg-blue-700
-        @click="refreshPreview"
-      >
-        <div i-ri-refresh-line animate-spin />
-        Files changed — Click to refresh
-      </button>
-    </Transition>
+    <div v-else class="preview-start">
+      <AGUIButton theme="primary" :loading="pending" @click="runPreviewAction(startSourcePreview)">
+        {{ zh ? '启动项目预览' : 'Start source preview' }}
+      </AGUIButton>
+    </div>
+    <div v-if="hasFileChanges && show" class="preview-update">
+      <span>{{ zh ? '项目文件已更新' : 'Project files changed' }}</span>
+      <AGUIButton icon="i-ri-refresh-line" :loading="pending" @click="runPreviewAction(refreshPreview)">
+        {{ zh ? '刷新预览' : 'Refresh preview' }}
+      </AGUIButton>
+    </div>
+    <p v-if="previewError" class="preview-error" role="alert">
+      {{ previewError }}
+    </p>
   </div>
 
   <AELoadOnlineConfigFileDialog v-if="fileStore.onlineAdvConfigFileDialogOpen" />
 </template>
 
 <style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
+.preview-start {
+  padding: 12px;
 }
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+.preview-update {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100% - 24px);
+  padding: 4px 8px;
+  border: 1px solid var(--agui-c-divider);
+  background: var(--agui-c-bg-panel);
+  color: var(--agui-c-text-1);
+  font-size: 12px;
 }
-
-.refresh-btn {
-  animation: pulse-subtle 2s ease-in-out infinite;
-}
-
-@keyframes pulse-subtle {
-  0%,
-  100% {
-    box-shadow:
-      0 4px 6px -1px rgb(0 0 0 / 0.1),
-      0 2px 4px -2px rgb(0 0 0 / 0.1);
-  }
-  50% {
-    box-shadow:
-      0 10px 15px -3px rgb(59 130 246 / 0.3),
-      0 4px 6px -4px rgb(59 130 246 / 0.2);
-  }
+.preview-error {
+  position: absolute;
+  inset-inline: 12px;
+  bottom: 44px;
+  padding: 8px;
+  background: var(--agui-c-bg-panel);
+  color: var(--agui-c-danger-text);
+  font-size: 12px;
+  overflow-wrap: anywhere;
 }
 </style>

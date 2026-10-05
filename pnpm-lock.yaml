@@ -1339,6 +1339,9 @@ importers:
       pixi-painter:
         specifier: catalog:frontend
         version: 0.1.6-beta.1(@pixi/core@7.3.3)
+      pixi.js:
+        specifier: catalog:frontend
+        version: 8.19.0
       qrcode:
         specifier: 'catalog:'
         version: 1.5.4

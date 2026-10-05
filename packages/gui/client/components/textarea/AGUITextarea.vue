@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue'
+import '../input/fields.scss'
 
 const props = defineProps<{
   autofocus?: boolean
@@ -30,7 +31,7 @@ onMounted(async () => {
 <template>
   <textarea
     ref="textareaRef"
-    class="agui-textarea w-full px-2 py-1 shadow shadow-inset"
+    class="agui-textarea"
     :value="modelValue"
     :placeholder="placeholder"
     :disabled="disabled"
@@ -38,34 +39,3 @@ onMounted(async () => {
     @input="updateModelValue"
   />
 </template>
-
-<style lang="scss">
-.agui-textarea {
-  --agui-textarea-c-bg: rgba(42, 42, 42, 1);
-
-  color: var(--agui-c-label);
-  background-color: var(--agui-textarea-c-bg, rgba(42, 42, 42, 1));
-  border: 1px solid var(--agui-c-border);
-
-  border-radius: 3px;
-  font-size: 13px;
-  font-family: inherit;
-  line-height: 1.5;
-  resize: vertical;
-
-  box-sizing: border-box;
-  transition: border-color 0.2s ease-in-out;
-
-  &:focus {
-    outline: none;
-    border-color: var(--agui-c-active);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    color: var(--agui-c-text-3);
-    border-color: var(--agui-c-border);
-    resize: none;
-  }
-}
-</style>

@@ -15,6 +15,12 @@ UI 插件用于给桌面编辑器增加面板和操作。适合项目诊断、�
 
 标签选中状态与插件启停偏好保存在当前浏览器中。重置布局恢复分栏和默认标签，不改变启停偏好。已停用或暂时缺失的活动视图会回退到区域内可用视图，其记录保留到再次启用。
 
+## 外观与创作工作台
+
+在 **ADV.JS → 设置 → 界面** 中选择暗色或亮色，并切换界面语言。插件继承宿主的 AGUI token；主题同时应用到面板、弹窗和菜单，无需插件单独维护配色。
+
+主区域的 **AI 工作台** 展示当前项目的计数、章节进度和人物摘要，通过 SDK 项目快照读取数据，切换或关闭项目会更新内容。它与右侧创作上下文复用刷新、复制命令的实现。章节进度来自 `adv/chapters/README.md` 的 ✅ / 📝 / ⏳ 标记，人物摘要来自 `adv/characters/README.md` 的人物、文件、身份、简介表格；缺少索引时显示空态，实际文件计数仍显示。
+
 ## 新增插件
 
 使用 `@advjs/editor-sdk` 声明插件。首版采用**随编辑器构建的可信包**；不是把任意脚本地址交给浏览器运行。
@@ -93,7 +99,9 @@ pnpm install
 pnpm build:advjs
 pnpm --filter @advjs/gui build:node
 pnpm --filter @advjs/editor-sdk build
+pnpm --filter @advjs/plugin-cos build
 pnpm --filter @advjs/editor build
+pnpm --filter @advjs/editor typecheck
 ```
 
 开发插件可以把 `.ts` / `.vue` 源码作为包导出，由编辑器 Vite 构建处理；Vue 应由宿主提供，避免插件私自打包第二份运行时。AGUI 主题样式由宿主加载，插件只引入自己的 scoped 样式。动态拼接的 UnoCSS 类名不能保证进入构建，公共插件优先使用 scoped CSS 与语义 token。
@@ -159,7 +167,9 @@ export function activate(ctx: EditorPluginContext) {
 完成上面的构建后，可运行相关回归测试：
 
 ```bash
-pnpm exec vitest run tests/unit/editor-ui-plugins.test.ts tests/unit/editor-context.test.ts tests/unit/editor-workspace.test.ts tests/unit/editor-feature-boundaries.test.ts
+pnpm exec vitest run tests/unit/agui-controls.test.ts tests/unit/editor-ui-plugins.test.ts tests/unit/editor-context.test.ts tests/unit/editor-workspace.test.ts tests/unit/editor-feature-boundaries.test.ts
 ```
+
+干净检出执行编辑器 typecheck 时，也需要上面的 COS 插件产物：编辑器间接引用的 CLI 类型会解析该包。
 
 Vue 组件测试需要 Nuxt 生成的 `editor/core/.nuxt/tsconfig.json`。已有依赖产物但尚未构建编辑器时，可先执行 `pnpm --filter @advjs/editor exec nuxt prepare`；不要手写或提交 `.nuxt` 中的生成文件。

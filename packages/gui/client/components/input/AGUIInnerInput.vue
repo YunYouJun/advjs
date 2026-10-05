@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import './fields.scss'
+
 defineProps<{
   className?: string
   prefixIcon?: string
@@ -8,15 +10,15 @@ defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
-function updateModelValue(event: any) {
-  const val = event.target?.value || ''
+function updateModelValue(event: Event) {
+  const val = (event.target as HTMLInputElement).value
   emit('update:modelValue', val)
 }
 </script>
 
 <template>
   <input
-    class="agui-input w-full px-1 shadow shadow-inset"
+    class="agui-input"
     :value="modelValue"
     :placeholder="placeholder"
     @input="updateModelValue"

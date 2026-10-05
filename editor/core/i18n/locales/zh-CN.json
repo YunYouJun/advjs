@@ -74,7 +74,11 @@
     "title": "偏好设置",
     "interface": "界面",
     "language": "语言",
-    "languageDescription": "设置编辑器界面的语言"
+    "languageDescription": "设置编辑器界面的语言",
+    "theme": "主题",
+    "themeDescription": "统一面板、菜单与弹窗的外观",
+    "dark": "暗色",
+    "light": "亮色"
   },
   "onboarding": {
     "welcome": "欢迎使用 ADV.JS 编辑器",

@@ -1,18 +1,16 @@
-/* reset */
-button {
-  all: unset;
-}
-
 .MenubarRoot {
   display: flex;
   background-color: var(--agui-c-bg);
   padding: 3px;
-  box-shadow: 0 2px 10px var(--black-a7);
   height: var(--agui-menu-bar-height);
 }
 
 // .agui-menubar-trigger
 .MenubarTrigger {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
   cursor: pointer;
   color: var(--agui-c-text-1);
 
@@ -33,21 +31,21 @@ button {
 .MenubarTrigger[data-highlighted],
 .MenubarTrigger[data-state='open'] {
   background-color: var(--agui-c-active);
+  color: var(--agui-c-on-accent);
 }
 
 .MenubarContent,
 .MenubarSubContent {
   min-width: 220px;
-  background-color: rgba(22, 23, 24, 0.5);
-  backdrop-filter: blur(20px);
+  background-color: var(--agui-c-bg-soft);
   border: 1px solid var(--agui-c-divider);
 
-  border-radius: 6px;
+  border-radius: 4px;
   padding: 5px;
   box-shadow:
     0px 10px 38px -10px rgba(22, 23, 24, 0.35),
     0px 10px 20px -15px rgba(22, 23, 24, 0.8);
-  animation-duration: 400ms;
+  animation-duration: 150ms;
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform, opacity;
 
@@ -58,9 +56,8 @@ button {
 .MenubarSubTrigger,
 .MenubarCheckboxItem,
 .MenubarRadioItem {
-  color: var(--agui-c-text-1);
-
   all: unset;
+  color: var(--agui-c-text-1);
   font-size: 12px;
   line-height: 1;
   border-radius: 4px;
@@ -83,7 +80,7 @@ button {
 .MenubarItem[data-state='open'],
 .MenubarSubTrigger[data-state='open'] {
   background-color: var(--agui-c-active);
-  color: var(--agui-c-text-1);
+  color: var(--agui-c-on-accent);
 }
 
 .MenubarItem[data-highlighted],
@@ -91,14 +88,14 @@ button {
 .MenubarCheckboxItem[data-highlighted],
 .MenubarRadioItem[data-highlighted] {
   background-color: var(--agui-c-active);
-  color: white;
+  color: var(--agui-c-on-accent);
 }
 
 .MenubarItem[data-disabled],
 .MenubarSubTrigger[data-disabled],
 .MenubarCheckboxItem[data-disabled],
 .MenubarRadioItem[data-disabled] {
-  color: var(--mauve-8);
+  color: var(--agui-c-text-3);
   pointer-events: none;
 }
 
@@ -120,13 +117,24 @@ button {
 .RightSlot {
   margin-left: auto;
   padding-left: 20px;
-  color: var(--mauve-9);
+  color: var(--agui-c-text-2);
 }
 
 [data-highlighted] > .RightSlot {
-  color: white;
+  color: var(--agui-c-on-accent);
 }
 
 [data-disabled] > .RightSlot {
-  color: var(--mauve-8);
+  color: var(--agui-c-text-3);
+}
+
+.MenubarTrigger:focus-visible {
+  outline: 2px solid var(--agui-c-focus);
+  outline-offset: -2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .MenubarContent,
+  .MenubarSubContent {
+    animation-duration: 0ms;
+  }
 }

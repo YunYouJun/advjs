@@ -1,7 +1,7 @@
 <template>
   <main
     id="advjs-editor"
-    class="advjs-editor dark"
+    class="advjs-editor"
     overflow="hidden"
     w-full
   >

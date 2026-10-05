@@ -1,18 +1,17 @@
-<script setup>
+<script setup lang="ts">
 import { nodeTypes } from '@advjs/flow'
+import AGUIButton from '@advjs/gui/components/button/AGUIButton.vue'
 import { Background } from '@vue-flow/background'
-import { ControlButton, Controls } from '@vue-flow/controls'
+import { Controls } from '@vue-flow/controls'
 import { Panel, VueFlow } from '@vue-flow/core'
 import { MiniMap } from '@vue-flow/minimap'
-
-import { ref } from 'vue'
 
 import './styles'
 
 const flowStore = useFlowStore()
 
-// our dark mode toggle flag
-const dark = ref(true)
+const { locale } = useI18n()
+const zh = computed(() => locale.value === 'zh-CN')
 </script>
 
 <template>
@@ -20,7 +19,6 @@ const dark = ref(true)
     v-model:nodes="flowStore.curItem.data.nodes"
     v-model:edges="flowStore.curItem.data.edges"
     :default-viewport="flowStore.curItem.data.viewport"
-    :class="{ dark }"
     class="advjs-flow-editor"
     :min-zoom="0.2"
     :max-zoom="4"
@@ -30,114 +28,57 @@ const dark = ref(true)
     :elements-selectable="false"
     fit-view-on-init
   >
-    <Background pattern-color="#aaa" :gap="16" />
+    <Background pattern-color="var(--agui-c-divider)" :gap="16" />
 
-    <MiniMap mask-color="rgba(0,0,0,0.1)" node-color="rgba(0,0,0,0.5)" />
+    <MiniMap mask-color="var(--agui-c-divider-light)" node-color="var(--agui-c-text-2)" />
 
-    <Controls position="top-left">
-      <ControlButton class="text-black" title="Refresh" @click="flowStore.refreshData">
-        <div i-ri-refresh-line />
-      </ControlButton>
-    </Controls>
-
-    <Panel class="process-panel" position="top-right">
-      <div class="layout-panel">
-        <button title="set horizontal layout" @click="layoutGraph('LR')">
-          <div i-ri-arrow-right-s-line />
-        </button>
-
-        <button title="set vertical layout" @click="layoutGraph('TB')">
-          <div i-ri-arrow-down-s-line />
-        </button>
-      </div>
+    <Controls position="bottom-left" />
+    <Panel class="flow-actions" position="top-right">
+      <AGUIButton icon="i-ri-refresh-line" :title="zh ? '刷新' : 'Refresh'" :aria-label="zh ? '刷新' : 'Refresh'" @click="flowStore.refreshData" />
+      <AGUIButton icon="i-ri-arrow-right-s-line" :title="zh ? '水平布局' : 'Horizontal layout'" :aria-label="zh ? '水平布局' : 'Horizontal layout'" @click="flowStore.layoutGraph('LR')" />
+      <AGUIButton icon="i-ri-arrow-down-s-line" :title="zh ? '垂直布局' : 'Vertical layout'" :aria-label="zh ? '垂直布局' : 'Vertical layout'" @click="flowStore.layoutGraph('TB')" />
     </Panel>
   </VueFlow>
 </template>
 
-<style>
-.layout-flow {
-  background-color: #1a192b;
-  height: 100%;
-  width: 100%;
+<style scoped>
+.advjs-flow-editor {
+  background: var(--agui-c-bg-soft);
+  color: var(--agui-c-text-1);
 }
-
-.process-panel,
-.layout-panel {
+.flow-actions {
   display: flex;
-  gap: 10px;
+  gap: 4px;
+  padding: 4px;
+  margin: 8px;
+  background: var(--agui-c-bg-panel);
+  border: 1px solid var(--agui-c-divider);
+  border-radius: 2px;
 }
-
-.process-panel {
-  background-color: #2d3748;
-  padding: 10px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-  display: flex;
-  flex-direction: column;
+:deep(.vue-flow__controls) {
+  box-shadow: none;
+  border: 1px solid var(--agui-c-divider);
 }
-
-.process-panel button {
-  border: none;
-  cursor: pointer;
-  background-color: #4a5568;
-  border-radius: 8px;
-  color: white;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+:deep(.vue-flow__controls-button) {
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+  color: var(--agui-c-text-1);
+  background: var(--agui-c-control);
+  border-color: var(--agui-c-divider);
 }
-
-.process-panel button {
-  font-size: 16px;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+:deep(.vue-flow__controls-button:hover) {
+  background: var(--agui-c-control-hover);
 }
-
-.checkbox-panel {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+:deep(.vue-flow__controls-button svg) {
+  fill: currentColor;
 }
-
-.process-panel button:hover,
-.layout-panel button:hover {
-  background-color: #2563eb;
-  transition: background-color 0.2s;
+:deep(.vue-flow__controls-button:focus-visible) {
+  outline: 2px solid var(--agui-c-focus);
+  outline-offset: -2px;
 }
-
-.process-panel label {
-  color: white;
-  font-size: 12px;
-}
-
-.stop-btn svg {
-  display: none;
-}
-
-.stop-btn:hover svg {
-  display: block;
-}
-
-.stop-btn:hover .spinner {
-  display: none;
-}
-
-.spinner {
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #2563eb;
-  border-radius: 50%;
-  width: 10px;
-  height: 10px;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+:deep(.vue-flow__minimap) {
+  background: var(--agui-c-bg-panel);
+  border: 1px solid var(--agui-c-divider);
 }
 </style>

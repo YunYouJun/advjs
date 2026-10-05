@@ -1,0 +1,47 @@
+.agui-input,
+.agui-textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  color: var(--agui-c-text-1);
+  background: var(--agui-c-field);
+  border: 1px solid var(--agui-c-control-border);
+  border-radius: 2px;
+  padding: 2px 6px;
+  font: inherit;
+  font-size: 13px;
+  line-height: 18px;
+  transition: border-color 150ms ease;
+
+  &::placeholder {
+    color: var(--agui-c-text-2);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--agui-c-focus);
+    outline-offset: -2px;
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+.agui-input {
+  height: var(--agui-control-height);
+}
+.agui-input.agui-input-has-prefix {
+  padding-inline-start: 24px;
+}
+.agui-textarea {
+  padding: 4px 8px;
+  min-height: calc(var(--agui-control-height) * 2);
+  resize: vertical;
+  &:disabled {
+    resize: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .agui-input,
+  .agui-textarea {
+    transition: none;
+  }
+}

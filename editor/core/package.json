@@ -83,6 +83,7 @@
     "nuxt-monaco-editor": "catalog:",
     "pinia": "catalog:frontend",
     "pixi-painter": "catalog:frontend",
+    "pixi.js": "catalog:frontend",
     "qrcode": "catalog:",
     "simple-git": "catalog:",
     "ua-parser-js": "catalog:"

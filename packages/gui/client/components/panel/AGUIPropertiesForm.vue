@@ -47,6 +47,7 @@ defineProps<{
           v-else-if="'options' in property && Array.isArray(property.options)"
           v-model="property.object[property.key]"
           :options="property.options"
+          :label="property.name"
           :disabled="property.disabled"
         />
         <AGUISlider

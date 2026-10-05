@@ -1,4 +1,5 @@
 import { defineEditorPlugin } from '@advjs/editor-sdk'
+import { contextCommands } from './context'
 
 export const corePlugin = defineEditorPlugin({
   id: 'advjs.core',
@@ -6,6 +7,11 @@ export const corePlugin = defineEditorPlugin({
   apiVersion: 1,
   title: { 'zh-CN': '编辑器核心', 'en': 'Editor core' },
   description: { 'zh-CN': '剧本、人物、项目文件、预览与插件管理。', 'en': 'Story, characters, files, preview and plugin management.' },
+  commands: contextCommands,
+  actions: [
+    { location: { view: 'dashboard', area: 'title' }, command: 'refresh', icon: 'ri:refresh-line' },
+    { location: { view: 'dashboard', area: 'title' }, command: 'copy', icon: 'ri:clipboard-line' },
+  ],
   views: [
     { id: 'story-line', title: { 'zh-CN': '故事线', 'en': 'Story Line' }, region: 'navigation', order: 0, icon: 'ri:book-open-line', load: () => import('../../components/panel/view/StoryLineView.vue') },
     { id: 'characters', title: { 'zh-CN': '人物', 'en': 'Characters' }, region: 'navigation', order: 10, icon: 'ri:group-line', load: () => import('../../components/panel/view/AEViewCharacters.vue') },

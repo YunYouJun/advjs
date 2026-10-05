@@ -8,7 +8,9 @@ import { createApp, defineComponent, h, nextTick, onUnmounted, shallowRef } from
 import EditorCommandBar from '../../editor/core/app/components/extensions/EditorCommandBar.vue'
 import EditorPluginManager from '../../editor/core/app/components/extensions/EditorPluginManager.vue'
 import EditorRegionHost from '../../editor/core/app/components/extensions/EditorRegionHost.vue'
+import { authoringCharacters } from '../../editor/core/app/composables/useAuthoringOverview'
 import { contextPlugin, mergedContext } from '../../editor/core/app/extensions/builtin/context'
+import { corePlugin } from '../../editor/core/app/extensions/builtin/core'
 import { createEditorLayoutState, editorLayoutStateKey, restoreLayout } from '../../editor/core/app/extensions/layout-state'
 import { createEditorExtensionHost, editorExtensionHostKey } from '../../editor/core/app/extensions/registry'
 import { createEditorHostServices } from '../../editor/core/app/extensions/services'
@@ -256,6 +258,37 @@ describe('actual plugin panels', () => {
     app.mount(container)
     return { registry, layout, container }
   }
+
+  it('shows the dashboard from the current SDK snapshot and shares host commands', async () => {
+    const { services, project, locale } = fixture()
+    locale.value = 'zh-CN'
+    project.value = { ...project.value!, files: {
+      'adv/world.md': '桃园世界',
+      'adv/chapters/README.md': '| 章节 | 状态 |\n| --- | --- |\n| 起点 | ✅ |\n| 相遇 | 📝 |',
+      'adv/characters/README.md': '| 名称 | 文件 | 定位 | 描述 |\n| --- | --- | --- | --- |\n| 刘备 | | 主角 | 桃园结义 |',
+    } }
+    const dashboard = { ...corePlugin, views: corePlugin.views.filter(view => view.id === 'dashboard') }
+    const { container } = await mountRegion([{ plugin: dashboard, source: 'builtin' }], services, 'main')
+    await vi.waitFor(() => expect(container.textContent).toContain('桃园结义'))
+    expect(container.querySelector('progress')?.value).toBe(50)
+    const copy = [...container.querySelectorAll('button')].find(button => button.textContent?.includes('复制给 AI'))!
+    copy.click()
+    await vi.waitFor(() => expect(services.clipboard.writeText).toHaveBeenCalledTimes(1))
+    project.value = { ...project.value!, sessionId: 'next', name: 'Another project', files: {} }
+    await nextTick()
+    expect(container.textContent).not.toContain('桃园结义')
+    expect(container.textContent).toContain('Another project')
+    expect(copy.disabled).toBe(true)
+    project.value = null
+    await nextTick()
+    expect(container.textContent).toContain('打开项目以查看创作进度')
+  })
+
+  it('keeps empty table columns and skips localized character headers', () => {
+    expect(authoringCharacters('| 名前 | ファイル | 役割 | 説明 |\n| :--- | --- | --- | ---: |\n| Alice | | Guide | First contact |')).toEqual([
+      { name: 'Alice', role: 'Guide', description: 'First contact' },
+    ])
+  })
 
   it('lets users cancel pending activation and omits open-panel actions for command-only plugins', async () => {
     const gate = deferred<() => void>()

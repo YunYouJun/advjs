@@ -1,4 +1,4 @@
-import type { EditorProjectSnapshot } from '@advjs/editor-sdk'
+import type { EditorCommand, EditorProjectSnapshot } from '@advjs/editor-sdk'
 import { defineEditorPlugin, editorText } from '@advjs/editor-sdk'
 
 const documents = [
@@ -30,6 +30,21 @@ export function mergedContext(project: EditorProjectSnapshot | null) {
   return contextSections(project).map(section => `# ${section.title.en}\n\n${section.content}`).join('\n\n---\n\n')
 }
 
+export const contextCommands: readonly EditorCommand[] = [
+  { id: 'refresh', title: { 'zh-CN': '刷新', 'en': 'Refresh' }, enabled: ctx => ctx.project.current.value !== null, run: ctx => ctx.project.refresh() },
+  {
+    id: 'copy',
+    title: { 'zh-CN': '复制给 AI', 'en': 'Copy for AI' },
+    enabled: ctx => contextSections(ctx.project.current.value).length > 0,
+    async run(ctx) {
+      const session = ctx.project.current.value?.sessionId
+      await ctx.clipboard.writeText(mergedContext(ctx.project.current.value))
+      if (ctx.project.current.value?.sessionId === session)
+        ctx.notifications.info(editorText({ 'zh-CN': '创作资料已复制', 'en': 'Context copied' }, ctx.locale.value))
+    },
+  },
+]
+
 export const contextPlugin = defineEditorPlugin({
   id: 'advjs.context',
   version: '0.1.4',
@@ -38,20 +53,7 @@ export const contextPlugin = defineEditorPlugin({
   description: { 'zh-CN': '阅读世界观与创作资料，复制给 AI。', 'en': 'Read authoring material and copy it for AI.' },
   requires: ['project.read', 'project.refresh', 'clipboard.write'],
   views: [{ id: 'context', title: { 'zh-CN': '创作上下文', 'en': 'Project context' }, region: 'inspector', icon: 'ri:earth-line', order: 20, load: () => import('../../components/panel/view/ProjectContextView.vue') }],
-  commands: [
-    { id: 'refresh', title: { 'zh-CN': '刷新', 'en': 'Refresh' }, enabled: ctx => ctx.project.current.value !== null, run: ctx => ctx.project.refresh() },
-    {
-      id: 'copy',
-      title: { 'zh-CN': '复制给 AI', 'en': 'Copy for AI' },
-      enabled: ctx => contextSections(ctx.project.current.value).length > 0,
-      async run(ctx) {
-        const session = ctx.project.current.value?.sessionId
-        await ctx.clipboard.writeText(mergedContext(ctx.project.current.value))
-        if (ctx.project.current.value?.sessionId === session)
-          ctx.notifications.info(editorText({ 'zh-CN': '创作资料已复制', 'en': 'Context copied' }, ctx.locale.value))
-      },
-    },
-  ],
+  commands: contextCommands,
   actions: [
     { location: { view: 'context', area: 'title' }, command: 'refresh', icon: 'ri:refresh-line' },
     { location: { view: 'context', area: 'title' }, command: 'copy', icon: 'ri:clipboard-line' },

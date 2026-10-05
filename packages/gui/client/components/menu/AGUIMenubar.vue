@@ -88,7 +88,7 @@ const currentMenu = defineModel('currentMenu', {
                       <MenubarItem
                         v-else
                         class="MenubarItem"
-                        @click="subItem.onClick"
+                        @select="subItem.onClick"
                       >
                         {{ subItem.label }}
                         <div class="RightSlot">
@@ -104,7 +104,7 @@ const currentMenu = defineModel('currentMenu', {
                 v-else
                 class="MenubarItem"
                 :disabled="menuItem.disabled"
-                @click="menuItem.onClick"
+                @select="menuItem.onClick"
               >
                 {{ menuItem.label }}<span v-if="menuItem.ellipsis">…</span>
                 <div class="RightSlot">

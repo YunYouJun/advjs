@@ -25,6 +25,8 @@ defineProps<{
   modelValue?: string | number
   options: OptionType[]
   legend?: string
+  label?: string
+  disabled?: boolean
 
   placeholder?: string
 
@@ -47,11 +49,12 @@ function onUpdateModelValue(value: AcceptableValue) {
   <SelectRoot
     :model-value="modelValue"
     :multiple="multiple"
+    :disabled="disabled"
     @update:model-value="onUpdateModelValue"
   >
     <SelectTrigger
       class="agui-select-trigger"
-      :aria-label="placeholder"
+      :aria-label="label || placeholder"
     >
       <SelectValue :placeholder="placeholder" />
       <div class="i-radix-icons:chevron-down" op="60" />
@@ -62,7 +65,7 @@ function onUpdateModelValue(value: AcceptableValue) {
         class="agui-select-content z-100"
         side="bottom"
       >
-        <SelectScrollUpButton class="SelectScrollButton">
+        <SelectScrollUpButton class="agui-select-scroll-button">
           <div class="i-radix-icons:chevron-up" />
         </SelectScrollUpButton>
 
@@ -105,7 +108,7 @@ function onUpdateModelValue(value: AcceptableValue) {
           </SelectGroup>
         </SelectViewport>
 
-        <SelectScrollDownButton class="SelectScrollButton agui-select-scroll-button">
+        <SelectScrollDownButton class="agui-select-scroll-button">
           <div class="i-radix-icons:chevron-down" />
         </SelectScrollDownButton>
       </SelectContent>
@@ -115,110 +118,87 @@ function onUpdateModelValue(value: AcceptableValue) {
 
 <style lang="scss">
 .agui-select-trigger {
-  font:
-    12px system-ui,
-    sans-serif;
+  font: inherit;
+  font-size: 13px;
   appearance: none;
-  background-color: transparent;
   box-sizing: border-box;
   width: 100%;
-  color: #fdfdfd;
-  outline: none;
-
+  color: var(--agui-c-text-1);
   display: inline-flex;
   justify-content: space-between;
   align-items: center;
-
   gap: 4px;
-  padding: 0 4px 0 4px;
-
-  background: #1d1d1d;
-  border: 1px solid #3d3d3d;
-  border-radius: 4px;
-  box-shadow: 0 1px 3px rgba(black, 0.3);
-  border-radius: 4px;
+  padding: 0 8px;
+  background: var(--agui-c-field);
+  border: 1px solid var(--agui-c-control-border);
+  border-radius: 2px;
   text-align: left;
-  min-height: 20px;
+  min-height: var(--agui-control-height);
   cursor: pointer;
 
-  &:focus {
-    outline: none;
+  &:focus-visible {
+    outline: 2px solid var(--agui-c-focus);
+    outline-offset: 1px;
   }
-
-  &:hover {
-    background-color: #232323;
+  &:hover:not(:disabled) {
+    border-color: var(--agui-c-text-2);
   }
-
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
   &[data-placeholder] {
-    color: var(--agui-c-text-1);
+    color: var(--agui-c-text-2);
   }
 }
-
 .agui-select-content {
   overflow: hidden;
-  background-color: #1d1d1d;
-  border-radius: 6px;
-  box-shadow:
-    0px 10px 38px -10px rgba(22, 23, 24, 0.35),
-    0px 10px 20px -15px rgba(22, 23, 24, 0.2);
+  color: var(--agui-c-text-1);
+  background: var(--agui-c-bg-soft);
+  border: 1px solid var(--agui-c-control-border);
+  border-radius: 4px;
+  box-shadow: 0 8px 24px var(--agui-c-overlay);
 }
-
 .agui-select-viewport {
-  padding: 5px;
+  padding: 4px;
 }
-
 .agui-select-item {
   font-size: 12px;
-  line-height: 1;
-  border-radius: 3px;
+  line-height: 1.4;
+  border-radius: 2px;
   display: flex;
   align-items: center;
-  height: 20px;
-  padding: 0 35px 0 25px;
+  min-height: 25px;
+  padding: 0 24px;
   position: relative;
   user-select: none;
 
   &[data-disabled] {
-    color: #aaa;
+    color: var(--agui-c-text-3);
     pointer-events: none;
   }
   &[data-highlighted] {
     outline: none;
-    background-color: var(--agui-c-active);
-    color: white;
+    background: var(--agui-c-active);
+    color: var(--agui-c-on-accent);
     cursor: pointer;
   }
-
   &-indicator {
     position: absolute;
     left: 0;
-    width: 25px;
+    width: 24px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
   }
 }
-
-.SelectLabel {
-  padding: 0 8px;
-  font-size: 9px;
-  line-height: 25px;
-  color: #989898;
-}
-
-.SelectSeparator {
-  height: 1px;
-  background-color: var(--agui-c-divider);
-  margin: 5px;
-}
-
-.SelectScrollButton {
+.agui-select-scroll-button {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 25px;
-  background-color: white;
-  color: #989898;
+  height: 24px;
+  color: var(--agui-c-text-2);
+  background: var(--agui-c-bg-soft);
   cursor: default;
 }
 </style>

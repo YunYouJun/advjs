@@ -26,7 +26,7 @@
   --agui-c-divider-dark-1: rgba(84, 84, 84, 0.65);
   --agui-c-divider-dark-2: rgba(84, 84, 84, 0.48);
   --agui-c-text-light-1: rgba(60, 60, 60, 0.8);
-  --agui-c-text-light-2: rgba(60, 60, 60, 0.7);
+  --agui-c-text-light-2: rgba(60, 60, 60, 0.73);
   --agui-c-text-light-3: rgba(60, 60, 60, 0.33);
   --agui-c-text-light-4: rgba(60, 60, 60, 0.18);
   --agui-c-text-light-code: var(--agui-c-indigo-soft);
@@ -137,6 +137,11 @@
 // Shared desktop controls. Keep action colors separate from content/brand colors.
 :root {
   --agui-control-height: 24px;
+  --agui-c-active: var(--agui-c-blue-dark);
+  --agui-c-field: #ffffff;
+  --agui-c-success-text: #276b42;
+  --agui-c-warning-text: #855600;
+  --agui-c-overlay: rgba(0, 0, 0, 0.5);
   --agui-c-control: #eeeeee;
   --agui-c-control-hover: #e2e2e2;
   --agui-c-control-pressed: #d4d4d4;
@@ -153,6 +158,10 @@
   --agui-c-bg-summary: var(--agui-c-bg-panel-title);
 }
 .dark {
+  --agui-c-active: var(--agui-c-blue-darker);
+  --agui-c-field: #2a2a2a;
+  --agui-c-success-text: #9dd4af;
+  --agui-c-warning-text: #e5c071;
   --agui-c-control: #505050;
   --agui-c-bg-summary: var(--agui-c-bg-panel-title);
   --agui-c-control-hover: #5c5c5c;

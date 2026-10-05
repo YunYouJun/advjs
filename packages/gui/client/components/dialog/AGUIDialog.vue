@@ -9,6 +9,7 @@ import {
   DialogTitle,
   // DialogTrigger,
 } from 'reka-ui'
+import AGUIButton from '../button/AGUIButton.vue'
 
 defineProps<{
   title: string
@@ -26,42 +27,87 @@ const open = defineModel('open', {
 <template>
   <DialogRoot v-model:open="open">
     <DialogPortal>
-      <DialogOverlay class="data-[state=open]:animate-overlayShow fixed inset-0 z-99 bg-black/50" />
+      <DialogOverlay class="agui-dialog-overlay" />
       <DialogContent
-        class="data-[state=open]:animate-contentShow fixed left-[50%] top-[50%] z-[100] translate-x-[-50%] translate-y-[-50%] overflow-hidden rounded-lg bg-dark-300 shadow-xl focus:outline-none"
-        flex="~ col"
+        class="agui-dialog-content"
         :class="contentClass || 'w-4xl h-md'"
-        :aria-describedby="description"
+        v-bind="description ? {} : { 'aria-describedby': undefined }"
         :aria-hidden="!open"
       >
-        <div class="relative h-7 flex items-center justify-center bg-dark-50 shadow">
-          <DialogTitle
-            v-if="title"
-            class="text-13px font-bold op-60"
-          >
+        <header class="agui-dialog-header">
+          <DialogTitle class="agui-dialog-title">
             {{ title }}
           </DialogTitle>
-          <div class="agui-dialog--action absolute bottom-0 left-0 top-0 inline-flex items-center gap-1 px-2">
-            <DialogClose
-              aria-label="Close"
-              class="size-3.5 inline-flex cursor-pointer items-center justify-center rounded-full bg-red-500 text-transparent hover:text-white/80 focus:outline-none"
-            >
-              <div aria-hidden="true" i-ri-close-line />
-            </DialogClose>
-          </div>
-        </div>
+          <DialogClose as-child>
+            <AGUIButton variant="text" icon="i-ri-close-line" aria-label="Close" title="Close" />
+          </DialogClose>
+        </header>
 
         <DialogDescription
           v-if="description"
-          class="text-mauve11 mb-5 mt-[10px] text-sm leading-normal"
+          class="agui-dialog-description"
         >
           {{ description }}
         </DialogDescription>
 
-        <div class="relative" style="height: calc(100% - 28px)">
+        <div class="agui-dialog-body">
           <slot />
         </div>
       </DialogContent>
     </DialogPortal>
   </DialogRoot>
 </template>
+
+<style scoped>
+.agui-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  background: var(--agui-c-overlay);
+}
+.agui-dialog-content {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+  color: var(--agui-c-text-1);
+  background: var(--agui-c-bg-panel);
+  border: 1px solid var(--agui-c-control-border);
+  border-radius: 4px;
+  box-shadow: 0 8px 24px var(--agui-c-overlay);
+  font-size: 13px;
+}
+.agui-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+  min-height: 28px;
+  padding: 0 4px 0 12px;
+  border-bottom: 1px solid var(--agui-c-divider);
+  background: var(--agui-c-bg-panel-title);
+}
+.agui-dialog-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+.agui-dialog-description {
+  margin: 0;
+  padding: 8px 12px;
+  color: var(--agui-c-text-2);
+}
+.agui-dialog-body {
+  flex: 1;
+  position: relative;
+  min-height: 0;
+  overflow: auto;
+}
+</style>

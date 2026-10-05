@@ -74,7 +74,11 @@
     "title": "Preferences",
     "interface": "Interface",
     "language": "Language",
-    "languageDescription": "Set the language of the editor interface"
+    "languageDescription": "Set the language of the editor interface",
+    "theme": "Theme",
+    "themeDescription": "Apply one theme to panels, menus and dialogs",
+    "dark": "Dark",
+    "light": "Light"
   },
   "onboarding": {
     "welcome": "Welcome to ADV.JS Editor",

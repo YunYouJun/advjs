@@ -9,6 +9,10 @@ import { injectionAdvContext } from '../../../packages/client/constants'
 import { useEditorExtensions } from './composables/useEditorExtensions'
 import './styles'
 
+const colorMode = useColorMode()
+// Portalled AGUI menus and dialogs must inherit the same theme as the workspace.
+useHead(() => ({ htmlAttrs: { class: colorMode.value === 'dark' ? 'dark' : '' } }))
+
 useHead({
   title: appName,
 })
@@ -65,7 +69,7 @@ body,
 
   overflow: hidden;
 
-  color: white;
+  color: var(--agui-c-text-1);
   background: var(--agui-c-bg);
 }
 </style>
