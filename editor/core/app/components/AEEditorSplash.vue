@@ -69,8 +69,7 @@ onUnmounted(() => {
   <Transition name="ae-splash-fade">
     <div
       v-if="show"
-      class="fixed inset-0 z-9999 flex flex-col items-center justify-center"
-      style="background: #1a1a2e;"
+      class="ae-editor-splash fixed inset-0 z-9999 flex flex-col items-center justify-center"
     >
       <!-- Logo area -->
       <div class="mb-10 flex flex-col items-center gap-3">
@@ -79,21 +78,19 @@ onUnmounted(() => {
           viewBox="0 0 24 24"
           role="img"
           aria-label="ADV.JS"
-          class="h-16 w-16"
-          style="color: dodgerblue; filter: drop-shadow(0 0 20px rgba(30, 144, 255, 0.3));"
+          class="ae-splash-logo h-16 w-16"
         >
           <path fill="currentColor" d="M14 10.25L17 8v6l-3-2.25V14H7V8h7v2.25zM5.763 17H20V5H4v13.385L5.763 17zm.692 2L2 22.5V4a1 1 0 0 1 1-1h18a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H6.455z" />
         </svg>
         <div class="flex items-center gap-2">
           <span
             class="text-3xl font-bold tracking-wide"
-            style="color: #e0e0e0; letter-spacing: 0.05em;"
+            style="letter-spacing: 0.05em;"
           >
             ADV.JS
           </span>
           <span
-            class="text-lg font-light"
-            style="color: rgba(255,255,255,0.5);"
+            class="ae-splash-secondary text-lg font-light"
           >
             Editor
           </span>
@@ -103,18 +100,15 @@ onUnmounted(() => {
       <!-- Progress bar -->
       <div class="w-80 flex flex-col items-center gap-3">
         <div
-          class="h-1 w-full overflow-hidden rounded-full"
-          style="background: rgba(255,255,255,0.1);"
+          class="ae-splash-track h-1 w-full overflow-hidden rounded-full"
         >
           <div
-            class="h-full rounded-full transition-none"
-            style="background: dodgerblue;"
+            class="ae-splash-progress h-full rounded-full transition-none"
             :style="{ width: `${progress}%` }"
           />
         </div>
         <div
-          class="text-xs"
-          style="color: rgba(255,255,255,0.45);"
+          class="ae-splash-secondary text-xs"
         >
           {{ statusText }}
         </div>
@@ -122,8 +116,7 @@ onUnmounted(() => {
 
       <!-- Version -->
       <div
-        class="absolute bottom-6 right-6 text-xs"
-        style="color: rgba(255,255,255,0.2);"
+        class="ae-splash-secondary absolute bottom-6 right-6 text-xs"
       >
         v0.1.1
       </div>
@@ -132,11 +125,38 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.ae-editor-splash {
+  color: var(--agui-c-text-1);
+  background: var(--agui-c-bg);
+}
+
+.ae-splash-logo {
+  color: var(--agui-c-blue);
+}
+
+.ae-splash-secondary {
+  color: var(--agui-c-text-2);
+}
+
+.ae-splash-track {
+  background: var(--agui-c-bg-mute);
+}
+
+.ae-splash-progress {
+  background: var(--agui-c-primary);
+}
+
 .ae-splash-fade-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.15s ease;
 }
 
 .ae-splash-fade-leave-to {
   opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ae-splash-fade-leave-active {
+    transition: none;
+  }
 }
 </style>

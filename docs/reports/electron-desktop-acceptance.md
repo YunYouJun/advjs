@@ -20,7 +20,7 @@
 仓库内同步副本为 `apps/desktop/out/ADV.JS Editor-darwin-arm64/ADV.JS Editor.app` 及 `apps/desktop/out/make/zip/darwin/arm64/ADV.JS Editor-darwin-arm64-0.1.4.zip`。应用约 863 MiB，分发 ZIP 约 273 MiB。分发 ZIP SHA-256：
 
 ```text
-d9c9cc0da5013e4791e95f6b7e912c0b3d2a1e6a0e7e6fcd0e76f2f6b4cdb978
+525ff31ad1e3a05a195c0dbbce819673b73b4a3e87bdeef3a58449b59a713d18
 ```
 
 `final/package-verification.json` 记录 ASAR 与 ZIP 的 hash、剥离 Forge 开发配置后的应用元数据，以及 2,126 条全部位于应用运行时内部的 symlink。运行时没有指向仓库或独立验证快照的链接。
@@ -114,7 +114,15 @@ Studio 回归配置启动已构建的静态 preview，使用 Chrome stable；首
 
 独立快照重新通过 Editor 生产构建、vue-tsc、宿主 TS 检查及 macOS arm64 打包；运行时仍为 2,126 条内部 symlink。受影响源码 ESLint 为 0 errors；保留未提交的既有样式排序变更，因此独立源码中仍有 12 条原有 UnoCSS 排序 warnings。专项测试验证首次选择中文、无重复引导、窗口重载、项目切换、正常退出重启、直接进入角色页、内联 SVG 及非法偏好字段拒绝；Web Editor 也验证刷新与直接页面恢复。完整回归 13 项全部通过（1.1 分钟），记录于 `advjs-preferences-packaged-final3.log`；Web Editor 原有项目编辑集成回归 1 项通过（6.5 秒），记录于 `advjs-preferences-web-integration.log`。独立静态导出使用已安装的 Chrome stable（`ADVJS_WEB_CHANNEL=chrome`）。
 
-应用与分发 ZIP 已同步更新至原交付路径；旧版本保留为 `final/before-preferences-fix.app` 和 `final/before-preferences-fix.zip`。本报告顶部的 ZIP hash 为当前修复版，首版分发 hash `bfd55851548024de589714dc02402328be2c9f929fea497cfb3710ec8946f340` 保留在此用于区分历史产物。
+应用与分发 ZIP 已同步更新至原交付路径；旧版本保留为 `final/before-preferences-fix.app` 和 `final/before-preferences-fix.zip`。语言修复版 ZIP hash 为 `d9c9cc0da5013e4791e95f6b7e912c0b3d2a1e6a0e7e6fcd0e76f2f6b4cdb978`；首版分发 hash `bfd55851548024de589714dc02402328be2c9f929fea497cfb3710ec8946f340` 保留在此用于区分历史产物。
+
+## 加载页 AGUI 配色复验
+
+2026-10-07：加载页原先使用独立的深蓝背景、固定白色透明文字和 Logo 发光效果，与主工作台的中性灰配色不一致。现统一使用 `--agui-c-bg`、`--agui-c-text-1/2`、`--agui-c-blue`、`--agui-c-bg-mute` 和 `--agui-c-primary`；Logo 移除发光，亮暗主题继承主编辑器。淡出时间为 150ms，并尊重减少动态效果偏好。未修改共享 token、项目数据、游戏主题或 Studio 样式。
+
+独立源码快照通过 Editor 生产构建和 vue-tsc，再次生成 macOS arm64 `.app` 与 ZIP。仓库外应用以 `PATH=/usr/bin:/bin` 启动，实际捕获暗色／亮色 × 1440×900／320×600 四张截图，背景与宿主一致、辅助文字和进度条使用共享颜色、无发光或横向溢出，加载正常完成。证据为 `splash-theme-{dark,light}-{desktop,narrow}.png` 与 `splash-theme.json`，捕获脚本保存在 `final/evidence/capture-splash-theme.mjs`。加载页无操作控件；未修改共享组件，本次未重新执行 Studio 或全部游戏导出流程。
+
+现有桌面语言／引导／跨项目／重启回归和 Web 语言回归 2 项通过（19.1 秒），日志 `advjs-splash-theme-preferences.log`。ESLint 0 errors，保留 8 条既有 UnoCSS 排序 warnings；只暂存本次配色 hunk，未纳入已有样式排序或其他工作区改动。应用内 2,126 条 symlink 均位于运行时内部，ASAR 宿主 hash 保持不变。当前分发 ZIP hash 见报告顶部，旧客户端保留为 `final/before-splash-theme-fix.app` 和 `final/before-splash-theme-fix.zip`。
 
 ## 支持边界及平台
 
