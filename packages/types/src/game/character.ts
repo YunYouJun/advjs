@@ -204,6 +204,13 @@ export interface AdvCharacterAttributes {
   ai?: AdvCharacterAttributesAi
 }
 
+/** A dialogue portrait for one authored character state. */
+export interface AdvCharacterAvatar {
+  src: string
+  /** Human-readable expression name for authoring tools. */
+  label?: string
+}
+
 /**
  * .character.md frontmatter 的类型定义
  * 每个字段与 YAML frontmatter 键一一对应
@@ -221,6 +228,8 @@ export interface AdvCharacterFrontmatter {
    * @zh 头像
    */
   avatar?: string
+  /** Portrait variants keyed by the dialogue's character status. */
+  avatars?: Record<string, AdvCharacterAvatar>
   /**
    * Image Prompt
    * @zh 立绘提示词

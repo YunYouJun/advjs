@@ -21,15 +21,11 @@ const displayAliases = computed(() => {
   <div class="character-detail p-4 flex flex-col gap-4">
     <!-- Header -->
     <div class="flex gap-4 items-start">
-      <img
-        v-if="character.avatar"
+      <CharacterPortrait
         class="rounded-lg size-20 object-cover"
-        :src="character.avatar"
+        :src="character.avatar || character.avatars?.default?.src"
         :alt="character.name"
-      >
-      <div v-else class="rounded-lg bg-dark-300 flex size-20 items-center justify-center">
-        <div class="i-ri-user-3-line text-3xl op-40" />
-      </div>
+      />
 
       <div class="flex-1">
         <h2 class="text-xl font-bold">
@@ -62,6 +58,7 @@ const displayAliases = computed(() => {
     </div>
 
     <!-- Info Sections -->
+    <CharacterAvatarPanel :character="character" />
     <CharacterVisualPanel v-if="character.visual || character.imagePrompt" :character="character" />
 
     <div v-if="character.personality" class="section">

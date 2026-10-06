@@ -1,4 +1,5 @@
 import { speak, useAdvContext, useSettingsStore } from '@advjs/client'
+import { resolveCharacterAvatar } from '@advjs/core'
 import { computed, shallowRef, unref, watch } from 'vue'
 
 export function useAdvDialogBox() {
@@ -45,13 +46,21 @@ export function useAdvDialogBox() {
     )) ?? (name ? { id: name, name } : undefined)
   })
 
-  const characterAvatar = computed(() => {
-    const avatar = curCharacter.value && 'avatar' in curCharacter.value
-      ? curCharacter.value.avatar
-      : undefined
-    if (avatar && $adv.config.value.cdn.enable && !avatar.startsWith('http'))
+  const portrait = computed(() => resolveCharacterAvatar(
+    curCharacter.value,
+    typeof $adv.store.current?.data?.status === 'string' ? $adv.store.current.data.status : undefined,
+  ))
+
+  function avatarUrl(avatar: string | undefined) {
+    if (avatar && $adv.config.value.cdn.enable && !/^(?:https?:|blob:|data:)/u.test(avatar))
       return `${$adv.config.value.cdn.prefix || ''}${avatar}`
     return avatar
+  }
+  const characterAvatar = computed(() => avatarUrl(portrait.value.src))
+  const characterAvatarState = computed(() => portrait.value.status)
+  const characterDefaultAvatar = computed(() => {
+    const legacyAvatar = curCharacter.value && 'avatar' in curCharacter.value ? curCharacter.value.avatar : undefined
+    return avatarUrl(legacyAvatar || resolveCharacterAvatar(curCharacter.value).src)
   })
 
   const transitionFlag = shallowRef(true)
@@ -71,6 +80,8 @@ export function useAdvDialogBox() {
   return {
     animation,
     characterAvatar,
+    characterAvatarState,
+    characterDefaultAvatar,
     curCharacter,
     curDialog,
     fontSizeClass,

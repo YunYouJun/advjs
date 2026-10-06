@@ -23,6 +23,7 @@ const CHARACTER_FIELDS = new Set([
   'aliases',
   'attributes',
   'avatar',
+  'avatars',
   'cv',
   'faction',
   'id',

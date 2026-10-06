@@ -73,20 +73,46 @@ relationships:
 
 ### Frontmatter 字段说明
 
-| 字段            | 类型                         | 必填 | 说明                     |
-| --------------- | ---------------------------- | ---- | ------------------------ |
-| `id`            | `string`                     | ✅   | 唯一标识，需与文件名一致 |
-| `name`          | `string`                     | ✅   | 角色姓名                 |
-| `visual`        | `AdvCharacterVisual`         |      | 造型版本、参考图和一致性约束 |
-| `imagePrompt`   | `string`                    |      | 补充图像生成描述 |
-| `avatar`        | `string`                     |      | 头像图片路径             |
-| `actor`         | `string`                     |      | 演员                     |
-| `cv`            | `string`                     |      | 声优                     |
-| `aliases`       | `string[]`                   |      | 别名列表                 |
-| `tags`          | `string[]`                   |      | 角色标签                 |
-| `faction`       | `string`                     |      | 阵营/组织                |
-| `tachies`       | `Record<string, AdvTachie>`  |      | 立绘，key 为立绘名称     |
-| `relationships` | `AdvCharacterRelationship[]` |      | 角色关系                 |
+| 字段            | 类型                                 | 必填 | 说明                                                        |
+| --------------- | ------------------------------------ | ---- | ----------------------------------------------------------- |
+| `id`            | `string`                             | ✅   | 唯一标识，需与文件名一致                                    |
+| `name`          | `string`                             | ✅   | 角色姓名                                                    |
+| `visual`        | `AdvCharacterVisual`                 |      | 造型版本、参考图和一致性约束                                |
+| `imagePrompt`   | `string`                             |      | 补充图像生成描述                                            |
+| `avatar`        | `string`                             |      | 头像图片路径                                                |
+| `avatars`       | `Record<string, AdvCharacterAvatar>` |      | 以对白状态为键的头像差分，每项含 `src` 和可选显示名 `label` |
+| `actor`         | `string`                             |      | 演员                                                        |
+| `cv`            | `string`                             |      | 声优                                                        |
+| `aliases`       | `string[]`                           |      | 别名列表                                                    |
+| `tags`          | `string[]`                           |      | 角色标签                                                    |
+| `faction`       | `string`                             |      | 阵营/组织                                                   |
+| `tachies`       | `Record<string, AdvTachie>`          |      | 立绘，key 为立绘名称                                        |
+| `relationships` | `AdvCharacterRelationship[]`         |      | 角色关系                                                    |
+
+### 对白神态头像
+
+`avatar` 保留为默认头像；`avatars` 将预制神态与人物卡关联。通过已有的角色状态语法选择，状态只属于当前对白，不延续到后续未标注的台词：
+
+```yaml
+avatar: adv/assets/avatars/hero.webp
+avatars:
+  thoughtful:
+    src: adv/assets/avatars/hero-thoughtful.webp
+    label: 凝神思索
+  resolved:
+    src: adv/assets/avatars/hero-resolved.webp
+    label: 坚定决断
+```
+
+```md
+@Hero(thoughtful)
+让我再算一遍。
+
+@Hero
+我听着。
+```
+
+角色详情显示神态名称、状态 ID 和图片预览；本地桥接解析项目相对路径，发行构建打包所用图片。项目的 `showCharacterAvatar` 同步给 Editor 预览播放器。存档恢复对白节点后，头像随对应状态恢复。未提供或未知的状态回退至 `avatar`（或 `avatars.default`）；图片加载失败时再尝试默认头像，两者均失败时保留姓名。旧人物卡无需迁移。Flow 对话可使用可选 `status` 字段；AI 导出提供可用状态与名称，图片路径仍从人物卡和资源清单读取。
 
 ### 统一视觉设定
 

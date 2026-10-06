@@ -6,6 +6,19 @@ import { useCharacterVisualReferences } from '../../editor/core/app/composables/
 afterEach(() => vi.unstubAllGlobals())
 
 describe('character reference previews', () => {
+  it('preserves remote portrait URLs without taking ownership of them', async () => {
+    const createObjectURL = vi.fn()
+    const revokeObjectURL = vi.fn()
+    vi.stubGlobal('URL', { createObjectURL, revokeObjectURL })
+    const scope = effectScope()
+    const paths = ['https://example.com/portrait.webp', 'blob:existing', 'data:image/png;base64,AAAA']
+    const state = scope.run(() => useCharacterVisualReferences(() => paths.map(path => ({ path })), () => undefined))!
+    await vi.waitFor(() => expect(state.previews.value.map(preview => preview.src)).toEqual(paths))
+    scope.stop()
+    expect(createObjectURL).not.toHaveBeenCalled()
+    expect(revokeObjectURL).not.toHaveBeenCalled()
+  })
+
   it('discards late images after a project switch and releases URLs on disposal', async () => {
     const createObjectURL = vi.fn(() => 'blob:current')
     const revokeObjectURL = vi.fn()

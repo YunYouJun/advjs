@@ -1,4 +1,4 @@
-import type { AdvAgentIntegrationStatus, AdvGameConfig, AdvProjectCompileResult, AdvProjectFileMap } from '@advjs/types'
+import type { AdvAgentIntegrationStatus, AdvCharacterAvatar, AdvGameConfig, AdvProjectCompileResult, AdvProjectFileMap } from '@advjs/types'
 import type { BrowserProjectDirectory, BrowserProjectFile } from '../browser/project'
 import { createAdvAssetCatalog } from '@advjs/assets'
 
@@ -121,10 +121,28 @@ export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
     for (const url of assetBlobUrls)
       URL.revokeObjectURL(url)
     assetBlobUrls.clear()
+    const portraitUrls = new Map<string, Promise<string>>()
+    async function portraitUrl(src: string | undefined) {
+      if (!src || /^(?:https?:|blob:|data:)/u.test(src))
+        return src
+      if (!portraitUrls.has(src))
+        portraitUrls.set(src, readAssetBlobUrl(src))
+      return await portraitUrls.get(src)
+    }
     const characters = await Promise.all((previewConfig.characters ?? []).map(async (character) => {
-      if (!character.avatar || /^(?:https?:|blob:|data:)/u.test(character.avatar))
-        return character
-      return { ...character, avatar: await readAssetBlobUrl(character.avatar) }
+      const avatar = await portraitUrl(character.avatar).catch(() => undefined)
+      const avatars = character.avatars
+        ? Object.fromEntries((await Promise.all(Object.entries(character.avatars).map(async ([status, portrait]): Promise<[string, AdvCharacterAvatar][]> => {
+            try {
+              return [[status, { ...portrait, src: await portraitUrl(portrait.src) as string }]]
+            }
+            catch {
+              // Missing optional variants must not prevent previewing the story.
+              return []
+            }
+          }))).flat())
+        : undefined
+      return { ...character, avatar, ...(avatars ? { avatars } : {}) }
     }))
     const manifest = compilation.project.assets
     if (!manifest)

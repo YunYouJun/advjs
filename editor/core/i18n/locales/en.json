@@ -153,6 +153,7 @@
       "actor": "Actor",
       "aliases": "Aliases",
       "tachies": "Tachies",
+      "avatars": "Portrait expressions",
       "relationships": "Relationships"
     },
     "confirmDelete": "Are you sure you want to delete character \"{name}\"? This action cannot be undone.",

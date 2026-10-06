@@ -149,10 +149,16 @@ const RelationshipSchema = z.object({
  * Note: legacy / free-form fields stay permissive so older files keep working.
  * Strict validation is enforced on the `attributes` and `visual` subtrees.
  */
+export const CharacterAvatarsSchema = z.record(z.string().min(1), z.object({
+  src: z.string().min(1),
+  label: z.string().optional(),
+}))
+
 export const CharacterFrontmatterSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   avatar: z.string().optional(),
+  avatars: CharacterAvatarsSchema.optional(),
   imagePrompt: z.string().optional(),
   visual: CharacterVisualSchema.optional(),
   actor: z.string().optional(),

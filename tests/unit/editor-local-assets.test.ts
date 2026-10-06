@@ -8,6 +8,32 @@ afterEach(() => {
 })
 
 describe('editor local asset preview', () => {
+  it('resolves portrait variants, deduplicates the default and tolerates a missing optional image', async () => {
+    let nextUrl = 0
+    const revokeObjectURL = vi.fn()
+    vi.stubGlobal('URL', Object.assign(URL, { createObjectURL: vi.fn(() => `blob:portrait-${++nextUrl}`), revokeObjectURL }))
+    const fetcher = vi.fn(async (input: string | URL) => String(input).includes('missing')
+      ? new Response('{}', { status: 404 })
+      : new Response(new Blob(['portrait'], { type: 'image/webp' })))
+    const adapter = createLocalBridgeAdapter({ origin: 'http://localhost:3000', token: 'test', fetch: fetcher as typeof fetch })
+    const source = { characters: [{ id: 'hero', name: 'Hero', avatar: 'art/default.webp', avatars: {
+      default: { src: 'art/default.webp', label: '日常' },
+      thoughtful: { src: 'art/thoughtful.webp', label: '思索' },
+      remote: { src: 'https://example.com/hero.webp' },
+      missing: { src: 'art/missing.webp' },
+    } }, { id: 'no-portrait', name: 'No portrait', avatar: 'art/missing.webp' }], scenes: [] }
+    const preview = await adapter.resolvePreviewConfig({ project: {} } as any, source as any)
+    expect(preview.characters[0]?.avatars?.default.src).toBe(preview.characters[0]?.avatar)
+    expect(preview.characters[0]?.avatars?.thoughtful).toEqual({ src: 'blob:portrait-2', label: '思索' })
+    expect(preview.characters[0]?.avatars?.remote.src).toBe('https://example.com/hero.webp')
+    expect(preview.characters[0]?.avatars?.missing).toBeUndefined()
+    expect(preview.characters[1]?.avatar).toBeUndefined()
+    expect(source.characters[0]?.avatars.thoughtful.src).toBe('art/thoughtful.webp')
+    expect(fetcher).toHaveBeenCalledTimes(3)
+    await adapter.resolvePreviewConfig({ project: {} } as any, { characters: [], scenes: [] } as any)
+    expect(revokeObjectURL).toHaveBeenCalledTimes(2)
+  })
+
   it('loads local dialogue avatars, preserves remote avatars and releases cached URLs', async () => {
     const createObjectURL = vi.fn(() => 'blob:portrait')
     const revokeObjectURL = vi.fn()

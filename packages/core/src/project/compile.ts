@@ -14,6 +14,7 @@ import type {
 } from '@advjs/types'
 import type { MarkdownResourceCatalog } from '../compiler'
 import {
+  CharacterAvatarsSchema,
   CharacterVisualSchema,
   extractCharacterRefs,
   extractSceneRefs,
@@ -341,6 +342,17 @@ function collectCharacters(
   const known = new Set<string>()
 
   function registerCharacter(character: AdvCharacter, path: string) {
+    if (character.avatars !== undefined) {
+      const avatars = CharacterAvatarsSchema.safeParse(character.avatars)
+      if (!avatars.success) {
+        diagnostics.push({
+          code: 'ADV_PROJECT_INVALID_CHARACTER_AVATARS',
+          severity: 'error',
+          message: `Invalid portrait variants for "${character.id}": ${avatars.error.message}`,
+          path,
+        })
+      }
+    }
     if (character.visual !== undefined) {
       const visual = CharacterVisualSchema.safeParse(character.visual)
       if (!visual.success) {

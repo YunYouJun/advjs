@@ -60,6 +60,7 @@ function compileDialogues(
       kind: 'dialog',
       data: {
         character: dialogue.speakerId ?? dialogue.speaker ?? '',
+        ...(dialogue.status ? { status: dialogue.status } : {}),
         text: dialogue.text,
       },
       next: nextId

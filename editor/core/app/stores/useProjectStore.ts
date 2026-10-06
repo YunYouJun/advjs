@@ -5,6 +5,7 @@ import type { BrowserProjectDirectory, EditorProjectModel } from '../adapters/br
 import type { LocalBridgeAdapter, LocalDirectoryHandle, LocalFileHandle } from '../adapters/local'
 import type { AdvConfigAdapterType } from '../types'
 import type { ProjectWorkspace, ProjectWorkspaceSnapshot, ProjectWorkspaceSubscription } from '../workspaces/project'
+import { advDataRef } from '@advjs/client/compiler'
 import { defaultAdvConfig } from 'advjs'
 import { consola } from 'consola'
 import { createBrowserProjectWorkspace } from '../adapters/browser/workspace'
@@ -99,6 +100,7 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
       ...defaultAdvConfig,
       ...data,
     }
+    advDataRef.value = { ...advDataRef.value, config: advConfig.value }
     consoleStore.success('Adv config loaded', {
       fileName: 'adv.config.json',
     })

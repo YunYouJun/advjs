@@ -12,25 +12,20 @@ defineEmits<{
 
 <template>
   <div
-    class="character-card relative flex flex-col cursor-pointer gap-2 rounded-lg bg-dark-400 p-3 shadow transition-all hover:bg-dark-300 hover:shadow-lg"
+    class="character-card p-3 rounded-lg bg-dark-400 flex flex-col gap-2 cursor-pointer shadow transition-all relative hover:bg-dark-300 hover:shadow-lg"
     @click="$emit('click', props.character)"
   >
-    <div v-if="character.avatar" class="m-auto">
-      <img class="size-24 rounded-lg object-cover" :src="character.avatar" :alt="character.name">
-    </div>
-    <div v-else class="m-auto size-24 flex items-center justify-center rounded-lg bg-dark-200">
-      <div class="i-ri-user-3-line text-3xl op-40" />
-    </div>
+    <CharacterPortrait class="m-auto rounded-lg size-24 object-cover" :src="character.avatar || character.avatars?.default?.src" :alt="character.name" />
 
-    <div class="text-center text-sm font-bold">
+    <div class="text-sm font-bold text-center">
       {{ character.name }}
     </div>
 
-    <div v-if="character.faction" class="text-center text-xs op-60">
+    <div v-if="character.faction" class="text-xs text-center op-60">
       {{ character.faction }}
     </div>
 
-    <div v-if="character.tags?.length" class="flex flex-wrap justify-center gap-1">
+    <div v-if="character.tags?.length" class="flex flex-wrap gap-1 justify-center">
       <AGUITag
         v-for="tag in character.tags.slice(0, 3)"
         :key="tag"
@@ -39,7 +34,7 @@ defineEmits<{
       </AGUITag>
     </div>
 
-    <div v-if="character.personality" class="line-clamp-2 text-xs op-50">
+    <div v-if="character.personality" class="text-xs op-50 line-clamp-2">
       {{ character.personality }}
     </div>
   </div>

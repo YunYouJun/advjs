@@ -25,6 +25,8 @@ export function useCharacterVisualReferences(
     previews.value = references.map(reference => ({ ...reference }))
     const result = await Promise.all(references.map(async (reference): Promise<ReferencePreview> => {
       try {
+        if (/^(?:https?:|blob:|data:)/u.test(reference.path))
+          return { ...reference, src: reference.path }
         if (!workspace?.readAsset)
           throw new Error('Open the project to preview its reference images.')
         const blob = await workspace.readAsset(reference.path)

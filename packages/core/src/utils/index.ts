@@ -1,4 +1,5 @@
 export * from './bgm'
+export * from './character-avatar'
 export * from './functions'
 export * from './ns'
 export * from './time'

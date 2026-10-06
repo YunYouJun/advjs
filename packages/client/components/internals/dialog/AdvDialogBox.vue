@@ -16,6 +16,8 @@ const {
   next,
   curCharacter,
   characterAvatar,
+  characterAvatarState,
+  characterDefaultAvatar,
   printed,
   animation,
   transitionFlag,
@@ -35,12 +37,13 @@ const curWords = computed(() => {
   <div
     class="adv-dialog-box cursor-pointer select-none shadow-xl"
     :data-character-id="curCharacter?.id"
+    :data-character-state="curCharacter ? characterAvatarState : undefined"
     @click="next"
   >
     <div class="dialog-name-wrap">
       <template v-if="$adv.config?.value?.showCharacterAvatar && characterAvatar">
         <div class="dialog-avatar-wrap">
-          <img class="dialog-avatar rounded size-40 shadow" object="cover top" :src="characterAvatar" :alt="curCharacter?.name ?? ''">
+          <AdvAvatarImage class="dialog-avatar rounded size-40 shadow" object="cover top" :src="characterAvatar" :fallback-src="characterDefaultAvatar" :alt="curCharacter?.name ?? ''" />
           <span class="dialog-avatar-name">{{ curCharacter?.name }}</span>
         </div>
       </template>

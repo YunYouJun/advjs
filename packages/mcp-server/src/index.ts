@@ -3,7 +3,7 @@ import { createRequire } from 'node:module'
 import { basename, join, relative } from 'node:path'
 import process from 'node:process'
 import { analyzeBranches, analyzeCoverage } from '@advjs/core'
-import { CharacterVisualSchema, parseAst, parseCharacterMd, stringifyCharacterMd } from '@advjs/parser'
+import { CharacterAvatarsSchema, CharacterVisualSchema, parseAst, parseCharacterMd, stringifyCharacterMd } from '@advjs/parser'
 import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import {
@@ -19,6 +19,7 @@ import { z } from 'zod'
 import { registerAdvWorkspaceApp } from './workspace-app'
 
 type AdvCharacterVisual = z.infer<typeof CharacterVisualSchema>
+type AdvCharacterAvatars = z.infer<typeof CharacterAvatarsSchema>
 
 // Re-export for external use
 export { McpServer }
@@ -66,6 +67,8 @@ async function toolResult<T>(operation: () => Promise<T>, serialize: (value: T) 
 export interface CharacterCreateInput {
   id: string
   name: string
+  avatar?: string
+  avatars?: AdvCharacterAvatars
   imagePrompt?: string
   visual?: AdvCharacterVisual
   tags?: string[]
@@ -195,6 +198,8 @@ export function buildCharacterMd(params: CharacterCreateInput): string {
   return stringifyCharacterMd({
     id: params.id,
     name: params.name,
+    avatar: params.avatar,
+    avatars: params.avatars,
     imagePrompt: params.imagePrompt,
     visual: params.visual,
     tags: params.tags,
@@ -631,6 +636,8 @@ export function createAdvMcpServer(options: CreateAdvMcpServerOptions = {}) {
     {
       id: z.string().describe('Character ID (lowercase, no spaces, used as filename)'),
       name: z.string().describe('Character display name'),
+      avatar: z.string().optional().describe('Default dialogue portrait path'),
+      avatars: CharacterAvatarsSchema.optional().describe('Portrait variants keyed by dialogue status, with src and optional label'),
       imagePrompt: z.string().optional().describe('AI image prompt for the character portrait/tachie (English keywords recommended)'),
       visual: CharacterVisualSchema.optional().describe('Visual identity: design version, project-relative reference images, fixed traits and allowed changes'),
       tags: z.array(z.string()).optional().describe('Character tags'),
@@ -661,6 +668,8 @@ export function createAdvMcpServer(options: CreateAdvMcpServerOptions = {}) {
     {
       id: z.string().describe('Character ID to edit'),
       name: z.string().optional().describe('New display name'),
+      avatar: z.string().nullable().optional().describe('Default portrait path; null removes it'),
+      avatars: CharacterAvatarsSchema.nullable().optional().describe('Replace portrait variants; null removes them; omission preserves them'),
       imagePrompt: z.string().optional().describe('New AI image prompt for the character portrait/tachie'),
       visual: CharacterVisualSchema.nullable().optional().describe('Replace the complete visual identity; null removes it; omission preserves it'),
       tags: z.array(z.string()).optional().describe('Replace tags'),
@@ -674,6 +683,8 @@ export function createAdvMcpServer(options: CreateAdvMcpServerOptions = {}) {
     async (params: {
       id: string
       name?: string
+      avatar?: string | null
+      avatars?: AdvCharacterAvatars | null
       imagePrompt?: string
       visual?: AdvCharacterVisual | null
       tags?: string[]
@@ -813,6 +824,8 @@ export function createAdvMcpServer(options: CreateAdvMcpServerOptions = {}) {
       items: z.array(z.object({
         id: z.string(),
         name: z.string(),
+        avatar: z.string().optional(),
+        avatars: CharacterAvatarsSchema.optional(),
         imagePrompt: z.string().optional(),
         visual: CharacterVisualSchema.optional(),
         tags: z.array(z.string()).optional(),

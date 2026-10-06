@@ -153,6 +153,7 @@
       "actor": "演员",
       "aliases": "别名",
       "tachies": "立绘",
+      "avatars": "神态头像",
       "relationships": "关系"
     },
     "confirmDelete": "确定要删除角色「{name}」吗？此操作不可撤销。",

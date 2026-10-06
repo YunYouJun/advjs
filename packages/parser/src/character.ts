@@ -59,6 +59,7 @@ const FRONTMATTER_KEYS: (keyof AdvCharacterFrontmatter)[] = [
   'id',
   'name',
   'avatar',
+  'avatars',
   'imagePrompt',
   'visual',
   'actor',
@@ -108,6 +109,7 @@ export function parseCharacterMd(content: string): AdvCharacter {
     id: fm.id,
     name: fm.name,
     avatar: fm.avatar,
+    avatars: fm.avatars,
     imagePrompt: fm.imagePrompt,
     visual: fm.visual,
     actor: fm.actor,
@@ -351,6 +353,14 @@ export function exportCharacterForAI(character: AdvCharacter): string {
   const visual = exportCharacterVisualForAI(character)
   if (visual)
     lines.push(visual, '')
+
+  const portraits = Object.entries(character.avatars ?? {})
+  if (portraits.length) {
+    lines.push('## 对白神态', '')
+    for (const [status, portrait] of portraits)
+      lines.push(`- **${status}**${portrait.label ? `: ${portrait.label}` : ''}`)
+    lines.push('')
+  }
 
   // Body sections
   for (const { field, heading } of BODY_SECTION_ORDER) {

@@ -76,7 +76,7 @@ export async function createProjectDataModule(
       })),
     })),
     // Only playback fields are shipped; authoring cards and visual references stay private.
-    characters: project.characters.map(({ id, name, aliases, avatar, tachies }) => ({ id, name, aliases, avatar, tachies })),
+    characters: project.characters.map(({ id, name, aliases, avatar, avatars, tachies }) => ({ id, name, aliases, avatar, avatars, tachies })),
     scenes: project.scenes.map(({ id, name, alias, type }) => type === 'model'
       ? { id, name, alias, type: 'model' }
       : { id, name, alias, type: 'image', src: '' }),
@@ -95,6 +95,8 @@ export async function createProjectDataModule(
   for (const [index, character] of gameConfig.characters.entries()) {
     if (character.avatar)
       await bindAsset(character.avatar, `data.gameConfig.characters[${index}].avatar`)
+    for (const [status, avatar] of Object.entries(character.avatars ?? {}))
+      await bindAsset(avatar.src, `data.gameConfig.characters[${index}].avatars[${JSON.stringify(status)}].src`)
     for (const [name, tachie] of Object.entries(character.tachies ?? {}))
       await bindAsset(tachie.src, `data.gameConfig.characters[${index}].tachies[${JSON.stringify(name)}].src`)
   }
