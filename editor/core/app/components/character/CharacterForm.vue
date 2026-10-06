@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import type { AdvCharacter } from '@advjs/types'
 import { Toast } from '@advjs/gui'
+import { useProjectDrafts } from '~/stores/useProjectDrafts'
 
 const props = defineProps<{
   character?: Partial<AdvCharacter>
   mode?: 'create' | 'edit'
+  save?: (data: Partial<AdvCharacter>, expected?: string | null) => Promise<void>
 }>()
 
 const emit = defineEmits<{
@@ -82,23 +84,78 @@ function clearDraft() {
   draftAliasInput.value = ''
 }
 
-function onSubmit() {
+const drafts = useProjectDrafts()
+const characterStore = useCharacterStore()
+const originalForm = ref(JSON.stringify(form))
+const originalTags = ref(tagsInput.value)
+const originalAliases = ref(aliasInput.value)
+const expected = ref<string | null | undefined>(props.character?.id ? characterStore.characterSource(props.character.id) : undefined)
+const saving = ref(false)
+const saveError = ref('')
+const changed = computed(() => JSON.stringify(form) !== originalForm.value || tagsInput.value !== originalTags.value || aliasInput.value !== originalAliases.value)
+watch(changed, dirty => drafts.register(fieldId, { dirty, save: onSubmit }), { immediate: true })
+onBeforeUnmount(() => drafts.remove(fieldId))
+function reloadExternal() {
+  const current = characterStore.characters.find(item => item.id === form.id)
+  if (!current) {
+    saveError.value = '角色已在外部删除；可以取消编辑，或保留草稿重新创建。'
+    return
+  }
+  Object.assign(form, current)
+  tagsInput.value = current.tags?.join(', ') ?? ''
+  aliasInput.value = current.aliases?.join(', ') ?? ''
+  originalForm.value = JSON.stringify(form)
+  originalTags.value = tagsInput.value
+  originalAliases.value = aliasInput.value
+  expected.value = current?.id ? characterStore.characterSource(current.id) : undefined
+  saveError.value = ''
+}
+async function keepDraft() {
+  expected.value = form.id ? characterStore.characterSource(form.id) : undefined
+  await onSubmit()
+}
+async function onSubmit() {
+  if (saving.value)
+    return false
+  saving.value = true
+  saveError.value = ''
   const data = {
     ...form,
     tags: tagsInput.value ? tagsInput.value.split(',').map(t => t.trim()).filter(Boolean) : [],
     aliases: aliasInput.value ? aliasInput.value.split(',').map(a => a.trim()).filter(Boolean) : [],
   }
-  emit('submit', data)
-
-  // Auto-clear draft on successful create
-  if (props.mode === 'create') {
-    clearDraft()
+  try {
+    if (props.save)
+      await props.save(data, expected.value)
+    else emit('submit', data)
+    if (props.mode === 'create')
+      clearDraft()
+    drafts.remove(fieldId)
+    return true
+  }
+  catch (error) {
+    saveError.value = String(error)
+    return false
+  }
+  finally {
+    saving.value = false
   }
 }
 </script>
 
 <template>
   <div class="character-form flex flex-col h-full overflow-y-auto">
+    <div v-if="saveError" class="ae-resource-error p-2" role="alert">
+      {{ saveError }}
+      <div v-if="mode === 'edit'" class="ae-resource-actions">
+        <AGUIButton @click="reloadExternal">
+          载入外部版本
+        </AGUIButton>
+        <AGUIButton @click="keepDraft">
+          保留草稿并覆盖
+        </AGUIButton>
+      </div>
+    </div>
     <!-- Draft notice -->
     <div v-if="hasDraft" class="text-xs text-$agui-c-warning-text px-3 py-2 flex flex-wrap gap-2 items-center justify-between">
       <span>{{ $t('characters.draft.hasDraft') }}</span>

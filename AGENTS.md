@@ -95,6 +95,8 @@ External integrations: Babylon.js 3D (`plugin-babylon`), Three.js (`plugin-three
 
 ### Desktop Editor
 
+- Electron host code lives in `apps/desktop/`; follow [the desktop client guide](docs/guide/editor/desktop.md). Keep native operations in its finite preload API, project writes in `ProjectWorkspace`, and game previews in a separate sandbox without desktop privileges.
+
 - Before changing desktop editor UI in `editor/` or shared editor components in `packages/gui/`, read [the AGUI design specification](docs/agui/design.md). It is the authoritative visual specification for these surfaces.
 - Follow the Blender-inspired compact workspace: neutral surfaces, restrained blue interaction states, small controls, docked panels, and content-first hierarchy. Reuse AGUI components and `--agui-*` tokens; do not create a separate visual system inside a feature panel.
 - Desktop editor chrome must not inherit Studio's mobile card sizes, purple/gold brand surfaces, or decorative gradients. `apps/studio/` retains its own mobile-first design rules; game content and themes retain their art direction.

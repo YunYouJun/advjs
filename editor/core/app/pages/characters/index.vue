@@ -60,7 +60,7 @@ function toggleLocale() {
   locale.value = locale.value === 'en' ? 'zh-CN' : 'en'
 }
 
-const hasSource = computed(() => !!cStore.dirHandle || !!cStore.charactersDir)
+const hasSource = computed(() => cStore.projectBound || !!cStore.dirHandle || !!cStore.charactersDir)
 </script>
 
 <template>
@@ -85,9 +85,9 @@ const hasSource = computed(() => !!cStore.dirHandle || !!cStore.charactersDir)
     </AGUIToolbar>
     <div class="character-workspace">
       <aside>
-        <template v-if="cStore.dirHandle">
+        <template v-if="cStore.projectBound || cStore.dirHandle">
           <div class="ae-resource-row">
-            {{ cStore.dirHandle.name }}
+            {{ cStore.dirHandle?.name ?? '当前项目' }}
           </div>
           <CharacterFileTree :nodes="cStore.fileTree" :selected="selectedTreeNode" @select="onTreeNodeClick" />
         </template>
@@ -115,7 +115,7 @@ const hasSource = computed(() => !!cStore.dirHandle || !!cStore.charactersDir)
       </main>
     </div>
     <AGUIDialog v-model:open="showCreateDialog" :title="$t('characters.newCharacter')" content-class="w-lg max-h-[80vh]">
-      <CharacterForm mode="create" @submit="onCreateCharacter" @cancel="showCreateDialog = false" />
+      <CharacterForm mode="create" :save="onCreateCharacter" @cancel="showCreateDialog = false" />
     </AGUIDialog>
   </div>
 </template>

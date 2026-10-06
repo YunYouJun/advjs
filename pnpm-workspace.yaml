@@ -41,6 +41,8 @@ packages:
 # toolchain versions coherent and pin compatible security fixes for transitive
 # dependencies whose parents have not yet refreshed their ranges.
 overrides:
+  # Forge 7 rebuild uses a git-only node-gyp; pin Electron's published fork.
+  '@electron/rebuild>@electron/node-gyp': 10.2.0-electron.2
   '@trpc/server@>=11 <12': 11.8.0
   axios@<0.33.0: 0.33.0
   brace-expansion@<2: 1.1.18
@@ -142,6 +144,11 @@ catalog:
   yjs: ^13.6.32
   zod: ^4.4.3
 catalogs:
+  desktop:
+    electron: 44.4.5
+    '@electron-forge/cli': 7.11.2
+    '@electron-forge/core': 7.11.2
+    '@electron-forge/maker-zip': 7.11.2
   ai:
     openai: ^7.4.0
   babylon:
@@ -320,6 +327,7 @@ peerDependencyRules:
     vitepress-plugin-mermaid>vitepress: 2.0.0-alpha.19
 
 allowBuilds:
+  electron: true
   '@parcel/watcher': false
   bufferutil: false
   core-js: false

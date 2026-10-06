@@ -15,8 +15,8 @@ export const useFileStore = defineStore('file', () => {
    */
   const openedFileHandle = shallowRef<FileSystemFileHandle>()
   const openedFilePath = ref('')
-  const savedFileContent = ref('')
-  const externalConflict = ref<{ content: string, path: string }>()
+  const savedFileContent = ref<string | null>('')
+  const externalConflict = ref<{ content: string | null, path: string }>()
 
   /**
    * rawConfigFile
@@ -146,17 +146,13 @@ export const useFileStore = defineStore('file', () => {
     if (!fileHandle)
       throw new Error('No local file is open')
     const path = openedFilePath.value || fileHandle.name
-    await useProjectStore().commitProject([{
-      kind: 'raw-text',
-      path,
-      content,
-    }])
+    await useProjectStore().writeProjectFiles([{ path, content, expected: savedFileContent.value }])
     savedFileContent.value = content
     externalConflict.value = undefined
     consoleStore.success('Markdown file saved', { fileName: path })
   }
 
-  async function handleExternalChange(path: string, content: string) {
+  async function handleExternalChange(path: string, content: string | null) {
     if (!openedFileHandle.value || openedFilePath.value !== path)
       return
     if (isDirty.value) {
@@ -164,9 +160,9 @@ export const useFileStore = defineStore('file', () => {
       consoleStore.warn('External file change conflicts with unsaved edits', { fileName: path })
       return
     }
-    monacoStore.fileContent = content
+    monacoStore.fileContent = content ?? ''
     savedFileContent.value = content
-    rawConfigFileContent.value = content
+    rawConfigFileContent.value = content ?? ''
     externalConflict.value = undefined
   }
 
@@ -174,13 +170,15 @@ export const useFileStore = defineStore('file', () => {
     const conflict = externalConflict.value
     if (!conflict)
       return
-    monacoStore.fileContent = conflict.content
+    monacoStore.fileContent = conflict.content ?? ''
     savedFileContent.value = conflict.content
-    rawConfigFileContent.value = conflict.content
+    rawConfigFileContent.value = conflict.content ?? ''
     externalConflict.value = undefined
   }
 
   async function keepLocalChange() {
+    if (externalConflict.value)
+      savedFileContent.value = externalConflict.value.content
     await saveOpenedFile()
   }
 

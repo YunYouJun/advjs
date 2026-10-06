@@ -2,7 +2,7 @@ import type { AdvEntryOptions, ResolvedAdvOptions } from '@advjs/types'
 import type { InlineConfig, ResolvedConfig } from 'vite'
 import { createHash } from 'node:crypto'
 import { existsSync } from 'node:fs'
-import { readdir, readFile, unlink, writeFile } from 'node:fs/promises'
+import { mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises'
 import path, { join, relative, resolve } from 'node:path'
 import { mergeConfig, build as viteBuild } from 'vite'
 import { printInfo } from '../../cli/utils'
@@ -11,6 +11,7 @@ import { loadProject } from '../../project'
 import setupIndexHtml from '../../setups/indexHtml'
 import { AdvCommandError } from '../errors'
 import { resolveViteConfigs } from '../shared'
+import { prepareProjectGame } from './project'
 
 export interface BuildAssetSummary {
   path: string
@@ -124,6 +125,12 @@ export async function advBuild(entryOptions: AdvEntryOptions): Promise<AdvBuildR
       )
     }
 
+    const standardMarkdown = loadedProject.result.project.format === 'adv-md' && Object.keys(loadedProject.files).some(path => path.endsWith('.adv.md'))
+    const prepared = standardMarkdown ? await prepareProjectGame(loadedProject) : undefined
+    if (prepared)
+      options.data.gameConfig = prepared.game
+    if (prepared?.remoteOrigins.length)
+      console.warn(`Project requires network resources from: ${prepared.remoteOrigins.join(', ')}`)
     printInfo(options)
 
     const mergedViteConfig = mergeConfig({
@@ -133,6 +140,13 @@ export async function advBuild(entryOptions: AdvEntryOptions): Promise<AdvBuildR
       },
     }, entryOptions.vite || {})
     const outDir = await build(options, mergedViteConfig)
+    if (prepared) {
+      for (const [path, bytes] of prepared.resources) {
+        const target = resolve(outDir, path)
+        await mkdir(resolve(target, '..'), { recursive: true })
+        await writeFile(target, bytes)
+      }
+    }
     return {
       root: options.userRoot,
       outDir,

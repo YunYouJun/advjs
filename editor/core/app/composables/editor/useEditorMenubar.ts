@@ -21,6 +21,10 @@ export function useEditorMenubar() {
    * open adv project by triggering the explorer's open directory button
    */
   function openAdvProject() {
+    if (window.advDesktop) {
+      void window.advDesktop.openProject()
+      return
+    }
     const advExplorerDom = document.querySelector('#adv-explorer')
     const openDirBtn = advExplorerDom?.querySelector('.agui-open-directory') as HTMLElement
     if (openDirBtn) {

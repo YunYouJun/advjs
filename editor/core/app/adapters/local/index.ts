@@ -1,4 +1,5 @@
 import type { AdvAgentIntegrationStatus, AdvGameConfig, AdvProjectCompileResult, AdvProjectFileMap } from '@advjs/types'
+import type { ProjectFileChange } from '../../workspaces/project'
 import type { BrowserProjectDirectory, BrowserProjectFile } from '../browser/project'
 import { createAdvAssetCatalog } from '@advjs/assets'
 
@@ -68,6 +69,7 @@ function joinPath(parent: string, name: string) {
 export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
   const fetcher = options.fetch ?? globalThis.fetch.bind(globalThis)
   const assetBlobUrls = new Set<string>()
+  const previewBlobUrls = new Set<string>()
 
   async function request(path: string, init: RequestInit = {}) {
     const response = await fetcher(`${options.origin}${API_PREFIX}${path}`, {
@@ -96,10 +98,15 @@ export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
     return await (await request(`file?path=${encodeURIComponent(path)}`)).text()
   }
 
-  async function readAssetBlobUrl(path: string) {
-    const blob = await (await request(`asset?path=${encodeURIComponent(path)}`)).blob()
+  async function readAsset(path: string) {
+    return await (await request(`asset?path=${encodeURIComponent(path)}`)).blob()
+  }
+
+  async function readAssetBlobUrl(path: string, preview = false) {
+    const blob = await readAsset(path)
     const url = URL.createObjectURL(blob)
-    assetBlobUrls.add(url)
+    ;
+    (preview ? previewBlobUrls : assetBlobUrls).add(url)
     return url
   }
 
@@ -107,9 +114,9 @@ export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
     compilation: AdvProjectCompileResult,
     previewConfig: AdvGameConfig,
   ): Promise<AdvGameConfig> {
-    for (const url of assetBlobUrls)
+    for (const url of previewBlobUrls)
       URL.revokeObjectURL(url)
-    assetBlobUrls.clear()
+    previewBlobUrls.clear()
     const manifest = compilation.project.assets
     if (!manifest)
       return previewConfig
@@ -118,7 +125,7 @@ export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
       adapter: {
         async resolve(asset) {
           if (asset.provider === 'project')
-            return await readAssetBlobUrl(asset.location)
+            return await readAssetBlobUrl(asset.location, true)
           if (/^(?:https?:|blob:|data:)/u.test(asset.location))
             return asset.location
           if (!asset.baseUrl)
@@ -145,6 +152,25 @@ export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
       body: content,
       method: 'PUT',
     })).json()
+  }
+
+  async function writeFiles(changes: ProjectFileChange[]) {
+    await request('changes', { method: 'POST', body: JSON.stringify(changes), headers: { 'content-type': 'application/json' } })
+  }
+
+  async function importAsset(path: string, file: Blob) {
+    await request(`asset?path=${encodeURIComponent(path)}`, { method: 'PUT', body: file })
+  }
+  async function removeImportedAsset(path: string, file: Blob) {
+    const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', await file.arrayBuffer()))].map(byte => byte.toString(16).padStart(2, '0')).join('')
+    await request(`asset?path=${encodeURIComponent(path)}`, { method: 'DELETE', headers: { 'if-match': hash } })
+  }
+
+  function dispose() {
+    for (const url of previewBlobUrls) URL.revokeObjectURL(url)
+    previewBlobUrls.clear()
+    for (const url of assetBlobUrls) URL.revokeObjectURL(url)
+    assetBlobUrls.clear()
   }
 
   function createDirectoryHandle(files: AdvProjectFileMap, name: string): LocalDirectoryHandle {
@@ -260,6 +286,12 @@ export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
 
   return {
     createDirectoryHandle,
+    dispose,
+    importAsset,
+    removeImportedAsset,
+    readAssetBlobUrl,
+    readAsset,
+    writeFiles,
     loadCodexStatus,
     loadProject,
     origin: options.origin,

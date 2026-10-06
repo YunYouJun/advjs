@@ -2,6 +2,8 @@ import type { AdvCharacter, JsonValue } from '@advjs/types'
 import { applyProjectPatches } from '@advjs/core'
 import { parseCharacterMd, stringifyCharacterMd } from '@advjs/parser'
 import { acceptHMRUpdate, defineStore } from 'pinia'
+import { updateCharacterSource } from '../utils/character-source'
+import { useProjectDrafts } from './useProjectDrafts'
 
 export interface CharacterFileEntry {
   character: AdvCharacter
@@ -29,6 +31,9 @@ export const useCharacterStore = defineStore('editor:character', () => {
    * 加载状态
    */
   const loading = ref(false)
+  const projectStore = useProjectStore()
+  const sourceById = new Map<string, { path: string, content: string }>()
+  const projectBound = computed(() => !!projectStore.workspace)
 
   /**
    * 搜索关键词
@@ -54,6 +59,40 @@ export const useCharacterStore = defineStore('editor:character', () => {
    * 文件树结构（用于侧边栏显示）
    */
   const fileTree = ref<FileTreeNode[]>([])
+  watch(() => projectStore.project, (project) => {
+    if (!project)
+      return
+    const entries = new Map<string, CharacterFileEntry>()
+    const next = [] as AdvCharacter[]
+    const previous = selectedCharacter.value ? sourceById.get(selectedCharacter.value.id) : undefined
+    sourceById.clear()
+    for (const [path, content] of Object.entries(project.files)) {
+      if (!path.endsWith('.character.md'))
+        continue
+      try {
+        const character = parseCharacterMd(content)
+        next.push(character)
+        sourceById.set(character.id, { path, content })
+        entries.set(character.id, { character, relativePath: path, fileHandle: undefined as unknown as FileSystemFileHandle })
+      }
+      catch (error) {
+        console.warn(path, error)
+      }
+    }
+    for (const character of project.compilation.project.characters) {
+      if (!next.some(item => item.id === character.id))
+        next.push(character)
+    }
+    characters.value = next
+    fileEntries.value = entries
+    fileTree.value = [...entries.values()].map(entry => ({ kind: 'file', name: entry.relativePath.split('/').at(-1)!, path: entry.relativePath, characterId: entry.character.id }))
+    if (selectedCharacter.value) {
+      const found = next.find(item => item.id === selectedCharacter.value?.id)
+      if (!found && previous && useProjectDrafts().dirty)
+        sourceById.set(selectedCharacter.value.id, previous)
+      selectedCharacter.value = found ?? (useProjectDrafts().dirty ? selectedCharacter.value : undefined)
+    }
+  }, { immediate: true })
 
   /**
    * 过滤后的角色列表
@@ -87,8 +126,12 @@ export const useCharacterStore = defineStore('editor:character', () => {
    * 从本地 .character.md 文件读取角色列表（服务端 API）
    */
   async function fetchCharacters() {
-    if (!charactersDir.value)
+    if (projectBound.value) {
+      await projectStore.refreshProject()
       return
+    }
+    if (!charactersDir.value)
+      throw new Error('请先打开可写项目或角色目录')
 
     loading.value = true
     try {
@@ -110,7 +153,16 @@ export const useCharacterStore = defineStore('editor:character', () => {
    */
   async function createCharacter(data: Partial<AdvCharacter>) {
     if (!data.id || !data.name)
+      throw new Error('Character ID and name are required')
+    if (projectBound.value) {
+      if (!/^[a-z0-9][\w-]*$/iu.test(data.id))
+        throw new Error('Use letters, digits, hyphens or underscores for the character ID')
+      if (characters.value.some(item => item.id === data.id))
+        throw new Error('Character ID already exists')
+      const root = JSON.parse(projectStore.project?.files['adv.config.json'] ?? '{}').root ?? './adv'
+      await projectStore.writeProjectFiles([{ path: `${root.replace(/^\.\//u, '')}/characters/${data.id}.character.md`, expected: null, content: stringifyCharacterMd(data as AdvCharacter) }])
       return
+    }
 
     // If we have a dirHandle, use browser API
     if (dirHandle.value) {
@@ -119,7 +171,7 @@ export const useCharacterStore = defineStore('editor:character', () => {
     }
 
     if (!charactersDir.value)
-      return
+      throw new Error('请先打开可写项目或角色目录')
 
     loading.value = true
     try {
@@ -132,9 +184,6 @@ export const useCharacterStore = defineStore('editor:character', () => {
       })
       await fetchCharacters()
     }
-    catch (e) {
-      console.error('Failed to create character:', e)
-    }
     finally {
       loading.value = false
     }
@@ -143,7 +192,15 @@ export const useCharacterStore = defineStore('editor:character', () => {
   /**
    * 更新角色（写回 .character.md 文件）
    */
-  async function updateCharacter(character: AdvCharacter) {
+  async function updateCharacter(character: AdvCharacter, expected?: string | null) {
+    if (projectBound.value) {
+      const source = sourceById.get(character.id)
+      if (!source)
+        throw new Error('Character source no longer exists; reopen the current project')
+      const original = expected ?? source.content
+      await projectStore.writeProjectFiles([{ path: source.path, expected: expected === null ? null : original, content: updateCharacterSource(source.path, original, character) }])
+      return
+    }
     if (!character.id)
       return
 
@@ -155,7 +212,7 @@ export const useCharacterStore = defineStore('editor:character', () => {
     }
 
     if (!charactersDir.value)
-      return
+      throw new Error('请先打开可写项目或角色目录')
 
     loading.value = true
     try {
@@ -168,9 +225,6 @@ export const useCharacterStore = defineStore('editor:character', () => {
       })
       await fetchCharacters()
     }
-    catch (e) {
-      console.error('Failed to update character:', e)
-    }
     finally {
       loading.value = false
     }
@@ -180,6 +234,13 @@ export const useCharacterStore = defineStore('editor:character', () => {
    * 删除角色（删除 .character.md 文件）
    */
   async function deleteCharacter(character: AdvCharacter) {
+    if (projectBound.value) {
+      const source = sourceById.get(character.id)
+      if (!source)
+        throw new Error('Character source no longer exists')
+      await projectStore.writeProjectFiles([{ path: source.path, expected: source.content, content: null }])
+      return
+    }
     if (!charactersDir.value || !character.id)
       return
 
@@ -196,9 +257,6 @@ export const useCharacterStore = defineStore('editor:character', () => {
       if (selectedCharacter.value?.id === character.id)
         selectedCharacter.value = undefined
     }
-    catch (e) {
-      console.error('Failed to delete character:', e)
-    }
     finally {
       loading.value = false
     }
@@ -208,6 +266,8 @@ export const useCharacterStore = defineStore('editor:character', () => {
    * 导出角色为 AI 友好格式
    */
   async function exportForAI(id: string): Promise<string | null> {
+    if (projectBound.value)
+      return sourceById.get(id)?.content ?? null
     if (!charactersDir.value || !id)
       return null
 
@@ -234,6 +294,10 @@ export const useCharacterStore = defineStore('editor:character', () => {
    * 打开本地目录（浏览器 File System Access API）
    */
   async function openDirectory() {
+    if (window.advDesktop) {
+      await window.advDesktop.openProject()
+      return
+    }
     try {
       dirHandle.value = await window.showDirectoryPicker()
       await fetchCharactersFromHandle()
@@ -377,9 +441,6 @@ export const useCharacterStore = defineStore('editor:character', () => {
       // Refresh
       await fetchCharactersFromHandle()
     }
-    catch (e) {
-      console.error('Failed to create character file:', e)
-    }
     finally {
       loading.value = false
     }
@@ -430,15 +491,17 @@ export const useCharacterStore = defineStore('editor:character', () => {
         entry.character = character
       }
     }
-    catch (e) {
-      console.error('Failed to update character file:', e)
-    }
     finally {
       loading.value = false
     }
   }
 
   return {
+    projectBound,
+    characterSource: (id: string) => {
+      const source = sourceById.get(id)
+      return source ? projectStore.project?.files[source.path] ?? null : undefined
+    },
     selectedCharacter,
     selectedCharacterHandle,
     characters,

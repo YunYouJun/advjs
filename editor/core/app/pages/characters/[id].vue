@@ -17,8 +17,16 @@ const isEditing = ref(false)
 const character = computed(() => {
   return cStore.characters.find(
     c => c.id === characterId.value,
-  )
+  ) ?? (isEditing.value && cStore.selectedCharacter?.id === characterId.value ? cStore.selectedCharacter : undefined)
 })
+const editable = computed(() => !cStore.projectBound || (character.value && cStore.characterSource(character.value.id) !== undefined))
+const mutationError = ref('')
+async function saveTachies(tachies: AdvCharacter['tachies']) {
+  await onSave({ tachies })
+}
+async function saveRelationships(relationships: AdvCharacter['relationships']) {
+  await onSave({ relationships })
+}
 
 onMounted(async () => {
   if (!cStore.characters.length && cStore.charactersDir) {
@@ -31,14 +39,14 @@ function onEdit(c: AdvCharacter) {
   isEditing.value = true
 }
 
-async function onSave(data: Partial<AdvCharacter>) {
+async function onSave(data: Partial<AdvCharacter>, expected?: string | null) {
   if (!character.value)
     return
 
   await cStore.updateCharacter({
     ...character.value,
     ...data,
-  } as AdvCharacter)
+  } as AdvCharacter, expected)
   isEditing.value = false
   Toast({ title: 'Character saved', type: 'success' })
 }
@@ -47,7 +55,13 @@ async function onDelete(c: AdvCharacter) {
   // eslint-disable-next-line no-alert
   if (!window.confirm(t('characters.confirmDelete', { name: c.name })))
     return
-  await cStore.deleteCharacter(c)
+  try {
+    await cStore.deleteCharacter(c)
+  }
+  catch (failure) {
+    mutationError.value = String(failure)
+    return
+  }
   Toast({ title: 'Character deleted', type: 'success' })
   router.push('/characters')
 }
@@ -98,12 +112,18 @@ async function onCopyForAI() {
     </div>
 
     <div v-else class="flex-1 overflow-auto">
+      <p v-if="mutationError" role="alert" class="ae-resource-error">
+        {{ mutationError }}
+      </p>
+      <p v-if="!editable" class="ae-resource-caption p-2">
+        此角色来自内联配置，请在源配置中编辑。
+      </p>
       <!-- Edit Mode -->
       <CharacterForm
         v-if="isEditing"
         :character="character"
         mode="edit"
-        @submit="onSave"
+        :save="onSave"
         @cancel="isEditing = false"
       />
 
@@ -111,14 +131,15 @@ async function onCopyForAI() {
       <CharacterDetail
         v-else
         :character="character"
+        :actions="Boolean(editable)"
         @edit="onEdit"
         @delete="onDelete"
       />
 
       <!-- Tachie & Relationship Editors (below detail) -->
-      <div v-if="!isEditing" class="border-t border-$agui-c-divider">
-        <TachieManager :character="character" @update="(t) => onSave({ tachies: t })" />
-        <RelationshipEditor :key="character.id" :relationships="character.relationships" @update="(r) => onSave({ relationships: r })" />
+      <div v-if="!isEditing && editable" class="border-t border-$agui-c-divider">
+        <TachieManager :character="character" :save="saveTachies" />
+        <RelationshipEditor :key="character.id" :relationships="character.relationships" :save="saveRelationships" />
       </div>
     </div>
   </div>

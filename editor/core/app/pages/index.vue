@@ -33,7 +33,7 @@ function onSplashComplete() {
 </script>
 
 <template>
-  <main class="h-screen w-screen flex flex-col">
+  <main class="flex flex-col h-screen w-screen">
     <AEEditorSplash :show="showSplash" @complete="onSplashComplete" />
 
     <EditorMenubar />
@@ -67,6 +67,7 @@ function onSplashComplete() {
   --agui-menu-bar-height: 26px;
   --agui-toolbar-height: 28px;
 
-  height: calc(100% - var(--agui-menu-bar-height) - var(--agui-toolbar-height));
+  flex: 1;
+  min-height: 0;
 }
 </style>

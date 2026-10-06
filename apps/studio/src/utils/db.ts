@@ -108,6 +108,8 @@ export interface DbMemfsNode {
   key: string
   type: 'file' | 'directory'
   content: string
+  /** IndexedDB structured cloning preserves binary bytes and MIME type. */
+  blob?: Blob
   mtime: number
   size: number
 }

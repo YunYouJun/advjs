@@ -8,12 +8,14 @@ import {
   readFile,
   realpath,
   rename,
+  rm,
   stat,
   writeFile,
 } from 'node:fs/promises'
 import { createServer } from 'node:http'
 import { createRequire } from 'node:module'
 import { dirname, extname, isAbsolute, relative, resolve, sep } from 'pathe'
+import { applyEditorFileChanges, atomicProjectWrite, EditorMutationError, projectWriteTarget } from './mutations'
 
 export type EditorBridgeCommand = 'build' | 'check'
 
@@ -24,6 +26,7 @@ export interface EditorBridgeOptions {
   publicRoot?: string
   runCommand?: (command: EditorBridgeCommand) => Promise<unknown>
   getAgentStatus?: () => Promise<AdvAgentIntegrationStatus>
+  validateProjectAccess?: () => Promise<void>
 }
 
 export interface EditorBridgeReadyEvent {
@@ -67,6 +70,13 @@ const SECURITY_HEADERS = {
   'x-frame-options': 'DENY',
 } as const
 const MIME_TYPES: Record<string, string> = {
+  '.wav': 'audio/wav',
+  '.mp3': 'audio/mpeg',
+  '.ogg': 'audio/ogg',
+  '.m4a': 'audio/mp4',
+  '.flac': 'audio/flac',
+  '.opus': 'audio/ogg',
+  '.gif': 'image/gif',
   '.css': 'text/css; charset=utf-8',
   '.html': 'text/html; charset=utf-8',
   '.ico': 'image/x-icon',
@@ -153,17 +163,17 @@ function writeJson(response: ServerResponse, statusCode: number, value: unknown)
   response.end(body)
 }
 
-async function readRequestBody(request: import('node:http').IncomingMessage) {
+async function readRequestBytes(request: import('node:http').IncomingMessage, limit = MAX_WRITE_BYTES) {
   const chunks: Buffer[] = []
   let size = 0
   for await (const chunk of request) {
     const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
     size += buffer.byteLength
-    if (size > MAX_WRITE_BYTES)
+    if (size > limit)
       throw new EditorHttpError(413, 'Editor file write exceeds the size limit')
     chunks.push(buffer)
   }
-  return Buffer.concat(chunks).toString('utf8')
+  return Buffer.concat(chunks)
 }
 
 function tokenMatches(actual: string | undefined, expected: string) {
@@ -253,9 +263,16 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
   let server: Server | undefined
   let watcher: FSWatcher | undefined
   let editorOrigin = ''
+  let mutations: Promise<unknown> = Promise.resolve()
+  function mutate<T>(operation: () => Promise<T>) {
+    const result = mutations.then(operation)
+    mutations = result.catch(() => {})
+    return result
+  }
   const eventResponses = new Set<ServerResponse>()
 
   async function runCommand(command: EditorBridgeCommand) {
+    await options.validateProjectAccess?.()
     return options.runCommand
       ? await options.runCommand(command)
       : await defaultRunCommand(command, projectRoot)
@@ -274,6 +291,42 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
       throw new EditorHttpError(401, 'Editor session token is required')
 
     const apiPath = decodeURIComponent(url.pathname.slice(API_PREFIX.length))
+    if (apiPath === 'asset' && request.method === 'DELETE') {
+      const { target } = await resolveSafeProjectFile(projectRoot, url.searchParams.get('path') ?? '')
+      if (!/^(?:image|audio)\//u.test(MIME_TYPES[extname(target).toLowerCase()] ?? ''))
+        throw new EditorHttpError(415, 'Cleanup requires an image or audio file')
+      await mutate(async () => {
+        const original = await readFile(target)
+        if (request.headers['if-match'] !== createHash('sha256').update(original).digest('hex'))
+          throw new EditorHttpError(409, 'Asset changed externally; cleanup refused')
+        await rm(target)
+      })
+      writeJson(response, 200, { removed: true })
+      return
+    }
+    if (apiPath === 'changes' && request.method === 'POST') {
+      const changes = JSON.parse((await readRequestBytes(request)).toString('utf8'))
+      writeJson(response, 200, await mutate(() => applyEditorFileChanges(projectRoot, changes)))
+      return
+    }
+    if (apiPath === 'asset' && request.method === 'PUT') {
+      const path = url.searchParams.get('path') ?? ''
+      const contentType = MIME_TYPES[extname(path).toLowerCase()]
+      if (!contentType || !/^(?:image|audio)\//u.test(contentType))
+        throw new EditorHttpError(415, 'Import requires a supported image or audio file')
+      const body = await readRequestBytes(request, 128 * 1024 * 1024)
+      const result = await mutate(async () => {
+        const target = await projectWriteTarget(projectRoot, path)
+        const existing = await readFile(target).catch(error => error.code === 'ENOENT' ? undefined : Promise.reject(error))
+        const expected = request.headers['if-match']
+        if (existing && expected !== createHash('sha256').update(existing).digest('hex'))
+          throw new EditorHttpError(409, 'Asset already exists or changed externally; choose a new name or reload')
+        await atomicProjectWrite(target, body)
+        return { path, bytes: body.byteLength, sha256: createHash('sha256').update(body).digest('hex'), mimeType: contentType }
+      })
+      writeJson(response, 200, result)
+      return
+    }
     if (apiPath === 'file' && request.method === 'GET') {
       const { normalized, target } = await resolveSafeProjectFile(projectRoot, url.searchParams.get('path') ?? '')
       const body = await readFile(target)
@@ -291,13 +344,14 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
       const { normalized, target } = await resolveSafeProjectFile(projectRoot, url.searchParams.get('path') ?? '')
       const body = await readFile(target)
       const contentType = MIME_TYPES[extname(target)]
-      if (!contentType?.startsWith('image/'))
+      if (!contentType || !/^(?:image|audio)\//u.test(contentType))
         throw new EditorHttpError(415, `Editor preview does not support this asset type: ${normalized}`)
       response.writeHead(200, {
         ...SECURITY_HEADERS,
         'cache-control': 'no-store',
         'content-length': body.byteLength,
         'content-type': contentType,
+        'x-advjs-sha256': createHash('sha256').update(body).digest('hex'),
         'x-advjs-project-path': encodeURIComponent(normalized),
       })
       response.end(body)
@@ -305,7 +359,7 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
     }
     if (apiPath === 'file' && request.method === 'PUT') {
       const { normalized, target } = await resolveSafeProjectFile(projectRoot, url.searchParams.get('path') ?? '', true)
-      const body = await readRequestBody(request)
+      const body = (await readRequestBytes(request)).toString('utf8')
       const temporaryFile = resolve(dirname(target), `.advjs-write-${randomUUID()}`)
       await writeFile(temporaryFile, body, { encoding: 'utf8', flag: 'wx' })
       await rename(temporaryFile, target)
@@ -317,6 +371,7 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
       return
     }
     if (apiPath === 'project' && request.method === 'GET') {
+      await options.validateProjectAccess?.()
       const { loadProject } = await import('../project')
       const project = await loadProject({ root: projectRoot })
       writeJson(response, 200, {
@@ -396,7 +451,7 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
             await serveStatic(request, response, url)
         }
         catch (error) {
-          const statusCode = error instanceof EditorHttpError ? error.statusCode : 500
+          const statusCode = error instanceof EditorHttpError || error instanceof EditorMutationError ? error.statusCode : 500
           writeJson(response, statusCode, {
             error: error instanceof Error ? error.message : String(error),
           })

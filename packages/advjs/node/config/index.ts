@@ -2,6 +2,7 @@ import type { AdvConfig, AdvEntryOptions, AdvGameConfig, ThemeConfig } from '@ad
 import { loadConfig } from 'c12'
 import defu from 'defu'
 import { defaultAdvConfig, defaultGameConfig } from '../../shared'
+import { bundledConfigAliases } from './aliases'
 import { loadAdvGameConfig } from './game'
 import { loadAdvThemeConfig } from './theme'
 
@@ -53,6 +54,8 @@ export async function loadAdvConfig(options: AdvEntryOptions) {
 
   const { config, configFile } = await loadConfig<AdvConfig>({
     name: 'adv',
+    cwd: options.userRoot,
+    jitiOptions: { alias: bundledConfigAliases() },
     defaultConfig: defaultAdvConfig,
   })
   return {

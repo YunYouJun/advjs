@@ -3,6 +3,12 @@ import type { BrowserProjectDirectory, EditorProjectModel } from '../adapters/br
 
 export type ProjectWorkspaceKind = 'browser' | 'local'
 
+export interface ProjectFileChange {
+  path: string
+  expected: string | null
+  content: string | null
+}
+
 export interface ProjectWorkspaceChange {
   event: string
   path: string
@@ -31,5 +37,11 @@ export interface ProjectWorkspace {
   readonly kind: ProjectWorkspaceKind
   commit: (patches: readonly ProjectSourcePatch[]) => Promise<ProjectWorkspaceSnapshot>
   snapshot: () => Promise<ProjectWorkspaceSnapshot>
+  writeFiles?: (changes: ProjectFileChange[]) => Promise<ProjectWorkspaceSnapshot>
+  importAsset?: (path: string, file: Blob) => Promise<void>
+  removeImportedAsset?: (path: string, file: Blob) => Promise<void>
+  readAsset?: (path: string) => Promise<Blob>
+  assetUrl?: (path: string) => Promise<string>
+  dispose?: () => void
   subscribe?: (listener: (change: ProjectWorkspaceChange) => void) => ProjectWorkspaceSubscription
 }

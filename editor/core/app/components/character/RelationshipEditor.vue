@@ -1,30 +1,60 @@
 <script setup lang="ts">
 import type { AdvCharacterRelationship } from '@advjs/types'
-import { computed, reactive, useId } from 'vue'
+import { computed, onBeforeUnmount, reactive, ref, useId, watch } from 'vue'
+import { useProjectDrafts } from '../../stores/useProjectDrafts'
 import '../../styles/resource-panel.scss'
 
-const props = defineProps<{ relationships?: AdvCharacterRelationship[] }>()
+const props = defineProps<{ relationships?: AdvCharacterRelationship[], save?: (relationships: AdvCharacterRelationship[]) => Promise<void> }>()
 const emit = defineEmits<{ update: [relationships: AdvCharacterRelationship[]] }>()
 const fieldId = useId()
 const newRel = reactive({ targetId: '', type: '', description: '' })
 const canAdd = computed(() => !!newRel.targetId.trim() && !!newRel.type.trim())
-function addRelationship() {
-  if (!canAdd.value)
-    return
-  emit('update', [...(props.relationships ?? []), {
+const error = ref('')
+const drafts = useProjectDrafts()
+watch(() => Object.values(newRel).some(Boolean), dirty => drafts.register(fieldId, { dirty, save: addRelationship }), { immediate: true })
+onBeforeUnmount(() => drafts.remove(fieldId))
+async function addRelationship() {
+  if (!canAdd.value) {
+    error.value = '请填写目标角色与关系类型'
+    return false
+  }
+  const next = [...(props.relationships ?? []), {
     targetId: newRel.targetId.trim(),
     type: newRel.type.trim(),
     description: newRel.description.trim(),
-  }])
-  Object.assign(newRel, { targetId: '', type: '', description: '' })
+  }]
+  try {
+    if (props.save)
+      await props.save(next)
+    else emit('update', next)
+    Object.assign(newRel, { targetId: '', type: '', description: '' })
+    error.value = ''
+    return true
+  }
+  catch (failure) {
+    error.value = String(failure)
+    return false
+  }
 }
-function removeRelationship(index: number) {
-  emit('update', (props.relationships ?? []).filter((_, i) => i !== index))
+async function removeRelationship(index: number) {
+  try {
+    const next = (props.relationships ?? []).filter((_, i) => i !== index)
+    if (props.save)
+      await props.save(next)
+    else emit('update', next)
+    error.value = ''
+  }
+  catch (failure) {
+    error.value = String(failure)
+  }
 }
 </script>
 
 <template>
   <AGUIDetails class="ae-resource-panel" :title="$t('characters.detail.relationships')" open>
+    <p v-if="error" role="alert" class="ae-resource-error">
+      {{ error }}
+    </p>
     <ul v-if="relationships?.length" class="ae-resource-list">
       <li v-for="(rel, idx) in relationships" :key="idx" class="ae-resource-row">
         <div class="ae-resource-meta">

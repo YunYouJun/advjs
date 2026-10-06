@@ -5,6 +5,7 @@ import { applyProjectPatches } from '@advjs/core'
 import { createEditorProjectModel } from '../browser/project'
 
 export function createLocalProjectWorkspace(adapter: LocalBridgeAdapter): ProjectWorkspace {
+  let last: ProjectWorkspaceSnapshot | undefined
   async function snapshot(): Promise<ProjectWorkspaceSnapshot> {
     const loaded = await adapter.loadProject()
     const name = loaded.root.split(/[\\/]/u).filter(Boolean).at(-1) ?? 'project'
@@ -13,18 +14,19 @@ export function createLocalProjectWorkspace(adapter: LocalBridgeAdapter): Projec
       project.compilation,
       project.previewConfig,
     )
-    return {
+    last = {
       kind: 'local',
       name,
       project,
       root: adapter.createDirectoryHandle(loaded.files, name),
     }
+    return last
   }
 
   async function commit(patches: readonly ProjectSourcePatch[]) {
-    const current = await snapshot()
+    const current = last ?? await snapshot()
     const result = applyProjectPatches(current.project.files, patches)
-    await Promise.all(result.changedPaths.map(path => adapter.writeFile(path, result.files[path])))
+    await adapter.writeFiles(result.changedPaths.map(path => ({ path, content: result.files[path], expected: current.project.files[path] ?? null })))
     return await snapshot()
   }
 
@@ -32,6 +34,15 @@ export function createLocalProjectWorkspace(adapter: LocalBridgeAdapter): Projec
     kind: 'local',
     commit,
     snapshot,
+    writeFiles: async (changes) => {
+      await adapter.writeFiles(changes)
+      return await snapshot()
+    },
+    importAsset: adapter.importAsset,
+    removeImportedAsset: adapter.removeImportedAsset,
+    assetUrl: adapter.readAssetBlobUrl,
+    readAsset: adapter.readAsset,
+    dispose: adapter.dispose,
     subscribe: listener => adapter.watch(listener),
   }
 }

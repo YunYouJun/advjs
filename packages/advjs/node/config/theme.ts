@@ -1,6 +1,7 @@
 import type { AdvEntryOptions, ThemeConfig } from '@advjs/types'
 import process from 'node:process'
 import { loadConfig } from 'c12'
+import { bundledConfigAliases } from './aliases'
 
 /**
  * resolve theme config from special root
@@ -8,6 +9,7 @@ import { loadConfig } from 'c12'
 export async function resolveThemeConfigFromRoot(root: string) {
   return loadConfig<ThemeConfig>({
     cwd: root,
+    jitiOptions: { alias: bundledConfigAliases() },
     configFile: 'theme.config',
     // defaultConfig:
   })

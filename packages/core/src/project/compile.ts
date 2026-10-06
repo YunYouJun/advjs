@@ -574,13 +574,18 @@ function loadAssetManifest(
   }
 }
 
-function resourceCatalog(manifest: AdvAssetManifest | undefined): MarkdownResourceCatalog | undefined {
+function resourceCatalog(
+  manifest: AdvAssetManifest | undefined,
+  games: JsonObject[],
+  characters: AdvCharacter[],
+  scenes: AdvProjectScene[],
+): MarkdownResourceCatalog | undefined {
   if (!manifest)
     return undefined
   const backgrounds: string[] = []
   const bgms: string[] = []
   const cgs: string[] = []
-  const tachies: Record<string, string[]> = {}
+  const tachies = Object.create(null) as Record<string, string[]>
   for (const asset of manifest.assets) {
     if (asset.kind === 'background') {
       backgrounds.push(asset.id)
@@ -595,6 +600,54 @@ function resourceCatalog(manifest: AdvAssetManifest | undefined): MarkdownResour
       const statuses = tachies[asset.characterId] ?? []
       statuses.push(asset.state ?? asset.expression ?? asset.id)
       tachies[asset.characterId] = statuses
+    }
+  }
+  // Hosts also address resources by the configured scene, gallery, music and
+  // character aliases. These are explicit declarations, not fuzzy ID matches.
+  for (const scene of scenes)
+    backgrounds.push(scene.id, ...scene.name ? [scene.name] : [])
+  const configuredCharacters: unknown[] = [...characters]
+  for (const game of games) {
+    if (Array.isArray(game.scenes)) {
+      for (const scene of game.scenes) {
+        if (!isRecord(scene))
+          continue
+        for (const name of [scene.id, scene.name]) {
+          if (typeof name === 'string')
+            backgrounds.push(name)
+        }
+      }
+    }
+    if (Array.isArray(game.characters))
+      configuredCharacters.push(...game.characters)
+    if (isRecord(game.gallery) && Array.isArray(game.gallery.items)) {
+      for (const item of game.gallery.items) {
+        if (!isRecord(item))
+          continue
+        if (typeof item.id === 'string')
+          cgs.push(item.id)
+      }
+    }
+    if (isRecord(game.bgm)) {
+      if (isRecord(game.bgm.library))
+        bgms.push(...Object.keys(game.bgm.library))
+      if (Array.isArray(game.bgm.collection)) {
+        for (const music of game.bgm.collection) {
+          if (!isRecord(music))
+            continue
+          if (typeof music.name === 'string')
+            bgms.push(music.name)
+        }
+      }
+    }
+  }
+  for (const character of configuredCharacters.filter(isRecord)) {
+    if (!isRecord(character.tachies))
+      continue
+    const statuses = Object.keys(character.tachies)
+    for (const name of [character.id, character.name, ...Array.isArray(character.aliases) ? character.aliases : []]) {
+      if (typeof name === 'string')
+        tachies[name] = [...new Set([...tachies[name] ?? [], ...statuses])]
     }
   }
   return { backgrounds, bgms, cgs, tachies }
@@ -730,7 +783,7 @@ export async function compileProject(
         sourcePath: chapter.sources.join(', '),
       })),
       requiredPlugins: required,
-      resources: resourceCatalog(assets),
+      resources: resourceCatalog(assets, [gameConfig], characterResult.characters, sceneResult.scenes),
     })
     program = compiled.program
     diagnostics.push(...compiled.diagnostics.map((diagnostic): AdvProjectDiagnostic => ({

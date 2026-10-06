@@ -88,7 +88,12 @@
     "test:launch:journey": "vitest run tests/launch/launch-journey.test.ts tests/launch/docs-journey.test.ts tests/launch/cloudflare-deploy.test.ts --no-file-parallelism --reporter=default",
     "test:unit": "vitest",
     "verify:managed-ai": "node scripts/verify-managed-ai-release.mjs",
-    "prepare": "husky"
+    "prepare": "husky",
+    "desktop:dev": "pnpm -C apps/desktop dev",
+    "desktop:build": "pnpm -C apps/desktop build",
+    "desktop:package": "pnpm -C apps/desktop package",
+    "desktop:make": "pnpm -C apps/desktop make",
+    "desktop:test": "pnpm -C apps/desktop test"
   },
   "devDependencies": {
     "@advjs/assets": "workspace:*",

@@ -4,6 +4,8 @@ import { consola } from 'consola'
 import { Application, Assets } from 'pixi.js'
 import { SceneSystem } from './system/scene'
 import { TachieSystem } from './system/tachie'
+// Pixi's interpreter polyfills keep WebGL compatible with strict script CSP.
+import 'pixi.js/unsafe-eval'
 
 const gameBundleName = '@advjs/game/bundle'
 

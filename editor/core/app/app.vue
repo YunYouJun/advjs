@@ -3,6 +3,7 @@ import { configureAudioAssets } from '@advjs/client'
 import { initAdvContext, initAdvData } from '@advjs/client/compiler'
 import { advConfigSymbol, gameConfigSymbol, themeConfigSymbol } from '@advjs/core'
 import { mountCssVarsRootStyle } from '@advjs/gui/client'
+import { useDesktopHost } from '~/composables/useDesktopHost'
 import { appName } from '~/constants'
 import { injectionAdvContext } from '../../../packages/client/constants'
 
@@ -37,6 +38,7 @@ nuxtApp.vueApp.provide(gameConfigSymbol, advContext.gameConfig)
 nuxtApp.vueApp.provide(themeConfigSymbol, advContext.themeConfig)
 const projectStore = useProjectStore()
 useEditorExtensions()
+useDesktopHost()
 
 onMounted(async () => {
   // @advjs/gui

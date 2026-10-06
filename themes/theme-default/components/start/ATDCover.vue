@@ -1,8 +1,10 @@
 <script lang="ts" setup>
+import { useGameConfig } from '@advjs/client'
 import { images } from '@advjs/theme-default'
 import { onMounted, ref } from 'vue'
 
 const rippleAnimation = ref(true)
+const gameConfig = useGameConfig()
 onMounted(() => {
   rippleAnimation.value = false
 })
@@ -10,10 +12,11 @@ onMounted(() => {
 
 <template>
   <img
+    v-if="gameConfig.cover || images.yunAlphaUrl"
     class="animate__animated animate__fadeInRight absolute top-10 z-2 h-350 drop-shadow-lg filter -left-10"
-    :src="images.yunAlphaUrl"
+    :src="gameConfig.cover || images.yunAlphaUrl"
   >
-  <div class="animate__animated animate__fadeInRight animate-delay-200">
+  <div v-if="!gameConfig.cover && images.yunAlphaUrl" class="animate__animated animate__fadeInRight animate-delay-200">
     <img
       class="absolute left-150 top-10 z-1 h-350 transform drop-shadow-lg filter -rotate-y-180"
       :src="images.yunAlphaUrl"

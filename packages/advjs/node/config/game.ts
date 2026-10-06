@@ -4,6 +4,7 @@ import { readdir } from 'node:fs/promises'
 import path from 'node:path'
 import { loadConfig } from 'c12'
 import { loadModule } from '../utils'
+import { bundledConfigAliases } from './aliases'
 
 /**
  * load game.config.ts
@@ -11,6 +12,7 @@ import { loadModule } from '../utils'
 export async function loadAdvGameConfig() {
   const { config: gameConfig, configFile: gameConfigFile } = await loadConfig<AdvGameConfig>({
     name: 'game',
+    jitiOptions: { alias: bundledConfigAliases() },
   })
 
   return {

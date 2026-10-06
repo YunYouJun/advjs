@@ -40,6 +40,10 @@ async function createAdvMarkdownFile() {
  * Opens a standard Markdown project directory.
  */
 function openAdvProject() {
+  if (window.advDesktop) {
+    void window.advDesktop.openProject()
+    return
+  }
   // trigger open directory dialog
   const advExplorerDom = document.querySelector('#adv-explorer')
   const openDirBtn = advExplorerDom?.querySelector('.agui-open-directory') as HTMLElement

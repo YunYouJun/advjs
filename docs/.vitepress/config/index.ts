@@ -388,6 +388,10 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
               text: 'UI 插件',
               link: '/guide/editor/ui-plugins',
             },
+            {
+              text: 'Electron 桌面客户端',
+              link: '/guide/editor/desktop',
+            },
           ],
         },
         {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useGameConfig } from '@advjs/client'
 // Game Start Menu Page Layout
 import { images } from '../assets'
 
@@ -7,6 +8,8 @@ withDefaults(defineProps<{
 }>(), {
   bgImage: images.defaultBgUrl,
 })
+
+const gameConfig = useGameConfig()
 </script>
 
 <template>
@@ -19,7 +22,7 @@ withDefaults(defineProps<{
       <div
         class="adv-start-bg absolute h-full w-full -z-1"
         bg="cover no-repeat center"
-        :style="{ backgroundImage: `url(${bgImage})` }"
+        :style="{ backgroundImage: gameConfig.cover || bgImage ? `url(${gameConfig.cover || bgImage})` : undefined }"
       />
       <main
         class="page-start h-full w-full text-$adv-c-text"

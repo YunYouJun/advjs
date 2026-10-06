@@ -66,6 +66,7 @@ export class MemoryFsAdapter implements IFileSystem {
         this.nodes.set(path, {
           type: row.type,
           content: row.content,
+          blob: row.blob,
           mtime: row.mtime,
           size: row.size,
         })
@@ -104,6 +105,7 @@ export class MemoryFsAdapter implements IFileSystem {
         key: dbKey(this.projectId, path),
         type: node.type,
         content: node.content ?? '',
+        blob: node.blob,
         mtime: node.mtime,
         size: node.size,
       }))

@@ -18,8 +18,9 @@ import {
   onIonViewWillLeave,
 } from '@ionic/vue'
 import { addOutline, cloudUploadOutline, trashOutline } from 'ionicons/icons'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import AudioCard from '../../components/AudioCard.vue'
 import AudioEditorForm from '../../components/AudioEditorForm.vue'
 import DraftRestoreBanner from '../../components/common/DraftRestoreBanner.vue'
@@ -46,6 +47,10 @@ const { isSaving } = useContentSave()
 const { deleteFile } = useContentDelete()
 const managedAssets = useManagedAssetStorage()
 const previewActive = ref(true)
+const route = useRoute()
+// Ionic can retain the tab page when navigating to an editor outside the tabs.
+// Route state also pauses retained audio when a leave hook is not dispatched.
+watch(() => route.path, path => previewActive.value = path === '/tabs/workspace/audio', { immediate: true })
 onIonViewWillEnter(() => previewActive.value = true)
 onIonViewWillLeave(() => previewActive.value = false)
 

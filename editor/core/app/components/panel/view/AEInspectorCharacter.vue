@@ -8,6 +8,8 @@ const characterStore = useCharacterStore()
 const app = useAppStore()
 
 const isEditing = ref(false)
+const error = ref('')
+const editable = computed(() => !characterStore.projectBound || (characterStore.selectedCharacter && characterStore.characterSource(characterStore.selectedCharacter.id) !== undefined))
 
 const isCreateMode = computed(() => app.activeInspector === 'character-create')
 
@@ -28,12 +30,12 @@ function stopEditing() {
   isEditing.value = false
 }
 
-async function onSave(data: Partial<AdvCharacter>) {
+async function onSave(data: Partial<AdvCharacter>, expected?: string | null) {
   if (!characterStore.selectedCharacter)
     return
 
   const updated = { ...characterStore.selectedCharacter, ...data } as AdvCharacter
-  await characterStore.updateCharacter(updated)
+  await characterStore.updateCharacter(updated, expected)
   characterStore.selectedCharacter = updated
 
   Toast({ title: t('characters.updated'), type: 'success' })
@@ -75,7 +77,13 @@ async function onDelete(character: AdvCharacter) {
   if (!confirmed)
     return
 
-  await characterStore.deleteCharacter(character)
+  try {
+    await characterStore.deleteCharacter(character)
+  }
+  catch (failure) {
+    error.value = String(failure)
+    return
+  }
   Toast({ title: t('characters.deleted'), type: 'success' })
   app.activeInspector = undefined
 }
@@ -120,7 +128,7 @@ async function onRelationshipUpdate(relationships: AdvCharacterRelationship[]) {
   Toast({ title: t('characters.updated'), type: 'success' })
 }
 const toolbarItems = computed<ToolbarItem[]>(() => {
-  if (isCreateMode.value || !characterStore.selectedCharacter)
+  if (isCreateMode.value || !characterStore.selectedCharacter || !editable.value)
     return []
   return [
     { type: 'space' },
@@ -143,11 +151,17 @@ const toolbarItems = computed<ToolbarItem[]>(() => {
     </AGUIToolbar>
 
     <div class="flex-1 overflow-auto">
+      <p v-if="error" class="ae-resource-error" role="alert">
+        {{ error }}
+      </p>
+      <p v-if="characterStore.selectedCharacter && !editable" class="ae-resource-caption p-2">
+        此角色来自内联配置，请在源配置中编辑。
+      </p>
       <!-- Create mode -->
       <template v-if="isCreateMode">
         <CharacterForm
           mode="create"
-          @submit="onCreate"
+          :save="onCreate"
           @cancel="onCancel"
         />
       </template>
@@ -159,7 +173,7 @@ const toolbarItems = computed<ToolbarItem[]>(() => {
           v-if="isEditing"
           mode="edit"
           :character="characterStore.selectedCharacter"
-          @submit="onSave"
+          :save="onSave"
           @cancel="onCancel"
         />
 
@@ -173,19 +187,19 @@ const toolbarItems = computed<ToolbarItem[]>(() => {
           />
 
           <!-- Tachie Manager -->
-          <div class="border-t border-$agui-c-divider">
+          <div v-if="editable" class="border-t border-$agui-c-divider">
             <TachieManager
               :character="characterStore.selectedCharacter"
-              @update="onTachieUpdate"
+              :save="onTachieUpdate"
             />
           </div>
 
           <!-- Relationship Editor -->
-          <div class="border-t border-$agui-c-divider">
+          <div v-if="editable" class="border-t border-$agui-c-divider">
             <RelationshipEditor
               :key="characterStore.selectedCharacter.id"
               :relationships="characterStore.selectedCharacter.relationships"
-              @update="onRelationshipUpdate"
+              :save="onRelationshipUpdate"
             />
           </div>
         </template>

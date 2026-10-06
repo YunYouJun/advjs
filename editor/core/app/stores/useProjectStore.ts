@@ -4,7 +4,7 @@ import type { AdvAgentIntegrationStatus, AdvConfig } from '@advjs/types'
 import type { BrowserProjectDirectory, EditorProjectModel } from '../adapters/browser/project'
 import type { LocalBridgeAdapter, LocalDirectoryHandle, LocalFileHandle } from '../adapters/local'
 import type { AdvConfigAdapterType } from '../types'
-import type { ProjectWorkspace, ProjectWorkspaceSnapshot, ProjectWorkspaceSubscription } from '../workspaces/project'
+import type { ProjectFileChange, ProjectWorkspace, ProjectWorkspaceSnapshot, ProjectWorkspaceSubscription } from '../workspaces/project'
 import { defaultAdvConfig } from 'advjs'
 import { consola } from 'consola'
 import { createBrowserProjectWorkspace } from '../adapters/browser/workspace'
@@ -45,6 +45,7 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
   let workspaceSubscription: ProjectWorkspaceSubscription | undefined
   let localRefreshTimer: ReturnType<typeof setTimeout> | undefined
   const pendingLocalChanges = new Set<string>()
+  const resourceRevision = ref(0)
   const diagnostics = computed(() => project.value?.compilation.diagnostics ?? [])
   const chapters = computed(() => project.value?.compilation.project.chapters ?? [])
   const characters = computed(() => project.value?.compilation.project.characters ?? [])
@@ -122,7 +123,7 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
       await loadAdvConfigJSON(nextProject.files['adv.config.json'])
 
     const errors = nextProject.compilation.diagnostics.filter(item => item.severity === 'error')
-    if (nextProject.mode === 'standard-markdown' && errors.length === 0) {
+    if (!window.advDesktop && nextProject.mode === 'standard-markdown' && errors.length === 0) {
       void gameStore.loadGameFromConfig(nextProject.previewConfig).catch((error) => {
         consoleStore.error('Preview failed to load', { error: String(error) })
       })
@@ -148,6 +149,7 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
   async function activateWorkspace(nextWorkspace: ProjectWorkspace) {
     const initial = await nextWorkspace.snapshot()
     workspaceSubscription?.stop()
+    workspace.value?.dispose?.()
     workspaceSubscription = undefined
     workspace.value = nextWorkspace
     const nextProject = await activateProject(initial)
@@ -183,23 +185,33 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
       pendingLocalChanges.add(path)
     if (localRefreshTimer)
       clearTimeout(localRefreshTimer)
+    const scheduledWorkspace = workspace.value
     localRefreshTimer = setTimeout(async () => {
-      const changedPaths = [...pendingLocalChanges].sort()
-      pendingLocalChanges.clear()
-      const nextProject = await refreshProject()
-      if (!nextProject)
+      if (workspace.value !== scheduledWorkspace)
         return
-      for (const changedPath of changedPaths) {
-        const content = nextProject.files[changedPath]
-        if (content !== undefined)
-          await fileStore.handleExternalChange(changedPath, content).catch(() => {})
+      try {
+        const changedPaths = [...pendingLocalChanges].sort()
+        pendingLocalChanges.clear()
+        // macOS may coalesce media changes into a containing-directory event.
+        if (!changedPaths.length || changedPaths.some(path => !/\.(?:md|json)$/iu.test(path)))
+          resourceRevision.value++
+        const nextProject = await refreshProject()
+        if (!nextProject)
+          return
+        for (const changedPath of changedPaths) {
+          const content = nextProject.files[changedPath]
+          await fileStore.handleExternalChange(changedPath, content ?? null).catch(() => {})
+        }
+      }
+      catch (error) {
+        consoleStore.error('External project refresh failed', { error: String(error) })
       }
     }, 150)
   }
 
   async function connectLocalBridgeFromLaunch(url = window.location.href) {
-    const session = parseLocalEditorSession(url)
-    if (!session)
+    const session = window.advDesktop ? await window.advDesktop.session() : parseLocalEditorSession(url)
+    if (!session || (window.advDesktop && !('root' in session && session.root)))
       return false
     const adapter = createLocalBridgeAdapter(session)
     await activateWorkspace(createLocalProjectWorkspace(adapter))
@@ -210,6 +222,7 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
   function disconnectLocalBridge() {
     workspaceSubscription?.stop()
     workspaceSubscription = undefined
+    workspace.value?.dispose?.()
     localAdapter = undefined
     if (localRefreshTimer)
       clearTimeout(localRefreshTimer)
@@ -235,6 +248,23 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
     if (workspace.value !== source)
       return
     return await activateProject(snapshot)
+  }
+
+  async function writeProjectFiles(changes: ProjectFileChange[]) {
+    const source = workspace.value
+    if (!source?.writeFiles)
+      throw new Error('Workspace does not support file changes')
+    const snapshot = await source.writeFiles(changes)
+    if (workspace.value === source)
+      return await activateProject(snapshot)
+  }
+
+  async function projectAssetUrl(path: string) {
+    if (/^(?:https?:|blob:|data:)/u.test(path))
+      return path
+    if (!workspace.value?.assetUrl)
+      throw new Error('Open a project to read assets')
+    return await workspace.value.assetUrl(path.replace(/^\.\//u, '').replace(/^\//u, ''))
   }
 
   async function loadLocalAgentStatus(): Promise<AdvAgentIntegrationStatus> {
@@ -346,6 +376,7 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
     project,
     workspace,
     workspaceMode,
+    resourceRevision,
     localFilePaths,
     diagnostics,
     chapters,
@@ -361,6 +392,8 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
     openBrowserProject,
     refreshProject,
     commitProject,
+    writeProjectFiles,
+    projectAssetUrl,
     connectLocalBridgeFromLaunch,
     disconnectLocalBridge,
     getLocalFileHandle,

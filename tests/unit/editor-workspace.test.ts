@@ -128,6 +128,15 @@ describe('editor project workspace', () => {
           root: '/tmp/rain-letter',
         })
       }
+      if (url.pathname.endsWith('/changes')) {
+        const changes = JSON.parse(String(init?.body)) as { path: string, content: string, expected: string }[]
+        for (const change of changes) {
+          if (files[change.path] !== change.expected)
+            return Response.json({ error: 'Conflict' }, { status: 409 })
+          files[change.path] = change.content
+        }
+        return Response.json({ paths: changes.map(change => change.path) })
+      }
       if (init?.method === 'PUT') {
         files[url.searchParams.get('path')!] = String(init.body)
         return Response.json({ path: url.searchParams.get('path') })

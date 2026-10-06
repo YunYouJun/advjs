@@ -98,7 +98,7 @@ test('loads, live-refreshes, resolves conflicts, and saves the source project', 
   await editor.click()
   await page.keyboard.press('End')
   await page.keyboard.insertText('\n# SavedFromEditor')
-  await page.getByRole('button', { name: 'Save' }).click()
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
   await expect.poll(async () => await readFile(chapterPath, 'utf8')).toContain('# SavedFromEditor')
   await expect(stat(join(projectRoot, 'dist'))).rejects.toThrow()
   expect(thirdPartyRequests).toEqual([])

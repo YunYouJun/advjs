@@ -4,6 +4,7 @@ import { computed, ref, useId, watch } from 'vue'
 import { audioLibrarySrc, useAudioLibrary } from '../../../composables/useAudioLibrary'
 import '../../../styles/resource-panel.scss'
 
+withDefaults(defineProps<{ visible?: boolean }>(), { visible: true })
 const { $adv } = useAdvContext()
 const audioStore = useAudioStore()
 const app = useAppStore()
@@ -27,6 +28,7 @@ const entries = computed(() => {
 
 <template>
   <div class="ae-resource-panel audio-panel" :aria-busy="loading">
+    <AEProjectAudioPanel :visible="visible" />
     <AGUIToolbar :items="[]" :label="$t('audio.title')">
       <template #before-toolbar>
         <span>{{ $t('audio.title') }}</span>
@@ -55,7 +57,7 @@ const entries = computed(() => {
       <AGUIInput v-model="search" :aria-label="$t('audio.search')" :placeholder="$t('audio.search')" prefix-icon="i-ri-search-line" />
     </div>
     <ul v-if="entries.length" class="ae-resource-list">
-      <AEAudioLibraryItem v-for="([key, item]) in entries" :key="key" :name="`${key} · ${item.name}`" :description="item.description" :src="audioLibrarySrc($adv.config.value.cdn.prefix, item.name)" />
+      <AEAudioLibraryItem v-for="([key, item]) in entries" :key="key" :visible="visible" :name="`${key} · ${item.name}`" :description="item.description" :src="audioLibrarySrc($adv.config.value.cdn.prefix, item.name)" />
     </ul>
     <p v-else-if="!loading" class="ae-resource-empty" role="status">
       {{ $t(search.trim() ? 'audio.noMatches' : 'audio.empty') }}

@@ -1,0 +1,31 @@
+{
+  "name": "@advjs/desktop",
+  "type": "module",
+  "version": "0.1.4",
+  "private": true,
+  "description": "ADV.JS desktop creation client",
+  "author": "YunYouJun",
+  "license": "MPL-2.0",
+  "main": "dist/main.mjs",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "node scripts/build.mjs && electron .",
+    "build": "pnpm -C ../.. build:advjs && ADVJS_EDITOR_MODE=local pnpm -C ../.. editor:build && node scripts/build.mjs",
+    "stage": "node scripts/stage.mjs",
+    "package": "pnpm run build && pnpm run stage && node scripts/forge.mjs package",
+    "make": "pnpm run build && pnpm run stage && node scripts/forge.mjs make",
+    "test": "playwright test --config playwright.config.ts"
+  },
+  "dependencies": {
+    "advjs": "workspace:*"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "catalog:desktop",
+    "@electron-forge/core": "catalog:desktop",
+    "@electron-forge/maker-zip": "catalog:desktop",
+    "@playwright/test": "catalog:test",
+    "electron": "catalog:desktop"
+  }
+}

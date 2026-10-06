@@ -1,6 +1,7 @@
 import type { AdvCharacter } from '@advjs/types'
 import type { App } from 'vue'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { createPinia, setActivePinia } from 'pinia'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createApp, effectScope, h, nextTick, ref } from 'vue'
 import CharacterCard from '../../editor/core/app/components/character/CharacterCard.vue'
 import CharacterList from '../../editor/core/app/components/character/CharacterList.vue'
@@ -14,6 +15,13 @@ import AGUIButton from '../../packages/gui/client/components/button/AGUIButton.v
 import AGUIIconButton from '../../packages/gui/client/components/button/AGUIIconButton.vue'
 import AGUIInput from '../../packages/gui/client/components/input/AGUIInput.vue'
 import AGUIToolbar from '../../packages/gui/client/components/toolbar/AGUIToolbar.vue'
+
+vi.mock('../../editor/core/app/stores/useProjectAssets', () => ({ useProjectAssets: () => ({}) }))
+beforeEach(() => {
+  setActivePinia(createPinia())
+  vi.stubGlobal('useProjectStore', () => ({ workspace: undefined, resourceRevision: 0, projectAssetUrl: async (src: string) => src }))
+  vi.stubGlobal('useCharacterStore', () => ({}))
+})
 
 let app: App | undefined
 const scopes: ReturnType<typeof effectScope>[] = []

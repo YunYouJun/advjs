@@ -9,6 +9,7 @@ import { isAbsolute, relative, resolve, sep } from 'node:path'
 import process from 'node:process'
 import { compileProject } from '@advjs/core'
 import { loadConfig } from 'c12'
+import { bundledConfigAliases } from '../config/aliases'
 
 const CONFIG_EXTENSIONS = ['json', 'ts', 'mts', 'cts', 'js', 'mjs', 'cjs'] as const
 const IGNORED_DIRECTORIES = new Set([
@@ -151,6 +152,7 @@ async function readModuleConfig(root: string, path: string, name: 'adv' | 'game'
       cwd: root,
       configFile: resolve(root, path),
       configFileRequired: true,
+      jitiOptions: { alias: bundledConfigAliases() },
       rcFile: false,
       globalRc: false,
       packageJson: false,

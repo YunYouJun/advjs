@@ -6,7 +6,7 @@ import { onUnmounted, watch } from 'vue'
 import '../../../../../themes/theme-default/styles'
 
 const props = withDefaults(defineProps<{ visible?: boolean }>(), { visible: true })
-
+const desktop = import.meta.client && !!window.advDesktop
 const AELoadOnlineConfigFileDialog = defineAsyncComponent(() => import('../dialogs/AELoadOnlineConfigFileDialog.vue'))
 
 const { locale } = useI18n()
@@ -22,14 +22,29 @@ async function runPreviewAction(action: () => Promise<unknown>) {
   try {
     await action()
   }
-  catch (error) { previewError.value = error instanceof Error ? error.message : String(error) }
-  finally { pending.value = false }
+  catch (error) {
+    previewError.value = error instanceof Error ? error.message : String(error)
+  }
+  finally {
+    pending.value = false
+  }
 }
 
 const gameStore = useGameStore()
 const fileStore = useFileStore()
 const projectStore = useProjectStore()
 const show = computed(() => gameStore.client.loadStatus >= AdvGameLoadStatusEnum.CONFIG_LOADED)
+
+const desktopPreviewError = ref('')
+async function launchDesktopPreview() {
+  try {
+    await window.advDesktop?.preview()
+    desktopPreviewError.value = ''
+  }
+  catch (failure) {
+    desktopPreviewError.value = String(failure)
+  }
+}
 
 async function startSourcePreview() {
   if (projectStore.project)
@@ -135,26 +150,36 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex h-full w-full items-center justify-center" relative>
-    <AdvGame v-if="show" class="h-full w-full" />
-    <AEOpenProject v-else-if="!projectStore.project" />
-    <div v-else class="preview-start">
-      <AGUIButton theme="primary" :loading="pending" @click="runPreviewAction(startSourcePreview)">
-        {{ zh ? '启动项目预览' : 'Start source preview' }}
-      </AGUIButton>
-    </div>
-    <div v-if="hasFileChanges && show" class="preview-update">
-      <span>{{ zh ? '项目文件已更新' : 'Project files changed' }}</span>
-      <AGUIButton icon="i-ri-refresh-line" :loading="pending" @click="runPreviewAction(refreshPreview)">
-        {{ zh ? '刷新预览' : 'Refresh preview' }}
-      </AGUIButton>
-    </div>
-    <p v-if="previewError" class="preview-error" role="alert">
-      {{ previewError }}
+  <div v-if="desktop" class="ae-resource-panel flex h-full items-center justify-center">
+    <AGUIButton :disabled="!projectStore.workspace" @click="launchDesktopPreview">
+      从已保存项目启动游戏预览
+    </AGUIButton>
+    <p v-if="desktopPreviewError" role="alert" class="ae-resource-error">
+      {{ desktopPreviewError }}
     </p>
   </div>
+  <template v-else>
+    <div class="flex h-full w-full items-center justify-center" relative>
+      <AdvGame v-if="show" class="h-full w-full" />
+      <AEOpenProject v-else-if="!projectStore.project" />
+      <div v-else class="preview-start">
+        <AGUIButton theme="primary" :loading="pending" @click="runPreviewAction(startSourcePreview)">
+          {{ zh ? '启动项目预览' : 'Start source preview' }}
+        </AGUIButton>
+      </div>
+      <div v-if="hasFileChanges && show" class="preview-update">
+        <span>{{ zh ? '项目文件已更新' : 'Project files changed' }}</span>
+        <AGUIButton icon="i-ri-refresh-line" :loading="pending" @click="runPreviewAction(refreshPreview)">
+          {{ zh ? '刷新预览' : 'Refresh preview' }}
+        </AGUIButton>
+      </div>
+      <p v-if="previewError" class="preview-error" role="alert">
+        {{ previewError }}
+      </p>
+    </div>
 
-  <AELoadOnlineConfigFileDialog v-if="fileStore.onlineAdvConfigFileDialogOpen" />
+    <AELoadOnlineConfigFileDialog v-if="fileStore.onlineAdvConfigFileDialogOpen" />
+  </template>
 </template>
 
 <style scoped>

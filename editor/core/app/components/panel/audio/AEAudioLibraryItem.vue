@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import { onBeforeUnmount, ref, watch } from 'vue'
 
-const props = defineProps<{ name: string, description: string, src: string }>()
+const props = withDefaults(defineProps<{ name: string, description: string, src: string, visible?: boolean }>(), { visible: true })
 const player = ref<HTMLAudioElement>()
+watch(() => props.visible, (visible) => {
+  if (!visible)
+    player.value?.pause()
+})
 const failed = ref(false)
 watch(() => props.src, () => failed.value = false)
 onBeforeUnmount(() => player.value?.pause())
