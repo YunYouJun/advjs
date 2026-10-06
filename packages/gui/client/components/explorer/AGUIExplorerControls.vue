@@ -3,12 +3,13 @@ import { vscodeFolderIcon } from '../../../unocss'
 import { AGUIIconButton, AGUIInput } from '../../components'
 import { openDir, useAGUIAssetsExplorerState } from '../../composables'
 
+defineProps<{ search?: string }>()
+const emit = defineEmits<{ 'update:search': [value: string] }>()
 const state = useAGUIAssetsExplorerState()
 </script>
 
 <template>
   <div class="agui-explorer-controls">
-    <div />
     <AGUIIconButton
       size="mini"
       :icon="vscodeFolderIcon"
@@ -17,7 +18,7 @@ const state = useAGUIAssetsExplorerState()
     />
     <div class="flex-grow" />
     <slot />
-    <AGUIInput class="search-files-input" />
+    <AGUIInput class="search-files-input" aria-label="Filter current folder" placeholder="Filter files…" :model-value="search" @update:model-value="emit('update:search', $event)" />
   </div>
 </template>
 
@@ -26,12 +27,16 @@ const state = useAGUIAssetsExplorerState()
   display: flex;
   align-items: center;
   padding: 0 4px;
-  height: var(--agui-explorer-controls-height, 32px);
+  min-height: var(--agui-explorer-controls-height, 30px);
+  gap: 4px;
+  flex-shrink: 0;
+  background: var(--agui-c-bg-panel-title);
 
-  border-bottom: 1px solid var(--agui-c-border, #222);
+  border-bottom: 1px solid var(--agui-c-divider);
 
   .search-files-input {
-    width: 7.5rem;
+    width: 160px;
+    max-width: calc(100% - 32px);
   }
 }
 </style>

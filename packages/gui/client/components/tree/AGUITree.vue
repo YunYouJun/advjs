@@ -2,16 +2,19 @@
 <script setup lang="ts">
 import type { AGUIContextMenuItemType } from '../context-menu/types'
 import type { TreeNode, Trees } from './types'
-import { computed } from 'vue'
+import { computed, provide, shallowRef } from 'vue'
 import AGUITreeNode from './AGUITreeNode.vue'
+import { treeContextKey } from './context'
 
 const props = withDefaults(defineProps<{
   currentNode?: TreeNode
   data: Trees | TreeNode
+  label?: string
   depth?: number
   contextMenu?: (node: TreeNode) => AGUIContextMenuItemType[]
 }>(), {
   depth: 0,
+  label: 'Tree',
 })
 
 const emit = defineEmits([
@@ -30,9 +33,27 @@ const emit = defineEmits([
 ],
 )
 
-const currentNode = computed(() => props.currentNode || {
-  name: 'root',
+const selectedNode = shallowRef<TreeNode>()
+const focusedNode = shallowRef<TreeNode>()
+const currentNode = computed(() => props.currentNode ?? selectedNode.value)
+const roots = computed(() => Array.isArray(props.data) ? props.data : [props.data])
+const visibleNodes = computed(() => {
+  const nodes: TreeNode[] = []
+  function visit(items: TreeNode[]) {
+    for (const node of items) {
+      nodes.push(node)
+      if (node.expanded && node.children)
+        visit(node.children)
+    }
+  }
+  visit(roots.value)
+  return nodes
 })
+const tabStop = computed(() => {
+  const nodes = visibleNodes.value
+  return [focusedNode.value, currentNode.value].find(node => node && nodes.includes(node)) ?? nodes[0]
+})
+provide(treeContextKey, { tabStop, focus: node => focusedNode.value = node })
 
 function expand(nodes: TreeNode[]) {
   nodes.forEach((node) => {
@@ -77,6 +98,7 @@ function hide(nodes: Trees) {
 }
 
 function activate(node: TreeNode) {
+  selectedNode.value = node
   node.active = true
   emit('node-activate', node)
   emit('update:currentNode', node)
@@ -88,42 +110,21 @@ function onDblClick(node: TreeNode) {
 </script>
 
 <template>
-  <div class="agui-tree">
-    <template v-if="Array.isArray(data)">
-      <template v-for="(tree, _i) in data" :key="tree.id || tree.name || _i">
-        <AGUITreeNode
-          :current-node="currentNode"
-          :node="tree"
-          :depth="depth || 0"
-          :context-menu="contextMenu"
-
-          @node-activate="activate"
-          @node-dblclick="onDblClick"
-          @node-collapse="collapse"
-          @node-expand="expand"
-          @node-show="show"
-          @node-hide="hide"
-          @node-selected="onSelected"
-          @node-unselected="onUnselected"
-        />
-      </template>
-    </template>
-    <template v-else>
-      <AGUITreeNode
-        :current-node="currentNode"
-        :node="data"
-        :depth="depth || 0"
-        :context-menu="contextMenu"
-
-        @node-activate="activate"
-        @node-dblclick="onDblClick"
-        @node-collapse="collapse"
-        @node-expand="expand"
-        @node-show="show"
-        @node-hide="hide"
-        @node-selected="onSelected"
-        @node-unselected="onUnselected"
-      />
-    </template>
+  <div class="agui-tree" role="tree" :aria-label="label">
+    <AGUITreeNode
+      v-for="(node, index) in roots" :key="node.id || node.name || index"
+      :current-node="currentNode"
+      :node="node"
+      :depth="depth"
+      :context-menu="contextMenu"
+      @node-activate="activate"
+      @node-dblclick="onDblClick"
+      @node-collapse="collapse"
+      @node-expand="expand"
+      @node-show="show"
+      @node-hide="hide"
+      @node-selected="onSelected"
+      @node-unselected="onUnselected"
+    />
   </div>
 </template>

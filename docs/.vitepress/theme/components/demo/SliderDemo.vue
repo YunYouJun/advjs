@@ -8,10 +8,10 @@ const num = ref(0)
   <AGUIDemoBlock title="Slider Demo">
     <AGUIForm>
       <AGUIFormItem label="Default">
-        <AGUISlider v-model="num" />
+        <AGUISlider v-model="num" label="Demo value" />
       </AGUIFormItem>
-      <AGUIFormItem label="With Input (Todo)" description="Slider + Input">
-        <AGUISlider v-model="num" disabled show-input />
+      <AGUIFormItem label="With Input" description="Slider + Input">
+        <AGUISlider v-model="num" label="Demo value" show-input />
       </AGUIFormItem>
     </AGUIForm>
   </AGUIDemoBlock>

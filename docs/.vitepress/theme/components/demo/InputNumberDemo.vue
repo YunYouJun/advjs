@@ -20,24 +20,24 @@ const vector3 = ref<Vector3>({
   <AGUIDemoBlock title="Input Demo">
     <AGUIForm>
       <AGUIFormItem label="Number">
-        <AGUIInputNumber v-model="num" />
+        <AGUIInputNumber v-model="num" aria-label="Number" />
       </AGUIFormItem>
 
       <AGUIFormItem label="Min 0 Max 180">
-        <AGUIInputNumber v-model="num" :min="0" :max="180" />
+        <AGUIInputNumber v-model="num" aria-label="Number" :min="0" :max="180" />
       </AGUIFormItem>
 
       <AGUIFormItem label="Vector2">
-        <AGUIInputVector v-model="vector2" />
+        <AGUIInputVector v-model="vector2" label="Demo value" />
       </AGUIFormItem>
 
       <AGUIFormItem label="Vector3">
-        <AGUIInputVector v-model="vector3" />
+        <AGUIInputVector v-model="vector3" label="Demo value" />
       </AGUIFormItem>
 
       <AGUIFormItem label="Custom Label">
-        <AGUIInputVector />
-        <AGUIInputVector />
+        <AGUIInputVector label="Demo value" />
+        <AGUIInputVector label="Demo value" />
       </AGUIFormItem>
     </AGUIForm>
   </AGUIDemoBlock>

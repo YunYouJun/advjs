@@ -5,7 +5,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="agui-file-icon">
+  <div class="agui-file-icon" aria-hidden="true">
     <div
       v-if="fileIcon?.startsWith('i-')"
       class="icon"
@@ -15,6 +15,7 @@ defineProps<{
       v-else
       class="icon h-full w-full object-contain"
       :src="fileIcon"
+      alt=""
     >
   </div>
 </template>

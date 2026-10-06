@@ -137,6 +137,12 @@
 // Shared desktop controls. Keep action colors separate from content/brand colors.
 :root {
   --agui-control-height: 24px;
+  --agui-c-selection: #dce8f6;
+  --agui-c-selection-text: #24466c;
+  --agui-c-axis-x: #ab4141;
+  --agui-c-axis-y: #477347;
+  --agui-c-axis-z: #35639a;
+  --agui-c-axis-w: #855600;
   --agui-c-active: var(--agui-c-blue-dark);
   --agui-c-field: #ffffff;
   --agui-c-success-text: #276b42;
@@ -160,6 +166,12 @@
 .dark {
   --agui-c-active: var(--agui-c-blue-darker);
   --agui-c-field: #2a2a2a;
+  --agui-c-selection: #304866;
+  --agui-c-selection-text: #e1ecfa;
+  --agui-c-axis-x: #d77979;
+  --agui-c-axis-y: #86b886;
+  --agui-c-axis-z: #84ade0;
+  --agui-c-axis-w: #d9b666;
   --agui-c-success-text: #9dd4af;
   --agui-c-warning-text: #e5c071;
   --agui-c-control: #505050;

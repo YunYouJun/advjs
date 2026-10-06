@@ -1,50 +1,40 @@
 <script lang="ts" setup>
-withDefaults(defineProps<{
+import AGUIInputNumber from './input/AGUIInputNumber.vue'
+import { clampNumber } from './input/numeric'
+
+defineOptions({ inheritAttrs: false })
+const props = withDefaults(defineProps<{
   modelValue: number
   step?: number
   min?: number
   max?: number
-
   showInput?: boolean
-}>(), {
-  step: 1,
-  min: 0,
-  max: 360,
-
-  showInput: false,
-})
-
-const emit = defineEmits(['update:modelValue', 'input'])
-
-function updateModelValue(event: any) {
-  const val = event.target?.valueAsNumber || 0
-  emit('update:modelValue', val)
-  emit('input', val)
+  disabled?: boolean
+  label?: string
+}>(), { step: 1, min: 0, max: 360, showInput: false })
+const emit = defineEmits<{ 'update:modelValue': [value: number], 'input': [value: number] }>()
+function update(value: number) {
+  if (props.disabled || !Number.isFinite(value))
+    return
+  const next = clampNumber(value, props.min, props.max)
+  emit('update:modelValue', next)
+  emit('input', next)
 }
 </script>
 
 <template>
-  <div
-    class="agui-slider-container"
-    :class="!showInput ? 'pr-3px' : ''"
-    flex items-center justify-center
-  >
-    <!-- eslint-disable-next-line vue/no-mutating-props -->
-    <div :class="showInput ? 'w-4/5' : 'w-full'" class="flex py-1">
-      <input
-        :value="modelValue" class="agui-slider inline-flex"
-        type="range" :min="min || 0" :max="max || 360" :step="step"
-        text="black" @input="updateModelValue"
-      >
-    </div>
-
-    <div v-if="showInput" class="w-1/5" pl-2>
-      <input
-        class="agui-input agui-slider-input w-full"
-        type="number" :min="min || 0" :max="max || 360" :step="step"
-        :value="modelValue"
-        @input="updateModelValue"
-      >
-    </div>
+  <div class="agui-slider-container" :class="$attrs.class" :style="$attrs.style">
+    <input
+      v-bind="{ ...$attrs, class: undefined, style: undefined }"
+      class="agui-slider" type="range"
+      :aria-label="label || ($attrs['aria-label'] as string | undefined)"
+      :value="modelValue" :min="min" :max="max" :step="step" :disabled="disabled"
+      @input="update(($event.target as HTMLInputElement).valueAsNumber)"
+    >
+    <AGUIInputNumber v-if="showInput" class="agui-slider-input" :aria-label="label || ($attrs['aria-label'] as string | undefined)" :aria-labelledby="($attrs['aria-labelledby'] as string | undefined)" :model-value="modelValue" :min="min" :max="max" :step="step" :disabled="disabled" @update:model-value="update" />
   </div>
 </template>
+
+<style lang="scss">
+@use '../styles/slider.scss';
+</style>

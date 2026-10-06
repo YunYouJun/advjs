@@ -1,4 +1,5 @@
 import type { Ref } from 'vue'
+import type { FSItem } from '../components/explorer/types'
 import type { AGUIAssetsExplorerState } from './useAssetsExplorer'
 import type { FileOperations } from './useFileOperations'
 import { watchEffect } from 'vue'
@@ -7,8 +8,9 @@ export function useExplorerKeyboard(
   state: AGUIAssetsExplorerState,
   ops: FileOperations,
   containerRef: Ref<HTMLElement | undefined>,
+  visibleItems: Ref<FSItem[]> = state.curFileList,
 ) {
-  const { selection, curFileList } = state
+  const { selection } = state
 
   function handleKeydown(e: KeyboardEvent) {
     // Don't intercept if renaming
@@ -17,7 +19,7 @@ export function useExplorerKeyboard(
 
     // Don't intercept if target is an input/textarea
     const tag = (e.target as HTMLElement)?.tagName
-    if (tag === 'INPUT' || tag === 'TEXTAREA')
+    if (e.defaultPrevented || tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable)
       return
 
     const isMod = e.ctrlKey || e.metaKey
@@ -70,7 +72,7 @@ export function useExplorerKeyboard(
       case 'a': {
         if (isMod) {
           e.preventDefault()
-          selection.selectAll(curFileList.value)
+          selection.selectAll(visibleItems.value)
         }
         break
       }

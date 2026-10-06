@@ -1,107 +1,61 @@
 <script lang="ts" setup>
 import type { Vector, VectorKey } from '../../types'
-import { computed, ref } from 'vue'
+import { useId } from 'vue'
 import AGUINumberField from '../AGUINumberField.vue'
 
-const props = defineProps<{
-  modelValue?: Vector
-}>()
-
-const emit = defineEmits<{
-  'update:modelValue': [value: Vector]
-}>()
-
-const length = computed(() => Object.keys(props.modelValue || {}).length)
-const styles = computed(() => ({
-  'grid-template-columns': `repeat(${length.value}, minmax(0, 1fr))`,
-}))
-
-function updateModelValue(val: number, key: VectorKey) {
-  const modelValue: Vector = props.modelValue || { x: 0, y: 0 }
-  if (key in modelValue) {
-    (modelValue as any)[key] = val
-  }
-  emit('update:modelValue', modelValue)
+const props = defineProps<{ modelValue?: Vector, disabled?: boolean, label?: string }>()
+const emit = defineEmits<{ 'update:modelValue': [value: Vector] }>()
+const uid = useId()
+function updateModelValue(value: number, key: VectorKey) {
+  if (!props.disabled && props.modelValue)
+    emit('update:modelValue', { ...props.modelValue, [key]: value })
 }
-
-function getBorderColor(key: VectorKey) {
-  switch (key) {
-    case 'x':
-      return 'border-l-red!'
-    case 'y':
-      return 'border-l-green!'
-    case 'z':
-      return 'border-l-blue!'
-    case 'w':
-      return 'border-l-yellow!'
-    default:
-      return ''
-  }
-}
-
-const active = ref('')
 </script>
 
 <template>
-  <div
-    class="agui-input-vector grid w-full" :style="styles"
-    items-center justify-between
-  >
-    <div
-      v-for="(_, key) in modelValue" :key="key"
-      class="axis inline-flex text-left"
-    >
-      <label
-        :class="{
-          active: active === key,
-        }"
-        :for="key"
-        class="ml-3px w-1rem text-xs text-$agui-c-text-1" inline-flex items-center justify-start
-        uppercase
-      >{{ key }}
-      </label>
-      <!-- <AGUIInputNumber
-        class="flex-grow"
-        :class="getBorderColor(key)"
-        style="width:calc(100% - 30px)"
-        :name="key"
-        :label="`${key}`"
-        :model-value="modelValue![key]"
-        @update:model-value="updateModelValue($event, key)"
-        @click="active = key"
-        @blur="active = ''"
-      /> -->
-      <AGUINumberField
-        class="flex-grow border-l-1"
-        :class="getBorderColor(key as VectorKey)"
-        style="width:calc(100% - 30px)"
-        :name="key"
-        :label="`${key}`"
-        :model-value="(modelValue as any)![key]"
-        @update:model-value="updateModelValue($event, key as VectorKey)"
-        @click="active = key"
-        @blur="active = ''"
-      />
+  <div class="agui-input-vector" role="group" :aria-label="label">
+    <div v-for="(value, key) in modelValue" :key="key" class="agui-vector-axis" :data-axis="key">
+      <label :for="`${uid}-${key}`">{{ key }}</label>
+      <AGUINumberField :id="`${uid}-${key}`" :label="`${label || ''} ${key}`.trim()" :model-value="value" :disabled="disabled" @update:model-value="updateModelValue($event, key as VectorKey)" />
     </div>
   </div>
 </template>
 
 <style lang="scss">
 .agui-input-vector {
-  .axis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+  gap: 4px;
+  min-width: 0;
+  width: 100%;
+  .agui-vector-axis {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
     label {
-      &.active {
-        color: var(--agui-c-focus);
-      }
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--agui-c-text-2);
     }
-
-    .agui-input {
-      margin-right: 4px;
+    &:focus-within label {
+      color: var(--agui-c-link);
     }
-    &:last-child {
-      .agui-input {
-        margin-right: 0;
-      }
+    .agui-number-field {
+      flex: 1;
+      border-inline-start: 2px solid var(--agui-axis-color, var(--agui-c-control-border));
+    }
+    &[data-axis='x'] {
+      --agui-axis-color: var(--agui-c-axis-x);
+    }
+    &[data-axis='y'] {
+      --agui-axis-color: var(--agui-c-axis-y);
+    }
+    &[data-axis='z'] {
+      --agui-axis-color: var(--agui-c-axis-z);
+    }
+    &[data-axis='w'] {
+      --agui-axis-color: var(--agui-c-axis-w);
     }
   }
 }

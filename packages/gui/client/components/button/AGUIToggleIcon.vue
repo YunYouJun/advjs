@@ -13,13 +13,15 @@ const props = withDefaults(defineProps<{
 
 // Computed style for background image
 const backgroundImageStyle = computed(() => ({
-  backgroundImage: `var(--b-icon-${props.icon})`,
+  '--agui-toggle-mask': `var(--b-icon-${props.icon})`,
 }))
 </script>
 
 <template>
   <button
-    class="toggle"
+    type="button"
+    class="agui-toggle-icon"
+    :aria-label="hint || icon"
     :class="{ muted }"
     :style="backgroundImageStyle"
     :title="hint"
@@ -29,23 +31,36 @@ const backgroundImageStyle = computed(() => ({
 </template>
 
 <style scoped>
-.toggle {
+.agui-toggle-icon {
   appearance: none;
-  background: transparent no-repeat center center;
+  position: relative;
+  background: transparent;
+  color: inherit;
   border: none;
-  width: 20px;
-  height: 20px;
-  opacity: 0.6;
+  width: 24px;
+  height: 24px;
+  opacity: 0.85;
   flex-shrink: 0;
   cursor: pointer;
 }
 
-.toggle:active,
-.toggle:hover {
+.agui-toggle-icon::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  mask: var(--agui-toggle-mask) center / contain no-repeat;
+  background: currentColor;
+}
+.agui-toggle-icon:active,
+.agui-toggle-icon:hover {
   opacity: 0.8;
 }
 
-.toggle.muted {
+.agui-toggle-icon.muted {
   opacity: 0.3;
+}
+.agui-toggle-icon:focus-visible {
+  outline: 2px solid var(--agui-c-focus);
+  outline-offset: -2px;
 }
 </style>

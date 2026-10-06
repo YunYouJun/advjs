@@ -121,6 +121,13 @@ watch(() => props.rootDir, async (newRootDir) => {
 })
 
 const size = ref(64)
+const search = ref('')
+const visibleFileList = computed(() => curFileList.value.filter(item => item.name.toLocaleLowerCase().includes(search.value.trim().toLocaleLowerCase())))
+watch(curDir, () => {
+  search.value = ''
+  selection.clearSelection()
+})
+watch(search, () => selection.clearSelection())
 
 /**
  * click dir in tree
@@ -178,11 +185,8 @@ async function onTreeNodeDblClick(node: TreeNode) {
 const { breadcrumbItems } = useAGUIAssetsExplorer(state)
 const explorerContent = ref<HTMLDivElement>()
 
-// Initialize keyboard shortcuts
-watch(explorerContent, (el) => {
-  if (el)
-    useExplorerKeyboard(state, ops, explorerContent)
-}, { immediate: true })
+// The composable tracks the element ref and cleans up once with the panel.
+useExplorerKeyboard(state, ops, explorerContent, visibleFileList)
 
 const isDragging = ref(false)
 useEventListener(explorerContent, 'dragover', (e: DragEvent) => {
@@ -296,14 +300,15 @@ onMounted(() => {
 
 <template>
   <div class="agui-assets-explorer">
-    <AGUIExplorerControls />
-    <Splitpanes style="height: calc(100% - var(--agui-explorer-controls-height));">
+    <AGUIExplorerControls v-model:search="search" />
+    <Splitpanes class="agui-explorer-panes">
       <Pane size="24">
         <div class="tree-container h-full w-full overflow-auto">
           <AGUITree
             v-if="tree && rootDir"
             class="h-full w-full"
             :data="tree"
+            label="Project folders"
             :context-menu="getTreeContextMenu"
             @node-activate="onNodeActivated"
             @node-dblclick="onTreeNodeDblClick"
@@ -316,32 +321,32 @@ onMounted(() => {
         <div class="agui-assets-panel">
           <AGUIBreadcrumb :items="breadcrumbItems" />
 
-          <ContextMenuRoot>
-            <ContextMenuTrigger as-child @contextmenu="onEmptyAreaContextMenu">
-              <div ref="explorerContent" class="agui-explorer-content" tabindex="0">
+          <div ref="explorerContent" class="agui-explorer-content">
+            <ContextMenuRoot>
+              <ContextMenuTrigger as-child @contextmenu="onEmptyAreaContextMenu">
                 <div
-                  class="h-full p-2" :class="{
+                  class="agui-explorer-list-area" :class="{
                     'is-dragging': isDragging,
                   }"
                 >
-                  <AGUIFileList :size="size" :list="curFileList" />
+                  <AGUIFileList :size="size" :list="visibleFileList" />
                 </div>
-              </div>
-            </ContextMenuTrigger>
-            <ContextMenuPortal>
-              <ContextMenuContent class="ContextMenuContent" :side-offset="5">
-                <AGUIContextMenuItem
-                  v-for="menuItem in emptyAreaMenuItems"
-                  :key="menuItem.id || menuItem.label"
-                  :item="menuItem"
-                />
-              </ContextMenuContent>
-            </ContextMenuPortal>
-          </ContextMenuRoot>
+              </ContextMenuTrigger>
+              <ContextMenuPortal>
+                <ContextMenuContent class="ContextMenuContent" :side-offset="5">
+                  <AGUIContextMenuItem
+                    v-for="menuItem in emptyAreaMenuItems"
+                    :key="menuItem.id || menuItem.label"
+                    :item="menuItem"
+                  />
+                </ContextMenuContent>
+              </ContextMenuPortal>
+            </ContextMenuRoot>
+          </div>
 
           <div class="agui-explorer-footer">
             <span v-if="footerInfo" class="agui-explorer-selection-info">{{ footerInfo }}</span>
-            <AGUISlider v-model="size" style="width:120px" :max="120" :min="12" />
+            <AGUISlider v-model="size" label="Thumbnail size" style="width:120px" :max="120" :min="12" />
           </div>
         </div>
       </Pane>

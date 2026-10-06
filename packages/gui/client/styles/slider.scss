@@ -1,58 +1,56 @@
-.agui-slider {
-  --agui-slider-thumb-track-size: 0.1rem;
-  --agui-slider-thumb-size: 0.72rem;
-
-  --agui-slider-thumb-color: rgba(255, 255, 255, 1);
-}
-
-.agui-slider {
-  -webkit-appearance: none;
-  width: 100%;
-  cursor: pointer;
-
+.agui-slider-container {
   display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  width: 100%;
+  min-height: var(--agui-control-height);
+  .agui-slider-input {
+    flex: 0 0 64px;
+    width: 64px;
+  }
+}
+.agui-slider {
+  appearance: none;
   flex: 1;
-
-  height: var(--agui-slider-thumb-track-size);
-  background: #d3d3d3;
-  outline: none;
-  opacity: 0.7;
-  transition: opacity 0.2s;
-
-  &-container {
-    width: 100%;
+  min-width: 0;
+  width: 100%;
+  height: var(--agui-control-height);
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  &::-webkit-slider-runnable-track {
+    height: 4px;
+    background: var(--agui-c-control-border);
+    border-radius: 2px;
   }
-
-  &:hover {
-    opacity: 1;
+  &::-moz-range-track {
+    height: 4px;
+    background: var(--agui-c-control-border);
+    border-radius: 2px;
   }
-
-  &::-moz-range-thumb {
-    -moz-appearance: none;
-
-    width: var(--agui-slider-thumb-size);
-    height: var(--agui-slider-thumb-size);
-    background-color: var(--agui-slider-thumb-color);
-  }
-
-  &::-webkit-slider-thumb {
-    -webkit-appearance: none;
-
-    border-radius: 50%;
-    width: var(--agui-slider-thumb-size);
-    height: var(--agui-slider-thumb-size);
-    background-color: var(--agui-slider-thumb-color);
-  }
-
-  &::-moz-range-thumb,
   &::-webkit-slider-thumb {
     appearance: none;
-    cursor: pointer;
-    overflow: visible;
+    width: 12px;
+    height: 12px;
+    margin-top: -4px;
+    border: 1px solid var(--agui-c-primary);
+    border-radius: 2px;
+    background: var(--agui-c-primary);
   }
-
-  // slider input
-  &-input {
-    width: 100%;
+  &::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border: 1px solid var(--agui-c-primary);
+    border-radius: 2px;
+    background: var(--agui-c-primary);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--agui-c-focus);
+    outline-offset: -2px;
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }

@@ -7,15 +7,15 @@ const value = ref(123)
 <template>
   <AGUIDemoBlock title="NumberField">
     <AGUIProperty label="TOP">
-      <AGUINumberField v-model="value" location="TOP" />
+      <AGUINumberField v-model="value" label="Demo value" location="TOP" />
     </AGUIProperty>
 
     <AGUIProperty label="MIDDLE">
-      <AGUINumberField v-model="value" location="MIDDLE" />
+      <AGUINumberField v-model="value" label="Demo value" location="MIDDLE" />
     </AGUIProperty>
 
     <AGUIProperty label="BOTTOM">
-      <AGUINumberField v-model="value" location="BOTTOM" />
+      <AGUINumberField v-model="value" label="Demo value" location="BOTTOM" />
     </AGUIProperty>
   </AGUIDemoBlock>
 </template>

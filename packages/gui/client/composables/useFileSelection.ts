@@ -47,8 +47,6 @@ export function useFileSelection() {
     selectedItems.clear()
     for (let i = min; i <= max; i++)
       selectedItems.add(list[i])
-
-    lastSelectedItem.value = item
   }
 
   function selectAll(list: FSItem[]) {

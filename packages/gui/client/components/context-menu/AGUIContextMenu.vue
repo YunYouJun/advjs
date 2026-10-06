@@ -174,7 +174,8 @@ withDefaults(defineProps<{
 .ContextMenuContent,
 .ContextMenuSubContent {
   min-width: 220px;
-  background-color: rgba(22, 22, 22, 0.95);
+  background-color: var(--agui-c-bg-panel);
+  border: 1px solid var(--agui-c-divider);
   border-radius: 6px;
   overflow: hidden;
   padding: 5px;
@@ -202,21 +203,21 @@ withDefaults(defineProps<{
 }
 .ContextMenuSubTrigger[data-state='open'] {
   background-color: var(--agui-c-active);
-  color: var(--agui-c-text-1);
+  color: var(--agui-c-on-accent);
 }
 .agui-context-menu-item[data-disabled],
 .ContextMenuCheckboxItem[data-disabled],
 .ContextMenuRadioItem[data-disabled],
 .ContextMenuSubTrigger[data-disabled] {
   color: var(--agui-c-text-3);
-  pointer-events: 'none';
+  pointer-events: none;
 }
 .agui-context-menu-item[data-highlighted],
 .ContextMenuCheckboxItem[data-highlighted],
 .ContextMenuRadioItem[data-highlighted],
 .ContextMenuSubTrigger[data-highlighted] {
   background-color: var(--agui-c-active);
-  color: white;
+  color: var(--agui-c-on-accent);
 }
 
 .agui-context-menu-label {
@@ -228,7 +229,7 @@ withDefaults(defineProps<{
 
 .ContextMenuSeparator {
   height: 1px;
-  background-color: var(--black-a6);
+  background-color: var(--agui-c-divider);
   margin: 5px;
 }
 
@@ -247,13 +248,13 @@ withDefaults(defineProps<{
   color: var(--agui-c-text-3);
 }
 [data-highlighted] > .RightSlot {
-  color: white;
+  color: var(--agui-c-on-accent);
 }
 [data-disabled] .RightSlot {
   color: var(--agui-c-text-4);
 }
 
 .agui-context-menu-content {
-  background-color: rgba(33, 33, 33, 0.9);
+  background-color: var(--agui-c-bg-panel);
 }
 </style>

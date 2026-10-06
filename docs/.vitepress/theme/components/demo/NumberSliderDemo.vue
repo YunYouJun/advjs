@@ -7,19 +7,19 @@ const value = ref(50)
 <template>
   <AGUIDemoBlock title="Number Slider">
     <AGUIProperty label="default">
-      <AGUINumberSlider v-model="value" :step="1" :min="0" :max="100" />
+      <AGUINumberSlider v-model="value" label="Demo value" :step="1" :min="0" :max="100" />
     </AGUIProperty>
 
     <AGUIProperty
       label="Min Max"
     >
-      <AGUINumberSlider v-model="value" :step="1" :min="0" :max="100" />
+      <AGUINumberSlider v-model="value" label="Demo value" :step="1" :min="0" :max="100" />
     </AGUIProperty>
 
     <AGUIProperty
       label="Title"
     >
-      <AGUINumberSlider v-model="value" title="Title" :step="1" :min="0" :max="100" />
+      <AGUINumberSlider v-model="value" label="Demo value" title="Title" :step="1" :min="0" :max="100" />
     </AGUIProperty>
   </AGUIDemoBlock>
 </template>

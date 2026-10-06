@@ -12,10 +12,10 @@ defineProps<{
       <li v-for="(item, index) in items" :key="index" class="agui-breadcrumb-item" :class="{ active: index === items.length - 1 }">
         <a
           v-if="index < items.length - 1"
-          :href="item.href"
+          :href="item.href || '#'"
           @click.prevent="item.onClick?.()"
         >{{ item.label }}</a>
-        <span v-else>{{ item.label }}</span>
+        <span v-else aria-current="location">{{ item.label }}</span>
       </li>
     </ol>
   </nav>
@@ -26,7 +26,9 @@ defineProps<{
   display: flex;
   background-color: var(--agui-c-bg-panel-title);
 
-  height: 20px;
+  min-height: 24px;
+  flex-shrink: 0;
+  overflow-x: auto;
 
   .agui-breadcrumb {
     display: flex;
@@ -36,7 +38,8 @@ defineProps<{
     background: transparent;
 
     font-size: 12px;
-    line-height: 1;
+    line-height: 16px;
+    white-space: nowrap;
   }
 
   .agui-breadcrumb-item {
@@ -44,20 +47,24 @@ defineProps<{
 
     a {
       cursor: pointer;
-      color: #ccc;
+      color: var(--agui-c-text-2);
+      &:focus-visible {
+        outline: 2px solid var(--agui-c-focus);
+        outline-offset: 1px;
+      }
       text-decoration: none;
     }
 
     &.active {
-      color: #eee;
-      font-weight: bold;
+      color: var(--agui-c-text-1);
+      font-weight: 500;
     }
   }
 
   .agui-breadcrumb-item + .agui-breadcrumb-item::before {
     content: '>';
     padding: 0 5px;
-    color: #6c757d;
+    color: var(--agui-c-text-2);
   }
 }
 </style>

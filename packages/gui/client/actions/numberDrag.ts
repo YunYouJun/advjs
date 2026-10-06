@@ -1,117 +1,65 @@
 import type { Directive } from 'vue'
-import { ref } from 'vue'
-
-let pointerLockSupported = true
+import { clampNumber, stepNumber } from '../components/input/numeric'
 
 export interface Config {
-  props: {
-    modelValue: number
-    step?: number
-    min?: number
-    max?: number
-  }
+  props: { modelValue: number, step?: number, min?: number, max?: number, disabled?: boolean }
   onChange: (value: number) => void
-  onClick?: (e: MouseEvent) => void
-  onDown?: (e: MouseEvent) => void
-  onUp?: (e: MouseEvent) => void
+  onClick?: (event: PointerEvent) => void
+  onDown?: (event: PointerEvent) => void
+  onUp?: (event: PointerEvent) => void
 }
 
-export default function numberDrag(config: Config): Directive {
-  const elRef = ref<HTMLElement>()
-  let started:
-    | {
-      moved: number
-      value: number
-      ts: number
-    }
-    | undefined
-
+/** Pointer capture keeps scrubbing local, including cancellation and unmount. */
+export default function numberDrag(config: Config): Directive<HTMLElement> {
+  let started: { x: number, value: number, pointerId: number, moved: boolean } | undefined
   const { props } = config
-
-  function onMousedown(e: MouseEvent) {
-    if (!props.step)
+  function down(event: PointerEvent) {
+    if (event.button !== 0 || props.disabled || !props.step || !Number.isFinite(props.modelValue))
       return
-
-    config.onDown?.(e)
-    if (typeof props.modelValue === 'number') {
-      started = {
-        moved: 0,
-        value: props.modelValue,
-        ts: Date.now(),
-      }
-      document.addEventListener('mousemove', onMousemove)
-      if (e.target === elRef.value)
-        requestPointerLock(elRef.value)
-    }
+    event.preventDefault()
+    started = { x: event.clientX, value: props.modelValue, pointerId: event.pointerId, moved: false }
+    ;(event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId)
+    config.onDown?.(event)
   }
-
-  function onMouseup(e: MouseEvent) {
-    config.onUp?.(e)
-    if (!started)
+  function move(event: PointerEvent) {
+    if (!started || event.pointerId !== started.pointerId || props.disabled || !props.step)
       return
-
-    document.removeEventListener('mousemove', onMousemove)
-    if (pointerLockSupported)
-      document.exitPointerLock()
-
-    if (started.moved === 0)
-      config?.onClick?.(e)
-
+    const distance = event.clientX - started.x
+    if (!started.moved && Math.abs(distance) < 3)
+      return
+    started.moved = true
+    const step = event.shiftKey ? props.step / 20 : props.step
+    let next = stepNumber(started.value, distance * step)
+    if (event.ctrlKey) {
+      const snap = props.step * (event.shiftKey ? 1 : 10)
+      next = Number((Math.round(next / snap) * snap).toPrecision(15))
+    }
+    config.onChange(clampNumber(next, props.min, props.max))
+  }
+  function up(event: PointerEvent) {
+    if (!started || event.pointerId !== started.pointerId)
+      return
+    const click = !started.moved && event.type === 'pointerup' && !props.disabled
     started = undefined
+    config.onUp?.(event)
+    if (click)
+      config.onClick?.(event)
   }
-
-  function onMousemove(e: MouseEvent) {
-    if (!started || !props.step)
-      return
-
-    if (started.moved === 0) {
-      // The first mousemove event Firefox has misbehaving movementX values, bug 1417702
-      started.moved = Math.min(1, Math.max(e.movementX, -1))
-    }
-    else {
-      started.moved += e.movementX
-    }
-
-    const mouseStep = e.shiftKey ? props.step / 20 : props.step
-    const offset = started.moved * mouseStep
-    let value = started.value + offset
-    if (e.ctrlKey) {
-      const rest = value % (props.step * (e.shiftKey ? 1 : 10))
-      value -= rest
-    }
-
-    if (typeof props.min === 'number' && value < props.min)
-      value = props.min
-
-    if (typeof props.max === 'number' && value > props.max)
-      value = props.max
-
-    config.onChange(value)
-  }
-
   return {
-    mounted: (el) => {
-      elRef.value = el
-      el.addEventListener('mousedown', onMousedown)
-      document.addEventListener('mouseup', onMouseup)
+    mounted(el) {
+      el.addEventListener('pointerdown', down)
+      el.addEventListener('pointermove', move)
+      el.addEventListener('pointerup', up)
+      el.addEventListener('pointercancel', up)
+      el.addEventListener('lostpointercapture', up)
     },
     unmounted(el) {
-      el.removeEventListener('mousedown', onMousedown)
-      document.removeEventListener('mouseup', onMouseup)
-      document.removeEventListener('mousemove', onMousemove)
+      started = undefined
+      el.removeEventListener('pointerdown', down)
+      el.removeEventListener('pointermove', move)
+      el.removeEventListener('pointerup', up)
+      el.removeEventListener('pointercancel', up)
+      el.removeEventListener('lostpointercapture', up)
     },
-  }
-}
-
-async function requestPointerLock(el: HTMLElement) {
-  if (!pointerLockSupported)
-    return
-
-  try {
-    await el.requestPointerLock()
-  }
-  catch (err) {
-    console.warn(err)
-    pointerLockSupported = false
   }
 }

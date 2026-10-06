@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { FSDirItem, FSFileItem, FSItem } from './types'
-import { onClickOutside, useEventListener } from '@vueuse/core'
-import { computed, nextTick, ref, watch, watchEffect } from 'vue'
+import { useEventListener } from '@vueuse/core'
+import { computed, nextTick, onBeforeUnmount, ref, watch, watchEffect } from 'vue'
 import { listFilesInDir, useAGUIAssetsExplorerState } from '../../composables'
 import AGUIFileItemIcon from './AGUIFileItemIcon.vue'
 
@@ -10,6 +10,7 @@ import { getIconFromFSItem } from './utils'
 const props = withDefaults(defineProps<{
   item: FSItem
   size?: number
+  selectableItems?: FSItem[]
 }>(), {
   size: 32,
 })
@@ -25,13 +26,6 @@ const isCut = computed(() => {
 })
 
 const fileItemRef = ref<HTMLElement>()
-
-// Keep original onClickOutside behavior: clear selection when clicking outside
-onClickOutside(fileItemRef, () => {
-  // only clear this item from selection if it's the only one selected
-  if (selection.selectedItems.size <= 1 && isSelected.value)
-    selection.clearSelection()
-})
 
 // Inline rename
 const renameInputRef = ref<HTMLInputElement>()
@@ -56,17 +50,8 @@ watch(isRenaming, async (val) => {
   }
 })
 
-const fontSize = computed(() => {
-  const min = 12
-  const max = 120
-  const percentage = (props.size - min) / (max - min)
-  return percentage * 6 + 8
-})
-
-const cssVars = computed(() => ({
-  '--icon-size': `${props.size}px`,
-  '--font-size': `${fontSize.value}px`,
-}))
+onBeforeUnmount(() => clearTimeout(slowClickTimer))
+const cssVars = computed(() => ({ '--icon-size': `${props.size}px` }))
 
 function onDragStart(e: DragEvent) {
   e.dataTransfer?.clearData()
@@ -157,13 +142,14 @@ function onClick(e: MouseEvent) {
   if (isRenaming.value)
     return
 
+  fileItemRef.value?.focus()
   const wasSelected = isSelected.value
 
   if (e.ctrlKey || e.metaKey) {
     selection.toggleSelect(props.item)
   }
   else if (e.shiftKey) {
-    selection.rangeSelect(props.item, state.curFileList.value)
+    selection.rangeSelect(props.item, props.selectableItems ?? state.curFileList.value)
   }
   else {
     selection.select(props.item)
@@ -189,6 +175,8 @@ function onClick(e: MouseEvent) {
  * Confirm rename
  */
 function confirmRename() {
+  if (!isRenaming.value)
+    return
   const newName = renameValue.value.trim()
   if (newName && newName !== props.item.name) {
     const event = new CustomEvent('agui-rename', {
@@ -198,19 +186,23 @@ function confirmRename() {
     fileItemRef.value?.dispatchEvent(event)
   }
   selection.stopRenaming()
+  nextTick(() => fileItemRef.value?.focus())
 }
 
 function cancelRename() {
   selection.stopRenaming()
+  nextTick(() => fileItemRef.value?.focus())
 }
 
 function onRenameKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter') {
     e.preventDefault()
+    e.stopPropagation()
     confirmRename()
   }
   else if (e.key === 'Escape') {
     e.preventDefault()
+    e.stopPropagation()
     cancelRename()
   }
 }
@@ -220,6 +212,10 @@ function onRenameKeydown(e: KeyboardEvent) {
   <div
     ref="fileItemRef"
     class="agui-file-item"
+    role="option"
+    :aria-selected="isSelected"
+    :aria-label="item.name"
+    :title="item.name"
     :class="{
       'selected': isSelected,
       'active': isSelected,
@@ -229,7 +225,6 @@ function onRenameKeydown(e: KeyboardEvent) {
     :style="cssVars"
     draggable="true"
     @click="onClick"
-    @blur="selection.clearSelection()"
   >
     <AGUIFileItemIcon :file-icon="fileIcon || ''" />
 
@@ -238,6 +233,7 @@ function onRenameKeydown(e: KeyboardEvent) {
         ref="renameInputRef"
         v-model="renameValue"
         class="agui-rename-input"
+        :aria-label="`Rename ${item.name}`"
         @keydown="onRenameKeydown"
         @blur="confirmRename"
         @click.stop
@@ -251,104 +247,74 @@ function onRenameKeydown(e: KeyboardEvent) {
 </template>
 
 <style lang="scss">
-.with-thumbnail {
-  .agui-file-item {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    // icon + file name label, add some padding room
-    height: calc(var(--icon-size, 32px) + var(--font-size, 12px) + 8px);
-
-    .agui-file-name {
-      display: block;
-      text-align: center;
-      font-size: var(--font-size, 12px);
-    }
-
-    &.active {
-      background-color: rgba(255, 255, 255, 0.1);
-      .agui-file-name {
-        color: white;
-        background-color: var(--agui-c-active);
-      }
-    }
-
-    .agui-file-icon {
-      width: var(--icon-size, 32px);
-      height: var(--icon-size, 32px);
-
-      font-size: calc(var(--icon-size, 32px) * 0.8);
-    }
-  }
-}
-
 .agui-file-item {
   display: flex;
-  flex-direction: row;
   align-items: center;
-  height: var(--icon-size, 32px);
-
+  min-width: 0;
+  min-height: var(--agui-control-height);
+  color: var(--agui-c-text-1);
+  border-radius: 2px;
+  font-size: 12px;
   cursor: pointer;
-
-  font-size: 14px;
-
+  &:hover {
+    background: var(--agui-c-bg-hover);
+  }
+  &.active {
+    color: var(--agui-c-selection-text);
+    background: var(--agui-c-selection);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--agui-c-focus);
+    outline-offset: -2px;
+  }
+  &.is-cut {
+    opacity: 0.5;
+  }
   .agui-file-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-
-    padding: 2px;
-
-    font-size: 12px;
-
-    width: var(--icon-size, 32px);
-    height: var(--icon-size, 32px);
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    font-size: 16px;
   }
-
   .agui-file-name {
-    font-size: 12px;
-
-    display: flex;
-
-    line-height: 1;
-
-    width: 100%;
-
-    padding: 2px;
-    border-radius: 2px;
-
+    min-width: 0;
+    flex: 1;
+    padding: 2px 4px;
+    line-height: 20px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-
-  .agui-file-name-editing {
-    overflow: visible;
-  }
-
   .agui-rename-input {
+    box-sizing: border-box;
     width: 100%;
-    font-size: inherit;
-    padding: 1px 2px;
-    border: 1px solid var(--agui-c-active);
+    min-width: 0;
+    padding: 0 2px;
+    font: inherit;
+    line-height: 20px;
+    border: 1px solid var(--agui-c-control-border);
     border-radius: 2px;
-    background: var(--agui-c-bg-panel);
-    color: var(--agui-c-text);
-    outline: none;
-
-    &:focus {
-      border-color: var(--agui-c-active);
-      box-shadow: 0 0 0 1px var(--agui-c-active);
-    }
+    color: var(--agui-c-text-1);
+    background: var(--agui-c-field);
+    outline: 2px solid var(--agui-c-focus);
+    outline-offset: -2px;
   }
-
-  &.active {
-    border-radius: 4px;
-    background-color: var(--agui-c-active);
+}
+.agui-file-list.with-thumbnail .agui-file-item {
+  flex-direction: column;
+  padding: 4px;
+  .agui-file-icon {
+    width: var(--icon-size);
+    height: var(--icon-size);
+    font-size: calc(var(--icon-size) * 0.8);
   }
-
-  &.is-cut {
-    opacity: 0.5;
+  .agui-file-name {
+    box-sizing: border-box;
+    width: 100%;
+    text-align: center;
   }
 }
 </style>

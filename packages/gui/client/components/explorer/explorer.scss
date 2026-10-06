@@ -1,73 +1,59 @@
 .agui-assets-explorer {
-  --agui-explorer-controls-height: 28px;
-  --agui-explorer-footer-height: 26px;
-
-  --agui-explorer-main-content-height: calc(100% - var(--agui-explorer-controls-height, 32px));
-
+  --agui-explorer-controls-height: 30px;
   display: flex;
   flex-direction: column;
-  // height: var(--agui-explorer-main-content-height);
   height: 100%;
-
+  min-height: 0;
+  min-width: 0;
+  color: var(--agui-c-text-1);
+  background: var(--agui-c-bg-panel);
+  .agui-explorer-panes {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+  }
   .agui-assets-panel {
+    width: 100%;
     display: flex;
     flex-direction: column;
-
-    width: 100%;
+    min-width: 0;
+    min-height: 0;
     height: 100%;
   }
-
   .agui-explorer-content {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    // flex-grow: 1;
-
-    // padding: 8px;
-    overflow-x: hidden;
-    overflow-y: auto;
-    background-color: var(--agui-c-bg-panel);
-
-    height: calc(100% - var(--agui-explorer-footer-height) - var(--agui-explorer-breadcrumb-height, 20px));
-
-    /* 整个滚动条 */
-    &::-webkit-scrollbar {
-      width: 10px; /* 滚动条的宽度 */
-      height: 10px; /* 滚动条的高度，水平滚动条时使用 */
-    }
-
-    /* 滚动条轨道 */
-    &::-webkit-scrollbar-track {
-      background: #333; /* 轨道的颜色 */
-    }
-
-    /* 滚动条的滑块 */
-    &::-webkit-scrollbar-thumb {
-      border-radius: 4px;
-      background: #888; /* 滑块的颜色 */
-    }
-
-    /* 滑块hover效果 */
-    &::-webkit-scrollbar-thumb:hover {
-      background: #555; /* 滑块hover时的颜色 */
-    }
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    background: var(--agui-c-bg-panel);
   }
-
+  .agui-explorer-list-area {
+    box-sizing: border-box;
+    min-height: 100%;
+    padding: 4px;
+  }
+  .agui-explorer-list-area.is-dragging {
+    outline: 2px solid var(--agui-c-focus);
+    outline-offset: -2px;
+  }
   .agui-explorer-footer {
     display: flex;
-    justify-content: right;
     align-items: center;
-    gap: 8px;
-
-    padding: 8px;
-
-    height: var(--agui-explorer-footer-height);
-    background-color: var(--agui-c-bg-panel-title);
-
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    min-height: 28px;
+    padding: 2px 8px;
+    border-top: 1px solid var(--agui-c-divider);
+    background: var(--agui-c-bg-panel-title);
     .agui-explorer-selection-info {
+      flex: 1;
+      min-width: 0;
       font-size: 11px;
+      overflow-wrap: anywhere;
       color: var(--agui-c-text-2);
-      margin-right: auto;
+    }
+    .agui-slider-container {
+      margin-left: auto;
     }
   }
 }
