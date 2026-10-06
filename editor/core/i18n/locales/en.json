@@ -81,11 +81,13 @@
     "light": "Light"
   },
   "splash": {
-    "initializing": "Initializing editor...",
-    "modules": "Loading core modules...",
-    "workspace": "Preparing workspace...",
-    "almostReady": "Almost ready...",
-    "ready": "Ready"
+    "preferences": "Restoring preferences...",
+    "extensions": "Activating editor modules...",
+    "workspace": "Connecting and reading project data...",
+    "ready": "Ready",
+    "completed": "{completed}/{total} steps complete",
+    "failed": "Startup failed: {task}",
+    "retry": "Retry"
   },
   "onboarding": {
     "welcome": "Welcome to ADV.JS Editor",

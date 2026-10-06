@@ -8,12 +8,10 @@ definePageMeta({
 const app = useAppStore()
 const { onboarded } = useEditorLocale()
 
-const showSplash = ref(true)
 const showOnboarding = ref(false)
 
-function onSplashComplete() {
-  showSplash.value = false
-
+// The root mounts this page only after preferences and workspace are ready.
+onMounted(() => {
   if (!onboarded.value) {
     showOnboarding.value = true
   }
@@ -24,13 +22,11 @@ function onSplashComplete() {
       duration: 3000,
     })
   }
-}
+})
 </script>
 
 <template>
   <main class="flex flex-col h-screen w-screen">
-    <AEEditorSplash :show="showSplash" @complete="onSplashComplete" />
-
     <EditorMenubar />
     <EditorToolbar />
 

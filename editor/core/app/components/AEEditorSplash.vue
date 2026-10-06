@@ -1,74 +1,26 @@
 <script setup lang="ts">
-defineProps<{
+import type { EditorStartupState } from '../startup'
+import { AGUIButton } from '@advjs/gui'
+
+const props = defineProps<{
   show: boolean
+  state: Readonly<EditorStartupState>
 }>()
 
-const emit = defineEmits<{
-  (e: 'complete'): void
+defineEmits<{
+  (e: 'retry'): void
 }>()
 
 const { t } = useI18n()
-const progress = ref(0)
-const status = shallowRef('initializing')
-const statusText = computed(() => t(`splash.${status.value}`))
-
-const stages = [
-  { target: 20, text: 'initializing' },
-  { target: 50, text: 'modules' },
-  { target: 80, text: 'workspace' },
-  { target: 95, text: 'almostReady' },
-]
-
-let animationFrame: number | null = null
-
-function animateProgress(from: number, to: number, text: string, duration: number): Promise<void> {
-  return new Promise((resolve) => {
-    status.value = text
-    const start = performance.now()
-    function step(now: number) {
-      const elapsed = now - start
-      const t = Math.min(elapsed / duration, 1)
-      // Ease out cubic
-      const eased = 1 - (1 - t) ** 3
-      progress.value = from + (to - from) * eased
-      if (t < 1) {
-        animationFrame = requestAnimationFrame(step)
-      }
-      else {
-        resolve()
-      }
-    }
-    animationFrame = requestAnimationFrame(step)
-  })
-}
-
-async function runProgress() {
-  let current = 0
-  for (const stage of stages) {
-    await animateProgress(current, stage.target, stage.text, 120 + Math.random() * 80)
-    current = stage.target
-  }
-  // Final push to 100
-  await animateProgress(current, 100, 'ready', 100)
-  // Small delay before fade out
-  await new Promise(r => setTimeout(r, 100))
-  emit('complete')
-}
-
-onMounted(() => {
-  runProgress()
-})
-
-onUnmounted(() => {
-  if (animationFrame)
-    cancelAnimationFrame(animationFrame)
-})
+const statusText = computed(() => t(`splash.${props.state.phase}`))
+const progressText = computed(() => t('splash.completed', { completed: props.state.completed, total: props.state.total }))
 </script>
 
 <template>
   <Transition name="ae-splash-fade">
     <div
       v-if="show"
+      :aria-busy="state.status === 'loading'"
       class="ae-editor-splash fixed inset-0 z-9999 flex flex-col items-center justify-center"
     >
       <!-- Logo area -->
@@ -98,20 +50,37 @@ onUnmounted(() => {
       </div>
 
       <!-- Progress bar -->
-      <div class="w-80 flex flex-col items-center gap-3">
+      <div class="ae-splash-content flex flex-col gap-3 items-center">
         <div
+          role="progressbar"
+          :aria-label="statusText"
+          :aria-valuemin="0"
+          :aria-valuemax="state.total"
+          :aria-valuenow="state.completed"
+          :aria-valuetext="progressText"
           class="ae-splash-track h-1 w-full overflow-hidden rounded-full"
         >
           <div
-            class="ae-splash-progress h-full rounded-full transition-none"
-            :style="{ width: `${progress}%` }"
+            class="ae-splash-progress h-full rounded-full"
+            :class="{ 'ae-splash-progress-busy': state.status === 'loading' }"
+            :style="{ width: `${state.progress}%` }"
           />
         </div>
-        <div
-          class="ae-splash-secondary text-xs"
-        >
+        <div role="status" aria-live="polite" class="ae-splash-secondary text-xs text-center">
           {{ statusText }}
+          <span class="mt-1 block">{{ progressText }}</span>
         </div>
+        <template v-if="state.status === 'error'">
+          <div role="alert" class="ae-splash-error text-xs text-center">
+            <p>{{ t('splash.failed', { task: statusText }) }}</p>
+            <p class="ae-splash-secondary">
+              {{ state.error }}
+            </p>
+          </div>
+          <AGUIButton theme="primary" @click="$emit('retry')">
+            {{ t('splash.retry') }}
+          </AGUIButton>
+        </template>
       </div>
 
       <!-- Version -->
@@ -130,6 +99,18 @@ onUnmounted(() => {
   background: var(--agui-c-bg);
 }
 
+.ae-splash-content {
+  width: min(320px, calc(100vw - 32px));
+}
+
+.ae-splash-error {
+  max-width: 100%;
+  max-height: 25vh;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  color: var(--agui-c-danger-text);
+}
+
 .ae-splash-logo {
   color: var(--agui-c-blue);
 }
@@ -144,6 +125,17 @@ onUnmounted(() => {
 
 .ae-splash-progress {
   background: var(--agui-c-primary);
+  transition: width 120ms ease-out;
+}
+
+.ae-splash-progress-busy {
+  animation: ae-splash-pulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes ae-splash-pulse {
+  to {
+    opacity: 0.55;
+  }
 }
 
 .ae-splash-fade-leave-active {
@@ -155,8 +147,13 @@ onUnmounted(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .ae-splash-progress,
   .ae-splash-fade-leave-active {
     transition: none;
+  }
+
+  .ae-splash-progress-busy {
+    animation: none;
   }
 }
 </style>

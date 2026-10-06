@@ -1,6 +1,6 @@
 # Electron 桌面客户端验收报告
 
-日期：2026-10-06。首版平台为 macOS arm64。A1–A12 全部通过。最终打包客户端 11 项端到端测试通过（54.9 秒），Studio 生产页面完整回归连续两次通过（29.1 秒）。功能提交已按 Conventional Commits 推送到 `origin/dev` 并核验远端 SHA；本次补记最终交付记录。后续语言与加载 Logo 修复已重新打包并通过 13 项端到端回归，见本文复验章节。
+日期：2026-10-06。首版平台为 macOS arm64。A1–A12 全部通过。最终打包客户端 11 项端到端测试通过（54.9 秒），Studio 生产页面完整回归连续两次通过（29.1 秒）。功能提交已按 Conventional Commits 推送到 `origin/dev` 并核验远端 SHA；本次补记最终交付记录。后续语言、Logo、AGUI 配色和真实启动进度均已重新打包；2026-10-07 完整 15 项端到端回归通过，见本文复验章节。
 
 ## 环境、来源与产物
 
@@ -20,7 +20,7 @@
 仓库内同步副本为 `apps/desktop/out/ADV.JS Editor-darwin-arm64/ADV.JS Editor.app` 及 `apps/desktop/out/make/zip/darwin/arm64/ADV.JS Editor-darwin-arm64-0.1.4.zip`。应用约 863 MiB，分发 ZIP 约 273 MiB。分发 ZIP SHA-256：
 
 ```text
-525ff31ad1e3a05a195c0dbbce819673b73b4a3e87bdeef3a58449b59a713d18
+481311416e3e43ba8bd9fd6689ec5491f3fa3d97243776e9b44ddf1faa530509
 ```
 
 `final/package-verification.json` 记录 ASAR 与 ZIP 的 hash、剥离 Forge 开发配置后的应用元数据，以及 2,126 条全部位于应用运行时内部的 symlink。运行时没有指向仓库或独立验证快照的链接。
@@ -123,6 +123,20 @@ Studio 回归配置启动已构建的静态 preview，使用 Chrome stable；首
 独立源码快照通过 Editor 生产构建和 vue-tsc，再次生成 macOS arm64 `.app` 与 ZIP。仓库外应用以 `PATH=/usr/bin:/bin` 启动，实际捕获暗色／亮色 × 1440×900／320×600 四张截图，背景与宿主一致、辅助文字和进度条使用共享颜色、无发光或横向溢出，加载正常完成。证据为 `splash-theme-{dark,light}-{desktop,narrow}.png` 与 `splash-theme.json`，捕获脚本保存在 `final/evidence/capture-splash-theme.mjs`。加载页无操作控件；未修改共享组件，本次未重新执行 Studio 或全部游戏导出流程。
 
 现有桌面语言／引导／跨项目／重启回归和 Web 语言回归 2 项通过（19.1 秒），日志 `advjs-splash-theme-preferences.log`。ESLint 0 errors，保留 8 条既有 UnoCSS 排序 warnings；只暂存本次配色 hunk，未纳入已有样式排序或其他工作区改动。应用内 2,126 条 symlink 均位于运行时内部，ASAR 宿主 hash 保持不变。当前分发 ZIP hash 见报告顶部，旧客户端保留为 `final/before-splash-theme-fix.app` 和 `final/before-splash-theme-fix.zip`。
+
+## 真实预加载与动画关联复验
+
+2026-10-07：移除依靠随机时长推进的开屏动画。应用根节点现在依次等待语言偏好恢复、编辑器扩展启用，以及本地项目服务连接／项目文件和场景资源映射读取；所有路由（含直接进入角色页）在成功后才挂载工作区和首次语言引导。必需扩展启用失败会阻止进入工作区；可选扩展仍按原有隔离契约处理。
+
+进度条表示已完成阶段（0/3、1/3、2/3、3/3），按真实 Promise 完成事件推进，并用 120ms CSS 过渡连接各阶段；等待时轻微明暗变化，全部完成后 150ms 淡出，不再设置最低展示时间。尊重减少动态效果偏好。失败保留未完成阶段与错误信息，提供 AGUI 重试按钮，重试从失败阶段继续，已完成偏好／模块不会重复初始化。没有项目时该阶段直接完成；不提前下载整个音频／图片库，游戏资源保留按需加载行为。
+
+新增启动控制器单测 6 项，与扩展生命周期 20 项单测共 26 项通过。覆盖真实任务阻塞、推进顺序、三种阶段失败及重试、重复点击、退出后延迟完成／失败不会改写启动状态。独立快照再次通过 Editor 生产构建、vue-tsc 和 ESLint（0 errors，7 条保留的既有 UnoCSS 排序 warnings），随后生成真实 macOS arm64 `.app` 和 ZIP。
+
+仓库外应用以 `PATH=/usr/bin:/bin`、空 `NODE_PATH`／`NODE_OPTIONS` 运行，实际拦住项目 HTTP 读取超过原开屏时长，确认始终停留 2/3 且工作区未挂载；项目响应放行后继续拦住场景资源响应，进度仍不提前完成。随后放行进入工作区。模拟读取 503，确认错误、未满进度和等待动画停止；用 Tab / Enter 聚焦并重试成功。正常桌面 1440×900 与 320×600、亮暗主题无溢出，SVG Logo 和 AGUI 配色保持一致。证据为 `startup-{dark,light}-{desktop,narrow}.png`、`startup-error-narrow.png`、`startup.json`；Web 空会话、直接路由和错误重试记录为 `startup-web.json`。截图通过阻塞真实请求保留加载状态，未加入生产测试开关或固定计时器。
+
+完整 Electron／Web 专项共 15 项端到端测试全部通过（2.4 分钟），包括原有角色／立绘／音频保存重开、外部刷新、预览、目录与 ZIP 导出、Electron 关闭后的独立静态运行、权限边界，以及语言／引导跨项目和重启恢复。独立快照 Web 本地编辑集成 1 项通过（8.5 秒）；原脏工作区生产构建、类型检查通过；额外 Web 回归首次记录布局资源 Event 异常，后续对照未改启动逻辑的独立 UI 副本和当前 UI 均通过布局验证，未复现该异常。当前项目编辑及布局流程两项联合重跑通过（7.5 秒）；恢复测试因两个同名打开按钮触发选择器严格匹配失败。保持原恢复测试内容，以临时副本将选择器限定于 Project 面板后，真实 IndexedDB 恢复／权限点击／移除流程通过（3.4 秒）；既有恢复和布局实现未纳入提交。此变更仅影响 Editor 启动；Studio 保持前次 420 项单测与两次生产工作流的验收记录，本轮未重复执行。
+
+日志为 `advjs-startup-{units,lint,types,editor-build,stage,make,packaged-all,web-integration,working-build,working-types,working-web,working-web-final,working-recovery-scoped,baseline-layout-all,current-layout}.log`。本任务逐文件／逐 hunk 暂存，保留已有浏览器恢复、样式排序、依赖与文档改动。最终应用及 ZIP 同步到原交付路径；旧版保留为 `final/before-startup-fix.app`、`final/before-startup-fix.zip`，本轮 Web 导出与源项目副本也已保存。当前分发 hash 见报告顶部；之前 AGUI 配色版 ZIP hash 为 `525ff31ad1e3a05a195c0dbbce819673b73b4a3e87bdeef3a58449b59a713d18`。应用内 2,126 条运行时 symlink 均在包内，宿主 ASAR 未变化。
 
 ## 支持边界及平台
 

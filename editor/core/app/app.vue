@@ -8,6 +8,7 @@ import { appName } from '~/constants'
 import { injectionAdvContext } from '../../../packages/client/constants'
 
 import { useEditorExtensions } from './composables/useEditorExtensions'
+import { createEditorStartup } from './startup'
 import './styles'
 
 const colorMode = useColorMode()
@@ -37,30 +38,40 @@ nuxtApp.vueApp.provide(advConfigSymbol, advContext.config || {})
 nuxtApp.vueApp.provide(gameConfigSymbol, advContext.gameConfig)
 nuxtApp.vueApp.provide(themeConfigSymbol, advContext.themeConfig)
 const projectStore = useProjectStore()
-useEditorExtensions()
+const extensions = useEditorExtensions()
 useDesktopHost()
 
-onMounted(async () => {
+// Register setup-bound composables before running asynchronous startup tasks.
+const { initLocale } = useEditorLocale()
+const { state: startupState, start: startEditor, dispose: disposeStartup } = createEditorStartup([
+  { id: 'preferences', run: initLocale },
+  { id: 'extensions', run: extensions.start },
+  { id: 'workspace', run: async () => {
+    if (await projectStore.connectLocalBridgeFromLaunch()) {
+      window.history.replaceState(window.history.state, '', `${window.location.pathname}${window.location.search}`)
+      consoleStore.success('Local workspace connected')
+    }
+  } },
+])
+
+onMounted(() => {
   // @advjs/gui
   mountCssVarsRootStyle()
 
   consoleStore.info('ADVJS Context initialized.')
-  if (await projectStore.connectLocalBridgeFromLaunch()) {
-    window.history.replaceState(window.history.state, '', `${window.location.pathname}${window.location.search}`)
-    consoleStore.success('Local workspace connected')
-  }
+  void startEditor()
 })
 
-onBeforeUnmount(() => projectStore.disconnectLocalBridge())
-
-// Restore preferences before rendering any route or first-run dialog.
-const { initLocale } = useEditorLocale()
-await initLocale()
+onBeforeUnmount(() => {
+  disposeStartup()
+  projectStore.disconnectLocalBridge()
+})
 </script>
 
 <template>
   <VitePwaManifest />
-  <NuxtLayout>
+  <AEEditorSplash :show="startupState.status !== 'ready'" :state="startupState" @retry="startEditor" />
+  <NuxtLayout v-if="startupState.status === 'ready'">
     <NuxtPage />
   </NuxtLayout>
 </template>

@@ -32,7 +32,6 @@ export function useEditorExtensions() {
   const layout = createEditorLayoutState(storage)
   provide(editorExtensionHostKey, host)
   provide(editorLayoutStateKey, layout)
-  void host.start()
   const dispose = () => {
     void host.dispose()
     layout.dispose()
@@ -41,4 +40,12 @@ export function useEditorExtensions() {
   onScopeDispose(dispose)
   if (import.meta.hot)
     import.meta.hot.dispose(dispose)
+  return {
+    async start() {
+      await host.start()
+      const failed = host.entries.find(entry => entry.required && entry.status === 'error')
+      if (failed)
+        throw new Error(`${failed.plugin.id}: ${failed.error}`)
+    },
+  }
 }

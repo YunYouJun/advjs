@@ -81,11 +81,13 @@
     "light": "亮色"
   },
   "splash": {
-    "initializing": "正在初始化编辑器…",
-    "modules": "正在加载核心模块…",
-    "workspace": "正在准备工作区…",
-    "almostReady": "即将完成…",
-    "ready": "准备就绪"
+    "preferences": "正在恢复偏好设置…",
+    "extensions": "正在启用编辑器模块…",
+    "workspace": "正在连接并读取项目数据…",
+    "ready": "准备就绪",
+    "completed": "已完成 {completed}/{total} 个阶段",
+    "failed": "启动失败：{task}",
+    "retry": "重试"
   },
   "onboarding": {
     "welcome": "欢迎使用 ADV.JS 编辑器",

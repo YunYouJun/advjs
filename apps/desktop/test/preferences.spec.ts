@@ -10,23 +10,31 @@ const repo = resolve(import.meta.dirname, '../../..')
 const evidence = resolve(repo, 'apps/desktop/out/evidence')
 
 async function waitForEditor(page: Page) {
-  await expect(page.getByRole('menuitem', { name: /^(File|文件)$/ })).toBeVisible()
+  await expect(page.getByRole('menuitem', { name: /^(File|文件)$/, includeHidden: true })).toBeVisible()
   await expect(page.locator('svg[role="img"][aria-label="ADV.JS"]')).toHaveCount(0)
 }
 
 async function captureSplash(page: Page, name: string) {
-  // Pause the actual loading animation for screenshots; no production test flag.
-  const time = new Date('2026-10-06T00:00:00Z')
-  await page.clock.install({ time })
-  await page.clock.pauseAt(new Date(time.getTime() + 60_000))
+  // Hold a real project read so the splash remains visible until it completes.
+  let release!: () => void
+  const pending = new Promise<void>((done) => {
+    release = done
+  })
+  const project = '**/__advjs/api/project'
+  await page.route(project, async (route) => {
+    await pending
+    await route.continue()
+  })
   await page.reload({ waitUntil: 'domcontentloaded' })
+  await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '2')
   const logo = page.getByRole('img', { name: 'ADV.JS', exact: true })
   await expect(logo).toBeVisible()
   expect(await logo.evaluate(element => element.tagName.toLowerCase())).toBe('svg')
   expect(await logo.evaluate(element => element.querySelector('path')!.getBBox().width)).toBeGreaterThan(0)
   await page.screenshot({ path: resolve(evidence, name) })
-  await page.clock.resume()
+  release()
   await waitForEditor(page)
+  await page.unroute(project)
 }
 
 test('desktop remembers language and onboarding across origins, projects and app restarts', async () => {
