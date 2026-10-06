@@ -1,4 +1,5 @@
 import type {
+  AdvAssetDownloadConfig,
   AdvAssetEntry,
   AdvAssetLocationAdapter,
   AdvAssetManifest,
@@ -79,6 +80,7 @@ function normalizeVariant(value: unknown): AdvAssetVariant {
     return {}
   return {
     path: optionalString(value, 'path'),
+    cachePath: optionalString(value, 'cachePath'),
     objectKey: optionalString(value, 'objectKey'),
     url: optionalString(value, 'url'),
     sha256: optionalString(value, 'sha256'),
@@ -166,6 +168,20 @@ function normalizeProfile(value: unknown, name: string): AdvAssetProfile {
   return profile
 }
 
+function normalizeDownload(value: unknown): AdvAssetDownloadConfig | undefined {
+  if (value === undefined)
+    return undefined
+  if (!isRecord(value) || !isRecord(value.source))
+    throw fail('download must declare a source')
+  const source = value.source
+  if (source.provider === 'tencent-cos' && typeof source.bucket === 'string' && typeof source.region === 'string') {
+    return { profile: optionalString(value, 'profile'), source: { provider: 'tencent-cos', bucket: source.bucket, region: source.region } }
+  }
+  if (source.provider === 'http' && typeof source.baseUrl === 'string')
+    return { profile: optionalString(value, 'profile'), source: { provider: 'http', baseUrl: source.baseUrl } }
+  throw fail('download source must declare tencent-cos bucket/region or http baseUrl')
+}
+
 export function normalizeAdvAssetManifest(input: unknown): AdvAssetManifest {
   if (!isRecord(input))
     throw fail('manifest root must be an object')
@@ -207,6 +223,7 @@ export function normalizeAdvAssetManifest(input: unknown): AdvAssetManifest {
       defaultProfile: input.defaultProfile,
       profiles,
       bundles,
+      download: normalizeDownload(input.download),
       assets,
       release: isRecord(input.release) && typeof input.release.provider === 'string' && typeof input.release.objectPrefix === 'string'
         ? { provider: input.release.provider, objectPrefix: input.release.objectPrefix }

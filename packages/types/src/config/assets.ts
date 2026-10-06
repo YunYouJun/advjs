@@ -23,6 +23,8 @@ export interface AdvAssetBundle {
 export interface AdvAssetVariant {
   /** Project-relative authoring file. */
   path?: string
+  /** Project-relative download cache, independent of runtime profile roots (e.g. authoring originals). */
+  cachePath?: string
   /** Published object key, resolved against the HTTP profile base URL. */
   objectKey?: string
   /** Compatibility escape hatch for an already absolute published URL. */
@@ -32,6 +34,17 @@ export interface AdvAssetVariant {
   mimeType?: string
   width?: number
   height?: number
+}
+
+/** Node tooling only. Never contains credentials or temporary signed URLs. */
+export type AdvAssetDownloadSource
+  = | { provider: 'tencent-cos', bucket: string, region: string }
+    | { provider: 'http', baseUrl: string }
+
+export interface AdvAssetDownloadConfig {
+  source: AdvAssetDownloadSource
+  /** Project profile supplying the root for entries without an explicit cachePath. */
+  profile?: string
 }
 
 export interface AdvAssetProvenance {
@@ -78,6 +91,8 @@ export interface AdvAssetManifestBase {
   defaultProfile: string
   profiles: Record<string, AdvAssetProfile>
   bundles?: AdvAssetBundle[]
+  /** Optional manifest-driven local materialization; ignored by browser loaders. */
+  download?: AdvAssetDownloadConfig
   release?: {
     provider: 'tencent-cos' | string
     objectPrefix: string

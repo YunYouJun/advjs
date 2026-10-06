@@ -7,10 +7,10 @@ import { createCliError, runCliCommand } from './output'
 export function installAssetsCommand(cli: Argv) {
   cli.command(
     'assets <action>',
-    'Plan, ingest, review, and register generated project assets',
+    'Pull, verify, inspect, generate, and register project assets',
     args => args
       .positional('action', {
-        choices: ['plan', 'ingest', 'reject', 'accept'] as const,
+        choices: ['pull', 'status', 'verify', 'plan', 'ingest', 'reject', 'accept'] as const,
         demandOption: true,
         type: 'string',
       })
@@ -22,6 +22,19 @@ export function installAssetsCommand(cli: Argv) {
       .option('scene', {
         describe: 'Scene id whose imagePrompt should become a generation task',
         type: 'string',
+      })
+      .option('variant', {
+        describe: 'Download variant (repeatable); default selects the base entry',
+        type: 'string',
+        array: true,
+      })
+      .option('originals', {
+        describe: 'Select base entries and original variants together',
+        type: 'boolean',
+      })
+      .option('all-variants', {
+        describe: 'Select base entries and every named variant',
+        type: 'boolean',
       })
       .option('task', {
         describe: 'Asset generation task id',
@@ -69,7 +82,7 @@ export function installAssetsCommand(cli: Argv) {
       .strict()
       .help(),
     async (argv) => {
-      const action = String(argv.action) as 'plan' | 'ingest' | 'reject' | 'accept'
+      const action = String(argv.action) as 'pull' | 'status' | 'verify' | 'plan' | 'ingest' | 'reject' | 'accept'
       const root = String(argv.root)
       const projectRoot = resolve(root)
       const commands = await import('../commands/assets')
@@ -82,6 +95,16 @@ export function installAssetsCommand(cli: Argv) {
         command: 'assets',
         json: Boolean(argv.json),
         run: async () => {
+          if (action === 'pull' || action === 'status' || action === 'verify') {
+            if ((argv.originals && argv.variant?.length) || (argv.allVariants && (argv.originals || argv.variant?.length)))
+              throw new AdvCommandError('ADV_USAGE', 'Use only one of --variant, --originals or --all-variants')
+            const { manageAdvAssetCache } = await import('../commands/assets-download')
+            return await manageAdvAssetCache(action, {
+              root,
+              variants: argv.originals ? ['default', 'original'] : argv.variant,
+              allVariants: Boolean(argv.allVariants),
+            })
+          }
           if (action === 'plan') {
             const planned = await commands.planBackgroundAssetGeneration({
               root,
@@ -157,8 +180,16 @@ export function installAssetsCommand(cli: Argv) {
           error,
         ),
       })
-      if (!argv.json && result)
-        process.stdout.write(`${result.action}: ${result.taskId} (${result.status})\n`)
+      if (!argv.json && result) {
+        if ('items' in result) {
+          for (const item of result.items)
+            process.stdout.write(`${item.id}: ${item.variant} ${item.state}${item.downloaded ? ' (downloaded)' : ''}\n`)
+          process.stdout.write(`${result.action}: ${result.verified} verified, ${result.missing} missing, ${result.corrupt} corrupt, ${result.downloaded} downloaded\n`)
+        }
+        else {
+          process.stdout.write(`${result.action}: ${result.taskId} (${result.status})\n`)
+        }
+      }
     },
   )
 }

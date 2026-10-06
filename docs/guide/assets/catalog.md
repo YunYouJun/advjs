@@ -94,6 +94,60 @@ ADV.JS 使用“稳定逻辑 ID + 可切换位置 Profile + 可选加载 Bundle�
 
 `includes` 相对 `adv/` 解析，必须指向 `assets/` 下的 JSON，不能使用绝对路径、`.`、`..` 或重复条目。Studio 和构建器按声明顺序合并分片，在内存中得到统一的扁平目录；生成结果只写入构建目录或发布包，不在源码目录创建第二个索引。
 
+## 从远端还原本地缓存
+
+Node CLI 提供 `adv assets pull`、`adv assets status` 和 `adv assets verify`。它们消费同一个内联或分片 `adv/assets.json`，不创建第二份媒体清单。`@advjs/assets` 只提供平台无关的下载规划与校验元数据；文件、网络和凭据由 CLI 与存储插件处理，浏览器目录解析器不执行下载。
+
+```bash
+adv assets pull                          # 仅基础条目，通常是运行或编辑用预览
+adv assets pull --variant original       # 仅原图，显式按需下载
+adv assets pull --originals              # 基础条目和 original 一起下载
+adv assets status --all-variants         # 查看全部缓存；允许缺失，报告损坏
+adv assets verify                       # 要求基础条目齐全并通过校验
+adv assets verify --variant original     # 要求原图齐全并通过校验
+adv assets pull --root ./my-game --json  # 单个机器可读 CLI envelope
+```
+
+`--variant` 可重复；`default` 表示基础条目而非实际命名 variant。`--variant`、`--originals`、`--all-variants` 互斥。没有声明某种 variant 的条目跳过该 variant；整个目录都没有该名称时报错。`status` 的缺失和损坏数属于查询结果，退出码仍为 0；`verify` 或 `pull` 遇到损坏缓存返回失败并保留文件。先将损坏文件移出缓存，再重新拉取。
+
+例如私有 COS 的作者原图与轻量预览可以共用一个资源 ID：
+
+```json
+{
+  "schemaVersion": 2,
+  "id": "my-game",
+  "defaultProfile": "local",
+  "profiles": { "local": { "provider": "project", "root": "adv/assets" } },
+  "download": {
+    "profile": "local",
+    "source": { "provider": "tencent-cos", "bucket": "my-assets-1234567890", "region": "ap-shanghai" }
+  },
+  "assets": [{
+    "id": "background/opening",
+    "kind": "background",
+    "type": "image",
+    "path": "backgrounds/opening.webp",
+    "objectKey": "private/my-game/previews/opening.webp",
+    "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "bytes": 245760,
+    "variants": {
+      "original": {
+        "cachePath": ".advjs/originals/opening.png",
+        "objectKey": "private/my-game/originals/opening.png",
+        "sha256": "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789",
+        "bytes": 2097152
+      }
+    }
+  }]
+}
+```
+
+基础条目下载到 `profiles.local.root + path`；`cachePath` 是项目根目录相对路径，优先用于 Node 缓存，不改变浏览器的 `path` 解析。作者原图只声明 `cachePath`，不会因为下载到 `.advjs/` 就成为运行时图片。所有选中条目必须有完整 SHA-256、正整数 `bytes` 和本地坐标；缺失缓存还需要 `download.source` 和 `objectKey`。只有缓存校验的 `status`、`verify` 和离线复用不需要存储插件或凭据。
+
+HTTP/CDN 下载可配置 `download.source: { "provider": "http", "baseUrl": "https://cdn.example.com/" }`，对象键相对此目录解析。新清单不保存签名 URL；源地址不能包含账号口令、查询参数或片段。下载器拒绝越界坐标、重复缓存位置和缓存符号链接；流式下载核对字节数与哈希后独占安装，不覆盖并发创建的文件，失败时清理临时文件。图片、音频、视频等均按字节处理，不执行转码。
+
+把二进制缓存目录加入项目 `.gitignore`；分片 JSON 如果位于该目录，需要单独保留跟踪规则。当前原生 `build`/`editor` 不隐式拉取，请先运行 `adv assets pull`，或像三国项目一样在项目启动包装器中调用它。私有 COS 鉴权见 [COS 存储规范](./cos)。
+
 ## Schema v2
 
 完整的发布阶段条目可以包含：

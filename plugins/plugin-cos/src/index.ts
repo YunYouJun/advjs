@@ -1,7 +1,9 @@
 import type { Buffer } from 'node:buffer'
+import { execFile } from 'node:child_process'
 import { createReadStream } from 'node:fs'
 import { stat } from 'node:fs/promises'
 import process from 'node:process'
+import { promisify } from 'node:util'
 import COS from 'cos-nodejs-sdk-v5'
 
 export const ADV_COS_IMMUTABLE_CACHE_CONTROL = 'public, max-age=31536000, immutable'
@@ -72,6 +74,51 @@ export function normalizeCosPrefix(value: string): string {
   return `${normalizeCosObjectKey(value.replace(/\/+$/u, ''))}/`
 }
 
+/** Resolve private downloads using environment/STS credentials or an explicitly configured Node signer. */
+export function createCosDownloadResolver(options: CosOptions = {}): (objectKey: string) => Promise<string> {
+  let storage: CosStorage | undefined
+  const signer = process.env.ADV_COS_SIGNER
+  return async (objectKey) => {
+    const key = normalizeCosObjectKey(objectKey)
+    if (!signer) {
+      storage ??= new CosStorage({ ...options, prefix: '' })
+      return storage.getDownloadUrl(key)
+    }
+    // The signer is configured locally, never supplied by an untrusted project manifest.
+    const bucket = options.bucket ?? process.env.TENCENT_COS_BUCKET ?? process.env.ADV_COS_BUCKET
+    const region = options.region ?? process.env.TENCENT_COS_REGION ?? process.env.ADV_COS_REGION
+    if (!bucket || !region)
+      throw new Error('COS signer requires bucket and region')
+    try {
+      const { stdout } = await promisify(execFile)(process.execPath, [
+        signer,
+        'sign-url',
+        '--bucket',
+        bucket,
+        '--region',
+        region,
+        '--key',
+        key,
+        '--expires',
+        '300',
+      ], { timeout: 30_000, maxBuffer: 65_536 })
+      const result: unknown = JSON.parse(stdout)
+      if (!result || typeof result !== 'object' || !('success' in result) || result.success !== true
+        || !('url' in result) || typeof result.url !== 'string') {
+        throw new Error('Invalid signer response')
+      }
+      const url = new URL(result.url)
+      if (url.protocol !== 'https:' || url.username || url.password)
+        throw new Error('Invalid signer URL')
+      return url.href
+    }
+    catch {
+      // Child errors can include credential-bearing output. Do not propagate them.
+      throw new Error('Cannot authorize COS download; check ADV_COS_SIGNER configuration')
+    }
+  }
+}
+
 export function defaultUploadOptions(objectKey: string): Required<Pick<CosUploadOptions, 'cacheControl' | 'contentType'>> {
   return {
     cacheControl: isContentHashedObjectKey(objectKey)
@@ -129,6 +176,18 @@ export class CosStorage {
 
   private objectKey(remotePath: string): string {
     return this.prefix + normalizeCosObjectKey(remotePath)
+  }
+
+  /** Short-lived URL for Node download tooling; never persist it in a catalog. */
+  getDownloadUrl(remotePath: string, expires: number = 300): string {
+    return this.cos.getObjectUrl({
+      Bucket: this.bucket,
+      Region: this.region,
+      Key: this.objectKey(remotePath),
+      Sign: true,
+      Protocol: 'https:',
+      Expires: expires,
+    })
   }
 
   /** Upload a local file to COS with browser-safe content metadata. */

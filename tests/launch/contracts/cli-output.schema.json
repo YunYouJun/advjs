@@ -532,6 +532,99 @@
               "uniqueItems": true
             }
           }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "action",
+            "root",
+            "items",
+            "downloaded",
+            "verified",
+            "missing",
+            "corrupt"
+          ],
+          "properties": {
+            "action": {
+              "enum": [
+                "pull",
+                "status",
+                "verify"
+              ]
+            },
+            "root": {
+              "type": "string",
+              "minLength": 1
+            },
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "variant",
+                  "path",
+                  "sha256",
+                  "bytes",
+                  "state"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "variant": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "path": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "objectKey": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  },
+                  "bytes": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "state": {
+                    "enum": [
+                      "missing",
+                      "verified",
+                      "corrupt"
+                    ]
+                  },
+                  "downloaded": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            },
+            "downloaded": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "verified": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "missing": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "corrupt": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
         }
       ]
     },
