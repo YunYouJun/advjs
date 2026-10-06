@@ -32,7 +32,16 @@ describe('mCP workspace app', () => {
       projectLoader: async () => ({
         root: directory,
         files: { 'adv/chapters/intro.adv.md': '> Intro', 'adv.config.json': '{}' },
-        result: { diagnostics: [], project: { id: 'three-kingdoms', chapters: [{}], characters: [{}, {}, {}], scenes: [{}] } },
+        result: { diagnostics: [], project: {
+          id: 'three-kingdoms',
+          chapters: [{ id: 'intro', sources: ['adv/chapters/intro.adv.md'] }],
+          characters: [
+            { id: 'liu-bei', name: '刘备', avatars: { thoughtful: { src: 'art/liu.webp', label: '思索' } }, background: 'Existing background.' },
+            { id: 'guan-yu', name: '关羽' },
+            { id: 'zhang-fei', name: '张飞' },
+          ],
+          scenes: [{ id: 'taoyuan', name: '桃园' }],
+        } },
       }),
     })
     const [a, b] = InMemoryTransport.createLinkedPair()
@@ -128,6 +137,7 @@ describe('mCP workspace app', () => {
   it('advertises the app resource and localizes from host context', async () => {
     const tools = await client.listTools()
     expect(tools.tools.find(t => t.name === 'advjs_show_project_workspace')?._meta).toMatchObject({ ui: { resourceUri: 'ui://advjs/workspace.html' } })
+    expect(tools.tools.find(t => t.name === 'advjs_read_workspace_item')?._meta).toMatchObject({ ui: { visibility: ['app'] } })
     const app = await ui()
     await app.initialize({ locale: 'zh-TW', theme: 'dark' })
     expect(app.window.document.documentElement.lang).toBe('zh-CN')
@@ -137,6 +147,65 @@ describe('mCP workspace app', () => {
     expect(app.get('files').closest('details')!.open).toBe(false)
     expect(app.window.document.querySelector('.progress')).toBeNull()
     expect(app.requests.filter(m => m.method === 'tools/call')).toHaveLength(0)
+  })
+
+  it('browses character states, searches identities and falls back when clipboard access is blocked', async () => {
+    const app = await ui()
+    await app.initialize({ locale: 'zh-CN' })
+    app.window.document.querySelector<HTMLButtonElement>('[data-tab="characters"]')!.click()
+    const read = app.requests.findLast(m => m.method === 'tools/call')
+    expect(read.params).toEqual({ name: 'advjs_read_workspace_item', arguments: { kind: 'characters', id: 'liu-bei' } })
+    app.send({ id: read.id, result: await client.callTool(read.params) })
+    await flush()
+    expect(app.get('detail-title').textContent).toBe('刘备')
+    expect(app.get('detail-body').textContent).toContain('思索')
+    expect(app.get('detail-body').textContent).toContain('thoughtful')
+    const search = app.get('search') as HTMLInputElement
+    search.value = 'LIU'
+    search.dispatchEvent(new app.window.Event('input'))
+    expect(app.get('item-list').children).toHaveLength(1)
+    app.get('copy').click()
+    await flush()
+    expect(app.get('copy-status').textContent).toContain('选择资料')
+    expect((app.get('context-details') as HTMLDetailsElement).open).toBe(true)
+    expect((app.get('context') as HTMLTextAreaElement).value).toContain('Existing background.')
+    expect(runCheck).not.toHaveBeenCalled()
+  })
+
+  it('ignores stale card responses and renders authored markup as text', async () => {
+    const app = await ui()
+    await app.initialize()
+    app.window.document.querySelector<HTMLButtonElement>('[data-tab="characters"]')!.click()
+    const first = app.requests.findLast(m => m.method === 'tools/call')
+    app.get('item-list').querySelectorAll('button')[1].click()
+    const second = app.requests.findLast(m => m.method === 'tools/call')
+    const result = await client.callTool(second.params)
+    const item = (result.structuredContent as any).item
+    item.character.background = '<img src=x onerror="window.injected=true">'
+    item.files = [{ path: 'card.md', text: '<script>window.injected=true</script>' }]
+    app.send({ id: second.id, result })
+    await flush()
+    app.send({ id: first.id, result: await client.callTool(first.params) })
+    await flush()
+    expect(app.get('detail-title').textContent).toBe('关羽')
+    expect(app.get('detail-body').textContent).toContain('<img src=x')
+    expect(app.get('source').querySelector('script')).toBeNull()
+    expect((app.window as any).injected).toBeUndefined()
+  })
+
+  it('exposes expansion only when the host supports it and supports keyboard tab navigation', async () => {
+    const app = await ui()
+    await app.initialize({ availableDisplayModes: ['inline', 'fullscreen'] })
+    expect(app.get('expand').hidden).toBe(false)
+    app.get('expand').click()
+    const request = app.requests.findLast(m => m.method === 'ui/request-display-mode')
+    app.send({ id: request.id, result: { mode: 'fullscreen' } })
+    await flush()
+    expect(app.get('expand').textContent).toBe('Collapse workspace')
+    const tab = app.window.document.querySelector<HTMLButtonElement>('[data-tab="overview"]')!
+    tab.dispatchEvent(new app.window.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }))
+    expect(app.window.document.activeElement?.getAttribute('data-tab')).toBe('characters')
+    expect(app.window.document.activeElement?.getAttribute('aria-selected')).toBe('true')
   })
 
   it('persists manual language and follows host changes only in auto mode', async () => {

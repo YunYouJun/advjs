@@ -1,10 +1,12 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import type { WorkspaceContentSource } from './workspace-content'
 import { execFileSync } from 'node:child_process'
 import { createRequire } from 'node:module'
 import process from 'node:process'
 import { registerAppResource, registerAppTool, RESOURCE_MIME_TYPE } from '@modelcontextprotocol/ext-apps/server'
 import { basename } from 'pathe'
 import { z } from 'zod'
+import { readWorkspaceItem, workspaceContentIndex, workspaceContentSchema, workspaceItemKindSchema } from './workspace-content'
 import { ADV_WORKSPACE_HTML } from './workspace-html'
 
 const RESOURCE_URI = 'ui://advjs/workspace.html'
@@ -27,18 +29,18 @@ interface CheckResult {
 
 interface WorkspaceOptions {
   cwd: string
-  projectLoader: (options: { root: string }) => Promise<{
+  projectLoader: (options: { root: string }) => Promise<WorkspaceContentSource & {
     root: string
     files: Record<string, string>
     result: {
       diagnostics: Diagnostic[]
-      project: { id: string, chapters: unknown[], characters: unknown[], scenes: unknown[] }
     }
   }>
   runCheck: (options: { cwd: string }) => Promise<CheckResult>
 }
 
 const outputSchema = {
+  content: workspaceContentSchema.optional(),
   project: z.object({
     id: z.string(),
     repository: z.string(),
@@ -129,6 +131,7 @@ export function registerAdvWorkspaceApp(server: McpServer, options: WorkspaceOpt
         impact: zh ? '读取项目文件并报告问题，不修改文件。' : 'Reads project files and reports issues. No files are modified.',
       },
       validation,
+      content: workspaceContentIndex(loaded),
     }
   }
 
@@ -153,6 +156,22 @@ export function registerAdvWorkspaceApp(server: McpServer, options: WorkspaceOpt
     title: 'ADV.JS 项目 / Project',
     description: 'Show project identity, content counts and loading diagnostics. Does not run validation. Supply locale to match the user language.',
   }, async ({ locale = 'en' }) => result(locale))
+
+  registerAppTool(server, 'advjs_read_workspace_item', {
+    title: '查看创作资料 / Read authoring item',
+    description: 'Read a character card, chapter or scene from the compiled project. Returns bounded local image previews only to the app.',
+    inputSchema: { kind: workspaceItemKindSchema, id: z.string().min(1) },
+    annotations: shared.annotations,
+    _meta: { ui: { visibility: ['app'] as ('model' | 'app')[] } },
+  }, async ({ kind, id }) => {
+    try {
+      const loaded = await options.projectLoader({ root: options.cwd })
+      return await readWorkspaceItem(loaded, options.cwd, kind, id)
+    }
+    catch (error) {
+      return { isError: true, content: [{ type: 'text', text: error instanceof Error ? error.message : String(error) }] }
+    }
+  })
 
   registerAppTool(server, 'advjs_run_project_check', {
     ...shared,
