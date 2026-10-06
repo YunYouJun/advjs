@@ -34,13 +34,14 @@ const curWords = computed(() => {
 <template>
   <div
     class="adv-dialog-box cursor-pointer select-none shadow-xl"
+    :data-character-id="curCharacter?.id"
     @click="next"
   >
     <div class="dialog-name-wrap">
       <template v-if="$adv.config?.value?.showCharacterAvatar && characterAvatar">
         <div class="dialog-avatar-wrap">
-          <img class="rounded size-40 shadow" object="cover top" :src="characterAvatar">
-          <span>{{ curCharacter?.name }}</span>
+          <img class="dialog-avatar rounded size-40 shadow" object="cover top" :src="characterAvatar" :alt="curCharacter?.name ?? ''">
+          <span class="dialog-avatar-name">{{ curCharacter?.name }}</span>
         </div>
       </template>
       <template v-else>

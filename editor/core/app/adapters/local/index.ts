@@ -121,9 +121,14 @@ export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
     for (const url of assetBlobUrls)
       URL.revokeObjectURL(url)
     assetBlobUrls.clear()
+    const characters = await Promise.all((previewConfig.characters ?? []).map(async (character) => {
+      if (!character.avatar || /^(?:https?:|blob:|data:)/u.test(character.avatar))
+        return character
+      return { ...character, avatar: await readAssetBlobUrl(character.avatar) }
+    }))
     const manifest = compilation.project.assets
     if (!manifest)
-      return previewConfig
+      return { ...previewConfig, characters }
     const catalog = createAdvAssetCatalog(manifest, {
       profile: manifest.profiles.local ? 'local' : undefined,
       adapter: {
@@ -141,6 +146,7 @@ export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
     const projectScenes = new Map(compilation.project.scenes.map(scene => [scene.id, scene]))
     return {
       ...previewConfig,
+      characters,
       scenes: await Promise.all(previewConfig.scenes.map(async (scene) => {
         const assetId = projectScenes.get(scene.id)?.assetId
         if (!assetId)
