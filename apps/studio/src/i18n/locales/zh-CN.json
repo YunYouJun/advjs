@@ -1626,5 +1626,27 @@
     "minutesAgo": "{n} 分钟前",
     "hoursAgo": "{n} 小时前",
     "daysAgo": "{n} 天前"
+  },
+  "assetStorage": {
+    "publish": "发布素材",
+    "publishSuccess": "素材已发布",
+    "publishFailed": "发布失败：{error}"
+  },
+  "runtimeInspector": {
+    "open": "运行时检查器",
+    "title": "运行时检查器",
+    "close": "关闭检查器",
+    "seekPreview": "节点预览",
+    "returnToPlay": "返回游玩",
+    "compileFailed": "无法启动游戏",
+    "genericError": "请检查项目诊断后重试。",
+    "retry": "重试",
+    "applyVariables": "应用预览变量",
+    "copied": "已复制",
+    "copy": "复制报告",
+    "download": "下载报告",
+    "emptyTrace": "暂无运行事件。",
+    "previewVariables": "预览变量",
+    "reviewNotice": "分享前请检查报告，其中可能包含项目内容。"
   }
 }

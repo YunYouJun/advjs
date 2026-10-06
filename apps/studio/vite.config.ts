@@ -1,7 +1,9 @@
 /// <reference types="vitest" />
 
+import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
+import { parse as parseYaml } from 'yaml'
 
 const legacyPluginPackage: string = '@vitejs/plugin-legacy'
 const vuePluginPackage: string = '@vitejs/plugin-vue'
@@ -62,7 +64,7 @@ function managedAiProductionGuard() {
 }
 
 // https://vitejs.dev/config/
-export default async function createViteConfig() {
+export default async function createViteConfig({ command }: { command: 'serve' | 'build' }) {
   // Keep Vite plugin imports dynamic so editors using legacy moduleResolution do not fail on package .d.ts/.d.mts exports.
   const [
     { default: legacy },
@@ -91,31 +93,29 @@ export default async function createViteConfig() {
   ]
 
   return {
-    // `__DEV__` is referenced inside `@advjs/client` and `@advjs/parser` source
-    // (originally meant for their own Vite-driven builds). When those packages
-    // are consumed via path aliases here, the constant is unresolved unless we
-    // declare it ourselves. `import.meta.env.DEV` resolves to true in dev /
-    // false in build. Under Vitest the config is loaded outside a module
-    // context where `import.meta` cannot be evaluated ("Cannot use 'import.meta'
-    // outside a module"), so fall back to a plain literal there.
+    // Define replacement text must be a literal: inserting import.meta.env.DEV
+    // here happens after Vite's env pass and leaves an undefined env at runtime.
     define: {
-      __DEV__: process.env.VITEST ? 'true' : 'import.meta.env.DEV',
+      __DEV__: command === 'serve' ? 'true' : 'false',
     },
     plugins: [
-      // `/@advjs/locales` is a virtual module owned by `@advjs/vite-plugin-adv`,
-      // which Studio does not load (Studio has its own i18n via vue-i18n + JSON
-      // locales). The embedded `@advjs/client` runtime still imports it inside
-      // `modules/i18n.ts`, so we stub it to an empty messages map to satisfy
-      // the bundler.
+      // The runtime and Studio share Vue I18n. Reuse the engine dictionaries;
+      // Studio merges its own authoring copy over them without losing nested keys.
       {
-        name: 'advjs-studio:stub-virtual-locales',
+        name: 'advjs-studio:game-locales',
         resolveId(id: string) {
-          if (id === '/@advjs/locales')
+          if (id === '/@advjs/locales' || id === 'virtual:advjs-game-locales')
             return '\0virtual:advjs-locales'
         },
-        load(id: string) {
-          if (id === '\0virtual:advjs-locales')
-            return 'export default { "zh-CN": {}, en: {} }'
+        load(this: { addWatchFile: (file: string) => void }, id: string) {
+          if (id !== '\0virtual:advjs-locales')
+            return
+          const messages = Object.fromEntries(['en', 'zh-CN'].map((locale) => {
+            const file = path.join(import.meta.dirname, `../../packages/client/locales/${locale}.yml`)
+            this.addWatchFile(file)
+            return [locale, parseYaml(readFileSync(file, 'utf8'))]
+          }))
+          return `export default ${JSON.stringify(messages)}`
         },
       },
       UnoCSS(),

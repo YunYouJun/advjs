@@ -1,3 +1,4 @@
+import gameMessages from 'virtual:advjs-game-locales'
 import { createI18n } from 'vue-i18n'
 import en from './locales/en.json'
 import zhCN from './locales/zh-CN.json'
@@ -21,10 +22,13 @@ const i18n = createI18n({
   legacy: false,
   locale: getInitialLocale(),
   fallbackLocale: 'en',
-  messages: {
-    'en': en,
-    'zh-CN': zhCN,
-  },
+  messages: { 'en': {}, 'zh-CN': {} },
 })
+
+// Preserve game settings labels alongside Studio's settings namespace.
+i18n.global.mergeLocaleMessage('en', gameMessages.en)
+i18n.global.mergeLocaleMessage('zh-CN', gameMessages['zh-CN'])
+i18n.global.mergeLocaleMessage('en', en)
+i18n.global.mergeLocaleMessage('zh-CN', zhCN)
 
 export default i18n

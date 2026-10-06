@@ -14,6 +14,8 @@ import {
   IonRefresherContent,
   IonSearchbar,
   IonToolbar,
+  onIonViewWillEnter,
+  onIonViewWillLeave,
 } from '@ionic/vue'
 import { addOutline, cloudUploadOutline, trashOutline } from 'ionicons/icons'
 import { computed, ref } from 'vue'
@@ -43,6 +45,9 @@ const { audios, reload, getFs } = useProjectContent()
 const { isSaving } = useContentSave()
 const { deleteFile } = useContentDelete()
 const managedAssets = useManagedAssetStorage()
+const previewActive = ref(true)
+onIonViewWillEnter(() => previewActive.value = true)
+onIonViewWillLeave(() => previewActive.value = false)
 
 // --- Search ---
 const searchQuery = ref('')
@@ -162,8 +167,9 @@ async function handleFileImport(event: Event) {
     if (!isAudioFile(file.name))
       continue
     try {
-      const safeFileName = file.name.replace(FILE_NAME_RE, '_').toLowerCase()
-      const stem = safeFileName.replace(/\.[^.]+$/u, '')
+      const extension = file.name.slice(file.name.lastIndexOf('.')).toLowerCase()
+      const stem = file.name.slice(0, -extension.length).replace(FILE_NAME_RE, '_').toLowerCase()
+      const safeFileName = `${stem}${extension}`
       const path = `adv/assets/audio/${safeFileName}`
       const assetId = `audio/${stem}`
       await fs.writeBlob(path, file)
@@ -248,6 +254,7 @@ async function handlePublishAudio(audio: AudioInfo) {
       <IonItemSliding v-for="audio in filteredAudios" :key="audio.file">
         <AudioCard
           :audio="audio"
+          :active="previewActive"
           :is-publishing="managedAssets.isPublishing(audio.assetId)"
           @click="handleEditAudio"
           @publish="handlePublishAudio"

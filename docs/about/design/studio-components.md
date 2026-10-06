@@ -304,3 +304,24 @@ CSS 类：`.empty-state` > `.empty-state__illustration` + `.empty-state__title` 
 - [Studio 设计规范](./studio-design) — 色彩、排版、间距等 Token 定义
 - [AGUI 组件库](/agui/) — 编辑器侧的 GUI 组件库
 - [Studio 技术架构](/guide/studio/architecture) — 应用整体架构
+
+## 与 Editor、游戏预览的集成回归
+
+Studio 继续使用 Ionic 与 Studio token；角色、立绘和音频的数据共享不意味着复用 AGUI 的桌面皮肤。内嵌 `AdvGame` 使用响应式画布和局部暗色默认主题，避免将 1920px 舞台整体缩成手机上的小字；通过 `AdvContainer` 保持游戏主题作用域，作者侧的工具栏、保存窗口与项目设置属于 Studio。
+
+本地模式必须能够独立进入角色和音频页面。`useManagedAssetStorage` 将云服务视为可选依赖，只有执行发布时检查登录和配置；不得让云配置缺失阻断本地导入或试听。音频页离开时主动暂停预览，因为 Ionic 可能缓存页面而不卸载组件。
+
+### 回归路径
+
+1. 用新浏览器存储环境打开生产构建，执行「立即体验」，确认世界和工作区均显示两个示例角色。
+2. 进入角色管理，修改资料、添加立绘并保存；返回总览，再进入资源页和刷新，确认内容和初次校验正常。分别检查桌面和约 390px 移动布局。
+3. 进入音频资源，导入本地音频，检查名称、时长、播放／暂停和搜索；返回工作区或游玩页时确认试听停止。云发布需要单独配置和验收。
+4. 进入游玩，确认真实游戏画面、剧情推进、节点预览、返回游玩，以及存读档／设置等宿主工具可用；检查控制台和 `data-adv-ui="game"` 范围。游戏主题切换不能修改宿主 `html.dark`。
+5. 读档列表保持原始快照（`shallowRef`）；不可将 Vue 响应式代理传入运行时的 `structuredClone` 边界。
+6. 检查生产包而不只检查开发服务器。Vite 的 `define.__DEV__` 必须替换为布尔字面量，避免二次插入未处理的 `import.meta.env` 导致生产预览崩溃。
+
+Studio 的语言资源复用引擎中英文字典，再合并作者工具文案，保留 `settings` 等嵌套命名空间。虚拟语言模块由 Studio Vite 插件加载，避免内嵌菜单退化为翻译键。
+
+快速体验模板的角色文件遵循 `adv/characters/<id>.character.md`。旧版生成的 `ye-qing.md` / `lu-yuan.md` 可在文件页改名为对应的 `.character.md` 文件；本轮不自动改写既有工程文件。
+
+相关回归位于 `apps/studio/src/__tests__/`：`quickStartResources`、`projectOverviewValidation`、`studioPreviewResources`、`managedAssetStorage`、`audioCardPlayback`、`playSaveSlots` 和 `studioGameLocale`。运行 `pnpm prepare:workspace studio` 后执行 `pnpm -C apps/studio exec vitest run` 与 `pnpm -C apps/studio build`；桌面 UI 共享契约另由根目录的 `agui-*`、`game-ui-*` 和 `editor-resource-panels` 测试覆盖。生产构建和这些单元测试不能替代浏览器中的完整路径。

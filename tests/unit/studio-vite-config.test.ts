@@ -6,10 +6,15 @@ import { describe, expect, it } from 'vitest'
 import createStudioViteConfig from '../../apps/studio/vite.config'
 
 async function resolveStudioConfig(): Promise<UserConfig> {
-  return await createStudioViteConfig()
+  return await createStudioViteConfig({ command: 'serve' })
 }
 
 describe('studio Vite config', () => {
+  it.each(['serve', 'build'] as const)('replaces __DEV__ with a literal for %s', async (command) => {
+    const config = await createStudioViteConfig({ command })
+    expect(config.define.__DEV__).toBe(command === 'serve' ? 'true' : 'false')
+  })
+
   it('uses the client embed entry for exact top-level imports', async () => {
     const config = await resolveStudioConfig()
     const aliases = config.resolve?.alias

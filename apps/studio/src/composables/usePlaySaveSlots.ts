@@ -1,6 +1,6 @@
 import type { RuntimeSnapshot } from '@advjs/types'
 import type { DbPlaySaveSlot } from '../utils/db'
-import { computed, ref } from 'vue'
+import { computed, shallowRef } from 'vue'
 import { db } from '../utils/db'
 
 const SLOT_NAME_RE = /^[\w-]{1,40}$/
@@ -66,7 +66,9 @@ function rowToSnapshot(row: DbPlaySaveSlot): PlaySaveSnapshot {
  * snapshot of the player's chapter position, stage state, and unlocked CGs.
  */
 export function usePlaySaveSlots(projectId: () => string | undefined) {
-  const slots = ref<DbPlaySaveSlot[]>([])
+  // Rows are immutable database snapshots. Vue proxies cannot cross the
+  // runtime's structuredClone boundary when a slot is selected for restore.
+  const slots = shallowRef<DbPlaySaveSlot[]>([])
 
   function pid(): string | null {
     return projectId() ?? null

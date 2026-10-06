@@ -57,7 +57,7 @@ const {
 
 const config = computed<AdvConfig>(() => configRef.value as AdvConfig)
 const gameConfig = computed<AdvGameConfig>(() => gameConfigRef.value as AdvGameConfig)
-const themeConfig = computed(() => ({} as Record<string, string | number>))
+const themeConfig = computed(() => configRef.value?.themeConfig ?? {})
 const runtimePlugins = createStudioRuntimePlugins()
 const $adv: AdvContext = setupAdvContext({
   config,

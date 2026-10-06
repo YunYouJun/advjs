@@ -1626,5 +1626,27 @@
     "minutesAgo": "{n}m ago",
     "hoursAgo": "{n}h ago",
     "daysAgo": "{n}d ago"
+  },
+  "assetStorage": {
+    "publish": "Publish asset",
+    "publishSuccess": "Asset published",
+    "publishFailed": "Could not publish: {error}"
+  },
+  "runtimeInspector": {
+    "open": "Runtime inspector",
+    "title": "Runtime inspector",
+    "close": "Close inspector",
+    "seekPreview": "Node preview",
+    "returnToPlay": "Return to play",
+    "compileFailed": "Unable to start the game",
+    "genericError": "Check the project diagnostics and try again.",
+    "retry": "Retry",
+    "applyVariables": "Apply preview variables",
+    "copied": "Copied",
+    "copy": "Copy report",
+    "download": "Download report",
+    "emptyTrace": "No runtime events yet.",
+    "previewVariables": "Preview variables",
+    "reviewNotice": "Review the report before sharing it; it may contain project content."
   }
 }

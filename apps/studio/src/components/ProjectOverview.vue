@@ -34,7 +34,7 @@ import {
   warningOutline,
 } from 'ionicons/icons'
 import { storeToRefs } from 'pinia'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useCloudSync } from '../composables/useCloudSync'
@@ -219,18 +219,22 @@ async function handleValidation() {
 // --- Auto validation: run once when loading finishes, re-run on content changes ---
 let autoValidateTimer: ReturnType<typeof setTimeout> | undefined
 onMounted(() => {
-  // Run initial validation once loading is done
+  // Cached content is already ready when returning from a resource page.
+  if (!isLoading.value && chapters.value.length > 0) {
+    void handleValidationSilent()
+    return
+  }
   const unwatch = watch(
-    () => isLoading.value,
-    (loading) => {
-      if (!loading && chapters.value.length > 0) {
+    () => !isLoading.value && chapters.value.length > 0,
+    (ready) => {
+      if (ready) {
         handleValidationSilent()
         unwatch()
       }
     },
-    { immediate: true },
   )
 })
+onBeforeUnmount(() => clearTimeout(autoValidateTimer))
 
 // Watch content stats for changes (debounced re-validation)
 watch(

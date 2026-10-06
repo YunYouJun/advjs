@@ -757,11 +757,10 @@ export const quickStartTemplate: TemplateDefinition = {
 `,
     },
     {
-      path: 'adv/characters/ye-qing.md',
+      path: 'adv/characters/ye-qing.character.md',
       content: `---
 id: ye-qing
 name: 叶晴
-avatar: null
 ---
 
 # 叶晴
@@ -786,11 +785,10 @@ avatar: null
 `,
     },
     {
-      path: 'adv/characters/lu-yuan.md',
+      path: 'adv/characters/lu-yuan.character.md',
       content: `---
 id: lu-yuan
 name: 陆远
-avatar: null
 ---
 
 # 陆远

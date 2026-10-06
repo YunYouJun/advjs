@@ -9,14 +9,15 @@ import {
   IonIcon,
 } from '@ionic/vue'
 import { bookOutline, cloudUploadOutline, filmOutline, musicalNoteOutline, pauseOutline, playOutline } from 'ionicons/icons'
-import { computed, onUnmounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onUnmounted, ref, watch } from 'vue'
 import { useProjectContent } from '../composables/useProjectContent'
 import { loadStudioAssetCatalog } from '../utils/projectAssets'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   audio: AudioInfo
   isPublishing?: boolean
-}>()
+  active?: boolean
+}>(), { active: true })
 
 defineEmits<{
   click: [audio: AudioInfo]
@@ -25,6 +26,11 @@ defineEmits<{
 
 const audioEl = ref<HTMLAudioElement | null>(null)
 const isPlaying = ref(false)
+watch(() => props.active, (active) => {
+  if (!active)
+    audioEl.value?.pause()
+})
+onBeforeUnmount(() => audioEl.value?.pause())
 const currentTime = ref(0)
 const duration = ref(0)
 const blobUrl = ref<string | null>(null)
@@ -91,7 +97,9 @@ function togglePlay() {
     audioEl.value.pause()
   }
   else {
-    audioEl.value.play()
+    void audioEl.value.play().catch(() => {
+      isPlaying.value = false
+    })
   }
 }
 

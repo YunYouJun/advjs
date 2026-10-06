@@ -1,10 +1,10 @@
 import type { AdvAssetEntry } from '@advjs/types'
-import { ref } from 'vue'
+import { inject, ref } from 'vue'
 import { useAuthStore } from '../stores/useAuthStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { createManagedAssetUploader } from '../utils/assetUpload'
 import { loadStudioAssetCatalog, upsertStudioProjectAsset } from '../utils/projectAssets'
-import { useCloudbaseApp } from './useCloudbase'
+import { cloudbaseAppInjectionKey } from './useCloudbase'
 import { useProjectContent } from './useProjectContent'
 
 function localAssetPath(path: string): string {
@@ -13,18 +13,22 @@ function localAssetPath(path: string): string {
 
 /** Explicit local-first publishing path used by Studio asset cards. */
 export function useManagedAssetStorage() {
-  const cloudApp = useCloudbaseApp()
+  const cloudApp = inject(cloudbaseAppInjectionKey, null)
   const authStore = useAuthStore()
   const studioStore = useStudioStore()
   const projectContent = useProjectContent()
   const publishing = ref(new Set<string>())
-  const uploader = createManagedAssetUploader({
-    callFunction: options => cloudApp.callFunction(options) as Promise<{ result?: unknown }>,
-  })
+  const uploader = cloudApp
+    ? createManagedAssetUploader({
+        callFunction: options => cloudApp.callFunction(options) as Promise<{ result?: unknown }>,
+      })
+    : undefined
 
   async function publish(assetId: string): Promise<AdvAssetEntry> {
     if (!authStore.isLoggedIn)
       throw new Error('Login required')
+    if (!uploader)
+      throw new Error('Cloud publishing is not configured')
     const fs = projectContent.getFs()
     if (!fs)
       throw new Error('Publishing requires a local project')
