@@ -1,24 +1,19 @@
 <script setup lang="ts">
-import { useStorage } from '@vueuse/core'
-
 const { t } = useI18n()
-const { changeLocale } = useEditorLocale()
+const { completeOnboarding } = useEditorLocale()
 
 const open = defineModel('open', {
   type: Boolean,
   default: false,
 })
 
-const onboarded = useStorage('advjs:editor:onboarded', false)
-
-function selectLocale(code: 'en' | 'zh-CN') {
-  changeLocale(code)
-  onboarded.value = true
+async function selectLocale(code: 'en' | 'zh-CN') {
+  await completeOnboarding(code)
   open.value = false
 }
 
-function skip() {
-  onboarded.value = true
+async function skip() {
+  await completeOnboarding()
   open.value = false
 }
 </script>

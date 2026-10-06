@@ -14,6 +14,8 @@ export interface DesktopHost {
   recentProjects: () => Promise<{ id: string, name: string }[]>
   openRecent: (id: string) => Promise<boolean>
   session: () => Promise<{ origin: string, token: string, root?: string }>
+  preferences: () => Promise<{ locale?: 'en' | 'zh-CN', onboarded: boolean }>
+  setPreferences: (preferences: { locale?: 'en' | 'zh-CN', onboarded?: boolean }) => Promise<void>
   setDirty: (dirty: boolean) => Promise<void>
   onCommand: (callback: (command: string) => Promise<boolean>) => () => void
 }

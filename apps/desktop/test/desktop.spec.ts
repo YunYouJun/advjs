@@ -326,7 +326,7 @@ test('ZIP runs through an independent static server after Electron and its bridg
     }
   })
   await new Promise<void>(done => server.listen(0, '127.0.0.1', done))
-  const browser = await chromium.launch()
+  const browser = await chromium.launch({ channel: process.env.ADVJS_WEB_CHANNEL })
   const game = await browser.newPage()
   const errors: string[] = []
   game.on('pageerror', error => errors.push(String(error)))

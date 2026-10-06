@@ -1,20 +1,15 @@
 <script setup lang="ts">
 import { AGUIToast, Toast, toastRef } from '@advjs/gui'
-import { useStorage } from '@vueuse/core'
 
 definePageMeta({
   layout: 'editor',
 })
 
 const app = useAppStore()
-const { initLocale } = useEditorLocale()
+const { onboarded } = useEditorLocale()
 
 const showSplash = ref(true)
 const showOnboarding = ref(false)
-const onboarded = useStorage('advjs:editor:onboarded', false)
-
-// Restore saved locale on load
-initLocale()
 
 function onSplashComplete() {
   showSplash.value = false

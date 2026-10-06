@@ -1,6 +1,6 @@
 # Electron 桌面客户端验收报告
 
-日期：2026-10-06。首版平台为 macOS arm64。A1–A12 全部通过。最终打包客户端 11 项端到端测试通过（54.9 秒），Studio 生产页面完整回归连续两次通过（29.1 秒）。功能提交已按 Conventional Commits 推送到 `origin/dev` 并核验远端 SHA；本次补记最终交付记录。
+日期：2026-10-06。首版平台为 macOS arm64。A1–A12 全部通过。最终打包客户端 11 项端到端测试通过（54.9 秒），Studio 生产页面完整回归连续两次通过（29.1 秒）。功能提交已按 Conventional Commits 推送到 `origin/dev` 并核验远端 SHA；本次补记最终交付记录。后续语言与加载 Logo 修复已重新打包并通过 13 项端到端回归，见本文复验章节。
 
 ## 环境、来源与产物
 
@@ -20,7 +20,7 @@
 仓库内同步副本为 `apps/desktop/out/ADV.JS Editor-darwin-arm64/ADV.JS Editor.app` 及 `apps/desktop/out/make/zip/darwin/arm64/ADV.JS Editor-darwin-arm64-0.1.4.zip`。应用约 863 MiB，分发 ZIP 约 273 MiB。分发 ZIP SHA-256：
 
 ```text
-bfd55851548024de589714dc02402328be2c9f929fea497cfb3710ec8946f340
+d9c9cc0da5013e4791e95f6b7e912c0b3d2a1e6a0e7e6fcd0e76f2f6b4cdb978
 ```
 
 `final/package-verification.json` 记录 ASAR 与 ZIP 的 hash、剥离 Forge 开发配置后的应用元数据，以及 2,126 条全部位于应用运行时内部的 symlink。运行时没有指向仓库或独立验证快照的链接。
@@ -98,13 +98,23 @@ pnpm desktop:make
 最终包复验：
 
 ```bash
-ADVJS_DESKTOP_EXECUTABLE="/Users/yunyou/.codex/desktop-advjs-artifacts-20261006/final/ADV.JS Editor.app/Contents/MacOS/advjs-editor" pnpm desktop:test
+ADVJS_WEB_CHANNEL=chrome ADVJS_DESKTOP_EXECUTABLE="/Users/yunyou/.codex/desktop-advjs-artifacts-20261006/final/ADV.JS Editor.app/Contents/MacOS/advjs-editor" pnpm desktop:test
 ADVJS_WEB_CHANNEL=chrome pnpm -C apps/desktop exec playwright test --config playwright.web.config.ts
 pnpm -C apps/studio build
 pnpm -C apps/desktop exec playwright test --config playwright.studio.config.ts
 ```
 
 Studio 回归配置启动已构建的静态 preview，使用 Chrome stable；首版不把 Studio 变成 Electron Renderer。测试选定对应 spec，避免误启动 demo 服务或将 Electron 加入 Firefox/WebKit 测试。此机器 Playwright Chromium 152 在 IndexedDB 读取 FileSystemHandle 时存在可复现的 SIGTRAP，Web 恢复与 Studio 使用已安装的 Chrome stable 154；Electron 152 的实际磁盘项目测试全部通过。
+
+## 语言与加载 Logo 修复复验
+
+2026-10-06 的后续反馈指出每次启动都要重新选择语言。原实现把语言与引导状态保存在 localStorage，桌面服务的动态端口导致 origin 改变，旧记录无法复用。现在通过有限的偏好 IPC 保存到应用 userData 的 `editor-preferences.json`，验证字段与语言枚举，并以临时文件替换和顺序写入保存；各路由渲染前恢复语言。首次选择或跳过引导也持久化，Web Editor 保持浏览器存储行为。
+
+加载 Logo 原先通过 `/favicon.svg` 请求，现直接内联同一 SVG 路径，消除加载页对图片请求的依赖；加载提示增加中英文翻译。打包客户端的正常桌面与 800×600 窄窗口截图为 `preferences-splash-desktop.png`、`preferences-splash-narrow.png`。`preferences.json` 记录跨端口项目切换与应用重启，`preferences-web.json` 记录 Web 刷新和直接路由恢复。
+
+独立快照重新通过 Editor 生产构建、vue-tsc、宿主 TS 检查及 macOS arm64 打包；运行时仍为 2,126 条内部 symlink。受影响源码 ESLint 为 0 errors；保留未提交的既有样式排序变更，因此独立源码中仍有 12 条原有 UnoCSS 排序 warnings。专项测试验证首次选择中文、无重复引导、窗口重载、项目切换、正常退出重启、直接进入角色页、内联 SVG 及非法偏好字段拒绝；Web Editor 也验证刷新与直接页面恢复。完整回归 13 项全部通过（1.1 分钟），记录于 `advjs-preferences-packaged-final3.log`；Web Editor 原有项目编辑集成回归 1 项通过（6.5 秒），记录于 `advjs-preferences-web-integration.log`。独立静态导出使用已安装的 Chrome stable（`ADVJS_WEB_CHANNEL=chrome`）。
+
+应用与分发 ZIP 已同步更新至原交付路径；旧版本保留为 `final/before-preferences-fix.app` 和 `final/before-preferences-fix.zip`。本报告顶部的 ZIP hash 为当前修复版，首版分发 hash `bfd55851548024de589714dc02402328be2c9f929fea497cfb3710ec8946f340` 保留在此用于区分历史产物。
 
 ## 支持边界及平台
 

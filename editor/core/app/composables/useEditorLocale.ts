@@ -3,15 +3,37 @@ import { useStorage } from '@vueuse/core'
 export function useEditorLocale() {
   const { locale, setLocale, locales } = useI18n()
   const savedLocale = useStorage<'en' | 'zh-CN'>('advjs:editor:locale', 'en')
+  const onboarded = useStorage('advjs:editor:onboarded', false)
 
-  function initLocale() {
-    if (savedLocale.value && savedLocale.value !== locale.value)
-      setLocale(savedLocale.value)
+  async function initLocale() {
+    if (!import.meta.client)
+      return
+    if (savedLocale.value !== 'en' && savedLocale.value !== 'zh-CN')
+      savedLocale.value = 'en'
+    const host = window.advDesktop
+    if (host) {
+      const preferences = await host.preferences()
+      if (preferences.locale)
+        savedLocale.value = preferences.locale
+      onboarded.value = preferences.onboarded || onboarded.value
+      // Migrate preferences remembered by an older, origin-bound Editor.
+      if (!preferences.locale || preferences.onboarded !== onboarded.value)
+        await host.setPreferences({ locale: savedLocale.value, onboarded: onboarded.value })
+    }
+    if (savedLocale.value !== locale.value)
+      await setLocale(savedLocale.value)
   }
 
-  function changeLocale(code: 'en' | 'zh-CN') {
-    setLocale(code)
+  async function changeLocale(code: 'en' | 'zh-CN') {
     savedLocale.value = code
+    await Promise.all([setLocale(code), window.advDesktop?.setPreferences({ locale: code })])
+  }
+
+  async function completeOnboarding(code?: 'en' | 'zh-CN') {
+    if (code)
+      await changeLocale(code)
+    await window.advDesktop?.setPreferences({ onboarded: true })
+    onboarded.value = true
   }
 
   const availableLocales = computed(() => {
@@ -22,5 +44,5 @@ export function useEditorLocale() {
     })
   })
 
-  return { locale, locales, availableLocales, savedLocale, initLocale, changeLocale }
+  return { locale, locales, availableLocales, savedLocale, onboarded, initLocale, changeLocale, completeOnboarding }
 }

@@ -15,6 +15,8 @@ contextBridge.exposeInMainWorld('advDesktop', Object.freeze({
   recentProjects: () => ipcRenderer.invoke('desktop:recent'),
   openRecent: id => ipcRenderer.invoke('desktop:open-recent', id),
   session: () => ipcRenderer.invoke('desktop:session'),
+  preferences: () => ipcRenderer.invoke('desktop:preferences'),
+  setPreferences: preferences => ipcRenderer.invoke('desktop:set-preferences', preferences),
   setDirty: dirty => ipcRenderer.invoke('desktop:dirty', dirty),
   onCommand: (callback) => {
     const listener = async (_event, id, command) => {

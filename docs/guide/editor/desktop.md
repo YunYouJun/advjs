@@ -6,6 +6,8 @@ ADV.JS Editor 桌面客户端复用 AGUI Editor，主进程负责原生目录选
 
 启动 `ADV.JS Editor.app`，点击「打开项目」或使用 `⌘O`，选择含 `adv.config.json` 或 `adv.config.ts` 的项目目录。最近项目记录保存目录路径，每次启动重新建立服务和凭据。取消选择或打开无效目录不会替换当前项目。
 
+首次选择语言或跳过引导后，客户端会记住选择；切换项目、刷新窗口及退出重开都不会再次要求选择。以后可在偏好设置的「界面 → 语言」修改。语言与引导完成状态保存于应用 userData 下的 `editor-preferences.json`，独立于项目与本地服务端口；Web Editor 继续使用浏览器存储。加载页采用内联 SVG Logo，提示文字跟随所选语言。
+
 JSON/Markdown 项目可编辑 `.character.md` 角色、正文描述、别名、关系和立绘。图片与项目音频导入会复制真实二进制文件到项目资源目录，并更新 `adv/assets.json` 或现有 includes 分片。文件名使用新 ID，避免覆盖共享资源；移除引用保留二进制文件，作者可以确认没有引用后自行清理。
 
 项目音频支持名称、描述、BGM／音效／语音用途、播放、暂停与跳转。切换面板会暂停试听；音频库浏览是另一种资源来源。保存到项目文件成功才算保存完成，localStorage 中的创建草稿和面板布局不是项目保存。
@@ -42,7 +44,7 @@ pnpm desktop:make
 macOS arm64 产物在 `apps/desktop/out/ADV.JS Editor-darwin-arm64/ADV.JS Editor.app`，分发 ZIP 在 `apps/desktop/out/make/`。最终验收使用移出仓库的应用副本和受限 PATH，证据位置见验收报告。
 
 ```bash
-ADVJS_DESKTOP_EXECUTABLE="/absolute/path/ADV.JS Editor.app/Contents/MacOS/advjs-editor" pnpm desktop:test
+ADVJS_WEB_CHANNEL=chrome ADVJS_DESKTOP_EXECUTABLE="/absolute/path/ADV.JS Editor.app/Contents/MacOS/advjs-editor" pnpm desktop:test
 ```
 
 ## 支持边界

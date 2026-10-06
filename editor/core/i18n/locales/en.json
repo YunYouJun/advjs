@@ -80,6 +80,13 @@
     "dark": "Dark",
     "light": "Light"
   },
+  "splash": {
+    "initializing": "Initializing editor...",
+    "modules": "Loading core modules...",
+    "workspace": "Preparing workspace...",
+    "almostReady": "Almost ready...",
+    "ready": "Ready"
+  },
   "onboarding": {
     "welcome": "Welcome to ADV.JS Editor",
     "selectLanguage": "Choose your preferred language",

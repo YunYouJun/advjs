@@ -7,21 +7,23 @@ const emit = defineEmits<{
   (e: 'complete'): void
 }>()
 
+const { t } = useI18n()
 const progress = ref(0)
-const statusText = ref('Initializing editor...')
+const status = shallowRef('initializing')
+const statusText = computed(() => t(`splash.${status.value}`))
 
 const stages = [
-  { target: 20, text: 'Initializing editor...' },
-  { target: 50, text: 'Loading core modules...' },
-  { target: 80, text: 'Preparing workspace...' },
-  { target: 95, text: 'Almost ready...' },
+  { target: 20, text: 'initializing' },
+  { target: 50, text: 'modules' },
+  { target: 80, text: 'workspace' },
+  { target: 95, text: 'almostReady' },
 ]
 
 let animationFrame: number | null = null
 
 function animateProgress(from: number, to: number, text: string, duration: number): Promise<void> {
   return new Promise((resolve) => {
-    statusText.value = text
+    status.value = text
     const start = performance.now()
     function step(now: number) {
       const elapsed = now - start
@@ -47,7 +49,7 @@ async function runProgress() {
     current = stage.target
   }
   // Final push to 100
-  await animateProgress(current, 100, 'Ready', 100)
+  await animateProgress(current, 100, 'ready', 100)
   // Small delay before fade out
   await new Promise(r => setTimeout(r, 100))
   emit('complete')
@@ -72,12 +74,16 @@ onUnmounted(() => {
     >
       <!-- Logo area -->
       <div class="mb-10 flex flex-col items-center gap-3">
-        <img
-          src="/favicon.svg"
-          alt="ADV.JS"
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          role="img"
+          aria-label="ADV.JS"
           class="h-16 w-16"
-          style="filter: drop-shadow(0 0 20px rgba(30, 144, 255, 0.3));"
+          style="color: dodgerblue; filter: drop-shadow(0 0 20px rgba(30, 144, 255, 0.3));"
         >
+          <path fill="currentColor" d="M14 10.25L17 8v6l-3-2.25V14H7V8h7v2.25zM5.763 17H20V5H4v13.385L5.763 17zm.692 2L2 22.5V4a1 1 0 0 1 1-1h18a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H6.455z" />
+        </svg>
         <div class="flex items-center gap-2">
           <span
             class="text-3xl font-bold tracking-wide"

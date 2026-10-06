@@ -1,6 +1,6 @@
 import type { IpcMainInvokeEvent, UtilityProcess } from 'electron'
 import { randomUUID } from 'node:crypto'
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import process from 'node:process'
 import { app, BrowserWindow, dialog, ipcMain, Menu, utilityProcess } from 'electron'
@@ -25,8 +25,32 @@ let quitting = false
 let trustedConfig = ''
 interface RecentProject { id: string, name: string, path: string }
 let recent: RecentProject[] = []
+interface EditorPreferences { locale?: 'en' | 'zh-CN', onboarded: boolean }
+let preferences: EditorPreferences = { onboarded: false }
+let preferenceWrite = Promise.resolve()
 const commandRequests = new Map<string, (success: boolean) => void>()
 const recentFile = () => resolve(app.getPath('userData'), 'recent-projects.json')
+const preferencesFile = () => resolve(app.getPath('userData'), 'editor-preferences.json')
+
+function setPreferences(value: unknown) {
+  if (!value || typeof value !== 'object' || Array.isArray(value))
+    throw new Error('Invalid editor preferences')
+  const patch = value as Record<string, unknown>
+  if (Object.keys(patch).some(key => key !== 'locale' && key !== 'onboarded')
+    || ('locale' in patch && patch.locale !== 'en' && patch.locale !== 'zh-CN')
+    || ('onboarded' in patch && typeof patch.onboarded !== 'boolean')) {
+    throw new Error('Invalid editor preferences')
+  }
+  const write = preferenceWrite.then(async () => {
+    const next = { ...preferences, ...patch } as EditorPreferences
+    const temporary = `${preferencesFile()}.tmp`
+    await writeFile(temporary, JSON.stringify(next, null, 2))
+    await rename(temporary, preferencesFile())
+    preferences = next
+  })
+  preferenceWrite = write.catch(() => {})
+  return write
+}
 
 function assertCaller(event: IpcMainInvokeEvent) {
   if (event.sender !== window?.webContents || event.senderFrame !== window.webContents.mainFrame
@@ -217,6 +241,11 @@ app.whenReady().then(async () => {
   await mkdir(app.getPath('userData'), { recursive: true })
   const savedRecent: unknown = await readFile(recentFile(), 'utf8').then(JSON.parse).catch(() => [])
   recent = Array.isArray(savedRecent) ? savedRecent.filter(item => item && typeof item.id === 'string' && typeof item.name === 'string' && typeof item.path === 'string').slice(0, 12) : []
+  const savedPreferences = await readFile(preferencesFile(), 'utf8').then(JSON.parse).catch(() => undefined)
+  preferences = {
+    ...(savedPreferences?.locale === 'en' || savedPreferences?.locale === 'zh-CN' ? { locale: savedPreferences.locale } : {}),
+    onboarded: savedPreferences?.onboarded === true,
+  }
   window = new BrowserWindow({ width: 1440, height: 900, minWidth: 800, minHeight: 600, title: 'ADV.JS Editor', webPreferences: { preload: resolve(root, 'dist/preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false } })
   window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
   window.webContents.on('will-navigate', (event, url) => {
@@ -294,6 +323,8 @@ app.whenReady().then(async () => {
       return openProject(entry.path)
     },
     'session': () => session,
+    'preferences': () => preferences,
+    'set-preferences': setPreferences,
     'dirty': (value: unknown) => {
       if (typeof value !== 'boolean')
         throw new Error('Invalid dirty state')

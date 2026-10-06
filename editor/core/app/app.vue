@@ -52,6 +52,10 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => projectStore.disconnectLocalBridge())
+
+// Restore preferences before rendering any route or first-run dialog.
+const { initLocale } = useEditorLocale()
+await initLocale()
 </script>
 
 <template>

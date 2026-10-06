@@ -80,6 +80,13 @@
     "dark": "暗色",
     "light": "亮色"
   },
+  "splash": {
+    "initializing": "正在初始化编辑器…",
+    "modules": "正在加载核心模块…",
+    "workspace": "正在准备工作区…",
+    "almostReady": "即将完成…",
+    "ready": "准备就绪"
+  },
   "onboarding": {
     "welcome": "欢迎使用 ADV.JS 编辑器",
     "selectLanguage": "选择你偏好的语言",
