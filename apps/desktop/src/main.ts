@@ -1,9 +1,11 @@
 import type { IpcMainInvokeEvent, UtilityProcess } from 'electron'
+import type { DesktopCommand } from './commands.js'
 import { randomUUID } from 'node:crypto'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import process from 'node:process'
-import { app, BrowserWindow, dialog, ipcMain, Menu, utilityProcess } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, Menu, shell, utilityProcess } from 'electron'
+import { createNativeMenu } from './menu.js'
 import { projectConfigFingerprint } from './project-trust.js'
 import { createDesktopTasks } from './tasks.js'
 
@@ -47,6 +49,7 @@ function setPreferences(value: unknown) {
     await writeFile(temporary, JSON.stringify(next, null, 2))
     await rename(temporary, preferencesFile())
     preferences = next
+    updateMenu()
   })
   preferenceWrite = write.catch(() => {})
   return write
@@ -58,7 +61,9 @@ function assertCaller(event: IpcMainInvokeEvent) {
     throw new Error('Unauthorized desktop caller')
   }
 }
-function command(action: string) {
+function command(action: DesktopCommand) {
+  window.show()
+  window.focus()
   return new Promise<boolean>((resolveResult) => {
     const id = randomUUID()
     const timer = setTimeout(() => {
@@ -198,6 +203,7 @@ async function closeProject() {
     dirty = false
     await window.loadURL(`${session.origin}/`)
     await stopService(old)
+    updateMenu()
     return true
   }
   finally {
@@ -213,30 +219,26 @@ function observeService(child: UtilityProcess) {
   })
 }
 function updateMenu() {
-  Menu.setApplicationMenu(Menu.buildFromTemplate([
-    { label: 'ADV.JS', submenu: [{ role: 'about' }, { type: 'separator' }, { role: 'quit' }] },
-    { label: '文件', submenu: [
-      { label: '打开项目…', accelerator: 'CmdOrCtrl+O', click: () => {
-        void openProject()
-      } },
-      { label: '最近项目', submenu: recent.map(item => ({ label: item.name, click: () => {
-        void openProject(item.path)
-      } })) },
-      { label: '保存', accelerator: 'CmdOrCtrl+S', click: () => {
-        void command('save')
-      } },
-      { label: '关闭项目', click: () => {
-        void closeProject()
-      } },
-    ] },
-    { role: 'editMenu' },
-    { label: '视图', submenu: [{ label: '重载窗口', accelerator: 'CmdOrCtrl+R', click: async () => {
+  Menu.setApplicationMenu(Menu.buildFromTemplate(createNativeMenu({
+    platform: process.platform,
+    locale: preferences.locale,
+    hasProject: !!session?.root,
+    recent,
+    command,
+    open: () => openProject(),
+    openRecent: (id) => {
+      const entry = recent.find(item => item.id === id)
+      return entry ? openProject(entry.path) : false
+    },
+    close: closeProject,
+    reload: async () => {
       if (await prepareToLeave())
         window.reload()
-    } }, { role: 'toggleDevTools' }, { role: 'togglefullscreen' }] },
-    { role: 'windowMenu' },
-  ]))
+    },
+    openHelp: url => shell.openExternal(url),
+  })))
 }
+
 app.whenReady().then(async () => {
   await mkdir(app.getPath('userData'), { recursive: true })
   const savedRecent: unknown = await readFile(recentFile(), 'utf8').then(JSON.parse).catch(() => [])

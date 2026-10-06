@@ -41,6 +41,8 @@ export function useEditorExtensions() {
   if (import.meta.hot)
     import.meta.hot.dispose(dispose)
   return {
+    resetLayout: () => layout.reset(),
+    manageExtensions: () => layout.select('bottom', 'advjs.core/plugins'),
     async start() {
       await host.start()
       const failed = host.entries.find(entry => entry.required && entry.status === 'error')

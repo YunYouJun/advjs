@@ -2,6 +2,9 @@ const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('advDesktop', Object.freeze({
   version: 1,
+  // Sandboxed preloads expose process.platform but cannot require the Node process module.
+  // eslint-disable-next-line node/prefer-global/process
+  nativeMenu: process.platform === 'darwin',
   prepareToLeave: () => ipcRenderer.invoke('desktop:prepare-leave'),
   reconnect: () => ipcRenderer.invoke('desktop:reconnect'),
   preview: () => ipcRenderer.invoke('desktop:preview'),

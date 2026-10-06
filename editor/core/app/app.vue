@@ -39,7 +39,7 @@ nuxtApp.vueApp.provide(gameConfigSymbol, advContext.gameConfig)
 nuxtApp.vueApp.provide(themeConfigSymbol, advContext.themeConfig)
 const projectStore = useProjectStore()
 const extensions = useEditorExtensions()
-useDesktopHost()
+useDesktopHost(extensions)
 
 // Register setup-bound composables before running asynchronous startup tasks.
 const { initLocale } = useEditorLocale()
@@ -74,6 +74,7 @@ onBeforeUnmount(() => {
   <NuxtLayout v-if="startupState.status === 'ready'">
     <NuxtPage />
   </NuxtLayout>
+  <AEGlobalDialogs v-if="startupState.status === 'ready'" />
 </template>
 
 <style>

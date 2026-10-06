@@ -23,7 +23,7 @@ function gate() {
 
 async function ready(page: Page) {
   await expect(page.locator('.ae-editor-splash')).toHaveCount(0)
-  await expect(page.getByRole('menuitem', { name: /^(File|文件)$/ })).toBeVisible()
+  await expect(page.locator('.advjs-editor-layout')).toBeVisible()
 }
 
 test('packaged startup waits for project and scene resources, reports errors and retries', async () => {
@@ -117,7 +117,8 @@ test('packaged startup waits for project and scene resources, reports errors and
     await page.unroute('**/__advjs/api/project')
     await page.keyboard.press('Enter')
     await ready(page)
-    await expect(page.getByRole('menuitem', { name: '文件', exact: true })).toBeVisible()
+    expect(await app.evaluate(({ Menu }) => Menu.getApplicationMenu()!.getMenuItemById('desktop.open')!.label)).toBe('打开项目…')
+    await expect(page.getByRole('menubar')).toHaveCount(0)
     const runtime = await app.evaluate(({ app }) => ({ packaged: app.isPackaged, platform: process.platform, arch: process.arch, path: process.env.PATH, cwd: process.cwd() }))
     if (process.env.ADVJS_DESKTOP_EXECUTABLE) {
       expect(runtime.packaged).toBe(true)

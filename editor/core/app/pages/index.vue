@@ -6,6 +6,7 @@ definePageMeta({
 })
 
 const app = useAppStore()
+const nativeMenu = import.meta.client && window.advDesktop?.nativeMenu === true
 const { onboarded } = useEditorLocale()
 
 const showOnboarding = ref(false)
@@ -26,7 +27,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="flex flex-col h-screen w-screen">
+  <main class="flex flex-col h-screen w-screen" :class="{ 'has-native-menu': nativeMenu }">
     <EditorMenubar />
     <EditorToolbar />
 
@@ -54,6 +55,10 @@ onMounted(() => {
 </template>
 
 <style lang="scss">
+.has-native-menu .advjs-editor-layout {
+  --agui-menu-bar-height: 0px;
+}
+
 .advjs-editor-layout {
   --agui-menu-bar-height: 26px;
   --agui-toolbar-height: 28px;

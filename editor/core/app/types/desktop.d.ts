@@ -1,6 +1,9 @@
+import type { DesktopCommand } from '../../../../apps/desktop/src/commands'
+
 export interface DesktopTask { id: string, kind: string, state: 'running' | 'succeeded' | 'failed' | 'cancelled', logs: string, output?: string, error?: string }
 export interface DesktopHost {
   version: 1
+  nativeMenu: boolean
   prepareToLeave: () => Promise<boolean>
   reconnect: () => Promise<boolean>
   preview: () => Promise<DesktopTask | undefined>
@@ -17,7 +20,7 @@ export interface DesktopHost {
   preferences: () => Promise<{ locale?: 'en' | 'zh-CN', onboarded: boolean }>
   setPreferences: (preferences: { locale?: 'en' | 'zh-CN', onboarded?: boolean }) => Promise<void>
   setDirty: (dirty: boolean) => Promise<void>
-  onCommand: (callback: (command: string) => Promise<boolean>) => () => void
+  onCommand: (callback: (command: DesktopCommand) => Promise<boolean>) => () => void
 }
 declare global {
   interface Window { advDesktop?: DesktopHost }

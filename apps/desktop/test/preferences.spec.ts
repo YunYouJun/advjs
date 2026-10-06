@@ -10,7 +10,7 @@ const repo = resolve(import.meta.dirname, '../../..')
 const evidence = resolve(repo, 'apps/desktop/out/evidence')
 
 async function waitForEditor(page: Page) {
-  await expect(page.getByRole('menuitem', { name: /^(File|文件)$/, includeHidden: true })).toBeVisible()
+  await expect(page.locator('.advjs-editor-layout')).toBeVisible()
   await expect(page.locator('svg[role="img"][aria-label="ADV.JS"]')).toHaveCount(0)
 }
 
@@ -68,14 +68,16 @@ test('desktop remembers language and onboarding across origins, projects and app
     await launch()
     // Exercise the first-run language choice without pre-seeding WebStorage.
     await page!.getByRole('button', { name: '中文（简体）', exact: true }).click()
-    await expect(page!.getByRole('menuitem', { name: '文件', exact: true })).toBeVisible()
+    await expect.poll(() => app!.evaluate(({ Menu }) => Menu.getApplicationMenu()!.getMenuItemById('desktop.open')!.label)).toBe('打开项目…')
+    await expect(page!.getByRole('menubar')).toHaveCount(0)
     await expect(page!.getByText('选择你偏好的语言', { exact: true })).toHaveCount(0)
     expect(JSON.parse(await readFile(resolve(userData, 'editor-preferences.json'), 'utf8'))).toEqual({ locale: 'zh-CN', onboarded: true })
     await expect(page!.evaluate(() => window.advDesktop!.setPreferences({ locale: 'bad' as 'en' }))).rejects.toThrow('Invalid editor preferences')
     await expect(page!.evaluate(() => window.advDesktop!.setPreferences({ path: '/tmp' } as any))).rejects.toThrow('Invalid editor preferences')
     const firstOrigin = new URL(page!.url()).origin
     await captureSplash(page!, 'preferences-splash-desktop.png')
-    await expect(page!.getByRole('menuitem', { name: '文件', exact: true })).toBeVisible()
+    await expect.poll(() => app!.evaluate(({ Menu }) => Menu.getApplicationMenu()!.getMenuItemById('desktop.open')!.label)).toBe('打开项目…')
+    await expect(page!.getByRole('menubar')).toHaveCount(0)
     await expect(page!.getByRole('button', { name: /跳过|Skip/ })).toHaveCount(0)
     await app!.evaluate(({ dialog }, second) => {
       dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [second] })
@@ -86,12 +88,14 @@ test('desktop remembers language and onboarding across origins, projects and app
     ])
     await waitForEditor(page!)
     expect(new URL(page!.url()).origin).not.toBe(firstOrigin)
-    await expect(page!.getByRole('menuitem', { name: '文件', exact: true })).toBeVisible()
+    await expect.poll(() => app!.evaluate(({ Menu }) => Menu.getApplicationMenu()!.getMenuItemById('desktop.open')!.label)).toBe('打开项目…')
+    await expect(page!.getByRole('menubar')).toHaveCount(0)
     await expect(page!.getByRole('button', { name: /跳过|Skip/ })).toHaveCount(0)
     const secondOrigin = new URL(page!.url()).origin
     await quit()
     await launch()
-    await expect(page!.getByRole('menuitem', { name: '文件', exact: true })).toBeVisible()
+    await expect.poll(() => app!.evaluate(({ Menu }) => Menu.getApplicationMenu()!.getMenuItemById('desktop.open')!.label)).toBe('打开项目…')
+    await expect(page!.getByRole('menubar')).toHaveCount(0)
     await expect(page!.getByRole('button', { name: /跳过|Skip/ })).toHaveCount(0)
     // Preferences still restore on a route that never mounts the welcome page.
     await page!.goto(`${new URL(page!.url()).origin}/characters/xiaoyu`)
