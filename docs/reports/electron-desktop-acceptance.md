@@ -1,6 +1,6 @@
 # Electron 桌面客户端验收报告
 
-日期：2026-10-06。首版平台为 macOS arm64。A1–A12 全部通过。最终打包客户端 11 项端到端测试通过（54.9 秒），Studio 生产页面完整回归连续两次通过（29.1 秒）。实施 Goal 保持 active，提交推送完成后才结束。
+日期：2026-10-06。首版平台为 macOS arm64。A1–A12 全部通过。最终打包客户端 11 项端到端测试通过（54.9 秒），Studio 生产页面完整回归连续两次通过（29.1 秒）。功能提交已按 Conventional Commits 推送到 `origin/dev` 并核验远端 SHA；本次补记最终交付记录。
 
 ## 环境、来源与产物
 
@@ -45,7 +45,7 @@ bfd55851548024de589714dc02402328be2c9f929fea497cfb3710ec8946f340
 | P2 | 项目角色、立绘和音频操作接入 ProjectWorkspace；真实二进制导入与资源引用写回项目，无 Nitro API 或 localStorage 保存替代。 |
 | P3 | 受限文本 patch 的 expected 校验、同目录原子文件替换、失败清理、外部事件去抖、媒体缓存刷新和显式冲突选择通过。多文件提交不宣称事务原子性。 |
 | P4 | 从已保存项目在受管理副本调用 advBuild；独立无 preload 沙箱预览、任务日志／取消、新目标目录及 ZIP、退出后独立静态部署通过。 |
-| P5 | 独立源码快照 lint／类型／构建／单测、Web Editor 和 Studio 生产页面回归全部通过；文档完成，提交推送收尾中。 |
+| P5 | 独立源码快照 lint／类型／构建／单测、Web Editor 和 Studio 生产页面回归全部通过；文档完成，本任务变更已提交并推送，远端 SHA 一致。 |
 
 ## A1–A12 证据
 
@@ -123,4 +123,12 @@ Studio 回归配置启动已构建的静态 preview，使用 Chrome stable；首
 - Studio 回归补齐 MemoryFs 的 Blob 持久化（复用 IndexedDB structured clone，旧文本节点兼容，无 schema 索引迁移）及离开音频页进入独立编辑页的暂停；旧版本已经丢失的内存项目二进制需要重新导入。创作截图使用 390px 手机宽度，游戏运行截图使用 1280×900 视口，保持 Studio 与游戏主题的边界。
 - 多文件保存使用冲突预检与失败清理，单文件写入完整；没有承诺跨文件事务或自动删除共享二进制。
 
-使用方法见[桌面使用文档](../guide/editor/desktop)。提交／推送记录在最终交付时补齐；无关工作区修改保持原位。
+## 提交与工作区保护
+
+- 功能提交：`db456fe02adcb29558a31626a9ded8d898352305`，`feat(desktop): add packaged project authoring client`。
+- 正常推送至 `origin/dev`，`git ls-remote origin refs/heads/dev` 核验 SHA 一致；未 force push，未创建 Release。
+- 87 个本任务文件按独立验收快照逐文件／逐 hunk 暂存，已核验暂存 blob 与检查快照完全一致。未全量暂存或提交既有脏工作区。
+- 为避免 lint-staged 对多会话脏工作区执行临时 stash，提交使用 `HUSKY=0`；相同暂存快照的受影响 ESLint、Editor／宿主／Studio 类型检查、构建、单测及集成验收已独立执行并通过。
+- 本记录和主计划的最终状态以文档提交补记；交付文件夹中的 `delivery.json` 记录最终文档提交 SHA 与功能提交 SHA。
+
+使用方法见[桌面使用文档](../guide/editor/desktop)。无关工作区修改与其他会话进展保持原位。

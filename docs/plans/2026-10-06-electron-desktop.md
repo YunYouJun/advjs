@@ -2,7 +2,7 @@
 
 日期：2026-10-06。
 
-状态：P0–P5 实施及 A1–A12 全部验收通过；macOS arm64 打包端到端 11 项、Studio 生产页面完整工作流连续两次通过。正在复核最终提交推送。验收证据持续记录于 `docs/reports/electron-desktop-acceptance.md`；未勾选的项尚未验收。
+状态：P0–P5 实施及 A1–A12 全部验收通过；macOS arm64 打包端到端 11 项、Studio 生产页面完整工作流连续两次通过。功能提交 `db456fe02adcb29558a31626a9ded8d898352305` 已正常推送到 `origin/dev`，远端 SHA 已核对；最终文档提交补记交付记录。验收证据持续记录于 `docs/reports/electron-desktop-acceptance.md`；未勾选的项尚未验收。
 
 执行交接：[GPT-6.1 sol 执行提示词](./2026-10-06-electron-desktop-handoff.md)。
 
@@ -131,7 +131,7 @@ Editor renderer（现有 AGUI）
 - [x] 运行受影响 lint／类型检查、Editor 与 Studio 构建及相关单测，回归 Web 本地项目和 Studio 角色／立绘／音频／预览。已有失败单独记录基线，不能为了绿灯删除测试或降低断言。
 - [x] 按下方验收表检查打包后客户端，截图保留正常桌面、约 320px 面板及必要亮暗主题／键盘状态。记录产物位置、日志和复现步骤。
 - [x] 新增桌面使用文档与开发说明，更新 Editor 入口文档和文档导航、构建说明、支持矩阵、已知限制；若宿主规则变化，在 AGENTS 添加指向正式文档的简短规则。
-- [ ] 复核本任务 diff，按 Conventional Commits 分阶段提交并推送当前合适分支。逐文件／逐 hunk 暂存，不能全量暂存既有脏工作区；不得 force push。核验推送后的提交 SHA。
+- [x] 复核本任务 diff，按 Conventional Commits 分阶段提交并推送当前合适分支。逐文件／逐 hunk 暂存，不能全量暂存既有脏工作区；不得 force push。核验推送后的提交 SHA。
 
 ## 必须留下证据的验收表
 
