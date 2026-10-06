@@ -166,13 +166,14 @@ const toolbarItems = computed<ToolbarItem[]>(() => {
         <!-- Detail (readonly) mode -->
         <template v-else>
           <CharacterDetail
+            :actions="false"
             :character="characterStore.selectedCharacter"
             @edit="startEditing"
             @delete="onDelete"
           />
 
           <!-- Tachie Manager -->
-          <div class="p-3 border-t border-$agui-c-divider">
+          <div class="border-t border-$agui-c-divider">
             <TachieManager
               :character="characterStore.selectedCharacter"
               @update="onTachieUpdate"
@@ -180,8 +181,9 @@ const toolbarItems = computed<ToolbarItem[]>(() => {
           </div>
 
           <!-- Relationship Editor -->
-          <div class="p-3 border-t border-$agui-c-divider">
+          <div class="border-t border-$agui-c-divider">
             <RelationshipEditor
+              :key="characterStore.selectedCharacter.id"
               :relationships="characterStore.selectedCharacter.relationships"
               @update="onRelationshipUpdate"
             />

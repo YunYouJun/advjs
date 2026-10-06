@@ -3,6 +3,12 @@ import { useAdvContext } from '@advjs/client'
 
 const { $adv } = useAdvContext()
 const characterStore = useCharacterStore()
+const app = useAppStore()
+function selectCharacter(character: typeof characterStore.characters[number]) {
+  characterStore.selectedCharacter = character
+  characterStore.selectedCharacterHandle = characterStore.fileEntries.get(character.id)?.fileHandle
+  app.activeInspector = 'character'
+}
 
 const gameConfigCharacters = computed(() => {
   return $adv.gameConfig.value.characters || []
@@ -21,13 +27,5 @@ const allCharacters = computed(() => {
 </script>
 
 <template>
-  <div class="grid grid-cols-4 gap-2 p-2">
-    <AECharacterCard v-for="character in allCharacters" :key="character.id" :character="character" />
-
-    <!-- Empty state -->
-    <div v-if="!allCharacters.length" class="col-span-4 flex flex-col items-center justify-center gap-2 p-4 op-50">
-      <div class="i-ri-user-3-line text-2xl" />
-      <span class="text-xs">{{ $t('characters.noCharacters') }}</span>
-    </div>
-  </div>
+  <CharacterList :characters="allCharacters" :selected="characterStore.selectedCharacter?.id" @select="selectCharacter" />
 </template>

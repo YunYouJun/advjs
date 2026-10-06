@@ -12,6 +12,7 @@ const cStore = useCharacterStore()
 const router = useRouter()
 
 const showCreateDialog = ref(false)
+const directoryDraft = ref(cStore.charactersDir)
 
 // Selected tree node for highlighting
 const selectedTreeNode = ref<string>()
@@ -34,6 +35,7 @@ async function onCreateCharacter(data: Partial<AdvCharacter>) {
 }
 
 function onConnectDir() {
+  cStore.charactersDir = directoryDraft.value.trim()
   if (cStore.charactersDir) {
     cStore.fetchCharacters()
     Toast({ title: t('characters.connectedToDir'), type: 'success' })
@@ -62,127 +64,109 @@ const hasSource = computed(() => !!cStore.dirHandle || !!cStore.charactersDir)
 </script>
 
 <template>
-  <div class="h-screen flex flex-col bg-dark-500 text-white">
-    <!-- Header -->
-    <div class="flex items-center justify-between border-b border-dark-300 px-6 py-4">
-      <div class="flex items-center gap-3">
-        <NuxtLink to="/" class="op-50 transition-opacity hover:op-100">
-          <div class="i-ri-arrow-left-line text-lg" />
+  <div class="ae-resource-panel character-page">
+    <AGUIToolbar :items="[]" :label="$t('characters.title')">
+      <template #before-toolbar>
+        <NuxtLink to="/" class="agui-button" :aria-label="$t('characters.back')">
+          <span class="i-ri-arrow-left-line" aria-hidden="true" />
         </NuxtLink>
-        <h1 class="text-lg font-bold">
-          {{ $t('characters.title') }}
-        </h1>
-        <span v-if="cStore.characters.length" class="rounded-full bg-dark-300 px-2 py-0.5 text-xs op-50">
-          {{ cStore.filteredCharacters.length }} / {{ cStore.characters.length }}
-        </span>
-      </div>
-
-      <div class="flex items-center gap-3">
-        <AGUIInput
-          v-model="cStore.searchQuery"
-          :placeholder="$t('characters.search')"
-          prefix-icon="i-ri-search-line"
-          class="w-60"
-        />
-
-        <AGUIButton theme="primary" @click="showCreateDialog = true">
-          <div class="i-ri-add-line mr-1" />
+        <h1>{{ $t('characters.title') }}</h1>
+      </template>
+      <template #after-toolbar>
+        <AGUIInput v-model="cStore.searchQuery" :aria-label="$t('characters.search')" :placeholder="$t('characters.search')" class="character-search" />
+        <AGUIButton icon="i-ri-add-line" @click="showCreateDialog = true">
           {{ $t('characters.newCharacter') }}
         </AGUIButton>
-
-        <AGUIButton
-          :loading="cStore.loading"
-          @click="cStore.dirHandle ? cStore.fetchCharactersFromHandle() : cStore.fetchCharacters()"
-        >
-          <div class="i-ri-refresh-line" />
-        </AGUIButton>
-
-        <!-- Language toggle -->
-        <AGUIButton variant="outline" size="mini" @click="toggleLocale">
-          <div class="i-ri-global-line mr-1" />
+        <AGUIIconButton icon="i-ri-refresh-line" :title="$t('characters.refresh')" :disabled="cStore.loading" @click="cStore.dirHandle ? cStore.fetchCharactersFromHandle() : cStore.fetchCharacters()" />
+        <AGUIButton icon="i-ri-global-line" @click="toggleLocale">
           {{ locale === 'en' ? 'EN' : '中' }}
         </AGUIButton>
-      </div>
-    </div>
-
-    <!-- Main content: left tree + right cards -->
-    <div class="flex flex-1 overflow-hidden">
-      <!-- Left sidebar: File tree -->
-      <div class="w-60 flex flex-col border-r border-dark-300">
-        <div v-if="cStore.dirHandle" class="flex-1 overflow-auto">
-          <!-- Directory name header -->
-          <div class="flex items-center gap-2 border-b border-dark-300 px-3 py-2 text-xs op-60">
-            <div class="i-ri-folder-open-line" />
-            <span class="truncate">{{ cStore.dirHandle.name }}</span>
+      </template>
+    </AGUIToolbar>
+    <div class="character-workspace">
+      <aside>
+        <template v-if="cStore.dirHandle">
+          <div class="ae-resource-row">
+            {{ cStore.dirHandle.name }}
           </div>
-          <!-- File tree -->
-          <div class="p-1">
-            <CharacterFileTree
-              :nodes="cStore.fileTree"
-              :selected="selectedTreeNode"
-              @select="onTreeNodeClick"
-            />
-          </div>
-        </div>
-        <div v-else class="flex flex-1 flex-col items-center justify-center gap-3 p-4">
-          <div class="i-ri-folder-open-line text-3xl op-30" />
-          <AGUIButton theme="primary" size="mini" @click="onOpenDirectory">
-            <div class="i-ri-folder-add-line mr-1" />
+          <CharacterFileTree :nodes="cStore.fileTree" :selected="selectedTreeNode" @select="onTreeNodeClick" />
+        </template>
+        <div v-else class="ae-resource-empty">
+          <AGUIButton icon="i-ri-folder-open-line" @click="onOpenDirectory">
             {{ $t('characters.openLocalDir') }}
           </AGUIButton>
-          <p class="text-center text-xs op-40">
-            {{ $t('characters.dirHint') }}
+          <p>{{ $t('characters.dirHint') }}</p>
+        </div>
+      </aside>
+      <main>
+        <form v-if="!hasSource" class="directory-form" @submit.prevent="onConnectDir">
+          <label for="characters-directory">{{ $t('characters.dirHint') }}</label>
+          <AGUIInput id="characters-directory" v-model="directoryDraft" :placeholder="$t('characters.dirPlaceholder')" />
+          <div class="ae-resource-actions">
+            <AGUIButton type="submit" :disabled="!directoryDraft.trim()">
+              {{ $t('characters.connect') }}
+            </AGUIButton>
+          </div>
+          <p class="ae-resource-caption">
+            {{ $t('characters.examplePaths') }} ./demo/flow/adv/characters
           </p>
-        </div>
-      </div>
-
-      <!-- Right: Character cards or directory config -->
-      <div class="flex-1 overflow-auto">
-        <!-- Server-side dir config (when no browser handle and no server dir) -->
-        <div v-if="!hasSource" class="flex flex-col items-center justify-center gap-6 p-8">
-          <div class="i-ri-folder-open-line text-4xl op-30" />
-
-          <div class="max-w-xl w-full flex flex-col gap-2">
-            <p class="text-sm op-70">
-              {{ $t('characters.dirHint') }}
-            </p>
-            <div class="flex items-center gap-2">
-              <AGUIInput
-                v-model="cStore.charactersDir"
-                :placeholder="$t('characters.dirPlaceholder')"
-                class="flex-1"
-              />
-              <AGUIButton theme="primary" :disabled="!cStore.charactersDir" @click="onConnectDir">
-                {{ $t('characters.connect') }}
-              </AGUIButton>
-            </div>
-          </div>
-
-          <div class="max-w-xl w-full text-xs op-40">
-            <p>{{ $t('characters.examplePaths') }}</p>
-            <p class="mt-1 font-mono">
-              ./demo/flow/adv/characters
-            </p>
-            <p class="font-mono">
-              /absolute/path/to/adv/characters
-            </p>
-          </div>
-        </div>
-
-        <!-- Character List -->
-        <div v-else class="p-6">
-          <CharacterList
-            :characters="cStore.filteredCharacters"
-            :loading="cStore.loading"
-            @select="onSelectCharacter"
-          />
-        </div>
-      </div>
+        </form>
+        <CharacterList v-else :characters="cStore.filteredCharacters" :loading="cStore.loading" @select="onSelectCharacter" />
+      </main>
     </div>
-
-    <!-- Create Dialog -->
     <AGUIDialog v-model:open="showCreateDialog" :title="$t('characters.newCharacter')" content-class="w-lg max-h-[80vh]">
       <CharacterForm mode="create" @submit="onCreateCharacter" @cancel="showCreateDialog = false" />
     </AGUIDialog>
   </div>
 </template>
+
+<style scoped>
+.character-page {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  container: character-page / inline-size;
+}
+h1 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+}
+.character-search {
+  flex: 1;
+  min-width: 120px;
+}
+.character-workspace {
+  display: grid;
+  grid-template-columns: minmax(160px, 220px) minmax(0, 1fr);
+  flex: 1;
+  min-height: 0;
+}
+aside {
+  border-right: 1px solid var(--agui-c-divider);
+}
+aside,
+main {
+  overflow: auto;
+  min-width: 0;
+}
+.directory-form {
+  max-width: 560px;
+  padding: 12px;
+}
+.directory-form label {
+  display: block;
+  margin-bottom: 8px;
+}
+@container character-page (max-width: 560px) {
+  .character-workspace {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+  }
+  aside {
+    max-height: 160px;
+    border-right: 0;
+    border-bottom: 1px solid var(--agui-c-divider);
+  }
+}
+</style>

@@ -1,72 +1,76 @@
 <script setup lang="ts">
 import { useAdvContext } from '@advjs/client'
+import { computed, ref, useId, watch } from 'vue'
+import { audioLibrarySrc, useAudioLibrary } from '../../../composables/useAudioLibrary'
+import '../../../styles/resource-panel.scss'
 
 const { $adv } = useAdvContext()
-
 const audioStore = useAudioStore()
 const app = useAppStore()
 const fileStore = useFileStore()
 const monacoStore = useMonacoStore()
-
-async function fetchLibraryData() {
-  if (!audioStore.bgmLibraryUrl) {
-    return
-  }
-
-  fetch(audioStore.bgmLibraryUrl)
-    .then(res => res.json())
-    .then((data) => {
-      audioStore.bgmLibraryData = data
-
-      app.activeInspector = 'file'
-      monacoStore.fileContent = JSON.stringify(data, null, 2)
-      fileStore.fileName = audioStore.bgmLibraryUrl
-    })
-    .catch((err) => {
-      console.error('Error fetching audio library:', err)
-    })
-}
-
-function getAudioSrcByKey(bgmKey: string) {
-  const cdnUrl = $adv.config.value.cdn.prefix || 'https://cos.advjs.yunle.fun'
-  const bgmName = audioStore.bgmLibraryData[bgmKey]?.name
-  return `${cdnUrl}/bgms/library/${bgmName}.mp3`
-}
+const fieldId = useId()
+const search = ref('')
+const { load, cancel, loading, failed } = useAudioLibrary((data, url) => {
+  audioStore.bgmLibraryData = data
+  app.activeInspector = 'file'
+  monacoStore.fileContent = JSON.stringify(data, null, 2)
+  fileStore.fileName = url
+})
+watch(() => audioStore.bgmLibraryUrl, cancel)
+const entries = computed(() => {
+  const query = search.value.trim().toLowerCase()
+  return Object.entries(audioStore.bgmLibraryData).filter(([key, item]) =>
+    !query || `${key} ${item.name} ${item.description}`.toLowerCase().includes(query))
+})
 </script>
 
 <template>
-  <div class="h-full w-full p-4 text-white">
-    <div>
-      <AGUIForm>
-        <AGUIFormItem label="背景音乐库">
-          <div class="flex items-center gap-1">
-            <AGUIInput v-model="audioStore.bgmLibraryUrl" placeholder="https://xxx" />
-            <div class="i-ri-search-line cursor-pointer text-xs op-80 hover:op-100" @click="fetchLibraryData" />
-          </div>
-        </AGUIFormItem>
-      </AGUIForm>
+  <div class="ae-resource-panel audio-panel" :aria-busy="loading">
+    <AGUIToolbar :items="[]" :label="$t('audio.title')">
+      <template #before-toolbar>
+        <span>{{ $t('audio.title') }}</span>
+      </template>
+      <template #after-toolbar>
+        <span class="ae-resource-caption">{{ entries.length }}</span>
+      </template>
+    </AGUIToolbar>
+    <form class="audio-source" @submit.prevent="load(audioStore.bgmLibraryUrl)">
+      <AGUIProperty :for="`${fieldId}-source`" :label="$t('audio.source')">
+        <AGUIInput :id="`${fieldId}-source`" v-model="audioStore.bgmLibraryUrl" placeholder="https://…/library.json" />
+      </AGUIProperty>
+      <div class="ae-resource-actions">
+        <AGUIButton type="submit" icon="i-ri-refresh-line" :disabled="!audioStore.bgmLibraryUrl.trim()" :loading="loading">
+          {{ $t('audio.load') }}
+        </AGUIButton>
+      </div>
+    </form>
+    <p v-if="failed" class="ae-resource-error px-2" role="alert">
+      {{ $t('audio.loadFailed') }}
+    </p>
+    <p v-if="loading" class="ae-resource-caption px-2" role="status">
+      {{ $t('audio.loading') }}
+    </p>
+    <div class="p-2">
+      <AGUIInput v-model="search" :aria-label="$t('audio.search')" :placeholder="$t('audio.search')" prefix-icon="i-ri-search-line" />
     </div>
-
-    <ul class="flex flex-col gap-2 py-4 pl-5 text-sm">
-      <li v-for="(item, key, i) in (audioStore.bgmLibraryData as any)" :key="key" class="relative">
-        <div class="absolute w-5 text-right op-80 -left-6">
-          {{ (i || 0) + 1 }}.
-        </div>
-        <div class="flex flex-col gap-2">
-          <div class="flex items-center gap-2">
-            <!-- <div class="i-ri-volume-up-line cursor-pointer text-$agui-c-text op-80 hover:op-100" @click="playAudio(key)" /> -->
-            <span class="text-white font-bold">{{ key }}:</span>
-            <span class="text-$agui-c-text">《{{ item.name }}》</span>
-          </div>
-          <audio
-            :src="getAudioSrcByKey(key as any as string)"
-            preload="metadata"
-            controls
-            class="w-full"
-          />
-          <span class="text-gray-400">{{ item.description }}</span>
-        </div>
-      </li>
+    <ul v-if="entries.length" class="ae-resource-list">
+      <AEAudioLibraryItem v-for="([key, item]) in entries" :key="key" :name="`${key} · ${item.name}`" :description="item.description" :src="audioLibrarySrc($adv.config.value.cdn.prefix, item.name)" />
     </ul>
+    <p v-else-if="!loading" class="ae-resource-empty" role="status">
+      {{ $t(search.trim() ? 'audio.noMatches' : 'audio.empty') }}
+    </p>
   </div>
 </template>
+
+<style scoped>
+.audio-panel {
+  height: 100%;
+  overflow: auto;
+}
+.audio-source {
+  padding: 8px;
+  border-bottom: 1px solid var(--agui-c-divider);
+  container: agui-properties / inline-size;
+}
+</style>

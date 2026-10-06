@@ -163,7 +163,30 @@
     "createNew": "新建角色",
     "openDir": "打开目录",
     "emptyHint": "点击「+」新建角色或「📂」打开角色目录",
-    "backToDetail": "返回详情"
+    "backToDetail": "返回详情",
+    "view": "视图",
+    "grid": "缩略图",
+    "list": "列表",
+    "loading": "正在加载角色…",
+    "refresh": "刷新角色",
+    "noDetails": "暂无补充资料",
+    "tachie": {
+      "name": "立绘名称",
+      "src": "图片地址",
+      "empty": "暂无立绘",
+      "duplicate": "名称已存在，请使用其他名称。",
+      "add": "添加立绘",
+      "remove": "删除立绘 {name}"
+    },
+    "relationship": {
+      "target": "目标角色 ID",
+      "type": "关系类型",
+      "description": "说明（可选）",
+      "empty": "暂无关系",
+      "add": "添加关系",
+      "remove": "删除与 {name} 的关系"
+    },
+    "back": "返回"
   },
   "context": {
     "title": "创作上下文",
@@ -189,5 +212,18 @@
   "extensions": {
     "manage": "管理插件",
     "selectObject": "选择文件或人物以查看和编辑属性。"
+  },
+  "audio": {
+    "title": "音频库",
+    "source": "音乐库地址",
+    "load": "加载音频库",
+    "loading": "正在加载音频库…",
+    "loadFailed": "无法加载音频库。请检查地址、网络及 JSON 格式后重试。",
+    "search": "搜索名称或说明",
+    "empty": "输入音乐库 JSON 地址以加载音频。",
+    "noMatches": "没有匹配的音频",
+    "preview": "试听 {name}",
+    "playFailed": "音频无法播放，请检查资源地址或重试。",
+    "retry": "重试"
   }
 }

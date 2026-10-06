@@ -1,0 +1,64 @@
+.ae-resource-panel {
+  min-width: 0;
+  color: var(--agui-c-text-1);
+  background: var(--agui-c-bg-panel);
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.ae-resource-list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ae-resource-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 6px;
+  border-bottom: 1px solid var(--agui-c-divider);
+}
+.ae-resource-meta {
+  flex: 1;
+  min-width: 0;
+}
+.ae-resource-name {
+  font-weight: 500;
+}
+.ae-resource-caption {
+  color: var(--agui-c-text-2);
+  font-size: 12px;
+}
+.ae-resource-thumb {
+  flex-shrink: 0;
+  width: 48px;
+  height: 64px;
+  object-fit: contain;
+  background: var(--agui-c-field);
+  border: 1px solid var(--agui-c-divider);
+  border-radius: 2px;
+}
+.ae-resource-empty {
+  padding: 16px 8px;
+  color: var(--agui-c-text-2);
+  text-align: center;
+}
+.ae-resource-form {
+  margin-top: 8px;
+  container: agui-properties / inline-size;
+}
+.ae-resource-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 8px;
+}
+.ae-resource-error {
+  margin: 4px 0;
+  color: var(--agui-c-danger-text);
+  font-size: 12px;
+}

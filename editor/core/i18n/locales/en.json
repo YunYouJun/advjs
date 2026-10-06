@@ -163,7 +163,30 @@
     "createNew": "New Character",
     "openDir": "Open Directory",
     "emptyHint": "Click \"+\" to create a character or open a characters directory",
-    "backToDetail": "Back to Detail"
+    "backToDetail": "Back to Detail",
+    "view": "View",
+    "grid": "Grid",
+    "list": "List",
+    "loading": "Loading characters…",
+    "refresh": "Refresh characters",
+    "noDetails": "No additional details",
+    "tachie": {
+      "name": "Tachie name",
+      "src": "Image URL",
+      "empty": "No tachies yet",
+      "duplicate": "This name already exists. Choose another name.",
+      "add": "Add tachie",
+      "remove": "Remove tachie {name}"
+    },
+    "relationship": {
+      "target": "Target character ID",
+      "type": "Relationship type",
+      "description": "Description (optional)",
+      "empty": "No relationships",
+      "add": "Add relationship",
+      "remove": "Remove relationship with {name}"
+    },
+    "back": "Back"
   },
   "context": {
     "title": "Project context",
@@ -189,5 +212,18 @@
   "extensions": {
     "manage": "Manage plugins",
     "selectObject": "Select a file or character to inspect its properties."
+  },
+  "audio": {
+    "title": "Audio library",
+    "source": "Library URL",
+    "load": "Load library",
+    "loading": "Loading audio library…",
+    "loadFailed": "Could not load the library. Check the URL, network and JSON format, then retry.",
+    "search": "Search name or description",
+    "empty": "Enter an audio library JSON URL to load audio.",
+    "noMatches": "No matching audio",
+    "preview": "Preview {name}",
+    "playFailed": "Audio could not be played. Check the resource URL or retry.",
+    "retry": "Retry"
   }
 }
