@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import type { AdvGameSaveRecord, AdvGameSaveSlot } from '@advjs/client'
-import { createManualSaveSlot, screenshotGameThumb, useAdvContext, useAppStore, useGameStore } from '@advjs/client'
+import { createManualSaveSlot, injectionAdvPlayer, screenshotGameThumb, useAdvContext, useAppStore, useGameStore } from '@advjs/client'
 import { assets } from '@advjs/theme-default'
 
 import dayjs from 'dayjs'
-import { computed, onMounted, shallowRef } from 'vue'
+import { computed, inject, onMounted, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -25,6 +25,7 @@ const { $adv } = useAdvContext()
 const app = useAppStore()
 
 const game = useGameStore()
+const inPlayer = inject(injectionAdvPlayer, false)
 const { t } = useI18n()
 
 const record = shallowRef<AdvGameSaveRecord>()
@@ -127,14 +128,15 @@ const router = useRouter()
 async function loadFromCard() {
   if (!record.value)
     return
-  $adv.runtime.restore(record.value.snapshot)
-
-  // Embedded players restore in place; only standalone menus need navigation.
-  const inGameMenu = app.showLoadMenu
   app.showLoadMenu = false
-
-  if (!inGameMenu && route.path !== '/game')
+  if (inPlayer || route.path === '/game') {
+    $adv.runtime.restore(record.value.snapshot)
+  }
+  else {
+    // The game page initializes its runtime before consuming this snapshot.
+    game.pendingRestore = record.value.snapshot
     await router.push('/game')
+  }
 }
 
 async function onCardClick() {

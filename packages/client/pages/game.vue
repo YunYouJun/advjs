@@ -1,14 +1,21 @@
 <script setup lang="ts">
-import { useAdvContext } from '@advjs/client'
+import { useAdvContext, useGameStore } from '@advjs/client'
 import { onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 
 const isDev = import.meta.env.DEV
 const { $adv } = useAdvContext()
 const route = useRoute()
+const game = useGameStore()
 
 onMounted(async () => {
   await $adv.init()
+  const snapshot = game.pendingRestore
+  if (snapshot) {
+    game.pendingRestore = undefined
+    $adv.runtime.restore(snapshot)
+    return
+  }
   const chapterId = typeof route.query.chapter === 'string' ? route.query.chapter : ''
   const nodeId = typeof route.query.node === 'string' ? route.query.node : ''
   const chapter = chapterId ? $adv.store.program?.chapters[chapterId] : undefined

@@ -2,8 +2,8 @@
 // Game Instance
 import type { AdvConfig } from '@advjs/types'
 
-import { useAppStore } from '@advjs/client'
-import { computed, shallowRef } from 'vue'
+import { injectionAdvPlayer, useAppStore } from '@advjs/client'
+import { computed, provide, shallowRef } from 'vue'
 import { useBeforeUnload } from '../../composables'
 import { useAdvContext } from '../../composables/useAdvContext'
 
@@ -12,6 +12,7 @@ defineProps<{
 }>()
 
 const { $adv } = useAdvContext()
+provide(injectionAdvPlayer, true)
 
 const curNode = computed(() => $adv.store.current)
 const showsDialog = computed(() => (

@@ -1,5 +1,5 @@
 import { useRouter } from 'vue-router'
-import { useAppStore } from '../stores'
+import { useAppStore, useGameStore } from '../stores'
 
 export interface AdvStartTarget {
   chapterId: string
@@ -15,19 +15,23 @@ export interface AdvStartTarget {
 export function useAdvStartActions() {
   const router = useRouter()
   const app = useAppStore()
+  const game = useGameStore()
 
   return {
-    startGame: (target?: AdvStartTarget) => router.push({
-      path: '/game',
-      ...(target
-        ? {
-            query: {
-              chapter: target.chapterId,
-              ...(target.nodeId ? { node: target.nodeId } : {}),
-            },
-          }
-        : {}),
-    }),
+    startGame: (target?: AdvStartTarget) => {
+      game.pendingRestore = undefined
+      return router.push({
+        path: '/game',
+        ...(target
+          ? {
+              query: {
+                chapter: target.chapterId,
+                ...(target.nodeId ? { node: target.nodeId } : {}),
+              },
+            }
+          : {}),
+      })
+    },
     openLoadGame: () => app.toggleShowLoadMenu(),
     openFlowChart: () => router.push('/flow-chart'),
     openSettings: () => {

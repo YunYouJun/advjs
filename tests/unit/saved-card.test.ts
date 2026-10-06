@@ -4,7 +4,7 @@ import SavedCard from '../../themes/theme-default/components/save/SavedCard.vue'
 
 const { app, game, route, router, snapshot, restore } = vi.hoisted(() => ({
   app: { showLoadMenu: true },
-  game: { read: vi.fn() },
+  game: { read: vi.fn(), pendingRestore: undefined as unknown },
   route: { path: '/play' },
   router: { push: vi.fn() },
   snapshot: { state: { cursor: { chapterId: 'chapter-1', nodeId: 'line-1' } } },
@@ -12,6 +12,7 @@ const { app, game, route, router, snapshot, restore } = vi.hoisted(() => ({
 }))
 
 vi.mock('@advjs/client', () => ({
+  injectionAdvPlayer: '$advjs-player',
   createManualSaveSlot: (index: number) => ({ kind: 'manual', index }),
   screenshotGameThumb: vi.fn(),
   useAppStore: () => app,
@@ -25,13 +26,14 @@ vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key: string) => key }) }))
 beforeEach(() => {
   vi.clearAllMocks()
   app.showLoadMenu = true
+  game.pendingRestore = undefined
   route.path = '/play'
   game.read.mockResolvedValue({ snapshot, meta: {}, updatedAt: 1 })
 })
 
 it.each(['/play', '/'])('loads in the embedded player at %s without leaving its host', async (path) => {
   route.path = path
-  const wrapper = mount(SavedCard, { props: { type: 'load' } })
+  const wrapper = mount(SavedCard, { props: { type: 'load' }, global: { provide: { '$advjs-player': true } } })
   await flushPromises()
   await wrapper.get('button[aria-label="save.load_from_slot"]').trigger('click')
   await flushPromises()
@@ -42,15 +44,16 @@ it.each(['/play', '/'])('loads in the embedded player at %s without leaving its 
   wrapper.unmount()
 })
 
-it('returns a standalone load page to the game without opening the modal', async () => {
-  app.showLoadMenu = false
-  route.path = '/load'
+it.each(['/load', '/start'])('queues standalone restores at %s until the game has initialized', async (path) => {
+  app.showLoadMenu = path === '/start'
+  route.path = path
   const wrapper = mount(SavedCard, { props: { type: 'load' } })
   await flushPromises()
   await wrapper.get('button[aria-label="save.load_from_slot"]').trigger('click')
   await flushPromises()
 
-  expect(restore).toHaveBeenCalledWith(snapshot)
+  expect(restore).not.toHaveBeenCalled()
+  expect(game.pendingRestore).toBe(snapshot)
   expect(app.showLoadMenu).toBe(false)
   expect(router.push).toHaveBeenCalledWith('/game')
   wrapper.unmount()
