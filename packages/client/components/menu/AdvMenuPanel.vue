@@ -19,7 +19,7 @@ const currentTab = ref('common')
           <TabsIndicator
             class="rounded-full h-[4px] w-$radix-tabs-indicator-size translate-x-$radix-tabs-indicator-position transition-[width,transform] duration-300 bottom-0 left-0 absolute"
           >
-            <div class="bg-blue-600 h-full w-full" />
+            <div class="bg-$adv-c-primary h-full w-full" />
           </TabsIndicator>
           <AdvMenuPanelTabTitle :title="t('settings.title')" value="common" />
           <AdvMenuPanelTabTitle :title="t('settings.speech_synthesis')" value="speech" />

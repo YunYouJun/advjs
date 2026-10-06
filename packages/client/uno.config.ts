@@ -9,7 +9,12 @@ export default defineConfig({
     presetAttributify(),
     presetIcons({
       scale: 1.2,
-      // warn: true,
+      // Resolve bundled icon sets from the client, even outside the monorepo.
+      collections: {
+        ri: () => import('@iconify-json/ri').then(module => module.icons),
+        mdi: () => import('@iconify-json/mdi').then(module => module.icons),
+        carbon: () => import('@iconify-json/carbon').then(module => module.icons),
+      },
     }),
     presetTypography(),
     // todo, add unocss config it

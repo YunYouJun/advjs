@@ -8,7 +8,7 @@ import { loadModule } from '../utils'
 import { loadSetups } from './load'
 
 export default async function setupUnocss(
-  { clientRoot, roots }: ResolvedAdvOptions,
+  { clientRoot, roots }: Pick<ResolvedAdvOptions, 'clientRoot' | 'roots'>,
 ) {
   async function loadFileConfigs(root: string): Promise<UserConfig<Theme>[]> {
     return (await Promise
@@ -28,13 +28,17 @@ export default async function setupUnocss(
   const configs = [
     {
       presets: [
-        presetIcons({
-          collections: {
-            slidev: {
-              logo: () => readFileSync(resolve(clientRoot, 'assets/logo.svg'), 'utf-8'),
+        {
+          ...presetIcons({
+            collections: {
+              slidev: {
+                logo: () => readFileSync(resolve(clientRoot, 'assets/logo.svg'), 'utf-8'),
+              },
             },
-          },
-        }),
+          }),
+          // A duplicate preset name would discard the client's icon collections.
+          name: 'advjs/logo-icons',
+        },
       ],
     },
     ...await loadFileConfigs(clientRoot),
