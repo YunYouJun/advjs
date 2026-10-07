@@ -11,18 +11,18 @@ const defaultLayout: AGUILayoutType = {
     {
       type: 'horizontal',
       name: 'left',
-      size: 70,
+      size: 78,
       children: [
         {
           type: 'vertical',
           name: 'top',
-          size: 64,
+          size: 72,
           children: [
             {
               name: 'hierarchy',
               size: 25,
-              min: 20,
-              max: 80,
+              min: 15,
+              max: 50,
             },
             {
               // main scene
@@ -33,31 +33,33 @@ const defaultLayout: AGUILayoutType = {
         },
         {
           name: 'project',
-          size: 36,
+          size: 28,
         },
       ],
     },
     {
       name: 'right',
-      size: 30,
-      min: 20,
-      max: 60,
+      size: 22,
+      min: 18,
+      max: 45,
     },
   ],
 }
 
 export const useAppStore = defineStore('@advjs/editor:app', () => {
   const pixiApp = shallowRef<Application | null>(null)
+  const showEmptyWorkspace = shallowRef(false)
   const layout = useStorage('agui:layout', JSON.parse(JSON.stringify(defaultLayout)))
 
   /**
    * 当前激活的 Inspector
    */
-  const activeInspector = ref<'file' | 'character' | 'character-create' | 'node' | 'context'>()
+  const activeInspector = ref<'file' | 'asset' | 'character' | 'character-create' | 'node' | 'context'>()
 
   return {
     layout,
     pixiApp,
+    showEmptyWorkspace,
 
     activeInspector,
 

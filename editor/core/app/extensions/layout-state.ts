@@ -34,6 +34,10 @@ export function restoreLayout(value: unknown, legacy?: string | null): LayoutSta
   else if (legacy && ['game', 'character', 'audio', 'flow-editor', 'dashboard'].includes(legacy)) {
     result.active.main = `advjs.core/${legacy}`
   }
+  if (result.active.bottom === 'advjs.core/project') {
+    result.active.navigation = 'advjs.core/project'
+    result.active.bottom = 'advjs.core/assets'
+  }
   return result
 }
 

@@ -76,7 +76,9 @@
     "language": "语言",
     "languageDescription": "设置编辑器界面的语言",
     "theme": "主题",
-    "themeDescription": "统一面板、菜单与弹窗的外观",
+    "themePreset": "主题预设",
+    "themeDescription": "跟随系统外观，或固定使用亮色、暗色；统一面板、菜单与弹窗",
+    "system": "跟随系统",
     "dark": "暗色",
     "light": "亮色"
   },

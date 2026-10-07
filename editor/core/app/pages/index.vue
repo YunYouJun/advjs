@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { AGUIToast, Toast, toastRef } from '@advjs/gui'
-
 definePageMeta({
   layout: 'editor',
 })
 
 const app = useAppStore()
+const project = useProjectStore()
+const desktop = import.meta.client && !!window.advDesktop
+const showWelcome = computed(() => desktop && !project.project && !app.showEmptyWorkspace)
 const nativeMenu = import.meta.client && window.advDesktop?.nativeMenu === true
 const { onboarded } = useEditorLocale()
 
@@ -16,22 +17,16 @@ onMounted(() => {
   if (!onboarded.value) {
     showOnboarding.value = true
   }
-  else {
-    Toast({
-      title: 'Hello!',
-      description: 'Welcome to preview ADV.JS Editor!',
-      duration: 3000,
-    })
-  }
 })
 </script>
 
 <template>
-  <main class="flex flex-col h-screen w-screen" :class="{ 'has-native-menu': nativeMenu }">
+  <main class="flex flex-col h-full w-full" :class="{ 'has-native-menu': nativeMenu }">
     <EditorMenubar />
     <EditorToolbar />
 
-    <AGUILayout v-model:layout="app.layout" class="advjs-editor-layout flex">
+    <AEOpenProject v-if="showWelcome" full-page />
+    <AGUILayout v-else v-model:layout="app.layout" class="advjs-editor-layout flex">
       <template #right>
         <PanelInspector />
       </template>
@@ -50,7 +45,6 @@ onMounted(() => {
     </AGUILayout>
 
     <AEOnboardingDialog v-model:open="showOnboarding" />
-    <AGUIToast ref="toastRef" />
   </main>
 </template>
 

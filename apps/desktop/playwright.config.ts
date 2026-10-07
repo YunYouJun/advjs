@@ -1,3 +1,3 @@
 import { defineConfig } from '@playwright/test'
 
-export default defineConfig({ testDir: './test', testMatch: ['desktop.spec.ts', 'preferences.spec.ts', 'startup.spec.ts', 'native-menu.spec.ts'], timeout: 300000, workers: 1, fullyParallel: false, use: { actionTimeout: 10000, trace: 'retain-on-failure' }, reporter: [['list'], ['html', { open: 'never' }]] })
+export default defineConfig({ testDir: './test', testMatch: ['desktop.spec.ts', 'app-identity.spec.ts', 'preferences.spec.ts', 'startup.spec.ts', 'native-menu.spec.ts', 'panels.spec.ts', 'recent-projects.spec.ts', 'error-report.spec.ts', 'multi-window.spec.ts', 'welcome.spec.ts', 'live-preview.spec.ts', 'vue-devtools.spec.ts', 'game-settings.spec.ts', 'theme.spec.ts'], timeout: 300000, workers: 1, fullyParallel: false, use: { actionTimeout: 10000, trace: 'retain-on-failure' }, reporter: [['list'], ['html', { open: 'never' }]] })

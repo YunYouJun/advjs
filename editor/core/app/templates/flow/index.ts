@@ -8,6 +8,7 @@ const template: ProjectTemplateDefinition = {
   meta,
   files: [
     { name: 'adv.config.json', content: advConfig, isAdvConfig: true },
+    { name: 'game.config.json', content: '{"title":"{{projectName}}"}' },
     { name: 'index.adv.json', content: indexAdv, isEntry: true },
     { name: 'README.md', content: readme },
   ],

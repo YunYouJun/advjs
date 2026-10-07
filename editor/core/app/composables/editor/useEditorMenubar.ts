@@ -15,20 +15,24 @@ export function useEditorMenubar() {
   const clipboardItems = useClipboardItems()
 
   const { createAndLoadProject } = useCreateProject()
-  const { recentProjects } = useRecentProjects()
+  const { recentProjects, reopenRecentProject } = useRecentProjects()
+  const projectStore = useProjectStore()
 
   /**
-   * open adv project by triggering the explorer's open directory button
+   * Open a project without depending on a mounted explorer panel.
    */
-  function openAdvProject() {
+  async function openAdvProject() {
     if (window.advDesktop) {
       void window.advDesktop.openProject()
       return
     }
-    const advExplorerDom = document.querySelector('#adv-explorer')
-    const openDirBtn = advExplorerDom?.querySelector('.agui-open-directory') as HTMLElement
-    if (openDirBtn) {
-      openDirBtn.click()
+    try {
+      const directory = await window.showDirectoryPicker({ mode: 'readwrite' })
+      await projectStore.openBrowserProject(directory)
+    }
+    catch (error) {
+      if (!(error instanceof DOMException) || error.name !== 'AbortError')
+        Toast({ title: t('menu.openLocalProject'), description: String(error), type: 'error' })
     }
   }
 
@@ -59,6 +63,7 @@ export function useEditorMenubar() {
         {
           type: 'submenu',
           label: t('menu.newProject'),
+          disabled: projectStore.isRestoringProject,
           children: PROJECT_TEMPLATES.map(tpl => ({
             label: tpl.name,
             onClick: () => {
@@ -68,6 +73,7 @@ export function useEditorMenubar() {
         },
         {
           label: t('menu.openLocalProject'),
+          disabled: projectStore.isRestoringProject,
           onClick: () => {
             openAdvProject()
           },
@@ -78,37 +84,9 @@ export function useEditorMenubar() {
           children: recentProjects.value.length > 0
             ? recentProjects.value.map(project => ({
                 label: project.name,
-                onClick: async () => {
-                  const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' })
-                  const projectStore = useProjectStore()
-                  const { addRecentProject } = useRecentProjects()
-
-                  projectStore.rootDir = {
-                    name: dirHandle.name,
-                    kind: 'directory',
-                    handle: dirHandle,
-                  } as any
-
-                  try {
-                    const configHandle = await dirHandle.getFileHandle('adv.config.json')
-                    await projectStore.setAdvConfigFileHandle(configHandle)
-                  }
-                  catch {
-                    // no config file
-                  }
-
-                  try {
-                    const entryHandle = await dirHandle.getFileHandle('index.adv.json')
-                    await projectStore.setEntryFileHandle(entryHandle)
-                  }
-                  catch {
-                    // no entry file
-                  }
-
-                  addRecentProject({
-                    name: dirHandle.name,
-                    templateId: project.templateId,
-                  })
+                disabled: projectStore.isRestoringProject,
+                onClick: () => {
+                  void reopenRecentProject(project.id)
                 },
               }))
             : [{

@@ -4,9 +4,17 @@ export function useInspectorOnlineFile() {
   const icon = ref('i-vscode-icons:file-type-json')
 
   const name = computed(() => {
-    const url = new URL(onlineStore.onlineAdvConfigFileUrl)
-    const path = url.pathname
-    return path.split('/').pop() || ''
+    const value = onlineStore.onlineAdvConfigFileUrl
+    if (!value)
+      return ''
+
+    try {
+      const url = new URL(value)
+      return url.pathname.split('/').pop() || ''
+    }
+    catch {
+      return ''
+    }
   })
 
   const language = computed<MonacoEditorLanguage>(() => {

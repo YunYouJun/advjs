@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { EditorStartupState } from '../startup'
 import { AGUIButton } from '@advjs/gui'
+import AECopyErrorButton from './error/AECopyErrorButton.vue'
 
 const props = defineProps<{
   show: boolean
@@ -21,10 +22,10 @@ const progressText = computed(() => t('splash.completed', { completed: props.sta
     <div
       v-if="show"
       :aria-busy="state.status === 'loading'"
-      class="ae-editor-splash fixed inset-0 z-9999 flex flex-col items-center justify-center"
+      class="ae-editor-splash flex flex-col items-center inset-0 justify-center fixed z-9999"
     >
       <!-- Logo area -->
-      <div class="mb-10 flex flex-col items-center gap-3">
+      <div class="mb-10 flex flex-col gap-3 items-center">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -34,9 +35,9 @@ const progressText = computed(() => t('splash.completed', { completed: props.sta
         >
           <path fill="currentColor" d="M14 10.25L17 8v6l-3-2.25V14H7V8h7v2.25zM5.763 17H20V5H4v13.385L5.763 17zm.692 2L2 22.5V4a1 1 0 0 1 1-1h18a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H6.455z" />
         </svg>
-        <div class="flex items-center gap-2">
+        <div class="flex gap-2 items-center">
           <span
-            class="text-3xl font-bold tracking-wide"
+            class="text-3xl tracking-wide font-bold"
             style="letter-spacing: 0.05em;"
           >
             ADV.JS
@@ -58,10 +59,10 @@ const progressText = computed(() => t('splash.completed', { completed: props.sta
           :aria-valuemax="state.total"
           :aria-valuenow="state.completed"
           :aria-valuetext="progressText"
-          class="ae-splash-track h-1 w-full overflow-hidden rounded-full"
+          class="ae-splash-track rounded-full h-1 w-full overflow-hidden"
         >
           <div
-            class="ae-splash-progress h-full rounded-full"
+            class="ae-splash-progress rounded-full h-full"
             :class="{ 'ae-splash-progress-busy': state.status === 'loading' }"
             :style="{ width: `${state.progress}%` }"
           />
@@ -77,15 +78,18 @@ const progressText = computed(() => t('splash.completed', { completed: props.sta
               {{ state.error }}
             </p>
           </div>
-          <AGUIButton theme="primary" @click="$emit('retry')">
-            {{ t('splash.retry') }}
-          </AGUIButton>
+          <div class="ae-splash-actions">
+            <AGUIButton theme="primary" @click="$emit('retry')">
+              {{ t('splash.retry') }}
+            </AGUIButton>
+            <AECopyErrorButton :source="`Startup: ${state.phase}`" :error="state.errorDetails ?? state.error" :details="{ completed: state.completed, total: state.total }" />
+          </div>
         </template>
       </div>
 
       <!-- Version -->
       <div
-        class="ae-splash-secondary absolute bottom-6 right-6 text-xs"
+        class="ae-splash-secondary text-xs bottom-6 right-6 absolute"
       >
         v0.1.1
       </div>
@@ -109,6 +113,14 @@ const progressText = computed(() => t('splash.completed', { completed: props.sta
   overflow: auto;
   overflow-wrap: anywhere;
   color: var(--agui-c-danger-text);
+}
+
+.ae-splash-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 100%;
 }
 
 .ae-splash-logo {

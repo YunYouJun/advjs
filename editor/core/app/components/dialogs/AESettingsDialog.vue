@@ -13,7 +13,7 @@ const open = defineModel('open', {
     <div class="mt-[25px] flex justify-end">
       <DialogClose as-child>
         <button
-          class="text-green11 h-[35px] inline-flex items-center justify-center rounded-lg bg-green4 px-[15px] text-sm font-semibold leading-none hover:bg-green5 focus:shadow-[0_0_0_2px] focus:shadow-green7 focus:outline-none"
+          class="text-green11 bg-green4 hover:bg-green5 focus:shadow-green7 text-sm leading-none font-semibold px-[15px] rounded-lg inline-flex h-[35px] items-center justify-center focus:outline-none focus:shadow-[0_0_0_2px]"
         >
           Save changes
         </button>

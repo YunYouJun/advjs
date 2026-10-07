@@ -10,7 +10,7 @@ const repo = resolve(import.meta.dirname, '../../..')
 const evidence = resolve(repo, 'apps/desktop/out/evidence')
 
 async function waitForEditor(page: Page) {
-  await expect(page.locator('.advjs-editor-layout')).toBeVisible()
+  await expect(page.locator('.advjs-editor-layout, .project-welcome.is-full-page')).toBeVisible()
   await expect(page.locator('svg[role="img"][aria-label="ADV.JS"]')).toHaveCount(0)
 }
 
@@ -84,7 +84,7 @@ test('desktop remembers language and onboarding across origins, projects and app
     }, second)
     await Promise.all([
       page!.waitForURL(url => url.origin !== firstOrigin),
-      page!.evaluate(() => { void window.advDesktop!.openProject() }),
+      page!.evaluate(() => { void window.advDesktop!.openProject('current') }),
     ])
     await waitForEditor(page!)
     expect(new URL(page!.url()).origin).not.toBe(firstOrigin)

@@ -1,3 +1,4 @@
+import { createRequire } from 'node:module'
 import path, { resolve } from 'node:path'
 import process from 'node:process'
 import { simpleGit } from 'simple-git'
@@ -11,6 +12,7 @@ import { editorBuildContract } from './build-contract'
 import { resolveEditorCapabilities } from './capabilities'
 
 const editorCapabilities = resolveEditorCapabilities(process.env)
+const monacoPublicDirectory = path.join(path.dirname(createRequire(import.meta.url).resolve('monaco-editor/package.json')), 'esm')
 const clarityId = editorCapabilities.integrations.analytics
   ? process.env.ADVJS_EDITOR_CLARITY_ID
   : undefined
@@ -102,6 +104,9 @@ export default defineNuxtConfig({
 
   nitro: {
     preset: editorBuildContract.preset,
+    // Keep worker URLs stable when the Monaco module's Vite copy preserves
+    // pnpm's dependency path instead of emitting the expected vs/ directory.
+    publicAssets: [{ dir: monacoPublicDirectory, baseURL: '/_nuxt/nuxt-monaco-editor/' }],
     ignore: [
       ...editorCapabilities.integrations.feishu
         ? []

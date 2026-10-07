@@ -1,0 +1,72 @@
+{
+  "fill": {
+    "automatic-gradient": "extended-srgb:0.9,0.94,1.0,1.0"
+  },
+  "fill-specializations": [
+    {
+      "appearance": "dark",
+      "value": {
+        "automatic-gradient": "extended-srgb:0.11,0.17,0.25,1.0"
+      }
+    },
+    {
+      "appearance": "tinted",
+      "value": "automatic"
+    }
+  ],
+  "groups": [
+    {
+      "name": "Dialogue",
+      "layers": [
+        {
+          "name": "Dialogue frame",
+          "image-name": "dialogue.svg",
+          "glass": true,
+          "fill-specializations": [
+            {
+              "appearance": "tinted",
+              "value": "automatic"
+            }
+          ]
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.3
+      },
+      "translucency": {
+        "enabled": true,
+        "value": 0.15
+      }
+    },
+    {
+      "name": "Camera",
+      "layers": [
+        {
+          "name": "Camera",
+          "image-name": "camera.svg",
+          "glass": true,
+          "fill-specializations": [
+            {
+              "appearance": "tinted",
+              "value": "automatic"
+            }
+          ]
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.35
+      },
+      "translucency": {
+        "enabled": true,
+        "value": 0.1
+      }
+    }
+  ],
+  "supported-platforms": {
+    "squares": [
+      "macOS"
+    ]
+  }
+}

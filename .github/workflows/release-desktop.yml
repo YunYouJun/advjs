@@ -1,0 +1,85 @@
+name: Release desktop applications
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing published release tag (v1.2.3 or desktop-v1.2.3) to package
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      tag:
+        description: Published release tag from the promotion transaction
+        required: true
+        type: string
+      source_sha:
+        description: Expected source commit from the verified release manifest
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-release-${{ inputs.tag || github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: github.event_name != 'release' || startsWith(github.event.release.tag_name, 'v') || startsWith(github.event.release.tag_name, 'desktop-v')
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.release.outputs.tag }}
+      version: ${{ steps.release.outputs.version }}
+      source_sha: ${{ steps.release.outputs.source_sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ inputs.tag || github.event.release.tag_name }}
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          package-manager-cache: false
+      - name: Resolve and validate the exact release commit
+        id: release
+        env:
+          DESKTOP_RELEASE_TAG: ${{ inputs.tag || github.event.release.tag_name }}
+          DESKTOP_RELEASE_SOURCE_SHA: ${{ inputs.source_sha }}
+        run: node scripts/release/desktop-artifacts.mjs resolve
+
+  build:
+    needs: prepare
+    uses: ./.github/workflows/desktop-build.yml
+    with:
+      source_sha: ${{ needs.prepare.outputs.source_sha }}
+      version: ${{ needs.prepare.outputs.version }}
+
+  publish:
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.source_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          package-manager-cache: false
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: desktop-package-*
+          path: desktop-release-assets
+          merge-multiple: true
+      - name: Verify all platform assets and upload to the existing release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DESKTOP_RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+          DESKTOP_RELEASE_SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
+        run: node scripts/release/desktop-artifacts.mjs publish desktop-release-assets

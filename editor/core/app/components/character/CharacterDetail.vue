@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { AdvCharacter } from '@advjs/types'
 import { computed } from 'vue'
+import CharacterAvatar from './CharacterAvatar.vue'
 import '../../styles/resource-panel.scss'
 
 const props = withDefaults(defineProps<{ character: AdvCharacter, actions?: boolean }>(), { actions: true })
@@ -12,7 +13,7 @@ const descriptions = computed(() => (['personality', 'appearance', 'background',
 <template>
   <div class="ae-resource-panel character-detail">
     <div class="ae-resource-row">
-      <img v-if="character.avatar" class="ae-resource-thumb" :src="character.avatar" alt="">
+      <CharacterAvatar :src="character.avatar" />
       <div class="ae-resource-meta">
         <h2 class="ae-resource-name">
           {{ character.name }}

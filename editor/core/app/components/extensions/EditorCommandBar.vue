@@ -17,8 +17,8 @@ const actions = computed(() => host.entries.flatMap(entry => entry.status === 'a
 const errors = computed(() => actions.value.map(action => host.commands[action.key]?.error).filter(Boolean))
 const menu = computed(() => ({
   type: 'dropdown' as const,
-  name: locale.value === 'zh-CN' ? '扩展操作' : 'Extension actions',
-  title: locale.value === 'zh-CN' ? '扩展操作' : 'Extension actions',
+  name: locale.value === 'zh-CN' ? '插件命令' : 'Plugin commands',
+  title: locale.value === 'zh-CN' ? '运行已启用插件提供的命令' : 'Run commands provided by enabled plugins',
   icon: 'i-ri-puzzle-line',
   children: actions.value.map(action => ({
     type: 'item' as const,
@@ -32,7 +32,14 @@ const menu = computed(() => ({
 
 <template>
   <div v-if="actions.length" class="editor-command-bar" :class="{ 'editor-command-bar-inline': toolbar }">
-    <AGUIDropdownMenu v-if="toolbar" :data="menu" />
+    <AGUIDropdownMenu v-if="toolbar" :data="menu">
+      <template #trigger>
+        <AGUIButton :icon="menu.icon" :aria-label="menu.name" :title="menu.title">
+          <span>{{ menu.name }}</span>
+          <span aria-hidden="true" class="editor-command-menu-chevron i-ri-arrow-down-s-line" />
+        </AGUIButton>
+      </template>
+    </AGUIDropdownMenu>
     <div v-else class="editor-command-actions" role="group" :aria-label="locale === 'zh-CN' ? '面板操作' : 'Panel actions'">
       <AGUIButton
         v-for="action in actions" :key="action.key"
@@ -59,6 +66,10 @@ const menu = computed(() => ({
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
+}
+.editor-command-menu-chevron {
+  flex-shrink: 0;
+  font-size: 14px;
 }
 .editor-command-bar-inline {
   display: flex;

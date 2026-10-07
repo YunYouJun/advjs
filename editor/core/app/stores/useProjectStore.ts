@@ -2,15 +2,20 @@ import type { ProjectSourcePatch } from '@advjs/core'
 import type { FSDirItem, TreeNode } from '@advjs/gui'
 import type { AdvAgentIntegrationStatus, AdvConfig } from '@advjs/types'
 import type { BrowserProjectDirectory, EditorProjectModel } from '../adapters/browser/project'
-import type { LocalBridgeAdapter, LocalDirectoryHandle, LocalFileHandle } from '../adapters/local'
+import type { LocalBridgeAdapter, LocalDirectoryHandle, LocalEditorSession, LocalFileHandle } from '../adapters/local'
 import type { AdvConfigAdapterType } from '../types'
+import type { RecentProject } from '../workspaces/browser-session'
 import type { ProjectFileChange, ProjectWorkspace, ProjectWorkspaceSnapshot, ProjectWorkspaceSubscription } from '../workspaces/project'
 import { defaultAdvConfig } from 'advjs'
 import { consola } from 'consola'
 import { createBrowserProjectWorkspace } from '../adapters/browser/workspace'
-import { createLocalBridgeAdapter, parseLocalEditorSession } from '../adapters/local'
+import { createLocalBridgeAdapter } from '../adapters/local'
+import { localEditorHistoryState, readLocalEditorSession } from '../adapters/local/session'
 import { createLocalProjectWorkspace } from '../adapters/local/workspace'
 import { PLATFORM_MAP } from '../constants'
+import { projectAssetPath } from '../utils/project-files'
+import { createBrowserSessionStorage } from '../workspaces/browser-session'
+import { createBrowserProjectRecovery } from '../workspaces/recovery'
 
 /**
  * global project store
@@ -21,10 +26,10 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
   const gameStore = useGameStore()
 
   // global project store with dir handle
-  /**
-   * dir handle 无法持久化
-   */
+  // Browser handles are kept raw in memory and structured-cloned to IndexedDB.
   const rootDir = shallowRef<FSDirItem>()
+  // Keep the attempted native path available when reading the project fails.
+  const projectLocation = shallowRef('')
   /**
    * entry file
    */
@@ -41,7 +46,8 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
   const workspace = shallowRef<ProjectWorkspace>()
   const workspaceMode = computed(() => workspace.value?.kind ?? 'browser')
   let localAdapter: LocalBridgeAdapter | undefined
-  const localFilePaths = computed(() => Object.keys(project.value?.files ?? {}).sort())
+  let localSession: LocalEditorSession | undefined
+  const localFilePaths = computed(() => (project.value?.filePaths ?? Object.keys(project.value?.files ?? {})).toSorted())
   let workspaceSubscription: ProjectWorkspaceSubscription | undefined
   let localRefreshTimer: ReturnType<typeof setTimeout> | undefined
   const pendingLocalChanges = new Set<string>()
@@ -50,6 +56,67 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
   const chapters = computed(() => project.value?.compilation.project.chapters ?? [])
   const characters = computed(() => project.value?.compilation.project.characters ?? [])
   const scenes = computed(() => project.value?.compilation.project.scenes ?? [])
+  const localConnecting = shallowRef(false)
+  const localRecoveryFailed = shallowRef(false)
+  const localRecoveryError = shallowRef<unknown>()
+  const desktopRecentProjects = shallowRef<RecentProject[]>([])
+  const recentProjectError = shallowRef('')
+  const recovery = createBrowserProjectRecovery({
+    storage: createBrowserSessionStorage(),
+    open: activateBrowserWorkspace,
+    pick: () => window.showDirectoryPicker({ mode: 'readwrite' }),
+    warn: error => consoleStore.warn('Workspace recovery failed', { error }),
+  })
+  const recoveryStatus = computed(() => localConnecting.value
+    ? 'restoring'
+    : localRecoveryFailed.value ? 'local-unavailable' : recovery.status.value)
+  const isRestoringProject = computed(() => recoveryStatus.value === 'restoring')
+  const recentProjects = computed(() => window.advDesktop ? desktopRecentProjects.value : recovery.recentProjects.value)
+
+  async function loadDesktopRecentProjects() {
+    const projects = await window.advDesktop!.recentProjects()
+    desktopRecentProjects.value = projects.map(project => ({ ...project, templateId: '', lastOpenedAt: project.lastOpenedAt ?? 0 }))
+  }
+
+  async function reopenRecentProject(id: string) {
+    recentProjectError.value = ''
+    if (!window.advDesktop)
+      return recovery.reopen(id)
+    if (isRestoringProject.value)
+      return false
+    localConnecting.value = true
+    try {
+      return await window.advDesktop.openRecent(id)
+    }
+    catch (error) {
+      recentProjectError.value = String(error)
+      consoleStore.error('Could not reopen project', { projectId: id, error })
+      return false
+    }
+    finally {
+      localConnecting.value = false
+    }
+  }
+
+  async function removeRecentProject(id: string) {
+    recentProjectError.value = ''
+    if (!window.advDesktop)
+      return recovery.remove(id)
+    if (isRestoringProject.value)
+      return
+    localConnecting.value = true
+    try {
+      await window.advDesktop.removeRecent(id)
+      await loadDesktopRecentProjects()
+    }
+    catch (error) {
+      recentProjectError.value = String(error)
+      consoleStore.error('Could not remove recent project', { projectId: id, error })
+    }
+    finally {
+      localConnecting.value = false
+    }
+  }
 
   /**
    * current config tab
@@ -160,11 +227,21 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
     return nextProject
   }
 
-  async function openBrowserProject(dirHandle: FileSystemDirectoryHandle) {
+  async function activateBrowserWorkspace(dirHandle: FileSystemDirectoryHandle) {
     const nextProject = await activateWorkspace(createBrowserProjectWorkspace(
       dirHandle as unknown as BrowserProjectDirectory,
     ))
     localAdapter = undefined
+    localSession = undefined
+    projectLocation.value = ''
+    localRecoveryFailed.value = false
+    window.history.replaceState(localEditorHistoryState(window.history.state), '')
+    return nextProject
+  }
+
+  async function openBrowserProject(dirHandle: FileSystemDirectoryHandle, options: { templateId?: string } = {}) {
+    const nextProject = await activateBrowserWorkspace(dirHandle)
+    await recovery.remember(dirHandle, options.templateId)
     return nextProject
   }
 
@@ -210,13 +287,70 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
   }
 
   async function connectLocalBridgeFromLaunch(url = window.location.href) {
-    const session = window.advDesktop ? await window.advDesktop.session() : parseLocalEditorSession(url)
-    if (!session || (window.advDesktop && !('root' in session && session.root)))
+    const session = window.advDesktop ? await window.advDesktop.session() : readLocalEditorSession(url, window.history.state)
+    if (!session)
       return false
+    if (window.advDesktop && !('root' in session && session.root))
+      return false
+    projectLocation.value = 'root' in session && typeof session.root === 'string' ? session.root : ''
+    // Preserve router/Nuxt state while scrubbing the credential from the URL.
+    // History state survives reload and stays out of local/sessionStorage.
+    if (!window.advDesktop) {
+      window.history.replaceState(
+        localEditorHistoryState(window.history.state, session),
+        '',
+        `${window.location.pathname}${window.location.search}`,
+      )
+    }
     const adapter = createLocalBridgeAdapter(session)
     await activateWorkspace(createLocalProjectWorkspace(adapter))
     localAdapter = adapter
+    localSession = session
+    localRecoveryFailed.value = false
     return true
+  }
+
+  async function restoreProjectWorkspace() {
+    localConnecting.value = true
+    try {
+      if (window.advDesktop) {
+        await loadDesktopRecentProjects().catch((error) => {
+          consoleStore.warn('Could not load recent projects', { error: String(error) })
+        })
+      }
+      else {
+        await recovery.load()
+      }
+      if (window.advDesktop || readLocalEditorSession(window.location.href, window.history.state)) {
+        try {
+          await connectLocalBridgeFromLaunch()
+          consoleStore.success('Local workspace connected')
+        }
+        catch (error) {
+          localRecoveryFailed.value = true
+          localRecoveryError.value = error
+          consoleStore.error('Local workspace connection failed', { error })
+        }
+        // A stopped/expired bridge must not silently open a browser project.
+        return
+      }
+      await recovery.restore()
+    }
+    finally {
+      localConnecting.value = false
+    }
+  }
+
+  function retryProjectRecovery() {
+    if (localRecoveryFailed.value)
+      return restoreProjectWorkspace()
+    const id = recovery.pending.value?.id
+    return id ? recovery.reopen(id) : Promise.resolve(false)
+  }
+
+  function retainLocalBridgeSession() {
+    if (localSession && !window.advDesktop)
+      window.history.replaceState(localEditorHistoryState(window.history.state, localSession), '')
   }
 
   function disconnectLocalBridge() {
@@ -224,6 +358,8 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
     workspaceSubscription = undefined
     workspace.value?.dispose?.()
     localAdapter = undefined
+    localSession = undefined
+    projectLocation.value = ''
     if (localRefreshTimer)
       clearTimeout(localRefreshTimer)
     localRefreshTimer = undefined
@@ -264,7 +400,7 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
       return path
     if (!workspace.value?.assetUrl)
       throw new Error('Open a project to read assets')
-    return await workspace.value.assetUrl(path.replace(/^\.\//u, '').replace(/^\//u, ''))
+    return await workspace.value.assetUrl(projectAssetPath(path, localFilePaths.value))
   }
 
   async function loadLocalAgentStatus(): Promise<AdvAgentIntegrationStatus> {
@@ -370,6 +506,7 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
 
   return {
     rootDir,
+    projectLocation,
 
     advConfig,
     curAdvConfigTab,
@@ -390,6 +527,18 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
     loadIndexAdvJSON,
     loadAdvConfigJSON,
     openBrowserProject,
+    restoreProjectWorkspace,
+    retryProjectRecovery,
+    retainLocalBridgeSession,
+    recoveryStatus,
+    recoveryError: computed(() => localRecoveryFailed.value ? localRecoveryError.value : recovery.error.value),
+    isRestoringProject,
+    pendingProject: computed(() => recovery.pending.value?.name),
+    recentProjects,
+    loadDesktopRecentProjects,
+    recentProjectError,
+    reopenRecentProject,
+    removeRecentProject,
     refreshProject,
     commitProject,
     writeProjectFiles,

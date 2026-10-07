@@ -6,8 +6,13 @@ interface NativeMenuOptions {
   locale?: 'en' | 'zh-CN'
   hasProject: boolean
   recent: readonly { id: string, name: string }[]
+  templates: readonly { id: string, name: string }[]
+  create: (id: string) => unknown
   command: (action: DesktopCommand) => unknown
   open: () => unknown
+  newWindow: () => unknown
+  openCurrent: () => unknown
+  reconnect: () => unknown
   openRecent: (id: string) => unknown
   close: () => unknown
   reload: () => unknown
@@ -42,13 +47,19 @@ export function createNativeMenu(options: NativeMenuOptions): MenuItemConstructo
       { role: 'quit', label: label('Quit ADV.JS Editor', '退出 ADV.JS Editor') },
     ] },
     { label: label('File', '文件'), submenu: [
+      { id: 'desktop.new-project', label: label('New Project', '新建项目'), submenu: options.templates.map(item => ({ id: `desktop.create.${item.id}`, label: item.name, click: () => options.create(item.id) })) },
+      action('welcome', 'Welcome', '欢迎页', { enabled: !options.hasProject }),
+      { id: 'desktop.new-window', label: label('New Window', '新建窗口'), accelerator: 'CmdOrCtrl+Shift+N', click: () => options.newWindow() },
       { id: 'desktop.open', label: label('Open Project…', '打开项目…'), accelerator: 'CmdOrCtrl+O', click: () => options.open() },
+      { id: 'desktop.open-current', label: label('Open Project in Current Window…', '在当前窗口打开项目…'), click: () => options.openCurrent() },
+      action('project-switcher', 'Switch Project…', '切换项目…', { accelerator: 'CmdOrCtrl+Alt+O' }),
       { id: 'desktop.recent', label: label('Recent Projects', '最近项目'), submenu: options.recent.length
         ? options.recent.map(item => ({ id: `desktop.recent.${item.id}`, label: item.name, click: () => options.openRecent(item.id) }))
         : [{ label: label('No Recent Projects', '没有最近项目'), enabled: false }] },
       separator,
       action('save', 'Save', '保存', { accelerator: 'CmdOrCtrl+S', enabled: options.hasProject }),
       action('project-settings', 'Project Settings…', '项目设置…', { enabled: options.hasProject }),
+      { id: 'desktop.reconnect', label: label('Reconnect Project', '重新连接项目'), enabled: options.hasProject, click: () => options.reconnect() },
       { id: 'desktop.close-project', label: label('Close Project', '关闭项目'), enabled: options.hasProject, click: () => options.close() },
       separator,
       action('export-directory', 'Export Web Directory…', '导出 Web 目录…', { enabled: options.hasProject }),
@@ -63,6 +74,8 @@ export function createNativeMenu(options: NativeMenuOptions): MenuItemConstructo
       { role: 'copy', label: label('Copy', '复制') },
       { role: 'paste', label: label('Paste', '粘贴') },
       { role: 'selectAll', label: label('Select All', '全选') },
+      separator,
+      action('preferences', 'Preferences…', '偏好设置…', { id: 'desktop.edit-preferences' }),
     ] },
     { label: label('Story', '故事'), submenu: [
       action('characters', 'Characters', '角色管理'),
@@ -72,7 +85,9 @@ export function createNativeMenu(options: NativeMenuOptions): MenuItemConstructo
       action('workspace', 'Editor Workspace', '编辑工作区'),
       action('extensions', 'Editor Extensions', '编辑器扩展'),
       separator,
-      action('preview', 'Game Preview', '游戏预览', { enabled: options.hasProject }),
+      action('preview', 'Preview in Editor', '在编辑器中预览', { enabled: options.hasProject }),
+      action('preview-window', 'Preview in Separate Window', '在独立窗口中预览', { enabled: options.hasProject }),
+      action('preview-build', 'Build and Preview', '构建并预览', { enabled: options.hasProject }),
       action('stop-preview', 'Stop Preview', '停止预览', { enabled: options.hasProject }),
       separator,
       { id: 'desktop.reload', label: label('Reload Window', '重载窗口'), accelerator: 'CmdOrCtrl+R', click: () => options.reload() },

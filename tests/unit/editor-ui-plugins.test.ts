@@ -386,7 +386,7 @@ describe('actual plugin panels', () => {
   it('uses the same enabled command in the toolbar overflow menu', async () => {
     const { services, project } = fixture()
     const { container } = await mountRegion([{ plugin: diagnosticsPlugin, source: 'bundled' }], services)
-    const trigger = container.querySelector<HTMLButtonElement>('[aria-label="Extension actions"]')!
+    const trigger = container.querySelector<HTMLButtonElement>('[aria-label="Plugin commands"]')!
     trigger.click()
     await vi.waitFor(() => expect(document.querySelector('[role="menuitem"]')).not.toBeNull())
     const item = document.querySelector<HTMLElement>('[role="menuitem"]')!

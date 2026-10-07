@@ -23,7 +23,7 @@ function gate() {
 
 async function ready(page: Page) {
   await expect(page.locator('.ae-editor-splash')).toHaveCount(0)
-  await expect(page.locator('.advjs-editor-layout')).toBeVisible()
+  await expect(page.locator('.advjs-editor-layout, .project-welcome.is-full-page')).toBeVisible()
 }
 
 test('packaged startup waits for project and scene resources, reports errors and retries', async () => {
@@ -89,7 +89,7 @@ test('packaged startup waits for project and scene resources, reports errors and
           return { background: getComputedStyle(element).backgroundColor, hostBackground: getComputedStyle(document.body).backgroundColor, overflow: element.scrollWidth > element.clientWidth, progress: (bar as HTMLElement).style.width }
         })
         expect(colors.background).toBe(colors.hostBackground)
-        expect(colors.background).toBe(mode === 'dark' ? 'rgb(26, 26, 26)' : 'rgb(255, 255, 255)')
+        expect(colors.background).toBe(mode === 'dark' ? 'rgb(26, 26, 26)' : 'rgb(241, 241, 241)')
         expect(colors.overflow).toBe(false)
         expect(colors.progress).toBe('67%')
         await page.screenshot({ path: resolve(evidence, `startup-${mode}-${name}.png`) })

@@ -1,46 +1,80 @@
-import type { IpcMainInvokeEvent, UtilityProcess } from 'electron'
-import type { DesktopCommand } from './commands.js'
 import { randomUUID } from 'node:crypto'
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
-import { resolve } from 'node:path'
+import { mkdir, readFile, realpath, rename, writeFile } from 'node:fs/promises'
+import { basename, isAbsolute, resolve } from 'node:path'
 import process from 'node:process'
-import { app, BrowserWindow, dialog, ipcMain, Menu, shell, utilityProcess } from 'electron'
+import { app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell } from 'electron'
+import { EditorWindow } from './editor-window.js'
+import { redactErrorReport } from './error-report.js'
 import { createNativeMenu } from './menu.js'
+import { createProjectDirectory, findProjectTemplate, parseProjectCreationInput, suggestProjectFolder } from './project-creation.js'
 import { projectConfigFingerprint } from './project-trust.js'
-import { createDesktopTasks } from './tasks.js'
+import { createWorkspaceStateStorage } from './workspace-state.js'
 
 if (process.env.ADVJS_DESKTOP_TEST_DATA)
   app.setPath('userData', process.env.ADVJS_DESKTOP_TEST_DATA)
+// Keep existing development preferences when overriding Electron's internal name.
+const userData = app.getPath('userData')
+app.setName(app.isPackaged ? 'ADV.JS Editor' : 'ADV.JS Editor Dev')
+app.setPath('userData', userData)
 const root = app.getAppPath()
+let projectTemplates: Parameters<typeof findProjectTemplate>[0] = []
+const iconName = app.isPackaged ? 'icon' : 'icon-dev'
+const appIcon = resolve(app.isPackaged ? process.resourcesPath : resolve(root, 'assets/generated'), `${iconName}.${process.platform === 'win32' ? 'ico' : 'png'}`)
 const runtimeRoot = app.isPackaged ? resolve(process.resourcesPath, 'runtime') : root
-const publicRoot = app.isPackaged
-  ? resolve(runtimeRoot, 'node_modules/@advjs/editor/dist')
-  : resolve(root, '../../editor/core/dist')
-const tasks = createDesktopTasks(runtimeRoot, resolve(app.isPackaged ? runtimeRoot : root, 'dist/build-worker.mjs'))
-let window: BrowserWindow
-let service: UtilityProcess | undefined
-let session: { origin: string, token: string, root?: string } | undefined
-let dirty = false
-let leaving = false
-let opening = false
+const publicRoot = app.isPackaged ? resolve(runtimeRoot, 'node_modules/@advjs/editor/dist') : resolve(root, '../../editor/core/dist')
+const stateStorage = createWorkspaceStateStorage(resolve(app.getPath('userData'), 'workspace-state'))
+const windows = new Map<number, EditorWindow>()
+let active: EditorWindow | undefined
 let quitting = false
-let trustedConfig = ''
-interface RecentProject { id: string, name: string, path: string }
+let allowQuit = false
+let operations = Promise.resolve()
+interface RecentProject { id: string, name: string, path: string, lastOpenedAt?: number }
 let recent: RecentProject[] = []
-interface EditorPreferences { locale?: 'en' | 'zh-CN', onboarded: boolean }
+let recentWrite = Promise.resolve()
+interface EditorPreferences { locale?: 'en' | 'zh-CN', onboarded: boolean, projectsDirectory?: string, previewVueDevtools?: boolean }
 let preferences: EditorPreferences = { onboarded: false }
 let preferenceWrite = Promise.resolve()
-const commandRequests = new Map<string, (success: boolean) => void>()
 const recentFile = () => resolve(app.getPath('userData'), 'recent-projects.json')
 const preferencesFile = () => resolve(app.getPath('userData'), 'editor-preferences.json')
 
+// Serialize open/replace/close decisions, including directory pickers, so two
+// simultaneous requests cannot create writable sessions for the same real path.
+function enqueue<T>(run: () => Promise<T>): Promise<T> {
+  const result = operations.then(run)
+  operations = result.then(() => {}, () => {})
+  return result
+}
+function current() {
+  const id = BrowserWindow.getFocusedWindow()?.id ?? -1
+  return windows.get(id) ?? [...windows.values()].find(context => context.tasks.presentation.ownsWindow(id)) ?? (active && !active.disposed ? active : [...windows.values()].find(window => !window.disposed))
+}
+function changed() {
+  updateMenu()
+  for (const context of windows.values()) {
+    if (context.rendererReady && !context.disposed)
+      context.window.webContents.send('desktop:event', { type: 'projects-changed' })
+  }
+}
+function saveRecentProjects(update: (projects: RecentProject[]) => RecentProject[]) {
+  const write = recentWrite.then(async () => {
+    const projects = update(recent)
+    const temporary = `${recentFile()}.tmp`
+    await writeFile(temporary, JSON.stringify(projects, null, 2))
+    await rename(temporary, recentFile())
+    recent = projects
+    changed()
+  })
+  recentWrite = write.catch(() => {})
+  return write
+}
 function setPreferences(value: unknown) {
   if (!value || typeof value !== 'object' || Array.isArray(value))
     throw new Error('Invalid editor preferences')
   const patch = value as Record<string, unknown>
-  if (Object.keys(patch).some(key => key !== 'locale' && key !== 'onboarded')
+  if (Object.keys(patch).some(key => !['locale', 'onboarded', 'previewVueDevtools'].includes(key))
     || ('locale' in patch && patch.locale !== 'en' && patch.locale !== 'zh-CN')
-    || ('onboarded' in patch && typeof patch.onboarded !== 'boolean')) {
+    || ('onboarded' in patch && typeof patch.onboarded !== 'boolean')
+    || ('previewVueDevtools' in patch && typeof patch.previewVueDevtools !== 'boolean')) {
     throw new Error('Invalid editor preferences')
   }
   const write = preferenceWrite.then(async () => {
@@ -54,332 +88,366 @@ function setPreferences(value: unknown) {
   preferenceWrite = write.catch(() => {})
   return write
 }
-
-function assertCaller(event: IpcMainInvokeEvent) {
-  if (event.sender !== window?.webContents || event.senderFrame !== window.webContents.mainFrame
-    || !session || new URL(event.senderFrame.url).origin !== session.origin) {
-    throw new Error('Unauthorized desktop caller')
-  }
-}
-function command(action: DesktopCommand) {
-  window.show()
-  window.focus()
-  return new Promise<boolean>((resolveResult) => {
-    const id = randomUUID()
-    const timer = setTimeout(() => {
-      commandRequests.delete(id)
-      resolveResult(false)
-    }, 30_000)
-    commandRequests.set(id, (success) => {
-      clearTimeout(timer)
-      commandRequests.delete(id)
-      resolveResult(success)
-    })
-    window.webContents.send('desktop:command', id, action)
+function createWindow() {
+  const context = new EditorWindow({ root, runtimeRoot, publicRoot, icon: appIcon, changed, close: (context) => {
+    void enqueue(async () => {
+      if (!context.disposed && await context.prepareToLeave())
+        await context.dispose()
+    }).catch(error => context.notify('无法关闭窗口', error))
+  } })
+  const id = context.window.id
+  windows.set(id, context)
+  active = context
+  context.window.on('focus', () => {
+    active = context
+    updateMenu()
   })
-}
-async function prepareToLeave() {
-  if (!dirty)
-    return true
-  const result = await dialog.showMessageBox(window, { type: 'question', message: '项目有未保存内容', buttons: ['保存并继续', '取消'], defaultId: 0, cancelId: 1 })
-  return result.response === 0 && await command('save')
-}
-async function trustProject(path: string, reopening = false) {
-  const fingerprint = await projectConfigFingerprint(path)
-  if (fingerprint && (!reopening || fingerprint !== trustedConfig)) {
-    const trust = await dialog.showMessageBox(window, { type: 'warning', message: '此项目包含可执行配置', detail: '只打开你信任的项目。配置会在项目服务中运行，并可访问本机文件。', buttons: ['信任并打开', '取消'], cancelId: 1 })
-    if (trust.response !== 0)
-      return undefined
-  }
-  return fingerprint
-}
-async function stopService(child: UtilityProcess | undefined) {
-  if (!child)
-    return
-  if (child === service)
-    service = undefined
-  await new Promise<void>((done) => {
-    const timer = setTimeout(() => {
-      child.kill()
-      done()
-    }, 2000)
-    child.once('exit', () => {
-      clearTimeout(timer)
-      done()
-    })
-    try {
-      child.postMessage('stop')
-    }
-    catch {
-      clearTimeout(timer)
-      done()
-    }
+  context.window.on('closed', () => {
+    windows.delete(id)
+    if (active === context)
+      active = undefined
+    changed()
   })
+  changed()
+  return context
 }
-async function startService(projectRoot: string, empty = false, port = 0) {
-  const entry = app.isPackaged ? resolve(runtimeRoot, 'dist/service.mjs') : resolve(root, 'dist/service.mjs')
-  const child = utilityProcess.fork(entry, [projectRoot, publicRoot, empty ? 'empty' : 'project', String(port)], { cwd: runtimeRoot, stdio: 'pipe', serviceName: 'ADV.JS Project Host' })
-  child.stdout?.on('data', data => process.stdout.write(data))
-  child.stderr?.on('data', data => process.stderr.write(data))
-  const ready = await new Promise<{ url: string, root: string, token: string }>((done, fail) => {
-    const timer = setTimeout(() => {
-      child.kill()
-      fail(new Error('项目服务启动超时'))
-    }, 30000)
-    child.once('exit', (code) => {
-      clearTimeout(timer)
-      fail(new Error(`项目服务退出 (${code})`))
-    })
-    child.on('message', (message) => {
-      if (message.type === 'ready') {
-        clearTimeout(timer)
-        done(message)
-      }
-      if (message.type === 'error') {
-        clearTimeout(timer)
-        child.kill()
-        fail(new Error(message.message))
-      }
-    })
-  })
-  return { child, ready }
-}
-async function openProject(path?: string) {
-  if (opening)
-    return false
-  opening = true
+async function newWindow() {
+  const context = createWindow()
   try {
-    if (!await prepareToLeave())
+    await context.load()
+    context.focus()
+    return context
+  }
+  catch (error) {
+    await context.dispose()
+    throw error
+  }
+}
+function openTarget(value: unknown): 'auto' | 'current' {
+  if (value !== undefined && value !== 'auto' && value !== 'current')
+    throw new Error('Invalid project open target')
+  return value === 'current' ? 'current' : 'auto'
+}
+async function openProject(source: EditorWindow, path?: string, target: 'auto' | 'current' = 'auto') {
+  let destination = source
+  try {
+    if (source.disposed)
       return false
     if (!path) {
-      const selection = await dialog.showOpenDialog(window, { title: '打开 ADV.JS 项目', properties: ['openDirectory'] })
+      const selection = await dialog.showOpenDialog(source.window, { title: target === 'current' ? '在当前窗口打开 ADV.JS 项目' : '打开 ADV.JS 项目', properties: ['openDirectory'] })
       if (selection.canceled)
         return false
       path = selection.filePaths[0]
     }
     if (!path)
       return false
-    const fingerprint = await trustProject(path)
+    const canonical = await realpath(path)
+    const existing = [...windows.values()].find(context => !context.disposed && context.session?.root === canonical)
+    if (existing) {
+      existing.focus()
+      return true
+    }
+    const fingerprint = await source.trust(canonical)
     if (fingerprint === undefined)
       return false
-    const { child, ready } = await startService(path)
-    await tasks.dispose()
-    const old = service
-    service = child
-    trustedConfig = fingerprint
-    session = { origin: new URL(ready.url).origin, token: ready.token, root: ready.root }
-    dirty = false
-    observeService(child)
-    await window.loadURL(`${session.origin}/`)
-    await stopService(old)
-    const entry = recent.find(item => item.path === ready.root) ?? { id: randomUUID(), path: ready.root, name: ready.root.split('/').at(-1)! }
-    recent = [entry, ...recent.filter(item => item.id !== entry.id)].slice(0, 12)
-    await writeFile(recentFile(), JSON.stringify(recent, null, 2))
-    updateMenu()
+    if (target === 'current' || !source.session?.root) {
+      if (!await source.prepareToLeave())
+        return false
+    }
+    else {
+      destination = createWindow()
+    }
+    const entry = { ...(recent.find(item => item.path === canonical) ?? { id: randomUUID(), name: basename(canonical), path: canonical }), lastOpenedAt: Date.now() }
+    await destination.load(canonical, fingerprint)
+    await saveRecentProjects(projects => [entry, ...projects.filter(item => item.path !== canonical)].slice(0, 12))
+    destination.focus()
     return true
   }
   catch (error) {
-    await dialog.showMessageBox(window, { type: 'error', message: '无法打开项目', detail: error instanceof Error ? error.message : String(error) })
+    source.notify('无法打开项目', error)
+    if (destination !== source)
+      await destination.dispose()
     return false
   }
-  finally {
-    opening = false
-  }
 }
-async function closeProject() {
-  if (opening)
+async function closeProject(context: EditorWindow) {
+  if (!await context.prepareToLeave())
     return false
-  opening = true
-  try {
-    if (!await prepareToLeave())
-      return false
-    const emptyRoot = resolve(app.getPath('userData'), 'empty-workspace')
-    await mkdir(emptyRoot, { recursive: true })
-    const { child, ready } = await startService(emptyRoot, true)
-    await tasks.dispose()
-    const old = service
-    service = child
-    session = { origin: new URL(ready.url).origin, token: ready.token }
-    dirty = false
-    await window.loadURL(`${session.origin}/`)
-    await stopService(old)
-    updateMenu()
-    return true
-  }
-  finally {
-    opening = false
-  }
+  await context.load()
+  return true
 }
-function observeService(child: UtilityProcess) {
-  child.once('exit', () => {
-    if (service === child && !leaving) {
-      service = undefined
-      void dialog.showMessageBox(window, { type: 'error', message: '项目服务已停止', detail: '点击“重新连接项目”恢复；当前窗口中的草稿会保留。' })
-    }
+function projectCreationDirectory(context: EditorWindow) {
+  return context.projectCreationDirectory ?? preferences.projectsDirectory ?? resolve(app.getPath('documents'), 'advjs-projects')
+}
+async function selectProjectCreationDirectory(context: EditorWindow) {
+  const selection = await dialog.showOpenDialog(context.window, {
+    title: preferences.locale === 'zh-CN' ? '选择项目存储位置' : 'Choose project storage location',
+    defaultPath: projectCreationDirectory(context),
+    properties: ['openDirectory', 'createDirectory'],
   })
+  if (selection.canceled || !selection.filePaths[0] || context.disposed)
+    return undefined
+  context.projectCreationDirectory = await realpath(selection.filePaths[0])
+  return context.projectCreationDirectory
+}
+async function createProject(context: EditorWindow, id: unknown, value: unknown) {
+  const template = findProjectTemplate(projectTemplates, id)
+  const input = parseProjectCreationInput(value)
+  if (context.disposed)
+    return { created: false }
+  try {
+    // The parent is selected by the native host, never supplied by a renderer.
+    const parent = projectCreationDirectory(context)
+    await mkdir(parent, { recursive: true })
+    const directory = await createProjectDirectory(template, resolve(parent, input.folderName), input.name)
+    const write = preferenceWrite.then(async () => {
+      const next = { ...preferences, projectsDirectory: parent }
+      const temporary = `${preferencesFile()}.tmp`
+      await writeFile(temporary, JSON.stringify(next, null, 2))
+      await rename(temporary, preferencesFile())
+      preferences = next
+    })
+    preferenceWrite = write.catch(() => {})
+    await write
+    return { created: await openProject(context, directory) }
+  }
+  catch (error) {
+    context.notify('无法创建项目', error)
+    return { created: false, error: error instanceof Error ? error.message : String(error) }
+  }
+}
+function snapshot(context: EditorWindow) {
+  return {
+    opened: [...windows.values()].filter(item => item.session?.root && !item.disposed).map(item => ({ id: String(item.window.id), name: basename(item.session!.root!), path: item.session!.root!, current: item === context })),
+    recent: recent.map(item => ({ ...item })),
+  }
 }
 function updateMenu() {
+  if (!app.isReady())
+    return
+  const context = current()
+  const run = (action: (context: EditorWindow) => Promise<unknown>) => {
+    if (context)
+      void action(context).catch(error => context.notify('桌面操作失败', error))
+  }
   Menu.setApplicationMenu(Menu.buildFromTemplate(createNativeMenu({
     platform: process.platform,
     locale: preferences.locale,
-    hasProject: !!session?.root,
+    hasProject: !!context?.session?.root,
     recent,
-    command,
-    open: () => openProject(),
+    templates: projectTemplates.map(item => ({ id: item.meta.id, name: preferences.locale === 'zh-CN' ? item.meta.name : item.meta.nameEn ?? item.meta.name })),
+    create: (id) => {
+      findProjectTemplate(projectTemplates, id)
+      context?.window.webContents.send('desktop:event', { type: 'create-project', templateId: id })
+    },
+    command: action => run(context => context.command(action)),
+    newWindow: () => { void enqueue(newWindow).catch(error => context?.notify('无法新建窗口', error)) },
+    open: () => { void enqueue(async () => openProject(context ?? await newWindow())) },
+    openCurrent: () => { void enqueue(async () => openProject(context ?? await newWindow(), undefined, 'current')) },
+    reconnect: () => run(context => enqueue(() => context.reconnect())),
     openRecent: (id) => {
       const entry = recent.find(item => item.id === id)
-      return entry ? openProject(entry.path) : false
+      if (entry)
+        void enqueue(async () => openProject(context ?? await newWindow(), entry.path))
     },
-    close: closeProject,
-    reload: async () => {
-      if (await prepareToLeave())
-        window.reload()
-    },
+    close: () => run(context => enqueue(() => closeProject(context))),
+    reload: () => run(context => enqueue(async () => {
+      if (await context.prepareToLeave())
+        context.window.reload()
+    })),
     openHelp: url => shell.openExternal(url),
   })))
 }
-
-app.whenReady().then(async () => {
-  await mkdir(app.getPath('userData'), { recursive: true })
-  const savedRecent: unknown = await readFile(recentFile(), 'utf8').then(JSON.parse).catch(() => [])
-  recent = Array.isArray(savedRecent) ? savedRecent.filter(item => item && typeof item.id === 'string' && typeof item.name === 'string' && typeof item.path === 'string').slice(0, 12) : []
-  const savedPreferences = await readFile(preferencesFile(), 'utf8').then(JSON.parse).catch(() => undefined)
-  preferences = {
-    ...(savedPreferences?.locale === 'en' || savedPreferences?.locale === 'zh-CN' ? { locale: savedPreferences.locale } : {}),
-    onboarded: savedPreferences?.onboarded === true,
-  }
-  window = new BrowserWindow({ width: 1440, height: 900, minWidth: 800, minHeight: 600, title: 'ADV.JS Editor', webPreferences: { preload: resolve(root, 'dist/preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false } })
-  window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
-  window.webContents.on('will-navigate', (event, url) => {
-    if (!session || new URL(url).origin !== session.origin)
-      event.preventDefault()
-  })
-  window.webContents.session.setPermissionRequestHandler((_contents, _permission, callback) => callback(false))
-  for (const [name, handler] of Object.entries({
-    'prepare-leave': prepareToLeave,
-    'reconnect': async () => {
-      if (opening)
-        return false
-      opening = true
-      try {
-        if (!session?.root)
-          throw new Error('请先打开项目')
-        const previous = session
-        const fingerprint = await trustProject(previous.root!, true)
-        if (fingerprint === undefined)
-          return false
-        await stopService(service)
-        const { child, ready } = await startService(previous.root!, false, Number(new URL(previous.origin).port))
-        service = child
-        trustedConfig = fingerprint
-        observeService(child)
-        session = { origin: new URL(ready.url).origin, token: ready.token, root: ready.root }
-        return command('reconnect')
-      }
-      finally {
-        opening = false
-      }
-    },
-    'task-status': () => tasks.status(),
-    'task-cancel': () => tasks.cancel(),
-    'preview-stop': () => tasks.closePreview(),
-    'preview': async () => {
-      if (!session?.root)
-        throw new Error('请先打开项目')
-      if (!await prepareToLeave())
+async function quit() {
+  if (quitting)
+    return
+  quitting = true
+  try {
+    // No window is destroyed until every dirty project has accepted the exit.
+    for (const context of windows.values()) {
+      if (!await context.prepareToLeave())
         return
-      if (await projectConfigFingerprint(session.root) !== trustedConfig)
-        throw new Error('可执行配置已变更，请重新连接项目并确认信任')
-      return tasks.start(session.root, 'preview')
+    }
+    for (const context of [...windows.values()]) await context.dispose()
+    await Promise.all([recentWrite, preferenceWrite])
+    allowQuit = true
+    app.quit()
+  }
+  finally { quitting = false }
+}
+function registerIpc() {
+  const handlers: Record<string, (context: EditorWindow, ...args: unknown[]) => unknown> = {
+    'ready': context => context.ready(),
+    'prepare-leave': context => context.prepareToLeave(),
+    'reconnect': context => enqueue(() => context.reconnect()),
+    'task-status': context => context.tasks.status(),
+    'status': (context) => {
+      const preview = context.tasks.previewStatus()
+      return { connected: context.connected, dirty: context.dirty, hasProject: !!context.session?.root, task: context.tasks.status(), preview: { ...preview, vueDevtools: preview.active && preview.runMode === 'live' ? preview.vueDevtools : preferences.previewVueDevtools === true } }
     },
-    'export': async (kind: unknown) => {
+    'task-cancel': context => context.tasks.cancel(),
+    'preview-stop': context => context.tasks.closePreview(),
+    'preview-presentation': (context, mode) => context.tasks.presentation.setMode(mode),
+    'preview-bounds': (context, bounds) => context.tasks.presentation.setBounds(bounds),
+    'preview': async (context, runMode = 'build') => {
+      if (runMode !== 'live' && runMode !== 'build')
+        throw new Error('Invalid preview run mode')
+      if (!context.session?.root)
+        throw new Error('请先打开项目')
+      if (!await context.prepareToLeave())
+        return
+      if (await projectConfigFingerprint(context.session.root) !== context.trustedConfig)
+        throw new Error('可执行配置已变更，请重新连接项目并确认信任')
+      return runMode === 'live' ? context.tasks.startLive(context.session.root, context.trustedConfig, preferences.previewVueDevtools === true) : context.tasks.start(context.session.root, 'preview')
+    },
+    'export': async (context, kind) => {
       if (kind !== 'directory' && kind !== 'zip')
         throw new Error('Invalid export kind')
-      if (!session?.root)
+      if (!context.session?.root)
         throw new Error('请先打开项目')
-      if (!await prepareToLeave())
+      if (!await context.prepareToLeave())
         return
-      if (await projectConfigFingerprint(session.root) !== trustedConfig)
+      if (await projectConfigFingerprint(context.session.root) !== context.trustedConfig)
         throw new Error('可执行配置已变更，请重新连接项目并确认信任')
-      const selection = await dialog.showSaveDialog(window, { title: kind === 'zip' ? '导出 Web 游戏 ZIP' : '导出 Web 游戏目录（使用新名称）', defaultPath: `${recent[0]?.name ?? 'game'}-web${kind === 'zip' ? '.zip' : ''}`, ...(kind === 'zip' ? { filters: [{ name: 'ZIP', extensions: ['zip'] }] } : {}) })
+      const selection = await dialog.showSaveDialog(context.window, { title: kind === 'zip' ? '导出 Web 游戏 ZIP' : '导出 Web 游戏目录（使用新名称）', defaultPath: `${basename(context.session.root)}-web${kind === 'zip' ? '.zip' : ''}`, ...(kind === 'zip' ? { filters: [{ name: 'ZIP', extensions: ['zip'] }] } : {}) })
       if (selection.canceled || !selection.filePath)
         return
-      return tasks.start(session.root, kind, selection.filePath)
+      return context.tasks.start(context.session.root, kind, selection.filePath)
     },
-    'reveal': async () => {
-      const output = tasks.status()?.output
-      if (output && !output.startsWith('http:')) {
-        const { shell } = await import('electron')
+    'reveal': (context) => {
+      const output = context.tasks.status()?.output
+      if (output && !output.startsWith('http:'))
         shell.showItemInFolder(output)
-      }
     },
-    'open': () => openProject(),
-    'close': () => closeProject(),
-    'recent': () => recent.map(({ id, name }) => ({ id, name })),
-    'open-recent': (id: unknown) => {
+    'open': (context, target) => {
+      const mode = openTarget(target)
+      return enqueue(() => openProject(context, undefined, mode))
+    },
+    'new-window': () => enqueue(async () => {
+      await newWindow()
+      return true
+    }),
+    'creation-defaults': async (context, id) => {
+      findProjectTemplate(projectTemplates, id)
+      const directory = preferences.projectsDirectory ?? resolve(app.getPath('documents'), 'advjs-projects')
+      context.projectCreationDirectory = directory
+      return { directory, folderName: await suggestProjectFolder(directory, id as string) }
+    },
+    'creation-directory': context => enqueue(() => selectProjectCreationDirectory(context)),
+    'create': (context, id, options) => {
+      findProjectTemplate(projectTemplates, id)
+      parseProjectCreationInput(options)
+      return enqueue(() => createProject(context, id, options))
+    },
+    'documentation': () => shell.openExternal('https://docs.advjs.org/guide/editor/desktop'),
+    'close': context => enqueue(() => closeProject(context)),
+    'recent': () => recent.map(item => ({ ...item })),
+    'projects': context => snapshot(context),
+    'focus-project': (_context, id) => {
+      if (typeof id !== 'string')
+        throw new Error('Invalid project window')
+      const target = windows.get(Number(id))
+      if (!target?.session?.root || target.disposed)
+        throw new Error('Project window is closed')
+      target.focus()
+      return true
+    },
+    'open-recent': (context, id, target) => {
+      const mode = openTarget(target)
       if (typeof id !== 'string')
         throw new Error('Invalid recent project')
       const entry = recent.find(item => item.id === id)
       if (!entry)
         throw new Error('Unknown recent project')
-      return openProject(entry.path)
+      return enqueue(() => openProject(context, entry.path, mode))
     },
-    'session': () => session,
+    'remove-recent': (_context, id) => {
+      if (typeof id !== 'string' || !recent.some(item => item.id === id))
+        throw new Error('Unknown recent project')
+      return saveRecentProjects(projects => projects.filter(item => item.id !== id))
+    },
+    'session': context => context.session,
+    'workspace-state': context => context.session?.root ? stateStorage.read(context.session.root) : { version: 1 },
+    'save-workspace-state': (context, state) => {
+      if (context.session?.root)
+        return stateStorage.write(context.session.root, state)
+    },
+    'copy-error-report': (context, report) => {
+      if (typeof report !== 'string' || report.length > 1_000_000)
+        throw new Error('Invalid error report')
+      clipboard.writeText(redactErrorReport(report, [context.session?.token ?? '']))
+    },
     'preferences': () => preferences,
-    'set-preferences': setPreferences,
-    'dirty': (value: unknown) => {
+    'set-preferences': (_context, patch) => setPreferences(patch),
+    'dirty': (context, value) => {
       if (typeof value !== 'boolean')
         throw new Error('Invalid dirty state')
-      dirty = value
+      context.dirty = value
+      context.updateTitle()
     },
-    'command-result': (id: unknown, success: unknown) => {
+    'command-result': (context, id, success) => {
       if (typeof id !== 'string' || typeof success !== 'boolean')
         throw new Error('Invalid command result')
-      commandRequests.get(id)?.(success)
+      context.commandResult(id, success)
     },
-  })) {
+  }
+  for (const [name, handler] of Object.entries(handlers)) {
     ipcMain.handle(`desktop:${name}`, (event, ...args) => {
-      assertCaller(event)
-      return (handler as (...args: unknown[]) => unknown)(...args)
+      const context = [...windows.values()].find(context => context.window.webContents === event.sender)
+      if (!context)
+        throw new Error('Unauthorized desktop caller')
+      context.assertCaller(event)
+      return handler(context, ...args)
     })
   }
-  updateMenu()
-  window.on('close', (event) => {
-    if (leaving)
-      return
-    event.preventDefault()
-    void prepareToLeave().then(async (allowed) => {
-      if (!allowed)
-        return
-      leaving = true
-      await tasks.dispose()
-      await stopService(service)
-      window.close()
-      app.quit()
-    })
+}
+const launchPath = (args: string[]) => args.find(arg => arg.startsWith('--project='))?.slice('--project='.length)
+if (!app.requestSingleInstanceLock()) {
+  app.quit()
+}
+else {
+  app.on('second-instance', (_event, args) => {
+    void app.whenReady().then(() => enqueue(async () => {
+      const context = current() ?? await newWindow()
+      const path = launchPath(args)
+      if (path)
+        await openProject(context, path)
+      else
+        context.focus()
+    }))
   })
   app.on('before-quit', (event) => {
-    if (!leaving && !quitting) {
+    if (!allowQuit) {
       event.preventDefault()
-      quitting = true
-      window.close()
-      quitting = false
+      void enqueue(quit)
     }
   })
-  app.on('window-all-closed', () => app.quit())
-  const launchProject = process.argv.find(arg => arg.startsWith('--project='))?.slice('--project='.length)
-  if (launchProject) {
-    if (!await openProject(launchProject))
-      await closeProject()
-  }
-  else if (recent[0]) {
-    if (!await openProject(recent[0].path))
-      await closeProject()
-  }
-  else {
-    await closeProject()
-  }
-}).catch((error) => {
-  process.stderr.write(`${error.stack ?? error}\n`)
-  app.exit(1)
-})
+  app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin' && !quitting)
+      app.quit()
+  })
+  app.on('activate', () => {
+    if (!windows.size)
+      void enqueue(newWindow)
+  })
+  app.whenReady().then(async () => {
+    projectTemplates = JSON.parse(await readFile(resolve(root, 'dist/project-templates.json'), 'utf8'))
+    if (!app.isPackaged)
+      app.dock?.setIcon(appIcon)
+    await mkdir(app.getPath('userData'), { recursive: true })
+    const savedRecent: unknown = await readFile(recentFile(), 'utf8').then(JSON.parse).catch(() => [])
+    recent = Array.isArray(savedRecent) ? savedRecent.filter(item => item && typeof item.id === 'string' && typeof item.name === 'string' && typeof item.path === 'string').slice(0, 12) : []
+    const savedPreferences = await readFile(preferencesFile(), 'utf8').then(JSON.parse).catch(() => undefined)
+    preferences = { ...(savedPreferences?.locale === 'en' || savedPreferences?.locale === 'zh-CN' ? { locale: savedPreferences.locale } : {}), onboarded: savedPreferences?.onboarded === true, ...(typeof savedPreferences?.projectsDirectory === 'string' && isAbsolute(savedPreferences.projectsDirectory) ? { projectsDirectory: savedPreferences.projectsDirectory } : {}), ...(typeof savedPreferences?.previewVueDevtools === 'boolean' ? { previewVueDevtools: savedPreferences.previewVueDevtools } : {}) }
+    registerIpc()
+    await enqueue(async () => {
+      const context = createWindow()
+      const path = launchPath(process.argv) ?? recent[0]?.path
+      if (!path || !await openProject(context, path))
+        await context.load()
+    })
+  }).catch((error) => {
+    process.stderr.write(`${error.stack ?? error}\n`)
+    app.exit(1)
+  })
+}

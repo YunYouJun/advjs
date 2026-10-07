@@ -27,6 +27,7 @@ const template: ProjectTemplateDefinition = {
   meta,
   files: [
     { name: 'adv.config.json', content: advConfig, isAdvConfig: true },
+    { name: 'adv/settings/game.json', content: '{"title":"{{projectName}}"}' },
     // World & story structure
     { name: 'adv/world.md', content: world },
     { name: 'adv/outline.md', content: outline },

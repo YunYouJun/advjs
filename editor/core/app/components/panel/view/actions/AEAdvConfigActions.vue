@@ -43,7 +43,7 @@ const nodeOptions = computed(() => {
       <AGUIFormItem>
         <template #label>
           <label
-            class="agui-label w-1/3 flex items-center gap-2 text-$agui-c-label"
+            class="agui-label text-$agui-c-label flex gap-2 w-1/3 items-center"
           >
             <div class="i-ri:book-line" />
             <span>Start Chapter</span>
@@ -55,7 +55,7 @@ const nodeOptions = computed(() => {
       <AGUIFormItem>
         <template #label>
           <label
-            class="agui-label w-1/3 flex items-center gap-2 text-$agui-c-label"
+            class="agui-label text-$agui-c-label flex gap-2 w-1/3 items-center"
           >
             <div class="i-ri:git-commit-line" />
             <span>Start Node</span>
@@ -67,7 +67,7 @@ const nodeOptions = computed(() => {
       <AGUIFormItem>
         <template #label>
           <label
-            class="agui-label w-1/3 flex items-center gap-2 text-$agui-c-label"
+            class="agui-label text-$agui-c-label flex gap-2 w-1/3 items-center"
           >
             <div class="i-ri:file-text-line" />
             <span>Raw File</span>

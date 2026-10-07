@@ -20,7 +20,7 @@ async function skip() {
 
 <template>
   <AGUIDialog v-model:open="open" :title="t('onboarding.welcome')" content-class="w-md">
-    <div class="flex flex-col items-center gap-6 p-8">
+    <div class="p-8 flex flex-col gap-6 items-center">
       <div class="i-ri-translate-2 text-4xl op-60" />
 
       <h2 class="text-xl font-bold">
@@ -30,14 +30,14 @@ async function skip() {
       <div class="flex gap-4">
         <AGUIButton
           size=""
-          class="min-w-32 px-6 py-3 text-base"
+          class="text-base px-6 py-3 min-w-32"
           @click="selectLocale('en')"
         >
           English
         </AGUIButton>
         <AGUIButton
           size=""
-          class="min-w-32 px-6 py-3 text-base"
+          class="text-base px-6 py-3 min-w-32"
           @click="selectLocale('zh-CN')"
         >
           中文（简体）
@@ -45,7 +45,7 @@ async function skip() {
       </div>
 
       <button
-        class="cursor-pointer text-sm op-40 hover:op-70"
+        class="text-sm op-40 cursor-pointer hover:op-70"
         @click="skip"
       >
         {{ t('onboarding.skip') }}

@@ -46,6 +46,9 @@ jobs:
   transaction:
     runs-on: ubuntu-latest
     environment: release-production
+    outputs:
+      desktop_tag: ${{ steps.desktop.outputs.tag }}
+      desktop_source_sha: ${{ steps.desktop.outputs.source_sha }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -82,6 +85,12 @@ jobs:
           node scripts/release/promote.mjs
           "release-transaction/${{ inputs.manifest }}"
           --evidence release-evidence.json
+      - name: Export promoted desktop release identity
+        id: desktop
+        if: inputs.operation == 'promote' && !inputs.dry_run
+        env:
+          RELEASE_MANIFEST: ${{ inputs.manifest }}
+        run: node scripts/release/desktop-artifacts.mjs manifest "release-transaction/$RELEASE_MANIFEST"
       - name: Dry-run abort
         if: inputs.operation == 'abort' && inputs.dry_run
         run: node scripts/release/abort.mjs "release-transaction/${{ inputs.manifest }}" --dry-run
@@ -101,3 +110,15 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       GH_TOKEN: ${{ github.token }}
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # GITHUB_TOKEN-created releases do not trigger release:published workflows.
+  # Call the same packaging workflow directly after a real promotion succeeds.
+  desktop:
+    needs: transaction
+    if: inputs.operation == 'promote' && !inputs.dry_run
+    uses: ./.github/workflows/release-desktop.yml
+    permissions:
+      contents: write
+    with:
+      tag: ${{ needs.transaction.outputs.desktop_tag }}
+      source_sha: ${{ needs.transaction.outputs.desktop_source_sha }}

@@ -76,7 +76,9 @@
     "language": "Language",
     "languageDescription": "Set the language of the editor interface",
     "theme": "Theme",
-    "themeDescription": "Apply one theme to panels, menus and dialogs",
+    "themePreset": "Theme preset",
+    "themeDescription": "Follow system appearance or use Light or Dark for panels, menus and dialogs",
+    "system": "Follow system",
     "dark": "Dark",
     "light": "Light"
   },

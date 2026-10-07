@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { AdvCharacter } from '@advjs/types'
+import CharacterAvatar from './CharacterAvatar.vue'
 import '../../styles/resource-panel.scss'
 
 withDefaults(defineProps<{
@@ -19,8 +20,7 @@ defineEmits<{ click: [character: AdvCharacter] }>()
     :aria-pressed="selected"
     @click="$emit('click', character)"
   >
-    <img v-if="character.avatar" class="avatar" :src="character.avatar" alt="" loading="lazy">
-    <span v-else class="avatar placeholder" aria-hidden="true"><span class="i-ri-user-3-line" /></span>
+    <CharacterAvatar :src="character.avatar" :mode="mode" />
     <span class="ae-resource-meta">
       <span class="ae-resource-name">{{ character.name }}</span>
       <span class="ae-resource-caption">{{ character.faction || character.id }}</span>
@@ -62,26 +62,9 @@ defineEmits<{ click: [character: AdvCharacter] }>()
   .ae-resource-caption {
     display: block;
   }
-  .avatar {
-    flex-shrink: 0;
-    width: 28px;
-    height: 28px;
-    object-fit: cover;
-    border-radius: 2px;
-  }
-  .placeholder {
-    display: grid;
-    place-items: center;
-    background: var(--agui-c-field);
-  }
   &.grid {
     flex-direction: column;
     align-items: stretch;
-    .avatar {
-      width: 100%;
-      height: 80px;
-      object-fit: contain;
-    }
   }
 }
 </style>

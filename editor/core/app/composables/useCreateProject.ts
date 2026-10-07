@@ -1,7 +1,6 @@
 import type { ProjectTemplateMeta } from '../templates'
-import { Toast } from '@advjs/gui'
 import { consola } from 'consola'
-import { PROJECT_TEMPLATE_LIST, PROJECT_TEMPLATE_MAP } from '../templates'
+import { PROJECT_TEMPLATE_LIST } from '../templates'
 
 export type { ProjectTemplateMeta }
 
@@ -16,7 +15,7 @@ const RE_PROJECT_NAME = /\{\{projectName\}\}/g
  * e.g. `assets/characters/a.character.md` →
  *   dirHandle / assets / characters / a.character.md
  */
-async function writeFile(dirHandle: FileSystemDirectoryHandle, filePath: string, content: string) {
+async function writeFile(dirHandle: FileSystemDirectoryHandle, filePath: string, content: string | Uint8Array<ArrayBuffer>) {
   const segments = filePath.split('/')
   const fileName = segments.pop()!
 
@@ -73,24 +72,24 @@ async function findConflicts(
 
 export function useCreateProject() {
   const projectStore = useProjectStore()
-  const { addRecentProject } = useRecentProjects()
+  const desktopCreation = useDesktopProjectCreation()
 
-  const isCreating = ref(false)
+  const isCreating = useState('editor:creating-project', () => false)
 
   async function createAndLoadProject(templateId: string) {
+    if (window.advDesktop)
+      return await desktopCreation.begin(templateId)
     if (isCreating.value)
       return
 
     isCreating.value = true
 
     try {
-      const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' })
-
-      const template = PROJECT_TEMPLATE_MAP[templateId]
+      const template = PROJECT_TEMPLATE_LIST.find(item => item.meta.id === templateId)
       if (!template) {
-        consola.error(`Unknown template: ${templateId}`)
-        return
+        throw new Error(`Unknown template: ${templateId}`)
       }
+      const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' })
 
       // Check for existing files that would be overwritten
       const fileNames = template.files.map(f => f.name)
@@ -104,27 +103,17 @@ export function useCreateProject() {
           + `These files will be overwritten. Continue?`,
         )
         if (!confirmed) {
-          Toast({
-            title: 'Cancelled',
-            description: 'Project creation cancelled',
-            type: 'warning',
-          })
           return
         }
       }
 
       for (const file of template.files) {
-        const content = file.content.replace(RE_PROJECT_NAME, dirHandle.name)
+        const name = file.name.endsWith('.json') ? JSON.stringify(dirHandle.name).slice(1, -1) : dirHandle.name
+        const content = file.encoding === 'base64' ? Uint8Array.from(atob(file.content), character => character.charCodeAt(0)) : file.content.replace(RE_PROJECT_NAME, () => name)
         await writeFile(dirHandle, file.name, content)
       }
 
-      await projectStore.openBrowserProject(dirHandle)
-
-      // Save to recent projects
-      addRecentProject({
-        name: dirHandle.name,
-        templateId,
-      })
+      await projectStore.openBrowserProject(dirHandle, { templateId })
 
       consola.success(`Project created: ${dirHandle.name} (${templateId})`)
     }
@@ -133,6 +122,7 @@ export function useCreateProject() {
       if (err instanceof DOMException && err.name === 'AbortError')
         return
       consola.error('Failed to create project', err)
+      useConsoleStore().error('无法创建项目', { error: err, templateId })
     }
     finally {
       isCreating.value = false

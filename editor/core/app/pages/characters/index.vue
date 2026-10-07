@@ -124,7 +124,7 @@ const hasSource = computed(() => cStore.projectBound || !!cStore.dirHandle || !!
 .character-page {
   display: flex;
   flex-direction: column;
-  height: 100dvh;
+  height: 100%;
   container: character-page / inline-size;
 }
 h1 {

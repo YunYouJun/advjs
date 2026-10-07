@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import InspectorFileView from './InspectorFileView.vue'
+import { useAssetBrowserStore } from '../../../stores/useAssetBrowserStore'
+import FilePropertiesView from './FilePropertiesView.vue'
 
 const app = useAppStore()
-const fileStore = useFileStore()
+const assets = useAssetBrowserStore()
 </script>
 
 <template>
-  <InspectorFileView
-    v-if="app.activeInspector === 'file'"
-    :file-handle="fileStore.openedFileHandle"
+  <FilePropertiesView
+    v-if="app.activeInspector === 'file' || app.activeInspector === 'asset'"
+    :asset="app.activeInspector === 'asset'" :path="assets.selectedPath"
   />
   <AEInspectorCharacter v-else-if="app.activeInspector === 'character' || app.activeInspector === 'character-create'" />
   <InspectorView v-else />

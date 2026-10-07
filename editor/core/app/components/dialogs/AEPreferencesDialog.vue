@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Trees } from '@advjs/gui'
+import type { TreeNode, Trees } from '@advjs/gui'
 import { SplitterGroup, SplitterPanel, SplitterResizeHandle } from 'reka-ui'
 
 const { t } = useI18n()
@@ -9,16 +9,24 @@ const open = defineModel('open', {
   default: false,
 })
 
-const currentTab = ref({ name: 'Interface' })
+const selectedTab = ref('theme')
 
 const treeData = computed<Trees>(() => [
-  { name: t('preferences.interface') },
+  { id: 'theme', name: t('preferences.theme') },
+  { id: 'interface', name: t('preferences.interface') },
 ])
+
+const currentTab = computed<TreeNode>({
+  get: () => treeData.value.find(tab => tab.id === selectedTab.value)!,
+  set: (tab) => {
+    selectedTab.value = tab.id === 'interface' ? 'interface' : 'theme'
+  },
+})
 </script>
 
 <template>
   <AGUIDialog v-model:open="open" :title="t('preferences.title')">
-    <div class="h-full w-full flex flex-1">
+    <div class="flex flex-1 h-full w-full">
       <SplitterGroup
         direction="horizontal"
         class="flex-grow"
@@ -36,10 +44,11 @@ const treeData = computed<Trees>(() => [
           />
         </SplitterPanel>
         <SplitterResizeHandle
-          class="w-1px bg-black"
+          class="bg-$agui-c-divider w-1px"
         />
         <SplitterPanel :default-size="70" class="p-2">
-          <AEPreferencesInterfaceTab />
+          <AEPreferencesThemeTab v-if="selectedTab === 'theme'" />
+          <AEPreferencesInterfaceTab v-else />
         </SplitterPanel>
       </SplitterGroup>
     </div>

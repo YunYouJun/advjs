@@ -7,7 +7,7 @@ import type {
 import { compileProject, createProjectGameConfig } from '@advjs/core'
 
 const IGNORED_DIRECTORIES = new Set(['.git', '.output', 'dist', 'node_modules'])
-const TEXT_FILE_RE = /(?:^|\/)(?:[^/]+\.(?:css|html|js|json|jsx|md|mjs|scss|svg|ts|tsx|txt|yaml|yml)|README)$/iu
+const TEXT_FILE_RE = /(?:^|\/)(?:[^/]+\.(?:css|html|js|json|jsx|md|mjs|scss|svg|ts|tsx|txt|vue|yaml|yml)|README)$/iu
 const LEGACY_ENTRY_RE = /(?:^|\/)index\.adv\.json$/u
 
 export interface BrowserProjectFile {
@@ -28,6 +28,7 @@ export interface BrowserProjectDirectory {
 export interface EditorProjectModel {
   compilation: AdvProjectCompileResult
   files: AdvProjectFileMap
+  filePaths?: string[]
   migrationNotice?: string
   mode: 'legacy-json' | 'standard-markdown'
   previewConfig: AdvGameConfig

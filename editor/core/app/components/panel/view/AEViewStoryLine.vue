@@ -83,7 +83,7 @@ watch(
   <TreeRoot
     v-slot="{ flattenItems }"
     v-model:expanded="expanded"
-    class="flex flex-col select-none list-none rounded-lg text-sm font-medium"
+    class="text-sm font-medium list-none rounded-lg flex flex-col select-none"
     :items="items"
     :get-key="(item) => item.id || ''"
     :multiple="false"
@@ -94,7 +94,7 @@ watch(
       v-bind="item.bind"
       :key="item._id"
       :style="{ 'padding-left': `${item.level - 0.5}rem` }"
-      class="flex cursor-pointer items-center px-2 py-1 text-xs outline-none data-[selected]:bg-blue-600"
+      class="text-xs px-2 py-1 outline-none flex cursor-pointer items-center data-[selected]:bg-blue-600"
       :class="{
         'bg-dark-600': item.value.id === activeFlowNodeId,
         'bg-dark-700': item.value.id === `${activeFlowNodeId}-${activeDialogIndex}`,

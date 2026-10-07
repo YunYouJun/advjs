@@ -5,6 +5,8 @@ const meta: ProjectTemplateMeta = {
   name: 'Markdown 文字冒险',
   desc: '基于 ADV Markdown 创作',
   icon: 'i-ri-markdown-line',
+  nameEn: 'Markdown adventure',
+  descEn: 'Write with ADV Markdown',
 }
 
 export default meta

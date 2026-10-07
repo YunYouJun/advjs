@@ -52,8 +52,8 @@ function openRepoUrl(repo: GitHubRepo) {
 <template>
   <AGUIDialog v-model:open="open" title="Connect GitHub Repos" content-class="w-md h-md">
     <AGUILoading v-model:show="loading" class="absolute z-99" />
-    <div class="size-full flex flex-col gap-1 p-1">
-      <div class="actions flex items-center justify-end gap-1">
+    <div class="p-1 flex flex-col gap-1 size-full">
+      <div class="actions flex gap-1 items-center justify-end">
         <AGUISelect
           :options="ownerOptions"
           class="w-1/2"
@@ -90,21 +90,21 @@ function openRepoUrl(repo: GitHubRepo) {
       <ul class="flex flex-col gap-1 overflow-auto">
         <li
           v-for="repo in githubStore.filteredRepos" :key="repo.id"
-          class="flex items-center justify-between gap-1 rounded bg-dark-200 p-1.5 hover:bg-dark-100"
+          class="p-1.5 rounded bg-dark-200 flex gap-1 items-center justify-between hover:bg-dark-100"
         >
-          <div class="w-xs flex items-center gap-1">
-            <img :src="repo.owner.avatar_url" class="size-8 rounded-full">
-            <div class="min-w-0 flex flex-col">
-              <h3 class="truncate text-sm font-semibold">
+          <div class="flex gap-1 w-xs items-center">
+            <img :src="repo.owner.avatar_url" class="rounded-full size-8">
+            <div class="flex flex-col min-w-0">
+              <h3 class="text-sm font-semibold truncate">
                 {{ repo.owner.login }}/{{ repo.name }}
               </h3>
-              <p class="truncate text-xs text-gray-500">
+              <p class="text-xs text-gray-500 truncate">
                 {{ repo.description }}
               </p>
             </div>
           </div>
 
-          <div class="flex items-center gap-1">
+          <div class="flex gap-1 items-center">
             <AGUIButton size="mini" variant="outline" @click="openRepoUrl(repo)">
               <div i-ri-external-link-line />
             </AGUIButton>

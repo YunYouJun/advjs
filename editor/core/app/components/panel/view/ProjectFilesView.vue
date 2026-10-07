@@ -1,182 +1,112 @@
-<script lang="ts" setup>
-import type { FSDirItem, FSFileItem, FSItem } from '@advjs/gui'
-import { Toast } from '@advjs/gui'
-import { parseCharacterMd } from '@advjs/parser'
-import consola from 'consola'
+<script setup lang="ts">
+import { computed, shallowRef, watch } from 'vue'
+import { useProjectAssetActions } from '../../../composables/useProjectAssetActions'
+import { useProjectFileActions } from '../../../composables/useProjectFileActions'
+import { useAssetBrowserStore } from '../../../stores/useAssetBrowserStore'
+import { isProjectAsset } from '../../../utils/asset-browser'
+import ProjectFileTree from '../../project/ProjectFileTree.vue'
 
-async function onFileDrop(files: FSFileItem[]) {
-  return files
-}
-
-const curDir = shallowRef<FSDirItem>()
-const projectStore = useProjectStore()
-
-// eslint-disable-next-line unused-imports/no-unused-vars
-function onFSItemChange(item: FSItem) {
-  // item.icon = 'i-ri-folder-fill'
-}
-
-function onFileClick(item: FSFileItem) {
-  consola.info('onFileClick', item)
-}
-
-const fileStore = useFileStore()
-const characterStore = useCharacterStore()
+const project = useProjectStore()
 const app = useAppStore()
-
-function onRename(item: FSItem, newName: string) {
-  if (projectStore.workspaceMode === 'local')
-    return false
-  consola.info('onRename', item.name, '->', newName)
-}
-
-function onDelete(items: FSItem[]) {
-  if (projectStore.workspaceMode === 'local')
-    return false
-  consola.info('onDelete', items.map(i => i.name))
-}
-
-function onCreate(parentDir: FSDirItem, name: string, kind: 'file' | 'directory') {
-  if (projectStore.workspaceMode === 'local')
-    return false
-  consola.info('onCreate', kind, name, 'in', parentDir.name)
-}
-
-function getProjectRelativePath(item: FSFileItem) {
-  const segments = [item.name]
-  let parent = item.parent
-  while (parent?.parent) {
-    segments.unshift(parent.name)
-    parent = parent.parent
-  }
-  return segments.join('/')
-}
-
-async function onFileDblClick(item: FSFileItem, projectPath = getProjectRelativePath(item)) {
-  consola.info('onFileDblClick', item)
-
-  // Handle .character.md files → open in Inspector with CharacterForm
-  if (item.name.endsWith('.character.md') && item.handle) {
-    try {
-      const file = await (item.handle as FileSystemFileHandle).getFile()
-      const content = await file.text()
-      const character = parseCharacterMd(content)
-      characterStore.selectedCharacter = character
-      characterStore.selectedCharacterHandle = item.handle as FileSystemFileHandle
-      app.activeInspector = 'character'
-      return
-    }
-    catch (e) {
-      consola.error('Failed to parse character file:', e)
-      Toast({
-        title: 'Error',
-        description: 'Failed to parse character file',
-        type: 'error',
-      })
-      return
-    }
-  }
-
-  if (item.handle) {
-    fileStore.setOpenedFileHandle(item.handle, projectPath)
-  }
-  else {
-    Toast({
-      title: 'Warning',
-      description: 'This file is not supported',
-      type: 'warning',
-    })
-  }
-}
-
-async function onLocalFileDblClick(path: string) {
-  const handle = await projectStore.getLocalFileHandle(path)
-  await onFileDblClick({
-    name: handle.name,
-    kind: 'file',
-    handle: handle as unknown as FileSystemFileHandle,
-  }, path)
-}
-
-/**
- * 校验项目目录内容
- */
-async function beforeOpenRootDir(dirHandle: FileSystemDirectoryHandle) {
-  try {
-    const project = await projectStore.openBrowserProject(dirHandle)
-    if (project.mode === 'legacy-json') {
-      Toast({
-        title: 'Migration required',
-        description: project.migrationNotice,
-        type: 'warning',
-      })
-      return false
-    }
-    return !project.compilation.diagnostics.some(item => item.severity === 'error')
-  }
-  catch (error) {
-    Toast({
-      title: 'Error',
-      description: error instanceof Error ? error.message : 'Failed to open Markdown project',
-      type: 'error',
-    })
-    return false
-  }
-}
-
-/**
- * open adv project root dir
- */
-function onOpenRootDir(dir?: FSDirItem) {
-  consola.debug('onOpenRootDir', dir)
-}
+const desktop = import.meta.client && !!window.advDesktop
+const file = useFileStore()
+const assets = useAssetBrowserStore()
+const { open } = useProjectFileActions()
+const { showInAssets } = useProjectAssetActions()
+const { locale } = useEditorLocale()
+const zh = computed(() => locale.value === 'zh-CN')
+const query = shallowRef('')
+const selectedPath = shallowRef(assets.projectRevealPath || file.openedFilePath)
+const revealVersion = shallowRef(assets.projectRevealVersion)
+watch(() => file.openVersion, () => selectedPath.value = file.openedFilePath)
+watch(() => assets.projectRevealVersion, () => {
+  query.value = ''
+  selectedPath.value = assets.projectRevealPath
+  revealVersion.value++
+})
+watch(() => project.workspace, () => selectedPath.value = '')
+const noMatches = computed(() => !project.localFilePaths.some(path => path.toLocaleLowerCase().includes(query.value.trim().toLocaleLowerCase())))
 </script>
 
 <template>
-  <div class="h-full">
-    <div v-if="projectStore.project" class="text-xs p-2 border-b border-white/8">
-      <div class="mb-1 op-70 flex gap-3">
-        <span>{{ projectStore.workspaceMode === 'local' ? 'Live local workspace' : 'Browser workspace' }}</span>
-        <span>{{ projectStore.chapters.length }} chapters</span>
-        <span>{{ projectStore.characters.length }} characters</span>
-        <span>{{ projectStore.scenes.length }} scenes</span>
+  <section class="project-files">
+    <template v-if="project.project">
+      <header class="project-summary">
+        <span v-if="!desktop" class="project-name" :title="project.rootDir?.name">{{ project.rootDir?.name }}</span>
+        <span class="project-status">{{ zh ? (project.workspaceMode === 'local' ? '本地工作区 · 实时同步' : '浏览器工作区') : (project.workspaceMode === 'local' ? 'Live local workspace' : 'Browser workspace') }}</span>
+        <div class="project-counts">
+          <span>{{ project.chapters.length }} {{ zh ? '个章节' : 'chapters' }}</span>
+          <span>{{ project.characters.length }} {{ zh ? '位人物' : 'characters' }}</span>
+          <span>{{ project.scenes.length }} {{ zh ? '个场景' : 'scenes' }}</span>
+        </div>
+      </header>
+      <AGUIToolbar :items="[]" :label="zh ? '项目文件' : 'Project files'">
+        <template #before-toolbar>
+          <AGUIInput v-model="query" class="project-search" :aria-label="zh ? '搜索项目文件' : 'Search project files'" :placeholder="zh ? '搜索文件…' : 'Search files…'" />
+        </template>
+        <template #after-toolbar>
+          <AGUIIconButton icon="i-ri-gallery-line" :title="zh ? '在素材中显示' : 'Show in Assets'" :disabled="!isProjectAsset(selectedPath)" @click="showInAssets(selectedPath)" />
+        </template>
+      </AGUIToolbar>
+      <div class="project-tree">
+        <ProjectFileTree :paths="project.localFilePaths" :selected="selectedPath" :reveal-version="revealVersion" :query="query" :label="zh ? '项目文件' : 'Project files'" @open="open" />
+        <p v-if="noMatches" class="project-empty" role="status">
+          {{ zh ? '没有匹配的文件' : 'No matching files' }}
+        </p>
       </div>
-      <div
-        v-for="diagnostic in projectStore.diagnostics"
-        :key="`${diagnostic.code}:${diagnostic.path}:${diagnostic.line}`"
-        class="truncate"
-        :class="diagnostic.severity === 'error' ? 'text-red-400' : 'text-amber-400'"
-        :title="diagnostic.message"
-      >
-        {{ diagnostic.code }} · {{ diagnostic.path || 'project' }} · {{ diagnostic.message }}
-      </div>
+    </template>
+    <div v-else-if="desktop" class="project-empty">
+      <p>{{ zh ? '未打开项目' : 'No open project' }}</p>
+      <AGUIButton icon="i-ri-home-line" @click="app.showEmptyWorkspace = false">
+        {{ zh ? '打开欢迎页' : 'Open welcome page' }}
+      </AGUIButton>
     </div>
-    <div v-if="projectStore.workspaceMode === 'local'" class="p-2 h-full overflow-auto">
-      <button
-        v-for="path in projectStore.localFilePaths"
-        :key="path"
-        class="text-xs px-2 py-1 text-left rounded w-full block truncate hover:bg-white/8"
-        :title="path"
-        @dblclick="onLocalFileDblClick(path)"
-      >
-        <span i-ri-file-text-line class="mr-1 inline-block" />
-        {{ path }}
-      </button>
-    </div>
-    <AGUIAssetsExplorer
-      v-else
-      id="adv-explorer"
-      v-model:cur-dir="curDir"
-      v-model:root-dir="projectStore.rootDir"
-      :before-open-root-dir="beforeOpenRootDir"
-      :on-file-drop="onFileDrop"
-      :on-f-s-item-change="onFSItemChange"
-      :on-file-click="onFileClick"
-      :on-file-dbl-click="onFileDblClick"
-      :on-open-root-dir="onOpenRootDir"
-      :on-rename="onRename"
-      :on-delete="onDelete"
-      :on-create="onCreate"
-    />
-  </div>
+    <AEOpenProject v-else />
+  </section>
 </template>
+
+<style scoped>
+.project-files {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  font-size: 12px;
+}
+.project-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border-bottom: 1px solid var(--agui-c-divider);
+}
+.project-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.project-status {
+  color: var(--agui-c-text-2);
+  overflow-wrap: anywhere;
+}
+.project-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  color: var(--agui-c-text-2);
+}
+.project-search {
+  flex: 1;
+  min-width: 100px;
+}
+.project-tree {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.project-empty {
+  padding: 8px;
+  color: var(--agui-c-text-2);
+}
+</style>

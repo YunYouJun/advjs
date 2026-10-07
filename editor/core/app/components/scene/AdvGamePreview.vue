@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { AdvGameLoadStatusEnum } from '@advjs/client'
 import AGUIButton from '@advjs/gui/components/button/AGUIButton.vue'
-
 import { onUnmounted, watch } from 'vue'
+
+import { useEditorLayoutState } from '../../extensions/layout-state'
+import AECopyErrorButton from '../error/AECopyErrorButton.vue'
 import '../../../../../themes/theme-default/styles'
 
 const props = withDefaults(defineProps<{ visible?: boolean }>(), { visible: true })
@@ -13,17 +15,20 @@ const { locale } = useI18n()
 const zh = computed(() => locale.value === 'zh-CN')
 const pending = ref(false)
 const previewError = ref('')
+const previewErrorDetails = shallowRef<unknown>()
 
 async function runPreviewAction(action: () => Promise<unknown>) {
   if (pending.value)
     return
   pending.value = true
   previewError.value = ''
+  previewErrorDetails.value = undefined
   try {
     await action()
   }
   catch (error) {
     previewError.value = error instanceof Error ? error.message : String(error)
+    previewErrorDetails.value = error
   }
   finally {
     pending.value = false
@@ -33,17 +38,16 @@ async function runPreviewAction(action: () => Promise<unknown>) {
 const gameStore = useGameStore()
 const fileStore = useFileStore()
 const projectStore = useProjectStore()
+const layout = useEditorLayoutState()
 const show = computed(() => gameStore.client.loadStatus >= AdvGameLoadStatusEnum.CONFIG_LOADED)
+const empty = computed(() => !projectStore.project && (desktop || !show.value))
 
-const desktopPreviewError = ref('')
-async function launchDesktopPreview() {
-  try {
-    await window.advDesktop?.preview()
-    desktopPreviewError.value = ''
-  }
-  catch (failure) {
-    desktopPreviewError.value = String(failure)
-  }
+async function showProjectPanel() {
+  if (document.fullscreenElement)
+    await document.exitFullscreen()
+  layout.select('navigation', 'advjs.core/project')
+  await nextTick()
+  document.querySelector<HTMLElement>('[data-editor-region="navigation"] [role="tab"][data-state="active"]')?.focus()
 }
 
 async function startSourcePreview() {
@@ -150,18 +154,20 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div v-if="desktop" class="ae-resource-panel flex h-full items-center justify-center">
-    <AGUIButton :disabled="!projectStore.workspace" @click="launchDesktopPreview">
-      从已保存项目启动游戏预览
-    </AGUIButton>
-    <p v-if="desktopPreviewError" role="alert" class="ae-resource-error">
-      {{ desktopPreviewError }}
-    </p>
-  </div>
+  <section v-if="empty" class="preview-empty" :aria-label="zh ? '游戏预览' : 'Game preview'">
+    <div class="preview-empty-content">
+      <span class="i-ri-gamepad-line preview-empty-icon" aria-hidden="true" />
+      <h2>{{ zh ? '暂无可预览的游戏' : 'No game to preview' }}</h2>
+      <p>{{ zh ? '请先在「项目」面板创建或打开项目。' : 'Create or open a project in the Project panel.' }}</p>
+      <AGUIButton icon="i-ri-folder-open-line" @click="showProjectPanel">
+        {{ zh ? '前往项目' : 'Go to Project' }}
+      </AGUIButton>
+    </div>
+  </section>
+  <AEDesktopGamePreview v-else-if="desktop" :visible="visible" />
   <template v-else>
     <div class="flex h-full w-full items-center justify-center" relative>
       <AdvGame v-if="show" class="h-full w-full" />
-      <AEOpenProject v-else-if="!projectStore.project" />
       <div v-else class="preview-start">
         <AGUIButton theme="primary" :loading="pending" @click="runPreviewAction(startSourcePreview)">
           {{ zh ? '启动项目预览' : 'Start source preview' }}
@@ -173,16 +179,47 @@ onUnmounted(() => {
           {{ zh ? '刷新预览' : 'Refresh preview' }}
         </AGUIButton>
       </div>
-      <p v-if="previewError" class="preview-error" role="alert">
-        {{ previewError }}
-      </p>
+      <div v-if="previewError" class="preview-error" role="alert">
+        <p>{{ previewError }}</p>
+        <AECopyErrorButton source="Game preview" :error="previewErrorDetails ?? previewError" />
+      </div>
     </div>
-
-    <AELoadOnlineConfigFileDialog v-if="fileStore.onlineAdvConfigFileDialogOpen" />
   </template>
+  <AELoadOnlineConfigFileDialog v-if="!desktop && fileStore.onlineAdvConfigFileDialogOpen" />
 </template>
 
 <style scoped>
+.preview-empty {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  padding: 16px;
+  overflow: auto;
+  color: var(--agui-c-text-1);
+}
+.preview-empty-content {
+  max-width: 320px;
+  margin: auto;
+  text-align: center;
+}
+.preview-empty-icon {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  color: var(--agui-c-text-2);
+}
+.preview-empty-content h2 {
+  margin: 8px 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.preview-empty-content p {
+  margin: 0 0 12px;
+  color: var(--agui-c-text-2);
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
 .preview-start {
   padding: 12px;
 }

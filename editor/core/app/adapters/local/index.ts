@@ -10,6 +10,7 @@ export interface LocalEditorSession {
 
 export interface LocalBridgeProject {
   files: AdvProjectFileMap
+  filePaths?: string[]
   result: AdvProjectCompileResult
   root: string
 }
@@ -173,9 +174,7 @@ export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
     assetBlobUrls.clear()
   }
 
-  function createDirectoryHandle(files: AdvProjectFileMap, name: string): LocalDirectoryHandle {
-    const paths = Object.keys(files)
-
+  function createDirectoryHandle(files: AdvProjectFileMap, name: string, paths = Object.keys(files)): LocalDirectoryHandle {
     function directory(path: string, directoryName: string): LocalDirectoryHandle {
       const childPrefix = path ? `${path}/` : ''
       const childNames = new Set<string>()
@@ -199,14 +198,14 @@ export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
         },
         async getFileHandle(childName) {
           const childPath = joinPath(path, childName)
-          if (!(childPath in files))
+          if (!paths.includes(childPath))
             throw new DOMException(`File not found: ${childPath}`, 'NotFoundError')
           return file(childPath, childName)
         },
         async* values() {
           for (const childName of [...childNames].sort(compareText)) {
             const childPath = joinPath(path, childName)
-            if (childPath in files)
+            if (paths.includes(childPath))
               yield file(childPath, childName)
             else
               yield directory(childPath, childName)
@@ -234,6 +233,10 @@ export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
           }
         },
         async getFile() {
+          if (/\.(?:aac|avif|bmp|flac|gif|jpe?g|m4a|mp3|mp4|ogg|ogv|opus|png|svg|wav|webm|webp|mov)$/iu.test(path)) {
+            const blob = await readAsset(path)
+            return new File([blob], fileName, { type: blob.type })
+          }
           const content = await readFile(path)
           return new File([content], fileName, {
             lastModified: Date.now(),

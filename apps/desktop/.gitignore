@@ -1,4 +1,15 @@
 .build/
+.dev/
 out/
 test-results/
 playwright-report/
+
+# Icon build artifacts; keep the layered source and one lossless fallback.
+assets/generated/
+assets/Assets.car
+assets/icon.png
+assets/icon.ico
+assets/icon.icns
+assets/icon-dev.png
+assets/icon-dev.ico
+assets/icon-dev.icns

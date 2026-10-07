@@ -32,11 +32,11 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="h-full w-full flex items-center justify-center">
+  <div class="flex h-full w-full items-center justify-center">
     <AdvGame v-if="show" class="h-full w-full" />
     <AEOpenAdvConfigFile v-else />
 
-    <AdvGameLoading class="absolute inset-0 z-9999" />
+    <AdvGameLoading class="inset-0 absolute z-9999" />
   </div>
 
   <AELoadOnlineConfigFileDialog />

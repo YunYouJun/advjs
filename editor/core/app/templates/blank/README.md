@@ -6,7 +6,7 @@
 
 ```
 ├── adv.config.json   # 项目配置
-├── index.adv.json    # 游戏入口
+├── adv/chapters/chapter_01.adv.md  # 第一章
 └── README.md         # 本文件
 ```
 

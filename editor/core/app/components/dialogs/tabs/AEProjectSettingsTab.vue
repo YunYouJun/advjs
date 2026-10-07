@@ -9,7 +9,7 @@ const { properties } = useProjectSettings()
 <template>
   <div>
     <div class="mb-1 flex items-center justify-between">
-      <h3 class="inline-flex text-lg font-bold">
+      <h3 class="text-lg font-bold inline-flex">
         {{ title }}
       </h3>
     </div>

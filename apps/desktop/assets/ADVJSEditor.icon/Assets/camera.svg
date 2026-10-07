@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="camera" x1="7" y1="8" x2="17" y2="14" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3fd4eb"/>
+      <stop offset=".52" stop-color="#249fe8"/>
+      <stop offset="1" stop-color="#2875d4"/>
+    </linearGradient>
+  </defs>
+  <path transform="translate(80 53) scale(36)" fill="url(#camera)" d="M14 10.25 17 8v6l-3-2.25V14H7V8h7v2.25Z"/>
+</svg>

@@ -66,13 +66,13 @@ User-Agent: ${uaResult.ua}`
 
 <template>
   <AGUIDialog v-model:open="open" title="About" content-class="w-md">
-    <div class="flex flex-col gap-1 p-4">
-      <table class="w-full text-center" cellpadding="8">
+    <div class="p-4 flex flex-col gap-1">
+      <table class="text-center w-full" cellpadding="8">
         <caption class="p-2">
-          <h3 class="flex items-center justify-center text-2xl font-bold">
+          <h3 class="text-2xl font-bold flex items-center justify-center">
             ADV.JS Editor
           </h3>
-          <div class="flex items-center justify-center gap-2 text-xs op-50">
+          <div class="text-xs op-50 flex gap-2 items-center justify-center">
             <span>{{ buildTime }}</span>
             <a :href="githubCommitUrl" target="_blank" class="text-blue-200 underline hover:text-blue-400">
               {{ latestCommitHash.substring(0, 7) }}
@@ -96,7 +96,7 @@ User-Agent: ${uaResult.ua}`
               Browser
             </th>
             <td align="left">
-              <span class="inline-flex items-center justify-center gap-1">
+              <span class="inline-flex gap-1 items-center justify-center">
                 <div v-if="browserName === 'chrome'" class="i-ri-chrome-line" />
                 <div v-else-if="browserName === 'firefox'" class="i-ri-firefox-line" />
                 <div v-else-if="browserName === 'safari'" class="i-ri-safari-line" />
@@ -110,7 +110,7 @@ User-Agent: ${uaResult.ua}`
               CPU
             </th>
             <td align="left">
-              <span class="inline-flex items-center justify-center gap-1">
+              <span class="inline-flex gap-1 items-center justify-center">
                 <div class="i-ri-cpu-line" />
                 {{ uaResult.cpu.architecture }}
               </span>
@@ -121,7 +121,7 @@ User-Agent: ${uaResult.ua}`
               Device
             </th>
             <td align="left">
-              <span class="inline-flex items-center justify-center gap-1">
+              <span class="inline-flex gap-1 items-center justify-center">
                 <div class="i-ri-device-line" />
                 {{ uaResult.device.vendor }} {{ uaResult.device.model }}
                 {{ uaResult.device.type }}
@@ -133,7 +133,7 @@ User-Agent: ${uaResult.ua}`
               Engine
             </th>
             <td align="left">
-              <span class="inline-flex items-center justify-center gap-1">
+              <span class="inline-flex gap-1 items-center justify-center">
                 {{ uaResult.engine.name }} {{ uaResult.engine.version }}
               </span>
             </td>
@@ -143,7 +143,7 @@ User-Agent: ${uaResult.ua}`
               OS
             </th>
             <td align="left">
-              <span class="inline-flex items-center justify-center gap-1">
+              <span class="inline-flex gap-1 items-center justify-center">
                 <div class="i-ri-terminal-line" />
                 {{ uaResult.os.name }} {{ uaResult.os.version }}
               </span>
@@ -162,7 +162,7 @@ User-Agent: ${uaResult.ua}`
         </tfoot>
       </table>
 
-      <div class="flex items-center justify-center gap-2">
+      <div class="flex gap-2 items-center justify-center">
         <AGUIButton size="mini" @click="copyUA">
           Copy User Agent
         </AGUIButton>

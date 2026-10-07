@@ -45,6 +45,43 @@ afterEach(async () => {
 })
 
 describe('editor bridge', () => {
+  it('serves Devframe JSON tokens through the authenticated bridge with bounded inputs', async () => {
+    const { projectRoot, publicRoot } = await fixture()
+    const bridge = await createEditorBridge({ host: '127.0.0.1', port: 0, projectRoot, publicRoot })
+    const ready = await bridge.start()
+    try {
+      const url = new URL('/__advjs/api/highlight/json', ready.url)
+      const code = '{\n  "name": "雨中的来信",\n  "count": 1,\n  "enabled": false,\n  "optional": null\n}\n'
+      const request = (body: unknown, token = bridge.token, origin?: string) => fetch(url, {
+        method: 'POST',
+        headers: { ...apiHeaders(token, origin), 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      expect((await request({ code }, '')).status).toBe(401)
+      expect((await request({ code }, bridge.token, 'https://evil.example')).status).toBe(403)
+      expect((await request({ code: 1 })).status).toBe(400)
+      expect((await fetch(url, { method: 'POST', headers: apiHeaders(bridge.token), body: '{invalid' })).status).toBe(400)
+      const [first, second] = await Promise.all([request({ code }), request({ code })])
+      const result = await first.json() as { tokens: Array<{ content: string, color?: string }> }
+      expect(first.status).toBe(200)
+      expect(result).toEqual(await second.json())
+      expect(result.tokens.map(token => token.content).join('')).toBe(code)
+      expect(new Set(result.tokens.map(token => token.color))).toEqual(new Set([
+        undefined,
+        'var(--agui-c-syntax-key)',
+        'var(--agui-c-syntax-string)',
+        'var(--agui-c-syntax-number)',
+        'var(--agui-c-syntax-literal)',
+        'var(--agui-c-syntax-punctuation)',
+      ]))
+      for (const invalid of ['Error: failed', JSON.stringify('x'.repeat(32_768))])
+        expect(await (await request({ code: invalid })).json()).toEqual({})
+    }
+    finally {
+      await bridge.stop()
+    }
+  })
+
   it('serves the installed UI and protects explicit file and command APIs', async () => {
     const { projectRoot, publicRoot } = await fixture()
     const commands: string[] = []
@@ -93,6 +130,7 @@ describe('editor bridge', () => {
     })
     expect(projectResponse.status).toBe(200)
     expect(await projectResponse.json()).toMatchObject({
+      filePaths: ['adv.config.json', 'adv/chapter.adv.md', 'adv/preview.webp'],
       files: {
         'adv.config.json': '{"root":"./adv"}\n',
         'adv/chapter.adv.md': '# Chapter\n',

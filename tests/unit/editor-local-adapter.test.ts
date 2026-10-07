@@ -5,6 +5,18 @@ import {
 } from '../../editor/core/app/adapters/local'
 
 describe('editor local bridge adapter', () => {
+  it('includes binary navigation paths and reads their media bytes through the asset API', async () => {
+    const bytes = new Blob(['image bytes'], { type: 'image/png' })
+    const fetcher = vi.fn(async () => new Response('image bytes', { headers: { 'content-type': 'image/png' } }))
+    const adapter = createLocalBridgeAdapter({ fetch: fetcher, origin: 'http://127.0.0.1:3456', token: 'local-token' })
+    const root = adapter.createDirectoryHandle({ 'adv/story.md': '# Story' }, 'game', ['adv/story.md', 'adv/assets/portrait.png'])
+    const adv = await root.getDirectoryHandle('adv')
+    const assets = await adv.getDirectoryHandle('assets')
+    const image = await assets.getFileHandle('portrait.png')
+    const file = await image.getFile()
+    expect(file.size).toBe(bytes.size)
+    expect(fetcher).toHaveBeenCalledWith(expect.stringContaining('/asset?path=adv%2Fassets%2Fportrait.png'), expect.anything())
+  })
   it('discovers a token from the launch fragment without putting it in requests', () => {
     expect(parseLocalEditorSession('http://127.0.0.1:3456/#advjs-token=secret-value')).toEqual({
       origin: 'http://127.0.0.1:3456',

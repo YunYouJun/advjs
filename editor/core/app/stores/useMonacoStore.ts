@@ -1,4 +1,5 @@
 import type * as Monaco from 'monaco-editor'
+import type { DesktopFilePosition } from '../types/desktop'
 import { useStorage } from '@vueuse/core'
 
 export type MonacoEditorLanguage = 'json' | 'javascript' | 'typescript' | 'html' | 'css' | 'markdown' | 'plaintext'
@@ -12,11 +13,13 @@ export const useMonacoStore = defineStore('@advjs/editor:monaco', () => {
    * monaco editor file content
    */
   const fileContent = ref<string>('')
+  const positions = ref<Record<string, DesktopFilePosition>>({})
   const options = ref<Monaco.editor.IStandaloneEditorConstructionOptions>({ theme: 'vs-dark' })
 
   return {
     language,
     fileContent,
+    positions,
     options,
   }
 })

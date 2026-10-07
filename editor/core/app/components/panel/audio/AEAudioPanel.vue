@@ -7,16 +7,12 @@ import '../../../styles/resource-panel.scss'
 withDefaults(defineProps<{ visible?: boolean }>(), { visible: true })
 const { $adv } = useAdvContext()
 const audioStore = useAudioStore()
-const app = useAppStore()
 const fileStore = useFileStore()
-const monacoStore = useMonacoStore()
 const fieldId = useId()
 const search = ref('')
 const { load, cancel, loading, failed } = useAudioLibrary((data, url) => {
   audioStore.bgmLibraryData = data
-  app.activeInspector = 'file'
-  monacoStore.fileContent = JSON.stringify(data, null, 2)
-  fileStore.fileName = url
+  fileStore.openVirtualFile(url, JSON.stringify(data, null, 2))
 })
 watch(() => audioStore.bgmLibraryUrl, cancel)
 const entries = computed(() => {

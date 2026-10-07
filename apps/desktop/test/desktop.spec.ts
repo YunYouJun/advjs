@@ -9,6 +9,7 @@ import process from 'node:process'
 import { promisify } from 'node:util'
 import { parseCharacterMd } from '@advjs/parser'
 import { _electron, chromium, expect, test } from '@playwright/test'
+import { waitForGamePreview } from './preview'
 
 test.describe.configure({ mode: 'serial' })
 
@@ -16,6 +17,28 @@ const repo = resolve(import.meta.dirname, '../../..')
 let app: ElectronApplication, page: Page, workspace: string, root: string
 let closed = false
 const evidence = resolve(repo, 'apps/desktop/out/evidence')
+async function desktopAction(id: string, label: string) {
+  if (process.platform === 'darwin') {
+    await app.evaluate(async ({ Menu, BrowserWindow }, id) => {
+      const item = Menu.getApplicationMenu()!.getMenuItemById(`desktop.${id}`)!
+      if (!item.enabled)
+        throw new Error(`Disabled native action: ${id}`)
+      await item.click(item, BrowserWindow.getAllWindows()[0], {} as never)
+    }, id)
+  }
+  else {
+    await page.getByRole('button', { name: label, exact: true }).click()
+  }
+}
+async function startDesktopTask(id: string, label: string) {
+  const previous = await page.evaluate(() => window.advDesktop!.taskStatus())
+  if (id === 'preview')
+    await page.evaluate(() => window.advDesktop!.preview())
+  else
+    await desktopAction(id, label)
+  // Electron's MenuItem.click does not await renderer command completion.
+  await expect.poll(async () => (await page.evaluate(() => window.advDesktop!.taskStatus()))?.id).not.toBe(previous?.id)
+}
 async function readSource(path: string) {
   return readFile(path, 'utf8').catch((error) => {
     if (error.code === 'ENOENT')
@@ -208,11 +231,12 @@ test('isolated saved-game preview and Web directory/ZIP export use the actual bu
   await page.evaluate(() => (document.querySelector('#__nuxt') as any).__vue_app__.config.globalProperties.$router.push('/'))
   const skip = page.getByRole('button', { name: /Skip|跳过/i })
   await skip.waitFor({ state: 'visible', timeout: 2000 }).then(() => skip.click()).catch(() => {})
-  await page.getByRole('button', { name: '游戏预览', exact: true }).click()
+  await page.evaluate(() => window.advDesktop!.setPreviewPresentation('window'))
+  await startDesktopTask('preview', '游戏预览')
   await expect.poll(async () => (await page.evaluate(() => window.advDesktop!.taskStatus()))?.state, { timeout: 120000 }).not.toBe('running')
   const status = await page.evaluate(() => window.advDesktop!.taskStatus())
   expect(status?.state, JSON.stringify(status)).toBe('succeeded')
-  const preview = app.windows().find(window => window !== page)!
+  const preview = await waitForGamePreview(app, page)
   expect(preview).toBeDefined()
   await preview.waitForLoadState('domcontentloaded')
   await preview.route('**/*', route => new URL(route.request().url()).hostname === '127.0.0.1' || /^(?:data|blob):/u.test(route.request().url()) ? route.continue() : route.abort())
@@ -237,14 +261,14 @@ test('isolated saved-game preview and Web directory/ZIP export use the actual bu
   await preview.evaluate(() => (document.querySelector('#app') as any).__vue_app__.config.globalProperties.$router.push('/start'))
   await playGame(preview)
   await preview.screenshot({ path: resolve(evidence, 'a7-isolated-preview.png') })
-  await page.getByRole('button', { name: '停止预览', exact: true }).click()
+  await desktopAction('stop-preview', '停止预览')
   await expect.poll(() => fetch(status!.output!).then(() => 'open').catch(() => 'closed')).toBe('closed')
   expect(await readFile(resolve(root, 'index.html'), 'utf8')).toBe('<!-- original author source -->')
   const directory = resolve(workspace, 'exported-web')
   await app.evaluate(({ dialog }, destination) => {
     dialog.showSaveDialog = async () => ({ canceled: false, filePath: destination })
   }, directory)
-  await page.getByRole('button', { name: '导出 Web 目录', exact: true }).click()
+  await startDesktopTask('export-directory', '导出 Web 目录')
   await expect.poll(async () => (await page.evaluate(() => window.advDesktop!.taskStatus()))?.state, { timeout: 120000 }).not.toBe('running')
   const directoryStatus = await page.evaluate(() => window.advDesktop!.taskStatus())
   expect(directoryStatus?.state, JSON.stringify(directoryStatus)).toBe('succeeded')
@@ -256,7 +280,7 @@ test('isolated saved-game preview and Web directory/ZIP export use the actual bu
   await app.evaluate(({ dialog }, destination) => {
     dialog.showSaveDialog = async () => ({ canceled: false, filePath: destination })
   }, zip)
-  await page.getByRole('button', { name: '导出 ZIP', exact: true }).click()
+  await startDesktopTask('export-zip', '导出 ZIP')
   await expect.poll(async () => (await page.evaluate(() => window.advDesktop!.taskStatus()))?.state, { timeout: 120000 }).not.toBe('running')
   const zipStatus = await page.evaluate(() => window.advDesktop!.taskStatus())
   expect(zipStatus?.state, JSON.stringify(zipStatus)).toBe('succeeded')
@@ -371,9 +395,9 @@ test('AGUI character panel stays usable at 320px in light/dark modes and with ke
   }
   await page.getByRole('button', { name: /^(Cancel|取消)$/ }).last().click()
   await page.evaluate(() => (document.querySelector('#__nuxt') as any).__vue_app__.config.globalProperties.$router.push('/'))
-  await expect(page.getByRole('button', { name: '打开项目', exact: true }).first()).toBeVisible()
+  await expect(page.locator('.editor-status-bar')).toBeVisible()
   await expect(page.locator('.fixed.z-9999')).toHaveCount(0)
-  expect(await page.locator('.desktop-actions').evaluate(element => element.getBoundingClientRect().height)).toBeLessThan(70)
+  expect(await page.locator('.editor-status-bar').evaluate(element => element.getBoundingClientRect().height)).toBeLessThan(70)
   await page.screenshot({ path: resolve(evidence, 'a12-desktop.png') })
 })
 
@@ -479,12 +503,12 @@ test('refreshes same-path image/audio bytes, reports missing media, and removes 
 
 test('cancelled/failed builds preserve sources and refuse existing or unsafe destinations', async () => {
   const source = await readFile(resolve(root, 'index.html'), 'utf8')
-  await page.getByRole('button', { name: '游戏预览', exact: true }).click()
+  await startDesktopTask('preview', '游戏预览')
   await page.evaluate(() => window.advDesktop!.cancelTask())
   await expect.poll(async () => (await page.evaluate(() => window.advDesktop!.taskStatus()))?.state).toBe('cancelled')
   // A missing scene resource fails real project preparation in the worker.
   await rename(resolve(root, 'adv/assets/room.svg'), resolve(root, 'adv/assets/room.svg.missing'))
-  await page.getByRole('button', { name: '游戏预览', exact: true }).click()
+  await startDesktopTask('preview', '游戏预览')
   await expect.poll(async () => (await page.evaluate(() => window.advDesktop!.taskStatus()))?.state, { timeout: 30000 }).toBe('failed')
   expect((await page.evaluate(() => window.advDesktop!.taskStatus()))?.error).toContain('Missing project resource')
   await rename(resolve(root, 'adv/assets/room.svg.missing'), resolve(root, 'adv/assets/room.svg'))
@@ -495,8 +519,8 @@ test('cancelled/failed builds preserve sources and refuse existing or unsafe des
     await app.evaluate(({ dialog }, destination) => {
       dialog.showSaveDialog = async () => ({ canceled: false, filePath: destination })
     }, destination)
-    await page.getByRole('button', { name: '导出 Web 目录', exact: true }).click()
-    await expect(page.getByRole('alert')).toBeVisible()
+    await desktopAction('export-directory', '导出 Web 目录')
+    await expect(page.locator('.ToastRoot').last()).toBeVisible()
   }
   expect(await readFile(resolve(existing, 'keep.txt'), 'utf8')).toBe('untouched')
   expect(await readFile(resolve(root, 'index.html'), 'utf8')).toBe(source)
@@ -517,6 +541,10 @@ test('native lifecycle cancellation, switching, reload, service reconnect and cr
   expect(await page.evaluate(() => window.advDesktop!.openProject())).toBe(false)
   expect((await page.evaluate(() => window.advDesktop!.session())).token).toBe(first.token)
   await page.evaluate(() => (document.querySelector('#__nuxt') as any).__vue_app__.config.globalProperties.$router.push('/characters/xiaoyu'))
+  // Dismiss prior build/open errors before continuing to the form beneath them.
+  const notices = page.locator('.ToastRoot').getByRole('button', { name: 'Close', exact: true })
+  while (await notices.count())
+    await notices.last().click()
   await page.getByRole('button', { name: /Edit|编辑/, exact: false }).first().click()
   await page.locator('textarea[id$="-personality"]').fill('服务恢复后保存的草稿。')
   expect(await page.evaluate(() => window.advDesktop!.closeProject())).toBe(false)
@@ -529,6 +557,8 @@ test('native lifecycle cancellation, switching, reload, service reconnect and cr
   const refreshed = await page.evaluate(() => window.advDesktop!.session())
   expect(refreshed.token).not.toBe(first.token)
   await expect(page.locator('textarea[id$="-personality"]')).toHaveValue('服务恢复后保存的草稿。')
+  while (await notices.count())
+    await notices.last().click()
   await page.getByRole('button', { name: /^(Save Changes|Save|保存修改|保存)$/ }).last().click()
   await expect.poll(() => readFile(resolve(root, 'adv/characters/xiaoyu.character.md'), 'utf8')).toContain('服务恢复后保存的草稿。')
   await page.reload()
@@ -540,12 +570,12 @@ test('native lifecycle cancellation, switching, reload, service reconnect and cr
     dialog.showMessageBox = async () => ({ response: 0, checkboxChecked: false })
   }, other)
   await page.evaluate(() => {
-    void window.advDesktop!.openProject()
+    void window.advDesktop!.openProject('current')
   })
   await expect.poll(async () => (await page.evaluate(() => window.advDesktop!.session())).root).toContain('第二个 项目')
   const recent = await page.evaluate(() => window.advDesktop!.recentProjects())
   await page.evaluate((id) => {
-    void window.advDesktop!.openRecent(id)
+    void window.advDesktop!.openRecent(id, 'current')
   }, recent.find(item => item.name === '中文 创作项目')!.id)
   await expect.poll(async () => (await page.evaluate(() => window.advDesktop!.session())).root).toContain('中文 创作项目')
   await expect.poll(() => page.evaluate(() => (document.querySelector('#__nuxt') as any).__vue_app__?.config.globalProperties.$pinia?._s.get('@advjs/editor:project')?.rootDir?.name).catch(() => undefined)).toBe('中文 创作项目')
@@ -569,14 +599,16 @@ test('trusted existing CLI project builds without project dependencies and rejec
   await app.evaluate(({ dialog }) => {
     dialog.showMessageBox = async () => ({ response: 0, checkboxChecked: false })
   })
+  const previousURL = page.url()
   await page.evaluate(() => {
-    void window.advDesktop!.openProject()
+    void window.advDesktop!.openProject('current')
   })
+  await page.waitForURL(url => url.href !== previousURL)
   await expect.poll(async () => (await page.evaluate(() => window.advDesktop!.session())).root).toContain('CLI starter 项目')
   await page.waitForFunction(() => !!(document.querySelector('#__nuxt') as any).__vue_app__?.config.globalProperties.$pinia?._s.get('@advjs/editor:project')?.project)
   const skip = page.getByRole('button', { name: /Skip|跳过/i })
   await skip.waitFor({ state: 'visible', timeout: 1500 }).then(() => skip.click()).catch(() => {})
-  await page.getByRole('button', { name: '游戏预览', exact: true }).click()
+  await startDesktopTask('preview', '游戏预览')
   await expect.poll(async () => (await page.evaluate(() => window.advDesktop!.taskStatus()))?.state, { timeout: 120000 }).not.toBe('running')
   const original = await page.evaluate(() => window.advDesktop!.taskStatus())
   expect(original?.state).toBe('failed')
@@ -585,11 +617,13 @@ test('trusted existing CLI project builds without project dependencies and rejec
   // Keep its story/adv config and use the ordinary independent Vite setup.
   await writeFile(resolve(cli, 'vite.config.ts'), 'export default {}\n')
   expect(await page.evaluate(() => window.advDesktop!.reconnect())).toBe(true)
-  await page.getByRole('button', { name: '游戏预览', exact: true }).click()
+  // This builder-focused case plays outside the editor's restored file tab.
+  await page.evaluate(() => window.advDesktop!.setPreviewPresentation('window'))
+  await startDesktopTask('preview', '游戏预览')
   await expect.poll(async () => (await page.evaluate(() => window.advDesktop!.taskStatus()))?.state, { timeout: 120000 }).not.toBe('running')
   const portable = await page.evaluate(() => window.advDesktop!.taskStatus())
   expect(portable?.state, JSON.stringify(portable)).toBe('succeeded')
-  const preview = app.windows().find(window => window !== page)!
+  const preview = await waitForGamePreview(app, page)
   await expect(preview.locator('.start-menu-item').first()).toBeVisible({ timeout: 20000 })
   await preview.locator('.start-menu-item').first().click()
   for (let i = 0; i < 4 && !await preview.locator('.adv-dialog-box').isVisible(); i++) {

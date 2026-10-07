@@ -79,7 +79,7 @@ async function onCopyForAI() {
 </script>
 
 <template>
-  <div class="ae-resource-panel flex flex-col h-screen">
+  <div class="ae-resource-panel flex flex-col h-full">
     <!-- Header -->
     <div class="px-2 py-1 border-b border-$agui-c-divider flex gap-3 items-center">
       <NuxtLink to="/characters" :aria-label="$t('characters.back')" class="op-50 transition-opacity hover:op-100">

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="DEV">
+  <defs>
+    <filter id="dev-badge-shadow" x="-20%" y="-40%" width="140%" height="180%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#172b45" flood-opacity=".24"/>
+    </filter>
+  </defs>
+  <rect x="568" y="744" width="330" height="128" rx="38" fill="#ffcc4d" stroke="#fff0b5" stroke-width="3" filter="url(#dev-badge-shadow)"/>
+  <!-- Outlined DEV lettering keeps regeneration independent of installed fonts. -->
+  <g transform="translate(614 766) scale(1.05)" fill="#302511">
+    <path fill-rule="evenodd" d="M0 0h27c23 0 37 16 37 40S50 80 27 80H0Zm17 16v48h10c13 0 20-8 20-24S40 16 27 16Z"/>
+    <path d="M83 0h54v16h-37v15h32v16h-32v17h38v16H83Z"/>
+    <path d="M154 0h19l17 58 17-58h19l-26 80h-20Z"/>
+  </g>
+</svg>

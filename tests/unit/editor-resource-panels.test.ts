@@ -2,8 +2,10 @@ import type { AdvCharacter } from '@advjs/types'
 import type { App } from 'vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createApp, effectScope, h, nextTick, ref } from 'vue'
+import { createApp, effectScope, h, nextTick, reactive, ref } from 'vue'
+import CharacterAvatar from '../../editor/core/app/components/character/CharacterAvatar.vue'
 import CharacterCard from '../../editor/core/app/components/character/CharacterCard.vue'
+import CharacterDetail from '../../editor/core/app/components/character/CharacterDetail.vue'
 import CharacterList from '../../editor/core/app/components/character/CharacterList.vue'
 import RelationshipEditor from '../../editor/core/app/components/character/RelationshipEditor.vue'
 import TachieManager from '../../editor/core/app/components/character/TachieManager.vue'
@@ -49,6 +51,72 @@ async function fill(input: HTMLInputElement, value: string) {
 const character = (id: string, tachies = {}): AdvCharacter => ({ id, name: id, tachies })
 
 describe('editor character panels', () => {
+  it('resolves project avatars in both the character list and inspector', async () => {
+    const projectAssetUrl = vi.fn(async () => 'blob:portrait')
+    vi.stubGlobal('useProjectStore', () => ({ workspace: {}, resourceRevision: 0, projectAssetUrl }))
+    const revokeObjectURL = vi.fn()
+    vi.stubGlobal('URL', { revokeObjectURL })
+    const guide = { ...character('guide'), avatar: '/img/characters/xiaoyun.webp' }
+    const root = mount(() => h('div', [h(CharacterCard, { character: guide, mode: 'list' }), h(CharacterDetail, { character: guide, actions: false })]))
+    expect(projectAssetUrl.mock.calls).toEqual([[guide.avatar], [guide.avatar]])
+    await vi.waitFor(() => expect([...root.querySelectorAll('img')].map(image => image.getAttribute('src'))).toEqual(['blob:portrait', 'blob:portrait']))
+    expect(root.querySelectorAll('.ae-character-avatar.list')).toHaveLength(2)
+    app?.unmount()
+    app = undefined
+    expect(revokeObjectURL).toHaveBeenCalledTimes(2)
+  })
+
+  it('replaces missing or undecodable avatars with a placeholder and reloads changed resources', async () => {
+    const projectAssetUrl = vi.fn().mockRejectedValueOnce(new Error('Missing asset')).mockResolvedValue('blob:recovered')
+    const project = reactive({ workspace: {}, resourceRevision: 0, projectAssetUrl })
+    vi.stubGlobal('useProjectStore', () => project)
+    vi.stubGlobal('URL', { revokeObjectURL: vi.fn() })
+    const root = mount(() => h(CharacterAvatar, { src: '/portrait.png' }))
+    await vi.waitFor(() => expect(root.querySelector('.i-ri-image-line')).not.toBeNull())
+    expect(root.querySelector('img')).toBeNull()
+    project.resourceRevision++
+    await vi.waitFor(() => expect(root.querySelector('img')?.getAttribute('src')).toBe('blob:recovered'))
+    root.querySelector('img')!.dispatchEvent(new Event('error'))
+    await nextTick()
+    expect(root.querySelector('img')).toBeNull()
+    expect(root.querySelector('.i-ri-image-line')).not.toBeNull()
+    project.resourceRevision++
+    await vi.waitFor(() => expect(root.querySelector('img')).not.toBeNull())
+  })
+
+  it('ignores stale project avatar reads and releases their object URLs', async () => {
+    let resolveOld!: (url: string) => void
+    const projectAssetUrl = vi.fn().mockImplementationOnce(() => new Promise<string>(resolve => resolveOld = resolve)).mockResolvedValue('blob:new')
+    vi.stubGlobal('useProjectStore', () => ({ workspace: {}, resourceRevision: 0, projectAssetUrl }))
+    const revokeObjectURL = vi.fn()
+    vi.stubGlobal('URL', { revokeObjectURL })
+    const src = ref('/old.png')
+    const root = mount(() => h(CharacterAvatar, { src: src.value }))
+    src.value = '/new.png'
+    await vi.waitFor(() => expect(root.querySelector('img')?.getAttribute('src')).toBe('blob:new'))
+    resolveOld('blob:old')
+    await nextTick()
+    expect(root.querySelector('img')?.getAttribute('src')).toBe('blob:new')
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:old')
+    app?.unmount()
+    app = undefined
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:new')
+  })
+
+  it('keeps standalone URLs and caller-owned blob avatars intact', async () => {
+    const revokeObjectURL = vi.fn()
+    vi.stubGlobal('URL', { revokeObjectURL })
+    const src = ref('https://example.test/portrait.png')
+    const root = mount(() => h(CharacterAvatar, { src: src.value }))
+    expect(root.querySelector('img')?.getAttribute('src')).toBe(src.value)
+    src.value = 'blob:caller-owned'
+    await nextTick()
+    expect(root.querySelector('img')?.getAttribute('src')).toBe(src.value)
+    app?.unmount()
+    app = undefined
+    expect(revokeObjectURL).not.toHaveBeenCalled()
+  })
+
   it('uses named native buttons in both views and retains the selected character', async () => {
     const select = vi.fn()
     const root = mount(() => h(CharacterList, { characters: [character('Alice')], selected: 'Alice', onSelect: select }))

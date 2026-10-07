@@ -1,3 +1,4 @@
 {
-  "format": "adv-md"
+  "format": "adv-md",
+  "root": "./adv"
 }

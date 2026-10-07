@@ -1,12 +1,13 @@
 import type { BrowserWindow, UtilityProcess } from 'electron'
 import { Buffer } from 'node:buffer'
 import { randomUUID } from 'node:crypto'
-import { cp, lstat, mkdtemp, readdir, readFile, realpath, rename, rm, symlink, writeFile } from 'node:fs/promises'
+import { cp, lstat, mkdir, mkdtemp, readdir, readFile, realpath, rename, rm, symlink, writeFile } from 'node:fs/promises'
 import { createServer } from 'node:http'
 import { dirname, extname, isAbsolute, join, relative, resolve } from 'node:path'
 import process from 'node:process'
 import { deflateRawSync } from 'node:zlib'
-import { app, utilityProcess, BrowserWindow as Window } from 'electron'
+import { app, utilityProcess, WebContentsView, BrowserWindow as Window } from 'electron'
+import { createPreviewPresentation } from './preview-presentation.js'
 
 export interface DesktopTask { id: string, kind: string, state: 'running' | 'succeeded' | 'failed' | 'cancelled', logs: string, output?: string, error?: string }
 function contains(root: string, path: string) {
@@ -92,7 +93,8 @@ async function zip(directory: string) {
   return Buffer.concat([...local, records, end])
 }
 
-export function createDesktopTasks(runtime: string, worker: string) {
+export function createDesktopTasks(runtime: string, worker: string, owner: BrowserWindow, onPreviewFocus: () => void) {
+  const presentation = createPreviewPresentation(owner, onPreviewFocus)
   let current: DesktopTask | undefined
   let child: UtilityProcess | undefined
   let preview: BrowserWindow | undefined
@@ -100,14 +102,165 @@ export function createDesktopTasks(runtime: string, worker: string) {
   let previewCleanup: Promise<void> | undefined
   let cancelled = false
   let active: Promise<void> | undefined
+  let runMode: 'live' | 'build' = 'live'
+  let vueDevtools = false
+  let updating = false
+  let previewError: string | undefined
   const directories = new Set<string>()
   async function closePreview() {
+    presentation.release()
     preview?.destroy()
     preview = undefined
     await previewCleanup
     previewCleanup = undefined
     await stopPreview?.()
     stopPreview = undefined
+    updating = false
+    previewError = undefined
+  }
+
+  async function openPlayer(origin: string, task: DesktopTask, staging: string) {
+    preview = new Window({ show: false, width: 1100, height: 720, title: 'ADV.JS 游戏预览', webPreferences: { sandbox: true, nodeIntegration: false, contextIsolation: true, partition: `preview-${task.id}` } })
+    const player = new WebContentsView({ webPreferences: { sandbox: true, nodeIntegration: false, contextIsolation: true, partition: `preview-${task.id}` } })
+    player.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
+    player.webContents.on('will-navigate', (event, url) => {
+      if (new URL(url).origin !== origin)
+        event.preventDefault()
+    })
+    player.webContents.session.setPermissionRequestHandler((_contents, _permission, callback) => callback(false))
+    player.webContents.on('page-title-updated', (_event, title) => preview?.setTitle(title || 'ADV.JS 游戏预览'))
+    preview.once('closed', () => {
+      presentation.release()
+      preview = undefined
+      const stop = stopPreview
+      stopPreview = undefined
+      previewCleanup = (async () => {
+        await stop?.()
+        await rm(staging, { recursive: true, force: true })
+        directories.delete(staging)
+      })()
+      void previewCleanup.catch(error => task.logs += `\nPreview cleanup failed: ${String(error)}`)
+    })
+    presentation.attach(preview, player)
+    await player.webContents.loadURL(origin)
+    task.output = origin
+  }
+
+  async function startLive(root: string, fingerprint: string, enableVueDevtools = false) {
+    if (current?.state === 'running')
+      throw new Error('任务正在运行')
+    const task: DesktopTask = { id: randomUUID(), kind: 'live', state: 'running', logs: '' }
+    current = task
+    cancelled = false
+    active = (async () => {
+      let staging = ''
+      let liveProcess: UtilityProcess | undefined
+      let closing = false
+      let exited = false
+      try {
+        await closePreview()
+        runMode = 'live'
+        vueDevtools = enableVueDevtools
+        staging = await mkdtemp(join(app.getPath('userData'), 'build-'))
+        directories.add(staging)
+        const copy = join(staging, 'project')
+        // The worker creates the mirror. Only the bundled dependencies are linked.
+        await mkdir(copy, { recursive: true })
+        await symlink(resolve(runtime, 'node_modules'), join(copy, 'node_modules'), process.platform === 'win32' ? 'junction' : 'dir')
+        if (cancelled)
+          throw new Error('已取消')
+        liveProcess = utilityProcess.fork(join(dirname(worker), 'live-worker.mjs'), [root, fingerprint, String(enableVueDevtools)], { cwd: copy, stdio: 'pipe', serviceName: 'ADV.JS Live Preview' })
+        child = liveProcess
+        const append = (data: Buffer) => {
+          task.logs = (task.logs + String(data)).slice(-100000)
+        }
+        liveProcess.stdout?.on('data', append)
+        liveProcess.stderr?.on('data', append)
+        const origin = await new Promise<string>((done, fail) => {
+          const timer = setTimeout(() => fail(new Error('实时预览启动超时')), 120000)
+          liveProcess!.once('exit', (code) => {
+            exited = true
+            clearTimeout(timer)
+            fail(new Error(`实时预览进程退出 (${code})`))
+            if (!closing && task.state === 'succeeded') {
+              previewError = `实时预览进程退出 (${code})，请重新运行`
+              task.state = 'failed'
+              task.error = previewError
+            }
+          })
+          liveProcess!.on('message', (message) => {
+            if (message.type === 'ready') {
+              clearTimeout(timer)
+              done(message.origin)
+            }
+            else if (message.type === 'error') {
+              clearTimeout(timer)
+              fail(new Error(message.message))
+            }
+            else if (message.type === 'updating') {
+              updating = true
+            }
+            else if (message.type === 'updated') {
+              updating = false
+              previewError = undefined
+              task.error = undefined
+              task.state = 'succeeded'
+              // A Vite restart can interrupt the player's reconnect request.
+              // Reload only the origin already assigned to this managed task.
+              if (message.restarted && task.output && current?.id === task.id) {
+                void presentation.reload(task.output).catch((error) => {
+                  previewError = String(error)
+                  task.logs += `\nPreview reload failed: ${previewError}`
+                })
+              }
+            }
+            else if (message.type === 'update-error') {
+              updating = false
+              previewError = message.message
+              task.error = message.message
+              task.state = 'failed'
+            }
+            else if (message.type === 'blocked') {
+              presentation.release()
+            }
+          })
+        })
+        if (cancelled)
+          throw new Error('已取消')
+        child = undefined
+        stopPreview = async () => {
+          closing = true
+          if (exited)
+            return
+          await new Promise<void>((done) => {
+            const timer = setTimeout(() => {
+              liveProcess?.kill()
+              done()
+            }, 2000)
+            liveProcess!.once('exit', () => {
+              clearTimeout(timer)
+              done()
+            })
+            liveProcess!.postMessage('stop')
+          })
+        }
+        await openPlayer(origin, task, staging)
+        task.state = 'succeeded'
+      }
+      catch (error) {
+        closing = true
+        liveProcess?.kill()
+        child = undefined
+        await closePreview()
+        task.state = cancelled ? 'cancelled' : 'failed'
+        task.error = String(error)
+        if (staging) {
+          await rm(staging, { recursive: true, force: true })
+          directories.delete(staging)
+        }
+      }
+    })()
+    return task
   }
   async function cancel() {
     if (current?.state === 'running') {
@@ -121,6 +274,7 @@ export function createDesktopTasks(runtime: string, worker: string) {
     await closePreview()
     for (const path of directories) await rm(path, { recursive: true, force: true })
     directories.clear()
+    presentation.dispose()
   }
   async function start(root: string, kind: 'preview' | 'directory' | 'zip', destination?: string) {
     if (current?.state === 'running')
@@ -178,6 +332,7 @@ export function createDesktopTasks(runtime: string, worker: string) {
           throw new Error('已取消')
         if (kind === 'preview') {
           await closePreview()
+          runMode = 'build'
           const server = createServer(async (request, response) => {
             try {
               const url = new URL(request.url ?? '/', 'http://localhost')
@@ -210,26 +365,7 @@ export function createDesktopTasks(runtime: string, worker: string) {
             server.close(() => done())
           })
           const origin = `http://127.0.0.1:${(server.address() as { port: number }).port}`
-          preview = new Window({ width: 1100, height: 720, title: 'ADV.JS 游戏预览', webPreferences: { sandbox: true, nodeIntegration: false, contextIsolation: true, partition: `preview-${task.id}` } })
-          preview.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
-          preview.webContents.on('will-navigate', (event, url) => {
-            if (new URL(url).origin !== origin)
-              event.preventDefault()
-          })
-          preview.webContents.session.setPermissionRequestHandler((_contents, _permission, callback) => callback(false))
-          preview.once('closed', () => {
-            preview = undefined
-            const stop = stopPreview
-            stopPreview = undefined
-            previewCleanup = (async () => {
-              await stop?.()
-              await rm(staging, { recursive: true, force: true })
-              directories.delete(staging)
-            })()
-            void previewCleanup.catch(error => task.logs += `\nPreview cleanup failed: ${String(error)}`)
-          })
-          await preview.loadURL(origin)
-          task.output = origin
+          await openPlayer(origin, task, staging)
         }
         else {
           const target = destination!
@@ -250,6 +386,8 @@ export function createDesktopTasks(runtime: string, worker: string) {
         task.state = 'succeeded'
       }
       catch (error) {
+        if (kind === 'preview')
+          await closePreview()
         task.state = cancelled ? 'cancelled' : 'failed'
         task.error = String(error)
       }
@@ -264,5 +402,5 @@ export function createDesktopTasks(runtime: string, worker: string) {
     })()
     return task
   }
-  return { start, cancel, dispose, closePreview, status: () => current }
+  return { start, startLive, cancel, dispose, closePreview, presentation, previewStatus: () => ({ ...presentation.status(), runMode, vueDevtools, updating, error: previewError }), status: () => current }
 }

@@ -3,6 +3,8 @@ import type { AdvConfigAdapterType } from '../types'
 import type { MonacoEditorLanguage } from './useMonacoStore'
 import { useStorage } from '@vueuse/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
+import { computed, onScopeDispose, ref, shallowRef, watch } from 'vue'
+import { projectFileKind } from '../utils/project-files'
 
 export const useFileStore = defineStore('file', () => {
   const gameStore = useGameStore()
@@ -17,6 +19,11 @@ export const useFileStore = defineStore('file', () => {
   const openedFilePath = ref('')
   const savedFileContent = ref<string | null>('')
   const externalConflict = ref<{ content: string | null, path: string }>()
+  const fileKind = ref<ReturnType<typeof projectFileKind>>('text')
+  const previewUrl = ref('')
+  const openVersion = ref(0)
+  const loading = ref(false)
+  let openSequence = 0
 
   /**
    * rawConfigFile
@@ -35,10 +42,11 @@ export const useFileStore = defineStore('file', () => {
    */
   const fileName = ref<string>('')
   const monacoStore = useMonacoStore()
-  const isDirty = computed(() => Boolean(openedFileHandle.value) && monacoStore.fileContent !== savedFileContent.value)
+  const isDirty = computed(() => fileKind.value === 'text' && Boolean(openedFileHandle.value) && monacoStore.fileContent !== savedFileContent.value)
 
   watch(() => showRawConfigFile.value, (val) => {
-    monacoStore.fileContent = val ? rawConfigFileContent.value : JSON.stringify(gameStore.gameConfig, null, 2)
+    if (fileName.value.endsWith('.adv.json'))
+      monacoStore.fileContent = val ? rawConfigFileContent.value : JSON.stringify(gameStore.gameConfig, null, 2)
   })
 
   const app = useAppStore()
@@ -68,8 +76,7 @@ export const useFileStore = defineStore('file', () => {
    * open adv config file handle
    */
   async function openAdvConfigFileHandle(fileHandle: FileSystemFileHandle) {
-    fileName.value = fileHandle.name
-    setOpenedFileHandle(fileHandle)
+    await setOpenedFileHandle(fileHandle)
 
     // 获取文件内容
     const file = await fileHandle.getFile()
@@ -97,8 +104,6 @@ export const useFileStore = defineStore('file', () => {
     url: string
     adapter: AdvConfigAdapterType
   }) {
-    app.activeInspector = 'file'
-
     const { url, adapter } = options
     // fetch json from online link
     const json = await fetch(url).then(res => res.json())
@@ -106,6 +111,7 @@ export const useFileStore = defineStore('file', () => {
     rawConfigFileContent.value = JSON.stringify(json, null, 2)
     gameStore.curAdapter = adapter
     gameStore.loadGameFromConfig(json)
+    openVirtualFile(url, rawConfigFileContent.value)
     consoleStore.success('File loaded', {
       fileName: url,
     })
@@ -117,23 +123,61 @@ export const useFileStore = defineStore('file', () => {
    * set opened file handle
    */
   async function setOpenedFileHandle(fileHandle: FileSystemFileHandle, projectPath?: string) {
-    app.activeInspector = 'file'
-    openedFileHandle.value = fileHandle
-
-    const fileContent = await fileHandle.getFile().then(file => file.text())
-    monacoStore.fileContent = fileContent
-    savedFileContent.value = fileContent
-    openedFilePath.value = projectPath || ('path' in fileHandle
+    const path = projectPath || ('path' in fileHandle
       ? (fileHandle as unknown as LocalFileHandle).path
       : fileHandle.name)
-    externalConflict.value = undefined
+    if (openedFileHandle.value && openedFilePath.value === path) {
+      openSequence++
+      loading.value = false
+      app.activeInspector = 'file'
+      openVersion.value++
+      return
+    }
+    assertCanSwitchFile()
+    const request = ++openSequence
+    const source = useProjectStore().workspace
+    const kind = projectFileKind(path)
+    loading.value = true
+    try {
+      const media = ['image', 'audio', 'video'].includes(kind)
+      const blob = media
+        ? source?.readAsset ? await source.readAsset(path) : await fileHandle.getFile()
+        : undefined
+      const content = kind === 'text' ? await fileHandle.getFile().then(file => file.text()) : ''
+      if (request !== openSequence || source !== useProjectStore().workspace)
+        return
+      // The current document can become dirty while the next file is loading.
+      assertCanSwitchFile()
+      releasePreview()
+      previewUrl.value = blob ? URL.createObjectURL(blob) : ''
+      openedFileHandle.value = fileHandle
+      fileName.value = fileHandle.name
+      openedFilePath.value = path
+      fileKind.value = kind
+      if (kind === 'text')
+        monacoStore.fileContent = content
+      savedFileContent.value = content
+      rawConfigFileContent.value = content
+      externalConflict.value = undefined
+      app.activeInspector = 'file'
+      openVersion.value++
+    }
+    finally {
+      if (request === openSequence)
+        loading.value = false
+    }
 
-    const ext = fileHandle.name.split('.').pop() || ''
+    // Media previews keep the cached text editor's model and language intact.
+    if (kind !== 'text')
+      return
+    const ext = fileHandle.name.split('.').pop()?.toLowerCase() || ''
     const extLangMap: Record<string, MonacoEditorLanguage> = {
       ts: 'typescript',
       js: 'javascript',
       html: 'html',
+      vue: 'html',
       css: 'css',
+      scss: 'css',
       json: 'json',
       md: 'markdown',
     }
@@ -141,12 +185,60 @@ export const useFileStore = defineStore('file', () => {
     monacoStore.language = lang
   }
 
+  function assertCanSwitchFile() {
+    if (isDirty.value)
+      throw new Error('Save or discard the current file before opening another file.')
+  }
+
+  function releasePreview() {
+    if (previewUrl.value)
+      URL.revokeObjectURL(previewUrl.value)
+    previewUrl.value = ''
+  }
+
+  function resetOpenedFile() {
+    openSequence++
+    releasePreview()
+    openedFileHandle.value = undefined
+    openedFilePath.value = ''
+    fileName.value = ''
+    savedFileContent.value = ''
+    monacoStore.fileContent = ''
+    fileKind.value = 'text'
+    externalConflict.value = undefined
+    loading.value = false
+  }
+
+  function openVirtualFile(name: string, content: string) {
+    assertCanSwitchFile()
+    resetOpenedFile()
+    fileName.value = name
+    monacoStore.fileContent = content
+    monacoStore.language = 'json'
+    app.activeInspector = 'file'
+    openVersion.value++
+  }
+
+  function discardOpenedFileChanges() {
+    if (externalConflict.value)
+      acceptExternalChange()
+    else
+      monacoStore.fileContent = savedFileContent.value ?? ''
+  }
+
+  watch(() => useProjectStore().workspace, resetOpenedFile, { flush: 'sync' })
+  onScopeDispose(releasePreview)
+
   async function saveOpenedFile(content = monacoStore.fileContent) {
     const fileHandle = openedFileHandle.value
     if (!fileHandle)
       throw new Error('No local file is open')
     const path = openedFilePath.value || fileHandle.name
-    await useProjectStore().writeProjectFiles([{ path, content, expected: savedFileContent.value }])
+    const project = useProjectStore()
+    const source = project.workspace
+    await project.writeProjectFiles([{ path, content, expected: savedFileContent.value }])
+    if (source !== project.workspace || openedFilePath.value !== path)
+      return
     savedFileContent.value = content
     externalConflict.value = undefined
     consoleStore.success('Markdown file saved', { fileName: path })
@@ -155,6 +247,18 @@ export const useFileStore = defineStore('file', () => {
   async function handleExternalChange(path: string, content: string | null) {
     if (!openedFileHandle.value || openedFilePath.value !== path)
       return
+    if (fileKind.value !== 'text') {
+      const source = useProjectStore().workspace
+      if (!source?.readAsset || !['image', 'audio', 'video'].includes(fileKind.value))
+        return
+      const request = ++openSequence
+      const blob = await source.readAsset(path)
+      if (request !== openSequence || source !== useProjectStore().workspace || openedFilePath.value !== path)
+        return
+      releasePreview()
+      previewUrl.value = URL.createObjectURL(blob)
+      return
+    }
     if (isDirty.value) {
       externalConflict.value = { content, path }
       consoleStore.warn('External file change conflicts with unsaved edits', { fileName: path })
@@ -187,6 +291,10 @@ export const useFileStore = defineStore('file', () => {
     openedFilePath,
     isDirty,
     externalConflict,
+    fileKind,
+    previewUrl,
+    openVersion,
+    loading,
 
     openedFileHandle,
     rawConfigFileContent,
@@ -199,6 +307,8 @@ export const useFileStore = defineStore('file', () => {
     onlineAdvConfigFileDialogOpen,
 
     setOpenedFileHandle,
+    openVirtualFile,
+    discardOpenedFileChanges,
     saveOpenedFile,
     handleExternalChange,
     acceptExternalChange,

@@ -1,0 +1,83 @@
+name: Desktop build matrix
+
+on:
+  workflow_call:
+    inputs:
+      source_sha:
+        description: Exact commit to package (defaults to the caller checkout)
+        default: ''
+        type: string
+      version:
+        description: Release version for the staged desktop app
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: desktop (${{ matrix.platform }}-${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            platform: darwin
+            arch: arm64
+          - os: macos-15-intel
+            platform: darwin
+            arch: x64
+          - os: windows-2025
+            platform: win32
+            arch: x64
+          - os: ubuntu-22.04
+            platform: linux
+            arch: x64
+    env:
+      ADVJS_DESKTOP_VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Linux desktop runtime dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y libnss3 libgtk-3-0 libgbm1 libasound2 xvfb xauth
+      - name: Test desktop build scripts
+        run: pnpm -C apps/desktop test:scripts
+      - name: Build native desktop ZIP
+        run: pnpm desktop:make --platform=${{ matrix.platform }} --arch=${{ matrix.arch }}
+      - name: Verify relocated desktop app
+        if: runner.os != 'Linux'
+        run: node apps/desktop/scripts/verify-package.mjs
+      - name: Verify relocated desktop app on Linux
+        if: runner.os == 'Linux'
+        run: xvfb-run -a node apps/desktop/scripts/verify-package.mjs
+      - name: Upload desktop ZIP
+        uses: actions/upload-artifact@v7
+        with:
+          name: desktop-package-${{ matrix.platform }}-${{ matrix.arch }}
+          path: apps/desktop/out/make/zip/${{ matrix.platform }}/${{ matrix.arch }}/*.zip
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+      - name: Upload desktop smoke evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: desktop-evidence-${{ matrix.platform }}-${{ matrix.arch }}
+          path: apps/desktop/out/evidence/
+          if-no-files-found: ignore
+          retention-days: 14

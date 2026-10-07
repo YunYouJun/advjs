@@ -1,0 +1,53 @@
+name: Desktop CI
+
+on:
+  push:
+    branches: [dev, main]
+    paths:
+      - '.github/workflows/desktop*.yml'
+      - '.github/workflows/release*.yml'
+      - 'apps/desktop/**'
+      - 'editor/**'
+      - 'packages/**'
+      - 'plugins/**'
+      - 'themes/**'
+      - 'scripts/**'
+      - 'tests/launch/fixtures/golden-project/**'
+      - tests/unit/desktop-release.test.ts
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - 'patches/**'
+      - 'tsconfig*.json'
+      - uno.config.ts
+  pull_request:
+    branches: [dev, main]
+    paths:
+      - '.github/workflows/desktop*.yml'
+      - '.github/workflows/release*.yml'
+      - 'apps/desktop/**'
+      - 'editor/**'
+      - 'packages/**'
+      - 'plugins/**'
+      - 'themes/**'
+      - 'scripts/**'
+      - 'tests/launch/fixtures/golden-project/**'
+      - tests/unit/desktop-release.test.ts
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - 'patches/**'
+      - 'tsconfig*.json'
+      - uno.config.ts
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    uses: ./.github/workflows/desktop-build.yml

@@ -4,7 +4,7 @@ import { useEditorCapabilities } from '../../composables/useEditorCapabilities'
 import { useEditorLayoutState } from '../../extensions/layout-state'
 import EditorCommandBar from '../extensions/EditorCommandBar.vue'
 
-const desktop = import.meta.client && !!window.advDesktop
+const nativeMenu = import.meta.client && window.advDesktop?.nativeMenu === true
 const app = useAppStore()
 const viewLayout = useEditorLayoutState()
 const { t } = useI18n()
@@ -114,8 +114,7 @@ const tools = computed<ToolbarItem[]>(() => {
 </script>
 
 <template>
-  <ClientOnly><AEDesktopToolbar v-if="desktop" /></ClientOnly>
-  <AGUIToolbar :items="tools">
+  <AGUIToolbar v-if="!nativeMenu" :items="tools">
     <template #before-toolbar>
       <EditorCommandBar toolbar />
     </template>

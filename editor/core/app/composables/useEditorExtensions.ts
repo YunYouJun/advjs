@@ -41,6 +41,7 @@ export function useEditorExtensions() {
   if (import.meta.hot)
     import.meta.hot.dispose(dispose)
   return {
+    layout,
     resetLayout: () => layout.reset(),
     manageExtensions: () => layout.select('bottom', 'advjs.core/plugins'),
     async start() {

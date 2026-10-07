@@ -18,7 +18,7 @@ const treeData = ref<Trees>([
 <template>
   <AGUIDialog v-model:open="open" title="Project Settings">
     <!-- <AESettingsCOSTab /> -->
-    <div class="h-full w-full flex flex-1">
+    <div class="flex flex-1 h-full w-full">
       <SplitterGroup
         direction="horizontal"
         class="flex-grow"
@@ -36,7 +36,7 @@ const treeData = ref<Trees>([
           />
         </SplitterPanel>
         <SplitterResizeHandle
-          class="w-1px bg-black"
+          class="bg-$agui-c-divider w-1px"
         />
         <SplitterPanel :default-size="70" class="p-2">
           <AEProjectSettingsTab :title="projectStore.curAdvConfigTab.name" />

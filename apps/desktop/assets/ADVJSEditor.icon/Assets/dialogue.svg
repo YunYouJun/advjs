@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="dialogue" x1="2" y1="3" x2="21" y2="22.5" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#35cce5"/>
+      <stop offset=".5" stop-color="#1c9ee8"/>
+      <stop offset="1" stop-color="#2868cf"/>
+    </linearGradient>
+  </defs>
+  <!-- Unmasked, shadow-free artwork; Icon Composer supplies the material. -->
+  <path transform="translate(80 53) scale(36)" fill="url(#dialogue)" d="M5.763 17H20V5H4v13.385L5.763 17Zm.692 2L2 22.5V4a1 1 0 0 1 1-1h18a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H6.455Z"/>
+</svg>

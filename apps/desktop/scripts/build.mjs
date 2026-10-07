@@ -1,6 +1,8 @@
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import ts from 'typescript'
+import { prepareDesktopIcons } from './icons.mjs'
+import { buildProjectTemplates } from './templates.mjs'
 
 const root = resolve(import.meta.dirname, '..')
 const configPath = resolve(root, 'tsconfig.json')
@@ -10,7 +12,9 @@ const parsed = ts.getParsedCommandLineOfConfigFile(configPath, {}, { ...ts.sys, 
 const diagnostics = ts.getPreEmitDiagnostics(ts.createProgram(parsed.fileNames, parsed.options))
 if (diagnostics.length)
   throw new Error(ts.formatDiagnosticsWithColorAndContext(diagnostics, { getCurrentDirectory: () => root, getCanonicalFileName: path => path, getNewLine: () => '\n' }))
+await prepareDesktopIcons()
 await mkdir(resolve(root, 'dist'), { recursive: true })
+await writeFile(resolve(root, 'dist/project-templates.json'), JSON.stringify(await buildProjectTemplates(resolve(root, '../..'))))
 for (const file of await readdir(resolve(root, 'src'))) {
   if (file.endsWith('.ts')) {
     const source = await readFile(resolve(root, 'src', file), 'utf8')

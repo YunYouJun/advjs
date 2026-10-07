@@ -29,6 +29,12 @@ describe('project disk mutations', () => {
       expect((await fetch(endpoint, { method: 'PUT', headers, body: bytes })).status).toBe(409)
       await applyEditorFileChanges(project, [{ path: 'adv/characters/new.character.md', content: '---\nid: new\nname: 新角色\n---\n', expected: null }])
       await expect(applyEditorFileChanges(project, [{ path: 'adv/characters/new.character.md', content: 'overwrite', expected: 'stale' }])).rejects.toMatchObject({ statusCode: 409 })
+      const changes = new URL('/__advjs/api/changes', ready.url)
+      const vue = '<template><main>主题首页</main></template>'
+      expect((await fetch(changes, { method: 'POST', headers, body: JSON.stringify([{ path: 'pages/start.vue', content: vue, expected: null }]) })).status).toBe(200)
+      expect(await readFile(join(project, 'pages/start.vue'), 'utf8')).toBe(vue)
+      expect((await fetch(changes, { method: 'POST', headers, body: JSON.stringify([{ path: 'pages/start.vue', content: 'overwrite', expected: null }]) })).status).toBe(409)
+      await expect(applyEditorFileChanges(project, [{ path: 'public/avatar.webp', content: 'invalid text', expected: null }])).rejects.toMatchObject({ statusCode: 400 })
       await symlink(root, join(project, 'escaped'))
       await expect(applyEditorFileChanges(project, [{ path: 'escaped/private.md', content: 'x', expected: null }])).rejects.toMatchObject({ statusCode: 403 })
       expect((await fetch(new URL('/__advjs/api/asset?path=../private.wav', ready.url), { method: 'PUT', headers, body: bytes })).status).toBe(400)

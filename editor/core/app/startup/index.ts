@@ -14,6 +14,7 @@ export interface EditorStartupState {
   total: number
   progress: number
   error: string
+  errorDetails?: unknown
 }
 
 /** Startup progress counts completed tasks, never elapsed time or estimated bytes. */
@@ -31,13 +32,13 @@ export function createEditorStartup(tasks: readonly EditorStartupTask[]) {
 
   async function run() {
     for (let index = state.value.completed; index < tasks.length; index++) {
-      state.value = { ...state.value, status: 'loading', phase: tasks[index]!.id, error: '' }
+      state.value = { ...state.value, status: 'loading', phase: tasks[index]!.id, error: '', errorDetails: undefined }
       try {
         await tasks[index]!.run()
       }
       catch (error) {
         if (!disposed) {
-          state.value = { ...state.value, status: 'error', error: error instanceof Error ? error.message : String(error) }
+          state.value = { ...state.value, status: 'error', error: error instanceof Error ? error.message : String(error), errorDetails: error }
         }
         return
       }
