@@ -6,13 +6,13 @@
 
 最近更新：2026-08-13
 
-完整技术细节见[多轨音频与 AI 配音系统设计](/superpowers/specs/2026-08-12-audio-system-design)。
+完整技术细节见[多轨音频与 AI 配音系统设计](/specs/2026-08-12-audio-system-design)。
 
 ## 当前落地状态
 
 现有 `useAdvBgm` 已完成兼容期生命周期加固：逻辑主轨切换不会重复接管更早的退场轨道，过期淡化回调不能卸载重新选中的曲目，脚本停止只处理当前曲目，静音状态覆盖交叉淡化中的全部物理轨道，历史恢复统一使用 120ms 短淡化。Studio 也会在卸载播放器时释放活动与退场轨道。
 
-这组改动解决了旧 BGM 路径的竞态并建立迁移前基线，但不代表本决策中的统一 AudioEngine 已经完成。`@advjs/audio`、Audio Director、Mixer、多总线、Ambience、Voice、SFX、UI cue、Fake/Browser Backend 与 AI 配音账本仍按[实施计划](/superpowers/plans/2026-08-12-audio-system-implementation)推进；在迁移完成前，`useAdvBgm` 仍是兼容实现，不是新架构的长期公共接口。
+这组改动解决了旧 BGM 路径的竞态并建立迁移前基线，但不代表本决策中的统一 AudioEngine 已经完成。`@advjs/audio`、Audio Director、Mixer、多总线、Ambience、Voice、SFX、UI cue、Fake/Browser Backend 与 AI 配音账本仍按[实施计划](/plans/2026-08-12-audio-system-implementation)推进；在迁移完成前，`useAdvBgm` 仍是兼容实现，不是新架构的长期公共接口。
 
 ## 问题
 

@@ -12,9 +12,9 @@ withDefaults(defineProps<{
 
 <template>
   <div
-    class="agui-demo-block w-full bg-$agui-c-bg-panel"
-    border="solid 1px $agui-c-divider-dark-2"
-    relative rounded-2px shadow
+    class="agui-demo-block bg-$agui-c-bg-panel w-full"
+    border="solid 1px $agui-c-divider"
+    rounded-2px shadow relative
   >
     <AGUIDetails v-if="inPanel" open :title="title">
       <slot />

@@ -4,7 +4,7 @@
 > 📌 参赛主体：ADV.JS Studio（`apps/studio`）
 > 🎯 参赛形态：**Source-to-Project Pipeline**（素材一键成交互剧情）
 > 🏆 主攻赛道：**AI 向善 · 时光忆站** · 副攻赛道：**AI 向善 · 教育创新**
-> 📎 技术计划：见 [Phase M10](./next-phase-plan.md#phase-m10) · 当前待办：见 [`todo.md`](./todo.md)
+> 📎 技术计划：见 [Phase M10](/archive/studio/2026-10-06-phase-plan-snapshot#phase-m10) · 赛事待办记录：见 [`todo.md`](/archive/studio/2026-10-06-todo-snapshot)
 
 ---
 
@@ -369,7 +369,7 @@ knowledgeExtraction: true
 | C   | PDF / URL 素材入口      | pdfjs-dist 动态导入 + readability 网页抽取  |
 | D   | 离线可用                | PWA + Capacitor 离线运行                    |
 
-### 9.3 待人工执行（参见 [`todo.md`](./todo.md)）
+### 9.3 待人工执行（参见 [`todo.md`](/archive/studio/2026-10-06-todo-snapshot)）
 
 | 项                             | 依赖             | 说明                                                                                                                                |
 | ------------------------------ | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
@@ -496,12 +496,12 @@ knowledgeExtraction: true
 | [`apps/studio/src/templates/*.yaml`](https://github.com/YunYouJun/advjs/tree/dev/apps/studio/src/templates)                                                | 5 个 Template 定义             | —    |
 | [`examples/ai-contest/`](https://github.com/YunYouJun/advjs/tree/dev/examples/ai-contest)                                                                  | 3 个赛事 demo + 顶层索引       | —    |
 | [`docs/studio/demo-script.md`](./demo-script.md)                                                                                                           | Demo 分镜 + Dogfood 脚本       | —    |
-| [`docs/studio/todo.md`](./todo.md)                                                                                                                         | 当前 Sprint 待办               | —    |
+| [`docs/studio/todo.md`](/archive/studio/2026-10-06-todo-snapshot)                                                                                          | 赛事 Sprint 历史待办           | —    |
 | [`docs/guide/studio/index.md`](../guide/studio/index.md)                                                                                                   | 用户文档                       | —    |
 
 ## 附录 C：参考
 
-- [Phase M10 技术计划](./next-phase-plan.md#phase-m10)
+- [Phase M10 技术计划](/archive/studio/2026-10-06-phase-plan-snapshot#phase-m10)
 - [Studio AGENTS.md](https://github.com/YunYouJun/advjs/blob/dev/apps/studio/AGENTS.md)
 - [`@advjs/parser` 语法树](https://parser.advjs.org)
 - 大赛赛题：AI 向善课题 1/5 + AI 提效自命题

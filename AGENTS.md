@@ -96,11 +96,17 @@ External integrations: Babylon.js 3D (`plugin-babylon`), Three.js (`plugin-three
 ### Desktop Editor
 
 - Electron host code lives in `apps/desktop/`; follow [the desktop client guide](docs/guide/editor/desktop.md). Keep native operations in its finite preload API, project writes in `ProjectWorkspace`, and game previews in a separate sandbox without desktop privileges.
-
 - Before changing desktop editor UI in `editor/` or shared editor components in `packages/gui/`, read [the AGUI design specification](docs/agui/design.md). It is the authoritative visual specification for these surfaces.
 - Follow the Blender-inspired compact workspace: neutral surfaces, restrained blue interaction states, small controls, docked panels, and content-first hierarchy. Reuse AGUI components and `--agui-*` tokens; do not create a separate visual system inside a feature panel.
 - Desktop editor chrome must not inherit Studio's mobile card sizes, purple/gold brand surfaces, or decorative gradients. `apps/studio/` retains its own mobile-first design rules; game content and themes retain their art direction.
 - Keep detailed rules in the design specification, implementation values in shared tokens/components, and review UI changes with screenshots at normal and narrow panel widths. Existing inconsistent UI and generated design mockups are not design precedents.
+
+## Planning and Design Documents
+
+- Store implementation plans in `docs/plans/`, technical specifications in `docs/specs/`, and verification reports in `docs/reports/`. Follow [the documentation guide](docs/contributing/writing-guide.md) for placement and status conventions.
+- Keep project documents independent of the tool that generated them. Do not require an optional agent skill or plugin as a prerequisite for following a plan.
+- Keep one authoritative document for each scope; handoff prompts and overview pages should link to its acceptance criteria instead of copying them. Archive superseded records in `docs/archive/` with their current replacement identified.
+- When moving documents, update links, repository paths, and handoff prompts. Preserve historical status and existing edits; a plan or specification is not evidence that a feature has shipped.
 
 ## TSConfig Path Aliases
 

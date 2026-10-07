@@ -928,7 +928,7 @@ AI：（读取 world.md、kai.character.md、outline.md）
 
 **验收结果**：完成 5 个 Tab（Workspace / Chat / World / Play / Me）、6 个 Pinia stores、AI 对话界面、角色沉浸式对话（基于人设的角色扮演）、内容创建（角色/章节/场景）、章节阅读预览、简单文本编辑、云同步骨架。原生打包待后续完成。
 
-详见 [Studio 下一阶段计划](/studio/next-phase-plan) 了解 Phase 6-12 规划。
+当前功能边界与后续方向统一见 [Studio 开发路线](/guide/studio/roadmap)。
 
 ---
 

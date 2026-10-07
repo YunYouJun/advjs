@@ -47,8 +47,8 @@ const nav: DefaultTheme.Config['nav'] = [
         text: '发展路线',
         items: [
           {
-            text: 'Studio 下一阶段计划',
-            link: '/studio/next-phase-plan',
+            text: 'Studio 开发路线',
+            link: '/guide/studio/roadmap',
           },
         ],
       },
@@ -319,8 +319,16 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
               link: '/guide/runtime/plugins-and-activities',
             },
             {
+              text: 'Three.js 与游戏地图',
+              link: '/guide/runtime/three',
+            },
+            {
               text: '调试与迁移',
               link: '/guide/runtime/debugging-and-migration',
+            },
+            {
+              text: 'DevTools',
+              link: '/guide/runtime/devtools',
             },
           ],
         },

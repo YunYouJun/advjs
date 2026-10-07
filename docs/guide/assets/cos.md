@@ -51,7 +51,7 @@ games/{game-id}/v{major}/
 
 locale 在 voice 域中优先于 speaker，以支持按语言发布、质检、统计和最小权限任务。普通角色的 `speakerId` 等于 `characterId`，旁白使用 `narrator`。项目文件使用规范 BCP 47（如 `zh-CN`），对象键使用规范化小写（如 `zh-cn`）。角色显示名、台词原文、Provider 名称和签名参数不进入对象键。
 
-该扩展当前处于已确认、待实施状态。完整边界见[音频资产与 AI 配音决策](/about/design/audio)和[音频系统设计](/superpowers/specs/2026-08-12-audio-system-design)。
+该扩展当前处于已确认、待实施状态。完整边界见[音频资产与 AI 配音决策](/about/design/audio)和[音频系统设计](/specs/2026-08-12-audio-system-design)。
 
 ## 清单与发布计划
 

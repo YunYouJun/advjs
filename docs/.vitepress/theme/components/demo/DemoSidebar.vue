@@ -18,7 +18,7 @@ const sidebarMenu = ref<AGUISidebarMenuItem[]>([
 
 <template>
   <AGUIDemoBlock title="Sidebar Demo">
-    <div class="my-4 text-sm">
+    <div class="text-sm my-4">
       activeKey: {{ activeKey }}
     </div>
     <div class="h-100">

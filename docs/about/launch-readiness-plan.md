@@ -4,7 +4,7 @@
 > 审计日期：2026-08-11
 > 首发部署目标：Cloudflare Pages
 > 上游决策：[ADV.JS 产品定位](/about/product-positioning)
-> 执行清单：[ADV.JS 首发 P0 执行清单](/superpowers/plans/2026-08-11-launch-readiness-p0)
+> 执行清单：[ADV.JS 首发 P0 执行清单](/plans/2026-08-11-launch-readiness-p0)
 
 ## 目标
 

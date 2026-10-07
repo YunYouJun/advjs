@@ -35,6 +35,10 @@ adv play activity '{"level":1,"name":"仓生"}' \
   --session-id story-1 --json
 ```
 
+## 浏览器开发工具
+
+`adv` 开发服务器默认提供基于 Devframe 的 ADV.JS DevTools，通过页面右下角入口查看运行时状态、剧情追踪、资源和诊断，并导出当前会话报告。接入方式与面板行为见 [DevTools 指南](/guide/runtime/devtools)。
+
 ## Studio Inspector
 
 Studio 试玩预览使用同一 Vue Runtime host。Inspector 展示规范地址、状态、变量、舞台、可见选择、已读节点、checkpoint 数量、pending activity 和本次会话的命令轨迹；Studio 保存的数据也是 `RuntimeSnapshot` 加 UI 元数据。

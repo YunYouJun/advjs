@@ -48,3 +48,15 @@ export default defineAdvConfig({
 @小云
 你好呀！
 ```
+
+## Vue DevTools
+
+`devtools.vue` 控制开发预览中的 Vue DevTools 浮动入口，默认关闭。设为 `true` 开启，设为 `false` 或省略则关闭；修改后重启开发服务器。桌面编辑器可通过「游戏」工具栏直接控制实时预览，无需修改此配置。生产构建不注入该入口，托管玩家预览默认关闭，详见 [调试工具接入](../runtime/devtools#开发环境接入)。
+
+```ts
+export default defineAdvConfig({
+  devtools: {
+    vue: false,
+  },
+})
+```

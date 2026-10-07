@@ -68,7 +68,7 @@ ADV.JS Skills 体系的发展方向。
 ### 创作工具
 
 - [x] `adv-art` — 已落地素材规划、来源/许可、哈希 URL 与清单审计；具体图片生成由可用的图像工具执行
-- [ ] Studio 云端 Agent / AG-UI / 私有 COS 审核工作台——复用本地任务协议，详见 [Codex 资产工作流与云端 Agent 路线图](/superpowers/specs/2026-08-13-codex-asset-workflow-roadmap)
+- [ ] Studio 云端 Agent / AG-UI / 私有 COS 审核工作台——复用本地任务协议，详见 [Codex 资产工作流与云端 Agent 路线图](/specs/2026-08-13-codex-asset-workflow-roadmap)
 - [ ] `adv-audio` — 音效/BGM 智能推荐（消费现有 bgmHint）
 - [x] `adv-review` — AI 剧本质量审查（已落地 v0.1，见上方「当前版本」）
 

@@ -2,7 +2,7 @@
 
 ::: warning 设计已确认，正在分阶段实施
 
-本页描述已经采纳的目标工作流。当前版本仍使用兼容期 BGM，以及 Studio 已有的单点 TTS 与音频素材能力；这些 Studio 能力尚未形成稳定台词绑定、多语言 take、Voice Profile、创作账本或确定性发布协议。BGM 切换、停止、静音和历史恢复的生命周期竞态已经修复，但统一 AudioEngine 和下列新 schema 尚未发布。在[实施计划](/superpowers/plans/2026-08-12-audio-system-implementation)完成前，请不要把目标格式用于正式项目。
+本页描述已经采纳的目标工作流。当前版本仍使用兼容期 BGM，以及 Studio 已有的单点 TTS 与音频素材能力；这些 Studio 能力尚未形成稳定台词绑定、多语言 take、Voice Profile、创作账本或确定性发布协议。BGM 切换、停止、静音和历史恢复的生命周期竞态已经修复，但统一 AudioEngine 和下列新 schema 尚未发布。在[实施计划](/plans/2026-08-12-audio-system-implementation)完成前，请不要把目标格式用于正式项目。
 
 :::
 

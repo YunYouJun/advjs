@@ -183,7 +183,7 @@ adv assets plan --scene summer-room --json
 
 候选仅保存在 Git 忽略的 `.adv/generated/`，导入候选不会修改正式目录。只有用户预览并明确确认后，`adv assets accept --confirm` 才会写入内容哈希文件、资源清单、场景 `assetId` 和 `adv/generations/{taskId}.json` 回执。拒绝和重试不会污染正式资源。
 
-Editor 通过 `adv editor .` 的本地桥接提供 Codex 就绪状态、任务提示复制、外部变更刷新和本地资源预览；它不内嵌 Codex 或重复实现 Agent。完整阶段边界与云端延期事项见 [Codex 资产工作流与云端 Agent 路线图](/superpowers/specs/2026-08-13-codex-asset-workflow-roadmap)。
+Editor 通过 `adv editor .` 的本地桥接提供 Codex 就绪状态、任务提示复制、外部变更刷新和本地资源预览；它不内嵌 Codex 或重复实现 Agent。完整阶段边界与云端延期事项见 [Codex 资产工作流与云端 Agent 路线图](/specs/2026-08-13-codex-asset-workflow-roadmap)。
 
 详细架构取舍见[资源系统设计](/about/design/assets)，发布目录与缓存规则见 [COS 存储与发布规范](./cos)。
 
@@ -197,6 +197,6 @@ Editor 通过 `adv editor .` 的本地桥接提供 Codex 就绪状态、任务�
 - `lineId + locale + selectedTake` 的稳定语音绑定；
 - 禁止剧情、角色卡和 Flow 节点直接写入 `src` 或 Provider URL。
 
-创作账本与运行时目录不会合并成一个文件：前者用于生成审计和版本选择，后者保持最小、可发布。完整目标协议见[音频系统设计](/superpowers/specs/2026-08-12-audio-system-design)和[音频创作指南](/guide/audio)。在实施计划完成前，本节不代表当前 Schema v2 已经支持这些字段。
+创作账本与运行时目录不会合并成一个文件：前者用于生成审计和版本选择，后者保持最小、可发布。完整目标协议见[音频系统设计](/specs/2026-08-12-audio-system-design)和[音频创作指南](/guide/audio)。在实施计划完成前，本节不代表当前 Schema v2 已经支持这些字段。
 
 参考：[Unity Addressables](https://docs.unity3d.com/Packages/com.unity.addressables@1.21/manual/AddressableAssetsOverview.html)、[Godot 导入流程](https://docs.godotengine.org/en/latest/tutorials/assets_pipeline/import_process.html)、[Cocos Asset Bundle](https://docs.cocos.com/creator/3.8/manual/en/asset/bundle.html)。

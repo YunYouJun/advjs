@@ -1,0 +1,673 @@
+[
+  {
+    "example": "demo/starter",
+    "scriptCount": 1,
+    "passed": true,
+    "errors": 0,
+    "warnings": 0,
+    "uncertain": 0,
+    "issues": []
+  },
+  {
+    "example": "demo/hamster",
+    "scriptCount": 16,
+    "passed": true,
+    "errors": 0,
+    "warnings": 3,
+    "uncertain": 3,
+    "issues": [
+      {
+        "type": "warning",
+        "category": "runtime",
+        "code": "ADV_STATIC_FLOW_UNCERTAIN",
+        "file": "public/md/chapters/01-hamster-cage.adv.md",
+        "line": 189,
+        "column": 1,
+        "message": "Flow at hamster-cage#node-32 depends on host/plugin code.",
+        "suggestion": "Verify the plugin action/activity result and its possible navigation during play.",
+        "certainty": "uncertain"
+      },
+      {
+        "type": "warning",
+        "category": "runtime",
+        "code": "ADV_STATIC_FLOW_UNCERTAIN",
+        "file": "public/md/chapters/04-world-ending.adv.md",
+        "line": 59,
+        "column": 1,
+        "message": "Flow at world-ending#node-11 depends on host/plugin code.",
+        "suggestion": "Verify the plugin action/activity result and its possible navigation during play.",
+        "certainty": "uncertain"
+      },
+      {
+        "type": "warning",
+        "category": "runtime",
+        "code": "ADV_STATIC_FLOW_UNCERTAIN",
+        "file": "public/md/chapters/09-duelist-romance.adv.md",
+        "line": 77,
+        "column": 1,
+        "message": "Flow at duelist-romance#node-14 depends on host/plugin code.",
+        "suggestion": "Verify the plugin action/activity result and its possible navigation during play.",
+        "certainty": "uncertain"
+      }
+    ]
+  },
+  {
+    "example": "demo/love",
+    "scriptCount": 1,
+    "passed": true,
+    "errors": 0,
+    "warnings": 0,
+    "uncertain": 0,
+    "issues": []
+  },
+  {
+    "example": "demo/md",
+    "scriptCount": 0,
+    "passed": false,
+    "errors": 3,
+    "warnings": 0,
+    "uncertain": 0,
+    "issues": [
+      {
+        "type": "error",
+        "category": "runtime",
+        "code": "ADV_RUNTIME_NO_CHAPTERS",
+        "file": "adv.config.json",
+        "line": 1,
+        "column": 1,
+        "message": "RuntimeProgram requires at least one chapter",
+        "suggestion": "Correct the chapter source path in game configuration or add the missing .adv.md file.",
+        "certainty": "certain"
+      },
+      {
+        "category": "resource",
+        "file": "adv/characters/aria.character.md",
+        "line": 4,
+        "column": 9,
+        "code": "ADV_STATIC_MISSING_RESOURCE",
+        "type": "error",
+        "certainty": "certain",
+        "message": "Local resource \"/assets/characters/aria.png\" is missing (expected public/assets/characters/aria.png).",
+        "suggestion": "Add the file at public/assets/characters/aria.png or correct this reference, including its filename case."
+      },
+      {
+        "category": "resource",
+        "file": "adv/characters/kai.character.md",
+        "line": 4,
+        "column": 9,
+        "code": "ADV_STATIC_MISSING_RESOURCE",
+        "type": "error",
+        "certainty": "certain",
+        "message": "Local resource \"/assets/characters/kai.png\" is missing (expected public/assets/characters/kai.png).",
+        "suggestion": "Add the file at public/assets/characters/kai.png or correct this reference, including its filename case."
+      }
+    ]
+  },
+  {
+    "example": "demo/ai",
+    "scriptCount": 0,
+    "passed": false,
+    "errors": 1,
+    "warnings": 0,
+    "uncertain": 0,
+    "issues": [
+      {
+        "type": "error",
+        "category": "syntax",
+        "code": "ADV_PROJECT_ROOT_NOT_FOUND",
+        "file": "/Users/yunyou/repos/github.com/YunYouJun/advjs/demo/ai/adv",
+        "message": "Game content root not found: /Users/yunyou/repos/github.com/YunYouJun/advjs/demo/ai/adv",
+        "line": 1,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Create the content directory or correct the project root/--root option."
+      }
+    ]
+  },
+  {
+    "example": "demo/flow",
+    "scriptCount": 0,
+    "passed": false,
+    "errors": 1,
+    "warnings": 0,
+    "uncertain": 0,
+    "issues": [
+      {
+        "type": "error",
+        "category": "syntax",
+        "code": "ADV_PROJECT_FLOW_NOT_IMPLEMENTED",
+        "file": "adv.config.ts",
+        "line": 1,
+        "column": 1,
+        "message": "The standard project compiler does not yet accept serialized Flow chapters",
+        "suggestion": "Correct the indicated declaration using the ADV.JS syntax and configuration reference, then run adv check again.",
+        "certainty": "certain"
+      }
+    ]
+  },
+  {
+    "example": "examples/ai-contest/history-talk",
+    "scriptCount": 3,
+    "passed": true,
+    "errors": 0,
+    "warnings": 8,
+    "uncertain": 0,
+    "issues": [
+      {
+        "type": "warning",
+        "category": "scene",
+        "file": "adv/chapters/01-confucius.adv.md",
+        "message": "杏坛",
+        "line": 7,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Define \"杏坛\" in scenes/*.md or locations/*.md, or correct the scene name; --fix can create a scene stub."
+      },
+      {
+        "type": "warning",
+        "category": "runtime",
+        "code": "ADV_STATIC_UNREACHABLE_CHAPTER",
+        "file": "adv/chapters/02-turing.adv.md",
+        "line": 7,
+        "column": 1,
+        "message": "Chapter \"02-turing\" cannot be reached from the configured entry.",
+        "suggestion": "Add a reachable choice linking to this chapter, change entryChapterId, or remove the unused chapter.",
+        "certainty": "certain"
+      },
+      {
+        "type": "warning",
+        "category": "scene",
+        "file": "adv/chapters/02-turing.adv.md",
+        "message": "布莱切利园",
+        "line": 7,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Define \"布莱切利园\" in scenes/*.md or locations/*.md, or correct the scene name; --fix can create a scene stub."
+      },
+      {
+        "type": "warning",
+        "category": "runtime",
+        "code": "ADV_STATIC_UNREACHABLE_CHAPTER",
+        "file": "adv/chapters/03-davinci.adv.md",
+        "line": 7,
+        "column": 1,
+        "message": "Chapter \"03-davinci\" cannot be reached from the configured entry.",
+        "suggestion": "Add a reachable choice linking to this chapter, change entryChapterId, or remove the unused chapter.",
+        "certainty": "certain"
+      },
+      {
+        "type": "warning",
+        "category": "scene",
+        "file": "adv/chapters/03-davinci.adv.md",
+        "message": "佛罗伦萨",
+        "line": 7,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Define \"佛罗伦萨\" in scenes/*.md or locations/*.md, or correct the scene name; --fix can create a scene stub."
+      },
+      {
+        "type": "warning",
+        "category": "scene-frontmatter",
+        "file": "adv/scenes/apricot-altar.md",
+        "message": "id: Invalid input: expected string, received undefined",
+        "line": 1,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Correct the indicated declaration using the ADV.JS syntax and configuration reference, then run adv check again."
+      },
+      {
+        "type": "warning",
+        "category": "scene-frontmatter",
+        "file": "adv/scenes/bletchley-park.md",
+        "message": "id: Invalid input: expected string, received undefined",
+        "line": 1,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Correct the indicated declaration using the ADV.JS syntax and configuration reference, then run adv check again."
+      },
+      {
+        "type": "warning",
+        "category": "scene-frontmatter",
+        "file": "adv/scenes/florence-studio.md",
+        "message": "id: Invalid input: expected string, received undefined",
+        "line": 1,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Correct the indicated declaration using the ADV.JS syntax and configuration reference, then run adv check again."
+      }
+    ]
+  },
+  {
+    "example": "examples/ai-contest/life-story",
+    "scriptCount": 3,
+    "passed": true,
+    "errors": 0,
+    "warnings": 4,
+    "uncertain": 0,
+    "issues": [
+      {
+        "type": "warning",
+        "category": "runtime",
+        "code": "ADV_STATIC_UNREACHABLE_CHAPTER",
+        "file": "adv/chapters/02-turning.adv.md",
+        "line": 7,
+        "column": 1,
+        "message": "Chapter \"02-turning\" cannot be reached from the configured entry.",
+        "suggestion": "Add a reachable choice linking to this chapter, change entryChapterId, or remove the unused chapter.",
+        "certainty": "certain"
+      },
+      {
+        "type": "warning",
+        "category": "runtime",
+        "code": "ADV_STATIC_UNREACHABLE_CHAPTER",
+        "file": "adv/chapters/03-reflection.adv.md",
+        "line": 7,
+        "column": 1,
+        "message": "Chapter \"03-reflection\" cannot be reached from the configured entry.",
+        "suggestion": "Add a reachable choice linking to this chapter, change entryChapterId, or remove the unused chapter.",
+        "certainty": "certain"
+      },
+      {
+        "type": "warning",
+        "category": "location",
+        "file": "adv/chapters/03-reflection.adv.md",
+        "message": "县城家中阳台",
+        "line": 7,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Define \"县城家中阳台\" in scenes/*.md or locations/*.md, or correct the scene name; --fix can create a scene stub."
+      },
+      {
+        "type": "warning",
+        "category": "scene",
+        "file": "adv/chapters/03-reflection.adv.md",
+        "message": "县城家中阳台",
+        "line": 7,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Define \"县城家中阳台\" in scenes/*.md or locations/*.md, or correct the scene name; --fix can create a scene stub."
+      }
+    ]
+  },
+  {
+    "example": "examples/ai-contest/murder-mystery",
+    "scriptCount": 3,
+    "passed": true,
+    "errors": 0,
+    "warnings": 9,
+    "uncertain": 0,
+    "issues": [
+      {
+        "type": "warning",
+        "category": "scene",
+        "file": "adv/chapters/01-discovery.adv.md",
+        "message": "布莱克伍德庄园",
+        "line": 8,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Define \"布莱克伍德庄园\" in scenes/*.md or locations/*.md, or correct the scene name; --fix can create a scene stub."
+      },
+      {
+        "type": "warning",
+        "category": "scene",
+        "file": "adv/chapters/01-discovery.adv.md",
+        "message": "书房",
+        "line": 26,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Define \"书房\" in scenes/*.md or locations/*.md, or correct the scene name; --fix can create a scene stub."
+      },
+      {
+        "type": "warning",
+        "category": "runtime",
+        "code": "ADV_STATIC_UNREACHABLE_CHAPTER",
+        "file": "adv/chapters/02-investigation.adv.md",
+        "line": 8,
+        "column": 1,
+        "message": "Chapter \"02-investigation\" cannot be reached from the configured entry.",
+        "suggestion": "Add a reachable choice linking to this chapter, change entryChapterId, or remove the unused chapter.",
+        "certainty": "certain"
+      },
+      {
+        "type": "warning",
+        "category": "scene",
+        "file": "adv/chapters/02-investigation.adv.md",
+        "message": "布莱克伍德庄园",
+        "line": 8,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Define \"布莱克伍德庄园\" in scenes/*.md or locations/*.md, or correct the scene name; --fix can create a scene stub."
+      },
+      {
+        "type": "warning",
+        "category": "runtime",
+        "code": "ADV_STATIC_UNREACHABLE_CHAPTER",
+        "file": "adv/chapters/03-confrontation.adv.md",
+        "line": 8,
+        "column": 1,
+        "message": "Chapter \"03-confrontation\" cannot be reached from the configured entry.",
+        "suggestion": "Add a reachable choice linking to this chapter, change entryChapterId, or remove the unused chapter.",
+        "certainty": "certain"
+      },
+      {
+        "type": "warning",
+        "category": "scene",
+        "file": "adv/chapters/03-confrontation.adv.md",
+        "message": "布莱克伍德庄园",
+        "line": 8,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Define \"布莱克伍德庄园\" in scenes/*.md or locations/*.md, or correct the scene name; --fix can create a scene stub."
+      },
+      {
+        "type": "warning",
+        "category": "scene-frontmatter",
+        "file": "adv/scenes/conservatory.md",
+        "message": "id: Invalid input: expected string, received undefined",
+        "line": 1,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Correct the indicated declaration using the ADV.JS syntax and configuration reference, then run adv check again."
+      },
+      {
+        "type": "warning",
+        "category": "scene-frontmatter",
+        "file": "adv/scenes/manor-hall.md",
+        "message": "id: Invalid input: expected string, received undefined",
+        "line": 1,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Correct the indicated declaration using the ADV.JS syntax and configuration reference, then run adv check again."
+      },
+      {
+        "type": "warning",
+        "category": "scene-frontmatter",
+        "file": "adv/scenes/study-room.md",
+        "message": "id: Invalid input: expected string, received undefined",
+        "line": 1,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Correct the indicated declaration using the ADV.JS syntax and configuration reference, then run adv check again."
+      }
+    ]
+  },
+  {
+    "example": "examples/singlefile",
+    "scriptCount": 0,
+    "passed": false,
+    "errors": 4,
+    "warnings": 1,
+    "uncertain": 0,
+    "issues": [
+      {
+        "category": "resource",
+        "file": "adv.config.ts",
+        "line": 58,
+        "column": 18,
+        "code": "ADV_STATIC_MISSING_RESOURCE",
+        "type": "error",
+        "certainty": "certain",
+        "message": "Local resource \"/img/characters/he.png\" is missing (expected public/img/characters/he.png).",
+        "suggestion": "Add the file at public/img/characters/he.png or correct this reference, including its filename case."
+      },
+      {
+        "category": "resource",
+        "file": "adv.config.ts",
+        "line": 63,
+        "column": 18,
+        "code": "ADV_STATIC_MISSING_RESOURCE",
+        "type": "error",
+        "certainty": "certain",
+        "message": "Local resource \"/img/characters/she.png\" is missing (expected public/img/characters/she.png).",
+        "suggestion": "Add the file at public/img/characters/she.png or correct this reference, including its filename case."
+      },
+      {
+        "type": "error",
+        "category": "syntax",
+        "code": "ADV_PROJECT_CHAPTER_NOT_FOUND",
+        "file": "public/md/chapters/1/仓鼠的笼子.adv.md",
+        "line": 1,
+        "column": 1,
+        "message": "Chapter source not found: public/md/chapters/1/仓鼠的笼子.adv.md",
+        "suggestion": "Correct the chapter source path in game configuration or add the missing .adv.md file.",
+        "certainty": "certain"
+      },
+      {
+        "type": "error",
+        "category": "syntax",
+        "code": "ADV_PROJECT_CHAPTER_NOT_FOUND",
+        "file": "public/md/chapters/2/wlwz.adv.md",
+        "line": 1,
+        "column": 1,
+        "message": "Chapter source not found: public/md/chapters/2/wlwz.adv.md",
+        "suggestion": "Correct the chapter source path in game configuration or add the missing .adv.md file.",
+        "certainty": "certain"
+      },
+      {
+        "type": "warning",
+        "category": "runtime",
+        "code": "ADV_STATIC_UNREACHABLE_CHAPTER",
+        "file": "public/md/chapters/2/wlwz.adv.md",
+        "line": 1,
+        "column": 1,
+        "message": "Chapter \"chapter-2\" cannot be reached from the configured entry.",
+        "suggestion": "Add a reachable choice linking to this chapter, change entryChapterId, or remove the unused chapter.",
+        "certainty": "certain"
+      }
+    ]
+  },
+  {
+    "example": "examples/singlefile-script",
+    "scriptCount": 0,
+    "passed": true,
+    "errors": 0,
+    "warnings": 1,
+    "uncertain": 1,
+    "issues": [
+      {
+        "type": "warning",
+        "category": "syntax",
+        "code": "ADV_STATIC_NO_SCRIPTS",
+        "certainty": "uncertain",
+        "file": "",
+        "message": "No .adv.md chapter sources were found; story coverage is unknown.",
+        "suggestion": "Set the correct content root or declare chapter sources in gameConfig.chapters.",
+        "line": 1,
+        "column": 1
+      }
+    ]
+  },
+  {
+    "example": "examples/adv-format",
+    "scriptCount": 3,
+    "passed": false,
+    "errors": 12,
+    "warnings": 2,
+    "uncertain": 0,
+    "issues": [
+      {
+        "type": "warning",
+        "category": "runtime",
+        "code": "ADV_STATIC_UNREACHABLE_CHAPTER",
+        "file": "雷雨.adv.md",
+        "line": 19,
+        "column": 1,
+        "message": "Chapter \"chapter-root-2\" cannot be reached from the configured entry.",
+        "suggestion": "Add a reachable choice linking to this chapter, change entryChapterId, or remove the unused chapter.",
+        "certainty": "certain"
+      },
+      {
+        "type": "error",
+        "category": "character",
+        "file": "雷雨.adv.md",
+        "message": "周朴园",
+        "line": 21,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Define character \"周朴园\" (or an alias) in characters/*.character.md or gameConfig.characters; --fix can create a stub."
+      },
+      {
+        "type": "error",
+        "category": "character",
+        "file": "雷雨.adv.md",
+        "message": "鲁侍萍",
+        "line": 24,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Define character \"鲁侍萍\" (or an alias) in characters/*.character.md or gameConfig.characters; --fix can create a stub."
+      },
+      {
+        "type": "error",
+        "category": "character",
+        "file": "雷雨.adv.md",
+        "message": "鲁待萍 我要提，我要提，我闷了三十年了！你结了婚，就搬了家，我以为这一辈子也见不着你了；",
+        "line": 378,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Define character \"鲁待萍 我要提，我要提，我闷了三十年了！你结了婚，就搬了家，我以为这一辈子也见不着你了；\" (or an alias) in characters/*.character.md or gameConfig.characters; --fix can create a stub."
+      },
+      {
+        "type": "error",
+        "category": "character",
+        "file": "雷雨.adv.md",
+        "message": "鲁大海",
+        "line": 518,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Define character \"鲁大海\" (or an alias) in characters/*.character.md or gameConfig.characters; --fix can create a stub."
+      },
+      {
+        "type": "error",
+        "category": "character",
+        "file": "雷雨.adv.md",
+        "message": "三四个男仆声",
+        "line": 521,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Define character \"三四个男仆声\" (or an alias) in characters/*.character.md or gameConfig.characters; --fix can create a stub."
+      },
+      {
+        "type": "error",
+        "category": "character",
+        "file": "雷雨.adv.md",
+        "message": "仆人",
+        "line": 532,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Define character \"仆人\" (or an alias) in characters/*.character.md or gameConfig.characters; --fix can create a stub."
+      },
+      {
+        "type": "error",
+        "category": "character",
+        "file": "雷雨.adv.md",
+        "message": "周萍",
+        "line": 592,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Define character \"周萍\" (or an alias) in characters/*.character.md or gameConfig.characters; --fix can create a stub."
+      },
+      {
+        "type": "error",
+        "category": "character",
+        "file": "雷雨.adv.md",
+        "message": "鲁大海 哼，你们的手段，我都明白。你们这样拖延时候，不过是想花钱收买少数不要脸的败类，现时把我们骗在这儿。",
+        "line": 598,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Define character \"鲁大海 哼，你们的手段，我都明白。你们这样拖延时候，不过是想花钱收买少数不要脸的败类，现时把我们骗在这儿。\" (or an alias) in characters/*.character.md or gameConfig.characters; --fix can create a stub."
+      },
+      {
+        "type": "error",
+        "category": "character",
+        "file": "雷雨.adv.md",
+        "message": "鲁大海 （笑）你不要骗小孩子，复工的合同没有我们代表的签字是不生效力的。",
+        "line": 650,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Define character \"鲁大海 （笑）你不要骗小孩子，复工的合同没有我们代表的签字是不生效力的。\" (or an alias) in characters/*.character.md or gameConfig.characters; --fix can create a stub."
+      },
+      {
+        "type": "error",
+        "category": "character",
+        "file": "雷雨.adv.md",
+        "message": "周冲",
+        "line": 691,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Define character \"周冲\" (or an alias) in characters/*.character.md or gameConfig.characters; --fix can create a stub."
+      },
+      {
+        "type": "error",
+        "category": "character",
+        "file": "雷雨.adv.md",
+        "message": "仆人们",
+        "line": 714,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Define character \"仆人们\" (or an alias) in characters/*.character.md or gameConfig.characters; --fix can create a stub."
+      },
+      {
+        "type": "error",
+        "category": "character",
+        "file": "雷雨.adv.md",
+        "message": "周萍 你是谁？",
+        "line": 747,
+        "column": 1,
+        "certainty": "certain",
+        "suggestion": "Define character \"周萍 你是谁？\" (or an alias) in characters/*.character.md or gameConfig.characters; --fix can create a stub."
+      },
+      {
+        "type": "warning",
+        "category": "runtime",
+        "code": "ADV_STATIC_UNREACHABLE_CHAPTER",
+        "file": "鸡汤来咯.adv.md",
+        "line": 11,
+        "column": 1,
+        "message": "Chapter \"chapter-root-3\" cannot be reached from the configured entry.",
+        "suggestion": "Add a reachable choice linking to this chapter, change entryChapterId, or remove the unused chapter.",
+        "certainty": "certain"
+      }
+    ]
+  },
+  {
+    "example": "packages/advjs/template",
+    "scriptCount": 3,
+    "passed": true,
+    "errors": 0,
+    "warnings": 2,
+    "uncertain": 0,
+    "issues": [
+      {
+        "type": "warning",
+        "category": "runtime",
+        "code": "ADV_STATIC_UNREACHABLE_CHAPTER",
+        "file": "adv/chapters/chapter_02.adv.md",
+        "line": 5,
+        "column": 1,
+        "message": "Chapter \"chapter_02\" cannot be reached from the configured entry.",
+        "suggestion": "Add a reachable choice linking to this chapter, change entryChapterId, or remove the unused chapter.",
+        "certainty": "certain"
+      },
+      {
+        "type": "warning",
+        "category": "runtime",
+        "code": "ADV_STATIC_UNREACHABLE_CHAPTER",
+        "file": "adv/chapters/chapter_03.adv.md",
+        "line": 5,
+        "column": 1,
+        "message": "Chapter \"chapter_03\" cannot be reached from the configured entry.",
+        "suggestion": "Add a reachable choice linking to this chapter, change entryChapterId, or remove the unused chapter.",
+        "certainty": "certain"
+      }
+    ]
+  },
+  {
+    "example": "packages/advjs/template-galgame",
+    "scriptCount": 1,
+    "passed": true,
+    "errors": 0,
+    "warnings": 0,
+    "uncertain": 0,
+    "issues": []
+  }
+]
