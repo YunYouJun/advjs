@@ -19,6 +19,7 @@ import { RUNTIME_SCHEMA_VERSION } from '@advjs/types'
 import { parseRuntimeExpression, RuntimeExpressionError } from '../runtime/expression'
 import { cloneJsonData } from '../utils/json'
 import { isRuntimeIdentifier, parseRuntimeTarget } from './address'
+import { analyzeRuntimeProgram, isDynamicRuntimeTarget } from './analyze'
 import { hashRuntimeProgram } from './hash'
 
 function error(code: string, message: string, source?: CompileSourceLocation): CompileDiagnostic {
@@ -62,7 +63,8 @@ export async function linkRuntimeProgram(input: RuntimeProgramInput): Promise<{
   program?: RuntimeProgram
   diagnostics: CompileDiagnostic[]
 }> {
-  const diagnostics: CompileDiagnostic[] = []
+  const diagnostics: CompileDiagnostic[] = input.staticAnalysis ? analyzeRuntimeProgram(input) : []
+  let dynamicTarget = false
   const chapters = Object.create(null) as Record<string, RuntimeChapter>
   const chapterInputs = new Map<string, RuntimeProgramInput['chapters'][number]>()
   const nodeInputs = new Map<string, Map<string, RuntimeNodeInput>>()
@@ -149,6 +151,18 @@ export async function linkRuntimeProgram(input: RuntimeProgramInput): Promise<{
   ): RuntimeAddress | undefined => {
     let reference: { chapterId: string, nodeId?: string }
     if (typeof target === 'string') {
+      if (input.staticAnalysis && isDynamicRuntimeTarget(target)) {
+        dynamicTarget = true
+        diagnostics.push({
+          code: 'ADV_STATIC_DYNAMIC_TARGET',
+          severity: 'warning',
+          certainty: 'uncertain',
+          message: `Target "${target}" depends on runtime interpolation and cannot be resolved statically.`,
+          suggestion: 'Use a literal chapter-id#node-id for RuntimeProgram, or verify the host that resolves this dynamic target.',
+          source,
+        })
+        return undefined
+      }
       const parsed = parseRuntimeTarget(target, currentChapterId)
       if (!parsed.ok) {
         diagnostics.push(error('ADV_RUNTIME_INVALID_TARGET', parsed.message, source))
@@ -269,7 +283,7 @@ export async function linkRuntimeProgram(input: RuntimeProgramInput): Promise<{
     }
   }
 
-  if (diagnostics.some(item => item.severity === 'error'))
+  if (dynamicTarget || diagnostics.some(item => item.severity === 'error'))
     return { diagnostics }
 
   const withoutHash: Omit<RuntimeProgram, 'hash'> = {

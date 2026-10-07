@@ -7,6 +7,9 @@ export const defaultAdvConfig: AdvConfig = {
   features: {
     babylon: false,
   },
+  devtools: {
+    vue: false,
+  },
   plugins: [],
 
   gameConfig: {},

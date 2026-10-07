@@ -5,7 +5,6 @@ import { cp, mkdir, mkdtemp, realpath, rm, stat, symlink, writeFile } from 'node
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import process from 'node:process'
-import { fileURLToPath } from 'node:url'
 import addFormats from 'ajv-formats'
 import Ajv2020 from 'ajv/dist/2020.js'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
@@ -18,9 +17,10 @@ interface CliResult {
 }
 
 const repositoryRoot = resolve(import.meta.dirname, '../..')
-const cliEntry = resolve(repositoryRoot, 'packages/advjs/node/cli/index.ts')
+// CI prepares workspace packages before this suite. Exercise the shipped binary
+// so every subprocess avoids recompiling the entire CLI through a tsx loader.
+const cliEntry = resolve(repositoryRoot, 'packages/advjs/bin/adv.mjs')
 const defaultTemplate = resolve(repositoryRoot, 'packages/advjs/template')
-const tsxCli = fileURLToPath(import.meta.resolve('tsx/cli'))
 // Keep the subprocess deadline inside Vitest's deadline so cleanup can finish before the runner aborts.
 const CLI_PROCESS_TIMEOUT_MS = 15_000
 const CLI_TEST_TIMEOUT_MS = 20_000
@@ -47,7 +47,7 @@ function runCli(args: string[], cwd: string, timeoutMs = CLI_PROCESS_TIMEOUT_MS)
     delete environment.VITEST_MODE
     delete environment.VITEST_POOL_ID
     delete environment.VITEST_WORKER_ID
-    const child = spawn(process.execPath, [tsxCli, cliEntry, ...args], {
+    const child = spawn(process.execPath, [cliEntry, ...args], {
       cwd,
       env: environment,
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -88,7 +88,7 @@ function runCli(args: string[], cwd: string, timeoutMs = CLI_PROCESS_TIMEOUT_MS)
 
 async function createProjectFixture(name: string) {
   const projectRoot = join(temporaryRoot, name)
-  // Check/build own separate contracts; seeding them directly avoids retesting init and another tsx startup.
+  // Check/build own separate contracts; seed them without retesting init.
   await cp(defaultTemplate, projectRoot, { recursive: true })
   return projectRoot
 }
@@ -144,7 +144,10 @@ describe('adv CLI JSON output', () => {
     expect(checkEnvelope).toMatchObject({
       command: 'check',
       ok: true,
-      data: { root: await realpath(projectRoot), diagnostics: [] },
+      data: { root: await realpath(projectRoot), diagnostics: [
+        expect.objectContaining({ code: 'ADV_STATIC_UNREACHABLE_CHAPTER', severity: 'warning', certainty: 'certain', line: expect.any(Number), suggestion: expect.any(String) }),
+        expect.objectContaining({ code: 'ADV_STATIC_UNREACHABLE_CHAPTER', severity: 'warning', certainty: 'certain', line: expect.any(Number), suggestion: expect.any(String) }),
+      ] },
       warnings: [],
       errors: [],
     })
@@ -184,7 +187,7 @@ describe('adv CLI JSON output', () => {
     expect(() => JSON.parse(result.stdout)).toThrow()
   }, CLI_TEST_TIMEOUT_MS)
 
-  it('maps usage and validation failures to stable codes and non-zero exits', async () => {
+  it('maps usage failures to a stable code and non-zero exit', async () => {
     const usageResult = await runCli(['init', '--unknown-option', '--json'], temporaryRoot)
     expect(usageResult.exitCode).not.toBe(0)
     expect(parseOnlyEnvelope(usageResult)).toMatchObject({
@@ -193,7 +196,9 @@ describe('adv CLI JSON output', () => {
       data: null,
       errors: [{ code: 'ADV_USAGE' }],
     })
+  }, CLI_TEST_TIMEOUT_MS)
 
+  it('maps validation failures to a stable code and non-zero exit', async () => {
     const projectRoot = join(temporaryRoot, 'validation-project')
     await mkdir(join(projectRoot, 'adv'), { recursive: true })
     const validationResult = await runCli(['init', projectRoot, '--json'], temporaryRoot)
@@ -206,26 +211,16 @@ describe('adv CLI JSON output', () => {
     })
   }, CLI_TEST_TIMEOUT_MS)
 
-  it('maps command build failures and unexpected internal failures separately', async () => {
-    const invalidBuildRoot = join(temporaryRoot, 'invalid-build-project')
-    const invalidCheckRoot = join(temporaryRoot, 'invalid-check-project')
-    await Promise.all([
-      mkdir(invalidBuildRoot, { recursive: true }),
-      mkdir(invalidCheckRoot, { recursive: true }),
-    ])
-    await Promise.all([
-      writeFile(join(invalidBuildRoot, 'adv.config.json'), '{ invalid json', 'utf8'),
-      writeFile(join(invalidCheckRoot, 'adv.config.json'), '{ invalid json', 'utf8'),
-    ])
+  it.each([
+    { command: 'build', code: 'ADV_BUILD' },
+    { command: 'check', code: 'ADV_INTERNAL' },
+  ])('maps $command failures to $code', async ({ command, code }) => {
+    const projectRoot = join(temporaryRoot, `invalid-${command}-project`)
+    await mkdir(projectRoot, { recursive: true })
+    await writeFile(join(projectRoot, 'adv.config.json'), '{ invalid json', 'utf8')
 
-    const [buildResult, checkResult] = await Promise.all([
-      runCli(['build', '--json'], invalidBuildRoot),
-      runCli(['check', '--json'], invalidCheckRoot),
-    ])
-    expect(buildResult.exitCode).not.toBe(0)
-    expect(parseOnlyEnvelope(buildResult)).toMatchObject({ errors: [{ code: 'ADV_BUILD' }] })
-
-    expect(checkResult.exitCode).not.toBe(0)
-    expect(parseOnlyEnvelope(checkResult)).toMatchObject({ errors: [{ code: 'ADV_INTERNAL' }] })
+    const result = await runCli([command, '--json'], projectRoot)
+    expect(result.exitCode).not.toBe(0)
+    expect(parseOnlyEnvelope(result)).toMatchObject({ command, ok: false, data: null, errors: [{ code }] })
   }, CLI_TEST_TIMEOUT_MS)
 })

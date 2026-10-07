@@ -145,6 +145,20 @@
         },
         "path": {
           "type": "string"
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "column": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "suggestion": {
+          "type": "string"
+        },
+        "certainty": {
+          "enum": ["certain", "uncertain"]
         }
       }
     },

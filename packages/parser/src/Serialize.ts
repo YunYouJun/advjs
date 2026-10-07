@@ -4,6 +4,19 @@ import type * as Mdast from 'mdast'
 import { parseStableAnchor, parseText } from './syntax'
 import { advNodeMap, parseAdvCode, scriptSuffix } from './syntax/code'
 
+export class AdvScriptSyntaxError extends Error {
+  readonly line: number
+  readonly column: number
+
+  constructor(cause: unknown, node: Mdast.Code) {
+    super(cause instanceof Error ? cause.message : String(cause), { cause })
+    this.name = 'AdvScriptSyntaxError'
+    const mark = (cause as { mark?: { line: number, column: number } } | null)?.mark
+    this.line = (node.position?.start.line ?? 1) + (mark ? mark.line + 1 : 0)
+    this.column = mark ? mark.column + 1 : node.position?.start.column ?? 1
+  }
+}
+
 /**
  * 序列化类
  */
@@ -93,7 +106,12 @@ export class Serialize {
       }
       if (item.suffix.includes(lang)) {
         info.lang = 'advnode'
-        info.value = item.parse(node.value)
+        try {
+          info.value = item.parse(node.value)
+        }
+        catch (error) {
+          throw new AdvScriptSyntaxError(error, node)
+        }
         return info
       }
     }
@@ -133,7 +151,9 @@ export class Serialize {
       const dialogChildren = astNode.children
       if (node.children.length > 1) {
         node.children.slice(1).forEach((child) => {
-          dialogChildren.push(this.parse(child) as AdvAst.PhrasingContent)
+          // Inline emphasis, links and images need not have an ADV node type.
+          // Keep their text instead of inserting undefined into the dialogue AST.
+          dialogChildren.push((this.parse(child) ?? { type: 'text', value: phrasingText([child]) }) as AdvAst.PhrasingContent)
         })
       }
     }

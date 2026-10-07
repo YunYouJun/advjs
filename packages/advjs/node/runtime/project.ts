@@ -1,5 +1,5 @@
 import type { CompileResult } from '@advjs/core'
-import type { AdvChapter, RuntimeProgram } from '@advjs/types'
+import type { AdvChapter, JsonObject, RuntimeProgram } from '@advjs/types'
 import { existsSync } from 'node:fs'
 import { readdir, readFile } from 'node:fs/promises'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
@@ -16,6 +16,8 @@ export interface CompileRuntimeChapterFilesOptions {
   chapters: RuntimeChapterFiles[]
   entryChapterId?: string
   requiredPlugins?: Record<string, string>
+  staticAnalysis?: boolean
+  variables?: JsonObject
 }
 
 export interface ResolveConfiguredRuntimeChapterFilesOptions {
@@ -131,12 +133,13 @@ export async function compileRuntimeChapterFiles(
   files['adv/settings/game.json'] = JSON.stringify({
     entryChapterId: options.entryChapterId,
     requiredPlugins: options.requiredPlugins,
+    variables: options.variables,
     chapters,
   })
 
   const result = await compileProject(
     { id: options.id, files },
-    { validateContentReferences: false },
+    { validateContentReferences: false, staticAnalysis: options.staticAnalysis },
   )
   return {
     program: result.project.program,
@@ -144,6 +147,8 @@ export async function compileRuntimeChapterFiles(
       code: diagnostic.code,
       severity: diagnostic.severity,
       message: diagnostic.message,
+      suggestion: diagnostic.suggestion,
+      certainty: diagnostic.certainty,
       source: {
         file: diagnostic.path ? (originalPaths.get(diagnostic.path) ?? diagnostic.path) : undefined,
         line: diagnostic.line,

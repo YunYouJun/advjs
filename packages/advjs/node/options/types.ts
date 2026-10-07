@@ -18,6 +18,13 @@ export interface AdvPluginOptions extends AdvEntryOptions {
 }
 
 export interface AdvServerOptions {
+  /** CLI enables developer tools; managed previews can select each tool explicitly. */
+  devtools?: boolean | {
+    /** Enable the ADV.JS runtime inspector. Defaults to true. */
+    adv?: boolean
+    /** Override the project's Vue DevTools setting for this development server. */
+    vue?: boolean
+  }
   /**
    * @returns `false` if server should be restarted
    */

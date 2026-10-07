@@ -77,8 +77,8 @@ export async function applyEditorFileChanges(root: string, changes: EditorFileCh
       throw new EditorMutationError(400, 'Invalid file change')
     }
     const path = projectRelativePath(change.path)
-    if (!/\.(?:md|json)$/iu.test(path) || paths.has(path))
-      throw new EditorMutationError(400, 'Changes require distinct Markdown/JSON files')
+    if (!/\.(?:css|html|js|json|jsx|md|mjs|scss|ts|tsx|vue|yaml|yml)$/iu.test(path) || paths.has(path))
+      throw new EditorMutationError(400, 'Changes require distinct supported source files')
     paths.add(path)
     const target = await projectWriteTarget(root, path)
     const original = await readFile(target, 'utf8').catch((error) => {

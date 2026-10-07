@@ -1,3 +1,4 @@
+import type { AdvRuntimePlugin } from '@advjs/core'
 import type {
   AdvProjectCompileOptions,
   AdvProjectCompileResult,
@@ -20,7 +21,7 @@ const IGNORED_DIRECTORIES = new Set([
   'dist',
   'node_modules',
 ])
-const TEXT_FILE_RE = /(?:\.json|\.md)$/u
+const TEXT_FILE_RE = /\.(?:css|html|js|json|jsx|md|mjs|scss|ts|tsx|vue|yaml|yml)$/iu
 
 export interface ProjectConfigSource {
   format: 'json' | 'module' | 'synthetic'
@@ -36,6 +37,8 @@ export interface ProjectCompatibilityOptions {
 
 export interface LoadProjectOptions extends AdvProjectCompileOptions {
   root?: string
+  /** Explicit authoring content root, overriding the config root. */
+  contentRoot?: string
   compatibility?: ProjectCompatibilityOptions
 }
 
@@ -43,7 +46,11 @@ export interface LoadedProject {
   root: string
   config: ProjectConfigSource
   files: AdvProjectFileMap
+  /** Source and media paths for authoring navigation; binary contents stay out of the compiler. */
+  filePaths?: string[]
   result: AdvProjectCompileResult
+  /** Runtime capabilities exported by a module config, retained outside JSON. */
+  runtimePlugins: AdvRuntimePlugin[]
 }
 
 export class ProjectLoadError extends Error {
@@ -184,6 +191,7 @@ async function collectProjectFiles(
   directories: string[],
 ) {
   const files = new Map<string, string>()
+  const filePaths = new Set<string>()
   const visited = new Set<string>()
 
   async function walk(logicalDirectory: string, relativeDirectory: string) {
@@ -219,8 +227,10 @@ async function collectProjectFiles(
         if (!IGNORED_DIRECTORIES.has(entry.name))
           await walk(logicalPath, relativePath)
       }
-      else if (metadata.isFile() && TEXT_FILE_RE.test(entry.name)) {
-        files.set(relativePath, await readFile(logicalPath, 'utf8'))
+      else if (metadata.isFile()) {
+        filePaths.add(relativePath)
+        if (TEXT_FILE_RE.test(entry.name))
+          files.set(relativePath, await readFile(logicalPath, 'utf8'))
       }
     }
   }
@@ -230,7 +240,7 @@ async function collectProjectFiles(
     if (await directoryExists(logicalDirectory))
       await walk(logicalDirectory, directory)
   }
-  return files
+  return { files, filePaths }
 }
 
 /**
@@ -267,12 +277,22 @@ export async function loadProject(options: LoadProjectOptions = {}): Promise<Loa
     config = {}
   }
 
-  const contentRoot = safeRelativeRoot(root, config.root)
-  const files = await collectProjectFiles(root, realRoot, [contentRoot, 'public'])
+  const contentRoot = safeRelativeRoot(root, options.contentRoot ?? config.root)
+  if (options.contentRoot)
+    config = { ...config, root: contentRoot }
+  const { files, filePaths } = await collectProjectFiles(root, realRoot, [contentRoot, 'public', 'pages', 'layouts', 'components', 'styles', 'client'])
+  for (const extension of CONFIG_EXTENSIONS) {
+    const path = `theme.config.${extension}`
+    if (await fileExists(resolve(root, path))) {
+      await assertSafeProjectFile(root, realRoot, path)
+      files.set(path, await readFile(resolve(root, path), 'utf8'))
+      filePaths.add(path)
+    }
+  }
 
-  if (configSource.format === 'json' && configPath)
+  if (configSource.format === 'json' && configPath && !options.contentRoot)
     files.set('adv.config.json', await readFile(resolve(root, configPath), 'utf8'))
-  else if (configPath || options.compatibility)
+  else if (configPath || options.compatibility || options.contentRoot)
     files.set('adv.config.json', stableJson(config) ?? '{}')
 
   const rootGameConfigPath = await findConfig(root, 'game')
@@ -292,15 +312,46 @@ export async function loadProject(options: LoadProjectOptions = {}): Promise<Loa
     files.set('game.config.json', stableJson(options.compatibility.gameConfig) ?? '{}')
   }
 
+  // Legacy module projects can keep metadata in settings/game.json while
+  // declaring chapter URLs in adv.config.ts. Include those sources in checks
+  // instead of treating the metadata-only settings file as an empty story.
+  if (options.staticAnalysis && files.has('game.config.json')) {
+    const settingsPath = [`${contentRoot}/settings/game.json`, `${contentRoot}/game.config.json`].find(path => files.has(path))
+    if (settingsPath) {
+      try {
+        const settings = JSON.parse(files.get(settingsPath)!) as JsonObject
+        const moduleGame = JSON.parse(files.get('game.config.json')!) as JsonObject
+        for (const field of ['chapters', 'variables', 'entryChapterId'] as const) {
+          if (settings[field] === undefined && moduleGame[field] !== undefined)
+            settings[field] = moduleGame[field]
+        }
+        files.set(settingsPath, JSON.stringify(settings))
+      }
+      catch {
+        // Preserve malformed source for the project compiler to diagnose.
+      }
+    }
+  }
+
   const sortedFiles = Object.fromEntries([...files.entries()].sort(([left], [right]) => comparePaths(left, right)))
+  const runtimePlugins = (Array.isArray(config.plugins) ? config.plugins : [])
+    .filter((plugin): plugin is JsonObject & AdvRuntimePlugin => Boolean(
+      isJsonObject(plugin) && typeof plugin.name === 'string' && typeof plugin.version === 'string',
+    ))
   const result = await compileProject(
     { files: sortedFiles, id: typeof config.id === 'string' ? config.id : undefined },
-    { plugins: options.plugins },
+    {
+      plugins: options.plugins ?? (runtimePlugins.length ? Object.fromEntries(runtimePlugins.map(plugin => [plugin.name, plugin.version])) : undefined),
+      staticAnalysis: options.staticAnalysis,
+      validateContentReferences: options.validateContentReferences,
+    },
   )
   return {
     root,
     config: configSource,
     files: sortedFiles,
+    filePaths: [...new Set([...filePaths, ...Object.keys(sortedFiles), ...configPath ? [configPath] : []])].sort(comparePaths),
     result,
+    runtimePlugins,
   }
 }

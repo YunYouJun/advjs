@@ -9,6 +9,9 @@ import type { AdvPlugin, AdvRuntimePluginReference } from './plugin'
  * - 游戏内容位于 `game.config.ts` 中
  */
 export interface AdvConfig<ThemeConfig = AdvThemeConfig> {
+  /** Stable project identity used by the project compiler and workspace. */
+  id?: string
+
   /**
    * consola 日志级别 (浏览器控制台)
    *
@@ -33,12 +36,13 @@ export interface AdvConfig<ThemeConfig = AdvThemeConfig> {
   /**
    * 游戏解析格式
    *
+   * - adv-md: 标准 .adv.md 项目格式
    * - fountain(markdown): 以 Markdown 文本编辑为核心体验的解析方式
    * - flow(json): 以节点编辑器为开发工作流的节点解析方式
    *
    * @default 'fountain'
    */
-  format: 'fountain' | 'flow'
+  format: 'adv-md' | 'fountain' | 'flow'
 
   remote?: boolean
 
@@ -56,6 +60,18 @@ export interface AdvConfig<ThemeConfig = AdvThemeConfig> {
    * @zh 特性开关
    */
   features: AdvFeatureFlags
+
+  /**
+   * Development-only debugging tools.
+   * Managed player previews can disable these regardless of project config.
+   */
+  devtools?: {
+    /**
+     * Enable the in-game Vue DevTools toolbar. Restart the dev server after changing.
+     * @default false
+     */
+    vue?: boolean
+  }
 
   // client
   /**

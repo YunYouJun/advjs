@@ -1,16 +1,18 @@
 import type { AdvRuntimePlugin } from '@advjs/core'
-import type { AdvChapter, AdvProjectCompileResult } from '@advjs/types'
+import type { AdvChapter, AdvProjectCompileResult, JsonObject } from '@advjs/types'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { basename, dirname, join, relative } from 'node:path'
 import process from 'node:process'
 import { validateRuntimeProgramPlugins } from '@advjs/core'
-import { extractCharacterRefs, extractSceneRefs, parseCharacterMd, validateSceneFrontmatter } from '@advjs/parser'
+import { AdvScriptSyntaxError, extractCharacterRefs, extractSceneRefs, parseCharacterMd, validateSceneFrontmatter } from '@advjs/parser'
 import { consola } from 'consola'
 import { colors } from 'consola/utils'
+import { resolve } from 'pathe'
 import { t } from '../cli/i18n'
 import { loadAdvConfig } from '../config'
 import { loadProject } from '../project'
 import { compileRuntimeChapterFiles, discoverRuntimeChapterFiles, resolveConfiguredRuntimeChapterFiles } from '../runtime'
+import { checkLocalResources } from './check-resources'
 import { AdvCommandError } from './errors'
 import { parseSceneFrontmatter, resolveGameRoot, sanitizeFilename, scanFiles } from './utils'
 
@@ -25,16 +27,19 @@ export interface CheckOptions {
   runtimePlugins?: readonly AdvRuntimePlugin[]
   /** Chapter sources declared by gameConfig, including files outside the adv content root. */
   chapters?: AdvChapter[]
+  variables?: JsonObject
 }
 
 export interface CheckIssue {
   type: 'error' | 'warning'
-  category: 'syntax' | 'runtime' | 'character' | 'scene' | 'scene-frontmatter' | 'location'
+  category: 'syntax' | 'runtime' | 'character' | 'scene' | 'scene-frontmatter' | 'location' | 'resource'
   file: string
   message: string
   code?: string
   line?: number
   column?: number
+  suggestion?: string
+  certainty?: 'certain' | 'uncertain'
 }
 
 export interface CheckResult {
@@ -59,17 +64,34 @@ const log = consola.log.bind(consola)
  */
 export async function runCheck(options: CheckOptions & { cwd?: string }): Promise<CheckResult> {
   const cwd = options.cwd || process.cwd()
-  const gameRoot = resolveGameRoot(cwd, options.root)
+  const loadedProject = await loadProject({
+    root: cwd,
+    contentRoot: options.root,
+    staticAnalysis: true,
+    plugins: options.runtimePlugins
+      ? Object.fromEntries(options.runtimePlugins.map(plugin => [plugin.name, plugin.version]))
+      : undefined,
+  })
+  const compilation = loadedProject?.config.format === 'synthetic'
+    ? undefined
+    : loadedProject?.result
+  const runtimePlugins = options.runtimePlugins ?? loadedProject.runtimePlugins
+  const gameRoot = compilation ? resolve(cwd, compilation.project.root) : resolveGameRoot(cwd, options.root)
   const issues: CheckIssue[] = []
 
   // Validate game root exists
-  if (!existsSync(gameRoot)) {
+  if (!existsSync(gameRoot) && !compilation?.project.chapters.length && !options.chapters?.length) {
     return {
       issues: [{
         type: 'error',
         category: 'syntax',
+        code: 'ADV_PROJECT_ROOT_NOT_FOUND',
         file: gameRoot,
         message: `Game content root not found: ${gameRoot}`,
+        line: 1,
+        column: 1,
+        certainty: 'certain',
+        suggestion: 'Create the content directory or correct the project root/--root option.',
       }],
       passed: false,
       scriptCount: 0,
@@ -78,18 +100,6 @@ export async function runCheck(options: CheckOptions & { cwd?: string }): Promis
       locationRefCount: 0,
     }
   }
-
-  const loadedProject = options.root
-    ? undefined
-    : await loadProject({
-        root: cwd,
-        plugins: options.runtimePlugins
-          ? Object.fromEntries(options.runtimePlugins.map(plugin => [plugin.name, plugin.version]))
-          : undefined,
-      })
-  const compilation = loadedProject?.config.format === 'synthetic'
-    ? undefined
-    : loadedProject?.result
 
   const chaptersDir = join(gameRoot, 'chapters')
   const charactersDir = join(gameRoot, 'characters')
@@ -125,10 +135,21 @@ export async function runCheck(options: CheckOptions & { cwd?: string }): Promis
     ...scriptFiles,
     ...rootScripts,
     ...configuredPaths.filter(existsSync),
+    ...Object.values(compilation?.sourceMap.chapters ?? {}).flat().map(path => resolve(cwd, path)).filter(existsSync),
   ])].sort()
+  if (!allScripts.length && !compilation) {
+    issues.push({
+      type: 'warning',
+      category: 'syntax',
+      code: 'ADV_STATIC_NO_SCRIPTS',
+      certainty: 'uncertain',
+      file: relative(cwd, gameRoot),
+      message: 'No .adv.md chapter sources were found; story coverage is unknown.',
+      suggestion: 'Set the correct content root or declare chapter sources in gameConfig.chapters.',
+    })
+  }
 
   // 2. Syntax check — parse each script
-  const syntaxErrorFiles = new Set<string>()
   const allCharacterRefs = new Map<string, Set<string>>() // charName -> set of files
   const allSceneRefs = new Map<string, Set<string>>() // sceneName -> set of files
 
@@ -142,12 +163,13 @@ export async function runCheck(options: CheckOptions & { cwd?: string }): Promis
       await parseAst(content)
     }
     catch (err: unknown) {
-      syntaxErrorFiles.add(relPath)
       issues.push({
         type: 'error',
         category: 'syntax',
         file: relPath,
         message: err instanceof Error ? err.message : String(err),
+        line: err instanceof AdvScriptSyntaxError ? err.line : 1,
+        column: err instanceof AdvScriptSyntaxError ? err.column : 1,
       })
     }
 
@@ -181,20 +203,22 @@ export async function runCheck(options: CheckOptions & { cwd?: string }): Promis
         continue
       issues.push({
         type: diagnostic.severity,
-        category: diagnostic.code.startsWith('ADV_RUNTIME_') || diagnostic.code.includes('PLUGIN')
+        category: diagnostic.code.startsWith('ADV_RUNTIME_') || diagnostic.code.startsWith('ADV_STATIC_') || diagnostic.code.includes('PLUGIN')
           ? 'runtime'
           : 'syntax',
         code: diagnostic.code,
-        file: diagnostic.path ?? relative(cwd, gameRoot),
+        file: diagnostic.path === 'adv.config.json' ? loadedProject.config.path ?? diagnostic.path : diagnostic.path ?? relative(cwd, gameRoot),
         line: diagnostic.line,
         column: diagnostic.column,
         message: diagnostic.message,
+        suggestion: diagnostic.suggestion,
+        certainty: diagnostic.certainty,
       })
     }
     if (compilation.project.program) {
       for (const diagnostic of validateRuntimeProgramPlugins(
         compilation.project.program,
-        options.runtimePlugins,
+        runtimePlugins,
       )) {
         issues.push({
           type: diagnostic.severity,
@@ -206,7 +230,7 @@ export async function runCheck(options: CheckOptions & { cwd?: string }): Promis
       }
     }
   }
-  else if (allScripts.length > 0 && syntaxErrorFiles.size === 0) {
+  else if (allScripts.length > 0) {
     const nestedChapters = configuredChapters.length
       ? configuredChapters.filter(chapter => chapter.paths.every(existsSync))
       : (scriptFiles.length ? await discoverRuntimeChapterFiles(scriptFiles[0]) : [])
@@ -224,6 +248,8 @@ export async function runCheck(options: CheckOptions & { cwd?: string }): Promis
         id: `adv-check:${relative(cwd, gameRoot) || 'game'}`,
         chapters: [...nestedChapters, ...extraChapters],
         requiredPlugins: options.requiredPlugins,
+        staticAnalysis: true,
+        variables: options.variables ?? loadedProject?.result.project.game.variables as JsonObject | undefined,
       })
       for (const diagnostic of compiled.diagnostics) {
         const file = diagnostic.source?.file
@@ -235,12 +261,14 @@ export async function runCheck(options: CheckOptions & { cwd?: string }): Promis
           line: diagnostic.source?.line,
           column: diagnostic.source?.column,
           message: diagnostic.message,
+          suggestion: diagnostic.suggestion,
+          certainty: diagnostic.certainty,
         })
       }
       if (compiled.program) {
         for (const diagnostic of validateRuntimeProgramPlugins(
           compiled.program,
-          options.runtimePlugins,
+          runtimePlugins,
         )) {
           issues.push({
             type: diagnostic.severity,
@@ -266,6 +294,10 @@ export async function runCheck(options: CheckOptions & { cwd?: string }): Promis
   // 3. Character reference check
   const characterFiles = scanFiles(charactersDir, '.character.md')
   const knownCharacters = new Map<string, string>() // name/id/alias -> file
+  for (const character of loadedProject?.result.project.characters ?? []) {
+    for (const name of [character.id, character.name, ...character.aliases ?? []])
+      knownCharacters.set(name, compilation?.sourceMap.characters[character.id] ?? '')
+  }
 
   for (const file of characterFiles) {
     const content = readFileSync(file, 'utf-8')
@@ -303,6 +335,12 @@ export async function runCheck(options: CheckOptions & { cwd?: string }): Promis
   const sceneFiles = scanFiles(scenesDir, '.md')
     .filter(f => !basename(f).startsWith('README'))
   const knownScenes = new Set<string>()
+  for (const scene of compilation?.project.scenes ?? []) {
+    for (const name of [scene.id, scene.name, scene.alias]) {
+      if (name)
+        knownScenes.add(name)
+    }
+  }
 
   for (const file of sceneFiles) {
     const content = readFileSync(file, 'utf-8')
@@ -320,7 +358,13 @@ export async function runCheck(options: CheckOptions & { cwd?: string }): Promis
 
     // Validate scene frontmatter against the schema (catches malformed
     // `type` enum, non-string fields, missing id — format-freeze hardening).
-    const validation = validateSceneFrontmatter(content)
+    let validation
+    try {
+      validation = validateSceneFrontmatter(content)
+    }
+    catch (error) {
+      validation = { success: false, error: String(error) }
+    }
     if (!validation.success) {
       issues.push({
         type: 'warning',
@@ -381,15 +425,75 @@ export async function runCheck(options: CheckOptions & { cwd?: string }): Promis
     }
   }
 
+  const gameConfigPath = loadedProject?.result.sourceMap.gameConfig
+  const manifestPath = loadedProject?.result.sourceMap.assets
+  const games = [...new Set([gameConfigPath, 'game.config.json'])].flatMap((path) => {
+    if (!path || !loadedProject?.files[path])
+      return []
+    const physical = existsSync(resolve(cwd, path))
+      ? path
+      : ['ts', 'mts', 'cts', 'js', 'mjs', 'cjs'].map(extension => `game.config.${extension}`).find(file => existsSync(resolve(cwd, file))) ?? loadedProject.config.path
+    try {
+      return [{
+        file: resolve(cwd, physical ?? path),
+        content: physical ? readFileSync(resolve(cwd, physical), 'utf8') : loadedProject.files[path],
+        data: JSON.parse(loadedProject.files[path]),
+      }]
+    }
+    catch {
+      return [] // Project compilation already reports malformed JSON.
+    }
+  })
+  issues.push(...await checkLocalResources({
+    cwd,
+    files: [...allScripts, ...characterFiles, ...sceneFiles],
+    games,
+    manifest: loadedProject?.result.project.assets,
+    manifestFile: manifestPath ? resolve(cwd, manifestPath) : undefined,
+    catalogSources: Object.entries(loadedProject?.files ?? {})
+      .filter(([path]) => path.endsWith('.json') && path.includes('assets'))
+      .map(([path, content]) => ({ file: resolve(cwd, path), content })),
+  }))
+
+  for (const issue of issues) {
+    if (!issue.line && ['character', 'scene', 'location'].includes(issue.category) && existsSync(resolve(cwd, issue.file))) {
+      const lines = readFileSync(resolve(cwd, issue.file), 'utf8').split('\n')
+      const index = lines.findIndex(line => line.trim().startsWith(issue.category === 'character' ? `@${issue.message}` : `【${issue.message}`))
+      if (index >= 0)
+        issue.line = index + 1
+    }
+    issue.line ??= 1
+    issue.column ??= 1
+    issue.certainty ??= 'certain'
+    issue.suggestion ??= checkSuggestion(issue)
+  }
+  issues.sort((a, b) => a.file.localeCompare(b.file) || (a.line! - b.line!) || (a.column! - b.column!) || (a.code ?? a.category).localeCompare(b.code ?? b.category))
+
   return {
     issues,
-    passed: issues.length === 0,
+    passed: !issues.some(issue => issue.type === 'error'),
     scriptCount: allScripts.length,
     characterRefCount: allCharacterRefs.size,
     sceneRefCount: allSceneRefs.size,
     locationRefCount: knownLocations.size,
     compilation,
   }
+}
+
+function checkSuggestion(issue: CheckIssue): string {
+  if (issue.code?.includes('TARGET') || issue.code?.includes('ENTRY'))
+    return 'Correct the exact chapter ID and {#node-id} anchor, or add the missing destination.'
+  if (issue.code?.includes('CONDITION'))
+    return 'Use the documented variable/literal condition syntax; function calls and dynamic property access are unsupported.'
+  if (issue.category === 'character')
+    return `Define character "${issue.message}" (or an alias) in characters/*.character.md or gameConfig.characters; --fix can create a stub.`
+  if (issue.category === 'scene' || issue.category === 'location')
+    return `Define "${issue.message}" in scenes/*.md or locations/*.md, or correct the scene name; --fix can create a scene stub.`
+  if (issue.code?.includes('PLUGIN'))
+    return 'Register the required runtime plugin with the declared name, version and capabilities.'
+  if (issue.code?.includes('CHAPTER'))
+    return 'Correct the chapter source path in game configuration or add the missing .adv.md file.'
+  return 'Correct the indicated declaration using the ADV.JS syntax and configuration reference, then run adv check again.'
 }
 
 export interface FixSummary {
@@ -491,11 +595,12 @@ export async function advCheck(options: CheckOptions) {
         && typeof (plugin as AdvRuntimePlugin).version === 'string',
       ))
     : []
-  const result = await runCheck({
+  let result = await runCheck({
     ...options,
     requiredPlugins: config.gameConfig?.requiredPlugins,
     runtimePlugins,
     chapters: config.gameConfig?.chapters,
+    variables: options.variables ?? config.gameConfig?.variables,
   })
 
   // Handle missing root as fatal error
@@ -526,13 +631,24 @@ export async function advCheck(options: CheckOptions) {
     consola.success(t('check.runtime_ok'))
   }
   else {
-    consola.fail(t('check.runtime_errors', runtimeIssues.length))
+    if (runtimeIssues.some(issue => issue.type === 'error'))
+      consola.fail(t('check.runtime_errors', runtimeIssues.length))
+    else
+      consola.warn(`Runtime/static analysis: ${runtimeIssues.length} warning(s)`)
     for (const issue of runtimeIssues) {
       const location = issue.line
         ? `${issue.file}:${issue.line}:${issue.column ?? 1}`
         : issue.file
-      log(colors.red(`  ✗ ${t('check.runtime_error_detail', location, issue.code ?? 'ADV_RUNTIME_ERROR', issue.message)}`))
+      const format = issue.type === 'error' ? colors.red : colors.yellow
+      log(format(`  ${issue.type === 'error' ? '✗' : '⚠'} ${t('check.runtime_error_detail', location, issue.code ?? 'ADV_RUNTIME_ERROR', issue.message)} [${issue.certainty}]`))
+      log(colors.dim(`    Fix: ${issue.suggestion}`))
     }
+  }
+
+  for (const issue of result.issues.filter(issue => issue.category === 'resource')) {
+    const format = issue.type === 'error' ? colors.red : colors.yellow
+    log(format(`  ${issue.type === 'error' ? '✗' : '⚠'} ${issue.file}:${issue.line}:${issue.column} ${issue.code}: ${issue.message} [${issue.certainty}]`))
+    log(colors.dim(`    Fix: ${issue.suggestion}`))
   }
 
   // Report character results
@@ -589,7 +705,7 @@ export async function advCheck(options: CheckOptions) {
     process.stdout.write('\n')
     consola.start(t('check.fix_start'))
     const cwd = process.cwd()
-    const gameRoot = resolveGameRoot(cwd, options.root)
+    const gameRoot = result.compilation ? resolve(cwd, result.compilation.project.root) : resolveGameRoot(cwd, options.root)
     fixSummary = await applyFixes(result, gameRoot, cwd)
     if (fixSummary.created.length) {
       consola.success(t('check.fix_created', fixSummary.created.length))
@@ -601,18 +717,15 @@ export async function advCheck(options: CheckOptions) {
       for (const file of fixSummary.skipped)
         log(colors.dim(`  - ${file}`))
     }
+    result = await runCheck({ ...options, requiredPlugins: config.gameConfig?.requiredPlugins, runtimePlugins, chapters: config.gameConfig?.chapters, variables: options.variables ?? config.gameConfig?.variables })
   }
 
   // Summary
   process.stdout.write('\n')
   // After --fix, recompute "passed" by ignoring issues that have a created stub
-  const fixedIssues = fixSummary?.created.length ?? 0
-  const remainingIssues = result.issues.length - fixedIssues
+  const remainingIssues = result.issues.filter(issue => issue.type === 'error').length
   if (result.passed) {
     consola.success(colors.green(t('check.summary_pass')))
-  }
-  else if (remainingIssues <= 0) {
-    consola.success(colors.green(t('check.summary_pass_after_fix', fixedIssues)))
   }
   else {
     consola.error(colors.red(t('check.summary_fail', remainingIssues)))

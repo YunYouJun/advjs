@@ -24,6 +24,23 @@ describe('runtime project loader', () => {
     await rm(directory, { recursive: true, force: true })
   })
 
+  it('includes editable theme sources without executing theme configuration', async () => {
+    await mkdir(join(directory, 'pages'))
+    await mkdir(join(directory, 'components'))
+    await mkdir(join(directory, 'styles'))
+    const sources = {
+      'pages/start.vue': '<template>Homepage</template>',
+      'components/StartMenu.vue': '<template>Menu</template>',
+      'styles/theme.scss': '.menu { color: gold; }',
+      'theme.config.ts': 'throw new Error("must not execute for source discovery")',
+    }
+    for (const [path, content] of Object.entries(sources))
+      await writeFile(join(directory, path), content)
+    const project = await loadProject({ root: directory })
+    expect(project.files).toMatchObject(sources)
+    expect(project.filePaths).toEqual(expect.arrayContaining(Object.keys(sources)))
+  })
+
   it('discovers numeric chapter folders with stable chapter ids', async () => {
     const chapters = join(directory, 'chapters')
     await mkdir(join(chapters, '1'), { recursive: true })

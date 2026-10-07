@@ -11,6 +11,8 @@ export interface AdvProjectSource {
 }
 
 export interface AdvProjectCompileOptions {
+  /** Include conservative story diagnostics for authoring tools. */
+  staticAnalysis?: boolean
   /** Runtime plugin names and exact versions available to the compiler. */
   plugins?: Record<string, string>
   /** Compatibility wrappers may disable project-level character/scene checks. */
@@ -25,6 +27,8 @@ export interface AdvProjectDiagnostic {
   line?: number
   column?: number
   details?: JsonObject
+  suggestion?: string
+  certainty?: 'certain' | 'uncertain'
 }
 
 export interface AdvProjectChapter {

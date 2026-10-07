@@ -1,0 +1,22 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "paths": {},
+    "types": ["node"],
+    "skipLibCheck": true
+  },
+  "include": [
+    "../packages/core/src/compiler/analyze.ts",
+    "../packages/core/src/compiler/link.ts",
+    "../packages/core/src/compiler/markdown.ts",
+    "../packages/core/src/project/compile.ts",
+    "../packages/advjs/node/cli/check.ts",
+    "../packages/advjs/node/commands/check.ts",
+    "../packages/advjs/node/commands/check-resources.ts",
+    "../packages/advjs/node/project/index.ts",
+    "../packages/parser/src/Serialize.ts",
+    "./unit/check-static.test.ts",
+    "../scripts/check-examples.ts"
+  ]
+}

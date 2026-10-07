@@ -1,5 +1,6 @@
 {
   "name": "@advjs/devtools",
+  "type": "module",
   "version": "0.1.4",
   "description": "Devtools for ADV.JS",
   "publishConfig": {
@@ -9,6 +10,10 @@
     ".": {
       "types": "./dist/vite.d.ts",
       "import": "./dist/vite.mjs"
+    },
+    "./devframe": {
+      "types": "./dist/devframe.d.ts",
+      "import": "./dist/devframe.mjs"
     },
     "./*": "./*"
   },
@@ -21,14 +26,31 @@
     "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
-    "build": "unbuild",
-    "dev": "unbuild --stub"
+    "build": "unbuild && vite build",
+    "dev": "unbuild --stub && vite build",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.json"
   },
   "peerDependencies": {
     "vite": "*"
   },
   "dependencies": {
+    "@advjs/types": "workspace:0.1.4",
+    "@devframes/service-shiki": "catalog:",
+    "@devframes/vite": "catalog:",
     "consola": "catalog:cli",
-    "hookable": "catalog:utils"
+    "devframe": "catalog:",
+    "hookable": "catalog:utils",
+    "pathe": "catalog:utils",
+    "shiki": "catalog:"
+  },
+  "devDependencies": {
+    "@advjs/gui": "workspace:0.1.4",
+    "@vitejs/plugin-vue": "catalog:build",
+    "sass": "catalog:build",
+    "typescript": "catalog:dev",
+    "unbuild": "catalog:build",
+    "vite": "catalog:build",
+    "vue": "catalog:frontend",
+    "vue-tsc": "catalog:dev"
   }
 }

@@ -1,0 +1,6 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": { "types": ["vite/client", "node"] },
+  "include": ["src/**/*.ts", "client/**/*.ts", "client/**/*.vue", "*.ts"],
+  "exclude": ["dist", "node_modules"]
+}

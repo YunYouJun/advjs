@@ -15,6 +15,7 @@ import setupIndexHtml from '../setups/indexHtml'
 const vueRuntimePath = 'vue/dist/vue.runtime.esm-bundler.js'
 const vuePattern = /^vue$/
 const vueRouterPattern = /^vue-router$/
+const pixiPattern = /^pixi\.js$/
 const vueI18nPattern = /vue-i18n/
 const ADVJS_PATTERN = /^#advjs\/(.*)/
 const ADVJS_CLIENT_PATTERN = /^@advjs\/client$/
@@ -43,8 +44,6 @@ const EXCLUDE_GLOBAL = [
   '@advjs/types',
 
   'floating-vue',
-
-  'pixi.js',
 ]
 const EXCLUDE_LOCAL = EXCLUDE_GLOBAL
 
@@ -68,11 +67,8 @@ const INCLUDE_LOCAL = [
   // 合并请求
   '@vueuse/motion',
 
-  // pixi.js support esm, but some deps not
-  'pixi.js > eventemitter3',
-  'pixi.js > earcut',
-  'pixi.js > parse-svg-path',
-  'pixi.js > @xmldom/xmldom',
+  // Bundle the renderer's own CommonJS dependencies with its resolved ESM entry.
+  'pixi.js',
 ]
 
 // const parserDeps = 'dependencies' in parserPkg ? parserPkg.dependencies : {}
@@ -100,7 +96,8 @@ export async function getAlias(options: ResolvedAdvOptions): Promise<Alias[]> {
     { find: '@advjs/client/compiler', replacement: resolve(options.clientRoot, 'compiler/index.ts') },
     { find: '@advjs/client/runtime', replacement: resolve(options.clientRoot, 'runtime/index.ts') },
     { find: ADVJS_CLIENT_PATTERN, replacement: `${toAtFS(options.clientRoot)}/index.ts` },
-    { find: ADVJS_CLIENT_SLASH_PATTERN, replacement: `${toAtFS(options.clientRoot)}/$1` },
+    // Resolve extensionless client helpers before Vite converts paths to /@fs URLs.
+    { find: ADVJS_CLIENT_SLASH_PATTERN, replacement: `${resolve(options.clientRoot)}/$1` },
   ]
 
   // themes
@@ -133,6 +130,11 @@ export async function getAlias(options: ResolvedAdvOptions): Promise<Alias[]> {
       // vue-router injection keys must come from the same physical module.
       find: vueRouterPattern,
       replacement: fileURLToPath(await resolveClientDep('vue-router')),
+    },
+    {
+      // Resolve renderer imports and dependency optimization from the client package.
+      find: pixiPattern,
+      replacement: fileURLToPath(await resolveClientDep('pixi.js')),
     },
   )
   alias.push(
@@ -224,7 +226,7 @@ export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
             if (req.url === '/index.html') {
               res.setHeader('Content-Type', 'text/html')
               res.statusCode = 200
-              res.end(indexHtml)
+              res.end(await server.transformIndexHtml('/index.html', indexHtml))
               return
             }
             next()

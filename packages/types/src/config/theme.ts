@@ -11,6 +11,14 @@ export const gameUiTokenNames = [
   '--adv-font-family',
   '--adv-font-serif',
   '--adv-c-focus',
+  '--adv-control-color',
+  '--adv-control-hover-bg',
+  '--adv-control-hover-border',
+  '--adv-control-active-bg',
+  '--adv-control-active-color',
+  '--adv-control-radius',
+  '--adv-tooltip-bg',
+  '--adv-tooltip-border',
   '--adv-dialog-bg',
   '--adv-dialog-color',
   '--adv-dialog-name-color',
@@ -20,6 +28,16 @@ export const gameUiTokenNames = [
   '--adv-choice-color',
   '--adv-choice-border',
   '--adv-choice-radius',
+  '--adv-end-bg',
+  '--adv-end-color',
+  '--adv-end-font-family',
+  '--adv-end-font-size',
+  '--adv-end-font-weight',
+  '--adv-end-letter-spacing',
+  '--adv-end-text-shadow',
+  '--adv-end-padding',
+  '--adv-end-align-items',
+  '--adv-end-justify-content',
   '--adv-modal-opacity',
   '--adv-modal-bg-color',
   '--adv-modal-motion-duration',
@@ -40,6 +58,11 @@ export interface GameUiTheme {
   colorScheme?: 'light' | 'dark'
   /** Applied only to this game's container; custom tokens use --adv-theme-*. */
   tokens?: GameUiTokens
+  /** Default ending content. Override AdvEnd or the AdvGame end slot for custom layouts. */
+  end?: {
+    /** Plain text; an empty string hides the default label. Defaults to "- END -". */
+    text?: string
+  }
 }
 
 /** Extend this interface in a theme package to type its own configuration. */

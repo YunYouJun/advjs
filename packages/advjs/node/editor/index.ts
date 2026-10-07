@@ -70,6 +70,13 @@ const SECURITY_HEADERS = {
   'x-frame-options': 'DENY',
 } as const
 const MIME_TYPES: Record<string, string> = {
+  '.aac': 'audio/aac',
+  '.avif': 'image/avif',
+  '.bmp': 'image/bmp',
+  '.mp4': 'video/mp4',
+  '.webm': 'video/webm',
+  '.ogv': 'video/ogg',
+  '.mov': 'video/quicktime',
   '.wav': 'audio/wav',
   '.mp3': 'audio/mpeg',
   '.ogg': 'audio/ogg',
@@ -291,6 +298,21 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
       throw new EditorHttpError(401, 'Editor session token is required')
 
     const apiPath = decodeURIComponent(url.pathname.slice(API_PREFIX.length))
+    if (apiPath === 'highlight/json' && request.method === 'POST') {
+      const body = await readRequestBytes(request, 256 * 1024)
+      let input: unknown
+      try {
+        input = JSON.parse(body.toString('utf8'))
+      }
+      catch {
+        throw new EditorHttpError(400, 'JSON highlighting requires a JSON request body')
+      }
+      if (!input || typeof input !== 'object' || !('code' in input) || typeof input.code !== 'string')
+        throw new EditorHttpError(400, 'JSON highlighting requires a code string')
+      const { highlightEditorJson } = await import('./highlight')
+      writeJson(response, 200, { tokens: await highlightEditorJson(input.code) })
+      return
+    }
     if (apiPath === 'asset' && request.method === 'DELETE') {
       const { target } = await resolveSafeProjectFile(projectRoot, url.searchParams.get('path') ?? '')
       if (!/^(?:image|audio)\//u.test(MIME_TYPES[extname(target).toLowerCase()] ?? ''))
@@ -343,8 +365,8 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
     if (apiPath === 'asset' && request.method === 'GET') {
       const { normalized, target } = await resolveSafeProjectFile(projectRoot, url.searchParams.get('path') ?? '')
       const body = await readFile(target)
-      const contentType = MIME_TYPES[extname(target)]
-      if (!contentType || !/^(?:image|audio)\//u.test(contentType))
+      const contentType = MIME_TYPES[extname(target).toLowerCase()]
+      if (!contentType || !/^(?:image|audio|video)\//u.test(contentType))
         throw new EditorHttpError(415, `Editor preview does not support this asset type: ${normalized}`)
       response.writeHead(200, {
         ...SECURITY_HEADERS,
@@ -377,6 +399,7 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
       writeJson(response, 200, {
         config: project.config,
         files: project.files,
+        filePaths: project.filePaths,
         result: project.result,
         root: project.root,
       })

@@ -413,7 +413,22 @@ function collectScenes(
     if (fileName.startsWith('README'))
       continue
     const content = files.get(path) ?? ''
-    const validation = validateSceneFrontmatter(content)
+    let validation
+    let scene
+    try {
+      validation = validateSceneFrontmatter(content)
+      scene = normalizeScene(parseSceneFrontmatterData(content))
+    }
+    catch (error) {
+      diagnostics.push({
+        code: 'ADV_PROJECT_INVALID_SCENE',
+        severity: 'error',
+        message: error instanceof Error ? error.message : String(error),
+        path,
+        suggestion: 'Correct the YAML frontmatter in this scene file.',
+      })
+      continue
+    }
     if (!validation.success) {
       diagnostics.push({
         code: 'ADV_PROJECT_INVALID_SCENE_FRONTMATTER',
@@ -422,7 +437,6 @@ function collectScenes(
         path,
       })
     }
-    const scene = normalizeScene(parseSceneFrontmatterData(content))
     if (!scene) {
       diagnostics.push({
         code: 'ADV_PROJECT_INVALID_SCENE',
@@ -780,10 +794,14 @@ export async function compileProject(
         id: chapter.id,
         title: chapter.title,
         content: chapter.content,
-        sourcePath: chapter.sources.join(', '),
+        sourcePath: chapter.sources[0],
+        sourceFiles: chapter.sources.map(path => ({ path, content: files.get(path) ?? '' })),
       })),
       requiredPlugins: required,
-      resources: resourceCatalog(assets, [gameConfig], characterResult.characters, sceneResult.scenes),
+      resources: resourceCatalog(assets, [gameConfig, ...(gameConfigPath !== 'game.config.json' && files.has('game.config.json')
+        ? [parseJsonObject(files, 'game.config.json', diagnostics)]
+        : [])], characterResult.characters, sceneResult.scenes),
+      staticAnalysis: options.staticAnalysis ? { variables: isRecord(gameConfig.variables) ? gameConfig.variables as JsonObject : undefined } : undefined,
     })
     program = compiled.program
     diagnostics.push(...compiled.diagnostics.map((diagnostic): AdvProjectDiagnostic => ({
@@ -793,6 +811,8 @@ export async function compileProject(
       path: diagnostic.source?.file ?? chapters[0]?.sources[0] ?? configPath ?? 'adv.config.json',
       line: diagnostic.source?.line,
       column: diagnostic.source?.column,
+      suggestion: diagnostic.suggestion,
+      certainty: diagnostic.certainty,
     })))
   }
   else if (format === 'flow') {

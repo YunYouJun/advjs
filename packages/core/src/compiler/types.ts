@@ -16,6 +16,8 @@ export interface CompileDiagnostic {
   severity: 'error' | 'warning'
   message: string
   source?: CompileSourceLocation
+  suggestion?: string
+  certainty?: 'certain' | 'uncertain'
 }
 
 export interface CompileResult<T> {
@@ -58,4 +60,6 @@ export interface RuntimeProgramInput {
   entry: RuntimeAddress
   chapters: RuntimeChapterInput[]
   requiredPlugins?: Record<string, string>
+  /** Opt-in authoring diagnostics; never execute user code during analysis. */
+  staticAnalysis?: { variables?: JsonObject }
 }

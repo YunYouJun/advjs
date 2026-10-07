@@ -12,7 +12,7 @@ import type {
   RuntimeChapterInput,
   RuntimeNodeInput,
 } from './types'
-import { parseAst } from '@advjs/parser'
+import { AdvScriptSyntaxError, parseAst } from '@advjs/parser'
 import { linkRuntimeProgram } from './link'
 
 export interface MarkdownChapterSource {
@@ -20,6 +20,8 @@ export interface MarkdownChapterSource {
   title?: string
   content: string
   sourcePath?: string
+  /** Original files concatenated with two newlines, for precise diagnostics. */
+  sourceFiles?: Array<{ path: string, content: string }>
 }
 
 export interface MarkdownProgramSource {
@@ -27,6 +29,7 @@ export interface MarkdownProgramSource {
   chapters: MarkdownChapterSource[]
   requiredPlugins?: Record<string, string>
   resources?: MarkdownResourceCatalog
+  staticAnalysis?: { variables?: JsonObject }
 }
 
 export interface MarkdownResourceCatalog {
@@ -301,6 +304,7 @@ function compileNode(
   diagnostics: CompileDiagnostic[],
   sourcePath?: string,
   resources?: MarkdownResourceCatalog,
+  staticAnalysis = false,
 ): RuntimeNodeInput | null {
   const source = sourceLocation(node, sourcePath)
   const withSource = (compiled: RuntimeNodeInput): RuntimeNodeInput => ({
@@ -349,14 +353,16 @@ function compileNode(
         const executable = node.choices.find(choice => typeof choice.do?.value === 'string')
         diagnostics.push({
           code: 'ADV_RUNTIME_EXECUTABLE_CHOICE_ACTION',
-          severity: 'error',
-          message: 'Executable choice actions are not supported by RuntimeProgram',
+          severity: staticAnalysis ? 'warning' : 'error',
+          certainty: staticAnalysis ? 'uncertain' : 'certain',
+          message: 'Executable choice actions cannot be analyzed statically and are not supported by RuntimeProgram',
+          suggestion: 'Replace executable choice code with declarative actions and literal targets, or verify its legacy host behavior.',
           source: executable ? sourceLocation(executable, sourcePath) : source,
         })
       }
       return withSource({
         id,
-        kind: 'choices',
+        kind: staticAnalysis && hasExecutableChoice ? '$dynamic' : 'choices',
         choices: node.choices.map((choice, index) => {
           const logic = blockLogic(choice.do?.value)
           if (logic.invalidActionCount > 0) {
@@ -382,11 +388,13 @@ function compileNode(
       if (typeof node.value === 'string') {
         diagnostics.push({
           code: 'ADV_RUNTIME_EXECUTABLE_SCRIPT',
-          severity: 'error',
-          message: 'Executable script blocks are not supported by RuntimeProgram',
-          source: sourcePath ? { file: sourcePath } : undefined,
+          severity: staticAnalysis ? 'warning' : 'error',
+          certainty: staticAnalysis ? 'uncertain' : 'certain',
+          message: 'Executable script blocks cannot be analyzed statically and are not supported by RuntimeProgram',
+          suggestion: 'Replace executable code with declarative actions and literal targets, or verify its legacy host behavior.',
+          source,
         })
-        return null
+        return staticAnalysis ? withSource({ id, kind: '$dynamic' }) : null
       }
       if (!node.value?.length)
         return null
@@ -442,7 +450,33 @@ export async function compileMarkdownProgram(source: MarkdownProgramSource): Pro
   const chapters: RuntimeChapterInput[] = []
 
   for (const chapterSource of source.chapters) {
-    const ast = await parseAst(chapterSource.content)
+    const remap = (location: CompileSourceLocation | undefined) => {
+      if (!location || !chapterSource.sourceFiles?.length)
+        return location
+      let line = location.line ?? 1
+      for (const [index, file] of chapterSource.sourceFiles.entries()) {
+        const lineCount = file.content.split('\n').length
+        if (line <= lineCount || index === chapterSource.sourceFiles.length - 1)
+          return { ...location, file: file.path, line }
+        line -= lineCount + 1
+      }
+      return location
+    }
+    let ast: AdvAst.Root
+    try {
+      ast = await parseAst(chapterSource.content)
+    }
+    catch (error) {
+      diagnostics.push({
+        code: 'ADV_RUNTIME_PARSE_ERROR',
+        severity: 'error',
+        message: error instanceof Error ? error.message : String(error),
+        source: remap({ file: chapterSource.sourcePath, line: error instanceof AdvScriptSyntaxError ? error.line : 1, column: error instanceof AdvScriptSyntaxError ? error.column : 1 }),
+        suggestion: 'Correct the JSON/YAML syntax in this chapter and run the check again.',
+      })
+      continue
+    }
+    const diagnosticStart = diagnostics.length
     const nodes: RuntimeNodeInput[] = []
     let pendingCondition: { value: string, source?: CompileSourceLocation } | undefined
     ast.children.forEach((node, index) => {
@@ -452,6 +486,7 @@ export async function compileMarkdownProgram(source: MarkdownProgramSource): Pro
         diagnostics,
         chapterSource.sourcePath,
         source.resources,
+        Boolean(source.staticAnalysis),
       )
       if (!compiled)
         return
@@ -478,12 +513,18 @@ export async function compileMarkdownProgram(source: MarkdownProgramSource): Pro
       })
     }
 
-    nodes.push({ id: 'end', kind: 'end' })
+    nodes.push({ id: 'end', kind: 'end', source: { file: chapterSource.sourcePath, line: chapterSource.content.split('\n').length, column: 1 } })
     nodes.forEach((node, index) => {
+      node.source = remap(node.source)
+      node.whenSource = remap(node.whenSource)
+      for (const choice of node.choices ?? [])
+        choice.source = remap(choice.source)
       const next = nodes[index + 1]
       if (next)
         node.next = { chapterId: chapterSource.id, nodeId: next.id }
     })
+    for (const diagnostic of diagnostics.slice(diagnosticStart))
+      diagnostic.source = remap(diagnostic.source)
 
     chapters.push({
       id: chapterSource.id,
@@ -493,7 +534,7 @@ export async function compileMarkdownProgram(source: MarkdownProgramSource): Pro
     })
   }
 
-  if (diagnostics.some(item => item.severity === 'error'))
+  if (!source.staticAnalysis && diagnostics.some(item => item.severity === 'error'))
     return { diagnostics }
 
   const firstChapter = chapters[0]
@@ -512,9 +553,10 @@ export async function compileMarkdownProgram(source: MarkdownProgramSource): Pro
     entry: { chapterId: firstChapter.id, nodeId: firstChapter.entry },
     chapters,
     requiredPlugins: source.requiredPlugins,
+    staticAnalysis: source.staticAnalysis,
   })
   return {
-    program: linked.program,
+    program: diagnostics.some(item => item.severity === 'error' || item.certainty === 'uncertain') ? undefined : linked.program,
     diagnostics: [...diagnostics, ...linked.diagnostics],
   }
 }

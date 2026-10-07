@@ -36,6 +36,10 @@ export function installCheckCommand(cli: Argv) {
               code: issue.code ?? `ADV_${issue.category.replaceAll('-', '_').toUpperCase()}`,
               message: issue.message,
               path: issue.file,
+              line: issue.line,
+              column: issue.column,
+              suggestion: issue.suggestion,
+              certainty: issue.certainty,
             })),
           }
         },

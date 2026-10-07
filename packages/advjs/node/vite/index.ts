@@ -7,12 +7,12 @@ import LinkAttributes from 'markdown-it-link-attributes'
 import { resolve } from 'pathe'
 import Markdown from 'unplugin-vue-markdown/vite'
 
-import vueDevTools from 'vite-plugin-vue-devtools'
 import Layouts from 'vite-plugin-vue-layouts-next'
 import VueRouter from 'vue-router/vite'
 
 import { ensureDirSync } from '../utils/fs'
 import { createComponentsPlugin } from './components'
+import { createDevToolsPlugins } from './devtools'
 import { createConfigPlugin } from './extendConfig'
 import { createAdvLoader } from './loaders'
 import { createRoutesFolders } from './routes'
@@ -77,9 +77,8 @@ export async function ViteAdvPlugin(
       include: options.roots.map(root => `${root}/locales/**`),
     }),
 
-    vueDevTools({
-      appendTo: join(options.clientRoot, 'main.ts'),
-    }),
+    createDevToolsPlugins(options, serverOptions),
+
     // todo download remote assets
   ]
 

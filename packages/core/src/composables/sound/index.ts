@@ -1,10 +1,7 @@
 /* eslint-disable new-cap */
 
-// @ts-expect-error - MaybeRef is available in @vueuse/core
-import type { MaybeRef } from '@vueuse/core'
-
-// @ts-nocheck
 import type { Howl } from 'howler'
+import type { MaybeRef } from 'vue'
 import type {
   ComposableOptions,
   HowlStatic,
