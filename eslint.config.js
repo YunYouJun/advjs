@@ -11,6 +11,8 @@ export default antfu(
     ignores: [
       '**/.adv/**',
       '**/.codex/**',
+      // Generated design-tool context contains copies of source snippets.
+      '**/.superdesign/**',
       '**/cache/**',
       '**/test-results/**',
       '**/CAPACITOR.md',

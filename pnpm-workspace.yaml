@@ -1,27 +1,47 @@
-strictPeerDependencies: false
 linkWorkspacePackages: true
+saveWorkspaceProtocol: rolling
 sharedWorkspaceLockfile: true
-resolvePeersFromWorkspaceRoot: true
-sideEffectsCache: false
 catalogMode: strict
 cleanupUnusedCatalogs: true
-saveWorkspaceProtocol: rolling
 minimumReleaseAge: 10080
+minimumReleaseAgeStrict: true
+
+minimumReleaseAgeExcludePrune: true
 # Security releases may need to bypass the age gate after their exact versions
 # have been reviewed and pinned below.
 minimumReleaseAgeExclude:
   - '@cloudbase/js-sdk@3.8.0'
   - nanoid@3.3.18
+
+trustPolicy: no-downgrade
+# Ignore trust downgrades for packages published more than 7 days (10080 min)
+# ago. Established transitive deps (e.g. semver@6.3.1, rollup@2.80.0 via
+# vite-plugin-pwa / @capacitor/assets) simply predate provenance attestation,
+# which `no-downgrade` would otherwise flag. New/just-published packages are
+# still checked, so protection against fresh supply-chain attacks is retained.
+trustPolicyIgnoreAfter: 10080
+
+peerDependencyRules:
+  allowedVersions:
+    # These integrations support the current runtime in practice, but their
+    # published peer ranges have not caught up with the upstream major yet.
+    '@stencil/vue-output-target>vue-router': ^5.2.0
+    unplugin-mockery>rollup: ^4.62.4
+    vitepress-plugin-mermaid>vitepress: 2.0.0-alpha.19
+
+resolvePeersFromWorkspaceRoot: true
+strictPeerDependencies: false
 shamefullyHoist: true
 shellEmulator: true
-minimumReleaseAgeStrict: true
-trustPolicy: no-downgrade
-pmOnFail: download
 # lodash.set has no published 4.3.3 release. The pinned 4.3.2 package is
 # patched below with Lodash's upstream unsafe-path guard and regression-tested.
 auditConfig:
   ignoreGhsas:
     - GHSA-p6mc-m468-83gw
+
+sideEffectsCache: false
+pmOnFail: download
+
 packages:
   - demo/*
   - docs
@@ -61,10 +81,34 @@ overrides:
   tar: 7.5.22
   typescript: 5.9.3
   undici@>=7 <8: 7.29.0
-  vite: 8.2.0
+  vite: 8.3.1
+  # Keep Nuxt and game clients on the same Vue runtime.
+  vue: 'catalog:frontend'
+
+packageExtensions:
+  # Keep this adapter's optional cac peer compatible alongside Vitest's cac 7.
+  '@bomb.sh/tab@0.0.19':
+    dependencies:
+      cac: ^6.7.14
 
 patchedDependencies:
   lodash.set@4.3.2: patches/lodash.set@4.3.2.patch
+
+allowBuilds:
+  '@parcel/watcher': false
+  bufferutil: false
+  core-js: false
+  core-js-pure: false
+  cos-js-sdk-v5: false
+  electron: true
+  esbuild: false
+  msw: false
+  protobufjs: false
+  sharp: true
+  unrs-resolver: false
+  vue-demi: true
+  workerd: true
+
 catalog:
   '@aws-sdk/client-s3': ^3.1103.0
   '@aws-sdk/s3-request-presigner': ^3.1103.0
@@ -81,6 +125,8 @@ catalog:
   '@cloudbase/manager-node': ^5.6.7
   '@cloudbase/node-sdk': ^3.18.3
   '@dagrejs/dagre': ^3.1.0
+  '@devframes/service-shiki': 1.1.0
+  '@devframes/vite': 1.1.0
   '@ionic/vue': ^8.8.16
   '@ionic/vue-router': ^8.8.16
   '@larksuiteoapi/node-sdk': ^1.72.0
@@ -96,7 +142,7 @@ catalog:
 
   '@types/express': ^5.0.6
   '@types/minimist': ^1.2.5
-  '@unocss/extractor-mdc': 66.7.5
+  '@unocss/extractor-mdc': 66.10.5
   '@vitejs/plugin-legacy': ^8.2.2
   '@vue-flow/background': ^1.3.2
   '@vue-flow/controls': ^1.1.3
@@ -111,6 +157,7 @@ catalog:
   body-parser: ^2.3.0
   cos-js-sdk-v5: ^1.10.1
   cos-nodejs-sdk-v5: 3.0.0
+  devframe: 1.1.0
   dexie: ^4.4.4
   diff: ^9.0.0
   express: ^5.2.1
@@ -125,6 +172,8 @@ catalog:
   obs-websocket-js: ^5.0.8
   pdfjs-dist: ^6.2.108
   qrcode: ^1.5.4
+  sharp: 0.35.3
+  shiki: 4.4.3
   simple-git: ^3.36.0
   tencentcloud-sdk-nodejs-hunyuan: ^4.1.188
   terser: ^5.49.2
@@ -143,12 +192,8 @@ catalog:
   yaml: ^2.9.0
   yjs: ^13.6.32
   zod: ^4.4.3
+
 catalogs:
-  desktop:
-    electron: 44.4.5
-    '@electron-forge/cli': 7.11.2
-    '@electron-forge/core': 7.11.2
-    '@electron-forge/maker-zip': 7.11.2
   ai:
     openai: ^7.4.0
   babylon:
@@ -160,30 +205,29 @@ catalogs:
     babylon-vrm-loader: ^2.0.0
   build:
     '@intlify/unplugin-vue-i18n': ^11.2.4
-    '@nuxt/devtools': ^3.4.1
+    '@nuxt/devtools': ^3.4.2
     '@nuxtjs/color-mode': ^4.0.1
-    '@pinia/nuxt': ^1.0.1
+    '@pinia/nuxt': ^1.0.2
     '@shikijs/markdown-it': ^4.4.2
-    '@unocss/eslint-config': ^66.7.5
-    '@unocss/nuxt': ^66.7.5
+    '@unocss/eslint-config': ^66.10.5
+    '@unocss/nuxt': ^66.10.5
     '@vite-pwa/nuxt': ^1.1.1
-    '@vitejs/plugin-vue': ^6.0.8
-    '@vueuse/nuxt': ^14.4.0
+    '@vitejs/plugin-vue': ^6.0.9
+    '@vueuse/nuxt': ^15.0.0
     '@webcontainer/api': ^1.6.4
     beasties: ^0.3.5
     markdown-it: ^15.0.0
     markdown-it-link-attributes: ^4.0.1
-    nuxt: ^4.5.1
+    nuxt: ^4.5.2
     oxc-parser: ^0.141.0
-    rollup: ^4.62.4
-    sass: ^1.102.0
-    shiki: ^4.4.2
+    rollup: ^4.63.5
+    sass: ^1.105.0
     unbuild: ^3.6.1
-    unocss: ^66.7.5
+    unocss: ^66.10.5
     unplugin-auto-import: ^21.1.0
     unplugin-vue-components: ^32.1.0
-    unplugin-vue-markdown: ^32.0.0
-    vite: ^8.2.0
+    unplugin-vue-markdown: ^32.1.1
+    vite: ^8.3.1
     vite-bundle-visualizer: ^1.2.1
     vite-plugin-css-injected-by-js: ^5.0.2
     vite-plugin-dts: ^5.0.3
@@ -194,6 +238,7 @@ catalogs:
     vite-ssg: ^28.3.0
     vite-ssg-sitemap: ^0.10.0
   cli:
+    '@modelcontextprotocol/ext-apps': ^1.7.5
     '@modelcontextprotocol/sdk': ^1.30.0
     '@xterm/xterm': ^6.0.0
     cli-progress: ^3.12.0
@@ -204,31 +249,36 @@ catalogs:
     npm-run-all2: ^9.0.3
     prompts: ^2.4.2
     yargs: ^18.1.0
+  desktop:
+    '@electron-forge/cli': 7.11.2
+    '@electron-forge/core': 7.11.2
+    '@electron-forge/maker-zip': 7.11.2
+    electron: 44.4.5
   dev:
-    '@antfu/eslint-config': ^9.2.0
+    '@antfu/eslint-config': ^9.5.1
     '@faker-js/faker': ^10.5.0
-    '@unocss/eslint-plugin': ^66.7.5
-    eslint: ^10.8.0
+    '@unocss/eslint-plugin': ^66.10.5
+    eslint: ^10.11.0
     eslint-plugin-format: ^2.0.1
     https-localhost: ^4.7.1
     husky: ^9.1.7
     lint-staged: ^17.3.0
     nodemon: ^3.1.14
     taze: ^19.17.2
-    tsx: ^4.23.7
+    tsx: ^4.23.15
     # Vue language-tools and unbuild's declaration pipeline do not yet support TS 7.
     typescript: ^5.9.3
     unplugin-mockery: 0.4.0-beta.13
-    vue-tsc: ^3.3.9
+    vue-tsc: ^3.3.11
   docs:
     typedoc: ^0.28.20
     typedoc-plugin-merge-modules: ^7.0.0
     vitepress: 2.0.0-alpha.19
   frontend:
     '@google/model-viewer': ^4.3.1
-    '@unhead/vue': ^3.3.1
+    '@unhead/vue': ^3.4.1
     '@vue-flow/core': ^1.48.2
-    '@vueuse/core': ^14.4.0
+    '@vueuse/core': ^15.0.0
     '@vueuse/motion': ^3.0.3
     '@vueuse/sound': ^2.1.3
     animate.css: ^4.1.1
@@ -238,15 +288,15 @@ catalogs:
     # y-monaco 0.1.6 still imports a subpath removed from Monaco 0.56 exports.
     monaco-editor: ^0.55.1
     nprogress: ^0.2.0
-    pinia: ^4.0.2
-    pixi-painter: 0.1.6-beta.1
-    pixi.js: 8.19.0
-    reka-ui: ^2.10.1
+    pinia: ^4.0.3
+    pixi.js: 8.21.0
+    reka-ui: ^2.10.5
     splitpanes: ^4.1.2
     swiper: ^14.0.7
-    vue: ^3.5.41
-    vue-i18n: ^11.4.8
-    vue-router: ^5.2.0
+    three: 0.183.2
+    vue: ^3.5.43
+    vue-i18n: ^11.4.12
+    vue-router: ^5.3.1
     wc-github-corners: ^0.1.6
   icons:
     '@iconify-json/carbon': ^1.2.25
@@ -261,10 +311,10 @@ catalogs:
     '@iconify-json/vscode-icons': ^1.2.68
     '@iconify/vue': ^5.0.1
   test:
-    '@playwright/test': ^1.62.1
-    '@vitest/ui': ^4.1.10
-    '@vue/test-utils': ^2.4.11
-    vitest: ^4.1.10
+    '@playwright/test': ^1.63.0
+    '@vitest/ui': ^5.0.2
+    '@vue/test-utils': ^2.5.1
+    vitest: ^5.0.2
   types:
     '@types/cli-progress': ^3.11.6
     '@types/howler': ^2.2.13
@@ -276,6 +326,7 @@ catalogs:
     '@types/prompts': ^2.4.9
     '@types/qrcode': ^1.5.6
     '@types/semver': ^7.8.0
+    '@types/three': 0.183.1
     '@types/unist': ^3.0.3
     '@types/wicg-file-system-access': ^2023.10.7
     '@types/xml2js': ^0.4.14
@@ -312,37 +363,10 @@ catalogs:
     jiti: ^2.7.0
     js-yaml: ^5.2.3
     lodash.set: 4.3.2
+    mitt: ^3.0.1
     open: ^11.0.0
     pathe: ^2.0.3
     resolve-global: ^2.0.0
     semver: ^7.8.5
     unstorage: ^1.17.5
     xml2js: ^0.6.2
-peerDependencyRules:
-  allowedVersions:
-    # These integrations support the current runtime in practice, but their
-    # published peer ranges have not caught up with the upstream major yet.
-    '@stencil/vue-output-target>vue-router': ^5.2.0
-    unplugin-mockery>rollup: ^4.62.4
-    vitepress-plugin-mermaid>vitepress: 2.0.0-alpha.19
-
-allowBuilds:
-  electron: true
-  '@parcel/watcher': false
-  bufferutil: false
-  core-js: false
-  core-js-pure: false
-  cos-js-sdk-v5: false
-  esbuild: false
-  msw: false
-  protobufjs: false
-  sharp: true
-  unrs-resolver: false
-  vue-demi: true
-  workerd: true
-# Ignore trust downgrades for packages published more than 7 days (10080 min)
-# ago. Established transitive deps (e.g. semver@6.3.1, rollup@2.80.0 via
-# vite-plugin-pwa / @capacitor/assets) simply predate provenance attestation,
-# which `no-downgrade` would otherwise flag. New/just-published packages are
-# still checked, so protection against fresh supply-chain attacks is retained.
-trustPolicyIgnoreAfter: 10080

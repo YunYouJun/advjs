@@ -3,6 +3,7 @@
   "private": true,
   "dependencies": {
     "@webcontainer/api": "catalog:build",
+    "@xterm/addon-fit": "catalog:",
     "@xterm/xterm": "catalog:cli"
   }
 }

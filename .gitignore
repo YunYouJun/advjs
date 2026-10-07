@@ -44,6 +44,8 @@ node_modules/
 
 # Coverage
 coverage
+.vitest/
+vitest-report/
 
 # JetBrains IDEs
 .idea/
@@ -90,4 +92,5 @@ packages/advjs/skills
 .claude/scheduled_tasks.json
 .claude/worktrees
 
-.superpowers
+# Superdesign generated context and component scratch files
+.superdesign/

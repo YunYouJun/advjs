@@ -78,6 +78,11 @@ export default defineConfig({
   /* Run your local dev server before starting the tests */
   webServer: [
     {
+      command: 'pnpm exec vite --config tests/fixtures/sliders/vite.config.ts --port 3346',
+      url: 'http://127.0.0.1:3346',
+      reuseExistingServer: !process.env.CI,
+    },
+    {
       command: 'pnpm -C demo/starter run dev --port 3333',
       url: 'http://127.0.0.1:3333',
       reuseExistingServer: !process.env.CI,

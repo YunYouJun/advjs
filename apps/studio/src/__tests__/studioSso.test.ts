@@ -444,7 +444,7 @@ describe('studio SSO v3 session', () => {
 
     let fetched = false
     const runtime = new ManagedAgentRuntime({
-      baseUrl: 'https://www.yunle.fun/account-api/ai-gateway',
+      baseUrl: 'https://ai-runtime.example.test',
       getAccessToken: getToken,
       fetch: async () => {
         fetched = true

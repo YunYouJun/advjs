@@ -120,7 +120,7 @@ function createManagedRuntime(): AgentRuntime {
     envelope(taskId, 4, { type: 'run.finished', taskId }),
   ]
   return new ManagedAgentRuntime({
-    baseUrl: 'https://www.yunle.fun/account-api/ai-gateway',
+    baseUrl: 'https://ai-runtime.example.test',
     getAccessToken: () => 'access-token-fixture',
     fetch: async (input, init) => {
       const url = new URL(String(input))
@@ -221,7 +221,7 @@ describe('agent runtime adapters', () => {
 
   it('maps managed API failures to stable client error codes', async () => {
     const runtime = new ManagedAgentRuntime({
-      baseUrl: 'https://www.yunle.fun/account-api/ai-gateway',
+      baseUrl: 'https://ai-runtime.example.test',
       getAccessToken: () => 'expired-token-fixture',
       fetch: async () => apiErrorResponse(401, 'AUTH_REQUIRED', false),
     })
