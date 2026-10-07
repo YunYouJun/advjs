@@ -11,7 +11,7 @@ import {
   ContextMenuTrigger,
 } from 'reka-ui'
 import { Pane, Splitpanes } from 'splitpanes'
-import { computed, onMounted, provide, ref, watch } from 'vue'
+import { computed, onMounted, provide, ref, toRaw, watch } from 'vue'
 
 import { AGUIAssetsExplorerSymbol, listFilesInDir, openRootDir as openRootDirUtil, saveFile, useAGUIAssetsExplorer } from '../../composables'
 import { getEmptyAreaContextMenu } from '../../composables/useExplorerContextMenu'
@@ -44,7 +44,9 @@ const emit = defineEmits([
 
 const numberAfterSpacePattern = /(?<=\s)\d+/
 
-const rootDir = ref<FSDirItem | undefined>(props.rootDir)
+// Initialize through the watcher so a restored project also populates the tree
+// when this panel mounts after the workspace has already loaded.
+const rootDir = ref<FSDirItem>()
 const curDir = ref<FSDirItem | undefined>(props.curDir)
 const curFileList = ref<FSItem[]>(props.curFileList || [])
 const tree = ref(props.tree || {})
@@ -109,7 +111,9 @@ const ops = useFileOperations(state)
  * to sync internal state and populate the file tree.
  */
 watch(() => props.rootDir, async (newRootDir) => {
-  if (newRootDir && newRootDir !== rootDir.value && newRootDir.handle) {
+  // v-model can echo the raw object while the internal ref exposes its proxy.
+  // Comparing the wrappers would reopen and emit indefinitely in production.
+  if (newRootDir && toRaw(newRootDir) !== toRaw(rootDir.value) && newRootDir.handle) {
     await openRootDirUtil(newRootDir.handle, state)
   }
   else if (!newRootDir) {
@@ -118,7 +122,7 @@ watch(() => props.rootDir, async (newRootDir) => {
     curFileList.value = []
     tree.value = {}
   }
-})
+}, { immediate: true })
 
 const size = ref(64)
 const search = ref('')

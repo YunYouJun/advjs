@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { SliderRange, SliderRoot, SliderThumb, SliderTrack } from 'reka-ui'
 import AGUIInputNumber from './input/AGUIInputNumber.vue'
 import { clampNumber } from './input/numeric'
 
@@ -20,18 +21,35 @@ function update(value: number) {
   emit('update:modelValue', next)
   emit('input', next)
 }
+
+function slide(values: number[] | undefined) {
+  const value = values?.[0]
+  if (value !== undefined)
+    update(value)
+}
 </script>
 
 <template>
   <div class="agui-slider-container" :class="$attrs.class" :style="$attrs.style">
-    <input
-      v-bind="{ ...$attrs, class: undefined, style: undefined }"
-      class="agui-slider" type="range"
-      :aria-label="label || ($attrs['aria-label'] as string | undefined)"
-      :value="modelValue" :min="min" :max="max" :step="step" :disabled="disabled"
-      @input="update(($event.target as HTMLInputElement).valueAsNumber)"
+    <SliderRoot
+      v-bind="{ ...$attrs, 'class': undefined, 'style': undefined, 'id': undefined, 'aria-label': undefined, 'aria-labelledby': undefined, 'aria-describedby': undefined }"
+      class="agui-slider" thumb-alignment="overflow" :model-value="[modelValue]" :min="min" :max="max" :step="step" :disabled="disabled"
+      @update:model-value="slide"
     >
-    <AGUIInputNumber v-if="showInput" class="agui-slider-input" :aria-label="label || ($attrs['aria-label'] as string | undefined)" :aria-labelledby="($attrs['aria-labelledby'] as string | undefined)" :model-value="modelValue" :min="min" :max="max" :step="step" :disabled="disabled" @update:model-value="update" />
+      <SliderTrack class="agui-slider-track">
+        <SliderRange class="agui-slider-range" />
+      </SliderTrack>
+      <SliderThumb
+        :id="($attrs.id as string | undefined)" class="agui-slider-thumb" as-child
+        :aria-label="label || ($attrs['aria-label'] as string | undefined)"
+        :aria-labelledby="($attrs['aria-labelledby'] as string | undefined)"
+        :aria-describedby="($attrs['aria-describedby'] as string | undefined)"
+        :aria-disabled="disabled || undefined"
+      >
+        <button type="button" :disabled="disabled" />
+      </SliderThumb>
+    </SliderRoot>
+    <AGUIInputNumber v-if="showInput" class="agui-slider-input" :aria-label="label || ($attrs['aria-label'] as string | undefined)" :aria-labelledby="($attrs['aria-labelledby'] as string | undefined)" :aria-describedby="($attrs['aria-describedby'] as string | undefined)" :model-value="modelValue" :min="min" :max="max" :step="step" :disabled="disabled" @update:model-value="update" />
   </div>
 </template>
 

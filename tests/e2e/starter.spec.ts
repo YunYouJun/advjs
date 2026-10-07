@@ -21,8 +21,18 @@ async function advanceTo(current: Locator, next: Locator) {
 
 test.describe('Demo Starter', () => {
   test('runs the minimal story and opens settings', async ({ page }) => {
+    const pageErrors: string[] = []
+    page.on('pageerror', error => pageErrors.push(error.message))
     await page.goto(starterUrl)
-    await expect(page.getByRole('heading', { name: 'ADV.JS Starter' })).toBeVisible({ timeout: 15_000 })
+    const title = page.getByRole('heading', { name: 'ADV.JS Starter' })
+    await expect.poll(async () => {
+      if (pageErrors.length)
+        return pageErrors[0]
+      return await title.isVisible() ? 'ready' : 'loading'
+    }, { timeout: 15_000 }).toBe('ready')
+
+    await page.reload()
+    await expect(title).toBeVisible()
 
     await page.locator('.start-menu-item').first().click()
     await expect(page).toHaveURL(gameRoutePattern)
@@ -45,5 +55,8 @@ test.describe('Demo Starter', () => {
 
     await page.locator('.menu-setting-button').first().click()
     await expect(page.getByRole('tab', { name: '设置' })).toBeVisible()
+    await expect(page.locator('.menu-panel')).toHaveCSS('display', 'grid')
+    await expect(page.locator('.menu-panel .adv-button').first()).toHaveCSS('font-size', '48px')
+    expect(pageErrors).toEqual([])
   })
 })

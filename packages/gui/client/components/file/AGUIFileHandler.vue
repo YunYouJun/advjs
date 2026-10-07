@@ -68,7 +68,7 @@ useEventListener(areaRef, 'drop', async (e) => {
 <template>
   <div
     ref="areaRef"
-    class="h-20px flex items-center justify-center rounded"
+    class="rounded flex h-20px items-center justify-center"
     :class="{
       'bg-$agui-c-active': isDraggingOver,
       'bg-dark': !isDraggingOver,

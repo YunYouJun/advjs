@@ -149,7 +149,7 @@ async function downloadGame() {
   <div>
     <div
       v-if="isLoading"
-      class="fixed size-full bg-black/80"
+      class="bg-black/80 size-full fixed"
       flex="~" justify="center" items="center"
       z="99999"
     >
@@ -160,7 +160,7 @@ async function downloadGame() {
     </div>
 
     <div class="flex justify-between">
-      <div class="flex flex-col gap-1 p-2">
+      <div class="p-2 flex flex-col gap-1">
         <h3 class="text-lg font-bold">
           {{ t('webcontainer.status-title') }}
 
@@ -168,7 +168,7 @@ async function downloadGame() {
         </h3>
 
         <div class="flex flex-col">
-          <span v-for="status in statusList" :key="status.desc" class="flex items-center gap-2 text-sm">
+          <span v-for="status in statusList" :key="status.desc" class="text-sm flex gap-2 items-center">
             <div v-if="status.status === 'running'" class="i-svg-spinners:3-dots-scale" />
             <div v-else-if="status.status === 'done'" class="i-ri-check-line text-green-500" />
             <div v-else class="i-ri-circle-line op-0" />
@@ -185,7 +185,7 @@ async function downloadGame() {
 
       <div class="actions flex">
         <AdvButton
-          class="flex items-center justify-center gap-4"
+          class="flex gap-4 items-center justify-center"
           :disabled="state.mount === 'running' || state.installDependencies === 'running' || state.build === 'running'"
           @click="installAndBuild()"
         >
@@ -211,7 +211,7 @@ async function downloadGame() {
             </TooltipTrigger>
             <TooltipPortal>
               <TooltipContent
-                class="data-[state=instant-open]:data-[side=top]:animate-slideDownAndFade data-[state=instant-open]:data-[side=right]:animate-slideLeftAndFade data-[state=instant-open]:data-[side=left]:animate-slideRightAndFade data-[state=instant-open]:data-[side=bottom]:animate-slideUpAndFade text-grass11 will-change-[transform,opacity] select-none border rounded-md bg-dark px-[15px] py-[10px] text-sm leading-none shadow-sm"
+                class="data-[state=instant-open]:data-[side=top]:animate-slideDownAndFade data-[state=instant-open]:data-[side=right]:animate-slideLeftAndFade data-[state=instant-open]:data-[side=left]:animate-slideRightAndFade data-[state=instant-open]:data-[side=bottom]:animate-slideUpAndFade text-grass11 text-sm leading-none px-[15px] py-[10px] will-change-[transform,opacity] border rounded-md bg-dark select-none shadow-sm"
               >
                 {{ t('webcontainer.download-disabled-tip') }}
               </TooltipContent>

@@ -38,7 +38,9 @@ const model = defineModel<string | number>()
           </div>
         </TabsTrigger>
       </TabsList>
-      <slot name="actions" />
+      <div v-if="$slots.actions" class="agui-tab-actions">
+        <slot name="actions" />
+      </div>
     </div>
 
     <div class="flex-1 min-h-0 overflow-y-auto">
@@ -50,13 +52,25 @@ const model = defineModel<string | number>()
 <style lang="scss">
 .agui-tab-heading {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   flex-shrink: 0;
   min-width: 0;
+  min-height: var(--agui-tab-list-height, 28px);
   background: var(--agui-c-bg-soft);
 }
+.agui-tab-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 2px;
+  padding: 2px 4px;
+
+  &:empty {
+    display: none;
+  }
+}
 .agui-tab-list {
-  min-height: var(--agui-tab-list-height, 24px);
+  min-height: var(--agui-tab-list-height, 28px);
   flex: 1;
   min-width: 0;
   overflow-x: auto;

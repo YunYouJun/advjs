@@ -1,5 +1,6 @@
 import type { initAdvData } from './data'
 
+import { defu } from 'defu'
 import { computed } from 'vue'
 import configuredRuntimePlugins from '#advjs/runtime-plugins'
 import { setupAdvContext } from '../setup/context'
@@ -10,7 +11,7 @@ export * from './data'
 export function initAdvContext(advData: ReturnType<typeof initAdvData>) {
   const advConfig = computed(() => advData.value.config)
   const gameConfig = computed(() => advData.value.gameConfig)
-  const themeConfig = computed(() => advData.value.config.themeConfig)
+  const themeConfig = computed(() => defu(advData.value.themeConfig, advData.value.config.themeConfig))
 
   const advContext = setupAdvContext({
     config: advConfig,

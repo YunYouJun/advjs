@@ -35,7 +35,7 @@ function onChange(e: Event) {
     <input
       :value="value"
       :checked="checked"
-      class="input"
+      class="agui-checkbox"
       type="checkbox"
       :disabled="disabled"
       @change="onChange"
@@ -55,13 +55,14 @@ function onChange(e: Event) {
 .agui-checkbox-container {
   display: flex;
   gap: 2px;
-  color: white;
+  color: var(--agui-c-text-1);
   align-items: center;
   user-select: none;
   font:
     12px system-ui,
     sans-serif;
   cursor: pointer;
+  min-height: var(--agui-control-height);
 
   margin: 2px;
 
@@ -70,40 +71,8 @@ function onChange(e: Event) {
     line-height: 1;
   }
 
-  .input {
-    outline: none;
-    appearance: none;
-    background: #545454;
-    border: 1px solid #3d3d3d;
-    border-radius: 3px;
-    box-shadow: 0 1px 1px rgba(black, 0.2);
-    width: 14px;
-    height: 14px;
-    margin: 0;
-
-    &:hover {
-      background: #656565;
-      border-color: #464646;
-    }
-    &:checked {
-      background: #4772b3 var(--b-icon-checkbox) no-repeat center center;
-    }
-    &:focus-visible {
-      border-color: #4772b3;
-      &:checked {
-        border-color: white;
-      }
-    }
-
-    &:disabled {
-      &:hover {
-        background: #545454;
-        border-color: #3d3d3d;
-      }
-      &:checked {
-        background: #545454 var(--b-icon-checkbox) no-repeat center center;
-      }
-    }
+  .agui-checkbox {
+    flex-shrink: 0;
   }
 }
 </style>

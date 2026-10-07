@@ -3,7 +3,6 @@ import { useAdvContext } from '@advjs/client'
 import { onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 
-const isDev = import.meta.env.DEV
 const { $adv } = useAdvContext()
 const route = useRoute()
 
@@ -26,7 +25,6 @@ onMounted(async () => {
 
 <template>
   <AdvGame />
-  <AdvDevTools v-if="isDev" />
 </template>
 
 <route lang="yaml">

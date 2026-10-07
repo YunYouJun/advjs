@@ -1,7 +1,7 @@
 import type { App } from 'vue'
 import type { FSItem } from '../../packages/gui/client/components/explorer/types'
 import type { AGUIAssetsExplorerState } from '../../packages/gui/client/composables/useAssetsExplorer'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createApp, h, nextTick, provide, ref } from 'vue'
 import AGUIAssetsExplorer from '../../packages/gui/client/components/explorer/AGUIAssetsExplorer.vue'
 import AGUIFileList from '../../packages/gui/client/components/explorer/AGUIFileList.vue'
@@ -10,6 +10,10 @@ import { AGUIAssetsExplorerSymbol } from '../../packages/gui/client/composables/
 import { useExplorerKeyboard } from '../../packages/gui/client/composables/useExplorerKeyboard'
 import { useFileOperations } from '../../packages/gui/client/composables/useFileOperations'
 import { useFileSelection } from '../../packages/gui/client/composables/useFileSelection'
+
+import { mockResizeObserver } from '../helpers/resize-observer'
+
+beforeEach(mockResizeObserver)
 
 let app: App | undefined
 afterEach(() => {

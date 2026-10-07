@@ -58,6 +58,12 @@ save:
   quick_load_failed: Quick load failed
 
 settings:
+  tabs:
+    dialogue: Text
+    display: Display
+    audio: Audio
+    speech: Voice
+  appearance_language: Appearance and language
   title: Settings
   fullscreen: Full Screen
   play_speed: Play Speed
@@ -90,6 +96,7 @@ font_size:
   small: Small
   normal: Normal
   big: Big
+  extra_large: Extra Large
 
 display_mode:
   type: Type Mode

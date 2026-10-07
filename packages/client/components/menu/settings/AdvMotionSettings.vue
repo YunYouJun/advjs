@@ -1,27 +1,30 @@
 <script setup lang="ts">
 import type { MotionPreference } from '@advjs/client'
 import { useAdvSettingsControls } from '@advjs/client'
+import { useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
+const labelId = useId()
 const controls = useAdvSettingsControls()
 const options: MotionPreference[] = ['full', 'reduced', 'none']
 </script>
 
 <template>
-  <div col="span-5" class="adv-menu-item--label justify-center" text="3xl">
-    <label font="bold serif">{{ t('settings.motion') }}</label>
+  <div class="adv-menu-item--label">
+    <span :id="labelId">{{ t('settings.motion') }}</span>
   </div>
-  <div col="span-7" class="adv-motion-settings">
-    <button
+  <div class="adv-menu-item--container adv-motion-settings" role="group" :aria-labelledby="labelId">
+    <AdvTextButton
       v-for="option in options"
       :key="option"
       type="button"
-      :class="{ active: controls.motion.value === option }"
+      :active="controls.motion.value === option"
+      :aria-pressed="controls.motion.value === option"
       @click="controls.motion.value = option"
     >
       {{ t(`settings.motion_${option}`) }}
-    </button>
+    </AdvTextButton>
   </div>
 </template>
 
@@ -29,20 +32,7 @@ const options: MotionPreference[] = ['full', 'reduced', 'none']
 .adv-motion-settings {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.25em;
   flex-wrap: wrap;
-}
-
-.adv-motion-settings button {
-  border: 1px solid rgb(148 163 184 / 35%);
-  border-radius: 0.35rem;
-  background: rgb(15 23 42 / 65%);
-  padding: 0.55rem 0.8rem;
-  color: inherit;
-}
-
-.adv-motion-settings button.active {
-  border-color: #38bdf8;
-  background: rgb(14 116 144 / 55%);
 }
 </style>

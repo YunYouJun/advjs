@@ -34,8 +34,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="h-full w-full flex items-center justify-center">
+  <div class="flex h-full w-full items-center justify-center">
     <AdvGame class="h-full w-full" />
-    <AdvGameLoading class="absolute inset-0 z-9999 text-white" />
+    <AdvGameLoading class="text-white inset-0 absolute z-9999" />
   </div>
 </template>

@@ -5,52 +5,69 @@
   min-width: 0;
   width: 100%;
   min-height: var(--agui-control-height);
+
   .agui-slider-input {
     flex: 0 0 64px;
     width: 64px;
   }
 }
+
 .agui-slider {
-  appearance: none;
+  position: relative;
+  display: flex;
+  align-items: center;
   flex: 1;
   min-width: 0;
   width: 100%;
   height: var(--agui-control-height);
-  margin: 0;
-  background: transparent;
+  // Match half the 12px thumb, including at min/max values.
+  margin-inline: 6px;
+  touch-action: none;
+  user-select: none;
   cursor: pointer;
-  &::-webkit-slider-runnable-track {
-    height: 4px;
-    background: var(--agui-c-control-border);
-    border-radius: 2px;
-  }
-  &::-moz-range-track {
-    height: 4px;
-    background: var(--agui-c-control-border);
-    border-radius: 2px;
-  }
-  &::-webkit-slider-thumb {
-    appearance: none;
-    width: 12px;
-    height: 12px;
-    margin-top: -4px;
-    border: 1px solid var(--agui-c-primary);
-    border-radius: 2px;
-    background: var(--agui-c-primary);
-  }
-  &::-moz-range-thumb {
-    width: 12px;
-    height: 12px;
-    border: 1px solid var(--agui-c-primary);
-    border-radius: 2px;
-    background: var(--agui-c-primary);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--agui-c-focus);
-    outline-offset: -2px;
-  }
-  &:disabled {
+
+  &[data-disabled] {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  .agui-slider-track {
+    position: relative;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--agui-c-control-border);
+  }
+
+  .agui-slider-range {
+    position: absolute;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--agui-c-primary);
+  }
+
+  .agui-slider-thumb {
+    box-sizing: border-box;
+    display: block;
+    width: 12px;
+    height: 12px;
+    padding: 0;
+    border: 1px solid var(--agui-c-primary);
+    border-radius: 2px;
+    background: var(--agui-c-primary);
+    cursor: grab;
+
+    &:focus-visible {
+      outline: 2px solid var(--agui-c-focus);
+      outline-offset: 2px;
+    }
+
+    &:active:not(:disabled) {
+      cursor: grabbing;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+    }
   }
 }

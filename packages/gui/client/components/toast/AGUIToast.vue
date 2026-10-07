@@ -2,6 +2,7 @@
 import type { ToastOptions } from '../../composables'
 import { ToastClose, ToastDescription, ToastProvider, ToastRoot, ToastTitle, ToastViewport } from 'reka-ui'
 import { ref } from 'vue'
+import AGUIIconButton from '../button/AGUIIconButton.vue'
 
 const toastOptions = ref<ToastOptions>({
   title: '',
@@ -11,12 +12,18 @@ const toastOptions = ref<ToastOptions>({
 })
 
 const toastList = ref<ToastOptions[]>([])
+let sequence = 0
 
 function add(options: ToastOptions) {
+  if (options.id && toastList.value.some(item => item.id === options.id))
+    return
   toastList.value.push({
     ...toastOptions.value,
     ...options,
+    id: options.id ?? `toast-${++sequence}`,
   })
+  if (toastList.value.length > 3)
+    toastList.value.shift()
 }
 
 defineExpose({
@@ -38,48 +45,30 @@ function getIconFromType(type: ToastOptions['type']) {
       return 'i-ri-information-line'
   }
 }
-
-function getClassesFromType(type: ToastOptions['type']) {
-  const cls: string[] = []
-  switch (type) {
-    case 'info':
-      cls.push('bg-blue-500')
-      break
-    case 'success':
-      cls.push('bg-green-500')
-      break
-    case 'warning':
-      cls.push('bg-yellow-500')
-      break
-    case 'error':
-      cls.push('bg-red-500')
-      break
-    default:
-      cls.push('bg-$agui-c-bg')
-  }
-  return cls
-}
 </script>
 
 <template>
   <div class="fixed z-999">
     <ToastProvider>
       <ToastRoot
-        v-for="item, i in toastList" :key="i"
-        class="ToastRoot relative flex flex-col shadow-xl"
-        :class="getClassesFromType(item.type)"
+        v-for="item in toastList" :key="item.id"
+        class="ToastRoot flex flex-col relative"
+        :class="`agui-toast--${item.type || 'default'}`"
         :duration="item.duration"
+        @update:open="open => { if (!open) toastList = toastList.filter(toast => toast !== item) }"
       >
         <ToastTitle v-if="item.title" class="ToastTitle flex items-center">
           <div mr-1 :class="getIconFromType(item.type)" />
           {{ item.title || '' }}
         </ToastTitle>
-        <ToastDescription v-if="item.description" class="ml-21px flex text-xs">
+        <ToastDescription v-if="item.description" class="ToastDescription text-xs ml-21px flex">
           {{ item.description || '' }}
         </ToastDescription>
-        <!-- <slot /> -->
-        <ToastClose class="absolute right-2 top-3.5 cursor-pointer text-base">
-          <div i-ri-close-fill />
+        <div v-if="$slots.actions" class="ToastActions">
+          <slot name="actions" :item="item" />
+        </div>
+        <ToastClose as-child>
+          <AGUIIconButton icon="i-ri-close-fill" title="Close" class="right-2 top-3.5 absolute" />
         </ToastClose>
       </ToastRoot>
       <ToastViewport class="ToastViewport" />
@@ -88,15 +77,11 @@ function getClassesFromType(type: ToastOptions['type']) {
 </template>
 
 <style lang="scss">
-/* reset */
-button {
-  all: unset;
-}
-
 .ToastViewport {
+  pointer-events: none;
   --viewport-padding: 10px;
   position: fixed;
-  bottom: 0;
+  bottom: var(--agui-status-bar-height, 0px);
   right: 0;
   display: flex;
   flex-direction: column;
@@ -104,6 +89,8 @@ button {
   gap: 10px;
   width: 350px;
   max-width: 100vw;
+  max-height: min(50dvh, calc(100dvh - var(--agui-status-bar-height, 0px)));
+  overflow: auto;
   margin: 0;
   list-style: none;
   z-index: 2147483647;
@@ -111,12 +98,28 @@ button {
 }
 
 .ToastRoot {
-  color: white;
-  border-radius: 6px;
-  box-shadow:
-    hsl(206 22% 7% / 35%) 0px 10px 38px -10px,
-    hsl(206 22% 7% / 20%) 0px 10px 20px -15px;
+  pointer-events: auto;
+  flex-shrink: 0;
+  --toast-accent: var(--agui-c-text-2);
+  color: var(--agui-c-text-1);
+  background: var(--agui-c-popup);
+  border: 1px solid var(--agui-c-border);
+  border-inline-start: 3px solid var(--toast-accent);
+  border-radius: 4px;
+  box-shadow: var(--agui-shadow-popup);
   padding: 12px;
+}
+.agui-toast--info {
+  --toast-accent: var(--agui-c-link);
+}
+.agui-toast--success {
+  --toast-accent: var(--agui-c-success-text);
+}
+.agui-toast--warning {
+  --toast-accent: var(--agui-c-warning-text);
+}
+.agui-toast--error {
+  --toast-accent: var(--agui-c-danger-text);
 }
 
 .ToastRoot[data-state='open'] {
@@ -166,16 +169,31 @@ button {
 .ToastTitle {
   grid-area: title;
   font-weight: 500;
-  color: var(--slate-12);
+  color: var(--agui-c-text-1);
   font-size: 14px;
+  padding-right: 24px;
+}
+.ToastTitle > div {
+  color: var(--toast-accent);
 }
 
 .ToastDescription {
   grid-area: description;
   margin: 0;
-  color: var(--slate-11);
+  color: var(--agui-c-text-2);
   font-size: 12px;
   line-height: 1.3;
+  overflow-wrap: anywhere;
+  max-height: 120px;
+  overflow: auto;
+}
+.ToastActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.ToastActions:not(:empty) {
+  margin-top: 8px;
 }
 
 .ToastAction {

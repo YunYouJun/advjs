@@ -6,7 +6,11 @@ interface PaperTheme extends ThemeConfig {
 }
 
 export const theme = defineThemeConfig<PaperTheme>({
-  ui: { colorScheme: 'dark', tokens: { '--adv-choice-bg': '#222', '--adv-theme-paper': 'none' } },
+  ui: {
+    colorScheme: 'dark',
+    end: { text: '故事完' },
+    tokens: { '--adv-choice-bg': '#222', '--adv-theme-paper': 'none', '--adv-end-bg': '#18202a', '--adv-end-font-size': '4rem' },
+  },
   paper: { grain: true },
 })
 export const compatible: AdvThemeConfig = theme
@@ -31,3 +35,5 @@ export const badHelper = defineThemeConfig({ ui: { colorScheme: 'sepia' } })
 export const badMixedHelper = defineThemeConfig({ ui: { tokens: { '--adv-choice-bg': '#222', '--agui-c-bg': 'red' } } })
 // @ts-expect-error Theme-specific configuration keeps its declared type.
 export const badExtension = defineThemeConfig<PaperTheme>({ paper: { grain: 'yes' } })
+// @ts-expect-error Ending labels are plain text strings.
+export const badEndText = defineThemeConfig({ ui: { end: { text: 123 } } })

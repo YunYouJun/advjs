@@ -11,22 +11,16 @@ const iProps = withDefaults(defineProps<{
   }),
 })
 
-function onChange(val: Event | any) {
-  if (iProps.props.change && val.target && val.target.value)
-    iProps.props.change(val.target.value)
+function onChange(event: Event) {
+  const value = (event.target as HTMLSelectElement).value
+  const option = iProps.props.options?.find(option => option.value === value)
+  if (option)
+    iProps.props.change?.(option)
 }
 </script>
 
 <template>
-  <!-- eslint-disable vue/no-mutating-props -->
-  <select
-    v-model="props.selected"
-    class="adv-select w-full rounded"
-    border="~ 1"
-    p="x-2"
-    text="xl"
-    @change="onChange"
-  >
+  <select :value="props.selected" class="adv-select" @change="onChange">
     <option v-for="item in props.options" :key="item.value" :value="item.value">
       {{ item.label }}
     </option>

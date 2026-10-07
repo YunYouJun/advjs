@@ -6,7 +6,7 @@
 
 <style>
 .adv-icon {
-  font-size: var(--font-size, 3rem);
+  font-size: var(--font-size, 1.5em);
   color: inherit;
   fill: currentColor;
 }

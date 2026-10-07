@@ -174,14 +174,12 @@ withDefaults(defineProps<{
 .ContextMenuContent,
 .ContextMenuSubContent {
   min-width: 220px;
-  background-color: var(--agui-c-bg-panel);
-  border: 1px solid var(--agui-c-divider);
-  border-radius: 6px;
+  background-color: var(--agui-c-popup);
+  border: 1px solid var(--agui-c-border);
+  border-radius: 4px;
   overflow: hidden;
   padding: 5px;
-  box-shadow:
-    0px 8px 15px -5px rgba(22, 23, 24, 0.4),
-    0px 8px 8px -8px rgba(22, 23, 24, 0.2);
+  box-shadow: var(--agui-shadow-popup);
 }
 
 .agui-context-menu-item,
@@ -245,7 +243,7 @@ withDefaults(defineProps<{
 .RightSlot {
   margin-left: auto;
   padding-left: 20px;
-  color: var(--agui-c-text-3);
+  color: var(--agui-c-text-2);
 }
 [data-highlighted] > .RightSlot {
   color: var(--agui-c-on-accent);
@@ -255,6 +253,6 @@ withDefaults(defineProps<{
 }
 
 .agui-context-menu-content {
-  background-color: var(--agui-c-bg-panel);
+  background-color: var(--agui-c-popup);
 }
 </style>

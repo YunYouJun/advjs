@@ -50,7 +50,7 @@
     "lint-staged": "catalog:dev",
     "markdown-it-link-attributes": "catalog:build",
     "rollup": "catalog:build",
-    "shiki": "catalog:build",
+    "shiki": "catalog:",
     "taze": "catalog:dev",
     "typescript": "catalog:dev",
     "unocss": "catalog:build",

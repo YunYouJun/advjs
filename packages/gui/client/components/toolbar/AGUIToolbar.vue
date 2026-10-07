@@ -9,12 +9,14 @@ import AGUIDropdownMenu from '../dropdown-menu/AGUIDropdownMenu.vue'
 withDefaults(defineProps<{
   items: ToolbarItem[]
   label?: string
-}>(), { label: 'Tools' })
+  wrap?: boolean
+}>(), { label: 'Tools', wrap: true })
 </script>
 
 <template>
   <ToolbarRoot
     class="agui-toolbar"
+    :class="{ 'agui-toolbar-nowrap': !wrap }"
     :aria-label="label"
   >
     <slot name="before-toolbar" />
@@ -86,5 +88,9 @@ withDefaults(defineProps<{
   width: 1px;
   margin: 2px 4px;
   background: var(--agui-c-divider);
+}
+
+.agui-toolbar-nowrap {
+  flex-wrap: nowrap;
 }
 </style>

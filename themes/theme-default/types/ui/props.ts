@@ -30,4 +30,5 @@ export interface AdvSliderProps {
   min?: number
   max?: number
   step?: number
+  disabled?: boolean
 }

@@ -38,8 +38,8 @@ const onlineGameUrl = computed(() => {
     </h2>
 
     <div class="my-4 flex flex-col gap-2">
-      <input v-model="pominisId" placeholder="Pominis ID" class="border border-gray-600 rounded bg-dark-200 px-2 py-1 text-sm text-white outline-none">
-      <input v-model="authToken" placeholder="Auth Token" class="border border-gray-600 rounded bg-dark-200 px-2 py-1 text-sm text-white outline-none">
+      <input v-model="pominisId" placeholder="Pominis ID" class="text-sm text-white px-2 py-1 outline-none border border-gray-600 rounded bg-dark-200">
+      <input v-model="authToken" placeholder="Auth Token" class="text-sm text-white px-2 py-1 outline-none border border-gray-600 rounded bg-dark-200">
     </div>
 
     <div class="flex flex-col gap-2">

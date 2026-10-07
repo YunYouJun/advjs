@@ -62,6 +62,19 @@ describe('aGUI control contracts', () => {
     expect(trigger.disabled).toBe(true)
   })
 
+  it('updates selected text when option labels change without changing the selected value', async () => {
+    const options = ref([{ value: 'folder', label: '当前目录及子目录' }])
+    const update = vi.fn()
+    const container = mount(() => h(AGUISelect, { 'label': 'Browse scope', 'modelValue': 'folder', 'options': options.value, 'onUpdate:modelValue': update }))
+    const trigger = container.querySelector<HTMLButtonElement>('[role=combobox]')!
+    expect(trigger.textContent).toContain('当前目录及子目录')
+    options.value = [{ value: 'folder', label: 'Folder and descendants' }]
+    await nextTick()
+    expect(trigger.textContent).toContain('Folder and descendants')
+    expect(trigger.title).toBe('Folder and descendants')
+    expect(update).not.toHaveBeenCalled()
+  })
+
   it('connects dialog descriptions and keeps a working close control', async () => {
     const open = ref(true)
     mount(() => h(AGUIDialog, { 'open': open.value, 'title': 'Settings', 'description': 'Project settings', 'onUpdate:open': value => open.value = value }, () => h('p', 'Settings body')))

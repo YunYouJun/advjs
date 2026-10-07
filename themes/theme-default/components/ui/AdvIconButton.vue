@@ -32,9 +32,17 @@ const popDown = useSound(popDownUrl, { volume: sVolume })
   border: 0;
   color: inherit;
   background: transparent;
-  font: inherit;
-  border-radius: 50%;
-  padding: 1rem;
+  font-family: inherit;
+  font-size: calc(22px / var(--adv-screen-scale, 1));
+  width: calc(36px / var(--adv-screen-scale, 1));
+  height: calc(36px / var(--adv-screen-scale, 1));
+  flex: none;
+  border-radius: calc(var(--adv-control-radius, 4px) / var(--adv-screen-scale, 1));
+  padding: 0;
+
+  .adv-icon {
+    font-size: inherit;
+  }
   cursor: pointer;
 
   transition: 0.2s;

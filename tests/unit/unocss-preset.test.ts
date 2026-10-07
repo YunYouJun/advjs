@@ -2,7 +2,10 @@
 
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import process from 'node:process'
+import { createGenerator } from 'unocss'
+import { describe, expect, it, vi } from 'vitest'
+import setupUnocss from '../../packages/advjs/node/setups/unocss'
 import { presetAdv } from '../../packages/unocss/src'
 
 const root = resolve(import.meta.dirname, '../..')
@@ -12,6 +15,23 @@ function read(path: string) {
 }
 
 describe('@advjs/unocss preset', () => {
+  it('renders player and title icons when building outside the toolchain repository', async () => {
+    const clientRoot = resolve(root, 'packages/client')
+    const config = await setupUnocss({ clientRoot, roots: [resolve(root, 'themes/theme-default')] })
+    const cwd = vi.spyOn(process, 'cwd').mockReturnValue('/tmp/advjs-external-game')
+    try {
+      const uno = await createGenerator(config)
+      const { css } = await uno.generate('<span i-ri-user-line></span><span i-ri-settings-3-line></span><span i-ri-close-line></span>')
+
+      for (const icon of ['i-ri-user-line', 'i-ri-settings-3-line', 'i-ri-close-line', 'i-ri-play-large-line'])
+        expect(css, icon).toContain(icon)
+      expect(css).toContain('data:image/svg+xml')
+    }
+    finally {
+      cwd.mockRestore()
+    }
+  })
+
   it('exposes only namespaced shared shortcuts', () => {
     const shortcuts = presetAdv().shortcuts as Array<[string, string]>
     const names = shortcuts.map(([name]) => name)

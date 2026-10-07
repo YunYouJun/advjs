@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { useAppStore } from '@advjs/client'
+import { useGameControlsI18n } from '../../composables/useGameControlsI18n'
 
 const app = useAppStore()
+const { t } = useGameControlsI18n()
 </script>
 
 <template>
-  <div class="hide-ui-layer" @click="() => { app.toggleUi() }" />
+  <button type="button" class="hide-ui-layer" :aria-label="t('controls.restore')" @click.stop="app.toggleUi()" />
 </template>
 
 <style>
@@ -16,5 +18,8 @@ const app = useAppStore()
   right: 0;
   left: 0;
   bottom: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
 }
 </style>

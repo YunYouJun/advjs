@@ -3,21 +3,12 @@ import type { MenuButtonItem } from '../../types/menu'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { useGameColorMode } from '../../composables/useGameColorMode'
 import { useAppStore, useSettingsStore } from '../../stores'
 
-const { t, locale, availableLocales } = useI18n()
+const { t } = useI18n()
 
 const app = useAppStore()
 const settings = useSettingsStore()
-const { isDark, toggle: toggleDark } = useGameColorMode()
-
-function toggleLocales() {
-  // change to some real logic
-  const locales = availableLocales
-  locale.value = locales[(locales.indexOf(locale.value) + 1) % locales.length]
-}
-
 const router = useRouter()
 const route = useRoute()
 
@@ -27,6 +18,7 @@ const menuItems = computed<MenuButtonItem[]>(() => {
       ? [
           {
             title: t('menu.save_game'),
+            icon: 'i-ri-save-line',
             do: () => {
               app.menus.settings = false
               app.toggleShowSaveMenu()
@@ -37,24 +29,29 @@ const menuItems = computed<MenuButtonItem[]>(() => {
 
   return [...items, {
     title: t('menu.load_game'),
+    icon: 'i-ri-folder-upload-line',
     do: () => {
       app.menus.settings = false
       app.toggleShowLoadMenu()
     },
   }, {
     title: t('menu.back_home'),
+    icon: 'i-ri-home-4-line',
     do: () => {
       app.menus.settings = false
       router.push('/start')
     },
   }, {
     title: t('menu.reset_settings'),
+    icon: 'i-ri-restart-line',
     do: () => {
       settings.resetSettings()
     },
   }, {
     title: t('menu.help'),
+    icon: 'i-ri-question-line',
     do: () => {
+      app.menus.settings = false
       router.push('/help')
     },
   }]
@@ -62,29 +59,14 @@ const menuItems = computed<MenuButtonItem[]>(() => {
 </script>
 
 <template>
-  <div col="span-6" class="flex flex-col items-start justify-center" h="full" m="l-4">
-    <AdvButton
-      v-for="(item, i) in menuItems"
-      :key="i"
-      class="flex"
-      @click="item.do"
-    >
-      {{ item.title }}
+  <nav class="adv-settings-tools" :aria-label="t('settings.title')">
+    <AdvButton v-for="item in menuItems" :key="item.title" class="adv-settings-action" @click="item.do">
+      <span v-if="item.icon" :class="item.icon" aria-hidden="true" />
+      <span>{{ item.title }}</span>
     </AdvButton>
-
-    <div m="4" class="flex gap-1">
-      <AdvIconButton :title="t('button.toggle_dark')" :aria-pressed="isDark" @click="toggleDark()">
-        <div v-if="isDark" i-ri-moon-line />
-        <div v-else i-ri-sun-line />
-      </AdvIconButton>
-
-      <AdvIconButton :title="t('button.toggle_langs')" @click="toggleLocales">
-        <div i-ri-translate class="transform transition" :class="locale === 'en' ? 'rotate-y-180' : ''" />
-      </AdvIconButton>
-    </div>
-
-    <AdvButton @click="app.menus.settings = false">
-      {{ t('button.close') }}
+    <AdvButton class="adv-settings-action" @click="app.menus.settings = false">
+      <span i-ri-close-line aria-hidden="true" />
+      <span>{{ t('button.close') }}</span>
     </AdvButton>
-  </div>
+  </nav>
 </template>

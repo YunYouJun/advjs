@@ -61,7 +61,7 @@ const debugInfo = computed(() => {
     <AdvIconButton @click="setCameraInfo(vrmCamera)">
       <div i-ri-shield-user-line />
     </AdvIconButton>
-    <pre class="block text-left">{{ debugInfo }}</pre>
+    <pre class="text-left block">{{ debugInfo }}</pre>
   </AdvDebug>
 </template>
 

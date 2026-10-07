@@ -19,7 +19,7 @@ withDefaults(defineProps<{
     :disabled="disabled"
   >
     <slot>
-      <span :class="icon" aria-hidden="true" />
+      <span class="agui-icon-button-icon" :class="icon" aria-hidden="true" />
     </slot>
   </button>
 </template>
@@ -37,17 +37,26 @@ withDefaults(defineProps<{
   border: 1px solid transparent;
   border-radius: 3px;
   color: var(--agui-c-text-1);
-  background: var(--agui-c-control);
+  background: transparent;
+  appearance: none;
+  font-family: inherit;
   font-size: 14px;
   line-height: 1;
   cursor: pointer;
+  transition: background-color 100ms ease;
+
+  .agui-icon-button-icon {
+    flex-shrink: 0;
+    width: 1em;
+    height: 1em;
+  }
 
   &:hover:not(:disabled) {
-    background: var(--agui-c-control-hover);
+    background: var(--agui-c-icon-hover);
   }
 
   &:active:not(:disabled) {
-    background: var(--agui-c-control-pressed);
+    background: var(--agui-c-icon-pressed);
   }
 
   &.active {
@@ -59,6 +68,10 @@ withDefaults(defineProps<{
     background: var(--agui-c-primary-hover);
   }
 
+  &.active:active:not(:disabled) {
+    background: var(--agui-c-primary-pressed);
+  }
+
   &.large {
     min-width: 28px;
     min-height: 28px;
@@ -67,12 +80,18 @@ withDefaults(defineProps<{
 
   &:focus-visible {
     outline: 2px solid var(--agui-c-focus);
-    outline-offset: 2px;
+    outline-offset: -2px;
   }
 
   &:disabled {
     opacity: 0.45;
     cursor: not-allowed;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agui-icon-button {
+    transition: none;
   }
 }
 </style>

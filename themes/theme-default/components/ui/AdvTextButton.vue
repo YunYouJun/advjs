@@ -18,7 +18,12 @@ function onClick(event: Event) {
 
 <style lang="scss">
 .adv-text-button {
-  padding: 0.35rem 0.6rem 0.2rem 0.6rem;
+  min-height: 2.25em;
+  padding: 0.35em 0.625em;
+  color: inherit;
+  font: inherit;
+  line-height: 1.4;
+  border-radius: calc(var(--adv-control-radius, 4px) / var(--adv-screen-scale, 1));
   transition: 0.2s;
   border-bottom: 2px solid transparent;
 
@@ -27,9 +32,14 @@ function onClick(event: Event) {
     border-bottom: 2px solid var(--adv-c-primary);
   }
 
+  &:focus-visible {
+    outline: 2px solid var(--adv-c-focus, var(--adv-c-primary));
+    outline-offset: 2px;
+  }
+
   &.active {
     border-bottom: 2px solid var(--adv-c-primary);
-    background-color: var(--adv-c-primary-light);
+    background-color: var(--adv-control-active-bg, color-mix(in srgb, var(--adv-c-primary) 12%, transparent));
   }
 }
 </style>

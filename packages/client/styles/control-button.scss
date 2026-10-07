@@ -1,0 +1,66 @@
+// Shared feedback for player controls; geometry remains with each consumer.
+@mixin feedback($hover-bg: rgb(255 255 255 / 10%), $pressed-bg: rgb(255 255 255 / 18%)) {
+  position: relative;
+  border: calc(1px / var(--adv-screen-scale, 1)) solid transparent;
+  border-radius: calc(var(--adv-control-radius, 4px) / var(--adv-screen-scale, 1));
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    background-color 120ms ease-out,
+    border-color 120ms ease-out,
+    color 120ms ease-out,
+    box-shadow 120ms ease-out;
+
+  @media (hover: hover) {
+    &:hover:not(:disabled) {
+      border-color: var(--adv-control-hover-border, color-mix(in srgb, currentColor 20%, transparent));
+      background: var(--adv-control-hover-bg, $hover-bg);
+      box-shadow: inset 0 1px rgb(255 255 255 / 8%);
+    }
+  }
+
+  &:focus-visible {
+    outline: calc(2px / var(--adv-screen-scale, 1)) solid var(--adv-c-focus, var(--adv-c-primary, white));
+    outline-offset: calc(2px / var(--adv-screen-scale, 1));
+    background: var(--adv-control-hover-bg, $hover-bg);
+  }
+
+  &:active:not(:disabled) {
+    background: var(--adv-control-active-bg, $pressed-bg);
+    box-shadow: inset 0 1px 3px rgb(0 0 0 / 20%);
+  }
+
+  &[aria-pressed='true'],
+  &[aria-expanded='true'],
+  &.playback-stop {
+    color: var(--adv-control-active-color, var(--adv-c-primary, #f1d8a4));
+    background: var(--adv-control-active-bg, color-mix(in srgb, var(--adv-c-primary, #f1d8a4) 14%, transparent));
+
+    &::after {
+      position: absolute;
+      inset: auto 32% calc(3px / var(--adv-screen-scale, 1));
+      height: calc(2px / var(--adv-screen-scale, 1));
+      border-radius: 1px;
+      background: currentColor;
+      content: '';
+    }
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: wait;
+  }
+
+  [data-motion='reduced'] & {
+    transition-duration: 80ms;
+  }
+
+  [data-motion='none'] & {
+    transition: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}

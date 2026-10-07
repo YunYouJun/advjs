@@ -2,7 +2,7 @@
 </script>
 
 <template>
-  <div class="flex flex-col items-end justify-center gap-2">
+  <div class="flex flex-col gap-2 items-end justify-center">
     MADE WITH
     <PominisLogoSvg class="w-50" />
   </div>

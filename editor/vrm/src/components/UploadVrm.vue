@@ -66,7 +66,7 @@ onMounted(() => {
 
 <template>
   <div
-    class="pointer-events-none absolute top-0 z-10 h-full w-full flex items-center justify-center" :class="showDragStyle ? ['bg-black bg-opacity-50 border border-4 border-black border-dashed'] : ''" text="2xl white"
+    class="flex h-full w-full pointer-events-none items-center top-0 justify-center absolute z-10" :class="showDragStyle ? ['bg-black bg-opacity-50 border border-4 border-black border-dashed'] : ''" text="2xl white"
   >
     <span v-show="showDragStyle">Drag .vrm file</span>
   </div>

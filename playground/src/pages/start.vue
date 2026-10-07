@@ -68,12 +68,12 @@ onMounted(async () => {
 
 <template>
   <div
-    class="animate__animated animate__fadeIn adv-start-game-logo inline-flex flex-col animate-delay-600 items-center mix-blend-hard-light"
-    absolute right-5rem min-w-25rem
+    class="animate__animated animate__fadeIn adv-start-game-logo inline-flex flex-col items-center animate-delay-600 mix-blend-hard-light"
+    min-w-25rem right-5rem absolute
   >
     <slot name="logo">
       <!-- custom logo -->
-      <PominisLogo class="absolute right-5 top-20" />
+      <PominisLogo class="right-5 top-20 absolute" />
     </slot>
   </div>
 

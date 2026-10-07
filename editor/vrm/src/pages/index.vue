@@ -52,14 +52,14 @@ function recordCameraInfo() {
 </script>
 
 <template>
-  <canvas ref="babylonCanvas" class="absolute inset-0 h-full w-full outline-none" />
+  <canvas ref="babylonCanvas" class="outline-none h-full w-full inset-0 absolute" />
 
   <VrmUi />
 
   <UploadVrm />
 
   <a target="_blank" href="https://github.com/YunYouJun/advjs">
-    <AdvIconButton class="fixed bottom-5 right-50">
+    <AdvIconButton class="bottom-5 right-50 fixed">
       <div i-ri-github-line text="white" />
     </AdvIconButton>
   </a>
@@ -68,7 +68,7 @@ function recordCameraInfo() {
     <AdvIconButton title="记录当前镜头位置" @click="recordCameraInfo()">
       <div i-ri-camera-line />
     </AdvIconButton>
-    <pre class="block text-left">{{ JSON.stringify(cameraInfo, null, 2) }}</pre>
+    <pre class="text-left block">{{ JSON.stringify(cameraInfo, null, 2) }}</pre>
   </AdvDebug>
 </template>
 

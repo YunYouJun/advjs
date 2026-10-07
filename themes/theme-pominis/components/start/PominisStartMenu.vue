@@ -7,11 +7,11 @@ defineProps<{
 </script>
 
 <template>
-  <ul class="start-menu absolute flex flex-col items-end gap-6">
+  <ul class="start-menu flex flex-col gap-6 items-end absolute">
     <PominisBtn
       v-for="(item, i) in menuItems"
       :key="i"
-      class="animate__animated animate__fadeInRight start-menu-item min-w-500px gap-3 text-4xl font-sans transition"
+      class="animate__animated animate__fadeInRight start-menu-item text-4xl font-sans gap-3 min-w-500px transition"
       :style="`animation-delay: ${0.4 + i * 0.1}s`"
       @click="item.do"
     >

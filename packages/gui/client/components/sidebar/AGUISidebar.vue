@@ -9,7 +9,7 @@ const activeKey = defineModel<string>('active-key')
 </script>
 
 <template>
-  <div flex="~ col" class="sidebar h-full w-12 bg-$agui-c-bg-soft text-white shadow">
+  <div flex="~ col" class="sidebar text-$agui-c-text-1 bg-$agui-c-bg-soft h-full w-12 shadow">
     <AGUISidebarItem
       v-for="item in menu" :key="item.key"
       :item="item"

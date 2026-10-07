@@ -54,9 +54,8 @@ const { t } = useI18n()
   box-sizing: border-box;
   width: 100%;
   overflow-x: auto;
-  padding: 0.75rem max(1rem, env(safe-area-inset-right)) max(0.75rem, env(safe-area-inset-bottom))
-    max(1rem, env(safe-area-inset-left));
-  border-top: 1px solid rgb(128 128 128 / 24%);
+  padding: calc(8px / var(--adv-screen-scale, 1));
+  border-top: 1px solid var(--adv-save-border-color, color-mix(in srgb, var(--adv-c-text) 16%, transparent));
   scrollbar-width: thin;
 }
 
@@ -66,30 +65,30 @@ const { t } = useI18n()
   min-width: 100%;
   align-items: center;
   justify-content: center;
-  gap: 0.45rem;
+  gap: calc(4px / var(--adv-screen-scale, 1));
 }
 
 .save-pagination__button {
   display: inline-flex;
-  min-width: 2.6rem;
-  height: 2.6rem;
+  min-width: calc(32px / var(--adv-screen-scale, 1));
+  height: calc(32px / var(--adv-screen-scale, 1));
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  padding: 0.35rem 0.75rem;
-  border-radius: var(--adv-save-control-radius, 0.25rem);
+  padding: 0 calc(8px / var(--adv-screen-scale, 1));
+  border-radius: calc(var(--adv-save-control-radius, var(--adv-control-radius, 4px)) / var(--adv-screen-scale, 1));
   background: transparent;
   color: var(--adv-c-text);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.9rem;
+  font-size: calc(14px / var(--adv-screen-scale, 1));
   line-height: 1;
   transition-duration: var(--adv-save-motion-duration, 180ms);
   white-space: nowrap;
 }
 
 .save-pagination__button--system {
-  min-width: 5.25rem;
-  gap: 0.35rem;
+  min-width: calc(64px / var(--adv-screen-scale, 1));
+  gap: calc(4px / var(--adv-screen-scale, 1));
   font-family: inherit;
 }
 
@@ -98,7 +97,7 @@ const { t } = useI18n()
   background: var(--adv-c-primary-light);
 }
 
-@media (max-width: 800px) {
+@container adv-game (max-width: 599px) {
   .save-pagination__inner {
     justify-content: flex-start;
   }

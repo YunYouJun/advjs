@@ -1,11 +1,15 @@
 import type { App } from 'vue'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createApp, h, nextTick, ref } from 'vue'
 import AGUINumberField from '../../packages/gui/client/components/AGUINumberField.vue'
 import AGUINumberSlider from '../../packages/gui/client/components/AGUINumberSlider.vue'
 import AGUISlider from '../../packages/gui/client/components/AGUISlider.vue'
 import AGUIInputNumber from '../../packages/gui/client/components/input/AGUIInputNumber.vue'
 import AGUIInputVector from '../../packages/gui/client/components/input/AGUIInputVector.vue'
+
+import { mockResizeObserver } from '../helpers/resize-observer'
+
+beforeEach(mockResizeObserver)
 
 let app: App | undefined
 afterEach(() => {
@@ -96,9 +100,14 @@ describe('aGUI numeric editing', () => {
     ]))
     const inputs = [...container.querySelectorAll('input')]
     expect(inputs.every(input => input.disabled)).toBe(true)
-    expect(inputs.map(input => input.getAttribute('aria-label'))).toEqual(['Count', 'Offset', 'Offset'])
+    expect(inputs.map(input => input.getAttribute('aria-label'))).toEqual(['Count', 'Offset'])
+    const slider = container.querySelector<HTMLButtonElement>('[role=slider]')!
+    expect(slider.disabled).toBe(true)
+    expect(slider.getAttribute('aria-label')).toBe('Offset')
+    expect(slider.getAttribute('aria-valuemax')).toBe('0')
     expect(inputs[1].max).toBe('0')
     key(inputs[0], 'ArrowUp')
+    key(slider, 'ArrowRight')
     container.querySelector('button')!.click()
     expect(update).not.toHaveBeenCalled()
     expect(container.querySelector('.agui-numeric-drag')).toBeNull()
@@ -127,6 +136,7 @@ describe('aGUI numeric editing', () => {
     expect(new Set(inputs.map(input => input.id)).size).toBe(4)
     expect([...container.querySelectorAll('label')].map(label => label.control)).toEqual(inputs)
     inputs[0].focus()
+    await nextTick()
     type(inputs[0], '9')
     key(inputs[0], 'Enter')
     await nextTick()

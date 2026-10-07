@@ -11,27 +11,29 @@
   box-sizing: border-box;
   height: 100%;
   overflow-y: auto;
-  padding: clamp(0.75rem, 2vw, 1.5rem);
-  scrollbar-gutter: stable;
+  padding: calc(12px / var(--adv-screen-scale, 1));
 }
 
 .save-slots-grid {
   display: grid;
   width: 100%;
-  max-width: 88rem;
+  height: 100%;
   margin: 0 auto;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-content: start;
-  gap: clamp(0.65rem, 1.5vw, 1.1rem);
+  grid-auto-rows: minmax(calc(88px / var(--adv-screen-scale, 1)), 1fr);
+  gap: calc(10px / var(--adv-screen-scale, 1));
 }
 
-@media (max-width: 800px) {
-  .save-slots-scroll {
-    padding: 0.75rem;
+@container adv-game (min-width: 960px) {
+  .save-slots-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
 
+@container adv-game (max-width: 599px) {
   .save-slots-grid {
     grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: minmax(132px, 1fr);
   }
 }
 </style>

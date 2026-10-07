@@ -1,14 +1,22 @@
 <script lang="ts" setup>
 // Game Instance
 import type { AdvConfig } from '@advjs/types'
+import type { VNodeChild } from 'vue'
 
 import { useAppStore } from '@advjs/client'
-import { computed } from 'vue'
+import { computed, shallowRef } from 'vue'
 import { useBeforeUnload } from '../../composables'
 import { useAdvContext } from '../../composables/useAdvContext'
+import { useAdvMotionPreference } from '../../composables/useAdvMotionPreference'
 
 defineProps<{
   frontmatter?: AdvConfig
+}>()
+
+defineSlots<{
+  default?: () => VNodeChild
+  scene?: () => VNodeChild
+  end?: () => VNodeChild
 }>()
 
 const { $adv } = useAdvContext()
@@ -23,6 +31,9 @@ if (!import.meta.env.DEV && typeof __DEV__ !== 'undefined' && !__DEV__)
   useBeforeUnload()
 
 const app = useAppStore()
+const choiceMotion = useAdvMotionPreference()
+const controlsHeight = shallowRef(0)
+const showToolbar = computed(() => app.showUi && !app.menus.settings && !app.showHistory && !app.showSaveMenu && !app.showLoadMenu)
 </script>
 
 <template>
@@ -43,32 +54,52 @@ const app = useAppStore()
       <slot />
     </div>
 
-    <div class="adv-ui absolute" w="full" h="full">
+    <div class="adv-ui absolute" w="full" h="full" :style="{ '--adv-dialog-controls-height': `${controlsHeight}px` }">
       <BaseLayer v-if="!app.showUi" />
 
       <Transition enter-active-class="animate-fade-in-up" leave-active-class="animate-fade-out-down">
         <AdvDialogBox v-if="curNode && showsDialog" v-show="app.showUi" :node="curNode" class="z-2 animate-duration-200" />
       </Transition>
 
+      <Transition name="adv-choice" :css="choiceMotion !== 'none'">
+        <AdvChoice v-if="curNode" v-show="curNode.kind === 'choices'" :node="curNode" class="z-3" />
+      </Transition>
+
       <Transition enter-active-class="animate-fade-in-up" leave-active-class="animate-fade-out-down">
-        <AdvChoice v-if="curNode" v-show="curNode.kind === 'choices'" :node="curNode" class="z-3 animate-duration-200" />
+        <DialogControls v-show="app.showUi" class="z-20 animate-duration-200" @resize="controlsHeight = $event" />
       </Transition>
 
-      <Transition v-if="app.showDialogControls" enter-active-class="animate-fade-in-up" leave-active-class="animate-fade-out-down">
-        <DialogControls v-show="app.showUi" class="bottom-1 left-0 right-0 absolute z-4 animate-duration-200" />
-      </Transition>
-
-      <Transition enter-active-class="animate-fade-in-down" leave-active-class="animate-fade-out-up">
-        <AdvGameUI v-show="app.showUi" class="z-99 animate-duration-200" />
-      </Transition>
-
-      <Transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-        <AdvEnd v-if="$adv.store.state.status === 'ended'" />
+      <Transition :css="choiceMotion !== 'none'" enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
+        <slot v-if="$adv.store.state.status === 'ended'" name="end">
+          <AdvEnd />
+        </slot>
       </Transition>
 
       <AdvActivity v-if="$adv.store.state.status === 'waiting-activity'" />
 
       <AdvGameModals />
     </div>
+    <template #controls>
+      <AdvGameUI v-show="showToolbar" />
+    </template>
   </AdvContainer>
 </template>
+
+<style scoped>
+.adv-ui {
+  --adv-control-target: calc(36px / var(--adv-screen-scale, 1));
+  --adv-control-bottom: calc(8px / var(--adv-screen-scale, 1));
+  --adv-control-left: calc(16px / var(--adv-screen-scale, 1));
+  --adv-control-right: calc(16px / var(--adv-screen-scale, 1));
+}
+@media (any-pointer: coarse) {
+  .adv-ui {
+    --adv-control-target: calc(44px / var(--adv-screen-scale, 1));
+  }
+}
+@container adv-viewport (max-width: 600px) {
+  .adv-ui {
+    --adv-control-target: calc(44px / var(--adv-screen-scale, 1));
+  }
+}
+</style>

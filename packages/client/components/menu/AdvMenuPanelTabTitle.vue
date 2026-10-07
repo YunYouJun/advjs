@@ -8,14 +8,28 @@ defineProps<{
 </script>
 
 <template>
-  <TabsTrigger
-    class="leading-none p-6 rounded-tr bg-$adv-c-bg flex flex-1 cursor-pointer items-center justify-center data-[state=active]:(text-$adv-c-primary bg-$adv-c-primary-light)"
-    :value="value"
-  >
-    <slot>
-      <h2 class="adv-font-serif font-black" text="6xl">
-        {{ title }}
-      </h2>
-    </slot>
+  <TabsTrigger class="adv-settings-tab" :value="value">
+    <slot>{{ title }}</slot>
   </TabsTrigger>
 </template>
+
+<style scoped>
+.adv-settings-tab {
+  min-height: 2.75em;
+  padding: 0.5em 0.625em;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--adv-c-text-2);
+  font: inherit;
+  font-size: 1.125em;
+  font-weight: 600;
+  line-height: 1.3;
+  cursor: pointer;
+}
+
+.adv-settings-tab[data-state='active'] {
+  border-color: var(--adv-c-primary);
+  color: var(--adv-c-primary);
+  background: var(--adv-control-active-bg, color-mix(in srgb, var(--adv-c-primary) 12%, transparent));
+}
+</style>

@@ -35,4 +35,14 @@ export const safelist: string[] = [
   'i-ri-markdown-line',
   'i-ri-node-tree',
   'i-ri-file-add-line',
+
+  // Semantic project directory icons (resolved from paths at runtime).
+  'i-ri-folders-line',
+  'i-ri-book-open-line',
+  'i-ri-folder-user-line',
+  'i-ri-landscape-line',
+  'i-ri-folder-image-line',
+  'i-ri-folder-music-line',
+  'i-ri-folder-video-line',
+  'i-ri-box-3-line',
 ]

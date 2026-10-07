@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import {
+  ComboboxAnchor,
   ComboboxContent,
   ComboboxEmpty,
   ComboboxInput,
@@ -39,18 +40,18 @@ function onUpdateModelValue(value: string) {
 <template>
   <ComboboxRoot
     :model-value="modelValue"
-    :search-term="modelValue"
-    :display-value="(v: string) => v ?? ''"
     @update:model-value="onUpdateModelValue"
-    @update:search-term="onUpdateModelValue"
   >
-    <div class="agui-combobox-wrapper">
+    <ComboboxAnchor class="agui-combobox-wrapper">
       <ComboboxInput
+        :model-value="modelValue"
+        :display-value="(v: string) => v ?? ''"
         class="agui-combobox-input agui-input"
         :placeholder="placeholder"
         auto-focus
+        @update:model-value="onUpdateModelValue"
       />
-    </div>
+    </ComboboxAnchor>
 
     <ComboboxPortal>
       <ComboboxContent class="agui-combobox-content z-100" position="popper" :side-offset="4">
@@ -91,11 +92,11 @@ function onUpdateModelValue(value: string) {
 
 .agui-combobox-content {
   overflow: hidden;
-  background-color: #1d1d1d;
-  border-radius: 6px;
-  box-shadow:
-    0px 10px 38px -10px rgba(22, 23, 24, 0.35),
-    0px 10px 20px -15px rgba(22, 23, 24, 0.2);
+  color: var(--agui-c-text-1);
+  background-color: var(--agui-c-popup);
+  border: 1px solid var(--agui-c-border);
+  border-radius: 4px;
+  box-shadow: var(--agui-shadow-popup);
   width: var(--reka-combobox-trigger-width);
   max-height: var(--reka-combobox-content-available-height);
 }
@@ -107,7 +108,7 @@ function onUpdateModelValue(value: string) {
 .agui-combobox-empty {
   padding: 4px 8px;
   font-size: 12px;
-  color: #989898;
+  color: var(--agui-c-text-2);
 }
 
 .agui-combobox-item {
@@ -116,19 +117,19 @@ function onUpdateModelValue(value: string) {
   border-radius: 3px;
   display: flex;
   align-items: center;
-  height: 20px;
+  min-height: 25px;
   padding: 0 35px 0 25px;
   position: relative;
   user-select: none;
 
   &[data-disabled] {
-    color: #aaa;
+    color: var(--agui-c-text-3);
     pointer-events: none;
   }
   &[data-highlighted] {
     outline: none;
     background-color: var(--agui-c-active);
-    color: white;
+    color: var(--agui-c-on-accent);
     cursor: pointer;
   }
 

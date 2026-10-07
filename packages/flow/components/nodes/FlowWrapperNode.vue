@@ -105,7 +105,7 @@ const outputs = computed(() => {
     <ContextMenuTrigger>
       <div
         ref="containerRef"
-        class="flow-wrapper-node min-w-52 cursor-auto rounded bg-$sd-c-bg-alt shadow outline-black outline"
+        class="flow-wrapper-node outline-black outline rounded bg-$sd-c-bg-alt min-w-52 cursor-auto shadow"
         flex="~ col"
         :class="{
           'outline-white': status === 'running',
@@ -116,7 +116,7 @@ const outputs = computed(() => {
         @mousedown="onSelected"
       >
         <div
-          class="px-2 py-1 text-10px"
+          class="text-10px px-2 py-1"
           cursor="move"
           rounded="tl tr"
           flex items-center border="b-1px b-dark-50" op="95"

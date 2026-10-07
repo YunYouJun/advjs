@@ -78,9 +78,9 @@ const open = defineModel('open', {
   max-height: calc(100dvh - 24px);
   color: var(--agui-c-text-1);
   background: var(--agui-c-bg-panel);
-  border: 1px solid var(--agui-c-control-border);
+  border: 1px solid var(--agui-c-border);
   border-radius: 4px;
-  box-shadow: 0 8px 24px var(--agui-c-overlay);
+  box-shadow: var(--agui-shadow-popup);
   font-size: 13px;
 }
 .agui-dialog-header {

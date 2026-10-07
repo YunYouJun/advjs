@@ -2,6 +2,7 @@ export interface TreeNode {
   id?: string
   name?: string
   type?: string
+  icon?: string
   /**
    * 是否展开
    */

@@ -112,12 +112,21 @@ provideLocal(injectionAdvContent, advContentRef)
 // #adv-container will be hidden by adblock plugin
 
 #adv-content {
-  @apply overflow-hidden left-1/2 top-1/2;
+  isolation: isolate;
+  @apply left-1/2 top-1/2;
+  // Focused modal pagination must not scroll the logical canvas on resize.
+  overflow: clip;
   // Match the logical game canvas, including responsive embedded previews.
   container: adv-game / inline-size;
 }
 
+// Modals in the stage cover the unscaled system controls as well.
+.adv-screen:has(.modal-mask) > #adv-content {
+  z-index: 10;
+}
+
 .adv-screen {
+  container: adv-viewport / inline-size;
   // `overflow: hidden` still allows focused choices to scroll this canvas.
   // A clipped canvas keeps the centered 16:9 stage fixed after interactions.
   overflow: clip;

@@ -38,8 +38,8 @@ const classes = computed(() => {
     type="button"
     class="agui-button"
   >
-    <div v-if="loading" aria-hidden="true" class="i-svg-spinners:ring-resize text-xs mr-1 inline-flex" />
-    <div v-else-if="icon" aria-hidden="true" class="mr-1 inline-flex" :class="icon" />
+    <div v-if="loading" aria-hidden="true" class="agui-button-icon i-svg-spinners:ring-resize text-xs inline-flex" />
+    <div v-else-if="icon" aria-hidden="true" class="agui-button-icon inline-flex" :class="icon" />
     <slot />
   </button>
 </template>
@@ -50,13 +50,14 @@ const classes = computed(() => {
   --button-hover: var(--agui-c-control-hover);
   --button-pressed: var(--agui-c-control-pressed);
   --button-text: var(--agui-c-text-1);
-  --button-border: var(--agui-c-control-border);
+  --button-border: var(--agui-c-button-border);
   --border-radius: 2px;
 
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   flex-shrink: 0;
   min-height: var(--agui-control-height);
   min-width: var(--agui-control-height);
@@ -74,6 +75,10 @@ const classes = computed(() => {
   transition:
     background-color 150ms ease,
     border-color 150ms ease;
+
+  .agui-button-icon {
+    flex-shrink: 0;
+  }
 
   &[data-location='LEFT'] {
     border-top-right-radius: 0;

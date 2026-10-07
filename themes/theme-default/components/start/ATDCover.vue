@@ -37,3 +37,14 @@ onMounted(() => {
     <div v-if="rippleAnimation" bg="orange-400" class="adv-ripple absolute right-0 top-0 animate-delay-200" />
   </Transition>
 </template>
+
+<style scoped>
+.circle-pattern {
+  --circle-size: 15rem;
+  position: absolute;
+  width: var(--circle-size);
+  height: var(--circle-size);
+  mix-blend-mode: hard-light;
+  border-radius: 50%;
+}
+</style>

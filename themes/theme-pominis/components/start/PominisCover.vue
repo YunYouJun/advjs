@@ -13,7 +13,7 @@ onMounted(() => {
 <template>
   <Transition appear>
     <div
-      class="adv-start-bg absolute h-full w-full bg-dark -z-1"
+      class="adv-start-bg bg-dark h-full w-full absolute -z-1"
       bg="cover no-repeat center"
       :style="{ backgroundImage: `url(${$adv.gameConfig.value.cover})` }"
     />

@@ -1,6 +1,7 @@
 import type { UseSpeechSynthesisOptions } from '@vueuse/core'
 
 export interface SettingOptions {
+  dialogBar?: DialogBarMode
   text: TextOptions
   play: {
     mdUrl: string
@@ -12,6 +13,8 @@ export interface SettingOptions {
     motion: MotionPreference
   }
 }
+
+export type DialogBarMode = 'always' | 'auto' | 'collapsed'
 
 export type MotionPreference = 'full' | 'reduced' | 'none'
 

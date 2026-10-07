@@ -1,6 +1,5 @@
 :root {
   --agui-layout-splitter-size: 3px;
-  --agui-layout-splitter-color: black;
 }
 
 // override
@@ -15,7 +14,7 @@
   justify-content: center;
   align-items: center;
   font-family: Helvetica, Arial, sans-serif;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--agui-c-text-1);
   font-size: 1em;
 }
 
@@ -29,7 +28,7 @@
   left: 0;
   top: 0;
   transition: opacity 0.4s;
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: var(--agui-layout-splitter-hover-color);
   opacity: 0;
   z-index: 1;
 }

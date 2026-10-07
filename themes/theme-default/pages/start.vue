@@ -1,43 +1,35 @@
 <script lang="ts" setup>
 import { useGameConfig } from '@advjs/client'
+import { useAdvMotionPreference } from '@advjs/client/composables/useAdvMotionPreference'
 import { useThemeDefaultStore } from '@advjs/theme-default'
 
 const gameConfig = useGameConfig()
-
 const themeStore = useThemeDefaultStore()
+const motion = useAdvMotionPreference()
 </script>
 
 <template>
-  <div
-    class="animate__animated animate__fadeIn adv-start-game-logo inline-flex flex-col animate-delay-600 items-center mix-blend-hard-light"
-    absolute right-5rem min-w-25rem
-  >
-    <slot name="logo">
-      <!-- custom logo -->
-      <NewYunLogo
-        class="text-9xl text-$adv-theme-logo-color mix-blend-screen"
-        m="t-20" alt="YunYouJun Logo"
-      />
+  <div class="adv-start-page" :data-motion="motion">
+    <slot name="cover">
+      <ATDCover />
     </slot>
-
-    <slot name="title">
-      <h1
-        class="adv-game-title gradient-text shadow-co z-1 mt-2 from-purple-500 to-$adv-theme-title-gradient-end bg-gradient-to-r text-4xl text-shadow-lg"
-        font="bold"
-      >
-        {{ gameConfig.title }}
-      </h1>
-    </slot>
+    <div class="adv-start-shell">
+      <section class="adv-start-panel" :aria-label="gameConfig.title">
+        <header class="adv-start-game-logo">
+          <slot name="logo">
+            <NewYunLogo class="adv-start-logo" aria-hidden="true" />
+          </slot>
+          <slot name="title">
+            <h1 class="adv-game-title">
+              {{ gameConfig.title }}
+            </h1>
+          </slot>
+        </header>
+        <StartMenu :menu-items="themeStore.$startMenu.menuItems" inline />
+      </section>
+    </div>
+    <AdvGameModals />
   </div>
-
-  <slot name="cover">
-    <!-- custom cover -->
-    <ATDCover />
-  </slot>
-
-  <StartMenu :menu-items="themeStore.$startMenu.menuItems" />
-
-  <AdvGameModals />
 </template>
 
 <route lang="yaml">
@@ -45,20 +37,85 @@ meta:
   layout: start
 </route>
 
-<style lang="scss">
-.adv-game-title {
-  --text-shadow-color: #{rgba(#0078e7, 0.4)};
-  text-shadow: 0 0 20px var(--text-shadow-color);
+<style scoped lang="scss">
+.adv-start-page {
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
-
-.circle-pattern {
-  --circle-size: 15rem;
-  width: var(--circle-size);
-  height: var(--circle-size);
-
-  mix-blend-mode: hard-light;
-  border-radius: 50%;
-
+.adv-start-shell {
   position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  padding: calc(28px / var(--adv-screen-scale, 1));
+  overflow: auto;
+  pointer-events: none;
+}
+.adv-start-panel {
+  flex: none;
+  align-self: flex-end;
+  width: min(100%, calc(300px / var(--adv-screen-scale, 1)));
+  margin-block: auto;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--adv-theme-start-title-gap, 36px) / var(--adv-screen-scale, 1));
+  pointer-events: auto;
+  animation: adv-start-in 180ms ease-out;
+}
+.adv-start-game-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(16px / var(--adv-screen-scale, 1));
+}
+.adv-start-logo {
+  font-size: calc(64px / var(--adv-screen-scale, 1));
+  color: var(--adv-theme-logo-color, var(--adv-c-primary));
+}
+.adv-game-title {
+  margin: 0;
+  color: var(--adv-theme-start-title-color, var(--adv-c-text));
+  font-family: var(--adv-font-family, system-ui), sans-serif;
+  font-size: calc(var(--adv-theme-start-title-size, 30px) / var(--adv-screen-scale, 1));
+  font-weight: 600;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+@container adv-game (max-width: 600px) {
+  .adv-start-shell {
+    bottom: calc(56px / var(--adv-screen-scale, 1));
+    padding: calc(20px / var(--adv-screen-scale, 1));
+  }
+  .adv-start-logo {
+    font-size: calc(48px / var(--adv-screen-scale, 1));
+  }
+  .adv-start-game-logo {
+    gap: calc(12px / var(--adv-screen-scale, 1));
+  }
+  .adv-start-panel {
+    align-self: center;
+  }
+}
+.adv-start-page[data-motion='reduced'] .adv-start-panel {
+  animation-duration: 80ms;
+}
+.adv-start-page[data-motion='none'] .adv-start-panel {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .adv-start-panel {
+    animation: none;
+  }
+}
+@keyframes adv-start-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 </style>

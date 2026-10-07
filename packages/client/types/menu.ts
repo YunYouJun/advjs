@@ -1,5 +1,6 @@
 export interface MenuButtonItem {
   title: string
+  icon?: string
   do: () => void
 }
 
@@ -40,6 +41,7 @@ export interface AdvSliderProps {
   min?: number
   max?: number
   step?: number
+  disabled?: boolean
 }
 
 export interface AdvMenuItemMap<T extends AdvItemOption = AdvItemOption> {

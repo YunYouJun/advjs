@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { AdvMenuItemProps } from '@advjs/theme-default'
 import { useSpeechSynthesis } from '@vueuse/core'
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 
 import { useI18n } from 'vue-i18n'
 import { useSettingsStore } from '../../../stores'
@@ -56,12 +56,15 @@ const speechLanguageItem = computed<AdvMenuItemProps>(() => ({
   },
 }))
 
+let voicesTimer: ReturnType<typeof setTimeout> | undefined
 onMounted(() => {
-  const synth = window.speechSynthesis
-  setTimeout(() => {
-    voiceOptions.value = synth.getVoices()
+  voicesTimer = setTimeout(() => {
+    const voices = window.speechSynthesis?.getVoices()
+    if (voices?.length)
+      voiceOptions.value = voices
   }, 1000)
 })
+onUnmounted(() => clearTimeout(voicesTimer))
 </script>
 
 <template>

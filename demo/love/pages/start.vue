@@ -9,8 +9,8 @@ const themeStore = useThemeDefaultStore()
 
 <template>
   <div
-    class="animate__animated animate__fadeIn adv-start-game-logo inline-flex flex-col animate-delay-600 items-center mix-blend-hard-light"
-    absolute right-5rem min-w-25rem
+    class="animate__animated animate__fadeIn adv-start-game-logo inline-flex flex-col items-center animate-delay-600 mix-blend-hard-light"
+    min-w-25rem right-5rem absolute
   >
     <slot name="logo">
       <!-- custom logo -->
@@ -22,7 +22,7 @@ const themeStore = useThemeDefaultStore()
 
     <slot name="title">
       <h1
-        class="adv-game-title gradient-text shadow-co z-1 mt-2 from-purple-500 to-blue-500 bg-gradient-to-r text-4xl text-shadow-lg dark:to-blue-300"
+        class="adv-game-title gradient-text shadow-co text-4xl text-shadow-lg mt-2 z-1 from-purple-500 to-blue-500 bg-gradient-to-r dark:to-blue-300"
         font="bold"
       >
         {{ gameConfig.title }}
@@ -35,13 +35,13 @@ const themeStore = useThemeDefaultStore()
     <ATDCover />
 
     <img
-      class="animate__animated animate__slideInUp absolute bottom-0 animate-delay-500 -right-2"
+      class="animate__animated animate__slideInUp bottom-0 absolute animate-delay-500 -right-2"
       h="15"
       w="15"
       :src="images.yunGoodAlphaUrl"
     >
 
-    <small class="absolute bottom-3 right-13 mt-10" text="xs">小云的恋💗爱物语，绝赞制作中！</small>
+    <small class="mt-10 bottom-3 right-13 absolute" text="xs">小云的恋💗爱物语，绝赞制作中！</small>
   </slot>
 
   <StartMenu :menu-items="themeStore.$startMenu.menuItems" />

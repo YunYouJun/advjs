@@ -22,7 +22,7 @@ const backgroundImageStyle = computed(() => ({
     type="button"
     class="agui-toggle-icon"
     :aria-label="hint || icon"
-    :class="{ muted }"
+    :class="{ muted, 'is-disclosure': icon === 'expanded' || icon === 'collapsed' }"
     :style="backgroundImageStyle"
     :title="hint"
     @click.stop
@@ -37,8 +37,8 @@ const backgroundImageStyle = computed(() => ({
   background: transparent;
   color: inherit;
   border: none;
-  width: 24px;
-  height: 24px;
+  width: var(--agui-control-height);
+  height: var(--agui-control-height);
   opacity: 0.85;
   flex-shrink: 0;
   cursor: pointer;
@@ -50,6 +50,9 @@ const backgroundImageStyle = computed(() => ({
   inset: 4px;
   mask: var(--agui-toggle-mask) center / contain no-repeat;
   background: currentColor;
+}
+.agui-toggle-icon.is-disclosure::before {
+  translate: 4px 0;
 }
 .agui-toggle-icon:active,
 .agui-toggle-icon:hover {

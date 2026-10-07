@@ -37,7 +37,7 @@ useEventListener(openDirectoryRef, 'drop', async (e) => {
 <template>
   <div
     ref="openDirectoryRef"
-    class="agui-open-directory relative h-full w-full flex flex-col cursor-pointer items-center justify-center"
+    class="agui-open-directory flex flex-col h-full w-full cursor-pointer items-center justify-center relative"
     @click="openDir(state)"
   >
     <div class="icon text-6xl">

@@ -204,5 +204,24 @@ export function setupAdvContext(ctx: {
   advContext.$bgm.setVolume(audio.bgmVolume)
   watch(() => audio.bgmVolume, value => advContext.$bgm.setVolume(value))
 
+  if (import.meta.env.DEV && typeof window !== 'undefined') {
+    // Retain the latest context so a late-loading inspector can attach too.
+    const devtoolsContext = {
+      runtime,
+      gameConfig: ctx.gameConfig,
+      compileDiagnostics,
+      observe: (notify: () => void) => watch(() => [
+        runtime.state.value,
+        runtime.current.value,
+        runtime.program.value,
+        ctx.gameConfig.value,
+        compileDiagnostics.value,
+      ], notify),
+    }
+    const host = window as Window & { __ADV_DEVTOOLS_CONTEXT__?: typeof devtoolsContext }
+    host.__ADV_DEVTOOLS_CONTEXT__ = devtoolsContext
+    window.dispatchEvent(new CustomEvent('advjs:devtools:runtime', { detail: devtoolsContext }))
+  }
+
   return advContext
 }

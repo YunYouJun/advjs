@@ -20,7 +20,7 @@ onMounted(() => {
 
 <template>
   <main
-    class="animate__animated animate__fadeIn h-screen w-screen flex flex-col items-center justify-center opacity-90"
+    class="animate__animated animate__fadeIn opacity-90 flex flex-col h-screen w-screen items-center justify-center"
   >
     <NewYunLogo class="h-40 w-40" />
     <div class="font-bold">

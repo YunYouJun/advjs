@@ -1,6 +1,7 @@
 // Embedded games keep their appearance inside their own container.
 // Shared light/dark values are defined once in css-vars.scss.
 @use './css-vars.scss';
+@use './dialog-reading.scss';
 
 [data-adv-ui='game'] {
   color: var(--adv-c-text);

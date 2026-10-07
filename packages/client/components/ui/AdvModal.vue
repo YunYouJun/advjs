@@ -61,29 +61,24 @@ function restoreFocus(event: Event) {
         </DialogTitle>
         <div class="modal-container flex flex-col size-full z-9999">
           <DialogClose v-if="!header" as-child>
-            <AdvIconButton :title="t('button.close')" class="modal-close-button right-4 top-4 absolute">
-              <div i-ri-close-line class="text-6xl" />
+            <AdvIconButton :title="t('button.close')" class="modal-close-button modal-close-floating">
+              <span i-ri-close-line aria-hidden="true" />
             </AdvIconButton>
           </DialogClose>
 
           <slot name="header">
-            <div v-if="header" class="flex items-center justify-between">
-              <h1
-                class="adv-font-serif font-black p-6 flex gap-2 items-center"
-                text="6xl"
-              >
-                <div :class="icon" />
+            <div v-if="header" class="adv-modal-header">
+              <h1 class="adv-modal-heading">
+                <span v-if="icon" class="adv-modal-heading-icon" :class="icon" aria-hidden="true" />
                 <span>{{ header }}</span>
               </h1>
 
               <DialogClose as-child>
                 <AdvIconButton :title="t('button.close')" class="modal-close-button">
-                  <div i-ri-close-line class="text-6xl" />
+                  <span i-ri-close-line aria-hidden="true" />
                 </AdvIconButton>
               </DialogClose>
             </div>
-
-            <HorizontalDivider v-if="header" />
           </slot>
 
           <div class="modal-body flex flex-grow min-h-0 w-full justify-center overflow-auto">
@@ -95,7 +90,7 @@ function restoreFocus(event: Event) {
   </DialogRoot>
 </template>
 
-<style>
+<style scoped>
 .modal-mask {
   color: var(--adv-c-text);
   position: fixed;
@@ -116,6 +111,55 @@ function restoreFocus(event: Event) {
   transition:
     opacity var(--adv-modal-motion-duration, 180ms) ease,
     transform var(--adv-modal-motion-duration, 180ms) ease;
+}
+
+.adv-modal-header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(12px / var(--adv-screen-scale, 1));
+  padding: calc(8px / var(--adv-screen-scale, 1)) calc(16px / var(--adv-screen-scale, 1));
+  border-bottom: 1px solid color-mix(in srgb, var(--adv-c-text) 16%, transparent);
+}
+
+.adv-modal-heading {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.5em;
+  margin: 0;
+  font-family: var(--adv-font-family, inherit);
+  font-size: calc(clamp(20px, 2.5cqw, 28px) / var(--adv-screen-scale, 1));
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.adv-modal-heading-icon {
+  flex: none;
+  font-size: 0.85em;
+}
+
+.modal-close-button {
+  box-sizing: border-box;
+  width: calc(36px / var(--adv-screen-scale, 1));
+  height: calc(36px / var(--adv-screen-scale, 1));
+  flex: none;
+  padding: 0;
+  border-radius: calc(var(--adv-control-radius, 4px) / var(--adv-screen-scale, 1));
+  font-size: calc(22px / var(--adv-screen-scale, 1));
+}
+
+.modal-close-floating {
+  position: absolute;
+  top: calc(20px / var(--adv-screen-scale, 1));
+  right: calc(12px / var(--adv-screen-scale, 1));
+  z-index: 1;
+}
+
+.modal-close-button :deep(.adv-icon) {
+  font-size: inherit;
 }
 
 .adv-modal-accessible-title {

@@ -125,7 +125,7 @@ function toggleBone(bone: HumanBonesType) {
 <template>
   <AdvToolbox :default-status="true">
     <template #icon>
-      <AdvIconButton class="fixed bottom-5 right-35">
+      <AdvIconButton class="bottom-5 right-35 fixed">
         <div i-ri-edit-line />
       </AdvIconButton>
     </template>
@@ -165,7 +165,7 @@ function toggleBone(bone: HumanBonesType) {
 
   <AdvToolbox position="right" :default-status="true">
     <template #icon>
-      <AdvIconButton class="fixed bottom-5 right-20">
+      <AdvIconButton class="bottom-5 right-20 fixed">
         <div i-ri-emotion-line />
       </AdvIconButton>
     </template>

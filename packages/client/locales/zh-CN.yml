@@ -60,6 +60,12 @@ save:
 
 # settings
 settings:
+  tabs:
+    dialogue: 对白
+    display: 画面
+    audio: 音频
+    speech: 语音
+  appearance_language: 外观与语言
   title: 设置
   fullscreen: 是否全屏
   play_speed: 播放速度
@@ -92,6 +98,7 @@ font_size:
   small: 小
   normal: 中
   big: 大
+  extra_large: 超大
 
 display_mode:
   type: 打字模式

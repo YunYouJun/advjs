@@ -12,10 +12,10 @@
 /* 滚动条的滑块 */
 ::-webkit-scrollbar-thumb {
   border-radius: 4px;
-  background: var(--agui-c-gray); /* 滑块的颜色 */
+  background: var(--agui-c-scrollbar); /* 滑块的颜色 */
 }
 
 /* 滑块hover效果 */
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--agui-c-text-2); /* 滑块hover时的颜色 */
+  background: var(--agui-c-scrollbar-hover); /* 滑块hover时的颜色 */
 }

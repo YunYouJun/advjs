@@ -1,5 +1,5 @@
 <template>
-  <button class="pominis-btn bg-image-$pominis-c-mix flex items-center justify-center rounded-xl px-10 py-5 text-white">
+  <button class="pominis-btn text-white px-10 py-5 rounded-xl flex bg-image-$pominis-c-mix items-center justify-center">
     <slot />
   </button>
 </template>

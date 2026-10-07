@@ -5,6 +5,8 @@ export const toastRef = ref<InstanceType<typeof AGUIToast>>()
 export const AGUIToastRef = toastRef
 
 export interface ToastOptions {
+  id?: string
+  data?: unknown
   title: string
   description?: string
   duration?: number

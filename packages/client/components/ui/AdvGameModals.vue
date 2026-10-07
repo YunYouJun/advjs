@@ -25,6 +25,7 @@ const app = useAppStore()
   <AdvModal
     v-model:open="app.showSaveMenu"
     :header="t('menu.save_game')"
+    icon="i-ri-save-line"
   >
     <SaveMenu />
   </AdvModal>
@@ -32,6 +33,7 @@ const app = useAppStore()
   <AdvModal
     v-model:open="app.showLoadMenu"
     :header="t('menu.load_game')"
+    icon="i-ri-folder-upload-line"
   >
     <LoadMenu />
   </AdvModal>

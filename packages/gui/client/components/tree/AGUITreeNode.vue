@@ -130,6 +130,7 @@ function onKeydown(event: KeyboardEvent) {
     >
       <Toggle v-if="hasChildren" :icon="node.expanded ? 'expanded' : 'collapsed'" :hint="`${node.expanded ? 'Collapse' : 'Expand'} ${name}`" tabindex="-1" @click="toggleClick" @dblclick="doubleClick" />
       <span v-else class="agui-tree-spacer" aria-hidden="true" />
+      <span v-if="node.icon" class="agui-tree-icon" :class="node.icon" aria-hidden="true" />
       <span :id="`${uid}-name`" class="agui-tree-title" :class="{ 'is-hidden': node.visible === false || !visible }">{{ name }}</span>
       <Toggle v-if="typeof node.selectable === 'boolean'" :icon="node.selectable ? 'selectable' : 'unselectable'" :hint="`${node.selectable ? 'Disable' : 'Enable'} right-click selection: ${name}`" :muted="node.parentUnselectable" :tabindex="context?.tabStop.value === node ? 0 : -1" @click="toggleSelection" />
       <Toggle v-if="typeof node.visible === 'boolean'" :icon="node.visible ? 'eye-opened' : 'eye-closed'" :hint="`${node.visible ? 'Hide' : 'Show'} ${name}`" :tabindex="context?.tabStop.value === node ? 0 : -1" @click="toggleVisibility" />
@@ -205,6 +206,12 @@ function onKeydown(event: KeyboardEvent) {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  .agui-tree-icon {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    margin-right: 2px;
   }
   &.muted .agui-tree-title,
   .is-hidden {

@@ -38,20 +38,20 @@ defineEmits<{
   line-height: 1.5;
 
   border-radius: 10px;
-  color: #e6e6e6;
+  color: var(--agui-c-text-1);
 
   &--default {
-    background-color: rgba(60, 60, 60, 1);
+    background-color: var(--agui-c-control);
   }
 
   &--primary {
-    background-color: rgba(71, 114, 179, 0.3);
-    color: #7ba4d9;
+    background-color: var(--agui-c-selection);
+    color: var(--agui-c-selection-text);
   }
 
   &--danger {
-    background-color: rgba(179, 71, 71, 0.3);
-    color: #d97b7b;
+    background-color: var(--agui-c-danger-soft);
+    color: var(--agui-c-danger-text);
   }
 
   .agui-tag__close {

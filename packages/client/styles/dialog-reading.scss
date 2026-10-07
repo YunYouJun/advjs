@@ -1,0 +1,23 @@
+// One reading scale for the player, embedded previews and the settings sample.
+// Container units follow the logical game canvas, independently of the host UI.
+[data-adv-ui='game'] .adv-dialog-reading {
+  --adv-reading-size: 22px;
+  font-size: clamp(
+    calc(var(--adv-reading-size) - 2px),
+    calc(var(--adv-reading-size) - 4px + 0.5cqi),
+    var(--adv-reading-size)
+  );
+  line-height: 1.5;
+
+  &.text-xl {
+    --adv-reading-size: 20px;
+  }
+
+  &.text-3xl {
+    --adv-reading-size: 30px;
+  }
+
+  &.text-4xl {
+    --adv-reading-size: 36px;
+  }
+}

@@ -9,7 +9,7 @@ defineProps<{
 
 <template>
   <button
-    class="agui-sidebar-item h-12 w-full flex items-center justify-center text-lg text-$agui-c-text-2 op-60 hover:op-100"
+    class="agui-sidebar-item text-lg text-$agui-c-text-2 op-60 flex h-12 w-full items-center justify-center hover:op-100"
     :class="{ active }"
     :title="item.title"
   >

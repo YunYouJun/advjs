@@ -43,16 +43,21 @@ describe('game UI theme contract', () => {
 
   it('updates and removes local overrides without mutating the host document', async () => {
     const original = document.documentElement.outerHTML.split('<body')[0]
+    const controls = { '--adv-control-color': '#29241d', '--adv-control-hover-bg': '#f1eadb', '--adv-control-hover-border': '#705226', '--adv-control-active-bg': '#ead6a9', '--adv-control-active-color': '#705226', '--adv-control-radius': '5px', '--adv-tooltip-bg': '#faf5ea', '--adv-tooltip-border': '#705226' } as const
     const theme = shallowRef<ThemeConfig | undefined>({
-      ui: { colorScheme: 'light', tokens: { '--adv-c-primary': '#603020' } },
+      ui: { colorScheme: 'light', tokens: { '--adv-c-primary': '#603020', ...controls } },
     })
     const root = mount(theme)
     expect(root.dataset.advColorScheme).toBe('light')
     expect(root.style.getPropertyValue('--adv-c-primary')).toBe('#603020')
+    for (const [name, value] of Object.entries(controls))
+      expect(root.style.getPropertyValue(name)).toBe(value)
     theme.value = { ui: { colorScheme: 'dark', tokens: { '--adv-choice-radius': '6px' } } }
     await nextTick()
     expect(root.dataset.advColorScheme).toBe('dark')
     expect(root.style.getPropertyValue('--adv-c-primary')).toBe('')
+    for (const name of Object.keys(controls))
+      expect(root.style.getPropertyValue(name)).toBe('')
     expect(root.style.getPropertyValue('--adv-choice-radius')).toBe('6px')
     theme.value = undefined
     await nextTick()

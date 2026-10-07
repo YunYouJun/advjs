@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { AdvMenuItemKeys, AdvMenuItemProps } from '@advjs/client'
+import { useId } from 'vue'
 
 withDefaults(defineProps<{
   // todo optimize
@@ -16,31 +17,20 @@ withDefaults(defineProps<{
     return defaultMenuItemProps
   },
 })
+const controlId = useId()
 </script>
 
 <template>
-  <div col="span-5" class="adv-menu-item--label justify-center" text="3xl">
-    <label :for="item.label" font="bold serif">
-      {{ item.label }}
-    </label>
+  <div class="adv-menu-item--label">
+    <label :id="`${controlId}-label`" :for="controlId">{{ item.label }}</label>
   </div>
-  <div col="span-7" class="adv-menu-item--container flex items-center" p="x-2">
-    <template v-if="item.type">
-      <AdvCheckbox v-if="item.type === 'Checkbox'" :props="item.props" />
-      <AdvRadioGroup v-if="item.type === 'RadioGroup'" :props="item.props" />
-      <AdvSelect v-else-if="item.type === 'Select'" :props="item.props" />
-      <!-- eslint-disable-next-line vue/no-mutating-props -->
-      <AdvSlider v-else-if="item.type === 'Slider'" v-bind="item.props" v-model="item.props.modelValue.value" />
-    </template>
+  <div class="adv-menu-item--container">
+    <AdvCheckbox v-if="item.type === 'Checkbox'" :id="controlId" :aria-labelledby="`${controlId}-label`" :props="item.props" />
+    <AdvRadioGroup v-else-if="item.type === 'RadioGroup'" :aria-labelledby="`${controlId}-label`" :props="item.props" />
+    <AdvSelect v-else-if="item.type === 'Select'" :id="controlId" :aria-labelledby="`${controlId}-label`" :props="item.props" />
+    <!-- The item contract deliberately supplies a writable settings ref. -->
+    <!-- eslint-disable-next-line vue/no-mutating-props -->
+    <AdvSlider v-else-if="item.type === 'Slider'" v-bind="item.props" :id="controlId" v-model="item.props.modelValue.value" :label="item.label" :show-label="false" />
     <slot v-else />
   </div>
 </template>
-
-<style lang="scss">
-.adv-menu-item--label,
-.adv-menu-item--container {
-  display: inline-flex;
-  align-items: center;
-  animation: advFadeIn var(--adv-animation-duration);
-}
-</style>

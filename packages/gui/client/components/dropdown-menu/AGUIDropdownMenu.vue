@@ -20,9 +20,14 @@ const toggleState = ref(false)
 
 <template>
   <DropdownMenuRoot v-model:open="toggleState">
+    <DropdownMenuTrigger v-if="$slots.trigger" as-child>
+      <slot name="trigger" />
+    </DropdownMenuTrigger>
     <DropdownMenuTrigger
+      v-else
       class="agui-button"
       :aria-label="data.title"
+      :title="data.title"
     >
       <div
         v-if="data.icon"
@@ -53,7 +58,7 @@ const toggleState = ref(false)
           </DropdownMenuItem>
           <DropdownMenuSeparator
             v-else-if="item.type === 'separator'"
-            class="bg-mauve6 my-1 h-[1px]"
+            class="my-1 bg-$agui-c-divider h-[1px]"
           />
         </template>
       </DropdownMenuContent>

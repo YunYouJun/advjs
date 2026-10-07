@@ -18,10 +18,11 @@ import {
   SelectValue,
   SelectViewport,
 } from 'reka-ui'
+import { computed } from 'vue'
 
 type OptionType = string | { value: string | number, label?: string, icon?: string }
 
-defineProps<{
+const props = defineProps<{
   modelValue?: string | number
   options: OptionType[]
   legend?: string
@@ -39,6 +40,11 @@ defineProps<{
 // 使用 emits 定义组件发出的事件
 const emit = defineEmits(['change', 'update:modelValue'])
 
+const selectedLabel = computed(() => {
+  const option = props.options.find(option => (typeof option === 'string' ? option : option.value) === props.modelValue)
+  return typeof option === 'string' ? option : option ? option.label ?? String(option.value) : undefined
+})
+
 function onUpdateModelValue(value: AcceptableValue) {
   emit('update:modelValue', value)
   emit('change', value)
@@ -55,8 +61,12 @@ function onUpdateModelValue(value: AcceptableValue) {
     <SelectTrigger
       class="agui-select-trigger"
       :aria-label="label || placeholder"
+      :title="multiple ? undefined : selectedLabel"
     >
-      <SelectValue :placeholder="placeholder" />
+      <SelectValue v-if="!multiple && selectedLabel !== undefined" :placeholder="placeholder">
+        {{ selectedLabel }}
+      </SelectValue>
+      <SelectValue v-else :placeholder="placeholder" />
       <div class="i-radix-icons:chevron-down" op="60" />
     </SelectTrigger>
 
@@ -141,7 +151,7 @@ function onUpdateModelValue(value: AcceptableValue) {
     outline-offset: 1px;
   }
   &:hover:not(:disabled) {
-    border-color: var(--agui-c-text-2);
+    border-color: var(--agui-c-border-hover);
   }
   &:disabled {
     opacity: 0.5;
@@ -150,14 +160,20 @@ function onUpdateModelValue(value: AcceptableValue) {
   &[data-placeholder] {
     color: var(--agui-c-text-2);
   }
+  > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 .agui-select-content {
   overflow: hidden;
   color: var(--agui-c-text-1);
-  background: var(--agui-c-bg-soft);
-  border: 1px solid var(--agui-c-control-border);
+  background: var(--agui-c-popup);
+  border: 1px solid var(--agui-c-border);
   border-radius: 4px;
-  box-shadow: 0 8px 24px var(--agui-c-overlay);
+  box-shadow: var(--agui-shadow-popup);
 }
 .agui-select-viewport {
   padding: 4px;
@@ -198,7 +214,7 @@ function onUpdateModelValue(value: AcceptableValue) {
   justify-content: center;
   height: 24px;
   color: var(--agui-c-text-2);
-  background: var(--agui-c-bg-soft);
+  background: var(--agui-c-popup);
   cursor: default;
 }
 </style>

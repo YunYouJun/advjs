@@ -5,7 +5,7 @@ import { useAdvConfig, useAdvContext } from '../composables'
 const { $adv } = useAdvContext()
 const advConfig = useAdvConfig()
 
-const isDev = import.meta.env.DEV
+const isDev = import.meta.env.DEV && !import.meta.env.ADVJS_EDITOR_PREVIEW
 
 onMounted(async () => {
   await $adv.init()
