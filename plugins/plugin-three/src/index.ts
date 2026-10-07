@@ -1,0 +1,7 @@
+export { createThreeEntityRegistry } from './entities'
+export type { ThreeEntityRegistry } from './entities'
+export { frameThreeObjects } from './framing'
+export type { ThreeFrameOptions } from './framing'
+export { disposeThreeResources } from './resources'
+export type { ThreeSceneSetup, ThreeViewport, ThreeViewportOptions } from './types'
+export { createThreeViewport } from './viewport'

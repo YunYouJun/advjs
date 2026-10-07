@@ -8,5 +8,25 @@
     "email": "me@yunyoujun.cn",
     "url": "https://www.yunyoujun.cn"
   },
-  "license": "MPL-2.0"
+  "license": "MPL-2.0",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.mjs" },
+    "./client/*": "./client/*"
+  },
+  "main": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": ["client", "dist"],
+  "scripts": {
+    "build": "unbuild",
+    "dev": "unbuild --stub",
+    "test": "vitest"
+  },
+  "peerDependencies": { "three": "catalog:frontend", "vue": "catalog:frontend" },
+  "devDependencies": {
+    "@types/three": "catalog:types",
+    "three": "catalog:frontend",
+    "unbuild": "catalog:build",
+    "vitest": "catalog:test",
+    "vue": "catalog:frontend"
+  }
 }

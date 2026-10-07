@@ -1,0 +1,19 @@
+{
+  "name": "@advjs/example-three-map",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 3347",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@advjs/plugin-three": "workspace:*",
+    "three": "catalog:frontend",
+    "vue": "catalog:frontend"
+  },
+  "devDependencies": {
+    "@types/three": "catalog:types",
+    "@vitejs/plugin-vue": "catalog:build",
+    "vite": "catalog:build"
+  }
+}

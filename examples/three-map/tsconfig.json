@@ -1,0 +1,5 @@
+{
+  "extends": "../../plugins/plugin-three/tsconfig.json",
+  "compilerOptions": { "types": ["vite/client"] },
+  "include": ["src/**/*.ts", "src/**/*.vue", "client/**/*.vue"]
+}
