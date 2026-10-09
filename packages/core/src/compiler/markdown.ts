@@ -423,6 +423,16 @@ function compileNode(
           data: { condition: logic.conditionMarker },
         })
       }
+      const operation = logic.operations.length === 1 ? logic.operations[0] : undefined
+      if (isRecord(operation) && operation.type === 'end') {
+        return withSource({
+          id,
+          kind: 'end',
+          ...(typeof operation.text === 'string' ? { data: { text: operation.text } } : {}),
+          when: logic.when,
+          actions: logic.actions.length ? logic.actions : undefined,
+        })
+      }
       if (logic.activity) {
         return withSource({
           id,
