@@ -1,28 +1,30 @@
+import type { ConsolaReporter } from 'consola'
 import { consola, LogLevels } from 'consola'
+import { onScopeDispose } from 'vue'
+
+let subscribers = 0
+let previousLevel = consola.level
 
 /**
- * 代理日志
+ * Forward preview logs for the lifetime of the view without wrapping global methods.
  */
 export function proxyLog() {
   const consoleStore = useConsoleStore()
 
-  /**
-   * debug
-   */
-  consola.level = LogLevels.debug
-
-  const oldConsolaInfo = consola.info
-  const oldConsolaDebug = consola.debug
-  // @ts-expect-error override old consola
-  consola.info = (...args: any[]) => {
-  // @ts-expect-error override old consola
-    oldConsolaInfo(...args)
-    consoleStore.info(args[0], ...args.slice(1))
+  if (subscribers++ === 0) {
+    previousLevel = consola.level
+    consola.level = LogLevels.debug
   }
-  // @ts-expect-error override old consola
-  consola.debug = (...args: any[]) => {
-  // @ts-expect-error override old consola
-    oldConsolaDebug(...args)
-    consoleStore.debug(args[0], ...args.slice(1))
+  const reporter: ConsolaReporter = {
+    log({ type, args }) {
+      if (type === 'info' || type === 'debug')
+        consoleStore[type](String(args[0] ?? ''), args[1])
+    },
   }
+  consola.addReporter(reporter)
+  onScopeDispose(() => {
+    consola.removeReporter(reporter)
+    if (--subscribers === 0 && consola.level === LogLevels.debug)
+      consola.level = previousLevel
+  })
 }

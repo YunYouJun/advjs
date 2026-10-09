@@ -1,7 +1,7 @@
 import { useProjectDrafts } from '~/stores/useProjectDrafts'
 import { useDesktopStore } from '../stores/useDesktopStore'
 
-export function useDesktopHost(options: { resetLayout: () => void, manageExtensions: () => void, captureState: () => Promise<boolean>, selectGame: () => void }) {
+export function useDesktopHost(options: { resetLayout: () => void, manageExtensions: () => void, captureState: () => Promise<boolean>, selectGame: () => void, execute: (key: string) => Promise<boolean> }) {
   const drafts = useProjectDrafts()
   const fileStore = useFileStore()
   const consoleStore = useConsoleStore()
@@ -52,6 +52,10 @@ export function useDesktopHost(options: { resetLayout: () => void, manageExtensi
           case 'codex-workflow':
             dialogs.openStates.codexWorkflow = true
             break
+          case 'create-world':
+          case 'create-scene':
+          case 'create-chapter':
+            return await options.execute(`advjs.core/${command}`)
           case 'characters':
             await router.push('/characters')
             break

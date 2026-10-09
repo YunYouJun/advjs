@@ -122,11 +122,11 @@ export const useFileStore = defineStore('file', () => {
   /**
    * set opened file handle
    */
-  async function setOpenedFileHandle(fileHandle: FileSystemFileHandle, projectPath?: string) {
+  async function setOpenedFileHandle(fileHandle: FileSystemFileHandle, projectPath?: string, options: { forceReload?: boolean } = {}) {
     const path = projectPath || ('path' in fileHandle
       ? (fileHandle as unknown as LocalFileHandle).path
       : fileHandle.name)
-    if (openedFileHandle.value && openedFilePath.value === path) {
+    if (!options.forceReload && openedFileHandle.value && openedFilePath.value === path) {
       openSequence++
       loading.value = false
       app.activeInspector = 'file'

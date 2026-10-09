@@ -11,6 +11,7 @@ export function createLocalProjectWorkspace(adapter: LocalBridgeAdapter): Projec
     const name = loaded.root.split(/[\\/]/u).filter(Boolean).at(-1) ?? 'project'
     const project = createEditorProjectModel(loaded.result, loaded.files)
     project.filePaths = loaded.filePaths
+    project.virtualFiles = loaded.virtualFiles
     project.previewConfig = await adapter.resolvePreviewConfig(
       project.compilation,
       project.previewConfig,

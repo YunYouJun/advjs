@@ -3,6 +3,8 @@ const icons: Record<string, string> = {
   'ri:earth-line': 'i-ri-earth-line',
   'ri:refresh-line': 'i-ri-refresh-line',
   'ri:clipboard-line': 'i-ri-clipboard-line',
+  'ri:chat-1-line': 'i-ri-chat-1-line',
+  'ri:list-check': 'i-ri-list-check',
   'ri:puzzle-line': 'i-ri-puzzle-line',
   'ri:error-warning-line': 'i-ri-error-warning-line',
   'ri:gamepad-line': 'i-ri-gamepad-line',

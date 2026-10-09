@@ -400,6 +400,7 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
         config: project.config,
         files: project.files,
         filePaths: project.filePaths,
+        virtualFiles: project.virtualFiles,
         result: project.result,
         root: project.root,
       })

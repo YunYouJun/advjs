@@ -3,7 +3,7 @@ import { readdir, readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-const root = resolve(import.meta.dirname, '../..')
+const root = resolve(import.meta.dirname, '../../..')
 
 async function json(path: string) {
   return JSON.parse(await readFile(resolve(root, path), 'utf8')) as Record<string, any>
@@ -23,7 +23,7 @@ function frontmatterId(content: string) {
 }
 
 describe('demo project layout', () => {
-  it('keeps starter minimal and hamster independently runnable', async () => {
+  it('keeps the branching starter and hamster independently runnable', async () => {
     expect(existsSync(resolve(root, 'demo/hamster/package.json'))).toBe(true)
 
     for (const demo of ['starter', 'hamster']) {
@@ -43,7 +43,11 @@ describe('demo project layout', () => {
     expect(hamsterPackage.name).toBe('@advjs/demo-hamster')
     expect(starterConfig).not.toMatch(/plugin-interactions|仓鼠|star-map|civilization/u)
     expect(hamsterConfig).toMatch(/starMap|civilization/u)
-    expect(await advScripts('demo/starter/public/md')).toHaveLength(1)
+    const starterGame = await json('demo/starter/game.config.json')
+    const starterScripts = await advScripts('demo/starter/public/md')
+    const configuredScripts = starterGame.chapters.flatMap((chapter: { nodes: { src: string }[] }) => chapter.nodes.map(node => node.src.replace(/^\/md\//u, '')))
+    expect(starterGame.chapters.map((chapter: { id: string }) => chapter.id)).toEqual(['hello', 'letter', 'ending'])
+    expect(starterScripts).toEqual(configuredScripts.sort())
     expect((await advScripts('demo/hamster/public/md')).length).toBeGreaterThanOrEqual(2)
   })
 

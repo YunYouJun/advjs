@@ -1,5 +1,6 @@
 import { defineEditorPlugin } from '@advjs/editor-sdk'
 import { contextCommands } from './context'
+import { storyCommands } from './story'
 
 export const corePlugin = defineEditorPlugin({
   id: 'advjs.core',
@@ -7,8 +8,10 @@ export const corePlugin = defineEditorPlugin({
   apiVersion: 1,
   title: { 'zh-CN': '编辑器核心', 'en': 'Editor core' },
   description: { 'zh-CN': '剧本、人物、项目文件、预览与插件管理。', 'en': 'Story, characters, files, preview and plugin management.' },
-  commands: contextCommands,
+  commands: [...contextCommands, ...storyCommands],
   actions: [
+    { location: { view: 'file', area: 'title' }, command: 'insert-dialogue', icon: 'ri:chat-1-line' },
+    { location: { view: 'file', area: 'title' }, command: 'insert-choice', icon: 'ri:list-check' },
     { location: { view: 'dashboard', area: 'title' }, command: 'refresh', icon: 'ri:refresh-line' },
     { location: { view: 'dashboard', area: 'title' }, command: 'copy', icon: 'ri:clipboard-line' },
   ],

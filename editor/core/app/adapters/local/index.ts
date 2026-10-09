@@ -11,6 +11,7 @@ export interface LocalEditorSession {
 export interface LocalBridgeProject {
   files: AdvProjectFileMap
   filePaths?: string[]
+  virtualFiles?: string[]
   result: AdvProjectCompileResult
   root: string
 }

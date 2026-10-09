@@ -2,6 +2,7 @@
 import type { IDisposable, editor as MonacoEditor } from 'monaco-editor'
 import { AdvGameLoadStatusEnum, useAdvContext } from '@advjs/client'
 import { computed, nextTick, onBeforeUnmount, shallowRef, watch } from 'vue'
+import { insertStoryTemplate } from '../../../utils/story-templates'
 import ContextDocument from '../context/ContextDocument.vue'
 
 const { $adv } = useAdvContext()
@@ -18,38 +19,84 @@ const markdown = computed(() => file.fileName.endsWith('.md'))
 const gameConfig = computed(() => file.fileName.endsWith('.adv.json'))
 let editor: MonacoEditor.IStandaloneCodeEditor | undefined
 let editorPath = ''
-let restoringPosition = false
+let active = true
+let positionSequence = 0
+const restoringPosition = shallowRef(false)
 const listeners: IDisposable[] = []
+let unregisterChapterEditor: (() => void) | undefined
+let unregisterSourceEditor: (() => void) | undefined
+const sourceReady = computed(() => Boolean(editor && active && !restoringPosition.value && !file.loading && file.fileKind === 'text' && editorPath === file.openedFilePath))
+const chapterReady = computed(() => Boolean(sourceReady.value && file.openedFileHandle && file.fileName.endsWith('.adv.md')))
 function savePosition() {
-  if (!editor || !editorPath || restoringPosition)
+  if (!editor || !editorPath || restoringPosition.value)
     return
   const position = editor.getPosition()
   if (position)
     monaco.positions[editorPath] = { ...position, scrollTop: editor.getScrollTop(), scrollLeft: editor.getScrollLeft() }
 }
 async function restorePosition() {
-  restoringPosition = true
-  editorPath = file.openedFilePath
+  const request = ++positionSequence
+  const path = file.openedFilePath
+  restoringPosition.value = true
+  editorPath = path
   await nextTick()
+  if (!active || request !== positionSequence || path !== file.openedFilePath)
+    return
   const position = monaco.positions[editorPath]
   editor?.setPosition(position ?? { lineNumber: 1, column: 1 })
   editor?.setScrollPosition({ scrollTop: position?.scrollTop ?? 0, scrollLeft: position?.scrollLeft ?? 0 })
-  restoringPosition = false
+  restoringPosition.value = false
 }
 function loaded(instance: MonacoEditor.IStandaloneCodeEditor) {
   editor = instance
   void restorePosition()
+  unregisterSourceEditor?.()
+  unregisterSourceEditor = monaco.registerSourceEditor({
+    canNavigate: path => sourceReady.value && path === file.openedFilePath && editor?.getValue() === monaco.fileContent,
+    async navigate(source, isCurrent) {
+      reading.value = false
+      await nextTick()
+      if (!isCurrent() || !sourceReady.value || !editor || source.path !== file.openedFilePath || editor.getValue() !== monaco.fileContent)
+        return false
+      const model = editor.getModel()
+      if (!model)
+        return false
+      const position = model.validatePosition({ lineNumber: source.line ?? 1, column: source.column ?? 1 })
+      editor.layout()
+      editor.setPosition(position)
+      editor.revealPositionInCenterIfOutsideViewport(position)
+      editor.focus()
+      return true
+    },
+  })
+  unregisterChapterEditor?.()
+  unregisterChapterEditor = monaco.registerChapterEditor({
+    canInsert: () => chapterReady.value,
+    async insert(kind, language) {
+      const path = file.openedFilePath
+      reading.value = false
+      await nextTick()
+      // Menus restore focus to their trigger when closing. Focus the source only
+      // after that teardown, so typing and undo work immediately after insertion.
+      await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
+      if (active && chapterReady.value && editor && path === file.openedFilePath && editor.getValue() === monaco.fileContent)
+        insertStoryTemplate(editor, kind, language)
+    },
+  })
   listeners.push(instance.onDidChangeCursorPosition(savePosition), instance.onDidScrollChange(savePosition))
 }
-watch(() => file.openedFilePath, () => {
+watch(() => [file.openedFilePath, file.openVersion], () => {
   savePosition()
   void restorePosition()
 }, { flush: 'pre' })
 onBeforeUnmount(() => {
+  active = false
+  unregisterChapterEditor?.()
+  unregisterSourceEditor?.()
   savePosition()
   listeners.forEach(listener => listener.dispose())
 })
-watch(() => file.openedFilePath, () => {
+watch(() => file.openVersion, () => {
   reading.value = false
   error.value = ''
 })

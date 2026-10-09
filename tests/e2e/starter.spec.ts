@@ -20,7 +20,7 @@ async function advanceTo(current: Locator, next: Locator) {
 }
 
 test.describe('Demo Starter', () => {
-  test('runs the minimal story and opens settings', async ({ page }) => {
+  test('runs the shared story opening and opens settings', async ({ page }) => {
     const pageErrors: string[] = []
     page.on('pageerror', error => pageErrors.push(error.message))
     await page.goto(starterUrl)
@@ -53,10 +53,17 @@ test.describe('Demo Starter', () => {
 
     await expect(dialog).toContainText('最小项目已经跑通')
 
-    await page.locator('.menu-setting-button').first().click()
-    await expect(page.getByRole('tab', { name: '设置' })).toBeVisible()
-    await expect(page.locator('.menu-panel')).toHaveCSS('display', 'grid')
-    await expect(page.locator('.menu-panel .adv-button').first()).toHaveCSS('font-size', '48px')
+    const settingsButton = page.getByRole('navigation', { name: '游戏设置与显示', exact: true }).getByRole('button', { name: '设置', exact: true })
+    await settingsButton.click()
+    const settings = page.getByRole('dialog', { name: '设置', exact: true })
+    await expect(settings).toBeVisible()
+    await expect(settings.getByRole('tab', { name: '对白', exact: true })).toHaveAttribute('aria-selected', 'true')
+    await settings.getByRole('tab', { name: '画面', exact: true }).click()
+    await expect(settings.getByRole('tab', { name: '画面', exact: true })).toHaveAttribute('aria-selected', 'true')
+    await expect(settings.getByRole('tabpanel', { name: '画面', exact: true })).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(settings).toBeHidden()
+    await expect(dialog).toContainText('最小项目已经跑通')
     expect(pageErrors).toEqual([])
   })
 })

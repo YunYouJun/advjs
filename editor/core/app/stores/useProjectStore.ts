@@ -188,6 +188,8 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
 
     if (nextProject.files['adv.config.json'])
       await loadAdvConfigJSON(nextProject.files['adv.config.json'])
+    else
+      await loadAdvConfig({})
 
     const errors = nextProject.compilation.diagnostics.filter(item => item.severity === 'error')
     if (!window.advDesktop && nextProject.mode === 'standard-markdown' && errors.length === 0) {

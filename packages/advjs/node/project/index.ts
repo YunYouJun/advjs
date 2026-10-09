@@ -48,6 +48,8 @@ export interface LoadedProject {
   files: AdvProjectFileMap
   /** Source and media paths for authoring navigation; binary contents stay out of the compiler. */
   filePaths?: string[]
+  /** Evaluated configuration presented as JSON, rather than editable source. */
+  virtualFiles: string[]
   result: AdvProjectCompileResult
   /** Runtime capabilities exported by a module config, retained outside JSON. */
   runtimePlugins: AdvRuntimePlugin[]
@@ -281,6 +283,11 @@ export async function loadProject(options: LoadProjectOptions = {}): Promise<Loa
   if (options.contentRoot)
     config = { ...config, root: contentRoot }
   const { files, filePaths } = await collectProjectFiles(root, realRoot, [contentRoot, 'public', 'pages', 'layouts', 'components', 'styles', 'client'])
+  const virtualFiles: string[] = []
+  const setVirtualConfig = (path: string, value: unknown) => {
+    files.set(path, stableJson(value) ?? '{}')
+    virtualFiles.push(path)
+  }
   for (const extension of CONFIG_EXTENSIONS) {
     const path = `theme.config.${extension}`
     if (await fileExists(resolve(root, path))) {
@@ -290,10 +297,12 @@ export async function loadProject(options: LoadProjectOptions = {}): Promise<Loa
     }
   }
 
-  if (configSource.format === 'json' && configPath && !options.contentRoot)
+  if (configSource.format === 'json' && configPath && !options.contentRoot) {
     files.set('adv.config.json', await readFile(resolve(root, configPath), 'utf8'))
-  else if (configPath || options.compatibility || options.contentRoot)
-    files.set('adv.config.json', stableJson(config) ?? '{}')
+  }
+  else if (configPath || options.compatibility || options.contentRoot) {
+    setVirtualConfig('adv.config.json', config)
+  }
 
   const rootGameConfigPath = await findConfig(root, 'game')
   if (rootGameConfigPath)
@@ -303,13 +312,13 @@ export async function loadProject(options: LoadProjectOptions = {}): Promise<Loa
   }
   else if (rootGameConfigPath) {
     const gameConfig = await readModuleConfig(root, rootGameConfigPath, 'game')
-    files.set('game.config.json', stableJson(gameConfig) ?? '{}')
+    setVirtualConfig('game.config.json', gameConfig)
   }
   else if (isJsonObject(config.gameConfig)) {
-    files.set('game.config.json', stableJson(config.gameConfig) ?? '{}')
+    setVirtualConfig('game.config.json', config.gameConfig)
   }
   else if (options.compatibility?.gameConfig) {
-    files.set('game.config.json', stableJson(options.compatibility.gameConfig) ?? '{}')
+    setVirtualConfig('game.config.json', options.compatibility.gameConfig)
   }
 
   // Legacy module projects can keep metadata in settings/game.json while
@@ -325,7 +334,10 @@ export async function loadProject(options: LoadProjectOptions = {}): Promise<Loa
           if (settings[field] === undefined && moduleGame[field] !== undefined)
             settings[field] = moduleGame[field]
         }
-        files.set(settingsPath, JSON.stringify(settings))
+        const projected = JSON.stringify(settings)
+        if (projected !== files.get(settingsPath))
+          virtualFiles.push(settingsPath)
+        files.set(settingsPath, projected)
       }
       catch {
         // Preserve malformed source for the project compiler to diagnose.
@@ -351,6 +363,7 @@ export async function loadProject(options: LoadProjectOptions = {}): Promise<Loa
     config: configSource,
     files: sortedFiles,
     filePaths: [...new Set([...filePaths, ...Object.keys(sortedFiles), ...configPath ? [configPath] : []])].sort(comparePaths),
+    virtualFiles,
     result,
     runtimePlugins,
   }

@@ -30,7 +30,7 @@ const templates = computed(() => PROJECT_TEMPLATES.filter(item => item.category 
           {{ zh ? '跟随向导小云，运行并修改你的第一段故事。' : 'Follow guide Xiaoyun, then make this short introduction your own.' }}
         </p>
         <p class="welcome-example-meta">
-          {{ zh ? '人物头像 · 分支选项 · 变量 · 本地素材' : 'Portraits · Branching choices · Variables · Local assets' }}
+          {{ zh ? '人物头像 · 三章分支 · 两种结局 · 本地素材' : 'Portraits · 3 chapters · 2 endings · Local assets' }}
         </p>
         <AGUIButton theme="primary" icon="i-ri-add-line" :disabled="disabled" :loading="creating" @click="$emit('create', 'starter')">
           {{ zh ? '创建示例项目' : 'Create example project' }}

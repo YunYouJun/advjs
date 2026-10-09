@@ -3,13 +3,13 @@ import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promis
 import { tmpdir } from 'node:os'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { createProjectDirectory, findProjectTemplate, parseProjectCreationInput, suggestProjectFolder } from '../../apps/desktop/src/project-creation'
-import { compileEditorProject } from '../../editor/core/app/adapters/browser/project'
-import markdown from '../../editor/core/app/templates/adv-md'
-import blank from '../../editor/core/app/templates/blank'
-import flow from '../../editor/core/app/templates/flow'
-import example from '../../editor/core/app/templates/rainy-letter'
-import starter from '../../editor/core/app/templates/starter'
+import { createProjectDirectory, findProjectTemplate, parseProjectCreationInput, suggestProjectFolder } from '../../../apps/desktop/src/project-creation'
+import { compileEditorProject } from '../../../editor/core/app/adapters/browser/project'
+import markdown from '../../../editor/core/app/templates/adv-md'
+import blank from '../../../editor/core/app/templates/blank'
+import flow from '../../../editor/core/app/templates/flow'
+import example from '../../../editor/core/app/templates/rainy-letter'
+import starter from '../../../editor/core/app/templates/starter'
 
 describe('desktop project creation', () => {
   it.each([starter, blank, markdown, flow])('stores a Chinese display name independently from the English $meta.id folder', async (template) => {
@@ -58,13 +58,16 @@ describe('desktop project creation', () => {
       expect(project.mode).toBe('standard-markdown')
       expect(project.migrationNotice).toBeUndefined()
       expect(project.compilation.diagnostics.filter(item => item.severity === 'error')).toEqual([])
-      expect(project.compilation.project.chapters).toHaveLength(1)
+      expect(project.compilation.project.chapters).toHaveLength(template === starter ? 3 : 1)
       if (template === starter) {
         expect(JSON.parse(files['adv/settings/game.json']!).title).toBe(name)
         expect(project.compilation.project.characters[0]!.avatar).toBe('/img/characters/xiaoyun.webp')
         expect(project.compilation.project.scenes).toHaveLength(1)
-        expect(await readFile(resolve(root, 'public/img/characters/xiaoyun.webp'))).toEqual(await readFile(resolve(import.meta.dirname, '../../demo/starter/public/img/characters/xiaoyun.webp')))
-        expect(files['adv/chapters/hello.adv.md']).toBe(await readFile(resolve(import.meta.dirname, '../../demo/starter/public/md/chapters/hello.adv.md'), 'utf8'))
+        expect(await readFile(resolve(root, 'public/img/characters/xiaoyun.webp'))).toEqual(await readFile(resolve(import.meta.dirname, '../../../demo/starter/public/img/characters/xiaoyun.webp')))
+        expect(project.compilation.project.chapters.map(chapter => chapter.id).sort()).toEqual(['ending', 'hello', 'letter'])
+        for (const chapterId of ['hello', 'letter', 'ending']) {
+          expect(files[`adv/chapters/${chapterId}.adv.md`]).toBe(await readFile(resolve(import.meta.dirname, `../../../demo/starter/public/md/chapters/${chapterId}.adv.md`), 'utf8'))
+        }
         expect(Object.values(project.compilation.project.program!.chapters).flatMap(chapter => Object.values(chapter.nodes)).some(node => node.kind === 'choices')).toBe(true)
       }
       if (template === example) {

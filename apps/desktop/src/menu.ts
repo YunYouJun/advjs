@@ -78,6 +78,12 @@ export function createNativeMenu(options: NativeMenuOptions): MenuItemConstructo
       action('preferences', 'Preferences…', '偏好设置…', { id: 'desktop.edit-preferences' }),
     ] },
     { label: label('Story', '故事'), submenu: [
+      { id: 'desktop.create-content', label: label('Create', '创建'), submenu: [
+        action('create-world', 'World', '世界观', { enabled: options.hasProject }),
+        action('create-scene', 'Scene', '场景', { enabled: options.hasProject }),
+        action('create-chapter', 'Chapter', '章节', { enabled: options.hasProject }),
+      ] },
+      separator,
       action('characters', 'Characters', '角色管理'),
       action('codex-workflow', 'Codex Workflow…', 'Codex 创作工作流…'),
     ] },

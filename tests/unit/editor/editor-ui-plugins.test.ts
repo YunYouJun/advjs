@@ -1,20 +1,20 @@
 import type { EditorPlugin, EditorProjectSnapshot, EditorRegion } from '@advjs/editor-sdk'
 import type { App } from 'vue'
-import type { EditorProjectModel } from '../../editor/core/app/adapters/browser/project'
-import type { EditorHostServices, PluginRegistration } from '../../editor/core/app/extensions/registry'
+import type { EditorProjectModel } from '../../../editor/core/app/adapters/browser/project'
+import type { EditorHostServices, PluginRegistration } from '../../../editor/core/app/extensions/registry'
 import { editorText } from '@advjs/editor-sdk'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createApp, defineComponent, h, nextTick, onUnmounted, shallowRef } from 'vue'
-import EditorCommandBar from '../../editor/core/app/components/extensions/EditorCommandBar.vue'
-import EditorPluginManager from '../../editor/core/app/components/extensions/EditorPluginManager.vue'
-import EditorRegionHost from '../../editor/core/app/components/extensions/EditorRegionHost.vue'
-import { authoringCharacters } from '../../editor/core/app/composables/useAuthoringOverview'
-import { contextPlugin, mergedContext } from '../../editor/core/app/extensions/builtin/context'
-import { corePlugin } from '../../editor/core/app/extensions/builtin/core'
-import { createEditorLayoutState, editorLayoutStateKey, restoreLayout } from '../../editor/core/app/extensions/layout-state'
-import { createEditorExtensionHost, editorExtensionHostKey } from '../../editor/core/app/extensions/registry'
-import { createEditorHostServices } from '../../editor/core/app/extensions/services'
-import diagnosticsPlugin from '../../examples/editor-plugin-diagnostics/src'
+import EditorCommandBar from '../../../editor/core/app/components/extensions/EditorCommandBar.vue'
+import EditorPluginManager from '../../../editor/core/app/components/extensions/EditorPluginManager.vue'
+import EditorRegionHost from '../../../editor/core/app/components/extensions/EditorRegionHost.vue'
+import { authoringCharacters } from '../../../editor/core/app/composables/useAuthoringOverview'
+import { contextPlugin, mergedContext } from '../../../editor/core/app/extensions/builtin/context'
+import { corePlugin } from '../../../editor/core/app/extensions/builtin/core'
+import { createEditorLayoutState, editorLayoutStateKey, restoreLayout } from '../../../editor/core/app/extensions/layout-state'
+import { createEditorExtensionHost, editorExtensionHostKey } from '../../../editor/core/app/extensions/registry'
+import { createEditorHostServices } from '../../../editor/core/app/extensions/services'
+import diagnosticsPlugin from '../../../examples/editor-plugin-diagnostics/src'
 
 const cleanups: Array<() => unknown> = []
 let app: App | undefined
@@ -267,7 +267,7 @@ describe('actual plugin panels', () => {
       'adv/chapters/README.md': '| 章节 | 状态 |\n| --- | --- |\n| 起点 | ✅ |\n| 相遇 | 📝 |',
       'adv/characters/README.md': '| 名称 | 文件 | 定位 | 描述 |\n| --- | --- | --- | --- |\n| 刘备 | | 主角 | 桃园结义 |',
     } }
-    const dashboard = { ...corePlugin, views: corePlugin.views.filter(view => view.id === 'dashboard') }
+    const dashboard = { ...corePlugin, views: corePlugin.views.filter(view => view.id === 'dashboard'), actions: corePlugin.actions.filter(action => action.location.view === 'dashboard') }
     const { container } = await mountRegion([{ plugin: dashboard, source: 'builtin' }], services, 'main')
     await vi.waitFor(() => expect(container.textContent).toContain('桃园结义'))
     expect(container.querySelector('progress')?.value).toBe(50)
@@ -361,6 +361,47 @@ describe('actual plugin panels', () => {
     expect(unmounted).toHaveBeenCalledTimes(1)
     await registry.setEnabled('b', false)
     expect(container.textContent).toContain('No panels available')
+  })
+
+  it('loads retained views lazily, preserves their state and forwards visibility while ordinary views unmount', async () => {
+    const loads = vi.fn()
+    const destroyed = vi.fn()
+    const ordinaryDestroyed = vi.fn()
+    const retained = plugin('retained', { views: [{ id: 'view', region: 'bottom', title: { en: 'Retained' }, retention: 'keep-alive', load: async () => {
+      loads()
+      return { default: defineComponent({ props: { visible: Boolean }, setup(props) {
+        const count = shallowRef(0)
+        onUnmounted(destroyed)
+        return () => h('button', { 'data-visible': props.visible, 'onClick': () => count.value++ }, `Count ${count.value}`)
+      } }) }
+    } }] })
+    const ordinary = plugin('ordinary', { views: [{ id: 'view', region: 'bottom', title: { en: 'Ordinary' }, load: async () => ({ default: defineComponent({ setup() {
+      onUnmounted(ordinaryDestroyed)
+      return () => h('p', 'Ordinary content')
+    } }) }) }] })
+    const { layout, container } = await mountRegion([{ plugin: ordinary, source: 'bundled' }, { plugin: retained, source: 'bundled' }])
+    await vi.waitFor(() => expect(container.textContent).toContain('Ordinary content'))
+    expect(loads).not.toHaveBeenCalled()
+    layout.select('bottom', 'retained/view')
+    await vi.waitFor(() => expect(container.textContent).toContain('Count 0'))
+    expect(ordinaryDestroyed).toHaveBeenCalledTimes(1)
+    const button = container.querySelector<HTMLButtonElement>('[data-visible]')!
+    button.click()
+    await nextTick()
+    layout.select('bottom', 'ordinary/view')
+    await vi.waitFor(() => expect(container.textContent).toContain('Ordinary content'))
+    expect(button.dataset.visible).toBe('false')
+    expect(destroyed).not.toHaveBeenCalled()
+    layout.select('bottom', 'retained/view')
+    await nextTick()
+    expect(container.querySelector('[data-visible]')).toBe(button)
+    expect(button.textContent).toBe('Count 1')
+    expect(button.dataset.visible).toBe('true')
+    expect(loads).toHaveBeenCalledTimes(1)
+    app!.unmount()
+    app = undefined
+    expect(destroyed).toHaveBeenCalledTimes(1)
+    expect(ordinaryDestroyed).toHaveBeenCalledTimes(2)
   })
 
   it('shows a failed loader and retries without breaking the region', async () => {

@@ -1,17 +1,17 @@
 // @vitest-environment node
 
-import { mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { runCheck } from '../../packages/advjs/node/commands/check'
-import { resolveProjectContext } from '../../packages/advjs/node/commands/context'
-import { loadProject } from '../../packages/advjs/node/project'
+import { runCheck } from '../../../packages/advjs/node/commands/check'
+import { resolveProjectContext } from '../../../packages/advjs/node/commands/context'
+import { loadProject } from '../../../packages/advjs/node/project'
 import {
   compileRuntimeChapterFiles,
   discoverRuntimeChapterFiles,
   resolveConfiguredRuntimeChapterFiles,
-} from '../../packages/advjs/node/runtime/project'
+} from '../../../packages/advjs/node/runtime/project'
 
 describe('runtime project loader', () => {
   let directory: string
@@ -130,6 +130,7 @@ describe('runtime project loader', () => {
 
     expect(loaded.root).toBe(directory)
     expect(loaded.config).toEqual({ format: 'json', path: 'adv.config.json' })
+    expect(loaded.virtualFiles).toEqual([])
     expect(Object.keys(loaded.files)).toEqual([
       'adv.config.json',
       'adv/chapters/intro.adv.md',
@@ -153,9 +154,93 @@ describe('runtime project loader', () => {
     const loaded = await loadProject({ root: directory })
 
     expect(loaded.config).toEqual({ format: 'module', path: 'adv.config.ts' })
+    expect(loaded.virtualFiles).toEqual(['adv.config.json'])
     expect(loaded.files['adv.config.json']).toBe('{"format":"adv-md","root":"./story"}')
     expect(loaded.result.project.root).toBe('story')
     expect(loaded.result.diagnostics).toEqual([])
+  })
+
+  it('identifies JSON evaluated from an inline module game config as virtual despite navigation paths', async () => {
+    await mkdir(join(directory, 'adv', 'chapters'), { recursive: true })
+    await writeFile(join(directory, 'adv', 'chapters', 'intro.adv.md'), '> Existing story.\n')
+    const source = 'export default { root: "adv", gameConfig: { title: "Inline game", chapters: [{ id: "intro", sources: ["chapters/intro.adv.md"] }] } }\n'
+    await writeFile(join(directory, 'adv.config.ts'), source)
+
+    const loaded = await loadProject({ root: directory })
+
+    expect(loaded.virtualFiles).toEqual(['adv.config.json', 'game.config.json'])
+    // Navigation exposes the evaluated JSON as well, so filePaths alone cannot
+    // prove that a configuration is editable source.
+    expect(loaded.filePaths).toContain('game.config.json')
+    expect(JSON.parse(loaded.files['game.config.json'])).toMatchObject({ title: 'Inline game' })
+    expect(loaded.result.project.chapters.map(chapter => chapter.id)).toEqual(['intro'])
+    expect(loaded.result.diagnostics).toEqual([])
+    expect(await readFile(join(directory, 'adv.config.ts'), 'utf8')).toBe(source)
+    await expect(readFile(join(directory, 'game.config.json'), 'utf8')).rejects.toMatchObject({ code: 'ENOENT' })
+  })
+
+  it('identifies an evaluated game.config.ts as virtual while keeping physical adv JSON editable', async () => {
+    await mkdir(join(directory, 'adv', 'chapters'), { recursive: true })
+    await writeFile(join(directory, 'adv', 'chapters', 'intro.adv.md'), '> Existing story.\n')
+    const advSource = '{ "root": "adv", "future": { "keep": true } }\n'
+    const gameSource = 'export default { title: "Module game", chapters: [{ id: "intro", sources: ["chapters/intro.adv.md"] }] }\n'
+    await writeFile(join(directory, 'adv.config.json'), advSource)
+    await writeFile(join(directory, 'game.config.ts'), gameSource)
+
+    const loaded = await loadProject({ root: directory })
+
+    expect(loaded.virtualFiles).toEqual(['game.config.json'])
+    expect(loaded.files['adv.config.json']).toBe(advSource)
+    expect(JSON.parse(loaded.files['game.config.json']).title).toBe('Module game')
+    expect(loaded.result.diagnostics).toEqual([])
+    expect(await readFile(join(directory, 'game.config.ts'), 'utf8')).toBe(gameSource)
+    await expect(readFile(join(directory, 'game.config.json'), 'utf8')).rejects.toMatchObject({ code: 'ENOENT' })
+  })
+
+  it('keeps physical root and content JSON game configurations nonvirtual with their authored bytes', async () => {
+    await mkdir(join(directory, 'adv', 'chapters'), { recursive: true })
+    await mkdir(join(directory, 'adv', 'settings'), { recursive: true })
+    await writeFile(join(directory, 'adv', 'chapters', 'intro.adv.md'), '> Existing story.\n')
+    const sources = {
+      'adv.config.json': '{ "root": "adv" }\n',
+      'game.config.json': '{\n  "title": "Root metadata",\n  "future": { "keep": true }\n}\n',
+      'adv/settings/game.json': '{\n  "title": "Content metadata",\n  "chapters": [{"id":"intro","sources":["chapters/intro.adv.md"]}]\n}\n',
+    }
+    for (const [path, source] of Object.entries(sources))
+      await writeFile(join(directory, path), source)
+
+    const loaded = await loadProject({ root: directory })
+
+    expect(loaded.virtualFiles).toEqual([])
+    expect(loaded.files).toMatchObject(sources)
+    expect(loaded.result.sourceMap.gameConfig).toBe('adv/settings/game.json')
+    expect(loaded.result.project.game.title).toBe('Content metadata')
+    expect(loaded.result.diagnostics).toEqual([])
+  })
+
+  it('marks settings merged for static analysis as virtual without changing the physical settings file', async () => {
+    await mkdir(join(directory, 'adv', 'chapters'), { recursive: true })
+    await mkdir(join(directory, 'adv', 'settings'), { recursive: true })
+    await writeFile(join(directory, 'adv', 'chapters', 'intro.adv.md'), '> Existing story.\n')
+    await writeFile(join(directory, 'adv.config.ts'), 'export default { root: "adv", gameConfig: { chapters: [{ id: "intro", sources: ["chapters/intro.adv.md"] }], variables: { visits: 0 }, entryChapterId: "intro" } }\n')
+    const settingsSource = '{\n  "title": "Authored metadata",\n  "future": { "preserve": true }\n}\n'
+    await writeFile(join(directory, 'adv', 'settings', 'game.json'), settingsSource)
+
+    const regular = await loadProject({ root: directory })
+    expect(regular.virtualFiles).not.toContain('adv/settings/game.json')
+    expect(regular.files['adv/settings/game.json']).toBe(settingsSource)
+
+    const checked = await loadProject({ root: directory, staticAnalysis: true })
+    expect(checked.virtualFiles).toEqual(expect.arrayContaining(['adv.config.json', 'game.config.json', 'adv/settings/game.json']))
+    expect(JSON.parse(checked.files['adv/settings/game.json'])).toEqual({
+      title: 'Authored metadata',
+      future: { preserve: true },
+      chapters: [{ id: 'intro', sources: ['chapters/intro.adv.md'] }],
+      variables: { visits: 0 },
+      entryChapterId: 'intro',
+    })
+    expect(checked.result.diagnostics).toEqual([])
+    expect(await readFile(join(directory, 'adv', 'settings', 'game.json'), 'utf8')).toBe(settingsSource)
   })
 
   it('rejects project content symlinks that escape the real project root', async () => {

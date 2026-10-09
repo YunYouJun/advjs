@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { AdvGameLoadStatusEnum } from '@advjs/client'
 import AGUIButton from '@advjs/gui/components/button/AGUIButton.vue'
-import { onUnmounted, watch } from 'vue'
-
+import { usePreviewFileChanges } from '../../composables/usePreviewFileChanges'
 import { useEditorLayoutState } from '../../extensions/layout-state'
 import AECopyErrorButton from '../error/AECopyErrorButton.vue'
 import '../../../../../themes/theme-default/styles'
@@ -57,100 +56,15 @@ async function startSourcePreview() {
 
 proxyLog()
 
-/**
- * File change detection
- * Periodically checks if project files have been modified (by AI or external tools)
- */
-const hasFileChanges = ref(false)
-let lastCheckTimestamps = new Map<string, number>()
-let checkInterval: ReturnType<typeof setInterval> | null = null
-
-async function checkForFileChanges() {
-  if (projectStore.workspaceMode === 'local' || !projectStore.rootDir?.handle)
-    return
-
-  try {
-    const dirHandle = projectStore.rootDir.handle as FileSystemDirectoryHandle
-    let advDir: FileSystemDirectoryHandle
-    try {
-      advDir = await dirHandle.getDirectoryHandle('adv')
-    }
-    catch {
-      advDir = dirHandle
-    }
-
-    const filesToCheck = ['index.adv.json']
-    const currentTimestamps = new Map<string, number>()
-
-    for (const fileName of filesToCheck) {
-      try {
-        const fileHandle = await advDir.getFileHandle(fileName)
-        const file = await fileHandle.getFile()
-        currentTimestamps.set(fileName, file.lastModified)
-      }
-      catch {
-        // File doesn't exist, skip
-      }
-    }
-
-    // Check chapters directory
-    try {
-      const chaptersDir = await advDir.getDirectoryHandle('chapters')
-      for await (const entry of chaptersDir.values()) {
-        if (entry.kind === 'file' && entry.name.endsWith('.adv.md')) {
-          const file = await entry.getFile()
-          currentTimestamps.set(`chapters/${entry.name}`, file.lastModified)
-        }
-      }
-    }
-    catch {
-      // No chapters dir
-    }
-
-    // Compare with previous timestamps
-    if (lastCheckTimestamps.size > 0) {
-      for (const [name, ts] of currentTimestamps) {
-        const prev = lastCheckTimestamps.get(name)
-        if (prev && prev !== ts) {
-          hasFileChanges.value = true
-          break
-        }
-      }
-      // Check for new files
-      if (!hasFileChanges.value) {
-        for (const name of currentTimestamps.keys()) {
-          if (!lastCheckTimestamps.has(name)) {
-            hasFileChanges.value = true
-            break
-          }
-        }
-      }
-    }
-
-    lastCheckTimestamps = currentTimestamps
-  }
-  catch {
-    // Silently ignore errors during file checking
-  }
-}
+const { hasFileChanges } = usePreviewFileChanges({
+  visible: () => props.visible,
+  directory: () => projectStore.workspaceMode === 'browser' ? projectStore.rootDir?.handle as FileSystemDirectoryHandle | undefined : undefined,
+})
 
 async function refreshPreview() {
   hasFileChanges.value = false
   await projectStore.refreshProject()
 }
-
-watch(() => [props.visible, projectStore.workspaceMode], () => {
-  if (checkInterval)
-    clearInterval(checkInterval)
-  checkInterval = props.visible && projectStore.workspaceMode === 'browser' ? setInterval(checkForFileChanges, 5000) : null
-}, { immediate: true })
-
-onUnmounted(() => {
-  if (checkInterval) {
-    clearInterval(checkInterval)
-    checkInterval = null
-  }
-})
 </script>
 
 <template>

@@ -2,6 +2,7 @@ import type { ProjectSourcePatch } from '@advjs/core'
 import type { ProjectFileChange, ProjectWorkspace, ProjectWorkspaceSnapshot } from '../../workspaces/project'
 import type { BrowserProjectDirectory, BrowserProjectFile } from './project'
 import { applyProjectPatches } from '@advjs/core'
+import { resolveBrowserPreviewConfig } from './preview'
 import { compileEditorProject, readBrowserProjectFiles } from './project'
 
 interface WritableBrowserProjectFile extends BrowserProjectFile {
@@ -33,14 +34,52 @@ async function getFileHandle(root: WritableBrowserProjectDirectory, path: string
 export function createBrowserProjectWorkspace(root: BrowserProjectDirectory): ProjectWorkspace {
   const writableRoot = root as WritableBrowserProjectDirectory
   const assetUrls = new Set<string>()
+  let previewUrls = new Set<string>()
+  let snapshotSequence = 0
+  let disposed = false
   let last: ProjectWorkspaceSnapshot | undefined
 
+  function revoke(urls: Set<string>) {
+    for (const url of urls) URL.revokeObjectURL(url)
+    urls.clear()
+  }
+
+  async function readAsset(path: string) {
+    if (disposed)
+      throw new Error('Project workspace has been disposed')
+    return await (await getFileHandle(writableRoot, path)).getFile() as Blob
+  }
+
   async function snapshot(): Promise<ProjectWorkspaceSnapshot> {
+    const sequence = ++snapshotSequence
     const files = await readBrowserProjectFiles(root)
+    const project = await compileEditorProject({ files, id: root.name })
+    const urls = new Set<string>()
+    let active = true
+    try {
+      project.previewConfig = await resolveBrowserPreviewConfig(project, async (path) => {
+        const file = await readAsset(path)
+        if (!active || disposed || sequence !== snapshotSequence)
+          throw new Error('Project preview load was cancelled')
+        const url = URL.createObjectURL(file)
+        urls.add(url)
+        return url
+      })
+      if (disposed || sequence !== snapshotSequence)
+        throw new Error('Project preview load was cancelled')
+    }
+    catch (error) {
+      active = false
+      revoke(urls)
+      throw error
+    }
+    active = false
+    revoke(previewUrls)
+    previewUrls = urls
     last = {
       kind: 'browser',
       name: root.name,
-      project: await compileEditorProject({ files, id: root.name }),
+      project,
       root,
     }
     return last
@@ -111,9 +150,7 @@ export function createBrowserProjectWorkspace(root: BrowserProjectDirectory): Pr
       await writer.write(file)
       await writer.close()
     },
-    async readAsset(path) {
-      return await (await getFileHandle(writableRoot, path)).getFile() as Blob
-    },
+    readAsset,
     async removeImportedAsset(path, imported) {
       const file = await (await getFileHandle(writableRoot, path)).getFile() as Blob
       const digest = async (blob: Blob) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', await blob.arrayBuffer()))].join(',')
@@ -126,14 +163,18 @@ export function createBrowserProjectWorkspace(root: BrowserProjectDirectory): Pr
       await parent.removeEntry(name)
     },
     async assetUrl(path) {
-      const file = await (await getFileHandle(writableRoot, path)).getFile()
-      const url = URL.createObjectURL(file as Blob)
+      const file = await readAsset(path)
+      if (disposed)
+        throw new Error('Project workspace has been disposed')
+      const url = URL.createObjectURL(file)
       assetUrls.add(url)
       return url
     },
     dispose() {
-      for (const url of assetUrls) URL.revokeObjectURL(url)
-      assetUrls.clear()
+      disposed = true
+      snapshotSequence++
+      revoke(previewUrls)
+      revoke(assetUrls)
     },
   }
 }

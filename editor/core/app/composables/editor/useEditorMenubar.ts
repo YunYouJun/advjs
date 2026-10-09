@@ -4,12 +4,21 @@ import { Toast } from '@advjs/gui'
 import qrcode from 'qrcode'
 import { PROJECT_TEMPLATES } from '~/composables/useCreateProject'
 import { links } from '../../../../../packages/shared/src'
+import { useEditorLayoutState } from '../../extensions/layout-state'
+import { useEditorExtensionHost } from '../../extensions/registry'
 
 export function useEditorMenubar() {
   const { t } = useI18n()
   const fileStore = useFileStore()
   const dialogStore = useDialogStore()
   const router = useRouter()
+  const extensions = useEditorExtensionHost()
+  const layout = useEditorLayoutState()
+
+  function insertStory(command: 'insert-dialogue' | 'insert-choice') {
+    layout.select('main', 'advjs.core/file')
+    return extensions.execute(`advjs.core/${command}`)
+  }
 
   const { copy, copied } = useClipboard()
   const clipboardItems = useClipboardItems()
@@ -273,15 +282,13 @@ export function useEditorMenubar() {
           children: [
             {
               label: t('menu.createWorldview'),
-              onClick: () => {
-                // TODO: open worldview creation dialog
-              },
+              disabled: !extensions.canExecute('advjs.core/create-world'),
+              onClick: () => { void extensions.execute('advjs.core/create-world') },
             },
             {
               label: t('menu.createScene'),
-              onClick: () => {
-                // TODO: open scene creation dialog
-              },
+              disabled: !extensions.canExecute('advjs.core/create-scene'),
+              onClick: () => { void extensions.execute('advjs.core/create-scene') },
             },
             {
               label: t('menu.createCharacter'),
@@ -292,21 +299,18 @@ export function useEditorMenubar() {
             { type: 'separator' },
             {
               label: t('menu.createChapter'),
-              onClick: () => {
-                // TODO: open chapter creation dialog
-              },
+              disabled: !extensions.canExecute('advjs.core/create-chapter'),
+              onClick: () => { void extensions.execute('advjs.core/create-chapter') },
             },
             {
               label: t('menu.createDialogue'),
-              onClick: () => {
-                // TODO: open dialogue creation dialog
-              },
+              disabled: !extensions.canExecute('advjs.core/insert-dialogue'),
+              onClick: () => { void insertStory('insert-dialogue') },
             },
             {
               label: t('menu.createChoice'),
-              onClick: () => {
-                // TODO: open choice creation dialog
-              },
+              disabled: !extensions.canExecute('advjs.core/insert-choice'),
+              onClick: () => { void insertStory('insert-choice') },
             },
             { type: 'separator' },
             {

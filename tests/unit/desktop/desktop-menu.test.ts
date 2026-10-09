@@ -1,6 +1,6 @@
 import type { MenuItemConstructorOptions } from 'electron'
 import { describe, expect, it, vi } from 'vitest'
-import { createNativeMenu } from '../../apps/desktop/src/menu'
+import { createNativeMenu } from '../../../apps/desktop/src/menu'
 
 function fixture(hasProject = true, locale: 'en' | 'zh-CN' = 'en') {
   const callbacks = { command: vi.fn(), create: vi.fn(), newWindow: vi.fn(), openCurrent: vi.fn(), open: vi.fn(), reconnect: vi.fn(), openRecent: vi.fn(), close: vi.fn(), reload: vi.fn(), openHelp: vi.fn() }
@@ -36,7 +36,7 @@ describe('desktop native menu', () => {
 
   it('routes authoring actions through finite commands and recent project IDs', () => {
     const { callbacks, click } = fixture()
-    for (const action of ['save', 'characters', 'preferences', 'project-settings', 'workspace', 'about', 'codex-workflow', 'extensions', 'reset-layout', 'preview', 'stop-preview', 'export-directory', 'export-zip', 'project-switcher']) {
+    for (const action of ['save', 'characters', 'create-world', 'create-scene', 'create-chapter', 'preferences', 'project-settings', 'workspace', 'about', 'codex-workflow', 'extensions', 'reset-layout', 'preview', 'stop-preview', 'export-directory', 'export-zip', 'project-switcher']) {
       click(`desktop.${action}`)
       expect(callbacks.command).toHaveBeenLastCalledWith(action)
     }
@@ -60,7 +60,7 @@ describe('desktop native menu', () => {
 
   it('disables project operations in an empty session but keeps preferences available', () => {
     const { find } = fixture(false)
-    for (const action of ['save', 'reconnect', 'project-settings', 'close-project', 'preview', 'stop-preview', 'export-directory', 'export-zip'])
+    for (const action of ['save', 'reconnect', 'project-settings', 'close-project', 'create-world', 'create-scene', 'create-chapter', 'preview', 'stop-preview', 'export-directory', 'export-zip'])
       expect(find(`desktop.${action}`)?.enabled).toBe(false)
     expect(find('desktop.preferences')?.enabled).not.toBe(false)
   })
@@ -70,6 +70,14 @@ describe('desktop native menu', () => {
     const zh = fixture(true, 'zh-CN')
     expect(en.find('desktop.open')?.label).toBe('Open Project…')
     expect(zh.find('desktop.open')?.label).toBe('打开项目…')
+    expect(en.find('desktop.create-content')?.label).toBe('Create')
+    expect(zh.find('desktop.create-content')?.label).toBe('创建')
+    for (const [action, english, chinese] of [['world', 'World', '世界观'], ['scene', 'Scene', '场景'], ['chapter', 'Chapter', '章节']]) {
+      expect(en.find(`desktop.create-${action}`)?.label).toBe(english)
+      expect(zh.find(`desktop.create-${action}`)?.label).toBe(chinese)
+      expect(en.find(`desktop.create-${action}`)?.enabled).toBe(true)
+      expect(zh.find(`desktop.create-${action}`)?.enabled).toBe(true)
+    }
     expect(zh.find('desktop.preferences')?.accelerator).toBe('CmdOrCtrl+,')
     expect(zh.find('desktop.save')?.accelerator).toBe('CmdOrCtrl+S')
     expect((zh.menu[0]!.submenu as MenuItemConstructorOptions[]).some(item => item.role === 'services')).toBe(true)

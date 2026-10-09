@@ -1,13 +1,34 @@
 {
   "title": "ADV.JS Starter",
-  "description": "一个最小、可复制的 ADV.JS 示例",
-  "variables": { "greeted": false },
+  "description": "一个可复制、可试玩的三章分支故事，包含线索、回看与两种结局",
+  "entryChapterId": "hello",
+  "variables": {
+    "greeted": false,
+    "clueFound": false,
+    "understoodLetter": false,
+    "readCount": 0,
+    "ending": ""
+  },
   "chapters": [
     {
       "id": "hello",
       "title": "你好，ADV.JS",
       "nodes": [
         { "id": "hello-start", "type": "fountain", "src": "/md/chapters/hello.adv.md", "order": 0 }
+      ]
+    },
+    {
+      "id": "letter",
+      "title": "窗边的来信",
+      "nodes": [
+        { "id": "letter-start", "type": "fountain", "src": "/md/chapters/letter.adv.md", "order": 0 }
+      ]
+    },
+    {
+      "id": "ending",
+      "title": "给明天的回答",
+      "nodes": [
+        { "id": "ending-start", "type": "fountain", "src": "/md/chapters/ending.adv.md", "order": 0 }
       ]
     }
   ],

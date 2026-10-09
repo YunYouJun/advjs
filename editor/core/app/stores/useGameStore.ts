@@ -49,6 +49,9 @@ export const useGameStore = defineStore('@advjs/editor:game', () => {
   }
 
   async function loadGameFromConfig(config: AdvGameConfig) {
+    // The embedded preview reads its engine options from this same data ref.
+    // Applying project options here keeps every preview load on its own config.
+    advDataRef.value = { ...advDataRef.value, config: projectStore.advConfig }
     try {
       switch (curAdapter.value) {
         case 'default':

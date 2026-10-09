@@ -1,43 +1,15 @@
-<script lang="ts" setup>
-// nuxt get query
+<script setup lang="ts">
+import { computed } from 'vue'
+import ModelPreview from '../components/preview/ModelPreview.vue'
+
 const route = useRoute()
-const fileUrl = computed(() => decodeURI(route.query.fileUrl as string))
-const type = computed(() => route.query.type as string)
-
-onBeforeMount(() => {
-  // @TODO
-  // import('@google/model-viewer')
-})
-
-const fileContent = computedAsync(async () => {
-  const json = await fetch(fileUrl.value).then(res => res.json())
-  return JSON.stringify(json, null, 2)
-})
-
-const isGlTF = computed(() => ['gltf', 'glb'].includes(type.value))
+// Vue Router already decodes query values; decoding again corrupts encoded asset URLs.
+const fileUrl = computed(() => String([route.query.fileUrl].flat()[0] ?? ''))
+const type = computed(() => String([route.query.type].flat()[0] ?? ''))
 </script>
 
 <template>
-  <div flex class="grid-cols-2 h-full">
-    <model-viewer
-      v-if="fileUrl && isGlTF"
-      class="h-full w-full"
-      :src="fileUrl"
-      :alt="fileUrl"
-      camera-controls auto-rotate
-    />
-
-    <div class="h-full w-full">
-      <ClientOnly>
-        <MonacoEditor
-          class="h-full w-full"
-          :model-value="fileContent"
-          :options="{
-            theme: 'vs-dark',
-            readOnly: true,
-          }" lang="json"
-        />
-      </ClientOnly>
-    </div>
-  </div>
+  <ClientOnly>
+    <ModelPreview :src="fileUrl" :type="type" />
+  </ClientOnly>
 </template>

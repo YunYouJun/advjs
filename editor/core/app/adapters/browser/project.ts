@@ -29,6 +29,8 @@ export interface EditorProjectModel {
   compilation: AdvProjectCompileResult
   files: AdvProjectFileMap
   filePaths?: string[]
+  /** JSON projections of executable configuration must never be overwritten. */
+  virtualFiles?: string[]
   migrationNotice?: string
   mode: 'legacy-json' | 'standard-markdown'
   previewConfig: AdvGameConfig

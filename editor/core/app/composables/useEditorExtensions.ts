@@ -42,6 +42,12 @@ export function useEditorExtensions() {
     import.meta.hot.dispose(dispose)
   return {
     layout,
+    async execute(key: string) {
+      if (!host.canExecute(key))
+        return false
+      await host.execute(key)
+      return !host.commands[key]?.error
+    },
     resetLayout: () => layout.reset(),
     manageExtensions: () => layout.select('bottom', 'advjs.core/plugins'),
     async start() {
