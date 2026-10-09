@@ -43,6 +43,8 @@
       "@advjs/client": [
         "./packages/client/index.ts"
       ],
+      "@advjs/core/runtime": ["./packages/core/src/runtime/headless.ts"],
+      "@advjs/core/compiler": ["./packages/core/src/compiler/index.ts"],
       "@advjs/*": [
         "./packages/*/src/index.ts"
       ],
