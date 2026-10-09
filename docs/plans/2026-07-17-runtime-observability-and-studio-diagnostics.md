@@ -29,7 +29,7 @@
 - Modify: `packages/types/src/runtime/index.ts`
 - Create: `packages/core/src/runtime/trace.ts`
 - Modify: `packages/core/src/runtime/index.ts`
-- Test: `tests/unit/runtime-trace.test.ts`
+- Test: `tests/unit/runtime/runtime-trace.test.ts`
 
 **Interfaces:**
 
@@ -52,7 +52,7 @@ expect(diffRuntimeVariables(
 
 - [ ] **Step 2: Run the test and verify RED**
 
-Run: `pnpm vitest run tests/unit/runtime-trace.test.ts`
+Run: `pnpm vitest run tests/unit/runtime/runtime-trace.test.ts`
 
 Expected: FAIL because trace types/helper do not exist.
 
@@ -95,14 +95,14 @@ Recurse only through plain JSON objects; treat arrays and type changes as one pa
 
 - [ ] **Step 5: Export and run tests**
 
-Run: `pnpm vitest run tests/unit/runtime-trace.test.ts`
+Run: `pnpm vitest run tests/unit/runtime/runtime-trace.test.ts`
 
 Expected: PASS.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add packages/types/src/runtime packages/core/src/runtime tests/unit/runtime-trace.test.ts
+git add packages/types/src/runtime packages/core/src/runtime tests/unit/runtime/runtime-trace.test.ts
 git commit -m "feat(runtime): define command trace contract"
 ```
 
@@ -113,8 +113,8 @@ git commit -m "feat(runtime): define command trace contract"
 - Modify: `packages/core/src/runtime/create.ts`
 - Modify: `packages/core/src/runtime/transition.ts`
 - Modify: `packages/core/src/runtime/index.ts`
-- Modify: `tests/unit/runtime-trace.test.ts`
-- Test: `tests/unit/runtime-host-conformance.test.ts`
+- Modify: `tests/unit/runtime/runtime-trace.test.ts`
+- Test: `tests/unit/runtime/runtime-host-conformance.test.ts`
 
 **Interfaces:**
 
@@ -127,7 +127,7 @@ Run `start`, `next`, `choose`, `go`, `completeActivity`, `back`, and `restore` i
 
 - [ ] **Step 2: Run tests and verify RED**
 
-Run: `pnpm vitest run tests/unit/runtime-trace.test.ts`
+Run: `pnpm vitest run tests/unit/runtime/runtime-trace.test.ts`
 
 Expected: FAIL because `trace()` and `subscribeTrace()` do not exist.
 
@@ -155,7 +155,7 @@ Before each command, clone the prior state. After transition/restore/back, creat
 Run:
 
 ```bash
-pnpm vitest run tests/unit/runtime-trace.test.ts tests/unit/runtime-host-conformance.test.ts tests/unit/runtime-node-storage.test.ts tests/unit/client-runtime-host.test.ts
+pnpm vitest run tests/unit/runtime/runtime-trace.test.ts tests/unit/runtime/runtime-host-conformance.test.ts tests/unit/runtime/runtime-node-storage.test.ts tests/unit/client/client-runtime-host.test.ts
 ```
 
 Expected: PASS with existing subscriber counts unchanged.
@@ -163,7 +163,7 @@ Expected: PASS with existing subscriber counts unchanged.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add packages/core/src/runtime tests/unit/runtime-trace.test.ts
+git add packages/core/src/runtime tests/unit/runtime/runtime-trace.test.ts
 git commit -m "feat(runtime): record bounded command traces"
 ```
 
@@ -178,8 +178,8 @@ git commit -m "feat(runtime): record bounded command traces"
 - Modify: `packages/client/runtime/index.ts`
 - Modify: `apps/studio/src/composables/useRuntimeInspector.ts`
 - Modify: `apps/studio/src/composables/useRuntimeInspector.test.ts`
-- Test: `tests/unit/runtime-cli-player.test.ts`
-- Test: `tests/unit/client-runtime-inspector.test.ts`
+- Test: `tests/unit/runtime/runtime-cli-player.test.ts`
+- Test: `tests/unit/client/client-runtime-inspector.test.ts`
 
 **Interfaces:**
 
@@ -206,7 +206,7 @@ Assert report metadata includes a notice that snapshot variables and trace diffs
 
 - [ ] **Step 2: Run tests and verify RED**
 
-Run: `pnpm vitest run tests/unit/client-runtime-inspector.test.ts tests/unit/runtime-cli-player.test.ts`
+Run: `pnpm vitest run tests/unit/client/client-runtime-inspector.test.ts tests/unit/runtime/runtime-cli-player.test.ts`
 
 Expected: FAIL because shared projection/report functions do not exist and CLI still creates its own trace shape.
 
@@ -218,7 +218,7 @@ Replace Studio's projection implementation with a re-export/thin Vue `computed()
 
 - [ ] **Step 4: Expose trace through the replaceable Client host**
 
-Add `maxTraceEntries` to host install options and add `trace()` / `subscribeTrace()` to `AdvRuntimeHost`. Host trace subscribers must remain registered when `install()` replaces the underlying Core runtime, then detach on `dispose()`. Cover reinstall, capacity, and unsubscribe behavior in `tests/unit/client-runtime-host.test.ts`.
+Add `maxTraceEntries` to host install options and add `trace()` / `subscribeTrace()` to `AdvRuntimeHost`. Host trace subscribers must remain registered when `install()` replaces the underlying Core runtime, then detach on `dispose()`. Cover reinstall, capacity, and unsubscribe behavior in `tests/unit/client/client-runtime-host.test.ts`.
 
 - [ ] **Step 5: Adapt CLI to Core trace**
 
@@ -236,7 +236,7 @@ Update CLI tests from command `activity` to `complete-activity` and from full va
 Run:
 
 ```bash
-pnpm vitest run tests/unit/client-runtime-inspector.test.ts tests/unit/client-runtime-host.test.ts tests/unit/runtime-cli-player.test.ts
+pnpm vitest run tests/unit/client/client-runtime-inspector.test.ts tests/unit/client/client-runtime-host.test.ts tests/unit/runtime/runtime-cli-player.test.ts
 pnpm --filter @advjs/studio test:unit -- src/composables/useRuntimeInspector.test.ts
 ```
 
@@ -257,7 +257,7 @@ git commit -m "refactor(devtools): share runtime inspector model"
 - Create: `packages/client/components/devtools/RuntimeTraceList.vue`
 - Create: `packages/client/components/devtools/RuntimeInspectorPanel.vue`
 - Modify: `packages/client/components/devtools/AdvDevTools.vue`
-- Test: `tests/unit/runtime-inspector-components.test.ts`
+- Test: `tests/unit/runtime/runtime-inspector-components.test.ts`
 
 **Interfaces:**
 
@@ -277,7 +277,7 @@ Mount with a model containing nested variables, a stage change, and three trace 
 
 - [ ] **Step 2: Run tests and verify RED**
 
-Run: `pnpm vitest run tests/unit/runtime-inspector-components.test.ts`
+Run: `pnpm vitest run tests/unit/runtime/runtime-inspector-components.test.ts`
 
 Expected: FAIL because components do not exist.
 
@@ -298,7 +298,7 @@ Build the model from `$adv.runtime.snapshot()`, `$adv.runtime.trace()`, and `$ad
 Run:
 
 ```bash
-pnpm vitest run tests/unit/runtime-inspector-components.test.ts tests/unit/component.test.ts
+pnpm vitest run tests/unit/runtime/runtime-inspector-components.test.ts tests/unit/client/component.test.ts
 pnpm typecheck
 ```
 
@@ -307,7 +307,7 @@ Expected: PASS.
 - [ ] **Step 7: Commit**
 
 ```bash
-git add packages/client/components/devtools tests/unit/runtime-inspector-components.test.ts
+git add packages/client/components/devtools tests/unit/runtime/runtime-inspector-components.test.ts
 git commit -m "feat(devtools): add interactive runtime inspector"
 ```
 
@@ -481,7 +481,7 @@ Explain:
 Run:
 
 ```bash
-pnpm vitest run tests/unit/runtime-trace.test.ts tests/unit/client-runtime-inspector.test.ts tests/unit/runtime-inspector-components.test.ts tests/unit/runtime-cli-player.test.ts
+pnpm vitest run tests/unit/runtime/runtime-trace.test.ts tests/unit/client/client-runtime-inspector.test.ts tests/unit/runtime/runtime-inspector-components.test.ts tests/unit/runtime/runtime-cli-player.test.ts
 pnpm --filter @advjs/studio test:unit -- src/__tests__/runtimeAuthoring.test.ts src/__tests__/runtimeReport.test.ts src/__tests__/projectValidation.test.ts src/composables/useRuntimeInspector.test.ts
 pnpm --filter @advjs/studio test:e2e -- runtime-debugging.spec.ts
 pnpm exec playwright test tests/e2e/hamster.spec.ts --project=chromium

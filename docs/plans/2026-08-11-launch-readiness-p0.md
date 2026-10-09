@@ -75,7 +75,7 @@ Studio、自动图片生成、视频导出、内容社区和第二部署供应�
 - Create: `tests/launch/contracts/`
 - Create: `tests/launch/fixtures/golden-request.md`
 - Create: `tests/launch/fixtures/golden-project/`
-- Create: `tests/unit/cli-contracts.test.ts`
+- Create: `tests/unit/cli/cli-contracts.test.ts`
 
 **待办：**
 
@@ -89,7 +89,7 @@ Studio、自动图片生成、视频导出、内容社区和第二部署供应�
 **完成标准：**
 
 ```bash
-pnpm vitest run tests/unit/cli-contracts.test.ts
+pnpm vitest run tests/unit/cli/cli-contracts.test.ts
 ```
 
 测试必须证明所有命令 Schema 与 support matrix 均可枚举且无遗漏，并证明 key 排序、路径分隔符和文件遍历顺序不会改变 `contentRevision`。
@@ -129,7 +129,7 @@ pnpm build:advjs
 - Modify: `editor/core/nuxt.config.ts`
 - Modify: `editor/core/package.json`
 - Modify: Editor 报错涉及的 imports、runtime exports 与类型声明
-- Create: `tests/unit/editor-build-contract.test.ts`
+- Create: `tests/unit/editor/editor-build-contract.test.ts`
 
 **待办：**
 
@@ -144,7 +144,7 @@ pnpm build:advjs
 ```bash
 pnpm --filter @advjs/editor typecheck
 pnpm --filter @advjs/editor build
-pnpm vitest run tests/unit/editor-build-contract.test.ts
+pnpm vitest run tests/unit/editor/editor-build-contract.test.ts
 ```
 
 ### L4-01 统一 Skills 元数据并随 advjs 发布
@@ -156,7 +156,7 @@ pnpm vitest run tests/unit/editor-build-contract.test.ts
 - Create: `skills/catalog.json`
 - Modify: `skills/README.md`
 - Modify: `packages/advjs/package.json`
-- Modify: `tests/unit/content-skills.test.ts`
+- Modify: `tests/unit/tooling/content-skills.test.ts`
 
 **待办：**
 
@@ -169,7 +169,7 @@ pnpm vitest run tests/unit/editor-build-contract.test.ts
 **完成标准：**
 
 ```bash
-pnpm vitest run tests/unit/content-skills.test.ts
+pnpm vitest run tests/unit/tooling/content-skills.test.ts
 pnpm -C packages/advjs pack --pack-destination ../../artifacts
 ```
 
@@ -260,7 +260,7 @@ pnpm vitest run tests/launch/packed-install.test.ts
 - Modify: `packages/advjs/node/cli/{init,check,build}.ts`
 - Modify: `packages/advjs/node/commands/{init,check}.ts`
 - Modify: `packages/advjs/node/commands/build/`
-- Create: `tests/unit/cli-json-output.test.ts`
+- Create: `tests/unit/cli/cli-json-output.test.ts`
 
 **待办：**
 
@@ -273,7 +273,7 @@ pnpm vitest run tests/launch/packed-install.test.ts
 **完成标准：**
 
 ```bash
-pnpm vitest run tests/unit/cli-json-output.test.ts
+pnpm vitest run tests/unit/cli/cli-json-output.test.ts
 ```
 
 stdout 每次只能包含一个通过 Schema 的 envelope，退出码与 `ok`/error code 一致。
@@ -313,7 +313,7 @@ pnpm -C packages/core build
 - Modify: `editor/core/app/stores/useGitHubStore.ts`
 - Modify: `editor/core/app/utils/cos/`
 - Modify: `editor/core/server/api/`
-- Create: `tests/unit/editor-feature-boundaries.test.ts`
+- Create: `tests/unit/editor/editor-feature-boundaries.test.ts`
 
 **待办：**
 
@@ -326,7 +326,7 @@ pnpm -C packages/core build
 **完成标准：**
 
 ```bash
-pnpm vitest run tests/unit/editor-feature-boundaries.test.ts
+pnpm vitest run tests/unit/editor/editor-feature-boundaries.test.ts
 pnpm --filter @advjs/editor build
 ```
 
@@ -339,7 +339,7 @@ pnpm --filter @advjs/editor build
 - Create: `packages/advjs/node/deploy/`
 - Create: `packages/advjs/node/cli/deploy.ts`
 - Modify: `packages/advjs/node/cli/index.ts`
-- Create: `tests/unit/deploy-contracts.test.ts`
+- Create: `tests/unit/cli/deploy-contracts.test.ts`
 
 **待办：**
 
@@ -354,7 +354,7 @@ pnpm --filter @advjs/editor build
 **完成标准：**
 
 ```bash
-pnpm vitest run tests/unit/deploy-contracts.test.ts
+pnpm vitest run tests/unit/cli/deploy-contracts.test.ts
 ```
 
 同一内容重复归档得到相同 `contentRevision` 和 archive hash；deployment receipt 不互相覆盖。测试还必须预置一份陈旧 `dist/`，证明 check/build 失败时 provider adapter 从未被调用。
@@ -370,7 +370,7 @@ pnpm vitest run tests/unit/deploy-contracts.test.ts
 - Modify: `packages/advjs/node/commands/{check,context}.ts`
 - Modify: `packages/advjs/node/commands/build/`
 - Modify: `packages/mcp-server/src/index.ts`
-- Modify: `tests/unit/runtime-project-loader.test.ts`
+- Modify: `tests/unit/runtime/runtime-project-loader.test.ts`
 
 **待办：**
 
@@ -383,7 +383,7 @@ pnpm vitest run tests/unit/deploy-contracts.test.ts
 **完成标准：**
 
 ```bash
-pnpm vitest run tests/unit/runtime-project-loader.test.ts tests/unit/check-runtime.test.ts tests/unit/mcp-resources.test.ts
+pnpm vitest run tests/unit/runtime/runtime-project-loader.test.ts tests/unit/cli/check-runtime.test.ts tests/unit/mcp/mcp-resources.test.ts
 ```
 
 ### L2-03 让 Editor 打开标准 Markdown 项目
@@ -394,7 +394,7 @@ pnpm vitest run tests/unit/runtime-project-loader.test.ts tests/unit/check-runti
 - Modify: `editor/core/app/stores/useFileStore.ts`
 - Modify: `editor/core/app/components/panel/AEOpenProject.vue`
 - Modify: `editor/core/app/templates/`
-- Create: `tests/unit/editor-project-adapter.test.ts`
+- Create: `tests/unit/editor/editor-project-adapter.test.ts`
 
 **待办：**
 
@@ -407,7 +407,7 @@ pnpm vitest run tests/unit/runtime-project-loader.test.ts tests/unit/check-runti
 **完成标准：**
 
 ```bash
-pnpm vitest run tests/unit/editor-project-adapter.test.ts
+pnpm vitest run tests/unit/editor/editor-project-adapter.test.ts
 ```
 
 ### L3-03 实现安全的本地 Editor bridge 与 CLI
@@ -418,7 +418,7 @@ pnpm vitest run tests/unit/editor-project-adapter.test.ts
 - Create: `packages/advjs/node/editor/`
 - Modify: `packages/advjs/node/cli/index.ts`
 - Modify: `packages/advjs/package.json`
-- Create: `tests/unit/editor-bridge.test.ts`
+- Create: `tests/unit/editor/editor-bridge.test.ts`
 
 **待办：**
 
@@ -432,7 +432,7 @@ pnpm vitest run tests/unit/editor-project-adapter.test.ts
 **完成标准：**
 
 ```bash
-pnpm vitest run tests/unit/editor-bridge.test.ts
+pnpm vitest run tests/unit/editor/editor-bridge.test.ts
 ```
 
 测试覆盖路径穿越、越界符号链接、非本机 origin、端口占用、命令注入和重复启停。
@@ -444,7 +444,7 @@ pnpm vitest run tests/unit/editor-bridge.test.ts
 - Create: `packages/advjs/node/agent/`
 - Create: `packages/advjs/node/cli/agent.ts`
 - Modify: `packages/advjs/node/cli/index.ts`
-- Create: `tests/unit/agent-install.test.ts`
+- Create: `tests/unit/cli/agent-install.test.ts`
 
 **待办：**
 
@@ -457,7 +457,7 @@ pnpm vitest run tests/unit/editor-bridge.test.ts
 **完成标准：**
 
 ```bash
-pnpm vitest run tests/unit/agent-install.test.ts
+pnpm vitest run tests/unit/cli/agent-install.test.ts
 ```
 
 ### L4-03 实现 adv doctor 诊断命令
@@ -467,7 +467,7 @@ pnpm vitest run tests/unit/agent-install.test.ts
 - Create: `packages/advjs/node/cli/doctor.ts`
 - Create: `packages/advjs/node/commands/doctor.ts`
 - Modify: `packages/advjs/node/cli/index.ts`
-- Create: `tests/unit/doctor.test.ts`
+- Create: `tests/unit/cli/doctor.test.ts`
 
 **待办：**
 
@@ -480,7 +480,7 @@ pnpm vitest run tests/unit/agent-install.test.ts
 **完成标准：**
 
 ```bash
-pnpm vitest run tests/unit/doctor.test.ts
+pnpm vitest run tests/unit/cli/doctor.test.ts
 ```
 
 ### L5-02 实现 Cloudflare Pages Direct Upload
@@ -490,7 +490,7 @@ pnpm vitest run tests/unit/doctor.test.ts
 - Create: `packages/advjs/node/deploy/cloudflare.ts`
 - Modify: `packages/advjs/package.json`
 - Modify: `packages/advjs/node/cli/deploy.ts`
-- Create: `tests/unit/deploy-cloudflare.test.ts`
+- Create: `tests/unit/cli/deploy-cloudflare.test.ts`
 
 **待办：**
 
@@ -504,7 +504,7 @@ pnpm vitest run tests/unit/doctor.test.ts
 **完成标准：**
 
 ```bash
-pnpm vitest run tests/unit/deploy-cloudflare.test.ts
+pnpm vitest run tests/unit/cli/deploy-cloudflare.test.ts
 ```
 
 受保护的集成 CI 另用最小测试账号完成一次真实 Pages 部署，不复用 ADV.JS 官方站点项目。
@@ -540,7 +540,7 @@ pnpm vitest run tests/unit/deploy-cloudflare.test.ts
 
 - Create: `packages/core/src/project/serialize.ts`
 - Modify: Editor 文件保存逻辑
-- Create: `tests/unit/project-roundtrip.test.ts`
+- Create: `tests/unit/runtime/project-roundtrip.test.ts`
 
 **待办：**
 
@@ -553,7 +553,7 @@ pnpm vitest run tests/unit/deploy-cloudflare.test.ts
 **完成标准：**
 
 ```bash
-pnpm vitest run tests/unit/project-roundtrip.test.ts
+pnpm vitest run tests/unit/runtime/project-roundtrip.test.ts
 ```
 
 ### L3-04 接入 Editor 本地工作区与实时刷新
@@ -635,8 +635,8 @@ pnpm vitest run tests/launch/cloudflare-deploy.test.ts
 - Create: `scripts/release/verify-manifest.mjs`
 - Create: `.github/workflows/release-candidate.yml`
 - Modify: `.github/workflows/release.yml`
-- Create: `tests/unit/release-manifest.test.ts`
-- Create: `tests/unit/release-workflow-contract.test.ts`
+- Create: `tests/unit/tooling/release-manifest.test.ts`
+- Create: `tests/unit/tooling/release-workflow-contract.test.ts`
 - Create: `scripts/release/changelog.mjs`
 
 **待办：**
@@ -651,8 +651,8 @@ pnpm vitest run tests/launch/cloudflare-deploy.test.ts
 **完成标准：**
 
 ```bash
-pnpm vitest run tests/unit/release-manifest.test.ts
-pnpm vitest run tests/unit/release-workflow-contract.test.ts
+pnpm vitest run tests/unit/tooling/release-manifest.test.ts
+pnpm vitest run tests/unit/tooling/release-workflow-contract.test.ts
 node scripts/release/verify-manifest.mjs <manifest> --local-registry
 ```
 
@@ -717,7 +717,7 @@ pnpm vitest run tests/launch/docs-journey.test.ts
 - Create: `scripts/release/promote.mjs`
 - Create: `scripts/release/abort.mjs`
 - Modify: `.github/workflows/release.yml`
-- Create: `tests/unit/release-transaction.test.ts`
+- Create: `tests/unit/tooling/release-transaction.test.ts`
 - External config: GitHub `dev`/`main` branch protection 与 release environment
 
 **待办：**
@@ -735,7 +735,7 @@ pnpm vitest run tests/launch/docs-journey.test.ts
 **完成标准：**
 
 ```bash
-pnpm vitest run tests/unit/release-transaction.test.ts
+pnpm vitest run tests/unit/tooling/release-transaction.test.ts
 node scripts/release/promote.mjs <manifest> --dry-run
 ```
 

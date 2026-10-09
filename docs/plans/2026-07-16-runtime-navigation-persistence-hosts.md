@@ -200,8 +200,8 @@ The core package supplies a clone-safe memory adapter and record validators. Bro
 - Add: `packages/advjs/node/runtime/player.ts`
 - Modify: `packages/advjs/node/cli/play.ts`
 - Modify: `packages/advjs/node/cli/index.ts`
-- Test: `tests/unit/runtime-cli-player.test.ts`
-- Test: `tests/unit/runtime-node-storage.test.ts`
+- Test: `tests/unit/runtime/runtime-cli-player.test.ts`
+- Test: `tests/unit/runtime/runtime-node-storage.test.ts`
 - Remove after migration: `packages/core/src/engine/runtime.ts`
 - Remove after migration: `packages/core/src/engine/session.ts`
 - Remove after migration: `packages/core/src/engine/types.ts`
@@ -239,8 +239,8 @@ The core package supplies a clone-safe memory adapter and record validators. Bro
 - Modify: dependent ADV components under `packages/client/components/adv/`
 - Modify: `packages/client/stores/useGameStore.ts`
 - Modify: `themes/theme-default/components/save/SavedCard.vue`
-- Test: `tests/unit/client-runtime-host.test.ts`
-- Test: `tests/unit/client-runtime-storage.test.ts`
+- Test: `tests/unit/client/client-runtime-host.test.ts`
+- Test: `tests/unit/client/client-runtime-storage.test.ts`
 
 **Contract:** one composable owns the runtime instance and mirrors immutable `RuntimeState` into a `shallowRef`. Components derive dialogue/choices/stage from `runtime.current` and `runtime.state`. Choice buttons call `runtime.choose(choice.id)` only. The browser storage adapter persists `RuntimeSaveRecord`; save thumbnails/labels remain metadata. Effect handlers update audio/Pixi presentation but never story cursor/variables.
 
@@ -287,7 +287,7 @@ The core package supplies a clone-safe memory adapter and record validators. Bro
 
 - Add: `tests/fixtures/runtime/navigation.adv.md`
 - Modify: `packages/core/test/runtime/conformance.test.ts`
-- Add: `tests/unit/runtime-host-conformance.test.ts`
+- Add: `tests/unit/runtime/runtime-host-conformance.test.ts`
 - Add: `docs/guide/runtime/navigation-and-saves.md`
 - Modify: relevant VitePress sidebar/config and `docs/README.md` or guide index
 - Modify: `docs/specs/2026-07-16-unified-runtime-design.md`

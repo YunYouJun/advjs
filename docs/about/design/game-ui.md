@@ -264,7 +264,7 @@ const { isDark, toggle, reset } = useGameColorMode()
 ```bash
 pnpm prepare:workspace unit
 pnpm exec tsc -p tests/tsconfig.game-theme.json --noEmit
-pnpm exec vitest run tests/unit/game-ui-theme.test.ts tests/unit/game-end.test.ts tests/unit/agui-controls.test.ts
+pnpm exec vitest run tests/unit/client/game-ui-theme.test.ts tests/unit/client/game-end.test.ts tests/unit/gui/agui-controls.test.ts
 ```
 
 CI 的 unit 作业在构建测试依赖后执行同一类型契约检查，再运行全部单测。类型检查覆盖旧主题接口、自定义字段推断、非法模式和混入工具 token；DOM 单测覆盖局部应用、响应式更新、默认恢复和相邻游戏隔离。两者不代替浏览器中的控件与样式验收。
@@ -278,4 +278,4 @@ CI 的 unit 作业在构建测试依赖后执行同一类型契约检查，再�
 | 3    | 历史颜色与作用域 | 默认布局、设置页签、文字按钮和标题美术已使用局部 token；Pominis 标题渐变保留美术方向并使用局部扩展 token。各主题剩余滑块、进度条、全局 reset 等仍需逐组件审计。                  |
 | 4    | 回归覆盖         | 单元覆盖模式隔离、持久化、存储异常、按钮和弹层；`tests/e2e/game-ui.spec.ts` 覆盖独立游戏刷新、路由和焦点流程。Editor / Studio 完整宿主场景与所有存档分支仍需持续扩展浏览器回归。 |
 
-回归入口：`pnpm vitest run tests/unit/game-ui-theme.test.ts tests/unit/game-ui-interactions.test.ts tests/unit/agui-controls.test.ts`、`pnpm e2e tests/e2e/game-ui.spec.ts --project=chromium`。设计体系统一不要求移除主题的插画、渐变和剧情表现；这些应由游戏主题消费局部扩展 token，不能改变编辑器外壳。
+回归入口：`pnpm vitest run tests/unit/client/game-ui-theme.test.ts tests/unit/client/game-ui-interactions.test.ts tests/unit/gui/agui-controls.test.ts`、`pnpm e2e tests/e2e/game-ui.spec.ts --project=chromium`。设计体系统一不要求移除主题的插画、渐变和剧情表现；这些应由游戏主题消费局部扩展 token，不能改变编辑器外壳。

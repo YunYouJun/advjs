@@ -31,7 +31,7 @@ search: false
 
 ### 基线结果
 
-- `advjs`: `pnpm vitest run tests/unit/editor-workspace.test.ts` — 3/3 通过。
+- `advjs`: `pnpm vitest run tests/unit/editor/editor-workspace.test.ts` — 3/3 通过。
 - `www.yunle.fun`: `pnpm exec vitest run tests/ai-gateway tests/account-api` — 341/341 通过。
 - `admin`: `pnpm test` — 564/564 通过。
 

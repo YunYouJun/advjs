@@ -160,7 +160,7 @@ pnpm editor:build
 pnpm -C editor/core typecheck
 pnpm studio:build
 pnpm -C apps/studio exec vitest run
-pnpm exec vitest run tests/unit/editor-bridge.test.ts tests/unit/editor-local-adapter.test.ts tests/unit/editor-local-assets.test.ts tests/unit/editor-workspace.test.ts tests/unit/editor-resource-panels.test.ts tests/unit/editor-build-contract.test.ts tests/unit/project-roundtrip.test.ts
+pnpm exec vitest run tests/unit/editor/editor-bridge.test.ts tests/unit/editor/editor-local-adapter.test.ts tests/unit/editor/editor-local-assets.test.ts tests/unit/editor/editor-workspace.test.ts tests/unit/editor/editor-resource-panels.test.ts tests/unit/editor/editor-build-contract.test.ts tests/unit/runtime/project-roundtrip.test.ts
 pnpm docs:check
 ```
 

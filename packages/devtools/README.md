@@ -11,7 +11,7 @@ JSON 视图通过宿主共享的 Devframe Shiki service 高亮，使用 AGUI 语
 ```bash
 pnpm devtools:build
 pnpm -C packages/devtools typecheck
-pnpm exec vitest run tests/unit/devtools*.test.ts
+pnpm exec vitest run tests/unit/devtools/devtools*.test.ts
 ```
 
 构建先用 unbuild 生成 Node 入口和类型，再用 Vite 生成 `dist/client` 中的面板及开发环境启动脚本。发布包包含完整静态资源，不依赖源码目录。

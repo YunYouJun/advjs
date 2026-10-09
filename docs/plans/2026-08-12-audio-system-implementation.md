@@ -22,7 +22,7 @@ Before the breaking migration starts, the existing `useAdvBgm` path now provides
 - dispose unloads active and retiring tracks;
 - Studio builds against an embed-safe client surface and injects its runtime plugins explicitly.
 
-The regression seam is `tests/unit/client-bgm.test.ts` plus `tests/unit/client-runtime-presentation.test.ts`. This baseline does not complete Task 4 or Task 5: there is still no shared Audio Director, Mixer, Fake Backend, Browser Backend, multi-bus runtime or `useAdvAudio()` API.
+The regression seam is `tests/unit/client/client-bgm.test.ts` plus `tests/unit/client/client-runtime-presentation.test.ts`. This baseline does not complete Task 4 or Task 5: there is still no shared Audio Director, Mixer, Fake Backend, Browser Backend, multi-bus runtime or `useAdvAudio()` API.
 
 ## Global constraints
 
@@ -180,7 +180,7 @@ feat(audio): add stable audio identity helpers
 pnpm vitest run packages/core/test/runtime/markdown-compiler.test.ts
 pnpm vitest run packages/core/test/runtime/flow-compiler.test.ts
 pnpm vitest run packages/core/test/runtime/transition.test.ts
-pnpm vitest run tests/unit/runtime-audio-state.test.ts tests/unit/check-runtime.test.ts
+pnpm vitest run tests/unit/runtime-audio-state.test.ts tests/unit/cli/check-runtime.test.ts
 ```
 
 Suggested commit:
@@ -288,7 +288,7 @@ feat(client): add deterministic audio director
 - [ ] Run:
 
 ```bash
-pnpm vitest run tests/unit/client-audio-host.test.ts tests/unit/client-runtime-presentation.test.ts tests/unit/audio-migration.test.ts
+pnpm vitest run tests/unit/client-audio-host.test.ts tests/unit/client/client-runtime-presentation.test.ts tests/unit/audio-migration.test.ts
 pnpm exec playwright test tests/e2e/audio-runtime.spec.ts
 pnpm typecheck
 ```
@@ -567,7 +567,7 @@ feat(studio): add mobile audio authoring
 - [ ] Run:
 
 ```bash
-pnpm vitest run tests/unit/audio-migration.test.ts tests/unit/hamster-demo-runtime.test.ts
+pnpm vitest run tests/unit/audio-migration.test.ts tests/unit/demo/hamster-demo-runtime.test.ts
 pnpm build:advjs
 pnpm typecheck
 pnpm lint

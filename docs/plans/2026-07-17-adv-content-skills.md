@@ -21,7 +21,7 @@
 
 **Files:**
 
-- Create: `tests/unit/content-skills.test.ts`
+- Create: `tests/unit/tooling/content-skills.test.ts`
 - Modify: `skills/README.md`
 
 **Interfaces:**
@@ -34,7 +34,7 @@ Create a table for `adv-adapt`, `adv-art`, and `adv-hamster-demo`. For each entr
 
 - [ ] **Step 2: Run the focused test and verify RED**
 
-Run: `pnpm vitest run tests/unit/content-skills.test.ts`
+Run: `pnpm vitest run tests/unit/tooling/content-skills.test.ts`
 
 Expected: FAIL because the three Skill directories do not exist.
 
@@ -45,7 +45,7 @@ Add the three Skills to the directory tree and capability table. Document that n
 - [ ] **Step 4: Commit after the three Skills make this test pass**
 
 ```bash
-git add tests/unit/content-skills.test.ts skills
+git add tests/unit/tooling/content-skills.test.ts skills
 git commit -m "feat(skills): add content pipeline contracts"
 ```
 
@@ -57,7 +57,7 @@ git commit -m "feat(skills): add content pipeline contracts"
 - Create: `skills/adv-adapt/agents/openai.yaml`
 - Create: `skills/adv-adapt/references/adaptation-manifest.md`
 - Create: `skills/adv-adapt/scripts/audit-coverage.mjs`
-- Test: `tests/unit/content-skills.test.ts`
+- Test: `tests/unit/tooling/content-skills.test.ts`
 
 **Interfaces:**
 
@@ -70,7 +70,7 @@ Create temporary manifests and chapters with `<!-- source:work/section -->` mark
 
 - [ ] **Step 2: Run the focused test and verify RED**
 
-Run: `pnpm vitest run tests/unit/content-skills.test.ts`
+Run: `pnpm vitest run tests/unit/tooling/content-skills.test.ts`
 
 Expected: FAIL because `audit-coverage.mjs` does not exist.
 
@@ -85,7 +85,7 @@ Require source rights, explicit work order, stable section IDs, a full cast and 
 - [ ] **Step 5: Run tests and Skill validation**
 
 ```bash
-pnpm vitest run tests/unit/content-skills.test.ts
+pnpm vitest run tests/unit/tooling/content-skills.test.ts
 python3 /Users/yunyou/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/adv-adapt
 ```
 
@@ -100,7 +100,7 @@ Expected: PASS and `Skill is valid!`.
 - Create: `skills/adv-art/references/asset-manifest.md`
 - Create: `skills/adv-art/references/cos-publishing.md`
 - Create: `skills/adv-art/scripts/audit-assets.mjs`
-- Test: `tests/unit/content-skills.test.ts`
+- Test: `tests/unit/tooling/content-skills.test.ts`
 
 **Interfaces:**
 
@@ -113,7 +113,7 @@ Use a valid manifest with one character expression and one background. Add negat
 
 - [ ] **Step 2: Run the focused test and verify RED**
 
-Run: `pnpm vitest run tests/unit/content-skills.test.ts`
+Run: `pnpm vitest run tests/unit/tooling/content-skills.test.ts`
 
 Expected: FAIL because `audit-assets.mjs` does not exist.
 
@@ -128,7 +128,7 @@ Cover art bible creation, image prompts, expression matrices, original generatio
 - [ ] **Step 5: Run tests and Skill validation**
 
 ```bash
-pnpm vitest run tests/unit/content-skills.test.ts
+pnpm vitest run tests/unit/tooling/content-skills.test.ts
 python3 /Users/yunyou/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/adv-art
 ```
 
@@ -143,7 +143,7 @@ Expected: PASS and `Skill is valid!`.
 - Create: `skills/adv-hamster-demo/references/demo-contract.md`
 - Modify: `docs/ai/skills/index.md`
 - Modify: `docs/ai/skills/roadmap.md`
-- Test: `tests/unit/content-skills.test.ts`
+- Test: `tests/unit/tooling/content-skills.test.ts`
 
 **Interfaces:**
 
@@ -156,7 +156,7 @@ Assert the Skill names `demo/hamster`, both source slugs, `A+`, `games/hamster/v
 
 - [ ] **Step 2: Run the focused test and verify RED**
 
-Run: `pnpm vitest run tests/unit/content-skills.test.ts`
+Run: `pnpm vitest run tests/unit/tooling/content-skills.test.ts`
 
 Expected: FAIL until the demo contract is complete.
 
@@ -171,7 +171,7 @@ Add all three Skills to the docs catalog and mark `adv-adapt`/`adv-art` as reusa
 - [ ] **Step 5: Validate all Skills and run focused tests**
 
 ```bash
-pnpm vitest run tests/unit/content-skills.test.ts
+pnpm vitest run tests/unit/tooling/content-skills.test.ts
 for skill in adv-adapt adv-art adv-hamster-demo; do
   python3 /Users/yunyou/.codex/skills/.system/skill-creator/scripts/quick_validate.py "skills/$skill"
 done
@@ -182,6 +182,6 @@ Expected: all checks pass.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add skills docs/ai/skills tests/unit/content-skills.test.ts
+git add skills docs/ai/skills tests/unit/tooling/content-skills.test.ts
 git commit -m "feat(skills): add ADV content workflows"
 ```

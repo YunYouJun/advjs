@@ -32,7 +32,7 @@
 
 ```bash
 pnpm vitest run tests/unit packages plugins --reporter=default
-pnpm vitest run tests/unit/cli-json-output.test.ts --reporter=default
+pnpm vitest run tests/unit/cli/cli-json-output.test.ts --reporter=default
 ```
 
 首轮广泛回归中，CLI 之外的 114 个文件、497 项测试全部通过，包含静态诊断 17 项、MCP 工作区 5 项、音频和 WebContainer 回归。CLI 原有 6 项测试中的 2 项因 20 秒测试预算和 15 秒子进程预算超时失败，并非错误码或 JSON 断言失败。修正启动入口和测试拆分后，单独复跑 CLI 的全部 8 项测试均通过，耗时约 20 秒（包含一次生产构建）；未改动已通过的其他测试或产品代码。合计 497 + 8 = 505 项。

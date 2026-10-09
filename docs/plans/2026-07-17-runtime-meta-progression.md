@@ -22,7 +22,7 @@
 
 **Files:**
 
-- Create: `tests/unit/client-runtime-progression.test.ts`
+- Create: `tests/unit/client/client-runtime-progression.test.ts`
 - Create: `packages/client/runtime/progression.ts`
 - Modify: `packages/client/runtime/index.ts`
 
@@ -43,7 +43,7 @@ Assert game IDs and versions use distinct storage keys; malformed JSON and wrong
 
 - [x] **Step 3: Run tests and verify RED**
 
-Run: `pnpm vitest run tests/unit/client-runtime-progression.test.ts`
+Run: `pnpm vitest run tests/unit/client/client-runtime-progression.test.ts`
 
 Expected: FAIL because `runtime/progression.ts` does not exist.
 
@@ -53,7 +53,7 @@ Validate the config once, encode the key, parse a versioned `{ schemaVersion: 1,
 
 - [x] **Step 5: Run tests and verify GREEN**
 
-Run: `pnpm vitest run tests/unit/client-runtime-progression.test.ts`
+Run: `pnpm vitest run tests/unit/client/client-runtime-progression.test.ts`
 
 Expected: PASS.
 
@@ -65,7 +65,7 @@ Expected: PASS.
 - Modify: `packages/client/types/context.ts`
 - Modify: `packages/client/setup/context.ts`
 - Modify: `apps/studio/src/components/GamePlayer.vue`
-- Modify: `tests/unit/client-activity-renderers.test.ts`
+- Modify: `tests/unit/client/client-activity-renderers.test.ts`
 
 **Interfaces:**
 
@@ -80,7 +80,7 @@ Create a complete minimal game config with progression, inject in-memory storage
 
 - [x] **Step 2: Run the integration test and verify RED**
 
-Run: `pnpm vitest run tests/unit/client-runtime-progression.test.ts tests/unit/client-activity-renderers.test.ts`
+Run: `pnpm vitest run tests/unit/client/client-runtime-progression.test.ts tests/unit/client/client-activity-renderers.test.ts`
 
 Expected: FAIL because setup does not construct or expose progression.
 
@@ -96,9 +96,9 @@ Pass `progressionStorage: false` from `GamePlayer.vue`, preserving deterministic
 
 ```bash
 pnpm vitest run \
-  tests/unit/client-runtime-progression.test.ts \
-  tests/unit/client-activity-renderers.test.ts \
-  tests/unit/runtime-host-conformance.test.ts
+  tests/unit/client/client-runtime-progression.test.ts \
+  tests/unit/client/client-activity-renderers.test.ts \
+  tests/unit/runtime/runtime-host-conformance.test.ts
 ```
 
 Expected: PASS.
@@ -108,8 +108,8 @@ Expected: PASS.
 **Files:**
 
 - Modify: `demo/hamster/adv/settings/game.json`
-- Modify: `tests/unit/demo-project-layout.test.ts`
-- Modify: `tests/unit/hamster-adaptation-contract.test.ts`
+- Modify: `tests/unit/demo/demo-project-layout.test.ts`
+- Modify: `tests/unit/demo/hamster-adaptation-contract.test.ts`
 
 **Interfaces:**
 
@@ -122,7 +122,7 @@ Assert the exact progression object and variable defaults in both settings and T
 
 - [x] **Step 2: Run tests and verify RED**
 
-Run: `pnpm vitest run tests/unit/demo-project-layout.test.ts tests/unit/hamster-adaptation-contract.test.ts`
+Run: `pnpm vitest run tests/unit/demo/demo-project-layout.test.ts tests/unit/demo/hamster-adaptation-contract.test.ts`
 
 Expected: FAIL because the progression contract is absent.
 
@@ -132,7 +132,7 @@ Update only Studio-safe JSON settings; `adv.config.ts` already spreads that obje
 
 - [x] **Step 4: Run tests and verify GREEN**
 
-Run: `pnpm vitest run tests/unit/demo-project-layout.test.ts tests/unit/hamster-adaptation-contract.test.ts`
+Run: `pnpm vitest run tests/unit/demo/demo-project-layout.test.ts tests/unit/demo/hamster-adaptation-contract.test.ts`
 
 Expected: PASS.
 
@@ -159,8 +159,8 @@ Add “跨周目进度” under the unified Runtime sidebar and warn that adding
 - [x] **Step 3: Run verification**
 
 ```bash
-pnpm exec eslint packages/types/src/config/game.ts packages/client/runtime/progression.ts packages/client/runtime/index.ts packages/client/types/context.ts packages/client/setup/context.ts apps/studio/src/components/GamePlayer.vue tests/unit/client-runtime-progression.test.ts
-pnpm vitest run tests/unit/client-runtime-progression.test.ts tests/unit/demo-project-layout.test.ts tests/unit/hamster-adaptation-contract.test.ts
+pnpm exec eslint packages/types/src/config/game.ts packages/client/runtime/progression.ts packages/client/runtime/index.ts packages/client/types/context.ts packages/client/setup/context.ts apps/studio/src/components/GamePlayer.vue tests/unit/client/client-runtime-progression.test.ts
+pnpm vitest run tests/unit/client/client-runtime-progression.test.ts tests/unit/demo/demo-project-layout.test.ts tests/unit/demo/hamster-adaptation-contract.test.ts
 pnpm -C docs build
 ```
 

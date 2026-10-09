@@ -35,9 +35,9 @@
 
 **Files:**
 
-- Modify: `tests/unit/hamster-adaptation-contract.test.ts`
-- Modify: `tests/unit/demo-project-layout.test.ts`
-- Modify: `tests/unit/hamster-demo-runtime.test.ts`
+- Modify: `tests/unit/demo/hamster-adaptation-contract.test.ts`
+- Modify: `tests/unit/demo/demo-project-layout.test.ts`
+- Modify: `tests/unit/demo/hamster-demo-runtime.test.ts`
 
 - [x] Assert the chapter directory contains exactly the 19 manifest filenames.
 - [x] Assert every required source anchor occurs exactly once and in manifest order.

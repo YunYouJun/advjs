@@ -72,7 +72,7 @@ search: false
 建议验证：
 
 ```bash
-pnpm vitest run tests/unit/editor-workspace.test.ts
+pnpm vitest run tests/unit/editor/editor-workspace.test.ts
 pnpm --dir /Users/yunyou/repos/github.com/YunLeFun/www.yunle.fun test
 pnpm --dir /Users/yunyou/repos/github.com/YunYouJun/admin test
 ```

@@ -157,7 +157,7 @@ transition: fade
 运行当前演出与 BGM 回归测试：
 
 ```bash
-pnpm vitest run tests/unit/client-bgm.test.ts tests/unit/client-runtime-presentation.test.ts
+pnpm vitest run tests/unit/client/client-bgm.test.ts tests/unit/client/client-runtime-presentation.test.ts
 ```
 
 手动试玩时至少验证 A→B 交叉淡化、A→B→C 快速切换、A→B→A 且最初 A 的旧回调延迟完成、旧轨尚未淡完时停止当前曲目、交叉淡化中静音再取消静音，以及交叉淡化中执行回退和读档。失败表现包括旧轨提前中断、退场重新计时、重新选中的 A 被旧回调停止、取消静音后只有新轨有声，或读档后的曲目被旧淡化回调停止。

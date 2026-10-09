@@ -22,7 +22,7 @@
 
 **Files:**
 
-- Create: `tests/unit/hamster-adaptation-contract.test.ts`
+- Create: `tests/unit/demo/hamster-adaptation-contract.test.ts`
 
 **Interfaces:**
 
@@ -38,7 +38,7 @@ Require cards for `observer`, `reader`, `pet-hamster`, `wang-an`, `wang-an-fathe
 
 - [ ] **Step 3: Run the test and verify RED**
 
-Run: `pnpm vitest run tests/unit/hamster-adaptation-contract.test.ts`
+Run: `pnpm vitest run tests/unit/demo/hamster-adaptation-contract.test.ts`
 
 Expected: FAIL because `adv/adaptation.json` does not exist.
 
@@ -93,9 +93,9 @@ Cover the summer simulated room, starfield room, simulated orbit, academy termin
 
 ```bash
 pnpm vitest run \
-  tests/unit/hamster-adaptation-contract.test.ts \
-  tests/unit/hamster-demo-runtime.test.ts \
-  tests/unit/content-skills.test.ts
+  tests/unit/demo/hamster-adaptation-contract.test.ts \
+  tests/unit/demo/hamster-demo-runtime.test.ts \
+  tests/unit/tooling/content-skills.test.ts
 ```
 
 Expected: PASS; the existing four-chapter runtime remains playable while the new catalog is prepared.
@@ -103,6 +103,6 @@ Expected: PASS; the existing four-chapter runtime remains playable while the new
 - [ ] **Step 5: Commit**
 
 ```bash
-git add demo/hamster/adv tests/unit/hamster-adaptation-contract.test.ts docs/plans/2026-07-17-hamster-source-catalog.md
+git add demo/hamster/adv tests/unit/demo/hamster-adaptation-contract.test.ts docs/plans/2026-07-17-hamster-source-catalog.md
 git commit -m "feat(hamster): catalog complete source adaptation"
 ```

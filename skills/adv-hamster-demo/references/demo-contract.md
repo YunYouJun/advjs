@@ -62,7 +62,7 @@ node skills/adv-adapt/scripts/audit-coverage.mjs \
   demo/hamster/adv/adaptation.json \
   demo/hamster/public/md/chapters
 node skills/adv-art/scripts/audit-assets.mjs demo/hamster/adv/assets.json
-pnpm vitest run tests/unit/hamster-adaptation-contract.test.ts
+pnpm vitest run tests/unit/demo/hamster-adaptation-contract.test.ts
 pnpm typecheck
 pnpm lint
 pnpm build:advjs

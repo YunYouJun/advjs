@@ -20,4 +20,4 @@ node ../../../../packages/advjs/bin/adv.mjs check --json
 | `raedy` 拼写错误                    | 改成初始变量 `ready`           | `ADV_STATIC_UNKNOWN_VARIABLE`    |
 | `loop` 只有自循环选项               | 添加 `- [Leave](start#finish)` | `ADV_STATIC_DEAD_END`            |
 
-`tests/unit/check-static.test.ts` 在临时副本中逐项修复并验证，不修改这些原始样例。
+`tests/unit/cli/check-static.test.ts` 在临时副本中逐项修复并验证，不修改这些原始样例。

@@ -16,7 +16,7 @@
     "../packages/advjs/node/commands/check-resources.ts",
     "../packages/advjs/node/project/index.ts",
     "../packages/parser/src/Serialize.ts",
-    "./unit/check-static.test.ts",
+    "./unit/cli/check-static.test.ts",
     "../scripts/check-examples.ts"
   ]
 }

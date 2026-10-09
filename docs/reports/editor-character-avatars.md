@@ -34,7 +34,7 @@
 
 ```bash
 ADVJS_EDITOR_MODE=local pnpm -C editor/core build
-pnpm exec vitest run tests/unit/editor-resource-panels.test.ts tests/unit/editor-file-workspace.test.ts
+pnpm exec vitest run tests/unit/editor/editor-resource-panels.test.ts tests/unit/editor/editor-file-workspace.test.ts
 pnpm -C apps/desktop exec playwright test --config playwright.config.ts panels.spec.ts --grep 'character avatars'
 ```
 

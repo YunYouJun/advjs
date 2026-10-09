@@ -58,17 +58,17 @@
 
 ```bash
 pnpm vitest run \
-  tests/unit/check-static.test.ts \
-  tests/unit/check-runtime.test.ts \
-  tests/unit/check-fix.test.ts \
-  tests/unit/runtime-project-loader.test.ts \
-  tests/unit/hamster-demo-runtime.test.ts \
-  tests/unit/project-roundtrip.test.ts \
-  tests/unit/runtime-markdown-choice-id.test.ts \
+  tests/unit/cli/check-static.test.ts \
+  tests/unit/cli/check-runtime.test.ts \
+  tests/unit/cli/check-fix.test.ts \
+  tests/unit/runtime/runtime-project-loader.test.ts \
+  tests/unit/demo/hamster-demo-runtime.test.ts \
+  tests/unit/runtime/project-roundtrip.test.ts \
+  tests/unit/runtime/runtime-markdown-choice-id.test.ts \
   packages/core/test/runtime \
   packages/core/test/project \
-  tests/unit/basic.test.ts \
-  tests/unit/cli-json-output.test.ts
+  tests/unit/runtime/core-runtime-entry.test.ts \
+  tests/unit/cli/cli-json-output.test.ts
 ```
 
 浏览器构建最初因本地缺少 `@advjs/client` 已声明的依赖链接失败；使用 `pnpm install --frozen-lockfile --ignore-scripts --filter @advjs/client --offline` 从本地缓存恢复后，重新测试通过，没有改变锁文件。后续按“修复所有模块问题”的要求恢复全工作区依赖、补齐直接依赖声明并修正 Core/MCP 类型错误，全仓类型检查现已通过；详细结果见[模块验证报告](./module-validation.md)。

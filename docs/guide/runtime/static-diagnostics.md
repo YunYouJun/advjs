@@ -81,7 +81,7 @@ pnpm exec adv check --json
 ```bash
 pnpm build:advjs
 pnpm exec tsc -p tests/tsconfig.static-diagnostics.json
-pnpm vitest run tests/unit/check-static.test.ts
+pnpm vitest run tests/unit/cli/check-static.test.ts
 pnpm exec tsx scripts/check-examples.ts /tmp/advjs-example-diagnostics.json
 ```
 

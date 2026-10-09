@@ -23,7 +23,7 @@
 
 - Modify: `packages/types/src/config/plugin.ts`
 - Modify: `packages/advjs/node/virtual/runtime-plugins.ts`
-- Test: `tests/unit/runtime-plugin-virtual.test.ts`
+- Test: `tests/unit/runtime/runtime-plugin-virtual.test.ts`
 
 **Interfaces:**
 
@@ -54,7 +54,7 @@ Object.assign(__advRuntimePlugin0({ tolerance: 0.82 }), { activityRenderers: { '
 
 - [ ] **Step 2: Run the test and verify RED**
 
-Run: `pnpm vitest run tests/unit/runtime-plugin-virtual.test.ts`
+Run: `pnpm vitest run tests/unit/runtime/runtime-plugin-virtual.test.ts`
 
 Expected: FAIL because `client.activities` is ignored.
 
@@ -82,14 +82,14 @@ Use `JSON.stringify(`${plugin.name}/${activityName}`)` for keys and reject inval
 
 - [ ] **Step 5: Run focused tests**
 
-Run: `pnpm vitest run tests/unit/runtime-plugin-virtual.test.ts`
+Run: `pnpm vitest run tests/unit/runtime/runtime-plugin-virtual.test.ts`
 
 Expected: PASS.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add packages/types/src/config/plugin.ts packages/advjs/node/virtual/runtime-plugins.ts tests/unit/runtime-plugin-virtual.test.ts
+git add packages/types/src/config/plugin.ts packages/advjs/node/virtual/runtime-plugins.ts tests/unit/runtime/runtime-plugin-virtual.test.ts
 git commit -m "feat(plugin): load activity renderers"
 ```
 
@@ -101,7 +101,7 @@ git commit -m "feat(plugin): load activity renderers"
 - Create: `packages/client/runtime/activity-renderers.ts`
 - Modify: `packages/client/types/index.ts`
 - Modify: `packages/client/runtime/index.ts`
-- Test: `tests/unit/client-activity-renderers.test.ts`
+- Test: `tests/unit/client/client-activity-renderers.test.ts`
 
 **Interfaces:**
 
@@ -137,7 +137,7 @@ describe('activity renderer registry', () => {
 
 - [ ] **Step 2: Run the test and verify RED**
 
-Run: `pnpm vitest run tests/unit/client-activity-renderers.test.ts`
+Run: `pnpm vitest run tests/unit/client/client-activity-renderers.test.ts`
 
 Expected: FAIL because the module does not exist.
 
@@ -192,14 +192,14 @@ export function createActivityRendererRegistry(
 
 - [ ] **Step 5: Export types and implementation, then run tests**
 
-Run: `pnpm vitest run tests/unit/client-activity-renderers.test.ts`
+Run: `pnpm vitest run tests/unit/client/client-activity-renderers.test.ts`
 
 Expected: PASS.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add packages/client/types packages/client/runtime tests/unit/client-activity-renderers.test.ts
+git add packages/client/types packages/client/runtime tests/unit/client/client-activity-renderers.test.ts
 git commit -m "feat(client): register activity renderers"
 ```
 
@@ -210,7 +210,7 @@ git commit -m "feat(client): register activity renderers"
 - Modify: `packages/client/types/context.ts`
 - Modify: `packages/client/setup/context.ts`
 - Modify: `packages/client/compiler/index.ts`
-- Test: `tests/unit/client-activity-renderers.test.ts`
+- Test: `tests/unit/client/client-activity-renderers.test.ts`
 
 **Interfaces:**
 
@@ -227,7 +227,7 @@ expect(context.activityRenderers.resolve('test/open')).toBe(renderer)
 
 - [ ] **Step 2: Run the test and verify RED**
 
-Run: `pnpm vitest run tests/unit/client-activity-renderers.test.ts`
+Run: `pnpm vitest run tests/unit/client/client-activity-renderers.test.ts`
 
 Expected: FAIL because `activityRenderers` is absent from `AdvContext`.
 
@@ -243,14 +243,14 @@ Construct the registry once beside the Runtime host and attach it to `advContext
 
 - [ ] **Step 4: Run host and registry tests**
 
-Run: `pnpm vitest run tests/unit/client-activity-renderers.test.ts tests/unit/client-runtime-host.test.ts tests/unit/runtime-plugin-virtual.test.ts`
+Run: `pnpm vitest run tests/unit/client/client-activity-renderers.test.ts tests/unit/client/client-runtime-host.test.ts tests/unit/runtime/runtime-plugin-virtual.test.ts`
 
 Expected: PASS.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/client/types/context.ts packages/client/setup/context.ts packages/client/compiler/index.ts tests/unit/client-activity-renderers.test.ts
+git add packages/client/types/context.ts packages/client/setup/context.ts packages/client/compiler/index.ts tests/unit/client/client-activity-renderers.test.ts
 git commit -m "refactor(client): expose activity renderer registry"
 ```
 
@@ -261,7 +261,7 @@ git commit -m "refactor(client): expose activity renderer registry"
 - Create: `packages/client/components/adv/activity/GenericActivityDebug.vue`
 - Create: `packages/client/components/adv/activity/UnsupportedActivity.vue`
 - Modify: `packages/client/components/adv/AdvActivity.vue`
-- Test: `tests/unit/component.test.ts`
+- Test: `tests/unit/client/component.test.ts`
 
 **Interfaces:**
 
@@ -274,7 +274,7 @@ Mount `AdvActivity` with an injected context and assert that a registered fake r
 
 - [ ] **Step 2: Run the component test and verify RED**
 
-Run: `pnpm vitest run tests/unit/component.test.ts -t "activity renderer"`
+Run: `pnpm vitest run tests/unit/client/component.test.ts -t "activity renderer"`
 
 Expected: FAIL because `AdvActivity` still contains plugin-specific branches.
 
@@ -309,14 +309,14 @@ Expected: no matches.
 
 - [ ] **Step 5: Run component and client tests**
 
-Run: `pnpm vitest run tests/unit/component.test.ts tests/unit/client-activity-renderers.test.ts tests/unit/client-runtime-host.test.ts`
+Run: `pnpm vitest run tests/unit/client/component.test.ts tests/unit/client/client-activity-renderers.test.ts tests/unit/client/client-runtime-host.test.ts`
 
 Expected: PASS.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add packages/client/components/adv packages/client/runtime packages/client/types tests/unit/component.test.ts
+git add packages/client/components/adv packages/client/runtime packages/client/types tests/unit/client/component.test.ts
 git commit -m "refactor(client): render plugin activities generically"
 ```
 
@@ -574,7 +574,7 @@ State that Studio only executes bundled allowlisted plugins; CLI/Vite projects c
 Run:
 
 ```bash
-pnpm vitest run tests/unit/runtime-plugin-virtual.test.ts tests/unit/client-activity-renderers.test.ts tests/unit/component.test.ts plugins/plugin-interactions/test
+pnpm vitest run tests/unit/runtime/runtime-plugin-virtual.test.ts tests/unit/client/client-activity-renderers.test.ts tests/unit/client/component.test.ts plugins/plugin-interactions/test
 pnpm --filter @advjs/studio test:unit -- src/__tests__/projectRuntimeFiles.test.ts src/__tests__/studioRuntimePlugins.test.ts
 pnpm --filter @advjs/plugin-interactions build
 pnpm --filter @advjs/studio build

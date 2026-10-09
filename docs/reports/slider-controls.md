@@ -20,7 +20,7 @@
 ## 复现命令
 
 ```bash
-pnpm exec vitest run tests/unit/slider-controls.test.ts tests/unit/game-settings-controls.test.ts tests/unit/agui-controls.test.ts
+pnpm exec vitest run tests/unit/gui/slider-controls.test.ts tests/unit/client/game-settings-controls.test.ts tests/unit/gui/agui-controls.test.ts
 pnpm exec playwright test game-ui.spec.ts sliders.spec.ts --project=chromium
 pnpm desktop:package
 ADVJS_DESKTOP_EXECUTABLE="$PWD/apps/desktop/out/ADV.JS Editor-darwin-arm64/ADV.JS Editor.app/Contents/MacOS/advjs-editor" pnpm exec playwright test --config apps/desktop/playwright.config.ts game-settings.spec.ts

@@ -25,9 +25,9 @@
 
 **Files:**
 
-- Create: `tests/unit/demo-project-layout.test.ts`
+- Create: `tests/unit/demo/demo-project-layout.test.ts`
 - Modify: `package.json`
-- Modify: `tests/unit/hamster-demo-runtime.test.ts`
+- Modify: `tests/unit/demo/hamster-demo-runtime.test.ts`
 
 **Interfaces:**
 
@@ -50,7 +50,7 @@ Also assert both folders contain `README.md`, `adv.config.ts`, `package.json`, a
 
 - [ ] **Step 2: Run the test and verify RED**
 
-Run: `pnpm vitest run tests/unit/demo-project-layout.test.ts`
+Run: `pnpm vitest run tests/unit/demo/demo-project-layout.test.ts`
 
 Expected: FAIL because `demo/hamster` and the root scripts do not exist.
 
@@ -79,14 +79,14 @@ Retarget the existing hamster runtime test from `demo/starter` to the copied fil
 
 - [ ] **Step 5: Run the focused test**
 
-Run: `pnpm install && pnpm vitest run tests/unit/demo-project-layout.test.ts`
+Run: `pnpm install && pnpm vitest run tests/unit/demo/demo-project-layout.test.ts`
 
 Expected: still FAIL only because starter has not yet been minimized.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add package.json pnpm-lock.yaml demo/hamster tests/unit/demo-project-layout.test.ts tests/unit/hamster-demo-runtime.test.ts
+git add package.json pnpm-lock.yaml demo/hamster tests/unit/demo/demo-project-layout.test.ts tests/unit/demo/hamster-demo-runtime.test.ts
 git commit -m "chore(demo): split hamster from starter"
 ```
 
@@ -104,7 +104,7 @@ git commit -m "chore(demo): split hamster from starter"
 - Delete: `demo/starter/ASSETS.md`
 - Delete: `demo/starter/LICENSE.content.md`
 - Modify: `tests/e2e/starter.spec.ts`
-- Test: `tests/unit/demo-project-layout.test.ts`
+- Test: `tests/unit/demo/demo-project-layout.test.ts`
 
 **Interfaces:**
 
@@ -116,7 +116,7 @@ Assert starter has exactly one `.adv.md` script, no `@advjs/plugin-interactions`
 
 - [ ] **Step 2: Run the test and verify RED**
 
-Run: `pnpm vitest run tests/unit/demo-project-layout.test.ts`
+Run: `pnpm vitest run tests/unit/demo/demo-project-layout.test.ts`
 
 Expected: FAIL against the copied hamster starter.
 
@@ -174,7 +174,7 @@ Open the default server, assert heading `ADV.JS Starter`, start the game, select
 Run:
 
 ```bash
-pnpm vitest run tests/unit/demo-project-layout.test.ts
+pnpm vitest run tests/unit/demo/demo-project-layout.test.ts
 pnpm exec playwright test tests/e2e/starter.spec.ts
 ```
 
@@ -183,7 +183,7 @@ Expected: PASS.
 - [ ] **Step 7: Commit**
 
 ```bash
-git add -A demo/starter tests/unit/demo-project-layout.test.ts tests/e2e/starter.spec.ts
+git add -A demo/starter tests/unit/demo/demo-project-layout.test.ts tests/e2e/starter.spec.ts
 git commit -m "refactor(demo): minimize starter project"
 ```
 
@@ -198,7 +198,7 @@ git commit -m "refactor(demo): minimize starter project"
 - Create: `demo/hamster/adv/scenes/cage.md`
 - Create: `demo/hamster/adv/scenes/new-world.md`
 - Modify: `demo/hamster/adv.config.ts`
-- Modify: `tests/unit/demo-project-layout.test.ts`
+- Modify: `tests/unit/demo/demo-project-layout.test.ts`
 
 **Interfaces:**
 
@@ -211,7 +211,7 @@ Parse `adv/settings/game.json` and assert title, variables, and required plugins
 
 - [ ] **Step 2: Run the test and verify RED**
 
-Run: `pnpm vitest run tests/unit/demo-project-layout.test.ts`
+Run: `pnpm vitest run tests/unit/demo/demo-project-layout.test.ts`
 
 Expected: FAIL because Studio settings/catalog files are missing.
 
@@ -259,14 +259,14 @@ Keep both `starMap({ tolerance: 0.82 })` and `civilization({ defaultLevel: 1 })`
 
 - [ ] **Step 6: Run tests**
 
-Run: `pnpm vitest run tests/unit/demo-project-layout.test.ts`
+Run: `pnpm vitest run tests/unit/demo/demo-project-layout.test.ts`
 
 Expected: PASS.
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add demo/hamster/adv demo/hamster/adv.config.ts tests/unit/demo-project-layout.test.ts
+git add demo/hamster/adv demo/hamster/adv.config.ts tests/unit/demo/demo-project-layout.test.ts
 git commit -m "feat(hamster): define showcase game model"
 ```
 
@@ -276,7 +276,7 @@ git commit -m "feat(hamster): define showcase game model"
 
 - Modify: `packages/core/src/compiler/markdown.ts`
 - Modify: `packages/core/src/compiler/link.ts`
-- Create: `tests/unit/runtime-markdown-choice-id.test.ts`
+- Create: `tests/unit/runtime/runtime-markdown-choice-id.test.ts`
 - Modify: `docs/guide/runtime/conditions-and-actions.md`
 
 **Interfaces:**
@@ -305,7 +305,7 @@ Assert the Program option ID is `continue-observing`. Add cases for fallback `ch
 
 - [ ] **Step 2: Run tests and verify RED**
 
-Run: `pnpm vitest run tests/unit/runtime-markdown-choice-id.test.ts`
+Run: `pnpm vitest run tests/unit/runtime/runtime-markdown-choice-id.test.ts`
 
 Expected: FAIL because choice YAML `id` is currently ignored.
 
@@ -320,7 +320,7 @@ In the linker, track option IDs per choices node and emit a diagnostic for dupli
 Run:
 
 ```bash
-pnpm vitest run tests/unit/runtime-markdown-choice-id.test.ts tests/unit/runtime-host-conformance.test.ts tests/unit/hamster-demo-runtime.test.ts
+pnpm vitest run tests/unit/runtime/runtime-markdown-choice-id.test.ts tests/unit/runtime/runtime-host-conformance.test.ts tests/unit/demo/hamster-demo-runtime.test.ts
 ```
 
 Expected: PASS.
@@ -328,7 +328,7 @@ Expected: PASS.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add packages/core/src/compiler tests/unit/runtime-markdown-choice-id.test.ts docs/guide/runtime/conditions-and-actions.md
+git add packages/core/src/compiler tests/unit/runtime/runtime-markdown-choice-id.test.ts docs/guide/runtime/conditions-and-actions.md
 git commit -m "feat(compiler): support authored choice ids"
 ```
 
@@ -339,7 +339,7 @@ git commit -m "feat(compiler): support authored choice ids"
 - Create: `demo/hamster/public/md/chapters/01-cage.adv.md`
 - Create: `demo/hamster/public/md/chapters/02-last-night.adv.md`
 - Delete: `demo/hamster/public/md/chapters/1/仓鼠的笼子.adv.md`
-- Test: `tests/unit/hamster-demo-runtime.test.ts`
+- Test: `tests/unit/demo/hamster-demo-runtime.test.ts`
 
 **Interfaces:**
 
@@ -366,7 +366,7 @@ Add an alternate `leave-room` assertion where `control` increments and the activ
 
 - [ ] **Step 2: Run the test and verify RED**
 
-Run: `pnpm vitest run tests/unit/hamster-demo-runtime.test.ts`
+Run: `pnpm vitest run tests/unit/demo/hamster-demo-runtime.test.ts`
 
 Expected: FAIL because canonical chapters and choice IDs do not exist.
 
@@ -399,14 +399,14 @@ All choices target `chapter-3#birth`.
 
 - [ ] **Step 5: Run the focused test**
 
-Run: `pnpm vitest run tests/unit/hamster-demo-runtime.test.ts -t "chapters one and two"`
+Run: `pnpm vitest run tests/unit/demo/hamster-demo-runtime.test.ts -t "chapters one and two"`
 
 Expected: PASS.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add -A demo/hamster/public/md/chapters tests/unit/hamster-demo-runtime.test.ts
+git add -A demo/hamster/public/md/chapters tests/unit/demo/hamster-demo-runtime.test.ts
 git commit -m "feat(hamster): author cage and last-night chapters"
 ```
 
@@ -417,7 +417,7 @@ git commit -m "feat(hamster): author cage and last-night chapters"
 - Create: `demo/hamster/public/md/chapters/03-common-life.adv.md`
 - Create: `demo/hamster/public/md/chapters/04-dim-stars.adv.md`
 - Delete: `demo/hamster/public/md/chapters/2/仓生.adv.md`
-- Modify: `tests/unit/hamster-demo-runtime.test.ts`
+- Modify: `tests/unit/demo/hamster-demo-runtime.test.ts`
 
 **Interfaces:**
 
@@ -438,7 +438,7 @@ For each route, assert exactly one option labeled `继续`, choose it, assert th
 
 - [ ] **Step 2: Run tests and verify RED**
 
-Run: `pnpm vitest run tests/unit/hamster-demo-runtime.test.ts`
+Run: `pnpm vitest run tests/unit/demo/hamster-demo-runtime.test.ts`
 
 Expected: FAIL because chapters 3–4 and endings are incomplete.
 
@@ -466,14 +466,14 @@ Each target block sets `ending` using an action, provides a distinct narrative c
 
 - [ ] **Step 5: Run tests**
 
-Run: `pnpm vitest run tests/unit/hamster-demo-runtime.test.ts`
+Run: `pnpm vitest run tests/unit/demo/hamster-demo-runtime.test.ts`
 
 Expected: all compile, route, plugin, snapshot, and terminal-state assertions PASS.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add -A demo/hamster/public/md/chapters tests/unit/hamster-demo-runtime.test.ts
+git add -A demo/hamster/public/md/chapters tests/unit/demo/hamster-demo-runtime.test.ts
 git commit -m "feat(hamster): add civilization and three endings"
 ```
 
@@ -490,7 +490,7 @@ git commit -m "feat(hamster): add civilization and three endings"
 - Create: `demo/hamster/public/audio/observatory.wav`
 - Modify: `demo/hamster/package.json`
 - Modify: `demo/hamster/ASSETS.md`
-- Modify: `tests/unit/demo-project-layout.test.ts`
+- Modify: `tests/unit/demo/demo-project-layout.test.ts`
 
 **Interfaces:**
 
@@ -503,7 +503,7 @@ Assert every local `/img/...` and `/audio/...` path referenced by config/Markdow
 
 - [ ] **Step 2: Run the test and verify RED**
 
-Run: `pnpm vitest run tests/unit/demo-project-layout.test.ts -t "assets"`
+Run: `pnpm vitest run tests/unit/demo/demo-project-layout.test.ts -t "assets"`
 
 Expected: FAIL because the cage/audio assets are missing.
 
@@ -531,7 +531,7 @@ Run:
 ```bash
 pnpm -C demo/hamster assets:audio
 git diff --exit-code demo/hamster/public/audio/observatory.wav
-pnpm vitest run tests/unit/demo-project-layout.test.ts
+pnpm vitest run tests/unit/demo/demo-project-layout.test.ts
 ```
 
 Expected: generator leaves the committed WAV unchanged and tests PASS.
@@ -539,7 +539,7 @@ Expected: generator leaves the committed WAV unchanged and tests PASS.
 - [ ] **Step 7: Commit**
 
 ```bash
-git add demo/hamster tests/unit/demo-project-layout.test.ts
+git add demo/hamster tests/unit/demo/demo-project-layout.test.ts
 git commit -m "feat(hamster): add original audiovisual assets"
 ```
 
@@ -598,7 +598,7 @@ Add a docs sidebar entry for `Demos`.
 Run:
 
 ```bash
-pnpm vitest run tests/unit/demo-project-layout.test.ts tests/unit/hamster-demo-runtime.test.ts
+pnpm vitest run tests/unit/demo/demo-project-layout.test.ts tests/unit/demo/hamster-demo-runtime.test.ts
 pnpm exec playwright test tests/e2e/starter.spec.ts tests/e2e/hamster.spec.ts
 pnpm -C demo/starter build
 pnpm -C demo/hamster build

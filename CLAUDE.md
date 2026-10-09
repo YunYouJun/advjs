@@ -19,7 +19,7 @@ pnpm e2e:ui                     # Playwright e2e with interactive UI
 pnpm typecheck                  # vue-tsc type checking
 
 # Run a single unit test file
-pnpm vitest run tests/unit/basic.test.ts
+pnpm vitest run tests/unit/runtime/core-runtime-entry.test.ts
 
 # Dev specific packages
 pnpm demo                       # Run demo/starter dev server
