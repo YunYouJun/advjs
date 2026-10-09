@@ -15,6 +15,11 @@ export default antfu(
       '**/.superdesign/**',
       '**/cache/**',
       '**/test-results/**',
+      '**/playwright-report/**',
+      // Electron builds, development bundles, and native QA artifacts.
+      'apps/desktop/.build/**',
+      'apps/desktop/.dev/**',
+      'apps/desktop/out/**',
       '**/CAPACITOR.md',
       '**/*.svg',
       // Capacitor native projects are generated/native code — never lint them.
