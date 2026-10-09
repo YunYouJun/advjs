@@ -131,6 +131,7 @@ function sidebarAI(): DefaultTheme.SidebarItem[] {
         { text: '介绍', link: '/ai/' },
         { text: 'AI 优先战略', link: '/ai/ai-first-strategy' },
         { text: '创作文件格式规范', link: '/ai/formats' },
+        { text: 'Web 游戏 AI 接入', link: '/ai/web-game-integration' },
         { text: '生成策略', link: '/ai/strategy' },
         { text: 'MCP', link: '/ai/mcp' },
         { text: '参考', link: '/ai/ref' },
@@ -298,6 +299,10 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
           text: '统一运行时',
           link: '/guide/runtime/navigation-and-saves',
           items: [
+            {
+              text: '轻量运行时与 Web 游戏嵌入',
+              link: '/guide/runtime/embedding',
+            },
             {
               text: '导航与存档',
               link: '/guide/runtime/navigation-and-saves',
@@ -645,7 +650,7 @@ const userConfig = defineConfig({
     },
   },
 
-  srcExclude: ['README.md'],
+  srcExclude: ['README.md', 'examples/**/*.adv.md'],
 
   vue: {
     template: {

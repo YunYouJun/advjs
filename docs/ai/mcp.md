@@ -165,3 +165,15 @@ my-game/
 ```
 
 See [Project Structure](/guide/project-structure) and [AI Formats](/ai/formats) for details on each file format.
+
+## Embedded Web Games
+
+MCP is an optional authoring tool for a structured ADV.JS content project; it is
+not the NPC inference service used by a player. Verify the returned project root
+against the intended game, since a running server is bound to its startup working
+directory. A lightweight host that only compiles its own `.adv.md` files can use
+file-based Agent context and its compiler without installing MCP.
+
+See [Web Game AI Integration](/ai/web-game-integration) for a host contract,
+an Agent prompt and a runtime NPC activity, and
+[Lightweight Embedding](/guide/runtime/embedding) for the player-side adapter.

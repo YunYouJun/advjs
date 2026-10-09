@@ -30,8 +30,8 @@ features:
     details: 像写小说一样制作 ADV 游戏
   - title: 💻 跨平台
     details: 随时随地开始你的冒险
-  - title: 🎨 灵活
-    details: 任意自定义你的 UI 主题
+  - title: 🧩 模块化
+    details: 用 JS/TS 按需组装剧情、UI 与插件，制作完整游戏或嵌入已有 Web 游戏。
   ## - title: 实时
   ##   details: 实时解析运行你的剧本
 

@@ -30,6 +30,12 @@ ADV.JS 会先把 Markdown 或 Flow 编译成纯数据 `RuntimeProgram`，再由�
 
 目标在编译阶段解析为 `{ chapterId, nodeId }`。未知章节、未知节点、重复 ID、空 fragment 和多个 `#` 都会阻止 Program 生成；运行时不会按标题或文件名模糊匹配。
 
+## 嵌入现有游戏
+
+构建工具使用 `@advjs/core/compiler` 编译 Markdown；玩家运行时使用 `@advjs/core/runtime` 执行 JSON Program。宿主负责自己的画面、输入、存档与业务活动。包版本边界、按需加载、任务桥接和参考适配器见[轻量运行时与 Web 游戏嵌入](./embedding)。
+
+单独的 YAML `type: end` 会结束当前剧情分支，后面的对白或业务动作不会自动执行；可选 `text` 用于结束画面。`type: when` 也可作用于该结束节点。
+
 ## Runtime API
 
 ```ts
@@ -71,7 +77,7 @@ runtime.restore(snapshot)
 
 恢复前会校验 schema、Program ID、Program hash、JSON 数据和所有游标。剧本执行语义改变后，旧快照会以 `ADV_RUNTIME_SNAPSHOT_MISMATCH` 被拒绝，而不是在错误节点继续执行。
 
-若快照处于 `waiting-activity`，恢复会重新发出 `activity.request` Effect，宿主可重新呈现互动界面。
+若快照处于 `waiting-activity` 且插件声明支持恢复，恢复会重新发出 `activity.request` Effect，宿主可重新呈现互动界面。`activityRollback: 'unsupported'` 的待处理活动会拒绝恢复；具体边界见[插件与活动](./plugins-and-activities)。
 
 ## Storage adapter
 

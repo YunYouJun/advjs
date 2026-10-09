@@ -1,6 +1,6 @@
 # 指南
 
-ADV.JS 是面向 AI 时代的 Markdown 文字冒险游戏引擎。创作的事实源是可被 Git 审阅、可由 Agent 直接修改的 `.adv.md`、角色卡、场景卡和资源目录；CLI、Editor、Studio 与正式游戏共用同一编译结果。
+ADV.JS 是面向 AI 时代的 Markdown 文字冒险游戏引擎，支持通过 JavaScript / TypeScript 模块化编程、按需组装。既可制作完整文字冒险游戏，也可作为剧情运行时嵌入已有 Web 游戏。创作的事实源是可被 Git 审阅、可由 Agent 直接修改的 `.adv.md`、角色卡、场景卡和资源目录；CLI、Editor、Studio 与正式游戏共用同一编译结果。设计特点见[功能与设计特点](./features)。
 
 ## 从一句话到可分享游戏
 
@@ -18,6 +18,8 @@ ADV.JS 是面向 AI 时代的 Markdown 文字冒险游戏引擎。创作的事�
 
 ## 产品边界
 
+已有 Web 游戏需要增加 NPC 对白、任务交流或分支剧情时，可使用[轻量运行时与 Web 游戏嵌入](./runtime/embedding)，保留自己的场景、UI 和业务规则。Agent 辅助接入与实时 NPC 对话见 [Web 游戏 AI 接入](/ai/web-game-integration)。
+
 - `advjs` 是核心引擎、编译器与 CLI；
 - `@advjs/editor` 面向 PC 专业创作和团队工作流，可与本地 Skills、MCP 及其他 Agent 协作；
 - `@advjs/studio` 面向移动端账号型 AI SaaS，可承接公共 AI 积分，但不是本地首发闭环的前置条件；
@@ -27,6 +29,7 @@ ADV.JS 是面向 AI 时代的 Markdown 文字冒险游戏引擎。创作的事�
 
 ## 核心能力
 
+- 模块化编程，按需组合编译器、运行时、界面与宿主活动；
 - Markdown 驱动的角色、场景、章节与选择；
 - 稳定的编译诊断、Runtime、存档与回退；
 - 本地 Editor 无损保存、外部文件刷新和源码试玩；

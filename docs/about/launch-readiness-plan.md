@@ -59,7 +59,7 @@ Studio、自动图片生成、视频导出、内容社区、复杂团队协作�
 主要审计命令：
 
 ```bash
-pnpm vitest run tests/unit/init-galgame.test.ts tests/unit/check-runtime.test.ts tests/unit/check-fix.test.ts tests/unit/mcp-builders.test.ts tests/unit/mcp-bulk.test.ts tests/unit/mcp-resources.test.ts tests/unit/content-skills.test.ts
+pnpm vitest run tests/unit/cli/init-galgame.test.ts tests/unit/cli/check-runtime.test.ts tests/unit/cli/check-fix.test.ts tests/unit/mcp/mcp-builders.test.ts tests/unit/mcp/mcp-bulk.test.ts tests/unit/mcp/mcp-resources.test.ts tests/unit/tooling/content-skills.test.ts
 pnpm --filter @advjs/mcp-server build
 pnpm --filter @advjs/editor typecheck
 pnpm --filter @advjs/editor build
@@ -291,7 +291,7 @@ Editor 不应继续维护以 `index.adv.json` 为中心的独立加载链。项�
 - 旧 `index.adv.json` 项目的显式兼容适配器；
 - Undo/Redo 与文件级变更历史；
 - AI patch diff 与逐项接受/拒绝；
-- 分支图、覆盖率和问题定位联动；
+- 分支图、覆盖率和问题定位联动：真实项目分支图、源码定位、静态可达性与编译诊断已通过本地验收，见 [实施与验收记录](/plans/2026-10-09-editor-project-flow)；试玩覆盖率联动仍待实现；
 - 资产浏览、引用定位和批量操作；
 - Git 状态与发布前检查，但不在首发阶段建设完整团队平台。
 

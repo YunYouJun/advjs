@@ -61,7 +61,7 @@ export function starMap(options: { tolerance?: number } = {}) {
 
 节点和动作必须同步执行，只能修改 Runtime 提供的 JSON draft。网络、计时器、文件、DOM、音频或复杂 UI 属于宿主活动，不应放入状态转移处理器。
 
-`client` 是浏览器重建插件所需的静态工厂描述，不包含可执行字符串。Vite 会生成普通 `import` 并调用对应工厂，因此闭包不会经过 JSON 序列化，也不需要 `eval` 或 `new Function`。直接调用 `createAdvRuntime({ plugins })` 的 Node/测试场景不要求该字段；发布给浏览器使用的插件应提供它。包插件通常把 `module` 写成包名，本地插件可写相对项目根目录的路径。
+`client` 是 ADV.JS Client / Vite 插件自动重建插件所需的静态工厂描述，不包含可执行字符串。Vite 会生成普通 `import` 并调用对应工厂，因此闭包不会经过 JSON 序列化，也不需要 `eval` 或 `new Function`。在浏览器、Node 或测试中直接调用 `createAdvRuntime({ plugins })` 的宿主不要求该字段；通过 ADV.JS Client 自动组装的插件应提供它。包插件通常把 `module` 写成包名，本地插件可写相对项目根目录的路径。自行管理 UI 的接入见[轻量嵌入](./embedding)，网络生成对白的活动示例见 [AI 接入](/ai/web-game-integration)。
 
 `client.activities` 同样只描述静态模块。键是插件内的活动短名称，最终注册为完整的 `plugin-name/activity-name`。Vue renderer 接收只读 `activity` prop，并通过 `complete` 或 `back` 事件返回纯 JSON 或回退：
 
@@ -132,7 +132,7 @@ input:
 
 等待活动时，普通 `next()` 会返回 `ADV_RUNTIME_ACTIVITY_PENDING`，因此活动不会被误跳过。活动完成前会建立 checkpoint，`back()` 可以回到待处理状态。
 
-back/forward/restore 恢复到等待活动时，会重新发出带 `resume: true` 的 `activity.request`。宿主应重建界面，但不得重复已提交的外部副作用。若活动无法安全恢复，插件应声明 `activityRollback: { activityName: 'unsupported' }`；Runtime 会以 `ADV_RUNTIME_ACTIVITY_ROLLBACK_UNSUPPORTED` 阻止跨越该 checkpoint。
+back/forward/restore 恢复到支持恢复的等待活动时，会重新发出带 `resume: true` 的 `activity.request`。宿主应重建界面，但不得重复已提交的外部副作用。若活动无法安全恢复，插件应声明 `activityRollback: { activityName: 'unsupported' }`；Runtime 会以 `ADV_RUNTIME_ACTIVITY_ROLLBACK_UNSUPPORTED` 拒绝恢复到该等待状态，包括 `restore(snapshot)`，不只是阻止回退到 checkpoint。已完成活动后的稳定快照可以按正常规则恢复。
 
 CLI 示例：
 

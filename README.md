@@ -4,6 +4,8 @@
 
 面向 AI 时代的 Markdown 文字冒险游戏引擎。用 Agent 生成标准项目，在本地 Editor 精修、试玩和构建，再直接部署为可分享的 Web 游戏。
 
+支持 JavaScript / TypeScript 模块化编程与按需组装：既能制作完整文字冒险游戏，也能作为剧情运行时嵌入已有 Web 游戏。
+
 - 文档：[advjs.org](https://advjs.org)
 - 在线 Editor：[editor.advjs.org](https://editor.advjs.org)
 - 源码协议：MPL-2.0
@@ -18,6 +20,12 @@
 | ADV.JS Skills   | Agent 可安装的生成、调试、审查、美术和改编工作流                   | Codex、Claude Code、Cursor 等 Agent |
 
 Editor 和 Studio 使用同一套 Markdown 项目与 Runtime，不是两套内容格式。首发闭环以本地 Editor 为准；Studio 的账号、计费和移动端云流程独立演进。
+
+## 模块化与嵌入
+
+编译器、运行时、客户端和主题可以按项目需要组合。已有游戏可在构建阶段编译 `.adv.md`，在交谈时按需加载轻量运行时与剧本 JSON，沿用自己的场景、UI、输入和存档；任务、小游戏与 AI 服务通过宿主活动接入。
+
+设计特点见[功能与设计特点](./docs/guide/features.md)，SDK 打包、多剧本编排和版本边界见[轻量运行时与 Web 游戏嵌入](./docs/guide/runtime/embedding.md)。轻量子入口已在当前工作区实现，正式使用应检查目标发行物的导出并固定已验证版本。
 
 ## 快速开始
 

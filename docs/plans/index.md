@@ -4,6 +4,8 @@
 
 ## Editor 与桌面客户端
 
+- [Editor 真实项目分支图与源码定位](./2026-10-09-editor-project-flow)。
+- [Editor 世界观、场景与章节创建](./2026-10-09-editor-content-creation)。
 - [Editor 内嵌预览与通用游戏操作栏](./2026-10-07-editor-preview)。
 - [桌面多项目窗口与状态反馈](./2026-10-07-desktop-project-windows)。
 - [Electron 桌面客户端实施计划](./2026-10-06-electron-desktop)：本地打开、资源编辑、保存刷新、游戏预览与 Web 导出。

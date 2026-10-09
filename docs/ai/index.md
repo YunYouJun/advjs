@@ -1,18 +1,18 @@
----
-outline: deep
----
-
 # AI
 
-我们计划支持通过 AI 生成项目相关游戏剧本（JSON）与图片等资源。
+ADV.JS 的 AI 接入包括 Agent 辅助创作、工具校验，以及由宿主实现的运行时 NPC 对话。固定剧本以可审阅的 `.adv.md` 为事实源，编译成统一 `RuntimeProgram` 后运行；AI 创作不要求玩家运行时连接模型。
+
+- 已有 Web 游戏的轻量对白接入与实时模型活动：[Web 游戏 AI 接入](./web-game-integration)。
+- 世界观、角色卡、场景与章节文件：[创作格式](./formats)。
+- Agent 使用 CLI / MCP：[Skills](./skills/)与 [MCP](./mcp)。
 
 > 📖 **推荐阅读**：[AI 优先战略](/ai/ai-first-strategy) — ADV.JS 从「编辑器优先」转向「AI 优先」的完整战略文档，包含 Markdown 世界观体系、AI 创作工作流、工具规划和实施路线图。
 
 更多的推进正在 [Pominis](https://www.pominis.com/) 中进行。
 
-我们希望能在此处约定一个统一的 AI 生成格式。
+## 历史 JSON 适配格式
 
-## 约定格式
+以下内容保留旧 JSON / Pominis 适配约定。新项目遵循[项目结构](/guide/project-structure)与当前 Markdown 编译协议，不把旧 `index.adv.json` 格式作为轻量 Runtime 的输入，也不将生成 JSON 视为绕过编译验证的途径。
 
 > 一个 Demo 示例：<https://editor.advjs.org/play?gameId=the-lord-of-the-rings&adapter=pominis>
 
@@ -22,9 +22,7 @@ outline: deep
 
 > 游戏配置文件
 
-与 `adv.config.ts` 中的配置项相同。
-
-允许定义修改更多游戏层面的配置，如屏幕尺寸、亮暗模式等。
+当前 `adv.config.json` 声明内容根与项目格式，不等同于可执行的 `adv.config.ts`。可移植游戏设置位于 `adv/settings/game.json`；旧适配数据应先迁移到当前项目结构。
 
 可参见 [AdvConfig](/api/@advjs/types/interfaces/AdvConfig)。
 

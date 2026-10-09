@@ -158,16 +158,20 @@ export function activate(ctx: EditorPluginContext) {
 
 视图级资源应在 Vue `onUnmounted()` 中清理，插件级资源使用 activation 清理函数。保留的重资源视图通过 `visible` prop 暂停自身绘制或轮询。不要在模块导入时创建监听、定时器或写入项目。每次重新启用都会建立新的插件上下文。
 
+`retention: 'keep-alive'` 在第一次选中后保留挂载的视图，通过显示状态切换标签，并不使用 Vue `<KeepAlive>`；`onActivated()` / `onDeactivated()` 不会随标签切换执行。监听 `visible` 来暂停后台工作，异步请求还应丢弃隐藏、卸载或切换项目之前的结果。插件停用、工作区路由离开或宿主销毁时，视图仍会卸载并释放资源。
+
+内置游戏和流程图采用保留策略，人物预览等普通视图继续按需卸载。浏览器游戏预览隐藏时停止文件轮询，返回时立即检查章节新增、修改和删除；桌面内嵌玩家隐藏时静音，独立玩家窗口继续运行。流程图切换标签保留缩放和平移，隐藏时卸载小地图；渲染实例属于视图，图数据由 store 保存，重新进入工作区会创建新的渲染实例。
+
 ## 样式与验证
 
 遵循 [AGUI 设计规范](../../agui/design)：紧凑的中性控件、共享 token、可见键盘焦点，不用大统计卡片和饱和色按钮给插件另造一套视觉风格。面板内容不覆盖 `body`、宿主标签或全局 `button` 样式。
 
-新增插件至少验证：有项目/无项目、加载与执行失败、启停后资源释放、切换项目、刷新后的标签恢复，以及中文/英文、正常宽度/约 320px、键盘操作。注册表和面板行为测试位于 `tests/unit/editor-ui-plugins.test.ts`。
+新增插件至少验证：有项目/无项目、加载与执行失败、启停后资源释放、切换项目、刷新后的标签恢复，以及中文/英文、正常宽度/约 320px、键盘操作。注册表和面板行为测试位于 `tests/unit/editor/editor-ui-plugins.test.ts`。
 
 完成上面的构建后，可运行相关回归测试：
 
 ```bash
-pnpm exec vitest run tests/unit/agui-controls.test.ts tests/unit/editor-ui-plugins.test.ts tests/unit/editor-context.test.ts tests/unit/editor-workspace.test.ts tests/unit/editor-feature-boundaries.test.ts
+pnpm exec vitest run tests/unit/gui/agui-controls.test.ts tests/unit/editor/editor-ui-plugins.test.ts tests/unit/editor/editor-context.test.ts tests/unit/editor/editor-workspace.test.ts tests/unit/editor/editor-feature-boundaries.test.ts
 ```
 
 干净检出执行编辑器 typecheck 时，也需要上面的 COS 插件产物：编辑器间接引用的 CLI 类型会解析该包。
