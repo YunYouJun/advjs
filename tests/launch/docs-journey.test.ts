@@ -169,7 +169,8 @@ describe('published launch documentation journey', () => {
           })
 
           const ready = editorReadyEvent(output.join(''))
-          const chapterRelativePath = 'adv/chapters/chapter_01.adv.md'
+          const chapterName = 'chapter_01.adv.md'
+          const chapterRelativePath = `adv/chapters/${chapterName}`
           const chapterPath = join(projectRoot, chapterRelativePath)
           const before = await readFile(chapterPath, 'utf8')
           browser = await chromium.launch({ headless: true })
@@ -192,12 +193,16 @@ describe('published launch documentation journey', () => {
             await startSourcePreview.click()
           await page.locator('.adv-game').waitFor({ state: 'visible', timeout: 15_000 })
 
-          await page.getByText(chapterRelativePath, { exact: true }).dblclick()
-          const editor = page.locator('.monaco-editor').last()
+          const navigation = page.locator('[data-editor-region="navigation"]')
+          await navigation.getByRole('tab', { name: 'Project', exact: true }).click()
+          await navigation.getByRole('textbox', { name: 'Search project files', exact: true }).fill(chapterName)
+          await navigation.getByRole('treeitem', { name: chapterName, exact: true }).dblclick()
+          const source = page.locator('[data-editor-region="main"] .file-source')
+          const editor = source.locator('.monaco-editor')
           await editor.click()
           await page.keyboard.press('Control+End')
           await page.keyboard.insertText('\n\n@艾莉亚\n首发旅程已由本地 Editor 保存。\n')
-          await page.getByRole('button', { name: 'Save' }).click()
+          await source.getByRole('button', { name: 'Save', exact: true }).click()
           await expect.poll(async () => await readFile(chapterPath, 'utf8')).toContain('首发旅程已由本地 Editor 保存。')
           const after = await readFile(chapterPath, 'utf8')
           await writeFile(journey.artifacts.projectDiff, wholeFileDiff(chapterRelativePath, before, after), 'utf8')
