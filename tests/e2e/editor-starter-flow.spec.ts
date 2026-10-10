@@ -4,8 +4,9 @@ import { mkdir, readFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import process from 'node:process'
-import { expect, test } from '@playwright/test'
+import { expect } from '@playwright/test'
 import { createEditorBridge } from '../../packages/advjs/node/editor'
+import { test } from './fixtures/browser-workspace'
 
 const repositoryRoot = resolve(import.meta.dirname, '../..')
 const workspaceName = 'Starter 多节点验收'
@@ -40,6 +41,14 @@ test.beforeEach(async ({ browserName, page }) => {
 })
 
 async function editorState(page: Page) {
+  // The color-mode script runs before Nuxt hydration, so an HTML theme class
+  // alone does not mean the editor's Pinia stores are available after reload.
+  await page.waitForFunction(() => {
+    const root = document.getElementById('__nuxt') as (HTMLElement & {
+      __vue_app__?: { config: { globalProperties: { $pinia?: { _s: Map<string, unknown> } } } }
+    }) | null
+    return root?.__vue_app__?.config.globalProperties.$pinia?._s.has('@advjs/editor:project')
+  })
   return page.evaluate(() => {
     const root = document.getElementById('__nuxt') as HTMLElement & {
       __vue_app__: { config: { globalProperties: { $pinia: { _s: Map<string, unknown> } } } }
@@ -367,10 +376,12 @@ test('keeps the multi-node graph navigable in 320px dark and light panels', asyn
   await page.evaluate(() => localStorage.setItem('nuxt-color-mode', 'light'))
   await page.reload()
   await expect(page.locator('html')).toHaveClass(/editor-light/)
+  await expect(page.getByText('浏览器工作区', { exact: true })).toBeVisible()
   await expect.poll(async () => (await editorState(page)).chapters.map(chapter => chapter.id)).toEqual(chapterIds)
   await main.getByRole('tab', { name: '流程图', exact: true }).click()
   await flow.getByRole('button', { name: '全部剧情详情', exact: true }).click()
   await pane.evaluate(element => Object.assign((element as HTMLElement).style, { width: '320px', flex: '0 0 320px' }))
+  await expect.poll(async () => Math.round((await flow.boundingBox())!.width)).toBe(320)
   await flow.getByRole('button', { name: '垂直布局', exact: true }).click()
   await expectFittedNodes(flow)
   await expectSeparatedNodes(flow)
