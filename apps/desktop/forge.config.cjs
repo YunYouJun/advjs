@@ -2,6 +2,7 @@ const { existsSync } = require('node:fs')
 const fs = require('node:fs/promises')
 const path = require('node:path')
 const process = require('node:process')
+const { packagerProgressHook, reportDesktopProgress } = require('./scripts/progress.cjs')
 
 const icons = path.resolve(__dirname, 'assets/generated')
 const catalog = path.join(icons, 'Assets.car')
@@ -25,16 +26,32 @@ module.exports = {
       ...(hasNativeCatalog ? [catalog] : []),
     ],
     out: path.resolve(__dirname, 'out'),
+    beforeAsar: [packagerProgressHook('creating-asar')],
+    afterAsar: [packagerProgressHook('created-asar')],
+    beforeCopyExtraResources: [packagerProgressHook('copying-runtime-resources')],
+    afterCopyExtraResources: [packagerProgressHook('copied-runtime-resources')],
+    afterComplete: [packagerProgressHook('completed-package')],
   },
   hooks: {
+    prePackage(_config, platform, arch) {
+      reportDesktopProgress('preparing-package', { platform, arch })
+    },
+    packageAfterExtract(_config, buildPath, electronVersion, platform, arch) {
+      reportDesktopProgress('extracted-electron', { buildPath, electronVersion, platform, arch })
+    },
     async packageAfterCopy(_config, buildPath) {
       const file = path.join(buildPath, 'package.json')
       const pkg = JSON.parse(await fs.readFile(file, 'utf8'))
       delete pkg.config
       delete pkg.devDependencies
       await fs.writeFile(file, JSON.stringify(pkg, null, 2))
+      reportDesktopProgress('copied-application', { buildPath })
+    },
+    preMake() {
+      reportDesktopProgress('creating-zip')
     },
     async postMake(_config, results) {
+      reportDesktopProgress('created-zip', { artifacts: results.flatMap(result => result.artifacts) })
       const { desktopArtifactName } = await import('./scripts/config.mjs')
       for (const result of results) {
         result.artifacts = await Promise.all(result.artifacts.map(async (artifact) => {
@@ -48,6 +65,7 @@ module.exports = {
           return destination
         }))
       }
+      reportDesktopProgress('renamed-artifacts', { artifacts: results.flatMap(result => result.artifacts) })
       return results
     },
   },
