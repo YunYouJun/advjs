@@ -5,6 +5,7 @@ import { notNullish } from '@antfu/utils'
 import { consola } from 'consola'
 import { colors } from 'consola/utils'
 import equal from 'fast-deep-equal'
+import { toPlayerData } from '../config/player'
 import { createMarkdown, resolveMdOptions } from '../markdown'
 import { resolveImportPath } from '../resolver'
 import { templates } from '../virtual'
@@ -134,7 +135,7 @@ export function createAdvVirtualLoader(advOptions: ResolvedAdvOptions, serverOpt
         return
 
       const payload: AdvHmrPayload = {
-        data: newData,
+        data: toPlayerData(newData),
       }
 
       const moduleIds = new Set<string>()

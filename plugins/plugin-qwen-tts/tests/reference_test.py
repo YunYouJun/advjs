@@ -3,9 +3,11 @@
 import hashlib
 import importlib.util
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 import wave
 
 
@@ -14,6 +16,50 @@ SPEC = importlib.util.spec_from_file_location(
 )
 PREVIEW = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(PREVIEW)
+
+
+class ModelCacheTests(unittest.TestCase):
+    """Check cache isolation without importing inference or download dependencies."""
+
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory(prefix='advjs-qwen-cache-')
+        self.root = Path(self.temporary.name).resolve()
+        self.voice_cache = self.root / '.advjs/voice'
+
+    def tearDown(self):
+        self.temporary.cleanup()
+
+    def test_inherited_cache_overrides_are_replaced_without_creating_files(self):
+        expected = {
+            'HF_HOME': 'huggingface',
+            'HF_HUB_CACHE': 'huggingface/hub',
+            'HUGGINGFACE_HUB_CACHE': 'huggingface/hub',
+            'HF_ASSETS_CACHE': 'huggingface/assets',
+            'HUGGINGFACE_ASSETS_CACHE': 'huggingface/assets',
+            'HF_XET_CACHE': 'huggingface/xet',
+        }
+        inherited = {name: str(self.root / 'external-cache') for name in expected}
+        with patch.dict(os.environ, inherited):
+            self.assertEqual(PREVIEW.configure_model_cache(self.voice_cache), self.voice_cache / 'huggingface')
+            for name, path in expected.items():
+                self.assertEqual(os.environ[name], str(self.voice_cache / path))
+        self.assertFalse(self.voice_cache.exists())
+
+    def test_cache_directory_symlinks_are_rejected_before_environment_changes(self):
+        model_cache = self.voice_cache / 'huggingface'
+        model_cache.mkdir(parents=True)
+        outside = self.root / 'outside'
+        outside.mkdir()
+        for name in ('hub', 'assets', 'xet'):
+            with self.subTest(cache=name), patch.dict(os.environ, {'HF_HOME': 'unchanged'}):
+                path = model_cache / name
+                path.symlink_to(outside, target_is_directory=True)
+                try:
+                    with self.assertRaisesRegex(ValueError, 'inside the project root'):
+                        PREVIEW.configure_model_cache(self.voice_cache)
+                    self.assertEqual(os.environ['HF_HOME'], 'unchanged')
+                finally:
+                    path.unlink()
 
 
 class ReferenceTests(unittest.TestCase):

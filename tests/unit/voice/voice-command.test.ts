@@ -8,7 +8,6 @@ import { mkdir, mkdtemp, readFile, realpath, rm, symlink, writeFile } from 'node
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import process from 'node:process'
-import { fileURLToPath } from 'node:url'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { runVoiceDoctor, runVoicePreview, runVoiceSetup } from '../../../packages/advjs/node/commands/voice'
 
@@ -33,7 +32,8 @@ async function writeProjectConfig(root: string): Promise<void> {
 async function runCli(args: string[]): Promise<{ code: number | null, stdout: string, stderr: string }> {
   return await new Promise((resolveResult, reject) => {
     const child = spawn(process.execPath, [
-      fileURLToPath(import.meta.resolve('tsx/cli')),
+      '--import',
+      import.meta.resolve('tsx'),
       resolve(import.meta.dirname, '../../../packages/advjs/node/cli/index.ts'),
       ...args,
     ], { cwd: resolve(import.meta.dirname, '../..'), stdio: ['ignore', 'pipe', 'pipe'] })

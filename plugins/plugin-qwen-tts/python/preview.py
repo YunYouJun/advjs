@@ -23,6 +23,23 @@ def bound_path(root: Path, value: str, label: str) -> Path:
     return path
 
 
+def configure_model_cache(voice_cache: Path) -> Path:
+    """Pin every Hub cache before imports or downloads, including inherited overrides."""
+    model_cache = bound_path(voice_cache, 'huggingface', 'Model cache')
+    hub_cache = bound_path(model_cache, 'hub', 'Hub cache')
+    assets_cache = bound_path(model_cache, 'assets', 'Hub assets cache')
+    xet_cache = bound_path(model_cache, 'xet', 'Xet cache')
+    os.environ.update({
+        'HF_HOME': str(model_cache),
+        'HF_HUB_CACHE': str(hub_cache),
+        'HUGGINGFACE_HUB_CACHE': str(hub_cache),
+        'HF_ASSETS_CACHE': str(assets_cache),
+        'HUGGINGFACE_ASSETS_CACHE': str(assets_cache),
+        'HF_XET_CACHE': str(xet_cache),
+    })
+    return model_cache
+
+
 def asset_coordinate(value: str, label: str) -> str:
     """Reject ambiguous coordinates before resolving native cache locations."""
     if not isinstance(value, str) or not value or re.search(r'[\\:?#%]', value) or any(
@@ -216,8 +233,7 @@ def main() -> None:
         parser.error(str(error))
 
     # Keep local caches inside the project and disable Hub telemetry.
-    model_cache = bound_path(cache, 'huggingface', 'Model cache')
-    os.environ['HF_HOME'] = str(model_cache)
+    model_cache = configure_model_cache(cache)
     os.environ['HF_HUB_DISABLE_TELEMETRY'] = '1'
     os.environ['TOKENIZERS_PARALLELISM'] = 'false'
     if args.offline:
@@ -231,6 +247,7 @@ def main() -> None:
     print(f"Loading {config['model']} ({config['revision'][:12]})", flush=True)
     model_path = Path(snapshot_download(
         config['model'], revision=config['revision'], local_files_only=args.offline,
+        cache_dir=str(model_cache / 'hub'),
         allow_patterns=['*.json', '*.txt', '*.safetensors'],
     )).resolve()
     for name, expected in config['weightSha256'].items():

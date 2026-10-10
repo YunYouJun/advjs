@@ -1,10 +1,10 @@
 import type { VirtualModuleTemplate } from './types'
+import { toPlayerData } from '../config/player'
 
 export const templateData: VirtualModuleTemplate = {
   id: '/@advjs/data',
   async getContent({ data, mode }) {
-    const { authoring: _authoring, ...config } = data?.config ?? {}
-    const playerData = data ? { ...data, config } : data
+    const playerData = data ? toPlayerData(data) : data
     return `export default ${JSON.stringify(mode === 'build' ? { ...playerData, configFile: '', gameConfigFile: '', themeConfigFile: '' } : playerData)}`
   },
 }
