@@ -180,7 +180,7 @@ describe('published launch documentation journey', () => {
           page.on('pageerror', error => output.push(`[browser:pageerror] ${error.stack || error.message}\n`))
           page.on('requestfailed', request => output.push(`[browser:requestfailed] ${request.url()} ${request.failure()?.errorText || 'unknown'}\n`))
           await page.goto(ready.url)
-          const skipOnboarding = page.getByText('Skip', { exact: true })
+          const skipOnboarding = page.getByRole('dialog').getByRole('button', { name: 'Skip', exact: true })
           if (await skipOnboarding.waitFor({ state: 'visible', timeout: 5_000 }).then(() => true).catch(() => false))
             await skipOnboarding.click()
           await page.getByText('Live local workspace').waitFor({ state: 'visible', timeout: 30_000 }).catch(async (error) => {

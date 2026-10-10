@@ -155,6 +155,20 @@ export function parsePnpmJsonOutput(output) {
   throw new Error(`pnpm did not return a JSON document: ${output}`)
 }
 
+export async function buildLaunchPackages(root, options = {}) {
+  const runner = options.runner || runPnpm
+  // The Editor consumes advjs/node during its Nuxt build, while advjs depends on
+  // the Editor at install time. Build the Editor last without changing the
+  // public dependency order used to pack and publish the packages.
+  const buildSpecs = PACKAGE_SPECS.filter(spec => spec.build)
+  const orderedSpecs = [
+    ...buildSpecs.filter(spec => spec.name !== '@advjs/editor'),
+    ...buildSpecs.filter(spec => spec.name === '@advjs/editor'),
+  ]
+  for (const spec of orderedSpecs)
+    await runner(root, ['-C', spec.path, 'build'], { forwardOutput: true })
+}
+
 export async function createPackageManifest(options = {}) {
   const root = resolve(options.root || fileURLToPath(new URL('../..', import.meta.url)))
   const outputDirectory = resolve(options.outputDirectory || resolve(root, 'release/packages'))
@@ -166,10 +180,10 @@ export async function createPackageManifest(options = {}) {
   if (shouldPack)
     await mkdir(outputDirectory, { recursive: true })
 
-  for (const [index, spec] of PACKAGE_SPECS.entries()) {
-    if (shouldPack && shouldBuild && spec.build)
-      await runPnpm(root, ['-C', spec.path, 'build'], { forwardOutput: true })
+  if (shouldPack && shouldBuild)
+    await buildLaunchPackages(root)
 
+  for (const [index, spec] of PACKAGE_SPECS.entries()) {
     const workspaceManifest = await readPackageJson(root, spec)
     if (!shouldPack) {
       packages.push({
