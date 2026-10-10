@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict'
+import fs from 'node:fs'
 import { mkdir, mkdtemp, readdir, readFile, rename, rm, symlink, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
-import { resolve } from 'node:path'
+import { resolve, sep, win32 } from 'node:path'
 import process from 'node:process'
 // These packaging checks run directly in Node on every native release runner.
 // eslint-disable-next-line test/no-import-node-test
@@ -61,6 +62,65 @@ test('dev detects missing clean-checkout artifacts without spawning a build', as
     await writeFile(resolve(root, file), '')
   }
   assert.equal(await needsDesktopBuild(root), false)
+})
+
+test('Windows packaging runs Forge inside the staged app without changing build or staging cwd', async () => {
+  const root = resolve(import.meta.dirname, '..')
+  const repository = resolve(root, '../..')
+  for (const command of ['package', 'make']) {
+    const builds = []
+    const calls = []
+    await runDesktop(command, ['--platform=win32', '--arch=x64'], {
+      host: { platform: 'win32', arch: 'x64' },
+      runPnpm: async (args, options) => builds.push({ args, options }),
+      runCommand: async (executable, args, options) => calls.push({ executable, args, options }),
+    })
+    assert.equal(builds.length, 2)
+    assert.ok(builds.every(call => call.options.cwd === repository))
+    assert.deepEqual(calls.map(call => call.args[0]), ['build.mjs', 'stage.mjs', 'forge.mjs'].map(file => resolve(root, 'scripts', file)))
+    assert.deepEqual(calls.map(call => call.options.cwd), [repository, repository, resolve(root, '.build/app')])
+    assert.deepEqual(calls[2].args.slice(1), [command, '--platform=win32', '--arch=x64'])
+    assert.equal(calls[2].options.stdout, 'inherit')
+    assert.equal(calls[2].options.stderr, 'inherit')
+  }
+})
+
+test('staged cwd bounds the Windows Forge cleanup glob instead of walking workspace dependencies', async (context) => {
+  const root = await mkdtemp(resolve(tmpdir(), 'advjs-forge-cwd-'))
+  context.after(() => rm(root, { recursive: true, force: true }))
+  const staged = resolve(root, 'apps/desktop/.build/app')
+  const unrelated = resolve(root, 'node_modules/unrelated/nested')
+  await mkdir(resolve(staged, 'dist'), { recursive: true })
+  await mkdir(unrelated, { recursive: true })
+  await writeFile(resolve(staged, 'dist/main.mjs'), '')
+  const require = createRequire(import.meta.url)
+  const forgeRequire = createRequire(require.resolve('@electron-forge/core'))
+  const glob = forgeRequire('fast-glob')
+  // Forge 7 constructs this pattern with path.join. Backslashes make its
+  // search base '.', so it walks cwd but does not match the intended .bin
+  // entries. Our staged app intentionally has no node_modules or .bin files;
+  // the independently staged runtime is not subject to this cleanup.
+  const pattern = win32.join('C:\\Temp\\electron-packager\\resources\\app', '**/.bin/**/*')
+  async function scannedDirectories(cwd) {
+    const visited = []
+    const matches = await glob(pattern, {
+      cwd,
+      fs: {
+        readdir(path, ...args) {
+          visited.push(resolve(String(path)))
+          fs.readdir(path, ...args)
+        },
+      },
+    })
+    assert.deepEqual(matches, [])
+    return visited
+  }
+  assert.ok((await scannedDirectories(root)).includes(unrelated))
+  const visited = await scannedDirectories(staged)
+  assert.ok(visited.length > 0)
+  assert.ok(visited.every(path => path === staged || path.startsWith(`${staged}${sep}`)))
+  assert.ok(!visited.includes(unrelated))
+  assert.ok(!(await readdir(staged)).includes('node_modules'))
 })
 
 test('runtime survives relocation with duplicate versions, peer variants, sibling shadowing and cycles', async (context) => {

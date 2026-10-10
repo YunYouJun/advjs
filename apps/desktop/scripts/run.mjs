@@ -51,7 +51,14 @@ export async function runDesktop(command, args = [], dependencies = {}) {
   }
   else if (command === 'package' || command === 'make') {
     await run(process.execPath, [resolve(root, 'scripts/stage.mjs')], settings)
-    await run(process.execPath, [resolve(root, 'scripts/forge.mjs'), command, `--platform=${target.platform}`, `--arch=${target.arch}`], settings)
+    // Forge's Windows .bin cleanup glob falls back to searching cwd. Keep it
+    // inside the staged app, which has no node_modules, rather than traversing
+    // the workspace's pnpm dependency graph. Runtime dependencies are copied
+    // separately as extraResource; Forge's dir, config and output are absolute.
+    await run(process.execPath, [resolve(root, 'scripts/forge.mjs'), command, `--platform=${target.platform}`, `--arch=${target.arch}`], {
+      ...settings,
+      cwd: resolve(root, '.build/app'),
+    })
   }
 }
 
