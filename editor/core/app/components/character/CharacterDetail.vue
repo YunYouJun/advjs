@@ -2,6 +2,7 @@
 import type { AdvCharacter } from '@advjs/types'
 import { computed } from 'vue'
 import CharacterAvatar from './CharacterAvatar.vue'
+import CharacterVoicePanel from './CharacterVoicePanel.vue'
 import '../../styles/resource-panel.scss'
 
 const props = withDefaults(defineProps<{ character: AdvCharacter, actions?: boolean }>(), { actions: true })
@@ -32,6 +33,7 @@ const descriptions = computed(() => (['personality', 'appearance', 'background',
       </AGUIButton>
       <AGUIIconButton icon="i-ri-delete-bin-line" :title="$t('characters.detail.delete')" @click="$emit('delete', character)" />
     </div>
+    <CharacterVoicePanel :character="character" />
     <AGUIDetails :title="$t('characters.form.basicInfo')" open>
       <AGUIProperty v-if="character.tags?.length" :label="$t('characters.form.tags')">
         {{ character.tags.join(' · ') }}

@@ -36,6 +36,7 @@ const NONDETERMINISTIC_FIELDS = new Set([
   'updatedAt',
 ])
 const CONFIG_FIELDS = new Set([
+  'authoring',
   'entryChapterId',
   'format',
   'gameConfig',

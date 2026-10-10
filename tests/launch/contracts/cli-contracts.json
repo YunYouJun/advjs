@@ -38,6 +38,30 @@
     "deploy.artifact": {
       "success": "https://advjs.org/schemas/cli-output.v1.json#/$defs/deployArtifactSuccess",
       "failure": "https://advjs.org/schemas/cli-output.v1.json#/$defs/deployArtifactFailure"
+    },
+    "voice.doctor": {
+      "success": "https://advjs.org/schemas/cli-output.v1.json#/$defs/voiceDoctorSuccess",
+      "failure": "https://advjs.org/schemas/cli-output.v1.json#/$defs/voiceDoctorFailure"
+    },
+    "voice.setup": {
+      "success": "https://advjs.org/schemas/cli-output.v1.json#/$defs/voiceSetupSuccess",
+      "failure": "https://advjs.org/schemas/cli-output.v1.json#/$defs/voiceSetupFailure"
+    },
+    "voice.preview": {
+      "success": "https://advjs.org/schemas/cli-output.v1.json#/$defs/voicePreviewSuccess",
+      "failure": "https://advjs.org/schemas/cli-output.v1.json#/$defs/voicePreviewFailure"
+    },
+    "voice.providers": {
+      "success": "https://advjs.org/schemas/cli-output.v1.json#/$defs/voiceProvidersSuccess",
+      "failure": "https://advjs.org/schemas/cli-output.v1.json#/$defs/voiceProvidersFailure"
+    },
+    "voice.samples": {
+      "success": "https://advjs.org/schemas/cli-output.v1.json#/$defs/voiceSamplesSuccess",
+      "failure": "https://advjs.org/schemas/cli-output.v1.json#/$defs/voiceSamplesFailure"
+    },
+    "voice.select": {
+      "success": "https://advjs.org/schemas/cli-output.v1.json#/$defs/voiceSelectSuccess",
+      "failure": "https://advjs.org/schemas/cli-output.v1.json#/$defs/voiceSelectFailure"
     }
   }
 }

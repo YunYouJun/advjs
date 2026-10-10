@@ -14,6 +14,8 @@ let temporaryRoot = ''
 let projectRoot = ''
 
 test('keeps console actions above scrolling logs in short and narrow panels', async ({ page }) => {
+  // Leave room for the 1100×224 console inside the docked workspace and its tab bar.
+  await page.setViewportSize({ width: 1600, height: 1200 })
   await page.addInitScript(() => {
     localStorage.setItem('advjs:editor:locale', 'zh-CN')
     localStorage.setItem('advjs:editor:onboarded', 'true')
@@ -33,6 +35,10 @@ test('keeps console actions above scrolling logs in short and narrow panels', as
       store.info(`Earlier log ${i}`)
     store.error('diagnostic-console-write-failed', { error: { name: 'Error', message: '写入章节失败 / A long error message '.repeat(30), stack: 'at example.ts:10:2\n'.repeat(20) } })
   })
+  const notification = page.locator('.ToastRoot').filter({ hasText: 'diagnostic-console-write-failed' })
+  await expect(notification).toBeVisible()
+  await notification.getByRole('button', { name: 'Close', exact: true }).click()
+  await expect(notification).toBeHidden()
   const consoleView = bottom.locator('.editor-console')
   const toolbar = consoleView.locator('.console-toolbar')
   const logs = consoleView.locator('.console-logs')
@@ -43,6 +49,14 @@ test('keeps console actions above scrolling logs in short and narrow panels', as
   await expect(errorLog.getByRole('button', { name: '这条错误已复制，可粘贴给 AI' })).toBeVisible()
   for (const size of [{ width: 1100, height: 224 }, { width: 1100, height: 84 }, { width: 320, height: 132 }, { width: 320, height: 64 }]) {
     await consoleView.evaluate((element, size) => Object.assign((element as HTMLElement).style, { width: `${size.width}px`, height: `${size.height}px` }), size)
+    const consoleBounds = (await consoleView.boundingBox())!
+    const bottomBounds = (await bottom.boundingBox())!
+    expect(consoleBounds).toMatchObject(size)
+    expect(consoleBounds.x).toBeGreaterThanOrEqual(bottomBounds.x)
+    expect(consoleBounds.y).toBeGreaterThanOrEqual(bottomBounds.y)
+    expect(consoleBounds.x + consoleBounds.width).toBeLessThanOrEqual(bottomBounds.x + bottomBounds.width)
+    expect(consoleBounds.y + consoleBounds.height).toBeLessThanOrEqual(bottomBounds.y + bottomBounds.height)
+    await expect(consoleView).toBeInViewport({ ratio: 1 })
     const toolbarBounds = (await toolbar.boundingBox())!
     const logBounds = (await logs.boundingBox())!
     expect(toolbarBounds.height).toBeLessThanOrEqual(32)
@@ -148,7 +162,7 @@ test('loads, live-refreshes, resolves conflicts, and saves the source project', 
   await page.goto(ready.url)
   const loadedProjectResponse = await projectResponse
   expect(loadedProjectResponse.status()).toBe(200)
-  const skipOnboarding = page.getByText('Skip', { exact: true })
+  const skipOnboarding = page.getByRole('dialog', { name: 'Welcome to ADV.JS Editor' }).getByRole('button', { name: 'Skip', exact: true })
   if (await skipOnboarding.waitFor({ state: 'visible', timeout: 5_000 }).then(() => true).catch(() => false))
     await skipOnboarding.click()
   await expect(page.getByRole('dialog', { name: 'Welcome to ADV.JS Editor' })).toBeHidden()

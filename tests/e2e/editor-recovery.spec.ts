@@ -1,8 +1,9 @@
 import type { Page } from '@playwright/test'
 import type { EditorBridge } from '../../packages/advjs/node/editor'
 import { resolve } from 'node:path'
-import { expect, test } from '@playwright/test'
+import { expect } from '@playwright/test'
 import { createEditorBridge } from '../../packages/advjs/node/editor'
+import { test } from './fixtures/browser-workspace'
 
 let bridge: EditorBridge
 let editorUrl: string

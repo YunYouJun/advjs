@@ -77,7 +77,13 @@
             "assets",
             "doctor",
             "deploy",
-            "deploy.artifact"
+            "deploy.artifact",
+            "voice.doctor",
+            "voice.setup",
+            "voice.preview",
+            "voice.providers",
+            "voice.samples",
+            "voice.select"
           ]
         },
         "ok": {
@@ -158,7 +164,10 @@
           "type": "string"
         },
         "certainty": {
-          "enum": ["certain", "uncertain"]
+          "enum": [
+            "certain",
+            "uncertain"
+          ]
         }
       }
     },
@@ -987,6 +996,516 @@
           "properties": {
             "command": {
               "const": "deploy.artifact"
+            }
+          }
+        }
+      ]
+    },
+    "voiceDoctorData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "supported",
+        "ready",
+        "checks"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "supported": {
+          "type": "boolean"
+        },
+        "ready": {
+          "type": "boolean"
+        },
+        "environmentDirectory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "modelCacheDirectory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "status",
+              "message"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "status": {
+                "enum": [
+                  "pass",
+                  "warn",
+                  "fail"
+                ]
+              },
+              "message": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "voiceSetupData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "ready"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ready": {
+          "type": "boolean"
+        },
+        "environmentDirectory": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "voiceCandidateData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "preset",
+        "manifestPath",
+        "manifest"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "preset": {
+          "type": "string",
+          "minLength": 1
+        },
+        "manifestPath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "manifest": {
+          "type": "object"
+        },
+        "candidates": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "voiceListData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "preset",
+        "configPath",
+        "characters"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "preset": {
+          "type": "string",
+          "minLength": 1
+        },
+        "configPath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "referenceMode": {
+          "type": "string"
+        },
+        "seed": {
+          "type": "number"
+        },
+        "characters": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "name",
+              "text"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "card": {
+                "type": "string",
+                "minLength": 1
+              },
+              "text": {
+                "type": "string",
+                "minLength": 1
+              },
+              "referenceAssetId": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "voicePreviewData": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/voiceCandidateData"
+        },
+        {
+          "$ref": "#/$defs/voiceListData"
+        }
+      ]
+    },
+    "voiceDoctorSuccess": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "voice.doctor"
+            },
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/voiceDoctorData"
+            },
+            "errors": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      ]
+    },
+    "voiceDoctorFailure": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/failure"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "voice.doctor"
+            }
+          }
+        }
+      ]
+    },
+    "voiceSetupSuccess": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "voice.setup"
+            },
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/voiceSetupData"
+            },
+            "errors": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      ]
+    },
+    "voiceSetupFailure": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/failure"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "voice.setup"
+            }
+          }
+        }
+      ]
+    },
+    "voicePreviewSuccess": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "voice.preview"
+            },
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/voicePreviewData"
+            },
+            "errors": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      ]
+    },
+    "voicePreviewFailure": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/failure"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "voice.preview"
+            }
+          }
+        }
+      ]
+    },
+    "voiceProvidersData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "providers"
+      ],
+      "properties": {
+        "providers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "default",
+              "capabilities",
+              "legacy",
+              "diagnostics",
+              "setup",
+              "voiceCreation"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "default": {
+                "type": "boolean"
+              },
+              "capabilities": {
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "legacy": {
+                "type": "boolean"
+              },
+              "diagnostics": {
+                "type": "boolean"
+              },
+              "setup": {
+                "type": "boolean"
+              },
+              "voiceCreation": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    },
+    "voiceSamplesData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "configured",
+        "voices",
+        "samples"
+      ],
+      "properties": {
+        "configured": {
+          "type": "boolean"
+        },
+        "revision": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "voices": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "samples": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "voiceProvidersSuccess": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "voice.providers"
+            },
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/voiceProvidersData"
+            },
+            "errors": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      ]
+    },
+    "voiceProvidersFailure": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/failure"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "voice.providers"
+            }
+          }
+        }
+      ]
+    },
+    "voiceSamplesSuccess": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "voice.samples"
+            },
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/voiceSamplesData"
+            },
+            "errors": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      ]
+    },
+    "voiceSamplesFailure": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/failure"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "voice.samples"
+            }
+          }
+        }
+      ]
+    },
+    "voiceSelectSuccess": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "voice.select"
+            },
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/voiceSamplesData"
+            },
+            "errors": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      ]
+    },
+    "voiceSelectFailure": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/failure"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "voice.select"
             }
           }
         }

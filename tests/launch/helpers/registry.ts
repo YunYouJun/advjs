@@ -1,5 +1,5 @@
 import { Buffer } from 'node:buffer'
-import { readFile, writeFile } from 'node:fs/promises'
+import { open, readdir, readFile, writeFile } from 'node:fs/promises'
 import { createServer } from 'node:http'
 import { basename, join } from 'node:path'
 import process from 'node:process'
@@ -29,7 +29,7 @@ async function requestBody(request: import('node:http').IncomingMessage) {
 }
 
 export function launchRegistryEnvironment(registryUrl: string, temporaryRoot: string) {
-  const environment = {
+  const environment: NodeJS.ProcessEnv = {
     ...process.env,
     CI: '1',
     npm_config_audit: 'false',
@@ -78,21 +78,70 @@ export async function writeLaunchWorkspaceConfig(directory: string, overrides?: 
 }
 
 export async function runLaunchCommand(command: string, args: string[], cwd: string, registryUrl: string, temporaryRoot: string, environment: NodeJS.ProcessEnv = {}) {
-  const commandEnvironment = { ...launchRegistryEnvironment(registryUrl, temporaryRoot), ...environment }
+  const commandEnvironment: NodeJS.ProcessEnv = { ...launchRegistryEnvironment(registryUrl, temporaryRoot), ...environment }
   if (command === 'npx') {
     delete commandEnvironment.pnpm_config_store_dir
+    commandEnvironment.npm_config_logs_dir = join(temporaryRoot, 'npm-cache', '_logs')
+    commandEnvironment.npm_config_timing = 'true'
   }
   const options = {
     cwd,
     env: commandEnvironment,
+    // This is already a complete environment. Re-extending it would restore
+    // NODE_PATH and PNPM_HOME after launchRegistryEnvironment removed them.
+    extendEnv: false,
     maxBuffer: 20 * 1024 * 1024,
     timeout: command === 'npx' ? 300_000 : 180_000,
   }
   if (command === 'pnpm')
     return await runPnpm(args, options)
-  if (command === 'npx')
-    return await runNpx(args, options)
+  if (command === 'npx') {
+    try {
+      return await runNpx(args, options)
+    }
+    catch (error) {
+      const diagnostics = await readLaunchNpmDiagnostics(temporaryRoot)
+      if (diagnostics)
+        throw new Error(`${error instanceof Error ? error.message : String(error)}\n\n${diagnostics}`, { cause: error })
+      throw error
+    }
+  }
   return await runCommand(command, args, options)
+}
+
+export async function readLaunchNpmDiagnostics(temporaryRoot: string) {
+  // Read only this fixture's own npm cache, never the runner's global logs.
+  // Bound both the read and the reported tail so a noisy install cannot swamp CI.
+  const directory = join(temporaryRoot, 'npm-cache', '_logs')
+  try {
+    const entries = await readdir(directory, { withFileTypes: true })
+    const filename = entries
+      .filter(entry => entry.isFile() && /^\d{4}-\d{2}-\d{2}T.*-debug-\d+\.log$/u.test(entry.name))
+      .map(entry => entry.name)
+      .sort()
+      .at(-1)
+    if (!filename)
+      return ''
+
+    const file = await open(join(directory, filename), 'r')
+    try {
+      const { size } = await file.stat()
+      const position = Math.max(0, size - 16 * 1024)
+      const buffer = Buffer.alloc(Math.min(size, 16 * 1024))
+      const { bytesRead } = await file.read(buffer, 0, buffer.length, position)
+      const lines = buffer.subarray(0, bytesRead).toString('utf8').split(/\r?\n/u)
+      if (position > 0)
+        lines.shift()
+      return `npm debug log tail (${filename}):\n${lines.slice(-100).join('\n')}`
+    }
+    finally {
+      await file.close()
+    }
+  }
+  catch {
+    // Diagnostics must never replace the original command failure.
+    return ''
+  }
 }
 
 export async function createLaunchRegistry(packageManifest: PackedManifest, tarballDirectory: string) {

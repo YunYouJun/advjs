@@ -1,4 +1,4 @@
-import type { AdvAgentIntegrationStatus, AdvGameConfig, AdvProjectCompileResult, AdvProjectFileMap } from '@advjs/types'
+import type { AdvAgentIntegrationStatus, AdvGameConfig, AdvProjectCompileResult, AdvProjectFileMap, AdvVoiceLibrarySnapshot, AdvVoiceSelectInput } from '@advjs/types'
 import type { ProjectFileChange } from '../../workspaces/project'
 import type { BrowserProjectDirectory, BrowserProjectFile } from '../browser/project'
 import { createAdvAssetCatalog } from '@advjs/assets'
@@ -300,6 +300,9 @@ export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
     loadProject,
     origin: options.origin,
     readFile,
+    voiceLibrary: async (signal?: AbortSignal) => await (await request('voice-library', { signal })).json() as AdvVoiceLibrarySnapshot,
+    selectVoiceSample: async (input: AdvVoiceSelectInput) => await (await request('voice-selection', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input) })).json() as AdvVoiceLibrarySnapshot,
+    readVoiceAudio: async (assetId: string, signal?: AbortSignal) => await (await request(`voice-audio?assetId=${encodeURIComponent(assetId)}`, { signal })).blob(),
     resolvePreviewConfig,
     token: options.token,
     watch,

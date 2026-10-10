@@ -1,5 +1,6 @@
 import type { VirtualModuleTemplate } from './types'
 import defu from 'defu'
+import { toPlayerConfig } from '../config/player'
 
 function createConfigTemplate(name: string): VirtualModuleTemplate {
   return {
@@ -10,7 +11,8 @@ function createConfigTemplate(name: string): VirtualModuleTemplate {
     id: `@advjs/configs/${name}`,
     getContent({ data, remote }) {
       // front override latter
-      const config = defu({ ...data?.config, remote })
+      const playerConfig = toPlayerConfig(data?.config ?? {})
+      const config = defu({ ...playerConfig, remote })
 
       return `export default ${JSON.stringify(config)}`
     },

@@ -142,33 +142,38 @@ test.describe('Hamster flagship demo', () => {
     await attachScreenshot(page, testInfo, 'three-character-dialogue-desktop')
 
     const savedCursor = await page.evaluate(() => ({ ...(window as any).$adv.store.state.cursor }))
-    await page.getByTitle('快速存档').click()
+    await page.getByRole('button', { name: '快速存档', exact: true }).click()
     await expect(page.getByRole('status')).toHaveText('已快速存档')
     await page.evaluate(async () => (window as any).$adv.runtime.next())
     const quickAdvancedCursor = await page.evaluate(() => ({ ...(window as any).$adv.store.state.cursor }))
     expect(quickAdvancedCursor).not.toEqual(savedCursor)
-    await page.getByTitle('快速读档').click()
+    await page.getByRole('button', { name: '快速读档', exact: true }).click()
+    await expect(page.getByRole('status')).toHaveText('已加载快速存档')
     await expect.poll(() => page.evaluate(() => ({ ...(window as any).$adv.store.state.cursor }))).toEqual(savedCursor)
 
-    await page.getByTitle('存储存档').click()
-    await expect(page.getByText('存储存档', { exact: true })).toBeVisible()
-    const firstSaveCard = page.locator('.saved-card').first()
-    await firstSaveCard.locator('.preview-image-container').click()
+    await page.getByRole('button', { name: '存档', exact: true }).click()
+    const saveModal = page.getByRole('dialog', { name: '存储存档', exact: true })
+    await expect(saveModal).toBeVisible()
+    await expect(saveModal.getByRole('heading', { name: '存储存档', level: 1, exact: true })).toBeVisible()
+    const firstSaveCard = saveModal.locator('.saved-card[data-save-kind="manual"][data-save-index="1"]')
+    await firstSaveCard.getByRole('button', { name: '保存到存档 #1', exact: true }).click()
     await expect(firstSaveCard).toContainText('观测者')
     await expect.poll(() => page.evaluate(() => {
       const record = JSON.parse(localStorage.getItem('advjs:records:1') || 'null')
       return record?.metadata?.thumbnail?.startsWith('data:image/png') ?? false
     })).toBe(true)
     await page.keyboard.press('Escape')
+    await expect(saveModal).toBeHidden()
     await page.evaluate(async () => (window as any).$adv.runtime.next())
     const advancedCursor = await page.evaluate(() => ({ ...(window as any).$adv.store.state.cursor }))
     expect(advancedCursor).not.toEqual(savedCursor)
     await page.evaluate(() => (window as any).$adv.runtime.back())
     await expect.poll(() => page.evaluate(() => ({ ...(window as any).$adv.store.state.cursor }))).toEqual(savedCursor)
     await page.evaluate(async () => (window as any).$adv.runtime.next())
-    await page.getByTitle('加载存档').click()
-    await expect(page.getByText('加载存档', { exact: true })).toBeVisible()
-    const loadModal = page.locator('.modal-mask')
+    await page.getByRole('button', { name: '读档', exact: true }).click()
+    const loadModal = page.getByRole('dialog', { name: '加载存档', exact: true })
+    await expect(loadModal).toBeVisible()
+    await expect(loadModal.getByRole('heading', { name: '加载存档', level: 1, exact: true })).toBeVisible()
     const systemPageButton = loadModal.locator('[data-save-page="system"]')
     const saveMenuShell = loadModal.locator('.save-menu-shell')
     const swiperWrapper = loadModal.locator('.swiper-wrapper')
@@ -193,7 +198,8 @@ test.describe('Hamster flagship demo', () => {
     await page.emulateMedia({ reducedMotion: 'no-preference' })
     await loadModal.locator('[data-save-page="1"]').click()
     await expect(firstLoadCard).toContainText('观测者')
-    await firstLoadCard.locator('.preview-image-container').click()
+    await firstLoadCard.getByRole('button', { name: '读取存档 #1', exact: true }).click()
+    await expect(loadModal).toBeHidden()
     await expect.poll(() => page.evaluate(() => ({ ...(window as any).$adv.store.state.cursor }))).toEqual(savedCursor)
 
     const firstActivity = await advanceUntil(page, 'activity')
@@ -288,7 +294,7 @@ test.describe('Hamster flagship demo', () => {
     await waitForRuntime(page)
     await expect(page.locator('#adv-content')).toHaveCSS('width', '390px')
     await expect(page.locator('#adv-content')).toHaveCSS('height', '844px')
-    const mobileSettingsButton = page.locator('.menu-setting-button')
+    const mobileSettingsButton = page.getByRole('button', { name: '设置', exact: true })
     await expect(mobileSettingsButton).toBeVisible()
     const mobileSettingsBounds = await mobileSettingsButton.boundingBox()
     expect(mobileSettingsBounds).not.toBeNull()
@@ -302,8 +308,36 @@ test.describe('Hamster flagship demo', () => {
     expect(Math.abs(mobileSprite!.width / mobileSprite!.height - 1)).toBeLessThan(0.05)
     await attachScreenshot(page, testInfo, 'dialogue-mobile')
 
-    await page.getByTitle('加载存档').click()
-    const mobileLoadModal = page.locator('.modal-mask')
+    const devtools = page.locator('#__advjs-devtools-container__')
+    const launcher = devtools.getByRole('button', { name: 'ADV.JS DevTools', exact: true })
+    await expect(launcher).toBeVisible()
+    for (const width of [320, 390]) {
+      await page.setViewportSize({ width, height: 844 })
+      await expect(launcher).toBeInViewport({ ratio: 1 })
+      await expect.poll(() => launcher.evaluate((button) => {
+        const launcher = button.getBoundingClientRect()
+        const controls = Array.from(document.querySelectorAll('.game-toolbar-actions, .dialog-controls-shell'))
+        return {
+          count: controls.length,
+          unobstructed: controls.every((element) => {
+            const bounds = element.getBoundingClientRect()
+            return launcher.right <= bounds.left || launcher.left >= bounds.right
+              || launcher.bottom <= bounds.top || launcher.top >= bounds.bottom
+          }),
+        }
+      })).toEqual({ count: 2, unobstructed: true })
+    }
+    await launcher.click()
+    await expect(launcher).toHaveAttribute('aria-expanded', 'true')
+    await expect(devtools.getByRole('region', { name: 'ADV.JS 调试面板', exact: true })).toBeVisible()
+    await expect(devtools.locator('iframe')).toBeVisible()
+    await attachScreenshot(page, testInfo, 'devtools-mobile-open')
+    await devtools.getByRole('button', { name: '关闭调试面板', exact: true }).click()
+    await expect(launcher).toHaveAttribute('aria-expanded', 'false')
+    await expect(launcher).toBeFocused()
+
+    await page.getByRole('button', { name: '读档', exact: true }).click()
+    const mobileLoadModal = page.getByRole('dialog', { name: '加载存档', exact: true })
     const mobileSystemPageButton = mobileLoadModal.locator('[data-save-page="system"]')
     await expect(mobileLoadModal).toBeVisible()
     await expect(mobileSystemPageButton).toHaveCSS('white-space', 'nowrap')

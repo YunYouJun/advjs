@@ -44,6 +44,9 @@ export function createLocalProjectWorkspace(adapter: LocalBridgeAdapter): Projec
     removeImportedAsset: adapter.removeImportedAsset,
     assetUrl: adapter.readAssetBlobUrl,
     readAsset: adapter.readAsset,
+    voiceLibrary: signal => adapter.voiceLibrary(signal),
+    selectVoiceSample: input => adapter.selectVoiceSample(input),
+    readVoiceAudio: (assetId, signal) => adapter.readVoiceAudio(assetId, signal),
     dispose: adapter.dispose,
     subscribe: listener => adapter.watch(listener),
   }

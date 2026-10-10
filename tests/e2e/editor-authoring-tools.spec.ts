@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 import type { EditorBridge } from '../../packages/advjs/node/editor'
 import { Buffer } from 'node:buffer'
 import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
@@ -145,6 +145,17 @@ function triangleModel(binary: boolean) {
   return Buffer.concat([header, jsonBytes, binaryHeader, positions])
 }
 
+async function expectModelReady(preview: Locator, src: string) {
+  // A cold module import and software-rendered shaders can exceed the default
+  // 5s assertion budget. The viewer's `loaded` flag precedes its rendered `load`
+  // event, which is what clears this host's busy state and loading overlay.
+  await expect(preview.locator('.model-preview-viewport')).toHaveAttribute('aria-busy', 'false', { timeout: 15_000 })
+  await expect(preview.getByRole('alert')).toHaveCount(0)
+  await expect(preview.locator('model-viewer')).toHaveJSProperty('src', src)
+  await expect(preview.locator('model-viewer')).toHaveJSProperty('loaded', true)
+  await expect(preview.locator('.model-preview-overlay')).toHaveCount(0)
+}
+
 test('renders actual GLB and glTF models, recovers after load failure, and handles empty or unsupported files', async ({ page }, info) => {
   const errors: string[] = []
   page.on('pageerror', error => errors.push(error.message))
@@ -166,15 +177,13 @@ test('renders actual GLB and glTF models, recovers after load failure, and handl
   await preview.screenshot({ path: info.outputPath('model-preview-error.png') })
   fail = false
   await preview.getByRole('button', { name: '重试', exact: true }).click()
-  await expect.poll(() => preview.locator('model-viewer').evaluate(element => (element as HTMLElement & { src: string }).src)).toBe(src)
-  await expect.poll(() => preview.locator('model-viewer').evaluate(element => (element as HTMLElement & { loaded: boolean }).loaded)).toBe(true)
-  await expect(preview.locator('.model-preview-overlay')).toHaveCount(0)
+  await expectModelReady(preview, src)
   await expect(preview.locator('.model-preview-source')).toHaveCount(0)
   // One binary model request per attempt; no extra fetch for a nonexistent JSON pane.
   expect(requests).toHaveLength(2)
   await preview.screenshot({ path: info.outputPath('model-preview-glb.png') })
   await page.goto(previewUrl({ fileUrl: '/models/triangle.gltf' }))
-  await expect.poll(() => preview.locator('model-viewer').evaluate(element => (element as HTMLElement & { loaded: boolean }).loaded)).toBe(true)
+  await expectModelReady(preview, '/models/triangle.gltf')
   await expect(preview.locator('.model-preview-source .monaco-editor')).toBeVisible()
   await preview.screenshot({ path: info.outputPath('model-preview-gltf-wide.png') })
   await page.setViewportSize({ width: 320, height: 640 })
@@ -183,6 +192,7 @@ test('renders actual GLB and glTF models, recovers after load failure, and handl
   await page.evaluate(() => localStorage.setItem('nuxt-color-mode', 'light'))
   await page.reload()
   await expect(page.locator('html')).toHaveClass(/editor-light/)
+  await expectModelReady(preview, '/models/triangle.gltf')
   await expect(preview.locator('.model-preview-source .monaco-editor')).toBeVisible()
   await preview.screenshot({ path: info.outputPath('model-preview-gltf-light.png') })
   await page.goto(previewUrl())

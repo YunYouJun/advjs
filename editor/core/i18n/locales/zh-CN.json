@@ -197,7 +197,23 @@
       "add": "添加关系",
       "remove": "删除与 {name} 的关系"
     },
-    "back": "返回"
+    "back": "返回",
+    "voice": {
+      "title": "人物音色与短句试听",
+      "open": "查看候选",
+      "close": "关闭",
+      "loading": "读取中…",
+      "empty": "尚未配置人物音色档案",
+      "identity": "音色版本",
+      "sample": "已登记短句候选",
+      "preview": "载入试听",
+      "selected": "已选短句",
+      "replace": "替换当前已选短句",
+      "select": "选用此短句",
+      "hint": "请手动播放比较。选用记录此音色版本的试听样本；生成使用作者 CLI，剧情绑定另行审核。",
+      "provider": "供应商",
+      "playbackError": "此短句无法播放，请重新载入或选择其他候选。"
+    }
   },
   "context": {
     "title": "创作上下文",

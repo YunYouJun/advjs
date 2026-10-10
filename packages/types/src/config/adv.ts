@@ -2,6 +2,7 @@ import type { LogLevel } from 'consola'
 import type { AdvFeatureFlags, AdvThemeConfig } from '../types'
 import type { AdvGameConfig } from './game'
 import type { AdvPlugin, AdvRuntimePluginReference } from './plugin'
+import type { AdvAuthoringVoiceConfig } from './voice'
 
 /**
  * 游戏应用级别的配置
@@ -9,6 +10,9 @@ import type { AdvPlugin, AdvRuntimePluginReference } from './plugin'
  * - 游戏内容位于 `game.config.ts` 中
  */
 export interface AdvConfig<ThemeConfig = AdvThemeConfig> {
+  /** Author-only voice services; excluded from player configuration and exports. */
+  authoring?: { voice?: AdvAuthoringVoiceConfig }
+
   /** Stable project identity used by the project compiler and workspace. */
   id?: string
 

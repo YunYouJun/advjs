@@ -23,6 +23,7 @@ beforeEach(() => {
   setActivePinia(createPinia())
   vi.stubGlobal('useProjectStore', () => ({ workspace: undefined, resourceRevision: 0, projectAssetUrl: async (src: string) => src }))
   vi.stubGlobal('useCharacterStore', () => ({}))
+  vi.stubGlobal('useI18n', () => ({ t: (key: string) => key }))
 })
 
 let app: App | undefined

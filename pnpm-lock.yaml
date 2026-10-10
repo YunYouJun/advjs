@@ -2620,6 +2620,16 @@ importers:
         specifier: catalog:build
         version: 3.6.1(sass@1.105.0)(typescript@5.9.3)(vue-tsc@3.3.11(typescript@5.9.3))(vue@3.5.43(typescript@5.9.3))
 
+  plugins/plugin-qwen-tts:
+    dependencies:
+      '@advjs/types':
+        specifier: workspace:*
+        version: link:../../packages/types
+    devDependencies:
+      unbuild:
+        specifier: catalog:build
+        version: 3.6.1(sass@1.105.0)(typescript@5.9.3)(vue-tsc@3.3.11(typescript@5.9.3))(vue@3.5.43(typescript@5.9.3))
+
   plugins/plugin-runware:
     dependencies:
       '@aws-sdk/client-s3':

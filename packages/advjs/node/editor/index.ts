@@ -15,6 +15,9 @@ import {
 import { createServer } from 'node:http'
 import { createRequire } from 'node:module'
 import { dirname, extname, isAbsolute, relative, resolve, sep } from 'pathe'
+import { AdvCommandError } from '../commands/errors'
+
+import { withProjectWriteLock } from '../project/write-lock'
 import { applyEditorFileChanges, atomicProjectWrite, EditorMutationError, projectWriteTarget } from './mutations'
 
 export type EditorBridgeCommand = 'build' | 'check'
@@ -272,7 +275,7 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
   let editorOrigin = ''
   let mutations: Promise<unknown> = Promise.resolve()
   function mutate<T>(operation: () => Promise<T>) {
-    const result = mutations.then(operation)
+    const result = mutations.then(() => withProjectWriteLock(projectRoot, operation))
     mutations = result.catch(() => {})
     return result
   }
@@ -298,6 +301,28 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
       throw new EditorHttpError(401, 'Editor session token is required')
 
     const apiPath = decodeURIComponent(url.pathname.slice(API_PREFIX.length))
+    if (apiPath === 'voice-library' && request.method === 'GET') {
+      const { runVoiceSamples } = await import('../commands/voice-library')
+      writeJson(response, 200, await runVoiceSamples({ root: projectRoot }))
+      return
+    }
+    if (apiPath === 'voice-selection' && request.method === 'POST') {
+      const { runVoiceSelect } = await import('../commands/voice-library')
+      const input = JSON.parse((await readRequestBytes(request)).toString('utf8'))
+      if (!input || typeof input.voiceId !== 'string' || typeof input.assetId !== 'string' || typeof input.expectedRevision !== 'string'
+        || (input.replaceSelected !== undefined && typeof input.replaceSelected !== 'boolean')) {
+        throw new EditorHttpError(400, 'Invalid voice sample selection')
+      }
+      writeJson(response, 200, await runVoiceSelect({ root: projectRoot, voiceId: input.voiceId, assetId: input.assetId, expectedRevision: input.expectedRevision, replaceSelected: input.replaceSelected }))
+      return
+    }
+    if (apiPath === 'voice-audio' && request.method === 'GET') {
+      const { readVoiceSample } = await import('../commands/voice-library')
+      const sample = await readVoiceSample({ root: projectRoot }, url.searchParams.get('assetId') ?? '')
+      response.writeHead(200, { ...SECURITY_HEADERS, 'cache-control': 'no-store', 'content-length': sample.bytes.byteLength, 'content-type': sample.mimeType })
+      response.end(sample.bytes)
+      return
+    }
     if (apiPath === 'highlight/json' && request.method === 'POST') {
       const body = await readRequestBytes(request, 256 * 1024)
       let input: unknown
@@ -380,15 +405,17 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
       return
     }
     if (apiPath === 'file' && request.method === 'PUT') {
-      const { normalized, target } = await resolveSafeProjectFile(projectRoot, url.searchParams.get('path') ?? '', true)
-      const body = (await readRequestBytes(request)).toString('utf8')
-      const temporaryFile = resolve(dirname(target), `.advjs-write-${randomUUID()}`)
-      await writeFile(temporaryFile, body, { encoding: 'utf8', flag: 'wx' })
-      await rename(temporaryFile, target)
-      writeJson(response, 200, {
-        bytes: Buffer.byteLength(body),
-        path: normalized,
-        sha256: createHash('sha256').update(body).digest('hex'),
+      await mutate(async () => {
+        const { normalized, target } = await resolveSafeProjectFile(projectRoot, url.searchParams.get('path') ?? '', true)
+        const body = (await readRequestBytes(request)).toString('utf8')
+        const temporaryFile = resolve(dirname(target), `.advjs-write-${randomUUID()}`)
+        await writeFile(temporaryFile, body, { encoding: 'utf8', flag: 'wx' })
+        await rename(temporaryFile, target)
+        writeJson(response, 200, {
+          bytes: Buffer.byteLength(body),
+          path: normalized,
+          sha256: createHash('sha256').update(body).digest('hex'),
+        })
       })
       return
     }
@@ -475,7 +502,7 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
             await serveStatic(request, response, url)
         }
         catch (error) {
-          const statusCode = error instanceof EditorHttpError || error instanceof EditorMutationError ? error.statusCode : 500
+          const statusCode = error instanceof EditorHttpError || error instanceof EditorMutationError ? error.statusCode : error instanceof AdvCommandError ? error.message.startsWith('VOICE_CONFLICT:') ? 409 : 400 : 500
           writeJson(response, statusCode, {
             error: error instanceof Error ? error.message : String(error),
           })

@@ -1,0 +1,32 @@
+{
+  "name": "@advjs/plugin-qwen-tts",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Local Qwen3-TTS authoring provider for ADV.JS on Apple Silicon",
+  "author": {
+    "name": "YunYouJun",
+    "email": "me@yunyoujun.cn",
+    "url": "https://www.yunyoujun.cn"
+  },
+  "license": "MPL-2.0",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    },
+    "./python/preview.py": "./python/preview.py"
+  },
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "files": ["README.md", "dist", "python"],
+  "scripts": {
+    "build": "unbuild",
+    "dev": "unbuild --stub"
+  },
+  "dependencies": {
+    "@advjs/types": "workspace:*"
+  },
+  "devDependencies": {
+    "unbuild": "catalog:build"
+  }
+}
