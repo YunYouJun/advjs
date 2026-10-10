@@ -197,7 +197,23 @@
       "add": "Add relationship",
       "remove": "Remove relationship with {name}"
     },
-    "back": "Back"
+    "back": "Back",
+    "voice": {
+      "title": "Character voice and samples",
+      "open": "Review samples",
+      "close": "Close",
+      "loading": "Loading…",
+      "empty": "No character voice profiles configured",
+      "identity": "Voice version",
+      "sample": "Registered sample",
+      "preview": "Load sample",
+      "selected": "Selected sample",
+      "replace": "Replace the selected sample",
+      "select": "Select this sample",
+      "hint": "Play samples manually to compare. Selection records a sample for this voice version. Generate through the authoring CLI; dialogue binding requires a separate review.",
+      "provider": "Provider",
+      "playbackError": "This sample could not be played. Reload it or choose another candidate."
+    }
   },
   "context": {
     "title": "Project context",

@@ -275,5 +275,179 @@
         }
       ]
     }
+  },
+  "voice.doctor": {
+    "success": {
+      "schemaVersion": 1,
+      "command": "voice.doctor",
+      "ok": true,
+      "data": {
+        "provider": "qwen-tts",
+        "supported": true,
+        "ready": false,
+        "environmentDirectory": "/tmp/my-game/.advjs/voice/.venv",
+        "modelCacheDirectory": "/tmp/my-game/.advjs/voice/huggingface",
+        "checks": [
+          {
+            "id": "environment",
+            "status": "warn",
+            "message": "Run adv voice setup to prepare this environment."
+          }
+        ]
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "failure": {
+      "schemaVersion": 1,
+      "command": "voice.doctor",
+      "ok": false,
+      "data": null,
+      "warnings": [],
+      "errors": [
+        {
+          "code": "ADV_VALIDATION",
+          "message": "Configure authoring.voice in adv.config.ts."
+        }
+      ]
+    }
+  },
+  "voice.setup": {
+    "success": {
+      "schemaVersion": 1,
+      "command": "voice.setup",
+      "ok": true,
+      "data": {
+        "provider": "qwen-tts",
+        "ready": true,
+        "environmentDirectory": "/tmp/my-game/.advjs/voice/.venv"
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "failure": {
+      "schemaVersion": 1,
+      "command": "voice.setup",
+      "ok": false,
+      "data": null,
+      "warnings": [],
+      "errors": [
+        {
+          "code": "ADV_VALIDATION",
+          "message": "Configure authoring.voice in adv.config.ts."
+        }
+      ]
+    }
+  },
+  "voice.preview": {
+    "success": {
+      "schemaVersion": 1,
+      "command": "voice.preview",
+      "ok": true,
+      "data": {
+        "provider": "qwen-tts",
+        "preset": "reference",
+        "manifestPath": "/tmp/my-game/.advjs/voice/previews/candidate/manifest.json",
+        "manifest": {
+          "status": "candidate",
+          "generationMode": "reference-embedding-only",
+          "samples": []
+        }
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "failure": {
+      "schemaVersion": 1,
+      "command": "voice.preview",
+      "ok": false,
+      "data": null,
+      "warnings": [],
+      "errors": [
+        {
+          "code": "ADV_VALIDATION",
+          "message": "Configure authoring.voice in adv.config.ts."
+        }
+      ]
+    }
+  },
+  "voice.providers": {
+    "success": {
+      "schemaVersion": 1,
+      "command": "voice.providers",
+      "ok": true,
+      "data": {
+        "providers": []
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "failure": {
+      "schemaVersion": 1,
+      "command": "voice.providers",
+      "ok": false,
+      "data": null,
+      "warnings": [],
+      "errors": [
+        {
+          "code": "ADV_VALIDATION",
+          "message": "Voice configuration is invalid"
+        }
+      ]
+    }
+  },
+  "voice.samples": {
+    "success": {
+      "schemaVersion": 1,
+      "command": "voice.samples",
+      "ok": true,
+      "data": {
+        "configured": false,
+        "voices": [],
+        "samples": []
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "failure": {
+      "schemaVersion": 1,
+      "command": "voice.samples",
+      "ok": false,
+      "data": null,
+      "warnings": [],
+      "errors": [
+        {
+          "code": "ADV_VALIDATION",
+          "message": "Voice configuration is invalid"
+        }
+      ]
+    }
+  },
+  "voice.select": {
+    "success": {
+      "schemaVersion": 1,
+      "command": "voice.select",
+      "ok": true,
+      "data": {
+        "configured": false,
+        "voices": [],
+        "samples": []
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "failure": {
+      "schemaVersion": 1,
+      "command": "voice.select",
+      "ok": false,
+      "data": null,
+      "warnings": [],
+      "errors": [
+        {
+          "code": "ADV_VALIDATION",
+          "message": "Voice configuration is invalid"
+        }
+      ]
+    }
   }
 }

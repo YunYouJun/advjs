@@ -57,6 +57,12 @@ describe('launch CLI contracts', () => {
       'doctor',
       'deploy',
       'deploy.artifact',
+      'voice.doctor',
+      'voice.setup',
+      'voice.preview',
+      'voice.providers',
+      'voice.samples',
+      'voice.select',
     ])
     expect(ADV_ERROR_CODES).toEqual([
       'ADV_USAGE',

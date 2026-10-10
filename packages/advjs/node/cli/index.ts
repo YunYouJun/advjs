@@ -21,6 +21,7 @@ import { installInitCommand } from './init'
 import { configureCliOutput, createCliError, hasWrittenCliEnvelope, writeCliFailure } from './output'
 import { installPlayCommand } from './play'
 import { installSyncCommand } from './sync'
+import { installVoiceCommand } from './voice'
 
 const namespace = 'adv'
 const rawArguments = hideBin(process.argv)
@@ -52,6 +53,7 @@ const cli = yargs(rawArguments)
 installEditorCommand(cli)
 installAgentCommand(cli)
 installAssetsCommand(cli)
+installVoiceCommand(cli)
 installDoctorCommand(cli)
 installDeployCommand(cli)
 installDevCommand(cli)
@@ -66,6 +68,10 @@ installDebugCommand(cli)
 installSyncCommand(cli)
 
 function inferContractCommand() {
+  if (rawArguments.includes('voice')) {
+    const action = rawArguments[rawArguments.indexOf('voice') + 1]
+    return ADV_CLI_COMMANDS.find(command => command === `voice.${action}`) ?? 'voice.preview'
+  }
   if (rawArguments.includes('agent') && rawArguments.includes('install'))
     return 'agent.install'
   if (rawArguments.includes('deploy') && rawArguments.includes('--artifact'))

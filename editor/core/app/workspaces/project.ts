@@ -1,4 +1,5 @@
 import type { ProjectSourcePatch } from '@advjs/core'
+import type { AdvVoiceLibrarySnapshot, AdvVoiceSelectInput } from '@advjs/types'
 import type { BrowserProjectDirectory, EditorProjectModel } from '../adapters/browser/project'
 
 export type ProjectWorkspaceKind = 'browser' | 'local'
@@ -35,6 +36,10 @@ export interface ProjectWorkspaceSubscription {
  */
 export interface ProjectWorkspace {
   readonly kind: ProjectWorkspaceKind
+  /** Local voice review uses registered native audio and revision-checked selection. */
+  voiceLibrary?: (signal?: AbortSignal) => Promise<AdvVoiceLibrarySnapshot>
+  selectVoiceSample?: (input: AdvVoiceSelectInput) => Promise<AdvVoiceLibrarySnapshot>
+  readVoiceAudio?: (assetId: string, signal?: AbortSignal) => Promise<Blob>
   commit: (patches: readonly ProjectSourcePatch[]) => Promise<ProjectWorkspaceSnapshot>
   snapshot: () => Promise<ProjectWorkspaceSnapshot>
   writeFiles?: (changes: ProjectFileChange[]) => Promise<ProjectWorkspaceSnapshot>

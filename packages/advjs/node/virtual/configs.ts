@@ -10,7 +10,8 @@ function createConfigTemplate(name: string): VirtualModuleTemplate {
     id: `@advjs/configs/${name}`,
     getContent({ data, remote }) {
       // front override latter
-      const config = defu({ ...data?.config, remote })
+      const { authoring: _authoring, ...playerConfig } = data?.config ?? {}
+      const config = defu({ ...playerConfig, remote })
 
       return `export default ${JSON.stringify(config)}`
     },

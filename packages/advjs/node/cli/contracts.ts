@@ -12,6 +12,12 @@ export const ADV_CLI_COMMANDS = [
   'doctor',
   'deploy',
   'deploy.artifact',
+  'voice.doctor',
+  'voice.setup',
+  'voice.preview',
+  'voice.providers',
+  'voice.samples',
+  'voice.select',
 ] as const
 
 export type AdvCliCommand = typeof ADV_CLI_COMMANDS[number]
