@@ -308,6 +308,34 @@ test.describe('Hamster flagship demo', () => {
     expect(Math.abs(mobileSprite!.width / mobileSprite!.height - 1)).toBeLessThan(0.05)
     await attachScreenshot(page, testInfo, 'dialogue-mobile')
 
+    const devtools = page.locator('#__advjs-devtools-container__')
+    const launcher = devtools.getByRole('button', { name: 'ADV.JS DevTools', exact: true })
+    await expect(launcher).toBeVisible()
+    for (const width of [320, 390]) {
+      await page.setViewportSize({ width, height: 844 })
+      await expect(launcher).toBeInViewport({ ratio: 1 })
+      await expect.poll(() => launcher.evaluate((button) => {
+        const launcher = button.getBoundingClientRect()
+        const controls = Array.from(document.querySelectorAll('.game-toolbar-actions, .dialog-controls-shell'))
+        return {
+          count: controls.length,
+          unobstructed: controls.every((element) => {
+            const bounds = element.getBoundingClientRect()
+            return launcher.right <= bounds.left || launcher.left >= bounds.right
+              || launcher.bottom <= bounds.top || launcher.top >= bounds.bottom
+          }),
+        }
+      })).toEqual({ count: 2, unobstructed: true })
+    }
+    await launcher.click()
+    await expect(launcher).toHaveAttribute('aria-expanded', 'true')
+    await expect(devtools.getByRole('region', { name: 'ADV.JS 调试面板', exact: true })).toBeVisible()
+    await expect(devtools.locator('iframe')).toBeVisible()
+    await attachScreenshot(page, testInfo, 'devtools-mobile-open')
+    await devtools.getByRole('button', { name: '关闭调试面板', exact: true }).click()
+    await expect(launcher).toHaveAttribute('aria-expanded', 'false')
+    await expect(launcher).toBeFocused()
+
     await page.getByRole('button', { name: '读档', exact: true }).click()
     const mobileLoadModal = page.getByRole('dialog', { name: '加载存档', exact: true })
     const mobileSystemPageButton = mobileLoadModal.locator('[data-save-page="system"]')

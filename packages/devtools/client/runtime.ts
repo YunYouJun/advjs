@@ -18,8 +18,12 @@ style.textContent = `${tokens.replaceAll(':root', ':host').replaceAll('.dark', '
 button { font: inherit; color: var(--agui-c-text-1); background: var(--agui-c-control); border: 1px solid var(--agui-c-button-border); border-radius: 2px; padding: 4px 8px; cursor: pointer; pointer-events: auto; }
 button:focus-visible { outline: 2px solid var(--agui-c-blue); outline-offset: 2px; }
 .launcher { position: absolute; right: 12px; bottom: 12px; }
-.panel { position: absolute; right: 12px; bottom: 48px; width: min(920px, calc(100% - 24px)); height: min(620px, calc(100% - 72px)); background: var(--agui-c-bg-panel); border: 1px solid var(--agui-c-divider); pointer-events: auto; display: flex; flex-direction: column; }
+.panel { position: absolute; z-index: 1; right: 12px; bottom: 48px; width: min(920px, calc(100% - 24px)); height: min(620px, calc(100% - 72px)); background: var(--agui-c-bg-panel); border: 1px solid var(--agui-c-divider); pointer-events: auto; display: flex; flex-direction: column; }
 .panel[hidden] { display: none; }
+/* Keep the launcher between the game's top toolbar and wrapped mobile save controls. */
+@media (max-width: 600px) {
+  .launcher { top: 50%; bottom: auto; transform: translateY(-50%); }
+}
 header { display: flex; align-items: center; justify-content: space-between; padding: 3px 6px; color: var(--agui-c-text-1); background: var(--agui-c-bg-panel-title); border-bottom: 1px solid var(--agui-c-divider); }
 iframe { border: 0; flex: 1; width: 100%; min-height: 0; }
 `
