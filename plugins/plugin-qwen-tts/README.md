@@ -71,7 +71,6 @@ VoiceDesign 人物使用 `description` 代替 `reference`，并指定 VoiceDesig
 
 随包包含 `python/preview.py` 和 `python/requirements.txt`，通过发布后的包可直接运行。其他作者侧处理工具可用 `import.meta.resolve('@advjs/plugin-qwen-tts/python/preview.py')` 定位校验模块；Python `prepare_reference(root, asset_manifest_path, character)` 可复用同一原生参考资源检查，无需导入 MLX。
 
-
 ## 通用作者模块阶段一
 
 `createQwenTtsProvider()` 同时实现旧 `AdvVoiceProvider` 与新 `AdvVoiceSynthesisProvider`。旧配置和 `preview(request)` 保持兼容；新接口增加 `capabilities`、只读 `inspectPreset(request)` 与统一 `synthesize(request)`。Qwen 的 seed 42、500 字限制和参考模式由本适配器处理，不施加给其他新 provider。`synthesize` 额外返回统一音频候选，原始已保存 manifest 保持原格式。

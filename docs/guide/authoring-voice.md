@@ -7,15 +7,17 @@ ADV.JS 内置通用作者协议、CLI 和本地 Editor 短句审核界面，供�
 ## 接入与兼容
 
 ```ts
-authoring: {
-  voice: {
-    providers: [createQwenTtsProvider()],
-    defaultProvider: 'qwen-tts',
-    library: 'authoring/voices/library.json',
-    presets: { reference: 'authoring/voices/reference.json' },
-    defaultPreset: 'reference',
-    defaultReferenceMode: 'embedding-only',
-    assetManifest: 'adv/assets.json',
+export default {
+  authoring: {
+    voice: {
+      providers: [createQwenTtsProvider()],
+      defaultProvider: 'qwen-tts',
+      library: 'authoring/voices/library.json',
+      presets: { reference: 'authoring/voices/reference.json' },
+      defaultPreset: 'reference',
+      defaultReferenceMode: 'embedding-only',
+      assetManifest: 'adv/assets.json',
+    },
   },
 }
 ```

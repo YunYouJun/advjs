@@ -206,7 +206,6 @@ FEISHU_BITABLE_APP_TOKEN=your_bitable_token
 
 关于角色管理系统的设计方案和技术细节，请参见[设计方案 - 角色管理系统](/about/design/character)。
 
-
 ## 本地人物配音试听
 
 本地项目声明 `authoring.voice.library` 后，人物详情按供应商筛选已登记的音色版本，提供原生短句试听和显式选用。供应商列表来自该人物音色库的 `implementations`，切换列表只改变待审音色，不调用合成服务。播放读取已校验的本地原生 audio 缓存；替换已有选择要勾选确认，库的外部更改会拒绝旧版本保存。
