@@ -1,5 +1,7 @@
 # 调试与迁移
 
+本页用于诊断剧情、运行时状态与存档迁移。调试引擎或 Editor 源码时，从[环境配置](/about/env)和[贡献者调试指南](/contributing/debugging)开始。
+
 ## Parser Playground
 
 Parser Playground 现在提供六种视图：Markdown 预览、ADV AST、`RuntimeProgram`、Runtime Diagnostics、HTML 和 markdown-it AST。
@@ -80,7 +82,7 @@ Inspector 的“复制报告”和“下载报告”生成完全相同的 `advjs
 
 ### 用仓鼠 Demo 复现
 
-1. 运行 `pnpm studio`，在 Workspace 打开 `demo/hamster`；
+1. 运行 `pnpm studio:dev`，在 Workspace 打开 `demo/hamster`；
 2. 在编辑器中打开任一 `.adv.md`，临时把选择目标改成不存在的 `missing#ending`；
 3. 在“诊断”页点击 `ADV_RUNTIME_UNKNOWN_TARGET`，确认光标回到错误链接；
 4. 撤销修改并进入试玩，完成一次选择或星图活动；
