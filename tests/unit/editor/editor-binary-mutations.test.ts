@@ -34,6 +34,12 @@ describe('project disk mutations', () => {
       expect((await fetch(changes, { method: 'POST', headers, body: JSON.stringify([{ path: 'pages/start.vue', content: vue, expected: null }]) })).status).toBe(200)
       expect(await readFile(join(project, 'pages/start.vue'), 'utf8')).toBe(vue)
       expect((await fetch(changes, { method: 'POST', headers, body: JSON.stringify([{ path: 'pages/start.vue', content: 'overwrite', expected: null }]) })).status).toBe(409)
+      await applyEditorFileChanges(project, [
+        { path: 'adv/audio/voice-ledger.json', expected: null, content: null },
+        { path: 'pages/start.vue', expected: vue, content: vue },
+      ])
+      await expect(readFile(join(project, 'adv/audio/voice-ledger.json'))).rejects.toMatchObject({ code: 'ENOENT' })
+      expect(await readFile(join(project, 'pages/start.vue'), 'utf8')).toBe(vue)
       await expect(applyEditorFileChanges(project, [{ path: 'public/avatar.webp', content: 'invalid text', expected: null }])).rejects.toMatchObject({ statusCode: 400 })
       await symlink(root, join(project, 'escaped'))
       await expect(applyEditorFileChanges(project, [{ path: 'escaped/private.md', content: 'x', expected: null }])).rejects.toMatchObject({ statusCode: 403 })

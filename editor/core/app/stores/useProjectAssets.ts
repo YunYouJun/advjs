@@ -1,6 +1,10 @@
 import type { AdvAssetEntry } from '@advjs/types'
 import { createAdvAssetCatalog, planAdvAssetManifestUpsert } from '@advjs/assets'
+import { createAudioId } from '@advjs/audio'
 import { defineStore } from 'pinia'
+import { computed, ref } from 'vue'
+import { useAudioStore } from './useAudioStore'
+import { useProjectStore } from './useProjectStore'
 
 export const useProjectAssets = defineStore('editor:project-assets', () => {
   const projectStore = useProjectStore()
@@ -14,6 +18,17 @@ export const useProjectAssets = defineStore('editor:project-assets', () => {
   async function upsert(asset: AdvAssetEntry, expectedFiles = projectStore.project?.files) {
     if (!expectedFiles)
       throw new Error('Open a project first')
+    if (asset.type === 'audio') {
+      const path = rootPath()
+      const root = JSON.parse(expectedFiles[path] ?? '{}')
+      const paths = [path, ...(root.includes ?? []).map((include: string) => `${path.slice(0, path.lastIndexOf('/'))}/${include}`)]
+      if (paths.some(file => expectedFiles[file] !== projectStore.project?.files[file]))
+        throw new Error('AUDIO_CONFLICT: The native catalog changed; reload before saving metadata')
+      const service = useAudioStore().authoring()
+      const current = await service.readProjectAudio()
+      await service.updateAsset({ expectedRevision: current.revision, assetId: asset.id, patch: { title: asset.title?.trim() || null, alt: asset.alt?.trim() || null, kind: asset.kind as 'bgm' | 'ambience' | 'sfx' | 'voice' | 'ui' | 'reference' } })
+      return
+    }
     const plan = planAdvAssetManifestUpsert({ files: expectedFiles, rootPath: rootPath(), catalogId: manifest.value?.id ?? 'project', asset, replaceExisting: true })
     await projectStore.writeProjectFiles(Object.entries(plan.writes).map(([path, content]) => ({ path, content, expected: expectedFiles[path] ?? null })))
   }
@@ -22,18 +37,37 @@ export const useProjectAssets = defineStore('editor:project-assets', () => {
     const files = projectStore.project?.files
     if (!source?.importAsset || !files)
       throw new Error('Open a writable project first')
+    const audioKind = ['bgm', 'ambience', 'sfx', 'voice', 'ui', 'reference'].includes(kind)
+    if (audioKind && !useAudioStore().supportedRoot)
+      throw new Error('ADV_AUDIO_CONTENT_ROOT_UNSUPPORTED: Native audio authoring requires the canonical adv content root')
     const sha256 = [...new Uint8Array(await crypto.subtle.digest('SHA-256', await file.arrayBuffer()))].map(byte => byte.toString(16).padStart(2, '0')).join('')
     const suffix = file.name.replace(/[^\p{L}\p{N}._-]/gu, '_')
-    const id = `${kind}-${crypto.randomUUID()}`
+    const isAudio = file.type.startsWith('audio/') || audioKind
+    const id = isAudio ? createAudioId('audio') : `${kind}-${crypto.randomUUID()}`
     // A fresh path avoids collisions and never replaces another shared resource.
     const path = `imports/${id}-${suffix}`
-    const diskPath = `adv/assets/${path}`
+    const profile = manifest.value?.profiles.local
+    if (profile && profile.provider !== 'project')
+      throw new Error('The local import profile must use project storage')
+    const mediaRoot = profile?.root ?? 'adv/assets'
+    if (mediaRoot.includes('\\') || /^(?:[a-z]+:|\/)/iu.test(mediaRoot) || mediaRoot.split('/').includes('..'))
+      throw new Error('The local import profile must remain inside the project')
+    const normalizedRoot = mediaRoot.replace(/^\.\//u, '').replace(/\/$/u, '')
+    const diskPath = normalizedRoot ? `${normalizedRoot}/${path}` : path
     await source.importAsset(diskPath, file)
-    const asset: AdvAssetEntry = { id, kind, type: file.type.startsWith('audio/') || ['bgm', 'sfx', 'voice'].includes(kind) ? 'audio' : 'image', path, title: file.name, alt: '', sha256, bytes: file.size, mimeType: file.type, characterId }
+    const audioMimeTypes: Record<string, string> = { wav: 'audio/wav', mp3: 'audio/mpeg', ogg: 'audio/ogg', m4a: 'audio/mp4', flac: 'audio/flac', opus: 'audio/ogg' }
+    const extension = file.name.split('.').at(-1)?.toLowerCase() ?? ''
+    const mimeType = file.type || (isAudio ? audioMimeTypes[extension] : undefined)
+    const asset: AdvAssetEntry = { id, kind, type: isAudio ? 'audio' : 'image', path, title: file.name, sha256, bytes: file.size, mimeType, characterId }
     try {
       if (projectStore.workspace !== source)
         throw new Error('项目已切换，导入已取消')
-      await upsert(asset, files)
+      if (isAudio) {
+        const service = useAudioStore().authoring()
+        const current = await service.readProjectAudio()
+        await service.registerAsset({ expectedRevision: current.revision, asset })
+      }
+      else { await upsert(asset, files) }
     }
     catch (failure) {
       try {
@@ -49,6 +83,15 @@ export const useProjectAssets = defineStore('editor:project-assets', () => {
     return { asset, src: `./${diskPath}` }
   }
   async function remove(asset: AdvAssetEntry) {
+    if (asset.type === 'audio') {
+      const service = useAudioStore().authoring()
+      const current = await service.readProjectAudio()
+      const preflight = await service.preflightRemoveAsset(asset.id)
+      if (preflight.blockingReferences.length)
+        throw new Error(`此音频仍被引用，无法移除：${preflight.blockingReferences.map(reference => reference.location).join('；')}`)
+      await service.removeAsset({ expectedRevision: current.revision, assetId: asset.id })
+      return
+    }
     const files = projectStore.project?.files
     if (!files)
       throw new Error('Open a project first')
@@ -75,17 +118,19 @@ export const useProjectAssets = defineStore('editor:project-assets', () => {
     if (!manifest.value)
       throw new Error('Asset manifest is missing')
     let revision = ''
-    const catalog = createAdvAssetCatalog(manifest.value, { profile: manifest.value.profiles.local ? 'local' : undefined, adapter: { resolve: async (asset) => {
-      if (asset.provider !== 'project') {
-        const src = asset.baseUrl ? new URL(asset.location, asset.baseUrl).href : asset.location
+    const catalog = createAdvAssetCatalog(manifest.value, { profile: manifest.value.profiles.local ? 'local' : undefined, adapter: { resolve: async (request) => {
+      if (request.provider !== 'project') {
+        const src = request.baseUrl ? new URL(request.location, request.baseUrl).href : request.location
         revision = src
         return src
       }
       const source = projectStore.workspace
       if (!source?.readAsset)
         throw new Error('Workspace cannot read media')
-      const blob = await source.readAsset(asset.location)
+      const blob = await source.readAsset(request.location)
       revision = [...new Uint8Array(await crypto.subtle.digest('SHA-256', await blob.arrayBuffer()))].map(byte => byte.toString(16).padStart(2, '0')).join('')
+      if (asset.sha256 && revision !== asset.sha256)
+        throw new Error('ADV_AUDIO_MEDIA_HASH_MISMATCH: The project media differs from its registered SHA-256')
       return URL.createObjectURL(blob)
     } } })
     return { src: (await catalog.resolve(asset.id)).src, revision }

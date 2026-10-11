@@ -1,7 +1,7 @@
 import type { ProjectSourcePatch } from '@advjs/core'
 import type { ProjectWorkspace, ProjectWorkspaceSnapshot } from '../../workspaces/project'
 import type { LocalBridgeAdapter } from './index'
-import { applyProjectPatches } from '@advjs/core'
+import { applyProjectPatches, compileProject } from '@advjs/core'
 import { createEditorProjectModel } from '../browser/project'
 
 export function createLocalProjectWorkspace(adapter: LocalBridgeAdapter): ProjectWorkspace {
@@ -37,6 +37,11 @@ export function createLocalProjectWorkspace(adapter: LocalBridgeAdapter): Projec
     kind: 'local',
     commit,
     snapshot,
+    async readDocuments() {
+      const loaded = await adapter.loadProject()
+      const compilation = await compileProject({ files: loaded.files }, { allowEmptyAssetManifest: true })
+      return { files: loaded.files, catalog: compilation.project.assets }
+    },
     writeFiles: async (changes) => {
       await adapter.writeFiles(changes)
       return await snapshot()
@@ -46,6 +51,8 @@ export function createLocalProjectWorkspace(adapter: LocalBridgeAdapter): Projec
     assetUrl: adapter.readAssetBlobUrl,
     readAsset: adapter.readAsset,
     voiceLibrary: signal => adapter.voiceLibrary(signal),
+    voiceJobs: adapter.voiceJobs,
+    voiceDesign: adapter.voiceDesign,
     selectVoiceSample: input => adapter.selectVoiceSample(input),
     readVoiceAudio: (assetId, signal) => adapter.readVoiceAudio(assetId, signal),
     dispose: adapter.dispose,

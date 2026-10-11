@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import type { AdvCharacter } from '@advjs/types'
+import type { AdvCharacter, AdvVoiceCapabilities } from '@advjs/types'
+import { validateCharacterVoiceProfile } from '@advjs/audio'
 import { Toast } from '@advjs/gui'
 import { useProjectDrafts } from '../../stores/useProjectDrafts'
+import CharacterVoiceProfileEditor from './CharacterVoiceProfileEditor.vue'
 
 const props = defineProps<{
   character?: Partial<AdvCharacter>
   mode?: 'create' | 'edit'
   save?: (data: Partial<AdvCharacter>, expected?: string | null) => Promise<void>
+  voiceProviders?: Array<{ id: string, capabilities: AdvVoiceCapabilities }>
 }>()
 
 const emit = defineEmits<{
@@ -33,6 +36,7 @@ const form = reactive<Partial<AdvCharacter>>({
   cv: '',
   actor: '',
   ...props.character,
+  ...(props.character?.voiceProfile ? { voiceProfile: JSON.parse(JSON.stringify(props.character.voiceProfile)) } : {}),
 })
 
 const tagsInput = ref(Array.isArray(form.tags) ? form.tags.join(', ') : '')
@@ -168,6 +172,8 @@ async function onSubmit() {
     aliases: aliasInput.value ? aliasInput.value.split(',').map(a => a.trim()).filter(Boolean) : [],
   }
   try {
+    if (data.voiceProfile)
+      validateCharacterVoiceProfile(data.voiceProfile)
     if (props.save)
       await props.save(data, submittedBase)
     else emit('submit', data)
@@ -273,6 +279,8 @@ async function onSubmit() {
             <AGUIInput :id="`${fieldId}-aliases`" v-model="aliasInput" :placeholder="$t('characters.form.aliasesPlaceholder')" />
           </AGUIProperty>
         </AGUIDetails>
+
+        <CharacterVoiceProfileEditor v-model="form.voiceProfile" :id-prefix="fieldId" :providers="voiceProviders" />
 
         <AGUIDetails :title="$t('characters.form.detailedDescription')" open>
           <AGUIFormItem :for="`${fieldId}-personality`" :label="$t('characters.form.personality')" label-align="top">

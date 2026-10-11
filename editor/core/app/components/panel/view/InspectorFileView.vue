@@ -6,18 +6,21 @@ import { computed, nextTick, onBeforeUnmount, shallowRef, watch } from 'vue'
 import { insertStoryTemplate } from '../../../utils/story-templates'
 import CharacterAvatarPanel from '../../character/CharacterAvatarPanel.vue'
 import CharacterVisualPanel from '../../character/CharacterVisualPanel.vue'
+import AEInlineAudioEditor from '../audio/AEInlineAudioEditor.vue'
 import ContextDocument from '../context/ContextDocument.vue'
 
 const { $adv } = useAdvContext()
 const file = useFileStore()
 const monaco = useMonacoStore()
 const game = useGameStore()
+const project = useProjectStore()
 const { locale } = useEditorLocale()
 const colorMode = useColorMode()
 const zh = computed(() => locale.value === 'zh-CN')
 const reading = shallowRef(false)
 const saving = shallowRef(false)
 const error = shallowRef('')
+const audioSelection = shallowRef<{ content: string, line: number }>()
 const markdown = computed(() => file.fileName.endsWith('.md'))
 const character = computed(() => {
   if (!reading.value || !file.fileName.endsWith('.character.md'))
@@ -38,7 +41,8 @@ const restoringPosition = shallowRef(false)
 const listeners: IDisposable[] = []
 let unregisterChapterEditor: (() => void) | undefined
 let unregisterSourceEditor: (() => void) | undefined
-const sourceReady = computed(() => Boolean(editor && active && !restoringPosition.value && !file.loading && file.fileKind === 'text' && editorPath === file.openedFilePath))
+const editorReady = shallowRef(false)
+const sourceReady = computed(() => Boolean(editorReady.value && editor && active && !restoringPosition.value && !file.loading && file.fileKind === 'text' && editorPath === file.openedFilePath))
 const chapterReady = computed(() => Boolean(sourceReady.value && file.openedFileHandle && file.fileName.endsWith('.adv.md')))
 function savePosition() {
   if (!editor || !editorPath || restoringPosition.value)
@@ -62,6 +66,7 @@ async function restorePosition() {
 }
 function loaded(instance: MonacoEditor.IStandaloneCodeEditor) {
   editor = instance
+  editorReady.value = true
   void restorePosition()
   unregisterSourceEditor?.()
   unregisterSourceEditor = monaco.registerSourceEditor({
@@ -104,15 +109,37 @@ watch(() => [file.openedFilePath, file.openVersion], () => {
 }, { flush: 'pre' })
 onBeforeUnmount(() => {
   active = false
+  editorReady.value = false
   unregisterChapterEditor?.()
   unregisterSourceEditor?.()
   savePosition()
   listeners.forEach(listener => listener.dispose())
 })
 watch(() => file.openVersion, () => {
+  audioSelection.value = undefined
   reading.value = false
   error.value = ''
 })
+function inspectAudio() {
+  if (!chapterReady.value || !editor || editor.getValue() !== monaco.fileContent)
+    return
+  audioSelection.value = { content: monaco.fileContent, line: editor.getPosition()?.lineNumber ?? 1 }
+}
+function applyAudio(value: { expected: string, content: string }) {
+  if (!chapterReady.value || !editor || editor.getValue() !== value.expected || monaco.fileContent !== value.expected)
+    return
+  const model = editor.getModel()
+  if (!model)
+    return
+  editor.pushUndoStop()
+  const applied = editor.executeEdits('advjs.audio-operations', [{ range: model.getFullModelRange(), text: value.content, forceMoveMarkers: true }])
+  editor.pushUndoStop()
+  if (applied) {
+    monaco.fileContent = value.content
+    audioSelection.value = undefined
+    editor.focus()
+  }
+}
 async function save() {
   saving.value = true
   error.value = ''
@@ -140,6 +167,9 @@ function goToNode() {
         </AGUIButton>
         <AGUIButton v-if="markdown" :aria-pressed="reading" @click="reading = true">
           {{ zh ? '阅读' : 'Reading' }}
+        </AGUIButton>
+        <AGUIButton v-if="file.fileName.endsWith('.adv.md') && !reading" :disabled="!chapterReady || saving" @click="inspectAudio">
+          {{ zh ? '场景音频' : 'Scene audio' }}
         </AGUIButton>
         <AGUIButton v-if="file.openedFileHandle" :loading="saving" :disabled="!file.isDirty || saving" @click="save">
           {{ zh ? '保存' : 'Save' }}
@@ -194,6 +224,7 @@ function goToNode() {
         </p>
       </template>
     </ClientOnly>
+    <AEInlineAudioEditor v-if="audioSelection && !reading" :content="audioSelection.content" :line="audioSelection.line" :current-content="monaco.fileContent" :catalog="project.project?.compilation.project.assets" :zh="zh" :disabled="saving || !chapterReady" @apply="applyAudio" @close="audioSelection = undefined" />
   </div>
 </template>
 

@@ -1,4 +1,6 @@
+import type { VoiceGenerationJob } from '@advjs/audio'
 import type { AdvAgentIntegrationStatus, AdvCharacterAvatar, AdvGameConfig, AdvProjectCompileResult, AdvProjectFileMap, AdvVoiceLibrarySnapshot, AdvVoiceSelectInput } from '@advjs/types'
+import type { EditorVoiceJobsPort, EditorVoiceJobsReviewedPlan, EditorVoiceJobsSnapshot } from '../../../../../packages/advjs/shared/editor-audio'
 import type { ProjectFileChange } from '../../workspaces/project'
 import type { BrowserProjectDirectory, BrowserProjectFile } from '../browser/project'
 import { createAdvAssetCatalog } from '@advjs/assets'
@@ -160,7 +162,7 @@ export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
     }))
     assertActive(generation)
     const manifest = compilation.project.assets
-    if (!manifest)
+    if (!manifest || !manifest.assets.length)
       return { ...previewConfig, characters }
     const catalog = createAdvAssetCatalog(manifest, {
       profile: manifest.profiles.local ? 'local' : undefined,
@@ -342,6 +344,24 @@ export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
     origin: options.origin,
     readFile,
     voiceLibrary: async (signal?: AbortSignal) => await (await request('voice-library', { signal })).json() as AdvVoiceLibrarySnapshot,
+    voiceDesign: {
+      read: async signal => await (await request('audio/voice-design', { signal })).json(),
+      saveVersion: async (input, signal) => await (await request('audio/voice-design/save', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input), signal })).json(),
+      planPreview: async (input, signal) => await (await request('audio/voice-design/plan', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input), signal })).json(),
+      executePreview: async (input, signal) => await (await request('audio/voice-design/execute', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input), signal })).json(),
+      readPreview: async (id, signal) => await (await request(`audio/voice-design/previews/${encodeURIComponent(id)}`, { signal })).json(),
+      cancelPreview: async (id, signal) => await (await request(`audio/voice-design/previews/${encodeURIComponent(id)}/cancel`, { method: 'POST', signal })).json(),
+      readPreviewAudio: async (id, signal) => await (await request(`audio/voice-design/previews/${encodeURIComponent(id)}/media`, { signal })).blob(),
+      registerSample: async (input, signal) => await (await request('audio/voice-design/register', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input), signal })).json(),
+      selectSample: async (input, signal) => await (await request('audio/voice-design/select', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input), signal })).json(),
+      applyProfile: async (input, signal) => await (await request('audio/voice-design/apply', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input), signal })).json(),
+    } satisfies import('@advjs/types').VoiceDesignPort,
+    voiceJobs: {
+      read: async (signal?: AbortSignal) => await (await request('audio/jobs', { signal })).json() as EditorVoiceJobsSnapshot,
+      plan: async (input, signal) => await (await request('audio/jobs/plan', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input), signal })).json() as EditorVoiceJobsReviewedPlan,
+      enqueue: async (input, signal) => await (await request('audio/jobs/enqueue', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input), signal })).json() as VoiceGenerationJob,
+      command: async (input, signal) => await (await request('audio/jobs/command', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input), signal })).json() as VoiceGenerationJob,
+    } satisfies EditorVoiceJobsPort,
     selectVoiceSample: async (input: AdvVoiceSelectInput) => await (await request('voice-selection', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(input) })).json() as AdvVoiceLibrarySnapshot,
     readVoiceAudio: async (assetId: string, signal?: AbortSignal) => await (await request(`voice-audio?assetId=${encodeURIComponent(assetId)}`, { signal })).blob(),
     resolvePreviewConfig,

@@ -1,7 +1,7 @@
 import type { AdvCharacter, JsonValue } from '@advjs/types'
 import { applyProjectPatches } from '@advjs/core'
 
-const fields = ['id', 'name', 'avatar', 'avatars', 'visual', 'imagePrompt', 'actor', 'cv', 'aliases', 'tags', 'faction', 'language', 'tachies', 'relationships', 'attributes'] as const
+const fields = ['id', 'name', 'avatar', 'avatars', 'visual', 'imagePrompt', 'actor', 'cv', 'aliases', 'tags', 'faction', 'language', 'tachies', 'relationships', 'attributes', 'voiceProfile'] as const
 const sections = {
   appearance: ['外貌', 'appearance'],
   personality: ['性格', 'personality'],

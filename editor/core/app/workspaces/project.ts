@@ -1,5 +1,6 @@
 import type { ProjectSourcePatch } from '@advjs/core'
-import type { AdvVoiceLibrarySnapshot, AdvVoiceSelectInput } from '@advjs/types'
+import type { AdvAssetManifest, AdvProjectFileMap, AdvVoiceLibrarySnapshot, AdvVoiceSelectInput, VoiceDesignPort } from '@advjs/types'
+import type { EditorVoiceJobsPort } from '../../../../packages/advjs/shared/editor-audio'
 import type { BrowserProjectDirectory, EditorProjectModel } from '../adapters/browser/project'
 
 export type ProjectWorkspaceKind = 'browser' | 'local'
@@ -42,8 +43,13 @@ export interface ProjectWorkspace {
   voiceLibrary?: (signal?: AbortSignal) => Promise<AdvVoiceLibrarySnapshot>
   selectVoiceSample?: (input: AdvVoiceSelectInput) => Promise<AdvVoiceLibrarySnapshot>
   readVoiceAudio?: (assetId: string, signal?: AbortSignal) => Promise<Blob>
+  /** Durable local jobs; hosted workspaces must inject a configured service explicitly. */
+  voiceJobs?: EditorVoiceJobsPort
+  voiceDesign?: VoiceDesignPort
   commit: (patches: readonly ProjectSourcePatch[]) => Promise<ProjectWorkspaceSnapshot>
   snapshot: () => Promise<ProjectWorkspaceSnapshot>
+  /** Authoring reads must not replace or revoke live preview media URLs. */
+  readDocuments?: () => Promise<{ files: AdvProjectFileMap, catalog?: AdvAssetManifest }>
   writeFiles?: (changes: ProjectFileChange[]) => Promise<ProjectWorkspaceSnapshot>
   importAsset?: (path: string, file: Blob) => Promise<void>
   removeImportedAsset?: (path: string, file: Blob) => Promise<void>

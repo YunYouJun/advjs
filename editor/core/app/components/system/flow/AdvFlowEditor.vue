@@ -10,6 +10,8 @@ import { getRectOfNodes, getTransformForBounds, Position, useNodesInitialized, u
 import { MiniMap } from '@vue-flow/minimap'
 import { computed, nextTick, onBeforeUnmount, shallowRef, useId, watch } from 'vue'
 import { useProjectSourceNavigation } from '../../../composables/useProjectSourceNavigation'
+import NativeFlowEditor from './NativeFlowEditor.vue'
+import ProjectFlowAudioInspector from './ProjectFlowAudioInspector.vue'
 import ProjectFlowDiagnostics from './ProjectFlowDiagnostics.vue'
 import ProjectFlowNode from './ProjectFlowNode.vue'
 import ProjectFlowRoutes from './ProjectFlowRoutes.vue'
@@ -25,6 +27,7 @@ const { locale } = useEditorLocale()
 const zh = computed(() => locale.value === 'zh-CN')
 const refreshError = shallowRef('')
 const selectedRoutes = shallowRef<ProjectFlowViewEdge>()
+const selectedAudio = shallowRef<ProjectFlowSource>()
 // The view owns the renderer's effect scope; the Pinia store only owns graph data.
 const flow = useVueFlow(useId())
 const nodesInitialized = useNodesInitialized()
@@ -53,6 +56,8 @@ watch(() => props.visible, () => {
     void synchronizeView()
 }, { flush: 'sync' })
 watch(() => [project.workspace, project.project] as const, ([workspace, model]) => {
+  if (!model?.files[selectedAudio.value?.path ?? ''])
+    selectedAudio.value = undefined
   refreshError.value = ''
   void flowStore.loadProject(model, workspace)
 }, { immediate: true, flush: 'sync' })
@@ -197,7 +202,8 @@ const displayEdges = computed(() => flowStore.visibleEdges.map((edge) => {
 </script>
 
 <template>
-  <section class="advjs-flow-editor" :aria-label="zh ? '项目流程图' : 'Project story graph'" :aria-busy="flowStore.loading">
+  <NativeFlowEditor v-if="project.project?.compilation.project.format === 'flow'" :visible="visible" />
+  <section v-else class="advjs-flow-editor" :aria-label="zh ? '项目流程图' : 'Project story graph'" :aria-busy="flowStore.loading">
     <ProjectFlowToolbar
       :graph="flowStore.graph" :view="flowStore.currentView" :direction="flowStore.direction" :zh="zh" :busy="busy" :available="!!project.project"
       @navigate="navigateTo" @back="flowStore.back" @refresh="refreshData" @layout="layoutGraph" @details="showDetails" @page="flowStore.setPage"
@@ -254,9 +260,10 @@ const displayEdges = computed(() => flowStore.visibleEdges.map((edge) => {
         </template>
       </Controls>
       <template #node-project-story="{ data }">
-        <ProjectFlowNode :data="data" :source-position="sourcePosition" :target-position="targetPosition" :zh="zh" :busy="busy" @open="openSource(data.source)" @expand="flowStore.expandNode(data)" @inspect="inspectNode(data)" />
+        <ProjectFlowNode :data="data" :source-position="sourcePosition" :target-position="targetPosition" :zh="zh" :busy="busy" @open="openSource(data.source)" @expand="flowStore.expandNode(data)" @inspect="inspectNode(data)" @audio="selectedAudio = data.source" />
       </template>
     </VueFlow>
+    <ProjectFlowAudioInspector :source="selectedAudio" :zh="zh" :busy="busy" @close="selectedAudio = undefined; fitResizedCanvas()" />
     <ProjectFlowRoutes :edge="selectedRoutes" :zh="zh" :busy="busy" @open="openSource" @navigate="navigateTo" @close="selectedRoutes = undefined; fitResizedCanvas()" @toggle="fitResizedCanvas" />
     <ProjectFlowDiagnostics :diagnostics="flowStore.graph?.diagnostics ?? []" :zh="zh" :busy="busy" @open="openDiagnostic" @toggle="fitResizedCanvas" />
   </section>

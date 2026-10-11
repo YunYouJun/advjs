@@ -1,74 +1,61 @@
 <script setup lang="ts">
-import { useAdvContext } from '@advjs/client'
-import { computed, ref, useId, watch } from 'vue'
-import { audioLibrarySrc, useAudioLibrary } from '../../../composables/useAudioLibrary'
+import AGUITabPanel from '@advjs/gui/client/components/tabs/AGUITabPanel.vue'
+import AGUITabs from '@advjs/gui/client/components/tabs/AGUITabs.vue'
+import { shallowRef } from 'vue'
+import { useAudioStore } from '../../../stores/useAudioStore'
+import AEAudioMixerPanel from './AEAudioMixerPanel.vue'
+import AEAudioPronunciationPanel from './AEAudioPronunciationPanel.vue'
+import AEAudioVoiceProfilesPanel from './AEAudioVoiceProfilesPanel.vue'
+import AEProjectAudioPanel from './AEProjectAudioPanel.vue'
+import AEVoiceDesignPanel from './AEVoiceDesignPanel.vue'
+import AEVoiceJobsPanel from './AEVoiceJobsPanel.vue'
+import AEVoiceLedgerPanel from './AEVoiceLedgerPanel.vue'
 import '../../../styles/resource-panel.scss'
 
 withDefaults(defineProps<{ visible?: boolean }>(), { visible: true })
-const { $adv } = useAdvContext()
-const audioStore = useAudioStore()
-const fileStore = useFileStore()
-const fieldId = useId()
-const search = ref('')
-const { load, cancel, loading, failed } = useAudioLibrary((data, url) => {
-  audioStore.bgmLibraryData = data
-  fileStore.openVirtualFile(url, JSON.stringify(data, null, 2))
-})
-watch(() => audioStore.bgmLibraryUrl, cancel)
-const entries = computed(() => {
-  const query = search.value.trim().toLowerCase()
-  return Object.entries(audioStore.bgmLibraryData).filter(([key, item]) =>
-    !query || `${key} ${item.name} ${item.description}`.toLowerCase().includes(query))
-})
+const project = useProjectStore()
+const audio = useAudioStore()
+const selected = shallowRef<string | number>('assets')
+const tabs = [{ key: 'assets', title: '音频资源' }, { key: 'design', title: '音色设计' }, { key: 'voice', title: '对白配音' }, { key: 'jobs', title: '配音任务' }, { key: 'profiles', title: '旁白声音' }, { key: 'pronunciation', title: '发音词典' }, { key: 'mixer', title: '混音配置' }]
 </script>
 
 <template>
-  <div class="ae-resource-panel audio-panel" :aria-busy="loading">
-    <AEProjectAudioPanel :visible="visible" />
-    <AGUIToolbar :items="[]" :label="$t('audio.title')">
-      <template #before-toolbar>
-        <span>{{ $t('audio.title') }}</span>
-      </template>
-      <template #after-toolbar>
-        <span class="ae-resource-caption">{{ entries.length }}</span>
-      </template>
-    </AGUIToolbar>
-    <form class="audio-source" @submit.prevent="load(audioStore.bgmLibraryUrl)">
-      <AGUIProperty :for="`${fieldId}-source`" :label="$t('audio.source')">
-        <AGUIInput :id="`${fieldId}-source`" v-model="audioStore.bgmLibraryUrl" placeholder="https://…/library.json" />
-      </AGUIProperty>
-      <div class="ae-resource-actions">
-        <AGUIButton type="submit" icon="i-ri-refresh-line" :disabled="!audioStore.bgmLibraryUrl.trim()" :loading="loading">
-          {{ $t('audio.load') }}
-        </AGUIButton>
-      </div>
-    </form>
-    <p v-if="failed" class="ae-resource-error px-2" role="alert">
-      {{ $t('audio.loadFailed') }}
+  <div class="ae-resource-panel ae-audio-workspace">
+    <p v-if="!project.workspace" class="ae-resource-empty" role="status">
+      打开项目后，可管理原生音频资源、对白配音和混音配置。
     </p>
-    <p v-if="loading" class="ae-resource-caption px-2" role="status">
-      {{ $t('audio.loading') }}
+    <p v-if="project.workspace && !audio.supportedRoot" class="ae-resource-caption" role="status">
+      当前项目使用自定义内容根。音频作者工作区目前需要 adv 目录；导入、配音绑定和混音保存已禁用。
     </p>
-    <div class="p-2">
-      <AGUIInput v-model="search" :aria-label="$t('audio.search')" :placeholder="$t('audio.search')" prefix-icon="i-ri-search-line" />
-    </div>
-    <ul v-if="entries.length" class="ae-resource-list">
-      <AEAudioLibraryItem v-for="([key, item]) in entries" :key="key" :visible="visible" :name="`${key} · ${item.name}`" :description="item.description" :src="audioLibrarySrc($adv.config.value.cdn.prefix, item.name)" />
-    </ul>
-    <p v-else-if="!loading" class="ae-resource-empty" role="status">
-      {{ $t(search.trim() ? 'audio.noMatches' : 'audio.empty') }}
-    </p>
+    <AGUITabs v-if="project.workspace" v-model="selected" :list="tabs" label="音频工作区">
+      <AGUITabPanel v-show="selected === 'assets'" value="assets" force-mount>
+        <AEProjectAudioPanel :visible="visible && selected === 'assets'" />
+      </AGUITabPanel>
+      <AGUITabPanel v-show="selected === 'voice'" value="voice" force-mount>
+        <AEVoiceLedgerPanel :visible="visible && selected === 'voice'" />
+      </AGUITabPanel>
+      <AGUITabPanel v-show="selected === 'design'" value="design" force-mount>
+        <AEVoiceDesignPanel :visible="visible && selected === 'design'" />
+      </AGUITabPanel>
+      <AGUITabPanel v-show="selected === 'mixer'" value="mixer" force-mount>
+        <AEAudioMixerPanel />
+      </AGUITabPanel>
+      <AGUITabPanel v-show="selected === 'jobs'" value="jobs" force-mount>
+        <AEVoiceJobsPanel :visible="visible && selected === 'jobs'" />
+      </AGUITabPanel>
+      <AGUITabPanel v-show="selected === 'profiles'" value="profiles" force-mount>
+        <AEAudioVoiceProfilesPanel />
+      </AGUITabPanel>
+      <AGUITabPanel v-show="selected === 'pronunciation'" value="pronunciation" force-mount>
+        <AEAudioPronunciationPanel />
+      </AGUITabPanel>
+    </AGUITabs>
   </div>
 </template>
 
 <style scoped>
-.audio-panel {
+.ae-audio-workspace {
   height: 100%;
-  overflow: auto;
-}
-.audio-source {
-  padding: 8px;
-  border-bottom: 1px solid var(--agui-c-divider);
-  container: agui-properties / inline-size;
+  min-height: 0;
 }
 </style>

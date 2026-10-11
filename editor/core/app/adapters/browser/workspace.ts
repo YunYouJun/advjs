@@ -1,7 +1,7 @@
 import type { ProjectSourcePatch } from '@advjs/core'
 import type { ProjectFileChange, ProjectWorkspace, ProjectWorkspaceSnapshot } from '../../workspaces/project'
 import type { BrowserProjectDirectory, BrowserProjectFile } from './project'
-import { applyProjectPatches } from '@advjs/core'
+import { applyProjectPatches, compileProject } from '@advjs/core'
 import { resolveBrowserPreviewConfig } from './preview'
 import { compileEditorProject, readBrowserProjectFiles } from './project'
 
@@ -117,6 +117,8 @@ export function createBrowserProjectWorkspace(root: BrowserProjectDirectory): Pr
     }
     try {
       for (const change of changes) {
+        if (change.content === change.expected)
+          continue
         await write(change.path, change.content)
         written.push(change)
       }
@@ -136,6 +138,13 @@ export function createBrowserProjectWorkspace(root: BrowserProjectDirectory): Pr
     kind: 'browser',
     commit,
     snapshot,
+    async readDocuments() {
+      if (disposed)
+        throw new Error('Project workspace has been disposed')
+      const files = await readBrowserProjectFiles(root)
+      const compilation = await compileProject({ files }, { allowEmptyAssetManifest: true })
+      return { files, catalog: compilation.project.assets }
+    },
     writeFiles,
     async importAsset(path, file) {
       try {

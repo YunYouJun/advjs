@@ -13,7 +13,7 @@ const props = defineProps<{
   zh: boolean
   busy: boolean
 }>()
-const emit = defineEmits<{ open: [], expand: [], inspect: [] }>()
+const emit = defineEmits<{ open: [], expand: [], inspect: [], audio: [] }>()
 const nodeTypes: Record<string, { labels: [string, string], icon: string }> = {
   chapter: { labels: ['章节', 'Chapter'], icon: 'i-ri-book-open-line' },
   section: { labels: ['段落', 'Section'], icon: 'i-ri-paragraph' },
@@ -78,6 +78,7 @@ const sourceLabel = computed(() => props.data.source ? `${props.data.source.path
       <span v-if="data.conditional && !data.overflow">{{ zh ? '有条件' : 'Conditional' }}</span>
       <span v-if="data.overflow">{{ zh ? '展开明细选择准确目标' : 'Open details to choose a destination' }}</span>
       <span v-else-if="data.portal">{{ zh ? '其他区块' : 'Other block' }}</span>
+      <AGUIIconButton v-if="data.kind === 'story' && data.source?.path.endsWith('.adv.md')" class="node-expand nodrag nopan" icon="i-ri-volume-up-line" :title="`${zh ? '音频属性：' : 'Audio properties: '}${nodeLabel}`" :disabled="busy" @click="emit('audio')" />
       <AGUIIconButton v-if="data.expandTo" class="node-expand nodrag nopan" icon="i-ri-arrow-right-up-line" :title="`${zh ? '展开：' : 'Expand: '}${nodeLabel}`" :disabled="busy" @click="emit('expand')" />
       <AGUIIconButton v-else-if="data.overflow" class="node-expand nodrag nopan" icon="i-ri-git-branch-line" :title="`${zh ? '查看跳转：' : 'View transitions: '}${nodeLabel}`" :disabled="busy" @click="emit('inspect')" />
     </div>

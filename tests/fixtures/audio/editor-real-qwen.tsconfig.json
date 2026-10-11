@@ -1,0 +1,11 @@
+{
+  "extends": "./published-flow.tsconfig.json",
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "types": ["node", "vite/client"]
+  },
+  "include": ["./editor-real-qwen.ts", "./editor-real-qwen.playwright.config.ts", "../../e2e/editor-real-qwen.spec.ts"]
+}

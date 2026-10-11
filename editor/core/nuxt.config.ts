@@ -210,7 +210,6 @@ export default defineNuxtConfig({
         'splitpanes',
         '@iconify/vue',
         'dayjs', // CJS
-        'howler', // CJS
         'js-yaml',
         'rehype-stringify',
         'remark-frontmatter',

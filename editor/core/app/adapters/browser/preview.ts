@@ -1,6 +1,7 @@
 import type { AdvGameConfig, AdvScene } from '@advjs/types'
 import type { EditorProjectModel } from './project'
 import { createAdvAssetCatalog } from '@advjs/assets'
+import { resolveRuntimeAudioAsset } from '@advjs/audio'
 import { projectAssetPath } from '../../utils/project-files'
 
 /** Resolve preview media without changing authored sources or the compiled Program. */
@@ -98,6 +99,15 @@ export async function resolveBrowserPreviewConfig(
 
   return {
     ...config,
+    audio: config.audio && {
+      ...config.audio,
+      assets: Object.fromEntries(await Promise.all(Object.entries(config.audio.assets).map(async ([id, asset]) => {
+        const native = catalog?.get(id)
+        if (native)
+          return [id, await resolveRuntimeAudioAsset(native, async variant => (await catalog!.resolve(id, { variant, profile: manifest?.profiles.local ? 'local' : undefined })).src)]
+        return [id, { ...asset, src: await localUrl(asset.src), ...(asset.variants ? { variants: Object.fromEntries(await Promise.all(Object.entries(asset.variants).map(async ([name, source]) => [name, { ...source, src: await localUrl(source.src) }]))) } : {}) }]
+      }))),
+    },
     cover: config.cover ? await localUrl(config.cover) : config.cover,
     favicon: await localUrl(config.favicon),
     scenes,

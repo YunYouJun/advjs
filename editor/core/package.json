@@ -40,6 +40,9 @@
     "generate": "nuxt generate",
     "start:generate": "npx serve .output/public"
   },
+  "dependencies": {
+    "@advjs/audio": "workspace:0.1.4"
+  },
   "devDependencies": {
     "@advjs/assets": "workspace:*",
     "@advjs/core": "workspace:*",

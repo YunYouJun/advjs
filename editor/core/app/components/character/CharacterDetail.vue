@@ -12,6 +12,7 @@ const props = withDefaults(defineProps<{ character: AdvCharacter, actions?: bool
 defineEmits<{ edit: [character: AdvCharacter], delete: [character: AdvCharacter] }>()
 const descriptions = computed(() => (['personality', 'appearance', 'background', 'concept', 'speechStyle'] as const)
   .filter(key => props.character[key]))
+const voiceBindings = computed(() => Object.entries(props.character.voiceProfile?.locales ?? {}).flatMap(([locale, binding]) => Object.entries(binding.providers).map(([providerId, value]) => ({ locale, providerId, ...value }))))
 </script>
 
 <template>
@@ -42,6 +43,21 @@ const descriptions = computed(() => (['personality', 'appearance', 'background',
     </AGUIDetails>
     <AGUIDetails v-if="Object.keys(character.avatars ?? {}).length" :title="$t('characters.detail.avatars')" open>
       <CharacterAvatarPanel :character="character" />
+    </AGUIDetails>
+    <AGUIDetails v-if="character.voiceProfile" title="角色配音" open>
+      <AGUIProperty v-if="character.voiceProfile.intent.speakingStyle" label="说话风格">
+        {{ character.voiceProfile.intent.speakingStyle }}
+      </AGUIProperty>
+      <div v-for="binding in voiceBindings" :key="`${binding.locale}/${binding.providerId}`" class="px-2 py-1">
+        <div class="ae-resource-caption">
+          {{ binding.locale }} · {{ binding.providerId }} · {{ binding.source }}
+        </div>
+        <div class="text-xs break-all">
+          {{ binding.voiceId }}<template v-if="binding.model">
+            · {{ binding.model }}
+          </template>
+        </div>
+      </div>
     </AGUIDetails>
     <AGUIDetails :title="$t('characters.form.basicInfo')" open>
       <AGUIProperty v-if="character.tags?.length" :label="$t('characters.form.tags')">

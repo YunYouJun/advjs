@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { configureAudioAssets } from '@advjs/client'
 import { initAdvContext, initAdvData } from '@advjs/client/compiler'
 import { advConfigSymbol, gameConfigSymbol, themeConfigSymbol } from '@advjs/core'
 import { mountCssVarsRootStyle } from '@advjs/gui/client'
@@ -21,15 +20,6 @@ useHead({
 })
 
 const consoleStore = useConsoleStore()
-const capabilities = useEditorCapabilities()
-
-if (capabilities.mode === 'local') {
-  configureAudioAssets({
-    popDownUrl: '',
-    popUpOffUrl: '',
-    popUpOnUrl: '',
-  })
-}
 
 // advjs context
 const nuxtApp = useNuxtApp()

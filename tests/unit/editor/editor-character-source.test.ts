@@ -13,4 +13,15 @@ describe('character workspace source', () => {
     expect(parseCharacterMd(written)).toMatchObject(character)
     expect(written).not.toContain('旧描述。')
   })
+  it('persists exact-locale provider profiles and removes an explicitly cleared profile while retaining actor credits', () => {
+    const original = '---\nid: hero\nname: Hero\ncv: Actor\ncustom: retained\n---\n\n## 线索\n\nRetain prose.\n'
+    const voiceProfile = { intent: { speakingStyle: 'Quiet' }, locales: { 'zh-CN': { providers: { 'openai-tts': { voiceId: 'coral', model: 'gpt-4o-mini-tts', source: 'system' as const } } } } }
+    const written = updateCharacterSource('adv/characters/hero.character.md', original, { ...parseCharacterMd(original), voiceProfile })
+    expect(parseCharacterMd(written).voiceProfile).toEqual(voiceProfile)
+    expect(written).toContain('custom: retained')
+    expect(written).toContain('Retain prose.')
+    const cleared = updateCharacterSource('adv/characters/hero.character.md', written, { ...parseCharacterMd(written), voiceProfile: undefined })
+    expect(parseCharacterMd(cleared).voiceProfile).toBeUndefined()
+    expect(parseCharacterMd(cleared).cv).toBe('Actor')
+  })
 })
