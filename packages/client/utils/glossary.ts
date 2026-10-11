@@ -1,8 +1,11 @@
-/** Plain-text reference spans emitted by the Markdown compiler. */
+import type { AdvAst } from '@advjs/types'
+
+/** Safe glossary reference spans emitted by the Markdown compiler. */
 export interface GlossaryReference {
   identifier: string
   label: string
   definition: string
+  definitionContent?: AdvAst.GlossaryContent
   start: number
   end: number
 }

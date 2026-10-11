@@ -12,7 +12,7 @@ const serialize = new Serialize()
 /**
  * 将 Markdown 语法树转译为 AdvScript
  */
-export function convertMdToAdv(mdAst: MdAst.Root, glossary?: ReadonlyMap<string, string>): AdvAst.Root {
+export function convertMdToAdv(mdAst: MdAst.Root, glossary?: ReadonlyMap<string, AdvAst.GlossaryDefinition>): AdvAst.Root {
   const serializer = new Serialize(glossary)
   const ast: AdvAst.Root = {
     type: 'adv-root',

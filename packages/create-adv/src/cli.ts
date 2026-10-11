@@ -1,242 +1,157 @@
 import fs from 'node:fs'
-import path from 'node:path'
 import process from 'node:process'
-// only use it in create-adv
+import { fileURLToPath } from 'node:url'
+import consola from 'consola'
 import { colors } from 'consola/utils'
-
 import { execa } from 'execa'
 import minimist from 'minimist'
+import path from 'pathe'
 import prompts from 'prompts'
+import { version as advjsVersion } from '../../advjs/package.json'
 import { version } from '../package.json'
-import { renameFiles, TEMPLATE_CHOICES, TEMPLATES } from './config'
+import { renameFiles, TEMPLATES } from './config'
+import { THEME_HELPER } from './theme'
 import { copy, emptyDir, formatTargetDir, isEmpty, isValidPackageName, pkgFromUserAgent, toValidPackageName } from './utils'
 
-const argv = minimist(process.argv.slice(2))
-
-const cwd = process.cwd()
-const defaultTargetDir = 'advjs-project'
-
 export async function init() {
-  console.log()
-  console.log(`  ${colors.bold('🎮 ADV.JS')}  ${colors.blue(`v${version}`)}`)
-  console.log()
-
-  const argTargetDir = formatTargetDir(argv._[0])
-  const argTemplate = argv.template || argv.t
-
-  /**
-   * default: false
-   * @type {boolean}
-   */
-  const argYes = argv.y || argv.yes
-  const argPort = argv.port || argv.p
-
-  let targetDir = argTargetDir || defaultTargetDir
-  const getProjectName = () =>
-    targetDir === '.' ? path.basename(path.resolve()) : targetDir
-
-  let result: prompts.Answers<
-    'projectName' | 'overwrite' | 'packageName'
-  >
-
-  // get template
-  let template = TEMPLATES[0]
-
-  if (!argYes) {
-    const templateRes = await prompts({
-      type:
-              argTemplate && TEMPLATE_CHOICES.includes(argTemplate) ? null : 'select',
-      name: 'template',
-      message:
-              typeof argTemplate === 'string' && !TEMPLATE_CHOICES.includes(argTemplate)
-                ? colors.reset(
-                    `"${argTemplate}" isn't a valid template. Please choose from below: `,
-                  )
-                : colors.reset('Select a type:'),
-      initial: 0,
-      choices: TEMPLATES.map((template) => {
-        const tColor = template.color
-        return {
-          title: tColor(template.display || template.name) + colors.dim(` - ${template.desc}`),
-          value: template,
-        }
-      }),
-    })
-    template = templateRes.template
-
-    try {
-      result = await prompts([
-        {
-          type: argTargetDir ? null : 'text',
-          name: 'projectName',
-          message: colors.reset(template.message),
-          initial: template.initial,
-          onState: (state) => {
-            targetDir = formatTargetDir(template.prefix ? template.prefix + state.value : state.value) || (template.initial)
-          },
-        },
-        {
-          type: () =>
-            !fs.existsSync(targetDir) || isEmpty(targetDir) ? null : 'confirm',
-          name: 'overwrite',
-          message: () =>
-            `${targetDir === '.'
-              ? 'Current directory'
-              : `Target directory "${targetDir}"`
-            } is not empty. Remove existing files and continue?`,
-        },
-        {
-          type: (_, { overwrite }: { overwrite?: boolean }) => {
-            if (overwrite === false)
-              throw new Error(`${colors.red('✖')} Operation cancelled`)
-
-            return null
-          },
-          name: 'overwriteChecker',
-        },
-        {
-          type: () => (isValidPackageName(getProjectName()) ? null : 'text'),
-          name: 'packageName',
-          message: colors.reset('Package name:'),
-          initial: () => toValidPackageName(getProjectName()),
-          validate: dir =>
-            isValidPackageName(dir) || 'Invalid package.json name',
-        },
-      ], {
-        onCancel: () => {
-          throw new Error(`${colors.red('✖')} Operation cancelled`)
-        },
-      })
-    }
-    catch (cancelled: any) {
-      console.log(cancelled.message)
-      return
-    }
-  }
-  else {
-    // default
-    result = {
-      projectName: targetDir,
-      overwrite: false,
-      packageName: toValidPackageName(getProjectName()),
-    }
-  }
-
-  const { projectName, overwrite } = result
-  const dirName = template.prefix ? template.prefix + projectName : projectName
-  const root = path.join(cwd, dirName)
-
-  if (overwrite)
-    emptyDir(root)
-  else if (!fs.existsSync(root))
-    fs.mkdirSync(root, { recursive: true })
-
-  // custom
-  if (template.customInit) {
-    await template.customInit({ themeName: projectName })
-  }
-  else {
-    const templateDir = path.resolve(
-      import.meta.filename,
-      '../..',
-      `template-${template.name}`,
-    )
-
-    const write = (file: string, content?: string) => {
-      const targetPath = path.join(root, renameFiles[file] ?? file)
-      if (content)
-        fs.writeFileSync(targetPath, content)
-      else
-        copy(path.join(templateDir, file), targetPath)
-    }
-
-    const files = fs.readdirSync(templateDir)
-    for (const file of files.filter(f => f !== 'package.json'))
-      write(file)
-
-    // write pkg name & version
-    // const pkg = await import(path.join(templateDir, 'package.json'))
-    const pkg = JSON.parse(
-      fs.readFileSync(path.join(templateDir, `package.json`), 'utf-8'),
-    )
-    pkg.name = projectName || getProjectName()
-
-    write('package.json', `${JSON.stringify(pkg, null, 2)}\n`)
-  }
-
-  console.log(`  ${colors.dim('📁')} ${colors.dim(root)}`)
-  console.log()
-  console.log(colors.dim('  Scaffolding project in ') + targetDir + colors.dim(' ...'))
-
-  const pkgInfo = pkgFromUserAgent(process.env.npm_config_user_agent)
-  const pkgManager = pkgInfo ? pkgInfo.name : 'npm'
-
-  const related = path.relative(cwd, root)
-  console.log(colors.green('  Done.\n'))
-
-  // addon not start
-  if (template.name === 'addon')
+  const argv = minimist(process.argv.slice(2), {
+    string: ['_', 'template', 'port'],
+    boolean: ['yes', 'help', 'version'],
+    alias: { template: 't', yes: 'y', port: 'p', help: 'h', version: 'v' },
+  })
+  if (argv.help) {
+    consola.log(`Usage: create-adv [directory] [--template adv|plugin|theme] [--yes]\n\n--yes, -y       Use defaults for adv/plugin; never overwrite, install, or start automatically\n--template, -t  Select a project, plugin, or remote starter theme\n--port, -p      Dev server port when choosing to install and start\n--version, -v   Print version`)
     return
+  }
+  if (argv.version) {
+    consola.log(version)
+    return
+  }
 
-  let yes: boolean | undefined
-  if (!argYes) {
-    /**
-     * @type {{ yes: boolean }}
-     */
-    (
-      { yes } = await prompts({
+  const cwd = process.cwd()
+  const argTargetDir = formatTargetDir(argv._[0]?.toString())
+  const onCancel = () => {
+    throw new Error('Operation cancelled')
+  }
+  let template = TEMPLATES.find(template => template.name === argv.template)
+  if (argv.template && !template)
+    throw new Error(`Unknown template "${argv.template}". Choose: ${TEMPLATES.map(template => template.name).join(', ')}`)
+
+  consola.log(`\n  ${colors.bold('🎮 ADV.JS')}  ${colors.blue(`v${version}`)}\n`)
+  if (!template && !argv.yes) {
+    const answer = await prompts({
+      type: 'select',
+      name: 'template',
+      message: 'Select a type:',
+      choices: TEMPLATES.map(template => ({
+        title: template.color(template.display) + colors.dim(` - ${template.desc}`),
+        value: template,
+      })),
+      initial: 0,
+    }, { onCancel })
+    template = answer.template
+  }
+  template ??= TEMPLATES[0]
+
+  if (template.name === 'theme') {
+    if (argv.yes)
+      throw new Error('The remote theme template does not support --yes. Run without --yes to approve downloading and running the degit helper.')
+    const { download } = await prompts({
+      type: 'confirm',
+      name: 'download',
+      message: `Download the starter from github.com/advjs/advjs-theme-starter? npm may install and run ${THEME_HELPER}.`,
+      initial: false,
+    }, { onCancel })
+    if (!download)
+      throw new Error('Operation cancelled')
+  }
+
+  let targetDir = argTargetDir || `${template.prefix || ''}${template.initial}`
+  if (!argTargetDir && !argv.yes) {
+    const answer = await prompts({
+      type: 'text',
+      name: 'name',
+      message: template.message,
+      initial: template.initial,
+    }, { onCancel })
+    targetDir = `${template.prefix || ''}${formatTargetDir(answer.name) || template.initial}`
+  }
+  // An explicit path is always used verbatim, including absolute paths and '.'.
+  const root = path.resolve(cwd, targetDir)
+  const projectName = path.basename(root)
+  let packageName = toValidPackageName(projectName) || 'advjs-project'
+  if (!argv.yes && !isValidPackageName(projectName)) {
+    const answer = await prompts({
+      type: 'text',
+      name: 'packageName',
+      message: 'Package name:',
+      initial: packageName,
+      validate: name => isValidPackageName(name) || 'Invalid package.json name',
+    }, { onCancel })
+    packageName = answer.packageName
+  }
+
+  if (fs.existsSync(root)) {
+    if (!fs.statSync(root).isDirectory())
+      throw new Error(`Target "${root}" is not a directory`)
+    if (!isEmpty(root)) {
+      if (argv.yes)
+        throw new Error(`Target directory "${root}" is not empty. Choose an empty directory or run interactively.`)
+      const { overwrite } = await prompts({
         type: 'confirm',
-        name: 'yes',
-        initial: 'Y',
-        message: 'Install and start it now?',
-      })
-    )
+        name: 'overwrite',
+        message: `Target directory "${root}" is not empty. Remove existing files and continue?`,
+        initial: false,
+      }, { onCancel })
+      if (!overwrite)
+        throw new Error('Operation cancelled')
+      emptyDir(root)
+    }
+  }
+
+  if (template.customInit) {
+    await template.customInit({ themeName: packageName.replace(/^advjs-theme-/, ''), targetDir: root })
   }
   else {
-    yes = false
+    const templateDir = fileURLToPath(new URL(`../templates/template-${template.name}/`, import.meta.url))
+    fs.mkdirSync(root, { recursive: true })
+    for (const file of fs.readdirSync(templateDir)) {
+      if (file !== 'package.json')
+        copy(path.join(templateDir, file), path.join(root, renameFiles[file] ?? file))
+    }
+    const pkg = JSON.parse(fs.readFileSync(path.join(templateDir, 'package.json'), 'utf8').replaceAll('$ADVJS_VERSION', advjsVersion))
+    pkg.name = packageName
+    fs.writeFileSync(path.join(root, 'package.json'), `${JSON.stringify(pkg, null, 2)}\n`)
   }
 
-  if (yes) {
-    let agent: string | undefined
-
-    if (!argYes) {
-      (
-        { agent } = await prompts({
-          name: 'agent',
-          type: 'select',
-          message: 'Choose the agent',
-          choices: ['npm', 'yarn', 'pnpm'].map(i => ({ value: i, title: i })),
-          initial: 2,
-        })
-      )
-    }
-    else {
-      agent = 'pnpm'
-    }
-
-    if (!agent)
-      return
-
+  consola.log(`  Done. Created ${root}\n`)
+  const pkgManager = pkgFromUserAgent(process.env.npm_config_user_agent)?.name || 'npm'
+  const { install } = argv.yes
+    ? { install: false }
+    : await prompts({
+        type: 'confirm',
+        name: 'install',
+        initial: false,
+        message: 'Install and start it now?',
+      }, { onCancel })
+  if (install) {
+    const { agent } = await prompts({
+      name: 'agent',
+      type: 'select',
+      message: 'Choose the package manager',
+      choices: ['npm', 'yarn', 'pnpm'].map(value => ({ value, title: value })),
+      initial: 2,
+    }, { onCancel })
     await execa(agent, ['install'], { stdio: 'inherit', cwd: root })
-    const devArgs = argPort ? ['run', 'dev', '--port', argPort] : ['run', 'dev']
+    const devArgs = ['run', 'dev']
+    if (argv.port)
+      devArgs.push(...(agent === 'npm' ? ['--'] : []), '--port', argv.port)
     await execa(agent, devArgs, { stdio: 'inherit', cwd: root })
   }
   else {
-    console.log(colors.dim('\n  start it later by:\n'))
     if (root !== cwd)
-      console.log(`  ${colors.green('cd')} ${colors.blue(related)}`)
-
-    switch (pkgManager) {
-      case 'yarn':
-        console.log(`  ${colors.green('yarn')}`)
-        console.log(`  ${colors.green('yarn')} dev`)
-        break
-      default:
-        console.log(`  ${colors.green(pkgManager)} install`)
-        console.log(`  ${colors.green(pkgManager)} run dev`)
-        break
-    }
-    console.log()
-    console.log(`  ${colors.cyan('✨')}`)
+      consola.log(`  cd ${JSON.stringify(path.relative(cwd, root))}`)
+    consola.log(`  ${pkgManager}${pkgManager === 'yarn' ? '' : ' install'}`)
+    consola.log(`  ${pkgManager} run dev\n`)
   }
 }

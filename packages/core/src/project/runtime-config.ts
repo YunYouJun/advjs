@@ -1,5 +1,5 @@
-import type { AdvCharacter, AdvGameConfig, AdvProjectCompileResult, AdvProjectFileMap, JsonObject } from '@advjs/types'
-import { projectGlossarySource } from '@advjs/parser'
+import type { AdvAst, AdvCharacter, AdvGameConfig, AdvProjectCompileResult, AdvProjectFileMap, JsonObject } from '@advjs/types'
+import { projectGlossarySource, readGlossaryContent } from '@advjs/parser'
 
 /** Player identity deliberately excludes author notes, AI prompts and private attributes. */
 export function toPlayerCharacter(character: AdvCharacter): AdvCharacter {
@@ -42,14 +42,14 @@ function dataUrl(content: string) {
 /** Reuse the existing Markdown chapter transport, never ship author material. */
 function playerChapterSources(compilation: AdvProjectCompileResult, files: AdvProjectFileMap, chapterId: string, sources: string[]) {
   const contents = sources.map(source => files[source] ?? '')
-  const references = new Map<string, string>()
+  const references = new Map<string, AdvAst.GlossaryDefinition>()
   const chapter = compilation.project.program?.chapters[chapterId]
   for (const node of Object.values(chapter?.nodes ?? {})) {
     if (!Array.isArray(node.data?.glossary))
       continue
     for (const item of node.data.glossary) {
       if (isRecord(item) && typeof item.identifier === 'string' && typeof item.definition === 'string')
-        references.set(item.identifier, item.definition)
+        references.set(item.identifier, { text: item.definition, content: readGlossaryContent(item.definitionContent) })
     }
   }
   const stripped = projectGlossarySource(contents.join('\n\n'), new Map())

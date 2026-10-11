@@ -60,7 +60,7 @@ function glossaryReferences(children: Array<AdvAst.PhrasingContent | AdvAst.Dial
         diagnostics.push({ code: 'ADV_RUNTIME_MISSING_GLOSSARY_DEFINITION', severity: 'error', message: `Missing glossary definition: ${child.identifier}`, source: child.position ? { file: source?.file, line: child.position.start.line, column: child.position.start.column } : source })
       }
       else {
-        references.push({ identifier: child.identifier, label: child.value, definition: child.definition, start: offset, end: offset + child.value.length })
+        references.push({ identifier: child.identifier, label: child.value, definition: child.definition, ...(child.definitionContent ? { definitionContent: json(child.definitionContent) } : {}), start: offset, end: offset + child.value.length })
       }
     }
     offset += phrasingText([child]).length

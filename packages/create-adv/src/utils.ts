@@ -1,18 +1,18 @@
 import fs from 'node:fs'
-import path from 'node:path'
+import consola from 'consola'
 import { colors } from 'consola/utils'
+import path from 'pathe'
 
-const trailingSlashPattern = /\/+$/g
 const packageNamePattern = /^(?:@[a-z\d\-*~][a-z\d\-*._~]*\/)?[a-z\d\-~][a-z\d\-._~]*$/
 const whitespacePattern = /\s+/g
 const leadingSpecialPattern = /^[._]/
 const invalidCharsPattern = /[^a-z\d\-~]+/g
 
 /**
- * remove trailing slash
+ * Trim user input; path.resolve handles platform-specific separators.
  */
 export function formatTargetDir(targetDir: string | undefined) {
-  return targetDir?.trim().replace(trailingSlashPattern, '')
+  return targetDir?.trim()
 }
 
 export function isEmpty(path: string) {
@@ -39,8 +39,7 @@ export function copyDir(srcDir: string, destDir: string) {
 }
 
 export function emptyDir(dir: string) {
-  // eslint-disable-next-line no-console
-  console.log(`\n  ${colors.red(`Removing`)} ${colors.dim(dir)}`)
+  consola.log(`\n  ${colors.red(`Removing`)} ${colors.dim(dir)}`)
   if (!fs.existsSync(dir))
     return
 

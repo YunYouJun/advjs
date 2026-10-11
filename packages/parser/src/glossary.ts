@@ -1,8 +1,10 @@
 import type { AdvAst } from '@advjs/types'
 import type { Content, FootnoteDefinition, Root } from 'mdast'
+import { remark } from 'remark'
+import { readGlossaryContent } from './glossary-content'
 import { mdParseSync } from './markdown'
 
-/** Deliberately project text only: never HTML, URLs, or author material tables. */
+/** Legacy safe text fallback: never HTML, link destinations or author notes. */
 function plainText(node: Content): string {
   if (node.type === 'html')
     return ''
@@ -15,13 +17,70 @@ function plainText(node: Content): string {
   return ''
 }
 
+/** Copy semantic Markdown nodes, deliberately discarding URLs, HTML and notes. */
+function glossaryContentAst(definition: FootnoteDefinition): AdvAst.GlossaryContent | undefined {
+  let remaining = 1024
+  let exceeded = false
+  const enter = (depth: number) => {
+    if (--remaining < 0 || depth > 12) {
+      exceeded = true
+      return false
+    }
+    return true
+  }
+  const inline = (node: Content, depth: number): AdvAst.GlossaryInline[] => {
+    if (!enter(depth) || node.type === 'html' || node.type === 'footnoteDefinition' || node.type === 'definition')
+      return []
+    if (node.type === 'text' || node.type === 'inlineCode')
+      return [{ type: node.type, value: node.value }]
+    if (node.type === 'image' || node.type === 'imageReference')
+      return node.alt ? [{ type: 'text', value: node.alt }] : []
+    if (node.type === 'break')
+      return [{ type: 'text', value: '\n' }]
+    if ('children' in node) {
+      const children = node.children.flatMap(child => inline(child as Content, depth + 1))
+      if (!children.length)
+        return []
+      return node.type === 'strong' || node.type === 'emphasis'
+        ? [{ type: node.type, children }]
+        : children
+    }
+    return []
+  }
+  const block = (node: Content, depth: number): AdvAst.GlossaryBlock[] => {
+    if (!enter(depth) || node.type === 'html' || node.type === 'footnoteDefinition' || node.type === 'definition')
+      return []
+    if (node.type === 'list') {
+      const children = node.children.map(item => ({ type: 'listItem' as const, children: item.children.flatMap(child => block(child, depth + 1)) })).filter(item => item.children.length)
+      return children.length ? [{ type: 'list', ordered: Boolean(node.ordered), ...(node.ordered && node.start !== null && node.start !== undefined ? { start: node.start } : {}), children }] : []
+    }
+    if (node.type === 'paragraph' || node.type === 'heading') {
+      const children = node.children.flatMap(child => inline(child, depth + 1))
+      return children.length ? [{ type: 'paragraph', children }] : []
+    }
+    if ('children' in node)
+      return node.children.flatMap(child => block(child as Content, depth + 1))
+    // Unsupported block constructs retain inert text, rather than renderer code.
+    if ('value' in node)
+      return [{ type: 'paragraph', children: [{ type: 'text', value: String(node.value) }] }]
+    return []
+  }
+  const content = definition.children.flatMap(node => block(node, 0))
+  if (exceeded)
+    return undefined
+  // Leave ordinary plain-text definitions byte-compatible with old programs.
+  if (content.length === 1 && content[0].type === 'paragraph' && content[0].children.every(node => node.type === 'text'))
+    return undefined
+  return readGlossaryContent(content)
+}
+
 export function prepareGlossary(content: string, glossaryContent: string): {
-  definitions: Map<string, string>
+  definitions: Map<string, AdvAst.GlossaryDefinition>
   diagnostics: NonNullable<AdvAst.Root['glossaryDiagnostics']>
   ast: Root
 } {
   const ast = mdParseSync(content)
-  const definitions = new Map<string, string>()
+  const definitions = new Map<string, AdvAst.GlossaryDefinition>()
   const diagnostics: NonNullable<AdvAst.Root['glossaryDiagnostics']> = []
   for (const [document, isShared] of [[ast, false], [mdParseSync(glossaryContent), true]] as const) {
     for (const node of document.children) {
@@ -37,7 +96,13 @@ export function prepareGlossary(content: string, glossaryContent: string): {
         })
       }
       else {
-        definitions.set(definition.identifier, plainText(definition).trim())
+        const content = glossaryContentAst(definition)
+        // Rich fallback must derive from the same public tree as transport, so
+        // discarded HTML/URLs and block layout cannot alter export hashes.
+        const safeText = (node: AdvAst.GlossaryBlock | AdvAst.GlossaryInline | { type: 'listItem', children: AdvAst.GlossaryBlock[] }): string =>
+          'value' in node ? node.value : node.children.map(safeText).join(node.type === 'paragraph' || node.type === 'strong' || node.type === 'emphasis' ? '' : '\n\n')
+        const text = content ? content.map(safeText).join('\n\n').trim() : plainText(definition).trim()
+        definitions.set(definition.identifier, { text, ...(content ? { content } : {}) })
       }
     }
   }
@@ -98,8 +163,8 @@ export function prepareGlossary(content: string, glossaryContent: string): {
   return { definitions, diagnostics, ast }
 }
 
-/** Preserve author source separately; only referenced plain text crosses to a player. */
-export function projectGlossarySource(content: string, references: ReadonlyMap<string, string>): string {
+/** Preserve author source separately; only referenced safe content crosses to a player. */
+export function projectGlossarySource(content: string, references: ReadonlyMap<string, string | AdvAst.GlossaryDefinition>): string {
   const ast = mdParseSync(content)
   const ranges: Array<{ start: number, end: number }> = []
   const collect = (node: Content | Root) => {
@@ -129,7 +194,16 @@ export function projectGlossarySource(content: string, references: ReadonlyMap<s
       + projected.slice(end)
   }
   const escape = (text: string) => text.replace(/([\\`*{}[\]()#+.!_<>&~-])/gu, '\\$1')
-  const definitions = [...references].map(([id, text]) => `[^${id}]: ${escape(text).replaceAll('\n', '\n    ')}`).join('\n\n')
+  const definitions = [...references].map(([id, definition]) => {
+    const text = typeof definition === 'string' ? definition : definition.text
+    const content = typeof definition === 'string' ? undefined : readGlossaryContent(definition.content)
+    // remark escapes literal Markdown punctuation and code delimiters. Only
+    // allowlisted AST nodes enter it; raw HTML/URLs/author source never do.
+    const markdown = content
+      ? remark().stringify({ type: 'root', children: content } as Root).trimEnd()
+      : escape(text)
+    return `[^${id}]: ${markdown.replaceAll('\n', '\n    ')}`
+  }).join('\n\n')
   if (!definitions)
     return projected
   // Keep YAML frontmatter at document start and definitions outside any story

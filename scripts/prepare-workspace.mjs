@@ -22,8 +22,9 @@ export const WORKSPACE_PREPARATION_PROFILES = Object.freeze({
     Object.freeze(['pnpm', Object.freeze(['unocss:build'])]),
   ]),
   studio: Object.freeze([
-    Object.freeze(['pnpm', Object.freeze(['build'])]),
-    Object.freeze(['pnpm', Object.freeze(['build:plugins'])]),
+    // Build Studio's dependency graph once, in pnpm's topological order.
+    // The ^ selector excludes Studio itself; studio:build runs it afterwards.
+    Object.freeze(['pnpm', Object.freeze(['-r', '--filter', '@advjs/studio^...', 'run', 'build'])]),
   ]),
   unit: Object.freeze([
     Object.freeze(['pnpm', Object.freeze(['build'])]),

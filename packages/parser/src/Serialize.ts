@@ -21,7 +21,7 @@ export class AdvScriptSyntaxError extends Error {
  * 序列化类
  */
 export class Serialize {
-  constructor(private readonly glossary: ReadonlyMap<string, string> = new Map()) {}
+  constructor(private readonly glossary: ReadonlyMap<string, AdvAst.GlossaryDefinition> = new Map()) {}
 
   private inline(child: Mdast.PhrasingContent): AdvAst.PhrasingContent[] {
     if (child.type === 'footnoteReference') {
@@ -29,7 +29,8 @@ export class Serialize {
         type: 'glossaryReference',
         identifier: child.identifier,
         value: `[${child.label ?? child.identifier}]`,
-        definition: this.glossary.get(child.identifier),
+        definition: this.glossary.get(child.identifier)?.text,
+        definitionContent: this.glossary.get(child.identifier)?.content,
         position: child.position,
       }]
     }

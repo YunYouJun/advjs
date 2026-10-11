@@ -1948,6 +1948,9 @@ importers:
       minimist:
         specifier: catalog:cli
         version: 1.2.8
+      pathe:
+        specifier: catalog:utils
+        version: 2.0.3
       prompts:
         specifier: catalog:cli
         version: 2.4.2

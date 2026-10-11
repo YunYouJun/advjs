@@ -180,6 +180,8 @@ export default async function createViteConfig({ command }: { command: 'serve' |
     ],
     build: {
       chunkSizeWarningLimit: 5000,
+      // Pages uploads the original files; gzip estimates only add build work.
+      reportCompressedSize: false,
       rollupOptions: {
         output: {
           manualChunks(id: string) {

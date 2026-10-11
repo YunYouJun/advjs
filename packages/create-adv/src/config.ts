@@ -25,10 +25,9 @@ export const TEMPLATES = [
     color: colors.green,
     customInit: async (options: {
       themeName?: string
+      targetDir: string
     }) => {
-      return initTheme(options).catch((e) => {
-        console.error(e)
-      })
+      return initTheme(options)
     },
   },
   {

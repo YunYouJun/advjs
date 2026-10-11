@@ -87,4 +87,12 @@ condition: greeted
   id: revisit-syntax
   ```
 
-[^advjs]: 使用 Markdown 编写文字冒险故事的开源引擎。
+[^advjs]: 使用 **Markdown** 编写文字冒险故事的开源引擎。
+
+    _Stories in Markdown._ 使用 `.adv.md` 保存对白。
+
+    - **对白**：用文字表达角色的故事
+    - **术语**：解释世界观，不打断剧情
+
+    1. 阅读说明，然后关闭窗口
+    2. 回到原来的对白，继续冒险

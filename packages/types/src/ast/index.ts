@@ -22,12 +22,24 @@ export interface Text extends Node {
   value: string
 }
 
-/** A player-visible, plain-text footnote reference. */
+/** The inert Markdown subset allowed in player glossary explanations. */
+export type GlossaryInline = { type: 'text' | 'inlineCode', value: string }
+  | { type: 'emphasis' | 'strong', children: GlossaryInline[] }
+export type GlossaryBlock = { type: 'paragraph', children: GlossaryInline[] }
+  | { type: 'list', ordered: boolean, start?: number, children: Array<{ type: 'listItem', children: GlossaryBlock[] }> }
+export type GlossaryContent = GlossaryBlock[]
+export interface GlossaryDefinition {
+  text: string
+  content?: GlossaryContent
+}
+
+/** A player-visible footnote reference with a legacy plain-text fallback. */
 export interface GlossaryReference extends Node {
   type: 'glossaryReference'
   identifier: string
   value: string
   definition?: string
+  definitionContent?: GlossaryContent
 }
 
 export interface Background extends Node {

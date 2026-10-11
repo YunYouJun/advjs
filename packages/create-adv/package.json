@@ -14,18 +14,28 @@
     "type": "git",
     "url": "git+https://github.com/YunYouJun/advjs.git"
   },
-  "main": "index.js",
+  "main": "dist/index.mjs",
   "bin": {
     "create-adv": "bin/index.mjs"
   },
   "files": [
-    "index.js",
-    "template-*"
+    "bin",
+    "dist",
+    "templates"
   ],
+  "engines": {
+    "node": ">=24.15.0"
+  },
+  "scripts": {
+    "build": "unbuild",
+    "dev": "unbuild --stub",
+    "prepack": "pnpm run build"
+  },
   "dependencies": {
     "consola": "catalog:cli",
     "execa": "catalog:cli",
     "minimist": "catalog:cli",
+    "pathe": "catalog:utils",
     "prompts": "catalog:cli"
   },
   "devDependencies": {
