@@ -71,7 +71,7 @@ export async function ViteAdvPlugin(
     }),
 
     // https://github.com/intlify/bundle-tools/tree/main/packages/unplugin-vue-i18n
-    VueI18n({
+    pluginOptions.i18n !== false && VueI18n({
       runtimeOnly: true,
       compositionOnly: true,
       include: options.roots.map(root => `${root}/locales/**`),

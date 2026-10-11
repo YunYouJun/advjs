@@ -41,6 +41,7 @@ export async function prepareProjectGame(loaded: LoadedProject) {
   game.characters = await Promise.all(game.characters.map(async character => ({
     ...character,
     ...(character.avatar ? { avatar: await localSource(character.avatar) } : {}),
+    avatars: character.avatars ? Object.fromEntries(await Promise.all(Object.entries(character.avatars).map(async ([status, portrait]) => [status, { ...portrait, src: await localSource(portrait.src) }]))) : undefined,
     tachies: character.tachies ? Object.fromEntries(await Promise.all(Object.entries(character.tachies).map(async ([name, tachie]) => [name, { ...tachie, src: await localSource(tachie.src) }]))) : undefined,
   })))
   game.scenes = await Promise.all(game.scenes.map(async (scene) => {

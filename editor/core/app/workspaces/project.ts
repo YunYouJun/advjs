@@ -17,6 +17,8 @@ export interface ProjectWorkspaceChange {
 
 export interface ProjectWorkspaceSnapshot {
   kind: ProjectWorkspaceKind
+  /** Stable noncredential project identity, never a bridge origin or token. */
+  recoveryId?: string
   name: string
   project: EditorProjectModel
   root: BrowserProjectDirectory

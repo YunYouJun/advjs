@@ -8,6 +8,7 @@ import AdvContainer from '../../../packages/client/components/internals/AdvConta
 
 const app = { isHorizontal: true, rotation: 0, transition: false, showUi: true, menus: {} }
 const adv = {
+  $auto: { paused: shallowRef(false), stop: vi.fn() },
   config: shallowRef({ viewportFit: 'responsive' }),
   themeConfig: shallowRef<ThemeConfig>({}),
   store: reactive({ current: undefined, state: { status: 'idle', stage: {} } }),

@@ -12,18 +12,12 @@ const documents = [
 
 export function contextSections(project: EditorProjectSnapshot | null) {
   const files = project?.files ?? {}
-  const prefix = Object.keys(files).some(path => path.startsWith('adv/')) ? 'adv/' : ''
+  const prefix = project?.root ? `${project.root}/` : ''
   return documents.map(document => ({ ...document, content: files[`${prefix}${document.path}`] ?? '' })).filter(document => document.content.trim())
 }
 
 export function contextStats(project: EditorProjectSnapshot | null) {
-  const files = Object.keys(project?.files ?? {})
-  const prefix = files.some(path => path.startsWith('adv/')) ? 'adv/' : ''
-  function count(directory: string, extension: string) {
-    const folder = `${prefix}${directory}/`
-    return files.filter(path => path.startsWith(folder) && !path.slice(folder.length).includes('/') && path.endsWith(extension) && !path.endsWith('/README.md')).length
-  }
-  return { chapters: count('chapters', '.adv.md'), characters: count('characters', '.character.md'), scenes: count('scenes', '.md') }
+  return project?.counts ?? { chapters: 0, characters: 0, scenes: 0 }
 }
 
 export function mergedContext(project: EditorProjectSnapshot | null) {

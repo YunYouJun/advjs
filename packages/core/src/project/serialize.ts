@@ -23,6 +23,7 @@ const CHARACTER_FIELDS = new Set([
   'aliases',
   'attributes',
   'avatar',
+  'avatars',
   'cv',
   'faction',
   'id',
@@ -32,6 +33,7 @@ const CHARACTER_FIELDS = new Set([
   'relationships',
   'tachies',
   'tags',
+  'visual',
 ])
 const SCENE_FIELDS = new Set(['alias', 'assetId', 'description', 'id', 'imagePrompt', 'name', 'src', 'tags', 'type'])
 

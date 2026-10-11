@@ -50,7 +50,12 @@ beforeEach(async () => {
   vi.stubGlobal('acceptHMRUpdate', acceptHMRUpdate)
   vi.stubGlobal('useRuntimeConfig', () => ({ public: { editorCapabilities: { mode: 'local' } } }))
   vi.stubGlobal('useConsoleStore', () => ({ success: vi.fn(), error: vi.fn(), warn: vi.fn() }))
-  vi.stubGlobal('useFileStore', () => ({}))
+  vi.stubGlobal('useFileStore', () => ({
+    recoveryDocument: () => ({ path: '', base: '', content: '', dirty: false }),
+    openVersion: 0,
+    isDirty: false,
+    loading: false,
+  }))
   vi.stubGlobal('useOnlineStore', () => ({}))
   vi.stubGlobal('useGameStore', () => ({ loadGameFromConfig: (config: AdvGameConfig) => game.loadGameFromConfig(config) }))
   const { useProjectStore } = await import('../../../editor/core/app/stores/useProjectStore')

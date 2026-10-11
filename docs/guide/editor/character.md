@@ -211,3 +211,32 @@ FEISHU_BITABLE_APP_TOKEN=your_bitable_token
 本地项目声明 `authoring.voice.library` 后，人物详情按供应商筛选已登记的音色版本，提供原生短句试听和显式选用。供应商列表来自该人物音色库的 `implementations`，切换列表只改变待审音色，不调用合成服务。播放读取已校验的本地原生 audio 缓存；替换已有选择要勾选确认，库的外部更改会拒绝旧版本保存。
 
 音频需要手动播放。切换候选、供应商、音色版本、人物或项目，以及关闭面板，都会停止试听并释放音频。损坏的音频显示播放失败提示；缺失缓存需要先通过原生资源准备流程处理。打开时焦点落在关闭按钮；`Escape` 取消当前未保存选择并关闭面板，焦点回到入口。配置、CLI 与供应商边界见[作者语音模块](../authoring-voice)。
+
+## 视觉设定与对白头像
+
+角色源文件可以添加可选的 `visual` 和 `avatars` 字段；旧角色卡无需迁移：
+
+```yaml
+avatar: art/hero/default.webp
+avatars:
+  thoughtful:
+    src: art/hero/thoughtful.webp
+    label: 凝神思索
+visual:
+  version: design-v1
+  references:
+    - path: art/hero/reference.webp
+      description: 正面与侧面
+  fixedTraits:
+    - 棕色短发
+  allowedChanges:
+    - 姿势和光照
+```
+
+`visual.references` 使用相对于项目根目录的路径，不接受 URL、父目录跳转或编码路径。视觉设定是创作元数据；导出 AI 视觉说明时会列出参考路径，仍需实际打开并附上图片。角色表单保存会保留这些字段，新增或编辑结构化视觉设定可使用源文件编辑器。
+
+剧本 `@Hero(thoughtful)` 选择对应的头像，普通 `@Hero` 使用默认头像。未配置的神态回退到 `avatar`（或 `avatars.default`）；图片加载失败会尝试默认头像，全部失败后隐藏头像并保留姓名。神态不会从上一句继承。
+
+本地预览通过项目资源桥接读取头像；缺失的可选头像不会阻止预览。静态导出会将本地头像和神态图打包为带内容哈希的资源。标准 Markdown 项目与游戏配置数据的玩家投影保留角色姓名、别名、头像、立绘与演员/声优署名，排除创作背景、结构化私密属性、视觉说明和生成提示词；原始项目文件不受影响。
+
+旧版直接导入的 `.character.ts` / `.scene.ts` 模块仍由 Vite 编译，尚不具备相同的创作元数据过滤边界。不要在这些直接发布的模块或其导入依赖中存放私密设定；需要隔离创作设定时使用标准 Markdown 项目。该限制也适用于开发服务器，不能依赖打包压缩删除私密字段。

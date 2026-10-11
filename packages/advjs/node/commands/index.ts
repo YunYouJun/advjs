@@ -1,4 +1,5 @@
 export * from './assets'
+export * from './assets-download'
 export * from './build'
 export * from './check'
 export * from './context'

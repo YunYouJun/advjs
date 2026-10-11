@@ -1,6 +1,6 @@
 import type { AdvCharacter, JsonValue } from '@advjs/types'
 import { applyProjectPatches } from '@advjs/core'
-import { parseCharacterMd, stringifyCharacterMd } from '@advjs/parser'
+import { exportCharacterForAI, parseCharacterMd, stringifyCharacterMd } from '@advjs/parser'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { updateCharacterSource } from '../utils/character-source'
 import { useProjectDrafts } from './useProjectDrafts'
@@ -266,8 +266,10 @@ export const useCharacterStore = defineStore('editor:character', () => {
    * 导出角色为 AI 友好格式
    */
   async function exportForAI(id: string): Promise<string | null> {
-    if (projectBound.value)
-      return sourceById.get(id)?.content ?? null
+    if (projectBound.value || dirHandle.value) {
+      const character = characters.value.find(item => item.id === id)
+      return character ? exportCharacterForAI(character) : null
+    }
     if (!charactersDir.value || !id)
       return null
 
@@ -413,6 +415,9 @@ export const useCharacterStore = defineStore('editor:character', () => {
         id: data.id,
         name: data.name,
         avatar: data.avatar,
+        avatars: data.avatars,
+        visual: data.visual,
+        imagePrompt: data.imagePrompt,
         actor: data.actor,
         cv: data.cv,
         aliases: data.aliases,
@@ -457,6 +462,8 @@ export const useCharacterStore = defineStore('editor:character', () => {
         'id',
         'name',
         'avatar',
+        'avatars',
+        'visual',
         'imagePrompt',
         'actor',
         'cv',

@@ -17,6 +17,26 @@ export interface AdvCharacterRelationship {
   description?: string
 }
 
+/** An authoring reference image, resolved from the project root. */
+export interface AdvCharacterVisualReference {
+  /** Portable project-relative path, without URLs or parent traversal. */
+  path: string
+  /** Identifies the subject or view, for example "left column, front and profile". */
+  description?: string
+}
+
+/** Stable visual identity shared by character cards, editors and image workflows. */
+export interface AdvCharacterVisual {
+  /** Design revision, independent of the character id and schema version. */
+  version: string
+  /** Source images to inspect and attach when generating this character. */
+  references?: AdvCharacterVisualReference[]
+  /** Appearance constraints that every shot must preserve. */
+  fixedTraits?: string[]
+  /** Changes permitted without creating a new design revision. */
+  allowedChanges?: string[]
+}
+
 /**
  * 属性模板 ID
  * - `universal` 通用基础字段
@@ -184,6 +204,13 @@ export interface AdvCharacterAttributes {
   ai?: AdvCharacterAttributesAi
 }
 
+/** A dialogue portrait for one authored character state. */
+export interface AdvCharacterAvatar {
+  src: string
+  /** Human-readable expression name for authoring tools. */
+  label?: string
+}
+
 /**
  * .character.md frontmatter 的类型定义
  * 每个字段与 YAML frontmatter 键一一对应
@@ -201,6 +228,8 @@ export interface AdvCharacterFrontmatter {
    * @zh 头像
    */
   avatar?: string
+  /** Portrait variants keyed by the dialogue's character status. */
+  avatars?: Record<string, AdvCharacterAvatar>
   /**
    * Image Prompt
    * @zh 立绘提示词
@@ -208,6 +237,8 @@ export interface AdvCharacterFrontmatter {
    * @example "anime portrait of a short-haired high-school girl, white scarf, gentle smile, watercolor"
    */
   imagePrompt?: string
+  /** Authoring identity references; separate from runtime avatar and tachies. */
+  visual?: AdvCharacterVisual
   /**
    * @zh 演员
    */

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DisplayMode, DisplaySpeed } from '@advjs/client'
-import { onMounted, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const props = withDefaults(defineProps<{
   speed?: DisplaySpeed
@@ -38,41 +38,57 @@ const speedMap = {
 }
 
 const len = ref(0)
-const intervalId = ref()
+let intervalId: ReturnType<typeof setInterval> | undefined
+let completed = false
 
-function playWordsAnimation() {
-  intervalId.value = setInterval(() => {
-    if (len.value === props.words.length) {
-      clearInterval(intervalId.value)
-      printed.value = true
-      emit('end')
-    }
-
-    len.value++
-  }, props.typeInterval || speedMap[props.speed])
+function clearTimer() {
+  if (intervalId !== undefined) {
+    clearInterval(intervalId)
+    intervalId = undefined
+  }
 }
 
-onMounted(() => {
-  playWordsAnimation()
-})
+function finish() {
+  clearTimer()
+  len.value = props.words.length
+  if (completed)
+    return
+  completed = true
+  printed.value = true
+  emit('end')
+}
+
+function playWordsAnimation() {
+  clearTimer()
+  completed = false
+  len.value = 0
+  if (printed.value || !props.animation || !props.words.length) {
+    finish()
+    return
+  }
+  intervalId = setInterval(() => {
+    len.value++
+    if (len.value >= props.words.length)
+      finish()
+  }, props.typeInterval ?? speedMap[props.speed])
+}
+
+onMounted(playWordsAnimation)
+onBeforeUnmount(clearTimer)
 
 watch(() => props.words, () => {
-  if (intervalId.value)
-    clearInterval(intervalId.value)
-
   printed.value = false
-  len.value = 0
   playWordsAnimation()
 })
 
-/**
- * 当 printed 被修改为 true 时
- */
-watch(() => printed.value, (newVal) => {
-  if (newVal && intervalId.value) {
-    clearInterval(intervalId.value)
-    len.value = props.words.length
-  }
+// Revealing the rest of a line is a completion too, exactly once per run.
+watch(printed, (value) => {
+  if (value)
+    finish()
+})
+watch(() => props.animation, (value) => {
+  if (!value)
+    finish()
 })
 
 function wordClasses(i: number) {
@@ -81,7 +97,7 @@ function wordClasses(i: number) {
   if (!props.animation)
     return []
 
-  if (i > len.value) {
+  if (i >= len.value) {
     classes.push('invisible')
   }
   else {

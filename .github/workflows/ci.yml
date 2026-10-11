@@ -202,12 +202,19 @@ jobs:
         timeout-minutes: 10
         run: pnpm exec playwright install --with-deps --only-shell chromium
       - name: Run Editor lifecycle and security tests
-        run: pnpm exec playwright test tests/e2e/editor-local.spec.ts tests/e2e/editor-security.spec.ts --project=chromium
+        run: pnpm exec playwright test tests/e2e/editor-local.spec.ts tests/e2e/editor-security.spec.ts tests/e2e/editor-character-migration.spec.ts --project=chromium
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: editor-playwright-report
           path: playwright-report/
+          retention-days: 30
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: editor-migration-evidence
+          path: test-results/editor-character-migration-*/
+          if-no-files-found: warn
           retention-days: 30
 
   agent-install-smoke:

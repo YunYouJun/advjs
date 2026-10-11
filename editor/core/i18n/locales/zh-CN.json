@@ -165,7 +165,8 @@
       "actor": "演员",
       "aliases": "别名",
       "tachies": "立绘",
-      "relationships": "关系"
+      "relationships": "关系",
+      "avatars": "神态头像"
     },
     "confirmDelete": "确定要删除角色「{name}」吗？此操作不可撤销。",
     "exportAI": "导出 AI Markdown",
@@ -213,6 +214,18 @@
       "hint": "请手动播放比较。选用记录此音色版本的试听样本；生成使用作者 CLI，剧情绑定另行审核。",
       "provider": "供应商",
       "playbackError": "此短句无法播放，请重新载入或选择其他候选。"
+    },
+    "visual": {
+      "title": "视觉设定",
+      "copy": "复制视觉约束",
+      "copied": "视觉约束已复制",
+      "loading": "正在加载参考图…",
+      "fixed": "固定特征",
+      "allowed": "允许变化",
+      "empty": "尚无视觉设定。可在人物卡源码中添加 visual 版本与参考图。",
+      "prompt": "图像提示词",
+      "source": "编辑源码",
+      "attachmentHint": "参考图路径相对于项目根目录。生成前需打开并实际附上图像；复制视觉约束不会自动附图。"
     }
   },
   "context": {

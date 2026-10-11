@@ -18,6 +18,8 @@ export interface EditorProjectSnapshot {
   readonly sessionId: string
   readonly revision: number
   readonly name: string
+  /** Normalized project-relative authoring root; empty for the project directory. */
+  readonly root: string
   readonly files: Readonly<Record<string, string>>
   readonly diagnostics: readonly EditorDiagnostic[]
   readonly counts: Readonly<{ chapters: number, characters: number, scenes: number }>

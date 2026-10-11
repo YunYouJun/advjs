@@ -230,6 +230,8 @@ export const useFileStore = defineStore('file', () => {
   onScopeDispose(releasePreview)
 
   async function saveOpenedFile(content = monacoStore.fileContent) {
+    if (externalConflict.value)
+      throw new Error('Resolve the external file conflict before saving.')
     const fileHandle = openedFileHandle.value
     if (!fileHandle)
       throw new Error('No local file is open')
@@ -281,13 +283,54 @@ export const useFileStore = defineStore('file', () => {
   }
 
   async function keepLocalChange() {
-    if (externalConflict.value)
-      savedFileContent.value = externalConflict.value.content
-    await saveOpenedFile()
+    const source = useProjectStore().workspace
+    const version = openVersion.value
+    const conflict = externalConflict.value
+    if (conflict) {
+      savedFileContent.value = conflict.content
+      externalConflict.value = undefined
+    }
+    try {
+      await saveOpenedFile()
+    }
+    catch (error) {
+      if (conflict && useProjectStore().workspace === source && openVersion.value === version && openedFilePath.value === conflict.path)
+        externalConflict.value = conflict
+      throw error
+    }
+  }
+
+  /** Restore only after the caller has verified the active project and selection. */
+  function restoreDraft(draft: { path: string, base: string | null, content: string }, missing = false) {
+    assertCanSwitchFile()
+    if (missing) {
+      resetOpenedFile()
+      openedFileHandle.value = { name: draft.path.split('/').at(-1)! } as FileSystemFileHandle
+      openedFilePath.value = draft.path
+      fileName.value = openedFileHandle.value.name
+      fileKind.value = 'text'
+      savedFileContent.value = null
+      monacoStore.language = 'markdown'
+      app.activeInspector = 'file'
+      openVersion.value++
+    }
+    if (openedFilePath.value !== draft.path || fileKind.value !== 'text')
+      return
+    const disk = savedFileContent.value
+    monacoStore.fileContent = draft.content
+    savedFileContent.value = draft.base
+    rawConfigFileContent.value = draft.base ?? ''
+    externalConflict.value = disk !== draft.base ? { path: draft.path, content: disk } : undefined
+  }
+
+  function recoveryDocument() {
+    return { path: openedFilePath.value, base: savedFileContent.value, content: monacoStore.fileContent, dirty: isDirty.value }
   }
 
   return {
     fileName,
+    restoreDraft,
+    recoveryDocument,
     openedFilePath,
     isDirty,
     externalConflict,

@@ -10,6 +10,7 @@ export function projectSnapshot(model: EditorProjectModel, name: string, session
     sessionId,
     revision,
     name,
+    root: project.root.replace(/\\/gu, '/').replace(/^\.\//u, '').replace(/^\/+|\/+$/gu, '').replace(/^\.$/u, ''),
     files: Object.freeze({ ...model.files }),
     diagnostics: Object.freeze(diagnostics.map(({ code, severity, message, path, line }) => Object.freeze({ code, severity, message, path, line }))),
     counts: Object.freeze({ chapters: project.chapters.length, characters: project.characters.length, scenes: project.scenes.length }),

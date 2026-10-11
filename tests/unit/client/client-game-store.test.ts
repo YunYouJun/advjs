@@ -52,4 +52,18 @@ describe('client game record store', () => {
       'advjs:records:pominis%3Abeta:1',
     ])
   })
+
+  it('retains a queued restore only within the same game namespace', () => {
+    const store = useGameStore()
+    store.setRecordNamespace('alpha')
+    const pending = snapshot('alpha-game')
+    store.pendingRestore = pending
+    store.setRecordNamespace('alpha')
+    expect(store.pendingRestore).toBe(pending)
+    store.setRecordNamespace('beta')
+    expect(store.pendingRestore).toBeUndefined()
+    store.pendingRestore = snapshot('beta-game')
+    store.setRecordNamespace()
+    expect(store.pendingRestore).toBeUndefined()
+  })
 })

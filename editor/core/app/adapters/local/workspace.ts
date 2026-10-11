@@ -18,6 +18,7 @@ export function createLocalProjectWorkspace(adapter: LocalBridgeAdapter): Projec
     )
     last = {
       kind: 'local',
+      recoveryId: `local:${loaded.root}`,
       name,
       project,
       root: adapter.createDirectoryHandle(loaded.files, name, loaded.filePaths),

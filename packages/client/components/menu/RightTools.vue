@@ -2,7 +2,8 @@
 import type { MenuButtonItem } from '../../types/menu'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
+import { useAdvContext } from '../../composables/useAdvContext'
 import { useAppStore, useSettingsStore } from '../../stores'
 
 const { t } = useI18n()
@@ -10,11 +11,13 @@ const { t } = useI18n()
 const app = useAppStore()
 const settings = useSettingsStore()
 const router = useRouter()
-const route = useRoute()
+const { $adv } = useAdvContext()
+const hasPage = (path: string) => router.getRoutes().some(route => route.path === path)
 
 const menuItems = computed<MenuButtonItem[]>(() => {
   const items
-    = route.path === '/game'
+    = $adv.store.current && $adv.store.state.status !== 'idle'
+      && $adv.store.program && $adv.store.program.id !== 'advjs:bootstrap'
       ? [
           {
             title: t('menu.save_game'),
@@ -34,27 +37,31 @@ const menuItems = computed<MenuButtonItem[]>(() => {
       app.menus.settings = false
       app.toggleShowLoadMenu()
     },
-  }, {
-    title: t('menu.back_home'),
-    icon: 'i-ri-home-4-line',
-    do: () => {
-      app.menus.settings = false
-      router.push('/start')
-    },
-  }, {
+  }, ...(hasPage('/start')
+    ? [{
+        title: t('menu.back_home'),
+        icon: 'i-ri-home-4-line',
+        do: () => {
+          app.menus.settings = false
+          router.push('/start')
+        },
+      }]
+    : []), {
     title: t('menu.reset_settings'),
     icon: 'i-ri-restart-line',
     do: () => {
       settings.resetSettings()
     },
-  }, {
-    title: t('menu.help'),
-    icon: 'i-ri-question-line',
-    do: () => {
-      app.menus.settings = false
-      router.push('/help')
-    },
-  }]
+  }, ...(hasPage('/help')
+    ? [{
+        title: t('menu.help'),
+        icon: 'i-ri-question-line',
+        do: () => {
+          app.menus.settings = false
+          router.push('/help')
+        },
+      }]
+    : [])]
 })
 </script>
 

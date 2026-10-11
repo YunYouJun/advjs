@@ -160,3 +160,20 @@ describe('local workspace reload session', () => {
     expect(readLocalEditorSession(`${session.origin}/`, { advjsLocalWorkspace: { origin: session.origin, token: 1 } })).toBeUndefined()
   })
 })
+
+it('cancels an old permission request without opening or remembering its project', async () => {
+  const handle = directory()
+  let finish!: (permission: PermissionState) => void
+  vi.mocked(handle.queryPermission).mockImplementation(() => new Promise((resolve) => {
+    finish = resolve
+  }))
+  const { recovery, open, storage } = fixture({ currentId: 'project-a', projects: [project(handle)] })
+  const restoring = recovery.restore()
+  await vi.waitFor(() => expect(finish).toBeDefined())
+  recovery.cancelPending()
+  finish('denied')
+  expect(await restoring).toBe(false)
+  expect(open).not.toHaveBeenCalled()
+  expect(storage.save).not.toHaveBeenCalled()
+  expect(recovery.status.value).toBe('idle')
+})

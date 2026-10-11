@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { AdvCharacter } from '@advjs/types'
 import { Toast } from '@advjs/gui'
-import { useProjectDrafts } from '~/stores/useProjectDrafts'
+import { useProjectDrafts } from '../../stores/useProjectDrafts'
 
 const props = defineProps<{
   character?: Partial<AdvCharacter>
@@ -55,36 +55,12 @@ watch(() => form.avatar, (val) => {
   }
 }, { immediate: true })
 
-// Draft functionality (create mode only)
-const draft = useLocalStorage<Partial<AdvCharacter> | null>('advjs-character-draft', null)
-const draftTagsInput = useLocalStorage('advjs-character-draft-tags', '')
-const draftAliasInput = useLocalStorage('advjs-character-draft-alias', '')
-
-const hasDraft = computed(() => props.mode === 'create' && draft.value !== null)
-
-function saveDraft() {
-  draft.value = { ...form }
-  draftTagsInput.value = tagsInput.value
-  draftAliasInput.value = aliasInput.value
-  Toast({ title: t('characters.draft.saved'), type: 'success' })
-}
-
-function loadDraft() {
-  if (draft.value) {
-    Object.assign(form, draft.value)
-    tagsInput.value = draftTagsInput.value || ''
-    aliasInput.value = draftAliasInput.value || ''
-    Toast({ title: t('characters.draft.loaded'), type: 'success' })
-  }
-}
-
-function clearDraft() {
-  draft.value = null
-  draftTagsInput.value = ''
-  draftAliasInput.value = ''
-}
-
+// Character drafts belong to a single project, including their original source.
 const drafts = useProjectDrafts()
+const owner = drafts.projectId
+const ownerWorkspace = useProjectStore().workspace
+const draftKey = props.mode === 'edit' ? `character:edit:${props.character?.id}` : 'character:create'
+const hasDraft = ref(Boolean(drafts.formDraft(draftKey)))
 const characterStore = useCharacterStore()
 const originalForm = ref(JSON.stringify(form))
 const originalTags = ref(tagsInput.value)
@@ -92,9 +68,69 @@ const originalAliases = ref(aliasInput.value)
 const expected = ref<string | null | undefined>(props.character?.id ? characterStore.characterSource(props.character.id) : undefined)
 const saving = ref(false)
 const saveError = ref('')
+let active = true
+let ownedDraftRevision: string | undefined
+function formRevision() {
+  return JSON.stringify({ form, tags: tagsInput.value, aliases: aliasInput.value })
+}
 const changed = computed(() => JSON.stringify(form) !== originalForm.value || tagsInput.value !== originalTags.value || aliasInput.value !== originalAliases.value)
-watch(changed, dirty => drafts.register(fieldId, { dirty, save: onSubmit }), { immediate: true })
-onBeforeUnmount(() => drafts.remove(fieldId))
+function saveDraft() {
+  if (!owner || drafts.projectId !== owner) {
+    saveError.value = 'Open a project before saving a recoverable character draft.'
+    return
+  }
+  ownedDraftRevision = formRevision()
+  drafts.saveFormDraft(draftKey, { base: expected.value ?? null, content: ownedDraftRevision }, owner)
+  hasDraft.value = true
+  if (!drafts.recoveryError)
+    Toast({ title: t('characters.draft.saved'), type: 'success' })
+}
+function loadDraft() {
+  const draft = drafts.formDraft(draftKey)
+  if (!draft || drafts.projectId !== owner)
+    return
+  try {
+    const value = JSON.parse(draft.content)
+    if (!value.form || typeof value.form !== 'object' || Array.isArray(value.form) || typeof value.tags !== 'string' || typeof value.aliases !== 'string')
+      return
+    Object.assign(form, value.form)
+    tagsInput.value = value.tags
+    aliasInput.value = value.aliases
+    expected.value = draft.base
+    saveError.value = props.mode === 'edit' && characterStore.characterSource(props.character?.id ?? '') !== draft.base
+      ? 'The source changed outside the editor. Reload the external version or explicitly keep this draft.'
+      : ''
+  }
+  catch {
+    saveError.value = 'This draft could not be read. The project source is unchanged.'
+  }
+}
+function clearDraft(expectedContent?: string) {
+  if (expectedContent === undefined)
+    drafts.saveFormDraft(draftKey, undefined, owner)
+  else
+    drafts.saveFormDraft(draftKey, undefined, owner, expectedContent)
+  hasDraft.value = Boolean(drafts.formDraft(draftKey))
+}
+
+watch(changed, (dirty) => {
+  if (useProjectStore().workspace === ownerWorkspace)
+    drafts.register(fieldId, { dirty, save: onSubmit })
+}, { immediate: true })
+watch([form, tagsInput, aliasInput], () => {
+  if (changed.value) {
+    ownedDraftRevision = formRevision()
+    drafts.saveFormDraft(draftKey, { base: expected.value ?? null, content: ownedDraftRevision }, owner)
+  }
+  else if (ownedDraftRevision !== undefined) {
+    clearDraft(ownedDraftRevision)
+    ownedDraftRevision = undefined
+  }
+}, { deep: true })
+onBeforeUnmount(() => {
+  active = false
+  drafts.remove(fieldId)
+})
 function reloadExternal() {
   const current = characterStore.characters.find(item => item.id === form.id)
   if (!current) {
@@ -109,6 +145,7 @@ function reloadExternal() {
   originalAliases.value = aliasInput.value
   expected.value = current?.id ? characterStore.characterSource(current.id) : undefined
   saveError.value = ''
+  clearDraft()
 }
 async function keepDraft() {
   expected.value = form.id ? characterStore.characterSource(form.id) : undefined
@@ -117,19 +154,45 @@ async function keepDraft() {
 async function onSubmit() {
   if (saving.value)
     return false
+  if (useProjectStore().workspace !== ownerWorkspace) {
+    saveError.value = 'The project changed. Reopen the character in the current project.'
+    return false
+  }
   saving.value = true
   saveError.value = ''
+  const submittedRevision = formRevision()
+  const submittedBase = expected.value
   const data = {
-    ...form,
+    ...JSON.parse(JSON.stringify(form)),
     tags: tagsInput.value ? tagsInput.value.split(',').map(t => t.trim()).filter(Boolean) : [],
     aliases: aliasInput.value ? aliasInput.value.split(',').map(a => a.trim()).filter(Boolean) : [],
   }
   try {
     if (props.save)
-      await props.save(data, expected.value)
+      await props.save(data, submittedBase)
     else emit('submit', data)
-    if (props.mode === 'create')
-      clearDraft()
+    if (useProjectStore().workspace !== ownerWorkspace)
+      return false
+    if (!active) {
+      // An old component may acknowledge only its own saved revision. It must
+      // never replace recovery written by a newly opened form.
+      if (drafts.formDraft(draftKey)?.content === submittedRevision)
+        clearDraft(submittedRevision)
+      return !drafts.formDraft(draftKey)
+    }
+    const submitted = JSON.parse(submittedRevision)
+    originalForm.value = JSON.stringify(submitted.form)
+    originalTags.value = submitted.tags
+    originalAliases.value = submitted.aliases
+    if (formRevision() !== submittedRevision) {
+      // The save callback does not return its exact committed source. Retain
+      // the original base rather than trusting a potentially newer disk read.
+      drafts.saveFormDraft(draftKey, { base: submittedBase ?? null, content: formRevision() }, owner)
+      if (active)
+        drafts.register(fieldId, { dirty: true, save: onSubmit })
+      return false
+    }
+    clearDraft(submittedRevision)
     drafts.remove(fieldId)
     return true
   }

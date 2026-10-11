@@ -7,13 +7,16 @@ export function createBrowserProjectRecovery(options: {
   storage: BrowserSessionStorage
   open: (handle: FileSystemDirectoryHandle) => Promise<unknown>
   pick: () => Promise<FileSystemDirectoryHandle>
+  isCurrent?: (handle: FileSystemDirectoryHandle) => boolean
   warn: (error: unknown) => void
 }) {
   const session = shallowRef<BrowserProjectSession>({ projects: [] })
   const status = shallowRef<ProjectRecoveryStatus>('idle')
   const pending = shallowRef<SavedBrowserProject>()
   const error = shallowRef<unknown>()
+  let openSequence = 0
   let loaded: Promise<void> | undefined
+  const identities = new WeakMap<FileSystemDirectoryHandle, string>()
 
   const recentProjects = computed<RecentProject[]>(() => session.value.projects.map(({ handle: _handle, ...project }) => project))
 
@@ -35,7 +38,29 @@ export function createBrowserProjectRecovery(options: {
     }
   }
 
-  async function remember(handle: FileSystemDirectoryHandle, templateId?: string) {
+  /** Resolve identity without recording an unsuccessful attempt as the current project. */
+  async function identify(handle: FileSystemDirectoryHandle) {
+    await load()
+    const cached = identities.get(handle)
+    if (cached)
+      return cached
+    for (const project of session.value.projects) {
+      try {
+        if (project.handle && await handle.isSameEntry(project.handle)) {
+          identities.set(handle, project.id)
+          return project.id
+        }
+      }
+      catch {
+        // Deleted or inaccessible handles are not identities for this project.
+      }
+    }
+    const id = crypto.randomUUID()
+    identities.set(handle, id)
+    return id
+  }
+
+  async function remember(handle: FileSystemDirectoryHandle, templateId?: string, current = () => true) {
     await load()
     let existing: SavedBrowserProject | undefined
     for (const project of session.value.projects) {
@@ -51,8 +76,13 @@ export function createBrowserProjectRecovery(options: {
         // A deleted directory must not prevent opening another project.
       }
     }
+    if (!current())
+      return
+    const id = existing?.id ?? await identify(handle)
+    if (!current())
+      return
     const project: SavedBrowserProject = {
-      id: existing?.id ?? crypto.randomUUID(),
+      id,
       name: handle.name,
       templateId: templateId ?? existing?.templateId ?? '',
       lastOpenedAt: Date.now(),
@@ -66,9 +96,11 @@ export function createBrowserProjectRecovery(options: {
     error.value = undefined
     status.value = 'idle'
     await persist()
+    return project.id
   }
 
   async function openSaved(project: SavedBrowserProject, interactive: boolean) {
+    const request = ++openSequence
     error.value = undefined
     pending.value = project
     status.value = 'restoring'
@@ -87,16 +119,24 @@ export function createBrowserProjectRecovery(options: {
         const permission = interactive
           ? await handle.requestPermission({ mode: 'readwrite' })
           : await handle.queryPermission({ mode: 'readwrite' })
+        if (request !== openSequence)
+          return false
         if (permission !== 'granted') {
           status.value = 'permission-required'
           return false
         }
       }
-      await options.open(handle)
-      await remember(handle, project.templateId)
-      return true
+      if (request !== openSequence)
+        return false
+      if (await options.open(handle) === false)
+        return false
+      const current = () => request === openSequence && (options.isCurrent?.(handle!) ?? true)
+      await remember(handle, project.templateId, current)
+      return current()
     }
     catch (failure) {
+      if (request !== openSequence)
+        return false
       if (failure instanceof DOMException && failure.name === 'AbortError') {
         status.value = 'idle'
         pending.value = undefined
@@ -111,14 +151,23 @@ export function createBrowserProjectRecovery(options: {
   }
 
   async function restore() {
+    const request = ++openSequence
     status.value = 'restoring'
     await load()
+    if (request !== openSequence)
+      return false
     const project = session.value.projects.find(item => item.id === session.value.currentId)
     if (!project) {
       status.value = 'idle'
       return false
     }
     return await openSaved(project, false)
+  }
+
+  function cancelPending() {
+    openSequence++
+    pending.value = undefined
+    status.value = 'idle'
   }
 
   function reopen(id: string) {
@@ -132,6 +181,7 @@ export function createBrowserProjectRecovery(options: {
       projects: session.value.projects.filter(project => project.id !== id),
     }
     if (pending.value?.id === id) {
+      openSequence++
       pending.value = undefined
       error.value = undefined
       status.value = 'idle'
@@ -139,5 +189,5 @@ export function createBrowserProjectRecovery(options: {
     await persist()
   }
 
-  return { load, remember, restore, reopen, remove, recentProjects, status, pending, error }
+  return { load, identify, remember, restore, cancelPending, reopen, remove, recentProjects, status, pending, error }
 }

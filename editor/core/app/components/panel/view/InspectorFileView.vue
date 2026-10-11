@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import type { IDisposable, editor as MonacoEditor } from 'monaco-editor'
 import { AdvGameLoadStatusEnum, useAdvContext } from '@advjs/client'
+import { parseCharacterMd } from '@advjs/parser'
 import { computed, nextTick, onBeforeUnmount, shallowRef, watch } from 'vue'
 import { insertStoryTemplate } from '../../../utils/story-templates'
+import CharacterAvatarPanel from '../../character/CharacterAvatarPanel.vue'
+import CharacterVisualPanel from '../../character/CharacterVisualPanel.vue'
 import ContextDocument from '../context/ContextDocument.vue'
 
 const { $adv } = useAdvContext()
@@ -16,6 +19,16 @@ const reading = shallowRef(false)
 const saving = shallowRef(false)
 const error = shallowRef('')
 const markdown = computed(() => file.fileName.endsWith('.md'))
+const character = computed(() => {
+  if (!reading.value || !file.fileName.endsWith('.character.md'))
+    return undefined
+  try {
+    return parseCharacterMd(monaco.fileContent)
+  }
+  catch {
+    return undefined
+  }
+})
 const gameConfig = computed(() => file.fileName.endsWith('.adv.json'))
 let editor: MonacoEditor.IStandaloneCodeEditor | undefined
 let editorPath = ''
@@ -156,6 +169,14 @@ function goToNode() {
       {{ error }}
     </p>
     <div v-if="reading" class="file-reading">
+      <template v-if="character">
+        <AGUIDetails :title="$t('characters.visual.title')" open>
+          <CharacterVisualPanel :character="character" />
+        </AGUIDetails>
+        <AGUIDetails v-if="Object.keys(character.avatars ?? {}).length" :title="$t('characters.detail.avatars')" open>
+          <CharacterAvatarPanel :character="character" />
+        </AGUIDetails>
+      </template>
       <ContextDocument :content="monaco.fileContent" />
     </div>
     <ClientOnly>

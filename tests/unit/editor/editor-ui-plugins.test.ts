@@ -9,7 +9,7 @@ import EditorCommandBar from '../../../editor/core/app/components/extensions/Edi
 import EditorPluginManager from '../../../editor/core/app/components/extensions/EditorPluginManager.vue'
 import EditorRegionHost from '../../../editor/core/app/components/extensions/EditorRegionHost.vue'
 import { authoringCharacters } from '../../../editor/core/app/composables/useAuthoringOverview'
-import { contextPlugin, mergedContext } from '../../../editor/core/app/extensions/builtin/context'
+import { contextPlugin, contextStats, mergedContext } from '../../../editor/core/app/extensions/builtin/context'
 import { corePlugin } from '../../../editor/core/app/extensions/builtin/core'
 import { createEditorLayoutState, editorLayoutStateKey, restoreLayout } from '../../../editor/core/app/extensions/layout-state'
 import { createEditorExtensionHost, editorExtensionHostKey } from '../../../editor/core/app/extensions/registry'
@@ -32,6 +32,7 @@ function fixture() {
     sessionId: 'a',
     revision: 1,
     name: 'Test story',
+    root: 'adv',
     files: { 'adv/glossary.md': '# 术语表\n\n天工' },
     diagnostics: [],
     counts: { chapters: 1, characters: 2, scenes: 1 },
@@ -181,7 +182,7 @@ describe('editor extension lifecycle', () => {
 
 describe('project seam and restored state', () => {
   it.each(['browser', 'local'])('publishes immutable %s snapshots and excludes private handles', async (kind) => {
-    const model = shallowRef({ files: { 'adv/world.md': '# World' }, compilation: { project: { chapters: [], characters: [], scenes: [] }, diagnostics: [] }, previewConfig: { secret: 'not-for-plugins' } } as unknown as EditorProjectModel)
+    const model = shallowRef({ files: { 'adv/world.md': '# World' }, compilation: { project: { root: 'adv', chapters: [], characters: [], scenes: [] }, diagnostics: [] }, previewConfig: { secret: 'not-for-plugins' } } as unknown as EditorProjectModel)
     const workspace = shallowRef<object>({ kind, token: 'private' })
     const adapter = createEditorHostServices({ project: () => model.value, workspace: () => workspace.value, name: () => 'Example', locale: shallowRef('en'), refresh: async () => {}, writeClipboard: async () => {}, notify: () => {} })
     cleanups.push(adapter.dispose)
@@ -198,9 +199,19 @@ describe('project seam and restored state', () => {
 
   it('keeps legacy context semantics for root files, glossary and missing content', () => {
     const snapshot = fixture().project.value!
-    expect(mergedContext({ ...snapshot, files: { 'glossary.md': 'Root glossary' } })).toBe('# Glossary\n\nRoot glossary')
+    expect(mergedContext({ ...snapshot, root: '', files: { 'glossary.md': 'Root glossary' } })).toBe('# Glossary\n\nRoot glossary')
     expect(mergedContext({ ...snapshot, files: {} })).toBe('')
     expect(editorText({ en: 'English' }, 'fr')).toBe('English')
+  })
+
+  it('uses the compiled custom root and counts, keeping AI copy bounded to context documents', () => {
+    const snapshot = { ...fixture().project.value!, root: 'content/story', files: {
+      'content/story/world.md': 'Custom world',
+      'content/story/characters/hero.character.md': 'private character attributes',
+      'adv/world.md': 'Wrong root',
+    }, counts: { chapters: 12, characters: 7, scenes: 3 } }
+    expect(mergedContext(snapshot)).toBe('# World\n\nCustom world')
+    expect(contextStats(snapshot)).toEqual(snapshot.counts)
   })
 
   it('migrates old active tabs and tolerates malformed layout storage', async () => {
