@@ -5,7 +5,8 @@
  * validation applies to the structured `attributes` and `visual` subtrees. Callers should
  * use `safeParse` so malformed files surface a warning rather than throw.
  */
-import type { AdvCharacterFrontmatter, AdvCharacterVisual } from '@advjs/types'
+import type { AdvCharacterFrontmatter, AdvCharacterVisual, CharacterVoiceProfile } from '@advjs/types'
+import { validateCharacterVoiceProfile } from '@advjs/audio'
 import { z } from 'zod'
 
 const NonBlankString = z.string().refine(value => value.trim().length > 0, 'Must not be blank')
@@ -155,6 +156,15 @@ export const CharacterAvatarsSchema = z.record(z.string().min(1), z.object({
 }))
 
 export const CharacterFrontmatterSchema = z.object({
+  voiceProfile: z.custom<CharacterVoiceProfile>((value) => {
+    try {
+      validateCharacterVoiceProfile(value)
+      return true
+    }
+    catch {
+      return false
+    }
+  }, 'Invalid character voice profile').optional(),
   id: z.string().min(1),
   name: z.string().min(1),
   avatar: z.string().optional(),

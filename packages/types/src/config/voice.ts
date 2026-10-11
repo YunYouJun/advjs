@@ -1,3 +1,5 @@
+import type { CharacterVoiceProfile, VoiceTakeSource } from '../audio/voice'
+import type { VoiceDesignDefinition, VoiceDesignRecord, VoiceDesignSource } from '../audio/voice-design'
 import type { JsonObject } from '../runtime'
 
 /** Available reference conditioning modes for an authoring voice provider. */
@@ -68,6 +70,8 @@ export interface AdvVoiceCandidate {
   model?: string
   revision?: string
   inputFingerprint?: string
+  /** Actual supplier voice, distinct from the project-owned voice identity. */
+  providerVoiceId?: string
   voiceId?: string
   voiceVersion?: string
 }
@@ -83,6 +87,8 @@ export interface AdvVoiceCapabilities {
   synthesis: boolean
   voiceCreation: boolean
   offline: boolean
+  /** Optional design/sample support. Absence means unsupported, independently of createVoice. */
+  designSources?: VoiceDesignSource[]
   models: Array<{
     id: string
     modes: string[]
@@ -103,7 +109,25 @@ export interface AdvVoiceSynthesisRequest extends Omit<AdvVoicePreviewRequest, '
 
 /** Read-only preset inspection, without downloading references or invoking synthesis. */
 export interface AdvVoicePresetInspection {
-  characters: Array<{ id: string, name: string, card?: string, text: string, referenceAssetId?: string }>
+  characters: Array<{
+    id: string
+    name: string
+    card?: string
+    text: string
+    referenceAssetId?: string
+    generation?: {
+      model: string
+      providerVoiceId: string
+      source: VoiceTakeSource
+      revision?: string
+      mimeType: string
+      referenceAssetId?: string
+      referenceSha256?: string
+      /** Reviewed provider parameters; authoring-only, never a job log. */
+      parameters?: JsonObject
+    }
+  }>
+  presetSha256?: string
   seed?: number
   referenceMode?: string
   requiresReferenceAssets?: boolean
@@ -126,6 +150,10 @@ export interface AdvVoiceSynthesisProvider {
   doctor?: (context: AdvVoiceContext) => Promise<AdvVoiceDoctorResult>
   setup?: (context: AdvVoiceContext) => Promise<AdvVoiceSetupResult>
   createVoice?: (request: AdvVoiceCreateRequest) => Promise<JsonObject>
+  /** Read-only finite built-in catalog; never invent voices for an unknown provider. */
+  listVoices?: () => Promise<Array<{ id: string, label: string }>>
+  /** Pure trusted-template transform; cannot replace model locations, revision or weight hashes. */
+  buildDesignPreset?: (input: { template: JsonObject, characterId: string, text: string, locale: string, intent: CharacterVoiceProfile['intent'], definition: VoiceDesignDefinition }) => Promise<JsonObject>
 }
 
 /** A stable project identity with separate implementations for each provider. */
@@ -134,7 +162,8 @@ export interface AdvVoiceProfile {
   version: string
   characterId: string
   label: string
-  implementations: Record<string, { preset: string, presetSha256?: string, character?: string, referenceMode?: string }>
+  implementations: Record<string, { preset: string, presetSha256?: string, character?: string, referenceMode?: string, presetPath?: string, localePresets?: Record<string, { preset: string, presetPath: string, presetSha256: string }> }>
+  design?: VoiceDesignRecord
   /** A reviewed sample selection, not a dialogue or voice-actor credit. */
   selectedSample?: { assetId: string, sha256: string }
 }

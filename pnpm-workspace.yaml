@@ -280,10 +280,8 @@ catalogs:
     '@vue-flow/core': ^1.48.2
     '@vueuse/core': ^15.0.0
     '@vueuse/motion': ^3.0.3
-    '@vueuse/sound': ^2.1.3
     animate.css: ^4.1.1
     colord: ^2.9.3
-    howler: ^2.2.4
     modern-screenshot: ^4.7.0
     # y-monaco 0.1.6 still imports a subpath removed from Monaco 0.56 exports.
     monaco-editor: ^0.55.1
@@ -317,7 +315,6 @@ catalogs:
     vitest: ^5.0.2
   types:
     '@types/cli-progress': ^3.11.6
-    '@types/howler': ^2.2.13
     '@types/js-yaml': ^4.0.9
     '@types/markdown-it-link-attributes': ^3.0.5
     '@types/mdast': ^4.0.4

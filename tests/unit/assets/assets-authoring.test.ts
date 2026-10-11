@@ -65,4 +65,17 @@ describe('asset manifest authoring plan', () => {
       asset,
     })).toThrow('pass replaceExisting only after explicit review')
   })
+
+  it('preserves an existing local root and fallback when registering another asset', () => {
+    const plan = planAdvAssetManifestUpsert({
+      files: {
+        'adv/assets.json': JSON.stringify({ schemaVersion: 2, id: 'example', defaultProfile: 'local', profiles: { local: { provider: 'project', root: 'public/media', fallback: 'production' }, production: { provider: 'http', baseUrl: 'https://example.com/' } }, assets: [] }),
+      },
+      rootPath: 'adv/assets.json',
+      catalogId: 'example',
+      asset,
+    })
+    expect(plan.manifest.profiles.local).toEqual({ provider: 'project', root: 'public/media', fallback: 'production' })
+    expect(JSON.parse(plan.writes['adv/assets.json']!).profiles.local.root).toBe('public/media')
+  })
 })

@@ -1,3 +1,5 @@
+import type { CharacterVoiceProfile } from '../audio/voice'
+
 /**
  * 角色关系
  */
@@ -216,6 +218,8 @@ export interface AdvCharacterAvatar {
  * 每个字段与 YAML frontmatter 键一一对应
  */
 export interface AdvCharacterFrontmatter {
+  /** Provider-neutral voice intent and explicit per-locale supplier bindings. */
+  voiceProfile?: CharacterVoiceProfile
   /**
    * @zh ID 唯一标识
    */

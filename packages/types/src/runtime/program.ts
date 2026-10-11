@@ -1,6 +1,6 @@
 import type { JsonObject, JsonValue } from './json'
 
-export const RUNTIME_SCHEMA_VERSION = 1 as const
+export const RUNTIME_SCHEMA_VERSION = 2 as const
 
 export interface RuntimeAddress {
   chapterId: string

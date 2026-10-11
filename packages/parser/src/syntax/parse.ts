@@ -1,4 +1,5 @@
 import type { AdvAst } from '@advjs/types'
+import { parseDialogueLineIdentity } from '../line-id'
 
 const scenePattern = /^【.+】$/
 const narrationPattern = /^（.+）$/
@@ -55,12 +56,14 @@ export function parseScene(text: string) {
 export function parseNarration(text: string) {
   // 以 （） 开头结尾
   const re = narrationPattern
-  if (re.test(text)) {
+  const identity = parseDialogueLineIdentity(text)
+  if (re.test(identity.text)) {
     const narration: AdvAst.Narration = {
       type: 'narration',
       children: [
-        text.slice(1, -1),
+        identity.text.slice(1, -1),
       ],
+      ...(identity.lineId ? { lineId: identity.lineId } : {}),
     }
     return narration
   }

@@ -16,6 +16,11 @@ export interface AdvBuildOptions {
    */
   outDir?: string
 
+  /** Explicit published audio catalog URL or local file; native authoring stays unchanged. */
+  audioManifest?: string
+  /** Required SHA-256 of the exact published manifest bytes. */
+  audioManifestSha256?: string
+
   /**
    * vite config
    */

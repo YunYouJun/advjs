@@ -2,6 +2,25 @@ import { describe, expect, it } from 'vitest'
 import { exportCharacterForAI, parseCharacterMd, stringifyCharacterMd } from '../src'
 
 describe('character structured attributes', () => {
+  it('round-trips the shared character Voice Profile and validates its bindings', () => {
+    const character = parseCharacterMd(`---
+id: hero
+name: Hero
+voiceProfile:
+  intent:
+    speakingStyle: calm
+  locales:
+    zh-CN:
+      providers:
+        openai-tts:
+          voiceId: marin
+          source: system
+          model: gpt-4o-mini-tts
+---
+`)
+    expect(parseCharacterMd(stringifyCharacterMd(character)).voiceProfile).toEqual(character.voiceProfile)
+    expect(() => parseCharacterMd('---\nid: hero\nname: Hero\nvoiceProfile:\n  intent: {}\n  apiKey: secret\n---')).toThrow(/Credentials/u)
+  })
   it('parses and stringifies mystery attributes', () => {
     const content = `---
 id: detective

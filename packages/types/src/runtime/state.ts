@@ -1,8 +1,9 @@
 import type { TachiePosition } from '../ast'
+import type { RuntimeAudioState } from '../audio/runtime'
 import type { JsonObject } from './json'
 import type { RuntimeAddress, RuntimeEffect } from './program'
 
-export const RUNTIME_SNAPSHOT_SCHEMA_VERSION = 1 as const
+export const RUNTIME_SNAPSHOT_SCHEMA_VERSION = 2 as const
 
 export type RuntimeStatus
   = | 'idle'
@@ -21,7 +22,7 @@ export interface RuntimeTachieState {
 
 export interface RuntimeStageState {
   background: string
-  bgm: string
+  audio: RuntimeAudioState
   cg: string
   tachies: Record<string, RuntimeTachieState>
 }

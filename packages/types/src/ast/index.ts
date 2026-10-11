@@ -80,18 +80,10 @@ export interface Transition extends Node, SceneTransitionOptions {
 
 export interface Bgm extends Node {
   type: 'bgm'
-  /**
-   * load from audio library by name
-   */
-  name?: string
-  /**
-   * load by URL or local path
-   */
-  src?: string
-  /**
-   * stop current background music
-   */
-  stop?: boolean
+  action: 'set' | 'clear'
+  /** Stable native Asset Catalog ID. Required for set. */
+  asset?: string
+  gain?: number
   /** Loop the selected track. Defaults to true. */
   loop?: boolean
   /** Cross-fade timing in milliseconds. */
@@ -99,6 +91,20 @@ export interface Bgm extends Node {
     in?: number
     out?: number
   }
+}
+
+export interface Ambience extends Omit<Bgm, 'type'> {
+  type: 'ambience'
+  slot: 'bed' | 'weather' | 'crowd' | 'detail'
+}
+
+export interface Sfx extends Node {
+  type: 'sfx'
+  action: 'play'
+  asset: string
+  gain?: number
+  group?: string
+  priority?: number
 }
 
 export interface Cg extends Node {
@@ -160,6 +166,8 @@ export interface Words extends Node {
  */
 export interface Dialog extends Node {
   type: 'dialog'
+  /** Stable, author-owned dialogue identity, independent of node position. */
+  lineId?: string
   character: Character
   children: PhrasingContent[]
 }
@@ -200,6 +208,7 @@ export interface SceneInfo extends Node {
  */
 export interface Narration extends Node {
   type: 'narration'
+  lineId?: string
   children: string[]
 }
 
@@ -315,7 +324,7 @@ export interface PhrasingContentMap {
 
 export type PhrasingContent = PhrasingContentMap[keyof PhrasingContentMap]
 
-export type CodeOperation = Camera | Tachie | Background | Bgm | Cg | Transition | Go
+export type CodeOperation = Camera | Tachie | Background | Bgm | Ambience | Sfx | Cg | Transition | Go
 export type Item = Unknown | Paragraph | Narration | Character | Words | Text | SceneInfo | Dialog | Choices | Code | Heading
 
 export type Child = Item

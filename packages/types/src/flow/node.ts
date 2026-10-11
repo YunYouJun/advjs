@@ -5,6 +5,7 @@
  */
 
 import type { AdvAst } from '..'
+import type { RuntimeAddress } from '../runtime/program'
 
 export interface AdvBaseNode {
   id: string
@@ -31,7 +32,8 @@ export interface AdvBaseNode {
    *
    * @runtime
    */
-  next?: string | {
+  /** null explicitly stops; omission uses the next node in story order. */
+  next?: null | string | {
     chapterId: string
     nodeId: string
   }
@@ -51,7 +53,7 @@ export interface AdvBackgroundNode extends AdvBaseNode {
    * - url
    * - base64
    */
-  src: string
+  src?: string
 }
 
 export interface AdvTachieNode extends AdvBaseNode {
@@ -65,7 +67,7 @@ export interface AdvTachieNode extends AdvBaseNode {
    *
    * @default 'default'
    */
-  status: string
+  status?: string
   /**
    * 动作
    */
@@ -77,6 +79,8 @@ export interface AdvTachieNode extends AdvBaseNode {
 
 export interface AdvDialogNode {
   type?: 'dialog'
+  /** Same stable identity as Markdown's trailing `{#line_<uuidv7>}`. */
+  lineId?: string
   /**
    * 对话内容
    */
@@ -108,14 +112,22 @@ export interface AdvDialoguesNode extends AdvBaseNode {
    * 场景 ID
    */
   sceneId?: string
-  /**
-   * 背景音乐 ID
-   */
-  bgmThemeId?: string
-  /**
-   * bgm src
-   */
-  bgmSrc?: string
+}
+
+export interface AdvAudioNode extends AdvBaseNode {
+  type: 'audio'
+  operations: Array<AdvAst.Bgm | AdvAst.Ambience | AdvAst.Sfx>
+}
+
+export interface AdvNarrationNode extends AdvBaseNode {
+  type: 'narration'
+  text: string
+  lineId?: string
+}
+
+export interface AdvChoicesNode extends AdvBaseNode {
+  type: 'choices'
+  choices: Array<{ id: string, text: string, target: string | RuntimeAddress, when?: string }>
 }
 
 /**
@@ -158,4 +170,4 @@ export interface AdvStartNode extends AdvBaseNode {
 /**
  * adv node
  */
-export type AdvFlowNode = AdvStartNode | AdvBackgroundNode | AdvTachieNode | AdvDialoguesNode | AdvEndNode | AdvFountainNode
+export type AdvFlowNode = AdvStartNode | AdvBackgroundNode | AdvTachieNode | AdvDialoguesNode | AdvAudioNode | AdvNarrationNode | AdvChoicesNode | AdvEndNode | AdvFountainNode

@@ -23,6 +23,7 @@ describe('launch package build order', () => {
 
     expect(builtPaths).toEqual([
       'packages/types',
+      'packages/audio',
       'packages/assets',
       'packages/unocss',
       'packages/parser',

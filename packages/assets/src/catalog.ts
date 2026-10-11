@@ -54,7 +54,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function inferAssetType(kind: string, mimeType?: string): AdvAssetType {
-  if (mimeType?.startsWith('audio/') || ['bgm', 'sfx', 'voice'].includes(kind))
+  if (mimeType?.startsWith('audio/') || ['bgm', 'ambience', 'sfx', 'voice', 'ui', 'reference'].includes(kind))
     return 'audio'
   if (mimeType?.startsWith('video/') || kind === 'video')
     return 'video'
@@ -182,12 +182,12 @@ function normalizeDownload(value: unknown): AdvAssetDownloadConfig | undefined {
   throw fail('download source must declare tencent-cos bucket/region or http baseUrl')
 }
 
-export function normalizeAdvAssetManifest(input: unknown): AdvAssetManifest {
+export function normalizeAdvAssetManifest(input: unknown, options: { allowEmpty?: boolean } = {}): AdvAssetManifest {
   if (!isRecord(input))
     throw fail('manifest root must be an object')
   const rawAssets = Array.isArray(input.assets) ? input.assets : []
   const assets = rawAssets.map(normalizeEntry)
-  if (assets.length === 0)
+  if (assets.length === 0 && !options.allowEmpty)
     throw fail('manifest must contain at least one asset')
 
   if (input.schemaVersion === 2) {

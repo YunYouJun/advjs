@@ -1,4 +1,5 @@
 import type { AdvCharacter, AdvCharacterBody, AdvCharacterFrontmatter } from '@advjs/types'
+import { validateCharacterVoiceProfile } from '@advjs/audio'
 import { LANGUAGE_LABELS } from '@advjs/types'
 import * as yaml from 'js-yaml'
 import { CharacterFrontmatterSchema, CharacterVisualSchema, formatCharacterFrontmatterError } from './schemas/character'
@@ -64,6 +65,7 @@ const FRONTMATTER_KEYS: (keyof AdvCharacterFrontmatter)[] = [
   'visual',
   'actor',
   'cv',
+  'voiceProfile',
   'aliases',
   'tags',
   'faction',
@@ -87,6 +89,8 @@ export function parseCharacterMd(content: string): AdvCharacter {
     throw new Error('Character .character.md must have a string `id` in frontmatter')
   if (!fm.name || typeof fm.name !== 'string')
     throw new Error('Character .character.md must have a string `name` in frontmatter')
+  if (fm.voiceProfile !== undefined)
+    validateCharacterVoiceProfile(fm.voiceProfile)
 
   // Schema 软校验：失败时 warn 不抛错，保证向后兼容
   const schemaResult = CharacterFrontmatterSchema.safeParse(fm)
@@ -114,6 +118,7 @@ export function parseCharacterMd(content: string): AdvCharacter {
     visual: fm.visual,
     actor: fm.actor,
     cv: fm.cv,
+    voiceProfile: fm.voiceProfile,
     aliases: normalizedAliases,
     tags: fm.tags,
     faction: fm.faction,
@@ -134,6 +139,8 @@ export function parseCharacterMd(content: string): AdvCharacter {
  * AdvCharacter → .character.md 字符串
  */
 export function stringifyCharacterMd(character: AdvCharacter): string {
+  if (character.voiceProfile !== undefined)
+    validateCharacterVoiceProfile(character.voiceProfile)
   // 提取 frontmatter 字段
   const fm: Record<string, any> = {}
   for (const key of FRONTMATTER_KEYS) {

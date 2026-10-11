@@ -1,6 +1,30 @@
 import type { AssetsManifest } from 'pixi.js'
+import type { AudioMixerConfig } from '../audio/mixer'
+import type { VoiceLedger } from '../audio/voice'
 import type { AdvChapter, AdvCharacter, AdvMusic, AdvScene } from '../game'
 import type { JsonObject } from '../runtime'
+
+export interface AdvGameAudioSource {
+  src: string
+  sha256?: string
+  bytes?: number
+  mime?: string
+  duration?: number
+}
+
+export interface AdvGameAudioAsset extends AdvGameAudioSource {
+  kind: 'bgm' | 'ambience' | 'voice' | 'sfx' | 'ui'
+  /** Host-resolved processed transports; the master hash still identifies the selected take. */
+  variants?: Partial<Record<'opus' | 'aac', AdvGameAudioSource>>
+}
+
+/** Host-resolved catalog and authoring documents. No providers or secrets enter the player. */
+export interface AdvGameAudioConfig {
+  assets: Record<string, AdvGameAudioAsset>
+  mixer?: AudioMixerConfig
+  voiceLedger?: VoiceLedger
+  locale?: string
+}
 
 export interface AdvGalleryItem {
   id: string
@@ -32,6 +56,9 @@ export interface AdvGameProgressionConfig {
  * 描述游戏具体内容的配置
  */
 export interface AdvGameConfig {
+  /** Exact canonical entry chapter shared by project builds and browser compilation. */
+  entryChapterId?: string
+  audio?: AdvGameAudioConfig
   /** Initial JSON-only variables installed into the deterministic runtime. */
   variables?: JsonObject
   /** Host-owned variables persisted across new runtime sessions. */

@@ -10,6 +10,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@advjs/editor-sdk': fileURLToPath(new URL('./packages/editor-sdk/src/index.ts', import.meta.url)),
+      '@advjs/audio': fileURLToPath(new URL('./packages/audio/src/index.ts', import.meta.url)),
+      '@advjs/parser': fileURLToPath(new URL('./packages/parser/src/index.ts', import.meta.url)),
+      '@advjs/types': fileURLToPath(new URL('./packages/types/src/index.ts', import.meta.url)),
       '@advjs/assets': fileURLToPath(new URL('./packages/assets/src/index.ts', import.meta.url)),
       '@advjs/template': fileURLToPath(new URL('./packages/advjs/template', import.meta.url)),
       '#advjs/data': fileURLToPath(new URL('./tests/fixtures/adv-data.ts', import.meta.url)),
@@ -25,8 +28,8 @@ export default defineConfig({
   },
   test: {
     name: 'advjs',
-    // Electron uses Playwright; Studio uses its own Vite plugins and test config.
-    exclude: [...defaultExclude, '**/e2e/**', 'apps/desktop/test/**', 'apps/studio/**'],
+    // Electron uses Playwright/node:test (including out/); Studio has its own Vite config.
+    exclude: [...defaultExclude, '**/e2e/**', 'apps/desktop/**', 'apps/studio/**'],
     // Several launch tests build and package the same workspace artifacts.
     // Running test files concurrently races on dist/ and Nuxt's build lock.
     fileParallelism: false,

@@ -1,8 +1,10 @@
 import type { AdvAst } from '@advjs/types'
 import type * as Mdast from 'mdast'
 
+import { AdvLineIdSyntaxError, parseDialogueLineIdentity } from './line-id'
 import { parseStableAnchor, parseText } from './syntax'
 import { advNodeMap, parseAdvCode, scriptSuffix } from './syntax/code'
+import { toDialog } from './utils'
 
 export class AdvScriptSyntaxError extends Error {
   readonly line: number
@@ -44,27 +46,36 @@ export class Serialize {
    */
   parse(child: Mdast.Content): AdvAst.Item | undefined {
     let node: AdvAst.Item | undefined
-    switch (child.type) {
-      case 'blockquote':
-        node = this.blockquote(child)
-        break
-      case 'paragraph':
-        node = this.paragraph(child)
-        break
-      case 'text':
-        node = this.text(child)
-        break
-      case 'code':
-        node = this.code(child)
-        break
-      case 'list':
-        node = this.list(child)
-        break
-      case 'heading':
-        node = this.heading(child)
-        break
-      default:
-        break
+    try {
+      switch (child.type) {
+        case 'blockquote':
+          node = this.blockquote(child)
+          break
+        case 'paragraph':
+          node = this.paragraph(child)
+          break
+        case 'text':
+          node = this.text(child)
+          break
+        case 'code':
+          node = this.code(child)
+          break
+        case 'list':
+          node = this.list(child)
+          break
+        case 'heading':
+          node = this.heading(child)
+          break
+        default:
+          break
+      }
+    }
+    catch (error) {
+      if (error instanceof AdvLineIdSyntaxError) {
+        error.line = child.position?.start.line ?? 1
+        error.column = child.position?.start.column ?? 1
+      }
+      throw error
     }
     if (node) {
       node.position = child.position
@@ -90,11 +101,13 @@ export class Serialize {
    * 处理引用块
    */
   blockquote(node: Mdast.Blockquote): AdvAst.Narration {
+    const identity = parseDialogueLineIdentity(node.children.map(item => (
+      item.type === 'paragraph' ? phrasingText(item.children) : ''
+    )).join('\n'))
     const info: AdvAst.Narration = {
       type: 'narration',
-      children: node.children.map((item) => {
-        return ((item as Mdast.Paragraph).children[0] as Mdast.Text).value
-      }),
+      children: identity.text.split('\n'),
+      ...(identity.lineId ? { lineId: identity.lineId } : {}),
     }
     return info
   }
@@ -147,6 +160,27 @@ export class Serialize {
    * 处理段落
    */
   paragraph(node: Mdast.Paragraph) {
+    const inlineChildren = node.children.flatMap(child => this.inline(child))
+    const inlineText = inlineChildren.map(child => 'value' in child ? child.value : '').join('')
+    const dialogue = toDialog(inlineText)
+    if (dialogue) {
+      if (inlineChildren.some(child => child.type === 'glossaryReference')) {
+        const start = inlineText.indexOf('\n') + 1
+        const identity = parseDialogueLineIdentity(inlineText.slice(start))
+        const end = start + identity.text.length
+        let offset = 0
+        dialogue.children = inlineChildren.flatMap((child) => {
+          if (!('value' in child))
+            return []
+          const value = String(child.value)
+          const from = Math.max(0, start - offset)
+          const to = Math.min(value.length, end - offset)
+          offset += value.length
+          return to > from ? [{ ...child, value: value.slice(from, to) }] : []
+        })
+      }
+      return dialogue
+    }
     if (node.children.length === 1 && node.children[0].type === 'text') {
       const text = node.children[0]
       const anchor = parseStableAnchor(text.value)

@@ -63,6 +63,10 @@ function assertInclude(include: unknown): asserts include is string {
 function ensureLocalProfile(root: Record<string, unknown>) {
   const defaultProfile = typeof root.defaultProfile === 'string' ? root.defaultProfile : undefined
   const profiles = isRecord(root.profiles) ? { ...root.profiles } : {}
+  // Existing local coordinates belong to the project. Changing the root would
+  // silently relocate every already registered master.
+  if (isRecord(profiles.local) && profiles.local.provider === 'project')
+    return
   profiles.local = {
     provider: 'project',
     root: 'adv/assets',

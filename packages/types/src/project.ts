@@ -1,4 +1,5 @@
 import type { AdvAssetManifest } from './config/assets'
+import type { AdvChapter } from './game/chapter'
 import type { AdvCharacter } from './game/character'
 import type { JsonObject, JsonValue } from './runtime/json'
 import type { RuntimeProgram } from './runtime/program'
@@ -11,6 +12,8 @@ export interface AdvProjectSource {
 }
 
 export interface AdvProjectCompileOptions {
+  /** Preserve a valid empty native catalog while authoring the first asset. Runtime builds remain strict by default. */
+  allowEmptyAssetManifest?: boolean
   /** Include conservative story diagnostics for authoring tools. */
   staticAnalysis?: boolean
   /** Runtime plugin names and exact versions available to the compiler. */
@@ -35,6 +38,8 @@ export interface AdvProjectChapter {
   id: string
   title?: string
   sources: string[]
+  /** Validated serialized Flow author data; opaque author fields are excluded from player projection. */
+  flow?: AdvChapter
 }
 
 export interface AdvProjectScene {

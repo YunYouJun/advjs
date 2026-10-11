@@ -47,6 +47,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
+    "@advjs/audio": "workspace:0.1.4",
     "@advjs/types": "workspace:0.1.4",
     "@advjs/unocss": "workspace:0.1.4",
     "@types/mdast": "catalog:types",

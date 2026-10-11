@@ -1,5 +1,6 @@
 import type { AdvAst } from '@advjs/types'
 import type * as Mdast from 'mdast'
+import { parseDialogueLineIdentity } from '../line-id'
 
 /**
  * 人物信息
@@ -70,12 +71,14 @@ export function toDialog(text: string): AdvAst.Dialog | false {
 
   if (pos > 0) {
     const characterInfo = text.slice(1, pos)
-    const content = text.slice(pos + 1)
+    const content = parseDialogueLineIdentity(text.slice(pos + 1))
 
     info.character = toCharacter(characterInfo)
 
-    const words = content.split(/\r?\n/)
+    const words = content.text.split(/\r?\n/)
     info.children = words.map(item => toText(item))
+    if (content.lineId)
+      info.lineId = content.lineId
 
     return info
   }
