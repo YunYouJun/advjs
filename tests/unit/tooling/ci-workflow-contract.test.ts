@@ -117,6 +117,7 @@ describe('github Actions launch baseline', () => {
     expect(Object.keys(ci.jobs)).toEqual([
       'build',
       'editor-pages-build',
+      'studio-pages-build',
       'unit',
       'typecheck',
       'lint',
@@ -145,6 +146,8 @@ describe('github Actions launch baseline', () => {
     expect(runCommands(ci.jobs.typecheck)).toContain('pnpm typecheck')
     expectCommandBefore(ci.jobs.lint, 'pnpm prepare:workspace lint', 'pnpm lint')
     expect(runCommands(ci.jobs['editor-pages-build'])).toContain('pnpm editor:build')
+    expectCommandBefore(ci.jobs['studio-pages-build'], 'pnpm install --frozen-lockfile', 'pnpm studio:build')
+    expect(runCommands(ci.jobs['studio-pages-build'])).toContain('test -f apps/studio/dist/index.html && test -f apps/studio/dist/sw.js')
     expectCommandBefore(ci.jobs['editor-smoke'], 'pnpm prepare:workspace editor', 'pnpm --filter @advjs/editor typecheck')
     expect(runCommands(ci.jobs['editor-smoke'])).toEqual(expect.arrayContaining([
       'pnpm --filter @advjs/editor typecheck',
@@ -174,6 +177,7 @@ describe('github Actions launch baseline', () => {
     expect(required.needs).toEqual([
       'build',
       'editor-pages-build',
+      'studio-pages-build',
       'unit',
       'typecheck',
       'lint',

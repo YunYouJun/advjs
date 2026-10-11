@@ -28,8 +28,7 @@ describe('workspace preparation profiles', () => {
         ['pnpm', ['unocss:build']],
       ],
       studio: [
-        ['pnpm', ['build']],
-        ['pnpm', ['build:plugins']],
+        ['pnpm', ['-r', '--filter', '@advjs/studio^...', 'run', 'build']],
       ],
       unit: [
         ['pnpm', ['build']],

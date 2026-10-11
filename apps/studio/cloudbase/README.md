@@ -211,15 +211,28 @@ Catalog 同时保存 COS `versionId`，预览固定到该不可变版本；provi
 ## 7. Studio Pages 生产发布
 
 Cloudflare Pages 项目名为 `advjs-studio`，生产分支为 `dev`。Monorepo 中的 Studio 依赖
-`packages/*` 构建产物，平台构建配置必须保持为：
+工作区构建产物，平台构建配置保持为：
 
-| 配置        | 值                                          |
-| ----------- | ------------------------------------------- |
-| 构建命令    | `pnpm run build && pnpm run studio:build`   |
-| 输出目录    | `apps/studio/dist`                          |
-| 生产环境 ID | `VITE_TCB_ENV_ID=yunlefun-8g7ybcxc7345c490` |
+| 配置         | 值                                          |
+| ------------ | ------------------------------------------- |
+| 构建命令     | `pnpm studio:build`                         |
+| 输出目录     | `apps/studio/dist`                          |
+| 根目录       | 仓库根目录（留空）                          |
+| 构建缓存     | 启用                                        |
+| 文档路径排除 | `docs/*`                                    |
+| 生产环境 ID  | `VITE_TCB_ENV_ID=yunlefun-8g7ybcxc7345c490` |
 
-不能只执行 `pnpm run studio:build`，否则干净构建环境中尚未生成 `@advjs/types`、
-`@advjs/core` 与 `@advjs/parser` 的类型和入口文件。紧急恢复时可以在本地完成同一构建顺序后，
+`studio:build` 会先通过 `pnpm -r --filter '@advjs/studio^...' run build` 按依赖顺序
+构建 Studio 需要的工作区包和插件，再执行 Studio 的类型检查与 Vite 构建。不要在前面
+追加全仓库构建，也不要使用 `--parallel` 绕过依赖顺序。默认仍生成旧浏览器兼容产物。
+
+[Pages 构建缓存](https://developers.cloudflare.com/pages/configuration/build-caching/)
+复用 pnpm 下载缓存；它不缓存本项目的 Vite 编译结果，也不能消除平台排队。
+在[构建监视路径](https://developers.cloudflare.com/pages/configuration/build-watch-paths/)
+保留包含路径 `*` 并排除 `docs/*`，避免纯文档提交占用 Studio 构建队列；混合提交中
+只要还有未排除的变更，仍会触发构建。`examples/ai-contest/` 的内容会被 Studio 打包，
+不能整体排除 `examples/`。
+
+紧急恢复时可以在本地执行 `pnpm studio:build` 后，
 将 `apps/studio/dist` 直传到现有 `advjs-studio` 项目；不要新建同名站点或绕过
 `studio.advjs.org` 的 Pages 自定义域绑定。
