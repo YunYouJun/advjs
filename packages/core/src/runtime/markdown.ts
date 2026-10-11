@@ -45,6 +45,8 @@ export async function createAdvMarkdownRuntime(
     chapters,
     requiredPlugins,
     resources,
+    glossary,
+    glossarySourcePath,
     initialVariables,
     maxCheckpoints,
     maxTraceEntries,
@@ -56,6 +58,8 @@ export async function createAdvMarkdownRuntime(
     chapters,
     requiredPlugins,
     resources,
+    glossary,
+    glossarySourcePath,
   })
 
   if (!compiled.program)

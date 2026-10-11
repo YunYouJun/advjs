@@ -815,6 +815,8 @@ export async function compileProject(
     }
     const compiled = await compileMarkdownProgram({
       id: source.id ?? (typeof config.id === 'string' ? config.id : 'adv-project'),
+      glossary: files.get(`${root}/glossary.md`),
+      glossarySourcePath: `${root}/glossary.md`,
       chapters: ordered.map(chapter => ({
         id: chapter.id,
         title: chapter.title,

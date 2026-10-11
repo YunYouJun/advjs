@@ -30,7 +30,7 @@ export function useAdvKeys($adv: AdvContext) {
   ]
 
   function uiBlocked() {
-    return app.showHistory || app.showSaveMenu || app.showLoadMenu || app.menus.settings
+    return app.showGlossary || app.showHistory || app.showSaveMenu || app.showLoadMenu || app.menus.settings
       || !!document.activeElement?.closest('button, input, textarea, select, summary, [contenteditable="true"]')
   }
 

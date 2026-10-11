@@ -4,7 +4,7 @@ import { defineComponent, inject, reactive, shallowRef } from 'vue'
 import AdvGame from '../../../packages/client/components/game/AdvGame.vue'
 import { injectionAdvPlayer } from '../../../packages/client/constants'
 
-const app = reactive({ showUi: true, menus: { settings: false }, showHistory: false, showSaveMenu: false, showLoadMenu: false })
+const app = reactive({ showUi: true, menus: { settings: false }, showGlossary: false, showHistory: false, showSaveMenu: false, showLoadMenu: false })
 const adv = {
   $auto: { paused: shallowRef(false), stop: vi.fn() },
   config: shallowRef({}),
@@ -41,7 +41,7 @@ it('marks embedded descendants, pauses playback in every menu, and stops on unmo
   expect(adv.$auto.paused.value).toBe(true)
   app.showLoadMenu = false
   expect(adv.$auto.paused.value).toBe(false)
-  for (const key of ['showSaveMenu', 'showHistory'] as const) {
+  for (const key of ['showSaveMenu', 'showHistory', 'showGlossary'] as const) {
     app[key] = true
     expect(adv.$auto.paused.value).toBe(true)
     app[key] = false

@@ -22,6 +22,26 @@ export interface Text extends Node {
   value: string
 }
 
+/** The inert Markdown subset allowed in player glossary explanations. */
+export type GlossaryInline = { type: 'text' | 'inlineCode', value: string }
+  | { type: 'emphasis' | 'strong', children: GlossaryInline[] }
+export type GlossaryBlock = { type: 'paragraph', children: GlossaryInline[] }
+  | { type: 'list', ordered: boolean, start?: number, children: Array<{ type: 'listItem', children: GlossaryBlock[] }> }
+export type GlossaryContent = GlossaryBlock[]
+export interface GlossaryDefinition {
+  text: string
+  content?: GlossaryContent
+}
+
+/** A player-visible footnote reference with a legacy plain-text fallback. */
+export interface GlossaryReference extends Node {
+  type: 'glossaryReference'
+  identifier: string
+  value: string
+  definition?: string
+  definitionContent?: GlossaryContent
+}
+
 export interface Background extends Node {
   type: 'background'
   /**
@@ -146,7 +166,7 @@ export interface Dialog extends Node {
 
 export interface Paragraph extends Node {
   type: 'paragraph'
-  children: (Text | Dialog)[]
+  children: (PhrasingContent | Dialog)[]
 }
 
 export interface Heading extends Node {
@@ -281,6 +301,7 @@ export interface HTML extends Node {
 
 export interface PhrasingContentMap {
   text: Text
+  glossaryReference: GlossaryReference
   // emphasis: Emphasis
   // strong: Strong
   // delete: Delete
@@ -302,6 +323,7 @@ export type ChildWithMd = Item | MdAst.Content
 
 export interface Root {
   type: 'adv-root'
+  glossaryDiagnostics?: Array<{ code: string, message: string, position?: SourcePosition, source?: 'glossary' }>
   children: Child[]
   scene: Record<string, number>
   /**

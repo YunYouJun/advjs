@@ -33,14 +33,14 @@ if (!import.meta.env.DEV && typeof __DEV__ !== 'undefined' && !__DEV__)
   useBeforeUnload()
 
 const app = useAppStore()
-watch(() => app.menus.settings || app.showHistory || app.showSaveMenu || app.showLoadMenu, (paused) => {
+watch(() => app.menus.settings || app.showGlossary || app.showHistory || app.showSaveMenu || app.showLoadMenu, (paused) => {
   $adv.$auto.paused.value = paused
 }, { immediate: true, flush: 'sync' })
 onBeforeUnmount(() => $adv.$auto.stop())
 
 const choiceMotion = useAdvMotionPreference()
 const controlsHeight = shallowRef(0)
-const showToolbar = computed(() => app.showUi && !app.menus.settings && !app.showHistory && !app.showSaveMenu && !app.showLoadMenu)
+const showToolbar = computed(() => app.showUi && !app.menus.settings && !app.showGlossary && !app.showHistory && !app.showSaveMenu && !app.showLoadMenu)
 </script>
 
 <template>

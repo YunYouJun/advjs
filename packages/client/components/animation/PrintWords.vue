@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import type { DisplayMode, DisplaySpeed } from '@advjs/client'
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import type { GlossaryReference } from '../../utils/glossary'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { glossaryReferences } from '../../utils/glossary'
 
 const props = withDefaults(defineProps<{
   speed?: DisplaySpeed
   words?: string
+  glossary?: unknown
   /**
    * 打印间隔
    */
@@ -20,7 +23,26 @@ const props = withDefaults(defineProps<{
   speed: 'normal',
   animation: true,
 })
-const emit = defineEmits(['end'])
+const emit = defineEmits<{ end: [], glossary: [reference: GlossaryReference] }>()
+
+const parts = computed(() => {
+  const references = glossaryReferences(props.glossary, props.words)
+  const result: Array<{ text: string, start: number, end: number, reference?: GlossaryReference }> = []
+  let offset = 0
+  for (const reference of references) {
+    for (const text of props.words.slice(offset, reference.start)) {
+      result.push({ text, start: offset, end: offset + text.length })
+      offset += text.length
+    }
+    result.push({ text: reference.label, start: reference.start, end: reference.end, reference })
+    offset = reference.end
+  }
+  for (const text of props.words.slice(offset)) {
+    result.push({ text, start: offset, end: offset + text.length })
+    offset += text.length
+  }
+  return result
+})
 
 /**
  * 文字是否全部打印完毕
@@ -112,11 +134,37 @@ function wordClasses(i: number) {
 
 <template>
   <div class="print-words">
-    <span
-      v-for="word, i in words" :key="i"
-      :class="wordClasses(i)"
-    >
-      {{ word }}
-    </span>
+    <template v-for="part in parts" :key="part.start">
+      <button
+        v-if="part.reference"
+        type="button"
+        class="adv-glossary-reference"
+        :class="wordClasses(part.end - 1)"
+        :tabindex="animation && len < part.end ? -1 : 0"
+        :aria-hidden="animation && len < part.end || undefined"
+        aria-haspopup="dialog"
+        @click.stop="emit('glossary', part.reference)"
+      >
+        {{ part.text }}
+      </button>
+      <span v-else :class="wordClasses(part.start)">{{ part.text }}</span>
+    </template>
   </div>
 </template>
+
+<style scoped>
+.adv-glossary-reference {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  padding: 0.1em 0.15em;
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 0.2em;
+}
+.adv-glossary-reference:focus-visible {
+  outline: 2px solid var(--adv-c-focus, currentColor);
+  outline-offset: 2px;
+}
+</style>

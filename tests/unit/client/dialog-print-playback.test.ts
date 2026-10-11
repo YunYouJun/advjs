@@ -21,6 +21,7 @@ vi.mock('@advjs/client', () => ({
   speak: vi.fn(),
   useAdvContext: () => ({ $adv: adv }),
   useSettingsStore: () => settings,
+  useAppStore: () => ({ showGlossary: false }),
 }))
 
 let scope: ReturnType<typeof effectScope>

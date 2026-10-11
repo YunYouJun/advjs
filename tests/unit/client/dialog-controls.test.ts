@@ -270,3 +270,22 @@ it('keeps the compact reveal button in place while the mouse approaches it', asy
   await reveal.trigger('click')
   expect(wrapper.get('.dialog-controls').attributes('inert')).toBeUndefined()
 })
+
+it('blocks Space, auto and held skip while a glossary modal is open', async () => {
+  renderControls(true)
+  app.showGlossary = true
+  for (const [key, code] of [[' ', 'Space'], ['a', 'KeyA'], ['Control', 'ControlLeft']]) {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key, code, ctrlKey: key === 'Control' }))
+    await nextTick()
+    window.dispatchEvent(new KeyboardEvent('keyup', { key, code }))
+    await nextTick()
+  }
+  expect(runtime.next).not.toHaveBeenCalled()
+  expect(enabled.value).toBe(false)
+  expect(skipEnabled.value).toBe(false)
+  app.showGlossary = false
+  window.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space' }))
+  await nextTick()
+  expect(runtime.next).toHaveBeenCalledOnce()
+  window.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space' }))
+})

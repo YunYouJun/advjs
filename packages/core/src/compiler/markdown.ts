@@ -27,6 +27,9 @@ export interface MarkdownChapterSource {
 export interface MarkdownProgramSource {
   id: string
   chapters: MarkdownChapterSource[]
+  /** Only explicit footnote definitions are projected into referenced dialogue. */
+  glossary?: string
+  glossarySourcePath?: string
   requiredPlugins?: Record<string, string>
   resources?: MarkdownResourceCatalog
   staticAnalysis?: { variables?: JsonObject }
@@ -46,6 +49,23 @@ function phrasingText(children: Array<AdvAst.PhrasingContent | AdvAst.Dialog>): 
       return String(child.value)
     return phrasingText(child.children)
   }).join('')
+}
+
+function glossaryReferences(children: Array<AdvAst.PhrasingContent | AdvAst.Dialog>, diagnostics: CompileDiagnostic[], source?: CompileSourceLocation): JsonObject {
+  let offset = 0
+  const references: JsonObject[] = []
+  for (const child of children) {
+    if (child.type === 'glossaryReference') {
+      if (child.definition === undefined || !child.definition.trim()) {
+        diagnostics.push({ code: 'ADV_RUNTIME_MISSING_GLOSSARY_DEFINITION', severity: 'error', message: `Missing glossary definition: ${child.identifier}`, source: child.position ? { file: source?.file, line: child.position.start.line, column: child.position.start.column } : source })
+      }
+      else {
+        references.push({ identifier: child.identifier, label: child.value, definition: child.definition, ...(child.definitionContent ? { definitionContent: json(child.definitionContent) } : {}), start: offset, end: offset + child.value.length })
+      }
+    }
+    offset += phrasingText([child]).length
+  }
+  return references.length ? { glossary: references } : {}
 }
 
 function json(value: unknown): JsonValue {
@@ -321,6 +341,7 @@ function compileNode(
           character: node.character.name,
           status: node.character.status ?? '',
           text: phrasingText(node.children),
+          ...glossaryReferences(node.children, diagnostics, source),
         },
       })
     case 'narration':
@@ -329,7 +350,7 @@ function compileNode(
       return withSource({ id, kind: 'text', data: { text: node.value } })
     case 'paragraph': {
       const text = phrasingText(node.children)
-      return text.trim() ? withSource({ id, kind: 'text', data: { text } }) : null
+      return text.trim() ? withSource({ id, kind: 'text', data: { text, ...glossaryReferences(node.children, diagnostics, source) } }) : null
     }
     case 'scene':
       return withSource({
@@ -474,7 +495,7 @@ export async function compileMarkdownProgram(source: MarkdownProgramSource): Pro
     }
     let ast: AdvAst.Root
     try {
-      ast = await parseAst(chapterSource.content)
+      ast = await parseAst(chapterSource.content, source.glossary)
     }
     catch (error) {
       diagnostics.push({
@@ -485,6 +506,17 @@ export async function compileMarkdownProgram(source: MarkdownProgramSource): Pro
         suggestion: 'Correct the JSON/YAML syntax in this chapter and run the check again.',
       })
       continue
+    }
+    for (const diagnostic of ast.glossaryDiagnostics ?? []) {
+      const location = { file: chapterSource.sourcePath, line: diagnostic.position?.start.line, column: diagnostic.position?.start.column }
+      diagnostics.push({
+        code: diagnostic.code,
+        message: diagnostic.message,
+        severity: 'error',
+        source: diagnostic.source === 'glossary'
+          ? { ...location, file: source.glossarySourcePath ?? 'glossary.md' }
+          : remap(location),
+      })
     }
     const diagnosticStart = diagnostics.length
     const nodes: RuntimeNodeInput[] = []
