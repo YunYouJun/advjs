@@ -5,15 +5,15 @@ import { primitives, usePrimitiveScene } from './usePrimitiveScene'
 
 const selected = shallowRef<string>()
 const selectedLabel = computed(() => primitives.find(item => item.id === selected.value)?.label)
-const { setup, options, frameAll, resolvePick } = usePrimitiveScene(selected)
+const { setup, options, frameAll, resolvePick, resetCharacter } = usePrimitiveScene(selected)
 </script>
 
 <template>
   <main class="three-demo" data-adv-ui="game">
     <h1>Three.js 渲染示例</h1>
-    <p>点击方块或通过列表选择。拖动旋转，右键平移，滚轮缩放。</p>
+    <p>点击画布后，WASD／方向键移动，Shift 跑步，空格跳跃，R 重置人物，Esc 退出控制。</p>
     <div class="three-demo-view">
-      <AdvThreeCanvas label="三个可选择的方块" :setup="setup" :options="options" @pick="selected = resolvePick($event)">
+      <AdvThreeCanvas label="人物与三个可选择的方块。WASD 或方向键移动，Shift 跑步，空格跳跃，R 重置，Esc 退出控制。" :setup="setup" :options="options" @pick="selected = resolvePick($event)">
         <template #error="{ retry }">
           <div class="three-demo-error">
             <p>3D 画布暂不可用，可通过下方列表选择。</p>
@@ -25,6 +25,9 @@ const { setup, options, frameAll, resolvePick } = usePrimitiveScene(selected)
       </AdvThreeCanvas>
     </div>
     <nav aria-label="场景操作">
+      <button type="button" @click="resetCharacter">
+        重置人物
+      </button>
       <button type="button" @click="frameAll">
         显示全部对象
       </button>
@@ -32,6 +35,7 @@ const { setup, options, frameAll, resolvePick } = usePrimitiveScene(selected)
         {{ item.label }}
       </button>
     </nav>
+    <p>拖动旋转视角，右键平移，滚轮缩放。点击方块或通过列表选择。</p>
     <p role="status">
       {{ selectedLabel ? `已选择 ${selectedLabel}` : '请选择一个方块' }}
     </p>
@@ -61,6 +65,10 @@ const { setup, options, frameAll, resolvePick } = usePrimitiveScene(selected)
 }
 .three-demo-view {
   height: 420px;
+}
+.three-demo-view:focus-within {
+  outline: 2px solid var(--adv-c-focus);
+  outline-offset: 2px;
 }
 .three-demo nav {
   display: flex;
