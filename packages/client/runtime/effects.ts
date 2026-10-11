@@ -8,7 +8,6 @@ import type {
   TachieMotion,
 } from '@advjs/types'
 import type { ref } from 'vue'
-import type { useAdvBgm } from '../composables'
 import type {
   BackgroundPresentation,
   CgPresentation,
@@ -72,7 +71,6 @@ export function syncRuntimePresentation(
 export function applyRuntimePresentationEffects(
   effects: readonly RuntimeEffect[],
   state: Readonly<RuntimeState>,
-  bgm: ReturnType<typeof useAdvBgm>,
   resources: AdvPresentationResources,
   gameConfig: Readonly<AdvGameConfig>,
   gallery?: RuntimeGalleryController,
@@ -102,7 +100,6 @@ export function applyRuntimePresentationEffects(
       exit: [],
       instant: true,
     })
-    bgm.syncWithOptions(state.stage.bgm, { fadeIn: 120, fadeOut: 120 })
     return
   }
 
@@ -116,14 +113,6 @@ export function applyRuntimePresentationEffects(
       resources.backgroundCueRef.value = nextCue(resources.backgroundCueRef.value, {
         url,
         ...(sceneTransition(payload.transition) ? { transition: sceneTransition(payload.transition) } : {}),
-      })
-    }
-    else if (effect.type === 'stage.bgm') {
-      const fade = record(payload.fade)
-      bgm.syncWithOptions(typeof payload.value === 'string' ? payload.value : '', {
-        loop: payload.loop !== false,
-        ...(typeof fade?.in === 'number' ? { fadeIn: fade.in } : {}),
-        ...(typeof fade?.out === 'number' ? { fadeOut: fade.out } : {}),
       })
     }
     else if (effect.type === 'stage.cg') {

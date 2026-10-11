@@ -163,11 +163,11 @@ describe('formatAsText', () => {
       character: '云游君',
       stage: {
         background: 'school.png',
-        bgm: 'theme-a',
+        audio: { bgm: { assetId: 'bgm/theme-a' }, ambience: { weather: { assetId: 'ambience/rain' } } },
         tachies: { 云游君: { status: 'smile' } },
         tachieAscii: ['[云游君:smile]'],
       },
     })
-    expect(text).toBe('[BG school.png] [BGM theme-a] [Tachie [云游君:smile]]\n云游君: 你好！')
+    expect(text).toBe('[BG school.png] [BGM bgm/theme-a] [Ambience weather ambience/rain] [Tachie [云游君:smile]]\n云游君: 你好！')
   })
 })

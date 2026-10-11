@@ -1,10 +1,13 @@
 import type {
+  AudioAmbienceSlot,
+  AudioTrackState,
   JsonObject,
   JsonValue,
   RuntimeAddress,
   RuntimeProgram,
   RuntimeStageState,
 } from '@advjs/types'
+import { validateAudioOperation } from './audio-validation'
 import { runtimeConditionMatches } from './expression'
 
 export interface RuntimePresentationDiagnostic {
@@ -29,7 +32,7 @@ interface CachedAnchor {
 const anchorCache = new WeakMap<RuntimeProgram, Map<string, CachedAnchor[]>>()
 
 function emptyStage(): RuntimeStageState {
-  return { background: '', bgm: '', cg: '', tachies: {} }
+  return { background: '', audio: { bgm: null, ambience: {} }, cg: '', tachies: {} }
 }
 
 function cacheKey(chapterId: string, variables: Readonly<JsonObject>): string {
@@ -47,14 +50,37 @@ export function applyRuntimeStageOperation(
   stage: RuntimeStageState,
   operation: Readonly<JsonObject>,
 ): void {
+  const diagnostics: Parameters<typeof validateAudioOperation>[1] = []
+  validateAudioOperation(operation, diagnostics)
+  if (diagnostics.length)
+    throw new Error(`${diagnostics[0].code}: ${diagnostics[0].message}`)
   if (operation.type === 'background') {
     stage.background = String(operation.url ?? operation.name ?? '')
     stage.cg = ''
     return
   }
 
-  if (operation.type === 'bgm') {
-    stage.bgm = operation.stop ? '' : String(operation.name ?? operation.src ?? '')
+  if (operation.type === 'bgm' || operation.type === 'ambience') {
+    const fade = record(operation.fade)
+    const track: AudioTrackState | null = operation.action === 'clear'
+      ? null
+      : {
+          assetId: String(operation.asset),
+          loop: operation.loop !== false,
+          ...(typeof operation.gain === 'number' ? { gain: operation.gain } : {}),
+          ...(typeof fade?.in === 'number' ? { fadeInMs: fade.in } : {}),
+          ...(typeof fade?.out === 'number' ? { fadeOutMs: fade.out } : {}),
+        }
+    if (operation.type === 'bgm') {
+      stage.audio.bgm = track
+    }
+    else {
+      const slot = operation.slot as AudioAmbienceSlot
+      if (track)
+        stage.audio.ambience[slot] = track
+      else
+        delete stage.audio.ambience[slot]
+    }
     return
   }
 

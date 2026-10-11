@@ -2,7 +2,7 @@ import type { CompileDiagnostic } from '@advjs/core'
 import type { AdvConfig, AdvGameConfig } from '@advjs/types'
 
 import type { ComputedRef, ShallowRef } from 'vue'
-import type { useAdvAuto, useAdvBgm, useAdvTachies } from '../composables'
+import type { useAdvAudio, useAdvAuto, useAdvTachies } from '../composables'
 import type { useAdvCharacters } from '../composables/useAdvCharacters'
 import type { AdvRuntimeHost } from '../composables/useAdvRuntime'
 import type { AdvTranslation } from '../modules/i18n'
@@ -26,7 +26,7 @@ export interface AdvContext {
   $t: AdvTranslation
   $tachies: ReturnType<typeof useAdvTachies>
   $characters: ReturnType<typeof useAdvCharacters>
-  $bgm: ReturnType<typeof useAdvBgm>
+  $audio: ReturnType<typeof useAdvAudio>
   $auto: ReturnType<typeof useAdvAuto>
 
   init: () => Promise<void>

@@ -1,8 +1,15 @@
-import type { AdvBaseNode, AdvGameConfig } from '@advjs/types'
+import type { AdvBaseNode, AdvFlowNode, AdvGameConfig } from '@advjs/types'
 import type { PominisAIVSConfig } from '../src/types'
 import { ensureSuffix } from '@antfu/utils'
 
 const spacePattern = / /g
+
+export interface PominisAudioMapping {
+  /** Explicit native runtime asset catalog, supplied by the importing project. */
+  assets: NonNullable<AdvGameConfig['audio']>['assets']
+  /** Provider theme IDs mapped to reviewed native asset IDs. */
+  themes: Record<string, string>
+}
 
 /**
  * adapt ai pominis format
@@ -12,6 +19,7 @@ const spacePattern = / /g
 export function convertPominisAItoAdvConfig(options: {
   cdnUrl?: string
   config: PominisAIVSConfig
+  audio?: PominisAudioMapping
 } = {
   config: {} as any,
 }) {
@@ -91,5 +99,22 @@ export function convertPominisAItoAdvConfig(options: {
 
   // set cover
   const advGameConfig = advConfig as any as AdvGameConfig
+  if (options.audio)
+    advGameConfig.audio = { assets: structuredClone(options.audio.assets) }
+  for (const chapter of advGameConfig.chapters) {
+    chapter.nodes = chapter.nodes.flatMap((node) => {
+      const external = node as unknown as { bgmThemeId?: string }
+      const theme = external.bgmThemeId
+      delete external.bgmThemeId
+      if (!theme)
+        return [node]
+      const assetId = options.audio?.themes[theme]
+      if (theme !== 'silence' && (!assetId || options.audio?.assets[assetId]?.kind !== 'bgm'))
+        throw new Error(`ADV_AUDIO_MIGRATION_UNRESOLVED: Pominis theme ${theme} requires an explicit theme-to-native-asset mapping`)
+      const id = node.id
+      node.id = `${id}.dialogues`
+      return [{ id, type: 'audio', operations: [theme === 'silence' ? { type: 'bgm', action: 'clear' } : { type: 'bgm', action: 'set', asset: assetId! }], next: node.id } satisfies AdvFlowNode, node]
+    })
+  }
   return advGameConfig
 }

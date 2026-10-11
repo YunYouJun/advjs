@@ -41,6 +41,7 @@ export async function compileClientRuntimeProgram(
       id: options.id,
       chapters,
       requiredPlugins: options.requiredPlugins,
+      resources: options.resources,
     })
   }
 

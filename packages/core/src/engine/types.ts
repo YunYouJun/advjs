@@ -1,3 +1,5 @@
+import type { RuntimeAudioState } from '@advjs/types'
+
 export interface TachieRich {
   name: string
   status?: string
@@ -6,11 +8,10 @@ export interface TachieRich {
 
 export interface PlayStageState {
   background: string
-  bgm: string
+  audio: RuntimeAudioState
   tachies: Record<string, { status: string }>
   tachieAscii: string[]
   tachieRich?: TachieRich[]
-  bgmHint?: string
 }
 
 export interface FormattedOutputMeta {

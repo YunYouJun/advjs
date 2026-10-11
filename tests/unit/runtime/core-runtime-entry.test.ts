@@ -8,7 +8,7 @@ describe('headless core runtime entry', () => {
   it('executes a compiled program without a client or compiler', async () => {
     const runtime = createAdvRuntime({
       program: {
-        schemaVersion: 1,
+        schemaVersion: 2,
         id: 'embed-smoke',
         hash: 'a'.repeat(64),
         entry: { chapterId: 'intro', nodeId: 'hello' },

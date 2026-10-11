@@ -55,16 +55,24 @@ function applyOperation(state: RuntimeState, operation: Operation): RuntimeEffec
     }
   }
 
-  if (operation.type === 'bgm') {
-    const value = operation.stop ? '' : String(operation.name ?? operation.src ?? '')
+  if (operation.type === 'bgm' || operation.type === 'ambience') {
     return {
-      type: 'stage.bgm',
+      type: 'audio.state',
       payload: {
-        value,
-        loop: operation.loop !== false,
-        ...(operation.fade && typeof operation.fade === 'object' && !Array.isArray(operation.fade)
-          ? { fade: structuredClone(operation.fade) }
-          : {}),
+        state: structuredClone(state.stage.audio) as unknown as JsonValue,
+        ...(operation.action === 'clear' && operation.fade ? { fade: structuredClone(operation.fade), ...(operation.type === 'ambience' ? { slot: operation.slot! } : {}) } : {}),
+      },
+    }
+  }
+
+  if (operation.type === 'sfx') {
+    return {
+      type: 'audio.sfx',
+      payload: {
+        assetId: String(operation.asset),
+        ...(typeof operation.gain === 'number' ? { gain: operation.gain } : {}),
+        ...(typeof operation.group === 'string' ? { group: operation.group } : {}),
+        ...(typeof operation.priority === 'number' ? { priority: operation.priority } : {}),
       },
     }
   }
@@ -199,6 +207,17 @@ function enterUntilPause(
       state.status = 'ended'
     else
       state.status = 'playing'
+
+    if (node.kind === 'dialog' || node.kind === 'narration') {
+      effects.push({
+        type: 'dialogue.voice',
+        payload: {
+          ...(typeof node.data?.lineId === 'string' ? { lineId: node.data.lineId } : {}),
+          speakerId: node.kind === 'narration' ? 'narrator' : String(node.data?.speakerId ?? node.data?.character ?? ''),
+          text: String(node.data?.text ?? ''),
+        },
+      })
+    }
 
     return { state, effects }
   }

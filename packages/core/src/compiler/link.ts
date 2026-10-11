@@ -15,7 +15,9 @@ import type {
   RuntimeProgramInput,
   RuntimeTargetInput,
 } from './types'
+import { isDialogueLineId } from '@advjs/parser'
 import { RUNTIME_SCHEMA_VERSION } from '@advjs/types'
+import { validateAudioOperation } from '../runtime/audio-validation'
 import { parseRuntimeExpression, RuntimeExpressionError } from '../runtime/expression'
 import { cloneJsonData } from '../utils/json'
 import { isRuntimeIdentifier, parseRuntimeTarget } from './address'
@@ -68,6 +70,7 @@ export async function linkRuntimeProgram(input: RuntimeProgramInput): Promise<{
   const chapters = Object.create(null) as Record<string, RuntimeChapter>
   const chapterInputs = new Map<string, RuntimeProgramInput['chapters'][number]>()
   const nodeInputs = new Map<string, Map<string, RuntimeNodeInput>>()
+  const lineIds = new Set<string>()
 
   const compileCondition = (
     condition: string | RuntimeExpression | undefined,
@@ -104,6 +107,22 @@ export async function linkRuntimeProgram(input: RuntimeProgramInput): Promise<{
     const order: string[] = []
     const inputs = new Map<string, RuntimeNodeInput>()
     for (const node of chapterInput.nodes) {
+      const lineId = node.data?.lineId
+      if (lineId !== undefined) {
+        if (node.kind === 'dialog' && (typeof node.data?.speakerId !== 'string' || !node.data.speakerId.trim()))
+          diagnostics.push(error('ADV_RUNTIME_INVALID_SPEAKER_ID', 'An identified dialogue requires a stable speaker ID', node.source))
+        if (!['dialog', 'narration'].includes(node.kind) || !isDialogueLineId(lineId)) {
+          diagnostics.push(error('ADV_RUNTIME_INVALID_LINE_ID', 'Dialogue line IDs require line_<uuidv7> and belong only to dialogue or narration nodes', node.source))
+        }
+        else if (lineIds.has(lineId)) {
+          diagnostics.push(error('ADV_RUNTIME_DUPLICATE_LINE_ID', `Duplicate dialogue line ID: ${lineId}`, node.source))
+        }
+        else {
+          lineIds.add(lineId)
+        }
+      }
+      if (node.kind === 'effects' && Array.isArray(node.data?.operations))
+        node.data.operations.forEach(operation => validateAudioOperation(operation, diagnostics, node.source))
       if (Object.hasOwn(nodes, node.id)) {
         diagnostics.push(error(
           'ADV_RUNTIME_DUPLICATE_NODE',
@@ -203,6 +222,7 @@ export async function linkRuntimeProgram(input: RuntimeProgramInput): Promise<{
     diagnostics.push(error(
       'ADV_RUNTIME_UNKNOWN_ENTRY',
       `Unknown program entry: ${input.entry.chapterId}#${input.entry.nodeId}`,
+      input.source,
     ))
   }
 
@@ -212,6 +232,7 @@ export async function linkRuntimeProgram(input: RuntimeProgramInput): Promise<{
       diagnostics.push(error(
         'ADV_RUNTIME_UNKNOWN_CHAPTER_ENTRY',
         `Unknown entry for ${chapter.id}: ${chapter.entry}`,
+        chapterInputs.get(chapterId)?.source,
       ))
     }
 

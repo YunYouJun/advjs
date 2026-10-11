@@ -1,22 +1,17 @@
 <script lang="ts" setup>
-import { useSound } from '@advjs/client'
-import { computed } from 'vue'
-import { useThemeConfig } from '../../composables'
+import { injectionAdvContext } from '@advjs/client/constants'
+import { inject } from 'vue'
 
 defineProps<{
   title?: string
   disabled?: boolean
 }>()
 
-const themeConfig = useThemeConfig()
-const sVolume = computed(() => themeConfig.value?.audio?.volume ?? 0.5)
-const popDownUrl = computed(() => themeConfig.value?.assets?.audio?.popDownUrl || '')
-
-const popDown = useSound(popDownUrl, { volume: sVolume })
+const $adv = inject(injectionAdvContext, undefined)
 </script>
 
 <template>
-  <button type="button" class="adv-icon-button" :disabled="disabled" :title="title" :aria-label="title" @click="popDown.play()">
+  <button type="button" class="adv-icon-button" :disabled="disabled" :title="title" :aria-label="title" @click="$adv?.$audio.playUi('confirm')">
     <AdvIcon aria-hidden="true">
       <slot />
     </AdvIcon>

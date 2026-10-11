@@ -1,7 +1,7 @@
 import type { RuntimeProgram } from '@advjs/types'
 
 export const runtimeConformanceProgram: RuntimeProgram = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   id: 'conformance',
   hash: 'conformance-v1',
   entry: { chapterId: 'chapter-1', nodeId: 'stage' },
@@ -18,7 +18,7 @@ export const runtimeConformanceProgram: RuntimeProgram = {
           data: {
             operations: [
               { type: 'background', url: 'night.webp' },
-              { type: 'bgm', name: 'calm-night' },
+              { type: 'bgm', action: 'set', asset: 'calm-night' },
             ],
           },
           next: { chapterId: 'chapter-1', nodeId: 'line' },

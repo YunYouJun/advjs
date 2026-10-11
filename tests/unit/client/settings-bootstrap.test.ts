@@ -1,4 +1,5 @@
 import type { RuntimeProgram } from '@advjs/types'
+import { RUNTIME_SCHEMA_VERSION } from '@advjs/types'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { expect, it, vi } from 'vitest'
@@ -45,7 +46,7 @@ it('does not offer saving the real title bootstrap, then enables Save after the 
     expect(labels()).not.toContain('menu.save_game')
 
     const program: RuntimeProgram = {
-      schemaVersion: 1,
+      schemaVersion: RUNTIME_SCHEMA_VERSION,
       id: 'real-game',
       hash: 'real-game-v1',
       entry: { chapterId: 'opening', nodeId: 'line' },

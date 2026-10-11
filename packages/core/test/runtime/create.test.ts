@@ -4,7 +4,7 @@ import { reactive } from 'vue'
 import { createAdvRuntime } from '../../src/runtime'
 
 const program: RuntimeProgram = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   id: 'facade',
   hash: 'facade',
   entry: { chapterId: 'chapter-1', nodeId: 'first' },
@@ -121,7 +121,7 @@ describe('createAdvRuntime', () => {
 
     const restored = await runtime.next()
     expect(restored.state.cursor.nodeId).toBe('third')
-    expect(restored.effects).toEqual([{ type: 'runtime.forward' }])
+    expect(restored.effects).toEqual([{ type: 'runtime.forward' }, { type: 'audio.state', payload: { state: { bgm: null, ambience: {} } } }])
     expect(runtime.trace().at(-1)?.command).toBe('forward')
 
     runtime.back()

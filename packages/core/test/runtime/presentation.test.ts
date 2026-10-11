@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { derivePresentationState } from '../../src/runtime'
 
 const program: RuntimeProgram = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   id: 'presentation-preview',
   hash: 'presentation-preview-v1',
   entry: { chapterId: 'chapter-1', nodeId: 'scene-a' },
@@ -21,7 +21,7 @@ const program: RuntimeProgram = {
           data: {
             operations: [
               { type: 'background', name: 'day' },
-              { type: 'bgm', name: 'theme' },
+              { type: 'bgm', action: 'set', asset: 'theme' },
               {
                 type: 'tachie',
                 enter: [{ name: 'hero', status: 'smile', position: 'left', motion: 'hop' }],
@@ -64,7 +64,7 @@ describe('derivePresentationState', () => {
       anchor: { chapterId: 'chapter-1', nodeId: 'scene-b' },
       stage: {
         background: 'night',
-        bgm: 'theme',
+        audio: { bgm: { assetId: 'theme', loop: true }, ambience: {} },
         cg: 'memory',
         tachies: { hero: { status: 'smile', position: 'left' } },
       },

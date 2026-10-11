@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { createAdvRuntime } from '../../src/runtime'
 
 const program: RuntimeProgram = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   id: 'snapshot-demo',
   hash: 'snapshot-demo-v1',
   entry: { chapterId: 'chapter-1', nodeId: 'stage' },
@@ -78,7 +78,7 @@ describe('runtime snapshots', () => {
     const roundTripped = JSON.parse(JSON.stringify(snapshot)) as RuntimeSnapshot
 
     expect(roundTripped).toMatchObject({
-      schemaVersion: 1,
+      schemaVersion: 2,
       program: { id: program.id, hash: program.hash },
       state: {
         status: 'playing',
@@ -156,11 +156,11 @@ describe('runtime snapshots', () => {
     const valid = runtime.snapshot()
     runtime.back()
     runtime.restore(valid)
-    expect(effects).toEqual(['runtime.back', 'runtime.restore'])
+    expect(effects).toEqual(['runtime.back', 'audio.state', 'runtime.restore', 'audio.state'])
   })
 
   it.each([
-    ['schema', (snapshot: RuntimeSnapshot) => { snapshot.schemaVersion = 2 as 1 }],
+    ['schema', (snapshot: RuntimeSnapshot) => { snapshot.schemaVersion = 3 as 2 }],
     ['program id', (snapshot: RuntimeSnapshot) => { snapshot.program.id = 'other' }],
     ['program hash', (snapshot: RuntimeSnapshot) => { snapshot.program.hash = 'other' }],
     ['cursor', (snapshot: RuntimeSnapshot) => { snapshot.state.cursor.nodeId = 'missing' }],

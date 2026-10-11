@@ -8,13 +8,13 @@ import {
 } from '../../../packages/client/runtime/inspector'
 
 const snapshot: RuntimeSnapshot = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   program: { id: 'fixture', hash: 'fixture-v1' },
   state: {
     status: 'waiting-choice',
     cursor: { chapterId: 'chapter-1', nodeId: 'choice' },
     variables: { profile: { mood: 'curious' } },
-    stage: { background: 'night.svg', bgm: 'ambient.wav', cg: '', tachies: {} },
+    stage: { background: 'night.svg', audio: { bgm: { assetId: 'ambient' }, ambience: {} }, cg: '', tachies: {} },
     choices: [{
       node: { chapterId: 'chapter-1', nodeId: 'choice' },
       choiceId: 'observe',
@@ -28,7 +28,7 @@ const snapshot: RuntimeSnapshot = {
       status: 'playing',
       cursor: { chapterId: 'chapter-1', nodeId: 'line' },
       variables: {},
-      stage: { background: '', bgm: '', cg: '', tachies: {} },
+      stage: { background: '', audio: { bgm: null, ambience: {} }, cg: '', tachies: {} },
       choices: [],
       visited: [],
     },

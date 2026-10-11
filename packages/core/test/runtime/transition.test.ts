@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { createInitialRuntimeState, transitionRuntime } from '../../src/runtime/transition'
 
 const program: RuntimeProgram = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   id: 'transition-test',
   hash: 'test',
   entry: { chapterId: 'chapter-1', nodeId: 'background' },
@@ -85,7 +85,8 @@ describe('transitionRuntime', () => {
                   },
                   {
                     type: 'bgm',
-                    name: 'star-proof',
+                    action: 'set',
+                    asset: 'star-proof',
                     loop: true,
                     fade: { in: 1200, out: 700 },
                   },
@@ -113,7 +114,7 @@ describe('transitionRuntime', () => {
 
     expect(update.state.stage).toEqual({
       background: 'orbit.webp',
-      bgm: 'star-proof',
+      audio: { bgm: { assetId: 'star-proof', loop: true, fadeInMs: 1200, fadeOutMs: 700 }, ambience: {} },
       cg: 'star-in-hand',
       tachies: {
         观测者: {
@@ -266,7 +267,7 @@ describe('transitionRuntime', () => {
 
   it('stops a cycle of silent nodes with a structured error', () => {
     const loopProgram: RuntimeProgram = {
-      schemaVersion: 1,
+      schemaVersion: 2,
       id: 'silent-loop',
       hash: 'silent-loop',
       entry: { chapterId: 'chapter-1', nodeId: 'loop' },

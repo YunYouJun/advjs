@@ -24,8 +24,13 @@ function formatStage(stage?: PlayStageState): string {
   const parts: string[] = []
   if (stage.background)
     parts.push(`[BG ${stage.background}]`)
-  if (stage.bgm)
-    parts.push(stage.bgmHint ? `[BGM ${stage.bgm} (${stage.bgmHint})]` : `[BGM ${stage.bgm}]`)
+  if (stage.audio.bgm)
+    parts.push(`[BGM ${stage.audio.bgm.assetId}]`)
+  for (const slot of ['bed', 'weather', 'crowd', 'detail'] as const) {
+    const ambience = stage.audio.ambience[slot]
+    if (ambience)
+      parts.push(`[Ambience ${slot} ${ambience.assetId}]`)
+  }
   if (stage.tachieAscii.length)
     parts.push(`[Tachie ${stage.tachieAscii.join(' ')}]`)
 

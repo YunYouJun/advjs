@@ -4,7 +4,7 @@ import { createAdvRuntimeHost } from '../../../packages/client/composables/useAd
 import { defineAdvPlugin } from '../../../packages/core/src/runtime'
 
 const program: RuntimeProgram = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   id: 'client-host',
   hash: 'client-host-v1',
   entry: { chapterId: 'chapter-1', nodeId: 'stage' },
@@ -54,7 +54,7 @@ describe('client runtime host', () => {
       stage: { background: 'night.webp' },
     })
     expect(host.current.value).toMatchObject({ id: 'line', kind: 'dialog' })
-    expect(effects).toEqual(['stage.background'])
+    expect(effects).toEqual(['stage.background', 'dialogue.voice'])
 
     const exposed = host.snapshot()
     exposed.state.stage.background = 'mutated.webp'

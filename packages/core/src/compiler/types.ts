@@ -50,6 +50,7 @@ export interface RuntimeNodeInput {
 
 export interface RuntimeChapterInput {
   id: string
+  source?: CompileSourceLocation
   title?: string
   entry: string
   nodes: RuntimeNodeInput[]
@@ -57,6 +58,8 @@ export interface RuntimeChapterInput {
 
 export interface RuntimeProgramInput {
   id: string
+  /** Authored location of the selected program entry. */
+  source?: CompileSourceLocation
   entry: RuntimeAddress
   chapters: RuntimeChapterInput[]
   requiredPlugins?: Record<string, string>

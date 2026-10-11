@@ -5,7 +5,6 @@
  * virtual modules provided by `@advjs/vite-plugin-adv`. Embedded hosts provide
  * their config and runtime plugins directly through `setupAdvContext()`.
  */
-export * from './assets'
 export * from './composables'
 export * from './constants'
 export * from './pixi'

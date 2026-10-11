@@ -23,7 +23,9 @@ import {
   validateSceneFrontmatter,
 } from '@advjs/parser'
 import { normalizeAdvAssetManifest } from '../assets'
-import { compileMarkdownProgram, isRuntimeIdentifier } from '../compiler'
+import { compileFlowProgram, compileMarkdownProgram, isRuntimeIdentifier } from '../compiler'
+import { validateProjectAudio } from './audio'
+import { collectProjectFlowChapters } from './flow'
 
 const PROJECT_SCHEMA_VERSION = 1 as const
 const WINDOWS_DRIVE_RE = /^[a-z]:[\\/]/iu
@@ -50,6 +52,7 @@ const CONFIG_FIELDS = new Set([
 ])
 const GAME_FIELDS = new Set([
   'assets',
+  'audio',
   'bgm',
   'chapters',
   'characters',
@@ -58,6 +61,7 @@ const GAME_FIELDS = new Set([
   'entryChapterId',
   'favicon',
   'gallery',
+  'locale',
   'id',
   'progression',
   'requiredPlugins',
@@ -66,11 +70,13 @@ const GAME_FIELDS = new Set([
   'variables',
 ])
 const NORMALIZED_GAME_FIELDS = [
+  'audio',
   'bgm',
   'cover',
   'description',
   'favicon',
   'gallery',
+  'locale',
   'progression',
   'title',
   'variables',
@@ -500,6 +506,8 @@ function collectReferenceDiagnostics(
   const diagnostics: AdvProjectDiagnostic[] = []
   const seen = new Set<string>()
   for (const chapter of chapters) {
+    if (chapter.flow)
+      continue
     for (const path of chapter.sources) {
       const source = files.get(path) ?? ''
       for (const character of extractCharacterRefs(source)) {
@@ -573,6 +581,7 @@ function loadAssetManifest(
   files: Map<string, string>,
   path: string | undefined,
   diagnostics: AdvProjectDiagnostic[],
+  allowEmpty = false,
 ): AdvAssetManifest | undefined {
   if (!path)
     return undefined
@@ -601,7 +610,7 @@ function loadAssetManifest(
     input = { ...manifest, assets }
   }
   try {
-    return normalizeAdvAssetManifest(input)
+    return normalizeAdvAssetManifest(input, { allowEmpty })
   }
   catch (error) {
     diagnostics.push({
@@ -618,14 +627,21 @@ function resourceCatalog(
   games: JsonObject[],
   characters: AdvCharacter[],
   scenes: AdvProjectScene[],
+  strict = false,
 ): MarkdownResourceCatalog | undefined {
-  if (!manifest)
+  if (!manifest && !strict)
     return undefined
   const backgrounds: string[] = []
   const bgms: string[] = []
+  const audio = Object.create(null) as Record<string, string>
   const cgs: string[] = []
   const tachies = Object.create(null) as Record<string, string[]>
-  for (const asset of manifest.assets) {
+  const speakers = Object.create(null) as Record<string, string>
+  for (const asset of manifest?.assets ?? []) {
+    if (asset.state === 'rejected')
+      continue
+    if (asset.type === 'audio' && ['bgm', 'ambience', 'voice', 'sfx', 'ui', 'reference'].includes(asset.kind ?? ''))
+      audio[asset.id] = asset.kind!
     if (asset.kind === 'background') {
       backgrounds.push(asset.id)
     }
@@ -681,6 +697,12 @@ function resourceCatalog(
     }
   }
   for (const character of configuredCharacters.filter(isRecord)) {
+    if (typeof character.id === 'string') {
+      for (const name of [character.id, character.name, ...Array.isArray(character.aliases) ? character.aliases : []]) {
+        if (typeof name === 'string')
+          speakers[name] = character.id
+      }
+    }
     if (!isRecord(character.tachies))
       continue
     const statuses = Object.keys(character.tachies)
@@ -689,7 +711,7 @@ function resourceCatalog(
         tachies[name] = [...new Set([...tachies[name] ?? [], ...statuses])]
     }
   }
-  return { backgrounds, bgms, cgs, tachies }
+  return { backgrounds, bgms, audio, cgs, tachies, speakers }
 }
 
 function sortDiagnostics(diagnostics: AdvProjectDiagnostic[]) {
@@ -762,7 +784,9 @@ export async function compileProject(
     scenes: {},
   }
 
-  const chapters = collectChapters(files, root, gameConfig, diagnostics)
+  const chapters: ProjectChapterInput[] = format === 'flow'
+    ? collectProjectFlowChapters(files, root, gameConfig, gameConfigPath, diagnostics).map(chapter => ({ ...chapter, content: '' }))
+    : collectChapters(files, root, gameConfig, diagnostics)
   for (const chapter of chapters)
     sourceMap.chapters[chapter.id] = chapter.sources
   const entryChapterId = typeof gameConfig.entryChapterId === 'string'
@@ -790,17 +814,20 @@ export async function compileProject(
     options.plugins,
     gameConfigPath ?? configPath ?? 'adv.config.json',
   ))
-  const assets = loadAssetManifest(files, assetsPath, diagnostics)
-  if (assets) {
-    const assetIds = new Set(assets.assets.map(asset => asset.id))
-    for (const scene of sceneResult.scenes) {
-      if (scene.assetId && !assetIds.has(scene.assetId)) {
+  const assets = loadAssetManifest(files, assetsPath, diagnostics, options.allowEmptyAssetManifest)
+  for (const scene of sceneResult.scenes) {
+    if (scene.assetId) {
+      const asset = assets?.assets.find(asset => asset.id === scene.assetId)
+      if (!asset) {
         diagnostics.push({
           code: 'ADV_PROJECT_UNKNOWN_SCENE_ASSET',
           severity: 'error',
           message: `Scene "${scene.id}" references unknown asset: ${scene.assetId}`,
           path: sourceMap.scenes[scene.id],
         })
+      }
+      else if (asset.state === 'rejected' || asset.type !== (scene.type === 'model' ? 'model' : 'image')) {
+        diagnostics.push({ code: 'ADV_PROJECT_INVALID_SCENE_ASSET', severity: 'error', message: `Scene "${scene.id}" requires a usable ${scene.type === 'model' ? 'model' : 'image'} asset: ${scene.assetId}`, path: sourceMap.scenes[scene.id] })
       }
     }
   }
@@ -843,14 +870,32 @@ export async function compileProject(
     })))
   }
   else if (format === 'flow') {
-    diagnostics.push({
-      code: 'ADV_PROJECT_FLOW_NOT_IMPLEMENTED',
-      severity: 'error',
-      message: 'The standard project compiler does not yet accept serialized Flow chapters',
-      path: configPath ?? 'adv.config.json',
+    const ordered = [...chapters]
+    const entryIndex = ordered.findIndex(chapter => chapter.id === entryChapterId)
+    if (entryIndex > 0)
+      ordered.unshift(...ordered.splice(entryIndex, 1))
+    const compiled = await compileFlowProgram({
+      id: source.id ?? (typeof config.id === 'string' ? config.id : 'adv-project'),
+      chapters: ordered.flatMap(chapter => chapter.flow ? [chapter.flow] : []),
+      requiredPlugins: required,
+      resources: options.validateContentReferences === false ? undefined : resourceCatalog(assets, [gameConfig], characterResult.characters, sceneResult.scenes, true),
+      sourcePaths: Object.fromEntries(chapters.map(chapter => [chapter.id, chapter.sources[0]])),
+      staticAnalysis: options.staticAnalysis ? { variables: isRecord(gameConfig.variables) ? gameConfig.variables as JsonObject : undefined } : undefined,
     })
+    program = compiled.program
+    diagnostics.push(...compiled.diagnostics.map(diagnostic => ({
+      code: diagnostic.code,
+      severity: diagnostic.severity,
+      message: diagnostic.message,
+      path: diagnostic.source?.file ?? chapters[0]?.sources[0] ?? configPath ?? 'adv.config.json',
+      line: diagnostic.source?.line,
+      column: diagnostic.source?.column,
+      suggestion: diagnostic.suggestion,
+      certainty: diagnostic.certainty,
+    })))
   }
 
+  diagnostics.push(...await validateProjectAudio({ files, root, assets, characters: characterResult.characters, program, sourceLocale: typeof gameConfig.locale === 'string' ? gameConfig.locale : undefined }))
   sortDiagnostics(diagnostics)
   if (diagnostics.some(diagnostic => diagnostic.severity === 'error'))
     program = undefined
@@ -868,7 +913,7 @@ export async function compileProject(
       theme: typeof config.theme === 'string' ? config.theme : undefined,
       entryChapterId,
       game: normalizedGame(gameConfig),
-      chapters: chapters.map(({ id, title, sources }) => ({ id, title, sources })),
+      chapters: chapters.map(({ id, title, sources, flow }) => ({ id, title, sources, ...(flow ? { flow } : {}) })),
       characters: characterResult.characters,
       scenes: sceneResult.scenes,
       plugins: Object.entries(required).map(([name, version]) => ({ name, version })),

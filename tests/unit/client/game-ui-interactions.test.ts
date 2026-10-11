@@ -5,10 +5,10 @@ import { createI18n } from 'vue-i18n'
 import AdvThemeScope from '../../../packages/client/components/internals/AdvThemeScope.vue'
 import AdvModal from '../../../packages/client/components/ui/AdvModal.vue'
 import { gameColorModeStorageKey, useGameColorMode } from '../../../packages/client/composables/useGameColorMode'
+import { injectionAdvContext } from '../../../packages/client/constants'
 import AdvIconButton from '../../../themes/theme-default/components/ui/AdvIconButton.vue'
 
 const { play } = vi.hoisted(() => ({ play: vi.fn() }))
-vi.mock('@advjs/client', () => ({ useSound: () => ({ play }) }))
 vi.mock('../../../themes/theme-default/composables', () => ({ useThemeConfig: () => shallowRef({ audio: { volume: 0 } }) }))
 vi.mock('../../../packages/client/composables/useAdvMotionPreference', () => ({ useAdvMotionPreference: () => shallowRef('none') }))
 
@@ -26,6 +26,7 @@ function mount(render: () => ReturnType<typeof h>, storageKey?: string) {
   const container = document.createElement('div')
   document.body.append(container)
   const app = createApp({ render })
+  app.provide(injectionAdvContext, { $audio: { playUi: play } } as never)
   app.use(createI18n({ legacy: false, locale: 'en', messages: { en: { button: { close: 'Close' }, ui: { dialog: 'Dialog' } } } }))
   app.component('AdvIconButton', AdvIconButton)
   app.component('AdvIcon', { render() {

@@ -3,6 +3,7 @@ import type { AdvProjectFileMap, JsonValue } from '@advjs/types'
 const ADV_CONFIG_FIELDS = new Set(['entryChapterId', 'format', 'id', 'plugins', 'root', 'runtimePlugins', 'theme'])
 const GAME_CONFIG_FIELDS = new Set([
   'assets',
+  'audio',
   'bgm',
   'chapters',
   'characters',
@@ -11,6 +12,7 @@ const GAME_CONFIG_FIELDS = new Set([
   'entryChapterId',
   'favicon',
   'gallery',
+  'locale',
   'id',
   'progression',
   'requiredPlugins',
@@ -25,6 +27,7 @@ const CHARACTER_FIELDS = new Set([
   'avatar',
   'avatars',
   'cv',
+  'voiceProfile',
   'faction',
   'id',
   'imagePrompt',
@@ -36,6 +39,7 @@ const CHARACTER_FIELDS = new Set([
   'visual',
 ])
 const SCENE_FIELDS = new Set(['alias', 'assetId', 'description', 'id', 'imagePrompt', 'name', 'src', 'tags', 'type'])
+const FLOW_CHAPTER_FIELDS = new Set(['title', 'description', 'nodes', 'startNodeId'])
 
 export type ProjectSourcePatch
   = | { kind: 'json-set', path: string, key: string, value: JsonValue }
@@ -53,6 +57,8 @@ function assertProjectPath(path: string) {
 }
 
 function allowedJsonFields(path: string) {
+  if (path.endsWith('.chapter.json'))
+    return FLOW_CHAPTER_FIELDS
   if (path === 'adv.config.json')
     return ADV_CONFIG_FIELDS
   if (path === 'game.config.json' || /(?:^|\/)settings\/game\.json$/u.test(path))

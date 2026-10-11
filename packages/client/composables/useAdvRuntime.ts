@@ -62,7 +62,7 @@ function initialState(program: RuntimeProgram): RuntimeState {
     status: 'idle',
     cursor: structuredClone(program.entry),
     variables: {},
-    stage: { background: '', bgm: '', cg: '', tachies: {} },
+    stage: { background: '', audio: { bgm: null, ambience: {} }, cg: '', tachies: {} },
     choices: [],
     visited: [],
   }

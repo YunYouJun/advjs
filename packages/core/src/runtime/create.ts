@@ -14,6 +14,7 @@ import type {
 } from '@advjs/types'
 import type { AdvRuntimePlugin } from './registry'
 import type { RuntimeCommand } from './transition'
+import { RUNTIME_SCHEMA_VERSION } from '@advjs/types'
 import { isRuntimeIdentifier, parseRuntimeTarget } from '../compiler/address'
 import { cloneJsonData } from '../utils/json'
 import { createRuntimeRegistry } from './registry'
@@ -65,6 +66,8 @@ function runtimeApiError(code: string, message: string): Error {
 
 export function createAdvRuntime(options: AdvRuntimeOptions): AdvRuntime {
   const program = cloneJsonData(options.program)
+  if (program.schemaVersion !== RUNTIME_SCHEMA_VERSION)
+    throw runtimeApiError('ADV_RUNTIME_UNSUPPORTED_PROGRAM', `RuntimeProgram schema ${String(program.schemaVersion)} requires explicit migration to ${RUNTIME_SCHEMA_VERSION}`)
   const maxCheckpoints = options.maxCheckpoints ?? 100
   const maxTraceEntries = options.maxTraceEntries ?? 200
   const now = options.now ?? Date.now
@@ -192,7 +195,7 @@ export function createAdvRuntime(options: AdvRuntimeOptions): AdvRuntime {
     type: 'runtime.back' | 'runtime.forward' | 'runtime.restore',
     restoredState: Readonly<RuntimeState>,
   ): RuntimeEffect[] => {
-    const effects: RuntimeEffect[] = [{ type }]
+    const effects: RuntimeEffect[] = [{ type }, { type: 'audio.state', payload: { state: structuredClone(restoredState.stage.audio) as unknown as JsonValue } }]
     if (restoredState.pendingActivity) {
       effects.push({
         type: 'activity.request',

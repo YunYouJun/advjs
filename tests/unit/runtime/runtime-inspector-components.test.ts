@@ -8,7 +8,7 @@ const model: RuntimeInspectorModel = {
   status: 'waiting-choice',
   current: { id: 'choice', kind: 'choices' },
   variables: { profile: { mood: 'curious' }, score: 2 },
-  stage: { background: 'night.svg', bgm: 'ambient.wav', cg: '', tachies: {} },
+  stage: { background: 'night.svg', audio: { bgm: { assetId: 'ambient' }, ambience: {} }, cg: '', tachies: {} },
   choices: [],
   visited: ['chapter-1#line', 'chapter-1#choice'],
   checkpointCount: 2,

@@ -1,5 +1,6 @@
 import { useRouter } from 'vue-router'
 import { useAppStore, useGameStore } from '../stores'
+import { useAdvContext } from './useAdvContext'
 
 export interface AdvStartTarget {
   chapterId: string
@@ -16,10 +17,16 @@ export function useAdvStartActions() {
   const router = useRouter()
   const app = useAppStore()
   const game = useGameStore()
+  const { $adv } = useAdvContext()
 
   return {
     startGame: (target?: AdvStartTarget) => {
       game.pendingRestore = undefined
+      // Start audio within the original user gesture, before mounting the game.
+      try {
+        void $adv.$audio.unlock().catch(() => {})
+      }
+      catch { /* Audio access must not prevent navigation. */ }
       return router.push({
         path: '/game',
         ...(target

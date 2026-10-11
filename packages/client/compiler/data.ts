@@ -1,5 +1,4 @@
 import type { AdvData } from '@advjs/types'
-import { defu } from 'defu'
 
 import { computed, readonly, shallowRef } from 'vue'
 // virtual module
@@ -9,6 +8,7 @@ import chapters from '#advjs/game/chapters'
 import characters from '#advjs/game/characters'
 
 import scenes from '#advjs/game/scenes'
+import { resolveVirtualGameCollections } from './collections'
 
 export const advDataRef = shallowRef<AdvData>(
   (import.meta.env.PROD ? advData : readonly(advData)) as AdvData,
@@ -37,7 +37,7 @@ if (__DEV__) {
 
 // init
 export function initAdvData() {
-  advData.gameConfig = defu(advData.gameConfig, {
+  advData.gameConfig = resolveVirtualGameCollections(advData.gameConfig, {
     characters,
     scenes,
     chapters,

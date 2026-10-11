@@ -4,7 +4,6 @@
  *
  * @module @advjs/client
  */
-export * from './assets'
 export * from './composables'
 export * from './constants'
 export * from './pixi'

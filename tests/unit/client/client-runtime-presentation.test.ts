@@ -1,5 +1,4 @@
 import type { AdvGameConfig, RuntimeState } from '@advjs/types'
-import type { useAdvBgm } from '../../../packages/client/composables'
 import type { AdvPresentationResources } from '../../../packages/client/runtime/effects'
 import { describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
@@ -22,7 +21,7 @@ const state: RuntimeState = {
   variables: {},
   stage: {
     background: 'night',
-    bgm: 'theme',
+    audio: { bgm: { assetId: 'theme' }, ambience: {} },
     cg: 'memory',
     tachies: { hero: { status: 'smile' } },
   },
@@ -33,14 +32,11 @@ const state: RuntimeState = {
 describe('runtime presentation history synchronization', () => {
   it('restores final stage state without replaying authored cues', () => {
     const presentation = resources()
-    const syncWithOptions = vi.fn()
-    const bgm = { syncWithOptions } as unknown as ReturnType<typeof useAdvBgm>
     const gallery = { unlock: vi.fn() }
 
     applyRuntimePresentationEffects(
       [{ type: 'runtime.back' }],
       state,
-      bgm,
       presentation,
       { characters: [] } as unknown as AdvGameConfig,
       gallery as never,
@@ -55,7 +51,6 @@ describe('runtime presentation history synchronization', () => {
     })
     expect(presentation.transitionCueRef.value?.value).toEqual({ name: 'cut', duration: 0 })
     expect(presentation.tachieCueRef.value?.value).toMatchObject({ instant: true })
-    expect(syncWithOptions).toHaveBeenCalledWith('theme', { fadeIn: 120, fadeOut: 120 })
     expect(gallery.unlock).not.toHaveBeenCalled()
   })
 })

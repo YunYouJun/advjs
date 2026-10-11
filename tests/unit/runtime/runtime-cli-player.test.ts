@@ -6,7 +6,7 @@ import { RuntimeCliPlayer } from '../../../packages/advjs/node/runtime/player'
 import { createAdvRuntime, defineAdvPlugin } from '../../../packages/core/src/runtime'
 
 const program: RuntimeProgram = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   id: 'cli-player',
   hash: 'cli-player-v1',
   entry: { chapterId: 'chapter-1', nodeId: 'stage' },
@@ -140,7 +140,7 @@ describe('runtimeCliPlayer', () => {
       },
     })
     const activityProgram: RuntimeProgram = {
-      schemaVersion: 1,
+      schemaVersion: 2,
       id: 'cli-activity',
       hash: 'cli-activity-v1',
       entry: { chapterId: 'chapter-1', nodeId: 'compare' },

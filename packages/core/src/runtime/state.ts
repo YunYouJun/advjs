@@ -16,7 +16,7 @@ export function createInitialRuntimeState(program: RuntimeProgram, variables: Js
     variables: cloneJsonData(variables),
     stage: {
       background: '',
-      bgm: '',
+      audio: { bgm: null, ambience: {} },
       cg: '',
       tachies: {},
     },

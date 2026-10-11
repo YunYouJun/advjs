@@ -4,7 +4,8 @@ import type { Pinia } from 'pinia'
 import type { CompileClientRuntimeProgramOptions } from '../runtime'
 import type { AdvClientRuntimePlugin, AdvContext } from '../types'
 import { shallowRef, watch } from 'vue'
-import { useAdvAuto, useAdvBgm, useAdvTachies } from '../composables'
+import { followingVoiceLineIds } from '../audio/prefetch'
+import { useAdvAudio, useAdvAuto, useAdvTachies } from '../composables'
 import { useAdvCharacters } from '../composables/useAdvCharacters'
 import { createAdvRuntimeHost } from '../composables/useAdvRuntime'
 import { $t } from '../modules/i18n'
@@ -24,7 +25,7 @@ import { useAdvStore, useAudioStore, useGameStore } from '../stores'
 import { ADV_RUNTIME, initGameRuntime } from '../utils'
 
 const BOOTSTRAP_PROGRAM: RuntimeProgram = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   id: 'advjs:bootstrap',
   hash: 'advjs:bootstrap',
   entry: { chapterId: 'bootstrap', nodeId: 'end' },
@@ -61,13 +62,11 @@ function markdownResources(gameConfig: AdvGameConfig): MarkdownResourceCatalog {
     for (const name of [character.id, character.name, ...(character.aliases ?? [])])
       tachies[name] = statuses
   }
-  const library = gameConfig.bgm?.library
   return {
     backgrounds: (gameConfig.scenes ?? []).map(scene => scene.id),
+    speakers: Object.fromEntries((gameConfig.characters ?? []).flatMap(character => [character.id, character.name, ...(character.aliases ?? [])].map(name => [name, character.id]))),
     cgs: gameConfig.gallery?.items.map(item => item.id) ?? [],
-    bgms: library && typeof library === 'object' && !Array.isArray(library)
-      ? Object.keys(library)
-      : undefined,
+    audio: Object.fromEntries(Object.entries(gameConfig.audio?.assets ?? {}).map(([id, asset]) => [id, asset.kind])),
     tachies,
   }
 }
@@ -94,6 +93,8 @@ export function setupAdvContext(ctx: {
     ? undefined
     : ctx.galleryStorage ?? (typeof localStorage === 'undefined' ? undefined : localStorage)
   let advContext: AdvContext
+  const audio = useAudioStore(ctx.pinia)
+  const syncAudioSettings = () => advContext.$audio.replaceUserSettings(JSON.parse(JSON.stringify(audio.settings)))
 
   const runtime = createAdvRuntimeHost({
     program: BOOTSTRAP_PROGRAM,
@@ -112,10 +113,16 @@ export function setupAdvContext(ctx: {
     },
     onEffects(effects, state) {
       if (advContext) {
+        void advContext.$audio.applyEffects(effects, state).catch(() => {
+          compileDiagnostics.value = [...compileDiagnostics.value, {
+            code: 'ADV_AUDIO_PLAYBACK_FAILED',
+            severity: 'warning',
+            message: 'Unable to play the current audio cue',
+          }]
+        })
         applyRuntimePresentationEffects(
           effects,
           state,
-          advContext.$bgm,
           ADV_RUNTIME,
           ctx.gameConfig.value,
           advContext.gallery,
@@ -147,6 +154,7 @@ export function setupAdvContext(ctx: {
       const result = await compileClientRuntimeProgram({
         id: `adv-browser:${ctx.gameConfig.value.title || 'game'}`,
         chapters: ctx.gameConfig.value.chapters,
+        entryChapterId: ctx.gameConfig.value.entryChapterId,
         fetcher: ctx.fetcher,
         requiredPlugins: ctx.gameConfig.value.requiredPlugins,
         resources: markdownResources(ctx.gameConfig.value),
@@ -178,18 +186,26 @@ export function setupAdvContext(ctx: {
       runtime.install(result.program, {
         initialVariables,
       })
+      syncAudioSettings()
       advContext.pixiGame = await initPixi(advContext)
     },
 
     $t,
     $tachies: undefined as never,
     $characters: undefined as never,
-    $bgm: undefined as never,
+    $audio: undefined as never,
     $auto: undefined as never,
   }
   advContext.$tachies = useAdvTachies(advContext)
   advContext.$characters = useAdvCharacters(advContext)
-  advContext.$bgm = useAdvBgm(advContext)
+  advContext.$audio = useAdvAudio({
+    gameConfig: () => ctx.gameConfig.value,
+    isSkipping: () => advContext.$auto?.skipEnabled.value ?? false,
+    onDiagnostic: (code, message) => { compileDiagnostics.value = [...compileDiagnostics.value, { code, severity: 'warning', message }] },
+    onUserSettings: audio.replace,
+    // The traversal is read-only; avoid recursively expanding Vue's JsonValue proxy type.
+    voiceLineIds: state => followingVoiceLineIds(runtime.program.value as unknown as RuntimeProgram | undefined, state.cursor),
+  })
   advContext.$auto = useAdvAuto(advContext)
 
   runtime.subscribeTrace((entry) => {
@@ -200,9 +216,7 @@ export function setupAdvContext(ctx: {
     })
   })
 
-  const audio = useAudioStore()
-  advContext.$bgm.setVolume(audio.bgmVolume)
-  watch(() => audio.bgmVolume, value => advContext.$bgm.setVolume(value))
+  watch(() => audio.settings, syncAudioSettings, { deep: true })
 
   if (import.meta.env.DEV && typeof window !== 'undefined') {
     // Retain the latest context so a late-loading inspector can attach too.

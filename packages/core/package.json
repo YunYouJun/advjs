@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "@advjs/assets": "workspace:0.1.4",
+    "@advjs/audio": "workspace:0.1.4",
     "@advjs/parser": "workspace:0.1.4",
     "@advjs/types": "workspace:0.1.4",
     "@types/mdast": "catalog:types",

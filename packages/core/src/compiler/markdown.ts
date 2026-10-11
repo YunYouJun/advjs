@@ -12,7 +12,7 @@ import type {
   RuntimeChapterInput,
   RuntimeNodeInput,
 } from './types'
-import { AdvScriptSyntaxError, parseAst } from '@advjs/parser'
+import { AdvLineIdSyntaxError, AdvScriptSyntaxError, parseAst } from '@advjs/parser'
 import { linkRuntimeProgram } from './link'
 
 export interface MarkdownChapterSource {
@@ -38,9 +38,13 @@ export interface MarkdownProgramSource {
 export interface MarkdownResourceCatalog {
   backgrounds?: string[]
   bgms?: string[]
+  /** Native audio asset ID to purpose. No library aliases or provider URLs. */
+  audio?: Record<string, string>
   cgs?: string[]
   /** Character id/name/alias to available tachie statuses. */
   tachies?: Record<string, string[]>
+  /** Character names and explicit aliases to stable character IDs. */
+  speakers?: Record<string, string>
 }
 
 function phrasingText(children: Array<AdvAst.PhrasingContent | AdvAst.Dialog>): string {
@@ -127,7 +131,7 @@ function validateTransition(
     validateDuration(value.duration, diagnostics, source)
 }
 
-function validateEffectOperation(
+export function validateEffectOperation(
   value: JsonValue,
   diagnostics: CompileDiagnostic[],
   source: CompileSourceLocation | undefined,
@@ -181,25 +185,15 @@ function validateEffectOperation(
       })
     }
   }
-  if (value.type === 'bgm') {
-    if (isRecord(value.fade)) {
-      for (const timing of [value.fade.in, value.fade.out]) {
-        if (timing !== undefined && (typeof timing !== 'number' || !Number.isFinite(timing) || timing < 0)) {
-          diagnostics.push({
-            code: 'ADV_RUNTIME_INVALID_BGM_FADE',
-            severity: 'error',
-            message: 'BGM fade timings must be non-negative finite milliseconds',
-            source,
-          })
-          break
-        }
-      }
-    }
-    if (!value.stop && typeof value.name === 'string' && resources?.bgms && !resources.bgms.includes(value.name)) {
+  if (['bgm', 'ambience', 'sfx'].includes(value.type)
+    && (value.action === 'set' || value.action === 'play')
+    && typeof value.asset === 'string' && resources?.audio) {
+    const kind = Object.hasOwn(resources.audio, value.asset) ? resources.audio[value.asset] : undefined
+    if (kind !== value.type) {
       diagnostics.push({
-        code: 'ADV_RUNTIME_UNKNOWN_BGM',
+        code: kind ? 'ADV_AUDIO_ASSET_KIND_MISMATCH' : 'ADV_AUDIO_UNKNOWN_ASSET',
         severity: 'error',
-        message: `Unknown BGM: ${value.name}`,
+        message: kind ? `Audio asset ${value.asset} has kind ${kind}; ${value.type} playback requires kind ${value.type}` : `Unknown audio asset: ${value.asset}`,
         source,
       })
     }
@@ -339,13 +333,17 @@ function compileNode(
         kind: 'dialog',
         data: {
           character: node.character.name,
+          speakerId: resources?.speakers?.[node.character.name] ?? node.character.name,
+          ...(node.lineId ? { lineId: node.lineId } : {}),
           status: node.character.status ?? '',
-          text: phrasingText(node.children),
+          text: node.children.every(child => child.type === 'text')
+            ? node.children.map(child => child.value).join('\n')
+            : phrasingText(node.children),
           ...glossaryReferences(node.children, diagnostics, source),
         },
       })
     case 'narration':
-      return withSource({ id, kind: 'narration', data: { text: node.children.join('\n') } })
+      return withSource({ id, kind: 'narration', data: { text: node.children.join('\n'), speakerId: 'narrator', ...(node.lineId ? { lineId: node.lineId } : {}) } })
     case 'text':
       return withSource({ id, kind: 'text', data: { text: node.value } })
     case 'paragraph': {
@@ -499,11 +497,11 @@ export async function compileMarkdownProgram(source: MarkdownProgramSource): Pro
     }
     catch (error) {
       diagnostics.push({
-        code: 'ADV_RUNTIME_PARSE_ERROR',
+        code: error instanceof AdvLineIdSyntaxError ? error.code : 'ADV_RUNTIME_PARSE_ERROR',
         severity: 'error',
         message: error instanceof Error ? error.message : String(error),
-        source: remap({ file: chapterSource.sourcePath, line: error instanceof AdvScriptSyntaxError ? error.line : 1, column: error instanceof AdvScriptSyntaxError ? error.column : 1 }),
-        suggestion: 'Correct the JSON/YAML syntax in this chapter and run the check again.',
+        source: remap({ file: chapterSource.sourcePath, line: error instanceof AdvScriptSyntaxError || error instanceof AdvLineIdSyntaxError ? error.line : 1, column: error instanceof AdvScriptSyntaxError || error instanceof AdvLineIdSyntaxError ? error.column : 1 }),
+        suggestion: error instanceof AdvLineIdSyntaxError ? 'Use one final {#line_<uuidv7>} token for this dialogue or narration.' : 'Correct the JSON/YAML syntax in this chapter and run the check again.',
       })
       continue
     }

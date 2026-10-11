@@ -165,7 +165,8 @@ describe('compileMarkdownProgram', () => {
       '      motion: slide-left',
       '  exit: []',
       '- type: bgm',
-      '  name: star-proof',
+      '  action: set',
+      '  asset: star-proof',
       '  loop: true',
       '  fade:',
       '    in: 1200',
@@ -193,7 +194,7 @@ describe('compileMarkdownProgram', () => {
     ['unknown transition', ['type: transition', 'name: spin'], 'ADV_RUNTIME_UNKNOWN_TRANSITION'],
     ['invalid transition duration', ['type: transition', 'name: fade', 'duration: -1'], 'ADV_RUNTIME_INVALID_TRANSITION_DURATION'],
     ['missing CG id', ['type: cg', 'action: show'], 'ADV_RUNTIME_MISSING_CG_ID'],
-    ['invalid BGM fade', ['type: bgm', 'name: calm', 'fade:', '  in: -10'], 'ADV_RUNTIME_INVALID_BGM_FADE'],
+    ['invalid BGM fade', ['type: bgm', 'action: set', 'asset: calm', 'fade:', '  in: -10'], 'ADV_AUDIO_INVALID_FADE'],
   ])('reports %s with source context', async (_name, lines, code) => {
     const result = await compileMarkdownProgram({
       id: 'invalid-presentation',

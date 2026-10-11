@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { createAdvRuntime, defineAdvPlugin, diffRuntimeVariables } from '../../../packages/core/src/runtime'
 
 const program = {
-  schemaVersion: 1 as const,
+  schemaVersion: 2 as const,
   id: 'trace-fixture',
   hash: 'trace-fixture-v1',
   entry: { chapterId: 'chapter-1', nodeId: 'line' },

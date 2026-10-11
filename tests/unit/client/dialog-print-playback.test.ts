@@ -12,6 +12,7 @@ const next = vi.fn().mockResolvedValue(undefined)
 const adv = {
   store: { get current() { return current.value }, state: { status: 'playing' } },
   runtime: { next },
+  $audio: { voicePlaying: shallowRef(false), stopVoice: vi.fn() },
   config: shallowRef({ showCharacterAvatar: false, cdn: { enable: false } }),
   gameConfig: shallowRef({ characters: [] }),
   $auto: undefined as unknown as ReturnType<typeof useAdvAuto>,

@@ -34,6 +34,7 @@
     "node": "^20.19.0 || >=22.12.0"
   },
   "dependencies": {
+    "@advjs/audio": "workspace:0.1.4",
     "@advjs/core": "workspace:0.1.4",
     "@advjs/parser": "workspace:0.1.4",
     "@advjs/types": "workspace:0.1.4",
@@ -48,12 +49,10 @@
     "@vue-flow/core": "catalog:frontend",
     "@vueuse/core": "catalog:frontend",
     "@vueuse/motion": "catalog:frontend",
-    "@vueuse/sound": "catalog:frontend",
     "animate.css": "catalog:frontend",
     "consola": "catalog:cli",
     "dayjs": "catalog:utils",
     "defu": "catalog:utils",
-    "howler": "catalog:frontend",
     "modern-screenshot": "catalog:frontend",
     "nprogress": "catalog:frontend",
     "pinia": "catalog:frontend",

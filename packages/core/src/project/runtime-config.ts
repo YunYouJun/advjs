@@ -1,5 +1,7 @@
 import type { AdvAst, AdvCharacter, AdvGameConfig, AdvProjectCompileResult, AdvProjectFileMap, JsonObject } from '@advjs/types'
+import { isRuntimeAudioAsset, parseAudioMixerConfig, parseVoiceLedger, projectRuntimeAudioAsset, projectRuntimeVoiceLedger, runtimeAudioAssetIds } from '@advjs/audio'
 import { projectGlossarySource, readGlossaryContent } from '@advjs/parser'
+import { projectRuntimeFlowChapter } from './flow'
 
 /** Player identity deliberately excludes author notes, AI prompts and private attributes. */
 export function toPlayerCharacter(character: AdvCharacter): AdvCharacter {
@@ -61,6 +63,19 @@ function playerChapterSources(compilation: AdvProjectCompileResult, files: AdvPr
   })
 }
 
+function currentProgramVoiceLedger(compilation: AdvProjectCompileResult, source: string) {
+  const ledger = parseVoiceLedger(JSON.parse(source))
+  const currentLines = new Set<string>()
+  for (const chapter of Object.values(compilation.project.program?.chapters ?? {})) {
+    for (const node of Object.values(chapter.nodes)) {
+      if ((node.kind === 'dialog' || node.kind === 'narration') && typeof node.data?.lineId === 'string')
+        currentLines.add(node.data.lineId)
+    }
+  }
+  // Deleted dialogue stays in the native author ledger, but cannot publish audio.
+  return projectRuntimeVoiceLedger({ ...ledger, lines: Object.fromEntries(Object.entries(ledger.lines).filter(([lineId]) => currentLines.has(lineId))) })
+}
+
 export function createProjectGameConfig(compilation: AdvProjectCompileResult, files: AdvProjectFileMap): AdvGameConfig {
   const { project } = compilation
   const game = project.game as JsonObject
@@ -68,8 +83,16 @@ export function createProjectGameConfig(compilation: AdvProjectCompileResult, fi
   const gallery = isRecord(game.gallery) ? game.gallery : undefined
   const progression = isRecord(game.progression) ? game.progression : undefined
   const variables = isRecord(game.variables) ? game.variables : undefined
+  const ledger = files['adv/audio/voice-ledger.json'] ? currentProgramVoiceLedger(compilation, files['adv/audio/voice-ledger.json']) : undefined
+  const selectedVoiceIds = runtimeAudioAssetIds(ledger)
 
   return {
+    audio: {
+      assets: Object.fromEntries((project.assets?.assets ?? []).filter(asset => isRuntimeAudioAsset(asset, selectedVoiceIds)).map(asset => [asset.id, projectRuntimeAudioAsset(asset)])),
+      ...(files['adv/audio/mixer.json'] ? { mixer: parseAudioMixerConfig(JSON.parse(files['adv/audio/mixer.json'])) } : {}),
+      ...(ledger ? { voiceLedger: ledger } : {}),
+      locale: typeof game.locale === 'string' ? game.locale : 'zh-CN',
+    },
     title: typeof game.title === 'string' ? game.title : project.id,
     description: typeof game.description === 'string' ? game.description : '',
     favicon: typeof game.favicon === 'string' ? game.favicon : '/favicon.svg',
@@ -84,6 +107,8 @@ export function createProjectGameConfig(compilation: AdvProjectCompileResult, fi
       manifest: { bundles: [] },
     },
     chapters: project.chapters.map((chapter) => {
+      if (chapter.flow)
+        return projectRuntimeFlowChapter(chapter.flow)
       const contents = playerChapterSources(compilation, files, chapter.id, chapter.sources)
       return ({
         id: chapter.id,
@@ -96,6 +121,7 @@ export function createProjectGameConfig(compilation: AdvProjectCompileResult, fi
         })),
       })
     }),
+    entryChapterId: project.entryChapterId,
     characters: project.characters.map(toPlayerCharacter),
     scenes: project.scenes.map(scene => scene.type === 'model'
       ? { ...toPlayerScene(scene), type: 'model' as const }

@@ -82,6 +82,13 @@ settings:
   sound_volume: Sound Volume
   music_volume: Music Volume
   music_volume_level: Music Volume Level
+  audio_master: Master
+  audio_music: Music
+  audio_ambience: Ambience
+  audio_voice: Dialogue Voice
+  audio_sfx: Story Effects
+  audio_ui: Interface Sounds
+  audio_level: '{bus} Volume'
 
   history:
     empty: 暂无历史记录

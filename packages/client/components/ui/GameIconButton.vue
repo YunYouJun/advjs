@@ -1,13 +1,18 @@
 <script setup lang="ts">
+import { inject } from 'vue'
+import { injectionAdvContext } from '../../constants'
 import GameControlHint from './GameControlHint.vue'
 
 defineOptions({ inheritAttrs: false })
+
 defineProps<{ label: string, description?: string }>()
+
+const $adv = inject(injectionAdvContext, undefined)
 </script>
 
 <template>
   <GameControlHint :label="label" :description="description">
-    <button v-bind="$attrs" type="button" class="game-icon-button" :aria-label="label">
+    <button v-bind="$attrs" type="button" class="game-icon-button" :aria-label="label" @click="$adv?.$audio.playUi?.('confirm')">
       <span class="game-icon" aria-hidden="true"><slot /></span>
     </button>
   </GameControlHint>

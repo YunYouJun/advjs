@@ -2,7 +2,7 @@ import type { RuntimeNode } from '@advjs/types'
 import type { AdvContext } from '../../../packages/client/types'
 import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { effectScope, nextTick } from 'vue'
+import { effectScope, nextTick, shallowRef } from 'vue'
 import AdvBlack from '../../../packages/client/components/adv/AdvBlack.vue'
 import PrintWords from '../../../packages/client/components/animation/PrintWords.vue'
 import { useAdvAuto } from '../../../packages/client/composables/useAdvAuto'
@@ -10,6 +10,7 @@ import { useAdvAuto } from '../../../packages/client/composables/useAdvAuto'
 const { next, notifyPrintDone } = vi.hoisted(() => ({ next: vi.fn(), notifyPrintDone: vi.fn() }))
 vi.mock('@advjs/client', () => ({
   useAdvContext: () => ({ $adv: { runtime: { next }, $auto: { notifyPrintDone } } }),
+  useSettingsStore: () => ({ storage: { text: { curFontSize: 'normal' } } }),
 }))
 
 let wrapper: ReturnType<typeof mount>
@@ -112,6 +113,7 @@ it('starts the auto delay only after the whole narration has finished', async ()
   const auto = scope.run(() => useAdvAuto({
     store: { current: node('AB\n\nCDE'), state: { status: 'playing' } },
     runtime: { next },
+    $audio: { voicePlaying: shallowRef(false), stopVoice: vi.fn() },
   } as unknown as AdvContext))!
   next.mockResolvedValue(undefined)
   auto.delay.value = 2000

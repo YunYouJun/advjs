@@ -49,7 +49,7 @@ export function useAdvAuto($adv: AdvContext) {
       timer = setTimeout(advance, skipInterval.value)
       return
     }
-    if (!enabled.value || !printDone)
+    if (!enabled.value || !printDone || $adv.$audio.voicePlaying.value)
       return
     timer = setTimeout(advance, delay.value)
   }
@@ -79,6 +79,8 @@ export function useAdvAuto($adv: AdvContext) {
     scheduleAdvance()
   }
 
+  watch(() => $adv.$audio.voicePlaying.value, scheduleAdvance, { flush: 'sync' })
+
   // Skip mode keeps the flow running even if a node has no typewriter
   // (scene transitions, narration without PrintWords, etc.).
   watch(() => $adv.store.current, () => {
@@ -99,8 +101,10 @@ export function useAdvAuto($adv: AdvContext) {
 
   function toggleSkip() {
     skipEnabled.value = !skipEnabled.value
-    if (skipEnabled.value)
+    if (skipEnabled.value) {
       enabled.value = false
+      $adv.$audio.stopVoice()
+    }
   }
 
   return {

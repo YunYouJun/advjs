@@ -84,6 +84,13 @@ settings:
   sound_volume: 音效音量
   music_volume: 音乐音量
   music_volume_level: 音乐音量大小
+  audio_master: 总音量
+  audio_music: 音乐
+  audio_ambience: 环境音
+  audio_voice: 对白配音
+  audio_sfx: 剧情音效
+  audio_ui: 界面音效
+  audio_level: '{bus}音量'
 
   history:
     empty: 暂无历史记录

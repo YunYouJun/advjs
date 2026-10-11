@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import AdvAvatarImage from '../../packages/client/components/adv/AdvAvatarImage.vue'
 import { compileFlowProgram, compileMarkdownProgram } from '../../packages/core/src/compiler'
 import { compileProject } from '../../packages/core/src/project/compile'
+import { createProjectGameConfig } from '../../packages/core/src/project/runtime-config'
 import { applyProjectPatches } from '../../packages/core/src/project/serialize'
 import { resolveCharacterAvatar } from '../../packages/core/src/utils/character-avatar'
 import { exportCharacterForAI, parseCharacterMd, stringifyCharacterMd } from '../../packages/parser/src/character'
@@ -91,13 +92,32 @@ describe('character portrait expressions', () => {
       id: 'expressions',
       chapters: [{
         id: 'one',
+        title: 'One',
         nodes: [{ id: 'greeting', type: 'dialogues', dialogues: [
           { speakerId: 'hero', status: 'thoughtful', text: 'Think.' },
           { speakerId: 'hero', text: 'Listen.' },
         ] }],
       }],
     })
-    expect(result.program!.chapters.one.nodes.greeting.data).toEqual({ character: 'hero', status: 'thoughtful', text: 'Think.' })
-    expect(result.program!.chapters.one.nodes['greeting.dialog-2'].data).toEqual({ character: 'hero', text: 'Listen.' })
+    expect(result.program!.chapters.one.nodes.greeting.data).toEqual({ character: 'hero', speakerId: 'hero', status: 'thoughtful', text: 'Think.' })
+    expect(result.program!.chapters.one.nodes['greeting.dialog-2'].data).toEqual({ character: 'hero', speakerId: 'hero', text: 'Listen.' })
+  })
+
+  it('keeps portrait expressions and voice line IDs through native Flow player projection', async () => {
+    const lineId = 'line_019d137e-7abc-7000-8000-000000000001'
+    const files = {
+      'adv.config.json': JSON.stringify({ id: 'expressions', format: 'flow', root: 'adv' }),
+      'adv/characters/hero.character.md': card,
+      'adv/chapters/one.chapter.json': JSON.stringify({ schemaVersion: 1, id: 'one', title: 'One', nodes: [
+        { id: 'greeting', type: 'dialogues', dialogues: [{ speakerId: 'hero', status: 'thoughtful', text: 'Think.', lineId }], next: 'end' },
+        { id: 'end', type: 'end' },
+      ] }),
+    }
+    const project = await compileProject({ files }, { validateContentReferences: false })
+    expect(project.diagnostics).toEqual([])
+    const game = createProjectGameConfig(project, files)
+    const projected = await compileFlowProgram({ id: 'expressions', chapters: game.chapters })
+    expect(projected.diagnostics).toEqual([])
+    expect(projected.program!.chapters.one.nodes.greeting.data).toMatchObject({ speakerId: 'hero', status: 'thoughtful', lineId, text: 'Think.' })
   })
 })

@@ -11,8 +11,8 @@ import { describe, expect, expectTypeOf, it } from 'vitest'
 
 describe('runtime contracts', () => {
   it('exposes versioned JSON-only program and state shapes', () => {
-    expect(RUNTIME_SCHEMA_VERSION).toBe(1)
-    expectTypeOf<RuntimeProgram['schemaVersion']>().toEqualTypeOf<1>()
+    expect(RUNTIME_SCHEMA_VERSION).toBe(2)
+    expectTypeOf<RuntimeProgram['schemaVersion']>().toEqualTypeOf<2>()
     expectTypeOf<RuntimeProgram['entry']>().toEqualTypeOf<RuntimeAddress>()
     expectTypeOf<RuntimeState['variables']>().toEqualTypeOf<JsonObject>()
     expectTypeOf<RuntimeState['choices']>().toEqualTypeOf<RuntimeChoiceRecord[]>()

@@ -80,10 +80,37 @@ function assertRuntimeState(value: unknown, program: RuntimeProgram, path: strin
     invalid(`${path}.variables must be an object`)
   if (!isRecord(value.stage)
     || typeof value.stage.background !== 'string'
-    || typeof value.stage.bgm !== 'string'
+    || Object.hasOwn(value.stage, 'bgm')
+    || !isRecord(value.stage.audio)
     || typeof value.stage.cg !== 'string'
     || !isRecord(value.stage.tachies)) {
     invalid(`${path}.stage is invalid`)
+  }
+  const audio = value.stage.audio
+  if (Object.keys(audio).some(key => !['bgm', 'ambience'].includes(key)) || !isRecord(audio.ambience))
+    invalid(`${path}.stage.audio must contain persistent BGM and ambience only`)
+  const track = (entry: unknown, trackPath: string): void => {
+    if (!isRecord(entry) || typeof entry.assetId !== 'string' || !/^\w[\w./-]*$/u.test(entry.assetId)
+      || entry.assetId.split('/').some(segment => !segment || segment === '.' || segment === '..')
+      || Object.keys(entry).some(key => !['assetId', 'gain', 'loop', 'fadeInMs', 'fadeOutMs'].includes(key))) {
+      invalid(`${trackPath} must be a canonical audio track`)
+    }
+    if (entry.loop !== undefined && typeof entry.loop !== 'boolean')
+      invalid(`${trackPath}.loop must be a boolean`)
+    if (entry.gain !== undefined && (typeof entry.gain !== 'number' || entry.gain < 0 || entry.gain > 1))
+      invalid(`${trackPath}.gain must be between 0 and 1`)
+    for (const key of ['fadeInMs', 'fadeOutMs']) {
+      const timing = entry[key]
+      if (timing !== undefined && (typeof timing !== 'number' || timing < 0 || timing > 60_000))
+        invalid(`${trackPath}.${key} must be milliseconds between 0 and 60000`)
+    }
+  }
+  if (audio.bgm !== null)
+    track(audio.bgm, `${path}.stage.audio.bgm`)
+  for (const [slot, entry] of Object.entries(audio.ambience)) {
+    if (!['bed', 'weather', 'crowd', 'detail'].includes(slot))
+      invalid(`${path}.stage.audio.ambience has an unknown slot: ${slot}`)
+    track(entry, `${path}.stage.audio.ambience.${slot}`)
   }
   if (!Array.isArray(value.choices) || !Array.isArray(value.visited))
     invalid(`${path} history is invalid`)

@@ -14,7 +14,7 @@ function createEmptyRuntimeState(): RuntimeState {
     status: 'idle',
     cursor: { chapterId: '', nodeId: '' },
     variables: {},
-    stage: { background: '', bgm: '', cg: '', tachies: {} },
+    stage: { background: '', audio: { bgm: null, ambience: {} }, cg: '', tachies: {} },
     choices: [],
     visited: [],
   }

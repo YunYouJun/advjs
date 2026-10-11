@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { useAdvStore } from '../../../packages/client/stores/useAdvStore'
 
 const program: RuntimeProgram = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   id: 'store',
   hash: 'store-v1',
   entry: { chapterId: 'chapter-1', nodeId: 'line' },
@@ -23,7 +23,7 @@ const state: RuntimeState = {
   status: 'playing',
   cursor: { chapterId: 'chapter-1', nodeId: 'line' },
   variables: {},
-  stage: { background: 'night.webp', bgm: '', cg: '', tachies: {} },
+  stage: { background: 'night.webp', audio: { bgm: null, ambience: {} }, cg: '', tachies: {} },
   choices: [],
   visited: ['chapter-1#line'],
 }

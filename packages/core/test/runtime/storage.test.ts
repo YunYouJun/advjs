@@ -5,13 +5,13 @@ import { createMemoryRuntimeStorage } from '../../src/storage'
 
 function snapshot(id = 'program'): RuntimeSnapshot {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     program: { id, hash: `${id}-hash` },
     state: {
       status: 'playing',
       cursor: { chapterId: 'chapter-1', nodeId: 'line' },
       variables: { count: 1 },
-      stage: { background: '', bgm: '', cg: '', tachies: {} },
+      stage: { background: '', audio: { bgm: null, ambience: {} }, cg: '', tachies: {} },
       choices: [],
       visited: ['chapter-1#line'],
     },
@@ -70,7 +70,7 @@ describe('runtime storage contract', () => {
     ['invalid timestamp', () => ({ ...record('slot', 1), updatedAt: Number.NaN })],
     ['invalid snapshot schema', () => {
       const value = record('slot', 1)
-      value.snapshot.schemaVersion = 2 as 1
+      value.snapshot.schemaVersion = 1 as 2
       return value
     }],
     ['non-json metadata', () => ({

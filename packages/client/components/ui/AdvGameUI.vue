@@ -55,8 +55,8 @@ async function toggleFullscreen() {
       <GameIconButton v-if="$adv.gameConfig.value.gallery" :label="t('controls.gallery')" :description="t('hints.gallery')" @click="router.push('/gallery')">
         <span i-ri-gallery-line />
       </GameIconButton>
-      <GameIconButton :label="t($adv.$bgm.isMuted.value ? 'controls.unmute' : 'controls.mute')" :description="t('hints.music')" :aria-pressed="$adv.$bgm.isMuted.value" @click="$adv.$bgm.toggleMute()">
-        <span v-if="$adv.$bgm.isMuted.value" i-ri-volume-mute-line />
+      <GameIconButton :label="t($adv.$audio.isMuted.value ? 'controls.unmute' : 'controls.mute')" :description="t('hints.music')" :aria-pressed="$adv.$audio.isMuted.value" @click="$adv.$audio.toggleMute()">
+        <span v-if="$adv.$audio.isMuted.value" i-ri-volume-mute-line />
         <span v-else i-ri-volume-up-line />
       </GameIconButton>
       <GameIconButton v-if="showHelper && isSupported" :label="t(isFullscreen ? 'controls.exitFullscreen' : 'controls.fullscreen')" :description="t('hints.fullscreen')" :aria-pressed="isFullscreen" :disabled="fullscreenPending" @click="toggleFullscreen">

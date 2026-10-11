@@ -28,7 +28,7 @@ const adv = {
     toggle: () => { enabled.value = !enabled.value },
     toggleSkip: () => { skipEnabled.value = !skipEnabled.value },
   },
-  $bgm: { isMuted: shallowRef(false), toggleMute: vi.fn(() => { adv.$bgm.isMuted.value = !adv.$bgm.isMuted.value }) },
+  $audio: { isMuted: shallowRef(false), toggleMute: vi.fn(() => { adv.$audio.isMuted.value = !adv.$audio.isMuted.value }) },
   gameConfig: shallowRef({}),
 }
 
@@ -51,7 +51,7 @@ beforeEach(() => {
   app = useAppStore()
   enabled.value = false
   skipEnabled.value = false
-  adv.$bgm.isMuted.value = false
+  adv.$audio.isMuted.value = false
   fullscreen.isSupported.value = true
   fullscreen.isFullscreen.value = false
   vi.clearAllMocks()

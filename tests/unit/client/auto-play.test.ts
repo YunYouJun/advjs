@@ -18,6 +18,10 @@ function createPlayback() {
   const current = shallowRef({ id: 'opening', kind: 'text' } as RuntimeNode)
   const next = vi.fn().mockResolvedValue(undefined)
   const state = shallowRef({ status: 'playing' })
+  const voicePlaying = shallowRef(false)
+  const stopVoice = vi.fn(() => {
+    voicePlaying.value = false
+  })
   const scope = effectScope()
   scopes.push(scope)
   const auto = scope.run(() => useAdvAuto({
@@ -26,8 +30,9 @@ function createPlayback() {
       get state() { return state.value },
     },
     runtime: { next },
+    $audio: { voicePlaying, stopVoice },
   } as unknown as AdvContext))!
-  return { auto, current, next, scope, state }
+  return { auto, current, next, scope, state, voicePlaying, stopVoice }
 }
 
 it('starts auto-play when enabled after a line has finished', async () => {

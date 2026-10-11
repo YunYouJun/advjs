@@ -75,7 +75,7 @@ describe('safe glossary Markdown projection', () => {
 
   it('keeps the legacy plain-text data shape for unformatted definitions', async () => {
     const { program } = await roundtrip('[^term]: Plain explanation 中文')
-    expect(program.chapters.intro.nodes['node-0'].data).toEqual({ character: 'Host', status: '', text: 'Term[term]', glossary: [{ identifier: 'term', label: '[term]', definition: 'Plain explanation 中文', start: 4, end: 10 }] })
+    expect(program.chapters.intro.nodes['node-0'].data).toEqual({ character: 'Host', speakerId: 'Host', status: '', text: 'Term[term]', glossary: [{ identifier: 'term', label: '[term]', definition: 'Plain explanation 中文', start: 4, end: 10 }] })
   })
 
   it('falls back as a whole when authored formatting exceeds the safe AST budget', async () => {

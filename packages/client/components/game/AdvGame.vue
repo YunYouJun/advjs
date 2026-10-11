@@ -48,6 +48,8 @@ const showToolbar = computed(() => app.showUi && !app.menus.settings && !app.sho
     text="white"
     :config="$adv.config?.value"
     :theme="$adv.themeConfig.value"
+    @pointerdown.capture="$adv.$audio.unlock()"
+    @keydown.capture="$adv.$audio.unlock()"
   >
     <div class="adv-game bg-black size-full absolute">
       <AdvScene />

@@ -1,4 +1,5 @@
 import type { AdvPlugin } from '@advjs/types'
+import type { PominisAudioMapping } from '../shared/config'
 import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { consola } from 'consola'
@@ -8,6 +9,8 @@ import { handlePominisAdapter } from './adapter'
 import { fetchPominisStory } from './api'
 
 export interface PominisPluginOptions {
+  /** Explicit native asset addresses for provider music themes. */
+  audio?: PominisAudioMapping
   /**
    * story id
    * @example '6c91aa92-3f4a-462e-89e8-05040602e768'

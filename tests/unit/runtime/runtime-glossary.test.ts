@@ -6,6 +6,24 @@ const glossary = '# 私密作者资料\n\n| 术语 | 定义 | 备注 |\n| --- | 
 const chapter = '@小雨\n星之记忆[^星之记忆]，再次[^星之记忆]。'
 
 describe('player glossary projection', () => {
+  it('keeps stable voice identity, glossary references and newline text through player export', async () => {
+    const lineId = 'line_019d137e-7abc-7000-8000-000000000001'
+    const files = {
+      'adv.config.json': '{"root":"adv"}',
+      'adv/glossary.md': '[^term]: Public explanation',
+      'adv/chapters/intro.adv.md': `@Host\nTerm[^term].\nNext line. {#${lineId}}`,
+    }
+    const first = await compileProject({ files }, { validateContentReferences: false })
+    expect(first.diagnostics).toEqual([])
+    const data = first.project.program!.chapters.intro.nodes['node-0'].data
+    expect(data).toMatchObject({ lineId, text: 'Term[term].\nNext line.', glossary: [{ identifier: 'term', start: 4, end: 10 }] })
+    const source = createProjectGameConfig(first, files).chapters[0].nodes[0]
+    const content = decodeURIComponent(('src' in source ? source.src : '').split(',')[1])
+    const rebuilt = await compileMarkdownProgram({ id: 'roundtrip', chapters: [{ id: 'intro', content }] })
+    expect(rebuilt.diagnostics).toEqual([])
+    expect(rebuilt.program!.chapters.intro.nodes['node-0'].data).toEqual(data)
+  })
+
   it('reuses shared author material while publishing only referenced plain text', async () => {
     const result = await compileProject({ files: {
       'adv.config.json': '{"root":"adv"}',

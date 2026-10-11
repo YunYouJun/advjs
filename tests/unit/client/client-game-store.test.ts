@@ -6,13 +6,13 @@ import { useGameStore } from '../../../packages/client/stores/useGameStore'
 
 function snapshot(programId: string): AdvGameRecord {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     program: { id: programId, hash: `${programId}-v1` },
     state: {
       status: 'playing',
       cursor: { chapterId: 'chapter-1', nodeId: 'line' },
       variables: {},
-      stage: { background: '', bgm: '', cg: '', tachies: {} },
+      stage: { background: '', audio: { bgm: null, ambience: {} }, cg: '', tachies: {} },
       choices: [],
       visited: [],
     },

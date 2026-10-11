@@ -1,9 +1,8 @@
 export * from './config'
 export * from './dark'
-export * from './sound'
 
+export * from './useAdvAudio'
 export * from './useAdvAuto'
-export * from './useAdvBgm'
 export * from './useAdvContext'
 export * from './useAdvKeys'
 export * from './useAdvRuntime'

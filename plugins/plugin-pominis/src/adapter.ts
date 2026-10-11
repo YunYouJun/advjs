@@ -1,10 +1,9 @@
-import type { AdvMusic, ResolvedAdvOptions } from '@advjs/types'
+import type { ResolvedAdvOptions } from '@advjs/types'
 import type { PominisPluginOptions } from './plugin'
 import type { PominisAIVSConfig } from './types'
-import { getBgmSrcUrl } from '@advjs/core'
 import { consola } from 'consola'
 import { colors } from 'consola/utils'
-import { bgmLibraryUrl, cdnDomain, convertPominisAItoAdvConfig } from '../shared'
+import { convertPominisAItoAdvConfig } from '../shared'
 import { fetchImageAsBase64, isOnlineImageUrl } from './utils'
 import { fetchAudioAsBase64 } from './utils/audio'
 
@@ -46,14 +45,11 @@ async function runWithConcurrencyLimit<T>(tasks: (() => Promise<T>)[], maxConcur
 export async function handlePominisAdapter(options: ResolvedAdvOptions, pluginOptions: PominisPluginOptions, pominisConfig: PominisAIVSConfig): Promise<void> {
   const gameConfig = convertPominisAItoAdvConfig({
     config: pominisConfig,
+    audio: pluginOptions.audio,
   })
 
   // replace gameConfig
   options.data.gameConfig = gameConfig
-  gameConfig.bgm = {
-    autoplay: true,
-    library: bgmLibraryUrl,
-  }
 
   if (options.singlefile) {
     if (pluginOptions.bundleAssets?.image) {
@@ -125,45 +121,21 @@ export async function handlePominisAdapter(options: ResolvedAdvOptions, pluginOp
       }
     }
 
-    /**
-     * 替换 bgmThemeId 为 bgmSrc
-     */
-    let bgmLibrary = (gameConfig.bgm?.library || {}) as Record<string, AdvMusic>
-    if (typeof bgmLibrary === 'string') {
-      await fetch(bgmLibrary)
-        .then(res => res.json())
-        .then((data) => {
-          bgmLibrary = data
-          gameConfig.bgm!.library = bgmLibrary
-          consola.success('BGM library loaded successfully')
-        })
-    }
-
     if (pluginOptions.bundleAssets?.audio) {
       const audioFetchTaskArr: (() => Promise<void>)[] = []
-
-      gameConfig.chapters.forEach((chapter) => {
-        chapter.nodes.forEach((node) => {
-          if ('bgmThemeId' in node && node.bgmThemeId && node.bgmThemeId !== 'silence') {
-            const bgmKey = node.bgmThemeId
-            const cdnUrl = options.data.config.cdn.prefix || cdnDomain
-            const bgmName = bgmLibrary[bgmKey]?.name || ''
-            const bgmSrc = getBgmSrcUrl({ cdnUrl, bgmName })
-            node.bgmSrc = bgmSrc
-
-            audioFetchTaskArr.push(() => (async () => {
-              try {
-                const base64 = await fetchAudioAsBase64(bgmSrc)
-                consola.success(`Converted BGM: ${colors.cyan(bgmKey)} -> base64`)
-                node.bgmSrc = base64
-              }
-              catch (error) {
-                consola.warn(`Failed to convert BGM ${colors.cyan(bgmSrc)}:`, (error instanceof Error ? error.message : String(error)))
-              }
-            })())
+      for (const [assetId, asset] of Object.entries(gameConfig.audio?.assets ?? {})) {
+        if (asset.kind !== 'bgm')
+          continue
+        audioFetchTaskArr.push(async () => {
+          try {
+            asset.src = await fetchAudioAsBase64(asset.src)
+            consola.success(`Converted native audio asset: ${colors.cyan(assetId)}`)
+          }
+          catch (error) {
+            consola.warn(`Failed to bundle native audio asset ${colors.cyan(assetId)}:`, error instanceof Error ? error.message : String(error))
           }
         })
-      })
+      }
 
       // batch convert src to base64 with concurrency limit
       const defaultAudioConcurrency = 4

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { AdvCheckboxProps } from '@advjs/theme-default'
-import { useAudioStore } from '@advjs/client'
-import { watch } from 'vue'
+import { injectionAdvContext } from '@advjs/client/constants'
+import { inject } from 'vue'
 
 const p = withDefaults(defineProps<{
   props?: AdvCheckboxProps
@@ -9,20 +9,18 @@ const p = withDefaults(defineProps<{
   props: () => ({ checked: false }),
 })
 
-const audio = useAudioStore()
+const $adv = inject(injectionAdvContext, undefined)
 
-watch(() => [p.props.checked], () => {
-  if (p.props.checked)
-    audio.popUpOn.play()
-  else
-    audio.popUpOff.play()
-})
+function onClick() {
+  void $adv?.$audio.playUi(p.props.checked ? 'cancel' : 'confirm')
+  p.props.onClick?.()
+}
 
 // do not need emit update:checked, because it is controlled by parent
 </script>
 
 <template>
-  <button type="button" role="checkbox" class="adv-checkbox" :aria-checked="props.checked" @click="props.onClick">
+  <button type="button" role="checkbox" class="adv-checkbox" :aria-checked="props.checked" @click="onClick">
     <AdvIcon v-if="props.checked">
       <div i-ri-checkbox-line />
     </AdvIcon>

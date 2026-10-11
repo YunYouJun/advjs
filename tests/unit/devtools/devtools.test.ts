@@ -7,7 +7,7 @@ import { createDevToolsSessions, readDevToolsSnapshot } from '../../../packages/
 
 function fixture() {
   const program: RuntimeProgram = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     id: 'demo',
     hash: 'hash',
     requiredPlugins: {},
@@ -25,7 +25,7 @@ function fixture() {
     runtime: {
       program: shallowRef(program),
       current: shallowRef(program.chapters.intro!.nodes.hello),
-      state: shallowRef({ status: 'idle', cursor: program.entry, variables: { score: 0 }, stage: { background: '', bgm: '', cg: '', tachies: {} }, choices: [], visited: [] }),
+      state: shallowRef({ status: 'idle', cursor: program.entry, variables: { score: 0 }, stage: { background: '', audio: { bgm: null, ambience: {} }, cg: '', tachies: {} }, choices: [], visited: [] }),
       trace: () => [],
       subscribeTrace: () => stopTrace,
     },

@@ -11,13 +11,13 @@ function record(id: string, updatedAt = 1): RuntimeSaveRecord {
   return {
     id,
     snapshot: {
-      schemaVersion: 1,
+      schemaVersion: 2,
       program: { id: 'program', hash: 'program-v1' },
       state: {
         status: 'playing',
         cursor: { chapterId: 'chapter-1', nodeId: 'line' },
         variables: {},
-        stage: { background: '', bgm: '', cg: '', tachies: {} },
+        stage: { background: '', audio: { bgm: null, ambience: {} }, cg: '', tachies: {} },
         choices: [],
         visited: [],
       },

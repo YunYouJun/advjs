@@ -1,3 +1,7 @@
+export * from './audio-operations'
 export { compileProject } from './compile'
+export { parseProjectFlowChapter, projectRuntimeFlowChapter } from './flow'
+export * from './flow-edit'
+export * from './flow-workspace'
 export * from './runtime-config'
 export * from './serialize'
