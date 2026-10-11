@@ -18,6 +18,7 @@ import { addOutline, closeCircleOutline, imageOutline, sparklesOutline, trashOut
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { getCharacterInitials, getValidAvatarUrl } from '../utils/chatUtils'
+import VoiceProfileFields from './audio/VoiceProfileFields.vue'
 import CharacterAttributesPanel from './CharacterAttributesPanel.vue'
 import RelationshipEditor from './RelationshipEditor.vue'
 import TagsInput from './TagsInput.vue'
@@ -454,6 +455,15 @@ async function copyImagePrompt() {
     </div>
 
     <!-- ═══ Section: Relationships ═══ -->
+    <div class="cef-section">
+      <IonListHeader class="cef-section__header">
+        <IonLabel>{{ t('audioProfiles.characterTitle') }}</IonLabel>
+      </IonListHeader>
+      <div class="cef-relationships">
+        <VoiceProfileFields :model-value="model.voiceProfile" @update:model-value="updateField('voiceProfile', $event)" />
+      </div>
+    </div>
+
     <div class="cef-section">
       <IonListHeader class="cef-section__header">
         <IonLabel>{{ t('contentEditor.relationships') }}</IonLabel>

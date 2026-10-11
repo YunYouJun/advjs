@@ -9,11 +9,13 @@ import type {
   AdvScene,
 } from '@advjs/types'
 import type { AssetsManifest } from 'pixi.js'
+import { isRuntimeAudioAsset, parseAudioMixerConfig, parseVoiceLedger, projectRuntimeCharacter, projectRuntimeVoiceLedger, resolveRuntimeAudioAsset, runtimeAudioAssetIds } from '@advjs/audio'
+import { compileProject, createProjectGameConfig } from '@advjs/core'
 import { parseAst } from '@advjs/parser'
-import { ref } from 'vue'
+import { ref, shallowRef } from 'vue'
 import { useStudioStore } from '../stores/useStudioStore'
 import { loadStudioAssetCatalog } from '../utils/projectAssets'
-import { applyStudioGameSettings, loadStudioGameSettings } from '../utils/projectRuntimeFiles'
+import { applyStudioGameSettings, loadStudioGameSettings, loadStudioSourceFormat } from '../utils/projectRuntimeFiles'
 import { createStudioChapterIdMap } from '../utils/runtimeAuthoring'
 import { useProjectContent } from './useProjectContent'
 
@@ -30,8 +32,9 @@ export function useStudioAdvConfig() {
   const project = useProjectContent()
   const studioStore = useStudioStore()
 
-  const gameConfigRef = ref<Partial<AdvGameConfig>>({})
-  const configRef = ref<AdvConfig | null>(null)
+  // Native runtime data must remain plain JSON across structuredClone boundaries.
+  const gameConfigRef = shallowRef<Partial<AdvGameConfig>>({})
+  const configRef = shallowRef<AdvConfig | null>(null)
   const ready = ref(false)
   const chapterSources = new Map<string, string>()
   const chapterFileToId = new Map<string, string>()
@@ -62,8 +65,29 @@ export function useStudioAdvConfig() {
   async function buildGameConfig(): Promise<Partial<AdvGameConfig>> {
     const fs = project.getFs()
     const settings = fs ? await loadStudioGameSettings(fs) : {}
+    let native: AdvGameConfig | undefined
+    let nativeChapterFiles: Array<{ id: string, sources: string[] }> = []
+    if (fs && await loadStudioSourceFormat(fs) === 'flow') {
+      const files = Object.fromEntries((await fs.collectAllFiles()).map(file => [file.path, file.content]))
+      const compilation = await compileProject({ files }, { allowEmptyAssetManifest: true })
+      if (compilation.diagnostics.some(diagnostic => diagnostic.severity === 'error'))
+        throw new Error(compilation.diagnostics.map(diagnostic => `${diagnostic.code}: ${diagnostic.message}`).join('\n'))
+      native = createProjectGameConfig(compilation, files)
+      nativeChapterFiles = compilation.project.chapters
+    }
     assetCatalog?.dispose()
     assetCatalog = fs ? await loadStudioAssetCatalog(fs) : null
+    const audio: NonNullable<AdvGameConfig['audio']> = { assets: {}, locale: native?.audio?.locale ?? 'zh-CN' }
+    if (fs && await fs.exists('adv/audio/mixer.json'))
+      audio.mixer = parseAudioMixerConfig(JSON.parse(await fs.readFile('adv/audio/mixer.json')))
+    if (fs && await fs.exists('adv/audio/voice-ledger.json'))
+      audio.voiceLedger = projectRuntimeVoiceLedger(parseVoiceLedger(JSON.parse(await fs.readFile('adv/audio/voice-ledger.json'))))
+    const selectedVoiceIds = runtimeAudioAssetIds(audio.voiceLedger)
+    for (const asset of assetCatalog?.list({ type: 'audio' }) ?? []) {
+      if (!isRuntimeAudioAsset(asset, selectedVoiceIds))
+        continue
+      audio.assets[asset.id] = await resolveRuntimeAudioAsset(asset, async variant => (await assetCatalog!.resolve(asset.id, { variant })).src)
+    }
 
     async function resolveCatalogAsset(assetId: string, variant?: string): Promise<string | undefined> {
       if (!assetCatalog)
@@ -73,7 +97,7 @@ export function useStudioAdvConfig() {
 
     // Resolve characters' tachies to blob URLs
     const characters: AdvCharacter[] = await Promise.all(
-      project.characters.value.map(async (c) => {
+      (native?.characters ?? project.characters.value).map(async (c) => {
         const tachies = Object.fromEntries(await Promise.all(
           Object.entries(c.tachies ?? {}).map(async ([status, t]) => [
             status,
@@ -106,7 +130,7 @@ export function useStudioAdvConfig() {
 
         const defaultTachie = tachies.default
         return {
-          ...c,
+          ...projectRuntimeCharacter(c),
           avatar: defaultTachie?.src ?? (await resolveBlobUrl(c.avatar)) ?? c.avatar,
           tachies: Object.keys(tachies).length > 0 ? tachies : c.tachies,
         }
@@ -115,10 +139,10 @@ export function useStudioAdvConfig() {
 
     // Scenes — type: 'image' is required by AdvSceneImage
     const scenes: AdvScene[] = await Promise.all(
-      project.scenes.value.map(async (s) => {
+      (native?.scenes.map(s => ({ ...s, file: s.id, src: s.type === 'image' ? s.src : undefined })) ?? project.scenes.value).map(async (s) => {
         const id = s.id ?? s.file
         const conventionalAssetId = `background/${id}`
-        const assetId = s.assetId ?? (assetCatalog?.get(conventionalAssetId) ? conventionalAssetId : undefined)
+        const assetId = ('assetId' in s ? s.assetId : undefined) ?? (assetCatalog?.get(conventionalAssetId) ? conventionalAssetId : undefined)
         const src = assetId
           ? (await resolveCatalogAsset(assetId)) ?? ''
           : (await resolveBlobUrl(s.src)) ?? ''
@@ -208,7 +232,7 @@ export function useStudioAdvConfig() {
     // Chapters keep their authoring AST for editor-only visualizations. Runtime
     // compilation reads the same source through `fetchChapter` below.
     const chapterIds = createStudioChapterIdMap(project.chapters.value.map(chapter => chapter.file))
-    const chapters: AdvChapter[] = await Promise.all(
+    const chapters: AdvChapter[] = native?.chapters ?? await Promise.all(
       project.chapters.value.map(async (ch) => {
         let content = ch.content
         if (!content) {
@@ -235,6 +259,12 @@ export function useStudioAdvConfig() {
         } satisfies AdvChapter
       }),
     )
+    for (const chapter of nativeChapterFiles) {
+      for (const file of chapter.sources)
+        chapterFileToId.set(file, chapter.id)
+      if (chapter.sources[0])
+        chapterIdToFile.set(chapter.id, chapter.sources[0])
+    }
 
     // Pixi assets manifest — Pixi `Assets.load(alias)` resolves these
     const manifest: AssetsManifest = {
@@ -257,9 +287,11 @@ export function useStudioAdvConfig() {
     }
 
     return applyStudioGameSettings({
-      title: studioStore.currentProject?.name ?? 'Studio Project',
-      description: '',
-      favicon: '',
+      ...native,
+      audio,
+      title: native?.title ?? studioStore.currentProject?.name ?? 'Studio Project',
+      description: native?.description ?? '',
+      favicon: native?.favicon ?? '',
       bgm: {
         autoplay: true,
         library: bgmLibrary,

@@ -10,8 +10,11 @@ import {
   SelectValue,
   SelectViewport,
 } from 'reka-ui'
+import { computed, useAttrs } from 'vue'
 
-withDefaults(defineProps<{
+defineOptions({ inheritAttrs: false })
+
+const props = withDefaults(defineProps<{
   modelValue?: string
   placeholder?: string
   disabled?: boolean
@@ -23,10 +26,11 @@ withDefaults(defineProps<{
   disabled: false,
   size: 'md',
 })
-
 defineEmits<{
   'update:modelValue': [value: string]
 }>()
+const attrs = useAttrs()
+const selectedLabel = computed(() => props.options.find(option => option.value === props.modelValue)?.label ?? props.placeholder)
 </script>
 
 <template>
@@ -36,10 +40,13 @@ defineEmits<{
     @update:model-value="(v: string) => $emit('update:modelValue', v)"
   >
     <SelectTrigger
+      v-bind="attrs"
       class="s-select-trigger"
       :class="[`s-select-trigger--${size}`]"
     >
-      <SelectValue :placeholder="placeholder" />
+      <SelectValue :placeholder="placeholder">
+        {{ selectedLabel }}
+      </SelectValue>
       <span class="s-select-trigger__icon">
         <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
       </span>

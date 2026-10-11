@@ -110,6 +110,9 @@ export interface DbMemfsNode {
   content: string
   /** IndexedDB structured cloning preserves binary bytes and MIME type. */
   blob?: Blob
+  /** Portable binary persistence; old Blob rows remain readable. */
+  binary?: ArrayBuffer
+  mimeType?: string
   mtime: number
   size: number
 }

@@ -14,28 +14,45 @@ import {
   IonRefresherContent,
   IonSearchbar,
   IonToolbar,
+  onIonViewWillEnter,
+  onIonViewWillLeave,
 } from '@ionic/vue'
 import { addOutline, trashOutline } from 'ionicons/icons'
-import { computed, ref } from 'vue'
+import { computed, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import ChapterCard from '../../components/ChapterCard.vue'
 import ChapterEditorForm from '../../components/ChapterEditorForm.vue'
 import DraftRestoreBanner from '../../components/common/DraftRestoreBanner.vue'
 import LayoutPage from '../../components/common/LayoutPage.vue'
 import ContentEditorModal from '../../components/ContentEditorModal.vue'
+import FlowWorkspace from '../../components/flow/FlowWorkspace.vue'
 import { useContentDelete } from '../../composables/useContentDelete'
 import { useContentEditor } from '../../composables/useContentEditor'
 import { useContentSave } from '../../composables/useContentSave'
 import { useProjectContent } from '../../composables/useProjectContent'
 import { useRecentActivity } from '../../composables/useRecentActivity'
+import { useStudioStore } from '../../stores/useStudioStore'
 import { stringifyChapterMd } from '../../utils/chapterMd'
+import { loadStudioSourceFormat } from '../../utils/projectRuntimeFiles'
 import { showToast } from '../../utils/toast'
 
 const { t } = useI18n()
 const router = useRouter()
+const route = useRoute()
+const studio = useStudioStore()
+const active = shallowRef(true)
+const sourceFormat = shallowRef<'flow' | 'adv-md'>('adv-md')
+onIonViewWillEnter(() => active.value = true)
+onIonViewWillLeave(() => active.value = false)
 
-const { chapters, reload, getFs } = useProjectContent()
+const { chapters, reload, getFs, whenReady } = useProjectContent()
+watch(() => studio.currentProjectId, async () => {
+  await whenReady()
+  const fs = getFs()
+  if (fs)
+    sourceFormat.value = await loadStudioSourceFormat(fs)
+}, { immediate: true })
 const { isSaving, saveContent } = useContentSave()
 const { deleteFile } = useContentDelete()
 const { trackAccess } = useRecentActivity()
@@ -121,7 +138,7 @@ async function handleDeleteChapter(file: string) {
 <template>
   <LayoutPage :title="t('preview.chapters')" show-back-button default-href="/tabs/workspace">
     <template #header-extra>
-      <IonToolbar>
+      <IonToolbar v-if="sourceFormat !== 'flow'">
         <IonSearchbar
           v-model="searchQuery"
           :placeholder="t('common.search')"
@@ -135,74 +152,77 @@ async function handleDeleteChapter(file: string) {
       <IonRefresherContent />
     </IonRefresher>
 
-    <!-- Draft restore banner -->
-    <DraftRestoreBanner
-      v-if="chapterEditor.hasDraft.value"
-      :message="t('contentEditor.draftFound', { type: t('contentEditor.createChapter') })"
-      @restore="chapterEditor.restoreDraft()"
-      @discard="chapterEditor.clearDraft()"
-    />
+    <FlowWorkspace v-if="sourceFormat === 'flow'" :active="active" :initial-file="typeof route.query.file === 'string' ? route.query.file : ''" @play="handlePlayChapter" />
+    <template v-else>
+      <!-- Draft restore banner -->
+      <DraftRestoreBanner
+        v-if="chapterEditor.hasDraft.value"
+        :message="t('contentEditor.draftFound', { type: t('contentEditor.createChapter') })"
+        @restore="chapterEditor.restoreDraft()"
+        @discard="chapterEditor.clearDraft()"
+      />
 
-    <!-- Chapter list -->
-    <div v-if="filteredChapters.length > 0" class="card-list">
-      <IonItemSliding v-for="chapter in filteredChapters" :key="chapter.file">
-        <ChapterCard
-          :chapter="chapter"
-          @edit="handleEditChapter"
-          @play="handlePlayChapter"
-        />
-        <IonItemOptions side="end">
-          <IonItemOption color="danger" @click="handleDeleteChapter(chapter.file)">
-            <IonIcon :icon="trashOutline" />
-          </IonItemOption>
-        </IonItemOptions>
-      </IonItemSliding>
-    </div>
-
-    <!-- Empty state -->
-    <div v-else-if="searchQuery" class="empty-state">
-      <IonNote>{{ t('chapters.emptySearch') }}</IonNote>
-    </div>
-    <div v-else class="empty-state">
-      <div class="empty-state__illustration">
-        📖
+      <!-- Chapter list -->
+      <div v-if="filteredChapters.length > 0" class="card-list">
+        <IonItemSliding v-for="chapter in filteredChapters" :key="chapter.file">
+          <ChapterCard
+            :chapter="chapter"
+            @edit="handleEditChapter"
+            @play="handlePlayChapter"
+          />
+          <IonItemOptions side="end">
+            <IonItemOption color="danger" @click="handleDeleteChapter(chapter.file)">
+              <IonIcon :icon="trashOutline" />
+            </IonItemOption>
+          </IonItemOptions>
+        </IonItemSliding>
       </div>
-      <p class="empty-state__title">
-        {{ t('preview.noChapters') }}
-      </p>
-      <IonButton fill="outline" size="small" @click="chapterEditor.openCreate()">
-        <IonIcon :icon="addOutline" />
-        {{ t('contentEditor.createChapter') }}
-      </IonButton>
-    </div>
 
-    <!-- FAB add button -->
-    <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
-    <IonFab slot="fixed" vertical="bottom" horizontal="end">
-      <IonFabButton @click="chapterEditor.openCreate()">
-        <IonIcon :icon="addOutline" />
-      </IonFabButton>
-    </IonFab>
+      <!-- Empty state -->
+      <div v-else-if="searchQuery" class="empty-state">
+        <IonNote>{{ t('chapters.emptySearch') }}</IonNote>
+      </div>
+      <div v-else class="empty-state">
+        <div class="empty-state__illustration">
+          📖
+        </div>
+        <p class="empty-state__title">
+          {{ t('preview.noChapters') }}
+        </p>
+        <IonButton fill="outline" size="small" @click="chapterEditor.openCreate()">
+          <IonIcon :icon="addOutline" />
+          {{ t('contentEditor.createChapter') }}
+        </IonButton>
+      </div>
 
-    <!-- Chapter Editor Modal -->
-    <ContentEditorModal
-      :is-open="chapterEditor.isOpen.value"
-      :title="chapterEditor.mode.value === 'create' ? t('contentEditor.createChapter') : t('contentEditor.editChapter')"
-      :mode="chapterEditor.mode.value"
-      :is-saving="isSaving"
-      :markdown="chapterMarkdown"
-      :monaco-filename="`${chapterEditor.formData.value.filename || 'chapter'}.adv.md`"
-      @update:is-open="(v: boolean) => { if (!v) chapterEditor.close() }"
-      @update:markdown="chapterMarkdown = $event"
-      @sync-to-markdown="chapterToMarkdown()"
-      @sync-from-markdown="markdownToChapter($event)"
-      @save="handleSaveChapter"
-      @cancel="chapterEditor.close()"
-    >
-      <template #form>
-        <ChapterEditorForm v-model="chapterEditor.formData.value" />
-      </template>
-    </ContentEditorModal>
+      <!-- FAB add button -->
+      <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
+      <IonFab slot="fixed" vertical="bottom" horizontal="end">
+        <IonFabButton @click="chapterEditor.openCreate()">
+          <IonIcon :icon="addOutline" />
+        </IonFabButton>
+      </IonFab>
+
+      <!-- Chapter Editor Modal -->
+      <ContentEditorModal
+        :is-open="chapterEditor.isOpen.value"
+        :title="chapterEditor.mode.value === 'create' ? t('contentEditor.createChapter') : t('contentEditor.editChapter')"
+        :mode="chapterEditor.mode.value"
+        :is-saving="isSaving"
+        :markdown="chapterMarkdown"
+        :monaco-filename="`${chapterEditor.formData.value.filename || 'chapter'}.adv.md`"
+        @update:is-open="(v: boolean) => { if (!v) chapterEditor.close() }"
+        @update:markdown="chapterMarkdown = $event"
+        @sync-to-markdown="chapterToMarkdown()"
+        @sync-from-markdown="markdownToChapter($event)"
+        @save="handleSaveChapter"
+        @cancel="chapterEditor.close()"
+      >
+        <template #form>
+          <ChapterEditorForm v-model="chapterEditor.formData.value" />
+        </template>
+      </ContentEditorModal>
+    </template>
   </LayoutPage>
 </template>
 

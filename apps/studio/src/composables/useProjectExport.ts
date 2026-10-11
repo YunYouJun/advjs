@@ -1,4 +1,6 @@
 import type { IFileSystem } from '../utils/fs'
+import { audioProjectMediaPath, parseVoiceDesignLibrary, verifyVoiceCandidateBytes } from '@advjs/audio'
+import { compileProject } from '@advjs/core'
 
 const TEXT_FILE_RE = /\.(?:md|json|txt|yaml|yml|css|js|ts|html)$/i
 
@@ -60,9 +62,62 @@ export async function exportProject(
       knowledge++
   }
 
+  // Keep the native format/entry and the reviewed voice library with the project.
+  // Private runtime queues, access tokens and temporary preview files are outside
+  // these finite authoring paths and are never part of this export.
+  if (await fs.exists('adv.config.json'))
+    zip.file('adv.config.json', await fs.readFile('adv.config.json'))
+  if (await fs.exists('authoring/voices/library.json'))
+    zip.file('authoring/voices/library.json', await fs.readFile('authoring/voices/library.json'))
+  for (const file of await fs.collectAllFiles('authoring/voices/designs').catch(() => [])) {
+    if (/^authoring\/voices\/designs\/[\w.-]+\/[\w.-]+\/[\w-]+\/[\w.-]+\.json$/u.test(file.path) && !file.path.split('/').some(part => ['.', '..', '.git', 'node_modules'].includes(part)))
+      zip.file(file.path, file.content)
+  }
+
+  // Catalog-backed audio may live under public/media rather than adv/. Keep
+  // original sample/take identities and their bytes in a portable native project.
+  if (await fs.exists('adv/assets.json')) {
+    const files = Object.fromEntries((await fs.collectAllFiles()).map(file => [file.path, file.content]))
+    const { project } = await compileProject({ files }, { allowEmptyAssetManifest: true })
+    const consents = new Set<string>()
+    function collectConsents(value: unknown) {
+      if (!value || typeof value !== 'object')
+        return
+      for (const [key, child] of Object.entries(value)) {
+        if (key === 'consentRecord' && typeof child === 'string')
+          consents.add(child)
+        else collectConsents(child)
+      }
+    }
+    collectConsents(project.characters)
+    for (const path of ['adv/audio/voice-ledger.json', 'adv/audio/voice-profiles.json']) {
+      if (files[path])
+        collectConsents(JSON.parse(files[path]))
+    }
+    if (files['authoring/voices/library.json'])
+      collectConsents(parseVoiceDesignLibrary(files['authoring/voices/library.json']))
+    for (const path of consents) {
+      if (!/^(?!\/)(?!.*\\)(?!.*(?:^|\/)(?:\.|\.\.|\.git|node_modules)(?:\/|$))[\w./-]+\.(?:txt|md|json)$/u.test(path))
+        throw new Error('VOICE_DESIGN_CONSENT_PATH_INVALID')
+      zip.file(path, await fs.readFile(path))
+    }
+    for (const asset of project.assets?.assets ?? []) {
+      if (asset.type !== 'audio' || !asset.path)
+        continue
+      const media = [{ path: asset.path, sha256: asset.sha256, bytes: asset.bytes }, ...Object.values(asset.variants ?? {}).filter(variant => variant.path)]
+      for (const source of media) {
+        const path = audioProjectMediaPath(project.assets!, { ...asset, path: source.path })
+        const blob = await fs.readBlob(path)
+        if (source.sha256)
+          await verifyVoiceCandidateBytes(source as { sha256: string, bytes?: number }, await blob.arrayBuffer())
+        zip.file(path, await blob.arrayBuffer())
+      }
+    }
+  }
+
   // Also try to include binary files (images, audio) via blob URLs
   try {
-    const binaryExts = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.mp3', '.wav', '.ogg', '.m4a']
+    const binaryExts = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.mp3', '.wav', '.ogg', '.opus', '.webm', '.aac', '.m4a', '.flac']
     for (const ext of binaryExts) {
       try {
         const binaryFiles = await fs.listFilesByExts('adv', [ext])

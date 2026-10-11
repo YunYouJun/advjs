@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@advjs/agent": "workspace:*",
+    "@advjs/audio": "workspace:0.1.4",
     "@advjs/client": "workspace:*",
     "@advjs/core": "workspace:*",
     "@advjs/gui": "workspace:*",

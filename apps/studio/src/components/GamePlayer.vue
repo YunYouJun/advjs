@@ -241,7 +241,7 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
   stopRuntimeTrace()
-  $adv.$bgm.dispose()
+  $adv.$audio.dispose()
   $adv.runtime.dispose()
   dispose()
 })

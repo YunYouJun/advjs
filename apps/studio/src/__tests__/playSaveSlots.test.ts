@@ -12,13 +12,13 @@ vi.mock('../utils/db', () => ({ db: { playSaveSlots: {
 describe('studio save slot selection', () => {
   it('keeps loaded snapshots cloneable when emitted from the slot list to the runtime', async () => {
     const snapshot: RuntimeSnapshot = {
-      schemaVersion: 1,
+      schemaVersion: 2,
       program: { id: 'preview', hash: 'fixture' },
       state: {
         status: 'playing',
         cursor: { chapterId: 'one', nodeId: 'line-1' },
         variables: { affection: 3 },
-        stage: { background: '', bgm: '', tachies: {}, cg: '' },
+        stage: { background: '', audio: { bgm: null, ambience: {} }, tachies: {}, cg: '' },
         choices: [],
         visited: ['one#line-1'],
       },

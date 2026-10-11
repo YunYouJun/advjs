@@ -17,6 +17,16 @@ function createFs(manifest: unknown, blobs: Record<string, string>): IFileSystem
 }
 
 describe('studio project asset catalog', () => {
+  it('accepts a validated empty native catalog without blocking the player', async () => {
+    const fs = createFs({ schemaVersion: 2, id: 'empty', defaultProfile: 'local', profiles: { local: { provider: 'project', root: 'adv/assets' } }, assets: [] }, {})
+    await expect(loadStudioAssetCatalog(fs)).resolves.toBeNull()
+  })
+
+  it('rejects invalid empty catalogs instead of silently accepting broken profiles', async () => {
+    const fs = createFs({ schemaVersion: 2, id: 'empty', defaultProfile: 'local', profiles: { local: { provider: 'unknown' } }, assets: [] }, {})
+    await expect(loadStudioAssetCatalog(fs)).rejects.toThrow('provider project or http')
+  })
+
   it('prefers project files and falls back to the published profile', async () => {
     const fs = createFs({
       schemaVersion: 2,

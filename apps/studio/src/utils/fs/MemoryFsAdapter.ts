@@ -44,6 +44,7 @@ export class MemoryFsAdapter implements IFileSystem {
   private nodes = new Map<string, FsNode>()
   private projectId: string
   private persistTimer: ReturnType<typeof setTimeout> | null = null
+  private persistQueue: Promise<void> = Promise.resolve()
 
   constructor(projectId: string) {
     this.projectId = projectId
@@ -66,7 +67,7 @@ export class MemoryFsAdapter implements IFileSystem {
         this.nodes.set(path, {
           type: row.type,
           content: row.content,
-          blob: row.blob,
+          blob: row.binary ? new Blob([row.binary], { type: row.mimeType ?? '' }) : row.blob,
           mtime: row.mtime,
           size: row.size,
         })
@@ -86,36 +87,36 @@ export class MemoryFsAdapter implements IFileSystem {
 
   /** Flush all nodes to IndexedDB */
   async persist(): Promise<void> {
-    try {
-      const { db } = await import('../db')
-      const table = db.table('memfsNodes')
-      const prefix = `memfs:${this.projectId}:`
-
-      // Clear existing entries for this project
-      const existingKeys = await table
-        .where('key')
-        .startsWith(prefix)
-        .primaryKeys()
-      if (existingKeys.length > 0) {
-        await table.bulkDelete(existingKeys as string[])
-      }
-
-      // Write all current nodes
-      const rows = Array.from(this.nodes.entries(), ([path, node]) => ({
+    if (this.persistTimer)
+      clearTimeout(this.persistTimer)
+    this.persistTimer = null
+    const snapshot = Array.from(this.nodes.entries(), ([path, node]) => [path, { ...node }] as const)
+    const operation = this.persistQueue.then(async () => {
+      // Persist raw bytes and reconstruct media on restore, avoiding dependence
+      // on IndexedDB Blob cloning while keeping media and metadata atomic.
+      const rows = await Promise.all(snapshot.map(async ([path, node]) => ({
         key: dbKey(this.projectId, path),
         type: node.type,
         content: node.content ?? '',
-        blob: node.blob,
+        ...(node.blob ? { binary: await node.blob.arrayBuffer(), mimeType: node.blob.type } : {}),
         mtime: node.mtime,
         size: node.size,
-      }))
-      if (rows.length > 0) {
-        await table.bulkPut(rows)
-      }
-    }
-    catch {
-      // persist failure is non-fatal
-    }
+      })))
+      const { db } = await import('../db')
+      const table = db.table('memfsNodes')
+      const prefix = `memfs:${this.projectId}:`
+      await db.transaction('rw', table, async () => {
+        const existingKeys = await table.where('key').startsWith(prefix).primaryKeys()
+        if (existingKeys.length)
+          await table.bulkDelete(existingKeys as string[])
+        if (rows.length)
+          await table.bulkPut(rows)
+      })
+    })
+    // Preserve the adapter's existing nonfatal storage-failure behavior, while
+    // allowing the next queued snapshot to succeed after a failed transaction.
+    this.persistQueue = operation.catch(() => {})
+    await this.persistQueue
   }
 
   // --- helpers ---

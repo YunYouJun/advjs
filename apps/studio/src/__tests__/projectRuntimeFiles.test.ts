@@ -24,6 +24,16 @@ function createFs(files: Record<string, string>): IFileSystem {
 }
 
 describe('studio runtime project files', () => {
+  it('discovers only canonical JSON Flow chapters when retained Markdown mirrors exist', async () => {
+    const fs = createFs({
+      'adv.config.json': JSON.stringify({ schemaVersion: 1, id: 'flow', root: 'adv', format: 'flow' }),
+      'adv/chapters/intro.chapter.json': '{}',
+      'adv/chapters/old.adv.md': 'retained mirror',
+      'public/md/chapters/old.adv.md': 'retained mirror',
+      'adv/chapters/code.chapter.ts': 'executable',
+    })
+    expect(await discoverRuntimeChapterFiles(fs)).toEqual(['adv/chapters/intro.chapter.json'])
+  })
   it('discovers classic public Markdown chapters and game settings', async () => {
     const fs = createFs({
       'public/md/chapters/1/ignored.adv.md': 'nested directories are intentionally explicit',

@@ -1,0 +1,5 @@
+{
+  "extends": "../../../../../tsconfig.json",
+  "include": ["./*.ts", "../../e2e/real-qwen*.ts", "../../../../../packages/global.d.ts", "../../../src/**/*.d.ts"],
+  "exclude": ["**/dist/**", "**/node_modules/**"]
+}

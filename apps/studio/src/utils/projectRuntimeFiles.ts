@@ -47,6 +47,11 @@ function invalidSettings(message: string): Error {
 }
 
 export async function discoverRuntimeChapterFiles(fs: IFileSystem): Promise<string[]> {
+  if (await loadStudioSourceFormat(fs) === 'flow') {
+    // An explicit native Flow project must never open a retained Markdown mirror.
+    const files = await fs.collectAllFiles('adv/chapters')
+    return [...new Set(files.map(file => file.path).filter(path => path.endsWith('.chapter.json')))].sort()
+  }
   for (const root of RUNTIME_CHAPTER_ROOTS) {
     try {
       const files = await fs.collectAllFiles(root)
@@ -62,6 +67,15 @@ export async function discoverRuntimeChapterFiles(fs: IFileSystem): Promise<stri
     }
   }
   return []
+}
+
+export async function loadStudioSourceFormat(fs: IFileSystem): Promise<'flow' | 'adv-md'> {
+  if (!await fs.exists('adv.config.json'))
+    return 'adv-md'
+  const config: unknown = JSON.parse(await fs.readFile('adv.config.json'))
+  if (!isRecord(config) || (config.format !== undefined && config.format !== 'flow' && config.format !== 'adv-md'))
+    throw new Error('ADV_STUDIO_INVALID_PROJECT_FORMAT')
+  return config.format === 'flow' ? 'flow' : 'adv-md'
 }
 
 export async function loadStudioGameSettings(fs: IFileSystem): Promise<StudioGameSettings> {

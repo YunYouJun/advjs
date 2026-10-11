@@ -5,13 +5,13 @@ import { createI18n } from 'vue-i18n'
 import RuntimeInspectorDrawer from '../components/RuntimeInspectorDrawer.vue'
 
 const snapshot: RuntimeSnapshot = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   program: { id: 'preview', hash: 'preview-v1' },
   state: {
     status: 'playing',
     cursor: { chapterId: 'one', nodeId: 'line' },
     variables: {},
-    stage: { background: '', bgm: '', cg: '', tachies: {} },
+    stage: { background: '', audio: { bgm: null, ambience: {} }, cg: '', tachies: {} },
     choices: [],
     visited: [],
   },

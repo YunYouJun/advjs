@@ -1,0 +1,184 @@
+.flow-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  color: var(--adv-text-primary);
+  max-width: 1160px;
+  margin: auto;
+  padding: 16px;
+}
+.flow-workspace h2,
+.flow-workspace h3 {
+  margin: 0;
+  font-size: var(--adv-font-title);
+}
+.flow-workspace p {
+  color: var(--adv-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+.flow-workspace code {
+  overflow-wrap: anywhere;
+  font-size: var(--adv-font-caption);
+}
+.flow-workspace label {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.flow-workspace input:not([type='checkbox']),
+.flow-workspace select,
+.flow-workspace textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 48px;
+  border: 1px solid var(--adv-border-subtle);
+  border-radius: var(--adv-radius-sm);
+  padding: 10px 12px;
+  background: var(--adv-surface-card);
+  color: var(--adv-text-primary);
+  font: inherit;
+}
+.flow-workspace textarea {
+  min-height: 104px;
+  resize: vertical;
+}
+.flow-workspace input:focus-visible,
+.flow-workspace textarea:focus-visible,
+.flow-workspace select:focus-visible {
+  outline: 3px solid var(--adv-primary-soft);
+  outline-offset: 2px;
+}
+.flow-workspace fieldset {
+  min-width: 0;
+  border: 1px solid var(--adv-border-subtle);
+  border-radius: var(--adv-radius-sm);
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+}
+.flow-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.flow-workspace .flow-checkbox {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+}
+.flow-toolbar,
+.flow-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.flow-actions label {
+  flex: 1;
+  min-width: 160px;
+}
+.flow-validation,
+.flow-new-chapter,
+.flow-graph,
+.flow-node-editor {
+  grid-template-columns: minmax(0, 1fr);
+  padding: 16px;
+  background: var(--adv-surface-card);
+  border: 1px solid var(--adv-border-subtle);
+  border-radius: var(--adv-radius-md);
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+.flow-workspace details summary {
+  cursor: pointer;
+  min-height: 48px;
+  display: list-item;
+  align-content: center;
+  font-weight: 600;
+}
+.flow-workspace__editor {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.7fr) minmax(0, 1.3fr);
+  gap: 16px;
+  align-items: start;
+}
+.flow-node-list {
+  display: grid;
+  gap: 8px;
+  max-height: 760px;
+  overflow: auto;
+}
+.flow-node-list button {
+  text-align: left;
+  padding: 12px;
+  min-height: 72px;
+  border: 1px solid var(--adv-border-subtle);
+  border-radius: var(--adv-radius-sm);
+  background: var(--adv-surface-card);
+  color: var(--adv-text-primary);
+  display: grid;
+  gap: 6px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.flow-node-list button[aria-current] {
+  border-color: var(--adv-primary);
+  background: var(--adv-primary-soft);
+}
+.flow-node-list span {
+  color: var(--adv-text-secondary);
+  font-size: var(--adv-font-caption);
+}
+.flow-graph__scroll {
+  min-width: 0;
+  overflow: auto;
+  max-height: 420px;
+}
+.flow-graph rect {
+  fill: var(--adv-surface-elevated);
+  stroke: var(--adv-border-subtle);
+}
+.flow-graph rect.selected {
+  fill: var(--adv-primary-soft);
+  stroke: var(--adv-primary);
+  stroke-width: 2;
+}
+.flow-graph text {
+  fill: var(--adv-text-primary);
+  font-size: 15px;
+}
+.flow-graph__id {
+  font-size: 11px !important;
+}
+.flow-graph__edge {
+  stroke: var(--adv-primary);
+  stroke-width: 2;
+}
+.flow-graph__edge--implicit {
+  stroke-dasharray: 5 5;
+  opacity: 0.6;
+}
+.flow-graph g {
+  cursor: pointer;
+}
+.flow-error {
+  color: var(--adv-danger) !important;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 640px) {
+  .flow-workspace__editor {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .flow-node-list {
+    max-height: 260px;
+  }
+  .flow-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .flow-graph__scroll {
+    max-height: 240px;
+  }
+}

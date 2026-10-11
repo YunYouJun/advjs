@@ -1,13 +1,14 @@
-import type { AdvCharacter } from '@advjs/types'
+import type { AdvAssetEntry, AdvCharacter } from '@advjs/types'
 import type { IFileSystem } from '../utils/fs'
 import { parseCharacterMd } from '@advjs/parser'
-import { ref, watch } from 'vue'
+import { nextTick, ref, watch } from 'vue'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { parseAudioMd } from '../utils/audioMd'
 import { downloadFromCloud, listCloudFiles } from '../utils/cloudSync'
 import { AUDIO_EXTENSIONS, createFsForProject } from '../utils/fs'
 import { parseLocationMd } from '../utils/locationMd'
+import { loadStudioAssetCatalog } from '../utils/projectAssets'
 import { discoverRuntimeChapterFiles } from '../utils/projectRuntimeFiles'
 import { parseSceneMd } from '../utils/sceneMd'
 import { useKnowledgeBase } from './useKnowledgeBase'
@@ -19,6 +20,7 @@ export interface ChapterInfo {
   name: string
   preview: string
   content?: string
+  format?: 'flow' | 'adv-md'
 }
 
 export interface SceneInfo {
@@ -116,9 +118,15 @@ export function useProjectContent() {
         let content = ''
         try {
           content = await fs.readFile(file)
+          if (file.endsWith('.chapter.json')) {
+            const chapter = JSON.parse(content)
+            preview = chapter.nodes?.find((node: { text?: string, dialogue?: { text?: string } }) => node.text || node.dialogue?.text)?.dialogue?.text ?? chapter.nodes?.find((node: { text?: string }) => node.text)?.text ?? ''
+          }
+          else {
           // Extract first meaningful line as preview
-          const lines = content.split('\n').filter(l => l.trim() && !l.startsWith('---') && !l.startsWith('#'))
-          preview = lines[0]?.slice(0, 100) || ''
+            const lines = content.split('\n').filter(l => l.trim() && !l.startsWith('---') && !l.startsWith('#'))
+            preview = lines[0]?.slice(0, 100) || ''
+          }
         }
         catch (err) {
           const msg = `Failed to read chapter ${file}: ${err instanceof Error ? err.message : String(err)}`
@@ -128,9 +136,10 @@ export function useProjectContent() {
 
         chapterInfos.push({
           file,
-          name: file.split('/').pop()?.replace('.adv.md', '') || file,
+          name: file.split('/').pop()?.replace(/\.(?:adv\.md|chapter\.json)$/u, '') || file,
           preview,
           content,
+          format: file.endsWith('.chapter.json') ? 'flow' : 'adv-md',
         })
       }
       chapters.value = chapterInfos
@@ -266,6 +275,17 @@ export function useProjectContent() {
         }
       }
       catch { /* no audio dir */ }
+      if (await fs.exists('adv/assets.json')) {
+        const catalog = await loadStudioAssetCatalog(fs)
+        audioList.splice(0, audioList.length, ...(catalog?.list({ type: 'audio' }) ?? []).map(asset => ({
+          file: `adv/assets.json#${asset.id}`,
+          name: asset.title || asset.id,
+          assetId: asset.id,
+          duration: asset.duration,
+          tags: asset.labels,
+        })))
+        catalog?.dispose()
+      }
       audios.value = audioList
 
       // Load knowledge base + start watching for changes
@@ -476,7 +496,16 @@ export function useProjectContent() {
     return lastFs
   }
 
+  /** Read-only view of the canonical catalog for overview counts and previews. */
+  function applyAudioCatalogAssets(assets: AdvAssetEntry[]) {
+    audios.value = assets.filter(asset => asset.type === 'audio').map(asset => ({ file: `adv/assets.json#${asset.id}`, name: asset.title || asset.id, assetId: asset.id, duration: asset.duration, tags: asset.labels }))
+    stats.value = { ...stats.value, audios: audios.value.length }
+  }
+
   async function whenReady(): Promise<void> {
+    // A project switch queues its loader watcher. Await that queue before
+    // capturing currentLoad, otherwise callers can observe the previous FS.
+    await nextTick()
     await currentLoad
   }
 
@@ -536,6 +565,7 @@ export function useProjectContent() {
     loadFromCos,
     reload,
     getFs,
+    applyAudioCatalogAssets,
     whenReady,
     $reset,
   }

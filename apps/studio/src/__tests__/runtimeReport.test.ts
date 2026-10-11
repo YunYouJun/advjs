@@ -6,13 +6,13 @@ import { describe, expect, it } from 'vitest'
 import { createRuntimeReportPayload } from '../utils/runtimeReport'
 
 const snapshot: RuntimeSnapshot = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   program: { id: 'studio-project', hash: 'fixture-v1' },
   state: {
     status: 'playing',
     cursor: { chapterId: 'chapter-1', nodeId: 'line-1' },
     variables: { route: 'observe' },
-    stage: { background: 'night.svg', bgm: '', tachies: {}, cg: '' },
+    stage: { background: 'night.svg', audio: { bgm: null, ambience: {} }, tachies: {}, cg: '' },
     choices: [],
     visited: ['chapter-1#line-1'],
   },

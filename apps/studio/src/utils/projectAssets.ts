@@ -4,7 +4,7 @@ import type {
   AdvAssetResolveRequest,
 } from '@advjs/types'
 import type { IFileSystem } from './fs'
-import { createAdvAssetCatalog } from '@advjs/core'
+import { createAdvAssetCatalog, normalizeAdvAssetManifest } from '@advjs/core'
 
 const ABSOLUTE_URL_RE = /^(?:https?:|blob:|data:)/u
 const ROOT_PATH = 'adv/assets.json'
@@ -170,6 +170,11 @@ export async function loadStudioAssetCatalog(fs: IFileSystem) {
 
   const record = isRecord(manifest) ? manifest : {}
   const profiles = isRecord(record.profiles) ? record.profiles : undefined
+
+  // An explicitly initialized authoring catalog can be empty. It has no media
+  // resolver yet, while the rest of the project remains playable.
+  if (normalizeAdvAssetManifest(manifest, { allowEmpty: true }).assets.length === 0)
+    return null
 
   return createAdvAssetCatalog(manifest, {
     adapter: createProjectAssetAdapter(fs),

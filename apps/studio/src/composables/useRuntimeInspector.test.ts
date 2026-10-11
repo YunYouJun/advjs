@@ -5,13 +5,13 @@ import { projectRuntimeInspector } from './useRuntimeInspector'
 describe('projectRuntimeInspector', () => {
   it('projects a complete runtime debugging model without sharing data', () => {
     const snapshot: RuntimeSnapshot = {
-      schemaVersion: 1,
+      schemaVersion: 2,
       program: { id: 'demo', hash: 'hash' },
       state: {
         status: 'playing',
         cursor: { chapterId: 'one', nodeId: 'hello' },
         variables: { observed: true },
-        stage: { background: 'night', bgm: '', tachies: {}, cg: '' },
+        stage: { background: 'night', audio: { bgm: null, ambience: {} }, tachies: {}, cg: '' },
         choices: [],
         visited: ['one#hello'],
       },
@@ -22,7 +22,7 @@ describe('projectRuntimeInspector', () => {
           status: 'playing',
           cursor: { chapterId: 'one', nodeId: 'hello' },
           variables: {},
-          stage: { background: '', bgm: '', tachies: {}, cg: '' },
+          stage: { background: '', audio: { bgm: null, ambience: {} }, tachies: {}, cg: '' },
           choices: [],
           visited: [],
         },
