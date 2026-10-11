@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os'
 import { resolve } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { parse } from 'yaml'
-import { desktopReleaseFromManifest, desktopTargets, desktopVersionFromTag, publishDesktopAssets, resolveDesktopRelease, writeDesktopChecksums } from '../../../scripts/release/desktop-artifacts.mjs'
+import { assertDesktopCandidateIdentity, assertDesktopCandidateRun, desktopReleaseFromManifest, desktopTargets, desktopVersionFromTag, publishDesktopAssets, resolveDesktopRelease, validateDesktopBuild, verifyDesktopChecksums, writeDesktopChecksums } from '../../../scripts/release/desktop-artifacts.mjs'
 
 const root = resolve(import.meta.dirname, '../../..')
 const sourceSha = 'a'.repeat(40)
@@ -27,6 +27,28 @@ afterEach(async () => {
 })
 
 describe('desktop release assets', () => {
+  it('rejects builds from mutable refs, mismatched checkouts and invalid versions', async () => {
+    const run = async () => ({ stdout: `${sourceSha}\n` })
+    await expect(validateDesktopBuild({ sourceSha, version: '0.1.5', run })).resolves.toBeUndefined()
+    await expect(validateDesktopBuild({ sourceSha: 'dev', version: '0.1.5', run })).rejects.toThrow('full Git commit')
+    await expect(validateDesktopBuild({ sourceSha: 'b'.repeat(40), version: '0.1.5', run })).rejects.toThrow('candidate source commit')
+    await expect(validateDesktopBuild({ sourceSha, version: 'invalid', run })).rejects.toThrow('Invalid desktop version')
+  })
+
+  it('accepts only completed successful candidate runs in this repository', () => {
+    const repository = 'YunYouJun/advjs'
+    const run = { repository: { full_name: repository }, path: '.github/workflows/release-candidate.yml', status: 'completed', conclusion: 'success' }
+    expect(() => assertDesktopCandidateRun(run, repository)).not.toThrow()
+    for (const invalid of [
+      { ...run, conclusion: 'failure' },
+      { ...run, status: 'in_progress' },
+      { ...run, path: '.github/workflows/desktop.yml' },
+      { ...run, repository: { full_name: 'other/advjs' } },
+    ]) {
+      expect(() => assertDesktopCandidateRun(invalid, repository)).toThrow()
+    }
+  })
+
   it('accepts engine and desktop SemVer tags and rejects other or unsafe refs', () => {
     expect(desktopVersionFromTag('v0.1.5')).toBe('0.1.5')
     expect(desktopVersionFromTag('desktop-v0.1.5-beta.1+build.42')).toBe('0.1.5-beta.1+build.42')
@@ -40,6 +62,9 @@ describe('desktop release assets', () => {
     expect(() => desktopReleaseFromManifest({ ...manifest, version: '0.1.6' })).toThrow('manifest version')
     expect(() => desktopReleaseFromManifest({ ...manifest, source: { sha: 'main' } })).toThrow('full Git commit')
     expect(() => desktopReleaseFromManifest({ ...manifest, source: { sha: 'b'.repeat(40) } })).toThrow('candidate source commit')
+    expect(() => assertDesktopCandidateIdentity(manifest, { tag: 'desktop-v0.1.5', sourceSha })).not.toThrow()
+    expect(() => assertDesktopCandidateIdentity(manifest, { tag: 'v0.1.6', sourceSha })).toThrow('source and version')
+    expect(() => assertDesktopCandidateIdentity(manifest, { tag: 'v0.1.5', sourceSha: 'b'.repeat(40) })).toThrow('source and version')
   })
 
   it('locks desktop builds to both the release tag and promoted source commit', async () => {
@@ -74,6 +99,16 @@ describe('desktop release assets', () => {
     await expect(writeDesktopChecksums(directory, '0.1.5')).rejects.toThrow('nonempty regular file')
     await writeFile(resolve(directory, 'unexpected.zip'), 'archive')
     await expect(writeDesktopChecksums(directory, '0.1.5')).rejects.toThrow('exactly these four ZIPs')
+  })
+
+  it('verifies candidate archives without replacing their original checksums', async () => {
+    const directory = await fixture()
+    const files = await writeDesktopChecksums(directory, '0.1.5')
+    const checksums = await readFile(resolve(directory, 'SHA256SUMS.txt'), 'utf8')
+    await expect(verifyDesktopChecksums(directory, '0.1.5')).resolves.toEqual(files)
+    await writeFile(resolve(directory, 'advjs-desktop-0.1.5-linux-x64.zip'), 'tampered archive')
+    await expect(verifyDesktopChecksums(directory, '0.1.5')).rejects.toThrow('ZIP integrity')
+    expect(await readFile(resolve(directory, 'SHA256SUMS.txt'), 'utf8')).toBe(checksums)
   })
 
   it('uploads complete archives and checksums to an existing published release', async () => {
@@ -117,26 +152,42 @@ describe('desktop release assets', () => {
 })
 
 describe('desktop workflow release boundaries', () => {
-  it('uses native runners and publishes only after every platform build and smoke passed', async () => {
+  it('gates candidate publication on the complete native matrix and reuses its artifacts at release', async () => {
     const readWorkflow = async (name: string) => parse(await readFile(resolve(root, `.github/workflows/${name}.yml`), 'utf8'))
-    const [build, release, promotion, ci] = await Promise.all(['desktop-build', 'release-desktop', 'release', 'desktop'].map(readWorkflow))
-    const matrix = build.jobs.package.strategy.matrix.include
+    const [build, release, promotion, candidate] = await Promise.all(['desktop-build', 'release-desktop', 'release', 'release-candidate'].map(readWorkflow))
+    const matrix = JSON.parse(build.on.workflow_call.inputs.targets.default)
     expect(matrix.map((target: { platform: string, arch: string }) => `${target.platform}-${target.arch}`).sort()).toEqual([...desktopTargets].sort())
     expect(matrix.find((target: { arch: string, platform: string }) => target.platform === 'darwin' && target.arch === 'x64').os).toBe('macos-15-intel')
     const steps = build.jobs.package.steps
     const uploadIndex = steps.findIndex((step: { name: string }) => step.name === 'Upload desktop ZIP')
     expect(steps.slice(0, uploadIndex).filter((step: { run?: string }) => step.run?.includes('verify-package.mjs'))).toHaveLength(2)
     expect(build.permissions).toEqual({ contents: 'read' })
-    expect(release.jobs.publish.needs).toEqual(['prepare', 'build'])
-    expect(release.jobs.publish.permissions).toEqual({ contents: 'write' })
-    expect(release.jobs.prepare.steps[0].with.ref).toBe(`refs/tags/\${{ inputs.tag || github.event.release.tag_name }}`)
-    expect(release.jobs.build.with.source_sha).toBe(`\${{ needs.prepare.outputs.source_sha }}`)
-    expect(release.on.release.types).toEqual(['published'])
+    expect(candidate.jobs.desktop.uses).toBe('./.github/workflows/desktop-build.yml')
+    expect(candidate.jobs.desktop.with.targets).toBeUndefined()
+    expect(candidate.jobs.desktop.with).toMatchObject({ source_sha: `\${{ inputs.source_sha }}`, version: `\${{ inputs.version }}`, retention_days: 90 })
+    expect(candidate.jobs.candidate.needs).toBe('desktop')
+    expect(candidate.jobs.candidate.steps.find((step: { name?: string }) => step.name === 'Build immutable package set and manifest').run).toContain('--desktop-artifacts desktop-candidate-assets')
+    expect(release.jobs.build).toBeUndefined()
+    expect(release.jobs.publish.needs).toBe('prepare')
+    expect(release.jobs.publish.permissions).toEqual({ actions: 'read', contents: 'write' })
+    expect(release.jobs.prepare.steps[0].with.ref).toBe(`refs/tags/\${{ inputs.tag }}`)
+    expect(release.on.release).toBeUndefined()
+    expect(release.on.workflow_dispatch.inputs.candidate_run_id.required).toBe(true)
+    const publishSteps = release.jobs.publish.steps
+    const download = publishSteps.find((step: { uses?: string }) => step.uses === 'actions/download-artifact@v8')
+    expect(download.with).toMatchObject({ 'run-id': `\${{ inputs.candidate_run_id }}`, 'name': `release-candidate-\${{ needs.prepare.outputs.version }}` })
+    const verifyIndex = publishSteps.findIndex((step: { run?: string }) => step.run?.includes('verify-candidate'))
+    const publishIndex = publishSteps.findIndex((step: { run?: string }) => step.run?.includes('desktop-artifacts.mjs publish'))
+    expect(verifyIndex).toBeGreaterThan(-1)
+    expect(publishIndex).toBeGreaterThan(verifyIndex)
     expect(promotion.jobs.desktop.needs).toBe('transaction')
     expect(promotion.jobs.desktop.if).toBe('inputs.operation == \'promote\' && !inputs.dry_run')
     expect(promotion.jobs.desktop.uses).toBe('./.github/workflows/release-desktop.yml')
     expect(promotion.jobs.desktop.with.source_sha).toBe(`\${{ needs.transaction.outputs.desktop_source_sha }}`)
-    expect(ci.jobs.build.uses).toBe('./.github/workflows/desktop-build.yml')
-    expect(ci.permissions).toEqual({ contents: 'read' })
+    expect(promotion.jobs.desktop.with.candidate_run_id).toBe(`\${{ inputs.candidate_run_id }}`)
+    const promotionSteps = promotion.jobs.transaction.steps
+    const integrityIndex = promotionSteps.findIndex((step: { run?: string }) => step.run?.includes('--require-desktop'))
+    expect(integrityIndex).toBeGreaterThan(-1)
+    expect(promotionSteps.findIndex((step: { name?: string }) => step.name === 'Promote or resume the exact candidate')).toBeGreaterThan(integrityIndex)
   })
 })

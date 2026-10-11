@@ -3,12 +3,13 @@
 import { Buffer } from 'node:buffer'
 import { execFile } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { promisify } from 'node:util'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createReleaseManifest } from '../../../scripts/release/create-manifest.mjs'
+import { desktopTargets } from '../../../scripts/release/desktop-artifacts.mjs'
 import { publishCandidate } from '../../../scripts/release/publish-candidate.mjs'
 import { verifyReleaseManifest } from '../../../scripts/release/verify-manifest.mjs'
 
@@ -115,6 +116,31 @@ describe('immutable release manifests', () => {
     })
     expect(await readFile(join(data.root, 'release/0.1.2/changelog.md'), 'utf8')).toContain('add launch workflow')
     await expect(verifyReleaseManifest({ manifestPath: data.output, root: data.root })).resolves.toMatchObject({ integrity: manifest.integrity })
+    await expect(verifyReleaseManifest({ manifestPath: data.output, root: data.root, requireDesktop: true })).rejects.toThrow('missing verified desktop packages')
+  })
+
+  it('binds all native desktop ZIPs to a self-contained candidate manifest and detects missing or modified archives', async () => {
+    const data = await fixture()
+    const desktopArtifacts = join(data.root, 'desktop-assets')
+    await mkdir(desktopArtifacts)
+    for (const target of desktopTargets)
+      await writeFile(join(desktopArtifacts, `advjs-desktop-0.1.2-${target}.zip`), `native archive:${target}`)
+    const manifest = await createReleaseManifest({ output: data.output, packageManifestFactory: fakePackageFactory(), root: data.root, sourceSha: data.sourceSha, state: data.state, version: '0.1.2', desktopArtifacts })
+    expect(manifest.artifacts.desktopChecksums).toMatchObject({ path: 'desktop/SHA256SUMS.txt', sha256: expect.stringMatching(/^[a-f\d]{64}$/u) })
+
+    // Reuse the downloaded artifact without relying on the original checkout or assets.
+    const downloaded = join(data.root, 'downloaded-candidate')
+    await cp(dirname(data.output), downloaded, { recursive: true })
+    await rm(desktopArtifacts, { recursive: true })
+    const options = { manifestPath: join(downloaded, 'manifest.json'), checkGit: false, requireDesktop: true }
+    await expect(verifyReleaseManifest(options)).resolves.toMatchObject({ integrity: manifest.integrity })
+    const archive = join(downloaded, 'desktop/advjs-desktop-0.1.2-linux-x64.zip')
+    await rm(archive)
+    await expect(verifyReleaseManifest(options)).rejects.toThrow('exactly these four ZIPs')
+    await writeFile(archive, 'modified native archive')
+    await expect(verifyReleaseManifest(options)).rejects.toThrow('ZIP integrity')
+    await writeFile(join(downloaded, 'desktop/SHA256SUMS.txt'), 'modified checksums')
+    await expect(verifyReleaseManifest(options)).rejects.toThrow('desktopChecksums does not match its SHA-256')
   })
 
   it('reuses a verified manifest without rebuilding or repacking', async () => {
@@ -134,6 +160,7 @@ describe('immutable release manifests', () => {
 
     expect(second).toEqual(first)
     expect(packageManifestFactory).toHaveBeenCalledOnce()
+    await expect(createReleaseManifest({ ...options, desktopArtifacts: 'desktop-assets' })).rejects.toThrow('missing verified desktop packages')
   })
 
   it('detects manifest and tarball tampering', async () => {

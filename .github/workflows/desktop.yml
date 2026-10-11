@@ -3,42 +3,8 @@ name: Desktop CI
 on:
   push:
     branches: [dev, main]
-    paths:
-      - '.github/workflows/desktop*.yml'
-      - '.github/workflows/release*.yml'
-      - 'apps/desktop/**'
-      - 'editor/**'
-      - 'packages/**'
-      - 'plugins/**'
-      - 'themes/**'
-      - 'scripts/**'
-      - 'tests/launch/fixtures/golden-project/**'
-      - tests/unit/desktop/desktop-release.test.ts
-      - package.json
-      - pnpm-lock.yaml
-      - pnpm-workspace.yaml
-      - 'patches/**'
-      - 'tsconfig*.json'
-      - uno.config.ts
   pull_request:
     branches: [dev, main]
-    paths:
-      - '.github/workflows/desktop*.yml'
-      - '.github/workflows/release*.yml'
-      - 'apps/desktop/**'
-      - 'editor/**'
-      - 'packages/**'
-      - 'plugins/**'
-      - 'themes/**'
-      - 'scripts/**'
-      - 'tests/launch/fixtures/golden-project/**'
-      - tests/unit/desktop/desktop-release.test.ts
-      - package.json
-      - pnpm-lock.yaml
-      - pnpm-workspace.yaml
-      - 'patches/**'
-      - 'tsconfig*.json'
-      - uno.config.ts
   workflow_dispatch:
 
 permissions:
@@ -50,4 +16,45 @@ concurrency:
 
 jobs:
   build:
+    name: desktop build check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      package: ${{ steps.changes.outputs.package }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Detect desktop packaging changes
+        id: changes
+        env:
+          DESKTOP_EVENT: ${{ github.event_name }}
+          DESKTOP_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          DESKTOP_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/ci/desktop-changes.mjs
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Test desktop build scripts
+        run: pnpm -C apps/desktop test:scripts
+      - name: Build desktop host dependencies
+        run: pnpm build:advjs
+      - name: Typecheck and build desktop host
+        run: node apps/desktop/scripts/build.mjs
+
+  linux-package:
+    needs: build
+    if: github.event_name != 'workflow_dispatch' && needs.build.outputs.package == 'true'
+    uses: ./.github/workflows/desktop-build.yml
+    with:
+      targets: '[{"os":"ubuntu-22.04","platform":"linux","arch":"x64"}]'
+
+  full-matrix:
+    needs: build
+    if: github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/desktop-build.yml

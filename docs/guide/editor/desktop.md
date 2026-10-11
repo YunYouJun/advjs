@@ -116,13 +116,15 @@ pnpm -C apps/desktop icons:source
 | Windows | x64   | 含 `advjs-editor.exe` 的便携 ZIP |
 | Linux   | x64   | 含 `advjs-editor` 的应用目录 ZIP |
 
-`.github/workflows/desktop.yml` 在相关代码的 PR、`dev`／`main` 推送时执行，也支持在 GitHub Actions 手动运行。工作流构建应用，并从临时目录启动打包产物，打开测试项目、导出 Web 游戏，成功后上传 Actions artifacts。是否支持某个平台，以该平台实际工作流结果为准。
+`.github/workflows/desktop.yml` 在目标为 `dev`／`main` 的 PR 和这两个分支的推送中执行轻量检查：测试构建脚本、构建宿主依赖，并检查宿主 TypeScript 与生成代码。修改桌面宿主、Editor、运行时包、插件、主题、项目模板或相关构建配置时，额外运行 Linux x64 打包验证；文档和仅 Studio 的改动不会触发打包。PR 按合并基点比较，推送检查整个提交范围，包含删除和重命名的文件。
 
-`.github/workflows/release-desktop.yml` 在发布 `v<版本>` 或 `desktop-v<版本>` GitHub Release 时自动构建，正式版和预发布均适用；`core-v*` 不触发桌面发布。四个平台全部成功后，统一把 ZIP 和 `SHA256SUMS.txt` 附加到对应 Release。工作流固定到标签实际指向的提交，打包版本来自标签，不依赖默认分支当时的内容，也不改写源码包版本。补跑同一标签时替换同名附件，以恢复中断的上传。
+在 GitHub Actions 手动运行「Desktop CI」会执行完整四平台矩阵，用于提前验证 Electron 依赖、打包配置或平台相关改动。每个平台都从临时目录启动打包产物，打开测试项目并导出 Web 游戏，通过后上传 ZIP 和 smoke 证据。是否支持某个平台，以该平台实际工作流结果为准。
 
-现有 Release 晋级工作流在正式晋级成功后直接调用桌面发布工作流。这样即使 Release 由 `GITHUB_TOKEN` 创建，也不会因为 GitHub 阻止递归触发而漏掉桌面构建；dry-run 和 abort 不发布客户端。手动补跑可在「Release desktop applications」工作流选择已经存在的 Release 标签。
+`.github/workflows/release-candidate.yml` 固定候选提交和版本，先完成四个平台的打包与启动验证，再生成和发布候选包；dry-run 同样运行完整矩阵。候选 artifact 保留 90 天，包含四份 ZIP、`SHA256SUMS.txt` 和绑定校验值的发布清单。正式晋级前验证候选工作流已成功完成，并检查全部桌面产物的完整性；任一平台失败、文件缺失或校验不符都会阻止晋级。
 
-独立发布客户端时，在包含所需改动的提交上创建 `desktop-v0.1.5` 标签，再为此标签发布 GitHub Release。仅推送标签不会创建公开 Release 或上传附件。发布整套 ADV.JS 时继续使用现有晋级流程。
+正式晋级成功后直接调用 `.github/workflows/release-desktop.yml`，使用该候选 run 的原始产物，不重新构建。上传前确认 Release 标签与候选提交、版本一致，再把 ZIP 和校验文件附加到 Release；dry-run 和 abort 不上传客户端。仅创建 GitHub Release 或推送标签不会触发桌面构建。
+
+手动补跑附件上传时，在「Release desktop applications」工作流填写已发布的 `v<版本>` 或 `desktop-v<版本>` 标签，以及成功的「Release candidate」run ID。候选版本和提交必须与标签匹配；同一标签补跑会替换同名附件。独立发布客户端也需要先运行候选验证，再为相同提交创建 `desktop-v<版本>` Release，并用该候选 run 手动上传。候选 artifact 过期后需要重新运行候选验证；「Desktop CI」的手动矩阵产物只用于检查，不能直接用于正式发布。
 
 当前提供未签名的 ZIP，不包含应用内自动更新。升级时退出客户端，下载匹配架构的 ZIP 并替换应用；项目目录与应用偏好设置独立保存。macOS 签名／公证、Windows 代码签名以及 DMG／安装向导属于后续分发工作。
 

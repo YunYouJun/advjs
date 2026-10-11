@@ -1,12 +1,14 @@
 name: Release desktop applications
 
 on:
-  release:
-    types: [published]
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing published release tag (v1.2.3 or desktop-v1.2.3) to package
+        description: Existing published release tag (v1.2.3 or desktop-v1.2.3)
+        required: true
+        type: string
+      candidate_run_id:
+        description: Successful release-candidate workflow run containing the verified desktop packages
         required: true
         type: string
   workflow_call:
@@ -19,17 +21,21 @@ on:
         description: Expected source commit from the verified release manifest
         required: true
         type: string
+      candidate_run_id:
+        description: Successful release-candidate workflow run to reuse
+        required: true
+        type: string
 
 permissions:
+  actions: read
   contents: read
 
 concurrency:
-  group: desktop-release-${{ inputs.tag || github.event.release.tag_name }}
+  group: desktop-release-${{ inputs.tag }}
   cancel-in-progress: false
 
 jobs:
   prepare:
-    if: github.event_name != 'release' || startsWith(github.event.release.tag_name, 'v') || startsWith(github.event.release.tag_name, 'desktop-v')
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.release.outputs.tag }}
@@ -38,48 +44,54 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: refs/tags/${{ inputs.tag || github.event.release.tag_name }}
+          ref: refs/tags/${{ inputs.tag }}
           persist-credentials: false
       - uses: actions/setup-node@v7
         with:
           node-version: 'lts/*'
           package-manager-cache: false
+      - name: Require a successful candidate workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DESKTOP_CANDIDATE_RUN_ID: ${{ inputs.candidate_run_id }}
+        run: node scripts/release/desktop-artifacts.mjs verify-run
       - name: Resolve and validate the exact release commit
         id: release
         env:
-          DESKTOP_RELEASE_TAG: ${{ inputs.tag || github.event.release.tag_name }}
+          DESKTOP_RELEASE_TAG: ${{ inputs.tag }}
           DESKTOP_RELEASE_SOURCE_SHA: ${{ inputs.source_sha }}
         run: node scripts/release/desktop-artifacts.mjs resolve
 
-  build:
-    needs: prepare
-    uses: ./.github/workflows/desktop-build.yml
-    with:
-      source_sha: ${{ needs.prepare.outputs.source_sha }}
-      version: ${{ needs.prepare.outputs.version }}
-
   publish:
-    needs: [prepare, build]
+    needs: prepare
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      DESKTOP_RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+      DESKTOP_RELEASE_SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
+      DESKTOP_CANDIDATE_DIRECTORY: release/${{ needs.prepare.outputs.version }}
     steps:
       - uses: actions/checkout@v7
         with:
           ref: ${{ needs.prepare.outputs.source_sha }}
           persist-credentials: false
+      - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
           node-version: 'lts/*'
-          package-manager-cache: false
+          cache: pnpm
+      - name: Install verification dependencies
+        run: pnpm install --frozen-lockfile
       - uses: actions/download-artifact@v8
         with:
-          pattern: desktop-package-*
-          path: desktop-release-assets
-          merge-multiple: true
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.candidate_run_id }}
+          name: release-candidate-${{ needs.prepare.outputs.version }}
+          path: ${{ env.DESKTOP_CANDIDATE_DIRECTORY }}
+      - name: Verify candidate source, version and desktop ZIP integrity
+        run: node scripts/release/desktop-artifacts.mjs verify-candidate "$DESKTOP_CANDIDATE_DIRECTORY/manifest.json"
       - name: Verify all platform assets and upload to the existing release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          DESKTOP_RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
-          DESKTOP_RELEASE_SOURCE_SHA: ${{ needs.prepare.outputs.source_sha }}
-        run: node scripts/release/desktop-artifacts.mjs publish desktop-release-assets
+        run: node scripts/release/desktop-artifacts.mjs publish "$DESKTOP_CANDIDATE_DIRECTORY/desktop"

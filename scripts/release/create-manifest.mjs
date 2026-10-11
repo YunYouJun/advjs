@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 
 import { execFile } from 'node:child_process'
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { cp, mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, relative, resolve } from 'node:path'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
 import { promisify } from 'node:util'
 import { generateChangelog } from './changelog.mjs'
+import { writeDesktopChecksums } from './desktop-artifacts.mjs'
 import { sha256 } from './integrity.mjs'
 import { createPackageManifest } from './package-manifest.mjs'
 
@@ -76,7 +77,7 @@ export async function createReleaseManifest(options) {
     if (manifest.source?.sha !== options.sourceSha || manifest.version !== options.version)
       throw new Error('Existing immutable release manifest belongs to another source or version')
     const { verifyReleaseManifest } = await import('./verify-manifest.mjs')
-    await verifyReleaseManifest({ manifestPath: output, root })
+    await verifyReleaseManifest({ manifestPath: output, root, requireDesktop: !!options.desktopArtifacts })
     return manifest
   }
   if (!VERSION_RE.test(options.version))
@@ -117,7 +118,20 @@ export async function createReleaseManifest(options) {
   })
   await writeImmutable(changelogPath, changelog)
   const knownLimitationsPath = resolve(root, options.knownLimitations || 'docs/about/launch-known-limitations.md')
-  const knownLimitations = await readFile(knownLimitationsPath)
+  const knownLimitations = await readFile(knownLimitationsPath, 'utf8')
+  const stagedKnownLimitationsPath = resolve(outputDirectory, 'known-limitations.md')
+  await writeImmutable(stagedKnownLimitationsPath, knownLimitations)
+
+  let desktopChecksums
+  if (options.desktopArtifacts) {
+    const desktopDirectory = resolve(outputDirectory, 'desktop')
+    await cp(resolve(root, options.desktopArtifacts), desktopDirectory, { recursive: true })
+    await writeDesktopChecksums(desktopDirectory, options.version)
+    desktopChecksums = {
+      path: 'desktop/SHA256SUMS.txt',
+      sha256: sha256(await readFile(resolve(desktopDirectory, 'SHA256SUMS.txt'))),
+    }
+  }
 
   const previousDistTags = Object.fromEntries(packageManifest.packages.map(pkg => [pkg.name, sorted(state.npmDistTags[pkg.name] || {})]))
   const targetDistTags = Object.fromEntries(packageManifest.packages.map(pkg => [pkg.name, { latest: options.version, rc: options.version }]))
@@ -148,8 +162,9 @@ export async function createReleaseManifest(options) {
     },
     artifacts: {
       changelog: { path: relative(outputDirectory, changelogPath), sha256: sha256(changelog) },
-      knownLimitations: { path: relative(outputDirectory, knownLimitationsPath), sha256: sha256(knownLimitations) },
+      knownLimitations: { path: relative(outputDirectory, stagedKnownLimitationsPath), sha256: sha256(knownLimitations) },
       packageManifest: { path: relative(outputDirectory, packageManifestPath), sha256: sha256(packageManifestContent) },
+      ...(desktopChecksums ? { desktopChecksums } : {}),
     },
     packages,
   }
@@ -172,6 +187,8 @@ function parseOptions(argv) {
       options.output = argv[++index]
     else if (argument === '--known-limitations')
       options.knownLimitations = argv[++index]
+    else if (argument === '--desktop-artifacts')
+      options.desktopArtifacts = argv[++index]
     else
       throw new TypeError(`Unknown option: ${argument}`)
   }

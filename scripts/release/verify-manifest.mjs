@@ -7,6 +7,7 @@ import process from 'node:process'
 import { pathToFileURL } from 'node:url'
 import { promisify } from 'node:util'
 import { calculateReleaseManifestIntegrity } from './create-manifest.mjs'
+import { verifyDesktopChecksums } from './desktop-artifacts.mjs'
 import { digest } from './integrity.mjs'
 
 const execFileAsync = promisify(execFile)
@@ -33,6 +34,8 @@ export async function verifyReleaseManifest(options) {
     throw new Error('Release manifest does not match schema version 1')
   if (calculateReleaseManifestIntegrity(manifest) !== manifest.integrity)
     throw new Error('Release manifest integrity does not match its contents')
+  if (options.requireDesktop && !manifest.artifacts?.desktopChecksums)
+    throw new Error('Release candidate is missing verified desktop packages')
 
   for (const [name, artifact] of Object.entries(manifest.artifacts || {})) {
     if (!artifact || typeof artifact.path !== 'string' || typeof artifact.sha256 !== 'string')
@@ -41,6 +44,9 @@ export async function verifyReleaseManifest(options) {
     if (digest('sha256', content) !== artifact.sha256)
       throw new Error(`Release artifact ${name} does not match its SHA-256`)
   }
+
+  if (manifest.artifacts.desktopChecksums)
+    await verifyDesktopChecksums(dirname(resolve(manifestDirectory, manifest.artifacts.desktopChecksums.path)), manifest.version)
 
   const packageManifest = JSON.parse(await readFile(resolve(manifestDirectory, manifest.artifacts.packageManifest.path), 'utf8'))
   if (packageManifest.version !== manifest.version || packageManifest.packages.length !== manifest.packages.length)
@@ -74,7 +80,7 @@ export async function verifyReleaseManifest(options) {
 
 function parseOptions(argv) {
   if (!argv[0] || argv[0].startsWith('--'))
-    throw new TypeError('Usage: verify-manifest.mjs <manifest> [--local-registry [url] | --registry [url]]')
+    throw new TypeError('Usage: verify-manifest.mjs <manifest> [--local-registry [url] | --registry [url]] [--no-git] [--require-desktop]')
   const options = { manifestPath: argv[0] }
   for (let index = 1; index < argv.length; index += 1) {
     const argument = argv[index]
@@ -88,6 +94,9 @@ function parseOptions(argv) {
     }
     else if (argument === '--no-git') {
       options.checkGit = false
+    }
+    else if (argument === '--require-desktop') {
+      options.requireDesktop = true
     }
     else {
       throw new TypeError(`Unknown option: ${argument}`)

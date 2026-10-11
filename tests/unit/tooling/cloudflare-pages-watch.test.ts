@@ -63,6 +63,11 @@ describe('cloudflare Pages build watch paths', () => {
     expect(builds(['editor/core/README.md', 'editor/core/nuxt.config.ts'])).toEqual(['editor'])
   })
 
+  it('watches the new audio workspace and Studio shared audio contracts', () => {
+    expect(builds(['packages/audio/src/runtime-projection.ts'])).toEqual(['studio', 'editor', 'vrm'])
+    expect(builds(['packages/advjs/shared/hosted-audio.ts'])).toEqual(['studio', 'editor', 'vrm'])
+  })
+
   it('matches nested paths and literal punctuation using Pages wildcard semantics', () => {
     expect(matchesWatchPath('examples/ai-contest/story/adv/chapter.md', 'examples/ai-contest/*')).toBe(true)
     expect(matchesWatchPath('tsconfig.node.json', 'tsconfig*.json')).toBe(true)
@@ -80,7 +85,7 @@ describe('cloudflare Pages build watch paths', () => {
   })
 
   it('covers every app workspace dependency, including future transitive dependencies', () => {
-    const manifests = execFileSync('git', ['ls-files', '*package.json'], { cwd: root, encoding: 'utf8' })
+    const manifests = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '*package.json'], { cwd: root, encoding: 'utf8' })
       .trim()
       .split('\n')
       .map(path => ({ path, ...JSON.parse(readFileSync(resolve(root, path), 'utf8')) }))
@@ -107,7 +112,7 @@ describe('cloudflare Pages build watch paths', () => {
   })
 
   it('covers app relative imports outside its own directory, including raw template Markdown', () => {
-    const files = execFileSync('git', ['ls-files'], { cwd: root, encoding: 'utf8' }).trim().split('\n')
+    const files = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard'], { cwd: root, encoding: 'utf8' }).trim().split('\n')
     for (const key of keys) {
       const workspace = getWatchPolicy(key).workspace
       for (const file of files.filter(path => path.startsWith(`${workspace}/`) && /\.(?:ts|vue|scss)$/.test(path) && !/\/__tests__\/|\/tests\/|\.test\.|\.spec\./.test(path))) {

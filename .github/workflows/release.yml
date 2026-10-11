@@ -62,6 +62,11 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Require a successful candidate workflow before promotion
+        if: inputs.operation == 'promote'
+        env:
+          DESKTOP_CANDIDATE_RUN_ID: ${{ inputs.candidate_run_id }}
+        run: node scripts/release/desktop-artifacts.mjs verify-run
       - name: Download immutable candidate artifact
         env:
           GH_TOKEN: ${{ github.token }}
@@ -70,7 +75,15 @@ jobs:
           --name "${{ inputs.artifact_name }}"
           --dir release-transaction
       - name: Verify immutable release manifest
-        run: node scripts/release/verify-manifest.mjs "release-transaction/${{ inputs.manifest }}"
+        env:
+          RELEASE_OPERATION: ${{ inputs.operation }}
+          RELEASE_MANIFEST_PATH: release-transaction/${{ inputs.manifest }}
+        run: |
+          options=()
+          if [ "$RELEASE_OPERATION" = promote ]; then
+            options+=(--require-desktop)
+          fi
+          node scripts/release/verify-manifest.mjs "$RELEASE_MANIFEST_PATH" "${options[@]}"
       - name: Materialize signed approval evidence
         if: inputs.operation == 'promote' && !inputs.dry_run
         env:
@@ -103,6 +116,7 @@ jobs:
           name: release-transaction-${{ inputs.candidate_run_id }}
           path: release-transaction/
           if-no-files-found: error
+          compression-level: 0
           retention-days: 90
     env:
       ADV_RELEASE_BOT_ACTOR: ${{ vars.ADV_RELEASE_BOT_ACTOR }}
@@ -111,14 +125,15 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-  # GITHUB_TOKEN-created releases do not trigger release:published workflows.
-  # Call the same packaging workflow directly after a real promotion succeeds.
+  # Upload the exact desktop packages verified before candidate publication.
   desktop:
     needs: transaction
     if: inputs.operation == 'promote' && !inputs.dry_run
     uses: ./.github/workflows/release-desktop.yml
     permissions:
+      actions: read
       contents: write
     with:
       tag: ${{ needs.transaction.outputs.desktop_tag }}
       source_sha: ${{ needs.transaction.outputs.desktop_source_sha }}
+      candidate_run_id: ${{ inputs.candidate_run_id }}

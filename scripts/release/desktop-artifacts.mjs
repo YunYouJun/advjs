@@ -25,6 +25,24 @@ function assertCommit(sha) {
   return sha
 }
 
+export async function validateDesktopBuild({ sourceSha, version, cwd = process.cwd(), run = execFileAsync }) {
+  if (version)
+    assertDesktopVersion(version)
+  if (sourceSha) {
+    assertCommit(sourceSha)
+    const { stdout } = await run('git', ['rev-parse', 'HEAD'], { cwd })
+    if (stdout.trim() !== sourceSha)
+      throw new Error('Desktop build checkout does not match the candidate source commit')
+  }
+}
+
+export function assertDesktopCandidateRun(run, repository) {
+  if (run.repository?.full_name !== repository || run.path?.split('@')[0] !== '.github/workflows/release-candidate.yml')
+    throw new Error('Desktop artifacts must come from this repository release-candidate workflow')
+  if (run.status !== 'completed' || run.conclusion !== 'success')
+    throw new Error('Desktop candidate workflow must have completed successfully')
+}
+
 export function desktopReleaseFromManifest(manifest) {
   const version = desktopVersionFromTag(manifest.target?.tag)
   if (version !== manifest.version)
@@ -33,6 +51,12 @@ export function desktopReleaseFromManifest(manifest) {
   if (sourceSha !== assertCommit(manifest.source?.sha))
     throw new Error('Desktop release target does not match the candidate source commit')
   return { tag: manifest.target.tag, version, source_sha: sourceSha }
+}
+
+export function assertDesktopCandidateIdentity(manifest, { tag, sourceSha }) {
+  const candidate = desktopReleaseFromManifest(manifest)
+  if (candidate.version !== desktopVersionFromTag(tag) || candidate.source_sha !== assertCommit(sourceSha))
+    throw new Error('Desktop candidate does not match the release source and version')
 }
 
 export async function resolveDesktopRelease({ tag, expectedSha, cwd = process.cwd(), run = execFileAsync }) {
@@ -47,7 +71,7 @@ export async function resolveDesktopRelease({ tag, expectedSha, cwd = process.cw
   return { tag, version, source_sha: sourceSha }
 }
 
-export async function writeDesktopChecksums(directory, version) {
+async function desktopChecksumContents(directory, version) {
   assertDesktopVersion(version)
   const files = desktopTargets.map(target => `advjs-desktop-${version}-${target}.zip`)
   const names = (await readdir(directory)).filter(name => name !== 'SHA256SUMS.txt').sort()
@@ -65,9 +89,20 @@ export async function writeDesktopChecksums(directory, version) {
       hash.update(chunk)
     checksums.push(`${hash.digest('hex')}  ${name}`)
   }
-  const checksumName = 'SHA256SUMS.txt'
-  await writeFile(resolve(directory, checksumName), `${checksums.join('\n')}\n`)
-  return [...files, checksumName]
+  return { files: [...files, 'SHA256SUMS.txt'], contents: `${checksums.join('\n')}\n` }
+}
+
+export async function writeDesktopChecksums(directory, version) {
+  const { files, contents } = await desktopChecksumContents(directory, version)
+  await writeFile(resolve(directory, 'SHA256SUMS.txt'), contents)
+  return files
+}
+
+export async function verifyDesktopChecksums(directory, version) {
+  const { files, contents } = await desktopChecksumContents(directory, version)
+  if (await readFile(resolve(directory, 'SHA256SUMS.txt'), 'utf8') !== contents)
+    throw new Error('Desktop candidate ZIP integrity does not match its checksums')
+  return files
 }
 
 export async function publishDesktopAssets({ directory, tag, sourceSha, repository, cwd = process.cwd(), run = execFileAsync }) {
@@ -104,13 +139,31 @@ async function outputRelease(release) {
 const invokedPath = process.argv[1] ? pathToFileURL(resolve(process.argv[1])).href : ''
 if (invokedPath === import.meta.url) {
   const [command, path] = process.argv.slice(2)
-  if (command === 'resolve') {
+  if (command === 'validate-build') {
+    await validateDesktopBuild({ sourceSha: process.env.DESKTOP_SOURCE_SHA, version: process.env.ADVJS_DESKTOP_VERSION })
+  }
+  else if (command === 'verify-run') {
+    const runId = process.env.DESKTOP_CANDIDATE_RUN_ID
+    if (!/^[1-9]\d*$/u.test(runId || ''))
+      throw new Error('Desktop candidate run ID must be a positive integer')
+    const repository = process.env.GITHUB_REPOSITORY
+    const { stdout } = await execFileAsync('gh', ['api', `repos/${repository}/actions/runs/${runId}`])
+    assertDesktopCandidateRun(JSON.parse(stdout), repository)
+  }
+  else if (command === 'resolve') {
     await outputRelease(await resolveDesktopRelease({ tag: process.env.DESKTOP_RELEASE_TAG, expectedSha: process.env.DESKTOP_RELEASE_SOURCE_SHA }))
   }
   else if (command === 'manifest') {
     if (!path)
       throw new Error('Usage: desktop-artifacts.mjs manifest <verified manifest>')
     await outputRelease(desktopReleaseFromManifest(JSON.parse(await readFile(path, 'utf8'))))
+  }
+  else if (command === 'verify-candidate') {
+    if (!path)
+      throw new Error('Usage: desktop-artifacts.mjs verify-candidate <candidate manifest>')
+    const { verifyReleaseManifest } = await import('./verify-manifest.mjs')
+    const manifest = await verifyReleaseManifest({ manifestPath: path, checkGit: false, requireDesktop: true })
+    assertDesktopCandidateIdentity(manifest, { tag: process.env.DESKTOP_RELEASE_TAG, sourceSha: process.env.DESKTOP_RELEASE_SOURCE_SHA })
   }
   else if (command === 'publish') {
     if (!path)
@@ -119,6 +172,6 @@ if (invokedPath === import.meta.url) {
     process.stdout.write(`${JSON.stringify(result)}\n`)
   }
   else {
-    throw new Error('Usage: desktop-artifacts.mjs <resolve | manifest | publish>')
+    throw new Error('Usage: desktop-artifacts.mjs <validate-build | verify-run | resolve | manifest | verify-candidate | publish>')
   }
 }

@@ -11,6 +11,18 @@ on:
         description: Release version for the staged desktop app
         default: ''
         type: string
+      targets:
+        description: Native runner targets (defaults to the complete release matrix)
+        default: >-
+          [{"os":"macos-15","platform":"darwin","arch":"arm64"},
+          {"os":"macos-15-intel","platform":"darwin","arch":"x64"},
+          {"os":"windows-2025","platform":"win32","arch":"x64"},
+          {"os":"ubuntu-22.04","platform":"linux","arch":"x64"}]
+        type: string
+      retention_days:
+        description: Days to retain native packages and smoke evidence
+        default: 14
+        type: number
 
 permissions:
   contents: read
@@ -23,21 +35,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: macos-15
-            platform: darwin
-            arch: arm64
-          - os: macos-15-intel
-            platform: darwin
-            arch: x64
-          - os: windows-2025
-            platform: win32
-            arch: x64
-          - os: ubuntu-22.04
-            platform: linux
-            arch: x64
+        include: ${{ fromJSON(inputs.targets) }}
     env:
       ADVJS_DESKTOP_VERSION: ${{ inputs.version }}
+      DESKTOP_SOURCE_SHA: ${{ inputs.source_sha }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -48,6 +49,8 @@ jobs:
         with:
           node-version: 'lts/*'
           cache: pnpm
+      - name: Validate desktop source and version
+        run: node scripts/release/desktop-artifacts.mjs validate-build
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Install Linux desktop runtime dependencies
@@ -72,7 +75,7 @@ jobs:
           path: apps/desktop/out/make/zip/${{ matrix.platform }}/${{ matrix.arch }}/*.zip
           if-no-files-found: error
           compression-level: 0
-          retention-days: 14
+          retention-days: ${{ inputs.retention_days }}
       - name: Upload desktop smoke evidence
         if: always()
         uses: actions/upload-artifact@v7
@@ -80,4 +83,4 @@ jobs:
           name: desktop-evidence-${{ matrix.platform }}-${{ matrix.arch }}
           path: apps/desktop/out/evidence/
           if-no-files-found: ignore
-          retention-days: 14
+          retention-days: ${{ inputs.retention_days }}

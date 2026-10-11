@@ -35,7 +35,17 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  desktop:
+    uses: ./.github/workflows/desktop-build.yml
+    permissions:
+      contents: read
+    with:
+      source_sha: ${{ inputs.source_sha }}
+      version: ${{ inputs.version }}
+      retention_days: 90
+
   candidate:
+    needs: desktop
     runs-on: ubuntu-latest
     environment: ${{ inputs.dry_run && 'release-dry-run' || 'release-candidate' }}
     steps:
@@ -53,6 +63,12 @@ jobs:
           registry-url: ${{ inputs.registry_url }}
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Download verified native desktop packages
+        uses: actions/download-artifact@v8
+        with:
+          pattern: desktop-package-*
+          path: desktop-candidate-assets
+          merge-multiple: true
       - name: Materialize read-only release state
         env:
           RELEASE_STATE_JSON: ${{ inputs.state_json }}
@@ -63,6 +79,7 @@ jobs:
           --source-sha ${{ inputs.source_sha }}
           --version ${{ inputs.version }}
           --state .release-state.json
+          --desktop-artifacts desktop-candidate-assets
           --output release/${{ inputs.version }}/manifest.json
       - name: Verify local manifest and package integrity
         run: node scripts/release/verify-manifest.mjs release/${{ inputs.version }}/manifest.json
@@ -86,4 +103,5 @@ jobs:
           name: release-candidate-${{ inputs.version }}
           path: release/${{ inputs.version }}/
           if-no-files-found: error
+          compression-level: 0
           retention-days: 90
