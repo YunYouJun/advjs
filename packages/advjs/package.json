@@ -30,7 +30,8 @@
   "module": "./dist/node/index.mjs",
   "types": "./dist/node/index.d.mts",
   "bin": {
-    "adv": "./bin/adv.mjs"
+    "adv": "./bin/adv.mjs",
+    "adv-audio-server": "./bin/audio-server.mjs"
   },
   "files": [
     "bin",
@@ -53,6 +54,7 @@
   },
   "dependencies": {
     "@advjs/assets": "workspace:0.1.4",
+    "@advjs/audio": "workspace:0.1.4",
     "@advjs/client": "workspace:0.1.4",
     "@advjs/core": "workspace:0.1.4",
     "@advjs/devtools": "workspace:0.1.4",

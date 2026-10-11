@@ -59,7 +59,9 @@
     "desc": "构建可托管的 SPA",
     "singlefile_desc": "构建为单个文件，支持 index.html 直接打开",
     "outdir_desc": "输出目录",
-    "base_desc": "输出 base 路径"
+    "base_desc": "输出 base 路径",
+    "audio_manifest_desc": "明确使用已发布的音频目录 URL 或本地文件",
+    "audio_manifest_sha256_desc": "已发布音频目录必须匹配的 SHA-256 revision"
   },
   "deploy": {
     "desc": "校验、构建并部署到 Cloudflare Pages",

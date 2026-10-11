@@ -97,6 +97,8 @@ export async function applyEditorFileChanges(root: string, changes: EditorFileCh
       const current = await readFile(entry.target, 'utf8').catch(error => error.code === 'ENOENT' ? null : Promise.reject(error))
       if (current !== entry.change.expected)
         throw new EditorMutationError(409, `External changes conflict with the draft: ${entry.change.path}`)
+      if (entry.change.content === entry.change.expected)
+        continue
       if (entry.change.content === null)
         await rm(entry.target)
       else await atomicProjectWrite(entry.target, entry.change.content)

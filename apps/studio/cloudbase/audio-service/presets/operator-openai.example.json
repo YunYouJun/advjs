@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "model": "gpt-4o-mini-tts-2025-12-15",
+  "speed": 1,
+  "characters": [
+    { "id": "hero", "text": "这是一句由作者明确审核后生成的对白。", "voice": "alloy" },
+    { "id": "narrator", "text": "故事开始了。", "voice": "alloy" }
+  ]
+}

@@ -163,7 +163,7 @@ function stagePrefix(player: RuntimeCliPlayer): string {
   const stage = player.status().stage
   const parts = [
     stage.background ? `[BG ${stage.background}]` : '',
-    stage.bgm ? `[BGM ${stage.bgm}]` : '',
+    stage.audio.bgm ? `[BGM ${stage.audio.bgm.assetId}]` : '',
     ...Object.entries(stage.tachies).map(([name, tachie]) => (
       tachie.status ? `[${name}:${tachie.status}]` : `[${name}]`
     )),

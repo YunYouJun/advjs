@@ -14,6 +14,7 @@ const repositoryRoot = resolve(import.meta.dirname, '../..')
 
 const packedBuildPackages = new Set([
   '@advjs/types',
+  '@advjs/audio',
   '@advjs/assets',
   '@advjs/unocss',
   '@advjs/parser',
@@ -28,6 +29,7 @@ const packedBuildPackages = new Set([
 const launchPackageManifests = [
   'packages/advjs/package.json',
   'packages/assets/package.json',
+  'packages/audio/package.json',
   'packages/character/package.json',
   'packages/client/package.json',
   'packages/core/package.json',
@@ -152,7 +154,7 @@ describe('launch package runtimes', () => {
   it('aligns published package runtimes with the Vite Node.js floor', async () => {
     for (const manifestPath of launchPackageManifests) {
       const manifest = JSON.parse(await readFile(resolve(repositoryRoot, manifestPath), 'utf8'))
-      expect(manifest.engines?.node, manifest.name).toBe('^20.19.0 || >=22.12.0')
+      expect(manifest.engines?.node, manifest.name).toBe(manifest.name === '@advjs/audio' ? '>=24.15.0' : '^20.19.0 || >=22.12.0')
     }
   })
 })

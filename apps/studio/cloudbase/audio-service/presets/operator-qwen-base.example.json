@@ -1,0 +1,18 @@
+{
+  "version": "20261012",
+  "model": "mlx-community/Qwen3-TTS-12Hz-1.7B-Base-bf16",
+  "revision": "a6eb4f68e4b056f1215157bb696209bc82a6db48",
+  "weightSha256": {
+    "model.safetensors": "81fb76175ff74e69be25fef2cc3e54f016df3034f1514c8e1c89da06a3510cff",
+    "speech_tokenizer/model.safetensors": "836b7b357f5ea43e889936a3709af68dfe3751881acefe4ecf0dbd30ba571258"
+  },
+  "characters": [{
+    "id": "hero",
+    "text": "欢迎来到冒险世界。",
+    "reference": {
+      "assetId": "REPLACE_WITH_AUTHORIZED_NATIVE_REFERENCE_ID",
+      "sha256": "REPLACE_WITH_ACTUAL_REFERENCE_SHA256",
+      "text": "REPLACE_WITH_EXACT_REFERENCE_TRANSCRIPT"
+    }
+  }]
+}

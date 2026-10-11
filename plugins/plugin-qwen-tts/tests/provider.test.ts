@@ -60,7 +60,7 @@ async function generateFakeResult(arguments_: string[], outside = false): Promis
     model: 'test/model',
     revision: 'a'.repeat(40),
     seed: 42,
-    generationMode: 'voice-design',
+    generationMode: arguments_.includes('--reference-mode') ? `reference-${arguments_[arguments_.indexOf('--reference-mode') + 1]}` : 'voice-design',
     samples: [{ id: 'sample', text: arguments_.includes('--text') ? arguments_[arguments_.indexOf('--text') + 1].trim() : 'Hello.', sampleRate: 24000, durationSeconds: 1, path: '.advjs/voice/previews/test-run/sample.wav', bytes: audio.length, sha256: createHash('sha256').update(audio).digest('hex') }],
   }
   const manifestPath = outside ? resolve(root, 'escaped-manifest.json') : resolve(output, 'manifest.json')
@@ -71,6 +71,50 @@ async function generateFakeResult(arguments_: string[], outside = false): Promis
 }
 
 describe('qwen authoring provider', () => {
+  it('builds conditioned sample presets from trusted pinned templates without permanent voice creation', async () => {
+    const provider = createQwenTtsProvider()
+    const base = { version: 'trusted', model: 'mlx/Qwen3-TTS-12Hz-1.7B-VoiceDesign', revision: 'a'.repeat(40), weightSha256: { 'model.safetensors': 'b'.repeat(64) }, characters: [] }
+    const designed = await provider.buildDesignPreset!({ template: base, characterId: 'hero', text: '试听', locale: 'zh-CN', intent: { pitch: 'low' }, definition: { preset: 'approved', source: 'designed', description: 'A calm low voice' } })
+    expect(designed).toMatchObject({ model: base.model, revision: base.revision, weightSha256: base.weightSha256, language: 'Chinese', characters: [{ id: 'hero', text: '试听', description: 'A calm low voice\n\nVoice characteristics:\nPreferred pitch: low' }] })
+    const clone = { preset: 'approved', source: 'cloned' as const, reference: { assetId: 'reference/hero', sha256: 'c'.repeat(64), text: '参考语音' }, rights: { license: 'consented', subject: 'Hero performer', consentRecord: 'authoring/rights/hero.json' } }
+    await expect(provider.buildDesignPreset!({ template: base, characterId: 'hero', text: '试听', locale: 'zh-CN', intent: {}, definition: clone })).rejects.toThrow('MODE_MISMATCH')
+    expect(await provider.buildDesignPreset!({ template: { ...base, model: 'mlx/Qwen3-TTS-12Hz-1.7B-Base' }, characterId: 'hero', text: '试听', locale: 'zh-CN', intent: {}, definition: clone })).toMatchObject({ characters: [{ reference: clone.reference }] })
+    expect(provider.capabilities.voiceCreation).toBe(false)
+    expect(provider.createVoice).toBeUndefined()
+    expect(mocks.execute).not.toHaveBeenCalled()
+  })
+  it('preserves the original description and adds nonempty author preferences in a fixed order', async () => {
+    const provider = createQwenTtsProvider()
+    const template = { model: 'mlx/Qwen3-TTS-12Hz-1.7B-VoiceDesign', language: 'Chinese' }
+    const description = '  原始描述\n轻柔、清晰。  '
+    const input = { template, characterId: 'hero', text: 'Hello.', locale: 'en-GB', definition: { preset: 'approved', source: 'designed' as const, description } }
+    const preset = await provider.buildDesignPreset!({ ...input, intent: { pace: 'fast', pitch: 'low', speakingStyle: '清晰', temperament: ['温柔', '耐心'], genderExpression: '中性', ageImpression: '成年' } })
+    expect(preset).toMatchObject({ language: 'English', characters: [{ description: `${description}\n\nVoice characteristics:\nAge impression: 成年\nGender expression: 中性\nTemperament: 温柔, 耐心\nSpeaking style: 清晰\nPreferred pitch: low\nPreferred pace: fast` }] })
+    expect(await provider.buildDesignPreset!({ ...input, intent: { ageImpression: '成年', genderExpression: '中性', temperament: ['温柔', '耐心'], speakingStyle: '清晰', pitch: 'low', pace: 'fast' } })).toEqual(preset)
+    expect(await provider.buildDesignPreset!({ ...input, intent: { temperament: [] } })).toMatchObject({ characters: [{ description }] })
+    expect(template.language).toBe('Chinese')
+    expect(mocks.execute).not.toHaveBeenCalled()
+  })
+  it.each([
+    ['zh-Hant-TW', 'Chinese'],
+    ['en-US', 'English'],
+    ['ja-JP', 'Japanese'],
+    ['ko-KR', 'Korean'],
+    ['de-DE', 'German'],
+    ['fr-FR', 'French'],
+    ['ru-RU', 'Russian'],
+    ['pt-BR', 'Portuguese'],
+    ['es-ES', 'Spanish'],
+    ['it-IT', 'Italian'],
+  ])('maps %s to the supported Qwen language %s for reference generation', async (locale, language) => {
+    const preset = await createQwenTtsProvider().buildDesignPreset!({ template: { model: 'mlx/Qwen3-TTS-12Hz-1.7B-Base', language: 'Chinese' }, characterId: 'hero', text: '试听', locale, intent: {}, definition: { preset: 'approved', source: 'cloned', reference: { assetId: 'reference/hero', sha256: 'c'.repeat(64) }, rights: { license: 'original', subject: 'Original synthetic voice', consentRecord: 'authoring/rights/original.json' } } })
+    expect(preset.language).toBe(language)
+    expect(mocks.execute).not.toHaveBeenCalled()
+  })
+  it.each(['ar-SA', 'yue-HK', 'und', 'ja_JP', ''])('rejects unsupported or malformed locale %s before execution', async (locale) => {
+    await expect(createQwenTtsProvider().buildDesignPreset!({ template: { model: 'mlx/Qwen3-TTS-12Hz-1.7B-VoiceDesign' }, characterId: 'hero', text: '试听', locale, intent: {}, definition: { preset: 'approved', source: 'designed', description: 'A calm voice' } })).rejects.toThrow('VOICE_DESIGN_LOCALE_UNSUPPORTED')
+    expect(mocks.execute).not.toHaveBeenCalled()
+  })
   it('creates no files on import or provider creation', async () => {
     expect(createQwenTtsProvider().id).toBe('qwen-tts')
     expect(await readdir(root)).toEqual(['preset.json'])
@@ -155,7 +199,7 @@ describe('qwen authoring provider', () => {
 describe('qwen adapter contract', () => {
   it('inspects design defaults without executing Python or creating an environment', async () => {
     const result = await createQwenTtsProvider().inspectPreset({ root, configPath: request.configPath, preset: request.preset })
-    expect(result).toMatchObject({ seed: 42, referenceMode: undefined, characters: [{ id: 'sample', text: 'Hello.' }] })
+    expect(result).toMatchObject({ seed: 42, referenceMode: undefined, presetSha256: expect.stringMatching(/^[a-f0-9]{64}$/u), characters: [{ id: 'sample', text: 'Hello.', generation: { model: 'test/model', source: 'designed', providerVoiceId: expect.stringMatching(/^design:[a-f0-9]{64}$/u), revision: expect.stringMatching(/^[a-f0-9]{40}$/u), mimeType: 'audio/wav' } }] })
     expect(mocks.execute).not.toHaveBeenCalled()
     expect(await readdir(root)).toEqual(['preset.json'])
   })
@@ -165,7 +209,7 @@ describe('qwen adapter contract', () => {
     config.characters[0].reference = { assetId: 'sample-reference', sha256: 'c'.repeat(64) }
     await writeFile(request.configPath, JSON.stringify(config))
     const result = await createQwenTtsProvider().inspectPreset({ root, configPath: request.configPath, preset: request.preset })
-    expect(result).toMatchObject({ referenceMode: 'embedding-only', requiresReferenceAssets: true })
+    expect(result).toMatchObject({ referenceMode: 'embedding-only', requiresReferenceAssets: true, characters: [{ generation: { source: 'cloned', providerVoiceId: `reference:sample-reference:${'c'.repeat(64)}`, referenceAssetId: 'sample-reference', referenceSha256: 'c'.repeat(64) } }] })
     await expect(createQwenTtsProvider().inspectPreset({ root, configPath: request.configPath, preset: request.preset, referenceMode: 'icl' })).rejects.toThrow('transcript')
     expect(mocks.execute).not.toHaveBeenCalled()
   })
@@ -177,7 +221,36 @@ describe('qwen adapter contract', () => {
       return ''
     })
     const result = await createQwenTtsProvider().synthesize({ ...request, voiceId: 'sample-voice', voiceVersion: 'v1' })
+    expect(result.candidates[0]?.providerVoiceId).toBe(`design:${createHash('sha256').update('A quiet voice').digest('hex')}`)
     expect(result.candidates[0]).toMatchObject({ provider: 'qwen-tts', characterId: 'sample', text: 'Hello.', mimeType: 'audio/wav', voiceId: 'sample-voice', voiceVersion: 'v1' })
     expect(JSON.parse(await readFile(result.manifestPath, 'utf8'))).toEqual(result.manifest)
+  })
+
+  it('freezes reference conditioning independently of the author voice identity', async () => {
+    await readyEnvironment()
+    const config = JSON.parse(await readFile(request.configPath, 'utf8'))
+    delete config.characters[0].description
+    config.characters[0].reference = { assetId: 'sample-reference', sha256: 'c'.repeat(64) }
+    await writeFile(request.configPath, JSON.stringify(config))
+    await writeFile(resolve(root, 'assets.json'), '{}')
+    mocks.execute.mockImplementation(async (_command, arguments_) => {
+      await generateFakeResult(arguments_)
+      return ''
+    })
+    const result = await createQwenTtsProvider().synthesize({ ...request, assetManifestPath: resolve(root, 'assets.json'), voiceId: 'project-voice', voiceVersion: 'v1' })
+    expect(result.candidates[0]?.providerVoiceId).toBe(`reference:sample-reference:${'c'.repeat(64)}`)
+    expect(result.candidates[0]?.voiceId).toBe('project-voice')
+  })
+
+  it('rejects a preset changed during synthesis instead of attributing the new condition to an old output', async () => {
+    await readyEnvironment()
+    mocks.execute.mockImplementation(async (_command, arguments_) => {
+      await generateFakeResult(arguments_)
+      const config = JSON.parse(await readFile(request.configPath, 'utf8'))
+      config.characters[0].description = 'A different voice'
+      await writeFile(request.configPath, JSON.stringify(config))
+      return ''
+    })
+    await expect(createQwenTtsProvider().synthesize(request)).rejects.toThrow('preset changed')
   })
 })

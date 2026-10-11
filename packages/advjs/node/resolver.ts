@@ -80,14 +80,10 @@ export async function packageExists(name: string) {
   return false
 }
 
-let rootsInfo: RootsInfo | undefined
 /**
  * Get the root directory of the project
  */
 export async function getRoots(options: AdvEntryOptions, config: AdvConfig): Promise<RootsInfo> {
-  if (rootsInfo)
-    return rootsInfo
-
   const { userRoot } = getUserRoot(options)
 
   /**
@@ -100,7 +96,9 @@ export async function getRoots(options: AdvEntryOptions, config: AdvConfig): Pro
   const tempRoot = path.resolve(userRoot, '.adv')
   const gameRoot = path.resolve(userRoot, config.root || 'adv')
 
-  rootsInfo = {
+  // Root identity belongs to this invocation. A process may build or serve
+  // several projects and themes without sharing their authoring directories.
+  return {
     cliRoot,
     userRoot,
     clientRoot,
@@ -109,6 +107,4 @@ export async function getRoots(options: AdvEntryOptions, config: AdvConfig): Pro
     tempRoot,
     userWorkspaceRoot: searchForWorkspaceRoot(userRoot),
   }
-
-  return rootsInfo
 }

@@ -235,12 +235,14 @@ describe('adv check static authoring diagnostics', () => {
   it('handles encoded URLs and skips remote resources without fetching them', async () => {
     const cwd = project()
     write(cwd, 'public/a b.svg', '<svg/>')
+    write(cwd, 'adv/assets.json', JSON.stringify({ schemaVersion: 2, id: 'test', defaultProfile: 'local', profiles: { local: { provider: 'project' } }, assets: [{ id: 'bgm.remote', kind: 'bgm', type: 'audio', url: 'https://example.invalid/music.mp3' }] }))
     write(cwd, 'adv/chapters/start.adv.md', [
       '```yaml',
       '- type: background',
       '  url: /a%20b.svg?v=2#fragment',
       '- type: bgm',
-      '  src: https://example.invalid/music.mp3',
+      '  action: set',
+      '  asset: bgm.remote',
       '- type: background',
       // eslint-disable-next-line no-template-curly-in-string -- Intentional author interpolation syntax.
       '  url: "${background}"',
@@ -276,8 +278,8 @@ describe('adv check static authoring diagnostics', () => {
         characters: [{ id: 'guide', name: 'Guide', tachies: { smile: { src: '/room.svg' } } }],
       },
     }`)
-    write(cwd, 'adv/assets.json', JSON.stringify({ schemaVersion: 2, id: 'test', defaultProfile: 'local', profiles: { local: { provider: 'project' } }, assets: [{ id: 'room', kind: 'background', type: 'image', path: 'public/room.svg' }] }))
-    write(cwd, 'adv/chapters/start.adv.md', '```yaml\n- type: bgm\n  name: theme\n- type: tachie\n  enter:\n    name: Guide\n    status: smile\n```\n\n```yaml\ntype: activity\nuse: quiz/result\n```\n\n## Finish {#finish}')
+    write(cwd, 'adv/assets.json', JSON.stringify({ schemaVersion: 2, id: 'test', defaultProfile: 'local', profiles: { local: { provider: 'project' } }, assets: [{ id: 'room', kind: 'background', type: 'image', path: 'public/room.svg' }, { id: 'bgm.theme', kind: 'bgm', type: 'audio', url: 'https://example.invalid/music.mp3' }] }))
+    write(cwd, 'adv/chapters/start.adv.md', '```yaml\n- type: bgm\n  action: set\n  asset: bgm.theme\n- type: tachie\n  enter:\n    name: Guide\n    status: smile\n```\n\n```yaml\ntype: activity\nuse: quiz/result\n```\n\n## Finish {#finish}')
     const result = await runCheck({ cwd })
     expect(result.issues.filter(issue => issue.type === 'error')).toEqual([])
     expect(result.issues).toContainEqual(expect.objectContaining({ code: 'ADV_STATIC_FLOW_UNCERTAIN', certainty: 'uncertain' }))

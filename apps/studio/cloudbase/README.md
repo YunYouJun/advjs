@@ -236,3 +236,20 @@ Cloudflare Pages 项目名为 `advjs-studio`，生产分支为 `dev`。Monorepo 
 紧急恢复时可以在本地执行 `pnpm studio:build` 后，
 将 `apps/studio/dist` 直传到现有 `advjs-studio` 项目；不要新建同名站点或绕过
 `studio.advjs.org` 的 Pages 自定义域绑定。
+
+## 8. 独立音频执行服务
+
+`audio-service/` 提供受限部署 JSON、官方 CloudBase 会话验证、现有 Qwen／OpenAI
+插件注册、单实例持久目录和项目隔离的 STS 发布接线。操作顺序、环境变量和真实云验收入口见
+[托管音频服务指南](../../../docs/guide/studio/audio-service.md)；实际进度见
+[音频验收报告](../../../docs/reports/2026-10-11-audio-runtime-implementation.md)。
+
+该服务应独立部署，不覆盖现有 `ai-runtime`。CloudRun 必须挂载持久卷后才能保存任务和
+收费幂等回执，Linux 使用 OpenAI；现有 Qwen MLX 插件继续要求 Apple Silicon macOS。
+`service.example.json`、空 `approved-toolchains.example.json` 和 Dockerfile 的基础镜像参数
+都是部署模板，只有真实预设、批准的镜像／FFmpeg 指纹和账号项目登记通过启动检查后才可使用。
+Studio 构建通过 `VITE_ADVJS_VOICE_SERVICE_URL` 绑定实际 HTTPS 音频服务。
+
+创作私有桶 `yunlefun-advjs-prod-1325586649` 保持版本控制 Enabled。正式音频发布的
+禁止覆盖写入要求使用从未开启版本控制的桶；2026-10-12 的受限验收选择现有资源桶的
+`games/advjs-audio-acceptance-20261012/v1/`，不改变创作原件的存储策略，也不公开整个桶。

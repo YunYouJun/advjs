@@ -3,6 +3,7 @@ import { createHash, randomUUID } from 'node:crypto'
 import { readFile, realpath, rename, rm, stat, writeFile } from 'node:fs/promises'
 import process from 'node:process'
 import { normalizeAdvAssetManifest } from '@advjs/assets'
+import { parseVoiceDesignLibrary } from '@advjs/audio'
 import { dirname, isAbsolute, relative, resolve } from 'pathe'
 import { loadAdvConfig } from '../config'
 import { withProjectWriteLock } from '../project/write-lock'
@@ -70,7 +71,7 @@ export async function readVoiceLibrary(root: string, path?: string) {
       invalid(`Invalid selected sample for voice ${voice.id}`)
     }
   }
-  return { target, raw, revision: digest(raw), library: value as unknown as AdvVoiceLibrary }
+  return { target, raw, revision: digest(raw), library: parseVoiceDesignLibrary(value) as AdvVoiceLibrary }
 }
 
 /** Normalize native assets while preserving established local-cache hints for older projects. */
@@ -92,7 +93,9 @@ export async function readVoiceAssetManifest(root: string, path: string) {
     entries.push(...fragment.assets)
   }
   const { includes: _includes, ...base } = source
-  const manifest = normalizeAdvAssetManifest({ ...base, assets: entries })
+  const legacyDownload = object(source.download) && typeof source.download.profile === 'string'
+    && Object.keys(source.download).every(key => key === 'profile')
+  const manifest = normalizeAdvAssetManifest({ ...base, ...(legacyDownload ? { download: undefined } : {}), assets: entries })
   const cachePaths = new Map<string, string>()
   for (const entry of entries) {
     if (object(entry) && typeof entry.id === 'string' && typeof entry.cachePath === 'string')
@@ -103,7 +106,7 @@ export async function readVoiceAssetManifest(root: string, path: string) {
     invalid('Voice cache profile is not declared in the native manifest')
   return {
     ...manifest,
-    download: profile ? { profile } : undefined,
+    voiceCacheProfile: profile,
     assets: manifest.assets.map(asset => ({ ...asset, cachePath: cachePaths.get(asset.id) })),
   }
 }
@@ -151,7 +154,7 @@ export async function readVoiceSample(options: VoiceLibraryOptions, assetId: str
     || !asset.bytes || asset.bytes > 20 * 1024 * 1024 || !AUDIO_TYPES.has(asset.mimeType ?? '')) {
     invalid('The sample must be a registered voice audio asset with a hash, size, and supported MIME type')
   }
-  const profile = manifest.profiles[manifest.download?.profile ?? manifest.defaultProfile]
+  const profile = manifest.profiles[manifest.voiceCacheProfile ?? manifest.download?.profile ?? manifest.defaultProfile]
   let path = asset.cachePath
   let nativeCacheRoot: string | undefined
   if (!path && profile?.provider === 'project' && asset.path) {

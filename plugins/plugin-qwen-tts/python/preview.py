@@ -132,7 +132,7 @@ def prepare_reference(root: Path, asset_manifest_path: Path, character: dict) ->
     reference = character['reference']
     asset = next((item for item in catalog['assets'] if item['id'] == reference['assetId']), None)
     if not asset or asset.get('type') != 'audio' or asset.get('kind') != 'reference' or (
-        asset.get('characterId') != character['id']
+        'characterId' in asset and asset['characterId'] != character['id']
     ):
         raise ValueError(f"Invalid reference asset: {reference['assetId']}")
     path = reference_path(root, catalog, asset)

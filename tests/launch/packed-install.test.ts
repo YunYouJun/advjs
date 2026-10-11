@@ -101,6 +101,7 @@ describe('launch package manifest', () => {
     expect(LAUNCH_VERSION).toBe('0.1.4')
     expect(PACKAGE_SPECS.map(spec => spec.name)).toEqual([
       '@advjs/types',
+      '@advjs/audio',
       '@advjs/assets',
       '@advjs/unocss',
       '@advjs/parser',

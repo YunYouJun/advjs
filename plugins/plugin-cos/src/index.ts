@@ -1,8 +1,9 @@
-import type { Buffer } from 'node:buffer'
+import { Buffer } from 'node:buffer'
 import { execFile } from 'node:child_process'
 import { createReadStream } from 'node:fs'
 import { stat } from 'node:fs/promises'
 import process from 'node:process'
+import { Writable } from 'node:stream'
 import { promisify } from 'node:util'
 import COS from 'cos-nodejs-sdk-v5'
 
@@ -19,6 +20,10 @@ export interface CosOptions {
   region?: string
   /** Remote prefix path in the bucket (default: 'adv/'). Use an empty string for full object keys from a release plan. */
   prefix?: string
+  /** Trusted Node host only: supports refreshed STS credentials. */
+  getAuthorization?: COS.COSOptions['getAuthorization']
+  /** Injectable SDK transport for trusted hosts and integration tests. */
+  client?: COS
 }
 
 export interface CosUploadOptions {
@@ -27,6 +32,7 @@ export interface CosUploadOptions {
   contentType?: string
   /** COS user metadata without the x-cos-meta- prefix. */
   metadata?: Record<string, string>
+  forbidOverwrite?: boolean
 }
 
 export interface CosObjectInfo {
@@ -47,6 +53,10 @@ export function contentTypeForObjectKey(objectKey: string): string {
     jpg: 'image/jpeg',
     json: 'application/json; charset=utf-8',
     mp3: 'audio/mpeg',
+    wav: 'audio/wav',
+    flac: 'audio/flac',
+    webm: 'audio/webm',
+    m4a: 'audio/mp4',
     ogg: 'audio/ogg',
     png: 'image/png',
     svg: 'image/svg+xml; charset=utf-8',
@@ -137,7 +147,7 @@ function resolveOptions(options: CosOptions): Required<Pick<CosOptions, 'secretI
   const region = options.region || process.env.TENCENT_COS_REGION || process.env.ADV_COS_REGION || ''
   const prefix = normalizeCosPrefix(options.prefix ?? process.env.ADV_COS_PREFIX ?? 'adv/')
 
-  if (!secretId || !secretKey || !bucket || !region) {
+  if ((!options.client && !options.getAuthorization && (!secretId || !secretKey)) || !bucket || !region) {
     throw new Error(
       'Missing COS credentials. Set TENCENT_COS_SECRET_ID, TENCENT_COS_SECRET_KEY, '
       + 'TENCENT_COS_BUCKET, TENCENT_COS_REGION, and TENCENT_COS_TOKEN for STS credentials.',
@@ -164,10 +174,12 @@ export class CosStorage {
 
   constructor(options: CosOptions = {}) {
     const resolved = resolveOptions(options)
-    this.cos = new COS({
+    this.cos = options.client ?? new COS({
       SecretId: resolved.secretId,
       SecretKey: resolved.secretKey,
       ...(resolved.token ? { SecurityToken: resolved.token } : {}),
+      ...(options.getAuthorization ? { getAuthorization: options.getAuthorization } : {}),
+      FollowRedirect: false,
     })
     this.bucket = resolved.bucket
     this.region = resolved.region
@@ -190,11 +202,77 @@ export class CosStorage {
     })
   }
 
+  /** COS forbid-overwrite is ineffective on buckets that have enabled versioning. */
+  async assertImmutableBucket(): Promise<void> {
+    const result = await this.cos.getBucketVersioning({ Bucket: this.bucket, Region: this.region })
+    if (result.VersioningConfiguration?.Status)
+      throw new Error('COS_IMMUTABLE_BUCKET_REQUIRED: Use a bucket without versioning for immutable publication')
+  }
+
+  async putBytes(remotePath: string, bytes: Uint8Array, options: CosUploadOptions = {}): Promise<void> {
+    const key = this.objectKey(remotePath)
+    const defaults = defaultUploadOptions(key)
+    if (options.forbidOverwrite)
+      await this.assertImmutableBucket()
+    await this.cos.putObject({
+      Bucket: this.bucket,
+      Region: this.region,
+      Key: key,
+      Body: Buffer.from(bytes),
+      ContentLength: bytes.byteLength,
+      ContentType: options.contentType ?? defaults.contentType,
+      CacheControl: options.cacheControl ?? defaults.cacheControl,
+      ...(options.contentDisposition ? { ContentDisposition: options.contentDisposition } : {}),
+      ...(options.forbidOverwrite ? { Headers: { 'x-cos-forbid-overwrite': 'true' } } : {}),
+      ...userMetadataHeaders(options.metadata),
+    })
+  }
+
+  /** Stream into a bounded buffer, optionally pinned to the HEAD response ETag. */
+  async readBytes(remotePath: string, maxBytes: number, options: { ifMatch?: string, signal?: AbortSignal } = {}): Promise<Uint8Array> {
+    if (!Number.isSafeInteger(maxBytes) || maxBytes < 1 || maxBytes > 512 * 1024 * 1024)
+      throw new Error('COS_READ_LIMIT_INVALID')
+    options.signal?.throwIfAborted()
+    const chunks: Buffer[] = []
+    let length = 0
+    const output = new Writable({
+      write(chunk, _encoding, callback) {
+        length += chunk.length
+        if (length > maxBytes) {
+          callback(new Error('COS_OBJECT_TOO_LARGE'))
+        }
+        else {
+          chunks.push(Buffer.from(chunk))
+          callback()
+        }
+      },
+    })
+    const abort = () => output.destroy(new Error('COS_READ_CANCELLED'))
+    options.signal?.addEventListener('abort', abort, { once: true })
+    try {
+      await this.cos.getObject({
+        Bucket: this.bucket,
+        Region: this.region,
+        Key: this.objectKey(remotePath),
+        Output: output,
+        ...(options.ifMatch ? { IfMatch: options.ifMatch } : {}),
+      })
+      options.signal?.throwIfAborted()
+      return Buffer.concat(chunks, length)
+    }
+    finally {
+      options.signal?.removeEventListener('abort', abort)
+      output.destroy()
+    }
+  }
+
   /** Upload a local file to COS with browser-safe content metadata. */
   async upload(localPath: string, remotePath: string, options: CosUploadOptions = {}): Promise<void> {
     const key = this.objectKey(remotePath)
     const defaults = defaultUploadOptions(key)
     const file = await stat(localPath)
+    if (options.forbidOverwrite)
+      await this.assertImmutableBucket()
     const params: COS.PutObjectParams = {
       Bucket: this.bucket,
       Region: this.region,
@@ -205,6 +283,7 @@ export class CosStorage {
       CacheControl: options.cacheControl ?? defaults.cacheControl,
       ...(options.contentDisposition ? { ContentDisposition: options.contentDisposition } : {}),
       ...userMetadataHeaders(options.metadata),
+      ...(options.forbidOverwrite ? { Headers: { 'x-cos-forbid-overwrite': 'true' } } : {}),
     }
     await this.cos.putObject(params)
   }

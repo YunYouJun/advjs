@@ -4,6 +4,7 @@ import type {
   AdvVoiceContext,
   AdvVoiceCreateRequest,
   AdvVoiceDoctorResult,
+  AdvVoicePresetInspection,
   AdvVoicePreviewRequest,
   AdvVoicePreviewResult,
   AdvVoiceProvider,
@@ -15,6 +16,7 @@ import type {
 import { createHash } from 'node:crypto'
 import { readFile, realpath, stat } from 'node:fs/promises'
 import process from 'node:process'
+import { normalizeAudioLocale, VOICE_DESIGN_LIBRARY_PATH, VOICE_DESIGN_PRESET_ROOT } from '@advjs/audio'
 import { isAbsolute, relative, resolve, sep } from 'pathe'
 import { loadAdvConfig } from '../config'
 import { AdvCommandError } from './errors'
@@ -33,6 +35,7 @@ export interface VoicePreviewOptions extends VoiceCommandOptions {
   preset?: string
   referenceMode?: string
   voice?: string
+  locale?: string
   character?: string
   text?: string
   seed?: number
@@ -47,13 +50,8 @@ export interface VoiceListResult {
   configPath: string
   referenceMode?: string
   seed?: number
-  characters: Array<{
-    id: string
-    name: string
-    card?: string
-    text: string
-    referenceAssetId?: string
-  }>
+  presetSha256?: string
+  characters: AdvVoicePresetInspection['characters']
 }
 
 interface PresetCharacter {
@@ -172,7 +170,37 @@ function parseCharacters(preset: Record<string, unknown>): PresetCharacter[] {
   })
 }
 
-async function context(options: VoiceCommandOptions & { preset?: string }): Promise<{ context: AdvVoiceContext, voice: AdvAuthoringVoiceConfig, provider: AdvVoiceProvider | AdvVoiceSynthesisProvider, providers: Array<AdvVoiceProvider | AdvVoiceSynthesisProvider> }> {
+function validateCapabilities(provider: AdvVoiceSynthesisProvider): void {
+  const capabilities = provider.capabilities
+  if (!['local', 'cloud'].includes(capabilities.backend)
+    || ['synthesis', 'voiceCreation', 'offline'].some(key => typeof capabilities[key as keyof typeof capabilities] !== 'boolean')
+    || !Array.isArray(capabilities.models)
+    || (capabilities.synthesis && capabilities.models.length === 0)
+    || (capabilities.voiceCreation && typeof provider.createVoice !== 'function')) {
+    throw invalid(`Invalid voice provider capabilities: ${provider.id}`)
+  }
+  const ids = new Set<string>()
+  if (capabilities.designSources !== undefined && (!Array.isArray(capabilities.designSources) || new Set(capabilities.designSources).size !== capabilities.designSources.length || capabilities.designSources.some(source => !['system', 'designed', 'cloned'].includes(source)) || typeof provider.buildDesignPreset !== 'function'))
+    throw invalid(`Invalid voice design capabilities: ${provider.id}`)
+  for (const model of capabilities.models) {
+    if (!isRecord(model) || typeof model.id !== 'string' || !model.id.trim() || ids.has(model.id)
+      || !Array.isArray(model.modes) || !model.modes.every(mode => typeof mode === 'string' && mode.trim())
+      || !Array.isArray(model.formats) || !model.formats.length || !model.formats.every(format => typeof format === 'string' && /^audio\/[\w.+-]+$/u.test(format))
+      || typeof model.streaming !== 'boolean'
+      || (model.maxTextCharacters !== undefined && (!Number.isInteger(model.maxTextCharacters) || model.maxTextCharacters <= 0))) {
+      throw invalid(`Invalid voice provider model capabilities: ${provider.id}`)
+    }
+    ids.add(model.id)
+  }
+}
+
+function isSynthesisProvider(provider: AdvVoiceProvider | AdvVoiceSynthesisProvider): provider is AdvVoiceSynthesisProvider {
+  return 'synthesize' in provider && typeof provider.synthesize === 'function'
+    && 'inspectPreset' in provider && typeof provider.inspectPreset === 'function'
+    && 'capabilities' in provider && isRecord(provider.capabilities)
+}
+
+async function context(options: VoiceCommandOptions & { preset?: string, voice?: string }): Promise<{ context: AdvVoiceContext, voice: AdvAuthoringVoiceConfig, provider: AdvVoiceProvider | AdvVoiceSynthesisProvider, providers: Array<AdvVoiceProvider | AdvVoiceSynthesisProvider> }> {
   const root = await realpath(resolve(options.root ?? process.cwd()))
   const { config } = await loadAdvConfig({ userRoot: root, advConfig: options.config })
   const voice = config.authoring?.voice
@@ -184,12 +212,15 @@ async function context(options: VoiceCommandOptions & { preset?: string }): Prom
   const ids = new Set<string>()
   for (const provider of providers) {
     if (!isRecord(provider) || typeof provider.id !== 'string' || !provider.id.trim()
-      || (!('synthesize' in provider && typeof provider.synthesize === 'function' && typeof provider.inspectPreset === 'function' && isRecord(provider.capabilities))
-        && !(typeof provider.doctor === 'function' && typeof provider.setup === 'function' && typeof provider.preview === 'function'))) {
+      || ('synthesize' in provider
+        ? !isSynthesisProvider(provider)
+        : !(typeof provider.doctor === 'function' && typeof provider.setup === 'function' && typeof provider.preview === 'function'))) {
       throw invalid('authoring.voice.provider must be an installed provider object with synthesis or legacy preview methods')
     }
     if (ids.has(provider.id))
       throw invalid(`Duplicate voice provider: ${provider.id}`)
+    if (isSynthesisProvider(provider))
+      validateCapabilities(provider)
     ids.add(provider.id)
   }
   for (const [preset, provider] of Object.entries(voice.presetProviders ?? {})) {
@@ -198,7 +229,20 @@ async function context(options: VoiceCommandOptions & { preset?: string }): Prom
   }
   if (voice.defaultProvider !== undefined && !ids.has(voice.defaultProvider))
     throw invalid(`Unknown default voice provider: ${voice.defaultProvider}`)
-  const providerId = options.provider ?? voice.presetProviders?.[options.preset ?? voice.defaultPreset] ?? voice.defaultProvider ?? voice.provider?.id ?? providers[0]?.id
+  let providerId = options.provider ?? voice.presetProviders?.[options.preset ?? voice.defaultPreset] ?? voice.defaultProvider ?? voice.provider?.id ?? providers[0]?.id
+  if (options.voice && !options.provider && !options.preset) {
+    const library = await readVoiceLibrary(root, voice.library ?? VOICE_DESIGN_LIBRARY_PATH)
+    const profile = library.library.voices.find(item => item.id === options.voice)
+    if (!profile)
+      throw invalid(`Unknown voice identity: ${options.voice}`)
+    const implementations = Object.entries(profile.implementations).filter(([id]) => ids.has(id))
+    const mapped = implementations.filter(([id, implementation]) => voice.presetProviders?.[implementation.preset] === id)
+    const choices = mapped.length ? mapped : implementations
+    if (choices.length === 1)
+      providerId = choices[0]![0]
+    else if (!choices.some(([id]) => id === providerId))
+      throw invalid(`Voice ${profile.id} requires an explicit --provider selection`)
+  }
   const provider = providers.find(item => item.id === providerId)
   if (!provider)
     throw invalid(`Unknown voice provider: ${providerId ?? '(none)'}`)
@@ -214,16 +258,19 @@ async function context(options: VoiceCommandOptions & { preset?: string }): Prom
   return { context: { root, signal: options.signal, onProgress: options.onProgress }, voice, provider, providers }
 }
 
+/** Trusted authoring hosts reuse the same validated provider registry as CLI commands. */
+export const resolveAuthoringVoiceContext = context
+
 async function validateReferences(root: string, path: string, characters: PresetCharacter[]): Promise<void> {
   const manifest = await readVoiceAssetManifest(root, relative(root, path))
   for (const character of characters) {
     const reference = character.reference!
     const asset = manifest.assets.find(asset => asset.id === reference.assetId)
-    if (!asset || asset.type !== 'audio' || asset.kind !== 'reference' || asset.characterId !== character.id)
+    if (!asset || asset.type !== 'audio' || asset.kind !== 'reference' || (asset.characterId !== undefined && asset.characterId !== character.id))
       throw invalid(`Reference audio asset is missing or belongs to a different character: ${reference.assetId}`)
     if (asset.sha256 !== reference.sha256)
       throw invalid(`Reference SHA-256 does not match the asset manifest: ${reference.assetId}`)
-    const profile = manifest.profiles[manifest.download?.profile ?? manifest.defaultProfile]
+    const profile = manifest.profiles[manifest.voiceCacheProfile ?? manifest.download?.profile ?? manifest.defaultProfile]
     const cachePath = asset.cachePath ?? (profile?.provider === 'project' && asset.path
       ? relative(root, resolve(projectPath(root, profile.root ?? '.', 'Reference cache root'), asset.path))
       : undefined)
@@ -258,8 +305,9 @@ export async function runVoicePreview(options: VoicePreviewOptions = {}): Promis
   let voiceId: string | undefined
   let voiceVersion: string | undefined
   let presetSha256: string | undefined
+  let designedPresetPath: string | undefined
   if (options.voice) {
-    const library = await readVoiceLibrary(root, loaded.voice.library)
+    const library = await readVoiceLibrary(root, loaded.voice.library ?? VOICE_DESIGN_LIBRARY_PATH)
     const profile = library.library.voices.find(item => item.id === options.voice)
     if (!profile)
       throw invalid(`Unknown voice identity: ${options.voice}`)
@@ -275,10 +323,20 @@ export async function runVoicePreview(options: VoicePreviewOptions = {}): Promis
     voiceId = profile.id
     voiceVersion = profile.version
     presetSha256 = implementation.presetSha256
+    if (profile.design) {
+      const locale = options.locale ? normalizeAudioLocale(options.locale) : Object.keys(implementation.localePresets ?? {}).length === 1 ? Object.keys(implementation.localePresets!)[0]! : undefined
+      const selected = locale ? implementation.localePresets?.[locale] : undefined
+      if (!selected || !selected.presetPath.startsWith(`${VOICE_DESIGN_PRESET_ROOT}/${profile.id}/${profile.version}/`) || selected.presetPath.includes('..') || !SHA256_RE.test(selected.presetSha256))
+        throw invalid('VOICE_DESIGN_LOCALE_IMPLEMENTATION_REQUIRED')
+      preset = selected.preset
+      presetSha256 = selected.presetSha256
+      designedPresetPath = selected.presetPath
+      options = { ...options, referenceMode: profile.design.locales[locale!]!.providers[loaded.provider.id]?.reference?.mode }
+    }
   }
-  if (!Object.hasOwn(loaded.voice.presets, preset))
+  if (!designedPresetPath && !Object.hasOwn(loaded.voice.presets, preset))
     throw new AdvCommandError('ADV_USAGE', `Unknown voice preset: ${preset}`)
-  const configPath = await projectFile(root, loaded.voice.presets[preset], `Voice preset ${preset}`)
+  const configPath = await projectFile(root, designedPresetPath ?? loaded.voice.presets[preset], `Voice preset ${preset}`)
   if (presetSha256 && createHash('sha256').update(await readFile(configPath)).digest('hex') !== presetSha256)
     throw invalid('VOICE_CONFLICT: The selected voice preset changed; review a new voice version')
   if ('synthesize' in loaded.provider) {
@@ -311,9 +369,11 @@ export async function runVoicePreview(options: VoicePreviewOptions = {}): Promis
       if (character.card)
         await projectFile(root, character.card, `Character card for ${character.id}`)
     }
+    if (options.character && (inspected.characters.length !== 1 || inspected.characters[0]!.id !== options.character))
+      throw invalid('The provider inspection does not match the requested character')
     loaded.context.signal?.throwIfAborted()
     if (options.list)
-      return { provider: provider.id, preset, configPath, seed: inspected.seed, referenceMode: inspected.referenceMode, characters: inspected.characters }
+      return { provider: provider.id, preset, configPath, seed: inspected.seed, referenceMode: inspected.referenceMode, presetSha256: inspected.presetSha256, characters: inspected.characters }
     if (!provider.capabilities.synthesis)
       throw new AdvCommandError('ADV_USAGE', `Provider ${provider.id} does not support synthesis`)
     if (inspected.requiresReferenceAssets)
@@ -357,6 +417,9 @@ export async function runVoicePreview(options: VoicePreviewOptions = {}): Promis
       candidate.voiceId = voiceId
       candidate.voiceVersion = voiceVersion
     }
+    loaded.context.signal?.throwIfAborted()
+    if (await readFile(configPath, 'utf8') !== presetSource)
+      throw invalid('VOICE_CONFLICT: The preset changed during candidate validation')
     return result
   }
   const source = await readObject(configPath, `Voice preset ${preset}`)
@@ -421,7 +484,7 @@ export async function runVoicePreview(options: VoicePreviewOptions = {}): Promis
 /** Inspect installed providers without running diagnostics, setup, or synthesis. */
 export async function runVoiceProviders(options: VoiceCommandOptions = {}) {
   const loaded = await context(options)
-  return { providers: loaded.providers.map(provider => ({ id: provider.id, default: provider.id === loaded.provider.id, capabilities: 'capabilities' in provider ? provider.capabilities : null, legacy: !('synthesize' in provider), diagnostics: Boolean(provider.doctor), setup: Boolean(provider.setup), voiceCreation: 'createVoice' in provider && Boolean(provider.createVoice) })) }
+  return { providers: loaded.providers.map(provider => ({ id: provider.id, default: provider.id === loaded.provider.id, capabilities: 'capabilities' in provider ? provider.capabilities : null, legacy: !('synthesize' in provider), diagnostics: Boolean(provider.doctor), setup: Boolean(provider.setup), voiceCreation: isSynthesisProvider(provider) && provider.capabilities.voiceCreation && typeof provider.createVoice === 'function' })) }
 }
 
 /** Explicit voice creation is independent of synthesis and local environment preparation. */

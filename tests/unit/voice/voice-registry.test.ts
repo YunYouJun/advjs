@@ -65,6 +65,42 @@ describe('multiple voice adapters', () => {
     expect(provider.synthesize).not.toHaveBeenCalled()
   })
 
+  it('routes a voice using its implementation preset rather than the unrelated default preset', async () => {
+    const other = { ...provider, id: 'other' }
+    config.authoring!.voice!.providers!.push(other)
+    config.authoring!.voice!.presets.other = 'preset.json'
+    config.authoring!.voice!.presetProviders = { other: 'other' }
+    config.authoring!.voice!.library = 'voices.json'
+    await writeFile(join(root, 'voices.json'), JSON.stringify({ schemaVersion: 1, voices: [{ id: 'hero-v1', version: 'v1', characterId: 'hero', label: 'Hero', implementations: { other: { preset: 'other' } } }] }))
+    expect(await runVoicePreview({ root, config, voice: 'hero-v1', list: true })).toMatchObject({ provider: 'other', preset: 'other' })
+    await expect(runVoicePreview({ root, config, voice: 'hero-v1', provider: 'mock-cloud', list: true })).rejects.toThrow('no implementation')
+  })
+
+  it('rejects malformed provider capabilities before invoking a plugin', async () => {
+    provider.capabilities.models[0]!.formats = ['image/png']
+    await expect(runVoiceProviders({ root, config })).rejects.toThrow('Invalid voice provider model capabilities')
+    expect(provider.inspectPreset).not.toHaveBeenCalled()
+    expect(provider.synthesize).not.toHaveBeenCalled()
+  })
+
+  it('rejects inspection of a different character instead of billing for an unintended voice', async () => {
+    await expect(runVoicePreview({ root, config, character: 'other' })).rejects.toThrow('requested character')
+    expect(provider.synthesize).not.toHaveBeenCalled()
+  })
+
+  it('does not treat a broken modern adapter as a legacy provider', async () => {
+    Object.assign(provider, { synthesize: 'invalid', doctor: vi.fn(), setup: vi.fn(), preview: vi.fn() })
+    await expect(runVoiceProviders({ root, config })).rejects.toThrow('installed provider object')
+    expect(provider.inspectPreset).not.toHaveBeenCalled()
+  })
+
+  it('advertises voice creation only when the adapter declares and implements it', async () => {
+    provider.createVoice = vi.fn(async () => ({}))
+    expect(await runVoiceProviders({ root, config })).toMatchObject({ providers: [{ voiceCreation: false }] })
+    provider.capabilities.voiceCreation = true
+    expect(await runVoiceProviders({ root, config })).toMatchObject({ providers: [{ voiceCreation: true }] })
+  })
+
   it('verifies normalized outputs and changes the fingerprint when the effective text changes', async () => {
     const first = await runVoicePreview({ root, config })
     const second = await runVoicePreview({ root, config, character: 'hero', text: 'New line' })

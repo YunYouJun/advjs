@@ -1,6 +1,7 @@
 import type { AdvAgentIntegrationStatus } from '@advjs/types'
 import type { FSWatcher } from 'node:fs'
 import type { Server, ServerResponse } from 'node:http'
+import type { EditorVoiceJobsHostOptions } from './audio-jobs'
 import { Buffer } from 'node:buffer'
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto'
 import { watch } from 'node:fs'
@@ -15,10 +16,16 @@ import {
 import { createServer } from 'node:http'
 import { createRequire } from 'node:module'
 import { dirname, extname, isAbsolute, relative, resolve, sep } from 'pathe'
-import { AdvCommandError } from '../commands/errors'
 
+import { createNodeVoiceDesignHost } from '../audio/voice-design'
+import { AdvCommandError } from '../commands/errors'
 import { withProjectWriteLock } from '../project/write-lock'
+import { createEditorVoiceJobsHost, editorVoiceJobsErrorCode } from './audio-jobs'
 import { applyEditorFileChanges, atomicProjectWrite, EditorMutationError, projectWriteTarget } from './mutations'
+
+export type { EditorVoiceJobAction, EditorVoiceJobsPlanInput, EditorVoiceJobsPort, EditorVoiceJobsReviewedPlan, EditorVoiceJobsSnapshot } from '../../shared/editor-audio'
+export { createEditorVoiceJobsHost } from './audio-jobs'
+export type { EditorVoiceJobsHostOptions } from './audio-jobs'
 
 export type EditorBridgeCommand = 'build' | 'check'
 
@@ -30,6 +37,8 @@ export interface EditorBridgeOptions {
   runCommand?: (command: EditorBridgeCommand) => Promise<unknown>
   getAgentStatus?: () => Promise<AdvAgentIntegrationStatus>
   validateProjectAccess?: () => Promise<void>
+  /** Trusted local host configuration; never comes from the renderer. */
+  audioJobs?: Omit<EditorVoiceJobsHostOptions, 'projectRoot' | 'validateProjectAccess'>
 }
 
 export interface EditorBridgeReadyEvent {
@@ -280,6 +289,26 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
     return result
   }
   const eventResponses = new Set<ServerResponse>()
+  let voiceJobs: Promise<Awaited<ReturnType<typeof createEditorVoiceJobsHost>>> | undefined
+  let voiceDesign: Promise<Awaited<ReturnType<typeof createNodeVoiceDesignHost>>> | undefined
+  async function audioVoiceDesign() {
+    await options.validateProjectAccess?.()
+    voiceDesign ??= createNodeVoiceDesignHost({ root: projectRoot, config: options.audioJobs?.config, ...(options.audioJobs?.storeDirectory ? { stateDirectory: resolve(options.audioJobs.storeDirectory, 'voice-design') } : {}), validateProjectAccess: options.validateProjectAccess, verifyProvider: options.audioJobs?.verifyProvider, withProviderPermit: options.audioJobs?.withProviderPermit, mediaPrefix: `${API_PREFIX}audio/voice-design/previews` }).catch((error) => {
+      voiceDesign = undefined
+      throw error
+    })
+    return await voiceDesign
+  }
+  async function audioJobs() {
+    await options.validateProjectAccess?.()
+    if (!voiceJobs) {
+      voiceJobs = createEditorVoiceJobsHost({ ...options.audioJobs, projectRoot, validateProjectAccess: options.validateProjectAccess }).catch((error) => {
+        voiceJobs = undefined
+        throw error
+      })
+    }
+    return await voiceJobs
+  }
 
   async function runCommand(command: EditorBridgeCommand) {
     await options.validateProjectAccess?.()
@@ -301,6 +330,65 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
       throw new EditorHttpError(401, 'Editor session token is required')
 
     const apiPath = decodeURIComponent(url.pathname.slice(API_PREFIX.length))
+    if (/^audio\/voice-design(?:\/(?:save|plan|execute|register|select|apply|previews\/[\w-]+(?:\/(?:media|cancel))?))?$/u.test(apiPath)) {
+      try {
+        if (url.search)
+          throw new EditorHttpError(400, 'VOICE_DESIGN_QUERY_UNSUPPORTED')
+        const service = await audioVoiceDesign()
+        const suffix = apiPath.slice('audio/voice-design'.length)
+        let result: unknown
+        if (!suffix && request.method === 'GET') {
+          result = await service.read()
+        }
+        else if (suffix.startsWith('/previews/')) {
+          const [, , id, action] = suffix.split('/')
+          if (request.method === 'GET' && action === 'media') {
+            const media = await service.readPreviewAudio(id!)
+            response.writeHead(200, { ...SECURITY_HEADERS, 'cache-control': 'no-store', 'content-type': media.mimeType, 'content-length': media.bytes.byteLength, 'x-advjs-sha256': media.sha256 }).end(media.bytes)
+            return
+          }
+          if (request.method === 'GET' && !action)
+            result = await service.readPreview(id!)
+          else if (request.method === 'POST' && action === 'cancel')
+            result = await service.cancelPreview(id!)
+          else throw new EditorHttpError(405, 'VOICE_DESIGN_METHOD_INVALID')
+        }
+        else if (request.method === 'POST') {
+          const input = JSON.parse((await readRequestBytes(request, 128 * 1024)).toString('utf8'))
+          const methods = { '/save': service.saveVersion, '/plan': service.planPreview, '/execute': service.executePreview, '/register': service.registerSample, '/select': service.selectSample, '/apply': service.applyProfile }
+          const method = methods[suffix as keyof typeof methods]
+          if (!method)
+            throw new EditorHttpError(405, 'VOICE_DESIGN_METHOD_INVALID')
+          result = await method(input)
+        }
+        else { throw new EditorHttpError(405, 'VOICE_DESIGN_METHOD_INVALID') }
+        writeJson(response, 200, result)
+      }
+      catch (error) { writeJson(response, error instanceof EditorHttpError ? error.statusCode : 400, { error: editorVoiceJobsErrorCode(error) }) }
+      return
+    }
+    if (apiPath === 'audio/jobs' || ['audio/jobs/plan', 'audio/jobs/enqueue', 'audio/jobs/command'].includes(apiPath)) {
+      try {
+        const service = await audioJobs()
+        if (apiPath === 'audio/jobs' && request.method === 'GET') {
+          writeJson(response, 200, await service.read())
+          return
+        }
+        if (request.method !== 'POST' || apiPath === 'audio/jobs')
+          throw new EditorHttpError(405, 'ADV_AUDIO_JOB_METHOD_INVALID')
+        const input = JSON.parse((await readRequestBytes(request, 64 * 1024)).toString('utf8'))
+        const result = apiPath === 'audio/jobs/plan' ? await service.plan(input) : apiPath === 'audio/jobs/enqueue' ? await service.enqueue(input) : await service.command(input)
+        writeJson(response, 200, result)
+      }
+      catch (error) {
+        const code = editorVoiceJobsErrorCode(error)
+        if (apiPath === 'audio/jobs' && request.method === 'GET' && code === 'ADV_AUDIO_JOB_PROVIDER_UNCONFIGURED')
+          writeJson(response, 200, { configured: false, unavailableCode: code, providers: [], jobs: [] })
+        else
+          writeJson(response, error instanceof EditorHttpError ? error.statusCode : 400, { error: code })
+      }
+      return
+    }
     if (apiPath === 'voice-library' && request.method === 'GET') {
       const { runVoiceSamples } = await import('../commands/voice-library')
       writeJson(response, 200, await runVoiceSamples({ root: projectRoot }))
@@ -422,7 +510,7 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
     if (apiPath === 'project' && request.method === 'GET') {
       await options.validateProjectAccess?.()
       const { loadProject } = await import('../project')
-      const project = await loadProject({ root: projectRoot })
+      const project = await loadProject({ root: projectRoot, allowEmptyAssetManifest: true })
       writeJson(response, 200, {
         config: project.config,
         files: project.files,
@@ -540,6 +628,10 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
       }
     },
     async stop() {
+      await (await voiceJobs?.catch(() => undefined))?.close()
+      await (await voiceDesign?.catch(() => undefined))?.close()
+      voiceDesign = undefined
+      voiceJobs = undefined
       watcher?.close()
       watcher = undefined
       for (const response of eventResponses)

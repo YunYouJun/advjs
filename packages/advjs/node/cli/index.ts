@@ -18,6 +18,7 @@ import { installEditorCommand } from './editor'
 import { installExportCommand } from './export'
 import { setLocale } from './i18n'
 import { installInitCommand } from './init'
+import { installMigrateAudioCommand } from './migrate-audio'
 import { configureCliOutput, createCliError, hasWrittenCliEnvelope, writeCliFailure } from './output'
 import { installPlayCommand } from './play'
 import { installSyncCommand } from './sync'
@@ -54,6 +55,7 @@ installEditorCommand(cli)
 installAgentCommand(cli)
 installAssetsCommand(cli)
 installVoiceCommand(cli)
+installMigrateAudioCommand(cli)
 installDoctorCommand(cli)
 installDeployCommand(cli)
 installDevCommand(cli)
@@ -68,6 +70,8 @@ installDebugCommand(cli)
 installSyncCommand(cli)
 
 function inferContractCommand() {
+  if (rawArguments.includes('migrate-audio'))
+    return 'migrate.audio'
   if (rawArguments.includes('voice')) {
     const action = rawArguments[rawArguments.indexOf('voice') + 1]
     return ADV_CLI_COMMANDS.find(command => command === `voice.${action}`) ?? 'voice.preview'

@@ -83,7 +83,11 @@
             "voice.preview",
             "voice.providers",
             "voice.samples",
-            "voice.select"
+            "voice.select",
+            "voice.takes",
+            "voice.generate",
+            "voice.bind",
+            "migrate.audio"
           ]
         },
         "ok": {
@@ -1235,6 +1239,10 @@
         "seed": {
           "type": "number"
         },
+        "presetSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
         "characters": {
           "type": "array",
           "minItems": 1,
@@ -1266,6 +1274,34 @@
               "referenceAssetId": {
                 "type": "string",
                 "minLength": 1
+              },
+              "generation": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["model", "providerVoiceId", "source", "mimeType"],
+                "properties": {
+                  "model": { "type": "string", "minLength": 1 },
+                  "providerVoiceId": { "type": "string", "minLength": 1 },
+                  "source": { "enum": ["system", "designed", "recorded", "cloned"] },
+                  "revision": { "type": "string", "minLength": 1 },
+                  "mimeType": { "type": "string", "pattern": "^audio/" },
+                  "referenceAssetId": { "type": "string", "minLength": 1 },
+                  "referenceSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+                  "parameters": {
+                    "type": "object",
+                    "propertyNames": { "not": { "pattern": "^(?:api[-_]?key|access[-_]?token|token|password|secret|credentials?|authorization|signed[-_]?url)$" } },
+                    "additionalProperties": {
+                      "anyOf": [
+                        { "type": "string" },
+                        { "type": "number" },
+                        { "type": "boolean" },
+                        { "type": "object" },
+                        { "type": "array" },
+                        { "type": "null" }
+                      ]
+                    }
+                  }
+                }
               }
             }
           }
@@ -1599,6 +1635,941 @@
           "properties": {
             "command": {
               "const": "voice.select"
+            }
+          }
+        }
+      ]
+    },
+    "voiceRightsData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "license",
+        "subject",
+        "consentRecord"
+      ],
+      "properties": {
+        "license": {
+          "type": "string",
+          "minLength": 1
+        },
+        "subject": {
+          "type": "string",
+          "minLength": 1
+        },
+        "consentRecord": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "voiceTakeData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "assetId",
+        "sha256",
+        "providerId",
+        "voiceId",
+        "model",
+        "voiceProfileRevision",
+        "inputFingerprint",
+        "spokenText",
+        "createdAt",
+        "source"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^take_[a-f0-9]{8}-[a-f0-9]{4}-7[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$"
+        },
+        "assetId": {
+          "type": "string",
+          "pattern": "^audio_[a-f0-9]{8}-[a-f0-9]{4}-7[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "providerId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "voiceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "modelRevision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "voiceProfileRevision": {
+          "$ref": "#/$defs/sha256"
+        },
+        "inputFingerprint": {
+          "$ref": "#/$defs/sha256"
+        },
+        "spokenText": {
+          "type": "string",
+          "minLength": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source": {
+          "enum": [
+            "system",
+            "designed",
+            "recorded",
+            "cloned"
+          ]
+        },
+        "rights": {
+          "$ref": "#/$defs/voiceRightsData"
+        },
+        "parameters": {
+          "type": "object"
+        },
+        "projectVoiceId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "projectVoiceVersion": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "type": "object",
+            "properties": {
+              "source": {
+                "const": "cloned"
+              }
+            },
+            "required": [
+              "source"
+            ]
+          },
+          "then": {
+            "type": "object",
+            "properties": {
+              "rights": {
+                "$ref": "#/$defs/voiceRightsData"
+              }
+            },
+            "required": [
+              "rights"
+            ]
+          }
+        }
+      ]
+    },
+    "voiceLedgerLocaleData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "selectedTake",
+        "takes"
+      ],
+      "properties": {
+        "selectedTake": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^take_[a-f0-9]{8}-[a-f0-9]{4}-7[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "takes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/voiceTakeData"
+          }
+        },
+        "displayText": {
+          "type": "string",
+          "minLength": 1
+        },
+        "spokenText": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "voiceLedgerLineData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "speakerId",
+        "displayText",
+        "locales"
+      ],
+      "properties": {
+        "speakerId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$"
+        },
+        "displayText": {
+          "type": "string",
+          "minLength": 1
+        },
+        "spokenText": {
+          "type": "string",
+          "minLength": 1
+        },
+        "locales": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z]{2,8}(?:-[A-Za-z0-9]{1,8})*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/voiceLedgerLocaleData"
+          }
+        }
+      }
+    },
+    "voiceLedgerData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "lines"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "lines": {
+          "type": "object",
+          "additionalProperties": false,
+          "patternProperties": {
+            "^line_[a-f0-9]{8}-[a-f0-9]{4}-7[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$": {
+              "$ref": "#/$defs/voiceLedgerLineData"
+            }
+          }
+        }
+      }
+    },
+    "audioAssetVariantData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "objectKey": {
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mimeType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "width": {
+          "type": "number",
+          "minimum": 0
+        },
+        "height": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "audioAssetProfileData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider"
+      ],
+      "properties": {
+        "provider": {
+          "enum": [
+            "project",
+            "http"
+          ]
+        },
+        "root": {
+          "type": "string"
+        },
+        "baseUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "fallback": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "audioAssetEntryData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "kind"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "objectKey": {
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mimeType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "width": {
+          "type": "number",
+          "minimum": 0
+        },
+        "height": {
+          "type": "number",
+          "minimum": 0
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "enum": [
+            "image",
+            "audio",
+            "video",
+            "font",
+            "model",
+            "data"
+          ]
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bundle": {
+          "type": "string",
+          "minLength": 1
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "variants": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/audioAssetVariantData"
+          }
+        },
+        "title": {
+          "type": "string"
+        },
+        "alt": {
+          "type": "string"
+        },
+        "chapterId": {
+          "type": "string"
+        },
+        "characterId": {
+          "type": "string"
+        },
+        "expression": {
+          "type": "string"
+        },
+        "sceneId": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "license": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0
+        },
+        "frameWidth": {
+          "type": "number",
+          "minimum": 0
+        },
+        "frameHeight": {
+          "type": "number",
+          "minimum": 0
+        },
+        "frames": {
+          "type": "number",
+          "minimum": 0
+        },
+        "fps": {
+          "type": "number",
+          "minimum": 0
+        },
+        "loop": {
+          "type": "boolean"
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "minLength": 1
+            },
+            "model": {
+              "type": "string",
+              "minLength": 1
+            },
+            "promptVersion": {
+              "type": "string",
+              "minLength": 1
+            },
+            "createdAt": {
+              "type": "string"
+            },
+            "sourceUrl": {
+              "type": "string",
+              "format": "uri"
+            },
+            "derivedFrom": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "audioAssetCatalogData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "id",
+        "defaultProfile",
+        "profiles",
+        "assets"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 2
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "defaultProfile": {
+          "type": "string",
+          "minLength": 1
+        },
+        "profiles": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "$ref": "#/$defs/audioAssetProfileData"
+          }
+        },
+        "assets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/audioAssetEntryData"
+          }
+        },
+        "bundles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "preload": {
+                "type": "boolean"
+              },
+              "labels": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "release": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "provider",
+            "objectPrefix"
+          ],
+          "properties": {
+            "provider": {
+              "type": "string",
+              "minLength": 1
+            },
+            "objectPrefix": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "manifestObjectKey": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "voiceAuthoringData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "revision",
+        "ledger",
+        "catalog"
+      ],
+      "properties": {
+        "revision": {
+          "$ref": "#/$defs/sha256"
+        },
+        "ledger": {
+          "$ref": "#/$defs/voiceLedgerData"
+        },
+        "catalog": {
+          "$ref": "#/$defs/audioAssetCatalogData"
+        }
+      }
+    },
+    "audioMigrationSourceData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256",
+        "bytes"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "audioMigrationOperationData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "line",
+        "action"
+      ],
+      "properties": {
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "action": {
+          "enum": [
+            "set",
+            "clear"
+          ]
+        },
+        "reference": {
+          "type": "string",
+          "minLength": 1
+        },
+        "assetId": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "audioMigrationPatchData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256",
+        "bytes",
+        "content",
+        "targetSha256",
+        "operations"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "content": {
+          "type": "string"
+        },
+        "targetSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/audioMigrationOperationData"
+          }
+        }
+      }
+    },
+    "audioMigrationReportData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "root",
+        "catalogPath",
+        "catalogRevision",
+        "mapping",
+        "sources",
+        "patches",
+        "unresolved",
+        "snapshots",
+        "revision"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "root": {
+          "type": "string",
+          "minLength": 1
+        },
+        "catalogPath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "catalogRevision": {
+          "$ref": "#/$defs/sha256"
+        },
+        "mapping": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/audioMigrationSourceData"
+          }
+        },
+        "patches": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/audioMigrationPatchData"
+          }
+        },
+        "unresolved": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "path",
+              "code",
+              "message"
+            ],
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "code": {
+                "type": "string",
+                "minLength": 1
+              },
+              "message": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "snapshots": {
+          "const": "unsupported"
+        },
+        "revision": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "audioMigrationApplyData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "revision",
+        "applied",
+        "journalPath"
+      ],
+      "properties": {
+        "revision": {
+          "$ref": "#/$defs/sha256"
+        },
+        "applied": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "journalPath": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "audioMigrationRecoveryData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "revision",
+        "recovered"
+      ],
+      "properties": {
+        "revision": {
+          "$ref": "#/$defs/sha256"
+        },
+        "recovered": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "audioMigrationData": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/audioMigrationReportData"
+        },
+        {
+          "$ref": "#/$defs/audioMigrationApplyData"
+        },
+        {
+          "$ref": "#/$defs/audioMigrationRecoveryData"
+        }
+      ]
+    },
+    "voiceTakesSuccess": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "voice.takes"
+            },
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/voiceAuthoringData"
+            },
+            "errors": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      ]
+    },
+    "voiceTakesFailure": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/failure"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "voice.takes"
+            }
+          }
+        }
+      ]
+    },
+    "voiceGenerateSuccess": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "voice.generate"
+            },
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/voiceAuthoringData"
+            },
+            "errors": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      ]
+    },
+    "voiceGenerateFailure": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/failure"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "voice.generate"
+            }
+          }
+        }
+      ]
+    },
+    "voiceBindSuccess": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "voice.bind"
+            },
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/voiceAuthoringData"
+            },
+            "errors": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      ]
+    },
+    "voiceBindFailure": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/failure"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "voice.bind"
+            }
+          }
+        }
+      ]
+    },
+    "migrateAudioSuccess": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "migrate.audio"
+            },
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/audioMigrationData"
+            },
+            "errors": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      ]
+    },
+    "migrateAudioFailure": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/failure"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "migrate.audio"
             }
           }
         }

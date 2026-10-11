@@ -1,0 +1,4 @@
+{
+  "extends": "../../../tsconfig.json",
+  "include": ["./cos-replay*.ts", "../../e2e/cos-qwen-replay.spec.ts", "../../../packages/global.d.ts"]
+}

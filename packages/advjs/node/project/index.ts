@@ -8,6 +8,7 @@ import type {
 import { lstat, readdir, readFile, realpath, stat } from 'node:fs/promises'
 import { isAbsolute, relative, resolve, sep } from 'node:path'
 import process from 'node:process'
+import { parseAudioVoiceProfiles, parseVoiceLedger } from '@advjs/audio'
 import { compileProject } from '@advjs/core'
 import { loadConfig } from 'c12'
 import { bundledConfigAliases } from '../config/aliases'
@@ -22,6 +23,8 @@ const IGNORED_DIRECTORIES = new Set([
   'node_modules',
 ])
 const TEXT_FILE_RE = /\.(?:css|html|js|json|jsx|md|mjs|scss|ts|tsx|vue|yaml|yml)$/iu
+const WRITE_UUID = '[a-f\\d]{8}-[a-f\\d]{4}-4[a-f\\d]{3}-[89ab][a-f\\d]{3}-[a-f\\d]{12}'
+const INTERNAL_WRITE_FILE_RE = new RegExp(`^(?:\\.advjs-write-${WRITE_UUID}|.+\\.json\\.${WRITE_UUID}\\.tmp)$`, 'u')
 
 export interface ProjectConfigSource {
   format: 'json' | 'module' | 'synthetic'
@@ -211,6 +214,10 @@ async function collectProjectFiles(
     const entries = (await readdir(logicalDirectory, { withFileTypes: true }))
       .sort((left, right) => comparePaths(left.name, right.name))
     for (const entry of entries) {
+      // Atomic Editor/voice writes rename these internal staging files after a
+      // directory listing. Exclude them before stat; real source errors still fail.
+      if (INTERNAL_WRITE_FILE_RE.test(entry.name))
+        continue
       if (entry.isDirectory() && IGNORED_DIRECTORIES.has(entry.name))
         continue
       const relativePath = relativeDirectory ? `${relativeDirectory}/${entry.name}` : entry.name
@@ -243,6 +250,61 @@ async function collectProjectFiles(
       await walk(logicalDirectory, directory)
   }
   return { files, filePaths }
+}
+
+/** Only referenced native rights documents join authoring snapshots, never private directories. */
+async function collectVoiceConsentDocuments(root: string, realRoot: string, contentRoot: string, files: Map<string, string>, result: AdvProjectCompileResult) {
+  const paths = new Set<string>()
+  const profiles = result.project.characters.map(character => character.voiceProfile)
+  try {
+    const narrator = parseAudioVoiceProfiles(files.get(`${contentRoot}/audio/voice-profiles.json`) ?? { schemaVersion: 1, revision: 0 }).narrator
+    profiles.push(narrator)
+  }
+  catch {
+    // The authoritative compiler reports malformed narrator profiles.
+  }
+  try {
+    const ledgerSource = files.get(`${contentRoot}/audio/voice-ledger.json`)
+    if (ledgerSource) {
+      for (const line of Object.values(parseVoiceLedger(ledgerSource).lines)) {
+        for (const binding of Object.values(line.locales)) {
+          for (const take of binding.takes) {
+            if (take.rights)
+              paths.add(take.rights.consentRecord)
+          }
+        }
+      }
+    }
+  }
+  catch {
+    // The authoritative compiler reports malformed native voice documents.
+  }
+  for (const profile of profiles) {
+    for (const locale of Object.values(profile?.locales ?? {})) {
+      for (const implementation of Object.values(locale.providers)) {
+        if (implementation.rights)
+          paths.add(implementation.rights.consentRecord)
+      }
+    }
+  }
+  let added = false
+  for (const path of paths) {
+    if (path.includes('\\') || path.includes(':') || path.includes('\0') || !/\.(?:md|txt|json)$/iu.test(path)
+      || path.split('/').some(part => !part || ['.', '..', '.git', '.advjs', 'node_modules'].includes(part.toLowerCase()))) {
+      continue
+    }
+    const target = resolve(root, path)
+    if (!await fileExists(target))
+      continue
+    await assertSafeProjectFile(root, realRoot, path)
+    if ((await stat(target)).size > 64 * 1024)
+      throw new ProjectLoadError('ADV_PROJECT_CONFIG_LOAD', `Voice consent document exceeds 64 KiB: ${path}`)
+    if (files.has(path))
+      continue
+    files.set(path, await readFile(target, 'utf8'))
+    added = true
+  }
+  return added
 }
 
 /**
@@ -345,19 +407,23 @@ export async function loadProject(options: LoadProjectOptions = {}): Promise<Loa
     }
   }
 
-  const sortedFiles = Object.fromEntries([...files.entries()].sort(([left], [right]) => comparePaths(left, right)))
+  let sortedFiles = Object.fromEntries([...files.entries()].sort(([left], [right]) => comparePaths(left, right)))
   const runtimePlugins = (Array.isArray(config.plugins) ? config.plugins : [])
     .filter((plugin): plugin is JsonObject & AdvRuntimePlugin => Boolean(
       isJsonObject(plugin) && typeof plugin.name === 'string' && typeof plugin.version === 'string',
     ))
-  const result = await compileProject(
-    { files: sortedFiles, id: typeof config.id === 'string' ? config.id : undefined },
-    {
-      plugins: options.plugins ?? (runtimePlugins.length ? Object.fromEntries(runtimePlugins.map(plugin => [plugin.name, plugin.version])) : undefined),
-      staticAnalysis: options.staticAnalysis,
-      validateContentReferences: options.validateContentReferences,
-    },
-  )
+  const compileOptions = {
+    plugins: options.plugins ?? (runtimePlugins.length ? Object.fromEntries(runtimePlugins.map(plugin => [plugin.name, plugin.version])) : undefined),
+    staticAnalysis: options.staticAnalysis,
+    validateContentReferences: options.validateContentReferences,
+    allowEmptyAssetManifest: options.allowEmptyAssetManifest,
+  }
+  const compile = () => compileProject({ files: sortedFiles, id: typeof config.id === 'string' ? config.id : undefined }, compileOptions)
+  let result = await compile()
+  if (await collectVoiceConsentDocuments(root, realRoot, contentRoot, files, result)) {
+    sortedFiles = Object.fromEntries([...files.entries()].sort(([left], [right]) => comparePaths(left, right)))
+    result = await compile()
+  }
   return {
     root,
     config: configSource,

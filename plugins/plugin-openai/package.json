@@ -9,12 +9,23 @@
     "url": "https://www.yunyoujun.cn"
   },
   "license": "MPL-2.0",
+  "exports": {
+    ".": { "types": "./dist/index.d.mts", "default": "./dist/index.mjs" },
+    "./voice": { "types": "./dist/voice.d.mts", "default": "./dist/voice.mjs" }
+  },
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "files": ["README.md", "dist"],
   "scripts": {
+    "build": "unbuild",
+    "dev": "unbuild --stub",
     "start": "tsx scripts/index.ts"
   },
   "dependencies": {
+    "@advjs/types": "workspace:*",
     "dotenv": "catalog:cli",
-    "openai": "catalog:ai"
+    "openai": "catalog:ai",
+    "pathe": "catalog:utils"
   },
-  "devDependencies": {}
+  "devDependencies": { "unbuild": "catalog:build" }
 }

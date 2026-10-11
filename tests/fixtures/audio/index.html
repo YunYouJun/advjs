@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ADV.JS AudioEngine verification</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 24px;
+        background: #15171b;
+        color: #e5e7eb;
+        font:
+          14px system-ui,
+          sans-serif;
+      }
+      main {
+        max-width: 960px;
+        margin: auto;
+      }
+      h1 {
+        font-size: 22px;
+      }
+      button {
+        background: #303944;
+        color: inherit;
+        border: 1px solid #596574;
+        padding: 10px 14px;
+        cursor: pointer;
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 20px 0;
+      }
+      pre {
+        padding: 16px;
+        background: #20242c;
+        overflow: auto;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      output {
+        display: block;
+        margin: 10px 0;
+      }
+      @media (max-width: 400px) {
+        body {
+          padding: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>ADV.JS AudioEngine verification</h1>
+      <p>Local PCM WAV fixtures exercise real Web Audio without network TTS.</p>
+      <div class="controls">
+        <button id="unlock">Unlock audio</button>
+        <button id="layers">Play music + 4 ambience layers</button>
+        <button id="voice">Play dialogue voice</button>
+        <button id="voice-opus">Play processed Opus voice</button>
+        <button id="voice-aac">Play processed AAC voice</button>
+        <button id="music-opus">Stream processed Opus music</button>
+        <button id="music-aac">Stream processed AAC music</button>
+        <button id="music-compatible">Stream compatible processed music</button>
+        <button id="clear">Clear persistent layers</button>
+        <button id="transients">Play voice + SFX + UI</button>
+        <button id="history">Restore history</button>
+        <button id="failure">Load unavailable audio</button>
+        <button id="dispose">Dispose audio</button>
+      </div>
+      <output id="status" aria-live="polite">Queued until a user gesture</output>
+      <pre id="inspection"></pre>
+    </main>
+    <script type="module" src="/main.ts"></script>
+  </body>
+</html>

@@ -18,6 +18,9 @@ describe('cos asset standard', () => {
       contentType: 'image/webp',
     })
     expect(contentTypeForObjectKey('games/hamster/v1/audio/bgm/theme.01234567.ogg')).toBe('audio/ogg')
+    expect(contentTypeForObjectKey('games/hamster/v1/audio/voice/zh-cn/narrator/take.01234567.webm')).toBe('audio/webm')
+    expect(contentTypeForObjectKey('games/hamster/v1/audio/voice/zh-cn/narrator/take.01234567.m4a')).toBe('audio/mp4')
+    expect(contentTypeForObjectKey('private/master.01234567.wav')).toBe('audio/wav')
   })
 
   it('keeps stable manifests revalidated instead of immutable', () => {

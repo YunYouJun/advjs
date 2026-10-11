@@ -70,6 +70,7 @@
     ],
     "dependencyClosure": [
       "@advjs/assets",
+      "@advjs/audio",
       "@advjs/client",
       "@advjs/core",
       "@advjs/devtools",

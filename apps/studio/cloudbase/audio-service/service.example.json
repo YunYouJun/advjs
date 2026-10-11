@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "cloudbase": { "envId": "REPLACE_WITH_CLOUDBASE_ENV_ID" },
+  "host": "0.0.0.0",
+  "port": 3389,
+  "allowedOrigins": ["https://studio.example.com"],
+  "allowedHosts": ["audio.example.com"],
+  "persistence": { "root": "/srv/advjs-audio", "volumeId": "REPLACE_WITH_PERSISTENT_VOLUME_ID", "singleInstance": true },
+  "stateDirectory": "/srv/advjs-audio/private",
+  "projects": [{
+    "accountId": "REPLACE_WITH_VERIFIED_CLOUDBASE_USER_ID",
+    "projectId": "REPLACE_WITH_REGISTERED_STUDIO_PROJECT_ID",
+    "root": "/srv/advjs-audio/projects/registered-project",
+    "voice": {
+      "providers": ["openai-tts"],
+      "defaultProvider": "openai-tts",
+      "presets": { "openai": "authoring/voices/operator-openai.json" },
+      "presetProviders": { "openai": "openai-tts" },
+      "defaultPreset": "openai"
+    }
+  }],
+  "publication": {
+    "bucket": "REPLACE-WITH-TEST-BUCKET-1234567890",
+    "region": "ap-shanghai",
+    "publicBaseUrl": "https://media.example.com/",
+    "deploymentPrefix": "games/advjs-audio-acceptance-20261012/v1",
+    "approvedToolchains": "/etc/advjs/approved-audio-toolchains.json",
+    "stsDirectory": "/run/secrets/advjs-cos-sts"
+  }
+}

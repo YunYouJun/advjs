@@ -22,9 +22,17 @@ export async function installBuildCommand(cli: Argv) {
         type: 'string',
         describe: t('build.base_desc'),
       })
+      .option('audio-manifest', {
+        type: 'string',
+        describe: t('build.audio_manifest_desc'),
+      })
+      .option('audio-manifest-sha256', {
+        type: 'string',
+        describe: t('build.audio_manifest_sha256_desc'),
+      })
       .strict()
       .help(),
-    async ({ theme, base, outDir, singlefile, json }) => {
+    async ({ theme, base, outDir, singlefile, json, 'audio-manifest': audioManifest, 'audio-manifest-sha256': audioManifestSha256 }) => {
       const { advBuild } = await import('../commands/build')
       await runCliCommand({
         command: 'build',
@@ -34,6 +42,8 @@ export async function installBuildCommand(cli: Argv) {
           outDir,
           theme,
           singlefile,
+          audioManifest,
+          audioManifestSha256,
           ...(json
             ? {
                 vite: {

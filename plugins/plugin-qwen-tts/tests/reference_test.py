@@ -102,6 +102,19 @@ class ReferenceTests(unittest.TestCase):
     def test_valid_reference_returns_absolute_path(self):
         self.assertEqual(PREVIEW.prepare_reference(self.root, self.manifest, self.character), str(self.audio))
 
+    def test_unassigned_reference_can_be_bound_to_a_character(self):
+        self.asset.pop('characterId')
+        self.write_manifest()
+        self.assertEqual(PREVIEW.prepare_reference(self.root, self.manifest, self.character), str(self.audio))
+
+    def test_explicit_invalid_character_assignment_is_rejected(self):
+        for character_id in (None, '', 42, False):
+            with self.subTest(character_id=character_id):
+                self.asset['characterId'] = character_id
+                self.write_manifest()
+                with self.assertRaisesRegex(ValueError, 'Invalid reference asset'):
+                    PREVIEW.prepare_reference(self.root, self.manifest, self.character)
+
     def test_mismatched_hash_is_rejected(self):
         self.character['reference']['sha256'] = '0' * 64
         with self.assertRaisesRegex(ValueError, 'SHA-256 mismatch'):

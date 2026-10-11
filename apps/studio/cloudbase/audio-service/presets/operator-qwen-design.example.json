@@ -1,0 +1,13 @@
+{
+  "version": "20261012",
+  "model": "mlx-community/Qwen3-TTS-12Hz-1.7B-VoiceDesign-bf16",
+  "revision": "7d3824abff87e49756bb0f83fb5411de75d160c4",
+  "weightSha256": {
+    "model.safetensors": "96ae28bec2205ec0b5e0c750bea2b8a5deac4f14d33a8a25a5f753299486b70e",
+    "speech_tokenizer/model.safetensors": "836b7b357f5ea43e889936a3709af68dfe3751881acefe4ecf0dbd30ba571258"
+  },
+  "characters": [
+    { "id": "hero", "text": "欢迎来到冒险世界。", "description": "清晰自然的普通话声音，友好平静，不模仿真实人物。" },
+    { "id": "narrator", "text": "故事开始了。", "description": "清晰自然的普通话旁白，平静克制，不模仿真实人物。" }
+  ]
+}

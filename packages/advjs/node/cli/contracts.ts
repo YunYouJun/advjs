@@ -18,6 +18,10 @@ export const ADV_CLI_COMMANDS = [
   'voice.providers',
   'voice.samples',
   'voice.select',
+  'voice.takes',
+  'voice.generate',
+  'voice.bind',
+  'migrate.audio',
 ] as const
 
 export type AdvCliCommand = typeof ADV_CLI_COMMANDS[number]
@@ -234,6 +238,7 @@ export const ADV_LAUNCH_SUPPORT = {
     entrypoints: ['advjs', '@advjs/editor', '@advjs/mcp-server'],
     dependencyClosure: [
       '@advjs/assets',
+      '@advjs/audio',
       '@advjs/client',
       '@advjs/core',
       '@advjs/devtools',

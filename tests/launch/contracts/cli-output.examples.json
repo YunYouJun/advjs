@@ -449,5 +449,254 @@
         }
       ]
     }
+  },
+  "voice.takes": {
+    "success": {
+      "schemaVersion": 1,
+      "command": "voice.takes",
+      "ok": true,
+      "data": {
+        "ledger": {
+          "schemaVersion": 1,
+          "lines": {}
+        },
+        "catalog": {
+          "schemaVersion": 2,
+          "id": "dialogue-audio",
+          "defaultProfile": "local",
+          "profiles": {
+            "local": {
+              "provider": "project",
+              "root": "public"
+            }
+          },
+          "assets": []
+        },
+        "revision": "9e12989477066ef9db542b4a5b8401b98d4a3ffa9faed47014db1b65c2d0ceee"
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "failure": {
+      "schemaVersion": 1,
+      "command": "voice.takes",
+      "ok": false,
+      "data": null,
+      "warnings": [],
+      "errors": [
+        {
+          "code": "ADV_VALIDATION",
+          "message": "Project audio documents changed; reload before applying."
+        }
+      ]
+    }
+  },
+  "voice.generate": {
+    "success": {
+      "schemaVersion": 1,
+      "command": "voice.generate",
+      "ok": true,
+      "data": {
+        "ledger": {
+          "schemaVersion": 1,
+          "lines": {
+            "line_019d137e-7abc-7000-8000-000000000001": {
+              "speakerId": "hero",
+              "displayText": "你好。",
+              "locales": {
+                "zh-CN": {
+                  "selectedTake": null,
+                  "takes": [
+                    {
+                      "id": "take_019d137e-7abc-7000-8000-000000000001",
+                      "assetId": "audio_019d137e-7abc-7000-8000-000000000001",
+                      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                      "providerId": "openai-tts",
+                      "voiceId": "coral",
+                      "model": "gpt-4o-mini-tts",
+                      "voiceProfileRevision": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                      "inputFingerprint": "9ccd3c0b54854aebab295f2095d2339368cd36d335f97f5da4e43142f3b73b1e",
+                      "spokenText": "你好。",
+                      "createdAt": "2026-10-11T08:00:00.000Z",
+                      "source": "system",
+                      "parameters": {}
+                    }
+                  ],
+                  "displayText": "你好。"
+                }
+              }
+            }
+          }
+        },
+        "catalog": {
+          "schemaVersion": 2,
+          "id": "dialogue-audio",
+          "defaultProfile": "local",
+          "profiles": {
+            "local": {
+              "provider": "project",
+              "root": "public"
+            }
+          },
+          "assets": [
+            {
+              "id": "audio_019d137e-7abc-7000-8000-000000000001",
+              "type": "audio",
+              "kind": "voice",
+              "path": "audio/voice/zh-cn/hero/immutable.wav",
+              "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "bytes": 9644,
+              "mimeType": "audio/wav",
+              "duration": 0.2,
+              "characterId": "hero",
+              "state": "candidate",
+              "source": {
+                "type": "generated",
+                "model": "gpt-4o-mini-tts",
+                "createdAt": "2026-10-11T08:00:00.000Z"
+              }
+            }
+          ]
+        },
+        "revision": "4b25098fe21c1c8b9085e6663478b02375cf2024202ce36500f31c2e118f3021"
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "failure": {
+      "schemaVersion": 1,
+      "command": "voice.generate",
+      "ok": false,
+      "data": null,
+      "warnings": [],
+      "errors": [
+        {
+          "code": "ADV_VALIDATION",
+          "message": "Project audio documents changed; reload before applying."
+        }
+      ]
+    }
+  },
+  "voice.bind": {
+    "success": {
+      "schemaVersion": 1,
+      "command": "voice.bind",
+      "ok": true,
+      "data": {
+        "ledger": {
+          "schemaVersion": 1,
+          "lines": {
+            "line_019d137e-7abc-7000-8000-000000000001": {
+              "speakerId": "hero",
+              "displayText": "你好。",
+              "locales": {
+                "zh-CN": {
+                  "selectedTake": "take_019d137e-7abc-7000-8000-000000000001",
+                  "takes": [
+                    {
+                      "id": "take_019d137e-7abc-7000-8000-000000000001",
+                      "assetId": "audio_019d137e-7abc-7000-8000-000000000001",
+                      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                      "providerId": "openai-tts",
+                      "voiceId": "coral",
+                      "model": "gpt-4o-mini-tts",
+                      "voiceProfileRevision": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                      "inputFingerprint": "9ccd3c0b54854aebab295f2095d2339368cd36d335f97f5da4e43142f3b73b1e",
+                      "spokenText": "你好。",
+                      "createdAt": "2026-10-11T08:00:00.000Z",
+                      "source": "system",
+                      "parameters": {}
+                    }
+                  ],
+                  "displayText": "你好。"
+                }
+              }
+            }
+          }
+        },
+        "catalog": {
+          "schemaVersion": 2,
+          "id": "dialogue-audio",
+          "defaultProfile": "local",
+          "profiles": {
+            "local": {
+              "provider": "project",
+              "root": "public"
+            }
+          },
+          "assets": [
+            {
+              "id": "audio_019d137e-7abc-7000-8000-000000000001",
+              "type": "audio",
+              "kind": "voice",
+              "path": "audio/voice/zh-cn/hero/immutable.wav",
+              "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "bytes": 9644,
+              "mimeType": "audio/wav",
+              "duration": 0.2,
+              "characterId": "hero",
+              "state": "candidate",
+              "source": {
+                "type": "generated",
+                "model": "gpt-4o-mini-tts",
+                "createdAt": "2026-10-11T08:00:00.000Z"
+              }
+            }
+          ]
+        },
+        "revision": "1ebde73fd9ca5632de9c16903adad7a8f7dde424c9cfe3c535346085a15c86c0"
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "failure": {
+      "schemaVersion": 1,
+      "command": "voice.bind",
+      "ok": false,
+      "data": null,
+      "warnings": [],
+      "errors": [
+        {
+          "code": "ADV_VALIDATION",
+          "message": "Project audio documents changed; reload before applying."
+        }
+      ]
+    }
+  },
+  "migrate.audio": {
+    "success": {
+      "schemaVersion": 1,
+      "command": "migrate.audio",
+      "ok": true,
+      "data": {
+        "schemaVersion": 1,
+        "root": "/tmp/my-game",
+        "catalogPath": "adv/assets.json",
+        "catalogRevision": "006e84561958ab193a28453b621c99d948d4ed7758a21e75999a3c81bb60666c",
+        "mapping": {
+          "summer-day": "bgm/summer-day"
+        },
+        "sources": [],
+        "patches": [],
+        "unresolved": [],
+        "snapshots": "unsupported",
+        "revision": "56545537df318f70e8f58c3ec1dbdd6c104f9450944cd9bc0913de174204055f"
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "failure": {
+      "schemaVersion": 1,
+      "command": "migrate.audio",
+      "ok": false,
+      "data": null,
+      "warnings": [],
+      "errors": [
+        {
+          "code": "ADV_VALIDATION",
+          "message": "Audio migration requires a reviewed report with no unresolved references."
+        }
+      ]
+    }
   }
 }

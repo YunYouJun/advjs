@@ -1,5 +1,6 @@
 // @vitest-environment node
 
+import type { VoiceAuthoringSnapshot } from '@advjs/types'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import addFormats from 'ajv-formats'
@@ -17,6 +18,7 @@ import {
   calculateContentRevision,
   createCanonicalContentManifest,
 } from '../../../packages/advjs/node/cli/contracts'
+import { voiceAuthoringRevision } from '../../../packages/audio/src/authoring'
 
 const root = resolve(import.meta.dirname, '../../..')
 
@@ -63,6 +65,10 @@ describe('launch CLI contracts', () => {
       'voice.providers',
       'voice.samples',
       'voice.select',
+      'voice.takes',
+      'voice.generate',
+      'voice.bind',
+      'migrate.audio',
     ])
     expect(ADV_ERROR_CODES).toEqual([
       'ADV_USAGE',
@@ -95,6 +101,7 @@ describe('launch CLI contracts', () => {
         entrypoints: ['advjs', '@advjs/editor', '@advjs/mcp-server'],
         dependencyClosure: [
           '@advjs/assets',
+          '@advjs/audio',
           '@advjs/client',
           '@advjs/core',
           '@advjs/devtools',
@@ -140,6 +147,65 @@ describe('launch CLI contracts', () => {
         expect(validate!(example), JSON.stringify(validate!.errors)).toBe(true)
       }
     }
+  })
+
+  it('rejects arbitrary and malformed audio success payloads while validating migration apply and recovery', () => {
+    const index = readJson('tests/launch/contracts/cli-contracts.json') as CliContractIndex
+    const schema = readJson(`tests/launch/contracts/${index.schema}`) as Record<string, unknown>
+    const examples = readJson(`tests/launch/contracts/${index.examples}`) as Record<string, { success: Record<string, unknown> }>
+    const ajv = new Ajv2020({ allErrors: true, strict: true })
+    addFormats(ajv)
+    ajv.addSchema(schema)
+    const validate = (command: string, data: unknown) => ajv.getSchema(index.commands[command].success)!({ ...examples[command].success, data })
+    for (const command of ['voice.takes', 'voice.generate', 'voice.bind', 'migrate.audio'])
+      expect(validate(command, {}), `${command} arbitrary data`).toBe(false)
+
+    const takes = structuredClone(examples['voice.takes'].success.data) as Record<string, unknown>
+    expect(validate('voice.takes', { ...takes, revision: 'not-a-sha256' })).toBe(false)
+    expect(validate('voice.takes', { ...takes, ledger: { schemaVersion: 2, lines: {} } })).toBe(false)
+    expect(validate('voice.takes', { ...takes, catalog: {} })).toBe(false)
+
+    const generated = structuredClone(examples['voice.generate'].success.data) as {
+      revision: string
+      ledger: { lines: Record<string, { locales: Record<string, { selectedTake: string | null, takes: Array<Record<string, unknown>> }> }> }
+      catalog: Record<string, unknown>
+    }
+    const line = Object.values(generated.ledger.lines)[0]
+    const locale = line.locales['zh-CN']
+    const take = locale.takes[0]
+    const model = take.model
+    delete take.model
+    expect(validate('voice.generate', generated)).toBe(false)
+    take.model = model
+    take.source = 'cloned'
+    expect(validate('voice.generate', generated)).toBe(false)
+    take.source = 'system'
+    locale.selectedTake = 7 as unknown as string
+    expect(validate('voice.bind', generated)).toBe(false)
+
+    const revision = 'a'.repeat(64)
+    expect(validate('migrate.audio', { revision, applied: ['adv/chapters/intro.adv.md'], journalPath: `.advjs/audio-migration/${revision}/journal.json` })).toBe(true)
+    expect(validate('migrate.audio', { revision, recovered: ['adv/chapters/intro.adv.md'] })).toBe(true)
+    expect(validate('migrate.audio', { revision, applied: ['adv/chapters/intro.adv.md'] })).toBe(false)
+    const report = structuredClone(examples['migrate.audio'].success.data) as Record<string, unknown>
+    expect(validate('migrate.audio', { ...report, snapshots: true })).toBe(false)
+    expect(validate('migrate.audio', { ...report, unresolved: [{ path: 'chapter.adv.md' }] })).toBe(false)
+    expect(validate('migrate.audio', { ...report, sources: [{ path: 'chapter.adv.md', bytes: 1, sha256: 'changed' }] })).toBe(false)
+    expect(validate('migrate.audio', { ...report, patches: [{ path: 'chapter.adv.md', bytes: 1, sha256: revision, targetSha256: revision, content: '', operations: [{ line: 0, action: 'play' }] }] })).toBe(false)
+  })
+
+  it('freezes audio snapshot examples with actual shared content revisions and explicit take adoption', async () => {
+    const examples = readJson('tests/launch/contracts/cli-output.examples.json') as Record<string, { success: { data: VoiceAuthoringSnapshot } }>
+    for (const command of ['voice.takes', 'voice.generate', 'voice.bind']) {
+      const snapshot = examples[command].success.data
+      expect(snapshot.revision).toBe(await voiceAuthoringRevision(snapshot.ledger, snapshot.catalog))
+    }
+    const generated = examples['voice.generate'].success.data.ledger
+    const selected = examples['voice.bind'].success.data.ledger
+    const lineId = Object.keys(generated.lines)[0]
+    expect(generated.lines[lineId].locales['zh-CN'].selectedTake).toBeNull()
+    expect(selected.lines[lineId].locales['zh-CN'].selectedTake).toBe(generated.lines[lineId].locales['zh-CN'].takes[0].id)
+    expect(selected.lines[lineId].locales['zh-CN'].takes).toEqual(generated.lines[lineId].locales['zh-CN'].takes)
   })
 
   it('keeps content revisions stable across key, path, and traversal order', () => {

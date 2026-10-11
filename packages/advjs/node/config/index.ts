@@ -1,9 +1,12 @@
 import type { AdvConfig, AdvEntryOptions, AdvGameConfig, ThemeConfig } from '@advjs/types'
+import process from 'node:process'
 import { loadConfig } from 'c12'
 import defu from 'defu'
 import { defaultAdvConfig, defaultGameConfig } from '../../shared'
 import { bundledConfigAliases } from './aliases'
+import { loadProjectAudioConfig } from './audio'
 import { loadAdvGameConfig } from './game'
+import { loadStandardFlowGame } from './project-flow'
 import { loadAdvThemeConfig } from './theme'
 
 export const ADV_VIRTUAL_MODULES = [
@@ -82,10 +85,13 @@ export async function loadAdvConfigs(options: AdvEntryOptions) {
     loadAdvThemeConfig(options),
   ])
 
+  const audio = await loadProjectAudioConfig(options.userRoot ?? process.cwd())
+  const flowGame = config.format === 'flow' ? await loadStandardFlowGame(options.userRoot ?? process.cwd(), audio) : undefined
+
   return {
     config,
     configFile,
-    gameConfig: defu(gameConfig, config.gameConfig, defaultGameConfig),
+    gameConfig: defu(flowGame, audio ? { audio } : {}, gameConfig, config.gameConfig, defaultGameConfig),
     gameConfigFile,
     themeConfig,
     themeConfigFile,

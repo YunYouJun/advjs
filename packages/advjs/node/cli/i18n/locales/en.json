@@ -59,7 +59,9 @@
     "desc": "Build hostable SPA",
     "singlefile_desc": "Build to a single file, supports opening index.html directly",
     "outdir_desc": "Output directory",
-    "base_desc": "output base"
+    "base_desc": "output base",
+    "audio_manifest_desc": "Explicit published audio catalog URL or local file",
+    "audio_manifest_sha256_desc": "Required SHA-256 revision of the published audio catalog"
   },
   "deploy": {
     "desc": "Validate, build, and deploy to Cloudflare Pages",

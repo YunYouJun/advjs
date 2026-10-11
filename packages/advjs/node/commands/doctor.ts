@@ -2,12 +2,14 @@ import type { ChildProcessWithoutNullStreams } from 'node:child_process'
 import type { AdvAgentClient } from '../agent'
 import { spawn } from 'node:child_process'
 import { constants } from 'node:fs'
-import { access, realpath } from 'node:fs/promises'
+import { access, readFile, realpath } from 'node:fs/promises'
 import { createServer } from 'node:http'
 import { join, resolve } from 'node:path'
 import process from 'node:process'
+import { parseAudioToolchainLock } from '@advjs/audio'
 import { version } from '../../package.json'
 import { installAgentIntegration } from '../agent'
+import { probeAudioToolchain } from '../audio/process'
 import { resolveEditorArtifactPublicRoot } from '../editor'
 import { loadProject } from '../project'
 
@@ -29,6 +31,7 @@ export interface RunDoctorOptions {
   projectRoot?: string
   skillsRoot?: string
   toolProbe?: (command: string, args: string[]) => Promise<boolean>
+  audioToolProbe?: typeof probeAudioToolchain
 }
 
 function check(id: string, status: DoctorCheckStatus, message: string): DoctorCheck {
@@ -269,6 +272,27 @@ export async function runDoctor(options: RunDoctorOptions = {}) {
   checks.push(audioTool
     ? check('optional-audio-tool', 'pass', 'FFmpeg is available for optional audio/video processing.')
     : check('optional-audio-tool', 'warn', 'FFmpeg is optional; install it to enable local audio and video workflows.'))
+
+  if (audioTool) {
+    try {
+      const audio = await (options.audioToolProbe ?? probeAudioToolchain)()
+      checks.push(check('optional-audio-capabilities', audio.ready ? 'pass' : 'warn', audio.ready
+        ? `FFprobe, libopus, AAC, loudnorm and voice trimming are available. Build fingerprint: ${audio.fingerprint}.`
+        : 'Audio processing requires FFprobe, libopus, AAC, loudnorm and silence/reverse filters; this build is incomplete.'))
+      try {
+        const lock = parseAudioToolchainLock(JSON.parse(await readFile(join(projectRoot, 'adv/audio/toolchain.json'), 'utf8')))
+        checks.push(check('optional-audio-toolchain', lock.ffmpegBuildFingerprint === audio.fingerprint ? 'pass' : 'warn', lock.ffmpegBuildFingerprint === audio.fingerprint
+          ? `Local build matches audio profile ${lock.profileId}; the publication host must still approve its worker image digest.`
+          : 'Local FFmpeg differs from the project lock and can produce previews only; use the approved locked worker for publication.'))
+      }
+      catch {
+        checks.push(check('optional-audio-toolchain', 'warn', 'No valid audio toolchain lock is available; previews remain available, formal audio publication is blocked.'))
+      }
+    }
+    catch {
+      checks.push(check('optional-audio-capabilities', 'warn', 'Audio capabilities could not be verified; processing remains disabled.'))
+    }
+  }
 
   return { checks }
 }

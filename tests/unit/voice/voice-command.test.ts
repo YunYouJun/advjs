@@ -199,12 +199,15 @@ describe('provider-neutral voice authoring commands', () => {
       expect(success.stdout.trim().split('\n')).toHaveLength(1)
       expect(JSON.parse(success.stdout)).toMatchObject({ command: `voice.${action}`, ok: true })
     }
-    for (const action of ['providers', 'samples', 'select']) {
+    for (const action of ['providers', 'samples', 'select', 'takes', 'generate', 'bind']) {
       const failure = await runCli(['voice', action, '--root', fixture.root, '--unknown', '--json'])
       expect(failure.code).toBe(1)
       expect(failure.stdout.trim().split('\n')).toHaveLength(1)
       expect(JSON.parse(failure.stdout)).toMatchObject({ command: `voice.${action}`, ok: false, errors: [{ code: 'ADV_USAGE' }] })
     }
+    const incompleteRights = await runCli(['voice', 'generate', '--root', fixture.root, '--line', 'line_019b1ca0-0000-7000-8000-000000000001', '--locale', 'zh-CN', '--expected-revision', 'a'.repeat(64), '--license', 'owned', '--json'])
+    expect(incompleteRights.code).toBe(1)
+    expect(JSON.parse(incompleteRights.stdout)).toMatchObject({ command: 'voice.generate', ok: false, errors: [{ code: 'ADV_USAGE', message: 'Voice rights require --license, --subject and --consent-record together' }] })
   }, 30_000)
 
   it('supports generic presets without project character cards or display names', async () => {
@@ -306,6 +309,17 @@ describe('provider-neutral voice authoring commands', () => {
       .rejects
       .toMatchObject({ code: 'ADV_VALIDATION', message: 'ICL requires a reference transcription for speaker' })
     await expect(runVoicePreview({ root: fixture.root, config: fixture.config, list: true })).resolves.toMatchObject({ referenceMode: 'embedding-only' })
+  })
+
+  it.each(['embedding-only', 'icl'] as const)('accepts unassigned native imported references in %s mode', async (referenceMode) => {
+    const fixture = await project()
+    const { characterId: _characterId, ...importedReference } = fixture.asset
+    await writeFile(join(fixture.root, 'adv/assets.json'), JSON.stringify({ ...fixture.manifest, assets: [importedReference] }))
+    await expect(runVoicePreview({ root: fixture.root, config: fixture.config, referenceMode }))
+      .resolves
+      .toMatchObject({ provider: 'test-provider' })
+    expect(fixture.provider.preview).toHaveBeenCalledOnce()
+    expect(fixture.provider.preview).toHaveBeenCalledWith(expect.objectContaining({ referenceMode }))
   })
 
   it('rejects missing references, wrong character ownership and corrupt cached audio before synthesis', async () => {

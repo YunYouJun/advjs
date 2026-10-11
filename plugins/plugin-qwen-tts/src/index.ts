@@ -1,5 +1,5 @@
-import type { AdvVoiceContext, AdvVoiceDoctorResult, AdvVoicePresetInspection, AdvVoicePreviewRequest, AdvVoicePreviewResult, AdvVoiceProvider, AdvVoiceSetupResult, AdvVoiceSynthesisProvider, AdvVoiceSynthesisRequest, AdvVoiceSynthesisResult, JsonObject } from '@advjs/types'
-import { randomUUID } from 'node:crypto'
+import type { AdvVoiceContext, AdvVoiceDoctorResult, AdvVoicePresetInspection, AdvVoicePreviewRequest, AdvVoicePreviewResult, AdvVoiceProvider, AdvVoiceSetupResult, AdvVoiceSynthesisProvider, AdvVoiceSynthesisRequest, AdvVoiceSynthesisResult, CharacterVoiceProfile, JsonObject } from '@advjs/types'
+import { createHash, randomUUID } from 'node:crypto'
 import { mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { dirname, isAbsolute, resolve } from 'node:path'
 import process from 'node:process'
@@ -11,6 +11,46 @@ const previewScript = fileURLToPath(new URL('../python/preview.py', import.meta.
 const providerId = 'qwen-tts'
 const sha256Pattern = /^[a-f0-9]{64}$/
 const characterIdPattern = /^[a-z0-9][\w-]*$/i
+// Language names accepted by Qwen3-TTS VoiceDesign and Base. Regions remain in
+// the authoring locale; the model receives the supported base language.
+const qwenLanguages: Readonly<Record<string, string>> = {
+  zh: 'Chinese',
+  en: 'English',
+  ja: 'Japanese',
+  ko: 'Korean',
+  de: 'German',
+  fr: 'French',
+  ru: 'Russian',
+  pt: 'Portuguese',
+  es: 'Spanish',
+  it: 'Italian',
+}
+
+function designLanguage(locale: string): string {
+  try {
+    const language = typeof locale === 'string' && qwenLanguages[new Intl.Locale(locale).language]
+    if (language)
+      return language
+  }
+  catch { /* Unsupported or malformed locales must not fall back to Chinese. */ }
+  throw new Error('VOICE_DESIGN_LOCALE_UNSUPPORTED')
+}
+
+/** Qualitative author preferences become model instructions, without acoustic guarantees. */
+function designInstructions(description: string, intent: CharacterVoiceProfile['intent']): string {
+  const directions: string[] = []
+  const add = (label: string, value?: string) => {
+    if (value?.trim())
+      directions.push(`${label}: ${value.trim()}`)
+  }
+  add('Age impression', intent.ageImpression)
+  add('Gender expression', intent.genderExpression)
+  add('Temperament', intent.temperament?.filter(value => value.trim()).join(', '))
+  add('Speaking style', intent.speakingStyle)
+  add('Preferred pitch', intent.pitch)
+  add('Preferred pace', intent.pace)
+  return directions.length ? `${description}\n\nVoice characteristics:\n${directions.join('\n')}` : description
+}
 
 interface LocalEnvironment {
   root: string
@@ -60,6 +100,23 @@ async function environmentReady(environment: LocalEnvironment): Promise<boolean>
     stat(environment.python).then(info => info.isFile()).catch(() => false),
   ])
   return pythonExists && installed.trim() === digest
+}
+
+async function inspectRuntime(environment: LocalEnvironment, context: AdvVoiceContext): Promise<{ ready: boolean, versions: string }> {
+  const versions = await executeCommand(environment.python, ['-c', 'import importlib.metadata,json;print(json.dumps({name:importlib.metadata.version(name) for name in ("mlx-audio","mlx","transformers","numpy")}))'], { ...context, root: environment.root })
+  const parsed = record(JSON.parse(versions), 'Runtime versions')
+  const ready = parsed['mlx-audio'] === '0.5.8' && parsed.mlx === '0.32.3' && parsed.transformers === '5.19.0' && parsed.numpy === '2.5.3'
+  return { ready, versions }
+}
+
+async function installedRuntimeReady(environment: LocalEnvironment, context: AdvVoiceContext): Promise<boolean> {
+  try {
+    return (await inspectRuntime(environment, context)).ready
+  }
+  catch {
+    context.signal?.throwIfAborted()
+    return false
+  }
 }
 
 function record(value: unknown, label: string): Record<string, unknown> {
@@ -161,10 +218,9 @@ async function doctor(context: AdvVoiceContext): Promise<AdvVoiceDoctorResult> {
   let runtimeReady = false
   if (prepared) {
     try {
-      const versions = await executeCommand(environment.python, ['-c', 'import importlib.metadata,json;print(json.dumps({name:importlib.metadata.version(name) for name in ("mlx-audio","mlx","transformers","numpy")}))'], { ...context, root: environment.root })
-      const parsed = record(JSON.parse(versions), 'Runtime versions')
-      runtimeReady = parsed['mlx-audio'] === '0.5.8' && parsed.mlx === '0.32.3' && parsed.transformers === '5.19.0' && parsed.numpy === '2.5.3'
-      checks.push({ id: 'runtime', status: runtimeReady ? 'pass' : 'fail', message: runtimeReady ? versions.trim() : 'Installed runtime versions do not match bundled requirements' })
+      const runtime = await inspectRuntime(environment, context)
+      runtimeReady = runtime.ready
+      checks.push({ id: 'runtime', status: runtimeReady ? 'pass' : 'fail', message: runtimeReady ? runtime.versions.trim() : 'Installed runtime versions do not match bundled requirements' })
     }
     catch (error) {
       context.signal?.throwIfAborted()
@@ -181,12 +237,16 @@ async function setup(context: AdvVoiceContext): Promise<AdvVoiceSetupResult> {
   requirePlatform()
   const environment = await localEnvironment(context.root)
   const commandContext = { ...context, root: environment.root }
-  if (!await environmentReady(environment)) {
+  if (!await environmentReady(environment) || !await installedRuntimeReady(environment, commandContext)) {
+    // A stale stamp must not continue advertising a broken or partially repaired environment.
+    await rm(environment.stamp, { force: true })
     await mkdir(environment.directory, { recursive: true })
     if (!await stat(environment.python).then(info => info.isFile()).catch(() => false))
       await executeCommand('uv', ['venv', '--python', '3.12', resolve(environment.directory, '.venv')], commandContext)
     await executeCommand('uv', ['pip', 'install', '--python', environment.python, '--requirement', requirements], commandContext)
     context.signal?.throwIfAborted()
+    if (!await installedRuntimeReady(environment, commandContext))
+      throw new Error('VOICE_ENVIRONMENT_NOT_READY: Installed runtime versions do not match bundled requirements')
     await writeFile(environment.stamp, await fileDigest(requirements))
   }
   return { provider: providerId, ready: true, environmentDirectory: resolve(environment.directory, '.venv') }
@@ -267,6 +327,7 @@ async function inspectPreset(request: AdvVoiceSynthesisRequest): Promise<AdvVoic
   const config = await validatePreset(normalized, await resolveProjectRoot(request.root), true)
   const selected = config.characters.filter(character => !request.character || character.id === request.character)
   return {
+    presetSha256: createHash('sha256').update(await readFile(await resolveProjectPath(await resolveProjectRoot(request.root), request.configPath, 'Preset config'), 'utf8')).digest('hex'),
     seed: normalized.seed,
     referenceMode: normalized.referenceMode,
     requiresReferenceAssets: selected.some(character => Boolean(character.reference)),
@@ -276,12 +337,28 @@ async function inspectPreset(request: AdvVoiceSynthesisRequest): Promise<AdvVoic
       card: character.card,
       text: request.text?.trim() ?? character.text,
       referenceAssetId: character.reference?.assetId,
+      generation: {
+        model: config.model,
+        providerVoiceId: character.reference ? `reference:${character.reference.assetId}:${character.reference.sha256}` : `design:${createHash('sha256').update(character.description!).digest('hex')}`,
+        source: character.reference ? 'cloned' : 'designed',
+        revision: config.revision,
+        mimeType: 'audio/wav',
+        ...(character.reference ? { referenceAssetId: character.reference.assetId, referenceSha256: character.reference.sha256 } : {}),
+        parameters: { modelRevision: config.revision, seed: normalized.seed, ...(normalized.referenceMode ? { referenceMode: normalized.referenceMode } : {}) },
+      },
     })),
   }
 }
 
 async function synthesize(request: AdvVoiceSynthesisRequest): Promise<AdvVoiceSynthesisResult> {
-  const result = await preview(await normalizeRequest(request))
+  const normalized = await normalizeRequest(request)
+  const root = await resolveProjectRoot(request.root)
+  const configPath = await resolveProjectPath(root, request.configPath, 'Preset config')
+  const source = await readFile(configPath, 'utf8')
+  const config = await validatePreset(normalized, root, true)
+  const result = await preview(normalized)
+  if (await readFile(configPath, 'utf8') !== source)
+    throw new Error('VOICE_CONFLICT: The Qwen preset changed during synthesis')
   return {
     ...result,
     candidates: (result.manifest.samples as unknown as Array<Record<string, unknown>>).map(sample => ({
@@ -297,6 +374,14 @@ async function synthesize(request: AdvVoiceSynthesisRequest): Promise<AdvVoiceSy
       provider: providerId,
       model: String(result.manifest.model),
       revision: String(result.manifest.revision),
+      // Qwen conditions on an immutable reference or a design description, rather
+      // than offering a supplier catalog voice ID. Freeze that actual identity.
+      providerVoiceId: (() => {
+        const character = config.characters.find(character => character.id === sample.id)!
+        return character.reference
+          ? `reference:${character.reference.assetId}:${character.reference.sha256}`
+          : `design:${createHash('sha256').update(character.description!).digest('hex')}`
+      })(),
       voiceId: request.voiceId,
       voiceVersion: request.voiceVersion,
     })),
@@ -312,11 +397,31 @@ export function createQwenTtsProvider(): AdvVoiceProvider & AdvVoiceSynthesisPro
     preview,
     inspectPreset,
     synthesize,
+    async buildDesignPreset({ template, characterId, text, locale, intent, definition }) {
+      if (typeof template.model !== 'string' || !['designed', 'cloned'].includes(definition.source))
+        throw new Error('VOICE_DESIGN_SOURCE_UNSUPPORTED')
+      if (definition.source === 'designed' ? !template.model.includes('VoiceDesign') : !template.model.includes('-Base'))
+        throw new Error('VOICE_DESIGN_TEMPLATE_MODE_MISMATCH')
+      const language = designLanguage(locale)
+      const character: JsonObject = { id: characterId, text }
+      if (definition.source === 'designed') {
+        if (!definition.description)
+          throw new Error('VOICE_DESIGN_DESCRIPTION_REQUIRED')
+        character.description = designInstructions(definition.description, intent)
+      }
+      else {
+        if (!definition.reference || !definition.rights)
+          throw new Error('VOICE_DESIGN_REFERENCE_RIGHTS_REQUIRED')
+        character.reference = { assetId: definition.reference.assetId, sha256: definition.reference.sha256, ...(definition.reference.text ? { text: definition.reference.text } : {}) }
+      }
+      return { ...template, language, characters: [character] }
+    },
     capabilities: {
       backend: 'local',
       synthesis: true,
       voiceCreation: false,
       offline: true,
+      designSources: ['designed', 'cloned'],
       models: [
         { id: 'Qwen3-TTS-12Hz-1.7B-Base (MLX)', modes: ['icl', 'embedding-only'], maxTextCharacters: 500, formats: ['audio/wav'], streaming: false },
         { id: 'Qwen3-TTS-12Hz-1.7B-VoiceDesign (MLX)', modes: ['voice-design'], maxTextCharacters: 500, formats: ['audio/wav'], streaming: false },

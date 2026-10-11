@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto'
 import { existsSync } from 'node:fs'
 import { mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises'
 import path, { join, relative, resolve } from 'node:path'
+import process from 'node:process'
 import { mergeConfig, build as viteBuild } from 'vite'
 import { printInfo } from '../../cli/utils'
 import { resolveOptions } from '../../options'
@@ -11,6 +12,7 @@ import { loadProject } from '../../project'
 import setupIndexHtml from '../../setups/indexHtml'
 import { AdvCommandError } from '../errors'
 import { resolveViteConfigs } from '../shared'
+import { loadPublishedAudioManifest } from './audio-release'
 import { prepareProjectGame } from './project'
 
 export interface BuildAssetSummary {
@@ -75,7 +77,11 @@ export async function build(
   if (existsSync(indexPath))
     originalIndexHTML = await readFile(indexPath, 'utf-8')
 
-  await writeFile(indexPath, setupIndexHtml(options), 'utf-8')
+  const html = setupIndexHtml(options)
+  // Native builds package explicit resources and supply a checked inline icon.
+  const boundedResources = options.audioManifest || viteConfig.build?.copyPublicDir === false
+  const preparedHtml = boundedResources ? html.replace(/<link rel="(?:icon|mask-icon)" href="\/(?:favicon\.svg|safari-pinned-tab\.svg)"[^>]*>/gu, '') : html
+  await writeFile(indexPath, preparedHtml, 'utf-8')
   let config: ResolvedConfig = undefined!
 
   try {
@@ -95,6 +101,8 @@ export async function build(
       'build',
     )
 
+    if (options.audioManifest)
+      inlineConfig.build = { ...inlineConfig.build, copyPublicDir: false }
     await viteBuild(inlineConfig)
   }
   finally {
@@ -116,6 +124,7 @@ export async function build(
 
 export async function advBuild(entryOptions: AdvEntryOptions): Promise<AdvBuildResult> {
   try {
+    const publishedAudioCatalog = await loadPublishedAudioManifest(entryOptions.userRoot ?? process.cwd(), entryOptions)
     const options = await resolveOptions(entryOptions, 'build')
     const loadedProject = await loadProject({ root: options.userRoot })
     const compilationErrors = loadedProject.result.diagnostics.filter(diagnostic => diagnostic.severity === 'error')
@@ -125,8 +134,10 @@ export async function advBuild(entryOptions: AdvEntryOptions): Promise<AdvBuildR
       )
     }
 
-    const standardMarkdown = loadedProject.result.project.format === 'adv-md' && Object.keys(loadedProject.files).some(path => path.endsWith('.adv.md'))
-    const prepared = standardMarkdown ? await prepareProjectGame(loadedProject) : undefined
+    const standardProject = Boolean(loadedProject.result.project.program)
+    if (publishedAudioCatalog && !standardProject)
+      throw new BuildError('ADV_AUDIO_RELEASE_STANDARD_PROJECT_REQUIRED')
+    const prepared = standardProject ? await prepareProjectGame(loadedProject, { publishedAudioCatalog }) : undefined
     if (prepared)
       options.data.gameConfig = prepared.game
     if (prepared?.remoteOrigins.length)
@@ -139,6 +150,8 @@ export async function advBuild(entryOptions: AdvEntryOptions): Promise<AdvBuildR
         outDir: path.resolve(options.userRoot, options.outDir || 'dist'),
       },
     }, entryOptions.vite || {})
+    if (prepared)
+      mergedViteConfig.build = { ...mergedViteConfig.build, copyPublicDir: false }
     const outDir = await build(options, mergedViteConfig)
     if (prepared) {
       for (const [path, bytes] of prepared.resources) {

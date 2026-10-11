@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "purpose": "preview",
+  "presetId": "advjs-voice-v1",
+  "masterSha256": "5ee277891ca9423d591e1c0e86afa3fc47cf0c372f75e58f88de033b7c884e55",
+  "ffmpegBuildFingerprint": "569d3a853f1f69b875eeeb5f0f722faf3d668c278d6096b2f30200d074cd2649",
+  "outputs": [
+    {
+      "variant": "opus",
+      "path": "voice.webm",
+      "metadata": {
+        "sha256": "b5ea82512a3058d254cb913ce2c00537cf19029c37089a9cca3cebad6e70dcfc",
+        "bytes": 29460,
+        "mimeType": "audio/webm",
+        "codec": "opus",
+        "sampleRate": 48000,
+        "channels": 1,
+        "duration": 1.967,
+        "integratedLufs": -15.95,
+        "truePeakDb": -12
+      }
+    },
+    {
+      "variant": "aac",
+      "path": "voice.m4a",
+      "metadata": {
+        "sha256": "92963910b258e8b6684505c0e1618016b15cf80a74e2ecdecc51f8cd7c205b9e",
+        "bytes": 31978,
+        "mimeType": "audio/mp4",
+        "codec": "aac",
+        "sampleRate": 48000,
+        "channels": 1,
+        "duration": 1.96,
+        "integratedLufs": -15.95,
+        "truePeakDb": -8.36
+      }
+    }
+  ]
+}

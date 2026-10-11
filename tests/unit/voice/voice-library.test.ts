@@ -6,7 +6,7 @@ import { mkdir, mkdtemp, readFile, realpath, rm, symlink, writeFile } from 'node
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { readVoiceSample, runVoiceSamples, runVoiceSelect } from '../../../packages/advjs/node/commands/voice-library'
+import { readVoiceAssetManifest, readVoiceSample, runVoiceSamples, runVoiceSelect } from '../../../packages/advjs/node/commands/voice-library'
 import { createEditorBridge } from '../../../packages/advjs/node/editor'
 
 let root: string
@@ -34,6 +34,21 @@ afterEach(async () => {
 })
 
 describe('native audio sample selection', () => {
+  it('preserves native download sources and legacy voice cache profile hints separately', async () => {
+    const target = join(root, 'adv/assets.json')
+    const source = JSON.parse(await readFile(target, 'utf8'))
+    const download = { profile: 'local', source: { provider: 'tencent-cos', bucket: 'voice-123', region: 'ap-shanghai' } }
+    await writeFile(target, JSON.stringify({ ...source, download }))
+    const native = await readVoiceAssetManifest(root, 'adv/assets.json')
+    expect(native.download).toEqual(download)
+    expect(native.voiceCacheProfile).toBe('local')
+    await writeFile(target, JSON.stringify({ ...source, download: { profile: 'local' } }))
+    const legacy = await readVoiceAssetManifest(root, 'adv/assets.json')
+    expect(legacy.download).toBeUndefined()
+    expect(legacy.voiceCacheProfile).toBe('local')
+    expect(await readVoiceSample({ root, config }, 'first')).toMatchObject({ mimeType: 'audio/wav' })
+  })
+
   it('lists native includes without cached media and verifies cachePath, hash, and size only on reading', async () => {
     const before = await readFile(join(root, 'library.json'), 'utf8')
     await rm(join(root, 'adv/cache/sample.wav'))
