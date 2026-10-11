@@ -10,6 +10,7 @@ import prompts from 'prompts'
 import { version as advjsVersion } from '../../advjs/package.json'
 import { version } from '../package.json'
 import { renameFiles, TEMPLATES } from './config'
+import { THEME_HELPER } from './theme'
 import { copy, emptyDir, formatTargetDir, isEmpty, isValidPackageName, pkgFromUserAgent, toValidPackageName } from './utils'
 
 export async function init() {
@@ -19,7 +20,7 @@ export async function init() {
     alias: { template: 't', yes: 'y', port: 'p', help: 'h', version: 'v' },
   })
   if (argv.help) {
-    consola.log(`Usage: create-adv [directory] [--template adv|plugin|theme] [--yes]\n\n--yes, -y       Use defaults; never overwrite, install, or start automatically\n--template, -t  Select a project, plugin, or remote starter theme\n--port, -p      Dev server port when choosing to install and start\n--version, -v   Print version`)
+    consola.log(`Usage: create-adv [directory] [--template adv|plugin|theme] [--yes]\n\n--yes, -y       Use defaults for adv/plugin; never overwrite, install, or start automatically\n--template, -t  Select a project, plugin, or remote starter theme\n--port, -p      Dev server port when choosing to install and start\n--version, -v   Print version`)
     return
   }
   if (argv.version) {
@@ -51,6 +52,19 @@ export async function init() {
     template = answer.template
   }
   template ??= TEMPLATES[0]
+
+  if (template.name === 'theme') {
+    if (argv.yes)
+      throw new Error('The remote theme template does not support --yes. Run without --yes to approve downloading and running the degit helper.')
+    const { download } = await prompts({
+      type: 'confirm',
+      name: 'download',
+      message: `Download the starter from github.com/advjs/advjs-theme-starter? npm may install and run ${THEME_HELPER}.`,
+      initial: false,
+    }, { onCancel })
+    if (!download)
+      throw new Error('Operation cancelled')
+  }
 
   let targetDir = argTargetDir || `${template.prefix || ''}${template.initial}`
   if (!argTargetDir && !argv.yes) {

@@ -2,7 +2,7 @@
 
 import { mkdir, mkdtemp, readFile, realpath, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join, relative, resolve } from 'node:path'
+import { delimiter, join, relative, resolve } from 'node:path'
 import process from 'node:process'
 import { execa } from 'execa'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
@@ -121,6 +121,32 @@ describe('packed create-adv', () => {
     await run(['001', '--yes'])
     expect(JSON.parse(await readFile(join(temporaryRoot, '001/package.json'), 'utf8')).name).toBe('001')
     await expect(stat(join(temporaryRoot, '1'))).rejects.toThrow()
+  })
+
+  it('rejects unattended remote themes before mutation or helper execution', async () => {
+    const directory = join(temporaryRoot, 'remote-theme')
+    const mocks = join(temporaryRoot, 'mock-bin')
+    const invoked = join(temporaryRoot, 'helper-invoked')
+    await mkdir(mocks)
+    const mockScript = `import fs from 'node:fs'; fs.writeFileSync(${JSON.stringify(invoked)}, 'invoked'); process.exitCode = 42;`
+    await writeFile(join(mocks, 'npx.mjs'), mockScript)
+    if (process.platform === 'win32')
+      await writeFile(join(mocks, 'npx.cmd'), `@"${process.execPath}" "%~dp0\\npx.mjs" %*\r\n`)
+    else
+      await writeFile(join(mocks, 'npx'), `#!/usr/bin/env node\n${mockScript}`, { mode: 0o755 })
+    const options = {
+      cwd: temporaryRoot,
+      env: { NODE_ENV: 'production', TEST: 'false', PATH: `${mocks}${delimiter}${process.env.PATH || ''}` },
+      timeout: 30_000,
+    }
+    const args = [bin, directory, '--template', 'theme', '--yes']
+    await expect(runCommand(process.execPath, args, options)).rejects.toThrow('does not support --yes')
+    await expect(stat(directory)).rejects.toThrow()
+    await mkdir(directory)
+    await writeFile(join(directory, 'keep.txt'), 'keep')
+    await expect(runCommand(process.execPath, args, options)).rejects.toThrow('does not support --yes')
+    expect(await readFile(join(directory, 'keep.txt'), 'utf8')).toBe('keep')
+    await expect(stat(invoked)).rejects.toThrow()
   })
 
   it('supports the current directory and preserves .git', async () => {

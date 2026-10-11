@@ -14,11 +14,11 @@
 > 出于便捷，目前优先以中文文档为主。
 > 未来，我们希望可以借助 AI 自动翻译多语言文档。
 
-如果您想要对文档进行贡献，请先阅读 [文档写作指南](/contributing/writing-guide.md)。
+如果您想要对文档进行贡献，请先阅读 [文档写作指南](/contributing/writing-guide)。
 
 ## 贡献代码
 
-如果您想要贡献代码，请遵循 [开发规范](/about/dev/standard)。
+先按[环境配置](/about/env)从干净仓库启动 Demo 或 Editor，再用[贡献者调试指南](/contributing/debugging)设置断点并运行最小测试。提交代码时请遵循[开发规范](/about/dev/standard)。
 
 ## 贡献生态
 

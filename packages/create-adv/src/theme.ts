@@ -3,6 +3,8 @@ import { colors } from 'consola/utils'
 import { execa } from 'execa'
 import prompts from 'prompts'
 
+export const THEME_HELPER = 'degit@3.10.0'
+
 const starterTheme = {
   name: 'starter',
   display: `Starter`,
@@ -30,8 +32,8 @@ export async function initTheme(options: {
 
   const targetDir = options.targetDir
 
-  consola.log(`  ${colors.dim('npx')} ${colors.gray('degit')} ${colors.blue(starterTheme.repo)} ${colors.yellow(targetDir)}`)
-  await execa('npx', ['degit', starterTheme.repo, targetDir], { stdio: 'inherit' })
+  consola.log(`  ${colors.dim('npx')} ${colors.gray(`--yes ${THEME_HELPER}`)} ${colors.blue(starterTheme.repo)} ${colors.yellow(targetDir)}`)
+  await execa('npx', ['--yes', THEME_HELPER, starterTheme.repo, targetDir], { stdio: 'inherit' })
 
   consola.log('')
   consola.log(`  ${colors.bold('Check it')}:`)

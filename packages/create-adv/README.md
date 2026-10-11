@@ -40,8 +40,8 @@ pnpm run build
 Edit `adv/chapters/01-introduction.adv.md` to write your story. `build` creates
 `dist/`; `pnpm run preview` serves that build locally.
 
-`--template` (`-t`) accepts `adv`, `plugin`, or `theme`. `--yes` (`-y`) uses
-safe defaults and does not install dependencies, start a server, or overwrite a
+`--template` (`-t`) accepts `adv`, `plugin`, or `theme`. For the bundled `adv`
+and `plugin` templates, `--yes` (`-y`) uses safe defaults and does not install dependencies, start a server, or overwrite a
 nonempty directory. Explicit relative/absolute paths and `.` are supported;
 package names are normalized separately from directory names. Without a path,
 plugin/theme names receive the `advjs-plugin-` / `advjs-theme-` prefix.
@@ -53,8 +53,12 @@ pnpm install
 pnpm run build
 ```
 
-The theme option downloads the remote starter using `npx degit`, so it needs
-network access. The game and plugin templates are included in the package.
+The theme option requires interactive approval before downloading the remote
+starter using `npx --yes degit@3.10.0`. This approval allows npm to download and
+execute the pinned helper without a second npm confirmation, so network
+access is required. `--template theme --yes` is rejected before changing any
+files or running a helper. Run without `--yes` to review and approve this step.
+The game and plugin templates are included in the package.
 Use `--help` for options and `--version` to inspect the installed CLI.
 
 ## Package verification and release
