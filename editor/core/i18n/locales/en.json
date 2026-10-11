@@ -147,7 +147,14 @@
       "saved": "Draft saved",
       "loaded": "Draft loaded",
       "cleared": "Draft cleared",
-      "hasDraft": "You have a saved draft. Load it?"
+      "hasDraft": "You have a saved draft. Load it?",
+      "reloadExternal": "Reload external version",
+      "keepDraft": "Keep draft and overwrite",
+      "openProject": "Open a project before saving a recoverable character draft.",
+      "conflict": "The source changed outside the editor. Reload the external version or explicitly keep this draft.",
+      "unreadable": "This draft could not be read. The project source is unchanged.",
+      "deleted": "The character was deleted outside the editor. Cancel editing or keep the draft to recreate it.",
+      "projectChanged": "The project changed. Reopen the character in the current project."
     },
     "created": "Character created",
     "updated": "Character updated",
@@ -165,7 +172,8 @@
       "actor": "Actor",
       "aliases": "Aliases",
       "tachies": "Tachies",
-      "relationships": "Relationships"
+      "relationships": "Relationships",
+      "avatars": "Portrait expressions"
     },
     "confirmDelete": "Are you sure you want to delete character \"{name}\"? This action cannot be undone.",
     "exportAI": "Export AI Markdown",
@@ -213,6 +221,18 @@
       "hint": "Play samples manually to compare. Selection records a sample for this voice version. Generate through the authoring CLI; dialogue binding requires a separate review.",
       "provider": "Provider",
       "playbackError": "This sample could not be played. Reload it or choose another candidate."
+    },
+    "visual": {
+      "title": "Visual identity",
+      "copy": "Copy visual brief",
+      "copied": "Visual brief copied",
+      "loading": "Loading reference…",
+      "fixed": "Fixed traits",
+      "allowed": "Allowed changes",
+      "empty": "No visual identity yet. Edit the character source to add a visual version and references.",
+      "prompt": "Image prompt",
+      "source": "Edit source",
+      "attachmentHint": "Reference paths are relative to the project root. Inspect and attach the actual images when generating; copying this brief does not attach them."
     }
   },
   "context": {

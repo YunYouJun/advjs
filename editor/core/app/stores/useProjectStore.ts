@@ -16,6 +16,7 @@ import { PLATFORM_MAP } from '../constants'
 import { projectAssetPath } from '../utils/project-files'
 import { createBrowserSessionStorage } from '../workspaces/browser-session'
 import { createBrowserProjectRecovery } from '../workspaces/recovery'
+import { useProjectDrafts } from './useProjectDrafts'
 
 /**
  * global project store
@@ -45,6 +46,8 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
   const project = shallowRef<EditorProjectModel>()
   const workspace = shallowRef<ProjectWorkspace>()
   const workspaceMode = computed(() => workspace.value?.kind ?? 'browser')
+  let activationSequence = 0
+  let browserActivation: { handle: FileSystemDirectoryHandle, request: number } | undefined
   let localAdapter: LocalBridgeAdapter | undefined
   let localSession: LocalEditorSession | undefined
   const localFilePaths = computed(() => (project.value?.filePaths ?? Object.keys(project.value?.files ?? {})).toSorted())
@@ -64,6 +67,7 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
   const recovery = createBrowserProjectRecovery({
     storage: createBrowserSessionStorage(),
     open: activateBrowserWorkspace,
+    isCurrent: handle => browserActivation?.handle === handle && browserActivation.request === activationSequence,
     pick: () => window.showDirectoryPicker({ mode: 'readwrite' }),
     warn: error => consoleStore.warn('Workspace recovery failed', { error }),
   })
@@ -215,13 +219,23 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
     return nextProject
   }
 
-  async function activateWorkspace(nextWorkspace: ProjectWorkspace) {
+  async function activateWorkspace(nextWorkspace: ProjectWorkspace, recoveryId?: string, request = ++activationSequence) {
     const initial = await nextWorkspace.snapshot()
+    if (request !== activationSequence) {
+      nextWorkspace.dispose?.()
+      return
+    }
+    useProjectDrafts().capture()
     workspaceSubscription?.stop()
     workspace.value?.dispose?.()
     workspaceSubscription = undefined
     workspace.value = nextWorkspace
     const nextProject = await activateProject(initial)
+    if (request !== activationSequence || workspace.value !== nextWorkspace)
+      return
+    await useProjectDrafts().activate(nextWorkspace, recoveryId ?? initial.recoveryId ?? '')
+    if (request !== activationSequence || workspace.value !== nextWorkspace)
+      return
     workspaceSubscription = nextWorkspace.subscribe?.(change => scheduleLocalRefresh(change.path))
     void workspaceSubscription?.done.catch((error) => {
       consoleStore.error('Project workspace watcher stopped', { error: String(error) })
@@ -229,10 +243,16 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
     return nextProject
   }
 
-  async function activateBrowserWorkspace(dirHandle: FileSystemDirectoryHandle) {
+  async function activateBrowserWorkspace(dirHandle: FileSystemDirectoryHandle, request = ++activationSequence) {
+    const recoveryId = await recovery.identify(dirHandle)
+    if (request !== activationSequence)
+      return false
     const nextProject = await activateWorkspace(createBrowserProjectWorkspace(
       dirHandle as unknown as BrowserProjectDirectory,
-    ))
+    ), `browser:${recoveryId}`, request)
+    if (!nextProject)
+      return false
+    browserActivation = { handle: dirHandle, request }
     localAdapter = undefined
     localSession = undefined
     projectLocation.value = ''
@@ -242,8 +262,12 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
   }
 
   async function openBrowserProject(dirHandle: FileSystemDirectoryHandle, options: { templateId?: string } = {}) {
-    const nextProject = await activateBrowserWorkspace(dirHandle)
-    await recovery.remember(dirHandle, options.templateId)
+    recovery.cancelPending()
+    const request = ++activationSequence
+    const nextProject = await activateBrowserWorkspace(dirHandle, request)
+    if (!nextProject || request !== activationSequence)
+      return
+    await recovery.remember(dirHandle, options.templateId, () => request === activationSequence)
     return nextProject
   }
 
@@ -289,8 +313,10 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
   }
 
   async function connectLocalBridgeFromLaunch(url = window.location.href) {
+    recovery.cancelPending()
+    const request = ++activationSequence
     const session = window.advDesktop ? await window.advDesktop.session() : readLocalEditorSession(url, window.history.state)
-    if (!session)
+    if (!session || request !== activationSequence)
       return false
     if (window.advDesktop && !('root' in session && session.root))
       return false
@@ -305,7 +331,9 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
       )
     }
     const adapter = createLocalBridgeAdapter(session)
-    await activateWorkspace(createLocalProjectWorkspace(adapter))
+    const nextProject = await activateWorkspace(createLocalProjectWorkspace(adapter), undefined, request)
+    if (!nextProject)
+      return false
     localAdapter = adapter
     localSession = session
     localRecoveryFailed.value = false
@@ -356,6 +384,8 @@ export const useProjectStore = defineStore('@advjs/editor:project', () => {
   }
 
   function disconnectLocalBridge() {
+    recovery.cancelPending()
+    activationSequence++
     workspaceSubscription?.stop()
     workspaceSubscription = undefined
     workspace.value?.dispose?.()

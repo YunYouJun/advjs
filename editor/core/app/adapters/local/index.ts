@@ -1,4 +1,4 @@
-import type { AdvAgentIntegrationStatus, AdvGameConfig, AdvProjectCompileResult, AdvProjectFileMap, AdvVoiceLibrarySnapshot, AdvVoiceSelectInput } from '@advjs/types'
+import type { AdvAgentIntegrationStatus, AdvCharacterAvatar, AdvGameConfig, AdvProjectCompileResult, AdvProjectFileMap, AdvVoiceLibrarySnapshot, AdvVoiceSelectInput } from '@advjs/types'
 import type { ProjectFileChange } from '../../workspaces/project'
 import type { BrowserProjectDirectory, BrowserProjectFile } from '../browser/project'
 import { createAdvAssetCatalog } from '@advjs/assets'
@@ -72,6 +72,13 @@ export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
   const fetcher = options.fetch ?? globalThis.fetch.bind(globalThis)
   const assetBlobUrls = new Set<string>()
   const previewBlobUrls = new Set<string>()
+  let disposed = false
+  let previewGeneration = 0
+
+  function assertActive(generation?: number) {
+    if (disposed || (generation !== undefined && generation !== previewGeneration))
+      throw new DOMException('Local asset request was superseded or disposed', 'AbortError')
+  }
 
   async function request(path: string, init: RequestInit = {}) {
     const response = await fetcher(`${options.origin}${API_PREFIX}${path}`, {
@@ -104,30 +111,63 @@ export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
     return await (await request(`asset?path=${encodeURIComponent(path)}`)).blob()
   }
 
-  async function readAssetBlobUrl(path: string, preview = false) {
+  async function createAssetBlobUrl(path: string, generation?: number) {
+    assertActive(generation)
     const blob = await readAsset(path)
+    assertActive(generation)
     const url = URL.createObjectURL(blob)
     ;
-    (preview ? previewBlobUrls : assetBlobUrls).add(url)
+    (generation !== undefined ? previewBlobUrls : assetBlobUrls).add(url)
     return url
+  }
+
+  async function readAssetBlobUrl(path: string, preview = false) {
+    return await createAssetBlobUrl(path, preview ? previewGeneration : undefined)
   }
 
   async function resolvePreviewConfig(
     compilation: AdvProjectCompileResult,
     previewConfig: AdvGameConfig,
   ): Promise<AdvGameConfig> {
+    assertActive()
+    const generation = ++previewGeneration
     for (const url of previewBlobUrls)
       URL.revokeObjectURL(url)
     previewBlobUrls.clear()
+    const portraitUrls = new Map<string, Promise<string>>()
+    async function portraitUrl(src: string | undefined) {
+      assertActive(generation)
+      if (!src || /^(?:https?:|blob:|data:)/u.test(src))
+        return src
+      if (!portraitUrls.has(src))
+        portraitUrls.set(src, createAssetBlobUrl(src, generation))
+      return await portraitUrls.get(src)
+    }
+    const characters = await Promise.all((previewConfig.characters ?? []).map(async (character) => {
+      const avatar = await portraitUrl(character.avatar).catch(() => undefined)
+      const avatars = character.avatars
+        ? Object.fromEntries((await Promise.all(Object.entries(character.avatars).map(async ([status, portrait]): Promise<[string, AdvCharacterAvatar][]> => {
+            try {
+              return [[status, { ...portrait, src: await portraitUrl(portrait.src) as string }]]
+            }
+            catch {
+              // Missing optional variants must not prevent previewing the story.
+              return []
+            }
+          }))).flat())
+        : undefined
+      return { ...character, avatar, ...(avatars ? { avatars } : {}) }
+    }))
+    assertActive(generation)
     const manifest = compilation.project.assets
     if (!manifest)
-      return previewConfig
+      return { ...previewConfig, characters }
     const catalog = createAdvAssetCatalog(manifest, {
       profile: manifest.profiles.local ? 'local' : undefined,
       adapter: {
         async resolve(asset) {
           if (asset.provider === 'project')
-            return await readAssetBlobUrl(asset.location, true)
+            return await createAssetBlobUrl(asset.location, generation)
           if (/^(?:https?:|blob:|data:)/u.test(asset.location))
             return asset.location
           if (!asset.baseUrl)
@@ -137,16 +177,15 @@ export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
       },
     })
     const projectScenes = new Map(compilation.project.scenes.map(scene => [scene.id, scene]))
-    return {
-      ...previewConfig,
-      scenes: await Promise.all(previewConfig.scenes.map(async (scene) => {
-        const assetId = projectScenes.get(scene.id)?.assetId
-        if (!assetId)
-          return scene
-        const resolved = await catalog.resolve(assetId)
-        return { ...scene, src: resolved.src }
-      })),
-    }
+    const scenes = await Promise.all(previewConfig.scenes.map(async (scene) => {
+      const assetId = projectScenes.get(scene.id)?.assetId
+      if (!assetId)
+        return scene
+      const resolved = await catalog.resolve(assetId)
+      return { ...scene, src: resolved.src }
+    }))
+    assertActive(generation)
+    return { ...previewConfig, characters, scenes }
   }
 
   async function writeProjectFile(path: string, content: string) {
@@ -169,6 +208,8 @@ export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
   }
 
   function dispose() {
+    disposed = true
+    previewGeneration++
     for (const url of previewBlobUrls) URL.revokeObjectURL(url)
     previewBlobUrls.clear()
     for (const url of assetBlobUrls) URL.revokeObjectURL(url)

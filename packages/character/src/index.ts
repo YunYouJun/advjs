@@ -6,6 +6,7 @@ export * from './catalog'
 export {
   CharacterAttributesAiSchema,
   CharacterAttributesSchema,
+  CharacterAvatarsSchema,
   CharacterCustomFieldSchema,
   CharacterFrontmatterSchema,
   CharacterGalgameAttrsSchema,
@@ -13,7 +14,10 @@ export {
   CharacterProfileSchema,
   CharacterRpgAttrsSchema,
   CharacterRpgStatsSchema,
+  CharacterVisualReferenceSchema,
+  CharacterVisualSchema,
   exportCharacterForAI,
+  exportCharacterVisualForAI,
   formatCharacterFrontmatterError,
   parseCharacterMd,
   stringifyCharacterMd,
@@ -22,9 +26,12 @@ export type { CharacterFrontmatterParsed } from '@advjs/parser'
 export type {
   AdvCharacter,
   AdvCharacterAttributes,
+  AdvCharacterAvatar,
   AdvCharacterBody,
   AdvCharacterCustomField,
   AdvCharacterFrontmatter,
   AdvCharacterRelationship,
   AdvCharacterTemplate,
+  AdvCharacterVisual,
+  AdvCharacterVisualReference,
 } from '@advjs/types'

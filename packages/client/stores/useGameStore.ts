@@ -34,10 +34,14 @@ export const useGameStore = defineStore('@advjs/client:game', () => {
 
   const startChapter = shallowRef<string>()
   const startNode = shallowRef<string>()
+  /** Snapshot waiting for the standalone game page to initialize. */
+  const pendingRestore = shallowRef<AdvGameRecord>()
   const recordNamespace = shallowRef<string>()
   const controllersByNamespace = new Map<string, GameSaveController>()
 
   function setRecordNamespace(namespace?: string) {
+    if (recordNamespace.value !== (namespace || undefined))
+      pendingRestore.value = undefined
     recordNamespace.value = namespace || undefined
   }
 
@@ -81,6 +85,7 @@ export const useGameStore = defineStore('@advjs/client:game', () => {
     isLoading,
     startChapter,
     startNode,
+    pendingRestore,
     recordNamespace,
     setRecordNamespace,
     save,

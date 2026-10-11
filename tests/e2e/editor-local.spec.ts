@@ -149,6 +149,8 @@ test.afterAll(async () => {
 
 test('loads, live-refreshes, resolves conflicts, and saves the source project', async ({ browserName, page }) => {
   test.skip(browserName !== 'chromium', 'The launch support matrix targets Chromium stable')
+  // This scenario asserts English UI; do not depend on the browser's locale.
+  await page.addInitScript(() => localStorage.setItem('advjs:editor:locale', 'en'))
   const launchUrl = new URL(ready.url)
   const token = new URLSearchParams(launchUrl.hash.slice(1)).get('advjs-token')!
   const thirdPartyRequests: string[] = []

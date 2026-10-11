@@ -4,10 +4,11 @@ import type { AdvConfig } from '@advjs/types'
 import type { VNodeChild } from 'vue'
 
 import { useAppStore } from '@advjs/client'
-import { computed, shallowRef } from 'vue'
+import { computed, onBeforeUnmount, provide, shallowRef, watch } from 'vue'
 import { useBeforeUnload } from '../../composables'
 import { useAdvContext } from '../../composables/useAdvContext'
 import { useAdvMotionPreference } from '../../composables/useAdvMotionPreference'
+import { injectionAdvPlayer } from '../../constants'
 
 defineProps<{
   frontmatter?: AdvConfig
@@ -20,6 +21,7 @@ defineSlots<{
 }>()
 
 const { $adv } = useAdvContext()
+provide(injectionAdvPlayer, true)
 
 const curNode = computed(() => $adv.store.current)
 const showsDialog = computed(() => (
@@ -31,6 +33,11 @@ if (!import.meta.env.DEV && typeof __DEV__ !== 'undefined' && !__DEV__)
   useBeforeUnload()
 
 const app = useAppStore()
+watch(() => app.menus.settings || app.showHistory || app.showSaveMenu || app.showLoadMenu, (paused) => {
+  $adv.$auto.paused.value = paused
+}, { immediate: true, flush: 'sync' })
+onBeforeUnmount(() => $adv.$auto.stop())
+
 const choiceMotion = useAdvMotionPreference()
 const controlsHeight = shallowRef(0)
 const showToolbar = computed(() => app.showUi && !app.menus.settings && !app.showHistory && !app.showSaveMenu && !app.showLoadMenu)

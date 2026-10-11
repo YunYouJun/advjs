@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import type { AdvCharacter } from '@advjs/types'
+import { resolveCharacterAvatar } from '@advjs/core'
 import { computed } from 'vue'
 import CharacterAvatar from './CharacterAvatar.vue'
+import CharacterAvatarPanel from './CharacterAvatarPanel.vue'
+import CharacterVisualPanel from './CharacterVisualPanel.vue'
 import CharacterVoicePanel from './CharacterVoicePanel.vue'
 import '../../styles/resource-panel.scss'
 
@@ -14,7 +17,7 @@ const descriptions = computed(() => (['personality', 'appearance', 'background',
 <template>
   <div class="ae-resource-panel character-detail">
     <div class="ae-resource-row">
-      <CharacterAvatar :src="character.avatar" />
+      <CharacterAvatar :src="resolveCharacterAvatar(character).src" />
       <div class="ae-resource-meta">
         <h2 class="ae-resource-name">
           {{ character.name }}
@@ -34,6 +37,12 @@ const descriptions = computed(() => (['personality', 'appearance', 'background',
       <AGUIIconButton icon="i-ri-delete-bin-line" :title="$t('characters.detail.delete')" @click="$emit('delete', character)" />
     </div>
     <CharacterVoicePanel :character="character" />
+    <AGUIDetails :title="$t('characters.visual.title')" open>
+      <CharacterVisualPanel :character="character" />
+    </AGUIDetails>
+    <AGUIDetails v-if="Object.keys(character.avatars ?? {}).length" :title="$t('characters.detail.avatars')" open>
+      <CharacterAvatarPanel :character="character" />
+    </AGUIDetails>
     <AGUIDetails :title="$t('characters.form.basicInfo')" open>
       <AGUIProperty v-if="character.tags?.length" :label="$t('characters.form.tags')">
         {{ character.tags.join(' · ') }}

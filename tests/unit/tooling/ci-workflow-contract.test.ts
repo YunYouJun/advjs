@@ -1,6 +1,6 @@
 // @vitest-environment node
 
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { parse } from 'yaml'
@@ -71,6 +71,28 @@ function expectCurrentActions(job: WorkflowJob) {
 }
 
 describe('github Actions launch baseline', () => {
+  it('partitions browser specs without duplicate or missing coverage', () => {
+    const ci = readWorkflow('ci')
+    const generalCommand = runCommands(ci.jobs.e2e).find(command => command.startsWith('pnpm exec playwright test '))!
+    const editorCommand = runCommands(ci.jobs['editor-e2e']).find(command => command.startsWith('pnpm exec playwright test '))!
+    const generalFilter = new RegExp(generalCommand.match(/test '([^']+)'/u)![1])
+    const editorFiles = editorCommand.split(' ').filter(argument => argument.endsWith('.spec.ts'))
+    const specFiles = readdirSync(resolve(root, 'tests/e2e'), { recursive: true })
+      .map(String)
+      .filter(file => /\.spec\.[cm]?[jt]sx?$/u.test(file))
+      .map(file => `tests/e2e/${file.replaceAll('\\', '/')}`)
+
+    expect(editorFiles).toHaveLength(3)
+    for (const file of editorFiles)
+      expect(specFiles).toContain(file)
+    // New suites stay in the catch-all gate unless explicitly transferred.
+    for (const file of [...specFiles, 'tests/e2e/editor-future.spec.ts', 'tests/e2e/player-future.spec.ts']) {
+      const editorOwnsFile = editorFiles.includes(file)
+      expect(generalFilter.test(`/workspace/${file}`), file).toBe(!editorOwnsFile)
+      expect(generalFilter.test(`C:\\workspace\\${file.replaceAll('/', '\\')}`), file).toBe(!editorOwnsFile)
+    }
+  })
+
   it('runs dev and main validation through stable, pnpm-only jobs', () => {
     const workflows = ['ci', 'demo', 'docs'].map(readWorkflow)
     const ci = workflows[0]
@@ -134,11 +156,11 @@ describe('github Actions launch baseline', () => {
     ]))
     expect(runCommands(ci.jobs.e2e)).toEqual(expect.arrayContaining([
       'pnpm exec playwright install --with-deps --only-shell chromium',
-      'pnpm exec playwright test --project=chromium',
+      'pnpm exec playwright test \'^(?!.*[/\\\\]editor-(local|security|character-migration)\\.spec\\.ts$)\' --project=chromium',
     ]))
-    expectCommandBefore(ci.jobs.e2e, 'pnpm editor:build', 'pnpm exec playwright test --project=chromium')
+    expectCommandBefore(ci.jobs.e2e, 'pnpm editor:build', 'pnpm exec playwright test \'^(?!.*[/\\\\]editor-(local|security|character-migration)\\.spec\\.ts$)\' --project=chromium')
     expect(runCommands(ci.jobs['editor-e2e'])).toContain('pnpm exec playwright install --with-deps --only-shell chromium')
-    expectCommandBefore(ci.jobs['editor-e2e'], 'pnpm editor:build', 'pnpm exec playwright test tests/e2e/editor-local.spec.ts tests/e2e/editor-security.spec.ts --project=chromium')
+    expectCommandBefore(ci.jobs['editor-e2e'], 'pnpm editor:build', 'pnpm exec playwright test tests/e2e/editor-local.spec.ts tests/e2e/editor-security.spec.ts tests/e2e/editor-character-migration.spec.ts --project=chromium')
     expect(ci.jobs['launch-journey']['continue-on-error']).toBeUndefined()
     expect(ci.jobs['launch-journey']['runs-on']).toBe('ubuntu-latest')
     expect(ci.jobs['launch-journey']['timeout-minutes']).toBe(20)

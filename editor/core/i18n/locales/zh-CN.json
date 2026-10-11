@@ -147,7 +147,14 @@
       "saved": "草稿已保存",
       "loaded": "草稿已加载",
       "cleared": "草稿已清除",
-      "hasDraft": "您有一份已保存的草稿。加载它？"
+      "hasDraft": "您有一份已保存的草稿。加载它？",
+      "reloadExternal": "载入外部版本",
+      "keepDraft": "保留草稿并覆盖",
+      "openProject": "请先打开项目，再保存可恢复的人物草稿。",
+      "conflict": "源文件已在编辑器外修改。请载入外部版本，或明确选择保留此草稿。",
+      "unreadable": "无法读取此草稿，项目源文件未改变。",
+      "deleted": "角色已在外部删除；可以取消编辑，或保留草稿重新创建。",
+      "projectChanged": "项目已切换，请在当前项目中重新打开角色。"
     },
     "created": "角色已创建",
     "updated": "角色已更新",
@@ -165,7 +172,8 @@
       "actor": "演员",
       "aliases": "别名",
       "tachies": "立绘",
-      "relationships": "关系"
+      "relationships": "关系",
+      "avatars": "神态头像"
     },
     "confirmDelete": "确定要删除角色「{name}」吗？此操作不可撤销。",
     "exportAI": "导出 AI Markdown",
@@ -213,6 +221,18 @@
       "hint": "请手动播放比较。选用记录此音色版本的试听样本；生成使用作者 CLI，剧情绑定另行审核。",
       "provider": "供应商",
       "playbackError": "此短句无法播放，请重新载入或选择其他候选。"
+    },
+    "visual": {
+      "title": "视觉设定",
+      "copy": "复制视觉约束",
+      "copied": "视觉约束已复制",
+      "loading": "正在加载参考图…",
+      "fixed": "固定特征",
+      "allowed": "允许变化",
+      "empty": "尚无视觉设定。可在人物卡源码中添加 visual 版本与参考图。",
+      "prompt": "图像提示词",
+      "source": "编辑源码",
+      "attachmentHint": "参考图路径相对于项目根目录。生成前需打开并实际附上图像；复制视觉约束不会自动附图。"
     }
   },
   "context": {

@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import type { AdvGameSaveRecord, AdvGameSaveSlot } from '@advjs/client'
-import { createManualSaveSlot, screenshotGameThumb, useAdvContext, useAppStore, useGameStore } from '@advjs/client'
+import { createManualSaveSlot, injectionAdvPlayer, screenshotGameThumb, useAdvContext, useAppStore, useGameStore } from '@advjs/client'
 import dayjs from 'dayjs'
-import { computed, onMounted, shallowRef } from 'vue'
+import { computed, inject, onMounted, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -22,6 +22,7 @@ const { $adv } = useAdvContext()
 const app = useAppStore()
 
 const game = useGameStore()
+const inPlayer = inject(injectionAdvPlayer, false)
 const { t } = useI18n()
 
 const record = shallowRef<AdvGameSaveRecord>()
@@ -122,13 +123,33 @@ const router = useRouter()
 async function loadFromCard() {
   if (!record.value)
     return
-  $adv.runtime.restore(record.value.snapshot)
+  const snapshot = record.value.snapshot
+  if (inPlayer || route.path === '/game') {
+    const pending = game.pendingRestore
+    $adv.runtime.restore(snapshot)
+    // A successful retry supersedes the failed page load, but not a newer request.
+    if (game.pendingRestore === pending)
+      game.pendingRestore = undefined
+    app.showLoadMenu = false
+    return
+  }
 
-  // 关闭加载菜单
-  app.toggleShowLoadMenu()
-
-  if (route.path !== '/game')
-    await router.push('/game')
+  // The destination installs its program before consuming the saved state.
+  game.pendingRestore = snapshot
+  try {
+    const failure = await router.push('/game')
+    if (failure) {
+      if (game.pendingRestore === snapshot)
+        game.pendingRestore = undefined
+      return
+    }
+    app.showLoadMenu = false
+  }
+  catch (error) {
+    if (game.pendingRestore === snapshot)
+      game.pendingRestore = undefined
+    throw error
+  }
 }
 
 async function onCardClick() {

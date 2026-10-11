@@ -9,6 +9,18 @@ ADV.JS 把“创作期托管存储”和“生产游戏公共发布”分成两�
 
 不要把 Studio 私有原件直接当 CDN 成品，也不要把公共游戏目录作为浏览器可写的用户网盘。
 
+## 本地作者资源拉取
+
+`adv assets pull` 按 [资源目录](./catalog#从远端还原本地缓存) 的精确条目下载，不列举或同步整个桶。`download.source` 只保存 `tencent-cos`、`bucket`、`region`，完整对象键来自基础条目或命名 variant。它与 `release` 分开，避免把私有创作目录误当作公开发行目录。
+
+缺失资源通过可选的 `@advjs/plugin-cos` 生成 300 秒的签名下载地址。凭据只在 Node 环境变量中提供：`TENCENT_COS_SECRET_ID`、`TENCENT_COS_SECRET_KEY`、可选的 `TENCENT_COS_TOKEN`（兼容 `ADV_COS_*`）。使用有该对象前缀读取权限的子账号或 STS；浏览器、清单与 Git 不保存密钥。
+
+如果本机使用独立的加密凭据工具，可设置 `ADV_COS_SIGNER=/absolute/path/to/signer.mjs`。插件通过 Node 执行 `sign-url --bucket ... --region ... --key ... --expires 300`，要求 stdout 返回 `{ "success": true, "url": "https://..." }`。只在本机环境配置脚本，不从项目清单读取可执行命令。临时 URL 只留在内存中，插件会净化签名器错误，CLI 不输出签名地址。引擎不依赖特定 AI skill 或其安装路径。
+
+已有缓存通过字节数与 SHA-256 校验后直接复用，不需要 COS 连接。损坏缓存会报错并保留。原图位于作者缓存、预览位于运行或编辑路径；构建、上传和发布继续沿用各自流程。
+
+旧的 `adv pull`、`adv push`、`adv sync` 仍兼容已有项目，它们是整目录同步，不具备这套清单选择、变体与内容校验语义。需要按资源清单还原缓存时使用 `adv assets pull`。
+
 ## 公共地址与对象键
 
 ADV.JS 官方素材域名为：

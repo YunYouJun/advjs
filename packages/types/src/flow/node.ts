@@ -90,6 +90,8 @@ export interface AdvDialogNode {
    * 对话角色 ID
    */
   speakerId?: string
+  /** Explicit character presentation state, including portrait expressions. */
+  status?: string
 }
 
 export interface AdvDialoguesNode extends AdvBaseNode {

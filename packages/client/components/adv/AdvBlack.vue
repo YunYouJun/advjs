@@ -8,7 +8,16 @@ const props = defineProps<{
 }>()
 
 const { $adv } = useAdvContext()
-const displaySentences = shallowRef<string[]>([])
+interface Sentence {
+  text: string
+  started: boolean
+  run: number
+}
+
+const displaySentences = shallowRef<Sentence[]>([])
+const revealAll = shallowRef(false)
+const completed = new Set<number>()
+let run = 0
 const printed = shallowRef(false)
 const typeInterval = 50
 const timers = new Set<ReturnType<typeof setTimeout>>()
@@ -24,16 +33,35 @@ function clearTimers() {
   timers.clear()
 }
 
+function finishSentence(index: number, sentenceRun: number) {
+  if (sentenceRun !== run || printed.value)
+    return
+  completed.add(index)
+  if (completed.size === displaySentences.value.length) {
+    printed.value = true
+    $adv.$auto.notifyPrintDone()
+  }
+}
+
 function playSentencesAnimation() {
   clearTimers()
+  run++
+  completed.clear()
+  printed.value = false
+  revealAll.value = false
   const values = sentences()
-  displaySentences.value = Array.from({ length: values.length }).fill('') as string[]
+  displaySentences.value = values.map(text => ({ text, started: false, run }))
+  if (!values.length) {
+    printed.value = true
+    $adv.$auto.notifyPrintDone()
+    return
+  }
   let beforeLength = 0
   values.forEach((value, index) => {
     const timer = setTimeout(() => {
-      const next = [...displaySentences.value]
-      next[index] = value
-      displaySentences.value = next
+      displaySentences.value = displaySentences.value.map((sentence, sentenceIndex) => (
+        sentenceIndex === index ? { ...sentence, started: true } : sentence
+      ))
       timers.delete(timer)
     }, beforeLength * typeInterval)
     timers.add(timer)
@@ -42,18 +70,22 @@ function playSentencesAnimation() {
 }
 
 function next() {
-  if (!printed.value)
-    printed.value = true
-  else
+  if (!printed.value) {
+    clearTimers()
+    revealAll.value = true
+    displaySentences.value = displaySentences.value.map(sentence => ({ ...sentence, started: true }))
+  }
+  else {
     $adv.runtime.next()
+  }
 }
 
 onMounted(playSentencesAnimation)
-onBeforeUnmount(clearTimers)
-watch(() => props.node.id, () => {
-  printed.value = false
-  playSentencesAnimation()
+onBeforeUnmount(() => {
+  run++
+  clearTimers()
 })
+watch(() => props.node, playSentencesAnimation)
 </script>
 
 <template>
@@ -65,15 +97,17 @@ watch(() => props.node.id, () => {
     @click="next"
   >
     <div class="words-wrapper relative" text="left">
-      <PrintWords
-        v-for="(item, index) in displaySentences"
-        :key="index"
-        v-model:printed="printed"
-        :type-interval="typeInterval"
-        m="2"
-        :words="item"
-        @end="$adv.$auto.notifyPrintDone()"
-      />
+      <template v-for="(item, index) in displaySentences" :key="`${item.run}:${index}`">
+        <PrintWords
+          v-if="item.started"
+          :printed="revealAll"
+          :type-interval="typeInterval"
+          m="2"
+          :words="item.text"
+          @end="finishSentence(index, item.run)"
+        />
+        <div v-else class="print-words" m="2" />
+      </template>
     </div>
   </div>
 </template>

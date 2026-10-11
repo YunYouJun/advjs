@@ -13,6 +13,8 @@ export interface AdvPluginOptions extends AdvEntryOptions {
   markdown?: ArgumentsType<typeof Markdown>[0]
   components?: ArgumentsType<typeof Components>[0]
   unocss?: UnoCSSConfig
+  /** Enable locale resource compilation (default: true). Disable when the host already provides it. */
+  i18n?: boolean
   // remoteAssets?: ArgumentsType<typeof RemoteAssets>[0]
   // serverRef?: ArgumentsType<typeof ServerRef>[0]
 }

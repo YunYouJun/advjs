@@ -2089,10 +2089,16 @@ importers:
       advjs:
         specifier: workspace:0.1.4
         version: link:../advjs
+      pathe:
+        specifier: catalog:utils
+        version: 2.0.3
       zod:
         specifier: 'catalog:'
         version: 4.4.3
     devDependencies:
+      '@advjs/types':
+        specifier: workspace:0.1.4
+        version: link:../types
       unbuild:
         specifier: catalog:build
         version: 3.6.1(sass@1.105.0)(typescript@5.9.3)(vue-tsc@3.3.11(typescript@5.9.3))(vue@3.5.43(typescript@5.9.3))

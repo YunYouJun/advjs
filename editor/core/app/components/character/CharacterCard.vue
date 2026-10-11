@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { AdvCharacter } from '@advjs/types'
+import { resolveCharacterAvatar } from '@advjs/core'
 import CharacterAvatar from './CharacterAvatar.vue'
 import '../../styles/resource-panel.scss'
 
@@ -20,7 +21,7 @@ defineEmits<{ click: [character: AdvCharacter] }>()
     :aria-pressed="selected"
     @click="$emit('click', character)"
   >
-    <CharacterAvatar :src="character.avatar" :mode="mode" />
+    <CharacterAvatar :src="resolveCharacterAvatar(character).src" :mode="mode" />
     <span class="ae-resource-meta">
       <span class="ae-resource-name">{{ character.name }}</span>
       <span class="ae-resource-caption">{{ character.faction || character.id }}</span>

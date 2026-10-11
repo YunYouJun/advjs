@@ -1,16 +1,16 @@
 import { useStorage } from '@vueuse/core'
+import { resolveEditorLocale } from '../utils/editor-locale'
 
 export function useEditorLocale() {
   const { locale, setLocale, locales } = useI18n()
-  const savedLocale = useStorage<'en' | 'zh-CN'>('advjs:editor:locale', 'en')
+  const savedLocale = useStorage<'en' | 'zh-CN' | null>('advjs:editor:locale', null)
   const onboarded = useStorage('advjs:editor:onboarded', false)
 
   async function initLocale() {
-    if (!import.meta.client)
+    if (typeof window === 'undefined')
       return
-    if (savedLocale.value !== 'en' && savedLocale.value !== 'zh-CN')
-      savedLocale.value = 'en'
     const host = window.advDesktop
+    savedLocale.value = resolveEditorLocale(savedLocale.value, host ? [] : navigator.languages?.length ? navigator.languages : [navigator.language])
     if (host) {
       const preferences = await host.preferences()
       if (preferences.locale)

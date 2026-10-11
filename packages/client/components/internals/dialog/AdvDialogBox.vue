@@ -3,6 +3,7 @@ import type { RuntimeNode } from '@advjs/types'
 import { useAdvContext, useSettingsStore } from '@advjs/client'
 import { computed, shallowRef, watch } from 'vue'
 import { useAdvDialogBox } from '../../../composables/useAdvDialogBox'
+import AdvAvatarImage from '../../adv/AdvAvatarImage.vue'
 
 const props = defineProps<{
   node: RuntimeNode
@@ -16,6 +17,8 @@ const {
   next,
   curCharacter,
   characterAvatar,
+  characterAvatarState,
+  characterDefaultAvatar,
   printed,
   animation,
   transitionFlag,
@@ -24,8 +27,14 @@ const {
   curDialog,
 } = useAdvDialogBox()
 
+const printRun = shallowRef(0)
+watch(() => props.node, () => {
+  printed.value = false
+  printRun.value++
+})
+
 const avatarFailed = shallowRef(false)
-watch(characterAvatar, () => {
+watch([characterAvatar, characterDefaultAvatar], () => {
   avatarFailed.value = false
 })
 const showAvatar = computed(() => !!($adv.config.value.showCharacterAvatar && characterAvatar.value && !avatarFailed.value))
@@ -41,12 +50,14 @@ const curWords = computed(() => {
   <div
     class="adv-dialog-box adv-dialog-reading cursor-pointer select-none"
     :class="[fontSizeClass, { 'has-avatar': showAvatar }]"
+    :data-character-id="curCharacter?.id"
+    :data-character-state="curCharacter ? characterAvatarState : undefined"
     @click="next"
   >
     <div v-if="curCharacter" class="dialog-name-wrap">
       <template v-if="showAvatar">
         <div class="dialog-avatar-wrap">
-          <img class="dialog-avatar rounded shadow" :src="characterAvatar" alt="" @error="avatarFailed = true">
+          <AdvAvatarImage class="dialog-avatar rounded shadow" :src="characterAvatar" :fallback-src="characterDefaultAvatar" alt="" @exhausted="avatarFailed = true" />
           <span class="dialog-name">{{ curCharacter.name }}</span>
         </div>
       </template>
@@ -60,8 +71,10 @@ const curWords = computed(() => {
       class="dialog-content text-left"
     >
       <PrintWords
+        :key="printRun"
         v-model:printed="printed"
         :animation="animation"
+        :mode="settings.storage.text.curDisplayMode"
         :speed="settings.storage.text.curSpeed"
         :words="curWords"
         @end="$adv.$auto.notifyPrintDone()"

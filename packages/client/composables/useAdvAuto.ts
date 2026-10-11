@@ -1,6 +1,6 @@
 import type { AdvContext } from '../types'
 import { useStorage } from '@vueuse/core'
-import { shallowRef, watch } from 'vue'
+import { getCurrentScope, onScopeDispose, shallowRef, watch } from 'vue'
 
 /**
  * Auto-play and skip mode controller.
@@ -13,13 +13,15 @@ import { shallowRef, watch } from 'vue'
 export function useAdvAuto($adv: AdvContext) {
   const enabled = shallowRef(false)
   const skipEnabled = shallowRef(false)
+  const paused = shallowRef(false)
   const delay = useStorage('advjs-auto-delay', 2000)
   const skipInterval = useStorage('advjs-skip-interval', 80)
 
   let timer: ReturnType<typeof setTimeout> | null = null
+  let printDone = false
 
   function clearTimer() {
-    if (timer) {
+    if (timer !== null) {
       clearTimeout(timer)
       timer = null
     }
@@ -29,38 +31,65 @@ export function useAdvAuto($adv: AdvContext) {
     const node = $adv.store.current
     if (!node)
       return true
+    const status = $adv.store.state?.status
     return node.kind === 'choices' || node.kind === 'end'
+      || (status !== undefined && status !== 'playing')
   }
 
-  /**
-   * Called by AdvDialogBox when the PrintWords typewriter completes its current run.
-   * Drives auto-advance after the configured delay.
-   */
-  function notifyPrintDone() {
+  function scheduleAdvance() {
     clearTimer()
-    if (shouldHalt())
-      return
-    if (skipEnabled.value) {
-      timer = setTimeout(() => $adv.runtime.next(), skipInterval.value)
+    if (shouldHalt()) {
+      enabled.value = false
+      skipEnabled.value = false
       return
     }
-    if (!enabled.value)
+    if (paused.value)
       return
-    timer = setTimeout(() => $adv.runtime.next(), delay.value)
+    if (skipEnabled.value) {
+      timer = setTimeout(advance, skipInterval.value)
+      return
+    }
+    if (!enabled.value || !printDone)
+      return
+    timer = setTimeout(advance, delay.value)
+  }
+
+  async function advance() {
+    timer = null
+    if (paused.value || shouldHalt() || (!enabled.value && !skipEnabled.value))
+      return
+    try {
+      await $adv.runtime.next()
+    }
+    catch (error) {
+      stop()
+      console.warn('[advjs] Automatic playback stopped', error)
+    }
+  }
+
+  function stop() {
+    enabled.value = false
+    skipEnabled.value = false
+    clearTimer()
+  }
+
+  /** Remember completion even when auto-play is enabled after the line finishes. */
+  function notifyPrintDone() {
+    printDone = true
+    scheduleAdvance()
   }
 
   // Skip mode keeps the flow running even if a node has no typewriter
   // (scene transitions, narration without PrintWords, etc.).
   watch(() => $adv.store.current, () => {
-    clearTimer()
-    if (skipEnabled.value && !shouldHalt())
-      timer = setTimeout(() => $adv.runtime.next(), skipInterval.value)
-  })
+    printDone = false
+    scheduleAdvance()
+  }, { flush: 'sync' })
 
-  watch([enabled, skipEnabled], ([e, s]) => {
-    if (!e && !s)
-      clearTimer()
-  })
+  watch([enabled, skipEnabled, paused], scheduleAdvance, { flush: 'sync' })
+  watch(() => $adv.store.state?.status, scheduleAdvance, { flush: 'sync' })
+  if (getCurrentScope())
+    onScopeDispose(clearTimer)
 
   function toggle() {
     enabled.value = !enabled.value
@@ -77,6 +106,8 @@ export function useAdvAuto($adv: AdvContext) {
   return {
     enabled,
     skipEnabled,
+    paused,
+    stop,
     delay,
     skipInterval,
     toggle,
