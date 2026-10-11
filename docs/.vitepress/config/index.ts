@@ -440,6 +440,10 @@ const ContributingSidebar: DefaultTheme.SidebarItem[] = [
         link: '/contributing/',
       },
       {
+        text: '贡献者调试',
+        link: '/contributing/debugging',
+      },
+      {
         text: '文档写作指南',
         link: '/contributing/writing-guide',
       },
