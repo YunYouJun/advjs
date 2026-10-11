@@ -70,31 +70,32 @@ const character = {
 
 ## BGM 交叉淡化
 
-脚本通过音乐库中的稳定名称选择曲目：
+脚本通过原生 Asset Catalog 中的稳定 ID 选择曲目：
 
 ```yaml
 type: bgm
-name: star-revelation
+action: set
+asset: bgm/star-revelation
 loop: true
 fade:
   in: 1000
   out: 700
 ```
 
-切换曲目时旧音轨按 `out` 淡出，新音轨同时按 `in` 淡入。当前兼容格式把音乐库名称保存为舞台中的 BGM 标识；它不是目标 Audio Asset ID。
+切换曲目时旧音轨按 `out` 淡出，新音轨同时按 `in` 淡入。目标状态保存为 `stage.audio.bgm`；资源必须声明 `type: audio`、`kind: bgm`。
 
-停止当前曲目时不需要同时提供 `name`：
+停止当前曲目时不需要提供资产：
 
 ```yaml
 type: bgm
-stop: true
+action: clear
 fade:
   out: 700
 ```
 
-`stop: true` 只淡出当前曲目。循环音频应统一响度、避免削波，并在导出前检查首尾波形与听感接缝。
+`action: clear` 淡出当前逻辑主轨。循环音频应统一响度、避免削波，并在导出前检查首尾波形与听感接缝。
 
-当前兼容实现会保留已进入退场阶段的物理音轨，直到各自原定淡化结束；后续切歌或停止当前曲目不会重启更早的退场。交叉淡化期间静音或取消静音会同步作用于所有参与轨道，但不会改写淡入淡出的音量包络。`back()`、`forward()` 和 `restore()` 重新选择存档中的 BGM 时固定使用 120ms 淡入/淡出，已经排队的旧回调不能卸载恢复后的曲目。
+统一 AudioEngine 保留退场物理音轨至淡化结束，并用 generation 校验拒绝过期回调。静音作用于混音总线，不重写淡化包络。`back()`、`forward()` 和 `restore()` 恢复 BGM 与四个环境音槽位，取消 Voice 和 SFX，不重播瞬态音频。Mixer、对白绑定及旧项目迁移见[音频创作与 AI 配音](../audio)。
 
 ## CG 与跨周目画廊
 
@@ -157,7 +158,7 @@ transition: fade
 运行当前演出与 BGM 回归测试：
 
 ```bash
-pnpm vitest run tests/unit/client/client-bgm.test.ts tests/unit/client/client-runtime-presentation.test.ts
+pnpm vitest run tests/unit/audio/audio-engine.test.ts tests/unit/audio/client-audio-host.test.ts tests/unit/client/client-runtime-presentation.test.ts
 ```
 
 手动试玩时至少验证 A→B 交叉淡化、A→B→C 快速切换、A→B→A 且最初 A 的旧回调延迟完成、旧轨尚未淡完时停止当前曲目、交叉淡化中静音再取消静音，以及交叉淡化中执行回退和读档。失败表现包括旧轨提前中断、退场重新计时、重新选中的 A 被旧回调停止、取消静音后只有新轨有声，或读档后的曲目被旧淡化回调停止。

@@ -43,6 +43,11 @@ function choose(choice: RuntimeChoice) {
 
 <style lang="scss" scoped>
 .adv-choice {
+  box-sizing: border-box;
+  padding-bottom: calc(
+    var(--adv-dialog-controls-height, 32px) + var(--adv-control-bottom, 8px) + 8px / var(--adv-screen-scale, 1)
+  );
+
   &.adv-choice-enter-active {
     transition: opacity 160ms ease-out;
   }
@@ -85,9 +90,11 @@ function choose(choice: RuntimeChoice) {
   display: flex;
   z-index: var(--adv-options-z, 5);
   width: 100%;
+  max-height: 100%;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  overflow-y: auto;
 }
 
 .adv-option-item {
@@ -95,6 +102,7 @@ function choose(choice: RuntimeChoice) {
 }
 
 .adv-option {
+  flex-shrink: 0;
   width: 50%;
   margin: 1rem;
   border: 1px solid var(--adv-choice-border, white);
@@ -113,6 +121,26 @@ function choose(choice: RuntimeChoice) {
   &:hover {
     background-color: var(--adv-choice-hover-bg, rgb(59 130 246 / 80%));
     @apply shadow-lg;
+  }
+}
+
+@container adv-viewport (max-width: 600px) {
+  .adv-options-container {
+    width: calc(100% - 16px / var(--adv-screen-scale, 1));
+    gap: calc(4px / var(--adv-screen-scale, 1));
+    scrollbar-width: thin;
+    scrollbar-color: var(--adv-choice-border, white) transparent;
+  }
+
+  .adv-option {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: calc(44px / var(--adv-screen-scale, 1));
+    margin: 0;
+    padding: calc(8px / var(--adv-screen-scale, 1));
+    font-size: calc(14px / var(--adv-screen-scale, 1));
+    line-height: 1.4;
+    overflow-wrap: anywhere;
   }
 }
 </style>

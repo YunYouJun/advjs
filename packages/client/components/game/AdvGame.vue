@@ -48,6 +48,7 @@ const showToolbar = computed(() => app.showUi && !app.menus.settings && !app.sho
     text="white"
     :config="$adv.config?.value"
     :theme="$adv.themeConfig.value"
+    :content-style="{ '--adv-dialog-controls-height': `${controlsHeight}px` }"
     @pointerdown.capture="$adv.$audio.unlock()"
     @keydown.capture="$adv.$audio.unlock()"
   >
