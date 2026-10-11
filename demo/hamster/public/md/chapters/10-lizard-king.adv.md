@@ -18,7 +18,8 @@ transition:
 
 ```yaml
 type: bgm
-name: prehistoric
+action: set
+asset: bgm/prehistoric
 loop: true
 fade:
   in: 800

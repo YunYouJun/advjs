@@ -1,7 +1,8 @@
 ---
 id: mitsuha
 name: 宮水三葉
-avatar: /img/your-name/characters/mitsuha.png
+avatar: /flow-placeholders/mitsuha.svg
+originalArtworkUri: /img/your-name/characters/mitsuha.png
 cv: 上白石萌音
 aliases:
   - Mitsuha Miyamizu
@@ -12,7 +13,7 @@ tags:
 faction: 糸守町
 tachies:
   default:
-    src: /img/your-name/characters/mitsuha.png
+    src: /flow-placeholders/mitsuha.svg
     class:
       - h-full
 relationships:

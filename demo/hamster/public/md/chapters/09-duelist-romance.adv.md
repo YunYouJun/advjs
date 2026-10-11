@@ -18,7 +18,8 @@ transition:
 
 ```yaml
 type: bgm
-name: world-restart
+action: set
+asset: bgm/world-restart
 loop: true
 fade:
   in: 1000

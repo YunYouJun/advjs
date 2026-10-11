@@ -1,0 +1,9 @@
+{
+  "id": "demo-flow",
+  "root": "adv",
+  "format": "flow",
+  "theme": "default",
+  "features": {
+    "babylon": false
+  }
+}

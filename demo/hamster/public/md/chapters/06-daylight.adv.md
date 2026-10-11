@@ -18,7 +18,8 @@ transition:
 
 ```yaml
 type: bgm
-name: summer-day
+action: set
+asset: bgm/summer-day
 loop: true
 fade:
   in: 1000

@@ -18,7 +18,8 @@ transition:
 
 ```yaml
 type: bgm
-name: civilization-rise
+action: set
+asset: bgm/civilization-rise
 loop: true
 fade:
   in: 900

@@ -1,0 +1,14 @@
+{
+  "title": "Your Name",
+  "locale": "en-US",
+  "entryChapterId": "intro",
+  "chapters": [
+    {
+      "id": "intro",
+      "sources": [
+        "chapters/intro.chapter.json"
+      ]
+    }
+  ],
+  "description": "Flow protocol demo. Original authored text is preserved; artwork and audio use local original placeholders."
+}

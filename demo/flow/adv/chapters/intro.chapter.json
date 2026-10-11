@@ -1,0 +1,264 @@
+{
+  "schemaVersion": 1,
+  "id": "intro",
+  "title": "Introduction",
+  "description": "Welcome to the world of AdvJS!",
+  "startNodeId": "audio-start",
+  "authoring": {
+    "legacySource": "1.chapter.ts",
+    "originalStartNode": "node_01",
+    "originalTitle": "Your Name: A Tale of Fate and Love",
+    "originalEdges": [
+      {
+        "id": "edge_00",
+        "source": "background_01",
+        "target": "tachie_01"
+      },
+      {
+        "id": "edge_01",
+        "source": "tachie_01",
+        "target": "node_01"
+      },
+      {
+        "id": "edge_02",
+        "source": "node_01",
+        "target": "node_02"
+      },
+      {
+        "id": "edge_03",
+        "source": "tachie_02",
+        "target": "background_02"
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "id": "audio-start",
+      "type": "audio",
+      "operations": [
+        {
+          "type": "bgm",
+          "action": "set",
+          "asset": "audio_019d137e-7abc-7000-8000-000000000001",
+          "gain": 0.12,
+          "loop": true
+        },
+        {
+          "type": "ambience",
+          "action": "set",
+          "slot": "bed",
+          "asset": "audio_019d137e-7abc-7000-8000-000000000002",
+          "gain": 0.08,
+          "loop": true
+        }
+      ]
+    },
+    {
+      "id": "background_01",
+      "type": "background",
+      "name": "taki-bedroom"
+    },
+    {
+      "id": "tachie_01",
+      "type": "tachie",
+      "name": "taki",
+      "status": "default",
+      "action": "enter"
+    },
+    {
+      "id": "node_01",
+      "type": "dialogues",
+      "sceneDescription": "Taki wakes up in his small Tokyo apartment, feeling disoriented. The morning light filters through the curtains, and the sounds of the bustling city outside fill the air.",
+      "imagePrompt": "A small, cluttered Tokyo apartment with morning light filtering through curtains. A teenage boy with short black hair sits on a bed, looking confused. The room is filled with posters and sketches of buildings.",
+      "dialogues": [
+        {
+          "speakerId": "taki",
+          "text": "What... what happened last night? Why do I feel so strange?",
+          "lineId": "line_019d137e-7abc-7000-8000-000000000001"
+        },
+        {
+          "speakerId": "taki",
+          "text": "My head feels heavy, like I’ve been dreaming for hours, but I can’t remember a thing.",
+          "lineId": "line_019d137e-7abc-7000-8000-000000000002"
+        },
+        {
+          "speakerId": "taki",
+          "text": "And why does my room feel... different? Like it’s not entirely mine.",
+          "lineId": "line_019d137e-7abc-7000-8000-000000000003"
+        },
+        {
+          "speakerId": "taki",
+          "text": "I need to shake this off. Maybe some water will help.",
+          "lineId": "line_019d137e-7abc-7000-8000-000000000004"
+        },
+        {
+          "speakerId": "taki",
+          "text": "But... why does my reflection in the mirror look so unfamiliar?",
+          "lineId": "line_019d137e-7abc-7000-8000-000000000005"
+        },
+        {
+          "speakerId": "others",
+          "text": "Others Text",
+          "lineId": "line_019d137e-7abc-7000-8000-000000000006"
+        }
+      ]
+    },
+    {
+      "id": "node_02",
+      "type": "choices",
+      "choices": [
+        {
+          "id": "choice-1",
+          "text": "Check your phone for clues",
+          "target": "tachie_02"
+        },
+        {
+          "id": "choice-2",
+          "text": "Go to school and see if anything feels off",
+          "target": "background_03"
+        }
+      ]
+    },
+    {
+      "id": "tachie_02",
+      "type": "tachie",
+      "name": "taki",
+      "action": "exit"
+    },
+    {
+      "id": "background_02",
+      "type": "background",
+      "name": "taki-phone",
+      "next": "phone-cue"
+    },
+    {
+      "id": "background_03",
+      "type": "background",
+      "name": "taki-school",
+      "originalArtworkUri": "/img/your-name/node3.jpg"
+    },
+    {
+      "id": "tachie_exit_02",
+      "type": "tachie",
+      "name": "mitsuha",
+      "status": "default",
+      "action": "enter"
+    },
+    {
+      "id": "tachie_exit_03",
+      "type": "tachie",
+      "name": "mitsuha",
+      "status": "default",
+      "action": "enter"
+    },
+    {
+      "id": "phone-cue",
+      "type": "audio",
+      "operations": [
+        {
+          "type": "sfx",
+          "action": "play",
+          "asset": "audio_019d137e-7abc-7000-8000-000000000003",
+          "gain": 0.15
+        }
+      ],
+      "next": "node_03"
+    },
+    {
+      "id": "node_03",
+      "type": "dialogues",
+      "sceneDescription": "Taki picks up his phone and notices a strange note in his notes app. It's written in a handwriting he doesn't recognize, detailing events he doesn't remember.",
+      "imagePrompt": "A close-up of a smartphone screen showing a handwritten note in a neat, feminine script. The room is dimly lit, with the phone's glow illuminating Taki's confused expression.",
+      "dialogues": [
+        {
+          "speakerId": "taki",
+          "text": "Who wrote this? This isn’t my handwriting... Did someone break into my phone?",
+          "lineId": "line_019d137e-7abc-7000-8000-000000000007"
+        },
+        {
+          "speakerId": "taki",
+          "text": "Wait, this note... it’s about my day, but I don’t remember doing any of this.",
+          "lineId": "line_019d137e-7abc-7000-8000-000000000008"
+        },
+        {
+          "speakerId": "taki",
+          "text": "Did I sleepwalk? Or... is this some kind of prank?",
+          "lineId": "line_019d137e-7abc-7000-8000-000000000009"
+        },
+        {
+          "speakerId": "taki",
+          "text": "No, it’s too detailed. Someone was in my body. But how?",
+          "lineId": "line_019d137e-7abc-7000-8000-00000000000a"
+        },
+        {
+          "speakerId": "taki",
+          "text": "I need to figure this out. This can’t be real... can it?",
+          "lineId": "line_019d137e-7abc-7000-8000-00000000000b"
+        }
+      ]
+    },
+    {
+      "id": "node_04",
+      "type": "dialogues",
+      "sceneDescription": "Taki arrives at school, feeling out of place. His friends notice his strange behavior and ask if he's feeling okay.",
+      "imagePrompt": "A bustling high school hallway in Tokyo. Taki stands awkwardly, surrounded by curious classmates. The hallway is filled with students in uniforms, and sunlight streams through the windows.",
+      "dialogues": [
+        {
+          "speakerId": "friend",
+          "text": "Hey, Taki, you look like you’ve seen a ghost. Are you okay?",
+          "lineId": "line_019d137e-7abc-7000-8000-00000000000c"
+        },
+        {
+          "speakerId": "taki",
+          "text": "I... I don’t know. Something feels really off today.",
+          "lineId": "line_019d137e-7abc-7000-8000-00000000000d"
+        },
+        {
+          "speakerId": "friend",
+          "text": "You’ve been spacing out all morning. Did you pull an all-nighter or something?",
+          "lineId": "line_019d137e-7abc-7000-8000-00000000000e"
+        },
+        {
+          "speakerId": "taki",
+          "text": "No, it’s not that. It’s like... I’m not entirely myself.",
+          "lineId": "line_019d137e-7abc-7000-8000-00000000000f"
+        },
+        {
+          "speakerId": "friend",
+          "text": "Well, you’re acting weird, that’s for sure. Maybe you’re coming down with something.",
+          "lineId": "line_019d137e-7abc-7000-8000-000000000010"
+        },
+        {
+          "speakerId": "taki",
+          "text": "Maybe... but it feels deeper than that. Like something’s missing.",
+          "lineId": "line_019d137e-7abc-7000-8000-000000000011"
+        }
+      ]
+    },
+    {
+      "id": "node_05",
+      "type": "narration",
+      "text": "As Taki navigates his day, he can't shake the feeling of disconnection. He notices small details that seem out of place, like unfamiliar memories and strange habits. The world around him feels both familiar and foreign, and he struggles to make sense of his shifting reality.",
+      "lineId": "line_019d137e-7abc-7000-8000-000000000012"
+    },
+    {
+      "id": "audio-end",
+      "type": "audio",
+      "operations": [
+        {
+          "type": "bgm",
+          "action": "clear"
+        },
+        {
+          "type": "ambience",
+          "action": "clear",
+          "slot": "bed"
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "type": "end"
+    }
+  ]
+}

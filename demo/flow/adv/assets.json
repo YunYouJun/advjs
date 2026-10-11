@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 2,
+  "id": "demo-flow",
+  "defaultProfile": "local",
+  "profiles": {
+    "local": {
+      "provider": "project",
+      "root": "public"
+    }
+  },
+  "assets": [
+    {
+      "id": "bg-taki-bedroom",
+      "type": "image",
+      "kind": "background",
+      "path": "flow-placeholders/bedroom.svg",
+      "sha256": "6c812337e95443905d1b4084df46833f573269b2e1ed004a636746d9cd1406bf",
+      "bytes": 479,
+      "mimeType": "image/svg+xml",
+      "title": "Original demo placeholder: bedroom",
+      "license": "CC0-1.0",
+      "source": {
+        "type": "original"
+      },
+      "sceneId": "taki-bedroom"
+    },
+    {
+      "id": "bg-taki-phone",
+      "type": "image",
+      "kind": "background",
+      "path": "flow-placeholders/phone.svg",
+      "sha256": "0f5b2484f0df6a674be6b9ec4b34aa92a862fff31d2f106e4debacc20b69cdb0",
+      "bytes": 475,
+      "mimeType": "image/svg+xml",
+      "title": "Original demo placeholder: phone",
+      "license": "CC0-1.0",
+      "source": {
+        "type": "original"
+      },
+      "sceneId": "taki-phone"
+    },
+    {
+      "id": "bg-taki-school",
+      "type": "image",
+      "kind": "background",
+      "path": "flow-placeholders/school.svg",
+      "sha256": "9824192aeaaae10b91f36de6b5836599f71bf16aa862499330385f6cc58fda3a",
+      "bytes": 477,
+      "mimeType": "image/svg+xml",
+      "title": "Original demo placeholder: school",
+      "license": "CC0-1.0",
+      "source": {
+        "type": "original"
+      },
+      "sceneId": "taki-school"
+    },
+    {
+      "id": "tachie-taki",
+      "type": "image",
+      "kind": "tachie",
+      "path": "flow-placeholders/taki.svg",
+      "sha256": "a2aff556613783426eb1b6d267710593a9e4ccb3471f6bf5ac8ea7158115ea9f",
+      "bytes": 437,
+      "mimeType": "image/svg+xml",
+      "title": "Original demo placeholder: taki",
+      "license": "CC0-1.0",
+      "source": {
+        "type": "original"
+      },
+      "characterId": "taki",
+      "state": "default"
+    },
+    {
+      "id": "tachie-mitsuha",
+      "type": "image",
+      "kind": "tachie",
+      "path": "flow-placeholders/mitsuha.svg",
+      "sha256": "116d4e6ac10f4e285a16a5970af3cb636c5800368df7990278704d06a0480b12",
+      "bytes": 443,
+      "mimeType": "image/svg+xml",
+      "title": "Original demo placeholder: mitsuha",
+      "license": "CC0-1.0",
+      "source": {
+        "type": "original"
+      },
+      "characterId": "mitsuha",
+      "state": "default"
+    },
+    {
+      "id": "audio_019d137e-7abc-7000-8000-000000000001",
+      "type": "audio",
+      "kind": "bgm",
+      "path": "flow-placeholders/music.wav",
+      "sha256": "b8a17ea341771a051d409759ecca8b8b2b8440e3a5a32a6e1b6e484d52d59444",
+      "bytes": 64044,
+      "mimeType": "audio/wav",
+      "title": "Original demo test tone: music",
+      "license": "CC0-1.0",
+      "source": {
+        "type": "original"
+      }
+    },
+    {
+      "id": "audio_019d137e-7abc-7000-8000-000000000002",
+      "type": "audio",
+      "kind": "ambience",
+      "path": "flow-placeholders/ambience.wav",
+      "sha256": "1a99a8d9402a1063cc3d28b0cf5659ceb820a977bf9efa15130db792603dbe13",
+      "bytes": 64044,
+      "mimeType": "audio/wav",
+      "title": "Original demo test tone: ambience",
+      "license": "CC0-1.0",
+      "source": {
+        "type": "original"
+      }
+    },
+    {
+      "id": "audio_019d137e-7abc-7000-8000-000000000003",
+      "type": "audio",
+      "kind": "sfx",
+      "path": "flow-placeholders/cue.wav",
+      "sha256": "8ea233853939377bc9e6988ef1fd1fd5b68b389da4b36013b3b0c3c7226333c6",
+      "bytes": 8044,
+      "mimeType": "audio/wav",
+      "title": "Original demo test tone: cue",
+      "license": "CC0-1.0",
+      "source": {
+        "type": "original"
+      }
+    }
+  ]
+}

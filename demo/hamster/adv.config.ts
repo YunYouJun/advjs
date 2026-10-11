@@ -92,13 +92,14 @@ const gallery = assetCatalog.list({ kind: 'cg' })
     chapterId: asset.chapterId,
   }))
 
-const bgmLibrary = Object.fromEntries(assetCatalog.list({ kind: 'bgm' })
+const audioAssets = Object.fromEntries(assetCatalog.list({ kind: 'bgm' })
   .map(asset => [
-    asset.id.replace('bgm/', ''),
+    asset.id,
     {
-      name: asset.title,
       src: assetUrl(asset.id),
-      duration: asset.duration,
+      kind: 'bgm' as const,
+      sha256: asset.sha256,
+      mime: asset.mimeType,
     },
   ]))
 
@@ -145,10 +146,7 @@ export default defineAdvConfig({
       allowDownload: true,
       items: gallery,
     },
-    bgm: {
-      autoplay: false,
-      library: bgmLibrary,
-    },
+    audio: { assets: audioAssets },
     chapters: hamsterChapters.map((chapter, index) => {
       const next = hamsterChapters[index + 1]
       return {

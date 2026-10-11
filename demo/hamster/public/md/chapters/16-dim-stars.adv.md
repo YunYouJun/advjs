@@ -18,7 +18,8 @@ transition:
 
 ```yaml
 type: bgm
-name: final-echo
+action: set
+asset: bgm/final-echo
 loop: true
 fade:
   in: 1200

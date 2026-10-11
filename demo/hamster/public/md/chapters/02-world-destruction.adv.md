@@ -18,7 +18,8 @@ transition:
 
 ```yaml
 type: bgm
-name: terminal-doubt
+action: set
+asset: bgm/terminal-doubt
 loop: true
 fade:
   in: 900

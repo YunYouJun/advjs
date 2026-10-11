@@ -1,7 +1,8 @@
 ---
 id: taki
 name: 立花瀧
-avatar: /img/your-name/characters/taki.png
+avatar: /flow-placeholders/taki.svg
+originalArtworkUri: /img/your-name/characters/taki.png
 cv: 神木隆之介
 aliases:
   - Taki Tachibana
@@ -12,7 +13,7 @@ tags:
 faction: 東京
 tachies:
   default:
-    src: /img/your-name/characters/taki.png
+    src: /flow-placeholders/taki.svg
     class:
       - h-full
 relationships:

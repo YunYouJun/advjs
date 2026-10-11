@@ -18,7 +18,8 @@ transition:
 
 ```yaml
 type: bgm
-name: star-revelation
+action: set
+asset: bgm/star-revelation
 loop: true
 fade:
   in: 900

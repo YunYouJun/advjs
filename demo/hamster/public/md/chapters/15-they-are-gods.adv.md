@@ -18,7 +18,8 @@ transition:
 
 ```yaml
 type: bgm
-name: deep-space
+action: set
+asset: bgm/deep-space
 loop: true
 fade:
   in: 900
