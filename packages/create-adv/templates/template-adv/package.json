@@ -1,0 +1,19 @@
+{
+  "name": "advjs-project",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=24.15.0"
+  },
+  "scripts": {
+    "dev": "adv --open=false",
+    "build": "adv build",
+    "check": "adv check",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "advjs": "^$ADVJS_VERSION",
+    "vite": "^8.3.1"
+  }
+}
