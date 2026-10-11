@@ -1,8 +1,8 @@
-import type { CompileDiagnostic } from '@advjs/core'
+import type { CompileDiagnostic } from '@advjs/core/compiler'
 import type { AdvAst, RuntimeProgram } from '@advjs/types'
 import type { Root as MdRoot } from 'mdast'
-import { compileMarkdownProgram, ns } from '@advjs/core'
-import { convertMdToAdv, mdParse, mdRender } from '@advjs/parser'
+import { compileMarkdownProgram } from '@advjs/core/compiler'
+import { mdParse, mdRender, parseAst } from '@advjs/parser'
 
 import { useDebounceFn, useStorage } from '@vueuse/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
@@ -16,13 +16,13 @@ export const useEditorStore = defineStore('editor', () => {
     mdUrl: string
     outputType: OutputType
     inputText: string
-  }>(ns('editor:options'), {
+  }>('advjs:editor:options', {
     mdUrl:
       '/examples/demo/starter/index.adv.md',
     /**
      * 输出类型
      */
-    outputType: 'markdown-it',
+    outputType: 'adv',
     /**
      * 输入文本
      */
@@ -46,7 +46,7 @@ export const useEditorStore = defineStore('editor', () => {
 
     // parsedHtml.value = md.render(markdown)
     parsedTokens.value = await mdParse(markdown)
-    parsedAdv.value = convertMdToAdv(parsedTokens.value)
+    parsedAdv.value = await parseAst(markdown)
     parsedHtml.value = await mdRender(markdown)
     const compiled = await compileMarkdownProgram({
       id: 'parser-playground',

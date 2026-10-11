@@ -56,9 +56,13 @@ export interface Text {
 export interface Dialog extends Node {
   type: 'dialog'
   character: Character
-  children: Text[]
+  children: PhrasingContent[]
 }
 ```
+
+`parseAst()` 返回 `adv-root`，上面的 `dialog` 位于其 `children` 中；节点还带有源码位置 `position`。普通对白的子节点是 `text`，带术语引用的对白还可以包含 `glossaryReference`。
+
+在 [在线 Parser](https://parser.advjs.org/#/) 中，默认选择 **ADV AST**，展示上述 ADV 节点。**Markdown AST** 展示转换之前的 Markdown 语法树，`@小云\n你好呀！` 在这一层是段落中的普通 `text`，不会出现 `dialog`。**RuntimeProgram** 则展示编译后的运行时节点，使用 `kind: 'dialog'`。
 
 譬如:
 
