@@ -23,7 +23,11 @@ const customElements = ['github-corners']
 // https://vitejs.dev/config/
 export default defineConfig({
   resolve: {
-    alias: commonAlias,
+    alias: [
+      // Keep the browser compiler separate from the core's other entrypoints.
+      { find: '@advjs/core/compiler', replacement: path.resolve(import.meta.dirname, '../../core/src/compiler/index.ts') },
+      ...commonAlias,
+    ],
   },
 
   plugins: [

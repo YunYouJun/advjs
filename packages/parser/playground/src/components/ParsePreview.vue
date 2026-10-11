@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import { useAppStore } from '../stores/app'
@@ -9,34 +9,24 @@ const { t } = useI18n()
 const appStore = useAppStore()
 const editorStore = useEditorStore()
 
-const type = ref<'html' | 'json'>(editorStore.options.outputType === 'html' ? 'html' : 'json')
+const type = computed(() => editorStore.options.outputType === 'html' ? 'html' : 'json')
 const content = computed(() => {
   let txt = ''
   switch (editorStore.options.outputType) {
     case 'markdown-it':
       txt = JSON.stringify(editorStore.parsedTokens, null, 2)
-      // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-      type.value = 'json'
       break
     case 'adv':
       txt = JSON.stringify(editorStore.parsedAdv, null, 2)
-      // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-      type.value = 'json'
       break
     case 'runtime':
       txt = JSON.stringify(editorStore.runtimeProgram ?? null, null, 2)
-      // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-      type.value = 'json'
       break
     case 'diagnostics':
       txt = JSON.stringify(editorStore.runtimeDiagnostics, null, 2)
-      // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-      type.value = 'json'
       break
     case 'html':
       txt = editorStore.parsedHtml
-      // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-      type.value = 'html'
       break
   }
   return txt

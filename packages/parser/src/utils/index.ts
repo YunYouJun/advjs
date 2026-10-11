@@ -74,7 +74,7 @@ export function toDialog(text: string): AdvAst.Dialog | false {
 
     info.character = toCharacter(characterInfo)
 
-    const words = content.split('\n')
+    const words = content.split(/\r?\n/)
     info.children = words.map(item => toText(item))
 
     return info

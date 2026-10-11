@@ -11,7 +11,7 @@ const parserItems: { title: string, value: OutputType, icon: string }[] = [
     icon: 'i-ri-file-text-line',
   },
   {
-    title: 'ADV Lexer',
+    title: 'ADV AST',
     value: 'adv',
     icon: 'i-ri-video-chat-line',
   },
@@ -31,7 +31,7 @@ const parserItems: { title: string, value: OutputType, icon: string }[] = [
     icon: 'i-ri-html5-line',
   },
   {
-    title: 'markdown-it AST',
+    title: 'Markdown AST',
     value: 'markdown-it',
     icon: 'i-ri-markdown-line',
   },
@@ -48,6 +48,8 @@ const parserItems: { title: string, value: OutputType, icon: string }[] = [
       hover="shadow"
       text="sm"
       :title="item.title"
+      :aria-label="item.title"
+      :aria-pressed="editorStore.options.outputType === item.value"
       :class="[
         editorStore.options.outputType === item.value ? 'bg-black text-white shadow' : '',
       ]"

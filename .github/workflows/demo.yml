@@ -28,3 +28,21 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Build self-contained demo target
         run: pnpm build:demo
+
+  parser:
+    name: parser-browser-smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps --only-shell chromium
+      - name: Verify production Parser and dialogue output
+        run: pnpm exec playwright test --config packages/parser/playground/playwright.config.ts --output "${RUNNER_TEMP}/parser-test-results"
