@@ -1,14 +1,18 @@
 # ADV.JS 多轨音频与 AI 配音系统设计
 
-状态：已确认，待实施
+状态：已确认，分阶段实施；运行时与两端音频管理已实现，认证托管执行、COS 发布宿主、版本化音色设计与 JSON Flow 可视化编辑／构建已实现，部署验收单独记录
 
 日期：2026-08-12
+
+最近更新：2026-10-11
 
 适用范围：`@advjs/types`、`@advjs/parser`、`@advjs/core`、`@advjs/client`、`@advjs/editor`、`@advjs/studio`、CLI、COS 发布链路
 
 ## 1. 背景
 
-ADV.JS 当前的浏览器音频能力以 BGM 专用组合式函数和 Howler 实例为中心。它能够播放与切换背景音乐，但不适合继续承载语音、环境音、音效和 UI 音频：
+统一 AudioEngine、Mixer、稳定 lineId、多语言 take、Dialogue Voice、共享作者文件协议和安全迁移 CLI 已实现，旧 BGM Runtime 已移除。Editor／Studio 音频库、take 审核、混音、角色／旁白 Profile、发音词典及批量任务已接入共享服务；Editor 还提供原生 Markdown 流程图与源码音频属性。Qwen／OpenAI 沿用现有供应商注册表，本地认证宿主与 Studio 私有队列复用相同 Planner／Runner。本地 FFmpeg 处理和发布域逻辑已可单独验证。可执行契约见[音频指南](/guide/audio)和[作者语音指南](/guide/authoring-voice)，验证证据见[本轮实现报告](/reports/2026-10-11-audio-runtime-implementation)。Studio 的有限认证服务复用既有 Provider，同步原生文件／音频、持久执行任务并下载校验相同 ID 的 take；发布宿主接入后台转码、可信收据和真实 COS SDK；标准 `.chapter.json` 项目共用编译与绑定协议。固定 Qwen 模型的自动准备、真实本地合成、两端音色／对白／Flow 导出播放与缓存复用已在 Apple Silicon 上验收；听审、跨设备／长任务评估以及云端部署和 STS 环境仍需独立验收。
+
+本次升级前，浏览器音频能力以 BGM 专用组合式函数和 Howler 实例为中心，不适合继续承载语音、环境音、音效和 UI 音频：
 
 - BGM 切轨、淡出、停止和销毁由多份平行状态维护，异步 fade 回调存在竞态；
 - Runtime 舞台状态只有单一 BGM 字段，无法表达环境音分层、一次性音效与配音；
@@ -23,7 +27,7 @@ ADV.JS 当前的浏览器音频能力以 BGM 专用组合式函数和 Howler 实
 
 1. 建立统一的多轨音频子系统，覆盖音乐、环境音、语音、音效与 UI 音频。
 2. 让 Runtime 只表达确定性的目标状态和效果，浏览器播放对象不进入 Program 或 Snapshot。
-3. 支持按角色 Voice Profile 和台词文本生成配音，首个完整 Provider 为 MiniMax，并允许后续接入 OpenAI、豆包及其他服务。
+3. 支持按角色 Voice Profile 和台词文本生成配音，沿用已落地的通用作者接口与 Qwen／OpenAI 适配器，后续扩展 MiniMax、豆包及其他服务；完整托管批量 Provider 仍须独立验收。
 4. 支持自动生成、试听、多 take 选择、批量任务、非破坏式处理和 COS 发布。
 5. 让角色管理、剧本编辑、场景/Flow 编辑与 Audio Studio 使用同一份 Git 友好项目数据。
 6. 从第一版保留多语言、权利记录、成本防护、可观测性与离线创作边界。
@@ -99,6 +103,19 @@ Markdown / Flow / Character Voice Profile
 - **Vue composable**：提供只读状态与玩家设置，不拥有音轨状态机。
 
 ## 6. 音频总线与并发
+
+音频是媒体类型，配音、音乐、环境音和音效是用途分类。原生 Asset Catalog 使用 `type: audio`；推荐 `kind` 为 `bgm / ambience / voice / sfx / ui`，作者参考片段使用 `reference`，不进入剧情播放总线。Studio 旧素材字段通过迁移归一化，不以文件扩展名或模型供应商猜测用途。
+
+| 分类        | 目标总线 | 内容身份与引用                              | 管理边界                                                  |
+| ----------- | -------- | ------------------------------------------- | --------------------------------------------------------- |
+| `bgm`       | music    | `assetId`                                   | 循环、切轨、淡化与响度；只有该 kind 可投影进兼容 BGM 曲库 |
+| `ambience`  | ambience | `assetId + slot`                            | 持续叠加，场景继承／重置                                  |
+| `voice`     | voice    | `lineId + locale + takeId` 解析为 `assetId` | 角色／旁白配音；音色短句样本可先作为作者资产存在          |
+| `sfx`       | sfx      | `assetId + event`                           | 一次性剧情 cue、优先级与并发组                            |
+| `ui`        | ui       | `cue → assetId`                             | 交互反馈，独立于剧情时间线                                |
+| `reference` | 无       | 作者预设中的 `assetId`                      | 只用于参考条件与来源审核，不作为选中台词或曲库内容        |
+
+同一二进制可以去重存储，但用途、许可和引用必须显式登记。类别未知的音频可留在素材库，不能被自动当作 BGM、SFX 或配音。跨类型引用由编译器／资源校验器阻断。
 
 ```text
 master
@@ -269,21 +286,47 @@ interface CharacterVoiceProfile {
       voiceId: string
       source: 'system' | 'designed' | 'cloned'
       model?: string
+      projectVoiceId?: string
+      projectVoiceVersion?: string
     }>
   }>
 }
 ```
 
-AI 可以结合角色的年龄印象、性格、背景、说话风格和语言生成音色意图。第一版支持系统音色匹配与 MiniMax Voice Design；候选必须试听并人工确认后才能绑定角色。克隆音色只预留 `source: cloned`。
+意图保存角色的年龄印象、性格、说话风格和语言要求，两端使用相同字段。当前按可信宿主能力支持 Qwen VoiceDesign 描述条件与 Base 授权参考，以及 OpenAI 内置音色／指令；MiniMax 为后续供应商。候选、登记、样本选用和角色应用是分别可审核的操作；参考来源必须在执行前验证原生媒体、许可与项目同意文件。
 
-旁白使用相同结构，但存放在项目音频配置的保留 `narrator` Profile 中，不要求创建伪角色卡。任何可生成语音的 ledger line 都必须拥有角色 ID 或 `narrator`，因此 COS voice key 的 speaker 段始终确定。
+导入的参考资源可以尚未分配角色；显式填写 `characterId` 时必须匹配本次设计人物。Node 预览、共享设计服务与本地模型检查使用同一规则，并继续校验参考字节／SHA-256、格式、时长和授权。不能通过清除一个已登记参考的角色资料绕过其版本与来源审核。
+
+`packages/types/src/audio/voice-design.ts` 的 `VoiceDesignPort` 是两端完整设计契约，`@advjs/audio` 校验不可变草稿与作者库。设计只扩展唯一 `authoring/voices/library.json`，不维护第二份媒体或供应商数据库。每个版本使用唯一库 ID，以 `supersedes` 指向旧版本；保存输入包括意图、精确语言、供应商、可信预设及来源条件。宿主派生预设的模型／revision／权重保持来自可信模板，固定预设 SHA-256。
+
+样本按精确语言／供应商保存在 `design.samples` 与 `design.selectedSamples`，媒体进入原生 Asset Catalog。显式应用写入当前 binding 的实际供应商 `voiceId` 和作者 `projectVoiceId + projectVoiceVersion`，任务按精确语言设计实现解析预设；保留其他绑定与全部旧 take。共享 revision/CAS 拒绝角色、授权、媒体或设计发生变化后的覆盖。
+
+旁白使用相同结构，保存在 `adv/audio/voice-profiles.json` 的 `narrator` 字段中，不要求创建伪角色卡。该文档包含 `schemaVersion: 1`、非负整数 `revision` 和可选 `narrator`；未知字段被拒绝。任何可生成语音的 ledger line 都必须拥有角色 ID 或 `narrator`，因此 COS voice key 的 speaker 段始终确定。
+
+项目发音词典保存在 `adv/audio/pronunciation.json`，包含 `schemaVersion: 1`、非负整数 `revision`、全局 `replacements` 和精确语言 `locales[locale].replacements`。使用最长字面匹配、一次替换，全局规则被当前精确语言覆盖；显式逐句 `spokenText` 优先。规范化的词典身份进入生成输入指纹与 take provenance；空默认词典保持旧指纹兼容。词典与旁白配置均使用共享 revision/CAS，不覆盖冲突草稿。
 
 ## 13. TTS Provider
 
-Provider 使用能力声明，而不是由 UI 硬编码供应商名称：
+### 13.1 当前公开接入契约
+
+当前权威 TypeScript 契约是 `packages/types/src/config/voice.ts` 的 `AdvVoiceSynthesisProvider`，通过可信 `adv.config.ts` 的 `authoring.voice.providers` 显式注册。不要另建 `plugin-tts` 注册表或将 TTS 塞进播放器 `plugins`。
+
+- 必需操作：只读 `inspectPreset` 与生成 `synthesize`。
+- 可选操作：只读 `doctor`、显式 `setup`、独立 `createVoice`；只读 `listVoices` 和从可信模板派生 JSON 的 `buildDesignPreset`。
+- 能力：`backend`、`synthesis`、`voiceCreation`、`offline`、可选 `designSources`，以及各模型的模式、文本上限、格式与 streaming 声明；注册时验证类型、唯一模型 ID 和合法音频 MIME。设计来源只在实际模板支持时显示。
+- 适配器持有供应商模型／参数约束；Qwen 的参考模式、500 字及 seed 不施加给 OpenAI 或第三方插件。
+- `synthesize` 返回实际本地候选，主机复核人物、文本、文件边界、字节数与 SHA-256，计算输入 fingerprint，并拒绝取消或预设变化后的成功结果。
+- `voiceId + voiceVersion` 是项目作者音色身份；`providerVoiceId` 是实际供应商音色。两者不得混用。完整台词 ledger 将分别固化这些身份。
+- 生成只创建候选，不隐式登记、选用、绑定对白、创建云端声音或发布媒体；供应商失败不静默切换 Provider。
+
+Qwen 为本地 MLX，OpenAI 为云端内置音色；两者当前均返回 WAV 候选。Web Speech 只用于本机临时试听，不作为可发布生成来源。Studio 正式配音与音色设计使用认证 Node 服务和共享作者协议，不得将旧浏览器 `TtsProvider` 的本地 Blob 直接冒充正式 take。
+
+### 13.2 完整系统的后续能力
+
+未来以兼容扩展提升现有能力声明，界面按能力显示操作，不硬编码供应商名称。以下是目标能力集合，并非已导出的第二套接口：
 
 ```ts
-interface TtsProviderCapabilities {
+interface PlannedTtsCapabilities {
   synthesis: boolean
   voiceCatalog: boolean
   voiceDesign: boolean
@@ -295,7 +338,7 @@ interface TtsProviderCapabilities {
 }
 ```
 
-统一 Adapter 接收 Provider 无关请求，返回音频母版、时间戳、Provider 结果摘要和可审计元数据。MiniMax、OpenAI、豆包分别实现 Adapter。Web Speech 只用于本机临时试听，不作为可发布生成来源。
+后续统一 Adapter 接收 Provider 无关台词请求，返回音频母版、时间戳、筛选后的 Provider 结果摘要和可审计元数据。MiniMax、豆包按现有契约接入，并单独验证声音创建能力。云端密钥与 SDK 仅位于可信服务端／本机 Node 环境。
 
 ## 14. 生成队列与成本防护
 
@@ -322,6 +365,8 @@ interface TtsProviderCapabilities {
 
 ## 15. 创作账本与运行时清单
 
+当前 `authoring/voices/library.json` 保存作者音色身份、实现预设、版本化 `design` 和音色样本审核，媒体仍唯一存放于原生 Asset Catalog。它不是下列 `voice-ledger.json` 的替代格式。保留现有音色版本与审核证据，明确建立台词绑定，不能直接把 `selectedSample` 或 `design.selectedSamples` 当作某句台词的 `selectedTake`。
+
 建议项目文件：
 
 ```text
@@ -331,7 +376,9 @@ adv/
 └── audio/
     ├── mixer.json
     ├── toolchain.json
-    └── voice-ledger.json
+    ├── voice-ledger.json
+    ├── pronunciation.json
+    └── voice-profiles.json
 ```
 
 ### 15.1 创作期语音账本
@@ -349,7 +396,7 @@ adv/
 
 ### 15.2 运行时资产清单
 
-`adv/assets/audio.json` 只暴露最终选中的 BGM、环境音、语音、SFX 与 UI 音频，以及运行所需的 URL/objectKey、哈希、格式、时长和循环信息。构建输出再生成扁平运行时清单。
+`adv/assets.json` 是唯一原生作者目录，可分片包含 `adv/assets/audio.json`。作者目录保存已登记母版、历史 take、参考媒体与衍生变体；不能把它直接当作公开发布清单。播放配置与公共发布另行投影，只包含运行所需的 BGM、环境音、SFX、UI 和各语言已选 voice take，排除未采用配音和参考媒体；构建输出生成扁平运行时清单。
 
 ### 15.3 发布 toolchain lock
 
@@ -514,11 +561,12 @@ Trace 只记录逻辑 ID、序列、时长、状态和错误码，不记录密�
 迁移命令固定为：
 
 ```bash
-adv migrate audio --report temp/audio-migration.json
-adv migrate audio --resolutions adv/migrations/audio-v1.json --apply
+adv migrate-audio --map adv/migrations/audio-map.json --report adv/migrations/audio-report.json
+adv migrate-audio --apply adv/migrations/audio-report.json
+adv migrate-audio --recover REVISION
 ```
 
-报告 schema 逐项保存源文件/行列、旧引用、推断 kind、候选资产、`resolved | unresolved | already-canonical` 状态和原文件 SHA-256。作者把人工选择写入可审查的 resolution 文件后重新 dry-run。
+已实现的报告 schema 保存源文件、旧引用、明确映射、patch、unresolved、原始 SHA-256、目录 revision 和报告 revision。作者把人工选择写入可审查的映射文件后重新 dry-run，不按 URL 或名称推断类别。当前 CLI 迁移旧 Markdown BGM，旧 Studio 私有缓存与 Flow 字段由各导入边界显式适配；未解析引用仍阻止执行。
 
 Apply 在内存中生成全部目标文件，先验证新项目，再通过同目录临时文件原子替换。迁移 journal 保存原/新哈希和已提交文件；失败时按 journal 恢复本次已写文件。对已 canonical 的输入重复执行必须得到空变更。未跟踪且会被覆盖的文件先复制到被 Git 忽略的迁移备份目录，并在结果中给出恢复路径。
 
@@ -552,6 +600,8 @@ Fake Backend 必须能够手动推进 load、play、fade、ended 和 error，覆
 
 ## 26. 验收标准
 
+- 五种播放用途与作者 `reference` 分类保持隔离；构建不会把配音／参考音频／音效加入 BGM 曲库；
+- 导入、改名、替换与删除遵循同一资源生命周期；被引用资源不能静默删除，媒体母版与历史 take 不被覆盖；
 - Runtime Program、Snapshot、effects 与 trace 保持 JSON-only；
 - 同一命令序列在浏览器和 Fake Backend 上产生一致逻辑轨迹；
 - 任意乱序异步回调不能复活已停止轨道；
@@ -577,6 +627,7 @@ Fake Backend 必须能够手动推进 load、play、fade、ended 和 error，覆
 
 ## 28. 相关文档
 
+- [作者语音与 TTS 插件接入](/guide/authoring-voice)
 - [音频资产与 AI 配音决策](/about/design/audio)
 - [音频创作与发布指南](/guide/audio)
 - [资源目录协议](/guide/assets/catalog)
@@ -594,3 +645,51 @@ Fake Backend 必须能够手动推进 load、play、fade、ended 和 error，覆
 - [腾讯云 COS 临时密钥](https://cloud.tencent.com/document/product/436/45242)：短期凭证与临时策略；
 - [腾讯云 COS 最小权限](https://cloud.tencent.com/document/product/436/38618)：按操作和对象前缀收敛授权；
 - [腾讯云 COS 生命周期](https://cloud.tencent.com/document/product/436/17031)：按对象前缀清理临时任务资源。
+
+## 30. 管理系统的资源生命周期
+
+本节是完整管理系统的目标契约。当前已实现原生资源管理、候选登记、显式对白 `selectedTake`、共享批量任务、认证 Studio 执行、媒体处理、COS 发布与标准项目构建，并通过约定的本地完整端到端验收。作者音色 `selectedSample`／`design.selectedSamples` 与对白 `selectedTake` 保持独立；完整音色设计、JSON Flow 编辑及真实模型／云环境验收状态见[实现报告](/reports/2026-10-11-audio-runtime-implementation)。
+
+### 30.1 导入、整理与检查
+
+资源服务统一处理人工录音、授权音乐／音效、TTS 候选与作者参考，生成不可变母版和稳定 `assetId`。文件类型以实际媒体探测为准，导入时检查可解码性、时长、采样率、声道、大小和 SHA-256，按用途补充循环、语言、人物、来源和许可。响度／峰值探测与编码规则遵循第 18 节，不改写母版。
+
+素材库必须按用途、人物、语言、标签、许可、生成来源、引用状态与发布状态筛选；支持试听、定位使用位置、导出元数据、查看母版与发布变体。`assetId` 不因标题、文件名或文件位置变化而改变。资产替换生成新媒体版本与哈希，保留旧引用证据；不允许在相同发布对象键下覆盖不同内容。
+
+### 30.2 候选、审核与剧情采用
+
+| 阶段         | 持有数据                                             | 允许的动作                           | 完成判据                           |
+| ------------ | ---------------------------------------------------- | ------------------------------------ | ---------------------------------- |
+| 生成候选     | 模型输出、输入摘要、本地文件与 receipt               | 试听、比较、拒绝、重新生成           | 文件与完整性检查通过；没有自动采用 |
+| 登记资产     | 原生 Catalog 条目、许可与来源                        | 注册用途、准备缓存、查看来源         | 稳定 `assetId`、媒体与元数据一致   |
+| 音色样本审核 | 版本化作者 library                                   | 显式选 `selectedSample`、审核替换    | 库 revision 与人物一致；不修改对白 |
+| 台词 take    | `lineId + locale`、speaker、fingerprint、不可变 take | 比较、选 `selectedTake`、恢复旧 take | 文本与音色版本匹配，冲突显式解决   |
+| 发布         | 处理 receipt、编码变体、发布计划                     | 校验、上传、审计                     | 所有对象验证成功后再更新 manifest  |
+
+拒绝候选不删除已登记资产；修改音色或文本不自动覆盖已选 take。重新生成不等于替换；作者必须决定是否采用新结果。生成、登记、试听选用、对白绑定和发布是分别可审查的操作。
+
+### 30.3 引用、删除与恢复
+
+引用索引覆盖章节／Flow、场景状态、UI cue、角色音色预设、作者 library、voice ledger 与发布清单。删除前列出直接和间接使用位置；存在引用时阻断删除，或由作者通过一个可审查的事务先替换全部引用。默认删除只取消目录登记，不立即删除母版、take 或远端对象。
+
+垃圾回收先生成按哈希和引用确认的计划，再显式执行；历史发布、选中样本、已采用 take 与参考片段都算有效引用。缓存清理与正式资源删除分开，禁止把“本机未缓存”当成“资源未使用”。失败写入需要 rollback／journal，跨端修改使用 revision 检查，恢复保持同一逻辑 ID。
+
+### 30.4 交付与兼容
+
+静态发布只携带实际使用的可播放资产及必要兼容变体；参考音频、未选 take、Provider SDK／密钥、作者库与成本记录不进入玩家包。下载、存储、TTS、媒体处理与播放分别通过有限接口协作，不共享私有工作区对象。
+
+Editor 提供完整素材表格、引用检查、批量任务与 Mixer；Studio 使用同一协议的移动界面。临时试听、正式素材、已采用对白和发布完成须在界面分别展示状态。新 Runtime 迁移按第 24 节执行，不因新增 Provider 修改剧情语义或隐藏旧格式。
+
+## 31. 认证执行与发布的宿主边界
+
+Studio 通过部署配置的服务地址和现有账号 access token 调用有限音频 API。每次请求由服务端验证身份、检查注册项目／ACL；项目根、Provider 对象、预设路径、凭据与允许的工具链只由可信部署配置指定。账号不是浏览器传入的 claim；不同账号／项目不能共享或嵌套同一真实根目录。同步只接受原生 JSON／Markdown／YAML、明确授权记录和按已登记 asset ID／SHA-256 校验的媒体，拒绝可执行配置、路径穿越、超限请求与历史 take 重写。
+
+在线服务是唯一 Provider 执行方，Editor／Studio 使用相同 Planner／Runner、预算、指纹与持久恢复协议。生成媒体通过认证范围内的下载地址传输，客户端核验字节和哈希，再用共享 `importTake()` 保存原始 asset／take ID，保持未选状态。源语言生成和 stale 检查读取当前剧情原文；其他语言保留明确翻译，显式朗读文本优先。供应商未提供 query 时未知结果继续阻塞，不能把 HTTP 中断解释为尚未收费。
+
+发布准备使用项目外持久任务，并通过查询恢复；单服务进程最多两个媒体 Worker。工具链只读取可信主机 allowlist；可选容器 runner 先核对已安装 image ID，禁止网络与自动 pull。实际处理结果保存为可信收据，项目和客户端计划本身不授予发布权。审核记录有效期 30 分钟；发布重查当前选用、母带、变体与同意记录字节，任何变动阻止当前审核继续发布。
+
+COS 适配器对完整对象键使用禁止覆盖写入、有界 ETag 固定 GET 和实际 SHA-256 校验。版本控制桶中禁止覆盖头不生效，宿主因此拒绝此类桶，规则见 [COS PUT Object](https://intl.cloud.tencent.com/document/product/436/7749?lang=en)；固定读取规则见 [COS GET Object](https://cloud.tencent.com/document/api/436/7753)。所有对象通过验证后，公开 manifest 最后上传到内容哈希地址。当前发布指针在可信主机项目外以锁、fsync、原子替换和 revision CAS 持久更新；不假设 COS 支持条件替换 PUT。失去 CAS 的不可变清单是未引用对象，不会覆盖已发布版本，且不会自动删除。
+
+标准构建须显式提供公开 manifest 和其内容 SHA-256，再核对完整 Opus／AAC 变体、原生母版身份与当前已选 take 对象键。编译仍读取原生剧情和账本，并验证母版实际字节；发布音频只替换运行时传输地址。公开时长取可信处理收据中两种编码时长的最大值，避免作者录入时长影响浏览器路由。玩家输出移除参考、未选历史、母版、授权记录及供应商参数，按明确引用收集非音频资源，禁止整体复制作者 `public/`。
+
+操作指南是 [Studio 音频服务](/guide/studio/audio-service)与[序列化 Flow 项目](/guide/flow-projects)，真实验证与部署限制统一记录在[实现报告](/reports/2026-10-11-audio-runtime-implementation)。

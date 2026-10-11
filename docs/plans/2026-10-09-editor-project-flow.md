@@ -2,6 +2,8 @@
 
 日期：2026-10-09。状态：已实现并通过本地验收，尚未发布。范围：Editor 的只读剧情流程图、保存快照的源码定位、静态可达性与编译诊断；遵循 [AGUI 规范](/agui/design)。使用说明见 [剧本编辑](/guide/editor/script#查看项目分支图与定位源码)。
 
+2026-10-11 后续新增的原生 JSON Flow 可视化编辑适用[Flow 文件项目指南](/guide/flow-projects#editor-与-studio-可视化编辑)，验收由[音频与 Flow 主计划](/plans/2026-08-12-audio-system-implementation#voice-design-and-visual-json-flow-continuation)跟踪。本记录保留当时 Markdown 分支图的只读范围与历史证据。
+
 ## 实现职责
 
 - 纯投影以当前项目的 RuntimeProgram 为节点与边的权威，解析章节源文件仅用于还原位置，不执行剧情或宿主插件。

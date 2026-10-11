@@ -1,38 +1,31 @@
 # 音频创作与 AI 配音
 
-::: warning 设计已确认，正在分阶段实施
+ADV.JS 使用统一 AudioEngine 播放音乐、环境音、对白、剧情音效与 UI 音效。Editor、Studio 和 CLI 共用音频资源、Mixer 与对白账本协议。本页介绍当前可用的脚本、配音与迁移流程；TTS 插件配置见[作者语音模块](/guide/authoring-voice)。
 
-本页描述已经采纳的目标工作流。当前版本仍使用兼容期 BGM，以及 Studio 已有的单点 TTS 与音频素材能力；这些 Studio 能力尚未形成稳定台词绑定、多语言 take、Voice Profile、创作账本或确定性发布协议。BGM 切换、停止、静音和历史恢复的生命周期竞态已经修复，但统一 AudioEngine 和下列新 schema 尚未发布。在[实施计划](/plans/2026-08-12-audio-system-implementation)完成前，请不要把目标格式用于正式项目。
+::: warning 破坏性音频升级
 
-:::
-
-ADV.JS 的目标音频系统统一管理背景音乐、环境音、角色配音、剧情音效和 UI 音效。作者通过稳定资产 ID 创作，Editor/Studio 负责维护素材文件、语音 take 和 COS 发布信息。
-
-## 当前可用能力
-
-当前 Runtime 支持音乐库名称、单一逻辑 BGM 主轨、交叉淡化、停止当前曲目、暂停/恢复、全局静音以及回退/读档同步。切换期间可短暂保留多条物理音轨完成淡出，但只有最新选择是逻辑活动轨；过期淡化回调不会停止后来重新选中的曲目。
-
-当前项目继续使用[场景演出、立绘、CG 与音频](/guide/runtime/presentation#bgm-交叉淡化)中的 BGM 写法。Ambience、Voice、SFX、UI 总线、Mixer 文件和本页后续的 `asset` 协议均属于目标能力。
-
-::: danger 以下章节是尚未发布的目标工作流
-
-从“目标音频类型”到“目标协议常见问题”的 schema、界面、命令和播放行为均不可用于当前正式项目。每个标题保留“目标”前缀，方便从搜索或深链接进入时识别状态。
+Runtime Program 与 Snapshot 已升级到版本 2。旧 `bgm.name / src / stop` 和旧存档不再由播放器解释，需先运行迁移报告并处理未解析引用。播放引擎、资源管理、两端配音审核、Mixer、Studio 服务端任务与 COS 发布宿主已实现。云端部署、真实模型与凭据环境的验收状态见[实现报告](/reports/2026-10-11-audio-runtime-implementation)。
 
 :::
 
-## 目标音频类型
+## 音频类型与播放规则
 
-| 类型     | 用途                 | 播放规则                     |
-| -------- | -------------------- | ---------------------------- |
-| BGM      | 场景主音乐           | 单一逻辑主轨，切换时交叉淡化 |
-| Ambience | 风雨、人群、室内底噪 | 按命名槽位叠加               |
-| Voice    | 角色台词和旁白       | 一次只播放当前台词           |
-| SFX      | 脚步、关门、撞击     | 多声部，按并发组限流         |
-| UI       | 确认、悬停、系统提示 | 独立于剧情时间线             |
+原生 Asset Catalog 使用 `type: audio`，用 `kind` 区分用途。剧情只引用稳定资产 ID，不直接引用文件 URL。
 
-## 目标项目文件
+| kind        | 总线     | 播放规则                                      | 历史回退与读档         |
+| ----------- | -------- | --------------------------------------------- | ---------------------- |
+| `bgm`       | music    | 一条逻辑主轨，切换时交叉淡化                  | 恢复目标轨道           |
+| `ambience`  | ambience | `bed / weather / crowd / detail` 四个独立槽位 | 恢复各槽位             |
+| `voice`     | voice    | 当前对白的一条前景语音                        | 取消旧语音，不自动重播 |
+| `sfx`       | sfx      | 一次性事件，按组和优先级限流                  | 不重播                 |
+| `ui`        | ui       | 语义交互 cue，独立于剧情                      | 保留独立交互生命周期   |
+| `reference` | 无       | 作者侧参考材料                                | 不进入剧情播放         |
 
-推荐把音频资源目录作为 Asset Catalog 分片：
+长音乐与环境音使用 HTMLMediaElement 流式播放，短音频通过 AudioBuffer 解码，解码缓存默认限为 64 MiB。浏览器后端在首次交互时创建并解锁 AudioContext，过期对白不会排队补播。加载使用 AbortSignal 与 generation 校验，快速切换不会让旧回调停止新轨。解锁后预取当前及确定路径上的后两句配音；遇到分支停止预取，切换台词、语言、历史或项目时取消旧请求。
+
+Opus／WebM 为主变体，AAC／M4A 为兼容变体。[WebKit 的 Opus 流式混音问题](https://bugs.webkit.org/show_bug.cgi?id=276813)会使 MediaElement 播放绕过 Web Audio 音量处理，不能仅依据 `canPlayType()` 判定可混音。变体选择需区分流式与解码路径，测试用实际分析器信号验证总线控制。
+
+## 项目文件
 
 ```text
 adv/
@@ -41,56 +34,35 @@ adv/
 │   └── audio.json
 ├── audio/
 │   ├── mixer.json
-│   ├── toolchain.json
+│   ├── pronunciation.json
+│   ├── voice-profiles.json
 │   └── voice-ledger.json
 ├── characters/
 └── chapters/
 ```
 
-职责：
+`adv/assets.json` 是唯一资源根，可内联资源或引用 `assets/audio.json`。Mixer 保存项目默认混音参数；账本保存全部 take、生成来源和选择结果。玩家设备的六总线音量与静音独立持久化，不进入项目文件或剧情存档。正式处理使用 `adv/audio/toolchain.json` 选择可信主机批准的 FFmpeg 构建和 Worker 镜像。
 
-- `assets/audio.json`：最终可播放的音频资产；
-- `audio/mixer.json`：项目总线默认值、ducking 和并发组；
-- `audio/toolchain.json`：进入 Git 的发布工具链锁，记录受信 profile、FFmpeg build fingerprint 和 worker image digest；
-- `audio/voice-ledger.json`：全部语音 take、生成来源和选择结果；
-- 角色文件：角色 Voice Profile；
-- 章节 ADVScript：BGM、环境音、SFX cue 和稳定 `lineId`。
+当前音频作者服务固定使用 `adv` 内容根。自定义内容根的项目会显示 `ADV_AUDIO_CONTENT_ROOT_UNSUPPORTED` 并禁用音频写入；请先按项目迁移流程使用 `adv` 根，服务不会静默另建一套文件。
 
-通常不需要手工维护账本。Editor 与 Studio 的可视化操作会规范化写回这些文件。
+Profile 和分片规则见[资源目录协议](/guide/assets/catalog)。作者服务保留资源根和既有分片，登记不可变媒体后最后提交账本；写入冲突或失败时拒绝覆盖并清理本次导入。
 
-## 目标导入流程
+## BGM 与环境音
 
-### Editor
-
-1. 打开 **View → Audio Studio**。
-2. 进入 **Asset Library**。
-3. 选择 BGM、Ambience、SFX、Voice 或 UI 分类。
-4. 拖入音频文件或选择导入。
-5. 检查系统探测的时长、格式、声道、响度和峰值。
-6. 填写稳定资产 ID、标题、标签、来源与许可。
-7. 保存后，在剧本和 Flow 中通过资产 ID 选择该音频。
-
-### Studio
-
-1. 打开 **Workspace → Audio**。
-2. 选择音频分类并导入文件。
-3. 试听并补充元数据。
-4. 保存到项目资产目录；需要协作或发布时再上传 COS。
-
-Editor 将提供完整媒体检查与批量处理；Studio 将提供适合移动端的核心导入、试听和发布状态。
-
-## 目标 BGM 协议
+以下指令写入章节的 YAML 围栏中；`asset` 必须对应目录中相同 kind 的资源。时长单位为毫秒，`gain` 范围为 0–1。
 
 ```yaml
 type: bgm
 action: set
-asset: bgm.observatory
+asset: bgm/summer-day
+gain: 0.8
+loop: true
 fade:
   in: 1200
   out: 700
 ```
 
-停止 BGM：
+停止主音乐：
 
 ```yaml
 type: bgm
@@ -99,32 +71,18 @@ fade:
   out: 700
 ```
 
-`asset` 必须是 Asset Catalog 中 `kind: bgm` 的稳定 ID。新协议不接受 `src` 或未经目录管理的 URL。
-
-## 目标环境音协议
-
-环境音通过槽位叠加。默认槽位：
-
-- `bed`：基础底噪；
-- `weather`：风、雨、雷；
-- `crowd`：人群和交通；
-- `detail`：虫鸣、机器和局部细节。
-
-设置雨声：
+环境音按槽位叠加，替换一个槽位不会改变其他槽位。
 
 ```yaml
 type: ambience
 action: set
 slot: weather
-asset: ambience.rain
+asset: ambience/rain
+loop: true
 fade:
   in: 800
   out: 800
 ```
-
-替换同一槽位时，旧音频与新音频交叉淡化。其他槽位保持不变。
-
-清除雨声：
 
 ```yaml
 type: ambience
@@ -134,310 +92,179 @@ fade:
   out: 500
 ```
 
-场景切换时可以在可视化面板选择：
+BGM 和环境音目标保存在 `stage.audio` 中。历史回退、前进和读档只同步最终状态，使用短淡化；存档不保存物理播放器、播放位置、计时器或退场包络。
 
-- **Inherit**：继承未修改槽位；
-- **Reset all**：清空全部环境音后应用新配置。
+### 在 Editor 中编辑场景音频
 
-## 目标 SFX 协议
+流程图展开剧情详情后，节点的音频属性按钮可编辑音乐、四槽位环境音与音效。选中原有音频代码块时更新该块；选中其他剧情节点时在节点之前插入新操作。素材选择只列出对应用途的原生音频，参考素材不进入播放指令。保存通过完整源文件 CAS；源码尚有未保存草稿或外部修改时阻止覆盖，并保留音频属性草稿。
+
+源码编辑器的「场景音频」在当前光标所在剧情块打开同一属性控件。「应用到源码草稿」进入 Monaco 撤销栈，随后按正常文件流程保存。纯音频块可显式移除；混合块保留其他演出操作和周围正文、对白 ID，但保存会把所编辑围栏规范化为 JSON `advnode`，不保留该围栏内部的 YAML 注释。该界面编辑原生 Markdown 的流程图投影。标准文件项目也可使用原生 `.chapter.json` 构建；格式、校验和独立音频节点的无损修改接口见[序列化 Flow 项目](/guide/flow-projects)。
+
+## 剧情音效与 UI cue
 
 ```yaml
 type: sfx
 action: play
-asset: sfx.door-close
+asset: sfx/door-close
 group: environment
 priority: 50
+gain: 0.9
 ```
 
-SFX 是一次性事件。正常前进时触发；回退或读档默认不重放。并发达到上限时，系统先淘汰最低优先级，再淘汰最旧实例。
+SFX 只在正常剧情推进时触发。达到全局或分组并发上限时，优先淘汰最低优先级，再淘汰最旧实例；更低优先级的新请求不会抢占较高优先级实例。
 
-## 目标角色音色
+主题和控件通过 `$adv.$audio.playUi('confirm')` 触发 cue。UI cue 到资产的映射由 Mixer 管理，未配置的 cue 保持静音。确认按钮和复选框只在用户操作时触发，恢复设置不会补播反馈音。
 
-角色的音色在角色管理中维护，不在每句台词中重复 `voiceId`。
+## Mixer
 
-目标角色 Voice Profile：
+在 `adv/audio/mixer.json` 配置项目默认值。六条总线为 `master / music / ambience / voice / sfx / ui`，均支持 `gain / muted / solo`。
 
-```yaml
-voiceProfile:
-  intent:
-    ageImpression: young-adult
-    genderExpression: feminine
-    temperament:
-      - gentle
-      - determined
-    speakingStyle: calm and clear
-    pitch: medium
-    pace: medium
-  locales:
-    zh-CN:
-      providers:
-        minimax:
-          voiceId: voice_abc123
-          source: designed
-          model: speech-02-hd
+```json
+{
+  "schemaVersion": 1,
+  "buses": {
+    "music": { "gain": 0.7 },
+    "ambience": { "gain": 0.5 },
+    "voice": { "gain": 1 }
+  },
+  "ducking": {
+    "enabled": true,
+    "gain": 0.35,
+    "attackMs": 120,
+    "releaseMs": 300
+  },
+  "sfx": {
+    "maxVoices": 16,
+    "groups": { "environment": 4 }
+  },
+  "ui": {
+    "confirm": "ui/confirm",
+    "cancel": "ui/cancel"
+  }
+}
 ```
 
-在 Editor 中：
+Voice 播放时只衰减 music 与 ambience，停止或自然结束后恢复；不改变 SFX 与 UI。播放器设置提供六总线音量、独立静音与恢复项目默认值。设备设置通过 `setUserSettings()` 覆盖项目默认值，主静音和音乐静音保留各总线音量，不改写剧情数据。
 
-1. 打开角色详情的 **Voice** 区域。
-2. 补充声音意图，或让 AI 根据角色性格、背景与说话风格生成建议。
-3. 选择 locale 和 Provider。
-4. 使用系统音色匹配或 Voice Design 生成候选。
-5. 逐一试听候选。
-6. 手工确认后绑定到角色。
+## 对白配音绑定
 
-Studio 使用同一 Voice Profile，但以简化卡片展示候选和已选音色。
-
-::: danger 声音克隆
-
-首版不开放声音克隆界面。未来启用时，必须记录声音主体、授权主体、许可范围、用途、有效期和同意证明；缺少任一强制记录时，生成与发布都会被阻止。
-
-:::
-
-## 目标台词配音
-
-### 为台词建立稳定 ID
-
-第一次为台词生成语音时，Editor/Studio 会写入稳定 `lineId`。文本、角色名和文件位置变化时 ID 不变；复制台词时生成新 ID。
-
-目标源码示例：
+配音通过 `lineId + locale + selectedTake` 解析最终资产。为台词添加完整 UUIDv7 标记，必须位于最后一个物理行的末尾：
 
 ```md
-@mitsuha
-你好，我们又见面了。 {#line_019c...}
+@guide
+欢迎回来。 {#line_019b1ca0-0000-7000-8000-000000000001}
 
-> 夜色渐渐沉下来。 {#line_019d...}
+> 夜色渐渐沉下来。 {#line_019b1ca0-0000-7000-8000-000000000002}
 ```
 
-`{#line_<uuidv7>}` 必须位于一个对话或旁白节点最后一个物理行的末尾。它不会进入展示文本或朗读文本。角色台词的 ledger 记录保存角色 `characterId`；旁白使用项目级保留 profile `narrator`。
+Parser 会移除标记，不将其显示或朗读；Flow 序列化保留同一个 `lineId`。角色使用稳定 `characterId`，旁白使用保留 `speakerId: narrator`。复制台词时创建新 ID；移动和编辑文本时保留原 ID。
 
-### 单句生成
-
-在剧本编辑器中，台词旁显示：
-
-- **Missing**：没有当前 locale 的 take；
-- **Stale**：文本、音色或参数已改变；
-- **Ready**：选中 take 可播放；
-- **Failed**：最近一次任务失败。
-
-点击台词旁的语音按钮可以：
-
-1. 编辑 `spokenText`、情绪、停顿和发音；
-2. 选择角色 Voice Profile；
-3. 试听或生成新 take；
-4. 比较多个 take；
-5. 将一个 take 设为 `selectedTake`。
-
-每次生成都创建新 take，不覆盖旧音频。
-
-take 会固化生成时实际使用的 Provider、`voiceId`、模型和 Voice Profile revision。之后修改角色音色时，旧 take 会变为 Stale，但仍能还原其生成来源。
-
-### 批量生成
-
-目标 **Audio Studio → Voice Jobs** 界面将支持：
-
-- 扫描全项目、章节或角色；
-- 筛选 Missing、Stale、Ready、Failed；
-- 查看台词数、字符数、缓存命中数和预计费用；
-- 设置单次字符或费用上限；
-- 启动、暂停、取消、恢复和重试任务；
-- 生成完成后批量试听、选择并发布。
-
-Provider 无法提供可靠价格时，费用显示为“未知”，不得显示伪精确估算。
-
-托管任务状态保存在服务端，本地 Editor 保存在操作系统应用数据目录，Studio 离线任务保存在不会随项目导出的 IndexedDB 应用状态中。项目账本只在一个 take 已完整生成、校验并提交后记录最终结果。
-
-## 目标展示文本与朗读文本
-
-展示文本可以包含 Markdown 和变量；朗读文本只包含实际发音内容。
-
-例如：
-
-```text
-displayText: **欢迎回来**，{{ playerName }}。
-spokenText: 欢迎回来，小云。
-```
-
-规范化器会移除展示标记并应用项目发音词典。作者可以逐句覆盖 `spokenText`，并使用 Provider 无关的情绪、停顿和重音字段。
-
-运行时才能确定且没有有限候选的变量，不能直接预生成。此类台词可以：
-
-- 为有限变量值分别生成变体；
-- 改写为确定文本；
-- 保持没有配音。
-
-## 目标多语言行为
-
-语音按 `lineId + locale` 独立管理。切换语言时：
-
-- 只选择当前 locale 的 `selectedTake`；
-- 缺少语音时继续显示文本并保持静音；
-- 不回退播放其他语言；
-- 角色可以为各语言绑定不同 `voiceId` 或音色变体。
-
-项目文件使用规范 BCP 47，如 `zh-CN`、`ja-JP`。COS 对象键使用规范化小写 `zh-cn`、`ja-jp`。
-
-## 目标 Mixer
-
-目标 **Audio Studio → Mixer** 界面将配置项目默认值：
-
-- `master / music / ambience / voice / sfx / ui` 音量；
-- Voice ducking 的目标衰减、attack 和 release；
-- BGM 与环境音默认淡入淡出；
-- SFX 全局上限和各并发组上限；
-- 环境音最大槽位数；
-- 预览与 Solo/Mute。
-
-同一配置还把 `confirm`、`cancel`、`hover`、`notification` 等语义 UI cue 映射到稳定资产 ID。主题与组件只触发 cue 名称，不直接引用音频文件。
-
-玩家仍可以覆盖六个总线音量、关闭自动配音，并选择 Auto 是否等待语音。玩家设置按设备保存，不写入项目或剧情存档。
-
-## 目标 Flow 可视化编辑
-
-Flow 编辑器将提供与 ADVScript operation 等价的节点或属性卡：
-
-- **BGM State**：选择资产、set/clear、循环与淡化；
-- **Ambience State**：选择槽位、资产、继承/重置与淡化；
-- **SFX Event**：选择资产、并发组和优先级；
-- **Dialogue Voice**：查看 lineId、locale、状态与 selected take。
-
-可视化编辑最终写回规范项目数据，不创建只能由 Flow Editor 读取的私有音频字段。
-
-## 目标试听与调试
-
-Editor 的 Runtime 音频 Inspector 将显示：
-
-- 各总线有效音量与 ducking；
-- 正在播放的 BGM、环境音槽位和语音；
-- SFX 并发组与被淘汰实例；
-- 加载、播放、停止、替换和失败 trace；
-- locale、Auto、Skip、回退和读档模拟。
-
-Studio 将显示简化的生成、上传和播放失败状态，不提供完整调音控制台。
-
-## 目标 COS 发布
-
-### 存储边界
-
-| 内容                        | 默认位置                     |
-| --------------------------- | ---------------------------- |
-| 母版、全部 take、未发布变体 | 私有 COS                     |
-| 内容哈希发布变体            | 公共 COS/CDN                 |
-| 任务中间文件                | 临时 COS 前缀                |
-| Asset Catalog 与语音账本    | Git                          |
-| 密钥                        | 服务端密钥系统或本机安全存储 |
-| 本地试听缓存                | 本机缓存，不提交             |
-
-### 对象键
-
-```text
-{projectPrefix}/audio/voice/{locale}/{speakerId}/{lineId}/{takeId}.{hash}.{ext}
-```
-
-`projectPrefix` 由 Asset Catalog Profile 决定，例如私有托管空间中的 `private/accounts/{accountId}/projects/{projectId}`，或公共发布的 `games/{game-id}/v{major}`。角色显示名和台词原文不进入对象键。普通角色的 `speakerId` 等于稳定 ASCII `characterId`，旁白使用 `narrator`；复杂查询由资产索引完成。
-
-### 发布流程
-
-1. 检查音频处理、权利记录与选中 take。
-2. 使用 `adv/audio/toolchain.json` 锁定的 FFmpeg build 或 worker image 生成 Opus/WebM 主变体和 AAC/M4A 兼容回退，并验证媒体指标。
-3. 使用短期 STS 或单对象预签名上传。
-4. 服务端 HEAD 并重新校验字节数、MIME 和 SHA-256。
-5. 所有对象成功后，最后更新稳定 manifest。
-6. 运行远端审计。
-
-`adv build` 不执行上述上传操作。
-
-本机其他 FFmpeg 版本可以生成试听预览，但不能产生正式发布 receipt，也不能更新发布哈希或 manifest。Editor 会提示改用匹配 build fingerprint 的本地 container 或 hosted worker。
-
-托管服务只运行平台签名或服务端 allowlist 中的 toolchain profile 和 image digest。项目不能通过 `toolchain.json` 指定任意容器；缺失 lock、schema 非法、未知 profile 或 digest 不匹配都会阻止正式发布。
-
-## 目标旧项目迁移
-
-新音频系统采用破坏性迁移，不保留旧 Runtime 解释分支。先生成报告：
-
-::: warning 命令尚未发布
-
-以下 `adv migrate audio` 命令是已批准的目标 CLI 契约，当前版本尚不可执行。
-
-:::
+配置好 Qwen 或 OpenAI 的作者 Provider 后，先读取账本 revision，再显式生成单句。以下 `REVISION`、`TAKE_ID` 需替换为命令返回的值。
 
 ```bash
-adv migrate audio --report temp/audio-migration.json
+adv voice takes --json
+adv voice generate --line line_019b1ca0-0000-7000-8000-000000000001 --locale zh-CN --speaker guide --text '欢迎回来。' --expected-revision REVISION --json
+adv voice bind --line line_019b1ca0-0000-7000-8000-000000000001 --locale zh-CN --take TAKE_ID --expected-revision REVISION --json
 ```
 
-无法确定的旧 URL 或 BGM 引用会标为 Unresolved，并阻止 apply。作者把选择写入 `adv/migrations/audio-v1.json` 后执行：
+`generate` 创建新资源和未选 take，不覆盖旧音频或自动替换配音。`bind` 使用生成后的最新 revision；替换已选 take 还需 `--replace-selected`。`selectedSample` 是作者音色短句审核，不能代替对白 `selectedTake`。
+
+每个 take 固化真实 Provider 音色 ID、模型、revision、输入指纹、声音来源、音频 SHA-256 和生成时间。编辑文本或 Voice Profile 后，旧 take 标记 Stale 并保留审核历史。克隆来源必须有许可、权利主体和项目内同意记录；缺少记录时在模型启动或收费请求之前拒绝。
+
+展示文本的 Markdown 标记会被移除；含运行时变量的台词必须显式提供确定的 `spokenText`。项目按规范 BCP 47 管理 locale，缺少当前语言的选中 take 时显示文本并静音，不回退播放其他语言。
+
+### 发音词典与旁白音色
+
+`adv/audio/pronunciation.json` 保存全局和精确语言的字面发音替换，不执行正则或 SSML。例如：
+
+```json
+{
+  "schemaVersion": 1,
+  "revision": 1,
+  "replacements": { "ADV.JS": "冒险引擎" },
+  "locales": {
+    "zh-CN": { "replacements": { "重行": "虫行" } }
+  }
+}
+```
+
+精确 locale 条目覆盖同词的全局条目，最长匹配只替换一次，不递归扩大文本。显式 `spokenText` 优先于词典。保存需带最新 revision，字典内容及版本进入输入指纹；修改后已选 take 会标记 stale，音频与选择记录保留。
+
+角色音色配置保存到 `.character.md` 的 `voiceProfile`，每个语言绑定供应商实际 voice ID、模型和来源。旁白使用项目文件 `adv/audio/voice-profiles.json` 的 `narrator` 字段，结构与角色相同，不创建角色卡。两端使用同一校验与 CAS 保存；Node 合成再通过插件的只读预设检查核对实际身份，配置不一致时在模型／网络调用之前拒绝。
+
+正常推进同时开始文字和语音。Auto 等待打字机和语音完成后再计时；Skip、回退、读档和跳转取消旧语音。加载失败解除 Auto 等待并报告诊断。
+
+## Editor 与 Studio 共用服务
+
+两端复用 `@advjs/audio` 的 `createVoiceAuthoringService()` 和 `createProjectAudioService()`，提供相同的 `read / synthesize / register / select` 操作。Editor 通过 ProjectWorkspace 写入，Studio 通过 IFileSystem 写入，都执行 revision 冲突检测、媒体哈希校验和失败回滚。读取账本不会替换 Editor 正在使用的预览 URL。
+
+播放预览统一投影为 `AdvGameConfig.audio` 并使用同一个客户端 Audio Director。Python、模型和供应商 SDK 留在可信作者主机；Studio 配置 `VITE_ADVJS_VOICE_SERVICE_URL` 后使用已登录账号的真实 access token 调用[音频服务](/guide/studio/audio-service)，复用现有 Qwen／OpenAI 注册表。没有配置服务时可以读写既有 take，但不能直接运行 Qwen。
+
+Editor 音频面板与 Studio `/tabs/workspace/audio` 均提供素材库、音色设计、配音审核、生成任务、发音词典、旁白音色和项目 Mixer。角色表单编辑同一个 `voiceProfile`。可以导入音频、显式指定六类用途、编辑资料、试听、按语言选择或替换 take，以及保存项目混音配置。Editor 的 Mixer 保留经过 schema 校验的 JSON 草稿，Studio 提供六总线控制与高级配置。界面遵循各自主机设计规范，输出的项目数据相同。
+
+旧 `kind: audio` 条目需要作者显式选择用途。删除前会检查全部 take 历史、克隆参考、Mixer cue、编译后的剧情操作和衍生关系；仍有引用或无法检查剧情时拒绝删除。删除仅移除目录条目，母版文件保留。登记后的母版路径、SHA-256 与字节数不可通过资料编辑修改。
+
+服务地址由应用部署配置提供，Provider 与凭据由可信主机配置；测试宿主仍可注入 transport。生成前审核真实 Provider、模型、音色、来源与预算，结果登记为未选 take；选择和替换另行确认。两端音色设计支持未登记候选的直接试听、不可变设计版本、精确语言实现，以及分别审核样本登记、选用与角色应用，操作与数据边界见[作者语音](/guide/authoring-voice#两端音色设计)。原生 JSON Flow 编辑、条件和跨章连线见[Flow 文件项目](/guide/flow-projects#editor-与-studio-可视化编辑)。
+
+## 持久任务与恢复
+
+`@advjs/audio` 提供 `planVoiceGeneration()` 和 `createVoiceGenerationRunner()`。计划列出句数、字符数、缓存命中与估价，明确批准字符预算、并发上限及未知费用后才可入队。Runner 复用同一个作者合成／登记服务，不另建供应商注册表，也不自动选择生成结果。
+
+可信 Node 主机可通过 `advjs/node` 的 `createNodeVoiceGenerationStore()` 将任务放在操作系统应用数据目录。任务不进入项目 Git、导出包或存档；状态保存指纹、来源与媒体恢复收据，不保存对白正文、私密提示词或供应商日志。幂等记录至少保留 30 天，取消、恢复与登记失败重试复用已完成媒体。
+
+本地 Editor 的「生成任务」通过已认证的 loopback bridge 使用当前项目与默认作者预设。选择整章、缺失或过期台词及语言、供应商，创建计划，审核预算后入队，再显式运行；单次最多 200 句，较长章节分批审核。主机只读检查真实预设、模型版本、音色与参考哈希；执行前重读剧本、音色、词典和授权，变化时要求重新计划。无需在浏览器填写供应商密钥。
+
+Studio 使用相同 Planner／Runner。在线服务是唯一的供应商执行方，账号由服务端验证的会话决定，项目 ID 必须匹配服务器注册的根目录；浏览器不能提供主机路径或供应商密钥。有限原生文件与音频母带按 revision、asset ID、SHA-256 同步。服务端独立重读预设、Profile、词典、参考媒体和授权，再审核、入队、显式运行。已登记结果通过认证下载、字节校验和共享 `importTake()` 原样导回相同的 asset／take ID，不再次合成，也不自动选用。
+
+离线任务仍存入按账号、项目隔离的私有 IndexedDB，不进入项目导出；联网只恢复状态，执行前需要服务器重新审核。完整配置和有限 HTTP 路由见[Studio 音频服务](/guide/studio/audio-service)。两端相同的实际参数产生同一输入指纹，已有媒体先校验再复用。
+
+请求结果不确定时必须先查询供应商，不能直接重发。当前 Qwen／OpenAI 适配器没有远程任务查询接口，这类未知请求保持阻塞，不能宣称能自动恢复收费调用。服务端持久任务可在重启后查询已知生成结果，但不能把本机 HTTP 中断当作供应商未执行的证明。
+
+## 非破坏式媒体处理与发布
+
+可信 Node 主机通过 `advjs/node` 的 `processProjectAudio()` 显式处理本地母版；`adv build` 不运行它。处理生成 48 kHz Opus／WebM 与 AAC／M4A 变体，并记录原始 SHA-256、FFmpeg 构建指纹、预设、字节数、时长、声道、响度与真峰值。输出按内容哈希命名，可重跑复用，母版保持原样。Voice 只裁去两端静音，保留句内停顿；极短 cue 使用峰值限制，无法测得的综合响度记为 `null`。
+
+本地预览检查 FFprobe、Opus、AAC、响度和静音处理能力。正式发布还必须匹配工具链锁与可信主机的批准列表；项目不能指定任意容器镜像，预览收据不能更新公共发布清单。`adv doctor` 提供能力与构建诊断。
+
+共享 `planAudioRelease()` 与 `publishAudioRelease()` 生成规范对象键并执行二进制先验证、原生 Asset Catalog manifest 最后 CAS 更新的顺序。计划读取原生目录与真实账本中的已选 take，执行时重新核对可信处理收据、当前绑定、工具链批准列表及全部 Voice 授权，克隆来源还需重读同意记录。参考素材、未选配音和私有母版不能夹带到公开目录。可信宿主必须实现 `verifyProcessingReceipt()` 并返回其存储中的收据，不能回显客户端计划作为验证。`createNodeAudioPublicationHost()` 将该协议接到真实 FFmpeg、项目外可信收据存储和现有 `CosStorage`。Studio「审核音频发布」提交可查询的后台转码任务；同进程最多两个处理 Worker，恢复中断任务时复用不可变输出。审核完成后单独点击发布，宿主重读当前选用、母带、变体与授权记录的字节。
+
+COS 对象使用禁止覆盖的 PUT，HEAD 后再用 ETag 固定 GET 并核验实际 SHA-256。部署应使用从未启用版本控制的专用桶；SDK 的 `getAuthorization` 支持刷新 STS。公开清单使用 `manifests/assets.<sha256>.json` 不可变地址，全部音频验证后最后上传；服务端项目外指针以持久锁和原子写入执行 revision CAS。失败的 CAS 只留下未引用的不可变对象，不覆盖旧清单；发布响应丢失时查询状态或重用同一审核记录，不生成新音频。
+
+正式处理必须使用服务端批准的工具链。需要容器时，`createLockedAudioContainerRunner()` 只运行已安装且 ID 与 allowlist 一致的固定 digest 镜像，不联网、不拉取项目指定镜像，项目根只读、处理输出单独可写。容器部署和真实 STS／云端环境仍须按[实现报告](/reports/2026-10-11-audio-runtime-implementation)验收。发布配置示例见[Studio 音频服务](/guide/studio/audio-service)。
+
+## 旧项目迁移
+
+先把旧 BGM 引用对应的资源登记在原生目录，再创建项目内显式映射文件：
+
+```json
+{
+  "summer-day": "bgm/summer-day",
+  "/audio/summer-day.wav": "bgm/summer-day"
+}
+```
+
+生成只读报告并检查 `unresolved`：
 
 ```bash
-adv migrate audio --resolutions adv/migrations/audio-v1.json --apply
+adv migrate-audio --map adv/migrations/audio-map.json --report adv/migrations/audio-report.json --json
+adv migrate-audio --apply adv/migrations/audio-report.json --json
 ```
 
-Apply 会先完整验证目标项目，再原子替换文本文件；失败时根据 journal 恢复本次写入。迁移不上传 COS、不删除原音频，重复执行 canonical 项目不会产生新 diff。
+迁移不猜测类别或 URL。Apply 在项目锁内重新核对源文件和资源目录哈希，拒绝未解析引用、过期或被修改的报告；journal 记录先于文件替换，失败时保护性回滚。异常退出可用 `adv migrate-audio --recover REVISION` 恢复。它不迁移旧存档、不上传 COS，也不删除原音频。
 
-## 目标 Player 播放行为
+Hamster Demo 的源内容和资产已迁移，原始映射与哈希证据见[迁移报告](/reports/2026-10-11-audio-migration)。
 
-默认行为：
-
-- 打字机和语音同时开始；
-- 第一次确认补全文字，语音继续；
-- 第二次确认停止语音并前进；
-- Auto 等待文字与语音完成；
-- Skip 立即停止语音；
-- 跳转、回退、读档和切章取消旧语音；
-- 历史记录不自动播放语音；
-- Voice 播放时降低 music 与 ambience。
-
-首次用户交互前，浏览器可能阻止音频。AudioEngine 会在首次交互统一解锁；已经过期的语音不会延迟补播。
-
-## 目标校验
-
-::: warning 校验规则尚未发布
-
-以下音频 schema 诊断是目标行为；当前 `adv check` 和 `adv build` 尚不保证执行这些规则。
-
-:::
-
-运行：
+## 验证
 
 ```bash
 adv check
 adv build
+pnpm vitest run tests/unit/audio tests/unit/runtime/runtime-audio-state.test.ts
+pnpm e2e:audio
 ```
 
-构建会阻止：
+编译检查非法操作、重复 lineId、错误用途的资产、Mixer／账本 schema、selected take 的资源和哈希、角色不一致及缺失权利记录。文本变化是 warning；没有配音的普通台词仍可运行。Node 与两端作者绑定服务另会读取媒体实际字节，拒绝登记或选中已被修改的音频。
 
-- 重复 ID、非法 locale；
-- 未知音频资产；
-- 丢失或哈希错误的 selected take；
-- 临时 URL 或密钥进入清单；
-- 缺少授权的克隆音色。
+测试使用离线 Fake TTS、Fake Backend 和测试 WAV。真实 Chromium／WebKit 测试验证手势解锁、实际声音输出、多轨混音、ducking、历史取消和销毁；不会下载模型、调用付费 TTS 或访问真实云桶。发布测试另用真实 COS SDK 连接本地 HTTP 验收端，检查内容哈希、缓存头、冲突与 manifest-last。
 
-缺少某语言配音或 selected take 已过期通常是警告。游戏仍显示文本，不因可选语音缺失而崩溃。
-
-## 目标协议常见问题
-
-### 为什么不能直接写音频 URL？
-
-URL 是部署位置，不是内容身份。稳定 `assetId` 允许改名、重新编码、切换 COS/CDN 和离线运行，而不修改剧情。
-
-### 为什么旧 take 不自动删除？
-
-AI 配音需要比较和回退。只有作者明确清理，或资产垃圾回收确认无引用后，才删除本地与 COS 对象。
-
-### 为什么 locale 放在 speaker 前？
-
-配音最常见的批处理是按语言发布、质检和统计缺失。角色与旁白搜索由账本索引完成，不依赖 COS 路径。
-
-### 可以完全离线吗？
-
-目标架构允许完全离线。本地 Editor 将使用 `provider: project` 的 Asset Catalog Profile 和本机 Provider 配置。没有 COS 时，发布构建打包本地音频；密钥仍不能写入项目。
-
-### Editor 和 Studio 会产生不同项目吗？
-
-目标协议不允许产生不同项目语义。Editor 将提供完整专业界面，Studio 将提供移动端核心界面，但两端写入同一套项目 schema。
-
-## 相关文档
-
-- [音频资产与 AI 配音决策](/about/design/audio)
-- [资源目录协议](/guide/assets/catalog)
-- [COS 存储与发布规范](/guide/assets/cos)
-- [场景演出与素材](/guide/runtime/presentation)
+相关设计与阶段验收见[音频设计规范](/about/design/audio)、[实施计划](/plans/2026-08-12-audio-system-implementation)与[本轮实现报告](/reports/2026-10-11-audio-runtime-implementation)。

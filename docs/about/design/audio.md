@@ -4,19 +4,21 @@
 
 日期：2026-08-12
 
-最近更新：2026-08-13
+最近更新：2026-10-11
 
 完整技术细节见[多轨音频与 AI 配音系统设计](/specs/2026-08-12-audio-system-design)。
 
 ## 当前落地状态
 
-现有 `useAdvBgm` 已完成兼容期生命周期加固：逻辑主轨切换不会重复接管更早的退场轨道，过期淡化回调不能卸载重新选中的曲目，脚本停止只处理当前曲目，静音状态覆盖交叉淡化中的全部物理轨道，历史恢复统一使用 120ms 短淡化。Studio 也会在卸载播放器时释放活动与退场轨道。
+`@advjs/audio` 已实现统一 AudioEngine、六条混音总线、四个 Ambience 槽位、前景 Voice、限流 SFX、语义 UI cue、Fake Backend 与 Browser Backend。`useAdvAudio()` 是游戏、Editor 和 Studio 预览的共同宿主，旧 `useAdvBgm` 与 Howler 编排已移除。Runtime Program／Snapshot 升级到版本 2，旧音频字段通过显式映射和迁移报告升级，旧存档不兼容。
 
-这组改动解决了旧 BGM 路径的竞态并建立迁移前基线，但不代表本决策中的统一 AudioEngine 已经完成。`@advjs/audio`、Audio Director、Mixer、多总线、Ambience、Voice、SFX、UI cue、Fake/Browser Backend 与 AI 配音账本仍按[实施计划](/plans/2026-08-12-audio-system-implementation)推进；在迁移完成前，`useAdvBgm` 仍是兼容实现，不是新架构的长期公共接口。
+作者侧已实现 `lineId + locale + selectedTake`、不可变 take、来源和权利记录、stale 检测及 revision 检查。Qwen 与 OpenAI 复用现有 `AdvVoiceSynthesisProvider`；Node、Editor 和 Studio 使用同一创作服务与文件协议。`selectedSample` 仍只表示音色短句审核，不代替对白选择。
+
+Editor／Studio 已提供同协议的六类素材管理、配音审核、版本化音色设计、未登记候选试听、角色与旁白 Profile、发音词典、批量任务和 Mixer；Editor 原生 Markdown 流程图与源码也可编辑场景音频，两端 JSON Flow 编辑复用原生节点、条件、连线与序列化协议。设备控制、对白预取、本地持久任务、Studio 私有离线队列、非破坏式 FFmpeg 处理、认证 TTS 服务、COS SDK 发布与标准 Flow 构建已接入。本地 HTTP 验收使用测试供应商与实际媒体工具，不代替真实模型、付费云端和 STS 部署验收。可执行流程以[音频指南](/guide/audio)和[作者语音模块](/guide/authoring-voice)为准，阶段证据见[本轮实现报告](/reports/2026-10-11-audio-runtime-implementation)，剩余验收以[实施计划](/plans/2026-08-12-audio-system-implementation)为准。
 
 ## 问题
 
-现有 BGM 播放器以 Howler 实例和 Vue 组合式状态为中心。它无法自然表达环境音分层、前景语音、SFX 并发和总线混音；兼容路径此前还会受异步淡化回调竞态影响，现已加固，但这些职责仍不适合继续堆叠在单个 Vue composable 中。
+旧 BGM 播放器以 Howler 实例和 Vue 组合式状态为中心，无法自然表达环境音分层、前景语音、SFX 并发和总线混音；这些职责不适合继续堆叠在单个 Vue composable 中。
 
 Studio 已能调用部分 TTS Provider 并管理音频素材，但生成结果没有稳定绑定台词，也缺少多语言 take、角色音色、成本控制、权利记录和确定性发布协议。Editor、Studio、Runtime 和 COS 如果继续分别演进，将形成多套事实源。
 
@@ -37,7 +39,7 @@ flowchart LR
 
 Audio Director 管理 BGM、环境音、语音和瞬时音效的生命周期；Audio Mixer 管理 `master / music / ambience / voice / sfx / ui` 总线；Backend 隔离浏览器、原生容器和测试实现。
 
-`useAdvBgm` 不再拥有状态。迁移完成后由共享音频子系统完全取代它，Vue 只暴露薄的 `useAdvAudio()` 订阅接口。
+`useAdvBgm` 已由共享音频子系统取代，Vue 只暴露薄的 `useAdvAudio()` 订阅接口。
 
 ### 持续状态与一次性事件
 
@@ -61,15 +63,18 @@ Voice 只 duck music 和 ambience，不影响 sfx 与 ui。
 
 ### 角色拥有 Voice Profile
 
-音色属于角色管理系统。角色保存 Provider 无关的音色意图，并为每个 locale 保存 Provider binding。台词不直接保存 MiniMax `voiceId`。
+音色属于角色管理系统。角色保存 Provider 无关的音色意图，并为每个精确 locale 保存 Provider binding。台词通过稳定 `lineId` 绑定已审核 take，供应商音色与项目音色版本分别记录。
 
-系统音色和 MiniMax Voice Design 纳入第一版；候选试听并由作者确认后才能绑定。声音克隆只预留协议，缺少授权主体、许可范围和明确同意时禁止生成与发布。
+两端使用同一版本化音色设计契约，按可信宿主能力开放系统音色、描述设计与授权参考条件。候选预算审核、执行、临时试听、登记、样本选用和角色应用是独立操作；缺少授权主体、许可范围和明确同意时禁止参考生成与发布。
+
+当前复用 Qwen MLX 的 VoiceDesign 描述条件与 Base 参考条件，以及 OpenAI 内置音色／指令。描述与参考条件用于实际合成，不冒充永久供应商音色。MiniMax 为后续供应商，按共享接口接入，不将 SDK 放入 Runtime。
 
 ### 创作账本与运行清单分离
 
 ```text
 adv/audio/voice-ledger.json  → 全部 take、fingerprint、生成与权利信息
-adv/assets/audio.json        → 最终选中、可由 Runtime 播放的资产
+adv/assets.json             → 唯一原生目录，可分片为 assets/audio.json
+AdvGameConfig.audio         → Runtime 需要的资产与各语言已选 take
 ```
 
 账本进入 Git，但不包含密钥、任务锁、瞬时进度或签名 URL。构建清单不包含未采用 take、成本历史或 Provider 私有响应。
@@ -106,11 +111,13 @@ adv/assets/audio.json        → 最终选中、可由 Runtime 播放的资产
 
 ### Editor 与 Studio
 
-目标状态下，两端共享协议和创作服务，但界面分级：
+两端已共享资源管理、版本化音色设计、配音审核、批量任务和 Mixer：
 
-- Editor 将提供完整 Audio Studio、Mixer、批量生成、Flow cue 与 Runtime 音频 Inspector；
-- Studio 将提供移动端角色音色、生成队列、资产试听、COS 发布和简化混音；
-- 两端都将直接修改同一 ADVScript、角色文件、Asset Catalog 和语音账本，不使用编辑器私有数据库保存项目语义。
+- Editor 使用 AGUI 音频面板，原生 Markdown／JSON Flow 编辑相同的音频操作；
+- Studio 提供移动端音色设计、生成队列、资产试听、六总线混音和审核发布流程；
+- 两端直接修改同一 ADVScript／Flow、角色文件、Asset Catalog 和语音账本，不使用编辑器私有数据库保存项目语义。
+
+更完整的 Runtime 音频诊断界面和真实模型／云部署验收继续按主计划建设，当前证据见实现报告。
 
 ## 后果
 

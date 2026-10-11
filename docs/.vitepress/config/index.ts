@@ -276,6 +276,18 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
           link: '/guide/audio',
         },
         {
+          text: '作者语音与 TTS 插件',
+          link: '/guide/authoring-voice',
+        },
+        {
+          text: 'Studio 配音服务部署',
+          link: '/guide/studio/audio-service',
+        },
+        {
+          text: '序列化 Flow 项目',
+          link: '/guide/flow-projects',
+        },
+        {
           text: '自定义开始界面',
           link: '/guide/customization/start-screen',
         },

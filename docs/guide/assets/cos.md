@@ -46,9 +46,9 @@ games/{game-id}/v{major}/
 
 `game-id`、角色、场景和状态均使用小写 ASCII kebab-case。路径不得包含空格、中文、来源作品分卷、`latest/`、查询串版本号或可编辑源文件。素材内容变化后生成新的 SHA-256 文件名；已经发布为 immutable 的对象绝不覆盖。破坏性目录变化或清单契约变化时升级到 `v2/`。
 
-### 已确认的音频对象键扩展
+### 统一音频对象键
 
-下一次破坏性音频迁移会把上方简单的 `audio/bgm`、`audio/sfx` 分支升级为统一音频域。规范形式为：
+音频发布已实现统一音频域，替代上方早期的简单 `audio/bgm`、`audio/sfx` 分支。规范形式为：
 
 ```text
 {projectPrefix}/audio/
@@ -63,7 +63,7 @@ games/{game-id}/v{major}/
 
 locale 在 voice 域中优先于 speaker，以支持按语言发布、质检、统计和最小权限任务。普通角色的 `speakerId` 等于 `characterId`，旁白使用 `narrator`。项目文件使用规范 BCP 47（如 `zh-CN`），对象键使用规范化小写（如 `zh-cn`）。角色显示名、台词原文、Provider 名称和签名参数不进入对象键。
 
-该扩展当前处于已确认、待实施状态。完整边界见[音频资产与 AI 配音决策](/about/design/audio)和[音频系统设计](/specs/2026-08-12-audio-system-design)。
+正式音频变体使用完整 SHA-256、Opus／WebM 和 AAC／M4A。公开发布只含当前剧情采用的配音和显式资源，不上传母版、未选历史、参考或授权文档。完整边界见[音频资产与 AI 配音决策](/about/design/audio)和[音频系统设计](/specs/2026-08-12-audio-system-design)。
 
 ## 清单与发布计划
 
@@ -77,6 +77,10 @@ locale 在 voice 域中优先于 speaker，以支持按语言发布、质检、�
 - 上传顺序，其中 manifest 固定在最后。
 
 发布时只消费计划中的对象，不递归上传整个临时目录。这样重复生成留下的旧哈希文件不会被误发布。
+
+音频服务使用 `createNodeAudioPublicationHost()` 的独立审核计划与可信处理收据。公开音频清单为 `manifests/assets.<sha256>.json`，与派生音频一样使用一年 immutable 缓存，最后上传并读取实际字节核验，再 CAS 更新项目外的私有指针。上面的美术稳定 `assets.json` 仍使用短缓存；两种入口的缓存语义不能混用。
+
+不可覆盖音频发布要求桶从未开启版本控制；Enabled 或 Suspended 均拒绝。COS 在开启版本控制的桶中不会执行 `x-cos-forbid-overwrite` 的预期保护，因此不能为了发布音频而停用现有私有资源桶的版本策略。选择独立未开启版本控制的发布桶或已有合规桶的独立 namespace。参考[腾讯云 PutObject 说明](https://cloud.tencent.com/document/product/436/7749)。
 
 ## 清单的消费边界
 
@@ -208,3 +212,20 @@ node skills/adv-art/scripts/audit-cos-remote.mjs \
 SecretId、SecretKey 和 Token 只存在于当前终端环境，不写入项目、清单、发布计划或日志。可编辑原图、提示词草稿、QA 图和被拒素材只保存在本地工作目录。
 
 腾讯云参考：[前端直传与临时密钥](https://cloud.tencent.com/document/product/436/40265)、[预签名 PUT](https://cloud.tencent.com/document/product/436/14114)、[签名安全说明](https://cloud.tencent.com/document/product/436/36121)、[生命周期](https://cloud.tencent.com/document/product/436/17031)。
+
+## 音频远端只读验收
+
+真实音频发布后，使用公开 manifest 的原始字节 SHA-256 固定本次版本：
+
+```bash
+pnpm audio:audit:cloud \
+  --manifest-url "$MANIFEST_URL" \
+  --manifest-sha256 "$MANIFEST_REVISION" \
+  --source-base-url "$COS_SOURCE_BASE_URL" \
+  --public-base-url "$PUBLIC_BASE_URL" \
+  --studio-origin https://studio.advjs.org
+```
+
+该审计只执行匿名 HTTPS GET／HEAD／OPTIONS，不使用凭据、不写对象、不接受签名 URL 或重定向。它下载源站及公开域名的完整清单和两种变体，计算实际 SHA-256、核对字节／MIME／immutable 缓存／checksum 元数据，并比较 Range 206 的响应字节和只读 CORS 预检。manifest 限 2 MiB，单对象限 64 MiB，总下载限 512 MiB。
+
+公开 base 与源站相同时只证明 COS 直读链路；接入自定义域名或 CDN 后应分别填写两者再验收。JSON Flow 发布构建和双浏览器播放见[托管音频服务指南](/guide/studio/audio-service#在普通项目构建中使用公开音频)，当前实际结果见[验收报告](/reports/2026-10-11-audio-runtime-implementation)。

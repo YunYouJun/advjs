@@ -1,6 +1,6 @@
 # Multi-track Audio and AI Voice Implementation Plan
 
-> Status: in progress. The compatibility BGM lifecycle baseline is complete; the unified AudioEngine tasks below have not started.
+> Status: in progress, reviewed 2026-10-12. Unified playback, both audio-management workspaces, authenticated Studio jobs/native sync and serialized Flow compilation are implemented. Studio now supports explicit local pairing without cloud login, and Qwen design presets preserve locale and structured intent. Fresh real Qwen authoring/export/playback and Studio-panel COS publication have passed using the shared protocol and approved local FFmpeg worker. The author prioritizes local TTS without CFS; hosted generation/persistent cloud deployment is deferred, while listening quality and cross-device review remain future acceptance.
 
 **Goal:** Replace the BGM-only orchestration with a deterministic multi-track AudioEngine, add asset-addressed BGM/ambience/voice/SFX/UI semantics, and deliver Git-friendly AI voice authoring in Editor and Studio.
 
@@ -10,9 +10,73 @@
 
 **Design:** [`2026-08-12-audio-system-design.md`](../specs/2026-08-12-audio-system-design)
 
-## Implemented migration baseline
+## Current implementation and remaining sequence
 
-Before the breaking migration starts, the existing `useAdvBgm` path now provides a deterministic compatibility baseline:
+Runtime Program/Snapshot v2 now share canonical audio operations, stage audio and stable line IDs across Markdown/Flow. `@advjs/audio` owns engine, mixer, ledger and authoring transactions; Client owns the thin host and browser backend. Qwen/OpenAI reuse `AdvVoiceSynthesisProvider`, not a new provider registry. `selectedSample` remains distinct from dialogue `selectedTake`.
+
+The original twelve tasks remain the authoritative full-system checklist. Current evidence is tracked in [the runtime implementation report](../reports/2026-10-11-audio-runtime-implementation); file lists below describe planned seams, while the report identifies actual delivered files.
+
+| Tasks | Delivered                                                                                                                                                                         | Remaining acceptance                                                             |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| 1–2   | JSON contracts, UUIDv7, locale, fingerprints, credential rejection, release toolchain lock and canonical object keys                                                              | Trusted hosted profile distribution                                              |
+| 3–4   | Canonical compiler/runtime, persistent/transient separation, deterministic Engine, Mixer, Fake Backend                                                                            | Implemented; regression evidence in the report                                   |
+| 5     | Browser Backend, decode cache, current-plus-two voice prefetch, six-bus device settings, shared client host, migration and browser QA                                             | Full game journeys across deployed hosts                                         |
+| 6     | Ledger, source/rights, immutable takes, profile/dictionary stale checks, versioned voice design, character/narrator editors, shared authoring services                            | Real-model voice quality and additional provider capabilities                    |
+| 7     | Qwen/OpenAI reused; Editor/Studio same planner/runner, authenticated hosted jobs, verified account/project sync, exact-ID receipt import and safe recovery                        | Provider-side query when supplied; real paid/model quality; additional providers |
+| 8     | Real FFmpeg variants, durable preparations/receipts, actual approved container, bounded STS and actual immutable COS manifest-last publication + durable pointer CAS              | Persistent cloud worker deployment, restart acceptance and custom-domain/CDN QA  |
+| 9–10  | Shared native CRUD, multilingual takes, Mixer CAS, voice design/audition/application, batch tasks, publication UI, Markdown controls and visual canonical JSON Flow editing/build | Real-model quality and deployed cloud/device acceptance                          |
+| 11–12 | Demo migration and native Flow assets, crash recovery, cross-host revisions, real local HTTP generation/publication and browser QA                                                | Deployed cloud journey, listening review and cross-device/long-task performance  |
+
+Resource categories, CRUD, reference-aware deletion and acceptance are defined in [the design's lifecycle contract](../specs/2026-08-12-audio-system-design#_30-管理系统的资源生命周期). Do not duplicate project state in a standalone audio database. Current checks and limitations are recorded in [the implementation report](../reports/2026-10-11-audio-runtime-implementation).
+
+## Voice design and visual JSON Flow continuation
+
+Status: implemented and locally accepted, 2026-10-11. This continuation uses the same native files, providers, authenticated service and local acceptance boundary as the preceding delivery.
+
+- [x] Extend the existing versioned voice library with provider-neutral intent and exact-locale implementations; preserve existing sample selections and unrelated author metadata.
+- [x] Both workspaces edit built-in voices, supported description design and authorized reference conditioning through one capability-checked protocol. Preview budget review, execution, temporary audition, registration, sample selection and profile application remain explicit operations.
+- [x] Design revisions are immutable. Applying a reviewed sample changes only the explicitly selected character/narrator binding, preserves other languages/providers, and leaves dialogue takes unchanged. Changes produce stale diagnostics through the existing fingerprint protocol.
+- [x] Editor and Studio edit all supported serialized Flow node types through one pure command/history/serialization contract. Graph layout, array order and runtime connections are independent; stable dialogue identities and author metadata survive edits.
+- [x] Save through each host's native revision/CAS transaction. Undo/redo, reconnect, explicit disconnect, choice conditions, cross-chapter targets, entry changes and referenced deletion produce reviewable results; invalid drafts remain editable and cannot silently overwrite newer sources.
+- [x] Studio discovery, reload, preview and export read canonical Flow JSON rather than Markdown. Edited files pass the same Node check/build and player protocol as Editor projects.
+- [x] Local real-HTTP browser journeys cover unregistered candidate audition, reviewed sample/application, cancellation/recovery, JSON Flow save/reload/conflict, and playback of the edited branch with selected voice. Review normal/narrow Editor and Studio screenshots; do not download real models, bill TTS or access a real COS bucket.
+
+Acceptance evidence is appended to [the implementation report](../reports/2026-10-11-audio-runtime-implementation) only after the corresponding checks pass.
+
+## Real local Qwen acceptance continuation
+
+Status: implemented and locally accepted, 2026-10-11. The author explicitly requested automatic environment preparation, pinned model downloads and actual local synthesis after the preceding Fake-provider acceptance. This opt-in continuation uses an isolated project on Apple Silicon and preserves the ordinary offline test boundary. Actual evidence, intermediate attempts and zero-model playback recovery are recorded in the implementation report.
+
+- [x] Prepare the existing Qwen plugin's pinned Python/MLX environment, download fixed VoiceDesign and Base revisions, and verify every declared model weight SHA-256. Keep `doctor`, preset inspection and ordinary CI read-only.
+- [x] Generate actual VoiceDesign audio and reuse an explicitly documented original synthetic reference with the Base model. Record model/runtime provenance, real bytes, duration, peak memory and generation time; do not present synthetic source records as human consent.
+- [x] Run Editor's real-provider journey through budget review, audition, registration, explicit sample/application and dialogue take selection. Save and reload native JSON Flow, then build and play it using the ordinary project protocol.
+- [x] Run Studio's authenticated real-provider HTTP journey using the same project/model cache and shared protocols. Export the native project, check/build it independently and play the selected take and edited branch in Chromium and WebKit.
+- [x] Verify actual audio hashes, decoded/browser output, exact line/take/asset identity, private-resource exclusion, cache reuse and normal/narrow UI screenshots. Record the results and remaining deployment or subjective-quality limits in the existing implementation report.
+
+The 2026-10-12 continuation adds the actual local-pairing entry, file-system readiness fix, locale/intent derivation and pinned-environment repair. Fresh Editor and Studio journeys each generated four genuine outputs; Studio published the selected Base take through its ordinary audio panel. Detailed provenance and gates remain in the [implementation report](../reports/2026-10-11-audio-runtime-implementation#2026-10-12-本地配对与-qwen-参数续验).
+
+Real model processes run serially on the shared machine. These tests require explicit opt-in and do not call paid APIs; COS writes remain disabled by default. Extending the Studio journey with live COS requires a separate publish gate and a trusted operator module outside the project, using the already-authorized acceptance namespace. Model caches and virtual environments are machine-local and never enter native project exports or player builds.
+
+## Real COS and deployed Studio continuation
+
+Status: local TTS and actual COS publication/playback accepted, cloud execution deferred, 2026-10-12. The author requested real COS publication and automatic cloud configuration after local Qwen acceptance, then explicitly chose local TTS first. The isolated live namespace is accepted; hosted TTS, CFS and cloud credentials are no longer this phase's completion criteria. Ordinary builds and CI remain offline. Actual results are recorded in the existing implementation report.
+
+- [x] Resolve an existing permitted, never-versioned COS bucket without weakening the versioning policy of the private Studio resource bucket; preserve existing policies and CORS rules.
+- [x] Issue a 30-minute subaccount STS session limited to bucket version-state reads and the isolated acceptance prefix GET/HEAD/PUT; keep credentials out of files, browser and reports.
+- [x] Build and inspect an actual official Linux/arm64 FFmpeg worker, approve its real image ID and complete build fingerprint, and verify read-only project mounts, network isolation and real Opus/AAC output.
+- [x] Publish an existing genuine Qwen selected take via the shared Node host and existing COS plugin; read back actual manifest/object bytes and audit anonymous HTTPS SHA, metadata, immutable caching, Range and CORS.
+- [x] Implement an opt-in COS/player replay and a separate opt-in deployed Studio journey, with explicit read/write/generate gates and a single-line budget. A skipped or local fixture result does not pass the deployed Studio gate.
+- [x] Run real COS replay in Chromium/WebKit via ordinary pinned-manifest Flow builds, normal Start audio, exact native identity, branches, metadata/Range/CORS and private-resource exclusion; record source unchanged and zero new model calls.
+- [x] Add operator-controlled deployment JSON, official CloudBase session authentication, account/project isolation, refreshed per-project STS files and fail-closed persistent single-instance startup.
+- [ ] Deferred: provision and verify actual cloud persistent storage and an independent audio service with the selected supported provider and server-only credentials.
+- [ ] Deferred: register a real Studio author/project, deploy its HTTPS service and the current Studio frontend, and run authenticated generation/selection/publication/export/playback with restart persistence.
+- [ ] Verify any distinct public CDN/custom domain separately from the COS source, and complete listening/long-task/cross-device review.
+
+The current Qwen MLX factory requires Apple Silicon macOS; the Linux deployment uses the existing OpenAI plugin. CloudBase management login is not a Studio author session. Cloud persistent-storage activation, provider credentials and actual user/project registration are deployment prerequisites, never replaced by fabricated IDs, temporary container disks or a development tunnel.
+
+## Implemented runtime migration
+
+The earlier BGM race regression has been absorbed into the shared engine:
 
 - only the logical active track is selected for a new retirement; earlier crossfade retirements keep their original envelope;
 - stop semantics affect the current authored track rather than every physical track still fading out;
@@ -22,20 +86,20 @@ Before the breaking migration starts, the existing `useAdvBgm` path now provides
 - dispose unloads active and retiring tracks;
 - Studio builds against an embed-safe client surface and injects its runtime plugins explicitly.
 
-The regression seam is `tests/unit/client/client-bgm.test.ts` plus `tests/unit/client/client-runtime-presentation.test.ts`. This baseline does not complete Task 4 or Task 5: there is still no shared Audio Director, Mixer, Fake Backend, Browser Backend, multi-bus runtime or `useAdvAudio()` API.
+The regression seams are `tests/unit/audio/audio-engine.test.ts`, `browser-backend.test.ts`, `client-audio-host.test.ts` and `tests/e2e/audio-runtime.spec.ts`. `useAdvBgm`, both Howler sound composables and their dependencies were removed. Native content migration evidence is recorded in [the migration report](../reports/2026-10-11-audio-migration).
 
 ## Global constraints
 
 - This is a breaking migration. Do not add a second runtime interpreter for old audio fields.
 - Generate a migration report before modifying source content. Unresolved references stop the migration.
 - Runtime Program, Snapshot, effects and trace remain JSON-only.
-- No production build, check or test may call paid TTS APIs or upload COS objects.
+- Ordinary production builds, checks and CI tests must not call paid TTS APIs or upload COS objects. Explicitly authorized live acceptance is isolated, opt-in and budgeted under the continuation above.
 - Tests use Fake Provider, Fake Backend and Fake Object Storage by default.
 - API keys, SecretId, SecretKey, STS Token and signed URLs never enter project files, snapshots, fixtures, logs or reports.
 - Existing unrelated worktree changes must remain untouched.
 - Every task must leave the selected package buildable and its focused tests green.
 - Before implementation starts, verify every listed package name and script against its `package.json`; when a task creates a package, creating and testing its build script is part of that task.
-- Do not deploy, push, or mutate external task systems as part of this plan.
+- The original offline plan does not authorize deployment or external task-system mutations. Later explicit author instructions authorize the isolated cloud continuation above; Git pushes and unrelated external changes remain outside its scope.
 
 ---
 
@@ -67,7 +131,7 @@ The regression seam is `tests/unit/client/client-bgm.test.ts` plus `tests/unit/c
 - Define branded or validated `AudioAssetId`, `AudioLineId`, `AudioTakeId` and `AudioLocale` strings.
 - Define `CharacterVoiceProfile`, `VoiceLedger`, `VoiceTake`, `AudioMixerConfig` and runtime audio state/effect types.
 - Reserve `source: 'cloned'` while requiring rights metadata; do not expose clone generation.
-- Set target project files to `adv/assets/audio.json`, `adv/audio/mixer.json`, `adv/audio/toolchain.json` and `adv/audio/voice-ledger.json`.
+- Keep the unique native catalog at `adv/assets.json`, optionally sharded into `adv/assets/audio.json`; use `adv/audio/mixer.json`, `adv/audio/toolchain.json`, `adv/audio/voice-ledger.json`, `adv/audio/pronunciation.json` and `adv/audio/voice-profiles.json` for their independent contracts.
 - Define `adv/audio/toolchain.json` with its own schema version, platform toolchain profile ID, release FFmpeg build fingerprint and worker image digest.
 - Use schema versions in every independently loaded JSON document.
 - Freeze Markdown line identity as a final `{#line_<uuidv7>}` token on the last physical line of one dialogue or narration node; Parser removes it from display/spoken text and Flow uses `AdvDialogNode.lineId`.
@@ -77,14 +141,14 @@ The regression seam is `tests/unit/client/client-bgm.test.ts` plus `tests/unit/c
 - Declare `@advjs/types` as the audio package's workspace dependency and add `@advjs/audio` only to packages that consume its domain logic.
 - Insert `@advjs/audio` after `@advjs/types` and before Core/Client consumers in ordered builds.
 
-- [ ] Write contract tests for valid examples, unknown keys where strictness is required, duplicate IDs, invalid UUIDv7 prefixes and locale normalization.
-- [ ] Test that serialization never includes `undefined`, Map, Set, class instances or functions.
-- [ ] Test that no schema property can store credentials or signed URLs.
-- [ ] Add Markdown dialogue/narration and Flow line-ID parse/serialize fixtures before later compiler work.
-- [ ] Test narrator and character take records plus Voice Profile revision staleness.
-- [ ] Test valid, missing, malformed, unknown-profile and digest-mismatch toolchain locks; invalid locks allow preview but block release.
-- [ ] Implement runtime validators in `@advjs/audio` without Vue, DOM or Node-only dependencies.
-- [ ] Export shared types and validators.
+- [x] Write contract tests for valid examples, unknown keys where strictness is required, duplicate IDs, invalid UUIDv7 prefixes and locale normalization.
+- [x] Test that serialization never includes `undefined`, Map, Set, class instances or functions.
+- [x] Test that no schema property can store credentials or signed URLs.
+- [x] Add Markdown dialogue/narration and Flow line-ID parse/serialize fixtures before later compiler work.
+- [x] Test narrator and character take records plus Voice Profile revision staleness.
+- [x] Test valid, missing, malformed, unknown-profile and digest-mismatch toolchain locks; invalid locks allow preview but block release.
+- [x] Implement runtime validators in `@advjs/audio` without Vue, DOM or Node-only dependencies.
+- [x] Export shared types and validators.
 - [ ] Run:
 
 ```bash
@@ -124,12 +188,12 @@ feat(audio): define shared audio contracts
 - Validate ASCII slugs for project and speaker path segments; ordinary speaker IDs equal character IDs and narration uses the reserved `narrator` value.
 - Never derive IDs from display names, line numbers or prose.
 
-- [ ] Add fixed-clock UUID ordering tests and collision-boundary tests.
-- [ ] Add locale cases for `zh-CN`, `ja-JP`, script tags and invalid input.
-- [ ] Add canonical JSON ordering tests for fingerprints.
-- [ ] Verify fingerprint changes when the frozen Voice Profile revision, actual voice ID or speaker changes.
-- [ ] Add path traversal, Unicode display-name and reserved-character rejection tests.
-- [ ] Verify voice keys place locale before speaker, including `narrator`, while shared BGM/ambience/SFX/UI keys have no locale segment.
+- [x] Add fixed-clock UUID ordering tests and collision-boundary tests.
+- [x] Add locale cases for `zh-CN`, `ja-JP`, script tags and invalid input.
+- [x] Add canonical JSON ordering tests for fingerprints.
+- [x] Verify fingerprint changes when the frozen Voice Profile revision, actual voice ID or speaker changes.
+- [x] Add path traversal, Unicode display-name and reserved-character rejection tests.
+- [x] Verify voice keys place locale before speaker, including `narrator`, while shared BGM/ambience/SFX/UI keys have no locale segment.
 - [ ] Run:
 
 ```bash
@@ -158,7 +222,7 @@ feat(audio): add stable audio identity helpers
 - Test: `packages/core/test/runtime/markdown-compiler.test.ts`
 - Test: `packages/core/test/runtime/flow-compiler.test.ts`
 - Test: `packages/core/test/runtime/transition.test.ts`
-- Test: `tests/unit/runtime-audio-state.test.ts`
+- Test: `tests/unit/runtime/runtime-audio-state.test.ts`
 
 **Contract:**
 
@@ -169,18 +233,18 @@ feat(audio): add stable audio identity helpers
 - Preserve stable line IDs through Markdown parse/serialize and Flow round trips.
 - Restore BGM and ambience from snapshots; never persist SFX/UI playback handles or voice progress.
 
-- [ ] Write failing compiler tests for every canonical operation and invalid action/asset/slot/fade.
-- [ ] Write duplicate and malformed line-ID diagnostics with source locations.
-- [ ] Write snapshot tests proving persistent and transient separation.
-- [ ] Write back/restore tests proving SFX is not replayed.
-- [ ] Add explicit audio diagnostic codes and map them through `adv check`.
-- [ ] Run:
+- [x] Write failing compiler tests for every canonical operation and invalid action/asset/slot/fade.
+- [x] Write duplicate and malformed line-ID diagnostics with source locations.
+- [x] Write snapshot tests proving persistent and transient separation.
+- [x] Write back/restore tests proving SFX is not replayed.
+- [x] Add explicit audio diagnostic codes and map them through `adv check`.
+- [x] Run:
 
 ```bash
 pnpm vitest run packages/core/test/runtime/markdown-compiler.test.ts
 pnpm vitest run packages/core/test/runtime/flow-compiler.test.ts
 pnpm vitest run packages/core/test/runtime/transition.test.ts
-pnpm vitest run tests/unit/runtime-audio-state.test.ts tests/unit/cli/check-runtime.test.ts
+pnpm vitest run tests/unit/runtime/runtime-audio-state.test.ts tests/unit/cli/check-runtime.test.ts
 ```
 
 Suggested commit:
@@ -216,16 +280,16 @@ feat(runtime): compile canonical audio effects
 - Voice ducks music and ambience only.
 - Every async method accepts or creates a generation token/`AbortSignal`.
 
-- [ ] Reproduce the current fade completion race using Fake Backend deferred callbacks.
-- [ ] Cover A→B→A, stop during fade, same asset replay, zero-volume fade, load failure, ended-after-stop and dispose-after-load.
-- [ ] Cover ambience same-slot replacement and cross-slot layering.
-- [ ] Cover SFX priority/age victim selection.
-- [ ] Cover duck attack/release and nested voice start/stop idempotency.
-- [ ] Ensure stale callbacks cannot mutate director state or revive a stopped track.
-- [ ] Run:
+- [x] Reproduce the current fade completion race using Fake Backend deferred callbacks.
+- [x] Cover A→B→A, stop during fade, same asset replay, zero-volume fade, load failure, ended-after-stop and dispose-after-load.
+- [x] Cover ambience same-slot replacement and cross-slot layering.
+- [x] Cover SFX priority/age victim selection.
+- [x] Cover duck attack/release and nested voice start/stop idempotency.
+- [x] Ensure stale callbacks cannot mutate director state or revive a stopped track.
+- [x] Run:
 
 ```bash
-pnpm vitest run tests/unit/audio-director.test.ts tests/unit/audio-mixer.test.ts tests/unit/audio-concurrency.test.ts
+pnpm vitest run tests/unit/audio/audio-engine.test.ts
 ```
 
 Suggested commit:
@@ -255,8 +319,8 @@ feat(client): add deterministic audio director
 - Modify: repository project/demo/theme audio references reported by migration inventory
 - Delete after migration: `packages/client/composables/useAdvBgm.ts`
 - Delete or replace after migration: Howler-specific sound composables in `packages/client/composables/sound/` and `packages/core/src/composables/sound/`
-- Test: `tests/unit/client-audio-host.test.ts`
-- Test: `tests/unit/audio-migration.test.ts`
+- Test: `tests/unit/audio/client-audio-host.test.ts`
+- Test: `tests/unit/audio/audio-migration.test.ts`
 - Test: `tests/e2e/audio-runtime.spec.ts`
 
 **Contract:**
@@ -275,20 +339,20 @@ feat(client): add deterministic audio director
 - Untracked overwritten inputs are copied to an ignored backup directory; canonical re-runs produce an empty change set.
 - Before deleting legacy code, run the fully tested migration dry-run and apply it to all repository-owned projects, demos and themes.
 
-- [ ] Add browser adapter unit tests with fake AudioContext and media elements.
-- [ ] Migrate runtime effect handling to Audio Director.
-- [ ] Migrate player settings to six buses and device-scoped persistence.
+- [x] Add browser adapter unit tests with fake AudioContext and media elements.
+- [x] Migrate runtime effect handling to Audio Director.
+- [x] Migrate player settings to six buses and device-scoped persistence.
 - [ ] Freeze report, resolution and journal schemas with golden tests.
-- [ ] Implement `adv migrate audio --report` and `--resolutions ... --apply` with unresolved blocking, atomic commit, rollback, untracked backup and idempotent re-run.
-- [ ] Pass crash-during-commit and backup-recovery tests before the first repository apply.
-- [ ] Migrate repository content, then replace every production `$bgm`/`useAdvBgm` consumer in the same task.
-- [ ] Validate canonical content before deleting the old Runtime/BGM paths.
-- [ ] Verify `rg 'useAdvBgm|\\$bgm|bgmSrc' packages apps editor themes` has no production result.
-- [ ] Remove Howler if no remaining consumer requires it; otherwise document its isolated adapter scope.
+- [x] Implement `adv migrate-audio --map ... --report ...`, `--apply report.json` and `--recover revision` with unresolved blocking, hash revalidation, atomic commit, journal rollback and idempotent re-run.
+- [x] Pass crash-during-commit and backup-recovery tests before the first repository apply.
+- [x] Migrate repository content, then replace every production `$bgm`/`useAdvBgm` consumer in the same task.
+- [x] Validate canonical content before deleting the old Runtime/BGM paths.
+- [x] Verify production `$bgm`/`useAdvBgm` consumers are removed; `bgmSrc` remains only in explicit legacy rejection diagnostics.
+- [x] Remove Howler if no remaining consumer requires it; otherwise document its isolated adapter scope.
 - [ ] Run:
 
 ```bash
-pnpm vitest run tests/unit/client-audio-host.test.ts tests/unit/client/client-runtime-presentation.test.ts tests/unit/audio-migration.test.ts
+pnpm vitest run tests/unit/audio/client-audio-host.test.ts tests/unit/client/client-runtime-presentation.test.ts tests/unit/audio/audio-migration.test.ts
 pnpm exec playwright test tests/e2e/audio-runtime.spec.ts
 pnpm typecheck
 ```
@@ -312,7 +376,7 @@ refactor(client): replace bgm orchestration with audio engine
 - Modify: `packages/types/src/game/character.ts`
 - Refactor: `apps/studio/src/utils/ttsClient.ts`
 - Refactor: `apps/studio/src/composables/usePluginRegistry.ts`
-- Test: `tests/unit/voice-ledger.test.ts`
+- Test: `tests/unit/audio/voice-ledger.test.ts`
 - Test: `tests/unit/character-voice-profile.test.ts`
 - Test: `apps/studio/src/__tests__/ttsClient.test.ts`
 
@@ -326,15 +390,15 @@ refactor(client): replace bgm orchestration with audio engine
 - Normalize display text into spoken text and allow per-line override plus pronunciation dictionary.
 - Require rights metadata for cloned sources before generation or publication.
 
-- [ ] Add ledger parse/serialize/merge tests.
-- [ ] Add stale fingerprint and cached-result reuse tests.
-- [ ] Add character Markdown round-trip tests.
+- [x] Add ledger parse/serialize/merge tests.
+- [x] Add stale fingerprint and cached-result reuse tests.
+- [x] Add character Markdown round-trip tests.
 - [ ] Add Provider capability-driven UI projection tests without Provider-name switches.
-- [ ] Add a hard failure test for clone without consent records.
+- [x] Add a hard failure test for clone without consent records.
 - [ ] Run:
 
 ```bash
-pnpm vitest run tests/unit/voice-ledger.test.ts tests/unit/character-voice-profile.test.ts
+pnpm vitest run tests/unit/audio/voice-ledger.test.ts tests/unit/character-voice-profile.test.ts
 pnpm --filter @advjs/studio test:unit -- src/__tests__/ttsClient.test.ts
 ```
 
@@ -375,11 +439,11 @@ feat(audio): add voice ledger and provider capabilities
 - Idempotency is unique on account/project/fingerprint and retained for at least 30 days.
 - Resume reads durable item state; an unknown remote result is queried before retry.
 
-- [ ] Write the pure queue reducer and planner before any network adapter.
+- [x] Write the pure queue reducer and planner before any network adapter.
 - [ ] Use fixture responses for MiniMax tests; never call the live API.
-- [ ] Verify retry does not bill or upload an already completed fingerprint twice.
-- [ ] Add crash/restart, offline reconciliation, retention and duplicate-submit tests against the JobStore contract.
-- [ ] Verify task logs redact authorization headers, prompts marked private and signed URLs.
+- [x] Verify local retry does not synthesize an already completed fingerprint twice; publication retries reuse verified immutable objects.
+- [x] Add crash/restart, local offline reconciliation, retention and duplicate-submit tests against the JobStore contract. Hosted reconciliation remains outstanding.
+- [x] Verify task logs redact authorization headers, prompts marked private and signed URLs.
 - [ ] Verify hosted endpoints enforce account/project scope and quotas.
 - [ ] Run:
 
@@ -401,10 +465,10 @@ feat(audio): add controlled minimax generation jobs
 
 - Create: `packages/audio/src/processing.ts`
 - Create: `packages/audio/src/release.ts`
-- Create: `apps/audio-worker/package.json`
-- Create: `apps/audio-worker/Dockerfile`
-- Create: `apps/audio-worker/src/worker.ts`
-- Create: `apps/audio-worker/src/ffmpeg-profile.ts`
+- Implemented host: `packages/advjs/node/audio/release.ts` and `release-store.ts`
+- Implemented worker adapter: `packages/advjs/node/audio/container-runner.ts`
+- Implemented finite service: `packages/advjs/node/audio/server.ts`
+- Deployment image: supplied and approved by the trusted operator; no project-triggered image pull
 - Modify: `packages/advjs/node/commands/doctor.ts`
 - Extend: `plugins/plugin-cos/src/index.ts`
 - Extend: `plugins/plugin-cos/test/asset-standard.test.ts`
@@ -425,22 +489,22 @@ feat(audio): add controlled minimax generation jobs
 - Use STS or single-object signed upload with project/prefix/MIME/size constraints.
 - Apply lifecycle cleanup only to temporary prefixes; unreferenced take GC requires an explicit reviewed plan.
 - Use the same FFmpeg command templates locally and in the hosted worker, but only a build matching `adv/audio/toolchain.json` may create a release receipt.
-- Name the private worker package `@advjs/audio-worker` and give it explicit `build` and fixture-test scripts.
+- Reuse the existing Node package for background processing and receipts; do not introduce a second audio service/protocol. Its normal build and the focused publication/container tests are the build/verification entry points.
 - Publish Opus/WebM as the primary variant and AAC/M4A as the compatibility fallback; Asset Catalog capability selection chooses at runtime.
 - Do not run long FFmpeg work inside a request/Cloud Function process.
 - `adv doctor` must probe `ffmpeg`, `ffprobe`, `libopus`, AAC encoder and `loudnorm` support, then compare the full build fingerprint with the project toolchain lock. Missing capabilities block processing; a version/build mismatch permits preview only and offers the locked container/worker. It never silently changes codec or preset.
-- The hosted Docker image pins FFmpeg by image digest and records `ffmpeg -version` in every processing receipt.
+- The trusted container runner accepts only an approved installed image ID, verifies it with `docker image inspect`, and uses `--pull=never`; every receipt records actual `ffmpeg -version`. Network is disabled, the project is read-only and only the output directory is writable.
 - Hosted services resolve the profile through a signed server allowlist and reject any project-supplied profile/digest pair that is not approved; they never pull an arbitrary image named by project data.
 - Preview-only output from an unmatched local build cannot update release object keys, hashes or manifests.
 
 - [ ] Implement a fake process runner and fixture audio metadata tests.
-- [ ] Add real FFmpeg fixture tests that verify codec, duration, channels, sample rate, loudness and peak with ffprobe.
+- [x] Add real FFmpeg fixture tests that verify codec, duration, channels, sample rate, loudness and peak with ffprobe.
 - [ ] Add mismatched-build tests proving local preview works but release receipt and manifest mutation are blocked.
-- [ ] Add hostile/unknown image-digest tests proving the hosted service blocks the job before scheduling a container.
-- [ ] Add Chromium and WebKit E2E playback for both primary and fallback variants.
+- [x] Add hostile/unknown image-digest tests proving the hosted service blocks the job before scheduling a container.
+- [x] Add Chromium and WebKit E2E playback for both primary and fallback variants.
 - [ ] Add worker crash/retry tests proving content-hash outputs are idempotent and partial output is never published.
 - [ ] Add object-key and HTTP metadata assertions for every audio kind.
-- [ ] Add partial upload and manifest-last failure tests.
+- [x] Add partial upload and manifest-last failure tests against the publication port.
 - [ ] Add a no-delete test for referenced masters/takes.
 - [ ] Add secret scanning assertions over release plan and logs.
 - [ ] Run:
@@ -485,7 +549,7 @@ feat(audio): add immutable audio release pipeline
 - [ ] Add source/visual round-trip tests for every audio operation.
 - [ ] Add merge-conflict presentation for competing `selectedTake` values.
 - [ ] Add preview simulations for locale, Auto, Skip, back and restore.
-- [ ] Add an end-to-end local project journey without live TTS/COS.
+- [x] Add an end-to-end local project journey without live TTS/COS.
 - [ ] Run:
 
 ```bash
@@ -550,7 +614,7 @@ feat(studio): add mobile audio authoring
 - Extend: `packages/advjs/node/cli/` migration command registration
 - Extend: migration fixtures with larger real-world project shapes
 - Modify: `packages/advjs/node/commands/check.ts`
-- Test: `tests/unit/audio-migration.test.ts`
+- Test: `tests/unit/audio/audio-migration.test.ts`
 - Test: launch golden project and demo conformance fixtures
 
 **Contract:**
@@ -567,7 +631,7 @@ feat(studio): add mobile audio authoring
 - [ ] Run:
 
 ```bash
-pnpm vitest run tests/unit/audio-migration.test.ts tests/unit/demo/hamster-demo-runtime.test.ts
+pnpm vitest run tests/unit/audio/audio-migration.test.ts tests/unit/demo/hamster-demo-runtime.test.ts
 pnpm build:advjs
 pnpm typecheck
 pnpm lint
