@@ -29,9 +29,16 @@ test('opens glossary with the keyboard, restores focus and preserves dialogue on
     const dialog = page.getByRole('dialog', { name: 'advjs', exact: true })
     await expect(dialog).toBeVisible()
     await expect(dialog).toContainText('使用 Markdown 编写文字冒险故事的开源引擎。')
-    await expect(dialog.getByRole('button', { name: '关闭', exact: true })).toBeFocused()
+    const close = dialog.getByRole('button', { name: '关闭', exact: true })
+    await expect(close).toBeFocused()
+    // Visibility alone permits the first opacity-zero frame of Vue's modal
+    // transition. Capture settled, on-screen content at both viewport sizes.
+    await expect(dialog).toHaveCSS('opacity', '1')
+    await expect(dialog.locator('.modal-container')).toHaveCSS('opacity', '1')
+    await expect(close).toBeInViewport({ ratio: 1 })
+    await expect(dialog.locator('.adv-glossary-definition')).toBeInViewport({ ratio: 0.5 })
     expect(await dialog.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true)
-    await testInfo.attach(`glossary-${index === 0 ? 'desktop' : 'narrow'}`, { body: await page.screenshot(), contentType: 'image/png' })
+    await testInfo.attach(`glossary-${index === 0 ? 'desktop' : 'narrow'}`, { body: await page.screenshot({ animations: 'disabled' }), contentType: 'image/png' })
     await page.keyboard.press('Tab')
     await expect(dialog.locator(':focus')).toHaveCount(1)
     await page.keyboard.press('Escape')

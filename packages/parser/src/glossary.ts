@@ -11,7 +11,7 @@ function plainText(node: Content): string {
   if ('value' in node)
     return String(node.value)
   if ('children' in node)
-    return node.children.map(child => plainText(child as Content)).join(node.type === 'footnoteDefinition' ? '\n\n' : '')
+    return node.children.filter(child => child.type !== 'footnoteDefinition').map(child => plainText(child as Content)).join(node.type === 'footnoteDefinition' ? '\n\n' : '')
   return ''
 }
 
@@ -101,15 +101,32 @@ export function prepareGlossary(content: string, glossaryContent: string): {
 /** Preserve author source separately; only referenced plain text crosses to a player. */
 export function projectGlossarySource(content: string, references: ReadonlyMap<string, string>): string {
   const ast = mdParseSync(content)
+  const ranges: Array<{ start: number, end: number }> = []
+  const collect = (node: Content | Root) => {
+    const start = node.position?.start.offset
+    const end = node.position?.end.offset
+    if (node.type === 'footnoteDefinition' && start !== undefined && end !== undefined)
+      ranges.push({ start, end })
+    if ('children' in node)
+      node.children.forEach(child => collect(child as Content))
+  }
+  collect(ast)
+  ranges.sort((left, right) => left.start - right.start || right.end - left.end)
+  const merged: typeof ranges = []
+  for (const range of ranges) {
+    const previous = merged.at(-1)
+    if (previous && range.start <= previous.end)
+      previous.end = Math.max(previous.end, range.end)
+    else
+      merged.push({ ...range })
+  }
   let projected = content
-  // Replacing spans backwards preserves every unrelated source byte and line.
-  for (const node of [...ast.children].reverse()) {
-    if (node.type !== 'footnoteDefinition' || !node.position)
-      continue
-    const { start, end } = node.position
-    projected = projected.slice(0, start.offset)
-      + content.slice(start.offset, end.offset).replace(/[^\r\n]/gu, value => ' '.repeat(value.length))
-      + projected.slice(end.offset)
+  // Nested definitions can overlap their parent definition. Replace their union
+  // once, backwards, retaining unrelated bytes, line endings and UTF-16 offsets.
+  for (const { start, end } of merged.reverse()) {
+    projected = projected.slice(0, start)
+      + content.slice(start, end).replace(/[^\r\n]/gu, value => ' '.repeat(value.length))
+      + projected.slice(end)
   }
   const escape = (text: string) => text.replace(/([\\`*{}[\]()#+.!_<>&~-])/gu, '\\$1')
   const definitions = [...references].map(([id, text]) => `[^${id}]: ${escape(text).replaceAll('\n', '\n    ')}`).join('\n\n')

@@ -1,4 +1,5 @@
 import { compileMarkdownProgram, compileProject, createAdvRuntime, createProjectGameConfig } from '@advjs/core'
+import { projectGlossarySource } from '@advjs/parser'
 import { describe, expect, it } from 'vitest'
 
 const glossary = '# 私密作者资料\n\n| 术语 | 定义 | 备注 |\n| --- | --- | --- |\n| 星 | 作者剧透 | 不能公开 |\n\n[^星之记忆]: 封存的**关键记忆**。[说明](https://example.invalid/private)\n\n[^unused]: 未引用剧透\n'
@@ -145,5 +146,66 @@ describe('player glossary projection', () => {
     const result = await compileMarkdownProgram({ id: 'escaped-label', glossary: String.raw`[^a\]b]: Explanation`, chapters: [{ id: 'one', content: `@Host\n${String.raw`Term[^a\]b]`}` }] })
     expect(result.diagnostics).toEqual([])
     expect(result.program!.chapters.one.nodes['node-0'].data).toMatchObject({ text: 'Term[a]b]', glossary: [{ definition: 'Explanation' }] })
+  })
+
+  it.each([
+    '> [^unused]: PRIVATE-BLOCKQUOTE',
+    '- Visible item\n\n  [^unused]: PRIVATE-LIST',
+    '[^outer]: PRIVATE-OUTER\n\n    > [^inner]: PRIVATE-INNER',
+    '> Visible quote\n>\n> [^unused]: PRIVATE-START 😀\n>\n>     PRIVATE-CONTINUATION',
+  ])('removes nested definition spans from player source: %s', async (nested) => {
+    const original = `@Host\nHello\n\n${nested}\n\n@Host\nUnrelated ending.`
+    const files = { 'adv.config.json': '{"root":"adv"}', 'adv/chapters/intro.adv.md': original }
+    const result = await compileProject({ files }, { validateContentReferences: false })
+    expect(result.diagnostics).toEqual([])
+    expect(JSON.stringify(result.project.program)).not.toContain('PRIVATE-')
+    const source = createProjectGameConfig(result, files).chapters[0].nodes[0]
+    const projected = decodeURIComponent(('src' in source ? source.src : '').split(',')[1])
+    expect(projected).not.toContain('PRIVATE-')
+    expect(projected).toHaveLength(original.length)
+    expect(projected.indexOf('@Host\nUnrelated ending.')).toBe(original.indexOf('@Host\nUnrelated ending.'))
+    expect(projected.match(/\n/gu)?.length).toBe(original.match(/\n/gu)?.length)
+    expect(files['adv/chapters/intro.adv.md']).toBe(original)
+    const rebuilt = await compileMarkdownProgram({ id: 'nested-roundtrip', chapters: [{ id: 'intro', content: projected }] })
+    expect(rebuilt.diagnostics).toEqual([])
+    expect(rebuilt.program).toBeDefined()
+    expect(JSON.stringify(rebuilt.program)).not.toContain('PRIVATE-')
+    if (nested.includes('Visible item'))
+      expect(projected).toContain('- Visible item')
+    if (nested.includes('Visible quote'))
+      expect(projected).toContain('> Visible quote')
+  })
+
+  it('preserves malformed, escaped and code examples while recursively stripping actual definitions', () => {
+    const unchanged = String.raw`> \[^escaped]: literal
+
+- [^invalid label]: ordinary link definition
+
+~~~md
+> [^code]: literal example
+~~~
+
+> Visible 😀`
+    const content = `${unchanged}\r\n\r\n> [^secret]: PRIVATE-CRLF 😀\r\n>\r\n>     PRIVATE-CONTINUATION\r\n\r\nAfter`
+    const projected = projectGlossarySource(content, new Map())
+    expect(projected).toHaveLength(content.length)
+    expect(projected.startsWith(unchanged)).toBe(true)
+    expect(projected).not.toContain('PRIVATE-')
+    expect(projected.match(/\r\n/gu)).toEqual(content.match(/\r\n/gu))
+    expect(projected.indexOf('After')).toBe(content.indexOf('After'))
+  })
+
+  it('does not flatten a nested unused definition into its referenced parent explanation', async () => {
+    const files = {
+      'adv.config.json': '{"root":"adv"}',
+      'adv/chapters/intro.adv.md': '@Host\nTerm[^outer]\n\n[^outer]: Public explanation\n\n    > [^unused]: PRIVATE-NESTED-DEFINITION',
+    }
+    const result = await compileProject({ files }, { validateContentReferences: false })
+    expect(result.diagnostics).toEqual([])
+    expect(JSON.stringify(result.project.program)).not.toContain('PRIVATE-')
+    const source = createProjectGameConfig(result, files).chapters[0].nodes[0]
+    const projected = decodeURIComponent(('src' in source ? source.src : '').split(',')[1])
+    expect(projected).not.toContain('PRIVATE-')
+    expect(projected).toContain('Public explanation')
   })
 })

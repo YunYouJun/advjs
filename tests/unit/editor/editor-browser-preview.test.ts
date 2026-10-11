@@ -8,6 +8,7 @@ import { compileEditorProject } from '../../../editor/core/app/adapters/browser/
 import { createBrowserProjectWorkspace } from '../../../editor/core/app/adapters/browser/workspace'
 import starter from '../../../editor/core/app/templates/starter'
 import { resolveSceneBackground } from '../../../packages/client/utils/scene'
+import { compileMarkdownProgram } from '../../../packages/core/src/compiler'
 
 const workspaces: ProjectWorkspace[] = []
 afterEach(() => {
@@ -90,6 +91,9 @@ function simpleFiles() {
 describe('browser project media preview', () => {
   it('loads Starter public backgrounds and avatars from workspace blobs while preserving authored sources and runtime values', async () => {
     const files = starterFiles()
+    const helloPath = 'adv/chapters/hello.adv.md'
+    const authoredHello = `${await files[helloPath].text()}\n\n[^unused-preview]: [PRIVATE_PREVIEW_NOTE](https://private-preview.invalid)\n`
+    files[helloPath] = new File([authoredHello], 'hello.adv.md')
     const snapshot = await workspace(files).snapshot()
     const model = snapshot.project
     expect(model.compilation.diagnostics).toEqual([])
@@ -109,10 +113,21 @@ describe('browser project media preview', () => {
     expect(model.compilation.project.scenes.find(scene => scene.id === 'demo-room')!.src).toBe('/img/room.svg')
     const operations = Object.values(model.compilation.project.program!.chapters.hello.nodes).flatMap(node => Array.isArray(node.data?.operations) ? node.data.operations : [])
     expect(operations).toContainEqual(expect.objectContaining({ type: 'background', url: '/img/room.svg' }))
+    const chapters = []
     for (const chapter of model.previewConfig.chapters) {
-      const response = await fetch(chapter.nodes[0].src)
-      expect(await response.text()).toBe(await files[`adv/chapters/${chapter.id}.adv.md`].text())
+      const path = `adv/chapters/${chapter.id}.adv.md`
+      // The editor keeps exact author bytes; player transport may move/sanitize
+      // footnote definitions but must retain the same executable story.
+      expect(model.files[path]).toBe(await files[path].text())
+      const content = await (await fetch(chapter.nodes[0].src)).text()
+      expect(content).not.toContain('PRIVATE_PREVIEW_NOTE')
+      expect(content).not.toContain('https://private-preview.invalid')
+      chapters.push({ id: chapter.id, title: chapter.title, content })
     }
+    expect(model.files[helloPath]).toBe(authoredHello)
+    const preview = await compileMarkdownProgram({ id: model.compilation.project.program!.id, chapters })
+    expect(preview.diagnostics).toEqual([])
+    expect(preview.program!.chapters).toEqual(model.compilation.project.program!.chapters)
   })
 
   it('resolves a direct background URL even when no scene catalog entry declares it', async () => {
