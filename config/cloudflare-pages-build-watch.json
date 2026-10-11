@@ -1,0 +1,129 @@
+{
+  "repository": "YunYouJun/advjs",
+  "sharedIncludes": [
+    ".browserslistrc",
+    ".gitmodules",
+    ".node-version",
+    ".npmrc",
+    ".nvmrc",
+    ".pnpmfile.cjs",
+    "package.json",
+    "patches/*",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
+    "pnpmfile.cjs",
+    "tsconfig*.json",
+    "uno.config.ts"
+  ],
+  "sharedExcludes": [
+    "docs/*",
+    "tests/*"
+  ],
+  "projects": {
+    "studio": {
+      "project": "advjs-studio",
+      "workspace": "apps/studio",
+      "buildCommand": "pnpm studio:build",
+      "destinationDir": "apps/studio/dist",
+      "includes": [
+        "apps/studio/.browserslistrc",
+        "apps/studio/.env*",
+        "apps/studio/index.html",
+        "apps/studio/package.json",
+        "apps/studio/public/*",
+        "apps/studio/src/*",
+        "apps/studio/tsconfig*.json",
+        "apps/studio/uno.config.ts",
+        "apps/studio/vite.config.ts",
+        "examples/ai-contest/*",
+        "packages/agent/*",
+        "packages/assets/*",
+        "packages/client/*",
+        "packages/core/*",
+        "packages/gui/*",
+        "packages/parser/*",
+        "packages/types/*",
+        "packages/unocss/*",
+        "plugins/plugin-interactions/*",
+        "scripts/prepare-workspace.mjs",
+        "scripts/release/run-command.mjs",
+        "themes/theme-default/*"
+      ],
+      "excludes": []
+    },
+    "editor": {
+      "project": "advjs",
+      "workspace": "editor/core",
+      "buildCommand": "pnpm editor:build",
+      "destinationDir": "editor/core/dist",
+      "includes": [
+        "editor/core/*",
+        "apps/desktop/src/commands.ts",
+        "apps/desktop/src/editor-window.ts",
+        "apps/desktop/src/error-report.ts",
+        "apps/desktop/src/preview-presentation.ts",
+        "apps/desktop/src/project-names.ts",
+        "apps/desktop/src/workspace-state.ts",
+        "demo/starter/adv/scenes/demo-room.md",
+        "demo/starter/game.config.json",
+        "demo/starter/public/img/characters/xiaoyun.webp",
+        "demo/starter/public/img/room.svg",
+        "demo/starter/public/md/chapters/ending.adv.md",
+        "demo/starter/public/md/chapters/hello.adv.md",
+        "demo/starter/public/md/chapters/letter.adv.md",
+        "examples/editor-plugin-diagnostics/*",
+        "packages/advjs/*",
+        "packages/assets/*",
+        "packages/client/*",
+        "packages/core/*",
+        "packages/devtools/*",
+        "packages/editor-sdk/*",
+        "packages/gui/*",
+        "packages/parser/*",
+        "packages/shared/*",
+        "packages/types/*",
+        "packages/unocss/*",
+        "packages/vite-plugin-adv/*",
+        "plugins/plugin-babylon/*",
+        "plugins/plugin-pominis/*",
+        "scripts/prepare-workspace.mjs",
+        "scripts/release/run-command.mjs",
+        "themes/theme-default/*",
+        "themes/theme-pominis/*"
+      ],
+      "excludes": [
+        "editor/core/.env.example",
+        "editor/core/.gitignore",
+        "editor/core/README.md",
+        "editor/core/netlify.toml"
+      ]
+    },
+    "vrm": {
+      "project": "advjs-vrm",
+      "workspace": "editor/vrm",
+      "buildCommand": "pnpm run build:advjs && pnpm plugins:build && pnpm run vrm:build",
+      "destinationDir": "editor/vrm/dist",
+      "includes": [
+        "editor/vrm/*",
+        "packages/advjs/*",
+        "packages/assets/*",
+        "packages/client/*",
+        "packages/core/*",
+        "packages/devtools/*",
+        "packages/gui/*",
+        "packages/parser/*",
+        "packages/shared/*",
+        "packages/types/*",
+        "packages/unocss/*",
+        "plugins/plugin-babylon/*",
+        "themes/theme-default/*"
+      ],
+      "excludes": [
+        "editor/vrm/.gitignore",
+        "editor/vrm/README.md",
+        "editor/vrm/netlify.toml",
+        "editor/vrm/vercel.json"
+      ]
+    }
+  }
+}
