@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+import consola from 'consola'
 import { colors } from 'consola/utils'
 import { execa } from 'execa'
 import prompts from 'prompts'
@@ -11,6 +11,7 @@ const starterTheme = {
 
 export async function initTheme(options: {
   themeName?: string
+  targetDir: string
 }) {
   const defaultThemeName = starterTheme.name
   let themeName = options.themeName || defaultThemeName
@@ -27,20 +28,20 @@ export async function initTheme(options: {
     themeName = theme || defaultThemeName
   }
 
-  const targetDir = `advjs-theme-${themeName!.trim()}`
+  const targetDir = options.targetDir
 
-  console.log(`  ${colors.dim('npx')} ${colors.gray('degit')} ${colors.blue(starterTheme.repo)} ${colors.yellow(targetDir)}`)
+  consola.log(`  ${colors.dim('npx')} ${colors.gray('degit')} ${colors.blue(starterTheme.repo)} ${colors.yellow(targetDir)}`)
   await execa('npx', ['degit', starterTheme.repo, targetDir], { stdio: 'inherit' })
 
-  console.log()
-  console.log(`  ${colors.bold('Check it')}:`)
-  console.log()
-  console.log(`- Change ${colors.bold('author')} name in ${colors.yellow('LICENSE')} & ${colors.green('package.json')} & ${colors.blue('.github')}`)
-  console.log(`- Change ${colors.blue('adv.config.ts')} theme: ${colors.yellow('starter')} to ${colors.cyan(`${themeName}`)}`)
-  console.log(`- Rename ${colors.yellow(`advjs-theme-${themeName}`)} to ${colors.cyan(`advjs-theme-${themeName}`)}`)
-  console.log()
-  console.log(`  ${colors.cyan('✨')}`)
-  console.log()
+  consola.log('')
+  consola.log(`  ${colors.bold('Check it')}:`)
+  consola.log('')
+  consola.log(`- Change ${colors.bold('author')} name in ${colors.yellow('LICENSE')} & ${colors.green('package.json')} & ${colors.blue('.github')}`)
+  consola.log(`- Change ${colors.blue('adv.config.ts')} theme: ${colors.yellow('starter')} to ${colors.cyan(`${themeName}`)}`)
+  consola.log(`- Rename ${colors.yellow(`advjs-theme-${themeName}`)} to ${colors.cyan(`advjs-theme-${themeName}`)}`)
+  consola.log('')
+  consola.log(`  ${colors.cyan('✨')}`)
+  consola.log('')
 
   return `advjs-theme-${themeName}`
 }

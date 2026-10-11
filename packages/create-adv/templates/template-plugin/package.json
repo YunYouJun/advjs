@@ -22,12 +22,11 @@
   "scripts": {
     "build": "unbuild",
     "dev": "unbuild --stub",
-    "prepublishOnly": "npm run build",
-    "start": "tsx src/index.ts",
-    "test": "vitest"
+    "prepublishOnly": "npm run build"
   },
   "devDependencies": {
-    "advjs": "latest",
+    "@advjs/types": "^$ADVJS_VERSION",
+    "typescript": "^5.9.3",
     "unbuild": "^3.6.1"
   }
 }
