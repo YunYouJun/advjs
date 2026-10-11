@@ -28,7 +28,7 @@
     "build:demo:hamster": "pnpm -C demo/hamster run build",
     "build:packages": "pnpm -r --filter=\"./packages/*\" run build",
     "build:schema": "tsx scripts/schema.ts",
-    "build:play": "pnpm run play:build",
+    "build:play": "pnpm build:advjs && pnpm run play:build",
     "build:plugins": "pnpm -r --parallel --filter=\"./plugins/*\" run build",
     "clean": "tsx scripts/clean.ts",
     "demo": "pnpm -C demo/starter run dev",

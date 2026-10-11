@@ -182,10 +182,14 @@ for (const locale of ['en', 'zh-CN']) {
       const reading = source.locator('.file-reading')
       await expectPreviews(reading)
       await screenshot(reading, info, 'character-reader-normal')
+      // The reader scrolls independently; capture portraits below its first fold.
+      await screenshot(reading.locator('.character-avatar-panel'), info, 'character-reader-avatars-normal')
+      await reading.evaluate(element => element.scrollTop = 0)
       await resizeRegion(main, 320)
       await expectPreviews(reading)
       expect(await reading.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true)
       await screenshot(reading, info, 'character-reader-narrow')
+      await screenshot(reading.locator('.character-avatar-panel'), info, 'character-reader-avatars-narrow')
       // The source fallback exposes all author fields; opening panels is read-only.
       const sourceButton = source.getByRole('button', { name: locale === 'en' ? 'Source' : '源码', exact: true })
       await sourceButton.focus()
@@ -256,6 +260,8 @@ test('recovers real source edits after reload and resolves external conflicts wi
   await expect(source.locator('.file-conflict')).toBeHidden()
   await expect(source.getByRole('button', { name: 'Save', exact: true })).toBeDisabled()
   await page.reload()
+  // A full reload destroys Vue/Pinia before restoring the source editor.
+  await expect(source.locator('.monaco-editor')).toBeVisible()
   await expect.poll(() => draftContent(page)).toBe(retained)
   await expect(source.getByRole('button', { name: 'Save', exact: true })).toBeDisabled()
   expect(retained).toContain('review: preserve-me')
@@ -284,7 +290,7 @@ test('recovers character form edits and preserves visual, portrait, and custom a
   await expect(form.getByRole('alert')).toBeVisible()
   expect(await readCharacter(page)).toBe(external)
   await screenshot(form, info, 'character-form-recovered-conflict')
-  await form.getByRole('button', { name: '保留草稿并覆盖', exact: true }).click()
+  await form.getByRole('button', { name: 'Keep draft and overwrite', exact: true }).click()
   await expect(form).toBeHidden()
   const saved = await readCharacter(page)
   expect(parseCharacterMd(saved)).toMatchObject({ ...parseCharacterMd(original), name: 'Recovered 雨 / Rain' })

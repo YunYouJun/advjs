@@ -174,8 +174,10 @@ jobs:
       - name: Install Chromium
         timeout-minutes: 10
         run: pnpm exec playwright install --with-deps --only-shell chromium
+      # The dedicated editor-e2e job owns these three specs. Keep every other
+      # current and future spec in this catch-all gate.
       - name: Run Chromium tests
-        run: pnpm exec playwright test --project=chromium
+        run: pnpm exec playwright test '^(?!.*[/\\]editor-(local|security|character-migration)\.spec\.ts$)' --project=chromium
       - uses: actions/upload-artifact@v7
         if: always()
         with:

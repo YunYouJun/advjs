@@ -147,7 +147,14 @@
       "saved": "Draft saved",
       "loaded": "Draft loaded",
       "cleared": "Draft cleared",
-      "hasDraft": "You have a saved draft. Load it?"
+      "hasDraft": "You have a saved draft. Load it?",
+      "reloadExternal": "Reload external version",
+      "keepDraft": "Keep draft and overwrite",
+      "openProject": "Open a project before saving a recoverable character draft.",
+      "conflict": "The source changed outside the editor. Reload the external version or explicitly keep this draft.",
+      "unreadable": "This draft could not be read. The project source is unchanged.",
+      "deleted": "The character was deleted outside the editor. Cancel editing or keep the draft to recreate it.",
+      "projectChanged": "The project changed. Reopen the character in the current project."
     },
     "created": "Character created",
     "updated": "Character updated",

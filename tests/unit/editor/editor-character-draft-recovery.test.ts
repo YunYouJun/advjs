@@ -2,6 +2,8 @@ import type { App } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computed, createApp, defineComponent, h, nextTick, onBeforeUnmount, reactive, ref, useId, watch } from 'vue'
 import CharacterForm from '../../../editor/core/app/components/character/CharacterForm.vue'
+import en from '../../../editor/core/i18n/locales/en.json'
+import zhCN from '../../../editor/core/i18n/locales/zh-CN.json'
 
 const drafts = vi.hoisted(() => ({ projectId: 'a', recoveryError: '', register: vi.fn(), remove: vi.fn(), formDraft: vi.fn(), saveFormDraft: vi.fn() }))
 vi.mock('../../../editor/core/app/stores/useProjectDrafts', () => ({ useProjectDrafts: () => drafts }))
@@ -24,11 +26,12 @@ afterEach(() => {
   document.body.innerHTML = ''
   vi.unstubAllGlobals()
 })
-function mount(save: ReturnType<typeof vi.fn>) {
+function mount(save: ReturnType<typeof vi.fn>, translate = (key: string) => key) {
+  vi.stubGlobal('useI18n', () => ({ t: translate }))
   const host = document.createElement('div')
   document.body.append(host)
   app = createApp({ render: () => h(CharacterForm, { mode: 'edit', character: { id: 'hero', name: 'External' }, save }) })
-  app.config.globalProperties.$t = (key: string) => key
+  app.config.globalProperties.$t = translate
   const wrapper = defineComponent({ setup: (_, { slots }) => () => h('div', slots.default?.()) })
   for (const name of ['AGUIForm', 'AGUIDetails', 'AGUIProperty', 'AGUIFormItem'])
     app.component(name, wrapper)
@@ -54,10 +57,10 @@ describe('character draft recovery', () => {
     const host = mount(save)
     expect(drafts.saveFormDraft).not.toHaveBeenCalled()
     await click(host, 'characters.form.loadDraft')
-    expect(host.textContent).toContain('source changed')
+    expect(host.textContent).toContain('characters.draft.conflict')
     await click(host, 'characters.form.save')
     expect(save).toHaveBeenLastCalledWith(expect.objectContaining({ name: 'Recovered', voice: { speakerId: 'voice-a' }, visual: { version: 1 } }), 'original source')
-    await click(host, '保留草稿并覆盖')
+    await click(host, 'characters.draft.keepDraft')
     expect(save).toHaveBeenLastCalledWith(expect.anything(), 'external source')
     expect(drafts.saveFormDraft).toHaveBeenLastCalledWith('character:edit:hero', undefined, 'a', expect.stringContaining('Recovered'))
   })
@@ -68,7 +71,7 @@ describe('character draft recovery', () => {
     project.workspace = {}
     await click(host, 'characters.form.save')
     expect(save).not.toHaveBeenCalled()
-    expect(host.textContent).toContain('project changed')
+    expect(host.textContent).toContain('characters.draft.projectChanged')
   })
 })
 
@@ -127,4 +130,18 @@ it('an unmounted pending form cannot overwrite a newer form draft', async () => 
   await nextTick()
   await nextTick()
   expect(drafts.saveFormDraft).toHaveBeenLastCalledWith('character:edit:hero', expect.objectContaining({ content: expect.stringContaining('newer form work') }), 'a')
+})
+
+it.each([['en', en], ['zh-CN', zhCN]] as const)('localizes recovery conflict text and actions in %s', async (_locale, messages) => {
+  drafts.formDraft.mockReturnValue({ base: 'original source', content: JSON.stringify({ form: { id: 'hero', name: 'Recovered' }, tags: '', aliases: '' }) })
+  const translate = (key: string) => key.startsWith('characters.draft.')
+    ? (messages.characters.draft as Record<string, string>)[key.slice('characters.draft.'.length)] ?? key
+    : key
+  const host = mount(vi.fn(), translate)
+  await click(host, 'characters.form.loadDraft')
+  expect(host.querySelector('[role="alert"]')?.textContent).toContain(messages.characters.draft.conflict)
+  expect(Array.from(host.querySelectorAll('button')).map(button => button.textContent?.trim())).toEqual(expect.arrayContaining([
+    messages.characters.draft.reloadExternal,
+    messages.characters.draft.keepDraft,
+  ]))
 })

@@ -76,7 +76,7 @@ function formRevision() {
 const changed = computed(() => JSON.stringify(form) !== originalForm.value || tagsInput.value !== originalTags.value || aliasInput.value !== originalAliases.value)
 function saveDraft() {
   if (!owner || drafts.projectId !== owner) {
-    saveError.value = 'Open a project before saving a recoverable character draft.'
+    saveError.value = t('characters.draft.openProject')
     return
   }
   ownedDraftRevision = formRevision()
@@ -98,11 +98,11 @@ function loadDraft() {
     aliasInput.value = value.aliases
     expected.value = draft.base
     saveError.value = props.mode === 'edit' && characterStore.characterSource(props.character?.id ?? '') !== draft.base
-      ? 'The source changed outside the editor. Reload the external version or explicitly keep this draft.'
+      ? t('characters.draft.conflict')
       : ''
   }
   catch {
-    saveError.value = 'This draft could not be read. The project source is unchanged.'
+    saveError.value = t('characters.draft.unreadable')
   }
 }
 function clearDraft(expectedContent?: string) {
@@ -134,7 +134,7 @@ onBeforeUnmount(() => {
 function reloadExternal() {
   const current = characterStore.characters.find(item => item.id === form.id)
   if (!current) {
-    saveError.value = '角色已在外部删除；可以取消编辑，或保留草稿重新创建。'
+    saveError.value = t('characters.draft.deleted')
     return
   }
   Object.assign(form, current)
@@ -155,7 +155,7 @@ async function onSubmit() {
   if (saving.value)
     return false
   if (useProjectStore().workspace !== ownerWorkspace) {
-    saveError.value = 'The project changed. Reopen the character in the current project.'
+    saveError.value = t('characters.draft.projectChanged')
     return false
   }
   saving.value = true
@@ -212,10 +212,10 @@ async function onSubmit() {
       {{ saveError }}
       <div v-if="mode === 'edit'" class="ae-resource-actions">
         <AGUIButton @click="reloadExternal">
-          载入外部版本
+          {{ $t('characters.draft.reloadExternal') }}
         </AGUIButton>
         <AGUIButton @click="keepDraft">
-          保留草稿并覆盖
+          {{ $t('characters.draft.keepDraft') }}
         </AGUIButton>
       </div>
     </div>
