@@ -12,7 +12,7 @@ url: /img/room.svg
 > 这段旁白直接来自一个 `.adv.md` 文件。
 
 @向导
-欢迎来到 ADV.JS。对话、选择和状态都可以用 Markdown 描述。
+欢迎来到 ADV.JS[^advjs]。对话、选择和状态都可以用 Markdown 描述。
 
 - [看看语法](#syntax)
 
@@ -86,3 +86,5 @@ condition: greeted
   ```yaml
   id: revisit-syntax
   ```
+
+[^advjs]: 使用 Markdown 编写文字冒险故事的开源引擎。

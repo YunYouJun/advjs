@@ -101,6 +101,7 @@ async function loadPlayer(scriptPath: string, trace = false): Promise<RuntimeCli
   const result = await compileRuntimeChapterFiles({
     id: `adv-play:${chapters.map(chapter => chapter.id).join('+')}`,
     chapters,
+    glossaryPath: resolve(process.cwd(), config.root || 'adv', 'glossary.md'),
     entryChapterId,
     requiredPlugins: config.gameConfig?.requiredPlugins,
   })

@@ -22,6 +22,14 @@ export interface Text extends Node {
   value: string
 }
 
+/** A player-visible, plain-text footnote reference. */
+export interface GlossaryReference extends Node {
+  type: 'glossaryReference'
+  identifier: string
+  value: string
+  definition?: string
+}
+
 export interface Background extends Node {
   type: 'background'
   /**
@@ -146,7 +154,7 @@ export interface Dialog extends Node {
 
 export interface Paragraph extends Node {
   type: 'paragraph'
-  children: (Text | Dialog)[]
+  children: (PhrasingContent | Dialog)[]
 }
 
 export interface Heading extends Node {
@@ -281,6 +289,7 @@ export interface HTML extends Node {
 
 export interface PhrasingContentMap {
   text: Text
+  glossaryReference: GlossaryReference
   // emphasis: Emphasis
   // strong: Strong
   // delete: Delete
@@ -302,6 +311,7 @@ export type ChildWithMd = Item | MdAst.Content
 
 export interface Root {
   type: 'adv-root'
+  glossaryDiagnostics?: Array<{ code: string, message: string, position?: SourcePosition, source?: 'glossary' }>
   children: Child[]
   scene: Record<string, number>
   /**

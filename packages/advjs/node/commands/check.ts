@@ -247,6 +247,7 @@ export async function runCheck(options: CheckOptions & { cwd?: string }): Promis
       const compiled = await compileRuntimeChapterFiles({
         id: `adv-check:${relative(cwd, gameRoot) || 'game'}`,
         chapters: [...nestedChapters, ...extraChapters],
+        glossaryPath: join(gameRoot, 'glossary.md'),
         requiredPlugins: options.requiredPlugins,
         staticAnalysis: true,
         variables: options.variables ?? loadedProject?.result.project.game.variables as JsonObject | undefined,

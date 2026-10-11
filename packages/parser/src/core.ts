@@ -1,7 +1,7 @@
 import type { AdvAst } from '@advjs/types'
 import type * as MdAst from 'mdast'
 
-import { mdParse } from './markdown'
+import { prepareGlossary } from './glossary'
 import { Serialize } from './Serialize'
 import { isScript } from './syntax'
 
@@ -12,7 +12,8 @@ const serialize = new Serialize()
 /**
  * 将 Markdown 语法树转译为 AdvScript
  */
-export function convertMdToAdv(mdAst: MdAst.Root): AdvAst.Root {
+export function convertMdToAdv(mdAst: MdAst.Root, glossary?: ReadonlyMap<string, string>): AdvAst.Root {
+  const serializer = new Serialize(glossary)
   const ast: AdvAst.Root = {
     type: 'adv-root',
     functions: {},
@@ -23,7 +24,7 @@ export function convertMdToAdv(mdAst: MdAst.Root): AdvAst.Root {
   // 深度优先
   let i = 0
   mdAst.children.forEach((child) => {
-    const advItem = parseChild(child)
+    const advItem = serializer.parse(child)
     if (advItem) {
       ast.children.push(advItem)
       if (advItem.type === 'scene')
@@ -62,10 +63,12 @@ export function parseChild(child: MdAst.Content) {
  * 将纯文本内容解析为语法树
  * @param content 文本内容
  */
-export async function parseAst(content: string) {
+export async function parseAst(content: string, glossaryContent = '') {
   // const mdAst = md.parse(content, {})
   // return convertMdToAdv(mdAst)
-  const mdAst = await mdParse(content)
-  const advAst = convertMdToAdv(mdAst)
+  const prepared = prepareGlossary(content, glossaryContent)
+  const advAst = convertMdToAdv(prepared.ast, prepared.definitions)
+  if (prepared.diagnostics.length)
+    advAst.glossaryDiagnostics = prepared.diagnostics
   return advAst
 }

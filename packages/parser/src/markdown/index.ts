@@ -42,6 +42,11 @@ export async function mdRender(content: string) {
  * @param content
  */
 export async function mdParse(content: string): Promise<Root> {
+  return mdParseSync(content)
+}
+
+/** Synchronous syntax-only parse for source projection. */
+export function mdParseSync(content: string): Root {
   const mdAst = unified()
     .use(remarkParse)
     .use(remarkFrontmatter)

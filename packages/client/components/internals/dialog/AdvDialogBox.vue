@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { RuntimeNode } from '@advjs/types'
-import { useAdvContext, useSettingsStore } from '@advjs/client'
-import { computed, shallowRef, watch } from 'vue'
+import type { GlossaryReference } from '../../../utils/glossary'
+import { useAdvContext, useAppStore, useSettingsStore } from '@advjs/client'
+import { computed, onBeforeUnmount, shallowRef, watch } from 'vue'
 import { useAdvDialogBox } from '../../../composables/useAdvDialogBox'
 import AdvAvatarImage from '../../adv/AdvAvatarImage.vue'
 
@@ -12,6 +13,15 @@ const props = defineProps<{
 const { $adv } = useAdvContext()
 
 const settings = useSettingsStore()
+const app = useAppStore()
+function openGlossary(reference: GlossaryReference) {
+  app.glossaryTerm = reference
+  app.showGlossary = true
+}
+onBeforeUnmount(() => {
+  app.showGlossary = false
+  app.glossaryTerm = undefined
+})
 
 const {
   next,
@@ -30,6 +40,8 @@ const {
 const printRun = shallowRef(0)
 watch(() => props.node, () => {
   printed.value = false
+  app.showGlossary = false
+  app.glossaryTerm = undefined
   printRun.value++
 })
 
@@ -77,6 +89,8 @@ const curWords = computed(() => {
         :mode="settings.storage.text.curDisplayMode"
         :speed="settings.storage.text.curSpeed"
         :words="curWords"
+        :glossary="node.data?.glossary"
+        @glossary="openGlossary"
         @end="$adv.$auto.notifyPrintDone()"
       />
       <span

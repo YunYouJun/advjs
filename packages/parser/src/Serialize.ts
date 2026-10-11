@@ -21,6 +21,23 @@ export class AdvScriptSyntaxError extends Error {
  * 序列化类
  */
 export class Serialize {
+  constructor(private readonly glossary: ReadonlyMap<string, string> = new Map()) {}
+
+  private inline(child: Mdast.PhrasingContent): AdvAst.PhrasingContent[] {
+    if (child.type === 'footnoteReference') {
+      return [{
+        type: 'glossaryReference',
+        identifier: child.identifier,
+        value: `[${child.label ?? child.identifier}]`,
+        definition: this.glossary.get(child.identifier),
+        position: child.position,
+      }]
+    }
+    if ('children' in child)
+      return child.children.flatMap(item => this.inline(item as Mdast.PhrasingContent))
+    return [{ type: 'text', value: phrasingText([child]) }]
+  }
+
   /**
    * 解析
    */
@@ -153,9 +170,14 @@ export class Serialize {
         node.children.slice(1).forEach((child) => {
           // Inline emphasis, links and images need not have an ADV node type.
           // Keep their text instead of inserting undefined into the dialogue AST.
-          dialogChildren.push((this.parse(child) ?? { type: 'text', value: phrasingText([child]) }) as AdvAst.PhrasingContent)
+          dialogChildren.push(...this.inline(child))
         })
       }
+    }
+    if (astNode.type !== 'dialog') {
+      const children = node.children.flatMap(child => this.inline(child))
+      if (children.some(child => child.type === 'glossaryReference'))
+        return { type: 'paragraph', children } as AdvAst.Paragraph
     }
     return astNode
   }

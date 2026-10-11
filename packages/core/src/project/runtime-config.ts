@@ -1,4 +1,5 @@
 import type { AdvCharacter, AdvGameConfig, AdvProjectCompileResult, AdvProjectFileMap, JsonObject } from '@advjs/types'
+import { projectGlossarySource } from '@advjs/parser'
 
 /** Player identity deliberately excludes author notes, AI prompts and private attributes. */
 export function toPlayerCharacter(character: AdvCharacter): AdvCharacter {
@@ -38,6 +39,28 @@ function dataUrl(content: string) {
   return `data:text/markdown;charset=utf-8,${encodeURIComponent(content)}`
 }
 
+/** Reuse the existing Markdown chapter transport, never ship author material. */
+function playerChapterSources(compilation: AdvProjectCompileResult, files: AdvProjectFileMap, chapterId: string, sources: string[]) {
+  const contents = sources.map(source => files[source] ?? '')
+  const references = new Map<string, string>()
+  const chapter = compilation.project.program?.chapters[chapterId]
+  for (const node of Object.values(chapter?.nodes ?? {})) {
+    if (!Array.isArray(node.data?.glossary))
+      continue
+    for (const item of node.data.glossary) {
+      if (isRecord(item) && typeof item.identifier === 'string' && typeof item.definition === 'string')
+        references.set(item.identifier, item.definition)
+    }
+  }
+  const stripped = projectGlossarySource(contents.join('\n\n'), new Map())
+  let offset = 0
+  return contents.map((content, index) => {
+    const source = stripped.slice(offset, offset + content.length)
+    offset += content.length + 2
+    return index === 0 ? projectGlossarySource(source, references) : source
+  })
+}
+
 export function createProjectGameConfig(compilation: AdvProjectCompileResult, files: AdvProjectFileMap): AdvGameConfig {
   const { project } = compilation
   const game = project.game as JsonObject
@@ -60,16 +83,19 @@ export function createProjectGameConfig(compilation: AdvProjectCompileResult, fi
     assets: {
       manifest: { bundles: [] },
     },
-    chapters: project.chapters.map(chapter => ({
-      id: chapter.id,
-      title: chapter.title ?? chapter.id,
-      nodes: chapter.sources.map((source, order) => ({
-        id: `${chapter.id}:source:${order + 1}`,
-        order,
-        src: dataUrl(files[source] ?? ''),
-        type: 'fountain' as const,
-      })),
-    })),
+    chapters: project.chapters.map((chapter) => {
+      const contents = playerChapterSources(compilation, files, chapter.id, chapter.sources)
+      return ({
+        id: chapter.id,
+        title: chapter.title ?? chapter.id,
+        nodes: chapter.sources.map((_source, order) => ({
+          id: `${chapter.id}:source:${order + 1}`,
+          order,
+          src: dataUrl(contents[order]),
+          type: 'fountain' as const,
+        })),
+      })
+    }),
     characters: project.characters.map(toPlayerCharacter),
     scenes: project.scenes.map(scene => scene.type === 'model'
       ? { ...toPlayerScene(scene), type: 'model' as const }

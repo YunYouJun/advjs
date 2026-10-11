@@ -18,6 +18,8 @@ export interface CompileRuntimeChapterFilesOptions {
   requiredPlugins?: Record<string, string>
   staticAnalysis?: boolean
   variables?: JsonObject
+  /** Local author material; only referenced footnotes reach the program. */
+  glossaryPath?: string
 }
 
 export interface ResolveConfiguredRuntimeChapterFilesOptions {
@@ -120,6 +122,16 @@ export async function compileRuntimeChapterFiles(
     'adv.config.json': JSON.stringify({ format: 'adv-md', root: './adv' }),
   }
   const originalPaths = new Map<string, string>()
+  if (options.glossaryPath) {
+    try {
+      files['adv/glossary.md'] = await readFile(options.glossaryPath, 'utf8')
+      originalPaths.set('adv/glossary.md', options.glossaryPath)
+    }
+    catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT')
+        throw error
+    }
+  }
   const chapters = await Promise.all(options.chapters.map(async chapter => ({
     id: chapter.id,
     title: chapter.title,

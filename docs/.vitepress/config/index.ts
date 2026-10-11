@@ -419,6 +419,7 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
       items: [
         { text: '什么是 AdvScript?', link: '/guide/advscript/' },
         { text: '基础语法', link: '/guide/advscript/syntax' },
+        { text: '对话术语', link: '/guide/advscript/glossary' },
         { text: '扩展语法', link: '/guide/advscript/code' },
         { text: '常见问题', link: '/guide/advscript/faq' },
 

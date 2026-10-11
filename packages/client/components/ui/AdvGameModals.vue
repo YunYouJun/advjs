@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useAppStore } from '@advjs/client'
 import { useI18n } from 'vue-i18n'
+import AdvGlossaryModal from './AdvGlossaryModal.vue'
 
 const { t } = useI18n()
 
@@ -8,6 +9,7 @@ const app = useAppStore()
 </script>
 
 <template>
+  <AdvGlossaryModal />
   <AdvModal
     v-model:open="app.showHistory"
     :header="t('ui.history')" icon="i-ri-history-line"

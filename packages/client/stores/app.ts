@@ -1,3 +1,4 @@
+import type { GlossaryReference } from '../utils/glossary'
 import { ns } from '@advjs/core'
 import { useStorage, useToggle } from '@vueuse/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
@@ -19,6 +20,9 @@ export const useAppStore = defineStore('@advjs/client/app', () => {
      */
     settings: false,
   })
+
+  const showGlossary = ref(false)
+  const glossaryTerm = ref<GlossaryReference>()
 
   const [showHistory, toggleHistory] = useToggle(false)
   const [showBlack, toggleBlack] = useToggle(false)
@@ -54,6 +58,8 @@ export const useAppStore = defineStore('@advjs/client/app', () => {
 
     showUi,
     showHistory,
+    showGlossary,
+    glossaryTerm,
     showSaveMenu,
     showLoadMenu,
     showBlack,
