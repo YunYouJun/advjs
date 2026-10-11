@@ -173,6 +173,10 @@ jobs:
         env:
           ADVJS_PACKED_INSTALL_SKIP_BUILD: '1'
         run: pnpm vitest run tests/launch/packed-install.test.ts --no-file-parallelism --reporter=default
+      - name: Run packed scaffolder and generated project smoke
+        env:
+          ADVJS_PACKED_INSTALL_SKIP_BUILD: '1'
+        run: pnpm vitest run tests/launch/create-adv.test.ts --no-file-parallelism --reporter=default
 
   e2e:
     name: e2e

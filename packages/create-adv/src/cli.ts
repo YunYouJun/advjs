@@ -24,7 +24,7 @@ export async function init() {
     return
   }
   if (argv.version) {
-    consola.log(version)
+    process.stdout.write(`${version}\n`)
     return
   }
 

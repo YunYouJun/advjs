@@ -78,7 +78,8 @@ async function verifyPreview(directory: string) {
 }
 
 beforeAll(async () => {
-  temporaryRoot = await mkdtemp(join(tmpdir(), 'create-adv-packed-'))
+  // macOS aliases /var to /private/var; compare canonical paths for isolation.
+  temporaryRoot = await realpath(await mkdtemp(join(tmpdir(), 'create-adv-packed-')))
   packs = join(temporaryRoot, 'packs')
   await mkdir(packs)
   const result = await runPnpm(['-C', 'packages/create-adv', 'pack', '--pack-destination', packs, '--json'], { cwd: root })
@@ -105,6 +106,16 @@ describe('packed create-adv', () => {
     expect((await run(['--help'])).stdout).toContain('--template')
     const pkg = JSON.parse(await readFile(join(root, 'packages/create-adv/package.json'), 'utf8'))
     expect((await run(['--version'])).stdout.trim()).toBe(pkg.version)
+  })
+
+  it('prints the version without CI log prefixes', async () => {
+    const pkg = JSON.parse(await readFile(join(root, 'packages/create-adv/package.json'), 'utf8'))
+    const result = await runCommand(process.execPath, [bin, '--version'], {
+      cwd: temporaryRoot,
+      env: { CI: '1', NODE_ENV: 'production', TEST: 'false', NODE_PATH: undefined },
+      timeout: 30_000,
+    })
+    expect(result.stdout.trim()).toBe(pkg.version)
   })
 
   it('honors template aliases, nested paths, and normalized package names', async () => {

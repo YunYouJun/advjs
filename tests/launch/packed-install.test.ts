@@ -112,6 +112,7 @@ describe('launch package manifest', () => {
       '@advjs/editor',
       'advjs',
       '@advjs/mcp-server',
+      'create-adv',
     ])
 
     const graph = await validateWorkspacePackageGraph(repositoryRoot)
@@ -150,6 +151,29 @@ describe('launch package manifest', () => {
     const requests = registry.localRequests.slice(before)
     expect(requests).toContain('advjs')
     expect(requests.some(request => request.includes(`advjs-${LAUNCH_VERSION}.tgz`))).toBe(true)
+  }, 240_000)
+
+  it('starts pnpm create adv from the release registry and creates a bundled game', async () => {
+    // Exercise normal console output rather than consola's silent test mode.
+    const create = (args: string[]) => runLaunchCommand(pnpmExecutable, ['create', 'adv', ...args], temporaryRoot, registry.url, temporaryRoot, {
+      NODE_ENV: 'production',
+      TEST: 'false',
+    })
+    const before = registry.localRequests.length
+    const help = await create(['--help'])
+    expect(help.stdout).toContain('Usage:')
+    const version = await create(['--version'])
+    expect(version.stdout.trim()).toBe(LAUNCH_VERSION)
+
+    const directory = join(temporaryRoot, 'created-game')
+    await create([directory, '--template', 'adv', '--yes'])
+    const game = JSON.parse(await readFile(join(directory, 'package.json'), 'utf8'))
+    expect(game.devDependencies.advjs).toBe(`^${LAUNCH_VERSION}`)
+    expect(await readFile(join(directory, 'adv/chapters/01-introduction.adv.md'), 'utf8')).toContain('Welcome to ADV.JS!')
+
+    const requests = registry.localRequests.slice(before)
+    expect(requests).toContain('create-adv')
+    expect(requests.some(request => request.includes(`create-adv-${LAUNCH_VERSION}.tgz`))).toBe(true)
   }, 240_000)
 
   it('installs and starts the Editor artifact and MCP server from registry packages', async () => {
