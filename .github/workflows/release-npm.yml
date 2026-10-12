@@ -1,0 +1,175 @@
+name: Release npm with OIDC
+run-name: npm ${{ inputs.operation }} from ${{ github.ref_name }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Prepare immutable packages, or publish and verify an existing candidate
+        type: choice
+        required: true
+        default: prepare
+        options:
+          - prepare
+          - publish
+      candidate_run_id:
+        description: Successful prepare run from this exact commit (required for publish)
+        type: string
+      resume_publication_run_id:
+        description: Previous publication run whose accepted uploads should be resumed
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: advjs-release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: inputs.operation == 'prepare' && github.repository == 'YunYouJun/advjs'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.20.0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          package-manager-cache: false
+      - run: pnpm install --frozen-lockfile
+      - name: Require passing CI and build the exact source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/release/npm-oidc.mjs prepare release/npm
+      - uses: actions/upload-artifact@v7
+        with:
+          name: npm-packages-${{ github.run_id }}
+          path: release/npm/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 90
+
+  publish:
+    if: inputs.operation == 'publish' && github.repository == 'YunYouJun/advjs'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      NPM_CANDIDATE_RUN_ID: ${{ inputs.candidate_run_id }}
+      NPM_CONFIG_USERCONFIG: ${{ runner.temp }}/npm-oidc.npmrc
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.20.0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          package-manager-cache: false
+      - name: Require the successful immutable candidate from this commit
+        run: node scripts/release/npm-oidc.mjs check-run
+      - name: Download exact candidate packages
+        run: gh run download "$NPM_CANDIDATE_RUN_ID" --name "npm-packages-$NPM_CANDIDATE_RUN_ID" --dir release/npm
+      - name: Verify the previous publication identity
+        if: inputs.resume_publication_run_id != ''
+        env:
+          NPM_CANDIDATE_RUN_ID: ${{ inputs.resume_publication_run_id }}
+        run: node scripts/release/npm-oidc.mjs check-publication-run
+      - name: Resume accepted uploads without republishing
+        if: inputs.resume_publication_run_id != ''
+        env:
+          NPM_PUBLICATION_RUN_ID: ${{ inputs.resume_publication_run_id }}
+        run: gh run download "$NPM_PUBLICATION_RUN_ID" --name "npm-publication-$NPM_PUBLICATION_RUN_ID" --dir release/npm
+      - name: Use OIDC without stored npm credentials
+        run: node -e 'require("node:fs").writeFileSync(process.env.NPM_CONFIG_USERCONFIG, "registry=https://registry.npmjs.org/\n")'
+      - name: Publish rc packages and wait for npm availability
+        run: node scripts/release/npm-oidc.mjs publish release/npm
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: npm-publication-${{ github.run_id }}
+          path: release/npm/publication.json
+          if-no-files-found: warn
+
+  pinned-smoke:
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NPM_VERIFICATION_REPORT_DIR: ${{ runner.temp }}/npm-smoke
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.20.0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          package-manager-cache: false
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec node scripts/release/verify-public-scaffolder.mjs pinned
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: npm-pinned-smoke-${{ github.run_id }}
+          path: ${{ runner.temp }}/npm-smoke/
+
+  promote:
+    needs: pinned-smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      NPM_CANDIDATE_RUN_ID: ${{ inputs.candidate_run_id }}
+      NPM_CONFIG_USERCONFIG: ${{ runner.temp }}/npm-oidc.npmrc
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.20.0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          package-manager-cache: false
+      - run: node scripts/release/npm-oidc.mjs check-run
+      - run: gh run download "$NPM_CANDIDATE_RUN_ID" --name "npm-packages-$NPM_CANDIDATE_RUN_ID" --dir release/npm
+      - name: Use OIDC without stored npm credentials
+        run: node -e 'require("node:fs").writeFileSync(process.env.NPM_CONFIG_USERCONFIG, "registry=https://registry.npmjs.org/\n")'
+      - name: Promote verified packages with create-adv last
+        run: node scripts/release/npm-oidc.mjs promote release/npm
+
+  default-smoke:
+    needs: promote
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NPM_VERIFICATION_REPORT_DIR: ${{ runner.temp }}/npm-smoke
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.20.0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          package-manager-cache: false
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec node scripts/release/verify-public-scaffolder.mjs default
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: npm-default-smoke-${{ github.run_id }}
+          path: ${{ runner.temp }}/npm-smoke/
