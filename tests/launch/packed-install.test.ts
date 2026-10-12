@@ -100,7 +100,8 @@ afterAll(async () => {
 describe('launch package manifest', () => {
   it('defines a complete, consistently versioned public package graph', async () => {
     expect(LAUNCH_VERSION).toBe('0.1.4')
-    expect(PACKAGE_SPECS.map(spec => spec.name)).toEqual([
+    // Pin the public members; actual package dependencies determine their order.
+    expect(PACKAGE_SPECS.map(spec => spec.name).sort()).toEqual([
       '@advjs/types',
       '@advjs/audio',
       '@advjs/assets',
@@ -115,13 +116,26 @@ describe('launch package manifest', () => {
       'advjs',
       '@advjs/mcp-server',
       'create-adv',
-    ])
+    ].sort())
 
     const graph = await validateWorkspacePackageGraph(repositoryRoot)
     expect(graph.packages).toHaveLength(PACKAGE_SPECS.length)
     expect(graph.packages.every(pkg => pkg.version === LAUNCH_VERSION)).toBe(true)
     expect(graph.packages.every(pkg => pkg.publishConfig?.access === 'public')).toBe(true)
     expect(graph.entries).toEqual(['advjs', '@advjs/editor', '@advjs/mcp-server'])
+  })
+
+  it('rejects a public dependency on a package that is published later', async () => {
+    const invalidRoot = join(temporaryRoot, 'invalid-public-graph')
+    for (const spec of PACKAGE_SPECS) {
+      const path = join(spec.path, 'package.json')
+      const packageJson = JSON.parse(await readFile(join(repositoryRoot, path), 'utf8'))
+      if (spec.name === '@advjs/assets')
+        packageJson.dependencies['@advjs/audio'] = `workspace:${LAUNCH_VERSION}`
+      await mkdir(join(invalidRoot, spec.path), { recursive: true })
+      await writeFile(join(invalidRoot, path), JSON.stringify(packageJson))
+    }
+    await expect(validateWorkspacePackageGraph(invalidRoot)).rejects.toThrow('@advjs/assets must appear after its public dependency @advjs/audio')
   })
 
   it('publishes a deterministic standalone Editor UI entry', async () => {
