@@ -1,12 +1,15 @@
 // @vitest-environment node
 
+import { Buffer } from 'node:buffer'
+import { createHash } from 'node:crypto'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { gzipSync } from 'node:zlib'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { parse } from 'yaml'
 import { npmTrustConfiguration } from '../../../scripts/release/configure-npm-oidc.mjs'
-import { assertOidcEnvironment, uploadNpmPackages, verifyNpmArtifact, verifySourceChecks } from '../../../scripts/release/npm-oidc.mjs'
+import { assertOidcEnvironment, reusePublishedNpmArchives, uploadNpmPackages, verifyNpmArtifact, verifySourceChecks } from '../../../scripts/release/npm-oidc.mjs'
 import { LAUNCH_VERSION, PACKAGE_SPECS } from '../../../scripts/release/package-specs.mjs'
 
 const directories: string[] = []
@@ -29,6 +32,38 @@ const packages = [
 ]
 
 describe('npm OIDC release', () => {
+  it('reuses an immutable archive when only the gzip platform header differs', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'npm-gzip-'))
+    directories.push(directory)
+    const local = gzipSync('identical complete tar stream')
+    const published = Buffer.from(local)
+    published[9] = local[9] === 19 ? 3 : 19
+    const integrity = (data: Buffer) => `sha512-${createHash('sha512').update(data).digest('base64')}`
+    const pkg = { name: '@advjs/types', version: LAUNCH_VERSION, tarball: 'types.tgz', integrity: integrity(local) }
+    await writeFile(join(directory, pkg.tarball), local)
+    await reusePublishedNpmArchives({ packages: [pkg] }, directory, {
+      lookup: async () => ({ versions: { [LAUNCH_VERSION]: { dist: { integrity: integrity(published), tarball: 'https://example.test/types.tgz' } } } }),
+      download: async () => published,
+    })
+    expect(pkg.integrity).toBe(integrity(published))
+    expect(await readFile(join(directory, pkg.tarball))).toEqual(published)
+  })
+
+  it('rejects published archives whose uncompressed contents differ', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'npm-gzip-'))
+    directories.push(directory)
+    const local = gzipSync('original tar stream')
+    const published = gzipSync('different tar stream')
+    const integrity = (data: Buffer) => `sha512-${createHash('sha512').update(data).digest('base64')}`
+    const pkg = { name: '@advjs/types', version: LAUNCH_VERSION, tarball: 'types.tgz', integrity: integrity(local) }
+    await writeFile(join(directory, pkg.tarball), local)
+    await expect(reusePublishedNpmArchives({ packages: [pkg] }, directory, {
+      lookup: async () => ({ versions: { [LAUNCH_VERSION]: { dist: { integrity: integrity(published), tarball: 'https://example.test/types.tgz' } } } }),
+      download: async () => published,
+    })).rejects.toThrow('different package contents')
+    expect(await readFile(join(directory, pkg.tarball))).toEqual(local)
+  })
+
   it('rejects local, fork, pull-request, wrong-workflow, and static-token publication', () => {
     expect(() => assertOidcEnvironment(environment)).not.toThrow()
     for (const changes of [
