@@ -61,8 +61,9 @@ peerDependencyRules:
     # published peer ranges have not caught up with the upstream major yet.
     '@stencil/vue-output-target>vue-router': ^5.2.0
     unplugin-mockery>rollup: ^4.62.4
-    vitepress-plugin-mermaid>vitepress: 2.0.0-alpha.19
     vite-ssg>beasties: ^0.5.4
+
+    vitepress-plugin-mermaid>vitepress: 2.0.0-alpha.19
 
 resolvePeersFromWorkspaceRoot: true
 strictPeerDependencies: false
@@ -98,6 +99,10 @@ packages:
 overrides:
   # Forge 7 rebuild uses a git-only node-gyp; pin Electron's published fork.
   '@electron/rebuild>@electron/node-gyp': 10.2.0-electron.2
+  '@intlify/core-base@>=11 <12': 11.4.14
+  '@intlify/message-compiler@>=11 <12': 11.4.14
+  '@intlify/shared@>=11 <12': 11.4.14
+
   '@trpc/server@>=11 <12': 11.8.0
   axios@<0.33.0: 0.33.0
   brace-expansion@<2: 1.1.18
