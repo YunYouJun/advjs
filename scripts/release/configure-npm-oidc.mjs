@@ -78,9 +78,13 @@ async function main(directory) {
       continue
     }
     const archive = await readFile(join(directory, pkg.tarball))
-    const packageJson = JSON.parse(readTarEntries(archive).get('package/package.json').toString('utf8'))
+    const entries = readTarEntries(archive)
+    const packageJson = JSON.parse(entries.get('package/package.json').toString('utf8'))
+    const readme = [...entries].find(([path]) => /^package\/readme(?:\.md|\.markdown|\.mdown)?$/iu.test(path))?.[1]
+    if (readme)
+      packageJson.readme = readme.toString('utf8')
     console.log(`Initialize new package name: ${pkg.name}@${pkg.version}`)
-    await otpRequest(opts => publish(packageJson, archive, { ...opts, access: 'public', tag: 'rc' }))
+    await otpRequest(opts => publish(packageJson, archive, { ...opts, access: 'public', defaultTag: 'rc' }))
     ledger.accepted[pkg.name] = { version: pkg.version, integrity: pkg.integrity, acceptedAt: new Date().toISOString() }
     await writeFile(ledgerPath, `${JSON.stringify(ledger, null, 2)}\n`)
   }
