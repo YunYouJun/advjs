@@ -97,7 +97,7 @@ function loadDraft() {
     const value = JSON.parse(draft.content)
     if (!value.form || typeof value.form !== 'object' || Array.isArray(value.form) || typeof value.tags !== 'string' || typeof value.aliases !== 'string')
       return
-    Object.assign(form, value.form)
+    Object.assign(form, value.form, { voiceProfile: value.form.voiceProfile })
     tagsInput.value = value.tags
     aliasInput.value = value.aliases
     expected.value = draft.base
@@ -141,7 +141,7 @@ function reloadExternal() {
     saveError.value = t('characters.draft.deleted')
     return
   }
-  Object.assign(form, current)
+  Object.assign(form, current, { voiceProfile: current.voiceProfile })
   tagsInput.value = current.tags?.join(', ') ?? ''
   aliasInput.value = current.aliases?.join(', ') ?? ''
   originalForm.value = JSON.stringify(form)
@@ -166,8 +166,11 @@ async function onSubmit() {
   saveError.value = ''
   const submittedRevision = formRevision()
   const submittedBase = expected.value
+  const snapshot = JSON.parse(JSON.stringify(form)) as Partial<AdvCharacter>
   const data = {
-    ...JSON.parse(JSON.stringify(form)),
+    ...snapshot,
+    // Keep an explicit clear through the inspector's merge with the old character.
+    voiceProfile: snapshot.voiceProfile,
     tags: tagsInput.value ? tagsInput.value.split(',').map(t => t.trim()).filter(Boolean) : [],
     aliases: aliasInput.value ? aliasInput.value.split(',').map(a => a.trim()).filter(Boolean) : [],
   }
