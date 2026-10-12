@@ -3,8 +3,9 @@
   "type": "module",
   "version": "0.1.4",
   "repository": {
-    "url": "https://github.com/YunYouJun/advjs/tree/main/packages/gui",
-    "type": "git"
+    "type": "git",
+    "url": "git+https://github.com/YunYouJun/advjs.git",
+    "directory": "packages/gui"
   },
   "publishConfig": {
     "access": "public"

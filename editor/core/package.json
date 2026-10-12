@@ -3,6 +3,11 @@
   "type": "module",
   "version": "0.1.4",
   "description": "ADV.JS Editor",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YunYouJun/advjs.git",
+    "directory": "editor/core"
+  },
   "publishConfig": {
     "access": "public"
   },
