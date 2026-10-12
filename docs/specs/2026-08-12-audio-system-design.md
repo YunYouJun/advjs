@@ -4,13 +4,13 @@
 
 日期：2026-08-12
 
-最近更新：2026-10-11
+最近更新：2026-10-12
 
 适用范围：`@advjs/types`、`@advjs/parser`、`@advjs/core`、`@advjs/client`、`@advjs/editor`、`@advjs/studio`、CLI、COS 发布链路
 
 ## 1. 背景
 
-统一 AudioEngine、Mixer、稳定 lineId、多语言 take、Dialogue Voice、共享作者文件协议和安全迁移 CLI 已实现，旧 BGM Runtime 已移除。Editor／Studio 音频库、take 审核、混音、角色／旁白 Profile、发音词典及批量任务已接入共享服务；Editor 还提供原生 Markdown 流程图与源码音频属性。Qwen／OpenAI 沿用现有供应商注册表，本地认证宿主与 Studio 私有队列复用相同 Planner／Runner。本地 FFmpeg 处理和发布域逻辑已可单独验证。可执行契约见[音频指南](/guide/audio)和[作者语音指南](/guide/authoring-voice)，验证证据见[本轮实现报告](/reports/2026-10-11-audio-runtime-implementation)。Studio 的有限认证服务复用既有 Provider，同步原生文件／音频、持久执行任务并下载校验相同 ID 的 take；发布宿主接入后台转码、可信收据和真实 COS SDK；标准 `.chapter.json` 项目共用编译与绑定协议。固定 Qwen 模型的自动准备、真实本地合成、两端音色／对白／Flow 导出播放与缓存复用已在 Apple Silicon 上验收；听审、跨设备／长任务评估以及云端部署和 STS 环境仍需独立验收。
+统一 AudioEngine、Mixer、稳定 lineId、多语言 take、Dialogue Voice、共享作者文件协议和安全迁移 CLI 已实现，旧 BGM Runtime 已移除。Editor／Studio 音频库、take 审核、混音、角色／旁白 Profile、发音词典及批量任务已接入共享服务；Editor 还提供原生 Markdown 流程图与源码音频属性。Qwen／OpenAI 沿用现有供应商注册表，本地认证宿主与 Studio 私有队列复用相同 Planner／Runner。本地 FFmpeg 处理和发布域逻辑已可单独验证。可执行契约见[音频指南](/guide/audio)和[作者语音指南](/guide/authoring-voice)，验证证据见[本轮实现报告](/reports/2026-10-11-audio-runtime-implementation)。Studio 的有限认证服务复用既有 Provider，同步原生文件／音频、持久执行任务并下载校验相同 ID 的 take；发布宿主接入后台转码、可信收据和真实 COS SDK；标准 `.chapter.json` 项目共用编译与绑定协议。固定 Qwen 模型的自动准备、真实本地合成、两端音色／对白／Flow 导出播放与缓存复用已在 Apple Silicon 上验收，真实限定 STS／COS 发布也已通过。本轮补齐原始音频客观测量、独立本地 ASR、匿名真人听审包和设备分层验证；具体通过范围见报告，真人自然度／音色评分、实际第二设备、长任务压力与可选云部署仍待独立验收。
 
 本次升级前，浏览器音频能力以 BGM 专用组合式函数和 Howler 实例为中心，不适合继续承载语音、环境音、音效和 UI 音频：
 
@@ -511,6 +511,16 @@ adv/
 - 生成、上传和播放失败诊断。
 
 两端读写相同 ADVScript、角色文件、Asset Catalog、Mixer 配置与语音账本。UI 不逐项相同，但不得创造私有项目语义。
+
+### 21.3 日常试听与按需高级听审
+
+日常工作区提供原生样本试听、同文本 A/B 对比、显式采用与过期复审。比较身份由共享协议派生：同一 `lineId`、精确 locale、speaker 与实际 take 的 `spokenText`；不可用媒体不得参与。历史 take 可以试听与比较，采用过期结果需明确确认当前文本／音色变化，替换已有 `selectedTake` 仍使用原生 revision／CAS，不因播放或评分自动写入。
+
+两端使用同一只读复审与听审协议，并分别使用 AGUI 和 Studio 控件。试听台先展示台词和状态，再提供 A/B 与单一播放器，详细生成记录折叠。工作区、对白、语言、候选或宿主身份变化取消迟到读取；隐藏或离开时暂停并释放媒体。试听读取实际媒体字节并核验 SHA，不将目录中的哈希值当成媒体已校验。
+
+完整匿名六维评分属于按需加载的高级听审。匿名顺序、候选身份、实际播放覆盖、环境、本人确认、评分范围与 JSON 恢复由共享无头协议定义；导出绑定项目、take、asset、SHA 和朗读文本。恢复保留评分草稿，重新确认当前候选并清空播放证明和本人确认。草稿是本机作者进度，不作为项目语音账本或玩家资源；正式采用仍通过现有作者服务。个人听审不自动生成标准 MOS。
+
+高级听审在两端已有工作区内运行，不依赖独立 HTTP 常驻服务。便携盲听包和手动 loopback 命令保留为离线交接方式；打开音频工作区不启动服务、合成模型或发布请求。
 
 ## 22. 可观测性
 

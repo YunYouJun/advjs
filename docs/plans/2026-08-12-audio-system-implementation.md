@@ -1,6 +1,6 @@
 # Multi-track Audio and AI Voice Implementation Plan
 
-> Status: in progress, reviewed 2026-10-12. Unified playback, both audio-management workspaces, authenticated Studio jobs/native sync and serialized Flow compilation are implemented. Studio now supports explicit local pairing without cloud login, and Qwen design presets preserve locale and structured intent. Fresh real Qwen authoring/export/playback and Studio-panel COS publication have passed using the shared protocol and approved local FFmpeg worker. The author prioritizes local TTS without CFS; hosted generation/persistent cloud deployment is deferred, while listening quality and cross-device review remain future acceptance.
+> Status: in progress, reviewed 2026-10-12. Unified playback, both audio-management workspaces, authenticated Studio jobs/native sync and serialized Flow compilation are implemented. Studio supports explicit local pairing without cloud login, and Qwen design presets preserve locale and structured intent. Fresh real Qwen authoring/export/playback and Studio-panel COS publication have passed using the shared protocol and approved local FFmpeg worker. Objective measurements, unprompted local ASR and a portable blind listening package now extend that evidence; browser, OS-simulator and physical-device results are recorded separately in the implementation report. Human ratings and real second-device acceptance remain pending. The author prioritizes local TTS without CFS; hosted generation/persistent cloud deployment is deferred.
 
 **Goal:** Replace the BGM-only orchestration with a deterministic multi-track AudioEngine, add asset-addressed BGM/ambience/voice/SFX/UI semantics, and deliver Git-friendly AI voice authoring in Editor and Studio.
 
@@ -73,6 +73,18 @@ Status: local TTS and actual COS publication/playback accepted, cloud execution 
 - [ ] Verify any distinct public CDN/custom domain separately from the COS source, and complete listening/long-task/cross-device review.
 
 The current Qwen MLX factory requires Apple Silicon macOS; the Linux deployment uses the existing OpenAI plugin. CloudBase management login is not a Studio author session. Cloud persistent-storage activation, provider credentials and actual user/project registration are deployment prerequisites, never replaced by fabricated IDs, temporary container disks or a development tunnel.
+
+## Integrated listening continuation
+
+Status: implemented with local acceptance, 2026-10-12. Daily audition, A/B comparison, explicit adoption and stale re-review are integrated into both workspaces, with full anonymous ratings opened only on demand. [The shared contract](../specs/2026-08-12-audio-system-design#_21-3-日常试听与按需高级听审) defines the scope; [the implementation report](../reports/2026-10-11-audio-runtime-implementation#_2026-10-12-工作区日常试听与按需高级听审) records production UI, actual archived media, cross-host recovery and browser evidence. Human auditory ratings and physical device acceptance remain pending.
+
+- [x] Both hosts compare same-line, same-language, same-speaker takes with identical actual spoken text using one shared eligibility protocol; unavailable media is rejected and original bytes are verified.
+- [x] Explicit adoption preserves native revision/CAS and requires a renewed stale acknowledgement when the reviewed context changes. Playing, comparing and grading do not select a take.
+- [x] Advanced anonymous six-dimension ratings are lazy loaded and use a shared project/take/asset/SHA-bound JSON contract; restored progress does not restore human attestation or playback proof.
+- [x] Hidden views, project/account changes and delayed media reads cannot resume old playback. Drafts remain private author progress and do not enter exported players.
+- [x] Production Editor normal/narrow and Studio desktop/touch layouts, light/dark states, keyboard operation, cross-host review restoration and existing Flow playback pass. Tests and reports distinguish automated UI scores from actual human observations.
+
+UI organization references ADV.JS AGUI and [YunLeFun/design's workstation principles](https://github.com/YunLeFun/design/blob/main/packages/guide/editor.md). Hosts retain their existing component and token contracts. The portable listening CLI remains optional; no listening service is started automatically.
 
 ## Implemented runtime migration
 
@@ -666,6 +678,10 @@ test(cli): audit audio migration workflow
 - CLI, browser, Editor preview and Studio preview agree on persistent audio target state and effect sequence.
 - Detailed production trace is opt-in and always redacted.
 - Every public documentation example is backed by a parser/compiler fixture.
+- Quality review preserves the original Qwen WAV bytes and records clipping, loudness, silence, DC offset and decoded release-variant alignment separately from perceptual ratings. Independent local ASR receives no expected-text prompt; its transcript and character differences are machine observations, never human listening scores.
+- Editor and Studio use the same current dialogue, pronunciation revision and voice-profile revision when reviewing stale takes. Registered voice-design samples remain auditionable without another model call.
+- A portable blind listening package records sample hashes, actual playback coverage, device/output information and explicit human ratings. Unrated samples and automation runs leave MOS pending. Voice styles with different design inputs are not required to sound identical.
+- Cross-device evidence identifies desktop browsers, viewport/touch emulation, OS simulators and physical devices separately. The 2026-10-12 author has only this Mac available; real phone/tablet and second-computer acceptance remain pending. Replay verifies the original exported line/take/asset identity, audio unlock, controls and codec fallback without regenerating speech or publishing new objects.
 
 - [ ] Add error/warning diagnostic golden tests.
 - [ ] Add cross-host effect and snapshot comparison.

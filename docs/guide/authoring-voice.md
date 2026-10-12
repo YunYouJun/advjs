@@ -237,6 +237,70 @@ const generated = await runVoiceGenerateTake({
 
 这个接口不会生成或伪造同意记录；VoiceDesign 使用 `source: designed`。Qwen 的实际 conditioning 身份是参考资产与 SHA-256，或描述内容的 SHA-256，分别以 `reference:`、`design:` 前缀记录；项目档案 ID 与供应商声音身份保持分离。
 
+## 真人试听与变更复审
+
+Editor 和 Studio 都能试听未登记候选与已登记音色样本，并展示实际生成文本。Editor 的「试听已登记样本」从原生工作区读取媒体，核验字节数和 SHA-256，再交给播放器；临时候选已清理也不影响这项试听。试听不调用模型，不自动选用样本、应用 Profile 或绑定对白。播放器支持暂停、重听和定位，离开面板会停止试听。
+
+两端对白审核共用 `resolveVoiceReviewRows`，以当前编译得到的 Markdown／JSON Flow 行 ID、语言、发音词典和角色／旁白 Profile 检查每条 take。剧情源语言使用当前剧本文本；其他精确语言使用账本中的翻译。显式 `spokenText` 优先，不随词典改变。未设置显式读法时，词典内容版本参与检查，即使替换结果恰好相同，词典版本变化也要求复审。文本、说话角色或音色配置变化，以及行已从当前剧情删除，都会显示过期状态。无法解析当前剧情时不会把历史声音判定为当前有效配音。
+
+「已选」表示当前 `selectedTake`，与声音是否过期、是否通过人工听审分开。过期不会改写音频、清除当前选择或删除历史；作者可以试听旧 take 后显式替换，也可以生成新的未选 take 再审核。媒体缺失、被拒绝或目录哈希不符显示不可用；实际试听和选用还会检查媒体字节，损坏音频不能通过改选择获得认可。
+
+### 工作区试听、A/B 与显式采用
+
+Editor 的音频工作区「对白配音」与 Studio 音频页「配音审核」提供日常试听。先选择对白和精确语言，再选择已有 take；A/B 只能比较同一对白、语言、角色和实际朗读文本的可用候选。历史台词与当前台词不同的 take 仍可单独试听，不能因同属一个角色就当成同文本 A/B。
+
+两端在播放前核验实际媒体 SHA；候选 A/B 共用一个播放器。切换对白、语言、候选、工作区或项目会停止旧试听；迟到读取不会重新播出。暂停、重听和定位只是试听操作，不选用声音、不调用 TTS，也不上传素材。
+
+采用使用原生 `selectedTake` 与 revision／CAS。替换当前配音需要明确确认；过期候选还须确认已经复核当前文本与声音配置。已采用的旧 take 可以明确继续保留，但复审不会重写其生成指纹或消除客观过期状态。再次修改台词、词典或 Profile 后需重新确认。完整生成记录与权利信息保留在折叠详情中。
+
+### 按需高级听审
+
+需要评估新音色、模型或发布前质量时，打开工作区内的「高级听审」。模块按需加载，不需要独立的 `8769` 服务。可以选择当前同文本组或整个项目中的 2–32 个可用 take，按匿名样本逐项填写自然度、清晰度、文本准确性、风格符合度、首尾完整性和参考一致性。跨文本／语言的样本分组评估，不能直接当成同一个 A/B。
+
+评分使用 1–5 分、不适用或待评；没有可信风格／参考依据时注明原因并选不适用，不把另一个候选假定为生成参考。记录设备、输出方式、系统音量和语言，以原始 1× 速度完整播放后再确认本人听审。实际媒体时长、至少 95% 连续播放覆盖和播放结束参与完成检查，跳播或较短的作者时长字段不能代替完整聆听。
+
+两端使用 `@advjs/audio` 的共享项目听审 JSON：`advjs-private-voice-listening-session`。文件绑定原生项目 ID、take、asset、SHA 和实际朗读文本，可在同一项目的 Editor／Studio 间恢复。恢复保留评分与备注，并重新校验当前候选；旧播放证明和本人声明清空。错误项目、变化的媒体身份或不可用来源不能恢复为有效听审。
+
+草稿保存在本机作者范围，退出或隐藏高级界面保留草稿并停止试听；导出 JSON 可在换浏览器或设备时手动恢复。草稿与评分不写入项目语音账本，不进入原生项目导出或玩家构建，也不自动采用配音。个人听审与模拟测试的 `standardMOS` 均保持 `null`。
+
+### 准备匿名试听评分包
+
+仓库提供独立、本机使用的听审工具。它读取已有 Editor／Studio 真实验收产物中的八份 WAV 和对应 provider manifest，不生成声音、不转码、不裁剪、不改变响度，也不发起云请求。输入须包含两端各自的 `design-audition`、`design-dialogue`、`base-audition`、`base-dialogue` 音频及同名 manifest；Base 的参考 SHA 和文本必须对应本端原始设计试听。输出目录必须为新的绝对路径，已有包不会被覆盖。
+
+这是离线交接工具，保留原 `advjs-human-listening-review` 八段便携包协议；它与上述含项目身份的私有草稿有不同用途，不能直接混用。独立服务手动启动，停止进程后本机 URL 失效；保留的 ZIP 仍可离线打开，或按下方命令再次启动服务。
+
+以下路径对应本机已完成验收的缓存；使用其他验收目录时替换两个变量。
+
+```bash
+LISTENING_EVIDENCE_ROOT="$HOME/Library/Caches/ADV.JS/local-qwen-cos-20261012/evidence"
+LISTENING_PACKAGE_ROOT="$HOME/Library/Caches/ADV.JS/audio-quality-devices-20261012/listening-review"
+
+node scripts/audio-listening-review.mjs --help
+node scripts/audio-listening-review.mjs prepare \
+  --evidence-root "$LISTENING_EVIDENCE_ROOT" \
+  --output "$LISTENING_PACKAGE_ROOT"
+node scripts/audio-listening-review.mjs serve \
+  --package "$LISTENING_PACKAGE_ROOT" --port 8769
+```
+
+打开命令输出的本机 URL。服务只监听 `127.0.0.1`，只提供 HTML、公开 manifest 和八份匿名样本的 GET／HEAD／Range 读取；不提供写接口，也不提供揭盲文件、ZIP 或任意目录。`portable-listening.zip` 可复制后离线打开，保留包内目录结构。八项随机编号为 `S01`–`S08`，复制后逐字节核验 SHA；`archive-index.json` 记录文件哈希，`private-audit-map.json` 保存原始来源和匿名编号关系，应由组织听审的人保管，完成评分后再揭盲。
+
+四组 A/B 各自对应同角色、同文本的设计／参考条件结果。Editor 和 Studio 的角色设计输入可能不同，不要求两组角色具有相同音色。匿名参考既标明真实 conditioning 来源，也区分仅供听感比对的样本；自然度可先盲听，再展开风格目标进行风格符合度评价。
+
+### 人工填写与核验
+
+听者记录设备、输出方式、系统音量、语言和环境，保持同一设备与音量，以原始 1× 速度听完各片段。随后填写自然度、清晰度、文本准确性、风格符合度、首尾完整性和参考一致性；没有依据时选择不适用或保留待评。八项共 48 个评分初始均为 `null`，页面不会自动填入听感或评分。
+
+完成状态要求本人确认、必要环境信息、每项完整播放结束及至少 95% 的有效播放覆盖，并填写全部维度。导出 JSON 可保存部分草稿；恢复草稿会保留评分与备注，但清空播放记录和本人确认，需要重新实际试听。将下一条命令的 review 路径替换为浏览器导出的文件，在另一个终端核验：
+
+```bash
+node scripts/audio-listening-review.mjs validate-review \
+  --package "$LISTENING_PACKAGE_ROOT" \
+  --review /absolute/path/my-listening-review.json
+```
+
+核验同时检查匿名包版本、样本 SHA、评分范围、播放覆盖与状态。JSON 契约位于仓库 `scripts/audio-listening-review.schema.json`。自动化页面测试与模拟评分必须标记为 `simulation`，不计入真人听审或 MOS。个人主观听审也不会自动变成标准 MOS：`standardMOS` 保持 `null`，正式 MOS 仍需明确的人类研究设计和统计。模型成功返回、波形非静音或浏览器能播放均不能代替真人的声音质量判断。
+
 ## 后续阶段
 
 1. 已实现基础：多 provider 协议、稳定作者音色、本地短句审核、逐句不可变 take 与显式对白绑定。运行时配置移除整个 `authoring`；Python、模型、作者档案与供应商函数不进入玩家配置。
