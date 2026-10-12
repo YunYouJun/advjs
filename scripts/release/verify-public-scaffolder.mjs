@@ -4,6 +4,7 @@ import { mkdir, mkdtemp, readFile, realpath, stat, writeFile } from 'node:fs/pro
 import { tmpdir } from 'node:os'
 import { join, relative } from 'node:path'
 import process from 'node:process'
+import { parse, stringify } from 'yaml'
 import { writeLaunchWorkspaceConfig } from '../../tests/launch/helpers/registry.ts'
 import { LAUNCH_VERSION } from './package-specs.mjs'
 import { assertPublicLockfile } from './public-lockfile.mjs'
@@ -12,14 +13,14 @@ import { resolvePnpmInvocation, runPnpm } from './run-command.mjs'
 
 const mode = process.argv[2]
 assert(['pinned', 'default'].includes(mode))
-assert.equal((await runPnpm(['--version'])).stdout.trim(), '11.20.0')
+assert.equal((await runPnpm(['--version'])).stdout.trim(), '12.12.1')
 const root = await realpath(await mkdtemp(join(tmpdir(), `advjs-public-${mode}-`)))
 const cliName = mode === 'pinned' ? `adv@${LAUNCH_VERSION}` : 'adv'
 await writeFile(join(root, 'package.json'), JSON.stringify({ private: true }))
 await writeFile(join(root, 'registry.npmrc'), 'registry=https://registry.npmjs.org/\n')
 await writeLaunchWorkspaceConfig(root)
-const settings = JSON.parse(await readFile(join(root, 'pnpm-workspace.yaml'), 'utf8'))
-await writeFile(join(root, 'pnpm-workspace.yaml'), JSON.stringify({ ...settings, cacheDir: join(root, 'cache'), storeDir: join(root, 'store'), dlxCacheMaxAge: 0 }, null, 2))
+const settings = parse(await readFile(join(root, 'pnpm-workspace.yaml'), 'utf8'))
+await writeFile(join(root, 'pnpm-workspace.yaml'), stringify({ ...settings, cacheDir: join(root, 'cache'), storeDir: join(root, 'store'), dlxCacheMaxAge: 0 }))
 const environment = { ...process.env, CI: '1', NODE_ENV: 'production', TEST: 'false', npm_config_userconfig: join(root, 'registry.npmrc'), npm_config_registry: 'https://registry.npmjs.org/', PNPM_CONFIG_CACHE_DIR: join(root, 'cache'), PNPM_CONFIG_STORE_DIR: join(root, 'store'), NO_COLOR: '1', FORCE_COLOR: '0' }
 delete environment.NODE_PATH
 delete environment.PNPM_HOME
@@ -70,7 +71,7 @@ for (const template of ['adv', 'plugin']) {
   assert(!JSON.stringify(pkg).includes('$ADVJS_VERSION'))
   assert((await stat(join(cwd, '.gitignore'))).isFile())
   if (mode === 'default' || mode === 'pinned') {
-    await writeFile(join(cwd, 'pnpm-workspace.yaml'), JSON.stringify({ ...settings, cacheDir: join(root, 'cache'), storeDir: join(root, 'store'), dlxCacheMaxAge: 0 }, null, 2))
+    await writeFile(join(cwd, 'pnpm-workspace.yaml'), stringify({ ...settings, cacheDir: join(root, 'cache'), storeDir: join(root, 'store'), dlxCacheMaxAge: 0 }))
     await run(['install', '--no-frozen-lockfile', '--prod=false'], cwd)
     const lock = await readFile(join(cwd, 'pnpm-lock.yaml'), 'utf8')
     assertPublicLockfile(lock)

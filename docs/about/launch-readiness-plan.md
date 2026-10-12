@@ -93,7 +93,7 @@ P0 issue 创建前先固定以下默认值；若需要改变，必须更新本�
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | Node.js          | CI 仅验证 `lts/*` 指向的当前最新 LTS；发布包 `engines` 与 Vite 对齐为 `^20.19.0 \|\| >=22.12.0`，仓库源码构建要求当前 LTS |
 | 操作系统         | Ubuntu 执行完整 launch journey；macOS 与 Windows 执行公开包安装、CLI、Editor 启停和构建 smoke                             |
-| 包管理器         | npm/npx 与 pnpm/pnpm dlx；项目内部锁定 pnpm 11.20.0                                                                       |
+| 包管理器         | npm/npx 与 pnpm/pnpm dlx；项目内部锁定 pnpm 12.12.1                                                                       |
 | 浏览器           | 本地 Editor 首发支持最新稳定版 Chromium；Firefox 与 Safari 不作首发承诺                                                   |
 | 模板             | `default` 与 `galgame`                                                                                                    |
 | 用户入口包       | `advjs`、`@advjs/editor`、`@advjs/mcp-server`；其他 `@advjs/*` 作为依赖发布                                               |

@@ -53,6 +53,8 @@ describe('adv renderer dependency resolution', () => {
       expect(fromProject?.id).not.toContain(projectPixiRoot)
       const helper = await resolver.resolveId('@advjs/client/composables/useAdvMotionPreference', join(options.themeRoot, 'pages/start.vue'))
       expect(helper?.id).toBe(join(clientRoot, 'composables/useAdvMotionPreference.ts'))
+      const layoutRuntime = await resolver.resolveId('vite-plugin-vue-layouts-next/runtime', '/@vite-plugin-vue-layouts-next/generated-layouts')
+      expect(layoutRuntime?.id.split('?')[0]).toMatch(/\/vite-plugin-vue-layouts-next\/dist\/runtime\.mjs$/u)
     }
     finally {
       await server.close()

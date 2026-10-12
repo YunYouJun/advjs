@@ -27,7 +27,7 @@
   "devDependencies": {
     "@advjs/core": "workspace:*",
     "@intlify/unplugin-vue-i18n": "catalog:build",
-    "@shikijs/markdown-it": "catalog:build",
+    "@shikijs/markdown-exit": "catalog:build",
     "@types/markdown-it-link-attributes": "catalog:types",
     "@vitejs/plugin-vue": "catalog:build",
     "markdown-it-link-attributes": "catalog:build",

@@ -6,11 +6,21 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ViteAdvPlugin } from '../../../packages/advjs/node/vite'
 import advFramework from '../../../packages/vite-plugin-adv/src'
 
-const { vueI18n } = vi.hoisted(() => ({
-  vueI18n: vi.fn(() => ({ name: 'test:vue-i18n' })),
-}))
+const { vueI18n, localeCompilerPaths } = await vi.hoisted(async () => {
+  const { resolvePath } = await import('mlly')
+  // pnpm can give these entrypoints distinct peer contexts for the same plugin.
+  const localeCompilerPaths = await Promise.all([
+    '../../../packages/advjs/package.json',
+    '../../../packages/vite-plugin-adv/package.json',
+  ].map(path => resolvePath('@intlify/unplugin-vue-i18n/vite', {
+    url: new URL(path, import.meta.url),
+    conditions: ['import'],
+  })))
+  return { localeCompilerPaths, vueI18n: vi.fn(() => ({ name: 'test:vue-i18n' })) }
+})
 
-vi.mock('@intlify/unplugin-vue-i18n/vite', () => ({ default: vueI18n }))
+vi.mock(localeCompilerPaths[0], () => ({ default: vueI18n }))
+vi.mock(localeCompilerPaths[1], () => ({ default: vueI18n }))
 vi.mock('vite-plugin-vue-layouts-next', () => ({ default: () => [] }))
 vi.mock('vue-router/vite', () => ({ default: () => [] }))
 vi.mock('unplugin-vue-markdown/vite', () => ({ default: () => [] }))
