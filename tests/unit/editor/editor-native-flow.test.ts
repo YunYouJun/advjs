@@ -76,6 +76,180 @@ describe('editor native JSON Flow authoring', () => {
     expect(api.conflict.value).toBe(true)
   })
 
+  it('cancels reload without changing draft or history and only discards after confirmation', async () => {
+    const { api } = authoring()
+    await vi.waitFor(() => expect(api.document.value?.id).toBe('intro'))
+    api.edit({ type: 'update-node', nodeId: 'hello', patch: { text: 'Keep me' } })
+    const history = api.current.value?.history
+    await api.requestReload()
+    expect(api.pendingReload.value?.path).toBe(path)
+    api.cancelReload()
+    expect(api.current.value?.history).toBe(history)
+    expect(api.dirty.value).toBe(true)
+    await api.requestReload()
+    await api.confirmReload()
+    expect(api.document.value?.nodes[0]?.text).toBe('Hello')
+    expect(api.dirty.value).toBe(false)
+    expect(api.current.value?.history.past).toEqual([])
+    expect(state.project.writeProjectFiles).not.toHaveBeenCalled()
+  })
+
+  it('discards an unsaved chapter without creating files and ignores stale confirmation', async () => {
+    const { api } = authoring()
+    await vi.waitFor(() => expect(api.document.value?.id).toBe('intro'))
+    await api.createChapter('mistake', 'Wrong chapter')
+    await api.requestReload()
+    api.cancelReload()
+    expect(api.document.value?.id).toBe('mistake')
+    await api.requestReload()
+    await api.confirmReload()
+    expect(api.document.value?.id).toBe('intro')
+    expect(api.chapterPaths.value).toEqual([path])
+    expect(api.dirty.value).toBe(false)
+    expect(state.project.writeProjectFiles).not.toHaveBeenCalled()
+    api.edit({ type: 'set-title', title: 'Draft' })
+    await api.requestReload()
+    api.edit({ type: 'set-title', title: 'Newer draft' })
+    await api.confirmReload()
+    expect(api.document.value?.title).toBe('Newer draft')
+  })
+
+  it('clears loading when returning to a cached draft and ignores the old read', async () => {
+    const { api } = authoring()
+    await vi.waitFor(() => expect(api.document.value?.id).toBe('intro'))
+    await flushPromises()
+    api.edit({ type: 'set-title', title: 'Cached draft' })
+    await flushPromises()
+    let resolveRead!: (value: any) => void
+    const originalRead = state.project.workspace.readDocuments
+    state.project.workspace.readDocuments = vi.fn().mockImplementationOnce(() => new Promise((resolve) => {
+      resolveRead = resolve
+    })).mockImplementation(originalRead)
+    const opening = api.open('adv/chapters/other.chapter.json')
+    expect(api.loading.value).toBe(true)
+    await api.open(path)
+    expect(api.loading.value).toBe(false)
+    resolveRead({ files: { ...state.project.project.files, 'adv/chapters/other.chapter.json': serializeFlowDocument({ ...chapter, id: 'other' }) } })
+    await opening
+    expect(api.path.value).toBe(path)
+    expect(api.document.value?.title).toBe('Cached draft')
+    expect(api.canSave.value).toBe(true)
+  })
+
+  it('refreshes a clean cached chapter changed while away without replacing dirty chapters', async () => {
+    const { api } = authoring()
+    await vi.waitFor(() => expect(api.document.value?.id).toBe('intro'))
+    await api.createChapter('ending', 'Ending')
+    state.project.project.files[path] = serializeFlowDocument({ ...chapter, title: 'External update' })
+    await api.open(path)
+    expect(api.document.value?.title).toBe('External update')
+    expect(api.conflict.value).toBe(false)
+    api.edit({ type: 'set-title', title: 'My draft' })
+    await api.open('adv/chapters/ending.chapter.json')
+    state.project.project.files[path] = serializeFlowDocument({ ...chapter, title: 'Another update' })
+    await api.open(path)
+    expect(api.document.value?.title).toBe('My draft')
+    expect(api.conflict.value).toBe(true)
+  })
+
+  it('ignores rejected reads after switching back to a cached chapter', async () => {
+    const { api } = authoring()
+    await vi.waitFor(() => expect(api.document.value?.id).toBe('intro'))
+    await flushPromises()
+    let rejectRead!: (error: Error) => void
+    const originalRead = state.project.workspace.readDocuments
+    state.project.workspace.readDocuments = vi.fn().mockImplementationOnce(() => new Promise((_resolve, reject) => {
+      rejectRead = reject
+    })).mockImplementation(originalRead)
+    const opening = api.open('adv/chapters/missing.chapter.json')
+    await api.open(path)
+    api.selectedNodeId.value = 'end'
+    rejectRead(new Error('Old read failed'))
+    await opening
+    expect(api.selectedNodeId.value).toBe('end')
+    expect(api.error.value).toBe('')
+    expect(api.loading.value).toBe(false)
+  })
+
+  it('does not let delayed chapter creation overwrite a draft or interrupt newer navigation', async () => {
+    const { api } = authoring()
+    await vi.waitFor(() => expect(api.document.value?.id).toBe('intro'))
+    await flushPromises()
+    const digest = crypto.subtle.digest.bind(crypto.subtle)
+    let resolveDigest!: (value: ArrayBuffer) => void
+    const spy = vi.spyOn(crypto.subtle, 'digest').mockImplementationOnce(() => new Promise((resolve) => {
+      resolveDigest = resolve
+    }))
+    const late = api.createChapter('ending', 'Late title')
+    await api.createChapter('ending', 'First completed')
+    api.edit({ type: 'set-title', title: 'Keep newer draft' })
+    resolveDigest(await digest('SHA-256', new TextEncoder().encode('absent:')))
+    await late
+    expect(api.document.value?.title).toBe('Keep newer draft')
+    expect(api.current.value?.history.past).toHaveLength(1)
+    spy.mockImplementationOnce(() => new Promise((resolve) => {
+      resolveDigest = resolve
+    }))
+    const abandoned = api.createChapter('abandoned', 'Abandoned')
+    await api.open(path)
+    resolveDigest(await digest('SHA-256', new TextEncoder().encode('absent:')))
+    await abandoned
+    expect(api.path.value).toBe(path)
+    expect(api.chapterPaths.value).not.toContain('adv/chapters/abandoned.chapter.json')
+    spy.mockRestore()
+  })
+
+  it('saves a new chapter repeatedly without duplicate source declarations', async () => {
+    state.project.project.files['adv/settings/game.json'] = JSON.stringify({ title: 'Native', entryChapterId: 'intro', chapters: [{ id: 'intro', sources: ['chapters/intro.chapter.json'] }] })
+    const { api } = authoring()
+    await vi.waitFor(() => expect(api.document.value?.id).toBe('intro'))
+    await api.createChapter('ending', 'Ending')
+    expect(await api.save()).toBe(true)
+    api.edit({ type: 'set-title', title: 'Revised ending' })
+    expect(await api.save()).toBe(true)
+    await api.open(api.path.value, true)
+    expect(api.document.value?.title).toBe('Revised ending')
+    const game = JSON.parse(state.project.project.files['adv/settings/game.json'])
+    expect(game.chapters.filter((entry: { id: string }) => entry.id === 'ending')).toHaveLength(1)
+    expect(api.dirty.value).toBe(false)
+  })
+
+  it('locks mutation and duplicate saves while loading or saving', async () => {
+    const { api } = authoring()
+    await vi.waitFor(() => expect(api.document.value?.id).toBe('intro'))
+    await flushPromises()
+    let resolveRead!: (value: any) => void
+    const originalRead = state.project.workspace.readDocuments
+    state.project.workspace.readDocuments = vi.fn().mockImplementationOnce(() => new Promise((resolve) => {
+      resolveRead = resolve
+    })).mockImplementation(originalRead)
+    const opening = api.open(path, true)
+    api.edit({ type: 'set-title', title: 'Cannot edit hidden source' })
+    expect(api.document.value?.title).toBe('Original')
+    expect(await api.save()).toBe(false)
+    resolveRead(await originalRead())
+    await opening
+    api.edit({ type: 'set-title', title: 'Saved once' })
+    const saving = api.save()
+    expect(await api.save()).toBe(false)
+    api.history('undo')
+    expect(api.document.value?.title).toBe('Saved once')
+    expect(await saving).toBe(true)
+    await api.open(path, true)
+    expect(api.document.value?.title).toBe('Saved once')
+    expect(state.project.writeProjectFiles).toHaveBeenCalledOnce()
+  })
+
+  it('allows repairing a valid chapter when a different chapter is malformed', async () => {
+    const { api } = authoring()
+    await vi.waitFor(() => expect(api.document.value?.id).toBe('intro'))
+    state.project.project.files['adv/chapters/broken.chapter.json'] = '{'
+    api.edit({ type: 'set-title', title: 'Repaired title' })
+    expect(api.document.value?.title).toBe('Repaired title')
+    await vi.waitFor(() => expect(api.diagnostics.value.some(issue => issue.severity === 'error')).toBe(true))
+    expect(api.canSave.value).toBe(false)
+  })
+
   it('renders real AGUI / Reka selectors, edits conditions and disconnects without dropping choice metadata', async () => {
     const document = parseFlowDocument(JSON.stringify({ ...chapter, nodes: [{ id: 'branch', type: 'choices', next: null, choices: [{ id: 'yes', text: 'Continue', target: 'end', when: 'ready == true', authorData: { keep: true } }] }, ...chapter.nodes] }))
     const edit = vi.fn()

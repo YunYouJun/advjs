@@ -108,7 +108,8 @@ test.afterEach(async () => {
     await new Promise<void>(resolve => playerServer!.close(() => resolve()))
     playerServer = undefined
   }
-  await rm(directory, { recursive: true, force: true })
+  if (directory)
+    await rm(directory, { recursive: true, force: true })
 })
 
 test('native JSON Flow creates and edits a conditional crosschapter branch, retains conflict drafts and builds the real player', async ({ page, context }, info) => {
@@ -179,6 +180,15 @@ test('native JSON Flow creates and edits a conditional crosschapter branch, reta
   await expect(panel.getByLabel('对白 1 文本', { exact: true })).toHaveValue('Retained conflict draft')
   await expect(panel.getByTestId('native-flow-save')).toBeDisabled()
   await panel.getByRole('button', { name: '载入项目版本', exact: true }).click()
+  const reloadDialog = page.getByRole('dialog', { name: '放弃未保存的 Flow 草稿？' })
+  await reloadDialog.getByRole('button', { name: '取消', exact: true }).click()
+  await expect(panel.getByLabel('对白 1 文本', { exact: true })).toHaveValue('Retained conflict draft')
+  await panel.getByRole('button', { name: '载入项目版本', exact: true }).click()
+  await page.keyboard.press('Escape')
+  await expect(reloadDialog).not.toBeVisible()
+  await expect(panel.getByLabel('对白 1 文本', { exact: true })).toHaveValue('Retained conflict draft')
+  await panel.getByRole('button', { name: '载入项目版本', exact: true }).click()
+  await reloadDialog.getByRole('button', { name: '放弃草稿并载入', exact: true }).click()
   await selectNode(page, panel, 'node_01')
   await expect(panel.getByLabel('对白 1 文本', { exact: true })).toHaveValue('Edited native dialogue.')
   await page.reload()

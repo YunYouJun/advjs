@@ -19,6 +19,7 @@ export function useNativeFlowAuthoring() {
   const status = ref('')
   const loading = ref(false)
   const saving = ref(false)
+  const pendingReload = shallowRef<{ path: string, draft: FlowDraft }>()
   let validationSequence = 0
   let loadSequence = 0
   const chapterPaths = computed(() => [...new Set([...Object.keys(project.project?.files ?? {}).filter(path => path.endsWith('.chapter.json')), ...drafts.value.keys()])].sort())
@@ -65,11 +66,17 @@ export function useNativeFlowAuthoring() {
     }
   }
   async function open(nextPath: string, reload = false) {
+    if (saving.value)
+      return
+    pendingReload.value = undefined
     path.value = nextPath
     const sequence = ++loadSequence
     error.value = ''
     status.value = ''
-    if (!drafts.value.has(nextPath) || reload) {
+    validationSequence++
+    diagnostics.value = []
+    loading.value = false
+    if (!drafts.value.has(nextPath) || reload || (!dirty.value && conflict.value)) {
       loading.value = true
       try {
         const snapshot = await service().read(nextPath)
@@ -86,16 +93,58 @@ export function useNativeFlowAuthoring() {
           loading.value = false
       }
     }
+    if (sequence !== loadSequence)
+      return
     selectedNodeId.value = document.value?.nodes[0]?.id ?? ''
     await validate()
   }
+  async function requestReload() {
+    if (!current.value || loading.value || saving.value)
+      return
+    if (dirty.value) {
+      pendingReload.value = { path: path.value, draft: current.value }
+      return
+    }
+    await open(path.value, true)
+  }
+  function cancelReload() {
+    pendingReload.value = undefined
+  }
+  async function confirmReload() {
+    const request = pendingReload.value
+    pendingReload.value = undefined
+    // Approval only covers the draft that was shown, not a later edit or project.
+    if (!request || request.path !== path.value || request.draft !== current.value || saving.value)
+      return
+    if (request.draft.snapshot.content === null) {
+      const remaining = new Map(drafts.value)
+      remaining.delete(request.path)
+      drafts.value = remaining
+      const nextPath = chapterPaths.value[0]
+      if (nextPath) {
+        await open(nextPath)
+      }
+      else {
+        path.value = ''
+        selectedNodeId.value = ''
+        validationSequence++
+        diagnostics.value = []
+        error.value = ''
+        status.value = ''
+      }
+      return
+    }
+    await open(request.path, true)
+  }
   function edit(command: FlowEditCommand) {
-    if (!current.value || saving.value)
+    if (!current.value || saving.value || loading.value)
       return
     error.value = ''
     status.value = ''
     try {
-      const otherChapters = flowDocumentsFromFiles(project.project?.files ?? {}).filter(chapter => chapter.id !== document.value?.id)
+      const otherChapters = command.type === 'delete-node'
+        ? flowDocumentsFromFiles(project.project?.files ?? {}).filter(chapter => chapter.id !== document.value?.id)
+        : []
       const history = reduceFlowEditHistory(current.value.history, { type: 'edit', command, context: { otherChapters } })
       put(path.value, { ...current.value, history })
       if (command.type === 'add-node')
@@ -107,14 +156,14 @@ export function useNativeFlowAuthoring() {
     catch (failure) { error.value = failure instanceof Error ? failure.message : String(failure) }
   }
   function history(action: 'undo' | 'redo') {
-    if (!current.value)
+    if (!current.value || saving.value || loading.value)
       return
     put(path.value, { ...current.value, history: reduceFlowEditHistory(current.value.history, action === 'undo' ? { type: 'undo' } : { type: 'redo' }) })
     error.value = ''
     void validate()
   }
   async function save(): Promise<boolean> {
-    if (!current.value || !writable.value || saving.value)
+    if (!current.value || !writable.value || saving.value || loading.value)
       return false
     const draft = current.value
     const selectedPath = path.value
@@ -143,7 +192,10 @@ export function useNativeFlowAuthoring() {
     }
   }
   async function createChapter(chapterId: string, title: string) {
+    if (saving.value || loading.value)
+      return
     const workspace = project.workspace
+    const sequence = loadSequence
     const root = project.project?.compilation.project.root ?? 'adv'
     const nextPath = `${root}/chapters/${chapterId}.chapter.json`
     if (chapterPaths.value.includes(nextPath)) {
@@ -158,7 +210,7 @@ export function useNativeFlowAuthoring() {
       // Structural validation happens in history before the draft enters the workspace.
       serializeFlowDocument(document)
       const revision = await flowDocumentRevision(null)
-      if (project.workspace !== workspace)
+      if (project.workspace !== workspace || sequence !== loadSequence || saving.value || chapterPaths.value.includes(nextPath))
         return
       put(nextPath, { snapshot: { path: nextPath, content: null, revision, document }, history: createFlowEditHistory(document) })
       await open(nextPath)
@@ -168,6 +220,7 @@ export function useNativeFlowAuthoring() {
   watch(() => project.workspace, () => {
     loadSequence++
     validationSequence++
+    pendingReload.value = undefined
     drafts.value = new Map()
     path.value = ''
     selectedNodeId.value = ''
@@ -179,8 +232,8 @@ export function useNativeFlowAuthoring() {
     if (first)
       void open(first)
   }, { immediate: true })
-  watch(() => project.project?.files[path.value], () => {
-    if (current.value && !dirty.value && !saving.value)
+  watch(() => [path.value, project.project?.files[path.value]] as const, ([nextPath, content], [previousPath, previousContent]) => {
+    if (nextPath === previousPath && content !== previousContent && current.value && !dirty.value && !saving.value)
       void open(path.value, true)
   })
   watch(anyDirty, value => draftStore.register(id, { dirty: value, save: async () => {
@@ -200,5 +253,5 @@ export function useNativeFlowAuthoring() {
     loadSequence++
     draftStore.remove(id)
   })
-  return { path, chapterPaths, document, selectedNodeId, selectedNode, current, dirty, conflict, writable, canSave, diagnostics, error, status, loading, saving, open, edit, history, save, createChapter }
+  return { path, chapterPaths, document, selectedNodeId, selectedNode, current, dirty, conflict, writable, canSave, diagnostics, error, status, loading, saving, pendingReload, requestReload, cancelReload, confirmReload, open, edit, history, save, createChapter }
 }

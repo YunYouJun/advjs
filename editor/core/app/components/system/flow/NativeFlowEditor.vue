@@ -2,6 +2,7 @@
 import type { FlowNodeKind } from '@advjs/core'
 import { createFlowNode, FLOW_NODE_KINDS, flowDocumentsFromFiles } from '@advjs/core'
 import AGUIButton from '@advjs/gui/components/button/AGUIButton.vue'
+import AGUIDialog from '@advjs/gui/components/dialog/AGUIDialog.vue'
 import AGUIInput from '@advjs/gui/components/input/AGUIInput.vue'
 import AGUISelect from '@advjs/gui/components/select/AGUISelect.vue'
 import { computed, ref } from 'vue'
@@ -37,22 +38,22 @@ async function createChapter() {
 <template>
   <section class="native-flow-editor" aria-label="原生 JSON Flow 编辑器" data-testid="native-flow-editor">
     <div class="native-toolbar">
-      <AGUISelect v-if="state.chapterPaths.value.length" label="JSON 章节" :model-value="state.path.value" :options="state.chapterPaths.value.map(path => ({ value: path, label: path.split('/').at(-1) }))" @update:model-value="state.open(String($event))" />
-      <AGUIButton :disabled="!state.writable.value" @click="newChapter = !newChapter">
+      <AGUISelect v-if="state.chapterPaths.value.length" :disabled="state.saving.value" label="JSON 章节" :model-value="state.path.value" :options="state.chapterPaths.value.map(path => ({ value: path, label: path.split('/').at(-1) }))" @update:model-value="state.open(String($event))" />
+      <AGUIButton :disabled="!state.writable.value || state.saving.value || state.loading.value" @click="newChapter = !newChapter">
         新建章节
       </AGUIButton>
       <AGUISelect v-model="kind" label="添加节点类型" :options="FLOW_NODE_KINDS.map((value, index) => ({ value, label: labels[index] }))" />
-      <AGUIButton :disabled="!state.document.value || !state.writable.value || state.saving.value" data-testid="native-node-add" @click="state.edit({ type: 'add-node', node: createFlowNode(kind) })">
+      <AGUIButton :disabled="!state.document.value || !state.writable.value || state.saving.value || state.loading.value" data-testid="native-node-add" @click="state.edit({ type: 'add-node', node: createFlowNode(kind) })">
         添加节点
       </AGUIButton>
-      <AGUIButton :disabled="!state.current.value?.history.past.length || state.saving.value" data-testid="native-flow-undo" @click="state.history('undo')">
+      <AGUIButton :disabled="!state.current.value?.history.past.length || state.saving.value || state.loading.value" data-testid="native-flow-undo" @click="state.history('undo')">
         撤销
       </AGUIButton>
-      <AGUIButton :disabled="!state.current.value?.history.future.length || state.saving.value" data-testid="native-flow-redo" @click="state.history('redo')">
+      <AGUIButton :disabled="!state.current.value?.history.future.length || state.saving.value || state.loading.value" data-testid="native-flow-redo" @click="state.history('redo')">
         重做
       </AGUIButton>
-      <AGUIButton :disabled="!state.path.value || state.saving.value" @click="state.open(state.path.value, true)">
-        载入项目版本
+      <AGUIButton :disabled="!state.path.value || state.saving.value || state.loading.value" @click="state.requestReload">
+        {{ state.current.value?.snapshot.content === null ? '放弃新章节' : '载入项目版本' }}
       </AGUIButton>
       <AGUIButton :disabled="!state.path.value || state.dirty.value || navigation.busy.value" @click="navigation.navigate({ path: state.path.value, line: 1, column: 1 })">
         打开 JSON 源码
@@ -62,10 +63,20 @@ async function createChapter() {
       </AGUIButton>
       <span>{{ state.dirty.value ? '草稿未保存' : '已保存' }}</span>
     </div>
+    <AGUIDialog :open="Boolean(state.pendingReload.value)" title="放弃未保存的 Flow 草稿？" :description="state.current.value?.snapshot.content === null ? '放弃将移除尚未保存的新章节及其撤销历史。取消可继续编辑；项目文件不会被修改。' : '载入项目版本会替换当前章节的未保存修改和撤销历史。取消可继续编辑；项目文件不会被修改。'" content-class="w-md" @update:open="!$event && state.cancelReload()">
+      <div class="native-reload-actions">
+        <AGUIButton @click="state.cancelReload">
+          取消
+        </AGUIButton>
+        <AGUIButton @click="state.confirmReload">
+          {{ state.current.value?.snapshot.content === null ? '放弃新章节' : '放弃草稿并载入' }}
+        </AGUIButton>
+      </div>
+    </AGUIDialog>
     <div v-if="newChapter" class="native-create">
       <AGUIInput v-model="chapterId" aria-label="新章节 ID" placeholder="chapter-id" />
       <AGUIInput v-model="chapterTitle" aria-label="新章节标题" placeholder="标题" />
-      <AGUIButton @click="createChapter">
+      <AGUIButton :disabled="state.saving.value || state.loading.value" @click="createChapter">
         创建章节草稿
       </AGUIButton>
     </div>
@@ -79,13 +90,13 @@ async function createChapter() {
       {{ state.status.value }}
     </p>
     <div v-if="state.document.value" class="native-chapter">
-      <AGUIInput aria-label="章节标题" :model-value="state.document.value.title" @update:model-value="state.edit({ type: 'set-title', title: $event })" />
+      <AGUIInput :disabled="state.saving.value || state.loading.value" aria-label="章节标题" :model-value="state.document.value.title" @update:model-value="state.edit({ type: 'set-title', title: $event })" />
       <AGUISelect label="选中节点" :model-value="state.selectedNodeId.value" :options="state.document.value.nodes.map((node, index) => ({ value: node.id, label: `${index + 1} · ${node.type ?? 'dialogues'} · ${node.id}` }))" @update:model-value="state.selectedNodeId.value = String($event)" />
       <span>{{ state.document.value.nodes.length }} 节点 · {{ state.path.value }}</span>
     </div>
     <div v-if="state.document.value" class="native-content">
-      <NativeFlowCanvas :visible="visible" :document="state.document.value" :selected-node-id="state.selectedNodeId.value" :disabled="!state.writable.value || state.saving.value" @edit="state.edit" @select="state.selectedNodeId.value = $event" />
-      <NativeFlowInspector v-if="state.selectedNode.value" :document="state.document.value" :node="state.selectedNode.value" :catalog="project.project?.compilation.project.assets" :other-chapters="otherChapters" :disabled="!state.writable.value || state.saving.value" @edit="state.edit" />
+      <NativeFlowCanvas :visible="visible" :document="state.document.value" :selected-node-id="state.selectedNodeId.value" :disabled="!state.writable.value || state.saving.value || state.loading.value" @edit="state.edit" @select="state.selectedNodeId.value = $event" />
+      <NativeFlowInspector v-if="state.selectedNode.value" :document="state.document.value" :node="state.selectedNode.value" :catalog="project.project?.compilation.project.assets" :other-chapters="otherChapters" :disabled="!state.writable.value || state.saving.value || state.loading.value" @edit="state.edit" />
     </div>
     <p v-else class="native-flow-status">
       {{ state.loading.value ? '正在载入 JSON 章节…' : '新建或打开原生 .chapter.json 章节。内联章节需先保存为明确的 JSON 文件。' }}
@@ -110,6 +121,12 @@ async function createChapter() {
   background: var(--agui-c-bg-soft);
   font-size: 12px;
   overflow: hidden;
+}
+.native-reload-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px 12px;
 }
 .native-toolbar,
 .native-create,
