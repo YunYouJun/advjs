@@ -5,15 +5,16 @@ on:
   workflow_dispatch:
     inputs:
       operation:
-        description: Prepare immutable packages, or publish and verify an existing candidate
+        description: Prepare, publish, or finalize packages already available on npm
         type: choice
         required: true
         default: prepare
         options:
           - prepare
           - publish
+          - finalize
       candidate_run_id:
-        description: Successful prepare run from this exact commit (required for publish)
+        description: Successful prepare run (same commit for publish; public archives required for finalize)
         type: string
       resume_publication_run_id:
         description: Previous publication run whose accepted uploads should be resumed
@@ -100,8 +101,25 @@ jobs:
           path: release/npm/publication.json
           if-no-files-found: warn
 
+  published-candidate:
+    if: inputs.operation == 'finalize' && github.repository == 'YunYouJun/advjs'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      NPM_CANDIDATE_RUN_ID: ${{ inputs.candidate_run_id }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          package-manager-cache: false
+      - run: gh run download "$NPM_CANDIDATE_RUN_ID" --name "npm-packages-$NPM_CANDIDATE_RUN_ID" --dir release/npm
+      - name: Require passing CI and identical public candidate archives
+        run: node scripts/release/npm-oidc.mjs verify-published release/npm
+
   pinned-smoke:
-    needs: publish
+    needs: [publish, published-candidate]
+    if: always() && !cancelled() && (needs.publish.result == 'success' || needs.published-candidate.result == 'success')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -125,6 +143,7 @@ jobs:
 
   promote:
     needs: pinned-smoke
+    if: always() && !cancelled() && needs.pinned-smoke.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     permissions:
@@ -145,14 +164,18 @@ jobs:
           node-version: 'lts/*'
           package-manager-cache: false
       - run: node scripts/release/npm-oidc.mjs check-run
+        if: inputs.operation == 'publish'
       - run: gh run download "$NPM_CANDIDATE_RUN_ID" --name "npm-packages-$NPM_CANDIDATE_RUN_ID" --dir release/npm
       - name: Use OIDC without stored npm credentials
         run: node -e 'require("node:fs").writeFileSync(process.env.NPM_CONFIG_USERCONFIG, "registry=https://registry.npmjs.org/\n")'
       - name: Promote verified packages with create-adv last
-        run: node scripts/release/npm-oidc.mjs promote release/npm
+        env:
+          NPM_PROMOTION_OPERATION: ${{ inputs.operation == 'finalize' && 'promote-published' || 'promote' }}
+        run: node scripts/release/npm-oidc.mjs "$NPM_PROMOTION_OPERATION" release/npm
 
   default-smoke:
     needs: promote
+    if: always() && !cancelled() && needs.promote.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:

@@ -55,6 +55,16 @@ export function verifySourceChecks(checks, statuses = []) {
     assert.equal(status.state, 'success', `Source status is not passing: ${status.context}`)
 }
 
+export function verifyCandidateRun(run, sourceSha, successful = true) {
+  if (successful)
+    assert.equal(run.conclusion, 'success')
+  else
+    assert.equal(run.status, 'completed')
+  assert.equal(run.event, 'workflow_dispatch')
+  assert.equal(run.path, `.github/workflows/${NPM_WORKFLOW}`)
+  assert.equal(run.head_sha, sourceSha, 'Candidate source does not match the expected commit')
+}
+
 function verifyGitHubSource(sourceSha) {
   const runs = JSON.parse(command('gh', ['api', `repos/${NPM_REPOSITORY}/actions/workflows/ci.yml/runs?head_sha=${sourceSha}&per_page=20`], true))
   const run = runs.workflow_runs.find(item => item.head_sha === sourceSha)
@@ -130,7 +140,7 @@ export async function uploadNpmPackages(manifest, options) {
   }
 }
 
-async function verifyPublicPackages(manifest) {
+async function verifyPublicPackages(manifest, { waitForAvailability = true } = {}) {
   for (const pkg of manifest.packages) {
     const deadline = Date.now() + 30 * 60 * 1000
     let published
@@ -138,6 +148,8 @@ async function verifyPublicPackages(manifest) {
     while (Date.now() < deadline) {
       published = (await metadata(pkg))?.versions?.[pkg.version]
       if (published)
+        break
+      if (!waitForAvailability)
         break
       if (attempt++ % 6 === 0)
         console.log(`Waiting for npm scanning: ${pkg.name}@${pkg.version}`)
@@ -169,19 +181,24 @@ async function main(operation, directory) {
   if (['check-run', 'check-publication-run'].includes(operation)) {
     assert.match(process.env.NPM_CANDIDATE_RUN_ID || '', /^\d+$/u)
     const run = JSON.parse(command('gh', ['api', `repos/${NPM_REPOSITORY}/actions/runs/${process.env.NPM_CANDIDATE_RUN_ID}`], true))
-    if (operation === 'check-run')
-      assert.equal(run.conclusion, 'success')
-    else
-      assert.equal(run.status, 'completed')
-    assert.equal(run.event, 'workflow_dispatch')
-    assert.equal(run.path, `.github/workflows/${NPM_WORKFLOW}`)
-    assert.equal(run.head_sha, process.env.GITHUB_SHA, 'Publish from the candidate commit so provenance describes the packaged source')
+    verifyCandidateRun(run, process.env.GITHUB_SHA, operation === 'check-run')
     return
   }
-  assert(['publish', 'promote'].includes(operation))
-  assertOidcEnvironment()
+  assert(['publish', 'promote', 'verify-published', 'promote-published'].includes(operation))
+  if (operation !== 'verify-published')
+    assertOidcEnvironment()
   const manifest = await verifyNpmArtifact(directory)
-  assert.equal(manifest.sourceSha, process.env.GITHUB_SHA)
+  if (['verify-published', 'promote-published'].includes(operation)) {
+    assert.match(process.env.NPM_CANDIDATE_RUN_ID || '', /^\d+$/u)
+    const run = JSON.parse(command('gh', ['api', `repos/${NPM_REPOSITORY}/actions/runs/${process.env.NPM_CANDIDATE_RUN_ID}`], true))
+    verifyCandidateRun(run, manifest.sourceSha)
+    // Finalization only verifies existing public archives and updates tags.
+    // Both the packaged source and the updated verification code need CI.
+    verifyGitHubSource(process.env.GITHUB_SHA)
+  }
+  else {
+    assert.equal(manifest.sourceSha, process.env.GITHUB_SHA)
+  }
   verifyGitHubSource(manifest.sourceSha)
   const npm = args => command('pnpm', ['dlx', `npm@${NPM_CLI_VERSION}`, ...args, `--registry=${NPM_REGISTRY}`])
   if (operation === 'publish') {
@@ -200,8 +217,8 @@ async function main(operation, directory) {
       save: () => writeFile(ledgerPath, `${JSON.stringify(ledger, null, 2)}\n`),
     })
   }
-  await verifyPublicPackages(manifest)
-  if (operation === 'promote') {
+  await verifyPublicPackages(manifest, { waitForAvailability: !['verify-published', 'promote-published'].includes(operation) })
+  if (['promote', 'promote-published'].includes(operation)) {
     // create-adv stays last, after its entire dependency graph is public.
     for (const pkg of manifest.packages) {
       if ((await metadata(pkg))?.['dist-tags']?.latest !== pkg.version)
