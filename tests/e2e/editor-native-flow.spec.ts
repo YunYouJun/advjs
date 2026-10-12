@@ -510,6 +510,126 @@ test('native Flow reviews a deterministic proposal, previews an unsaved human tw
   await player.close()
 })
 
+test('native Flow highlights exact readonly proposal JSON, copies each source and keeps narrow previews contained', async ({ page, context, browserName }, info) => {
+  const errors: string[] = []
+  page.on('pageerror', error => errors.push(error.message))
+  const baseline = await readFile(join(root, chapterPath), 'utf8')
+  const baselineSettings = await readFile(join(root, 'adv/settings/game.json'), 'utf8')
+  const originalText = originalChapter.nodes.find((node: any) => node.id === 'node_01').dialogues[0].text
+  // Inert HTML-like story text must stay escaped text, including JSON quotes,
+  // backslashes and newlines. The long line also exercises code-only scrolling.
+  const proposedText = `<span data-json-preview-injection="true">literal < & > text</span> & "quoted" \\ path\n${'preview-scroll-'.repeat(24)}`
+  const expected = structuredClone(originalChapter)
+  expected.title = 'Reviewed proposal introduction'
+  expected.nodes.find((node: any) => node.id === 'node_01').dialogues[0].text = proposedText
+  const afterJson = `${JSON.stringify(expected, null, 2)}\n`
+  const copied: string[] = []
+  if (browserName === 'chromium') {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: new URL(editorUrl).origin })
+  }
+  else {
+    // WebKit has no Playwright clipboard permission grant. Only its clipboard
+    // boundary is stubbed; rendering, Shiki, review and file checks remain real.
+    await page.exposeFunction('recordJsonPreviewClipboard', (text: string) => copied.push(text))
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: { writeText: (text: string) => (window as unknown as { recordJsonPreviewClipboard: (text: string) => Promise<void> }).recordJsonPreviewClipboard(text) },
+      })
+    })
+  }
+  const { panel, proposal } = await openProposal(page)
+  const request = await proposalFixture(proposal, proposedText)
+  const review = await reviewProposal(proposal, request)
+  await expect(review).toContainText('校验通过，尚未写入文件')
+  const source = review.getByTestId('native-proposal-source-diff')
+  const before = source.getByTestId('native-proposal-before-json')
+  const after = source.getByTestId('native-proposal-after-json')
+  await expect(source).not.toHaveAttribute('open', '')
+  await expect(before).toHaveCount(0)
+  await expect(after).toHaveCount(0)
+  await source.getByText('查看源文件差异', { exact: true }).click()
+  await expect(source).toHaveAttribute('open', '')
+  for (const [preview, raw, title] of [[before, baseline, '当前版本'], [after, afterJson, '提案版本']] as const) {
+    await expect(preview.getByText('JSON · 只读', { exact: true })).toBeVisible()
+    // textContent, unlike toHaveText, preserves every whitespace byte.
+    await expect.poll(() => preview.locator('pre').textContent()).toBe(raw)
+    await expect(preview.getByRole('region', { name: `${title} JSON 只读源码`, exact: true })).toHaveAttribute('tabindex', '0')
+    await expect.poll(() => preview.locator('pre code span[style]').evaluateAll(elements => new Set(elements.filter(element => element.textContent?.trim()).map(element => getComputedStyle(element).color).filter(color => color && color !== 'rgba(0, 0, 0, 0)')).size)).toBeGreaterThan(1)
+    await expect(preview.locator('input, textarea, [contenteditable="true"], .monaco-editor, .cm-editor')).toHaveCount(0)
+    await expect(preview.locator('[data-json-preview-injection], img, script, iframe')).toHaveCount(0)
+    await preview.getByRole('button', { name: `复制${title} JSON`, exact: true }).click()
+    await expect(preview.getByRole('status')).toHaveText(`已复制${title} JSON`)
+    if (browserName === 'chromium')
+      await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(raw)
+    else
+      expect(copied.at(-1)).toBe(raw)
+  }
+  if (browserName !== 'chromium')
+    expect(copied).toEqual([baseline, afterJson])
+  await expect(review.locator('[data-json-preview-injection]')).toHaveCount(0)
+  await expect(panel.getByLabel('对白 1 文本', { exact: true })).toHaveValue(originalText)
+  await expect(panel.getByTestId('native-flow-save')).toBeDisabled()
+  await expect(panel.getByTestId('native-flow-undo')).toBeDisabled()
+  expect(await readFile(join(root, chapterPath), 'utf8')).toBe(baseline)
+  expect(await readFile(join(root, 'adv/settings/game.json'), 'utf8')).toBe(baselineSettings)
+
+  // The proposal panel scrolls independently and is limited to 45% height.
+  // Position real rendered code inside it before taking each screenshot.
+  await before.evaluate(element => element.scrollIntoView({ block: 'start', inline: 'nearest' }))
+  await expect(before.locator('pre')).toBeInViewport({ ratio: 0.5 })
+  await capturePreview(panel, info, 'native-flow-json-preview-dark')
+  const darkKeyColor = await before.locator('pre code span[style]').filter({ hasText: 'schemaVersion' }).first().evaluate(element => getComputedStyle(element).color)
+  await page.evaluate(() => document.documentElement.classList.remove('dark'))
+  await expect.poll(() => before.locator('pre code span[style]').filter({ hasText: 'schemaVersion' }).first().evaluate(element => getComputedStyle(element).color)).not.toBe(darkKeyColor)
+  await capturePreview(panel, info, 'native-flow-json-preview-light')
+  await page.evaluate(() => document.documentElement.classList.add('dark'))
+  const narrow = await page.addStyleTag({ content: '.native-flow-editor { width: 320px !important; max-width: 320px !important; }' })
+  await expect.poll(async () => Math.round((await panel.boundingBox())!.width)).toBe(320)
+  for (const container of [panel, proposal, source, before, after])
+    await expect.poll(() => container.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true)
+  for (const [preview, name] of [[before, 'current'], [after, 'proposed']] as const) {
+    const code = preview.locator('pre')
+    await expect.poll(() => code.evaluate(element => element.scrollWidth > element.clientWidth && element.scrollHeight > element.clientHeight && ['auto', 'scroll'].includes(getComputedStyle(element).overflowX))).toBe(true)
+    await code.evaluate((element) => {
+      element.scrollLeft = 64
+    })
+    await expect.poll(() => code.evaluate(element => element.scrollLeft)).toBeGreaterThan(0)
+    await code.evaluate((element) => {
+      element.scrollLeft = 0
+    })
+    await preview.evaluate(element => element.scrollIntoView({ block: 'start', inline: 'nearest' }))
+    await expect(code).toBeInViewport({ ratio: 0.5 })
+    await capturePreview(panel, info, `native-flow-json-preview-narrow-${name}`)
+  }
+  await narrow.evaluate(element => (element as HTMLElement).remove())
+  await source.getByText('查看源文件差异', { exact: true }).click()
+  await expect(before).toHaveCount(0)
+  await expect(after).toHaveCount(0)
+  await source.getByText('查看源文件差异', { exact: true }).click()
+  await expect.poll(() => after.locator('pre').textContent()).toBe(afterJson)
+  await expect.poll(() => after.locator('pre code span[style]').count()).toBeGreaterThan(0)
+  await review.getByRole('button', { name: '取消比较', exact: true }).click()
+  await expect(review).not.toBeVisible()
+  await expect(panel.getByLabel('对白 1 文本', { exact: true })).toHaveValue(originalText)
+  await proposal.getByTestId('native-proposal-review').click()
+  await expect(review).toContainText('校验通过，尚未写入文件')
+  await expect(source).not.toHaveAttribute('open', '')
+  await expect(before).toHaveCount(0)
+  await source.getByText('查看源文件差异', { exact: true }).click()
+  await expect.poll(() => before.locator('pre').textContent()).toBe(baseline)
+  await expect.poll(() => after.locator('pre').textContent()).toBe(afterJson)
+  await expect(panel.getByTestId('native-flow-save')).toBeDisabled()
+  await expect(panel.getByTestId('native-flow-undo')).toBeDisabled()
+  expect(await readFile(join(root, chapterPath), 'utf8')).toBe(baseline)
+  expect(await readFile(join(root, 'adv/settings/game.json'), 'utf8')).toBe(baselineSettings)
+  await info.attach('native-flow-json-preview-proof', {
+    body: JSON.stringify({ fixture: 'deterministic JSON; inert HTML-like text; no external model invocation', clipboardBoundary: browserName === 'chromium' ? 'real browser clipboard read/write with origin-scoped permissions' : 'writeText stub only; WebKit has no clipboard permission grant', request, exactSourcePreserved: true, syntaxTokensRendered: true, readonly: true, narrowOverflowContained: true, diskAndDraftUnchanged: true, closeReopenAndCancelReReview: true, editorErrors: errors }, null, 2),
+    contentType: 'application/json',
+  })
+  expect(errors).toEqual([])
+})
+
 test('native Flow rejects malformed, invalid and stale proposals without replacing an existing draft', async ({ page }, info) => {
   const errors: string[] = []
   page.on('pageerror', error => errors.push(error.message))

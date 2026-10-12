@@ -1,16 +1,22 @@
 <script setup lang="ts">
 import type { FlowEditDocument } from '@advjs/core'
 import type { useNativeFlowAuthoring } from '../../../composables/useNativeFlowAuthoring'
+import AGUIDetails from '@advjs/gui/components/AGUIDetails.vue'
 import AGUIButton from '@advjs/gui/components/button/AGUIButton.vue'
 import AGUITextarea from '@advjs/gui/components/textarea/AGUITextarea.vue'
 import { ref, watch } from 'vue'
+import NativeFlowJsonPreview from './NativeFlowJsonPreview.vue'
 
 const props = defineProps<{ state: ReturnType<typeof useNativeFlowAuthoring> }>()
 const emit = defineEmits<{ select: [nodeId: string], selectLine: [nodeId: string, lineId: string] }>()
 const text = ref('')
 const inputError = ref('')
 const preparing = ref(false)
+const sourceExpanded = ref(false)
 watch(text, () => props.state.dismissProposal())
+watch(() => props.state.proposal.value, () => {
+  sourceExpanded.value = false
+})
 watch(() => props.state.path.value, () => {
   text.value = ''
   inputError.value = ''
@@ -19,6 +25,9 @@ function lineText(document: FlowEditDocument, nodeId: string, lineId: string) {
   const node = document.nodes.find(node => node.id === nodeId)
   const line = node?.lineId === lineId ? node : Array.isArray(node?.dialogues) ? node.dialogues.find(row => row?.lineId === lineId) : undefined
   return typeof line?.text === 'string' ? line.text : '（无）'
+}
+function toggleSource(event: Event) {
+  sourceExpanded.value = (event.currentTarget as HTMLDetailsElement).open
 }
 async function template() {
   preparing.value = true
@@ -89,11 +98,12 @@ async function review() {
       <p v-for="(issue, index) in state.proposal.value.plan.diagnostics" :key="index" :class="{ 'proposal-error': issue.severity === 'error' }">
         {{ issue.code }} · {{ issue.message }}
       </p>
-      <details>
-        <summary>查看源文件差异</summary><div class="proposal-diff">
-          <section><h4>当前版本</h4><pre>{{ state.proposal.value.plan.before }}</pre></section><section><h4>提案版本</h4><pre>{{ state.proposal.value.plan.after }}</pre></section>
+      <AGUIDetails title="查看源文件差异" :open="sourceExpanded" data-testid="native-proposal-source-diff" @toggle="toggleSource">
+        <div v-if="sourceExpanded" class="proposal-diff">
+          <NativeFlowJsonPreview title="当前版本" :code="state.proposal.value.plan.before" data-testid="native-proposal-before-json" />
+          <NativeFlowJsonPreview title="提案版本" :code="state.proposal.value.plan.after" data-testid="native-proposal-after-json" />
         </div>
-      </details>
+      </AGUIDetails>
       <AGUIButton @click="state.dismissProposal">
         取消比较
       </AGUIButton>
@@ -155,16 +165,6 @@ async function review() {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
-}
-.proposal-diff section {
-  min-width: 0;
-}
-.proposal-diff pre {
-  max-height: 240px;
-  overflow: auto;
-  font-size: 12px;
-  background: var(--agui-c-field);
-  padding: 6px;
 }
 @container (max-width: 640px) {
   .proposal-diff {
