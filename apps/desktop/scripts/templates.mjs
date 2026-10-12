@@ -7,6 +7,9 @@ export async function buildProjectTemplates(repository) {
   const bundle = await build({
     configFile: false,
     logLevel: 'error',
+    // Template modules contain raw authoring files, not Nuxt application code.
+    // Use the host's standalone config even before nuxt prepare has run.
+    tsconfig: resolve(repository, 'apps/desktop/tsconfig.json'),
     resolve: { alias: { '@advjs/template': resolve(repository, 'packages/advjs/template') } },
     build: {
       write: false,
