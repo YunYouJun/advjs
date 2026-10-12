@@ -36,6 +36,7 @@ export function useVoiceDesign(visible: () => boolean) {
   let epoch = 0
   let controller: AbortController | undefined
   let timer: ReturnType<typeof setTimeout> | undefined
+  let focusedSpeakerId: string | undefined
 
   const port = computed(() => audio.supportedRoot ? project.workspace?.voiceDesign : undefined)
   const voices = computed(() => (snapshot.value?.library.voices ?? []).filter((voice): voice is DesignedVoiceProfile => Boolean(voice.design)))
@@ -116,6 +117,30 @@ export function useVoiceDesign(visible: () => boolean) {
     synchronizeChoices()
     replaceSelected.value = replaceBinding.value = false
   }
+  function focusRequestedSpeaker() {
+    const speakerId = audio.workflowSpeakerId
+    if (!speakerId || speakerId === focusedSpeakerId || !snapshot.value)
+      return false
+    if (dirty.value || pending.value) {
+      error.value = '当前音色草稿或审核尚未完成；先保存或放弃草稿，再切换角色。'
+      return false
+    }
+    focusedSpeakerId = speakerId
+    const profile = snapshot.value.speakers.find(speaker => speaker.id === speakerId)?.profile
+    const applied = Object.values(profile?.locales ?? {}).flatMap(locale => Object.values(locale.providers)).map(binding => binding.projectVoiceId)
+    const voice = voices.value.find(voice => voice.characterId === speakerId && applied.includes(voice.id)) ?? voices.value.find(voice => voice.characterId === speakerId)
+    if (voice) {
+      selectVoice(voice.id)
+    }
+    else {
+      stopAudio()
+      invalidateReview()
+      selectedVoiceId.value = original.value = ''
+      draft.value = undefined
+      status.value = '此角色尚无设计版本，请新建音色；历史样本不会自动转换或应用。'
+    }
+    return true
+  }
   function newVersion(duplicate = false) {
     if (dirty.value) {
       error.value = '当前设计草稿未保存，请先保存或明确放弃草稿。'
@@ -124,7 +149,7 @@ export function useVoiceDesign(visible: () => boolean) {
     stopAudio()
     invalidateReview()
     const previous = duplicate ? selected.value : undefined
-    const speaker = snapshot.value?.speakers.find(speaker => speaker.id === (previous?.characterId ?? 'narrator')) ?? snapshot.value?.speakers[0]
+    const speaker = snapshot.value?.speakers.find(speaker => speaker.id === (previous?.characterId ?? audio.workflowSpeakerId ?? 'narrator')) ?? snapshot.value?.speakers[0]
     const provider = snapshot.value?.providers.find(provider => provider.presets.length)
     const preset = provider?.presets[0]
     const source = preset?.sources[0] ?? provider?.sources[0] ?? 'system'
@@ -169,7 +194,7 @@ export function useVoiceDesign(visible: () => boolean) {
         status.value = '项目输入已变化，请重新创建试听审核计划。'
       }
       snapshot.value = result
-      if (!selected.value && !dirty.value && voices.value.length)
+      if (!focusRequestedSpeaker() && !selected.value && !dirty.value && voices.value.length && !audio.workflowSpeakerId)
         selectVoice(voices.value[0]!.id)
       else synchronizeChoices()
       error.value = result.unavailableCode ? `当前宿主尚未配置音色设计 (${result.unavailableCode})` : ''
@@ -346,6 +371,7 @@ export function useVoiceDesign(visible: () => boolean) {
     stopAudio()
     snapshot.value = draft.value = undefined
     original.value = selectedVoiceId.value = providerId.value = ''
+    focusedSpeakerId = undefined
     loading.value = pending.value = replaceSelected.value = replaceBinding.value = false
     error.value = status.value = ''
     invalidateReview()
@@ -366,6 +392,11 @@ export function useVoiceDesign(visible: () => boolean) {
     }
   })
   watch([locale, providerId, text, maxCharacters, allowUnknownCost], invalidateReview)
+  watch([() => audio.workflowSpeakerId, dirty, pending], () => {
+    if (!audio.workflowSpeakerId)
+      focusedSpeakerId = undefined
+    else focusRequestedSpeaker()
+  })
   watch([locale, providerId], () => {
     stopAudio()
     synchronizeChoices()

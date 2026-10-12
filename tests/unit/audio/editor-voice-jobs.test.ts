@@ -61,6 +61,45 @@ async function open() {
 }
 
 describe('editor durable voice job authoring UI', () => {
+  it('keeps a reviewed plan across equivalent native snapshots, but invalidates it when authored bytes change', async () => {
+    const wrapper = await open()
+    await wrapper.get(`[data-line-id="${editorJobLineIds[0]}"] input`).setValue(true)
+    await wrapper.get('[data-testid="jobs-unknown-cost"] input').setValue(true)
+    await wrapper.get('[data-testid="jobs-plan"]').trigger('click')
+    await vi.waitFor(() => expect(wrapper.find('[data-testid="jobs-plan-review"]').exists()).toBe(true))
+    await wrapper.get('[data-testid="jobs-budget-reviewed"] input').setValue(true)
+    await refresh()
+    await flushPromises()
+    expect(wrapper.find('[data-testid="jobs-plan-review"]').exists()).toBe(true)
+    expect(wrapper.get('[data-testid="jobs-budget-reviewed"] input').element).toHaveProperty('checked', true)
+    expect(wrapper.get('[data-testid="jobs-enqueue"]').attributes('disabled')).toBeUndefined()
+    const path = 'adv/settings/game.json'
+    const original = state.project.project.files[path]!
+    const changed = JSON.parse(original)
+    changed.title = 'Changed native input'
+    state.project.project = (await workspace.writeFiles!([{ path, expected: original, content: JSON.stringify(changed) }])).project
+    await flushPromises()
+    expect(wrapper.find('[data-testid="jobs-plan-review"]').exists()).toBe(false)
+    expect(fixture.calls).toHaveLength(0)
+  })
+
+  it('limits a character entry to that actor and clears draft approval when the actor scope changes', async () => {
+    const audio = useAudioStore()
+    audio.requestWorkspace('jobs', 'hero')
+    const wrapper = await open()
+    expect(wrapper.findAll('[data-line-id]').map(item => item.attributes('data-line-id'))).toEqual([editorJobLineIds[0]])
+    await wrapper.get(`[data-line-id="${editorJobLineIds[0]}"] input`).setValue(true)
+    await wrapper.get('[data-testid="jobs-unknown-cost"] input').setValue(true)
+    await wrapper.get('[data-testid="jobs-plan"]').trigger('click')
+    await vi.waitFor(() => expect(wrapper.find('[data-testid="jobs-plan-review"]').exists()).toBe(true))
+    await wrapper.get('[data-testid="jobs-budget-reviewed"] input').setValue(true)
+    audio.requestWorkspace('jobs', 'narrator')
+    await flushPromises()
+    expect(wrapper.find('[data-testid="jobs-plan-review"]').exists()).toBe(false)
+    expect(wrapper.findAll('[data-line-id]').map(item => item.attributes('data-line-id'))).toEqual([editorJobLineIds[1]])
+    expect(wrapper.get('[data-testid="jobs-plan"]').attributes('disabled')).toBeDefined()
+    expect(fixture.calls).toHaveLength(0)
+  })
   it('reviews budgets, enqueues and executes through the real authenticated local workspace, without selecting generated takes', async () => {
     const wrapper = await open()
     expect(fixture.calls).toHaveLength(0)

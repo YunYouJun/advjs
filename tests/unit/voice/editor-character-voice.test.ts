@@ -4,6 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { reactive } from 'vue'
 import CharacterVoicePanel from '../../../editor/core/app/components/character/CharacterVoicePanel.vue'
 
+vi.mock('../../../editor/core/app/stores/useAudioStore', () => ({ useAudioStore: () => ({ supportedRoot: false }) }))
+
 const initial: AdvVoiceLibrarySnapshot = {
   configured: true,
   revision: 'a'.repeat(64),
@@ -15,7 +17,7 @@ const field = {
   emits: ['update:modelValue'],
   template: `<select :value="modelValue" :disabled="disabled" @change="$emit('update:modelValue', $event.target.value)"><option v-for="option in options" :value="typeof option === 'string' ? option : option.value">{{ typeof option === 'string' ? option : option.label }}</option></select>`,
 }
-const global = { stubs: { AGUISelect: field } }
+const global = { stubs: { AGUISelect: field, CharacterVoiceWorkflowEntry: true } }
 let workspace: { voiceLibrary: ReturnType<typeof vi.fn>, readVoiceAudio: ReturnType<typeof vi.fn>, selectVoiceSample: ReturnType<typeof vi.fn> }
 let project: { workspace: typeof workspace }
 

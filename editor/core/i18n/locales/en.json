@@ -208,6 +208,14 @@
     "back": "Back",
     "voice": {
       "title": "Character voice and samples",
+      "legacyTitle": "Historical sample review",
+      "workflowTitle": "Character voice and dialogue",
+      "notApplied": "No locale/provider voice binding is saved for this character. A historical sample selection does not apply a voice.",
+      "applied": "Saved character voice binding",
+      "designApply": "Design and apply voice",
+      "generateDialogue": "Generate character dialogue",
+      "reviewDialogue": "Audition and select",
+      "workflowHint": "Review and explicitly apply a voice to the character, then generate dialogue. Audition and select each dialogue take before it enters the game.",
       "open": "Review samples",
       "close": "Close",
       "loading": "Loading…",
@@ -218,7 +226,7 @@
       "selected": "Selected sample",
       "replace": "Replace the selected sample",
       "select": "Select this sample",
-      "hint": "Play samples manually to compare. Selection records a sample for this voice version. Generate through the authoring CLI; dialogue binding requires a separate review.",
+      "hint": "This only records a reviewed sample for a historical voice version. It does not apply a character voice or select dialogue. Use Design and apply voice, then generate through voice jobs.",
       "provider": "Provider",
       "playbackError": "This sample could not be played. Reload it or choose another candidate."
     },

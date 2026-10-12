@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { StudioVoicePlayback } from '../../composables/useStudioVoiceListening'
+import type { VoiceWorkflowSection } from '../../utils/voiceWorkflow'
 import { createVoiceListeningPlaybackObserver } from '@advjs/audio'
 import { computed, inject, nextTick, onBeforeUnmount, shallowRef, toRef, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -15,9 +16,27 @@ import AudioVoiceJobs from './AudioVoiceJobs.vue'
 import AudioVoiceReview from './AudioVoiceReview.vue'
 import VoiceDesignWorkspace from './VoiceDesignWorkspace.vue'
 
-const props = defineProps<{ active: boolean }>()
+const props = defineProps<{ active: boolean, initialSection?: VoiceWorkflowSection, speakerId?: string, lineId?: string }>()
+const emit = defineEmits<{ play: [] }>()
 const { t } = useI18n()
-const tab = shallowRef('library')
+const tab = shallowRef(props.initialSection ?? 'library')
+const workflowSpeaker = shallowRef(props.speakerId ?? '')
+const workflowLine = shallowRef(props.lineId ?? '')
+watch([() => props.initialSection, () => props.speakerId, () => props.lineId], () => {
+  tab.value = props.initialSection ?? 'library'
+  workflowSpeaker.value = props.speakerId ?? ''
+  workflowLine.value = props.lineId ?? ''
+})
+function continueToJobs(speakerId: string) {
+  workflowSpeaker.value = speakerId
+  workflowLine.value = ''
+  tab.value = 'jobs'
+}
+function continueToReview(scope: { speakerId: string, lineId: string }) {
+  workflowSpeaker.value = scope.speakerId
+  workflowLine.value = scope.lineId
+  tab.value = 'review'
+}
 const transport = inject(studioVoiceGenerationTransportKey, undefined)
 const session = useManagedVoiceSession()
 const transportReady = computed(() => session.configured.value ? Boolean(session.client.value) : Boolean(transport?.prepare))
@@ -106,6 +125,12 @@ function observePlayback(event: Event) {
           {{ t(`audioWorkspace.${section}`) }}
         </button>
       </nav>
+      <section v-if="workflowSpeaker || workflowLine" class="audio-workspace__panel audio-workspace__transport" data-testid="voice-workflow-scope">
+        <p>{{ t('voiceWorkflow.currentScope', { speaker: workflowSpeaker || t('voiceWorkflow.allSpeakers') }) }} <code v-if="workflowLine">{{ workflowLine }}</code></p>
+        <SButton size="lg" variant="ghost" @click="workflowSpeaker = ''; workflowLine = ''">
+          {{ t('voiceWorkflow.clearScope') }}
+        </SButton>
+      </section>
       <section v-if="previewUrl" class="audio-workspace__panel audio-workspace__preview" :aria-label="t('audioWorkspace.preview')">
         <div class="audio-workspace__preview-heading">
           <strong>{{ t('audioWorkspace.preview') }}</strong>
@@ -133,16 +158,22 @@ function observePlayback(event: Event) {
         <AudioLibrary :key="revision" :snapshot="snapshot" :busy="busy || loading" @preview="preview" @import="importAsset" @update="updateAsset" @remove="removeAsset" />
       </div>
       <div v-show="tab === 'review'" class="audio-workspace__panel">
-        <AudioVoiceReview ref="voiceReview" :snapshot="snapshot" :context="reviewContext" :busy="busy || loading" :active="active && tab === 'review'" :project-id="nativeProjectId" :scope-key="scopeKey" :active-asset-id="previewAssetId" :verify-retained="verifyRetained" @preview="previewVoice" @stop="stopPreview" @select="select" />
+        <AudioVoiceReview ref="voiceReview" :snapshot="snapshot" :context="reviewContext" :busy="busy || loading" :active="active && tab === 'review'" :project-id="nativeProjectId" :scope-key="scopeKey" :active-asset-id="previewAssetId" :speaker-id="workflowSpeaker" :line-id="workflowLine" :verify-retained="verifyRetained" @preview="previewVoice" @stop="stopPreview" @select="select" />
+        <SButton size="lg" variant="outline" @click="emit('play')">
+          {{ t('voiceWorkflow.playSelected') }}
+        </SButton>
+        <p class="audio-workspace__hint">
+          {{ t('voiceWorkflow.playHint') }}
+        </p>
       </div>
       <div v-show="tab === 'mixer'" class="audio-workspace__panel">
         <AudioMixerPanel :mixer="mixer" :revision="revision" :busy="busy || loading" @save="saveMixer" />
       </div>
       <div v-if="tab === 'jobs'" class="audio-workspace__panel">
-        <AudioVoiceJobs :active="active" @changed="reload" />
+        <AudioVoiceJobs :active="active" :speaker-id="workflowSpeaker" :line-id="workflowLine" @changed="reload" @review="continueToReview" />
       </div>
       <div v-if="tab === 'design'" class="audio-workspace__panel">
-        <VoiceDesignWorkspace :active="active" @changed="reload" />
+        <VoiceDesignWorkspace :active="active" :initial-speaker-id="workflowSpeaker" @changed="reload" @generate="continueToJobs" />
       </div>
     </template>
   </div>

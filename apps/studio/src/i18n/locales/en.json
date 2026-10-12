@@ -2162,5 +2162,24 @@
     "reviewRetain": "Review and retain",
     "retainedAcknowledged": "Reviewed and retained for this context. The recording remains stale; its generation identity is unchanged.",
     "noStyle": "No reliable style target is supplied; choose N/A."
+  },
+  "voiceWorkflow": {
+    "saveAndDesign": "Save character and design voice",
+    "designCharacter": "Design character voice",
+    "generateCharacter": "Generate this character’s dialogue",
+    "reviewTakes": "Audition and select dialogue takes",
+    "playSelected": "Play selected voices in the game",
+    "playHint": "Start the game or choose the dialogue chapter. Only explicitly selected takes play; audition samples and unselected history stay in authoring.",
+    "targetSpeaker": "Target speaker",
+    "targetLine": "Target dialogue",
+    "allSpeakers": "All speakers",
+    "allLines": "All matching dialogue",
+    "currentScope": "Current speaker: {speaker}",
+    "clearScope": "Show all speakers and dialogue",
+    "appliedVersion": "{speaker} is bound to {voice} · version {version}. Review a dialogue generation plan next.",
+    "versionBinding": "Project voice: {voice} · version {version}",
+    "legacyLibrary": "Earlier voice-library entries are preserved below. Their audition selections do not bind dialogue. Create and explicitly apply a versioned design to continue.",
+    "pendingSpeaker": "Your current unsaved draft is preserved. Save to switch to {speaker}, or explicitly discard it.",
+    "discardAndSwitch": "Discard draft and switch speaker"
   }
 }

@@ -4,6 +4,7 @@ import type { EditorVoiceJobsPort, EditorVoiceJobsReviewedPlan, EditorVoiceJobsS
 import type { ProjectFileChange } from '../../workspaces/project'
 import type { BrowserProjectDirectory, BrowserProjectFile } from '../browser/project'
 import { createAdvAssetCatalog } from '@advjs/assets'
+import { resolveRuntimeAudioAsset } from '@advjs/audio'
 
 export interface LocalEditorSession {
   origin: string
@@ -186,8 +187,17 @@ export function createLocalBridgeAdapter(options: LocalBridgeAdapterOptions) {
       const resolved = await catalog.resolve(assetId)
       return { ...scene, src: resolved.src }
     }))
+    const audio = previewConfig.audio && {
+      ...previewConfig.audio,
+      assets: Object.fromEntries(await Promise.all(Object.entries(previewConfig.audio.assets).map(async ([id, asset]) => {
+        const native = catalog.get(id)
+        if (!native)
+          return [id, asset]
+        return [id, await resolveRuntimeAudioAsset(native, async variant => (await catalog.resolve(id, { variant })).src)]
+      }))),
+    }
     assertActive(generation)
-    return { ...previewConfig, characters, scenes }
+    return { ...previewConfig, characters, scenes, audio }
   }
 
   async function writeProjectFile(path: string, content: string) {

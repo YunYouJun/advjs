@@ -15,6 +15,7 @@
 ## 音频与首发
 
 - [多轨音频与 AI 配音实施计划](./2026-08-12-audio-system-implementation)。
+- [AI 背景音乐生成](./2026-10-12-ai-background-music-generation)：独立待实施任务，不阻塞角色对白流程。
 - [首发 P0 执行清单](./2026-08-11-launch-readiness-p0)。
 
 ## 运行时与示例记录

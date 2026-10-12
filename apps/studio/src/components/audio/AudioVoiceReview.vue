@@ -10,7 +10,7 @@ import SButton from '../ui/SButton.vue'
 import SInput from '../ui/SInput.vue'
 import SSelect from '../ui/SSelect.vue'
 
-const props = withDefaults(defineProps<{ snapshot: VoiceAuthoringSnapshot, context?: VoiceReviewContext, busy: boolean, active?: boolean, projectId?: string, scopeKey?: string, activeAssetId?: string, verifyRetained?: (input: { lineId: string, locale: string, takeId: string, expectedRevision: string }) => Promise<boolean> }>(), { active: true, projectId: 'local-project', scopeKey: 'local-project', activeAssetId: '' })
+const props = withDefaults(defineProps<{ snapshot: VoiceAuthoringSnapshot, context?: VoiceReviewContext, busy: boolean, active?: boolean, projectId?: string, scopeKey?: string, activeAssetId?: string, speakerId?: string, lineId?: string, verifyRetained?: (input: { lineId: string, locale: string, takeId: string, expectedRevision: string }) => Promise<boolean> }>(), { active: true, projectId: 'local-project', scopeKey: 'local-project', activeAssetId: '' })
 const emit = defineEmits<{ preview: [assetId: string, sha256: string, text: string, label?: string], select: [lineId: string, locale: string, takeId: string | null, replaceSelected: boolean], stop: [] }>()
 const AudioAdvancedListening = defineAsyncComponent(() => import('./AudioAdvancedListening.vue'))
 const advanced = useTemplateRef<{ observe: (event: StudioVoicePlayback) => void, invalidate: () => void }>('advanced')
@@ -135,7 +135,7 @@ watch([() => props.snapshot, () => props.context], async () => {
       reviewing.value = false
   }
 }, { immediate: true, deep: true })
-watch([locale, status, query, () => props.active, () => props.scopeKey], () => {
+watch([locale, status, query, () => props.active, () => props.scopeKey, () => props.speakerId, () => props.lineId], () => {
   emit('stop')
   pending.value = undefined
 }, { flush: 'sync' })
@@ -153,6 +153,7 @@ onScopeDispose(() => {
 const locales = computed(() => [{ value: 'all', label: t('audioWorkspace.allLocales') }, ...[...new Set(rows.value.map(row => row.locale))].map(value => ({ value, label: value }))])
 const statuses = computed(() => ['all', 'selected', 'unselected', 'stale'].map(value => ({ value, label: t(`audioWorkspace.reviewStatus.${value}`) })))
 const filtered = computed(() => rows.value.filter(row => (locale.value === 'all' || row.locale === locale.value)
+  && (!props.speakerId || row.speakerId === props.speakerId) && (!props.lineId || row.lineId === props.lineId)
   && (status.value === 'all' || (status.value === 'selected' && row.selectedTake) || (status.value === 'unselected' && !row.selectedTake) || (status.value === 'stale' && row.takes.some(take => take.stale)))
   && (!query.value.trim() || `${row.speakerId} ${row.displayText} ${row.lineId}`.toLocaleLowerCase().includes(query.value.trim().toLocaleLowerCase()))))
 </script>

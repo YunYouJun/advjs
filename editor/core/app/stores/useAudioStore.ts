@@ -9,6 +9,9 @@ import { useProjectStore } from './useProjectStore'
 
 export const useAudioStore = defineStore('editor:audio', () => {
   const project = useProjectStore()
+  const workspaceRequest = shallowRef<{ id: number, tab: 'design' | 'jobs' | 'voice' }>()
+  const workflowSpeakerId = shallowRef<string>()
+  let navigationSequence = 0
   const synthesisTransport = shallowRef<VoiceAuthoringAdapter['synthesize']>()
   const voiceJobsTransport = shallowRef<EditorVoiceJobsPort>()
   const supportedRoot = computed(() => project.project?.compilation.project.root === 'adv')
@@ -16,7 +19,9 @@ export const useAudioStore = defineStore('editor:audio', () => {
   watch(() => project.workspace, () => {
     synthesisTransport.value = undefined
     voiceJobsTransport.value = undefined
-  })
+    workspaceRequest.value = undefined
+    workflowSpeakerId.value = undefined
+  }, { flush: 'sync' })
   /**
    * 背景音乐库地址
    */
@@ -28,6 +33,18 @@ export const useAudioStore = defineStore('editor:audio', () => {
   }
 
   return {
+    workspaceRequest,
+    workflowSpeakerId,
+    requestWorkspace(tab: 'design' | 'jobs' | 'voice', speakerId?: string) {
+      assertSupportedRoot()
+      workflowSpeakerId.value = speakerId
+      workspaceRequest.value = { id: ++navigationSequence, tab }
+    },
+    consumeWorkspaceRequest(id: number) {
+      if (workspaceRequest.value?.id === id)
+        workspaceRequest.value = undefined
+    },
+    clearWorkflowSpeaker() { workflowSpeakerId.value = undefined },
     authoring() {
       const workspace = project.workspace
       if (!workspace)

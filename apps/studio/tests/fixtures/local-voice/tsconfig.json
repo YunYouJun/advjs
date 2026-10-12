@@ -4,10 +4,18 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "paths": {},
-    "types": ["node", "vite/client"],
+    "types": [
+      "node",
+      "vite/client"
+    ],
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true
   },
-  "include": ["./*.ts", "../../e2e/local-voice*.ts", "../../../../../tests/fixtures/audio/editor-voice-design.ts"]
+  "include": [
+    "./*.ts",
+    "../../e2e/local-voice*.ts",
+    "../../e2e/voice-workflow*.ts",
+    "../../../../../tests/fixtures/audio/editor-voice-design.ts"
+  ]
 }

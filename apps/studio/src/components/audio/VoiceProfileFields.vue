@@ -135,6 +135,9 @@ function removeBinding(locale: string, providerId: string) {
           <div>
             <strong>{{ row.locale }} · {{ row.providerId }}</strong>
             <p>{{ row.model }} · {{ row.voiceId }} · {{ t(`audioProfiles.sources.${row.source}`) }}</p>
+            <p v-if="row.projectVoiceId">
+              {{ t('voiceWorkflow.versionBinding', { voice: row.projectVoiceId, version: row.projectVoiceVersion }) }}
+            </p>
           </div>
           <div class="voice-profile-fields__actions">
             <SButton size="lg" variant="outline" :disabled="disabled" @click="edit(row)">

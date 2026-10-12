@@ -37,6 +37,23 @@ async function reviewedPlan() {
 }
 
 describe('studio shared voice job planning', () => {
+  it('filters an explicit role or line before inspecting a mixed-speaker chapter', async () => {
+    const { context, snapshot } = fixture()
+    const otherId = 'line_01900400-0000-7000-8000-000000000010'
+    const secondHeroId = 'line_01900400-0000-7000-8000-000000000011'
+    context.lines.push({ chapterId: 'intro', lineId: otherId, speakerId: 'unconfigured', displayText: 'Other role' }, { chapterId: 'intro', lineId: secondHeroId, speakerId: 'hero', displayText: 'Second hero line' })
+    const prepareInput = vi.fn(async (input: VoiceGenerationResolvedInput) => input)
+    const options = { chapterId: 'intro', locale: 'zh-CN', providerId: 'fixture-provider', mode: 'chapter' as const, prepareInput }
+    const scoped = await reviewStudioVoiceJobLines(context, snapshot, { ...options, speakerId: 'hero', lineId: heroId })
+    expect(scoped.blocked).toEqual([])
+    expect(scoped.lines.map(line => line.lineId)).toEqual([heroId])
+    expect(prepareInput).toHaveBeenCalledOnce()
+    expect((await reviewStudioVoiceJobLines(context, snapshot, { ...options, speakerId: 'hero' })).lines.map(line => line.lineId)).toEqual([heroId, secondHeroId])
+    expect((await reviewStudioVoiceJobLines(context, snapshot, options)).blocked).toEqual([{ lineId: otherId, code: 'AUDIO_JOB_PROFILE_REQUIRED' }])
+    prepareInput.mockClear()
+    expect(await reviewStudioVoiceJobLines(context, snapshot, { ...options, speakerId: 'hero', lineId: otherId })).toEqual({ lines: [], blocked: [] })
+    expect(prepareInput).not.toHaveBeenCalled()
+  })
   it('uses edited source dialogue instead of a generated ledger snapshot, preserving exact-locale translations and speech overrides', async () => {
     const { context, snapshot } = fixture()
     snapshot.ledger.lines[heroId] = { speakerId: 'hero', displayText: '旧原文', locales: { 'zh-CN': { selectedTake: null, takes: [], displayText: '旧原文', spokenText: '作者明确口语' }, 'en': { selectedTake: null, takes: [], displayText: 'Explicit English translation' } } }

@@ -2,6 +2,7 @@ import type { AdvVoiceCandidate, VoiceAuthoringAdapter } from '@advjs/types'
 import type { ProjectFileChange, ProjectWorkspace } from '../../../editor/core/app/workspaces/project'
 import { Blob as NodeBlob, File as NodeFile } from 'node:buffer'
 import { createHash, webcrypto } from 'node:crypto'
+import { audioFingerprint } from '@advjs/audio'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -130,6 +131,50 @@ function savedLedger() {
 }
 
 describe('editor native audio workspace', () => {
+  it('does not attach a new profile revision to an output arriving after the character voice context changes', async () => {
+    const profile = { intent: {}, locales: { 'zh-CN': { providers: { 'fixture-tts': { voiceId: 'system:fixture', model: 'fixture-model', source: 'system' as const } } } } }
+    testState.project.project.compilation.project.characters[0]!.voiceProfile = profile
+    let complete!: (result: any) => void
+    const transport = vi.fn<NonNullable<VoiceAuthoringAdapter['synthesize']>>(() => new Promise(resolve => complete = resolve))
+    useAudioStore().setSynthesisTransport(transport)
+    const wrapper = await openLedger()
+    await wrapper.get('[data-testid="voice-synthesize"]').trigger('click')
+    await vi.waitFor(() => expect(transport).toHaveBeenCalledOnce())
+    testState.project.project.compilation.project.characters[0]!.voiceProfile!.intent.speakingStyle = '声音目标已经更改'
+    complete({ provider: 'fixture-tts', preset: 'fixture', manifestPath: 'manifest.json', manifest: {}, candidates: [{ id: 'old-candidate', characterId: 'hero', text: '你好。', path: 'old.wav', sha256: digest, bytes: mediaBytes.length, mimeType: 'audio/wav', durationSeconds: 1, sampleRate: 24000, provider: 'fixture-tts', model: 'fixture-model', providerVoiceId: 'system:fixture' }] })
+    await flushPromises()
+    expect(wrapper.find('[data-testid="voice-register"]').exists()).toBe(false)
+    expect(wrapper.get('[role="alert"]').text()).toContain('CONTEXT_CHANGED')
+    expect(write).not.toHaveBeenCalled()
+  })
+  it('freezes the canonical narrator profile for candidate metadata while keeping registration and selection explicit', async () => {
+    await setupProject({ empty: true })
+    const narrator = { intent: { speakingStyle: '温暖' }, locales: { 'zh-CN': { providers: { 'fixture-tts': { voiceId: 'system:fixture', model: 'fixture-model', source: 'system' } } } } }
+    const files = testState.project.project.files
+    await write([
+      { path: 'adv.config.json', expected: files['adv.config.json']!, content: JSON.stringify({ id: 'editor-audio', root: 'adv', format: 'flow' }) },
+      { path: 'adv/chapters/intro.adv.md', expected: files['adv/chapters/intro.adv.md']!, content: null },
+      { path: 'adv/chapters/intro.chapter.json', expected: null, content: JSON.stringify({ schemaVersion: 1, id: 'intro', title: '旁白', startNodeId: 'line', nodes: [{ id: 'line', type: 'narration', text: '你好。', lineId }] }) },
+      { path: 'adv/audio/voice-profiles.json', expected: null, content: JSON.stringify({ schemaVersion: 1, revision: 1, narrator }) },
+    ])
+    expect(testState.project.project.compilation.diagnostics.filter(item => item.severity === 'error')).toEqual([])
+    const candidate: AdvVoiceCandidate = { id: 'narrator-candidate', characterId: 'narrator', text: '你好。', path: '.advjs/voice/narrator.wav', sha256: digest, bytes: mediaBytes.length, mimeType: 'audio/wav', durationSeconds: 1, sampleRate: 24000, provider: 'fixture-tts', model: 'fixture-model', providerVoiceId: 'system:fixture' }
+    const transport = vi.fn<NonNullable<VoiceAuthoringAdapter['synthesize']>>(async () => ({ provider: candidate.provider, preset: 'fixture', manifestPath: 'manifest.json', manifest: {}, candidates: [candidate] }))
+    useAudioStore().setSynthesisTransport(transport)
+    const wrapper = await openLedger()
+    write.mockClear()
+    await wrapper.get('[data-testid="voice-synthesize"]').trigger('click')
+    await vi.waitFor(() => expect(wrapper.find('[data-testid="voice-register"]').exists()).toBe(true))
+    expect(transport.mock.calls[0]![0].speakerId).toBe('narrator')
+    expect(wrapper.get('input[id$="-revision"]').element).toHaveProperty('value', await audioFingerprint(narrator))
+    expect(wrapper.get('select[aria-label="审核生成声音来源"]').element).toHaveProperty('value', 'system')
+    expect(write).not.toHaveBeenCalled()
+    blobs.set(candidate.path, new NodeBlob([mediaBytes], { type: 'audio/wav' }) as unknown as Blob)
+    await wrapper.get('[data-testid="voice-register"]').trigger('click')
+    await vi.waitFor(() => expect(savedLedger().lines[lineId]?.locales['zh-CN'].takes.length).toBe(1))
+    expect(savedLedger().lines[lineId].locales['zh-CN'].selectedTake).toBeNull()
+    expect(savedLedger().lines[lineId].locales['zh-CN'].takes[0].voiceProfileRevision).toBe(await audioFingerprint(narrator))
+  })
   it('loads the real ledger without fetching media or generating audio, and reviews every locale independently', async () => {
     const wrapper = await openLedger()
     expect(readAsset).not.toHaveBeenCalled()

@@ -23,6 +23,7 @@ import CharacterEditorForm from '../../components/CharacterEditorForm.vue'
 import DraftRestoreBanner from '../../components/common/DraftRestoreBanner.vue'
 import LayoutPage from '../../components/common/LayoutPage.vue'
 import ContentEditorModal from '../../components/ContentEditorModal.vue'
+import SButton from '../../components/ui/SButton.vue'
 import { useContentDelete } from '../../composables/useContentDelete'
 import { useContentEditor } from '../../composables/useContentEditor'
 import { useContentSave } from '../../composables/useContentSave'
@@ -34,6 +35,7 @@ import { exportCharactersToCSV, exportRelationshipsToCSV } from '../../utils/csv
 import { downloadAsFile } from '../../utils/fs'
 import { copyCharacterInfo, shareCharacterAsImage, shareCharacterAsMd } from '../../utils/shareUtils'
 import { showToast } from '../../utils/toast'
+import { voiceWorkflowLocation } from '../../utils/voiceWorkflow'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -134,13 +136,13 @@ async function handleSaveCharacter() {
   const errors = characterEditor.validate()
   if (errors.length > 0) {
     await showToast(t('contentEditor.validationError', { errors: errors.join(', ') }), 'warning')
-    return
+    return false
   }
 
   const fs = getFs()
   if (!fs) {
     await showToast(t('contentEditor.saveFailed', { error: 'No file system' }), 'danger')
-    return
+    return false
   }
 
   const result = await saveContent(fs, 'character', characterEditor.mode.value, characterEditor.formData.value, characterEditor.originalId.value)
@@ -149,10 +151,18 @@ async function handleSaveCharacter() {
     characterEditor.onSaved()
     characterEditor.close()
     await reload()
+    return true
   }
   else {
     await showToast(t('contentEditor.saveFailed', { error: result.error }), 'danger')
+    return false
   }
+}
+
+async function handleDesignVoice() {
+  const speakerId = characterEditor.formData.value.id
+  if (await handleSaveCharacter())
+    await router.push(voiceWorkflowLocation('design', speakerId))
 }
 
 // --- Delete ---
@@ -246,6 +256,9 @@ async function handleExportCSV() {
             @share="handleShareCharacter"
             @delete="handleDeleteCharacter"
           />
+          <SButton size="lg" variant="outline" @click.stop="router.push(voiceWorkflowLocation('design', character.id))">
+            {{ t('voiceWorkflow.designCharacter') }}
+          </SButton>
         </template>
       </CharacterCard>
     </div>
@@ -287,7 +300,7 @@ async function handleExportCSV() {
       @cancel="characterEditor.close()"
     >
       <template #form>
-        <CharacterEditorForm v-model="characterEditor.formData.value" :characters="characters" />
+        <CharacterEditorForm v-model="characterEditor.formData.value" :characters="characters" :voice-design-busy="isSaving" @voice-design="handleDesignVoice" />
       </template>
       <template #header-actions>
         <IonButton

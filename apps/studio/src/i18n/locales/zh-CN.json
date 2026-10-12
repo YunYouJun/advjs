@@ -2162,5 +2162,24 @@
     "reviewRetain": "复核并沿用",
     "retainedAcknowledged": "本次已复核保留绑定；录音仍客观过期，未改变生成身份。",
     "noStyle": "未提供可信风格目标；请选“不适用”。"
+  },
+  "voiceWorkflow": {
+    "saveAndDesign": "保存角色并设计音色",
+    "designCharacter": "设计角色音色",
+    "generateCharacter": "生成这个角色的对白",
+    "reviewTakes": "试听并选用对白配音",
+    "playSelected": "在游戏中播放已选配音",
+    "playHint": "开始游戏或选择对白所在章节。游戏只播放明确选用的 take；音色试听样本与未选历史保留在作者端。",
+    "targetSpeaker": "目标角色或旁白",
+    "targetLine": "目标台词",
+    "allSpeakers": "全部角色与旁白",
+    "allLines": "全部匹配台词",
+    "currentScope": "当前角色：{speaker}",
+    "clearScope": "查看全部角色和台词",
+    "appliedVersion": "{speaker} 已绑定 {voice} · 版本 {version}。下一步审核对白生成计划。",
+    "versionBinding": "项目音色：{voice} · 版本 {version}",
+    "legacyLibrary": "下方保留旧音色库条目，其试听选用不等于对白绑定。请创建并显式应用版本化音色设计后继续。",
+    "pendingSpeaker": "仍保留当前未保存草稿。保存后切换到 {speaker}，或显式放弃草稿。",
+    "discardAndSwitch": "放弃草稿并切换角色"
   }
 }

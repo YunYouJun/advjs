@@ -7,9 +7,9 @@ import { defineComponent, h, reactive, ref } from 'vue'
 import AEVoiceDesignCandidates from '../../../editor/core/app/components/panel/audio/AEVoiceDesignCandidates.vue'
 import { useVoiceDesign } from '../../../editor/core/app/composables/useVoiceDesign'
 
-const context = vi.hoisted(() => ({ project: {} as { workspace?: { voiceDesign?: VoiceDesignPort, readAsset?: (path: string) => Promise<Blob> }, project?: { files: Record<string, string>, compilation?: { project: { assets?: AdvAssetManifest } } }, refreshProject: ReturnType<typeof vi.fn> }, drafts: { register: vi.fn(), remove: vi.fn() } }))
+const context = vi.hoisted(() => ({ project: {} as { workspace?: { voiceDesign?: VoiceDesignPort, readAsset?: (path: string) => Promise<Blob> }, project?: { files: Record<string, string>, compilation?: { project: { assets?: AdvAssetManifest } } }, refreshProject: ReturnType<typeof vi.fn> }, audio: { supportedRoot: true, workflowSpeakerId: undefined as string | undefined }, drafts: { register: vi.fn(), remove: vi.fn() } }))
 vi.mock('../../../editor/core/app/stores/useProjectStore', () => ({ useProjectStore: () => context.project }))
-vi.mock('../../../editor/core/app/stores/useAudioStore', () => ({ useAudioStore: () => ({ supportedRoot: true }) }))
+vi.mock('../../../editor/core/app/stores/useAudioStore', () => ({ useAudioStore: () => context.audio }))
 vi.mock('../../../editor/core/app/stores/useProjectDrafts', () => ({ useProjectDrafts: () => context.drafts }))
 
 const sampleBytes = new Uint8Array([1, 2, 3, 4])
@@ -42,6 +42,7 @@ beforeEach(async () => {
   state = initial()
   changeIndex = 0
   visible.value = true
+  context.audio = reactive({ supportedRoot: true, workflowSpeakerId: undefined })
   vi.stubGlobal('crypto', webcrypto)
   vi.stubGlobal('URL', Object.assign(class extends URL {}, { createObjectURL: vi.fn(() => 'blob:verified-preview'), revokeObjectURL: vi.fn() }))
   port = {
@@ -85,6 +86,24 @@ afterEach(() => {
 })
 
 describe('editor shared voice design workflow', () => {
+  it('opens the requested character version and preserves unsaved inputs when another character requests the workspace', async () => {
+    context.audio.workflowSpeakerId = 'hero'
+    await flushPromises()
+    expect(studio.selectedVoiceId.value).toBe('hero-voice')
+    studio.newVersion()
+    expect(studio.draft.value?.characterId).toBe('hero')
+    const unsaved = JSON.stringify(studio.draft.value)
+    context.audio.workflowSpeakerId = 'narrator'
+    await flushPromises()
+    expect(JSON.stringify(studio.draft.value)).toBe(unsaved)
+    expect(studio.error.value).toContain('先保存或放弃')
+    studio.discardDraft()
+    await flushPromises()
+    studio.newVersion()
+    expect(studio.draft.value?.characterId).toBe('narrator')
+    expect(port.applyProfile).not.toHaveBeenCalled()
+    expect(port.executePreview).not.toHaveBeenCalled()
+  })
   async function registeredSample() {
     await studio.register(ready)
     const sample = studio.samples.value[0]!
