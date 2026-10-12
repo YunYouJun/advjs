@@ -1,11 +1,11 @@
-import type { EditorBridge, EditorBridgeReadyEvent } from '../../packages/advjs/node/editor'
+import type { EditorBridge, EditorBridgeReadyEvent } from 'advjs/node'
 import { Buffer } from 'node:buffer'
 import { cp, mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import process from 'node:process'
 import { expect, test } from '@playwright/test'
-import { createEditorBridge } from '../../packages/advjs/node/editor'
+import { createEditorBridge } from 'advjs/node'
 
 const repositoryRoot = resolve(import.meta.dirname, '../..')
 let bridge: EditorBridge | undefined
@@ -194,6 +194,7 @@ test('loads, live-refreshes, resolves conflicts, and saves the source project', 
   // Valid Markdown projects load their source preview automatically.
   await page.locator('[data-editor-region="main"]').getByRole('tab', { name: 'Game', exact: true }).click()
   await expect(page.locator('.adv-game')).toBeVisible({ timeout: 15_000 })
+  await expect(page.locator('.adv-dialog-box:visible, .adv-black:visible')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Start source preview' })).toBeHidden()
   await expect(stat(join(projectRoot, 'dist'))).rejects.toThrow()
 

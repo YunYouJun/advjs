@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { cp, mkdir, mkdtemp, readFile, rm, stat } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { resolve } from 'node:path'
 // eslint-disable-next-line test/no-import-node-test
@@ -18,8 +18,10 @@ test('bundles every desktop project template without Nuxt-generated configuratio
       filter: source => !/(?:^|[/\\])(?:node_modules|dist|\.nuxt)(?:[/\\]|$)/u.test(source),
     })
   }
-  for (const path of ['tsconfig.json', 'editor/core/tsconfig.json'])
+  for (const path of ['tsconfig.json', 'editor/core/tsconfig.json', 'apps/desktop/tsconfig.json']) {
+    await mkdir(resolve(root, path, '..'), { recursive: true })
     await cp(resolve(repository, path), resolve(root, path))
+  }
   await assert.rejects(stat(resolve(root, 'editor/core/.nuxt')), { code: 'ENOENT' })
 
   const templates = await buildProjectTemplates(root)
@@ -32,4 +34,24 @@ test('bundles every desktop project template without Nuxt-generated configuratio
   const portrait = starter.files.find(file => file.name === 'public/img/characters/xiaoyun.webp')
   assert.equal(portrait.encoding, 'base64')
   assert.equal(portrait.content, (await readFile(resolve(root, 'demo/starter/public/img/characters/xiaoyun.webp'))).toString('base64'))
+})
+
+test('bundles raw project templates without generated Nuxt configuration', async (context) => {
+  const root = await mkdtemp(resolve(tmpdir(), 'advjs-template-build-'))
+  context.after(() => rm(root, { recursive: true, force: true }))
+  await Promise.all([
+    mkdir(resolve(root, 'apps/desktop'), { recursive: true }),
+    mkdir(resolve(root, 'editor/core/app/templates'), { recursive: true }),
+    mkdir(resolve(root, 'packages/advjs/template'), { recursive: true }),
+  ])
+  await writeFile(resolve(root, 'apps/desktop/tsconfig.json'), '{"compilerOptions":{"target":"ES2023","module":"ESNext"}}\n')
+  await writeFile(resolve(root, 'editor/core/tsconfig.json'), '{"extends":"./.nuxt/tsconfig.json"}\n')
+  await writeFile(resolve(root, 'packages/advjs/template/chapter.adv.md'), '# Intro\n\nA fresh project.\n')
+  await writeFile(resolve(root, 'editor/core/app/templates/index.ts'), `
+import content from '@advjs/template/chapter.adv.md?raw'
+interface Template { id: string, content: string }
+export const PROJECT_TEMPLATE_LIST: Template[] = [{ id: 'starter', content }]
+`)
+
+  assert.deepEqual(await buildProjectTemplates(root), [{ id: 'starter', content: '# Intro\n\nA fresh project.\n' }])
 })

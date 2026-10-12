@@ -1,8 +1,8 @@
 import type { Locator, Page, TestInfo } from '@playwright/test'
-import type { EditorBridge } from '../../packages/advjs/node/editor'
+import type { EditorBridge } from 'advjs/node'
 import { resolve } from 'node:path'
 import { expect } from '@playwright/test'
-import { createEditorBridge } from '../../packages/advjs/node/editor'
+import { createEditorBridge } from 'advjs/node'
 import { parseCharacterMd } from '../../packages/parser/src/character'
 import { test } from './fixtures/browser-workspace'
 
@@ -212,7 +212,9 @@ async function draftContent(page: Page) {
 
 async function appendDraft(page: Page, text: string) {
   await page.locator('[data-editor-region="main"] .monaco-editor').click()
-  await page.keyboard.press('ControlOrMeta+End')
+  // Collapse a full-document selection at its end on both macOS and Linux.
+  await page.keyboard.press('ControlOrMeta+a')
+  await page.keyboard.press('ArrowRight')
   await page.keyboard.insertText(text)
   await expect.poll(() => draftContent(page)).toContain(text)
 }

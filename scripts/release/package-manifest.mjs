@@ -23,6 +23,23 @@ export const PACKAGE_SPECS = Object.freeze([
   { name: '@advjs/editor', path: 'editor/core', build: true, requiredFiles: ['bin/adv-editor.mjs', 'dist/index.html'] },
   { name: 'advjs', path: 'packages/advjs', build: true, requiredFiles: ['bin/adv.mjs', 'dist/node/index.mjs', 'skills/catalog.json'] },
   { name: '@advjs/mcp-server', path: 'packages/mcp-server', build: true, requiredFiles: ['bin/mcp-server.mjs', 'dist/index.mjs'] },
+  {
+    name: 'create-adv',
+    path: 'packages/create-adv',
+    build: true,
+    requiredFiles: [
+      'bin/index.mjs',
+      'dist/index.mjs',
+      'templates/template-adv/package.json',
+      'templates/template-adv/adv.config.json',
+      'templates/template-adv/adv/chapters/01-introduction.adv.md',
+      'templates/template-adv/_gitignore',
+      'templates/template-plugin/package.json',
+      'templates/template-plugin/src/index.ts',
+      'templates/template-plugin/tsconfig.json',
+      'templates/template-plugin/_gitignore',
+    ],
+  },
 ])
 
 const PUBLIC_DEPENDENCY_FIELDS = ['dependencies', 'optionalDependencies', 'peerDependencies']

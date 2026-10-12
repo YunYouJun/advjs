@@ -1,8 +1,11 @@
 import type { AdvCharacter } from '@advjs/types'
 import type { App } from 'vue'
+import { parseCharacterMd } from '@advjs/parser'
+import { flushPromises } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { computed, createApp, defineComponent, h, nextTick, onBeforeUnmount, reactive, ref, useId, watch } from 'vue'
 import CharacterForm from '../../../editor/core/app/components/character/CharacterForm.vue'
+import { updateCharacterSource } from '../../../editor/core/app/utils/character-source'
 import en from '../../../editor/core/i18n/locales/en.json'
 import zhCN from '../../../editor/core/i18n/locales/zh-CN.json'
 
@@ -14,6 +17,7 @@ let project: { workspace: object }
 const source = vi.fn(() => 'external source')
 beforeEach(() => {
   vi.clearAllMocks()
+  source.mockReturnValue('external source')
   project = reactive({ workspace: {} })
   for (const [key, value] of Object.entries({ computed, reactive, ref, watch, useId, onBeforeUnmount }))
     vi.stubGlobal(key, value)
@@ -49,6 +53,33 @@ async function click(host: HTMLElement, label: string) {
   await nextTick()
 }
 describe('character draft recovery', () => {
+  it.each(['clear', 'recover'] as const)('persists a %s action that removes the voice profile through the inspector merge', async (action) => {
+    const original = '---\nid: hero\nname: Hero\ncv: Original actor\nvoiceProfile: {"intent":{"speakingStyle":"Original"}}\ncustom: retained\n---\n\nKeep the character prose.\n'
+    const character = parseCharacterMd(original)
+    source.mockReturnValue(original)
+    drafts.formDraft.mockReturnValue(action === 'recover'
+      ? { base: original, content: JSON.stringify({ form: { id: 'hero', name: 'Hero', cv: 'Original actor' }, tags: '', aliases: '' }) }
+      : undefined)
+    let written = original
+    const save = vi.fn(async (data: Partial<AdvCharacter>) => {
+      written = updateCharacterSource('adv/characters/hero.character.md', original, { ...character, ...data })
+    })
+    const host = mount(save, key => key, character)
+    if (action === 'recover') {
+      await click(host, 'characters.form.loadDraft')
+    }
+    else {
+      host.querySelector<HTMLButtonElement>('[data-testid="character-voice-clear"]')!.click()
+      await nextTick()
+    }
+    await click(host, 'characters.form.save')
+    await flushPromises()
+    expect(save).toHaveBeenCalled()
+    expect(parseCharacterMd(written).voiceProfile).toBeUndefined()
+    expect(parseCharacterMd(written).cv).toBe('Original actor')
+    expect(written).toContain('custom: retained')
+    expect(written).toContain('Keep the character prose.')
+  })
   it('loads the original base and retains metadata, requiring explicit keep-local after an external conflict', async () => {
     drafts.formDraft.mockReturnValue({ base: 'original source', content: JSON.stringify({ form: { id: 'hero', name: 'Recovered', voice: { speakerId: 'voice-a' }, visual: { version: 1 } }, tags: 'friend', aliases: 'Alias' }) })
     const save = vi.fn(async (_data, expected) => {

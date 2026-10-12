@@ -2,6 +2,11 @@
 
 Scaffolding Your First ADV Project/Plugin.
 
+> The older npm releases `0.1.0-beta.1` and `0.1.1` omit `dist/` and templates,
+> causing `ERR_MODULE_NOT_FOUND`. The commands below require the corrected
+> scaffolder and matching engine release to be published and promoted to
+> `latest`; switching between the old `latest` and `beta` tags does not help.
+
 With NPM:
 
 ```bash
@@ -85,3 +90,10 @@ versions are available on npm. Verify both packages' versions and dist-tags
 before directing users to `pnpm create adv`, and choose a new unpublished
 scaffolder version (npm versions cannot be replaced). Packing does not publish
 anything.
+
+`create-adv` is included in `scripts/release/package-manifest.mjs` at the fixed
+launch version, after the engine packages its templates require. Candidate
+publication and production dist-tag promotion therefore include the scaffolder.
+The release pack check rejects archives missing the CLI entry or bundled
+templates. CI also runs `pnpm create adv` against an isolated registry and tests
+both generated templates outside the repository on macOS and Windows.

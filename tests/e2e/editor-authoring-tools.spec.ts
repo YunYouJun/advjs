@@ -1,11 +1,11 @@
 import type { Locator, Page } from '@playwright/test'
-import type { EditorBridge } from '../../packages/advjs/node/editor'
+import type { EditorBridge } from 'advjs/node'
 import { Buffer } from 'node:buffer'
 import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { expect, test } from '@playwright/test'
-import { createEditorBridge } from '../../packages/advjs/node/editor'
+import { createEditorBridge } from 'advjs/node'
 
 const root = resolve(import.meta.dirname, '../..')
 let bridge: EditorBridge

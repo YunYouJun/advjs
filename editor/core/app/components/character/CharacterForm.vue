@@ -172,11 +172,11 @@ async function onSubmit() {
   saveError.value = ''
   const submittedRevision = formRevision()
   const submittedBase = expected.value
+  const snapshot = JSON.parse(JSON.stringify(form)) as Partial<AdvCharacter>
   const data = {
-    ...JSON.parse(JSON.stringify(form)),
-    // JSON omits undefined, but the save callback merges this partial update.
-    // Retain the explicit clear so the previous profile cannot be restored.
-    voiceProfile: form.voiceProfile ? JSON.parse(JSON.stringify(form.voiceProfile)) : undefined,
+    ...snapshot,
+    // Keep an explicit clear through the inspector's merge with the old character.
+    voiceProfile: snapshot.voiceProfile,
     tags: tagsInput.value ? tagsInput.value.split(',').map(t => t.trim()).filter(Boolean) : [],
     aliases: aliasInput.value ? aliasInput.value.split(',').map(a => a.trim()).filter(Boolean) : [],
   }

@@ -134,6 +134,8 @@ jobs:
   editor-smoke:
     name: editor-smoke (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
     strategy:
       fail-fast: false
       matrix:
@@ -159,6 +161,8 @@ jobs:
   packed-smoke:
     name: packed-smoke (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
     strategy:
       fail-fast: false
       matrix:
@@ -180,6 +184,10 @@ jobs:
         env:
           ADVJS_PACKED_INSTALL_SKIP_BUILD: '1'
         run: pnpm vitest run tests/launch/packed-install.test.ts --no-file-parallelism --reporter=default
+      - name: Run packed scaffolder and generated project smoke
+        env:
+          ADVJS_PACKED_INSTALL_SKIP_BUILD: '1'
+        run: pnpm vitest run tests/launch/create-adv.test.ts --no-file-parallelism --reporter=default
 
   e2e:
     name: e2e
