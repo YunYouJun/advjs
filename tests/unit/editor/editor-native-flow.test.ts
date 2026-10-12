@@ -4,6 +4,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, reactive } from 'vue'
 import NativeFlowInspector from '../../../editor/core/app/components/system/flow/NativeFlowInspector.vue'
+import NativeFlowProposalPanel from '../../../editor/core/app/components/system/flow/NativeFlowProposalPanel.vue'
 import { useNativeFlowAuthoring } from '../../../editor/core/app/composables/useNativeFlowAuthoring'
 
 const state = vi.hoisted(() => ({ project: {} as any, register: vi.fn(), remove: vi.fn() }))
@@ -302,6 +303,21 @@ describe('native Flow AI proposal review and draft adoption', () => {
     expect(api.document.value?.nodes[0]?.text).toBe('Human final dialogue')
     expect(api.document.value?.nodes[0]?.lineId).toBe(lineId)
     expect(api.document.value?.nodes[0]?.metadata).toEqual({ retain: true })
+  })
+
+  it('prioritizes readable line comparisons and keeps editing the request explicit', async () => {
+    const { api, request } = await ready()
+    await api.reviewProposal(request)
+    const panel = mount(NativeFlowProposalPanel, { props: { state: api } })
+    wrappers.push(panel)
+    expect(panel.find('[data-testid="native-proposal-input"]').exists()).toBe(false)
+    expect(panel.get('[data-testid="native-proposal-line-diff"]').text()).toContain('Hello')
+    expect(panel.get('[data-testid="native-proposal-line-diff"]').text()).toContain('AI proposed dialogue')
+    await panel.get('[data-testid="native-proposal-edit"]').trigger('click')
+    expect(api.proposal.value).toBeUndefined()
+    expect(panel.find('[data-testid="native-proposal-input"]').exists()).toBe(true)
+    expect(api.dirty.value).toBe(false)
+    expect(state.project.writeProjectFiles).not.toHaveBeenCalled()
   })
 
   it('retains human drafts and rejects malformed or invalid proposals without writes', async () => {

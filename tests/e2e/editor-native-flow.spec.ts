@@ -88,6 +88,8 @@ async function proposalFixture(proposal: Locator, text: string): Promise<NativeP
   return { ...template, commands: [{ type: 'update-dialogue', nodeId: 'node_01', lineId, patch: { text } }, { type: 'set-title', title: 'Reviewed proposal introduction' }] }
 }
 async function reviewProposal(proposal: Locator, request: NativeProposalFixture) {
+  if (await proposal.getByTestId('native-proposal-edit').isVisible())
+    await proposal.getByTestId('native-proposal-edit').click()
   await proposal.getByTestId('native-proposal-input').fill(JSON.stringify(request, null, 2))
   await proposal.getByTestId('native-proposal-review').click()
   return proposal.getByTestId('native-proposal-review-result')
@@ -411,6 +413,11 @@ test('native Flow reviews a deterministic proposal, previews an unsaved human tw
   await expect(panel.getByTestId('native-flow-save')).toBeDisabled()
   expect(await readFile(join(root, chapterPath), 'utf8')).toBe(baseline)
   expect(await readFile(join(root, 'adv/settings/game.json'), 'utf8')).toBe(baselineSettings)
+  await expect(review.getByTestId('native-proposal-line-diff')).toContainText(proposedText)
+  await review.getByText('查看源文件差异', { exact: true }).click()
+  await proposal.evaluate((element) => {
+    element.scrollTop = 0
+  })
   await capturePreview(panel, info, 'native-flow-proposal-review-normal')
   const narrow = await page.addStyleTag({ content: '.native-flow-editor { width: 320px !important; max-width: 320px !important; }' })
   await expect.poll(async () => Math.round((await panel.boundingBox())!.width)).toBe(320)
@@ -456,6 +463,7 @@ test('native Flow reviews a deterministic proposal, previews an unsaved human tw
   const draftPlayback = await editorPlayerState(page)
   expect(draftPlayback.current?.data?.lineId).toBe(lineId)
   await expect(scene.locator('.adv-dialog-box:visible')).toContainText(finalText)
+  await expect.poll(() => scene.locator('.adv-dialog-box:visible .print-words > span').evaluateAll(elements => elements.length > 0 && elements.every(element => getComputedStyle(element).visibility === 'visible' && getComputedStyle(element).opacity === '1'))).toBe(true)
   await capturePreview(scene, info, 'native-flow-proposal-unsaved-player')
   expect(await readFile(join(root, chapterPath), 'utf8')).toBe(baseline)
   expect(await readFile(join(root, 'adv/settings/game.json'), 'utf8')).toBe(baselineSettings)
@@ -492,6 +500,7 @@ test('native Flow reviews a deterministic proposal, previews an unsaved human tw
   expect(JSON.stringify(playback.game)).not.toContain(privateMarker)
   expect(JSON.stringify(playback.game)).not.toContain(originalChapter.nodes.find((node: any) => node.id === 'node_01').imagePrompt)
   await expect(player.locator('.adv-dialog-box:visible')).toContainText(finalText)
+  await expect.poll(() => player.locator('.adv-dialog-box:visible .print-words > span').evaluateAll(elements => elements.length > 0 && elements.every(element => getComputedStyle(element).visibility === 'visible' && getComputedStyle(element).opacity === '1'))).toBe(true)
   await capturePreview(player, info, 'native-flow-proposal-saved-player')
   await info.attach('native-flow-proposal-roundtrip-proof', {
     body: JSON.stringify({ fixture: 'deterministic JSON; no external model invocation', request, lineId, proposedText, finalText, draftPlayback, savedPlayback: { current: playback.current, status: playback.status, diagnostics: playback.diagnostics }, reviewAndPreviewKeptDiskUnchanged: true, adoptionUndoneInOneStep: true, onlyApprovedFieldsChanged: true, editorErrors: errors }, null, 2),

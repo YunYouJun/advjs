@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { FlowEditDocument } from '@advjs/core'
 import type { useNativeFlowAuthoring } from '../../../composables/useNativeFlowAuthoring'
 import AGUIButton from '@advjs/gui/components/button/AGUIButton.vue'
 import AGUITextarea from '@advjs/gui/components/textarea/AGUITextarea.vue'
@@ -14,6 +15,11 @@ watch(() => props.state.path.value, () => {
   text.value = ''
   inputError.value = ''
 })
+function lineText(document: FlowEditDocument, nodeId: string, lineId: string) {
+  const node = document.nodes.find(node => node.id === nodeId)
+  const line = node?.lineId === lineId ? node : Array.isArray(node?.dialogues) ? node.dialogues.find(row => row?.lineId === lineId) : undefined
+  return typeof line?.text === 'string' ? line.text : '（无）'
+}
 async function template() {
   preparing.value = true
   inputError.value = ''
@@ -43,11 +49,14 @@ async function review() {
       <AGUIButton :disabled="preparing || !text || state.dirty.value || state.loading.value || state.saving.value" data-testid="native-proposal-review" @click="review">
         比较与校验
       </AGUIButton>
+      <AGUIButton v-if="state.proposal.value" :disabled="state.loading.value || state.saving.value" data-testid="native-proposal-edit" @click="state.dismissProposal">
+        修改提案 JSON
+      </AGUIButton>
       <AGUIButton v-if="state.proposal.value" :disabled="!state.proposal.value.review || !state.proposal.value.plan.valid || (!state.proposal.value.plan.changes.nodes.length && !state.proposal.value.plan.changes.chapterFields.length) || state.dirty.value || state.loading.value || state.saving.value" data-testid="native-proposal-load" @click="state.loadProposal">
         载入未保存草稿
       </AGUIButton>
     </div>
-    <AGUITextarea v-model="text" :disabled="preparing || state.loading.value || state.saving.value" :rows="5" aria-label="AI 单章节提案 JSON" data-testid="native-proposal-input" placeholder="粘贴包含 path、expectedRevision、projectRevision 与 commands 的提案 JSON" />
+    <AGUITextarea v-if="!state.proposal.value" v-model="text" :disabled="preparing || state.loading.value || state.saving.value" :rows="5" aria-label="AI 单章节提案 JSON" data-testid="native-proposal-input" placeholder="粘贴包含 path、expectedRevision、projectRevision 与 commands 的提案 JSON" />
     <p v-if="state.dirty.value">
       当前有未保存草稿，请先保存或放弃，再比较另一份提案。
     </p>
@@ -68,6 +77,10 @@ async function review() {
             定位行 {{ line.lineId }}
           </AGUIButton>
           {{ ({ added: '新增', updated: '修改', deleted: '删除' })[line.kind] }} · {{ line.fields.join('、') }}
+          <div v-if="line.fields.includes('text') || line.kind !== 'updated'" class="proposal-text-diff" data-testid="native-proposal-line-diff">
+            <p><span>当前</span>{{ lineText(state.proposal.value.plan.baseline, line.nodeId, line.lineId) }}</p>
+            <p><span>提案</span>{{ lineText(state.proposal.value.plan.proposed, line.nodeId, line.lineId) }}</p>
+          </div>
         </li>
         <li v-for="field in state.proposal.value.plan.changes.chapterFields" :key="field">
           章节：{{ field }}
@@ -121,6 +134,22 @@ async function review() {
   gap: 6px;
   flex-wrap: wrap;
   margin: 4px 0;
+}
+.proposal-text-diff {
+  flex-basis: 100%;
+  min-width: 0;
+  padding: 4px 8px;
+  background: var(--agui-c-field);
+  overflow-wrap: anywhere;
+}
+.proposal-text-diff p {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 6px;
+  margin: 2px 0;
+}
+.proposal-text-diff span {
+  color: var(--agui-c-text-2);
 }
 .proposal-diff {
   display: grid;
