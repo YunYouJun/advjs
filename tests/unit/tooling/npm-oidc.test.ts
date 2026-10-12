@@ -9,7 +9,7 @@ import { gzipSync } from 'node:zlib'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { parse } from 'yaml'
 import { npmTrustConfiguration } from '../../../scripts/release/configure-npm-oidc.mjs'
-import { assertOidcEnvironment, reusePublishedNpmArchives, uploadNpmPackages, verifyNpmArtifact, verifySourceChecks } from '../../../scripts/release/npm-oidc.mjs'
+import { assertOidcEnvironment, reusePublishedNpmArchives, uploadNpmPackages, verifyCandidateRun, verifyNpmArtifact, verifySourceChecks } from '../../../scripts/release/npm-oidc.mjs'
 import { LAUNCH_VERSION, PACKAGE_SPECS } from '../../../scripts/release/package-specs.mjs'
 
 const directories: string[] = []
@@ -32,6 +32,15 @@ const packages = [
 ]
 
 describe('npm OIDC release', () => {
+  it('binds a successful candidate run to its recorded package source', () => {
+    const sourceSha = 'a'.repeat(40)
+    const run = { conclusion: 'success', event: 'workflow_dispatch', path: '.github/workflows/release-npm.yml', head_sha: sourceSha }
+    expect(() => verifyCandidateRun(run, sourceSha)).not.toThrow()
+    expect(() => verifyCandidateRun(run, 'b'.repeat(40))).toThrow('Candidate source')
+    for (const change of [{ conclusion: 'failure' }, { event: 'pull_request' }, { path: '.github/workflows/other.yml' }])
+      expect(() => verifyCandidateRun({ ...run, ...change }, sourceSha)).toThrow()
+  })
+
   it('reuses an immutable archive when only the gzip platform header differs', async () => {
     const directory = await mkdtemp(join(tmpdir(), 'npm-gzip-'))
     directories.push(directory)
@@ -128,6 +137,14 @@ describe('npm OIDC release', () => {
     await writeFile(join(directory, 'packages.json'), JSON.stringify(manifest))
     await writeFile(join(directory, 'changed.tgz'), 'changed archive')
     await expect(verifyNpmArtifact(directory)).rejects.toThrow('tarball integrity mismatch')
+    const reordered = [...manifest.packages]
+    ;[reordered[1], reordered[2]] = [reordered[2], reordered[1]]
+    await writeFile(join(directory, 'packages.json'), JSON.stringify({ ...manifest, packages: reordered }))
+    await expect(verifyNpmArtifact(directory)).rejects.toThrow()
+    await expect(verifyNpmArtifact(directory, { allowHistoricalOrder: true })).rejects.toThrow('tarball integrity mismatch')
+    reordered[0].name = '@advjs/unknown'
+    await writeFile(join(directory, 'packages.json'), JSON.stringify({ ...manifest, packages: reordered }))
+    await expect(verifyNpmArtifact(directory, { allowHistoricalOrder: true })).rejects.toThrow()
   })
 
   it('configures publication and tag management for the same workflow', () => {
@@ -143,7 +160,10 @@ describe('npm OIDC release', () => {
     expect(workflow.permissions['id-token']).toBeUndefined()
     expect(workflow.jobs.publish.permissions['id-token']).toBe('write')
     expect(workflow.jobs.promote.permissions['id-token']).toBe('write')
-    expect(workflow.jobs['pinned-smoke'].needs).toBe('publish')
+    expect(workflow.jobs['pinned-smoke'].needs).toEqual(['publish', 'published-candidate'])
+    expect(workflow.jobs['published-candidate'].permissions?.['id-token']).toBeUndefined()
+    expect(workflow.jobs['published-candidate'].steps.some((step: { run?: string }) => step.run?.includes('verify-published'))).toBe(true)
+    expect(workflow.jobs['published-candidate'].steps.some((step: { run?: string }) => step.run?.includes('npm-oidc.mjs publish'))).toBe(false)
     expect(workflow.jobs.promote.needs).toBe('pinned-smoke')
     expect(workflow.jobs['default-smoke'].needs).toBe('promote')
     expect(JSON.stringify(workflow)).not.toContain('secrets.NPM_TOKEN')

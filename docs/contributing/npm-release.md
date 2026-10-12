@@ -67,6 +67,14 @@ gh workflow run release-npm.yml --ref dev \
 
 本流程负责 npm 包发布。包含原生桌面安装包、主分支和 Pages 的完整发布事务仍使用对应的 release workflow。
 
+若所有候选包已公开，但消费者验证脚本需要修复，可以从通过 CI 的修复提交运行 `finalize`，继续验证和标签晋升。它保留原始候选包，不重新构建或上传：先验证原始准备 run 与 manifest 的提交一致、原始源码和当前验证脚本都通过 CI、全部公共 tarball 与候选包的 SHA-512 一致，再运行指定版本测试、OIDC 标签晋升及默认版本测试。缺少任何公开版本时会停止。
+
+```bash
+gh workflow run release-npm.yml --ref <verification-fix-branch> \
+  -f operation=finalize \
+  -f candidate_run_id=<original-prepare-run-id>
+```
+
 ## 验证
 
 确认 workflow 的公共包校验、指定版本验证、标签晋升和默认版本验证全部成功。报告保存在 `npm-pinned-smoke-<run-id>` 与 `npm-default-smoke-<run-id>`；`npm whoami` 不能验证 OIDC 发布权限。

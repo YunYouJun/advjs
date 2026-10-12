@@ -32,17 +32,20 @@ export function assertOidcEnvironment(environment = process.env) {
   assert(!environment.NODE_AUTH_TOKEN && !environment.NPM_TOKEN, 'Use OIDC without a static npm token')
 }
 
-export async function verifyNpmArtifact(directory) {
+export async function verifyNpmArtifact(directory, { allowHistoricalOrder = false } = {}) {
   const manifest = JSON.parse(await readFile(join(directory, 'packages.json'), 'utf8'))
   assert.equal(manifest.version, LAUNCH_VERSION)
   assert.match(manifest.sourceSha, /^[a-f0-9]{40}$/u)
-  assert.deepEqual(manifest.packages.map(pkg => pkg.name), PACKAGE_SPECS.map(pkg => pkg.name))
-  for (const [index, pkg] of manifest.packages.entries()) {
+  const names = manifest.packages.map(pkg => pkg.name)
+  const expected = PACKAGE_SPECS.map(pkg => pkg.name)
+  assert.deepEqual(allowHistoricalOrder ? [...names].sort() : names, allowHistoricalOrder ? [...expected].sort() : expected)
+  assert.equal(names.at(-1), 'create-adv', 'The scaffolder must be promoted last')
+  for (const pkg of manifest.packages) {
     assert.equal(pkg.version, manifest.version)
     assert.equal(pkg.tarball, basename(pkg.tarball), 'Tarballs must stay within the artifact directory')
     const archive = await readFile(join(directory, pkg.tarball))
     assert.equal(`sha512-${createHash('sha512').update(archive).digest('base64')}`, pkg.integrity, `${pkg.name}: tarball integrity mismatch`)
-    inspectPackedTarball(archive, PACKAGE_SPECS[index])
+    inspectPackedTarball(archive, PACKAGE_SPECS.find(spec => spec.name === pkg.name))
   }
   return manifest
 }
@@ -53,6 +56,16 @@ export function verifySourceChecks(checks, statuses = []) {
     assert(check.status === 'completed' && ['success', 'neutral', 'skipped'].includes(check.conclusion), `Source check is not passing: ${check.name}`)
   for (const status of statuses)
     assert.equal(status.state, 'success', `Source status is not passing: ${status.context}`)
+}
+
+export function verifyCandidateRun(run, sourceSha, successful = true) {
+  if (successful)
+    assert.equal(run.conclusion, 'success')
+  else
+    assert.equal(run.status, 'completed')
+  assert.equal(run.event, 'workflow_dispatch')
+  assert.equal(run.path, `.github/workflows/${NPM_WORKFLOW}`)
+  assert.equal(run.head_sha, sourceSha, 'Candidate source does not match the expected commit')
 }
 
 function verifyGitHubSource(sourceSha) {
@@ -130,7 +143,7 @@ export async function uploadNpmPackages(manifest, options) {
   }
 }
 
-async function verifyPublicPackages(manifest) {
+async function verifyPublicPackages(manifest, { waitForAvailability = true } = {}) {
   for (const pkg of manifest.packages) {
     const deadline = Date.now() + 30 * 60 * 1000
     let published
@@ -138,6 +151,8 @@ async function verifyPublicPackages(manifest) {
     while (Date.now() < deadline) {
       published = (await metadata(pkg))?.versions?.[pkg.version]
       if (published)
+        break
+      if (!waitForAvailability)
         break
       if (attempt++ % 6 === 0)
         console.log(`Waiting for npm scanning: ${pkg.name}@${pkg.version}`)
@@ -169,19 +184,24 @@ async function main(operation, directory) {
   if (['check-run', 'check-publication-run'].includes(operation)) {
     assert.match(process.env.NPM_CANDIDATE_RUN_ID || '', /^\d+$/u)
     const run = JSON.parse(command('gh', ['api', `repos/${NPM_REPOSITORY}/actions/runs/${process.env.NPM_CANDIDATE_RUN_ID}`], true))
-    if (operation === 'check-run')
-      assert.equal(run.conclusion, 'success')
-    else
-      assert.equal(run.status, 'completed')
-    assert.equal(run.event, 'workflow_dispatch')
-    assert.equal(run.path, `.github/workflows/${NPM_WORKFLOW}`)
-    assert.equal(run.head_sha, process.env.GITHUB_SHA, 'Publish from the candidate commit so provenance describes the packaged source')
+    verifyCandidateRun(run, process.env.GITHUB_SHA, operation === 'check-run')
     return
   }
-  assert(['publish', 'promote'].includes(operation))
-  assertOidcEnvironment()
-  const manifest = await verifyNpmArtifact(directory)
-  assert.equal(manifest.sourceSha, process.env.GITHUB_SHA)
+  assert(['publish', 'promote', 'verify-published', 'promote-published'].includes(operation))
+  if (operation !== 'verify-published')
+    assertOidcEnvironment()
+  const manifest = await verifyNpmArtifact(directory, { allowHistoricalOrder: ['verify-published', 'promote-published'].includes(operation) })
+  if (['verify-published', 'promote-published'].includes(operation)) {
+    assert.match(process.env.NPM_CANDIDATE_RUN_ID || '', /^\d+$/u)
+    const run = JSON.parse(command('gh', ['api', `repos/${NPM_REPOSITORY}/actions/runs/${process.env.NPM_CANDIDATE_RUN_ID}`], true))
+    verifyCandidateRun(run, manifest.sourceSha)
+    // Finalization only verifies existing public archives and updates tags.
+    // Both the packaged source and the updated verification code need CI.
+    verifyGitHubSource(process.env.GITHUB_SHA)
+  }
+  else {
+    assert.equal(manifest.sourceSha, process.env.GITHUB_SHA)
+  }
   verifyGitHubSource(manifest.sourceSha)
   const npm = args => command('pnpm', ['dlx', `npm@${NPM_CLI_VERSION}`, ...args, `--registry=${NPM_REGISTRY}`])
   if (operation === 'publish') {
@@ -200,8 +220,8 @@ async function main(operation, directory) {
       save: () => writeFile(ledgerPath, `${JSON.stringify(ledger, null, 2)}\n`),
     })
   }
-  await verifyPublicPackages(manifest)
-  if (operation === 'promote') {
+  await verifyPublicPackages(manifest, { waitForAvailability: !['verify-published', 'promote-published'].includes(operation) })
+  if (['promote', 'promote-published'].includes(operation)) {
     // create-adv stays last, after its entire dependency graph is public.
     for (const pkg of manifest.packages) {
       if ((await metadata(pkg))?.['dist-tags']?.latest !== pkg.version)
