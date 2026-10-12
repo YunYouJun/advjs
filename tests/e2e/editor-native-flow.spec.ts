@@ -281,7 +281,9 @@ test('native Flow arranges dense cyclic branches without changing story semantic
     startNodeId: 'hub',
     nodes: [
       { id: 'hub', type: 'choices', position: { x: 0, y: 0 }, choices: Array.from({ length: 8 }, (_, index) => ({ id: `route-${index}`, text: `Route ${index + 1}: a deliberately long, readable branch description`, target: `scene-${index}`, ...(index === 0 ? { when: 'ready == true' } : {}) })) },
-      ...Array.from({ length: 8 }, (_, index) => ({ id: `scene-${index}`, type: 'narration', lineId: `line_019d137e-7abc-7000-8000-${String(index + 20).padStart(12, '0')}`, text: `Branch ${index + 1} returns to the decision after a short scene.`, position: { x: 0, y: 0 }, next: index === 7 ? 'scene-7' : 'hub' })),
+      ...Array.from({ length: 7 }, (_, index) => ({ id: `scene-${index}`, type: 'narration', lineId: `line_019d137e-7abc-7000-8000-${String(index + 20).padStart(12, '0')}`, text: `Branch ${index + 1} returns to the decision after a short scene.`, position: { x: 0, y: 0 }, next: 'hub' })),
+      { id: 'scene-7', type: 'choices', position: { x: 0, y: 0 }, choices: [{ id: 'loop', text: 'Stay here for another turn', target: 'scene-7' }, { id: 'finish', text: 'Finish this story', target: 'ending' }] },
+      { id: 'ending', type: 'end', position: { x: 0, y: 0 } },
     ],
   }
   await writeFile(join(root, chapterPath), `${JSON.stringify(dense, null, 2)}\n`)
@@ -304,6 +306,7 @@ test('native Flow arranges dense cyclic branches without changing story semantic
   await capturePreview(panel, info, 'native-flow-dense-overview')
   await panel.getByTestId('native-flow-arrange').click()
   await assertReadableGraph(panel)
+  await expect(panel.getByTestId('native-flow-save')).toBeEnabled()
   await panel.getByTestId('native-flow-save').click()
   await expect(panel.getByTestId('native-flow-save')).toBeDisabled()
   const saved = JSON.parse(await readFile(join(root, chapterPath), 'utf8'))
