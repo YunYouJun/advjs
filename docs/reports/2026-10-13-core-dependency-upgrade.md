@@ -9,6 +9,7 @@
 | 依赖                           | 原版本                        | 目标版本   | 发布日期（UTC） |
 | ------------------------------ | ----------------------------- | ---------- | --------------- |
 | `pnpm`                         | `11.20.0`                     | `12.12.1`  | 2026-10-11      |
+| `electron`                     | `44.4.5`                      | `44.7.0`   | 2026-10-07      |
 | `devframe`                     | `1.1.0`                       | `1.2.3`    | 2026-10-07      |
 | `@devframes/vite`              | `1.1.0`                       | `1.2.3`    | 2026-10-07      |
 | `@devframes/service-shiki`     | `1.1.0`                       | `1.2.3`    | 2026-10-07      |
@@ -64,6 +65,8 @@ Vue 3.5.43、Pinia 4.0.3 和 UnoCSS 66.10.5 已是满足条件的最新稳定版
 - Nuxt i18n 的解析别名曾将新版 vue-i18n 指向旧版 shared；对齐 `@intlify/core-base`、`@intlify/message-compiler`、`@intlify/shared` 的 11.x 运行时到 11.4.14。
 - SSR 将 vue-i18n 与 `@intlify/*` 一并打包，避免输出中的外部导入被宿主解析到不同版本的 shared 包。Playground 的 10 个页面和 Beasties critical CSS 生成已通过。
 - VRM 的 Devframe 工具链对齐到 1.2.3，并显式声明所需 peer；Vite SSG 的 Beasties 0.5.4 peer 范围例外经过实际生产构建验证。
+
+- 桌面自动化单独固定 Playwright 1.63.0，Web 测试使用 1.64.0。相同打包应用在 Electron 44.4.5 与 44.7.0 下，1.64 无法发现已显示的 BrowserWindow；1.63 的启动与导出验收通过。失败记录包含脱敏进程日志与主进程窗口状态。
 
 ## cssnano 发布来源核验
 

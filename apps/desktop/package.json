@@ -28,7 +28,7 @@
     "@electron-forge/cli": "catalog:desktop",
     "@electron-forge/core": "catalog:desktop",
     "@electron-forge/maker-zip": "catalog:desktop",
-    "@playwright/test": "catalog:test",
+    "@playwright/test": "catalog:desktop",
     "electron": "catalog:desktop",
     "sharp": "catalog:"
   }
