@@ -58,6 +58,10 @@ it('does not traverse symlinks outside the project and watches newly created dir
   const events: string[] = []
   const watcher = await watchEditorProject(root, (_event, path) => events.push(path))
   try {
+    // macOS may deliver fixture-creation events after fs.watch becomes ready.
+    // Drain setup notifications before testing the separate outside-write phase.
+    await new Promise(resolve => setTimeout(resolve, 100))
+    events.length = 0
     await writeFile(join(outside, 'private.json'), 'private')
     await new Promise(resolve => setTimeout(resolve, 100))
     expect(events).toEqual([])
