@@ -228,11 +228,13 @@ export function createAudioEngine(options: AudioEngineOptions): AudioEngine {
       if (syncOptions.reason && syncOptions.reason !== 'advance') {
         stopVoice()
         stopStoryTransients()
+        for (const entry of retiring)
+          destroy(entry)
       }
       state = target
       await Promise.all([
         setTrack('music', 'music', target.bgm ?? undefined, !syncOptions.slot ? syncOptions.fadeOutMs : undefined),
-        ...ambienceSlots.map(slot => setTrack(`ambience:${slot}`, 'ambience', target.ambience[slot], syncOptions.slot === slot ? syncOptions.fadeOutMs : undefined)),
+        ...ambienceSlots.map(slot => setTrack(`ambience:${slot}`, 'ambience', target.ambience[slot], !syncOptions.slot || syncOptions.slot === slot ? syncOptions.fadeOutMs : undefined)),
       ])
     },
     async playVoice(request) {

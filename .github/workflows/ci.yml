@@ -103,10 +103,11 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Install audio integration tools
+      # Publication tests deliberately encode and verify real Opus/AAC media.
+      - name: Install audio test dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --no-install-recommends -y ffmpeg
+          sudo apt-get install --yes --no-install-recommends ffmpeg
           ffmpeg -version
           ffprobe -version
       - name: Build test dependencies
@@ -219,10 +220,10 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Install audio integration tools
+      - name: Install real audio processing tools
         run: |
           sudo apt-get update
-          sudo apt-get install --no-install-recommends -y ffmpeg
+          sudo apt-get install --yes --no-install-recommends ffmpeg
           ffmpeg -version
           ffprobe -version
       - name: Build packages

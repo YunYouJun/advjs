@@ -2,7 +2,7 @@ import type { DevToolsReport } from './types'
 import { fileURLToPath } from 'node:url'
 import { createShikiService } from '@devframes/service-shiki'
 import { defineDevframe, defineRpcFunction } from 'devframe'
-import pkg from '../package.json'
+import pkg from '../package.json' with { type: 'json' }
 import { highlightDevToolsJson } from './highlight'
 
 /** Portable definition: also usable inside a Devframe hub. */

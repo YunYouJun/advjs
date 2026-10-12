@@ -158,4 +158,62 @@ describe('shared client audio director', () => {
     audio.dispose()
     vi.useRealTimers()
   })
+
+  it('resets active story audio and keeps the unlocked device and user preferences reusable', async () => {
+    const { audio, backend } = setup()
+    audio.setUserSettings({ buses: { music: { gain: 0.2 } } })
+    await audio.unlock()
+    await audio.applyEffects([dialogue, { type: 'audio.sfx', payload: { assetId: 'sfx/click' } }], state)
+    expect(audio.inspect().tracks.map(track => track.bus).sort()).toEqual(['music', 'sfx', 'voice'])
+    audio.pause()
+    await audio.reset()
+    expect(audio.voicePlaying.value).toBe(false)
+    expect(audio.inspect().tracks).toEqual([])
+    expect(backend.playbacks.every(playback => playback.stopped)).toBe(true)
+    expect(audio.inspect().buses.music.gain).toBe(0.2)
+    expect(audio.inspect().unlocked).toBe(true)
+    await audio.applyEffects([dialogue], state)
+    expect(audio.inspect().tracks.every(track => track.status === 'playing')).toBe(true)
+    audio.dispose()
+  })
+
+  it('cancels pending old audio and never revives it after a new session starts', async () => {
+    const { audio, backend } = setup({ deferLoads: true })
+    const pending = audio.applyEffects([dialogue, { type: 'audio.sfx', payload: { assetId: 'sfx/click' } }], state)
+    await vi.waitFor(() => expect(backend.loads).toHaveLength(2))
+    await audio.reset()
+    for (const load of backend.loads)
+      load.complete()
+    await pending
+    expect(audio.voicePlaying.value).toBe(false)
+    expect(audio.inspect().tracks).toEqual([])
+    expect(backend.playbacks.every(playback => playback.stopped)).toBe(true)
+    audio.dispose()
+  })
+
+  it('stops a previous session track even while it is fading out', async () => {
+    const { audio, backend } = setup({ deferFades: true })
+    await audio.applyEffects([], state)
+    const silent = structuredClone(state)
+    silent.stage.audio.bgm = null
+    await audio.applyEffects([{ type: 'audio.state', payload: { state: silent.stage.audio, fade: { out: 5000 } } }], silent)
+    expect(backend.playbacks[0].stopped).toBe(false)
+    await audio.reset()
+    expect(backend.playbacks[0].stopped).toBe(true)
+    audio.dispose()
+  })
+
+  it('immediately stops active ambience despite its configured exit fade', async () => {
+    const { audio, backend, config } = setup({ deferFades: true })
+    config.audio!.assets['ambience/rain'] = { kind: 'ambience', src: '/rain.wav' }
+    const rainy = structuredClone(state)
+    rainy.stage.audio.ambience.weather = { assetId: 'ambience/rain', fadeOutMs: 5000 }
+    await audio.applyEffects([], rainy)
+    const rain = backend.playbacks.find(playback => playback.bus === 'ambience')!
+    expect(rain.playing).toBe(true)
+    await audio.reset()
+    expect(rain.stopped).toBe(true)
+    expect(backend.playbacks.every(playback => playback.stopped)).toBe(true)
+    audio.dispose()
+  })
 })

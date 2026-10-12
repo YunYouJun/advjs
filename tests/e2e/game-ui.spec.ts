@@ -176,6 +176,8 @@ test('keeps settings and menu controls compact in embedded and narrow previews',
   await expect(dialog.getByRole('checkbox', { name: '是否全屏', exact: true })).toBeVisible()
   await page.keyboard.press('ArrowRight')
   await expect(audio).toBeVisible()
+  await expect(audio.getByRole('checkbox')).toHaveCount(6)
+  await expect(audio.getByRole('slider')).toHaveCount(6)
   const sound = audio.getByRole('checkbox', { name: '剧情音效', exact: true })
   const checked = await sound.getAttribute('aria-checked')
   await sound.focus()
@@ -251,147 +253,153 @@ test('preserves physical settings control sizes on a scaled game stage', async (
   await expect(dialog).toBeHidden()
 })
 
-test('keeps dialogue reading sizes and multiline text clear of controls on a scaled game stage', async ({ page }, info) => {
-  // This matrix covers both dialogue surfaces, four sizes and two viewports.
-  test.setTimeout(120_000)
-  await page.setViewportSize({ width: 1920, height: 1080 })
-  await page.goto(`${gameUrl}/#/start`)
-  await page.getByRole('button', { name: '开始游戏', exact: true }).click()
-  await expect(page).toHaveURL(/#\/game/)
-  await expect(page.locator('.adv-black, .adv-dialog-box')).toBeVisible()
-  const fixedCanvas = await page.evaluate(async () => {
-    const app = (document.querySelector('#app') as unknown as { __vue_app__: { _context: { provides: Record<string, AdvContext> } } }).__vue_app__
-    const adv = app._context.provides['$advjs-context']
-    if (adv.store.current?.kind === 'narration')
-      await adv.runtime.next()
-    return adv.config.value.viewportFit !== 'responsive'
-  })
-  await expect(page.locator('.adv-dialog-box')).toBeVisible()
-
-  const box = page.locator('.adv-dialog-box')
-  const body = box.locator('.dialog-content')
-  const name = box.locator('.dialog-name')
-  const proof: unknown[] = []
-  const artifacts = join(tmpdir(), 'advjs-game-reading-artifacts')
-  await mkdir(artifacts, { recursive: true })
-  const screenFont = (element: Locator) => element.evaluate((el) => {
-    const stage = el.closest<HTMLElement>('#adv-content')!
-    return Number.parseFloat(getComputedStyle(el).fontSize) * stage.getBoundingClientRect().width / stage.offsetWidth
-  })
-  const setPresentation = async (text: string, kind: 'dialog' | 'narration' = 'dialog') => {
-    await page.evaluate(({ words, kind }) => {
+// Dialogue and narration have independent layout contracts. Keeping them in
+// separate cases also gives each its own normal test deadline.
+for (const surface of ['dialogue', 'narration']) {
+  test(`keeps ${surface} reading sizes and multiline text clear of controls on a scaled game stage`, async ({ page }, info) => {
+    await page.setViewportSize({ width: 1920, height: 1080 })
+    await page.goto(`${gameUrl}/#/start`)
+    await page.getByRole('button', { name: '开始游戏', exact: true }).click()
+    await expect(page).toHaveURL(/#\/game/)
+    await expect(page.locator('.adv-black, .adv-dialog-box')).toBeVisible()
+    const fixedCanvas = await page.evaluate(async () => {
       const app = (document.querySelector('#app') as unknown as { __vue_app__: { _context: { provides: Record<string, AdvContext> } } }).__vue_app__
       const adv = app._context.provides['$advjs-context']
-      // Exercise the real dialogue component and shared host layout through its
-      // existing presentation store, without replacing styles or templates.
-      adv.store.$syncRuntime(adv.store.state, {
-        id: `reading-${kind}-${words.length}`,
-        kind,
-        data: { text: words, character: '向导' },
-      }, adv.store.program!)
-    }, { words: text, kind })
-    const words = kind === 'dialog' ? body.locator('.print-words') : page.locator('.adv-black .print-words')
-    await expect(words).toHaveText(text)
-    await expect(words.locator('.invisible')).toHaveCount(0)
-    if (kind === 'dialog')
-      await expect(name).toHaveText('向导')
-  }
-  const chooseSize = async (label: string) => {
-    await page.getByRole('button', { name: '设置', exact: true }).click()
-    const settings = page.getByRole('dialog', { name: '设置', exact: true })
-    await settings.getByRole('tab', { name: '对白', exact: true }).click()
-    const choice = settings.getByRole('group', { name: '字体大小', exact: true }).getByRole('button', { name: label, exact: true })
-    await choice.click()
-    await expect(choice).toHaveAttribute('aria-pressed', 'true')
-    return settings
-  }
-  const closeSettings = async (settings: Locator) => {
-    await settings.getByRole('button', { name: '关闭', exact: true }).first().click()
-    await expect(settings).toBeHidden()
-  }
-  const tiers = [
-    { label: '小', logical: 20, floor: 16 },
-    { label: '中', logical: 22, floor: 18 },
-    { label: '大', logical: 30, floor: 26 },
-    { label: '超大', logical: 36, floor: 32 },
-  ]
-
-  await setPresentation('清晨的光照进房间。')
-  for (const tier of tiers) {
-    const settings = await chooseSize(tier.label)
-    await expect(settings.locator('.adv-dialog-reading')).toHaveCSS('font-size', `${tier.logical}px`)
-    await closeSettings(settings)
-    await expect(body).toHaveCSS('font-size', `${tier.logical}px`)
-    await expect.poll(() => screenFont(name)).toBeCloseTo(tier.logical * 10 / 11, 1)
-  }
-  await page.screenshot({ path: join(artifacts, `dialogue-normal-${info.project.name}.png`) })
-
-  await page.setViewportSize({ width: 390, height: 844 })
-  await expect.poll(() => page.locator('#adv-content').evaluate(el => el.clientWidth)).toBe(fixedCanvas ? 1920 : 390)
-  for (const tier of tiers) {
-    const settings = await chooseSize(tier.label)
-    await expect(settings.locator('.adv-dialog-reading')).toHaveCSS('--adv-reading-size', `${tier.logical}px`)
-    await closeSettings(settings)
-    const expected = fixedCanvas ? tier.floor : tier.logical - 2
-    await expect.poll(() => screenFont(body)).toBeCloseTo(expected, 1)
-    await expect.poll(() => screenFont(name)).toBeCloseTo(expected * 10 / 11, 1)
-    proof.push({ tier: tier.label, body: await screenFont(body), name: await screenFont(name) })
-  }
-  const settings = await chooseSize('中')
-  await closeSettings(settings)
-  for (const [key, text] of [
-    ['short', '清晨的光照进房间。'],
-    ['multiline', '窗边的来信带着清晨的光。我们沿着房间里的线索寻找答案。'],
-  ]) {
-    await setPresentation(text)
-    await expect.poll(() => screenFont(body)).toBeGreaterThanOrEqual(17.9)
-    const geometry = await body.evaluate((el) => {
-      const stage = el.closest('#adv-content')!.getBoundingClientRect()
-      const body = el.getBoundingClientRect()
-      const words = el.querySelector('.print-words')!.getBoundingClientRect()
-      const name = document.querySelector('.dialog-name')!.getBoundingClientRect()
-      const controls = document.querySelector('.dialog-controls-shell')!.getBoundingClientRect()
-      const scale = Number(getComputedStyle(el).getPropertyValue('--adv-screen-scale'))
-      return { stage: stage.toJSON(), body: body.toJSON(), name: name.toJSON(), controls: controls.toJSON(), lines: words.height / (Number.parseFloat(getComputedStyle(el).lineHeight) * scale) }
+      if (adv.store.current?.kind === 'narration')
+        await adv.runtime.next()
+      return adv.config.value.viewportFit !== 'responsive'
     })
-    expect(geometry.body.y).toBeGreaterThanOrEqual(geometry.stage.y - 1)
-    expect(geometry.name.y).toBeGreaterThanOrEqual(geometry.stage.y - 1)
-    expect(geometry.body.y + geometry.body.height).toBeLessThanOrEqual(geometry.controls.y - 1)
-    expect(geometry.name.y + geometry.name.height).toBeLessThanOrEqual(geometry.controls.y - 1)
-    if (key === 'multiline')
-      expect(geometry.lines).toBeGreaterThanOrEqual(1.9)
-    proof.push({ key, ...geometry })
-    await page.screenshot({ path: join(artifacts, `dialogue-${key}-390-${info.project.name}.png`) })
-  }
+    await expect(page.locator('.adv-dialog-box')).toBeVisible()
 
-  const narration = page.locator('.adv-black .words-wrapper')
-  for (const viewport of [{ width: 1920, height: 1080 }, { width: 390, height: 844 }]) {
-    await page.setViewportSize(viewport)
-    await setPresentation('窗边的来信带着清晨的光。我们沿着房间里的线索寻找答案。', 'narration')
-    for (const tier of tiers) {
-      const settings = await chooseSize(tier.label)
+    const box = page.locator('.adv-dialog-box')
+    const body = box.locator('.dialog-content')
+    const name = box.locator('.dialog-name')
+    const proof: unknown[] = []
+    const artifacts = join(tmpdir(), 'advjs-game-reading-artifacts')
+    await mkdir(artifacts, { recursive: true })
+    const screenFont = (element: Locator) => element.evaluate((el) => {
+      const stage = el.closest<HTMLElement>('#adv-content')!
+      return Number.parseFloat(getComputedStyle(el).fontSize) * stage.getBoundingClientRect().width / stage.offsetWidth
+    })
+    const setPresentation = async (text: string, kind: 'dialog' | 'narration' = 'dialog') => {
+      await page.evaluate(({ words, kind }) => {
+        const app = (document.querySelector('#app') as unknown as { __vue_app__: { _context: { provides: Record<string, AdvContext> } } }).__vue_app__
+        const adv = app._context.provides['$advjs-context']
+        // Exercise the real dialogue component and shared host layout through its
+        // existing presentation store, without replacing styles or templates.
+        adv.store.$syncRuntime(adv.store.state, {
+          id: `reading-${kind}-${words.length}`,
+          kind,
+          data: { text: words, character: '向导' },
+        }, adv.store.program!)
+      }, { words: text, kind })
+      const words = kind === 'dialog' ? body.locator('.print-words') : page.locator('.adv-black .print-words')
+      await expect(words).toHaveText(text)
+      await expect(words.locator('.invisible')).toHaveCount(0)
+      if (kind === 'dialog')
+        await expect(name).toHaveText('向导')
+    }
+    const chooseSize = async (label: string) => {
+      await page.getByRole('button', { name: '设置', exact: true }).click()
+      const settings = page.getByRole('dialog', { name: '设置', exact: true })
+      await settings.getByRole('tab', { name: '对白', exact: true }).click()
+      const choice = settings.getByRole('group', { name: '字体大小', exact: true }).getByRole('button', { name: label, exact: true })
+      await choice.click()
+      await expect(choice).toHaveAttribute('aria-pressed', 'true')
+      return settings
+    }
+    const closeSettings = async (settings: Locator) => {
+      await settings.getByRole('button', { name: '关闭', exact: true }).first().click()
+      await expect(settings).toBeHidden()
+    }
+    const tiers = [
+      { label: '小', logical: 20, floor: 16 },
+      { label: '中', logical: 22, floor: 18 },
+      { label: '大', logical: 30, floor: 26 },
+      { label: '超大', logical: 36, floor: 32 },
+    ]
+
+    if (surface === 'dialogue') {
+      await setPresentation('清晨的光照进房间。')
+      for (const tier of tiers) {
+        const settings = await chooseSize(tier.label)
+        await expect(settings.locator('.adv-dialog-reading')).toHaveCSS('font-size', `${tier.logical}px`)
+        await closeSettings(settings)
+        await expect(body).toHaveCSS('font-size', `${tier.logical}px`)
+        await expect.poll(() => screenFont(name)).toBeCloseTo(tier.logical * 10 / 11, 1)
+      }
+      await page.screenshot({ path: join(artifacts, `dialogue-normal-${info.project.name}.png`) })
+
+      await page.setViewportSize({ width: 390, height: 844 })
+      await expect.poll(() => page.locator('#adv-content').evaluate(el => el.clientWidth)).toBe(fixedCanvas ? 1920 : 390)
+      for (const tier of tiers) {
+        const settings = await chooseSize(tier.label)
+        await expect(settings.locator('.adv-dialog-reading')).toHaveCSS('--adv-reading-size', `${tier.logical}px`)
+        await closeSettings(settings)
+        const expected = fixedCanvas ? tier.floor : tier.logical - 2
+        await expect.poll(() => screenFont(body)).toBeCloseTo(expected, 1)
+        await expect.poll(() => screenFont(name)).toBeCloseTo(expected * 10 / 11, 1)
+        proof.push({ tier: tier.label, body: await screenFont(body), name: await screenFont(name) })
+      }
+      const settings = await chooseSize('中')
       await closeSettings(settings)
-      const expected = viewport.width === 1920 ? tier.logical : fixedCanvas ? tier.floor : tier.logical - 2
-      await expect.poll(() => screenFont(narration)).toBeCloseTo(expected, 1)
-      proof.push({ surface: 'narration', width: viewport.width, tier: tier.label, font: await screenFont(narration) })
+      for (const [key, text] of [
+        ['short', '清晨的光照进房间。'],
+        ['multiline', '窗边的来信带着清晨的光。我们沿着房间里的线索寻找答案。'],
+      ]) {
+        await setPresentation(text)
+        await expect.poll(() => screenFont(body)).toBeGreaterThanOrEqual(17.9)
+        const geometry = await body.evaluate((el) => {
+          const stage = el.closest('#adv-content')!.getBoundingClientRect()
+          const body = el.getBoundingClientRect()
+          const words = el.querySelector('.print-words')!.getBoundingClientRect()
+          const name = document.querySelector('.dialog-name')!.getBoundingClientRect()
+          const controls = document.querySelector('.dialog-controls-shell')!.getBoundingClientRect()
+          const scale = Number(getComputedStyle(el).getPropertyValue('--adv-screen-scale'))
+          return { stage: stage.toJSON(), body: body.toJSON(), name: name.toJSON(), controls: controls.toJSON(), lines: words.height / (Number.parseFloat(getComputedStyle(el).lineHeight) * scale) }
+        })
+        expect(geometry.body.y).toBeGreaterThanOrEqual(geometry.stage.y - 1)
+        expect(geometry.name.y).toBeGreaterThanOrEqual(geometry.stage.y - 1)
+        expect(geometry.body.y + geometry.body.height).toBeLessThanOrEqual(geometry.controls.y - 1)
+        expect(geometry.name.y + geometry.name.height).toBeLessThanOrEqual(geometry.controls.y - 1)
+        if (key === 'multiline')
+          expect(geometry.lines).toBeGreaterThanOrEqual(1.9)
+        proof.push({ key, ...geometry })
+        await page.screenshot({ path: join(artifacts, `dialogue-${key}-390-${info.project.name}.png`) })
+      }
     }
-    const settings = await chooseSize('中')
-    await closeSettings(settings)
-    const bounds = await narration.boundingBox()
-    const controls = await page.locator('.dialog-controls-shell').boundingBox()
-    const stage = await page.locator('#adv-content').boundingBox()
-    expect(bounds!.y).toBeGreaterThanOrEqual(stage!.y - 1)
-    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(controls!.y - 1)
-    proof.push({ surface: 'narration', width: viewport.width, bounds, controls })
-    await page.screenshot({ path: join(artifacts, `narration-${viewport.width}-${info.project.name}.png`) })
-    if (viewport.width === 390) {
-      await setPresentation('清晨的光照进房间。', 'narration')
-      const short = await narration.boundingBox()
-      expect(short!.y).toBeGreaterThanOrEqual(stage!.y - 1)
-      expect(short!.y + short!.height).toBeLessThanOrEqual(controls!.y - 1)
-      proof.push({ surface: 'narration', width: 390, key: 'short', bounds: short, controls })
-      await page.screenshot({ path: join(artifacts, `narration-short-390-${info.project.name}.png`) })
+
+    if (surface === 'narration') {
+      const narration = page.locator('.adv-black .words-wrapper')
+      for (const viewport of [{ width: 1920, height: 1080 }, { width: 390, height: 844 }]) {
+        await page.setViewportSize(viewport)
+        await setPresentation('窗边的来信带着清晨的光。我们沿着房间里的线索寻找答案。', 'narration')
+        for (const tier of tiers) {
+          const settings = await chooseSize(tier.label)
+          await closeSettings(settings)
+          const expected = viewport.width === 1920 ? tier.logical : fixedCanvas ? tier.floor : tier.logical - 2
+          await expect.poll(() => screenFont(narration)).toBeCloseTo(expected, 1)
+          proof.push({ surface: 'narration', width: viewport.width, tier: tier.label, font: await screenFont(narration) })
+        }
+        const settings = await chooseSize('中')
+        await closeSettings(settings)
+        const bounds = await narration.boundingBox()
+        const controls = await page.locator('.dialog-controls-shell').boundingBox()
+        const stage = await page.locator('#adv-content').boundingBox()
+        expect(bounds!.y).toBeGreaterThanOrEqual(stage!.y - 1)
+        expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(controls!.y - 1)
+        proof.push({ surface: 'narration', width: viewport.width, bounds, controls })
+        await page.screenshot({ path: join(artifacts, `narration-${viewport.width}-${info.project.name}.png`) })
+        if (viewport.width === 390) {
+          await setPresentation('清晨的光照进房间。', 'narration')
+          const short = await narration.boundingBox()
+          expect(short!.y).toBeGreaterThanOrEqual(stage!.y - 1)
+          expect(short!.y + short!.height).toBeLessThanOrEqual(controls!.y - 1)
+          proof.push({ surface: 'narration', width: 390, key: 'short', bounds: short, controls })
+          await page.screenshot({ path: join(artifacts, `narration-short-390-${info.project.name}.png`) })
+        }
+      }
     }
-  }
-  await writeFile(join(artifacts, `reading-proof-${info.project.name}.json`), JSON.stringify(proof, null, 2))
-})
+    await writeFile(join(artifacts, `reading-proof-${surface}-${info.project.name}.json`), JSON.stringify(proof, null, 2))
+  })
+}

@@ -31,8 +31,8 @@
   "types": "./dist/node/index.d.mts",
   "bin": {
     "adv": "./bin/adv.mjs",
-    "adv-audio-server": "./bin/audio-server.mjs",
-    "advjs": "./bin/adv.mjs"
+    "advjs": "./bin/adv.mjs",
+    "adv-audio-server": "./bin/audio-server.mjs"
   },
   "files": [
     "bin",
@@ -46,7 +46,7 @@
     "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
-    "build": "unbuild && node scripts/prepare-skills.mjs",
+    "build": "node scripts/build.mjs && node scripts/prepare-skills.mjs",
     "dev": "unbuild --stub",
     "prepack": "node scripts/prepare-skills.mjs",
     "prepublishOnly": "npm run build",

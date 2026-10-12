@@ -7,11 +7,13 @@ import { createServer } from 'node:http'
 import { join, resolve } from 'node:path'
 import process from 'node:process'
 import { parseAudioToolchainLock } from '@advjs/audio'
-import { version } from '../../package.json'
+import pkg from '../../package.json' with { type: 'json' }
 import { installAgentIntegration } from '../agent'
 import { probeAudioToolchain } from '../audio/process'
 import { resolveEditorArtifactPublicRoot } from '../editor'
 import { loadProject } from '../project'
+
+const { version } = pkg
 
 export type DoctorCheckStatus = 'fail' | 'pass' | 'warn'
 

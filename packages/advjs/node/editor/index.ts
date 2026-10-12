@@ -1,5 +1,4 @@
 import type { AdvAgentIntegrationStatus } from '@advjs/types'
-import type { FSWatcher } from 'chokidar'
 import type { Server, ServerResponse } from 'node:http'
 import type { EditorVoiceJobsHostOptions } from './audio-jobs'
 import { Buffer } from 'node:buffer'
@@ -280,7 +279,7 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
 
   let token = randomBytes(32).toString('base64url')
   let server: Server | undefined
-  let watcher: FSWatcher | undefined
+  let watcher: Awaited<ReturnType<typeof watchEditorProject>> | undefined
   let editorOrigin = ''
   let mutations: Promise<unknown> = Promise.resolve()
   function mutate<T>(operation: () => Promise<T>) {

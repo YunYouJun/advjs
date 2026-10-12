@@ -196,7 +196,12 @@ test('native JSON Flow creates and edits a conditional crosschapter branch, reta
   const player = await context.newPage()
   player.on('pageerror', error => errors.push(error.message))
   await player.goto(await servePlayer())
-  await player.locator('[data-action="start_game"]').click()
+  await expect(player).toHaveTitle('Your Name')
+  // The player follows the browser locale; Editor's locale is independent.
+  const startGame = player.locator('button[data-action="start_game"]')
+  await expect(startGame).toBeVisible()
+  await startGame.click()
+  await expect(player).toHaveURL(/\/game$/)
   await expect.poll(async () => (await playerState(player)).current?.data?.text).toBe('Edited native dialogue.')
   await player.locator('.adv-dialog-box:visible').click()
   await expect(player.locator('.dialog-content:visible')).toContainText('Edited native dialogue.')

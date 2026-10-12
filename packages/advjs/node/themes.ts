@@ -4,10 +4,12 @@ import { parseNi, run } from '@antfu/ni'
 import { colors } from 'consola/utils'
 import prompts from 'prompts'
 import { satisfies } from 'semver'
-import { version } from '../package.json'
+import pkg from '../package.json' with { type: 'json' }
 import { isPath } from './options'
 import { isInstalledGlobally, packageExists } from './resolver'
 import { readJSON } from './utils/fs'
+
+const { version } = pkg
 
 const officialThemes: Record<string, string> = {
   none: '',

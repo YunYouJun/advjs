@@ -191,8 +191,11 @@ test('loads, live-refreshes, resolves conflicts, and saves the source project', 
   expect((await routeReloadResponse).status()).toBe(200)
   await page.goBack()
   await expect(page.getByText('Live local workspace')).toBeVisible()
-  // The compiled project now activates the source preview during initialization.
+  // Valid Markdown projects load their source preview automatically.
+  await page.locator('[data-editor-region="main"]').getByRole('tab', { name: 'Game', exact: true }).click()
+  await expect(page.locator('.adv-game')).toBeVisible({ timeout: 15_000 })
   await expect(page.locator('.adv-dialog-box:visible, .adv-black:visible')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Start source preview' })).toBeHidden()
   await expect(stat(join(projectRoot, 'dist'))).rejects.toThrow()
 
   await writeFile(join(projectRoot, 'adv/characters/agent.character.md'), [

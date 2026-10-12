@@ -6,7 +6,10 @@ import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { expect, test } from '@playwright/test'
 
+// This suite consumes the production Flow server in both Playwright configs.
 test.use({ baseURL: 'http://127.0.0.1:3359' })
+// Keep the existing production playback budget when the root config collects it.
+test.describe.configure({ timeout: 60_000 })
 
 const demoRoot = resolve(import.meta.dirname, '../../demo/flow')
 const firstLine = 'What... what happened last night? Why do I feel so strange?'

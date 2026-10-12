@@ -177,3 +177,27 @@ it.each([['en', en], ['zh-CN', zhCN]] as const)('localizes recovery conflict tex
     messages.characters.draft.keepDraft,
   ]))
 })
+
+it('persists an explicitly cleared voice profile through partial saves and recovered drafts', async () => {
+  drafts.formDraft.mockReturnValue(undefined)
+  const character = { id: 'hero', name: 'External', cv: 'Actor', voiceProfile: { intent: { speakingStyle: 'Calm' } } }
+  const save = vi.fn(async (_data: Partial<AdvCharacter>) => {})
+  const host = mount(save, undefined, character)
+  host.querySelector<HTMLButtonElement>('[data-testid="character-voice-clear"]')!.click()
+  await nextTick()
+  const recovered = drafts.saveFormDraft.mock.calls.at(-1)![1]
+  await click(host, 'characters.form.save')
+  expect(save).toHaveBeenCalledOnce()
+  expect(Object.hasOwn(save.mock.calls[0]![0], 'voiceProfile')).toBe(true)
+  app!.unmount()
+  drafts.formDraft.mockReturnValue(recovered)
+  const reopened = mount(save, undefined, character)
+  await click(reopened, 'characters.form.loadDraft')
+  await click(reopened, 'characters.form.save')
+  expect(save).toHaveBeenCalledTimes(2)
+  for (const [data] of save.mock.calls) {
+    expect(Object.hasOwn(data, 'voiceProfile')).toBe(true)
+    expect({ ...character, ...data }.voiceProfile).toBeUndefined()
+    expect(data.cv).toBe('Actor')
+  }
+})
