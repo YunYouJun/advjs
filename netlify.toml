@@ -1,5 +1,5 @@
 [build]
-command = "pnpm build:advjs && pnpm build:plugins && pnpm run play:build"
+command = "pnpm build:advjs && pnpm -r --workspace-concurrency=1 --filter './plugins/*' run build && pnpm run play:build"
 
 [build.environment]
 NODE_OPTIONS = "--max-old-space-size=4096"
