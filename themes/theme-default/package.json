@@ -9,6 +9,11 @@
     "url": "https://www.yunyoujun.cn"
   },
   "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YunYouJun/advjs.git",
+    "directory": "themes/theme-default"
+  },
   "keywords": [
     "advjs-theme",
     "advjs"
