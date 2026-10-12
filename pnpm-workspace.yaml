@@ -349,6 +349,7 @@ catalogs:
     benny: ^3.7.1
     bumpp: ^12.1.1
     c12: ^3.3.4
+    chokidar: ^5.0.0
     cross-env: ^10.1.0
     dayjs: ^1.11.21
     debug: ^4.4.3

@@ -667,6 +667,9 @@ catalogs:
     c12:
       specifier: ^3.3.4
       version: 3.3.4
+    chokidar:
+      specifier: ^5.0.0
+      version: 5.0.0
     cross-env:
       specifier: ^10.1.0
       version: 10.1.0
@@ -1603,6 +1606,9 @@ importers:
       c12:
         specifier: catalog:utils
         version: 3.3.4(magicast@0.5.4)
+      chokidar:
+        specifier: catalog:utils
+        version: 5.0.0
       consola:
         specifier: catalog:cli
         version: 3.4.2

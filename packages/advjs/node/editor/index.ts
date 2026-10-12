@@ -1,10 +1,9 @@
 import type { AdvAgentIntegrationStatus } from '@advjs/types'
-import type { FSWatcher } from 'node:fs'
+import type { FSWatcher } from 'chokidar'
 import type { Server, ServerResponse } from 'node:http'
 import type { EditorVoiceJobsHostOptions } from './audio-jobs'
 import { Buffer } from 'node:buffer'
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto'
-import { watch } from 'node:fs'
 import {
   readFile,
   realpath,
@@ -22,6 +21,7 @@ import { AdvCommandError } from '../commands/errors'
 import { withProjectWriteLock } from '../project/write-lock'
 import { createEditorVoiceJobsHost, editorVoiceJobsErrorCode } from './audio-jobs'
 import { applyEditorFileChanges, atomicProjectWrite, EditorMutationError, projectWriteTarget } from './mutations'
+import { watchEditorProject } from './project-watcher'
 
 export type { EditorVoiceJobAction, EditorVoiceJobsPlanInput, EditorVoiceJobsPort, EditorVoiceJobsReviewedPlan, EditorVoiceJobsSnapshot } from '../../shared/editor-audio'
 export { createEditorVoiceJobsHost } from './audio-jobs'
@@ -606,12 +606,11 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
         const actualPort = address && typeof address !== 'string' ? address.port : port
         const urlHost = host === '::1' ? '[::1]' : host
         editorOrigin = `http://${urlHost}:${actualPort}`
-        watcher = watch(projectRoot, { recursive: true }, (eventType, filename) => {
-          const data = JSON.stringify({ event: eventType, path: filename?.toString().replaceAll('\\', '/') ?? '' })
+        watcher = await watchEditorProject(projectRoot, (change) => {
+          const data = JSON.stringify(change)
           for (const eventResponse of eventResponses)
             eventResponse.write(`event: change\ndata: ${data}\n\n`)
         })
-        watcher.once('error', () => {})
         server = nextServer
         return {
           event: 'ready',
@@ -632,7 +631,7 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
       await (await voiceDesign?.catch(() => undefined))?.close()
       voiceDesign = undefined
       voiceJobs = undefined
-      watcher?.close()
+      await watcher?.close()
       watcher = undefined
       for (const response of eventResponses)
         response.end()
