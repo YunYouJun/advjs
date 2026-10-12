@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { execFileSync, spawn } from 'node:child_process'
+import { spawn } from 'node:child_process'
 import { mkdir, mkdtemp, readFile, realpath, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, relative } from 'node:path'
@@ -7,12 +7,11 @@ import process from 'node:process'
 import { writeLaunchWorkspaceConfig } from '../../tests/launch/helpers/registry.ts'
 import { LAUNCH_VERSION } from './package-specs.mjs'
 
-import { runPnpm } from './run-command.mjs'
+import { resolvePnpmInvocation, runPnpm } from './run-command.mjs'
 
 const mode = process.argv[2]
 assert(['pinned', 'default'].includes(mode))
-const cli = process.env.npm_execpath || await realpath(execFileSync('which', ['pnpm'], { encoding: 'utf8' }).trim())
-assert.equal(execFileSync(process.execPath, [cli, '--version'], { encoding: 'utf8' }).trim(), '11.20.0')
+assert.equal((await runPnpm(['--version'])).stdout.trim(), '11.20.0')
 const root = await realpath(await mkdtemp(join(tmpdir(), `advjs-public-${mode}-`)))
 const cliName = mode === 'pinned' ? `adv@${LAUNCH_VERSION}` : 'adv'
 await writeFile(join(root, 'package.json'), JSON.stringify({ private: true }))
@@ -20,7 +19,7 @@ await writeFile(join(root, 'registry.npmrc'), 'registry=https://registry.npmjs.o
 await writeLaunchWorkspaceConfig(root)
 const settings = JSON.parse(await readFile(join(root, 'pnpm-workspace.yaml'), 'utf8'))
 await writeFile(join(root, 'pnpm-workspace.yaml'), JSON.stringify({ ...settings, cacheDir: join(root, 'cache'), storeDir: join(root, 'store'), dlxCacheMaxAge: 0 }, null, 2))
-const environment = { ...process.env, npm_execpath: cli, CI: '1', NODE_ENV: 'production', TEST: 'false', npm_config_userconfig: join(root, 'registry.npmrc'), npm_config_registry: 'https://registry.npmjs.org/', PNPM_CONFIG_CACHE_DIR: join(root, 'cache'), PNPM_CONFIG_STORE_DIR: join(root, 'store'), NO_COLOR: '1', FORCE_COLOR: '0' }
+const environment = { ...process.env, CI: '1', NODE_ENV: 'production', TEST: 'false', npm_config_userconfig: join(root, 'registry.npmrc'), npm_config_registry: 'https://registry.npmjs.org/', PNPM_CONFIG_CACHE_DIR: join(root, 'cache'), PNPM_CONFIG_STORE_DIR: join(root, 'store'), NO_COLOR: '1', FORCE_COLOR: '0' }
 delete environment.NODE_PATH
 delete environment.PNPM_HOME
 const report = { mode, root, startedAt: new Date().toISOString(), commands: [] }
@@ -61,7 +60,7 @@ async function stopPreview(child, completion) {
   await completion
 }
 assert.match((await run(['create', cliName, '--help'])).stdout, /--template/u)
-assert.equal((await run(['create', cliName, '--version'])).stdout.trim(), LAUNCH_VERSION)
+assert.equal((await run(['--reporter=silent', 'create', cliName, '--version'])).stdout.trim(), LAUNCH_VERSION)
 for (const template of ['adv', 'plugin']) {
   const cwd = join(root, template === 'adv' ? 'game' : 'plugin')
   await run(['create', cliName, cwd, '--template', template, '--yes'])
@@ -83,7 +82,8 @@ for (const template of ['adv', 'plugin']) {
     await run(['run', 'build'], cwd)
     assert((await stat(join(cwd, template === 'adv' ? 'dist/index.html' : 'dist/index.mjs'))).isFile())
     if (template === 'adv') {
-      const child = spawn(process.execPath, [cli, 'run', 'preview', '--host', '127.0.0.1', '--port', '0'], { cwd, detached: true, env: environment, stdio: ['ignore', 'pipe', 'pipe'] })
+      const invocation = resolvePnpmInvocation(['run', 'preview', '--host', '127.0.0.1', '--port', '0'], { npmExecPath: environment.npm_execpath })
+      const child = spawn(invocation.command, invocation.args, { cwd, detached: true, env: environment, stdio: ['ignore', 'pipe', 'pipe'] })
       let output = ''
       const completion = new Promise(resolve => child.once('close', resolve))
       try {
