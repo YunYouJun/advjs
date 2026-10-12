@@ -13,7 +13,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import Layouts from 'vite-plugin-vue-layouts-next'
 import VueRouter from 'vue-router/vite'
 
-import { ADV_VIRTUAL_MODULES } from '../../packages/advjs/node'
+import { ADV_VIRTUAL_MODULES } from '../../packages/advjs/node/config'
 import { commonAlias, themesDir } from '../../packages/shared/node'
 
 const markdownWrapperClasses = 'prose prose-sm m-auto text-left'
