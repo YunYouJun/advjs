@@ -85,6 +85,13 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      # Publication tests deliberately encode and verify real Opus/AAC media.
+      - name: Install audio test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends ffmpeg
+          ffmpeg -version
+          ffprobe -version
       - name: Build test dependencies
         run: pnpm prepare:workspace unit
       - name: Check game theme type contracts
@@ -187,6 +194,12 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Install real audio processing tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends ffmpeg
+          ffmpeg -version
+          ffprobe -version
       - name: Build packages
         run: pnpm editor:build
       - name: Install Chromium

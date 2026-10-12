@@ -1,5 +1,6 @@
 // @vitest-environment node
 
+import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 import { buildLaunchPackages, createPackageManifest, PACKAGE_SPECS } from '../../../scripts/release/package-manifest.mjs'
@@ -51,5 +52,19 @@ describe('launch package build order', () => {
 
     await expect(buildLaunchPackages(root, { runner })).rejects.toThrow('CLI build failed')
     expect(runner.mock.calls.some(([, args]) => args[1] === 'editor/core')).toBe(false)
+  })
+})
+
+describe('launch package executables', () => {
+  it('keeps the package-name CLI selectable alongside the audio server', async () => {
+    const manifest = JSON.parse(await readFile(resolve(root, 'packages/advjs/package.json'), 'utf8'))
+
+    expect(manifest.bin.adv).toBe('./bin/adv.mjs')
+    // npm exec and pnpm dlx select the package-name binary when there are
+    // multiple distinct commands, preserving `npx advjs` and `pnpm dlx advjs`.
+    expect(manifest.bin[manifest.name]).toBe(manifest.bin.adv)
+    expect(manifest.bin['adv-audio-server']).toBe('./bin/audio-server.mjs')
+    for (const entry of new Set<string>(Object.values(manifest.bin)))
+      expect(await readFile(resolve(root, 'packages/advjs', entry), 'utf8')).toMatch(/^#!\/usr\/bin\/env node/u)
   })
 })

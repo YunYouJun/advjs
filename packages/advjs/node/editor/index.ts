@@ -1,10 +1,8 @@
 import type { AdvAgentIntegrationStatus } from '@advjs/types'
-import type { FSWatcher } from 'node:fs'
 import type { Server, ServerResponse } from 'node:http'
 import type { EditorVoiceJobsHostOptions } from './audio-jobs'
 import { Buffer } from 'node:buffer'
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto'
-import { watch } from 'node:fs'
 import {
   readFile,
   realpath,
@@ -22,6 +20,7 @@ import { AdvCommandError } from '../commands/errors'
 import { withProjectWriteLock } from '../project/write-lock'
 import { createEditorVoiceJobsHost, editorVoiceJobsErrorCode } from './audio-jobs'
 import { applyEditorFileChanges, atomicProjectWrite, EditorMutationError, projectWriteTarget } from './mutations'
+import { watchEditorProject } from './watch-project'
 
 export type { EditorVoiceJobAction, EditorVoiceJobsPlanInput, EditorVoiceJobsPort, EditorVoiceJobsReviewedPlan, EditorVoiceJobsSnapshot } from '../../shared/editor-audio'
 export { createEditorVoiceJobsHost } from './audio-jobs'
@@ -280,7 +279,7 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
 
   let token = randomBytes(32).toString('base64url')
   let server: Server | undefined
-  let watcher: FSWatcher | undefined
+  let watcher: Awaited<ReturnType<typeof watchEditorProject>> | undefined
   let editorOrigin = ''
   let mutations: Promise<unknown> = Promise.resolve()
   function mutate<T>(operation: () => Promise<T>) {
@@ -606,12 +605,11 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
         const actualPort = address && typeof address !== 'string' ? address.port : port
         const urlHost = host === '::1' ? '[::1]' : host
         editorOrigin = `http://${urlHost}:${actualPort}`
-        watcher = watch(projectRoot, { recursive: true }, (eventType, filename) => {
+        watcher = await watchEditorProject(projectRoot, (eventType, filename) => {
           const data = JSON.stringify({ event: eventType, path: filename?.toString().replaceAll('\\', '/') ?? '' })
           for (const eventResponse of eventResponses)
             eventResponse.write(`event: change\ndata: ${data}\n\n`)
         })
-        watcher.once('error', () => {})
         server = nextServer
         return {
           event: 'ready',

@@ -6,6 +6,8 @@ import { build } from 'vite'
 export async function buildProjectTemplates(repository) {
   const bundle = await build({
     configFile: false,
+    // This standalone data bundle must also work before Nuxt preparation.
+    tsconfig: resolve(repository, 'tsconfig.json'),
     logLevel: 'error',
     resolve: { alias: { '@advjs/template': resolve(repository, 'packages/advjs/template') } },
     build: {

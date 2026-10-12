@@ -93,6 +93,16 @@ describe('github Actions launch baseline', () => {
     }
   })
 
+  it('provisions real FFmpeg and FFprobe before audio publication unit tests', () => {
+    const unit = readWorkflow('ci').jobs.unit
+    const installAudio = runCommands(unit).find(command => command.includes('apt-get install --yes --no-install-recommends ffmpeg'))!
+    expect(installAudio).toBeDefined()
+    expect(installAudio).toContain('sudo apt-get update')
+    expect(installAudio).toContain('ffmpeg -version')
+    expect(installAudio).toContain('ffprobe -version')
+    expectCommandBefore(unit, installAudio, 'pnpm vitest run tests/unit --reporter=default')
+  })
+
   it('runs dev and main validation through stable, pnpm-only jobs', () => {
     const workflows = ['ci', 'demo', 'docs'].map(readWorkflow)
     const ci = workflows[0]

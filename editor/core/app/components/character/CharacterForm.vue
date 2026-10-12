@@ -89,6 +89,12 @@ function saveDraft() {
   if (!drafts.recoveryError)
     Toast({ title: t('characters.draft.saved'), type: 'success' })
 }
+function replaceForm(value: Partial<AdvCharacter>) {
+  // Recovery and external reload are full snapshots, including cleared fields.
+  for (const key of Object.keys(form))
+    delete form[key as keyof AdvCharacter]
+  Object.assign(form, JSON.parse(JSON.stringify(value)))
+}
 function loadDraft() {
   const draft = drafts.formDraft(draftKey)
   if (!draft || drafts.projectId !== owner)
@@ -97,7 +103,7 @@ function loadDraft() {
     const value = JSON.parse(draft.content)
     if (!value.form || typeof value.form !== 'object' || Array.isArray(value.form) || typeof value.tags !== 'string' || typeof value.aliases !== 'string')
       return
-    Object.assign(form, value.form)
+    replaceForm(value.form)
     tagsInput.value = value.tags
     aliasInput.value = value.aliases
     expected.value = draft.base
@@ -141,7 +147,7 @@ function reloadExternal() {
     saveError.value = t('characters.draft.deleted')
     return
   }
-  Object.assign(form, current)
+  replaceForm(current)
   tagsInput.value = current.tags?.join(', ') ?? ''
   aliasInput.value = current.aliases?.join(', ') ?? ''
   originalForm.value = JSON.stringify(form)
@@ -168,6 +174,9 @@ async function onSubmit() {
   const submittedBase = expected.value
   const data = {
     ...JSON.parse(JSON.stringify(form)),
+    // JSON omits undefined, but the save callback merges this partial update.
+    // Retain the explicit clear so the previous profile cannot be restored.
+    voiceProfile: form.voiceProfile ? JSON.parse(JSON.stringify(form.voiceProfile)) : undefined,
     tags: tagsInput.value ? tagsInput.value.split(',').map(t => t.trim()).filter(Boolean) : [],
     aliases: aliasInput.value ? aliasInput.value.split(',').map(a => a.trim()).filter(Boolean) : [],
   }

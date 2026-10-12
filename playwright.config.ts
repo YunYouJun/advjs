@@ -78,6 +78,12 @@ export default defineConfig({
   /* Run your local dev server before starting the tests */
   webServer: [
     {
+      command: 'pnpm -C demo/flow run build && pnpm -C demo/flow exec vite preview --host 127.0.0.1 --port 3359 --strictPort',
+      url: 'http://127.0.0.1:3359',
+      timeout: 120_000,
+      reuseExistingServer: false,
+    },
+    {
       command: 'pnpm exec vite --config tests/fixtures/audio/vite.config.ts',
       url: 'http://127.0.0.1:3347',
       reuseExistingServer: !process.env.CI,

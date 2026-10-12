@@ -7,6 +7,10 @@ import { join } from 'node:path'
 import { expect, test } from '@playwright/test'
 import { createPublishedFlowFixture, publishedFlowLineId, publishedFlowPrivateMarker } from '../fixtures/audio/published-flow'
 
+// Match the dedicated production config: this suite processes real audio,
+// publishes it locally and builds the player before exercising playback.
+test.describe.configure({ timeout: 120_000 })
+
 const firstLine = 'What... what happened last night? Why do I feel so strange?'
 const phoneLine = 'Who wrote this? This isn’t my handwriting... Did someone break into my phone?'
 let fixture: Awaited<ReturnType<typeof createPublishedFlowFixture>>
