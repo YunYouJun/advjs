@@ -9,6 +9,13 @@ import { voiceGenerationInputFingerprint } from './planner'
 import { reduceVoiceGenerationJob } from './reducer'
 import { parseVoiceGenerationStore, pruneVoiceGenerationStore } from './store'
 
+/** Trusted transports may use this only when no supplier call has begun. */
+export class VoiceGenerationNotDispatchedError extends Error {
+  constructor() {
+    super('AUDIO_JOB_NOT_DISPATCHED')
+  }
+}
+
 function storedCandidate(candidate: AdvVoiceCandidate): StoredVoiceCandidate {
   const { text: _text, characterId: _speaker, inputFingerprint: _fingerprint, ...safe } = candidate
   canonicalAudioJson(JSON.parse(JSON.stringify(safe)))
@@ -332,16 +339,43 @@ export function createVoiceGenerationRunner(options: VoiceGenerationRunnerOption
         }
       }
     }
-    catch {
-      await options.store.mutate((state) => {
-        const item = state.idempotency[task.idempotencyKey]!
-        if (item.dispatchId !== claim)
-          return
-        item.status = 'unknown'
-        item.errorCode = 'PROVIDER_RESULT_UNKNOWN'
-        item.updatedAt = new Date(now()).toISOString()
-        state.jobs[id] = reduceVoiceGenerationJob(state.jobs[id]!, { type: 'task', taskId: task.id, status: 'unknown', errorCode: 'PROVIDER_RESULT_UNKNOWN' }, now())
-      })
+    catch (error) {
+      // A host can reject a stale input after waiting for its global permit.
+      // Refund only its explicit pre-dispatch proof, never supplier error text.
+      let notDispatched = false
+      if (options.execute && error instanceof VoiceGenerationNotDispatchedError) {
+        try {
+          notDispatched = await options.store.mutate((state) => {
+            const item = state.idempotency[task.idempotencyKey]!
+            if (item.dispatchId !== claim || item.status !== 'running')
+              return false
+            const current = state.jobs[id]!
+            const currentTask = current.tasks.find(entry => entry.id === task.id)!
+            current.chargedCharacters = Math.max(0, current.chargedCharacters - task.characterCount)
+            current.chargedCostMicros = Math.max(0, current.chargedCostMicros - (task.estimatedCost?.amountMicros ?? 0))
+            currentTask.attempts = Math.max(0, currentTask.attempts - 1)
+            item.status = 'failed'
+            item.errorCode = 'INPUT_INVALID'
+            item.updatedAt = new Date(now()).toISOString()
+            state.jobs[id] = reduceVoiceGenerationJob(current, { type: 'task', taskId: task.id, status: 'failed', errorCode: 'INPUT_INVALID' }, now())
+            return true
+          })
+        }
+        catch {
+          // A failed atomic refund leaves the existing reservation uncertain.
+        }
+      }
+      if (!notDispatched) {
+        await options.store.mutate((state) => {
+          const item = state.idempotency[task.idempotencyKey]!
+          if (item.dispatchId !== claim)
+            return
+          item.status = 'unknown'
+          item.errorCode = 'PROVIDER_RESULT_UNKNOWN'
+          item.updatedAt = new Date(now()).toISOString()
+          state.jobs[id] = reduceVoiceGenerationJob(state.jobs[id]!, { type: 'task', taskId: task.id, status: 'unknown', errorCode: 'PROVIDER_RESULT_UNKNOWN' }, now())
+        })
+      }
     }
     finally {
       release()

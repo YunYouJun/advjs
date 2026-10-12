@@ -7,7 +7,7 @@ import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 import { createNodeVoiceGenerationStore } from '../../../packages/advjs/node/audio/job-store'
 import { createVoiceAuthoringService, voiceAuthoringRevision } from '../../../packages/audio/src/authoring'
-import { createMemoryVoiceGenerationStore, createVoiceGenerationRunner, parseVoiceGenerationStore, planVoiceGeneration, pruneVoiceGenerationStore, reduceVoiceGenerationJob } from '../../../packages/audio/src/jobs'
+import { createMemoryVoiceGenerationStore, createVoiceGenerationRunner, parseVoiceGenerationStore, planVoiceGeneration, pruneVoiceGenerationStore, reduceVoiceGenerationJob, VoiceGenerationNotDispatchedError } from '../../../packages/audio/src/jobs'
 
 const now = Date.parse('2026-10-11T08:00:00.000Z')
 const profileRevision = 'a'.repeat(64)
@@ -105,6 +105,47 @@ async function fixture() {
 }
 
 describe('reviewed durable generation jobs', () => {
+  it('refunds only explicit host proof of no dispatch, retaining uncertain reservations when an atomic refund fails', async () => {
+    for (const failure of ['none', 'refund', 'supplier', 'direct-supplier'] as const) {
+      const project = await fixture()
+      const plan = await project.plan([project.input(0)])
+      let rejectRefund = failure === 'refund'
+      const store = {
+        ...project.store,
+        async mutate<T>(mutation: Parameters<typeof project.store.mutate<T>>[0]) {
+          return await project.store.mutate((state) => {
+            const result = mutation(state)
+            if (rejectRefund && Object.values(state.idempotency).some(record => record.status === 'failed')) {
+              rejectRefund = false
+              throw new Error('Atomic storage unavailable')
+            }
+            return result
+          })
+        },
+      }
+      const execute = vi.fn(async () => {
+        if (failure === 'supplier')
+          throw new Error('AUDIO_JOB_NOT_DISPATCHED: Supplier prose is not trusted proof')
+        throw new VoiceGenerationNotDispatchedError()
+      })
+      if (failure === 'direct-supplier')
+        project.handler(async () => { throw new VoiceGenerationNotDispatchedError() })
+      const runner = createVoiceGenerationRunner({ ...project.options, store, execute: failure === 'direct-supplier' ? undefined : execute })
+      await runner.enqueue(plan)
+      const result = await runner.run(plan.id)
+      expect(execute).toHaveBeenCalledTimes(failure === 'direct-supplier' ? 0 : 1)
+      expect(project.synthesize).toHaveBeenCalledTimes(failure === 'direct-supplier' ? 1 : 0)
+      if (failure === 'none') {
+        expect(result).toMatchObject({ chargedCharacters: 0, chargedCostMicros: 0, tasks: [{ status: 'failed', errorCode: 'INPUT_INVALID', attempts: 0 }] })
+        expect(Object.values((await project.store.read()).idempotency)[0]).toMatchObject({ status: 'failed', errorCode: 'INPUT_INVALID' })
+      }
+      else {
+        expect(result).toMatchObject({ chargedCharacters: plan.tasks[0]!.characterCount, chargedCostMicros: 100, tasks: [{ status: 'unknown', errorCode: 'PROVIDER_RESULT_UNKNOWN', attempts: 1 }] })
+        expect(Object.values((await project.store.read()).idempotency)[0]).toMatchObject({ status: 'unknown', errorCode: 'PROVIDER_RESULT_UNKNOWN' })
+      }
+    }
+  })
+
   it('rejects array collections and malformed summaries instead of silently losing durable state', async () => {
     const project = await fixture()
     const plan = await project.plan([project.input(0)])

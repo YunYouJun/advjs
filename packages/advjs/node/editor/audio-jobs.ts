@@ -5,7 +5,7 @@ import type { HostedVoicePreparedInput, HostedVoicePrepareInput } from '../../sh
 import { createHash } from 'node:crypto'
 import { readFile, realpath, stat } from 'node:fs/promises'
 import { homedir } from 'node:os'
-import { audioFingerprint, audioProjectMediaPath, createAudioId, createVoiceGenerationRunner, normalizeAudioLocale, parseVoiceDesignLibrary, planVoiceGeneration, resolveVoiceSpokenText, VOICE_DESIGN_LIBRARY_PATH, voiceDesignVersion, voiceGenerationInputFingerprint } from '@advjs/audio'
+import { audioFingerprint, audioProjectMediaPath, createAudioId, createVoiceGenerationRunner, normalizeAudioLocale, parseVoiceDesignLibrary, planVoiceGeneration, resolveVoiceSpokenText, VOICE_DESIGN_LIBRARY_PATH, voiceDesignVersion, voiceGenerationInputFingerprint, VoiceGenerationNotDispatchedError } from '@advjs/audio'
 import { isAbsolute, relative, resolve } from 'pathe'
 import { createNodeVoiceGenerationStore } from '../audio/job-store'
 import { withVoiceProviderPermit } from '../audio/provider-permit'
@@ -54,7 +54,7 @@ function validatePlanInput(input: EditorVoiceJobsPlanInput) {
 }
 
 /** One host runner for the project; all native writes use the existing locked authoring service. */
-export async function createEditorVoiceJobsHost(options: EditorVoiceJobsHostOptions): Promise<EditorVoiceJobsPort & { prepare: (input: HostedVoicePrepareInput) => Promise<HostedVoicePreparedInput>, close: () => Promise<void> }> {
+export async function createEditorVoiceJobsHost(options: EditorVoiceJobsHostOptions): Promise<EditorVoiceJobsPort & { prepare: (input: HostedVoicePrepareInput) => Promise<HostedVoicePreparedInput>, validateEnqueue: (input: { planId: string, planHash: string }) => Promise<VoiceGenerationJob>, close: () => Promise<void> }> {
   const root = await realpath(resolve(options.projectRoot))
   const projectId = options.scope?.projectId ?? createHash('sha256').update(root).digest('hex')
   const accountId = options.scope?.accountId ?? createHash('sha256').update(`advjs-local:${homedir()}`).digest('hex')
@@ -233,9 +233,31 @@ export async function createEditorVoiceJobsHost(options: EditorVoiceJobsHostOpti
     verifyInput,
     providerConcurrency,
     async execute(input, context) {
-      await verifyInput(input)
-      const operation = () => runVoicePreview({ root, config: options.config, provider: input.providerId, ...(typeof input.parameters?.projectVoiceId === 'string' ? { voice: input.parameters.projectVoiceId, locale: input.locale } : { preset: String(input.parameters?.preset) }), character: input.speakerId, text: resolveVoiceSpokenText(input.displayText, { override: input.spokenText, locale: input.locale, pronunciation: input.pronunciation }), signal: context.signal })
-      const result = options.withProviderPermit ? await options.withProviderPermit(input.providerId, context.signal, operation) : await withVoiceProviderPermit(input.providerId, providerConcurrency[input.providerId] ?? 1, context.signal, operation)
+      let dispatched = false
+      let result: Awaited<ReturnType<typeof runVoicePreview>>
+      try {
+        context.signal.throwIfAborted()
+        await verifyInput(input)
+        const operation = async () => {
+          context.signal.throwIfAborted()
+          const snapshot = await authoring.read()
+          const current = await resolveInput({ id: createAudioId('job'), lineId: input.lineId, locale: input.locale, providerId: input.providerId }, snapshot)
+          if (current.lineId !== input.lineId || current.locale !== input.locale || current.speakerId !== input.speakerId || current.providerId !== input.providerId || await voiceGenerationInputFingerprint(current) !== await voiceGenerationInputFingerprint(input))
+            fail('ADV_AUDIO_JOB_REVIEW_STALE')
+          await verifyInput(current, snapshot)
+          context.signal.throwIfAborted()
+          dispatched = true
+          return await runVoicePreview({ root, config: options.config, provider: current.providerId, ...(typeof current.parameters?.projectVoiceId === 'string' ? { voice: current.parameters.projectVoiceId, locale: current.locale } : { preset: String(current.parameters?.preset) }), character: current.speakerId, text: resolveVoiceSpokenText(current.displayText, { override: current.spokenText, locale: current.locale, pronunciation: current.pronunciation }), signal: context.signal })
+        }
+        result = options.withProviderPermit ? await options.withProviderPermit(input.providerId, context.signal, operation) : await withVoiceProviderPermit(input.providerId, providerConcurrency[input.providerId] ?? 1, context.signal, operation)
+      }
+      catch (error) {
+        if (!dispatched)
+          throw new VoiceGenerationNotDispatchedError()
+        if (error instanceof VoiceGenerationNotDispatchedError)
+          throw new Error('ADV_AUDIO_JOB_PROVIDER_RESULT_UNKNOWN')
+        throw error
+      }
       if (!('candidates' in result) || !result.candidates)
         fail('ADV_AUDIO_JOB_INSPECTION_REQUIRED')
       assertVoiceSynthesisProvenance({ ...result, candidates: result.candidates }, { providerId: input.providerId, preset: String(input.parameters?.preset), speakerId: input.speakerId, voiceId: input.voiceId, model: input.model, parameters: input.parameters ?? {} })
@@ -254,7 +276,28 @@ export async function createEditorVoiceJobsHost(options: EditorVoiceJobsHostOpti
         reviews.delete(id)
     }
   }
+  async function validateEnqueue(input: { planId: string, planHash: string }) {
+    if (!fields(input, ['planId', 'planHash']) || typeof input.planId !== 'string' || typeof input.planHash !== 'string')
+      fail('ADV_AUDIO_JOB_REVIEW_REQUIRED')
+    await access()
+    pruneReviews()
+    const stored = reviews.get(input.planId)?.reviewed
+    if (!stored || stored.planHash !== input.planHash)
+      fail('ADV_AUDIO_JOB_REVIEW_REQUIRED')
+    if ((await authoring.read()).revision !== stored.snapshotRevision)
+      fail('ADV_AUDIO_JOB_REVIEW_STALE')
+    const snapshot = await authoring.read()
+    const lines = await Promise.all(stored.plan.tasks.map(async task => ({ ...await resolveInput(task, snapshot), estimatedCost: task.estimatedCost })))
+    for (const line of lines)
+      await verifyInput(line, snapshot)
+    const checked = await planVoiceGeneration({ accountId, projectId, snapshot, lines, budget: stored.plan.budget })
+    if (checked.tasks.some((task, index) => task.inputFingerprint !== stored.plan.tasks[index]?.inputFingerprint))
+      fail('ADV_AUDIO_JOB_REVIEW_STALE')
+    return stored.plan
+  }
+
   return {
+    validateEnqueue,
     async prepare(input) {
       if (!fields(input, ['lineId', 'locale', 'providerId']) || typeof input.lineId !== 'string' || typeof input.locale !== 'string' || typeof input.providerId !== 'string')
         fail('ADV_AUDIO_JOB_INPUT_INVALID')
@@ -306,23 +349,7 @@ export async function createEditorVoiceJobsHost(options: EditorVoiceJobsHostOpti
       return reviewed
     },
     async enqueue(input) {
-      if (!fields(input, ['planId', 'planHash']) || typeof input.planId !== 'string' || typeof input.planHash !== 'string')
-        fail('ADV_AUDIO_JOB_REVIEW_REQUIRED')
-      await access()
-      pruneReviews()
-      const stored = reviews.get(input.planId)?.reviewed
-      if (!stored || stored.planHash !== input.planHash)
-        fail('ADV_AUDIO_JOB_REVIEW_REQUIRED')
-      if ((await authoring.read()).revision !== stored.snapshotRevision)
-        fail('ADV_AUDIO_JOB_REVIEW_STALE')
-      const snapshot = await authoring.read()
-      const lines = await Promise.all(stored.plan.tasks.map(async task => ({ ...await resolveInput(task, snapshot), estimatedCost: task.estimatedCost })))
-      for (const line of lines)
-        await verifyInput(line, snapshot)
-      const checked = await planVoiceGeneration({ accountId, projectId, snapshot, lines, budget: stored.plan.budget })
-      if (checked.tasks.some((task, index) => task.inputFingerprint !== stored.plan.tasks[index]?.inputFingerprint))
-        fail('ADV_AUDIO_JOB_REVIEW_STALE')
-      const result = await runner.enqueue(stored.plan)
+      const result = await runner.enqueue(await validateEnqueue(input))
       reviews.delete(input.planId)
       return result
     },

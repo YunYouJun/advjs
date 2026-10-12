@@ -1,4 +1,5 @@
-import type { VoiceDesignMutation, VoiceDesignPort, VoiceDesignPreview, VoiceDesignSnapshot } from '@advjs/types'
+import type { AdvAssetManifest, VoiceDesignMutation, VoiceDesignPort, VoiceDesignPreview, VoiceDesignSample, VoiceDesignSnapshot } from '@advjs/types'
+import { Blob as NodeBlob } from 'node:buffer'
 import { createHash, webcrypto } from 'node:crypto'
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -6,7 +7,7 @@ import { defineComponent, h, reactive, ref } from 'vue'
 import AEVoiceDesignCandidates from '../../../editor/core/app/components/panel/audio/AEVoiceDesignCandidates.vue'
 import { useVoiceDesign } from '../../../editor/core/app/composables/useVoiceDesign'
 
-const context = vi.hoisted(() => ({ project: {} as { workspace?: { voiceDesign?: VoiceDesignPort }, project?: { files: Record<string, string> }, refreshProject: ReturnType<typeof vi.fn> }, drafts: { register: vi.fn(), remove: vi.fn() } }))
+const context = vi.hoisted(() => ({ project: {} as { workspace?: { voiceDesign?: VoiceDesignPort, readAsset?: (path: string) => Promise<Blob> }, project?: { files: Record<string, string>, compilation?: { project: { assets?: AdvAssetManifest } } }, refreshProject: ReturnType<typeof vi.fn> }, drafts: { register: vi.fn(), remove: vi.fn() } }))
 vi.mock('../../../editor/core/app/stores/useProjectStore', () => ({ useProjectStore: () => context.project }))
 vi.mock('../../../editor/core/app/stores/useAudioStore', () => ({ useAudioStore: () => ({ supportedRoot: true }) }))
 vi.mock('../../../editor/core/app/stores/useProjectDrafts', () => ({ useProjectDrafts: () => context.drafts }))
@@ -84,6 +85,59 @@ afterEach(() => {
 })
 
 describe('editor shared voice design workflow', () => {
+  async function registeredSample() {
+    await studio.register(ready)
+    const sample = studio.samples.value[0]!
+    context.project.project!.compilation = { project: { assets: { schemaVersion: 2, id: 'native', defaultProfile: 'local', profiles: { local: { provider: 'project', root: 'public/media' } }, assets: [{ id: sample.assetId, type: 'audio', kind: 'voice', path: 'voice/sample.wav', sha256, bytes: 4 }] } } }
+    context.project.workspace!.readAsset = vi.fn(async () => new NodeBlob([sampleBytes]) as unknown as Blob)
+    state.previews = []
+    await studio.reload()
+    return sample
+  }
+
+  it('auditions a saved sample from verified native workspace bytes after temporary previews have disappeared', async () => {
+    const sample = await registeredSample()
+    expect(studio.previews.value).toEqual([])
+    await studio.auditionSample(sample)
+    expect(context.project.workspace!.readAsset).toHaveBeenCalledWith('public/media/voice/sample.wav')
+    expect(studio.source.value).toBe('blob:verified-preview')
+    expect(studio.playingPreviewId.value).toBe(sample.assetId)
+    expect(port.readPreviewAudio).not.toHaveBeenCalled()
+    expect(port.executePreview).not.toHaveBeenCalled()
+    expect(port.selectSample).not.toHaveBeenCalled()
+    expect(port.applyProfile).not.toHaveBeenCalled()
+  })
+
+  it('refuses altered saved sample bytes and ignores native reads arriving after panel leave', async () => {
+    const sample = await registeredSample()
+    context.project.workspace!.readAsset = vi.fn(async () => new NodeBlob([new Uint8Array([9, 9, 9, 9])]) as unknown as Blob)
+    await studio.auditionSample(sample)
+    expect(URL.createObjectURL).not.toHaveBeenCalled()
+    expect(studio.error.value).toContain('VOICE_AUDIO_CHANGED')
+    let complete!: (blob: Blob) => void
+    context.project.workspace!.readAsset = vi.fn(() => new Promise<Blob>(done => complete = done))
+    const operation = studio.auditionSample(sample)
+    visible.value = false
+    await flushPromises()
+    complete(new NodeBlob([sampleBytes]) as unknown as Blob)
+    await operation
+    expect(studio.source.value).toBe('')
+    expect(URL.createObjectURL).not.toHaveBeenCalled()
+    expect(port.executePreview).not.toHaveBeenCalled()
+  })
+
+  it('shows exact candidate and registered sample prose and exposes a separate saved-sample audition action', async () => {
+    const sample: VoiceDesignSample = { assetId: 'sample-one', sha256, bytes: 4, locale: 'zh-CN', providerId: 'fixture-tts', providerVoiceId: 'coral', model: 'fixture-model', source: 'system', text: '已登记样本原文。', presetSha256: 'a'.repeat(64), createdAt: '2026-10-12T00:00:00.000Z' }
+    const wrapper = mount(AEVoiceDesignCandidates, { props: { previews: [ready], samples: [sample], source: '', playingPreviewId: '', pending: false, replaceSelected: false } })
+    wrappers.push(wrapper)
+    expect(wrapper.text()).toContain(candidate.text)
+    expect(wrapper.text()).toContain(sample.text)
+    await wrapper.get('[data-testid="design-audition-sample"]').trigger('click')
+    expect(wrapper.emitted('sample')).toEqual([[sample]])
+    expect(wrapper.emitted('select')).toBeUndefined()
+    expect(wrapper.emitted('audition')).toBeUndefined()
+  })
+
   it('keeps saved design immutable, copies a distinct revision and saves without invoking synthesis or profile adoption', async () => {
     expect(studio.immutable.value).toBe(true)
     expect(studio.canSave.value).toBe(false)

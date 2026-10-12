@@ -394,6 +394,10 @@ export async function createStudioVoiceService(options: StudioVoiceServiceOption
             if (existing)
               return existing
           }
+          // Persist only an authenticated, current reviewed hash. The receipt
+          // precedes job storage so a crash cannot lose successful-enqueue
+          // replay authority; rejected hashes never reserve a plan ID.
+          await target.host.validateEnqueue(input as { planId: string, planHash: string })
           previous[input.planId as string] = input.planHash as string
           await atomicProjectWrite(path, canonicalAudioJson(previous))
           return await target.host.enqueue(input as { planId: string, planHash: string })
