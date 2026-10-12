@@ -3,6 +3,11 @@
   "type": "module",
   "version": "0.1.4",
   "description": "Devtools for ADV.JS",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YunYouJun/advjs.git",
+    "directory": "packages/devtools"
+  },
   "publishConfig": {
     "access": "public"
   },

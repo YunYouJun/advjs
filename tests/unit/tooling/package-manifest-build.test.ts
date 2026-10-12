@@ -71,6 +71,29 @@ describe('launch package build order', () => {
     expect(scaffolder!.publishOrder).toBeGreaterThan(engine.publishOrder)
   })
 
+  it.each([
+    undefined,
+    { url: 'https://github.com/someone/advjs' },
+    { url: 'https://github.com/YunYouJun/advjs/tree/main/packages/gui' },
+  ])('rejects packed repository metadata that does not match the publishing source: %j', (repository) => {
+    const spec = PACKAGE_SPECS.find(pkg => pkg.name === '@advjs/unocss')!
+    const files = Object.fromEntries(spec.requiredFiles.map(file => [file, '']))
+    files['package.json'] = JSON.stringify({ name: spec.name, version: LAUNCH_VERSION, repository })
+
+    expect(() => inspectPackedTarball(packageArchive(files), spec)).toThrow('repository must match https://github.com/YunYouJun/advjs')
+  })
+
+  it.each([
+    'https://github.com/YunYouJun/advjs',
+    'git+https://github.com/YunYouJun/advjs.git',
+  ])('accepts canonical repository URLs used by existing public packages: %s', (url) => {
+    const spec = PACKAGE_SPECS.find(pkg => pkg.name === '@advjs/unocss')!
+    const files = Object.fromEntries(spec.requiredFiles.map(file => [file, '']))
+    files['package.json'] = JSON.stringify({ name: spec.name, version: LAUNCH_VERSION, repository: { type: 'git', url } })
+
+    expect(() => inspectPackedTarball(packageArchive(files), spec)).not.toThrow()
+  })
+
   it.each(['dist/index.mjs', 'templates/template-adv/package.json', 'templates/template-plugin/package.json'])(
     'rejects a scaffolder release missing %s',
     (missing) => {

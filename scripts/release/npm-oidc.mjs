@@ -7,6 +7,7 @@ import { basename, join, resolve } from 'node:path'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
 import { gunzipSync } from 'node:zlib'
+import { inspectPackedTarball } from './package-archive.mjs'
 import { LAUNCH_VERSION, PACKAGE_SPECS } from './package-specs.mjs'
 
 export const NPM_REGISTRY = 'https://registry.npmjs.org'
@@ -36,11 +37,12 @@ export async function verifyNpmArtifact(directory) {
   assert.equal(manifest.version, LAUNCH_VERSION)
   assert.match(manifest.sourceSha, /^[a-f0-9]{40}$/u)
   assert.deepEqual(manifest.packages.map(pkg => pkg.name), PACKAGE_SPECS.map(pkg => pkg.name))
-  for (const pkg of manifest.packages) {
+  for (const [index, pkg] of manifest.packages.entries()) {
     assert.equal(pkg.version, manifest.version)
     assert.equal(pkg.tarball, basename(pkg.tarball), 'Tarballs must stay within the artifact directory')
     const archive = await readFile(join(directory, pkg.tarball))
     assert.equal(`sha512-${createHash('sha512').update(archive).digest('base64')}`, pkg.integrity, `${pkg.name}: tarball integrity mismatch`)
+    inspectPackedTarball(archive, PACKAGE_SPECS[index])
   }
   return manifest
 }

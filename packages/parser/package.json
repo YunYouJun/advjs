@@ -10,6 +10,11 @@
   },
   "license": "MPL-2.0",
   "homepage": "https://parser.advjs.org",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YunYouJun/advjs.git",
+    "directory": "packages/parser"
+  },
   "keywords": [
     "advjs",
     "parser",

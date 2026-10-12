@@ -6,7 +6,7 @@ import { join, resolve } from 'node:path'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
 import { NPM_CLI_VERSION, NPM_REGISTRY, NPM_REPOSITORY, NPM_WORKFLOW, verifyNpmArtifact } from './npm-oidc.mjs'
-import { readTarEntries } from './package-manifest.mjs'
+import { readTarEntries } from './package-archive.mjs'
 
 export function npmTrustConfiguration() {
   return {
