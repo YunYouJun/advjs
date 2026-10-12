@@ -1,0 +1,281 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ADV.JS personal human listening review; simulation excluded from MOS",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "kind",
+    "packageId",
+    "createdAt",
+    "status",
+    "provenance",
+    "environment",
+    "samples",
+    "summary"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "kind": {
+      "const": "advjs-human-listening-review"
+    },
+    "packageId": {
+      "type": "string",
+      "maxLength": 80
+    },
+    "createdAt": {
+      "type": "string",
+      "maxLength": 80
+    },
+    "status": {
+      "enum": [
+        "pending",
+        "complete"
+      ]
+    },
+    "provenance": {
+      "enum": [
+        "pending",
+        "human-attested",
+        "simulation"
+      ]
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reviewerId",
+        "device",
+        "outputMode",
+        "systemVolume",
+        "language",
+        "notes",
+        "userAgent"
+      ],
+      "properties": {
+        "reviewerId": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "device": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "outputMode": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "systemVolume": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "language": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "userAgent": {
+          "type": "string",
+          "maxLength": 2000
+        }
+      }
+    },
+    "samples": {
+      "type": "array",
+      "minItems": 8,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sampleId",
+          "sha256",
+          "text",
+          "scores",
+          "notes",
+          "plays",
+          "endedCount"
+        ],
+        "properties": {
+          "sampleId": {
+            "type": "string",
+            "pattern": "^S0[1-8]$"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "scores": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "naturalness",
+              "clarity",
+              "textAccuracy",
+              "styleFit",
+              "edges",
+              "referenceConsistency"
+            ],
+            "properties": {
+              "naturalness": {
+                "anyOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "const": "na"
+                  },
+                  {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5
+                  }
+                ]
+              },
+              "clarity": {
+                "anyOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "const": "na"
+                  },
+                  {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5
+                  }
+                ]
+              },
+              "textAccuracy": {
+                "anyOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "const": "na"
+                  },
+                  {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5
+                  }
+                ]
+              },
+              "styleFit": {
+                "anyOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "const": "na"
+                  },
+                  {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5
+                  }
+                ]
+              },
+              "edges": {
+                "anyOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "const": "na"
+                  },
+                  {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5
+                  }
+                ]
+              },
+              "referenceConsistency": {
+                "anyOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "const": "na"
+                  },
+                  {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5
+                  }
+                ]
+              }
+            }
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "plays": {
+            "type": "array",
+            "maxItems": 1000,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "startedAt",
+                "fromSeconds",
+                "toSeconds",
+                "rate"
+              ],
+              "properties": {
+                "startedAt": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "fromSeconds": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "toSeconds": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "rate": {
+                  "const": 1
+                }
+              }
+            }
+          },
+          "endedCount": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "standardMOS",
+        "note"
+      ],
+      "properties": {
+        "standardMOS": {
+          "type": "null"
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 400
+        }
+      }
+    }
+  }
+}
