@@ -6,6 +6,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { basename, join, resolve } from 'node:path'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
+import { gunzipSync } from 'node:zlib'
 import { LAUNCH_VERSION, PACKAGE_SPECS } from './package-specs.mjs'
 
 export const NPM_REGISTRY = 'https://registry.npmjs.org'
@@ -69,6 +70,34 @@ async function metadata(pkg) {
   return response.json()
 }
 
+export async function reusePublishedNpmArchives(manifest, directory, options = {}) {
+  const lookup = options.lookup || metadata
+  const download = options.download || (async (url) => {
+    const response = await fetch(url, { signal: AbortSignal.timeout(60000) })
+    assert.equal(response.status, 200)
+    return Buffer.from(await response.arrayBuffer())
+  })
+  const reused = []
+  for (const pkg of manifest.packages) {
+    const existing = (await lookup(pkg))?.versions?.[pkg.version]
+    if (!existing || existing.dist.integrity === pkg.integrity)
+      continue
+    const archive = await download(existing.dist.tarball)
+    assert.equal(`sha512-${createHash('sha512').update(archive).digest('base64')}`, existing.dist.integrity)
+    const local = await readFile(join(directory, pkg.tarball))
+    // gzip's OS byte differs on macOS/Linux. Reuse an immutable public archive
+    // only when the complete uncompressed tar stream is byte-for-byte equal.
+    assert(gunzipSync(local).equals(gunzipSync(archive)), `${pkg.name}: existing immutable version has different package contents`)
+    reused.push({ name: pkg.name, builtIntegrity: pkg.integrity, publishedIntegrity: existing.dist.integrity })
+    await writeFile(join(directory, pkg.tarball), archive)
+    pkg.integrity = existing.dist.integrity
+    pkg.size = archive.length
+  }
+  if (reused.length)
+    manifest.reusedPublishedArchives = reused
+  return manifest
+}
+
 export async function uploadNpmPackages(manifest, options) {
   const { lookup, publish, accepted, save } = options
   // OIDC cannot create a package name. Check the entire graph before writing.
@@ -130,6 +159,7 @@ async function main(operation, directory) {
     await mkdir(directory, { recursive: true })
     const manifest = await createPackageManifest({ outputDirectory: directory })
     manifest.sourceSha = process.env.GITHUB_SHA
+    await reusePublishedNpmArchives(manifest, directory)
     await writeFile(join(directory, 'packages.json'), `${JSON.stringify(manifest, null, 2)}\n`)
     await verifyNpmArtifact(directory)
     return

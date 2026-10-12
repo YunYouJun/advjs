@@ -6,6 +6,8 @@
 
 选择已通过完整 ADV.JS CI 的提交所在分支，从同一分支运行 workflow 的 `prepare` 操作。该流程检查精确提交的 CI、构建包并上传 `npm-packages-<run-id>`，其中包含 `packages.json` 和所有 `.tgz`。
 
+若同版本已发布，压缩容器可能因打包平台不同而改变 SHA-512。准备流程仅在完整解压 tar 数据逐字节一致时复用已发布的原始 archive，并记录两个校验值；文件内容或 tar 元数据有任何变化都会阻止复用。
+
 ```bash
 gh workflow run release-npm.yml --ref dev -f operation=prepare
 gh run list --workflow release-npm.yml
