@@ -6,6 +6,7 @@ import { join, relative } from 'node:path'
 import process from 'node:process'
 import { writeLaunchWorkspaceConfig } from '../../tests/launch/helpers/registry.ts'
 import { LAUNCH_VERSION } from './package-specs.mjs'
+import { assertPublicLockfile } from './public-lockfile.mjs'
 
 import { resolvePnpmInvocation, runPnpm } from './run-command.mjs'
 
@@ -72,7 +73,7 @@ for (const template of ['adv', 'plugin']) {
     await writeFile(join(cwd, 'pnpm-workspace.yaml'), JSON.stringify({ ...settings, cacheDir: join(root, 'cache'), storeDir: join(root, 'store'), dlxCacheMaxAge: 0 }, null, 2))
     await run(['install', '--no-frozen-lockfile', '--prod=false'], cwd)
     const lock = await readFile(join(cwd, 'pnpm-lock.yaml'), 'utf8')
-    assert(!/\b(?:file|link|workspace):/u.test(lock), 'Consumer has a local dependency override')
+    assertPublicLockfile(lock)
     assert(!relative(root, await realpath(join(cwd, 'node_modules/.pnpm'))).startsWith('..'))
     const dependency = template === 'adv' ? 'advjs' : '@advjs/types'
     const installed = JSON.parse(await readFile(join(cwd, 'node_modules', dependency, 'package.json'), 'utf8'))
