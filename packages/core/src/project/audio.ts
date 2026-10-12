@@ -1,5 +1,5 @@
 import type { AdvAssetManifest, AdvCharacter, AdvProjectDiagnostic, RuntimeNode, RuntimeProgram } from '@advjs/types'
-import { audioFingerprint, createAudioPronunciationDictionary, createAudioVoiceProfiles, normalizeAudioLocale, parseAudioMixerConfig, parseAudioPronunciationDictionary, parseAudioVoiceProfiles, parseVoiceLedger, prepareVoiceSpokenText, resolveVoiceTake } from '@advjs/audio'
+import { audioFingerprint, createAudioPronunciationDictionary, createAudioVoiceProfiles, inspectMusicReview, normalizeAudioLocale, parseAudioMixerConfig, parseAudioPronunciationDictionary, parseAudioVoiceProfiles, parseVoiceLedger, prepareVoiceSpokenText, resolveVoiceTake } from '@advjs/audio'
 
 /** Validate canonical documents before either Editor or Studio publishes a playable Program. */
 export async function validateProjectAudio(input: {
@@ -18,6 +18,21 @@ export async function validateProjectAudio(input: {
   }
   catch {
     fail('ADV_AUDIO_INVALID_LOCALE', 'Project locale requires an exact supported language tag', `${input.root}/settings/game.json`)
+  }
+  const reviewedMusicIds = new Set<string>()
+  for (const chapter of Object.values(input.program?.chapters ?? {})) {
+    for (const node of Object.values(chapter.nodes)) {
+      if (node.kind !== 'effects' || !Array.isArray(node.data?.operations))
+        continue
+      for (const operation of node.data.operations) {
+        if (!operation || typeof operation !== 'object' || Array.isArray(operation) || operation.type !== 'bgm' || operation.action !== 'set' || typeof operation.asset !== 'string' || reviewedMusicIds.has(operation.asset))
+          continue
+        reviewedMusicIds.add(operation.asset)
+        const asset = input.assets?.assets.find(asset => asset.id === operation.asset)
+        if (asset?.music && !inspectMusicReview(asset).canBind)
+          fail('ADV_AUDIO_MUSIC_REVIEW_REQUIRED', `Music ${asset.id} requires current hash-bound author review before playback`, `${input.root}/assets.json`)
+      }
+    }
   }
   const mixerPath = `${input.root}/audio/mixer.json`
   const ledgerPath = `${input.root}/audio/voice-ledger.json`

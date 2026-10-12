@@ -19,6 +19,8 @@ import AGUIInput from '../../../packages/gui/client/components/input/AGUIInput.v
 import AGUIToolbar from '../../../packages/gui/client/components/toolbar/AGUIToolbar.vue'
 
 vi.mock('../../../editor/core/app/stores/useProjectAssets', () => ({ useProjectAssets: () => ({}) }))
+// Explicit workflow imports use the same project fixture as Nuxt's auto-imported panels.
+vi.mock('../../../editor/core/app/stores/useProjectStore', () => ({ useProjectStore: () => (globalThis as any).useProjectStore() }))
 beforeEach(() => {
   setActivePinia(createPinia())
   vi.stubGlobal('useProjectStore', () => ({ workspace: undefined, resourceRevision: 0, projectAssetUrl: async (src: string) => src }))

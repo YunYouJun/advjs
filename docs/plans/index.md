@@ -15,6 +15,7 @@
 ## 音频与首发
 
 - [多轨音频与 AI 配音实施计划](./2026-08-12-audio-system-implementation)。
+- [音乐创作与背景音乐／主题曲工作流](./2026-10-12-ai-background-music-generation)：用户创作与 AI 方案交接、导入、试听采用和 Flow 播放；自动生成适配器另列后续任务。
 - [首发 P0 执行清单](./2026-08-11-launch-readiness-p0)。
 
 ## 运行时与示例记录

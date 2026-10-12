@@ -22,10 +22,13 @@ import VoiceProfileFields from './audio/VoiceProfileFields.vue'
 import CharacterAttributesPanel from './CharacterAttributesPanel.vue'
 import RelationshipEditor from './RelationshipEditor.vue'
 import TagsInput from './TagsInput.vue'
+import SButton from './ui/SButton.vue'
 
 defineProps<{
   characters?: AdvCharacter[]
+  voiceDesignBusy?: boolean
 }>()
+const emit = defineEmits<{ voiceDesign: [] }>()
 
 const { t } = useI18n()
 const model = defineModel<AdvCharacter>({ required: true })
@@ -460,6 +463,9 @@ async function copyImagePrompt() {
         <IonLabel>{{ t('audioProfiles.characterTitle') }}</IonLabel>
       </IonListHeader>
       <div class="cef-relationships">
+        <SButton size="lg" variant="outline" :disabled="voiceDesignBusy || !model.id || !model.name" @click="emit('voiceDesign')">
+          {{ t('voiceWorkflow.saveAndDesign') }}
+        </SButton>
         <VoiceProfileFields :model-value="model.voiceProfile" @update:model-value="updateField('voiceProfile', $event)" />
       </div>
     </div>

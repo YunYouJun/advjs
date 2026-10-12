@@ -8,12 +8,14 @@ import SInput from '../ui/SInput.vue'
 import SSelect from '../ui/SSelect.vue'
 import AudioVoiceConfiguration from './AudioVoiceConfiguration.vue'
 
-const props = defineProps<{ active: boolean }>()
-const emit = defineEmits<{ changed: [] }>()
+const props = defineProps<{ active: boolean, speakerId?: string, lineId?: string }>()
+const emit = defineEmits<{ changed: [], review: [scope: { speakerId: string, lineId: string }] }>()
 const { t } = useI18n()
 const api = useVoiceGenerationJobs(toRef(props, 'active'), () => emit('changed'))
 const { jobs, context, plan, blocked, locales, online, loading, busy, error, running, loginRequired, remoteActive } = api
 const chapterId = ref('all')
+const speakerId = ref(props.speakerId || 'all')
+const lineId = ref(props.lineId || 'all')
 const locale = ref('')
 const providerId = ref('')
 const mode = ref<'chapter' | 'missing' | 'stale'>('missing')
@@ -22,15 +24,27 @@ const concurrency = ref('1')
 const allowUnknownCost = ref(false)
 const costCap = ref('')
 const currency = ref('')
-const providerOptions = computed(() => api.providers(locale.value).map(value => ({ value, label: value })))
-const localeOptions = computed(() => locales.value.map(value => ({ value, label: value })))
+const targetLocales = computed(() => speakerId.value === 'all' ? locales.value : Object.keys(context.value?.profiles[speakerId.value]?.locales ?? {}))
+const providerOptions = computed(() => (speakerId.value === 'all' ? api.providers(locale.value) : Object.keys(context.value?.profiles[speakerId.value]?.locales?.[locale.value]?.providers ?? {})).map(value => ({ value, label: value })))
+const localeOptions = computed(() => targetLocales.value.map(value => ({ value, label: value })))
+const speakerOptions = computed(() => [{ value: 'all', label: t('voiceWorkflow.allSpeakers') }, ...[...new Set(context.value?.lines.map(line => line.speakerId) ?? [])].map(value => ({ value, label: value }))])
+const targetLines = computed(() => context.value?.lines.filter(line => (chapterId.value === 'all' || line.chapterId === chapterId.value) && (speakerId.value === 'all' || line.speakerId === speakerId.value)) ?? [])
+const lineOptions = computed(() => [{ value: 'all', label: t('voiceWorkflow.allLines') }, ...targetLines.value.map(line => ({ value: line.lineId, label: line.displayText }))])
 const chapterOptions = computed(() => [{ value: 'all', label: t('audioJobs.allChapters') }, ...(context.value?.chapters.map(chapter => ({ value: chapter.id, label: chapter.title })) ?? [])])
-watch(locales, (next) => {
+watch(targetLocales, (next) => {
   if (!next.includes(locale.value))
     locale.value = next.find(value => api.providers(value).length > 0) ?? next[0] ?? ''
 })
 watch(providerOptions, next => !next.some(item => item.value === providerId.value) && (providerId.value = next[0]?.value ?? ''))
-watch([chapterId, locale, providerId, mode, maxCharacters, concurrency, costCap, currency, allowUnknownCost], api.invalidatePlan)
+watch([() => props.speakerId, () => props.lineId], () => {
+  speakerId.value = props.speakerId || 'all'
+  lineId.value = props.lineId || 'all'
+})
+watch([chapterId, speakerId], () => {
+  if (!targetLines.value.some(line => line.lineId === lineId.value))
+    lineId.value = 'all'
+})
+watch([chapterId, speakerId, lineId, locale, providerId, mode, maxCharacters, concurrency, costCap, currency, allowUnknownCost], api.invalidatePlan)
 
 function budget(): VoiceGenerationBudget {
   return {
@@ -41,7 +55,14 @@ function budget(): VoiceGenerationBudget {
   }
 }
 function review() {
-  void api.review({ chapterId: chapterId.value === 'all' ? '' : chapterId.value, locale: locale.value, providerId: providerId.value, mode: mode.value, budget: budget() })
+  void api.review({ chapterId: chapterId.value === 'all' ? '' : chapterId.value, speakerId: speakerId.value === 'all' ? undefined : speakerId.value, lineId: lineId.value === 'all' ? undefined : lineId.value, locale: locale.value, providerId: providerId.value, mode: mode.value, budget: budget() })
+}
+async function openReview(job: VoiceGenerationJob) {
+  await api.reload()
+  if (!error.value && props.active) {
+    const speakers = new Set(job.tasks.map(task => task.speakerId))
+    emit('review', { speakerId: speakers.size === 1 ? job.tasks[0]!.speakerId : '', lineId: job.tasks.length === 1 ? job.tasks[0]!.lineId : '' })
+  }
 }
 function cost(job: VoiceGenerationJob) {
   return job.summary.estimatedCost ? `${job.summary.estimatedCost.currency} ${(job.summary.estimatedCost.amountMicros / 1_000_000).toFixed(6)}` : job.summary.newGenerations ? t('audioJobs.unknownPrice') : '0'
@@ -90,6 +111,14 @@ function status(job: VoiceGenerationJob) {
     </p>
     <AudioVoiceConfiguration :active="active" @changed="api.reload(); emit('changed')" />
     <form v-if="context" class="voice-jobs__form" @submit.prevent="review">
+      <label>
+        <span>{{ t('voiceWorkflow.targetSpeaker') }}</span>
+        <SSelect v-model="speakerId" size="lg" :aria-label="t('voiceWorkflow.targetSpeaker')" :options="speakerOptions" :disabled="busy" />
+      </label>
+      <label>
+        <span>{{ t('voiceWorkflow.targetLine') }}</span>
+        <SSelect v-model="lineId" size="lg" :aria-label="t('voiceWorkflow.targetLine')" :options="lineOptions" :disabled="busy" />
+      </label>
       <label>
         <span>{{ t('audioJobs.chapter') }}</span>
         <SSelect v-model="chapterId" size="lg" :options="chapterOptions" :disabled="busy" />
@@ -174,6 +203,9 @@ function status(job: VoiceGenerationJob) {
           {{ api.canQuery ? t('audioJobs.queryHint') : t('audioJobs.unknownHint') }}
         </p>
         <div class="voice-jobs__actions">
+          <SButton v-if="job.tasks.some(task => task.status === 'committed')" size="lg" variant="outline" :disabled="busy || loading || running.length > 0" @click="openReview(job)">
+            {{ t('voiceWorkflow.reviewTakes') }}
+          </SButton>
           <SButton v-if="api.isPrivate(job) && !job.cancelled" size="lg" variant="outline" :disabled="busy" @click="api.reconcile(job)">
             {{ t('audioService.reconcile') }}
           </SButton>
@@ -221,6 +253,15 @@ function status(job: VoiceGenerationJob) {
   margin: 0;
   line-height: 1.6;
   color: var(--adv-text-secondary);
+}
+.voice-jobs__form :deep(.s-select-trigger) {
+  min-width: 0;
+}
+.voice-jobs__form :deep(.s-select-trigger > span:first-child) {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .voice-jobs__heading {
   display: flex;

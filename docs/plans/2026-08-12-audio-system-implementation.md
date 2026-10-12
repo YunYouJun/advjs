@@ -86,7 +86,21 @@ Status: implemented with local acceptance, 2026-10-12. Daily audition, A/B compa
 
 UI organization references ADV.JS AGUI and [YunLeFun/design's workstation principles](https://github.com/YunLeFun/design/blob/main/packages/guide/editor.md). Hosts retain their existing component and token contracts. The portable listening CLI remains optional; no listening service is started automatically.
 
+## Issue #18 dialogue workflow closeout
+
+Status: implemented with local acceptance, 2026-10-12. [Issue #18](https://github.com/YunYouJun/advjs/issues/18) requested both dialogue speech and background music. [Merged PR #51](https://github.com/YunYouJun/advjs/pull/51) supplied provider-neutral character/sample review; the later implementations above supply versioned design, native Profile application, jobs, take adoption and playback. This closeout connects those existing steps within one project rather than introducing another provider or voice library.
+
+- [x] Make the character context discoverable in both hosts' design, dialogue-generation and adoption entry points; preserve uncommitted drafts and project/account boundaries.
+- [x] Generate only the explicitly reviewed speaker/line scope. Keep reviewed voice samples, applied character Profiles and selected dialogue takes distinct; do not automatically migrate legacy `selectedSample` records.
+- [x] Verify design application → dialogue generation → audition/adoption → ordinary native export/runtime playback as one journey, with exact line/take/asset identity and no unintended synthesis or private-resource publication.
+- [x] Update the author guide and append actual verification to the existing implementation report. Preserve pending human ratings and physical-device acceptance.
+- [x] Separate AI background music generation into [its independent plan](./2026-10-12-ai-background-music-generation). Existing BGM management and playback are not evidence of music generation.
+
+The author-facing sequence is maintained in [the voice guide](../guide/authoring-voice#从角色音色到游戏播放); acceptance and limitations remain in [the implementation report](../reports/2026-10-11-audio-runtime-implementation). This does not close the full twelve-task system or claim that music generation is implemented.
+
 ## Implemented runtime migration
+
+The separate [music creation workflow](./2026-10-12-ai-background-music-generation) now has local acceptance for user-authored or externally AI-assisted files: shared briefs, import, audition/adoption, canonical chapter binding and ordinary game playback. Theme/opening/ending/insert-song roles reuse BGM and the music bus. Suno is an official creation-link and file-handoff integration; automatic music generation remains deferred. Actual verification is recorded in [the implementation report](../reports/2026-10-11-audio-runtime-implementation#_2026-10-12-音乐创作与文件回流).
 
 The earlier BGM race regression has been absorbed into the shared engine:
 

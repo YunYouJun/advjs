@@ -2,7 +2,7 @@ import type { VoiceGenerationBudget, VoiceGenerationJob } from '@advjs/audio'
 import type { VoiceAuthoringSnapshot } from '@advjs/types'
 import type { Ref } from 'vue'
 import type { IFileSystem } from '../utils/fs'
-import type { StudioVoiceJobContext } from '../utils/voiceGeneration'
+import type { StudioVoiceJobContext, StudioVoiceJobSelection } from '../utils/voiceGeneration'
 import { createVoiceGenerationRunner, planVoiceGeneration } from '@advjs/audio'
 import { computed, inject, onScopeDispose, shallowRef, watch } from 'vue'
 import { useAuthStore } from '../stores/useAuthStore'
@@ -34,6 +34,7 @@ function useLocalVoiceGenerationJobs(active: Ref<boolean>, changed?: () => void)
   const running = shallowRef<string[]>([])
   const locales = computed(() => context.value && snapshot.value ? studioVoiceJobLocales(context.value, snapshot.value) : [])
   let epoch = 0
+  let reviewSequence = 0
   let current: {
     runner: ReturnType<typeof createVoiceGenerationRunner>
     refresh: () => Promise<void>
@@ -48,6 +49,7 @@ function useLocalVoiceGenerationJobs(active: Ref<boolean>, changed?: () => void)
   }
 
   function invalidatePlan() {
+    reviewSequence++
     plan.value = undefined
     blocked.value = []
   }
@@ -158,19 +160,25 @@ function useLocalVoiceGenerationJobs(active: Ref<boolean>, changed?: () => void)
     }
   }
 
-  async function review(options: { chapterId: string, locale: string, providerId: string, mode: 'chapter' | 'missing' | 'stale', budget: VoiceGenerationBudget }) {
+  async function review(options: StudioVoiceJobSelection & { budget: VoiceGenerationBudget }) {
     const host = current
     if (!host || busy.value)
       return
     invalidatePlan()
+    const sequence = reviewSequence
+    const validReview = () => host.valid() && sequence === reviewSequence
     busy.value = true
     error.value = ''
     try {
       const authoring = createStudioAudioService(host.fs)
       const nextSnapshot = await authoring.read()
+      if (!validReview())
+        return
       const nextContext = await readContext(host.fs, nextSnapshot)
+      if (!validReview())
+        return
       const reviewed = await reviewStudioVoiceJobLines(nextContext, nextSnapshot, { ...options, prepareInput: input => prepareStudioVoiceJobInput(input, nextSnapshot, transport) })
-      if (!host.valid())
+      if (!validReview())
         return
       context.value = nextContext
       snapshot.value = nextSnapshot
@@ -180,14 +188,14 @@ function useLocalVoiceGenerationJobs(active: Ref<boolean>, changed?: () => void)
       if (!reviewed.lines.length)
         throw new Error('AUDIO_JOB_NO_TARGETS')
       const lines = await Promise.all(reviewed.lines.map(async input => ({ ...input, estimatedCost: await transport?.quote?.(input) ?? null })))
-      if (!host.valid())
+      if (!validReview())
         return
       const next = await planVoiceGeneration({ ...scope.value, snapshot: nextSnapshot, lines, budget: options.budget })
-      if (host.valid())
+      if (validReview())
         plan.value = next
     }
     catch (cause) {
-      if (host.valid())
+      if (validReview())
         error.value = safeError(cause)
     }
     finally {

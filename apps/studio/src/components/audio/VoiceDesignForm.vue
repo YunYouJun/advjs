@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import type { CharacterVoiceProfile, DesignedVoiceProfile, VoiceDesignDefinition, VoiceDesignDraft, VoiceDesignSnapshot, VoiceDesignSource } from '@advjs/types'
 import { createAudioId, normalizeAudioLocale, parseVoiceDesignDraft } from '@advjs/audio'
-import { computed, reactive, shallowRef } from 'vue'
+import { computed, reactive, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import SButton from '../ui/SButton.vue'
 import VoiceProfileFields from './VoiceProfileFields.vue'
 
 const props = defineProps<{ snapshot: VoiceDesignSnapshot, speakerId: string, prior?: DesignedVoiceProfile, busy: boolean }>()
-const emit = defineEmits<{ save: [draft: VoiceDesignDraft] }>()
+const emit = defineEmits<{ save: [draft: VoiceDesignDraft], dirty: [value: boolean] }>()
 const { t } = useI18n()
 const speaker = props.snapshot.speakers.find(speaker => speaker.id === props.speakerId)
 const intent = shallowRef<CharacterVoiceProfile>({ intent: structuredClone(props.prior?.design.intent ?? speaker?.profile?.intent ?? {}) })
@@ -15,6 +15,21 @@ const identity = reactive({ id: `voice_${createAudioId('line').slice(5)}`, versi
 const locales = shallowRef<VoiceDesignDraft['locales']>(structuredClone(props.prior?.design.locales ?? {}))
 const definition = reactive({ locale: 'zh-CN', providerId: '', preset: '', source: '' as VoiceDesignSource | '', providerVoiceId: '', description: '', referenceAssetId: '', referenceText: '', referenceMode: 'icl', license: '', subject: '', consentRecord: '' })
 const error = shallowRef('')
+const pendingIntent = shallowRef(false)
+const draftJson = computed(() => JSON.stringify({ identity, intent: intent.value, locales: locales.value, definition }))
+const baseline = shallowRef(draftJson.value)
+const dirty = computed(() => pendingIntent.value || draftJson.value !== baseline.value)
+watch(dirty, value => emit('dirty', value), { immediate: true, flush: 'sync' })
+function acceptSavedDraft() {
+  baseline.value = draftJson.value
+  pendingIntent.value = false
+  emit('dirty', false)
+}
+function trackInput(event: Event) {
+  if ((event.target as HTMLElement)?.closest('[data-testid=voice-profile-fields]'))
+    pendingIntent.value = true
+}
+defineExpose({ acceptSavedDraft })
 const provider = computed(() => props.snapshot.providers.find(provider => provider.id === definition.providerId))
 const preset = computed(() => provider.value?.presets.find(preset => preset.id === definition.preset))
 const sources = computed(() => provider.value?.sources.filter(source => preset.value?.sources.includes(source)) ?? [])
@@ -64,7 +79,7 @@ function save() {
 </script>
 
 <template>
-  <section class="voice-design-form" data-testid="voice-design-form">
+  <section class="voice-design-form" data-testid="voice-design-form" @input="trackInput" @change="trackInput">
     <h3>{{ t(prior ? 'voiceDesigner.newVersion' : 'voiceDesigner.newVoice') }}</h3><p>{{ t('voiceDesigner.immutableHint') }}</p>
     <div class="voice-design-fields">
       <label v-for="field in ['id', 'version', 'label'] as const" :key="field">{{ t(`voiceDesigner.${field}`) }}<input v-model="identity[field]" :disabled="busy"></label>

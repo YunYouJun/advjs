@@ -100,10 +100,11 @@ export async function createNodeAudioPublicationHost(options: NodeAudioPublicati
     const program = loaded.result.project.program
     if (!program || loaded.result.diagnostics.some(item => item.severity === 'error'))
       throw new Error('AUDIO_RELEASE_PROJECT_INVALID')
-    const ledger = createProjectGameConfig(loaded.result, loaded.files).audio?.voiceLedger ?? { schemaVersion: 1 as const, lines: {} }
+    const audio = createProjectGameConfig(loaded.result, loaded.files).audio
+    const ledger = audio?.voiceLedger ?? { schemaVersion: 1 as const, lines: {} }
     // RuntimeProgram has only canonical execution data: no compilation clock,
     // source-map paths or generated receipt/preview metadata.
-    return { ledger, sha256: digest(canonicalAudioJson(JSON.parse(JSON.stringify(program)))) }
+    return { ledger, assetIds: new Set(Object.keys(audio?.assets ?? {})), sha256: digest(canonicalAudioJson(JSON.parse(JSON.stringify(program)))) }
   }
   async function assertCurrentProgram(expected: unknown) {
     if (!revision(expected))
@@ -198,7 +199,7 @@ export async function createNodeAudioPublicationHost(options: NodeAudioPublicati
     if (input.expectedSourceRevision !== undefined && input.expectedSourceRevision !== snapshot.revision)
       throw new Error('AUDIO_RELEASE_SOURCE_CONFLICT')
     const adopted = new Set(Object.values(reviewedProgram.ledger.lines).flatMap(line => Object.values(line.locales).flatMap(binding => binding.takes.filter(take => binding.selectedTake === take.id).map(take => take.assetId))))
-    const candidates = snapshot.catalog.assets.filter(asset => asset.type === 'audio' && kinds.includes(asset.kind as AudioProcessingKind) && asset.state !== 'rejected' && (asset.kind !== 'voice' || adopted.has(asset.id)))
+    const candidates = snapshot.catalog.assets.filter(asset => asset.type === 'audio' && kinds.includes(asset.kind as AudioProcessingKind) && asset.state !== 'rejected' && (asset.kind !== 'voice' || adopted.has(asset.id)) && reviewedProgram.assetIds.has(asset.id))
     const assets = input.assetIds === undefined ? candidates : (input.assetIds as string[]).map(id => candidates.find(asset => asset.id === id)!)
     if (!assets.length || assets.length > 200 || assets.some(asset => !asset))
       throw new Error('AUDIO_RELEASE_ASSET_INVALID')

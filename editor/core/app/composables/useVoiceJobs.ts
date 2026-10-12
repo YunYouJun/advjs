@@ -32,7 +32,7 @@ export function useVoiceJobs(visible: () => boolean) {
   let timer: ReturnType<typeof setTimeout> | undefined
   let refreshing: Promise<void> | undefined
 
-  const sourceLines = computed(() => Object.values(project.project?.compilation.project.program?.chapters ?? {}).flatMap(chapter => Object.values(chapter.nodes)).filter(node => node.kind === 'dialog' || node.kind === 'narration'))
+  const sourceLines = computed(() => Object.values(project.project?.compilation.project.program?.chapters ?? {}).flatMap(chapter => Object.values(chapter.nodes)).filter(node => (node.kind === 'dialog' || node.kind === 'narration') && (!audio.workflowSpeakerId || String(node.data?.speakerId ?? 'narrator') === audio.workflowSpeakerId)))
   const lines = computed(() => sourceLines.value.flatMap(node => typeof node.data?.lineId === 'string' ? [{ id: node.data.lineId, speakerId: String(node.data.speakerId ?? 'narrator'), text: String(node.data.text ?? '') }] : []))
   const unboundCount = computed(() => sourceLines.value.length - lines.value.length)
   const jobs = computed(() => snapshot.value?.jobs ?? [])
@@ -47,6 +47,14 @@ export function useVoiceJobs(visible: () => boolean) {
   })
   const localeOptions = computed(() => [...new Set(['zh-CN', draft.value.locale, ...narratorLocales.value, ...(project.project?.compilation.project.characters ?? []).flatMap(character => Object.keys(character.voiceProfile?.locales ?? {}))])].filter(Boolean))
   const providerOptions = computed(() => (snapshot.value?.providers ?? []).map(provider => ({ value: provider.id, label: `${provider.id} · ${provider.backend === 'local' ? '本地' : '云端'}` })))
+  const requestedProfile = computed(() => {
+    if (audio.workflowSpeakerId !== 'narrator')
+      return project.project?.compilation.project.characters.find(character => character.id === audio.workflowSpeakerId)?.voiceProfile
+    try {
+      return parseAudioVoiceProfiles(JSON.parse(project.project?.files['adv/audio/voice-profiles.json'] ?? '{}')).narrator
+    }
+    catch { return undefined }
+  })
   const canPlan = computed(() => available.value && !pending.value && draft.value.lineIds.length > 0 && draft.value.lineIds.length <= 200 && Boolean(draft.value.providerId) && Number.isSafeInteger(Number(draft.value.maxCharacters)) && Number(draft.value.maxCharacters) > 0 && Number.isInteger(Number(draft.value.concurrency)) && Number(draft.value.concurrency) >= 1 && Number(draft.value.concurrency) <= 32)
 
   function showError(failure: unknown) {
@@ -103,7 +111,7 @@ export function useVoiceJobs(visible: () => boolean) {
             running.delete(id)
         }
         if (!draft.value.providerId || !result.providers.some(provider => provider.id === draft.value.providerId))
-          draft.value = { ...draft.value, providerId: result.providers.find(provider => provider.default)?.id ?? result.providers[0]?.id ?? '' }
+          draft.value = { ...draft.value, providerId: result.providers.find(provider => requestedProfile.value?.locales?.[draft.value.locale]?.providers[provider.id])?.id ?? result.providers.find(provider => provider.default)?.id ?? result.providers[0]?.id ?? '' }
         if (result.unavailableCode)
           showError(new Error(result.unavailableCode))
         else
@@ -204,6 +212,11 @@ export function useVoiceJobs(visible: () => boolean) {
     review.value = undefined
     budgetReviewed.value = false
   })
+  watch(() => audio.workflowSpeakerId, () => {
+    reset()
+    if (visible())
+      void reload()
+  })
   watch(() => project.workspace, () => {
     reset()
     if (visible())
@@ -214,7 +227,9 @@ export function useVoiceJobs(visible: () => boolean) {
       void reload()
     else stopPolling()
   })
-  watch(() => project.project?.files, () => {
+  // A filesystem notification can reload the same authoring bytes. Only a
+  // changed native input invalidates the plan the author has just reviewed.
+  watch(() => JSON.stringify(Object.entries(project.project?.files ?? {}).sort(([left], [right]) => left.localeCompare(right, 'en'))), () => {
     review.value = undefined
     budgetReviewed.value = false
   })

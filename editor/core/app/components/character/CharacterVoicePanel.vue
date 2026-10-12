@@ -5,6 +5,7 @@ import AGUIProperty from '@advjs/gui/client/components/AGUIProperty.vue'
 import AGUIButton from '@advjs/gui/client/components/button/AGUIButton.vue'
 import AGUISelect from '@advjs/gui/client/components/select/AGUISelect.vue'
 import { computed, nextTick, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
+import CharacterVoiceWorkflowEntry from './CharacterVoiceWorkflowEntry.vue'
 
 const props = defineProps<{ character: AdvCharacter }>()
 const project = useProjectStore()
@@ -26,7 +27,7 @@ let controller: AbortController | undefined
 let revision = 0
 
 const supported = computed(() => Boolean(project.workspace?.voiceLibrary))
-const characterVoices = computed(() => snapshot.value?.voices.filter(voice => voice.characterId === props.character.id) ?? [])
+const characterVoices = computed(() => snapshot.value?.voices.filter(voice => voice.characterId === props.character.id && !voice.design) ?? [])
 const providers = computed(() => [...new Set(characterVoices.value.flatMap(voice => Object.keys(voice.implementations)))])
 const voices = computed(() => characterVoices.value.filter(voice => Boolean(voice.implementations[providerId.value])))
 const samples = computed(() => snapshot.value?.samples.filter(sample => sample.characterId === props.character.id && sample.state !== 'rejected') ?? [])
@@ -164,10 +165,11 @@ onBeforeUnmount(() => close())
 </script>
 
 <template>
+  <CharacterVoiceWorkflowEntry :character="character" />
   <section v-if="supported" class="voice-panel" data-testid="voice-panel" @keydown.esc.stop.prevent="close(true)">
     <div class="flex gap-2 items-center justify-between">
       <h3 class="font-bold">
-        {{ t('characters.voice.title') }}
+        {{ t('characters.voice.legacyTitle') }}
       </h3>
       <AGUIButton v-if="!opened" ref="openButton" type="button" :disabled="saving" data-testid="voice-open" @click="show">
         {{ t('characters.voice.open') }}

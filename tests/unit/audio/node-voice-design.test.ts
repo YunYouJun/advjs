@@ -3,10 +3,15 @@ import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { VOICE_DESIGN_LIBRARY_PATH } from '@advjs/audio'
 import { describe, expect, it, vi } from 'vitest'
-import { createNodeVoiceAuthoringService, runVoiceGenerateTake } from '../../../packages/advjs/node/audio/voice'
+import { createNodeVoiceAuthoringService, runVoiceBindTake, runVoiceGenerateTake } from '../../../packages/advjs/node/audio/voice'
 import { createNodeVoiceDesignHost } from '../../../packages/advjs/node/audio/voice-design'
+import { prepareProjectGame } from '../../../packages/advjs/node/commands/build/project'
 import { createEditorVoiceJobsHost } from '../../../packages/advjs/node/editor/audio-jobs'
 import * as mutations from '../../../packages/advjs/node/editor/mutations'
+import { loadProject } from '../../../packages/advjs/node/project'
+import { createFakeAudioBackend } from '../../../packages/audio/src/testing'
+import { useAdvAudio } from '../../../packages/client/composables/useAdvAudio'
+import { createAdvRuntime } from '../../../packages/core/src/runtime'
 import { editorJobLineIds } from '../../fixtures/audio/editor-voice-jobs'
 import { createVoiceDesignFixture } from '../../fixtures/audio/voice-design'
 
@@ -43,7 +48,7 @@ async function fixture(overrides: Pick<NodeVoiceDesignOptions, 'withProviderPerm
 }
 
 describe('trusted native voice design host', () => {
-  it('reviews a candidate directly, registers unselected, applies only explicit profile binding and uses that preset for jobs', async () => {
+  it('uses the explicitly applied character voice for dialogue and plays only its adopted take in an ordinary exported game', async () => {
     const source = await fixture()
     try {
       expect((await source.host.read()).providers[0]).toMatchObject({ id: 'fixture-tts', sources: ['system', 'designed', 'cloned'] })
@@ -77,6 +82,53 @@ describe('trusted native voice design host', () => {
       expect(take.parameters).toMatchObject({ projectVoiceId: source.draft.id, projectVoiceVersion: '1' })
       expect(take.voiceId).toBe('system:soft')
       expect(generated.ledger.lines[editorJobLineIds[0]!]!.locales['zh-CN']!.selectedTake).toBeNull()
+      expect(source.calls).toHaveLength(2)
+
+      // A reviewed character sample and a generated dialogue are distinct:
+      // neither enters the player until the dialogue is explicitly adopted.
+      const unselected = await prepareProjectGame(await loadProject({ root: source.root }))
+      expect(Object.keys(unselected.game.audio!.assets)).toEqual([])
+      expect(unselected.resources.size).toBe(0)
+      expect(unselected.game.audio!.voiceLedger!.lines).toEqual({})
+
+      await runVoiceBindTake({ root: source.root, config: source.config, lineId: editorJobLineIds[0]!, locale: 'zh-CN', takeId: take.id, expectedRevision: generated.revision })
+      const loaded = await loadProject({ root: source.root })
+      const exported = await prepareProjectGame(loaded)
+      const binding = exported.game.audio!.voiceLedger!.lines[editorJobLineIds[0]!]!.locales['zh-CN']!
+      expect(binding.selectedTake).toBe(take.id)
+      expect(binding.takes).toEqual([take])
+      expect(Object.keys(exported.game.audio!.assets)).toEqual([take.assetId])
+      expect(exported.game.audio!.assets[take.assetId]!.sha256).toBe(take.sha256)
+      expect(exported.game.audio!.assets[assetId]).toBeUndefined()
+      expect([...exported.resources.values()]).toEqual([source.bytes])
+      for (const privateField of ['voiceProfile', 'selectedSamples', 'presetPath', 'speakingStyle'])
+        expect(JSON.stringify(exported.game)).not.toContain(`"${privateField}"`)
+
+      const runtime = createAdvRuntime({ program: loaded.result.project.program! })
+      const first = await runtime.start()
+      expect(first.effects).toContainEqual({ type: 'dialogue.voice', payload: { lineId: editorJobLineIds[0], speakerId: 'hero', text: '你好，世界。' } })
+      const backend = createFakeAudioBackend()
+      const audio = useAdvAudio({ backend, gameConfig: () => exported.game })
+      try {
+        audio.setLocale('zh-CN')
+        await audio.applyEffects(first.effects, first.state)
+        expect(backend.loads.map(load => load.asset.assetId)).toEqual([take.assetId])
+        expect(backend.loads[0]!.asset.url).toBe(exported.game.audio!.assets[take.assetId]!.src)
+        expect(audio.voicePlaying.value).toBe(true)
+        expect(backend.playbacks).toHaveLength(1)
+        expect(backend.playbacks[0]!.bus).toBe('voice')
+
+        const next = await runtime.next()
+        await audio.applyEffects(next.effects, next.state)
+        expect(audio.voicePlaying.value).toBe(false)
+        expect(backend.playbacks[0]!.stopped).toBe(true)
+        // A missing exact-language take never falls back to the Chinese one.
+        audio.setLocale('ja-JP')
+        await audio.applyEffects(first.effects, first.state)
+        expect(backend.playbacks).toHaveLength(1)
+        expect(audio.voicePlaying.value).toBe(false)
+      }
+      finally { audio.dispose() }
       expect(source.calls).toHaveLength(2)
     }
     finally { await source.close() }

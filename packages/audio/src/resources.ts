@@ -1,7 +1,8 @@
-import type { AdvAssetEntry, AdvAssetManifest, AudioMixerConfig, AudioPronunciationDictionary, AudioVoiceProfiles, CharacterVoiceProfile, RuntimeProgram, VoiceLedger } from '@advjs/types'
+import type { AdvAssetEntry, AdvAssetManifest, AdvMusicMetadata, AudioMixerConfig, AudioPronunciationDictionary, AudioVoiceProfiles, CharacterVoiceProfile, RuntimeProgram, VoiceLedger } from '@advjs/types'
 import type { AudioProjectFileChange, AudioProjectFilePort, AudioProjectMedia } from './project-files'
 import { audioFingerprint, canonicalAudioJson } from './fingerprint'
 import { assertAudioId } from './ids'
+import { inspectMusicReview, parseMusicMetadata } from './music'
 import { audioProjectMediaPath } from './project-media'
 import { activeAudioPronunciationDictionary, AUDIO_PRONUNCIATION_PATH, createAudioPronunciationDictionary, parseAudioPronunciationDictionary } from './pronunciation'
 import { parseAudioMixerConfig } from './schema'
@@ -33,6 +34,7 @@ export interface AudioAssetMetadataPatch {
   duration?: number | null
   loop?: boolean | null
   bundle?: string | null
+  music?: AdvMusicMetadata | null
 }
 
 export interface AudioAssetReference {
@@ -69,7 +71,7 @@ export interface AudioAssetImportInput extends AudioAssetRegisterInput {
 }
 
 const MASTER_FIELDS = ['path', 'objectKey', 'url', 'sha256', 'bytes', 'mimeType', 'variants'] as const
-const PATCH_FIELDS = ['title', 'alt', 'labels', 'license', 'kind', 'duration', 'loop', 'bundle'] as const
+const PATCH_FIELDS = ['title', 'alt', 'labels', 'license', 'kind', 'duration', 'loop', 'bundle', 'music'] as const
 const ASSET_FIELDS = ['id', 'type', 'kind', ...MASTER_FIELDS, ...PATCH_FIELDS, 'chapterId', 'characterId', 'sceneId', 'state', 'source'] as const
 
 function clean<T>(value: T): T {
@@ -103,7 +105,10 @@ function validPatch(patch: AudioAssetMetadataPatch) {
         throw new Error('AUDIO_ASSET_METADATA_INVALID: Resource kind cannot be cleared')
       continue
     }
-    if (key === 'kind') {
+    if (key === 'music') {
+      parseMusicMetadata(value)
+    }
+    else if (key === 'kind') {
       if (!audioAssetKinds.includes(value as AudioAssetKind))
         throw new Error('AUDIO_ASSET_KIND_INVALID: Audio resources use one of the six native kinds')
     }
@@ -140,6 +145,14 @@ function validateNewAsset(asset: AdvAssetEntry, catalog: AdvAssetManifest) {
     throw new Error('AUDIO_MASTER_INVALID: Native audio requires its path, SHA-256, byte length and MIME type')
   audioProjectMediaPath(catalog, asset)
   validPatch(Object.fromEntries(PATCH_FIELDS.filter(key => key in asset).map(key => [key, asset[key]])))
+  if (asset.music) {
+    if (asset.kind !== 'bgm')
+      throw new Error('MUSIC_ASSET_KIND_INVALID: Music author metadata belongs only to BGM')
+    if (asset.music.review.status !== 'pending')
+      throw new Error('MUSIC_REVIEW_REQUIRED: New music imports begin pending explicit review')
+    if (asset.license && asset.music.rights && asset.license !== asset.music.rights.license)
+      throw new Error('MUSIC_LICENSE_MISMATCH: Music license must match the native asset license')
+  }
   if (asset.bundle && !catalog.bundles?.some(bundle => bundle.id === asset.bundle))
     throw new Error('AUDIO_ASSET_BUNDLE_INVALID: Unknown catalog bundle')
   canonicalAudioJson(asset)
@@ -346,6 +359,8 @@ export function createProjectAudioResourceService(port: AudioProjectFilePort) {
       const patch = clean(input.patch)
       if (!audioAssetKinds.includes(asset.kind as AudioAssetKind) && !patch.kind)
         throw new Error('AUDIO_LEGACY_CLASSIFICATION_REQUIRED: Explicitly choose a native audio kind before editing legacy metadata')
+      if (asset.music && patch.kind && patch.kind !== asset.kind)
+        throw new Error('MUSIC_ASSET_KIND_INVALID: Retain the music classification and review history of a musical resource')
       if (patch.kind && patch.kind !== asset.kind && references(document, asset.id).blockingReferences.length)
         throw new Error('AUDIO_ASSET_KIND_REFERENCED: Referenced resource kinds cannot change')
       if (patch.bundle && !document.snapshot.catalog.bundles?.some(bundle => bundle.id === patch.bundle))
@@ -357,7 +372,48 @@ export function createProjectAudioResourceService(port: AudioProjectFilePort) {
         else
           Object.assign(next, { [key]: value })
       }
+      if (asset.music && !next.music)
+        throw new Error('MUSIC_METADATA_REQUIRED: Retain music provenance when editing a musical resource')
+      if (next.music) {
+        if (next.kind !== 'bgm')
+          throw new Error('MUSIC_ASSET_KIND_INVALID: Music author metadata belongs only to BGM')
+        const music = parseMusicMetadata(next.music)
+        if (next.license && music.rights && next.license !== music.rights.license)
+          throw new Error('MUSIC_LICENSE_MISMATCH: Music license must match the native asset license')
+        const authored = (value: AdvMusicMetadata) => {
+          const { review: _review, ...content } = value
+          return canonicalAudioJson(content)
+        }
+        const contentChanged = !asset.music || authored(parseMusicMetadata(asset.music)) !== authored(music) || next.license !== asset.license
+        // Only the dedicated review action can approve an imported master.
+        // Titles and labels preserve approval; changed intent/source/rights do not.
+        next.music = { ...music, review: contentChanged ? { status: 'pending' } : { ...asset.music!.review } }
+      }
       return await commit(document, catalogChanges(document.files, next, 'update'))
+    },
+    async reviewMusicAsset(input: { expectedRevision: string, assetId: string, expectedSha256: string, status: 'approved' | 'rejected' }) {
+      const document = await checked(input.expectedRevision)
+      const original = audioAsset(document.snapshot.catalog, input.assetId)
+      if (original.kind !== 'bgm' || !original.music)
+        throw new Error('MUSIC_METADATA_REQUIRED: Explicitly record musical intent and provenance before reviewing')
+      if (!['approved', 'rejected'].includes(input.status))
+        throw new Error('MUSIC_REVIEW_INVALID: Review must explicitly approve or reject')
+      if (!/^[a-f0-9]{64}$/u.test(input.expectedSha256) || original.sha256 !== input.expectedSha256)
+        throw new Error('MUSIC_AUDIO_CHANGED: Reload the immutable music master before reviewing')
+      const music = parseMusicMetadata(original.music)
+      if (input.status === 'approved' && !music.rights)
+        throw new Error('MUSIC_LICENSE_REQUIRED: Review the imported file license before approval')
+      const asset: AdvAssetEntry = {
+        ...original,
+        music: parseMusicMetadata({ ...music, review: { status: input.status, sha256: original.sha256, reviewedAt: new Date().toISOString() } }),
+      }
+      if (input.status === 'approved' && !inspectMusicReview(asset).canBind)
+        throw new Error('MUSIC_REVIEW_INVALID: Rejected or inconsistent music cannot be approved')
+      const path = audioProjectMediaPath(document.snapshot.catalog, asset)
+      await verify(asset, document.snapshot.catalog, path)
+      // Host commits recheck bytes atomically with the catalog CAS; a file
+      // replacement during review cannot become approved from a stale read.
+      return await commit(document, catalogChanges(document.files, asset, 'update'), [{ candidate: { path, sha256: asset.sha256!, bytes: asset.bytes! }, asset, operation: 'verify' }])
     },
     async preflightRemoveAsset(assetId: string): Promise<AudioAssetRemovalPreflight> {
       return references(await current(), assetId)

@@ -20,7 +20,7 @@ async function readOptional(root: string, path: string) {
 }
 
 /** Read the same canonical documents consumed by Editor and Studio previews. */
-export async function loadProjectAudioConfig(root: string): Promise<AdvGameAudioConfig | undefined> {
+export async function loadProjectAudioConfig(root: string, runtimeAssetIds?: ReadonlySet<string>): Promise<AdvGameAudioConfig | undefined> {
   const manifestPath = resolve(root, 'adv/assets.json')
   const source = await readOptional(root, manifestPath)
   const mixer = await readOptional(root, resolve(root, 'adv/audio/mixer.json'))
@@ -74,7 +74,7 @@ export async function loadProjectAudioConfig(root: string): Promise<AdvGameAudio
         return `/${path}`
       },
     } })
-    for (const asset of manifest.assets.filter(asset => isRuntimeAudioAsset(asset, selectedVoiceIds))) {
+    for (const asset of manifest.assets.filter(asset => isRuntimeAudioAsset(asset, selectedVoiceIds) && (!runtimeAssetIds || runtimeAssetIds.has(asset.id)))) {
       audio.assets[asset.id] = await resolveRuntimeAudioAsset(asset, async variant => (await catalog.resolve(asset.id, { variant })).src)
     }
   }

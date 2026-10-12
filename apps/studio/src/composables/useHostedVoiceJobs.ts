@@ -3,7 +3,7 @@ import type { VoiceAuthoringSnapshot } from '@advjs/types'
 import type { Ref } from 'vue'
 import type { HostedVoiceJobsSnapshot, HostedVoiceReviewedPlan } from '../../../../packages/advjs/shared/hosted-audio'
 import type { ManagedVoiceClient } from '../utils/managedVoiceClient'
-import type { StudioVoiceJobContext } from '../utils/voiceGeneration'
+import type { StudioVoiceJobContext, StudioVoiceJobSelection } from '../utils/voiceGeneration'
 import { voiceGenerationInputFingerprint } from '@advjs/audio'
 import { computed, onScopeDispose, shallowRef, watch } from 'vue'
 import { importHostedVoiceReceipt } from '../utils/managedVoiceImport'
@@ -28,6 +28,7 @@ export function useHostedVoiceJobs(active: Ref<boolean>, client: Ref<ManagedVoic
   const running = computed(() => service.value?.jobs.filter(job => !job.cancelled && job.tasks.some(task => task.status === 'running')).map(job => job.id) ?? [])
   const locales = computed(() => context.value && snapshot.value ? studioVoiceJobLocales(context.value, snapshot.value) : [])
   let epoch = 0
+  let reviewSequence = 0
   let timer: ReturnType<typeof setTimeout> | undefined
   let abort = new AbortController()
   let reviewed: HostedVoiceReviewedPlan | undefined
@@ -39,6 +40,7 @@ export function useHostedVoiceJobs(active: Ref<boolean>, client: Ref<ManagedVoic
     return /^[A-Z][A-Z0-9_]{0,79}$/u.test(code) ? code : 'AUDIO_SERVICE_REQUEST_FAILED'
   }
   function invalidatePlan() {
+    reviewSequence++
     reviewed = undefined
     reviewedPrivateId = undefined
     plan.value = undefined
@@ -174,15 +176,19 @@ export function useHostedVoiceJobs(active: Ref<boolean>, client: Ref<ManagedVoic
     }
     return next
   }
-  async function review(options: { chapterId: string, locale: string, providerId: string, mode: 'chapter' | 'missing' | 'stale', budget: VoiceGenerationBudget }) {
+  async function review(options: StudioVoiceJobSelection & { budget: VoiceGenerationBudget }) {
     invalidatePlan()
+    const sequence = reviewSequence
     await perform(async (host, signal) => {
+      const validReview = () => !signal.aborted && sequence === reviewSequence
       const fs = project.getFs()
       if (!fs)
         throw new Error('ADV_AUDIO_PROJECT_REQUIRED')
       const next = await host.syncNativeProject(fs, signal)
+      if (!validReview())
+        return
       const lines = await reviewStudioVoiceJobLines(next.context, next.snapshot, { ...options, prepareInput: input => host.prepare(input, next.snapshot, signal) })
-      if (signal.aborted)
+      if (!validReview())
         return
       context.value = next.context
       snapshot.value = next.snapshot
@@ -194,6 +200,8 @@ export function useHostedVoiceJobs(active: Ref<boolean>, client: Ref<ManagedVoic
       if (lines.lines.length > 200)
         throw new Error('AUDIO_SERVICE_PLAN_LIMIT')
       const proposed = await host.plan({ lineIds: lines.lines.map(line => line.lineId), locale: options.locale, providerId: options.providerId, budget: options.budget }, signal)
+      if (!validReview())
+        return
       if (proposed.plan.tasks.length !== lines.lines.length)
         throw new Error('AUDIO_JOB_INPUT_CHANGED')
       for (const input of lines.lines) {
@@ -201,7 +209,7 @@ export function useHostedVoiceJobs(active: Ref<boolean>, client: Ref<ManagedVoic
         if (!task || task.inputFingerprint !== await voiceGenerationInputFingerprint(input))
           throw new Error('AUDIO_JOB_INPUT_CHANGED')
       }
-      if (!signal.aborted) {
+      if (validReview()) {
         reviewed = proposed
         plan.value = proposed.plan
       }
@@ -227,6 +235,7 @@ export function useHostedVoiceJobs(active: Ref<boolean>, client: Ref<ManagedVoic
   }
   async function reconcile(job: VoiceGenerationJob) {
     invalidatePlan()
+    const sequence = reviewSequence
     await perform(async (host, signal) => {
       if (!privateIds.value.includes(job.id) || job.cancelled || job.tasks.some(task => ['running', 'unknown', 'generated'].includes(task.status)))
         throw new Error('AUDIO_JOB_QUERY_REQUIRED')
@@ -237,6 +246,8 @@ export function useHostedVoiceJobs(active: Ref<boolean>, client: Ref<ManagedVoic
       const next = await host.plan({ lineIds: tasks.map(task => task.lineId), locale: tasks[0]!.locale, providerId: tasks[0]!.providerId, budget: job.budget }, signal)
       if (next.plan.tasks.length !== tasks.length || next.plan.tasks.some(task => !tasks.some(prior => prior.lineId === task.lineId && prior.inputFingerprint === task.inputFingerprint)))
         throw new Error('AUDIO_JOB_INPUT_CHANGED')
+      if (signal.aborted || sequence !== reviewSequence)
+        return
       reviewed = next
       reviewedPrivateId = job.id
       plan.value = next.plan

@@ -5,11 +5,11 @@ import { useProjectContent } from './useProjectContent'
 /** TTS is injected by the trusted host; secrets never enter project documents. */
 export function useAudioAuthoring(synthesize?: VoiceAuthoringAdapter['synthesize']) {
   const project = useProjectContent()
-  function service() {
+  function service(validateAccess?: () => void) {
     const fs = project.getFs()
     if (!fs)
       throw new Error('ADV_AUDIO_PROJECT_REQUIRED')
-    return createStudioAudioService(fs, synthesize)
+    return createStudioAudioService(fs, synthesize, { validateAccess })
   }
   return {
     forProject: service,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AdvAssetEntry, VoiceAuthoringSnapshot } from '@advjs/types'
+import type { AdvAssetEntry, AdvMusicMetadata, VoiceAuthoringSnapshot } from '@advjs/types'
 import type { StudioAudioMetadata } from './AudioAssetForm.vue'
 import { computed, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -8,28 +8,54 @@ import SButton from '../ui/SButton.vue'
 import SInput from '../ui/SInput.vue'
 import SSelect from '../ui/SSelect.vue'
 import AudioAssetForm from './AudioAssetForm.vue'
+import AudioMusicBrief from './AudioMusicBrief.vue'
+import AudioMusicReview from './AudioMusicReview.vue'
 
-const props = defineProps<{ snapshot: VoiceAuthoringSnapshot, busy: boolean }>()
+const props = withDefaults(defineProps<{ snapshot: VoiceAuthoringSnapshot, busy: boolean, active?: boolean, scopeKey?: string, revision?: string, auditionedMusic?: Record<string, string> }>(), { active: true, scopeKey: '', revision: '', auditionedMusic: () => ({}) })
 const emit = defineEmits<{
-  preview: [assetId: string]
-  import: [data: StudioAudioMetadata, file: File]
-  update: [assetId: string, data: StudioAudioMetadata]
+  preview: [assetId: string, sha256?: string]
+  import: [data: StudioAudioMetadata, file: File, expectedRevision: string, saved: () => void]
+  update: [assetId: string, data: StudioAudioMetadata, expectedRevision: string, saved: () => void]
+  reviewMusic: [assetId: string, sha256: string, status: 'approved' | 'rejected']
+  bindMusic: [assetId: string]
   remove: [assetId: string]
 }>()
 const { t } = useI18n()
 const query = shallowRef('')
 const kind = shallowRef('all')
 const importing = shallowRef(false)
+const importMusic = shallowRef<AdvMusicMetadata>()
+const draftRevision = shallowRef(props.revision)
 const editing = shallowRef<AdvAssetEntry>()
 const options = computed(() => [{ value: 'all', label: t('audioWorkspace.allKinds') }, ...studioAudioKinds.map(value => ({ value, label: t(`audioWorkspace.kind.${value}`) }))])
 const assets = computed(() => filterStudioAudioAssets(props.snapshot.catalog.assets, kind.value, query.value))
 const protectedIds = computed(() => new Set(props.snapshot.catalog.assets.filter(asset => isLedgerAudioAsset(props.snapshot, asset.id)).map(asset => asset.id)))
 
+function openImport(music?: AdvMusicMetadata) {
+  draftRevision.value = props.revision
+  importMusic.value = music
+  importing.value = true
+  editing.value = undefined
+}
+function editAsset(asset: AdvAssetEntry) {
+  draftRevision.value = props.revision
+  editing.value = asset
+  importing.value = false
+}
 function save(data: StudioAudioMetadata, file?: File) {
-  if (editing.value)
-    emit('update', editing.value.id, data)
+  const draftAsset = editing.value
+  const capturedRevision = draftRevision.value
+  const saved = () => {
+    if (draftRevision.value === capturedRevision && editing.value === draftAsset) {
+      editing.value = undefined
+      importing.value = false
+      importMusic.value = undefined
+    }
+  }
+  if (draftAsset)
+    emit('update', draftAsset.id, data, capturedRevision, saved)
   else if (file)
-    emit('import', data, file)
+    emit('import', data, file, capturedRevision, saved)
 }
 </script>
 
@@ -39,16 +65,17 @@ function save(data: StudioAudioMetadata, file?: File) {
       <h2 id="audio-library-title" class="audio-library__title">
         {{ t('audioWorkspace.library') }}
       </h2>
-      <SButton size="lg" :disabled="busy" @click="importing = true; editing = undefined">
+      <SButton size="lg" :disabled="busy" @click="openImport()">
         {{ t('audioWorkspace.importAsset') }}
       </SButton>
     </div>
     <p class="audio-library__hint">
       {{ t('audioWorkspace.catalogHint') }}
     </p>
+    <AudioMusicBrief :key="scopeKey" :active="active" :busy="busy" @import="openImport" />
     <div v-if="importing || editing" class="audio-library__editor">
       <h3>{{ t(editing ? 'audioWorkspace.editMetadata' : 'audioWorkspace.importAsset') }}</h3>
-      <AudioAssetForm :asset="editing" :busy="busy" :immutable="editing && protectedIds.has(editing.id)" @save="save" @cancel="importing = false; editing = undefined" />
+      <AudioAssetForm :key="editing?.id ?? JSON.stringify(importMusic)" :asset="editing" :initial-music="importMusic" :busy="busy" :immutable="editing && protectedIds.has(editing.id)" @save="save" @cancel="importing = false; editing = undefined" />
     </div>
     <div class="audio-library__filters">
       <SInput v-model="query" size="lg" :placeholder="t('audioWorkspace.searchAssets')" :aria-label="t('audioWorkspace.searchAssets')" />
@@ -57,7 +84,7 @@ function save(data: StudioAudioMetadata, file?: File) {
     <p v-if="!assets.length" class="audio-library__empty">
       {{ t('audioWorkspace.noAssets') }}
     </p>
-    <article v-for="asset in assets" :key="asset.id" class="audio-library__asset">
+    <article v-for="asset in assets" :key="asset.id" class="audio-library__asset" :data-asset-id="asset.id">
       <div class="audio-library__asset-heading">
         <h3>{{ asset.title || asset.id }}</h3>
         <span class="audio-library__kind">{{ studioAudioKinds.includes(asset.kind as any) ? t(`audioWorkspace.kind.${asset.kind}`) : asset.kind }}</span>
@@ -78,11 +105,12 @@ function save(data: StudioAudioMetadata, file?: File) {
       <p v-if="protectedIds.has(asset.id)" class="audio-library__hint">
         {{ t('audioWorkspace.immutableTake') }}
       </p>
+      <AudioMusicReview v-if="asset.kind === 'bgm'" :asset="asset" :active="active" :busy="busy" :auditioned="auditionedMusic[asset.id] === JSON.stringify([asset.sha256, asset.license, asset.music])" @review="emit('reviewMusic', asset.id, asset.sha256!, $event)" @bind="emit('bindMusic', asset.id)" />
       <div class="audio-library__actions">
-        <SButton size="lg" variant="secondary" :disabled="busy" @click="emit('preview', asset.id)">
+        <SButton size="lg" variant="secondary" :disabled="busy" @click="emit('preview', asset.id, asset.kind === 'bgm' ? asset.sha256 : undefined)">
           {{ t('audioWorkspace.preview') }}
         </SButton>
-        <SButton size="lg" variant="outline" :disabled="busy" @click="editing = asset; importing = false">
+        <SButton size="lg" variant="outline" :disabled="busy" @click="editAsset(asset)">
           {{ t('audioWorkspace.editMetadata') }}
         </SButton>
         <SButton size="lg" variant="ghost" :disabled="busy || protectedIds.has(asset.id)" @click="emit('remove', asset.id)">

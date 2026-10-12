@@ -2,11 +2,13 @@ import type { AdvVoiceCandidate, VoiceAuthoringAdapter } from '@advjs/types'
 import type { ProjectFileChange, ProjectWorkspace } from '../../../editor/core/app/workspaces/project'
 import { Blob as NodeBlob, File as NodeFile } from 'node:buffer'
 import { createHash, webcrypto } from 'node:crypto'
+import { audioFingerprint, createMusicMetadata } from '@advjs/audio'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { markRaw, reactive } from 'vue'
 import AEAudioMixerPanel from '../../../editor/core/app/components/panel/audio/AEAudioMixerPanel.vue'
+import AEAudioOperationEditor from '../../../editor/core/app/components/panel/audio/AEAudioOperationEditor.vue'
 import AEProjectAudioPanel from '../../../editor/core/app/components/panel/audio/AEProjectAudioPanel.vue'
 import AEVoiceLedgerPanel from '../../../editor/core/app/components/panel/audio/AEVoiceLedgerPanel.vue'
 import { useAudioStore } from '../../../editor/core/app/stores/useAudioStore'
@@ -130,6 +132,167 @@ function savedLedger() {
 }
 
 describe('editor native audio workspace', () => {
+  it('keeps verified audition bytes during equivalent refreshes, but releases them when the registered media identity changes', async () => {
+    const wrapper = mount(AEProjectAudioPanel, { global })
+    mounted.push(wrapper)
+    const row = wrapper.get('[data-asset-id="audio-bgm"]')
+    await row.get('[data-testid="asset-preview"]').trigger('click')
+    await vi.waitFor(() => expect(row.find('audio').exists()).toBe(true))
+    const revoked = vi.mocked(URL.revokeObjectURL).mock.calls.length
+    testState.project.resourceRevision++
+    await flushPromises()
+    expect(row.find('audio').exists()).toBe(true)
+    expect(URL.revokeObjectURL).toHaveBeenCalledTimes(revoked)
+    const asset = useProjectAssets().audio.find(asset => asset.id === 'audio-bgm')!
+    await useProjectAssets().upsert({ ...asset, title: 'A display-only rename' }, testState.project.project.files, asset)
+    await flushPromises()
+    expect(row.find('audio').exists()).toBe(true)
+    const path = 'adv/assets.json'
+    const original = testState.project.project.files[path]!
+    const catalog = JSON.parse(original)
+    catalog.assets.find((item: { id: string }) => item.id === 'audio-bgm').sha256 = 'a'.repeat(64)
+    await write([{ path, expected: original, content: JSON.stringify(catalog) }])
+    await flushPromises()
+    expect(row.find('audio').exists()).toBe(false)
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:editor-audio')
+  })
+
+  it('refuses to write imported bytes if the project changes during file hashing', async () => {
+    let finish!: (value: ArrayBuffer) => void
+    const originalSource = testState.project.workspace
+    const importAsset = vi.spyOn(originalSource, 'importAsset')
+    const file = { name: 'deferred.wav', type: 'audio/wav', size: mediaBytes.length, arrayBuffer: () => new Promise<ArrayBuffer>(resolve => finish = resolve) } as unknown as File
+    const importing = useProjectAssets().importFile(file, 'bgm')
+    const rejected = expect(importing).rejects.toThrow('ADV_AUDIO_PROJECT_CHANGED')
+    await vi.waitFor(() => expect(finish).toBeTypeOf('function'))
+    testState.project.workspace = markRaw({ ...originalSource })
+    testState.project.project.compilation.project.assets!.profiles.local!.root = 'other-project-assets'
+    finish(Uint8Array.from(mediaBytes).buffer)
+    await rejected
+    expect(importAsset).not.toHaveBeenCalled()
+    expect(write).not.toHaveBeenCalled()
+  })
+
+  it('remounts identical asset ids on project changes so an old metadata draft cannot be saved into a clone', async () => {
+    const wrapper = mount(AEProjectAudioPanel, { global })
+    mounted.push(wrapper)
+    const row = () => wrapper.get('[data-asset-id="audio-bgm"]')
+    await row().get('input[id$="-title"]').setValue('Unsaved old project title')
+    expect(row().findAll('button').find(button => button.text() === '保存属性')!.attributes('disabled')).toBeUndefined()
+    testState.project.workspace = markRaw({ ...testState.project.workspace })
+    await flushPromises()
+    expect(row().get('input[id$="-title"]').element).toHaveProperty('value', 'bgm')
+    expect(row().findAll('button').find(button => button.text() === '保存属性')!.attributes('disabled')).toBeDefined()
+    expect(write).not.toHaveBeenCalled()
+  })
+
+  it('imports musical intent as pending, verifies master bytes before approval, and invalidates approval when permission changes', async () => {
+    const music = createMusicMetadata({ usage: 'opening', source: { type: 'external-ai', tool: 'Suno', url: 'https://suno.com/create' }, brief: { summary: 'Original acceptance music handoff', instrumental: true }, rights: { license: 'original-test-license', credit: 'fixture author' } })
+    const assets = useProjectAssets()
+    const imported = await assets.importFile(new NodeFile([mediaBytes], 'opening.wav', { type: 'audio/wav' }) as unknown as File, 'bgm', undefined, music)
+    const current = () => testState.project.project.compilation.project.assets!.assets.find(asset => asset.id === imported.asset.id)!
+    expect(current()).toMatchObject({ kind: 'bgm', sha256: digest, loop: false, music: { usage: 'opening', review: { status: 'pending' } } })
+    expect(savedLedger().lines[lineId].locales['zh-CN'].selectedTake).toBe(takeIds[0])
+    const path = `public/media/${imported.asset.path}`
+    blobs.set(path, new NodeBlob(['tampered'], { type: 'audio/wav' }) as unknown as Blob)
+    await expect(assets.reviewMusic(current(), 'approved')).rejects.toThrow()
+    expect(current().music?.review.status).toBe('pending')
+    blobs.set(path, new NodeBlob([mediaBytes], { type: 'audio/wav' }) as unknown as Blob)
+    await assets.reviewMusic(current(), 'approved')
+    expect(current().music?.review).toMatchObject({ status: 'approved', sha256: digest })
+    const approved = current()
+    await assets.upsert({ ...approved, title: 'Renamed approved music' }, testState.project.project.files, approved)
+    expect(current().music?.review.status).toBe('approved')
+    const changed = current()
+    await assets.upsert({ ...changed, license: 'changed-license', music: { ...changed.music!, rights: { license: 'changed-license' } } }, testState.project.project.files, changed)
+    expect(current().music?.review).toEqual({ status: 'pending' })
+  })
+
+  it('preserves unsaved musical metadata across external catalog changes and rejects saving it over a newer authoring snapshot', async () => {
+    const assets = useProjectAssets()
+    const legacy = assets.audio.find(asset => asset.kind === 'bgm')!
+    await assets.upsert({ ...legacy, music: createMusicMetadata({ usage: 'background', source: { type: 'manual' }, rights: { license: 'original-test-license' } }) }, testState.project.project.files, legacy)
+    const wrapper = mount(AEProjectAudioPanel, { global })
+    mounted.push(wrapper)
+    const row = wrapper.get('[data-asset-id="audio-bgm"]')
+    const license = row.get('input[id$="-license"]')
+    await license.setValue('unsaved author permission')
+    const original = assets.audio.find(asset => asset.id === 'audio-bgm')!
+    await assets.upsert({ ...original, music: { ...original.music!, rights: { license: 'external permission' } }, license: 'external permission' }, testState.project.project.files, original)
+    await flushPromises()
+    expect(license.element).toHaveProperty('value', 'unsaved author permission')
+    await row.findAll('button').find(button => button.text() === '保存属性')!.trigger('click')
+    await vi.waitFor(() => expect(row.get('[role="alert"]').text()).toContain('AUDIO_CONFLICT'))
+    expect(assets.audio.find(asset => asset.id === 'audio-bgm')?.music?.rights?.license).toBe('external permission')
+    expect(row.get('[data-testid="music-approve"]').attributes('disabled')).toBeDefined()
+  })
+
+  it('offers approved musical assets and compatible legacy BGM in canonical operations, with editable usage defaults', async () => {
+    const assets = useProjectAssets()
+    const music = createMusicMetadata({ usage: 'ending', source: { type: 'manual' }, rights: { license: 'original-test-license' } })
+    const imported = await assets.importFile(new NodeFile([mediaBytes], 'ending.wav', { type: 'audio/wav' }) as unknown as File, 'bgm', undefined, music)
+    const wrapper = mount(AEAudioOperationEditor, { props: { modelValue: [{ type: 'bgm', action: 'set', asset: '', gain: 1 }], catalog: assets.manifest, zh: true }, global })
+    mounted.push(wrapper)
+    const picker = () => wrapper.get('select[aria-label="素材"]')
+    expect(picker().findAll('option').map(option => option.attributes('value'))).toEqual(['audio-bgm'])
+    await assets.reviewMusic(assets.audio.find(asset => asset.id === imported.asset.id)!, 'approved')
+    await wrapper.setProps({ catalog: assets.manifest })
+    await picker().setValue(imported.asset.id)
+    expect(wrapper.emitted('update:modelValue')!.at(-1)![0]).toEqual([{ type: 'bgm', action: 'set', asset: imported.asset.id, gain: 0.7, loop: false, fade: { in: 500, out: 1000 } }])
+    const background = await assets.importFile(new NodeFile([mediaBytes], 'background.wav', { type: 'audio/wav' }) as unknown as File, 'bgm', undefined, createMusicMetadata({ usage: 'background', source: { type: 'manual' }, rights: { license: 'original-test-license' } }))
+    const backgroundAsset = assets.audio.find(asset => asset.id === background.asset.id)!
+    expect(backgroundAsset.loop).toBe(true)
+    await assets.upsert({ ...backgroundAsset, loop: false }, testState.project.project.files, backgroundAsset)
+    await assets.reviewMusic(assets.audio.find(asset => asset.id === background.asset.id)!, 'approved')
+    await wrapper.setProps({ catalog: assets.manifest })
+    await picker().setValue(background.asset.id)
+    expect(wrapper.emitted('update:modelValue')!.at(-1)![0]).toEqual([{ type: 'bgm', action: 'set', asset: background.asset.id, gain: 0.7, loop: false, fade: { in: 500, out: 1000 } }])
+  })
+
+  it('does not attach a new profile revision to an output arriving after the character voice context changes', async () => {
+    const profile = { intent: {}, locales: { 'zh-CN': { providers: { 'fixture-tts': { voiceId: 'system:fixture', model: 'fixture-model', source: 'system' as const } } } } }
+    testState.project.project.compilation.project.characters[0]!.voiceProfile = profile
+    let complete!: (result: any) => void
+    const transport = vi.fn<NonNullable<VoiceAuthoringAdapter['synthesize']>>(() => new Promise(resolve => complete = resolve))
+    useAudioStore().setSynthesisTransport(transport)
+    const wrapper = await openLedger()
+    await wrapper.get('[data-testid="voice-synthesize"]').trigger('click')
+    await vi.waitFor(() => expect(transport).toHaveBeenCalledOnce())
+    testState.project.project.compilation.project.characters[0]!.voiceProfile!.intent.speakingStyle = '声音目标已经更改'
+    complete({ provider: 'fixture-tts', preset: 'fixture', manifestPath: 'manifest.json', manifest: {}, candidates: [{ id: 'old-candidate', characterId: 'hero', text: '你好。', path: 'old.wav', sha256: digest, bytes: mediaBytes.length, mimeType: 'audio/wav', durationSeconds: 1, sampleRate: 24000, provider: 'fixture-tts', model: 'fixture-model', providerVoiceId: 'system:fixture' }] })
+    await flushPromises()
+    expect(wrapper.find('[data-testid="voice-register"]').exists()).toBe(false)
+    expect(wrapper.get('[role="alert"]').text()).toContain('CONTEXT_CHANGED')
+    expect(write).not.toHaveBeenCalled()
+  })
+  it('freezes the canonical narrator profile for candidate metadata while keeping registration and selection explicit', async () => {
+    await setupProject({ empty: true })
+    const narrator = { intent: { speakingStyle: '温暖' }, locales: { 'zh-CN': { providers: { 'fixture-tts': { voiceId: 'system:fixture', model: 'fixture-model', source: 'system' } } } } }
+    const files = testState.project.project.files
+    await write([
+      { path: 'adv.config.json', expected: files['adv.config.json']!, content: JSON.stringify({ id: 'editor-audio', root: 'adv', format: 'flow' }) },
+      { path: 'adv/chapters/intro.adv.md', expected: files['adv/chapters/intro.adv.md']!, content: null },
+      { path: 'adv/chapters/intro.chapter.json', expected: null, content: JSON.stringify({ schemaVersion: 1, id: 'intro', title: '旁白', startNodeId: 'line', nodes: [{ id: 'line', type: 'narration', text: '你好。', lineId }] }) },
+      { path: 'adv/audio/voice-profiles.json', expected: null, content: JSON.stringify({ schemaVersion: 1, revision: 1, narrator }) },
+    ])
+    expect(testState.project.project.compilation.diagnostics.filter(item => item.severity === 'error')).toEqual([])
+    const candidate: AdvVoiceCandidate = { id: 'narrator-candidate', characterId: 'narrator', text: '你好。', path: '.advjs/voice/narrator.wav', sha256: digest, bytes: mediaBytes.length, mimeType: 'audio/wav', durationSeconds: 1, sampleRate: 24000, provider: 'fixture-tts', model: 'fixture-model', providerVoiceId: 'system:fixture' }
+    const transport = vi.fn<NonNullable<VoiceAuthoringAdapter['synthesize']>>(async () => ({ provider: candidate.provider, preset: 'fixture', manifestPath: 'manifest.json', manifest: {}, candidates: [candidate] }))
+    useAudioStore().setSynthesisTransport(transport)
+    const wrapper = await openLedger()
+    write.mockClear()
+    await wrapper.get('[data-testid="voice-synthesize"]').trigger('click')
+    await vi.waitFor(() => expect(wrapper.find('[data-testid="voice-register"]').exists()).toBe(true))
+    expect(transport.mock.calls[0]![0].speakerId).toBe('narrator')
+    expect(wrapper.get('input[id$="-revision"]').element).toHaveProperty('value', await audioFingerprint(narrator))
+    expect(wrapper.get('select[aria-label="审核生成声音来源"]').element).toHaveProperty('value', 'system')
+    expect(write).not.toHaveBeenCalled()
+    blobs.set(candidate.path, new NodeBlob([mediaBytes], { type: 'audio/wav' }) as unknown as Blob)
+    await wrapper.get('[data-testid="voice-register"]').trigger('click')
+    await vi.waitFor(() => expect(savedLedger().lines[lineId]?.locales['zh-CN'].takes.length).toBe(1))
+    expect(savedLedger().lines[lineId].locales['zh-CN'].selectedTake).toBeNull()
+    expect(savedLedger().lines[lineId].locales['zh-CN'].takes[0].voiceProfileRevision).toBe(await audioFingerprint(narrator))
+  })
   it('loads the real ledger without fetching media or generating audio, and reviews every locale independently', async () => {
     const wrapper = await openLedger()
     expect(readAsset).not.toHaveBeenCalled()

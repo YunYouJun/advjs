@@ -1,4 +1,5 @@
 import type { AdvAssetManifest, AdvAst } from '@advjs/types'
+import { inspectMusicReview } from '@advjs/audio'
 import { parseAst } from '@advjs/parser'
 import { validateAudioOperation } from '../runtime/audio-validation'
 import { parseProjectFlowChapter } from './flow'
@@ -65,6 +66,8 @@ export function validateProjectAudioOperations(operations: readonly ProjectAudio
       const asset = catalog.assets.find(asset => asset.id === operation.asset)
       if (!asset || asset.type !== 'audio' || asset.kind !== operation.type || asset.state === 'rejected')
         throw new Error('ADV_AUDIO_OPERATION_ASSET_KIND: Choose a usable native asset matching the operation')
+      if (asset.music && !inspectMusicReview(asset).canBind)
+        throw new Error('ADV_AUDIO_MUSIC_REVIEW_REQUIRED: Review the current music master before binding')
     }
   }
 }

@@ -1,6 +1,6 @@
 # 音频创作与 AI 配音
 
-ADV.JS 使用统一 AudioEngine 播放音乐、环境音、对白、剧情音效与 UI 音效。Editor、Studio 和 CLI 共用音频资源、Mixer 与对白账本协议。本页介绍当前可用的脚本、配音与迁移流程；TTS 插件配置见[作者语音模块](/guide/authoring-voice)。
+ADV.JS 使用统一 AudioEngine 播放音乐、环境音、对白、剧情音效与 UI 音效。Editor、Studio 和 CLI 共用音频资源、Mixer 与对白账本协议。本页介绍当前可用的脚本、配音与迁移流程；TTS 插件配置见[作者语音模块](/guide/authoring-voice)，自创或借助 AI 的音乐方案与文件回流见[音乐创作指南](/guide/authoring-music)。
 
 ::: warning 破坏性音频升级
 

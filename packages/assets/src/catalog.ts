@@ -9,6 +9,7 @@ import type {
   AdvAssetVariant,
   AdvResolvedAsset,
 } from '@advjs/types'
+import { parseAdvMusicMetadata } from './music'
 
 export interface AdvAssetCatalogQuery {
   kind?: string
@@ -95,6 +96,8 @@ function normalizeEntry(value: unknown): AdvAssetEntry {
   if (!isRecord(value) || typeof value.id !== 'string' || !value.id)
     throw fail('every asset must have a non-empty id')
   const kind = typeof value.kind === 'string' && value.kind ? value.kind : 'data'
+  if (value.music !== undefined && (kind !== 'bgm' || (value.type !== undefined && value.type !== 'audio')))
+    throw fail('music author metadata belongs only to audio bgm assets')
   const base = normalizeVariant(value)
   const variants: Record<string, AdvAssetVariant> = {}
   const source = isRecord(value.source) && typeof value.source.type === 'string'
@@ -151,6 +154,7 @@ function normalizeEntry(value: unknown): AdvAssetEntry {
     fps: optionalNumber(value, 'fps'),
     license: optionalString(value, 'license'),
     source,
+    ...(value.music === undefined ? {} : { music: parseAdvMusicMetadata(value.music) }),
   }
 }
 

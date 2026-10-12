@@ -50,6 +50,10 @@ export function useAudioLedger() {
     return [...saved.values()]
   })
   const currentLine = computed(() => lines.value.find(line => line.id === lineId.value))
+  watch([() => audio.workflowSpeakerId, lines], ([speakerId]) => {
+    if (speakerId && currentLine.value?.speakerId !== speakerId)
+      lineId.value = lines.value.find(line => line.speakerId === speakerId)?.id ?? ''
+  }, { immediate: true })
   const binding = computed(() => snapshot.value?.ledger.lines[lineId.value]?.locales[locale.value])
   const take = computed(() => binding.value?.takes.find(item => item.id === takeId.value))
   const takeReview = computed(() => reviewRows.value.find(row => row.lineId === lineId.value && row.locale === locale.value)?.takes.find(item => item.id === takeId.value))
@@ -251,6 +255,10 @@ export function useAudioLedger() {
     controller?.abort()
     controller = new AbortController()
     const current = revision
+    const sourceContext = reviewSourceKey.value
+    const currentProfile = currentLine.value.speakerId === 'narrator' ? snapshot.value?.narratorProfile : project.project?.compilation.project.characters.find(character => character.id === currentLine.value?.speakerId)?.voiceProfile
+    const frozenProfile = currentProfile ? JSON.parse(JSON.stringify(currentProfile)) as typeof currentProfile : undefined
+    const input = { lineId: lineId.value, locale: locale.value, speakerId: currentLine.value.speakerId, displayText: displayText.value, ...(spokenText.value ? { spokenText: spokenText.value } : {}) }
     pending.value = true
     error.value = ''
     synthesis.value = undefined
@@ -258,16 +266,18 @@ export function useAudioLedger() {
     profileRevision.value = ''
     license.value = subject.value = consentRecord.value = ''
     try {
-      const result = await audio.authoring().synthesize({ lineId: lineId.value, locale: locale.value, speakerId: currentLine.value.speakerId, displayText: displayText.value, ...(spokenText.value ? { spokenText: spokenText.value } : {}) }, controller.signal)
+      const frozenRevision = frozenProfile ? await audioFingerprint(frozenProfile) : ''
+      if (current !== revision || sourceContext !== reviewSourceKey.value)
+        return
+      const result = await audio.authoring().synthesize(input, controller.signal)
       if (current !== revision)
         return
+      if (sourceContext !== reviewSourceKey.value)
+        throw new Error('VOICE_GENERATION_CONTEXT_CHANGED: 生成期间台词或声音配置已变化，请重新审核候选。')
       synthesis.value = result
-      const profile = project.project?.compilation.project.characters.find(character => character.id === currentLine.value?.speakerId)?.voiceProfile
-      const implementation = profile?.locales?.[locale.value]?.providers[result.candidates[0]!.provider]
-      if (profile && implementation && implementation.voiceId === result.candidates[0]?.providerVoiceId) {
-        const frozenRevision = await audioFingerprint(profile)
-        if (current !== revision)
-          return
+      const generated = result.candidates[0]
+      const implementation = generated && frozenProfile?.locales?.[input.locale]?.providers[generated.provider]
+      if (frozenProfile && implementation && implementation.voiceId === generated?.providerVoiceId && implementation.model === generated.model) {
         profileRevision.value = frozenRevision
         candidateSource.value = implementation.source
         license.value = implementation.rights?.license ?? ''

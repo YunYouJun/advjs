@@ -128,10 +128,19 @@ export async function resolveStudioVoiceJobInput(context: StudioVoiceJobContext,
   }
 }
 
-export async function reviewStudioVoiceJobLines(context: StudioVoiceJobContext, snapshot: VoiceAuthoringSnapshot, options: { chapterId: string, locale: string, providerId: string, mode: 'chapter' | 'missing' | 'stale', prepareInput?: (input: VoiceGenerationResolvedInput) => Promise<VoiceGenerationResolvedInput> }) {
+export interface StudioVoiceJobSelection {
+  chapterId: string
+  speakerId?: string
+  lineId?: string
+  locale: string
+  providerId: string
+  mode: 'chapter' | 'missing' | 'stale'
+}
+
+export async function reviewStudioVoiceJobLines(context: StudioVoiceJobContext, snapshot: VoiceAuthoringSnapshot, options: StudioVoiceJobSelection & { prepareInput?: (input: VoiceGenerationResolvedInput) => Promise<VoiceGenerationResolvedInput> }) {
   const lines: VoiceGenerationResolvedInput[] = []
   const blocked: Array<{ lineId: string, code: string }> = []
-  for (const line of context.lines.filter(line => !options.chapterId || line.chapterId === options.chapterId)) {
+  for (const line of context.lines.filter(line => (!options.chapterId || line.chapterId === options.chapterId) && (!options.speakerId || line.speakerId === options.speakerId) && (!options.lineId || line.lineId === options.lineId))) {
     try {
       const resolved = await resolveStudioVoiceJobInput(context, snapshot, { ...options, lineId: line.lineId })
       const input = await options.prepareInput?.(resolved) ?? resolved

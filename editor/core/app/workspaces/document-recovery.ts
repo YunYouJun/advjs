@@ -34,7 +34,7 @@ export function readDocumentRecovery(id: string, storage: Pick<Storage, 'getItem
       empty.source = { path: value.source.path, base: value.source.base, content: value.source.content }
     if (value.forms && typeof value.forms === 'object') {
       for (const [key, entry] of Object.entries(value.forms)) {
-        if ((key === 'character:create' || /^character:edit:[\w-]+$/u.test(key)) && valid(entry))
+        if ((key === 'character:create' || key === 'music:import-brief' || /^character:edit:[\w-]+$/u.test(key)) && valid(entry))
           empty.forms[key] = { base: entry.base, content: entry.content }
       }
     }

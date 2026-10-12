@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import type { AdvAssetEntry } from '@advjs/types'
+import type { AdvAssetEntry, AdvMusicMetadata } from '@advjs/types'
 import type { StudioAudioKind } from '../../utils/audioWorkspace'
-import { computed, ref, watch } from 'vue'
+import { musicPlaybackDefaults } from '@advjs/audio'
+import { computed, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { studioAudioKinds } from '../../utils/audioWorkspace'
 import SButton from '../ui/SButton.vue'
 import SFormField from '../ui/SFormField.vue'
 import SInput from '../ui/SInput.vue'
 import SSelect from '../ui/SSelect.vue'
+import AudioMusicFields from './AudioMusicFields.vue'
 
 export interface StudioAudioMetadata {
   title: string
@@ -15,9 +17,10 @@ export interface StudioAudioMetadata {
   labels: string[]
   license: string
   loop: boolean
+  music?: AdvMusicMetadata
 }
 
-const props = defineProps<{ asset?: AdvAssetEntry, busy: boolean, immutable?: boolean }>()
+const props = defineProps<{ asset?: AdvAssetEntry, busy: boolean, immutable?: boolean, initialMusic?: AdvMusicMetadata }>()
 const emit = defineEmits<{
   save: [data: StudioAudioMetadata, file?: File]
   cancel: []
@@ -28,22 +31,42 @@ const kind = ref<string>()
 const labels = ref('')
 const license = ref('')
 const loop = ref(false)
+const loopEdited = ref(false)
 const file = ref<File>()
+const musicFields = useTemplateRef<{ read: () => AdvMusicMetadata }>('musicFields')
+const trackMusic = ref(false)
+const musicError = ref('')
 const options = computed(() => studioAudioKinds.map(value => ({ value, label: t(`audioWorkspace.kind.${value}`) })))
 const purposeSelected = computed(() => studioAudioKinds.includes(kind.value as StudioAudioKind))
-watch(() => props.asset, (asset) => {
+watch([() => props.asset, () => props.initialMusic], ([asset, initialMusic]) => {
   title.value = asset?.title ?? asset?.id ?? ''
-  kind.value = studioAudioKinds.includes(asset?.kind as StudioAudioKind) ? asset!.kind : undefined
+  kind.value = studioAudioKinds.includes(asset?.kind as StudioAudioKind) ? asset!.kind : initialMusic ? 'bgm' : undefined
   labels.value = asset?.labels?.join(', ') ?? ''
-  license.value = asset?.license ?? ''
-  loop.value = asset?.loop ?? false
+  license.value = asset?.license ?? asset?.music?.rights?.license ?? initialMusic?.rights?.license ?? ''
+  trackMusic.value = Boolean(!asset || asset.music || initialMusic)
+  musicError.value = ''
+  loopEdited.value = false
+  loop.value = asset?.loop ?? (kind.value === 'bgm' ? musicPlaybackDefaults(asset?.music?.usage ?? initialMusic?.usage ?? 'background').loop : false)
   file.value = undefined
 }, { immediate: true })
 
+watch(kind, (value) => {
+  if (!props.asset && value === 'bgm' && !loopEdited.value)
+    loop.value = musicPlaybackDefaults(props.initialMusic?.usage ?? 'background').loop
+})
+function musicUsage(value: AdvMusicMetadata['usage']) {
+  if (!props.asset && !loopEdited.value)
+    loop.value = musicPlaybackDefaults(value).loop
+}
 function save() {
   if (!purposeSelected.value)
     return
-  emit('save', { title: title.value.trim(), kind: kind.value as StudioAudioKind, labels: [...new Set(labels.value.split(',').map(label => label.trim()).filter(Boolean))], license: license.value.trim(), loop: loop.value }, file.value)
+  try {
+    const music = kind.value === 'bgm' && trackMusic.value ? musicFields.value?.read() : undefined
+    emit('save', { title: title.value.trim(), kind: kind.value as StudioAudioKind, labels: [...new Set(labels.value.split(',').map(label => label.trim()).filter(Boolean))], license: license.value.trim(), loop: loop.value, ...(music ? { music } : {}) }, file.value)
+    musicError.value = ''
+  }
+  catch { musicError.value = t('musicWorkflow.invalid') }
 }
 </script>
 
@@ -64,7 +87,14 @@ function save() {
     <SFormField :label="t('audioWorkspace.license')">
       <SInput v-model="license" size="lg" :disabled="busy" :aria-label="t('audioWorkspace.license')" />
     </SFormField>
-    <label class="audio-asset-form__check"><input v-model="loop" type="checkbox" :disabled="busy || immutable">{{ t('audioWorkspace.loop') }}</label>
+    <template v-if="kind === 'bgm'">
+      <label v-if="asset && !asset.music" class="audio-asset-form__check"><input v-model="trackMusic" type="checkbox" :disabled="busy">{{ t('musicWorkflow.trackLegacy') }}</label>
+      <AudioMusicFields v-if="trackMusic" ref="musicFields" :music="asset?.music ?? initialMusic" :license="license" :busy="busy" @usage="musicUsage" />
+      <p v-if="musicError" role="alert">
+        {{ musicError }}
+      </p>
+    </template>
+    <label class="audio-asset-form__check"><input v-model="loop" type="checkbox" :disabled="busy || immutable" @change="loopEdited = true">{{ t('audioWorkspace.loop') }}</label>
     <div class="audio-asset-form__actions">
       <SButton type="submit" size="lg" :loading="busy" :disabled="!purposeSelected || (!asset && !file)">
         {{ t(asset ? 'audioWorkspace.saveMetadata' : 'audioWorkspace.importAsset') }}
