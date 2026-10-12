@@ -65,7 +65,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       NPM_CANDIDATE_RUN_ID: ${{ inputs.candidate_run_id }}
-      NPM_CONFIG_USERCONFIG: ${{ runner.temp }}/npm-oidc.npmrc
+      NPM_CONFIG_USERCONFIG: ${{ github.workspace }}/release/npm-oidc.npmrc
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -105,7 +105,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      NPM_VERIFICATION_REPORT_DIR: ${{ runner.temp }}/npm-smoke
+      NPM_VERIFICATION_REPORT_DIR: ${{ github.workspace }}/release/npm-smoke
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -121,7 +121,7 @@ jobs:
         if: always()
         with:
           name: npm-pinned-smoke-${{ github.run_id }}
-          path: ${{ runner.temp }}/npm-smoke/
+          path: ${{ github.workspace }}/release/npm-smoke/
 
   promote:
     needs: pinned-smoke
@@ -134,7 +134,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       NPM_CANDIDATE_RUN_ID: ${{ inputs.candidate_run_id }}
-      NPM_CONFIG_USERCONFIG: ${{ runner.temp }}/npm-oidc.npmrc
+      NPM_CONFIG_USERCONFIG: ${{ github.workspace }}/release/npm-oidc.npmrc
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -156,7 +156,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      NPM_VERIFICATION_REPORT_DIR: ${{ runner.temp }}/npm-smoke
+      NPM_VERIFICATION_REPORT_DIR: ${{ github.workspace }}/release/npm-smoke
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -172,4 +172,4 @@ jobs:
         if: always()
         with:
           name: npm-default-smoke-${{ github.run_id }}
-          path: ${{ runner.temp }}/npm-smoke/
+          path: ${{ github.workspace }}/release/npm-smoke/
