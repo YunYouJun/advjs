@@ -92,6 +92,7 @@ export function setupAdvContext(ctx: {
   const galleryStorage = ctx.galleryStorage === false
     ? undefined
     : ctx.galleryStorage ?? (typeof localStorage === 'undefined' ? undefined : localStorage)
+  let initializationGeneration = 0
   let advContext: AdvContext
   const audio = useAudioStore(ctx.pinia)
   const syncAudioSettings = () => advContext.$audio.replaceUserSettings(JSON.parse(JSON.stringify(audio.settings)))
@@ -149,6 +150,9 @@ export function setupAdvContext(ctx: {
       : undefined,
 
     async init() {
+      const generation = ++initializationGeneration
+      advContext.$auto.stop()
+      await advContext.$audio.reset()
       compileDiagnostics.value = []
       await initGameRuntime(advContext)
       const result = await compileClientRuntimeProgram({
@@ -163,6 +167,9 @@ export function setupAdvContext(ctx: {
         ...validateSpritesheetDeclarations(ctx.gameConfig.value),
         ...await validateSpritesheetImages(ctx.gameConfig.value),
       ]
+      // A page left during loading must not overwrite a newer game session.
+      if (generation !== initializationGeneration)
+        return
       compileDiagnostics.value = structuredClone([...result.diagnostics, ...spritesheetDiagnostics])
       const errors = compileDiagnostics.value.filter(item => item.severity === 'error')
       if (!result.program || errors.length > 0)

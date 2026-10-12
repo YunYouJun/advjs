@@ -36,7 +36,10 @@ const app = useAppStore()
 watch(() => app.menus.settings || app.showGlossary || app.showHistory || app.showSaveMenu || app.showLoadMenu, (paused) => {
   $adv.$auto.paused.value = paused
 }, { immediate: true, flush: 'sync' })
-onBeforeUnmount(() => $adv.$auto.stop())
+onBeforeUnmount(() => {
+  $adv.$auto.stop()
+  void $adv.$audio.reset()
+})
 
 const choiceMotion = useAdvMotionPreference()
 const controlsHeight = shallowRef(0)

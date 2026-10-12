@@ -181,6 +181,15 @@ export function useAdvAudio(options: {
     locale: readonly(locale),
     applyEffects,
     stopVoice,
+    /** End a story session without disposing the unlocked device or user settings. */
+    async reset() {
+      if (disposed)
+        return
+      effectGeneration += 1
+      stopVoice()
+      await engine?.syncState({ bgm: null, ambience: {} }, { reason: 'restore', fadeOutMs: 0 })
+      await engine?.resume()
+    },
     async unlock() {
       const unlocked = await getEngine().unlock()
       if (unlocked && prefetchState)

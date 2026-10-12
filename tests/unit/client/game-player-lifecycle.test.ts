@@ -7,6 +7,7 @@ import { injectionAdvPlayer } from '../../../packages/client/constants'
 const app = reactive({ showUi: true, menus: { settings: false }, showGlossary: false, showHistory: false, showSaveMenu: false, showLoadMenu: false })
 const adv = {
   $auto: { paused: shallowRef(false), stop: vi.fn() },
+  $audio: { reset: vi.fn(async () => {}) },
   config: shallowRef({}),
   themeConfig: shallowRef({}),
   store: { current: undefined, state: { status: 'idle', stage: {} } },
@@ -49,4 +50,5 @@ it('marks embedded descendants, pauses playback in every menu, and stops on unmo
   }
   wrapper.unmount()
   expect(adv.$auto.stop).toHaveBeenCalledOnce()
+  expect(adv.$audio.reset).toHaveBeenCalledOnce()
 })
