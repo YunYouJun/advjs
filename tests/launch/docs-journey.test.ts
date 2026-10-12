@@ -1,12 +1,12 @@
 // @vitest-environment node
 
-import type { Browser, BrowserContext } from 'playwright'
+import type { Browser, BrowserContext } from '@playwright/test'
 import { spawn } from 'node:child_process'
 import { appendFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { delimiter, join, resolve } from 'node:path'
 import process from 'node:process'
-import { chromium } from 'playwright'
+import { chromium } from '@playwright/test'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { verifyDeploymentUrl } from '../../packages/advjs/node/deploy'
 import { createPackageManifest, LAUNCH_VERSION } from '../../scripts/release/package-manifest.mjs'

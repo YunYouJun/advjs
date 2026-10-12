@@ -1364,6 +1364,9 @@ importers:
       '@advjs/theme-default':
         specifier: workspace:*
         version: link:../../themes/theme-default
+      '@playwright/test':
+        specifier: catalog:test
+        version: 1.64.0
       advjs:
         specifier: workspace:*
         version: link:../../packages/advjs
