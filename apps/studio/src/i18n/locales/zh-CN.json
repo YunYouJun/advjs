@@ -1740,7 +1740,8 @@
     },
     "jobs": "配音任务",
     "transportReady": "可信配音服务已连接。请在配音任务中审核范围、预算和报价后执行。",
-    "design": "音色设计"
+    "design": "音色设计",
+    "playPreview": "播放试听"
   },
   "audioJobs": {
     "title": "配音任务",
@@ -2181,5 +2182,73 @@
     "legacyLibrary": "下方保留旧音色库条目，其试听选用不等于对白绑定。请创建并显式应用版本化音色设计后继续。",
     "pendingSpeaker": "仍保留当前未保存草稿。保存后切换到 {speaker}，或显式放弃草稿。",
     "discardAndSwitch": "放弃草稿并切换角色"
+  },
+  "musicWorkflow": {
+    "intentTitle": "音乐创作意图",
+    "busHint": "用途用于创作与整理；所有这些音乐仍通过 BGM 指令和 music 总线播放。",
+    "usage": "音乐用途",
+    "usages": {
+      "background": "背景音乐",
+      "theme": "主题曲",
+      "opening": "片头曲",
+      "ending": "片尾曲",
+      "insert": "插曲"
+    },
+    "source": "创作来源",
+    "sources": {
+      "manual": "自创或人工制作",
+      "external-ai": "借助外部 AI 创作"
+    },
+    "tool": "创作工具（可选）",
+    "sourceUrl": "来源页面（可选）",
+    "sourceUrlHint": "仅公开 HTTPS 页面，无签名参数；不会作为播放地址或自动下载。",
+    "summary": "音乐创作说明",
+    "moreIntent": "更多创作目标与署名",
+    "mood": "情绪目标",
+    "style": "风格目标",
+    "duration": "目标时长（秒）",
+    "tempo": "目标速度（BPM）",
+    "credit": "署名",
+    "permissionNote": "许可说明",
+    "notes": "其他创作备注",
+    "instrumental": "希望纯音乐",
+    "loopIntent": "希望能够循环",
+    "targetHint": "这是交给创作者的目标。实际时长与循环衔接需要试听确认；不能保证外部工具满足目标。",
+    "handoff": "音乐创作方案交接",
+    "handoffHint": "可自行制作，或复制方案到 Suno 等工具中创作。导出本地音频后回到这里导入、试听、审核，再显式绑定章节。这里不会调用音乐生成 API。",
+    "copy": "复制创作文本",
+    "download": "下载方案 JSON",
+    "useBrief": "按此方案导入音乐",
+    "openSuno": "打开 Suno 创作",
+    "copied": "已复制创作文本。",
+    "copyFailed": "无法复制，请下载方案文件。",
+    "invalid": "音乐方案无效，请检查说明、数值与公开来源页面。",
+    "trackLegacy": "为旧音乐添加创作与审核信息",
+    "states": {
+      "legacy": "旧音乐兼容",
+      "pending": "待试听审核",
+      "approved": "已审核可绑定",
+      "rejected": "已拒绝",
+      "invalid": "音乐信息无效"
+    },
+    "provenance": "来源记录",
+    "openSource": "查看创作来源页面",
+    "approveHint": "先试听本地文件，确认内容和许可。批准时重新核验实际字节，记录与这份 SHA 对应的审核。",
+    "confirmReview": "我已试听这份文件，并确认其许可与本次用途",
+    "approve": "审核通过",
+    "reject": "拒绝此音乐",
+    "legacyHint": "旧 BGM 保持兼容；可编辑元数据添加新的创作与审核记录。",
+    "bindChapter": "绑定到章节",
+    "bindTitle": "章节音乐采用",
+    "assetMissing": "当前项目没有这份音乐素材。",
+    "bindHint": "确认后在章节开头设置这份 BGM。后续已有音乐切换仍会生效；循环、增益与淡入淡出可在音频节点中调整。Flow 草稿还需明确保存 JSON。",
+    "reviewRequired": "请回资源库试听审核，批准当前本地文件后再绑定。",
+    "confirmBinding": "我确认采用这份音乐作为所选章节的开头音乐",
+    "applyEntry": "加入章节开头草稿",
+    "mdReview": "准备 Markdown 章节绑定",
+    "mdSave": "确认保存音乐绑定",
+    "mdSaved": "已保存原生章节音乐指令。",
+    "mdPreview": "待保存的章节源码",
+    "mdHint": "审核下方原生源码后明确保存；已有文字和对白 lineId 保持，变更会进行并发检查。"
   }
 }

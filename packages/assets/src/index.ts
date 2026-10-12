@@ -1,4 +1,5 @@
 export * from './authoring'
 export * from './catalog'
 export * from './download'
+export * from './music'
 export * from './workflow'

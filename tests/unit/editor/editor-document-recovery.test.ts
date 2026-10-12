@@ -30,6 +30,24 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 describe('noncredential document recovery', () => {
+  it('recovers a musical handoff only in its original private project scope and never writes it into author files', async () => {
+    const drafts = useProjectDrafts()
+    await drafts.activate(project.workspace, 'music-a')
+    const content = JSON.stringify({ schemaVersion: 1, usage: 'background', source: { type: 'manual' }, brief: { summary: 'Private original music handoff' }, review: { status: 'pending' } })
+    drafts.saveFormDraft('music:import-brief', { base: null, content })
+    expect(readDocumentRecovery('music-a', localStorage).forms['music:import-brief']?.content).toBe(content)
+    project.workspace = {}
+    await drafts.activate(project.workspace, 'music-b')
+    expect(drafts.formDraft('music:import-brief')).toBeUndefined()
+    drafts.saveFormDraft('music:import-brief', { base: null, content: 'late old project' }, 'music-a')
+    expect(drafts.formDraft('music:import-brief')).toBeUndefined()
+    project.workspace = {}
+    await drafts.activate(project.workspace, 'music-a')
+    expect(drafts.formDraft('music:import-brief')?.content).toBe(content)
+    expect(project.writeProjectFiles).not.toHaveBeenCalled()
+    expect(Object.keys(localStorage).some(key => /session|token/iu.test(key))).toBe(false)
+  })
+
   it('restores the original base and requires explicit conflict resolution before overwrite', async () => {
     writeDocumentRecovery('a', saved(), localStorage)
     project.getLocalFileHandle.mockResolvedValue(handle('external'))

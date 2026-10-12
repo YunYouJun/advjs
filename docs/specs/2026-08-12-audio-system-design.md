@@ -703,3 +703,33 @@ COS 适配器对完整对象键使用禁止覆盖写入、有界 ETag 固定 GET
 标准构建须显式提供公开 manifest 和其内容 SHA-256，再核对完整 Opus／AAC 变体、原生母版身份与当前已选 take 对象键。编译仍读取原生剧情和账本，并验证母版实际字节；发布音频只替换运行时传输地址。公开时长取可信处理收据中两种编码时长的最大值，避免作者录入时长影响浏览器路由。玩家输出移除参考、未选历史、母版、授权记录及供应商参数，按明确引用收集非音频资源，禁止整体复制作者 `public/`。
 
 操作指南是 [Studio 音频服务](/guide/studio/audio-service)与[序列化 Flow 项目](/guide/flow-projects)，真实验证与部署限制统一记录在[实现报告](/reports/2026-10-11-audio-runtime-implementation)。
+
+## 32. 用户音乐创作与外部 AI 交接
+
+2026-10-12 扩展：音乐首期由用户自创、委托或借助外部 AI 完成，ADV.JS 处理方案交接、真实文件导入、试听采用和剧情播放。任务与验收标准由[独立音乐计划](../plans/2026-10-12-ai-background-music-generation)维护，产品操作见[音乐创作指南](/guide/authoring-music)。
+
+### 32.1 原生音乐资料
+
+`AdvAssetEntry.music` 是 `type: audio`、`kind: bgm` 条目可选的作者资料。`schemaVersion: 1` 定义：
+
+| 字段     | 契约                                                                                   |
+| -------- | -------------------------------------------------------------------------------------- |
+| `usage`  | `background / theme / opening / ending / insert`；作者用途，不新增总线或自动标题页播放 |
+| `source` | `manual / external-ai`、可选工具名和公共 HTTPS 来源页面；页面不参与媒体 transport      |
+| `brief`  | 描述、情绪、风格、目标时长、节奏、器乐、循环意图与说明；创作目标不充当测量结果         |
+| `rights` | 许可、可选署名和使用说明；许可与既有条目 `license` 一致                                |
+| `review` | `pending / approved / rejected`；采用记录必须保存实际母版 SHA、UTC 时间和许可          |
+
+`@advjs/assets` 的单一解析器限定字段、数值、用途和来源页面，Catalog 往返保留资料；`@advjs/audio` 提供同一创作文本交接、可编辑播放默认值及采用资格检查。JSON 与文本导出均是交给用户所选工具的方案，不是执行请求。音乐不写入角色 Profile、Voice Ledger 或 TTS Provider 注册表。
+
+### 32.2 文件与采用事务
+
+导入仍走 `createProjectAudioService()` 的不可变母版验证、Catalog 分片保存与 revision/CAS。新音乐记录从 pending 开始，资料编辑不能伪造采用；`reviewMusicAsset()` 在明确操作时核对预期 SHA、许可和实际媒体字节，并由宿主在提交边界再次验证。用途、方案、来源或许可变更回到 pending，标题、替代文本和标签不撤销已有判断。已建立音乐资料的资源保留 BGM 分类和审核历史，不能通过跨类重分类或删除资料转成 legacy 绕过采用。真正无音乐资料的旧资源仍保留分类兼容。拒绝保留历史和原件，不删除或静默改写剧情绑定。
+
+两端通过共享 `inspectMusicReview()` 控制新版音乐的显式绑定入口；既有无 `music` 资料的 BGM 保持兼容。Flow 和 Markdown 继续使用已有 canonical 音频操作、共享编辑命令及原生写入，不以旧 `audio.md` 说明关联代替运行时绑定。作者选择位置和确认后才写剧情，试听或采用不自动绑定。
+
+### 32.3 播放与导出
+
+所有音乐用途使用既有 BGM/music 总线。循环、gain、淡入淡出、静音、暂停／恢复、历史恢复及对白 ducking 仍遵循原协议；来源页面不会成为媒体加载地址。原生项目保留作者资料，玩家投影用显式 transport 字段白名单剥离 `music`。新版音乐只按当前编译 Program 的 canonical BGM 引用进入普通构建与发布准备；未绑定候选即使原件缺失也不被读取。既有 BGM 库保留兼容行为。
+
+Suno 当前采用官方创作入口、方案导出和官方下载文件回流；已公开的 Credentials 接口是来源检测能力，不作为音乐生成 API。后续自动生成适配器须有可核验的正式能力和可信执行宿主，使用独立音乐任务与预算审核。当前方案不要求 CFS、独立常驻音乐服务或额外云端 TTS。

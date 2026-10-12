@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { StudioVoicePlayback } from '../../composables/useStudioVoiceListening'
 import type { VoiceWorkflowSection } from '../../utils/voiceWorkflow'
-import { createVoiceListeningPlaybackObserver } from '@advjs/audio'
+import type { StudioAudioMetadata } from './AudioAssetForm.vue'
+import { createVoiceListeningPlaybackObserver, inspectMusicReview } from '@advjs/audio'
 import { computed, inject, nextTick, onBeforeUnmount, shallowRef, toRef, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAudioWorkspace } from '../../composables/useAudioWorkspace'
@@ -17,7 +18,7 @@ import AudioVoiceReview from './AudioVoiceReview.vue'
 import VoiceDesignWorkspace from './VoiceDesignWorkspace.vue'
 
 const props = defineProps<{ active: boolean, initialSection?: VoiceWorkflowSection, speakerId?: string, lineId?: string }>()
-const emit = defineEmits<{ play: [] }>()
+const emit = defineEmits<{ play: [], bindMusic: [assetId: string] }>()
 const { t } = useI18n()
 const tab = shallowRef(props.initialSection ?? 'library')
 const workflowSpeaker = shallowRef(props.speakerId ?? '')
@@ -42,11 +43,12 @@ const session = useManagedVoiceSession()
 const transportReady = computed(() => session.configured.value ? Boolean(session.client.value) : Boolean(transport?.prepare))
 const player = useTemplateRef<HTMLAudioElement>('player')
 const voiceReview = useTemplateRef<{ observe: (event: StudioVoicePlayback) => void, invalidate: () => void }>('voiceReview')
+const auditionedMusic = shallowRef<Record<string, string>>({})
 const previewText = shallowRef('')
 const previewLabel = shallowRef('')
 watch(() => props.active, active => !active && player.value?.pause(), { flush: 'sync' })
 onBeforeUnmount(() => player.value?.pause())
-const { snapshot, reviewContext, nativeProjectId, scopeKey, mixer, revision, loading, busy, error, missingCatalog, previewUrl, previewAssetId, reload, preview, stopPreview, importAsset, updateAsset, removeAsset, select, verifyRetained, saveMixer, initialize } = useAudioWorkspace(toRef(props, 'active'))
+const { snapshot, reviewContext, nativeProjectId, scopeKey, mixer, revision, loading, busy, error, missingCatalog, previewUrl, previewAssetId, reload, preview, stopPreview, importAsset, updateAsset, removeAsset, reviewMusic, select, verifyRetained, saveMixer, initialize } = useAudioWorkspace(toRef(props, 'active'))
 const observer = createVoiceListeningPlaybackObserver({
   media: () => player.value,
   source: () => previewUrl.value,
@@ -68,7 +70,10 @@ watch(previewUrl, () => {
   }
 }, { flush: 'sync' })
 watch(tab, stopPreview, { flush: 'sync' })
-watch(scopeKey, () => observer.reset(), { flush: 'sync' })
+watch([scopeKey, () => props.active, tab], () => {
+  observer.reset()
+  auditionedMusic.value = {}
+}, { flush: 'sync' })
 async function previewVoice(assetId: string, sha256: string, text: string, label?: string) {
   await preview(assetId, sha256)
   if (!props.active || previewAssetId.value !== assetId || !previewUrl.value) {
@@ -88,8 +93,48 @@ async function previewVoice(assetId: string, sha256: string, text: string, label
       error.value = t('voiceListening.playRejected')
   }
 }
+function startPreview() {
+  const media = player.value
+  const url = previewUrl.value
+  if (!media || !url || !props.active)
+    return
+  const failed = () => {
+    if (props.active && url === previewUrl.value)
+      error.value = t('voiceListening.playRejected')
+  }
+  try {
+    void media.play().catch(failed)
+  }
+  catch { failed() }
+}
+async function saveImport(data: StudioAudioMetadata, file: File, expectedRevision: string, saved: () => void) {
+  if (await importAsset(data, file, expectedRevision))
+    saved()
+}
+async function saveMetadata(assetId: string, data: StudioAudioMetadata, expectedRevision: string, saved: () => void) {
+  if (await updateAsset(assetId, data, expectedRevision))
+    saved()
+}
+async function bindMusic(assetId: string) {
+  const asset = snapshot.value?.catalog.assets.find(asset => asset.id === assetId)
+  const scope = scopeKey.value
+  if (!asset || !props.active || busy.value || !inspectMusicReview(asset).canBind)
+    return
+  await preview(assetId, asset.sha256)
+  const current = snapshot.value?.catalog.assets.find(asset => asset.id === assetId)
+  if (props.active && scope === scopeKey.value && previewAssetId.value === assetId && previewUrl.value && current && inspectMusicReview(current).canBind && current.sha256 === asset.sha256) {
+    stopPreview()
+    emit('bindMusic', assetId)
+  }
+}
 function observePlayback(event: Event) {
   observer.observe(event)
+  const media = player.value
+  if (event.type !== 'playing' || !event.isTrusted || event.target !== media || !props.active || tab.value !== 'library' || !media || media.paused || media.currentSrc !== previewUrl.value)
+    return
+  const asset = snapshot.value?.catalog.assets.find(asset => asset.id === previewAssetId.value)
+  if (asset?.kind === 'bgm' && asset.sha256)
+    auditionedMusic.value = { ...auditionedMusic.value, [asset.id]: JSON.stringify([asset.sha256, asset.license, asset.music]) }
 }
 </script>
 
@@ -142,6 +187,9 @@ function observePlayback(event: Event) {
         <p v-if="previewText">
           {{ previewText }}
         </p>
+        <SButton size="lg" variant="secondary" :disabled="!active || busy || loading" @click="startPreview">
+          {{ t('audioWorkspace.playPreview') }}
+        </SButton>
         <audio ref="player" :src="previewUrl" controls preload="metadata" @loadedmetadata="observePlayback" @play="observePlayback" @playing="observePlayback" @waiting="observePlayback" @timeupdate="observePlayback" @pause="observePlayback" @seeking="observePlayback" @seeked="observePlayback" @ratechange="observePlayback" @ended="observePlayback" @error="error = t('audioWorkspace.previewFailed')" />
       </section>
       <section class="audio-workspace__panel audio-workspace__transport">
@@ -155,7 +203,7 @@ function observePlayback(event: Event) {
       </section>
       <AudioPublication :active="active" />
       <div v-show="tab === 'library'" class="audio-workspace__panel">
-        <AudioLibrary :key="revision" :snapshot="snapshot" :busy="busy || loading" @preview="preview" @import="importAsset" @update="updateAsset" @remove="removeAsset" />
+        <AudioLibrary :key="scopeKey" :revision="revision" :auditioned-music="auditionedMusic" :snapshot="snapshot" :busy="busy || loading" :active="active && tab === 'library'" :scope-key="scopeKey" @preview="preview" @import="saveImport" @update="saveMetadata" @remove="removeAsset" @review-music="reviewMusic" @bind-music="bindMusic" />
       </div>
       <div v-show="tab === 'review'" class="audio-workspace__panel">
         <AudioVoiceReview ref="voiceReview" :snapshot="snapshot" :context="reviewContext" :busy="busy || loading" :active="active && tab === 'review'" :project-id="nativeProjectId" :scope-key="scopeKey" :active-asset-id="previewAssetId" :speaker-id="workflowSpeaker" :line-id="workflowLine" :verify-retained="verifyRetained" @preview="previewVoice" @stop="stopPreview" @select="select" />

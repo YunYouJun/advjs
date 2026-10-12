@@ -48,7 +48,8 @@ export async function prepareProjectGame(loaded: LoadedProject, options: { publi
     return `./${name}`
   }
   const manifest = loaded.result.project.assets
-  const published = options.publishedAudioCatalog ? createPublishedAudioCatalog(manifest, options.publishedAudioCatalog, game.audio?.voiceLedger) : undefined
+  const runtimeAudioIds = new Set(Object.keys(game.audio?.assets ?? {}))
+  const published = options.publishedAudioCatalog ? createPublishedAudioCatalog(manifest, options.publishedAudioCatalog, game.audio?.voiceLedger, runtimeAudioIds) : undefined
   const catalog = manifest
     ? createAdvAssetCatalog(manifest, { profile: manifest.profiles.local ? 'local' : undefined, adapter: {
         async resolve(request) {
@@ -78,6 +79,10 @@ export async function prepareProjectGame(loaded: LoadedProject, options: { publi
     }
   }
   const library: Record<string, AdvMusic> = typeof game.bgm.library === 'object' ? Object.fromEntries(Object.entries(game.bgm.library).filter((entry): entry is [string, AdvMusic] => !Array.isArray(entry[1]))) : {}
+  for (const id of Object.keys(library)) {
+    if (manifest?.assets.find(asset => asset.id === id)?.music && !runtimeAudioIds.has(id))
+      delete library[id]
+  }
   for (const [id, track] of Object.entries(library)) {
     if (published) {
       if (published.get(id)?.kind !== 'bgm')
@@ -88,7 +93,7 @@ export async function prepareProjectGame(loaded: LoadedProject, options: { publi
       library[id] = { ...track, src: await localSource(track.src) }
   }
   if (catalog) {
-    for (const asset of manifest!.assets.filter(item => item.type === 'audio' && item.kind === 'bgm')) {
+    for (const asset of manifest!.assets.filter(item => item.type === 'audio' && item.kind === 'bgm' && runtimeAudioIds.has(item.id))) {
       const selected = published ?? catalog
       const transport = published ? publishedAudioAsset(published, asset.id) : asset
       library[asset.id] = { name: asset.title ?? asset.id, src: (await resolveRuntimeAudioAsset(transport, async variant => (await selected.resolve(asset.id, { variant })).src)).src, description: asset.alt ?? '' }

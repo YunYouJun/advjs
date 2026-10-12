@@ -17,7 +17,7 @@ ADV.JS 内置通用作者协议、CLI、逐句配音账本与两端音色设计�
 
 重载项目后核对角色的音色版本、对白的选中 take 和语言仍一致，并在预览中实际听到该句。换音色、改台词或词典后先检查过期提示，再重新生成／试听审核；历史音频保留，不能把旧 take 的指纹改成新输入。完整匿名评分只在需要研究或质量复查时打开。
 
-这条流程沿用 [#51 的人物音色基础](https://github.com/YunYouJun/advjs/pull/51)与[配音实施计划](/plans/2026-08-12-audio-system-implementation)。[#18](https://github.com/YunYouJun/advjs/issues/18) 中的背景音乐生成另见[独立任务计划](/plans/2026-10-12-ai-background-music-generation)，不影响对白流程的交付。
+这条流程沿用 [#51 的人物音色基础](https://github.com/YunYouJun/advjs/pull/51)与[配音实施计划](/plans/2026-08-12-audio-system-implementation)。[#18](https://github.com/YunYouJun/advjs/issues/18) 中的音乐需求独立推进：用户自创或借助 AI 创作后的文件导入与使用见[音乐创作指南](/guide/authoring-music)，后续自动生成适配器见[独立任务计划](/plans/2026-10-12-ai-background-music-generation)。
 
 ## 接入与兼容
 

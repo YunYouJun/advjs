@@ -1775,6 +1775,9 @@ importers:
 
   packages/audio:
     dependencies:
+      '@advjs/assets':
+        specifier: workspace:0.1.4
+        version: link:../assets
       '@advjs/types':
         specifier: workspace:0.1.4
         version: link:../types

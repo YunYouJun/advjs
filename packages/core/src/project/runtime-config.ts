@@ -76,6 +76,22 @@ function currentProgramVoiceLedger(compilation: AdvProjectCompileResult, source:
   return projectRuntimeVoiceLedger({ ...ledger, lines: Object.fromEntries(Object.entries(ledger.lines).filter(([lineId]) => currentLines.has(lineId))) })
 }
 
+/** New music candidates enter the player only through authored canonical BGM operations. */
+function currentProgramMusicIds(compilation: AdvProjectCompileResult) {
+  const ids = new Set<string>()
+  for (const chapter of Object.values(compilation.project.program?.chapters ?? {})) {
+    for (const node of Object.values(chapter.nodes)) {
+      if (node.kind !== 'effects' || !Array.isArray(node.data?.operations))
+        continue
+      for (const operation of node.data.operations) {
+        if (isRecord(operation) && operation.type === 'bgm' && operation.action === 'set' && typeof operation.asset === 'string')
+          ids.add(operation.asset)
+      }
+    }
+  }
+  return ids
+}
+
 export function createProjectGameConfig(compilation: AdvProjectCompileResult, files: AdvProjectFileMap): AdvGameConfig {
   const { project } = compilation
   const game = project.game as JsonObject
@@ -85,10 +101,11 @@ export function createProjectGameConfig(compilation: AdvProjectCompileResult, fi
   const variables = isRecord(game.variables) ? game.variables : undefined
   const ledger = files['adv/audio/voice-ledger.json'] ? currentProgramVoiceLedger(compilation, files['adv/audio/voice-ledger.json']) : undefined
   const selectedVoiceIds = runtimeAudioAssetIds(ledger)
+  const musicIds = currentProgramMusicIds(compilation)
 
   return {
     audio: {
-      assets: Object.fromEntries((project.assets?.assets ?? []).filter(asset => isRuntimeAudioAsset(asset, selectedVoiceIds)).map(asset => [asset.id, projectRuntimeAudioAsset(asset)])),
+      assets: Object.fromEntries((project.assets?.assets ?? []).filter(asset => isRuntimeAudioAsset(asset, selectedVoiceIds) && (!asset.music || musicIds.has(asset.id))).map(asset => [asset.id, projectRuntimeAudioAsset(asset)])),
       ...(files['adv/audio/mixer.json'] ? { mixer: parseAudioMixerConfig(JSON.parse(files['adv/audio/mixer.json'])) } : {}),
       ...(ledger ? { voiceLedger: ledger } : {}),
       locale: typeof game.locale === 'string' ? game.locale : 'zh-CN',

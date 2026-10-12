@@ -6,15 +6,17 @@ import { useFlowAuthoring } from '../../composables/useFlowAuthoring'
 import { useProjectContent } from '../../composables/useProjectContent'
 import { useStudioStore } from '../../stores/useStudioStore'
 import { createStudioFlowAuthoringService } from '../../utils/flowAuthoring'
+import { musicFlowEntryCommands } from '../../utils/musicWorkflow'
 import SButton from '../ui/SButton.vue'
 import SSelect from '../ui/SSelect.vue'
 import FlowGraph from './FlowGraph.vue'
+import FlowMusicBinding from './FlowMusicBinding.vue'
 import FlowNodeEditor from './FlowNodeEditor.vue'
 import FlowNodeList from './FlowNodeList.vue'
 import FlowToolbar from './FlowToolbar.vue'
 import './flow.css'
 
-const props = withDefaults(defineProps<{ active: boolean, initialFile?: string }>(), { initialFile: '' })
+const props = withDefaults(defineProps<{ active: boolean, initialFile?: string, musicAssetId?: string }>(), { musicAssetId: '', initialFile: '' })
 const emit = defineEmits<{ play: [path: string] }>()
 const { t } = useI18n()
 const project = useProjectContent()
@@ -37,6 +39,18 @@ watch(validation, (value) => {
   if (value)
     resources.value = value.compilation.project.assets
 })
+function applyMusic(asset: NonNullable<typeof resources.value>['assets'][number]) {
+  if (!document.value || busy.value || !props.active)
+    return
+  try {
+    for (const command of musicFlowEntryCommands(document.value, asset)) {
+      dispatch(command)
+      if (error.value)
+        break
+    }
+  }
+  catch (cause) { creationError.value = cause instanceof Error ? cause.message : 'MUSIC_BINDING_FAILED' }
+}
 async function createChapter() {
   const fs = project.getFs()
   if (!fs || creating.value || !props.active)
@@ -79,6 +93,7 @@ async function createChapter() {
       {{ error || creationError }}
     </p>
     <template v-if="document">
+      <FlowMusicBinding v-if="musicAssetId" :asset="resources?.assets.find(asset => asset.id === musicAssetId)" :active="active" :busy="busy" @apply="applyMusic" />
       <label>{{ t('flowEditor.chapterTitle') }}<input :value="document.title" :disabled="busy" @change="dispatch({ type: 'set-title', title: ($event.target as HTMLInputElement).value })"></label>
       <FlowToolbar :dirty="dirty" :busy="busy" :can-undo="canUndo" :can-redo="canRedo" @undo="undo" @redo="redo" @reload="reload" @validate="validate" @save="save" />
       <div class="flow-actions">

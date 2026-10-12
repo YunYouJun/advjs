@@ -100,6 +100,8 @@ The author-facing sequence is maintained in [the voice guide](../guide/authoring
 
 ## Implemented runtime migration
 
+The separate [music creation workflow](./2026-10-12-ai-background-music-generation) now has local acceptance for user-authored or externally AI-assisted files: shared briefs, import, audition/adoption, canonical chapter binding and ordinary game playback. Theme/opening/ending/insert-song roles reuse BGM and the music bus. Suno is an official creation-link and file-handoff integration; automatic music generation remains deferred. Actual verification is recorded in [the implementation report](../reports/2026-10-11-audio-runtime-implementation#_2026-10-12-音乐创作与文件回流).
+
 The earlier BGM race regression has been absorbed into the shared engine:
 
 - only the logical active track is selected for a new retirement; earlier crossfade retirements keep their original envelope;

@@ -21,6 +21,7 @@ import { addOutline, trashOutline } from 'ionicons/icons'
 import { computed, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
+import MarkdownMusicBinding from '../../components/audio/MarkdownMusicBinding.vue'
 import ChapterCard from '../../components/ChapterCard.vue'
 import ChapterEditorForm from '../../components/ChapterEditorForm.vue'
 import DraftRestoreBanner from '../../components/common/DraftRestoreBanner.vue'
@@ -34,6 +35,7 @@ import { useProjectContent } from '../../composables/useProjectContent'
 import { useRecentActivity } from '../../composables/useRecentActivity'
 import { useStudioStore } from '../../stores/useStudioStore'
 import { stringifyChapterMd } from '../../utils/chapterMd'
+import { musicAssetQuery } from '../../utils/musicWorkflow'
 import { loadStudioSourceFormat } from '../../utils/projectRuntimeFiles'
 import { showToast } from '../../utils/toast'
 
@@ -152,8 +154,9 @@ async function handleDeleteChapter(file: string) {
       <IonRefresherContent />
     </IonRefresher>
 
-    <FlowWorkspace v-if="sourceFormat === 'flow'" :active="active" :initial-file="typeof route.query.file === 'string' ? route.query.file : ''" @play="handlePlayChapter" />
+    <FlowWorkspace v-if="sourceFormat === 'flow'" :active="active" :music-asset-id="musicAssetQuery(route.query.music)" :initial-file="typeof route.query.file === 'string' ? route.query.file : ''" @play="handlePlayChapter" />
     <template v-else>
+      <MarkdownMusicBinding v-if="musicAssetQuery(route.query.music)" :asset-id="musicAssetQuery(route.query.music)" :active="active" />
       <!-- Draft restore banner -->
       <DraftRestoreBanner
         v-if="chapterEditor.hasDraft.value"

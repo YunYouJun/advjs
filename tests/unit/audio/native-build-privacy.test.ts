@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { readFile, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { createMusicMetadata } from '@advjs/audio'
 import { expect, it } from 'vitest'
 import { advBuild } from '../../../packages/advjs/node/commands/build'
 import { prepareProjectGame } from '../../../packages/advjs/node/commands/build/project'
@@ -22,6 +23,7 @@ it('ordinary native builds copy declared resources while excluding unselected sa
     await writeFile(join(fixture.root, 'public/media/PRIVATE-SAMPLE.wav'), fixture.bytes)
     const catalog = JSON.parse(await readFile(join(fixture.root, 'adv/assets.json'), 'utf8'))
     catalog.assets.push({ id: 'audio_019d137e-7abc-7000-8000-000000000015', type: 'audio', kind: 'voice', path: 'PRIVATE-SAMPLE.wav', sha256: fixture.sha256, bytes: fixture.bytes.length, mimeType: 'audio/wav', duration: 1, characterId: 'hero' })
+    catalog.assets.push({ id: 'audio_019d137e-7abc-7000-8000-000000000016', type: 'audio', kind: 'bgm', path: 'PRIVATE-MUSIC-CANDIDATE.wav', sha256: fixture.sha256, bytes: fixture.bytes.length, mimeType: 'audio/wav', music: createMusicMetadata({ usage: 'theme', source: { type: 'manual' }, brief: { summary: 'PRIVATE-MUSIC-BRIEF' } }) })
     await writeFile(join(fixture.root, 'adv/assets.json'), JSON.stringify(catalog))
     const loaded = await loadProject({ root: fixture.root })
     expect(loaded.result.diagnostics.filter(issue => issue.severity === 'error')).toEqual([])
@@ -33,7 +35,7 @@ it('ordinary native builds copy declared resources while excluding unselected sa
     expect(result.assets.some(asset => /\.(?:wav|json)$/u.test(asset.path))).toBe(false)
     const scripts = await Promise.all(result.assets.filter(asset => asset.path.endsWith('.js')).map(asset => readFile(join(result.outDir, asset.path), 'utf8')))
     expect(scripts.join('\n')).toContain('Native public story')
-    for (const privateValue of ['PRIVATE-SAMPLE', 'reference/original', 'reference.wav', 'UNDECLARED-PUBLIC-MARKER', 'authoring/rights/original'])
+    for (const privateValue of ['PRIVATE-SAMPLE', 'PRIVATE-MUSIC-CANDIDATE', 'PRIVATE-MUSIC-BRIEF', 'reference/original', 'reference.wav', 'UNDECLARED-PUBLIC-MARKER', 'authoring/rights/original'])
       expect(scripts.join('\n')).not.toContain(privateValue)
     const html = await readFile(join(result.outDir, 'index.html'), 'utf8')
     expect(html).toContain(`href="${prepared.game.favicon}"`)

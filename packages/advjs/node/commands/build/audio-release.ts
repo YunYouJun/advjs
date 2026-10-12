@@ -103,11 +103,11 @@ export async function loadPublishedAudioManifest(root: string, input: { audioMan
 }
 
 /** Native master and adopted take identities remain authoritative; only transport changes. */
-export function createPublishedAudioCatalog(native: AdvAssetManifest | undefined, published: AdvAssetManifest, ledger?: VoiceLedger) {
+export function createPublishedAudioCatalog(native: AdvAssetManifest | undefined, published: AdvAssetManifest, ledger?: VoiceLedger, runtimeAssetIds?: ReadonlySet<string>) {
   if (!native || native.id !== published.id)
     fail('CATALOG_IDENTITY_CHANGED')
   const selected = runtimeAudioAssetIds(ledger)
-  const required = native.assets.filter(asset => isRuntimeAudioAsset(asset, selected))
+  const required = native.assets.filter(asset => isRuntimeAudioAsset(asset, selected) && (!runtimeAssetIds || runtimeAssetIds.has(asset.id)))
   if (required.length !== published.assets.length)
     fail('ASSET_SET_CHANGED')
   const prefix = published.release?.objectPrefix

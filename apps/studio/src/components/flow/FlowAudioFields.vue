@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { AdvAssetEntry } from '@advjs/types'
+import { inspectMusicReview, musicPlaybackDefaults } from '@advjs/audio'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import SButton from '../ui/SButton.vue'
@@ -14,6 +15,11 @@ function edit(index: number, patch: Record<string, unknown>, remove: string[] = 
   Object.assign(next[index], patch)
   remove.forEach(key => delete next[index][key])
   emit('update', next)
+}
+function selectAsset(index: number, event: Event) {
+  const id = value(event)
+  const asset = props.assets.find(asset => asset.id === id)
+  edit(index, { asset: id, ...(rows.value[index]?.type === 'bgm' && asset ? { ...musicPlaybackDefaults(asset.music?.usage ?? 'background'), ...(asset.loop !== undefined ? { loop: asset.loop } : {}) } : {}) })
 }
 function value(event: Event) {
   return (event.target as HTMLInputElement).value
@@ -33,7 +39,7 @@ function type(index: number, event: Event) {
         <label>{{ t('flowEditor.bus') }}<select :value="row.type" :disabled="busy" @change="type(index, $event)"><option v-for="kind in ['bgm', 'ambience', 'sfx']" :key="kind" :value="kind">{{ t(`flowEditor.audioKinds.${kind}`) }}</option></select></label>
         <label v-if="row.type !== 'sfx'">{{ t('flowEditor.action') }}<select :value="row.action" :disabled="busy" @change="edit(index, { action: value($event) }, value($event) === 'clear' ? ['asset', 'gain', 'loop'] : [])"><option value="set">{{ t('flowEditor.set') }}</option><option value="clear">{{ t('flowEditor.clear') }}</option></select></label>
         <label v-if="row.type === 'ambience'">{{ t('flowEditor.slot') }}<select :value="row.slot" :disabled="busy" @change="edit(index, { slot: value($event) })"><option v-for="slot in ['bed', 'weather', 'crowd', 'detail']" :key="slot" :value="slot">{{ slot }}</option></select></label>
-        <label v-if="row.action !== 'clear'">{{ t('flowEditor.asset') }}<select :value="row.asset" :disabled="busy" @change="edit(index, { asset: value($event) })"><option value="">{{ t('flowEditor.chooseAsset') }}</option><option v-for="asset in assets.filter(asset => asset.type === 'audio' && asset.kind === row.type)" :key="asset.id" :value="asset.id">{{ asset.title ?? asset.id }}</option></select></label>
+        <label v-if="row.action !== 'clear'">{{ t('flowEditor.asset') }}<select :value="row.asset" :disabled="busy" @change="selectAsset(index, $event)"><option value="">{{ t('flowEditor.chooseAsset') }}</option><option v-for="asset in assets.filter(asset => asset.type === 'audio' && asset.kind === row.type && (row.type !== 'bgm' || inspectMusicReview(asset).canBind))" :key="asset.id" :value="asset.id">{{ asset.title ?? asset.id }}</option></select></label>
         <label v-if="row.action !== 'clear'">{{ t('flowEditor.gain') }}<input type="number" min="0" max="1" step="0.05" :value="row.gain ?? 1" :disabled="busy" @change="edit(index, { gain: Number(value($event)) })"></label>
         <label v-if="row.type !== 'sfx' && row.action === 'set'" class="flow-checkbox"><input type="checkbox" :checked="row.loop !== false" :disabled="busy" @change="edit(index, { loop: ($event.target as HTMLInputElement).checked })">{{ t('flowEditor.loop') }}</label>
         <template v-if="row.type !== 'sfx'">

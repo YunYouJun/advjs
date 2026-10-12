@@ -36,6 +36,7 @@ export function useAudioWorkspace(active: Ref<boolean>) {
   const canEdit = computed(() => Boolean(snapshot.value && !busy.value && !loading.value))
   let loadEpoch = 0
   let previewEpoch = 0
+  let editEpoch = 0
   let disposeCatalog: (() => void) | undefined
 
   function stopPreview() {
@@ -102,17 +103,22 @@ export function useAudioWorkspace(active: Ref<boolean>) {
 
   async function mutate(operation: () => Promise<unknown>) {
     if (busy.value || loading.value)
-      return
+      return false
     const fs = project.getFs()
+    const scope = scopeKey.value
+    const operationEpoch = editEpoch
     busy.value = true
     error.value = ''
     try {
       await operation()
-      if (fs === project.getFs())
+      if (operationEpoch === editEpoch && scope === scopeKey.value && fs === project.getFs() && active.value) {
         await reload()
+        return true
+      }
+      return false
     }
     catch (cause) {
-      if (fs === project.getFs()) {
+      if (operationEpoch === editEpoch && scope === scopeKey.value && fs === project.getFs()) {
         error.value = cause instanceof Error ? cause.message : String(cause)
         if (error.value.includes('ADV_AUDIO_CONTENT_ROOT_UNSUPPORTED')) {
           snapshot.value = undefined
@@ -121,8 +127,10 @@ export function useAudioWorkspace(active: Ref<boolean>) {
       }
     }
     finally {
-      busy.value = false
+      if (operationEpoch === editEpoch && scope === scopeKey.value)
+        busy.value = false
     }
+    return false
   }
 
   async function preview(assetId: string, expectedSha256?: string) {
@@ -142,7 +150,7 @@ export function useAudioWorkspace(active: Ref<boolean>) {
       if (expectedSha256) {
         const asset = catalog.get(assetId)
         const current = snapshot.value
-        if (!asset || asset.kind !== 'voice' || asset.sha256 !== expectedSha256 || !current)
+        if (!asset || asset.type !== 'audio' || !['voice', 'bgm'].includes(asset.kind) || asset.sha256 !== expectedSha256 || !current)
           throw new Error('VOICE_AUDIO_CHANGED')
         const blob = await fs.readBlob(audioProjectMediaPath(current.catalog, asset))
         if (blob.size > 64 * 1024 * 1024)
@@ -177,14 +185,19 @@ export function useAudioWorkspace(active: Ref<boolean>) {
     }
   }
 
-  async function importAsset(data: StudioAudioMetadata, file: File) {
+  async function importAsset(data: StudioAudioMetadata, file: File, expectedRevision = revision.value) {
     const fs = project.getFs()
     const current = snapshot.value
-    const expectedRevision = revision.value
     if (!fs || !current)
       return
-    const service = authoring.forProject()
-    await mutate(async () => {
+    const scope = scopeKey.value
+    const accessEpoch = editEpoch
+    const assertCurrent = () => {
+      if (accessEpoch !== editEpoch || !active.value || scope !== scopeKey.value || fs !== project.getFs())
+        throw new Error('AUDIO_MUSIC_SCOPE_CHANGED')
+    }
+    const service = authoring.forProject(assertCurrent)
+    return mutate(async () => {
       if (!isAudioFile(file.name) || !file.size)
         throw new Error('ADV_AUDIO_FILE_INVALID: Choose a non-empty audio file')
       const assetId = createAudioId('audio')
@@ -194,8 +207,9 @@ export function useAudioWorkspace(active: Ref<boolean>) {
       const duration = await inspectStudioAudioDuration(file)
       const sha256 = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), value => value.toString(16).padStart(2, '0')).join('')
       const mimeTypes: Record<string, string> = { '.wav': 'audio/wav', '.mp3': 'audio/mpeg', '.ogg': 'audio/ogg', '.opus': 'audio/ogg', '.m4a': 'audio/mp4', '.aac': 'audio/aac', '.flac': 'audio/flac', '.webm': 'audio/webm' }
-      const asset = { id: assetId, type: 'audio' as const, kind: data.kind, labels: data.labels, loop: data.loop, ...(data.license ? { license: data.license } : {}), ...(duration ? { duration } : {}), title: data.title || file.name, path: `audio/${assetId}${extension}`, mimeType: file.type || mimeTypes[extension], bytes: bytes.byteLength, sha256, source: { type: 'original' } }
+      const asset = { id: assetId, type: 'audio' as const, kind: data.kind, labels: data.labels, loop: data.loop, ...(data.music ? { music: data.music } : {}), ...(data.license ? { license: data.license } : {}), ...(duration ? { duration } : {}), title: data.title || file.name, path: `audio/${assetId}${extension}`, mimeType: file.type || mimeTypes[extension], bytes: bytes.byteLength, sha256, source: { type: 'original' } }
       audioProjectMediaPath(current.catalog, asset)
+      assertCurrent()
       await fs.writeBlob(staging, file)
       try {
         await service.importAsset({ expectedRevision, asset, source: { path: staging, sha256, bytes: bytes.byteLength } })
@@ -206,10 +220,29 @@ export function useAudioWorkspace(active: Ref<boolean>) {
     })
   }
 
-  function updateAsset(assetId: string, patch: StudioAudioMetadata) {
+  function updateAsset(assetId: string, patch: StudioAudioMetadata, expectedRevision = revision.value) {
+    const fs = project.getFs()
+    const scope = scopeKey.value
+    const accessEpoch = editEpoch
+    const service = authoring.forProject(() => {
+      if (accessEpoch !== editEpoch || !active.value || scope !== scopeKey.value || fs !== project.getFs())
+        throw new Error('AUDIO_MUSIC_SCOPE_CHANGED')
+    })
+    return mutate(() => service.updateAsset({ expectedRevision, assetId, patch: { ...patch, ...(patch.kind !== 'bgm' ? { music: null } : {}), title: patch.title || null, license: patch.license || null } }))
+  }
+
+  function reviewMusic(assetId: string, expectedSha256: string, status: 'approved' | 'rejected') {
+    if (!active.value)
+      return
+    const fs = project.getFs()
+    const scope = scopeKey.value
     const expectedRevision = revision.value
-    const service = authoring.forProject()
-    return mutate(() => service.updateAsset({ expectedRevision, assetId, patch: { ...patch, title: patch.title || null, license: patch.license || null } }))
+    const accessEpoch = editEpoch
+    const service = authoring.forProject(() => {
+      if (accessEpoch !== editEpoch || !active.value || scope !== scopeKey.value || fs !== project.getFs())
+        throw new Error('AUDIO_MUSIC_SCOPE_CHANGED')
+    })
+    return mutate(() => service.reviewMusicAsset({ expectedRevision, assetId, expectedSha256, status }))
   }
 
   function removeAsset(assetId: string) {
@@ -277,14 +310,17 @@ export function useAudioWorkspace(active: Ref<boolean>) {
     void reload()
   }, { immediate: true })
   watch(scopeKey, () => {
+    editEpoch++
     busy.value = false
   }, { flush: 'sync' })
   watch(active, (value) => {
+    editEpoch++
+    busy.value = false
     if (!value)
       stopPreview()
     else
       void reload()
-  })
+  }, { flush: 'sync' })
   watch(() => auth.userId, () => {
     loadEpoch++
     stopPreview()
@@ -302,9 +338,10 @@ export function useAudioWorkspace(active: Ref<boolean>) {
     }
   }, { flush: 'sync' })
   onScopeDispose(() => {
+    editEpoch++
     loadEpoch++
     stopPreview()
   })
 
-  return { snapshot, reviewContext, nativeProjectId, scopeKey, mixer, revision, loading, busy, error, missingCatalog, previewUrl, previewAssetId, canEdit, canSynthesize: authoring.canSynthesize, reload, preview, stopPreview, importAsset, updateAsset, removeAsset, select, verifyRetained, saveMixer, initialize: () => mutate(() => authoring.initialize(store.currentProjectId)) }
+  return { snapshot, reviewContext, nativeProjectId, scopeKey, mixer, revision, loading, busy, error, missingCatalog, previewUrl, previewAssetId, canEdit, canSynthesize: authoring.canSynthesize, reload, preview, stopPreview, importAsset, updateAsset, removeAsset, reviewMusic, select, verifyRetained, saveMixer, initialize: () => mutate(() => authoring.initialize(store.currentProjectId)) }
 }

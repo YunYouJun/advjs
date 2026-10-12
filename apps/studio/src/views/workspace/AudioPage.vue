@@ -19,6 +19,6 @@ onIonViewWillLeave(() => previewActive.value = false)
 
 <template>
   <LayoutPage :title="t('audioWorkspace.title')" show-back-button default-href="/tabs/workspace">
-    <AudioWorkspace :active="previewActive" :initial-section="workflow.section" :speaker-id="workflow.speakerId" :line-id="workflow.lineId" @play="router.push('/tabs/play')" />
+    <AudioWorkspace :active="previewActive" :initial-section="workflow.section" :speaker-id="workflow.speakerId" :line-id="workflow.lineId" @play="router.push('/tabs/play')" @bind-music="router.push({ path: '/tabs/workspace/chapters', query: { music: $event } })" />
   </LayoutPage>
 </template>

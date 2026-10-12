@@ -1,4 +1,5 @@
 export * from './mixer'
+export * from './music'
 export * from './pronunciation'
 export * from './runtime'
 export * from './toolchain'

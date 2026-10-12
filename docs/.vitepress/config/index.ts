@@ -280,6 +280,10 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
           link: '/guide/authoring-voice',
         },
         {
+          text: '背景音乐与主题曲创作',
+          link: '/guide/authoring-music',
+        },
+        {
           text: 'Studio 配音服务部署',
           link: '/guide/studio/audio-service',
         },

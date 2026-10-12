@@ -1,3 +1,5 @@
+import type { AdvMusicMetadata } from '../audio/music'
+
 export type AdvAssetProvider = 'project' | 'http'
 
 export type AdvAssetType = 'image' | 'audio' | 'video' | 'font' | 'model' | 'data'
@@ -82,6 +84,8 @@ export interface AdvAssetEntry extends AdvAssetVariant {
   /** Human-readable SPDX expression or project content-license identifier. */
   license?: string
   source?: AdvAssetProvenance
+  /** Private authoring intent, external handoff and explicit music review. */
+  music?: AdvMusicMetadata
 }
 
 /** Shared metadata for inline and split authoring catalogs. */

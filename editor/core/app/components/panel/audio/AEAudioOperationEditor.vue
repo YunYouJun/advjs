@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ProjectAudioOperation } from '@advjs/core'
 import type { AdvAssetManifest } from '@advjs/types'
+import { inspectMusicReview, musicPlaybackDefaults } from '@advjs/audio'
 import AGUINumberField from '@advjs/gui/components/AGUINumberField.vue'
 import AGUIProperty from '@advjs/gui/components/AGUIProperty.vue'
 import AGUIButton from '@advjs/gui/components/button/AGUIButton.vue'
@@ -14,7 +15,12 @@ const id = useId()
 const kinds = computed(() => ['bgm', 'ambience', 'sfx'].map((value, index) => ({ value, label: props.zh ? ['音乐', '环境音', '音效'][index]! : ['Music', 'Ambience', 'SFX'][index]! })))
 const slots = computed(() => ['bed', 'weather', 'crowd', 'detail'].map((value, index) => ({ value, label: props.zh ? ['背景', '天气', '人群', '细节'][index]! : value })))
 function assets(type: string) {
-  return (props.catalog?.assets ?? []).filter(asset => asset.type === 'audio' && asset.kind === type && asset.state !== 'rejected').map(asset => ({ value: asset.id, label: asset.title ?? asset.id }))
+  return (props.catalog?.assets ?? []).filter(asset => asset.type === 'audio' && asset.kind === type && asset.state !== 'rejected' && (type !== 'bgm' || inspectMusicReview(asset).canBind)).map(asset => ({ value: asset.id, label: asset.title ?? asset.id }))
+}
+function chooseAsset(index: number, assetId: string) {
+  const asset = props.catalog?.assets.find(asset => asset.id === assetId)
+  const defaults = asset?.kind === 'bgm' && asset.music ? musicPlaybackDefaults(asset.music.usage) : undefined
+  update(index, { asset: assetId, ...(defaults ? { ...defaults, loop: asset?.loop ?? defaults.loop } : {}) })
 }
 function update(index: number, patch: Partial<ProjectAudioOperation>) {
   const operations = JSON.parse(JSON.stringify(props.modelValue)) as ProjectAudioOperation[]
@@ -58,7 +64,7 @@ function remove(index: number) {
         <AGUISelect :id="`${id}-${index}-slot`" :label="zh ? '槽位' : 'Slot'" :model-value="operation.slot" :options="slots" @update:model-value="update(index, { slot: $event as 'bed' | 'weather' | 'crowd' | 'detail' })" />
       </AGUIProperty>
       <AGUIProperty v-if="operation.action !== 'clear'" :for="`${id}-${index}-asset`" :label="zh ? '素材' : 'Asset'">
-        <AGUISelect :id="`${id}-${index}-asset`" :label="zh ? '素材' : 'Asset'" :model-value="operation.asset ?? ''" :placeholder="zh ? '选择原生素材' : 'Choose native asset'" :options="assets(operation.type)" @update:model-value="update(index, { asset: $event })" />
+        <AGUISelect :id="`${id}-${index}-asset`" :label="zh ? '素材' : 'Asset'" :model-value="operation.asset ?? ''" :placeholder="zh ? '选择原生素材' : 'Choose native asset'" :options="assets(operation.type)" @update:model-value="chooseAsset(index, $event)" />
       </AGUIProperty>
       <AGUIProperty v-if="operation.action !== 'clear'" :for="`${id}-${index}-gain`" :label="zh ? '音量' : 'Gain'">
         <AGUINumberField :id="`${id}-${index}-gain`" :model-value="operation.gain ?? 1" :min="0" :max="1" :step="0.05" @update:model-value="update(index, { gain: $event })" />

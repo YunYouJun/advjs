@@ -17,6 +17,7 @@ vi.mock('../composables/useProjectContent', () => ({ useProjectContent: () => mo
 vi.mock('../composables/useAudioAuthoring', () => ({ useAudioAuthoring: () => mocks.authoring }))
 vi.mock('../stores/useStudioStore', () => ({ useStudioStore: () => store }))
 vi.mock('../stores/useAuthStore', () => ({ useAuthStore: () => auth }))
+vi.mock('../utils/audioWorkspace', async original => ({ ...await original<typeof import('../utils/audioWorkspace')>(), inspectStudioAudioDuration: async () => 1 }))
 vi.mock('../utils/projectAssets', () => ({ loadStudioAssetCatalog: mocks.catalog }))
 vi.mock('@advjs/audio', async importOriginal => ({ ...await importOriginal<typeof import('@advjs/audio')>(), voiceAuthoringRevision: mocks.fingerprint }))
 
@@ -64,6 +65,51 @@ afterEach(() => {
 })
 
 describe('studio audio workspace lifecycle', () => {
+  it('does not stage or import music when file reading completes after leaving the authoring page', async () => {
+    const read = deferred<ArrayBuffer>()
+    const fs = { ...nativeFs('first'), writeBlob: vi.fn(), deleteFile: vi.fn() }
+    mocks.project.getFs.mockReturnValue(fs)
+    const importAsset = vi.fn()
+    mocks.authoring.forProject.mockReturnValue({ readProjectAudio: mocks.read, importAsset })
+    const { api, active } = workspace()
+    await flushPromises()
+    await vi.waitFor(() => expect(api.snapshot.value).toBeTruthy())
+    const arrayBuffer = vi.fn(() => read.promise)
+    const file = { name: 'original.wav', type: 'audio/wav', size: 3, arrayBuffer } as unknown as File
+    const importing = api.importAsset({ title: 'Music', kind: 'bgm', labels: [], license: 'original', loop: false }, file)
+    await flushPromises()
+    expect(arrayBuffer).toHaveBeenCalledOnce()
+    expect(api.busy.value).toBe(true)
+    active.value = false
+    active.value = true
+    await flushPromises()
+    read.resolve(new Uint8Array([1, 2, 3]).buffer)
+    await importing
+    expect(fs.writeBlob).not.toHaveBeenCalled()
+    expect(importAsset).not.toHaveBeenCalled()
+  })
+  it('guards a queued metadata commit after the project changes, using the draft revision', async () => {
+    const queued = deferred<void>()
+    const write = vi.fn()
+    mocks.authoring.forProject.mockImplementation((validateAccess?: () => void) => ({ readProjectAudio: mocks.read, updateAsset: async (input: { expectedRevision: string }) => {
+      expect(input.expectedRevision).toBe('captured-draft-revision')
+      await queued.promise
+      validateAccess?.()
+      write()
+    } }))
+    const { api } = workspace()
+    await flushPromises()
+    await vi.waitFor(() => expect(api.loading.value).toBe(false))
+    const updating = api.updateAsset('bgm/original', { title: 'Music', kind: 'bgm', labels: [], license: 'original', loop: false }, 'captured-draft-revision')
+    await flushPromises()
+    expect(api.busy.value).toBe(true)
+    store.currentProjectId = 'second'
+    await flushPromises()
+    queued.resolve()
+    await updating
+    expect(write).not.toHaveBeenCalled()
+    expect(api.error.value).toBe('')
+  })
   it('disposes an audition whose resolver finishes after leaving a cached Ionic page', async () => {
     const pending = deferred<{ src: string }>()
     const dispose = vi.fn()

@@ -41,8 +41,8 @@ describe('launch package build order', () => {
 
     expect(builtPaths).toEqual([
       'packages/types',
-      'packages/audio',
       'packages/assets',
+      'packages/audio',
       'packages/unocss',
       'packages/parser',
       'packages/core',

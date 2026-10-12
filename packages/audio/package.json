@@ -17,6 +17,6 @@
   "files": ["dist"],
   "engines": { "node": ">=24.15.0" },
   "scripts": { "build": "unbuild", "dev": "unbuild --stub", "prepublishOnly": "pnpm run build" },
-  "dependencies": { "@advjs/types": "workspace:0.1.4" },
+  "dependencies": { "@advjs/assets": "workspace:0.1.4", "@advjs/types": "workspace:0.1.4" },
   "devDependencies": { "unbuild": "catalog:build" }
 }

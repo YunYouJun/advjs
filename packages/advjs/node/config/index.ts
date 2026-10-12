@@ -1,8 +1,10 @@
 import type { AdvConfig, AdvEntryOptions, AdvGameConfig, ThemeConfig } from '@advjs/types'
 import process from 'node:process'
+import { createProjectGameConfig } from '@advjs/core'
 import { loadConfig } from 'c12'
 import defu from 'defu'
 import { defaultAdvConfig, defaultGameConfig } from '../../shared'
+import { loadProject } from '../project'
 import { bundledConfigAliases } from './aliases'
 import { loadProjectAudioConfig } from './audio'
 import { loadAdvGameConfig } from './game'
@@ -80,8 +82,13 @@ export async function loadAdvConfigs(options: AdvEntryOptions) {
     loadAdvThemeConfig(options),
   ])
 
-  const audio = await loadProjectAudioConfig(options.userRoot ?? process.cwd())
-  const flowGame = config.format === 'flow' ? await loadStandardFlowGame(options.userRoot ?? process.cwd(), audio) : undefined
+  const root = options.userRoot ?? process.cwd()
+  const native = config.format === 'flow' || config.format === 'adv-md' ? await loadProject({ root }) : undefined
+  // Canonical projects filter candidates before module configuration reads media.
+  // Legacy module projects retain their existing explicit library behavior.
+  const runtimeIds = native ? new Set(Object.keys(createProjectGameConfig(native.result, native.files).audio?.assets ?? {})) : undefined
+  const audio = await loadProjectAudioConfig(root, runtimeIds)
+  const flowGame = config.format === 'flow' ? await loadStandardFlowGame(root, audio) : undefined
 
   return {
     config,
