@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import type { VoiceTake } from '@advjs/types'
-import { normalizeSpokenText } from '@advjs/audio'
 import AGUICheckbox from '@advjs/gui/client/components/AGUICheckbox.vue'
 import AGUIDetails from '@advjs/gui/client/components/AGUIDetails.vue'
 import AGUIButton from '@advjs/gui/client/components/button/AGUIButton.vue'
 import { computed } from 'vue'
 
-const props = defineProps<{ take?: VoiceTake, selectedTake?: string | null, displayText: string, spokenText?: string, pending: boolean, canSelect: boolean, writable: boolean, previewLoading: boolean }>()
-const emit = defineEmits<{ preview: [], select: [], clear: [] }>()
+const props = defineProps<{ take?: VoiceTake, selectedTake?: string | null, stale?: boolean, kept?: boolean, unavailable?: boolean, pending: boolean, canSelect: boolean, writable: boolean, previewLoading: boolean }>()
+const emit = defineEmits<{ preview: [], select: [], clear: [], keep: [] }>()
 const replace = defineModel<boolean>('replace', { default: false })
-const stale = computed(() => props.take && props.take.spokenText !== normalizeSpokenText(props.displayText, { override: props.spokenText || undefined }))
+const reviewed = defineModel<boolean>('reviewed', { default: false })
 const replacing = computed(() => Boolean(props.selectedTake && props.selectedTake !== props.take?.id))
 </script>
 
@@ -19,19 +18,30 @@ const replacing = computed(() => Boolean(props.selectedTake && props.selectedTak
       {{ selectedTake === take.id ? '当前已选 take' : '历史候选，尚未选用' }}
     </p>
     <p v-if="stale" class="ae-take-warning" role="status">
-      台词已变化。此 take 保留原文，选用前请审核。
+      台词、发音词典或声音配置已变化。此 take 保留原文，选用前请审核。
+    </p>
+    <p v-if="unavailable" class="ae-take-warning" role="status">
+      原生音频资源缺失、被拒绝或哈希不匹配，请先恢复媒体。
     </p>
     <p class="ae-take-prose">
       {{ take.spokenText }}
     </p>
+    <slot name="listening" />
+    <AGUICheckbox v-if="stale" v-model:checked="reviewed" :disabled="pending" label="已重新审核原配音与当前台词、声音配置的差异，仍明确采用" data-testid="take-stale-reviewed" />
     <div class="ae-resource-actions">
-      <AGUIButton :loading="previewLoading" :disabled="pending" data-testid="take-preview" @click="emit('preview')">
+      <AGUIButton :loading="previewLoading" :disabled="pending || unavailable" data-testid="take-preview" @click="emit('preview')">
         载入试听
       </AGUIButton>
       <AGUIButton :disabled="!canSelect" :loading="pending" data-testid="take-select" @click="emit('select')">
         选用此 take
       </AGUIButton>
+      <AGUIButton v-if="stale && selectedTake === take.id" :disabled="!reviewed || pending || unavailable || kept" data-testid="take-keep" @click="emit('keep')">
+        本次已复核，保留绑定
+      </AGUIButton>
     </div>
+    <p v-if="kept" class="ae-resource-caption" role="status">
+      本次已复核并保留原绑定；客观 stale 标记和生成记录仍保留。当前台词或声音配置再变化后，需要再次复审。
+    </p>
     <AGUICheckbox v-if="selectedTake" v-model:checked="replace" :disabled="pending || !writable" :label="replacing ? '明确替换当前已选配音' : '明确清除当前已选配音'" data-testid="take-replace" />
     <AGUIButton v-if="selectedTake" :disabled="!replace || pending || !writable" data-testid="take-clear" @click="emit('clear')">
       清除配音绑定

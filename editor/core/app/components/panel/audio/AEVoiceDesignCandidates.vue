@@ -15,6 +15,7 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{
   'audition': [preview: VoiceDesignPreview]
+  'sample': [sample: VoiceDesignSample]
   'register': [preview: VoiceDesignPreview]
   'cancel': [preview: VoiceDesignPreview]
   'select': [assetId: string]
@@ -44,6 +45,9 @@ onBeforeUnmount(() => audio.value?.pause())
       </p>
       <p v-if="preview.candidate" class="ae-resource-caption">
         {{ preview.candidate.model }} · {{ preview.candidate.durationSeconds.toFixed(2) }} 秒 · {{ preview.candidate.bytes }} 字节
+      </p>
+      <p v-if="preview.candidate" class="ae-design-prose">
+        {{ preview.candidate.text }}
       </p>
       <p v-if="preview.status === 'unknown'" class="ae-resource-caption" role="status">
         查询当前状态后再处理，重新打开面板不会再次调用供应商。
@@ -76,6 +80,15 @@ onBeforeUnmount(() => audio.value?.pause())
           {{ sample.locale }} · {{ sample.providerId }} · {{ sample.source }}
           <span v-if="selectedSample?.assetId === sample.assetId"> · 当前选用</span>
         </p>
+        <p class="ae-design-prose">
+          {{ sample.text }}
+        </p>
+        <p class="ae-resource-caption">
+          SHA-256: {{ sample.sha256 }}
+        </p>
+        <AGUIButton :disabled="pending" :aria-label="`试听音色样本 ${sample.assetId}`" data-testid="design-audition-sample" @click="emit('sample', sample)">
+          试听已登记样本
+        </AGUIButton>
         <AGUIButton :disabled="pending || selectedSample?.assetId === sample.assetId || (Boolean(selectedSample) && !replaceSelected)" :aria-label="`选用音色样本 ${sample.assetId}`" data-testid="design-select-sample" @click="emit('select', sample.assetId)">
           审核并选用样本
         </AGUIButton>
@@ -108,5 +121,10 @@ onBeforeUnmount(() => audio.value?.pause())
   width: 100%;
   min-width: 0;
   height: 32px;
+}
+.ae-design-prose {
+  margin: 4px 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 </style>

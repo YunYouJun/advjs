@@ -1,24 +1,27 @@
+import type { VoiceReviewRow } from '@advjs/audio'
 import type { AdvVoiceSynthesisResult, VoiceAuthoringSnapshot, VoiceTakeBindingInput } from '@advjs/types'
-import { audioFingerprint, createAudioId } from '@advjs/audio'
+import { audioFingerprint, createAudioId, normalizeAudioLocale, resolveVoiceReviewRows, voiceListeningAdoptionEligibility, voiceListeningCandidate, voiceReviewContextFromProgram } from '@advjs/audio'
 import { computed, onBeforeUnmount, shallowRef, watch } from 'vue'
 import { useAudioStore } from '../stores/useAudioStore'
-import { useProjectAssets } from '../stores/useProjectAssets'
 import { useProjectStore } from '../stores/useProjectStore'
+import { readVerifiedVoiceTake } from '../utils/voice-listening-media'
 
 /** Saved project documents are authoritative; every write uses the shared revision protocol. */
 export function useAudioLedger() {
   const project = useProjectStore()
   const audio = useAudioStore()
-  const assets = useProjectAssets()
   const snapshot = shallowRef<VoiceAuthoringSnapshot>()
   const lineId = shallowRef('')
   const locale = shallowRef('zh-CN')
   const takeId = shallowRef('')
   const replaceSelected = shallowRef(false)
+  const staleReviewed = shallowRef(false)
+  const staleKept = shallowRef(false)
   const loading = shallowRef(false)
   const pending = shallowRef(false)
   const error = shallowRef('')
   const previewSource = shallowRef('')
+  const previewTakeId = shallowRef('')
   const previewLoading = shallowRef(false)
   const synthesis = shallowRef<AdvVoiceSynthesisResult>()
   const profileRevision = shallowRef('')
@@ -28,6 +31,9 @@ export function useAudioLedger() {
   const consentRecord = shallowRef('')
   const displayText = shallowRef('')
   const spokenText = shallowRef('')
+  const reviewRows = shallowRef<VoiceReviewRow[]>([])
+  const reviewLoading = shallowRef(false)
+  let reviewSequence = 0
   let revision = 0
   let previewRevision = 0
   let controller: AbortController | undefined
@@ -46,18 +52,52 @@ export function useAudioLedger() {
   const currentLine = computed(() => lines.value.find(line => line.id === lineId.value))
   const binding = computed(() => snapshot.value?.ledger.lines[lineId.value]?.locales[locale.value])
   const take = computed(() => binding.value?.takes.find(item => item.id === takeId.value))
+  const takeReview = computed(() => reviewRows.value.find(row => row.lineId === lineId.value && row.locale === locale.value)?.takes.find(item => item.id === takeId.value))
+  const reviewRow = computed(() => reviewRows.value.find(row => row.lineId === lineId.value && row.locale === locale.value))
   const candidate = computed(() => synthesis.value?.candidates[0])
   const localeOptions = computed(() => [...new Set(['zh-CN', ...Object.keys(snapshot.value?.ledger.lines[lineId.value]?.locales ?? {}), locale.value])].filter(Boolean))
   const lineOptions = computed(() => lines.value.map(line => ({ value: line.id, label: `${line.speakerId} · ${line.text}` })))
   const takeOptions = computed(() => (binding.value?.takes ?? []).map(item => ({ value: item.id, label: `${item.id === binding.value?.selectedTake ? '已选 · ' : ''}${item.providerId} · ${item.model} · ${item.createdAt}` })))
   const replacing = computed(() => Boolean(binding.value?.selectedTake && binding.value.selectedTake !== takeId.value))
-  const canSelect = computed(() => writable.value && Boolean(take.value) && take.value?.id !== binding.value?.selectedTake && (!replacing.value || replaceSelected.value) && !pending.value)
+  const adoptionEligibility = computed(() => {
+    if (!reviewRow.value || !takeReview.value)
+      return false
+    try {
+      return voiceListeningAdoptionEligibility(voiceListeningCandidate(reviewRow.value, takeId.value), { staleReviewed: staleReviewed.value }).eligible
+    }
+    catch { return false }
+  })
+  const canSelect = computed(() => writable.value && adoptionEligibility.value && !reviewLoading.value && take.value?.id !== binding.value?.selectedTake && (!replacing.value || replaceSelected.value) && !pending.value)
+
+  watch([snapshot, () => project.project?.compilation], async () => {
+    const current = ++reviewSequence
+    reviewRows.value = []
+    reviewLoading.value = true
+    try {
+      if (snapshot.value) {
+        const compilation = project.project?.compilation.project
+        const context = compilation ? voiceReviewContextFromProgram(compilation.program, Object.fromEntries(compilation.characters.map(character => [character.id, character.voiceProfile])), String(compilation.game.locale ?? 'zh-CN')) : {}
+        const rows = await resolveVoiceReviewRows(snapshot.value, context)
+        if (current === reviewSequence)
+          reviewRows.value = rows
+      }
+    }
+    catch (failure) {
+      if (current === reviewSequence)
+        error.value = failure instanceof Error ? failure.message : 'VOICE_REVIEW_FAILED'
+    }
+    finally {
+      if (current === reviewSequence)
+        reviewLoading.value = false
+    }
+  }, { immediate: true })
 
   function clearPreview() {
     previewRevision++
     if (previewSource.value.startsWith('blob:'))
       URL.revokeObjectURL(previewSource.value)
     previewSource.value = ''
+    previewTakeId.value = ''
     previewLoading.value = false
   }
   function cancel() {
@@ -107,35 +147,48 @@ export function useAudioLedger() {
     if (!pending.value)
       void reload()
   })
-  watch([lineId, locale, binding], () => {
+  watch(() => [project.project?.files['adv/audio/pronunciation.json'], project.project?.files['adv/audio/voice-profiles.json']], () => {
+    if (!pending.value)
+      void reload()
+  })
+  watch([lineId, locale, binding, currentLine], () => {
     cancel()
     replaceSelected.value = false
     takeId.value = binding.value?.selectedTake ?? binding.value?.takes[0]?.id ?? ''
-    displayText.value = binding.value?.displayText ?? currentLine.value?.text ?? ''
-    spokenText.value = binding.value?.spokenText ?? ''
+    const sourceLocale = normalizeAudioLocale(String(project.project?.compilation.project.game.locale ?? 'zh-CN'))
+    displayText.value = locale.value === sourceLocale ? currentLine.value?.text ?? '' : binding.value?.displayText ?? currentLine.value?.text ?? ''
+    spokenText.value = binding.value?.spokenText ?? snapshot.value?.ledger.lines[lineId.value]?.spokenText ?? ''
   })
   watch(takeId, () => {
     clearPreview()
     replaceSelected.value = false
   })
-  onBeforeUnmount(cancel)
+  const reviewSourceKey = computed(() => JSON.stringify([snapshot.value?.revision, project.project?.compilation.project.program?.hash, project.project?.compilation.project.game.locale, project.project?.compilation.project.characters.map(character => [character.id, character.voiceProfile])]))
+  watch([takeId, lineId, locale, displayText, spokenText, reviewSourceKey], () => {
+    staleReviewed.value = false
+    staleKept.value = false
+  }, { flush: 'sync' })
+  onBeforeUnmount(() => {
+    reviewSequence++
+    cancel()
+  })
 
-  async function preview() {
+  async function preview(id = takeId.value) {
     clearPreview()
-    const asset = snapshot.value?.catalog.assets.find(asset => asset.id === take.value?.assetId)
-    if (!asset)
+    const item = reviewRow.value?.takes.find(take => take.id === id)
+    const source = project.workspace
+    const catalog = snapshot.value?.catalog
+    if (!item || item.unavailable || !source || !catalog)
       return
     const current = previewRevision
     previewLoading.value = true
     error.value = ''
     try {
-      const media = await assets.media(asset)
-      if (current !== previewRevision) {
-        if (media.src.startsWith('blob:'))
-          URL.revokeObjectURL(media.src)
+      const blob = await readVerifiedVoiceTake(source, catalog, item)
+      if (current !== previewRevision || project.workspace !== source)
         return
-      }
-      previewSource.value = media.src
+      previewSource.value = URL.createObjectURL(blob)
+      previewTakeId.value = id
     }
     catch (failure) {
       if (current === previewRevision)
@@ -147,7 +200,7 @@ export function useAudioLedger() {
     }
   }
   async function select(clear = false) {
-    if (!snapshot.value || pending.value)
+    if (!snapshot.value || pending.value || (!clear && !canSelect.value) || (clear && (!replaceSelected.value || !writable.value)))
       return
     const current = revision
     pending.value = true
@@ -156,6 +209,31 @@ export function useAudioLedger() {
       const result = await audio.authoring().select({ lineId: lineId.value, locale: locale.value, takeId: clear ? null : takeId.value, expectedRevision: snapshot.value.revision, replaceSelected: replaceSelected.value })
       if (current === revision)
         snapshot.value = result
+    }
+    catch (failure) {
+      if (current === revision)
+        error.value = failure instanceof Error ? failure.message : String(failure)
+    }
+    finally {
+      if (current === revision)
+        pending.value = false
+    }
+  }
+  async function confirmCurrent() {
+    if (!snapshot.value || !takeReview.value?.stale || !adoptionEligibility.value || binding.value?.selectedTake !== takeId.value || pending.value)
+      return
+    const source = project.workspace
+    if (!source)
+      return
+    const current = revision
+    const scope = reviewSourceKey.value
+    const item = takeReview.value
+    pending.value = true
+    error.value = ''
+    try {
+      await readVerifiedVoiceTake(source, snapshot.value.catalog, item)
+      if (current === revision && project.workspace === source && scope === reviewSourceKey.value && staleReviewed.value)
+        staleKept.value = true
     }
     catch (failure) {
       if (current === revision)
@@ -241,5 +319,5 @@ export function useAudioLedger() {
         pending.value = false
     }
   }
-  return { snapshot, lineId, locale, takeId, replaceSelected, loading, pending, error, previewSource, previewLoading, currentLine, binding, take, lineOptions, localeOptions, takeOptions, canSelect, replacing, unboundCount, displayText, spokenText, candidate, profileRevision, candidateSource, license, subject, consentRecord, writable, canSynthesize: computed(() => audio.canSynthesize), reload, preview, clearPreview, select, synthesize, register }
+  return { snapshot, lineId, locale, takeId, takeReview, reviewRow, reviewRows, reviewLoading, replaceSelected, staleReviewed, staleKept, loading, pending, error, previewSource, previewTakeId, previewLoading, currentLine, binding, take, lineOptions, localeOptions, takeOptions, canSelect, replacing, unboundCount, displayText, spokenText, candidate, profileRevision, candidateSource, license, subject, consentRecord, writable, canSynthesize: computed(() => audio.canSynthesize), reload, preview, clearPreview, select, confirmCurrent, synthesize, register }
 }

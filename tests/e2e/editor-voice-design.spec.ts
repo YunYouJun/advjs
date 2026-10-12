@@ -13,6 +13,15 @@ let fixture: Awaited<ReturnType<typeof createEditorVoiceDesignFixture>>
 let bridge: EditorBridge
 let editorUrl: string
 
+async function openEditor(page: Page) {
+  try {
+    await page.goto(editorUrl)
+  }
+  catch {
+    throw new Error('Editor fixture navigation failed; scoped launch credentials omitted')
+  }
+}
+
 async function choose(page: Page, label: string, option: string) {
   await page.getByRole('combobox', { name: label, exact: true }).click()
   await page.getByRole('option', { name: option, exact: true }).click()
@@ -35,7 +44,7 @@ test.afterEach(async () => {
 })
 
 test('production Editor designs immutable voices, auditions native candidates and explicitly applies a reviewed sample', async ({ page }, info) => {
-  await page.goto(editorUrl)
+  await openEditor(page)
   const main = page.locator('[data-editor-region="main"]')
   await main.getByRole('tab', { name: '音频', exact: true }).click()
   const panel = main.locator('.ae-audio-workspace')
@@ -91,6 +100,19 @@ test('production Editor designs immutable voices, auditions native candidates an
   await design.getByTestId('design-register').click()
   await expect(design.getByTestId('design-preview-registered')).toBeVisible()
   await expect(design.getByTestId('design-apply')).toBeDisabled()
+  const sample = design.getByTestId('design-sample')
+  await expect(sample).toContainText(fixture.calls[0]!.text!)
+  await expect(sample).toContainText(fixture.sha256)
+  await sample.getByTestId('design-audition-sample').click()
+  await expect(audio).toBeVisible()
+  await expect.poll(() => audio.evaluate((element: HTMLAudioElement) => element.readyState >= 2 && Number.isFinite(element.duration))).toBe(true)
+  expect(fixture.calls).toHaveLength(1)
+  await sample.screenshot({ path: join(directory, `voice-registered-sample-normal-${info.project.name}.png`), animations: 'disabled' })
+  const sampleNarrow = await page.addStyleTag({ content: '.ae-audio-workspace { width: 320px !important; max-width: 320px !important; }' })
+  await expect.poll(() => panel.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true)
+  await sample.screenshot({ path: join(directory, `voice-registered-sample-narrow-${info.project.name}.png`), animations: 'disabled' })
+  await sampleNarrow.evaluate(element => element.remove())
+  await design.getByTestId('design-stop-audition').click()
   await design.getByTestId('design-select-sample').click()
   await expect(design.getByTestId('design-select-sample')).toBeDisabled()
   await expect(design.getByTestId('design-apply')).toBeDisabled()
@@ -119,7 +141,7 @@ test('production Editor designs immutable voices, auditions native candidates an
 })
 
 test('production Editor saves exact-language built-ins and authorized reference conditions without synthesizing', async ({ page }) => {
-  await page.goto(editorUrl)
+  await openEditor(page)
   const main = page.locator('[data-editor-region="main"]')
   await main.getByRole('tab', { name: '音频', exact: true }).click()
   const panel = main.locator('.ae-audio-workspace')

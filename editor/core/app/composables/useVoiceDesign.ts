@@ -1,5 +1,5 @@
-import type { DesignedVoiceProfile, VoiceDesignDraft, VoiceDesignMutation, VoiceDesignPort, VoiceDesignPreview, VoiceDesignPreviewReview, VoiceDesignSnapshot } from '@advjs/types'
-import { validateVoiceDesignDraft } from '@advjs/audio'
+import type { DesignedVoiceProfile, VoiceDesignDraft, VoiceDesignMutation, VoiceDesignPort, VoiceDesignPreview, VoiceDesignPreviewReview, VoiceDesignSample, VoiceDesignSnapshot } from '@advjs/types'
+import { audioProjectMediaPath, validateVoiceDesignDraft, verifyVoiceCandidateBytes } from '@advjs/audio'
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 import { useAudioStore } from '../stores/useAudioStore'
 import { useProjectDrafts } from '../stores/useProjectDrafts'
@@ -288,6 +288,23 @@ export function useVoiceDesign(visible: () => boolean) {
         status.value = '候选已登记为原生音色样本，尚未选用或应用。'
     })
   }
+  async function auditionSample(sample: VoiceDesignSample) {
+    await action(async (_service, _signal, current) => {
+      const saved = samples.value.find(item => item.assetId === sample.assetId && item.sha256 === sample.sha256)
+      const catalog = project.project?.compilation?.project.assets
+      const workspace = project.workspace
+      const asset = catalog?.assets.find(item => item.id === saved?.assetId)
+      if (!saved || !catalog || !asset || asset.type !== 'audio' || asset.sha256 !== saved.sha256 || !workspace?.readAsset || saved.bytes > 20 * 1024 * 1024)
+        throw new Error('ADV_AUDIO_DESIGN_MEDIA_INVALID')
+      const blob = await workspace.readAsset(audioProjectMediaPath(catalog, asset))
+      await verifyVoiceCandidateBytes(saved, await blob.arrayBuffer())
+      if (!current())
+        return
+      stopAudio()
+      source.value = URL.createObjectURL(blob)
+      playingPreviewId.value = saved.assetId
+    })
+  }
   async function selectSample(assetId: string) {
     if (!snapshot.value)
       return
@@ -362,5 +379,5 @@ export function useVoiceDesign(visible: () => boolean) {
     reset()
     drafts.remove(draftId)
   })
-  return { snapshot, draft, selectedVoiceId, selected, voices, locale, providerId, text, maxCharacters, allowUnknownCost, budgetReviewed, replaceSelected, replaceBinding, review, loading, pending, error, status, source, playingPreviewId, dirty, immutable, available, hasTransport: computed(() => Boolean(port.value)), localeOptions, providerOptions, previews, samples, selectedSample, canPlan, canSave, validation, reload, selectVoice, newVersion, discardDraft, save, plan, execute, audition, register, selectSample, applyProfile, cancel, stopAudio }
+  return { snapshot, draft, selectedVoiceId, selected, voices, locale, providerId, text, maxCharacters, allowUnknownCost, budgetReviewed, replaceSelected, replaceBinding, review, loading, pending, error, status, source, playingPreviewId, dirty, immutable, available, hasTransport: computed(() => Boolean(port.value)), localeOptions, providerOptions, previews, samples, selectedSample, canPlan, canSave, validation, reload, selectVoice, newVersion, discardDraft, save, plan, execute, audition, auditionSample, register, selectSample, applyProfile, cancel, stopAudio }
 }

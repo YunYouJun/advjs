@@ -1,3 +1,4 @@
+import type { Page } from '@playwright/test'
 import type { EditorBridge } from 'advjs/node'
 import { Buffer } from 'node:buffer'
 import { createHash } from 'node:crypto'
@@ -15,6 +16,15 @@ const takeIds = [1, 2].map(index => `take_019d137e-7abc-7000-8000-00000000000${i
 let bridge: EditorBridge | undefined
 let projectRoot = ''
 let editorUrl = ''
+
+async function openEditor(page: Page) {
+  try {
+    await page.goto(editorUrl)
+  }
+  catch {
+    throw new Error('Editor fixture navigation failed; scoped launch credentials omitted')
+  }
+}
 
 function silentWav() {
   const dataSize = 2400 * 2
@@ -71,7 +81,7 @@ test.afterEach(async () => {
 })
 
 test('native resources, selected take review and mixer remain usable at normal and narrow panel widths', async ({ page }, info) => {
-  await page.goto(editorUrl)
+  await openEditor(page)
   await expect(page.locator('.advjs-editor-layout')).toBeVisible()
   const main = page.locator('[data-editor-region="main"]')
   await main.getByRole('tab', { name: '音频', exact: true }).click()
@@ -88,6 +98,7 @@ test('native resources, selected take review and mixer remain usable at normal a
   await page.getByRole('option', { name: 'fixture-tts · fixture-model · 2026-10-11T08:01:00.000Z', exact: true }).click()
   await expect(panel.getByTestId('take-select')).toBeDisabled()
   await panel.getByRole('checkbox', { name: '明确替换当前已选配音' }).check()
+  await panel.getByRole('checkbox', { name: '已重新审核原配音与当前台词、声音配置的差异，仍明确采用' }).check()
   await panel.getByTestId('take-select').click()
   await expect.poll(async () => JSON.parse(await readFile(join(projectRoot, 'adv/audio/voice-ledger.json'), 'utf8')).lines[lineId].locales['zh-CN'].selectedTake).toBe(takeIds[1])
   await panel.locator('summary').filter({ hasText: '不可变生成记录与权利信息' }).click()
@@ -106,7 +117,7 @@ test('native resources, selected take review and mixer remain usable at normal a
 })
 
 test('story graph audio properties and inline source editing write the same native operations', async ({ page }, info) => {
-  await page.goto(editorUrl)
+  await openEditor(page)
   const main = page.locator('[data-editor-region="main"]')
   await main.getByRole('tab', { name: '流程图', exact: true }).click()
   const flow = main.locator('.advjs-flow-editor')

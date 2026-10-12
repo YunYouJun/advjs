@@ -146,9 +146,11 @@ describe('editor native audio workspace', () => {
   it('requires explicit replacement, verifies actual media and preserves the complete take history', async () => {
     const wrapper = await openLedger()
     await wrapper.get('select[name="takeId"]').setValue(takeIds[1])
-    expect(wrapper.text()).toContain('台词已变化')
+    expect(wrapper.text()).toContain('发音词典或声音配置已变化')
     expect(wrapper.get('[data-testid="take-select"]').attributes('disabled')).toBeDefined()
     await wrapper.get('[data-testid="take-replace"] input').setValue(true)
+    expect(wrapper.get('[data-testid="take-select"]').attributes('disabled')).toBeDefined()
+    await wrapper.get('[data-testid="take-stale-reviewed"] input').setValue(true)
     await wrapper.get('[data-testid="take-select"]').trigger('click')
     await vi.waitFor(() => expect(savedLedger().lines[lineId].locales['zh-CN'].selectedTake).toBe(takeIds[1]))
     expect(readAsset).toHaveBeenCalledWith('public/media/voice/1.wav')
@@ -168,11 +170,34 @@ describe('editor native audio workspace', () => {
     expect(wrapper.get('[role="alert"]').text()).toContain('HASH_MISMATCH')
     expect(URL.createObjectURL).not.toHaveBeenCalled()
     await wrapper.get('[data-testid="take-replace"] input').setValue(true)
+    await wrapper.get('[data-testid="take-stale-reviewed"] input').setValue(true)
     await wrapper.get('[data-testid="take-select"]').trigger('click')
     await vi.waitFor(() => expect(wrapper.get('[role="alert"]').text()).toContain('VOICE_AUDIO_CHANGED'))
     expect(wrapper.get('[role="alert"]').text()).toContain('VOICE_AUDIO_CHANGED')
     expect(savedLedger().lines[lineId].locales['zh-CN'].selectedTake).toBe(takeIds[0])
     expect(write).not.toHaveBeenCalled()
+  })
+
+  it('rechecks an already selected stale take without changing its identity and invalidates subjective approval when source changes', async () => {
+    const path = 'adv/chapters/intro.adv.md'
+    const changed = { ...testState.project.project.files, [path]: `@Hero\n现在的台词。 {#${lineId}}` }
+    testState.project.project = { files: changed, compilation: await compileProject({ files: changed }, { allowEmptyAssetManifest: true }) }
+    const wrapper = await openLedger()
+    const original = testState.project.project.files[ledgerPath]
+    expect(wrapper.get('[data-testid="take-keep"]').attributes('disabled')).toBeDefined()
+    await wrapper.get('[data-testid="take-stale-reviewed"] input').setValue(true)
+    await wrapper.get('[data-testid="take-keep"]').trigger('click')
+    await vi.waitFor(() => expect(wrapper.text()).toContain('客观 stale 标记和生成记录仍保留'))
+    expect(readAsset).toHaveBeenCalledWith('public/media/voice/0.wav')
+    expect(write).not.toHaveBeenCalled()
+    expect(testState.project.project.files[ledgerPath]).toBe(original)
+    const next = { ...changed, [path]: `@Hero\n台词再次变化。 {#${lineId}}` }
+    testState.project.project = { files: next, compilation: await compileProject({ files: next }, { allowEmptyAssetManifest: true }) }
+    await flushPromises()
+    expect(wrapper.text()).not.toContain('客观 stale 标记和生成记录仍保留')
+    expect(wrapper.get('[data-testid="take-keep"]').attributes('disabled')).toBeDefined()
+    expect(wrapper.get('[data-testid="take-stale-reviewed"] input').element).toHaveProperty('checked', false)
+    expect(savedLedger().lines[lineId].locales['zh-CN'].selectedTake).toBe(takeIds[0])
   })
 
   it('loads preview only on an explicit action and releases playback when hidden or decoding fails', async () => {
@@ -203,9 +228,9 @@ describe('editor native audio workspace', () => {
     testState.project.workspace = markRaw({ ...workspace })
     await flushPromises()
     resolve(new NodeBlob([mediaBytes]) as unknown as Blob)
-    await vi.waitFor(() => expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:editor-audio'))
+    await flushPromises()
     expect(wrapper.find('audio').exists()).toBe(false)
-    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:editor-audio')
+    expect(URL.createObjectURL).not.toHaveBeenCalled()
     expect(useAudioStore().canSynthesize).toBe(false)
     expect(transport).not.toHaveBeenCalled()
   })
