@@ -9,12 +9,7 @@ import { loadAdvGameConfig } from './game'
 import { loadStandardFlowGame } from './project-flow'
 import { loadAdvThemeConfig } from './theme'
 
-export const ADV_VIRTUAL_MODULES = [
-  '@advjs/configs/adv',
-  '@advjs/configs/game',
-  '@advjs/configs/theme',
-  '#advjs/runtime-plugins',
-]
+export { ADV_VIRTUAL_MODULES } from './constants'
 
 /**
  * `adv.config.ts`
