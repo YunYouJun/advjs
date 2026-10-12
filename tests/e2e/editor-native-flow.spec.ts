@@ -308,6 +308,11 @@ test('native Flow arranges dense cyclic branches without changing story semantic
   await assertReadableGraph(panel)
   await expect(panel.getByTestId('native-flow-save')).toBeEnabled()
   await panel.getByTestId('native-flow-save').click()
+  await expect(panel.getByText('JSON 章节已保存', { exact: true })).toBeVisible()
+  await expect.poll(async () => {
+    const document = JSON.parse(await readFile(join(root, chapterPath), 'utf8'))
+    return new Set(document.nodes.map((node: any) => `${node.position.x}:${node.position.y}`)).size
+  }).toBe(dense.nodes.length)
   await expect(panel.getByTestId('native-flow-save')).toBeDisabled()
   const saved = JSON.parse(await readFile(join(root, chapterPath), 'utf8'))
   const withoutPositions = (document: typeof dense) => document.nodes.map(({ position: _position, ...node }) => node)
