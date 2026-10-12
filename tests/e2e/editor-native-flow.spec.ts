@@ -1,4 +1,4 @@
-import type { Locator, Page } from '@playwright/test'
+import type { Locator, Page, TestInfo } from '@playwright/test'
 import type { EditorBridge } from 'advjs/node'
 import type { AdvContext } from '../../packages/client/types/context'
 import { cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises'
@@ -9,7 +9,6 @@ import { expect, test } from '@playwright/test'
 import { advBuild, createEditorBridge } from 'advjs/node'
 
 const repositoryRoot = resolve(import.meta.dirname, '../..')
-const artifactRoot = join(tmpdir(), 'advjs-editor-native-flow-artifacts')
 const chapterPath = 'adv/chapters/intro.chapter.json'
 const lineId = 'line_019d137e-7abc-7000-8000-000000000001'
 const privateMarker = 'PRIVATE-NATIVE-FLOW-AUTHOR-METADATA'
@@ -19,6 +18,12 @@ let editorUrl: string
 let bridge: EditorBridge
 let playerServer: ReturnType<typeof createServer> | undefined
 let originalChapter: any
+
+async function capturePreview(target: Locator | Page, info: TestInfo, name: string) {
+  const path = info.outputPath(`${name}.png`)
+  await target.screenshot({ path, animations: 'disabled' })
+  await info.attach(name, { path, contentType: 'image/png' })
+}
 
 async function choose(page: Page, locator: Locator, value: string) {
   await locator.click()
@@ -99,7 +104,6 @@ test.beforeEach(async ({ page }) => {
     localStorage.setItem('nuxt-color-mode', 'dark')
   })
   await page.setViewportSize({ width: 1440, height: 1000 })
-  await mkdir(artifactRoot, { recursive: true })
 })
 test.afterEach(async () => {
   await bridge?.stop()
@@ -163,13 +167,13 @@ test('native JSON Flow creates and edits a conditional crosschapter branch, reta
   await panel.getByLabel('选项 choice-1 目标', { exact: true }).press('Tab')
   await panel.getByTestId('native-flow-save').click()
   await expect.poll(async () => JSON.parse(await readFile(join(root, chapterPath), 'utf8')).nodes.find((node: any) => node.id === 'node_02').choices[0].target).toBe(`edited-ending#${narrationId}`)
-  await panel.screenshot({ path: join(artifactRoot, `native-flow-normal-${info.project.name}.png`), animations: 'disabled' })
+  await capturePreview(panel, info, 'native-flow-editor-normal')
   const narrow = await page.addStyleTag({ content: '.native-flow-editor { width: 320px !important; max-width: 320px !important; }' })
   await expect.poll(() => panel.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true)
-  await panel.screenshot({ path: join(artifactRoot, `native-flow-narrow-${info.project.name}.png`), animations: 'disabled' })
+  await capturePreview(panel, info, 'native-flow-editor-narrow')
   await panel.getByLabel('选项 choice-1 条件', { exact: true }).scrollIntoViewIfNeeded()
   await expect(panel.getByLabel('选项 choice-1 条件', { exact: true })).toBeInViewport()
-  await panel.screenshot({ path: join(artifactRoot, `native-flow-narrow-properties-${info.project.name}.png`), animations: 'disabled' })
+  await capturePreview(panel, info, 'native-flow-editor-narrow-properties')
   await narrow.evaluate(element => element.remove())
   await selectNode(page, panel, 'node_01')
   await panel.getByLabel('对白 1 文本', { exact: true }).fill('Retained conflict draft')
@@ -181,6 +185,7 @@ test('native JSON Flow creates and edits a conditional crosschapter branch, reta
   await expect(panel.getByTestId('native-flow-save')).toBeDisabled()
   await panel.getByRole('button', { name: '载入项目版本', exact: true }).click()
   const reloadDialog = page.getByRole('dialog', { name: '放弃未保存的 Flow 草稿？' })
+  await capturePreview(reloadDialog, info, 'native-flow-discard-confirmation')
   await reloadDialog.getByRole('button', { name: '取消', exact: true }).click()
   await expect(panel.getByLabel('对白 1 文本', { exact: true })).toHaveValue('Retained conflict draft')
   await panel.getByRole('button', { name: '载入项目版本', exact: true }).click()
@@ -217,6 +222,7 @@ test('native JSON Flow creates and edits a conditional crosschapter branch, reta
   await expect(player.locator('.dialog-content:visible')).toContainText('Edited native dialogue.')
   await expect.poll(async () => (await playerState(player)).audio.tracks.filter(track => track.status === 'playing').length).toBe(2)
   expect((await playerState(player)).current?.data?.lineId).toBe(lineId)
+  await capturePreview(player, info, 'native-flow-player-edited-dialogue')
   for (let index = 0; index < 6; index++) {
     const previous = (await playerState(player)).current?.id
     for (let attempt = 0; attempt < 2 && (await playerState(player)).current?.id === previous; attempt++)
@@ -232,8 +238,10 @@ test('native JSON Flow creates and edits a conditional crosschapter branch, reta
   expect(state.audio.errors).toEqual([])
   expect(JSON.stringify(state.game)).not.toContain(privateMarker)
   expect(JSON.stringify(state.game)).not.toContain(originalChapter.nodes.find((node: any) => node.id === 'node_01').imagePrompt)
-  await player.screenshot({ path: join(artifactRoot, `native-flow-player-${info.project.name}.png`), animations: 'disabled' })
-  await writeFile(join(artifactRoot, `native-flow-proof-${info.project.name}.json`), JSON.stringify({ lineId, narrationId, chapterIds: state.game.chapters.map((chapter: any) => chapter.id), diagnostics: state.diagnostics, audio: state.audio, sourceIdsPreserved: true, authorMetadataPrivate: true, editorErrors: errors }, null, 2))
+  await capturePreview(player, info, 'native-flow-player-cross-chapter-ending')
+  const proofPath = info.outputPath('native-flow-proof.json')
+  await writeFile(proofPath, JSON.stringify({ lineId, narrationId, chapterIds: state.game.chapters.map((chapter: any) => chapter.id), diagnostics: state.diagnostics, audio: state.audio, sourceIdsPreserved: true, authorMetadataPrivate: true, editorErrors: errors }, null, 2))
+  await info.attach('native-flow-roundtrip-proof', { path: proofPath, contentType: 'application/json' })
   expect(errors).toEqual([])
   await player.close()
 })

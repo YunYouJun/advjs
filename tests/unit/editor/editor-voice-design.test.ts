@@ -243,6 +243,74 @@ describe('editor shared voice design workflow', () => {
     expect(studio.dirty.value).toBe(true)
   })
 
+  it('waits for an in-flight refresh before planning with its current revision instead of dropping the click', async () => {
+    let complete!: (snapshot: VoiceDesignSnapshot) => void
+    vi.mocked(port.read).mockReturnValueOnce(new Promise(resolve => complete = resolve))
+    const refresh = studio.reload()
+    expect(studio.reload()).toBe(refresh)
+    expect(studio.loading.value).toBe(true)
+    expect(studio.canPlan.value).toBe(true)
+    const planning = studio.plan()
+    expect(studio.pending.value).toBe(true)
+    expect(port.planPreview).not.toHaveBeenCalled()
+    const updated = { ...initial(), revision: 'after-profile-application' }
+    complete(updated)
+    await Promise.all([refresh, planning])
+    expect(port.planPreview).toHaveBeenCalledTimes(1)
+    expect(port.planPreview).toHaveBeenCalledWith(expect.objectContaining({ expectedRevision: updated.revision }), expect.any(AbortSignal))
+    expect(studio.review.value?.expectedRevision).toBe(updated.revision)
+    expect(studio.loading.value).toBe(false)
+    expect(studio.pending.value).toBe(false)
+    expect(port.executePreview).not.toHaveBeenCalled()
+  })
+
+  it.each(['voice', 'provider', 'configuration'])('revalidates %s availability after a queued plan refresh', async (removed) => {
+    let complete!: (snapshot: VoiceDesignSnapshot) => void
+    vi.mocked(port.read).mockReturnValueOnce(new Promise(resolve => complete = resolve))
+    const refresh = studio.reload()
+    const planning = studio.plan()
+    const updated = initial()
+    if (removed === 'voice')
+      updated.library.voices[0]!.id = 'different-voice'
+    else if (removed === 'provider')
+      updated.providers = []
+    else
+      updated.configured = false
+    complete(updated)
+    await Promise.all([refresh, planning])
+    expect(port.planPreview).not.toHaveBeenCalled()
+    expect(studio.review.value).toBeUndefined()
+    expect(studio.status.value).toContain('项目输入已变化')
+    expect(studio.pending.value).toBe(false)
+  })
+
+  it('preserves a refresh failure without planning against the previous snapshot', async () => {
+    let fail!: (reason: Error) => void
+    vi.mocked(port.read).mockReturnValueOnce(new Promise((_resolve, reject) => fail = reject))
+    const refresh = studio.reload()
+    const planning = studio.plan()
+    fail(new Error('VOICE_DESIGN_CONFLICT'))
+    await Promise.all([refresh, planning])
+    expect(port.planPreview).not.toHaveBeenCalled()
+    expect(studio.error.value).toContain('VOICE_DESIGN_CONFLICT')
+    expect(studio.review.value).toBeUndefined()
+    expect(studio.pending.value).toBe(false)
+  })
+
+  it('does not dispatch a queued plan after leaving the panel during its refresh', async () => {
+    let complete!: (snapshot: VoiceDesignSnapshot) => void
+    vi.mocked(port.read).mockReturnValueOnce(new Promise(resolve => complete = resolve))
+    const refresh = studio.reload()
+    const planning = studio.plan()
+    visible.value = false
+    await flushPromises()
+    complete(initial())
+    await Promise.all([refresh, planning])
+    expect(port.planPreview).not.toHaveBeenCalled()
+    expect(studio.review.value).toBeUndefined()
+    expect(studio.pending.value).toBe(false)
+  })
+
   it('preserves an approved review across equivalent project refreshes and invalidates changed host inputs', async () => {
     studio.allowUnknownCost.value = true
     await flushPromises()
