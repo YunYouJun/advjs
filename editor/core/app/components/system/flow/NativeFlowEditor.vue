@@ -187,7 +187,7 @@ async function createChapter() {
     overflow: auto;
   }
   .native-content > :first-child {
-    height: 300px;
+    height: 400px;
     flex: none;
   }
   .native-content > :last-child {

@@ -41,6 +41,7 @@ export type FlowEditCommand
   = | { type: 'add-node', node: FlowEditNode, index?: number }
     | { type: 'update-node', nodeId: string, patch: Record<string, unknown>, remove?: string[] }
     | { type: 'move-node', nodeId: string, position: FlowEditPosition }
+    | { type: 'arrange-nodes', positions: Record<string, FlowEditPosition> }
     | { type: 'reorder-node', nodeId: string, index: number }
     | { type: 'set-entry', nodeId: string }
     | { type: 'set-title', title: string }
@@ -188,6 +189,18 @@ export function applyFlowEdit(document: FlowEditDocument, command: FlowEditComma
   }
   if (command.type === 'set-title') {
     next.title = command.title
+    return next
+  }
+  if (command.type === 'arrange-nodes') {
+    const nodesById = new Map(next.nodes.map(node => [node.id, node]))
+    for (const [id, position] of Object.entries(command.positions)) {
+      const item = nodesById.get(id)
+      if (!item)
+        throw new FlowEditError('ADV_FLOW_NODE_NOT_FOUND', `Unknown node ${id}`)
+      if (![position.x, position.y].every(value => Number.isFinite(value) && Math.abs(value) <= 1000000))
+        throw new FlowEditError('ADV_FLOW_INVALID_POSITION', 'Layout coordinates must be finite and bounded')
+      item.position = { ...((isFlowEditRecord(item.position) ? item.position : {}) as FlowEditPosition), ...position }
+    }
     return next
   }
   const node = next.nodes.find(node => node.id === command.nodeId)

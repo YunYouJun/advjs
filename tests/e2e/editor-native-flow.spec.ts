@@ -25,6 +25,26 @@ async function capturePreview(target: Locator | Page, info: TestInfo, name: stri
   await info.attach(name, { path, contentType: 'image/png' })
 }
 
+async function assertReadableGraph(panel: Locator) {
+  const canvas = panel.getByTestId('native-flow-canvas')
+  await expect.poll(() => canvas.locator('.native-flow-node').evaluateAll((elements) => {
+    const rectangles = elements.map(element => element.getBoundingClientRect())
+    return rectangles.length > 0 && rectangles.every((a, index) => rectangles.slice(index + 1).every(b => a.right <= b.left + 1 || b.right <= a.left + 1 || a.bottom <= b.top + 1 || b.bottom <= a.top + 1))
+  })).toBe(true)
+  await expect.poll(() => canvas.locator('.vue-flow__node.selected .native-flow-node').evaluate(element => element.getBoundingClientRect().width)).toBeGreaterThanOrEqual(190)
+  await expect.poll(() => canvas.locator('[data-native-edge]').count()).toBeGreaterThan(0)
+  await expect.poll(() => canvas.locator('[data-route-clear="false"]').count()).toBe(0)
+  await expect.poll(() => canvas.evaluate((element) => {
+    const nodes = [...element.querySelectorAll('.native-flow-node')].map(node => node.getBoundingClientRect())
+    return [...element.querySelectorAll('.native-edge-badge')].every((badge) => {
+      const a = badge.getBoundingClientRect()
+      return nodes.every(b => a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top)
+    })
+  })).toBe(true)
+  await expect(canvas.locator('.native-canvas-legend')).toContainText('叙事')
+  await expect(canvas.locator('.native-canvas-legend')).toContainText('分支')
+}
+
 async function choose(page: Page, locator: Locator, value: string) {
   await locator.click()
   await page.getByRole('option', { name: value, exact: true }).click()
@@ -167,9 +187,14 @@ test('native JSON Flow creates and edits a conditional crosschapter branch, reta
   await panel.getByLabel('选项 choice-1 目标', { exact: true }).press('Tab')
   await panel.getByTestId('native-flow-save').click()
   await expect.poll(async () => JSON.parse(await readFile(join(root, chapterPath), 'utf8')).nodes.find((node: any) => node.id === 'node_02').choices[0].target).toBe(`edited-ending#${narrationId}`)
+  await assertReadableGraph(panel)
   await capturePreview(panel, info, 'native-flow-editor-normal')
+  await panel.getByTestId('native-flow-overview').click()
+  await capturePreview(panel, info, 'native-flow-editor-overview')
+  await panel.getByTestId('native-flow-focus').click()
   const narrow = await page.addStyleTag({ content: '.native-flow-editor { width: 320px !important; max-width: 320px !important; }' })
   await expect.poll(() => panel.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true)
+  await assertReadableGraph(panel)
   await capturePreview(panel, info, 'native-flow-editor-narrow')
   await panel.getByLabel('选项 choice-1 条件', { exact: true }).scrollIntoViewIfNeeded()
   await expect(panel.getByLabel('选项 choice-1 条件', { exact: true })).toBeInViewport()
@@ -244,4 +269,59 @@ test('native JSON Flow creates and edits a conditional crosschapter branch, reta
   await info.attach('native-flow-roundtrip-proof', { path: proofPath, contentType: 'application/json' })
   expect(errors).toEqual([])
   await player.close()
+})
+
+test('native Flow arranges dense cyclic branches without changing story semantics and keeps selected nodes readable', async ({ page }, info) => {
+  const errors: string[] = []
+  page.on('pageerror', error => errors.push(error.message))
+  const dense = {
+    schemaVersion: 1,
+    id: 'intro',
+    title: 'Dense branch layout preview',
+    startNodeId: 'hub',
+    nodes: [
+      { id: 'hub', type: 'choices', position: { x: 0, y: 0 }, choices: Array.from({ length: 8 }, (_, index) => ({ id: `route-${index}`, text: `Route ${index + 1}: a deliberately long, readable branch description`, target: `scene-${index}`, ...(index === 0 ? { when: 'ready == true' } : {}) })) },
+      ...Array.from({ length: 8 }, (_, index) => ({ id: `scene-${index}`, type: 'narration', lineId: `line_019d137e-7abc-7000-8000-${String(index + 20).padStart(12, '0')}`, text: `Branch ${index + 1} returns to the decision after a short scene.`, position: { x: 0, y: 0 }, next: index === 7 ? 'scene-7' : 'hub' })),
+    ],
+  }
+  await writeFile(join(root, chapterPath), `${JSON.stringify(dense, null, 2)}\n`)
+  await page.goto(editorUrl)
+  const main = page.locator('[data-editor-region="main"]')
+  await main.getByRole('tab', { name: '流程图', exact: true }).click()
+  const panel = main.getByTestId('native-flow-editor')
+  await selectNode(page, panel, 'hub')
+  await assertReadableGraph(panel)
+  await expect(panel.getByTestId('native-flow-save')).toBeDisabled()
+  expect(JSON.parse(await readFile(join(root, chapterPath), 'utf8'))).toEqual(dense)
+  await capturePreview(panel, info, 'native-flow-dense-selected')
+  await panel.getByTitle('放大', { exact: true }).click()
+  await expect(panel.getByTestId('native-flow-canvas')).toHaveAttribute('data-view-mode', 'manual')
+  const manualZoom = await panel.locator('.native-zoom').textContent()
+  await page.setViewportSize({ width: 1360, height: 1000 })
+  await expect(panel.locator('.native-zoom')).toHaveText(manualZoom!)
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await panel.getByTestId('native-flow-overview').click()
+  await capturePreview(panel, info, 'native-flow-dense-overview')
+  await panel.getByTestId('native-flow-arrange').click()
+  await assertReadableGraph(panel)
+  await panel.getByTestId('native-flow-save').click()
+  await expect(panel.getByTestId('native-flow-save')).toBeDisabled()
+  const saved = JSON.parse(await readFile(join(root, chapterPath), 'utf8'))
+  const withoutPositions = (document: typeof dense) => document.nodes.map(({ position: _position, ...node }) => node)
+  expect(withoutPositions(saved)).toEqual(withoutPositions(dense))
+  expect(new Set(saved.nodes.map((node: any) => `${node.position.x}:${node.position.y}`)).size).toBe(saved.nodes.length)
+  await page.reload()
+  await main.getByRole('tab', { name: '流程图', exact: true }).click()
+  await selectNode(page, panel, 'hub')
+  await assertReadableGraph(panel)
+  const narrow = await page.addStyleTag({ content: '.native-flow-editor { width: 320px !important; max-width: 320px !important; }' })
+  await assertReadableGraph(panel)
+  await expect.poll(() => panel.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true)
+  await capturePreview(panel, info, 'native-flow-dense-narrow')
+  await narrow.evaluate(element => element.remove())
+  await page.evaluate(() => document.documentElement.classList.remove('dark'))
+  await panel.getByTestId('native-flow-focus').click()
+  await assertReadableGraph(panel)
+  await capturePreview(panel, info, 'native-flow-dense-light')
+  expect(errors).toEqual([])
 })
