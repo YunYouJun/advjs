@@ -14,6 +14,7 @@ withDefaults(defineProps<{
 
 const gameConfig = useGameConfig()
 const { $adv } = useAdvContext()
+const startConfig = computed(() => ({ ...$adv.config.value, viewportFit: 'responsive' as const }))
 const theme = computed(() => ({ ...$adv.themeConfig.value, ui: { colorScheme: 'dark' as const, ...$adv.themeConfig.value?.ui } }))
 const app = useAppStore()
 const { t } = useGameControlsI18n()
@@ -22,7 +23,7 @@ const { t } = useGameControlsI18n()
 <template>
   <div class="animate__animated animate__fadeIn h-full w-full">
     <AdvAdblock />
-    <AdvContainer class="h-full w-full" :config="$adv.config.value" :theme="theme">
+    <AdvContainer class="h-full w-full" :config="startConfig" :theme="theme">
       <template #controls>
         <GameIconButton class="adv-start-rotate" :label="t('controls.rotate')" :description="t('hints.rotate')" @click="app.rotate()">
           <span class="i-ri-clockwise-line" />

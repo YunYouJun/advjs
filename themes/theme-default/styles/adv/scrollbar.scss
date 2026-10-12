@@ -1,25 +1,21 @@
-@use 'sass:map';
-
-// scrollbar
-$scrollbar: (
-  color: #333,
-);
-
-:root {
+.adv-screen {
   --adv-scrollbar-thumb-bg-color: #333;
 }
 
-::-webkit-scrollbar {
+.adv-screen::-webkit-scrollbar,
+.adv-screen ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
-::-webkit-scrollbar-track {
+.adv-screen::-webkit-scrollbar-track,
+.adv-screen ::-webkit-scrollbar-track {
   border-radius: 4px;
   background-color: rgba(123, 123, 123, 0.1);
 }
 
-::-webkit-scrollbar-thumb {
+.adv-screen::-webkit-scrollbar-thumb,
+.adv-screen ::-webkit-scrollbar-thumb {
   border-radius: 4px;
   background-color: var(--adv-scrollbar-thumb-bg-color);
 }
