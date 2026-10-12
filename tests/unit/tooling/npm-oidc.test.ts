@@ -137,6 +137,14 @@ describe('npm OIDC release', () => {
     await writeFile(join(directory, 'packages.json'), JSON.stringify(manifest))
     await writeFile(join(directory, 'changed.tgz'), 'changed archive')
     await expect(verifyNpmArtifact(directory)).rejects.toThrow('tarball integrity mismatch')
+    const reordered = [...manifest.packages]
+    ;[reordered[1], reordered[2]] = [reordered[2], reordered[1]]
+    await writeFile(join(directory, 'packages.json'), JSON.stringify({ ...manifest, packages: reordered }))
+    await expect(verifyNpmArtifact(directory)).rejects.toThrow()
+    await expect(verifyNpmArtifact(directory, { allowHistoricalOrder: true })).rejects.toThrow('tarball integrity mismatch')
+    reordered[0].name = '@advjs/unknown'
+    await writeFile(join(directory, 'packages.json'), JSON.stringify({ ...manifest, packages: reordered }))
+    await expect(verifyNpmArtifact(directory, { allowHistoricalOrder: true })).rejects.toThrow()
   })
 
   it('configures publication and tag management for the same workflow', () => {
