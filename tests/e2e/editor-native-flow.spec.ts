@@ -41,6 +41,11 @@ async function assertReadableGraph(panel: Locator) {
       return nodes.every(b => a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top)
     })
   })).toBe(true)
+  await expect.poll(() => canvas.evaluate((element) => {
+    const viewport = element.querySelector('.native-canvas-viewport')!.getBoundingClientRect()
+    const controls = element.querySelector('.native-canvas-controls')!.getBoundingClientRect()
+    return controls.bottom <= viewport.top + 1
+  })).toBe(true)
   await expect(canvas.locator('.native-canvas-legend')).toContainText('叙事')
   await expect(canvas.locator('.native-canvas-legend')).toContainText('分支')
 }

@@ -168,6 +168,10 @@ onBeforeUnmount(() => {
       <AGUIButton title="以 100% 比例显示选中节点" @click="focus(1)">
         100%
       </AGUIButton>
+      <div class="native-canvas-controls" role="group" aria-label="缩放">
+        <AGUIIconButton icon="i-ri-add-line" title="放大" @click="zoomBy('in')" />
+        <AGUIIconButton icon="i-ri-subtract-line" title="缩小" @click="zoomBy('out')" />
+      </div>
       <span class="native-zoom">{{ Math.round(flow.viewport.value.zoom * 100) }}%</span>
     </div>
     <div class="native-canvas-viewport">
@@ -180,10 +184,6 @@ onBeforeUnmount(() => {
           <NativeFlowEdge v-bind="slot" />
         </template>
       </VueFlow>
-      <div class="native-canvas-controls">
-        <AGUIIconButton icon="i-ri-add-line" title="放大" @click="zoomBy('in')" />
-        <AGUIIconButton icon="i-ri-subtract-line" title="缩小" @click="zoomBy('out')" />
-      </div>
     </div>
     <div class="native-canvas-legend" aria-label="节点类型图例">
       <span data-category="story"><i class="i-ri-chat-1-line" aria-hidden="true" />叙事</span>
@@ -223,10 +223,7 @@ onBeforeUnmount(() => {
   font-size: 11px;
 }
 .native-canvas-controls {
-  position: absolute;
   display: flex;
-  bottom: 6px;
-  left: 6px;
   background: var(--agui-c-bg-panel);
   border: 1px solid var(--agui-c-divider);
 }
