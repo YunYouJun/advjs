@@ -605,6 +605,33 @@ Studio 最终 `4` 文件／`21` 项专项、应用类型、fixture 严格类型�
 
 本轮收尾证据目录为 `/Users/yunyou/Library/Caches/ADV.JS/issue18-closeout-20261012`；原媒体与前阶段实际 Qwen／COS 结果继续按其原证据引用。本轮新增真实模型调用、COS 写入、真人评分和物理设备验收均为 `0`。Git 提交按对白流程、音乐流程、测试隔离与本节报告分别记录；Issue 关闭评论引用实际推送的提交和 #64。
 
+## 2026-10-13 远端 CI 收尾
+
+### 失败定位与修复
+
+原提交 `b1294792` 的 [ADV.JS CI](https://github.com/YunYouJun/advjs/actions/runs/38273850114) 失败于 macOS／Windows 同一条 packed-install 断言：测试仍要求 `types → audio → assets`，实际发布图已按新增的 Audio → Assets 依赖调整为 `types → assets → audio`。两平台该文件原有其余五项通过，但后续独立脚手架步骤被阻断；不能将初始运行记作完整安装包链路通过。原 Docs、Demo、Desktop 的成功和本地验收保持其原范围。
+
+修复提交 [dfad41a0](https://github.com/YunYouJun/advjs/commit/dfad41a0b7567d4f9900a0cdd64559d02b7941ff) 仅修改测试：严格核对全部十四个公共包的成员和重复，实际拓扑继续由真实 package.json 的依赖、版本、访问及入口校验决定。新增临时原生 manifest 的反向依赖回归，确认 Assets 依赖后发布的 Audio 会被拒绝。没有修改生产协议、工作流、超时预算或跳过规则。
+
+原 packed 定向用例真实失败，修后两项通过；相关发布图单测 `12/12` 和定向 lint 通过。本机完整 packed-install `7/7` 通过、零跳过，耗时 `98.16 s`，包含实际 npx、pnpm dlx、create、已安装 Editor 与 MCP 的启动和清理。`ADVJS_PACKED_INSTALL_SKIP_BUILD=1` 与 CI 后续阶段一致，只复用已构建产物，不跳过测试；新产物构建由下列远端全新运行验证。
+
+### 修复版本的远端完整验收
+
+以下四个工作流均在修复版本 `dfad41a0b7567d4f9900a0cdd64559d02b7941ff` 的第一次运行完成，结论为 success；主 CI 的十六个 job（包括 launch-required）全部成功。
+
+| 工作流      | 运行                                                                       | 结果                             |
+| ----------- | -------------------------------------------------------------------------- | -------------------------------- |
+| ADV.JS CI   | [38276901241](https://github.com/YunYouJun/advjs/actions/runs/38276901241) | 全部十六项成功                   |
+| ADV.JS Docs | [38276901215](https://github.com/YunYouJun/advjs/actions/runs/38276901215) | 文档生产构建成功                 |
+| ADV.JS Demo | [38276901284](https://github.com/YunYouJun/advjs/actions/runs/38276901284) | 游戏构建与 Parser 浏览器冒烟成功 |
+| Desktop CI  | [38276901574](https://github.com/YunYouJun/advjs/actions/runs/38276901574) | 桌面宿主测试、类型与构建成功     |
+
+主 CI 根单测 `243` 文件／`1739` 项通过；通用 Chromium E2E `52` 项通过、`3` 项按配置跳过；Editor E2E `11` 项、完整启动旅程 `3` 文件／`10` 项、Agent 安装 `2` 项通过。Windows 和 macOS 各自完成新安装包构建、完整安装／Editor 生命周期及脚手架生成项目构建／运行；不把两平台的重复用例相加为新的独立覆盖。两端 Editor 冒烟、Editor／Studio／VRM 页面构建、类型与 lint 均通过。
+
+Demo Parser Chromium `2` 项通过。Desktop 本次只有宿主检查：脚本测试 `17` 项通过、`1` 项跳过，宿主类型与构建通过；因为修补未影响桌面打包范围，Linux package 和 full-matrix 按既有条件跳过。本次没有新增 ZIP 或全平台桌面安装包证据，先前打包产物保持其原运行归属。
+
+证据目录为 `/Users/yunyou/Library/Caches/ADV.JS/ci-audio-closeout-20261013`，保存原失败日志、真实红绿与本机完整安装日志、四工作流的精确 SHA／attempt／job 结论，以及成功日志中的测试计数和行号。原阶段音频、截图、模型和 COS 证据不改写。此次远端 CI 是构建、安装和自动化旅程验证，不增加真人音质评分、作者第二台物理设备、真实音乐生成或云端 TTS／COS 发布的验收声明；剩余范围仍按下节记录。
+
 ## 明确限制与剩余完整系统验收
 
 - 音频作者服务当前固定 `adv` 内容根。自定义根显示明确错误并禁止写入；保留已有资产 profile root，不另建或猜测项目数据。
