@@ -53,6 +53,22 @@ function setup(fetcher?: Parameters<typeof setupAdvContext>[0]['fetcher']) {
 }
 
 describe('new game session boundary', () => {
+  it('does not install a completed authoring compilation after its host request is cancelled', async () => {
+    let resolveSource!: (value: any) => void
+    const { context } = setup(() => new Promise((resolve) => {
+      resolveSource = resolve
+    }))
+    const before = context.runtime.snapshot()
+    let current = true
+    const loading = context.init({ isCurrent: () => current })
+    await vi.waitFor(() => expect(resolveSource).toBeTypeOf('function'))
+    current = false
+    resolveSource({ ok: true, status: 200, text: async () => '# Old draft\n\nMust not replace the current project.\n' })
+    await loading
+    expect(context.runtime.snapshot().state).toEqual(before.state)
+    expect(context.store.program?.id).toBe('advjs:bootstrap')
+  })
+
   it('reinitializes position, variables and history repeatedly without deleting saves or audio preferences', async () => {
     const { context, game } = setup()
     await context.init()

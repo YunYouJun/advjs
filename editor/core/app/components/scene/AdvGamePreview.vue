@@ -80,22 +80,30 @@ async function refreshPreview() {
   </section>
   <AEDesktopGamePreview v-else-if="desktop" :visible="visible" />
   <template v-else>
-    <div class="flex h-full w-full items-center justify-center" relative>
-      <AdvGame v-if="show" class="h-full w-full" />
-      <div v-else class="preview-start">
-        <AGUIButton theme="primary" :loading="pending" @click="runPreviewAction(startSourcePreview)">
-          {{ zh ? '启动项目预览' : 'Start source preview' }}
+    <div class="flex flex-col h-full w-full">
+      <div v-if="gameStore.flowDraftPreview" class="preview-draft-toolbar" data-testid="flow-draft-preview-banner">
+        <span>{{ zh ? 'Flow 草稿试玩 · 未写入源文件 · 试玩存档仅当前会话有效' : 'Flow draft preview · source unchanged · saves are session-only' }}</span>
+        <AGUIButton icon="i-ri-node-tree" @click="layout.select('main', 'advjs.core/flow-editor')">
+          {{ zh ? '返回 Flow 编辑' : 'Return to Flow' }}
         </AGUIButton>
       </div>
-      <div v-if="hasFileChanges && show" class="preview-update">
-        <span>{{ zh ? '项目文件已更新' : 'Project files changed' }}</span>
-        <AGUIButton icon="i-ri-refresh-line" :loading="pending" @click="runPreviewAction(refreshPreview)">
-          {{ zh ? '刷新预览' : 'Refresh preview' }}
-        </AGUIButton>
-      </div>
-      <div v-if="previewError" class="preview-error" role="alert">
-        <p>{{ previewError }}</p>
-        <AECopyErrorButton source="Game preview" :error="previewErrorDetails ?? previewError" />
+      <div class="flex flex-1 min-h-0 w-full items-center justify-center relative">
+        <AdvGame v-if="show" class="h-full w-full" />
+        <div v-else class="preview-start">
+          <AGUIButton theme="primary" :loading="pending" @click="runPreviewAction(startSourcePreview)">
+            {{ zh ? '启动项目预览' : 'Start source preview' }}
+          </AGUIButton>
+        </div>
+        <div v-if="hasFileChanges && show" class="preview-update">
+          <span>{{ zh ? '项目文件已更新' : 'Project files changed' }}</span>
+          <AGUIButton icon="i-ri-refresh-line" :loading="pending" @click="runPreviewAction(refreshPreview)">
+            {{ zh ? '刷新预览' : 'Refresh preview' }}
+          </AGUIButton>
+        </div>
+        <div v-if="previewError" class="preview-error" role="alert">
+          <p>{{ previewError }}</p>
+          <AECopyErrorButton source="Game preview" :error="previewErrorDetails ?? previewError" />
+        </div>
       </div>
     </div>
   </template>
@@ -103,6 +111,19 @@ async function refreshPreview() {
 </template>
 
 <style scoped>
+.preview-draft-toolbar {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 8px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--agui-c-divider);
+  background: var(--agui-c-bg-panel);
+  color: var(--agui-c-text-2);
+  font-size: 12px;
+}
 .preview-empty {
   display: flex;
   height: 100%;

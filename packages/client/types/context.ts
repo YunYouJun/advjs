@@ -29,7 +29,8 @@ export interface AdvContext {
   $audio: ReturnType<typeof useAdvAudio>
   $auto: ReturnType<typeof useAdvAuto>
 
-  init: () => Promise<void>
+  /** A host may cancel a pending preview without installing an obsolete program. */
+  init: (options?: { isCurrent?: () => boolean, persistence?: boolean }) => Promise<void>
   /**
    * 运行时变量
    */

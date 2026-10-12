@@ -10,7 +10,7 @@ import { defaultAdvConfig, defaultGameConfig } from '../../../packages/advjs/sha
 let context: AdvContext
 let client: { loadStatus: number }
 vi.mock('@advjs/client', () => ({
-  AdvGameLoadStatusEnum: { FAIL: -1, CONFIG_LOADED: 1, SUCCESS: 2 },
+  AdvGameLoadStatusEnum: { FAIL: -1, IDLE: 0, CONFIG_LOADED: 1, SUCCESS: 2 },
   useAdvContext: () => ({ $adv: context }),
   useGameStore: () => client,
 }))
@@ -101,6 +101,53 @@ function browserProject(name: string, config?: Record<string, unknown>) {
 }
 
 describe('editor project preview configuration', () => {
+  it('cancels an old draft before a delayed config fetch can overwrite a newer project preview', async () => {
+    let resolveLibrary!: (value: Response) => void
+    vi.stubGlobal('fetch', vi.fn(() => new Promise<Response>((resolve) => {
+      resolveLibrary = resolve
+    })))
+    const stale = game.loadGameFromConfig({ ...structuredClone(defaultGameConfig), title: 'Old draft', bgm: { library: '/old-bgm.json' } }, { start: false })
+    const latest = { ...structuredClone(defaultGameConfig), title: 'New source project' }
+    expect(await game.loadGameFromConfig(latest)).toBe(true)
+    game.flowDraftPreview = { path: 'adv/chapters/new.chapter.json', chapterId: 'new', nodeId: 'hello' }
+    resolveLibrary({ json: async () => ({}) } as Response)
+    expect(await stale).toBe(false)
+    expect(game.gameConfig.title).toBe('New source project')
+    expect(initialized.map(item => item.title)).toEqual(['New source project'])
+    expect(game.flowDraftPreview?.chapterId).toBe('new')
+  })
+
+  it('passes cancellation into initialization and never starts or reports an obsolete draft as ready', async () => {
+    let finishInit!: () => void
+    let draftIsCurrent!: () => boolean
+    context.init = vi.fn().mockImplementationOnce((options) => {
+      draftIsCurrent = options.isCurrent
+      return new Promise<void>((resolve) => {
+        finishInit = resolve
+      })
+    }).mockResolvedValue(undefined)
+    const config = { ...structuredClone(defaultGameConfig), chapters: [{ id: 'intro', title: 'Intro', nodes: [{ id: 'end', type: 'end' as const }] }] }
+    const stale = game.loadGameFromConfig({ ...config, title: 'Draft' }, { start: false })
+    expect(draftIsCurrent()).toBe(true)
+    await game.loadGameFromConfig({ ...config, title: 'Current project' })
+    expect(draftIsCurrent()).toBe(false)
+    finishInit()
+    expect(await stale).toBe(false)
+    expect(context.runtime.start).toHaveBeenCalledOnce()
+    expect(game.gameConfig.title).toBe('Current project')
+    expect(client.loadStatus).toBe(2)
+  })
+
+  it('clears the draft marker on a normal source load or project replacement', async () => {
+    game.flowDraftPreview = { path: 'adv/chapters/intro.chapter.json', chapterId: 'intro', nodeId: 'hello' }
+    await game.loadGameFromConfig(structuredClone(defaultGameConfig))
+    expect(game.flowDraftPreview).toBeUndefined()
+    game.flowDraftPreview = { path: 'adv/chapters/intro.chapter.json', chapterId: 'intro', nodeId: 'hello' }
+    project.project = {} as any
+    expect(game.flowDraftPreview).toBeUndefined()
+    expect(client.loadStatus).toBe(0)
+  })
+
   it('applies declared avatar options before preview initialization and respects a later explicit disable', async () => {
     localStorage.setItem('host-theme-preference', 'dark')
     await project.openBrowserProject(browserProject('avatars-on', { showCharacterAvatar: true, viewportFit: 'responsive' }))

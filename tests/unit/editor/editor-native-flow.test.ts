@@ -265,3 +265,116 @@ describe('editor native JSON Flow authoring', () => {
     expect(document.nodes[0]?.choices).toEqual([{ id: 'yes', text: 'Continue', target: 'end', when: 'ready == true', authorData: { keep: true } }])
   })
 })
+
+describe('native Flow AI proposal review and draft adoption', () => {
+  async function ready() {
+    // A reachable ending keeps strict Flow static validation meaningful.
+    const document = { ...chapter, nodes: chapter.nodes.map(node => node.id === 'hello' ? { ...node, next: 'end' } : node) }
+    state.project.project.files[path] = serializeFlowDocument(document)
+    const { api } = authoring()
+    await vi.waitFor(() => expect(api.document.value?.id).toBe('intro'))
+    await flushPromises()
+    const request = JSON.parse(await api.proposalTemplate())
+    request.commands = [{ type: 'update-node', nodeId: 'hello', patch: { text: 'AI proposed dialogue' } }]
+    return { api, request }
+  }
+
+  it('reviews without writes, adopts once with original CAS and permits human tweaks, undo and save', async () => {
+    const { api, request } = await ready()
+    const before = JSON.stringify(state.project.project.files)
+    await api.reviewProposal(request)
+    expect(api.proposal.value?.plan.valid).toBe(true)
+    expect(api.document.value?.nodes[0]?.text).toBe('Hello')
+    expect(JSON.stringify(state.project.project.files)).toBe(before)
+    expect(state.project.writeProjectFiles).not.toHaveBeenCalled()
+    const revision = api.current.value!.snapshot.revision
+    await api.loadProposal()
+    expect(api.document.value?.nodes[0]?.text).toBe('AI proposed dialogue')
+    expect(api.selectedLineId.value).toBe(lineId)
+    expect(api.current.value?.snapshot.revision).toBe(revision)
+    expect(api.dirty.value).toBe(true)
+    api.history('undo')
+    expect(api.document.value?.nodes[0]?.text).toBe('Hello')
+    api.history('redo')
+    api.edit({ type: 'update-node', nodeId: 'hello', patch: { text: 'Human final dialogue' } })
+    expect(await api.save()).toBe(true)
+    await api.open(path, true)
+    expect(api.document.value?.nodes[0]?.text).toBe('Human final dialogue')
+    expect(api.document.value?.nodes[0]?.lineId).toBe(lineId)
+    expect(api.document.value?.nodes[0]?.metadata).toEqual({ retain: true })
+  })
+
+  it('retains human drafts and rejects malformed or invalid proposals without writes', async () => {
+    const { api, request } = await ready()
+    api.edit({ type: 'set-title', title: 'Human draft' })
+    await api.reviewProposal(request)
+    expect(api.error.value).toContain('先保存或放弃')
+    expect(api.document.value?.title).toBe('Human draft')
+    api.history('undo')
+    await api.reviewProposal({ ...request, commands: [{ type: 'connect', nodeId: 'hello', target: 'missing' }] })
+    expect(api.proposal.value?.plan.valid).toBe(false)
+    await api.loadProposal()
+    expect(api.dirty.value).toBe(false)
+    api.dismissProposal()
+    expect(api.proposal.value).toBeUndefined()
+    await api.reviewProposal({ ...request, commands: [{ type: 'unknown' }] })
+    expect(api.error.value).toBeTruthy()
+    expect(state.project.writeProjectFiles).not.toHaveBeenCalled()
+  })
+
+  it('checks whole-project changes both after review and after adoption, preserving draft', async () => {
+    const { api, request } = await ready()
+    await api.reviewProposal(request)
+    const gamePath = 'adv/settings/game.json'
+    const original = state.project.project.files[gamePath]
+    state.project.project.files[gamePath] = JSON.stringify({ title: 'External author' })
+    await api.loadProposal()
+    expect(api.error.value).toContain('SOURCE_CONFLICT')
+    expect(api.dirty.value).toBe(false)
+    state.project.project.files[gamePath] = original
+    await api.reviewProposal(request)
+    await api.loadProposal()
+    state.project.project.files[gamePath] = JSON.stringify({ title: 'Second external edit' })
+    expect(await api.save()).toBe(false)
+    expect(api.error.value).toContain('SOURCE_CONFLICT')
+    expect(api.document.value?.nodes[0]?.text).toBe('AI proposed dialogue')
+    expect(api.dirty.value).toBe(true)
+    expect(state.project.writeProjectFiles).not.toHaveBeenCalled()
+  })
+
+  it('cancels an in-flight review when proposal input is dismissed or replaced', async () => {
+    const { api, request } = await ready()
+    const files = { ...state.project.project.files }
+    let release!: (value: { files: typeof files }) => void
+    state.project.workspace.readDocuments = () => new Promise((resolve) => {
+      release = resolve
+    })
+    const pending = api.reviewProposal(request)
+    await flushPromises()
+    api.dismissProposal()
+    release({ files })
+    await pending
+    expect(api.proposal.value).toBeUndefined()
+    expect(api.loading.value).toBe(false)
+    expect(api.dirty.value).toBe(false)
+    expect(state.project.writeProjectFiles).not.toHaveBeenCalled()
+  })
+
+  it('ignores a review read completed after workspace replacement', async () => {
+    const { api, request } = await ready()
+    const files = { ...state.project.project.files }
+    let release!: (value: { files: typeof files }) => void
+    state.project.workspace.readDocuments = () => new Promise((resolve) => {
+      release = resolve
+    })
+    const pending = api.reviewProposal(request)
+    await flushPromises()
+    state.project.workspace = { writeFiles: vi.fn(), readDocuments: async () => ({ files }) }
+    await flushPromises()
+    release({ files })
+    await pending
+    expect(api.proposal.value).toBeUndefined()
+    expect(api.dirty.value).toBe(false)
+    expect(state.project.writeProjectFiles).not.toHaveBeenCalled()
+  })
+})

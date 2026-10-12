@@ -58,6 +58,49 @@ async function selectNode(page: Page, panel: Locator, id: string) {
   await panel.getByRole('combobox', { name: '选中节点', exact: true }).click()
   await page.getByRole('option').filter({ hasText: new RegExp(` · ${id}$`, 'u') }).click()
 }
+interface NativeProposalFixture {
+  schemaVersion: 1
+  path: string
+  expectedRevision: string
+  projectRevision: string
+  commands: Record<string, unknown>[]
+}
+async function openProposal(page: Page) {
+  await page.goto(editorUrl)
+  const main = page.locator('[data-editor-region="main"]')
+  await main.getByRole('tab', { name: '流程图', exact: true }).click()
+  const panel = main.getByTestId('native-flow-editor')
+  await expect(panel.getByRole('combobox', { name: 'JSON 章节' })).toHaveText('intro.chapter.json')
+  await selectNode(page, panel, 'node_01')
+  const proposal = panel.getByTestId('native-flow-proposal')
+  await proposal.locator(':scope > summary').click()
+  await expect(proposal).toHaveAttribute('open', '')
+  return { main, panel, proposal }
+}
+async function proposalFixture(proposal: Locator, text: string): Promise<NativeProposalFixture> {
+  await proposal.getByTestId('native-proposal-template').click()
+  const input = proposal.getByTestId('native-proposal-input')
+  await expect(input).toHaveValue(/"projectRevision"/u)
+  const template: NativeProposalFixture = JSON.parse(await input.inputValue())
+  expect(template).toEqual({ schemaVersion: 1, path: chapterPath, expectedRevision: expect.stringMatching(/^[a-f0-9]{64}$/u), projectRevision: expect.stringMatching(/^sha256:[a-f0-9]{64}$/u), commands: [] })
+  // A deterministic, local JSON fixture exercises the AI proposal contract without
+  // invoking an external model or claiming a live-model acceptance result.
+  return { ...template, commands: [{ type: 'update-dialogue', nodeId: 'node_01', lineId, patch: { text } }, { type: 'set-title', title: 'Reviewed proposal introduction' }] }
+}
+async function reviewProposal(proposal: Locator, request: NativeProposalFixture) {
+  await proposal.getByTestId('native-proposal-input').fill(JSON.stringify(request, null, 2))
+  await proposal.getByTestId('native-proposal-review').click()
+  return proposal.getByTestId('native-proposal-review-result')
+}
+async function editorPlayerState(page: Page) {
+  return page.evaluate(() => {
+    const root = document.getElementById('__nuxt') as HTMLElement & {
+      __vue_app__: { config: { globalProperties: { $pinia: { _s: Map<string, unknown> } } } }
+    }
+    const runtime = root.__vue_app__.config.globalProperties.$pinia._s.get('@advjs/client/adv') as AdvContext['store']
+    return { current: runtime.current, status: runtime.state.status, cursor: runtime.state.cursor }
+  })
+}
 async function playerState(page: Page) {
   return page.evaluate(() => {
     const app = (document.querySelector('#app') as unknown as { __vue_app__: { _context: { provides: Record<string, AdvContext> } } }).__vue_app__
@@ -204,7 +247,7 @@ test('native JSON Flow creates and edits a conditional crosschapter branch, reta
   await panel.getByLabel('选项 choice-1 条件', { exact: true }).scrollIntoViewIfNeeded()
   await expect(panel.getByLabel('选项 choice-1 条件', { exact: true })).toBeInViewport()
   await capturePreview(panel, info, 'native-flow-editor-narrow-properties')
-  await narrow.evaluate(element => element.remove())
+  await narrow.evaluate(element => (element as HTMLElement).remove())
   await selectNode(page, panel, 'node_01')
   await panel.getByLabel('对白 1 文本', { exact: true }).fill('Retained conflict draft')
   const saved = JSON.parse(await readFile(join(root, chapterPath), 'utf8'))
@@ -331,10 +374,219 @@ test('native Flow arranges dense cyclic branches without changing story semantic
   await assertReadableGraph(panel)
   await expect.poll(() => panel.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true)
   await capturePreview(panel, info, 'native-flow-dense-narrow')
-  await narrow.evaluate(element => element.remove())
+  await narrow.evaluate(element => (element as HTMLElement).remove())
   await page.evaluate(() => document.documentElement.classList.remove('dark'))
   await panel.getByTestId('native-flow-focus').click()
   await assertReadableGraph(panel)
   await capturePreview(panel, info, 'native-flow-dense-light')
   expect(errors).toEqual([])
 })
+
+test('native Flow reviews a deterministic proposal, previews an unsaved human tweak and roundtrips through the real player', async ({ page, context }, info) => {
+  test.setTimeout(120_000)
+  const errors: string[] = []
+  page.on('pageerror', error => errors.push(error.message))
+  const baseline = await readFile(join(root, chapterPath), 'utf8')
+  const baselineSettings = await readFile(join(root, 'adv/settings/game.json'), 'utf8')
+  const originalText = originalChapter.nodes.find((node: any) => node.id === 'node_01').dialogues[0].text
+  const proposedText = 'Deterministic proposal dialogue, awaiting the author’s review.'
+  const finalText = 'Human-polished native proposal dialogue.'
+  const { main, panel, proposal } = await openProposal(page)
+  const request = await proposalFixture(proposal, proposedText)
+  await info.attach('native-flow-deterministic-proposal-fixture', { body: JSON.stringify({ kind: 'deterministic JSON fixture; no external model invocation', request }, null, 2), contentType: 'application/json' })
+
+  const review = await reviewProposal(proposal, request)
+  await expect(review).toContainText('校验通过，尚未写入文件')
+  await expect(review).toContainText('node_01')
+  await expect(review).toContainText('title')
+  await expect(proposal.getByTestId('native-proposal-load')).toBeEnabled()
+  await review.getByText('查看源文件差异', { exact: true }).click()
+  const diff = review.locator('.proposal-diff')
+  await expect(diff.locator('pre')).toHaveCount(2)
+  await expect(diff.locator('pre').first()).toHaveText(baseline)
+  const proposedDocument = JSON.parse((await diff.locator('pre').last().textContent())!)
+  expect(proposedDocument.nodes.find((node: any) => node.id === 'node_01').dialogues[0]).toMatchObject({ lineId, text: proposedText })
+  await expect(diff.locator('input, textarea, [contenteditable="true"]')).toHaveCount(0)
+  await expect(panel.getByLabel('对白 1 文本', { exact: true })).toHaveValue(originalText)
+  await expect(panel.getByTestId('native-flow-save')).toBeDisabled()
+  expect(await readFile(join(root, chapterPath), 'utf8')).toBe(baseline)
+  expect(await readFile(join(root, 'adv/settings/game.json'), 'utf8')).toBe(baselineSettings)
+  await capturePreview(panel, info, 'native-flow-proposal-review-normal')
+  const narrow = await page.addStyleTag({ content: '.native-flow-editor { width: 320px !important; max-width: 320px !important; }' })
+  await expect.poll(async () => Math.round((await panel.boundingBox())!.width)).toBe(320)
+  await expect.poll(() => panel.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true)
+  await expect.poll(() => proposal.evaluate(element => element.scrollWidth <= element.clientWidth + 1)).toBe(true)
+  await capturePreview(panel, info, 'native-flow-proposal-review-narrow')
+  await narrow.evaluate(element => (element as HTMLElement).remove())
+
+  await review.getByRole('button', { name: '取消比较', exact: true }).click()
+  await expect(review).not.toBeVisible()
+  await expect(panel.getByTestId('native-flow-undo')).toBeDisabled()
+  await expect(panel.getByLabel('对白 1 文本', { exact: true })).toHaveValue(originalText)
+  expect(await readFile(join(root, chapterPath), 'utf8')).toBe(baseline)
+  await proposal.getByTestId('native-proposal-review').click()
+  await expect(review).toContainText('校验通过，尚未写入文件')
+  await proposal.getByTestId('native-proposal-load').click()
+  await expect(panel.getByLabel('对白 1 文本', { exact: true })).toHaveValue(proposedText)
+  await expect(panel.getByLabel('章节标题', { exact: true })).toHaveValue('Reviewed proposal introduction')
+  await expect(panel.getByTestId('native-flow-save')).toBeEnabled()
+  expect(await readFile(join(root, chapterPath), 'utf8')).toBe(baseline)
+
+  // Both proposal commands are adopted as one reversible authoring operation.
+  await panel.getByTestId('native-flow-undo').click()
+  await expect(panel.getByLabel('对白 1 文本', { exact: true })).toHaveValue(originalText)
+  await expect(panel.getByLabel('章节标题', { exact: true })).toHaveValue(originalChapter.title)
+  await expect(panel.getByTestId('native-flow-undo')).toBeDisabled()
+  await expect(panel.getByTestId('native-flow-save')).toBeDisabled()
+  await panel.getByTestId('native-flow-redo').click()
+  await expect(panel.getByLabel('对白 1 文本', { exact: true })).toHaveValue(proposedText)
+  await expect(panel.getByLabel('章节标题', { exact: true })).toHaveValue('Reviewed proposal introduction')
+  await expect(proposal.getByTestId('native-proposal-review')).toBeDisabled()
+  await expect(proposal.getByTestId('native-proposal-template')).toBeDisabled()
+  await expect(proposal).toContainText('当前有未保存草稿')
+  await panel.getByLabel('对白 1 文本', { exact: true }).fill(finalText)
+  await expect(panel.getByTestId('native-flow-preview')).toBeEnabled()
+  await capturePreview(panel, info, 'native-flow-proposal-human-draft')
+
+  await panel.getByTestId('native-flow-preview').click()
+  const scene = main.getByRole('tabpanel', { name: '游戏', exact: true })
+  await expect(scene).toBeVisible()
+  await expect(scene.getByTestId('flow-draft-preview-banner')).toContainText('Flow 草稿试玩 · 未写入源文件')
+  await expect.poll(async () => (await editorPlayerState(page)).current?.data?.text).toBe(finalText)
+  const draftPlayback = await editorPlayerState(page)
+  expect(draftPlayback.current?.data?.lineId).toBe(lineId)
+  await expect(scene.locator('.adv-dialog-box:visible')).toContainText(finalText)
+  await capturePreview(scene, info, 'native-flow-proposal-unsaved-player')
+  expect(await readFile(join(root, chapterPath), 'utf8')).toBe(baseline)
+  expect(await readFile(join(root, 'adv/settings/game.json'), 'utf8')).toBe(baselineSettings)
+
+  await scene.getByRole('button', { name: '返回 Flow 编辑', exact: true }).click()
+  await expect(panel.getByLabel('对白 1 文本', { exact: true })).toHaveValue(finalText)
+  await panel.getByTestId('native-flow-save').click()
+  await expect(panel.getByText('JSON 章节已保存', { exact: true })).toBeVisible()
+  await expect(panel.getByTestId('native-flow-save')).toBeDisabled()
+  const saved = JSON.parse(await readFile(join(root, chapterPath), 'utf8'))
+  const expected = structuredClone(originalChapter)
+  expected.title = 'Reviewed proposal introduction'
+  expected.nodes.find((node: any) => node.id === 'node_01').dialogues[0].text = finalText
+  expect(saved).toEqual(expected)
+  expect(await readFile(join(root, 'adv/settings/game.json'), 'utf8')).toBe(baselineSettings)
+  await page.reload()
+  await main.getByRole('tab', { name: '流程图', exact: true }).click()
+  await selectNode(page, panel, 'node_01')
+  await expect(panel.getByLabel('对白 1 文本', { exact: true })).toHaveValue(finalText)
+  await expect(panel.getByLabel('章节标题', { exact: true })).toHaveValue('Reviewed proposal introduction')
+  await expect(panel.getByTestId('native-flow-save')).toBeDisabled()
+  await capturePreview(panel, info, 'native-flow-proposal-reopened')
+
+  await advBuild({ userRoot: root })
+  const player = await context.newPage()
+  player.on('pageerror', error => errors.push(error.message))
+  await player.goto(await servePlayer())
+  await player.locator('button[data-action="start_game"]').click()
+  await expect(player).toHaveURL(/\/game$/)
+  await expect.poll(async () => (await playerState(player)).current?.data?.text).toBe(finalText)
+  const playback = await playerState(player)
+  expect(playback.current?.data?.lineId).toBe(lineId)
+  expect(playback.diagnostics.filter((issue: any) => issue.severity === 'error')).toEqual([])
+  expect(JSON.stringify(playback.game)).not.toContain(privateMarker)
+  expect(JSON.stringify(playback.game)).not.toContain(originalChapter.nodes.find((node: any) => node.id === 'node_01').imagePrompt)
+  await expect(player.locator('.adv-dialog-box:visible')).toContainText(finalText)
+  await capturePreview(player, info, 'native-flow-proposal-saved-player')
+  await info.attach('native-flow-proposal-roundtrip-proof', {
+    body: JSON.stringify({ fixture: 'deterministic JSON; no external model invocation', request, lineId, proposedText, finalText, draftPlayback, savedPlayback: { current: playback.current, status: playback.status, diagnostics: playback.diagnostics }, reviewAndPreviewKeptDiskUnchanged: true, adoptionUndoneInOneStep: true, onlyApprovedFieldsChanged: true, editorErrors: errors }, null, 2),
+    contentType: 'application/json',
+  })
+  expect(errors).toEqual([])
+  await player.close()
+})
+
+test('native Flow rejects malformed, invalid and stale proposals without replacing an existing draft', async ({ page }, info) => {
+  const errors: string[] = []
+  page.on('pageerror', error => errors.push(error.message))
+  const baseline = await readFile(join(root, chapterPath), 'utf8')
+  const originalText = originalChapter.nodes.find((node: any) => node.id === 'node_01').dialogues[0].text
+  const { panel, proposal } = await openProposal(page)
+  const request = await proposalFixture(proposal, 'A valid proposal that must not overwrite a dirty draft.')
+  const invalid = { ...request, commands: [{ type: 'connect', nodeId: 'node_02', choiceId: 'choice-1', target: 'missing-proposal-target' }] }
+  const review = await reviewProposal(proposal, invalid)
+  await expect(review).toContainText('存在错误，不能载入草稿')
+  await expect(review).toContainText('ADV_RUNTIME_UNKNOWN_TARGET')
+  await expect(proposal.getByTestId('native-proposal-load')).toBeDisabled()
+  await expect(panel.getByLabel('对白 1 文本', { exact: true })).toHaveValue(originalText)
+  await expect(panel.getByTestId('native-flow-save')).toBeDisabled()
+  await capturePreview(panel, info, 'native-flow-proposal-invalid-diagnostics')
+  expect(await readFile(join(root, chapterPath), 'utf8')).toBe(baseline)
+
+  // Existing dialogue edits must use stable lineId, never positional indexes.
+  await reviewProposal(proposal, { ...request, commands: [{ type: 'update-dialogue', nodeId: 'node_01', index: 0, patch: { text: 'Rejected positional proposal' } }] })
+  await expect(panel.getByRole('alert')).toContainText('ADV_FLOW_PROPOSAL_INVALID')
+  await expect(review).not.toBeVisible()
+  await expect(panel.getByTestId('native-flow-save')).toBeDisabled()
+  for (const revision of ['expectedRevision', 'projectRevision'] as const) {
+    await reviewProposal(proposal, { ...request, [revision]: `${revision === 'projectRevision' ? 'sha256:' : ''}${'0'.repeat(64)}` })
+    await expect(panel.getByRole('alert')).toContainText('ADV_FLOW_SOURCE_CONFLICT')
+    await expect(review).not.toBeVisible()
+    await expect(panel.getByLabel('对白 1 文本', { exact: true })).toHaveValue(originalText)
+  }
+  await reviewProposal(proposal, request)
+  await expect(review).toContainText('校验通过，尚未写入文件')
+  await panel.getByLabel('对白 1 文本', { exact: true }).fill('Existing human draft must survive proposal actions.')
+  await expect(proposal.getByTestId('native-proposal-review')).toBeDisabled()
+  await expect(proposal.getByTestId('native-proposal-load')).toBeDisabled()
+  await expect(proposal.getByTestId('native-proposal-template')).toBeDisabled()
+  await expect(proposal).toContainText('当前有未保存草稿')
+  await review.getByRole('button', { name: '取消比较', exact: true }).click()
+  await expect(panel.getByLabel('对白 1 文本', { exact: true })).toHaveValue('Existing human draft must survive proposal actions.')
+  await expect(panel.getByTestId('native-flow-save')).toBeEnabled()
+  expect(await readFile(join(root, chapterPath), 'utf8')).toBe(baseline)
+  await capturePreview(panel, info, 'native-flow-proposal-dirty-draft-preserved')
+  expect(errors).toEqual([])
+})
+
+for (const changedSource of ['chapter', 'dependency'] as const) {
+  test(`native Flow preserves an adopted proposal draft when its ${changedSource} changes before save`, async ({ page }, info) => {
+    const errors: string[] = []
+    page.on('pageerror', error => errors.push(error.message))
+    const baseline = await readFile(join(root, chapterPath), 'utf8')
+    const settingsPath = join(root, 'adv/settings/game.json')
+    const baselineSettings = await readFile(settingsPath, 'utf8')
+    const { panel, proposal } = await openProposal(page)
+    const retainedText = `Retained proposal after external ${changedSource} change.`
+    const request = await proposalFixture(proposal, retainedText)
+    const review = await reviewProposal(proposal, request)
+    await expect(review).toContainText('校验通过，尚未写入文件')
+    await proposal.getByTestId('native-proposal-load').click()
+    await expect(panel.getByLabel('对白 1 文本', { exact: true })).toHaveValue(retainedText)
+    await expect(panel.getByTestId('native-flow-save')).toBeEnabled()
+    const changedPath = changedSource === 'chapter' ? join(root, chapterPath) : settingsPath
+    const external = JSON.parse(changedSource === 'chapter' ? baseline : baselineSettings)
+    if (changedSource === 'chapter')
+      external.authoring.external = 'Independent source edit after proposal adoption'
+    else
+      external.variables.externalProposalRevision = 'Independent settings edit after proposal adoption'
+    const externalContent = `${JSON.stringify(external, null, 2)}\n`
+    await writeFile(changedPath, externalContent)
+    if (changedSource === 'chapter') {
+      await expect(panel.getByText('项目源文件已经改变。', { exact: false })).toBeVisible()
+      await expect(panel.getByTestId('native-flow-save')).toBeDisabled()
+    }
+    else {
+      await panel.getByTestId('native-flow-save').click()
+      await expect(panel.getByRole('alert')).toContainText('ADV_FLOW_SOURCE_CONFLICT')
+    }
+    await expect(panel.getByLabel('对白 1 文本', { exact: true })).toHaveValue(retainedText)
+    await expect(panel.getByLabel('章节标题', { exact: true })).toHaveValue('Reviewed proposal introduction')
+    expect(await readFile(changedPath, 'utf8')).toBe(externalContent)
+    expect(await readFile(changedSource === 'chapter' ? settingsPath : join(root, chapterPath), 'utf8')).toBe(changedSource === 'chapter' ? baselineSettings : baseline)
+    await capturePreview(panel, info, `native-flow-proposal-${changedSource}-conflict`)
+    await panel.getByRole('button', { name: '载入项目版本', exact: true }).click()
+    await page.getByRole('dialog', { name: '放弃未保存的 Flow 草稿？' }).getByRole('button', { name: '取消', exact: true }).click()
+    await expect(panel.getByLabel('对白 1 文本', { exact: true })).toHaveValue(retainedText)
+    await panel.getByLabel('对白 1 文本', { exact: true }).fill(`${retainedText} Still editable.`)
+    await expect(panel.getByLabel('对白 1 文本', { exact: true })).toHaveValue(`${retainedText} Still editable.`)
+    expect(await readFile(changedPath, 'utf8')).toBe(externalContent)
+    await info.attach(`native-flow-proposal-${changedSource}-conflict-proof`, { body: JSON.stringify({ request, changedSource, draftRetained: true, externalSourcePreserved: true, editorErrors: errors }, null, 2), contentType: 'application/json' })
+    expect(errors).toEqual([])
+  })
+}

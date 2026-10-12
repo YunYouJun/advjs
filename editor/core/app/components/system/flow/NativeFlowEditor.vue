@@ -7,16 +7,25 @@ import AGUIInput from '@advjs/gui/components/input/AGUIInput.vue'
 import AGUISelect from '@advjs/gui/components/select/AGUISelect.vue'
 import { computed, ref } from 'vue'
 import { useNativeFlowAuthoring } from '../../../composables/useNativeFlowAuthoring'
+import { useNativeFlowPreview } from '../../../composables/useNativeFlowPreview'
 import { useProjectSourceNavigation } from '../../../composables/useProjectSourceNavigation'
+import { useEditorLayoutState } from '../../../extensions/layout-state'
 import { useProjectStore } from '../../../stores/useProjectStore'
 import NativeFlowCanvas from './NativeFlowCanvas.vue'
 import NativeFlowInspector from './NativeFlowInspector.vue'
+import NativeFlowProposalPanel from './NativeFlowProposalPanel.vue'
 import './styles'
 
 defineProps<{ visible?: boolean }>()
 const project = useProjectStore()
 const state = useNativeFlowAuthoring()
 const navigation = useProjectSourceNavigation()
+const layout = useEditorLayoutState()
+const preview = useNativeFlowPreview({ path: state.path, document: state.document, selectedNodeId: state.selectedNodeId, selectedLineId: state.selectedLineId })
+async function previewDraft() {
+  if (await preview.preview())
+    layout.select('main', 'advjs.core/game')
+}
 const kind = ref<FlowNodeKind>('narration')
 const newChapter = ref(false)
 const chapterId = ref('')
@@ -61,6 +70,9 @@ async function createChapter() {
       <AGUIButton theme="primary" :disabled="!state.canSave.value" :loading="state.saving.value" data-testid="native-flow-save" @click="state.save">
         保存 JSON
       </AGUIButton>
+      <AGUIButton :disabled="!preview.available.value || !state.document.value || state.loading.value || state.saving.value || preview.pending.value || state.diagnostics.value.some(issue => issue.severity === 'error')" :title="preview.unavailableReason.value || '使用初始变量定位草稿节点，不重放前序脚本或一次性音效；不写入源文件或正式存档'" data-testid="native-flow-preview" @click="previewDraft">
+        试玩选中草稿
+      </AGUIButton>
       <span>{{ state.dirty.value ? '草稿未保存' : '已保存' }}</span>
     </div>
     <AGUIDialog :open="Boolean(state.pendingReload.value)" title="放弃未保存的 Flow 草稿？" :description="state.current.value?.snapshot.content === null ? '放弃将移除尚未保存的新章节及其撤销历史。取消可继续编辑；项目文件不会被修改。' : '载入项目版本会替换当前章节的未保存修改和撤销历史。取消可继续编辑；项目文件不会被修改。'" content-class="w-md" @update:open="!$event && state.cancelReload()">
@@ -80,8 +92,8 @@ async function createChapter() {
         创建章节草稿
       </AGUIButton>
     </div>
-    <p v-if="state.error.value || navigation.error.value" class="native-flow-error" role="alert">
-      {{ state.error.value || navigation.error.value }}
+    <p v-if="state.error.value || navigation.error.value || preview.error.value" class="native-flow-error" role="alert">
+      {{ state.error.value || navigation.error.value || preview.error.value }}
     </p>
     <p v-if="state.conflict.value" class="native-flow-error" role="status">
       项目源文件已经改变。草稿仍在；请比较源文件或载入项目版本后重新编辑。
@@ -89,6 +101,7 @@ async function createChapter() {
     <p v-if="state.status.value" class="native-flow-status" role="status">
       {{ state.status.value }}
     </p>
+    <NativeFlowProposalPanel v-if="state.document.value" :state="state" @select="state.selectedNodeId.value = $event" @select-line="(nodeId, lineId) => { state.selectedNodeId.value = nodeId; state.selectedLineId.value = lineId }" />
     <div v-if="state.document.value" class="native-chapter">
       <AGUIInput :disabled="state.saving.value || state.loading.value" aria-label="章节标题" :model-value="state.document.value.title" @update:model-value="state.edit({ type: 'set-title', title: $event })" />
       <AGUISelect label="选中节点" :model-value="state.selectedNodeId.value" :options="state.document.value.nodes.map((node, index) => ({ value: node.id, label: `${index + 1} · ${node.type ?? 'dialogues'} · ${node.id}` }))" @update:model-value="state.selectedNodeId.value = String($event)" />

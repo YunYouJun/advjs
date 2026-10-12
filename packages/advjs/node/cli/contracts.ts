@@ -22,6 +22,8 @@ export const ADV_CLI_COMMANDS = [
   'voice.generate',
   'voice.bind',
   'migrate.audio',
+  'flow.read',
+  'flow.plan',
 ] as const
 
 export type AdvCliCommand = typeof ADV_CLI_COMMANDS[number]

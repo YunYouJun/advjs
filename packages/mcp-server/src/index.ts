@@ -16,6 +16,7 @@ import {
   scanFiles,
 } from 'advjs'
 import { z } from 'zod'
+import { registerFlowProposalTools } from './flow-tools'
 import { registerAdvWorkspaceApp } from './workspace-app'
 
 // Re-export for external use
@@ -270,6 +271,8 @@ export function createAdvMcpServer(options: CreateAdvMcpServerOptions = {}) {
     name: 'advjs',
     version,
   })
+
+  registerFlowProposalTools(server, { cwd, projectLoader })
 
   registerAdvWorkspaceApp(server, {
     cwd,
