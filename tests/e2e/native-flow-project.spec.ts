@@ -6,6 +6,8 @@ import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { expect, test } from '@playwright/test'
 
+test.use({ baseURL: 'http://127.0.0.1:3359' })
+
 const demoRoot = resolve(import.meta.dirname, '../../demo/flow')
 const firstLine = 'What... what happened last night? Why do I feel so strange?'
 const phoneLine = 'Who wrote this? This isn’t my handwriting... Did someone break into my phone?'

@@ -1,11 +1,11 @@
-import type { EditorBridge, EditorBridgeReadyEvent } from '../../packages/advjs/node/editor'
+import type { EditorBridge, EditorBridgeReadyEvent } from 'advjs/node'
 import { Buffer } from 'node:buffer'
 import { cp, mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import process from 'node:process'
 import { expect, test } from '@playwright/test'
-import { createEditorBridge } from '../../packages/advjs/node/editor'
+import { createEditorBridge } from 'advjs/node'
 
 const repositoryRoot = resolve(import.meta.dirname, '../..')
 let bridge: EditorBridge | undefined
@@ -191,11 +191,8 @@ test('loads, live-refreshes, resolves conflicts, and saves the source project', 
   expect((await routeReloadResponse).status()).toBe(200)
   await page.goBack()
   await expect(page.getByText('Live local workspace')).toBeVisible()
-  const startSourcePreview = page.getByRole('button', { name: 'Start source preview' })
-  await expect(startSourcePreview).toBeVisible()
-  await expect(stat(join(projectRoot, 'dist'))).rejects.toThrow()
-  await startSourcePreview.click()
-  await expect(startSourcePreview).toBeHidden({ timeout: 15_000 })
+  // The compiled project now activates the source preview during initialization.
+  await expect(page.locator('.adv-dialog-box:visible, .adv-black:visible')).toBeVisible()
   await expect(stat(join(projectRoot, 'dist'))).rejects.toThrow()
 
   await writeFile(join(projectRoot, 'adv/characters/agent.character.md'), [

@@ -13,6 +13,8 @@ import { defineConfig, devices } from '@playwright/test'
  */
 export default defineConfig({
   testDir: './tests/e2e',
+  // Node-side browser fixtures consume the same built exports as installed users.
+  tsconfig: './tests/tsconfig.playwright.json',
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -38,7 +40,8 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      // Keep Monaco's OS detection aligned with Playwright's host keyboard.
+      use: { ...devices['Desktop Chrome'], userAgent: undefined },
     },
 
     ...(process.env.CI
@@ -95,6 +98,11 @@ export default defineConfig({
     {
       command: 'pnpm -C demo/hamster run dev --port 3334',
       url: 'http://127.0.0.1:3334',
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      command: 'pnpm -C demo/flow build && pnpm -C demo/flow preview --port 3359 --strictPort',
+      url: 'http://127.0.0.1:3359',
       reuseExistingServer: !process.env.CI,
     },
   ],

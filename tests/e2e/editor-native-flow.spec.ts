@@ -195,7 +195,7 @@ test('native JSON Flow creates and edits a conditional crosschapter branch, reta
   const player = await context.newPage()
   player.on('pageerror', error => errors.push(error.message))
   await player.goto(await servePlayer())
-  await player.getByRole('button', { name: 'New Game', exact: true }).click()
+  await player.locator('[data-action="start_game"]').click()
   await expect.poll(async () => (await playerState(player)).current?.data?.text).toBe('Edited native dialogue.')
   await player.locator('.adv-dialog-box:visible').click()
   await expect(player.locator('.dialog-content:visible')).toContainText('Edited native dialogue.')
