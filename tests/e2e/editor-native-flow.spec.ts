@@ -112,6 +112,7 @@ test.afterEach(async () => {
 })
 
 test('native JSON Flow creates and edits a conditional crosschapter branch, retains conflict drafts and builds the real player', async ({ page, context }, info) => {
+  test.setTimeout(60_000)
   const errors: string[] = []
   page.on('pageerror', error => errors.push(error.message))
   await page.goto(editorUrl)

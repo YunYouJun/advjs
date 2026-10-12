@@ -72,6 +72,7 @@
     "@unocss/extractor-mdc": "catalog:",
     "@vitejs/plugin-vue": "catalog:build",
     "c12": "catalog:utils",
+    "chokidar": "catalog:utils",
     "consola": "catalog:cli",
     "debug": "catalog:utils",
     "defu": "catalog:utils",

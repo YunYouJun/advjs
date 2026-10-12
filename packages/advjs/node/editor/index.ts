@@ -20,7 +20,7 @@ import { AdvCommandError } from '../commands/errors'
 import { withProjectWriteLock } from '../project/write-lock'
 import { createEditorVoiceJobsHost, editorVoiceJobsErrorCode } from './audio-jobs'
 import { applyEditorFileChanges, atomicProjectWrite, EditorMutationError, projectWriteTarget } from './mutations'
-import { watchEditorProject } from './watch-project'
+import { watchEditorProject } from './project-watcher'
 
 export type { EditorVoiceJobAction, EditorVoiceJobsPlanInput, EditorVoiceJobsPort, EditorVoiceJobsReviewedPlan, EditorVoiceJobsSnapshot } from '../../shared/editor-audio'
 export { createEditorVoiceJobsHost } from './audio-jobs'
@@ -605,8 +605,8 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
         const actualPort = address && typeof address !== 'string' ? address.port : port
         const urlHost = host === '::1' ? '[::1]' : host
         editorOrigin = `http://${urlHost}:${actualPort}`
-        watcher = await watchEditorProject(projectRoot, (eventType, filename) => {
-          const data = JSON.stringify({ event: eventType, path: filename?.toString().replaceAll('\\', '/') ?? '' })
+        watcher = await watchEditorProject(projectRoot, (change) => {
+          const data = JSON.stringify(change)
           for (const eventResponse of eventResponses)
             eventResponse.write(`event: change\ndata: ${data}\n\n`)
         })
@@ -630,7 +630,7 @@ export async function createEditorBridge(options: EditorBridgeOptions): Promise<
       await (await voiceDesign?.catch(() => undefined))?.close()
       voiceDesign = undefined
       voiceJobs = undefined
-      watcher?.close()
+      await watcher?.close()
       watcher = undefined
       for (const response of eventResponses)
         response.end()
