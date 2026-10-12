@@ -118,6 +118,7 @@ describe('github Actions launch baseline', () => {
       'build',
       'editor-pages-build',
       'studio-pages-build',
+      'vrm-pages-build',
       'unit',
       'typecheck',
       'lint',
@@ -148,6 +149,8 @@ describe('github Actions launch baseline', () => {
     expect(runCommands(ci.jobs['editor-pages-build'])).toContain('pnpm editor:build')
     expectCommandBefore(ci.jobs['studio-pages-build'], 'pnpm install --frozen-lockfile', 'pnpm studio:build')
     expect(runCommands(ci.jobs['studio-pages-build'])).toContain('test -f apps/studio/dist/index.html && test -f apps/studio/dist/sw.js')
+    expectCommandBefore(ci.jobs['vrm-pages-build'], 'pnpm install --frozen-lockfile', 'pnpm run build:advjs && pnpm plugins:build && pnpm run vrm:build')
+    expect(runCommands(ci.jobs['vrm-pages-build'])).toContain('test -f editor/vrm/dist/index.html && test -f editor/vrm/dist/sw.js')
     expectCommandBefore(ci.jobs['editor-smoke'], 'pnpm prepare:workspace editor', 'pnpm --filter @advjs/editor typecheck')
     expect(runCommands(ci.jobs['editor-smoke'])).toEqual(expect.arrayContaining([
       'pnpm --filter @advjs/editor typecheck',
@@ -179,6 +182,7 @@ describe('github Actions launch baseline', () => {
       'build',
       'editor-pages-build',
       'studio-pages-build',
+      'vrm-pages-build',
       'unit',
       'typecheck',
       'lint',

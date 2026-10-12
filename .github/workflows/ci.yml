@@ -73,6 +73,24 @@ jobs:
       - name: Verify Studio Pages output
         run: test -f apps/studio/dist/index.html && test -f apps/studio/dist/sw.js
 
+  vrm-pages-build:
+    name: vrm-pages-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Reproduce VRM Cloudflare Pages build command
+        run: pnpm run build:advjs && pnpm plugins:build && pnpm run vrm:build
+      - name: Verify VRM Pages output
+        run: test -f editor/vrm/dist/index.html && test -f editor/vrm/dist/sw.js
+
   unit:
     name: unit (Node LTS)
     runs-on: ubuntu-latest
@@ -320,6 +338,7 @@ jobs:
       - build
       - editor-pages-build
       - studio-pages-build
+      - vrm-pages-build
       - unit
       - typecheck
       - lint
