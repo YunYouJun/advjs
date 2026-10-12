@@ -1,6 +1,6 @@
 import type { VoiceAuthoringSnapshot } from '@advjs/types'
-import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
+import { describe, expect, it, vi } from 'vitest'
 import { createI18n } from 'vue-i18n'
 import AudioAssetForm from '../components/audio/AudioAssetForm.vue'
 import AudioMixerPanel from '../components/audio/AudioMixerPanel.vue'
@@ -51,25 +51,29 @@ describe('studio native audio review', () => {
     wrapper.unmount()
   })
 
-  it('exposes selected and unselected history across locales without rewriting the ledger', () => {
+  it('exposes selected and unselected history across locales without rewriting the ledger', async () => {
     const source = snapshot()
     const original = JSON.stringify(source)
-    const rows = studioVoiceReviewRows(source)
+    const rows = await studioVoiceReviewRows(source)
     expect(rows.map(row => row.locale)).toEqual(['zh-CN', 'en'])
     expect(rows[0]!.takes.map(take => [take.selected, take.stale, take.unavailable])).toEqual([[true, false, false], [false, true, false]])
     expect(rows[1]!.selectedTake).toBeNull()
     expect(isLedgerAudioAsset(source, rows[0]!.takes[1]!.assetId)).toBe(true)
     expect(JSON.stringify(source)).toBe(original)
     source.catalog.assets[1]!.sha256 = 'f'.repeat(64)
-    expect(studioVoiceReviewRows(source)[0]!.takes[1]!.unavailable).toBe(true)
+    expect((await studioVoiceReviewRows(source))[0]!.takes[1]!.unavailable).toBe(true)
   })
 
   it('requires an explicit bind/replace/clear action and filters by locale', async () => {
     const source = snapshot()
-    const wrapper = mount(AudioVoiceReview, { props: { snapshot: source, busy: false }, global: { plugins: [i18n()] } })
+    const wrapper = mount(AudioVoiceReview, { props: { snapshot: source, busy: false, verifyRetained: async () => true }, global: { plugins: [i18n()] } })
+    await flushPromises()
     expect(wrapper.emitted('select')).toBeUndefined()
     const replace = wrapper.findAll('button').find(button => button.text() === '替换已选配音')!
     await replace.trigger('click')
+    expect(wrapper.emitted('select')).toBeUndefined()
+    await wrapper.find('.voice-review__confirmation input').setValue(true)
+    await wrapper.findAll('button').find(button => button.text() === '确认采用')!.trigger('click')
     expect(wrapper.emitted('select')![0]).toEqual([Object.keys(source.ledger.lines)[0], 'zh-CN', Object.values(source.ledger.lines)[0]!.locales['zh-CN']!.takes[1]!.id, true])
     const clear = wrapper.findAll('button').find(button => button.text() === '清除正式选择')!
     await clear.trigger('click')
@@ -79,6 +83,8 @@ describe('studio native audio review', () => {
     expect(wrapper.findAll('.voice-review__line')).toHaveLength(1)
     expect(wrapper.text()).toContain('Welcome to the seaside.')
     await wrapper.findAll('button').find(button => button.text() === '绑定此 take')!.trigger('click')
+    await wrapper.find('.voice-review__confirmation input').setValue(true)
+    await wrapper.findAll('button').find(button => button.text() === '确认采用')!.trigger('click')
     expect(wrapper.emitted('select')![2]![3]).toBe(false)
     wrapper.unmount()
   })
@@ -88,6 +94,63 @@ describe('studio native audio review', () => {
     source.catalog.assets.push({ id: 'bgm/calm', title: '平静海岸', type: 'audio', kind: 'bgm', labels: ['coast'] }, { id: 'image/coast', type: 'image', kind: 'background', title: '海岸' })
     expect(filterStudioAudioAssets(source.catalog.assets, 'bgm', 'COAST').map(asset => asset.id)).toEqual(['bgm/calm'])
     expect(filterStudioAudioAssets(source.catalog.assets, 'all', '海岸').map(asset => asset.id)).toEqual(['bgm/calm'])
+  })
+
+  it('compares actual same-text historical audio and explicitly acknowledges a stale selected recording without rewriting it', async () => {
+    const source = snapshot()
+    const lineId = Object.keys(source.ledger.lines)[0]!
+    const line = source.ledger.lines[lineId]!
+    line.displayText = '新的剧情对白。'
+    line.locales['zh-CN']!.takes.forEach(take => take.spokenText = '相同的历史声音。')
+    const original = JSON.stringify(source)
+    const wrapper = mount(AudioVoiceReview, { props: { snapshot: source, busy: false, verifyRetained: async () => true }, global: { plugins: [i18n()] } })
+    await flushPromises()
+    expect(wrapper.find('[data-testid="studio-advanced-listening"]').exists()).toBe(false)
+    await wrapper.findAll('button').find(button => button.text() === '听 A')!.trigger('click')
+    expect(wrapper.emitted('preview')![0]!.slice(1, 3)).toEqual(['a'.repeat(64), '相同的历史声音。'])
+    await wrapper.findAll('button').find(button => button.text() === '复核并沿用')!.trigger('click')
+    expect(wrapper.emitted('select')).toBeUndefined()
+    await wrapper.find('.voice-review__confirmation input').setValue(true)
+    await wrapper.findAll('button').find(button => button.text() === '确认采用')!.trigger('click')
+    expect(wrapper.text()).toContain('本次已复核保留绑定')
+    expect(wrapper.findAll('.voice-review__warning').some(node => node.text() === '文本已变化')).toBe(true)
+    expect(wrapper.emitted('select')).toBeUndefined()
+    expect(JSON.stringify(source)).toBe(original)
+    await wrapper.setProps({ context: { lines: [{ lineId, speakerId: 'hero', displayText: '再次改写。' }] } })
+    await flushPromises()
+    expect(wrapper.text()).not.toContain('本次已复核保留绑定')
+    wrapper.unmount()
+  })
+
+  it('discards an approved adoption after source/profile review context changes', async () => {
+    const source = snapshot()
+    const wrapper = mount(AudioVoiceReview, { props: { snapshot: source, busy: false, verifyRetained: async () => true }, global: { plugins: [i18n()] } })
+    await flushPromises()
+    await wrapper.findAll('button').find(button => button.text() === '替换已选配音')!.trigger('click')
+    await wrapper.find('.voice-review__confirmation input').setValue(true)
+    await wrapper.setProps({ context: { profiles: { hero: { intent: { speakingStyle: '新的声音风格' } } } } })
+    await flushPromises()
+    expect(wrapper.find('.voice-review__confirmation').exists()).toBe(false)
+    expect(wrapper.emitted('select')).toBeUndefined()
+    wrapper.unmount()
+  })
+
+  it('does not acknowledge a stale selected take when native immutable media verification fails', async () => {
+    const source = snapshot()
+    Object.values(source.ledger.lines)[0]!.displayText = '已经改写的对白。'
+    const verifyRetained = vi.fn(async () => {
+      throw new Error('VOICE_AUDIO_CHANGED')
+    })
+    const wrapper = mount(AudioVoiceReview, { props: { snapshot: source, busy: false, verifyRetained }, global: { plugins: [i18n()] } })
+    await flushPromises()
+    await wrapper.findAll('button').find(button => button.text() === '复核并沿用')!.trigger('click')
+    await wrapper.find('.voice-review__confirmation input').setValue(true)
+    await wrapper.findAll('button').find(button => button.text() === '确认采用')!.trigger('click')
+    await flushPromises()
+    expect(verifyRetained).toHaveBeenCalledOnce()
+    expect(wrapper.text()).not.toContain('本次已复核保留绑定')
+    expect(wrapper.emitted('select')).toBeUndefined()
+    wrapper.unmount()
   })
 })
 

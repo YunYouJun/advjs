@@ -2,6 +2,7 @@ import type { IFileSystem } from '../utils/fs'
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import { effectScope, reactive, ref } from 'vue'
+import { useProjectContent } from '../composables/useProjectContent'
 
 const mocks = vi.hoisted(() => ({ createFs: vi.fn() }))
 let store: { currentProject: null | { projectId: string } }
@@ -18,7 +19,6 @@ describe('native project readiness', () => {
     mocks.createFs.mockReturnValue(new Promise<IFileSystem>((resolve) => {
       resolveFs = resolve
     }))
-    const { useProjectContent } = await import('../composables/useProjectContent')
     const scope = effectScope()
     const content = scope.run(useProjectContent)!
     try {

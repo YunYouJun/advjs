@@ -2084,5 +2084,83 @@
       "failed": "Failed",
       "unknown": "Unknown outcome"
     }
+  },
+  "voiceListening": {
+    "dailyHint": "Audition the current line and candidates with one player. Adoption never generates audio.",
+    "unbound": "Unbound",
+    "compareTitle": "Same-text A/B comparison",
+    "candidateSide": "Candidate {side}",
+    "listenSide": "Listen to {side}",
+    "sameTextRequired": "A/B requires the same line, locale, speaker and actual spoken text. Stale recordings can still be auditioned.",
+    "advancedTitle": "Advanced listening review",
+    "advancedHint": "Choose 2–32 original recordings, anonymously shuffled as S01–S32 and grouped. Only a human supplies the six ratings; blanks remain pending. This is not a formal MOS study. Drafts stay private to this device and project and never change selected audio.",
+    "noReference": "No verified generation-reference playback mapping is provided here. Choose N/A for reference consistency. Style fit can also be N/A without a reliable target.",
+    "currentStyle": "Current profile style intent (qualitative target)",
+    "historicalStyle": "Stale recordings are included. The current style may have changed and is not evidence of their original generation target.",
+    "adoptTitle": "Review and adopt audio",
+    "staleConfirm": "This recording is stale. Confirm that you intend to adopt audio from the earlier text, dictionary or voice profile.",
+    "replaceConfirm": "This replaces the current selected recording and retains history.",
+    "adoptConfirm": "This recording will become the selected audio for this line.",
+    "confirmChecked": "I auditioned the recording and reviewed the adoption and replacement scope",
+    "confirmAdopt": "Confirm adoption",
+    "cancel": "Cancel",
+    "foldAdvanced": "Fold advanced review (keep draft)",
+    "reopenAdvanced": "Continue advanced review",
+    "playRejected": "Playback did not start. Use the player’s play button.",
+    "environmentTitle": "Listening environment",
+    "environment": {
+      "reviewerId": "Anonymous reviewer ID",
+      "device": "Device / model",
+      "systemVolume": "System volume / notes",
+      "language": "Native / familiar language",
+      "notes": "Environment / audio processing",
+      "outputMode": "Output mode"
+    },
+    "chooseOutput": "Choose output mode",
+    "output": {
+      "headphones": "Wired headphones",
+      "bluetooth": "Bluetooth headphones",
+      "speakers": "Device speakers",
+      "external": "External speakers",
+      "other": "Other"
+    },
+    "humanAttestation": "I personally listened before providing these ratings",
+    "attestationHint": "Complete the environment, at least 95% observed playback and the end of each sample, and every rating or N/A.",
+    "listenSample": "Listen to {sample}",
+    "coverageHint": "Use the same device, system volume and 1× speed. Seeking does not count as listening.",
+    "rating": {
+      "pending": "Pending",
+      "na": "N/A",
+      "1": "1 · Very poor",
+      "2": "2 · Poor",
+      "3": "3 · Fair",
+      "4": "4 · Good",
+      "5": "5 · Very good"
+    },
+    "dimension": {
+      "naturalness": "Naturalness",
+      "clarity": "Clarity",
+      "textAccuracy": "Text accuracy",
+      "styleFit": "Style fit",
+      "edges": "Complete beginning/end",
+      "referenceConsistency": "Reference consistency"
+    },
+    "notes": "Observations",
+    "chooseCandidates": "Choose recordings (2–32)",
+    "startAnonymous": "Create anonymous review",
+    "operationFailed": "Listening review operation failed",
+    "complete": "Personal review confirmed; formal MOS is not calculated",
+    "pending": "Pending human listening and ratings; formal MOS is not calculated",
+    "restored": "Ratings restored as a draft. Playback evidence and human confirmation were cleared; listen again.",
+    "export": "Export private review JSON",
+    "restore": "Restore review JSON",
+    "candidateScope": "Candidate scope",
+    "scope": {
+      "current": "Current same-text group",
+      "project": "All project dialogue groups"
+    },
+    "reviewRetain": "Review and retain",
+    "retainedAcknowledged": "Reviewed and retained for this context. The recording remains stale; its generation identity is unchanged.",
+    "noStyle": "No reliable style target is supplied; choose N/A."
   }
 }

@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed, inject, onBeforeUnmount, shallowRef, toRef, useTemplateRef, watch } from 'vue'
+import type { StudioVoicePlayback } from '../../composables/useStudioVoiceListening'
+import { createVoiceListeningPlaybackObserver } from '@advjs/audio'
+import { computed, inject, nextTick, onBeforeUnmount, shallowRef, toRef, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAudioWorkspace } from '../../composables/useAudioWorkspace'
 import { useManagedVoiceSession } from '../../composables/useManagedVoiceSession'
@@ -20,10 +22,56 @@ const transport = inject(studioVoiceGenerationTransportKey, undefined)
 const session = useManagedVoiceSession()
 const transportReady = computed(() => session.configured.value ? Boolean(session.client.value) : Boolean(transport?.prepare))
 const player = useTemplateRef<HTMLAudioElement>('player')
+const voiceReview = useTemplateRef<{ observe: (event: StudioVoicePlayback) => void, invalidate: () => void }>('voiceReview')
+const previewText = shallowRef('')
+const previewLabel = shallowRef('')
 watch(() => props.active, active => !active && player.value?.pause(), { flush: 'sync' })
 onBeforeUnmount(() => player.value?.pause())
-const { snapshot, mixer, revision, loading, busy, error, missingCatalog, previewUrl, previewAssetId, reload, preview, stopPreview, importAsset, updateAsset, removeAsset, select, saveMixer, initialize } = useAudioWorkspace(toRef(props, 'active'))
-watch(previewUrl, () => player.value?.pause(), { flush: 'sync' })
+const { snapshot, reviewContext, nativeProjectId, scopeKey, mixer, revision, loading, busy, error, missingCatalog, previewUrl, previewAssetId, reload, preview, stopPreview, importAsset, updateAsset, removeAsset, select, verifyRetained, saveMixer, initialize } = useAudioWorkspace(toRef(props, 'active'))
+const observer = createVoiceListeningPlaybackObserver({
+  media: () => player.value,
+  source: () => previewUrl.value,
+  onPlayback: event => voiceReview.value?.observe({ assetId: previewAssetId.value, ...event }),
+  onInvalid: (code) => {
+    error.value = code
+    voiceReview.value?.invalidate()
+    stopPreview()
+  },
+})
+watch(previewUrl, () => {
+  observer.reset()
+  player.value?.pause()
+  player.value?.removeAttribute('src')
+  player.value?.load()
+  if (!previewUrl.value) {
+    previewText.value = ''
+    previewLabel.value = ''
+  }
+}, { flush: 'sync' })
+watch(tab, stopPreview, { flush: 'sync' })
+watch(scopeKey, () => observer.reset(), { flush: 'sync' })
+async function previewVoice(assetId: string, sha256: string, text: string, label?: string) {
+  await preview(assetId, sha256)
+  if (!props.active || previewAssetId.value !== assetId || !previewUrl.value) {
+    if (error.value)
+      voiceReview.value?.invalidate()
+    return
+  }
+  previewText.value = text
+  previewLabel.value = label ?? ''
+  await nextTick()
+  const url = previewUrl.value
+  try {
+    await player.value?.play()
+  }
+  catch {
+    if (props.active && url === previewUrl.value)
+      error.value = t('voiceListening.playRejected')
+  }
+}
+function observePlayback(event: Event) {
+  observer.observe(event)
+}
 </script>
 
 <template>
@@ -65,8 +113,11 @@ watch(previewUrl, () => player.value?.pause(), { flush: 'sync' })
             {{ t('audioWorkspace.stopPreview') }}
           </SButton>
         </div>
-        <code>{{ previewAssetId }}</code>
-        <audio ref="player" :src="previewUrl" controls preload="metadata" @error="error = t('audioWorkspace.previewFailed')" />
+        <code>{{ previewLabel || previewAssetId }}</code>
+        <p v-if="previewText">
+          {{ previewText }}
+        </p>
+        <audio ref="player" :src="previewUrl" controls preload="metadata" @loadedmetadata="observePlayback" @play="observePlayback" @playing="observePlayback" @waiting="observePlayback" @timeupdate="observePlayback" @pause="observePlayback" @seeking="observePlayback" @seeked="observePlayback" @ratechange="observePlayback" @ended="observePlayback" @error="error = t('audioWorkspace.previewFailed')" />
       </section>
       <section class="audio-workspace__panel audio-workspace__transport">
         <div>
@@ -82,7 +133,7 @@ watch(previewUrl, () => player.value?.pause(), { flush: 'sync' })
         <AudioLibrary :key="revision" :snapshot="snapshot" :busy="busy || loading" @preview="preview" @import="importAsset" @update="updateAsset" @remove="removeAsset" />
       </div>
       <div v-show="tab === 'review'" class="audio-workspace__panel">
-        <AudioVoiceReview :snapshot="snapshot" :busy="busy || loading" @preview="preview" @select="select" />
+        <AudioVoiceReview ref="voiceReview" :snapshot="snapshot" :context="reviewContext" :busy="busy || loading" :active="active && tab === 'review'" :project-id="nativeProjectId" :scope-key="scopeKey" :active-asset-id="previewAssetId" :verify-retained="verifyRetained" @preview="previewVoice" @stop="stopPreview" @select="select" />
       </div>
       <div v-show="tab === 'mixer'" class="audio-workspace__panel">
         <AudioMixerPanel :mixer="mixer" :revision="revision" :busy="busy || loading" @save="saveMixer" />

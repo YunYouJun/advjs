@@ -2084,5 +2084,83 @@
       "failed": "失败",
       "unknown": "结果未知"
     }
+  },
+  "voiceListening": {
+    "dailyHint": "先试听当前台词与候选；同文对比只切换一个播放器。采用不会自动生成声音。",
+    "unbound": "尚未绑定",
+    "compareTitle": "同文 A/B 对比",
+    "candidateSide": "候选 {side}",
+    "listenSide": "听 {side}",
+    "sameTextRequired": "A/B 需要同一句、同语言、同角色及相同实际发音文本；历史过期音频也可试听。",
+    "advancedTitle": "高级听审",
+    "advancedHint": "按需选择 2–32 段原始声音，随机匿名为 S01–S32，按组听审。六维评分只由真人填写，未填写保持待评，不构成标准 MOS。草稿仅存本机私有项目范围，不改变正式配音。",
+    "noReference": "本次未提供可信生成参考的播放映射；参考一致性请选“不适用”。没有可信风格目标时，风格符合度也可选“不适用”。",
+    "currentStyle": "当前声音配置的风格意图（定性目标）",
+    "historicalStyle": "包含已过期历史音频；当前风格目标可能已改变，不能当作其生成时的目标。",
+    "adoptTitle": "审核并采用配音",
+    "staleConfirm": "这段音频已过期。请确认仍要采用旧文本、词典或声音配置对应的录音。",
+    "replaceConfirm": "这将替换当前正式配音；历史录音仍保留。",
+    "adoptConfirm": "采用后这段录音会作为当前台词的正式配音。",
+    "confirmChecked": "我已试听并确认本次采用与替换范围",
+    "confirmAdopt": "确认采用",
+    "cancel": "取消",
+    "foldAdvanced": "收起高级听审（保留草稿）",
+    "reopenAdvanced": "继续高级听审",
+    "playRejected": "自动试听未开始，请使用播放器的播放按钮。",
+    "environmentTitle": "听审环境",
+    "environment": {
+      "reviewerId": "听者匿名 ID",
+      "device": "设备 / 型号",
+      "systemVolume": "系统音量 / 备注",
+      "language": "母语 / 熟悉语言",
+      "notes": "环境 / 音效处理",
+      "outputMode": "输出方式"
+    },
+    "chooseOutput": "选择输出方式",
+    "output": {
+      "headphones": "有线耳机",
+      "bluetooth": "蓝牙耳机",
+      "speakers": "设备扬声器",
+      "external": "外接扬声器",
+      "other": "其他"
+    },
+    "humanAttestation": "这些评分由我本人实际听完后填写",
+    "attestationHint": "先完成设备信息、各段有效播放至少 95% 并听至结束，再填写全部评分或不适用。",
+    "listenSample": "试听 {sample}",
+    "coverageHint": "保持同一设备、系统音量及 1 倍速；跳转不计为听完。",
+    "rating": {
+      "pending": "待评",
+      "na": "不适用",
+      "1": "1 · 很差",
+      "2": "2 · 较差",
+      "3": "3 · 一般",
+      "4": "4 · 较好",
+      "5": "5 · 很好"
+    },
+    "dimension": {
+      "naturalness": "自然度",
+      "clarity": "清晰度",
+      "textAccuracy": "文本准确性",
+      "styleFit": "风格符合度",
+      "edges": "首尾完整性",
+      "referenceConsistency": "参考一致性"
+    },
+    "notes": "观察记录",
+    "chooseCandidates": "选择听审候选（2–32 段）",
+    "startAnonymous": "创建匿名听审",
+    "operationFailed": "听审操作未完成",
+    "complete": "个人听审已确认；标准 MOS 仍未统计",
+    "pending": "待真人听完并评分；标准 MOS 仍未统计",
+    "restored": "已恢复评分草稿；播放记录与真人确认已清空，需要重新听完。",
+    "export": "导出私有听审 JSON",
+    "restore": "恢复听审 JSON",
+    "candidateScope": "候选范围",
+    "scope": {
+      "current": "当前同文组",
+      "project": "全部项目对白组"
+    },
+    "reviewRetain": "复核并沿用",
+    "retainedAcknowledged": "本次已复核保留绑定；录音仍客观过期，未改变生成身份。",
+    "noStyle": "未提供可信风格目标；请选“不适用”。"
   }
 }

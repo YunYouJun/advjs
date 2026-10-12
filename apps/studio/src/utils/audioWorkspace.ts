@@ -1,51 +1,13 @@
-import type { AudioAssetKind } from '@advjs/audio'
+import type { AudioAssetKind, VoiceReviewRow } from '@advjs/audio'
 import type { AdvAssetEntry, VoiceAuthoringSnapshot } from '@advjs/types'
-import { audioAssetKinds, resolveVoiceSpokenText, resolveVoiceTake } from '@advjs/audio'
+import { audioAssetKinds } from '@advjs/audio'
+
+export { resolveVoiceReviewRows as studioVoiceReviewRows } from '@advjs/audio'
 
 export const studioAudioKinds = audioAssetKinds
 export type StudioAudioKind = AudioAssetKind
 
-export interface StudioVoiceReviewRow {
-  lineId: string
-  locale: string
-  speakerId: string
-  displayText: string
-  spokenText: string
-  selectedTake: string | null
-  takes: Array<VoiceAuthoringSnapshot['ledger']['lines'][string]['locales'][string]['takes'][number] & {
-    selected: boolean
-    stale: boolean
-    unavailable: boolean
-  }>
-}
-
-/** Review every locale and immutable take; selection remains a separate action. */
-export function studioVoiceReviewRows(snapshot: VoiceAuthoringSnapshot): StudioVoiceReviewRow[] {
-  return Object.entries(snapshot.ledger.lines).flatMap(([lineId, line]) => Object.entries(line.locales).map(([locale, binding]) => ({
-    lineId,
-    locale,
-    speakerId: line.speakerId,
-    displayText: binding.displayText ?? line.displayText,
-    spokenText: resolveVoiceSpokenText(binding.displayText ?? line.displayText, { override: binding.spokenText ?? line.spokenText, locale, pronunciation: snapshot.pronunciation }),
-    selectedTake: binding.selectedTake,
-    takes: binding.takes.map((take) => {
-      const checked = {
-        ...snapshot.ledger,
-        lines: { ...snapshot.ledger.lines, [lineId]: { ...line, locales: { ...line.locales, [locale]: { ...binding, selectedTake: take.id } } } },
-      }
-      let stale = false
-      let unavailable = false
-      try {
-        stale = resolveVoiceTake(checked, { lineId, locale, assets: snapshot.catalog.assets, spokenText: resolveVoiceSpokenText(binding.displayText ?? line.displayText, { override: binding.spokenText ?? line.spokenText, locale, pronunciation: snapshot.pronunciation }) }).warnings.length > 0
-        unavailable = snapshot.catalog.assets.find(asset => asset.id === take.assetId)?.state === 'rejected'
-      }
-      catch {
-        unavailable = true
-      }
-      return { ...take, selected: take.id === binding.selectedTake, stale, unavailable }
-    }),
-  })))
-}
+export type StudioVoiceReviewRow = VoiceReviewRow
 
 export function filterStudioAudioAssets(assets: AdvAssetEntry[], kind: string, query: string): AdvAssetEntry[] {
   const needle = query.trim().toLocaleLowerCase()

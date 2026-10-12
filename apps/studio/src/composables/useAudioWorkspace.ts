@@ -1,8 +1,11 @@
+import type { VoiceReviewContext } from '@advjs/audio'
 import type { AudioMixerConfig, VoiceAuthoringSnapshot } from '@advjs/types'
 import type { Ref } from 'vue'
 import type { StudioAudioMetadata } from '../components/audio/AudioAssetForm.vue'
-import { audioProjectMediaPath, createAudioId, voiceAuthoringRevision } from '@advjs/audio'
+import { audioProjectMediaPath, createAudioId, verifyVoiceCandidateBytes, voiceAuthoringRevision, voiceReviewContextFromProgram } from '@advjs/audio'
+import { compileProject } from '@advjs/core'
 import { computed, onScopeDispose, shallowRef, watch } from 'vue'
+import { useAuthStore } from '../stores/useAuthStore'
 import { useStudioStore } from '../stores/useStudioStore'
 import { inspectStudioAudioDuration } from '../utils/audioWorkspace'
 import { isAudioFile } from '../utils/fs'
@@ -14,8 +17,11 @@ import { useProjectContent } from './useProjectContent'
 export function useAudioWorkspace(active: Ref<boolean>) {
   const project = useProjectContent()
   const store = useStudioStore()
+  const auth = useAuthStore()
   const authoring = useAudioAuthoring()
   const snapshot = shallowRef<VoiceAuthoringSnapshot>()
+  const reviewContext = shallowRef<VoiceReviewContext>({})
+  const nativeProjectId = shallowRef('')
   const mixer = shallowRef<AudioMixerConfig>({ schemaVersion: 1 })
   const revision = shallowRef('')
   const loading = shallowRef(false)
@@ -24,6 +30,9 @@ export function useAudioWorkspace(active: Ref<boolean>) {
   const missingCatalog = shallowRef(false)
   const previewUrl = shallowRef('')
   const previewAssetId = shallowRef('')
+  const fsScope = shallowRef(0)
+  let currentFs: ReturnType<typeof project.getFs>
+  const scopeKey = computed(() => `${auth.userId || 'local-device'}/${store.currentProjectId}/${fsScope.value}`)
   const canEdit = computed(() => Boolean(snapshot.value && !busy.value && !loading.value))
   let loadEpoch = 0
   let previewEpoch = 0
@@ -47,6 +56,10 @@ export function useAudioWorkspace(active: Ref<boolean>) {
       const fs = project.getFs()
       if (!fs)
         throw new Error('ADV_AUDIO_PROJECT_REQUIRED')
+      if (fs !== currentFs) {
+        currentFs = fs
+        fsScope.value++
+      }
       const exists = await fs.exists('adv/assets.json')
       if (!exists) {
         if (epoch === loadEpoch) {
@@ -59,10 +72,14 @@ export function useAudioWorkspace(active: Ref<boolean>) {
         return
       missingCatalog.value = false
       const next = await authoring.forProject().readProjectAudio()
+      const { project: compiled } = await compileProject({ files: Object.fromEntries((await fs.collectAllFiles()).map(file => [file.path, file.content])) }, { allowEmptyAssetManifest: true })
+      const context = voiceReviewContextFromProgram(compiled.program, Object.fromEntries(compiled.characters.map(character => [character.id, character.voiceProfile])), String(compiled.game.locale ?? 'zh-CN'))
       const voiceRevision = await voiceAuthoringRevision(next.ledger, next.catalog, next.pronunciation, next.voiceProfiles)
       if (epoch !== loadEpoch)
         return
       snapshot.value = { ledger: next.ledger, catalog: next.catalog, pronunciation: next.pronunciation, voiceProfiles: next.voiceProfiles, narratorProfile: next.narratorProfile, revision: voiceRevision }
+      reviewContext.value = context
+      nativeProjectId.value = compiled.id
       mixer.value = next.mixer
       revision.value = next.revision
       project.applyAudioCatalogAssets(next.catalog.assets)
@@ -108,8 +125,9 @@ export function useAudioWorkspace(active: Ref<boolean>) {
     }
   }
 
-  async function preview(assetId: string) {
+  async function preview(assetId: string, expectedSha256?: string) {
     stopPreview()
+    error.value = ''
     const epoch = previewEpoch
     const fs = project.getFs()
     if (!fs || !active.value)
@@ -119,14 +137,38 @@ export function useAudioWorkspace(active: Ref<boolean>) {
       catalog = await loadStudioAssetCatalog(fs)
       if (!catalog)
         throw new Error('ADV_AUDIO_CATALOG_REQUIRED')
-      const asset = await catalog.resolve(assetId)
+      let src: string
+      let disposeMedia: (() => void) | undefined
+      if (expectedSha256) {
+        const asset = catalog.get(assetId)
+        const current = snapshot.value
+        if (!asset || asset.kind !== 'voice' || asset.sha256 !== expectedSha256 || !current)
+          throw new Error('VOICE_AUDIO_CHANGED')
+        const blob = await fs.readBlob(audioProjectMediaPath(current.catalog, asset))
+        if (blob.size > 64 * 1024 * 1024)
+          throw new Error('VOICE_AUDIO_TOO_LARGE')
+        await verifyVoiceCandidateBytes({ sha256: expectedSha256, bytes: asset.bytes }, await blob.arrayBuffer())
+        if (epoch !== previewEpoch || !active.value || fs !== project.getFs()) {
+          catalog.dispose()
+          return
+        }
+        src = URL.createObjectURL(blob)
+        disposeMedia = () => URL.revokeObjectURL(src)
+      }
+      else {
+        src = (await catalog.resolve(assetId)).src
+      }
       if (epoch !== previewEpoch || !active.value || fs !== project.getFs()) {
+        disposeMedia?.()
         catalog.dispose()
         return
       }
-      previewUrl.value = asset.src
+      previewUrl.value = src
       previewAssetId.value = assetId
-      disposeCatalog = () => catalog!.dispose()
+      disposeCatalog = () => {
+        disposeMedia?.()
+        catalog!.dispose()
+      }
     }
     catch (cause) {
       catalog?.dispose()
@@ -189,6 +231,40 @@ export function useAudioWorkspace(active: Ref<boolean>) {
     return mutate(() => service.select({ lineId, locale, takeId, expectedRevision, replaceSelected }))
   }
 
+  async function verifyRetained(input: { lineId: string, locale: string, takeId: string, expectedRevision: string }) {
+    if (busy.value || loading.value || !active.value || snapshot.value?.revision !== input.expectedRevision)
+      return false
+    const fs = project.getFs()
+    const scope = scopeKey.value
+    const context = JSON.stringify(reviewContext.value)
+    const service = authoring.forProject()
+    const valid = () => active.value && scope === scopeKey.value && fs === project.getFs() && snapshot.value?.revision === input.expectedRevision
+    busy.value = true
+    error.value = ''
+    try {
+      if (!service.verifyTake || !fs)
+        throw new Error('VOICE_AUDIO_VERIFICATION_REQUIRED')
+      if ((await service.read()).revision !== input.expectedRevision || !valid())
+        throw new Error('VOICE_CONFLICT')
+      await service.verifyTake(input)
+      const current = await service.read()
+      const { project: compiled } = await compileProject({ files: Object.fromEntries((await fs.collectAllFiles()).map(file => [file.path, file.content])) }, { allowEmptyAssetManifest: true })
+      const currentContext = voiceReviewContextFromProgram(compiled.program, Object.fromEntries(compiled.characters.map(character => [character.id, character.voiceProfile])), String(compiled.game.locale ?? 'zh-CN'))
+      if (!valid() || current.revision !== input.expectedRevision || JSON.stringify(currentContext) !== context)
+        throw new Error('VOICE_CONFLICT')
+      return true
+    }
+    catch (cause) {
+      if (valid())
+        error.value = cause instanceof Error ? cause.message : 'VOICE_AUDIO_VERIFICATION_REQUIRED'
+      return false
+    }
+    finally {
+      if (scope === scopeKey.value)
+        busy.value = false
+    }
+  }
+
   function saveMixer(value: AudioMixerConfig) {
     const expectedRevision = revision.value
     const service = authoring.forProject()
@@ -200,16 +276,35 @@ export function useAudioWorkspace(active: Ref<boolean>) {
     missingCatalog.value = false
     void reload()
   }, { immediate: true })
+  watch(scopeKey, () => {
+    busy.value = false
+  }, { flush: 'sync' })
   watch(active, (value) => {
     if (!value)
       stopPreview()
     else
       void reload()
   })
+  watch(() => auth.userId, () => {
+    loadEpoch++
+    stopPreview()
+    snapshot.value = undefined
+    if (active.value)
+      void reload()
+  }, { flush: 'sync' })
+  watch(() => project.isLoading?.value, (value, previous) => {
+    if (value) {
+      loadEpoch++
+      stopPreview()
+    }
+    else if (previous && active.value) {
+      void reload()
+    }
+  }, { flush: 'sync' })
   onScopeDispose(() => {
     loadEpoch++
     stopPreview()
   })
 
-  return { snapshot, mixer, revision, loading, busy, error, missingCatalog, previewUrl, previewAssetId, canEdit, canSynthesize: authoring.canSynthesize, reload, preview, stopPreview, importAsset, updateAsset, removeAsset, select, saveMixer, initialize: () => mutate(() => authoring.initialize(store.currentProjectId)) }
+  return { snapshot, reviewContext, nativeProjectId, scopeKey, mixer, revision, loading, busy, error, missingCatalog, previewUrl, previewAssetId, canEdit, canSynthesize: authoring.canSynthesize, reload, preview, stopPreview, importAsset, updateAsset, removeAsset, select, verifyRetained, saveMixer, initialize: () => mutate(() => authoring.initialize(store.currentProjectId)) }
 }
