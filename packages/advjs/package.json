@@ -31,7 +31,8 @@
   "types": "./dist/node/index.d.mts",
   "bin": {
     "adv": "./bin/adv.mjs",
-    "adv-audio-server": "./bin/audio-server.mjs"
+    "adv-audio-server": "./bin/audio-server.mjs",
+    "advjs": "./bin/adv.mjs"
   },
   "files": [
     "bin",
