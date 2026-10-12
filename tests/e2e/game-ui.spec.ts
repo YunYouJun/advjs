@@ -252,6 +252,8 @@ test('preserves physical settings control sizes on a scaled game stage', async (
 })
 
 test('keeps dialogue reading sizes and multiline text clear of controls on a scaled game stage', async ({ page }, info) => {
+  // This matrix covers both dialogue surfaces, four sizes and two viewports.
+  test.setTimeout(120_000)
   await page.setViewportSize({ width: 1920, height: 1080 })
   await page.goto(`${gameUrl}/#/start`)
   await page.getByRole('button', { name: '开始游戏', exact: true }).click()
