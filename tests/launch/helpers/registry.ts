@@ -77,6 +77,14 @@ export async function writeLaunchWorkspaceConfig(directory: string, overrides?: 
   )
 }
 
+export function launchCommandTimeout(command: string, platform: NodeJS.Platform = process.platform) {
+  if (command !== 'npx')
+    return 180_000
+  // Windows cold-cache extraction remains active near the five-minute limit.
+  // Keep the command bounded while allowing the complete public graph to install.
+  return platform === 'win32' ? 600_000 : 300_000
+}
+
 export async function runLaunchCommand(command: string, args: string[], cwd: string, registryUrl: string, temporaryRoot: string, environment: NodeJS.ProcessEnv = {}) {
   const commandEnvironment: NodeJS.ProcessEnv = { ...launchRegistryEnvironment(registryUrl, temporaryRoot), ...environment }
   if (command === 'npx') {
@@ -91,7 +99,7 @@ export async function runLaunchCommand(command: string, args: string[], cwd: str
     // NODE_PATH and PNPM_HOME after launchRegistryEnvironment removed them.
     extendEnv: false,
     maxBuffer: 20 * 1024 * 1024,
-    timeout: command === 'npx' ? 300_000 : 180_000,
+    timeout: launchCommandTimeout(command),
   }
   if (command === 'pnpm')
     return await runPnpm(args, options)

@@ -9,7 +9,7 @@ import { join } from 'node:path'
 import process from 'node:process'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import * as commandRunner from '../../../scripts/release/run-command.mjs'
-import { createLaunchRegistry, readLaunchNpmDiagnostics, runLaunchCommand, shouldRemoveLaunchTemporaryRoot } from '../../launch/helpers/registry'
+import { createLaunchRegistry, launchCommandTimeout, readLaunchNpmDiagnostics, runLaunchCommand, shouldRemoveLaunchTemporaryRoot } from '../../launch/helpers/registry'
 
 const temporaryRoots: string[] = []
 
@@ -26,6 +26,16 @@ afterEach(async () => {
 })
 
 describe('launch command isolation', () => {
+  it('allows extra time only for Windows cold npx installs', () => {
+    expect(launchCommandTimeout('npx', 'win32')).toBe(600_000)
+    for (const platform of ['darwin', 'linux'] as const)
+      expect(launchCommandTimeout('npx', platform)).toBe(300_000)
+    for (const platform of ['win32', 'darwin', 'linux'] as const) {
+      expect(launchCommandTimeout('pnpm', platform)).toBe(180_000)
+      expect(launchCommandTimeout(process.execPath, platform)).toBe(180_000)
+    }
+  })
+
   it('does not restore removed workspace environment variables in child processes', async () => {
     const root = await createTemporaryRoot()
     vi.stubEnv('NODE_PATH', join(root, 'workspace-modules'))
@@ -51,7 +61,7 @@ describe('launch command isolation', () => {
     expect(npx).toHaveBeenCalledWith(['--version'], expect.objectContaining({
       env: expect.objectContaining({ npm_config_logs_dir: logs, npm_config_timing: 'true' }),
       extendEnv: false,
-      timeout: 300_000,
+      timeout: launchCommandTimeout('npx'),
     }))
     expect(npx.mock.calls[0]?.[1].env.pnpm_config_store_dir).toBeUndefined()
   })
