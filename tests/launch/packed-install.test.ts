@@ -16,6 +16,7 @@ import {
 } from '../../scripts/release/package-manifest.mjs'
 import {
   createLaunchRegistry,
+  launchCommandTimeout,
   runLaunchCommand,
   shouldRemoveLaunchTemporaryRoot,
   writeLaunchRegistryConfig,
@@ -142,7 +143,7 @@ describe('launch package manifest', () => {
     const requests = registry.localRequests.slice(before)
     expect(requests).toContain('advjs')
     expect(requests.some(request => request.includes(`advjs-${LAUNCH_VERSION}.tgz`))).toBe(true)
-  }, 360_000)
+  }, launchCommandTimeout(npxExecutable) + 60_000)
 
   it('resolves pnpm dlx exclusively through the isolated registry', async () => {
     const before = registry.localRequests.length
