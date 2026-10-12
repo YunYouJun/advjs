@@ -1,7 +1,7 @@
 {
   "name": "create-adv",
   "type": "module",
-  "version": "0.1.1",
+  "version": "0.1.4",
   "description": "Create a new advjs project/plugin",
   "author": {
     "name": "YunYouJun",
@@ -40,5 +40,8 @@
   },
   "devDependencies": {
     "@types/minimist": "catalog:"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

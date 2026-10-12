@@ -156,6 +156,7 @@ describe('github Actions launch baseline', () => {
     expect(runCommands(ci.jobs['packed-smoke'])).toEqual(expect.arrayContaining([
       'pnpm vitest run tests/launch/packed-build.test.ts --no-file-parallelism --reporter=default',
       'pnpm vitest run tests/launch/packed-install.test.ts --no-file-parallelism --reporter=default',
+      'pnpm vitest run tests/launch/create-adv.test.ts --no-file-parallelism --reporter=default',
     ]))
     expect(runCommands(ci.jobs.e2e)).toEqual(expect.arrayContaining([
       'pnpm exec playwright install --with-deps --only-shell chromium',
