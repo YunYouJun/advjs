@@ -2,7 +2,7 @@ import process from 'node:process'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 
-import { version } from '../../package.json'
+import pkg from '../../package.json' with { type: 'json' }
 import { installAgentCommand } from './agent'
 import { installAssetsCommand } from './assets'
 import { installBuildCommand } from './build'
@@ -23,6 +23,8 @@ import { configureCliOutput, createCliError, hasWrittenCliEnvelope, writeCliFail
 import { installPlayCommand } from './play'
 import { installSyncCommand } from './sync'
 import { installVoiceCommand } from './voice'
+
+const { version } = pkg
 
 const namespace = 'adv'
 const rawArguments = hideBin(process.argv)

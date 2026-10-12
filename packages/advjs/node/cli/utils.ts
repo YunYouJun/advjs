@@ -3,9 +3,11 @@ import type { Argv } from 'yargs'
 import net from 'node:net'
 import os from 'node:os'
 import { colors } from 'consola/utils'
-import { version } from '../../package.json'
+import pkg from '../../package.json' with { type: 'json' }
 import { isInstalledGlobally } from '../resolver'
 import { t } from './i18n'
+
+const { version } = pkg
 
 export function isPortFree(port: number) {
   return new Promise((resolve) => {
