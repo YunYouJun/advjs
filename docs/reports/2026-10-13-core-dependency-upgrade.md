@@ -60,6 +60,7 @@ Vue 3.5.43、Pinia 4.0.3 和 UnoCSS 66.10.5 已是满足条件的最新稳定版
 - pnpm 12 为不同入口生成独立 peer context；i18n 测试按各消费包实际解析的路径 mock locale compiler，继续检查默认启用、显式启用和交给宿主处理三种行为。
 
 - pnpm 12 的 workspace 自动编辑要求块状 YAML；消费者验证配置改用 YAML 序列化。锁文件验证遍历全部 YAML 文档，并检查后续文档中的本地引用及解析错误。
+- pnpm 12 拒绝带 CRLF shebang 的 bin 文件；Git attributes 将可执行脚本固定为 LF，避免 Windows checkout 改写脚本头后打包失败。
 - Nuxt i18n 的解析别名曾将新版 vue-i18n 指向旧版 shared；对齐 `@intlify/core-base`、`@intlify/message-compiler`、`@intlify/shared` 的 11.x 运行时到 11.4.14。
 - SSR 将 vue-i18n 与 `@intlify/*` 一并打包，避免输出中的外部导入被宿主解析到不同版本的 shared 包。Playground 的 10 个页面和 Beasties critical CSS 生成已通过。
 - VRM 的 Devframe 工具链对齐到 1.2.3，并显式声明所需 peer；Vite SSG 的 Beasties 0.5.4 peer 范围例外经过实际生产构建验证。
