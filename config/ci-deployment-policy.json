@@ -1,0 +1,42 @@
+{
+  "repository": "YunYouJun/advjs",
+  "github": {
+    "rulesetName": "Required GitHub Actions checks",
+    "branches": ["dev", "main"],
+    "checks": ["launch-required", "docs-build", "demo-build", "parser-browser-smoke", "desktop-required"],
+    "appId": 15368
+  },
+  "cloudflare": {
+    "accountId": "ecac80638e001ece1b79584ffef5e65a",
+    "sharedPaths": [".github/workflows/*", "config/ci-deployment-policy.json", "scripts/ci/*", "editor/core/uno.config.ts"],
+    "projects": {
+      "docs": {
+        "name": "advjs-docs-preview",
+        "buildCommand": "pnpm docs:build",
+        "outputDirectory": "docs/.vitepress/dist",
+        "paths": ["docs/*", "packages/*", "plugins/*", "themes/*", "scripts/prepare-workspace.mjs"]
+      },
+      "demo": {
+        "name": "advjs-demo-preview",
+        "buildCommand": "pnpm build:demo",
+        "outputDirectory": "demo/starter/dist",
+        "paths": ["demo/starter/*", "packages/*", "plugins/*", "themes/*", "scripts/prepare-workspace.mjs", "tsconfig*.json", "uno.config.ts"]
+      },
+      "parser": {
+        "name": "advjs-parser-preview",
+        "buildCommand": "pnpm parser:play:build",
+        "outputDirectory": "packages/parser/playground/dist",
+        "paths": ["packages/*", "themes/*", "demo/starter/*", "demo/love/*", "examples/adv-format/*", "scripts/prepare-workspace.mjs", "tsconfig*.json", "uno.config.ts"]
+      }
+    }
+  },
+  "vercel": {
+    "team": "yunyoujuns-projects",
+    "previewDeploymentsDisabled": true,
+    "projects": {
+      "docs": { "id": "prj_7mI9ppY4QpgDJDZksgFvPUXTHHi8", "name": "advjs", "productionBranch": "main" },
+      "demo": { "id": "prj_ym5TqDpP31YV5f31KjCXASuzCsjD", "name": "advjs-demo", "productionBranch": "main" },
+      "parser": { "id": "prj_gKAgG3Zza9INybhBROtv3gzzFQHE", "name": "advjs-parser", "productionBranch": "dev" }
+    }
+  }
+}
