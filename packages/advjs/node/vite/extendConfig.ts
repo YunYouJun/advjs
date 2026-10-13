@@ -188,12 +188,16 @@ export function createConfigPlugin(options: ResolvedAdvOptions): Plugin {
           chunkSizeWarningLimit: 2000,
           rollupOptions: {
             output: {
-              manualChunks: {
-                advjs_core: ['@advjs/core'],
-                advjs_client: ['@advjs/client'],
-                advjs_parser: ['@advjs/parser'],
+              manualChunks(id: string) {
+                const normalizedId = id.replaceAll('\\', '/')
+                if (normalizedId.includes('@advjs/core') || normalizedId.includes('/packages/core/'))
+                  return 'advjs_core'
+                if (normalizedId.includes('@advjs/client') || normalizedId.includes('/packages/client/'))
+                  return 'advjs_client'
+                if (normalizedId.includes('@advjs/parser') || normalizedId.includes('/packages/parser/'))
+                  return 'advjs_parser'
               },
-            } as any,
+            },
           },
         }
       }

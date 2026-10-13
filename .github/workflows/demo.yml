@@ -32,5 +32,8 @@ jobs:
       - name: 🔧 Build ADV.JS CLI
         run: pnpm run build:advjs
 
+      - name: Verify Vite production build compatibility
+        run: pnpm exec vitest run tests/unit/build/manual-chunks.test.ts --reporter=default
+
       - name: 🎮 Build ADV.JS Demo
         run: pnpm run build:demo
