@@ -1,5 +1,3 @@
-import process from 'node:process'
-
 interface FormatterMessages {
   option_fallback: string
   choices_prompt: string
@@ -24,11 +22,15 @@ const locales: Record<string, FormatterMessages> = {
 }
 
 function detectLocale(): string {
-  const langIdx = process.argv.indexOf('--lang')
-  if (langIdx !== -1 && process.argv[langIdx + 1])
-    return normalizeLocale(process.argv[langIdx + 1])
+  // eslint-disable-next-line node/prefer-global/process -- Shared browser code cannot import node:process.
+  const nodeProcess = globalThis.process
+  const argv = nodeProcess?.argv ?? []
+  const langIdx = argv.indexOf('--lang')
+  if (langIdx !== -1 && argv[langIdx + 1])
+    return normalizeLocale(argv[langIdx + 1])
 
-  const envLang = process.env.LANG || process.env.LC_ALL || process.env.LC_MESSAGES || ''
+  const env = nodeProcess?.env ?? {}
+  const envLang = env.LANG || env.LC_ALL || env.LC_MESSAGES || ''
   if (envLang)
     return normalizeLocale(envLang)
 
