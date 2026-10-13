@@ -8,7 +8,7 @@
   },
   "cloudflare": {
     "accountId": "ecac80638e001ece1b79584ffef5e65a",
-    "sharedPaths": ["package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", ".node-version", ".github/workflows/*", "config/ci-deployment-policy.json", "scripts/ci/*"],
+    "sharedPaths": [".github/workflows/*", "config/ci-deployment-policy.json", "scripts/ci/*", "editor/core/uno.config.ts"],
     "projects": {
       "docs": {
         "name": "advjs-docs-preview",
@@ -26,7 +26,7 @@
         "name": "advjs-parser-preview",
         "buildCommand": "pnpm parser:play:build",
         "outputDirectory": "packages/parser/playground/dist",
-        "paths": ["packages/*", "themes/*", "scripts/prepare-workspace.mjs", "tsconfig*.json", "uno.config.ts"]
+        "paths": ["packages/*", "themes/*", "demo/starter/*", "demo/love/*", "examples/adv-format/*", "scripts/prepare-workspace.mjs", "tsconfig*.json", "uno.config.ts"]
       }
     }
   },

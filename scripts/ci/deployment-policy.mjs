@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs'
+import { watchConfig } from '../cloudflare-pages-watch.mjs'
 
 export const deploymentPolicy = JSON.parse(readFileSync(new URL('../../config/ci-deployment-policy.json', import.meta.url), 'utf8'))
 
@@ -46,7 +47,7 @@ export function pagesPreviewProject(key, repository) {
       preview_deployment_setting: 'custom',
       preview_branch_includes: ['*'],
       preview_branch_excludes: ['dev', 'main'],
-      path_includes: [...new Set([...deploymentPolicy.cloudflare.sharedPaths, ...project.paths])],
+      path_includes: [...new Set([...watchConfig.sharedIncludes, ...deploymentPolicy.cloudflare.sharedPaths, ...project.paths])],
       path_excludes: [],
     } },
     deployment_configs: { preview: { env_vars: {

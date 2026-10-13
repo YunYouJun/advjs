@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import { githubRuleset, pagesPreviewProject } from '../../../scripts/ci/deployment-policy.mjs'
 import { assertDesktopChecks } from '../../../scripts/ci/desktop-required.mjs'
+import { matchesWatchPath } from '../../../scripts/cloudflare-pages-watch.mjs'
 
 function desktopNeeds(packageRequired = false) {
   return {
@@ -60,5 +61,17 @@ describe('deployment policy', () => {
   })
   it('rejects an unrelated repository before configuring a preview', () => {
     expect(() => pagesPreviewProject('docs', { full_name: 'other/repo' })).toThrow('Preview repository mismatch')
+  })
+  it('rebuilds the parser when copied story samples or shared CSS inputs change', () => {
+    const project = pagesPreviewProject('parser', { full_name: 'YunYouJun/advjs', id: 300401568, owner: { id: 25154432 } })
+    for (const path of [
+      'demo/starter/public/md/chapters/hello.adv.md',
+      'demo/love/public/md/chapters/1/intro.adv.md',
+      'examples/adv-format/dialog.adv.md',
+      'editor/core/uno.config.ts',
+      'patches/example.patch',
+    ]) {
+      expect(project.source.config.path_includes.some(pattern => matchesWatchPath(path, pattern)), path).toBe(true)
+    }
   })
 })
