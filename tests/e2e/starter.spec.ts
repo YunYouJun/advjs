@@ -7,13 +7,15 @@ test.use({
 const hashRootPattern = /.*\/#\//
 
 test.describe('Demo Starter', () => {
-  test('basic nav', async ({ page }) => {
-    await page.goto('http://localhost:3333/')
+  test('basic nav', async ({ page }, testInfo) => {
+    const errors: string[] = []
+    page.on('pageerror', error => errors.push(error.message))
+    await page.goto('/')
     // Verify the initial URL
-    expect(page.url()).toContain('http://localhost:3333/')
+    expect(page.url()).toContain(testInfo.project.use.baseURL!)
 
-    // Check for the presence of the text 'Made with ADV.JS'
-    await expect(page.locator('text=Made with ADV.JS')).toBeVisible()
+    // The starter title is configured by its public game configuration.
+    await expect(page.getByRole('heading', { name: 'ADVJS Starter', exact: true })).toBeVisible()
 
     // Click the first start menu item
     await page.locator('.start-menu-item').first().click()
@@ -24,6 +26,7 @@ test.describe('Demo Starter', () => {
 
     // Click the settings button
     await page.locator('.menu-setting-button').first().click()
+    expect(errors).toEqual([])
 
     // Check for the presence of the settings text
     // await expect(page.getByRole('heading', { name: '设置' })).toBeVisible()

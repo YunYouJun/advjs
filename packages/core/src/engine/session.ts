@@ -1,22 +1,31 @@
 import type { PlaySession } from './types'
-import process from 'node:process'
 import { createStorage, prefixStorage } from 'unstorage'
-import fsDriver from 'unstorage/drivers/fs'
-
-const DEFAULT_SESSION_DIR = `${process.env.HOME || '~'}/.advjs/play-sessions`
 
 /**
  * Session manager for CLI play sessions
  * Uses unstorage with fs driver for persistence
  */
 export class SessionManager {
-  private storage
+  private storagePromise?: Promise<ReturnType<typeof prefixStorage>>
 
-  constructor(baseDir: string = DEFAULT_SESSION_DIR) {
-    const raw = createStorage({
-      driver: fsDriver({ base: baseDir }),
-    })
-    this.storage = prefixStorage(raw, 'session')
+  constructor(private baseDir?: string) {}
+
+  private async getStorage() {
+    if (!this.storagePromise) {
+      this.storagePromise = (async () => {
+        // eslint-disable-next-line node/prefer-global/process -- Shared browser code cannot import node:process.
+        const nodeProcess = globalThis.process
+        if (!nodeProcess?.versions?.node)
+          throw new Error('CLI session persistence requires Node.js')
+
+        // Shared browser imports must not evaluate Node filesystem dependencies.
+        const driverId = 'unstorage/drivers/fs'
+        const { default: fsDriver } = await import(/* @vite-ignore */ driverId) as typeof import('unstorage/drivers/fs')
+        const base = this.baseDir ?? `${nodeProcess.env.HOME || '~'}/.advjs/play-sessions`
+        return prefixStorage(createStorage({ driver: fsDriver({ base }) }), 'session')
+      })()
+    }
+    return await this.storagePromise
   }
 
   /**
@@ -48,7 +57,7 @@ export class SessionManager {
    * Get a session by ID
    */
   async get(id: string): Promise<PlaySession | null> {
-    return await this.storage.getItem(id) as PlaySession | null
+    return await (await this.getStorage()).getItem(id) as PlaySession | null
   }
 
   /**
@@ -56,20 +65,20 @@ export class SessionManager {
    */
   async save(session: PlaySession): Promise<void> {
     session.updatedAt = Date.now()
-    await this.storage.setItem(session.id, session)
+    await (await this.getStorage()).setItem(session.id, session)
   }
 
   /**
    * Delete a session
    */
   async delete(id: string): Promise<void> {
-    await this.storage.removeItem(id)
+    await (await this.getStorage()).removeItem(id)
   }
 
   /**
    * List all session IDs
    */
   async list(): Promise<string[]> {
-    return await this.storage.getKeys()
+    return await (await this.getStorage()).getKeys()
   }
 }

@@ -11,12 +11,8 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        # os: [ubuntu-latest, windows-latest, macos-latest]
-        os: [ubuntu-latest]
-      fail-fast: false
+    name: demo-build
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -27,10 +23,33 @@ jobs:
           cache: pnpm
 
       - name: 📦 Install
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: 🔧 Build ADV.JS CLI
         run: pnpm run build:advjs
 
+      - name: Verify Vite production build compatibility
+        run: pnpm exec vitest run tests/unit/build/manual-chunks.test.ts --reporter=default
+
       - name: 🎮 Build ADV.JS Demo
         run: pnpm run build:demo
+
+      - name: Verify the production Demo in Chromium
+        run: |
+          pnpm exec playwright install --with-deps --only-shell chromium
+          pnpm exec playwright test --config tests/ci/demo.config.ts
+
+  parser-browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm parser:play:build
+      - run: pnpm exec playwright install --with-deps --only-shell chromium
+      - run: pnpm exec playwright test --config tests/ci/parser.config.ts

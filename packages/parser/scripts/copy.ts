@@ -1,4 +1,4 @@
-import { cpSync, existsSync, mkdirSync } from 'node:fs'
+import { cpSync, mkdirSync } from 'node:fs'
 import { copyFile } from 'node:fs/promises'
 import path, { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -12,18 +12,19 @@ const targetFolder = path.resolve(__dirname, '../playground/public/examples')
 async function main() {
   mkdirSync(targetFolder, { recursive: true })
   // copy demo
-  const demos = ['starter', 'love']
-  for (const name of demos) {
+  const demos = [
+    { name: 'starter', chapter: '1/仓鼠的笼子' },
+    { name: 'love', chapter: '1/intro' },
+  ]
+  for (const { name, chapter } of demos) {
     const targetDir = `${targetFolder}/demo/${name}`
     mkdirSync(targetDir, { recursive: true })
 
-    const sourceEntryFile = `${demoFolder}/${name}/index.adv.md`
-    if (existsSync(sourceEntryFile)) {
-      await copyFile(
-        sourceEntryFile,
-        `${targetDir}/index.adv.md`,
-      )
-    }
+    // Preserve the public URLs used by saved playground preferences.
+    await copyFile(
+      `${demoFolder}/${name}/public/md/chapters/${chapter}.adv.md`,
+      `${targetDir}/index.adv.md`,
+    )
   }
 
   // copy @advjs/examples
