@@ -127,6 +127,7 @@ test('production Editor designs immutable voices, auditions native candidates an
   expect(game.voiceProfile).toBeUndefined()
   await design.getByTestId('design-reload').click()
   await design.getByTestId('design-plan').click()
+  await expect(design.getByTestId('design-review')).toBeVisible()
   await design.getByRole('checkbox', { name: '我已核对音色、语言、试听文本与预算', exact: true }).check()
   await design.getByTestId('design-execute').click()
   await expect(design.getByTestId('design-preview-registered')).toHaveCount(1)

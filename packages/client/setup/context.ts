@@ -149,43 +149,61 @@ export function setupAdvContext(ctx: {
       ? createBrowserGalleryController(ctx.gameConfig.value.gallery, { storage: galleryStorage })
       : undefined,
 
-    async init() {
+    async init(options = {}) {
       const generation = ++initializationGeneration
+      const isCurrent = () => generation === initializationGeneration && (options.isCurrent?.() ?? true)
+      if (!isCurrent())
+        return
       advContext.$auto.stop()
       await advContext.$audio.reset()
+      if (!isCurrent())
+        return
       compileDiagnostics.value = []
       await initGameRuntime(advContext)
+      if (!isCurrent())
+        return
+      const gameConfig = ctx.gameConfig.value
       const result = await compileClientRuntimeProgram({
-        id: `adv-browser:${ctx.gameConfig.value.title || 'game'}`,
-        chapters: ctx.gameConfig.value.chapters,
-        entryChapterId: ctx.gameConfig.value.entryChapterId,
+        id: `adv-browser:${gameConfig.title || 'game'}`,
+        chapters: gameConfig.chapters,
+        entryChapterId: gameConfig.entryChapterId,
         fetcher: ctx.fetcher,
-        requiredPlugins: ctx.gameConfig.value.requiredPlugins,
-        resources: markdownResources(ctx.gameConfig.value),
+        requiredPlugins: gameConfig.requiredPlugins,
+        resources: markdownResources(gameConfig),
       })
+      if (!isCurrent())
+        return
       const spritesheetDiagnostics = [
-        ...validateSpritesheetDeclarations(ctx.gameConfig.value),
-        ...await validateSpritesheetImages(ctx.gameConfig.value),
+        ...validateSpritesheetDeclarations(gameConfig),
+        ...await validateSpritesheetImages(gameConfig),
       ]
       // A page left during loading must not overwrite a newer game session.
-      if (generation !== initializationGeneration)
+      if (!isCurrent())
         return
       compileDiagnostics.value = structuredClone([...result.diagnostics, ...spritesheetDiagnostics])
       const errors = compileDiagnostics.value.filter(item => item.severity === 'error')
       if (!result.program || errors.length > 0)
         throw compilerError(errors.length > 0 ? errors : result.diagnostics)
 
+      const persistence = options.persistence !== false
+      game.setPreviewMode(!persistence)
       const progressionConfig = ctx.gameConfig.value.progression
-      if (progressionConfig && progressionStorage) {
+      if (persistence && progressionConfig && progressionStorage) {
         const expectedKey = `advjs:progression:${encodeURIComponent(progressionConfig.id)}:v${progressionConfig.version ?? 1}`
         if (advContext.progression?.storageKey !== expectedKey)
           advContext.progression = createBrowserRuntimeProgression(progressionConfig, { storage: progressionStorage })
       }
+      else {
+        advContext.progression = undefined
+      }
       const galleryConfig = ctx.gameConfig.value.gallery
-      if (galleryConfig && galleryStorage) {
+      if (persistence && galleryConfig && galleryStorage) {
         const expectedKey = `advjs:gallery:${encodeURIComponent(galleryConfig.id)}:v${galleryConfig.version ?? 1}`
         if (advContext.gallery?.storageKey !== expectedKey)
           advContext.gallery = createBrowserGalleryController(galleryConfig, { storage: galleryStorage })
+      }
+      else {
+        advContext.gallery = undefined
       }
       const initialVariables = advContext.progression
         ? advContext.progression.restore(ctx.gameConfig.value.variables ?? {})
@@ -194,7 +212,9 @@ export function setupAdvContext(ctx: {
         initialVariables,
       })
       syncAudioSettings()
-      advContext.pixiGame = await initPixi(advContext)
+      const pixiGame = await initPixi(advContext)
+      if (isCurrent())
+        advContext.pixiGame = pixiGame
     },
 
     $t,

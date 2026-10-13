@@ -75,6 +75,7 @@
         "demo/starter/public/md/chapters/letter.adv.md",
         "examples/editor-plugin-diagnostics/*",
         "packages/advjs/*",
+        "packages/agent/*",
         "packages/assets/*",
         "packages/audio/*",
         "packages/client/*",

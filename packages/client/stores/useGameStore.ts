@@ -38,6 +38,16 @@ export const useGameStore = defineStore('@advjs/client:game', () => {
   const pendingRestore = shallowRef<AdvGameRecord>()
   const recordNamespace = shallowRef<string>()
   const controllersByNamespace = new Map<string, GameSaveController>()
+  const previewMode = shallowRef(false)
+  let previewController: GameSaveController | undefined
+
+  /** Draft sessions cannot read, overwrite, rename or remove the source game's saves. */
+  function setPreviewMode(enabled: boolean) {
+    if (enabled || previewMode.value !== enabled)
+      pendingRestore.value = undefined
+    previewMode.value = enabled
+    previewController = enabled ? createGameSaveController({ storage: createMemoryRuntimeStorage() }) : undefined
+  }
 
   function setRecordNamespace(namespace?: string) {
     if (recordNamespace.value !== (namespace || undefined))
@@ -46,6 +56,8 @@ export const useGameStore = defineStore('@advjs/client:game', () => {
   }
 
   function getController() {
+    if (previewController)
+      return previewController
     const namespace = recordNamespace.value
     const key = namespace ?? ''
     let controller = controllersByNamespace.get(key)
@@ -88,6 +100,8 @@ export const useGameStore = defineStore('@advjs/client:game', () => {
     pendingRestore,
     recordNamespace,
     setRecordNamespace,
+    previewMode,
+    setPreviewMode,
     save,
     read,
     updateMeta,

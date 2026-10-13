@@ -87,7 +87,9 @@
             "voice.takes",
             "voice.generate",
             "voice.bind",
-            "migrate.audio"
+            "migrate.audio",
+            "flow.read",
+            "flow.plan"
           ]
         },
         "ok": {
@@ -2570,6 +2572,469 @@
           "properties": {
             "command": {
               "const": "migrate.audio"
+            }
+          }
+        }
+      ]
+    },
+    "flowDiagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "severity",
+        "code",
+        "message"
+      ],
+      "properties": {
+        "severity": {
+          "enum": [
+            "warning",
+            "error"
+          ]
+        },
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "column": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "suggestion": {
+          "type": "string"
+        },
+        "certainty": {
+          "enum": [
+            "certain",
+            "uncertain"
+          ]
+        },
+        "details": {
+          "type": "object"
+        }
+      }
+    },
+    "flowDocument": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schemaVersion",
+        "id",
+        "title",
+        "nodes"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string"
+        },
+        "startNodeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "type": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "flowProposalCommand": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "add-node",
+            "update-node",
+            "move-node",
+            "arrange-nodes",
+            "reorder-node",
+            "set-entry",
+            "set-title",
+            "connect",
+            "disconnect",
+            "delete-node",
+            "add-dialogue",
+            "update-dialogue",
+            "delete-dialogue",
+            "add-choice",
+            "update-choice",
+            "delete-choice"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "update-dialogue",
+                  "delete-dialogue"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "nodeId",
+              "lineId"
+            ],
+            "properties": {
+              "nodeId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "lineId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "index": false
+            }
+          }
+        }
+      ]
+    },
+    "flowProposalRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "path",
+        "expectedRevision",
+        "projectRevision",
+        "commands"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expectedRevision": {
+          "$ref": "#/$defs/sha256"
+        },
+        "projectRevision": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "commands": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/flowProposalCommand"
+          },
+          "minItems": 1,
+          "maxItems": 100
+        }
+      }
+    },
+    "flowReadData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "path",
+        "chapterId",
+        "revision",
+        "projectRevision",
+        "document",
+        "diagnostics"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "chapterId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "$ref": "#/$defs/sha256"
+        },
+        "projectRevision": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "document": {
+          "$ref": "#/$defs/flowDocument"
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/flowDiagnostic"
+          }
+        }
+      }
+    },
+    "flowNodeChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nodeId",
+        "kind",
+        "fields"
+      ],
+      "properties": {
+        "nodeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "added",
+            "updated",
+            "deleted"
+          ]
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "flowLineChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nodeId",
+        "kind",
+        "fields",
+        "lineId"
+      ],
+      "properties": {
+        "nodeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "enum": [
+            "added",
+            "updated",
+            "deleted"
+          ]
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "lineId": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "flowPlanData": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request",
+        "path",
+        "chapterId",
+        "revision",
+        "projectRevision",
+        "baseline",
+        "proposed",
+        "before",
+        "after",
+        "changes",
+        "diagnostics",
+        "valid"
+      ],
+      "properties": {
+        "request": {
+          "$ref": "#/$defs/flowProposalRequest"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "chapterId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "$ref": "#/$defs/sha256"
+        },
+        "projectRevision": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        },
+        "baseline": {
+          "$ref": "#/$defs/flowDocument"
+        },
+        "proposed": {
+          "$ref": "#/$defs/flowDocument"
+        },
+        "before": {
+          "type": "string"
+        },
+        "after": {
+          "type": "string"
+        },
+        "changes": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "nodes",
+            "lines",
+            "chapterFields"
+          ],
+          "properties": {
+            "nodes": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/flowNodeChange"
+              }
+            },
+            "lines": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/flowLineChange"
+              }
+            },
+            "chapterFields": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/flowDiagnostic"
+          }
+        },
+        "valid": {
+          "type": "boolean"
+        }
+      }
+    },
+    "flowReadSuccess": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "flow.read"
+            },
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/flowReadData"
+            },
+            "errors": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      ]
+    },
+    "flowReadFailure": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/failure"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "flow.read"
+            }
+          }
+        }
+      ]
+    },
+    "flowPlanSuccess": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/envelope"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "flow.plan"
+            },
+            "ok": {
+              "const": true
+            },
+            "data": {
+              "$ref": "#/$defs/flowPlanData"
+            },
+            "errors": {
+              "type": "array",
+              "maxItems": 0
+            }
+          }
+        }
+      ]
+    },
+    "flowPlanFailure": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/failure"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "command": {
+              "const": "flow.plan"
             }
           }
         }

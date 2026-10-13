@@ -69,6 +69,8 @@ describe('launch CLI contracts', () => {
       'voice.generate',
       'voice.bind',
       'migrate.audio',
+      'flow.read',
+      'flow.plan',
     ])
     expect(ADV_ERROR_CODES).toEqual([
       'ADV_USAGE',
@@ -192,6 +194,27 @@ describe('launch CLI contracts', () => {
     expect(validate('migrate.audio', { ...report, unresolved: [{ path: 'chapter.adv.md' }] })).toBe(false)
     expect(validate('migrate.audio', { ...report, sources: [{ path: 'chapter.adv.md', bytes: 1, sha256: 'changed' }] })).toBe(false)
     expect(validate('migrate.audio', { ...report, patches: [{ path: 'chapter.adv.md', bytes: 1, sha256: revision, targetSha256: revision, content: '', operations: [{ line: 0, action: 'play' }] }] })).toBe(false)
+  })
+
+  it('requires revisioned native Flow snapshots and structured proposal output', () => {
+    const index = readJson('tests/launch/contracts/cli-contracts.json') as CliContractIndex
+    const schema = readJson(`tests/launch/contracts/${index.schema}`) as Record<string, unknown>
+    const examples = readJson(`tests/launch/contracts/${index.examples}`) as Record<string, { success: { data: Record<string, unknown> } }>
+    const ajv = new Ajv2020({ allErrors: true, strict: true })
+    addFormats(ajv)
+    ajv.addSchema(schema)
+    const validate = (command: string, data: unknown) => ajv.getSchema(index.commands[command].success)!({ ...examples[command].success, data })
+    for (const command of ['flow.read', 'flow.plan']) {
+      expect(validate(command, {})).toBe(false)
+      expect(validate(command, { ...examples[command].success.data, revision: 'stale' })).toBe(false)
+      expect(validate(command, { ...examples[command].success.data, projectRevision: 'stale' })).toBe(false)
+    }
+    const plan = examples['flow.plan'].success.data
+    const request = plan.request as Record<string, unknown>
+    expect(validate('flow.plan', { ...plan, request: { ...request, expectedRevision: undefined } })).toBe(false)
+    expect(validate('flow.plan', { ...plan, request: { ...request, commands: [{ type: 'delete-dialogue', nodeId: 'dialogue', index: 0 }] } })).toBe(false)
+    expect(validate('flow.plan', { ...plan, changes: {} })).toBe(false)
+    expect(validate('flow.plan', { ...plan, valid: false, diagnostics: [{ code: 'ADV_FLOW_TARGET_MISSING', severity: 'error', message: 'Target is missing', details: { nodeId: 'missing' } }] })).toBe(true)
   })
 
   it('freezes audio snapshot examples with actual shared content revisions and explicit take adoption', async () => {

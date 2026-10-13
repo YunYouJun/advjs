@@ -24,6 +24,7 @@ const files = new Set([
   'uno.config.ts',
   'scripts/prepare-workspace.mjs',
   'scripts/ci/desktop-changes.mjs',
+  'scripts/ci/desktop-required.mjs',
   'scripts/release/desktop-artifacts.mjs',
   'scripts/release/run-command.mjs',
 ])
