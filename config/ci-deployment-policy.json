@@ -24,7 +24,7 @@
       },
       "parser": {
         "name": "advjs-parser-preview",
-        "buildCommand": "pnpm build:advjs && pnpm -C packages/parser/playground build",
+        "buildCommand": "pnpm parser:play:build",
         "outputDirectory": "packages/parser/playground/dist",
         "paths": ["packages/*", "themes/*", "scripts/prepare-workspace.mjs", "tsconfig*.json", "uno.config.ts"]
       }

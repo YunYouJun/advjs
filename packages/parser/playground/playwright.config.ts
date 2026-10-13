@@ -1,6 +1,7 @@
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { defineConfig, devices } from '@playwright/test'
+import { deploymentPolicy } from '../../../scripts/ci/deployment-policy.mjs'
 
 const baseURL = process.env.ADVJS_PARSER_URL || 'http://127.0.0.1:3457'
 
@@ -15,7 +16,7 @@ export default defineConfig({
   webServer: process.env.ADVJS_PARSER_URL
     ? undefined
     : {
-        command: 'pnpm parser:play:build && pnpm -C packages/parser/playground exec vite preview --host 127.0.0.1 --port 3457 --strictPort',
+        command: `${deploymentPolicy.cloudflare.projects.parser.buildCommand} && pnpm -C packages/parser/playground exec vite preview --host 127.0.0.1 --port 3457 --strictPort`,
         cwd: fileURLToPath(new URL('../../..', import.meta.url)),
         url: baseURL,
         timeout: 180_000,

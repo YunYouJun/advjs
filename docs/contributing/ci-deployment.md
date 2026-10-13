@@ -29,11 +29,11 @@ gh api repos/YunYouJun/advjs/rulesets --method POST --input /tmp/advjs-required-
 
 Editor、Studio 和 VRM 使用已有 Git 集成项目。Docs、Demo 和 Parser 使用以下独立项目，仅发布预览，不绑定生产域名：
 
-| 站点   | Pages 项目             | 构建命令                                                       | 输出目录                          |
-| ------ | ---------------------- | -------------------------------------------------------------- | --------------------------------- |
-| Docs   | `advjs-docs-preview`   | `pnpm docs:build`                                              | `docs/.vitepress/dist`            |
-| Demo   | `advjs-demo-preview`   | `pnpm build:demo`                                              | `demo/starter/dist`               |
-| Parser | `advjs-parser-preview` | `pnpm build:advjs && pnpm -C packages/parser/playground build` | `packages/parser/playground/dist` |
+| 站点   | Pages 项目             | 构建命令                 | 输出目录                          |
+| ------ | ---------------------- | ------------------------ | --------------------------------- |
+| Docs   | `advjs-docs-preview`   | `pnpm docs:build`        | `docs/.vitepress/dist`            |
+| Demo   | `advjs-demo-preview`   | `pnpm build:demo`        | `demo/starter/dist`               |
+| Parser | `advjs-parser-preview` | `pnpm parser:play:build` | `packages/parser/playground/dist` |
 
 三个项目关联同一 GitHub 仓库，在特性分支推送时发布受影响站点，并在 PR 中提供预览链接。`dev`、`main` 不触发这些项目；生产发布关闭。Node 与 pnpm 版本取自 `.node-version` 和 `package.json`，预览环境仅设置这两个构建工具版本，不复制生产凭据。
 
