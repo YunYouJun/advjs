@@ -48,7 +48,13 @@ export default defineConfig({
       ? [
           {
             name: 'firefox',
-            use: { ...devices['Desktop Firefox'] },
+            use: {
+              ...devices['Desktop Firefox'],
+              launchOptions: {
+                headless: process.platform !== 'linux',
+                firefoxUserPrefs: { 'webgl.force-enabled': true },
+              },
+            },
           },
           {
             name: 'webkit',
