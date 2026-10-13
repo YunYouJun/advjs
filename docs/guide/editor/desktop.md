@@ -120,6 +120,8 @@ pnpm -C apps/desktop icons:source
 
 在 GitHub Actions 手动运行「Desktop CI」会执行完整四平台矩阵，用于提前验证 Electron 依赖、打包配置或平台相关改动。每个平台都从临时目录启动打包产物，打开测试项目并导出 Web 游戏，通过后上传 ZIP 和 smoke 证据。是否支持某个平台，以该平台实际工作流结果为准。
 
+`desktop-required` 汇总检查始终等待宿主检查和两个打包任务结束：PR／推送要求宿主检查成功，并按变更检测结果要求 Linux 打包成功或跳过；手动运行要求完整矩阵成功。只有工作流条件排除的任务允许跳过，失败、取消、缺失结果或无效变更检测输出都会使汇总检查失败。
+
 `.github/workflows/release-candidate.yml` 固定候选提交和版本，先完成四个平台的打包与启动验证，再生成和发布候选包；dry-run 同样运行完整矩阵。候选 artifact 保留 90 天，包含四份 ZIP、`SHA256SUMS.txt` 和绑定校验值的发布清单。正式晋级前验证候选工作流已成功完成，并检查全部桌面产物的完整性；任一平台失败、文件缺失或校验不符都会阻止晋级。
 
 正式晋级成功后直接调用 `.github/workflows/release-desktop.yml`，使用该候选 run 的原始产物，不重新构建。上传前确认 Release 标签与候选提交、版本一致，再把 ZIP 和校验文件附加到 Release；dry-run 和 abort 不上传客户端。仅创建 GitHub Release 或推送标签不会触发桌面构建。
