@@ -58,3 +58,18 @@ jobs:
     needs: build
     if: github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/desktop-build.yml
+
+  desktop-required:
+    name: desktop-required
+    if: always()
+    needs: [build, linux-package, full-matrix]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Require desktop build and applicable package checks
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+          DESKTOP_EVENT: ${{ github.event_name }}
+        run: node scripts/ci/desktop-required.mjs
