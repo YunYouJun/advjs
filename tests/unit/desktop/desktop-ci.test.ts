@@ -108,11 +108,11 @@ describe('desktop CI scope', () => {
       { uses: 'actions/setup-node@v7', with: { 'node-version': 'lts/*' } },
       {
         name: 'Require every applicable desktop check',
-        env: { DESKTOP_EVENT: '${{ github.event_name }}', NEEDS_JSON: '${{ toJSON(needs) }}' },
+        env: { DESKTOP_EVENT: `\${{ github.event_name }}`, NEEDS_JSON: `\${{ toJSON(needs) }}` },
         run: 'node scripts/ci/desktop-required.mjs',
       },
     ])
-    expect(ci.jobs.build.outputs.package).toBe('${{ steps.changes.outputs.package }}')
+    expect(ci.jobs.build.outputs.package).toBe(`\${{ steps.changes.outputs.package }}`)
     expect(ci.jobs.build.steps.some((step: { run?: string }) => step.run === 'pnpm -C apps/desktop test:scripts')).toBe(true)
     const desktop = JSON.parse(await readFile(resolve(root, 'apps/desktop/package.json'), 'utf8'))
     expect(desktop.scripts['test:scripts']).toBe('node --test scripts/*.test.mjs')

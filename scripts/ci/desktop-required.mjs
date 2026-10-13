@@ -9,8 +9,9 @@ export function assertDesktopChecks({ event, needs }) {
   const jobs = ['build', 'linux-package', 'full-matrix']
   if (!needs || typeof needs !== 'object' || Array.isArray(needs)
     || Object.keys(needs).length !== jobs.length
-    || jobs.some(name => !Object.hasOwn(needs, name)))
+    || jobs.some(name => !Object.hasOwn(needs, name))) {
     throw new Error(`Desktop CI requires results for exactly: ${jobs.join(', ')}`)
+  }
 
   if (needs.build?.result !== 'success')
     throw new Error(`build=${needs.build?.result}; expected success`)

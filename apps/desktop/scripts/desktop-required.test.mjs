@@ -9,7 +9,7 @@ import { assertDesktopChecks } from '../../../scripts/ci/desktop-required.mjs'
 
 function results(event, packageChanged = 'true') {
   return {
-    build: { result: 'success', outputs: { package: packageChanged } },
+    'build': { result: 'success', outputs: { package: packageChanged } },
     'linux-package': { result: event !== 'workflow_dispatch' && packageChanged === 'true' ? 'success' : 'skipped' },
     'full-matrix': { result: event === 'workflow_dispatch' ? 'success' : 'skipped' },
   }
