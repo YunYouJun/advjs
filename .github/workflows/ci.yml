@@ -21,10 +21,10 @@ jobs:
           cache: pnpm
 
       - name: Install
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Build
-        run: npm run build
+        run: pnpm build
 
   lint:
     runs-on: ubuntu-latest
@@ -37,7 +37,7 @@ jobs:
           cache: pnpm
 
       - name: Install Dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Build
         run: pnpm build
@@ -56,32 +56,46 @@ jobs:
           cache: pnpm
 
       - name: Install
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Typecheck
         run: pnpm run typecheck
 
-  # test:
-  #   runs-on: ${{ matrix.os }}
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm exec vitest run tests/unit --reporter=default
 
-  #   strategy:
-  #     matrix:
-  #       node-version: lts/*
-  #       os: [ubuntu-latest]
-  #     fail-fast: false
-
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: pnpm/action-setup@v2
-  #     - name: Use Node.js ${{ matrix.node-version }}
-  #       uses: actions/setup-node@v3
-  #       with:
-  #         node-version: ${{ matrix.node-version }}
-  #         registry-url: https://registry.npmjs.org/
-  #         cache: pnpm
-
-  #     - run: pnpm install
-  #     - run: pnpm run test:unit --if-present
+  # Legacy main has the web Editor and no native desktop target.
+  # Verify its real authoring build; require native CI if a desktop app is added.
+  desktop-required:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: pnpm
+      - name: Require the appropriate authoring pipeline
+        run: |
+          if [ -f apps/desktop/package.json ]; then
+            echo 'Native desktop sources require the full Desktop CI pipeline'
+            exit 1
+          fi
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm editor:build
+      - run: test -f editor/core/.output/server/index.mjs
 
   test-e2e:
     timeout-minutes: 60
@@ -95,7 +109,7 @@ jobs:
           cache: pnpm
 
       - name: Install
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Build ADV.JS Lib
         run: pnpm build
@@ -111,3 +125,22 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 30
+
+  launch-required:
+    if: always()
+    needs: [build, lint, typecheck, unit, test-e2e]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every main runtime check
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: |
+          node --input-type=module -e '
+            const failed = Object.entries(JSON.parse(process.env.NEEDS_JSON))
+              .filter(([, job]) => job.result !== "success");
+            if (failed.length) {
+              console.error("Required main checks failed:", failed.map(([name, job]) => `${name}=${job.result}`).join(", "));
+              process.exit(1);
+            }
+            console.log("All required main runtime checks passed");
+          '
