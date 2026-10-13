@@ -1,6 +1,6 @@
 import path from 'node:path'
 import VueI18n from '@intlify/unplugin-vue-i18n/vite'
-import Shiki from '@shikijs/markdown-it'
+import Shiki from '@shikijs/markdown-exit'
 import Vue from '@vitejs/plugin-vue'
 import LinkAttributes from 'markdown-it-link-attributes'
 import Unocss from 'unocss/vite'
@@ -70,7 +70,7 @@ export default defineConfig({
     Markdown({
       wrapperClasses: markdownWrapperClasses,
       headEnabled: true,
-      async markdownItSetup(md) {
+      markdownSetup(md) {
         // markdown-exit is runtime-compatible with markdown-it plugins, but its
         // rewritten parser types are intentionally not structurally identical.
         md.use(LinkAttributes as never, {
@@ -80,7 +80,7 @@ export default defineConfig({
             rel: 'noopener',
           },
         })
-        md.use(await Shiki({
+        md.use(Shiki({
           defaultColor: false,
           themes: {
             light: 'material-theme-lighter',

@@ -16,7 +16,8 @@ const vueRuntimePath = 'vue/dist/vue.runtime.esm-bundler.js'
 const vuePattern = /^vue$/
 const vueRouterPattern = /^vue-router$/
 const pixiPattern = /^pixi\.js$/
-const vueI18nPattern = /vue-i18n/
+const layoutRuntimePattern = /^vite-plugin-vue-layouts-next\/runtime$/
+const vueI18nPattern = /vue-i18n|@intlify\//
 const ADVJS_PATTERN = /^#advjs\/(.*)/
 const ADVJS_CLIENT_PATTERN = /^@advjs\/client$/
 const ADVJS_CLIENT_SLASH_PATTERN = /^@advjs\/client\/(.*)/
@@ -121,6 +122,11 @@ export async function getAlias(options: ResolvedAdvOptions): Promise<Alias[]> {
   })
 
   alias.push(
+    {
+      // Layouts 3 imports its runtime from a virtual module outside project roots.
+      find: layoutRuntimePattern,
+      replacement: await resolveImportPath('vite-plugin-vue-layouts-next/runtime', true),
+    },
     {
       // avoid vue/compiler-sfc in unplugin-vue-i18n
       find: vuePattern,

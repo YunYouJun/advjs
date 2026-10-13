@@ -29,7 +29,7 @@ async function main(directory) {
   const manifest = await verifyNpmArtifact(directory)
   const tools = join(directory, '.npm-tools')
   await mkdir(tools, { recursive: true })
-  await writeFile(join(tools, 'package.json'), JSON.stringify({ private: true, packageManager: 'pnpm@11.20.0' }))
+  await writeFile(join(tools, 'package.json'), JSON.stringify({ private: true, packageManager: 'pnpm@12.12.1' }))
   await writeFile(join(tools, 'pnpm-workspace.yaml'), JSON.stringify({ allowBuilds: {} }))
   run('pnpm', ['--dir', tools, 'add', `npm@${NPM_CLI_VERSION}`, '--ignore-scripts'])
 

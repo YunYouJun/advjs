@@ -26,11 +26,16 @@ export async function runCommand(command, args = [], options = {}) {
   }
 }
 
-export async function runPnpm(args, options = {}) {
-  const npmExecPath = options.env?.npm_execpath || process.env.npm_execpath
+export function resolvePnpmInvocation(args, runtime = {}) {
+  const npmExecPath = runtime.npmExecPath ?? process.env.npm_execpath
   if (npmExecPath && /\.(?:c|m)?js$/u.test(npmExecPath))
-    return await runCommand(process.execPath, [npmExecPath, ...args], options)
-  return await runCommand('pnpm', args, options)
+    return { command: runtime.execPath ?? process.execPath, args: [npmExecPath, ...args] }
+  return { command: 'pnpm', args }
+}
+
+export async function runPnpm(args, options = {}) {
+  const invocation = resolvePnpmInvocation(args, { npmExecPath: options.env?.npm_execpath || process.env.npm_execpath })
+  return await runCommand(invocation.command, invocation.args, options)
 }
 
 export function resolveNpxInvocation(args, runtime = {}) {

@@ -1,6 +1,6 @@
 import path from 'node:path'
 import VueI18n from '@intlify/unplugin-vue-i18n/vite'
-import Shiki from '@shikijs/markdown-it'
+import Shiki from '@shikijs/markdown-exit'
 import Vue from '@vitejs/plugin-vue'
 import LinkAttributes from 'markdown-it-link-attributes'
 import Unocss from 'unocss/vite'
@@ -100,7 +100,7 @@ export default defineConfig((config) => {
       Markdown({
         wrapperClasses: markdownWrapperClasses,
         headEnabled: true,
-        async markdownItSetup(md) {
+        markdownSetup(md) {
           // https://prismjs.com/
           md.use(LinkAttributes, {
             pattern: HTTPS_REGEX,
@@ -109,7 +109,7 @@ export default defineConfig((config) => {
               rel: 'noopener',
             },
           })
-          md.use(await Shiki({
+          md.use(Shiki({
             defaultColor: false,
             themes: {
               light: 'vitesse-light',

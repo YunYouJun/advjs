@@ -227,7 +227,7 @@ export const ADV_LAUNCH_SUPPORT = {
     },
     {
       name: 'pnpm',
-      version: '11.20.0',
+      version: '12.12.1',
       executors: ['pnpm', 'pnpm dlx'],
     },
   ],

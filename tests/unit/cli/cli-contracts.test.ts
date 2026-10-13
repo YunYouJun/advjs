@@ -92,7 +92,7 @@ describe('launch CLI contracts', () => {
       ],
       packageManagers: [
         { name: 'npm', executors: ['npm', 'npx'] },
-        { name: 'pnpm', version: '11.20.0', executors: ['pnpm', 'pnpm dlx'] },
+        { name: 'pnpm', version: '12.12.1', executors: ['pnpm', 'pnpm dlx'] },
       ],
       browsers: {
         supported: ['chromium-stable'],

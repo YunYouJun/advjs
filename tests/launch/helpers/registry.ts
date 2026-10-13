@@ -3,6 +3,7 @@ import { open, readdir, readFile, writeFile } from 'node:fs/promises'
 import { createServer } from 'node:http'
 import { basename, join } from 'node:path'
 import process from 'node:process'
+import { stringify } from 'yaml'
 import { readTarEntries } from '../../../scripts/release/package-manifest.mjs'
 import { runCommand, runNpx, runPnpm } from '../../../scripts/release/run-command.mjs'
 
@@ -54,7 +55,7 @@ export async function writeLaunchRegistryConfig(temporaryRoot: string, registryU
 }
 
 export async function writeLaunchWorkspaceConfig(directory: string, overrides?: Record<string, string>) {
-  // Mirror the repository's explicit pnpm 11 lifecycle-script decisions in
+  // Mirror the repository's explicit pnpm lifecycle-script decisions in
   // isolated consumer workspaces. Unknown scripts must still fail closed.
   const allowBuilds = {
     '@parcel/watcher': false,
@@ -72,7 +73,7 @@ export async function writeLaunchWorkspaceConfig(directory: string, overrides?: 
   }
   await writeFile(
     join(directory, 'pnpm-workspace.yaml'),
-    `${JSON.stringify({ allowBuilds, overrides }, null, 2)}\n`,
+    stringify({ allowBuilds, overrides }),
     'utf8',
   )
 }
