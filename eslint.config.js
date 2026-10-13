@@ -34,6 +34,13 @@ export default antfu(
     ],
   },
   {
+    files: ['pnpm-workspace.yaml'],
+    rules: {
+      // Electron window discovery needs its own Playwright compatibility pin.
+      'pnpm/yaml-no-duplicate-catalog-item': ['error', { allow: ['@playwright/test'] }],
+    },
+  },
+  {
     files: ['packages/create-adv/templates/**/*'],
     rules: {
       // Disable catalog enforcement for template files

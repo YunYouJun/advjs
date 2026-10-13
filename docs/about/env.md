@@ -4,7 +4,7 @@
 
 ## 安装工具与依赖
 
-需要 Git、[Node.js](https://nodejs.org/en/download/) **24.15.0 或更新的兼容版本**，以及 [pnpm](https://pnpm.io/installation)。以根目录 `package.json` 的 `engines` 和 `packageManager` 为准，当前固定使用 **pnpm 11.20.0**。子包允许较旧 Node.js，不代表整个仓库支持该版本。
+需要 Git、[Node.js](https://nodejs.org/en/download/) **24.15.0 或更新的兼容版本**，以及 [pnpm](https://pnpm.io/installation)。以根目录 `package.json` 的 `engines` 和 `packageManager` 为准，当前固定使用 **pnpm 12.12.1**。子包允许较旧 Node.js，不代表整个仓库支持该版本。
 
 ```bash
 git clone https://github.com/YunYouJun/advjs.git

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { parse } from 'yaml'
+import { parseAllDocuments } from 'yaml'
 
 export function assertPublicLockfile(source) {
   function visit(value) {
@@ -12,5 +12,9 @@ export function assertPublicLockfile(source) {
         visit(child)
     }
   }
-  visit(parse(source))
+  for (const document of parseAllDocuments(source)) {
+    if (document.errors.length)
+      throw document.errors[0]
+    visit(document.toJS())
+  }
 }

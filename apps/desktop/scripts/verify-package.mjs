@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { basename, delimiter, dirname, isAbsolute, relative, resolve, sep } from 'node:path'
 import process from 'node:process'
 import { _electron as electron, expect } from '@playwright/test'
+import { redactErrorReport } from '../src/error-report.ts'
 
 const root = resolve(import.meta.dirname, '..')
 const repo = resolve(root, '../..')
@@ -26,6 +27,7 @@ const destination = resolve(workspace, 'exported-web')
 const roomSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600"><rect width="800" height="600" fill="#35465c"/></svg>'
 const report = { platform: process.platform, arch: process.arch, executable, status: 'running' }
 const errors = []
+let processLogs = ''
 let app
 let page
 
@@ -115,6 +117,11 @@ try {
   const env = runtimeEnvironment()
   const movedExecutable = resolve(relocated, relative(original, executable))
   app = await electron.launch({ executablePath: movedExecutable, cwd: workspace, args: [`--project=${fixture}`], env, timeout: 60000 })
+  const captureProcessOutput = (chunk) => {
+    processLogs = `${processLogs}${chunk}`.slice(-24000)
+  }
+  app.process().stdout?.on('data', captureProcessOutput)
+  app.process().stderr?.on('data', captureProcessOutput)
   page = await app.firstWindow({ timeout: 60000 })
   page.on('pageerror', error => errors.push(String(error)))
   page.on('console', (message) => {
@@ -156,6 +163,16 @@ try {
 catch (error) {
   report.status = 'failed'
   report.error = error instanceof Error ? error.stack : String(error)
+  report.processLogs = redactErrorReport(processLogs)
+  if (app) {
+    report.bootState = app.process().exitCode === null
+      ? await app.evaluate(({ app, BrowserWindow }) => ({
+          ready: app.isReady(),
+          windows: BrowserWindow.getAllWindows().map(window => ({ id: window.id, visible: window.isVisible(), loading: window.webContents.isLoading() })),
+        })).catch(error => ({ error: String(error) }))
+      : { exitCode: app.process().exitCode, signalCode: app.process().signalCode }
+  }
+  process.stderr.write(`Packaged startup diagnostics: ${JSON.stringify(report.bootState)}\n${report.processLogs}\n`)
   if (page)
     await page.screenshot({ path: resolve(evidence, `packaged-smoke-${target}-failure.png`) }).catch(() => {})
   throw error

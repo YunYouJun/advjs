@@ -23,6 +23,7 @@
   "devDependencies": {
     "@advjs/plugin-interactions": "workspace:*",
     "@advjs/theme-default": "workspace:*",
+    "@playwright/test": "catalog:test",
     "advjs": "workspace:*",
     "cross-env": "catalog:utils"
   }

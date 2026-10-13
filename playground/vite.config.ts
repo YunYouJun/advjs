@@ -1,5 +1,5 @@
 import path from 'node:path'
-import Shiki from '@shikijs/markdown-it'
+import Shiki from '@shikijs/markdown-exit'
 import { unheadVueComposablesImports } from '@unhead/vue'
 import Vue from '@vitejs/plugin-vue'
 import LinkAttributes from 'markdown-it-link-attributes'
@@ -24,7 +24,7 @@ const MD_REGEX = /\.md$/
 const JSX_REGEX = /\.[jt]sx?$/
 const VUE_QUERY_REGEX = /\.vue\?vue/
 const HTTPS_REGEX = /^https?:\/\//
-const VUE_I18N_REGEX = /vue-i18n/
+const VUE_I18N_REGEX = /vue-i18n|@intlify\//
 
 export default defineConfig(async ({ mode }) => {
   const options = await resolveOptions({
@@ -104,7 +104,7 @@ export default defineConfig(async ({ mode }) => {
       Markdown({
         wrapperClasses: 'prose prose-sm m-auto text-left',
         headEnabled: true,
-        async markdownItSetup(md) {
+        markdownSetup(md) {
           md.use(LinkAttributes, {
             matcher: (link: string) => HTTPS_REGEX.test(link),
             attrs: {
@@ -112,7 +112,7 @@ export default defineConfig(async ({ mode }) => {
               rel: 'noopener',
             },
           })
-          md.use(await Shiki({
+          md.use(Shiki({
             defaultColor: false,
             themes: {
               light: 'vitesse-light',

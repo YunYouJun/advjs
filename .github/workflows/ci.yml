@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NODE_VERSION: 'lts/*'
-      PNPM_VERSION: 11.20.0
+      PNPM_VERSION: 12.12.1
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
