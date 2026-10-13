@@ -27,7 +27,7 @@ describe('cloudflare Pages build watch paths', () => {
     ['examples/editor-plugin-diagnostics/src/index.ts', ['editor']],
     ['demo/starter/public/md/chapters/hello.adv.md', ['editor']],
     ['apps/desktop/src/project-names.ts', ['editor']],
-    ['packages/agent/src/index.ts', ['studio']],
+    ['packages/agent/src/index.ts', ['studio', 'editor']],
     ['plugins/plugin-interactions/client/StarMapActivity.vue', ['studio']],
     ['plugins/plugin-pominis/src/index.ts', ['editor']],
     ['packages/advjs/template/adv/chapters/README.md', ['editor', 'vrm']],
@@ -66,6 +66,16 @@ describe('cloudflare Pages build watch paths', () => {
   it('watches the new audio workspace and Studio shared audio contracts', () => {
     expect(builds(['packages/audio/src/runtime-projection.ts'])).toEqual(['studio', 'editor', 'vrm'])
     expect(builds(['packages/advjs/shared/hosted-audio.ts'])).toEqual(['studio', 'editor', 'vrm'])
+  })
+
+  it.each([
+    'packages/agent/package.json',
+    'packages/agent/src/proposals/index.ts',
+    'packages/agent/src/proposals/flow.ts',
+    'packages/agent/src/proposals/review.ts',
+    'packages/agent/src/core/contracts.ts',
+  ])('watches shared Agent proposal dependencies in Studio and Editor: %s', (path) => {
+    expect(builds([path])).toEqual(['studio', 'editor'])
   })
 
   it('matches nested paths and literal punctuation using Pages wildcard semantics', () => {

@@ -7,3 +7,20 @@
   --vf-handle: var(--agui-c-text-2);
   --vf-connection-path: var(--agui-c-link);
 }
+
+// Categorical accents are separate from selection, success and error semantics.
+// Node labels/icons remain available without color discrimination.
+.native-flow-canvas {
+  --agui-flow-story: #245d9d;
+  --agui-flow-branch: #855600;
+  --agui-flow-scene: #7555a3;
+  --agui-flow-audio: #216c70;
+  --agui-flow-neutral: #595959;
+}
+.dark .native-flow-canvas {
+  --agui-flow-story: #8fbaf0;
+  --agui-flow-branch: #e5c071;
+  --agui-flow-scene: #c4ace8;
+  --agui-flow-audio: #84cecc;
+  --agui-flow-neutral: #bfc4cc;
+}

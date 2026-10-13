@@ -14,28 +14,28 @@ function desktopNeeds(packageRequired = false) {
 
 describe('required desktop checks', () => {
   it('allows intentionally skipped packaging for unaffected pull requests', () => {
-    expect(() => assertDesktopChecks(desktopNeeds(), 'pull_request')).not.toThrow()
+    expect(() => assertDesktopChecks({ needs: desktopNeeds(), event: 'pull_request' })).not.toThrow()
   })
   it.each(['failure', 'cancelled', 'skipped'])('rejects a required Linux package result: %s', (result) => {
     const needs = desktopNeeds(true)
     needs['linux-package'].result = result
-    expect(() => assertDesktopChecks(needs, 'pull_request')).toThrow('Unexpected Linux package result')
+    expect(() => assertDesktopChecks({ needs, event: 'pull_request' })).toThrow('linux-package=')
   })
   it('rejects a failed desktop build even when packaging is skipped', () => {
     const needs = desktopNeeds()
     needs.build.result = 'failure'
-    expect(() => assertDesktopChecks(needs, 'pull_request')).toThrow('Desktop build must succeed')
+    expect(() => assertDesktopChecks({ needs, event: 'pull_request' })).toThrow('build=failure; expected success')
   })
   it('requires the full matrix for manual desktop validation', () => {
     const needs = desktopNeeds()
-    expect(() => assertDesktopChecks(needs, 'workflow_dispatch')).toThrow('Unexpected desktop matrix result')
+    expect(() => assertDesktopChecks({ needs, event: 'workflow_dispatch' })).toThrow('full-matrix=')
     needs['full-matrix'].result = 'success'
-    expect(() => assertDesktopChecks(needs, 'workflow_dispatch')).not.toThrow()
+    expect(() => assertDesktopChecks({ needs, event: 'workflow_dispatch' })).not.toThrow()
   })
   it('rejects a missing packaging decision instead of treating it as unaffected', () => {
     const needs = desktopNeeds()
     needs.build.outputs.package = ''
-    expect(() => assertDesktopChecks(needs, 'pull_request')).toThrow('Desktop packaging decision must be explicit')
+    expect(() => assertDesktopChecks({ needs, event: 'pull_request' })).toThrow('true/false build.outputs.package')
   })
 })
 

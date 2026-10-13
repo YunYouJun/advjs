@@ -36,6 +36,7 @@ export function useVoiceDesign(visible: () => boolean) {
   let epoch = 0
   let controller: AbortController | undefined
   let timer: ReturnType<typeof setTimeout> | undefined
+  let reloadTask: Promise<void> | undefined
   let focusedSpeakerId: string | undefined
 
   const port = computed(() => audio.supportedRoot ? project.workspace?.voiceDesign : undefined)
@@ -49,7 +50,8 @@ export function useVoiceDesign(visible: () => boolean) {
   const previews = computed(() => (snapshot.value?.previews ?? []).filter(preview => preview.voiceId === selectedVoiceId.value && preview.locale === locale.value && preview.providerId === providerId.value))
   const samples = computed(() => (selected.value?.design.samples ?? []).filter(sample => sample.locale === locale.value && sample.providerId === providerId.value))
   const selectedSample = computed(() => selected.value?.design.selectedSamples[locale.value]?.[providerId.value])
-  const canPlan = computed(() => available.value && !pending.value && !loading.value && !dirty.value && Boolean(selected.value && providerId.value && text.value.trim()) && Number.isSafeInteger(Number(maxCharacters.value)) && Number(maxCharacters.value) > 0 && [...text.value].length <= Number(maxCharacters.value))
+  const planEligible = computed(() => available.value && !dirty.value && Boolean(selected.value && text.value.trim()) && providerOptions.value.some(option => option.value === providerId.value) && Boolean(snapshot.value?.providers.some(provider => provider.id === providerId.value)) && Number.isSafeInteger(Number(maxCharacters.value)) && Number(maxCharacters.value) > 0 && [...text.value].length <= Number(maxCharacters.value))
+  const canPlan = computed(() => !pending.value && planEligible.value)
   const validation = computed(() => {
     if (!draft.value)
       return ''
@@ -178,7 +180,18 @@ export function useVoiceDesign(visible: () => boolean) {
     if (visible() && snapshot.value?.previews.some(preview => preview.status === 'running' || preview.status === 'queued'))
       timer = setTimeout(() => { void reload() }, 800)
   }
-  async function reload() {
+  function reload(): Promise<void> {
+    if (reloadTask)
+      return reloadTask
+    const task = loadSnapshot()
+    reloadTask = task
+    void task.finally(() => {
+      if (reloadTask === task)
+        reloadTask = undefined
+    })
+    return task
+  }
+  async function loadSnapshot() {
     const currentPort = port.value
     if (!currentPort || loading.value)
       return
@@ -264,8 +277,18 @@ export function useVoiceDesign(visible: () => boolean) {
   async function plan() {
     if (!canPlan.value || !snapshot.value)
       return
+    const selection = { voiceId: selectedVoiceId.value, locale: locale.value, providerId: providerId.value, speakerId: audio.workflowSpeakerId }
     invalidateReview()
     await action(async (service, signal, current) => {
+      // Background project refreshes must not silently swallow a plan click.
+      // Hold the action lock while sharing the active read, then use its revision.
+      await reloadTask
+      if (!current() || error.value || !snapshot.value)
+        return
+      if (!planEligible.value || selection.voiceId !== selectedVoiceId.value || selection.locale !== locale.value || selection.providerId !== providerId.value || selection.speakerId !== audio.workflowSpeakerId) {
+        status.value = '项目输入已变化，请重新创建试听审核计划。'
+        return
+      }
       const result = await service.planPreview({ voiceId: selectedVoiceId.value, locale: locale.value, providerId: providerId.value, text: text.value, expectedRevision: snapshot.value!.revision, budget: { maxCharacters: Number(maxCharacters.value), allowUnknownCost: allowUnknownCost.value } }, signal)
       if (current())
         review.value = result
@@ -366,6 +389,7 @@ export function useVoiceDesign(visible: () => boolean) {
   }
   function reset() {
     epoch++
+    reloadTask = undefined
     controller?.abort()
     clearTimeout(timer)
     stopAudio()

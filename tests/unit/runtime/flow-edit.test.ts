@@ -80,6 +80,19 @@ describe('shared native Flow editing protocol', () => {
     expect(result.diagnostics.some(issue => issue.message.includes('missing_variable'))).toBe(true)
   })
 
+  it('arranges node positions as one undoable edit without changing story order or routes', () => {
+    const original = document()
+    const initial = createFlowEditHistory(original)
+    const positions = Object.fromEntries(original.nodes.map((node, index) => [node.id, { x: index * 400, y: index * 120 }]))
+    const changed = reduceFlowEditHistory(initial, { type: 'edit', command: { type: 'arrange-nodes', positions } })
+    expect(changed.past).toHaveLength(1)
+    expect(changed.present.nodes.map(node => node.id)).toEqual(original.nodes.map(node => node.id))
+    expect(changed.present.nodes.map(({ position, ...node }) => node)).toEqual(original.nodes.map(({ position, ...node }) => node))
+    expect(reduceFlowEditHistory(changed, { type: 'undo' }).present).toEqual(original)
+    expect(() => applyFlowEdit(original, { type: 'arrange-nodes', positions: { missing: { x: 0, y: 0 } } })).toThrow('ADV_FLOW_NODE_NOT_FOUND')
+    expect(() => applyFlowEdit(original, { type: 'arrange-nodes', positions: { [original.nodes[0]!.id]: { x: Infinity, y: 0 } } })).toThrow('ADV_FLOW_INVALID_POSITION')
+  })
+
   it('undo and redo preserve complete JSON including layout, rows and opaque metadata', () => {
     const initial = createFlowEditHistory(document())
     const changed = reduceFlowEditHistory(initial, { type: 'edit', command: { type: 'move-node', nodeId: 'choice', position: { x: 1, y: 2 } } })

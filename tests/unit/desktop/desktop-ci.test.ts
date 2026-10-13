@@ -23,6 +23,7 @@ describe('desktop CI scope', () => {
       'demo/starter/adv/scenes/intro.md',
       'patches/electron.patch',
       'scripts/prepare-workspace.mjs',
+      'scripts/ci/desktop-required.mjs',
       '.github/workflows/desktop-build.yml',
       '.github/workflows/release-candidate.yml',
       'tests/launch/fixtures/golden-project/adv.config.json',
@@ -85,7 +86,7 @@ describe('desktop CI scope', () => {
 
   it('keeps ordinary PR checks lightweight and runs the complete matrix only on manual dispatch', async () => {
     const ci = parse(await readFile(resolve(root, '.github/workflows/desktop.yml'), 'utf8'))
-    expect(ci.on.pull_request.paths).toBeUndefined()
+    expect(ci.on).toEqual({ push: { branches: ['dev', 'main'] }, pull_request: { branches: ['dev', 'main'] }, workflow_dispatch: null })
     expect(ci.jobs.build.steps.some((step: { run?: string }) => step.run === 'node apps/desktop/scripts/build.mjs')).toBe(true)
     expect(ci.jobs.build.steps.some((step: { run?: string }) => step.run?.includes('desktop:make'))).toBe(false)
     expect(ci.jobs['linux-package'].if).toBe('github.event_name != \'workflow_dispatch\' && needs.build.outputs.package == \'true\'')
@@ -93,5 +94,32 @@ describe('desktop CI scope', () => {
     expect(ci.jobs['full-matrix'].if).toBe('github.event_name == \'workflow_dispatch\'')
     expect(ci.jobs['full-matrix'].with?.targets).toBeUndefined()
     expect(ci.permissions).toEqual({ contents: 'read' })
+  })
+
+  it('always aggregates the real build and both packaging jobs under the required check name', async () => {
+    const ci = parse(await readFile(resolve(root, '.github/workflows/desktop.yml'), 'utf8'))
+    const gate = ci.jobs['desktop-required']
+    expect(gate.name).toBe('desktop-required')
+    expect(gate.if).toBe('always()')
+    expect(gate.needs).toEqual(['build', 'linux-package', 'full-matrix'])
+    expect(gate['continue-on-error']).toBeUndefined()
+    expect(gate.steps).toEqual([
+      { uses: 'actions/checkout@v7', with: { 'persist-credentials': false } },
+      { uses: 'actions/setup-node@v7', with: { 'node-version': 'lts/*' } },
+      {
+        name: 'Require every applicable desktop check',
+        env: { DESKTOP_EVENT: `\${{ github.event_name }}`, NEEDS_JSON: `\${{ toJSON(needs) }}` },
+        run: 'node scripts/ci/desktop-required.mjs',
+      },
+    ])
+    expect(ci.jobs.build.outputs.package).toBe(`\${{ steps.changes.outputs.package }}`)
+    expect(ci.jobs.build.steps.some((step: { run?: string }) => step.run === 'pnpm -C apps/desktop test:scripts')).toBe(true)
+    const desktop = JSON.parse(await readFile(resolve(root, 'apps/desktop/package.json'), 'utf8'))
+    expect(desktop.scripts['test:scripts']).toBe('node --test scripts/*.test.mjs')
+    for (const name of ['linux-package', 'full-matrix']) {
+      expect(ci.jobs[name].needs).toBe('build')
+      expect(ci.jobs[name].uses).toBe('./.github/workflows/desktop-build.yml')
+      expect(ci.jobs[name]['continue-on-error']).toBeUndefined()
+    }
   })
 })

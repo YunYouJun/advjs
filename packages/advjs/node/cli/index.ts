@@ -16,6 +16,7 @@ import { installDevCommand } from './dev'
 import { installDoctorCommand } from './doctor'
 import { installEditorCommand } from './editor'
 import { installExportCommand } from './export'
+import { installFlowCommand } from './flow'
 import { setLocale } from './i18n'
 import { installInitCommand } from './init'
 import { installMigrateAudioCommand } from './migrate-audio'
@@ -63,6 +64,7 @@ installDeployCommand(cli)
 installDevCommand(cli)
 installBuildCommand(cli)
 installExportCommand(cli)
+installFlowCommand(cli)
 installConfigCommand(cli)
 installInitCommand(cli)
 installPlayCommand(cli)
@@ -72,6 +74,10 @@ installDebugCommand(cli)
 installSyncCommand(cli)
 
 function inferContractCommand() {
+  if (rawArguments.includes('flow')) {
+    const action = rawArguments[rawArguments.indexOf('flow') + 1]
+    return action === 'plan' ? 'flow.plan' : 'flow.read'
+  }
   if (rawArguments.includes('migrate-audio'))
     return 'migrate.audio'
   if (rawArguments.includes('voice')) {

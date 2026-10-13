@@ -698,5 +698,151 @@
         }
       ]
     }
+  },
+  "flow.read": {
+    "success": {
+      "schemaVersion": 1,
+      "command": "flow.read",
+      "ok": true,
+      "data": {
+        "schemaVersion": 1,
+        "path": "adv/chapters/intro.chapter.json",
+        "chapterId": "intro",
+        "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "projectRevision": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "document": {
+          "schemaVersion": 1,
+          "id": "intro",
+          "title": "Intro",
+          "startNodeId": "hello",
+          "nodes": [
+            {
+              "id": "hello",
+              "type": "narration",
+              "lineId": "line_019d137e-7abc-7000-8000-000000000001",
+              "text": "Hello",
+              "next": "end"
+            },
+            {
+              "id": "end",
+              "type": "end"
+            }
+          ]
+        },
+        "diagnostics": []
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "failure": {
+      "schemaVersion": 1,
+      "command": "flow.read",
+      "ok": false,
+      "data": null,
+      "warnings": [],
+      "errors": [
+        {
+          "code": "ADV_VALIDATION",
+          "message": "The native Flow chapter could not be read.",
+          "details": {
+            "code": "ADV_FLOW_FILE_NOT_FOUND",
+            "references": []
+          }
+        }
+      ]
+    }
+  },
+  "flow.plan": {
+    "success": {
+      "schemaVersion": 1,
+      "command": "flow.plan",
+      "ok": true,
+      "data": {
+        "request": {
+          "schemaVersion": 1,
+          "path": "adv/chapters/intro.chapter.json",
+          "expectedRevision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "projectRevision": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "commands": [
+            {
+              "type": "set-title",
+              "title": "A new title"
+            }
+          ]
+        },
+        "path": "adv/chapters/intro.chapter.json",
+        "chapterId": "intro",
+        "revision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "projectRevision": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "baseline": {
+          "schemaVersion": 1,
+          "id": "intro",
+          "title": "Intro",
+          "startNodeId": "hello",
+          "nodes": [
+            {
+              "id": "hello",
+              "type": "narration",
+              "lineId": "line_019d137e-7abc-7000-8000-000000000001",
+              "text": "Hello",
+              "next": "end"
+            },
+            {
+              "id": "end",
+              "type": "end"
+            }
+          ]
+        },
+        "proposed": {
+          "schemaVersion": 1,
+          "id": "intro",
+          "title": "A new title",
+          "startNodeId": "hello",
+          "nodes": [
+            {
+              "id": "hello",
+              "type": "narration",
+              "lineId": "line_019d137e-7abc-7000-8000-000000000001",
+              "text": "Hello",
+              "next": "end"
+            },
+            {
+              "id": "end",
+              "type": "end"
+            }
+          ]
+        },
+        "before": "{\n  \"schemaVersion\": 1,\n  \"id\": \"intro\",\n  \"title\": \"Intro\",\n  \"startNodeId\": \"hello\",\n  \"nodes\": [\n    {\n      \"id\": \"hello\",\n      \"type\": \"narration\",\n      \"lineId\": \"line_019d137e-7abc-7000-8000-000000000001\",\n      \"text\": \"Hello\",\n      \"next\": \"end\"\n    },\n    {\n      \"id\": \"end\",\n      \"type\": \"end\"\n    }\n  ]\n}\n",
+        "after": "{\n  \"schemaVersion\": 1,\n  \"id\": \"intro\",\n  \"title\": \"A new title\",\n  \"startNodeId\": \"hello\",\n  \"nodes\": [\n    {\n      \"id\": \"hello\",\n      \"type\": \"narration\",\n      \"lineId\": \"line_019d137e-7abc-7000-8000-000000000001\",\n      \"text\": \"Hello\",\n      \"next\": \"end\"\n    },\n    {\n      \"id\": \"end\",\n      \"type\": \"end\"\n    }\n  ]\n}\n",
+        "changes": {
+          "nodes": [],
+          "lines": [],
+          "chapterFields": [
+            "title"
+          ]
+        },
+        "diagnostics": [],
+        "valid": true
+      },
+      "warnings": [],
+      "errors": []
+    },
+    "failure": {
+      "schemaVersion": 1,
+      "command": "flow.plan",
+      "ok": false,
+      "data": null,
+      "warnings": [],
+      "errors": [
+        {
+          "code": "ADV_VALIDATION",
+          "message": "The proposal baseline changed. Read the chapter again.",
+          "details": {
+            "code": "ADV_FLOW_SOURCE_CONFLICT",
+            "references": []
+          }
+        }
+      ]
+    }
   }
 }

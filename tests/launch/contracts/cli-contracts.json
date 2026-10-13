@@ -78,6 +78,14 @@
     "migrate.audio": {
       "success": "https://advjs.org/schemas/cli-output.v1.json#/$defs/migrateAudioSuccess",
       "failure": "https://advjs.org/schemas/cli-output.v1.json#/$defs/migrateAudioFailure"
+    },
+    "flow.read": {
+      "success": "https://advjs.org/schemas/cli-output.v1.json#/$defs/flowReadSuccess",
+      "failure": "https://advjs.org/schemas/cli-output.v1.json#/$defs/flowReadFailure"
+    },
+    "flow.plan": {
+      "success": "https://advjs.org/schemas/cli-output.v1.json#/$defs/flowPlanSuccess",
+      "failure": "https://advjs.org/schemas/cli-output.v1.json#/$defs/flowPlanFailure"
     }
   }
 }

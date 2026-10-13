@@ -5,8 +5,18 @@ import { Toast } from '@advjs/gui'
 import { useStorage } from '@vueuse/core'
 import { consola } from 'consola'
 import { acceptHMRUpdate, defineStore } from 'pinia'
+import { shallowRef, watch } from 'vue'
 import { shouldFetchEditorResource } from '../../capabilities'
 import { useEditorCapabilities } from '../composables/useEditorCapabilities'
+
+export interface EditorGameLoadOptions {
+  /** Reject an obsolete authoring request before it installs or starts a game. */
+  isCurrent?: () => boolean
+  /** Selected-node authoring restores its stage without traversing the entry. */
+  start?: boolean
+  /** Draft playback uses ephemeral saves and no progression/gallery persistence. */
+  persistence?: boolean
+}
 
 /**
  * editor game store
@@ -31,6 +41,13 @@ export const useGameStore = defineStore('@advjs/editor:game', () => {
   const capabilities = useEditorCapabilities()
 
   const { $adv } = useAdvContext()
+  let loadSequence = 0
+  const flowDraftPreview = shallowRef<{ path: string, chapterId: string, nodeId: string }>()
+  watch(() => [projectStore.workspace, projectStore.project], () => {
+    if (flowDraftPreview.value)
+      clientGameStore.loadStatus = AdvGameLoadStatusEnum.IDLE
+    flowDraftPreview.value = undefined
+  }, { flush: 'sync' })
   const gameConfig = computed({
     get: () => advDataRef.value.gameConfig,
     set: (value: AdvGameConfig) => {
@@ -48,10 +65,16 @@ export const useGameStore = defineStore('@advjs/editor:game', () => {
     }
   }
 
-  async function loadGameFromConfig(config: AdvGameConfig) {
-    // The embedded preview reads its engine options from this same data ref.
-    // Applying project options here keeps every preview load on its own config.
-    advDataRef.value = { ...advDataRef.value, config: projectStore.advConfig }
+  async function loadGameFromConfig(config: AdvGameConfig, options: EditorGameLoadOptions = {}): Promise<boolean> {
+    const sequence = ++loadSequence
+    const workspace = projectStore.workspace
+    const project = projectStore.project
+    const engineConfig = projectStore.advConfig
+    const isCurrent = () => sequence === loadSequence && workspace === projectStore.workspace
+      && project === projectStore.project && (options.isCurrent?.() ?? true)
+    if (!isCurrent())
+      return false
+    flowDraftPreview.value = undefined
     try {
       switch (curAdapter.value) {
         case 'default':
@@ -89,6 +112,8 @@ export const useGameStore = defineStore('@advjs/editor:game', () => {
       }
     }
     catch (e) {
+      if (!isCurrent())
+        return false
       const message = e instanceof Error ? e.message : String(e)
       consola.error('Failed to adapt game config:', e)
       useConsoleStore().error('Failed to adapt game config', { error: message })
@@ -100,17 +125,33 @@ export const useGameStore = defineStore('@advjs/editor:game', () => {
         type: 'error',
       })
 
-      return
+      return false
     }
 
+    if (!isCurrent())
+      return false
+    // Engine options and story configuration are committed together only after
+    // asynchronous adaptation has finished for the still-current project.
+    advDataRef.value = { ...advDataRef.value, config: engineConfig }
     gameConfig.value = config
     clientGameStore.loadStatus = AdvGameLoadStatusEnum.CONFIG_LOADED
 
-    await $adv.init()
+    try {
+      await $adv.init({ isCurrent, persistence: options.persistence })
+    }
+    catch (error) {
+      if (!isCurrent())
+        return false
+      clientGameStore.loadStatus = AdvGameLoadStatusEnum.FAIL
+      throw error
+    }
+    if (!isCurrent())
+      return false
     clientGameStore.loadStatus = AdvGameLoadStatusEnum.SUCCESS
 
-    if (config.chapters.length)
+    if (config.chapters.length && options.start !== false)
       await $adv.runtime.start()
+    return isCurrent()
   }
 
   return {
@@ -120,6 +161,7 @@ export const useGameStore = defineStore('@advjs/editor:game', () => {
 
     startChapter,
     startNode,
+    flowDraftPreview,
 
     loadGameFromConfig,
     loadGameFromJSONStr,
