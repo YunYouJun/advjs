@@ -20,6 +20,8 @@
 
 先按[环境配置](/about/env)从干净仓库启动 Demo 或 Editor，再用[贡献者调试指南](/contributing/debugging)设置断点并运行最小测试。提交代码时请遵循[开发规范](/about/dev/standard)。
 
+维护发版说明时参考[中文 Release Notes](/contributing/release-notes)，支持正式主／次版本自动摘要与补丁版手动补生成。
+
 ## 贡献生态
 
 如果您想要制作一些示例和教程，这是相当欢迎的。
