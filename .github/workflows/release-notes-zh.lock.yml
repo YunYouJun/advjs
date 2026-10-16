@@ -53,7 +53,7 @@ permissions: {}
 
 jobs:
   release-notes:
-    uses: YunYouJun/ai/.github/workflows/release-notes.lock.yml@c04571434e9d58d7a1032427c0e4b47a9ae53e1f
+    uses: YunYouJun/ai/.github/workflows/release-notes.lock.yml@8023830649c9050b3f41a81fd0f88452524cd253
     permissions:
       actions: read
       contents: write
