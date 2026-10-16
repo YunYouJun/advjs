@@ -44,7 +44,7 @@ Release 顶部提供“简体中文 · English · 完整变更记录”导航，
 
 ## 手动补生成
 
-在 Actions 中选择“AI Release Notes”→ Run workflow，选择包含最新工作流的默认分支 `dev`，填写目标 tag 和 `language`。工作流文件名保留 `release-notes-zh.lock.yml`，兼容既有调用；它现在是手写的轻量调用入口，不再是本仓库编译的文件。默认补齐中英文：
+在 Actions 中选择“AI Release Notes”→ Run workflow，选择包含最新工作流的默认分支 `dev`，只需填写目标 tag；高级选项通过可选的 `options` JSON 传入。工作流文件名保留 `release-notes-zh.lock.yml`，兼容既有调用；它现在是手写的轻量调用入口，不再是本仓库编译的文件。默认补齐中英文：
 
 ```bash
 gh workflow run release-notes-zh.lock.yml -R YunYouJun/advjs --ref dev \
@@ -55,30 +55,30 @@ gh workflow run release-notes-zh.lock.yml -R YunYouJun/advjs --ref dev \
 
 ```bash
 gh workflow run release-notes-zh.lock.yml -R YunYouJun/advjs --ref dev \
-  -f tag=core-v0.1.2 -f dry_run=true
+  -f tag=core-v0.1.2 -f options='{"dry_run":true}'
 ```
 
 只补英文，或只重写英文：
 
 ```bash
 gh workflow run release-notes-zh.lock.yml -R YunYouJun/advjs --ref dev \
-  -f tag=v0.4.1 -f language=en
+  -f tag=v0.4.1 -f options='{"language":"en"}'
 
 gh workflow run release-notes-zh.lock.yml -R YunYouJun/advjs --ref dev \
-  -f tag=v0.4.1 -f language=en -f force=true
+  -f tag=v0.4.1 -f options='{"language":"en","force":true}'
 ```
 
-`from_tag` 可覆盖比较起点。新版布局由 `ai-release-notes:start/end` 管理，每种语言另有 `ai-notes-zh:start/end` 或 `ai-notes-en:start/end` 标记。未选中的语言区块和外部原文按字节保留；缺失、重复、交叉或越界的标记会导致失败。并发运行按 tag 排队，发布前重新读取 Release，重复调用不会重复添加区块。
+`options` 支持 `from_tag`、`language`、`force`、`dry_run`；其中 `from_tag` 可覆盖比较起点。JSON 布尔值必须使用 `true` / `false`，未知字段和无效类型会在调用模型前报错。旧版 CLI 的 `-f language=en -f force=true` 改为 `-f options='{"language":"en","force":true}'`。新版布局由 `ai-release-notes:start/end` 管理，每种语言另有 `ai-notes-zh:start/end` 或 `ai-notes-en:start/end` 标记。未选中的语言区块和外部原文按字节保留；缺失、重复、交叉或越界的标记会导致失败。并发运行按 tag 排队，发布前重新读取 Release，重复调用不会重复添加区块。
 
 完整 changelog 放在 `ai-changelog:start/end` 标记的折叠容器内，容器中的原文保留原有换行和内容，不修改仓库内的 changelog 文件。仅调整既有摘要排版的 `layout` 命令由 ai 集中维护，操作说明见 [复用工作流指南](https://github.com/YunYouJun/ai/blob/main/docs/guide/copilot-release-notes.md)，不会调用模型。
 
-手动入口的 `automatic` 默认关闭，允许补丁版补生成。发布流程内部调用时设为 `true`，自动执行版本筛选。
+共享事件入口根据调用方事件集中判断：手动调用允许补丁版，Release 事件只自动处理正式主／次版本。调用方不再声明 `automatic`、语言或多个布尔输入。发布事务通过 typed API 显式传 `automatic=true`，继续自动执行版本筛选。
 
 ## 维护工作流
 
-`.github/workflows/release-notes-zh.lock.yml` 仅保留 Release 事件、手动输入和同仓库 `workflow_call` 接口，再调用 `YunYouJun/ai/.github/workflows/release-notes.lock.yml`。发布事务继续通过原入口调用，不需要复制 AI 提示词、发布脚本或安装 gh-aw。
+`.github/workflows/release-notes-zh.lock.yml` 仅声明 Release 事件及 `tag`、可选 `options` 两个手动输入，再调用 ai 的 `release-notes.yml` 事件入口；没有本地 `workflow_call.inputs` 或 `with` 转发。`release.yml` 在发布事务完成后直接调用 ai 的 `release-notes.lock.yml` typed API，传入目标 tag 与 `automatic=true`。两处引用固定为同一提交，不需要复制 AI 提示词、发布脚本或安装 gh-aw。
 
-调用版本固定为完整提交 SHA；升级时先检查 ai 的变更，再修改 `uses` 后的 SHA。公共复用示例也提供 `release-notes-v1` 标签，便于其他仓库用几行配置接入。
+调用版本固定为完整提交 SHA；升级时先检查 ai 的变更，再同步修改两处 `uses` 后的 SHA。公共复用示例也提供 `release-notes-v1` 标签，便于其他仓库用几行配置接入。
 
 预检查和发布脚本按 `job.workflow_sha` 检出 ai 的同一提交，分析 job 按 `github.repository` 检出 ADV.JS 的完整历史。运行及 Copilot 认证使用 ADV.JS 自带的 `GITHUB_TOKEN`，不需要 `secrets: inherit`、PAT 或模型密钥。分析保持只读，只有检测通过的发布 job 可以写入本仓库 Release。
 

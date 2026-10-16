@@ -141,7 +141,7 @@ jobs:
   release-notes:
     needs: [transaction, desktop]
     if: inputs.operation == 'promote' && !inputs.dry_run
-    uses: ./.github/workflows/release-notes-zh.lock.yml
+    uses: YunYouJun/ai/.github/workflows/release-notes.lock.yml@d62e0cf890a0999c027c8e2589808b0f314d2de9
     permissions:
       actions: read
       contents: write
