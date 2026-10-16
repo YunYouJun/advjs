@@ -9,6 +9,9 @@ export default antfu(
   },
   {
     ignores: [
+      // gh-aw owns the compiled workflow and action pin serialization.
+      '.github/workflows/*.lock.yml',
+      '.github/aw/actions-lock.json',
       '**/.adv/**',
       '**/.codex/**',
       // Generated design-tool context contains copies of source snippets.

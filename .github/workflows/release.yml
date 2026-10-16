@@ -137,3 +137,16 @@ jobs:
       tag: ${{ needs.transaction.outputs.desktop_tag }}
       source_sha: ${{ needs.transaction.outputs.desktop_source_sha }}
       candidate_run_id: ${{ inputs.candidate_run_id }}
+
+  release-notes:
+    needs: [transaction, desktop]
+    if: inputs.operation == 'promote' && !inputs.dry_run
+    uses: ./.github/workflows/release-notes-zh.lock.yml
+    permissions:
+      actions: read
+      contents: write
+      pull-requests: read
+      copilot-requests: write
+    with:
+      tag: ${{ needs.transaction.outputs.desktop_tag }}
+      automatic: true
