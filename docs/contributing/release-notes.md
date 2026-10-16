@@ -30,7 +30,7 @@ Release 顶部提供“简体中文 · English · 完整变更记录”导航，
 | 所选语言全部已有完整区块                                 | 调用模型前跳过；`force=true` 重写所选语言 |
 | 只有 tag，没有 GitHub Release                            | 正式写入会失败；`dry_run=true` 可生成预览 |
 
-版本和比较范围由 `scripts/release/release-notes.mjs` 在调用模型前确定。默认选择同一 tag 前缀下、可从目标提交追溯到的最高较早正式版本；首次发布使用目标提交可达的历史。`v`、`desktop-v`、`core-v` 各自比较，不混用。可用 `from_tag` 指定同系列、较早且为目标祖先的 tag。
+版本和比较范围由 [ai 中的集中脚本](https://github.com/YunYouJun/ai/blob/main/scripts/release-notes.mjs) 在调用模型前确定。默认选择同一 tag 前缀下、可从目标提交追溯到的最高较早正式版本；首次发布使用目标提交可达的历史。`v`、`desktop-v`、`core-v` 各自比较，不混用。可用 `from_tag` 指定同系列、较早且为目标祖先的 tag。
 
 外部发布通过 `release: published` 触发。仓库的 `release.yml` 在发布事务和桌面附件上传成功后直接调用可复用工作流，因为 `GITHUB_TOKEN` 创建的 Release 不会再次触发普通 Release 事件工作流。`release-core.yml` 只发布 npm 包，推送 tag 本身不会创建 GitHub Release，也不会生成摘要。
 
@@ -44,7 +44,7 @@ Release 顶部提供“简体中文 · English · 完整变更记录”导航，
 
 ## 手动补生成
 
-在 Actions 中选择“AI Release Notes”→ Run workflow，选择包含最新工作流的默认分支 `dev`，填写目标 tag 和 `language`。工作流文件名保留 `release-notes-zh.lock.yml`，兼容既有调用。默认补齐中英文：
+在 Actions 中选择“AI Release Notes”→ Run workflow，选择包含最新工作流的默认分支 `dev`，填写目标 tag 和 `language`。工作流文件名保留 `release-notes-zh.lock.yml`，兼容既有调用；它现在是手写的轻量调用入口，不再是本仓库编译的文件。默认补齐中英文：
 
 ```bash
 gh workflow run release-notes-zh.lock.yml -R YunYouJun/advjs --ref dev \
@@ -70,29 +70,19 @@ gh workflow run release-notes-zh.lock.yml -R YunYouJun/advjs --ref dev \
 
 `from_tag` 可覆盖比较起点。新版布局由 `ai-release-notes:start/end` 管理，每种语言另有 `ai-notes-zh:start/end` 或 `ai-notes-en:start/end` 标记。未选中的语言区块和外部原文按字节保留；缺失、重复、交叉或越界的标记会导致失败。并发运行按 tag 排队，发布前重新读取 Release，重复调用不会重复添加区块。
 
-完整 changelog 放在 `ai-changelog:start/end` 标记的折叠容器内，容器中的原文保留原有换行和内容，不修改仓库内的 changelog 文件。旧 Release 只调整排版时可运行 `layout`，它保留已有摘要，不调用模型。在已提供 `GH_TOKEN` 或 `GITHUB_TOKEN` 的环境中先预览；Actions 中令牌可使用 `github.token`，写入需要 `contents: write`：
-
-```bash
-GITHUB_REPOSITORY=YunYouJun/advjs \
-RELEASE_NOTES_TAG=v0.1.4 \
-RELEASE_NOTES_DRY_RUN=true \
-node scripts/release/release-notes.mjs layout
-```
-
-检查 `release-notes-preview.md` 后，将 `RELEASE_NOTES_DRY_RUN` 设为 `false` 应用排版。重复执行返回 `unchanged`，不会再次写入或嵌套折叠。
+完整 changelog 放在 `ai-changelog:start/end` 标记的折叠容器内，容器中的原文保留原有换行和内容，不修改仓库内的 changelog 文件。仅调整既有摘要排版的 `layout` 命令由 ai 集中维护，操作说明见 [复用工作流指南](https://github.com/YunYouJun/ai/blob/main/docs/guide/copilot-release-notes.md)，不会调用模型。
 
 手动入口的 `automatic` 默认关闭，允许补丁版补生成。发布流程内部调用时设为 `true`，自动执行版本筛选。
 
 ## 维护工作流
 
-修改 `.github/workflows/release-notes-zh.md`，然后使用固定版本编译；不要直接修改生成的 `.lock.yml`：
+`.github/workflows/release-notes-zh.lock.yml` 仅保留 Release 事件、手动输入和同仓库 `workflow_call` 接口，再调用 `YunYouJun/ai/.github/workflows/release-notes.lock.yml`。发布事务继续通过原入口调用，不需要复制 AI 提示词、发布脚本或安装 gh-aw。
 
-```bash
-gh extension install github/gh-aw --pin v0.92.0
-gh aw compile release-notes-zh --validate
-```
+调用版本固定为完整提交 SHA；升级时先检查 ai 的变更，再修改 `uses` 后的 SHA。公共复用示例也提供 `release-notes-v1` 标签，便于其他仓库用几行配置接入。
 
-一并提交 Markdown、生成的 `.github/workflows/release-notes-zh.lock.yml`、`.github/aw/actions-lock.json` 和 `.gitattributes`。自定义发布 job 只接受 `notes_zh`、`notes_en`；脚本强制要求本次缺失或重写的语言完整、拒绝额外语言，不允许模型提供管理标记和折叠布局。目标 tag 来自工作流输入，只有检测通过后才可执行写入。
+预检查和发布脚本按 `job.workflow_sha` 检出 ai 的同一提交，分析 job 按 `github.repository` 检出 ADV.JS 的完整历史。运行及 Copilot 认证使用 ADV.JS 自带的 `GITHUB_TOKEN`，不需要 `secrets: inherit`、PAT 或模型密钥。分析保持只读，只有检测通过的发布 job 可以写入本仓库 Release。
+
+摘要格式、版本筛选和原文保留的回归测试已集中在 ai；ADV.JS 检查调用权限、输入转发和发布事务的衔接。不要在本仓库重新引入一份生成器副本。
 
 ## 验证
 
@@ -105,6 +95,6 @@ pnpm docs:check
 pnpm docs:build
 ```
 
-本地测试覆盖版本筛选、真实 Git tag 范围、双语与单语、旧中文区块升级、按语言重写、原文保留、幂等和定向 PATCH；编译验证覆盖 gh-aw 配置及可复用工作流权限。云端预览用于进一步核验 `GITHUB_TOKEN` 的 Copilot 认证。运行成功后检查 `publish_release_notes` job、Summary 和 `release-notes-<run_id>` artifact 内的 `release-notes-preview.md`；`dry_run` 不会写入 Release。正式运行还应确认两种语言内容对应、导航与折叠正常，以及下方原 changelog 完整保留。
+集中实现的测试覆盖版本筛选、真实 Git tag 范围、双语与单语、旧中文区块升级、按语言重写、原文保留、幂等和定向 PATCH；本仓库的测试覆盖调用接口和发布事务。云端预览用于进一步核验 `GITHUB_TOKEN` 的 Copilot 认证。运行成功后检查 `publish_release_notes` job、Summary 和 `release-notes-<run_id>` artifact 内的 `release-notes-preview.md`；`dry_run` 不会写入 Release。正式运行还应确认两种语言内容对应、导航与折叠正常，以及下方原 changelog 完整保留。
 
 可复用模板和认证说明见 [YunYouJun/ai](https://github.com/YunYouJun/ai/tree/main/examples/copilot-release-notes)。
