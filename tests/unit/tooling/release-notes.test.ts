@@ -10,6 +10,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { parse } from 'yaml'
 import {
   createReleaseClient,
+  formatReleaseNotesLayout,
   mergeReleaseNotes,
   notesEnd,
   notesStart,
@@ -18,6 +19,7 @@ import {
   publishReleaseNotes,
   resolveReleaseRange,
   shouldGenerateAutomatically,
+  updateReleaseNotesLayout,
 } from '../../../scripts/release/release-notes.mjs'
 
 const execFileAsync = promisify(execFile)
@@ -26,6 +28,10 @@ const notes = '### 主要更新\n\n- 支持在编辑器中预览游戏（[#42](h
 const english = '### Highlights\n\n- Preview games in the editor ([#42](https://github.com/example/repo/pull/42)).'
 const bilingual = { 'zh-CN': notes, 'en': english }
 const original = '# v0.2.0\r\n\r\n## Features\r\n\r\n- add editor preview (abc123)\r\n'
+
+function changelogBody(body: string) {
+  return body.match(/<!-- ai-changelog:start -->[\s\S]*?<a name="ai-release-notes-changelog"><\/a>\n\n([\s\S]*)\n<\/details>\n<!-- ai-changelog:end -->/u)?.[1]
+}
 
 function client(body = original) {
   return {
@@ -156,12 +162,14 @@ describe('preserving the original changelog', () => {
   it('renders bilingual navigation and collapsible sections without changing the original changelog', () => {
     const merged = mergeReleaseNotes(original, bilingual)
     expect(merged.changed).toBe(true)
-    expect(merged.body.endsWith(original)).toBe(true)
+    expect(changelogBody(merged.body)).toBe(original)
     expect(merged.body).toContain(`${notesStart}\n## 中文更新\n\n${notes}\n${notesEnd}`)
     for (const [label, code] of [['简体中文', 'zh'], ['English', 'en']]) {
       expect(merged.body).toContain(`[${label}](#user-content-ai-release-notes-${code})`)
-      expect(merged.body).toContain(`<a name="ai-release-notes-${code}"></a>\n<details open>\n<summary>${label}</summary>`)
+      expect(merged.body).toContain(`<details${code === 'zh' ? ' open' : ''}>\n<summary>${label}</summary>\n\n<a name="ai-release-notes-${code}"></a>`)
     }
+    expect(merged.body).toContain('[完整变更记录](#user-content-ai-release-notes-changelog)')
+    expect(merged.body).toContain('<details>\n<summary>完整变更记录 / Full Changelog</summary>')
     expect(mergeReleaseNotes(merged.body, bilingual)).toEqual({ body: merged.body, changed: false })
   })
 
@@ -171,7 +179,7 @@ describe('preserving the original changelog', () => {
     const result = mergeReleaseNotes(before, { en: english })
     expect(result.body).toContain(legacy)
     expect(result.body.startsWith('Handwritten introduction\r\n\r\n')).toBe(true)
-    expect(result.body.endsWith(`\r\n${original}`)).toBe(true)
+    expect(changelogBody(result.body)).toBe(`\r\n${original}`)
     expect(result.body).toContain(english)
     expect(mergeReleaseNotes(result.body, { en: english })).toEqual({ body: result.body, changed: false })
   })
@@ -180,14 +188,14 @@ describe('preserving the original changelog', () => {
     const before = `Handwritten introduction\r\n\r\n${notesStart}\n旧摘要\n${notesEnd}\r\n${original}`
     const result = mergeReleaseNotes(before, { 'zh-CN': notes }, { language: 'zh-CN', force: true })
     expect(result.body.startsWith('Handwritten introduction\r\n\r\n')).toBe(true)
-    expect(result.body.endsWith(`\r\n${original}`)).toBe(true)
+    expect(changelogBody(result.body)).toBe(`\r\n${original}`)
     expect(result.body).not.toContain('旧摘要')
     expect(result.body.match(/ai-notes-zh:start/gu)).toHaveLength(1)
     const both = mergeReleaseNotes(result.body, { en: english }).body
     const replaced = mergeReleaseNotes(both, { en: `### Fixes\n\n- Preserve preview state. ([#42](https://github.com/example/repo/pull/42))` }, { language: 'en', force: true })
     expect(replaced.body).toContain(`${notesStart}\n## 中文更新\n\n${notes}\n${notesEnd}`)
     expect(replaced.body).not.toContain(english)
-    expect(replaced.body.endsWith(`\r\n${original}`)).toBe(true)
+    expect(changelogBody(replaced.body)).toBe(`\r\n${original}`)
   })
 
   it.each([notesStart, notesEnd, `${notesEnd}${notesStart}`, `${notesStart}${notesEnd}${notesStart}${notesEnd}`])('refuses malformed markers %s', (body) => {
@@ -212,8 +220,8 @@ describe('preserving the original changelog', () => {
     const absentCode = absent === 'en' ? 'en' : 'zh'
     expect(one.body).not.toContain(`(#user-content-ai-release-notes-${absentCode})`)
     const both = mergeReleaseNotes(one.body, { [absent]: bilingual[absent] })
-    expect(both.body.match(/<details open>/gu)).toHaveLength(2)
-    expect(both.body.endsWith(original)).toBe(true)
+    expect(both.body.match(/<details open>/gu)).toHaveLength(1)
+    expect(changelogBody(both.body)).toBe(original)
   })
 
   it('requires clickable evidence and matching reference sets when generating both languages', () => {
@@ -240,7 +248,7 @@ describe('preserving the original changelog', () => {
     const result = await publishReleaseNotes({ tag: 'v0.2.0', output: output(), client: api })
     expect(result.status).toBe('published')
     expect(api.update).toHaveBeenCalledExactlyOnceWith(42, result.body)
-    expect(result.body.endsWith(original)).toBe(true)
+    expect(changelogBody(result.body)).toBe(original)
   })
 
   it('does not write in preview mode or on repeated runs, and refuses missing releases', async () => {
@@ -277,6 +285,54 @@ describe('preserving the original changelog', () => {
       method: 'PATCH',
       body: JSON.stringify({ body: original }),
     }))
+  })
+
+  it('reformats existing summaries without regenerating them or changing the changelog payload', () => {
+    const chinese = `${notesStart}\r\n## 中文更新\r\n\r\n${notes}\r\n${notesEnd}`
+    const en = `<!-- ai-notes-en:start -->\n## Release Highlights\n\n${english}\n<!-- ai-notes-en:end -->`
+    const payload = `\r\n${original}\n<details><summary>Historical details</summary>Original text</details>\n\n`
+    const before = `Introduction\r\n\r\n<!-- ai-release-notes:start -->\n${chinese}\n${en}\n<!-- ai-release-notes:end -->\n\n${payload}`
+    const formatted = formatReleaseNotesLayout(before)
+    expect(formatted.changed).toBe(true)
+    expect(formatted.body.startsWith('Introduction\r\n\r\n')).toBe(true)
+    expect(formatted.body).toContain(chinese)
+    expect(formatted.body).toContain(en)
+    expect(changelogBody(formatted.body)).toBe(payload)
+    expect(formatReleaseNotesLayout(formatted.body)).toEqual({ body: formatted.body, changed: false })
+    expect(formatReleaseNotesLayout(original)).toEqual({ body: original, changed: false })
+    expect(mergeReleaseNotes('', bilingual).body).not.toContain('ai-changelog:')
+  })
+
+  it('rejects malformed or misplaced changelog wrappers before any update', () => {
+    const valid = mergeReleaseNotes(original, bilingual).body
+    for (const body of [
+      valid.replace('<!-- ai-changelog:end -->', ''),
+      `${valid}<!-- ai-changelog:start --><!-- ai-changelog:end -->`,
+      valid.replace('完整变更记录 / Full Changelog', 'Unrecognized layout'),
+      '<!-- ai-changelog:start -->Original<!-- ai-changelog:end -->',
+    ])
+      expect(() => formatReleaseNotesLayout(body)).toThrow()
+    expect(() => mergeReleaseNotes(original, { ...bilingual, en: `English <!-- ai-changelog:start --> [#42](https://github.com/example/repo/pull/42)` })).toThrow()
+  })
+
+  it('previews and publishes layout-only updates, skips repeats, and requires the exact published Release', async () => {
+    const legacy = `${notesStart}\n## 中文更新\n\n${notes}\n${notesEnd}\r\n${original}`
+    const api = client(legacy)
+    const preview = await updateReleaseNotesLayout({ tag: 'v0.2.0', dryRun: true, client: api })
+    expect(preview.status).toBe('preview')
+    expect(api.update).not.toHaveBeenCalled()
+    expect(changelogBody(preview.body)).toBe(`\r\n${original}`)
+    const result = await updateReleaseNotesLayout({ tag: 'v0.2.0', client: api })
+    expect(result.status).toBe('published')
+    expect(api.update).toHaveBeenCalledExactlyOnceWith(42, preview.body)
+    const repeated = client(result.body)
+    expect((await updateReleaseNotesLayout({ tag: 'v0.2.0', client: repeated })).status).toBe('unchanged')
+    expect(repeated.update).not.toHaveBeenCalled()
+    for (const release of [undefined, { tag_name: 'v0.2.0', draft: true }, { tag_name: 'v0.3.0' }]) {
+      const invalid = { get: vi.fn(async () => release), update: vi.fn() }
+      await expect(updateReleaseNotesLayout({ tag: 'v0.2.0', client: invalid })).rejects.toThrow('published Release')
+      expect(invalid.update).not.toHaveBeenCalled()
+    }
   })
 })
 
