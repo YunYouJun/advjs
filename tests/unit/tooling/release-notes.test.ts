@@ -184,7 +184,7 @@ describe('preserving the original changelog', () => {
     expect(result.body).not.toContain('旧摘要')
     expect(result.body.match(/ai-notes-zh:start/gu)).toHaveLength(1)
     const both = mergeReleaseNotes(result.body, { en: english }).body
-    const replaced = mergeReleaseNotes(both, { en: '### Fixes\n\n- Preserve preview state.' }, { language: 'en', force: true })
+    const replaced = mergeReleaseNotes(both, { en: `### Fixes\n\n- Preserve preview state. ([#42](https://github.com/example/repo/pull/42))` }, { language: 'en', force: true })
     expect(replaced.body).toContain(`${notesStart}\n## 中文更新\n\n${notes}\n${notesEnd}`)
     expect(replaced.body).not.toContain(english)
     expect(replaced.body.endsWith(`\r\n${original}`)).toBe(true)
@@ -214,6 +214,12 @@ describe('preserving the original changelog', () => {
     const both = mergeReleaseNotes(one.body, { [absent]: bilingual[absent] })
     expect(both.body.match(/<details open>/gu)).toHaveLength(2)
     expect(both.body.endsWith(original)).toBe(true)
+  })
+
+  it('requires clickable evidence and matching reference sets when generating both languages', () => {
+    expect(() => mergeReleaseNotes(original, { ...bilingual, en: '### Highlights\n\n- Editor preview (abc1234, #42).' })).toThrow('linked GitHub')
+    expect(() => mergeReleaseNotes(original, { ...bilingual, en: english.replace('/42', '/43') })).toThrow('same PR and commit links')
+    expect(mergeReleaseNotes(original, { ...bilingual, en: `${english}\n\nSee [#42](https://github.com/example/repo/pull/42) again.` }).changed).toBe(true)
   })
 
   it('fails closed on misplaced, overlapping, empty-group, and malformed marker structures', () => {

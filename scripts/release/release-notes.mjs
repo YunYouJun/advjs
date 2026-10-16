@@ -79,6 +79,10 @@ function generationPlan(original, language, force) {
   return { range: group || ranges[0], blocks, existing, targets: requested.filter(key => force || !blocks[key]) }
 }
 
+function referenceLinks(notes) {
+  return [...new Set(notes.match(/https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/(?:commit\/[a-f\d]{7,40}|pull\/[1-9]\d*)\b/gu) || [])].sort()
+}
+
 export function mergeReleaseNotes(original, notes, { language = 'both', force = false } = {}) {
   const plan = generationPlan(original, language, force)
   if (!plan.targets.length)
@@ -94,8 +98,12 @@ export function mergeReleaseNotes(original, notes, { language = 'both', force = 
       || /<!--\s*ai-(?:notes|release-notes)|<\/?(?:details|summary)\b/iu.test(value)) {
       throw new Error(`Nonempty ${key} notes must fit within 12000 characters and exclude managed markers and layout HTML`)
     }
+    if (!referenceLinks(value).length)
+      throw new Error(`${key} notes must include a linked GitHub PR or commit reference`)
     plan.blocks[key] = `${config.start}\n## ${config.title}\n\n${value.trim()}\n${config.end}`
   }
+  if (plan.targets.length === 2 && JSON.stringify(referenceLinks(notes['zh-CN'])) !== JSON.stringify(referenceLinks(notes.en)))
+    throw new Error('Chinese and English notes must cite the same PR and commit links')
   const present = Object.keys(languages).filter(key => plan.blocks[key])
   // GitHub prefixes rendered IDs; link to the actual target, including in PR previews.
   const navigation = present.map(key => `[${languages[key].label}](#user-content-ai-release-notes-${languages[key].code})`).join(' · ')
