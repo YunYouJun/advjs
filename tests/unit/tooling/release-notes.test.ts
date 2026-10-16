@@ -4,6 +4,7 @@ import { execFile } from 'node:child_process'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { promisify } from 'node:util'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { parse } from 'yaml'
@@ -187,6 +188,22 @@ describe('preserving the original changelog', () => {
 })
 
 describe('copilot workflow wiring', () => {
+  it('makes historical release commits available in the analysis checkout', async () => {
+    const root = resolve(import.meta.dirname, '../../..')
+    const generated = parse(await readFile(join(root, '.github/workflows/release-notes-zh.lock.yml'), 'utf8'))
+    const checkout = generated.jobs.agent.steps.find((step: { uses?: string }) => step.uses?.startsWith('actions/checkout@'))
+    const depth = checkout.with?.['fetch-depth'] ?? 1
+    const data = await fixture()
+    const directory = join(data.cwd, 'analysis')
+    const args = ['clone', '--quiet', '--single-branch', '--branch', 'main']
+    if (depth > 0)
+      args.push('--depth', String(depth))
+    args.push(pathToFileURL(data.cwd).href, directory)
+    await execFileAsync('git', args)
+    const result = await execFileAsync('git', ['show', '--format=%H', '--no-patch', data.first], { cwd: directory })
+    expect(result.stdout.trim()).toBe(data.first)
+  })
+
   it('uses keyless inference, gates before the agent, and preserves the existing release transaction', async () => {
     const root = resolve(import.meta.dirname, '../../..')
     const source = await readFile(join(root, '.github/workflows/release-notes-zh.md'), 'utf8')
