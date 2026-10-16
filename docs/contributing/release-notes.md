@@ -1,6 +1,20 @@
-# 中文 Release Notes
+# AI 双语 Release Notes
 
-正式主／次版本发布后，GitHub Agentic Workflows 使用仓库所有者的 Copilot 额度生成中文摘要，并放在 GitHub Release 正文顶部。现有 changelog 原文、Release 标题、附件和版本标记由原发布流程管理。
+正式主／次版本发布后，GitHub Agentic Workflows 使用仓库所有者的 Copilot 额度生成简体中文和英文摘要，并放在 GitHub Release 正文顶部。手动补生成可选择语言，现有 changelog 原文、Release 标题、附件和版本标记由原发布流程管理。
+
+## 语言与阅读方式
+
+默认 `language=both`，一次分析 Git 变更后输出中英文，分类、事实和引用相互对应。已有另一语言摘要会作为翻译对照，同时仍需核对目标 Git 范围。
+
+Release 顶部提供“简体中文 · English”导航，各语言使用 GitHub 原生 `<details>` 分区，默认展开，读者可折叠不需要的语言。导航负责跳转，不调用模型。GitHub Release 使用单一正文，无法提供应用式的互斥语言标签页或记住个人语言偏好。
+
+| `language` | 本次请求                   |
+| ---------- | -------------------------- |
+| `both`     | 中英文；默认只补缺失的语言 |
+| `zh-CN`    | 仅简体中文，保留已有英文   |
+| `en`       | 仅英文，保留已有中文       |
+
+旧版 `ai-notes-zh:start/end` 中文区块仍受支持。首次补英文时会升级为双语布局，已有中文区块与其外原文保持原样。已有语言默认不重写；`force=true` 仅重新生成本次选择的语言。
 
 ## 触发规则
 
@@ -9,7 +23,7 @@
 | 发布 `v0.4.0`、`v1.0.0`、`desktop-v1.2.0`、`core-v1.2.0` | 自动生成                                  |
 | 发布补丁版，例如 `v0.4.1`                                | 调用模型前跳过，可手动补生成              |
 | 草稿、预发布或 `v0.0.0`                                  | 自动跳过                                  |
-| 已有完整中文区块                                         | 默认跳过；手动 `force=true` 可替换区块    |
+| 所选语言全部已有完整区块                                 | 调用模型前跳过；`force=true` 重写所选语言 |
 | 只有 tag，没有 GitHub Release                            | 正式写入会失败；`dry_run=true` 可生成预览 |
 
 版本和比较范围由 `scripts/release/release-notes.mjs` 在调用模型前确定。默认选择同一 tag 前缀下、可从目标提交追溯到的最高较早正式版本；首次发布使用目标提交可达的历史。`v`、`desktop-v`、`core-v` 各自比较，不混用。可用 `from_tag` 指定同系列、较早且为目标祖先的 tag。
@@ -26,7 +40,7 @@
 
 ## 手动补生成
 
-在 Actions 中选择“中文 Release Notes”→ Run workflow，选择包含最新工作流的默认分支 `dev`，填写目标 tag。也可以运行：
+在 Actions 中选择“AI Release Notes”→ Run workflow，选择包含最新工作流的默认分支 `dev`，填写目标 tag 和 `language`。工作流文件名保留 `release-notes-zh.lock.yml`，兼容既有调用。默认补齐中英文：
 
 ```bash
 gh workflow run release-notes-zh.lock.yml -R YunYouJun/advjs --ref dev \
@@ -40,7 +54,17 @@ gh workflow run release-notes-zh.lock.yml -R YunYouJun/advjs --ref dev \
   -f tag=core-v0.1.2 -f dry_run=true
 ```
 
-`from_tag` 可覆盖比较起点。重新生成已有区块时显式传 `force=true`；该选项仅替换 `ai-notes-zh:start/end` 管理的中文区块。区块外的原文按字节保留；缺失、重复或顺序异常的标记会导致失败，避免误覆盖手写内容。并发运行按 tag 排队，发布前重新读取 Release，重复调用不会重复添加区块。
+只补英文，或只重写英文：
+
+```bash
+gh workflow run release-notes-zh.lock.yml -R YunYouJun/advjs --ref dev \
+  -f tag=v0.4.1 -f language=en
+
+gh workflow run release-notes-zh.lock.yml -R YunYouJun/advjs --ref dev \
+  -f tag=v0.4.1 -f language=en -f force=true
+```
+
+`from_tag` 可覆盖比较起点。新版布局由 `ai-release-notes:start/end` 管理，每种语言另有 `ai-notes-zh:start/end` 或 `ai-notes-en:start/end` 标记。未选中的语言区块和外部原文按字节保留；缺失、重复、交叉或越界的标记会导致失败。并发运行按 tag 排队，发布前重新读取 Release，重复调用不会重复添加区块。
 
 手动入口的 `automatic` 默认关闭，允许补丁版补生成。发布流程内部调用时设为 `true`，自动执行版本筛选。
 
@@ -53,7 +77,7 @@ gh extension install github/gh-aw --pin v0.92.0
 gh aw compile release-notes-zh --validate
 ```
 
-一并提交 Markdown、生成的 `.github/workflows/release-notes-zh.lock.yml`、`.github/aw/actions-lock.json` 和 `.gitattributes`。自定义发布 job 只接受模型生成的 `notes`，目标 tag 来自工作流输入；只有检测通过后才可执行写入。模型不能通过工具参数替换 changelog 或选择其他 Release。
+一并提交 Markdown、生成的 `.github/workflows/release-notes-zh.lock.yml`、`.github/aw/actions-lock.json` 和 `.gitattributes`。自定义发布 job 只接受 `notes_zh`、`notes_en`；脚本强制要求本次缺失或重写的语言完整、拒绝额外语言，不允许模型提供管理标记和折叠布局。目标 tag 来自工作流输入，只有检测通过后才可执行写入。
 
 ## 验证
 
@@ -66,6 +90,6 @@ pnpm docs:check
 pnpm docs:build
 ```
 
-本地测试覆盖版本筛选、真实 Git tag 范围、原文保留、幂等和定向 PATCH；编译验证覆盖 gh-aw 配置及可复用工作流权限。云端预览用于进一步核验 `GITHUB_TOKEN` 的 Copilot 认证。运行成功后检查 `publish_release_notes` job、Summary 和 `release-notes-zh-<run_id>` artifact；`dry_run` 不会写入 Release。正式运行还应确认 GitHub Release 中中文区块下方的原 changelog 完整保留。
+本地测试覆盖版本筛选、真实 Git tag 范围、双语与单语、旧中文区块升级、按语言重写、原文保留、幂等和定向 PATCH；编译验证覆盖 gh-aw 配置及可复用工作流权限。云端预览用于进一步核验 `GITHUB_TOKEN` 的 Copilot 认证。运行成功后检查 `publish_release_notes` job、Summary 和 `release-notes-<run_id>` artifact 内的 `release-notes-preview.md`；`dry_run` 不会写入 Release。正式运行还应确认两种语言内容对应、导航与折叠正常，以及下方原 changelog 完整保留。
 
 可复用模板和认证说明见 [YunYouJun/ai](https://github.com/YunYouJun/ai/tree/main/examples/copilot-release-notes)。

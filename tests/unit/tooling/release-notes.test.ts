@@ -23,6 +23,8 @@ import {
 const execFileAsync = promisify(execFile)
 const temporaryDirectories: string[] = []
 const notes = '### 主要更新\n\n- 支持在编辑器中预览游戏（[#42](https://github.com/example/repo/pull/42)）。'
+const english = '### Highlights\n\n- Preview games in the editor ([#42](https://github.com/example/repo/pull/42)).'
+const bilingual = { 'zh-CN': notes, 'en': english }
 const original = '# v0.2.0\r\n\r\n## Features\r\n\r\n- add editor preview (abc123)\r\n'
 
 function client(body = original) {
@@ -32,8 +34,8 @@ function client(body = original) {
   }
 }
 
-function output(value = notes) {
-  return { items: [{ type: 'publish_release_notes', notes: value }] }
+function output(value = bilingual) {
+  return { items: [{ type: 'publish_release_notes', notes_zh: value['zh-CN'], notes_en: value.en }] }
 }
 
 async function fixture() {
@@ -101,6 +103,27 @@ describe('release note eligibility', () => {
 })
 
 describe('exact release comparison', () => {
+  it('plans missing languages before inference and provides existing summaries as single-line JSON', async () => {
+    const data = await fixture()
+    const legacy = `${notesStart}\r\n## 中文更新\r\n\r\n${notes}\r\n${notesEnd}\r\n${original}`
+    const api = client(legacy)
+    const result = await prepareReleaseNotes({ tag: 'v0.2.0', client: api, cwd: data.cwd })
+    expect(JSON.parse(result.generate_languages!)).toEqual(['en'])
+    expect(JSON.parse(result.existing_notes!)).toEqual({ 'zh-CN': notes })
+    expect(result.existing_notes).not.toContain('\n')
+    expect(await prepareReleaseNotes({ tag: 'v0.2.0', language: 'zh-CN', client: api })).toMatchObject({ should_run: false, reason: 'already-generated' })
+    const forced = await prepareReleaseNotes({ tag: 'v0.2.0', language: 'zh-CN', force: true, client: api, cwd: data.cwd })
+    expect(JSON.parse(forced.generate_languages!)).toEqual(['zh-CN'])
+    const complete = client(mergeReleaseNotes(original, bilingual).body)
+    expect(await prepareReleaseNotes({ tag: 'v0.2.0', client: complete })).toMatchObject({ should_run: false })
+  })
+
+  it.each(['fr', 'zh', 'Both', '', 'both\nen'])('rejects invalid language %s before reading GitHub', async (language) => {
+    const api = client()
+    await expect(prepareReleaseNotes({ tag: 'v0.2.0', language, client: api })).rejects.toThrow('Language')
+    expect(api.get).not.toHaveBeenCalled()
+  })
+
   it('finds the latest earlier ancestor in the same tag series', async () => {
     const data = await fixture()
     expect(await resolveReleaseRange({ tag: 'v0.2.0', cwd: data.cwd })).toEqual({
@@ -130,30 +153,80 @@ describe('exact release comparison', () => {
 })
 
 describe('preserving the original changelog', () => {
-  it('prepends Chinese notes without changing a byte of the existing changelog', () => {
-    const merged = mergeReleaseNotes(original, notes)
+  it('renders bilingual navigation and collapsible sections without changing the original changelog', () => {
+    const merged = mergeReleaseNotes(original, bilingual)
     expect(merged.changed).toBe(true)
     expect(merged.body.endsWith(original)).toBe(true)
     expect(merged.body).toContain(`${notesStart}\n## 中文更新\n\n${notes}\n${notesEnd}`)
-    expect(mergeReleaseNotes(merged.body, '新的中文说明')).toEqual({ body: merged.body, changed: false })
+    for (const [label, code] of [['简体中文', 'zh'], ['English', 'en']]) {
+      expect(merged.body).toContain(`[${label}](#ai-release-notes-${code})`)
+      expect(merged.body).toContain(`<a id="ai-release-notes-${code}"></a>\n<details open>\n<summary>${label}</summary>`)
+    }
+    expect(mergeReleaseNotes(merged.body, bilingual)).toEqual({ body: merged.body, changed: false })
   })
 
-  it('replaces only the managed block on an explicit force run', () => {
+  it('upgrades legacy Chinese notes when adding English, preserving the entire Chinese block and surrounding bytes', () => {
+    const legacy = `${notesStart}\r\n## 中文更新\r\n\r\n旧摘要\r\n${notesEnd}`
+    const before = `Handwritten introduction\r\n\r\n${legacy}\r\n${original}`
+    const result = mergeReleaseNotes(before, { en: english })
+    expect(result.body).toContain(legacy)
+    expect(result.body.startsWith('Handwritten introduction\r\n\r\n')).toBe(true)
+    expect(result.body.endsWith(`\r\n${original}`)).toBe(true)
+    expect(result.body).toContain(english)
+    expect(mergeReleaseNotes(result.body, { en: english })).toEqual({ body: result.body, changed: false })
+  })
+
+  it('replaces only the selected language on an explicit force run', () => {
     const before = `Handwritten introduction\r\n\r\n${notesStart}\n旧摘要\n${notesEnd}\r\n${original}`
-    const result = mergeReleaseNotes(before, notes, true)
+    const result = mergeReleaseNotes(before, { 'zh-CN': notes }, { language: 'zh-CN', force: true })
     expect(result.body.startsWith('Handwritten introduction\r\n\r\n')).toBe(true)
     expect(result.body.endsWith(`\r\n${original}`)).toBe(true)
     expect(result.body).not.toContain('旧摘要')
     expect(result.body.match(/ai-notes-zh:start/gu)).toHaveLength(1)
+    const both = mergeReleaseNotes(result.body, { en: english }).body
+    const replaced = mergeReleaseNotes(both, { en: '### Fixes\n\n- Preserve preview state.' }, { language: 'en', force: true })
+    expect(replaced.body).toContain(`${notesStart}\n## 中文更新\n\n${notes}\n${notesEnd}`)
+    expect(replaced.body).not.toContain(english)
+    expect(replaced.body.endsWith(`\r\n${original}`)).toBe(true)
   })
 
   it.each([notesStart, notesEnd, `${notesEnd}${notesStart}`, `${notesStart}${notesEnd}${notesStart}${notesEnd}`])('refuses malformed markers %s', (body) => {
-    expect(() => mergeReleaseNotes(body, notes, true)).toThrow('markers')
+    expect(() => mergeReleaseNotes(body, bilingual, { force: true })).toThrow('markers')
   })
 
-  it('rejects empty, non-Chinese, oversized, and marker-containing model results', () => {
-    for (const value of ['', 'Only English notes', '中'.repeat(12001), `${notesStart}中文`])
-      expect(() => mergeReleaseNotes(original, value)).toThrow()
+  it('rejects incomplete languages, invalid text, oversized results, and model-supplied layout', () => {
+    for (const value of ['', 'Only English notes', '中'.repeat(12001), `${notesStart}中文`, '<details>中文</details>'])
+      expect(() => mergeReleaseNotes(original, { ...bilingual, 'zh-CN': value })).toThrow()
+    for (const value of ['', '只有中文', 'x'.repeat(12001), '<summary>English</summary>'])
+      expect(() => mergeReleaseNotes(original, { ...bilingual, en: value })).toThrow()
+    expect(() => mergeReleaseNotes(original, { en: english })).toThrow()
+    expect(() => mergeReleaseNotes(original, bilingual, { language: 'en' })).toThrow('only the languages')
+    expect(() => mergeReleaseNotes(original, { ...bilingual, fr: 'Bonjour' })).toThrow()
+    expect(() => mergeReleaseNotes('x'.repeat(60000), bilingual)).toThrow('body size')
+  })
+
+  it.each(['zh-CN', 'en'])('renders only existing languages and can later add the missing language (%s)', (language) => {
+    const one = mergeReleaseNotes(original, { [language]: bilingual[language] }, { language })
+    expect(one.body.match(/<details open>/gu)).toHaveLength(1)
+    const absent = language === 'en' ? 'zh-CN' : 'en'
+    const absentCode = absent === 'en' ? 'en' : 'zh'
+    expect(one.body).not.toContain(`(#ai-release-notes-${absentCode})`)
+    const both = mergeReleaseNotes(one.body, { [absent]: bilingual[absent] })
+    expect(both.body.match(/<details open>/gu)).toHaveLength(2)
+    expect(both.body.endsWith(original)).toBe(true)
+  })
+
+  it('fails closed on misplaced, overlapping, empty-group, and malformed marker structures', () => {
+    const valid = mergeReleaseNotes('', bilingual).body
+    const end = '<!-- ai-release-notes:end -->'
+    for (const body of [
+      valid.replace(end, '') + end + notesStart + notesEnd,
+      valid.replace(notesEnd, '').replace('<!-- ai-notes-en:start -->', `<!-- ai-notes-en:start -->${notesEnd}`),
+      '<!-- ai-release-notes:start --><!-- ai-release-notes:end -->',
+      '<!-- ai-notes-en:start -->English<!-- ai-notes-en:end -->',
+      '<!-- ai-notes-zh: start -->',
+    ])
+      expect(() => mergeReleaseNotes(body, bilingual, { force: true })).toThrow('markers')
   })
 
   it('publishes through the exact release ID and never lets the agent replace the changelog', async () => {
@@ -168,12 +241,26 @@ describe('preserving the original changelog', () => {
     const api = client()
     expect((await publishReleaseNotes({ tag: 'v0.2.0', output: output(), client: api, dryRun: true })).status).toBe('preview')
     expect(api.update).not.toHaveBeenCalled()
-    const existing = client(mergeReleaseNotes(original, notes).body)
+    const existing = client(mergeReleaseNotes(original, bilingual).body)
     expect((await publishReleaseNotes({ tag: 'v0.2.0', output: output(), client: existing })).status).toBe('already-generated')
     expect(existing.update).not.toHaveBeenCalled()
     await expect(publishReleaseNotes({ tag: 'v0.2.0', output: { items: [...output().items, ...output().items] }, client: api })).rejects.toThrow('Exactly one')
     const missing = { get: vi.fn(async () => undefined), update: vi.fn() }
     await expect(publishReleaseNotes({ tag: 'v0.2.0', output: output(), client: missing })).rejects.toThrow('already be published')
+  })
+
+  it('fills only a missing language and rechecks existing notes immediately before writing', async () => {
+    const legacy = `${notesStart}\n## 中文更新\n\n${notes}\n${notesEnd}\n\n${original}`
+    const api = client(legacy)
+    const result = await publishReleaseNotes({ tag: 'v0.2.0', output: { items: [{ type: 'publish_release_notes', notes_en: english }] }, client: api })
+    expect(result.status).toBe('published')
+    expect(result.body).toContain(`${notesStart}\n## 中文更新\n\n${notes}\n${notesEnd}`)
+    const incomplete = client()
+    await expect(publishReleaseNotes({ tag: 'v0.2.0', output: { items: [{ type: 'publish_release_notes', notes_en: english }] }, client: incomplete })).rejects.toThrow()
+    expect(incomplete.update).not.toHaveBeenCalled()
+    const race = client(mergeReleaseNotes(original, bilingual).body)
+    expect((await publishReleaseNotes({ tag: 'v0.2.0', output: output(), client: race })).status).toBe('already-generated')
+    expect(race.update).not.toHaveBeenCalled()
   })
 
   it('sends only the body field in the GitHub PATCH request', async () => {
@@ -212,7 +299,13 @@ describe('copilot workflow wiring', () => {
     expect(source).not.toContain('secrets.')
     expect(workflow.if).toBe('needs.pre_activation.outputs.should_run == \'true\'')
     expect(workflow.on.steps.at(-1).run).toBe('node scripts/release/release-notes.mjs prepare')
-    expect(workflow['safe-outputs'].jobs['publish-release-notes'].inputs).toHaveProperty('notes')
+    expect(workflow.on.workflow_dispatch.inputs.language).toMatchObject({ type: 'choice', default: 'both', options: ['both', 'zh-CN', 'en'] })
+    expect(workflow.on.workflow_call.inputs.language).toMatchObject({ type: 'string', default: 'both' })
+    expect(workflow['safe-outputs'].jobs['publish-release-notes'].inputs).toHaveProperty('notes_zh')
+    expect(workflow['safe-outputs'].jobs['publish-release-notes'].inputs).toHaveProperty('notes_en')
+    const languageExpression = `$${'{'}{ inputs.language || 'both' }}`
+    expect(workflow.on.steps.at(-1).env.RELEASE_NOTES_LANGUAGE).toBe(languageExpression)
+    expect(workflow['safe-outputs'].jobs['publish-release-notes'].steps[1].env.RELEASE_NOTES_LANGUAGE).toBe(languageExpression)
     expect(workflow['safe-outputs']).not.toHaveProperty('update-release')
     const release = parse(await readFile(join(root, '.github/workflows/release.yml'), 'utf8'))
     expect(release.jobs['release-notes']).toMatchObject({
