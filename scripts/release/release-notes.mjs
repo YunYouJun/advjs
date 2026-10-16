@@ -9,6 +9,20 @@ import { promisify } from 'node:util'
 const execFileAsync = promisify(execFile)
 export const notesStart = '<!-- ai-notes-zh:start -->'
 export const notesEnd = '<!-- ai-notes-zh:end -->'
+const groupStart = '<!-- ai-release-notes:start -->'
+const groupEnd = '<!-- ai-release-notes:end -->'
+const languages = {
+  'zh-CN': { code: 'zh', label: '简体中文', title: '中文更新', start: notesStart, end: notesEnd, script: /\p{Script=Han}/u },
+  'en': { code: 'en', label: 'English', title: 'Release Highlights', start: '<!-- ai-notes-en:start -->', end: '<!-- ai-notes-en:end -->', script: /[A-Za-z]/u },
+}
+
+function requestedLanguages(language) {
+  if (language === 'both')
+    return Object.keys(languages)
+  if (Object.hasOwn(languages, language))
+    return [language]
+  throw new Error('Language must be both, zh-CN, or en')
+}
 
 export function parseReleaseTag(tag) {
   const match = typeof tag === 'string' && /^(v|core-v|desktop-v)(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([\dA-Za-z.-]+))?(?:\+([\dA-Za-z.-]+))?$/u.exec(tag)
@@ -25,27 +39,81 @@ export function shouldGenerateAutomatically(tag, release = {}) {
     && version.patch === 0 && (version.major > 0 || version.minor > 0)
 }
 
-function markerRange(body) {
-  const starts = [...body.matchAll(/<!-- ai-notes-zh:start -->/gu)]
-  const ends = [...body.matchAll(/<!-- ai-notes-zh:end -->/gu)]
-  if (!starts.length && !ends.length)
+function markerRange(body, startMarker, endMarker) {
+  const start = body.indexOf(startMarker)
+  const end = body.indexOf(endMarker)
+  if (start === -1 && end === -1)
     return undefined
-  if (starts.length !== 1 || ends.length !== 1 || starts[0].index >= ends[0].index)
-    throw new Error('Chinese release note markers are incomplete, reversed, or duplicated')
-  return { start: starts[0].index, end: ends[0].index + notesEnd.length }
+  if (start < 0 || end < start || body.includes(startMarker, start + 1) || body.includes(endMarker, end + 1))
+    throw new Error('Release note markers are incomplete, reversed, or duplicated')
+  return { start, end: end + endMarker.length }
 }
 
-export function mergeReleaseNotes(original, notes, force = false) {
-  if (typeof original !== 'string' || typeof notes !== 'string' || !notes.trim())
-    throw new Error('Release body and nonempty Chinese notes must be strings')
-  if (notes.length > 12000 || !/\p{Script=Han}/u.test(notes) || /<!--\s*ai-notes-zh:/u.test(notes))
-    throw new Error('Notes must contain Chinese text, fit within 12000 characters, and exclude managed markers')
-  const range = markerRange(original)
-  if (range && !force)
+function generationPlan(original, language, force) {
+  const requested = requestedLanguages(language)
+  if (typeof original !== 'string')
+    throw new Error('Release body must be a string')
+  const group = markerRange(original, groupStart, groupEnd)
+  const blocks = {}
+  const existing = {}
+  const ranges = []
+  for (const [key, config] of Object.entries(languages)) {
+    const range = markerRange(original, config.start, config.end)
+    if (!range)
+      continue
+    if (group && (range.start < group.start + groupStart.length || range.end > group.end - groupEnd.length))
+      throw new Error('Language markers must be inside the managed release note group')
+    if (!group && key !== 'zh-CN')
+      throw new Error('English markers require a managed release note group')
+    ranges.push(range)
+    blocks[key] = original.slice(range.start, range.end)
+    existing[key] = original.slice(range.start + config.start.length, range.end - config.end.length)
+      .trim()
+      .replace(new RegExp(`^## ${config.title}\\r?\\n\\s*`, 'u'), '')
+  }
+  if (ranges.length === 2 && ranges[0].start < ranges[1].end && ranges[1].start < ranges[0].end)
+    throw new Error('Language markers must not overlap')
+  const markerCount = [...original.matchAll(/<!--\s*ai-(?:release-notes|notes-(?:zh|en)):/gu)].length
+  if ((group && !ranges.length) || markerCount !== (ranges.length + Number(Boolean(group))) * 2)
+    throw new Error('Release note markers are malformed')
+  return { range: group || ranges[0], blocks, existing, targets: requested.filter(key => force || !blocks[key]) }
+}
+
+function referenceLinks(notes) {
+  return [...new Set(notes.match(/https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/(?:commit\/[a-f\d]{7,40}|pull\/[1-9]\d*)\b/gu) || [])].sort()
+}
+
+export function mergeReleaseNotes(original, notes, { language = 'both', force = false } = {}) {
+  const plan = generationPlan(original, language, force)
+  if (!plan.targets.length)
     return { body: original, changed: false }
-  const block = `${notesStart}\n## 中文更新\n\n${notes.trim()}\n${notesEnd}`
-  const body = range
-    ? `${original.slice(0, range.start)}${block}${original.slice(range.end)}`
+  if (!notes || typeof notes !== 'object' || Array.isArray(notes)
+    || Object.keys(notes).some(key => !plan.targets.includes(key))) {
+    throw new Error('Notes must contain only the languages requested for generation')
+  }
+  for (const key of plan.targets) {
+    const value = notes[key]
+    const config = languages[key]
+    if (typeof value !== 'string' || !value.trim() || value.length > 12000 || !config.script.test(value)
+      || /<!--\s*ai-(?:notes|release-notes)|<\/?(?:details|summary)\b/iu.test(value)) {
+      throw new Error(`Nonempty ${key} notes must fit within 12000 characters and exclude managed markers and layout HTML`)
+    }
+    if (!referenceLinks(value).length)
+      throw new Error(`${key} notes must include a linked GitHub PR or commit reference`)
+    plan.blocks[key] = `${config.start}\n## ${config.title}\n\n${value.trim()}\n${config.end}`
+  }
+  if (plan.targets.length === 2 && JSON.stringify(referenceLinks(notes['zh-CN'])) !== JSON.stringify(referenceLinks(notes.en)))
+    throw new Error('Chinese and English notes must cite the same PR and commit links')
+  const present = Object.keys(languages).filter(key => plan.blocks[key])
+  // GitHub prefixes rendered IDs; link to the actual target, including in PR previews.
+  const navigation = present.map(key => `[${languages[key].label}](#user-content-ai-release-notes-${languages[key].code})`).join(' · ')
+  const sections = present.map((key) => {
+    const config = languages[key]
+    return `<a id="ai-release-notes-${config.code}"></a>\n<details open>\n<summary>${config.label}</summary>\n\n${plan.blocks[key]}\n\n</details>`
+  })
+  const block = `${groupStart}\n${navigation}\n\n${sections.join('\n\n')}\n${groupEnd}`
+  const body = plan.range
+    ? `${original.slice(0, plan.range.start)}${block}${original.slice(plan.range.end)}`
     : `${block}\n\n${original}`
   if (body.length > 60000)
     throw new Error('Combined release notes exceed the supported body size')
@@ -141,8 +209,9 @@ export function createReleaseClient({ repository, token, apiUrl = 'https://api.g
   }
 }
 
-export async function prepareReleaseNotes({ tag, fromTag, automatic = false, force = false, dryRun = false, client, cwd, run }) {
+export async function prepareReleaseNotes({ tag, fromTag, language = 'both', automatic = false, force = false, dryRun = false, client, cwd, run }) {
   parseReleaseTag(tag)
+  requestedLanguages(language)
   if (automatic && !shouldGenerateAutomatically(tag))
     return { should_run: false, reason: 'patch-or-prerelease', tag }
   const release = await client.get(tag)
@@ -152,13 +221,21 @@ export async function prepareReleaseNotes({ tag, fromTag, automatic = false, for
     throw new Error('An existing published GitHub Release is required; publish it first or use dry_run for a preview')
   if (release?.tag_name && release.tag_name !== tag)
     throw new Error('GitHub Release tag does not match the requested tag')
-  if (release && markerRange(release.body || '') && !force)
+  const plan = generationPlan(release?.body || '', language, force)
+  if (!plan.targets.length)
     return { should_run: false, reason: 'already-generated', tag }
-  return { should_run: true, reason: dryRun ? 'preview' : 'generate', ...await resolveReleaseRange({ tag, fromTag, cwd, run }) }
+  return {
+    should_run: true,
+    reason: dryRun ? 'preview' : 'generate',
+    generate_languages: JSON.stringify(plan.targets),
+    existing_notes: JSON.stringify(plan.existing),
+    ...await resolveReleaseRange({ tag, fromTag, cwd, run }),
+  }
 }
 
-export async function publishReleaseNotes({ tag, output, automatic = false, force = false, dryRun = false, client }) {
+export async function publishReleaseNotes({ tag, output, language = 'both', automatic = false, force = false, dryRun = false, client }) {
   parseReleaseTag(tag)
+  requestedLanguages(language)
   if (automatic && !shouldGenerateAutomatically(tag))
     throw new Error('Automatic release notes are restricted to stable major/minor releases')
   const items = output?.items?.filter(item => item.type === 'publish_release_notes') || []
@@ -171,7 +248,8 @@ export async function publishReleaseNotes({ tag, output, automatic = false, forc
     throw new Error('GitHub Release tag does not match the requested tag')
   if (automatic && release && !shouldGenerateAutomatically(tag, release))
     throw new Error('Automatic release notes cannot update a draft or prerelease')
-  const merged = mergeReleaseNotes(release?.body || '', items[0].notes, force)
+  const notes = Object.fromEntries([['zh-CN', items[0].notes_zh], ['en', items[0].notes_en]].filter(([, value]) => value !== undefined && value !== ''))
+  const merged = mergeReleaseNotes(release?.body || '', notes, { language, force })
   if (!merged.changed)
     return { status: 'already-generated', tag, body: merged.body }
   if (!dryRun)
@@ -184,6 +262,7 @@ async function main() {
   const options = {
     tag: process.env.RELEASE_NOTES_TAG,
     fromTag: process.env.RELEASE_NOTES_FROM_TAG,
+    language: process.env.RELEASE_NOTES_LANGUAGE || 'both',
     automatic: truthy(process.env.RELEASE_NOTES_AUTOMATIC),
     force: truthy(process.env.RELEASE_NOTES_FORCE),
     dryRun: truthy(process.env.RELEASE_NOTES_DRY_RUN) || truthy(process.env.GH_AW_SAFE_OUTPUTS_STAGED),
@@ -198,7 +277,7 @@ async function main() {
   else if (process.argv[2] === 'publish') {
     const output = JSON.parse(await readFile(process.env.GH_AW_AGENT_OUTPUT, 'utf8'))
     const result = await publishReleaseNotes({ ...options, output })
-    await writeFile('release-notes-zh-preview.md', result.body)
+    await writeFile('release-notes-preview.md', result.body)
     if (process.env.GITHUB_STEP_SUMMARY)
       await appendFile(process.env.GITHUB_STEP_SUMMARY, `Release Notes: ${result.status} (${result.tag})\n\n${result.body}\n`)
     process.stdout.write(`${JSON.stringify({ status: result.status, tag: result.tag })}\n`)

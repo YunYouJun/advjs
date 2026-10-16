@@ -465,7 +465,7 @@ const ContributingSidebar: DefaultTheme.SidebarItem[] = [
         link: '/contributing/writing-guide',
       },
       {
-        text: '中文 Release Notes',
+        text: 'AI 双语 Release Notes',
         link: '/contributing/release-notes',
       },
     ],
