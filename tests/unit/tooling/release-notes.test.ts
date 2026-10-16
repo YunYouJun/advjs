@@ -160,7 +160,7 @@ describe('preserving the original changelog', () => {
     expect(merged.body).toContain(`${notesStart}\n## 中文更新\n\n${notes}\n${notesEnd}`)
     for (const [label, code] of [['简体中文', 'zh'], ['English', 'en']]) {
       expect(merged.body).toContain(`[${label}](#user-content-ai-release-notes-${code})`)
-      expect(merged.body).toContain(`<a id="ai-release-notes-${code}"></a>\n<details open>\n<summary>${label}</summary>`)
+      expect(merged.body).toContain(`<a name="ai-release-notes-${code}"></a>\n<details open>\n<summary>${label}</summary>`)
     }
     expect(mergeReleaseNotes(merged.body, bilingual)).toEqual({ body: merged.body, changed: false })
   })

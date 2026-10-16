@@ -105,11 +105,11 @@ export function mergeReleaseNotes(original, notes, { language = 'both', force = 
   if (plan.targets.length === 2 && JSON.stringify(referenceLinks(notes['zh-CN'])) !== JSON.stringify(referenceLinks(notes.en)))
     throw new Error('Chinese and English notes must cite the same PR and commit links')
   const present = Object.keys(languages).filter(key => plan.blocks[key])
-  // GitHub prefixes rendered IDs; link to the actual target, including in PR previews.
+  // GitHub prefixes named anchors. Release pages need name; id-only anchors can update the hash without scrolling.
   const navigation = present.map(key => `[${languages[key].label}](#user-content-ai-release-notes-${languages[key].code})`).join(' · ')
   const sections = present.map((key) => {
     const config = languages[key]
-    return `<a id="ai-release-notes-${config.code}"></a>\n<details open>\n<summary>${config.label}</summary>\n\n${plan.blocks[key]}\n\n</details>`
+    return `<a name="ai-release-notes-${config.code}"></a>\n<details open>\n<summary>${config.label}</summary>\n\n${plan.blocks[key]}\n\n</details>`
   })
   const block = `${groupStart}\n${navigation}\n\n${sections.join('\n\n')}\n${groupEnd}`
   const body = plan.range
