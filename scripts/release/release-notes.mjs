@@ -97,7 +97,8 @@ export function mergeReleaseNotes(original, notes, { language = 'both', force = 
     plan.blocks[key] = `${config.start}\n## ${config.title}\n\n${value.trim()}\n${config.end}`
   }
   const present = Object.keys(languages).filter(key => plan.blocks[key])
-  const navigation = present.map(key => `[${languages[key].label}](#ai-release-notes-${languages[key].code})`).join(' · ')
+  // GitHub prefixes rendered IDs; link to the actual target, including in PR previews.
+  const navigation = present.map(key => `[${languages[key].label}](#user-content-ai-release-notes-${languages[key].code})`).join(' · ')
   const sections = present.map((key) => {
     const config = languages[key]
     return `<a id="ai-release-notes-${config.code}"></a>\n<details open>\n<summary>${config.label}</summary>\n\n${plan.blocks[key]}\n\n</details>`

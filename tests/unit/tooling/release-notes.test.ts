@@ -159,7 +159,7 @@ describe('preserving the original changelog', () => {
     expect(merged.body.endsWith(original)).toBe(true)
     expect(merged.body).toContain(`${notesStart}\n## 中文更新\n\n${notes}\n${notesEnd}`)
     for (const [label, code] of [['简体中文', 'zh'], ['English', 'en']]) {
-      expect(merged.body).toContain(`[${label}](#ai-release-notes-${code})`)
+      expect(merged.body).toContain(`[${label}](#user-content-ai-release-notes-${code})`)
       expect(merged.body).toContain(`<a id="ai-release-notes-${code}"></a>\n<details open>\n<summary>${label}</summary>`)
     }
     expect(mergeReleaseNotes(merged.body, bilingual)).toEqual({ body: merged.body, changed: false })
@@ -210,7 +210,7 @@ describe('preserving the original changelog', () => {
     expect(one.body.match(/<details open>/gu)).toHaveLength(1)
     const absent = language === 'en' ? 'zh-CN' : 'en'
     const absentCode = absent === 'en' ? 'en' : 'zh'
-    expect(one.body).not.toContain(`(#ai-release-notes-${absentCode})`)
+    expect(one.body).not.toContain(`(#user-content-ai-release-notes-${absentCode})`)
     const both = mergeReleaseNotes(one.body, { [absent]: bilingual[absent] })
     expect(both.body.match(/<details open>/gu)).toHaveLength(2)
     expect(both.body.endsWith(original)).toBe(true)
