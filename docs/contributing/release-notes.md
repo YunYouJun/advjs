@@ -8,9 +8,9 @@
 
 新生成的每种语言必须包含可点击的 GitHub PR 或 commit 链接；同时生成中英文时，脚本还会检查两版引用 URL 的集合一致，避免一版遗漏来源。该检查保证引用对应，内容是否忠实仍需维护者审阅。
 
-Release 顶部提供“简体中文 · English”导航，各语言使用 GitHub 原生 `<details>` 分区，默认展开，读者可折叠不需要的语言。导航负责跳转，不调用模型。GitHub Release 使用单一正文，无法提供应用式的互斥语言标签页或记住个人语言偏好。
+Release 顶部提供“简体中文 · English · 完整变更记录”导航，使用 GitHub 原生 `<details>` 分区。中文默认展开，英文和完整 changelog 默认折叠；只生成英文时，英文默认展开。读者先阅读摘要，需要时再查看另一语言或完整记录。导航和折叠不调用模型；GitHub Release 使用单一正文，不保存个人语言偏好。
 
-导航使用 `<a name="ai-release-notes-zh"></a>` 形式的命名锚点，并链接到 GitHub 渲染后带 `user-content-` 前缀的目标。实际 Release 页中，仅使用 `id` 的空锚点可能只改变 URL 而不滚动；检查导航时应确认目标分区进入视口，不能只核对 fragment。折叠后的语言需点击分区标题展开。
+导航使用 `<a name="ai-release-notes-zh"></a>` 形式的命名锚点，放在对应分区的内容内部，并链接到 GitHub 渲染后带 `user-content-` 前缀的目标。点击导航时，GitHub 会展开目标分区并定位；也可直接点击分区标题。实际页面检查应确认内容可见且进入视口，不能只核对 fragment。
 
 | `language` | 本次请求                   |
 | ---------- | -------------------------- |
@@ -69,6 +69,17 @@ gh workflow run release-notes-zh.lock.yml -R YunYouJun/advjs --ref dev \
 ```
 
 `from_tag` 可覆盖比较起点。新版布局由 `ai-release-notes:start/end` 管理，每种语言另有 `ai-notes-zh:start/end` 或 `ai-notes-en:start/end` 标记。未选中的语言区块和外部原文按字节保留；缺失、重复、交叉或越界的标记会导致失败。并发运行按 tag 排队，发布前重新读取 Release，重复调用不会重复添加区块。
+
+完整 changelog 放在 `ai-changelog:start/end` 标记的折叠容器内，容器中的原文保留原有换行和内容，不修改仓库内的 changelog 文件。旧 Release 只调整排版时可运行 `layout`，它保留已有摘要，不调用模型。在已提供 `GH_TOKEN` 或 `GITHUB_TOKEN` 的环境中先预览；Actions 中令牌可使用 `github.token`，写入需要 `contents: write`：
+
+```bash
+GITHUB_REPOSITORY=YunYouJun/advjs \
+RELEASE_NOTES_TAG=v0.1.4 \
+RELEASE_NOTES_DRY_RUN=true \
+node scripts/release/release-notes.mjs layout
+```
+
+检查 `release-notes-preview.md` 后，将 `RELEASE_NOTES_DRY_RUN` 设为 `false` 应用排版。重复执行返回 `unchanged`，不会再次写入或嵌套折叠。
 
 手动入口的 `automatic` 默认关闭，允许补丁版补生成。发布流程内部调用时设为 `true`，自动执行版本筛选。
 

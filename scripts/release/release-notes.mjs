@@ -11,6 +11,10 @@ export const notesStart = '<!-- ai-notes-zh:start -->'
 export const notesEnd = '<!-- ai-notes-zh:end -->'
 const groupStart = '<!-- ai-release-notes:start -->'
 const groupEnd = '<!-- ai-release-notes:end -->'
+const changelogStart = '<!-- ai-changelog:start -->'
+const changelogEnd = '<!-- ai-changelog:end -->'
+const changelogPrefix = `${changelogStart}\n<details>\n<summary>完整变更记录 / Full Changelog</summary>\n\n<a name="ai-release-notes-changelog"></a>\n\n`
+const changelogSuffix = `\n</details>\n${changelogEnd}`
 const languages = {
   'zh-CN': { code: 'zh', label: '简体中文', title: '中文更新', start: notesStart, end: notesEnd, script: /\p{Script=Han}/u },
   'en': { code: 'en', label: 'English', title: 'Release Highlights', start: '<!-- ai-notes-en:start -->', end: '<!-- ai-notes-en:end -->', script: /[A-Za-z]/u },
@@ -76,11 +80,52 @@ function generationPlan(original, language, force) {
   const markerCount = [...original.matchAll(/<!--\s*ai-(?:release-notes|notes-(?:zh|en)):/gu)].length
   if ((group && !ranges.length) || markerCount !== (ranges.length + Number(Boolean(group))) * 2)
     throw new Error('Release note markers are malformed')
-  return { range: group || ranges[0], blocks, existing, targets: requested.filter(key => force || !blocks[key]) }
+  const range = group || ranges[0]
+  const changelog = markerRange(original, changelogStart, changelogEnd)
+  const changelogMarkerCount = [...original.matchAll(/<!--\s*ai-changelog:/gu)].length
+  if (changelogMarkerCount !== Number(Boolean(changelog)) * 2 || (changelog && (!range || changelog.start < range.end)))
+    throw new Error('Changelog markers must follow the managed release notes')
+  let tail = range ? original.slice(range.end) : original
+  if (changelog) {
+    const section = original.slice(changelog.start, changelog.end)
+    if (!section.startsWith(changelogPrefix) || !section.endsWith(changelogSuffix))
+      throw new Error('Changelog layout is malformed; refusing to change the original text')
+  }
+  else if (tail.trim()) {
+    // The current managed group owns this separator; retain all changelog payload bytes.
+    const content = group && tail.startsWith('\n\n') ? tail.slice(2) : tail
+    tail = `\n\n${changelogPrefix}${content}${changelogSuffix}`
+  }
+  return { prefix: range ? original.slice(0, range.start) : '', tail, hasChangelog: Boolean(tail.trim()), blocks, existing, targets: requested.filter(key => force || !blocks[key]) }
 }
 
 function referenceLinks(notes) {
   return [...new Set(notes.match(/https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/(?:commit\/[a-f\d]{7,40}|pull\/[1-9]\d*)\b/gu) || [])].sort()
+}
+
+function renderReleaseNotes(original, plan) {
+  const present = Object.keys(languages).filter(key => plan.blocks[key])
+  if (!present.length)
+    return original
+  // Named anchors inside details let GitHub reveal a collapsed section when navigating to it.
+  const links = present.map(key => `[${languages[key].label}](#user-content-ai-release-notes-${languages[key].code})`)
+  if (plan.hasChangelog)
+    links.push('[完整变更记录](#user-content-ai-release-notes-changelog)')
+  const sections = present.map((key) => {
+    const config = languages[key]
+    const open = key === 'zh-CN' || !plan.blocks['zh-CN']
+    return `<details${open ? ' open' : ''}>\n<summary>${config.label}</summary>\n\n<a name="ai-release-notes-${config.code}"></a>\n\n${plan.blocks[key]}\n\n</details>`
+  })
+  const block = `${groupStart}\n${links.join(' · ')}\n\n${sections.join('\n\n')}\n${groupEnd}`
+  const body = `${plan.prefix}${block}${plan.tail}`
+  if (body.length > 60000)
+    throw new Error('Combined release notes exceed the supported body size')
+  return body
+}
+
+export function formatReleaseNotesLayout(original) {
+  const body = renderReleaseNotes(original, generationPlan(original, 'both', false))
+  return { body, changed: body !== original }
 }
 
 export function mergeReleaseNotes(original, notes, { language = 'both', force = false } = {}) {
@@ -95,7 +140,7 @@ export function mergeReleaseNotes(original, notes, { language = 'both', force = 
     const value = notes[key]
     const config = languages[key]
     if (typeof value !== 'string' || !value.trim() || value.length > 12000 || !config.script.test(value)
-      || /<!--\s*ai-(?:notes|release-notes)|<\/?(?:details|summary)\b/iu.test(value)) {
+      || /<!--\s*ai-(?:notes|release-notes|changelog)|<\/?(?:details|summary)\b/iu.test(value)) {
       throw new Error(`Nonempty ${key} notes must fit within 12000 characters and exclude managed markers and layout HTML`)
     }
     if (!referenceLinks(value).length)
@@ -104,19 +149,7 @@ export function mergeReleaseNotes(original, notes, { language = 'both', force = 
   }
   if (plan.targets.length === 2 && JSON.stringify(referenceLinks(notes['zh-CN'])) !== JSON.stringify(referenceLinks(notes.en)))
     throw new Error('Chinese and English notes must cite the same PR and commit links')
-  const present = Object.keys(languages).filter(key => plan.blocks[key])
-  // GitHub prefixes named anchors. Release pages need name; id-only anchors can update the hash without scrolling.
-  const navigation = present.map(key => `[${languages[key].label}](#user-content-ai-release-notes-${languages[key].code})`).join(' · ')
-  const sections = present.map((key) => {
-    const config = languages[key]
-    return `<a name="ai-release-notes-${config.code}"></a>\n<details open>\n<summary>${config.label}</summary>\n\n${plan.blocks[key]}\n\n</details>`
-  })
-  const block = `${groupStart}\n${navigation}\n\n${sections.join('\n\n')}\n${groupEnd}`
-  const body = plan.range
-    ? `${original.slice(0, plan.range.start)}${block}${original.slice(plan.range.end)}`
-    : `${block}\n\n${original}`
-  if (body.length > 60000)
-    throw new Error('Combined release notes exceed the supported body size')
+  const body = renderReleaseNotes(original, plan)
   return { body, changed: body !== original }
 }
 
@@ -257,6 +290,17 @@ export async function publishReleaseNotes({ tag, output, language = 'both', auto
   return { status: dryRun ? 'preview' : 'published', tag, body: merged.body }
 }
 
+export async function updateReleaseNotesLayout({ tag, dryRun = false, client }) {
+  parseReleaseTag(tag)
+  const release = await client.get(tag)
+  if (!release || release.draft || release.tag_name !== tag)
+    throw new Error('Layout updates require an existing published Release with the requested tag')
+  const result = formatReleaseNotesLayout(release.body || '')
+  if (result.changed && !dryRun)
+    await client.update(release.id, result.body)
+  return { status: !result.changed ? 'unchanged' : dryRun ? 'preview' : 'published', tag, body: result.body }
+}
+
 async function main() {
   const truthy = value => value === 'true'
   const options = {
@@ -274,16 +318,17 @@ async function main() {
       await appendFile(process.env.GITHUB_OUTPUT, Object.entries(result).map(([key, value]) => `${key}=${value}\n`).join(''))
     process.stdout.write(`${JSON.stringify(result)}\n`)
   }
-  else if (process.argv[2] === 'publish') {
-    const output = JSON.parse(await readFile(process.env.GH_AW_AGENT_OUTPUT, 'utf8'))
-    const result = await publishReleaseNotes({ ...options, output })
+  else if (process.argv[2] === 'publish' || process.argv[2] === 'layout') {
+    const result = process.argv[2] === 'layout'
+      ? await updateReleaseNotesLayout(options)
+      : await publishReleaseNotes({ ...options, output: JSON.parse(await readFile(process.env.GH_AW_AGENT_OUTPUT, 'utf8')) })
     await writeFile('release-notes-preview.md', result.body)
     if (process.env.GITHUB_STEP_SUMMARY)
       await appendFile(process.env.GITHUB_STEP_SUMMARY, `Release Notes: ${result.status} (${result.tag})\n\n${result.body}\n`)
     process.stdout.write(`${JSON.stringify({ status: result.status, tag: result.tag })}\n`)
   }
   else {
-    throw new Error('Usage: node scripts/release/release-notes.mjs <prepare | publish>')
+    throw new Error('Usage: node scripts/release/release-notes.mjs <prepare | publish | layout>')
   }
 }
 
