@@ -1,68 +1,21 @@
-# Compatibility entry point; this is a handwritten reusable-workflow caller.
+# Compatibility filename for manual backfill; shared inputs live in ai.
 name: AI Release Notes
 on:
   release:
     types: [published]
   workflow_dispatch:
     inputs:
-      tag:
-        description: 已存在的 Release tag
+      tag: {type: string, required: true}
+      options:
+        description: 可选 JSON，例如 {"language":"en","dry_run":true}
         type: string
-        required: true
-      from_tag:
-        description: 可选，指定同系列的比较起点 tag
-        type: string
-      language:
-        description: 生成语言；默认仅补齐缺失的中英文摘要
-        type: choice
-        options: [both, zh-CN, en]
-        default: both
-      force:
-        description: 重新生成所选语言，保留其他语言和原 changelog
-        type: boolean
-        default: false
-      dry_run:
-        description: 仅生成预览，不修改 Release；可验证尚未发布的 tag
-        type: boolean
-        default: false
-      automatic:
-        description: 发版流程内部调用，限制为正式主／次版本
-        type: boolean
-        default: false
-  workflow_call:
-    inputs:
-      tag:
-        type: string
-        required: true
-      from_tag:
-        type: string
-        default: ''
-      language:
-        type: string
-        default: both
-      force:
-        type: boolean
-        default: false
-      dry_run:
-        type: boolean
-        default: false
-      automatic:
-        type: boolean
-        default: true
 permissions: {}
 
 jobs:
   release-notes:
-    uses: YunYouJun/ai/.github/workflows/release-notes.lock.yml@8023830649c9050b3f41a81fd0f88452524cd253
+    uses: YunYouJun/ai/.github/workflows/release-notes.yml@d62e0cf890a0999c027c8e2589808b0f314d2de9
     permissions:
       actions: read
       contents: write
       pull-requests: read
       copilot-requests: write
-    with:
-      tag: ${{ inputs.tag || github.event.release.tag_name }}
-      from_tag: ${{ inputs.from_tag || '' }}
-      language: ${{ inputs.language || 'both' }}
-      force: ${{ inputs.force || false }}
-      dry_run: ${{ inputs.dry_run || false }}
-      automatic: ${{ github.event_name == 'release' || inputs.automatic || false }}
