@@ -16,6 +16,8 @@
 
 外部发布通过 `release: published` 触发。仓库的 `release.yml` 在发布事务和桌面附件上传成功后直接调用可复用工作流，因为 `GITHUB_TOKEN` 创建的 Release 不会再次触发普通 Release 事件工作流。`release-core.yml` 只发布 npm 包，推送 tag 本身不会创建 GitHub Release，也不会生成摘要。
 
+预检查和 Copilot 分析运行在不同 job，二者都必须检出完整 Git 历史。分析 job 使用顶层 `checkout.fetch-depth: 0`，优先从本地 Git 读取历史版本；GitHub MCP 的完整性过滤可能隐藏历史内容，不能将其作为唯一数据来源。首次发布的比较起点为空是正常情况。
+
 ## 认证与额度
 
 工作流声明 `copilot-requests: write`，编译结果直接将 `github.token` 提供给 Copilot，不需要新增 PAT、`COPILOT_GITHUB_TOKEN` secret 或外部模型 API key。ADV.JS 是个人账户仓库，按 [GitHub 官方计费规则](https://docs.github.com/en/copilot/concepts/agent-capabilities/agent-powered-workflows-and-operations/copilot-cli-in-github-actions)，调用使用仓库所有者 YunYouJun 的 Copilot 席位额度。
