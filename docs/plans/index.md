@@ -12,6 +12,11 @@
 - [Electron 执行交接提示词](./2026-10-06-electron-desktop-handoff)：启动执行会话；目标与验收只维护在主计划。
 - [Editor UI 插件机制](./2026-10-05-editor-ui-plugins)。
 
+## Studio 原生 App
+
+- [Studio iPhone／iPad 原生 App 实施计划](./2026-10-21-studio-native-ios)：SwiftUI 原生界面、JavaScriptCore 引擎、WKWebView 试玩与 TestFlight 发布。
+- [Studio 原生 App 执行交接提示词](./2026-10-21-studio-native-ios-handoff)：启动执行会话；目标与验收只维护在主计划。
+
 ## 音频与首发
 
 - [多轨音频与 AI 配音实施计划](./2026-08-12-audio-system-implementation)。
