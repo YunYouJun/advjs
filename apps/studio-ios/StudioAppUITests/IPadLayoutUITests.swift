@@ -8,8 +8,9 @@ final class IPadLayoutUITests: XCTestCase {
         try XCTSkipUnless(UIDevice.current.userInterfaceIdiom == .pad, "iPad only")
     }
 
+    /// The whole screen: an app screenshot in landscape comes back rotated and clipped.
     private func screenshot(_ app: XCUIApplication, _ name: String) {
-        let attachment = XCTAttachment(screenshot: app.screenshot())
+        let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
         attachment.name = name
         attachment.lifetime = .keepAlways
         add(attachment)
@@ -31,7 +32,13 @@ final class IPadLayoutUITests: XCTestCase {
         app.launch()
 
         XCTAssertTrue(app.buttons["new-project"].firstMatch.waitForExistence(timeout: 30))
-        createProject(app, name: "Harbor", template: "school-romance")
+        // ⌘N from a hardware keyboard opens New Project, like the File menu command.
+        app.typeKey("n", modifierFlags: .command)
+        let field = app.textFields["project-name"]
+        XCTAssertTrue(field.waitForExistence(timeout: 15))
+        field.typeText("Harbor")
+        app.buttons["template-school-romance"].tap()
+        app.buttons["create-project"].tap()
         XCTAssertTrue(app.staticTexts["Project Health"].firstMatch.waitForExistence(timeout: 30))
         createProject(app, name: "Moonlit", template: "quick-start")
 
