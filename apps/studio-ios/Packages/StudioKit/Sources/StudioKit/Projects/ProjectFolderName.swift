@@ -31,10 +31,19 @@ public enum ProjectFolderName {
         return result.isEmpty ? fallback : result
     }
 
-    /// `base`, or `base 2`, `base 3`… so that no item in `directory` has that name.
-    /// Comparison ignores case, as APFS on iOS does.
+    /// Whether an item in `directory` already has `name`, ignoring case. The check
+    /// lists the folder rather than asking the volume, because only some volumes
+    /// ignore case and projects move between them (Files, iCloud, other computers).
+    /// `except` is the item being renamed, so changing only its letter case is allowed.
+    public static func isTaken(_ name: String, in directory: URL, except: String? = nil, fileManager: FileManager = .default) -> Bool {
+        existingNames(in: directory, fileManager: fileManager)
+            .subtracting([except?.lowercased()].compactMap(\.self))
+            .contains(name.lowercased())
+    }
+
+    /// `base`, or `base 2`, `base 3`… so that no item in `directory` has that name, ignoring case.
     public static func unique(_ base: String, in directory: URL, fileManager: FileManager = .default) -> String {
-        let existing = Set(((try? fileManager.contentsOfDirectory(atPath: directory.path(percentEncoded: false))) ?? []).map { $0.lowercased() })
+        let existing = existingNames(in: directory, fileManager: fileManager)
         if !existing.contains(base.lowercased()) {
             return base
         }
@@ -43,5 +52,9 @@ public enum ProjectFolderName {
             index += 1
         }
         return "\(base) \(index)"
+    }
+
+    private static func existingNames(in directory: URL, fileManager: FileManager) -> Set<String> {
+        Set(((try? fileManager.contentsOfDirectory(atPath: directory.path(percentEncoded: false))) ?? []).map { $0.lowercased() })
     }
 }

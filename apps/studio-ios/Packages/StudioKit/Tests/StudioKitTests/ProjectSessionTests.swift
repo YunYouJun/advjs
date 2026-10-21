@@ -100,6 +100,26 @@ struct ProjectSessionTests {
         await session.close()
     }
 
+    @Test("Treats file names that differ only in case as the same name, on any volume")
+    func caseInsensitiveNames() async throws {
+        let studio = try TemporaryStudio()
+        defer { studio.remove() }
+        let (session, _) = try await openSession(studio)
+        try await session.createFile("adv/notes.md", contents: "first")
+        await #expect(throws: ProjectLibraryError.nameTaken("Notes.md")) {
+            try await session.createFile("adv/Notes.md")
+        }
+        try await session.createFile("adv/other.md")
+        await #expect(throws: ProjectLibraryError.nameTaken("NOTES.md")) {
+            try await session.renameFile("adv/other.md", to: "adv/NOTES.md")
+        }
+        // Changing only the letter case of a file's own name is a rename, not a clash.
+        try await session.renameFile("adv/notes.md", to: "adv/Notes.md")
+        #expect(session.snapshot?.files["adv/Notes.md"] == "first")
+        #expect(session.snapshot?.files["adv/notes.md"] == nil)
+        await session.close()
+    }
+
     @Test("Keeps drafts and offers both versions when the file changes underneath")
     func draftConflict() async throws {
         let studio = try TemporaryStudio()

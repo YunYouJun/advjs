@@ -156,7 +156,7 @@ public final class ProjectSession: Identifiable {
 
     public func createFile(_ path: String, contents: String = "") async throws {
         let url = try fileURL(path)
-        guard !FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) else {
+        guard !ProjectFolderName.isTaken(url.lastPathComponent, in: url.deletingLastPathComponent()) else {
             throw ProjectLibraryError.nameTaken(url.lastPathComponent)
         }
         try CoordinatedFiles.write(Data(contents.utf8), to: url, filePresenter: watcher)
@@ -164,12 +164,14 @@ public final class ProjectSession: Identifiable {
     }
 
     public func renameFile(_ path: String, to newPath: String) async throws {
+        guard path != newPath else { return }
         let source = try fileURL(path)
         let destination = try fileURL(newPath)
-        guard !FileManager.default.fileExists(atPath: destination.path(percentEncoded: false)) else {
+        let sameFolder = source.deletingLastPathComponent() == destination.deletingLastPathComponent()
+        guard !ProjectFolderName.isTaken(destination.lastPathComponent, in: destination.deletingLastPathComponent(), except: sameFolder ? source.lastPathComponent : nil) else {
             throw ProjectLibraryError.nameTaken(destination.lastPathComponent)
         }
-        try CoordinatedFiles.move(source, to: destination, filePresenter: watcher)
+        try CoordinatedFiles.rename(source, to: destination, filePresenter: watcher)
         if let draft = draftStore.draft(for: path) {
             try? draftStore.save(draft.text, for: newPath, base: snapshot?.files[path])
             draftStore.discard(path)

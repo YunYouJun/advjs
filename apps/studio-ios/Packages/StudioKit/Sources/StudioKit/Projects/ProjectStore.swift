@@ -116,22 +116,13 @@ public actor ProjectStore {
         if sanitized == folder {
             return record
         }
-        // Allow changing only the letter case of the same folder.
-        if sanitized.lowercased() != folder.lowercased(),
-           fileManager.fileExists(atPath: directories.projects.appending(path: sanitized).path(percentEncoded: false)) {
+        if ProjectFolderName.isTaken(sanitized, in: directories.projects, except: folder) {
             throw ProjectLibraryError.nameTaken(sanitized)
         }
-        let source = directories.projects.appending(path: folder, directoryHint: .isDirectory)
-        let destination = directories.projects.appending(path: sanitized, directoryHint: .isDirectory)
-        if sanitized.lowercased() == folder.lowercased() {
-            // A case-only rename on a case-insensitive volume needs an intermediate name.
-            let intermediate = directories.projects.appending(path: ".rename-\(UUID().uuidString)", directoryHint: .isDirectory)
-            try CoordinatedFiles.move(source, to: intermediate)
-            try CoordinatedFiles.move(intermediate, to: destination)
-        }
-        else {
-            try CoordinatedFiles.move(source, to: destination)
-        }
+        try CoordinatedFiles.rename(
+            directories.projects.appending(path: folder, directoryHint: .isDirectory),
+            to: directories.projects.appending(path: sanitized, directoryHint: .isDirectory)
+        )
         update(id) { $0.storage = .local(folder: sanitized) }
         try save()
         return try self.record(id)

@@ -41,6 +41,19 @@ public enum CoordinatedFiles {
         }
     }
 
+    /// Move within the same folder. A change of letter case only goes through an
+    /// intermediate name, since a case-insensitive volume sees the target as taken.
+    public static func rename(_ source: URL, to destination: URL, filePresenter: NSFilePresenter? = nil) throws {
+        guard source.lastPathComponent.lowercased() == destination.lastPathComponent.lowercased(),
+              source.deletingLastPathComponent() == destination.deletingLastPathComponent() else {
+            try move(source, to: destination, filePresenter: filePresenter)
+            return
+        }
+        let intermediate = source.deletingLastPathComponent().appending(path: ".rename-\(UUID().uuidString)")
+        try move(source, to: intermediate, filePresenter: filePresenter)
+        try move(intermediate, to: destination, filePresenter: filePresenter)
+    }
+
     public static func copy(_ source: URL, to destination: URL, filePresenter: NSFilePresenter? = nil) throws {
         try coordinate(filePresenter: filePresenter) { coordinator, error in
             var result: Result<Void, Error> = .failure(CocoaError(.fileWriteUnknown))
