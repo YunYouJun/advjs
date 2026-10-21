@@ -28,6 +28,8 @@ describe('cloudflare Pages build watch paths', () => {
     ['demo/starter/public/md/chapters/hello.adv.md', ['editor']],
     ['apps/desktop/src/project-names.ts', ['editor']],
     ['packages/agent/src/index.ts', ['studio', 'editor']],
+    ['packages/shared/adv-monaco.ts', keys],
+    ['packages/shared/json-highlight.ts', ['editor', 'vrm']],
     ['plugins/plugin-interactions/client/StarMapActivity.vue', ['studio']],
     ['plugins/plugin-pominis/src/index.ts', ['editor']],
     ['packages/advjs/template/adv/chapters/README.md', ['editor', 'vrm']],

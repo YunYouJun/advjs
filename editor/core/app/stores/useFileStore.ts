@@ -1,10 +1,9 @@
 import type { LocalFileHandle } from '../adapters/local'
 import type { AdvConfigAdapterType } from '../types'
-import type { MonacoEditorLanguage } from './useMonacoStore'
 import { useStorage } from '@vueuse/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed, onScopeDispose, ref, shallowRef, watch } from 'vue'
-import { projectFileKind } from '../utils/project-files'
+import { projectFileKind, projectFileLanguage } from '../utils/project-files'
 
 export const useFileStore = defineStore('file', () => {
   const gameStore = useGameStore()
@@ -170,19 +169,7 @@ export const useFileStore = defineStore('file', () => {
     // Media previews keep the cached text editor's model and language intact.
     if (kind !== 'text')
       return
-    const ext = fileHandle.name.split('.').pop()?.toLowerCase() || ''
-    const extLangMap: Record<string, MonacoEditorLanguage> = {
-      ts: 'typescript',
-      js: 'javascript',
-      html: 'html',
-      vue: 'html',
-      css: 'css',
-      scss: 'css',
-      json: 'json',
-      md: 'markdown',
-    }
-    const lang = extLangMap[ext] || 'plaintext'
-    monacoStore.language = lang
+    monacoStore.language = projectFileLanguage(fileHandle.name)
   }
 
   function assertCanSwitchFile() {
@@ -310,7 +297,7 @@ export const useFileStore = defineStore('file', () => {
       fileName.value = openedFileHandle.value.name
       fileKind.value = 'text'
       savedFileContent.value = null
-      monacoStore.language = 'markdown'
+      monacoStore.language = projectFileLanguage(draft.path)
       app.activeInspector = 'file'
       openVersion.value++
     }
