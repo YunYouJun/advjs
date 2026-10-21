@@ -246,20 +246,20 @@ CI 结果见 P1 合并 PR。
 
 ## P2：原生骨架、设计规范与项目管理
 
-分支 `feat/studio-ios-p2`，基于 P1 合并后的 `origin/dev`（`d55f2969`）。模拟器与 P1 相同（`ADV Studio iPhone 18 Pro`、`ADV Studio iPad Pro 11 M5`，iOS 27.0），Xcode 27，Debug 构建。截图是 UI 测试附件（`XCTAttachment`，始终保留），不提交到仓库：本机在 `.xcresult` 中，CI 的 `studio-ios` artifact 上传 `StudioAppUITests.xcresult`（保留 30 天），用 `xcrun xcresulttool export attachments --path <xcresult> --output-path <目录>` 导出。下表「附件」列为附件名。
+分支 `feat/studio-ios-p2`，基于 P1 合并后的 `origin/dev`（`d55f2969`）。模拟器与 P1 相同（`ADV Studio iPhone 18 Pro`、`ADV Studio iPad Pro 11 M5`，iOS 27.0），Xcode 27，Debug 构建。截图是 UI 测试附件（`XCTAttachment`，始终保留），不提交到仓库：本机在 `.xcresult` 中，CI 的 `studio-ios` artifact 上传 `UITests-iPhone.xcresult` 与 `UITests-iPad.xcresult`（保留 30 天），用 `xcrun xcresulttool export attachments --path <xcresult> --output-path <目录>` 导出。下表「附件」列为附件名。
 
 ### 共享层与引擎
 
 项目模板、slug 规则与 `.advpkg.zip` 打包规则从 `apps/studio` 下沉到 `@advjs/core/project`（`templates.ts`、`slug.ts`、`package.ts`）；Web Studio 的 `utils/projectTemplate.ts`、`utils/slug.ts` 改为转出共享实现，`useProjectExport` 改用共享清单与路径规则，并拒绝不安全路径。
 
-| 项目      | 结果                                                                                                                                                                                                         |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 接口      | v1 新增 5 个操作：`project.templates`、`project.fromTemplate`、`project.slug`、`package.plan`、`package.inspect`，共 20 个；只增不改，版本号不变                                                             |
-| 产物      | `engine.js` 728,196 字节（711.1 KiB），预算由 720 KiB 调整为 768 KiB；增长主要来自模板正文（`@advjs/core` 79.2 → 114.5 KiB）                                                                                 |
-| Node 测试 | `test:engine` 17 项通过                                                                                                                                                                                      |
-| Golden    | 354 例，Node 源码与沙箱逐字节一致（`cases.json` `5dc56895…`、`expected.json` `d7baeee2…`、`engine.js` `151bd9e8…`）；变基到最新 `origin/dev` 后重建，三个摘要不变                                            |
-| StudioKit | `swift test`（macOS JavaScriptCore）22 项通过：golden 一致性、引擎桥、内存，以及项目存储与会话（新建、重新发现、改名含仅大小写、最近删除、导出导入往返、Web 包导入、原地打开、外部修改与冲突、项目已不存在） |
-| Web 回归  | `pnpm -C apps/studio exec vitest run` 69 个文件、472 项通过                                                                                                                                                  |
+| 项目      | 结果                                                                                                                                                                                                                           |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 接口      | v1 新增 5 个操作：`project.templates`、`project.fromTemplate`、`project.slug`、`package.plan`、`package.inspect`，共 20 个；只增不改，版本号不变                                                                               |
+| 产物      | `engine.js` 728,196 字节（711.1 KiB），预算由 720 KiB 调整为 768 KiB；增长主要来自模板正文（`@advjs/core` 79.2 → 114.5 KiB）                                                                                                   |
+| Node 测试 | `test:engine` 17 项通过                                                                                                                                                                                                        |
+| Golden    | 354 例，Node 源码与沙箱逐字节一致（`cases.json` `5dc56895…`、`expected.json` `d7baeee2…`、`engine.js` `151bd9e8…`）；变基到最新 `origin/dev` 后重建，三个摘要不变                                                              |
+| StudioKit | `swift test`（macOS JavaScriptCore）23 项通过：golden 一致性、引擎桥、内存，以及项目存储与会话（新建、重新发现、改名含仅大小写、最近删除、导出导入往返、Web 包导入、原地打开、外部修改与冲突、项目已不存在、文件名忽略大小写） |
+| Web 回归  | `pnpm -C apps/studio exec vitest run` 69 个文件、472 项通过                                                                                                                                                                    |
 
 ### App 工程
 
@@ -311,6 +311,19 @@ xcodebuild test-without-building -project apps/studio-ios/StudioApp.xcodeproj -s
 - 菜单命令：新建项目 ⌘N、在新窗口中打开 ⌥⌘N、导入 ⇧⌘I、从「文件」打开 ⌘O、保存 ⌘S、查找项目 ⌘F，以及系统侧栏切换；UI 测试以硬件键盘 ⌘N 新建项目。试玩 ⌘R 随 P4 播放器加入。
 - 场景状态恢复：`SceneStorage` 保存 iPhone 的所选 Tab 与打开的项目、iPad 的侧栏选择与项目分区，以及项目窗口的分区；UI 测试中上一次运行留下的 Tab 会被恢复（测试因此在启动后先选 Tab）。
 - 恢复时发现的问题与修复：上次留下的项目窗口在项目已删除后被系统恢复，显示「无法打开项目」和无效的「重试」（UI 测试清空数据后复现）。现在项目不存在时会话进入「已不存在」状态，项目窗口自动关闭；若此时没有显示项目列表的窗口，先打开一个。在其他窗口删除或移走项目时同样适用。StudioKit 新增对应测试。
+
+### CI
+
+P2 的首轮 CI（[YunYouJun/advjs#82](https://github.com/YunYouJun/advjs/pull/82)）发现三处问题，均已修复：
+
+- **项目重名判断依赖卷是否区分大小写。** iOS 模拟器上 `ProjectStoreTests/rename()` 失败：改名为只差大小写的已有名称时，`fileExists` 没有拦住，移动时才报 Cocoa 516。iOS 真机卷区分大小写，项目又会在「文件」、iCloud 与其他电脑之间流转，因此改为列出目录后忽略大小写比较（`ProjectFolderName.isTaken`），项目改名、新建文件、文件改名统一使用；只改大小写的改名经中间名完成。新增测试，并在本机区分大小写的 APFS 磁盘映像上运行项目与会话测试（16 项通过）。
+- **lint 检查了 Xcode 生成的资源目录 JSON。** `*.xcassets` 由 Xcode 按自身格式写入，加入 ESLint 忽略。
+- **Web Studio `audioWorkspaceLifecycle` 的竞态测试按固定次数等待微任务**，在繁忙的 runner 上偶发失败，改为等待最终状态，再确认旧读取不会覆盖。
+
+同时减少 CI 用量：
+
+- 新增 `studio-changes` 作业（`scripts/ci/studio-changes.mjs`）：只有引擎打包的工作区源码、golden 用到的 fixture、`apps/studio-ios` 或共享构建配置变化时才运行 `studio-ios`；`studio-unit` 另覆盖 `apps/studio` 与全部工作区包。`launch-required` 改用 `scripts/ci/launch-required.mjs`，仅在 `studio-changes` 成功且报告无需运行时接受跳过；引擎测试校验打包进 `engine.js` 的每个源码文件都在过滤范围内，防止依赖新增后漏跑。
+- `studio-ios` 作业：StudioKit（含 iOS JavaScriptCore golden 一致性）与 App 单测只在 iPhone 上跑一次；iPad 只跑自己的 UI 测试；去掉与 iOS 重复的 macOS `swift test`；依赖安装期间预先启动模拟器，减少「test runner timed out while preparing」这类等待（`dev` 上 P1 合并后的失败即为此）。
 
 ### 与清单的差异
 
