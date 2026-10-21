@@ -17,13 +17,18 @@ const EXPECTED_OPERATIONS = [
   'content.stringify',
   'engine.info',
   'host.selfTest',
+  'package.inspect',
+  'package.plan',
   'project.applyPatches',
   'project.authoringProgram',
   'project.compile',
   'project.fixReferences',
+  'project.fromTemplate',
   'project.index',
   'project.legacyChapters',
   'project.playerConfig',
+  'project.slug',
+  'project.templates',
   'project.validate',
 ]
 
@@ -104,6 +109,9 @@ describe('engine contract', () => {
       'error:yaml-invalid': 'ENGINE_CONTENT_INVALID',
       'error:project-format': 'ENGINE_PROJECT_INVALID',
       'error:game-settings': 'ENGINE_PROJECT_INVALID',
+      'error:package-manifest-missing': 'ENGINE_CONTENT_INVALID',
+      'error:package-manifest-json': 'ENGINE_CONTENT_INVALID',
+      'error:package-manifest-fields': 'ENGINE_CONTENT_INVALID',
     })
   })
 })
@@ -182,5 +190,39 @@ describe('project operations', () => {
     expect(legacy.chapters.length).toBeGreaterThan(0)
     expect(Object.keys(legacy.files)).toContain('adv/settings/game.json')
     expect(JSON.parse(expected['compile:hamster-public-md']).ok).toBe(true)
+  })
+
+  it('creates projects from the shared templates', () => {
+    const templates = JSON.parse(expected.templates).result
+    expect(templates.templates).toEqual(['visual-novel-starter', 'school-romance', 'mystery-detective', 'fantasy-adventure', 'modern-urban'])
+    for (const id of [...templates.templates, templates.quickStart]) {
+      const files = JSON.parse(expected[`template:${id}`]).result.files
+      expect(Object.keys(files)).toContain('README.md')
+      expect(files['README.md']).toContain('# 星海 Story 1')
+      expect(Object.keys(files).some(path => path.endsWith('.adv.md'))).toBe(true)
+    }
+    expect(expected['template:unknown-template']).toBe(expected['template:visual-novel-starter'])
+  })
+
+  it('derives slugs like Web Studio', () => {
+    expect(JSON.parse(expected['slug:mixed']).result).toEqual({ slug: 'my-星海-story', valid: true })
+    expect(JSON.parse(expected['slug:symbols']).result).toEqual({ slug: '', valid: false })
+  })
+
+  it('plans portable packages with the Web manifest and safe paths only', () => {
+    const plan = JSON.parse(expected['package:round-trip']).result
+    expect(plan.manifest).toEqual({
+      name: '往返样例',
+      version: '1.0.0',
+      exportedAt: '2026-10-21T00:00:00.000Z',
+      stats: { characters: 2, chapters: 2, scenes: 2, audios: 1, knowledge: 0 },
+    })
+    const paths = plan.entries.map((entry: { path: string }) => entry.path)
+    expect(paths).toContain('adv.config.json')
+    expect(paths).toContain('adv/assets/characters.json')
+    expect(paths).toContain('adv/assets/bgm/theme.m4a')
+    expect(paths.every((path: string) => path === 'adv.config.json' || path.startsWith('adv/'))).toBe(true)
+    const inspected = JSON.parse(expected['package-inspect:valid']).result
+    expect(inspected.unsafePaths).toEqual(['../escape.md', '/absolute.md', 'adv/.git/config', 'adv\\windows.md', 'C:/drive.md', 'adv//empty.md'])
   })
 })

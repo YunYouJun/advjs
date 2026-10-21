@@ -168,6 +168,25 @@ export async function createGoldenCases(call: EngineCall): Promise<GoldenCase[]>
     ],
   })
 
+  // New projects, slugs and portable packages.
+  book.add('templates', 'project.templates', {})
+  const templates = await book.result('project.templates', {})
+  for (const templateId of [...templates.templates, templates.quickStart, 'unknown-template'])
+    book.add(`template:${templateId}`, 'project.fromTemplate', { templateId, name: '星海 Story 1' })
+  for (const [name, text] of Object.entries({ mixed: '  My 星海_Story  !! ', kana: 'ひかり の 物語', symbols: '***', empty: '' }))
+    book.add(`slug:${name}`, 'project.slug', { name: text })
+  const exportedAt = '2026-10-21T00:00:00.000Z'
+  book.add('package:round-trip', 'package.plan', { files: roundTrip.files, paths: roundTrip.paths, name: '往返样例', exportedAt })
+  book.add('package:golden-project', 'package.plan', { files: golden, paths: Object.keys(golden), name: 'Golden', exportedAt })
+  book.add('package:hamster', 'package.plan', { files: hamster, paths: Object.keys(hamster), name: '仓鼠', exportedAt })
+  book.add('package-inspect:valid', 'package.inspect', {
+    manifest: JSON.stringify({ name: '往返样例', version: '1.0.0', exportedAt, stats: {} }),
+    paths: ['adv/chapters/one.adv.md', '../escape.md', '/absolute.md', 'adv/.git/config', 'adv\\windows.md', 'C:/drive.md', 'adv//empty.md'],
+  })
+  book.add('error:package-manifest-missing', 'package.inspect', { paths: [] })
+  book.add('error:package-manifest-json', 'package.inspect', { manifest: '{"name":' })
+  book.add('error:package-manifest-fields', 'package.inspect', { manifest: '{"name":"x"}' })
+
   for (const root of ['apps/studio-ios/engine/fixtures/round-trip/adv', 'demo/hamster/adv', 'tests/launch/fixtures/golden-project/adv', 'examples/ai-contest/life-story/adv', 'demo/flow/adv'])
     await addContentRoundTrips(book, root)
 
