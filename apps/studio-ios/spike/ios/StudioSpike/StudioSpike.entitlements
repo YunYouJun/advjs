@@ -4,8 +4,9 @@
 <dict>
   <key>com.apple.developer.associated-domains</key>
   <array>
-    <string>webcredentials:studio.advjs.org</string>
-    <string>applinks:studio.advjs.org</string>
+    <!-- SPIKE: developer mode lets the simulator read the AASA from the origin instead of Apple's CDN. -->
+    <string>webcredentials:studio.advjs.org?mode=developer</string>
+    <string>applinks:studio.advjs.org?mode=developer</string>
   </array>
 </dict>
 </plist>
