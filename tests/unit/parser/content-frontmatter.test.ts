@@ -1,5 +1,5 @@
+import { dumpYamlFrontmatter, parseFrontmatterAndBody } from '@advjs/parser'
 import { describe, expect, it } from 'vitest'
-import { dumpYamlFrontmatter, parseFrontmatterAndBody } from '../utils/mdFrontmatter'
 
 describe('parseFrontmatterAndBody', () => {
   it('parses standard frontmatter', () => {

@@ -4,8 +4,8 @@
  * 流式调用 LLM，返回 AdvScript 正文（不含 frontmatter）。
  */
 
+import type { ChapterFormData } from '@advjs/parser'
 import type { AdvCharacter } from '@advjs/types'
-import type { ChapterFormData } from '../chapterMd'
 import type { AiAuthoringResult } from './result'
 import { useAiSettingsStore } from '../../stores/useAiSettingsStore'
 import { buildStreamOptions, streamChat } from '../aiClient'

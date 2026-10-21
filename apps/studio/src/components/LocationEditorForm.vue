@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { LocationFormData } from '../utils/locationMd'
+import type { LocationFormData } from '@advjs/parser'
 import {
   IonInput,
   IonItem,

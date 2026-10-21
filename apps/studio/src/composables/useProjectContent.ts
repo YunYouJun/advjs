@@ -1,16 +1,22 @@
 import type { AdvAssetEntry, AdvCharacter } from '@advjs/types'
 import type { IFileSystem } from '../utils/fs'
-import { parseCharacterMd } from '@advjs/parser'
+import {
+  projectAudioEntry,
+  projectChapterName,
+  projectChapterPreview,
+  projectFallbackEntry,
+  projectLocationEntry,
+  projectRawAudioEntries,
+  projectSceneEntry,
+} from '@advjs/core'
+import { parseAudioMd, parseCharacterMd, parseLocationMd, parseSceneMd } from '@advjs/parser'
 import { nextTick, ref, watch } from 'vue'
 import { useSettingsStore } from '../stores/useSettingsStore'
 import { useStudioStore } from '../stores/useStudioStore'
-import { parseAudioMd } from '../utils/audioMd'
 import { downloadFromCloud, listCloudFiles } from '../utils/cloudSync'
 import { AUDIO_EXTENSIONS, createFsForProject } from '../utils/fs'
-import { parseLocationMd } from '../utils/locationMd'
 import { loadStudioAssetCatalog } from '../utils/projectAssets'
 import { discoverRuntimeChapterFiles } from '../utils/projectRuntimeFiles'
-import { parseSceneMd } from '../utils/sceneMd'
 import { useKnowledgeBase } from './useKnowledgeBase'
 
 const FILE_EXT_RE = /\.[^.]+$/
@@ -118,15 +124,7 @@ export function useProjectContent() {
         let content = ''
         try {
           content = await fs.readFile(file)
-          if (file.endsWith('.chapter.json')) {
-            const chapter = JSON.parse(content)
-            preview = chapter.nodes?.find((node: { text?: string, dialogue?: { text?: string } }) => node.text || node.dialogue?.text)?.dialogue?.text ?? chapter.nodes?.find((node: { text?: string }) => node.text)?.text ?? ''
-          }
-          else {
-          // Extract first meaningful line as preview
-            const lines = content.split('\n').filter(l => l.trim() && !l.startsWith('---') && !l.startsWith('#'))
-            preview = lines[0]?.slice(0, 100) || ''
-          }
+          preview = projectChapterPreview(file, content)
         }
         catch (err) {
           const msg = `Failed to read chapter ${file}: ${err instanceof Error ? err.message : String(err)}`
@@ -136,7 +134,7 @@ export function useProjectContent() {
 
         chapterInfos.push({
           file,
-          name: file.split('/').pop()?.replace(/\.(?:adv\.md|chapter\.json)$/u, '') || file,
+          name: projectChapterName(file),
           preview,
           content,
           format: file.endsWith('.chapter.json') ? 'flow' : 'adv-md',
@@ -170,28 +168,12 @@ export function useProjectContent() {
         const sceneFiles = await fs.listFiles('adv/scenes', '.md')
         for (const file of sceneFiles) {
           try {
-            const content = await fs.readFile(file)
-            const parsed = parseSceneMd(content)
-            sceneList.push({
-              file,
-              name: parsed.name || file.split('/').pop()?.replace('.md', '') || file,
-              id: parsed.id,
-              description: parsed.description,
-              imagePrompt: parsed.imagePrompt,
-              type: parsed.type,
-              tags: parsed.tags,
-              assetId: parsed.assetId,
-              src: parsed.src,
-              linkedLocation: parsed.linkedLocation,
-            })
+            sceneList.push(projectSceneEntry(file, await fs.readFile(file)))
           }
           catch (err) {
             console.warn(`Failed to parse scene ${file}: ${err instanceof Error ? err.message : String(err)}`)
             // Fallback: just use file name
-            sceneList.push({
-              file,
-              name: file.split('/').pop()?.replace('.md', '') || file,
-            })
+            sceneList.push(projectFallbackEntry(file))
           }
         }
       }
@@ -204,26 +186,11 @@ export function useProjectContent() {
         const locationFiles = await fs.listFiles('adv/locations', '.md')
         for (const file of locationFiles) {
           try {
-            const content = await fs.readFile(file)
-            const parsed = parseLocationMd(content)
-            locationList.push({
-              file,
-              name: parsed.name || file.split('/').pop()?.replace('.md', '') || file,
-              id: parsed.id,
-              type: parsed.type,
-              description: parsed.description,
-              tags: parsed.tags,
-              linkedScenes: parsed.linkedScenes,
-              linkedCharacters: parsed.linkedCharacters,
-              defaultImagePrompt: parsed.defaultImagePrompt,
-            })
+            locationList.push(projectLocationEntry(file, await fs.readFile(file)))
           }
           catch (err) {
             console.warn(`Failed to parse location ${file}: ${err instanceof Error ? err.message : String(err)}`)
-            locationList.push({
-              file,
-              name: file.split('/').pop()?.replace('.md', '') || file,
-            })
+            locationList.push(projectFallbackEntry(file))
           }
         }
       }
@@ -237,42 +204,17 @@ export function useProjectContent() {
         const audioMdFiles = await fs.listFiles('adv/audio', '.md')
         for (const file of audioMdFiles) {
           try {
-            const content = await fs.readFile(file)
-            const parsed = parseAudioMd(content)
-            audioList.push({
-              file,
-              name: parsed.name,
-              description: parsed.description,
-              assetId: parsed.assetId,
-              src: parsed.src,
-              duration: parsed.duration,
-              tags: parsed.tags,
-              linkedScenes: parsed.linkedScenes,
-              linkedChapters: parsed.linkedChapters,
-            })
+            audioList.push(projectAudioEntry(file, await fs.readFile(file)))
           }
           catch (err) {
             console.warn(`Failed to parse audio ${file}: ${err instanceof Error ? err.message : String(err)}`)
-            audioList.push({
-              file,
-              name: file.split('/').pop()?.replace('.md', '') || file,
-            })
+            audioList.push(projectFallbackEntry(file))
           }
         }
 
         // Also list raw audio files without metadata
         const audioFiles = await fs.listFilesByExts('adv/audio', AUDIO_EXTENSIONS)
-        for (const file of audioFiles) {
-          const baseName = file.split('/').pop()?.replace(FILE_EXT_RE, '') || ''
-          // Skip if we already have metadata for this audio
-          if (!audioList.some(a => a.name === baseName || a.src === file.split('/').pop())) {
-            audioList.push({
-              file,
-              name: baseName,
-              src: file,
-            })
-          }
-        }
+        audioList.push(...projectRawAudioEntries(audioFiles, audioList))
       }
       catch { /* no audio dir */ }
       if (await fs.exists('adv/assets.json')) {

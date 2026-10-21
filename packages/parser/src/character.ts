@@ -1,7 +1,16 @@
 import type { AdvCharacter, AdvCharacterBody, AdvCharacterFrontmatter } from '@advjs/types'
+import type { ContentStringifyOptions } from './content/frontmatter'
 import { validateCharacterVoiceProfile } from '@advjs/audio'
 import { LANGUAGE_LABELS } from '@advjs/types'
 import * as yaml from 'js-yaml'
+import {
+  dumpYamlFrontmatter,
+  formatBodyRaw,
+  mergeManagedFrontmatter,
+  parseFrontmatterAndBody,
+  readFrontmatterSource,
+  writeFrontmatterSource,
+} from './content/frontmatter'
 import { CharacterFrontmatterSchema, CharacterVisualSchema, formatCharacterFrontmatterError } from './schemas/character'
 
 /**
@@ -136,48 +145,54 @@ export function parseCharacterMd(content: string): AdvCharacter {
 }
 
 /**
- * AdvCharacter → .character.md 字符串
+ * Frontmatter value written for `key`, or `undefined` to omit it.
  */
-export function stringifyCharacterMd(character: AdvCharacter): string {
+function characterFrontmatterValue(key: string, value: unknown): unknown {
+  if (value === undefined || value === null || value === '')
+    return undefined
+
+  // 对象/数组按照类型剔除空值
+  if (Array.isArray(value))
+    return value.length === 0 ? undefined : value
+
+  if (typeof value === 'object') {
+    // 对 attributes 做深度剔除，避免写入空子对象（如 `profile: {}`）
+    const pruned = key === 'attributes'
+      ? pruneEmpty(value as Record<string, any>)
+      : value
+    if (pruned === undefined)
+      return undefined
+    if (typeof pruned === 'object' && !Array.isArray(pruned) && Object.keys(pruned).length === 0)
+      return undefined
+    return pruned
+  }
+
+  return value
+}
+
+/**
+ * AdvCharacter → .character.md 字符串
+ *
+ * With `options.source`, frontmatter keys and body sections this format does
+ * not manage are kept, and an unchanged character returns `source` unchanged.
+ */
+export function stringifyCharacterMd(character: AdvCharacter, options: ContentStringifyOptions = {}): string {
   if (character.voiceProfile !== undefined)
     validateCharacterVoiceProfile(character.voiceProfile)
+  if (options.source !== undefined) {
+    const updated = updateCharacterSource(options.source, character)
+    if (updated !== undefined)
+      return updated
+  }
   // 提取 frontmatter 字段
   const fm: Record<string, any> = {}
   for (const key of FRONTMATTER_KEYS) {
-    const value = character[key]
-    if (value === undefined || value === null || value === '')
-      continue
-
-    // 对象/数组按照类型剔除空值
-    if (Array.isArray(value)) {
-      if (value.length === 0)
-        continue
+    const value = characterFrontmatterValue(key, character[key])
+    if (value !== undefined)
       fm[key] = value
-      continue
-    }
-
-    if (typeof value === 'object') {
-      // 对 attributes 做深度剔除，避免写入空子对象（如 `profile: {}`）
-      const pruned = key === 'attributes'
-        ? pruneEmpty(value as Record<string, any>)
-        : value
-      if (pruned === undefined)
-        continue
-      if (typeof pruned === 'object' && !Array.isArray(pruned) && Object.keys(pruned).length === 0)
-        continue
-      fm[key] = pruned
-      continue
-    }
-
-    fm[key] = value
   }
 
-  const yamlStr = yaml.dump(fm, {
-    indent: 2,
-    lineWidth: -1,
-    noRefs: true,
-    forceQuotes: false,
-  }).trim()
+  const yamlStr = dumpYamlFrontmatter(fm)
 
   // 构建 body sections
   const sections: string[] = []
@@ -423,20 +438,84 @@ export function exportCharacterVisualForAI(character: AdvCharacter): string {
 /**
  * 从 .character.md 内容中分离 frontmatter 和 body
  */
-function parseFrontmatterAndBody(content: string): { frontmatter: string, body: string } {
-  const trimmed = content.trim()
-  if (!trimmed.startsWith('---')) {
-    return { frontmatter: '', body: trimmed }
+function bodyText(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined
+}
+
+/**
+ * Update `source` in place; `undefined` when it is not a parseable character.
+ */
+function updateCharacterSource(source: string, character: AdvCharacter): string | undefined {
+  const document = readFrontmatterSource(source)
+  if (!document)
+    return undefined
+  let baseline: AdvCharacter
+  try {
+    baseline = parseCharacterMd(source)
+  }
+  catch {
+    return undefined
   }
 
-  const endIndex = trimmed.indexOf('---', 3)
-  if (endIndex === -1) {
-    return { frontmatter: '', body: trimmed }
-  }
+  const { data, changed } = mergeManagedFrontmatter(
+    document.data,
+    baseline,
+    character,
+    FRONTMATTER_KEYS,
+    characterFrontmatterValue,
+  )
+  const changedFields = new Set(BODY_SECTION_ORDER
+    .map(({ field }) => field)
+    .filter(field => bodyText(baseline[field]) !== bodyText(character[field])))
+  if (!changed && changedFields.size === 0)
+    return source
 
-  const frontmatter = trimmed.slice(3, endIndex).trim()
-  const body = trimmed.slice(endIndex + 3).trim()
-  return { frontmatter, body }
+  const bodyRaw = changedFields.size > 0
+    ? formatBodyRaw(updateBodySections(document.body, character, changedFields))
+    : document.bodyRaw
+  return writeFrontmatterSource(data, bodyRaw)
+}
+
+/**
+ * Rewrite only the changed `##` sections. The parser reads the last section
+ * of each field, so that one is replaced; unknown sections and any preamble
+ * stay verbatim, and new sections are appended in serializer order.
+ */
+function updateBodySections(
+  body: string,
+  character: AdvCharacter,
+  changed: ReadonlySet<keyof AdvCharacterBody>,
+): string {
+  const lines = body ? body.split('\n') : []
+  const headings: { line: number, field: keyof AdvCharacterBody | null }[] = []
+  lines.forEach((line, index) => {
+    const match = line.match(HEADING_RE)
+    if (match)
+      headings.push({ line: index, field: SECTION_MAP[match[1].trim().toLowerCase()] || null })
+  })
+  const last = new Map<keyof AdvCharacterBody, number>()
+  headings.forEach((heading, index) => {
+    if (heading.field)
+      last.set(heading.field, index)
+  })
+
+  const output = lines.slice(0, headings[0]?.line ?? lines.length)
+  headings.forEach((heading, index) => {
+    const end = headings[index + 1]?.line ?? lines.length
+    if (!heading.field || !changed.has(heading.field) || last.get(heading.field) !== index) {
+      output.push(...lines.slice(heading.line, end))
+      return
+    }
+    const value = bodyText(character[heading.field])
+    if (value)
+      output.push(lines[heading.line], '', ...value.split('\n'), '')
+  })
+  for (const { field, heading } of BODY_SECTION_ORDER) {
+    const value = bodyText(character[field])
+    if (changed.has(field) && !last.has(field) && value)
+      output.push('', `## ${heading}`, '', ...value.split('\n'), '')
+  }
+  return output.join('\n').replace(/\n{3,}/gu, '\n\n').trim()
 }
 
 /**
