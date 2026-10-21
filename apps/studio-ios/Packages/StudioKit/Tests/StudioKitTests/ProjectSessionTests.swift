@@ -36,6 +36,17 @@ struct ProjectSessionTests {
         #expect(session.state == .closed)
     }
 
+    @Test("A project that no longer exists is gone, not failed")
+    func missingProject() async throws {
+        let studio = try TemporaryStudio()
+        defer { studio.remove() }
+        let store = ProjectStore(directories: studio.directories, engine: EngineBridge())
+        _ = try await store.refresh()
+        let session = ProjectSession(id: UUID(), name: "Missing", store: store, directories: studio.directories)
+        await session.open()
+        #expect(session.state == .gone)
+    }
+
     @Test("Reloads after another process changes a file")
     func externalChange() async throws {
         let studio = try TemporaryStudio()

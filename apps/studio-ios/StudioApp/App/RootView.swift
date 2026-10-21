@@ -19,6 +19,8 @@ struct RootView: View {
         .task {
             await model.refresh()
         }
+        .onAppear { model.libraryWindows += 1 }
+        .onDisappear { model.libraryWindows -= 1 }
         .onOpenURL { url in
             Task { await importOpenedFile(url) }
         }
@@ -147,11 +149,14 @@ struct RegularRootView: View {
 /// A second window that shows one project (iPad).
 struct ProjectWindowView: View {
     let projectID: UUID
+    @Environment(AppModel.self) private var model
+    @Environment(\.openWindow) private var openWindow
+    @Environment(\.dismissWindow) private var dismissWindow
     @SceneStorage("window.section") private var restoredSection = ProjectSection.overview.rawValue
     @State private var section: ProjectSection? = .overview
 
     var body: some View {
-        ProjectContainer(projectID: projectID) { session in
+        ProjectContainer(projectID: projectID, onGone: closeWindow) { session in
             NavigationSplitView {
                 ProjectSectionList(session: session, selection: $section)
             } detail: {
@@ -165,11 +170,22 @@ struct ProjectWindowView: View {
         .onChange(of: section) { _, newValue in restoredSection = newValue?.rawValue ?? ProjectSection.overview.rawValue }
         .focusedSceneValue(\.selectedProject, projectID)
     }
+
+    /// The project was deleted or moved (here, in another window, or before the
+    /// window was restored): close the window, keeping a project list on screen.
+    private func closeWindow() {
+        if model.libraryWindows == 0 {
+            openWindow(id: "main")
+        }
+        dismissWindow()
+    }
 }
 
 /// Shows a project's session, opening it on first use.
 struct ProjectContainer<Content: View>: View {
     let projectID: UUID
+    /// Called when the project no longer exists; the default shows a message.
+    var onGone: (() -> Void)?
     @ViewBuilder var content: (ProjectSession) -> Content
     @Environment(AppModel.self) private var model
     @Environment(\.scenePhase) private var scenePhase
@@ -199,6 +215,7 @@ struct ProjectContainer<Content: View>: View {
                     }
                 case .gone:
                     ContentUnavailableView("Project Not Found", systemImage: "questionmark.folder", description: Text("The project folder was moved or deleted."))
+                        .onAppear { onGone?() }
                 }
             }
             else {

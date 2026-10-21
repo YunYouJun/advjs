@@ -16,6 +16,8 @@ final class AppModel {
     private(set) var sessions: [UUID: ProjectSession] = [:]
     @ObservationIgnored private var lastUsed: [UUID: Date] = [:]
     var lastError: StudioAlert?
+    /// Windows showing the project list, so a project window can tell whether closing leaves one.
+    @ObservationIgnored var libraryWindows = 0
 
     /// Light, dark or the system setting; a device preference, not project data.
     var appearance: Appearance = Appearance(rawValue: UserDefaults.standard.string(forKey: "appearance") ?? "") ?? .system {

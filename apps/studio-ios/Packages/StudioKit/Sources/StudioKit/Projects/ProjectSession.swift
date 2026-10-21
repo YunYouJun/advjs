@@ -70,6 +70,9 @@ public final class ProjectSession: Identifiable {
             try await load()
             state = .ready
         }
+        catch ProjectLibraryError.notFound {
+            state = .gone
+        }
         catch {
             state = .failed(error.localizedDescription)
         }
