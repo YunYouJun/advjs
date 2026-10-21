@@ -216,23 +216,28 @@
 - **入口**：`AdvEngine.call(operation, inputJson) → Promise<responseJson>`，响应固定为 `{ ok, apiVersion, result | error }`，从不 reject。P1 定稿为 v1（`apps/studio-ios/engine/src/protocol.ts` 的 `ENGINE_API_VERSION`），原生宿主启动时用 `engine.info` 握手，版本不符即拒绝加载。任何操作的输入或结果出现不兼容变化都必须提升版本。
 - **v1 操作**（输入均为 JSON 对象；`files` 为「项目相对路径 → UTF-8 文本」快照，`paths` 为含二进制文件在内的全部路径）：
 
-  | 操作                       | 输入                                            | 结果                                                                       | 共享实现                                                |
-  | -------------------------- | ----------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------- |
-  | `engine.info`              | —                                               | 接口版本、操作列表、内置官方插件版本                                       | —                                                       |
-  | `project.index`            | `files`、`paths?`                               | 章节、角色、场景、地点、音频列表与逐文件问题（与 Web Studio 加载规则一致） | `@advjs/core/project` `indexProjectContent`             |
-  | `project.compile`          | `files`、`options?`                             | 项目编译结果与归一诊断；默认按内置官方插件版本编译                         | `compileProject`                                        |
-  | `project.playerConfig`     | `files`、`baseUrl`、`options?`                  | 播放器游戏配置（媒体路径映射到播放器 scheme）与诊断                        | `compileProject`、`createProjectGameConfig`             |
-  | `project.validate`         | `files`、`paths?`                               | 与 Web Studio 健康面板相同的问题列表、统计与内容问题                       | `validateProjectContent`                                |
-  | `project.authoringProgram` | `files`、`paths?`、`override?`、`resources?`    | 程序行（章节、节点、源位置）、入口与归一诊断；`override` 为未保存草稿      | `compileAuthoringProgram`                               |
-  | `project.fixReferences`    | `files`、`issues`                               | 移除失效引用后需写回的文件与已修复问题                                     | `fixProjectReferences`                                  |
-  | `project.applyPatches`     | `files`、`patches`                              | 结构化补丁后的文件                                                         | `applyProjectPatches`                                   |
-  | `project.legacyChapters`   | `chapters`（`chapters/` 目录内相对路径 → 文本） | 与 CLI 相同的章节分组和规范 `adv/` 项目文件                                | `groupLegacyChapterFiles`、`createLegacyChapterProject` |
-  | `chapter.parseAst`         | `content`、`glossary?`                          | AdvScript AST                                                              | `@advjs/parser` `parseAst`                              |
-  | `content.parse`            | `type`、`content`、`filename?`                  | 表单数据                                                                   | `@advjs/parser` 内容文档                                |
-  | `content.stringify`        | `type`、`data`、`source?`                       | 文件文本；给出 `source` 时保留未知字段与正文，未修改则原样返回             | 同上                                                    |
-  | `assets.normalizeManifest` | `manifest`、`allowEmpty?`                       | 规范化资源目录                                                             | `@advjs/assets`                                         |
-  | `assets.readManifest`      | `files`                                         | 合并 `includes` 后的规范化资源目录及其根路径                               | `readAdvAssetManifestSource`                            |
-  | `host.selfTest`            | `text`                                          | UTF-8、SHA-256、`structuredClone` 自检，仅用于一致性测试                   | —                                                       |
+  | 操作                       | 输入                                            | 结果                                                                            | 共享实现                                                 |
+  | -------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------- |
+  | `engine.info`              | —                                               | 接口版本、操作列表、内置官方插件版本                                            | —                                                        |
+  | `project.index`            | `files`、`paths?`                               | 章节、角色、场景、地点、音频列表与逐文件问题（与 Web Studio 加载规则一致）      | `@advjs/core/project` `indexProjectContent`              |
+  | `project.compile`          | `files`、`options?`                             | 项目编译结果与归一诊断；默认按内置官方插件版本编译                              | `compileProject`                                         |
+  | `project.playerConfig`     | `files`、`baseUrl`、`options?`                  | 播放器游戏配置（媒体路径映射到播放器 scheme）与诊断                             | `compileProject`、`createProjectGameConfig`              |
+  | `project.validate`         | `files`、`paths?`                               | 与 Web Studio 健康面板相同的问题列表、统计与内容问题                            | `validateProjectContent`                                 |
+  | `project.authoringProgram` | `files`、`paths?`、`override?`、`resources?`    | 程序行（章节、节点、源位置）、入口与归一诊断；`override` 为未保存草稿           | `compileAuthoringProgram`                                |
+  | `project.fixReferences`    | `files`、`issues`                               | 移除失效引用后需写回的文件与已修复问题                                          | `fixProjectReferences`                                   |
+  | `project.applyPatches`     | `files`、`patches`                              | 结构化补丁后的文件                                                              | `applyProjectPatches`                                    |
+  | `project.legacyChapters`   | `chapters`（`chapters/` 目录内相对路径 → 文本） | 与 CLI 相同的章节分组和规范 `adv/` 项目文件                                     | `groupLegacyChapterFiles`、`createLegacyChapterProject`  |
+  | `chapter.parseAst`         | `content`、`glossary?`                          | AdvScript AST                                                                   | `@advjs/parser` `parseAst`                               |
+  | `content.parse`            | `type`、`content`、`filename?`                  | 表单数据                                                                        | `@advjs/parser` 内容文档                                 |
+  | `content.stringify`        | `type`、`data`、`source?`                       | 文件文本；给出 `source` 时保留未知字段与正文，未修改则原样返回                  | 同上                                                     |
+  | `assets.normalizeManifest` | `manifest`、`allowEmpty?`                       | 规范化资源目录                                                                  | `@advjs/assets`                                          |
+  | `assets.readManifest`      | `files`                                         | 合并 `includes` 后的规范化资源目录及其根路径                                    | `readAdvAssetManifestSource`                             |
+  | `project.templates`        | —                                               | 模板 ID 列表与「立即体验」模板 ID                                               | `projectTemplates`                                       |
+  | `project.fromTemplate`     | `templateId`、`name`                            | 新项目的全部文件                                                                | `createProjectTemplateFiles`                             |
+  | `project.slug`             | `name`                                          | 与 Web Studio 相同的 slug 及其是否有效                                          | `toProjectSlug`                                          |
+  | `package.plan`             | `files`、`paths`、`name`、`exportedAt`          | `.advpkg.zip` 的条目（媒体附校验值）与 Web Studio 同格式的 `manifest.json` 文本 | `planProjectPackage`                                     |
+  | `package.inspect`          | `manifest?`、`paths`                            | 解析后的 manifest 与不安全路径列表                                              | `readProjectPackageManifest`、`isSafeProjectPackagePath` |
+  | `host.selfTest`            | `text`                                          | UTF-8、SHA-256、`structuredClone` 自检，仅用于一致性测试                        | —                                                        |
 
 - **错误码**：`ENGINE_UNKNOWN_OPERATION`、`ENGINE_INVALID_JSON`、`ENGINE_INVALID_INPUT`（附 `field`）、`ENGINE_CONTENT_INVALID`、`ENGINE_PROJECT_INVALID`（附 `field`）、`ENGINE_OPERATION_FAILED`。宿主按错误码分支与本地化，`message` 只用于日志。
 - **诊断**：`project.compile`、`project.playerConfig`、`project.authoringProgram` 返回统一的 `{ code, severity, message, file, line, column, suggestion }`（行列从 1 开始）。`project.validate` 保留 Web Studio 健康面板的问题结构（`type`、`category`、`file`、`line`、`column`、`code`），两端界面直接对照。编译诊断中由宿主 JSON 解析器给出的原文（如 `ADV_PROJECT_INVALID_JSON`）随 JavaScript 引擎而异，跨端比较以错误码、文件与行列为准；golden 用例因此不含格式损坏的 JSON 项目文件。
@@ -300,12 +305,26 @@ P1 把 Web Studio 中平台无关的逻辑下沉到已有包，Vue Studio 改为
 | `game.json` 创作设置解析                             | `utils/projectRuntimeFiles.ts`                                            | `@advjs/core/project` `parseAuthoringGameSettings`                            |
 | 资源目录根与 `includes` 读取                         | `utils/projectAssets.ts`                                                  | `@advjs/assets` `readAdvAssetManifestSource`                                  |
 | 旧布局章节映射                                       | CLI `packages/advjs/node/runtime/project.ts`                              | `@advjs/core/project` `groupLegacyChapterFiles`、`createLegacyChapterProject` |
+| 项目模板、slug（P2）                                 | `utils/projectTemplate.ts`、`utils/slug.ts`（改为薄封装）                 | `@advjs/core/project` `projectTemplates`、`toProjectSlug`                     |
+| 项目包 manifest、清单与路径安全（P2）                | `composables/useProjectExport.ts`                                         | `@advjs/core/project` `planProjectPackage` 等；Web 导入新增不安全路径拒绝     |
 
-`@advjs/core` 新增 `./project` 子入口，供引擎只引入无界面的项目模块。资源目录写入（`upsertStudioProjectAsset`）与 `@advjs/assets` 的 `planAdvAssetManifestUpsert` 规则不同（角色素材分片、旧索引迁移、替换确认），在 P3 实现原生图片导入时统一，届时两端改用同一计划函数；内容模板、CSV 导入导出随 P2、P3 对应功能下沉。
+`@advjs/core` 新增 `./project` 子入口，供引擎只引入无界面的项目模块。资源目录写入（`upsertStudioProjectAsset`）与 `@advjs/assets` 的 `planAdvAssetManifestUpsert` 规则不同（角色素材分片、旧索引迁移、替换确认），在 P3 实现原生图片导入时统一，届时两端改用同一计划函数；内容模板与 CSV 导入导出随 P3 对应功能下沉。Web 导出仍只收录 `adv/` 下一级目录的二进制文件（受其文件系统接口限制），原生端收录 `adv/` 下全部文件；两端的 manifest 与其余规则相同。
 
 **未知字段与正文的保留规则**（N3）：序列化函数接收当前文件 `source` 时只改写表单管理的字段。值与解析结果相同的字段保持原写法（包括省略状态）；被清空的字段从 frontmatter 删除；新字段按规范顺序追加；其他键、键序与正文原样保留，全部未修改时逐字节返回原文。frontmatter 有改动时整体重新输出 YAML，注释与引号风格随之规范化。场景、地点、音频的描述若原本写在正文中，修改后写回正文；角色只改写变化的 `##` 小节（解析器取同名小节的最后一个），未知小节与标题前的说明保留，新小节按序追加。章节标题与梗概经 `updateChapterMd` 写入章节自身的 frontmatter。Web Studio 编辑保存时传入原文件，因此同样保留未知字段。
 
 已知 Web 差异（不在 P1 修复）：Web Studio 编辑已有正文的章节时，表单中的标题、梗概不会写入文件（`stringifyChapterMd` 的既有行为）；原生端使用 `updateChapterMd`。修复前两端在此处行为不同，列入 P3 章节表单的统一。
+
+### 8. 原生工程与项目存储（P2）
+
+- **工程**：`apps/studio-ios/StudioApp.xcodeproj` 使用 Xcode 文件夹同步，目标为 `StudioApp`（iPhone + iPad）、`StudioAppTests`（Swift Testing）、`StudioAppUITests`（XCUITest）；本地包 `Packages/StudioKit`（无界面）与 `Packages/StudioUI`（品牌值与少量组件）。App 目标默认主线程隔离（`SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`），Swift 6 完整并发检查。工程文件一次生成后提交，此后由 Xcode 维护，不引入 XcodeGen 或 Tuist。
+- **第三方依赖**：仅 ZIPFoundation 0.9.20（MIT，精确版本），用于读写与 Web Studio 相同布局的 `.advpkg.zip`（根目录 `manifest.json`）。系统的 `NSFileCoordinator` `.forUploading` 只能把整个文件夹打成以文件夹为根的压缩包，不满足格式。
+- **存储布局**：项目文件夹直接位于 Documents，在「文件」App 中可见；项目列表索引、「最近删除」（保留 30 天）、草稿位于 Application Support，导入与新建先在临时目录组装，完成后一次移入 Documents。列表可从磁盘重建：Documents 中新增的项目文件夹自动出现，消失的文件夹自动移除；只有原地打开的外部文件夹依赖索引中的书签。项目名即文件夹名，改名即改文件夹名；原地打开的项目沿用原文件夹名，需在「文件」App 中改名。
+- **文件协调与外部修改**：读写都经 `NSFileCoordinator`，保存为临时文件加原子替换。每个打开的项目注册一个 `NSFilePresenter`，其他进程的协调写入在 400 ms 去抖后触发重载；App 回到前台时再比较路径与修改时间，覆盖不经协调的直接写入。App 自己的写入传入同一 presenter，不会被当成外部修改。
+- **草稿与冲突**：编辑中的文本先存为本机草稿（记录开始编辑时磁盘内容的 SHA-256），保存后清除。若磁盘内容已变化且与草稿不同，即为冲突，作者可选「保留我的」（覆盖磁盘）、「使用对方的」（丢弃草稿）或「两者都保留」（草稿另存为「名称 (mine).扩展名」）。
+- **会话与内存**：每个打开的项目一个 `ProjectSession`，拥有独立引擎（独立 `JSVirtualMachine`）。会话不随页面压栈而关闭，App 最多保留 4 个最近使用的会话，超出时关闭最久未用者以释放 JavaScript 堆。
+- **模板与示例**：新建项目使用共享模板（`project.templates`／`project.fromTemplate`，5 个模板加「立即体验」）。3 个赛事示例在构建时打包为 `Samples/<slug>.advpkg.zip`（`pnpm -C apps/studio-ios build:samples`，不提交），安装走与用户导入相同的路径。
+- **语言**：String Catalog 提供英文与简体中文，语言跟随系统的「App 语言」；「我的 → 语言」打开系统设置中本 App 的页面。App 内即时切换未实现，如需实现先征得用户同意。
+- **暂缓到后续阶段**：项目封面（W07，需与资源目录写入一起在 P3 统一）、独立部署包导出（W06 后半，依赖 P4 的播放器包）、项目「复制 ID」等 Web 专有字段（原生以文件夹名标识）。
 
 ## Capacitor 分发与数据迁移
 

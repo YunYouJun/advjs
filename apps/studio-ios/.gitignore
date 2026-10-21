@@ -10,6 +10,9 @@ Packages/StudioKit/Sources/StudioKit/EngineBundle/*
 Packages/StudioKit/Tests/StudioKitTests/Golden/*
 !Packages/StudioKit/Tests/StudioKitTests/Golden/.gitkeep
 
+# Sample packages bundled into the App (pnpm -C apps/studio-ios build:samples)
+StudioApp/Samples/
+
 # Swift Package Manager and Xcode
 .build/
 /build/

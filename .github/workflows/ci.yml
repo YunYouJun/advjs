@@ -74,11 +74,35 @@ jobs:
       - name: Verify Studio Pages output
         run: test -f apps/studio/dist/index.html && test -f apps/studio/dist/sw.js
 
+  # Studio jobs run only for changes that can affect them (scripts/ci/studio-changes.mjs).
+  # launch-required accepts a skipped Studio job only when this job reports so.
+  studio-changes:
+    name: studio-changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      studio: ${{ steps.changes.outputs.studio }}
+      native: ${{ steps.changes.outputs.native }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Detect Studio changes
+        id: changes
+        env:
+          STUDIO_EVENT: ${{ github.event_name }}
+          STUDIO_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          STUDIO_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/ci/studio-changes.mjs
+
   # Studio's own Vite/Vitest config is excluded from the root unit job. Shared
   # content, validation and authoring modules are also checked here through
   # the native Studio engine, so a change cannot pass on one client only.
   studio-unit:
     name: studio-unit (Node LTS)
+    needs: studio-changes
+    if: needs.studio-changes.outputs.studio == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -99,10 +123,14 @@ jobs:
       - name: Test the native Studio engine on Node
         run: pnpm -C apps/studio-ios test:engine
 
-  studio-ios-engine:
-    name: studio-ios-engine (JavaScriptCore)
+  # StudioKit (including golden parity on iOS JavaScriptCore) and the App unit
+  # tests run once, on the iPhone; the iPad runs only its own UI tests.
+  studio-ios:
+    name: studio-ios (JavaScriptCore and App)
+    needs: studio-changes
+    if: needs.studio-changes.outputs.native == 'true'
     runs-on: xcode-27
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -110,27 +138,40 @@ jobs:
         with:
           node-version: 'lts/*'
           cache: pnpm
+      # Simulators boot while dependencies install; xcodebuild waits for them.
+      - name: Start booting the simulators
+        run: node apps/studio-ios/scripts/simulator-destinations.mjs --boot
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Build engine fixture dependencies
         run: pnpm prepare:workspace studio-ios
-      - name: Build the engine and golden cases
-        run: pnpm -C apps/studio-ios build:engine && pnpm -C apps/studio-ios golden
-      - name: Golden parity on macOS JavaScriptCore
-        run: swift test --package-path apps/studio-ios/Packages/StudioKit
-      - name: Golden parity on iPhone and iPad simulators
+      - name: Build the engine, golden cases and sample packages
+        run: pnpm -C apps/studio-ios build:engine && pnpm -C apps/studio-ios golden && pnpm -C apps/studio-ios build:samples
+      - name: StudioKit on iPhone
         working-directory: apps/studio-ios/Packages/StudioKit
-        run: |
-          destinations=$(node ../../scripts/simulator-destinations.mjs)
-          xcodebuild test -scheme StudioKit $destinations -resultBundlePath ../../build/StudioKit.xcresult
+        run: xcodebuild test -scheme StudioKit $(node ../../scripts/simulator-destinations.mjs --only iphone) -resultBundlePath ../../build/StudioKit.xcresult
+      - name: Build the App for testing
+        working-directory: apps/studio-ios
+        run: xcodebuild build-for-testing -project StudioApp.xcodeproj -scheme StudioApp $(node scripts/simulator-destinations.mjs --only iphone) -derivedDataPath build/DerivedData
+      # Unit and UI tests run as separate invocations; combined, the hosted unit
+      # bundle can stall after the UI tests finish.
+      - name: App unit tests on iPhone
+        working-directory: apps/studio-ios
+        run: xcodebuild test-without-building -project StudioApp.xcodeproj -scheme StudioApp $(node scripts/simulator-destinations.mjs --only iphone) -derivedDataPath build/DerivedData -only-testing:StudioAppTests -resultBundlePath build/StudioAppTests.xcresult
+      - name: UI tests on iPhone
+        working-directory: apps/studio-ios
+        run: xcodebuild test-without-building -project StudioApp.xcodeproj -scheme StudioApp $(node scripts/simulator-destinations.mjs --only iphone) -derivedDataPath build/DerivedData -only-testing:StudioAppUITests -resultBundlePath build/UITests-iPhone.xcresult
+      - name: UI tests on iPad
+        working-directory: apps/studio-ios
+        run: xcodebuild test-without-building -project StudioApp.xcodeproj -scheme StudioApp $(node scripts/simulator-destinations.mjs --only ipad) -derivedDataPath build/DerivedData -only-testing:StudioAppUITests/IPadLayoutUITests -resultBundlePath build/UITests-iPad.xcresult
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: studio-ios-engine
+          name: studio-ios
           path: |
             apps/studio-ios/engine/dist/engine.report.json
             apps/studio-ios/engine/dist/golden/summary.json
-            apps/studio-ios/build/StudioKit.xcresult
+            apps/studio-ios/build/*.xcresult
           if-no-files-found: warn
           retention-days: 30
 
@@ -400,8 +441,9 @@ jobs:
       - build
       - editor-pages-build
       - studio-pages-build
+      - studio-changes
       - studio-unit
-      - studio-ios-engine
+      - studio-ios
       - vrm-pages-build
       - unit
       - typecheck
@@ -414,16 +456,10 @@ jobs:
       - launch-journey
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Require every launch check
         env:
           NEEDS_JSON: ${{ toJSON(needs) }}
-        run: |
-          node --input-type=module -e '
-            const jobs = Object.entries(JSON.parse(process.env.NEEDS_JSON));
-            const failed = jobs.filter(([, job]) => job.result !== "success");
-            if (failed.length) {
-              console.error("Required launch checks failed:", failed.map(([name, job]) => `${name}=${job.result}`).join(", "));
-              process.exit(1);
-            }
-            console.log("All required launch checks passed");
-          '
+        run: node scripts/ci/launch-required.mjs

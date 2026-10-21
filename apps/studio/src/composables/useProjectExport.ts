@@ -1,21 +1,18 @@
+import type { ProjectPackageManifest } from '@advjs/core'
 import type { IFileSystem } from '../utils/fs'
-import { audioProjectMediaPath, parseVoiceDesignLibrary, verifyVoiceCandidateBytes } from '@advjs/audio'
-import { compileProject } from '@advjs/core'
+import { verifyVoiceCandidateBytes } from '@advjs/audio'
+import {
+  createProjectPackageManifest,
+  isSafeProjectPackagePath,
+  PROJECT_PACKAGE_MANIFEST_PATH,
+  PROJECT_PACKAGE_VOICE_DESIGN_RE,
+  projectPackageCatalogEntries,
+  readProjectPackageManifest,
+} from '@advjs/core'
 
 const TEXT_FILE_RE = /\.(?:md|json|txt|yaml|yml|css|js|ts|html)$/i
 
-interface ProjectManifest {
-  name: string
-  version: string
-  exportedAt: string
-  stats: {
-    characters: number
-    chapters: number
-    scenes: number
-    audios: number
-    knowledge: number
-  }
-}
+type ProjectManifest = ProjectPackageManifest
 
 /**
  * Export a project as a `.advpkg.zip` file via IFileSystem.
@@ -39,28 +36,8 @@ export async function exportProject(
     throw new Error('No adv/ directory found in project')
   }
 
-  // Count stats
-  let characters = 0
-  let chapters = 0
-  let scenes = 0
-  let audios = 0
-  let knowledge = 0
-
-  for (const { path, content } of allFiles) {
+  for (const { path, content } of allFiles)
     zip.file(path, content)
-
-    // Count by directory
-    if (path.startsWith('adv/characters/'))
-      characters++
-    else if (path.startsWith('adv/chapters/'))
-      chapters++
-    else if (path.startsWith('adv/scenes/'))
-      scenes++
-    else if (path.startsWith('adv/audio/'))
-      audios++
-    else if (path.startsWith('adv/knowledge/'))
-      knowledge++
-  }
 
   // Keep the native format/entry and the reviewed voice library with the project.
   // Private runtime queues, access tokens and temporary preview files are outside
@@ -70,7 +47,7 @@ export async function exportProject(
   if (await fs.exists('authoring/voices/library.json'))
     zip.file('authoring/voices/library.json', await fs.readFile('authoring/voices/library.json'))
   for (const file of await fs.collectAllFiles('authoring/voices/designs').catch(() => [])) {
-    if (/^authoring\/voices\/designs\/[\w.-]+\/[\w.-]+\/[\w-]+\/[\w.-]+\.json$/u.test(file.path) && !file.path.split('/').some(part => ['.', '..', '.git', 'node_modules'].includes(part)))
+    if (PROJECT_PACKAGE_VOICE_DESIGN_RE.test(file.path) && isSafeProjectPackagePath(file.path))
       zip.file(file.path, file.content)
   }
 
@@ -78,40 +55,14 @@ export async function exportProject(
   // original sample/take identities and their bytes in a portable native project.
   if (await fs.exists('adv/assets.json')) {
     const files = Object.fromEntries((await fs.collectAllFiles()).map(file => [file.path, file.content]))
-    const { project } = await compileProject({ files }, { allowEmptyAssetManifest: true })
-    const consents = new Set<string>()
-    function collectConsents(value: unknown) {
-      if (!value || typeof value !== 'object')
-        return
-      for (const [key, child] of Object.entries(value)) {
-        if (key === 'consentRecord' && typeof child === 'string')
-          consents.add(child)
-        else collectConsents(child)
-      }
-    }
-    collectConsents(project.characters)
-    for (const path of ['adv/audio/voice-ledger.json', 'adv/audio/voice-profiles.json']) {
-      if (files[path])
-        collectConsents(JSON.parse(files[path]))
-    }
-    if (files['authoring/voices/library.json'])
-      collectConsents(parseVoiceDesignLibrary(files['authoring/voices/library.json']))
-    for (const path of consents) {
-      if (!/^(?!\/)(?!.*\\)(?!.*(?:^|\/)(?:\.|\.\.|\.git|node_modules)(?:\/|$))[\w./-]+\.(?:txt|md|json)$/u.test(path))
-        throw new Error('VOICE_DESIGN_CONSENT_PATH_INVALID')
+    const catalog = await projectPackageCatalogEntries(files)
+    for (const path of catalog.consents)
       zip.file(path, await fs.readFile(path))
-    }
-    for (const asset of project.assets?.assets ?? []) {
-      if (asset.type !== 'audio' || !asset.path)
-        continue
-      const media = [{ path: asset.path, sha256: asset.sha256, bytes: asset.bytes }, ...Object.values(asset.variants ?? {}).filter(variant => variant.path)]
-      for (const source of media) {
-        const path = audioProjectMediaPath(project.assets!, { ...asset, path: source.path })
-        const blob = await fs.readBlob(path)
-        if (source.sha256)
-          await verifyVoiceCandidateBytes(source as { sha256: string, bytes?: number }, await blob.arrayBuffer())
-        zip.file(path, await blob.arrayBuffer())
-      }
+    for (const source of catalog.media) {
+      const blob = await fs.readBlob(source.path)
+      if (source.sha256)
+        await verifyVoiceCandidateBytes(source as { sha256: string, bytes?: number }, await blob.arrayBuffer())
+      zip.file(source.path, await blob.arrayBuffer())
     }
   }
 
@@ -140,14 +91,9 @@ export async function exportProject(
   catch { /* binary export best-effort */ }
 
   // Generate manifest
-  const manifest: ProjectManifest = {
-    name: projectName,
-    version: '1.0.0',
-    exportedAt: new Date().toISOString(),
-    stats: { characters, chapters, scenes, audios, knowledge },
-  }
+  const manifest = createProjectPackageManifest(projectName, new Date().toISOString(), allFiles.map(file => file.path))
 
-  zip.file('manifest.json', JSON.stringify(manifest, null, 2))
+  zip.file(PROJECT_PACKAGE_MANIFEST_PATH, JSON.stringify(manifest, null, 2))
 
   // Generate zip blob
   return await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' })
@@ -180,18 +126,13 @@ export async function importProject(
   const zip = await JSZip.loadAsync(zipFile)
 
   // Validate manifest
-  const manifestFile = zip.file('manifest.json')
-  if (!manifestFile)
-    throw new Error('Invalid .advpkg: no manifest.json found')
-
-  const manifestText = await manifestFile.async('string')
-  const manifest: ProjectManifest = JSON.parse(manifestText)
-
-  if (!manifest.name || !manifest.version)
-    throw new Error('Invalid manifest: missing name or version')
+  const manifest = readProjectPackageManifest(await zip.file(PROJECT_PACKAGE_MANIFEST_PATH)?.async('string'))
 
   // Extract all files (except manifest.json itself)
-  const entries = Object.entries(zip.files).filter(([name]) => name !== 'manifest.json' && !name.endsWith('/'))
+  const entries = Object.entries(zip.files).filter(([name]) => name !== PROJECT_PACKAGE_MANIFEST_PATH && !name.endsWith('/'))
+  const unsafe = entries.find(([name]) => !isSafeProjectPackagePath(name))
+  if (unsafe)
+    throw new Error(`Invalid .advpkg: unsafe path ${unsafe[0]}`)
 
   for (const [path, zipEntry] of entries) {
     // Ensure parent directories exist
