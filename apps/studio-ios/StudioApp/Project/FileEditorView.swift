@@ -144,7 +144,9 @@ struct ConflictBanner: View {
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
+        // Text scrolls under the banner, so the tint sits on an opaque bar material.
         .background(.orange.opacity(0.12))
+        .background(.bar)
     }
 }
 
