@@ -24,4 +24,5 @@ Scope, acceptance (N1–N16) and phase status live in [the implementation plan](
 
 - `StudioApp.xcodeproj` uses Xcode buildable folders and local Swift packages (`Packages/StudioKit`, `Packages/StudioUI`). Add files by creating them in the folders; do not introduce XcodeGen or Tuist. `spike/` is P0 feasibility code and is not part of the App.
 - Generated inputs are not committed: run `build:engine` (engine bundle in StudioKit) and `build:samples` (sample packages in `StudioApp/Samples`) before building the App.
+- Acceptance screenshots and recordings are not committed either. Capture them as UI-test attachments (`XCTAttachment`, `.keepAlways`) and cite the attachment names in the acceptance report; CI uploads the `.xcresult` bundles as the `studio-ios` artifact.
 - Swift 6 language mode with complete concurrency checking; the App target defaults to main-actor isolation.

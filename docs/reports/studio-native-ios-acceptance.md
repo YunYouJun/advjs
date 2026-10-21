@@ -244,26 +244,101 @@ Golden 用例 335 个（`cases.json` SHA-256 `b19235ae…b3fe1ffff`，`expected.
 
 CI 结果见 P1 合并 PR。
 
+## P2：原生骨架、设计规范与项目管理
+
+分支 `feat/studio-ios-p2`，基于 P1 合并后的 `origin/dev`（`d55f2969`）。模拟器与 P1 相同（`ADV Studio iPhone 18 Pro`、`ADV Studio iPad Pro 11 M5`，iOS 27.0），Xcode 27，Debug 构建。截图是 UI 测试附件（`XCTAttachment`，始终保留），不提交到仓库：本机在 `.xcresult` 中，CI 的 `studio-ios` artifact 上传 `StudioAppUITests.xcresult`（保留 30 天），用 `xcrun xcresulttool export attachments --path <xcresult> --output-path <目录>` 导出。下表「附件」列为附件名。
+
+### 共享层与引擎
+
+项目模板、slug 规则与 `.advpkg.zip` 打包规则从 `apps/studio` 下沉到 `@advjs/core/project`（`templates.ts`、`slug.ts`、`package.ts`）；Web Studio 的 `utils/projectTemplate.ts`、`utils/slug.ts` 改为转出共享实现，`useProjectExport` 改用共享清单与路径规则，并拒绝不安全路径。
+
+| 项目      | 结果                                                                                                                                                                                                         |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 接口      | v1 新增 5 个操作：`project.templates`、`project.fromTemplate`、`project.slug`、`package.plan`、`package.inspect`，共 20 个；只增不改，版本号不变                                                             |
+| 产物      | `engine.js` 728,196 字节（711.1 KiB），预算由 720 KiB 调整为 768 KiB；增长主要来自模板正文（`@advjs/core` 79.2 → 114.5 KiB）                                                                                 |
+| Node 测试 | `test:engine` 17 项通过                                                                                                                                                                                      |
+| Golden    | 354 例，Node 源码与沙箱逐字节一致（`cases.json` `5dc56895…`、`expected.json` `d7baeee2…`、`engine.js` `151bd9e8…`）；变基到最新 `origin/dev` 后重建，三个摘要不变                                            |
+| StudioKit | `swift test`（macOS JavaScriptCore）22 项通过：golden 一致性、引擎桥、内存，以及项目存储与会话（新建、重新发现、改名含仅大小写、最近删除、导出导入往返、Web 包导入、原地打开、外部修改与冲突、项目已不存在） |
+| Web 回归  | `pnpm -C apps/studio exec vitest run` 69 个文件、472 项通过                                                                                                                                                  |
+
+### App 工程
+
+- `apps/studio-ios/StudioApp.xcodeproj`：Xcode 文件夹同步，本地包 `StudioKit`（领域与存储，依赖 ZIPFoundation 0.9.20，锁定版本）与 `StudioUI`（品牌色与组件）；目标 `StudioApp`、`StudioAppTests`、`StudioAppUITests`；Swift 6、完整并发检查、App 目标默认主 actor 隔离，Swift 编译零警告。
+- 资源：App 图标沿用 Capacitor 版 1024 px 图标，强调色为品牌紫；比赛示例由 `pnpm -C apps/studio-ios build:samples` 经共享打包规则生成 `.advpkg.zip`，随 App 分发，安装走与导入相同的路径。
+- String Catalog：159 个键，简体中文全部翻译，术语对照 `apps/studio/src/i18n/locales`（如「工作区」「我的」「项目健康」「最近删除」）。
+- 设计规范：新增 [原生 Studio 设计规范](../about/design/studio-native.md)，根目录与 `apps/studio-ios` 的 AGENTS 增加指向它的规则。
+
+### UI 测试
+
+```bash
+pnpm -C apps/studio-ios build:engine
+pnpm -C apps/studio-ios build:samples
+xcodebuild build-for-testing -project apps/studio-ios/StudioApp.xcodeproj -scheme StudioApp -destination id=<simulator>
+xcodebuild test-without-building -project apps/studio-ios/StudioApp.xcodeproj -scheme StudioApp -destination id=<simulator> -only-testing:StudioAppUITests
+```
+
+单测与 UI 测试分两次 `test-without-building` 运行：同一次运行中 Xcode 27 在单测结束后偶发挂起（本机与 CI 一致处理）。
+
+| 测试                                                                                                      | 设备                    | 结果     | 附件                                                                                                 |
+| --------------------------------------------------------------------------------------------------------- | ----------------------- | -------- | ---------------------------------------------------------------------------------------------------- |
+| `StudioAppTests`：文件夹列表、模板目录、文件类型                                                          | iPhone 18 Pro           | 3 项通过 | —                                                                                                    |
+| `testCreateOpenRenameDeleteAndUndo`：空状态 → 模板新建并打开 → 改名 → 删除后撤销 → 再删除进入「最近删除」 | iPhone 18 Pro           | 通过     | `empty-library`、`project-overview`、`library-with-project`、`deleted-with-undo`、`recently-deleted` |
+| `testEditAndSaveAFile`：逐级浏览文件夹，编辑后保存，草稿标记消失                                          | iPhone 18 Pro           | 通过     | `files-adv-folder`、`editing-with-draft`                                                             |
+| `testFileChangedElsewhereWhileEditingKeepsBothVersions`：见下节                                           | iPhone 18 Pro           | 通过     | `conflict-banner`、`both-versions-kept`                                                              |
+| `testChineseInterfaceAndRegionalFormats`：简体中文界面与相对日期                                          | iPhone 18 Pro           | 通过     | `zh-overview`、`zh-library`、`zh-settings`                                                           |
+| `testLanguageEntryOpensSystemSettings`：「我的 → 语言」打开系统设置中本 App 的页面                        | iPhone 18 Pro           | 通过     | `settings`、`system-settings-for-app`                                                                |
+| `testSwitchingLanguageInSystemSettings`：见「语言切换」                                                   | iPhone 18 Pro           | 通过     | `system-language-*`、`app-after-system-language-*`                                                   |
+| `testFileSizeAndDateFollowTheLocale`：见「语言切换」                                                      | iPhone 18 Pro           | 通过     | `file-info-*`                                                                                        |
+| `testThreeColumnsAndProjectWindows`：⌘N 新建、三栏、上下文菜单「在新窗口中打开」、项目窗口                | iPad Pro 11（M5），横屏 | 通过     | `ipad-three-columns`、`ipad-context-menu`、`ipad-project-window`                                     |
+
+### 语言切换（S04）
+
+- 「我的 → 语言」显示当前语言，点击后经 `UIApplication.openSettingsURLString` 打开系统设置中本 App 的页面；部分模拟器构建停在设置首页，测试此时经「App → ADV.JS Studio」进入。
+- `testSwitchingLanguageInSystemSettings` 不带语言启动参数，按作者的实际操作在系统设置里把本 App 的语言依次切到 English 和简体中文；系统重启 App 后，Tab 名称（Workspace／Me → 工作区／我的）与项目行的相对日期（「Edited …」→「编辑于…」）随之改变。
+- 数字格式：英文与简体中文的小数点、千分位符号相同（CLDR），二者之间看不出差别，因此 `testFileSizeAndDateFollowTheLocale` 另用德国地区格式验证数字跟随区域：同一 1.5 MB 文件在 en_US、zh_CN 显示「1.5 MB」，在 de_DE 显示「1,5 MB」；修改时间分别显示为 `10/22/2026, 12:00 AM`、`2026/10/22 0:00`、`22.10.2026, 0:00`（附件 `file-info-*`）。界面中的日期与数字都经 `FormatStyle` 按当前区域格式化，不拼接字符串。
+- App 内即时切换语言未实现；如需要，先征得用户同意（见设计规格 S04）。
+
+### 外部修改与冲突
+
+- 项目会话以 `NSFilePresenter` 监听项目文件夹，外部修改经 400 ms 去抖后刷新；App 自己的写入经 `CoordinatedFiles` 并传入同一监听者，不被当作外部修改。
+- StudioKit 测试覆盖：协调写入、未经协调的直接写入、App 自身写入不触发冲突、有未保存草稿时外部修改产生冲突，三种处理（保留我的、使用对方的、两者都保留）。
+- UI 测试 `testFileChangedElsewhereWhileEditingKeepsBothVersions`：在 App 中编辑 `adv/world.md` 不保存，测试进程以 `NSFileCoordinator` 原子替换同一文件（等同「文件」App 或 iCloud 的写入）；App 显示冲突横幅，选择「两者都保留」后原文件为外部内容，草稿保存为 `world (mine).md`，文件列表中出现该文件。
+- 「文件」App 中 iCloud Drive 项目的原地打开与安全作用域书签由 StudioKit `openInPlace` 测试覆盖（本机临时目录模拟）；跨设备修改与书签失效恢复列入 N7，在 P7 一并实测。
+
+### iPad 与多窗口
+
+- 三栏 `NavigationSplitView`：项目列表与「最近删除」、项目分区、内容；`Info.plist` 声明多场景，项目行上下文菜单与 ⌥⌘N 在新窗口中打开项目，每个窗口一个项目，窗口间会话互不影响（同一项目共用会话，最多保留 4 个）。
+- 菜单命令：新建项目 ⌘N、在新窗口中打开 ⌥⌘N、导入 ⇧⌘I、从「文件」打开 ⌘O、保存 ⌘S、查找项目 ⌘F，以及系统侧栏切换；UI 测试以硬件键盘 ⌘N 新建项目。试玩 ⌘R 随 P4 播放器加入。
+- 场景状态恢复：`SceneStorage` 保存 iPhone 的所选 Tab 与打开的项目、iPad 的侧栏选择与项目分区，以及项目窗口的分区；UI 测试中上一次运行留下的 Tab 会被恢复（测试因此在启动后先选 Tab）。
+- 恢复时发现的问题与修复：上次留下的项目窗口在项目已删除后被系统恢复，显示「无法打开项目」和无效的「重试」（UI 测试清空数据后复现）。现在项目不存在时会话进入「已不存在」状态，项目窗口自动关闭；若此时没有显示项目列表的窗口，先打开一个。在其他窗口删除或移走项目时同样适用。StudioKit 新增对应测试。
+
+### 与清单的差异
+
+- W06 独立部署包依赖 P4 的播放器打包，移到 P4；`.advpkg.zip` 导出已完成（分享面板与 `fileMover`）。
+- W07 封面经相册选择器写入项目，随 P3 图片导入实现；「复制 ID」对应云端项目 ID，随 P5 云端能力实现。改名、描述、移除已完成。
+- W08 概览目前显示章节、角色、场景、地点、音频、文件 6 项计数；Web 版 12 张内容卡片对应的列表与编辑入口随 P3 内容创作补齐。W09 的问题可跳转到文件，定位到行列随 P3 章节编辑器实现。
+- 快速开始与 3 个比赛示例并入新建项目页（W03），模板「校园恋爱」打开后项目健康显示 4 个错误：模板引用了未附带的角色文件，Web Studio 同样如此，P3 修正模板。
+
 ## N1–N16 状态
 
-| 编号 | 状态   | 备注                                                                                                                         |
-| ---- | ------ | ---------------------------------------------------------------------------------------------------------------------------- |
-| N1   | 未开始 | —                                                                                                                            |
-| N2   | 未开始 | 对照清单已于 2026-10-21 经用户确认锁定。                                                                                     |
-| N3   | 部分   | P1：内容往返保留规则在 Web Studio 与引擎共用；golden 335 例双端一致。待 P3 跨端实操。                                        |
-| N4   | 未开始 | —                                                                                                                            |
-| N5   | 未开始 | —                                                                                                                            |
-| N6   | 未开始 | 播放器探针在模拟器通过，未断网、非实机。                                                                                     |
-| N7   | 未开始 | —                                                                                                                            |
-| N8   | 未开始 | 受登录依赖阻塞。                                                                                                             |
-| N9   | 未开始 | 受 AASA 依赖阻塞。                                                                                                           |
-| N10  | 未开始 | —                                                                                                                            |
-| N11  | 未开始 | —                                                                                                                            |
-| N12  | 不适用 | 用户确认 Capacitor 壳从未上传 App Store Connect，无数据需要迁移。                                                            |
-| N13  | 未开始 | 探针已覆盖路径越界、外部请求、导航限制；正式验收在 P4、P8。                                                                  |
-| N14  | 部分   | P1：Studio 单测 472 项、类型检查、共享包与 CLI 单测通过；E2E 与桌面 Editor 回归待 P8 汇总。                                  |
-| N15  | 部分   | P1：Studio 单测与 Node、JavaScriptCore（macOS、iOS 模拟器）一致性测试进入 CI；Swift 单测、XCUITest、性能回归随后续阶段加入。 |
-| N16  | 未开始 | —                                                                                                                            |
+| 编号 | 状态   | 备注                                                                                                                                                                                                                                      |
+| ---- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| N1   | 未开始 | —                                                                                                                                                                                                                                         |
+| N2   | 部分   | 对照清单已于 2026-10-21 经用户确认锁定。P2：W01–W05、W10、W11、S03、S04、S06、S07、S09–S11 可用；W08 计数、W09 校验与修复及跳转到文件可用，内容卡片入口与行列定位随 P3 编辑器补齐；W06 独立部署包移到 P4，W07 封面与复制 ID 移到 P3、P5。 |
+| N3   | 部分   | P1：内容往返保留规则在 Web Studio 与引擎共用；golden 335 例双端一致。待 P3 跨端实操。                                                                                                                                                     |
+| N4   | 未开始 | —                                                                                                                                                                                                                                         |
+| N5   | 未开始 | —                                                                                                                                                                                                                                         |
+| N6   | 未开始 | 播放器探针在模拟器通过，未断网、非实机。                                                                                                                                                                                                  |
+| N7   | 部分   | P2：文件协调、外部修改刷新与草稿冲突（三种选择）有 StudioKit 测试与模拟器 UI 测试；iCloud Drive 跨设备修改与书签失效恢复待实测。                                                                                                          |
+| N8   | 未开始 | 受登录依赖阻塞。                                                                                                                                                                                                                          |
+| N9   | 未开始 | 受 AASA 依赖阻塞。                                                                                                                                                                                                                        |
+| N10  | 部分   | P2：iPad 三栏、上下文菜单在新窗口打开项目、硬件键盘 ⌘N 有 UI 测试；分屏、台前调度与跨 App 拖放待 P7。                                                                                                                                     |
+| N11  | 未开始 | —                                                                                                                                                                                                                                         |
+| N12  | 不适用 | 用户确认 Capacitor 壳从未上传 App Store Connect，无数据需要迁移。                                                                                                                                                                         |
+| N13  | 未开始 | 探针已覆盖路径越界、外部请求、导航限制；正式验收在 P4、P8。                                                                                                                                                                               |
+| N14  | 部分   | P1：Studio 单测 472 项、类型检查、共享包与 CLI 单测通过；E2E 与桌面 Editor 回归待 P8 汇总。                                                                                                                                               |
+| N15  | 部分   | P1：Studio 单测与 Node、JavaScriptCore 一致性测试进入 CI。P2：CI 增加 App 构建、App 单测与 iPhone、iPad XCUITest；性能回归随 P7 加入。                                                                                                    |
+| N16  | 未开始 | —                                                                                                                                                                                                                                         |
 
 ## 已知问题与待办
 
@@ -272,3 +347,5 @@ CI 结果见 P1 合并 PR。
 - 登录端到端：由用户本人在 `ADVSpike iPhone 18 Pro` 模拟器的系统登录页中登录云乐坊，记录兑换、`signin/custom`、`user/me` 与退出结果（探针只记录状态码与字段是否存在）；P1 起按主计划并行推进。
 - Web Studio 编辑已有正文的章节时不写入表单中的标题与梗概（既有行为），原生端已用 `updateChapterMd`；P3 统一章节表单。
 - 引擎关闭后内存不立即回到基线（见 P1 内存表），P7 以 Instruments 复测。
+- 「校园恋爱」模板引用了未附带的角色文件，新建后项目健康显示 4 个错误（Web Studio 相同），P3 修正模板。
+- UI 测试在 iPad 横屏下用 `XCUIApplication.screenshot()` 得到旋转且被裁切的图像，改用整屏截图。
