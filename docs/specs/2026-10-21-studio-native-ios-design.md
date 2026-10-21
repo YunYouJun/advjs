@@ -38,7 +38,7 @@
 | 市场、作品集、创作者主页、数据分析       | 首版就做。                                                                                                                                                                                                                                                                                                |
 | Apple Team                               | Lan Yang（`QT792GAY4C`），与云乐坊 App、云生 App 同一团队。                                                                                                                                                                                                                                               |
 | Capacitor 构建                           | 从未上传 App Store Connect。无需迁移，N12 不适用。                                                                                                                                                                                                                                                        |
-| 验收设备                                 | 使用 iOS 模拟器验收，不要求实机。主计划 N1 等「实机」条款需按此同步修订（主计划尚未进入本分支）。                                                                                                                                                                                                         |
+| 验收设备                                 | 使用 iOS 模拟器验收，不要求实机。主计划已按此修订（目标、完成规则、体验预算、N1、N16 与报告格式）。                                                                                                                                                                                                       |
 
 ### 工作区与项目
 
@@ -241,7 +241,7 @@
 - **流程**：`ASWebAuthenticationSession`（`.https(host:path:)` 回调，共享浏览器会话）打开 `https://www.yunle.fun/auth/sso`（PKCE S256、256 位 nonce）→ 回调片段 `#ylf_sso=` 校验 nonce 与 issuer → `POST https://api.yunle.fun/sso-ticket`（`exchangeSsoCode`）。兑换时显式发送 `Origin: https://studio.advjs.org`：授权码绑定注册 Origin，`URLSession` 允许设置该头，云生即如此实现。
 - **CloudBase 会话**：`https://yunlefun-8g7ybcxc7345c490.api.tcloudbasegateway.com/auth/v1/signin/custom`（ticket）建立会话，`/auth/v1/token` 刷新，`/auth/v1/user/me` 取资料，`/auth/v1/user/signout` 退出，均带 `x-device-id`。身份断言用 `sso-ticket` 的公钥（GET）验证后才写 Keychain。
 - **实现复用**：P5 把云生的 `YunleIdentity` 抽为共享 Swift Package 后引用，不在 Studio 中复制第二份协议实现。抽取位置（云乐坊组织下的独立仓库或 `www.yunle.fun`）在 P5 与云生维护方确认。
-- **托管文件**：`apps/studio/public/.well-known/apple-app-site-association`（`webcredentials` 与只匹配 `ylf_sso` 片段的 `applinks`，App ID `QT792GAY4C.org.advjs.studio` 与 Debug `QT792GAY4C.org.advjs.studio.dev`）、`apps/studio/public/auth/callback/`（只提示返回 App，清除片段，不兑换授权码）与 Cloudflare Pages `_headers`（AASA 为 `application/json`；回调 `no-store`、`no-referrer`、`noindex`、禁止嵌入）。Service Worker 的导航回落排除这两个路径。
+- **托管文件**：`apps/studio/public/.well-known/apple-app-site-association`（`webcredentials` 与只匹配 `ylf_sso` 片段的 `applinks`，App ID `QT792GAY4C.org.advjs.studio` 与 Debug `QT792GAY4C.org.advjs.studio.dev`）、`apps/studio/public/auth/callback.html`（只提示返回 App，清除片段，不兑换授权码；用 `.html` 文件而非目录索引，避免 Cloudflare Pages 把精确回调地址重定向到带斜线的地址）与 Cloudflare Pages `_headers`（AASA 为 `application/json`；回调 `no-store`、`no-referrer`、`noindex`、禁止嵌入）。Service Worker 的导航回落排除这两个路径。
 - **跨 App 授权**：已装云乐坊 App 时优先拉起它确认（云生已实现），需要 `www.yunle.fun` 的 `/auth/app` 允许名单加入本客户端，列为 P5 可选项。
 - **App Review 4.8**：云乐坊是开发者自有账号体系，属于 4.8 的「仅使用自有账号系统」情形，P8 复核时记录依据。
 

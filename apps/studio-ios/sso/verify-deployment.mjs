@@ -10,9 +10,9 @@ const origin = 'https://studio.advjs.org'
 const publicDir = new URL('../../studio/public/', import.meta.url)
 const paths = [
   ['/.well-known/apple-app-site-association', '.well-known/apple-app-site-association', /^application\/json/],
-  ['/auth/callback', 'auth/callback/index.html', /^text\/html/],
-  ['/auth/callback/clear-fragment.js', 'auth/callback/clear-fragment.js', /(?:text|application)\/javascript/],
-  ['/auth/callback/style.css', 'auth/callback/style.css', /^text\/css/],
+  ['/auth/callback', 'auth/callback.html', /^text\/html/],
+  ['/auth/callback.js', 'auth/callback.js', /(?:text|application)\/javascript/],
+  ['/auth/callback.css', 'auth/callback.css', /^text\/css/],
   ['/favicon.png', 'favicon.png', /^image\/png/],
 ]
 
