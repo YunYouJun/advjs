@@ -1,9 +1,9 @@
 # Studio iPhone／iPad 原生 App 验收报告
 
 - 日期：2026-10-21 创建，随各阶段更新。
-- 状态：P0 进行中。三项可行性已在模拟器完成；功能清单已确认并锁定；登录配置已准备、待部署与审批。用户决定以 iOS 模拟器验收，不要求实机。N1–N16 均未开始，N12 不适用。
+- 状态：P1 完成（共享层下沉、引擎接口 v1、Node 与 JavaScriptCore 双端 golden、Studio 单测进 CI）。P0 三项可行性已在模拟器完成，功能清单已确认并锁定，登录配置已上线、待用户在模拟器中本人登录。用户决定以 iOS 模拟器验收，不要求实机。N3、N14、N15 部分有证据，其余未开始；N12 不适用。
 - 范围：[实施计划](../plans/2026-10-21-studio-native-ios)的验收证据；设计与决策见[设计规格](../specs/2026-10-21-studio-native-ios-design)。
-- 边界：本报告只记录实际运行结果。模拟器数据只用于可行性与趋势，不能替代实机验收。
+- 边界：本报告只记录实际运行结果。验收以 iOS 模拟器为准（用户 2026-10-21 决定），实机差异列为风险。
 
 ## 环境
 
@@ -166,29 +166,104 @@ Studio 使用的 yjs 13.6.32 打包后在 macOS `jsc` 中运行：应用 Node �
 
 来源：[Xcode 27 runner image generally available](https://github.blog/changelog/2026-10-15-xcode-27-runner-image-generally-available)、[iOS 26 adoption grows but still lags slightly behind iOS 18](https://9to5mac.com/2026/06/10/ios-26-adoption-grows-but-still-lags-slightly-behind-ios-18/)。
 
+## P1：共享层下沉与引擎包
+
+分支 `feat/studio-ios-p1`，基于 `origin/dev` `18d03656`，独立工作树，开始时干净；`dev` 检出目录中其他会话的未提交改动未读写。环境同上表，另建本任务专用模拟器 `ADV Studio iPhone 18 Pro`（`387BBFAB…`）与 `ADV Studio iPad Pro 11 M5`（`E0CA58D7…`），均为 iOS 27.0；未使用 P0 会话的 `ADVSpike` 设备。
+
+### Web Studio 回归
+
+| 检查                | 命令                                                                                                      | 结果                                                                                                                   |
+| ------------------- | --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 基线（改动前）      | `pnpm -C apps/studio exec vitest run`                                                                     | 74 个文件、517 项通过                                                                                                  |
+| 改动后              | 同上                                                                                                      | 69 个文件、472 项通过；移出的 5 个内容格式测试文件（45 项）改到 `tests/unit/parser/`，与新增的保留规则测试共 93 项通过 |
+| Studio 类型检查     | `pnpm -C apps/studio exec vue-tsc --noEmit`                                                               | 0 错误                                                                                                                 |
+| 共享包与 CLI        | `pnpm vitest run tests/unit/parser tests/unit/assets tests/unit/runtime tests/unit/cli tests/unit/client` | 93 个文件、584 项通过（先 `pnpm prepare:workspace unit`）                                                              |
+| 资源与音频          | `pnpm vitest run tests/unit/assets tests/unit/audio`                                                      | 60 个文件、605 项通过，含新增的 HTTPS 链接差分测试                                                                     |
+| CI 合约与工作区准备 | `pnpm vitest run tests/unit/tooling/`                                                                     | 23 个文件、180 项通过                                                                                                  |
+
+行为变化（均为修复或收紧，见设计规格架构决策 7）：编辑保存保留未知 frontmatter 字段、未知角色小节与正文；自动修复写入失败的文件不再计入「已修复」；资源音乐来源链接只接受保守 HTTPS 形式（IP、国际化域名、需改写的路径被拒绝）。
+
+### 引擎包
+
+```bash
+pnpm -C apps/studio-ios build:engine
+pnpm -C apps/studio-ios test:engine
+pnpm -C apps/studio-ios golden
+```
+
+| 项目      | 结果                                                                                                                                                                                                                       |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 产物      | `engine.js` 686,669 字节（670.6 KiB，压缩），预算 720 KiB；zod 319.7 KiB、`@advjs/core` 79.2 KiB、js-yaml 52.3 KiB                                                                                                         |
+| 闭包检查  | 无 Node、Vue、Pixi 等模块；未压缩产物经 ESLint `no-undef` 检查，除登记的不可达引用外无 `URL`、`fetch`、定时器、DOM 引用。首轮检查发现资源目录音乐链接校验的 `new URL()` 在 JavaScriptCore 中可达，已改为纯 JavaScript 实现 |
+| 接口      | v1，15 个操作，6 个稳定错误码；`engine.info` 握手                                                                                                                                                                          |
+| Node 测试 | `test:engine` 14 项通过：闭包、体积、沙箱一致性、契约、错误码、往返保留、索引、校验与修复、草稿诊断定位、链接规范化、旧布局映射                                                                                            |
+
+Golden 用例 335 个（`cases.json` SHA-256 `b19235ae…b3fe1ffff`，`expected.json` SHA-256 `68382d75…b75df8`，`engine.js` SHA-256 `af0c9626…31143e32`）：
+
+| 组别                             | 用例 | 内容                                                                                                |
+| -------------------------------- | ---- | --------------------------------------------------------------------------------------------------- |
+| 项目编译                         | 8    | golden-project、diagnostics valid／broken、Flow demo、仓鼠模块配置、仓鼠与 starter 旧布局、往返样例 |
+| 索引、校验、创作编译             | 7    | golden-project 与往返样例；含未保存草稿的诊断定位                                                   |
+| 修复、补丁、播放器配置、资源目录 | 7    | 往返样例与仓鼠                                                                                      |
+| 旧布局映射、章节 AST             | 21   | 仓鼠与 starter 全部 `public/md/chapters/**`                                                         |
+| 内容解析与序列化                 | 274  | 70 个文件：解析、无源序列化、带源未修改（须逐字节等于原文）、带源修改后（须保留全部原有键与正文）   |
+| 宿主 API                         | 6    | UTF-8、SHA-256、`structuredClone`：空串、ASCII、CJK、emoji、孤立代理项、7 万字                      |
+| 错误                             | 12   | 未知操作、原型链操作名、非法 JSON、非对象、缺字段、类型错误、内容与 YAML 错误、项目格式与设置错误   |
+
+往返样例 `apps/studio-ios/engine/fixtures/round-trip` 覆盖未知 frontmatter 字段、未知角色小节与标题前说明、正文中的描述、ID、两种立绘、关系（含失效目标）、资源 `includes` 分片和带外部链接的音乐元数据。
+
+一致性结果：
+
+| 比较                                                                   | 结果                                        |
+| ---------------------------------------------------------------------- | ------------------------------------------- |
+| Node（TypeScript 源码）vs Node 沙箱（压缩产物，仅 ECMAScript 与 Intl） | 335／335 逐字节一致                         |
+| Node vs macOS JavaScriptCore（`swift test`）                           | 335／335 逐字节一致，StudioKit 8 项测试通过 |
+| Node vs iOS 27 模拟器 JavaScriptCore，iPhone 18 Pro                    | 335／335 逐字节一致，8 项通过               |
+| Node vs iOS 27 模拟器 JavaScriptCore，iPad Pro 11（M5）                | 335／335 逐字节一致，8 项通过               |
+
+内存（`EngineMemoryTests` 单独运行，每轮新建 `EngineBridge` → 运行全部 golden 用例 → 关闭，单位 MB，进程 `phys_footprint`）：
+
+| 设备              | 基线 | 第 1 轮 加载／运行／关闭 | 第 2 轮 关闭 | 第 3 轮 关闭 | 第 4 轮 关闭 | 第 5 轮 关闭 |
+| ----------------- | ---- | ------------------------ | ------------ | ------------ | ------------ | ------------ |
+| iPhone 18 Pro     | 27.7 | 47.3／117.2／113.4       | 99.2         | 96.3         | 99.6         | 61.7         |
+| iPad Pro 11（M5） | 27.5 | 47.5／102.1／100.0       | 92.3         | 106.3        | 81.9         | 78.3         |
+
+按项目独立虚拟机后不再逐轮累积（P0 为单个上下文中持续上涨且不回落）；关闭后不立即回到基线，由 JavaScriptCore 自行归还。复测加 `malloc_zone_pressure_relief` 无可测改善（第 5 轮关闭 99.3／94.0 MB），未采用。golden 负载远重于单个项目的日常操作，P7 以 Instruments 复测。
+
+### CI
+
+`.github/workflows/ci.yml` 新增并纳入 `launch-required`：
+
+- `studio-unit`（Ubuntu）：`pnpm prepare:workspace studio-ios` → Studio 单测 → 构建引擎 → `test:engine`。
+- `studio-ios-engine`（`xcode-27` runner）：构建引擎与 golden → `swift test`（macOS JavaScriptCore）→ `xcodebuild test`（脚本选出的 iPhone 与 iPad 模拟器），上传引擎报告、golden 摘要与 `.xcresult`。
+
+CI 结果见 P1 合并 PR。
+
 ## N1–N16 状态
 
-| 编号 | 状态   | 备注                                                              |
-| ---- | ------ | ----------------------------------------------------------------- |
-| N1   | 未开始 | —                                                                 |
-| N2   | 未开始 | 对照清单已于 2026-10-21 经用户确认锁定。                          |
-| N3   | 未开始 | 引擎一致性基础已在模拟器验证。                                    |
-| N4   | 未开始 | —                                                                 |
-| N5   | 未开始 | —                                                                 |
-| N6   | 未开始 | 播放器探针在模拟器通过，未断网、非实机。                          |
-| N7   | 未开始 | —                                                                 |
-| N8   | 未开始 | 受登录依赖阻塞。                                                  |
-| N9   | 未开始 | 受 AASA 依赖阻塞。                                                |
-| N10  | 未开始 | —                                                                 |
-| N11  | 未开始 | —                                                                 |
-| N12  | 不适用 | 用户确认 Capacitor 壳从未上传 App Store Connect，无数据需要迁移。 |
-| N13  | 未开始 | 探针已覆盖路径越界、外部请求、导航限制；正式验收在 P4、P8。       |
-| N14  | 未开始 | —                                                                 |
-| N15  | 未开始 | —                                                                 |
-| N16  | 未开始 | —                                                                 |
+| 编号 | 状态   | 备注                                                                                                                         |
+| ---- | ------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| N1   | 未开始 | —                                                                                                                            |
+| N2   | 未开始 | 对照清单已于 2026-10-21 经用户确认锁定。                                                                                     |
+| N3   | 部分   | P1：内容往返保留规则在 Web Studio 与引擎共用；golden 335 例双端一致。待 P3 跨端实操。                                        |
+| N4   | 未开始 | —                                                                                                                            |
+| N5   | 未开始 | —                                                                                                                            |
+| N6   | 未开始 | 播放器探针在模拟器通过，未断网、非实机。                                                                                     |
+| N7   | 未开始 | —                                                                                                                            |
+| N8   | 未开始 | 受登录依赖阻塞。                                                                                                             |
+| N9   | 未开始 | 受 AASA 依赖阻塞。                                                                                                           |
+| N10  | 未开始 | —                                                                                                                            |
+| N11  | 未开始 | —                                                                                                                            |
+| N12  | 不适用 | 用户确认 Capacitor 壳从未上传 App Store Connect，无数据需要迁移。                                                            |
+| N13  | 未开始 | 探针已覆盖路径越界、外部请求、导航限制；正式验收在 P4、P8。                                                                  |
+| N14  | 部分   | P1：Studio 单测 472 项、类型检查、共享包与 CLI 单测通过；E2E 与桌面 Editor 回归待 P8 汇总。                                  |
+| N15  | 部分   | P1：Studio 单测与 Node、JavaScriptCore（macOS、iOS 模拟器）一致性测试进入 CI；Swift 单测、XCUITest、性能回归随后续阶段加入。 |
+| N16  | 未开始 | —                                                                                                                            |
 
 ## 已知问题与待办
 
 - 安装 iOS 26 模拟器运行时，在最低版本上运行同一探针。
-- 上线登录配置：发布 Studio 托管文件、合入 Provider 修复、提交 Registry 草稿与生产审批；上线后在模拟器中走通登录。
-- 登录在模拟器走通后结束 P0，进入 P1。
+- 登录配置已上线：Studio 托管文件（[YunYouJun/advjs#77](https://github.com/YunYouJun/advjs/pull/77)、[YunYouJun/advjs#78](https://github.com/YunYouJun/advjs/pull/78)），Provider 修复与 Registry 发布（[YunLeFun/www.yunle.fun#134](https://github.com/YunLeFun/www.yunle.fun/pull/134) 至 [#136](https://github.com/YunLeFun/www.yunle.fun/pull/136)）。
+- 登录端到端：等待用户在模拟器中本人登录（P0 会话跟进）；P1 起按主计划并行推进。
+- Web Studio 编辑已有正文的章节时不写入表单中的标题与梗概（既有行为），原生端已用 `updateChapterMd`；P3 统一章节表单。
+- 引擎关闭后内存不立即回到基线（见 P1 内存表），P7 以 Instruments 复测。

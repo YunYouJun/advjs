@@ -2,7 +2,7 @@
 
 日期：2026-10-21。
 
-状态：P0 进行中（2026-10-21）。本文为计划，不代表任何阶段已完成；验收证据记录于 `docs/reports/studio-native-ios-acceptance.md`（由 P0 创建）。
+状态：P1 完成（2026-10-21）；P0 仍有登录端到端一项，待用户在模拟器中本人登录。本文为计划，勾选项以验收证据为准，证据记录于 `docs/reports/studio-native-ios-acceptance.md`。
 
 执行交接：[执行提示词](./2026-10-21-studio-native-ios-handoff)。
 
@@ -107,12 +107,12 @@ SwiftUI 界面（全部作者界面）
 
 ### P1：共享层下沉与引擎包
 
-- [ ] 将内容解析／序列化、项目校验、资源目录规范化等平台无关逻辑从 `apps/studio/src/utils/` 下沉到共享包；Vue Studio 改为引用共享实现，相关单测与 E2E 不回退。
-- [ ] 建立 `apps/studio-ios/engine`：版本化 JSON 接口、错误归一、结构化诊断（文件／行／列），以及构建产物大小和依赖闭包检查（不含 Vue、DOM、Node 模块）。
-- [ ] 建立 Node 与 JavaScriptCore 双端 golden 测试，覆盖未知 frontmatter 字段、正文、ID、立绘、关系、资源 `includes` 的读写往返。
-- [ ] 将 Studio 单测纳入 CI（或新增独立 job），避免共享层修改只在原生侧验证。
+- [x] 将内容解析／序列化、项目校验、资源目录规范化等平台无关逻辑从 `apps/studio/src/utils/` 下沉到共享包；Vue Studio 改为引用共享实现，相关单测与 E2E 不回退。下沉清单与保留规则见设计规格架构决策 7；资源目录写入、内容模板与 CSV 随 P2、P3 对应功能下沉。
+- [x] 建立 `apps/studio-ios/engine`：版本化 JSON 接口、错误归一、结构化诊断（文件／行／列），以及构建产物大小和依赖闭包检查（不含 Vue、DOM、Node 模块）。
+- [x] 建立 Node 与 JavaScriptCore 双端 golden 测试，覆盖未知 frontmatter 字段、正文、ID、立绘、关系、资源 `includes` 的读写往返。
+- [x] 将 Studio 单测纳入 CI（或新增独立 job），避免共享层修改只在原生侧验证。
 
-交付：引擎包、双端一致性测试、Vue Studio 回归记录。
+交付：引擎包、双端一致性测试、Vue Studio 回归记录（见验收报告「P1」）。
 
 ### P2：原生骨架、设计规范与项目管理
 
@@ -229,7 +229,17 @@ pnpm typecheck
 pnpm docs:check
 ```
 
-原生侧预计提供 `pnpm -C apps/studio-ios build:engine`、`build:player`、`test:engine`，以及基于 `xcodebuild test` 的单测、UI 测试和性能测试入口，名称以实现为准。
+原生侧已提供（P1）：
+
+```bash
+pnpm prepare:workspace studio-ios
+pnpm -C apps/studio-ios build:engine
+pnpm -C apps/studio-ios test:engine
+pnpm -C apps/studio-ios golden
+swift test --package-path apps/studio-ios/Packages/StudioKit
+```
+
+iOS 模拟器上的 JavaScriptCore 一致性测试在 `apps/studio-ios/Packages/StudioKit` 中运行 `xcodebuild test -scheme StudioKit`，目标设备由 `node apps/studio-ios/scripts/simulator-destinations.mjs` 选出。`build:player` 与 App 的单测、UI 测试、性能测试入口由 P2、P4 补齐，名称以实现为准。
 
 验收报告写入 `docs/reports/studio-native-ios-acceptance.md`，逐项记录：环境（Xcode、系统版本、模拟器型号）、构建类型、fixture、命令与结果、截图／录屏／Instruments 文件、N1–N16 状态、已知问题和对应提交。
 
