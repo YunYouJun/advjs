@@ -1,7 +1,7 @@
 # Studio iPhone／iPad 原生 App 验收报告
 
 - 日期：2026-10-21 创建，随各阶段更新。
-- 状态：P0 进行中。三项可行性已在模拟器完成；功能清单已确认（两项建议待用户表态）；登录配置已准备、待部署与审批。用户决定以 iOS 模拟器验收，不要求实机。N1–N16 均未开始，N12 不适用。
+- 状态：P0 进行中。三项可行性已在模拟器完成；功能清单已确认并锁定；登录配置已准备、待部署与审批。用户决定以 iOS 模拟器验收，不要求实机。N1–N16 均未开始，N12 不适用。
 - 范围：[实施计划](../plans/2026-10-21-studio-native-ios)的验收证据；设计与决策见[设计规格](../specs/2026-10-21-studio-native-ios-design)。
 - 边界：本报告只记录实际运行结果。模拟器数据只用于可行性与趋势，不能替代实机验收。
 
@@ -162,7 +162,7 @@ Studio 使用的 yjs 13.6.32 打包后在 macOS `jsc` 中运行：应用 Node �
 | Swift 配置     | 探针以 Swift 6、`SWIFT_STRICT_CONCURRENCY = complete`、部署目标 iOS 26.0 构建，零警告。                             |
 | CI runner      | GitHub 2026-10-15 宣布 `xcode-27` runner 镜像 GA（Apple Silicon，macOS 27）；`macos-26` 镜像只有 Xcode 26.5／26.6。 |
 | 系统版本分布   | Apple 2026 年 6 月数据：iOS 26 占全部兼容 iPhone 79%、近 4 年机型 86%；iPadOS 26 为 68%、79%。                      |
-| Capacitor 分发 | 仓库无 `DEVELOPMENT_TEAM`，版本 1.0（1），发布清单未执行；App Store Connect 待用户核实。                            |
+| Capacitor 分发 | 仓库无 `DEVELOPMENT_TEAM`，版本 1.0（1），发布清单未执行；用户确认从未上传 App Store Connect。                      |
 
 来源：[Xcode 27 runner image generally available](https://github.blog/changelog/2026-10-15-xcode-27-runner-image-generally-available)、[iOS 26 adoption grows but still lags slightly behind iOS 18](https://9to5mac.com/2026/06/10/ios-26-adoption-grows-but-still-lags-slightly-behind-ios-18/)。
 
@@ -171,7 +171,7 @@ Studio 使用的 yjs 13.6.32 打包后在 macOS `jsc` 中运行：应用 Node �
 | 编号 | 状态   | 备注                                                              |
 | ---- | ------ | ----------------------------------------------------------------- |
 | N1   | 未开始 | —                                                                 |
-| N2   | 未开始 | 对照清单已起草，待用户确认后锁定。                                |
+| N2   | 未开始 | 对照清单已于 2026-10-21 经用户确认锁定。                          |
 | N3   | 未开始 | 引擎一致性基础已在模拟器验证。                                    |
 | N4   | 未开始 | —                                                                 |
 | N5   | 未开始 | —                                                                 |
@@ -191,4 +191,4 @@ Studio 使用的 yjs 13.6.32 打包后在 macOS `jsc` 中运行：应用 Node �
 
 - 安装 iOS 26 模拟器运行时，在最低版本上运行同一探针。
 - 上线登录配置：发布 Studio 托管文件、合入 Provider 修复、提交 Registry 草稿与生产审批；上线后在模拟器中走通登录。
-- 用户对「云端项目编辑方式」与「遥测」两项表态后锁定功能清单，进入 P1。
+- 登录在模拟器走通后结束 P0，进入 P1。
