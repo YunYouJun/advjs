@@ -14,23 +14,26 @@ const root = resolve(import.meta.dirname, '../../..')
 describe('workspace preparation profiles', () => {
   it('keeps every clean-runner prerequisite in one explicit contract', () => {
     expect(WORKSPACE_PREPARATION_PROFILES).toEqual({
-      editor: [
+      'editor': [
         ['pnpm', ['build']],
         ['pnpm', ['build:plugins']],
         ['pnpm', ['-C', 'editor/core', 'exec', 'nuxt', 'prepare']],
       ],
-      launch: [
+      'launch': [
         ['pnpm', ['build']],
         ['pnpm', ['build:plugins']],
         ['pnpm', ['-C', 'editor/core', 'build']],
       ],
-      lint: [
+      'lint': [
         ['pnpm', ['unocss:build']],
       ],
-      studio: [
+      'studio': [
         ['pnpm', ['-r', '--filter', '@advjs/studio^...', 'run', 'build']],
       ],
-      unit: [
+      'studio-ios': [
+        ['pnpm', ['-r', '--filter', '@advjs/studio^...', '--filter', 'advjs...', 'run', 'build']],
+      ],
+      'unit': [
         ['pnpm', ['build']],
         ['pnpm', ['-C', 'editor/core', 'exec', 'nuxt', 'prepare']],
       ],
