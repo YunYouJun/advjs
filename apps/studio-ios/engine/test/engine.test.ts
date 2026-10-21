@@ -1,8 +1,9 @@
 import type { GoldenCase } from '../golden/cases'
 import { readFile } from 'node:fs/promises'
-import { resolve } from 'node:path'
+import { relative, resolve, sep } from 'node:path'
 import * as yaml from 'js-yaml'
 import { beforeAll, describe, expect, it } from 'vitest'
+import { affectsNativeStudio } from '../../../../scripts/ci/studio-changes.mjs'
 import { buildEngine, findForbiddenGlobals } from '../build'
 import { createGoldenCases, runGoldenCases } from '../golden/cases'
 import { loadEngineSandbox } from '../golden/sandbox'
@@ -61,6 +62,15 @@ describe('engine bundle', () => {
   it('stays within the size budget', async () => {
     const engine = await buildEngine()
     expect(engine.bytes).toBeLessThanOrEqual(ENGINE_SIZE_BUDGET_BYTES)
+  })
+
+  it('runs the native Studio CI job for every workspace source it bundles', async () => {
+    const { metafile } = await buildEngine()
+    const sources = Object.keys(metafile.inputs)
+      .filter(path => !path.includes('node_modules/'))
+      .map(path => relative(repoRoot, resolve(path)).split(sep).join('/'))
+    expect(sources.length).toBeGreaterThan(0)
+    expect(sources.filter(path => !affectsNativeStudio(path))).toEqual([])
   })
 
   it('returns byte-identical responses in a JavaScriptCore-like sandbox', async () => {
