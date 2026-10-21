@@ -1,6 +1,7 @@
 import type { AdvBaseScene } from '@advjs/types'
-import * as yaml from 'js-yaml'
-import { dumpYamlFrontmatter, parseFrontmatterAndBody } from './mdFrontmatter'
+import type { ContentStringifyOptions } from './frontmatter'
+import { updateFrontmatterDocument } from './document'
+import { dumpYamlFrontmatter, loadFrontmatterObject, parseFrontmatterAndBody, withoutUndefined } from './frontmatter'
 
 /**
  * Scene frontmatter fields (includes `src` from AdvSceneImage)
@@ -18,7 +19,7 @@ const SCENE_FRONTMATTER_KEYS: string[] = [
 ]
 
 /**
- * Extended scene data for Studio editing
+ * Editable scene data (`adv/scenes/*.md`).
  */
 export interface SceneFormData extends AdvBaseScene {
   /** Stable ID in adv/assets.json. */
@@ -35,13 +36,12 @@ export interface SceneFormData extends AdvBaseScene {
  */
 export function parseSceneMd(content: string): SceneFormData {
   const { frontmatter, body } = parseFrontmatterAndBody(content)
-
-  const fm = (frontmatter ? yaml.load(frontmatter) : {}) as Record<string, any>
+  const fm = loadFrontmatterObject(frontmatter)
 
   if (!fm.id || typeof fm.id !== 'string')
     throw new Error('Scene .md must have a string `id` in frontmatter')
 
-  const scene: SceneFormData = {
+  return withoutUndefined<SceneFormData>({
     id: fm.id,
     name: fm.name || fm.id,
     description: fm.description || body.trim() || undefined,
@@ -52,17 +52,25 @@ export function parseSceneMd(content: string): SceneFormData {
     src: fm.src,
     tags: fm.tags,
     linkedLocation: fm.linkedLocation,
-  }
-
-  return Object.fromEntries(
-    Object.entries(scene).filter(([_, v]) => v !== undefined),
-  ) as SceneFormData
+  })
 }
 
 /**
  * SceneFormData → .md string
+ *
+ * With `options.source`, unknown frontmatter keys and the body are kept.
  */
-export function stringifySceneMd(scene: SceneFormData): string {
+export function stringifySceneMd(scene: SceneFormData, options: ContentStringifyOptions = {}): string {
+  if (options.source !== undefined) {
+    const updated = updateFrontmatterDocument({
+      keys: [...SCENE_FRONTMATTER_KEYS, 'tags'],
+      parse: parseSceneMd,
+      bodyField: 'description',
+    }, options.source, scene)
+    if (updated !== undefined)
+      return updated
+  }
+
   const fm: Record<string, any> = {}
   for (const key of SCENE_FRONTMATTER_KEYS) {
     const value = (scene as any)[key]
@@ -75,7 +83,5 @@ export function stringifySceneMd(scene: SceneFormData): string {
     fm.tags = scene.tags
   }
 
-  const yamlStr = dumpYamlFrontmatter(fm)
-
-  return `---\n${yamlStr}\n---\n`
+  return `---\n${dumpYamlFrontmatter(fm)}\n---\n`
 }

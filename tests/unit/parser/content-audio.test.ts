@@ -1,5 +1,5 @@
+import { parseAudioMd, stringifyAudioMd } from '@advjs/parser'
 import { describe, expect, it } from 'vitest'
-import { parseAudioMd, stringifyAudioMd } from '../utils/audioMd'
 
 describe('parseAudioMd', () => {
   it('parses basic audio frontmatter', () => {

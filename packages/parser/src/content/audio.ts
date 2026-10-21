@@ -1,6 +1,7 @@
 import type { AdvMusic } from '@advjs/types'
-import * as yaml from 'js-yaml'
-import { dumpYamlFrontmatter, parseFrontmatterAndBody } from './mdFrontmatter'
+import type { ContentStringifyOptions } from './frontmatter'
+import { updateFrontmatterDocument } from './document'
+import { dumpYamlFrontmatter, loadFrontmatterObject, parseFrontmatterAndBody, withoutUndefined } from './frontmatter'
 
 /**
  * Audio metadata frontmatter keys
@@ -17,7 +18,7 @@ const AUDIO_FRONTMATTER_KEYS: (keyof AdvMusic)[] = [
 ]
 
 /**
- * Extended audio data for Studio editing
+ * Editable audio metadata (`adv/audio/*.md`).
  */
 export interface AudioFormData extends AdvMusic {
   /** File path within the project (e.g. adv/audio/bgm.mp3) */
@@ -29,13 +30,12 @@ export interface AudioFormData extends AdvMusic {
  */
 export function parseAudioMd(content: string): AudioFormData {
   const { frontmatter, body } = parseFrontmatterAndBody(content)
-
-  const fm = (frontmatter ? yaml.load(frontmatter) : {}) as Record<string, any>
+  const fm = loadFrontmatterObject(frontmatter)
 
   if (!fm.name || typeof fm.name !== 'string')
     throw new Error('Audio .md must have a string `name` in frontmatter')
 
-  const audio: AudioFormData = {
+  return withoutUndefined<AudioFormData>({
     name: fm.name,
     assetId: fm.assetId,
     description: fm.description || body.trim() || undefined,
@@ -44,17 +44,25 @@ export function parseAudioMd(content: string): AudioFormData {
     tags: fm.tags,
     linkedScenes: fm.linkedScenes,
     linkedChapters: fm.linkedChapters,
-  }
-
-  return Object.fromEntries(
-    Object.entries(audio).filter(([_, v]) => v !== undefined),
-  ) as AudioFormData
+  })
 }
 
 /**
  * AudioFormData → .md string
+ *
+ * With `options.source`, unknown frontmatter keys and the body are kept.
  */
-export function stringifyAudioMd(audio: AudioFormData): string {
+export function stringifyAudioMd(audio: AudioFormData, options: ContentStringifyOptions = {}): string {
+  if (options.source !== undefined) {
+    const updated = updateFrontmatterDocument({
+      keys: AUDIO_FRONTMATTER_KEYS,
+      parse: parseAudioMd,
+      bodyField: 'description',
+    }, options.source, audio)
+    if (updated !== undefined)
+      return updated
+  }
+
   const fm: Record<string, any> = {}
   for (const key of AUDIO_FRONTMATTER_KEYS) {
     const value = (audio as any)[key]
@@ -65,6 +73,5 @@ export function stringifyAudioMd(audio: AudioFormData): string {
     }
   }
 
-  const yamlStr = dumpYamlFrontmatter(fm)
-  return `---\n${yamlStr}\n---\n`
+  return `---\n${dumpYamlFrontmatter(fm)}\n---\n`
 }

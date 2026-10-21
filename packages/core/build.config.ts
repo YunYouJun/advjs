@@ -6,6 +6,7 @@ export default defineBuildConfig({
     'src/index',
     { input: 'src/runtime/headless', name: 'runtime' },
     { input: 'src/compiler/index', name: 'compiler' },
+    { input: 'src/project/index', name: 'project' },
   ],
   clean: true,
   externals: [

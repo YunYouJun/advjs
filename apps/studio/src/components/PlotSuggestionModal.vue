@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ChapterFormData } from '../utils/chapterMd'
+import type { ChapterFormData } from '@advjs/parser'
 import { toManagedChapterPath } from '@advjs/agent'
 import {
   IonButton,

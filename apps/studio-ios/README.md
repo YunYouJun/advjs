@@ -2,49 +2,58 @@
 
 SwiftUI 原生 Studio 的工作目录。目标、范围与验收见[实施计划](../../docs/plans/2026-10-21-studio-native-ios.md)，设计决策与功能清单见[设计规格](../../docs/specs/2026-10-21-studio-native-ios-design.md)，实测数据见[验收报告](../../docs/reports/studio-native-ios-acceptance.md)。
 
-当前只有 P0 可行性探针（`spike/`）。探针代码不是产品代码：P1 起的引擎包、播放器与 App 工程按计划中的目录结构新建，不从 `spike/` 演化。
+## 目录
 
-## 探针
+| 目录                 | 用途                                                                                                                                          |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `engine/`            | JavaScriptCore 引擎：版本化 JSON 接口（`src/`）、打包与闭包检查（`build.ts`）、golden 用例（`golden/`、`fixtures/`）与 Node 测试（`test/`）。 |
+| `Packages/StudioKit` | 无界面 Swift 包：`EngineBridge`（每个项目独立的 `JSVirtualMachine`）、诊断工具；Swift Testing 在 macOS 与 iOS 模拟器上跑 golden 一致性。      |
+| `scripts/`           | CI 与本机辅助脚本，例如为 `xcodebuild` 选出一台 iPhone 与一台 iPad 模拟器。                                                                   |
+| `sso/`               | 云乐坊 SSO 原生客户端 `advjs-studio-ios` 的声明与生产 Registry 候选快照（经 `www.yunle.fun` 审批流程发布）。                                  |
+| `spike/`             | P0 可行性探针，不是产品代码，不随产品工程演化。                                                                                               |
 
-| 目录              | 用途                                                                                                         |
-| ----------------- | ------------------------------------------------------------------------------------------------------------ |
-| `spike/engine/`   | 把 parser、core compiler、内容序列化与资源目录打成 JavaScriptCore 单文件；生成 golden 用例。                 |
-| `spike/player/`   | 独立播放器页面（Vue + `@advjs/client`），由 `WKURLSchemeHandler` 离线加载。                                  |
-| `spike/collab/`   | Yjs 在 JavaScriptCore 与 Node 之间的更新互通。                                                               |
-| `spike/fixtures/` | 播放器离线场景用的项目：立绘、背景、BGM、选择支、`star-map` 插件。                                           |
-| `spike/ios/`      | SwiftUI 探针 App：引擎一致性、播放器场景、登录会话。                                                         |
-| `spike/evidence/` | 验收报告引用的模拟器截图。                                                                                   |
-| `sso/`            | 云乐坊 SSO 原生客户端 `advjs-studio-ios` 的声明与生产 Registry 候选快照（经 `www.yunle.fun` 审批流程发布）。 |
+引擎只调用共享包中的实现（`@advjs/parser` 内容文档、`@advjs/core/project`、`@advjs/assets`），不维护第二份格式逻辑。共享层清单见设计规格「架构决策 7」。
 
 ## 运行
 
-以下命令从仓库根目录执行。先生成引擎与播放器产物（写入已忽略的 `spike/out/`）：
+以下命令从仓库根目录执行。干净检出时先构建引擎 golden 用例依赖的包（演示项目的模块配置会导入已构建的 `advjs`）：
 
 ```bash
-pnpm exec tsx apps/studio-ios/spike/engine/build.ts
-pnpm exec tsx apps/studio-ios/spike/engine/build.ts --minify
-pnpm exec tsx apps/studio-ios/spike/engine/golden.ts
-pnpm -C packages/unocss build
+pnpm prepare:workspace studio-ios
 ```
+
+构建引擎（压缩、闭包与全局检查、体积预算），并复制到 StudioKit 资源：
 
 ```bash
-cd apps/studio-ios/spike/player && ../../../../node_modules/.bin/vite build
+pnpm -C apps/studio-ios build:engine
 ```
 
-再生成 Xcode 工程并运行一致性测试（探针用 XcodeGen；正式工程不使用）：
+Node 端测试：打包产物在只有 ECMAScript 与 Intl 的沙箱中运行全部 golden 用例，并与 TypeScript 源码逐字节比较：
 
 ```bash
-cd apps/studio-ios/spike/ios && xcodegen generate
+pnpm -C apps/studio-ios test:engine
 ```
+
+生成 JavaScriptCore 端测试用的 golden 文件（写入 `engine/dist/golden/` 与 StudioKit 测试资源）：
 
 ```bash
-xcodebuild test -project apps/studio-ios/spike/ios/StudioSpike.xcodeproj -scheme StudioSpike -destination 'platform=iOS Simulator,name=iPhone 18 Pro'
+pnpm -C apps/studio-ios golden
 ```
 
-App 启动参数：`-autorunEngine` 运行 golden 用例并写入 `Documents/engine-spike-engine.min.js.json`；`-autorunPlayer` 运行离线试玩场景并写入 `Documents/player-spike-report.json`；`-autorunSignIn`、`-autorunSignInNative`、`-autorunSignInScheme` 启动三种登录会话；`-autorunSignInNative` 使用 `advjs-studio-ios`，需 Registry 发布且 `studio.advjs.org` 的 AASA 上线后才能走通。
+macOS 上的 JavaScriptCore：
 
-## 验证
+```bash
+swift test --package-path apps/studio-ios/Packages/StudioKit
+```
 
-- 一致性测试通过，即 160 个用例在 JavaScriptCore 与 Node 中逐字节一致。
-- 播放器报告中 `status` 为 `passed`，`restoreMatchesSave` 为 `true`，`refusedRequests` 含越界路径。
-- 登录会话在未配置 Associated Domains 时，按预期报告 App 未与 `studio.advjs.org` 关联。
+iOS 模拟器上的 JavaScriptCore（在 `apps/studio-ios/Packages/StudioKit` 中执行）：
+
+```bash
+xcodebuild test -scheme StudioKit $(node ../../scripts/simulator-destinations.mjs)
+```
+
+## 约定
+
+- 引擎接口版本 `ENGINE_API_VERSION` 与 `EngineBridge.supportedAPIVersion` 同步提升；任何操作的输入或结果出现不兼容变化都要提升。
+- 修改共享层时同时运行 Web Studio 单测（`pnpm -C apps/studio exec vitest run`）与上面的引擎测试。
+- 引擎产物与 golden 文件是构建输出，不提交。

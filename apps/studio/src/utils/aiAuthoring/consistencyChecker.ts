@@ -5,8 +5,8 @@
  * AI 输出一致性 issues 列表（人设漂移 / 时间线矛盾 / 伏笔未回收 等）。
  */
 
+import type { ChapterFormData } from '@advjs/parser'
 import type { AdvCharacter } from '@advjs/types'
-import type { ChapterFormData } from '../chapterMd'
 import type { AiAuthoringResult } from './result'
 import { runAiJsonExtractionResult } from '../aiExtraction'
 

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 2,
+  "assets": [
+    {
+      "id": "character/xiaoyun/default",
+      "type": "image",
+      "kind": "character",
+      "path": "characters/xiaoyun.webp",
+      "mimeType": "image/webp",
+      "characterId": "xiaoyun",
+      "expression": "default",
+      "license": "CC0-1.0",
+      "source": { "type": "original" }
+    }
+  ]
+}

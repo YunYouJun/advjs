@@ -1,0 +1,13 @@
+{
+  "title": "往返样例",
+  "description": "Engine golden fixture: unknown fields, bodies, IDs, tachies, relationships and asset includes.",
+  "entryChapterId": "one",
+  "requiredPlugins": {
+    "star-map": "1.0.0"
+  },
+  "variables": {
+    "starMatched": false,
+    "trust": 0
+  },
+  "designerNotes": "Unknown top-level key; every host must keep it."
+}
