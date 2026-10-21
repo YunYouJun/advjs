@@ -99,10 +99,10 @@ jobs:
       - name: Test the native Studio engine on Node
         run: pnpm -C apps/studio-ios test:engine
 
-  studio-ios-engine:
-    name: studio-ios-engine (JavaScriptCore)
+  studio-ios:
+    name: studio-ios (JavaScriptCore and App)
     runs-on: xcode-27
-    timeout-minutes: 45
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -118,19 +118,30 @@ jobs:
         run: pnpm -C apps/studio-ios build:engine && pnpm -C apps/studio-ios golden
       - name: Golden parity on macOS JavaScriptCore
         run: swift test --package-path apps/studio-ios/Packages/StudioKit
-      - name: Golden parity on iPhone and iPad simulators
+      - name: StudioKit on iPhone and iPad simulators
         working-directory: apps/studio-ios/Packages/StudioKit
         run: |
           destinations=$(node ../../scripts/simulator-destinations.mjs)
           xcodebuild test -scheme StudioKit $destinations -resultBundlePath ../../build/StudioKit.xcresult
+      - name: Build the sample packages
+        run: pnpm -C apps/studio-ios build:samples
+      # Unit and UI tests run as separate invocations; combined, the hosted unit
+      # bundle can stall after the UI tests finish.
+      - name: App unit and UI tests on iPhone and iPad simulators
+        working-directory: apps/studio-ios
+        run: |
+          destinations=$(node scripts/simulator-destinations.mjs)
+          xcodebuild build-for-testing -project StudioApp.xcodeproj -scheme StudioApp $destinations -derivedDataPath build/DerivedData
+          xcodebuild test-without-building -project StudioApp.xcodeproj -scheme StudioApp $destinations -derivedDataPath build/DerivedData -only-testing:StudioAppTests -resultBundlePath build/StudioAppTests.xcresult
+          xcodebuild test-without-building -project StudioApp.xcodeproj -scheme StudioApp $destinations -derivedDataPath build/DerivedData -only-testing:StudioAppUITests -resultBundlePath build/StudioAppUITests.xcresult
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: studio-ios-engine
+          name: studio-ios
           path: |
             apps/studio-ios/engine/dist/engine.report.json
             apps/studio-ios/engine/dist/golden/summary.json
-            apps/studio-ios/build/StudioKit.xcresult
+            apps/studio-ios/build/*.xcresult
           if-no-files-found: warn
           retention-days: 30
 
@@ -401,7 +412,7 @@ jobs:
       - editor-pages-build
       - studio-pages-build
       - studio-unit
-      - studio-ios-engine
+      - studio-ios
       - vrm-pages-build
       - unit
       - typecheck
