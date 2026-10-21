@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import type { LocationFormData } from '@advjs/parser'
 import type { LocationInfo, SceneInfo } from '../../composables/useProjectContent'
-import type { LocationFormData } from '../../utils/locationMd'
+import { stringifyLocationMd } from '@advjs/parser'
 import {
   IonButton,
   IonCard,
@@ -28,7 +29,6 @@ import { useContentSave } from '../../composables/useContentSave'
 import { useProjectContent } from '../../composables/useProjectContent'
 import { useCharacterStateStore } from '../../stores/useCharacterStateStore'
 import { matchLocationByText } from '../../utils/locationMatch'
-import { stringifyLocationMd } from '../../utils/locationMd'
 import { showToast } from '../../utils/toast'
 
 const { t } = useI18n()

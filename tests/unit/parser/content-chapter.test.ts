@@ -1,5 +1,5 @@
+import { parseChapterMd, stringifyChapterMd } from '@advjs/parser'
 import { describe, expect, it } from 'vitest'
-import { parseChapterMd, stringifyChapterMd } from '../utils/chapterMd'
 
 describe('parseChapterMd', () => {
   it('parses frontmatter with title and plotSummary', () => {

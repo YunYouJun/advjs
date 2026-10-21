@@ -1,5 +1,5 @@
+import { parseSceneMd, stringifySceneMd } from '@advjs/parser'
 import { describe, expect, it } from 'vitest'
-import { parseSceneMd, stringifySceneMd } from '../utils/sceneMd'
 
 describe('parseSceneMd', () => {
   it('parses basic scene frontmatter', () => {

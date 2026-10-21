@@ -5,8 +5,8 @@
  * 走 JSON 提取通道（非流式），输出结构化分支候选供作者选择。
  */
 
+import type { ChapterFormData } from '@advjs/parser'
 import type { AdvCharacter } from '@advjs/types'
-import type { ChapterFormData } from '../chapterMd'
 import type { AiAuthoringResult } from './result'
 import { runAiJsonExtractionResult } from '../aiExtraction'
 

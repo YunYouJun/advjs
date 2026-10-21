@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 2,
+  "id": "round-trip",
+  "defaultProfile": "local",
+  "profiles": {
+    "local": {
+      "provider": "project",
+      "root": "adv/assets"
+    }
+  },
+  "includes": [
+    "assets/characters.json",
+    "assets/audio.json"
+  ]
+}

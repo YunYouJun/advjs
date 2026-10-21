@@ -1,5 +1,6 @@
-import * as yaml from 'js-yaml'
-import { dumpYamlFrontmatter, parseFrontmatterAndBody } from './mdFrontmatter'
+import type { ContentStringifyOptions } from './frontmatter'
+import { updateFrontmatterDocument } from './document'
+import { dumpYamlFrontmatter, loadFrontmatterObject, parseFrontmatterAndBody, withoutUndefined } from './frontmatter'
 
 /**
  * Location frontmatter keys
@@ -18,7 +19,7 @@ const LOCATION_FRONTMATTER_KEYS: string[] = [
 export type LocationType = 'indoor' | 'outdoor' | 'virtual' | 'other'
 
 /**
- * Location data for Studio editing
+ * Editable location data (`adv/locations/*.md`).
  */
 export interface LocationFormData {
   id: string
@@ -37,13 +38,12 @@ export interface LocationFormData {
  */
 export function parseLocationMd(content: string): LocationFormData {
   const { frontmatter, body } = parseFrontmatterAndBody(content)
-
-  const fm = (frontmatter ? yaml.load(frontmatter) : {}) as Record<string, any>
+  const fm = loadFrontmatterObject(frontmatter)
 
   if (!fm.id || typeof fm.id !== 'string')
     throw new Error('Location .md must have a string `id` in frontmatter')
 
-  const location: LocationFormData = {
+  return withoutUndefined<LocationFormData>({
     id: fm.id,
     name: fm.name || fm.id,
     type: fm.type,
@@ -52,17 +52,25 @@ export function parseLocationMd(content: string): LocationFormData {
     linkedScenes: fm.linkedScenes,
     linkedCharacters: fm.linkedCharacters,
     defaultImagePrompt: fm.defaultImagePrompt,
-  }
-
-  return Object.fromEntries(
-    Object.entries(location).filter(([_, v]) => v !== undefined),
-  ) as LocationFormData
+  })
 }
 
 /**
  * LocationFormData → .md string
+ *
+ * With `options.source`, unknown frontmatter keys and the body are kept.
  */
-export function stringifyLocationMd(location: LocationFormData): string {
+export function stringifyLocationMd(location: LocationFormData, options: ContentStringifyOptions = {}): string {
+  if (options.source !== undefined) {
+    const updated = updateFrontmatterDocument({
+      keys: LOCATION_FRONTMATTER_KEYS,
+      parse: parseLocationMd,
+      bodyField: 'description',
+    }, options.source, location)
+    if (updated !== undefined)
+      return updated
+  }
+
   const fm: Record<string, any> = {}
   for (const key of LOCATION_FRONTMATTER_KEYS) {
     const value = (location as any)[key]
@@ -73,6 +81,5 @@ export function stringifyLocationMd(location: LocationFormData): string {
     }
   }
 
-  const yamlStr = dumpYamlFrontmatter(fm)
-  return `---\n${yamlStr}\n---\n`
+  return `---\n${dumpYamlFrontmatter(fm)}\n---\n`
 }

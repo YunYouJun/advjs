@@ -1,5 +1,5 @@
+import { parseLocationMd, stringifyLocationMd } from '@advjs/parser'
 import { describe, expect, it } from 'vitest'
-import { parseLocationMd, stringifyLocationMd } from '../utils/locationMd'
 
 describe('parseLocationMd', () => {
   it('parses full frontmatter', () => {

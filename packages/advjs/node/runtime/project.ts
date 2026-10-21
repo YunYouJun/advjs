@@ -3,7 +3,7 @@ import type { AdvChapter, JsonObject, RuntimeProgram } from '@advjs/types'
 import { existsSync } from 'node:fs'
 import { readdir, readFile } from 'node:fs/promises'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
-import { compileProject, isRuntimeIdentifier } from '@advjs/core'
+import { compileProject, createLegacyChapterProject, groupLegacyChapterFiles, isRuntimeIdentifier } from '@advjs/core'
 
 export interface RuntimeChapterFiles {
   id: string
@@ -64,22 +64,11 @@ export async function discoverRuntimeChapterFiles(scriptPath: string): Promise<R
   }
 
   const files = await scanChapterFiles(chaptersDirectory)
-  const groups = new Map<string, string[]>()
-  for (const file of files) {
-    const parts = relative(chaptersDirectory, file).split(sep)
-    const raw = parts.length > 1 ? parts[0] : basename(file, '.adv.md')
-    const id = /^\d+$/.test(raw)
-      ? `chapter-${raw}`
-      : (isRuntimeIdentifier(raw) ? raw : `chapter-${groups.size + 1}`)
-    const paths = groups.get(id) ?? []
-    paths.push(file)
-    groups.set(id, paths)
-  }
-
-  return Array.from(groups, ([id, paths]) => ({
-    id,
-    title: id,
-    paths: paths.sort(),
+  const absolute = new Map(files.map(file => [relative(chaptersDirectory, file).split(sep).join('/'), file]))
+  return groupLegacyChapterFiles([...absolute.keys()]).map(group => ({
+    id: group.id,
+    title: group.title,
+    paths: group.paths.map(path => absolute.get(path)!),
   }))
 }
 
@@ -118,13 +107,11 @@ export function resolveConfiguredRuntimeChapterFiles(
 export async function compileRuntimeChapterFiles(
   options: CompileRuntimeChapterFilesOptions,
 ): Promise<CompileResult<RuntimeProgram>> {
-  const files: Record<string, string> = {
-    'adv.config.json': JSON.stringify({ format: 'adv-md', root: './adv' }),
-  }
   const originalPaths = new Map<string, string>()
+  let glossary: string | undefined
   if (options.glossaryPath) {
     try {
-      files['adv/glossary.md'] = await readFile(options.glossaryPath, 'utf8')
+      glossary = await readFile(options.glossaryPath, 'utf8')
       originalPaths.set('adv/glossary.md', options.glossaryPath)
     }
     catch (error) {
@@ -132,21 +119,19 @@ export async function compileRuntimeChapterFiles(
         throw error
     }
   }
-  const chapters = await Promise.all(options.chapters.map(async chapter => ({
-    id: chapter.id,
-    title: chapter.title,
-    sources: await Promise.all(chapter.paths.map(async (path, index) => {
-      const projectPath = `adv/chapters/${chapter.id}/${index + 1}.adv.md`
-      files[projectPath] = await readFile(path, 'utf8')
-      originalPaths.set(projectPath, path)
-      return `chapters/${chapter.id}/${index + 1}.adv.md`
-    })),
-  })))
-  files['adv/settings/game.json'] = JSON.stringify({
+  const { files, sourcePaths } = createLegacyChapterProject({
+    chapters: await Promise.all(options.chapters.map(async chapter => ({
+      id: chapter.id,
+      title: chapter.title,
+      sources: await Promise.all(chapter.paths.map(path => readFile(path, 'utf8'))),
+    }))),
     entryChapterId: options.entryChapterId,
     requiredPlugins: options.requiredPlugins,
     variables: options.variables,
-    chapters,
+    glossary,
+  })
+  options.chapters.forEach((chapter, index) => {
+    chapter.paths.forEach((path, sourceIndex) => originalPaths.set(sourcePaths[index][sourceIndex], path))
   })
 
   const result = await compileProject(

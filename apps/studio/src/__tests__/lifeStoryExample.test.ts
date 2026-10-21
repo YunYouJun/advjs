@@ -10,11 +10,8 @@
 
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { parseCharacterMd } from '@advjs/parser'
+import { parseChapterMd, parseCharacterMd, parseLocationMd, parseSceneMd } from '@advjs/parser'
 import { describe, expect, it } from 'vitest'
-import { parseChapterMd } from '../utils/chapterMd'
-import { parseLocationMd } from '../utils/locationMd'
-import { parseSceneMd } from '../utils/sceneMd'
 
 const EXAMPLE_ROOT = join(__dirname, '../../../../examples/ai-contest/life-story')
 

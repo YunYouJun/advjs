@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { SceneFormData } from '../utils/sceneMd'
+import type { SceneFormData } from '@advjs/parser'
 import {
   IonInput,
   IonItem,

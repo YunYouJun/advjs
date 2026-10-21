@@ -129,7 +129,7 @@ Ionic Vue 组件底层是 Web Components，**必须使用原生 `slot` 属性**�
 Studio 中每种内容类型遵循统一的架构：
 
 ```
-utils/{type}Md.ts          — frontmatter 解析/序列化
+@advjs/parser content/{type}.ts — frontmatter 解析/序列化（角色在 character.ts；与原生 Studio 引擎共用）
 components/{Type}Card.vue  — 列表卡片组件
 components/{Type}EditorForm.vue — 编辑表单组件
 views/workspace/{Type}sPage.vue — 列表页面
@@ -144,6 +144,8 @@ views/workspace/{Type}sPage.vue — 列表页面
 - `components/ContentEditorModal.vue` — 通用编辑弹窗 (表单/Markdown/AI 三栏)
 
 当前已实现的 ContentType：`'character' | 'scene' | 'chapter' | 'audio' | 'location'`
+
+内容格式、项目校验、创作编译和资源目录读取是 Web Studio 与 iPhone／iPad 原生 Studio（`apps/studio-ios`）的共享层，位于 `@advjs/parser` 与 `@advjs/core/project`。修改它们时同时运行 `pnpm -C apps/studio exec vitest run` 与 `pnpm -C apps/studio-ios test:engine`；不要在 `apps/studio/src/utils` 中重新加入平行实现。编辑保存需传入原文件（`source`），以保留未知字段与正文。
 
 ---
 

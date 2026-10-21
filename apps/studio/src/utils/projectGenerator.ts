@@ -37,11 +37,10 @@ import type {
 import type { TemplateFile } from './projectTemplate'
 import type { NormalizedSource } from './sourceParser'
 import type { TemplateDef } from './templates/loadTemplate'
-import { stringifyCharacterMd } from '@advjs/parser'
+import { stringifyCharacterMd, stringifyLocationMd, stringifySceneMd } from '@advjs/parser'
 import { useAiSettingsStore } from '../stores/useAiSettingsStore'
 import { AiApiError, buildStreamOptions, streamChat } from './aiClient'
 import { parseAiJson } from './chatUtils'
-import { stringifyLocationMd } from './locationMd'
 import {
   buildChapterInstruction,
   buildCharactersInstruction,
@@ -56,7 +55,6 @@ import {
   validateKnowledgeJson,
   validateScenesJson,
 } from './projectGenerator/schemas'
-import { stringifySceneMd } from './sceneMd'
 import { toSlug } from './slug'
 
 // ---------------------------------------------------------------------------

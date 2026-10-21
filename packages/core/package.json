@@ -24,6 +24,10 @@
     "./compiler": {
       "types": "./dist/compiler.d.mts",
       "default": "./dist/compiler.mjs"
+    },
+    "./project": {
+      "types": "./dist/project.d.mts",
+      "default": "./dist/project.mjs"
     }
   },
   "main": "./dist/index.mjs",

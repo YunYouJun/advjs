@@ -4,13 +4,20 @@ import type {
   AdvAssetResolveRequest,
 } from '@advjs/types'
 import type { IFileSystem } from './fs'
-import { createAdvAssetCatalog, normalizeAdvAssetManifest } from '@advjs/core'
+import {
+  ADV_ASSET_MANIFEST_PATH,
+  ADV_LEGACY_ASSET_INDEX_PATH,
+  advAssetIncludeFilePath,
+  advAssetManifestFragmentPaths,
+  createAdvAssetCatalog,
+  normalizeAdvAssetManifest,
+  readAdvAssetIncludes,
+  readAdvAssetManifestSource,
+} from '@advjs/core'
 
 const ABSOLUTE_URL_RE = /^(?:https?:|blob:|data:)/u
-const ROOT_PATH = 'adv/assets.json'
-const LEGACY_INDEX_PATH = 'adv/assets/index.json'
-const SOURCE_INCLUDE_PATH_RE = /^assets\/[a-z0-9][a-z0-9._/-]*\.json$/u
-const LEGACY_INCLUDE_PATH_RE = /^[a-z0-9][a-z0-9._/-]*\.json$/u
+const ROOT_PATH = ADV_ASSET_MANIFEST_PATH
+const LEGACY_INDEX_PATH = ADV_LEGACY_ASSET_INDEX_PATH
 
 function invalidManifest(message: string): Error {
   return new Error(`ADV_STUDIO_INVALID_ASSET_MANIFEST: ${message}`)
@@ -52,64 +59,6 @@ function replaceAsset(assets: AdvAssetEntry[], next: AdvAssetEntry): AdvAssetEnt
   return assets.map((asset, position) => position === index ? next : asset)
 }
 
-function assertIncludePath(include: unknown, legacy: boolean): asserts include is string {
-  const pattern = legacy ? LEGACY_INCLUDE_PATH_RE : SOURCE_INCLUDE_PATH_RE
-  if (typeof include !== 'string'
-    || !pattern.test(include)
-    || include.startsWith('/')
-    || include.includes('//')
-    || include.split('/').some(segment => segment === '.' || segment === '..')) {
-    throw invalidManifest(`include path is invalid: ${String(include)}`)
-  }
-}
-
-function sourceIncludePath(include: string): string {
-  return `adv/${include}`
-}
-
-function legacyIncludePath(include: string): string {
-  return `adv/assets/${include}`
-}
-
-function assertSplitRoot(record: Record<string, unknown>, label: string, legacy: boolean): string[] {
-  if (record.schemaVersion !== 2 || !Array.isArray(record.includes))
-    throw invalidManifest(`${label} must declare schemaVersion 2 and includes`)
-  const includes = record.includes.map((include) => {
-    assertIncludePath(include, legacy)
-    return include
-  })
-  if (new Set(includes).size !== includes.length)
-    throw invalidManifest(`${label} must not contain duplicate includes`)
-  return includes
-}
-
-async function readFragment(fs: IFileSystem, include: string, legacy: boolean): Promise<AdvAssetEntry[]> {
-  const path = legacy ? legacyIncludePath(include) : sourceIncludePath(include)
-  if (!await fs.exists(path))
-    throw invalidManifest(`included fragment does not exist: ${include}`)
-  const fragment = parseJson(await fs.readFile(path), include)
-  if (!isRecord(fragment) || fragment.schemaVersion !== 2 || !Array.isArray(fragment.assets))
-    throw invalidManifest(`${include} must declare schemaVersion 2 and assets`)
-  return fragment.assets as AdvAssetEntry[]
-}
-
-async function flattenSplitRoot(
-  fs: IFileSystem,
-  root: Record<string, unknown>,
-  label: string,
-  legacy: boolean,
-): Promise<Record<string, unknown>> {
-  const includes = assertSplitRoot(root, label, legacy)
-  const assets = legacy && Array.isArray(root.assets)
-    ? [...root.assets as AdvAssetEntry[]]
-    : []
-  for (const include of includes)
-    assets.push(...await readFragment(fs, include, legacy))
-  const normalized: Record<string, unknown> = { ...root, assets }
-  delete normalized.includes
-  return normalized
-}
-
 function createProjectAssetAdapter(fs: IFileSystem): AdvAssetLocationAdapter {
   const blobUrls = new Set<string>()
   return {
@@ -140,34 +89,23 @@ function createProjectAssetAdapter(fs: IFileSystem): AdvAssetLocationAdapter {
  *
  * `adv/assets.json` is the only writable root. It contains either inline
  * `assets` or `includes` pointing below `adv/assets/`, never both. The former
- * `adv/assets/index.json` path remains read-only compatibility input.
+ * `adv/assets/index.json` path remains read-only compatibility input. The
+ * reading rules are shared with native hosts through `@advjs/assets`.
  */
 export async function loadStudioAssetCatalog(fs: IFileSystem) {
+  const files: Record<string, string> = {}
   const hasRoot = await fs.exists(ROOT_PATH)
   const hasLegacyIndex = !hasRoot && await fs.exists(LEGACY_INDEX_PATH)
   if (!hasRoot && !hasLegacyIndex)
     return null
 
   const sourcePath = hasRoot ? ROOT_PATH : LEGACY_INDEX_PATH
-  const parsed = parseJson(await fs.readFile(sourcePath), sourcePath)
-  let manifest: unknown = parsed
-
-  if (hasRoot && isRecord(parsed) && parsed.schemaVersion === 2) {
-    const hasAssets = Object.hasOwn(parsed, 'assets')
-    const hasIncludes = Object.hasOwn(parsed, 'includes')
-    if (hasAssets === hasIncludes)
-      throw invalidManifest('adv/assets.json must declare exactly one of assets or includes')
-    if (hasAssets && !Array.isArray(parsed.assets))
-      throw invalidManifest('adv/assets.json assets must be an array')
-    if (hasIncludes)
-      manifest = await flattenSplitRoot(fs, parsed, ROOT_PATH, false)
+  files[sourcePath] = await fs.readFile(sourcePath)
+  for (const path of advAssetManifestFragmentPaths(files)) {
+    if (await fs.exists(path))
+      files[path] = await fs.readFile(path)
   }
-  else if (!hasRoot) {
-    if (!isRecord(parsed))
-      throw invalidManifest('adv/assets/index.json must be an object')
-    manifest = await flattenSplitRoot(fs, parsed, LEGACY_INDEX_PATH, true)
-  }
-
+  const manifest = readAdvAssetManifestSource(files)?.manifest
   const record = isRecord(manifest) ? manifest : {}
   const profiles = isRecord(record.profiles) ? record.profiles : undefined
 
@@ -198,9 +136,9 @@ async function upsertSplitAsset(
   root: Record<string, unknown>,
   asset: AdvAssetEntry,
 ): Promise<void> {
-  const includes = assertSplitRoot(root, ROOT_PATH, false)
+  const includes = readAdvAssetIncludes(root, ROOT_PATH, false)
   const include = `assets/${fragmentName(asset)}`
-  const includePath = sourceIncludePath(include)
+  const includePath = advAssetIncludeFilePath(include)
   let fragment: Record<string, unknown> = { schemaVersion: 2, assets: [] }
   if (await fs.exists(includePath)) {
     const parsed = parseJson(await fs.readFile(includePath), include)
@@ -223,7 +161,7 @@ async function migrateLegacyIndex(fs: IFileSystem): Promise<Record<string, unkno
   const parsed = parseJson(await fs.readFile(LEGACY_INDEX_PATH), LEGACY_INDEX_PATH)
   if (!isRecord(parsed))
     throw invalidManifest('adv/assets/index.json must be an object')
-  const legacyIncludes = assertSplitRoot(parsed, LEGACY_INDEX_PATH, true)
+  const legacyIncludes = readAdvAssetIncludes(parsed, LEGACY_INDEX_PATH, true)
   const root: Record<string, unknown> = {
     ...parsed,
     includes: legacyIncludes.map(include => `assets/${include}`),
@@ -233,7 +171,7 @@ async function migrateLegacyIndex(fs: IFileSystem): Promise<Record<string, unkno
   if (Array.isArray(parsed.assets) && parsed.assets.length > 0) {
     const legacyInlineInclude = 'assets/legacy-inline.json'
     await fs.mkdir('adv/assets')
-    await fs.writeFile(sourceIncludePath(legacyInlineInclude), json({
+    await fs.writeFile(advAssetIncludeFilePath(legacyInlineInclude), json({
       schemaVersion: 2,
       assets: parsed.assets,
     }))

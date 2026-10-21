@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import type { LocationFormData } from '@advjs/parser'
 import type { LocationInfo } from '../../composables/useProjectContent'
-import type { LocationFormData } from '../../utils/locationMd'
+import { parseLocationMd, stringifyLocationMd } from '@advjs/parser'
 import {
   IonButton,
   IonFab,
@@ -33,7 +34,6 @@ import { useContentSave } from '../../composables/useContentSave'
 import { useIncrementalList } from '../../composables/useIncrementalList'
 import { useProjectContent } from '../../composables/useProjectContent'
 import { useRecentActivity } from '../../composables/useRecentActivity'
-import { parseLocationMd, stringifyLocationMd } from '../../utils/locationMd'
 import { showToast } from '../../utils/toast'
 
 const { t } = useI18n()

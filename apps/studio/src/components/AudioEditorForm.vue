@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { AudioFormData } from '../utils/audioMd'
+import type { AudioFormData } from '@advjs/parser'
 import {
   IonInput,
   IonItem,
