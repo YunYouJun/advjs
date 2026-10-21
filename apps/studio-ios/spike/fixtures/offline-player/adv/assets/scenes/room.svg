@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title">
+  <title id="title">带有一扇窗和一张书桌的简洁演示室</title>
+  <defs>
+    <linearGradient id="wall" x2="0" y2="1">
+      <stop stop-color="#dbeafe"/>
+      <stop offset="1" stop-color="#f8fafc"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#wall)"/>
+  <rect x="190" y="130" width="520" height="360" rx="18" fill="#93c5fd" stroke="#1e3a8a" stroke-width="18"/>
+  <path d="M450 130v360M190 310h520" stroke="#1e3a8a" stroke-width="12"/>
+  <path d="M0 700h1600v200H0z" fill="#cbd5e1"/>
+  <path d="M870 610h520v42H870zM930 650h34v190h-34zM1300 650h34v190h-34z" fill="#475569"/>
+  <circle cx="1220" cy="500" r="70" fill="#f59e0b" opacity=".85"/>
+</svg>

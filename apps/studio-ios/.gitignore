@@ -1,0 +1,6 @@
+# SPIKE build outputs and generated Xcode files
+spike/out/
+spike/ios/StudioSpike.xcodeproj/
+spike/ios/StudioSpike/Info.plist
+xcuserdata/
+DerivedData/

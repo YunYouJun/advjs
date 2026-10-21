@@ -13,6 +13,10 @@
 - [仓鼠旗舰 Demo 与创作调试体验](./2026-07-17-hamster-showcase-demo-design)。
 - [仓鼠完整改编与内容流水线](./2026-07-17-hamster-full-adaptation-design)。
 
+## Studio 原生 App
+
+- [Studio iPhone／iPad 原生 App 设计规格](./2026-10-21-studio-native-ios-design)：功能清单（待确认）、P0 可行性结论与架构决策。
+
 ## Studio 托管 AI
 
 当前产品边界见 [AI 服务说明](/guide/studio/ai-service)，客户端数据流见 [Studio 架构](/guide/studio/architecture)。已被取代的需求、设计、任务和运维材料集中在[历史资料](/archive/#studio-托管-ai)，不再与当前规格并列。

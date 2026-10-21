@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <!-- SPIKE: the player loads only bundled code and project media from its own scheme. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self' data: blob:; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' data: blob:; font-src 'self' data:"
+    />
+    <title>ADV.JS Player</title>
+    <style>
+      html,
+      body,
+      #app {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
