@@ -75,6 +75,7 @@ External integrations: Babylon.js 3D (`plugin-babylon`), Three.js (`plugin-three
 - **Unit tests**: `tests/unit/` — Vitest with jsdom, Vue plugin enabled
 - **E2E tests**: `tests/e2e/` — Playwright against `demo/starter` (dev server on port 3333)
 - Vitest excludes `**/e2e/**` from unit test runs
+- Do not commit screenshots, screen recordings or `.xcresult` bundles used as verification evidence. Keep them as test attachments or CI artifacts and cite them by name in `docs/reports/`.
 
 ## Code Style
 

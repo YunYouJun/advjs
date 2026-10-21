@@ -16,3 +16,8 @@ Packages/StudioKit/Tests/StudioKitTests/Golden/*
 .swiftpm/
 xcuserdata/
 DerivedData/
+
+# Acceptance screenshots, recordings and test results stay out of the repository:
+# keep them as UI-test attachments or CI artifacts
+evidence/
+*.xcresult
