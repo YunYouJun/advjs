@@ -31,7 +31,8 @@ describe('workspace preparation profiles', () => {
         ['pnpm', ['-r', '--filter', '@advjs/studio^...', 'run', 'build']],
       ],
       'studio-ios': [
-        ['pnpm', ['-r', '--filter', '@advjs/studio^...', '--filter', 'advjs...', 'run', 'build']],
+        ['pnpm', ['-r', '--filter', '@advjs/studio^...', 'run', 'build']],
+        ['pnpm', ['build:advjs']],
       ],
       'unit': [
         ['pnpm', ['build']],

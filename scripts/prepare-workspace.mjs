@@ -29,7 +29,9 @@ export const WORKSPACE_PREPARATION_PROFILES = Object.freeze({
   // Studio unit tests plus the native engine golden cases, which load demo
   // projects through the CLI (module configs import the built advjs package).
   'studio-ios': Object.freeze([
-    Object.freeze(['pnpm', Object.freeze(['-r', '--filter', '@advjs/studio^...', '--filter', 'advjs...', 'run', 'build'])]),
+    Object.freeze(['pnpm', Object.freeze(['-r', '--filter', '@advjs/studio^...', 'run', 'build'])]),
+    // advjs and its themes depend on each other; build:advjs is the ordered chain.
+    Object.freeze(['pnpm', Object.freeze(['build:advjs'])]),
   ]),
   'unit': Object.freeze([
     Object.freeze(['pnpm', Object.freeze(['build'])]),
