@@ -136,6 +136,17 @@ cd apps/studio-ios/spike/player && ../../../../node_modules/.bin/vite build
 | 探针签名             | Bundle ID 改为 `org.advjs.studio.dev`、Team `QT792GAY4C`；模拟器构建的 simulated entitlements 含 `application-identifier = QT792GAY4C.org.advjs.studio.dev` 与 `webcredentials:`／`applinks:studio.advjs.org`。                                            |
 | 探针登录链路         | 改为 `advjs-studio-ios` 与 `/auth/callback`；兑换带 `Origin`，随后 `signin/custom`、`user/me`、`user/signout`，日志只记录状态码与字段是否存在。端到端运行需等上表各项上线，并由用户本人在系统浏览器中登录。                                                |
 
+### 上线进度
+
+用户于 2026-10-21 同意全部执行（发布托管文件、合入 Provider 修复、提交 Registry 草稿并发起生产审批），并确认云端项目采用工作副本、首版不采集遥测。
+
+| 步骤            | 状态                                                                                                                                                                          |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Studio 托管文件 | `dev` 有仓库规则禁止直推，改为 [YunYouJun/advjs#77](https://github.com/YunYouJun/advjs/pull/77)（只含托管提交）；仓库未开启自动合并，CI 通过后合并即部署 `studio.advjs.org`。 |
+| Provider 修复   | [YunLeFun/www.yunle.fun#134](https://github.com/YunLeFun/www.yunle.fun/pull/134)，CI 通过后合并。                                                                             |
+| Registry 草稿   | `draft:nBvX9KppJE5ggLAz`，基线 `production:15:0878fb78ac3d5ac3924f`；远端 diff 只新增 `advjs-studio-ios`，content hash 与 security hash 和本地校验一致。                      |
+| 生产审批        | 待 #134 合入后，绑定新的 `main` SHA 发起；审批通过后由发布流程自动生成 PR、合并并部署 `sso-ticket` 等消费者。                                                                 |
+
 ## 协作评估
 
 ```bash
