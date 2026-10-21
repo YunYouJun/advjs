@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 2,
+  "id": "offline-player",
+  "defaultProfile": "local",
+  "profiles": {
+    "local": {
+      "provider": "project",
+      "root": "adv/assets"
+    }
+  },
+  "assets": [
+    {
+      "id": "bgm/theme",
+      "type": "audio",
+      "kind": "bgm",
+      "path": "bgm/theme.m4a",
+      "mimeType": "audio/mp4",
+      "sha256": "beb4418cdc622844ff0adf93c34a9fcbb1e22a76d74a41c0ee510fd45d928930",
+      "bytes": 129071,
+      "duration": 20,
+      "license": "CC0-1.0",
+      "source": { "type": "original" }
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "clientId": "advjs-studio-ios",
+  "appId": "advjs-studio",
+  "displayName": "ADV.JS Studio",
+  "iconUrl": "https://studio.advjs.org/favicon.png",
+  "status": "active",
+  "adapters": [
+    {
+      "kind": "web-sso",
+      "allowedScopes": [
+        "identity:bootstrap"
+      ],
+      "consent": "explicit",
+      "origins": [
+        "https://studio.advjs.org"
+      ],
+      "redirectUris": [
+        "https://studio.advjs.org/auth/callback"
+      ]
+    }
+  ]
+}

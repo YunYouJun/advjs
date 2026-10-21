@@ -1,0 +1,12 @@
+{
+  "title": "离线试玩探针",
+  "description": "P0 spike fixture: tachie, background, BGM, choices and the official star-map plugin.",
+  "entryChapterId": "start",
+  "requiredPlugins": {
+    "star-map": "1.0.0"
+  },
+  "variables": {
+    "starMatched": false,
+    "starMatchScore": 0
+  }
+}
