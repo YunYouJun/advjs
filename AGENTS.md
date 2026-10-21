@@ -91,6 +91,7 @@ External integrations: Babylon.js 3D (`plugin-babylon`), Three.js (`plugin-three
 - Read [the ADV.JS design system](docs/about/design/design-system.md) before changing UI. Classify the surface as player-facing game UI or author-facing creation tools.
 - Game UI in `packages/client/`, `themes/`, and project overrides follows [the game UI contract](docs/about/design/game-ui.md). Use `ThemeConfig.ui`, documented game tokens, and `--adv-theme-*` extensions. Keep theme changes inside `AdvContainer`; do not change the host's global color mode.
 - Creation tools have two visual implementations: desktop Editor uses AGUI; mobile-first Studio follows [its visual specification](docs/about/design/studio-design.md) and [component contract](docs/about/design/studio-components.md).
+- The native iPhone/iPad Studio in `apps/studio-ios/` uses SwiftUI and system components only and follows [the native Studio specification](docs/about/design/studio-native.md); read `apps/studio-ios/AGENTS.md` before changing it.
 - Embedded game content uses the game contract; its surrounding authoring toolbar uses the host tool contract. Do not reuse skinned controls across these domains merely because both use Vue.
 
 ### Desktop Editor

@@ -510,6 +510,10 @@ function sidebarAbout(): DefaultTheme.SidebarItem[] {
           link: '/about/design/studio-components',
         },
         {
+          text: 'Studio 原生设计规范',
+          link: '/about/design/studio-native',
+        },
+        {
           text: '资源系统',
           link: '/about/design/assets',
         },
