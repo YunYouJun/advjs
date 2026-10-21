@@ -272,6 +272,10 @@ function sidebarGuide(): DefaultTheme.SidebarItem[] {
           link: '/guide/assets/cos',
         },
         {
+          text: '用 YunBox 管理源素材',
+          link: '/guide/assets/yunbox',
+        },
+        {
           text: '音频创作与 AI 配音',
           link: '/guide/audio',
         },

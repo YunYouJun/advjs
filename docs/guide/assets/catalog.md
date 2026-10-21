@@ -148,7 +148,7 @@ HTTP/CDN 下载可配置 `download.source: { "provider": "http", "baseUrl": "htt
 
 这些命令是用户主动运行的本地 Node 工具：只对可信项目执行 `pull`，并先检查清单的下载源及本机配置的签名器。HTTP 源允许用户明确配置的内网地址，不提供远端不可信清单的 SSRF 隔离；不得直接暴露为远程或 Editor bridge 下载接口。
 
-把二进制缓存目录加入项目 `.gitignore`；分片 JSON 如果位于该目录，需要单独保留跟踪规则。当前原生 `build`/`editor` 不隐式拉取，请先运行 `adv assets pull`，或在项目启动包装器中调用它。私有 COS 鉴权见 [COS 存储规范](./cos)。
+把二进制缓存目录加入项目 `.gitignore`；分片 JSON 如果位于该目录，需要单独保留跟踪规则。当前原生 `build`/`editor` 不隐式拉取，请先运行 `adv assets pull`，或在项目启动包装器中调用它。私有 COS 鉴权见 [COS 存储规范](./cos)。需要在 Git 中保留二进制源文件历史时，可以用 Git LFS 托管不由本命令下载的文件，见[用 YunBox 管理源素材](./yunbox)。
 
 ## Schema v2
 
