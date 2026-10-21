@@ -161,6 +161,8 @@ export default async function createViteConfig({ command }: { command: 'serve' |
           // Monaco editor ts.worker.js ~7MB, editor.api2 ~4MB
           maximumFileSizeToCacheInBytes: 10 * 1000 * 1000,
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+          // Native sign-in callback and Apple association are static files, never the SPA shell.
+          navigateFallbackDenylist: [/^\/auth\/callback/, /^\/\.well-known\//],
           runtimeCaching: [
             {
               // Cache app shell and static assets
