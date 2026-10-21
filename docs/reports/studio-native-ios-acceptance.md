@@ -1,7 +1,7 @@
 # Studio iPhone／iPad 原生 App 验收报告
 
 - 日期：2026-10-21 创建，随各阶段更新。
-- 状态：P0 进行中。三项可行性已在模拟器完成，真机项待验；功能清单待用户确认；登录端到端受服务端与账号依赖阻塞。N1–N16 均未开始。
+- 状态：P0 进行中。三项可行性已在模拟器完成；功能清单已确认（两项建议待用户表态）；登录配置已准备、待部署与审批。用户决定以 iOS 模拟器验收，不要求实机。N1–N16 均未开始，N12 不适用。
 - 范围：[实施计划](../plans/2026-10-21-studio-native-ios)的验收证据；设计与决策见[设计规格](../specs/2026-10-21-studio-native-ios-design)。
 - 边界：本报告只记录实际运行结果。模拟器数据只用于可行性与趋势，不能替代实机验收。
 
@@ -122,6 +122,20 @@ cd apps/studio-ios/spike/player && ../../../../node_modules/.bin/vite build
 
 结论：协议与系统能力可行；端到端需要设计规格「服务端与账号依赖」一节的全部变更，以及用户在真机上本人登录。
 
+## 登录配置准备（2026-10-21 下午）
+
+用户答复：使用 Lan Yang 的团队，经管理后台走通配置。依据云生 iOS 已上线的同类接入（`YunYouJun/life` 的 `docs/guide/yunlefun-sso.md`）准备如下，均未部署：
+
+| 项目                 | 结果                                                                                                                                                                                                                                                       |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Team                 | 钥匙串签名证书 `Apple Distribution: Lan Yang (QT792GAY4C)`，与云乐坊、云生 App 同一 Team。                                                                                                                                                                 |
+| 兑换的 `Origin` 约束 | `sso-ticket` 只接受与授权码绑定的注册 Origin；云生原生端显式发送 `Origin` 头。原判断「需要服务端放行无 Origin 请求」作废，`sso-ticket` 不需改动。                                                                                                          |
+| Studio 托管文件      | 新增 AASA、`/auth/callback` 回落页与 `_headers`；`pnpm studio:build` 通过，`dist/` 含这些文件，Service Worker 导航回落 `denylist` 含 `/auth/callback` 与 `/.well-known/`。                                                                                 |
+| Registry 候选        | `apps/studio-ios/sso/production-advjs-studio-ios.draft.json` 基于 generation 15（`production:15:0878fb78ac3d5ac3924f`）只新增 `advjs-studio-ios`；`pnpm sso:registry validate` 通过，content hash `d26fea9a…d725f374`，security hash `4083fb82…17315613`。 |
+| Provider 修复        | `www.yunle.fun` 分支 `feat/advjs-studio-ios-sso` 提交 `7edb8de`：应用探索页排除本客户端。新增测试在撤掉修复时失败、恢复后 8 项全部通过。                                                                                                                   |
+| 探针签名             | Bundle ID 改为 `org.advjs.studio.dev`、Team `QT792GAY4C`；模拟器构建的 simulated entitlements 含 `application-identifier = QT792GAY4C.org.advjs.studio.dev` 与 `webcredentials:`／`applinks:studio.advjs.org`。                                            |
+| 探针登录链路         | 改为 `advjs-studio-ios` 与 `/auth/callback`；兑换带 `Origin`，随后 `signin/custom`、`user/me`、`user/signout`，日志只记录状态码与字段是否存在。端到端运行需等上表各项上线，并由用户本人在系统浏览器中登录。                                                |
+
 ## 协作评估
 
 ```bash
@@ -143,27 +157,27 @@ Studio 使用的 yjs 13.6.32 打包后在 macOS `jsc` 中运行：应用 Node �
 
 ## N1–N16 状态
 
-| 编号 | 状态   | 备注                                                        |
-| ---- | ------ | ----------------------------------------------------------- |
-| N1   | 未开始 | —                                                           |
-| N2   | 未开始 | 对照清单已起草，待用户确认后锁定。                          |
-| N3   | 未开始 | 引擎一致性基础已在模拟器验证。                              |
-| N4   | 未开始 | —                                                           |
-| N5   | 未开始 | —                                                           |
-| N6   | 未开始 | 播放器探针在模拟器通过，未断网、非实机。                    |
-| N7   | 未开始 | —                                                           |
-| N8   | 未开始 | 受登录依赖阻塞。                                            |
-| N9   | 未开始 | 受 AASA 依赖阻塞。                                          |
-| N10  | 未开始 | —                                                           |
-| N11  | 未开始 | —                                                           |
-| N12  | 未开始 | 待 App Store Connect 核实，可能不适用。                     |
-| N13  | 未开始 | 探针已覆盖路径越界、外部请求、导航限制；正式验收在 P4、P8。 |
-| N14  | 未开始 | —                                                           |
-| N15  | 未开始 | —                                                           |
-| N16  | 未开始 | —                                                           |
+| 编号 | 状态   | 备注                                                              |
+| ---- | ------ | ----------------------------------------------------------------- |
+| N1   | 未开始 | —                                                                 |
+| N2   | 未开始 | 对照清单已起草，待用户确认后锁定。                                |
+| N3   | 未开始 | 引擎一致性基础已在模拟器验证。                                    |
+| N4   | 未开始 | —                                                                 |
+| N5   | 未开始 | —                                                                 |
+| N6   | 未开始 | 播放器探针在模拟器通过，未断网、非实机。                          |
+| N7   | 未开始 | —                                                                 |
+| N8   | 未开始 | 受登录依赖阻塞。                                                  |
+| N9   | 未开始 | 受 AASA 依赖阻塞。                                                |
+| N10  | 未开始 | —                                                                 |
+| N11  | 未开始 | —                                                                 |
+| N12  | 不适用 | 用户确认 Capacitor 壳从未上传 App Store Connect，无数据需要迁移。 |
+| N13  | 未开始 | 探针已覆盖路径越界、外部请求、导航限制；正式验收在 P4、P8。       |
+| N14  | 未开始 | —                                                                 |
+| N15  | 未开始 | —                                                                 |
+| N16  | 未开始 | —                                                                 |
 
 ## 已知问题与待办
 
-- 连接 iPhone 15 Pro 与一台 iPad，重跑引擎与播放器探针（`-autorunEngine`、`-autorunPlayer`），记录 Release 构建与 Instruments 数据。
 - 安装 iOS 26 模拟器运行时，在最低版本上运行同一探针。
-- 等待用户确认功能清单与「服务端与账号依赖」各项后再进入 P1。
+- 上线登录配置：发布 Studio 托管文件、合入 Provider 修复、提交 Registry 草稿与生产审批；上线后在模拟器中走通登录。
+- 用户对「云端项目编辑方式」与「遥测」两项表态后锁定功能清单，进入 P1。

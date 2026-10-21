@@ -1,0 +1,486 @@
+{
+  "clients": [
+    {
+      "adapters": [
+        {
+          "allowedScopes": [
+            "identity:bootstrap"
+          ],
+          "consent": "trusted",
+          "kind": "web-sso",
+          "origins": [
+            "https://admin.yunle.fun"
+          ],
+          "redirectUris": [
+            "https://admin.yunle.fun/"
+          ]
+        }
+      ],
+      "appId": "admin",
+      "clientId": "admin-web",
+      "displayName": "YunLeFun Admin",
+      "iconUrl": "https://admin.yunle.fun/logo.svg",
+      "status": "active"
+    },
+    {
+      "clientId": "advjs-studio-ios",
+      "appId": "advjs-studio",
+      "displayName": "ADV.JS Studio",
+      "iconUrl": "https://studio.advjs.org/favicon.png",
+      "status": "active",
+      "adapters": [
+        {
+          "kind": "web-sso",
+          "allowedScopes": [
+            "identity:bootstrap"
+          ],
+          "consent": "explicit",
+          "origins": [
+            "https://studio.advjs.org"
+          ],
+          "redirectUris": [
+            "https://studio.advjs.org/auth/callback"
+          ]
+        }
+      ]
+    },
+    {
+      "adapters": [
+        {
+          "allowedScopes": [
+            "identity:bootstrap"
+          ],
+          "consent": "trusted",
+          "kind": "web-sso",
+          "origins": [
+            "https://advjs.yunle.fun",
+            "https://studio.advjs.org"
+          ],
+          "redirectUris": [
+            "https://advjs.yunle.fun/",
+            "https://studio.advjs.org/"
+          ]
+        }
+      ],
+      "appId": "advjs-studio",
+      "clientId": "advjs-studio-web",
+      "displayName": "ADV.JS Studio",
+      "iconUrl": "https://studio.advjs.org/favicon.ico",
+      "status": "active"
+    },
+    {
+      "adapters": [
+        {
+          "allowedScopes": [
+            "identity:bootstrap"
+          ],
+          "consent": "trusted",
+          "kind": "web-sso",
+          "origins": [
+            "https://ai-sfc.yunle.fun"
+          ],
+          "redirectUris": [
+            "https://ai-sfc.yunle.fun/"
+          ]
+        }
+      ],
+      "appId": "ai-sfc",
+      "clientId": "ai-sfc-web",
+      "displayName": "AI 春联",
+      "iconUrl": "https://ai-sfc.yunle.fun/brand/ai-sfc-logo.svg",
+      "status": "active"
+    },
+    {
+      "adapters": [
+        {
+          "allowedScopes": [
+            "ai:writing",
+            "membership:read"
+          ],
+          "consent": "explicit",
+          "kind": "device"
+        }
+      ],
+      "appId": "cms",
+      "clientId": "cms-desktop",
+      "displayName": "云栈",
+      "status": "active"
+    },
+    {
+      "adapters": [
+        {
+          "allowedScopes": [
+            "identity:bootstrap"
+          ],
+          "consent": "trusted",
+          "kind": "web-sso",
+          "origins": [
+            "https://cms.yunle.fun"
+          ],
+          "redirectUris": [
+            "https://cms.yunle.fun/"
+          ]
+        }
+      ],
+      "appId": "cms",
+      "clientId": "cms-web",
+      "displayName": "Yunle CMS",
+      "iconUrl": "https://cms.yunle.fun/icon.svg",
+      "status": "active"
+    },
+    {
+      "adapters": [
+        {
+          "allowedScopes": [
+            "identity:bootstrap"
+          ],
+          "consent": "explicit",
+          "kind": "web-sso",
+          "origins": [
+            "https://cook.yunle.fun",
+            "https://cook.yunyoujun.cn"
+          ],
+          "redirectUris": [
+            "https://cook.yunle.fun/auth/callback?platform=native",
+            "https://cook.yunyoujun.cn/auth/callback?platform=native"
+          ]
+        }
+      ],
+      "appId": "cook",
+      "clientId": "cook-mobile",
+      "displayName": "食用手册",
+      "iconUrl": "https://cook.yunle.fun/pwa-512x512.png",
+      "status": "active"
+    },
+    {
+      "adapters": [
+        {
+          "allowedScopes": [
+            "identity:bootstrap"
+          ],
+          "consent": "trusted",
+          "kind": "web-sso",
+          "origins": [
+            "https://cook.yunle.fun",
+            "https://cook.yunyoujun.cn"
+          ],
+          "redirectUris": [
+            "https://cook.yunle.fun/auth/callback",
+            "https://cook.yunyoujun.cn/auth/callback"
+          ]
+        }
+      ],
+      "appId": "cook",
+      "clientId": "cook-web",
+      "displayName": "食用手册",
+      "iconUrl": "https://cook.yunle.fun/pwa-512x512.png",
+      "status": "active"
+    },
+    {
+      "adapters": [
+        {
+          "allowedScopes": [
+            "identity:bootstrap"
+          ],
+          "consent": "trusted",
+          "kind": "web-sso",
+          "origins": [
+            "https://dayun-kicker.yunle.fun"
+          ],
+          "redirectUris": [
+            "https://dayun-kicker.yunle.fun/"
+          ]
+        }
+      ],
+      "appId": "dayun-kicker",
+      "clientId": "dayun-kicker-web",
+      "displayName": "暴力电驴",
+      "iconUrl": "https://dayun-kicker.yunle.fun/favicon.svg",
+      "status": "active"
+    },
+    {
+      "adapters": [
+        {
+          "allowedScopes": [
+            "identity:bootstrap"
+          ],
+          "consent": "trusted",
+          "kind": "web-sso",
+          "origins": [
+            "https://drive.yunle.fun"
+          ],
+          "redirectUris": [
+            "https://drive.yunle.fun/"
+          ]
+        }
+      ],
+      "appId": "drive",
+      "clientId": "drive-web",
+      "displayName": "云乐盘",
+      "iconUrl": "https://drive.yunle.fun/drive-mark.svg",
+      "status": "active"
+    },
+    {
+      "adapters": [
+        {
+          "allowedScopes": [
+            "identity:bootstrap"
+          ],
+          "consent": "trusted",
+          "kind": "web-sso",
+          "origins": [
+            "https://dao.yunle.fun"
+          ],
+          "redirectUris": [
+            "https://dao.yunle.fun/"
+          ]
+        }
+      ],
+      "appId": "everything-generator",
+      "clientId": "everything-generator-web",
+      "displayName": "万物生成器",
+      "iconUrl": "https://dao.yunle.fun/favicon.ico",
+      "status": "active"
+    },
+    {
+      "adapters": [
+        {
+          "allowedScopes": [
+            "identity:bootstrap"
+          ],
+          "consent": "trusted",
+          "kind": "web-sso",
+          "origins": [
+            "https://fc.elpsy.cn",
+            "https://fc.yunle.fun"
+          ],
+          "redirectUris": [
+            "https://fc.elpsy.cn/",
+            "https://fc.yunle.fun/"
+          ]
+        }
+      ],
+      "appId": "fc",
+      "clientId": "fc-web",
+      "displayName": "怀旧游戏机",
+      "iconUrl": "https://fc.yunle.fun/favicon.svg",
+      "status": "active"
+    },
+    {
+      "adapters": [
+        {
+          "allowedScopes": [
+            "identity:bootstrap"
+          ],
+          "consent": "trusted",
+          "kind": "web-sso",
+          "origins": [
+            "https://home.yunle.fun"
+          ],
+          "redirectUris": [
+            "https://home.yunle.fun/"
+          ]
+        }
+      ],
+      "appId": "home",
+      "clientId": "home-web",
+      "displayName": "云之彼端",
+      "iconUrl": "https://home.yunle.fun/brand-mark.svg",
+      "status": "active"
+    },
+    {
+      "adapters": [
+        {
+          "allowedScopes": [
+            "identity:bootstrap"
+          ],
+          "consent": "explicit",
+          "kind": "web-sso",
+          "origins": [
+            "https://life.yunle.fun"
+          ],
+          "redirectUris": [
+            "https://life.yunle.fun/auth/callback"
+          ]
+        }
+      ],
+      "appId": "life",
+      "clientId": "life-ios",
+      "displayName": "云生",
+      "iconUrl": "https://life.yunle.fun/favicon.png",
+      "status": "active"
+    },
+    {
+      "adapters": [
+        {
+          "allowedScopes": [
+            "identity:bootstrap"
+          ],
+          "consent": "trusted",
+          "kind": "web-sso",
+          "origins": [
+            "https://play.yunle.fun"
+          ],
+          "redirectUris": [
+            "https://play.yunle.fun/"
+          ]
+        }
+      ],
+      "appId": "play",
+      "clientId": "play-web",
+      "displayName": "云乐坊间",
+      "iconUrl": "https://play.yunle.fun/favicon.svg",
+      "status": "active"
+    },
+    {
+      "adapters": [
+        {
+          "allowedScopes": [
+            "identity:bootstrap"
+          ],
+          "consent": "trusted",
+          "kind": "web-sso",
+          "origins": [
+            "https://saier.yunle.fun"
+          ],
+          "redirectUris": [
+            "https://saier.yunle.fun/"
+          ]
+        }
+      ],
+      "appId": "saier",
+      "clientId": "saier-web",
+      "displayName": "云绘 Saier",
+      "iconUrl": "https://saier.yunle.fun/favicon.svg",
+      "status": "active"
+    },
+    {
+      "adapters": [
+        {
+          "allowedScopes": [
+            "membership:read"
+          ],
+          "consent": "explicit",
+          "kind": "device"
+        }
+      ],
+      "appId": "skykeeper",
+      "clientId": "skykeeper-desktop",
+      "displayName": "Skykeeper",
+      "status": "active"
+    },
+    {
+      "adapters": [
+        {
+          "allowedScopes": [
+            "identity:bootstrap"
+          ],
+          "consent": "trusted",
+          "kind": "web-sso",
+          "origins": [
+            "https://smap.yunle.fun"
+          ],
+          "redirectUris": [
+            "https://smap.yunle.fun/tabs/profile"
+          ]
+        }
+      ],
+      "appId": "smap",
+      "clientId": "smap-web",
+      "displayName": "SMAP 星际导航",
+      "iconUrl": "https://smap.yunle.fun/smap-logo.svg",
+      "status": "active"
+    },
+    {
+      "adapters": [
+        {
+          "allowedScopes": [
+            "identity:bootstrap"
+          ],
+          "consent": "trusted",
+          "kind": "web-sso",
+          "origins": [
+            "https://studio.yunyoujun.cn"
+          ],
+          "redirectUris": [
+            "https://studio.yunyoujun.cn/"
+          ]
+        }
+      ],
+      "appId": "studio",
+      "clientId": "studio-web",
+      "displayName": "YunYouJun Studio",
+      "iconUrl": "https://studio.yunyoujun.cn/icon.svg",
+      "status": "active"
+    },
+    {
+      "adapters": [
+        {
+          "allowedScopes": [
+            "identity:bootstrap"
+          ],
+          "consent": "trusted",
+          "kind": "web-sso",
+          "origins": [
+            "https://support.yunle.fun"
+          ],
+          "redirectUris": [
+            "https://support.yunle.fun/"
+          ]
+        }
+      ],
+      "appId": "support",
+      "clientId": "support-web",
+      "displayName": "云乐坊支持中心",
+      "iconUrl": "https://support.yunle.fun/favicon.svg",
+      "status": "active"
+    },
+    {
+      "adapters": [
+        {
+          "allowedScopes": [
+            "identity:bootstrap"
+          ],
+          "consent": "trusted",
+          "kind": "web-sso",
+          "origins": [
+            "https://resume.yunle.fun"
+          ],
+          "redirectUris": [
+            "https://resume.yunle.fun/user"
+          ]
+        }
+      ],
+      "appId": "web-resume",
+      "clientId": "web-resume-web",
+      "displayName": "Web Resume",
+      "iconUrl": "https://resume.yunle.fun/img/icons/web-resume-mark.svg",
+      "status": "active"
+    },
+    {
+      "adapters": [
+        {
+          "allowedScopes": [
+            "identity:bootstrap"
+          ],
+          "consent": "trusted",
+          "kind": "web-sso",
+          "origins": [
+            "https://wenta.yunle.fun"
+          ],
+          "redirectUris": [
+            "https://wenta.yunle.fun/"
+          ]
+        }
+      ],
+      "appId": "wenta",
+      "clientId": "wenta-web",
+      "displayName": "问 TA",
+      "iconUrl": "https://wenta.yunle.fun/favicon.svg",
+      "status": "active"
+    }
+  ],
+  "issuer": "https://www.yunle.fun",
+  "policyVersion": "2026-10-21-advjs-studio-ios-v1",
+  "schemaVersion": 1
+}

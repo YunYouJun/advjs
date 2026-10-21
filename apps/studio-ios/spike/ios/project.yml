@@ -13,6 +13,7 @@ settings:
     SWIFT_STRICT_CONCURRENCY: complete
     TARGETED_DEVICE_FAMILY: '1,2'
     CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: QT792GAY4C
     ENABLE_USER_SCRIPT_SANDBOXING: YES
 targets:
   StudioSpike:
@@ -45,8 +46,10 @@ targets:
         UIBackgroundModes: []
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: org.advjs.studio.spike
+        # Same Debug App ID the production project will use; listed in studio.advjs.org's AASA.
+        PRODUCT_BUNDLE_IDENTIFIER: org.advjs.studio.dev
         GENERATE_INFOPLIST_FILE: NO
+        CODE_SIGN_ENTITLEMENTS: StudioSpike/StudioSpike.entitlements
   StudioSpikeTests:
     type: bundle.unit-test
     platform: iOS
@@ -56,7 +59,7 @@ targets:
       - target: StudioSpike
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: org.advjs.studio.spike.tests
+        PRODUCT_BUNDLE_IDENTIFIER: org.advjs.studio.dev.tests
         GENERATE_INFOPLIST_FILE: YES
         TEST_HOST: $(BUILT_PRODUCTS_DIR)/StudioSpike.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/StudioSpike
         BUNDLE_LOADER: $(TEST_HOST)

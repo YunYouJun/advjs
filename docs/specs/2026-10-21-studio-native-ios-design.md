@@ -1,19 +1,19 @@
 # Studio iPhone／iPad 原生 App 设计规格
 
 - 日期：2026-10-21。
-- 状态：草案。功能清单**待用户确认后锁定**，确认前不进入 P1。可行性结论来自模拟器，真机项待验。
+- 状态：功能清单已于 2026-10-21 经用户确认（见[确认记录](#用户确认记录)），其中「云端项目编辑方式」与「遥测」两项按建议登记、待用户最终表态。可行性结论来自 iOS 模拟器；用户决定以模拟器验收，不要求实机。
 - 范围：[实施计划](../plans/2026-10-21-studio-native-ios)的 P0 交付；计划中的范围、架构决策、体验预算和 N1–N16 仍是唯一验收标准。实测数据与证据见[验收报告](../reports/studio-native-ios-acceptance)。
 - 代码基线：`dfc45b9e`（`apps/studio/src`，约 8.7 万行）。可行性探针位于 `apps/studio-ios/spike/`，只用于 P0，不进入产品工程。
 
 ## 结论摘要
 
-| 项目           | 结论                                                                                                                                                                                                                   |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 引擎可行性     | 成立。现有 parser、core compiler、内容序列化与资源目录打成 641 KiB 单文件，在 iOS 27 模拟器 JavaScriptCore 中运行 160 个 golden 用例，与 Node 输出逐字节一致。需要宿主补齐 4 项 Web API（见架构决策 1）。              |
-| 播放器可行性   | 成立。独立打包的播放器（1.6 MB）经 `WKURLSchemeHandler` 离线运行立绘、背景、BGM（206 分段读取）、选择支和官方 `star-map` 插件；存档快照经原生落盘后恢复，光标一致；越界路径与外部请求均被拒绝。                        |
-| 原生登录可行性 | 协议可行，端到端**受阻**。云乐坊 SSO v3 只接受 HTTPS 回调；iOS 拒绝 HTTPS 回调，原因是 App 未与 `studio.advjs.org` 关联。需要服务端配置、Apple 账号权限和一个原生客户端登记，见[服务端与账号依赖](#服务端与账号依赖)。 |
-| 协作           | 首版暂不迁移。Yjs 在 JavaScriptCore 中与 Node 互发更新可收敛；阻塞点是 CloudBase 实时传输与产品入口，而非 CRDT。                                                                                                       |
-| Capacitor 迁移 | 仓库证据显示 iOS 壳从未签名分发，倾向无需迁移；需要用户在 App Store Connect 核实。                                                                                                                                     |
+| 项目           | 结论                                                                                                                                                                                                                                                                                   |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 引擎可行性     | 成立。现有 parser、core compiler、内容序列化与资源目录打成 641 KiB 单文件，在 iOS 27 模拟器 JavaScriptCore 中运行 160 个 golden 用例，与 Node 输出逐字节一致。需要宿主补齐 4 项 Web API（见架构决策 1）。                                                                              |
+| 播放器可行性   | 成立。独立打包的播放器（1.6 MB）经 `WKURLSchemeHandler` 离线运行立绘、背景、BGM（206 分段读取）、选择支和官方 `star-map` 插件；存档快照经原生落盘后恢复，光标一致；越界路径与外部请求均被拒绝。                                                                                        |
+| 原生登录可行性 | 协议可行，端到端**受阻**。云乐坊 SSO v3 只接受 HTTPS 回调；iOS 拒绝 HTTPS 回调，原因是 App 未与 `studio.advjs.org` 关联。按云生已上线的原生路径补齐：Registry 新增原生客户端、`studio.advjs.org` 发布 AASA 与回调页、Team `QT792GAY4C` 签名，见[服务端与账号依赖](#服务端与账号依赖)。 |
+| 协作           | 首版暂不迁移。Yjs 在 JavaScriptCore 中与 Node 互发更新可收敛；阻塞点是 CloudBase 实时传输与产品入口，而非 CRDT。                                                                                                                                                                       |
+| Capacitor 迁移 | 用户确认从未上传 App Store Connect，无需迁移。                                                                                                                                                                                                                                         |
 
 ## 功能清单
 
@@ -25,13 +25,20 @@
 
 清单来自对 `src/main.ts` 起的静态导入图（275 个可达模块）、路由表、各页面入口和托管能力开关的逐项核对。下表的「现有入口」均相对 `apps/studio/src`。
 
-### 待用户确认
+### 用户确认记录
 
-1. 托管配音（Jobs、Voice Design、发布审核）在生产服务端是否已开放？本表按「首版必需、按服务端 fail-closed」登记；若未开放，改为「暂不迁移」。
-2. 「从云端加载」当前以只读 COS 项目打开，导出、自动修复均不可用。原生首版是否改为「下载为本地项目，再与云端同步」？本表按此登记。
-3. 世界 Tab 只有关系图和角色资料有实际数据，时钟、事件、日记、情感状态在生产中恒为空。本表将后者登记为暂不迁移，世界 Tab 在原生中降为「角色与关系」视图。是否同意？
-4. 遥测在原生首版不采集，隐私清单保持「不收集数据」。是否同意？
-5. 市场、作品集、创作者主页与数据分析按「首版必需」登记（属于计划 P6）。其中数据分析页与分享页在当前生产构建中很可能白屏（顶层 `await import`），原生按设计重做，不复刻缺陷。
+2026-10-21 用户答复：
+
+| 事项                                     | 结论                                                                                                                                                                                                                                                                                                  |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 托管配音（Jobs、Voice Design、发布审核） | 暂不开放。A09–A11 改为暂不迁移。                                                                                                                                                                                                                                                                      |
+| 云端项目能否直接编辑                     | 建议采用「云端工作副本」：打开云端项目时下载到本机，编辑写本机文件，保存后自动上传并检测冲突。用户感知为直接编辑云端项目，同时保留离线编辑、「文件」App、原子保存与撤销。不采用每次保存直写云端：托管存储是逐对象上传，没有锁、版本与多文件事务，断网即不可编辑。待用户最终表态。                     |
+| 世界 Tab                                 | 不缩减。R03、R04 改为首版必需：时钟、视角、玩家角色、事件、时间线、日记与情感状态照常实现；事件与日记目前没有生产生成来源，服务端提取能力登记后才会有数据。                                                                                                                                           |
+| 遥测                                     | 用户询问含义。Web Studio 的遥测是默认关闭、需用户在隐私页开启的匿名使用统计：记录导出等事件与错误，带会话 ID，上报到 CloudBase 云函数 `advjs-telemetry`（该函数不在仓库）。建议原生首版不采集：隐私标签可保持「不收集数据」，崩溃诊断由 Apple 的 TestFlight 与 Xcode Organizer 提供。待用户最终表态。 |
+| 市场、作品集、创作者主页、数据分析       | 首版就做。                                                                                                                                                                                                                                                                                            |
+| Apple Team                               | Lan Yang（`QT792GAY4C`），与云乐坊 App、云生 App 同一团队。                                                                                                                                                                                                                                           |
+| Capacitor 构建                           | 从未上传 App Store Connect。无需迁移，N12 不适用。                                                                                                                                                                                                                                                    |
+| 验收设备                                 | 使用 iOS 模拟器验收，不要求实机。主计划 N1 等「实机」条款需按此同步修订（主计划尚未进入本分支）。                                                                                                                                                                                                     |
 
 ### 工作区与项目
 
@@ -49,7 +56,7 @@
 | W10  | 文件浏览与任意文本文件编辑                | `WorkspacePage.vue:926-966`                                    | 首版必需 | 原生项目文件树、文本编辑、图片音频预览、重命名、复制、删除；当前只在桌面 Chromium 可用。             |
 | W11  | 项目切换器                                | `components/ProjectSwitcher.vue`                               | 首版必需 | iPhone 返回列表；iPad 每窗口一个项目。                                                               |
 | W12  | 云端同步：手动同步、逐文件冲突选择        | `ProjectOverview.vue:116-163`、`components/SyncConflictModal`  | 首版必需 | 沿用 `advjsAssets` 短期上传契约；同步失败不显示成功（当前会误报）。                                  |
-| W13  | 从云端加载项目                            | `WorkspacePage.vue:431-504`                                    | 首版必需 | 待确认问题 2：下载为本地项目。                                                                       |
+| W13  | 从云端加载项目                            | `WorkspacePage.vue:431-504`                                    | 首版必需 | 云端工作副本：下载到本机编辑，保存后自动上传并检测冲突（见确认记录）。                               |
 | W14  | 周期自动同步                              | `composables/useCloudSync.ts:354-396`                          | 暂不迁移 | Web 端只在设置变更时启动，生产中基本不生效；首版以手动同步与编辑后上传为准，后续按后台任务规则设计。 |
 | W15  | 从 URL 加载                               | `WorkspacePage.vue:399-429`                                    | 暂不迁移 | 只保存 URL，从未读取，是存根。                                                                       |
 | W16  | 首次引导浮层                              | `components/OnboardingOverlay.vue`                             | 暂不迁移 | 5 个步骤中 2 个目标已不存在；原生以空状态说明替代，TipKit 在 P7 评估。                               |
@@ -86,21 +93,21 @@
 
 ### 音频与配音
 
-| 编号 | 功能                                                     | 现有入口                                                       | 分类     | 原生形态／原因                                                                |
-| ---- | -------------------------------------------------------- | -------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------- |
-| A01  | 初始化音频目录                                           | `components/audio/AudioWorkspace.vue:160`                      | 首版必需 | 引擎生成目录结构。                                                            |
-| A02  | 资源库：导入、元数据、搜索筛选、试听、删除               | `components/audio/AudioLibrary.vue`、`AudioAssetForm.vue`      | 首版必需 | 音频会话类别、离页与切后台停止；删除前确认。                                  |
-| A03  | 音乐交接 brief：复制、下载 JSON、填入导入表单、打开 Suno | `components/audio/AudioMusicBrief.vue`                         | 首版必需 | 分享面板与 `openURL`。                                                        |
-| A04  | 音乐审核：试听确认、批准、拒绝、绑定章节                 | `components/audio/AudioMusicReview.vue`                        | 首版必需 | 「我已试听」只在实际播放该资源后可勾选，与 Web 规则一致。                     |
-| A05  | 混音器：总线增益、静音、独奏、闪避，保存                 | `components/audio/AudioMixer.vue`                              | 首版必需 | 原生滑块与开关。                                                              |
-| A06  | 配音审核：A/B 对比、绑定或替换 take、陈旧处理、来源信息  | `components/audio/AudioVoiceReview.vue`                        | 首版必需 | —                                                                             |
-| A07  | 高级盲听：候选、环境、评分、导出与恢复会话 JSON          | `components/audio/AudioAdvancedListening.vue`                  | 首版必需 | 导入导出经「文件」。                                                          |
-| A08  | 旁白档案、发音词典                                       | `components/audio/AudioVoiceConfiguration.vue`                 | 首版必需 | —                                                                             |
-| A09  | 托管配音任务：计划、排队、运行、取消、重试、自动导入     | `components/audio/AudioVoiceJobs.vue`、`useHostedVoiceJobs.ts` | 首版必需 | 待确认问题 1；按服务端 `configured` fail-closed。                             |
-| A10  | Voice Design：候选、试听、注册、应用、付费预览确认       | `components/audio/AudioVoiceDesign*.vue`                       | 首版必需 | 待确认问题 1。                                                                |
-| A11  | 音频发布：检查、审核、发布                               | `components/audio/AudioPublication.vue`                        | 首版必需 | 待确认问题 1；当前托管部署未配置时返回 `ADV_AUDIO_PUBLICATION_UNCONFIGURED`。 |
-| A12  | 本地配音服务配对（`127.0.0.1:3389`）                     | `components/audio/AudioLocalConnection.vue`                    | 仅 Web   | 只在 Studio 自身由回环地址提供时出现，用于本机开发。                          |
-| A13  | 离线私有配音任务                                         | `utils/voiceGenerationStore.ts`                                | 暂不迁移 | 生产中没有本地生成传输，只能计划不能执行。                                    |
+| 编号 | 功能                                                     | 现有入口                                                       | 分类     | 原生形态／原因                                                         |
+| ---- | -------------------------------------------------------- | -------------------------------------------------------------- | -------- | ---------------------------------------------------------------------- |
+| A01  | 初始化音频目录                                           | `components/audio/AudioWorkspace.vue:160`                      | 首版必需 | 引擎生成目录结构。                                                     |
+| A02  | 资源库：导入、元数据、搜索筛选、试听、删除               | `components/audio/AudioLibrary.vue`、`AudioAssetForm.vue`      | 首版必需 | 音频会话类别、离页与切后台停止；删除前确认。                           |
+| A03  | 音乐交接 brief：复制、下载 JSON、填入导入表单、打开 Suno | `components/audio/AudioMusicBrief.vue`                         | 首版必需 | 分享面板与 `openURL`。                                                 |
+| A04  | 音乐审核：试听确认、批准、拒绝、绑定章节                 | `components/audio/AudioMusicReview.vue`                        | 首版必需 | 「我已试听」只在实际播放该资源后可勾选，与 Web 规则一致。              |
+| A05  | 混音器：总线增益、静音、独奏、闪避，保存                 | `components/audio/AudioMixer.vue`                              | 首版必需 | 原生滑块与开关。                                                       |
+| A06  | 配音审核：A/B 对比、绑定或替换 take、陈旧处理、来源信息  | `components/audio/AudioVoiceReview.vue`                        | 首版必需 | —                                                                      |
+| A07  | 高级盲听：候选、环境、评分、导出与恢复会话 JSON          | `components/audio/AudioAdvancedListening.vue`                  | 首版必需 | 导入导出经「文件」。                                                   |
+| A08  | 旁白档案、发音词典                                       | `components/audio/AudioVoiceConfiguration.vue`                 | 首版必需 | —                                                                      |
+| A09  | 托管配音任务：计划、排队、运行、取消、重试、自动导入     | `components/audio/AudioVoiceJobs.vue`、`useHostedVoiceJobs.ts` | 暂不迁移 | 用户确认托管配音暂不开放；作者编辑的配音档案与 take 文件格式保持兼容。 |
+| A10  | Voice Design：候选、试听、注册、应用、付费预览确认       | `components/audio/AudioVoiceDesign*.vue`                       | 暂不迁移 | 同 A09。                                                               |
+| A11  | 音频发布：检查、审核、发布                               | `components/audio/AudioPublication.vue`                        | 暂不迁移 | 同 A09。                                                               |
+| A12  | 本地配音服务配对（`127.0.0.1:3389`）                     | `components/audio/AudioLocalConnection.vue`                    | 仅 Web   | 只在 Studio 自身由回环地址提供时出现，用于本机开发。                   |
+| A13  | 离线私有配音任务                                         | `utils/voiceGenerationStore.ts`                                | 暂不迁移 | 生产中没有本地生成传输，只能计划不能执行。                             |
 
 ### 托管 AI
 
@@ -129,12 +136,12 @@
 
 ### 世界
 
-| 编号 | 功能                                                   | 现有入口                                                     | 分类     | 原生形态／原因                                                             |
-| ---- | ------------------------------------------------------ | ------------------------------------------------------------ | -------- | -------------------------------------------------------------------------- |
-| R01  | 角色列表与关系图                                       | `views/WorldPage.vue`、`components/RelationshipGraph.vue`    | 首版必需 | 待确认问题 3：并入「角色与关系」视图。                                     |
-| R02  | 角色资料页：外貌、性格、背景、关系                     | `views/CharacterInfoPage.vue`                                | 首版必需 | —                                                                          |
-| R03  | 世界时钟、视角模式、玩家角色选择与本机自定义角色       | `WorldPage.vue`、`components/SelectPlayerCharacterModal.vue` | 暂不迁移 | 时钟无监听者，视角模式只过滤列表；自定义角色只存在 IndexedDB，不写入项目。 |
-| R04  | 世界事件、时间线、CSV 导出、角色日记、情感状态与情感弧 | `WorldPage.vue`、`views/CharacterDiaryPage.vue`              | 暂不迁移 | 生成函数为 fail-closed 存根，生产中数据恒为空。                            |
+| 编号 | 功能                                                   | 现有入口                                                     | 分类     | 原生形态／原因                                                           |
+| ---- | ------------------------------------------------------ | ------------------------------------------------------------ | -------- | ------------------------------------------------------------------------ |
+| R01  | 角色列表与关系图                                       | `views/WorldPage.vue`、`components/RelationshipGraph.vue`    | 首版必需 | 原生关系图，缩放、平移与 VoiceOver 列表。                                |
+| R02  | 角色资料页：外貌、性格、背景、关系                     | `views/CharacterInfoPage.vue`                                | 首版必需 | —                                                                        |
+| R03  | 世界时钟、视角模式、玩家角色选择与本机自定义角色       | `WorldPage.vue`、`components/SelectPlayerCharacterModal.vue` | 首版必需 | 用户确认不缩减。数据存为本机数据；「AI 创建角色」不保留失效跳转。        |
+| R04  | 世界事件、时间线、CSV 导出、角色日记、情感状态与情感弧 | `WorldPage.vue`、`views/CharacterDiaryPage.vue`              | 首版必需 | 用户确认不缩减。生成仍按服务端登记 fail-closed，无数据时显示准确空状态。 |
 
 ### 市场、社区与分享
 
@@ -146,7 +153,7 @@
 | M04  | 通知中心：未读数、全部已读、点击跳转                                 | `components/NotificationCenter.vue`                                    | 首版必需 | 应用内轮询；不做推送营销。                                                                          |
 | M05  | 作品集：云端项目、绑定当前项目、公开／私有                           | `views/me/PortfolioPage.vue`                                           | 首版必需 | —                                                                                                   |
 | M06  | 项目分享页 `/share/:projectId`、二维码、短链接生成与 `/s/:code` 解析 | `views/ProjectSharePage.vue`、`views/ShortLinkRedirectPage.vue`        | 首版必需 | 规范 HTTPS 地址 + 通用链接；二维码用 Core Image。当前分享页只读本机数据，需在 P6 定义公开分享语义。 |
-| M07  | 创作者数据分析                                                       | `views/me/CreatorAnalyticsPage.vue`                                    | 首版必需 | 待确认问题 5。                                                                                      |
+| M07  | 创作者数据分析                                                       | `views/me/CreatorAnalyticsPage.vue`                                    | 首版必需 | 用户确认首版做；Web 版很可能白屏（顶层 `await import`），原生按设计重做。                           |
 | M08  | 市场演示数据写入与清理（开发者选项）                                 | `views/me/DeveloperPage.vue`                                           | 暂不迁移 | 运营调试工具，不进入 App。                                                                          |
 
 ### 我的、设置与账号
@@ -160,7 +167,7 @@
 | S05  | 云同步设置：项目根前缀、编辑后上传、测试连接 | `views/settings/SettingsCloudPage.vue`                                  | 首版必需 | 「上次同步」显示真实时间（当前恒为「从未同步」）。                              |
 | S06  | 关于：版本、文档、GitHub                     | `views/settings/SettingsAboutPage.vue`                                  | 首版必需 | 版本取自 Bundle。                                                               |
 | S07  | 隐私：说明、隐私政策                         | `views/settings/SettingsPrivacyPage.vue`、`views/PrivacyPolicyPage.vue` | 首版必需 | 隐私政策原生页面或 `SFSafariViewController`。                                   |
-| S08  | 匿名遥测开关与队列清理                       | `utils/telemetry.ts`                                                    | 暂不迁移 | 待确认问题 4；遥测云函数不在仓库，首版不采集。                                  |
+| S08  | 匿名遥测开关与队列清理                       | `utils/telemetry.ts`                                                    | 暂不迁移 | 建议首版不采集（见确认记录），待用户最终表态。                                  |
 | S09  | 反馈（GitHub Issue）                         | `views/me/MeFeedbackPage.vue`                                           | 首版必需 | 打开外部链接。                                                                  |
 | S10  | 清除本机数据                                 | `views/me/MeSettingsPage.vue:35`                                        | 首版必需 | 原生语义：清除偏好与缓存，不删除项目文件。                                      |
 | S11  | 开发者选项：调试信息复制                     | `views/me/DeveloperPage.vue`                                            | 首版必需 | 关于页隐藏入口，导出诊断信息（脱敏）。                                          |
@@ -168,16 +175,16 @@
 
 ### 全局外壳
 
-| 编号 | 功能                                                | 现有入口                                        | 分类     | 原生形态／原因                                                     |
-| ---- | --------------------------------------------------- | ----------------------------------------------- | -------- | ------------------------------------------------------------------ |
-| G01  | 4 个一级入口：工作区、世界、试玩、我的              | `views/TabsPage.vue`                            | 首版必需 | iPhone `TabView`，iPad `NavigationSplitView`；世界见待确认问题 3。 |
-| G02  | 离线提示                                            | `components/OfflineBanner.vue`                  | 首版必需 | `NWPathMonitor`。                                                  |
-| G03  | 错误边界                                            | `components/ErrorBoundary.vue`                  | 首版必需 | 原生错误状态与重试；播放器异常转结构化诊断。                       |
-| G04  | 自动恢复上次项目                                    | `stores/useStudioStore.ts:255-287`              | 首版必需 | 场景状态恢复。                                                     |
-| G05  | 触感反馈                                            | `utils/capacitor.ts:75-97`（无调用方）          | 首版必需 | 新增，仅用于确认、选择和错误（计划 P7）。                          |
-| G06  | PWA：Service Worker、更新提示、安装                 | `components/UpdatePrompt.vue`、`vite.config.ts` | 仅 Web   | App Store 负责更新。                                               |
-| G07  | 客户端 OG meta                                      | `utils/ogMeta.ts`                               | 仅 Web   | 面向爬虫。                                                         |
-| G08  | 宿主身份同步（`ylf:identityChanged`、`window.ylf`） | `main.ts:140-174`                               | 仅 Web   | 用于在云乐坊容器内嵌 Web Studio。                                  |
+| 编号 | 功能                                                | 现有入口                                        | 分类     | 原生形态／原因                                 |
+| ---- | --------------------------------------------------- | ----------------------------------------------- | -------- | ---------------------------------------------- |
+| G01  | 4 个一级入口：工作区、世界、试玩、我的              | `views/TabsPage.vue`                            | 首版必需 | iPhone `TabView`，iPad `NavigationSplitView`。 |
+| G02  | 离线提示                                            | `components/OfflineBanner.vue`                  | 首版必需 | `NWPathMonitor`。                              |
+| G03  | 错误边界                                            | `components/ErrorBoundary.vue`                  | 首版必需 | 原生错误状态与重试；播放器异常转结构化诊断。   |
+| G04  | 自动恢复上次项目                                    | `stores/useStudioStore.ts:255-287`              | 首版必需 | 场景状态恢复。                                 |
+| G05  | 触感反馈                                            | `utils/capacitor.ts:75-97`（无调用方）          | 首版必需 | 新增，仅用于确认、选择和错误（计划 P7）。      |
+| G06  | PWA：Service Worker、更新提示、安装                 | `components/UpdatePrompt.vue`、`vite.config.ts` | 仅 Web   | App Store 负责更新。                           |
+| G07  | 客户端 OG meta                                      | `utils/ogMeta.ts`                               | 仅 Web   | 面向爬虫。                                     |
+| G08  | 宿主身份同步（`ylf:identityChanged`、`window.ylf`） | `main.ts:140-174`                               | 仅 Web   | 用于在云乐坊容器内嵌 Web Studio。              |
 
 ### 未注册页面与 BYOK 遗留（暂不迁移）
 
@@ -228,11 +235,14 @@
 
 ### 3. 账号与登录
 
-- **流程**：`ASWebAuthenticationSession` 打开 `https://www.yunle.fun/auth/sso`（PKCE S256、256 位 nonce）→ 回调 `https://studio.advjs.org/auth/native/callback#ylf_sso=…` → 校验 nonce 与 issuer → `POST https://api.yunle.fun/sso-ticket`（`exchangeSsoCode`）换取 CloudBase custom ticket → 原生调用 CloudBase 身份认证 HTTP 接口登录，令牌存 Keychain。
-- **回调方式**：协议只接受 HTTPS 回调，不能用自定义 scheme（`readSsoRedirectUri` 拒绝非 HTTPS），也避免回调被其他 App 劫持。HTTPS 回调需要 `webcredentials` 关联域。
-- **原生客户端**：登记独立的 `advjs-studio-ios` 客户端，不复用 `advjs-studio-web`，便于按平台撤销与审计。兑换接口目前绑定浏览器 `Origin`，而 `URLSession` 不发送 `Origin`；原生客户端需要按 RFC 8252 的原生应用规则改为以 PKCE、nonce 与精确回调地址绑定。
-- **会话**：默认使用共享浏览器会话，用户在 Safari 已登录云乐坊时无需再次输入；提供「使用其他账号」时传 `prompt=select_account`。
-- **CloudBase**：`@cloudbase/js-sdk` 3.8.0 没有暴露可直接复用的接口路径，P5 依据 CloudBase 身份认证 HTTP API 文档实现 custom ticket 登录与刷新，并确认是否需要在控制台登记移动应用安全来源。
+沿用云生（Life）iOS 已在生产验证的原生路径（`YunYouJun/life` 的 `YunleIdentity` 包，见其 `docs/guide/yunlefun-sso.md`），不改动 `sso-ticket`。
+
+- **客户端**：新增 Registry 客户端 `advjs-studio-ios`：appId `advjs-studio`，`web-sso` adapter，显式授权（`consent: explicit`），scope `identity:bootstrap`，Origin `https://studio.advjs.org`，精确回调 `https://studio.advjs.org/auth/callback`，图标 `https://studio.advjs.org/favicon.png`。不复用 `advjs-studio-web`，便于按平台撤销与审计。
+- **流程**：`ASWebAuthenticationSession`（`.https(host:path:)` 回调，共享浏览器会话）打开 `https://www.yunle.fun/auth/sso`（PKCE S256、256 位 nonce）→ 回调片段 `#ylf_sso=` 校验 nonce 与 issuer → `POST https://api.yunle.fun/sso-ticket`（`exchangeSsoCode`）。兑换时显式发送 `Origin: https://studio.advjs.org`：授权码绑定注册 Origin，`URLSession` 允许设置该头，云生即如此实现。
+- **CloudBase 会话**：`https://yunlefun-8g7ybcxc7345c490.api.tcloudbasegateway.com/auth/v1/signin/custom`（ticket）建立会话，`/auth/v1/token` 刷新，`/auth/v1/user/me` 取资料，`/auth/v1/user/signout` 退出，均带 `x-device-id`。身份断言用 `sso-ticket` 的公钥（GET）验证后才写 Keychain。
+- **实现复用**：P5 把云生的 `YunleIdentity` 抽为共享 Swift Package 后引用，不在 Studio 中复制第二份协议实现。抽取位置（云乐坊组织下的独立仓库或 `www.yunle.fun`）在 P5 与云生维护方确认。
+- **托管文件**：`apps/studio/public/.well-known/apple-app-site-association`（`webcredentials` 与只匹配 `ylf_sso` 片段的 `applinks`，App ID `QT792GAY4C.org.advjs.studio` 与 Debug `QT792GAY4C.org.advjs.studio.dev`）、`apps/studio/public/auth/callback/`（只提示返回 App，清除片段，不兑换授权码）与 Cloudflare Pages `_headers`（AASA 为 `application/json`；回调 `no-store`、`no-referrer`、`noindex`、禁止嵌入）。Service Worker 的导航回落排除这两个路径。
+- **跨 App 授权**：已装云乐坊 App 时优先拉起它确认（云生已实现），需要 `www.yunle.fun` 的 `/auth/app` 允许名单加入本客户端，列为 P5 可选项。
 - **App Review 4.8**：云乐坊是开发者自有账号体系，属于 4.8 的「仅使用自有账号系统」情形，P8 复核时记录依据。
 
 ### 4. 协作
@@ -251,28 +261,25 @@
 | Swift        | Swift 6 语言模式，`SWIFT_STRICT_CONCURRENCY = complete`。探针在该配置下零警告构建。                                                                                                                                       |
 | 工程组织     | 提交 `.xcodeproj`，使用 Xcode 文件夹同步（buildable folders）加本地 Swift Package（`StudioKit`、`StudioUI`）。不引入 XcodeGen 或 Tuist；探针为快速生成使用 XcodeGen，只限 `spike/`。                                      |
 | CI runner    | GitHub-hosted `xcode-27`（Apple Silicon，macOS 27，2026-10-15 GA）。固定 Xcode 版本；最低版本回归需要 iOS 26 模拟器运行时，镜像是否预装待 P8 核实。                                                                       |
-| 参考实机     | iPhone 15 Pro（iPhone16,1，已在本机配对记录中出现，当前未连接）；iPad 型号待用户提供。建议另备一台 A13–A14 iPhone 作为低端预算基线。                                                                                      |
-| Bundle ID    | 沿用 `org.advjs.studio`。Apple Team 待确认；云乐坊现有 App 使用 Team `QT792GAY4C`。                                                                                                                                       |
+| 验收设备     | 用户决定使用 iOS 模拟器：iPhone 18 Pro 与 iPad Pro 11-inch（M5）模拟器，iOS 27.0；最低版本另装 iOS 26 运行时回归。性能预算以模拟器趋势为准，实机差异列为风险。                                                            |
+| Bundle ID    | Release `org.advjs.studio`，Debug `org.advjs.studio.dev`；Team Lan Yang（`QT792GAY4C`），Xcode 自动签名。                                                                                                                 |
 
 ## Capacitor 分发与数据迁移
 
-仓库证据：`apps/studio/ios` 未设置 `DEVELOPMENT_TEAM`，版本保持 1.0（1），`RELEASE.md` 清单未勾选，`ios-templates/` 的合规键与隐私清单未合入工程，`ios/` 目录自 2026-06-08 起只有图标类提交。据此判断该壳从未签名上传。
-
-若用户在 App Store Connect 确认无构建记录，N12 记为「不适用」，P2 不实现迁移。若有构建，迁移按计划执行：同一 Bundle ID 的新 App 直接继承 `Documents/advjs/{projectId}`；`localStorage` 与 IndexedDB 位于 `capacitor://localhost` 源的 WebKit 存储中，需要在首次启动时以同源 `WKWebView` 读出后转存。
+用户确认 Capacitor iOS 壳从未上传 App Store Connect，与仓库证据一致（无 `DEVELOPMENT_TEAM`、版本 1.0（1）、发布清单未执行）。原生 App 不实现 Capacitor 数据迁移，N12 不适用。
 
 ## 服务端与账号依赖
 
-以下事项都需要用户决定或操作，P0 只记录证据，未修改任何线上配置。
+用户同意经管理后台走通配置。下表为 2026-10-21 的状态；线上部署与审批请求在用户确认后执行。
 
-| 依赖                                                      | 现状（2026-10-21 实测）                                                                                 | 需要的变更                                                                                                                                                |
-| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `studio.advjs.org/.well-known/apple-app-site-association` | 返回 SPA 的 `text/html`，不是 AASA。站点由 Cloudflare Pages 项目 `advjs-studio`（生产分支 `dev`）提供。 | 发布 JSON（无重定向，`application/json`）：`webcredentials.apps` 含 `<TEAMID>.org.advjs.studio`；P6 再加 `applinks`（`/share/*`、`/s/*`、`/creator/*`）。 |
-| 云乐坊 SSO 客户端登记                                     | 已登记 `advjs-studio-web`（3 个 HTTPS 源）。                                                            | 新增 `advjs-studio-ios`，回调 `https://studio.advjs.org/auth/native/callback`，scope `identity:bootstrap`，appId `advjs-studio`。                         |
-| `sso-ticket` 兑换策略                                     | 文档写明校验 `Origin`；原生请求不带 `Origin`。                                                          | 为原生客户端放行无 `Origin` 请求，仍校验 PKCE、nonce、回调地址、scope 与 TTL。                                                                            |
-| 回调页面                                                  | `/auth/native/callback` 不存在。                                                                        | Web Studio 增加回落页面（未安装 App 或会话已结束时提示返回 App），不消费授权码。                                                                          |
-| Apple Developer                                           | Bundle ID 归属、Team、Associated Domains 能力未知。                                                     | 在 Team 中启用 `org.advjs.studio` 的 Associated Domains，并在本机 Xcode 登录。                                                                            |
-| CloudBase                                                 | Web 端依赖安全域名与 `VITE_TCB_ACCESS_KEY`。                                                            | 确认原生 HTTP 调用所需的移动应用来源登记与访问密钥。                                                                                                      |
-| App Store Connect                                         | 未核实。                                                                                                | 核实 `org.advjs.studio` 是否有构建记录（决定 N12）。                                                                                                      |
+| 依赖                                           | 状态                                                                                                                                                                                                                                                         |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `studio.advjs.org` 的 AASA 与 `/auth/callback` | 文件已加入 `apps/studio/public`，生产构建产物与 Service Worker 已核对。线上仍返回 SPA，需把该提交发布到 Cloudflare Pages 项目 `advjs-studio` 的生产分支 `dev`。                                                                                              |
+| `www.yunle.fun` 应用探索页排除原生客户端       | 已在 `feat/advjs-studio-ios-sso` 分支完成（提交 `7edb8de`，新增测试在未修复时失败、修复后通过）。需开 PR 合入 `main`；否则 Registry 发布 PR 的 CI 会因 ADV.JS Studio 重复出现而失败（云生首次发布即因此作废）。                                              |
+| Registry 客户端 `advjs-studio-ios`             | 候选快照 `apps/studio-ios/sso/production-advjs-studio-ios.draft.json` 已通过 `pnpm sso:registry validate`：22 个客户端，只新增本客户端，policy `2026-10-21-advjs-studio-ios-v1`。下一步保存草稿、核对 diff、发起生产审批（飞书卡片或邮件审批码发给所有者）。 |
+| `sso-ticket` 兑换策略                          | 不需要修改：原生端显式发送注册 Origin。                                                                                                                                                                                                                      |
+| Apple Developer                                | 模拟器无需描述文件，探针已以 Team `QT792GAY4C`、`org.advjs.studio.dev` 嵌入 Associated Domains。TestFlight 前由 Xcode 自动签名为两个 App ID 开启 Associated Domains。                                                                                        |
+| CloudBase                                      | 与云生使用同一身份认证网关，无需额外登记。                                                                                                                                                                                                                   |
 
 ## 否决方案
 
@@ -285,10 +292,10 @@
 | Yrs Swift 绑定实现协作              | 见架构决策 4。                                                                  |
 | XcodeGen／Tuist 生成正式工程        | 增加 CI 与本机工具依赖；Xcode 文件夹同步已解决 pbxproj 合并问题。               |
 
-## 风险与真机待验
+## 风险
 
-- JavaScriptCore 内存增长与回收（架构决策 1），需真机 Instruments。
-- 冷启动与首帧：iPhone 模拟器中打开播放器到首个节点 1.06–1.43 s，iPad 模拟器开机后首次打开 3.92 s，均含 WebContent 进程启动；预算 2.0 s 需真机测量，P4 评估预热播放器进程。
+- JavaScriptCore 内存增长与回收（架构决策 1），以模拟器 Instruments 定位，按项目重建虚拟机。
+- 冷启动与首帧：iPhone 模拟器中打开播放器到首个节点 1.06–1.43 s，iPad 模拟器开机后首次打开 3.92 s，均含 WebContent 进程启动；P4 评估预热播放器进程。
 - WebContent 进程内存不计入 App 进程，需 Instruments 分进程记录关闭试玩后的回落。
+- 只用模拟器验收：真机的 GPU、内存压力、媒体会话与网络切换差异不在验收范围内，上架前出现的设备问题需单独排查。
 - 最低系统版本 iOS 26 尚未运行：本机只有 iOS 27.0 与 18.3 模拟器运行时。
-- 登录端到端依赖上节全部变更，完成后需在真机走通并换取 CloudBase 会话。

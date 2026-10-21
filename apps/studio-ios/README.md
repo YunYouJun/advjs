@@ -6,14 +6,15 @@ SwiftUI 原生 Studio 的工作目录。目标、范围与验收见[实施计划
 
 ## 探针
 
-| 目录              | 用途                                                                                         |
-| ----------------- | -------------------------------------------------------------------------------------------- |
-| `spike/engine/`   | 把 parser、core compiler、内容序列化与资源目录打成 JavaScriptCore 单文件；生成 golden 用例。 |
-| `spike/player/`   | 独立播放器页面（Vue + `@advjs/client`），由 `WKURLSchemeHandler` 离线加载。                  |
-| `spike/collab/`   | Yjs 在 JavaScriptCore 与 Node 之间的更新互通。                                               |
-| `spike/fixtures/` | 播放器离线场景用的项目：立绘、背景、BGM、选择支、`star-map` 插件。                           |
-| `spike/ios/`      | SwiftUI 探针 App：引擎一致性、播放器场景、登录会话。                                         |
-| `spike/evidence/` | 验收报告引用的模拟器截图。                                                                   |
+| 目录              | 用途                                                                                                         |
+| ----------------- | ------------------------------------------------------------------------------------------------------------ |
+| `spike/engine/`   | 把 parser、core compiler、内容序列化与资源目录打成 JavaScriptCore 单文件；生成 golden 用例。                 |
+| `spike/player/`   | 独立播放器页面（Vue + `@advjs/client`），由 `WKURLSchemeHandler` 离线加载。                                  |
+| `spike/collab/`   | Yjs 在 JavaScriptCore 与 Node 之间的更新互通。                                                               |
+| `spike/fixtures/` | 播放器离线场景用的项目：立绘、背景、BGM、选择支、`star-map` 插件。                                           |
+| `spike/ios/`      | SwiftUI 探针 App：引擎一致性、播放器场景、登录会话。                                                         |
+| `spike/evidence/` | 验收报告引用的模拟器截图。                                                                                   |
+| `sso/`            | 云乐坊 SSO 原生客户端 `advjs-studio-ios` 的声明与生产 Registry 候选快照（经 `www.yunle.fun` 审批流程发布）。 |
 
 ## 运行
 
@@ -40,7 +41,7 @@ cd apps/studio-ios/spike/ios && xcodegen generate
 xcodebuild test -project apps/studio-ios/spike/ios/StudioSpike.xcodeproj -scheme StudioSpike -destination 'platform=iOS Simulator,name=iPhone 18 Pro'
 ```
 
-App 启动参数：`-autorunEngine` 运行 golden 用例并写入 `Documents/engine-spike-engine.min.js.json`；`-autorunPlayer` 运行离线试玩场景并写入 `Documents/player-spike-report.json`；`-autorunSignIn`、`-autorunSignInNative`、`-autorunSignInScheme` 启动三种登录会话。
+App 启动参数：`-autorunEngine` 运行 golden 用例并写入 `Documents/engine-spike-engine.min.js.json`；`-autorunPlayer` 运行离线试玩场景并写入 `Documents/player-spike-report.json`；`-autorunSignIn`、`-autorunSignInNative`、`-autorunSignInScheme` 启动三种登录会话；`-autorunSignInNative` 使用 `advjs-studio-ios`，需 Registry 发布且 `studio.advjs.org` 的 AASA 上线后才能走通。
 
 ## 验证
 

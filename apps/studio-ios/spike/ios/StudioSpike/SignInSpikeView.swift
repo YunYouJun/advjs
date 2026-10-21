@@ -2,7 +2,9 @@
 //
 // Mirrors `@yunlefun/sso` 0.6.x: top-level authorization with PKCE (S256) and
 // a 256-bit nonce, an HTTPS redirect whose fragment carries `ylf_sso`, then a
-// one-time code exchange at `sso-ticket` for a CloudBase custom ticket.
+// one-time code exchange at `sso-ticket` for a CloudBase custom ticket and a
+// CloudBase session via `/auth/v1/signin/custom` — the same native path the
+// Life app (`YunleIdentity`) uses in production.
 
 import AuthenticationServices
 import CryptoKit
@@ -14,8 +16,12 @@ struct SsoClientProfile: Hashable, Identifiable {
     let redirectURI: URL
     let note: String
 
+    /// The registered origin the code is bound to; native clients send it explicitly on exchange.
+    var origin: String { "https://\(redirectURI.host() ?? "")" }
+
     static let issuer = URL(string: "https://www.yunle.fun")!
     static let exchangeURL = URL(string: "https://api.yunle.fun/sso-ticket")!
+    static let authGateway = URL(string: "https://yunlefun-8g7ybcxc7345c490.api.tcloudbasegateway.com")!
     static let scope = "identity:bootstrap"
 
     /// Registered today for the Web Studio; reused here only to observe the provider's behaviour.
@@ -26,12 +32,12 @@ struct SsoClientProfile: Hashable, Identifiable {
         note: "Registered Web client"
     )
 
-    /// Proposed native client; requires provider registration and an AASA file (see the P0 spec).
+    /// Native client `advjs-studio-ios`; active once the Registry release and studio.advjs.org AASA are live.
     static let proposedNative = SsoClientProfile(
         id: "native",
         clientId: "advjs-studio-ios",
-        redirectURI: URL(string: "https://studio.advjs.org/auth/native/callback")!,
-        note: "Proposed native client (not registered)"
+        redirectURI: URL(string: "https://studio.advjs.org/auth/callback")!,
+        note: "Native client advjs-studio-ios"
     )
 }
 
@@ -181,31 +187,67 @@ struct SignInSpikeView: View {
         }
     }
 
-    /// Exchanges the one-time code. URLSession sends no `Origin` header, which the
-    /// provider binds for Web clients; a native client policy is a server change.
+    /// Exchanges the one-time code, then establishes and immediately ends a CloudBase
+    /// session so the spike proves the whole chain without keeping credentials.
     private func exchange(code: String, transaction: SsoTransaction) async {
-        var request = URLRequest(url: SsoClientProfile.exchangeURL)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "content-type")
-        request.httpShouldHandleCookies = false
-        let body: [String: String] = [
-            "action": "exchangeSsoCode",
-            "clientId": profile.clientId,
-            "redirectUri": profile.redirectURI.absoluteString,
-            "scope": SsoClientProfile.scope,
-            "code": code,
-            "nonce": transaction.nonce,
-            "codeVerifier": transaction.codeVerifier,
-        ]
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         do {
-            let (data, response) = try await URLSession.shared.data(for: request)
-            let status = (response as? HTTPURLResponse)?.statusCode ?? 0
-            let payload = (try? JSONSerialization.jsonObject(with: data) as? [String: Any]) ?? [:]
-            // Never log the ticket itself.
-            append("exchange HTTP \(status) ok=\(payload["ok"] ?? "nil") reason=\(payload["reason"] ?? "-") ticket=\(payload["ticket"] == nil ? "absent" : "present")")
+            let (exchangeStatus, exchange) = try await post(SsoClientProfile.exchangeURL, body: [
+                "action": "exchangeSsoCode",
+                "clientId": profile.clientId,
+                "redirectUri": profile.redirectURI.absoluteString,
+                "scope": SsoClientProfile.scope,
+                "code": code,
+                "nonce": transaction.nonce,
+                "codeVerifier": transaction.codeVerifier,
+            ], origin: profile.origin)
+            // Never log the ticket or tokens.
+            append("exchange HTTP \(exchangeStatus) ok=\(exchange["ok"] ?? "nil") reason=\(exchange["reason"] ?? "-") ticket=\(exchange["ticket"] == nil ? "absent" : "present")")
+            guard let ticket = exchange["ticket"] as? String else { return }
+
+            let deviceID = UUID().uuidString
+            let (signInStatus, tokens) = try await post(SsoClientProfile.authGateway.appendingPathComponent("auth/v1/signin/custom"),
+                                                        body: ["provider_id": "custom", "ticket": ticket], deviceID: deviceID)
+            append("signin/custom HTTP \(signInStatus) access_token=\(tokens["access_token"] == nil ? "absent" : "present") refresh_token=\(tokens["refresh_token"] == nil ? "absent" : "present")")
+            guard let accessToken = tokens["access_token"] as? String else { return }
+
+            var me = URLRequest(url: SsoClientProfile.authGateway.appendingPathComponent("auth/v1/user/me"))
+            me.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+            me.setValue(deviceID, forHTTPHeaderField: "x-device-id")
+            let (meData, meResponse) = try await Self.session.data(for: me)
+            let profileJSON = (try? JSONSerialization.jsonObject(with: meData) as? [String: Any]) ?? [:]
+            append("user/me HTTP \((meResponse as? HTTPURLResponse)?.statusCode ?? 0) sub=\(profileJSON["sub"] == nil ? "absent" : "present")")
+
+            var signOut = URLRequest(url: SsoClientProfile.authGateway.appendingPathComponent("auth/v1/user/signout"))
+            signOut.httpMethod = "POST"
+            signOut.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            signOut.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+            signOut.setValue(deviceID, forHTTPHeaderField: "x-device-id")
+            signOut.httpBody = Data("{}".utf8)
+            let (_, signOutResponse) = try await Self.session.data(for: signOut)
+            append("user/signout HTTP \((signOutResponse as? HTTPURLResponse)?.statusCode ?? 0)")
         } catch {
-            append("exchange failed: \(error.localizedDescription)")
+            append("exchange chain failed: \(error.localizedDescription)")
         }
+    }
+
+    /// Ephemeral, cookie-free session; tickets and tokens never touch shared storage.
+    private static let session: URLSession = {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.httpShouldSetCookies = false
+        configuration.httpCookieAcceptPolicy = .never
+        configuration.urlCache = nil
+        return URLSession(configuration: configuration)
+    }()
+
+    private func post(_ url: URL, body: [String: String], origin: String? = nil, deviceID: String? = nil) async throws -> (Int, [String: Any]) {
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        if let origin { request.setValue(origin, forHTTPHeaderField: "Origin") }
+        if let deviceID { request.setValue(deviceID, forHTTPHeaderField: "x-device-id") }
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        let (data, response) = try await Self.session.data(for: request)
+        return ((response as? HTTPURLResponse)?.statusCode ?? 0, (try? JSONSerialization.jsonObject(with: data) as? [String: Any]) ?? [:])
     }
 }
