@@ -1,0 +1,24 @@
+{
+  "name": "@advjs/studio-ios",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ADV.JS Studio for iPhone and iPad: JavaScriptCore engine, offline player and SwiftUI app",
+  "scripts": {
+    "build:engine": "tsx engine/build.ts",
+    "golden": "tsx engine/golden.ts",
+    "test:engine": "vitest run --config engine/vitest.config.ts",
+    "test:swift": "swift test --package-path Packages/StudioKit"
+  },
+  "devDependencies": {
+    "@advjs/assets": "workspace:*",
+    "@advjs/core": "workspace:*",
+    "@advjs/parser": "workspace:*",
+    "@advjs/plugin-interactions": "workspace:*",
+    "@advjs/types": "workspace:*",
+    "esbuild": "catalog:build",
+    "eslint": "catalog:dev",
+    "tsx": "catalog:dev",
+    "vitest": "catalog:test"
+  }
+}

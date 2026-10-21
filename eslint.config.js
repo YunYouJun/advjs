@@ -31,6 +31,12 @@ export default antfu(
       'apps/studio/ios/**',
       'apps/studio/android/**',
       'apps/studio/ios-templates/**/*.xml',
+      // Native Studio build outputs: SwiftPM/Xcode products, the bundled engine and golden data.
+      'apps/studio-ios/**/.build/**',
+      'apps/studio-ios/build/**',
+      'apps/studio-ios/engine/dist/**',
+      'apps/studio-ios/Packages/StudioKit/Sources/StudioKit/EngineBundle/**',
+      'apps/studio-ios/Packages/StudioKit/Tests/StudioKitTests/Golden/**',
       'MATERIAL_*.md',
       'MISSING_*.md',
       'TEMPLATE_*.md',

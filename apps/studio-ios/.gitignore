@@ -2,5 +2,17 @@
 spike/out/
 spike/ios/StudioSpike.xcodeproj/
 spike/ios/StudioSpike/Info.plist
+
+# Engine build outputs (pnpm -C apps/studio-ios build:engine / golden)
+engine/dist/
+Packages/StudioKit/Sources/StudioKit/EngineBundle/*
+!Packages/StudioKit/Sources/StudioKit/EngineBundle/.gitkeep
+Packages/StudioKit/Tests/StudioKitTests/Golden/*
+!Packages/StudioKit/Tests/StudioKitTests/Golden/.gitkeep
+
+# Swift Package Manager and Xcode
+.build/
+/build/
+.swiftpm/
 xcuserdata/
 DerivedData/
