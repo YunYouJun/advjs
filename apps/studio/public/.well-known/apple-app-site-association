@@ -1,0 +1,24 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": [
+          "QT792GAY4C.org.advjs.studio",
+          "QT792GAY4C.org.advjs.studio.dev"
+        ],
+        "components": [
+          {
+            "/": "/auth/callback",
+            "#": "ylf_sso=*"
+          }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": [
+      "QT792GAY4C.org.advjs.studio",
+      "QT792GAY4C.org.advjs.studio.dev"
+    ]
+  }
+}
