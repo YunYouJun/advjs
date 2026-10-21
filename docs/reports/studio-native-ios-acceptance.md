@@ -150,7 +150,7 @@ cd apps/studio-ios/spike/player && ../../../../node_modules/.bin/vite build
 | Registry 发布   | 发布 PR [YunLeFun/www.yunle.fun#135](https://github.com/YunLeFun/www.yunle.fun/pull/135) 自动合入 `main`：`823803f`。[Registry Deploy](https://github.com/YunLeFun/www.yunle.fun/actions/runs/39575086812) 中 `desktop-auth`、`sso-registry-admin` 已更新，`sso-ticket` 的 COS 代码上传 60 秒超时，intent 记为 `deployment_failed`；`sso-ticket` 仍运行 generation 15，新客户端返回 `403 client_unknown`（fail-closed）。                                                 |
 | 部署重试        | 重跑失败运行在第一步「记录 merged」处被管理面拒绝（`release_status_conflict`），手工记录需要 CI 专用令牌。经用户同意修复流水线：[YunLeFun/www.yunle.fun#136](https://github.com/YunLeFun/www.yunle.fun/pull/136) 增加按 merge commit 重试的手动入口（只允许 `main` 上最新的发布，管理面仍只接受 `deployment_failed → deploying`），合入 `1928c7c`。以 `823803fc` [重试](https://github.com/YunLeFun/www.yunle.fun/actions/runs/39586705230)成功，三个生产消费者全部部署。 |
 | 线上校验        | 18:48 `verify-registry.mjs`：`advjs-studio-ios` 的注册回调返回 200（显式授权）；Web 根地址作回调 403 `return_url_not_allowed`、未注册来源 403、越权 scope 400、缺少 PKCE 400。不登录、不签发授权码。                                                                                                                                                                                                                                                                      |
-| Apple 关联      | AASA 17:07 上线，Apple CDN 18:38 起返回正确 JSON，`verify-deployment.mjs --apple-cdn` 六项全部通过。模拟器仍报告 App 未与 `studio.advjs.org` 关联：开发者模式直连源站与 CDN 模式下，`swcd` 的下载都未完成（站点批准状态停在 `unspecified`），抹掉模拟器重装后 19:01、19:03 两次仍失败。当时本机 load average 约 480，多个会话的模拟器同时运行，`simctl` 与 `log show` 频繁超时。服务端与托管文件已就绪，剩余阻塞在本机模拟器环境。                                        |
+| Apple 关联      | AASA 17:07 上线，Apple CDN 18:38 起返回正确 JSON，`verify-deployment.mjs --apple-cdn` 六项全部通过。开发者模式直连源站时 `swcd` 下载始终未完成；改回 CDN 模式并抹掉模拟器重装后，19:01、19:03 两次仍未关联，19:04:32 第三次起系统接受 HTTPS 回调并弹出「StudioSpike 想要使用 www.yunle.fun 登录」（[截图](../../apps/studio-ios/spike/evidence/iphone-signin-https-callback-accepted.jpg)）。当时本机 load average 约 480，`swcd` 下载明显变慢。                          |
 
 ## 协作评估
 
@@ -195,5 +195,5 @@ Studio 使用的 yjs 13.6.32 打包后在 macOS `jsc` 中运行：应用 Node �
 ## 已知问题与待办
 
 - 安装 iOS 26 模拟器运行时，在最低版本上运行同一探针。
-- 在负载正常时重试模拟器关联（抹掉 `ADVSpike iPhone 18 Pro` 后安装探针，等待 `swcd` 完成 CDN 下载），会话弹出后由用户本人在系统浏览器中登录，记录兑换、`signin/custom`、`user/me` 与退出结果。
+- 由用户本人在 `ADVSpike iPhone 18 Pro` 模拟器的系统登录页中登录云乐坊，记录兑换、`signin/custom`、`user/me` 与退出结果（探针只记录状态码与字段是否存在）。
 - 登录在模拟器走通后结束 P0，进入 P1。
