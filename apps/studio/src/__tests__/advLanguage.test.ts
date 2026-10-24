@@ -12,10 +12,10 @@ function fakeMonaco() {
 
 const context = () => ({ characterNames: ['小云'], sceneNames: ['教室'], locationNames: ['学校'] })
 
-function complete(line: string) {
+function completionItems(line: string, wordStartColumn = line.length + 1) {
   const model = {
     getLineContent: () => line,
-    getWordUntilPosition: () => ({ startColumn: line.length + 1, endColumn: line.length + 1 }),
+    getWordUntilPosition: () => ({ startColumn: wordStartColumn, endColumn: line.length + 1 }),
   }
   const result = createAdvCompletionProvider(context).provideCompletionItems(
     model as unknown as Monaco.editor.ITextModel,
@@ -23,7 +23,11 @@ function complete(line: string) {
     {} as Monaco.languages.CompletionContext,
     {} as Monaco.CancellationToken,
   ) as Monaco.languages.CompletionList
-  return result.suggestions.map(item => item.label)
+  return result.suggestions
+}
+
+function complete(line: string) {
+  return completionItems(line).map(item => item.label)
 }
 
 describe('detectEditorLanguage', () => {
@@ -59,5 +63,25 @@ describe('registerAdvLanguage', () => {
   it('completes speakers after @ and scene or location names inside 【】', () => {
     expect(complete('@')).toEqual(['@小云'])
     expect(complete('【')).toEqual(['教室', '学校'])
+  })
+
+  it.each([
+    ['【', 1, '【教室'],
+    ['【教', 1, '【教室'],
+    ['【别处，教', 1, '【别处，教室'],
+    ['【别处,教', 5, '【别处,教室'],
+    ['【 教', 3, '【 教室'],
+  ])('keeps scene delimiters outside the completion filter for %s', (line, wordStartColumn, expected) => {
+    // Monaco's default word definition includes full-width punctuation in
+    // words, so its range can start before 【 or ， even at an empty name.
+    const [scene, location] = completionItems(line, wordStartColumn)
+    for (const item of [scene!, location!]) {
+      const range = item.range as Monaco.IRange
+      const prefix = line.slice(range.startColumn - 1, range.endColumn - 1)
+      expect(prefix).not.toMatch(/[【，,]/)
+      expect(range.endColumn).toBe(line.length + 1)
+    }
+    const range = scene!.range as Monaco.IRange
+    expect(line.slice(0, range.startColumn - 1) + scene!.insertText).toBe(expected)
   })
 })

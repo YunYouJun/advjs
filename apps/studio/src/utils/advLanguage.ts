@@ -63,6 +63,18 @@ export function createAdvCompletionProvider(
 
       // Scene/Location names inside 【...】
       if (textBefore.includes('【') && !textBefore.includes('】')) {
+        // Monaco's default word separators omit full-width punctuation.
+        // Exclude the scene delimiters so they neither filter out every
+        // suggestion nor disappear when a name is accepted.
+        const sceneRange = {
+          ...range,
+          startColumn: Math.max(
+            range.startColumn,
+            textBefore.lastIndexOf('【') + 2,
+            textBefore.lastIndexOf('，') + 2,
+            textBefore.lastIndexOf(',') + 2,
+          ),
+        }
         // Offer scene names
         for (const name of ctx.sceneNames) {
           suggestions.push({
@@ -70,7 +82,7 @@ export function createAdvCompletionProvider(
             kind: 5, // CompletionItemKind.Field
             detail: 'Scene',
             insertText: name,
-            range,
+            range: sceneRange,
           })
         }
         // Offer location names
@@ -80,7 +92,7 @@ export function createAdvCompletionProvider(
             kind: 5,
             detail: 'Location',
             insertText: name,
-            range,
+            range: sceneRange,
           })
         }
         return { suggestions }
