@@ -339,6 +339,8 @@ describe('project source navigation', () => {
     vi.stubGlobal('useConsoleStore', () => ({ success: vi.fn(), warn: vi.fn() }))
     vi.stubGlobal('useAppStore', () => ({ activeInspector: 'file' }))
     vi.stubGlobal('useColorMode', () => ({ value: 'dark' }))
+    const monacoApi = { languages: { register: vi.fn(), registerTokensProviderFactory: vi.fn() }, editor: { defineTheme: vi.fn() } }
+    vi.stubGlobal('useMonaco', async () => monacoApi)
     const realFile = useFileStore()
     vi.stubGlobal('useFileStore', () => realFile)
     let disk = content
@@ -393,9 +395,8 @@ describe('project source navigation', () => {
     const root = document.createElement('div')
     document.body.append(root)
     app.mount(root)
-    await nextTick()
-    await nextTick()
-    expect(monaco.sourceEditor?.canNavigate(path)).toBe(true)
+    await vi.waitFor(() => expect(monaco.sourceEditor?.canNavigate(path)).toBe(true))
+    expect(monacoApi.languages.register).toHaveBeenCalledWith(expect.objectContaining({ id: 'adv' }))
 
     disk = '# Refreshed intro\n\n## Anchor\n\n> New source.\n'
     project.project = { files: { [path]: disk } }
