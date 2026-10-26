@@ -3,5 +3,6 @@
 export * from './capabilities'
 export * from './core'
 export * from './core/task-store'
+export * from './creative-team'
 export * from './managed'
 export * from './proposals'

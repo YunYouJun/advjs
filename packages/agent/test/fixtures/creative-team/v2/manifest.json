@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "suiteId": "studio-creative-team-2026-10-27-v2",
+  "status": "frozen-inputs-unrun",
+  "primaryComparison": [
+    "B",
+    "C"
+  ],
+  "modes": {
+    "A": "Single generation reference",
+    "B": "Strong single agent with planning, identical tools, self-review and revisions",
+    "C": "Director with necessary specialists and independent playtester"
+  },
+  "seeds": [
+    1729,
+    2718,
+    3141
+  ],
+  "budgets": {
+    "local": {
+      "maxTotalTokens": 12000,
+      "maxMicroCny": 1000000,
+      "deadlineMs": 180000
+    },
+    "chapter": {
+      "maxTotalTokens": 32000,
+      "maxMicroCny": 3000000,
+      "deadlineMs": 480000
+    },
+    "short-story": {
+      "maxTotalTokens": 64000,
+      "maxMicroCny": 6000000,
+      "deadlineMs": 900000
+    }
+  },
+  "executionAuthorization": "No paid execution authorized. These ceilings are proposed per-run caps, not spending authorization. Start with a separately approved pilot.",
+  "versions": {
+    "project": "project.json",
+    "tools": "advjs:bcb970511c0c96be6bcc5b53382b8e3b8e0674a6",
+    "runtime": "api:faeeec15b59b7f61afba4780a6bd89a54b52ede2",
+    "model": "required-at-execution",
+    "prompts": "required-at-execution"
+  },
+  "qualityScale": {
+    "narrative": "1–5: causal clarity, pacing, ending distinction",
+    "characters": "1–5: motives, voice, factual consistency",
+    "style": "1–5: coherent prose, visual and voice direction",
+    "playability": "1–5: choices, reachable endings, author editability"
+  },
+  "blindReview": {
+    "minimumAuthors": 2,
+    "randomizeOrder": true,
+    "hideMode": true,
+    "llmJudge": "auxiliary-only"
+  },
+  "gate": {
+    "complexTaskPreference": 0.65,
+    "confidence": 0.95,
+    "groupByInput": true,
+    "usabilityNonRegression": true,
+    "criticalDefectRecallNonRegression": true,
+    "costWithinCap": true,
+    "insufficientEvidenceDefault": "single-role"
+  },
+  "ablations": [
+    "C-without-independent-review",
+    "C-fixed-six-roles"
+  ],
+  "failureClasses": [
+    "generation-quality",
+    "system",
+    "provider",
+    "billing",
+    "cancelled"
+  ],
+  "accounting": [
+    "director",
+    "handoffs",
+    "review",
+    "retry",
+    "supplier",
+    "tools",
+    "inputTokens",
+    "outputTokens",
+    "costMicroCny",
+    "latencyMs",
+    "authorEdits",
+    "authorConfirmations",
+    "reworkRounds"
+  ],
+  "supersedes": {
+    "suite": "v1",
+    "reason": "Compile-only audit found implicit entry at leave#ending-leave. Pin station#arrival before any model execution. No paid or quality run exists for v1."
+  }
+}

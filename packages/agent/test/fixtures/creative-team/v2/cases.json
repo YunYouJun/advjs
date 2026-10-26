@@ -1,0 +1,280 @@
+[
+  {
+    "id": "local-01",
+    "category": "local",
+    "prompt": "润色林舟的第一句台词，保持谨慎短句且不增加人物。",
+    "checks": [
+      "仅修改一段对白",
+      "人物语气一致",
+      "两个结局仍可到达"
+    ],
+    "project": "project.json"
+  },
+  {
+    "id": "local-02",
+    "category": "local",
+    "prompt": "把乔雨的回答改得更有悬念，不透露姐姐的下落。",
+    "checks": [
+      "仅修改一段对白",
+      "不引入超能力",
+      "保留分支"
+    ],
+    "project": "project.json"
+  },
+  {
+    "id": "local-03",
+    "category": "local",
+    "prompt": "将两个选择文案改得有明确代价，但保持原跳转目标。",
+    "checks": [
+      "选择文案清楚",
+      "目标不变",
+      "无额外文件修改"
+    ],
+    "project": "project.json"
+  },
+  {
+    "id": "local-04",
+    "category": "local",
+    "prompt": "为林舟补充语言风格约束，不改变稳定 ID。",
+    "checks": [
+      "lin ID 不变",
+      "结构化人物提案",
+      "对白不擅自修改"
+    ],
+    "project": "project.json"
+  },
+  {
+    "id": "local-05",
+    "category": "local",
+    "prompt": "指出乔雨不能用手机拍照的设定限制，给出局部修订。",
+    "checks": [
+      "定位设定源",
+      "不更改世界规则",
+      "最小修改"
+    ],
+    "project": "project.json"
+  },
+  {
+    "id": "local-06",
+    "category": "local",
+    "prompt": "检查将 stay 误写为 absent 的悬空跳转并提出修复。",
+    "checks": [
+      "定位文件与行",
+      "缺陷召回",
+      "修复后到达指定结局"
+    ],
+    "project": "project.json",
+    "overrides": {
+      "adv/chapters/station.adv.md": "# 雨夜车站 {#arrival}\n\n- [留下](absent#ending-stay)\n- [离开](leave#ending-leave)\n"
+    }
+  },
+  {
+    "id": "local-07",
+    "category": "local",
+    "prompt": "为第一句对白提供表演指示和缺失配音清单。",
+    "checks": [
+      "文本版本绑定",
+      "不谎称已有音频",
+      "旁白单列"
+    ],
+    "project": "project.json"
+  },
+  {
+    "id": "local-08",
+    "category": "local",
+    "prompt": "为车站背景提供素材需求与导入交接，不调用图片供应商。",
+    "checks": [
+      "稳定 assetId",
+      "区分 Scene 和 Location",
+      "缺失媒体如实标记"
+    ],
+    "project": "project.json"
+  },
+  {
+    "id": "chapter-01",
+    "category": "chapter",
+    "prompt": "扩写车站开场至 12 到 18 句对白，保留两人设定与原结局入口。",
+    "checks": [
+      "可编译",
+      "对白引用正确",
+      "双结局可达"
+    ],
+    "project": "project.json"
+  },
+  {
+    "id": "chapter-02",
+    "category": "chapter",
+    "prompt": "写一章失物招领室对话，通过信封细节制造悬念，不让林舟读信。",
+    "checks": [
+      "新章节可审阅",
+      "不违反知识边界",
+      "交接原有分支"
+    ],
+    "project": "project.json"
+  },
+  {
+    "id": "chapter-03",
+    "category": "chapter",
+    "prompt": "为乔雨设计一次角色模拟，再写双方误解解除的章节。",
+    "checks": [
+      "模拟非正式事实",
+      "人设一致",
+      "可编译章节"
+    ],
+    "project": "project.json"
+  },
+  {
+    "id": "chapter-04",
+    "category": "chapter",
+    "prompt": "重写留下结局章节，让选择留下有可见代价。",
+    "checks": [
+      "保留稳定入口",
+      "因果清楚",
+      "不修改离开结局"
+    ],
+    "project": "project.json"
+  },
+  {
+    "id": "chapter-05",
+    "category": "chapter",
+    "prompt": "重写离开结局章节，使其与留下结局有叙事差异。",
+    "checks": [
+      "稳定入口",
+      "结局差异",
+      "设定无冲突"
+    ],
+    "project": "project.json"
+  },
+  {
+    "id": "chapter-06",
+    "category": "chapter",
+    "prompt": "写车站广播中断的章节，并提出背景与音效需求。",
+    "checks": [
+      "可编译",
+      "素材缺失状态",
+      "无假生成回执"
+    ],
+    "project": "project.json"
+  },
+  {
+    "id": "chapter-07",
+    "category": "chapter",
+    "prompt": "检查并修复一章中的设定矛盾：乔雨拿出手机给姐姐发消息。",
+    "checks": [
+      "源位置",
+      "交还编剧修订",
+      "独立复测"
+    ],
+    "project": "project.json",
+    "overrides": {
+      "adv/chapters/station.adv.md": "# 雨夜车站 {#arrival}\n\n乔雨：「我用手机给姐姐发了消息。」\n\n- [留下](stay#ending-stay)\n- [离开](leave#ending-leave)\n"
+    }
+  },
+  {
+    "id": "chapter-08",
+    "category": "chapter",
+    "prompt": "为开场章节制定角色与旁白配音方案，保留人工导入路径。",
+    "checks": [
+      "选角与词典",
+      "台词版本",
+      "无未授权收费调用"
+    ],
+    "project": "project.json"
+  },
+  {
+    "id": "short-story-01",
+    "category": "short-story",
+    "prompt": "创作十分钟目标的雨夜车站悬疑短篇，两位主要人物，信任与离开两个结局。",
+    "checks": [
+      "导演计划",
+      "两个人物",
+      "双结局实际轨迹",
+      "实际时长不冒充目标时长"
+    ],
+    "project": "project.json"
+  },
+  {
+    "id": "short-story-02",
+    "category": "short-story",
+    "prompt": "围绕未寄出的信创作双结局短篇，含美术与配音交接。",
+    "checks": [
+      "结构化交接",
+      "稳定资源 ID",
+      "人工回流可行",
+      "双结局"
+    ],
+    "project": "project.json"
+  },
+  {
+    "id": "short-story-03",
+    "category": "short-story",
+    "prompt": "创作没有超能力的车站悬疑，结局分别揭示误会和保留谜团。",
+    "checks": [
+      "世界一致",
+      "结局差异",
+      "独立检查",
+      "预算内"
+    ],
+    "project": "project.json"
+  },
+  {
+    "id": "short-story-04",
+    "category": "short-story",
+    "prompt": "把原项目改为乔雨为叙事视角的双结局短篇，不新增主要人物。",
+    "checks": [
+      "保存原 ID",
+      "修改可审阅",
+      "人物知识边界",
+      "双结局"
+    ],
+    "project": "project.json"
+  },
+  {
+    "id": "short-story-05",
+    "category": "short-story",
+    "prompt": "以同一固定素材包整合短篇，列出未提供图片和录音的人工步骤。",
+    "checks": [
+      "共享媒体输入",
+      "缺失透明",
+      "不谎称播放成功",
+      "引用正确"
+    ],
+    "project": "project.json"
+  },
+  {
+    "id": "short-story-06",
+    "category": "short-story",
+    "prompt": "复查双结局短篇，预埋悬空跳转、不可达结局、手机设定冲突和缺失配音。",
+    "checks": [
+      "四类缺陷定位",
+      "静态与运行分开",
+      "修复后复测",
+      "未覆盖路径说明"
+    ],
+    "project": "project.json"
+  },
+  {
+    "id": "short-story-07",
+    "category": "short-story",
+    "prompt": "制作短篇后修改林舟第一句台词，识别需要重做的配音并保留独立背景。",
+    "checks": [
+      "下游过期",
+      "独立素材保留",
+      "版本冲突保护",
+      "局部重做"
+    ],
+    "project": "project.json"
+  },
+  {
+    "id": "short-story-08",
+    "category": "short-story",
+    "prompt": "在有限预算内整合短篇并给出交付报告，途中取消后保留已完成候选。",
+    "checks": [
+      "用量透明",
+      "取消真实状态",
+      "候选保留",
+      "无重复扣点"
+    ],
+    "project": "project.json"
+  }
+]
