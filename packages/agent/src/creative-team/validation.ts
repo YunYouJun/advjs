@@ -117,7 +117,7 @@ export function requiredCreativeReviewCapabilities(artifact: Pick<CreativeArtifa
 }
 
 /** Validate handoff identity and the current upstream versions before using a candidate. */
-export function assertCreativeArtifactBoundary(artifact: CreativeArtifact, run: { id: string, plan: CreativeTeamPlan, artifacts: readonly CreativeArtifact[] }): void {
+export function assertCreativeArtifactBoundary(artifact: CreativeArtifact, run: { id: string, plan: CreativeTeamPlan, artifacts: readonly CreativeArtifact[] }, options: { allowStaleUpstream?: boolean } = {}): void {
   if (artifact.projectId !== run.plan.projectId || artifact.source.projectId !== run.plan.projectId || artifact.runId !== run.id)
     throw new TypeError('Cross-project or cross-run artifact')
   const task = run.plan.tasks.find(task => task.id === artifact.taskId)
@@ -137,7 +137,8 @@ export function assertCreativeArtifactBoundary(artifact: CreativeArtifact, run: 
   task.dependsOn.forEach(collect)
   for (const dependency of artifact.source.upstream) {
     const upstream = run.artifacts.find(item => item.id === dependency.artifactId)
-    if (!upstream || !ancestors.has(upstream.taskId) || upstream.fingerprint !== dependency.fingerprint || !['selected', 'adopted'].includes(upstream.status))
+    const allowedStatuses = options.allowStaleUpstream ? ['selected', 'adopted', 'stale'] : ['selected', 'adopted']
+    if (!upstream || !ancestors.has(upstream.taskId) || upstream.fingerprint !== dependency.fingerprint || !allowedStatuses.includes(upstream.status))
       throw new TypeError('Unavailable or stale upstream artifact')
   }
 }

@@ -1,0 +1,280 @@
+import type { CreativeFileChange, CreativeTeamLimits, CreativeTeamPlan } from './contracts'
+import { parseCreativeTeamPlan } from './validation'
+
+/** A structured cast proposal; these ids belong to the game, not to the partner roster. */
+export interface CreativeCharacterProfile {
+  id: string
+  name: string
+  description: string
+  motivation: string
+  speakingStyle: string
+  visualConstraints: readonly string[]
+  voiceConstraints: readonly string[]
+  relationships: readonly { targetId: string, type: string, description: string }[]
+}
+
+/** An art request is a production handoff, not proof that an image exists. */
+export interface CreativeArtRequest {
+  assetId: string
+  kind: 'portrait' | 'expression' | 'background'
+  characterId?: string
+  sceneId?: string
+  locationId?: string
+  expression?: string
+  width: number
+  height: number
+  prompt: string
+  constraints: readonly string[]
+  existingAssetId?: string
+}
+
+/** Models may propose test inputs; only the runtime/player can produce execution evidence. */
+export interface CreativePlaytestScenario {
+  id: string
+  choices: readonly number[]
+  expectedEnding: string
+}
+
+export type CreativePartnerOutput
+  = | { kind: 'production-plan', summary: string, plan: CreativeTeamPlan }
+    | { kind: 'characters', summary: string, characters: readonly CreativeCharacterProfile[] }
+    | { kind: 'chapter', summary: string, chapters: readonly { id: string, title: string, content: string }[], entryChapterId: string, endingAddresses: readonly string[] }
+    | { kind: 'art-direction', summary: string, style: string, requests: readonly CreativeArtRequest[] }
+    | { kind: 'voice-direction', summary: string, cast: readonly { speakerId: string, designBrief: string, performance: string }[], dictionary: readonly { term: string, pronunciation: string }[], lines: readonly { path: string, line: number, speakerId: string, text: string, instruction: string }[] }
+    | { kind: 'playtest-plan', summary: string, scenarios: readonly CreativePlaytestScenario[], concerns: readonly { path: string, line: number, expected: string, actual: string, suggestion: string }[] }
+
+/** Effective context assembled by Runtime from saved facts and explicitly selected candidates. */
+export interface CreativeOutputContext {
+  projectId: string
+  projectRevision: string
+  files: Readonly<Record<string, string>>
+  characterIds: readonly string[]
+  limits: CreativeTeamLimits
+}
+
+function record(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value))
+    throw new TypeError('Creative output must be an object')
+  return value as Record<string, unknown>
+}
+function text(value: unknown, maximum = 4000): string {
+  if (typeof value !== 'string' || !value.trim() || value.length > maximum)
+    throw new TypeError('Invalid creative output text')
+  return value
+}
+function id(value: unknown): string {
+  const valueId = text(value, 64)
+  if (!/^[a-z][\w-]*$/i.test(valueId))
+    throw new TypeError('Invalid game content id')
+  return valueId
+}
+function array(value: unknown, maximum: number, minimum = 0): unknown[] {
+  if (!Array.isArray(value) || value.length > maximum || value.length < minimum)
+    throw new TypeError('Invalid creative output collection')
+  return value
+}
+function texts(value: unknown, maximum = 32): string[] {
+  return array(value, maximum).map(item => text(item))
+}
+function integer(value: unknown, minimum: number, maximum: number): number {
+  if (!Number.isSafeInteger(value) || Number(value) < minimum || Number(value) > maximum)
+    throw new TypeError('Invalid creative output number')
+  return Number(value)
+}
+function assetId(value: unknown): string {
+  const result = text(value, 160)
+  if (!/^[\w-]+(?:\/[\w-]+)+$/.test(result))
+    throw new TypeError('Invalid stable asset id')
+  return result
+}
+function address(value: unknown): string {
+  const result = text(value, 140)
+  if (!/^[a-z][\w-]*#[a-z][\w-]*$/i.test(result))
+    throw new TypeError('Invalid ending address')
+  return result
+}
+function unique(values: readonly string[]): void {
+  if (new Set(values).size !== values.length)
+    throw new TypeError('Duplicate creative output identity')
+}
+
+/** Parse only each role's public data schema. The model never chooses paths or media receipts. */
+export function parseCreativePartnerOutput(kind: CreativePartnerOutput['kind'], value: unknown, context: CreativeOutputContext): CreativePartnerOutput {
+  const root = record(value)
+  if (root.kind !== kind)
+    throw new TypeError('Creative output kind mismatch')
+  const summary = text(root.summary, 1000)
+  if (kind === 'production-plan') {
+    const plan = parseCreativeTeamPlan(root.plan, context)
+    for (const key of ['maxTasks', 'maxToolCalls', 'maxReworkRounds', 'maxMicroPoints'] as const) {
+      if (plan.limits[key] > context.limits[key])
+        throw new TypeError('Director plan exceeds author-approved limits')
+    }
+    return { kind, summary, plan }
+  }
+  if (kind === 'characters') {
+    const characters = array(root.characters, 16, 1).map((item): CreativeCharacterProfile => {
+      const character = record(item)
+      return {
+        id: id(character.id),
+        name: text(character.name, 80),
+        description: text(character.description),
+        motivation: text(character.motivation),
+        speakingStyle: text(character.speakingStyle),
+        visualConstraints: texts(character.visualConstraints),
+        voiceConstraints: texts(character.voiceConstraints),
+        relationships: array(character.relationships, 16).map((item) => {
+          const relationship = record(item)
+          return { targetId: id(relationship.targetId), type: text(relationship.type, 80), description: text(relationship.description) }
+        }),
+      }
+    })
+    unique(characters.map(character => character.id))
+    const known = new Set([...context.characterIds, ...characters.map(character => character.id)])
+    if (characters.some(character => character.relationships.some(relation => !known.has(relation.targetId))))
+      throw new TypeError('Character relationship references an unknown id')
+    return { kind, summary, characters }
+  }
+  if (kind === 'chapter') {
+    const chapters = array(root.chapters, 12, 1).map((item) => {
+      const chapter = record(item)
+      return { id: id(chapter.id), title: text(chapter.title, 160), content: text(chapter.content, 32000) }
+    })
+    unique(chapters.map(chapter => chapter.id))
+    const entryChapterId = id(root.entryChapterId)
+    if (!chapters.some(chapter => chapter.id === entryChapterId) && !(`adv/chapters/${entryChapterId}.adv.md` in context.files))
+      throw new TypeError('Unknown entry chapter')
+    const endingAddresses = array(root.endingAddresses, 16, 1).map(address)
+    unique(endingAddresses)
+    return { kind, summary, chapters, entryChapterId, endingAddresses }
+  }
+  if (kind === 'art-direction') {
+    const requests = array(root.requests, 64, 1).map((item): CreativeArtRequest => {
+      const request = record(item)
+      if (!['portrait', 'expression', 'background'].includes(String(request.kind)))
+        throw new TypeError('Unknown art request kind')
+      const characterId = request.characterId === undefined ? undefined : id(request.characterId)
+      if (characterId && !context.characterIds.includes(characterId))
+        throw new TypeError('Unknown art character id')
+      if (request.kind !== 'background' && (!characterId || !context.characterIds.includes(characterId)))
+        throw new TypeError('Character art requires an existing stable character id')
+      if (request.kind === 'background' && request.sceneId === undefined)
+        throw new TypeError('Background requests require a narrative scene id')
+      if (request.kind === 'expression' && request.expression === undefined)
+        throw new TypeError('Expression requests require a stable expression id')
+      return {
+        assetId: assetId(request.assetId),
+        kind: request.kind as CreativeArtRequest['kind'],
+        ...(characterId ? { characterId } : {}),
+        ...(request.sceneId === undefined ? {} : { sceneId: id(request.sceneId) }),
+        ...(request.locationId === undefined ? {} : { locationId: id(request.locationId) }),
+        ...(request.expression === undefined ? {} : { expression: id(request.expression) }),
+        ...(request.existingAssetId === undefined ? {} : { existingAssetId: assetId(request.existingAssetId) }),
+        width: integer(request.width, 1, 16384),
+        height: integer(request.height, 1, 16384),
+        prompt: text(request.prompt),
+        constraints: texts(request.constraints),
+      }
+    })
+    unique(requests.map(request => request.assetId))
+    return { kind, summary, style: text(root.style), requests }
+  }
+  if (kind === 'voice-direction') {
+    const speaker = (value: unknown): string => {
+      const speakerId = id(value)
+      if (speakerId !== 'narrator' && !context.characterIds.includes(speakerId))
+        throw new TypeError('Unknown voice speaker')
+      return speakerId
+    }
+    const cast = array(root.cast, 32, 1).map((item) => {
+      const casting = record(item)
+      return { speakerId: speaker(casting.speakerId), designBrief: text(casting.designBrief), performance: text(casting.performance) }
+    })
+    unique(cast.map(item => item.speakerId))
+    if (!cast.some(item => item.speakerId === 'narrator'))
+      throw new TypeError('Narrator casting must be independent')
+    const dictionary = array(root.dictionary, 64).map((item) => {
+      const term = record(item)
+      return { term: text(term.term, 120), pronunciation: text(term.pronunciation, 240) }
+    })
+    const lines = array(root.lines, 128).map((item) => {
+      const line = record(item)
+      const path = text(line.path, 200)
+      if (!/^adv\/chapters\/[\w-]+\.(?:adv\.md|chapter\.json)$/.test(path))
+        throw new TypeError('Voice instructions must target chapter dialogue sources')
+      const lineNumber = integer(line.line, 1, 100000)
+      const content = text(line.text, 2000)
+      if (!context.files[path]?.split('\n')[lineNumber - 1]?.includes(content))
+        throw new TypeError('Voice instruction does not match the frozen dialogue source')
+      return { path, line: lineNumber, speakerId: speaker(line.speakerId), text: content, instruction: text(line.instruction) }
+    })
+    return { kind, summary, cast, dictionary, lines }
+  }
+  const scenarios = array(root.scenarios, 12, 1).map((item) => {
+    const scenario = record(item)
+    return { id: id(scenario.id), choices: array(scenario.choices, 32).map(value => integer(value, 0, 31)), expectedEnding: address(scenario.expectedEnding) }
+  })
+  unique(scenarios.map(scenario => scenario.id))
+  const concerns = array(root.concerns, 32).map((item) => {
+    const concern = record(item)
+    const path = text(concern.path, 200)
+    if (!(path in context.files))
+      throw new TypeError('Unknown playtest concern source')
+    return { path, line: integer(concern.line, 1, context.files[path].split('\n').length), expected: text(concern.expected), actual: text(concern.actual), suggestion: text(concern.suggestion) }
+  })
+  return { kind, summary, scenarios, concerns }
+}
+
+/** Build finite portable source proposals; media remains in the existing authoring workflows. */
+export function creativeOutputFileChanges(output: CreativePartnerOutput, files: Readonly<Record<string, string>>): CreativeFileChange[] {
+  const change = (path: string, after: string): CreativeFileChange => ({ path, before: files[path] ?? null, after })
+  if (output.kind === 'characters') {
+    return output.characters.map(character => change(`adv/characters/${character.id}.character.md`, [
+      '---',
+      `id: ${character.id}`,
+      `name: ${JSON.stringify(character.name)}`,
+      `relationships: ${JSON.stringify(character.relationships)}`,
+      '---',
+      '',
+      `# ${character.name}`,
+      '',
+      character.description,
+      '',
+      '## 动机',
+      '',
+      character.motivation,
+      '',
+      '## 语言风格',
+      '',
+      character.speakingStyle,
+      '',
+      '## 视觉约束',
+      '',
+      ...character.visualConstraints.map(item => `- ${item}`),
+      '',
+      '## 音色约束',
+      '',
+      ...character.voiceConstraints.map(item => `- ${item}`),
+      '',
+    ].join('\n')))
+  }
+  if (output.kind !== 'chapter')
+    return []
+  const gamePath = 'adv/settings/game.json'
+  const game = files[gamePath] ? record(JSON.parse(files[gamePath])) : {}
+  const chapters = Array.isArray(game.chapters) ? [...game.chapters] : undefined
+  if (chapters) {
+    for (const chapter of output.chapters) {
+      const index = chapters.findIndex(item => record(item).id === chapter.id)
+      const entry = { ...(index < 0 ? {} : record(chapters[index])), id: chapter.id, title: chapter.title, sources: [`chapters/${chapter.id}.adv.md`] }
+      if (index < 0)
+        chapters.push(entry)
+      else
+        chapters[index] = entry
+    }
+  }
+  return [
+    ...output.chapters.map(chapter => change(`adv/chapters/${chapter.id}.adv.md`, `${chapter.content.trim()}\n`)),
+    change(gamePath, `${JSON.stringify({ ...game, entryChapterId: output.entryChapterId, ...(chapters ? { chapters } : {}) }, null, 2)}\n`),
+  ]
+}

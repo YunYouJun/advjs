@@ -18,6 +18,23 @@ function completedCast(): CreativeTeamRun {
 }
 
 describe('creative team sequential orchestration', () => {
+  it('expands an author-reviewed director plan without losing its cost or original goal', () => {
+    const plan = creativePlan()
+    const bootstrap = { ...plan, tasks: [{ id: 'director', partner: 'director' as const, capability: 'plan-production' as const, dependsOn: [], sourcePaths: ['adv/world.md'], instruction: '制定有限制作计划', expectedOutput: '待作者审阅的任务图' }] }
+    let run = createCreativeTeamRun({ id: 'run1', accountId: 'author1', plan: bootstrap, now: 0 })
+    run = act(run, { type: 'approve-plan', decisionId: 'approve-budget' })
+    run = act(run, { type: 'reserve-next', taskId: 'director', inputFingerprint: 'director-input', quotedMicroPoints: 100, toolCalls: 1 })
+    const artifact = creativeArtifact({ id: 'production-plan', taskId: 'director', partner: 'director', kind: 'production-brief', status: 'candidate', changes: [], reviewCapabilities: [], output: { kind: 'production-plan', summary: '雨夜车站制作计划', plan } })
+    run = act(run, { type: 'settle-task', taskId: 'director', dispatchKey: 'run1:director:1', status: 'completed', usage, artifacts: [artifact] })
+    expect(nextCreativeTeamTask(run)).toBeUndefined()
+    const expanded = act(run, { type: 'accept-production-plan', artifactId: 'production-plan', decisionId: 'accept-plan' })
+    expect(expanded.plan.tasks).toHaveLength(5)
+    expect(expanded.plan.goal).toBe(bootstrap.goal)
+    expect(expanded.chargedMicroPoints).toBe(40)
+    expect(nextCreativeTeamTask(expanded)).toBe('cast')
+    expect(act(expanded, { type: 'accept-production-plan', artifactId: 'production-plan', decisionId: 'accept-plan' })).toBe(expanded)
+  })
+
   it('does not dispatch before approval or before the dependency is selected', () => {
     expect(nextCreativeTeamTask(createRun())).toBeUndefined()
     const run = completedCast()
@@ -93,5 +110,18 @@ describe('creative team sequential orchestration', () => {
     expect(() => act(run, { type: 'request-rework', taskId: 'cast', reason: 'Again' })).toThrow(/intervention/)
     expect(run.toolCalls).toBe(3)
     expect(run.chargedMicroPoints).toBe(120)
+  })
+
+  it('accounts for a paid child whose selected upstream became stale while it ran', () => {
+    let run = act(completedCast(), { type: 'select', taskId: 'cast', artifactIds: ['people'], decisionId: 'select-cast', reason: 'Use this cast' })
+    run = act(run, { type: 'reserve-next', taskId: 'script', inputFingerprint: 'writer-input', quotedMicroPoints: 100, toolCalls: 1 })
+    run = act(run, { type: 'refresh-facts', files: { 'adv/world.md': 'author changed the world' } })
+    const output = creativeArtifact({ id: 'script-output', taskId: 'script', partner: 'writer', kind: 'chapter', changes: [], reviewCapabilities: ['candidate-preview'], status: 'candidate', source: { projectId: 'station', revision: 'r1', files: {}, upstream: [{ artifactId: 'people', fingerprint: 'people-v1' }] } })
+    run = act(run, { type: 'settle-task', taskId: 'script', dispatchKey: 'run1:script:1', status: 'completed', usage, artifacts: [output] })
+    expect(run.chargedMicroPoints).toBe(80)
+    expect(run.reservedMicroPoints).toBe(0)
+    expect(run.artifacts.find(artifact => artifact.id === 'script-output')?.status).toBe('stale')
+    expect(run.tasks.find(task => task.taskId === 'script')?.status).toBe('stale')
+    expect(run.status).toBe('blocked')
   })
 })

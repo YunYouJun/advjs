@@ -6,6 +6,7 @@ import { assertCreativeArtifactBoundary, parseCreativeTeamPlan } from './validat
 /** All mutations are serialized by Runtime's account/project-scoped transaction. */
 export type CreativeTeamAction
   = | { type: 'approve-plan', decisionId: string }
+    | { type: 'accept-production-plan', artifactId: string, decisionId: string }
     | { type: 'reserve-next', taskId: string, inputFingerprint: string, quotedMicroPoints: number, toolCalls: number }
     | { type: 'begin-dispatch', taskId: string, dispatchKey: string }
     | { type: 'attach-runtime-task', taskId: string, dispatchKey: string, runtimeTaskId: string }
@@ -83,6 +84,38 @@ export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeT
       run.status = 'ready'
       decision(action.decisionId, 'approve-plan', [], 'Author approved the production plan')
       break
+    case 'accept-production-plan': {
+      const artifact = run.artifacts.find(artifact => artifact.id === action.artifactId)
+      if (!artifact || artifact.status !== 'candidate' || artifact.output?.kind !== 'production-plan'
+        || run.tasks.some(task => task.status === 'running' || task.status === 'reconcile_required')
+        || ['cancel_requested', 'cancelled'].includes(run.status)) {
+        throw new TypeError('No current director plan is available for approval')
+      }
+      const proposed = parseCreativeTeamPlan(artifact.output.plan, run.plan)
+      if (proposed.goal !== run.plan.goal)
+        throw new TypeError('Director cannot replace the original author goal')
+      for (const key of ['maxTasks', 'maxToolCalls', 'maxReworkRounds', 'maxMicroPoints'] as const) {
+        if (proposed.limits[key] > run.plan.limits[key])
+          throw new TypeError('Director cannot increase author-approved limits')
+      }
+      if (run.chargedMicroPoints > proposed.limits.maxMicroPoints || run.toolCalls > proposed.limits.maxToolCalls)
+        throw new TypeError('Revised plan limits exclude already consumed resources')
+      const combined = parseCreativeTeamPlan({
+        ...proposed,
+        tasks: [...run.plan.tasks, ...proposed.tasks.map(task => ({ ...task, dependsOn: [...new Set([...task.dependsOn, artifact.taskId])] }))],
+      }, run.plan)
+      const owner = run.tasks.find(task => task.taskId === artifact.taskId)
+      if (owner?.status !== 'awaiting_review')
+        throw new TypeError('Director task is not awaiting review')
+      owner.status = 'completed'
+      run.plan = combined
+      run.tasks = [...run.tasks, ...proposed.tasks.map(task => ({ taskId: task.id, status: 'pending' as const, attempt: 0, artifactIds: [] }))]
+      run.artifacts = run.artifacts.map(item => item.taskId === artifact.taskId && item.status === 'candidate'
+        ? { ...item, status: item.id === artifact.id ? 'selected' : 'rejected' }
+        : item)
+      decision(action.decisionId, 'approve-plan', [artifact.id], 'Author approved the director task graph')
+      break
+    }
     case 'reserve-next': {
       safeInteger(action.quotedMicroPoints)
       safeInteger(action.toolCalls)
@@ -139,7 +172,7 @@ export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeT
       for (const artifact of action.artifacts) {
         if (artifact.taskId !== state!.taskId || artifact.status !== 'candidate' || ids.has(artifact.id))
           throw new TypeError('Invalid or duplicate task output')
-        assertCreativeArtifactBoundary(artifact, run)
+        assertCreativeArtifactBoundary(artifact, run, { allowStaleUpstream: true })
         ids.add(artifact.id)
       }
       state!.usage = action.usage
@@ -148,8 +181,11 @@ export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeT
       run.reservedMicroPoints -= state!.reservedMicroPoints ?? 0
       state!.reservedMicroPoints = 0
       state!.artifactIds = action.artifacts.map(item => item.id)
-      run.artifacts = [...run.artifacts, ...structuredClone(action.artifacts)]
-      state!.status = action.status === 'completed' ? 'awaiting_review' : action.status
+      const artifacts = structuredClone(action.artifacts).map(artifact => artifact.source.upstream.some(dependency => run.artifacts.some(upstream => upstream.id === dependency.artifactId && upstream.status === 'stale'))
+        ? { ...artifact, status: 'stale' as const }
+        : artifact)
+      run.artifacts = [...run.artifacts, ...artifacts]
+      state!.status = action.status === 'completed' ? artifacts.some(artifact => artifact.status === 'stale') ? 'stale' : 'awaiting_review' : action.status
       break
     }
     case 'select': {

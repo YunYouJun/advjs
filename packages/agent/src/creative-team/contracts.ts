@@ -1,4 +1,5 @@
 import type { AgentCapabilityId, AgentUsageSummary } from '../core/contracts'
+import type { CreativePartnerOutput } from './outputs'
 
 /** Creative partners are not in-game character identities. */
 export const CREATIVE_PARTNER_IDS = ['director', 'writer', 'character-designer', 'art-director', 'voice-director', 'playtester'] as const
@@ -66,7 +67,7 @@ export interface CreativeFileChange {
   after: string | null
 }
 
-export type CreativeArtifactKind = 'production-brief' | 'characters' | 'chapter' | 'art-direction' | 'voice-direction' | 'playtest-report' | 'delivery-summary'
+export type CreativeArtifactKind = 'production-brief' | 'characters' | 'chapter' | 'art-direction' | 'voice-direction' | 'playtest-plan' | 'playtest-report' | 'delivery-summary'
 export type CreativeReviewCapability = 'create-source' | 'modify-source' | 'delete-source' | 'catalog-media' | 'voice-take' | 'candidate-preview'
 
 /** All outputs stay in the candidate layer until the author adopts a revision. */
@@ -80,6 +81,7 @@ export interface CreativeArtifact {
   source: CreativeArtifactSource
   fingerprint: string
   summary: string
+  output?: CreativePartnerOutput
   changes: readonly CreativeFileChange[]
   reviewCapabilities: readonly CreativeReviewCapability[]
   status: 'candidate' | 'selected' | 'adopted' | 'rejected' | 'stale'
