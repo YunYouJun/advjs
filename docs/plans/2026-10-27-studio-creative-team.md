@@ -1,7 +1,7 @@
 # Studio 六角色创作伙伴实施计划
 
 - 日期：2026-10-27。
-- 状态：实施中；契约与免费评测基线已落地，正在接入 Runtime 与候选审阅。六角色闭环、生产服务和模型对照评测尚未通过，实际进度与证据见[验收记录](../reports/2026-10-27-studio-creative-team-acceptance)。
+- 状态：实施中；契约、免费评测基线和本地 Runtime 链路已落地，Studio 入口及任务审阅已接入，正在实现候选编辑、采用、媒体与实际试玩闭环。六角色闭环、生产服务和模型对照评测尚未通过，实际进度与证据见[验收记录](../reports/2026-10-27-studio-creative-team-acceptance)。
 - 范围：Studio 的导演、编剧、角色设计师、美术指导、配音导演、试玩员；共享契约兼顾 Web 与原生 iOS。
 - 总 Issue：[Studio 六角色创作伙伴 #38](https://github.com/YunYouJun/advjs/issues/38)。详细任务与验收以本计划为准，Issue 跟踪阶段与阻塞；计划已随本地基础实现提交，推送后补充可访问的固定版本链接。
 
