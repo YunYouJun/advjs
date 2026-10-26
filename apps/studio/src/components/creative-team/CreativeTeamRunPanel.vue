@@ -1,24 +1,33 @@
 <script setup lang="ts">
-import type { CreativeTeamDecisionInput, CreativeTeamRun } from '@advjs/agent'
+import type { CreativeCandidateEditRequest, CreativeTeamDecisionInput, CreativeTeamRun } from '@advjs/agent'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import SButton from '../ui/SButton.vue'
+import CreativeTaskRework from './CreativeTaskRework.vue'
 import CreativeTeamArtifactCard from './CreativeTeamArtifactCard.vue'
 
-const props = defineProps<{ run: CreativeTeamRun, busy: boolean, enabled: boolean }>()
-defineEmits<{ decide: [decision: CreativeTeamDecisionInput], syncFacts: [] }>()
+const props = defineProps<{ run: CreativeTeamRun, busy: boolean, enabled: boolean, authorEditsAvailable: boolean, savedEditArtifactId?: string, knownCharacterIds?: readonly string[] }>()
+defineEmits<{ decide: [decision: CreativeTeamDecisionInput], syncFacts: [], edit: [request: CreativeCandidateEditRequest] }>()
 const { t, locale } = useI18n()
 const active = computed(() => props.run.tasks.some(task => ['running', 'reconcile_required'].includes(task.status)))
 const stopped = computed(() => ['cancelled', 'cancel_requested', 'completed', 'reconcile_required'].includes(props.run.status))
 const costs = computed(() => props.run.tasks.reduce((sum, task) => sum + (task.history?.reduce((value, attempt) => value + attempt.usage.providerCostMicroCny, 0) ?? task.usage?.providerCostMicroCny ?? 0), 0))
-const tasks = computed(() => props.run.plan.tasks.map(task => ({ ...task, state: props.run.tasks.find(state => state.taskId === task.id)! })))
+const tasks = computed(() => props.run.plan.tasks.map((task) => {
+  const state = props.run.tasks.find(state => state.taskId === task.id)!
+  const canRework = props.enabled && !stopped.value && !active.value && ['failed', 'blocked', 'stale'].includes(state.status) && state.attempt < 1 + props.run.plan.limits.maxReworkRounds
+  const reworkExhausted = !stopped.value && ['failed', 'blocked', 'stale'].includes(state.status) && state.attempt >= 1 + props.run.plan.limits.maxReworkRounds
+  return { ...task, state, canRework, reworkExhausted }
+}))
 const artifacts = computed(() => props.run.artifacts.map((artifact) => {
   const task = props.run.tasks.find(task => task.taskId === artifact.taskId)!
   const canSelect = props.enabled && !stopped.value && artifact.status === 'candidate' && task.status === 'awaiting_review'
   const canRework = props.enabled && !stopped.value && !active.value && !['stale', 'rejected'].includes(artifact.status)
     && ['awaiting_review', 'completed'].includes(task.status) && task.attempt < 1 + props.run.plan.limits.maxReworkRounds
     && !(artifact.output?.kind === 'production-plan' && artifact.status === 'selected')
-  return { artifact, canSelect, canRework }
+  const canEdit = props.authorEditsAvailable && props.run.status !== 'completed' && ['candidate', 'selected'].includes(artifact.status) && ['awaiting_review', 'completed'].includes(task.status)
+    && Boolean(artifact.output && ['characters', 'chapter'].includes(artifact.output.kind))
+  const editSaved = props.savedEditArtifactId === artifact.id
+  return { artifact, canSelect, canRework, canEdit, editSaved }
 }))
 function points(value: number) {
   return t('creativeTeam.points', { value: new Intl.NumberFormat(locale.value, { maximumFractionDigits: 3 }).format(value / 1000) })
@@ -63,13 +72,17 @@ function points(value: number) {
           {{ task.expectedOutput }}
         </p>
         <small v-if="task.dependsOn.length">{{ t('creativeTeam.depends') }}: {{ task.dependsOn.join(', ') }}</small>
+        <CreativeTaskRework v-if="task.canRework" :task-id="task.id" :busy="busy" :attempt="task.state.attempt" :maximum="1 + run.plan.limits.maxReworkRounds" @request="$emit('decide', $event)" />
+        <p v-else-if="task.reworkExhausted" class="team-run__hint" role="status">
+          {{ t('creativeTeam.reworkExhausted') }}
+        </p>
       </li>
     </ol>
     <h3>{{ t('creativeTeam.artifacts') }}</h3>
     <p v-if="!artifacts.length" class="team-run__hint">
       {{ t('creativeTeam.noArtifacts') }}
     </p>
-    <CreativeTeamArtifactCard v-for="item in artifacts" :key="item.artifact.id" v-bind="item" :busy="busy" @decide="$emit('decide', $event)" />
+    <CreativeTeamArtifactCard v-for="item in artifacts" :key="item.artifact.id" v-bind="item" :busy="busy" :known-character-ids="knownCharacterIds" @decide="$emit('decide', $event)" @edit="$emit('edit', $event)" />
     <div class="team-run__tools">
       <SButton size="lg" variant="outline" :loading="busy" :disabled="!enabled" @click="$emit('syncFacts')">
         {{ t('creativeTeam.syncFacts') }}

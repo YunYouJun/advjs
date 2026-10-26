@@ -1,4 +1,4 @@
-import type { CreativeTeamAvailability, CreativeTeamClient, CreativeTeamDecisionInput, CreativeTeamRun, CreativeTeamRunSummary, CreativeTeamStartRequest } from '@advjs/agent'
+import type { CreativeCandidateEditRequest, CreativeTeamAvailability, CreativeTeamClient, CreativeTeamDecisionInput, CreativeTeamRun, CreativeTeamRunSummary, CreativeTeamStartRequest } from '@advjs/agent'
 import { normalizeAgentRuntimeError } from '@advjs/agent'
 import { defineStore } from 'pinia'
 import { computed, shallowRef } from 'vue'
@@ -81,7 +81,7 @@ export const useCreativeTeamStore = defineStore('creative-team', () => {
         if (epoch !== generation)
           return
         availability.value = status
-        if (!status.enabled) {
+        if (!status.enabled && !status.authoring?.candidateEdits) {
           error.value = undefined
           return
         }
@@ -137,9 +137,9 @@ export const useCreativeTeamStore = defineStore('creative-team', () => {
     }
   }
 
-  async function mutate(operation: (current: NonNullable<typeof connection>) => Promise<CreativeTeamRun>): Promise<void> {
+  async function mutate(operation: (current: NonNullable<typeof connection>) => Promise<CreativeTeamRun>): Promise<boolean> {
     if (!connection || mutating.value)
-      return
+      return false
     const current = connection
     const epoch = generation
     ++selection
@@ -149,10 +149,12 @@ export const useCreativeTeamStore = defineStore('creative-team', () => {
       const next = await operation(current)
       if (epoch === generation)
         update(next)
+      return epoch === generation
     }
     catch (cause) {
       if (epoch === generation)
         error.value = failure(cause)
+      return false
     }
     finally {
       if (epoch === generation)
@@ -187,5 +189,18 @@ export const useCreativeTeamStore = defineStore('creative-team', () => {
     await mutate(current => current.client.refreshFacts(project, runId, crypto.randomUUID()))
   }
 
-  return { availability, runs, run, loading, mutating, error, connected, canStart, needsPolling, configure, disconnect, refresh, open, start, decide, refreshFacts }
+  async function editCandidate(request: CreativeCandidateEditRequest, project: CreativeTeamStartRequest['project']): Promise<boolean> {
+    const runId = run.value?.id
+    if (!runId || project.id !== connection?.projectId)
+      return false
+    const intent = crypto.randomUUID()
+    return mutate(async (current) => {
+      await current.client.refreshFacts(project, runId, crypto.randomUUID())
+      if (current !== connection)
+        throw new Error('Creative scope changed')
+      return current.client.editCandidate(current.projectId, runId, request, intent)
+    })
+  }
+
+  return { availability, runs, run, loading, mutating, error, connected, canStart, needsPolling, configure, disconnect, refresh, open, start, decide, refreshFacts, editCandidate }
 })

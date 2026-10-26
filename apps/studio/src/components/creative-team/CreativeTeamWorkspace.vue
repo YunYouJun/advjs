@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { CreativePartnerId, CreativeTeamDecisionInput } from '@advjs/agent'
+import type { CreativeCandidateEditRequest, CreativePartnerId, CreativeTeamDecisionInput } from '@advjs/agent'
 import { CREATIVE_PARTNER_DEFAULT_CAPABILITY, parseCreativeProject } from '@advjs/agent'
 import { storeToRefs } from 'pinia'
-import { computed, shallowRef, watch } from 'vue'
+import { computed, nextTick, shallowRef, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useProjectContent } from '../../composables/useProjectContent'
 import { useAuthStore } from '../../stores/useAuthStore'
@@ -24,11 +24,15 @@ const store = useCreativeTeamStore()
 const content = useProjectContent()
 const { availability, run, runs, loading, mutating, error, connected, canStart } = storeToRefs(store)
 const partner = shallowRef<CreativePartnerId>(props.initialPartner)
+const workspaceRoot = useTemplateRef<HTMLElement>('workspaceRoot')
+const savedEditArtifactId = shallowRef<string>()
 const snapshotError = shallowRef(false)
 const preparing = shallowRef(false)
 const partnerEnabled = computed(() => availability.value?.capabilities.includes(CREATIVE_PARTNER_DEFAULT_CAPABILITY[partner.value]))
+const knownCharacterIds = computed(() => content.characters.value.map(character => character.id))
 watch(() => studio.currentProjectId, () => {
   snapshotError.value = false
+  savedEditArtifactId.value = undefined
 })
 
 async function projectSnapshot() {
@@ -81,10 +85,21 @@ async function decide(decision: CreativeTeamDecisionInput) {
   }
   await withSnapshot(project => store.decide(decision, project))
 }
+async function editCandidate(request: CreativeCandidateEditRequest) {
+  await withSnapshot(async (project) => {
+    if (await store.editCandidate(request, project)) {
+      savedEditArtifactId.value = request.artifactId
+      const edited = store.run?.artifacts.findLast(item => item.editedFrom?.artifactId === request.artifactId)
+      await nextTick()
+      if (edited)
+        workspaceRoot.value?.querySelector<HTMLElement>(`[data-creative-artifact="${CSS.escape(edited.id)}"] h3`)?.focus()
+    }
+  })
+}
 </script>
 
 <template>
-  <div class="team-workspace">
+  <div ref="workspaceRoot" class="team-workspace">
     <header class="team-workspace__header">
       <div>
         <p class="team-workspace__eyebrow">
@@ -108,7 +123,7 @@ async function decide(decision: CreativeTeamDecisionInput) {
       {{ t('creativeTeam.noService') }}
     </p>
     <p v-else-if="availability && !availability.enabled" class="team-workspace__notice" role="status">
-      {{ t('creativeTeam.disabled') }}
+      {{ t(availability.authoring?.candidateEdits ? 'creativeTeam.generationDisabled' : 'creativeTeam.disabled') }}
     </p>
     <p v-if="error" class="team-workspace__error" role="alert">
       {{ t(`creativeTeam.error.${error}`) }}
@@ -138,7 +153,7 @@ async function decide(decision: CreativeTeamDecisionInput) {
         <p v-else-if="!loading">
           {{ t('creativeTeam.noRuns') }}
         </p>
-        <CreativeTeamRunPanel v-if="run" :run="run" :busy="mutating || preparing" :enabled="Boolean(availability?.enabled)" @decide="decide" @sync-facts="withSnapshot(store.refreshFacts)" />
+        <CreativeTeamRunPanel v-if="run" :run="run" :busy="mutating || preparing" :enabled="Boolean(availability?.enabled)" :known-character-ids="knownCharacterIds" :author-edits-available="Boolean(availability?.authoring?.candidateEdits)" :saved-edit-artifact-id="savedEditArtifactId" @decide="decide" @sync-facts="withSnapshot(store.refreshFacts)" @edit="editCandidate" />
       </div>
     </div>
     <footer class="team-workspace__footer">

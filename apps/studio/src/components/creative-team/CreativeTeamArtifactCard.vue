@@ -1,14 +1,37 @@
 <script setup lang="ts">
-import type { CreativeArtifact, CreativeTeamDecisionInput } from '@advjs/agent'
-import { shallowRef } from 'vue'
+import type { CreativeArtifact, CreativeCandidateEditRequest, CreativeTeamDecisionInput } from '@advjs/agent'
+import { computed, nextTick, shallowRef, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import SButton from '../ui/SButton.vue'
+import CreativeCandidateEditor from './CreativeCandidateEditor.vue'
 import CreativeTeamOutput from './CreativeTeamOutput.vue'
 
-const props = defineProps<{ artifact: CreativeArtifact, busy: boolean, canSelect: boolean, canRework: boolean }>()
-const emit = defineEmits<{ decide: [decision: CreativeTeamDecisionInput] }>()
+const props = defineProps<{ artifact: CreativeArtifact, busy: boolean, canSelect: boolean, canRework: boolean, canEdit: boolean, editSaved?: boolean, knownCharacterIds?: readonly string[] }>()
+const emit = defineEmits<{ decide: [decision: CreativeTeamDecisionInput], edit: [request: CreativeCandidateEditRequest] }>()
 const { t } = useI18n()
 const reason = shallowRef('')
+const editing = shallowRef(false)
+const editorOpened = shallowRef(false)
+const artifactRoot = useTemplateRef<HTMLElement>('artifactRoot')
+const editableOutput = computed(() => props.artifact.output?.kind === 'characters' || props.artifact.output?.kind === 'chapter' ? props.artifact.output : undefined)
+watch(() => props.editSaved, (saved) => {
+  if (saved) {
+    editing.value = false
+    editorOpened.value = false
+  }
+})
+async function openEditor() {
+  editorOpened.value = true
+  editing.value = true
+  await nextTick()
+  artifactRoot.value?.querySelector<HTMLInputElement>('[data-testid="creative-candidate-editor"] input')?.focus()
+}
+async function closeEditor() {
+  editing.value = false
+  await nextTick()
+  const target = artifactRoot.value?.querySelector<HTMLElement>('[data-edit-candidate]') ?? artifactRoot.value?.querySelector<HTMLElement>('h3')
+  target?.focus()
+}
 function select() {
   emit('decide', props.artifact.output?.kind === 'production-plan'
     ? { type: 'accept-production-plan', artifactId: props.artifact.id }
@@ -17,14 +40,17 @@ function select() {
 </script>
 
 <template>
-  <article class="team-artifact" :aria-label="artifact.summary">
+  <article ref="artifactRoot" class="team-artifact" :aria-label="artifact.summary" :data-creative-artifact="artifact.id">
     <header class="team-artifact__header">
       <strong>{{ t(`creativeTeam.roles.${artifact.partner}`) }}</strong>
       <span class="team-artifact__status">{{ t(`creativeTeam.candidateStatus.${artifact.status}`) }}</span>
     </header>
-    <h3 class="team-artifact__title">
+    <h3 class="team-artifact__title" tabindex="-1">
       {{ artifact.summary }}
     </h3>
+    <p v-if="artifact.editedFrom" class="team-artifact__hint">
+      {{ t('creativeTeam.authorRevision') }}
+    </p>
     <p class="team-artifact__source" :title="artifact.source.revision">
       {{ t('creativeTeam.source') }} · {{ artifact.source.revision.slice(0, 12) }}
     </p>
@@ -45,6 +71,10 @@ function select() {
     <p v-else class="team-artifact__hint">
       {{ t('creativeTeam.noChanges') }}
     </p>
+    <SButton v-if="(canEdit || editorOpened) && !editing" data-edit-candidate variant="outline" size="lg" :disabled="busy" @click="openEditor">
+      {{ t(canEdit ? 'creativeTeam.editCandidate' : 'creativeTeam.viewEditDraft') }}
+    </SButton>
+    <CreativeCandidateEditor v-if="editorOpened && editableOutput" v-show="editing" :output="editableOutput" :candidate-id="artifact.id" :busy="busy" :disabled="!canEdit" :known-character-ids="knownCharacterIds" @save="emit('edit', { artifactId: artifact.id, fingerprint: artifact.fingerprint, ...$event })" @close="closeEditor" />
     <div v-if="canSelect" class="team-artifact__actions">
       <p class="team-artifact__hint">
         {{ t('creativeTeam.selectionHint') }}

@@ -1,6 +1,58 @@
 import { writeFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
 
+/** Positive authoring states use an explicitly labelled local fixture, never a model service. */
+test('edits cast and chapter candidates with an explicit fixture and restores the saved revisions', async ({ page }, info) => {
+  const errors: string[] = []
+  const warnings: string[] = []
+  page.on('pageerror', error => errors.push(error.message))
+  page.on('console', (message) => {
+    if (message.type() === 'error')
+      errors.push(message.text())
+    if (message.type() === 'warning')
+      warnings.push(message.text())
+  })
+  await page.goto('/tests/fixtures/creative-team/authoring.html')
+  await expect(page.getByText('仅验证界面与候选修订，不作为六角色真实交付。')).toBeVisible()
+  const readFiles = () => page.evaluate(async () => (window as any).creativeAuthorFixture.files())
+  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeAuthorFixture))).toBe(true)
+  const before = await readFiles()
+  const original = page.locator('.team-artifact').filter({ hasText: '本地 fixture 人物初稿' }).first()
+  await original.getByRole('button', { name: '编辑候选', exact: true }).click()
+  const form = page.getByTestId('creative-candidate-editor')
+  await expect(form.getByLabel('修订摘要')).toBeFocused()
+  await form.locator('textarea[id$="-lin-motivation"]').fill('先找到信的主人，再决定如何归还')
+  await form.getByLabel('本次修改的原因').fill('让人物的选择更明确')
+  await form.getByRole('button', { name: '保存候选修订' }).click()
+  const revisedCast = page.locator('.team-artifact').filter({ hasText: '作者修订 · 尚未写入项目' })
+  await expect(revisedCast).toHaveCount(1)
+  await expect(revisedCast.getByRole('heading', { name: '本地 fixture 人物初稿' })).toBeFocused()
+  await revisedCast.getByRole('button', { name: '选定候选并继续' }).click()
+  const chapter = page.locator('.team-artifact').filter({ hasText: '本地 fixture 章节初稿' }).first()
+  await chapter.getByRole('button', { name: '编辑候选', exact: true }).click()
+  const script = form.getByLabel('AdvScript', { exact: true })
+  await expect(script).toHaveValue(/先找到信的主人/)
+  await script.fill((await script.inputValue()).replace('你在等谁？', '请告诉我，你在等谁？'))
+  await form.getByLabel('本次修改的原因').fill('作者调整开场对白')
+  await form.getByRole('button', { name: '保存候选修订' }).click()
+  await expect(page.locator('.team-artifact').filter({ hasText: '作者修订 · 尚未写入项目' })).toHaveCount(2)
+  expect(await readFiles()).toEqual(before)
+
+  await page.reload()
+  await expect(page.locator('.team-artifact').filter({ hasText: '作者修订 · 尚未写入项目' })).toHaveCount(2)
+  const revisedChapter = page.locator('.team-artifact').filter({ hasText: '作者修订 · 尚未写入项目' }).filter({ hasText: '本地 fixture 章节初稿' }).last()
+  await revisedChapter.getByRole('button', { name: '编辑候选', exact: true }).click()
+  await expect(page.getByTestId('creative-candidate-editor').getByLabel('AdvScript', { exact: true })).toHaveValue(/请告诉我，你在等谁？/)
+  expect(await readFiles()).toEqual(before)
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    await page.getByTestId('creative-candidate-editor').scrollIntoViewIfNeeded()
+    await page.screenshot({ path: info.outputPath(`candidate-editor-fixture-${width}.png`), animations: 'disabled' })
+  }
+  expect(errors).toEqual([])
+  await writeFile(info.outputPath('fixture-scope.json'), JSON.stringify({ scope: 'explicit local UI fixture; no model or billing; candidates only; project unchanged', errors, warnings }, null, 2))
+})
+
 /** Real product entry, local project only: this test never configures or calls a paid service. */
 test('opens creative partners, prevents unavailable generation and preserves the content editor draft', async ({ page }, info) => {
   test.setTimeout(120000)

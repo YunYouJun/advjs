@@ -18,6 +18,7 @@ function client() {
     start: vi.fn<CreativeTeamClient['start']>(async () => run()),
     decide: vi.fn<CreativeTeamClient['decide']>(async () => ({ ...run(), status: 'running', revision: 3 })),
     refreshFacts: vi.fn<CreativeTeamClient['refreshFacts']>(async () => run()),
+    editCandidate: vi.fn<CreativeTeamClient['editCandidate']>(async () => run()),
   }
 }
 function deferred<T>() {
@@ -30,6 +31,18 @@ function deferred<T>() {
 beforeEach(() => setActivePinia(createPinia()))
 
 describe('creative team persisted session', () => {
+  it('saves author edits after checking facts and never dispatches generation', async () => {
+    const api = client()
+    const store = useCreativeTeamStore()
+    store.configure({ client: api, accountId: 'account1', projectId: 'station' })
+    await store.refresh()
+    const request = { artifactId: 'candidate1', fingerprint: 'fingerprint1', reason: '改对白', output: { kind: 'chapter' as const, summary: '修订', entryChapterId: 'station', endingAddresses: ['station#end'], chapters: [{ id: 'station', title: '车站', content: '# 结局 {#end}' }] } }
+    expect(await store.editCandidate(request, project)).toBe(true)
+    expect(api.refreshFacts).toHaveBeenCalledTimes(1)
+    expect(api.editCandidate).toHaveBeenCalledWith('station', 'run1', request, expect.any(String))
+    expect(api.start).not.toHaveBeenCalled()
+    expect(api.decide).not.toHaveBeenCalled()
+  })
   it('shows disabled service without reading unavailable history or submitting work', async () => {
     const api = client()
     api.availability.mockResolvedValue({ ...(await api.availability()), enabled: false })
@@ -39,6 +52,17 @@ describe('creative team persisted session', () => {
     expect(store.availability?.enabled).toBe(false)
     expect(store.canStart).toBe(false)
     expect(api.list).not.toHaveBeenCalled()
+    expect(api.start).not.toHaveBeenCalled()
+  })
+
+  it('retains free candidate history when generation policies are disabled on a configured service', async () => {
+    const api = client()
+    api.availability.mockResolvedValue({ ...(await api.availability()), enabled: false, capabilities: [], authoring: { candidateEdits: true, milestoneAdoption: false } })
+    const store = useCreativeTeamStore()
+    store.configure({ client: api, accountId: 'account1', projectId: 'station' })
+    await store.refresh()
+    expect(store.run?.id).toBe('run1')
+    expect(store.canStart).toBe(false)
     expect(api.start).not.toHaveBeenCalled()
   })
 
