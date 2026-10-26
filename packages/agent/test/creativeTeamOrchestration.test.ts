@@ -1,6 +1,6 @@
 import type { AgentUsageSummary, CreativeTeamAction, CreativeTeamRun } from '../src'
 import { describe, expect, it } from 'vitest'
-import { createCreativeTeamRun, nextCreativeTeamTask, reduceCreativeTeamRun } from '../src'
+import { createCreativeTeamHandoff, createCreativeTeamRun, nextCreativeTeamTask, reduceCreativeTeamRun } from '../src'
 import { creativeArtifact, creativePlan } from './helpers/creative-team'
 
 const usage: AgentUsageSummary = { inputTokens: 50, outputTokens: 50, totalTokens: 100, providerCostMicroCny: 30, chargedMicroPoints: 40 }
@@ -102,6 +102,9 @@ describe('creative team sequential orchestration', () => {
     expect(() => act(running(), { type: 'settle-task', taskId: 'cast', dispatchKey: 'run1:cast:1', status: 'completed', usage, artifacts: [] })).toThrow(/actual output/)
     expect(() => act(running(), { type: 'settle-task', taskId: 'cast', dispatchKey: 'run1:cast:1', status: 'failed', usage: { ...usage, chargedMicroPoints: 101 }, artifacts: [] })).toThrow(/quote/)
     let run = completedCast()
+    const rework = act(run, { type: 'request-rework', taskId: 'cast', reason: 'Keep the stable id and clarify the motive', decisionId: 'author-rework' })
+    expect(createCreativeTeamHandoff(rework, 'cast', { revision: 'r1', files: {} }).constraints).toContain('Keep the stable id and clarify the motive')
+    expect(rework.decisions.find(decision => decision.id === 'author-rework')?.action).toBe('rework')
     for (let attempt = 2; attempt <= 3; attempt++) {
       run = act(run, { type: 'request-rework', taskId: 'cast', reason: 'Clarify the motive' })
       run = act(run, { type: 'reserve-next', taskId: 'cast', inputFingerprint: `input${attempt}`, quotedMicroPoints: 100, toolCalls: 1 })
@@ -110,6 +113,8 @@ describe('creative team sequential orchestration', () => {
     expect(() => act(run, { type: 'request-rework', taskId: 'cast', reason: 'Again' })).toThrow(/intervention/)
     expect(run.toolCalls).toBe(3)
     expect(run.chargedMicroPoints).toBe(120)
+    expect(run.tasks[0].history).toHaveLength(3)
+    expect(run.tasks[0].history?.reduce((sum, attempt) => sum + attempt.usage.providerCostMicroCny, 0)).toBe(90)
   })
 
   it('accounts for a paid child whose selected upstream became stale while it ran', () => {

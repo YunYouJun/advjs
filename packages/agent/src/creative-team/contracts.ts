@@ -10,6 +10,15 @@ export const CREATIVE_TEAM_PROTOCOL_VERSION = 1 as const
 export const CREATIVE_TEAM_CAPABILITIES = ['plan-production', 'write-chapters', 'design-characters', 'direct-art', 'direct-voice', 'playtest-project'] as const
 export type CreativeTeamCapability = AgentCapabilityId | typeof CREATIVE_TEAM_CAPABILITIES[number]
 
+export const CREATIVE_PARTNER_DEFAULT_CAPABILITY = {
+  'director': 'plan-production',
+  'writer': 'write-chapters',
+  'character-designer': 'design-characters',
+  'art-director': 'direct-art',
+  'voice-director': 'direct-voice',
+  'playtester': 'playtest-project',
+} as const satisfies Record<CreativePartnerId, CreativeTeamCapability>
+
 /** Server-validated authority, independent of display names and avatars. */
 export const CREATIVE_PARTNER_CAPABILITIES: Readonly<Record<CreativePartnerId, readonly CreativeTeamCapability[]>> = {
   'director': ['plan-production', 'generate-outline'],
@@ -67,7 +76,8 @@ export interface CreativeFileChange {
   after: string | null
 }
 
-export type CreativeArtifactKind = 'production-brief' | 'characters' | 'chapter' | 'art-direction' | 'voice-direction' | 'playtest-plan' | 'playtest-report' | 'delivery-summary'
+export const CREATIVE_ARTIFACT_KINDS = ['production-brief', 'characters', 'chapter', 'art-direction', 'voice-direction', 'playtest-plan', 'playtest-report', 'delivery-summary', 'outline', 'roleplay', 'consistency-review', 'plot-suggestions'] as const
+export type CreativeArtifactKind = typeof CREATIVE_ARTIFACT_KINDS[number]
 export type CreativeReviewCapability = 'create-source' | 'modify-source' | 'delete-source' | 'catalog-media' | 'voice-take' | 'candidate-preview'
 
 /** All outputs stay in the candidate layer until the author adopts a revision. */
@@ -82,12 +92,25 @@ export interface CreativeArtifact {
   fingerprint: string
   summary: string
   output?: CreativePartnerOutput
+  legacyResult?: { capability: AgentCapabilityId, streamText: string }
   changes: readonly CreativeFileChange[]
   reviewCapabilities: readonly CreativeReviewCapability[]
   status: 'candidate' | 'selected' | 'adopted' | 'rejected' | 'stale'
 }
 
 /** Runtime history is execution metadata, not another game script format. */
+export interface CreativeTeamAttempt {
+  attempt: number
+  dispatchKey: string
+  runtimeTaskId?: string
+  inputFingerprint?: string
+  status: 'completed' | 'failed' | 'cancelled'
+  usage: AgentUsageSummary
+  artifactIds: readonly string[]
+  error?: { code: string, message: string }
+}
+
+/** The latest attempt is convenient for UI; history retains every confirmed bill and tool result. */
 export interface CreativeTeamTaskState {
   taskId: string
   status: CreativeTeamTaskStatus
@@ -99,6 +122,7 @@ export interface CreativeTeamTaskState {
   reservedMicroPoints?: number
   artifactIds: readonly string[]
   usage?: AgentUsageSummary
+  history?: readonly CreativeTeamAttempt[]
   error?: { code: string, message: string }
 }
 
@@ -123,7 +147,7 @@ export interface CreativeTeamRun {
 export interface CreativeTeamDecision {
   id: string
   artifactIds: readonly string[]
-  action: 'approve-plan' | 'select' | 'reject' | 'adopt' | 'undo' | 'stop'
+  action: 'approve-plan' | 'select' | 'reject' | 'adopt' | 'undo' | 'stop' | 'rework'
   reason: string
   projectRevision: string
   at: number

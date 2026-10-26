@@ -34,6 +34,7 @@ export function createCreativeTeamHandoff(run: CreativeTeamRun, taskId: string, 
   const candidates = task.partner === 'playtester'
     ? selected.filter(artifact => artifact.kind !== 'playtest-report' && artifact.kind !== 'delivery-summary')
     : selected
+  const feedback = run.tasks.find(state => state.taskId === taskId)?.error
   return {
     runId: run.id,
     taskId,
@@ -41,7 +42,7 @@ export function createCreativeTeamHandoff(run: CreativeTeamRun, taskId: string, 
     goal: run.plan.goal,
     facts: { revision: facts.revision, files: Object.fromEntries(task.sourcePaths.filter(path => path in facts.files).map(path => [path, facts.files[path]])) },
     candidates,
-    constraints: [task.instruction, task.expectedOutput],
+    constraints: [task.instruction, task.expectedOutput, ...(feedback?.code === 'rework_requested' ? [feedback.message] : [])],
     remainingMicroPoints: Math.max(0, run.plan.limits.maxMicroPoints - run.chargedMicroPoints - run.reservedMicroPoints),
   }
 }

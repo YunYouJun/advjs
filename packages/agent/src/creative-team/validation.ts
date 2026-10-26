@@ -71,6 +71,8 @@ export function parseCreativeTeamPlan(value: unknown, boundary: { projectId: str
       throw new TypeError('Partner is not authorized for this capability')
     const sourcePaths = strings(task.sourcePaths)
     sourcePaths.forEach(assertCreativeSourcePath)
+    if (text(task.instruction).length > 4000 || text(task.expectedOutput).length > 4000)
+      throw new TypeError('Creative handoff instruction exceeds the capability context limit')
     return { id: taskId(task.id), partner, capability, dependsOn: strings(task.dependsOn).map(taskId), sourcePaths, instruction: text(task.instruction), expectedOutput: text(task.expectedOutput) }
   })
   const ids = new Set(tasks.map(task => task.id))

@@ -32,16 +32,18 @@ function mapApiErrorCode(code: string): AgentErrorCode {
     return 'quota_exceeded'
   if (code === 'POINTS_INSUFFICIENT')
     return 'balance_insufficient'
-  if (code === 'ACTIVE_TASK_EXISTS')
+  if (code === 'ACTIVE_TASK_EXISTS' || code === 'CREATIVE_ACTIVE_RUN_EXISTS')
     return 'concurrency_limit'
   if (code === 'PLATFORM_DAILY_LIMIT')
     return 'platform_budget_exceeded'
-  if (code === 'AI_DISABLED')
+  if (code === 'AI_DISABLED' || code === 'CREATIVE_TEAM_DISABLED' || code === 'CREATIVE_CAPABILITY_DISABLED')
     return 'capability_disabled'
   if (code.startsWith('CONTENT_BLOCKED'))
     return 'content_blocked'
-  if (code === 'IDEMPOTENCY_CONFLICT' || code === 'INVALID_CURSOR')
+  if (code === 'IDEMPOTENCY_CONFLICT' || code === 'INVALID_CURSOR'
+    || ['CREATIVE_IDEMPOTENCY_CONFLICT', 'CREATIVE_SOURCE_CONFLICT', 'CREATIVE_PLAN_SOURCE_CONFLICT', 'CREATIVE_SUBMISSION_CONFLICT'].includes(code)) {
     return 'conflict'
+  }
   if (code === 'PROTOCOL_UNSUPPORTED')
     return 'protocol_unsupported'
   if (code === 'RECONCILE_REQUIRED')
@@ -52,6 +54,8 @@ function mapApiErrorCode(code: string): AgentErrorCode {
     || code === 'IDEMPOTENCY_KEY_REQUIRED'
     || code === 'TASK_NOT_FOUND'
     || code === 'ROUTE_NOT_FOUND'
+    || code === 'CREATIVE_RUN_NOT_FOUND'
+    || code === 'CREATIVE_STORAGE_LIMIT'
   ) {
     return 'invalid_request'
   }

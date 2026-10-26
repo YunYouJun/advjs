@@ -1,5 +1,5 @@
 import type { CreativeFileChange, CreativeTeamLimits, CreativeTeamPlan } from './contracts'
-import { parseCreativeTeamPlan } from './validation'
+import { assertCreativeSourcePath, parseCreativeTeamPlan } from './validation'
 
 /** A structured cast proposal; these ids belong to the game, not to the partner roster. */
 export interface CreativeCharacterProfile {
@@ -100,6 +100,21 @@ function unique(values: readonly string[]): void {
 
 /** Parse only each role's public data schema. The model never chooses paths or media receipts. */
 export function parseCreativePartnerOutput(kind: CreativePartnerOutput['kind'], value: unknown, context: CreativeOutputContext): CreativePartnerOutput {
+  return parseOutput(kind, value, context, true)
+}
+
+/**
+ * Decode a persisted candidate's schema; its upstream source may no longer be current.
+ * This never grants adoption authority: review revalidates the real project and provenance.
+ */
+export function parseCreativePartnerOutputSnapshot(value: unknown, context: CreativeOutputContext): CreativePartnerOutput {
+  const kind = record(value).kind
+  if (!['production-plan', 'characters', 'chapter', 'art-direction', 'voice-direction', 'playtest-plan'].includes(String(kind)))
+    throw new TypeError('Unknown creative output kind')
+  return parseOutput(kind as CreativePartnerOutput['kind'], value, context, false)
+}
+
+function parseOutput(kind: CreativePartnerOutput['kind'], value: unknown, context: CreativeOutputContext, checkReferences: boolean): CreativePartnerOutput {
   const root = record(value)
   if (root.kind !== kind)
     throw new TypeError('Creative output kind mismatch')
@@ -131,7 +146,7 @@ export function parseCreativePartnerOutput(kind: CreativePartnerOutput['kind'], 
     })
     unique(characters.map(character => character.id))
     const known = new Set([...context.characterIds, ...characters.map(character => character.id)])
-    if (characters.some(character => character.relationships.some(relation => !known.has(relation.targetId))))
+    if (checkReferences && characters.some(character => character.relationships.some(relation => !known.has(relation.targetId))))
       throw new TypeError('Character relationship references an unknown id')
     return { kind, summary, characters }
   }
@@ -142,7 +157,7 @@ export function parseCreativePartnerOutput(kind: CreativePartnerOutput['kind'], 
     })
     unique(chapters.map(chapter => chapter.id))
     const entryChapterId = id(root.entryChapterId)
-    if (!chapters.some(chapter => chapter.id === entryChapterId) && !(`adv/chapters/${entryChapterId}.adv.md` in context.files))
+    if (checkReferences && !chapters.some(chapter => chapter.id === entryChapterId) && !(`adv/chapters/${entryChapterId}.adv.md` in context.files))
       throw new TypeError('Unknown entry chapter')
     const endingAddresses = array(root.endingAddresses, 16, 1).map(address)
     unique(endingAddresses)
@@ -154,9 +169,9 @@ export function parseCreativePartnerOutput(kind: CreativePartnerOutput['kind'], 
       if (!['portrait', 'expression', 'background'].includes(String(request.kind)))
         throw new TypeError('Unknown art request kind')
       const characterId = request.characterId === undefined ? undefined : id(request.characterId)
-      if (characterId && !context.characterIds.includes(characterId))
+      if (checkReferences && characterId && !context.characterIds.includes(characterId))
         throw new TypeError('Unknown art character id')
-      if (request.kind !== 'background' && (!characterId || !context.characterIds.includes(characterId)))
+      if (request.kind !== 'background' && (!characterId || (checkReferences && !context.characterIds.includes(characterId))))
         throw new TypeError('Character art requires an existing stable character id')
       if (request.kind === 'background' && request.sceneId === undefined)
         throw new TypeError('Background requests require a narrative scene id')
@@ -182,7 +197,7 @@ export function parseCreativePartnerOutput(kind: CreativePartnerOutput['kind'], 
   if (kind === 'voice-direction') {
     const speaker = (value: unknown): string => {
       const speakerId = id(value)
-      if (speakerId !== 'narrator' && !context.characterIds.includes(speakerId))
+      if (checkReferences && speakerId !== 'narrator' && !context.characterIds.includes(speakerId))
         throw new TypeError('Unknown voice speaker')
       return speakerId
     }
@@ -204,7 +219,7 @@ export function parseCreativePartnerOutput(kind: CreativePartnerOutput['kind'], 
         throw new TypeError('Voice instructions must target chapter dialogue sources')
       const lineNumber = integer(line.line, 1, 100000)
       const content = text(line.text, 2000)
-      if (!context.files[path]?.split('\n')[lineNumber - 1]?.includes(content))
+      if (checkReferences && !context.files[path]?.split('\n')[lineNumber - 1]?.includes(content))
         throw new TypeError('Voice instruction does not match the frozen dialogue source')
       return { path, line: lineNumber, speakerId: speaker(line.speakerId), text: content, instruction: text(line.instruction) }
     })
@@ -218,9 +233,10 @@ export function parseCreativePartnerOutput(kind: CreativePartnerOutput['kind'], 
   const concerns = array(root.concerns, 32).map((item) => {
     const concern = record(item)
     const path = text(concern.path, 200)
-    if (!(path in context.files))
+    assertCreativeSourcePath(path)
+    if (checkReferences && !(path in context.files))
       throw new TypeError('Unknown playtest concern source')
-    return { path, line: integer(concern.line, 1, context.files[path].split('\n').length), expected: text(concern.expected), actual: text(concern.actual), suggestion: text(concern.suggestion) }
+    return { path, line: integer(concern.line, 1, checkReferences ? context.files[path].split('\n').length : 100000), expected: text(concern.expected), actual: text(concern.actual), suggestion: text(concern.suggestion) }
   })
   return { kind, summary, scenarios, concerns }
 }

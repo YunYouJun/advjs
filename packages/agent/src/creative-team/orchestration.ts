@@ -9,10 +9,11 @@ export type CreativeTeamAction
     | { type: 'accept-production-plan', artifactId: string, decisionId: string }
     | { type: 'reserve-next', taskId: string, inputFingerprint: string, quotedMicroPoints: number, toolCalls: number }
     | { type: 'begin-dispatch', taskId: string, dispatchKey: string }
+    | { type: 'block-task', taskId: string, code: string, message: string }
     | { type: 'attach-runtime-task', taskId: string, dispatchKey: string, runtimeTaskId: string }
     | { type: 'settle-task', taskId: string, dispatchKey: string, status: 'completed' | 'failed' | 'cancelled' | 'reconcile_required', usage?: AgentUsageSummary, artifacts: readonly CreativeArtifact[], error?: { code: string, message: string } }
     | { type: 'select', taskId: string, artifactIds: readonly string[], decisionId: string, reason: string }
-    | { type: 'request-rework', taskId: string, reason: string }
+    | { type: 'request-rework', taskId: string, reason: string, decisionId?: string }
     | { type: 'refresh-facts', files: Readonly<Record<string, string>> }
     | { type: 'cancel', decisionId: string, reason: string }
 
@@ -73,7 +74,7 @@ export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeT
   const state = 'taskId' in action ? run.tasks.find(task => task.taskId === action.taskId) : undefined
   if ('taskId' in action && !state)
     throw new TypeError('Unknown task')
-  const decision = (id: string, operation: 'approve-plan' | 'select' | 'stop', artifactIds: readonly string[], reason: string): void => {
+  const decision = (id: string, operation: 'approve-plan' | 'select' | 'stop' | 'rework', artifactIds: readonly string[], reason: string): void => {
     run.decisions = [...run.decisions, { id, action: operation, artifactIds, reason, projectRevision: run.plan.projectRevision, at: now }]
   }
 
@@ -91,7 +92,7 @@ export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeT
         || ['cancel_requested', 'cancelled'].includes(run.status)) {
         throw new TypeError('No current director plan is available for approval')
       }
-      const proposed = parseCreativeTeamPlan(artifact.output.plan, run.plan)
+      const proposed = parseCreativeTeamPlan(artifact.output.plan, { projectId: run.plan.projectId, projectRevision: artifact.source.revision })
       if (proposed.goal !== run.plan.goal)
         throw new TypeError('Director cannot replace the original author goal')
       for (const key of ['maxTasks', 'maxToolCalls', 'maxReworkRounds', 'maxMicroPoints'] as const) {
@@ -103,7 +104,7 @@ export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeT
       const combined = parseCreativeTeamPlan({
         ...proposed,
         tasks: [...run.plan.tasks, ...proposed.tasks.map(task => ({ ...task, dependsOn: [...new Set([...task.dependsOn, artifact.taskId])] }))],
-      }, run.plan)
+      }, { projectId: run.plan.projectId, projectRevision: artifact.source.revision })
       const owner = run.tasks.find(task => task.taskId === artifact.taskId)
       if (owner?.status !== 'awaiting_review')
         throw new TypeError('Director task is not awaiting review')
@@ -144,7 +145,15 @@ export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeT
         throw new TypeError('Dispatch is no longer allowed')
       state!.dispatchStarted = true
       break
+    case 'block-task':
+      if (state!.status !== 'pending')
+        throw new TypeError('Only an undispatched task can be blocked')
+      state!.status = 'blocked'
+      state!.error = { code: action.code, message: action.message }
+      break
     case 'attach-runtime-task':
+      if (state!.dispatchKey === action.dispatchKey && state!.runtimeTaskId === action.runtimeTaskId)
+        return source
       if (state!.status !== 'running' || state!.dispatchKey !== action.dispatchKey)
         throw new TypeError('Dispatch generation mismatch')
       if (state!.runtimeTaskId && state!.runtimeTaskId !== action.runtimeTaskId)
@@ -177,6 +186,16 @@ export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeT
       }
       state!.usage = action.usage
       state!.error = action.error
+      state!.history = [...(state!.history ?? []), {
+        attempt: state!.attempt,
+        dispatchKey: action.dispatchKey,
+        runtimeTaskId: state!.runtimeTaskId,
+        inputFingerprint: state!.inputFingerprint,
+        status: action.status,
+        usage: action.usage,
+        artifactIds: action.artifacts.map(artifact => artifact.id),
+        ...(action.error ? { error: action.error } : {}),
+      }]
       run.chargedMicroPoints += action.usage.chargedMicroPoints
       run.reservedMicroPoints -= state!.reservedMicroPoints ?? 0
       state!.reservedMicroPoints = 0
@@ -228,6 +247,8 @@ export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeT
       }
       state!.status = 'pending'
       state!.error = { code: 'rework_requested', message: action.reason }
+      if (action.decisionId)
+        decision(action.decisionId, 'rework', state!.artifactIds, action.reason)
       break
     }
     case 'refresh-facts': {
@@ -252,6 +273,8 @@ export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeT
   }
   if (action.type !== 'approve-plan' && run.status !== 'awaiting_plan_review')
     run.status = deriveStatus(run)
+  if (JSON.stringify(run) === JSON.stringify(source))
+    return source
   run.revision += 1
   run.updatedAt = now
   return run
