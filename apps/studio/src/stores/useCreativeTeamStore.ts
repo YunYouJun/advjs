@@ -1,0 +1,191 @@
+import type { CreativeTeamAvailability, CreativeTeamClient, CreativeTeamDecisionInput, CreativeTeamRun, CreativeTeamRunSummary, CreativeTeamStartRequest } from '@advjs/agent'
+import { normalizeAgentRuntimeError } from '@advjs/agent'
+import { defineStore } from 'pinia'
+import { computed, shallowRef } from 'vue'
+
+export const useCreativeTeamStore = defineStore('creative-team', () => {
+  const availability = shallowRef<CreativeTeamAvailability>()
+  const runs = shallowRef<readonly CreativeTeamRunSummary[]>([])
+  const run = shallowRef<CreativeTeamRun>()
+  const loading = shallowRef(false)
+  const mutating = shallowRef(false)
+  const error = shallowRef<string>()
+  const connected = shallowRef(false)
+  let connection: { client: CreativeTeamClient, accountId: string, projectId: string } | undefined
+  let generation = 0
+  let selection = 0
+  let refreshing: Promise<void> | undefined
+
+  const canStart = computed(() => Boolean(connected.value && availability.value?.enabled && !mutating.value && !loading.value
+    && !runs.value.some(item => !['completed', 'cancelled'].includes(item.status))
+    && (!run.value || ['completed', 'cancelled'].includes(run.value.status))))
+  const needsPolling = computed(() => Boolean(run.value && ['ready', 'running', 'cancel_requested'].includes(run.value.status)))
+
+  function failure(cause: unknown): string {
+    const detail = normalizeAgentRuntimeError(cause).detail
+    if (detail.code === 'unauthenticated')
+      return 'login'
+    if (detail.code === 'beta_access_required' || detail.code === 'forbidden')
+      return 'access'
+    if (detail.code === 'balance_insufficient')
+      return 'balance'
+    if (detail.code === 'concurrency_limit')
+      return 'active'
+    if (detail.code === 'protocol_unsupported')
+      return 'protocol'
+    if (detail.code === 'capability_disabled')
+      return 'unavailable'
+    if (detail.code === 'conflict' || detail.code === 'invalid_request')
+      return 'source'
+    return 'connection'
+  }
+  function update(next: CreativeTeamRun) {
+    if (next.accountId !== connection?.accountId || next.plan.projectId !== connection.projectId)
+      return
+    if (run.value?.id === next.id && run.value.revision > next.revision)
+      return
+    run.value = next
+    runs.value = [{ id: next.id, projectId: next.plan.projectId, goal: next.plan.goal, status: next.status, revision: next.revision, chargedMicroPoints: next.chargedMicroPoints, reservedMicroPoints: next.reservedMicroPoints, updatedAt: next.updatedAt }, ...runs.value.filter(item => item.id !== next.id)].slice(0, 20)
+  }
+  function disconnect() {
+    generation += 1
+    selection += 1
+    connection = undefined
+    refreshing = undefined
+    availability.value = undefined
+    runs.value = []
+    run.value = undefined
+    loading.value = false
+    mutating.value = false
+    connected.value = false
+    error.value = undefined
+  }
+  function configure(next: NonNullable<typeof connection>) {
+    disconnect()
+    connection = next
+    connected.value = true
+  }
+
+  async function refresh(): Promise<void> {
+    if (!connection)
+      return
+    if (refreshing)
+      return refreshing
+    const current = connection
+    const epoch = generation
+    const selected = selection
+    loading.value = true
+    const job = (async () => {
+      try {
+        const status = await current.client.availability()
+        if (epoch !== generation)
+          return
+        availability.value = status
+        if (!status.enabled) {
+          error.value = undefined
+          return
+        }
+        const items = await current.client.list(current.projectId)
+        if (epoch !== generation || selected !== selection)
+          return
+        runs.value = items
+        const runId = run.value?.id ?? items.find(item => !['completed', 'cancelled'].includes(item.status))?.id ?? items[0]?.id
+        if (runId) {
+          const next = await current.client.get(current.projectId, runId)
+          if (epoch !== generation || selected !== selection)
+            return
+          update(next)
+        }
+        error.value = undefined
+      }
+      catch (cause) {
+        if (epoch === generation && selected === selection)
+          error.value = failure(cause)
+      }
+      finally {
+        if (epoch === generation) {
+          loading.value = false
+          refreshing = undefined
+        }
+      }
+    })()
+    refreshing = job
+    return job
+  }
+
+  async function open(runId: string): Promise<void> {
+    if (!connection || mutating.value)
+      return
+    const current = connection
+    const epoch = generation
+    const selected = ++selection
+    loading.value = true
+    try {
+      const next = await current.client.get(current.projectId, runId)
+      if (epoch === generation && selected === selection) {
+        update(next)
+        error.value = undefined
+      }
+    }
+    catch (cause) {
+      if (epoch === generation && selected === selection)
+        error.value = failure(cause)
+    }
+    finally {
+      if (epoch === generation && selected === selection)
+        loading.value = false
+    }
+  }
+
+  async function mutate(operation: (current: NonNullable<typeof connection>) => Promise<CreativeTeamRun>): Promise<void> {
+    if (!connection || mutating.value)
+      return
+    const current = connection
+    const epoch = generation
+    ++selection
+    mutating.value = true
+    error.value = undefined
+    try {
+      const next = await operation(current)
+      if (epoch === generation)
+        update(next)
+    }
+    catch (cause) {
+      if (epoch === generation)
+        error.value = failure(cause)
+    }
+    finally {
+      if (epoch === generation)
+        mutating.value = false
+    }
+  }
+
+  async function start(request: CreativeTeamStartRequest): Promise<void> {
+    if (!canStart.value || request.project.id !== connection?.projectId)
+      return
+    const intent = crypto.randomUUID()
+    await mutate(current => current.client.start(request, intent))
+  }
+  async function decide(decision: CreativeTeamDecisionInput, project?: CreativeTeamStartRequest['project']): Promise<void> {
+    const runId = run.value?.id
+    if (!runId || (project && project.id !== connection?.projectId))
+      return
+    const intent = crypto.randomUUID()
+    await mutate(async (current) => {
+      if (project)
+        await current.client.refreshFacts(project, runId, crypto.randomUUID())
+      // A project/account change during the snapshot update must never authorize a billable decision.
+      if (current !== connection)
+        throw new Error('Creative scope changed')
+      return current.client.decide(current.projectId, runId, decision, intent)
+    })
+  }
+  async function refreshFacts(project: CreativeTeamStartRequest['project']): Promise<void> {
+    const runId = run.value?.id
+    if (!runId || project.id !== connection?.projectId)
+      return
+    await mutate(current => current.client.refreshFacts(project, runId, crypto.randomUUID()))
+  }
+
+  return { availability, runs, run, loading, mutating, error, connected, canStart, needsPolling, configure, disconnect, refresh, open, start, decide, refreshFacts }
+})

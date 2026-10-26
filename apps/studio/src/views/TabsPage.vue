@@ -4,11 +4,13 @@ import { globeOutline, layersOutline, personOutline, playOutline } from 'ionicon
 import { onMounted } from 'vue'
 import ManagedAgentProposalReview from '../components/agent/ManagedAgentProposalReview.vue'
 import ManagedAgentTaskRail from '../components/agent/ManagedAgentTaskRail.vue'
+import { useCreativeTeamSession } from '../composables/useCreativeTeamSession'
 import { useResponsive } from '../composables/useResponsive'
 import { useStudioStore } from '../stores/useStudioStore'
 
 const studioStore = useStudioStore()
 const { isDesktop } = useResponsive()
+useCreativeTeamSession()
 
 // Auto-restore last project on page reload (global, runs once for all tabs)
 onMounted(() => {

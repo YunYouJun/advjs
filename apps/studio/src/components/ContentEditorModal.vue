@@ -13,7 +13,7 @@ import {
   IonToolbar,
 } from '@ionic/vue'
 import { closeOutline, cloudDoneOutline, cloudOfflineOutline, peopleOutline, saveOutline, settingsOutline } from 'ionicons/icons'
-import { computed, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useCollabRoom } from '../composables/useCollabRoom'
@@ -40,12 +40,14 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const CreativeTeamModal = defineAsyncComponent(() => import('./creative-team/CreativeTeamModal.vue'))
 const router = useRouter()
 const authStore = useAuthStore()
 const collab = useCollabRoom()
 const activeTab = ref<'form' | 'markdown' | 'ai'>('form')
 const localMarkdown = ref('')
 const isCollabToggling = ref(false)
+const showCreativeTeam = ref(false)
 
 const collabFilename = computed(() => props.monacoFilename || 'content.md')
 const collabText = computed(() => {
@@ -123,6 +125,12 @@ function handleSave() {
     emit('syncFromMarkdown', localMarkdown.value)
   emit('save')
 }
+
+function handleCreativeNavigate() {
+  showCreativeTeam.value = false
+  // The existing content editor keeps its local draft when closed.
+  handleCancel()
+}
 </script>
 
 <template>
@@ -141,6 +149,9 @@ function handleSave() {
         <IonTitle>{{ title }}</IonTitle>
         <!-- eslint-disable-next-line vue/no-deprecated-slot-attribute -- Ionic Web Component requires native slot -->
         <IonButtons slot="end">
+          <IonButton fill="clear" @click="showCreativeTeam = true">
+            {{ t('creativeTeam.title') }}
+          </IonButton>
           <IonButton
             :disabled="isSaving"
             color="primary"
@@ -223,6 +234,7 @@ function handleSave() {
       </div>
     </IonContent>
   </IonModal>
+  <CreativeTeamModal v-if="showCreativeTeam" :is-open="showCreativeTeam" :initial-partner="monacoFilename?.includes('character') ? 'character-designer' : 'writer'" @close="showCreativeTeam = false" @navigate="handleCreativeNavigate" />
 </template>
 
 <style scoped>

@@ -4,6 +4,7 @@ import { closeOutline, sparklesOutline } from 'ionicons/icons'
 import { storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import { useManagedAgentSession } from '../../composables/useManagedAgentSession'
 import { useResponsive } from '../../composables/useResponsive'
 import { useAuthStore } from '../../stores/useAuthStore'
@@ -11,12 +12,15 @@ import { useManagedAgentStore } from '../../stores/useManagedAgentStore'
 import ManagedAgentConsole from './ManagedAgentConsole.vue'
 
 const { t } = useI18n()
+const route = useRoute()
 const { isWide } = useResponsive()
 const authStore = useAuthStore()
 const managedStore = useManagedAgentStore()
 const { isLoggedIn } = storeToRefs(authStore)
 const { status, hasActiveTask, error } = storeToRefs(managedStore)
 const sheetOpen = ref(false)
+const showLegacyPanel = computed(() => route.path !== '/tabs/workspace/creative-team'
+  || Boolean(status.value && ['authorizing', 'queued', 'running', 'settling'].includes(status.value)))
 
 const compactLabel = computed(() => {
   if (error.value)
@@ -30,11 +34,11 @@ useManagedAgentSession()
 </script>
 
 <template>
-  <aside v-if="isWide" class="managed-agent-rail" :aria-label="$t('managedAi.title')">
+  <aside v-if="isWide && showLegacyPanel" class="managed-agent-rail" :aria-label="$t('managedAi.title')">
     <ManagedAgentConsole :logged-in="isLoggedIn" />
   </aside>
 
-  <template v-else>
+  <template v-else-if="showLegacyPanel">
     <button
       type="button"
       class="managed-agent-dock"

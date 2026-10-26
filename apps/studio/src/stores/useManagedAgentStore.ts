@@ -38,7 +38,7 @@ export const useManagedAgentStore = defineStore('managed-agent', () => {
 
   const activeTaskId = computed(() => points.value?.activeTask ?? task.value?.taskId)
   const status = computed<AgentTaskStatus | undefined>(() => task.value?.snapshot?.status)
-  const hasServerActiveTask = computed(() => Boolean(points.value?.activeTask))
+  const hasServerActiveTask = computed(() => Boolean(points.value?.activeTask) || (points.value?.activeReservationCount ?? 0) > 0)
   const hasActiveTask = computed(() => hasServerActiveTask.value || Boolean(status.value && ACTIVE_STATUSES.has(status.value)))
   const canStartTask = computed(() => isConfigured.value && !hasActiveTask.value && !isRefreshing.value)
 

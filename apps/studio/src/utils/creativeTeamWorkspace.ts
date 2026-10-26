@@ -1,6 +1,6 @@
 import type { CreativeProjectWorkspace } from '@advjs/agent'
 import type { IFileSystem } from './fs'
-import { assertCreativeSourcePath, computeAgentProjectRevision, overlayCreativeChanges } from '@advjs/agent'
+import { assertCreativeSourcePath, computeAgentProjectRevision, overlayCreativeChanges, selectCreativeProjectFiles } from '@advjs/agent'
 import { commitStudioProjectFiles } from './nativeProjectMutation'
 
 /** Share Studio's native transaction with voice/Flow writes; media authority is explicit. */
@@ -10,7 +10,7 @@ export function createStudioCreativeWorkspace(fs: IFileSystem, projectId: string
 } = {}): CreativeProjectWorkspace {
   async function snapshot() {
     options.assertCurrent?.()
-    const files = Object.fromEntries((await fs.collectAllFiles()).map(file => [file.path, file.content]))
+    const files = selectCreativeProjectFiles(Object.fromEntries((await fs.collectAllFiles()).map(file => [file.path, file.content])))
     return { projectId, files, revision: await computeAgentProjectRevision(files) }
   }
   return {
