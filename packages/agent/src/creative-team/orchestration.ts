@@ -14,6 +14,7 @@ export type CreativeTeamAction
     | { type: 'settle-task', taskId: string, dispatchKey: string, status: 'completed' | 'failed' | 'cancelled' | 'reconcile_required', usage?: AgentUsageSummary, artifacts: readonly CreativeArtifact[], error?: { code: string, message: string } }
     | { type: 'select', taskId: string, artifactIds: readonly string[], decisionId: string, reason: string }
     | { type: 'request-rework', taskId: string, reason: string, decisionId?: string }
+    | { type: 'edit-candidate', artifact: CreativeArtifact, decisionId: string, reason: string, requestFingerprint: string }
     | { type: 'refresh-facts', files: Readonly<Record<string, string>> }
     | { type: 'cancel', decisionId: string, reason: string }
 
@@ -74,8 +75,8 @@ export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeT
   const state = 'taskId' in action ? run.tasks.find(task => task.taskId === action.taskId) : undefined
   if ('taskId' in action && !state)
     throw new TypeError('Unknown task')
-  const decision = (id: string, operation: 'approve-plan' | 'select' | 'stop' | 'rework', artifactIds: readonly string[], reason: string): void => {
-    run.decisions = [...run.decisions, { id, action: operation, artifactIds, reason, projectRevision: run.plan.projectRevision, at: now }]
+  const decision = (id: string, operation: 'approve-plan' | 'select' | 'stop' | 'rework' | 'edit', artifactIds: readonly string[], reason: string, projectRevision = run.plan.projectRevision): void => {
+    run.decisions = [...run.decisions, { id, action: operation, artifactIds, reason, projectRevision, at: now }]
   }
 
   switch (action.type) {
@@ -249,6 +250,38 @@ export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeT
       state!.error = { code: 'rework_requested', message: action.reason }
       if (action.decisionId)
         decision(action.decisionId, 'rework', state!.artifactIds, action.reason)
+      break
+    }
+    case 'edit-candidate': {
+      const edited = action.artifact
+      const original = run.artifacts.find(item => item.id === edited.editedFrom?.artifactId && item.fingerprint === edited.editedFrom.fingerprint)
+      const owner = run.tasks.find(task => task.taskId === original?.taskId)
+      if (!original || !['candidate', 'selected'].includes(original.status) || !owner || !['awaiting_review', 'completed'].includes(owner.status)
+        || edited.status !== 'candidate' || edited.taskId !== original.taskId || edited.kind !== original.kind
+        || run.artifacts.some(item => item.id === edited.id) || run.artifacts.length >= 256 || run.status === 'completed') {
+        throw new TypeError('Candidate is unavailable for author revision')
+      }
+      assertCreativeArtifactBoundary(edited, run)
+      const obsolete = new Set([original.id])
+      let changed = true
+      while (changed) {
+        changed = false
+        for (const artifact of run.artifacts) {
+          if (!obsolete.has(artifact.id) && artifact.source.upstream.some(reference => obsolete.has(reference.artifactId))) {
+            obsolete.add(artifact.id)
+            changed = true
+          }
+        }
+      }
+      run.artifacts = [...run.artifacts.map(artifact => obsolete.has(artifact.id) ? { ...artifact, status: 'stale' as const } : artifact), edited]
+      for (const task of run.tasks) {
+        if (task.taskId !== owner.taskId && !['running', 'reconcile_required'].includes(task.status) && task.artifactIds.some(id => obsolete.has(id)))
+          task.status = 'stale'
+      }
+      owner.artifactIds = owner.artifactIds.map(id => id === original.id ? edited.id : id)
+      owner.status = 'awaiting_review'
+      decision(action.decisionId, 'edit', [edited.id], action.reason, edited.source.revision)
+      run.decisions = run.decisions.map(item => item.id === action.decisionId ? { ...item, requestFingerprint: action.requestFingerprint } : item)
       break
     }
     case 'refresh-facts': {

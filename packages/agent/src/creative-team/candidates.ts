@@ -2,7 +2,8 @@ import type { CreativeArtifact, CreativeTeamHandoff, CreativeTeamRun } from './c
 
 /** Propagate exact source/upstream changes without deleting independent candidates. */
 export function invalidateCreativeArtifacts(artifacts: readonly CreativeArtifact[], currentFiles: Readonly<Record<string, string>>): CreativeArtifact[] {
-  const stale = new Set(artifacts.filter(artifact => Object.entries(artifact.source.files).some(([path, content]) => currentFiles[path] !== content)).map(artifact => artifact.id))
+  const stale = new Set(artifacts.filter(artifact => Object.entries(artifact.source.files).some(([path, content]) => currentFiles[path] !== content)
+    || (artifact.status !== 'adopted' && artifact.changes.some(change => change.before === null && change.path in currentFiles))).map(artifact => artifact.id))
   let changed = true
   while (changed) {
     changed = false

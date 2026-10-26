@@ -20,6 +20,8 @@ describe('controlled six-partner outputs', () => {
     expect(changes[0]).toMatchObject({ path: 'adv/characters/lin.character.md', before: context.files['adv/characters/lin.character.md'] })
     const compiled = await compileProject({ files: overlayCreativeChanges(context.files, changes) })
     expect(compiled.diagnostics).toEqual([])
+    expect(compiled.project.characters.find(item => item.id === 'lin')).toMatchObject({ background: character.description, concept: character.motivation, speechStyle: expect.stringContaining(character.speakingStyle), appearance: expect.stringContaining('旧制服') })
+    expect(compiled.project.characters.find(item => item.id === 'lin')?.speechStyle).toContain('低声')
     expect(() => parseCreativePartnerOutput('characters', { kind: 'characters', summary: '错误关系', characters: [{ ...character, relationships: [{ targetId: 'absent', type: '未知', description: '无' }] }] }, context)).toThrow(/unknown id/)
   })
 
@@ -35,6 +37,20 @@ describe('controlled six-partner outputs', () => {
     const files = overlayCreativeChanges(source, creativeOutputFileChanges(output, source))
     expect(JSON.parse(files['adv/settings/game.json']).custom).toEqual({ author: 'kept' })
     expect((await compileProject({ files })).diagnostics).toEqual([])
+  })
+
+  it('preserves existing cast media bindings and opaque metadata during narrative revisions', async () => {
+    const profile = { intent: { speakingStyle: '既有声线' }, locales: { 'zh-CN': { providers: { existing: { voiceId: 'voice-kept', model: 'model-kept', source: 'system' } } } } }
+    const source = { ...context.files, 'adv/characters/lin.character.md': `---\nid: lin\nname: 旧名字\navatar: portraits/lin.webp\nvoiceProfile: ${JSON.stringify(profile)}\ncustom:\n  author: kept\nrelationships:\n  - targetId: qiao\n    type: old\n---\n旧内容。` }
+    const output = parseCreativePartnerOutput('characters', { kind: 'characters', summary: '修订动机', characters: [character] }, { ...context, files: source })
+    const text = creativeOutputFileChanges(output, source)[0].after!
+    expect(text).toContain('avatar: portraits/lin.webp')
+    expect(text).toContain('voice-kept')
+    expect(text).toContain('author: kept')
+    expect(text.match(/^relationships:/gm)).toHaveLength(1)
+    expect(text).not.toContain('type: old')
+    const compiled = await compileProject({ files: overlayCreativeChanges(source, creativeOutputFileChanges(output, source)) })
+    expect(compiled.project.characters.find(item => item.id === 'lin')?.voiceProfile).toEqual(profile)
   })
 
   it('distinguishes art requests from produced media and validates stable identities', () => {

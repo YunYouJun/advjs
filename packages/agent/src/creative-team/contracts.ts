@@ -91,6 +91,8 @@ export interface CreativeArtifact {
   source: CreativeArtifactSource
   fingerprint: string
   summary: string
+  /** Immutable author revision; lineage is separate from upstream task dependencies. */
+  editedFrom?: { artifactId: string, fingerprint: string }
   output?: CreativePartnerOutput
   legacyResult?: { capability: AgentCapabilityId, streamText: string }
   changes: readonly CreativeFileChange[]
@@ -147,10 +149,11 @@ export interface CreativeTeamRun {
 export interface CreativeTeamDecision {
   id: string
   artifactIds: readonly string[]
-  action: 'approve-plan' | 'select' | 'reject' | 'adopt' | 'undo' | 'stop' | 'rework'
+  action: 'approve-plan' | 'select' | 'reject' | 'adopt' | 'undo' | 'stop' | 'rework' | 'edit'
   reason: string
   projectRevision: string
   at: number
+  requestFingerprint?: string
 }
 
 /** Availability is a verified Runtime claim, never inferred from a local adapter. */
@@ -160,6 +163,7 @@ export interface CreativeTeamAvailability {
   serviceVersion: string
   capabilities: readonly CreativeTeamCapability[]
   media: { image: 'unavailable' | 'manual-import' | 'verified-managed', voice: 'unavailable' | 'manual-import' | 'verified-author-host' | 'verified-managed' }
+  authoring?: { candidateEdits: boolean, milestoneAdoption: boolean }
   maxConcurrentTasks: 1
 }
 

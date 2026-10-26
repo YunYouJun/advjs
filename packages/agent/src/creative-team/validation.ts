@@ -125,6 +125,17 @@ export function assertCreativeArtifactBoundary(artifact: CreativeArtifact, run: 
   const task = run.plan.tasks.find(task => task.id === artifact.taskId)
   if (!task || task.partner !== artifact.partner)
     throw new TypeError('Artifact owner mismatch')
+  if (artifact.editedFrom) {
+    const visited = new Set([artifact.id])
+    let reference: CreativeArtifact['editedFrom'] = artifact.editedFrom
+    while (reference) {
+      const parent = run.artifacts.find(item => item.id === reference!.artifactId && item.fingerprint === reference!.fingerprint)
+      if (!parent || visited.has(parent.id) || parent.taskId !== artifact.taskId || parent.kind !== artifact.kind || parent.partner !== artifact.partner)
+        throw new TypeError('Invalid author revision lineage')
+      visited.add(parent.id)
+      reference = parent.editedFrom
+    }
+  }
   requiredCreativeReviewCapabilities(artifact).forEach((capability) => {
     if (!artifact.reviewCapabilities.includes(capability))
       throw new TypeError(`Missing review capability: ${capability}`)

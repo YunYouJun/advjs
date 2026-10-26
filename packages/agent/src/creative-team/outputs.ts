@@ -242,6 +242,29 @@ function parseOutput(kind: CreativePartnerOutput['kind'], value: unknown, contex
 }
 
 /** Build finite portable source proposals; media remains in the existing authoring workflows. */
+function preservedCharacterFrontmatter(content: string | undefined): string[] {
+  const header = content && /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(content)?.[1]
+  if (!header)
+    return []
+  const owned = new Set(['id', 'name', 'relationships'])
+  if (header.trimStart().startsWith('{')) {
+    const data = record(JSON.parse(header))
+    return Object.entries(data).filter(([key]) => !owned.has(key)).map(([key, value]) => `${JSON.stringify(key)}: ${JSON.stringify(value)}`)
+  }
+  const kept: string[] = []
+  let skip = false
+  for (const line of header.split(/\r?\n/)) {
+    if (/^\S/.test(line) && !line.startsWith('#')) {
+      const key = /^(?:['"](id|name|relationships)['"]|(id|name|relationships))\s*:/.exec(line)
+      skip = Boolean(key)
+    }
+    if (!skip)
+      kept.push(line)
+  }
+  return kept
+}
+
+/** Preserve opaque media/profile metadata when a structured cast candidate edits narrative fields. */
 export function creativeOutputFileChanges(output: CreativePartnerOutput, files: Readonly<Record<string, string>>): CreativeFileChange[] {
   const change = (path: string, after: string): CreativeFileChange => ({ path, before: files[path] ?? null, after })
   if (output.kind === 'characters') {
@@ -250,27 +273,30 @@ export function creativeOutputFileChanges(output: CreativePartnerOutput, files: 
       `id: ${character.id}`,
       `name: ${JSON.stringify(character.name)}`,
       `relationships: ${JSON.stringify(character.relationships)}`,
+      ...preservedCharacterFrontmatter(files[`adv/characters/${character.id}.character.md`]),
       '---',
       '',
       `# ${character.name}`,
       '',
+      '## 背景',
+      '',
       character.description,
       '',
-      '## 动机',
+      '## 理念',
       '',
       character.motivation,
       '',
-      '## 语言风格',
+      '## 说话风格',
       '',
       character.speakingStyle,
       '',
-      '## 视觉约束',
-      '',
-      ...character.visualConstraints.map(item => `- ${item}`),
-      '',
-      '## 音色约束',
+      '### 音色约束',
       '',
       ...character.voiceConstraints.map(item => `- ${item}`),
+      '',
+      '## 外貌',
+      '',
+      ...character.visualConstraints.map(item => `- ${item}`),
       '',
     ].join('\n')))
   }

@@ -113,6 +113,7 @@ function artifact(value: unknown, run: Pick<CreativeTeamRun, 'id' | 'plan'>): Cr
     kind: member(source.kind, CREATIVE_ARTIFACT_KINDS),
     fingerprint: identity(source.fingerprint),
     summary: text(source.summary),
+    ...(source.editedFrom === undefined ? {} : { editedFrom: { artifactId: identity(object(source.editedFrom).artifactId), fingerprint: identity(object(source.editedFrom).fingerprint) } }),
     source: {
       projectId: identity(provenance.projectId),
       revision: identity(provenance.revision),
@@ -159,10 +160,11 @@ export function parseCreativeTeamRun(value: unknown, boundary: { accountId: stri
       return {
         id: identity(decision.id),
         artifactIds: ids(decision.artifactIds),
-        action: member(decision.action, ['approve-plan', 'select', 'reject', 'adopt', 'undo', 'stop', 'rework']),
+        action: member(decision.action, ['approve-plan', 'select', 'reject', 'adopt', 'undo', 'stop', 'rework', 'edit']),
         reason: text(decision.reason),
         projectRevision: identity(decision.projectRevision),
         at: integer(decision.at),
+        ...(decision.requestFingerprint === undefined ? {} : { requestFingerprint: identity(decision.requestFingerprint) }),
       }
     }),
     chargedMicroPoints: integer(source.chargedMicroPoints),
