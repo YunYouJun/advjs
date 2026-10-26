@@ -1,5 +1,5 @@
-import type { CreativeCandidateEditRequest, CreativeTeamAvailability, CreativeTeamClient, CreativeTeamDecisionInput, CreativeTeamRun, CreativeTeamRunSummary, CreativeTeamStartRequest } from '@advjs/agent'
-import { normalizeAgentRuntimeError } from '@advjs/agent'
+import type { CreativeAdoptionJournal, CreativeCandidateEditRequest, CreativeProjectWorkspace, CreativeTeamAvailability, CreativeTeamClient, CreativeTeamDecisionInput, CreativeTeamRun, CreativeTeamRunSummary, CreativeTeamStartRequest } from '@advjs/agent'
+import { CreativeMilestoneCoordinator, normalizeAgentRuntimeError } from '@advjs/agent'
 import { defineStore } from 'pinia'
 import { computed, shallowRef } from 'vue'
 
@@ -16,7 +16,7 @@ export const useCreativeTeamStore = defineStore('creative-team', () => {
   let selection = 0
   let refreshing: Promise<void> | undefined
 
-  const canStart = computed(() => Boolean(connected.value && availability.value?.enabled && !mutating.value && !loading.value
+  const canStart = computed(() => Boolean(connected.value && availability.value?.enabled && !mutating.value && !loading.value && !run.value?.milestones?.some(item => item.status === 'prepared')
     && !runs.value.some(item => !['completed', 'cancelled'].includes(item.status))
     && (!run.value || ['completed', 'cancelled'].includes(run.value.status))))
   const needsPolling = computed(() => Boolean(run.value && ['ready', 'running', 'cancel_requested'].includes(run.value.status)))
@@ -202,5 +202,21 @@ export const useCreativeTeamStore = defineStore('creative-team', () => {
     })
   }
 
-  return { availability, runs, run, loading, mutating, error, connected, canStart, needsPolling, configure, disconnect, refresh, open, start, decide, refreshFacts, editCandidate }
+  function milestoneCoordinator(workspace: CreativeProjectWorkspace, journal: CreativeAdoptionJournal, assertCurrent: () => void) {
+    const current = connection
+    const runId = run.value?.id
+    if (!current || !runId)
+      throw new Error('Creative service unavailable')
+    return new CreativeMilestoneCoordinator({ scope: { accountId: current.accountId, projectId: current.projectId, runId }, client: current.client, workspace, journal, assertCurrent() {
+      if (current !== connection || run.value?.id !== runId)
+        throw new Error('Creative scope changed')
+      assertCurrent()
+    } })
+  }
+
+  function performMilestone(operation: () => Promise<CreativeTeamRun>): Promise<boolean> {
+    return mutate(operation)
+  }
+
+  return { availability, runs, run, loading, mutating, error, connected, canStart, needsPolling, configure, disconnect, refresh, open, start, decide, refreshFacts, editCandidate, milestoneCoordinator, performMilestone }
 })

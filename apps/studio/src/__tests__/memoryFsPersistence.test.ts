@@ -43,6 +43,21 @@ beforeEach(() => {
   storage.transactions = 0
 })
 describe('portable atomic Studio media persistence', () => {
+  it('provides a strict durable barrier that reports storage failure and restores bytes across immediate reload', async () => {
+    const fs = new MemoryFsAdapter('strict-project')
+    await fs.writeFile('adv/world.md', 'Before')
+    await fs.flush()
+    await fs.writeFile('adv/world.md', 'After')
+    storage.failNext = true
+    await expect(fs.flush()).rejects.toThrow('simulated storage failure')
+    const previous = new MemoryFsAdapter('strict-project')
+    await previous.init()
+    expect(await previous.readFile('adv/world.md')).toBe('Before')
+    await fs.flush()
+    const restored = new MemoryFsAdapter('strict-project')
+    await restored.init()
+    expect(await restored.readFile('adv/world.md')).toBe('After')
+  })
   it('restores unchanged binary bytes and MIME across adapter reload, without IndexedDB Blob cloning', async () => {
     const fs = new MemoryFsAdapter('project')
     await fs.writeFile('adv/chapters/intro.adv.md', 'Current source')

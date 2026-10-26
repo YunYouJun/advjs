@@ -19,6 +19,7 @@ function client() {
     decide: vi.fn<CreativeTeamClient['decide']>(async () => ({ ...run(), status: 'running', revision: 3 })),
     refreshFacts: vi.fn<CreativeTeamClient['refreshFacts']>(async () => run()),
     editCandidate: vi.fn<CreativeTeamClient['editCandidate']>(async () => run()),
+    milestone: vi.fn<CreativeTeamClient['milestone']>(async () => run()),
   }
 }
 function deferred<T>() {

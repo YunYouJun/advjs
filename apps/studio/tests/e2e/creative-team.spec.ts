@@ -1,6 +1,64 @@
 import { writeFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
 
+test('writes reviewed text through the project transaction, recovers a lost receipt after reload and conditionally undoes', async ({ page }, info) => {
+  const errors: string[] = []
+  const warnings: string[] = []
+  page.on('pageerror', error => errors.push(error.message))
+  page.on('console', (message) => {
+    if (message.type() === 'error')
+      errors.push(message.text())
+    if (message.type() === 'warning')
+      warnings.push(message.text())
+  })
+  await page.goto('/tests/fixtures/creative-team/authoring.html')
+  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeAuthorFixture))).toBe(true)
+  const readFiles = () => page.evaluate(async () => (window as any).creativeAuthorFixture.files())
+  const before = await readFiles()
+  await page.locator('.team-artifact').filter({ hasText: '本地 fixture 人物初稿' }).getByRole('button', { name: '选定候选并继续' }).click()
+  await page.locator('.team-artifact').filter({ hasText: '本地 fixture 章节初稿' }).getByRole('button', { name: '选定候选并继续' }).click()
+  const panel = page.getByTestId('creative-milestone')
+  await panel.getByRole('checkbox', { name: '本地 fixture 人物初稿' }).check()
+  await panel.getByRole('checkbox', { name: '本地 fixture 章节初稿' }).check()
+  await panel.getByLabel('采用或撤销的原因').fill('采用已审阅的两个文字成果')
+  await panel.getByRole('button', { name: '审阅采用', exact: true }).click()
+  await expect(panel.getByText('候选快照编译通过，请核对下面的文件变化。')).toBeVisible()
+  expect(await readFiles()).toEqual(before)
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    await panel.scrollIntoViewIfNeeded()
+    await page.screenshot({ path: info.outputPath(`milestone-review-fixture-${width}.png`), animations: 'disabled' })
+  }
+  await page.evaluate(() => (window as any).creativeAuthorFixture.loseMilestoneResponse('confirm'))
+  await panel.getByRole('button', { name: '确认写入项目', exact: true }).click()
+  await expect(panel.getByRole('button', { name: '同步采用回执' })).toBeVisible()
+  const after = await readFiles()
+  expect(after).not.toEqual(before)
+  expect(after['adv/characters/lin.character.md']).toContain('## 理念')
+  expect(after['adv/chapters/station.adv.md']).toContain('确定性 UI fixture')
+  await page.reload()
+  await expect(panel.getByRole('button', { name: '同步采用回执' })).toBeVisible()
+  const calls = await page.evaluate(() => (window as any).creativeAuthorFixture.calls()) as string[]
+  expect(calls.filter(call => call.startsWith('POST'))).toEqual([])
+  expect(await readFiles()).toEqual(after)
+  await panel.getByRole('button', { name: '同步采用回执' }).click()
+  await expect(panel.getByText(/最近一次采用已确认/)).toBeVisible()
+  expect(await readFiles()).toEqual(after)
+  await panel.getByLabel('采用或撤销的原因').fill('条件撤销这次文字采用')
+  await panel.getByRole('button', { name: '审阅最近一次撤销' }).click()
+  await panel.getByRole('button', { name: '确认撤销本次采用' }).click()
+  await expect(panel.getByText(/最近一次撤销已确认/)).toBeVisible()
+  expect(await readFiles()).toEqual(before)
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    await panel.scrollIntoViewIfNeeded()
+    await page.screenshot({ path: info.outputPath(`milestone-fixture-${width}.png`), animations: 'disabled' })
+  }
+  expect(errors).toEqual([])
+  expect(warnings).toEqual([])
+  await writeFile(info.outputPath('milestone-scope.json'), JSON.stringify({ scope: 'local protocol fixture; actual project transaction and durable IndexedDB journal; no model or billing; exact files restored by conditional undo', errors, warnings }, null, 2))
+})
+
 /** Positive authoring states use an explicitly labelled local fixture, never a model service. */
 test('edits cast and chapter candidates with an explicit fixture and restores the saved revisions', async ({ page }, info) => {
   const errors: string[] = []
@@ -13,7 +71,7 @@ test('edits cast and chapter candidates with an explicit fixture and restores th
       warnings.push(message.text())
   })
   await page.goto('/tests/fixtures/creative-team/authoring.html')
-  await expect(page.getByText('仅验证界面与候选修订，不作为六角色真实交付。')).toBeVisible()
+  await expect(page.getByText('仅验证界面与创作协议，不作为六角色真实交付。')).toBeVisible()
   const readFiles = () => page.evaluate(async () => (window as any).creativeAuthorFixture.files())
   await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeAuthorFixture))).toBe(true)
   const before = await readFiles()

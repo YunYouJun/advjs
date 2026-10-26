@@ -49,7 +49,7 @@ function select() {
       {{ artifact.summary }}
     </h3>
     <p v-if="artifact.editedFrom" class="team-artifact__hint">
-      {{ t('creativeTeam.authorRevision') }}
+      {{ t(artifact.status === 'adopted' ? 'creativeTeam.authorRevisionAdopted' : 'creativeTeam.authorRevision') }}
     </p>
     <p class="team-artifact__source" :title="artifact.source.revision">
       {{ t('creativeTeam.source') }} · {{ artifact.source.revision.slice(0, 12) }}

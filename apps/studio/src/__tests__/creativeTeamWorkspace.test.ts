@@ -24,6 +24,21 @@ function fixture() {
 }
 
 describe('creative team Studio transaction adapter', () => {
+  it('awaits durable source storage and restores the original snapshot when that barrier fails', async () => {
+    const { fs, files } = fixture()
+    const workspace = createStudioCreativeWorkspace(fs, 'station')
+    const before = await workspace.snapshot()
+    let flushes = 0
+    fs.flush = async () => {
+      flushes += 1
+      if (flushes === 1)
+        throw new Error('durable storage failed')
+    }
+    await expect(workspace.commit([{ path: 'adv/characters/new.character.md', before: null, after: '---\nid: new\nname: 新人物\n---' }], before.revision)).rejects.toThrow('durable storage failed')
+    expect(flushes).toBe(2)
+    expect(files.has('adv/characters/new.character.md')).toBe(false)
+    expect((await workspace.snapshot()).revision).toBe(before.revision)
+  })
   it('creates sources and rejects a full-project revision conflict inside the write lock', async () => {
     const { fs, files } = fixture()
     const workspace = createStudioCreativeWorkspace(fs, 'station')

@@ -36,6 +36,8 @@ export interface FsFileEntry {
  * Implementations handle the mapping to their native path system.
  */
 export interface IFileSystem {
+  /** Optional durable barrier for adapters whose ordinary writes are buffered. */
+  flush?: () => Promise<void>
   /** Human-readable backend name for debugging */
   readonly backend: 'browser' | 'capacitor' | 'memory'
 

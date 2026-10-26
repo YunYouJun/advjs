@@ -65,7 +65,7 @@ function points(value: number) {
     <ol class="team-run__tasks">
       <li v-for="task in tasks" :key="task.id" class="team-run__task">
         <div class="team-run__task-heading">
-          <strong>{{ t(`creativeTeam.roles.${task.partner}`) }}</strong><span>{{ t(`creativeTeam.status.${task.state.status}`) }}</span>
+          <strong>{{ t(`creativeTeam.roles.${task.partner}`) }}</strong><span>{{ t(task.state.status === 'completed' ? 'creativeTeam.taskSelected' : `creativeTeam.status.${task.state.status}`) }}</span>
         </div>
         <p>{{ task.instruction }}</p>
         <p class="team-run__hint">

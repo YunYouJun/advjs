@@ -47,6 +47,7 @@ export async function commitStudioProjectFiles(fs: IFileSystem, changes: StudioN
         else
           await fs.writeFile(change.path, change.content)
       }
+      await fs.flush?.()
       options.assertCurrent?.()
     }
     catch (cause) {
@@ -61,6 +62,7 @@ export async function commitStudioProjectFiles(fs: IFileSystem, changes: StudioN
       }
       if (imported && media)
         await fs.deleteFile(media.path)
+      await fs.flush?.()
       throw cause
     }
   })

@@ -11,6 +11,7 @@ import { useManagedAgentStore } from '../../stores/useManagedAgentStore'
 import { useStudioStore } from '../../stores/useStudioStore'
 import { createStudioCreativeWorkspace } from '../../utils/creativeTeamWorkspace'
 import SButton from '../ui/SButton.vue'
+import CreativeMilestonePanel from './CreativeMilestonePanel.vue'
 import CreativePartnerRoster from './CreativePartnerRoster.vue'
 import CreativeTeamRequestForm from './CreativeTeamRequestForm.vue'
 import CreativeTeamRunPanel from './CreativeTeamRunPanel.vue'
@@ -28,6 +29,7 @@ const workspaceRoot = useTemplateRef<HTMLElement>('workspaceRoot')
 const savedEditArtifactId = shallowRef<string>()
 const snapshotError = shallowRef(false)
 const preparing = shallowRef(false)
+const milestoneBusy = shallowRef(false)
 const partnerEnabled = computed(() => availability.value?.capabilities.includes(CREATIVE_PARTNER_DEFAULT_CAPABILITY[partner.value]))
 const knownCharacterIds = computed(() => content.characters.value.map(character => character.id))
 watch(() => studio.currentProjectId, () => {
@@ -35,7 +37,7 @@ watch(() => studio.currentProjectId, () => {
   savedEditArtifactId.value = undefined
 })
 
-async function projectSnapshot() {
+async function projectWorkspace() {
   const projectId = studio.currentProject?.projectId
   const accountId = auth.userId
   if (!projectId)
@@ -49,12 +51,15 @@ async function projectSnapshot() {
   const fs = content.getFs()
   if (!fs)
     throw new Error('Project filesystem unavailable')
-  const snapshot = await createStudioCreativeWorkspace(fs, projectId, { assertCurrent }).snapshot()
-  assertCurrent()
+  return createStudioCreativeWorkspace(fs, projectId, { assertCurrent })
+}
+async function projectSnapshot() {
+  const snapshot = await (await projectWorkspace()).snapshot()
+  const projectId = snapshot.projectId
   return parseCreativeProject({ id: projectId, revision: snapshot.revision, files: snapshot.files })
 }
 async function withSnapshot(action: (project: Awaited<ReturnType<typeof projectSnapshot>>) => Promise<void>) {
-  if (preparing.value || mutating.value)
+  if (preparing.value || mutating.value || milestoneBusy.value)
     return
   preparing.value = true
   snapshotError.value = false
@@ -109,7 +114,7 @@ async function editCandidate(request: CreativeCandidateEditRequest) {
           {{ studio.currentProject?.name || t('creativeTeam.title') }}
         </h1>
       </div>
-      <SButton variant="outline" size="lg" :disabled="!connected || mutating" :loading="loading" @click="store.refresh">
+      <SButton variant="outline" size="lg" :disabled="!connected || mutating || milestoneBusy" :loading="loading" @click="store.refresh">
         {{ t('creativeTeam.refresh') }}
       </SButton>
     </header>
@@ -141,19 +146,20 @@ async function editCandidate(request: CreativeCandidateEditRequest) {
         <p v-if="managed.hasActiveTask" class="team-workspace__notice">
           {{ t('creativeTeam.oldTask') }}
         </p>
-        <CreativeTeamRequestForm :partner="partner" :disabled="!canStart || !partnerEnabled || managed.hasActiveTask" :busy="mutating || preparing" @submit="start" />
+        <CreativeTeamRequestForm :partner="partner" :disabled="!canStart || !partnerEnabled || managed.hasActiveTask || milestoneBusy" :busy="mutating || preparing || milestoneBusy" @submit="start" />
       </section>
       <div class="team-workspace__section">
         <label v-if="runs.length" class="team-workspace__history">
           {{ t('creativeTeam.history') }}
-          <select :value="run?.id" :disabled="mutating || preparing || loading" @change="store.open(($event.target as HTMLSelectElement).value)">
+          <select :value="run?.id" :disabled="mutating || preparing || loading || milestoneBusy" @change="store.open(($event.target as HTMLSelectElement).value)">
             <option v-for="item in runs" :key="item.id" :value="item.id">{{ t(`creativeTeam.status.${item.status}`) }} · {{ item.goal }}</option>
           </select>
         </label>
         <p v-else-if="!loading">
           {{ t('creativeTeam.noRuns') }}
         </p>
-        <CreativeTeamRunPanel v-if="run" :run="run" :busy="mutating || preparing" :enabled="Boolean(availability?.enabled)" :known-character-ids="knownCharacterIds" :author-edits-available="Boolean(availability?.authoring?.candidateEdits)" :saved-edit-artifact-id="savedEditArtifactId" @decide="decide" @sync-facts="withSnapshot(store.refreshFacts)" @edit="editCandidate" />
+        <CreativeTeamRunPanel v-if="run" :run="run" :busy="mutating || preparing || milestoneBusy || Boolean(run.milestones?.some(item => item.status === 'prepared'))" :enabled="Boolean(availability?.enabled)" :known-character-ids="knownCharacterIds" :author-edits-available="Boolean(availability?.authoring?.candidateEdits)" :saved-edit-artifact-id="savedEditArtifactId" @decide="decide" @sync-facts="withSnapshot(store.refreshFacts)" @edit="editCandidate" />
+        <CreativeMilestonePanel v-if="run" :key="`${run.accountId}:${run.plan.projectId}:${run.id}`" :run="run" :enabled="Boolean(availability?.authoring?.milestoneAdoption)" :busy="mutating || preparing" :workspace="projectWorkspace" @busy="milestoneBusy = $event" @changed="content.reload()" />
       </div>
     </div>
     <footer class="team-workspace__footer">

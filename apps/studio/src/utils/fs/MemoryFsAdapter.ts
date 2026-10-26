@@ -86,7 +86,7 @@ export class MemoryFsAdapter implements IFileSystem {
   }
 
   /** Flush all nodes to IndexedDB */
-  async persist(): Promise<void> {
+  async persist(options: { strict?: boolean } = {}): Promise<void> {
     if (this.persistTimer)
       clearTimeout(this.persistTimer)
     this.persistTimer = null
@@ -116,7 +116,12 @@ export class MemoryFsAdapter implements IFileSystem {
     // Preserve the adapter's existing nonfatal storage-failure behavior, while
     // allowing the next queued snapshot to succeed after a failed transaction.
     this.persistQueue = operation.catch(() => {})
-    await this.persistQueue
+    await (options.strict ? operation : this.persistQueue)
+  }
+
+  /** Critical project transactions must await durable bytes and observe storage errors. */
+  async flush(): Promise<void> {
+    await this.persist({ strict: true })
   }
 
   // --- helpers ---

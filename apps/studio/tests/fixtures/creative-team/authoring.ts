@@ -1,5 +1,5 @@
 import type { CreativeArtifact, CreativePartnerOutput, CreativeTeamRun } from '@advjs/agent'
-import { computeAgentProjectRevision, createCreativeTeamRun, creativeOutputFileChanges, ManagedCreativeTeamClient, nextCreativeTeamTask, overlayCreativeChanges, parseCreativeCandidateEditRequest, parseCreativeProject, parseCreativeTeamPublicDecision, parseCreativeTeamRun, prepareCreativeCandidateEdit, reduceCreativeTeamRun, requiredCreativeReviewCapabilities } from '@advjs/agent'
+import { computeAgentProjectRevision, createCreativeTeamRun, creativeMilestoneChanges, creativeOutputFileChanges, ManagedCreativeTeamClient, nextCreativeTeamTask, overlayCreativeChanges, parseCreativeCandidateEditRequest, parseCreativeMilestoneCommand, parseCreativeProject, parseCreativeTeamPublicDecision, parseCreativeTeamRun, prepareCreativeCandidateEdit, prepareCreativeMilestone, reduceCreativeTeamRun, requiredCreativeReviewCapabilities } from '@advjs/agent'
 import { IonApp, IonContent, IonHeader, IonicVue, IonPage, IonTitle, IonToolbar } from '@ionic/vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { createApp, defineComponent, h } from 'vue'
@@ -37,6 +37,7 @@ async function main() {
   let facts = { revision: await computeAgentProjectRevision(files), files }
   const usage = { inputTokens: 0, outputTokens: 0, totalTokens: 0, providerCostMicroCny: 0, chargedMicroPoints: 0 }
   const calls: string[] = []
+  let loseMilestoneResponse: 'prepare' | 'confirm' | undefined
   const cacheKey = 'creative-team-authoring-ui-fixture'
   let run: CreativeTeamRun
   async function artifact(taskId: string, output: CreativePartnerOutput): Promise<CreativeArtifact> {
@@ -113,12 +114,40 @@ async function main() {
     let value: unknown
     try {
       if (url.pathname.endsWith('/capabilities')) {
-        value = { protocolVersion: 1, enabled: true, serviceVersion: 'UI fixture; no model calls', authoring: { candidateEdits: true, milestoneAdoption: false }, capabilities: ['design-characters', 'write-chapters'], maxConcurrentTasks: 1, media: { image: 'manual-import', voice: 'manual-import' } }
+        value = { protocolVersion: 1, enabled: true, serviceVersion: 'UI fixture; no model calls', authoring: { candidateEdits: true, milestoneAdoption: true }, capabilities: ['design-characters', 'write-chapters'], maxConcurrentTasks: 1, media: { image: 'manual-import', voice: 'manual-import' } }
       }
       else if (method === 'GET' && url.pathname.endsWith('/runs')) {
         value = { protocolVersion: 1, items: [{ id: run.id, projectId, goal: run.plan.goal, status: run.status, revision: run.revision, chargedMicroPoints: 0, reservedMicroPoints: 0, updatedAt: run.updatedAt }] }
       }
       else if (method === 'GET') {
+        value = { protocolVersion: 1, run }
+      }
+      else if (url.pathname.endsWith('/milestones')) {
+        const command = parseCreativeMilestoneCommand(body)
+        if (command.type === 'prepare') {
+          if (!run.milestones?.some(item => item.id === key)) {
+            const prepared = prepareCreativeMilestone(run, command.request)
+            facts = { revision: command.request.project.revision, files: { ...command.request.project.files } }
+            act({ type: 'prepare-milestone', intent: { id: key, operation: command.request.operation, status: 'prepared', artifacts: prepared.artifacts, anchors: prepared.anchors, beforeRevision: facts.revision, afterRevision: await computeAgentProjectRevision(prepared.files), requestFingerprint: await computeAgentProjectRevision({ data: JSON.stringify(command.request) }), reason: command.request.reason, at: Date.now(), ...(command.request.operation === 'undo' ? { targetId: command.request.milestoneId } : {}) } })
+          }
+        }
+        else {
+          const intent = run.milestones!.find(item => item.id === command.milestoneId)!
+          const expected = command.type === 'confirm' ? intent.afterRevision : intent.beforeRevision
+          if (command.project.revision !== expected)
+            throw new Error('fixture adoption source mismatch')
+          if (intent.status === 'prepared') {
+            if (command.type === 'confirm' && await computeAgentProjectRevision(overlayCreativeChanges(facts.files, creativeMilestoneChanges(run, intent))) !== expected)
+              throw new Error('fixture adoption transformation mismatch')
+            facts = { revision: command.project.revision, files: { ...command.project.files } }
+            act({ type: 'resolve-milestone', milestoneId: intent.id, status: command.type === 'confirm' ? 'confirmed' : 'abandoned', files: facts.files })
+          }
+        }
+        persist()
+        if (loseMilestoneResponse === command.type) {
+          loseMilestoneResponse = undefined
+          return new Response(JSON.stringify({ error: { code: 'service_unavailable', message: 'Explicit fixture: response lost after durable write' } }), { status: 503 })
+        }
         value = { protocolVersion: 1, run }
       }
       else if (url.pathname.endsWith('/facts')) {
@@ -159,7 +188,7 @@ async function main() {
   const Host = defineComponent({
     setup: () => () => h(IonApp, {}, () => h(IonPage, {}, () => [
       h(IonHeader, {}, () => h(IonToolbar, {}, () => h(IonTitle, {}, () => '本地 UI fixture · 未调用模型／未扣点'))),
-      h(IonContent, {}, () => [h('p', { role: 'note', style: 'padding:16px;background:var(--adv-accent-subtle);margin:0' }, '仅验证界面与候选修订，不作为六角色真实交付。'), h(CreativeTeamWorkspace)]),
+      h(IonContent, {}, () => [h('p', { role: 'note', style: 'padding:16px;background:var(--adv-accent-subtle);margin:0' }, '仅验证界面与创作协议，不作为六角色真实交付。'), h(CreativeTeamWorkspace)]),
     ])),
   })
   const app = createApp(Host)
@@ -170,6 +199,7 @@ async function main() {
   Object.assign(window, { creativeAuthorFixture: {
     run: () => structuredClone(run),
     calls: () => [...calls],
+    loseMilestoneResponse: (phase: 'prepare' | 'confirm') => loseMilestoneResponse = phase,
     files: async () => {
       await content.whenReady()
       return Object.fromEntries((await content.getFs()!.collectAllFiles()).map(file => [file.path, file.content]))
