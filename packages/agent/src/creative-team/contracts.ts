@@ -138,11 +138,29 @@ export interface CreativeTeamRun {
   tasks: readonly CreativeTeamTaskState[]
   artifacts: readonly CreativeArtifact[]
   decisions: readonly CreativeTeamDecision[]
+  /** Two-store adoption receipts contain references, never duplicate game source content. */
+  milestones?: readonly CreativeMilestoneIntent[]
   chargedMicroPoints: number
   reservedMicroPoints: number
   toolCalls: number
   createdAt: number
   updatedAt: number
+}
+
+export interface CreativeMilestoneIntent {
+  id: string
+  operation: 'adopt' | 'undo'
+  status: 'prepared' | 'confirmed' | 'abandoned'
+  artifacts: readonly { artifactId: string, fingerprint: string }[]
+  /** Only these candidates were built using the exact adopted versions. */
+  anchors: readonly string[]
+  targetId?: string
+  beforeRevision: string
+  afterRevision: string
+  requestFingerprint: string
+  reason: string
+  at: number
+  confirmedAt?: number
 }
 
 /** Author decisions preserve the selected version and reason for replacement. */

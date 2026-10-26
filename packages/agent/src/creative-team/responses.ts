@@ -167,6 +167,25 @@ export function parseCreativeTeamRun(value: unknown, boundary: { accountId: stri
         ...(decision.requestFingerprint === undefined ? {} : { requestFingerprint: identity(decision.requestFingerprint) }),
       }
     }),
+    ...(source.milestones === undefined
+      ? {}
+      : { milestones: array(source.milestones, 128).map((item) => {
+          const intent = object(item)
+          return {
+            id: identity(intent.id),
+            operation: member(intent.operation, ['adopt', 'undo']),
+            status: member(intent.status, ['prepared', 'confirmed', 'abandoned']),
+            artifacts: array(intent.artifacts, 256).map(reference => ({ artifactId: identity(object(reference).artifactId), fingerprint: identity(object(reference).fingerprint) })),
+            anchors: ids(intent.anchors),
+            ...(intent.targetId === undefined ? {} : { targetId: identity(intent.targetId) }),
+            beforeRevision: identity(intent.beforeRevision),
+            afterRevision: identity(intent.afterRevision),
+            requestFingerprint: identity(intent.requestFingerprint),
+            reason: text(intent.reason),
+            at: integer(intent.at),
+            ...(intent.confirmedAt === undefined ? {} : { confirmedAt: integer(intent.confirmedAt) }),
+          }
+        }) }),
     chargedMicroPoints: integer(source.chargedMicroPoints),
     reservedMicroPoints: integer(source.reservedMicroPoints),
     toolCalls: integer(source.toolCalls),
@@ -181,6 +200,15 @@ export function parseCreativeTeamRun(value: unknown, boundary: { accountId: stri
   }
   for (const item of run.artifacts)
     assertCreativeArtifactBoundary(item, run, { allowStaleUpstream: true })
+  if (new Set(run.milestones?.map(item => item.id)).size !== (run.milestones?.length ?? 0) || (run.milestones?.filter(item => item.status === 'prepared').length ?? 0) > 1)
+    throw new TypeError('Invalid milestone identity or pending count')
+  for (const intent of run.milestones ?? []) {
+    if (intent.artifacts.some(reference => !run.artifacts.some(item => item.id === reference.artifactId && item.fingerprint === reference.fingerprint))
+      || intent.anchors.some(id => !run.artifacts.some(item => item.id === id))
+      || (intent.operation === 'undo' && !run.milestones?.some(item => item.id === intent.targetId && item.operation === 'adopt' && item.status === 'confirmed'))) {
+      throw new TypeError('Invalid milestone provenance')
+    }
+  }
   for (const task of run.tasks) {
     if (task.artifactIds.some(id => !run.artifacts.some(item => item.id === id && item.taskId === task.taskId)))
       throw new TypeError('Creative task references an unavailable candidate')

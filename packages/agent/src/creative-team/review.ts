@@ -1,8 +1,9 @@
 import type { AdvProjectDiagnostic, AdvProjectFileMap } from '@advjs/types'
 import type { AgentProjectWorkspaceSnapshot } from '../proposals/review'
-import type { CreativeArtifact, CreativeFileChange, CreativeReviewCapability } from './contracts'
+import type { CreativeArtifact, CreativeFileChange, CreativeReviewCapability, CreativeTeamRun } from './contracts'
 import { compileProject } from '@advjs/core'
 import { computeAgentProjectRevision } from '../proposals/review'
+import { creativeArtifactExpectedFiles } from './milestones'
 import { requiredCreativeReviewCapabilities } from './validation'
 
 /** Host adapter uses the existing project write transaction, including binary staging. */
@@ -55,17 +56,17 @@ export function overlayCreativeChanges(files: Readonly<AdvProjectFileMap>, chang
 export class CreativeMilestoneReviewService {
   constructor(private readonly workspace: CreativeProjectWorkspace) {}
 
-  async review(artifacts: readonly CreativeArtifact[]): Promise<CreativeMilestoneReview> {
+  async review(artifacts: readonly CreativeArtifact[], run?: CreativeTeamRun): Promise<CreativeMilestoneReview> {
     if (!artifacts.length)
       throw new Error('CREATIVE_EMPTY_MILESTONE')
     const baseline = await this.workspace.snapshot()
     for (const artifact of artifacts) {
       if (artifact.projectId !== baseline.projectId || artifact.source.projectId !== baseline.projectId)
         throw new Error('CREATIVE_PROJECT_MISMATCH')
-      if (artifact.source.revision !== baseline.revision || !['candidate', 'selected'].includes(artifact.status))
+      if ((!run && artifact.source.revision !== baseline.revision) || !['candidate', 'selected'].includes(artifact.status))
         throw new Error('CREATIVE_REBASE_REQUIRED')
-      for (const [path, content] of Object.entries(artifact.source.files)) {
-        if (baseline.files[path] !== content)
+      for (const [path, content] of Object.entries(creativeArtifactExpectedFiles(artifact, run))) {
+        if ((baseline.files[path] ?? null) !== content)
           throw new Error(`CREATIVE_SOURCE_CONFLICT:${path}`)
       }
       for (const capability of requiredCreativeReviewCapabilities(artifact)) {

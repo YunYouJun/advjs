@@ -1,5 +1,6 @@
 import type { CreativeArtifact, CreativeTeamHandoff, CreativeTeamRun } from './contracts'
 import type { CreativePartnerOutput } from './outputs'
+import { creativeArtifactExpectedFiles } from './milestones'
 import { creativeOutputFileChanges, parseCreativePartnerOutput } from './outputs'
 import { requiredCreativeReviewCapabilities } from './validation'
 
@@ -36,8 +37,8 @@ export function prepareCreativeCandidateEdit(run: CreativeTeamRun, request: Crea
     throw new TypeError('This candidate does not support structured author editing')
   if (!request.reason.trim() || request.reason.length > 4000)
     throw new TypeError('An author edit requires a bounded decision reason')
-  for (const [path, content] of Object.entries(original.source.files)) {
-    if (facts.files[path] !== content)
+  for (const [path, content] of Object.entries(creativeArtifactExpectedFiles(original, run))) {
+    if ((facts.files[path] ?? null) !== content)
       throw new Error('CREATIVE_EDIT_SOURCE_CONFLICT')
   }
   const upstream = original.source.upstream.map((reference) => {

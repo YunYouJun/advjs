@@ -1,5 +1,5 @@
 import type { AgentUsageSummary } from '../core/contracts'
-import type { CreativeArtifact, CreativeTeamPlan, CreativeTeamRun } from './contracts'
+import type { CreativeArtifact, CreativeMilestoneIntent, CreativeTeamPlan, CreativeTeamRun } from './contracts'
 import { invalidateCreativeArtifacts } from './candidates'
 import { assertCreativeArtifactBoundary, parseCreativeTeamPlan } from './validation'
 
@@ -15,6 +15,8 @@ export type CreativeTeamAction
     | { type: 'select', taskId: string, artifactIds: readonly string[], decisionId: string, reason: string }
     | { type: 'request-rework', taskId: string, reason: string, decisionId?: string }
     | { type: 'edit-candidate', artifact: CreativeArtifact, decisionId: string, reason: string, requestFingerprint: string }
+    | { type: 'prepare-milestone', intent: CreativeMilestoneIntent }
+    | { type: 'resolve-milestone', milestoneId: string, status: 'confirmed' | 'abandoned', files: Readonly<Record<string, string>> }
     | { type: 'refresh-facts', files: Readonly<Record<string, string>> }
     | { type: 'cancel', decisionId: string, reason: string }
 
@@ -47,7 +49,7 @@ export function createCreativeTeamRun(input: { id: string, accountId: string, pl
 
 /** Ready tasks depend on author-selected outputs. The first release dispatches one at a time. */
 export function nextCreativeTeamTask(run: CreativeTeamRun): string | undefined {
-  if (!['ready', 'awaiting_review', 'blocked'].includes(run.status) || run.tasks.some(task => task.status === 'running' || task.status === 'reconcile_required'))
+  if (run.milestones?.some(item => item.status === 'prepared') || !['ready', 'awaiting_review', 'blocked'].includes(run.status) || run.tasks.some(task => task.status === 'running' || task.status === 'reconcile_required'))
     return undefined
   return run.plan.tasks.find(task => run.tasks.find(state => state.taskId === task.id)?.status === 'pending'
     && task.dependsOn.every(id => run.tasks.find(state => state.taskId === id)?.status === 'completed'))?.id
@@ -70,6 +72,8 @@ function deriveStatus(run: CreativeTeamRun): CreativeTeamRun['status'] {
 /** Deterministic reducer shared with trusted Runtime; not a client authorization mechanism. */
 export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeTeamAction, now: number): CreativeTeamRun {
   const run = structuredClone(source)
+  if (run.milestones?.some(item => item.status === 'prepared') && !['resolve-milestone', 'cancel'].includes(action.type))
+    throw new Error('CREATIVE_MILESTONE_PENDING')
   if ('decisionId' in action && run.decisions.some(item => item.id === action.decisionId))
     return source
   const state = 'taskId' in action ? run.tasks.find(task => task.taskId === action.taskId) : undefined
@@ -80,6 +84,29 @@ export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeT
   }
 
   switch (action.type) {
+    case 'prepare-milestone':
+      if (action.intent.status !== 'prepared' || run.milestones?.some(item => item.id === action.intent.id) || run.tasks.some(task => ['running', 'reconcile_required'].includes(task.status)))
+        throw new Error('CREATIVE_MILESTONE_CONFLICT')
+      run.milestones = [...(run.milestones ?? []), action.intent]
+      break
+    case 'resolve-milestone': {
+      const intent = run.milestones?.find(item => item.id === action.milestoneId)
+      if (!intent || intent.status !== 'prepared')
+        throw new Error('CREATIVE_MILESTONE_CONFLICT')
+      run.milestones = run.milestones!.map(item => item.id === intent.id ? { ...item, status: action.status, ...(action.status === 'confirmed' ? { confirmedAt: now } : {}) } : item)
+      if (action.status === 'confirmed') {
+        const adopted = new Set(intent.artifacts.map(item => item.artifactId))
+        run.artifacts = run.artifacts.map(item => adopted.has(item.id) ? { ...item, status: intent.operation === 'adopt' ? 'adopted' : 'selected' } : item)
+        run.decisions = [...run.decisions, { id: intent.id, action: intent.operation, artifactIds: [...adopted], reason: intent.reason, projectRevision: intent.afterRevision, at: now, requestFingerprint: intent.requestFingerprint }]
+        run.artifacts = invalidateCreativeArtifacts(run.artifacts, action.files, run)
+        const stale = new Set(run.artifacts.filter(item => item.status === 'stale').map(item => item.id))
+        for (const task of run.tasks) {
+          if (task.artifactIds.some(id => stale.has(id)))
+            task.status = 'stale'
+        }
+      }
+      break
+    }
     case 'approve-plan':
       if (run.status !== 'awaiting_plan_review')
         throw new TypeError('Plan is not awaiting approval')
@@ -285,7 +312,7 @@ export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeT
       break
     }
     case 'refresh-facts': {
-      run.artifacts = invalidateCreativeArtifacts(run.artifacts, action.files)
+      run.artifacts = invalidateCreativeArtifacts(run.artifacts, action.files, run)
       const stale = new Set(run.artifacts.filter(item => item.status === 'stale').map(item => item.id))
       for (const task of run.tasks) {
         if (!['running', 'reconcile_required'].includes(task.status) && task.artifactIds.some(id => stale.has(id)))

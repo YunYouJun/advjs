@@ -1,9 +1,11 @@
 import type { ManagedAgentTransportOptions } from '../managed/transport'
 import type { CreativeTeamAvailability, CreativeTeamRun } from './contracts'
 import type { CreativeCandidateEditRequest } from './edits'
+import type { CreativeMilestoneCommand } from './milestones'
 import type { CreativeTeamPublicDecision, CreativeTeamRunSummary, CreativeTeamStartRequest } from './wire'
 import { ManagedAgentTransport } from '../managed/transport'
 import { parseCreativeCandidateEditRequest } from './edits'
+import { parseCreativeMilestoneCommand } from './milestones'
 import { parseCreativeTeamRun, parseCreativeTeamRunSummary } from './responses'
 import { parseCreativeProject, parseCreativeTeamAvailability, parseCreativeTeamPublicDecision, parseCreativeTeamStartRequest } from './wire'
 
@@ -16,6 +18,7 @@ export interface CreativeTeamClient {
   decide: (projectId: string, runId: string, decision: CreativeTeamDecisionInput, idempotencyKey: string) => Promise<CreativeTeamRun>
   refreshFacts: (project: CreativeTeamStartRequest['project'], runId: string, idempotencyKey: string) => Promise<CreativeTeamRun>
   editCandidate: (projectId: string, runId: string, request: CreativeCandidateEditRequest, idempotencyKey: string) => Promise<CreativeTeamRun>
+  milestone: (projectId: string, runId: string, command: CreativeMilestoneCommand, idempotencyKey: string) => Promise<CreativeTeamRun>
 }
 function envelope(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || !('protocolVersion' in value) || value.protocolVersion !== 1)
@@ -86,5 +89,10 @@ export class ManagedCreativeTeamClient implements CreativeTeamClient {
   editCandidate(projectId: string, runId: string, request: CreativeCandidateEditRequest, idempotencyKey: string): Promise<CreativeTeamRun> {
     const body = parseCreativeCandidateEditRequest(request)
     return this.#transport.requestRaw(this.#path(projectId, runId, '/candidate-edits'), value => this.#parse(value, projectId, runId), { method: 'POST', body, headers: { 'idempotency-key': key(idempotencyKey) } })
+  }
+
+  milestone(projectId: string, runId: string, command: CreativeMilestoneCommand, idempotencyKey: string): Promise<CreativeTeamRun> {
+    const body = parseCreativeMilestoneCommand(command)
+    return this.#transport.requestRaw(this.#path(projectId, runId, '/milestones'), value => this.#parse(value, projectId, runId), { method: 'POST', body, headers: { 'idempotency-key': key(idempotencyKey) } })
   }
 }
