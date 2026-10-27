@@ -214,7 +214,17 @@ AGUI 通过 CSS 自定义属性（`--agui-c-*`）定义色彩。下表列出现�
 
 `AGUIInput`、`AGUIInnerInput` 与 `AGUITextarea` 共享 `input/fields.scss`。单行输入与 `AGUISelect` 高度为 24px；属性表给下拉框传递 `label`，输入框将 `id`、ARIA 和 `disabled` 传到实际字段。开关的可见标签须关联唯一 ID，调用方可传入 `id`。
 
-普通输入框与下拉触发器的水平内边距统一使用 `--agui-space-2`（8px），使同一属性表中不同控件的值文字左边缘对齐。带前缀图标的输入框保留为图标预留的起始间距，不通过移动属性标签或给单行业务字段加偏移修正对齐。
+普通输入框、文本域、组合框与下拉触发器的水平内边距统一使用 `--agui-control-padding-x`（引用 `--agui-space-2`，8px），使同一属性表中不同控件的值文字左边缘对齐。单行文本字段使用 `--agui-control-font-size`（13px）、`--agui-control-line-height`（18px）和 24px 控件高度，下拉箭头不参与收缩。带前缀图标的输入框保留为图标预留的起始间距，数值步进框保留居中值与两侧步进按钮，不通过移动属性标签或给单行业务字段加偏移修正对齐。
+
+### Form 与属性布局
+
+`AGUIFormItem` 是公共字段行；`AGUIProperty` 委托它渲染，保留属性表的 API 和 `.label` / `.value` 类名。默认标签右对齐，列宽统一为 `--agui-form-columns`（1:2），列间距使用 `--agui-form-column-gap`（8px）。`label-align="top"` 用于创建表单、长文本和筛选栏，标签与字段间距使用 `--agui-form-label-gap`（4px）。命名容器 `agui-properties` 的内容宽度不超过 240px 时，横向字段自动改为顶部标签，标签左对齐并允许中英文长词换行。
+
+`AGUIForm` 管理 `--agui-form-row-gap`（8px）和容器查询；`padded` 提供 8px 面板内边距，`as="form"` / `as="fieldset"` 保留原生提交与禁用语义。折叠分组的内容也使用同一行间距。字段行本身不带外边距；调用方不要再叠加行底边距或复制标签宽度。`description` 插槽将帮助／校验文字放在字段下方，输入继续通过 `aria-describedby` 关联说明，不能用提示气泡替代必要说明。标签的 `for` 必须指向实际输入或下拉触发按钮。
+
+控件内部间距使用 `--agui-control-gap`（4px）；复选框与说明文字相隔 8px，外层不自带偏移。工具栏使用 `--agui-toolbar-min-height`（30px）、水平 8px 内边距和相同的控件间距，按钮允许随标签换行增高。
+
+颜色选择器和文件拖放框也采用 24px 高度与字段边框／底色 token。颜色选择器保留系统色盘和可见焦点；文件拖入使用选中态 token，禁用时拒绝投递。属性表中的只读文字或单独复选框行至少高 24px，与相邻输入字段保持一致。
 
 下拉框的选中文本随选项标签更新，切换语言不改变选中的值；长文本在触发器内省略，完整值可通过提示或展开菜单查看。
 

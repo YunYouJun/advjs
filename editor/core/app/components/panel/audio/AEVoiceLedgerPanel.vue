@@ -2,6 +2,7 @@
 import AGUIDetails from '@advjs/gui/client/components/AGUIDetails.vue'
 import AGUIProperty from '@advjs/gui/client/components/AGUIProperty.vue'
 import AGUIButton from '@advjs/gui/client/components/button/AGUIButton.vue'
+import AGUIForm from '@advjs/gui/client/components/form/AGUIForm.vue'
 import AGUIFormItem from '@advjs/gui/client/components/form/AGUIFormItem.vue'
 import AGUIInput from '@advjs/gui/client/components/input/AGUIInput.vue'
 import AGUISelect from '@advjs/gui/client/components/select/AGUISelect.vue'
@@ -69,7 +70,7 @@ function playbackError() {
         </AGUIButton>
       </template>
     </AGUIToolbar>
-    <div class="ae-ledger-fields">
+    <AGUIForm class="ae-ledger-fields" padded>
       <p v-if="ledger.unboundCount" class="ae-resource-caption" role="status">
         {{ ledger.unboundCount }} 条对白尚无稳定 lineId。先在剧本末尾添加 {#line_&lt;uuidv7&gt;}，再绑定配音。
       </p>
@@ -159,15 +160,6 @@ function playbackError() {
         {{ ledger.error }}
       </p>
       <AdvancedListening v-if="advanced && ledger.snapshot" :visible="visible" :snapshot="ledger.snapshot" :rows="ledger.reviewRows" @close="closeAdvanced" />
-    </div>
+    </AGUIForm>
   </section>
 </template>
-
-<style scoped>
-.ae-ledger-fields {
-  display: grid;
-  gap: 8px;
-  padding: 8px;
-  container: agui-properties / inline-size;
-}
-</style>

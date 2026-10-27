@@ -194,7 +194,7 @@ const vNumberDrag = numberDrag({
     }
   }
   &.is-slider .agui-numeric-input {
-    padding: 0 6px;
+    padding: 0 var(--agui-control-padding-x);
     text-align: right;
   }
   &.focused .agui-numeric-input {
@@ -219,7 +219,7 @@ const vNumberDrag = numberDrag({
   .agui-numeric-title {
     position: absolute;
     inset-block: 0;
-    left: 6px;
+    left: var(--agui-control-padding-x);
     display: flex;
     align-items: center;
     max-width: 55%;

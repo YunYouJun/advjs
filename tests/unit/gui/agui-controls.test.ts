@@ -5,6 +5,9 @@ import AGUIDetails from '../../../packages/gui/client/components/AGUIDetails.vue
 import AGUIProperty from '../../../packages/gui/client/components/AGUIProperty.vue'
 import AGUIIconButton from '../../../packages/gui/client/components/button/AGUIIconButton.vue'
 import AGUIDialog from '../../../packages/gui/client/components/dialog/AGUIDialog.vue'
+import AGUIFileHandler from '../../../packages/gui/client/components/file/AGUIFileHandler.vue'
+import AGUIForm from '../../../packages/gui/client/components/form/AGUIForm.vue'
+import AGUIFormItem from '../../../packages/gui/client/components/form/AGUIFormItem.vue'
 import AGUIInput from '../../../packages/gui/client/components/input/AGUIInput.vue'
 import AGUISelect from '../../../packages/gui/client/components/select/AGUISelect.vue'
 import AGUISwitch from '../../../packages/gui/client/components/switch/AGUISwitch.vue'
@@ -24,6 +27,54 @@ function mount(render: () => ReturnType<typeof h>) {
 }
 
 describe('aGUI control contracts', () => {
+  it('rejects disabled file drops and preserves enabled file delivery', async () => {
+    const disabled = ref(true)
+    const change = vi.fn()
+    const file = { name: 'scene.webp' }
+    const previous = window.AGUI_DRAGGING_ITEM_MAP
+    window.AGUI_DRAGGING_ITEM_MAP = new Map([['file', file as any]])
+    try {
+      const container = mount(() => h(AGUIFileHandler, { disabled: disabled.value, onFileChange: change }))
+      await nextTick()
+      const drop = container.firstElementChild!
+      const event = () => Object.assign(new Event('drop', { bubbles: true, cancelable: true }), { dataTransfer: { getData: () => 'file' } })
+      drop.dispatchEvent(event())
+      expect(change).not.toHaveBeenCalled()
+      expect(window.AGUI_DRAGGING_ITEM_MAP.has('file')).toBe(true)
+      disabled.value = false
+      await nextTick()
+      drop.dispatchEvent(event())
+      await nextTick()
+      expect(change).toHaveBeenCalledWith(file)
+      expect(drop.textContent).toContain('scene.webp')
+    }
+    finally {
+      window.AGUI_DRAGGING_ITEM_MAP = previous
+    }
+  })
+
+  it('preserves native form submission, label focus and description slots through shared rows', async () => {
+    const submit = vi.fn((event: Event) => event.preventDefault())
+    const container = mount(() => h(AGUIForm, { as: 'form', onSubmit: submit }, () => [
+      h(AGUIFormItem, { label: 'Project', for: 'project', labelAlign: 'top' }, {
+        default: () => h(AGUIInput, { 'id': 'project', 'aria-describedby': 'help' }),
+        description: () => h('p', { id: 'help' }, 'Choose a name'),
+      }),
+      h(AGUIProperty, { label: 'Theme', for: 'theme' }, () => h(AGUISelect, { id: 'theme', options: ['dark'], modelValue: 'dark' })),
+      h('button', { type: 'submit' }, 'Save'),
+    ]))
+    const labels = container.querySelectorAll('label')
+    expect(labels[0].control).toBe(container.querySelector('input'))
+    expect(container.querySelector('#help')!.textContent).toBe('Choose a name')
+    const select = container.querySelector<HTMLButtonElement>('[role=combobox]')!
+    expect(labels[1].control).toBe(select)
+    labels[1].click()
+    await nextTick()
+    expect(document.activeElement).toBe(select)
+    container.querySelector('form')!.requestSubmit()
+    expect(submit).toHaveBeenCalledOnce()
+  })
+
   it('returns a programmatic dialog to its surviving menu trigger', async () => {
     const open = ref(false)
     const language = ref('Edit')

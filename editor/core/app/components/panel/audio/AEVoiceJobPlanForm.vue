@@ -3,6 +3,7 @@ import type { VoiceJobsDraft } from '../../../composables/useVoiceJobs'
 import AGUICheckbox from '@advjs/gui/client/components/AGUICheckbox.vue'
 import AGUIProperty from '@advjs/gui/client/components/AGUIProperty.vue'
 import AGUIButton from '@advjs/gui/client/components/button/AGUIButton.vue'
+import AGUIForm from '@advjs/gui/client/components/form/AGUIForm.vue'
 import AGUISelect from '@advjs/gui/client/components/select/AGUISelect.vue'
 import { computed, shallowRef, watch } from 'vue'
 
@@ -33,18 +34,18 @@ function select(lineId: string, checked: boolean) {
 </script>
 
 <template>
-  <div class="ae-job-fields">
+  <AGUIForm class="ae-job-fields">
     <div class="ae-job-filterbar" aria-label="配音范围筛选">
-      <AGUIProperty class="ae-job-filter" label="章节范围" group>
+      <AGUIProperty label="章节范围" label-align="top" group>
         <AGUISelect :model-value="modelValue.chapterId" :options="chapters" label="配音章节范围" :disabled="disabled" @update:model-value="update('chapterId', String($event))" />
       </AGUIProperty>
-      <AGUIProperty class="ae-job-filter" label="生成范围" group>
+      <AGUIProperty label="生成范围" label-align="top" group>
         <AGUISelect :model-value="modelValue.mode" :options="[{ value: 'all', label: '全部台词' }, { value: 'missing', label: '仅缺失配音' }, { value: 'stale', label: '仅过期配音' }]" label="配音状态筛选" :disabled="disabled" @update:model-value="update('mode', $event as VoiceJobsDraft['mode'])" />
       </AGUIProperty>
-      <AGUIProperty class="ae-job-filter" label="合成插件" group>
+      <AGUIProperty label="合成插件" label-align="top" group>
         <AGUISelect :model-value="modelValue.providerId" :options="providers" label="任务合成插件" :disabled="disabled" @update:model-value="update('providerId', String($event))" />
       </AGUIProperty>
-      <AGUIProperty class="ae-job-filter" label="准确语言" group>
+      <AGUIProperty label="准确语言" label-align="top" group>
         <AGUISelect :model-value="modelValue.locale" :options="locales" label="任务语言" :disabled="disabled" @update:model-value="update('locale', String($event))" />
       </AGUIProperty>
     </div>
@@ -84,30 +85,16 @@ function select(lineId: string, checked: boolean) {
         下一页台词
       </AGUIButton>
     </div>
-  </div>
+  </AGUIForm>
 </template>
 
 <style scoped>
-.ae-job-fields {
-  display: grid;
-  gap: var(--agui-space-2);
-  min-width: 0;
-  container: agui-properties / inline-size;
-}
 .ae-job-filterbar {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--agui-space-2);
   padding-bottom: var(--agui-space-2);
   border-bottom: 1px solid var(--agui-c-divider-light);
-}
-.ae-job-filter {
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--agui-space-1);
-}
-.ae-job-filter :deep(.label) {
-  text-align: left;
-  font-size: var(--agui-font-size-caption);
 }
 .ae-job-target-heading,
 .ae-job-target-actions,

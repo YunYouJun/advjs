@@ -29,17 +29,19 @@ const switchState = defineModel({ type: Boolean, default: false })
   font-family: var(--agui-font-family-ui);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--agui-space-2);
+  min-width: 0;
   font-size: 12px;
   color: var(--agui-c-text-1);
 }
 .agui-switch {
+  box-sizing: border-box;
   font-family: var(--agui-font-family-ui);
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
   width: 36px;
-  height: 24px;
+  height: var(--agui-control-height);
   padding: 3px;
   background: var(--agui-c-field);
   border: 1px solid var(--agui-c-control-border);

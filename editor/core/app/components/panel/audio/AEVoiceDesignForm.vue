@@ -2,6 +2,7 @@
 import type { VoiceDesignDefinition, VoiceDesignDraft, VoiceDesignSnapshot, VoiceDesignSource } from '@advjs/types'
 import AGUIProperty from '@advjs/gui/client/components/AGUIProperty.vue'
 import AGUIButton from '@advjs/gui/client/components/button/AGUIButton.vue'
+import AGUIForm from '@advjs/gui/client/components/form/AGUIForm.vue'
 import AGUIInput from '@advjs/gui/client/components/input/AGUIInput.vue'
 import AGUISelect from '@advjs/gui/client/components/select/AGUISelect.vue'
 import { computed, shallowRef, watch } from 'vue'
@@ -105,7 +106,7 @@ function remove(row: typeof rows.value[number]) {
 </script>
 
 <template>
-  <fieldset class="ae-design-form" :disabled="disabled">
+  <AGUIForm class="ae-design-form" :disabled="disabled" as="fieldset">
     <AGUIProperty :for="`${idPrefix}-speaker`" label="角色／旁白">
       <AGUISelect :id="`${idPrefix}-speaker`" label="设计角色／旁白" :model-value="modelValue.characterId" :options="speakerOptions" :disabled="disabled" @update:model-value="update('characterId', String($event))" />
     </AGUIProperty>
@@ -119,7 +120,7 @@ function remove(row: typeof rows.value[number]) {
       <AGUIInput :id="`${idPrefix}-version`" :model-value="modelValue.version" @update:model-value="update('version', String($event))" />
     </AGUIProperty>
     <CharacterVoiceIntentEditor :model-value="modelValue.intent" :id-prefix="idPrefix" @update:model-value="change(draft => { draft.intent = $event })" />
-    <section v-for="(row, index) in rows" :key="`${row.locale}/${row.providerId}`" class="ae-design-binding" :aria-label="`${row.locale} ${row.providerId} 音色实现`">
+    <AGUIForm v-for="(row, index) in rows" :key="`${row.locale}/${row.providerId}`" class="ae-design-binding" :aria-label="`${row.locale} ${row.providerId} 音色实现`" as="section">
       <p class="ae-design-caption">
         {{ row.locale }} · {{ row.providerId }}
       </p>
@@ -154,8 +155,8 @@ function remove(row: typeof rows.value[number]) {
           移除设计绑定
         </AGUIButton>
       </div>
-    </section>
-    <div v-if="!disabled" class="ae-design-add">
+    </AGUIForm>
+    <AGUIForm v-if="!disabled" class="ae-design-add">
       <AGUIProperty :for="`${idPrefix}-new-locale`" label="新增语言">
         <AGUIInput :id="`${idPrefix}-new-locale`" v-model="newLocale" placeholder="zh-CN" />
       </AGUIProperty>
@@ -165,24 +166,18 @@ function remove(row: typeof rows.value[number]) {
       <AGUIButton data-testid="design-add-binding" :disabled="!newProvider" @click="addBinding">
         添加语言／供应商实现
       </AGUIButton>
-    </div>
+    </AGUIForm>
     <p v-if="formError" class="ae-resource-error" role="alert">
       {{ formError }}
     </p>
-  </fieldset>
+  </AGUIForm>
 </template>
 
 <style scoped>
-.ae-design-form {
-  border: 0;
-  margin: 0;
-  padding: 0;
-  min-width: 0;
-}
 .ae-design-binding,
 .ae-design-add {
   border-top: 1px solid var(--agui-c-divider-light);
-  padding: 8px 0;
+  padding: var(--agui-space-2) 0;
 }
 .ae-design-caption {
   margin: 0 0 8px;

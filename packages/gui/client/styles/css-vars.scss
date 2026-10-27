@@ -46,6 +46,7 @@
 :root {
   --agui-control-height: 24px;
   --agui-tab-list-height: 28px;
+  --agui-toolbar-min-height: 30px;
 
   // Shared desktop composition. Rounding does not change compact control heights.
   --agui-space-1: 4px;
@@ -66,6 +67,15 @@
   --agui-font-size-reading: 14px;
   --agui-line-height: 1.5;
   --agui-line-height-reading: 1.75;
+  // Shared field geometry and form composition (also used in Portal roots).
+  --agui-control-padding-x: var(--agui-space-2);
+  --agui-control-font-size: var(--agui-font-size-title);
+  --agui-control-line-height: 18px;
+  --agui-control-gap: var(--agui-space-1);
+  --agui-form-row-gap: var(--agui-space-2);
+  --agui-form-column-gap: var(--agui-space-2);
+  --agui-form-label-gap: var(--agui-space-1);
+  --agui-form-columns: minmax(0, 1fr) minmax(0, 2fr);
   --agui-motion-duration: 120ms;
   --agui-motion-popup-duration: 150ms;
   --agui-motion-dialog-duration: 180ms;

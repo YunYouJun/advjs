@@ -7,11 +7,11 @@
   background: var(--agui-c-field);
   border: 1px solid var(--agui-c-control-border);
   border-radius: var(--agui-radius-sm);
-  padding: 2px var(--agui-space-2);
+  padding: 2px var(--agui-control-padding-x);
   font: inherit;
   font-family: var(--agui-font-family-ui);
-  font-size: 13px;
-  line-height: 18px;
+  font-size: var(--agui-control-font-size);
+  line-height: var(--agui-control-line-height);
   transition: border-color var(--agui-motion-duration) var(--agui-motion-ease);
 
   &::placeholder {
@@ -36,7 +36,7 @@
   padding-inline-start: 24px;
 }
 .agui-textarea {
-  padding: 4px 8px;
+  padding: var(--agui-space-1) var(--agui-control-padding-x);
   min-height: calc(var(--agui-control-height) * 2);
   resize: vertical;
   &:disabled {

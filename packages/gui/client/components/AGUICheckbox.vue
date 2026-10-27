@@ -54,19 +54,20 @@ function onChange(e: Event) {
 <style lang="scss">
 .agui-checkbox-container {
   display: flex;
-  gap: 2px;
+  gap: var(--agui-space-2);
   color: var(--agui-c-text-1);
   align-items: center;
   user-select: none;
-  font: 12px var(--agui-font-family-ui);
+  font: var(--agui-font-size-body) / var(--agui-line-height) var(--agui-font-family-ui);
   cursor: pointer;
   min-height: var(--agui-control-height);
 
-  margin: 2px;
+  min-width: 0;
+  margin: 0;
 
   .label {
-    margin-left: 2px;
-    line-height: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .agui-checkbox {

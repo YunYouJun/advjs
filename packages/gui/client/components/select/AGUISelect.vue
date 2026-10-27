@@ -24,12 +24,14 @@ import '../../styles/motion.scss'
 
 type OptionType = string | { value: string | number, label?: string, icon?: string }
 
+defineOptions({ inheritAttrs: false })
 const props = defineProps<{
   modelValue?: string | number
   options: OptionType[]
   legend?: string
   label?: string
   disabled?: boolean
+  name?: string
 
   placeholder?: string
 
@@ -60,11 +62,13 @@ const reducedMotion = usePreferredReducedMotion()
     :model-value="modelValue"
     :multiple="multiple"
     :disabled="disabled"
+    :name="name"
     @update:model-value="onUpdateModelValue"
   >
     <SelectTrigger
+      v-bind="$attrs"
       class="agui-select-trigger"
-      :aria-label="label || placeholder"
+      :aria-label="label || placeholder || ($attrs['aria-label'] as string | undefined)"
       :title="multiple ? undefined : selectedLabel"
     >
       <SelectValue v-if="!multiple && selectedLabel !== undefined" :placeholder="placeholder">
@@ -135,7 +139,8 @@ const reducedMotion = usePreferredReducedMotion()
 .agui-select-trigger {
   font: inherit;
   font-family: var(--agui-font-family-ui);
-  font-size: 13px;
+  font-size: var(--agui-control-font-size);
+  line-height: var(--agui-control-line-height);
   appearance: none;
   box-sizing: border-box;
   width: 100%;
@@ -143,13 +148,14 @@ const reducedMotion = usePreferredReducedMotion()
   display: inline-flex;
   justify-content: space-between;
   align-items: center;
-  gap: 4px;
-  padding: 0 var(--agui-space-2);
+  gap: var(--agui-control-gap);
+  padding: 2px var(--agui-control-padding-x);
   background: var(--agui-c-field);
   border: 1px solid var(--agui-c-control-border);
   border-radius: var(--agui-radius-sm);
   text-align: left;
-  min-height: var(--agui-control-height);
+  height: var(--agui-control-height);
+  min-width: 0;
   cursor: pointer;
 
   &:focus-visible {
@@ -172,6 +178,9 @@ const reducedMotion = usePreferredReducedMotion()
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  > div:last-child {
+    flex-shrink: 0;
+  }
 }
 .agui-select-content {
   font-family: var(--agui-font-family-ui);
@@ -183,7 +192,7 @@ const reducedMotion = usePreferredReducedMotion()
   box-shadow: var(--agui-shadow-popup);
 }
 .agui-select-viewport {
-  padding: 4px;
+  padding: var(--agui-space-1);
 }
 .agui-select-item {
   font-size: 12px;
@@ -191,8 +200,8 @@ const reducedMotion = usePreferredReducedMotion()
   border-radius: var(--agui-radius-sm);
   display: flex;
   align-items: center;
-  min-height: 25px;
-  padding: 0 24px;
+  min-height: var(--agui-control-height);
+  padding: 0 var(--agui-control-height);
   position: relative;
   user-select: none;
 
@@ -209,7 +218,7 @@ const reducedMotion = usePreferredReducedMotion()
   &-indicator {
     position: absolute;
     left: 0;
-    width: 24px;
+    width: var(--agui-control-height);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -219,7 +228,7 @@ const reducedMotion = usePreferredReducedMotion()
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 24px;
+  height: var(--agui-control-height);
   color: var(--agui-c-text-2);
   background: var(--agui-c-popup);
   cursor: default;

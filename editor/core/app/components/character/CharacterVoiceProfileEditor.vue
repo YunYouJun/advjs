@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { AdvVoiceCapabilities, CharacterVoiceProfile, VoiceTakeSource } from '@advjs/types'
 import { normalizeAudioLocale, validateCharacterVoiceProfile } from '@advjs/audio'
+import AGUIForm from '@advjs/gui/client/components/form/AGUIForm.vue'
 import { computed } from 'vue'
 import CharacterVoiceIntentEditor from './CharacterVoiceIntentEditor.vue'
 
@@ -119,7 +120,7 @@ function capabilityWarning(providerId: string, source: VoiceTakeSource): string 
       按语言绑定实际供应商音色和模型；合成预设与授权在宿主中验证。
     </p>
     <CharacterVoiceIntentEditor :model-value="profile.intent" :id-prefix="idPrefix" @update:model-value="updateIntent" />
-    <div v-for="(binding, index) in bindings" :key="`${binding.locale}/${binding.providerId}`" class="py-2 border-t border-$agui-c-divider" data-testid="character-voice-binding">
+    <AGUIForm v-for="(binding, index) in bindings" :key="`${binding.locale}/${binding.providerId}`" class="py-2 border-t border-$agui-c-divider" data-testid="character-voice-binding">
       <AGUIProperty :for="`${idPrefix}-voice-locale-${index}`" label="语言">
         <AGUIInput :id="`${idPrefix}-voice-locale-${index}`" :model-value="binding.locale" placeholder="zh-CN" @change="updateBinding(index, 'locale', ($event.target as HTMLInputElement).value)" />
       </AGUIProperty>
@@ -148,7 +149,7 @@ function capabilityWarning(providerId: string, source: VoiceTakeSource): string 
           移除绑定
         </AGUIButton>
       </div>
-    </div>
+    </AGUIForm>
     <p v-if="error" class="ae-resource-error p-2" role="alert">
       {{ error }}
     </p>

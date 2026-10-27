@@ -57,13 +57,13 @@ const classes = computed(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: var(--agui-control-gap);
   flex-shrink: 0;
   min-height: var(--agui-control-height);
   min-width: var(--agui-control-height);
-  padding: 2px 6px;
+  padding: 2px var(--agui-control-padding-x);
   font-family: var(--agui-font-family-ui);
-  font-size: 12px;
+  font-size: var(--agui-font-size-body);
   font-weight: 400;
   line-height: 16px;
   appearance: none;

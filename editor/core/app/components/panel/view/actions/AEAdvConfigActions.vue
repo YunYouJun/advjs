@@ -1,6 +1,10 @@
 <script setup lang="ts">
+import AGUIForm from '@advjs/gui/client/components/form/AGUIForm.vue'
+import AGUIFormItem from '@advjs/gui/client/components/form/AGUIFormItem.vue'
+
 const fileStore = useFileStore()
 const gameStore = useGameStore()
+const id = useId()
 
 const chapterOptions = computed(() => {
   const chapters = gameStore.gameConfig?.chapters || []
@@ -40,40 +44,25 @@ const nodeOptions = computed(() => {
 <template>
   <div class="p-2">
     <AGUIForm>
-      <AGUIFormItem>
-        <template #label>
-          <label
-            class="agui-label text-$agui-c-label flex gap-2 w-1/3 items-center"
-          >
-            <div class="i-ri:book-line" />
-            <span>Start Chapter</span>
-          </label>
+      <AGUIFormItem :for="`${id}-chapter`" label="Start Chapter">
+        <template #after-label>
+          <span class="i-ri:book-line" aria-hidden="true" />
         </template>
-        <AGUISelect v-model="gameStore.startChapter" :options="chapterOptions" />
+        <AGUISelect :id="`${id}-chapter`" v-model="gameStore.startChapter" :options="chapterOptions" label="Start Chapter" />
       </AGUIFormItem>
 
-      <AGUIFormItem>
-        <template #label>
-          <label
-            class="agui-label text-$agui-c-label flex gap-2 w-1/3 items-center"
-          >
-            <div class="i-ri:git-commit-line" />
-            <span>Start Node</span>
-          </label>
+      <AGUIFormItem :for="`${id}-node`" label="Start Node">
+        <template #after-label>
+          <span class="i-ri:git-commit-line" aria-hidden="true" />
         </template>
-        <AGUISelect v-model="gameStore.startNode" :options="nodeOptions" />
+        <AGUISelect :id="`${id}-node`" v-model="gameStore.startNode" :options="nodeOptions" label="Start Node" />
       </AGUIFormItem>
 
-      <AGUIFormItem>
-        <template #label>
-          <label
-            class="agui-label text-$agui-c-label flex gap-2 w-1/3 items-center"
-          >
-            <div class="i-ri:file-text-line" />
-            <span>Raw File</span>
-          </label>
+      <AGUIFormItem :for="`${id}-raw`" label="Raw File">
+        <template #after-label>
+          <span class="i-ri:file-text-line" aria-hidden="true" />
         </template>
-        <AGUICheckbox v-model:checked="fileStore.showRawConfigFile" />
+        <AGUICheckbox :id="`${id}-raw`" v-model:checked="fileStore.showRawConfigFile" aria-label="Raw File" />
       </AGUIFormItem>
     </AGUIForm>
   </div>

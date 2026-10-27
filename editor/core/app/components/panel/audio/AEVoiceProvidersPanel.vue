@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AGUIProperty from '@advjs/gui/client/components/AGUIProperty.vue'
 import AGUIButton from '@advjs/gui/client/components/button/AGUIButton.vue'
+import AGUIForm from '@advjs/gui/client/components/form/AGUIForm.vue'
 import AGUISelect from '@advjs/gui/client/components/select/AGUISelect.vue'
 import { reactive } from 'vue'
 import { useVoiceProviderMaintenance } from '../../../composables/useVoiceProviderMaintenance'
@@ -12,7 +13,7 @@ const maintenance = reactive(useVoiceProviderMaintenance(() => props.visible))
 </script>
 
 <template>
-  <section class="ae-voice-providers" aria-label="语音供应商与卸载清理">
+  <AGUIForm class="ae-voice-providers" aria-label="语音供应商与卸载清理" as="section" padded>
     <p v-if="!maintenance.available" class="ae-resource-caption">
       当前工作区没有本地供应商维护接口。共享服务与未登记目录需由其管理工具处理。
     </p>
@@ -51,14 +52,5 @@ const maintenance = reactive(useVoiceProviderMaintenance(() => props.visible))
         {{ maintenance.error }}
       </p>
     </template>
-  </section>
+  </AGUIForm>
 </template>
-
-<style scoped>
-.ae-voice-providers {
-  display: grid;
-  gap: 8px;
-  padding: 8px;
-  min-width: 0;
-}
-</style>
