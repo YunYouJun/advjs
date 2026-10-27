@@ -99,7 +99,7 @@ export function parseCreativeTeamPlan(value: unknown, boundary: { projectId: str
 }
 
 /** Enumerate the workspace/media authority needed to review an output. */
-export function requiredCreativeReviewCapabilities(artifact: Pick<CreativeArtifact, 'kind' | 'changes'>): CreativeReviewCapability[] {
+export function requiredCreativeReviewCapabilities(artifact: Pick<CreativeArtifact, 'kind' | 'changes'> & Partial<Pick<CreativeArtifact, 'media'>>): CreativeReviewCapability[] {
   const needed = new Set<CreativeReviewCapability>()
   for (const change of artifact.changes) {
     assertCreativeSourcePath(change.path)
@@ -111,7 +111,9 @@ export function requiredCreativeReviewCapabilities(artifact: Pick<CreativeArtifa
     if (/^adv\/audio\//.test(change.path))
       needed.add('voice-take')
   }
-  if (artifact.kind === 'voice-direction')
+  if (artifact.kind === 'media-adoption')
+    needed.add('catalog-media')
+  if (artifact.kind === 'voice-direction' || artifact.media?.target.kind === 'voice')
     needed.add('voice-take')
   if (artifact.kind === 'playtest-report' || artifact.kind === 'chapter')
     needed.add('candidate-preview')
@@ -125,6 +127,13 @@ export function assertCreativeArtifactBoundary(artifact: CreativeArtifact, run: 
   const task = run.plan.tasks.find(task => task.id === artifact.taskId)
   if (!task || task.partner !== artifact.partner)
     throw new TypeError('Artifact owner mismatch')
+  if ((artifact.kind === 'media-adoption') !== Boolean(artifact.media) || (artifact.media && (artifact.output || artifact.legacyResult || !artifact.source.upstream.some(item => item.artifactId === artifact.media!.parent.artifactId && item.fingerprint === artifact.media!.parent.fingerprint))))
+    throw new TypeError('Invalid author-host media provenance')
+  if (artifact.media) {
+    const parent = run.artifacts.find(item => item.id === artifact.media!.parent.artifactId && item.fingerprint === artifact.media!.parent.fingerprint)
+    if (!parent || parent.kind !== (artifact.media.target.kind === 'image' ? 'art-direction' : 'voice-direction'))
+      throw new TypeError('Invalid author-host media parent')
+  }
   if (artifact.editedFrom) {
     const visited = new Set([artifact.id])
     let reference: CreativeArtifact['editedFrom'] = artifact.editedFrom
@@ -151,7 +160,8 @@ export function assertCreativeArtifactBoundary(artifact: CreativeArtifact, run: 
   for (const dependency of artifact.source.upstream) {
     const upstream = run.artifacts.find(item => item.id === dependency.artifactId)
     const allowedStatuses = options.allowStaleUpstream ? ['selected', 'adopted', 'stale'] : ['selected', 'adopted']
-    if (!upstream || !ancestors.has(upstream.taskId) || upstream.fingerprint !== dependency.fingerprint || !allowedStatuses.includes(upstream.status))
+    const mediaLineage = artifact.kind === 'media-adoption' && artifact.media && upstream?.taskId === artifact.taskId && ((upstream.id === artifact.media.parent.artifactId && upstream.fingerprint === artifact.media.parent.fingerprint && ['art-direction', 'voice-direction'].includes(upstream.kind)) || (upstream.kind === 'media-adoption' && upstream.media?.parent.artifactId === artifact.media.parent.artifactId && upstream.media.parent.fingerprint === artifact.media.parent.fingerprint))
+    if (!upstream || (!ancestors.has(upstream.taskId) && !mediaLineage) || upstream.fingerprint !== dependency.fingerprint || !allowedStatuses.includes(upstream.status))
       throw new TypeError('Unavailable or stale upstream artifact')
   }
 }

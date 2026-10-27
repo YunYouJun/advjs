@@ -471,6 +471,9 @@ catalogs:
     ionicons:
       specifier: ^8.1.0
       version: 8.1.0
+    js-yaml:
+      specifier: 5.2.3
+      version: 5.2.3
     jsdom:
       specifier: ^30.1.2
       version: 30.1.2
@@ -1930,6 +1933,9 @@ importers:
       '@advjs/types':
         specifier: workspace:0.1.4
         version: link:../types
+      js-yaml:
+        specifier: 'catalog:'
+        version: 5.2.3
     devDependencies:
       typescript:
         specifier: 5.9.3

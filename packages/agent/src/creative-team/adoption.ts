@@ -1,10 +1,11 @@
 import type { CreativeTeamClient } from './client'
-import type { CreativeTeamRun } from './contracts'
+import type { CreativeMilestoneIntent, CreativeTeamRun } from './contracts'
 import type { CreativeMilestoneRequest } from './milestones'
 import type { CreativeMilestoneReview, CreativeProjectWorkspace } from './review'
 import { compileProject } from '@advjs/core'
 import { computeAgentProjectRevision } from '../proposals/review'
 import { creativeMilestoneChanges, overlayCreativeMilestone, prepareCreativeMilestone } from './milestones'
+import { requiredCreativeReviewCapabilities } from './validation'
 import { parseCreativeProject } from './wire'
 
 export interface CreativeAdoptionScope { accountId: string, projectId: string, runId: string }
@@ -51,6 +52,22 @@ export class CreativeMilestoneCoordinator {
       throw new Error('CREATIVE_PROJECT_MISMATCH')
   }
 
+  private mediaArtifacts(run: CreativeTeamRun, artifactIds: readonly string[]) {
+    const artifacts = run.artifacts.filter(item => artifactIds.includes(item.id) && item.kind === 'media-adoption')
+    for (const artifact of artifacts) {
+      if (!artifact.media || !this.options.workspace.verifyMedia || requiredCreativeReviewCapabilities(artifact).some(capability => !this.options.workspace.capabilities.includes(capability)))
+        throw new Error('CREATIVE_MEDIA_VERIFIER_REQUIRED')
+    }
+    return artifacts
+  }
+
+  private async verifyMedia(run: CreativeTeamRun, intent: CreativeMilestoneIntent, files: Readonly<Record<string, string>>) {
+    const artifacts = this.mediaArtifacts(run, intent.artifacts.map(item => item.artifactId))
+    if (artifacts.length)
+      await this.options.workspace.verifyMedia!(files, intent.operation === 'adopt' ? artifacts.map(item => item.media!) : [])
+    this.options.assertCurrent()
+  }
+
   async recover(): Promise<CreativeAdoptionRecovery | undefined> {
     this.options.assertCurrent()
     const entry = await this.options.journal.load(this.options.scope)
@@ -75,6 +92,7 @@ export class CreativeMilestoneCoordinator {
     const checked = await reviewCreativeMilestone(run, request)
     if (JSON.stringify(checked) !== JSON.stringify(review))
       throw new Error('CREATIVE_REVIEW_CHANGED')
+    this.mediaArtifacts(run, review.artifactIds)
     const snapshot = await this.options.workspace.snapshot()
     this.options.assertCurrent()
     if (snapshot.revision !== review.baselineRevision)
@@ -95,6 +113,7 @@ export class CreativeMilestoneCoordinator {
     let intent = run.milestones?.find(item => item.id === entry.intentId)
     let snapshot = await this.options.workspace.snapshot()
     this.assertEntry(entry)
+    this.mediaArtifacts(run, entry.review.artifactIds)
     if (!intent) {
       if (snapshot.revision !== entry.review.baselineRevision)
         throw new Error('CREATIVE_MILESTONE_CONFLICT')
@@ -111,6 +130,7 @@ export class CreativeMilestoneCoordinator {
     if (intent.status === 'confirmed') {
       if (snapshot.revision !== intent.afterRevision)
         throw new Error('CREATIVE_MILESTONE_CONFLICT')
+      await this.verifyMedia(run, intent, snapshot.files)
       await this.options.journal.save({ ...entry, state: 'confirmed' })
       return run
     }
@@ -137,6 +157,11 @@ export class CreativeMilestoneCoordinator {
     }
     await this.options.journal.save({ ...entry, state: 'applied' })
     this.assertEntry(entry)
+    snapshot = await this.options.workspace.snapshot()
+    this.assertEntry(entry)
+    if (snapshot.revision !== intent.afterRevision)
+      throw new Error('CREATIVE_SOURCE_CONFLICT')
+    await this.verifyMedia(run, intent, snapshot.files)
     snapshot = await this.options.workspace.snapshot()
     this.assertEntry(entry)
     if (snapshot.revision !== intent.afterRevision)

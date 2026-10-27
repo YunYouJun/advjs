@@ -1,4 +1,5 @@
 import type { AgentCapabilityId, AgentUsageSummary } from '../core/contracts'
+import type { CreativeMediaEvidence } from './media'
 import type { CreativePartnerOutput } from './outputs'
 import type { CreativePlaytestSummary } from './playtest-contracts'
 import type { CreativePlaytestRepairContext, CreativePlaytestRepairReference } from './playtest-repair'
@@ -78,7 +79,7 @@ export interface CreativeFileChange {
   after: string | null
 }
 
-export const CREATIVE_ARTIFACT_KINDS = ['production-brief', 'characters', 'chapter', 'art-direction', 'voice-direction', 'playtest-plan', 'playtest-report', 'delivery-summary', 'outline', 'roleplay', 'consistency-review', 'plot-suggestions'] as const
+export const CREATIVE_ARTIFACT_KINDS = ['production-brief', 'characters', 'chapter', 'art-direction', 'voice-direction', 'media-adoption', 'playtest-plan', 'playtest-report', 'delivery-summary', 'outline', 'roleplay', 'consistency-review', 'plot-suggestions'] as const
 export type CreativeArtifactKind = typeof CREATIVE_ARTIFACT_KINDS[number]
 export type CreativeReviewCapability = 'create-source' | 'modify-source' | 'delete-source' | 'catalog-media' | 'voice-take' | 'candidate-preview'
 
@@ -96,6 +97,8 @@ export interface CreativeArtifact {
   /** Immutable author revision; lineage is separate from upstream task dependencies. */
   editedFrom?: { artifactId: string, fingerprint: string }
   output?: CreativePartnerOutput
+  /** Server-frozen author-host evidence; never emitted by a model output parser. */
+  media?: CreativeMediaEvidence
   legacyResult?: { capability: AgentCapabilityId, streamText: string }
   changes: readonly CreativeFileChange[]
   reviewCapabilities: readonly CreativeReviewCapability[]
@@ -172,7 +175,7 @@ export interface CreativeMilestoneIntent {
 export interface CreativeTeamDecision {
   id: string
   artifactIds: readonly string[]
-  action: 'approve-plan' | 'select' | 'reject' | 'adopt' | 'undo' | 'stop' | 'rework' | 'edit'
+  action: 'approve-plan' | 'select' | 'reject' | 'adopt' | 'undo' | 'stop' | 'rework' | 'edit' | 'register-media'
   reason: string
   projectRevision: string
   at: number
@@ -187,7 +190,7 @@ export interface CreativeTeamAvailability {
   serviceVersion: string
   capabilities: readonly CreativeTeamCapability[]
   media: { image: 'unavailable' | 'manual-import' | 'verified-managed', voice: 'unavailable' | 'manual-import' | 'verified-author-host' | 'verified-managed' }
-  authoring?: { candidateEdits: boolean, milestoneAdoption: boolean, playtestReports?: boolean, playtestRepair?: boolean }
+  authoring?: { candidateEdits: boolean, milestoneAdoption: boolean, playtestReports?: boolean, playtestRepair?: boolean, mediaCandidates?: boolean }
   maxConcurrentTasks: 1
 }
 

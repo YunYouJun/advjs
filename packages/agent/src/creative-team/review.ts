@@ -1,6 +1,7 @@
 import type { AdvProjectDiagnostic, AdvProjectFileMap } from '@advjs/types'
 import type { AgentProjectWorkspaceSnapshot } from '../proposals/review'
 import type { CreativeArtifact, CreativeFileChange, CreativeReviewCapability, CreativeTeamRun } from './contracts'
+import type { CreativeMediaEvidence } from './media'
 import { compileProject } from '@advjs/core'
 import { computeAgentProjectRevision } from '../proposals/review'
 import { creativeArtifactExpectedFiles } from './milestones'
@@ -11,6 +12,8 @@ export interface CreativeProjectWorkspace {
   snapshot: () => Promise<AgentProjectWorkspaceSnapshot>
   commit: (changes: readonly CreativeFileChange[], expectedRevision: string) => Promise<AgentProjectWorkspaceSnapshot>
   capabilities: readonly CreativeReviewCapability[]
+  /** Re-read current binary bytes and verify every supplied immutable hash, size and binding. */
+  verifyMedia?: (files: Readonly<AdvProjectFileMap>, evidence: readonly CreativeMediaEvidence[]) => Promise<void>
 }
 
 /** Immutable review contains the full candidate snapshot for isolated compilation/playtest. */

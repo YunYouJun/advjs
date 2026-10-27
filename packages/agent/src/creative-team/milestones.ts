@@ -1,5 +1,6 @@
 import type { CreativeArtifact, CreativeFileChange, CreativeMilestoneIntent, CreativeTeamRun } from './contracts'
 import type { CreativeTeamStartRequest } from './wire'
+import { compatibleCreativeMediaArtifacts } from './media'
 import { requiredCreativeReviewCapabilities } from './validation'
 import { parseCreativeProject } from './wire'
 
@@ -99,7 +100,7 @@ export function overlayCreativeMilestone(files: Readonly<Record<string, string>>
   return next
 }
 
-/** Pure validation; the trusted service stamps IDs, hashes and durable receipts. Text-only v1. */
+/** Pure validation; the trusted service stamps IDs, hashes and durable receipts. Media requires separate author-host evidence. */
 export function prepareCreativeMilestone(run: CreativeTeamRun, request: CreativeMilestoneRequest): { artifacts: CreativeMilestoneIntent['artifacts'], anchors: string[], changes: CreativeFileChange[], files: Record<string, string> } {
   if (request.project.id !== run.plan.projectId || run.tasks.some(task => ['running', 'reconcile_required'].includes(task.status)) || run.reservedMicroPoints
     || run.milestones?.some(item => item.status === 'prepared') || (run.milestones?.length ?? 0) >= 128) {
@@ -114,7 +115,7 @@ export function prepareCreativeMilestone(run: CreativeTeamRun, request: Creative
       const artifact = run.artifacts.find(item => item.id === reference.artifactId && item.fingerprint === reference.fingerprint && item.status === 'selected')
       if (!artifact)
         throw new Error('CREATIVE_MILESTONE_CONFLICT')
-      if (requiredCreativeReviewCapabilities(artifact).some(capability => ['catalog-media', 'voice-take'].includes(capability)))
+      if (requiredCreativeReviewCapabilities(artifact).some(capability => ['catalog-media', 'voice-take'].includes(capability)) && (artifact.kind !== 'media-adoption' || artifact.media?.verification !== 'author-host'))
         throw new Error('CREATIVE_MEDIA_VERIFIER_REQUIRED')
       for (const [path, content] of Object.entries(creativeArtifactExpectedFiles(artifact, run))) {
         if ((request.project.files[path] ?? null) !== content)
@@ -164,5 +165,8 @@ export function prepareCreativeMilestone(run: CreativeTeamRun, request: Creative
   const changes = creativeMilestoneChanges(run, { operation: request.operation, artifacts, targetId })
   if (!changes.length || changes.length > 100)
     throw new Error('CREATIVE_EMPTY_MILESTONE')
-  return { artifacts, anchors, changes, files: overlayCreativeMilestone(request.project.files, changes) }
+  const files = overlayCreativeMilestone(request.project.files, changes)
+  if (request.operation === 'adopt' && artifacts.some(reference => run.artifacts.find(item => item.id === reference.artifactId)?.kind === 'media-adoption'))
+    anchors = [...new Set([...anchors, ...compatibleCreativeMediaArtifacts(run, files)])]
+  return { artifacts, anchors, changes, files }
 }

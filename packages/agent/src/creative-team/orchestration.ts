@@ -16,6 +16,7 @@ export type CreativeTeamAction
     | { type: 'select', taskId: string, artifactIds: readonly string[], decisionId: string, reason: string }
     | { type: 'request-rework', taskId: string, reason: string, decisionId?: string, playtestRepair?: CreativePlaytestRepairReference }
     | { type: 'edit-candidate', artifact: CreativeArtifact, decisionId: string, reason: string, requestFingerprint: string }
+    | { type: 'register-media', artifact: CreativeArtifact, decisionId: string, reason: string, requestFingerprint: string }
     | { type: 'prepare-milestone', intent: CreativeMilestoneIntent }
     | { type: 'resolve-milestone', milestoneId: string, status: 'confirmed' | 'abandoned', files: Readonly<Record<string, string>> }
     | { type: 'refresh-facts', files: Readonly<Record<string, string>> }
@@ -80,7 +81,7 @@ export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeT
   const state = 'taskId' in action ? run.tasks.find(task => task.taskId === action.taskId) : undefined
   if ('taskId' in action && !state)
     throw new TypeError('Unknown task')
-  const decision = (id: string, operation: 'approve-plan' | 'select' | 'stop' | 'rework' | 'edit', artifactIds: readonly string[], reason: string, projectRevision = run.plan.projectRevision): void => {
+  const decision = (id: string, operation: 'approve-plan' | 'select' | 'stop' | 'rework' | 'edit' | 'register-media', artifactIds: readonly string[], reason: string, projectRevision = run.plan.projectRevision): void => {
     run.decisions = [...run.decisions, { id, action: operation, artifactIds, reason, projectRevision, at: now }]
   }
 
@@ -284,6 +285,18 @@ export function reduceCreativeTeamRun(source: CreativeTeamRun, action: CreativeT
         decision(action.decisionId, 'rework', state!.artifactIds, action.reason)
       if (action.playtestRepair)
         run.decisions = run.decisions.map(item => item.id === action.decisionId ? { ...item, playtestRepair: { taskId: state!.taskId, reference: action.playtestRepair! } } : item)
+      break
+    }
+    case 'register-media': {
+      const candidate = action.artifact
+      const owner = run.tasks.find(item => item.taskId === candidate.taskId)
+      if (candidate.kind !== 'media-adoption' || !candidate.media || candidate.status !== 'selected' || !owner || !['completed', 'awaiting_review'].includes(owner.status) || run.artifacts.some(item => item.id === candidate.id) || run.artifacts.length >= 256 || ['completed', 'cancelled', 'cancel_requested'].includes(run.status))
+        throw new TypeError('Media candidate cannot be registered')
+      assertCreativeArtifactBoundary(candidate, run)
+      run.artifacts = [...run.artifacts, candidate]
+      owner.artifactIds = [...owner.artifactIds, candidate.id]
+      decision(action.decisionId, 'register-media', [candidate.id], action.reason, candidate.source.revision)
+      run.decisions = run.decisions.map(item => item.id === action.decisionId ? { ...item, requestFingerprint: action.requestFingerprint } : item)
       break
     }
     case 'edit-candidate': {

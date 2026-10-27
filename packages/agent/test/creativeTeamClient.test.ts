@@ -20,6 +20,18 @@ describe('managed creative team client', () => {
     expect(fetch).toHaveBeenCalledTimes(2)
   })
 
+  it('submits a bounded author-host media candidate once with its stable intent', async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>(async () => new Response(JSON.stringify({ protocolVersion: 1, run: run() })))
+    const client = new ManagedCreativeTeamClient({ baseUrl: 'https://runtime.example', accountId: 'account1', getAccessToken: () => 'session-token', fetch })
+    const media = { artifactId: 'art-plan', fingerprint: 'plan-v1', project: request.project, target: { kind: 'image' as const, assetId: 'character/lin/default' }, writes: { 'adv/assets.json': '{"schemaVersion":2}' }, reason: 'Author reviewed local media' }
+    await client.registerMediaCandidate(project.id, 'run1', media, 'stable-media-intent')
+    expect(String(fetch.mock.calls[0]![0])).toContain('/runs/run1/media-candidates?projectId=')
+    expect(fetch.mock.calls[0]![1]).toMatchObject({ method: 'POST', headers: { 'idempotency-key': 'stable-media-intent' } })
+    expect(JSON.parse(String(fetch.mock.calls[0]![1]!.body))).toEqual(media)
+    expect(() => client.registerMediaCandidate(project.id, 'run1', { ...media, verification: 'verified-managed' } as typeof media, 'forged-authority')).toThrow('INVALID_AUTHORITY')
+    expect(fetch).toHaveBeenCalledTimes(1)
+  })
+
   it('rejects account/project/run escapes, malformed states and unknown output shapes', async () => {
     expect(() => parseCreativeTeamRun(run(), { accountId: 'other', projectId: project.id })).toThrow(/boundary/)
     expect(() => parseCreativeTeamRun(run(), { accountId: 'account1', projectId: 'other' })).toThrow(/boundary/)

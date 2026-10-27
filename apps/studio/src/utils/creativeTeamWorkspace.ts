@@ -6,7 +6,7 @@ import { commitStudioProjectFiles } from './nativeProjectMutation'
 /** Share Studio's native transaction with voice/Flow writes; media authority is explicit. */
 export function createStudioCreativeWorkspace(fs: IFileSystem, projectId: string, options: {
   assertCurrent?: () => void
-  verifyMedia?: (files: Readonly<Record<string, string>>) => Promise<void>
+  verifyMedia?: CreativeProjectWorkspace['verifyMedia']
 } = {}): CreativeProjectWorkspace {
   async function snapshot() {
     options.assertCurrent?.()
@@ -18,6 +18,7 @@ export function createStudioCreativeWorkspace(fs: IFileSystem, projectId: string
   }
   return {
     snapshot,
+    ...(options.verifyMedia ? { verifyMedia: options.verifyMedia } : {}),
     capabilities: ['create-source', 'modify-source', 'delete-source', 'candidate-preview', ...(options.verifyMedia ? ['catalog-media', 'voice-take'] as const : [])],
     async commit(changes, expectedRevision) {
       await commitStudioProjectFiles(fs, changes.map(change => ({ path: change.path, expected: change.before, content: change.after })), {
@@ -34,7 +35,7 @@ export function createStudioCreativeWorkspace(fs: IFileSystem, projectId: string
           if (changes.some(change => /^adv\/(?:assets(?:\/|\.json$)|audio\/)/.test(change.path))) {
             if (!options.verifyMedia)
               throw new Error('CREATIVE_MEDIA_VERIFIER_REQUIRED')
-            await options.verifyMedia(files)
+            await options.verifyMedia(files, [])
           }
         },
       })

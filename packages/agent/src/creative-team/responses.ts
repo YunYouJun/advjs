@@ -3,6 +3,7 @@ import type { CreativeArtifact, CreativeTeamAttempt, CreativeTeamRun, CreativeTe
 import type { CreativeTeamRunSummary } from './wire'
 import { AGENT_CAPABILITY_IDS } from '../core/contracts'
 import { CREATIVE_ARTIFACT_KINDS, CREATIVE_PARTNER_IDS } from './contracts'
+import { parseCreativeMediaEvidence } from './media'
 import { parseCreativePartnerOutputSnapshot } from './outputs'
 import { parseCreativePlaytestSummary } from './playtest-contracts'
 import { parseCreativePlaytestRepairReference } from './playtest-repair'
@@ -127,6 +128,7 @@ function artifact(value: unknown, run: Pick<CreativeTeamRun, 'id' | 'plan'>): Cr
     changes,
     reviewCapabilities: array(source.reviewCapabilities, 6).map(item => member(item, REVIEW_CAPABILITIES)),
     status: member(source.status, ['candidate', 'selected', 'adopted', 'rejected', 'stale']),
+    ...(source.media === undefined ? {} : { media: parseCreativeMediaEvidence(source.media) }),
     ...(legacy ? { legacyResult: { capability: member(legacy.capability, AGENT_CAPABILITY_IDS), streamText: text(legacy.streamText, 512000, true) } } : {}),
   }
   if (source.output !== undefined) {
@@ -164,7 +166,7 @@ export function parseCreativeTeamRun(value: unknown, boundary: { accountId: stri
       return {
         id: identity(decision.id),
         artifactIds: ids(decision.artifactIds),
-        action: member(decision.action, ['approve-plan', 'select', 'reject', 'adopt', 'undo', 'stop', 'rework', 'edit']),
+        action: member(decision.action, ['approve-plan', 'select', 'reject', 'adopt', 'undo', 'stop', 'rework', 'edit', 'register-media']),
         reason: text(decision.reason),
         projectRevision: identity(decision.projectRevision),
         at: integer(decision.at),

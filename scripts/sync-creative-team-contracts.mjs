@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
-import { resolve } from 'node:path'
+import { dirname, resolve } from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
@@ -10,7 +10,7 @@ const targetArg = process.argv.find(argument => argument.startsWith('--runtime='
 if (!targetArg)
   throw new Error('Pass --runtime=/absolute/path/to/YunLeFun/api; --write updates the generated copy')
 const target = resolve(targetArg, 'packages/ai-runtime-advjs/src/creative-team/shared')
-const files = ['contracts.ts', 'validation.ts', 'candidates.ts', 'orchestration.ts', 'outputs.ts', 'wire.ts', 'edits.ts', 'milestones.ts', 'playtest-contracts.ts', 'playtest-snapshot.ts', 'playtest-repair.ts']
+const files = ['contracts.ts', 'validation.ts', 'candidates.ts', 'orchestration.ts', 'outputs.ts', 'wire.ts', 'edits.ts', 'media.ts', 'milestones.ts', 'playtest-contracts.ts', 'playtest-snapshot.ts', 'playtest-repair.ts']
 const hashes = {}
 for (const file of files) {
   const original = await readFile(new URL(file, source), 'utf8')
@@ -27,7 +27,18 @@ for (const file of files) {
     throw new Error(`Runtime contract drift: ${path}`)
   }
 }
-const metadata = `${JSON.stringify({ source: 'YunYouJun/advjs:packages/agent/src/creative-team', files: hashes }, null, 2)}\n`
+const fixtureName = 'creative-media-author-host.json'
+const fixture = await readFile(new URL(`../packages/agent/test/fixtures/${fixtureName}`, import.meta.url), 'utf8')
+const fixtureTarget = resolve(targetArg, 'packages/ai-runtime-advjs/test', fixtureName)
+if (process.argv.includes('--write')) {
+  await mkdir(dirname(fixtureTarget), { recursive: true })
+  await writeFile(fixtureTarget, fixture)
+}
+else if (await readFile(fixtureTarget, 'utf8') !== fixture) {
+  throw new Error('Runtime media fixture drift')
+}
+const fixtures = { [fixtureName]: createHash('sha256').update(fixture).digest('hex') }
+const metadata = `${JSON.stringify({ source: 'YunYouJun/advjs:packages/agent/src/creative-team', files: hashes, fixtures }, null, 2)}\n`
 if (process.argv.includes('--write'))
   await writeFile(resolve(target, 'source.json'), metadata)
 else if (await readFile(resolve(target, 'source.json'), 'utf8') !== metadata)

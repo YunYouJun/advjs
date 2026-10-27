@@ -29,7 +29,8 @@
   },
   "dependencies": {
     "@advjs/core": "workspace:0.1.4",
-    "@advjs/types": "workspace:0.1.4"
+    "@advjs/types": "workspace:0.1.4",
+    "js-yaml": "catalog:"
   },
   "devDependencies": {
     "typescript": "catalog:dev",
