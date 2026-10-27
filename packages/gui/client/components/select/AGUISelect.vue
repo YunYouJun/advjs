@@ -144,7 +144,7 @@ const reducedMotion = usePreferredReducedMotion()
   justify-content: space-between;
   align-items: center;
   gap: 4px;
-  padding: 0 8px;
+  padding: 0 var(--agui-space-2);
   background: var(--agui-c-field);
   border: 1px solid var(--agui-c-control-border);
   border-radius: var(--agui-radius-sm);
