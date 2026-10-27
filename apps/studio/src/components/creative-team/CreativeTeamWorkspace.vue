@@ -12,6 +12,7 @@ import { useManagedAgentStore } from '../../stores/useManagedAgentStore'
 import { useStudioStore } from '../../stores/useStudioStore'
 import { createStudioCreativeWorkspace } from '../../utils/creativeTeamWorkspace'
 import SButton from '../ui/SButton.vue'
+import CreativeArtImportPanel from './CreativeArtImportPanel.vue'
 import CreativeMilestonePanel from './CreativeMilestonePanel.vue'
 import CreativePartnerRoster from './CreativePartnerRoster.vue'
 import CreativePlaytestPanel from './CreativePlaytestPanel.vue'
@@ -34,6 +35,7 @@ const snapshotError = shallowRef(false)
 const preparing = shallowRef(false)
 const milestoneBusy = shallowRef(false)
 const playtestBusy = shallowRef(false)
+const artBusy = shallowRef(false)
 const partnerEnabled = computed(() => availability.value?.capabilities.includes(CREATIVE_PARTNER_DEFAULT_CAPABILITY[partner.value]))
 const knownCharacterIds = computed(() => content.characters.value.map(character => character.id))
 watch(() => studio.currentProjectId, () => {
@@ -41,7 +43,7 @@ watch(() => studio.currentProjectId, () => {
   savedEditArtifactId.value = undefined
 })
 
-async function projectWorkspace() {
+async function projectHost() {
   const projectId = studio.currentProject?.projectId
   const accountId = auth.userId
   if (!projectId)
@@ -55,6 +57,10 @@ async function projectWorkspace() {
   const fs = content.getFs()
   if (!fs)
     throw new Error('Project filesystem unavailable')
+  return { fs, projectId, assertCurrent }
+}
+async function projectWorkspace() {
+  const { fs, projectId, assertCurrent } = await projectHost()
   return createStudioCreativeWorkspace(fs, projectId, { assertCurrent })
 }
 async function projectSnapshot() {
@@ -63,7 +69,7 @@ async function projectSnapshot() {
   return parseCreativeProject({ id: projectId, revision: snapshot.revision, files: snapshot.files })
 }
 async function withSnapshot(action: (project: Awaited<ReturnType<typeof projectSnapshot>>) => Promise<void>) {
-  if (preparing.value || mutating.value || milestoneBusy.value || playtestBusy.value)
+  if (preparing.value || mutating.value || milestoneBusy.value || playtestBusy.value || artBusy.value)
     return
   preparing.value = true
   snapshotError.value = false
@@ -118,7 +124,7 @@ async function editCandidate(request: CreativeCandidateEditRequest) {
           {{ studio.currentProject?.name || t('creativeTeam.title') }}
         </h1>
       </div>
-      <SButton variant="outline" size="lg" :disabled="!connected || mutating || milestoneBusy || playtestBusy" :loading="loading" @click="store.refresh">
+      <SButton variant="outline" size="lg" :disabled="!connected || mutating || milestoneBusy || playtestBusy || artBusy" :loading="loading" @click="store.refresh">
         {{ t('creativeTeam.refresh') }}
       </SButton>
     </header>
@@ -150,21 +156,22 @@ async function editCandidate(request: CreativeCandidateEditRequest) {
         <p v-if="managed.hasActiveTask" class="team-workspace__notice">
           {{ t('creativeTeam.oldTask') }}
         </p>
-        <CreativeTeamRequestForm :partner="partner" :disabled="!canStart || !partnerEnabled || managed.hasActiveTask || milestoneBusy || playtestBusy" :busy="mutating || preparing || milestoneBusy || playtestBusy" @submit="start" />
+        <CreativeTeamRequestForm :partner="partner" :disabled="!canStart || !partnerEnabled || managed.hasActiveTask || milestoneBusy || playtestBusy || artBusy" :busy="mutating || preparing || milestoneBusy || playtestBusy || artBusy" @submit="start" />
       </section>
       <div class="team-workspace__section">
         <label v-if="runs.length" class="team-workspace__history">
           {{ t('creativeTeam.history') }}
-          <select :value="run?.id" :disabled="mutating || preparing || loading || milestoneBusy || playtestBusy" @change="store.open(($event.target as HTMLSelectElement).value)">
+          <select :value="run?.id" :disabled="mutating || preparing || loading || milestoneBusy || playtestBusy || artBusy" @change="store.open(($event.target as HTMLSelectElement).value)">
             <option v-for="item in runs" :key="item.id" :value="item.id">{{ t(`creativeTeam.status.${item.status}`) }} · {{ item.goal }}</option>
           </select>
         </label>
         <p v-else-if="!loading">
           {{ t('creativeTeam.noRuns') }}
         </p>
-        <CreativeTeamRunPanel v-if="run" :run="run" :busy="mutating || preparing || milestoneBusy || playtestBusy || Boolean(run.milestones?.some(item => item.status === 'prepared'))" :enabled="Boolean(availability?.enabled)" :known-character-ids="knownCharacterIds" :author-edits-available="Boolean(availability?.authoring?.candidateEdits)" :saved-edit-artifact-id="savedEditArtifactId" @decide="decide" @sync-facts="withSnapshot(store.refreshFacts)" @edit="editCandidate" />
-        <CreativeMilestonePanel v-if="run" :key="`${run.accountId}:${run.plan.projectId}:${run.id}`" :run="run" :enabled="Boolean(availability?.authoring?.milestoneAdoption)" :busy="mutating || preparing || playtestBusy" :workspace="projectWorkspace" @busy="milestoneBusy = $event" @changed="content.reload()" />
-        <CreativePlaytestPanel v-if="run" :key="`playtest:${run.accountId}:${run.plan.projectId}:${run.id}`" :run="run" :busy="mutating || preparing || milestoneBusy" :workspace="projectWorkspace" @busy="playtestBusy = $event" @source="(path, line) => router.push({ path: '/editor', query: { file: path, line: String(line || 1), column: '1' } })" />
+        <CreativeTeamRunPanel v-if="run" :run="run" :busy="mutating || preparing || milestoneBusy || playtestBusy || artBusy || Boolean(run.milestones?.some(item => item.status === 'prepared'))" :enabled="Boolean(availability?.enabled)" :known-character-ids="knownCharacterIds" :author-edits-available="Boolean(availability?.authoring?.candidateEdits)" :saved-edit-artifact-id="savedEditArtifactId" @decide="decide" @sync-facts="withSnapshot(store.refreshFacts)" @edit="editCandidate" />
+        <CreativeMilestonePanel v-if="run" :key="`${run.accountId}:${run.plan.projectId}:${run.id}`" :run="run" :enabled="Boolean(availability?.authoring?.milestoneAdoption)" :busy="mutating || preparing || playtestBusy || artBusy" :workspace="projectWorkspace" @busy="milestoneBusy = $event" @changed="content.reload()" />
+        <CreativeArtImportPanel v-if="run" :key="`art:${run.accountId}:${run.plan.projectId}:${run.id}`" :run="run" :busy="mutating || preparing || milestoneBusy || playtestBusy" :host="projectHost" @busy="artBusy = $event" @changed="content.reload()" />
+        <CreativePlaytestPanel v-if="run" :key="`playtest:${run.accountId}:${run.plan.projectId}:${run.id}`" :run="run" :busy="mutating || preparing || milestoneBusy || artBusy" :workspace="projectWorkspace" @busy="playtestBusy = $event" @source="(path, line) => router.push({ path: '/editor', query: { file: path, line: String(line || 1), column: '1' } })" />
       </div>
     </div>
     <footer class="team-workspace__footer">

@@ -33,8 +33,8 @@ export async function commitStudioProjectFiles(fs: IFileSystem, changes: StudioN
         }
         else {
           options.assertCurrent?.()
-          await fs.writeBlob(media.path, media.blob)
           imported = true
+          await fs.writeBlob(media.path, media.blob)
         }
       }
       for (const change of changes) {
@@ -60,7 +60,7 @@ export async function commitStudioProjectFiles(fs: IFileSystem, changes: StudioN
           await fs.writeFile(change.path, change.expected)
         }
       }
-      if (imported && media)
+      if (imported && media && await fs.exists(media.path))
         await fs.deleteFile(media.path)
       await fs.flush?.()
       throw cause

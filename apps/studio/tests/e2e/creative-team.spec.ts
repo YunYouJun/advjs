@@ -1,4 +1,5 @@
 import { writeFile } from 'node:fs/promises'
+import { resolve } from 'node:path'
 import { expect, test } from '@playwright/test'
 
 test('executes actual core paths, retains private reports across reload and retests a repaired source', async ({ page }, info) => {
@@ -133,6 +134,105 @@ test('returns an actual candidate compiler finding to the writer, reviews a repa
   expect(errors).toEqual([])
   expect(warnings).toEqual([])
   await writeFile(info.outputPath('owner-repair-evidence.json'), JSON.stringify({ scope: 'Actual compiler, candidate editing, isolated execution and report persistence. Explicit fixture owner response/auth/history; no model quality or billing claim.', run, handoffs, reports, errors, warnings }, null, 2))
+})
+
+test('imports a real character image, reviews the catalog and renders the adopted bytes in the product player after reopen', async ({ page }, info) => {
+  const errors: string[] = []
+  const warnings: string[] = []
+  page.on('pageerror', error => errors.push(error.message))
+  page.on('console', (message) => {
+    if (message.type() === 'error')
+      errors.push(message.text())
+    if (message.type() === 'warning')
+      warnings.push(message.text())
+  })
+  await page.goto('/tests/fixtures/creative-team/art-import.html')
+  await expect(page).toHaveTitle('Creative art import UI fixture')
+  await expect.poll(() => page.evaluate(() => Boolean((window as any).creativeArtFixture))).toBe(true)
+  const files = () => page.evaluate(() => (window as any).creativeArtFixture.files())
+  const before = await files()
+  const panel = page.getByTestId('creative-art-import')
+  await panel.getByRole('combobox', { name: '美术素材需求', exact: true }).selectOption({ label: 'character/xiaoyun/default · 619 × 619' })
+  await panel.getByLabel('选择图片文件', { exact: true }).setInputFiles(resolve(import.meta.dirname, '../../../../demo/starter/public/img/characters/xiaoyun.webp'))
+  await panel.getByLabel('素材来源与署名', { exact: true }).fill('ADV.JS demo/starter 已有小云图片，仅用于本地回流集成回归。')
+  await panel.getByRole('button', { name: '保存图片候选', exact: true }).click()
+  const candidate = page.getByTestId('creative-art-candidate')
+  await expect(candidate.getByRole('img')).toBeVisible()
+  await expect.poll(() => candidate.getByRole('img').evaluate((element: HTMLImageElement) => ({ loaded: element.complete, width: element.naturalWidth, height: element.naturalHeight }))).toEqual({ loaded: true, width: 619, height: 619 })
+  expect(await files()).toEqual(before)
+  await page.reload()
+  await expect(candidate.getByRole('img')).toBeVisible()
+  expect(await files()).toEqual(before)
+  expect((await page.evaluate(() => (window as any).creativeArtFixture.calls()) as string[]).filter(call => call.startsWith('POST'))).toEqual([])
+  await candidate.getByRole('button', { name: '审阅导入', exact: true }).click()
+  await expect(candidate.getByText('adv/assets/other.json', { exact: true })).toBeVisible()
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    await candidate.scrollIntoViewIfNeeded()
+    await page.screenshot({ path: info.outputPath(`image-adoption-review-${width}.png`), animations: 'disabled' })
+  }
+  await candidate.getByRole('button', { name: '确认采用此图片', exact: true }).click()
+  await expect(candidate.getByRole('heading', { name: /已采用到本机项目/ })).toBeVisible()
+  const media = await page.evaluate(() => (window as any).creativeArtFixture.media()) as any[]
+  expect(media).toHaveLength(1)
+  expect(media[0].sha256).toBe(media[0].expectedSha256)
+  expect(media[0].bytes).toBe(media[0].expectedBytes)
+  const adopted = await files()
+  expect(adopted['adv/characters/xiaoyun.character.md']).toBe(before['adv/characters/xiaoyun.character.md'])
+  await page.reload()
+  await expect(candidate.getByRole('heading', { name: /已采用到本机项目/ })).toBeVisible()
+  await expect(candidate.getByRole('button', { name: '撤销图片目录与绑定' })).toBeVisible()
+  await candidate.getByRole('button', { name: '撤销图片目录与绑定' }).click()
+  await expect(candidate.getByRole('heading', { name: /目录与绑定已撤销/ })).toBeVisible()
+  expect(await files()).toEqual(before)
+  // Import again through the same author controls; the immutable bytes may be reused safely.
+  await panel.getByRole('combobox', { name: '美术素材需求', exact: true }).selectOption({ label: 'character/xiaoyun/default · 619 × 619' })
+  await panel.getByLabel('选择图片文件', { exact: true }).setInputFiles(resolve(import.meta.dirname, '../../../../demo/starter/public/img/characters/xiaoyun.webp'))
+  await panel.getByLabel('素材来源与署名', { exact: true }).fill('ADV.JS demo/starter 既有角色素材。')
+  await panel.getByRole('button', { name: '保存图片候选', exact: true }).click()
+  const fresh = candidate.filter({ hasText: '图片候选，未写入项目' })
+  await fresh.getByRole('button', { name: '审阅导入', exact: true }).click()
+  await fresh.getByRole('button', { name: '确认采用此图片', exact: true }).click()
+  await expect(candidate.filter({ hasText: '已采用到本机项目' })).toHaveCount(1)
+  const finalFiles = await files()
+  const calls = await page.evaluate(() => (window as any).creativeArtFixture.calls()) as string[]
+  expect(calls.filter(call => call.startsWith('POST'))).toEqual([])
+  await page.goto('/tabs/play')
+  await expect(page).toHaveURL(/\/tabs\/play/)
+  const avatar = page.locator('.dialog-avatar-wrap img')
+  await expect(avatar).toBeVisible()
+  await expect.poll(() => avatar.evaluate((element: HTMLImageElement) => ({ loaded: element.complete, width: element.naturalWidth, height: element.naturalHeight, local: element.src.startsWith('blob:') }))).toEqual({ loaded: true, width: 619, height: 619, local: true })
+  const paints: unknown[] = []
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    const toolbar = page.getByTestId('play-toolbar-actions')
+    await expect(toolbar.locator('ion-button:visible')).toHaveCount(width === 390 ? 1 : 8)
+    if (width === 390) {
+      await toolbar.getByRole('button', { name: '设置', exact: true }).click()
+      const menu = page.locator('.adv-popover-menu:visible')
+      await expect(menu.getByText('存档', { exact: true })).toBeVisible()
+      await expect(menu.getByText('读档', { exact: true })).toBeVisible()
+      await expect(menu.getByText('全屏', { exact: true })).toBeVisible()
+      await page.keyboard.press('Escape')
+      await expect(menu).toHaveCount(0)
+    }
+    await expect(avatar).toBeVisible()
+    await expect.poll(() => avatar.evaluate((element: HTMLImageElement) => element.naturalWidth)).toBe(619)
+    await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))))
+    await expect(avatar).toBeInViewport()
+    paints.push(await avatar.evaluate((element) => {
+      const result = []
+      for (let parent: Element | null = element; parent; parent = parent.parentElement) {
+        const style = getComputedStyle(parent)
+        result.push({ tag: parent.tagName, class: parent.className, opacity: style.opacity, display: style.display, visibility: style.visibility, animation: style.animationName })
+      }
+      return result
+    }))
+    await page.screenshot({ path: info.outputPath(`adopted-image-player-${width}.png`), animations: 'allow' })
+  }
+  expect(errors).toEqual([])
+  expect(warnings).toEqual([])
+  await writeFile(info.outputPath('image-import-evidence.json'), JSON.stringify({ scope: 'Actual existing repository image imported through browser decoding, native project transaction, IndexedDB recovery and real product GamePlayer. Art proposal/auth/history are explicit fixtures. No generation, fees or final story art-quality claim.', media, before, finalFiles, calls, paints, errors, warnings }, null, 2))
 })
 
 test('writes reviewed text through the project transaction, recovers a lost receipt after reload and conditionally undoes', async ({ page }, info) => {
